@@ -16,6 +16,7 @@
 //     stored result verbatim).
 
 const { getDb } = require("./sqlite");
+const { withTxnLock } = require("./txnLock");
 
 function dbGet(db, sql, params = []) {
   return new Promise((resolve, reject) => db.get(sql, params, (e, row) => (e ? reject(e) : resolve(row))));
@@ -38,7 +39,8 @@ const FUTURE_SLACK_MS = 5 * 60_000;
 // ordering (критика B10) → reject, never normalize silently.
 const CANON_TIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/;
 
-const RL_KINDS = { review: 1, skip: 1, seed: 1, annul: 1 };
+// 'mark' (CLG-P3.2, §4.7): ручная ось как append-only событие — grade NULL, status в meta.
+const RL_KINDS = { review: 1, skip: 1, seed: 1, annul: 1, mark: 1 };
 
 // §5 B5 — meta allowlist: identifiers + scheduler facts. item_key anchors (text_key/sentence_id/
 // order_index) are identifiers per §5; the lemma itself is the item_key and is disclosed in the
@@ -51,6 +53,8 @@ const META_ALLOW = new Set([
   "text_key", "sentence_id", "order_index",
   // CLG-P3 sweep of REAL client meta keys (seed rows / Studio sre: rows) — identifiers, not content:
   "seedAlgoVersion", "level", "card_id", "note_id",
+  // CLG-P3.2 mark rows (§4.7 manual axis): the asserted status value + the backfill marker
+  "status", "backfill",
 ]);
 // Known CONTENT keys → stripped (accepted row, cleaned meta). Everything else unknown → reject.
 const META_STRIP = new Set([
@@ -104,7 +108,7 @@ function validateReviewRow(raw, nowMs) {
   const t = validateTime(raw.reviewed_at, nowMs);
   if (!t.ok) return { ok: false, reason: t.reason };
   const grade = raw.grade == null ? null : Number(raw.grade);
-  if (kind === "seed" || kind === "annul") {
+  if (kind === "seed" || kind === "annul" || kind === "mark") {
     if (grade != null) return { ok: false, reason: "grade_on_" + kind };
   } else if (!(grade >= 1 && grade <= 4)) return { ok: false, reason: "bad_grade" };
   let meta = raw.meta_json != null ? raw.meta_json : (raw.meta || {});
@@ -184,6 +188,9 @@ async function ingestBatch(userId, deviceId, batch) {
   };
   const rejects = (id, reason) => { if (result.rejected.length < 20) result.rejected.push({ id: id || null, reason }); };
 
+  // Explicit-transaction section: MUST hold the process txn-lock (see db/txnLock.js) — two
+  // concurrent ingests otherwise nest BEGINs on the shared connection and 500.
+  await withTxnLock(async () => {
   await dbRun(db, `BEGIN IMMEDIATE`);
   try {
     for (const raw of reviews) {
@@ -223,6 +230,7 @@ async function ingestBatch(userId, deviceId, batch) {
     try { await dbRun(db, `ROLLBACK`); } catch (_) {}
     throw e;
   }
+  });
   return { ok: true, replayed: false, ...result };
 }
 

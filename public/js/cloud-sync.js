@@ -143,7 +143,7 @@
   // ── download ─────────────────────────────────────────────────────────────
   async function syncDown(ldb) {
     var since = (await ldb.getSyncState(DOWN_CURSOR)) || "";
-    var addedKeys = new Set(); var pulled = 0;
+    var addedKeys = new Set(); var markKeys = new Set(); var pulled = 0;
     for (;;) {
       var r = await jfetch("GET", "/api/learner/log?limit=" + BATCH_DOWN + (since ? "&since=" + encodeURIComponent(since) : ""));
       if (r.status !== 200 || !r.json || !r.json.ok) return { ok: false, status: r.status, error: (r.json && r.json.error) || "READ_FAILED" };
@@ -159,22 +159,45 @@
           grade: w.grade, source: w.source, channel: w.channel, latency_ms: w.latency_ms,
           meta_json: w.meta_json,
         });
-        if (isNew && res && res.accepted >= 1) { addedKeys.add(String(w.item_key)); pulled++; }
+        if (isNew && res && res.accepted >= 1) {
+          addedKeys.add(String(w.item_key)); pulled++;
+          if (w.kind === "mark") markKeys.add(String(w.item_key));
+        }
       }
       since = r.json.next_since || since;
       await ldb.setSyncState(DOWN_CURSOR, since);
       if (rows.length < BATCH_DOWN) break;
     }
+    // §4.7 manual-axis LWW: a NEW foreign mark row may or may not be the newest — fold the FULL
+    // merged log per key (last mark by reviewed_at,id) and apply WITHOUT re-emitting (suppressed).
+    var lwwApplied = 0;
+    if (markKeys.size && typeof ldb.lastMarkStatus === "function" && typeof ldb.applyWordStatusFromSync === "function") {
+      for (const mk of markKeys) {
+        try {
+          var target = await ldb.lastMarkStatus(mk);
+          if (target == null) continue;
+          var cur = await ldb.getWordStatus(mk);
+          if (String(cur || "") !== target) { await ldb.applyWordStatusFromSync(mk, target); lwwApplied++; }
+        } catch (_) {}
+      }
+    }
     if (addedKeys.size && typeof ldb.recomputeSrsFromLog === "function") {
       try { await ldb.recomputeSrsFromLog(Array.from(addedKeys)); } catch (_) {}
     }
-    return { ok: true, pulled: pulled, recomputedKeys: Array.from(addedKeys) };
+    return { ok: true, pulled: pulled, lwwApplied: lwwApplied, recomputedKeys: Array.from(addedKeys) };
   }
 
   // ── full cycle + reconciliation ──────────────────────────────────────────
   async function fullSync(ldb) {
     var session = await me();
     if (!session) return { ok: false, error: "UNAUTHENTICATED" };
+    // §4.7 backfill at cutover: manual разметка asserted BEFORE mark-emission existed gets its
+    // synthetic mark rows ONCE, so the historic axis rides the same log channel (idempotent).
+    try {
+      if (!(await ldb.getSyncState(CUTOVER_OK)) && typeof ldb.backfillMarkRows === "function") {
+        await ldb.backfillMarkRows();
+      }
+    } catch (_) {}
     var up = await syncUp(ldb);
     if (!up.ok) return up;
     var down = await syncDown(ldb);

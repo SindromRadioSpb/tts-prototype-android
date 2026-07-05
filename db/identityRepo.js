@@ -12,6 +12,7 @@
 
 const crypto = require("crypto");
 const { getDb } = require("./sqlite");
+const { withTxnLock } = require("./txnLock");
 
 function dbGet(db, sql, params = []) {
   return new Promise((resolve, reject) => db.get(sql, params, (e, row) => (e ? reject(e) : resolve(row))));
@@ -166,6 +167,9 @@ async function exportUserData(userId) {
 async function deleteUserData(userId) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const tables = await listUserScopedTables();
+  // Explicit transaction → must hold the process txn-lock (db/txnLock.js): a concurrent learner
+  // ingest would otherwise nest BEGINs on the shared connection.
+  await withTxnLock(async () => {
   await dbRun(db, `BEGIN IMMEDIATE`);
   try {
     for (const name of tables) {
@@ -179,6 +183,7 @@ async function deleteUserData(userId) {
     try { await dbRun(db, `ROLLBACK`); } catch (_) {}
     throw e;
   }
+  });
   return { tables };
 }
 

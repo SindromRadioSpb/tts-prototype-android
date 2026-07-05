@@ -1224,6 +1224,20 @@
     .room-about-x { position: absolute; top: 10px; inset-inline-end: 12px; width: auto; background: transparent; border: 0; font-size: 18px; color: var(--text-faint); cursor: pointer; }
     .room-about-version { margin-top: 12px; font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .room-about-update button { width: auto; background: var(--accent); color: var(--accent-contrast); border: 0; border-radius: 6px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
+    /* CLG-P3.2 — «☁ Синхронизация» modal internals (rides the room-about chrome) */
+    .room-cloud-intro { font-size: 13px !important; }
+    .room-cloud-status { min-height: 18px; margin: 0 0 10px; font-size: 13px; color: var(--text-secondary); }
+    .room-cloud-status.err { color: #c0392b; }
+    .room-cloud-status.ok { color: var(--accent); }
+    .room-cloud-login { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .room-cloud-login[hidden] { display: none; }   /* author display:flex beats UA [hidden] — known trap */
+    .room-cloud-login input { flex: 1 1 180px; min-width: 0; padding: 8px 10px; border: 1px solid var(--border-soft); border-radius: 8px; background: var(--bg-main); color: var(--text-primary); font-size: 14px; }
+    .room-cloud-login button, .room-cloud-actions button { width: auto; background: var(--accent); color: var(--accent-contrast); border: 0; border-radius: 8px; padding: 8px 14px; font-size: 14px; cursor: pointer; }
+    .room-cloud-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .room-cloud-actions button[disabled] { opacity: .6; cursor: default; }
+    .room-cloud-ghost { background: transparent !important; color: var(--text-secondary) !important; border: 1px solid var(--border-soft) !important; }
+    .room-cloud-info { font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
+    .room-cloud-info b { color: var(--text-primary); }
     /* Stage 2 — rich card: collapsible root-family + ported Pealim inflection table */
     .rm-acc { margin-top: 12px; border-top: 1px solid var(--border-soft); padding-top: 8px; }
     .rm-acc-sum { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--text-secondary); list-style: none; padding: 4px 0; }
@@ -1612,6 +1626,8 @@
       <p class="room-subtitle" data-i18n="room.header.subtitle">Двуязычная библиотека</p>
     </div>
     <div class="room-head-controls">
+      <!-- CLG-P3.2 — «☁» cloud-sync entry (owner-only dev-режим; dormant Tier 1 without login) -->
+      <button id="roomCloud" class="room-theme-btn" type="button" aria-label="Синхронизация" data-i18n-title="room.cloud.btn" title="Синхронизация">☁</button>
       <button id="roomTheme" class="room-theme-btn" type="button" aria-label="Тема" data-i18n-title="room.theme.label" title="Тема">🌗</button>
       <select id="roomLang" class="room-lang" aria-label="Язык / Language / שפה">
         <option value="ru">Рус</option>
@@ -1683,6 +1699,30 @@
     <div class="room-about-version">
       <span data-i18n="room.about.versionLabel">Версия</span>&nbsp;<strong id="roomAboutVersion">—</strong>
       <span id="roomAboutUpdate" class="room-about-update"></span>
+    </div>
+  </div>
+</div>
+
+<!-- CLG-P3.2 — «☁ Синхронизация» (owner-only dev-режим). Reuses the room-about modal chrome.
+     Честные состояния: не подключено (логин) / подключено (последний синк · счётчики · синк/выход);
+     что синкается — сказано явно (память слов + пометки; тексты НЕ передаются). -->
+<div id="roomCloudModal" class="room-about" hidden role="dialog" aria-modal="true" aria-labelledby="roomCloudTitle">
+  <div class="room-about-backdrop" data-cloud-close="1"></div>
+  <div class="room-about-card">
+    <button class="room-about-x" type="button" aria-label="Close" data-cloud-close="1">✕</button>
+    <h2 id="roomCloudTitle" data-i18n="room.cloud.title">☁ Синхронизация</h2>
+    <p class="room-cloud-intro" data-i18n="room.cloud.intro">Память слов и ручные пометки синхронизируются между вашими устройствами. Тексты не передаются. Режим разработки — вход только для владельца.</p>
+    <div id="roomCloudStatus" class="room-cloud-status" aria-live="polite"></div>
+    <div id="roomCloudLoginBox" class="room-cloud-login" hidden>
+      <input id="roomCloudSecret" type="password" autocomplete="off" data-i18n-placeholder="room.cloud.secretPh" placeholder="Секрет владельца">
+      <button id="roomCloudLoginBtn" type="button" data-i18n="room.cloud.login">Войти</button>
+    </div>
+    <div id="roomCloudPanel" hidden>
+      <div id="roomCloudInfo" class="room-cloud-info"></div>
+      <div class="room-cloud-actions">
+        <button id="roomCloudSyncBtn" type="button" data-i18n="room.cloud.syncNow">Синхронизировать</button>
+        <button id="roomCloudLogoutBtn" type="button" class="room-cloud-ghost" data-i18n="room.cloud.logout">Выйти</button>
+      </div>
     </div>
   </div>
 </div>

@@ -225,6 +225,7 @@
       if (!row) continue;
       if (row.kind === "seed" && j !== start) continue;   // D3: later seeds skipped (earliest-wins)
       if (row.kind === "annul") continue;                  // neutral until CLG-P4
+      if (row.kind === "mark") continue;                   // CLG-P3.2: manual-axis event — never memory
       state = applyRow(state, row);
     }
     return state;

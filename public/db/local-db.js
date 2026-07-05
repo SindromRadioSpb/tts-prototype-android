@@ -2273,10 +2273,32 @@ export async function getKnownWordStates() {
 // «new» IS storable (so an UNCONFIDENT word — function/unknown, which has no auto-default colour —
 // can be explicitly marked «новое»/purple); only an empty status clears.
 const _WS_VALUES = { "new": 1, l1: 1, l2: 1, l3: 1, l4: 1, known: 1, ignore: 1 };
+// CLG-P3.2 — the manual axis is ASSERTED user state (§4.7): every ACTUAL change of the axis emits
+// an append-only `kind='mark'` row into review_log (status in meta; grade NULL; replay-NEUTRAL).
+// The cross-device truth of the axis = the LAST mark per item_key in the merged log (LWW by
+// (reviewed_at, id)); cloud-sync applies it via applyWordStatusFromSync (emission suppressed —
+// a sync apply must not mint a fresh mark and steal LWW from the truly-newest device).
+let _markEmitSuppressed = false;
+async function _emitMarkRow(lk, prevStatus, nextStatus) {
+  if (_markEmitSuppressed || prevStatus === nextStatus) return;
+  try {
+    const LC = (typeof window !== "undefined") ? window.LemmaCanon : null;
+    if (!LC || !LC.sha1Hex) return;   // no canon loaded (bare test contexts) → axis stays local
+    const at = new Date().toISOString();
+    await appendReviewLog({
+      id: "mark:" + LC.sha1Hex(lk + "|" + at + "|" + nextStatus).slice(0, 16),
+      item_key: lk, kind: "mark", reviewed_at: at, grade: null, source: "word-mark",
+      meta: { status: nextStatus, keyer_version: LC.KEYER_VERSION },
+    });
+  } catch (_) { /* the axis write must never fail on the mark emission */ }
+}
 export async function setWordStatus(lemmaKey, status, sched, source) {
   const lk = String(lemmaKey || "").trim();
   if (!lk) return false;
   const st = String(status || "").trim();
+  const nextStatus = (!st || !_WS_VALUES[st]) ? "" : st;
+  let prevStatus = null;
+  if (!_markEmitSuppressed) { try { prevStatus = await getWordStatus(lk); } catch (_) { prevStatus = null; } }
   try {
     if (!st || !_WS_VALUES[st]) {
       await r(`DELETE FROM word_status WHERE lemma_key = ?`, [lk]);
@@ -2313,8 +2335,52 @@ export async function setWordStatus(lemmaKey, status, sched, source) {
                VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
                ON CONFLICT(lemma_key) DO UPDATE SET status=excluded.status, updated_at=excluded.updated_at`, [lk, st]);
     }
+    if (prevStatus != null) await _emitMarkRow(lk, prevStatus, nextStatus);
     return true;
   } catch (_) { return false; }
+}
+// CLG-P3.2 — apply a sync-derived LWW status WITHOUT minting a mark row (see _emitMarkRow).
+export async function applyWordStatusFromSync(lemmaKey, status) {
+  _markEmitSuppressed = true;
+  try { return await setWordStatus(lemmaKey, status); }
+  finally { _markEmitSuppressed = false; }
+}
+// CLG-P3.2 — one-time backfill at sync cutover: word_status rows asserted BEFORE mark-emission
+// existed get a synthetic mark row (reviewed_at = the row's updated_at — учебное время оси, §6),
+// so the owner's historic manual разметка rides to other devices. Idempotent: a key with ANY
+// existing mark row is skipped (its truth is already in the log).
+export async function backfillMarkRows() {
+  const LC = (typeof window !== "undefined") ? window.LemmaCanon : null;
+  if (!LC || !LC.sha1Hex) return { backfilled: 0 };
+  let rows;
+  try { rows = await q(`SELECT lemma_key, status, updated_at FROM word_status WHERE status != ''`, []); }
+  catch (_) { return { backfilled: 0 }; }
+  let backfilled = 0;
+  for (const w of (rows || [])) {
+    const lk = String(w.lemma_key || ""); if (!lk) continue;
+    try {
+      const has = await q(`SELECT 1 x FROM review_log WHERE item_key = ? AND kind = 'mark' LIMIT 1`, [lk]);
+      if (has && has.length) continue;
+      const at = String(w.updated_at || new Date().toISOString());
+      const res = await appendReviewLog({
+        id: "mark:" + LC.sha1Hex(lk + "|" + at + "|" + String(w.status)).slice(0, 16),
+        item_key: lk, kind: "mark", reviewed_at: at, grade: null, source: "mark-backfill",
+        meta: { status: String(w.status), keyer_version: LC.KEYER_VERSION, backfill: 1 },
+      });
+      if (res && res.accepted >= 1) backfilled++;
+    } catch (_) {}
+  }
+  return { backfilled };
+}
+// CLG-P3.2 — the LWW fold: last mark row per item_key (reviewed_at ASC, id ASC order) = the axis.
+export async function lastMarkStatus(itemKey) {
+  try {
+    const rows = await q(`SELECT meta_json FROM review_log WHERE item_key = ? AND kind = 'mark'
+                          ORDER BY reviewed_at DESC, id DESC LIMIT 1`, [String(itemKey || "")]);
+    if (!rows || !rows.length) return null;
+    const m = JSON.parse(rows[0].meta_json || "{}");
+    return m.status != null ? String(m.status) : null;
+  } catch (_) { return null; }
 }
 // C2 — per-lemma recall SCHEDULE (only rows that have been recall-tested carry srs_due). Returns
 // { lemmaKey: { due(ms), interval, reps, lapses } }. Read-only; graceful {} if the column/table absent.
@@ -2469,7 +2535,9 @@ export async function getStudyDays(sinceDayStr) {
 // caller owns identity, recon B5). Scheduler state stays a derived cache on word_status.srs_*.
 // 'annul' (CLG-P2 схема, §1.3 carve-out б): компенсирующее событие с grade NULL — редьюсер
 // нейтрален к нему до CLG-P4; хранится, чтобы down-sync (CLG-P3) не терял серверные строки.
-const _RL_KINDS = { review: 1, skip: 1, seed: 1, annul: 1 };
+// 'mark' (CLG-P3.2, §4.7): ручная ось как append-only событие (status в meta, grade NULL,
+// replay-нейтрален) — LWW-редьюсер кросс-девайс оси. Метрики/оптимизатор фильтруют по kind.
+const _RL_KINDS = { review: 1, skip: 1, seed: 1, annul: 1, mark: 1 };
 export async function appendReviewLog(rows) {
   const list = Array.isArray(rows) ? rows : [rows];
   let accepted = 0, refused = 0;
@@ -2481,13 +2549,13 @@ export async function appendReviewLog(rows) {
     const kind = row && row.kind != null ? String(row.kind) : "review";
     if (!id || !itemKey || !at || !source || !_RL_KINDS[kind]) { refused++; continue; }
     const grade = row.grade == null ? null : (Number(row.grade) || 0);
-    if (kind !== "seed" && kind !== "annul" && (grade == null || grade < 1 || grade > 4)) { refused++; continue; }
+    if (kind !== "seed" && kind !== "annul" && kind !== "mark" && (grade == null || grade < 1 || grade > 4)) { refused++; continue; }
     const meta = typeof row.meta_json === "string" ? row.meta_json : JSON.stringify(row.meta || {});
     try {
       await r(
         `INSERT OR IGNORE INTO review_log (id, item_key, kind, reviewed_at, grade, source, channel, latency_ms, meta_json)
          VALUES (?,?,?,?,?,?,?,?,?)`,
-        [id, itemKey, kind, at, (kind === "seed" || kind === "annul") ? null : grade, source,
+        [id, itemKey, kind, at, (kind === "seed" || kind === "annul" || kind === "mark") ? null : grade, source,
          row.channel != null ? String(row.channel) : null,
          row.latency_ms != null ? (Number(row.latency_ms) || 0) : null, meta]);
       accepted++;

@@ -255,7 +255,9 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         ];
         const ing = await ldb.ingestAnkiReviewsToLog(rows);
         out.p4Ingested = ing.ingested === 3 && ing.dropped === 1 && ing.affected === 1;
-        const alog = await ldb.getReviewLog(KEY);
+        // P3.2: setWordStatus now emits kind='mark' rows (manual-axis events) — filter them out of
+        // the ANKI-row assertions (they're replay-neutral and not part of the ingest contract).
+        const alog = (await ldb.getReviewLog(KEY)).filter((x) => x.kind !== "mark");
         out.p4LoggedCanon = alog.length === 3 && alog.every((x) => x.source === "anki" && String(x.id).startsWith("anki:"));
         out.p4Grades = alog.map((x) => Number(x.grade)).sort().join(",") === "3,3,4";
         let clampMeta = false; for (const x of alog) { try { const m = JSON.parse(x.meta_json || "{}"); if (m.ts_clamped) clampMeta = true; if (!(m.scheduler && m.scheduler.scheme === "anki")) out.p4SchemeBad = true; } catch (_) {} }
@@ -271,7 +273,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         // idempotent re-ingest → no dup, state unchanged
         const before = await ldb.countReviewLog();
         const ing2 = await ldb.ingestAnkiReviewsToLog(rows);
-        out.p4Idempotent = ing2.ingested === 0 && (await ldb.getReviewLog(KEY)).length === 3 && (await ldb.countReviewLog()) === before;
+        out.p4Idempotent = ing2.ingested === 0 && (await ldb.getReviewLog(KEY)).filter((x) => x.kind !== "mark").length === 3 && (await ldb.countReviewLog()) === before;
       } catch (e) { out.p4Err = String(e && e.message || e); }
 
       // ── P4.1) srs-carrier row (status='') must NOT demote via manual-wins (defect fix) ──

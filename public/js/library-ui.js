@@ -2162,6 +2162,115 @@ function refreshAboutUpdateStatus() {
 function openRoomAbout() { refreshAboutUpdateStatus(); const m = $('roomAbout'); if (m) m.hidden = false; }
 function closeRoomAbout() { const m = $('roomAbout'); if (m) m.hidden = true; }
 
+// ── CLG-P3.2 — «☁ Синхронизация» (AI_MENTOR_RECON §9 CLG-P3, Tier 2) ─────────────────────────
+// Owner-only bootstrap login + двусторонний review_log-синк (движок cloud-sync.js, DORMANT без
+// логина — Tier 1 не тронут). Честные состояния (R4): выключено → форма логина; подключено →
+// последний синк + счётчики локально/в облаке + [Синхронизировать][Выйти]; ошибки — строкой,
+// никогда не молча. После логина живая сессия => авто-fullSync на буте (durable-согласие).
+function _cloudEls() {
+  return {
+    modal: $('roomCloudModal'), status: $('roomCloudStatus'), loginBox: $('roomCloudLoginBox'),
+    secret: $('roomCloudSecret'), loginBtn: $('roomCloudLoginBtn'), panel: $('roomCloudPanel'),
+    info: $('roomCloudInfo'), syncBtn: $('roomCloudSyncBtn'), logoutBtn: $('roomCloudLogoutBtn'),
+  };
+}
+function _cloudStatus(text, cls) {
+  const e = _cloudEls().status; if (!e) return;
+  e.textContent = text || ''; e.className = 'room-cloud-status' + (cls ? ' ' + cls : '');
+}
+async function _cloudRender() {
+  const els = _cloudEls(); if (!els.modal) return;
+  const CS = window.CloudSync; if (!CS) return;
+  let session = null;
+  try { session = await CS.me(); } catch (_) {}
+  if (!session) {
+    els.loginBox.hidden = false; els.panel.hidden = true;
+    _cloudStatus(tt('room.cloud.off', 'Не подключено. Локальный режим работает как обычно.'));
+    return;
+  }
+  els.loginBox.hidden = true; els.panel.hidden = false;
+  _cloudStatus('✓ ' + tt('room.cloud.connected', 'Подключено'), 'ok');
+  const lines = [];
+  try {
+    const last = await localDb.getSyncState('last_sync_at');
+    lines.push(tt('room.cloud.lastSync', 'Последний синк') + ': <b>' + (last ? new Date(last).toLocaleString() : tt('room.cloud.never', 'ещё не было')) + '</b>');
+    const localN = await localDb.countReviewLog();
+    let cloudN = '—';
+    try { const c = await fetch('/api/learner/counts', { credentials: 'same-origin' }).then((r) => r.json()); if (c && c.ok) cloudN = c.review_log; } catch (_) {}
+    lines.push(tt('room.cloud.counts', 'Событий памяти') + ': ' + tt('room.cloud.countLocal', 'на устройстве') + ' <b>' + localN + '</b> · ' + tt('room.cloud.countCloud', 'в облаке') + ' <b>' + cloudN + '</b>');
+  } catch (_) {}
+  if (els.info) els.info.innerHTML = lines.join('<br>');
+}
+async function _cloudRunSync(auto) {
+  const CS = window.CloudSync; if (!CS) return;
+  const els = _cloudEls();
+  if (els.syncBtn) els.syncBtn.disabled = true;
+  if (!auto) _cloudStatus(tt('room.cloud.syncing', 'Синхронизация…'));
+  let res = null;
+  try { res = await CS.fullSync(localDb); } catch (e) { res = { ok: false, error: String(e && e.message || e) }; }
+  if (els.syncBtn) els.syncBtn.disabled = false;
+  if (res && res.ok) {
+    const up = res.up || {}, down = res.down || {};
+    _cloudStatus('✓ ' + tt('room.cloud.done', 'Готово') + ' · ↑' + (up.new || 0) + ' · ↓' + (down.pulled || 0), 'ok');
+    // fresh foreign rows may recolour words / move the due ring — repaint like §4.3 demands
+    try { applyDecorations(); } catch (_) {}
+    try { refreshDueBadge(); } catch (_) {}
+  } else if (!auto) {
+    _cloudStatus('✗ ' + tt('room.cloud.err', 'Ошибка синхронизации') + ': ' + ((res && res.error) || '?'), 'err');
+  }
+  try { await _cloudRender(); } catch (_) {}
+  return res;
+}
+function roomCloudInit() {
+  const btn = $('roomCloud'); const els = _cloudEls();
+  if (!btn || !els.modal) return;
+  btn.addEventListener('click', () => { els.modal.hidden = false; _cloudRender(); });
+  els.modal.addEventListener('click', (e) => { if (e.target && e.target.getAttribute && e.target.getAttribute('data-cloud-close') === '1') els.modal.hidden = true; });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !els.modal.hidden) els.modal.hidden = true; });
+  if (els.loginBtn) els.loginBtn.addEventListener('click', async () => {
+    const CS = window.CloudSync; if (!CS) return;
+    const secret = (els.secret && els.secret.value) || '';
+    if (!secret) return;
+    els.loginBtn.disabled = true;
+    _cloudStatus(tt('room.cloud.loggingIn', 'Вход…'));
+    const r = await CS.login(secret, (navigator.platform || 'device') + ' · ' + tt('room.header.title', 'Читальный зал'));
+    els.loginBtn.disabled = false;
+    if (r && r.ok) {
+      if (els.secret) els.secret.value = '';
+      await _cloudRender();
+      _cloudRunSync(false);   // первый синк сразу после входа (cutover + backfill пометок)
+    } else {
+      const code = (r && r.error) || '?';
+      const msg = code === 'BAD_SECRET' ? tt('room.cloud.badSecret', 'Неверный секрет')
+        : code === 'TOO_MANY_AUTH_FAILURES' ? tt('room.cloud.tooMany', 'Слишком много попыток — подождите 10 минут')
+        : code === 'AUTH_DISABLED' ? tt('room.cloud.disabled', 'Вход выключен на сервере')
+        : code;
+      _cloudStatus('✗ ' + msg, 'err');
+    }
+  });
+  if (els.secret) els.secret.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); els.loginBtn && els.loginBtn.click(); } });
+  if (els.syncBtn) els.syncBtn.addEventListener('click', () => _cloudRunSync(false));
+  if (els.logoutBtn) els.logoutBtn.addEventListener('click', async () => {
+    const CS = window.CloudSync; if (!CS) return;
+    try { await CS.logout(); } catch (_) {}
+    await _cloudRender();
+  });
+}
+// Boot auto-sync: ONLY when a live session already exists (прежний явный вход владельца =
+// durable-согласие Tier 2). Без сессии — один same-origin me() (401, кука HttpOnly и не
+// читается из JS), никаких данных не уходит; Tier 1 остаётся честно-локальным.
+async function roomCloudAutoSync() {
+  try {
+    // ?nocloudauto=1 — harness escape hatch: the sync gates drive fullSync deterministically
+    // from the test and must not race the boot auto-sync (found as a real server bug: two
+    // concurrent ingests → nested BEGIN → 500; fixed by db/txnLock.js, kept out of gates anyway).
+    if (new URLSearchParams(location.search).has('nocloudauto')) return;
+    const CS = window.CloudSync; if (!CS) return;
+    const session = await CS.me(); if (!session) return;
+    await _cloudRunSync(true);
+  } catch (_) {}
+}
+
 // Theme — shared with Studio via localStorage.appTheme_v1 (light|dark|auto). body.theme-light/
 // theme-dark override prefers-color-scheme (CSS already honors them); auto = no class = follow OS.
 // A no-flash inline script in library.html applies the class pre-paint; this sets the toggle icon/title.
@@ -6162,6 +6271,7 @@ function wireChrome() {
   const aboutModal = $('roomAbout');
   if (aboutModal) aboutModal.addEventListener('click', (e) => { if (e.target && e.target.getAttribute && e.target.getAttribute('data-close') === '1') closeRoomAbout(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeRoomAbout(); });
+  roomCloudInit();   // CLG-P3.2 — «☁ Синхронизация» (owner-only; dormant without login)
   // Embedded reader chrome.
   const back = $('readerBack');
   if (back) back.addEventListener('click', closeReader);
@@ -6225,6 +6335,7 @@ async function boot() {
     }
     setActiveTrack(activeTrack);
     try { refreshDueBadge(); } catch (_) {}   // D2 — surface the «🔁 К повторению» home CTA on first load
+    roomCloudAutoSync();   // CLG-P3.2 — fire-and-forget; no-op (single 401) without a live session
     maybeRunValidation();   // BRR-P1-007 §7: ?validate=1 runs on-device real-profile validation
     // Studio↔Room compat Ф1 — deep-link «Открыть в Зале»: ?open=<text_key> resolves a locally
     // MATERIALIZED text (own or corpus) and opens the Room reader. Unknown key → stay on home
