@@ -9846,6 +9846,14 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // (full-table scan) shouldn't block first-paint, so defer.
     const _runICheck = async () => {
       try {
+        // async-VFS (tts-opfs-idb — iOS/CriOS без sync-хэндлов): полный integrity-скан
+        // детерминированно OOM-ит wasm (замерено на устройстве владельца) и стрессует
+        // сессию для последующих запросов — честно пропускаем диагностику на этом VFS.
+        if (info && info.kind === 'async') {
+          try { (window.v3OpfsTelemetryPush || function(){})({ kind: 'integrity.skipped', vfs: info.name }); } catch (_) {}
+          console.log('[OPFS] integrity_check skipped on async VFS (' + info.name + ')');
+          return;
+        }
         const t0 = Date.now();
         const r = await _ldb.integrityCheck();
         try { (window.v3OpfsTelemetryPush || function(){})({
@@ -23538,7 +23546,10 @@ async function v3LibraryRefresh() {
       const ldb = await ensureLocalDB();
       // Studio↔Room compat Ф1: materialized corpus works share this table — limit 200 let them
       // starve the user's own texts out of the list; 2000 covers both (default pill = «Мои»).
-      raw = await ldb.listTexts({ limit: 2000 });
+      // LIGHT-список (без source_text/table_model blob-ов): полный listTexts на iPhone
+      // (async-VFS) детерминированно ронял WASM OOM — карточкам blob-ы не нужны, открытие
+      // текста и так идёт отдельным getTextByIdLite+getSentences.
+      raw = await (typeof ldb.listTextsLight === 'function' ? ldb.listTextsLight({ limit: 2000 }) : ldb.listTexts({ limit: 2000 }));
       // Mark corpus rows (source_meta.corpus — the canonical discriminator) and merge the
       // PERSONAL overlay meta (text_user_meta, keyed by stable text_key; mig 061, R9:
       // canon row untouched, личный слой поверх) so cards/filters/modal see one merged view.

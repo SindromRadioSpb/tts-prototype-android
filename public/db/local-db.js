@@ -520,6 +520,33 @@ export async function getTextByIdLite(id) {
   const rows = await q('SELECT ' + cols + ' FROM texts WHERE id = ?', [id]);
   return rows[0] ?? null;
 }
+// LIST-уровень (ещё легче): минус source_text И table_model_meta_json. Найдено на iPhone
+// владельца (2026-07-05): listTexts({limit:2000}) с texts.* материализует полные исходники +
+// таблицы-модели ВСЕХ текстов (включая корпусные романы Зала) → десятки МБ через async-VFS
+// (tts-opfs-idb, CriOS/WKWebView) → детерминированный WASM OOM «Out of bounds memory access».
+// Списку эти blob-ы не нужны: карточки рендерятся из лёгких полей, ОТКРЫТИЕ текста идёт
+// отдельным getTextByIdLite+getSentences. Потребители полного listTexts (exportBundle,
+// wordcount) НЕ тронуты.
+let _textColsListCache = null;
+async function _textColsList() {
+  if (_textColsListCache) return _textColsListCache;
+  const info = await q('PRAGMA table_info(texts)');
+  const heavy = { source_text: 1, table_model_meta_json: 1 };
+  const cols = (info || []).map((c) => c && c.name).filter((n) => n && !heavy[n]);
+  _textColsListCache = cols.length ? cols.map((c) => 'texts."' + c + '"').join(', ') : 'texts.*';
+  return _textColsListCache;
+}
+export async function listTextsLight({ limit = 500, archived = false } = {}) {
+  const arch = archived ? 1 : 0;
+  const cols = await _textColsList();
+  return q(
+    `SELECT ${cols}, tp.last_row_idx AS last_row_idx
+     FROM texts LEFT JOIN text_progress tp ON tp.text_id = texts.id
+     WHERE texts.is_archived = ?
+     ORDER BY texts.is_pinned DESC, texts.pin_order ASC, texts.last_opened_at DESC NULLS LAST, texts.updated_at DESC LIMIT ?`,
+    [arch, limit]
+  );
+}
 export async function getTextSourceText(id) {
   const rows = await q('SELECT source_text FROM texts WHERE id = ?', [id]);
   return rows[0] ? (rows[0].source_text ?? '') : '';
