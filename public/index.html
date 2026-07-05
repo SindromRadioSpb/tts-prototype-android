@@ -9813,6 +9813,14 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
   import * as _ldb from '/db/local-db.js';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
+  // Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `location.href` hard-navigation
+  // raced the OLD page's worker teardown against the NEW page's DB open, producing a raw
+  // SQLITE_CANTOPEN. Closing our own connection gracefully FIRST removes that race for this side
+  // of the navigation.
+  window.v3NavAwayWithDbClose = async function (url) {
+    try { if (_ldb && typeof _ldb.closeLocalDB === 'function') await _ldb.closeLocalDB(); } catch (_) {}
+    location.href = url;
+  };
   // B5: telemetry — capture init success/failure + chosen VFS so we have
   // bench data before flipping localMode default-on. Stored in a small
   // localStorage ring buffer; surfaced via window.v3OpfsTelemetry.list().
@@ -9842,6 +9850,15 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     try { (window.v3OpfsTelemetryPush || function(){})({
       kind: 'init.success', durationMs: ms, vfs: info && info.name, vfsKind: info && info.kind,
     }); } catch (_) {}
+    // R11 honesty guard (owner iPhone repro 2026-07-05): this boot landed on a DIFFERENT storage
+    // backend than last time (OPFS sync-handle pool vs IndexedDB are UNRELATED stores) — the
+    // real library is very likely sitting in the OTHER backend, not deleted. Warn loudly so the
+    // user never mistakes this for an empty profile and reaches for "Сбросить локальную библиотеку".
+    try {
+      if (typeof _ldb.vfsBackendChanged === 'function' && _ldb.vfsBackendChanged() && typeof showToast === 'function') {
+        showToast('⚠ Хранилище браузера временно переключилось в резервный режим — библиотека может выглядеть пустой, но ваши тексты не удалены. Не нажимайте «Сбросить локальную библиотеку». Перезагрузите страницу и, если это повторится, сообщите разработчику.', 'error', { ttl: 60000 });
+      }
+    } catch (_) {}
     // D3: idle-time integrity_check — once per session. Heavy queries
     // (full-table scan) shouldn't block first-paint, so defer.
     const _runICheck = async () => {
@@ -9979,7 +9996,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     <button id="v3IdeSrsTrainerBtn" class="btn-ide" onclick="v3SrsTrainerOpen()" data-i18n="ide.train" data-i18n-title="ide.openTrainerTitle" title="Open SRS Trainer">
       🎯 Train
     </button>
-    <button id="v3IdeRoomBtn" class="btn-ide" onclick="location.href='/library.html'" data-i18n="ide.readingRoom" data-i18n-title="ide.readingRoomTitle" title="Открыть Читальный зал">
+    <button id="v3IdeRoomBtn" class="btn-ide" onclick="v3NavAwayWithDbClose('/library.html')" data-i18n="ide.readingRoom" data-i18n-title="ide.readingRoomTitle" title="Открыть Читальный зал">
       📖 Зал
     </button>
     <button id="v3IdeFeedbackBtn" class="btn-ide" onclick="v3FeedbackOpen()" data-i18n-title="feedback.btnTitle" data-i18n-aria-label="feedback.btnTitle" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">
@@ -10017,7 +10034,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     <span class="v3-tbi-icon">🎯</span>
     <span class="v3-tbi-label">Train</span>
   </button>
-  <button class="v3-ide-tab-item" id="v3TabBarRoom" role="tab" onclick="location.href='/library.html'" aria-label="Читальный зал">
+  <button class="v3-ide-tab-item" id="v3TabBarRoom" role="tab" onclick="v3NavAwayWithDbClose('/library.html')" aria-label="Читальный зал">
     <span class="v3-tbi-icon">📖</span>
     <span class="v3-tbi-label" data-i18n="ide.readingRoomShort">Зал</span>
   </button>
@@ -10444,7 +10461,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                       <span class="classic-nav-label" data-i18n="classic.navTrainer">SRS Trainer</span>
                     </button>
                     <!-- Кросс-навигация Студия → Читальный зал (нет тупиков и в PWA-режиме) -->
-                    <button id="btnReadingRoom" class="classic-nav-card" onclick="location.href='/library.html'" data-i18n-aria-label="classic.navRoom" aria-label="Читальный зал">
+                    <button id="btnReadingRoom" class="classic-nav-card" onclick="v3NavAwayWithDbClose('/library.html')" data-i18n-aria-label="classic.navRoom" aria-label="Читальный зал">
                       <span class="classic-nav-icon">📖</span>
                       <span class="classic-nav-label" data-i18n="classic.navRoom">Читальный зал</span>
                     </button>

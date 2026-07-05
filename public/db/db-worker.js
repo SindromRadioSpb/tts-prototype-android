@@ -22,10 +22,12 @@
 
 import { Factory, SQLITE_OPEN_READWRITE, SQLITE_OPEN_CREATE } from './sqlite-api.js';
 import { MIGRATIONS } from './migrations.js';
+import { computeVfsOrder } from './vfs-order.js';
 
 let sqlite3 = null;
 let db = null;
-let vfsName = null;   // 'AccessHandlePool' or 'IDBBatchAtomic'
+let vfs = null;       // the live VFS instance — needed to release its resources on close()
+let vfsName = null;   // 'AccessHandlePool' or 'tts-opfs-idb'
 let vfsKind = null;   // 'sync' or 'async' (for diagnostic surface)
 
 // ── helpers ────────────────────────────────────────────────────────────────
@@ -105,15 +107,23 @@ async function initWithAccessHandlePool() {
   const sqlite = Factory(module);
 
   const vfs = new AccessHandlePoolVFS('/tts-opfs');
-  await vfs.isReady;
-  sqlite.vfs_register(vfs, true);
+  try {
+    await vfs.isReady;
+    sqlite.vfs_register(vfs, true);
 
-  const opened = await sqlite.open_v2(
-    'app.db',
-    SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
-    vfs.name
-  );
-  return { sqlite, db: opened, vfsName: vfs.name, vfsKind: 'sync' };
+    const opened = await sqlite.open_v2(
+      'app.db',
+      SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
+      vfs.name
+    );
+    return { sqlite, db: opened, vfs, vfsName: vfs.name, vfsKind: 'sync' };
+  } catch (e) {
+    // AccessHandlePoolVFS's constructor already grabbed real OPFS sync access handles (exclusive
+    // per-origin) before open_v2 ever ran — release them on a failed attempt so they can't wedge
+    // a later attempt (this worker's retry, or a different page's worker) with the same error.
+    try { await vfs.close(); } catch (_) {}
+    throw e;
+  }
 }
 
 // Try IDBBatchAtomicVFS (async). Works wherever IndexedDB is available.
@@ -126,27 +136,28 @@ async function initWithIDB() {
   const sqlite = Factory(module);
 
   const vfs = new IDBBatchAtomicVFS('tts-opfs-idb', { durability: 'relaxed' });
-  await vfs.isReady;
-  sqlite.vfs_register(vfs, true);
+  try {
+    await vfs.isReady;
+    sqlite.vfs_register(vfs, true);
 
-  const opened = await sqlite.open_v2(
-    'app.db',
-    SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
-    vfs.name
-  );
-  return { sqlite, db: opened, vfsName: vfs.name, vfsKind: 'async' };
+    const opened = await sqlite.open_v2(
+      'app.db',
+      SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
+      vfs.name
+    );
+    return { sqlite, db: opened, vfs, vfsName: vfs.name, vfsKind: 'async' };
+  } catch (e) {
+    try { await vfs.close(); } catch (_) {}
+    throw e;
+  }
 }
 
-async function initDB(preferVfs) {
+// See vfs-order.js for the fix history (owner's iPhone repro 2026-07-05: the sticky-VFS
+// preference compared against the wrong labels and was a silent no-op, so every boot retried
+// AccessHandlePoolVFS first regardless of which VFS actually holds the user's data).
+async function initDBOnce(preferVfs) {
   const errors = [];
-
-  // Build the order of VFS attempts. preferVfs (from main thread's
-  // localStorage) puts the user's last-successful VFS first so existing
-  // data isn't orphaned when browser capabilities change between sessions.
-  const order = ['AccessHandlePool', 'IDBBatchAtomic'];
-  if (preferVfs && order.indexOf(preferVfs) >= 0) {
-    order.sort((a, b) => (a === preferVfs ? -1 : (b === preferVfs ? 1 : 0)));
-  }
+  const order = computeVfsOrder(preferVfs);
 
   for (const choice of order) {
     if (db) break;
@@ -154,8 +165,10 @@ async function initDB(preferVfs) {
       const r = (choice === 'AccessHandlePool')
         ? await initWithAccessHandlePool()
         : await initWithIDB();
-      sqlite3 = r.sqlite; db = r.db; vfsName = r.vfsName; vfsKind = r.vfsKind;
+      sqlite3 = r.sqlite; db = r.db; vfs = r.vfs; vfsName = r.vfsName; vfsKind = r.vfsKind;
     } catch (e) {
+      // initWithAccessHandlePool/initWithIDB already release their own partially-acquired
+      // resources on failure (see their try/catch) — nothing to clean up here.
       errors.push({ vfs: choice, error: String(e && e.message ? e.message : e) });
       console.warn(`[db-worker] ${choice} VFS init failed:`, e && e.message);
     }
@@ -168,6 +181,31 @@ async function initDB(preferVfs) {
 
   await execMulti('PRAGMA foreign_keys = ON;');
   await runMigrations();
+}
+
+// initDBOnce can fail AFTER a real open() succeeded (e.g. runMigrations() hits a transient lock
+// mid-transaction) — in that case db/sqlite3/vfs ARE live and must be closed before a retry, or
+// the leaked connection/handles defeat the whole point of this cleanup.
+async function _closeCurrentConnection() {
+  try { if (sqlite3 && db) await sqlite3.close(db); } catch (_) {}
+  try { if (vfs && typeof vfs.close === 'function') await vfs.close(); } catch (_) {}
+  db = null; sqlite3 = null; vfs = null; vfsName = null; vfsKind = null;
+}
+
+// Retry wrapper: absorbs a TRANSIENT open failure (e.g. the previous page's worker/handle hasn't
+// fully released yet during Room↔Studio hard navigation) rather than surfacing a scary fatal error
+// on the first attempt.
+async function initDB(preferVfs) {
+  const ATTEMPTS = 3, DELAYS_MS = [0, 400, 900];
+  let lastErr = null;
+  for (let i = 0; i < ATTEMPTS; i++) {
+    if (DELAYS_MS[i]) await new Promise((r) => setTimeout(r, DELAYS_MS[i]));
+    await _closeCurrentConnection();
+    try { await initDBOnce(preferVfs); return; }
+    catch (e) { lastErr = e; console.warn(`[db-worker] init attempt ${i + 1}/${ATTEMPTS} failed:`, e && e.message); }
+  }
+  await _closeCurrentConnection();   // last attempt also failed post-open — don't leak it either
+  throw lastErr;
 }
 
 // ── message handler ────────────────────────────────────────────────────────
@@ -189,6 +227,13 @@ self.onmessage = async ({ data }) => {
 
     } else if (type === 'exec') {
       await execMulti(sql);
+      self.postMessage({ id, ok: true });
+
+    } else if (type === 'close') {
+      // Graceful pre-navigation teardown (Room↔Studio cross-nav): explicitly release the sync
+      // access handle / IDB connection BEFORE the page unloads, instead of hoping the browser's
+      // abrupt worker-termination-on-navigate releases it in time for the next page's open().
+      await _closeCurrentConnection();
       self.postMessage({ id, ok: true });
 
     } else {

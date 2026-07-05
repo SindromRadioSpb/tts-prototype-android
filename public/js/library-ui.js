@@ -2069,7 +2069,7 @@ let _roomToastEl = null, _roomToastT = null;
 // «Отменить»-style action (reversible destructive ops). With an action the toast lingers longer
 // (5s) so the user can reach it; tapping runs actionFn then dismisses. The element is rebuilt only
 // when its shape changes (plain↔action) to avoid a stale button leaking across calls.
-function roomToast(msg, actionLabel, actionFn) {
+function roomToast(msg, actionLabel, actionFn, ttlMs) {
   try {
     if (!_roomToastEl) { _roomToastEl = el('div', { class: 'room-toast' }); document.body.appendChild(_roomToastEl); }
     _roomToastEl.innerHTML = '';
@@ -2083,7 +2083,7 @@ function roomToast(msg, actionLabel, actionFn) {
     }
     _roomToastEl.classList.add('show');
     if (_roomToastT) clearTimeout(_roomToastT);
-    _roomToastT = setTimeout(hide, actionLabel ? 5000 : 2200);
+    _roomToastT = setTimeout(hide, Number.isFinite(ttlMs) ? ttlMs : (actionLabel ? 5000 : 2200));
   } catch (_) {}
 }
 
@@ -2348,6 +2348,25 @@ async function _cloudRunSync(auto) {
   }
   try { await _cloudRender(); } catch (_) {}
   return res;
+}
+// Room↔Studio cross-nav (owner iPhone repro 2026-07-05): a bare `<a href="/">` hard-navigation
+// raced this page's worker teardown against Studio's fresh DB open, producing a raw
+// SQLITE_CANTOPEN ("unable to open database file") and, on one occasion, Studio landing on a
+// DIFFERENT (empty) VFS backend. Close our own connection gracefully FIRST, then navigate.
+// Modified clicks (ctrl/cmd/shift/middle-click — "open in new tab") are left alone: a NEW tab
+// is the pre-existing, already-correct multi-tab scenario (Web-Locks owner/follower).
+function _roomStudioNavInit() {
+  const wire = (el) => {
+    if (!el) return;
+    el.addEventListener('click', (ev) => {
+      if (ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+      ev.preventDefault();
+      const url = el.getAttribute('href') || '/';
+      (async () => { try { await localDb.closeLocalDB(); } catch (_) {} location.href = url; })();
+    });
+  };
+  wire($('roomStudioLink'));
+  wire($('roomFooterStudioLink'));
 }
 function roomCloudInit() {
   const btn = $('roomCloud'); const els = _cloudEls();
@@ -6431,6 +6450,7 @@ function wireChrome() {
   if (aboutModal) aboutModal.addEventListener('click', (e) => { if (e.target && e.target.getAttribute && e.target.getAttribute('data-close') === '1') closeRoomAbout(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeRoomAbout(); });
   roomCloudInit();   // CLG-P3.2 — «☁ Синхронизация» (owner-only; dormant without login)
+  _roomStudioNavInit();   // Room↔Studio cross-nav: graceful DB close before hard navigation
   // Embedded reader chrome.
   const back = $('readerBack');
   if (back) back.addEventListener('click', closeReader);
@@ -6481,6 +6501,14 @@ async function boot() {
       if (validateRequested()) { showValidationOverlay(VALIDATE_DBBUSY_MSG); return; }
       showState('room.state.dbBusy', '📑'); return;
     }
+    // R11 honesty guard (owner iPhone repro 2026-07-05): this boot landed on a DIFFERENT storage
+    // backend than last time — the real library is very likely in the OTHER (unrelated) backend,
+    // not deleted. Warn loudly so an empty-looking corpus is never mistaken for a wiped profile.
+    try {
+      if (typeof localDb.vfsBackendChanged === 'function' && localDb.vfsBackendChanged()) {
+        roomToast('⚠ Хранилище браузера временно переключилось в резервный режим — «Мои тексты» может выглядеть пустым, но ничего не удалено. Перезагрузите страницу; сообщите разработчику, если повторится.', null, null, 60000);
+      }
+    } catch (_) {}
     await autoImportCanon();   // publish the shipped canon shelf on first visit (idempotent)
     await loadData();
     await loadCorpusCatalog(); // BRR-P0-007 Проход-3 — catalog-driven "Корпус" track (served-on-open)

@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.100";
+const CACHE_VERSION = "v3.11.101";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -147,6 +147,7 @@ const PRECACHE_URLS = [
   "/db/local-db.js",
   "/db/migrations.js",
   "/db/tag.js",
+  "/db/vfs-order.js",
   "/db/db-worker.js",
   "/db/jszip.min.js",
   // ⑤ Anki-sync A2b — client .apkg export (small UMD core + builders). sql.js (/db/sql-wasm.*) is LAZY

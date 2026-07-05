@@ -281,6 +281,28 @@ export function releaseDbOwnership() {
   if (typeof window !== 'undefined') window.__localDBFollower = true;
 }
 
+// Graceful pre-navigation teardown for the Room↔Studio cross-nav (owner 2026-07-05 iPhone repro):
+// explicitly release the sync access handle / IDB connection BEFORE a hard `location.href` nav,
+// instead of relying on the browser's own worker-termination timing to release it "in time" for
+// the next page's open() — a race that produced a raw SQLITE_CANTOPEN ("unable to open database
+// file") and, once, a page landing on a DIFFERENT (empty) VFS backend. Callers should `await`
+// this, THEN navigate. Bounded by a timeout so a stuck worker can never block navigation forever.
+export async function closeLocalDB() {
+  try {
+    if (_proxyMode) { try { if (_proxyCh) _proxyCh.close(); } catch (_) {} return; }
+    if (_followerMode || !_worker) return;
+    await Promise.race([
+      _call('close', null, null, null).catch(() => {}),
+      new Promise((resolve) => setTimeout(resolve, 1500)),
+    ]);
+    try { if (_releaseOwnerLock) { _releaseOwnerLock(); _releaseOwnerLock = null; } } catch (_) {}
+    try { if (_proxyCh) { _proxyCh.postMessage({ kind: 'bye' }); _proxyCh.close(); } } catch (_) {}
+    try { _worker.terminate(); } catch (_) {}
+    _worker = null;
+    _initialized = false;
+  } catch (_) {}
+}
+
 // Recovery entry point for the "Retry" affordance (P0-2 / P1-6). Re-spawns
 // the worker and re-inits if we own the DB; followers must reload instead.
 export async function recoverLocalDB() {
@@ -321,6 +343,10 @@ function _call(type, sql, params, opts) {
 // upgrades from 16 → 17 — their IDB data stays where it is unless they
 // explicitly migrate).
 const _VFS_PREF_KEY = 'opfsVfsPreference_v1';
+// R11 honesty guard: true once a boot lands on a DIFFERENT VFS than the sticky preference
+// (see initLocalDB) — never auto-clears, so a late-checking caller can't miss it.
+let _vfsBackendChanged = false;
+export function vfsBackendChanged() { return _vfsBackendChanged; }
 
 // Shorthand helpers used throughout this module
 const q = (sql, p) => _call('query', sql, p);
@@ -459,7 +485,20 @@ export async function initLocalDB() {
   // doesn't silently switch storage backends and orphan the user's data.
   try {
     if (typeof localStorage !== 'undefined' && _vfs) {
-      localStorage.setItem(_VFS_PREF_KEY, _vfs);
+      const prevVfs = localStorage.getItem(_VFS_PREF_KEY);
+      // R11 honesty guard (owner iPhone repro 2026-07-05): a device that lands on a DIFFERENT VFS
+      // than last time is opening a PHYSICALLY SEPARATE store (OPFS AccessHandlePool vs IndexedDB
+      // are unrelated backends) — the user's real data lives in the OTHER one and this session
+      // will look emptied even though nothing was deleted. Callers surface this so the UI never
+      // silently renders "0 texts" as if it were a genuinely empty profile.
+      if (prevVfs && prevVfs !== _vfs) {
+        _vfsBackendChanged = true;
+        // Deliberately do NOT overwrite the stored preference here — keep steering future boots
+        // back toward the ORIGINAL (data-holding) VFS instead of reinforcing the wrong one.
+        try { if (typeof window !== 'undefined' && typeof window.v3OpfsTelemetryPush === 'function') window.v3OpfsTelemetryPush({ kind: 'vfs.backend_changed', from: prevVfs, to: _vfs }); } catch (_) {}
+      } else {
+        localStorage.setItem(_VFS_PREF_KEY, _vfs);
+      }
     }
   } catch (_) {}
 }
