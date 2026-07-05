@@ -203,7 +203,7 @@
     if (typeof ldb.listOwnTextsForSync !== "function" || typeof ldb.exportBundle !== "function") {
       return { ok: true, skipped: "no_ldb_support" };
     }
-    var out = { ok: true, uploaded: 0, downloaded: 0, updated: 0, upSkipped: 0 };
+    var out = { ok: true, uploaded: 0, downloaded: 0, updated: 0, upSkipped: 0, failed: [] };
     var listRes = await jfetch("GET", "/api/learner/artifacts");
     if (listRes.status !== 200 || !listRes.json || !listRes.json.ok) {
       return { ok: false, error: (listRes.json && listRes.json.error) || "ARTIFACTS_LIST_FAILED", status: listRes.status };
@@ -211,17 +211,28 @@
     var server = new Map((listRes.json.rows || []).map(function (r) { return [String(r.artifact_key), String(r.updated_at)]; }));
     var local = await ldb.listOwnTextsForSync();
     var localByKey = new Map(local.map(function (t) { return [t.text_key, t]; }));
-    // UP: new or locally-newer texts
+    // UP: new or locally-newer texts. PER-TEXT BEST-EFFORT: один негабаритный/битый текст не
+    // должен абортить остальные 80 (урок owner-верифи 2026-07-05: «в облаке 0» при 81 локально —
+    // и ошибка была НЕВИДИМА). Каждый провал — в failed[] с причиной, наружу и в console.
     for (var i = 0; i < local.length; i++) {
       var t = local[i];
-      var srvAt = server.get(t.text_key);
-      if (srvAt && Date.parse(srvAt) >= Date.parse(t.updated_at)) { out.upSkipped++; continue; }
-      var bundle = await ldb.exportBundle({ textIds: [t.id] });
-      var put = await jfetch("POST", "/api/learner/artifacts/put", {
-        artifact_key: t.text_key, updated_at: t.updated_at, payload: bundle,
-      });
-      if (put.status === 200 && put.json && put.json.stored) out.uploaded++;
-      else if (put.status !== 200) return { ok: false, error: (put.json && put.json.error) || "ARTIFACT_PUT_FAILED", at: t.text_key };
+      try {
+        var srvAt = server.get(t.text_key);
+        if (srvAt && Date.parse(srvAt) >= Date.parse(t.updated_at)) { out.upSkipped++; continue; }
+        var bundle = await ldb.exportBundle({ textIds: [t.id] });
+        var put = await jfetch("POST", "/api/learner/artifacts/put", {
+          artifact_key: t.text_key, updated_at: t.updated_at, payload: bundle,
+        });
+        if (put.status === 200 && put.json && put.json.stored) out.uploaded++;
+        else if (put.status === 200) out.upSkipped++;   // OLDER_OR_EQUAL race — уже на сервере
+        else {
+          out.failed.push({ key: t.text_key, title: t.title, error: (put.json && put.json.error) || ("HTTP_" + put.status) });
+          try { console.warn("[cloud-sync] artifact PUT failed:", t.title, put.status, put.json); } catch (_) {}
+        }
+      } catch (e) {
+        out.failed.push({ key: t.text_key, title: t.title, error: String(e && e.message || e) });
+        try { console.warn("[cloud-sync] artifact export/PUT threw:", t.title, e); } catch (_) {}
+      }
     }
     // DOWN: missing or server-newer texts
     for (const entry of server) {

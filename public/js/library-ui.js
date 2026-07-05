@@ -2322,10 +2322,24 @@ async function _cloudRunSync(auto) {
     const up = res.up || {}, down = res.down || {};
     let line = '✓ ' + tt('room.cloud.done', 'Готово') + ' · ↑' + (up.new || 0) + ' · ↓' + (down.pulled || 0);
     const a = res.artifacts;
+    let artErr = false;
     if (a && a.ok && !a.skipped && (a.uploaded || a.downloaded || a.updated)) {
       line += ' · 📄 ↑' + (a.uploaded || 0) + ' ↓' + ((a.downloaded || 0) + (a.updated || 0));
     }
-    _cloudStatus(line, 'ok');
+    // провалы текстов НИКОГДА не молчат (урок: «в облаке 0» без единой видимой ошибки)
+    if (a && ((a.failed && a.failed.length) || a.ok === false)) {
+      artErr = true;
+      const n = (a.failed && a.failed.length) || 0;
+      line += ' · 📄✗' + (n || '') + (a.error ? ' ' + a.error : '');
+      const box = $('roomCloudExplain');
+      if (box) {
+        const first = a.failed && a.failed[0];
+        box.textContent = tt('room.cloud.textsFail', 'Часть текстов не синхронизировалась') + ': '
+          + (first ? '«' + (first.title || first.key) + '» — ' + first.error + (n > 1 ? ' (+' + (n - 1) + ')' : '') : (a.error || '?'));
+        box.hidden = false;
+      }
+    }
+    _cloudStatus(line, artErr ? 'err' : 'ok');
     // fresh foreign rows may recolour words / move the due ring — repaint like §4.3 demands
     try { applyDecorations(); } catch (_) {}
     try { refreshDueBadge(); } catch (_) {}

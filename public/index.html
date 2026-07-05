@@ -9857,7 +9857,13 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
           console.error('[OPFS] integrity_check FAILED:', r.issues);
           try {
             if (typeof showToast === 'function') {
-              showToast('⚠ База OPFS повреждена. Сделайте резерв через Library → Export ZIP и сообщите разработчику.', 'error');
+              // R11 честность: транзиентный сбой рантайма (iOS wa-sqlite OOB) ≠ повреждение
+              // данных — не пугаем «повреждена» и не советуем экспорт с мёртвым рантаймом.
+              if (r.transient) {
+                showToast('⚠ Локальная база временно недоступна (сбой WebAssembly). Данные целы — перезагрузите страницу.', 'error');
+              } else {
+                showToast('⚠ База OPFS повреждена. Сделайте резерв через Library → Export ZIP и сообщите разработчику.', 'error');
+              }
             }
           } catch (_) {}
         } else {

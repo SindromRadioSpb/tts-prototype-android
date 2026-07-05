@@ -369,7 +369,10 @@ export async function integrityCheck() {
     const ok = list.length === 1 && list[0].toLowerCase() === 'ok';
     return { ok, issues: ok ? [] : list, rawRows: rows };
   } catch (e) {
-    return { ok: false, issues: ['integrity_check failed: ' + (e && e.message ? e.message : String(e))], rawRows: [] };
+    // R11 честность: THROW самого запроса (типичный iOS-кейс — wa-sqlite WASM «Out of bounds
+    // memory access», транзиентная смерть рантайма, лечится перезагрузкой) — НЕ доказательство
+    // коррупции. Коррупцию подтверждает только УСПЕШНЫЙ PRAGMA со списком issues.
+    return { ok: false, transient: true, issues: ['integrity_check failed: ' + (e && e.message ? e.message : String(e))], rawRows: [] };
   }
 }
 

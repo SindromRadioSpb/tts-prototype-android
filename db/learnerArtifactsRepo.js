@@ -10,7 +10,10 @@ const { getDb } = require("./sqlite");
 
 const KIND = "text_bundle";
 const CONSENT_KEY = "cloud_texts";
-const MAX_PAYLOAD_BYTES = 3 * 1024 * 1024;   // one text with audio KEYS (not binaries) is ≤ ~1MB
+// 8MB: замер на реальном профиле владельца дал до ~1MB/текст, но негабаритный текст не должен
+// рубить синк (глобальный bodyParser = 10MB — конверт влезает). Один текст > cap теперь честно
+// падает в failed[] движка per-text best-effort, не абортя остальные.
+const MAX_PAYLOAD_BYTES = 8 * 1024 * 1024;
 const MAX_ARTIFACTS_PER_USER = 2000;
 
 function dbGet(db, sql, params = []) {

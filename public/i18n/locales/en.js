@@ -1973,6 +1973,7 @@ window.I18N_LOCALES.en = {
       hintEvents: "Every answer in training or reading is recorded as an event — the journal of your word memory. After a sync the numbers must match on all devices.",
       hintOracle: "The server recomputed the review schedule from the journal and compared it with the stored one. “✓ N” — N words checked, no mismatches.",
       hintTexts: "Your own texts from “My texts” (the corpus never travels). After a sync the device and cloud numbers must match.",
+      textsFail: "Some texts failed to sync",
       disabled: "Login is disabled on the server",
     },
     tabs: {
