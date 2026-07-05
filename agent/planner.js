@@ -23,6 +23,29 @@ const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
 
 const CATEGORIES = ["объяснить", "тренировать", "вернуть к чтению", "создать материал", "обновить learner profile"];
 
+// Дисплейная форма item_key: '<lemma>#<pos>' → лемма; 'pid:<N>' → огласованная форма из
+// function-links (11 КБ, резидентно — служебные слова pid-класса это и есть основная масса
+// pid-ключей Зала); контентный pid вне карты → честный 'pid:N' (не выдумываем форму, R1).
+const fs = require("fs");
+let _fnForms = null;
+function _fnFormsMap() {
+  if (_fnForms) return _fnForms;
+  try {
+    const raw = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "public", "data", "inflection", "pealim-function-links.v1.json"), "utf8"));
+    _fnForms = (raw && raw.forms) || {};
+  } catch (_) { _fnForms = {}; }
+  return _fnForms;
+}
+function displayOf(itemKey) {
+  const k = String(itemKey || "");
+  if (k.startsWith("pid:")) {
+    const f = _fnFormsMap()[k.slice(4)];
+    return (f && f.he) ? f.he : k;
+  }
+  const i = k.indexOf("#");
+  return i > 0 ? k.slice(0, i) : k;
+}
+
 function limits() {
   return {
     perUserDaily: Number(process.env.AGENT_LLM_DAILY_PER_USER) || 50,
@@ -38,7 +61,6 @@ function productionImbalance(cs) {
   return (Number(r.good) || 0) >= 2 && ((Number(p.reps) || 0) === 0 || (Number(p.again) || 0) > (Number(p.good) || 0));
 }
 
-const lemmaOf = (itemKey) => String(itemKey || "").split("#")[0];
 
 // Детерминированное ядро плана. ctx = { userId } из принципала.
 async function buildPlanCore(ctx) {
@@ -62,7 +84,7 @@ async function buildPlanCore(ctx) {
       title_ru: "Слова, которые узнаёшь при чтении, но проваливаешь в письме — сегодня диктант",
       title_en: "Words you recognize but fail to produce — dictation today",
       recommended_channel: "dictate",
-      items: imbalanced.map((w) => ({ item_key: w.item_key, lemma: lemmaOf(w.item_key), lapses: w.lapses })),
+      items: imbalanced.map((w) => ({ item_key: w.item_key, lemma: displayOf(w.item_key), lapses: w.lapses })),
     });
   }
   // 2) просроченные слова (lapses-first — порядок /due), без уже взятых в диктант.
@@ -72,7 +94,7 @@ async function buildPlanCore(ctx) {
       id: "due", category: "тренировать",
       title_ru: "Повторить просроченные слова", title_en: "Review overdue words",
       count_total: learner.counts.due_now, count_now: dueSlice.length,
-      items: dueSlice.map((w) => ({ item_key: w.item_key, lemma: lemmaOf(w.item_key), lapses: w.lapses })),
+      items: dueSlice.map((w) => ({ item_key: w.item_key, lemma: displayOf(w.item_key), lapses: w.lapses })),
     });
   }
   // 3) вернуться в живое чтение (моат; контекст-first — R17-гейт 8 адресуется Залом).

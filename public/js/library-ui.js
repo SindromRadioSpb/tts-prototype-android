@@ -2208,7 +2208,9 @@ async function _cloudPlanRun() {
     const lang = String(document.documentElement.lang || 'ru').toLowerCase();
     const useRu = lang.indexOf('ru') === 0;   // he-UI → английские заголовки секций (у сервера ru/en)
     const lines = [];
-    if (r.text) lines.push(r.text);
+    // LLM-текст показываем только когда он ЕСТЬ от LLM: fallback-текст сервера дублирует
+    // секции, которые мы и так рендерим пунктами (пойман скриншотом владельца).
+    if (r.llm_used && r.text) lines.push(r.text);
     const plan = r.plan || {};
     if (plan.est_minutes) lines.push('≈ ' + plan.est_minutes + ' ' + tt('room.cloud.planMin', 'мин'));
     for (const s of (plan.sections || [])) {
@@ -2216,7 +2218,16 @@ async function _cloudPlanRun() {
       const lemmas = (s.items || []).map((x) => x && x.lemma).filter(Boolean);
       lines.push('• ' + title + (lemmas.length ? ': ' + lemmas.join(' · ') : ''));
     }
-    if (r.degraded_reason) lines.push('ⓘ ' + tt('room.cloud.planNoLlm', 'план собран без LLM (детерминированно)') + ' · ' + r.degraded_reason);
+    if (r.degraded_reason) {
+      // человеческая расшифровка типовых причин деградации; сырой код — в скобках
+      const code = String(r.degraded_reason);
+      const label = (code === 'USER_LIMIT' || code === 'GLOBAL_LIMIT') ? tt('room.cloud.planLimit', 'дневной лимит LLM исчерпан')
+        : (code === 'KILL_SWITCH') ? tt('room.cloud.agentKill', 'LLM выключен (kill-switch)')
+        : (code === 'NO_API_KEY') ? tt('room.cloud.agentKeyNone', 'без LLM-ключа — план детерминированный')
+        : (code === '429' || code === '403') ? tt('room.cloud.planKeyQuota', 'у ключа нет квоты к модели — проверьте проект ключа в Google Console') + ' (' + code + ')'
+        : code;
+      lines.push('ⓘ ' + tt('room.cloud.planNoLlm', 'план собран без LLM (детерминированно)') + ' · ' + label);
+    }
     els.planBox.textContent = lines.filter(Boolean).join('\n');
   } catch (e) {
     els.planBox.textContent = '✗ ' + String((e && e.message) || e);

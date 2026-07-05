@@ -1996,6 +1996,8 @@ window.I18N_LOCALES.he = {
       agentToday: "LLM היום",
       hintAgent: "מפתח הסוכן (AGENT_GEMINI_API_KEY) מוגדר בשרת ומשלם רק עבור המנטור. כל תוכנית עם LLM מנצלת קריאה אחת מהמכסה היומית; כשהמכסה נגמרת או ללא מפתח — התוכנית נבנית דטרמיניסטית ונשארת שימושית.",
       hintAgentGlobal: "סה״כ היום",
+      planLimit: "מכסת ה-LLM היומית נוצלה",
+      planKeyQuota: "למפתח אין מכסה למודל — בדקו את פרויקט המפתח ב-Google Console",
     },
     tabs: {
       accessible: "נגיש",

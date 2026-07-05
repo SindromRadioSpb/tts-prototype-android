@@ -1986,6 +1986,8 @@ window.I18N_LOCALES.en = {
       agentToday: "LLM today",
       hintAgent: "The agent key (AGENT_GEMINI_API_KEY) is set on the server and pays only for the mentor. Each LLM-phrased plan spends 1 call from the daily limit; when exhausted or without a key, the plan is built deterministically and stays useful.",
       hintAgentGlobal: "Total today",
+      planLimit: "daily LLM limit exhausted",
+      planKeyQuota: "the key has no quota for the model — check the key's project in Google Console",
     },
     tabs: {
       accessible: "Accessible",
