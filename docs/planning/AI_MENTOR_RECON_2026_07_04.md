@@ -921,8 +921,51 @@ MINOR-находки (13) учтены точечно: push_subscriptions в §6
    (§14); полный отчёт — `AI_MENTOR_CRITIQUE_2026_07_04.md`.
 4. ✅ Развилки **D1–D3** решены владельцем 2026-07-05 — рекомендованные варианты утверждены
    (§14): D1 = channel-aware грейд, D2 = server-canon телеметрия, D3 = content-hash seed.
-5. ▶ Retention **P4.1** (по §13.6) → **CLG-P1** (identity) — первый код программы.
-   Telegram — не раньше гейта G-5.
+5. ✅ Retention **P4.1** → **CLG-P1→P5.5+P4.5 — ВЕСЬ пивот SHIPPED и верифицирован на
+   проде** (v3.11.88→97, §9 таблица — детали по каждой фазе там): identity, event log,
+   sync bridge (D3), server FSRS replay + независимый оракул, Learner Graph API,
+   Artifact Sync (класс B), Web Push due-нудж. Owner live dry-run на реальных профилях
+   (ПК + iPhone, ~5400 событий памяти + 81 текст) прошёл, все гейты зелёные.
+6. ✅ **Пост-P5.5 hardening (v3.11.98→101, 2026-07-05) — owner real-device верифи поймал и
+   закрыл 2 отдельных дефекта, не входящих в роадмап-фазы, но материально важных для базы,
+   на которой строится CLG-P6:**
+   - **v3.11.98–99 UX + артефакт-синк:** Room↔Studio кросс-навигация (иконка/кнопки в обе
+     стороны + собственный `manifest-room.json`, PWA-установка из Зала больше не открывает
+     Студию); `syncArtifacts` чинился с all-or-nothing-silent на per-text best-effort —
+     один проблемный текст переставал маскировать успех остальных 80 (см. новый lessons
+     файл `feedback_silent_batch_partial_failure.md`).
+   - **v3.11.101 — КОРНЕВОЙ платформенный баг найден и закрыт:** sticky-VFS preference в
+     `db-worker.js` (общий OPFS-слой local-db, НЕ специфичен для CLG) сравнивал персистентное
+     значение `vfs.name` с ДРУГИМ набором generic-меток → сравнение никогда не совпадало →
+     каждый boot пересобирал AccessHandlePoolVFS первым независимо от того, какой VFS
+     реально хранит данные устройства; на iOS это давало то CANTOPEN, то (один раз) честный,
+     но пугающий рендер «0 текстов» с ДРУГОГО, почти пустого backend. Фикс:
+     `public/db/vfs-order.js` (чистая функция, юнит-тест `tests/vfsOrder.test.js` 4/4) +
+     self-cleaning VFS-попытки + retry с бэкоффом + `closeLocalDB()` перед кросс-нав + R11
+     honesty-guard `vfsBackendChanged()` (громкое предупреждение вместо тихого «0»). Полная
+     хронология и объяснение механизма — `project_ai_mentor_cloud_graph.md` (память) и
+     lessons `feedback_config_string_match_by_construction.md` /
+     `feedback_silent_empty_vs_real_empty.md`. **Прод сейчас v3.11.101, owner подтвердил:
+     «Баг устранён. Тестирование прошло успешно.»**
+7. ▶ **СЛЕДУЮЩЕЕ (рекомендовано в НОВОЙ сессии — эта уже прошла P1→P5.5+P4.5+hardening,
+   контекст большой): CLG-P6 Agent Runtime, первый код собственно наставника.** Три
+   пре-условия канона, ни одно ещё не начато:
+   1. **R17 — Agent Pedagogy / Grader Independence** (§12): заготовка есть, НЕ утверждена.
+      Подготовить формальное определение по норме **propose-first**
+      (`feedback_propose_new_role_first.md` — предложить владельцу ДО встраивания в
+      `docs/PROJECT_ROLES.md`/CLAUDE.md, не встраивать самостоятельно).
+   2. **Серверный keying/resolver-стек** (§7, абзац «Границы item_key»): портировать
+      браузерный резолвер-стек (офлайн-словарь `pealim-infl-v12.json.gz` 3.3МБ +
+      `notes-autogen.js`) в Node, чтобы сервер мог САМ выводить `item_key` для новых слов.
+      До этого агент обязан оперировать ТОЛЬКО существующими item_key из
+      `get_due_words`/`get_word_lifecycle` — инструмента, создающего новые ключи, не
+      существует.
+   3. **Реализация D1** (§14, решение уже принято — нужен КОД): channel-aware грейд-
+      политика — production-канал (диктант/reverse) провал на рецептивно-сильном слове
+      маппится в Hard, не Again; нужна channel-провенанс в схеме события (meta_json,
+      зафиксировать на CLG-P2-подобном уровне — таблица уже есть) + channel-aware
+      агрегация в `learnerProjectionRepo.js`/`srs_projections`.
+   Telegram (P7) — не раньше гейта G-5 (после P6).
 
 **Напутствие программы (владелец):** первый код должен быть «скучным, платформенным и
 почти невидимым» — identity, consent, event log, sync, replay, projections. Только после
