@@ -12,7 +12,7 @@
 //   • keyer: пачка с чужим keyer_version → 400 KEYER_UNSUPPORTED; строка с чужим row-keyer → reject;
 //   • annul-схема (§1.3 carve-out б): без annul_of → reject, с annul_of → принят;
 //   • B7: learner_events с review_answered → reject с собственной причиной; unknown type → reject;
-//   • read-back /api/learner/log: только СВОИ строки, курсор next_since;
+//   • read-back /api/learner/log: только СВОИ строки, ROWID-курсор next_rid;
 //   • auth: ingest без cookie → 401, без CSRF → 403;
 //   • delete = forget-the-stream: cloud-строки юзера A стёрты (динамический sweep подхватил
 //     новые таблицы 021 БЕЗ правки identityRepo), строки юзера B целы.
@@ -169,11 +169,12 @@ const T = (s) => s;   // canonical UTC-Z literals below
     const r1row = log1.json.rows.find((r) => r.id === "app:r1");
     eq(!!r1row && !("surface" in JSON.parse(r1row.meta_json)) && JSON.parse(r1row.meta_json).text_key === "tk1",
       "stored meta must have surface stripped but keep identifier keys");
+    // ROWID cursor (v2 — the ingested_at cursor could skip rows committed after a read)
     const page1 = await api("GET", "/api/learner/log?limit=2", { cookie: cookieA });
-    const page2 = await api("GET", "/api/learner/log?limit=100&since=" + encodeURIComponent(page1.json.next_since), { cookie: cookieA });
+    const page2 = await api("GET", "/api/learner/log?limit=100&after_rid=" + encodeURIComponent(page1.json.next_rid), { cookie: cookieA });
     eq(page1.json.rows.length === 2 && page2.json.rows.length >= 1 &&
-       !page2.json.rows.some((r) => page1.json.rows.some((p) => p.id === r.id && p.ingested_at === r.ingested_at)),
-      "ingested_at cursor paging broken");
+       !page2.json.rows.some((r) => page1.json.rows.some((p) => p.id === r.id)),
+      "rowid cursor paging broken");
 
     // B1 — user #2 with the SAME seed id → both rows survive (user-scoped PK).
     // No API mints a second user (owner-only bootstrap) → create user2 + session directly in the

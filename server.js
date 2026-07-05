@@ -1575,10 +1575,13 @@ app.post("/api/learner/ingest", rlLearnerIngest, async (req, res) => {
 app.get("/api/learner/log", rlLearnerRead, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   try {
+    // ROWID cursor (hole-free under the txn-lock; see learnerLogRepo.readLog). Legacy `since`
+    // (ISO ingested_at) is deliberately IGNORED — an old cursor value restarts the scan from 0,
+    // which is safe (client INSERT OR IGNORE) and heals any timestamp-cursor hole.
     const rows = await learnerLogRepo.readLog(auth.user.id, {
-      sinceIngestedAt: req.query.since || "", limit: req.query.limit,
+      afterRid: req.query.after_rid || 0, limit: req.query.limit,
     });
-    res.json({ ok: true, rows, next_since: rows.length ? rows[rows.length - 1].ingested_at : null });
+    res.json({ ok: true, rows, next_rid: rows.length ? rows[rows.length - 1].rid : null });
   } catch (e) { res.status(500).json({ ok: false, error: "READ_FAILED", message: e.message }); }
 });
 

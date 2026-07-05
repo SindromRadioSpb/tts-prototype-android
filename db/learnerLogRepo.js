@@ -234,17 +234,18 @@ async function ingestBatch(userId, deviceId, batch) {
   return { ok: true, replayed: false, ...result };
 }
 
-// Down-sync primitive (CLG-P3 will build the client cursor on this): the principal's rows
-// ordered by (ingested_at, id), strictly after `sinceIngestedAt`.
-async function readLog(userId, { sinceIngestedAt, limit } = {}) {
+// Down-sync primitive. Cursor = ROWID, not ingested_at: ingested_at is stamped at INSERT
+// (inside the transaction) but rows become VISIBLE at COMMIT — a reader paging by timestamp can
+// advance its cursor PAST rows that appear later (found live: iPhone synced during the PC's
+// multi-batch upload and permanently skipped 11 rows). Under db/txnLock.js writers are
+// serialized, so rowid order == commit order and a reader always sees a hole-free PREFIX.
+async function readLog(userId, { afterRid, limit } = {}) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const lim = Math.max(1, Math.min(2000, Number(limit) || 500));
-  const since = sinceIngestedAt ? String(sinceIngestedAt) : "";
-  const rows = since
-    ? await dbAll(db, `SELECT id, item_key, kind, reviewed_at, grade, source, channel, latency_ms, meta_json, device_id, ingested_at
-                         FROM review_log WHERE user_id = ? AND ingested_at > ? ORDER BY ingested_at ASC, id ASC LIMIT ?`, [userId, since, lim])
-    : await dbAll(db, `SELECT id, item_key, kind, reviewed_at, grade, source, channel, latency_ms, meta_json, device_id, ingested_at
-                         FROM review_log WHERE user_id = ? ORDER BY ingested_at ASC, id ASC LIMIT ?`, [userId, lim]);
+  const rid = Math.max(0, Number(afterRid) || 0);
+  const rows = await dbAll(db,
+    `SELECT rowid AS rid, id, item_key, kind, reviewed_at, grade, source, channel, latency_ms, meta_json, device_id, ingested_at
+       FROM review_log WHERE user_id = ? AND rowid > ? ORDER BY rowid ASC LIMIT ?`, [userId, rid, lim]);
   return rows || [];
 }
 

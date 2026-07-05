@@ -25,7 +25,10 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
-  var UP_CURSOR = "up_cursor", DOWN_CURSOR = "down_cursor", CUTOVER_OK = "cutover_ok", LAST_SYNC = "last_sync_at";
+  // DOWN cursor v2 = server ROWID (hole-free; the v1 ingested_at cursor could skip rows whose
+  // batch committed after the read — found live on the owner's iPhone). The old "down_cursor"
+  // key is simply abandoned: an empty rid cursor restarts from 0, INSERT OR IGNORE dedupes.
+  var UP_CURSOR = "up_cursor", DOWN_CURSOR = "down_cursor_rid", CUTOVER_OK = "cutover_ok", LAST_SYNC = "last_sync_at";
   var BATCH_UP = 400, BATCH_DOWN = 500;
 
   // Lock-step with db/learnerLogRepo.js META_STRIP (server enforces independently).
@@ -142,10 +145,10 @@
 
   // ── download ─────────────────────────────────────────────────────────────
   async function syncDown(ldb) {
-    var since = (await ldb.getSyncState(DOWN_CURSOR)) || "";
+    var afterRid = Number(await ldb.getSyncState(DOWN_CURSOR)) || 0;
     var addedKeys = new Set(); var markKeys = new Set(); var pulled = 0;
     for (;;) {
-      var r = await jfetch("GET", "/api/learner/log?limit=" + BATCH_DOWN + (since ? "&since=" + encodeURIComponent(since) : ""));
+      var r = await jfetch("GET", "/api/learner/log?limit=" + BATCH_DOWN + "&after_rid=" + afterRid);
       if (r.status !== 200 || !r.json || !r.json.ok) return { ok: false, status: r.status, error: (r.json && r.json.error) || "READ_FAILED" };
       var rows = r.json.rows || [];
       if (!rows.length) break;
@@ -164,8 +167,8 @@
           if (w.kind === "mark") markKeys.add(String(w.item_key));
         }
       }
-      since = r.json.next_since || since;
-      await ldb.setSyncState(DOWN_CURSOR, since);
+      afterRid = Number(r.json.next_rid) || afterRid;
+      await ldb.setSyncState(DOWN_CURSOR, String(afterRid));
       if (rows.length < BATCH_DOWN) break;
     }
     // §4.7 manual-axis LWW: a NEW foreign mark row may or may not be the newest — fold the FULL
@@ -188,7 +191,7 @@
   }
 
   // ── full cycle + reconciliation ──────────────────────────────────────────
-  async function fullSync(ldb) {
+  async function fullSync(ldb, opts) {
     var session = await me();
     if (!session) return { ok: false, error: "UNAUTHENTICATED" };
     // §4.7 backfill at cutover: manual разметка asserted BEFORE mark-emission existed gets its
@@ -202,8 +205,30 @@
     if (!up.ok) return up;
     var down = await syncDown(ldb);
     if (!down.ok) return down;
+    // §4.3 постоянная reconciliation, встроенная в каждый цикл: после полного двустороннего
+    // синка local == server; расхождение (напр. унаследованная дыра v1-курсора) → ОДИН
+    // авто-heal: сброс курсоров → полный re-verify-upload + полный re-download (идемпотентно).
+    var healed = false, localN = null, serverN = null;
+    try {
+      localN = await ldb.countReviewLog();
+      var c = await jfetch("GET", "/api/learner/counts");
+      serverN = c.json && c.json.ok ? Number(c.json.review_log) : null;
+      if (serverN != null && serverN !== localN && !(opts && opts.noHeal)) {
+        await ldb.setSyncState(CUTOVER_OK, "");
+        await ldb.setSyncState(DOWN_CURSOR, "");
+        var again = await fullSync(ldb, { noHeal: true });
+        if (again && again.ok) {
+          healed = true;
+          up = { totals: again.up }; up.ok = true; up.totals = again.up;
+          down.pulled = (down.pulled || 0) + ((again.down && again.down.pulled) || 0);
+          localN = again.counts ? again.counts.local : await ldb.countReviewLog();
+          serverN = again.counts ? again.counts.cloud : serverN;
+        }
+      }
+    } catch (_) {}
     try { await ldb.setSyncState(LAST_SYNC, new Date().toISOString()); } catch (_) {}
-    return { ok: true, up: up.totals, down: { pulled: down.pulled }, user: session.user };
+    return { ok: true, up: up.totals, down: { pulled: down.pulled }, healed: healed,
+             counts: { local: localN, cloud: serverN }, user: session.user };
   }
   // Permanent reconciliation (§4.3): after a full two-way sync the local log and the server log
   // are the SAME SET — compare counts; on mismatch re-verify-upload from 0 + full re-download.

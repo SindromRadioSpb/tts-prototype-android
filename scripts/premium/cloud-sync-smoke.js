@@ -258,6 +258,25 @@ async function ready(srv, ms = 30000) {
     await actA2b.pg.close();
     eq(aRes2b.ok && aRes2b.countAfter === 7, "A: the l3 mark must append exactly one row (got " + aRes2b.countAfter + ")");
 
+    // Device B — act 2: cursor-hole HEAL (the owner's live iPhone bug: 11 rows skipped by the
+    // v1 ingested_at cursor). Simulate a hole by dropping one synced row locally (harness-only
+    // surgery) → fullSync must detect local≠server and auto-heal via full re-download.
+    const fnB2 = async () => {
+      const ldb = window.__ldb, CS = window.CloudSync;
+      const del = await ldb.dbQuery("SELECT id, kind, source FROM review_log ORDER BY rowid LIMIT 1");
+      await ldb.dbRun("DELETE FROM review_log WHERE rowid IN (SELECT rowid FROM review_log ORDER BY rowid LIMIT 1)");
+      const before = await ldb.countReviewLog();
+      const s = await CS.fullSync(ldb);
+      const after = await ldb.countReviewLog();
+      const rows = await ldb.dbQuery("SELECT id, kind, source, reviewed_at FROM review_log ORDER BY rowid");
+      return { before, after, healed: s.healed === true, countsEqual: !!(s.counts && s.counts.local === s.counts.cloud),
+               deleted: del && del[0], allRows: rows };
+    };
+    const actB2 = await act(ctxB, "B2", fnB2, {});
+    await actB2.pg.close();
+    eq(actB2.res.healed && actB2.res.countsEqual, "HEAL FAILED: count mismatch must trigger the one-shot auto-heal: " + JSON.stringify(actB2.res));
+    eq(actB2.res.after === 7 && actB2.res.after > actB2.res.before, "HEAL FAILED: the dropped row must be re-downloaded (before=" + actB2.res.before + " after=" + actB2.res.after + ") deleted=" + JSON.stringify(actB2.res.deleted) + " rows=" + JSON.stringify(actB2.res.allRows));
+
     // Device C — fresh-device bootstrap (empty OPFS → full replica incl. the manual axis)
     const ctxC = await mkDevice();
     const fnC = async ({ SECRET, KEY }) => {
@@ -298,7 +317,7 @@ async function ready(srv, ms = 30000) {
     await stop(srv.c);
     try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {}
   }
-  const total = 30;
+  const total = 32;
   if (failures.length) {
     console.error(`smoke:cloud-sync FAIL (${total - failures.length}/${total})`);
     for (const f of failures) console.error("  ✗ " + f);
