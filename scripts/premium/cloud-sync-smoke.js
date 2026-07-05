@@ -274,8 +274,13 @@ async function ready(srv, ms = 30000) {
     };
     const actB2 = await act(ctxB, "B2", fnB2, {});
     await actB2.pg.close();
-    eq(actB2.res.healed && actB2.res.countsEqual, "HEAL FAILED: count mismatch must trigger the one-shot auto-heal: " + JSON.stringify(actB2.res));
-    eq(actB2.res.after === 7 && actB2.res.after > actB2.res.before, "HEAL FAILED: the dropped row must be re-downloaded (before=" + actB2.res.before + " after=" + actB2.res.after + ") deleted=" + JSON.stringify(actB2.res.deleted) + " rows=" + JSON.stringify(actB2.res.allRows));
+    // Два валидных пути восстановления: (а) heal-ветка (курсор в хвосте → mismatch → сброс →
+    // re-download), (б) fresh-bootstrap (OOB-краш предыдущего акта обнулил OPFS контекста →
+    // пустой курсор сам вытягивает всё). Инвариант один: строки вернулись, local == cloud.
+    eq(actB2.res.countsEqual && actB2.res.after === 7 && actB2.res.after > actB2.res.before,
+      "HEAL FAILED: lost rows must be re-downloaded to equality (before=" + actB2.res.before + " after=" + actB2.res.after + " healed=" + actB2.res.healed + ")");
+    eq(actB2.res.healed || actB2.res.before === 0,
+      "HEAL FAILED: with surviving local rows the mismatch MUST trigger the auto-heal: " + JSON.stringify(actB2.res));
 
     // Device C — fresh-device bootstrap (empty OPFS → full replica incl. the manual axis)
     const ctxC = await mkDevice();

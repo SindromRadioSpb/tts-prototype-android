@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>LinguistPro — Читальный зал</title>
-  <link rel="manifest" href="/manifest.json">
+  <!-- Own manifest: установка PWA ИЗ Зала открывает Зал (start_url=/library.html), не Студию -->
+<link rel="manifest" href="/manifest-room.json">
   <link rel="icon" type="image/png" href="/icons/icon-192.png">
   <meta name="theme-color" content="#0f172a">
   <!-- BRR-P0-002b: shared reader-table fidelity (niqqud/RTL/buttons) + Hebrew webfont, extracted from index.html. -->
@@ -94,6 +95,16 @@
       border: 1px solid var(--border-soft); border-radius: 8px; padding: 6px 10px; font-size: 13px;
     }
     .room-head-controls { display: flex; align-items: center; gap: 8px; flex: none; }
+    /* Зал ↔ Студия cross-nav (icon in the theme-button family; the text link lives in the footer) */
+    .room-studio-link { text-decoration: none; display: inline-block; }
+    .room-studio-link:hover { border-color: var(--accent); }
+    /* @380px: 4 контрола не помещаются рядом с заголовком — контролам своя строка,
+       заголовок остаётся одной строкой (пойман скриншот-нормой) */
+    @media (max-width: 480px) {
+      .room-header-row { flex-wrap: wrap; }
+      .room-header-row > div:first-child { flex: 1 1 100%; }
+      .room-head-controls { width: 100%; justify-content: flex-end; margin-top: 2px; }
+    }
     .room-theme-btn {
       flex: none; appearance: none; cursor: pointer; width: auto; line-height: 1; font-size: 15px;
       background: var(--bg-muted); color: var(--text-primary); border: 1px solid var(--border-soft);
@@ -1238,6 +1249,9 @@
     .room-cloud-ghost { background: transparent !important; color: var(--text-secondary) !important; border: 1px solid var(--border-soft) !important; }
     .room-cloud-info { font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
     .room-cloud-info b { color: var(--text-primary); }
+    .room-cloud-info [data-cloud-hint] { cursor: pointer; }
+    .room-cloud-i { opacity: .55; font-size: 11px; margin-inline-start: 3px; }
+    .room-cloud-explain { margin: 6px 0 0; padding: 7px 9px; background: var(--bg-muted); border-radius: 8px; }
     .room-cloud-consent { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; color: var(--text-primary); cursor: pointer; }
     .room-cloud-consent input { width: auto; }
     .room-cloud-hint { font-size: 12px; color: var(--text-faint); margin: 4px 0 0 24px; line-height: 1.45; }
@@ -1634,6 +1648,9 @@
       <p class="room-subtitle" data-i18n="room.header.subtitle">Двуязычная библиотека</p>
     </div>
     <div class="room-head-controls">
+      <!-- Кросс-навигация: Зал ↔ Студия (нет тупиков и в PWA-режиме); компактная иконка —
+           текстовая ссылка «📝 Студия» живёт в футере (заголовок @380px не должен ломаться) -->
+      <a id="roomStudioLink" class="room-theme-btn room-studio-link" href="/" aria-label="Студия" data-i18n-title="room.header.studio" title="Студия">📝</a>
       <!-- CLG-P3.2 — «☁» cloud-sync entry (owner-only dev-режим; dormant Tier 1 without login) -->
       <button id="roomCloud" class="room-theme-btn" type="button" aria-label="Синхронизация" data-i18n-title="room.cloud.btn" title="Синхронизация">☁</button>
       <button id="roomTheme" class="room-theme-btn" type="button" aria-label="Тема" data-i18n-title="room.theme.label" title="Тема">🌗</button>
@@ -1686,6 +1703,8 @@
     <a class="room-footer-source" href="https://benyehuda.org" target="_blank" rel="noopener" data-i18n="room.footer.source">Тексты: Проект Бен-Иегуда (общественное достояние)</a>
   </div>
   <div class="room-footer-right">
+    <a href="/" data-i18n="room.footer.studio">📝 Студия</a>
+    <a href="https://kolosei.com/products/linguistpro/" target="_blank" rel="noopener" data-i18n="room.footer.product">О продукте</a>
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android/issues/new" target="_blank" rel="noopener" data-i18n="footer.feedbackLink">💬 Сообщить о проблеме</a>
     <a href="/docs/PRIVACY.md" target="_blank" rel="noopener" data-i18n="footer.privacyLink">Приватность</a>
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
@@ -1727,6 +1746,8 @@
     </div>
     <div id="roomCloudPanel" hidden>
       <div id="roomCloudInfo" class="room-cloud-info"></div>
+      <!-- тап по строке с ⓘ раскрывает пояснение (title-тултипы не работают @380px) -->
+      <div id="roomCloudExplain" class="room-cloud-hint room-cloud-explain" hidden></div>
       <!-- CLG-P5.5 — класс B, явный consent-переключатель (§5): тексты уходят в облако ТОЛЬКО с галочкой -->
       <label class="room-cloud-consent">
         <input type="checkbox" id="roomCloudTexts">

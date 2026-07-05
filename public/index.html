@@ -9965,6 +9965,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     <button id="v3IdeSrsTrainerBtn" class="btn-ide" onclick="v3SrsTrainerOpen()" data-i18n="ide.train" data-i18n-title="ide.openTrainerTitle" title="Open SRS Trainer">
       🎯 Train
     </button>
+    <button id="v3IdeRoomBtn" class="btn-ide" onclick="location.href='/library.html'" data-i18n="ide.readingRoom" data-i18n-title="ide.readingRoomTitle" title="Открыть Читальный зал">
+      📖 Зал
+    </button>
     <button id="v3IdeFeedbackBtn" class="btn-ide" onclick="v3FeedbackOpen()" data-i18n-title="feedback.btnTitle" data-i18n-aria-label="feedback.btnTitle" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">
       📬
     </button>
@@ -9999,6 +10002,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
   <button class="v3-ide-tab-item" id="v3TabBarTrain" role="tab" onclick="v3SrsTrainerOpen()" aria-label="Train">
     <span class="v3-tbi-icon">🎯</span>
     <span class="v3-tbi-label">Train</span>
+  </button>
+  <button class="v3-ide-tab-item" id="v3TabBarRoom" role="tab" onclick="location.href='/library.html'" aria-label="Читальный зал">
+    <span class="v3-tbi-icon">📖</span>
+    <span class="v3-tbi-label" data-i18n="ide.readingRoomShort">Зал</span>
   </button>
 </nav>
 
@@ -10421,6 +10428,11 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                     <button id="btnSrsTrainer" class="classic-nav-card" onclick="v3SrsTrainerOpen()" data-i18n-aria-label="classic.navTrainer" aria-label="SRS Trainer">
                       <span class="classic-nav-icon">🎯</span>
                       <span class="classic-nav-label" data-i18n="classic.navTrainer">SRS Trainer</span>
+                    </button>
+                    <!-- Кросс-навигация Студия → Читальный зал (нет тупиков и в PWA-режиме) -->
+                    <button id="btnReadingRoom" class="classic-nav-card" onclick="location.href='/library.html'" data-i18n-aria-label="classic.navRoom" aria-label="Читальный зал">
+                      <span class="classic-nav-icon">📖</span>
+                      <span class="classic-nav-label" data-i18n="classic.navRoom">Читальный зал</span>
                     </button>
                   </div>
                   <!-- Row 2: Utilities -->

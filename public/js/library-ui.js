@@ -2271,13 +2271,26 @@ async function _cloudRender() {
     els.textsCb.checked = !!(c && c.granted === true);
   }
   const lines = [];
+  const hintRow = (hintKey, html) => '<span data-cloud-hint="' + hintKey + '">' + html + '<span class="room-cloud-i" aria-hidden="true">ⓘ</span></span>';
   try {
     const last = await localDb.getSyncState('last_sync_at');
     lines.push(tt('room.cloud.lastSync', 'Последний синк') + ': <b>' + (last ? new Date(last).toLocaleString() : tt('room.cloud.never', 'ещё не было')) + '</b>');
     const localN = await localDb.countReviewLog();
     let cloudN = '—';
     try { const c = await fetch('/api/learner/counts', { credentials: 'same-origin' }).then((r) => r.json()); if (c && c.ok) cloudN = c.review_log; } catch (_) {}
-    lines.push(tt('room.cloud.counts', 'Событий памяти') + ': ' + tt('room.cloud.countLocal', 'на устройстве') + ' <b>' + localN + '</b> · ' + tt('room.cloud.countCloud', 'в облаке') + ' <b>' + cloudN + '</b>');
+    lines.push(hintRow('events', tt('room.cloud.counts', 'События памяти') + ': ' + tt('room.cloud.countLocal', 'на устройстве') + ' <b>' + localN + '</b> · ' + tt('room.cloud.countCloud', 'в облаке') + ' <b>' + cloudN + '</b>'));
+    // P5.5 — «Мои тексты»: сверяемые числа на устройстве/в облаке (или честное «выключено»)
+    try {
+      const consented = !!((session.consents || {}).cloud_texts && session.consents.cloud_texts.granted === true);
+      if (consented) {
+        const ownTexts = await localDb.listOwnTextsForSync();
+        let cloudT = '—';
+        try { const a = await fetch('/api/learner/artifacts', { credentials: 'same-origin' }).then((r) => r.json()); if (a && a.ok) cloudT = (a.rows || []).length; } catch (_) {}
+        lines.push(hintRow('texts', tt('room.cloud.textsLine', 'Мои тексты') + ': ' + tt('room.cloud.countLocal', 'на устройстве') + ' <b>' + ownTexts.length + '</b> · ' + tt('room.cloud.countCloud', 'в облаке') + ' <b>' + cloudT + '</b>'));
+      } else {
+        lines.push(hintRow('texts', tt('room.cloud.textsLine', 'Мои тексты') + ': <b>' + tt('room.cloud.textsOff', 'синк выключен') + '</b>'));
+      }
+    } catch (_) {}
     // CLG-P4 — живой оракул на РЕАЛЬНОМ профиле: fresh replay(лог) == ingest-maintained серверные
     // проекции. missing>0 = проекции ещё не строились для до-P4 строк → разовый rebuild.
     try {
@@ -2289,9 +2302,9 @@ async function _cloudRender() {
         o = await oFetch();
       }
       if (o && o.ok) {
-        lines.push(o.mismatched === 0
+        lines.push(hintRow('oracle', o.mismatched === 0
           ? tt('room.cloud.oracleOk', 'Облачные проекции (оракул)') + ': <b>✓ ' + o.checked + '</b>'
-          : tt('room.cloud.oracleBad', 'Облачные проекции: расхождения') + ': <b>' + o.mismatched + '</b>');
+          : tt('room.cloud.oracleBad', 'Облачные проекции: расхождения') + ': <b>' + o.mismatched + '</b>'));
       }
     } catch (_) {}
   } catch (_) {}
@@ -2371,6 +2384,22 @@ function roomCloudInit() {
   if (els.pushOn) els.pushOn.addEventListener('click', _cloudPushEnable);
   if (els.pushOff) els.pushOff.addEventListener('click', _cloudPushDisable);
   if (els.pushTest) els.pushTest.addEventListener('click', _cloudPushTest);
+  // тап по строке с ⓘ → пояснение под инфо-блоком (title-тултипы не работают @380px);
+  // повторный тап той же строки — скрыть
+  if (els.info) els.info.addEventListener('click', (e) => {
+    const row = e.target && e.target.closest ? e.target.closest('[data-cloud-hint]') : null;
+    if (!row) return;
+    const key = row.getAttribute('data-cloud-hint');
+    const box = $('roomCloudExplain'); if (!box) return;
+    const texts = {
+      events: tt('room.cloud.hintEvents', 'Каждый ответ в тренировке или чтении записывается как событие — это журнал вашей памяти слов. После синхронизации числа на всех устройствах должны совпадать.'),
+      oracle: tt('room.cloud.hintOracle', 'Сервер пересчитал расписание повторений из журнала и сверил с сохранённым. «✓ N» — проверено N слов, расхождений нет.'),
+      texts: tt('room.cloud.hintTexts', 'Собственные тексты из «Мои тексты» (корпус не передаётся). После синхронизации числа на устройстве и в облаке должны совпадать.'),
+    };
+    const next = texts[key] || '';
+    if (!box.hidden && box.getAttribute('data-for') === key) { box.hidden = true; return; }
+    box.textContent = next; box.setAttribute('data-for', key); box.hidden = !next;
+  });
 }
 // Boot auto-sync: ONLY when a live session already exists (прежний явный вход владельца =
 // durable-согласие Tier 2). Без сессии — один same-origin me() (401, кука HttpOnly и не
