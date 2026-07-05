@@ -1,0 +1,115 @@
+"use strict";
+
+// agent/tools.js — CLG-P6 tool router (§7 + §9 «принятый план» 4.3): ЗАКРЫТЫЙ реестр
+// инструментов агента. Разрешённая модель: LLM → tool router → инструменты →
+// Learner Graph API / artifacts / keying / review ingest. LLM никогда не получает
+// прямой доступ к БД и никогда сам не решает, что пользователь знает.
+//
+// R14/B2: user_id НЕ параметр инструмента — только ctx из authenticated principal;
+// user_id в аргументах = жёсткий reject (даже совпадающий с принципалом).
+//
+// §13.4-шов: обработчики зовут серверные репозитории (main-процесс = единственный
+// писатель SQLite). При выделении agent-сервиса в отдельный контейнер обработчики
+// заменяются HTTP-клиентами Cloud API — сигнатуры инструментов не меняются.
+//
+// Стадирование (§9-план 4.8): record_review_answer и synthesize_audio — SKELETON,
+// disabled до своих гейтов (deterministic-first · D1 · провенанс · gold · annul ·
+// MNAR · down-sync; TTS-лимиты) — честный TOOL_DISABLED, не тихий no-op.
+
+const path = require("path");
+const learnerGraphRepo = require(path.join(__dirname, "..", "db", "learnerGraphRepo"));
+const learnerArtifactsRepo = require(path.join(__dirname, "..", "db", "learnerArtifactsRepo"));
+const keyingService = require(path.join(__dirname, "..", "db", "keyingService"));
+const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
+
+const REGISTRY = {
+  // ── read-only: Learner Graph (CLG-P5) ──────────────────────────────────────
+  get_due_words: {
+    readOnly: true,
+    run: (ctx, a) => learnerGraphRepo.getDue(ctx.userId, { limit: a && a.limit, nowMs: a && a.now_ms }),
+  },
+  get_known_words: {
+    readOnly: true,
+    run: (ctx) => learnerGraphRepo.getKnownWords(ctx.userId),
+  },
+  get_weak_words: {
+    readOnly: true,
+    run: (ctx, a) => learnerGraphRepo.getWeakWords(ctx.userId, { limit: a && a.limit }),
+  },
+  get_learner_context: {
+    readOnly: true,
+    run: (ctx, a) => learnerGraphRepo.getAgentContext(ctx.userId, { nowMs: a && a.now_ms }),
+  },
+  get_word_lifecycle: {
+    readOnly: true,
+    run: (ctx, a) => agentRepo.wordLifecycle(ctx.userId, a && a.item_key),
+  },
+
+  // ── keying (пре-условие №2): минт новых item_key ТОЛЬКО здесь (§7) ─────────
+  resolve_item_key: {
+    readOnly: true,
+    run: (ctx, a) => keyingService.resolveWords((a && (a.words || (a.surface ? [a] : null))) || []),
+  },
+
+  // ── артефакты класса B: только при живом consent, только МЕТАДАННЫЕ ────────
+  get_user_texts_if_consented: {
+    readOnly: true,
+    run: async (ctx) => {
+      let consented = false;
+      try { consented = await learnerArtifactsRepo.hasConsent(ctx.userId); } catch (_) {}
+      if (!consented) return { consented: false, texts: [] };
+      const rows = await learnerArtifactsRepo.list(ctx.userId);
+      // Метаданные, не контент: сервер хранит opaque-бандлы; тела текстов агенту
+      // в этом слайсе не отдаются (контент — материал /explain-слайса).
+      return { consented: true, texts: (rows || []).map((r) => ({ artifact_key: r.artifact_key, kind: r.kind, updated_at: r.updated_at })) };
+    },
+  },
+  get_sentence_context_if_available: {
+    disabled: "OPAQUE_ARTIFACT_STORE",   // sentence-anchor доступ — слайс /explain (P6.2)
+  },
+
+  // ── writeback: только идентификаторы классов A/B, никогда контент C ────────
+  create_agent_task: {
+    readOnly: false,
+    run: (ctx, a) => agentRepo.createTask(ctx.userId, { kind: a && a.kind, payload: a && a.payload }),
+  },
+  create_explanation: {
+    readOnly: false,
+    run: (ctx, a) => agentRepo.createExplanation(ctx.userId, a || {}),
+  },
+
+  // ── SKELETON (§9-план 4.8): активация по гейтам, не в этом слайсе ──────────
+  record_review_answer: {
+    disabled: "GATED_UNTIL_GRADER_GATES",   // deterministic-first · D1 · провенанс · gold · annul · MNAR · down-sync
+  },
+  synthesize_audio: {
+    disabled: "GATED_UNTIL_TTS_LIMITS",     // §7 max TTS chars/day + ledger kind='tts_chars'
+  },
+};
+
+function listTools() {
+  return Object.keys(REGISTRY).map((name) => ({
+    name,
+    enabled: !REGISTRY[name].disabled,
+    ...(REGISTRY[name].disabled ? { disabled_reason: REGISTRY[name].disabled } : {}),
+  }));
+}
+
+// Единственная точка вызова инструмента. ctx = { userId, deviceId } из принципала.
+async function callTool(ctx, name, args) {
+  if (!ctx || !ctx.userId) throw new Error("NO_PRINCIPAL");
+  if (args && typeof args === "object" && ("user_id" in args || "userId" in args)) {
+    // B2: даже СОВПАДАЮЩИЙ user_id в аргументах — reject, не молчаливый remap.
+    return { ok: false, error: "USER_ID_IN_ARGS" };
+  }
+  const t = REGISTRY[name];
+  if (!t) return { ok: false, error: "UNKNOWN_TOOL" };
+  if (t.disabled) return { ok: false, error: "TOOL_DISABLED", reason: t.disabled };
+  try {
+    return { ok: true, result: await t.run(ctx, args || {}) };
+  } catch (e) {
+    return { ok: false, error: "TOOL_FAILED", message: String((e && e.message) || e).slice(0, 120) };
+  }
+}
+
+module.exports = { callTool, listTools };

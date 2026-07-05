@@ -1673,6 +1673,42 @@ app.get("/api/learner/keying/status", rlLearnerKeying, async (req, res) => {
 });
 
 // ============================================================================
+// CLG-P6 — Agent Runtime, слайс 1 (AI_MENTOR_RECON §9 «принятый план», owner
+// brief 2026-07-05): сценарий /plan (read-only, НЕ пишет grade/review_log) +
+// status. LLM → tool router → закрытые инструменты (agent/tools.js); user_id
+// только из принципала; cost ledger pre-call reserve (§11); LLM-less fallback.
+// Гейт: smoke:agent-plan (honest counts, degradation, лимиты, stdout-гигиена).
+// ============================================================================
+const agentRuntime = require("./agent/runtime");
+const rlAgent = makeRateLimiter({ windowMs: 60_000, max: 20, name: "agent" });
+
+app.post("/api/agent/plan", rlAgent, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try { res.json(await agentRuntime.plan({ userId: auth.user.id, deviceId: auth.session.deviceId })); }
+  catch (e) { res.status(500).json({ ok: false, error: "AGENT_PLAN_FAILED", message: e.message }); }
+});
+
+app.get("/api/agent/status", rlAgent, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try { res.json({ ok: true, ...(await agentRuntime.status({ userId: auth.user.id })) }); }
+  catch (e) { res.status(500).json({ ok: false, error: "AGENT_STATUS_FAILED", message: e.message }); }
+});
+
+app.get("/api/agent/tasks", rlAgent, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try { res.json({ ok: true, tasks: await agentRuntime.listTasks({ userId: auth.user.id }, { status: req.query.status, limit: req.query.limit }) }); }
+  catch (e) { res.status(500).json({ ok: false, error: "AGENT_TASKS_FAILED", message: e.message }); }
+});
+
+app.post("/api/agent/profile", rlAgent, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try { res.json({ ok: true, profile: await agentRuntime.updateProfile({ userId: auth.user.id }, req.body || {}) }); }
+  catch (e) { res.status(500).json({ ok: false, error: "AGENT_PROFILE_FAILED", message: e.message }); }
+});
+
+// ============================================================================
 // CLG-P5.5 — Artifact Sync, класс B (AI_MENTOR_RECON §5/§9): OPAQUE per-text
 // bundle store под ЯВНЫМ consent'ом (consent_records 'cloud_texts'). Server-side
 // enforcement на КАЖДОМ запросе — выключенный переключатель означает 403 даже
