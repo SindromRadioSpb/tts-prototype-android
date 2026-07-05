@@ -540,12 +540,16 @@ synthesize_audio(text|item_key)        → TTS с кэш-провенансом 
 (`user_id` НЕ параметр инструментов — он выводится из аутентифицированного принципала,
 §6; v3, критика B2.)
 
-**Границы item_key (v3, критика M-R12):** кейер детерминирован, но его ВХОДЫ производит
-браузерный резолвер-стек (офлайн-словарь 3.3 МБ + notes-autogen + reader-morph), которого
-на сервере нет. До появления серверного keying/resolver-сервиса на том же датасете
-(pealim-infl-v12 + notes-autogen в Node; вписан в scope CLG-P5/P6) действует жёсткое
-правило: **агент оперирует ТОЛЬКО существующими item_key** из get_due_words /
-get_word_lifecycle; инструмента, создающего новые ключи, не существует.
+**Границы item_key (v3, критика M-R12) — СНЯТЫ 2026-07-05 (пре-условие CLG-P6 №2):**
+серверный keying/resolver-стек отгружен — `db/keyingService.js` (lazy-load pealim-infl-v12
++ notes-autogen + lemma-canon + function-links, те же pure-модули что в браузере — parity
+by construction; R16: ~306 MB не резидентно, idle-выгрузка 5 мин) + endpoints
+`/api/learner/keying/{resolve,status}` (session+CSRF+rate-limit 30/мин, cap 50 слов).
+Гейт **smoke:server-keying 24/24** (bundle key-parity 96.2% ≥95% против reference-бандла
+build-notes — независимый артефакт; honesty: unkeyable → null, гомограф → ambiguous+alts,
+function-word → pid). Новое правило: **агент минтит новые item_key ТОЛЬКО через
+keyingService** (LLM никогда не изобретает ключ сам); нерешаемое слово → честный отказ,
+не ключ-догадка.
 
 Цикл «Повтори меня»: `get_due_words → выбор режима → вопрос → ответ пользователя →
 record_review_answer → FSRS-replay пересчитывает → результат`. LLM никогда «сам не решает,
@@ -956,12 +960,12 @@ MINOR-находки (13) учтены точечно: push_subscriptions в §6
       **propose-first** и УТВЕРЖДЕНА владельцем 2026-07-05 в расширенной редакции
       (R17-A/R17-B + зона решений + 8 гейтов перед CLG-P6/P7 + матрица взаимодействия
       с R1–R16); встроена в `docs/PROJECT_ROLES.md` + CLAUDE.md.
-   2. **Серверный keying/resolver-стек** (§7, абзац «Границы item_key»): портировать
-      браузерный резолвер-стек (офлайн-словарь `pealim-infl-v12.json.gz` 3.3МБ +
-      `notes-autogen.js`) в Node, чтобы сервер мог САМ выводить `item_key` для новых слов.
-      До этого агент обязан оперировать ТОЛЬКО существующими item_key из
-      `get_due_words`/`get_word_lifecycle` — инструмента, создающего новые ключи, не
-      существует.
+   2. ✅ **Серверный keying/resolver-стек** (§7) — SHIPPED 2026-07-05: `db/keyingService.js`
+      (те же pure-модули, что браузер: notes-autogen + lemma-canon + pealim-infl-v12 +
+      function-links; lazy-load + idle-выгрузка — R16 замер 306 MB) + endpoints
+      `/api/learner/keying/{resolve,status}`. Гейт `smoke:server-keying` 24/24
+      (key-parity 96.2% против reference-бандла, honesty-кейсы, e2e). Ограничение
+      «только существующие item_key» снято: минт новых ключей = ТОЛЬКО через сервис.
    3. **Реализация D1** (§14, решение уже принято — нужен КОД): channel-aware грейд-
       политика — production-канал (диктант/reverse) провал на рецептивно-сильном слове
       маппится в Hard, не Again; нужна channel-провенанс в схеме события (meta_json,

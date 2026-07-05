@@ -1645,6 +1645,34 @@ app.get("/api/learner/context", rlLearnerGraph, async (req, res) => {
 });
 
 // ============================================================================
+// CLG-P6 prep — серверный keying/resolver-стек (AI_MENTOR_RECON §7 «Границы
+// item_key»): сервер сам выводит item_key для НОВЫХ слов на том же датасете и
+// тех же pure-модулях, что браузер (notes-autogen + lemma-canon + pealim-infl-v12
+// + function-links). Снимает ограничение «агент оперирует только существующими
+// item_key». Stateless (DB не трогает); датасет lazy-load + idle-выгрузка (R16).
+// Гейт: smoke:server-keying (parity vs reference-бандл build-notes).
+// ============================================================================
+const keyingService = require("./db/keyingService");
+const rlLearnerKeying = makeRateLimiter({ windowMs: 60_000, max: 30, name: "learner-keying" });
+
+app.post("/api/learner/keying/resolve", rlLearnerKeying, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  const words = Array.isArray(req.body && req.body.words) ? req.body.words : null;
+  if (!words || !words.length) return res.status(400).json({ ok: false, error: "NO_WORDS" });
+  if (words.length > keyingService.MAX_WORDS) {
+    return res.status(400).json({ ok: false, error: "TOO_MANY_WORDS", max: keyingService.MAX_WORDS });
+  }
+  try { res.json({ ok: true, ...(await keyingService.resolveWords(words)) }); }
+  catch (e) { res.status(500).json({ ok: false, error: "KEYING_FAILED", message: e.message }); }
+});
+
+app.get("/api/learner/keying/status", rlLearnerKeying, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  res.json({ ok: true, ...keyingService.status() });
+});
+
+// ============================================================================
 // CLG-P5.5 — Artifact Sync, класс B (AI_MENTOR_RECON §5/§9): OPAQUE per-text
 // bundle store под ЯВНЫМ consent'ом (consent_records 'cloud_texts'). Server-side
 // enforcement на КАЖДОМ запросе — выключенный переключатель означает 403 даже

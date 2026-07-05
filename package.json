@@ -101,6 +101,7 @@
     "smoke:learner-ingest": "node scripts/premium/learner-ingest-smoke.js",
     "smoke:cloud-sync": "node scripts/premium/cloud-sync-smoke.js",
     "smoke:server-replay": "node scripts/premium/server-replay-smoke.js",
+    "smoke:server-keying": "node scripts/premium/server-keying-smoke.js --gate",
     "smoke:learner-graph": "node scripts/premium/learner-graph-smoke.js",
     "smoke:artifact-sync": "node scripts/premium/artifact-sync-smoke.js",
     "smoke:web-push": "node scripts/premium/web-push-smoke.js",
