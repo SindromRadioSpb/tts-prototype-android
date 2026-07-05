@@ -26,15 +26,21 @@ function killSwitchOn() {
   return String(process.env.AGENT_LLM_DISABLED || "") === "1";
 }
 
-// R16: AGENT_GEMINI_API_KEY — ОТДЕЛЬНЫЙ ключ агента (своя квота + видимость расходов
-// агента в Google Console отдельно от перевода/TTS); фолбэк — общий GEMINI_API_KEY.
+// R16/R15 — СТРОГО выделенный ключ агента, НИКАКИХ фолбэков на другие env-ключи
+// (уточнение владельца 2026-07-05). Архитектура ключей проекта:
+//   • пользовательские пайплайны (Gemini-перевод / GCP Translate / TTS) = BYOK:
+//     AIza-ключи живут в localStorage браузера и передаются per-request, сервер их
+//     НЕ хранит (docs/BYOK_SETUP.md); service-account ФАЙЛЫ (GCP Translate/TTS) —
+//     на томе /app/data (владельческие, для прибейка/аудио-кэша);
+//   • серверного GEMINI_API_KEY на проде НЕТ намеренно;
+//   • агент платит ТОЛЬКО через AGENT_GEMINI_API_KEY — молчаливое заимствование
+//     бюджета другой подсистемы = красный флаг R16 «неучтённый фоновый расход».
+// Нет ключа → честный NO_API_KEY → сценарии деградируют в детерминированный режим.
 function geminiKey() {
-  return process.env.AGENT_GEMINI_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
+  return process.env.AGENT_GEMINI_API_KEY || "";
 }
 function keySource() {
-  if (process.env.AGENT_GEMINI_API_KEY) return "agent";
-  if (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY) return "shared";
-  return "none";
+  return process.env.AGENT_GEMINI_API_KEY ? "agent" : "none";
 }
 
 async function generateGemini({ system, prompt, maxOutputTokens }) {

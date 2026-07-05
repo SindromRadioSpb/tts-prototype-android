@@ -21,7 +21,7 @@ async function status(ctx) {
   const profile = await agentRepo.getProfile(ctx.userId);
   return {
     provider: llm.providerName(),
-    key_source: llm.keySource(),   // agent | shared | none (R16: чей ключ платит)
+    key_source: llm.keySource(),   // agent | none (R16: агент платит ТОЛЬКО своим ключом)
     kill_switch: llm.killSwitchOn(),
     limits: {
       llm_daily_per_user: Number(process.env.AGENT_LLM_DAILY_PER_USER) || 50,
