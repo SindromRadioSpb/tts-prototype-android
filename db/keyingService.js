@@ -46,6 +46,7 @@ let _bundle = null;    // { ds, maps, links, modelVersion, loadedAtMs, loadMs }
 let _loading = null;   // in-flight load promise (single-flight)
 let _lastUsedMs = 0;
 let _sweeper = null;
+let _pidLemmaIndex = null;   // pealim_id -> lemma (display name), built once per bundle load
 
 // Зеркало браузерного pealim-function-links.js (lookup/getForm): surface → Dicta-stem →
 // lemma, POS-совпадение предпочитается, иначе same-spelling fallback. Файл опционален —
@@ -112,7 +113,37 @@ async function ensureLoaded() {
 function unloadNow() {
   const was = !!_bundle;
   _bundle = null;
+  _pidLemmaIndex = null;
   return was;
+}
+
+function _pidLemma(ds) {
+  if (_pidLemmaIndex) return _pidLemmaIndex;
+  const m = new Map();
+  for (const p of (ds && ds.paradigms) || []) {
+    if (p && p.pealim_id != null && p.lemma && !m.has(String(p.pealim_id))) m.set(String(p.pealim_id), p.lemma);
+  }
+  _pidLemmaIndex = m;
+  return m;
+}
+
+// Дисплейная форма item_key для UX-поверхностей (например, /plan): '<lemma>#<pos>' →
+// лемма прямо из ключа (дёшево, без датасета); 'pid:<N>' → лемма из paradigms[].lemma
+// (1:1 с pealim_id, огласована — проверено на реальных pid владельца 2026-07-05) через
+// function-links (служебные слова) как первый источник, затем полный словарь. Честный
+// фолбэк — сырой ключ, форму НИКОГДА не выдумываем (R1).
+async function displayForItemKey(itemKey) {
+  const k = String(itemKey || "");
+  if (!k.startsWith("pid:")) {
+    const i = k.indexOf("#");
+    return i > 0 ? k.slice(0, i) : k;
+  }
+  const pid = k.slice(4);
+  const b = await ensureLoaded();
+  const f = b.links.getForm(pid);
+  if (f && f.he) return f.he;
+  const lem = _pidLemma(b.ds).get(pid);
+  return lem || k;
 }
 
 // Вход → resolution-unit. dicta_token (объект из sentence_morph) идёт через канонический
@@ -222,4 +253,4 @@ function status() {
   };
 }
 
-module.exports = { resolveWord, resolveWords, ensureLoaded, unloadNow, status, MAX_WORDS, RESOLVER_ID };
+module.exports = { resolveWord, resolveWords, ensureLoaded, unloadNow, status, displayForItemKey, MAX_WORDS, RESOLVER_ID };

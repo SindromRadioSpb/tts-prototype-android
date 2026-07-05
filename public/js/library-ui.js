@@ -2224,6 +2224,7 @@ async function _cloudPlanRun() {
       const label = (code === 'USER_LIMIT' || code === 'GLOBAL_LIMIT') ? tt('room.cloud.planLimit', 'дневной лимит LLM исчерпан')
         : (code === 'KILL_SWITCH') ? tt('room.cloud.agentKill', 'LLM выключен (kill-switch)')
         : (code === 'NO_API_KEY') ? tt('room.cloud.agentKeyNone', 'без LLM-ключа — план детерминированный')
+        : (code === 'LLM_OUTPUT_INVALID') ? tt('room.cloud.planQualityReject', 'ответ модели не прошёл проверку качества')
         : (code === '429' || code === '403') ? tt('room.cloud.planKeyQuota', 'у ключа нет квоты к модели — проверьте проект ключа в Google Console') + ' (' + code + ')'
         : code;
       lines.push('ⓘ ' + tt('room.cloud.planNoLlm', 'план собран без LLM (детерминированно)') + ' · ' + label);

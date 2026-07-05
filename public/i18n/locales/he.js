@@ -1998,6 +1998,7 @@ window.I18N_LOCALES.he = {
       hintAgentGlobal: "סה״כ היום",
       planLimit: "מכסת ה-LLM היומית נוצלה",
       planKeyQuota: "למפתח אין מכסה למודל — בדקו את פרויקט המפתח ב-Google Console",
+      planQualityReject: "תשובת המודל לא עברה את בדיקת האיכות",
     },
     tabs: {
       accessible: "נגיש",

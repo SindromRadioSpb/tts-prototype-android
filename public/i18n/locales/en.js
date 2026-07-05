@@ -1988,6 +1988,7 @@ window.I18N_LOCALES.en = {
       hintAgentGlobal: "Total today",
       planLimit: "daily LLM limit exhausted",
       planKeyQuota: "the key has no quota for the model — check the key's project in Google Console",
+      planQualityReject: "the model's answer failed the quality check",
     },
     tabs: {
       accessible: "Accessible",

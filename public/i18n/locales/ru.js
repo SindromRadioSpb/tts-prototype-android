@@ -2002,6 +2002,7 @@ window.I18N_LOCALES.ru = {
       hintAgentGlobal: "Всего за сегодня",
       planLimit: "дневной лимит LLM исчерпан",
       planKeyQuota: "у ключа нет квоты к модели — проверьте проект ключа в Google Console",
+      planQualityReject: "ответ модели не прошёл проверку качества",
     },
     tabs: {
       accessible: "Доступная",

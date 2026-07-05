@@ -20,30 +20,30 @@ const path = require("path");
 const tools = require(path.join(__dirname, "tools"));
 const llm = require(path.join(__dirname, "llm"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
+const keyingService = require(path.join(__dirname, "..", "db", "keyingService"));
 
 const CATEGORIES = ["объяснить", "тренировать", "вернуть к чтению", "создать материал", "обновить learner profile"];
 
-// Дисплейная форма item_key: '<lemma>#<pos>' → лемма; 'pid:<N>' → огласованная форма из
-// function-links (11 КБ, резидентно — служебные слова pid-класса это и есть основная масса
-// pid-ключей Зала); контентный pid вне карты → честный 'pid:N' (не выдумываем форму, R1).
-const fs = require("fs");
-let _fnForms = null;
-function _fnFormsMap() {
-  if (_fnForms) return _fnForms;
-  try {
-    const raw = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "public", "data", "inflection", "pealim-function-links.v1.json"), "utf8"));
-    _fnForms = (raw && raw.forms) || {};
-  } catch (_) { _fnForms = {}; }
-  return _fnForms;
+// Дисплейная форма для списка item_key: делегирует keyingService.displayForItemKey (§7 —
+// ОДИН источник резолва слова во всём agent runtime, тот же датасет, что и /keying/resolve;
+// '<lemma>#<pos>' — дёшево прямо из ключа, 'pid:<N>' — лемма из paradigms[].lemma, 1:1 с
+// pealim_id, огласована). Честный фолбэк — сырой ключ, форму не выдумываем (R1).
+async function displayItems(rows) {
+  return Promise.all(rows.map(async (w) => ({ item_key: w.item_key, lemma: await keyingService.displayForItemKey(w.item_key), lapses: w.lapses })));
 }
-function displayOf(itemKey) {
-  const k = String(itemKey || "");
-  if (k.startsWith("pid:")) {
-    const f = _fnFormsMap()[k.slice(4)];
-    return (f && f.he) ? f.he : k;
-  }
-  const i = k.indexOf("#");
-  return i > 0 ? k.slice(0, i) : k;
+
+// LLM обязан писать прозу по-русски/английски, не эхо JSON-payload'а. Наблюдение
+// владельца 2026-07-05 (первый живой Gemini-вызов): модель оборвалась на «Estimated
+// minutes: 6 (`est_minutes":6» — частичное эхо ключей промпта вместо предложения.
+// Дешёвый пост-фильтр перед показом пользователю; неудача = честная деградация
+// (вызов уже потрачен из лимита — quality-провал не бесплатен для бюджета, R16).
+function isCleanProse(text) {
+  const t = String(text || "").trim();
+  if (t.length < 10) return false;
+  if (/[`{}]/.test(t)) return false;            // backtick/фигурные скобки — запах JSON-эха
+  if (/"[a-zA-Z_]+"\s*:/.test(t)) return false;  // буквальное '"key":'
+  if (/\best_minutes\b/i.test(t)) return false;  // протёкшее имя поля промпта
+  return true;
 }
 
 function limits() {
@@ -84,7 +84,7 @@ async function buildPlanCore(ctx) {
       title_ru: "Слова, которые узнаёшь при чтении, но проваливаешь в письме — сегодня диктант",
       title_en: "Words you recognize but fail to produce — dictation today",
       recommended_channel: "dictate",
-      items: imbalanced.map((w) => ({ item_key: w.item_key, lemma: displayOf(w.item_key), lapses: w.lapses })),
+      items: await displayItems(imbalanced),
     });
   }
   // 2) просроченные слова (lapses-first — порядок /due), без уже взятых в диктант.
@@ -94,7 +94,7 @@ async function buildPlanCore(ctx) {
       id: "due", category: "тренировать",
       title_ru: "Повторить просроченные слова", title_en: "Review overdue words",
       count_total: learner.counts.due_now, count_now: dueSlice.length,
-      items: dueSlice.map((w) => ({ item_key: w.item_key, lemma: displayOf(w.item_key), lapses: w.lapses })),
+      items: await displayItems(dueSlice),
     });
   }
   // 3) вернуться в живое чтение (моат; контекст-first — R17-гейт 8 адресуется Залом).
@@ -154,13 +154,14 @@ async function plan(ctx) {
     };
     const out = await llm.generate({
       system: (language === "en"
-        ? "You are the LinguistPro Hebrew mentor. Rewrite the given study plan as 2-4 short, warm sentences in English. Use ONLY the facts in the JSON. Do not invent words, counts or grammar facts. No greetings, no emoji spam."
-        : "Ты — наставник LinguistPro по ивриту. Сформулируй данный план занятий 2–4 короткими тёплыми фразами по-русски. Используй ТОЛЬКО факты из JSON. Не выдумывай слова, числа и грамматические факты. Без приветствий."),
+        ? "You are the LinguistPro Hebrew mentor. Rewrite the given study plan as 2-4 short, warm sentences in English. Use ONLY the facts in the JSON. Do not invent words, counts or grammar facts. No greetings, no emoji spam. Output PLAIN PROSE ONLY: no backticks, no braces, no JSON, no field names (never write est_minutes/category/sections) — just natural sentences."
+        : "Ты — наставник LinguistPro по ивриту. Сформулируй данный план занятий 2–4 короткими тёплыми фразами по-русски. Используй ТОЛЬКО факты из JSON. Не выдумывай слова, числа и грамматические факты. Без приветствий. Пиши ТОЛЬКО обычным текстом: без обратных кавычек, без фигурных скобок, без JSON и имён полей (никогда не пиши est_minutes/category/sections) — только естественные предложения."),
       prompt: JSON.stringify(promptPayload),
-      maxOutputTokens: 256,
+      maxOutputTokens: 320,
     });
     await agentRepo.finalizeLlmCall(reserve.reserveId, { ok: out.ok, actualUnits: out.ok ? (out.output_tokens || 1) : null });
-    if (out.ok) { text = out.text; llmUsed = true; provider = out.provider; model = out.model; }
+    if (out.ok && isCleanProse(out.text)) { text = out.text; llmUsed = true; provider = out.provider; model = out.model; }
+    else if (out.ok) degradedReason = "LLM_OUTPUT_INVALID";   // вызов потрачен, но ответ не прошёл quality-фильтр
     else degradedReason = out.error;   // KILL_SWITCH | NO_API_KEY | provider error → деградация
   }
   if (!text) text = fallbackText(core, language);
