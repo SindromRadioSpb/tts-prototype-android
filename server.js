@@ -1608,6 +1608,42 @@ app.get("/api/learner/oracle", rlLearnerProj, async (req, res) => {
   catch (e) { res.status(500).json({ ok: false, error: "ORACLE_FAILED", message: e.message }); }
 });
 
+// ============================================================================
+// CLG-P5 — Learner Graph API (AI_MENTOR_RECON §9 CLG-P5): read-only views every
+// cloud client (agent P6+, push P4.5, Mini App P8) consumes. Honesty: the server
+// serves only what it holds — memory axis (srs_projections) + manual axis (mark
+// fold, §4.7). Artifact-dependent views (recent sentences / reading progress /
+// next text) arrive with CLG-P5.5 class-B artifacts, never fabricated here.
+// ============================================================================
+const learnerGraphRepo = require("./db/learnerGraphRepo");
+const rlLearnerGraph = makeRateLimiter({ windowMs: 60_000, max: 60, name: "learner-graph" });
+
+app.get("/api/learner/due", rlLearnerGraph, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try {
+    const rows = await learnerGraphRepo.getDue(auth.user.id, { nowMs: req.query.now ? Number(req.query.now) : null, limit: req.query.limit });
+    res.json({ ok: true, rows });
+  } catch (e) { res.status(500).json({ ok: false, error: "DUE_FAILED", message: e.message }); }
+});
+
+app.get("/api/learner/known", rlLearnerGraph, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try { res.json({ ok: true, words: await learnerGraphRepo.getKnownWords(auth.user.id) }); }
+  catch (e) { res.status(500).json({ ok: false, error: "KNOWN_FAILED", message: e.message }); }
+});
+
+app.get("/api/learner/weak", rlLearnerGraph, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try { res.json({ ok: true, rows: await learnerGraphRepo.getWeakWords(auth.user.id, { limit: req.query.limit }) }); }
+  catch (e) { res.status(500).json({ ok: false, error: "WEAK_FAILED", message: e.message }); }
+});
+
+app.get("/api/learner/context", rlLearnerGraph, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try { res.json({ ok: true, ...(await learnerGraphRepo.getAgentContext(auth.user.id, { nowMs: req.query.now ? Number(req.query.now) : null })) }); }
+  catch (e) { res.status(500).json({ ok: false, error: "CONTEXT_FAILED", message: e.message }); }
+});
+
 app.get("/api/learner/log", rlLearnerRead, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   try {

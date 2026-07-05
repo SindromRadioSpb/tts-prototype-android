@@ -1,6 +1,6 @@
 {
   "name": "tts-translator-dashboard",
-  "version": "3.11.94",
+  "version": "3.11.95",
   "description": "TTS & Translator Dashboard (Google Cloud Text-to-Speech + Gemini, Hebrew-Russian tables)",
   "main": "server.js",
   "scripts": {
@@ -101,6 +101,7 @@
     "smoke:learner-ingest": "node scripts/premium/learner-ingest-smoke.js",
     "smoke:cloud-sync": "node scripts/premium/cloud-sync-smoke.js",
     "smoke:server-replay": "node scripts/premium/server-replay-smoke.js",
+    "smoke:learner-graph": "node scripts/premium/learner-graph-smoke.js",
     "smoke:fsrs": "node scripts/premium/fsrs-core-smoke.js",
     "smoke:finished-guard": "node scripts/premium/finished-texts-guard-smoke.js",
     "smoke:autogen-parity": "node scripts/premium/autogen-parity-smoke.js --gate",
