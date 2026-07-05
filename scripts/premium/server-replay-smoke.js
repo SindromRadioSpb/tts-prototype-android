@@ -113,6 +113,17 @@ const close = (a, b, tol) => Math.abs(Number(a) - Number(b)) < (tol || 1e-6);
     }
     eq(projBad === 0, `server projections diverged in ${projBad} scenarios`);
 
+    // D1 (мигр. 025) — channel-aware агрегация: проекции несут channel_stats_json, и он
+    // парсится в семьи production/receptive (сценарные строки идут с каналами read:mc и т.п.)
+    const withStats = (proj.json.rows || []).filter((r) => r.channel_stats_json);
+    eq(withStats.length > 0, "D1: projections must carry channel_stats_json after ingest");
+    let csOK = false;
+    try {
+      const cs = JSON.parse(withStats[0].channel_stats_json);
+      csOK = !!(cs && cs.production && cs.receptive && Number(cs.receptive.reps) >= 1);
+    } catch (_) {}
+    eq(csOK, "D1: channel_stats_json must parse with production/receptive families and count receptive reps");
+
     // mark-only key must NOT create a projection
     const mk = await api("POST", "/api/learner/ingest", { cookie, csrf, body: {
       idempotency_key: "replay-markonly", schema_version: 1, keyer_version: 1,
@@ -145,7 +156,7 @@ const close = (a, b, tol) => Math.abs(Number(a) - Number(b)) < (tol || 1e-6);
     try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {}
   }
 
-  const shown = FIXTURE.scenarios.length * 3 + 9;   // 10×2 parity + 10 ingest + 9 e2e/oracle/teeth
+  const shown = FIXTURE.scenarios.length * 3 + 11;   // 10×2 parity + 10 ingest + 9 e2e/oracle/teeth + 2 D1 channel-stats
   if (failures.length) {
     console.error(`smoke:server-replay FAIL (${shown - failures.length}/${shown})`);
     for (const f of failures) console.error("  ✗ " + f);

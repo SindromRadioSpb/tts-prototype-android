@@ -2162,6 +2162,9 @@
   // Returns null when FC is unavailable (caller falls back to legacy nextSrs — honest degradation,
   // the row simply stays scheme=sm2-lite until FC loads). sched carries the projections the
   // srs_* consumers keep reading (dueCounts/D2/rankByWeakness/leech — consumers-sweep §3.4).
+  // D1 (CLG-P6 prep): `correct` also accepts a NUMERIC grade 1..4 (channel-aware policy —
+  // grade-policy.js decides, this step schedules with the SAME grade the log row records, so
+  // replay==stored holds by construction). Boolean callers are byte-unchanged (true→3, false→1).
   function fsrsStep(FC, prev, correct, nowMs) {
     if (!FC || typeof FC.nextState !== "function") return null;
     var p = prev || null;
@@ -2174,7 +2177,8 @@
       state = FC.seedFromSm2(seedMeta, nowMs);
       seeded = true;
     }
-    var next = FC.nextState(state, correct ? 3 : 1, nowMs);
+    var g = (typeof correct === "number") ? Math.max(1, Math.min(4, Math.round(correct))) : (correct ? 3 : 1);
+    var next = FC.nextState(state, g, nowMs);
     return {
       seeded: seeded, seedMeta: seedMeta, state: next,
       sched: { due: next.dueMs, interval: next.intervalDays, reps: next.reps, lapses: next.lapses,

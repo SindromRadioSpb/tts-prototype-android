@@ -903,7 +903,7 @@ MINOR-находки (13) учтены точечно: push_subscriptions в §6
 ### Развилки — РЕШЕНЫ владельцем 2026-07-05 (рекомендованные варианты утверждены)
 
 - **D1 (действует с CLG-P6) — recognition vs production: ВЫБРАНО (б) channel-aware política
-  грейда.** Один item_key на лемму сохраняется; production-провал (диктант/reverse) на
+  грейда.** *Реализовано v3.11.102 (grade-policy.js + мигр. 025 channel_stats — §15.7.3).* Один item_key на лемму сохраняется; production-провал (диктант/reverse) на
   рецептивно-сильном слове маппится в Hard, не Again; channel-aware агрегация в
   srs_projections даёт диагностику «судьбы слова». Отклонено (а) — фасет модальности в
   item_key (удваивает item-пространство). Лог с channel-провенансом позволяет
@@ -966,11 +966,16 @@ MINOR-находки (13) учтены точечно: push_subscriptions в §6
       `/api/learner/keying/{resolve,status}`. Гейт `smoke:server-keying` 24/24
       (key-parity 96.2% против reference-бандла, honesty-кейсы, e2e). Ограничение
       «только существующие item_key» снято: минт новых ключей = ТОЛЬКО через сервис.
-   3. **Реализация D1** (§14, решение уже принято — нужен КОД): channel-aware грейд-
-      политика — production-канал (диктант/reverse) провал на рецептивно-сильном слове
-      маппится в Hard, не Again; нужна channel-провенанс в схеме события (meta_json,
-      зафиксировать на CLG-P2-подобном уровне — таблица уже есть) + channel-aware
-      агрегация в `learnerProjectionRepo.js`/`srs_projections`.
+   3. ✅ **Реализация D1** — SHIPPED 2026-07-05 (v3.11.102): `public/js/grade-policy.js`
+      (pure UMD, общий клиент+сервер; production = dictate/reverse; «рецептивно-сильное» =
+      память есть + рецептивное свидетельство + production-компетенция ещё не доказана;
+      skip не смягчается — R17-B) применяется НА ЗАПИСИ в Room-тренере (checkTrainAnswer:
+      schedule И log-строка шагаются ОДНИМ policy-грейдом → оракул replay==stored цел по
+      построению; fsrs-core/референс/golden НЕ тронуты); провенанс `raw_grade`/`grade_policy`/
+      `grader` в meta_json (META_ALLOW+2); мигр. 025 `srs_projections.channel_stats_json` +
+      channel-агрегация в learnerProjectionRepo (production/receptive: reps/again/hard/good/
+      last) + passthrough в /api/learner/weak («судьба слова» для агента). Гейты:
+      `smoke:grade-policy` 24/24 (новый) + server-replay 41/41 (+2 D1-ассерта).
    Telegram (P7) — не раньше гейта G-5 (после P6).
 
 **Напутствие программы (владелец):** первый код должен быть «скучным, платформенным и

@@ -1730,17 +1730,30 @@ async function checkTrainAnswer(correct, skipped, mode) {
   const item = s.items[s.idx];
   const now = Date.now();   // ONE timestamp for schedule + log — the log row must describe exactly this step
   const next = window.ReaderMorph.nextLevel(item.status, correct);
+  // D1 (CLG-P6 prep, AI_MENTOR_RECON §14): channel-aware грейд — production-провал
+  // (dictate/reverse) на рецептивно-сильном слове = Hard(2), не Again(1). Решение ДО шага
+  // планировщика; schedule И log-строка используют ОДИН policy-грейд (иначе оракул
+  // replay==stored разошёлся бы). Политика детерминированная (grade-policy.js, общая с
+  // сервером); skip не смягчается (R17-B: явный отказ = честный no-recall).
+  const trainChannel = String(s.channel || 'read') + (mode ? ':' + mode : '');
+  let d1 = null;
+  if (window.GradePolicy && !skipped && !correct) {
+    let logRows = []; try { logRows = await localDb.getReviewLog(item.lemmaKey); } catch (_) {}
+    d1 = window.GradePolicy.decideGrade({ correct, skipped, channel: trainChannel, prevState: item._srs, rows: logRows });
+  }
   // Retention P2 — FSRS is the scheduler (owner go after the P1.5 shadow-diff): the ONE handover
   // step resumes an fsrs-owned word or lazy-seeds a legacy SM2 row (seed materialized in the log
   // below). If FsrsCore didn't load, fall back to legacy SM2-lite — the row honestly stays
-  // scheme=sm2-lite, nothing half-converts.
-  const fs = window.ReaderMorph.fsrsStep ? window.ReaderMorph.fsrsStep(window.FsrsCore, item._srs, correct, now) : null;
+  // scheme=sm2-lite, nothing half-converts (и D1-грейд тогда честно не применяется: у SM2 нет Hard).
+  const fs = window.ReaderMorph.fsrsStep ? window.ReaderMorph.fsrsStep(window.FsrsCore, item._srs, d1 ? d1.grade : correct, now) : null;
+  const grade = (fs && d1) ? d1.grade : (correct ? 3 : 1);
   const sched = fs ? fs.sched : window.ReaderMorph.nextSrs(item._srs, correct, now);
   // D2 — persist status + schedule + the SOURCE sentence (so the cross-text «due today» queue can re-cloze
   // this word later without opening its text). item._source set at session build (open-text or D2 itself).
   try { await localDb.setWordStatus(item.lemmaKey, next, sched, item._source || null); } catch (_) {}
   // Retention P0/P2 — append this attempt to review_log, the EVENT-TRUTH of word memory (recon §3.2).
-  // Binary loop → grade 3|1; a skip is kind='skip' (folded like Again, excluded from metrics). The id is
+  // Grade = policy-грейд D1 (3 | 1 | 2-Hard на production-провале рецептивно-сильного слова, с
+  // провенансом raw_grade/grade_policy/grader в meta); a skip is kind='skip' (folded like Again, excluded from metrics). The id is
   // content-deterministic (LemmaCanon.reviewId) so re-appends/bundle merges dedupe by PK. postTeach marks
   // the immediate post-teach test (excluded from weight fitting/Brier — recall from working memory).
   // A lazy-seed writes its 'seed:<key>' row at now−1ms so replay's watermark orders it strictly
@@ -1763,9 +1776,9 @@ async function checkTrainAnswer(correct, skipped, mode) {
         item_key: item.lemmaKey,
         kind: skipped ? 'skip' : 'review',
         reviewed_at: new Date(now).toISOString(),
-        grade: correct ? 3 : 1,
+        grade: grade,
         source: s.cross ? 'room-due-queue' : 'room-recall',
-        channel: String(s.channel || 'read') + (mode ? ':' + mode : ''),
+        channel: trainChannel,
         meta: {
           surface: item.surface || undefined,
           pos: item.pos || undefined,
@@ -1774,6 +1787,7 @@ async function checkTrainAnswer(correct, skipped, mode) {
             ? { scheme: 'fsrs', engine_version: window.FsrsCore.ENGINE_VERSION, request_retention: window.FsrsCore.REQUEST_RETENTION }
             : { scheme: 'sm2-lite' },
           postTeach: item._taught ? 1 : undefined,
+          ...((fs && d1 && d1.applied) ? window.GradePolicy.policyMeta(d1) : {}),
         },
       };
       row.id = LC.reviewId(row);

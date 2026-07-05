@@ -55,6 +55,9 @@ const META_ALLOW = new Set([
   "seedAlgoVersion", "level", "card_id", "note_id",
   // CLG-P3.2 mark rows (§4.7 manual axis): the asserted status value + the backfill marker
   "status", "backfill",
+  // D1 (CLG-P6 prep, §14): провенанс channel-aware грейд-политики — raw_grade = бинарный
+  // вердикт ДО политики, grade_policy = версия правила (переинтерпретация задним числом).
+  "raw_grade", "grade_policy",
 ]);
 // Known CONTENT keys → stripped (accepted row, cleaned meta). Everything else unknown → reject.
 const META_STRIP = new Set([

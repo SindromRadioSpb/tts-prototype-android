@@ -85,11 +85,16 @@ async function getWeakWords(userId, { limit } = {}) {
   const lim = Math.max(1, Math.min(200, Number(limit) || 20));
   const manual = await manualStatusMap(userId);
   const rows = await dbAll(db,
-    `SELECT item_key, due, interval_days, reps, lapses, stability FROM srs_projections
+    `SELECT item_key, due, interval_days, reps, lapses, stability, channel_stats_json FROM srs_projections
       WHERE user_id = ? ORDER BY lapses DESC, stability ASC LIMIT ?`, [userId, lim * 2]);
   return (rows || []).filter((r) => (manual[r.item_key] || "") !== "ignore").slice(0, lim)
-    .map((r) => ({ item_key: r.item_key, status: manual[r.item_key] || "", lapses: r.lapses,
-      stability: r.stability, reps: r.reps, due: r.due }));
+    .map((r) => {
+      // D1 — диагностика «судьбы слова» для агента: рецептивные vs production счётчики
+      // (узнаёт при чтении, ошибается в письме → агенту виден дисбаланс каналов).
+      let cs = null; try { cs = r.channel_stats_json ? JSON.parse(r.channel_stats_json) : null; } catch (_) {}
+      return { item_key: r.item_key, status: manual[r.item_key] || "", lapses: r.lapses,
+        stability: r.stability, reps: r.reps, due: r.due, channel_stats: cs };
+    });
 }
 
 // Compact agent-facing summary (the getAgentContext primitive; grows in CLG-P6).

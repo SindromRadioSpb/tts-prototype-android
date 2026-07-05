@@ -14,6 +14,7 @@
 const path = require("path");
 const { getDb } = require("./sqlite");
 const FC = require(path.join(__dirname, "..", "public", "js", "fsrs-core.js"));
+const GP = require(path.join(__dirname, "..", "public", "js", "grade-policy.js"));
 
 function dbGet(db, sql, params = []) {
   return new Promise((resolve, reject) => db.get(sql, params, (e, row) => (e ? reject(e) : resolve(row))));
@@ -44,6 +45,27 @@ function _projectionOf(state) {
   };
 }
 
+// D1 (AI_MENTOR_RECON §14, пре-условие CLG-P6 №3) — channel-aware агрегация «судьбы слова»:
+// production (dictate/reverse) vs receptive счётчики по review-строкам лога. PURE (тестируется
+// без DB); семьи каналов определяет ТОТ ЖЕ grade-policy.js, что решает грейд у писателей —
+// classifier и policy не могут разъехаться. skip/seed/annul/mark в метрики не входят
+// (skip = отказ, не память — зеркало клиентского исключения из метрик).
+function channelStats(rows) {
+  const mk = () => ({ reps: 0, again: 0, hard: 0, good: 0, last_at: null, last_grade: null });
+  const out = { production: mk(), receptive: mk() };
+  let any = false;
+  for (const r of rows || []) {
+    if (!r || r.kind !== "review") continue;
+    const g = Number(r.grade);
+    if (!(g >= 1 && g <= 4)) continue;
+    const f = GP.isProductionChannel(r.channel) ? out.production : out.receptive;
+    f.reps++; any = true;
+    if (g === 1) f.again++; else if (g === 2) f.hard++; else f.good++;
+    f.last_at = r.reviewed_at || null; f.last_grade = g;
+  }
+  return any ? out : null;
+}
+
 // Recompute the derived projection for each item_key (replay of the merged log). A key whose
 // fold yields no memory (e.g. mark-only rows) gets its projection row REMOVED — never a stale one.
 async function recomputeForKeys(userId, itemKeys) {
@@ -59,14 +81,16 @@ async function recomputeForKeys(userId, itemKeys) {
       if (r.changes > 0) removed++;
       continue;
     }
+    const cs = channelStats(rows);
     await dbRun(db,
-      `INSERT INTO srs_projections (user_id, item_key, due, interval_days, reps, lapses, stability, difficulty, reviewed_at, scheme, engine, computed_at)
-       VALUES (?,?,?,?,?,?,?,?,?, 'fsrs', ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+      `INSERT INTO srs_projections (user_id, item_key, due, interval_days, reps, lapses, stability, difficulty, reviewed_at, scheme, engine, channel_stats_json, computed_at)
+       VALUES (?,?,?,?,?,?,?,?,?, 'fsrs', ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
        ON CONFLICT(user_id, item_key) DO UPDATE SET
          due=excluded.due, interval_days=excluded.interval_days, reps=excluded.reps, lapses=excluded.lapses,
          stability=excluded.stability, difficulty=excluded.difficulty, reviewed_at=excluded.reviewed_at,
-         scheme=excluded.scheme, engine=excluded.engine, computed_at=excluded.computed_at`,
-      [userId, key, p.due, p.interval_days, p.reps, p.lapses, p.stability, p.difficulty, p.reviewed_at, FC.ENGINE_VERSION]);
+         scheme=excluded.scheme, engine=excluded.engine, channel_stats_json=excluded.channel_stats_json,
+         computed_at=excluded.computed_at`,
+      [userId, key, p.due, p.interval_days, p.reps, p.lapses, p.stability, p.difficulty, p.reviewed_at, FC.ENGINE_VERSION, cs ? JSON.stringify(cs) : null]);
     recomputed++;
   }
   return { recomputed, removed };
@@ -123,4 +147,4 @@ async function oracle(userId, { sample } = {}) {
   return { checked, missing, mismatched, totalKeys: (await distinctItemKeys(userId)).length, examples };
 }
 
-module.exports = { recomputeForKeys, rebuildAll, listProjections, oracle, distinctItemKeys, ENGINE: FC.ENGINE_VERSION };
+module.exports = { recomputeForKeys, rebuildAll, listProjections, oracle, distinctItemKeys, channelStats, ENGINE: FC.ENGINE_VERSION };
