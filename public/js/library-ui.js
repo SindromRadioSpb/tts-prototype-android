@@ -2222,6 +2222,7 @@ async function _cloudPlanRun() {
     els.planBox.textContent = '✗ ' + String((e && e.message) || e);
   } finally {
     els.planBtn.disabled = false;
+    try { _cloudRender(); } catch (_) {}   // счётчик «LLM сегодня» сразу отражает списание
   }
 }
 // CLG-P4.5 — Web Push блок ☁-модала. Honest states: unsupported (нет SW/PushManager —
@@ -2299,6 +2300,7 @@ function _cloudStatus(text, cls) {
   const e = _cloudEls().status; if (!e) return;
   e.textContent = text || ''; e.className = 'room-cloud-status' + (cls ? ' ' + cls : '');
 }
+let _agentStatusCache = null;   // последний /api/agent/status — для tap-ⓘ пояснения (глобальный лимит)
 async function _cloudRender() {
   const els = _cloudEls(); if (!els.modal) return;
   const CS = window.CloudSync; if (!CS) return;
@@ -2352,6 +2354,21 @@ async function _cloudRender() {
         lines.push(hintRow('oracle', o.mismatched === 0
           ? tt('room.cloud.oracleOk', 'Облачные проекции (оракул)') + ': <b>✓ ' + o.checked + '</b>'
           : tt('room.cloud.oracleBad', 'Облачные проекции: расхождения') + ': <b>' + o.mismatched + '</b>'));
+      }
+    } catch (_) {}
+    // CLG-P6 — прозрачность наставника (R4/R16, запрос владельца 2026-07-05): честный статус
+    // ключа агента + живой счётчик LLM-лимита. Состояния: kill-switch / без ключа (план
+    // детерминированный) / ключ ✓ + израсходовано-из-лимита. Глобальный счётчик — в tap-ⓘ.
+    try {
+      const a = await fetch('/api/agent/status', { credentials: 'same-origin' }).then((r) => r.json());
+      if (a && a.ok) {
+        _agentStatusCache = a;
+        let val;
+        if (a.kill_switch) val = '<b>' + tt('room.cloud.agentKill', 'LLM выключен (kill-switch)') + '</b>';
+        else if (a.key_source !== 'agent') val = '<b>' + tt('room.cloud.agentKeyNone', 'без LLM-ключа — план детерминированный') + '</b>';
+        else val = '✓ ' + tt('room.cloud.agentKeyOk', 'ключ подключён') + ' · ' + tt('room.cloud.agentToday', 'LLM сегодня') + ': <b>'
+          + ((a.usage && a.usage.user_llm_calls) || 0) + '/' + ((a.limits && a.limits.llm_daily_per_user) || '—') + '</b>';
+        lines.push(hintRow('agent', '🤖 ' + tt('room.cloud.agentLine', 'Наставник') + ': ' + val));
       }
     } catch (_) {}
   } catch (_) {}
@@ -2477,6 +2494,10 @@ function roomCloudInit() {
       events: tt('room.cloud.hintEvents', 'Каждый ответ в тренировке или чтении записывается как событие — это журнал вашей памяти слов. После синхронизации числа на всех устройствах должны совпадать.'),
       oracle: tt('room.cloud.hintOracle', 'Сервер пересчитал расписание повторений из журнала и сверил с сохранённым. «✓ N» — проверено N слов, расхождений нет.'),
       texts: tt('room.cloud.hintTexts', 'Собственные тексты из «Мои тексты» (корпус не передаётся). После синхронизации числа на устройстве и в облаке должны совпадать.'),
+      agent: tt('room.cloud.hintAgent', 'Ключ агента (AGENT_GEMINI_API_KEY) задан на сервере и платит только за наставника. «План на сегодня» с LLM списывает 1 вызов из суточного лимита; при исчерпании или без ключа план строится детерминированно и остаётся полезным.')
+        + ' ' + tt('room.cloud.hintAgentGlobal', 'Всего за сегодня') + ': '
+        + (_agentStatusCache && _agentStatusCache.usage
+          ? _agentStatusCache.usage.global_llm_calls + '/' + _agentStatusCache.limits.llm_daily_global : '—'),
     };
     const next = texts[key] || '';
     if (!box.hidden && box.getAttribute('data-for') === key) { box.hidden = true; return; }

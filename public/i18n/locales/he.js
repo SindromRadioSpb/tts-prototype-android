@@ -1989,6 +1989,13 @@ window.I18N_LOCALES.he = {
       planRun: "מרכיב תוכנית…",
       planMin: "דק׳",
       planNoLlm: "התוכנית הורכבה ללא LLM (דטרמיניסטית)",
+      agentLine: "מנטור",
+      agentKeyOk: "מפתח מחובר",
+      agentKeyNone: "ללא מפתח LLM — תוכנית דטרמיניסטית",
+      agentKill: "LLM כבוי (kill-switch)",
+      agentToday: "LLM היום",
+      hintAgent: "מפתח הסוכן (AGENT_GEMINI_API_KEY) מוגדר בשרת ומשלם רק עבור המנטור. כל תוכנית עם LLM מנצלת קריאה אחת מהמכסה היומית; כשהמכסה נגמרת או ללא מפתח — התוכנית נבנית דטרמיניסטית ונשארת שימושית.",
+      hintAgentGlobal: "סה״כ היום",
     },
     tabs: {
       accessible: "נגיש",
