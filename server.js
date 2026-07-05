@@ -1644,6 +1644,50 @@ app.get("/api/learner/context", rlLearnerGraph, async (req, res) => {
   catch (e) { res.status(500).json({ ok: false, error: "CONTEXT_FAILED", message: e.message }); }
 });
 
+// ============================================================================
+// CLG-P5.5 — Artifact Sync, класс B (AI_MENTOR_RECON §5/§9): OPAQUE per-text
+// bundle store под ЯВНЫМ consent'ом (consent_records 'cloud_texts'). Server-side
+// enforcement на КАЖДОМ запросе — выключенный переключатель означает 403 даже
+// для чтения (класс B живёт в облаке только пока согласие активно).
+// ============================================================================
+const learnerArtifactsRepo = require("./db/learnerArtifactsRepo");
+const rlLearnerArtifacts = makeRateLimiter({ windowMs: 60_000, max: 120, name: "learner-artifacts" });
+
+async function requireArtifactConsent(req, res, auth) {
+  let ok = false;
+  try { ok = await learnerArtifactsRepo.hasConsent(auth.user.id); } catch (_) {}
+  if (!ok) { res.status(403).json({ ok: false, error: "CONSENT_REQUIRED", key: learnerArtifactsRepo.CONSENT_KEY }); return false; }
+  return true;
+}
+
+app.get("/api/learner/artifacts", rlLearnerArtifacts, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!(await requireArtifactConsent(req, res, auth))) return;
+  try { res.json({ ok: true, rows: await learnerArtifactsRepo.list(auth.user.id) }); }
+  catch (e) { res.status(500).json({ ok: false, error: "ARTIFACTS_FAILED", message: e.message }); }
+});
+
+app.get("/api/learner/artifacts/get", rlLearnerArtifacts, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!(await requireArtifactConsent(req, res, auth))) return;
+  try {
+    const row = await learnerArtifactsRepo.get(auth.user.id, req.query.key || "");
+    if (!row) return res.status(404).json({ ok: false, error: "NOT_FOUND" });
+    res.json({ ok: true, artifact_key: row.artifact_key, updated_at: row.updated_at, payload: JSON.parse(row.payload_json) });
+  } catch (e) { res.status(500).json({ ok: false, error: "ARTIFACT_GET_FAILED", message: e.message }); }
+});
+
+app.post("/api/learner/artifacts/put", rlLearnerArtifacts, async (req, res) => {   // global bodyParser (10mb) covers the 3mb payload cap
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  if (!(await requireArtifactConsent(req, res, auth))) return;
+  try {
+    const out = await learnerArtifactsRepo.put(auth.user.id, auth.session.deviceId, req.body || {});
+    if (out.ok === false) return res.status(400).json(out);
+    res.json(out);
+  } catch (e) { res.status(500).json({ ok: false, error: "ARTIFACT_PUT_FAILED", message: e.message }); }
+});
+
 app.get("/api/learner/log", rlLearnerRead, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   try {

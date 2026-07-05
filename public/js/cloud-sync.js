@@ -190,6 +190,59 @@
     return { ok: true, pulled: pulled, lwwApplied: lwwApplied, recomputedKeys: Array.from(addedKeys) };
   }
 
+  // ── CLG-P5.5 class-B artifact sync («Мои тексты») ─────────────────────────
+  // Consent-gated on BOTH sides: the engine checks the session's consents (server enforces 403
+  // independently). Payload = the battle-tested per-text bundle (exportBundle({textIds})); merge
+  // on the receiving device = importBundle (skip for new, delete+import when server is NEWER —
+  // LWW by the text's updated_at). Corpus works never travel (listOwnTextsForSync excludes them).
+  async function syncArtifacts(ldb, session) {
+    var consents = (session && session.consents) || {};
+    if (!consents.cloud_texts || consents.cloud_texts.granted !== true) {
+      return { ok: true, skipped: "no_consent" };
+    }
+    if (typeof ldb.listOwnTextsForSync !== "function" || typeof ldb.exportBundle !== "function") {
+      return { ok: true, skipped: "no_ldb_support" };
+    }
+    var out = { ok: true, uploaded: 0, downloaded: 0, updated: 0, upSkipped: 0 };
+    var listRes = await jfetch("GET", "/api/learner/artifacts");
+    if (listRes.status !== 200 || !listRes.json || !listRes.json.ok) {
+      return { ok: false, error: (listRes.json && listRes.json.error) || "ARTIFACTS_LIST_FAILED", status: listRes.status };
+    }
+    var server = new Map((listRes.json.rows || []).map(function (r) { return [String(r.artifact_key), String(r.updated_at)]; }));
+    var local = await ldb.listOwnTextsForSync();
+    var localByKey = new Map(local.map(function (t) { return [t.text_key, t]; }));
+    // UP: new or locally-newer texts
+    for (var i = 0; i < local.length; i++) {
+      var t = local[i];
+      var srvAt = server.get(t.text_key);
+      if (srvAt && Date.parse(srvAt) >= Date.parse(t.updated_at)) { out.upSkipped++; continue; }
+      var bundle = await ldb.exportBundle({ textIds: [t.id] });
+      var put = await jfetch("POST", "/api/learner/artifacts/put", {
+        artifact_key: t.text_key, updated_at: t.updated_at, payload: bundle,
+      });
+      if (put.status === 200 && put.json && put.json.stored) out.uploaded++;
+      else if (put.status !== 200) return { ok: false, error: (put.json && put.json.error) || "ARTIFACT_PUT_FAILED", at: t.text_key };
+    }
+    // DOWN: missing or server-newer texts
+    for (const entry of server) {
+      var key = entry[0], srvUpdated = entry[1];
+      var loc = localByKey.get(key);
+      if (loc && Date.parse(loc.updated_at) >= Date.parse(srvUpdated)) continue;
+      var got = await jfetch("GET", "/api/learner/artifacts/get?key=" + encodeURIComponent(key));
+      if (got.status !== 200 || !got.json || !got.json.ok) continue;   // per-text best-effort down
+      if (loc && typeof ldb.deleteText === "function") {
+        // server is NEWER → LWW replace (delete + fresh import; anchors re-attach by
+        // text_key+order_index — the bookmarks re-anchor pattern)
+        try { await ldb.deleteText(loc.id); } catch (_) {}
+      }
+      try {
+        var imp = await ldb.importBundle(got.json.payload, { mode: "skip" });
+        if (imp && imp.imported >= 1) { if (loc) out.updated++; else out.downloaded++; }
+      } catch (_) {}
+    }
+    return out;
+  }
+
   // ── full cycle + reconciliation ──────────────────────────────────────────
   async function fullSync(ldb, opts) {
     var session = await me();
@@ -226,9 +279,12 @@
         }
       }
     } catch (_) {}
+    // CLG-P5.5 — class-B artifacts ride the same cycle (consent-gated; no-op otherwise)
+    var artifacts = null;
+    try { artifacts = await syncArtifacts(ldb, session); } catch (e) { artifacts = { ok: false, error: String(e && e.message || e) }; }
     try { await ldb.setSyncState(LAST_SYNC, new Date().toISOString()); } catch (_) {}
     return { ok: true, up: up.totals, down: { pulled: down.pulled }, healed: healed,
-             counts: { local: localN, cloud: serverN }, user: session.user };
+             artifacts: artifacts, counts: { local: localN, cloud: serverN }, user: session.user };
   }
   // Permanent reconciliation (§4.3): after a full two-way sync the local log and the server log
   // are the SAME SET — compare counts; on mismatch re-verify-upload from 0 + full re-download.
@@ -249,6 +305,7 @@
   return {
     me: me, login: login, logout: logout,
     syncUp: syncUp, syncDown: syncDown, fullSync: fullSync, reconcile: reconcile,
+    syncArtifacts: syncArtifacts,
     stripMeta: stripMeta,
     CONTENT_META_KEYS: CONTENT_META_KEYS,
     KEYS: { UP_CURSOR: UP_CURSOR, DOWN_CURSOR: DOWN_CURSOR, CUTOVER_OK: CUTOVER_OK, LAST_SYNC: LAST_SYNC },

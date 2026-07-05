@@ -2601,6 +2601,24 @@ export async function listReviewLogAfterRowid(rowid, limit) {
     return rows || [];
   } catch (_) { return []; }
 }
+// CLG-P5.5 — own texts eligible for class-B artifact sync: «Мои тексты» only. Corpus-materialized
+// works (source_meta_json.corpus — the multi-corpus discriminator) are SHIPPED data and are never
+// uploaded (privacy + size); archived texts stay local.
+export async function listOwnTextsForSync() {
+  try {
+    const rows = await q(`SELECT id, text_key, title, updated_at, source_meta_json FROM texts WHERE COALESCE(is_archived,0) = 0`, []);
+    const out = [];
+    for (const t of (rows || [])) {
+      let corpus = false;
+      try { const sm = t.source_meta_json ? JSON.parse(t.source_meta_json) : null; corpus = !!(sm && sm.corpus); } catch (_) {}
+      if (corpus) continue;
+      if (!t.text_key) continue;
+      out.push({ id: String(t.id), text_key: String(t.text_key), title: t.title || "", updated_at: String(t.updated_at || "") });
+    }
+    return out;
+  } catch (_) { return []; }
+}
+
 // Down-sync pre-check: appendReviewLog's OR IGNORE reports "accepted" for dups too, so the sync
 // engine needs a real new-vs-dup signal to know WHICH item_keys to recompute (§4.3).
 export async function hasReviewLogRow(id) {

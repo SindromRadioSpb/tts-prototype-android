@@ -1930,7 +1930,7 @@ window.I18N_LOCALES.en = {
     cloud: {
       btn: "Sync",
       title: "☁ Sync",
-      intro: "Word memory and manual marks sync across your devices. Texts are never uploaded. Development mode — owner login only.",
+      intro: "Word memory and manual marks sync across your devices. Texts are uploaded only with the explicit permission below. Development mode — owner login only.",
       secretPh: "Owner secret",
       login: "Log in",
       loggingIn: "Logging in…",
@@ -1950,6 +1950,8 @@ window.I18N_LOCALES.en = {
       tooMany: "Too many attempts — wait 10 minutes",
       oracleOk: "Cloud projections (oracle)",
       oracleBad: "Cloud projections: mismatches",
+      textsToggle: "📄 Sync “My texts”",
+      textsHint: "Your own texts (not the corpus) become available on your other devices. Turning this off stops the sync; cloud copies are removed with account deletion.",
       disabled: "Login is disabled on the server",
     },
     tabs: {

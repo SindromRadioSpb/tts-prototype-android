@@ -1238,6 +1238,9 @@
     .room-cloud-ghost { background: transparent !important; color: var(--text-secondary) !important; border: 1px solid var(--border-soft) !important; }
     .room-cloud-info { font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
     .room-cloud-info b { color: var(--text-primary); }
+    .room-cloud-consent { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; color: var(--text-primary); cursor: pointer; }
+    .room-cloud-consent input { width: auto; }
+    .room-cloud-hint { font-size: 12px; color: var(--text-faint); margin: 4px 0 0 24px; line-height: 1.45; }
     /* Stage 2 — rich card: collapsible root-family + ported Pealim inflection table */
     .rm-acc { margin-top: 12px; border-top: 1px solid var(--border-soft); padding-top: 8px; }
     .rm-acc-sum { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--text-secondary); list-style: none; padding: 4px 0; }
@@ -1711,7 +1714,7 @@
   <div class="room-about-card">
     <button class="room-about-x" type="button" aria-label="Close" data-cloud-close="1">✕</button>
     <h2 id="roomCloudTitle" data-i18n="room.cloud.title">☁ Синхронизация</h2>
-    <p class="room-cloud-intro" data-i18n="room.cloud.intro">Память слов и ручные пометки синхронизируются между вашими устройствами. Тексты не передаются. Режим разработки — вход только для владельца.</p>
+    <p class="room-cloud-intro" data-i18n="room.cloud.intro">Память слов и ручные пометки синхронизируются между вашими устройствами. Тексты передаются только с явным разрешением ниже. Режим разработки — вход только для владельца.</p>
     <div id="roomCloudStatus" class="room-cloud-status" aria-live="polite"></div>
     <div id="roomCloudLoginBox" class="room-cloud-login" hidden>
       <input id="roomCloudSecret" type="password" autocomplete="off" data-i18n-placeholder="room.cloud.secretPh" placeholder="Секрет владельца">
@@ -1719,6 +1722,12 @@
     </div>
     <div id="roomCloudPanel" hidden>
       <div id="roomCloudInfo" class="room-cloud-info"></div>
+      <!-- CLG-P5.5 — класс B, явный consent-переключатель (§5): тексты уходят в облако ТОЛЬКО с галочкой -->
+      <label class="room-cloud-consent">
+        <input type="checkbox" id="roomCloudTexts">
+        <span data-i18n="room.cloud.textsToggle">📄 Синхронизировать «Мои тексты»</span>
+      </label>
+      <div class="room-cloud-hint" data-i18n="room.cloud.textsHint">Собственные тексты (не корпус) станут доступны на других ваших устройствах. Выключение остановит синк; удалить из облака можно удалением аккаунта.</div>
       <div class="room-cloud-actions">
         <button id="roomCloudSyncBtn" type="button" data-i18n="room.cloud.syncNow">Синхронизировать</button>
         <button id="roomCloudLogoutBtn" type="button" class="room-cloud-ghost" data-i18n="room.cloud.logout">Выйти</button>

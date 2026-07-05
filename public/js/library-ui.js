@@ -2172,6 +2172,7 @@ function _cloudEls() {
     modal: $('roomCloudModal'), status: $('roomCloudStatus'), loginBox: $('roomCloudLoginBox'),
     secret: $('roomCloudSecret'), loginBtn: $('roomCloudLoginBtn'), panel: $('roomCloudPanel'),
     info: $('roomCloudInfo'), syncBtn: $('roomCloudSyncBtn'), logoutBtn: $('roomCloudLogoutBtn'),
+    textsCb: $('roomCloudTexts'),
   };
 }
 function _cloudStatus(text, cls) {
@@ -2190,6 +2191,11 @@ async function _cloudRender() {
   }
   els.loginBox.hidden = true; els.panel.hidden = false;
   _cloudStatus('✓ ' + tt('room.cloud.connected', 'Подключено'), 'ok');
+  // CLG-P5.5 — consent-переключатель класса B отражает СЕРВЕРНУЮ истину (consent_records)
+  if (els.textsCb) {
+    const c = (session.consents || {}).cloud_texts;
+    els.textsCb.checked = !!(c && c.granted === true);
+  }
   const lines = [];
   try {
     const last = await localDb.getSyncState('last_sync_at');
@@ -2227,7 +2233,12 @@ async function _cloudRunSync(auto) {
   if (els.syncBtn) els.syncBtn.disabled = false;
   if (res && res.ok) {
     const up = res.up || {}, down = res.down || {};
-    _cloudStatus('✓ ' + tt('room.cloud.done', 'Готово') + ' · ↑' + (up.new || 0) + ' · ↓' + (down.pulled || 0), 'ok');
+    let line = '✓ ' + tt('room.cloud.done', 'Готово') + ' · ↑' + (up.new || 0) + ' · ↓' + (down.pulled || 0);
+    const a = res.artifacts;
+    if (a && a.ok && !a.skipped && (a.uploaded || a.downloaded || a.updated)) {
+      line += ' · 📄 ↑' + (a.uploaded || 0) + ' ↓' + ((a.downloaded || 0) + (a.updated || 0));
+    }
+    _cloudStatus(line, 'ok');
     // fresh foreign rows may recolour words / move the due ring — repaint like §4.3 demands
     try { applyDecorations(); } catch (_) {}
     try { refreshDueBadge(); } catch (_) {}
@@ -2266,6 +2277,17 @@ function roomCloudInit() {
   });
   if (els.secret) els.secret.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); els.loginBtn && els.loginBtn.click(); } });
   if (els.syncBtn) els.syncBtn.addEventListener('click', () => _cloudRunSync(false));
+  // CLG-P5.5 — класс B: галочка пишет consent-запись (append-only история) и сразу синкает
+  if (els.textsCb) els.textsCb.addEventListener('change', async () => {
+    const granted = !!els.textsCb.checked;
+    try {
+      const r = await fetch('/api/auth/consent', { method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
+        body: JSON.stringify({ key: 'cloud_texts', granted, version: 'v1' }) });
+      if (!r.ok) { els.textsCb.checked = !granted; _cloudStatus('✗ ' + tt('room.cloud.err', 'Ошибка синхронизации'), 'err'); return; }
+      if (granted) _cloudRunSync(false);
+    } catch (_) { els.textsCb.checked = !granted; }
+  });
   if (els.logoutBtn) els.logoutBtn.addEventListener('click', async () => {
     const CS = window.CloudSync; if (!CS) return;
     try { await CS.logout(); } catch (_) {}
