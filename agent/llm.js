@@ -26,8 +26,19 @@ function killSwitchOn() {
   return String(process.env.AGENT_LLM_DISABLED || "") === "1";
 }
 
+// R16: AGENT_GEMINI_API_KEY — ОТДЕЛЬНЫЙ ключ агента (своя квота + видимость расходов
+// агента в Google Console отдельно от перевода/TTS); фолбэк — общий GEMINI_API_KEY.
+function geminiKey() {
+  return process.env.AGENT_GEMINI_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
+}
+function keySource() {
+  if (process.env.AGENT_GEMINI_API_KEY) return "agent";
+  if (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY) return "shared";
+  return "none";
+}
+
 async function generateGemini({ system, prompt, maxOutputTokens }) {
-  const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
+  const key = geminiKey();
   if (!key) return { ok: false, error: "NO_API_KEY" };
   try {
     const { GoogleGenerativeAI } = require("@google/generative-ai");
@@ -69,4 +80,4 @@ async function generate(opts) {
   return { ok: false, error: "UNKNOWN_PROVIDER" };
 }
 
-module.exports = { generate, providerName, killSwitchOn };
+module.exports = { generate, providerName, killSwitchOn, keySource };
