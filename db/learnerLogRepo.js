@@ -187,6 +187,10 @@ async function ingestBatch(userId, deviceId, batch) {
     rejected: [],   // [{id, reason}] capped
   };
   const rejects = (id, reason) => { if (result.rejected.length < 20) result.rejected.push({ id: id || null, reason }); };
+  // P4 — item_keys of NEWLY-inserted memory-affecting rows (mark rows excluded: the manual axis
+  // never changes memory). NOT persisted into result_json (a replayed batch must not re-trigger
+  // the projection recompute) — returned to the caller of THIS live ingest only.
+  const newKeys = new Set();
 
   // Explicit-transaction section: MUST hold the process txn-lock (see db/txnLock.js) — two
   // concurrent ingests otherwise nest BEGINs on the shared connection and 500.
@@ -209,7 +213,10 @@ async function ingestBatch(userId, deviceId, batch) {
         [userId, v.row.id, v.row.item_key, v.row.kind, v.row.reviewed_at, v.row.grade, v.row.source,
          v.row.channel, v.row.latency_ms, v.row.meta_json, deviceId || null, schemaVersion, scv,
          v.row.rowKeyerVersion != null ? v.row.rowKeyerVersion : keyerVersion]);
-      if (r.changes > 0) result.review_log.new++; else result.review_log.dup++;
+      if (r.changes > 0) {
+        result.review_log.new++;
+        if (v.row.kind !== "mark") newKeys.add(v.row.item_key);
+      } else result.review_log.dup++;
     }
     for (const raw of events) {
       const v = validateLearnerEvent(raw, nowMs);
@@ -231,7 +238,7 @@ async function ingestBatch(userId, deviceId, batch) {
     throw e;
   }
   });
-  return { ok: true, replayed: false, ...result };
+  return { ok: true, replayed: false, new_item_keys: Array.from(newKeys), ...result };
 }
 
 // Down-sync primitive. Cursor = ROWID, not ingested_at: ingested_at is stamped at INSERT

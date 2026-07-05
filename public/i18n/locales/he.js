@@ -1958,6 +1958,8 @@ window.I18N_LOCALES.he = {
       logout: "יציאה",
       badSecret: "סוד שגוי",
       tooMany: "יותר מדי ניסיונות — המתן 10 דקות",
+      oracleOk: "תחזיות בענן (אורקל)",
+      oracleBad: "תחזיות בענן: אי-התאמות",
       disabled: "הכניסה כבויה בשרת",
     },
     tabs: {

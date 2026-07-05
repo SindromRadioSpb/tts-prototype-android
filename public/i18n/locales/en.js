@@ -1948,6 +1948,8 @@ window.I18N_LOCALES.en = {
       logout: "Log out",
       badSecret: "Wrong secret",
       tooMany: "Too many attempts — wait 10 minutes",
+      oracleOk: "Cloud projections (oracle)",
+      oracleBad: "Cloud projections: mismatches",
       disabled: "Login is disabled on the server",
     },
     tabs: {

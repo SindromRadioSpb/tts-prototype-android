@@ -2198,6 +2198,22 @@ async function _cloudRender() {
     let cloudN = '—';
     try { const c = await fetch('/api/learner/counts', { credentials: 'same-origin' }).then((r) => r.json()); if (c && c.ok) cloudN = c.review_log; } catch (_) {}
     lines.push(tt('room.cloud.counts', 'Событий памяти') + ': ' + tt('room.cloud.countLocal', 'на устройстве') + ' <b>' + localN + '</b> · ' + tt('room.cloud.countCloud', 'в облаке') + ' <b>' + cloudN + '</b>');
+    // CLG-P4 — живой оракул на РЕАЛЬНОМ профиле: fresh replay(лог) == ingest-maintained серверные
+    // проекции. missing>0 = проекции ещё не строились для до-P4 строк → разовый rebuild.
+    try {
+      const oFetch = () => fetch('/api/learner/oracle?sample=300', { credentials: 'same-origin' }).then((r) => r.json());
+      let o = await oFetch();
+      if (o && o.ok && o.missing > 0) {
+        await fetch('/api/learner/projections/rebuild', { method: 'POST', credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' } });
+        o = await oFetch();
+      }
+      if (o && o.ok) {
+        lines.push(o.mismatched === 0
+          ? tt('room.cloud.oracleOk', 'Облачные проекции (оракул)') + ': <b>✓ ' + o.checked + '</b>'
+          : tt('room.cloud.oracleBad', 'Облачные проекции: расхождения') + ': <b>' + o.mismatched + '</b>');
+      }
+    } catch (_) {}
   } catch (_) {}
   if (els.info) els.info.innerHTML = lines.join('<br>');
 }

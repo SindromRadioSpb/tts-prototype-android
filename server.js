@@ -1566,10 +1566,46 @@ app.post("/api/learner/ingest", rlLearnerIngest, async (req, res) => {
   try {
     const out = await learnerLogRepo.ingestBatch(auth.user.id, auth.session.deviceId, body);
     if (out && out.ok === false) return res.status(400).json(out);
+    // CLG-P4 — maintain the derived server projections in the SAME request (recon §4.4 chain:
+    // review_log → FSRS replay → srs_projections). Replayed batches carry no new_item_keys.
+    if (out && Array.isArray(out.new_item_keys) && out.new_item_keys.length) {
+      try { await learnerProjectionRepo.recomputeForKeys(auth.user.id, out.new_item_keys); } catch (_) {}
+      delete out.new_item_keys;   // internal detail, not part of the API contract
+    }
     res.json(out);
   } catch (e) {
     res.status(500).json({ ok: false, error: "INGEST_FAILED", message: e.message });
   }
+});
+
+// CLG-P4 — derived-projection surface + the REAL-PROFILE oracle (recon §9 CLG-P4 gate).
+const learnerProjectionRepo = require("./db/learnerProjectionRepo");
+const rlLearnerProj = makeRateLimiter({ windowMs: 60_000, max: 30, name: "learner-projections" });
+
+app.get("/api/learner/projections", rlLearnerProj, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try {
+    const rows = await learnerProjectionRepo.listProjections(auth.user.id, {
+      dueBeforeMs: req.query.due_before ? Number(req.query.due_before) : null, limit: req.query.limit,
+    });
+    res.json({ ok: true, rows });
+  } catch (e) { res.status(500).json({ ok: false, error: "PROJECTIONS_FAILED", message: e.message }); }
+});
+
+app.post("/api/learner/projections/rebuild", rlLearnerProj, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try { res.json({ ok: true, ...(await learnerProjectionRepo.rebuildAll(auth.user.id)) }); }
+  catch (e) { res.status(500).json({ ok: false, error: "REBUILD_FAILED", message: e.message }); }
+});
+
+// Live oracle on the principal's REAL data: fresh replay(log) vs the ingest-maintained stored
+// projection. Surfaced in the Room's ☁ modal so the owner's profile continuously re-proves
+// replay==stored on every sync (the recon's «на реальном профиле» requirement, always-on).
+app.get("/api/learner/oracle", rlLearnerProj, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try { res.json({ ok: true, ...(await learnerProjectionRepo.oracle(auth.user.id, { sample: req.query.sample })) }); }
+  catch (e) { res.status(500).json({ ok: false, error: "ORACLE_FAILED", message: e.message }); }
 });
 
 app.get("/api/learner/log", rlLearnerRead, async (req, res) => {
