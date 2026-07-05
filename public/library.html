@@ -1259,6 +1259,9 @@
     .room-cloud-push-head { font-size: 13px; color: var(--text-primary); }
     .room-cloud-push-state { color: var(--text-secondary); font-size: 12px; margin-inline-start: 6px; }
     .room-cloud-push .room-cloud-hint { margin-left: 0; }
+    /* CLG-P6 план дня: многострочный вывод; [hidden]-guard — против author-display трапа */
+    .room-cloud-planbox { margin-left: 0; white-space: pre-line; }
+    .room-cloud-planbox[hidden] { display: none; }
     .room-cloud-push-actions button[hidden] { display: none; }
     /* Stage 2 — rich card: collapsible root-family + ported Pealim inflection table */
     .rm-acc { margin-top: 12px; border-top: 1px solid var(--border-soft); padding-top: 8px; }
@@ -1764,6 +1767,12 @@
         </div>
         <div class="room-cloud-hint" data-i18n="room.cloud.pushHint">Раз в день и только если есть слова к повторению; уходит только число, без содержимого. На iPhone — сначала добавьте приложение на экран «Домой».</div>
       </div>
+      <!-- CLG-P6 сценарий №1 — «План на сегодня»: read-only /api/agent/plan; LLM опционален,
+           деградация подписывается честно; в review_log НИЧЕГО не пишется (MNAR, R17-гейт 6). -->
+      <div class="room-cloud-actions room-cloud-plan-actions">
+        <button id="roomCloudPlanBtn" type="button" data-i18n="room.cloud.planBtn">🧭 План на сегодня</button>
+      </div>
+      <div id="roomCloudPlanBox" class="room-cloud-hint room-cloud-planbox" hidden></div>
       <div class="room-cloud-actions">
         <button id="roomCloudSyncBtn" type="button" data-i18n="room.cloud.syncNow">Синхронизировать</button>
         <button id="roomCloudLogoutBtn" type="button" class="room-cloud-ghost" data-i18n="room.cloud.logout">Выйти</button>

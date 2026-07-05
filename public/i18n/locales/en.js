@@ -1975,6 +1975,10 @@ window.I18N_LOCALES.en = {
       hintTexts: "Your own texts from “My texts” (the corpus never travels). After a sync the device and cloud numbers must match.",
       textsFail: "Some texts failed to sync",
       disabled: "Login is disabled on the server",
+      planBtn: "🧭 Today's plan",
+      planRun: "Building your plan…",
+      planMin: "min",
+      planNoLlm: "plan built without LLM (deterministic)",
     },
     tabs: {
       accessible: "Accessible",

@@ -2189,7 +2189,40 @@ function _cloudEls() {
     textsCb: $('roomCloudTexts'),
     pushState: $('roomCloudPushState'), pushOn: $('roomCloudPushOn'),
     pushTest: $('roomCloudPushTest'), pushOff: $('roomCloudPushOff'),
+    planBtn: $('roomCloudPlanBtn'), planBox: $('roomCloudPlanBox'),
   };
+}
+// CLG-P6 сценарий №1 — «🧭 План на сегодня»: read-only план наставника (/api/agent/plan).
+// В review_log НЕ пишет (MNAR); LLM опционален — деградация подписывается честно (R16);
+// R17-категории секций утверждает сервер. Текст LLM рендерится ТОЛЬКО textContent (не HTML).
+async function _cloudPlanRun() {
+  const els = _cloudEls(); if (!els.planBox || !els.planBtn) return;
+  els.planBtn.disabled = true;
+  els.planBox.hidden = false;
+  els.planBox.textContent = tt('room.cloud.planRun', 'Составляю план…');
+  try {
+    const r = await fetch('/api/agent/plan', { method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
+      body: '{}' }).then((x) => x.json());
+    if (!r || !r.ok) { els.planBox.textContent = '✗ ' + ((r && r.error) || tt('room.cloud.err', 'Ошибка синхронизации')); return; }
+    const lang = String(document.documentElement.lang || 'ru').toLowerCase();
+    const useRu = lang.indexOf('ru') === 0;   // he-UI → английские заголовки секций (у сервера ru/en)
+    const lines = [];
+    if (r.text) lines.push(r.text);
+    const plan = r.plan || {};
+    if (plan.est_minutes) lines.push('≈ ' + plan.est_minutes + ' ' + tt('room.cloud.planMin', 'мин'));
+    for (const s of (plan.sections || [])) {
+      const title = useRu ? (s.title_ru || s.title_en) : (s.title_en || s.title_ru);
+      const lemmas = (s.items || []).map((x) => x && x.lemma).filter(Boolean);
+      lines.push('• ' + title + (lemmas.length ? ': ' + lemmas.join(' · ') : ''));
+    }
+    if (r.degraded_reason) lines.push('ⓘ ' + tt('room.cloud.planNoLlm', 'план собран без LLM (детерминированно)') + ' · ' + r.degraded_reason);
+    els.planBox.textContent = lines.filter(Boolean).join('\n');
+  } catch (e) {
+    els.planBox.textContent = '✗ ' + String((e && e.message) || e);
+  } finally {
+    els.planBtn.disabled = false;
+  }
 }
 // CLG-P4.5 — Web Push блок ☁-модала. Honest states: unsupported (нет SW/PushManager —
 // в т.ч. iPhone-браузер без установки на «Домой») / denied / off / on-this-device.
@@ -2431,6 +2464,8 @@ function roomCloudInit() {
   if (els.pushOn) els.pushOn.addEventListener('click', _cloudPushEnable);
   if (els.pushOff) els.pushOff.addEventListener('click', _cloudPushDisable);
   if (els.pushTest) els.pushTest.addEventListener('click', _cloudPushTest);
+  // CLG-P6 — «🧭 План на сегодня» (read-only сценарий №1)
+  if (els.planBtn) els.planBtn.addEventListener('click', _cloudPlanRun);
   // тап по строке с ⓘ → пояснение под инфо-блоком (title-тултипы не работают @380px);
   // повторный тап той же строки — скрыть
   if (els.info) els.info.addEventListener('click', (e) => {
