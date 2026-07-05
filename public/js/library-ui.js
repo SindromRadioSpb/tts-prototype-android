@@ -2173,7 +2173,80 @@ function _cloudEls() {
     secret: $('roomCloudSecret'), loginBtn: $('roomCloudLoginBtn'), panel: $('roomCloudPanel'),
     info: $('roomCloudInfo'), syncBtn: $('roomCloudSyncBtn'), logoutBtn: $('roomCloudLogoutBtn'),
     textsCb: $('roomCloudTexts'),
+    pushState: $('roomCloudPushState'), pushOn: $('roomCloudPushOn'),
+    pushTest: $('roomCloudPushTest'), pushOff: $('roomCloudPushOff'),
   };
+}
+// CLG-P4.5 — Web Push блок ☁-модала. Honest states: unsupported (нет SW/PushManager —
+// в т.ч. iPhone-браузер без установки на «Домой») / denied / off / on-this-device.
+function _pushB64ToU8(b64) {
+  const pad = '='.repeat((4 - (b64.length % 4)) % 4);
+  const raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
+  const out = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+  return out;
+}
+async function _pushReg() {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
+    return (await navigator.serviceWorker.getRegistration()) || null;
+  } catch (_) { return null; }
+}
+async function _cloudRenderPush() {
+  const els = _cloudEls();
+  if (!els.pushState) return;
+  const setState = (txt) => { els.pushState.textContent = txt || ''; };
+  const show = (on, test, off) => {
+    if (els.pushOn) els.pushOn.hidden = !on;
+    if (els.pushTest) els.pushTest.hidden = !test;
+    if (els.pushOff) els.pushOff.hidden = !off;
+  };
+  const reg = await _pushReg();
+  if (!reg) { setState(tt('room.cloud.pushUnsupported', 'недоступен в этом браузере')); show(false, false, false); return; }
+  if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
+    setState(tt('room.cloud.pushDenied', 'уведомления запрещены в браузере')); show(false, false, false); return;
+  }
+  let sub = null;
+  try { sub = await reg.pushManager.getSubscription(); } catch (_) {}
+  if (sub) { setState('✓ ' + tt('room.cloud.pushOn', 'включён на этом устройстве')); show(false, true, true); }
+  else { setState(''); show(true, false, false); }
+}
+async function _cloudPushEnable() {
+  const els = _cloudEls();
+  try {
+    const reg = await _pushReg(); if (!reg) return;
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { await _cloudRenderPush(); return; }
+    const vk = await fetch('/api/push/vapid-key', { credentials: 'same-origin' }).then((r) => r.json());
+    if (!vk || !vk.ok) { _cloudStatus('✗ ' + ((vk && vk.error) || 'PUSH_UNAVAILABLE'), 'err'); return; }
+    const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: _pushB64ToU8(vk.key) });
+    const r = await fetch('/api/push/subscribe', { method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
+      body: JSON.stringify({ subscription: sub.toJSON() }) });
+    if (!r.ok) { try { await sub.unsubscribe(); } catch (_) {} _cloudStatus('✗ ' + tt('room.cloud.err', 'Ошибка синхронизации'), 'err'); }
+  } catch (e) { _cloudStatus('✗ ' + String(e && e.message || e), 'err'); }
+  await _cloudRenderPush();
+}
+async function _cloudPushDisable() {
+  try {
+    const reg = await _pushReg(); if (!reg) return;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      const endpoint = sub.endpoint;
+      try { await sub.unsubscribe(); } catch (_) {}
+      await fetch('/api/push/unsubscribe', { method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
+        body: JSON.stringify({ endpoint }) });
+    }
+  } catch (_) {}
+  await _cloudRenderPush();
+}
+async function _cloudPushTest() {
+  try {
+    const r = await fetch('/api/push/test', { method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' }, body: '{}' }).then((x) => x.json());
+    _cloudStatus(r && r.ok ? '✓ ' + tt('room.cloud.pushSent', 'Нудж отправлен') + ' (due: ' + (r.due != null ? r.due : '?') + ')' : '✗ ' + ((r && r.error) || '?'), r && r.ok ? 'ok' : 'err');
+  } catch (e) { _cloudStatus('✗ ' + String(e && e.message || e), 'err'); }
 }
 function _cloudStatus(text, cls) {
   const e = _cloudEls().status; if (!e) return;
@@ -2191,6 +2264,7 @@ async function _cloudRender() {
   }
   els.loginBox.hidden = true; els.panel.hidden = false;
   _cloudStatus('✓ ' + tt('room.cloud.connected', 'Подключено'), 'ok');
+  try { await _cloudRenderPush(); } catch (_) {}   // CLG-P4.5 — push-блок (честные состояния)
   // CLG-P5.5 — consent-переключатель класса B отражает СЕРВЕРНУЮ истину (consent_records)
   if (els.textsCb) {
     const c = (session.consents || {}).cloud_texts;
@@ -2293,6 +2367,10 @@ function roomCloudInit() {
     try { await CS.logout(); } catch (_) {}
     await _cloudRender();
   });
+  // CLG-P4.5 — push controls
+  if (els.pushOn) els.pushOn.addEventListener('click', _cloudPushEnable);
+  if (els.pushOff) els.pushOff.addEventListener('click', _cloudPushDisable);
+  if (els.pushTest) els.pushTest.addEventListener('click', _cloudPushTest);
 }
 // Boot auto-sync: ONLY when a live session already exists (прежний явный вход владельца =
 // durable-согласие Tier 2). Без сессии — один same-origin me() (401, кука HttpOnly и не

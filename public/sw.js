@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.96";
+const CACHE_VERSION = "v3.11.97";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -414,3 +414,29 @@ async function isStorageQuotaSafe() {
     return (est.usage / est.quota) < MORPH_QUOTA_THRESHOLD;
   } catch (_) { return true; }
 }
+
+// ── CLG-P4.5 — Web Push (AI_MENTOR_RECON §8): ежедневный нудж «N слов ждут повторения».
+// Payload несёт только СЧЁТЧИК (без содержимого, §5/§8); тап открывает Зал (deep-link).
+self.addEventListener("push", (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch (_) {}
+  const title = data.title || "LinguistPro";
+  event.waitUntil(self.registration.showNotification(title, {
+    body: data.body || "",
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
+    tag: data.tag || "lp-due-nudge",
+    data: { url: data.url || "/library.html" },
+  }));
+});
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "/library.html";
+  event.waitUntil((async () => {
+    const wins = await clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const w of wins) {
+      if (w.url && w.url.includes("library.html") && "focus" in w) return w.focus();
+    }
+    return clients.openWindow(url);
+  })());
+});

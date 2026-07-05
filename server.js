@@ -1688,6 +1688,71 @@ app.post("/api/learner/artifacts/put", rlLearnerArtifacts, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: "ARTIFACT_PUT_FAILED", message: e.message }); }
 });
 
+// ============================================================================
+// CLG-P4.5 — Web Push (AI_MENTOR_RECON §8/§9 P4.5): ежедневный нудж «N слов
+// ждут повторения» БЕЗ содержимого. Первая видимая ценность пивота. Подписка —
+// класс A (delete/export sweep покрывает автоматически). VAPID: env либо
+// стабильные авто-ключи на томе. Sweep — раз в 15 минут (суточный дедуп внутри).
+// ============================================================================
+const pushRepo = require("./db/pushRepo");
+const rlPush = makeRateLimiter({ windowMs: 60_000, max: 30, name: "push" });
+
+app.get("/api/push/vapid-key", rlPush, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try { res.json({ ok: true, key: pushRepo.ensureVapid().publicKey }); }
+  catch (e) { res.status(503).json({ ok: false, error: "PUSH_UNAVAILABLE", message: e.message }); }
+});
+
+app.post("/api/push/subscribe", rlPush, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const out = await pushRepo.subscribe(auth.user.id, auth.session.deviceId, (req.body && req.body.subscription) || req.body);
+    if (out.ok === false) return res.status(400).json(out);
+    identityRepo.audit("push_subscribe", auth.user.id, {}, req.ip);
+    res.json(out);
+  } catch (e) { res.status(500).json({ ok: false, error: "SUBSCRIBE_FAILED", message: e.message }); }
+});
+
+app.post("/api/push/unsubscribe", rlPush, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try { res.json(await pushRepo.unsubscribe(auth.user.id, req.body && req.body.endpoint)); }
+  catch (e) { res.status(500).json({ ok: false, error: "UNSUBSCRIBE_FAILED", message: e.message }); }
+});
+
+app.get("/api/push/status", rlPush, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try { res.json({ ok: true, ...(await pushRepo.status(auth.user.id)) }); }
+  catch (e) { res.status(500).json({ ok: false, error: "STATUS_FAILED", message: e.message }); }
+});
+
+// «Проверить» из ☁-модала: немедленный нудж на все подписки пользователя (real-device verify).
+app.post("/api/push/test", rlPush, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const out = await pushRepo.sendTest(auth.user.id);
+    if (out.ok === false && out.error) return res.status(400).json(out);
+    res.json(out);
+  } catch (e) { res.status(500).json({ ok: false, error: "PUSH_TEST_FAILED", message: e.message }); }
+});
+
+// Ops/gate-триггер sweep-а (требует RESEARCH_ADMIN_TOKEN — паттерн requireAdminToken).
+app.post("/api/push/sweep", async (req, res) => {
+  if (!requireAdminToken(req, res)) return;
+  try { res.json(await pushRepo.runPushSweep({ nowMs: req.body && req.body.now ? Number(req.body.now) : null, force: !!(req.body && req.body.force) })); }
+  catch (e) { res.status(500).json({ ok: false, error: "SWEEP_FAILED", message: e.message }); }
+});
+
+// Час нуджа ловится 15-минутным интервалом (суточный дедуп не даст дублей внутри часа).
+setInterval(() => {
+  try {
+    if (getDbHealth().ready !== true) return;
+    pushRepo.runPushSweep({ nowMs: Date.now() }).catch(() => {});
+  } catch (_) {}
+}, 15 * 60_000).unref();
+
 app.get("/api/learner/log", rlLearnerRead, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   try {

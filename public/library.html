@@ -1241,6 +1241,11 @@
     .room-cloud-consent { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; color: var(--text-primary); cursor: pointer; }
     .room-cloud-consent input { width: auto; }
     .room-cloud-hint { font-size: 12px; color: var(--text-faint); margin: 4px 0 0 24px; line-height: 1.45; }
+    .room-cloud-push { margin-top: 12px; border-top: 1px solid var(--border-soft); padding-top: 10px; }
+    .room-cloud-push-head { font-size: 13px; color: var(--text-primary); }
+    .room-cloud-push-state { color: var(--text-secondary); font-size: 12px; margin-inline-start: 6px; }
+    .room-cloud-push .room-cloud-hint { margin-left: 0; }
+    .room-cloud-push-actions button[hidden] { display: none; }
     /* Stage 2 — rich card: collapsible root-family + ported Pealim inflection table */
     .rm-acc { margin-top: 12px; border-top: 1px solid var(--border-soft); padding-top: 8px; }
     .rm-acc-sum { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--text-secondary); list-style: none; padding: 4px 0; }
@@ -1728,6 +1733,16 @@
         <span data-i18n="room.cloud.textsToggle">📄 Синхронизировать «Мои тексты»</span>
       </label>
       <div class="room-cloud-hint" data-i18n="room.cloud.textsHint">Собственные тексты (не корпус) станут доступны на других ваших устройствах. Выключение остановит синк; удалить из облака можно удалением аккаунта.</div>
+      <!-- CLG-P4.5 — Web Push: ежедневный нудж (только счётчик, deep-link в Зал) -->
+      <div class="room-cloud-push">
+        <div class="room-cloud-push-head">🔔 <span data-i18n="room.cloud.pushTitle">Ежедневный нудж</span> <span id="roomCloudPushState" class="room-cloud-push-state"></span></div>
+        <div class="room-cloud-actions room-cloud-push-actions">
+          <button id="roomCloudPushOn" type="button" data-i18n="room.cloud.pushEnable">Включить на этом устройстве</button>
+          <button id="roomCloudPushTest" type="button" class="room-cloud-ghost" data-i18n="room.cloud.pushTest" hidden>Проверить</button>
+          <button id="roomCloudPushOff" type="button" class="room-cloud-ghost" data-i18n="room.cloud.pushDisable" hidden>Выключить</button>
+        </div>
+        <div class="room-cloud-hint" data-i18n="room.cloud.pushHint">Раз в день и только если есть слова к повторению; уходит только число, без содержимого. На iPhone — сначала добавьте приложение на экран «Домой».</div>
+      </div>
       <div class="room-cloud-actions">
         <button id="roomCloudSyncBtn" type="button" data-i18n="room.cloud.syncNow">Синхронизировать</button>
         <button id="roomCloudLogoutBtn" type="button" class="room-cloud-ghost" data-i18n="room.cloud.logout">Выйти</button>
