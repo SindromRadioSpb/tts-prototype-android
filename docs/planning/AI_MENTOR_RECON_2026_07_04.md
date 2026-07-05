@@ -679,11 +679,58 @@ TTS_COST_PER_MILLION в server.js) · cost ledger (`llm_usage_ledger`, сема�
 | **CLG-P4.5** | Web Push due-нудж (первая видимая ценность); `push_subscriptions`; единый бюджет уведомлений (§8) | Нудж приходит на телефон владельца; **число в пуше == число в due-кольце после sync**; deep-link открывает кольцо на устройстве с живой репликой (fresh-device bootstrap из P3) | 🟢 **SHIPPED v3.11.97 (2026-07-05):** мигр. 024 `push_subscriptions` (класс A, авто-sweep delete/export) + `db/pushRepo.js` (web-push@3.6.7; VAPID: env либо стабильные авто-ключи на томе `vapid-keys.json`; **счётчик нуджа = ТО ЖЕ правило, что /api/learner/due** — R11 honest, due=0 → тишина; суточный дедуп `last_notified_day` + час PUSH_HOUR_UTC (деф. 6 UTC ≈ 9:00 IL); 404/410 → подписка удаляется) + endpoints `/api/push/{vapid-key,subscribe,unsubscribe,status,test,sweep(admin)}` + серверный sweep-интервал 15 мин. SW: `push`/`notificationclick` (deep-link в Зал, focus-existing). UI: блок «🔔 Ежедневный нудж» в ☁-модале (честные состояния: unsupported/denied/off/on-this-device; [Включить][Проверить][Выключить]); i18n 34 ключа ×3. **Гейт `smoke:web-push` 15/15** — НАСТОЯЩИЙ aes128gcm+VAPID пуш против фейкового HTTPS push-сервиса (self-signed фикстура, реальные ECDH-ключи): vapid стабилен · honest quiet при due=0 · час/суточный дедуп/след. день · 410-очистка. Урок: web-push всегда TLS → фикстурный серт + NODE_TLS_REJECT_UNAUTHORIZED только в child-тесте. **Owner-верифи:** ☁-модал → «Включить на этом устройстве» → «Проверить» (iPhone: PWA с экрана «Домой», iOS 16.4+) |
 | **CLG-P5** | Learner Graph API: getDue/getReadingProgress/getKnownWords/getWeakPatterns/getRecentSentences/getNextRecommendedText/getAgentContext; серверный keying/resolver-стек (§7) | API отдаёт то же, что видит Зал локально (включая manual-overlay §4.7) | 🟢 **A-класс SHIPPED v3.11.95 (2026-07-05):** `db/learnerGraphRepo.js` + endpoints `/api/learner/{due,known,weak,context}` (session+rate-limit). Manual-ось на сервере = LWW-fold mark-строк (тот же порядок (reviewed_at,id), что клиентский lastMarkStatus). `/due` = правило Зала (due<=now, ignore исключён, строка несёт manual-статус+lapses); `/known` = честная серверная known-view (marks+schedule; note-derived overlay остаётся браузерным до P5.5 — R9, не фабрикуем); `/weak` = слабые СЛОВА lapses-first (НЕ «паттерны» — construct-id-субстрат misconception map = CLG-P6 по §7); `/context` = компакт для агента с R11-honest counts (due_now == \|/due\|). **Гейт `smoke:learner-graph` 14/14** (паритет /due с локальным правилом · manual-ось API==локальной по всем ключам · честный scheduled-флаг · weak-ранжирование · context-счётчики). Артефакт-зависимые view (getReadingProgress/getRecentSentences/getNextRecommendedText) — с CLG-P5.5 (класс B, не фабрикуются); серверный keying-стек — prep CLG-P6 (§7: до него агент оперирует только существующими item_key) |
 | **CLG-P5.5** | **Artifact Sync, класс B (v3, критика M-R5 — без него агент слеп к «МОИМ предложениям»):** таблицы texts/sentences/anchors, переключатель consent | `sentence_id` из push/агента резолвится на сервере в тот же текст, что видит Зал | 🟢 **SHIPPED v3.11.96 (2026-07-05):** архитектура «opaque bundle store» — сервер НЕ парсит контент: мигр. 023 `learner_artifacts` (PK(user_id,kind,artifact_key), LWW по updated_at текста, cap 3МБ/2000 шт.) + `db/learnerArtifactsRepo.js` + endpoints `/api/learner/artifacts{,/get,/put}` с **server-side consent-enforcement на КАЖДОМ запросе** (consent_records 'cloud_texts'; выключено → 403 даже на чтение). Клиент: payload = боевой пер-текстовый бандл `exportBundle({textIds})`, приём = `importBundle` (skip для новых; server-newer → LWW delete+reimport, якоря переякоряются по text_key+order_index — bookmarks-паттерн); `listOwnTextsForSync` исключает корпус (source_meta_json.corpus) и архив; `syncArtifacts` встроен в fullSync (consent-gated no-op). UI: consent-чекбокс «📄 Синхронизировать Мои тексты» в ☁-модале (истина = серверные consent_records; hint честный; интро-конфликт «тексты не передаются» пойман скриншотом и переформулирован «только с явным разрешением ниже») + счётчики 📄↑↓ в строке синка; i18n 25 ключей ×3. **Гейт `smoke:artifact-sync` 11/11** (consent 403+skip · корпус НЕ утёк · fresh-device материализация · LWW-правка по кругу B→сервер→A; state-based ассерты — retry-инвариантны). Регрессия: cloud-sync 32/32, i18n 226, auth, api. Закрывает вопрос владельца «81 vs 79 Моих текстов»; recon-гейт (sentence_id резолвится в тот же текст) материально обеспечен идентичностью text_key+order_index на устройствах |
-| **CLG-P6** | Agent Runtime: planner/tutor/reviewer/explainer/recommender/grader, tool router, context pack builder, лимиты §7/§11 (pre-call reserve); **вход-условие: авто-prune docker-образов включён (§11)** | Агент проходит §7-цикл на синтетике + владельце; **prompt payload отсутствует в stdout/логах agent-сервиса**; лимиты срабатывают на burst-тесте | ⬜ |
+| **CLG-P6** | Agent Runtime: planner/tutor/reviewer/explainer/recommender/grader, tool router, context pack builder, лимиты §7/§11 (pre-call reserve); **вход-условие: авто-prune docker-образов включён (§11) — ✅ 2026-07-05 (ручной prune 85%→23% + владелец включил Coolify Force Cleanup)** | Агент проходит §7-цикл на синтетике + владельце; **prompt payload отсутствует в stdout/логах agent-сервиса**; лимиты срабатывают на burst-тесте; R17-гейты 1–8 (PROJECT_ROLES.md) | ⬜ **план принят владельцем 2026-07-05** (см. «CLG-P6 — принятый план реализации» ниже); пре-условия §15.7 закрыты (R17 ✅ · keying ✅ · D1 ✅); rollback-процедура зафиксирована ✅ |
 | **CLG-P7** | Telegram Bot: pairing (hardening §8), команды, журнал действий во вкладке | Полный цикл «/review → ответ → review_log → **строка появляется в ЛОКАЛЬНОМ OPFS-логе** (down-sync, не только API) → Зал видит»; **grader-accuracy gate:** gold-набор ответов (ktiv-пары, огласовки, near-miss) ≥ порога ДО права записи grade | ⬜ |
 | **CLG-P8** | Telegram Mini App: тренировки + прогресс; **контекст-first** (§8) | Due review в Mini App пишет в тот же лог; **слово показано в исходном предложении** + deep-link в Зал | ⬜ |
 | **CLG-P9** | Agent-кнопки в Зале/Студии: [Спросить агента][Объясни предложение][Добавь в тренировку][Создай мини-урок][Текст по слабым словам] + anchor-точность (text_key/sentence_id/order_index/token_index) | 380px light/dark, RTL, parity-гейты зелёные | ⬜ |
 | **CLG-P10** | Premium Analytics: weekly digest, misconception map, personal curriculum engine («12 знакомых слов + 4 из зоны ближайшего развития»), retention-метрики; teacher dashboard — за горизонтом | — | ⬜ |
+
+### CLG-P6 — принятый план реализации (owner brief 2026-07-05)
+
+Вопрос фазы: *как превратить Learner Graph в действующего наставника, не создав
+параллельную память, LLM-галлюцинатор или cost-бомбу.*
+
+**Skeleton (агент = НЕ свободный чат с базой):** planner · tutor · reviewer · explainer ·
+recommender · grader + tool router + context pack builder. Разрешённая модель:
+`LLM → tool router → разрешённые инструменты → Learner Graph API / artifacts / keying /
+review ingest`. Запрещённая: LLM напрямую читает/пишет БД или сам решает, что пользователь
+знает (§1.3-3/4).
+
+**Таблицы/состояние:** agent_profiles · agent_threads · agent_messages · agent_tasks ·
+agent_explanations · llm_usage_ledger (§6). Разделение жёсткое: agent memory ≠ learner-state;
+agent tasks ≠ SRS state; agent_explanations ≠ вход учебной проекции. Всё влияющее на
+память — ТОЛЬКО через review_log.
+
+**Tool router (закрытый набор):** get_due_words · get_known_words · get_weak_words ·
+get_learner_context · get_word_lifecycle · **resolve_item_key** (= keyingService, §7) ·
+get_user_texts_if_consented · get_sentence_context_if_available · create_agent_task ·
+create_explanation · record_review_answer · synthesize_audio. **user_id — НЕ параметр
+инструмента**, только из authenticated principal (R14, §6 B2).
+
+**Context Pack Builder:** due + weak + manual ignore/known + доступные тексты (при consent) +
+recent activity + **D1 channel_stats** + word lifecycle + facts_used-провенанс + язык +
+режим агента. Требования (R15/R16): минимальный · TTL/non-persistent · не логируется в
+stdout · не хранится indefinite · класс C только при consent.
+
+**Cost ledger (R16, §11):** pre-call check-and-reserve (НЕ постфактум) · per-user limits ·
+global daily budget · kill-switch · **LLM-less fallback** (лимит исчерпан → модель не
+вызывается, но due/план/ссылки/review работают через deterministic tools) · TTS chars/day ·
+usage ledger.
+
+**Стадирование сценариев:**
+1. **Первый = `/plan` (read-only):** читает /context, /due, /weak, channel_stats, доступные
+   артефакты → короткий план дня («7 минут: 5 просроченных, 3 с repeated lapses, затем
+   абзац в Зале»). Не пишет grade, не рискует логом, сразу даёт ценность, проверяет R17-A,
+   работает без Telegram.
+2. **Второй = `/explain sentence`:** только при consent на текст + artifact bundle +
+   sentence anchor; морфологию утверждает resolver/keying-стек, LLM только объясняет;
+   результат → agent_explanations с facts_used-провенансом
+   (morphology: resolver/asserted · translation: studio_translation/derived ·
+   user text: consented artifact).
+3. **record_review_answer — самый опасный инструмент:** в P6 закладывается только skeleton;
+   право активного использования — после гейтов deterministic-first · D1 applied · grader
+   provenance · gold cases · annul path · MNAR no-write · down-sync в OPFS.
+   Telegram `/review` — не P6, а P7.
 
 **Гейт G-5 (жёсткое правило).** Telegram-агент не пишется, пока серверный learner state
 не умеет всё пять: (1) принять review event; (2) пересчитать FSRS; (3) отдать due list;
@@ -698,12 +745,19 @@ tenant-isolation тесты (А не видит Б) · backup-restore drill на
 (ульпан-сценарий). До прохождения G-EXT внешний пилот запрещён независимо от готовности
 функциональности.
 
-**Rollback после канон-флипа (v3, критика M-R13).** Единственный rollback-гейт v2 жил в
-CLG-P3 — в мире, где server-originated событий ещё не существует (тривиален по построению).
-После P6/P7 события `source='agent:*'` рождаются НА сервере; процедура отката обязана
-начинаться с финального полного server→client экспорта (down-sync §4.3) + verify
-«локальный лог ⊇ серверный», иначе Telegram-события гибнут. Rollback-процедура пост-флипа
-фиксируется до старта CLG-P6.
+**Rollback после канон-флипа (v3, критика M-R13) — ПРОЦЕДУРА ЗАФИКСИРОВАНА владельцем
+2026-07-05 (пред-условие старта CLG-P6; продолжение R13 Migration Steward).** Единственный
+rollback-гейт v2 жил в CLG-P3 — в мире, где server-originated событий ещё не существует
+(тривиален по построению). После P6/P7 события `source='agent:*'` (agent tasks, explanations,
+возможные review-события, будущие Telegram-события) рождаются НА сервере. Каноническая
+процедура отката cloud→local:
+
+1. Перед откатом выполнить ПОЛНЫЙ server→client export/down-sync (§4.3).
+2. Проверить: локальный OPFS-лог ⊇ серверный лог (superset-verify).
+3. Проверить checksum + replay на слитом логе (оракул).
+4. Только после этого отключать cloud-поверхности (agent / push / sync).
+5. Инвариант: agent-originated события НЕ должны погибнуть при rollback — шаги 1–3
+   обязательны строго в этом порядке; отключение до верифи = потеря серверных строк.
 
 **Отношение к текущей очереди (retention-программа) — ПОДТВЕРЖДЕНО владельцем (§13.6):**
 закрыть **P4.1** (дефект демоции 'new' в Anki-ingest) ДО CLG-P2 — этот ingest-путь
@@ -977,6 +1031,13 @@ MINOR-находки (13) учтены точечно: push_subscriptions в §6
       last) + passthrough в /api/learner/weak («судьба слова» для агента). Гейты:
       `smoke:grade-policy` 24/24 (новый) + server-replay 41/41 (+2 D1-ассерта).
    Telegram (P7) — не раньше гейта G-5 (после P6).
+8. ▶ **СЛЕДУЮЩАЯ СЕССИЯ: собственно CLG-P6 Agent Runtime** — план принят владельцем
+   2026-07-05 и вписан в §9 («CLG-P6 — принятый план реализации»): skeleton + tool router +
+   context pack builder + cost ledger (pre-call reserve) + стадирование `/plan` (первый,
+   read-only) → `/explain` (consent+провенанс) → record_review_answer (skeleton, активация
+   по гейтам). Вход-условия закрыты: авто-cleanup docker включён (Coolify Force Cleanup,
+   владелец 2026-07-05; ручной prune 85%→23% выполнен), rollback-процедура пост-флипа
+   зафиксирована (§9), пре-условия 1–3 ✅. R17-гейты 1–8 = чек-лист приёмки P6/P7.
 
 **Напутствие программы (владелец):** первый код должен быть «скучным, платформенным и
 почти невидимым» — identity, consent, event log, sync, replay, projections. Только после
