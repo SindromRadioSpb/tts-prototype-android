@@ -3108,6 +3108,7 @@ function attachExplainButtons(mount) {
   });
 }
 async function explainRow(idx) {
+  if (_explainInFlight) return;   // P6.3 — тап по другой строке при живом запросе не перерисовывает модал
   const row = readerRows[idx];
   if (!row || !readerTextKey) return;
   const orderIndex = row._v3_orderIndex != null ? Number(row._v3_orderIndex) : idx;
@@ -3134,7 +3135,14 @@ async function explainRow(idx) {
   }
   _explainRequest(readerTextKey, orderIndex);
 }
+// P6.3 — duplicate-tap guard: ОДИН explain-запрос в полёте на всю читалку (мобильный
+// паттерн «тапнул → не дождался → тапнул ещё» не должен жечь ledger повторно; серверный
+// pre-call reserve — вторая линия, эта — первая). Повторный тап при живом запросе
+// игнорируется молча: модал уже показывает «Наставник думает…».
+let _explainInFlight = false;
 async function _explainRequest(textKey, orderIndex) {
+  if (_explainInFlight) return;
+  _explainInFlight = true;
   const els = _explainEls();
   if (els.body) { els.body.hidden = false; els.body.textContent = tt('room.explain.loading', 'Наставник думает…'); }
   _explainShowMeta('');
@@ -3144,6 +3152,7 @@ async function _explainRequest(textKey, orderIndex) {
       headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
       body: JSON.stringify({ text_key: textKey, order_index: orderIndex, scope_level: 'sentence_only' }) }).then((x) => x.json());
   } catch (_) {}
+  finally { _explainInFlight = false; }
   if (!r || !r.ok) {
     const code = (r && r.error) || '';
     let msg;

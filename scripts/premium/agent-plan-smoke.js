@@ -151,6 +151,12 @@ function seedRows() {
     const gap = (plan.sections || []).find((s) => s.id === "production_gap");
     eq(!!gap && gap.recommended_channel === "dictate" && gap.items.some((x) => x.item_key.includes("|gap#")),
       "D1: recognized-but-fails-production word must land in production_gap with dictate, got " + JSON.stringify(gap && gap.items));
+    // P6.4: construct-субстрат — сервер назначает id по реальным dictate-провалам сида.
+    const CReg = require(path.join(REPO, "agent", "constructs.js"));
+    eq(!!gap && (gap.construct_ids || []).includes("construct:hebrew.channel_gap.reading_to_dictation"),
+      "P6.4: production_gap section must carry construct reading_to_dictation from real log channels, got " + JSON.stringify(gap && gap.construct_ids));
+    eq(!!gap && gap.items.every((x) => !x.construct_id || CReg.isKnown(x.construct_id)),
+      "P6.4: every per-item construct_id must be registry-known (server-assigned only)");
     eq(!!p1.json.task_id, "plan must create an agent_task");
 
     // MNAR: план ничего не пишет в review_log.
@@ -214,7 +220,7 @@ function seedRows() {
     try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {}
   }
 
-  const TOTAL = 26;
+  const TOTAL = 28;   // 26 слайса 1 + 2 construct-ассерта P6.4
   if (failures.length) {
     console.error(`smoke:agent-plan FAIL (${TOTAL - failures.length}/${TOTAL})`);
     for (const f of failures) console.error("  ✗ " + f);

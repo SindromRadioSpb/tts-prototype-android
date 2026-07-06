@@ -27,6 +27,7 @@ const path = require("path");
 const tools = require(path.join(__dirname, "tools"));
 const llm = require(path.join(__dirname, "llm"));
 const planner = require(path.join(__dirname, "planner"));
+const constructs = require(path.join(__dirname, "constructs"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
 
 const SCOPE_SENTENCE_ONLY = "sentence_only";
@@ -81,6 +82,28 @@ async function buildExplainCore(ctx, { text_key, order_index } = {}) {
   const weak = (weakRes.ok ? weakRes.result : []).filter((w) => keyInSentence.has(w.item_key));
   const productionGap = weak.filter((w) => planner.productionImbalance(w.channel_stats));
 
+  // P6.4 construct-субстрат: ids назначает СЕРВЕР (реестр + детерминированная детекция),
+  // ДО вызова LLM. Channel-gap уточняется по РЕАЛЬНЫМ каналам review_log слова
+  // (get_word_lifecycle); binyan — только когда резолвер его утверждает. 1–3 конструкции.
+  const constructEvidence = new Map();   // id → [item_key]
+  const addConstruct = (id, itemKey) => {
+    if (!id || !constructs.isKnown(id)) return;   // неизвестный id не существует by construction
+    if (!constructEvidence.has(id)) constructEvidence.set(id, []);
+    if (itemKey && !constructEvidence.get(id).includes(itemKey)) constructEvidence.get(id).push(itemKey);
+  };
+  for (const w of productionGap.slice(0, 3)) {
+    const lc = await tools.callTool(ctx, "get_word_lifecycle", { item_key: w.item_key });
+    const events = lc.ok && lc.result ? lc.result.events : [];
+    addConstruct(constructs.channelGapConstruct(events), w.item_key);
+  }
+  const weakOrDue = new Set([...due.map((w) => w.item_key), ...weak.map((w) => w.item_key)]);
+  for (const m of morphology) {
+    if (m.item_key && weakOrDue.has(m.item_key)) addConstruct(constructs.binyanConstruct(m.binyan), m.item_key);
+  }
+  const constructList = [...constructEvidence.keys()].slice(0, 3).map((id) => ({
+    id, kind: constructs.get(id).kind, evidence_item_keys: constructEvidence.get(id),
+  }));
+
   return {
     ok: true,
     scope_level: SCOPE_SENTENCE_ONLY,
@@ -93,6 +116,7 @@ async function buildExplainCore(ctx, { text_key, order_index } = {}) {
       weak_in_sentence: weak.map((w) => ({ item_key: w.item_key, lapses: w.lapses })),
       production_gap: productionGap.map((w) => w.item_key),
     },
+    constructs: constructList,
   };
 }
 
@@ -113,6 +137,10 @@ function fallbackText(core, language) {
     if (m.item_key && dueSet.has(m.item_key)) flag = en ? " — due for review" : " — пора повторить";
     else if (m.item_key && weakSet.has(m.item_key)) flag = en ? " — weak word" : " — слабое слово";
     if (bits.length || flag) lines.push("• " + (m.niqqud || m.surface) + (bits.length ? ": " + bits.join(", ") : "") + flag);
+  }
+  for (const c of core.constructs || []) {
+    const t = constructs.title(c.id, language);
+    if (t) lines.push((en ? "Construct: " : "Конструкция: ") + t);
   }
   if (!lines.length) lines.push(en ? "No offline facts found for this sentence." : "Офлайн-фактов по этому предложению не нашлось.");
   return lines.join("\n");
@@ -152,6 +180,9 @@ async function explain(ctx, { text_key, order_index } = {}) {
         due_lemmas: core.morphology.filter((m) => core.learner.due_in_sentence.includes(m.item_key)).map((m) => m.lemma || m.surface),
         weak_lemmas: core.morphology.filter((m) => core.learner.weak_in_sentence.some((w) => w.item_key === m.item_key)).map((m) => m.lemma || m.surface),
         production_gap_lemmas: core.morphology.filter((m) => core.learner.production_gap.includes(m.item_key)).map((m) => m.lemma || m.surface),
+        // P6.4: LLM получает ТОЛЬКО человекочитаемые названия конструкций — не ids
+        // (идентификаторы назначены сервером до вызова и никогда не парсятся из ответа LLM).
+        constructs: (core.constructs || []).map((c) => constructs.title(c.id, language)).filter(Boolean),
       },
     };
     const out = await llm.generate({
@@ -187,6 +218,14 @@ async function explain(ctx, { text_key, order_index } = {}) {
       weak_in_sentence: core.learner.weak_in_sentence,
       production_gap: core.learner.production_gap,
     },
+    // P6.4: ids строго из реестра (filterKnown — структурная гарантия, что ни LLM,
+    // ни баг не запишут выдуманный construct_id в провенанс).
+    ...(core.constructs && core.constructs.length ? [{
+      kind: "constructs", source: "construct_registry", provenance: "derived",
+      items: core.constructs
+        .filter((c) => constructs.filterKnown([c.id]).length)
+        .map((c) => ({ id: c.id, kind: c.kind, evidence_item_keys: c.evidence_item_keys })),
+    }] : []),
   ];
   const created = await tools.callTool(ctx, "create_explanation", {
     sentence_id: core.anchor.text_key + "#" + core.anchor.order_index,
@@ -208,6 +247,9 @@ async function explain(ctx, { text_key, order_index } = {}) {
     sentence: core.sentence,
     morphology: core.morphology,
     learner: core.learner,
+    constructs: (core.constructs || []).map((c) => ({
+      id: c.id, kind: c.kind, title: constructs.title(c.id, language), evidence_item_keys: c.evidence_item_keys,
+    })),
     text,
     language,
     llm_used: llmUsed,

@@ -1,37 +1,34 @@
 # Handoff
 
 ## State
-CLG-P6 слайс 2 (`/explain sentence`) SHIPPED v3.11.109. Приватность решена владельцем
-ДО кода (норма соблюдена): consent = ОТДЕЛЬНЫЙ durable `agent_read_texts` (сервер
-требует cloud_texts && agent_read_texts на каждый вызов, fail-closed 403, точные коды;
-first-use confirm в модале; revoke → purge контентных полей agent_explanations до
-tombstone) + scope СТРОГО `sentence_only` (явный enum; соседи/абзац → 400;
-db/agentSentenceRepo.js физически извлекает одну строку — learnerArtifactsRepo остался
-opaque). Полный контракт владельца: docs/planning/AGENT_EXPLAIN_PRIVACY_DECISION_2026_07_06.md.
-Реализация: agent/explainer.js (детерминированное ядро → LLM только формулирует, R1;
-LLM-less fallback) · facts_used-провенанс 4 факта · get_sentence_context_if_available
-включён · POST /api/agent/explain · purge-hook в /api/auth/consent · UI: чекбокс 🤖 в
-☁-модале + per-row 🤖 только на своих текстах + модал результата (textContent-only) ·
-i18n +15×3 · PRIVACY.md-аддендум · SW v3.11.109.
-
-## Gates (все зелёные)
-smoke:agent-explain 33/33 (НОВЫЙ) · agent-plan 26/26 · agent-llm-provider 18/18 ·
-auth 26/26 · learner-graph 14/14 · artifact-sync 11/11 · cloud-sync 32/32 · i18n 226 ·
-api-smoke. Скриншоты 380px: ☁-модал с 🤖-чекбоксом + confirm + результат — чистые.
+CLG-P6 практически закрыт (v3.11.110): /plan + /explain sentence оба SHIPPED и
+live-verified владельцем; P6.3 production hardening + P6.4 construct-id субстрат
+отгружены по owner brief 2026-07-06.
+- P6.3: client duplicate-tap guard (single-flight) + `smoke:agent-explain-burst` 19/19 —
+  бьёт по РЕАЛЬНОМУ generateGemini-пути через preload-шим
+  (scripts/premium/lib/agent-provider-shim.js, NODE_OPTIONS --require в спавнутый
+  сервер): burst на последний кредит = ровно 1 provider-call; failed call освобождает
+  бюджет; provider-ошибка с prompt+key внутри санитизируется; kill-switch = 0 вызовов.
+- P6.4: agent/constructs.js — реестр (channel_gap ×3 + binyan ×7) + детекция;
+  **construct_id назначает ТОЛЬКО сервер** (LLM видит titles); channel-gap по реальным
+  каналам review_log; binyan только при утверждённом резолвером биньяне (bare-surface
+  серверный резолв его почти не даёт — замерено); прошито в /plan (production_gap
+  construct_ids) и /explain (ядро/ответ/facts_used/fallback).
+- Гейты: agent-explain 41/41 · agent-plan 28/28 · agent-explain-burst 19/19 ·
+  llm-provider 18/18 · auth 26/26 · learner-graph 14/14 · api-smoke.
 
 ## Next
-1. **Owner live-verify /explain на реальном профиле:** свой текст → синк → per-row 🤖 →
-   first-use confirm → объяснение (llm_used:true); revoke-путь: снять галочку 🤖 в ☁ →
-   «Сохранённые объяснения очищены». Per-row кнопка headless не проверялась (OPFS-трап) —
-   только live.
-2. Real-provider burst-verify на /explain (паттерн слайса 1).
-3. Misconception construct-id субстрат (§7) — последний пункт P6.
-4. Telegram (P7) — не раньше G-5.
+1. **Owner live-verify P6.3/P6.4 на проде:** (а) слово с production-провалом →
+   «🧭 План» → секция диктанта несёт construct_ids; (б) /explain предложения с
+   таким словом → «Конструкция: …» в fallback/констракты в ответе; (в) дабл-тап 🤖 —
+   второй запрос не уходит.
+2. По owner brief дальше: НЕ включать sentence_plus_neighbors без измерений
+   недостаточности sentence_only; НЕ начинать чат P7 до обкатки субстрата;
+   record_review_answer держать disabled до гейтов 4.8. Кандидаты следующей фазы:
+   misconception map поверх субстрата ИЛИ P7 после G-5 — решение владельца.
 
 ## Context
-- Ledger персистентен между бутами smoke (тот же DATA_DIR) — ассерты «до/после», не
-  абсолютные нули.
-- exportBundle-shape артефакта: texts[].rows[] {order_index, hebrew_plain, hebrew_niqqud,
-  translit, russian}; agentSentenceRepo принимает и shape C (sentences[]/he_plain) защитно.
-- Для /explain наружу уходит контент пользователя ⇒ при смене AGENT_OPENROUTER_MODEL
-  перепроверять data-policy карточки (train-on-free-tier = недопустимо, прецедент Poolside).
+- Стрип-коллизия имён биньянов: без огласовок פעל = paal/pual/piel — матчить ТОЧНОЙ
+  формой (BINYAN_NORM в agent/constructs.js), unknown → null.
+- Ledger персистентен между бутами smoke — ассерты «до/после».
+- Приватность-контракт /explain: docs/planning/AGENT_EXPLAIN_PRIVACY_DECISION_2026_07_06.md.

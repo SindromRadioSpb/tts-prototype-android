@@ -109,6 +109,26 @@ function bundleFixture() {
   eq(!!sctxTool && sctxTool.enabled === true,
     "get_sentence_context_if_available must be ENABLED after the owner's privacy decision");
 
+  // ── pure: P6.4 construct-реестр (детерминированная детекция, сервер назначает ids) ──
+  const C = require(path.join(REPO, "agent", "constructs.js"));
+  eq(C.isKnown("construct:hebrew.channel_gap.reading_to_dictation") && !C.isKnown("construct:hebrew.invented.by_llm"),
+    "registry: known ids resolve, invented ids do NOT exist");
+  eq(C.list().every((id) => C.title(id, "ru") && C.title(id, "en")),
+    "registry: every construct carries ru+en human titles");
+  const ev = (ch, g) => ({ kind: "review", channel: ch, grade: g });
+  eq(C.channelGapConstruct([ev("read:mc", 3), ev("dictate:typed", 1)]) === "construct:hebrew.channel_gap.reading_to_dictation"
+    && C.channelGapConstruct([ev("read:mc", 3), ev("reverse:typed", 2)]) === "construct:hebrew.channel_gap.reading_to_reverse"
+    && C.channelGapConstruct([ev("read:mc", 3)]) === "construct:hebrew.channel_gap.receptive_to_production"
+    && C.channelGapConstruct([ev("dictate:typed", 3)]) === null,
+    "channelGapConstruct: dictate-fail→dictation · reverse-fail→reverse · no-production→receptive_to_production · production-ok→null");
+  eq(C.binyanConstruct("hifil") === "construct:hebrew.binyan.hifil.recognition"
+    && C.binyanConstruct("הִפְעִיל") === "construct:hebrew.binyan.hifil.recognition"
+    && C.binyanConstruct("weird-binyan") === null && C.binyanConstruct("") === null,
+    "binyanConstruct: latin+vocalized-hebrew normalize; unknown/empty → null (no guessing)");
+  eq(JSON.stringify(C.filterKnown(["construct:hebrew.channel_gap.reading_to_dictation", "construct:fake.id", "construct:hebrew.channel_gap.reading_to_dictation"]))
+    === JSON.stringify(["construct:hebrew.channel_gap.reading_to_dictation"]),
+    "filterKnown: strips invented ids + dedupes (structural 'LLM cannot mint ids' guarantee)");
+
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "lp-explain-smoke-"));
   const srv = startServer(scratch);
   try {
@@ -155,11 +175,19 @@ function bundleFixture() {
     const keyable = ((keyed.json && keyed.json.results) || []).filter((r) => r.keyable && r.item_key);
     eq(keyable.length >= 1, "resolver must key at least one word of the fixture sentence");
     const dueKey = keyable[0] ? keyable[0].item_key : "unkeyable";
+    // Сид с D1 production-дисбалансом: 2 рецептивных успеха + 2 провала диктанта →
+    // слово due+weak+production_gap В ЭТОМ предложении → сервер обязан назначить
+    // construct reading_to_dictation по реальным каналам лога (P6.4).
+    const rows = [
+      ["1", "2026-06-18T08:00:00.000Z", 3, "read:mc"],
+      ["2", "2026-06-19T08:00:00.000Z", 3, "read:mc"],
+      ["3", "2026-06-20T08:00:00.000Z", 1, "dictate:typed"],
+      ["4", "2026-06-21T08:00:00.000Z", 1, "dictate:tiles"],
+    ].map(([n, at, g, ch]) => ({ id: "exp-smoke:due:" + n, item_key: dueKey, kind: "review",
+      reviewed_at: at, grade: g, source: "room-recall", channel: ch,
+      meta_json: JSON.stringify({ keyer_version: 1 }) }));
     const ing = await api("POST", "/api/learner/ingest", { cookie, csrf, body: {
-      idempotency_key: "explain-smoke-seed", schema_version: 1, keyer_version: 1,
-      review_log: [{ id: "exp-smoke:due:1", item_key: dueKey, kind: "review",
-        reviewed_at: "2026-06-20T08:00:00.000Z", grade: 1, source: "room-recall", channel: "read:mc",
-        meta_json: JSON.stringify({ keyer_version: 1 }) }],
+      idempotency_key: "explain-smoke-seed", schema_version: 1, keyer_version: 1, review_log: rows,
     } });
     eq(ing.status === 200 && ing.json.review_log && ing.json.review_log.rejected === 0, "seed ingest must be clean");
 
@@ -177,6 +205,12 @@ function bundleFixture() {
     eq((e1.json.learner && e1.json.learner.due_in_sentence || []).includes(dueKey),
       "due word FROM this sentence must appear in learner.due_in_sentence (same keyingService both paths)");
     eq(!!e1.json.explanation_id, "explanation row must be created");
+    // P6.4: сервер назначил construct по реальным каналам лога; все ids — из реестра.
+    const cons = e1.json.constructs || [];
+    eq(cons.some((c) => c.id === "construct:hebrew.channel_gap.reading_to_dictation" && (c.evidence_item_keys || []).includes(dueKey)),
+      "construct reading_to_dictation must be detected from the word's REAL dictate-fail log events, got " + JSON.stringify(cons.map((c) => c.id)));
+    eq(cons.length >= 1 && cons.length <= 3 && cons.every((c) => C.isKnown(c.id) && !!c.title),
+      "every returned construct must be registry-known (server-assigned, 1-3, with title)");
     const respStr = JSON.stringify(e1.json);
     eq(!respStr.includes("קודםקודםקודם") && !respStr.includes("אחראחראחר"),
       "scope sentence_only: neighbor sentences must NOT leak into the response");
@@ -205,6 +239,11 @@ function bundleFixture() {
     eq(!!fMorph && fMorph.source === "resolver" && fMorph.provenance === "asserted" && (fMorph.items || []).length >= 1,
       "facts_used: morphology must be resolver/asserted (R1/R9)");
     eq(!!fLearn && (fLearn.due_in_sentence || []).includes(dueKey), "facts_used: learner_state must record due_in_sentence");
+    const fCons = facts.find((f) => f.kind === "constructs");
+    eq(!!fCons && fCons.source === "construct_registry" && fCons.provenance === "derived"
+      && (fCons.items || []).some((x) => x.id === "construct:hebrew.channel_gap.reading_to_dictation")
+      && (fCons.items || []).every((x) => C.isKnown(x.id)),
+      "facts_used: constructs fact must carry registry-known ids with provenance (P6.4)");
     eq(bodyJ.scope_level === "sentence_only" && bodyJ.provider === "mock" && bodyJ.llm_used === true,
       "body: scope_level + provider/model + llm_used must be recorded");
     eq(!JSON.stringify(facts).includes("קודםקודםקודם") && !JSON.stringify(facts).includes("אחראחראחר"),
@@ -270,12 +309,12 @@ function bundleFixture() {
     try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {}
   }
 
-  const TOTAL = 33;
+  const TOTAL = 41;   // 33 слайса 2 + 5 pure construct-реестра + 3 e2e construct-ассерта (P6.4)
   if (failures.length) {
     console.error(`smoke:agent-explain FAIL (${TOTAL - failures.length}/${TOTAL})`);
     for (const f of failures) console.error("  ✗ " + f);
     process.exitCode = 1;
   } else {
-    console.log(`smoke:agent-explain OK (${TOTAL}/${TOTAL}) — CLG-P6 слайс 2: двойной consent fail-closed (cloud_texts + agent_read_texts, точные 403-коды) · scope-контракт sentence_only (соседи не в ответе/facts_used/stdout) · facts_used-провенанс (anchor · resolver/asserted · learner_state) · MNAR · 404-якоря · revoke→purge tombstone · export-sweep · kill-switch LLM-less + нулевой ledger-burn · stdout-гигиена класса D`);
+    console.log(`smoke:agent-explain OK (${TOTAL}/${TOTAL}) — CLG-P6 слайс 2+P6.4: двойной consent fail-closed (точные 403-коды) · scope-контракт sentence_only (соседи не в ответе/facts_used/stdout) · facts_used-провенанс (anchor · resolver/asserted · learner_state · constructs/registry) · construct-ids ТОЛЬКО серверные (реестр, детекция по реальным каналам лога, invented-id не существует) · MNAR · 404-якоря · revoke→purge tombstone · export-sweep · kill-switch LLM-less + нулевой ledger-burn · stdout-гигиена класса D`);
   }
 })().catch((e) => { console.error(e); process.exit(1); });

@@ -19,6 +19,7 @@
 const path = require("path");
 const tools = require(path.join(__dirname, "tools"));
 const llm = require(path.join(__dirname, "llm"));
+const constructs = require(path.join(__dirname, "constructs"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
 const keyingService = require(path.join(__dirname, "..", "db", "keyingService"));
 
@@ -79,12 +80,25 @@ async function buildPlanCore(ctx) {
   const imbalanced = weak.filter((w) => productionImbalance(w.channel_stats)).slice(0, 3);
   const gapKeys = new Set(imbalanced.map((w) => w.item_key));
   if (imbalanced.length) {
+    // P6.4 construct-субстрат: каждый gap-пункт несёт construct_id, назначенный СЕРВЕРОМ
+    // по реальным каналам review_log слова (реестр agent/constructs.js; LLM ids не видит).
+    const gapItems = await displayItems(imbalanced);
+    const sectionConstructs = [];
+    for (let i = 0; i < imbalanced.length; i++) {
+      const lc = await tools.callTool(ctx, "get_word_lifecycle", { item_key: imbalanced[i].item_key });
+      const cid = constructs.channelGapConstruct(lc.ok && lc.result ? lc.result.events : []);
+      if (cid && constructs.isKnown(cid)) {
+        gapItems[i].construct_id = cid;
+        if (!sectionConstructs.includes(cid)) sectionConstructs.push(cid);
+      }
+    }
     sections.push({
       id: "production_gap", category: "тренировать",
       title_ru: "Слова, которые узнаёшь при чтении, но проваливаешь в письме — сегодня диктант",
       title_en: "Words you recognize but fail to produce — dictation today",
       recommended_channel: "dictate",
-      items: await displayItems(imbalanced),
+      construct_ids: sectionConstructs,
+      items: gapItems,
     });
   }
   // 2) просроченные слова (lapses-first — порядок /due), без уже взятых в диктант.
