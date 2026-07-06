@@ -104,6 +104,7 @@
     "smoke:server-keying": "node scripts/premium/server-keying-smoke.js --gate",
     "smoke:grade-policy": "node scripts/premium/grade-policy-smoke.js --gate",
     "smoke:agent-plan": "node scripts/premium/agent-plan-smoke.js --gate",
+    "smoke:agent-llm-provider": "node scripts/premium/agent-llm-provider-smoke.js --gate",
     "smoke:learner-graph": "node scripts/premium/learner-graph-smoke.js",
     "smoke:artifact-sync": "node scripts/premium/artifact-sync-smoke.js",
     "smoke:web-push": "node scripts/premium/web-push-smoke.js",

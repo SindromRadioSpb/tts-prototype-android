@@ -604,7 +604,17 @@ construct-id (закрытый список: конфузионные пары �
 `/api/agent/status`. Браузерный BYOK-ключ пользователя агент не видит никогда (§11).
 
 **LLM-провайдер (решение §13.3): Gemini first, обязательная provider abstraction**
-(`agent_llm_provider: gemini | claude | mock`; `mock` — для гейтов и офлайн-тестов).
+(`agent_llm_provider: gemini | openrouter | claude | mock`; `mock` — для гейтов и
+офлайн-тестов). **OpenRouter добавлен 2026-07-06** (хедж от 503-перегрузки Gemini
+free-tier): `AGENT_OPENROUTER_API_KEY` — СТРОГО выделенный, тот же паттерн без фолбэков;
+деф. модель `nvidia/nemotron-3-super-120b-a12b:free` (12B активных из 120B MoE — быстрее
+Ultra на простой задаче переформулировки; в отличие от Poolside Laguna M.1 карточка
+модели НЕ разрешает тренировку на free-tier input/output — R15). Free-тариф OpenRouter
+аккаунт-wide: 50 запросов/день · 20/мин без пополнения баланса. Оба сетевых провайдера
+(gemini/openrouter) делают ОДИН retry с backoff 700мс строго на транзитные HTTP 503/429
+(ledger резервирует один слот на клик независимо от числа внутренних HTTP-попыток —
+retry бесплатен для дневного бюджета, §11); постоянные ошибки (401/403/404) не ретраятся.
+Гейт `smoke:agent-llm-provider` (мокает `@google/generative-ai` и `fetch`, без сети).
 Обязательные лимиты: max agent messages/day/user · max explain calls/day/user · max weekly
 digest tokens · **max TTS chars/day/user** (v3, критика M-R16: диктант/listening/«только
 аудио» делают серверный TTS рабочей лошадью агента — та же единица учёта, что
