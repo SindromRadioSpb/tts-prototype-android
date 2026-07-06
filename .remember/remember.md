@@ -1,34 +1,29 @@
-## 2026-06-27 | main | Track-any-word + окраска + storable «new» + bulk-разметка + continue-reading фильтр
+# Handoff
 
-**Прод app+SW → v3.11.21** (верифи ✓, в т.ч. на живых текстах/БД владельца через Kapture-evaluate). Зал-only, parity-safe, resolver-ядро не тронуто.
+## State
+CLG-P6 слайс 1 (`/plan`) SHIPPED + live-verified on owner's real profile (v3.11.108,
+be4ff4c). Skeleton (agent/{runtime,tools,llm,planner}.js) + tool router + cost ledger
++ `/plan` scenario + UI button in ☁-modal. Hardened after live testing: pid→lemma
+resolve (db/keyingService.js), LLM quality filter, retry-on-503/429, second provider
+OpenRouter (nvidia/nemotron-3-super:free, needs reasoning:{enabled:false}). Confirmed
+live: llm_used:true, clean Russian text, key_source:agent. Canon §9/§15 + memory
+project_ai_mentor_cloud_graph.md fully updated. Working tree clean, all pushed to main.
 
-**v3.11.21 (`8306b57`) — «Продолжить чтение» (Корпус) только канон, не Студия:** владелец заметил локальный Студия-текст «150 Глаголов» (`source:null`) среди публичного канона в continue-reading на вкладке «Корпус». Причина: `getContinueReading` джойнил `text_progress`→`texts` БЕЗ фильтра по источнику (коммент так и говорил «Cross-track»), а рейл инжектится на home «Корпус» → любой локальный текст с `last_row_idx>0` (общая OPFS-БД со Студией) протекал. Фикс: `WHERE ... AND json_extract(t.source_meta_json,'$.origin') = CANON_ORIGIN('benyehuda-ingest')` (тот же маркер «это канон», что везде). Гейт: reader-word-status smoke расширен (сидит канон+Студия с прогрессом → канон включён, Студия исключена). **Верифи живьём: 11 канонных остались, «150 Глаголов» ушёл.** ⚠ ЛОВУШКА: при Kapture-навигации туда-сюда между 2 табами (Студия+Зал) OPFS-хэндл блокируется → `getContinueReading`/`getAllWordStatuses` вернули 0 (пустая БД) — НЕ баг фильтра, а мульти-таб OPFS-эксклюзив; reload вернул доступ (wsCount 5087). Меряй фильтр только при `getAllWordStatuses().length>0`.
+## Next
+1. CLG-P6 слайс 2 — `/explain sentence` (canon §9 "принятый план" 4.7).
+2. **FIRST: privacy decision, not code** — db/learnerArtifactsRepo.js is opaque by
+   design (server never parses text content); /explain requires the server to start
+   parsing artifact payload_json to extract a sentence. Current class-B consent copy
+   only promises "available on other devices" — says nothing about content reaching
+   an LLM prompt. Ask the owner whether a new/extended consent is needed before
+   wiring `get_sentence_context_if_available` (currently `disabled:
+   OPAQUE_ARTIFACT_STORE` in agent/tools.js).
+3. Then: sentence lookup by text_key+order_index, facts_used provenance per §7,
+   write to agent_explanations via existing create_explanation tool.
 
-**Прод app+SW → v3.11.20** (предыдущая строка; верифи ✓). Зал-only, parity-safe, resolver-ядро не тронуто.
-
-**v3.11.19 (`f41f07b`) storable «new» + v3.11.20 (`4718f2e`) «new» не читаемый:** владелец просил разметить готовые тексты палитрой («new» неразмеченным). Bulk-разметка через Kapture вскрыла: `setWordStatus("new")` был no-op (DELETE — «new»=clear) → **неуверенные слова нельзя пометить «new»** (уверенные и так фиолетовые). Фикс: «new» — сохраняемый статус (`_WS_VALUES`+=new, очищает только `''`); `onStatusSet`/`onStatPopSet` toggle по реальному статусу; «new»-дефолт-подсветка только у confident; `showStatusPopover` ключует через `_statusKeyWord`+`_statusPid`. v3.11.20 (решение владельца): **«new» исключён из `corpus-vocab.KNOWN_STATES`** (новое=трекаю,но не знаю→не читаемое; иначе все размеченные тексты ложно 100% читаемы, i+1 ломается); FAMILIAR/fade не тронут; гейт corpus-vocab-engine обновлён. **Стресс-тест bulk-разметкой (Kapture): стих 110/пьеса 18044(4163 уник.)/эссе 17220(5724)/глаголы 1500(778)=~36.9K спанов,~11K уник.→0 плоских,0 noKey.** Bulk-способ: dynamic-import `/db/local-db.js`→`setWordStatus(lk,'new')` для слов не в getKnownWordStates→`decorateWords(#roomReaderTable,states,{color,fadeMode:'full'})`. ОСТАЛОСЬ: домаркировать мелкие стихи (sketch+поэмы) — низкий риск.
-
-**v3.11.17 (`3b2db33`) + v3.11.18 (`79c2f41`) — служебные слова с function-link pid:** владелец на «גם אותך לא ידעתי» — `גם`/`לא` не красились при пометке. Диагноз на LIVE через Kapture-evaluate: `PealimFunctionLinks.lookup(גם)`→`{id:3304}` → `resolveWordLight` ставит `pealim_id` → save-ключ `pid:3304`; `decorateWords` (resolveCore-only) → paint-ключ `גם#particle` → рассинхрон. НЕ воспроизводилось локально (прод-датасет function-links богаче). Фикс: `_statusPid` (mirror function-link гейта) в save+paint; v3.11.18 `await PealimFunctionLinks.ensureReady()` в decorateWords (lazy-map race). **Верифи на живом тексте: 50 уник.слов/94 спана `allMarkable:true`; прежние метки владельца под `pid:` теперь отображаются.** Принцип: paint-ключ ДОЛЖЕН воспроизводить обогащение save-ключа (`_statusKeyWord`+`_statusPid` в обоих). Память [[feedback_ktiv_surface_key_consistency]].
-
-**v3.11.17 (`3b2db33`) + v3.11.18 (`79c2f41`) — служебные слова с function-link pid:** владелец на «גם אותך לא ידעתי» — `גם`/`לא` не красились при пометке. Диагноз на LIVE через Kapture-evaluate: `PealimFunctionLinks.lookup(גם)`→`{id:3304}` → `resolveWordLight` ставит `pealim_id` → save-ключ `pid:3304`; `decorateWords` (resolveCore-only) → paint-ключ `גם#particle` → рассинхрон. НЕ воспроизводилось локально (прод-датасет function-links богаче). Фикс: `_statusPid` (mirror function-link гейта) в save+paint; v3.11.18 `await PealimFunctionLinks.ensureReady()` в decorateWords (lazy-map race). **Верифи на живом тексте: 50 уник.слов/94 спана `allMarkable:true`; прежние метки владельца под `pid:` теперь отображаются.** Принцип: paint-ключ ДОЛЖЕН воспроизводить обогащение save-ключа (`_statusKeyWord`+`_statusPid` в обоих). Память [[feedback_ktiv_surface_key_consistency]].
-
-**v3.11.16 (`965f91f`) — кросс-колоночный фикс (ktiv male/chaser):**
-
-**v3.11.16 (`965f91f`) — фикс кросс-колоночной окраски (ktiv male/chaser):** владелец на «חֲרוּז נִשְׁכָּח» — статус, поставленный 1 раз, красил только ОДНУ колонку у части слов. Измерено: для слова с расхождением плене/дефектного написания (`חרישי` простой текст vs `חֵרִשִׁי`→`חרשי` огласовки) (a) `alignSurfaceNiqqud` не сматчивал (равенство снятых огласовок) → плене-слово без огласовки, (b) surface-ключ неуверенного слова из расходящегося `card.word`. Фикс (Room-only, resolveCore/card.word/notes НЕ тронуты): позиционный fallback в `alignSurfaceNiqqud` (остаток токенов 1:1) + `_statusKeyWord` деривирует ключ из огласовки. Регрессия в smoke reader-morph; зонд `colorall.js` (тап 1 колонки → красятся ВСЕ спаны обеих). **«Синий» на тапнутом слове = `.rm-w-active`(accent), маскирует статус-заливку пока карточка открыта — НЕ баг.** Память [[feedback_ktiv_surface_key_consistency]].
-
-### Что сделано в этой сессии (Эпик «отмечать любое слово честно»)
-- **T-a — SHIPPED (v3.11.14, `d42dada`):** `decorateWords` (reader-morph.js) снял confident-гейт с ПОИСКА цвета. confident → lemma-key (default `new`/синий); unconfident (function/unknown) → красится ТОЛЬКО если есть запись `states[surfaceKey]` (явный manual-статус ИЛИ сохранённая заметка), иначе plain (честно, не фабрикуем 'new'). R11-прецедент: surface-статус не течёт на confident-гомограф. Smoke: `על`/`בנימה` без engagement → plain; со статусом → красятся по surface.
-- **T-b — SHIPPED (v3.11.15):** ручной перевод неизвестных. Карточка unknown (нет офлайн-глосса) → CTA «＋ Добавить перевод» → инлайн-редактор (input+Сохранить+Отмена, Enter/Esc) → `_attachOpts.saveUserMeaning` создаёт/обновляет ТУ ЖЕ канон-заметку word_study с `meaning_source='user'` (синк Anki; dedup-key = `pid:`/`surface#pos`, meaning-independent → lookup стабилен). На карточке user-meaning помечен **«ваш»** + ✎. `resolveWordLight` ре-сёрфит сохранённый перевод при ре-открытии через `lookupUserMeaning` (ТОЛЬКО в honest-empty глосс; машинное/Tier-3 чтение всегда побеждает).
-  - Файлы: `library-ui.js` (`roomLookupUserMeaning`/`roomSaveUserMeaning` + opts `lookupUserMeaning`/`saveUserMeaning`), `reader-morph.js` (resolveWordLight lookup-branch + renderCardHtml meaning-block/editor + `onMeaningSave`/`onMeaningEditToggle` + delegation + keydown), `library.html` CSS (.rm-meaning-mine/-add/-edit/-editor/-input/-save/-cancel + **`.rm-meaning-editor[hidden]{display:none}` гард** над author `display:flex`), locales ru/en/he (room.morph.addMeaning/editMeaning/meaningPlaceholder/saveMeaning/cancel/yourMeaning/yourMeaningHint/meaningSavedToast), smoke `reader-morph` (T-b блок).
-- **Ловушка (записать в память при желании):** author `display:flex` на классе перебивает UA `[hidden]{display:none}` (специфичность класса == атрибута, но author>UA) → инлайн-редактор был виден всегда. Фикс: `.cls[hidden]{display:none}`. Smoke теперь проверяет **computed display**, не только `.hidden`-проперти.
-
-### Гейты (все зелёные локально)
-reader-morph (+T-a +T-b), reader-notes, reader-word-status, reader-context, reader-scaffold 234, reader-parity, i18n 226.
-
-### NEXT
-1. **Прод-верифи v3.11.15** (T-a+T-b вместе): Node-fetch no-store на `sw.js` CACHE_VERSION=v3.11.15 + проба маркеров reader-morph.js (`saveUserMeaning`/`rm-meaning-add`). НЕ curl (Windows curl манглит иврит).
-2. **Volume-тест на большом профиле владельца** (заметки/статусы — OPFS): owner-device проверка карточки unknown→добавить перевод→ре-открыть→«ваш»; служебное/unknown слово отметить статусом→красится.
-3. **Эпик 4.3** (recall-loop + frontier-study, граф-квиз Студии) — designed/locked, в очереди (task #10).
-
-### Инварианты сессии (НЕ нарушать)
-index.html/Studio не трогать без крайней необходимости (тронут только footer-версия). Резолвер морфологии не трогать. Если фикс затрагивает resolver/notes-autogen lock-step → стоп, развилка владельцу. Канон концепции: `docs/planning/BRR_TRACK_ANY_WORD_CONCEPT_2026_06_27.md` (§СТАТУС РЕАЛИЗАЦИИ).
+## Context
+- Gates: smoke:agent-plan (26/26), smoke:agent-llm-provider (18/18), smoke:server-keying
+  (24/24) — all mock-based, no real network/keys needed.
+- Google key gotcha: aistudio.google.com for Gemini keys, NOT console.cloud.google.com
+  Agent Platform Studio (403s). See memory reference_google_api_key_consoles.md.
+- OpenRouter free tier: 50 req/day, 20/min account-wide (not per-model).
