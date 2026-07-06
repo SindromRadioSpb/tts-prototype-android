@@ -152,6 +152,16 @@ const errStatus = (status) => { const e = new Error("boom"); e.status = status; 
     undo();
     eq(out3.model === "some/other-model:free", "AGENT_OPENROUTER_MODEL override must be honored, got " + out3.model);
 
+    // reasoning:{enabled:false} обязателен в теле — регресс-guard на находку 2026-07-06
+    // (nemotron reasoning-моделей без него льёт chain-of-thought вместо ответа, §11 waste)
+    let capturedBody = null;
+    const origFetch = global.fetch;
+    global.fetch = async (url, opts) => { capturedBody = JSON.parse(opts.body); return okOpenRouterResp("ok", 1); };
+    await llm.generate({ system: "s", prompt: "p" });
+    global.fetch = origFetch;
+    eq(!!capturedBody && capturedBody.reasoning && capturedBody.reasoning.enabled === false,
+      "openrouter request body must set reasoning:{enabled:false}, got " + JSON.stringify(capturedBody && capturedBody.reasoning));
+
     // stdout hygiene: error path must not leak prompt content
     undo = mockFetch([{ ok: false, status: 500 }]);
     const sentinel = "SENTINEL_PROMPT_CONTENT_9f3a";
@@ -181,12 +191,12 @@ const errStatus = (status) => { const e = new Error("boom"); e.status = status; 
     eq(out.ok === true && out.provider === "mock" && /ctx=10 chars/.test(out.text), "mock provider text must stay byte-stable, got " + JSON.stringify(out));
   });
 
-  const TOTAL = 17;
+  const TOTAL = 18;
   if (failures.length) {
     console.error(`smoke:agent-llm-provider FAIL (${TOTAL - failures.length}/${TOTAL})`);
     for (const f of failures) console.error("  ✗ " + f);
     process.exitCode = 1;
   } else {
-    console.log(`smoke:agent-llm-provider OK (${TOTAL}/${TOTAL}) — providerName allowlist/fallback · kill-switch pre-network · NO_API_KEY per provider · claude stub · gemini/openrouter retry-once-on-transient (503/429) без retry на 403 · openrouter model-override · stdout-гигиена · key_source per активный провайдер · mock byte-stable`);
+    console.log(`smoke:agent-llm-provider OK (${TOTAL}/${TOTAL}) — providerName allowlist/fallback · kill-switch pre-network · NO_API_KEY per provider · claude stub · gemini/openrouter retry-once-on-transient (503/429) без retry на 403 · openrouter model-override · openrouter reasoning:false в теле · stdout-гигиена · key_source per активный провайдер · mock byte-stable`);
   }
 })().catch((e) => { console.error(e); process.exit(1); });

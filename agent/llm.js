@@ -103,6 +103,15 @@ async function generateGemini({ system, prompt, maxOutputTokens }) {
 // OpenAI-совместимый chat/completions (проверено live 2026-07-06 через официальный
 // quickstart): messages=[{role:'system'|'user', content}], ответ choices[0].message.content,
 // usage.completion_tokens. HTTP-Referer/X-Title — опциональны (app-атрибуция), не критичны.
+//
+// reasoning:{enabled:false} — ОБЯЗАТЕЛЬНО (найдено live 2026-07-06): деф. модель
+// nemotron-3-super — reasoning-модель, без этого флага она льёт сырой английский
+// chain-of-thought в message.content и почти всегда обрывается на maxOutputTokens
+// ДО финального ответа (finish_reason:"length", reasoning_tokens съедают весь бюджет) —
+// isCleanProse честно бракует такой мусор ценой впустую потраченного вызова из лимита.
+// С флагом: finish_reason:"stop", reasoning_tokens:0, чистый короткий ответ. Параметр —
+// no-op для моделей без reasoning-режима (OpenRouter passthrough), не ломает будущую смену
+// AGENT_OPENROUTER_MODEL на нерассуждающую модель.
 async function generateOpenRouter({ system, prompt, maxOutputTokens }) {
   const key = openrouterKey();
   if (!key) return { ok: false, error: "NO_API_KEY" };
@@ -113,6 +122,7 @@ async function generateOpenRouter({ system, prompt, maxOutputTokens }) {
   const body = JSON.stringify({
     model: modelName, messages,
     max_tokens: Math.max(64, Math.min(2048, Number(maxOutputTokens) || 512)),
+    reasoning: { enabled: false },
   });
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
