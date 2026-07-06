@@ -175,17 +175,33 @@ async function constructOccurrences(userId, { maxRows } = {}) {
 }
 
 // ── word lifecycle (read-only срез для инструмента get_word_lifecycle) ───────
+// P7.0a: события отдаются с флагом annulled («помечать, не прятать» — журнал честен,
+// а детекция construct-id/потребители флагнутые строки пропускают). SELECT расширен
+// id+meta_json ТОЛЬКО для вычисления флага (критика wf_1bf34023: прежняя выборка без
+// id/meta делала флаг невычислимым — тихий пустой Set); наружу meta не отдаётся.
 async function wordLifecycle(userId, itemKey) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const key = String(itemKey || "").trim();
   if (!key) throw new Error("ITEM_KEY_REQUIRED");
-  const rows = await dbAll(db,
-    `SELECT kind, reviewed_at, grade, source, channel FROM review_log
+  const raw = await dbAll(db,
+    `SELECT id, kind, reviewed_at, grade, source, channel, meta_json FROM review_log
       WHERE user_id = ? AND item_key = ? ORDER BY reviewed_at ASC, id ASC`, [userId, key]);
+  const annulled = new Set();
+  for (const r of raw || []) {
+    if (!r || r.kind !== "annul") continue;
+    try {
+      const m = JSON.parse(r.meta_json || "{}");
+      if (m && m.annul_of != null && String(m.annul_of)) annulled.add(String(m.annul_of));
+    } catch (_) {}
+  }
+  const rows = (raw || []).map((r) => ({
+    kind: r.kind, reviewed_at: r.reviewed_at, grade: r.grade, source: r.source, channel: r.channel,
+    ...(annulled.has(String(r.id)) && (r.kind === "review" || r.kind === "skip") ? { annulled: true } : {}),
+  }));
   const proj = await dbGet(db, `SELECT * FROM srs_projections WHERE user_id = ? AND item_key = ?`, [userId, key]);
   let channelStats = null;
   try { channelStats = proj && proj.channel_stats_json ? JSON.parse(proj.channel_stats_json) : null; } catch (_) {}
-  return { item_key: key, events: rows || [], projection: proj || null, channel_stats: channelStats };
+  return { item_key: key, events: rows, projection: proj || null, channel_stats: channelStats };
 }
 
 // ── §11 cost ledger: атомарный pre-call check-and-reserve ────────────────────

@@ -35,7 +35,11 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
-  var ENGINE_VERSION = "fsrs6-core-v1";
+  // v2 — P7.0a annul-семантика фолда (annulled review/skip исключаются из replay);
+  // для логов без annul-строк фолд байт-идентичен v1 (гейты fsrs 30/30 + server-replay
+  // на нетронутом golden-v1 — доказательство). Бамп = маркер «какой семантикой посчитана
+  // проекция» (server stamps engine; клиентский heal — по sync_state 'annul_engine_v').
+  var ENGINE_VERSION = "fsrs6-core-v2";
   var GENERATION = "FSRS-6.0";
   var REFERENCE = "ts-fsrs@5.4.1";
   var SCHEME = "fsrs";   // stamped into word_status.srs_scheme / review_log meta by callers
@@ -205,6 +209,45 @@
     return nextState(state, Number(row.grade) || 1, ts);
   }
 
+  // P7.0a (TELEGRAM_P7_DECISION_2026_07_06, критерии владельца 1–10): annul-семантика.
+  // Правило владельца: annul НЕ удаляет событие — annul меняет ТОЛЬКО projection
+  // (лог append-only, auditability). Сбор целей — по ВСЕМУ списку (annul-строка может
+  // стоять раньше target-а по времени и до seed-watermark — двухпроходность делает
+  // порядок неважным). Идемпотентность = Set (double-annul эквивалентен одному).
+  // Un-annul НЕ поддерживается (annul-of-annul игнорируется — цель остаётся
+  // аннулированной); исправление ошибочного annul = новое review-событие.
+  function collectAnnulled(rows) {
+    var out = {};
+    var list = Array.isArray(rows) ? rows : [];
+    for (var i = 0; i < list.length; i++) {
+      var row = list[i];
+      if (!row || row.kind !== "annul") continue;
+      var meta = {};
+      try { meta = typeof row.meta_json === "string" ? JSON.parse(row.meta_json) : (row.meta || {}); } catch (_) {}
+      var target = meta && meta.annul_of != null ? String(meta.annul_of) : "";
+      if (target) out[target] = 1;
+    }
+    return out;
+  }
+  // Аннулируются ТОЛЬКО фолдящиеся kinds (review/skip): seed не аннулируется (сдвиг
+  // D3-watermark = потеря graded-истории), mark не аннулируется (у ручной оси LWW —
+  // исправление = новый mark), annul не аннулируется (см. un-annul выше).
+  function isAnnullableKind(kind) { return kind === "review" || kind === "skip"; }
+  // Фильтр-помощник для читателей сырого лога вне fold-а (D1 grade-policy rows,
+  // consumer-sweep P7.0a): те же правила исключения, что replay.
+  function withoutAnnulled(rows) {
+    var annulled = collectAnnulled(rows);
+    var list = Array.isArray(rows) ? rows : [];
+    var out = [];
+    for (var i = 0; i < list.length; i++) {
+      var row = list[i];
+      if (!row) continue;
+      if (isAnnullableKind(row.kind) && annulled[String(row.id)]) continue;
+      out.push(row);
+    }
+    return out;
+  }
+
   // Fold an item's ordered log rows (reviewed_at ASC, id ASC — getReviewLog's order) into its
   // state. Rows BEFORE the seed watermark are ignored for state (recon B4): the seed snapshot
   // subsumes them; they remain in the log for metrics.
@@ -214,9 +257,13 @@
   // every LATER seed row is SKIPPED by the fold — honoring it would discard the graded history
   // after the first seed (earliest-wins, AI_MENTOR_RECON §14 D3). Single-seed logs (every log
   // minted before CLG-P3) fold byte-identically to the old "last seed" rule (first == last).
-  // kind='annul' rows are stored-but-NEUTRAL here until the CLG-P4 reducer semantics land.
+  // P7.0a: annulled review/skip rows are EXCLUDED from the fold (two-pass; do-no-harm: логи
+  // без annul-строк дают пустой Set → фолд байт-идентичен прежнему). annul-строки сами по
+  // себе state не меняют. Фолд per-item_key — annul обязан нести item_key target-а, иначе
+  // он этот фолд не увидит (контракт минтера, no-op by construction).
   function replay(rows) {
     var list = Array.isArray(rows) ? rows : [];
+    var annulled = collectAnnulled(list);
     var start = -1;
     for (var i = 0; i < list.length; i++) { if (list[i] && list[i].kind === "seed") { start = i; break; } }
     var state = null;
@@ -224,8 +271,9 @@
       var row = list[j];
       if (!row) continue;
       if (row.kind === "seed" && j !== start) continue;   // D3: later seeds skipped (earliest-wins)
-      if (row.kind === "annul") continue;                  // neutral until CLG-P4
+      if (row.kind === "annul") continue;                  // annul — метасобытие проекции, не память
       if (row.kind === "mark") continue;                   // CLG-P3.2: manual-axis event — never memory
+      if (isAnnullableKind(row.kind) && annulled[String(row.id)]) continue;   // P7.0a: аннулированный target исключён
       state = applyRow(state, row);
     }
     return state;
@@ -240,5 +288,6 @@
     initState: initState, nextState: nextState,
     retrievability: retrievability, intervalFor: intervalFor, dueAt: dueAt,
     seedFromSm2: seedFromSm2, applyRow: applyRow, replay: replay,
+    collectAnnulled: collectAnnulled, withoutAnnulled: withoutAnnulled, isAnnullableKind: isAnnullableKind,
   };
 });

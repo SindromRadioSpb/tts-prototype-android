@@ -121,6 +121,10 @@ function bundleFixture() {
     && C.channelGapConstruct([ev("read:mc", 3)]) === "construct:hebrew.channel_gap.receptive_to_production"
     && C.channelGapConstruct([ev("dictate:typed", 3)]) === null,
     "channelGapConstruct: dictate-fail→dictation · reverse-fail→reverse · no-production→receptive_to_production · production-ok→null");
+  // P7.0a: аннулированное событие (флаг annulled из wordLifecycle) — не свидетельство
+  eq(C.channelGapConstruct([ev("read:mc", 3), { kind: "review", channel: "dictate:typed", grade: 1, annulled: true }])
+    === "construct:hebrew.channel_gap.receptive_to_production",
+    "P7.0a: annulled production-fail must NOT drive channel-gap detection (falls back to receptive_to_production)");
   eq(C.binyanConstruct("hifil") === "construct:hebrew.binyan.hifil.recognition"
     && C.binyanConstruct("הִפְעִיל") === "construct:hebrew.binyan.hifil.recognition"
     && C.binyanConstruct("weird-binyan") === null && C.binyanConstruct("") === null,
@@ -318,7 +322,7 @@ function bundleFixture() {
     try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {}
   }
 
-  const TOTAL = 42;   // 33 слайса 2 + 6 pure (реестр + D1-hard imbalance) + 3 e2e construct-ассерта (P6.4)
+  const TOTAL = 43;   // 33 слайса 2 + 7 pure (реестр + D1-hard imbalance + P7.0a annulled-фильтр) + 3 e2e construct-ассерта (P6.4)
   if (failures.length) {
     console.error(`smoke:agent-explain FAIL (${TOTAL - failures.length}/${TOTAL})`);
     for (const f of failures) console.error("  ✗ " + f);

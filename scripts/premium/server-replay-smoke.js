@@ -23,6 +23,10 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const FC = require(path.join(REPO, "public", "js", "fsrs-core.js"));
 const { referenceReplay } = require("./lib/fsrs-reference-replay");
 const FIXTURE = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", "fsrs", "replay-log-golden-v1.json"), "utf8"));
+// P7.0a — annul-семантика (TELEGRAM_P7_DECISION): отдельный v2-файл; v1 остаётся
+// байт-стабильным (встроенное do-no-harm доказательство).
+const FIXTURE2 = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", "fsrs", "replay-log-golden-v2.json"), "utf8"));
+const SCN = [...FIXTURE.scenarios, ...FIXTURE2.scenarios];
 
 function startServer(dataDir) {
   const c = spawn(process.execPath, ["server.js"], {
@@ -65,14 +69,20 @@ const close = (a, b, tol) => Math.abs(Number(a) - Number(b)) < (tol || 1e-6);
   const failures = []; const eq = (c, m) => { if (!c) failures.push(m); };
 
   // ── (1)==(2)==(3): three-way parity on the committed vectors ─────────────
-  for (const sc of FIXTURE.scenarios) {
+  for (const sc of SCN) {
     const e = sc.expected;
     const core = FC.replay(ordered(sc.rows));
     const ref = referenceReplay(sc.rows);
-    const okCore = e && core && close(core.stability, e.stability) && close(core.difficulty, e.difficulty) &&
+    if (!e) {
+      // P7.0a annul-to-null: обе реализации обязаны выразить «памяти нет»
+      eq(core == null || !(core.stability > 0), `[${sc.name}] fsrs-core.replay must yield NO memory (null)`);
+      eq(ref == null, `[${sc.name}] reference replay must yield NO memory (null)`);
+      continue;
+    }
+    const okCore = core && close(core.stability, e.stability) && close(core.difficulty, e.difficulty) &&
       core.reps === e.reps && core.lapses === e.lapses &&
       FC.intervalFor(core) === e.intervalDays && FC.dueAt(core) === e.dueMs;
-    const okRef = e && ref && close(ref.stability, e.stability, 1e-9) && close(ref.difficulty, e.difficulty, 1e-9) &&
+    const okRef = ref && close(ref.stability, e.stability, 1e-9) && close(ref.difficulty, e.difficulty, 1e-9) &&
       ref.reps === e.reps && ref.lapses === e.lapses && ref.intervalDays === e.intervalDays && ref.dueMs === e.dueMs;
     eq(okCore, `[${sc.name}] fsrs-core.replay != golden: ` + JSON.stringify({ core: core && { s: core.stability, d: core.difficulty, r: core.reps, l: core.lapses, i: FC.intervalFor(core) }, e }));
     eq(okRef, `[${sc.name}] LIVE ts-fsrs reference != golden (fixture drift?)`);
@@ -89,9 +99,21 @@ const close = (a, b, tol) => Math.abs(Number(a) - Number(b)) < (tol || 1e-6);
     const cookie = String((sc0 || []).find((x) => String(x).startsWith("lp_session=")) || "").split(";")[0];
     const csrf = li.json.csrf;
 
-    // per-scenario namespaced keys/ids so all scenarios coexist under one user
-    const nsRows = (sc) => sc.rows.map((r) => ({ ...r, id: sc.name + "|" + r.id, item_key: sc.name + "|" + r.item_key }));
-    for (const sc of FIXTURE.scenarios) {
+    // per-scenario namespaced keys/ids so all scenarios coexist under one user.
+    // P7.0a: meta.annul_of переписывается ТЕМ ЖЕ префиксом (критика wf_1bf34023: иначе
+    // v2-вектор с реальной целью сойдётся на сырых rows, но разойдётся после ingest —
+    // неймспейснутый target-id не совпадёт с annul_of).
+    const nsRows = (sc) => sc.rows.map((r) => {
+      const out = { ...r, id: sc.name + "|" + r.id, item_key: sc.name + "|" + r.item_key };
+      if (r.kind === "annul") {
+        try {
+          const m = JSON.parse(r.meta_json || "{}");
+          if (m && m.annul_of != null) { m.annul_of = sc.name + "|" + m.annul_of; out.meta_json = JSON.stringify(m); }
+        } catch (_) {}
+      }
+      return out;
+    });
+    for (const sc of SCN) {
       const ing = await api("POST", "/api/learner/ingest", { cookie, csrf, body: {
         idempotency_key: "replay-" + sc.name, schema_version: 1, keyer_version: 1, review_log: nsRows(sc),
       } });
@@ -102,7 +124,7 @@ const close = (a, b, tol) => Math.abs(Number(a) - Number(b)) < (tol || 1e-6);
     eq(proj.status === 200 && proj.json.ok, "projections read failed");
     const byKey = new Map((proj.json.rows || []).map((r) => [r.item_key, r]));
     let projBad = 0;
-    for (const sc of FIXTURE.scenarios) {
+    for (const sc of SCN) {
       const e = sc.expected;
       const row = byKey.get(sc.name + "|" + sc.rows[0].item_key);
       if (!e) { if (row) { projBad++; failures.push(`[${sc.name}] projection must be absent`); } continue; }
@@ -156,12 +178,12 @@ const close = (a, b, tol) => Math.abs(Number(a) - Number(b)) < (tol || 1e-6);
     try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {}
   }
 
-  const shown = FIXTURE.scenarios.length * 3 + 11;   // 10×2 parity + 10 ingest + 9 e2e/oracle/teeth + 2 D1 channel-stats
+  const shown = SCN.length * 3 + 11;   // (v1+v2)×2 parity + ×1 ingest + 9 e2e/oracle/teeth + 2 D1 channel-stats
   if (failures.length) {
     console.error(`smoke:server-replay FAIL (${shown - failures.length}/${shown})`);
     for (const f of failures) console.error("  ✗ " + f);
     process.exitCode = 1;
   } else {
-    console.log(`smoke:server-replay OK (${shown}/${shown}) — CLG-P4: three-way parity (fsrs-core == ts-fsrs reference == golden ×${FIXTURE.scenarios.length}) · e2e ingest→projections == expected · mark-only не проецируется · oracle clean · TEETH (порча → поймана → rebuild → clean)`);
+    console.log(`smoke:server-replay OK (${shown}/${shown}) — CLG-P4+P7.0a: three-way parity (fsrs-core == ts-fsrs reference == golden ×${SCN.length}, вкл. annul-семантику v2: mid-history/to-null/double/missing/before-target/seed-mark-annul-ignored/skip) · e2e ingest→projections == expected (annul-to-null → проекция удалена) · mark-only не проецируется · oracle clean · TEETH (порча → поймана → rebuild → clean)`);
   }
 })();

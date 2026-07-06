@@ -10,7 +10,10 @@
 // Spec being implemented:
 //   • rows ordered by (epoch(reviewed_at), id);
 //   • watermark = EARLIEST seed row (D3 earliest-wins); rows before it and later seeds skipped;
-//   • kind 'annul'/'mark' — neutral;
+//   • kind 'mark' — neutral; kind 'annul' — P7.0a (TELEGRAM_P7_DECISION): its meta.annul_of
+//     EXCLUDES the target review/skip row from the fold (two-pass — collection over the WHOLE
+//     list, annul position/time irrelevant; Set semantics → double-annul idempotent; seed/mark/
+//     annul targets ignored — un-annul unsupported); the annul row itself never changes state;
 //   • seed: interval>0 → S=clamp(interval, 1e-3, 36500), D=D0(Good); interval=0 → init(Again);
 //     reps/lapses carried from the snapshot; seeding does NOT produce a due;
 //   • review/skip: grade 1..4 (skip folds like its grade); Δt = integer UTC calendar-day diff,
@@ -84,6 +87,15 @@ function referenceReplay(rows) {
     if (ta !== tb) return ta - tb;
     return String(a.id) < String(b.id) ? -1 : String(a.id) > String(b.id) ? 1 : 0;
   });
+  // P7.0a pass 1 — spec re-implementation, NOT the fsrs-core helper (oracle independence):
+  // collect meta.annul_of over the whole list; only review/skip targets are excludable.
+  const annulled = new Set();
+  for (const row of list) {
+    if (!row || row.kind !== "annul") continue;
+    let meta = {};
+    try { meta = typeof row.meta_json === "string" ? JSON.parse(row.meta_json || "{}") : (row.meta || {}); } catch (_) {}
+    if (meta && meta.annul_of != null && String(meta.annul_of)) annulled.add(String(meta.annul_of));
+  }
   let start = -1;
   for (let i = 0; i < list.length; i++) if (list[i] && list[i].kind === "seed") { start = i; break; }
   let mem = null, lastMs = null, reps = 0, lapses = 0;
@@ -104,6 +116,7 @@ function referenceReplay(rows) {
       continue;
     }
     if (row.kind === "annul" || row.kind === "mark") continue;
+    if ((row.kind === "review" || row.kind === "skip") && annulled.has(String(row.id))) continue;   // P7.0a
     const g = Math.min(4, Math.max(1, Math.round(Number(row.grade) || 1)));
     const ts = Date.parse(row.reviewed_at) || 0;
     const hadMem = !!mem;

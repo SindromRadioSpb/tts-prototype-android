@@ -317,6 +317,46 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         out.p41CarrierMergeSafe = !!(ws43 && ws43.status === "l3");
       } catch (e) { out.p41Err = String(e && e.message || e); }
 
+      // ── P7.0a — annul-семантика на КЛИЕНТЕ (TELEGRAM_P7_DECISION; блокер критики
+      // wf_1bf34023: annul-до-пустого-фолда обязан ОЧИЩАТЬ клиентскую проекцию, а не
+      // оставлять stale-расписание; ручная ось при этом неприкосновенна) ──────────────
+      try {
+        const LC2 = window.LemmaCanon, FC2 = window.FsrsCore;
+        out.annulIdCanon = typeof LC2.annulId === "function"
+          && LC2.annulId("app:x") === LC2.annulId("app:x")
+          && LC2.annulId("app:x") !== LC2.annulId("app:y")
+          && LC2.annulId("app:x").indexOf("annul:") === 0;
+        // валидация: annul без цели — reject (зеркало серверного annul_without_target;
+        // иначе строка вечно реджектится сервером → постоянный heal-цикл синка)
+        const badAnnul = await ldb.appendReviewLog({ id: "annul:no-target", item_key: "אנול#noun", kind: "annul", reviewed_at: "2099-10-01T10:00:00.000Z", grade: null, source: "op", meta: {} });
+        out.annulRefusedNoTarget = badAnnul.refused === 1 && badAnnul.accepted === 0;
+        // одиночный review нового слова → carrier-строка с расписанием (precondition)
+        const AK = "אנול#noun";
+        const ar1 = { id: "app:annul-case-1", item_key: AK, kind: "review", reviewed_at: "2099-10-02T10:00:00.000Z", grade: 3, source: "room-recall", channel: "read:mc", meta: { keyer_version: 1 } };
+        await ldb.appendReviewLog(ar1);
+        await ldb.recomputeSrsFromLog([AK]);
+        const aws1 = await one("SELECT status, srs_stability FROM word_status WHERE lemma_key = ?", [AK]);
+        out.annulPrecondition = !!(aws1 && Number(aws1.srs_stability) > 0);
+        // annul единственного review → фолд пуст → carrier-строка УДАЛЕНА (не stale)
+        await ldb.appendReviewLog({ id: LC2.annulId(ar1.id), item_key: AK, kind: "annul", reviewed_at: "2099-10-03T10:00:00.000Z", grade: null, source: "agent:correction", meta: { annul_of: ar1.id } });
+        const rec2 = await ldb.recomputeSrsFromLog([AK]);
+        const aws2 = await one("SELECT status FROM word_status WHERE lemma_key = ?", [AK]);
+        out.annulCarrierCleared = !aws2 && !!rec2 && rec2.cleared === 1;
+        // слово с ручной пометкой: annul чистит ТОЛЬКО srs_* — ручная ось остаётся
+        const AK2 = "אנול2#noun";
+        const ar2 = { id: "app:annul-case-2", item_key: AK2, kind: "review", reviewed_at: "2099-10-02T10:00:00.000Z", grade: 3, source: "room-recall", channel: "read:mc", meta: { keyer_version: 1 } };
+        await ldb.appendReviewLog(ar2);
+        await ldb.recomputeSrsFromLog([AK2]);
+        await ldb.setWordStatus(AK2, "l2");
+        await ldb.appendReviewLog({ id: LC2.annulId(ar2.id), item_key: AK2, kind: "annul", reviewed_at: "2099-10-03T10:00:00.000Z", grade: null, source: "agent:correction", meta: { annul_of: ar2.id } });
+        await ldb.recomputeSrsFromLog([AK2]);
+        const aws3 = await one("SELECT status, srs_due, srs_stability, srs_scheme FROM word_status WHERE lemma_key = ?", [AK2]);
+        out.annulManualKept = !!(aws3 && aws3.status === "l2" && aws3.srs_due == null && aws3.srs_stability == null && aws3.srs_scheme == null);
+        // D1-фильтр: withoutAnnulled выкидывает аннулированную строку, annul-строку оставляет
+        const filtered = FC2.withoutAnnulled(await ldb.getReviewLog(AK2));
+        out.annulD1Filter = !filtered.some((r) => r.id === ar2.id) && filtered.some((r) => r.kind === "annul");
+      } catch (e) { out.annulErr = String(e && e.message || e); }
+
       return out;
     });
 
@@ -378,16 +418,23 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.p2AgainDueNow === true, "Again did not put the word due-now with interval projection 0");
     eq(res.p2PlainSetPreserves === true, "plain status set WIPED the fsrs columns (UPSERT-preserve regression)");
     eq(res.p2Oracle === true, "INDEPENDENT ORACLE failed: replay(review_log) != stored state" + (res.p2Err ? " err:" + res.p2Err : ""));
+    // P7.0a — annul-семантика на клиенте
+    eq(res.annulIdCanon === true, "P7.0a: LemmaCanon.annulId missing/non-deterministic/collides" + (res.annulErr ? " err:" + res.annulErr : ""));
+    eq(res.annulRefusedNoTarget === true, "P7.0a: appendReviewLog accepted an annul WITHOUT annul_of (server rejects it forever → sync heal-loop)");
+    eq(res.annulPrecondition === true, "P7.0a: precondition failed — single review did not project a schedule");
+    eq(res.annulCarrierCleared === true, "P7.0a BLOCKER-fix: annul-to-null must DELETE the ''-carrier row (stale schedule survived)");
+    eq(res.annulManualKept === true, "P7.0a: annul must clear ONLY srs_* — manual axis lost or srs_* survived");
+    eq(res.annulD1Filter === true, "P7.0a: FsrsCore.withoutAnnulled did not exclude the annulled row (D1 evidence poisoning)");
     eq(errs.length === 0, "page errors: " + errs.join(" | "));
 
-    const total = 57;
+    const total = 63;
     if (failures.length) {
       console.error(`smoke:memory-canon FAIL (${total - failures.length}/${total})`);
       for (const f of failures) console.error("  ✗ " + f);
       console.error(JSON.stringify(res, null, 1).slice(0, 4000));
       process.exitCode = 1;
     } else {
-      console.log(`smoke:memory-canon OK (${total}/${total}) — mig 041/042 · keyer conformance · content-id log · bundle 3-table merge · Pass 8/12 no-dup · P2 FSRS handover (seed-once · Again-due-now · plain-set-preserve · independent oracle) · P3 Studio→FSRS (scheme=fsrs · meta_json.fsrs · projections · Studio oracle) · P4 Anki-merge (canon-log ingest+filters · updateSrsState srs-only · recompute · Anki oracle) · P4.1 ''-carrier (no-demotion · manual-wins kept · recompute-carrier · merge-safe)`);
+      console.log(`smoke:memory-canon OK (${total}/${total}) — mig 041/042 · keyer conformance · content-id log · bundle 3-table merge · Pass 8/12 no-dup · P2 FSRS handover (seed-once · Again-due-now · plain-set-preserve · independent oracle) · P3 Studio→FSRS (scheme=fsrs · meta_json.fsrs · projections · Studio oracle) · P4 Anki-merge (canon-log ingest+filters · updateSrsState srs-only · recompute · Anki oracle) · P4.1 ''-carrier (no-demotion · manual-wins kept · recompute-carrier · merge-safe) · P7.0a annul (annulId-канон · reject-без-цели · annul-to-null удаляет carrier · ручная ось цела · withoutAnnulled для D1)`);
     }
   } catch (e) {
     console.error("smoke:memory-canon CRASH", e);

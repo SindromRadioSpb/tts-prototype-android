@@ -1585,7 +1585,14 @@ app.post("/api/learner/ingest", rlLearnerIngest, async (req, res) => {
     // CLG-P4 — maintain the derived server projections in the SAME request (recon §4.4 chain:
     // review_log → FSRS replay → srs_projections). Replayed batches carry no new_item_keys.
     if (out && Array.isArray(out.new_item_keys) && out.new_item_keys.length) {
-      try { await learnerProjectionRepo.recomputeForKeys(auth.user.id, out.new_item_keys); } catch (_) {}
+      // P7.0a: провал пересчёта НЕ молчит (критика wf_1bf34023 — «тихий 0»): до annul
+      // stale-проекция значила «не хватает последнего review» и самочинилась следующим
+      // ingest-ом; с annul она значит «фантомное событие сохранено в проекции».
+      try { await learnerProjectionRepo.recomputeForKeys(auth.user.id, out.new_item_keys); }
+      catch (e) {
+        out.projections_recompute_failed = true;
+        console.error("[ingest] projections recompute failed:", e && e.message);
+      }
       delete out.new_item_keys;   // internal detail, not part of the API contract
     }
     res.json(out);

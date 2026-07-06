@@ -19,6 +19,23 @@ function dbGet(db, sql, params = []) {
   return new Promise((resolve, reject) => db.get(sql, params, (e, row) => (e ? reject(e) : resolve(row))));
 }
 
+// P7.0a — цели ВСЕХ annul-строк пользователя (TELEGRAM_P7_DECISION; критика wf_1bf34023
+// M-6/M-59): per-user и БЕЗ временнОго окна — annul-строка легально несёт reviewed_at
+// раньше цели (кросс-девайс clock skew) и потому может стоять ВНЕ любого since-окна,
+// продолжая гасить цель ВНУТРИ него. Для SQL-агрегатов этого репо.
+async function annulledIdSet(db, userId) {
+  const rows = await dbAll(db,
+    `SELECT meta_json FROM review_log WHERE user_id = ? AND kind = 'annul'`, [userId]);
+  const out = new Set();
+  for (const r of rows || []) {
+    try {
+      const m = JSON.parse(r.meta_json || "{}");
+      if (m && m.annul_of != null && String(m.annul_of)) out.add(String(m.annul_of));
+    } catch (_) {}
+  }
+  return out;
+}
+
 // §4.7 LWW fold, server-side: last mark per item_key. One indexed scan; ~1 row per marked word.
 async function manualStatusMap(userId) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
@@ -109,17 +126,29 @@ async function getRecentStruggles(userId, { sinceMs, minFails, limit } = {}) {
   const min = Math.max(1, Number(minFails) || 2);
   const since = new Date(Number(sinceMs) || (Date.now() - 24 * 3600 * 1000)).toISOString();
   const manual = await manualStatusMap(userId);
-  const rows = await dbAll(db,
-    `SELECT item_key, COUNT(*) AS fails,
-            SUM(CASE WHEN channel LIKE 'dictate%' OR channel LIKE 'reverse%' THEN 1 ELSE 0 END) AS prod_fails,
-            MAX(reviewed_at) AS last_fail_at
-       FROM review_log
-      WHERE user_id = ? AND kind = 'review' AND grade IS NOT NULL AND grade <= 2 AND reviewed_at >= ?
-      GROUP BY item_key HAVING COUNT(*) >= ?
-      ORDER BY fails DESC, last_fail_at DESC LIMIT ?`, [userId, since, min, lim * 2]);
-  return (rows || []).filter((r) => (manual[r.item_key] || "") !== "ignore").slice(0, lim)
-    .map((r) => ({ item_key: r.item_key, fails: Number(r.fails) || 0,
-      prod_fails: Number(r.prod_fails) || 0, last_fail_at: r.last_fail_at }));
+  // P7.0a: агрегация в JS — исключение аннулированных провалов требует id строк
+  // (annul_of живёт в meta_json, SQL GROUP BY его не видит). Аннулированный провал
+  // не «горит сейчас» — иначе /plan повторно тычет пользователя отменённым событием.
+  const annulled = await annulledIdSet(db, userId);
+  const failRows = await dbAll(db,
+    `SELECT id, item_key, channel, reviewed_at FROM review_log
+      WHERE user_id = ? AND kind = 'review' AND grade IS NOT NULL AND grade <= 2 AND reviewed_at >= ?`,
+    [userId, since]);
+  const agg = new Map();
+  for (const r of failRows || []) {
+    if (annulled.has(String(r.id))) continue;
+    let a = agg.get(r.item_key);
+    if (!a) { a = { fails: 0, prod_fails: 0, last_fail_at: null }; agg.set(r.item_key, a); }
+    a.fails++;
+    const ch = String(r.channel || "");
+    if (ch.indexOf("dictate") === 0 || ch.indexOf("reverse") === 0) a.prod_fails++;
+    if (!a.last_fail_at || String(r.reviewed_at) > String(a.last_fail_at)) a.last_fail_at = r.reviewed_at;
+  }
+  return [...agg.entries()]
+    .filter(([k, a]) => a.fails >= min && (manual[k] || "") !== "ignore")
+    .sort((x, y) => y[1].fails - x[1].fails || String(y[1].last_fail_at).localeCompare(String(x[1].last_fail_at)))
+    .slice(0, lim)
+    .map(([k, a]) => ({ item_key: k, fails: a.fails, prod_fails: a.prod_fails, last_fail_at: a.last_fail_at }));
 }
 
 // Compact agent-facing summary (the getAgentContext primitive; grows in CLG-P6).
@@ -130,9 +159,21 @@ async function getAgentContext(userId, { nowMs } = {}) {
   const counts = await dbGet(db,
     `SELECT (SELECT COUNT(*) FROM review_log WHERE user_id = ?) AS log_rows,
             (SELECT COUNT(DISTINCT item_key) FROM review_log WHERE user_id = ?) AS items,
-            (SELECT COUNT(*) FROM srs_projections WHERE user_id = ?) AS scheduled,
-            (SELECT MAX(reviewed_at) FROM review_log WHERE user_id = ? AND kind IN ('review','skip')) AS last_review_at`,
-    [userId, userId, userId, userId]);
+            (SELECT COUNT(*) FROM srs_projections WHERE user_id = ?) AS scheduled`,
+    [userId, userId, userId]);
+  // P7.0a: last_review_at не считает аннулированные события — «занимался сегодня»
+  // по отменённому мис-тапу было бы ложью контекста агента (критика wf_1bf34023).
+  // log_rows/items честно включают ВСЁ (это аудит-счётчики лога, не учебные факты).
+  {
+    const annulled = await annulledIdSet(db, userId);
+    const lastRows = await dbAll(db,
+      `SELECT id, reviewed_at FROM review_log WHERE user_id = ? AND kind IN ('review','skip')
+        ORDER BY reviewed_at DESC, id DESC LIMIT ?`, [userId, Math.max(50, annulled.size + 1)]);
+    counts.last_review_at = null;
+    for (const r of lastRows || []) {
+      if (!annulled.has(String(r.id))) { counts.last_review_at = r.reviewed_at; break; }
+    }
+  }
   const manualCounts = {};
   for (const st of Object.values(manual)) manualCounts[st] = (manualCounts[st] || 0) + 1;
   // due_now under the SAME rule as getDue (ignore-excluded) — the context must never

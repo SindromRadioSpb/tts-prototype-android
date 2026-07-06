@@ -204,6 +204,26 @@ function seedRows() {
     eq(tasks.status === 200 && (tasks.json.tasks || []).filter((t) => t.kind === "plan").length === 4,
       "4 plan tasks must exist (each /plan run records one)");
 
+    // ── P7.0a — аннулированный провал не «горит сейчас» (TELEGRAM_P7_DECISION):
+    // annul 2 из 3 сегодняшних провалов слова strug (осталось 1 < порога 2) →
+    // слово уходит из fresh_struggles. Лимит LLM уже исчерпан — план строится
+    // детерминированно (деградация не мешает секциям, R16).
+    const ingAnnul = await api("POST", "/api/learner/ingest", { cookie, csrf, body: {
+      idempotency_key: "agent-smoke-annul", schema_version: 1, keyer_version: 1,
+      review_log: [1, 2].map((n) => ({
+        id: "annul:strug:" + n, item_key: SENTINEL + "|strug#noun", kind: "annul",
+        reviewed_at: new Date().toISOString(), grade: null, source: "agent:correction",
+        meta_json: JSON.stringify({ keyer_version: 1, annul_of: SENTINEL + ":strug:" + n }),
+      })),
+    } });
+    eq(ingAnnul.status === 200 && ingAnnul.json.review_log && ingAnnul.json.review_log.rejected === 0,
+      "P7.0a: annul rows must ingest cleanly: " + JSON.stringify(ingAnnul.json && ingAnnul.json.review_log));
+    const p5 = await api("POST", "/api/agent/plan", { cookie, csrf, body: {} });
+    const fresh5 = ((p5.json.plan || {}).sections || []).find((s) => s.id === "fresh_struggles");
+    eq(p5.status === 200 && (!fresh5 || !fresh5.items.some((x) => x.item_key.includes("|strug#"))),
+      "P7.0a: annulled fails must LEAVE fresh_struggles (2 of 3 annulled → below min), got "
+      + JSON.stringify(fresh5 && fresh5.items));
+
     // ── export-sweep (§10): новые user_id-таблицы автоматически в экспорте ─────
     const exp = await api("GET", "/api/account/export", { cookie });
     const expStr = JSON.stringify(exp.json || {});
@@ -238,12 +258,12 @@ function seedRows() {
     try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {}
   }
 
-  const TOTAL = 30;   // 26 слайса 1 + 2 construct-ассерта P6.4 + 2 fresh_struggles (кейс טוב)
+  const TOTAL = 32;   // 26 слайса 1 + 2 construct-ассерта P6.4 + 2 fresh_struggles (кейс טוב) + 2 P7.0a annul
   if (failures.length) {
     console.error(`smoke:agent-plan FAIL (${TOTAL - failures.length}/${TOTAL})`);
     for (const f of failures) console.error("  ✗ " + f);
     process.exitCode = 1;
   } else {
-    console.log(`smoke:agent-plan OK (${TOTAL}/${TOTAL}) — CLG-P6 слайс 1: tool router (закрытый реестр · B2 user_id-reject · skeleton-disabled) · /plan honest counts (R11) · R17-категории · D1 production_gap · MNAR (review_log нетронут) · pre-call reserve атомарен на burst · LLM-less degradation (лимит + kill-switch) · export-sweep · stdout-гигиена класса D`);
+    console.log(`smoke:agent-plan OK (${TOTAL}/${TOTAL}) — CLG-P6 слайс 1: tool router (закрытый реестр · B2 user_id-reject · skeleton-disabled) · /plan honest counts (R11) · R17-категории · D1 production_gap · MNAR (review_log нетронут) · pre-call reserve атомарен на burst · LLM-less degradation (лимит + kill-switch) · export-sweep · stdout-гигиена класса D · P7.0a annul гасит fresh_struggles`);
   }
 })().catch((e) => { console.error(e); process.exit(1); });

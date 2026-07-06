@@ -1,0 +1,412 @@
+{
+ "provenance": {
+  "reference": "ts-fsrs",
+  "reference_version": "5.4.1",
+  "generation": "FSRS-6.0",
+  "params": {
+   "request_retention": 0.9,
+   "maximum_interval": 36500,
+   "scheduler": "long-term"
+  },
+  "contracts": "P7.0a annul semantics: two-pass fold · annul_of excludes review/skip target · Set-idempotent · seed/mark/annul targets ignored (no un-annul) · order/time-independent · missing target no-op",
+  "generated_by": "scripts/premium/generate-replay-log-fixture.js",
+  "note": "committed fixture — smoke:server-replay asserts server repo replay AND fsrs-core.replay AND the live ts-fsrs reference against these vectors"
+ },
+ "scenarios": [
+  {
+   "name": "annul-mid-history",
+   "rows": [
+    {
+     "id": "seed:שלום#noun#aaaaaaaaaaaa",
+     "item_key": "שלום#noun",
+     "kind": "seed",
+     "reviewed_at": "2026-01-01T10:00:00.000Z",
+     "grade": null,
+     "source": "seed-sm2",
+     "meta_json": "{\"interval\":7,\"reps\":2,\"lapses\":0,\"scheme\":\"sm2-lite\"}"
+    },
+    {
+     "id": "app:2026-01-02T10:00:00.000Z:3",
+     "item_key": "שלום#noun",
+     "kind": "review",
+     "reviewed_at": "2026-01-02T10:00:00.000Z",
+     "grade": 3,
+     "source": "room-recall",
+     "channel": "read:mc",
+     "meta_json": "{}"
+    },
+    {
+     "id": "app:2026-01-03T10:00:00.000Z:1",
+     "item_key": "שלום#noun",
+     "kind": "review",
+     "reviewed_at": "2026-01-03T10:00:00.000Z",
+     "grade": 1,
+     "source": "room-recall",
+     "channel": "read:mc",
+     "meta_json": "{}"
+    },
+    {
+     "id": "app:2026-01-04T10:00:00.000Z:3",
+     "item_key": "שלום#noun",
+     "kind": "review",
+     "reviewed_at": "2026-01-04T10:00:00.000Z",
+     "grade": 3,
+     "source": "room-recall",
+     "channel": "read:mc",
+     "meta_json": "{}"
+    },
+    {
+     "id": "annul:v2:a",
+     "item_key": "שלום#noun",
+     "kind": "annul",
+     "reviewed_at": "2026-01-05T10:00:00.000Z",
+     "grade": null,
+     "source": "agent:correction",
+     "meta_json": "{\"annul_of\":\"app:2026-01-03T10:00:00.000Z:1\"}"
+    }
+   ],
+   "expected": {
+    "stability": 20.20925246,
+    "difficulty": 2.1043314,
+    "reps": 4,
+    "lapses": 0,
+    "intervalDays": 20,
+    "dueMs": 1769248800000,
+    "lastReviewedAt": 1767520800000
+   }
+  },
+  {
+   "name": "annul-to-null",
+   "rows": [
+    {
+     "id": "app:2026-01-01T10:00:00.000Z:1",
+     "item_key": "שלום#noun",
+     "kind": "review",
+     "reviewed_at": "2026-01-01T10:00:00.000Z",
+     "grade": 1,
+     "source": "room-recall",
+     "channel": "read:mc",
+     "meta_json": "{}"
+    },
+    {
+     "id": "annul:v2:b",
+     "item_key": "שלום#noun",
+     "kind": "annul",
+     "reviewed_at": "2026-01-02T10:00:00.000Z",
+     "grade": null,
+     "source": "agent:correction",
+     "meta_json": "{\"annul_of\":\"app:2026-01-01T10:00:00.000Z:1\"}"
+    }
+   ],
+   "expected": null
+  },
+  {
+   "name": "double-annul-idempotent",
+   "rows": [
+    {
+     "id": "seed:שלום#noun#aaaaaaaaaaaa",
+     "item_key": "שלום#noun",
+     "kind": "seed",
+     "reviewed_at": "2026-01-01T10:00:00.000Z",
+     "grade": null,
+     "source": "seed-sm2",
+     "meta_json": "{\"interval\":7,\"reps\":2,\"lapses\":0,\"scheme\":\"sm2-lite\"}"
+    },
+    {
+     "id": "app:2026-01-02T10:00:00.000Z:1",
+     "item_key": "שלום#noun",
+     "kind": "review",
+     "reviewed_at": "2026-01-02T10:00:00.000Z",
+     "grade": 1,
+     "source": "room-recall",
+     "channel": "read:mc",
+     "meta_json": "{}"
+    },
+    {
+     "id": "annul:v2:c1",
+     "item_key": "שלום#noun",
+     "kind": "annul",
+     "reviewed_at": "2026-01-03T10:00:00.000Z",
+     "grade": null,
+     "source": "agent:correction",
+     "meta_json": "{\"annul_of\":\"app:2026-01-02T10:00:00.000Z:1\"}"
+    },
+    {
+     "id": "annul:v2:c2",
+     "item_key": "שלום#noun",
+     "kind": "annul",
+     "reviewed_at": "2026-01-04T10:00:00.000Z",
+     "grade": null,
+     "source": "agent:correction",
+     "meta_json": "{\"annul_of\":\"app:2026-01-02T10:00:00.000Z:1\"}"
+    }
+   ],
+   "expected": {
+    "stability": 7,
+    "difficulty": 2.11810397,
+    "reps": 2,
+    "lapses": 0,
+    "intervalDays": 7,
+    "dueMs": 1767866400000,
+    "lastReviewedAt": 1767261600000
+   }
+  },
+  {
+   "name": "annul-missing-target",
+   "rows": [
+    {
+     "id": "seed:שלום#noun#aaaaaaaaaaaa",
+     "item_key": "שלום#noun",
+     "kind": "seed",
+     "reviewed_at": "2026-01-01T10:00:00.000Z",
+     "grade": null,
+     "source": "seed-sm2",
+     "meta_json": "{\"interval\":7,\"reps\":2,\"lapses\":0,\"scheme\":\"sm2-lite\"}"
+    },
+    {
+     "id": "app:2026-01-02T10:00:00.000Z:3",
+     "item_key": "שלום#noun",
+     "kind": "review",
+     "reviewed_at": "2026-01-02T10:00:00.000Z",
+     "grade": 3,
+     "source": "room-recall",
+     "channel": "read:mc",
+     "meta_json": "{}"
+    },
+    {
+     "id": "annul:v2:d",
+     "item_key": "שלום#noun",
+     "kind": "annul",
+     "reviewed_at": "2026-01-03T10:00:00.000Z",
+     "grade": null,
+     "source": "agent:correction",
+     "meta_json": "{\"annul_of\":\"no-such-row\"}"
+    }
+   ],
+   "expected": {
+    "stability": 11.69336488,
+    "difficulty": 2.11121424,
+    "reps": 3,
+    "lapses": 0,
+    "intervalDays": 12,
+    "dueMs": 1768384800000,
+    "lastReviewedAt": 1767348000000
+   }
+  },
+  {
+   "name": "annul-before-target",
+   "rows": [
+    {
+     "id": "annul:v2:e",
+     "item_key": "שלום#noun",
+     "kind": "annul",
+     "reviewed_at": "2026-01-01T10:00:00.000Z",
+     "grade": null,
+     "source": "agent:correction",
+     "meta_json": "{\"annul_of\":\"app:2026-01-03T10:00:00.000Z:1\"}"
+    },
+    {
+     "id": "seed:שלום#noun#aaaaaaaaaaaa",
+     "item_key": "שלום#noun",
+     "kind": "seed",
+     "reviewed_at": "2026-01-02T10:00:00.000Z",
+     "grade": null,
+     "source": "seed-sm2",
+     "meta_json": "{\"interval\":7,\"reps\":2,\"lapses\":0,\"scheme\":\"sm2-lite\"}"
+    },
+    {
+     "id": "app:2026-01-03T10:00:00.000Z:1",
+     "item_key": "שלום#noun",
+     "kind": "review",
+     "reviewed_at": "2026-01-03T10:00:00.000Z",
+     "grade": 1,
+     "source": "room-recall",
+     "channel": "read:mc",
+     "meta_json": "{}"
+    },
+    {
+     "id": "app:2026-01-04T10:00:00.000Z:3",
+     "item_key": "שלום#noun",
+     "kind": "review",
+     "reviewed_at": "2026-01-04T10:00:00.000Z",
+     "grade": 3,
+     "source": "room-recall",
+     "channel": "read:mc",
+     "meta_json": "{}"
+    }
+   ],
+   "expected": {
+    "stability": 15.82495785,
+    "difficulty": 2.11121424,
+    "reps": 3,
+    "lapses": 0,
+    "intervalDays": 16,
+    "dueMs": 1768903200000,
+    "lastReviewedAt": 1767520800000
+   }
+  },
+  {
+   "name": "annul-of-seed-ignored",
+   "rows": [
+    {
+     "id": "seed:שלום#noun#aaaaaaaaaaaa",
+     "item_key": "שלום#noun",
+     "kind": "seed",
+     "reviewed_at": "2026-01-01T10:00:00.000Z",
+     "grade": null,
+     "source": "seed-sm2",
+     "meta_json": "{\"interval\":7,\"reps\":2,\"lapses\":0,\"scheme\":\"sm2-lite\"}"
+    },
+    {
+     "id": "app:2026-01-02T10:00:00.000Z:3",
+     "item_key": "שלום#noun",
+     "kind": "review",
+     "reviewed_at": "2026-01-02T10:00:00.000Z",
+     "grade": 3,
+     "source": "room-recall",
+     "channel": "read:mc",
+     "meta_json": "{}"
+    },
+    {
+     "id": "annul:v2:f",
+     "item_key": "שלום#noun",
+     "kind": "annul",
+     "reviewed_at": "2026-01-03T10:00:00.000Z",
+     "grade": null,
+     "source": "agent:correction",
+     "meta_json": "{\"annul_of\":\"seed:שלום#noun#aaaaaaaaaaaa\"}"
+    }
+   ],
+   "expected": {
+    "stability": 11.69336488,
+    "difficulty": 2.11121424,
+    "reps": 3,
+    "lapses": 0,
+    "intervalDays": 12,
+    "dueMs": 1768384800000,
+    "lastReviewedAt": 1767348000000
+   }
+  },
+  {
+   "name": "annul-of-annul-and-mark-ignored",
+   "rows": [
+    {
+     "id": "seed:שלום#noun#aaaaaaaaaaaa",
+     "item_key": "שלום#noun",
+     "kind": "seed",
+     "reviewed_at": "2026-01-01T10:00:00.000Z",
+     "grade": null,
+     "source": "seed-sm2",
+     "meta_json": "{\"interval\":7,\"reps\":2,\"lapses\":0,\"scheme\":\"sm2-lite\"}"
+    },
+    {
+     "id": "app:2026-01-02T10:00:00.000Z:1",
+     "item_key": "שלום#noun",
+     "kind": "review",
+     "reviewed_at": "2026-01-02T10:00:00.000Z",
+     "grade": 1,
+     "source": "room-recall",
+     "channel": "read:mc",
+     "meta_json": "{}"
+    },
+    {
+     "id": "annul:v2:g",
+     "item_key": "שלום#noun",
+     "kind": "annul",
+     "reviewed_at": "2026-01-03T10:00:00.000Z",
+     "grade": null,
+     "source": "agent:correction",
+     "meta_json": "{\"annul_of\":\"app:2026-01-02T10:00:00.000Z:1\"}"
+    },
+    {
+     "id": "annul:v2:h",
+     "item_key": "שלום#noun",
+     "kind": "annul",
+     "reviewed_at": "2026-01-04T10:00:00.000Z",
+     "grade": null,
+     "source": "agent:correction",
+     "meta_json": "{\"annul_of\":\"annul:v2:g\"}"
+    },
+    {
+     "id": "mark:2026-01-05T10:00:00.000Z",
+     "item_key": "שלום#noun",
+     "kind": "mark",
+     "reviewed_at": "2026-01-05T10:00:00.000Z",
+     "grade": null,
+     "source": "word-mark",
+     "meta_json": "{\"status\":\"l2\"}"
+    },
+    {
+     "id": "annul:v2:i",
+     "item_key": "שלום#noun",
+     "kind": "annul",
+     "reviewed_at": "2026-01-06T10:00:00.000Z",
+     "grade": null,
+     "source": "agent:correction",
+     "meta_json": "{\"annul_of\":\"mark:2026-01-05T10:00:00.000Z\"}"
+    }
+   ],
+   "expected": {
+    "stability": 7,
+    "difficulty": 2.11810397,
+    "reps": 2,
+    "lapses": 0,
+    "intervalDays": 7,
+    "dueMs": 1767866400000,
+    "lastReviewedAt": 1767261600000
+   }
+  },
+  {
+   "name": "annul-of-skip",
+   "rows": [
+    {
+     "id": "seed:שלום#noun#aaaaaaaaaaaa",
+     "item_key": "שלום#noun",
+     "kind": "seed",
+     "reviewed_at": "2026-01-01T10:00:00.000Z",
+     "grade": null,
+     "source": "seed-sm2",
+     "meta_json": "{\"interval\":5,\"reps\":1,\"lapses\":0,\"scheme\":\"sm2-lite\"}"
+    },
+    {
+     "id": "app:2026-01-02T10:00:00.000Z:3",
+     "item_key": "שלום#noun",
+     "kind": "review",
+     "reviewed_at": "2026-01-02T10:00:00.000Z",
+     "grade": 3,
+     "source": "room-recall",
+     "channel": "read:mc",
+     "meta_json": "{}"
+    },
+    {
+     "id": "app:skip:2026-01-03T10:00:00.000Z",
+     "item_key": "שלום#noun",
+     "kind": "skip",
+     "reviewed_at": "2026-01-03T10:00:00.000Z",
+     "grade": 1,
+     "source": "room-recall",
+     "channel": "read:mc",
+     "meta_json": "{}"
+    },
+    {
+     "id": "annul:v2:j",
+     "item_key": "שלום#noun",
+     "kind": "annul",
+     "reviewed_at": "2026-01-04T10:00:00.000Z",
+     "grade": null,
+     "source": "agent:correction",
+     "meta_json": "{\"annul_of\":\"app:skip:2026-01-03T10:00:00.000Z\"}"
+    }
+   ],
+   "expected": {
+    "stability": 9.83945442,
+    "difficulty": 2.11121424,
+    "reps": 2,
+    "lapses": 0,
+    "intervalDays": 10,
+    "dueMs": 1768212000000,
+    "lastReviewedAt": 1767348000000
+   }
+  }
+ ]
+}

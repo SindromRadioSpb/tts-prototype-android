@@ -54,8 +54,12 @@ function channelStats(rows) {
   const mk = () => ({ reps: 0, again: 0, hard: 0, good: 0, last_at: null, last_grade: null });
   const out = { production: mk(), receptive: mk() };
   let any = false;
+  // P7.0a: аннулированный review — не свидетельство (иначе production_gap фантомит от
+  // отменённого провала; тот же Set, что у replay — collectAnnulled из fsrs-core).
+  const annulled = FC.collectAnnulled ? FC.collectAnnulled(rows) : {};
   for (const r of rows || []) {
     if (!r || r.kind !== "review") continue;
+    if (annulled[String(r.id)]) continue;
     const g = Number(r.grade);
     if (!(g >= 1 && g <= 4)) continue;
     const f = GP.isProductionChannel(r.channel) ? out.production : out.receptive;
@@ -144,7 +148,11 @@ async function oracle(userId, { sample } = {}) {
       Number(stored.reps) === p.reps && Number(stored.lapses) === p.lapses && String(stored.due || "") === String(p.due || "");
     if (!ok) { mismatched++; if (examples.length < 10) examples.push({ key, why: "diverged", stored: { s: stored.stability, d: stored.difficulty, reps: stored.reps }, fresh: { s: p.stability, d: p.difficulty, reps: p.reps } }); }
   }
-  return { checked, missing, mismatched, totalKeys: (await distinctItemKeys(userId)).length, examples };
+  // P7.0a — наблюдаемость annul: сколько annul-строк в логе (деплой-верифи ожидает 0 до
+  // появления писателя P7.0c; не-0 при mismatch → кандидаты на rebuild со сменой семантики).
+  const an = await dbGet(db, `SELECT COUNT(*) c FROM review_log WHERE user_id = ? AND kind = 'annul'`, [userId]);
+  return { checked, missing, mismatched, totalKeys: (await distinctItemKeys(userId)).length,
+           annul_rows: Number(an && an.c) || 0, engine: FC.ENGINE_VERSION, examples };
 }
 
 module.exports = { recomputeForKeys, rebuildAll, listProjections, oracle, distinctItemKeys, channelStats, ENGINE: FC.ENGINE_VERSION };

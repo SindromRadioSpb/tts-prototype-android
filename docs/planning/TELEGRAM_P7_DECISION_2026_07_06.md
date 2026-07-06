@@ -147,3 +147,60 @@ annul как neutral — семантика не приземлилась.
    (constructs/струггалы) · SW-бамп (fsrs-core в precache).
 9. **Вне скоупа P7.0a:** писатель annul-строк (мин-хелпер id/минт — P7.0c),
    UI аннулирования, grader.
+
+---
+
+## P7.0a — SHIPPED v3.11.115 (2026-07-06); адъюдикация adversarial-критики
+
+Критика (wf_1bf34023, 3 линзы R11/R12-R13/R10 завершились, R17-B завис и добит
+вручную по 10 критериям владельца) нашла **3 BLOCKER + 8 MAJOR + 6 MINOR** —
+все существенные отработаны:
+
+- **BLOCKER «клиент не умеет "память стёрта"»** (все 3 линзы независимо):
+  recomputeSrsFromLog при null-фолде ПРОПУСКАЛ ключ → stale-расписание навсегда
+  (сервер проекцию удаляет — расхождение поверхностей). Фикс: `clearSrsState` —
+  ''-carrier удаляется, у manual-строки чистятся ТОЛЬКО srs_* (ручная ось цела).
+  Ловушка схемы: srs_interval/reps/lapses NOT NULL → нейтральные нули (поймано
+  гейтом memory-canon, а не глазами).
+- **BLOCKER «annul.item_key == target.item_key»:** зафиксировано в спеке (1-бис) +
+  golden missing-target; жёсткое правило минтера — P7.0c (сервер резолвит цель,
+  item_key ИЗ найденной строки, отсутствие цели = reject).
+- **MAJOR grade-policy = write-time читатель сырого лога:** аннулированное
+  свидетельство отравляло БУДУЩИЕ D1-грейды (новая порча в append-only лог,
+  реплеем не лечится). Фикс: вызыватель фильтрует через FsrsCore.withoutAnnulled
+  (клиент library-ui; серверный грейдер P7.0b обязан так же).
+- **MAJOR канон id:** LemmaCanon.annulId(target) = 'annul:'+sha1(target) —
+  детерминирован (двойная доставка дедупится) и различен по целям; reviewId
+  для annul ЗАПРЕЩЁН (не включает annul_of → bulk-annul схлопнулся бы).
+- **MAJOR version-skew:** ENGINE_VERSION → fsrs6-core-v2; клиентский one-shot
+  heal в fullSync (sync_state 'annul_engine_v' ≠ версия ядра → пересчёт всех
+  ключей с annul-строками); ☁-оракул авто-rebuild расширен на mismatched>0;
+  oracle отдаёт annul_rows + engine (наблюдаемость; прод-ожидание annul_rows=0).
+- **MAJOR SQL-агрегаты:** getRecentStruggles → JS-агрегация с annul-set по ВСЕМУ
+  логу пользователя (annul вне 24ч-окна гасит цель внутри окна — clock skew);
+  last_review_at в getAgentContext не считает аннулированные; wordLifecycle
+  расширен (id+meta для флага annulled, наружу meta не уходит), детекция
+  channelGapConstruct пропускает флагнутые.
+- **MAJOR nsRows гейта:** server-replay-smoke переписывает meta.annul_of тем же
+  неймспейс-префиксом (иначе v2-вектора с реальной целью падали бы в e2e-ноге).
+- **MINOR клиентская валидация:** appendReviewLog зеркалит annul_without_target
+  (иначе локально принятая строка вечно реджектится сервером → heal-цикл синка).
+- **MINOR ingest-recompute не молчит:** провал пересчёта после ingest →
+  projections_recompute_failed в ответе + console.error.
+- **Sentence-карточки (MAJOR R11):** annul-скоуп P7.0a = word-key review/skip
+  строки; sent:-цели ВНЕ скоупа (их state живёт в srs_cards.meta_json.fsrs без
+  recompute-пути) — write-path P7.0c обязан отклонять annul на sent:-цели.
+  Зафиксированное ограничение, не тихая дыра.
+
+**Гейты:** server-replay **65/65** (three-way parity ×18 вкл. 8 annul-векторов
+golden-v2; v1 байт-стабилен = do-no-harm; e2e annul-to-null удаляет проекцию) ·
+memory-canon **63/63** (+6 клиентских annul) · fsrs 30/30 · agent-plan **32/32**
+(+2: annul гасит fresh_struggles e2e) · agent-explain **43/43** (+1 pure) ·
+learner-graph 14/14 · mentor-home 25/25 · grade-policy 24/24 · cloud-sync · api.
+
+**Критерии владельца 1–10:** все закрыты (1 append-only структурно · 2 annul_of
+обязателен обеими сторонами · 3+4 двухпроходный детерминированный фолд · 5 Set-
+идемпотентность + golden double-annul · 6+7 per-user PK + per-item fold + golden
+missing-target · 8 v1-golden байт-стабилен · 9 golden-v2 8 векторов · 10 oracle
+clean + TEETH). Правило «annul не удаляет событие — только projection» —
+в коде комментарием и в гейтах (лог-строки видимы после annul).

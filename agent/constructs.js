@@ -66,7 +66,9 @@ function isProductionChannel(ch) {
   return c.startsWith("dictate") || c.startsWith("reverse");
 }
 function channelGapConstruct(events) {
-  const prod = (events || []).filter((e) => e && e.kind === "review" && isProductionChannel(e.channel));
+  // P7.0a: аннулированные события (флаг annulled из wordLifecycle) — не свидетельство:
+  // аннулированный последний провал уступает предыдущему / гасит конструкцию.
+  const prod = (events || []).filter((e) => e && e.kind === "review" && !e.annulled && isProductionChannel(e.channel));
   if (!prod.length) return "construct:hebrew.channel_gap.receptive_to_production";
   // провал = grade ≤ 2 (Again/Hard; D1-политика пишет production-провал как Hard(2))
   const fails = prod.filter((e) => e.grade != null && Number(e.grade) <= 2);

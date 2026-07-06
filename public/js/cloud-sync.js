@@ -269,6 +269,23 @@
     if (!up.ok) return up;
     var down = await syncDown(ldb);
     if (!down.ok) return down;
+    // P7.0a heal: смена семантики фолда (FsrsCore.ENGINE_VERSION, annul-aware v2) →
+    // ОДНОРАЗОВЫЙ пересчёт всех локальных ключей с annul-строками. Обычный recompute
+    // трогает только ключи НОВЫХ down-sync строк — annul-строка, пришедшая ДО апгрейда
+    // движка (SW-кэш), фолдилась как neutral и без heal-а больше никогда не пересчиталась
+    // бы (version-skew, критика wf_1bf34023).
+    try {
+      var FCv = (typeof self !== "undefined" && self.FsrsCore) ? self.FsrsCore : null;
+      if (FCv && typeof ldb.dbQuery === "function" && typeof ldb.recomputeSrsFromLog === "function") {
+        var seen = await ldb.getSyncState("annul_engine_v");
+        if (String(seen || "") !== String(FCv.ENGINE_VERSION)) {
+          var aRows = await ldb.dbQuery("SELECT DISTINCT item_key FROM review_log WHERE kind = 'annul'", []);
+          var aKeys = (aRows || []).map(function (r) { return String(r.item_key); }).filter(Boolean);
+          if (aKeys.length) await ldb.recomputeSrsFromLog(aKeys);
+          await ldb.setSyncState("annul_engine_v", String(FCv.ENGINE_VERSION));
+        }
+      }
+    } catch (_) {}
     // §4.3 постоянная reconciliation, встроенная в каждый цикл: после полного двустороннего
     // синка local == server; расхождение (напр. унаследованная дыра v1-курсора) → ОДИН
     // авто-heal: сброс курсоров → полный re-verify-upload + полный re-download (идемпотентно).

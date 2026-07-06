@@ -2620,6 +2620,13 @@ export async function appendReviewLog(rows) {
     const grade = row.grade == null ? null : (Number(row.grade) || 0);
     if (kind !== "seed" && kind !== "annul" && kind !== "mark" && (grade == null || grade < 1 || grade > 4)) { refused++; continue; }
     const meta = typeof row.meta_json === "string" ? row.meta_json : JSON.stringify(row.meta || {});
+    // P7.0a — зеркало серверного annul_without_target (learnerLogRepo): annul без цели —
+    // мусор, который сервер вечно реджектит → постоянный count-mismatch и heal-цикл синка.
+    if (kind === "annul") {
+      let target = null;
+      try { const m = JSON.parse(meta); target = m && m.annul_of != null ? String(m.annul_of).trim() : null; } catch (_) {}
+      if (!target) { refused++; continue; }
+    }
     try {
       await r(
         `INSERT OR IGNORE INTO review_log (id, item_key, kind, reviewed_at, grade, source, channel, latency_ms, meta_json)
@@ -2746,22 +2753,51 @@ export async function updateSrsState(itemKey, sched) {
     return true;
   } catch (_) { return false; }
 }
+// P7.0a — «память стёрта» на клиенте (зеркало серверного DELETE в learnerProjectionRepo:79-82;
+// блокер adversarial-критики wf_1bf34023: annul-до-пустого-фолда раньше оставлял stale srs_*
+// НАВСЕГДА — due-кольцо планировало слово по отменённому грейду). Ручная ось НЕ трогается:
+// строка с реальным manual-статусом теряет только srs_*-колонки; чистый ''-carrier (P4.1)
+// удаляется целиком — Pass 15 бандл-мерджа такие строки и так дропает.
+export async function clearSrsState(itemKey) {
+  const lk = String(itemKey || "").trim();
+  if (!lk) return false;
+  try {
+    const rows = await q(`SELECT status FROM word_status WHERE lemma_key = ?`, [lk]);
+    if (!rows || !rows.length) return false;
+    if (!String(rows[0].status || "")) {
+      await r(`DELETE FROM word_status WHERE lemma_key = ? AND (status IS NULL OR status = '')`, [lk]);
+    } else {
+      // srs_interval/reps/lapses — NOT NULL DEFAULT 0 (мигр. 042) → нейтральные нули;
+      // отсутствие расписания консьюмеры читают по srs_due/srs_scheme = NULL.
+      await r(
+        `UPDATE word_status SET srs_due=NULL, srs_interval=0, srs_reps=0, srs_lapses=0,
+           srs_stability=NULL, srs_difficulty=NULL, srs_reviewed_at=NULL, srs_scheme=NULL
+         WHERE lemma_key = ?`, [lk]);
+    }
+    return true;
+  } catch (_) { return false; }
+}
 // Recompute each item's derived SRS state by REPLAYING its merged review_log (recon B4 oracle:
 // state is a fold of the raw log, so a cross-surface merge = replay). PURE fold via the injected
 // FsrsCore (browser global); no-op degradation when FC is unavailable (rows are already written —
 // the state simply stays until a recompute runs with FC loaded). item_keys that are sentence cards
 // ('sent:…') carry no word_status row and are skipped by updateSrsState's lemma-only contract.
+// P7.0a: пустой фолд (annul-to-null) ⇒ ОЧИСТКА клиентской проекции (clearSrsState), не continue —
+// иначе клиент и сервер расходятся (сервер проекцию удаляет).
 export async function recomputeSrsFromLog(itemKeys) {
   const FC = (typeof window !== "undefined") ? window.FsrsCore : null;
   if (!FC || typeof FC.replay !== "function") return { recomputed: 0 };
   const keys = Array.from(new Set((Array.isArray(itemKeys) ? itemKeys : []).map((k) => String(k || "").trim()).filter(Boolean)));
-  let recomputed = 0;
+  let recomputed = 0, cleared = 0;
   for (const key of keys) {
     if (key.indexOf("sent:") === 0) continue;   // sentence-card state lives in srs_cards.meta_json.fsrs, not word_status
     try {
       const rows = await getReviewLog(key);
       const state = FC.replay(rows);
-      if (!state || !(state.stability > 0)) continue;
+      if (!state || !(state.stability > 0)) {
+        if (await clearSrsState(key)) cleared++;
+        continue;
+      }
       const sched = {
         due: FC.dueAt(state), interval: FC.intervalFor(state),
         reps: state.reps, lapses: state.lapses, stability: state.stability, difficulty: state.difficulty,
@@ -2770,7 +2806,7 @@ export async function recomputeSrsFromLog(itemKeys) {
       if (await updateSrsState(key, sched)) recomputed++;
     } catch (_) { /* per-key best-effort */ }
   }
-  return { recomputed };
+  return { recomputed, cleared };
 }
 // Ingest AnkiConnect read-back reviews into the CANON review_log under the shared lemma key, then
 // recompute the affected words' state from the merged log (recon §5). Filters (the P0 fixes):

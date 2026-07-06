@@ -156,6 +156,16 @@
     return "seed:" + String(itemKey == null ? "" : itemKey) + "#" + sha1Hex(stableJson(meta || {})).slice(0, 12);
   }
 
+  // P7.0a (TELEGRAM_P7_DECISION, критика wf_1bf34023 M-4) — канон id annul-строки:
+  // ДЕТЕРМИНИРОВАН по цели (двойная доставка одного аннулирования дедупится по PK)
+  // и РАЗЛИЧЕН для разных целей (bulk-annul двух грейдов в одну миллисекунду не
+  // схлопывается). reviewId для annul-строк ЗАПРЕЩЁН (не включает annul_of, grade
+  // у annul всегда null → два annul разных целей получили бы один id — тихая
+  // потеря второго аннулирования).
+  function annulId(targetId) {
+    return "annul:" + sha1Hex(String(targetId == null ? "" : targetId)).slice(0, 20);
+  }
+
   return {
     KEYER_VERSION: KEYER_VERSION,
     stripNiqqud: stripNiqqud,
@@ -167,5 +177,6 @@
     reviewId: reviewId,
     stableJson: stableJson,
     seedId: seedId,
+    annulId: annulId,
   };
 });

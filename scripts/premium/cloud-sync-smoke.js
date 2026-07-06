@@ -74,7 +74,9 @@ async function ready(srv, ms = 30000) {
   const withAnnul = ordered([seedRow(T1, 10), revRow(T2, 3), { id: "annul:x", item_key: KEY, kind: "annul", reviewed_at: T4, grade: null, source: "op", meta_json: JSON.stringify({ annul_of: "y" }) }]);
   const noAnnul = ordered([seedRow(T1, 10), revRow(T2, 3)]);
   const sA1 = FC.replay(withAnnul), sA0 = FC.replay(noAnnul);
-  eq(sA1 && sA0 && Math.abs(sA1.stability - sA0.stability) < 1e-9 && sA1.reps === sA0.reps, "annul row must be replay-neutral until CLG-P4");
+  // P7.0a: annul с НЕсуществующей целью (annul_of:'y') — no-op; полная annul-семантика
+  // гейтится server-replay golden-v2 + memory-canon.
+  eq(sA1 && sA0 && Math.abs(sA1.stability - sA0.stability) < 1e-9 && sA1.reps === sA0.reps, "missing-target annul row must be a fold no-op (P7.0a)");
   // P3.2 — mark rows (manual axis) are replay-neutral too
   const withMark = ordered([seedRow(T1, 10), revRow(T2, 3), { id: "mark:x", item_key: KEY, kind: "mark", reviewed_at: T4, grade: null, source: "word-mark", meta_json: JSON.stringify({ status: "l2" }) }]);
   const sM1 = FC.replay(withMark);

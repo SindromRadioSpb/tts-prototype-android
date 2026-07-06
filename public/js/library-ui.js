@@ -1778,6 +1778,10 @@ async function checkTrainAnswer(correct, skipped, mode) {
   let d1 = null;
   if (window.GradePolicy && !skipped && !correct) {
     let logRows = []; try { logRows = await localDb.getReviewLog(item.lemmaKey); } catch (_) {}
+    // P7.0a: аннулированные строки — не свидетельство для D1 (иначе отменённый
+    // production-успех навсегда отключал бы Hard-смягчение, а write-time порча
+    // ложилась бы в append-only лог неисправимо — критика wf_1bf34023).
+    try { if (window.FsrsCore && window.FsrsCore.withoutAnnulled) logRows = window.FsrsCore.withoutAnnulled(logRows); } catch (_) {}
     d1 = window.GradePolicy.decideGrade({ correct, skipped, channel: trainChannel, prevState: item._srs, rows: logRows });
   }
   // Retention P2 — FSRS is the scheduler (owner go after the P1.5 shadow-diff): the ONE handover
@@ -2351,7 +2355,10 @@ async function _cloudRender() {
     try {
       const oFetch = () => fetch('/api/learner/oracle?sample=300', { credentials: 'same-origin' }).then((r) => r.json());
       let o = await oFetch();
-      if (o && o.ok && o.missing > 0) {
+      // P7.0a: rebuild и на mismatched>0 (не только missing) — смена семантики фолда
+      // (annul-aware engine v2) делает старые stored-проекции ключей с annul-строками
+      // честно«diverged»; rebuild = пересчёт из лога, лог — истина.
+      if (o && o.ok && (o.missing > 0 || o.mismatched > 0)) {
         await fetch('/api/learner/projections/rebuild', { method: 'POST', credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' } });
         o = await oFetch();
