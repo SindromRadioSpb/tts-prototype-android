@@ -1785,6 +1785,31 @@ app.get("/api/agent/constructs/summary", rlAgent, async (req, res) => {
 });
 
 // ============================================================================
+// P7.0c — record_review_answer (TELEGRAM_P7_DECISION §P7.0c v2): запись ответа/
+// annul через closed tool router → agent/reviewer → ШТАТНЫЙ ingest + recompute.
+// Прод: выключено флагом AGENT_REVIEW_WRITE (403 FEATURE_FLAG_OFF) до решения
+// владельца. Свой лимитер (write-путь сессии из ~20+ карточек; общий rlAgent
+// 20/мин душил бы тренировку и флакал гейт). Маппинг кодов — паттерн /explain;
+// abstain (gradable=false / ktiv-гейт) = 200 recorded:false — вердикт, не ошибка.
+// ============================================================================
+const rlAgentReview = makeRateLimiter({ windowMs: 60_000, max: 60, name: "agent-review" });
+app.post("/api/agent/review", rlAgentReview, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const r = await agentRuntime.recordReview({ userId: auth.user.id, deviceId: auth.session.deviceId }, req.body || {});
+    if (r && r.ok === false) {
+      const code = String(r.error || "");
+      const status = code === "TOOL_DISABLED" ? 403
+        : (code === "UNKNOWN_ITEM" || code === "ANNUL_TARGET_NOT_FOUND") ? 404
+        : (code === "TOOL_FAILED" || code === "UNKNOWN_TOOL") ? 500 : 400;
+      return res.status(status).json(r);
+    }
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: "AGENT_REVIEW_FAILED", message: e.message }); }
+});
+
+// ============================================================================
 // CLG-P5.5 — Artifact Sync, класс B (AI_MENTOR_RECON §5/§9): OPAQUE per-text
 // bundle store под ЯВНЫМ consent'ом (consent_records 'cloud_texts'). Server-side
 // enforcement на КАЖДОМ запросе — выключенный переключатель означает 403 даже

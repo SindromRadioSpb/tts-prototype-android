@@ -13,6 +13,7 @@
 
 const path = require("path");
 const { getDb } = require("./sqlite");
+const learnerLogRepo = require("./learnerLogRepo");
 const FC = require(path.join(__dirname, "..", "public", "js", "fsrs-core.js"));
 const GP = require(path.join(__dirname, "..", "public", "js", "grade-policy.js"));
 
@@ -26,11 +27,10 @@ function dbRun(db, sql, params = []) {
   return new Promise((resolve, reject) => db.run(sql, params, function (e) { (e ? reject(e) : resolve(this)); }));
 }
 
+// P7.0c: канон per-item среза (replay-ORDER) живёт в learnerLogRepo.itemRows — одна
+// точка истины для фолда проекций И rows грейдера (дрейф порядка невозможен).
 async function _itemRows(db, userId, itemKey) {
-  return await dbAll(db,
-    `SELECT id, item_key, kind, reviewed_at, grade, source, channel, meta_json
-       FROM review_log WHERE user_id = ? AND item_key = ? ORDER BY reviewed_at ASC, id ASC`,
-    [userId, itemKey]);
+  return await learnerLogRepo.itemRows(userId, itemKey);
 }
 
 function _projectionOf(state) {
@@ -112,6 +112,13 @@ async function rebuildAll(userId) {
   return { keys: keys.length, ...out };
 }
 
+// P7.0c — prevState для грейдера (D1 hasMemoryState): одна строка derived-кэша.
+async function getProjection(userId, itemKey) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  return (await dbGet(db, `SELECT * FROM srs_projections WHERE user_id = ? AND item_key = ?`,
+    [userId, String(itemKey || "")])) || null;
+}
+
 async function listProjections(userId, { dueBeforeMs, limit } = {}) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const lim = Math.max(1, Math.min(2000, Number(limit) || 500));
@@ -155,4 +162,4 @@ async function oracle(userId, { sample } = {}) {
            annul_rows: Number(an && an.c) || 0, engine: FC.ENGINE_VERSION, examples };
 }
 
-module.exports = { recomputeForKeys, rebuildAll, listProjections, oracle, distinctItemKeys, channelStats, ENGINE: FC.ENGINE_VERSION };
+module.exports = { recomputeForKeys, rebuildAll, listProjections, getProjection, oracle, distinctItemKeys, channelStats, ENGINE: FC.ENGINE_VERSION };

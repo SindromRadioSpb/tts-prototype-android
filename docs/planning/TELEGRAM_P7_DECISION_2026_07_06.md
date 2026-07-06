@@ -333,3 +333,329 @@ male-vs-vocalized/ktiv-candidate/lev1/wrong/empty/не-иврит/multiword) · 
 байт-равенство · детерминизм · D1 (Hard на рецептивно-сильном; annulled
 production-успех отфильтрован P7.0a; контроль: живой успех блокирует смягчение) ·
 skip=Again(1) без смягчения · каналы · META_ALLOW · LLM структурно недостижим.
+
+---
+
+## P7.0c — техническая спека (активация record_review_answer; к adversarial-критике)
+
+Замер живого кода (2026-07-06): `record_review_answer` = статический disabled-skeleton
+в agent/tools.js:96 (reason `GATED_UNTIL_GRADER_GATES`; agent-plan-smoke:116 ассертит
+именно этот reason — гейт обновляется вместе с контрактом). Штатный ingest-путь =
+`learnerLogRepo.ingestBatch` (валидация конверта §6 + txnLock + batch-идемпотентность)
+→ `learnerProjectionRepo.recomputeForKeys` В ТОМ ЖЕ запросе (server.js:1582-1597,
+recompute-провал не молчит). Клиентский down-sync (`cloud-sync.syncDown` →
+`local-db.appendReviewLog`) принимает произвольные source/channel/meta-ключи →
+agent-строки доезжают в OPFS БЕЗ клиентских изменений; annul-строки уже требуют
+meta.annul_of на обеих сторонах. `grade-policy.hasMemoryState` читает prev.stability/
+prev.due — серверная projection-строка несёт оба (snake==camel для этих имён), но
+lastReviewedAt в ней зовётся reviewed_at и это ISO-строка, не ms → адаптер обязателен.
+
+0. **Feature flag `AGENT_REVIEW_WRITE=1`** (env; отсутствует/иное → инструмент
+   disabled с reason **`FEATURE_FLAG_OFF`** — новый честный reason: гейты 4.8
+   пройдены, выключен именно ФЛАГ, не пред-условия). Прод: переменная НЕ задаётся
+   до решения владельца. Kill-switch AGENT_LLM_DISABLED на инструмент НЕ влияет
+   (грейдер детерминированный, LLM/ledger не участвуют — R16-бюджет не жжётся).
+
+1. **Модуль `agent/reviewer.js`** (роль reviewer из §9-скелета): deterministic,
+   LLM структурно недостижим (тот же гейт-ассерт по исходнику, что у grader).
+   Прямого SQLite нет — только db/learnerLogRepo + db/learnerProjectionRepo +
+   db/keyingService + agent/grader (шов §13.4 сохранён).
+
+2. **Контракт инструмента — два взаимоисключающих режима (v2 после критики):**
+   grade-режим `{ item_key, answer?, skipped?, channel, attempt_id }` XOR annul-режим
+   `{ annul_of, reason }`; смешение → reject `AMBIGUOUS_MODE`; `skipped:true` +
+   непустой answer → reject `SKIP_WITH_ANSWER`. **Аргументы — закрытый whitelist
+   per-режим; любой посторонний ключ (в т.ч. `expected`, `grade`, `reviewed_at`,
+   `source`) → reject `UNKNOWN_ARG`** (инвариант «клиентского expected не существует»
+   держится кодом, не конвенцией). user_id — уже reject на роутере (B2).
+   **attempt_id ОБЯЗАТЕЛЕН в grade-режиме** (8..64 симв.): idempotency_key =
+   `'agentrev:'+attempt_id` — сетевой ретрай/даблклик/redelivery той же попытки
+   реплеит сохранённый результат ingest_batches (replayed:true), НЕ вторую строку
+   (критика ×3 линзы: id из серверного reviewed_at давал новый ключ на каждый
+   ретрай — идемпотентность была тавтологична). P7.2 маппит update_id → attempt_id.
+
+3. **Grade-режим:**
+   - `sent:`-префикс item_key → reject `SENT_ITEM_UNSUPPORTED` (state сентенс-карт
+     живёт в srs_cards.meta_json.fsrs вне recompute-пути — P7.0a scope);
+   - **R17-B существование единицы:** per-item лог пользователя НЕПУСТ (иначе reject
+     `UNKNOWN_ITEM`) — агент НЕ минтит новые учебные единицы через грейд («сочинение
+     не становится тренировочной единицей»); mark-only слово допустимо (ручная ось =
+     asserted-единица learner-state);
+   - **channel v1 = ТОЛЬКО рецептивные семьи:** `/^(read|listen):[a-z0-9_-]{1,20}$/`
+     ('read:agent' в web-smoke, 'read:tg'/'listen:tg' в P7.2-рецептиве).
+     **Production-семьи (dictate/reverse) → reject `PRODUCTION_CHANNEL_LOCKED` до
+     challenge-binding (shown-vs-graded) P7.2** — адъюдикация критики (обе линзы,
+     BLOCKER): v1-упражнение агента = продукция display-формы (лемма для pid- и
+     большинства `#`-ключей), а лемма же отдаётся вызывателю в /plan → запись
+     'dictate:*'-успеха делала бы hasProductionSuccess=true НАВСЕГДА (grade-policy:69-75)
+     → D1-смягчение выключено, production_gap закрыт ложным свидетельством — ровно
+     lemma-echo, закрытый в P7.0b. Рецептивная запись — безопасная сторона:
+     успех = рецептивное свидетельство (включает D1), провал = честный lapse.
+     Семья `reading` запрещена всегда (reading-native = только живое чтение, моат R17);
+     голая семья/чужая семья → reject `BAD_CHANNEL`;
+   - **expected — ТОЛЬКО серверной стороны** (разбор развилки — п. 7): form =
+     display-форма item_key (`<skeleton>#<pos>` → skeleton из ключа; `pid:N` →
+     keyingService.displayForItemKey — огласованная лемма парадигмы). **Нерезолвимость
+     проверяет reviewer сам** (displayForItemKey честно фолбэчит СЫРЫМ ключом, null
+     не возвращает — критика): display == item_key ИЛИ без ивритских букв → reject
+     `EXPECTED_UNRESOLVED` (форму не выдумываем, R1) — ДО грейдера и ДЛЯ ОБОИХ путей,
+     включая skip (нерезолвимый item не мог быть показан → и отказ по нему не факт);
+   - **кап answer ≤ 400 симв.** → reject `ANSWER_TOO_LONG`, ничего не пишется
+     (10MB-строка в normalizeAnswer/lev1 — DoS-рычаг; критика);
+   - rows для грейдера = ПОЛНЫЙ per-item лог, ВСЕ kinds включая annul (новый
+     `learnerLogRepo.itemRows(userId, itemKey)` — тот же SELECT/ORDER, что
+     `learnerProjectionRepo._itemRows`); prevState = srs_projections-строка через
+     **адаптер snake→camel** `{stability, difficulty, reps, lapses, due,
+     lastReviewedAt: Date.parse(reviewed_at)}`; проекции нет → null (D1 честно
+     не смягчает);
+   - грейд = `grader.gradeAnswer({expected, answer, channel, prevState, rows,
+     skipped})` — единственный судья (grader НЕ меняется — gold 58/58 цел);
+   - **gradable=false (empty/unsupported) → НИЧЕГО не пишется (MNAR)**; decision/
+     reason/feedback уходят вызывателю в ответе (переспросить — дело поверхности;
+     bot_action_log = P7.1); **+ write-gate v1: reason='ktiv-candidate' →
+     recorded:false (расширение MNAR)** — адъюдикация BLOCKER-критики: expected
+     сервера = огласованная/хасер display-форма, честный ktiv-male ввод пользователя
+     (דיבר при לדבר-лемме דבר) грейдился бы ложным lapse НАВСЕГДА в append-only лог;
+     Зал в этой ситуации принимает male-ПОВЕРХНОСТЬ вхождения (второй скелет),
+     которой у сервера v1 нет → честное воздержание вместо ложного провала;
+     фидбек честный («возможно ktiv male/haser»); апгрейд до cell-level accept =
+     существующая развилка владельца;
+   - gradable=true → минт строки: kind = skip→'skip' иначе 'review'; grade =
+     d.grade; reviewed_at = СЕРВЕРНОЕ now (UTC-Z; клиентскому времени не доверяем;
+     известное ограничение: клиентская строка с +5мин skew может лексикографически
+     обогнать агентскую — искажение фолда ≤ slack-окна, суб-дневное для utcDayDiff);
+     source = **'agent:review'**; id = `LemmaCanon.reviewId(row)`; meta =
+     keyer_version + грейдер-провенанс (policy_version/normalizer_version/
+     resolver_version/expected_form_id/decision/reason + matched_variant при
+     наличии) + D1-провенанс `GP.policyMeta` при applied; **сырой ответ/скелеты
+     в meta НЕ кладутся** (и META_STRIP их не пропустит — двойная граница);
+   - запись: `ingestBatch(userId, deviceId, {idempotency_key: 'agentrev:'+attempt_id,
+     schema_version:1, keyer_version:1, review_log:[row]}, {trustedAgentSource:true})`;
+     **recompute БЕЗУСЛОВНЫЙ**: `recomputeForKeys(userId, [item_key])` и на live-,
+     и на replayed-ветке (критика: new_item_keys не персистится в batch-результате —
+     крэш между COMMIT и recompute + ретрай с тем же ключом навсегда оставлял бы
+     stale-проекцию); recompute-провал → `projections_recompute_failed` (не молчит);
+   - **пост-ассерт записи (анти-«тихий 0»):** replayed==true ИЛИ review_log.new==1
+     ИЛИ (dup==1 → recorded:true, dup:true — контент-дубль легитимен); rejected →
+     `{ok:false, error:'ROW_REJECTED', reason}` — recorded:true при нуле строк
+     невозможен;
+   - ответ инструмента: `{recorded, replayed?, dup?, decision, grade, row_id,
+     item_key, provenance, feedback?}` (feedback-скелеты — той же privacy-плоскости,
+     что ответ /explain тому же принципалу; НЕ персистятся, в stdout не логируются).
+
+3-бис. **Резервирование source='agent:*' на ingest (критика R14, MAJOR):** штатный
+   /api/learner/ingest ДО СИХ ПОР принял бы клиентскую строку с source='agent:review'
+   и полным фальшивым грейдер-провенансом — провенанс переставал быть доказательством
+   прохождения через grader.js, а annul-скоуп «только свои строки» авторизовался бы
+   неаттестованным полем. Фикс: `ingestBatch(..., opts)` — БЕЗ `trustedAgentSource`
+   НОВАЯ строка (id не существует у пользователя) с source `agent:*` → reject
+   `reserved_source`; СУЩЕСТВУЮЩИЙ id → dup (echo-петля cloud-sync, re-аплоадящего
+   down-синкнутые agent-строки, остаётся зелёной). Внутренний путь reviewer —
+   единственный, кто выставляет trusted-флаг; endpoint его выставить не может.
+
+4. **Annul-режим (минтер-контракт P7.0a, зафиксирован; v2-ужесточения критики):**
+   - **сервер резолвит цель по (user_id, annul_of)** — новый
+     `learnerLogRepo.getRowById(userId, id)`; цели нет → reject
+     `ANNUL_TARGET_NOT_FOUND` (blind-минт запрещён — иначе no-op-мусор в логе);
+   - target.kind ∉ {review, skip} → reject `ANNUL_TARGET_NOT_ANNULLABLE`;
+   - target.item_key `sent:` → reject `ANNUL_SENT_TARGET` (P7.0a scope);
+   - **target.source НЕ 'agent:*' → reject `ANNUL_FOREIGN_SOURCE`** — v1-скоуп:
+     агент отменяет ТОЛЬКО собственные ошибочные грейды (с 3-бис поле source
+     аттестовано сервером); аннулирование строк Зала/Anki = отдельное владельческое
+     решение (у него будет свой UI-серфейс);
+   - **`reason` ОБЯЗАТЕЛЕН** (1..40 симв., машинная строка — в meta.reason; ключ уже
+     в META_ALLOW) + **окно 24ч**: target.reviewed_at старше 24ч → reject
+     `ANNUL_TARGET_TOO_OLD` — критика: безлимитный ластик без причины = селективная
+     инфляция памяти (MNAR-инверсия «провал ≠ провал, если стереть») и нулевой
+     провенанс «почему аннулировано»; P7.2-диспут происходит сразу после грейда;
+   - annul.item_key = item_key ЦЕЛИ (из найденной строки — контракт 1-бис P7.0a);
+     id = `LemmaCanon.annulId(annul_of)` (reviewId ЗАПРЕЩЁН); double-annul → тот же
+     id → dup (идемпотентность по построению); kind='annul', grade=null,
+     source='agent:correction', reviewed_at = серверное now, meta =
+     {keyer_version, annul_of, reason};
+   - запись тем же ingest+recompute путём; **recompute безусловный по item_key цели**
+     (см. п. 3 — replayed-ветка не имеет new_item_keys).
+
+5. **Endpoint `POST /api/agent/review`** (СВОЙ лимитер 60/мин 'agent-review' —
+   общий rlAgent 20/мин душил бы сессию из ~20 карточек и флакал гейт; session+CSRF):
+   body → `runtime.recordReview(ctx, body)` → `tools.callTool(ctx,
+   'record_review_answer', args)` — closed-router остаётся единственными воротами
+   записи. Это НЕ UI: нужен web-smoke полного цикла и Mini App P8; P7.2-webhook
+   пойдёт через runtime in-process. **Ошибки — по живому паттерну /explain
+   (критика: «HTTP 200 {ok:false}» был выдуман):** reviewer ВОЗВРАЩАЕТ
+   {ok:false,error} (не бросает — иначе callTool сплющит в TOOL_FAILED), runtime
+   анврапит; endpoint мапит: контракт-реджекты → 400 · UNKNOWN_ITEM/
+   ANNUL_TARGET_NOT_FOUND → 404 · TOOL_DISABLED (флаг) → 403 · TOOL_FAILED → 500 ·
+   **abstain (gradable=false / ktiv-гейт) → 200 recorded:false — вердикт, не ошибка**.
+
+5-бис. **Клиентский crash-window annul-to-null (критика R13, MAJOR — cloud-sync.js):**
+   syncDown продвигает down-курсор ПО-СТРАНИЧНО, а recomputeSrsFromLog зовёт один раз
+   ПОСЛЕ цикла → краш вкладки между сохранением курсора и рекомпьютом терял addedKeys
+   НАВСЕГДА: annul-строка уже в OPFS, курсор за ней, clearSrsState не вызовется никогда
+   (counts-reconcile равен, engine-heal не срабатывает, будущих событий по слову нет —
+   сервер память удалил). До P7.0c окно было теоретическим (annul-строк не существовало),
+   первый писатель делает его живым. Фикс: recompute ключей СТРАНИЦЫ ДО продвижения
+   курсора (идемпотентен; финальный recompute уходит). Это client-файл → SW-бамп.
+
+6. **Гейт `smoke:agent-review` (v2 — «зубы» по критике):** матрица двух бутов.
+   **Boot OFF:** pure-нога реестра → TOOL_DISABLED/FEATURE_FLAG_OFF; ПОЛНОЦЕННЫЙ
+   валидный grade-запрос в endpoint → ошибка И counts+/api/learner/log-хвост (ids)
+   байт-неизменны (флаг, проверенный ПОСЛЕ записи, гейт бы поймал). **Boot ON:**
+   401/CSRF · status показывает enabled:true · correct → строка через штатный ingest
+   (id == пересчитанный LemmaCanon.reviewId, source='agent:review', grade 3,
+   провенанс-ключи в meta на сервере) · проекция пересчитана В ТОМ ЖЕ запросе ·
+   **идемпотентность: тот же attempt_id повторно → replayed:true, counts
+   байт-неизменны** · wrong по read:agent на слове с рецептивной историей → grade 1
+   (рецептивный lapse) · PRODUCTION_CHANNEL_LOCKED на dictate:agent — И контроль:
+   echo display-леммы по production-каналу НЕ выключает D1 (запись не произошла) ·
+   skip → kind='skip' grade 1 · MNAR: empty/не-иврит → /api/learner/log-хвост (ids)
+   до/после идентичен (counts-только ассерт слеп к cross-user записи) ·
+   ktiv-male ответ → recorded:false, reason='ktiv-candidate', ничего не записано ·
+   ANSWER_TOO_LONG · UNKNOWN_ITEM / BAD_CHANNEL / UNKNOWN_ARG / SKIP_WITH_ANSWER /
+   sent: / EXPECTED_UNRESOLVED (вкл. skip-путь) → reject, ничего не записано ·
+   reserved_source: клиентский батч с НОВОЙ source='agent:review'-строкой →
+   rejected; echo СУЩЕСТВУЮЩЕЙ agent-строки → dup · **annul: byte-снимок
+   srs_projections-строки ДО ошибочного грейда == снимку ПОСЛЕ annul
+   (движко-независимый ассерт — сравнение с FC.replay было бы «согласен сам
+   с собой»)**, annul.id==annulId, item_key==цели, meta.reason сохранён ·
+   annul-реджекты (missing / sent: / foreign-source / annul-of-annul / без reason /
+   старше 24ч) · double-annul идемпотентен · грейд `#`-ключа НЕ грузит
+   pealim-датасет (keyingService.status().loaded==false — R16 write-path) ·
+   stdout-гигиена: sentinel item_key И sentinel-ответ НЕ в логах сервера ·
+   **браузер-нога (паттерн cloud-sync-smoke; ГРЕЙДЫ минтятся в Node-ноге ДО
+   открытия страницы — браузерные акты только fullSync+чтение, act-retry-safe):**
+   login → fullSync → agent-строки (review+annul) в ЛОКАЛЬНОМ OPFS review_log →
+   recomputeSrsFromLog применён → «Зал видит»: локальный getSrsSchedule()[key] ==
+   FC.replay(локальный лог) == серверная проекция; annul-to-null → clearSrsState
+   (расписание слова исчезло локально).
+
+7. **R17-B разбор развилки «источник expected»** (v2 — формулировки уточнены критикой):
+   - (A) клиентский expected — ОТКЛОНЁН: показ и грейд разъезжаются («грейд не того,
+     что спрошено»). NB критики: анти-фрод аргумент НЕ преувеличивать — верный ответ
+     выводим из самого item_key/из /plan, а /api/learner/ingest и так принимает
+     произвольные grade-строки принципала: self-fraud против собственного лога вне
+     модели угроз. Реальная ценность (B) = показ==грейд из одного источника, а
+     ЧЕСТНОСТЬ production-оси защищается НЕ источником expected, а v1-запретом
+     production-каналов (п. 3) до shown-vs-graded.
+   - **(B) v1, ВЫБРАН: expected выводится сервером из item_key** + единица обязана
+     существовать в логе. Поверхность P7.2 показывает prompt из ТОГО ЖЕ
+     displayForItemKey → показ и грейд из одного источника by construction.
+     Честное ограничение (уточнено критикой): display-форма = ЛЕММА и для
+     pid-ключей, и для большинства `#`-ключей (кейер приоритизирует body.lemma
+     над body.word — notes-autogen:377; «skeleton == форма вхождения» верно только
+     для слов без утверждённой леммы) → v1-упражнение агента = лемма-рецептив/
+     лемма-продукция, НЕ форма-в-предложении (surface-якоря srs_surface —
+     device-local OPFS, сервера их нет). Отсюда и рецептивный-only v1 (п. 3).
+     NB: для лемма-expected reason 'lemma-not-form' не срабатывает by construction
+     (ответ-лемма и есть верный ответ) — не баг, а семантика упражнения.
+   - (C) shown-vs-graded через bot_action_log (бот регистрирует показанный prompt,
+     record сверяет; prompt_id/update_id → attempt_id) — обязательное условие
+     разблокировки production-каналов в P7.2; P7.0c не блокирует.
+
+8. **Развилка владельца (privacy, НЕ решается в P7.0c): класс/TTL сырого ответа.**
+   Реализуемый дефолт = (A): сырой ответ НЕ персистится нигде (META_STRIP на обеих
+   сторонах + reviewer его не кладёт ни в meta, ни в task-payload; TTL=0 по
+   построению) — «не знаем» остаётся по построению. Альтернативы для будущего
+   решения: (B) класс C с consent + TTL (напр. 30 дней) в отдельной таблице — для
+   QA грейдера/споров/апелляций; (C) персистить только derived-скелет ответа
+   (не сырой ввод) с TTL. Рекомендация: (A) сейчас — апелляция = annul
+   (детерминированный грейдер полностью объясним провенансом), (B) рассматривать
+   только при реальных спорах о грейдах в P7.2+.
+
+9. **Вне скоупа P7.0c:** Telegram (P7.1/P7.2) · UI-серфейс · включение флага на
+   проде · un-annul · annul чужих (не-agent) строк · приватность сырого ответа
+   (развилка п. 8) · synthesize_audio (свои гейты) · production-каналы записи
+   (разблокировка = P7.2 challenge-binding) · cell-level ktiv-accept (развилка
+   владельца) · pid→display сайдкар-индекс без полного бандла (R16-заметка P7.2:
+   idle-выгрузка 5 мин + неторопливая tg-сессия = перезагрузка 306MB-бандла на
+   каждый pid-ответ) · source-разрез в struggles/lifecycle (наблюдаемость
+   анти-циркулярности — вместе с bot_action_log P7.1).
+
+10. **Известные ограничения (зафиксированы, не баги):** серверное reviewed_at может
+   лексикографически проиграть клиентской строке с future-skew ≤5мин (FUTURE_SLACK_MS
+   ingest-а) — искажение фолда суб-дневное (utcDayDiff), детерминизм и оракул целы ·
+   один и тот же контент-ответ в ту же миллисекунду → reviewId-dup (отдаётся
+   dup:true честно) · crash-window LWW-марок в syncDown (курсор до применения марок)
+   — ПРЕ-существующий, annul-фикс 5-бис его не расширяет; отдельный тикет.
+
+---
+
+## P7.0c — SHIPPED v3.11.117 (2026-07-06); адъюдикация adversarial-критики
+
+Спека v1 → критика (wf_28ac3c6e, 3 линзы R17-B/R11 · R12/R14 · R13/R16+харнесс, замер
+по живому коду) нашла **4 BLOCKER (2 из них — одна и та же дыра идемпотентности,
+названная независимо всеми 3 линзами) + 8 MAJOR + 8 MINOR** → спека переписана в v2,
+затем код. Самое опасное:
+
+- **BLOCKER «идемпотентность мертворождена» (ВСЕ 3 линзы независимо):** id из
+  СЕРВЕРНОГО reviewed_at → каждый ретрай/redelivery/act-retry гейта = НОВЫЙ id →
+  вторая review-строка за один ответ (reps/lapses завышены, лечится только ручным
+  annul). Фикс: **ОБЯЗАТЕЛЬНЫЙ caller-side `attempt_id`** → idempotency_key
+  `'agentrev:'+attempt_id`; ретрай реплеит ingest_batches. Гейт: тот же attempt_id
+  дважды → replayed, лог байт-неизменен.
+- **BLOCKER «lemma-echo переоткрыт для pid/#-ключей» (R17-B + R13):** expected =
+  display-лемма, которую /plan сам отдаёт вызывателю → grade-3 по 'dictate:agent' →
+  hasProductionSuccess=true НАВСЕГДА → D1 выключен, production_gap отравлен (ровно
+  вектор, закрытый P7.0b). Фикс: **channel v1 = ТОЛЬКО рецептивные семьи
+  (read/listen)**; production (dictate/reverse) → reject `PRODUCTION_CHANNEL_LOCKED`
+  до P7.2 challenge-binding (shown-vs-graded). Рецептив — безопасная сторона (успех =
+  рецептивное свидетельство, провал = честный lapse). Гейт-контроль: echo леммы по
+  production-каналу НЕ выключает D1 (запись не произошла).
+- **BLOCKER «ktiv-male ложный lapse» (R17-B):** expected сервера = хасер display-форма;
+  честный ktiv-male ввод (דיבר при лемме דבר) → near_miss → grade 1/2, ложный lapse
+  НАВСЕГДА в append-only лог; Зал же принимает male-ПОВЕРХНОСТЬ вхождения (второй
+  скелет), которой у сервера v1 нет — сервер СТРОЖЕ Зала. Фикс: **write-gate
+  reason='ktiv-candidate' → recorded:false** (расширение MNAR) — честное воздержание
+  вместо ложного провала. grader НЕ тронут (gold 58/58 цел).
+- **MAJOR «recompute не переигрывается на replay-ветке» (R12):** new_item_keys не
+  персистится в batch-результате → крэш между COMMIT и recompute + ретрай оставлял бы
+  stale-проекцию навсегда. Фикс: **recompute БЕЗУСЛОВНЫЙ** по известному item_key
+  (и live, и replayed).
+- **MAJOR «source='agent:*' подделывается» (R14):** штатный ingest принял бы
+  клиентскую строку с фальшивым agent-провенансом байт-неотличимо → провенанс
+  переставал быть доказательством, annul-scope авторизовался бы неаттестованным полем.
+  Фикс: **резерв префикса** — `ingestBatch(..., {trustedAgentSource})`; без флага
+  новая agent:-строка → reject `reserved_source`, существующий id → dup (echo-петля
+  cloud-sync зелёная).
+- **MAJOR «annul = безлимитный ластик» (R17-B):** любой возраст, без причины/окна/
+  журнала → селективная инфляция памяти (MNAR-инверсия). Фикс: **reason обязателен +
+  окно 24ч** (target старше → `ANNUL_TARGET_TOO_OLD`).
+- **MAJOR «crash-window annul-to-null» (R13):** syncDown продвигал down-курсор
+  по-странично, recompute — раз ПОСЛЕ цикла → краш терял addedKeys → clearSrsState
+  не вызывался никогда (сервер память удалил, клиент планирует по отменённому грейду).
+  До P7.0c окно теоретическое (annul-строк не было) — первый писатель делает его живым.
+  Фикс: **recompute ключей СТРАНИЦЫ ДО продвижения курсора** (cloud-sync.js, SW-бамп).
+- **MAJOR «тихий 0» (R12) + «EXPECTED_UNRESOLVED недостижим» (R12/R14/харнесс) +
+  «гейт без зубов» (харнесс):** пост-ассерт записи (recorded только при new/dup/
+  replayed); displayForItemKey фолбэчит сырым ключом → reviewer сам детектит (display
+  == item_key ∨ без иврита) ДО грейдера И на skip-пути; гейт — движко-независимый
+  byte-снимок проекции (не FC.replay «сам с собой»), log-хвост по ids (не counts),
+  матрица двух бутов, flag-off zero-write.
+- **MINOR-пачка (учтено в v2):** UNKNOWN_ARG whitelist (expected/grade в args →
+  reject, не молчание) · SKIP_WITH_ANSWER · свой лимитер 60/мин (rlAgent 20/мин душил
+  бы сессию) · ANSWER_TOO_LONG 400 симв · itemRows вынесен в ЕДИНУЮ точку истины
+  (learnerProjectionRepo делегирует) · коды ошибок по живому /explain (не выдуманный
+  «HTTP 200 {ok:false}») · anti-циркулярность/pid-latency/source-разрез — задокумент.
+  как P7.1/P7.2-долг.
+
+**Что критика подтвердила исправным (v2 не меняет):** annul.id=annulId (reviewId
+запрещён) · item_key=цели · sent:/foreign/kind-реджекты · MNAR на empty/unsupported ·
+grader как единственный судья · user-scope из принципала.
+
+**Гейт `smoke:agent-review` 66/66** (матрица OFF/ON: flag-off zero-write · штатный
+ingest+провенанс+id==reviewId · проекция в том же запросе · attempt_id идемпотентен ·
+#-ключи без датасета · wrong/skip/MNAR по ids-хвосту · ktiv write-gate · production-lock ·
+контракт-реджекты · reserved_source fake/echo · annul byte-restore проекции +
+минтер-контракты + 24ч + double-replay + annul-to-null удаляет проекцию · oracle clean
+annul_rows=2 · stdout-гигиена · браузер-нога: OPFS down-sync + Зал видит local==replay==
+server + clearSrsState). **Регрессия:** grader-gold 58/58 · server-replay 65/65 (v1
+golden байт-стабилен) · memory-canon 63/63 · cloud-sync 32/32 · agent-plan 32/32 ·
+agent-explain 43/43 · burst 19/19 · mentor-home 25/25 · fsrs 30/30 · grade-policy 24/24 ·
+learner-graph 14/14 · learner-ingest 24/24 · auth 26/26 · api-smoke.
+
+**Прод:** флаг `AGENT_REVIEW_WRITE` НЕ задан → инструмент отдаёт FEATURE_FLAG_OFF;
+write-контур деплоится dormant, включение — по решению владельца после web-верификации.
+
+**Развилка владельцу (privacy, п. 8 — НЕ решена в коде):** класс/TTL сырого ответа
+пользователя. Дефолт реализован = (A) не персистится нигде. См. финальное сообщение
+сессии.

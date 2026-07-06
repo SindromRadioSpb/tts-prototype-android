@@ -23,6 +23,17 @@ async function explain(ctx, args) {
   return explainer.explain(ctx, args || {});
 }
 
+// P7.0c: запись ответа/annul — СТРОГО через closed tool router (единственные ворота
+// записи; флаг/whitelist/B2 живут там и в reviewer). Контрактные реджекты reviewer
+// ВОЗВРАЩАЕТ (не бросает), callTool оборачивает их в {ok:true, result:{ok:false…}} —
+// анврапим, чтобы endpoint видел коды as-is; router-ошибки (TOOL_DISABLED/
+// USER_ID_IN_ARGS/TOOL_FAILED) пробрасываются как есть.
+async function recordReview(ctx, args) {
+  const call = await tools.callTool(ctx, "record_review_answer", args || {});
+  if (!call.ok) return call;
+  return call.result;
+}
+
 async function status(ctx) {
   const usage = await agentRepo.usageToday(ctx.userId);
   const profile = await agentRepo.getProfile(ctx.userId);
@@ -120,4 +131,4 @@ async function updateProfile(ctx, patch) {
   return { mode: p.mode, language: p.language };
 }
 
-module.exports = { plan, explain, status, listTasks, updateProfile, listExplanations, constructsSummary };
+module.exports = { plan, explain, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };

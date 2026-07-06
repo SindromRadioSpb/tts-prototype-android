@@ -152,6 +152,7 @@
       if (r.status !== 200 || !r.json || !r.json.ok) return { ok: false, status: r.status, error: (r.json && r.json.error) || "READ_FAILED" };
       var rows = r.json.rows || [];
       if (!rows.length) break;
+      var pageKeys = new Set();
       for (var i = 0; i < rows.length; i++) {
         var w = rows[i];
         // per-row existence pre-check: appendReviewLog's OR IGNORE can't tell new from dup,
@@ -163,9 +164,20 @@
           meta_json: w.meta_json,
         });
         if (isNew && res && res.accepted >= 1) {
-          addedKeys.add(String(w.item_key)); pulled++;
+          addedKeys.add(String(w.item_key)); pageKeys.add(String(w.item_key)); pulled++;
           if (w.kind === "mark") markKeys.add(String(w.item_key));
         }
+      }
+      // P7.0c (критика R13, crash-window): recompute ключей СТРАНИЦЫ ДО продвижения
+      // курсора. Раньше один recompute шёл ПОСЛЕ всего цикла — краш вкладки между
+      // сохранением курсора и рекомпьютом терял addedKeys НАВСЕГДА: для annul-to-null
+      // это значило «сервер память удалил, клиент планирует слово по отменённому грейду
+      // вечно» (counts-reconcile равен, engine-heal не срабатывает, новых событий по
+      // слову нет). Recompute идемпотентен — повтор страницы после ретрая безопасен;
+      // провал вызова НЕ продвигает курсор (следующий sync дотянет, OR IGNORE дедупит).
+      if (pageKeys.size && typeof ldb.recomputeSrsFromLog === "function") {
+        try { await ldb.recomputeSrsFromLog(Array.from(pageKeys)); }
+        catch (e) { return { ok: false, error: "RECOMPUTE_FAILED", pulled: pulled }; }
       }
       afterRid = Number(r.json.next_rid) || afterRid;
       await ldb.setSyncState(DOWN_CURSOR, String(afterRid));
@@ -184,9 +196,7 @@
         } catch (_) {}
       }
     }
-    if (addedKeys.size && typeof ldb.recomputeSrsFromLog === "function") {
-      try { await ldb.recomputeSrsFromLog(Array.from(addedKeys)); } catch (_) {}
-    }
+    // recompute уже прошёл по-странично ДО каждого продвижения курсора (см. цикл выше).
     return { ok: true, pulled: pulled, lwwApplied: lwwApplied, recomputedKeys: Array.from(addedKeys) };
   }
 

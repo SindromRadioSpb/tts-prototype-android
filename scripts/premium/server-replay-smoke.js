@@ -111,6 +111,11 @@ const close = (a, b, tol) => Math.abs(Number(a) - Number(b)) < (tol || 1e-6);
           if (m && m.annul_of != null) { m.annul_of = sc.name + "|" + m.annul_of; out.meta_json = JSON.stringify(m); }
         } catch (_) {}
       }
+      // P7.0c: source 'agent:*' зарезервирован за серверным reviewer (новая строка из
+      // клиентского батча → reject 'reserved_source'); golden-файлы не трогаем (байт-
+      // стабильность = do-no-harm доказательство) — переписываем source в e2e-ноге,
+      // replay от source не зависит.
+      if (String(out.source || "").indexOf("agent:") === 0) out.source = "x-" + out.source.slice(6);
       return out;
     });
     for (const sc of SCN) {

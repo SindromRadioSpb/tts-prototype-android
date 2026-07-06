@@ -12,9 +12,11 @@
 // писатель SQLite). При выделении agent-сервиса в отдельный контейнер обработчики
 // заменяются HTTP-клиентами Cloud API — сигнатуры инструментов не меняются.
 //
-// Стадирование (§9-план 4.8): record_review_answer и synthesize_audio — SKELETON,
-// disabled до своих гейтов (deterministic-first · D1 · провенанс · gold · annul ·
-// MNAR · down-sync; TTS-лимиты) — честный TOOL_DISABLED, не тихий no-op.
+// Стадирование (§9-план 4.8): гейты record_review_answer ПРОЙДЕНЫ (deterministic-first ·
+// D1 · провенанс · gold · annul · MNAR · down-sync = P7.0a/b/c) — инструмент включается
+// feature-флагом AGENT_REVIEW_WRITE=1 (прод: OFF до решения владельца; reason
+// FEATURE_FLAG_OFF честно отличим от прежнего GATED_UNTIL_GRADER_GATES).
+// synthesize_audio — SKELETON до TTS-лимитов.
 
 const path = require("path");
 const learnerGraphRepo = require(path.join(__dirname, "..", "db", "learnerGraphRepo"));
@@ -22,6 +24,7 @@ const learnerArtifactsRepo = require(path.join(__dirname, "..", "db", "learnerAr
 const agentSentenceRepo = require(path.join(__dirname, "..", "db", "agentSentenceRepo"));
 const keyingService = require(path.join(__dirname, "..", "db", "keyingService"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
+const reviewer = require(path.join(__dirname, "reviewer"));
 
 const REGISTRY = {
   // ── read-only: Learner Graph (CLG-P5) ──────────────────────────────────────
@@ -92,21 +95,29 @@ const REGISTRY = {
     run: (ctx, a) => agentRepo.createExplanation(ctx.userId, a || {}),
   },
 
-  // ── SKELETON (§9-план 4.8): активация по гейтам, не в этом слайсе ──────────
+  // ── writeback в review_log (P7.0c): единственный писатель памяти из агента ──
+  // Флаг проверяется ПРИ КАЖДОМ вызове (не при require) — гейт бутит on/off-матрицу.
   record_review_answer: {
-    disabled: "GATED_UNTIL_GRADER_GATES",   // deterministic-first · D1 · провенанс · gold · annul · MNAR · down-sync
+    readOnly: false,
+    disabled: () => (reviewer.flagOn() ? null : "FEATURE_FLAG_OFF"),
+    run: (ctx, a) => reviewer.record(ctx, a),
   },
+  // ── SKELETON (§9-план 4.8): активация по гейтам, не в этом слайсе ──────────
   synthesize_audio: {
     disabled: "GATED_UNTIL_TTS_LIMITS",     // §7 max TTS chars/day + ledger kind='tts_chars'
   },
 };
 
+// disabled может быть строкой (статический skeleton) или функцией (feature-flag).
+function _disabledReason(t) {
+  return typeof t.disabled === "function" ? t.disabled() : (t.disabled || null);
+}
+
 function listTools() {
-  return Object.keys(REGISTRY).map((name) => ({
-    name,
-    enabled: !REGISTRY[name].disabled,
-    ...(REGISTRY[name].disabled ? { disabled_reason: REGISTRY[name].disabled } : {}),
-  }));
+  return Object.keys(REGISTRY).map((name) => {
+    const reason = _disabledReason(REGISTRY[name]);
+    return { name, enabled: !reason, ...(reason ? { disabled_reason: reason } : {}) };
+  });
 }
 
 // Единственная точка вызова инструмента. ctx = { userId, deviceId } из принципала.
@@ -118,7 +129,8 @@ async function callTool(ctx, name, args) {
   }
   const t = REGISTRY[name];
   if (!t) return { ok: false, error: "UNKNOWN_TOOL" };
-  if (t.disabled) return { ok: false, error: "TOOL_DISABLED", reason: t.disabled };
+  const disabledReason = _disabledReason(t);
+  if (disabledReason) return { ok: false, error: "TOOL_DISABLED", reason: disabledReason };
   try {
     return { ok: true, result: await t.run(ctx, args || {}) };
   } catch (e) {

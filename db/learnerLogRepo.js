@@ -165,7 +165,13 @@ function validateLearnerEvent(raw, nowMs) {
 
 // The ONE ingest step. `userId` = authenticated principal (never from the batch body — the
 // endpoint rejects a mismatching body user_id with 403 BEFORE calling this).
-async function ingestBatch(userId, deviceId, batch) {
+// opts.trustedAgentSource (P7.0c, критика R14): source='agent:*' зарезервирован за серверным
+// reviewer-путём — провенанс «строку выдал детерминированный грейдер» должен быть аттестован,
+// иначе клиентский батч с фальшивым agent-провенансом байт-неотличим от настоящего, а
+// annul-скоуп «только свои строки» авторизуется неаттестованным полем. Без флага НОВАЯ
+// agent:-строка → reject 'reserved_source'; СУЩЕСТВУЮЩИЙ id → dup (echo-петля cloud-sync,
+// re-аплоадящего down-синкнутые agent-строки, остаётся зелёной).
+async function ingestBatch(userId, deviceId, batch, opts) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const idem = String((batch && batch.idempotency_key) || "").trim();
   if (!idem || idem.length > 80) return { ok: false, error: "BAD_IDEMPOTENCY_KEY" };
@@ -211,6 +217,12 @@ async function ingestBatch(userId, deviceId, batch) {
       // per-row keyer mismatch vs the batch declaration → reject (§6 mixed-keyer gate)
       if (v.row.rowKeyerVersion != null && v.row.rowKeyerVersion !== SUPPORTED_KEYER_VERSION) {
         result.review_log.rejected++; rejects(v.row.id, "row_keyer_version"); continue;
+      }
+      // P7.0c reserved source (см. шапку ingestBatch): новый agent:-id из недоверенного
+      // батча — reject; существующий — проваливается в OR IGNORE и честно считается dup.
+      if (!(opts && opts.trustedAgentSource) && v.row.source.indexOf("agent:") === 0) {
+        const ex = await dbGet(db, `SELECT 1 x FROM review_log WHERE user_id = ? AND id = ?`, [userId, v.row.id]);
+        if (!ex) { result.review_log.rejected++; rejects(v.row.id, "reserved_source"); continue; }
       }
       result.stripped_meta_keys += v.strippedKeys.length;
       const r = await dbRun(db,
@@ -271,8 +283,28 @@ async function counts(userId) {
   return { review_log: Number(rl && rl.c) || 0, learner_events: Number(ev && ev.c) || 0 };
 }
 
+// P7.0c — КАНОНИЧЕСКИЙ per-item срез лога в replay-порядке (reviewed_at ASC, id ASC —
+// UTC-Z делает лексикографический == хронологическому). Единственная точка истины этого
+// ORDER: learnerProjectionRepo и agent/reviewer читают ОТСЮДА (критика: копипаста SQL
+// в два репо = молчаливый дрейф порядка фолда vs rows грейдера).
+async function itemRows(userId, itemKey) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  return (await dbAll(db,
+    `SELECT id, item_key, kind, reviewed_at, grade, source, channel, meta_json
+       FROM review_log WHERE user_id = ? AND item_key = ? ORDER BY reviewed_at ASC, id ASC`,
+    [userId, String(itemKey || "")])) || [];
+}
+
+// P7.0c annul-минтер: резолв цели строго по (user_id, id) — user-scope структурный.
+async function getRowById(userId, id) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  return (await dbGet(db,
+    `SELECT id, item_key, kind, reviewed_at, grade, source, channel, meta_json
+       FROM review_log WHERE user_id = ? AND id = ?`, [userId, String(id || "")])) || null;
+}
+
 module.exports = {
-  ingestBatch, readLog, counts,
+  ingestBatch, readLog, counts, itemRows, getRowById,
   SUPPORTED_SCHEMA_VERSION, SUPPORTED_KEYER_VERSION, MAX_BATCH_ROWS,
   META_ALLOW,   // P7.0b: read-only для гейта «провенанс-полям грейдера есть где жить»
 };

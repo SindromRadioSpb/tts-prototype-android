@@ -112,9 +112,12 @@ function seedRows() {
   }
   const b2 = await tools.callTool({ userId: "u_x" }, "get_due_words", { user_id: "u_x" });
   eq(b2.ok === false && b2.error === "USER_ID_IN_ARGS", "user_id in args must be rejected even when matching (B2)");
+  // P7.0c: гейты 4.8 пройдены — теперь инструмент выключает ФЛАГ (в этом процессе
+  // AGENT_REVIEW_WRITE не задан → честный FEATURE_FLAG_OFF; полный цикл = smoke:agent-review).
+  delete process.env.AGENT_REVIEW_WRITE;
   const rra = await tools.callTool({ userId: "u_x" }, "record_review_answer", {});
-  eq(rra.ok === false && rra.error === "TOOL_DISABLED" && rra.reason === "GATED_UNTIL_GRADER_GATES",
-    "record_review_answer must be a DISABLED skeleton until grader gates");
+  eq(rra.ok === false && rra.error === "TOOL_DISABLED" && rra.reason === "FEATURE_FLAG_OFF",
+    "record_review_answer must be DISABLED with FEATURE_FLAG_OFF when the flag is unset");
   const tts = await tools.callTool({ userId: "u_x" }, "synthesize_audio", {});
   eq(tts.ok === false && tts.error === "TOOL_DISABLED", "synthesize_audio must be disabled until TTS limits");
   const unk = await tools.callTool({ userId: "u_x" }, "drop_table", {});
@@ -212,7 +215,9 @@ function seedRows() {
       idempotency_key: "agent-smoke-annul", schema_version: 1, keyer_version: 1,
       review_log: [1, 2].map((n) => ({
         id: "annul:strug:" + n, item_key: SENTINEL + "|strug#noun", kind: "annul",
-        reviewed_at: new Date().toISOString(), grade: null, source: "agent:correction",
+        // source НЕ 'agent:*' — P7.0c резервирует префикс за серверным reviewer-путём
+        // (новая agent:-строка из клиентского батча → reject 'reserved_source').
+        reviewed_at: new Date().toISOString(), grade: null, source: "correction",
         meta_json: JSON.stringify({ keyer_version: 1, annul_of: SENTINEL + ":strug:" + n }),
       })),
     } });
