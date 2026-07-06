@@ -489,6 +489,7 @@ let readerMorph = null; // ReaderMorph attach detach handle
 let readerTextId = null; // BRR-P2-002 — local OPFS id of the open text (for progress)
 let readerTextTitle = ''; // BRR-P2-003 — title + key of the open text (denormalised into bookmarks)
 let readerTextKey = null;
+let readerIsOwnText = false; // CLG-P6.2 — «Объяснить» только на СВОИХ текстах (корпус не в artifact-store)
 let _bookmarkSet = null;  // Set of bookmarked sentence_ids in the current text
 
 // BYOK GCP TTS key — same localStorage slot index.html uses (v3.gcpTtsApiKey).
@@ -2187,6 +2188,7 @@ function _cloudEls() {
     secret: $('roomCloudSecret'), loginBtn: $('roomCloudLoginBtn'), panel: $('roomCloudPanel'),
     info: $('roomCloudInfo'), syncBtn: $('roomCloudSyncBtn'), logoutBtn: $('roomCloudLogoutBtn'),
     textsCb: $('roomCloudTexts'),
+    agentTextsCb: $('roomCloudAgentTexts'),
     pushState: $('roomCloudPushState'), pushOn: $('roomCloudPushOn'),
     pushTest: $('roomCloudPushTest'), pushOff: $('roomCloudPushOff'),
     planBtn: $('roomCloudPlanBtn'), planBox: $('roomCloudPlanBox'),
@@ -2330,6 +2332,11 @@ async function _cloudRender() {
   if (els.textsCb) {
     const c = (session.consents || {}).cloud_texts;
     els.textsCb.checked = !!(c && c.granted === true);
+  }
+  // CLG-P6.2 — отдельное согласие «наставник читает тексты» (серверная истина, как и класс B)
+  if (els.agentTextsCb) {
+    const ca = (session.consents || {}).agent_read_texts;
+    els.agentTextsCb.checked = !!(ca && ca.granted === true);
   }
   const lines = [];
   const hintRow = (hintKey, html) => '<span data-cloud-hint="' + hintKey + '">' + html + '<span class="room-cloud-i" aria-hidden="true">ⓘ</span></span>';
@@ -2484,6 +2491,23 @@ function roomCloudInit() {
       if (granted) _cloudRunSync(false);
     } catch (_) { els.textsCb.checked = !granted; }
   });
+  // CLG-P6.2 — согласие «наставник читает тексты»: durable consent-запись; отзыв на сервере
+  // каскадно чистит контент сохранённых объяснений (tombstone) — клиент только сообщает.
+  if (els.agentTextsCb) els.agentTextsCb.addEventListener('change', async () => {
+    const granted = !!els.agentTextsCb.checked;
+    try {
+      const r = await fetch('/api/auth/consent', { method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
+        body: JSON.stringify({ key: 'agent_read_texts', granted, version: 'v1' }) });
+      if (!r.ok) { els.agentTextsCb.checked = !granted; _cloudStatus('✗ ' + tt('room.cloud.err', 'Ошибка синхронизации'), 'err'); return; }
+      if (!granted) {
+        const j = await r.json().catch(() => null);
+        if (j && j.explanations && j.explanations.purged >= 1) {
+          _cloudStatus('✓ ' + tt('room.explain.purged', 'Сохранённые объяснения очищены'), 'ok');
+        }
+      }
+    } catch (_) { els.agentTextsCb.checked = !granted; }
+  });
   if (els.logoutBtn) els.logoutBtn.addEventListener('click', async () => {
     const CS = window.CloudSync; if (!CS) return;
     try { await CS.logout(); } catch (_) {}
@@ -2616,6 +2640,7 @@ function attachReaderAudio() {
   attachReaderMorph(mount);
   applyReveal(mount);
   attachBookmarks(mount);   // BRR-P2-003 — POST-render ☆/★ per row (Room-only, parity-safe)
+  attachExplainButtons(mount);   // CLG-P6.2 — POST-render 🤖 per row (только свои тексты)
   karaokeActive = false; setReadAloudBtn(false);   // a fresh (re)attach resets karaoke state
 }
 
@@ -3020,6 +3045,120 @@ async function toggleBookmark(idx, btn) {
       roomToast(tt('room.bookmark.added', 'Закладка добавлена'));
     }
   } catch (_) {}
+}
+
+// ============================================================================
+// CLG-P6.2 — «🤖 Объяснить предложение» (/api/agent/explain). Решение владельца
+// 2026-07-06: scope СТРОГО sentence_only; consent = отдельный durable agent_read_texts
+// + разовый first-use confirm ЗДЕСЬ (situated consent); сервер проверяет ОБА согласия
+// на каждый вызов (fail-closed) — клиентские проверки только для честных сообщений.
+// LLM-текст рендерится ТОЛЬКО textContent; деградация подписывается честно (R16/R11).
+// ============================================================================
+function _explainEls() {
+  return {
+    modal: $('roomExplainModal'), sentence: $('roomExplainSentence'),
+    consent: $('roomExplainConsent'), allow: $('roomExplainAllow'), cancel: $('roomExplainCancel'),
+    body: $('roomExplainBody'), meta: $('roomExplainMeta'),
+  };
+}
+let _explainPending = null;   // { textKey, orderIndex } — ждёт first-use подтверждения
+function roomExplainInit() {
+  const els = _explainEls(); if (!els.modal) return;
+  els.modal.addEventListener('click', (e) => {
+    if (e.target && e.target.getAttribute && e.target.getAttribute('data-explain-close') === '1') { els.modal.hidden = true; _explainPending = null; }
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !els.modal.hidden) { els.modal.hidden = true; _explainPending = null; } });
+  if (els.cancel) els.cancel.addEventListener('click', () => { els.modal.hidden = true; _explainPending = null; });
+  if (els.allow) els.allow.addEventListener('click', async () => {
+    const p = _explainPending; _explainPending = null;
+    if (els.consent) els.consent.hidden = true;
+    if (!p) { els.modal.hidden = true; return; }
+    // Разовое подтверждение → durable consent (дальше без вопросов, отзыв — чекбоксом в ☁)
+    try {
+      const r = await fetch('/api/auth/consent', { method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
+        body: JSON.stringify({ key: 'agent_read_texts', granted: true, version: 'v1' }) });
+      if (!r.ok) { _explainShowMeta(tt('room.cloud.err', 'Ошибка синхронизации')); return; }
+    } catch (_) { _explainShowMeta(tt('room.cloud.err', 'Ошибка синхронизации')); return; }
+    _explainRequest(p.textKey, p.orderIndex);
+  });
+}
+function _explainShowMeta(text) {
+  const els = _explainEls(); if (!els.meta) return;
+  els.meta.textContent = text || ''; els.meta.hidden = !text;
+}
+function attachExplainButtons(mount) {
+  if (!mount || !readerIsOwnText) return;   // корпус: артефактов нет by-design — кнопки нет
+  mount.querySelectorAll('tr[data-row-idx]').forEach((tr) => {
+    const idx = Number(tr.getAttribute('data-row-idx'));
+    const row = readerRows[idx];
+    if (!row || !(row.he || row.he_niqqud)) return;
+    const cell = tr.querySelector('.col-action-cell');
+    if (!cell || cell.querySelector('.row-explain-btn')) return;
+    const btn = el('button', {
+      class: 'row-explain-btn', text: '🤖',
+      attrs: { type: 'button', 'data-row-idx': String(idx),
+        title: tt('room.explain.btn', 'Объяснить предложение (наставник)'),
+        'aria-label': tt('room.explain.btn', 'Объяснить предложение (наставник)') },
+    });
+    btn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); explainRow(idx); });
+    const wrap = el('div', { class: 'col-action-row col-action-row-explain' });
+    wrap.appendChild(btn);
+    cell.appendChild(wrap);
+  });
+}
+async function explainRow(idx) {
+  const row = readerRows[idx];
+  if (!row || !readerTextKey) return;
+  const orderIndex = row._v3_orderIndex != null ? Number(row._v3_orderIndex) : idx;
+  const els = _explainEls(); if (!els.modal) return;
+  els.modal.hidden = false;
+  if (els.sentence) els.sentence.textContent = row.he_niqqud || row.he || '';
+  if (els.body) { els.body.hidden = true; els.body.textContent = ''; }
+  if (els.consent) els.consent.hidden = true;
+  _explainShowMeta('');
+  const CS = window.CloudSync;
+  let session = null;
+  try { session = CS ? await CS.me() : null; } catch (_) {}
+  if (!session) { _explainShowMeta(tt('room.explain.needLogin', 'Для объяснений нужен вход в облако — откройте ☁ в шапке.')); return; }
+  const consents = session.consents || {};
+  if (!(consents.cloud_texts && consents.cloud_texts.granted === true)) {
+    _explainShowMeta(tt('room.explain.needTexts', 'Сначала включите «Синхронизировать Мои тексты» в ☁ и запустите синк.'));
+    return;
+  }
+  if (!(consents.agent_read_texts && consents.agent_read_texts.granted === true)) {
+    // first-use situated consent: показываем ЧТО будет отправлено, прежде чем включить durable
+    _explainPending = { textKey: readerTextKey, orderIndex };
+    if (els.consent) els.consent.hidden = false;
+    return;
+  }
+  _explainRequest(readerTextKey, orderIndex);
+}
+async function _explainRequest(textKey, orderIndex) {
+  const els = _explainEls();
+  if (els.body) { els.body.hidden = false; els.body.textContent = tt('room.explain.loading', 'Наставник думает…'); }
+  _explainShowMeta('');
+  let r = null;
+  try {
+    r = await fetch('/api/agent/explain', { method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
+      body: JSON.stringify({ text_key: textKey, order_index: orderIndex, scope_level: 'sentence_only' }) }).then((x) => x.json());
+  } catch (_) {}
+  if (!r || !r.ok) {
+    const code = (r && r.error) || '';
+    let msg;
+    if (code === 'TEXT_NOT_IN_CLOUD') msg = tt('room.explain.notInCloud', 'Текст ещё не синхронизирован — запустите синк в ☁ и повторите.');
+    else if (code === 'SENTENCE_NOT_FOUND') msg = tt('room.explain.notInCloud', 'Текст ещё не синхронизирован — запустите синк в ☁ и повторите.');
+    else if (code === 'CLOUD_TEXTS_CONSENT_REQUIRED') msg = tt('room.explain.needTexts', 'Сначала включите «Синхронизировать Мои тексты» в ☁ и запустите синк.');
+    else if (code === 'AGENT_READ_TEXTS_CONSENT_REQUIRED') msg = tt('room.explain.needConsent', 'Разрешите наставнику читать тексты (галочка 🤖 в ☁).');
+    else msg = '✗ ' + tt('room.explain.err', 'Не удалось получить объяснение') + (code ? ' (' + code + ')' : '');
+    if (els.body) { els.body.hidden = false; els.body.textContent = msg; }
+    return;
+  }
+  // LLM/фолбэк-текст — СТРОГО textContent (никогда не HTML)
+  if (els.body) { els.body.hidden = false; els.body.textContent = r.text || ''; }
+  if (r.llm_used) _explainShowMeta('🤖 ' + (r.provider || '') + (r.model ? ' · ' + r.model : ''));
+  else _explainShowMeta(tt('room.explain.noLlm', 'без AI: перевод и морфология офлайн') + (r.degraded_reason ? ' (' + r.degraded_reason + ')' : ''));
 }
 
 // BRR-P1-006 D2 — progressive translation reveal (active recall). In 'reveal' mode the ru cells
@@ -3472,6 +3611,13 @@ async function openReader(textId, title, opts) {
   readerRows = res && res.ok ? res.rows : [];
   readerTextTitle = title || (res && res.text && res.text.title) || '';
   readerTextKey = (res && res.text && res.text.text_key) || null;
+  // CLG-P6.2 — own vs corpus (то же правило, что listOwnTextsForSync/maybeNudgeNiqqud):
+  // корпусные работы не живут в artifact-store → объяснение наставника недоступно by-design.
+  readerIsOwnText = false;
+  try {
+    const meta = res && res.text && res.text.source_meta_json ? JSON.parse(res.text.source_meta_json) : null;
+    readerIsOwnText = !!readerTextKey && !(meta && meta.corpus);
+  } catch (_) { readerIsOwnText = !!readerTextKey; }
   try { setReaderSubtitle(res && res.ok && res.text ? res.text : null); } catch (_) {}   // Epic-6 W1-a — per-work source/context
   if (res && res.ok) {
     attachReaderAudio();
@@ -3555,7 +3701,7 @@ async function closeReader() {
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   karaokeActive = false; setReadAloudBtn(false);   // BRR-P1-008 — reset karaoke on close
   clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip(); clearFadeGradNudge(); closeReaderFind(); _sessionMaxRow = -1; readerTextId = null;   // BRR-P2-002/005/S15 + Epic-5 W1/W4/W5 — stop recording + clear find/end-card/cov-chip/fade-nudge after close
-  _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null;   // BRR-P2-003 — reset bookmark state
+  _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null; readerIsOwnText = false;   // BRR-P2-003 — reset bookmark state
   try { setReaderSubtitle(null); } catch (_) {}   // Epic-6 W1-a — drop the per-work byline on close
   const rm = $('roomReaderTable');
   if (rm && revealHandler) { try { rm.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
@@ -6532,6 +6678,7 @@ function wireChrome() {
   if (aboutModal) aboutModal.addEventListener('click', (e) => { if (e.target && e.target.getAttribute && e.target.getAttribute('data-close') === '1') closeRoomAbout(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeRoomAbout(); });
   roomCloudInit();   // CLG-P3.2 — «☁ Синхронизация» (owner-only; dormant without login)
+  roomExplainInit(); // CLG-P6.2 — модал «Объяснить предложение» (dormant без сессии)
   _roomStudioNavInit();   // Room↔Studio cross-nav: graceful DB close before hard navigation
   // Embedded reader chrome.
   const back = $('readerBack');

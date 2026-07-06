@@ -1262,6 +1262,16 @@
     /* CLG-P6 план дня: многострочный вывод; [hidden]-guard — против author-display трапа */
     .room-cloud-planbox { margin-left: 0; white-space: pre-line; }
     .room-cloud-planbox[hidden] { display: none; }
+    /* CLG-P6.2 — explain: per-row 🤖 + модал результата */
+    #roomReader .row-explain-btn {
+      background: none; border: 0; cursor: pointer; font-size: 15px; line-height: 1;
+      padding: 2px 4px; opacity: 0.55;
+    }
+    #roomReader .row-explain-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent); border-radius: 4px; }
+    .room-explain-sentence { font-size: 18px; margin: 10px 0 6px; }
+    .room-explain-body { white-space: pre-line; font-size: 14px; margin-top: 8px; }
+    .room-explain-body[hidden], .room-explain-sentence:empty, #roomExplainConsent[hidden], #roomExplainMeta[hidden] { display: none; }
+    #roomExplainModal .room-cloud-actions button { width: auto; }
     .room-cloud-push-actions button[hidden] { display: none; }
     /* Stage 2 — rich card: collapsible root-family + ported Pealim inflection table */
     .rm-acc { margin-top: 12px; border-top: 1px solid var(--border-soft); padding-top: 8px; }
@@ -1757,6 +1767,14 @@
         <span data-i18n="room.cloud.textsToggle">📄 Синхронизировать «Мои тексты»</span>
       </label>
       <div class="room-cloud-hint" data-i18n="room.cloud.textsHint">Собственные тексты (не корпус) станут доступны на других ваших устройствах. Выключение остановит синк; удалить из облака можно удалением аккаунта.</div>
+      <!-- CLG-P6.2 — ОТДЕЛЬНОЕ согласие «наставник читает мои тексты» (по духу класса C §5;
+           решение владельца 2026-07-06). Сервер требует ОБА согласия на каждый /explain
+           (fail-closed 403); отзыв очищает контент сохранённых объяснений (tombstone). -->
+      <label class="room-cloud-consent">
+        <input type="checkbox" id="roomCloudAgentTexts">
+        <span data-i18n="room.cloud.agentTextsToggle">🤖 Разрешить наставнику читать мои тексты</span>
+      </label>
+      <div class="room-cloud-hint" data-i18n="room.cloud.agentTextsHint">Наставник сможет отправлять выбранное предложение внешнему AI-провайдеру, чтобы объяснить его с учётом вашего прогресса. Уходит только одно предложение — не весь текст; отзыв согласия очищает сохранённые объяснения.</div>
       <!-- CLG-P4.5 — Web Push: ежедневный нудж (только счётчик, deep-link в Зал) -->
       <div class="room-cloud-push">
         <div class="room-cloud-push-head">🔔 <span data-i18n="room.cloud.pushTitle">Ежедневный нудж</span> <span id="roomCloudPushState" class="room-cloud-push-state"></span></div>
@@ -1778,6 +1796,27 @@
         <button id="roomCloudLogoutBtn" type="button" class="room-cloud-ghost" data-i18n="room.cloud.logout">Выйти</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- CLG-P6.2 — «🤖 Объяснить предложение» (/api/agent/explain): scope строго sentence_only.
+     LLM-текст рендерится ТОЛЬКО textContent (не HTML); деградация подписывается честно;
+     first-use consent-подтверждение живёт в этом же модале (разовое — дальше durable). -->
+<div id="roomExplainModal" class="room-about" hidden role="dialog" aria-modal="true" aria-labelledby="roomExplainTitle">
+  <div class="room-about-backdrop" data-explain-close="1"></div>
+  <div class="room-about-card">
+    <button class="room-about-x" type="button" aria-label="Close" data-explain-close="1">✕</button>
+    <h2 id="roomExplainTitle" data-i18n="room.explain.title">🤖 Объяснение наставника</h2>
+    <div id="roomExplainSentence" class="room-explain-sentence" lang="he" dir="rtl"></div>
+    <div id="roomExplainConsent" hidden>
+      <p class="room-cloud-hint room-explain-confirm" data-i18n="room.explain.confirmBody">AI-наставник отправит это предложение внешнему LLM-провайдеру для объяснения. Будут использованы само предложение и учебные факты: слабые слова, слова к повторению и статистика каналов. Продолжить?</p>
+      <div class="room-cloud-actions">
+        <button id="roomExplainAllow" type="button" data-i18n="room.explain.allow">Разрешить</button>
+        <button id="roomExplainCancel" type="button" class="room-cloud-ghost" data-i18n="room.explain.cancel">Отмена</button>
+      </div>
+    </div>
+    <div id="roomExplainBody" class="room-explain-body" hidden></div>
+    <div id="roomExplainMeta" class="room-cloud-hint" hidden></div>
   </div>
 </div>
 

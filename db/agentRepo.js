@@ -96,6 +96,27 @@ async function createExplanation(userId, { sentence_id, item_key, facts_used, ll
   return { id };
 }
 
+// Purge-on-revoke (решение владельца 2026-07-06, §5 v3 «отзыв C-consent → каскад на
+// derived»): отзыв agent_read_texts → контентные поля ВСЕХ объяснений пользователя
+// зануляются до tombstone (explanation-текст и facts_used цитируют предложение — это
+// цитирование пользовательского текста, «пометить и оставить» недостаточно). Остаются
+// только технические поля: id/user_id/created_at/llm_model/sentence_id-якорь + причина.
+async function purgeExplanationContent(userId, reason = "consent_revoked") {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const rows = await dbAll(db, `SELECT id, body_json FROM agent_explanations WHERE user_id = ?`, [userId]);
+  const purgedAt = nowIso();
+  let n = 0;
+  for (const r of rows || []) {
+    let scope = null;
+    try { const b = JSON.parse(r.body_json); if (b && b.purge_reason) continue; scope = b && b.scope_level || null; } catch (_) {}
+    const tomb = JSON.stringify({ scope_level: scope, purged_at: purgedAt, purge_reason: String(reason) });
+    await dbRun(db, `UPDATE agent_explanations SET facts_used_json = '[]', body_json = ? WHERE id = ? AND user_id = ?`,
+      [tomb, r.id, userId]);
+    n++;
+  }
+  return { purged: n };
+}
+
 // ── word lifecycle (read-only срез для инструмента get_word_lifecycle) ───────
 async function wordLifecycle(userId, itemKey) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
@@ -158,7 +179,7 @@ async function usageToday(userId) {
 module.exports = {
   getProfile, updateProfile,
   createTask, listTasks, setTaskStatus,
-  createExplanation,
+  createExplanation, purgeExplanationContent,
   wordLifecycle,
   reserveLlmCall, finalizeLlmCall, usageToday,
 };

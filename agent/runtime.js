@@ -8,12 +8,18 @@
 
 const path = require("path");
 const planner = require(path.join(__dirname, "planner"));
+const explainer = require(path.join(__dirname, "explainer"));
 const tools = require(path.join(__dirname, "tools"));
 const llm = require(path.join(__dirname, "llm"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
 
 async function plan(ctx) {
   return planner.plan(ctx);
+}
+
+// Слайс 2: /explain sentence (двойной consent + scope sentence_only внутри explainer/repo).
+async function explain(ctx, args) {
+  return explainer.explain(ctx, args || {});
 }
 
 async function status(ctx) {
@@ -42,4 +48,4 @@ async function updateProfile(ctx, patch) {
   return { mode: p.mode, language: p.language };
 }
 
-module.exports = { plan, status, listTasks, updateProfile };
+module.exports = { plan, explain, status, listTasks, updateProfile };

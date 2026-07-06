@@ -1508,8 +1508,24 @@ app.post("/api/auth/consent", async (req, res) => {
   try {
     await identityRepo.recordConsent(auth.user.id, key, granted, version);
     identityRepo.audit(granted ? "consent_grant" : "consent_revoke", auth.user.id, { key, version }, req.ip);
+    // CLG-P6.2 (решение владельца 2026-07-06, §5 v3 «отзыв → каскад на derived»): отзыв
+    // agent_read_texts зануляет контентные поля agent_explanations до tombstone —
+    // объяснения цитируют предложения пользователя, «оставить как было» недостаточно.
+    let purgeInfo = null;
+    if (key === "agent_read_texts" && !granted) {
+      // Revoke обязан устоять даже при провале purge (fail-closed для НОВЫХ объяснений),
+      // но провал НЕ молчит (R11): он виден в ответе и в audit_log.
+      try {
+        const purged = await require("./db/agentRepo").purgeExplanationContent(auth.user.id, "consent_revoked");
+        identityRepo.audit("agent_explanations_purge", auth.user.id, { purged: purged.purged }, req.ip);
+        purgeInfo = { purged: purged.purged };
+      } catch (e2) {
+        identityRepo.audit("agent_explanations_purge_failed", auth.user.id, { message: String(e2 && e2.message).slice(0, 120) }, req.ip);
+        purgeInfo = { purge_error: "PURGE_FAILED" };
+      }
+    }
     const consents = await identityRepo.listConsents(auth.user.id);
-    res.json({ ok: true, consents: consents.current });
+    res.json({ ok: true, consents: consents.current, ...(purgeInfo ? { explanations: purgeInfo } : {}) });
   } catch (e) { res.status(400).json({ ok: false, error: "CONSENT_FAILED", message: e.message }); }
 });
 
@@ -1687,6 +1703,36 @@ app.post("/api/agent/plan", rlAgent, async (req, res) => {
   if (!requireCsrf(req, res, auth)) return;
   try { res.json(await agentRuntime.plan({ userId: auth.user.id, deviceId: auth.session.deviceId })); }
   catch (e) { res.status(500).json({ ok: false, error: "AGENT_PLAN_FAILED", message: e.message }); }
+});
+
+// CLG-P6.2 — /explain sentence (решение владельца 2026-07-06): scope-контракт ЖЁСТКИЙ —
+// сервер принимает ТОЛЬКО scope_level='sentence_only' (явный, не дефолтный: это
+// privacy-контракт, а не удобство); consent-провалы = 403 с точным кодом (fail-closed,
+// НЕ тихая деградация — consent это не optional LLM-limit); неизвестный якорь = 404.
+app.post("/api/agent/explain", rlAgent, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  const b = req.body || {};
+  if (String(b.scope_level || "") !== "sentence_only") {
+    return res.status(400).json({ ok: false, error: "UNSUPPORTED_EXPLAIN_SCOPE", supported: ["sentence_only"] });
+  }
+  const textKey = String(b.text_key || "").trim();
+  const orderIndex = Number(b.order_index);
+  if (!textKey || !Number.isFinite(orderIndex)) {
+    return res.status(400).json({ ok: false, error: "BAD_ANCHOR" });
+  }
+  try {
+    const r = await agentRuntime.explain({ userId: auth.user.id, deviceId: auth.session.deviceId },
+      { text_key: textKey, order_index: orderIndex });
+    if (!r.ok) {
+      const code = String(r.error || "");
+      if (code === "CLOUD_TEXTS_CONSENT_REQUIRED" || code === "AGENT_READ_TEXTS_CONSENT_REQUIRED") return res.status(403).json(r);
+      if (code === "TEXT_NOT_IN_CLOUD" || code === "SENTENCE_NOT_FOUND") return res.status(404).json(r);
+      if (code === "BAD_ANCHOR") return res.status(400).json(r);
+      return res.status(500).json(r);
+    }
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: "AGENT_EXPLAIN_FAILED", message: e.message }); }
 });
 
 app.get("/api/agent/status", rlAgent, async (req, res) => {

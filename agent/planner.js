@@ -187,4 +187,4 @@ async function plan(ctx) {
   };
 }
 
-module.exports = { plan, buildPlanCore, productionImbalance, CATEGORIES };
+module.exports = { plan, buildPlanCore, productionImbalance, isCleanProse, limits, CATEGORIES };

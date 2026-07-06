@@ -19,6 +19,7 @@
 const path = require("path");
 const learnerGraphRepo = require(path.join(__dirname, "..", "db", "learnerGraphRepo"));
 const learnerArtifactsRepo = require(path.join(__dirname, "..", "db", "learnerArtifactsRepo"));
+const agentSentenceRepo = require(path.join(__dirname, "..", "db", "agentSentenceRepo"));
 const keyingService = require(path.join(__dirname, "..", "db", "keyingService"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
 
@@ -64,8 +65,15 @@ const REGISTRY = {
       return { consented: true, texts: (rows || []).map((r) => ({ artifact_key: r.artifact_key, kind: r.kind, updated_at: r.updated_at })) };
     },
   },
+  // Решение владельца 2026-07-06 (приватность ДО кода, §15.9): парсинг содержимого
+  // артефакта разрешён ТОЛЬКО в db/agentSentenceRepo за ДВОЙНЫМ consent-гейтом
+  // (cloud_texts + agent_read_texts, fail-closed на каждый вызов) и ТОЛЬКО в объёме
+  // scope_level='sentence_only' — одна строка по якорю, соседи не извлекаются.
   get_sentence_context_if_available: {
-    disabled: "OPAQUE_ARTIFACT_STORE",   // sentence-anchor доступ — слайс /explain (P6.2)
+    readOnly: true,
+    run: (ctx, a) => agentSentenceRepo.getSentenceContext(ctx.userId, {
+      text_key: a && a.text_key, order_index: a && a.order_index,
+    }),
   },
 
   // ── writeback: только идентификаторы классов A/B, никогда контент C ────────
