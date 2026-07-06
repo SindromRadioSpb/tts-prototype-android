@@ -1416,6 +1416,22 @@ async function startDueReview() {
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   let due = [];
   try { due = (await localDb.getDueWithSource(Date.now())) || []; } catch (_) { due = []; }
+  const items = await _buildDueSourcedItems(due);
+  if (!_studySheet || _studySheet.hidden) return;
+  const R = window.ReaderMorph;
+  const ranked = (R.rankByWeakness ? R.rankByWeakness(items) : items).slice(0, TRAIN_N);
+  if (!ranked.length) {
+    body.innerHTML = '';
+    body.appendChild(el('div', { class: 'room-study-empty', i18n: 'room.morph.study.dueEmpty', text: tt('room.morph.study.dueEmpty', 'Нет слов к повторению сегодня — открой текст и потренируй новые слова.') }));
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+    return;
+  }
+  await _launchTrainSession(ranked, { cross: true });
+}
+// Общая сборка кросс-текстовых айтемов из source-якорных строк (вынесено из startDueReview
+// без изменения поведения; используется и P6.5 startPlanSectionTraining). R11: слово без
+// якоря/предложения/cloze — честный skip, никогда не сфабрикованное задание.
+async function _buildDueSourcedItems(due) {
   const R = window.ReaderMorph, items = [];
   for (const d of due) {
     if (items.length >= TRAIN_N * 2) break;   // bound the fetch work; weakness-rank + slice below
@@ -1436,15 +1452,36 @@ async function startDueReview() {
       _built: { cz, ru: sent.ru || '', sentence: heN, audioAssetKey: String(sent.audio_asset_key || ''), rowIdx: null },
     });
   }
+  return items;
+}
+// P6.5 (owner 2026-07-06: «работать по плану невозможно») — запуск тренировки ПО СЕКЦИИ
+// плана наставника: те же кросс-текстовые механики, что startDueReview, но пул = item_keys
+// секции (due-фильтра нет: gap-слова могут быть не просрочены), канал = рекомендация
+// секции (если предложен капсами — иначе тренер честно откатится на 'read').
+async function startPlanSectionTraining(itemKeys, channel) {
+  ensureStudySheet();
+  _studySheet.hidden = false; _studySheet.classList.add('room-study-open');
+  _studyMode = 'train'; _trainSession = null;
+  try { _studySheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === 'train')); } catch (_) {}
+  try { _studyListChrome(false); } catch (_) {}
+  const body = _studySheet.querySelector('.room-study-body');
+  if (!body || !window.ReaderMorph) return;
+  body.innerHTML = '';
+  body.appendChild(el('div', { class: 'room-study-loading', i18n: 'room.morph.study.loading', text: tt('room.morph.study.loading', 'Собираю…') }));
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  const keySet = new Set((itemKeys || []).map(String));
+  let rows = [];
+  // «все якорные слова расписания» = getDueWithSource с горизонтом-в-будущее (due<=горизонт)
+  try { rows = (await localDb.getDueWithSource(Date.now() + 10 * 365 * 24 * 3600 * 1000)) || []; } catch (_) { rows = []; }
+  const items = await _buildDueSourcedItems(rows.filter((d) => keySet.has(String(d.lemmaKey))));
   if (!_studySheet || _studySheet.hidden) return;
-  const ranked = (R.rankByWeakness ? R.rankByWeakness(items) : items).slice(0, TRAIN_N);
-  if (!ranked.length) {
+  if (!items.length) {
     body.innerHTML = '';
-    body.appendChild(el('div', { class: 'room-study-empty', i18n: 'room.morph.study.dueEmpty', text: tt('room.morph.study.dueEmpty', 'Нет слов к повторению сегодня — открой текст и потренируй новые слова.') }));
-    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+    body.appendChild(el('div', { class: 'room-study-empty', text: tt('room.cloud.planNoAnchors', 'У этих слов нет якорных предложений на этом устройстве — потренируйте их в своём тексте.') }));
     return;
   }
-  await _launchTrainSession(ranked, { cross: true });
+  if (channel) { try { trainChannelSet(channel); } catch (_) {} }
+  await _launchTrainSession(items.slice(0, TRAIN_N), { cross: true });
 }
 // Sentence (he/he_niqqud/ru) for a row — readerRows is the fast path; fall back to the painted DOM
 // row so training is self-contained (works even if readerRows is empty/desynced).
@@ -2209,20 +2246,40 @@ async function _cloudPlanRun() {
     if (!r || !r.ok) { els.planBox.textContent = '✗ ' + ((r && r.error) || tt('room.cloud.err', 'Ошибка синхронизации')); return; }
     const lang = String(document.documentElement.lang || 'ru').toLowerCase();
     const useRu = lang.indexOf('ru') === 0;   // he-UI → английские заголовки секций (у сервера ru/en)
-    const lines = [];
+    // P6.5 (owner: «работать по плану невозможно») — план ИСПОЛНЯЕМ: DOM-рендер с кнопкой
+    // «▶ Начать» на секции. Категория R17 = действие: «тренировать» → кросс-текстовая
+    // сессия по item_keys секции с каналом рекомендации; «вернуть к чтению» → в Зал.
+    // Все тексты — СТРОГО textContent (LLM-текст не HTML).
+    els.planBox.textContent = '';
+    const addLine = (text, cls) => { if (text) els.planBox.appendChild(el('div', { class: cls || 'room-plan-line', text })); };
     // LLM-текст показываем только когда он ЕСТЬ от LLM: fallback-текст сервера дублирует
     // секции, которые мы и так рендерим пунктами (пойман скриншотом владельца).
-    if (r.llm_used && r.text) lines.push(r.text);
+    if (r.llm_used && r.text) addLine(r.text);
     const plan = r.plan || {};
-    if (plan.est_minutes) lines.push('≈ ' + plan.est_minutes + ' ' + tt('room.cloud.planMin', 'мин'));
+    if (plan.est_minutes) addLine('≈ ' + plan.est_minutes + ' ' + tt('room.cloud.planMin', 'мин'));
     for (const s of (plan.sections || [])) {
       const title = useRu ? (s.title_ru || s.title_en) : (s.title_en || s.title_ru);
       const lemmas = (s.items || []).map((x) => x && x.lemma).filter(Boolean);
-      lines.push('• ' + title + (lemmas.length ? ': ' + lemmas.join(' · ') : ''));
+      const row = el('div', { class: 'room-plan-line room-plan-section' });
+      row.appendChild(el('span', { text: '• ' + title + (lemmas.length ? ': ' + lemmas.join(' · ') : '') }));
+      const keys = (s.items || []).map((x) => x && x.item_key).filter(Boolean);
+      if (s.category === 'тренировать' && keys.length) {
+        const btn = el('button', { class: 'room-plan-go', text: tt('room.cloud.planStart', '▶ Начать'), attrs: { type: 'button' } });
+        btn.addEventListener('click', () => {
+          const cEls = _cloudEls(); if (cEls.modal) cEls.modal.hidden = true;   // тренировка живёт в Зале, не под модалом
+          startPlanSectionTraining(keys, s.recommended_channel || null);
+        });
+        row.appendChild(btn);
+      } else if (s.category === 'вернуть к чтению') {
+        const btn = el('button', { class: 'room-plan-go', text: tt('room.cloud.planRead', '▶ В Зал'), attrs: { type: 'button' } });
+        btn.addEventListener('click', () => { const cEls = _cloudEls(); if (cEls.modal) cEls.modal.hidden = true; });
+        row.appendChild(btn);
+      }
+      els.planBox.appendChild(row);
       // P6.4 — конструкция(и) секции: серверные titles (id клиент не рендерит)
       for (const c of (s.constructs || [])) {
         const ct = useRu ? (c.title_ru || c.title_en) : (c.title_en || c.title_ru);
-        if (ct) lines.push('  ⚙ ' + ct);
+        if (ct) addLine('⚙ ' + ct, 'room-plan-line room-plan-construct');
       }
     }
     if (r.degraded_reason) {
@@ -2234,9 +2291,8 @@ async function _cloudPlanRun() {
         : (code === 'LLM_OUTPUT_INVALID') ? tt('room.cloud.planQualityReject', 'ответ модели не прошёл проверку качества')
         : (code === '429' || code === '403') ? tt('room.cloud.planKeyQuota', 'у ключа нет квоты к модели — проверьте проект ключа в Google Console') + ' (' + code + ')'
         : code;
-      lines.push('ⓘ ' + tt('room.cloud.planNoLlm', 'план собран без LLM (детерминированно)') + ' · ' + label);
+      addLine('ⓘ ' + tt('room.cloud.planNoLlm', 'план собран без LLM (детерминированно)') + ' · ' + label);
     }
-    els.planBox.textContent = lines.filter(Boolean).join('\n');
   } catch (e) {
     els.planBox.textContent = '✗ ' + String((e && e.message) || e);
   } finally {

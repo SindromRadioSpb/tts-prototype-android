@@ -1262,6 +1262,16 @@
     /* CLG-P6 план дня: многострочный вывод; [hidden]-guard — против author-display трапа */
     .room-cloud-planbox { margin-left: 0; white-space: pre-line; }
     .room-cloud-planbox[hidden] { display: none; }
+    /* P6.5 — исполняемый план: строки-секции с кнопкой запуска */
+    .room-plan-line { margin-top: 4px; }
+    .room-plan-section { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+    .room-plan-construct { opacity: .75; font-size: 12px; margin-inline-start: 12px; }
+    .room-plan-go {
+      border: 1px solid var(--accent); background: none; color: var(--accent);
+      border-radius: 6px; padding: 1px 8px; font-size: 12px; cursor: pointer;
+      width: auto; flex: 0 0 auto;
+    }
+    .room-plan-go:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent); }
     /* CLG-P6.2 — explain: per-row 🤖 + модал результата */
     #roomReader .row-explain-btn {
       background: none; border: 0; cursor: pointer; font-size: 15px; line-height: 1;
