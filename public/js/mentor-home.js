@@ -128,6 +128,64 @@
     });
   }
 
+  // ── блок Telegram: pairing (web-initiated + двусторонний confirm, P7.1a) ─────
+  // API-only (данные из /api/agent/telegram/*). Состояния: не связан → consent-копия +
+  // «Подключить» (pair выдаёт deep-link, подтверждение — в боте); ожидает → подсказка про
+  // /confirm; связан → маска + «Отключить». R11 honest states, textContent-only.
+  async function renderTelegramBlock(box) {
+    box.textContent = "";
+    var st = null;
+    try { var r = await jget("/api/agent/telegram/status"); if (r.status === 200 && r.json && r.json.ok) st = r.json; } catch (_) {}
+    if (!st) { box.appendChild(el("div", "mentor-hint", "✗ " + t("room.cloud.err", "Ошибка синхронизации"))); return; }
+
+    var line = el("div", "mentor-status-line");
+    if (st.linked) line.textContent = "🔗 " + t("room.tg.linked", "Telegram связан") + (st.telegram_user_masked ? " (" + st.telegram_user_masked + ")" : "");
+    else if (st.pending) line.textContent = "🔗 " + t("room.tg.pending", "Ожидает подтверждения в боте — отправьте /confirm");
+    else line.textContent = "🔗 " + t("room.tg.none", "Telegram не подключён");
+    box.appendChild(line);
+
+    var msg = el("div", "mentor-hint mentor-tg-msg"); msg.hidden = true;
+
+    if (st.linked || st.pending) {
+      var unbtn = el("button", "mentor-plan-btn", t("room.tg.unlink", "Отключить Telegram"));
+      unbtn.type = "button";
+      unbtn.addEventListener("click", async function () {
+        unbtn.disabled = true;
+        try {
+          var r2 = await jpost("/api/agent/telegram/unlink", {});
+          if (r2.status === 200 && r2.json && r2.json.ok) { renderTelegramBlock(box); return; }
+          msg.textContent = "✗ " + t("room.cloud.err", "Ошибка синхронизации"); msg.hidden = false;
+        } catch (_) { msg.textContent = "✗"; msg.hidden = false; }
+        finally { unbtn.disabled = false; }
+      });
+      box.appendChild(unbtn);
+    } else {
+      // consent-копия (утверждённая формулировка) показана ДО подключения (situated)
+      box.appendChild(el("div", "mentor-hint", t("room.tg.consent",
+        "Telegram-доставка может включать учебные слова, фразы, объяснения, задания и напоминания. Эти сообщения будут передаваться через инфраструктуру Telegram. Канал можно отключить в любой момент.")));
+      var btn = el("button", "mentor-plan-btn", t("room.tg.connect", "🔗 Подключить Telegram"));
+      btn.type = "button";
+      btn.addEventListener("click", async function () {
+        btn.disabled = true;
+        try {
+          // нажатие = согласие с показанной копией (consent:true пишется на сервере)
+          var r3 = await jpost("/api/agent/telegram/pair", { consent: true });
+          if (r3.status !== 200 || !r3.json || !r3.json.ok) {
+            msg.textContent = "✗ " + ((r3.json && r3.json.error) || t("room.cloud.err", "Ошибка синхронизации")); msg.hidden = false; return;
+          }
+          msg.textContent = "";
+          var note = el("div", "mentor-hint", t("room.tg.open", "Откройте ссылку и подтвердите в боте (/confirm):"));
+          var a = el("a", "mentor-tg-link", r3.json.deep_link);
+          a.setAttribute("href", r3.json.deep_link); a.setAttribute("target", "_blank"); a.setAttribute("rel", "noopener");
+          msg.appendChild(note); msg.appendChild(a); msg.hidden = false;
+        } catch (_) { msg.textContent = "✗"; msg.hidden = false; }
+        finally { btn.disabled = false; }
+      });
+      box.appendChild(btn);
+    }
+    box.appendChild(msg);
+  }
+
   // ── блок B: план + действия (переезд _cloudPlanRun из ☁-модала, P6.5-кнопки) ─
   async function runPlan(btn, boxWrap) {
     btn.disabled = true;
@@ -303,12 +361,16 @@
     }
     var status = blockNode(null, null);
     var planB = blockNode(null, null);   // кнопка «🧭 План на сегодня» самоописательна — без дубля-заголовка
+    var tgB = blockNode("room.tg.title", "🔗 Telegram");
     var histWrap = blockNode("room.mentor.histTitle", "История объяснений");
     var consB = blockNode("room.mentor.consTitle", "Ваши конструкции");
     var histBox = el("div", "mentor-hist-list");
-    S.els = { status: status, plan: planB, history: histBox, constructs: null };
+    var tgBox = el("div", "mentor-tg-wrap");
+    tgB.appendChild(tgBox);
+    S.els = { status: status, plan: planB, telegram: tgBox, history: histBox, constructs: null };
     m.appendChild(status);
     m.appendChild(planB);
+    m.appendChild(tgB);
     m.appendChild(histWrap);
     m.appendChild(consB);
     var consBox = el("div", "mentor-cons-list");
@@ -316,6 +378,7 @@
     S.els.constructs = consBox;
     renderStatus(status);
     renderPlanBlock(planB.appendChild(el("div", "mentor-plan-wrap")));
+    renderTelegramBlock(tgBox);
     renderHistoryBlock(histWrap, histBox);
     renderConstructs(consBox);
   }

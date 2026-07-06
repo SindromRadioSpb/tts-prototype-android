@@ -2035,6 +2035,16 @@ window.I18N_LOCALES.he = {
       consEmpty: "עדיין אין — מבנים יופיעו מתוך תוכניות והסברים.",
       textMissing: "הטקסט לא נמצא במכשיר הזה — סנכרנו את «הטקסטים שלי» ב-☁.",
     },
+    tg: {
+      title: "🔗 Telegram",
+      none: "Telegram לא מחובר",
+      pending: "ממתין לאישור בבוט — שלחו /confirm",
+      linked: "Telegram מחובר",
+      connect: "🔗 חיבור Telegram",
+      unlink: "ניתוק Telegram",
+      consent: "משלוח דרך Telegram עשוי לכלול מילים, ביטויים, הסברים, משימות ותזכורות ללימוד. ההודעות מועברות דרך התשתית של Telegram. אפשר לנתק את הערוץ בכל עת.",
+      open: "פתחו את הקישור ואשרו בבוט (/confirm):",
+    },
     tabs: {
       accessible: "נגיש",
       literary: "ספרותי",

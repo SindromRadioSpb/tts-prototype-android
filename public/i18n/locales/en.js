@@ -2025,6 +2025,16 @@ window.I18N_LOCALES.en = {
       consEmpty: "Nothing yet — constructions will appear from plans and explanations.",
       textMissing: "Text not found on this device — sync “My Texts” in ☁.",
     },
+    tg: {
+      title: "🔗 Telegram",
+      none: "Telegram not connected",
+      pending: "Waiting for confirmation in the bot — send /confirm",
+      linked: "Telegram linked",
+      connect: "🔗 Connect Telegram",
+      unlink: "Disconnect Telegram",
+      consent: "Telegram delivery may include study words, phrases, explanations, tasks and reminders. These messages are transmitted through Telegram’s infrastructure. You can disconnect the channel at any time.",
+      open: "Open the link and confirm in the bot (/confirm):",
+    },
     tabs: {
       accessible: "Accessible",
       literary: "Literary",

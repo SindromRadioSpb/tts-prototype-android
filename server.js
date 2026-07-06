@@ -166,7 +166,13 @@ app.disable("x-powered-by");
 // same-origin guard below and rate-limiter keying).
 app.set("trust proxy", 1);
 
-app.use(bodyParser.json({ limit: "10mb" }));
+// CLG-P7.1a: the Telegram webhook is the first internet-facing surface. Its secret MUST be
+// checked BEFORE any body is parsed (an unauth attacker must not force a 10 MB JSON parse). So
+// exclude the webhook path from the global parser; the webhook route mounts its own secret gate
+// + a tiny 256 KB parser (a Telegram update is small). Adjudication of critique wf_a67874c5.
+const TELEGRAM_WEBHOOK_PATH = "/api/telegram/webhook";
+const _globalJson = bodyParser.json({ limit: "10mb" });
+app.use((req, res, next) => (req.path === TELEGRAM_WEBHOOK_PATH ? next() : _globalJson(req, res, next)));
 
 // ── Content-Security-Policy: REPORT-ONLY rollout ───────────────────────────
 // index.html is inline-script/style heavy, so we can't enforce a strict CSP
@@ -1367,6 +1373,7 @@ function requireAudioUploadAuth(req, res) {
 // (recon: rate limits обязательны с введения каждого публичного эндпоинта).
 // ============================================================================
 const identityRepo = require("./db/identityRepo");
+const channelLinkRepo = require("./db/channelLinkRepo");   // CLG-P7.1a Telegram channel state
 const AUTH_BOOTSTRAP_MIN_LEN = 22;
 const AUTH_FAIL_WINDOW_MS = 600_000; // 10 min
 const AUTH_FAIL_MAX = 10;            // tighter than audio-upload's 20: login is pure secret-guessing surface
@@ -1524,6 +1531,21 @@ app.post("/api/auth/consent", async (req, res) => {
         purgeInfo = { purge_error: "PURGE_FAILED" };
       }
     }
+    // CLG-P7.1a: отзыв telegram_delivery ОБЯЗАН гасить активные связки + невыгашенные токены
+    // АТОМАРНО (критика: доставка авторизуется фактом активной связки, не живым consent — если
+    // unlink упадёт, канал доставлял бы после отзыва = fail-open). Здесь каскад — honest-fail:
+    // провал каскада → 500, consent-строка уже записана, но клиенту виден отказ (revoke не
+    // «подтверждён» на уровне канала до успешного каскада; повтор безопасен — идемпотентен).
+    if (key === channelLinkRepo.TELEGRAM_CONSENT_KEY && !granted) {
+      try {
+        const casc = await channelLinkRepo.revokeTelegramCascade(auth.user.id);
+        identityRepo.audit("telegram_consent_cascade", auth.user.id, casc, req.ip);
+        purgeInfo = { telegram_revoked_links: casc.links, telegram_revoked_tokens: casc.tokens };
+      } catch (e3) {
+        identityRepo.audit("telegram_consent_cascade_failed", auth.user.id, { message: String(e3 && e3.message).slice(0, 120) }, req.ip);
+        return res.status(500).json({ ok: false, error: "TELEGRAM_UNLINK_FAILED", message: "consent recorded; channel unlink failed — retry" });
+      }
+    }
     const consents = await identityRepo.listConsents(auth.user.id);
     res.json({ ok: true, consents: consents.current, ...(purgeInfo ? { explanations: purgeInfo } : {}) });
   } catch (e) { res.status(400).json({ ok: false, error: "CONSENT_FAILED", message: e.message }); }
@@ -1549,6 +1571,14 @@ app.post("/api/account/delete", async (req, res) => {
     return res.status(400).json({ ok: false, error: "CONFIRM_REQUIRED", message: 'Pass {"confirm":"DELETE"}.' });
   }
   try {
+    // CLG-P7.1a delete-completeness: NULL-user bot_action_log строки несут telegram_chat_id
+    // (PII непривязанного чата) — user_id-sweep их не достаёт. Чистим по chat_id связок ДО
+    // каскада (пока channel_links ещё существуют). Провал НЕ молчит, но не блокирует delete
+    // (основной sweep всё равно снесёт user-scoped строки).
+    try {
+      const purged = await channelLinkRepo.purgeTelegramTraceForUser(auth.user.id);
+      identityRepo.audit("telegram_trace_purge", auth.user.id, purged, req.ip);
+    } catch (e2) { identityRepo.audit("telegram_trace_purge_failed", auth.user.id, { message: String(e2 && e2.message).slice(0, 120) }, req.ip); }
     const { tables } = await identityRepo.deleteUserData(auth.user.id);
     identityRepo.audit("account_delete", null, { tables: tables.length }, req.ip);   // user_id=null: the row must survive the cascade
     setSessionCookie(req, res, "", 0);
@@ -1808,6 +1838,114 @@ app.post("/api/agent/review", rlAgentReview, async (req, res) => {
     res.json(r);
   } catch (e) { res.status(500).json({ ok: false, error: "AGENT_REVIEW_FAILED", message: e.message }); }
 });
+
+// ============================================================================
+// CLG-P7.1a — Telegram channel: pairing (web-initiated + двусторонний confirm) +
+// webhook (secret-before-parse, dedup+эффект атомарны, from.id rate, private-only).
+// TELEGRAM_P7_1_PAIRING_SPEC v2 (owner flow-decision A 2026-07-07). Прод: без
+// TELEGRAM_WEBHOOK_SECRET webhook = 503 fail-closed; без BOT_TOKEN — не отвечает.
+// ============================================================================
+const telegramRouter = require("./agent/telegram/router");
+const telegramApi = require("./agent/telegram/api");
+const rlTelegramPair = makeRateLimiter({ windowMs: 60_000, max: 20, name: "telegram-pair" });
+
+// ── web: pair (session+CSRF) — consent telegram_delivery записывается ЗДЕСЬ, ДО минта токена ──
+app.post("/api/agent/telegram/pair", rlTelegramPair, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  // consent — часть запроса pair (не отдельный молчаливый шаг): требуем явное согласие.
+  if (!(req.body && req.body.consent === true)) {
+    return res.status(400).json({ ok: false, error: "TELEGRAM_CONSENT_REQUIRED",
+      consent_version: channelLinkRepo.TELEGRAM_CONSENT_VERSION });
+  }
+  try {
+    // consent-строка со СЕРВЕРНОЙ версией (клиентская version игнорируется — критика)
+    await identityRepo.recordConsent(auth.user.id, channelLinkRepo.TELEGRAM_CONSENT_KEY, true, channelLinkRepo.TELEGRAM_CONSENT_VERSION);
+    identityRepo.audit("telegram_consent_grant", auth.user.id, { version: channelLinkRepo.TELEGRAM_CONSENT_VERSION }, req.ip);
+    const tok = await channelLinkRepo.mintPairingToken(auth.user.id, auth.session.id || null);
+    const uname = process.env.TELEGRAM_BOT_USERNAME || "LinguistProMentorBot";
+    // сырой токен ТОЛЬКО в deep_link ответа (в БД — sha256); клиент открывает ссылку.
+    res.json({ ok: true, deep_link: `https://t.me/${uname}?start=${tok.raw}`, expires_at: tok.expiresAt });
+  } catch (e) { res.status(500).json({ ok: false, error: "TELEGRAM_PAIR_FAILED", message: e.message }); }
+});
+
+app.get("/api/agent/telegram/status", rlTelegramPair, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try {
+    const link = await channelLinkRepo.getLinkForUser(auth.user.id);
+    const consents = await identityRepo.listConsents(auth.user.id);
+    const _tgc = consents.current && consents.current[channelLinkRepo.TELEGRAM_CONSENT_KEY];
+    const tgConsent = !!(_tgc && _tgc.granted);   // current[key] = {granted,version,at}, не булев
+    if (!link) return res.json({ ok: true, linked: false, pending: false, consent: tgConsent });
+    const mask = link.telegram_user_id ? String(link.telegram_user_id).slice(0, 3) + "···" : null;
+    res.json({ ok: true, linked: link.status === "active", pending: link.status === "pending",
+      telegram_user_masked: mask, consent: tgConsent, since: link.confirmed_at || link.created_at });
+  } catch (e) { res.status(500).json({ ok: false, error: "TELEGRAM_STATUS_FAILED", message: e.message }); }
+});
+
+app.post("/api/agent/telegram/unlink", rlTelegramPair, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const r = await channelLinkRepo.unlinkByUser(auth.user.id);
+    identityRepo.audit("telegram_unlink", auth.user.id, r, req.ip);
+    res.json({ ok: true, ...r });
+  } catch (e) { res.status(500).json({ ok: false, error: "TELEGRAM_UNLINK_FAILED", message: e.message }); }
+});
+
+// ── webhook: secret-middleware (raw, ДО парсинга) → 256kb-json → handler ──────
+const _tgWebhookJson = bodyParser.json({ limit: "256kb" });
+function telegramSecretGate(req, res, next) {
+  const secret = process.env.TELEGRAM_WEBHOOK_SECRET || "";
+  if (!secret) return res.status(503).json({ ok: false, error: "WEBHOOK_NOT_CONFIGURED" });   // fail-closed
+  const got = String(req.get("X-Telegram-Bot-Api-Secret-Token") || "");
+  const a = Buffer.from(got), b = Buffer.from(secret);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+    return res.status(401).json({ ok: false, error: "BAD_WEBHOOK_SECRET" });   // тело НЕ распарсено
+  }
+  next();
+}
+// from.id rate-limit (НЕ по IP: весь трафик с IP Telegram; критика). Превышение → drop-with-200.
+const _tgFromBuckets = new Map();
+function tgFromIdAllowed(fromId, max = 30, windowMs = 60_000) {
+  const now = Date.now();
+  const arr = (_tgFromBuckets.get(fromId) || []).filter((t) => now - t < windowMs);
+  if (_tgFromBuckets.size > 5000) { for (const [k, v] of _tgFromBuckets) if (!v.some((t) => now - t < windowMs)) _tgFromBuckets.delete(k); }
+  if (arr.length >= max) { _tgFromBuckets.set(fromId, arr); return false; }
+  arr.push(now); _tgFromBuckets.set(fromId, arr); return true;
+}
+
+app.post(TELEGRAM_WEBHOOK_PATH, telegramSecretGate, _tgWebhookJson, async (req, res) => {
+  const upd = req.body || {};
+  const msg = upd.message;
+  // только private-message с числовым from.id (fix: group-leak + channel-posts без from)
+  const isPrivate = msg && msg.chat && msg.chat.type === "private" && msg.from && typeof msg.from.id === "number";
+  if (!isPrivate) return res.json({ ok: true, ignored: true });
+  const fromId = String(msg.from.id);
+  const chatId = msg.chat.id;
+  const updateId = upd.update_id;
+  if (!tgFromIdAllowed(fromId)) return res.json({ ok: true, throttled: true });   // drop-with-200, не 429
+  try {
+    // dedup + эффект(router.handle) + bot_action_log — ОДНА транзакция (at-least-once честен)
+    const { duplicate, result } = await channelLinkRepo.processUpdateTxn(updateId, async (db) =>
+      telegramRouter.handle(db, { tgUserId: fromId, tgChatId: chatId, text: msg.text || "", updateId }));
+    if (!duplicate && result && result.text) {
+      // sendMessage ВНЕ транзакции; доставка на chat входящего private-сообщения
+      await telegramApi.sendMessage(result.chatId != null ? result.chatId : chatId, result.text);
+    }
+    res.json({ ok: true });   // всегда 200 после secret+dedup (иначе Telegram ретраит)
+  } catch (e) {
+    // сбой ВНУТРИ транзакции → rollback (включая dedup) уже произошёл → non-200 → Telegram переиграет
+    console.error("[telegram] webhook handler failed:", e && e.message);
+    res.status(500).json({ ok: false, error: "WEBHOOK_HANDLER_FAILED" });
+  }
+});
+
+// TTL-prune (реальный триггер): telegram_updates >48ч, NULL-user bot_action_log >30д.
+const _tgPruneInterval = setInterval(() => {
+  channelLinkRepo.pruneOld().catch(() => {});
+}, 6 * 3600 * 1000);
+if (_tgPruneInterval.unref) _tgPruneInterval.unref();
 
 // ============================================================================
 // CLG-P5.5 — Artifact Sync, класс B (AI_MENTOR_RECON §5/§9): OPAQUE per-text
