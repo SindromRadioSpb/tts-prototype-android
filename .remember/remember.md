@@ -21,13 +21,18 @@ cloud-sync (см. ниже). Скриншоты scripts/premium/mentor-home-shot
 .tmp/mentor-shots (Tier-1/light/dark/HE-RTL/deep-link ✓).
 
 ## Next
-1. Owner live-verify P9 на проде: 🤖-вид (Tier-1 заглушка без логина; план из вида;
-   история объяснений + «↗ к предложению»; consent-галочка в доме; deep-link
-   /library.html#mentor; ☁ без плана/consent агента).
-2. Кандидат след. слайса: ненавязчивый бейдж «план готов» на 🤖 (этикет позволяет,
-   автораскрытия нет) · Mini App P8 = второй монтаж mentor-home.js.
-3. Границы прежние: НЕ чат P7 · record_review_answer disabled · НЕ
-   sentence_plus_neighbors без измерений.
+0. ✅ Owner live-verify P9 ПРОЙДЕН 2026-07-06 → CLG-P9 закрыта.
+1. **Пред-P7 программа (грейдер-стек)** — readiness-анализ READ FIRST:
+   docs/planning/TELEGRAM_P7_READINESS_2026_07_06.md. G-5 пройден; блокеры P7 /review:
+   annul реплей-нейтрален (обратимость R17-B) · нет серверного детерминированного
+   грейдера · нет gold-набора · record_review_answer skeleton. Стадирование:
+   P7.0a annul → P7.0b грейдер+gold → P7.0c активация tool (web-smoke до Telegram)
+   → P7.1 pairing+channel_links+webhook+read-only команды → P7.2 /review.
+2. Развилки владельца ДО кода: топология webhook (реком. in-process роут) ·
+   privacy-копия «доставка через серверы Telegram» (не покрыта agent_read_texts) ·
+   журнал действий (agent_tasks vs threads/messages) · проактивность MVP.
+3. Границы прежние: НЕ sentence_plus_neighbors без измерений; P7.0a трогает канон
+   памяти → adversarial-critique перед кодом (feedback_adversarial_role_critique).
 
 ## Context
 - cloud-sync гейт шёл долго (2 прогона убиты преждевременно по ложной CPU-диагностике —
