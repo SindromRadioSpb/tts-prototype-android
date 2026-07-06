@@ -204,3 +204,132 @@ learner-graph 14/14 · mentor-home 25/25 · grade-policy 24/24 · cloud-sync · 
 missing-target · 8 v1-golden байт-стабилен · 9 golden-v2 8 векторов · 10 oracle
 clean + TEETH). Правило «annul не удаляет событие — только projection» —
 в коде комментарием и в гейтах (лог-строки видимы после annul).
+
+---
+
+## P7.0b — техническая спека (к adversarial-критике)
+
+Замер живого кода (2026-07-06): у Зала УЖЕ есть боевое правило приёма ответа —
+`library-ui._normHe` (stripNiqqud + фолд конечных букв ך/ם/ן/ף/ץ + trim) и
+`_acceptedSkeletons` (принимаются НОРМАЛИЗОВАННЫЕ скелеты: инфлектированная форма
+предложения И лемма, каждая ± ОДНА ведущая проклитика ו/ה/ב/כ/ל/ש/מ при длине >2).
+**R11-инвариант: серверный грейдер НЕ СТРОЖЕ Зала на тех же входах** — иначе один
+ответ грейдится по-разному на разных поверхностях. Нормализатор сервера =
+существующий `db/hebrewNorm.normalizeHebrew` (нику́д + финальные формы + пробелы) —
+семантически совпадает с `_normHe`.
+
+1. **Модуль `agent/grader.js`** (роль grader из §9-скелета) — pure deterministic;
+   deps: hebrewNorm (нормализация) · keyingService (резолв item_key; уже stateless
+   lazy) · grade-policy.js (D1, ОБЩИЙ с клиентом) · fsrs-core.withoutAnnulled
+   (P7.0a: аннулированное — не свидетельство). **LLM не импортируется вовсе**
+   (R17-B deterministic-first; llm-assisted feedback — advisory, отдельно, БЕЗ grade).
+2. **API:** `gradeAnswer({ expected: {form, lemma?, item_key?}, answer, channel,
+   prevState, rows })` → `{ decision, gradable, correct, grade, provenance }`.
+   expected.item_key приходит ОТ ВЫЗЫВАТЕЛЯ (due-очередь уже несёт авторитетный
+   ключ) — резолвер на грейде НЕ вызывается (v1 самодостаточен: hebrewNorm +
+   grade-policy + fsrs-core; датасет нужен только гейту для свипа).
+   Нормализация ответа: hebrewNorm.normalizeHebrew + строб не-ивритских символов
+   (пунктуация/эмодзи; внутренние пробелы сохраняются) — «שלום!» == «שלום».
+3. **Классификация (категории владельца):**
+   - `correct` — нормализованный ответ == скелет формы (± проклитика:
+     matched_variant='form'/'form_proclitic');
+   - `accepted_variant` — скелет леммы (± проклитика; Зал это принимает как верный
+     ответ — сервер сохраняет исход, но честно маркирует вариант). **Ktiv male/haser
+     в v1 НЕ принимается** (ЗАМЕР 2026-07-06: (а) Зал ktiv-варианты не принимает —
+     серверный accept сделал бы сервер МЯГЧЕ клиента, расхождение R11; (б) замок
+     «тот же item_key» не работает: bare-surface резолв даёт surface-ключи,
+     דיבר#≠דבר# — проверено живым keyingService). Ktiv-кандидат (расхождение только
+     в י/ו) классифицируется near_miss с ОСОБОЙ причиной 'ktiv-candidate' — фидбек
+     бота честный («возможно, это ktiv male/haser — тренируем форму как в тексте»),
+     исход = как в Зале. Апгрейд до accept — отдельное владельческое решение после
+     замера (потребует dataset-lookup форм парадигмы по item_key ЦЕЛИ);
+   - `near_miss` — расстояние Левенштейна 1 до любого принятого скелета (не
+     покрытое ktiv-правилом); ПРОВАЛ с фидбек-подсказкой, не успех;
+   - `wrong` — иначе (иврит присутствует);
+   - `empty` — нормализованный ответ пуст;
+   - `ambiguous/unsupported` — в ответе нет ивритских букв, либо ожидаемое
+     пусто/ненормализуемо.
+4. **Маппинг в grade:** correct/accepted_variant → correct=true, grade 3 (Good —
+   как boolean-путь Зала); near_miss/wrong → correct=false, grade через ОБЩИЙ
+   `GradePolicy.decideGrade` (D1: production-провал на рецептивно-сильном → Hard(2);
+   rows предварительно `withoutAnnulled`); **empty/unsupported → gradable=false,
+   grade=null** — вызыватель НЕ пишет review_log (MNAR: не-ответ ≠ провал;
+   переспросить/воздержаться — R17-A «честно воздержаться»).
+5. **Провенанс (7 полей владельца):** policy_version='agent-grader-v1' (+
+   grade_policy при D1) · normalizer_version='heb-norm-v1' · resolver_version =
+   {resolver: keyingService.RESOLVER_ID, model_version, keyer_version} ·
+   expected_form_id = item_key ожидаемого (резолв; null если нерезолвимо) ·
+   matched_variant · decision · reason (машинная строка: 'exact-skeleton',
+   'lemma-skeleton', 'ktiv-male-haser', 'lev1', 'no-hebrew', …).
+6. **Gold-набор:** `scripts/premium/fixtures/grader/grader-gold-v1.json` —
+   курируемые кейсы (ktiv-пары из реального датасета · огласованные ответы ·
+   финальные формы · проклитики · near-miss опечатки · пустые/не-иврит/шум) —
+   **порог 100%** (набор рукописный); плюс derived-свип по shipped-датасету
+   pealim-infl-v12 (детерминированная выборка парадигм: форма-с-огласовками ==
+   correct против собственного скелета) — порог ≥99%.
+7. **Гейт `smoke:grader-gold`:** gold 100% · свип ≥99% · провенанс-форма (7 полей)
+   · детерминизм (два вызова byte-equal) · D1-интеграция (production-провал на
+   рецептивно-сильных rows → 2; annulled production-успех отфильтрован → Hard
+   восстанавливается) · empty/unsupported → gradable=false БЕЗ grade · модуль не
+   импортирует llm (структурный ассерт по исходнику).
+8. **Вне скоупа:** запись в review_log (P7.0c) · Telegram-вход (P7.1/P7.2) ·
+   free-form сочинения (unsupported до отдельного решения — R17-B «сочинение не
+   становится тренировочной единицей без подтверждения»).
+
+---
+
+## P7.0b — SHIPPED v3.11.116 (2026-07-06); адъюдикация adversarial-критики
+
+Критика (wf_ccbad91d, 2 линзы, ЗАМЕР по 9279 парадигмам / 226 834 клеткам +
+живые прогоны keyingService): **3 BLOCKER + 6 MAJOR + 3 MINOR.** Итоговая
+семантика ПЕРЕРЕШЕНА по замерам:
+
+- **BLOCKER «ktiv item_key-замок мертворождён»** (bare-surface ключи דיבר#≠דבר#;
+  99.9% глагольных парадигм имеют же-парадигменные י/ו-пары клеток — 71 391 пара:
+  כתב/כתבו, כתבתי/כתבת): ktiv-accept ВЫПИЛЕН ещё на спеке; ktiv-кандидат =
+  near_miss/'ktiv-candidate'. Cell-level апгрейд (матч против male-написания
+  именно ожидаемой КЛЕТКИ) — развилка владельца.
+- **MAJOR «Зал НЕ принимает словарную лемму»** (замер: 2-й арг _acceptedSkeletons =
+  item.surface, не лемма; комментарий 'form OR lemma' — мёртвый): lemma-accept
+  ВЫПИЛЕН (закрыт и lemma-echo эксплойт: леммы видны в /plan → grade-3-фрод →
+  ложный production-успех навсегда отключал бы D1). Ответ-лемма → near_miss/
+  'lemma-not-form' (честный фидбек). Это закрыло и «446 глаголов» диктант-дыру
+  (רוצה→רצות = провал).
+- **MAJOR проклитик-строб дыряв (20 400 измеренных пар: כלב→לב, מלח→לח)** —
+  унаследованный паритет Зала: исход сохранён (успех), но ЛЮБОЙ проклитик-путь =
+  decision 'accepted_variant' с маркировкой matched_variant ('form_proclitic'/
+  'answer_proclitic'/'proclitic_swap'); только чистый form-матч = 'correct'.
+  **Развилка владельца:** ужесточать обе поверхности синхронно или жить с
+  маркированной дырой.
+- **MAJOR проклитик-СВОП** (Зал стрипает ОБЕ стороны — לבית при בבית принимается):
+  алгебра зафиксирована {N(form),strip(N(form))} × {N(ans),strip(N(ans))} —
+  байт-паритет с library-ui.js:1729; gold-вектор proclitic-swap.
+- **BLOCKER «провенансу негде жить»** (META_ALLOW реджектил 6 из 7 полей):
+  идентификаторные ключи добавлены в META_ALLOW (policy_version/normalizer_version/
+  resolver_version/matched_variant/decision/expected_form_id) + гейт-ассерт;
+  сырой ответ/скелеты — В META_STRIP КАК БЫЛИ (privacy-класс сырого ответа =
+  явное решение владельца при P7.0c, не молчаливый провоз).
+- **MAJOR skip-путь:** skipped добавлен в контракт gradeAnswer → decision 'skip',
+  grade 1 БЕЗ смягчения (R17-B); P7.2 ОБЯЗАН иметь кнопку «Не знаю»;
+  unsupported-уклонение → bot_action_log + shown-vs-graded (P7.2).
+- **MAJOR словарь каналов:** P7.2 пишет channel = '<СУЩЕСТВУЮЩАЯ семья>:<tg-режим>'
+  ('dictate:tg', 'reverse:tg') — 'telegram' голым НЕ семья (D1 был бы мёртв,
+  production-успехи падали бы в receptive); гейт-ассерт isProductionChannel.
+- **MAJOR expected_form_id:** item_key передаётся ВЫЗЫВАТЕЛЕМ (due-строка),
+  asserted; гейт: байт-равенство. Ре-резолв на грейде не используется.
+- **MINOR свип-тавтология:** свип переделан с зубами — позитив (клетка против
+  себя, 452/452) + НЕГАТИВ (чужая клетка той же парадигмы: exact-false-accept=0,
+  общий accept ≤10%, фактически 0/447).
+- **MINOR отложено:** различение 'lev1-typo' vs 'lev1-other-word:<pid>' (нужен
+  датасет-инвентарь на грейде — P7.2-фидбек) · тикет качества датасета: 11 клеток
+  с финальными буквами в середине слова (דרבן/קודם/יקום/משופשף — баг scrape) ·
+  rows-контракт: полный per-item лог ВСЕХ kinds (записано в grader.js) ·
+  prevState snake→camel адаптер для fsrsStep — P7.0c.
+
+**Гейт `smoke:grader-gold` 58/58:** gold 22/22 (100%: точный/огласовки/финальные/
+проклитик-варианты вкл. измеренные дыры/lemma-echo/диктант-чужое-слово/
+male-vs-vocalized/ktiv-candidate/lev1/wrong/empty/не-иврит/multiword) · свип
+позитивы 452/452, негативы 0/447 · провенанс 7 полей + expected_form_id
+байт-равенство · детерминизм · D1 (Hard на рецептивно-сильном; annulled
+production-успех отфильтрован P7.0a; контроль: живой успех блокирует смягчение) ·
+skip=Again(1) без смягчения · каналы · META_ALLOW · LLM структурно недостижим.

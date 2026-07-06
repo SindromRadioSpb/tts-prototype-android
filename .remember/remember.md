@@ -23,20 +23,26 @@ learner-graph 14/14 · mentor-home 25/25 · grade-policy 24/24 · api-smoke · c
 (вердикт последнего прогона — проверить перед пушем, если сессия оборвалась до него).
 
 ## Next
-1. **P7.0b — серверный детерминированный грейдер + gold-набор.** Контракт УТВЕРЖДЁН
-   владельцем: категории correct/accepted_variant/near_miss/wrong/empty/ambiguous;
-   провенанс {policy_version, normalizer_version, resolver_version, expected_form_id,
-   matched_variant, decision, reason}. Состав: normalizeAnswer (skeleton/ktiv male-haser
-   через keyingService) · resolveHebrewVariants · classifyAnswer · D1 через ОБЩИЙ
-   grade-policy.js (rows фильтровать withoutAnnulled!) · gold fixtures (источники:
-   pealim-infl-v12 9279 парадигм, hebrewNorm, методика R1.0 gold eval) ·
-   smoke:grader-gold с порогом. LLM в грейде НЕ участвует (advisory без grade).
-2. **P7.0c — активация record_review_answer** (flag→staging→web-smoke: запись через
+0. ✅ P7.0b SHIPPED v3.11.116: agent/grader.js + gold 22/22 + smoke:grader-gold 58/58.
+   Семантика перерешена критикой (замер 226K клеток): lemma-accept выпилен (Зал его
+   и не имел — item.surface, не лемма!), проклитик-пути = маркированный
+   accepted_variant, ktiv = near_miss/'ktiv-candidate', skip в контракте,
+   META_ALLOW+6 провенанс-ключей, канал-словарь '<семья>:<tg-режим>'.
+   Адъюдикация — TELEGRAM_P7_DECISION (конец дока).
+1. **P7.0c — активация record_review_answer** (flag→staging→web-smoke: запись через
    штатный ingest (source='agent:*') → проекции → annul ошибочного грейда → down-sync
    в OPFS). Минтер-контракт annul: item_key = item_key ЦЕЛИ (резолв по (user_id,
    annul_of), цели нет = reject; sent:-цели = reject — их state вне recompute-пути).
-3. P7.1 pairing+channel_links+webhook+read-only команды (/start /link /unlink /status
-   /plan /explain /due /summary /help; consent-копия при pairing) → P7.2 /review.
+   prevState для fsrsStep: snake→camel адаптер (projection-строка несёт reviewed_at,
+   fsrsStep читает reviewedAt). Privacy-решение владельца: класс/TTL сырого ответа
+   пользователя (сейчас META_STRIP его вычищает — «не знаем» по построению).
+2. P7.1 pairing+channel_links+webhook+read-only команды (/start /link /unlink /status
+   /plan /explain /due /summary /help; consent-копия при pairing) → P7.2 /review
+   (кнопка «Не знаю» ОБЯЗАТЕЛЬНА — иначе уклонение от lapse; unsupported →
+   bot_action_log + shown-vs-graded).
+3. Развилки владельца (не блокируют P7.0c): ужесточение проклитик-строба ОБЕИХ
+   поверхностей · cell-level ktiv-accept · lev1-typo vs lev1-other-word фидбек ·
+   тикет датасета (11 клеток с mid-word финальными буквами: דרבן/קודם/יקום/משופשף).
 
 ## Context
 - Прод-деплой P7.0a: ожидание oracle.annul_rows == 0 (писателя ещё нет) — виден

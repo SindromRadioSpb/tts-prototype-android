@@ -50,6 +50,11 @@ const META_ALLOW = new Set([
   "anki_card_id", "anki_type", "postTeach", "mode", "confidence", "grader",
   "interval", "reps", "lapses", "sm2", "fsrs", "d0", "stability", "difficulty",
   "annul_of", "reason", "pos",
+  // P7.0b — идентификаторные поля грейдер-провенанса (критика wf_ccbad91d: без них
+  // ingest реджектил бы 6 из 7 полей владельца; это версии/enum'ы/item_key — НЕ контент;
+  // сырой ответ/скелеты остаются в META_STRIP — privacy-класс сырого ответа = явное
+  // решение владельца при P7.0c, не молчаливый провоз)
+  "policy_version", "normalizer_version", "resolver_version", "matched_variant", "decision", "expected_form_id",
   "text_key", "sentence_id", "order_index",
   // CLG-P3 sweep of REAL client meta keys (seed rows / Studio sre: rows) — identifiers, not content:
   "seedAlgoVersion", "level", "card_id", "note_id",
@@ -269,4 +274,5 @@ async function counts(userId) {
 module.exports = {
   ingestBatch, readLog, counts,
   SUPPORTED_SCHEMA_VERSION, SUPPORTED_KEYER_VERSION, MAX_BATCH_ROWS,
+  META_ALLOW,   // P7.0b: read-only для гейта «провенанс-полям грейдера есть где жить»
 };
