@@ -43,28 +43,41 @@ function keySource() {
   return process.env.AGENT_GEMINI_API_KEY ? "agent" : "none";
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// Транзитные HTTP-коды free-tier Gemini (перегрузка модели / per-minute rate limit) —
+// Google сам рекомендует backoff-retry именно на них; НЕ ретраим 400/401/403/404 (постоянная
+// ошибка ключа/запроса — повтор не поможет, только тратит латентность). Один повтор: ledger
+// уже держит РОВНО один reserved-слот на вызов независимо от числа внутренних HTTP-попыток —
+// ретрай бесплатен для дневного бюджета (§11), платится только за реально доставленный ответ.
+const RETRYABLE_STATUS = new Set([503, 429]);
+const RETRY_BACKOFF_MS = 700;
+
 async function generateGemini({ system, prompt, maxOutputTokens }) {
   const key = geminiKey();
   if (!key) return { ok: false, error: "NO_API_KEY" };
-  try {
-    const { GoogleGenerativeAI } = require("@google/generative-ai");
-    const modelName = process.env.AGENT_LLM_MODEL || DEFAULT_GEMINI_MODEL;
-    const genAI = new GoogleGenerativeAI(key);
-    const model = genAI.getGenerativeModel({
-      model: modelName,
-      ...(system ? { systemInstruction: system } : {}),
-      generationConfig: { maxOutputTokens: Math.max(64, Math.min(2048, Number(maxOutputTokens) || 512)) },
-    });
-    const result = await model.generateContent(prompt);
-    const text = result && result.response && typeof result.response.text === "function" ? result.response.text() : "";
-    if (!text || !String(text).trim()) return { ok: false, error: "EMPTY_RESPONSE" };
-    let outTokens = null;
-    try { outTokens = result.response.usageMetadata ? Number(result.response.usageMetadata.candidatesTokenCount) || null : null; } catch (_) {}
-    return { ok: true, text: String(text).trim(), provider: "gemini", model: modelName, output_tokens: outTokens };
-  } catch (e) {
-    // Никакого prompt-контента в сообщении об ошибке (stdout-гигиена).
-    const code = (e && (e.status || e.code)) || "GEMINI_ERROR";
-    return { ok: false, error: String(code).slice(0, 60) };
+  const { GoogleGenerativeAI } = require("@google/generative-ai");
+  const modelName = process.env.AGENT_LLM_MODEL || DEFAULT_GEMINI_MODEL;
+  const genAI = new GoogleGenerativeAI(key);
+  const model = genAI.getGenerativeModel({
+    model: modelName,
+    ...(system ? { systemInstruction: system } : {}),
+    generationConfig: { maxOutputTokens: Math.max(64, Math.min(2048, Number(maxOutputTokens) || 512)) },
+  });
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const result = await model.generateContent(prompt);
+      const text = result && result.response && typeof result.response.text === "function" ? result.response.text() : "";
+      if (!text || !String(text).trim()) return { ok: false, error: "EMPTY_RESPONSE" };
+      let outTokens = null;
+      try { outTokens = result.response.usageMetadata ? Number(result.response.usageMetadata.candidatesTokenCount) || null : null; } catch (_) {}
+      return { ok: true, text: String(text).trim(), provider: "gemini", model: modelName, output_tokens: outTokens };
+    } catch (e) {
+      const status = e && e.status;
+      if (attempt === 0 && RETRYABLE_STATUS.has(status)) { await sleep(RETRY_BACKOFF_MS); continue; }
+      // Никакого prompt-контента в сообщении об ошибке (stdout-гигиена).
+      const code = status || (e && e.code) || "GEMINI_ERROR";
+      return { ok: false, error: String(code).slice(0, 60) };
+    }
   }
 }
 

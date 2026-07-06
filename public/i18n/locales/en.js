@@ -1984,7 +1984,7 @@ window.I18N_LOCALES.en = {
       agentKeyNone: "no LLM key — deterministic plan",
       agentKill: "LLM disabled (kill-switch)",
       agentToday: "LLM today",
-      hintAgent: "The agent key (AGENT_GEMINI_API_KEY) is set on the server and pays only for the mentor. Each LLM-phrased plan spends 1 call from the daily limit; when exhausted or without a key, the plan is built deterministically and stays useful.",
+      hintAgent: "The agent key (AGENT_GEMINI_API_KEY) is set on the server and pays only for the mentor. An LLM-phrased plan spends 1 call from the daily limit ONLY on a successful reply; a failure on Google's side (503/429, transient overload) isn't charged — the plan is still built deterministically and stays useful.",
       hintAgentGlobal: "Total today",
       planLimit: "daily LLM limit exhausted",
       planKeyQuota: "the key has no quota for the model — check the key's project in Google Console",
