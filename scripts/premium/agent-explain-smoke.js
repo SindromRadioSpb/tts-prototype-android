@@ -128,6 +128,15 @@ function bundleFixture() {
   eq(JSON.stringify(C.filterKnown(["construct:hebrew.channel_gap.reading_to_dictation", "construct:fake.id", "construct:hebrew.channel_gap.reading_to_dictation"]))
     === JSON.stringify(["construct:hebrew.channel_gap.reading_to_dictation"]),
     "filterKnown: strips invented ids + dedupes (structural 'LLM cannot mint ids' guarantee)");
+  // Фикс live-verify P6.4: D1 пишет production-провал рецептивно-сильного слова как
+  // Hard(2) — дисбаланс обязан считать again+HARD, иначе честный провал диктанта
+  // ВЫКИДЫВАЛ слово из gap-секции.
+  const P = require(path.join(REPO, "agent", "planner.js"));
+  eq(P.productionImbalance({ receptive: { good: 2 }, production: { reps: 1, again: 0, hard: 1, good: 0 } }) === true
+    && P.productionImbalance({ receptive: { good: 2 }, production: { reps: 0 } }) === true
+    && P.productionImbalance({ receptive: { good: 2 }, production: { reps: 2, again: 0, hard: 1, good: 1 } }) === false
+    && P.productionImbalance({ receptive: { good: 1 }, production: { reps: 0 } }) === false,
+    "productionImbalance: D1 Hard(2)-провал диктанта СЧИТАЕТСЯ (again+hard>good) · reps==0 fires · fails==good не fires · receptive<2 не fires");
 
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "lp-explain-smoke-"));
   const srv = startServer(scratch);
@@ -309,7 +318,7 @@ function bundleFixture() {
     try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {}
   }
 
-  const TOTAL = 41;   // 33 слайса 2 + 5 pure construct-реестра + 3 e2e construct-ассерта (P6.4)
+  const TOTAL = 42;   // 33 слайса 2 + 6 pure (реестр + D1-hard imbalance) + 3 e2e construct-ассерта (P6.4)
   if (failures.length) {
     console.error(`smoke:agent-explain FAIL (${TOTAL - failures.length}/${TOTAL})`);
     for (const f of failures) console.error("  ✗ " + f);

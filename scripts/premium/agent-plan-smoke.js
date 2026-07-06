@@ -153,8 +153,9 @@ function seedRows() {
       "D1: recognized-but-fails-production word must land in production_gap with dictate, got " + JSON.stringify(gap && gap.items));
     // P6.4: construct-субстрат — сервер назначает id по реальным dictate-провалам сида.
     const CReg = require(path.join(REPO, "agent", "constructs.js"));
-    eq(!!gap && (gap.construct_ids || []).includes("construct:hebrew.channel_gap.reading_to_dictation"),
-      "P6.4: production_gap section must carry construct reading_to_dictation from real log channels, got " + JSON.stringify(gap && gap.construct_ids));
+    eq(!!gap && (gap.construct_ids || []).includes("construct:hebrew.channel_gap.reading_to_dictation")
+      && (gap.constructs || []).some((c) => c.id === "construct:hebrew.channel_gap.reading_to_dictation" && c.title_ru && c.title_en),
+      "P6.4: production_gap section must carry construct reading_to_dictation + ru/en titles for UI, got " + JSON.stringify(gap && gap.construct_ids));
     eq(!!gap && gap.items.every((x) => !x.construct_id || CReg.isKnown(x.construct_id)),
       "P6.4: every per-item construct_id must be registry-known (server-assigned only)");
     eq(!!p1.json.task_id, "plan must create an agent_task");

@@ -2219,6 +2219,11 @@ async function _cloudPlanRun() {
       const title = useRu ? (s.title_ru || s.title_en) : (s.title_en || s.title_ru);
       const lemmas = (s.items || []).map((x) => x && x.lemma).filter(Boolean);
       lines.push('• ' + title + (lemmas.length ? ': ' + lemmas.join(' · ') : ''));
+      // P6.4 — конструкция(и) секции: серверные titles (id клиент не рендерит)
+      for (const c of (s.constructs || [])) {
+        const ct = useRu ? (c.title_ru || c.title_en) : (c.title_en || c.title_ru);
+        if (ct) lines.push('  ⚙ ' + ct);
+      }
     }
     if (r.degraded_reason) {
       // человеческая расшифровка типовых причин деградации; сырой код — в скобках
@@ -3058,7 +3063,7 @@ function _explainEls() {
   return {
     modal: $('roomExplainModal'), sentence: $('roomExplainSentence'),
     consent: $('roomExplainConsent'), allow: $('roomExplainAllow'), cancel: $('roomExplainCancel'),
-    body: $('roomExplainBody'), meta: $('roomExplainMeta'),
+    body: $('roomExplainBody'), constructs: $('roomExplainConstructs'), meta: $('roomExplainMeta'),
   };
 }
 let _explainPending = null;   // { textKey, orderIndex } — ждёт first-use подтверждения
@@ -3116,6 +3121,7 @@ async function explainRow(idx) {
   els.modal.hidden = false;
   if (els.sentence) els.sentence.textContent = row.he_niqqud || row.he || '';
   if (els.body) { els.body.hidden = true; els.body.textContent = ''; }
+  if (els.constructs) { els.constructs.hidden = true; els.constructs.textContent = ''; }
   if (els.consent) els.consent.hidden = true;
   _explainShowMeta('');
   const CS = window.CloudSync;
@@ -3166,6 +3172,11 @@ async function _explainRequest(textKey, orderIndex) {
   }
   // LLM/фолбэк-текст — СТРОГО textContent (никогда не HTML)
   if (els.body) { els.body.hidden = false; els.body.textContent = r.text || ''; }
+  // P6.4 — детерминированные construct-титулы сервера (видны ВСЕГДА, не только в fallback)
+  if (els.constructs && Array.isArray(r.constructs) && r.constructs.length) {
+    els.constructs.textContent = '⚙ ' + r.constructs.map((c) => c && c.title).filter(Boolean).join(' · ');
+    els.constructs.hidden = false;
+  }
   if (r.llm_used) _explainShowMeta('🤖 ' + (r.provider || '') + (r.model ? ' · ' + r.model : ''));
   else _explainShowMeta(tt('room.explain.noLlm', 'без AI: перевод и морфология офлайн') + (r.degraded_reason ? ' (' + r.degraded_reason + ')' : ''));
 }

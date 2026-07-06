@@ -56,10 +56,15 @@ function limits() {
 
 // D1-диагностика «судьбы слова»: рецептивно знает, production проваливает →
 // рекомендованный канал = диктант/reverse (иначе обычная тренировка).
+// ВАЖНО (пойман статически при подготовке live-verify P6.4): D1-политика НАМЕРЕННО
+// пишет production-провал рецептивно-сильного слова как Hard(2), не Again(1) —
+// поэтому провал production = again+HARD, иначе честно проваленный диктант
+// ВЫКИДЫВАЛ слово из gap-секции вместо добавления.
 function productionImbalance(cs) {
   if (!cs || !cs.receptive || !cs.production) return false;
   const r = cs.receptive, p = cs.production;
-  return (Number(r.good) || 0) >= 2 && ((Number(p.reps) || 0) === 0 || (Number(p.again) || 0) > (Number(p.good) || 0));
+  const prodFails = (Number(p.again) || 0) + (Number(p.hard) || 0);
+  return (Number(r.good) || 0) >= 2 && ((Number(p.reps) || 0) === 0 || prodFails > (Number(p.good) || 0));
 }
 
 
@@ -98,6 +103,8 @@ async function buildPlanCore(ctx) {
       title_en: "Words you recognize but fail to produce — dictation today",
       recommended_channel: "dictate",
       construct_ids: sectionConstructs,
+      // титулы — для UI (клиент реестра не дублирует; id → title мапит сервер)
+      constructs: sectionConstructs.map((id) => ({ id, title_ru: constructs.title(id, "ru"), title_en: constructs.title(id, "en") })),
       items: gapItems,
     });
   }
