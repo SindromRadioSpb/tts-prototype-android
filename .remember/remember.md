@@ -24,10 +24,16 @@ i18n 226 · api-smoke. Всё на проде.
 ## Next
 0. ✅ Live-verify P6.5 ПРОЙДЕН владельцем 2026-07-06 → **CLG-P6 закрыт целиком**
    (все 5 слайсов live-verified).
-1. **P9 «дом наставника»** (решение владельца, следующий крупный слайс): 🤖-панель
-   в шапке Зала — план+действия, лимиты/ключ, история объяснений (agent_explanations
-   уже хранит всё с провенансом), consent-галочка агента переезжает из ☁;
-   ☁-модал возвращается к синку. Панель = скелет Telegram Mini App (P8, после G-5).
+1. **P9 «дом наставника» — РЕШЕНИЯ ВЛАДЕЛЬЦА ПРИНЯТЫ 2026-07-06, канон =
+   docs/planning/MENTOR_HOME_P9_DECISION_2026_07_06.md (READ FIRST):**
+   форм-фактор = полноэкранный вид ВНУТРИ Зала (🤖 в шапке, hash #mentor, паттерн
+   roomContent↔roomReader; НЕ страница/drawer — DB-teardown урок v3.11.101);
+   модуль mentor-home.js API-only (без OPFS) + host-adapter действий → скелет
+   Mini App P8; MVP = ВСЕ 4 блока: план+действия (переезд из ☁) · история
+   объяснений (новый GET /api/agent/explanations, purge-aware) · статус/лимиты +
+   consent-переезд · зачаток misconception-блока (GET /api/agent/constructs/summary
+   из facts_used+plan-tasks). Никакого автооткрытия (этикет §2.3), Tier 1 — честная
+   заглушка «нужен облачный аккаунт».
 3. По owner brief: НЕ sentence_plus_neighbors без измерений; НЕ чат P7 до обкатки;
    record_review_answer disabled до гейтов 4.8.
 
