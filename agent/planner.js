@@ -79,11 +79,35 @@ async function buildPlanCore(ctx) {
   const learner = ctxRes.result;
 
   const sections = [];
-  // 1) D1-дисбаланс каналов СНАЧАЛА («судьба слова»: узнаёт при чтении — проваливает
+  // 0) СЕГОДНЯШНИЕ ПРОВАЛЫ — ПЕРВОЙ строкой (owner live-verify 2026-07-06, кейс טוב:
+  //    слово, проваленное сегодня в чтении И диктанте, не попадало НИКУДА — production_gap
+  //    честно требует рецептивной силы, а lapses-first top-5 due-среза на большом профиле
+  //    хоронит свежие провалы под годами накопленных lapses). Наставник обязан признать
+  //    сегодняшнюю борьбу раньше бэклога (R2/R17). Канал — по факту провалов: были
+  //    production-провалы → диктант, иначе обычное повторение.
+  const strugRes = await tools.callTool(ctx, "get_recent_struggles", { limit: 4 });
+  const struggles = strugRes.ok ? strugRes.result : [];
+  const struggleKeys = new Set(struggles.map((s) => s.item_key));
+  if (struggles.length) {
+    const items = await displayItems(struggles.map((s) => ({ item_key: s.item_key, lapses: s.fails })));
+    for (let i = 0; i < struggles.length; i++) {
+      items[i].fails_24h = struggles[i].fails;
+      items[i].prod_fails_24h = struggles[i].prod_fails;
+    }
+    sections.push({
+      id: "fresh_struggles", category: "тренировать",
+      title_ru: "Сегодня не далось — вернёмся к этим словам прямо сейчас",
+      title_en: "Struggled today — let's revisit these words right now",
+      recommended_channel: struggles.some((s) => s.prod_fails > 0) ? "dictate" : "read",
+      items,
+    });
+  }
+  // 1) D1-дисбаланс каналов («судьба слова»: узнаёт при чтении — проваливает
   //    письмо): такое слово сегодня тренируется диктантом, а не общим повторением,
   //    поэтому оно вынимается из due-среза, даже если просрочено.
-  const imbalanced = weak.filter((w) => productionImbalance(w.channel_stats)).slice(0, 3);
+  const imbalanced = weak.filter((w) => productionImbalance(w.channel_stats) && !struggleKeys.has(w.item_key)).slice(0, 3);
   const gapKeys = new Set(imbalanced.map((w) => w.item_key));
+  for (const k of struggleKeys) gapKeys.add(k);   // провалы дня не дублируются и в due-срезе
   if (imbalanced.length) {
     // P6.4 construct-субстрат: каждый gap-пункт несёт construct_id, назначенный СЕРВЕРОМ
     // по реальным каналам review_log слова (реестр agent/constructs.js; LLM ids не видит).

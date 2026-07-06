@@ -45,6 +45,12 @@ const REGISTRY = {
     readOnly: true,
     run: (ctx, a) => agentRepo.wordLifecycle(ctx.userId, a && a.item_key),
   },
+  // P6.4-followup (кейс טוב): свежие провалы за 24ч — сигнал «горит сейчас», который
+  // lapses-first срезы хоронят на большом профиле.
+  get_recent_struggles: {
+    readOnly: true,
+    run: (ctx, a) => learnerGraphRepo.getRecentStruggles(ctx.userId, { limit: a && a.limit, minFails: a && a.min_fails }),
+  },
 
   // ── keying (пре-условие №2): минт новых item_key ТОЛЬКО здесь (§7) ─────────
   resolve_item_key: {

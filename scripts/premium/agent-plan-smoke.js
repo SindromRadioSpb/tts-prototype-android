@@ -93,6 +93,13 @@ function seedRows() {
   rev("gap", 2, "2026-06-22T08:00:00.000Z", 1, "dictate:typed");
   rev("gap", 3, "2026-06-24T08:00:00.000Z", 1, "dictate:tiles");
   rev("gap", 4, "2026-06-25T08:00:00.000Z", 3, "reading:tap");
+  // P6.4-followup (кейс טוב): слово, проваленное СЕГОДНЯ в чтении И диктанте, — не
+  // channel-gap (рецептивной силы нет) и хоронится lapses-first due-срезом; обязано
+  // всплыть секцией fresh_struggles ПЕРВОЙ (учебное время — последние часы).
+  const h = (n) => new Date(Date.now() - n * 3600 * 1000).toISOString();
+  rev("strug", 1, h(5), 1, "read:mc");
+  rev("strug", 2, h(4), 1, "read:mc");
+  rev("strug", 3, h(3), 1, "dictate:typed");
   return rows;
 }
 
@@ -158,6 +165,16 @@ function seedRows() {
       "P6.4: production_gap section must carry construct reading_to_dictation + ru/en titles for UI, got " + JSON.stringify(gap && gap.construct_ids));
     eq(!!gap && gap.items.every((x) => !x.construct_id || CReg.isKnown(x.construct_id)),
       "P6.4: every per-item construct_id must be registry-known (server-assigned only)");
+    // P6.4-followup (кейс טוב): сегодняшние провалы — ПЕРВАЯ секция, канал по факту
+    // провалов (был production-провал → диктант), и слово НЕ дублируется в due-срезе.
+    const fresh = (plan.sections || [])[0];
+    eq(!!fresh && fresh.id === "fresh_struggles" && fresh.recommended_channel === "dictate"
+      && fresh.items.some((x) => x.item_key.includes("|strug#") && x.fails_24h >= 3 && x.prod_fails_24h >= 1)
+      && !!fresh.title_ru && !!fresh.title_en,
+      "fresh_struggles must be the FIRST section with the today-failed word (fails+prod_fails counted), got " + JSON.stringify((plan.sections || []).map((s) => s.id)));
+    const dueSec = (plan.sections || []).find((s) => s.id === "due");
+    eq(!dueSec || dueSec.items.every((x) => !x.item_key.includes("|strug#")),
+      "today-failed word must NOT be duplicated into the due slice");
     eq(!!p1.json.task_id, "plan must create an agent_task");
 
     // MNAR: план ничего не пишет в review_log.
@@ -221,7 +238,7 @@ function seedRows() {
     try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {}
   }
 
-  const TOTAL = 28;   // 26 слайса 1 + 2 construct-ассерта P6.4
+  const TOTAL = 30;   // 26 слайса 1 + 2 construct-ассерта P6.4 + 2 fresh_struggles (кейс טוב)
   if (failures.length) {
     console.error(`smoke:agent-plan FAIL (${TOTAL - failures.length}/${TOTAL})`);
     for (const f of failures) console.error("  ✗ " + f);

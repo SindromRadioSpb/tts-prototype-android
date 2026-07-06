@@ -97,6 +97,31 @@ async function getWeakWords(userId, { limit } = {}) {
     });
 }
 
+// P6.4-followup (owner live-verify 2026-07-06, кейс טוב): «сегодняшние провалы» — слова
+// с ≥minFails провалами (grade≤2, kind='review') за окно sinceMs по УЧЕБНОМУ времени
+// reviewed_at. Это сигнал «горит сейчас», который lapses-first /due-срез на большом
+// профиле хоронит (свежие 3-4 провала < годами накопленных lapses старых слов), а
+// production_gap честно не берёт (тот требует рецептивной силы — слово, провальное
+// ВЕЗДЕ, не «канальный разрыв»). prod_fails отделены — план рекомендует канал честно.
+async function getRecentStruggles(userId, { sinceMs, minFails, limit } = {}) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const lim = Math.max(1, Math.min(20, Number(limit) || 4));
+  const min = Math.max(1, Number(minFails) || 2);
+  const since = new Date(Number(sinceMs) || (Date.now() - 24 * 3600 * 1000)).toISOString();
+  const manual = await manualStatusMap(userId);
+  const rows = await dbAll(db,
+    `SELECT item_key, COUNT(*) AS fails,
+            SUM(CASE WHEN channel LIKE 'dictate%' OR channel LIKE 'reverse%' THEN 1 ELSE 0 END) AS prod_fails,
+            MAX(reviewed_at) AS last_fail_at
+       FROM review_log
+      WHERE user_id = ? AND kind = 'review' AND grade IS NOT NULL AND grade <= 2 AND reviewed_at >= ?
+      GROUP BY item_key HAVING COUNT(*) >= ?
+      ORDER BY fails DESC, last_fail_at DESC LIMIT ?`, [userId, since, min, lim * 2]);
+  return (rows || []).filter((r) => (manual[r.item_key] || "") !== "ignore").slice(0, lim)
+    .map((r) => ({ item_key: r.item_key, fails: Number(r.fails) || 0,
+      prod_fails: Number(r.prod_fails) || 0, last_fail_at: r.last_fail_at }));
+}
+
 // Compact agent-facing summary (the getAgentContext primitive; grows in CLG-P6).
 async function getAgentContext(userId, { nowMs } = {}) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
@@ -130,4 +155,4 @@ async function getAgentContext(userId, { nowMs } = {}) {
   };
 }
 
-module.exports = { manualStatusMap, getDue, getKnownWords, getWeakWords, getAgentContext };
+module.exports = { manualStatusMap, getDue, getKnownWords, getWeakWords, getRecentStruggles, getAgentContext };
