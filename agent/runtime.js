@@ -11,6 +11,7 @@ const planner = require(path.join(__dirname, "planner"));
 const explainer = require(path.join(__dirname, "explainer"));
 const tools = require(path.join(__dirname, "tools"));
 const llm = require(path.join(__dirname, "llm"));
+const constructs = require(path.join(__dirname, "constructs"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
 
 async function plan(ctx) {
@@ -43,9 +44,80 @@ async function listTasks(ctx, opts) {
   return agentRepo.listTasks(ctx.userId, opts || {});
 }
 
+// P9 «дом наставника» — история объяснений (read-only, MNAR-чист: ничего не пишет).
+// Purge-aware (R11): tombstone-строка после отзыва agent_read_texts отдаётся ЧЕСТНО
+// как purged (дата/якорь остаются — идентификаторы класса A), контент — никогда.
+// В ленту НЕ отдаётся facts_used целиком (внутренний провенанс) — только якорное
+// предложение из факта user_sentence (собственный текст пользователя, та же
+// privacy-плоскость, что ответ /explain тому же принципалу).
+function _explanationListItem(row) {
+  let body = {}, facts = [];
+  try { body = JSON.parse(row.body_json) || {}; } catch (_) {}
+  try { facts = JSON.parse(row.facts_used_json) || []; } catch (_) {}
+  const purged = !!body.purge_reason;
+  // якорь: sentence_id = '<text_key>#<order_index>' (order_index — после ПОСЛЕДНЕГО '#';
+  // text_key может теоретически содержать '#', обратное — нет: order_index числовой)
+  let anchor = null;
+  const sid = row.sentence_id != null ? String(row.sentence_id) : "";
+  const hi = sid.lastIndexOf("#");
+  if (hi > 0) {
+    const oi = Number(sid.slice(hi + 1));
+    if (Number.isFinite(oi)) anchor = { text_key: sid.slice(0, hi), order_index: oi };
+  }
+  const fSent = purged ? null : (Array.isArray(facts) ? facts.find((f) => f && f.kind === "user_sentence") : null);
+  return {
+    id: row.id, rid: row.rid, created_at: row.created_at, sentence_id: row.sentence_id,
+    anchor,
+    purged,
+    ...(purged ? { purge_reason: body.purge_reason, purged_at: body.purged_at || null } : {}),
+    text: purged ? null : (body.text != null ? String(body.text) : null),
+    sentence_he: fSent && fSent.text != null ? String(fSent.text) : null,
+    language: body.language || null,
+    llm_used: !purged && body.llm_used === true,
+    ...(body.provider ? { provider: body.provider, model: body.model || null } : {}),
+    ...(body.degraded_reason ? { degraded_reason: body.degraded_reason } : {}),
+    scope_level: body.scope_level || null,
+  };
+}
+
+async function listExplanations(ctx, { limit, beforeRid } = {}) {
+  const { rows, has_more } = await agentRepo.listExplanations(ctx.userId, { limit, beforeRid });
+  const items = rows.map(_explanationListItem);
+  return {
+    explanations: items,
+    has_more,
+    next_before_rid: has_more && items.length ? items[items.length - 1].rid : null,
+  };
+}
+
+// P9 зачаток misconception-блока: агрегат construct_id из facts_used объяснений
+// (purge-aware по построению) + plan-task payload. Наружу уходят ТОЛЬКО известные
+// реестру ids (⊆ registry — структурная гарантия, тот же filterKnown-инвариант P6.4)
+// с серверными титулами; клиент реестр не дублирует.
+async function constructsSummary(ctx) {
+  const occ = await agentRepo.constructOccurrences(ctx.userId, {});
+  const agg = new Map();   // id → { count, last_seen_at, from_explanations, from_plans }
+  for (const o of occ) {
+    if (!constructs.isKnown(o.id)) continue;
+    let a = agg.get(o.id);
+    if (!a) { a = { count: 0, last_seen_at: null, from_explanations: 0, from_plans: 0 }; agg.set(o.id, a); }
+    a.count++;
+    if (o.source === "explanation") a.from_explanations++; else a.from_plans++;
+    if (!a.last_seen_at || String(o.at) > String(a.last_seen_at)) a.last_seen_at = o.at;
+  }
+  const out = [...agg.entries()].map(([id, a]) => ({
+    id, kind: constructs.get(id).kind,
+    title_ru: constructs.title(id, "ru"), title_en: constructs.title(id, "en"),
+    count: a.count, from_explanations: a.from_explanations, from_plans: a.from_plans,
+    last_seen_at: a.last_seen_at,
+  }));
+  out.sort((x, y) => y.count - x.count || String(y.last_seen_at).localeCompare(String(x.last_seen_at)));
+  return { constructs: out };
+}
+
 async function updateProfile(ctx, patch) {
   const p = await agentRepo.updateProfile(ctx.userId, patch || {});
   return { mode: p.mode, language: p.language };
 }
 
-module.exports = { plan, explain, status, listTasks, updateProfile };
+module.exports = { plan, explain, status, listTasks, updateProfile, listExplanations, constructsSummary };

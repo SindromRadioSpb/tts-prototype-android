@@ -215,7 +215,12 @@ async function plan(ctx) {
     kind: "plan",
     payload: {
       est_minutes: core.est_minutes,
-      sections: core.sections.map((s) => ({ id: s.id, category: s.category, item_keys: (s.items || []).map((x) => x.item_key) })),
+      // construct_ids — вход агрегата P9 /api/agent/constructs/summary (класс A,
+      // ids уже отфильтрованы реестром при сборке секции — сервер-назначенные P6.4)
+      sections: core.sections.map((s) => ({
+        id: s.id, category: s.category, item_keys: (s.items || []).map((x) => x.item_key),
+        ...(s.construct_ids && s.construct_ids.length ? { construct_ids: s.construct_ids } : {}),
+      })),
     },
   });
 

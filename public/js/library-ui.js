@@ -983,8 +983,9 @@ async function refreshDueBadge() {
 function _paintDueCTA() {
   const cta = document.getElementById('roomDueCta'); if (!cta) return;
   const reader = $('roomReader');
+  const mentor = $('roomMentorView');   // P9 — дом наставника тоже «не home»: CTA не поверх вида
   const n = _dueReviewCount || 0;   // sourced-due only → the CTA never promises more than the queue serves
-  const show = n > 0 && !!(reader && reader.hidden);   // home only — not while reading
+  const show = n > 0 && !!(reader && reader.hidden) && !(mentor && !mentor.hidden);   // home only — not while reading
   cta.hidden = !show;
   if (show) cta.textContent = '🔁 ' + tt('room.morph.study.due', 'К повторению') + ': ' + n + ' →';
 }
@@ -2225,81 +2226,12 @@ function _cloudEls() {
     secret: $('roomCloudSecret'), loginBtn: $('roomCloudLoginBtn'), panel: $('roomCloudPanel'),
     info: $('roomCloudInfo'), syncBtn: $('roomCloudSyncBtn'), logoutBtn: $('roomCloudLogoutBtn'),
     textsCb: $('roomCloudTexts'),
-    agentTextsCb: $('roomCloudAgentTexts'),
     pushState: $('roomCloudPushState'), pushOn: $('roomCloudPushOn'),
     pushTest: $('roomCloudPushTest'), pushOff: $('roomCloudPushOff'),
-    planBtn: $('roomCloudPlanBtn'), planBox: $('roomCloudPlanBox'),
   };
 }
-// CLG-P6 сценарий №1 — «🧭 План на сегодня»: read-only план наставника (/api/agent/plan).
-// В review_log НЕ пишет (MNAR); LLM опционален — деградация подписывается честно (R16);
-// R17-категории секций утверждает сервер. Текст LLM рендерится ТОЛЬКО textContent (не HTML).
-async function _cloudPlanRun() {
-  const els = _cloudEls(); if (!els.planBox || !els.planBtn) return;
-  els.planBtn.disabled = true;
-  els.planBox.hidden = false;
-  els.planBox.textContent = tt('room.cloud.planRun', 'Составляю план…');
-  try {
-    const r = await fetch('/api/agent/plan', { method: 'POST', credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
-      body: '{}' }).then((x) => x.json());
-    if (!r || !r.ok) { els.planBox.textContent = '✗ ' + ((r && r.error) || tt('room.cloud.err', 'Ошибка синхронизации')); return; }
-    const lang = String(document.documentElement.lang || 'ru').toLowerCase();
-    const useRu = lang.indexOf('ru') === 0;   // he-UI → английские заголовки секций (у сервера ru/en)
-    // P6.5 (owner: «работать по плану невозможно») — план ИСПОЛНЯЕМ: DOM-рендер с кнопкой
-    // «▶ Начать» на секции. Категория R17 = действие: «тренировать» → кросс-текстовая
-    // сессия по item_keys секции с каналом рекомендации; «вернуть к чтению» → в Зал.
-    // Все тексты — СТРОГО textContent (LLM-текст не HTML).
-    els.planBox.textContent = '';
-    const addLine = (text, cls) => { if (text) els.planBox.appendChild(el('div', { class: cls || 'room-plan-line', text })); };
-    // LLM-текст показываем только когда он ЕСТЬ от LLM: fallback-текст сервера дублирует
-    // секции, которые мы и так рендерим пунктами (пойман скриншотом владельца).
-    if (r.llm_used && r.text) addLine(r.text);
-    const plan = r.plan || {};
-    if (plan.est_minutes) addLine('≈ ' + plan.est_minutes + ' ' + tt('room.cloud.planMin', 'мин'));
-    for (const s of (plan.sections || [])) {
-      const title = useRu ? (s.title_ru || s.title_en) : (s.title_en || s.title_ru);
-      const lemmas = (s.items || []).map((x) => x && x.lemma).filter(Boolean);
-      const row = el('div', { class: 'room-plan-line room-plan-section' });
-      row.appendChild(el('span', { text: '• ' + title + (lemmas.length ? ': ' + lemmas.join(' · ') : '') }));
-      const keys = (s.items || []).map((x) => x && x.item_key).filter(Boolean);
-      if (s.category === 'тренировать' && keys.length) {
-        const btn = el('button', { class: 'room-plan-go', text: tt('room.cloud.planStart', '▶ Начать'), attrs: { type: 'button' } });
-        btn.addEventListener('click', () => {
-          const cEls = _cloudEls(); if (cEls.modal) cEls.modal.hidden = true;   // тренировка живёт в Зале, не под модалом
-          startPlanSectionTraining(keys, s.recommended_channel || null);
-        });
-        row.appendChild(btn);
-      } else if (s.category === 'вернуть к чтению') {
-        const btn = el('button', { class: 'room-plan-go', text: tt('room.cloud.planRead', '▶ В Зал'), attrs: { type: 'button' } });
-        btn.addEventListener('click', () => { const cEls = _cloudEls(); if (cEls.modal) cEls.modal.hidden = true; });
-        row.appendChild(btn);
-      }
-      els.planBox.appendChild(row);
-      // P6.4 — конструкция(и) секции: серверные titles (id клиент не рендерит)
-      for (const c of (s.constructs || [])) {
-        const ct = useRu ? (c.title_ru || c.title_en) : (c.title_en || c.title_ru);
-        if (ct) addLine('⚙ ' + ct, 'room-plan-line room-plan-construct');
-      }
-    }
-    if (r.degraded_reason) {
-      // человеческая расшифровка типовых причин деградации; сырой код — в скобках
-      const code = String(r.degraded_reason);
-      const label = (code === 'USER_LIMIT' || code === 'GLOBAL_LIMIT') ? tt('room.cloud.planLimit', 'дневной лимит LLM исчерпан')
-        : (code === 'KILL_SWITCH') ? tt('room.cloud.agentKill', 'LLM выключен (kill-switch)')
-        : (code === 'NO_API_KEY') ? tt('room.cloud.agentKeyNone', 'без LLM-ключа — план детерминированный')
-        : (code === 'LLM_OUTPUT_INVALID') ? tt('room.cloud.planQualityReject', 'ответ модели не прошёл проверку качества')
-        : (code === '429' || code === '403') ? tt('room.cloud.planKeyQuota', 'у ключа нет квоты к модели — проверьте проект ключа в Google Console') + ' (' + code + ')'
-        : code;
-      addLine('ⓘ ' + tt('room.cloud.planNoLlm', 'план собран без LLM (детерминированно)') + ' · ' + label);
-    }
-  } catch (e) {
-    els.planBox.textContent = '✗ ' + String((e && e.message) || e);
-  } finally {
-    els.planBtn.disabled = false;
-    try { _cloudRender(); } catch (_) {}   // счётчик «LLM сегодня» сразу отражает списание
-  }
-}
+// CLG-P9: «🧭 План на сегодня», consent агента и строка «🤖 Наставник» ПЕРЕЕХАЛИ в дом
+// наставника (mentor-home.js, вид #roomMentorView) — ☁-модал вернулся к синку/пушу/аккаунту.
 // CLG-P4.5 — Web Push блок ☁-модала. Honest states: unsupported (нет SW/PushManager —
 // в т.ч. iPhone-браузер без установки на «Домой») / denied / off / on-this-device.
 function _pushB64ToU8(b64) {
@@ -2375,7 +2307,6 @@ function _cloudStatus(text, cls) {
   const e = _cloudEls().status; if (!e) return;
   e.textContent = text || ''; e.className = 'room-cloud-status' + (cls ? ' ' + cls : '');
 }
-let _agentStatusCache = null;   // последний /api/agent/status — для tap-ⓘ пояснения (глобальный лимит)
 async function _cloudRender() {
   const els = _cloudEls(); if (!els.modal) return;
   const CS = window.CloudSync; if (!CS) return;
@@ -2393,11 +2324,6 @@ async function _cloudRender() {
   if (els.textsCb) {
     const c = (session.consents || {}).cloud_texts;
     els.textsCb.checked = !!(c && c.granted === true);
-  }
-  // CLG-P6.2 — отдельное согласие «наставник читает тексты» (серверная истина, как и класс B)
-  if (els.agentTextsCb) {
-    const ca = (session.consents || {}).agent_read_texts;
-    els.agentTextsCb.checked = !!(ca && ca.granted === true);
   }
   const lines = [];
   const hintRow = (hintKey, html) => '<span data-cloud-hint="' + hintKey + '">' + html + '<span class="room-cloud-i" aria-hidden="true">ⓘ</span></span>';
@@ -2436,21 +2362,7 @@ async function _cloudRender() {
           : tt('room.cloud.oracleBad', 'Облачные проекции: расхождения') + ': <b>' + o.mismatched + '</b>'));
       }
     } catch (_) {}
-    // CLG-P6 — прозрачность наставника (R4/R16, запрос владельца 2026-07-05): честный статус
-    // ключа агента + живой счётчик LLM-лимита. Состояния: kill-switch / без ключа (план
-    // детерминированный) / ключ ✓ + израсходовано-из-лимита. Глобальный счётчик — в tap-ⓘ.
-    try {
-      const a = await fetch('/api/agent/status', { credentials: 'same-origin' }).then((r) => r.json());
-      if (a && a.ok) {
-        _agentStatusCache = a;
-        let val;
-        if (a.kill_switch) val = '<b>' + tt('room.cloud.agentKill', 'LLM выключен (kill-switch)') + '</b>';
-        else if (a.key_source !== 'agent') val = '<b>' + tt('room.cloud.agentKeyNone', 'без LLM-ключа — план детерминированный') + '</b>';
-        else val = '✓ ' + tt('room.cloud.agentKeyOk', 'ключ подключён') + ' · ' + tt('room.cloud.agentToday', 'LLM сегодня') + ': <b>'
-          + ((a.usage && a.usage.user_llm_calls) || 0) + '/' + ((a.limits && a.limits.llm_daily_per_user) || '—') + '</b>';
-        lines.push(hintRow('agent', '🤖 ' + tt('room.cloud.agentLine', 'Наставник') + ': ' + val));
-      }
-    } catch (_) {}
+    // CLG-P9: статус/лимиты наставника переехали в дом наставника (🤖 в шапке).
   } catch (_) {}
   if (els.info) els.info.innerHTML = lines.join('<br>');
 }
@@ -2552,23 +2464,6 @@ function roomCloudInit() {
       if (granted) _cloudRunSync(false);
     } catch (_) { els.textsCb.checked = !granted; }
   });
-  // CLG-P6.2 — согласие «наставник читает тексты»: durable consent-запись; отзыв на сервере
-  // каскадно чистит контент сохранённых объяснений (tombstone) — клиент только сообщает.
-  if (els.agentTextsCb) els.agentTextsCb.addEventListener('change', async () => {
-    const granted = !!els.agentTextsCb.checked;
-    try {
-      const r = await fetch('/api/auth/consent', { method: 'POST', credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
-        body: JSON.stringify({ key: 'agent_read_texts', granted, version: 'v1' }) });
-      if (!r.ok) { els.agentTextsCb.checked = !granted; _cloudStatus('✗ ' + tt('room.cloud.err', 'Ошибка синхронизации'), 'err'); return; }
-      if (!granted) {
-        const j = await r.json().catch(() => null);
-        if (j && j.explanations && j.explanations.purged >= 1) {
-          _cloudStatus('✓ ' + tt('room.explain.purged', 'Сохранённые объяснения очищены'), 'ok');
-        }
-      }
-    } catch (_) { els.agentTextsCb.checked = !granted; }
-  });
   if (els.logoutBtn) els.logoutBtn.addEventListener('click', async () => {
     const CS = window.CloudSync; if (!CS) return;
     try { await CS.logout(); } catch (_) {}
@@ -2578,8 +2473,6 @@ function roomCloudInit() {
   if (els.pushOn) els.pushOn.addEventListener('click', _cloudPushEnable);
   if (els.pushOff) els.pushOff.addEventListener('click', _cloudPushDisable);
   if (els.pushTest) els.pushTest.addEventListener('click', _cloudPushTest);
-  // CLG-P6 — «🧭 План на сегодня» (read-only сценарий №1)
-  if (els.planBtn) els.planBtn.addEventListener('click', _cloudPlanRun);
   // тап по строке с ⓘ → пояснение под инфо-блоком (title-тултипы не работают @380px);
   // повторный тап той же строки — скрыть
   if (els.info) els.info.addEventListener('click', (e) => {
@@ -2591,10 +2484,6 @@ function roomCloudInit() {
       events: tt('room.cloud.hintEvents', 'Каждый ответ в тренировке или чтении записывается как событие — это журнал вашей памяти слов. После синхронизации числа на всех устройствах должны совпадать.'),
       oracle: tt('room.cloud.hintOracle', 'Сервер пересчитал расписание повторений из журнала и сверил с сохранённым. «✓ N» — проверено N слов, расхождений нет.'),
       texts: tt('room.cloud.hintTexts', 'Собственные тексты из «Мои тексты» (корпус не передаётся). После синхронизации числа на устройстве и в облаке должны совпадать.'),
-      agent: tt('room.cloud.hintAgent', 'Ключ агента (AGENT_GEMINI_API_KEY) задан на сервере и платит только за наставника. «План на сегодня» с LLM списывает 1 вызов из суточного лимита; при исчерпании или без ключа план строится детерминированно и остаётся полезным.')
-        + ' ' + tt('room.cloud.hintAgentGlobal', 'Всего за сегодня') + ': '
-        + (_agentStatusCache && _agentStatusCache.usage
-          ? _agentStatusCache.usage.global_llm_calls + '/' + _agentStatusCache.limits.llm_daily_global : '—'),
     };
     const next = texts[key] || '';
     if (!box.hidden && box.getAttribute('data-for') === key) { box.hidden = true; return; }
@@ -2614,6 +2503,69 @@ async function roomCloudAutoSync() {
     const session = await CS.me(); if (!session) return;
     await _cloudRunSync(true);
   } catch (_) {}
+}
+
+// ── CLG-P9 — «Дом наставника» (MENTOR_HOME_P9_DECISION_2026_07_06) ───────────────────────────
+// Полноэкранный вид ВНУТРИ Зала: 🤖 в шапке ↔ hash #mentor, паттерн roomContent↔roomReader
+// (НЕ страница — DB-teardown урок v3.11.101; НЕ drawer). Логика/данные — в mentor-home.js
+// (API-only, скелет Mini App P8); Зал отдаёт host-adapter действий: тренер P6.5, возврат в
+// чтение, открытие текста на якоре (OPFS-резолв text_key→id — это СТОРОНА ХОСТА, не модуля).
+// Этикет R17 §2.3: вид открывается ТОЛЬКО явным тапом или deep-link #mentor (пуш) — никаких
+// автооткрытий.
+let _mentorMounted = false;
+function _mentorHost() {
+  return {
+    t: tt,
+    language: () => String(document.documentElement.lang || 'ru').toLowerCase(),
+    csrf: () => { try { return localStorage.getItem('cloud.csrf') || ''; } catch (_) { return ''; } },
+    runTrainer: (itemKeys, channel) => { try { startPlanSectionTraining(itemKeys, channel); } catch (_) {} },
+    openReading: () => closeMentorView(),
+    openTextAt: async (textKey, orderIndex) => {
+      let row = null;
+      try {
+        const rows = await localDb.dbQuery('SELECT id, title FROM texts WHERE text_key = ? LIMIT 1', [String(textKey)]);
+        row = rows && rows[0];
+      } catch (_) {}
+      // R11: якорь может указывать на текст, которого нет НА ЭТОМ устройстве (синк с другого) —
+      // честный тост вместо тихого no-op.
+      if (!row) { roomToast(tt('room.mentor.textMissing', 'Текст не найден на этом устройстве — синхронизируйте «Мои тексты» в ☁.')); return; }
+      closeMentorView();
+      openReader(row.id, row.title, { scrollToOrderIndex: Number(orderIndex) });
+    },
+  };
+}
+function _mountMentorHome() {
+  const mount = $('roomMentorMount');
+  if (!mount || !window.MentorHome) return;
+  if (_mentorMounted) { try { window.MentorHome.refresh(); } catch (_) {} return; }
+  _mentorMounted = true;
+  try { window.MentorHome.mount(mount, _mentorHost()); } catch (_) {}
+}
+function openMentorView() {
+  const view = $('roomMentorView'); if (!view || !view.hidden) return;
+  // открытая читалка закрывается ШТАТНО (flush прогресса) — не просто прячется
+  try { const rd = $('roomReader'); if (rd && !rd.hidden) closeReader(); } catch (_) {}
+  const content = $('roomContent'); if (content) content.hidden = true;
+  view.hidden = false;
+  try { window.scrollTo(0, 0); } catch (_) {}
+  // replaceState — без мусора в истории и без hashchange-петли; hash = deep-link контракт (пуши)
+  if (location.hash !== '#mentor') { try { history.replaceState(null, '', '#mentor'); } catch (_) {} }
+  _mountMentorHome();
+}
+function closeMentorView() {
+  const view = $('roomMentorView'); if (!view || view.hidden) return;
+  view.hidden = true;
+  const content = $('roomContent'); if (content) content.hidden = false;
+  if (location.hash === '#mentor') { try { history.replaceState(null, '', location.pathname + location.search); } catch (_) {} }
+  try { refreshDueBadge(); } catch (_) {}
+}
+function roomMentorInit() {
+  const btn = $('roomMentor');
+  if (btn) btn.addEventListener('click', openMentorView);
+  const back = $('mentorBack');
+  if (back) back.addEventListener('click', closeMentorView);
+  // deep-link при УЖЕ открытой странице (notificationclick focus-existing меняет hash)
+  window.addEventListener('hashchange', () => { if (location.hash === '#mentor') openMentorView(); });
 }
 
 // Theme — shared with Studio via localStorage.appTheme_v1 (light|dark|auto). body.theme-light/
@@ -3221,7 +3173,7 @@ async function _explainRequest(textKey, orderIndex) {
     if (code === 'TEXT_NOT_IN_CLOUD') msg = tt('room.explain.notInCloud', 'Текст ещё не синхронизирован — запустите синк в ☁ и повторите.');
     else if (code === 'SENTENCE_NOT_FOUND') msg = tt('room.explain.notInCloud', 'Текст ещё не синхронизирован — запустите синк в ☁ и повторите.');
     else if (code === 'CLOUD_TEXTS_CONSENT_REQUIRED') msg = tt('room.explain.needTexts', 'Сначала включите «Синхронизировать Мои тексты» в ☁ и запустите синк.');
-    else if (code === 'AGENT_READ_TEXTS_CONSENT_REQUIRED') msg = tt('room.explain.needConsent', 'Разрешите наставнику читать тексты (галочка 🤖 в ☁).');
+    else if (code === 'AGENT_READ_TEXTS_CONSENT_REQUIRED') msg = tt('room.explain.needConsent', 'Разрешите наставнику читать тексты (галочка 🤖 в доме наставника).');
     else msg = '✗ ' + tt('room.explain.err', 'Не удалось получить объяснение') + (code ? ' (' + code + ')' : '');
     if (els.body) { els.body.hidden = false; els.body.textContent = msg; }
     return;
@@ -3705,6 +3657,7 @@ async function openReader(textId, title, opts) {
     wireProgressScroll();
     if (opts && opts.ftsQuery) jumpToFtsMatch(opts.ftsQuery);                     // BRR-P2-005 — FTS hit → matched row
     else if (opts && opts.scrollToSentence) scrollToSentence(opts.scrollToSentence);   // open a bookmark at its row
+    else if (opts && opts.scrollToOrderIndex != null) scrollToOrderIdx(opts.scrollToOrderIndex);   // P9 — якорь объяснения (text_key+order_index)
     else restoreReaderPosition(readerTextId, opts);      // offer/perform resume (R4 reliability)
     // Epic-5 W1 — a resumed-to-end / single-screen text reaches the end without a scroll event;
     // check once after layout settles so the «✓ Прочитано» card can surface (readerAtEnd handles
@@ -3740,6 +3693,17 @@ function maybeNudgeNiqqud(text) {
 function scrollToSentence(sid) {
   sid = String(sid);
   const idx = readerRows.findIndex((r) => r && String(r._v3_sentenceId) === sid);
+  if (idx >= 0) scrollToReaderRow(idx);
+}
+
+// P9 — jump by order_index (the explanation-anchor contract: text_key + order_index).
+// Fallback mirrors explainRow's anchor mint (order_index ?? row idx): a row without
+// _v3_orderIndex was anchored by its index.
+function scrollToOrderIdx(oi) {
+  oi = Number(oi);
+  if (!Number.isFinite(oi)) return;
+  let idx = readerRows.findIndex((r) => r && r._v3_orderIndex != null && Number(r._v3_orderIndex) === oi);
+  if (idx < 0 && oi >= 0 && oi < readerRows.length && readerRows[oi] && readerRows[oi]._v3_orderIndex == null) idx = oi;
   if (idx >= 0) scrollToReaderRow(idx);
 }
 
@@ -6755,6 +6719,7 @@ function wireChrome() {
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeRoomAbout(); });
   roomCloudInit();   // CLG-P3.2 — «☁ Синхронизация» (owner-only; dormant without login)
   roomExplainInit(); // CLG-P6.2 — модал «Объяснить предложение» (dormant без сессии)
+  roomMentorInit();  // CLG-P9 — «Дом наставника» (открытие только тапом/deep-link — R17 §2.3)
   _roomStudioNavInit();   // Room↔Studio cross-nav: graceful DB close before hard navigation
   // Embedded reader chrome.
   const back = $('readerBack');
@@ -6788,6 +6753,8 @@ function wireChrome() {
     try { const rd = $('roomReader'); if (activeTrack === 'corpus' && (!rd || rd.hidden)) renderCorpus(); } catch (_) {}
     // Aids <option> labels are built once (not data-i18n) — rebuild them on locale change.
     try { const panel = $('readerAids'); if (panel && !panel.hidden) buildAidsPanel(); } catch (_) {}
+    // P9 — дом наставника строит блоки в JS (host.t на рендере) → refresh на смене языка
+    try { const mv = $('roomMentorView'); if (_mentorMounted && mv && !mv.hidden) window.MentorHome.refresh(); } catch (_) {}
   });
 }
 
@@ -6839,6 +6806,9 @@ async function boot() {
         if (rows && rows[0]) openReader(rows[0].id, rows[0].title, { resume: true });
       }
     } catch (_) {}
+    // CLG-P9 — deep-link #mentor (пуш/закладка): открыть дом наставника. Это ЯВНОЕ
+    // намерение пользователя (URL), не автооткрытие — этикет R17 §2.3 соблюдён.
+    try { if (location.hash === '#mentor') openMentorView(); } catch (_) {}
   } catch (e) {
     if (e instanceof localDb.DbUnavailableError) {
       _wkBootErr = 'DbUnavailable: ' + ((e && e.message) || '');

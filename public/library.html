@@ -1259,19 +1259,39 @@
     .room-cloud-push-head { font-size: 13px; color: var(--text-primary); }
     .room-cloud-push-state { color: var(--text-secondary); font-size: 12px; margin-inline-start: 6px; }
     .room-cloud-push .room-cloud-hint { margin-left: 0; }
-    /* CLG-P6 план дня: многострочный вывод; [hidden]-guard — против author-display трапа */
-    .room-cloud-planbox { margin-left: 0; white-space: pre-line; }
-    .room-cloud-planbox[hidden] { display: none; }
-    /* P6.5 — исполняемый план: строки-секции с кнопкой запуска */
-    .room-plan-line { margin-top: 4px; }
-    .room-plan-section { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-    .room-plan-construct { opacity: .75; font-size: 12px; margin-inline-start: 12px; }
-    .room-plan-go {
-      border: 1px solid var(--accent); background: none; color: var(--accent);
-      border-radius: 6px; padding: 1px 8px; font-size: 12px; cursor: pointer;
-      width: auto; flex: 0 0 auto;
-    }
-    .room-plan-go:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent); }
+    /* CLG-P9 — «Дом наставника» (roomContent↔roomMentorView; НЕ страница/drawer).
+       [hidden]-guard обязателен (author-display beats UA [hidden] — известный трап);
+       #roomMentorView button { width:auto } — против глобального mobile button{width:100%}. */
+    #roomMentorView[hidden] { display: none; }
+    #roomMentorView { max-width: 640px; margin-inline: auto; padding: 0 12px 24px; }
+    #roomMentorView button { width: auto; }
+    .mentor-block { border: 1px solid var(--border-soft); border-radius: 12px; padding: 12px 14px; margin-top: 12px; }
+    .mentor-block-title { margin: 0 0 8px; font-size: 14px; color: var(--text-primary); }
+    .mentor-status-line { font-size: 13px; color: var(--text-secondary); }
+    .mentor-status-i { opacity: .55; font-size: 11px; margin-inline-start: 3px; }
+    .mentor-consent { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; color: var(--text-primary); cursor: pointer; }
+    .mentor-consent input { width: auto; }
+    .mentor-hint { font-size: 12px; color: var(--text-faint); margin-top: 4px; line-height: 1.45; }
+    .mentor-hint[hidden], .mentor-plan-box[hidden], .mentor-hist-more[hidden] { display: none; }
+    .mentor-tier1 { text-align: center; padding: 28px 14px; font-size: 14px; color: var(--text-primary); }
+    .mentor-tier1-icon { font-size: 34px; margin-bottom: 8px; }
+    .mentor-plan-btn { background: var(--accent); color: var(--accent-contrast); border: 0; border-radius: 8px; padding: 8px 14px; font-size: 14px; cursor: pointer; }
+    .mentor-plan-btn[disabled] { opacity: .6; cursor: default; }
+    .mentor-plan-box { margin-top: 10px; font-size: 13px; color: var(--text-secondary); white-space: pre-line; }
+    .mentor-plan-line { margin-top: 4px; }
+    .mentor-plan-section { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+    .mentor-plan-construct { opacity: .75; font-size: 12px; margin-inline-start: 12px; }
+    .mentor-plan-go { border: 1px solid var(--accent); background: none; color: var(--accent); border-radius: 6px; padding: 1px 8px; font-size: 12px; cursor: pointer; flex: 0 0 auto; }
+    .mentor-plan-go:focus-visible, .mentor-hist-open:focus-visible, .mentor-hist-more:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent); }
+    .mentor-hist-item { border-top: 1px solid var(--border-soft); padding: 8px 0; }
+    .mentor-hist-item:first-child { border-top: 0; padding-top: 0; }
+    .mentor-hist-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--text-faint); }
+    .mentor-hist-badge { color: var(--text-secondary); }
+    .mentor-hist-open { border: 1px solid var(--border-soft); background: none; color: var(--text-secondary); border-radius: 6px; padding: 0 6px; font-size: 11px; cursor: pointer; margin-inline-start: auto; }
+    .mentor-hist-sentence { font-size: 16px; margin-top: 4px; }
+    .mentor-hist-text { font-size: 13px; color: var(--text-secondary); margin-top: 4px; white-space: pre-line; }
+    .mentor-hist-more { margin-top: 8px; border: 1px solid var(--border-soft); background: none; color: var(--text-secondary); border-radius: 8px; padding: 4px 12px; font-size: 13px; cursor: pointer; }
+    .mentor-cons-row { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
     /* CLG-P6.2 — explain: per-row 🤖 + модал результата */
     #roomReader .row-explain-btn {
       background: none; border: 0; cursor: pointer; font-size: 15px; line-height: 1;
@@ -1674,6 +1694,9 @@
       <!-- Кросс-навигация: Зал ↔ Студия (нет тупиков и в PWA-режиме); компактная иконка —
            текстовая ссылка «📝 Студия» живёт в футере (заголовок @380px не должен ломаться) -->
       <a id="roomStudioLink" class="room-theme-btn room-studio-link" href="/" aria-label="Студия" data-i18n-title="room.header.studio" title="Студия">📝</a>
+      <!-- CLG-P9 — «Дом наставника»: полноэкранный вид ВНУТРИ Зала (hash #mentor, паттерн
+           roomContent↔roomReader). Никакого автооткрытия (этикет R17 §2.3) — только тап. -->
+      <button id="roomMentor" class="room-theme-btn" type="button" aria-label="Наставник" data-i18n-title="room.mentor.btn" title="Наставник">🤖</button>
       <!-- CLG-P3.2 — «☁» cloud-sync entry (owner-only dev-режим; dormant Tier 1 without login) -->
       <button id="roomCloud" class="room-theme-btn" type="button" aria-label="Синхронизация" data-i18n-title="room.cloud.btn" title="Синхронизация">☁</button>
       <button id="roomTheme" class="room-theme-btn" type="button" aria-label="Тема" data-i18n-title="room.theme.label" title="Тема">🌗</button>
@@ -1716,6 +1739,18 @@
   <div id="roomReaderTable" class="reader-table-wrap"></div>
   <!-- Epic-2 #3 — honest provenance: translation AND vocalization are machine-made (R9). -->
   <p id="readerProvNote" class="reader-prov-note" dir="auto" data-i18n="room.prov.note">Перевод и огласовка — машинные, не вычитаны.</p>
+</section>
+
+<!-- CLG-P9 — «Дом наставника»: полноэкранный вид ВНУТРИ Зала (MENTOR_HOME_P9_DECISION_2026_07_06).
+     Паттерн roomContent↔roomReader — НЕ отдельная страница (DB-teardown урок v3.11.101), НЕ drawer.
+     Данные — ТОЛЬКО cloud API (mentor-home.js, API-only модуль = скелет Mini App P8); действия —
+     через host-adapter Зала. Tier 1 — честная заглушка; автооткрытия нет (этикет R17 §2.3). -->
+<section id="roomMentorView" hidden aria-label="Наставник">
+  <div class="reader-bar">
+    <button id="mentorBack" class="reader-back" type="button" data-i18n="room.reader.back">← Полки</button>
+    <h2 class="reader-title" data-i18n="room.mentor.title">🤖 Наставник</h2>
+  </div>
+  <div id="roomMentorMount"></div>
 </section>
 
 <!-- ── Trust footer (R4/R5) + Ben-Yehuda source attribution (R6/R9) ───────────── -->
@@ -1777,14 +1812,8 @@
         <span data-i18n="room.cloud.textsToggle">📄 Синхронизировать «Мои тексты»</span>
       </label>
       <div class="room-cloud-hint" data-i18n="room.cloud.textsHint">Собственные тексты (не корпус) станут доступны на других ваших устройствах. Выключение остановит синк; удалить из облака можно удалением аккаунта.</div>
-      <!-- CLG-P6.2 — ОТДЕЛЬНОЕ согласие «наставник читает мои тексты» (по духу класса C §5;
-           решение владельца 2026-07-06). Сервер требует ОБА согласия на каждый /explain
-           (fail-closed 403); отзыв очищает контент сохранённых объяснений (tombstone). -->
-      <label class="room-cloud-consent">
-        <input type="checkbox" id="roomCloudAgentTexts">
-        <span data-i18n="room.cloud.agentTextsToggle">🤖 Разрешить наставнику читать мои тексты</span>
-      </label>
-      <div class="room-cloud-hint" data-i18n="room.cloud.agentTextsHint">Наставник сможет отправлять выбранное предложение внешнему AI-провайдеру, чтобы объяснить его с учётом вашего прогресса. Уходит только одно предложение — не весь текст; отзыв согласия очищает сохранённые объяснения.</div>
+      <!-- CLG-P9: согласие «наставник читает мои тексты» и «🧭 План» переехали в дом
+           наставника (🤖 в шапке) — ☁-модал вернулся к синку/пушу/аккаунту. -->
       <!-- CLG-P4.5 — Web Push: ежедневный нудж (только счётчик, deep-link в Зал) -->
       <div class="room-cloud-push">
         <div class="room-cloud-push-head">🔔 <span data-i18n="room.cloud.pushTitle">Ежедневный нудж</span> <span id="roomCloudPushState" class="room-cloud-push-state"></span></div>
@@ -1795,12 +1824,6 @@
         </div>
         <div class="room-cloud-hint" data-i18n="room.cloud.pushHint">Раз в день и только если есть слова к повторению; уходит только число, без содержимого. На iPhone — сначала добавьте приложение на экран «Домой».</div>
       </div>
-      <!-- CLG-P6 сценарий №1 — «План на сегодня»: read-only /api/agent/plan; LLM опционален,
-           деградация подписывается честно; в review_log НИЧЕГО не пишется (MNAR, R17-гейт 6). -->
-      <div class="room-cloud-actions room-cloud-plan-actions">
-        <button id="roomCloudPlanBtn" type="button" data-i18n="room.cloud.planBtn">🧭 План на сегодня</button>
-      </div>
-      <div id="roomCloudPlanBox" class="room-cloud-hint room-cloud-planbox" hidden></div>
       <div class="room-cloud-actions">
         <button id="roomCloudSyncBtn" type="button" data-i18n="room.cloud.syncNow">Синхронизировать</button>
         <button id="roomCloudLogoutBtn" type="button" class="room-cloud-ghost" data-i18n="room.cloud.logout">Выйти</button>
@@ -1855,6 +1878,9 @@
 <script src="/js/grade-policy.js"></script>
 <!-- CLG-P3 — Cloud Sync engine (dormant until explicit login+sync; local-first Tier 1 untouched) -->
 <script src="/js/cloud-sync.js"></script>
+<!-- CLG-P9 — «Дом наставника»: API-only модуль (скелет Mini App P8); данные только из cloud API,
+     действия через host-adapter Зала. Ничего не делает до explicit-открытия вида (🤖). -->
+<script src="/js/mentor-home.js"></script>
 <script src="/js/inflection-dict.js"></script>
 <script src="/js/pealim-function-links.js"></script>
 <script src="/js/function-usage.js"></script>

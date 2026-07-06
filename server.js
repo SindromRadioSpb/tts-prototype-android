@@ -1755,6 +1755,29 @@ app.post("/api/agent/profile", rlAgent, async (req, res) => {
 });
 
 // ============================================================================
+// CLG-P9 «дом наставника» (MENTOR_HOME_P9_DECISION_2026_07_06). Оба endpoint'а
+// read-only (MNAR: review_log не трогается), строго user-scoped из принципала.
+// ============================================================================
+// История объяснений: purge-aware — tombstone-строки после отзыва agent_read_texts
+// отдаются честно помеченными (purged + причина), контент — никогда (R11).
+app.get("/api/agent/explanations", rlAgent, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try {
+    res.json({ ok: true, ...(await agentRuntime.listExplanations({ userId: auth.user.id },
+      { limit: req.query.limit, beforeRid: req.query.before_rid })) });
+  } catch (e) { res.status(500).json({ ok: false, error: "AGENT_EXPLANATIONS_FAILED", message: e.message }); }
+});
+
+// Зачаток misconception-блока: агрегат construct_id из facts_used объяснений
+// (purge-aware по построению: у purged-строк facts_used='[]') + plan-task payload;
+// наружу — только известные реестру ids с серверными титулами (⊆ registry).
+app.get("/api/agent/constructs/summary", rlAgent, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try { res.json({ ok: true, ...(await agentRuntime.constructsSummary({ userId: auth.user.id })) }); }
+  catch (e) { res.status(500).json({ ok: false, error: "AGENT_CONSTRUCTS_FAILED", message: e.message }); }
+});
+
+// ============================================================================
 // CLG-P5.5 — Artifact Sync, класс B (AI_MENTOR_RECON §5/§9): OPAQUE per-text
 // bundle store под ЯВНЫМ consent'ом (consent_records 'cloud_texts'). Server-side
 // enforcement на КАЖДОМ запросе — выключенный переключатель означает 403 даже

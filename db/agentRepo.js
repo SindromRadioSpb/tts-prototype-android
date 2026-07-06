@@ -117,6 +117,63 @@ async function purgeExplanationContent(userId, reason = "consent_revoked") {
   return { purged: n };
 }
 
+// ── P9 «дом наставника»: история объяснений (list, строго user-scoped) ───────
+// Purge-aware: tombstone-строки (body.purge_reason после отзыва agent_read_texts)
+// отдаются КАК tombstone — семантику (что показывать) решает runtime, репо не
+// фильтрует их молча (R11: «очищено» — честное состояние, не дыра в ленте).
+// Курсор — rowid DESC (порядок вставки == порядок created_at; та же механика,
+// что ROWID-курсор down-sync P3.3, только вниз по времени).
+async function listExplanations(userId, { limit, beforeRid } = {}) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const lim = Math.max(1, Math.min(100, Number(limit) || 20));
+  let where = "user_id = ?";
+  const params = [userId];
+  const rid = Number(beforeRid);
+  if (Number.isFinite(rid) && rid > 0) { where += " AND rowid < ?"; params.push(rid); }
+  params.push(lim + 1);   // +1 — честный has_more без второго COUNT-запроса
+  const rows = await dbAll(db,
+    `SELECT rowid AS rid, id, sentence_id, item_key, llm_model, facts_used_json, body_json, created_at
+       FROM agent_explanations WHERE ${where} ORDER BY rowid DESC LIMIT ?`, params);
+  const hasMore = (rows || []).length > lim;
+  return { rows: (rows || []).slice(0, lim), has_more: hasMore };
+}
+
+// ── P9 зачаток misconception-блока: сырые вхождения construct_id ─────────────
+// Два источника (решение владельца, MENTOR_HOME_P9_DECISION §3.4):
+//   1) agent_explanations.facts_used_json — факт kind='constructs' (purge-aware ПО
+//      ПОСТРОЕНИЮ: у purged-строк facts_used='[]' → вхождений нет);
+//   2) agent_tasks kind='plan' — payload.sections[].construct_ids (класс A, переживает purge).
+// Реестр-фильтр (⊆ agent/constructs.js) — в runtime: репо отдаёт сырьё, не семантику.
+async function constructOccurrences(userId, { maxRows } = {}) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const cap = Math.max(1, Math.min(2000, Number(maxRows) || 500));
+  const out = [];
+  const expl = await dbAll(db,
+    `SELECT facts_used_json, created_at FROM agent_explanations
+      WHERE user_id = ? ORDER BY rowid DESC LIMIT ?`, [userId, cap]);
+  for (const r of expl || []) {
+    try {
+      const facts = JSON.parse(r.facts_used_json);
+      for (const f of Array.isArray(facts) ? facts : []) {
+        if (!f || f.kind !== "constructs") continue;
+        for (const it of f.items || []) if (it && it.id) out.push({ id: String(it.id), at: r.created_at, source: "explanation" });
+      }
+    } catch (_) {}
+  }
+  const tasks = await dbAll(db,
+    `SELECT payload_json, created_at FROM agent_tasks
+      WHERE user_id = ? AND kind = 'plan' ORDER BY rowid DESC LIMIT ?`, [userId, cap]);
+  for (const r of tasks || []) {
+    try {
+      const p = JSON.parse(r.payload_json);
+      for (const s of (p && p.sections) || []) {
+        for (const cid of (s && s.construct_ids) || []) out.push({ id: String(cid), at: r.created_at, source: "plan" });
+      }
+    } catch (_) {}
+  }
+  return out;
+}
+
 // ── word lifecycle (read-only срез для инструмента get_word_lifecycle) ───────
 async function wordLifecycle(userId, itemKey) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
@@ -180,6 +237,7 @@ module.exports = {
   getProfile, updateProfile,
   createTask, listTasks, setTaskStatus,
   createExplanation, purgeExplanationContent,
+  listExplanations, constructOccurrences,
   wordLifecycle,
   reserveLlmCall, finalizeLlmCall, usageToday,
 };

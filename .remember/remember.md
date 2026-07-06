@@ -1,46 +1,39 @@
 # Handoff
 
 ## State
-CLG-P6 закрыт функционально + начата эволюция UI наставника (owner-решение: P6.5 → P9).
-- v3.11.109: /explain sentence (consent agent_read_texts + scope sentence_only,
-  контракт docs/planning/AGENT_EXPLAIN_PRIVACY_DECISION_2026_07_06.md) — live-verified.
-- v3.11.110: P6.3 burst-гейт real-provider пути + dup-tap guard; P6.4 construct-id
-  субстрат (agent/constructs.js; id назначает ТОЛЬКО сервер).
-- v3.11.111: фикс productionImbalance (D1 пишет провал диктанта как Hard(2) →
-  считать again+hard) + UI-серфейс констрактов (⚙-строки в /explain-модале и плане).
-- v3.11.112: кейс טוב (owner live-verify: провал в чтении И диктанте не попадал
-  НИКУДА) → секция fresh_struggles ПЕРВОЙ (getRecentStruggles: ≥2 провала за 24ч
-  учебного времени, prod_fails → канал; дедуп с gap/due). Re-verify владельцем ✓.
-- v3.11.113: P6.5 исполняемый план — «▶ Начать» на секциях 'тренировать' →
-  кросс-текстовый тренер ПО item_keys секции (общий _buildDueSourcedItems;
-  пул getDueWithSource с горизонтом-в-будущее; без якорей — честный skip;
-  канал через trainChannelSet) + «▶ В Зал».
+CLG-P9 «дом наставника» SHIPPED v3.11.114 (2026-07-06) по decision-доку
+docs/planning/MENTOR_HOME_P9_DECISION_2026_07_06.md (статус реализации — в конце дока).
+- Сервер: GET /api/agent/explanations (purge-aware list, rowid-курсор newest-first,
+  tombstone честный) + GET /api/agent/constructs/summary (facts_used kind='constructs'
+  + plan-task construct_ids — добавлены в planner-payload; ⊆ реестра, серверные титулы).
+- Клиент: public/js/mentor-home.js — API-only модуль (UMD, textContent-only, dir=auto,
+  tap-ⓘ) + host-adapter (runTrainer=startPlanSectionTraining · openReading ·
+  openTextAt→scrollToOrderIdx; OPFS-резолв на стороне хоста) = скелет Mini App P8.
+- Зал: 🤖 в шапке → #roomMentorView (roomContent↔roomReader-паттерн, [hidden]-guard,
+  history.replaceState, hashchange + boot deep-link #mentor); ☁-модал вернулся к
+  синку/пушу/аккаунту (план, consent агента, статус-строка переехали в дом);
+  due-CTA скрыт поверх вида. i18n room.mentor.* ru/en/he; SW v3.11.114.
 
 ## Gates
-agent-plan 30/30 · agent-explain 42/42 · agent-explain-burst 19/19 (preload-шим
-lib/agent-provider-shim.js) · llm-provider 18/18 · auth 26/26 · learner-graph 14/14 ·
-i18n 226 · api-smoke. Всё на проде.
+mentor-home 25/25 (новый) · agent-plan 30/30 · agent-explain 42/42 · burst 19/19 ·
+auth 26/26 · learner-graph 14/14 · reader-parity · room 14/14 · i18n 226 · api-smoke ·
+cloud-sync (см. ниже). Скриншоты scripts/premium/mentor-home-shot.js →
+.tmp/mentor-shots (Tier-1/light/dark/HE-RTL/deep-link ✓).
 
 ## Next
-0. ✅ Live-verify P6.5 ПРОЙДЕН владельцем 2026-07-06 → **CLG-P6 закрыт целиком**
-   (все 5 слайсов live-verified).
-1. **P9 «дом наставника» — РЕШЕНИЯ ВЛАДЕЛЬЦА ПРИНЯТЫ 2026-07-06, канон =
-   docs/planning/MENTOR_HOME_P9_DECISION_2026_07_06.md (READ FIRST):**
-   форм-фактор = полноэкранный вид ВНУТРИ Зала (🤖 в шапке, hash #mentor, паттерн
-   roomContent↔roomReader; НЕ страница/drawer — DB-teardown урок v3.11.101);
-   модуль mentor-home.js API-only (без OPFS) + host-adapter действий → скелет
-   Mini App P8; MVP = ВСЕ 4 блока: план+действия (переезд из ☁) · история
-   объяснений (новый GET /api/agent/explanations, purge-aware) · статус/лимиты +
-   consent-переезд · зачаток misconception-блока (GET /api/agent/constructs/summary
-   из facts_used+plan-tasks). Никакого автооткрытия (этикет §2.3), Tier 1 — честная
-   заглушка «нужен облачный аккаунт».
-3. По owner brief: НЕ sentence_plus_neighbors без измерений; НЕ чат P7 до обкатки;
-   record_review_answer disabled до гейтов 4.8.
+1. Owner live-verify P9 на проде: 🤖-вид (Tier-1 заглушка без логина; план из вида;
+   история объяснений + «↗ к предложению»; consent-галочка в доме; deep-link
+   /library.html#mentor; ☁ без плана/consent агента).
+2. Кандидат след. слайса: ненавязчивый бейдж «план готов» на 🤖 (этикет позволяет,
+   автораскрытия нет) · Mini App P8 = второй монтаж mentor-home.js.
+3. Границы прежние: НЕ чат P7 · record_review_answer disabled · НЕ
+   sentence_plus_neighbors без измерений.
 
 ## Context
-- Контракт /plan семантический (category-R17/recommended_channel/item_keys/
-  construct_id/constructs-titles) — P9/P8 НЕ меняют сервер, только рендереры.
-- /explain bare-surface server-key может не совпасть с клиентским ключом тренировки →
-  learner.weak_in_sentence пуст (известное ограничение; выравнивание — кандидат в P9).
-- Биньян-имена: матчить точной формой с огласовками (стрип-коллизия פעל).
-- Ledger персистентен между smoke-бутами — ассерты «до/после».
+- cloud-sync гейт шёл долго (2 прогона убиты преждевременно по ложной CPU-диагностике —
+  рендереры Chrome не дети smoke-процесса); третий прогон — вердикт в логе
+  session-scratchpad/cloudsync.log. Проба «боевого» пути (boot+login+append+fullSync
+  на library.html?canon=skip) — зелёная, приложение не виснет.
+- Якорь ленты: sentence_id='<text_key>#<order_index>' парсится по ПОСЛЕДНЕМУ '#'.
+- constructs/summary: purged-объяснения выпадают по построению (facts_used='[]'),
+  plan-вхождения (класс A) переживают revoke — это гейт-ассерт.

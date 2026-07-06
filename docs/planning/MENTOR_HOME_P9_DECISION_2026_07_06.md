@@ -65,3 +65,37 @@
 - UI: 380px light/dark скриншоты вида · i18n ru/en/he · [hidden]-guard паттерн ·
   R17-этикет: никакого автооткрытия.
 - Регрессия: agent-plan/explain/burst + cloud-sync (☁-модал менялся) + reader-parity.
+
+---
+
+## Статус реализации — SHIPPED v3.11.114 (2026-07-06)
+
+Реализовано в точности по решениям выше; все гейты приёмки пройдены.
+
+- **Сервер:** `GET /api/agent/explanations` (list: rowid-курсор newest-first,
+  limit+before_rid+has_more; tombstone честный — purged/purge_reason без контента;
+  якорь парсится из sentence_id по последнему `#`) + `GET /api/agent/constructs/summary`
+  (агрегат: facts_used kind='constructs' объяснений — purge-aware по построению +
+  `construct_ids` секций plan-task payload — добавлены в planner.js; фильтр ⊆ реестра и
+  титулы — в runtime, репо отдаёт сырьё). Оба session-gated, user_id из принципала.
+- **Клиент:** `public/js/mentor-home.js` (UMD, API-only, textContent-only, dir=auto для
+  ru/en-текста в he-UI; host-adapter: runTrainer/openReading/openTextAt) ·
+  `#roomMentorView` в library.html (reader-bar + [hidden]-guard + `#roomMentorView
+  button{width:auto}` против глобального mobile-трапа) · library-ui.js:
+  open/closeMentorView (history.replaceState — без мусора в истории), hashchange +
+  deep-link `#mentor` на буте, host-adapter с OPFS-резолвом text_key→id на стороне
+  хоста, `scrollToOrderIdx` (открытие текста на якоре объяснения), due-CTA скрыт
+  поверх вида; ☁-модал вернулся к синку/пушу/аккаунту (план, consent агента,
+  статус-строка — переехали). i18n `room.mentor.*` ru/en/he; SW precache
+  +mentor-home.js, CACHE_VERSION v3.11.114.
+- **Гейты:** `smoke:mentor-home` **25/25** (401 ×2 · лента: контент/якорь/провенанс/
+  порядок/пагинация · user2-изоляция (direct-DB сессия, паттерн B1) · summary ⊆
+  реестра из ОБОИХ источников · MNAR · purge: tombstone + контент-строки отсутствуют
+  в ответе + plan-вхождения переживают · stdout-гигиена). Регрессия: agent-plan 30/30 ·
+  agent-explain 42/42 · burst 19/19 · auth 26/26 · learner-graph 14/14 · cloud-sync ·
+  reader-parity · room-smoke 14/14 · i18n 226 · api-smoke.
+- **Скриншоты** (`scripts/premium/mentor-home-shot.js`, .tmp/mentor-shots/): Tier-1
+  заглушка · полный вид light/dark · HE-RTL · deep-link `#mentor` с холодного бута ✓.
+- **Вне слайса (по границам выше):** чат P7 не начат; record_review_answer disabled;
+  sentence_plus_neighbors не включён; бейдж «план готов» на 🤖 — кандидат следующего
+  слайса (этикет позволяет, автораскрытия нет).
