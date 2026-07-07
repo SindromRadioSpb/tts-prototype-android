@@ -243,10 +243,29 @@ async function activeLinkByTgTxn(db, tgUserId, channel = "telegram") {
     [channel, String(tgUserId)])) || null;
 }
 
+// P7.1b — ЖИВАЯ проверка telegram_delivery-consent (истина = ПОСЛЕДНЯЯ consent-строка). Требует
+// granted И совпадения версии (критика: стейл tg-v1 grant не должен переживать бамп версии).
+// db необязателен — с db читает в текущей транзакции (webhook-роутер), без — свежий коннект
+// (content.serve вне txn: авторитетная перепроверка в точке доставки).
+async function telegramConsentActive(dbOrNull, userId) {
+  const db = dbOrNull || getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const row = await dbGet(db,
+    `SELECT granted, consent_version FROM consent_records WHERE user_id=? AND consent_key=?
+     ORDER BY created_at DESC, rowid DESC LIMIT 1`, [userId, TELEGRAM_CONSENT_KEY]);
+  return !!(row && row.granted && String(row.consent_version) === TELEGRAM_CONSENT_VERSION);
+}
+
+// Свежий (вне txn) снимок активной связки — для delivery-point recheck в content.serve.
+async function getActiveLinkByUser(userId, channel = "telegram") {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  return (await dbGet(db, `SELECT * FROM channel_links WHERE user_id=? AND channel=? AND status='active'`,
+    [userId, channel])) || null;
+}
+
 module.exports = {
   mintPairingToken, processUpdateTxn, redeemToPending, confirmPending, cancelPending,
   unlinkByTg, unlinkByUser, logBotAction, getActiveLinkByTg, getLinkForUser,
-  activeLinkByTgTxn, displayNameForUser,
+  activeLinkByTgTxn, displayNameForUser, telegramConsentActive, getActiveLinkByUser,
   revokeTelegramCascade, purgeTelegramTraceForUser, pruneOld, sha256Hex,
   TOKEN_TTL_MS, TELEGRAM_CONSENT_VERSION, TELEGRAM_CONSENT_KEY,
 };

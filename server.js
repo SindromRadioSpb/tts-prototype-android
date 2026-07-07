@@ -1907,13 +1907,21 @@ function telegramSecretGate(req, res, next) {
 }
 // from.id rate-limit (НЕ по IP: весь трафик с IP Telegram; критика). Превышение → drop-with-200.
 const _tgFromBuckets = new Map();
-function tgFromIdAllowed(fromId, max = 30, windowMs = 60_000) {
+const _tgContentBuckets = new Map();
+function _bucketAllowed(map, key, max, windowMs) {
   const now = Date.now();
-  const arr = (_tgFromBuckets.get(fromId) || []).filter((t) => now - t < windowMs);
-  if (_tgFromBuckets.size > 5000) { for (const [k, v] of _tgFromBuckets) if (!v.some((t) => now - t < windowMs)) _tgFromBuckets.delete(k); }
-  if (arr.length >= max) { _tgFromBuckets.set(fromId, arr); return false; }
-  arr.push(now); _tgFromBuckets.set(fromId, arr); return true;
+  const arr = (map.get(key) || []).filter((t) => now - t < windowMs);
+  if (map.size > 5000) { for (const [k, v] of map) if (!v.some((t) => now - t < windowMs)) map.delete(k); }
+  if (arr.length >= max) { map.set(key, arr); return false; }
+  arr.push(now); map.set(key, arr); return true;
 }
+function tgFromIdAllowed(fromId) { return _bucketAllowed(_tgFromBuckets, fromId, 30, 60_000); }
+// P7.1b: тайтовый отдельный cap на content-команды (особенно LLM-дорогой /plan) — критика:
+// generic 30/мин выжигал бы суточный LLM-бюджет за ~2 мин. Превышение → drop-with-200.
+const TG_CONTENT_CMDS = new Set(["/plan", "/due", "/summary", "/explain"]);
+const TG_CONTENT_MAX = Number(process.env.TG_CONTENT_MAX) || 10;   // человеку хватает; ограничивает LLM-burn /plan
+function tgContentAllowed(fromId) { return _bucketAllowed(_tgContentBuckets, fromId, TG_CONTENT_MAX, 60_000); }
+const telegramContent = require("./agent/telegram/content");
 
 app.post(TELEGRAM_WEBHOOK_PATH, telegramSecretGate, _tgWebhookJson, async (req, res) => {
   const upd = req.body || {};
@@ -1925,20 +1933,36 @@ app.post(TELEGRAM_WEBHOOK_PATH, telegramSecretGate, _tgWebhookJson, async (req, 
   const chatId = msg.chat.id;
   const updateId = upd.update_id;
   if (!tgFromIdAllowed(fromId)) return res.json({ ok: true, throttled: true });   // drop-with-200, не 429
+  // P7.1b: тайтовый cap на content-команды ДО dedup (throttled command не помечается seen).
+  const firstWord = String(msg.text || "").trim().split(/\s+/)[0].toLowerCase().split("@")[0];
+  if (TG_CONTENT_CMDS.has(firstWord) && !tgContentAllowed(fromId)) return res.json({ ok: true, throttled: true });
+
+  let result;
+  // ── ФАЗА 1 (в txn): dedup + эффект роутера + bot_action_log. Сбой ЗДЕСЬ → rollback (включая
+  // dedup) → 500 → Telegram переиграет (at-least-once честен). ──
   try {
-    // dedup + эффект(router.handle) + bot_action_log — ОДНА транзакция (at-least-once честен)
-    const { duplicate, result } = await channelLinkRepo.processUpdateTxn(updateId, async (db) =>
+    const r = await channelLinkRepo.processUpdateTxn(updateId, async (db) =>
       telegramRouter.handle(db, { tgUserId: fromId, tgChatId: chatId, text: msg.text || "", updateId }));
-    if (!duplicate && result && result.text) {
-      // sendMessage ВНЕ транзакции; доставка на chat входящего private-сообщения
+    if (r.duplicate) return res.json({ ok: true, duplicate: true });   // уже обработан → без эффекта
+    result = r.result;
+  } catch (e) {
+    console.error("[telegram] webhook txn failed:", e && e.message);
+    return res.status(500).json({ ok: false, error: "WEBHOOK_HANDLER_FAILED" });
+  }
+
+  // ── ФАЗА 2 (ВНЕ txn, best-effort → ВСЕГДА 200): content-produce / account-reply. dedup уже
+  // закоммичен — сбой produce НЕ должен давать 500 (иначе retry-шторм без переигрывания). ──
+  res.json({ ok: true });
+  try {
+    if (result && result.kind === "content") {
+      // /plan зовёт LLM (секунды) + свой txnLock — ТОЛЬКО здесь, вне webhook-txn. content.serve
+      // делает delivery-point recheck (revoke во время produce → refusal, не контент).
+      const served = await telegramContent.serve(result);
+      for (const p of (served.parts || [])) await telegramApi.sendMessage(result.chatId != null ? result.chatId : chatId, p);
+    } else if (result && result.text) {
       await telegramApi.sendMessage(result.chatId != null ? result.chatId : chatId, result.text);
     }
-    res.json({ ok: true });   // всегда 200 после secret+dedup (иначе Telegram ретраит)
-  } catch (e) {
-    // сбой ВНУТРИ транзакции → rollback (включая dedup) уже произошёл → non-200 → Telegram переиграет
-    console.error("[telegram] webhook handler failed:", e && e.message);
-    res.status(500).json({ ok: false, error: "WEBHOOK_HANDLER_FAILED" });
-  }
+  } catch (e) { console.error("[telegram] content/reply failed:", e && e.message); }
 });
 
 // TTL-prune (реальный триггер): telegram_updates >48ч, NULL-user bot_action_log >30д.

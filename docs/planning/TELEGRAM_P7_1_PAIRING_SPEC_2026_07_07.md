@@ -212,3 +212,165 @@ QR (deep-link текстом) · ротация bot-токена в UI.
   оставлено как возможное усиление P7.2, если появятся реальные сторонние юзеры.
 - Redeem от tg, уже имеющего pending с другим токеном — последний pending выигрывает (idempotent
   по (channel,tg_user) pending — переписывается).
+
+---
+
+# CLG-P7.1b — read-only content-команды (/plan /explain /due /summary) (спека, к критике)
+
+> Продолжение P7.1a (owner brief 2026-07-07). P7.1a дал безопасный канал; P7.1b передаёт через
+> него ПОЛЕЗНЫЙ mentor-контент из УЖЕ готовых серверных контуров (P6 /plan, P6.2/P9 /explain,
+> P5 /due, P9 /api/agent/constructs/summary) — БЕЗ Telegram-специфичной агрегации. Строго
+> read-only: бот НЕ пишет учебную память, /due показывает но не запускает review (grade = P7.2).
+> Webhook УЖЕ live на проде (owner live-verified P7.1a) → деплой P7.1b сразу включает команды.
+
+## Скоуп P7.1b
+
+Четыре read-only команды в боте. **Вне скоупа:** /review + challenge-binding + запись grade
+(P7.2) · production-каналы · проактивные нуджи (P7.3) · генерация СВЕЖЕГО объяснения предложения
+по якорю (нужен agent_read_texts + LLM + sentence-anchor — /explain здесь = purge-aware ЛЕНТА
+готовых объяснений P9, не новое). Флаг AGENT_REVIEW_WRITE НЕ трогается (он про запись P7.2).
+
+## 1. Архитектура: gate-in-txn, produce-out-of-txn
+
+**Проблема:** /plan вызывает LLM (секунды) + пишет ledger/agent_task через СВОЙ withTxnLock →
+внутри webhook-processUpdateTxn (держит BEGIN + txnLock) это (а) заблокировало бы все прочие
+записи на секунды, (б) вложило бы withTxnLock → дедлок. И роутер обязан остаться транзитивно
+read-only (критика P7.1a: import runtime→tools→reviewer ломает structural-ассерт).
+
+**Решение — разделение фаз:**
+- **Роутер (в txn, transitive-read-only):** для content-команды делает ГЕЙТ (read-only):
+  active link по tg_user + telegramConsentActive(userId) + private-chat (webhook уже отфильтровал).
+  Пройдено → возвращает дескриптор `{kind:'content', command, userId, tgUserId, chatId}` и НЕ
+  производит контент; logBotAction(command, 'ok'). Провал → reply-текст («не связано» / «канал
+  отключён») + log('rejected'). Роутер импортит ТОЛЬКО channelLinkRepo (+ helper
+  telegramConsentActive) — transitive-read-only ассерт держится.
+- **server.js webhook-handler (ВНЕ txn, после COMMIT):** если result.kind==='content' →
+  `telegramContent.produce({command, userId, tgUserId, chatId})` → format → send частями.
+  telegramContent.js импортит server.js (у него write-path уже есть) — НЕ роутер, ассерт цел.
+
+## 2. `agent/telegram/content.js` — производитель контента (вне txn)
+
+**АВТОРИТЕТНАЯ live-перепроверка на КАЖДОЙ команде в точке отдачи** (owner: pairing ≠ вечное
+право; consent мог отозваться в окне между txn-гейтом и produce): `produce()` ПЕРВЫМ делом
+заново читает getActiveLinkByTg(tgUserId) === active И telegramConsentActive(userId) И
+link.user_id===userId И link.telegram_chat_id совпадает; ЛЮБОЙ провал → `{text: «Канал отключён —
+подключите заново на сайте», served:false}`, контент НЕ производится (fail-closed).
+
+Производители (из готовых контуров; provenance/id НЕ уходят):
+- **/plan** → `agentRuntime.plan({userId, deviceId:null})` (тот же контракт, LLM-или-fallback,
+  ledger/task как в вебе) → секции: title (ru/en по profile.language) + леммы
+  (displayForItemKey, НЕ item_key) + est_minutes; LLM-проза если llm_used; construct-титулы.
+- **/due** → `learnerGraphRepo.getDue(userId,{limit:20})` → «К повторению: N» + леммы
+  (displayForItemKey). ЧТЕНИЕ — 0 записей (id-хвост review_log неизменен, гейт-ассерт).
+- **/summary** → `agentRuntime.constructsSummary({userId})` (тот же /api/agent/constructs/summary:
+  ⊆ registry, серверные титулы, purge-aware по построению) → титулы + счётчики.
+- **/explain** → `agentRuntime.listExplanations({userId},{limit:5})` — P9 purge-aware ЛЕНТА:
+  purged-строки отдаются как «(очищено по отзыву согласия)» БЕЗ контента (tombstone честный);
+  живые → якорь + текст. **Purge-aware:** после revoke agent_read_texts контент уже занулён в
+  БД (P6.2 purge-hook) → listExplanations его не несёт → бот физически не может показать старое.
+
+## 3. `agent/telegram/format.js` — Telegram-safe форматирование
+
+- **Plain-text, БЕЗ parse_mode** (sendMessage не ставит parse_mode) → Telegram трактует как
+  текст → **экранирование Markdown/HTML НЕ требуется** (нет активной разметки; сырой `_*[]` —
+  безопасны как текст). Это закрывает «экранирование» структурно, а не заплаткой.
+- **Лимит 4096:** splitMessage(text) → массив частей ≤4096 на границах строк (длинный ответ —
+  несколько sendMessage; api.sendMessage доп. slice(4096) — второй предохранитель).
+- **Без сырых внутренних id:** форматтеры берут ТОЛЬКО user-facing поля (леммы/титулы/счётчики);
+  displayForItemKey-фолбэк «pid:N»/«…#pos» → показать лемма-часть или скрыть, никогда сырой ключ
+  (гейт-ассерт: в исходящем тексте нет 'pid:', 'item_key', '#noun', 'policy_version', 'provenance').
+- **Без debug/provenance:** ни одно поле meta/provenance/policy/raw_grade не форматируется.
+- **Стабильность при повторном update_id:** dedup P7.1a (update_id в txn) → повтор не
+  перепроизводит (нет двойного LLM/двойного ответа); content-produce ВНЕ txn best-effort —
+  сбой produce после dedup-commit = потеря ответа (пользователь повторит команду вручную;
+  для read-only это приемлемо, задокументировано — в отличие от account-команд, атомарных).
+
+## 4. Живая перепроверка consent — helper
+
+`channelLinkRepo.telegramConsentActive(db, userId)` — читает ПОСЛЕДНЮЮ consent_records строку
+key='telegram_delivery' (granted). Роутер (в txn) и content.produce (вне txn, свежий read) оба
+её зовут. revoke consent (P7.1a) уже гасит связку атомарно → и link, и consent falsy → двойной
+барьер. Owner-инвариант «прекратить отдавать контент СРАЗУ, без ожидания новой сессии» —
+обеспечен produce-time recheck (не кэшируется, не по сессии).
+
+## 5. Гейт `smoke:telegram-content`
+
+Расширяет stub: локальный Telegram-stub ЗАПИСЫВАЕТ тело sendMessage ({chat_id, text}) в файл →
+гейт ассертит НА ТЕКСТЕ (иначе «контент отдан» недоказуемо). Кейсы:
+- link+consent → /plan /due /summary /explain: бот отвечает непустым контентом (текст в stub),
+  релевантным (леммы/титулы присутствуют);
+- **live consent recheck:** revoke telegram_delivery → /plan → produce.served=false, текст
+  «канал отключён», НЕ план (даже если link ещё миг active — produce-recheck ловит);
+- **purge-aware /explain:** создать объяснение → revoke agent_read_texts (purge) → /explain →
+  контент purged-строки НЕ в тексте (только «очищено»);
+- **read-only:** /due /plan /summary /explain → id-хвост review_log (2 юзера) БАЙТ-неизменен;
+- **no raw ids / no provenance:** исходящий текст всех команд НЕ содержит 'pid:'/'item_key'/
+  '#noun'/'policy_version'/'provenance'/'facts_used'/'raw_grade';
+- **splitting:** искусственно длинный /plan (много секций) → >1 sendMessage, каждый ≤4096;
+- **redelivery:** тот же update_id повторно → 0 доп. sendMessage (dedup);
+- **not-linked:** content-команда от непривязанного tg → «подключите на сайте», 0 контента;
+- **транзитивный read-only СОХРАНЁН:** require-граф router.js по-прежнему НЕ достигает
+  reviewer/tools/llm (content.js — отдельный модуль, импортит server, не router).
+- Регрессия: smoke:telegram-pairing (не сломан) · agent-plan/mentor-home/agent-review/auth/api.
+
+## Развилки для критики
+
+(а) content-produce вне txn best-effort — приемлема ли потеря ответа при сбое produce (read-only,
+ручной повтор) vs нужна ли атомарность; (б) /plan в боте тратит LLM-бюджет пользователя — ок для
+MVP? (owner: reuse /plan-контракт — да); (в) двойной consent-recheck (txn-гейт + produce) — нет ли
+окна, где txn-гейт прошёл, а produce отдал после revoke (produce-recheck закрывает); (г) leading
+через getActiveLinkByTg вне txn — консистентность с только что закоммиченным link; (д)
+displayForItemKey на pid-ключах в боте тянет 306MB-бандл — латентность/RAM (P7.2-заметка,
+сайдкар отложен).
+
+---
+
+## P7.1b v2 — адъюдикация критики wf_72c44361 (2 BLOCKER + 5 MAJOR + 8 MINOR)
+
+- **[C] BLOCKER `/explain` обходил agent_read_texts** (2 линзы): лента объяснений несёт
+  sentence_he/text (класс C — предложения пользователя), а produce-recheck чекал ТОЛЬКО
+  telegram_delivery; при best-effort провале purge (server.js:1522 revoke устаивает при provале
+  purge) старый контент уехал бы в Telegram после отзыва agent_read_texts. **Фикс:** /explain
+  требует ЖИВОЙ agent_read_texts (последняя consent-строка granted) fail-closed — off → контент
+  НЕ включается (только «доступ к текстам отключён»), НЕЗАВИСИМО от purge; delivery-recheck тоже
+  включает agent_read_texts. telegram_delivery ≠ авторизация на вынос класс-C текста.
+- **[C] BLOCKER recheck на СТАРТЕ produce, не в точке доставки** (harness+consent): для /plan
+  LLM думает секунды; revoke telegram_delivery/unlink в окно produce-start→send → план уходит
+  после отзыва. **Фикс:** `content.serve` перепроверяет (active link + telegram_delivery
+  [+ agent_read_texts для /explain] + link.user_id/chat совпадают) НЕПОСРЕДСТВЕННО ПОСЛЕ produce,
+  перед возвратом частей на отправку; провал → части НЕ отдаются, вместо них refusal. Закрывает
+  и LLM-окно /plan, и /explain-контент.
+- **[C] MAJOR /plan не «read-only» по side-effect** (2 линзы): agentRuntime.plan резервирует LLM
+  ($) + createTask ДО отправки; сбой send → ручной повтор → двойной расход + дубль plan-task
+  (портит constructsSummary.from_plans). **Фикс:** (1) формулировка — «read-only w.r.t. учебной
+  памяти (review_log нетронут)»; /plan несёт ТЕ ЖЕ ledger/task side-effects, что веб-/plan
+  (двойной клик в вебе двоит так же — консистентно, приемлемо MVP); (2) produce ВНЕ txn обёрнут
+  в СВОЙ try/catch → всегда 200 (best-effort, НЕ retry-шторм; 500 — ТОЛЬКО для сбоя внутри
+  processUpdateTxn где rollback реально снимает dedup); (3) **тайтовый per-command cap** для
+  content-команд (деф. 6/мин на from.id, отдельно от generic 30/мин) → drop-with-200.
+  Per-update_id идемпотентность /plan — отложенное усиление (P7.2), задокументировано.
+- **[C] MAJOR гейт-denylist неполон** (harness): контуры отдают sentence_id/anchor.text_key/
+  'ae_'/'at_'/rid/provider/model/scope_level/construct-id — форматтер обязан их НЕ выводить
+  (никакого JSON.stringify объекта; явный pick user-facing полей). **Фикс:** форматтер строит
+  текст из белого списка полей; denylist гейта расширен (+ sentence_id/text_key/'ae_'/'at_'/
+  provider/model/scope_level/construct:); гейт СИДИТ leak-capable вывод (due-строка с #pos-ключом,
+  due-строка с неразрешимым pid:N, живое объяснение с anchor+provider) — ассерты не тавтологичны.
+- **[C] MAJOR нет тайтового cap на LLM-дорогой /plan** — см. выше (per-command cap 6/мин).
+- **[C] MINOR displayForItemKey фолбэк 'pid:N'/сырой ключ** → форматтер трактует результат,
+  совпадающий с item_key ИЛИ матчащий /^pid:/, как «скрыть лемму»; гейт-фикстура с неразрешимым pid.
+- **[C] MINOR splitMessage только по \n** → одна строка >4096 молча трункируется api.slice.
+  **Фикс:** splitMessage ЖЁСТКО режет любой сегмент >4096 по символьной границе; гейт: строка
+  >4096 → конкатенация частей == источник (ничего не потеряно).
+- **[C] MINOR смешанный язык** → format.js принимает profile.language (из agent_profiles),
+  ru/en для всех wrapper-меток/tombstone/refusal.
+- **[C] MINOR stale /help** → HELP обновлён (перечисляет /plan /explain /due /summary); гейт:
+  /help НЕ содержит «следующем обновлении».
+- **[C] MINOR telegramConsentActive версия** → требует granted И version===TELEGRAM_CONSENT_VERSION.
+- **[C] MINOR /summary purge-aware уточнение** → explanation-источник гейтится живым
+  agent_read_texts; plan-источник (класс A из review_log) переживает revoke ОСОЗНАННО
+  (не текст пользователя — реестровые диагностики). Формулировка спеки уточнена.
+
+**Гейт smoke:telegram-content v2** (все [C] выше + база §5): seed leak-capable вывод ·
+расширенный denylist на реальном тексте · delivery-point recheck (revoke → не доставлено) ·
+/explain agent_read_texts fail-closed (off → без контента, даже если purge не отработал) ·
+>4096-строка не теряется · /help свежий · per-command cap · транзитивный read-only сохранён.

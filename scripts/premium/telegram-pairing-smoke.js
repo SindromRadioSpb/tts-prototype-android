@@ -99,6 +99,9 @@ async function webhook(update, { secret, oversize } = {}) {
 }
 function tokenFromDeepLink(dl) { const m = /start=([0-9a-f]+)/.exec(String(dl || "")); return m ? m[1] : null; }
 function callLogCount() { try { return fs.readFileSync(callLogPath, "utf8").split("\n").filter(Boolean).length; } catch (_) { return 0; } }
+// P7.1b: send стал АСИНХРОННЫМ (сервер отвечает 200 до отправки) → ждём рост call-log.
+async function waitCount(target, ms = 3000) { const s0 = Date.now(); while (Date.now() - s0 < ms && callLogCount() < target) await sleep(50); return callLogCount(); }
+async function waitStable(ms = 500) { await sleep(ms); return callLogCount(); }
 
 // read-only direct DB connection (SELECT — отдельный коннект, не мешает серверу)
 function openRead() { const s = require(path.join(REPO, "node_modules", "sqlite3")); return new s.Database(path.join(scratch, "app.db"), s.OPEN_READONLY); }
@@ -202,6 +205,7 @@ const upd = (fromId, chatId, text) => ({ update_id: _uid++, message: { message_i
     const clBefore = callLogCount();
     const r1 = await webhook(upd(TG_T, CHAT_T, "/start " + token1));
     eq(r1.status === 200, "/start <token> → 200, got " + r1.status);
+    await waitCount(clBefore + 1);
     eq(callLogCount() === clBefore + 1, "redeem must send exactly one reply (sendMessage==1), got " + (callLogCount() - clBefore));
     const stA2 = await api("GET", "/api/agent/telegram/status", { cookie: A.cookie });
     eq(stA2.json.linked === false && stA2.json.pending === true && stA2.json.telegram_user_masked, "after redeem: PENDING not active (двусторонность), got " + JSON.stringify(stA2.json));
@@ -273,6 +277,7 @@ const upd = (fromId, chatId, text) => ({ update_id: _uid++, message: { message_i
     const groupUpd = { update_id: _uid++, message: { message_id: _uid, from: { id: TG_T }, chat: { id: -100200, type: "group" }, text: "/status" } };
     const rg = await webhook(groupUpd);
     eq(rg.status === 200 && rg.json.ignored === true, "group chat must be 200 ignored (no leak), got " + JSON.stringify(rg.json));
+    await waitStable();
     eq(callLogCount() === clBeforeGroup, "group /status must NOT send (no disclosure into group)");
 
     // ── dedup: тот же update_id дважды → второй без эффекта ──
@@ -280,8 +285,10 @@ const upd = (fromId, chatId, text) => ({ update_id: _uid++, message: { message_i
     const dupU = upd(TG_T, CHAT_T, "/help");
     const clBeforeDup = callLogCount();
     await webhook(dupU);
+    await waitCount(clBeforeDup + 1);
     const c1 = callLogCount();
     await webhook(dupU);   // тот же update_id
+    await waitStable();
     const c2 = callLogCount();
     eq(c1 === clBeforeDup + 1 && c2 === c1, "dedup: same update_id must process once, got sends " + (c1 - clBeforeDup) + "/" + (c2 - c1));
 

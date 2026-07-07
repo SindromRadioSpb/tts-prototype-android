@@ -28,10 +28,15 @@ function parse(text) {
 
 const HELP =
   "Команды LinguistPro:\n" +
+  "/plan — план на сегодня\n" +
+  "/due — что пора повторить\n" +
+  "/summary — над чем работаешь\n" +
+  "/explain — последние объяснения\n" +
   "/status — связан ли аккаунт\n" +
   "/unlink — отключить Telegram\n" +
-  "/help — эта справка\n\n" +
-  "План, объяснения и повторение появятся в следующем обновлении.";
+  "/help — эта справка";
+
+const CONTENT_CMDS = { "/plan": "plan", "/due": "due", "/summary": "summary", "/explain": "explain" };
 
 // Тест-seam (ТОЛЬКО при AGENT_TG_ALLOW_FAULT=1, гейт): первый вызов '/__faultonce__' бросает
 // (проверка «сбой эффекта → ROLLBACK включая dedup → ретрай переигрывает»); последующие — ok.
@@ -93,13 +98,24 @@ async function handle(db, ctx) {
       out = reply(`Связано с «${name}». Согласие на доставку: активно (${link.consent_version || "tg-v1"}).`, { userId: link.user_id, status: "ok" });
       break;
     }
-    case "/help":
-    case "/start@": {
+    case "/help": {
       out = reply(HELP, { status: "ok" });
       break;
     }
     default: {
-      // content-команды P7.1b и всё неизвестное → справка, БЕЗ LLM (no-free-chat)
+      // P7.1b content-команды: ГЕЙТ в txn (link + telegram_delivery consent), затем ДЕФЕР —
+      // производство контента вне txn (server.js), т.к. /plan зовёт LLM (секунды) + пишет
+      // ledger/task через СВОЙ txnLock (внутри этой txn = дедлок). Роутер контент НЕ производит
+      // → transitive-read-only цел (не импортит runtime/tools/llm).
+      if (CONTENT_CMDS[verb]) {
+        const link = await CL.activeLinkByTgTxn(db, tgUserId);
+        if (!link) { out = reply("Не связано. Подключите Telegram на сайте — «Подключить Telegram» в доме наставника.", { status: "rejected", errorCode: "NOT_LINKED" }); break; }
+        if (!(await CL.telegramConsentActive(db, link.user_id))) { out = reply("Канал отключён. Подключите Telegram заново на сайте.", { status: "rejected", errorCode: "CONSENT_OFF" }); break; }
+        // гейт пройден → дескриптор для server.js (produce вне txn); logBotAction ниже (in-txn)
+        out = { kind: "content", command: CONTENT_CMDS[verb], userId: link.user_id, tgUserId, chatId: tgChatId, status: "ok" };
+        break;
+      }
+      // неизвестное → справка, БЕЗ LLM (no-free-chat)
       out = reply(HELP, { status: "ignored" });
     }
   }
