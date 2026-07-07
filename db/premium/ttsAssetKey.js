@@ -51,10 +51,28 @@ function getAudioRelativePath(assetKey) {
   return `audio-cache/${assetKey}.mp3`;
 }
 
+// CLG-P7.2c dictate — ФИКСИРОВАННЫЙ TTS-профиль слова-диктанта. Общий для offline-bake И сервера
+// → assetKey совпадает ПО ПОСТРОЕНИЮ (иначе сервер всегда «нет ассета» = тихий 0; owner-инвариант
+// config-string-match-by-construction). Голос — канонный WaveNet-A (как корпус-bake). Вход = ОГЛАСО-
+// ВАННАЯ форма (niqqud-wins, чтобы TTS произнёс правильно). Смена профиля → новый ключ (ре-bake).
+const DICTATE_TTS_PROFILE = { language: "he-IL", voiceName: "he-IL-Wavenet-A", speakingRate: 1.0, pitch: 0.0 };
+// Нормализация ВХОДА детерминирована (NFC + trim) — иначе байтовый рассинхрон vocalized между bake
+// и сервером = другой ключ = тихий 0 (критика wf_6732a80f). computeAssetKey хэширует text вербатим,
+// поэтому нормализуем ЗДЕСЬ, до хэша, ОДИНАКОВО для обеих сторон.
+function normalizeDictateText(vocalizedText) {
+  return String(vocalizedText == null ? "" : vocalizedText).normalize("NFC").replace(/\s+/g, " ").trim();
+}
+function computeDictateAssetKey(vocalizedText) {
+  return computeAssetKey({ assetType: "word", ttsProfile: DICTATE_TTS_PROFILE, text: normalizeDictateText(vocalizedText) });
+}
+
 module.exports = {
   TTS_ENGINE_VERSION,
   stableStringify,
   normalizeTtsProfile,
   computeAssetKey,
   getAudioRelativePath,
+  DICTATE_TTS_PROFILE,
+  normalizeDictateText,
+  computeDictateAssetKey,
 };

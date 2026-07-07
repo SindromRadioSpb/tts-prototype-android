@@ -225,6 +225,25 @@ async function clozeFormsForItemKey(itemKey) {
   return { pid: String(g.sense_id), forms };
 }
 
+// P7.2c dictate — { vocalized (огласованная лемма для аудио/assetKey), written (консонантная —
+// expected написание), pid } | null. Диктуем СЛОВАРНУЮ форму (лемму). Требуем: decisive (один pid),
+// lemma_niqqud есть, vocalized-лемма ГЛОБАЛЬНО однозначна по огласовке (_vocFormIndex → один pid) —
+// иначе звук неоднозначен по написанию (омофон/омограф) → мис-спеллинг = ложный lapse (критика уточнит).
+async function dictateFormForItemKey(itemKey) {
+  const g = await glossForItemKey(itemKey);
+  if (!g || !g.sense_id || !g.decisive) return null;
+  const b = await ensureLoaded();
+  const fi = _buildVocFormIndex(b.ds);
+  const p = ((b.ds && b.ds.paradigms) || []).find((x) => x && String(x.pealim_id) === String(g.sense_id));
+  if (!p || !p.lemma_niqqud) return null;
+  const vocalized = _normVoc(p.lemma_niqqud);
+  const written = LC.stripNiqqud(vocalized);
+  if (!written || written.length < 2 || !HEB_ONLY_RE.test(written)) return null;
+  const set = fi.get(vocalized);
+  if (!(set && set.size === 1)) return null;   // огласованная лемма неоднозначна глобально → skip
+  return { vocalized, written, pid: String(g.sense_id) };
+}
+
 // glossForItemKey → { sense_id, gloss, expected (HE-лемма стрип), decisive, alts:[HE-леммы синонимов] }
 // или null (нерезолвимо / нет глосса). decisive = ровно один pealim_id за item_key (не гомограф).
 // alts = леммы, делящие ЛЮБОЙ сенс глосса (синоним-набор §3), кроме собственной.
@@ -395,4 +414,4 @@ function status() {
   };
 }
 
-module.exports = { resolveWord, resolveWords, ensureLoaded, unloadNow, status, displayForItemKey, glossForItemKey, clozeFormsForItemKey, MAX_WORDS, RESOLVER_ID };
+module.exports = { resolveWord, resolveWords, ensureLoaded, unloadNow, status, displayForItemKey, glossForItemKey, clozeFormsForItemKey, dictateFormForItemKey, MAX_WORDS, RESOLVER_ID };

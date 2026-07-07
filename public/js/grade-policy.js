@@ -98,6 +98,23 @@
     return false;
   }
 
+  // P7.2c owner-решение D-4: latch «доказал production» — MODALITY-СЕГМЕНТИРОВАННЫЙ. dictate-успех
+  // (cued аудио-фонологией) НЕ должен сертифицировать более сложный reverse (uncued смысл) → снимать
+  // D1-мягкость reverse-провала. Провал на канале C смягчается, пока НЕ доказана unsupported-
+  // production В ТОЙ ЖЕ семье C (не context-supported success того же префикса). context-supported
+  // (lexeme/cloze) никогда не защёлкивает. Строки без scope (до P7.2a) → не-context → как раньше.
+  function hasProvenProduction(rows, channel) {
+    var fam = channelPrefix(channel);
+    for (var i = 0; i < (rows || []).length; i++) {
+      var r = rows[i]; if (!r) continue;
+      if (r.kind !== "review" || Number(r.grade) < 3 || !isProductionChannel(r.channel)) continue;
+      if (channelPrefix(r.channel) !== fam) continue;                 // другая семья → не доказывает C
+      if (CONTEXT_SUPPORTED_SCOPES[_rowEvidenceScope(r)]) continue;   // context-supported не защёлкивает
+      return true;
+    }
+    return false;
+  }
+
   // ЕДИНАЯ точка решения грейда для бинарных (верно/неверно) каналов. Возвращает
   // { grade 1..4, applied (D1 сработал), reason }. Не для Studio-тренера (ручной 1–4 рейтинг).
   function decideGrade(input) {
@@ -107,7 +124,8 @@
     if (correct) return { grade: 3, applied: false, reason: "correct" };
     var isProd = isProductionChannel(channel);
     var rows = (input && input.rows) || [];
-    var receptiveStrong = hasMemoryState(input && input.prevState) && hasReceptiveEvidence(rows) && !hasProductionSuccess(rows);
+    // D-4: latch проверяется В СЕМЬЕ провалившегося канала (dictate-успех не снимает reverse-мягкость)
+    var receptiveStrong = hasMemoryState(input && input.prevState) && hasReceptiveEvidence(rows) && !hasProvenProduction(rows, channel);
     if (skipped) {
       // P7.2a owner-решение #2: skip на PRODUCTION-канале при рецептивной силе идёт тем же
       // D1-путём, что production-провал (Hard) — честное «не знаю» не должно быть СТРОЖЕ ошибки.
@@ -135,6 +153,7 @@
     hasMemoryState: hasMemoryState,
     hasReceptiveEvidence: hasReceptiveEvidence,
     hasProductionSuccess: hasProductionSuccess,
+    hasProvenProduction: hasProvenProduction,
     isContextSupportedRow: isContextSupportedRow,
     decideGrade: decideGrade,
     policyMeta: policyMeta,

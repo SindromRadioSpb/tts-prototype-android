@@ -85,6 +85,12 @@ async function getAudioAssetByKey(assetKey) {
   return row || null;
 }
 
+// CLG-P7.2c: готов ли аудио-ассет (проверка БЕЗ синтеза — dictate-eligibility на review-пути).
+// bake-tool upsert'ит audio_assets + пишет файл; keyless-раздача /api/audio/:key отдаёт по файлу.
+async function hasAsset(assetKey) {
+  try { return !!(await getAudioAssetByKey(assetKey)); } catch (_) { return false; }
+}
+
 async function touchAudioAsset(assetKey) {
   const db = getDb();
   if (!db) throw new Error("DB_NOT_AVAILABLE");
@@ -284,6 +290,7 @@ async function getTextAudio(textId) {
 }
 
 module.exports = {
+  hasAsset,
   upsertAudioAsset,
   getAudioAssetByKey,
   touchAudioAsset,

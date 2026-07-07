@@ -74,6 +74,14 @@ eq(r.grade === 1 && !r.applied, "no memory state → Again(1) even on production
 r = d({ correct: false, channel: "dictate:typed", prevState: strong, rows: [seedRow, readOk, dictOk] });
 eq(r.grade === 1 && !r.applied && r.reason === "production-fail",
   "prior production SUCCESS → real lapse → Again(1)");
+// P7.2c D-4: latch МОДАЛЬНО-СЕГМЕНТИРОВАН — dictate-успех НЕ сертифицирует reverse (uncued смысл).
+// reverse-провал ПОСЛЕ dictate-успеха той же леммы → всё ещё Hard(2) (не Again), т.к. reverse-
+// production не доказан. dictate-провал после dictate-успеха → Again (та же семья доказана, выше).
+r = d({ correct: false, channel: "reverse:tg", prevState: strong, rows: [seedRow, readOk, dictOk] });
+eq(r.grade === 2 && r.applied, "D-4: reverse fail after DICTATE success → still Hard(2) (dictate не сертифицирует reverse)");
+// cloze-успех (context-supported) НЕ защёлкивает даже свою семью → cloze-провал остаётся Hard
+r = d({ correct: false, channel: "cloze:tg", prevState: strong, rows: [seedRow, readOk, { id: "cz", kind: "review", reviewed_at: T(4), grade: 3, source: "agent:review", channel: "cloze:tg", meta_json: JSON.stringify({ evidence_scope: "cloze" }) }] });
+eq(r.grade === 2 && r.applied, "D-4: cloze fail after cloze success (context-supported) → still Hard(2)");
 r = d({ correct: false, channel: "dictate:typed", prevState: strong, rows: [dictFail] });
 eq(r.grade === 1 && !r.applied, "no receptive evidence (only production fails) → Again(1)");
 r = d({ correct: false, channel: "dictate:typed", prevState: { due: 999 }, rows: [seedRow] });
@@ -118,7 +126,7 @@ eq(hard.sched.lapses === prevFsrs.lapses && again.sched.lapses === prevFsrs.laps
 eq(hard.sched.due > NOW && again.sched.due === NOW,
   "product contract: Again→due now, Hard→due in the future");
 
-const TOTAL = 26;
+const TOTAL = 28;
 if (failures.length) {
   console.error(`smoke:grade-policy FAIL (${TOTAL - failures.length}/${TOTAL})`);
   for (const f of failures) console.error("  ✗ " + f);
