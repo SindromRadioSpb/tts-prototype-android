@@ -135,3 +135,89 @@ reverse). Рекомендация: (б). ТРЕБУЕТ owner-решения (�
 **[OWNER-ФОК D-5 — bake-вход privacy]:** «due-формы активных пользователей» = кросс-тенант чтение
 проекций (R14/R15) + набор слов течёт вокабуляром когорты. Рекомендация: bake-набор = ЧАСТОТНЫЙ/
 курс-словарь лемм (не PII), не due-проекции. ТРЕБУЕТ owner-подтверждения.
+
+---
+
+## Turnkey implementation checklist (сверено с живым кодом 2026-07-07 — точные якоря)
+
+Порядок сборки dictate-канала (foundation + D-4 УЖЕ в main @ffd7dd8). Каждый пункт — с file:line.
+
+### C1. Омофон-фильтр eligibility — `db/keyingService.js`
+- Портировать `phon()`/`_buildPhonemeIndex` из `docs/research/dictate-homophone-coverage/2026-07-07/
+  measure.js` (VOWEL-карта niqqud→гласная, FINAL-формы, consPhon-коллапс ת/ט,{ק,כ,ח}→k,{ס,ש}→s,
+  {א,ע,ה}→'',{ב,ו}→v, matres י→''). Индекс: `Map(phonemicKey → Set(консонантный скелет))` по ВСЕМ
+  парадигмам (lazy, invalidate в unloadNow как _vocFormIndex).
+- В `dictateFormForItemKey` (сейчас проверяет только vocForm-однозначность): ДОБАВИТЬ проверку
+  `phonIndex.get(phon(vocalized)).size === 1` — иначе `return null` (омофон → звук не задаёт написание).
+- Экспорт уже есть. Замер: ~78% пройдут (docs/research/dictate-homophone-coverage/results.txt).
+
+### C2. hasAsset FILE-FIRST — `db/audioRepo.js` (сейчас DB-only :88-92)
+- Файл на томе = источник истины (прод-push кладёт mp3, НЕ audio_assets-ряд; keyless-раздача читает
+  файл — server.js:9701 `path.join(AUDIO_CACHE_DIR, ak+'.mp3')`). AUDIO_CACHE_DIR импортируется
+  server.js:20 (найти модуль-источник, напр. config/paths). hasAsset: `fs.existsSync(path.join(
+  AUDIO_CACHE_DIR, assetKey+'.mp3'))` ПЕРВЫМ, DB-ряд — лишь ускоритель. Если audioRepo не должен знать
+  том — сделать file-check в dictate-селекторе (review.js require config), НЕ в чистом DB-модуле.
+
+### C3. grader dictate-strict + write-gate — `agent/grader.js` + `agent/reviewer.js`
+- grader.js:155 `const strict = /^cloze(:|$)/` → `/^(cloze|dictate)(:|$)/` (без проклитик-льготы:
+  כלב→לב не accepted). acceptedSkeletons(strict) уже параметризован.
+- reviewer.js:182 write-gate: сейчас `if (verdict.provenance.reason === "ktiv-candidate")` → расширить:
+  `|| (chal && chal.prompt_kind === "dictate" && verdict.decision === "near_miss")` → ЛЮБОЙ near_miss
+  на dictate = recorded:false (омофон/lev1 звук не задал написание → не минтить ложный lapse).
+
+### C4. reviewer dictate-ветка — `agent/reviewer.js`
+- :49 `CHALLENGE_CHANNEL_RE = /^(reverse|cloze):tg$/` → `/^(reverse|cloze|dictate):tg$/`.
+- :160 expected: `(chal && chal.prompt_kind === "cloze") ? chal.expected_surface : displayForItemKey`
+  → `(chal && (chal.prompt_kind === "cloze" || chal.prompt_kind === "dictate")) ? chal.expected_surface
+  : displayForItemKey`. (dictate expected = ПИСЬМЕННАЯ форма = chal.expected_surface = written.)
+- :207 `meta.evidence_scope = chal.evidence_scope || "lexeme"` → FAIL-CLOSED: для production-challenge
+  (chal && PRODUCTION_RE.test(channel)) без явного chal.evidence_scope → `return err("EVIDENCE_SCOPE_
+  REQUIRED")` ДО записи (release challenge). Тогда `meta.evidence_scope = chal.evidence_scope`.
+- dictate text-consent recheck (:138 cloze-ветка) — dictate класс A, НЕ добавлять.
+
+### C5. api.sendAudio + file_id — `agent/telegram/api.js` + migration 030
+- migration `030_telegram_file_cache.sql`: `telegram_file_cache (asset_key TEXT PK, file_id TEXT,
+  bot_id TEXT, created_at)` (bot_id-биндинг → инвалидция при ротации токена).
+- `api.sendAudio(chatId, { assetKey, url?, fileId?, caption? })`: file_id-кеш hit → sendAudio с
+  file_id; miss → sendAudio `audio`=url (Telegram фетчит keyless-раздачу) → закешировать
+  result.audio.file_id. ОШИБКА битого file_id (Telegram 400 'wrong file identifier'/'expired') →
+  удалить кеш-ряд + retry через URL. Возврат { sent, messageId, fileId }.
+- URL: env `PUBLIC_BASE_URL` (валидировать на старте: AGENT_REVIEW_WRITE=1 + нет https base →
+  fail-closed лог, dictate не выбирается) ИЛИ хост из webhook-req. Новый repo `db/telegramFileCacheRepo.js`.
+
+### C6. review.js selector 2-прохода + dictate caps + доставка — `agent/telegram/review.js`
+- selectEligible (:61): ДВА прохода — сперва по ВСЕМ due-items искать dictate-eligible
+  (dictateFormForItemKey + computeDictateAssetKey + hasAsset + !exposed), ТОЛЬКО потом reverse
+  strictSafe (:66-74). Анти-старвация (иначе ранний reverse-годный item голодит dictate). Порядок:
+  cloze (глобально) → dictate (2-й проход) → reverse → Зал. + телеметрия исходов (exposure/лог).
+- _capsFor (:80): ветка pick.kind==='dictate' → review_mode='dictate:tg', prompt_kind='dictate',
+  evidence_scope='cell' (ЛИТЕРАЛ, D-4), expected_surface=pick.written, shown_stimulus=pick.assetKey,
+  stimulus_source='dictate-tts', stimulus_privacy_class='A' (НЕ class-C — не чистится purgeClassC).
+- _deliverPrompt (:104): ветка dictate → api.sendAudio(chatId, {assetKey, url}) + ForceReply; НЕТ
+  text-consent recheck (класс A). сохранить message_id (reply-binding как reverse/cloze).
+- submitAnswer expected (:186): dictate → chal.expected_surface (как cloze); verdictFromResult
+  isCloze→добавить isDictate ветку в format (verdict «Ожидалось: <написание>»).
+
+### C7. bake-tool — `scripts/premium/bake-dictate-audio.js` (D-5: ЧАСТОТНЫЙ словарь, НЕ due-проекции)
+- вход = частотный/курс-набор dictate-безопасных лемм (item_key[]); НЕ читать проекции юзеров.
+- для каждой: `const {vocalized}=await keyingService.dictateFormForItemKey(itemKey)` (ОДИН источник!);
+  `assetKey=computeDictateAssetKey(vocalized)`; skip если hasAsset (инкрементально); синтез
+  `tb.synthesizeMp3(apiKey, vocalized, PROFILE)` где apiKey=process.env.GCP_TTS_API_KEY, PROFILE
+  мапится из DICTATE_TTS_PROFILE (voiceName he-IL-Wavenet-A, rate 1.0, pitch 0.0); write
+  audio-cache/<assetKey>.mp3. Модель: bake-canon-audio.js:97-115.
+- push: как push-canon-audio.js — POST /api/audio/cache/upload {assetKey, mp3Base64} с
+  X-Audio-Upload-Token=AUDIO_UPLOAD_TOKEN. Лог: new/skipped/failed (НЕ тихо). NB: computeDictateAssetKey,
+  НЕ ttsBake.keyForText (тот assetType:'row' → другой ключ!).
+
+### C8. Гейт `smoke:telegram-dictate` — НЕЗАВИСИМЫЙ ОРАКУЛ (не тавтология)
+- Переиспользовать telegram-cloze-smoke harness (stub, recv, startPrompt, resetState). НО:
+- ассет сеять ФАЙЛОМ на том (fs.writeFile audio-cache/<key>.mp3), НЕ INSERT audio_assets (прод-путь!).
+- assetKey вычислять из itemKey ОБЕИМИ сторонами независимо (реальный bake-путь vs сервер) → assert
+  байт-равенство (config-string-match, не общая переменная).
+- Кейсы: dictate выбран ТОЛЬКО при файле-ассете; нет файла → fallback reverse (не тихий-0);
+  омофон-лемма → dictate НЕ выбран (eligibility); expected=написание (correct-on-written; near_miss/
+  омофон → recorded:false); dictate-успех защёлкивает hasProvenProduction для DICTATE, но reverse-
+  провал после → всё ещё Hard (D-4 контраст на живом пути); sendAudio url→file_id кеш→file_id;
+  privacy=A (shown_stimulus=assetKey не чистится); reply-binding/single-use как P7.2a.
+- Регрессия: grade-policy 28 · agent-review 66 · telegram-review 32 · telegram-cloze 21 · pairing 33 ·
+  content 15 · memory-canon 63 · server-keying 24. → commit+push deploy dormant.
