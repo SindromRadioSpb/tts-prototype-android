@@ -63,6 +63,10 @@ const META_ALLOW = new Set([
   // D1 (CLG-P6 prep, §14): провенанс channel-aware грейд-политики — raw_grade = бинарный
   // вердикт ДО политики, grade_policy = версия правила (переинтерпретация задним числом).
   "raw_grade", "grade_policy",
+  // P7.2a challenge-binding (TELEGRAM_P7_2_REVIEW_SPEC v3/v4): идентификаторы/enum, НЕ контент —
+  // evidence_scope='lexeme' (reverse доказывает лемму, не клетку), sense_id (pealim_id значения),
+  // challenge_id (аудит привязки). Как policy_version/expected_form_id в P7.0b.
+  "evidence_scope", "sense_id", "challenge_id",
 ]);
 // Known CONTENT keys → stripped (accepted row, cleaned meta). Everything else unknown → reject.
 const META_STRIP = new Set([

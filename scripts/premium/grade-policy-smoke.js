@@ -51,8 +51,15 @@ const d = (o) => GP.decideGrade(o);
 let r;
 r = d({ correct: true, channel: "dictate:typed", prevState: strong, rows: [seedRow, readOk] });
 eq(r.grade === 3 && !r.applied, "correct → 3, policy not applied");
+// P7.2a owner-решение #2: skip на PRODUCTION-канале при рецептивной силе → тот же D1-путь, что
+// production-провал (Hard) — честное «не знаю» не должно быть СТРОЖЕ ошибки. Рецептивный skip
+// остаётся Again(1) (do-no-harm Залу/Studio).
 r = d({ correct: false, skipped: true, channel: "dictate:typed", prevState: strong, rows: [seedRow, readOk] });
-eq(r.grade === 1 && !r.applied && r.reason === "skip", "skip must NEVER be softened (R17-B)");
+eq(r.grade === 2 && r.applied && r.reason === "skip-production-receptive-strong", "skip on production + receptive-strong → Hard(2) (owner #2)");
+r = d({ correct: false, skipped: true, channel: "read:mc", prevState: strong, rows: [seedRow, readOk] });
+eq(r.grade === 1 && !r.applied && r.reason === "skip", "receptive skip stays Again(1) (do-no-harm)");
+r = d({ correct: false, skipped: true, channel: "dictate:typed", prevState: null, rows: [] });
+eq(r.grade === 1 && !r.applied, "production skip WITHOUT receptive strength → Again(1)");
 r = d({ correct: false, channel: "read:mc", prevState: strong, rows: [seedRow, readOk] });
 eq(r.grade === 1 && !r.applied, "receptive fail → Again(1)");
 r = d({ correct: false, channel: "dictate:typed", prevState: strong, rows: [seedRow, readOk] });
@@ -111,11 +118,11 @@ eq(hard.sched.lapses === prevFsrs.lapses && again.sched.lapses === prevFsrs.laps
 eq(hard.sched.due > NOW && again.sched.due === NOW,
   "product contract: Again→due now, Hard→due in the future");
 
-const TOTAL = 24;
+const TOTAL = 26;
 if (failures.length) {
   console.error(`smoke:grade-policy FAIL (${TOTAL - failures.length}/${TOTAL})`);
   for (const f of failures) console.error("  ✗ " + f);
   process.exit(1);
 } else {
-  console.log(`smoke:grade-policy OK (${TOTAL}/${TOTAL}) — D1: матрица decideGrade (production-провал на рецептивно-сильном → Hard, skip не смягчается) · формы prev-state · policyMeta-провенанс · channelStats production/receptive · fsrsStep числовой грейд (Hard без lapse, boolean байт-парити)`);
+  console.log(`smoke:grade-policy OK (${TOTAL}/${TOTAL}) — D1: матрица decideGrade (production-провал на рецептивно-сильном → Hard, skip на production+рецептив-сильном → Hard #2, рецептивный skip=Again do-no-harm) · формы prev-state · policyMeta-провенанс · channelStats production/receptive · fsrsStep числовой грейд (Hard без lapse, boolean байт-парити)`);
 }

@@ -114,6 +114,7 @@ function unloadNow() {
   const was = !!_bundle;
   _bundle = null;
   _pidLemmaIndex = null;
+  _glossIndex = null;
   return was;
 }
 
@@ -125,6 +126,85 @@ function _pidLemma(ds) {
   }
   _pidLemmaIndex = m;
   return m;
+}
+
+// ── P7.2a reverse:tg — gloss/synonym-индекс (чистая деривация из уже-загруженного датасета) ──
+// Тот же датасет pealim-infl-v12 несёт RU-глосс (.meaning) на парадигму. Строим:
+//   • pidGloss   pid → meaning (RU)
+//   • lemmaPos   stripNiqqud(lemma)#pos → [pid]  (обратный item_key→pid)
+//   • senseLemmas нормализованный-сенс → Set(stripNiqqud(lemma))  = набор СИНОНИМОВ (§3)
+// Нормализация глосса — байт-в-байт с замером (docs/research/telegram-p72-gloss-ambiguity).
+const _GLOSS_ENUM_RE = /[\/,;]| или | и | либо /;
+const HEB_ONLY_RE = /^[֐-׿\s]+$/;   // ожидаемая форма — только ивритские буквы (без транслита)
+function _normGloss(s) {
+  return String(s || "").toLowerCase().replace(/ё/g, "е").replace(/\([^)]*\)/g, " ")
+    .replace(/[.]/g, " ").replace(/\s+/g, " ").trim();
+}
+function _glossSenses(g) { return _normGloss(g).split(_GLOSS_ENUM_RE).map((x) => x.trim()).filter((x) => x.length >= 2); }
+let _glossIndex = null;
+function _buildGlossIndex(ds) {
+  if (_glossIndex) return _glossIndex;
+  const pidGloss = new Map(), lemmaPos = new Map(), senseLemmas = new Map();
+  for (const p of (ds && ds.paradigms) || []) {
+    if (!p || !p.lemma) continue;
+    const lemStrip = LC.stripNiqqud(p.lemma);
+    if (p.pealim_id != null && p.meaning && !pidGloss.has(String(p.pealim_id))) pidGloss.set(String(p.pealim_id), String(p.meaning));
+    if (p.pos) {
+      const lk = lemStrip + "#" + String(p.pos).toLowerCase();
+      let arr = lemmaPos.get(lk); if (!arr) { arr = []; lemmaPos.set(lk, arr); }
+      if (p.pealim_id != null) arr.push(String(p.pealim_id));
+    }
+    for (const sn of _glossSenses(p.meaning)) {
+      let set = senseLemmas.get(sn); if (!set) { set = new Set(); senseLemmas.set(sn, set); }
+      set.add(lemStrip);
+    }
+  }
+  _glossIndex = { pidGloss, lemmaPos, senseLemmas };
+  return _glossIndex;
+}
+
+// glossForItemKey → { sense_id, gloss, expected (HE-лемма стрип), decisive, alts:[HE-леммы синонимов] }
+// или null (нерезолвимо / нет глосса). decisive = ровно один pealim_id за item_key (не гомограф).
+// alts = леммы, делящие ЛЮБОЙ сенс глосса (синоним-набор §3), кроме собственной.
+async function glossForItemKey(itemKey) {
+  const k = String(itemKey || "");
+  const b = await ensureLoaded();
+  const gi = _buildGlossIndex(b.ds);
+  let pids = [];
+  if (k.startsWith("pid:")) {
+    pids = [k.slice(4)];
+  } else {
+    const i = k.indexOf("#");
+    if (i <= 0) return null;
+    const lemStrip = LC.stripNiqqud(k.slice(0, i));
+    const pos = k.slice(i + 1).toLowerCase();
+    pids = gi.lemmaPos.get(lemStrip + "#" + pos) || [];
+    if (!pids.length) {
+      // fallback: любой pos с той же леммой (item_key pos может отличаться от датасетного)
+      for (const [lk, arr] of gi.lemmaPos) if (lk.slice(0, lk.indexOf("#")) === lemStrip) { pids = pids.concat(arr); }
+    }
+  }
+  const uniq = [...new Set(pids)];
+  if (!uniq.length) return null;
+  const senseId = uniq[0];
+  const gloss = gi.pidGloss.get(senseId);
+  if (!gloss || !String(gloss).trim()) return null;
+  const expected = await displayForItemKey(k);   // HE-форма (лемма)
+  const expStrip = LC.stripNiqqud(expected);
+  // decisive: один pid ИЛИ все pid дают тот же нормализованный глосс (истинно один sense)
+  const glosses = new Set(uniq.map((pid) => _normGloss(gi.pidGloss.get(pid) || "")));
+  const decisive = uniq.length === 1 || glosses.size === 1;
+  // синоним-набор (для strictSafe-детекта): HE-леммы, делящие любой сенс глосса, минус собственная
+  const alts = new Set();
+  for (const sn of _glossSenses(gloss)) for (const lem of (gi.senseLemmas.get(sn) || [])) if (lem !== expStrip) alts.add(lem);
+  // P7.2a вариант A (owner 2026-07-07): строгий reverse ТОЛЬКО на однозначных словах — синоним-карта
+  // из свободного глосса ненадёжна (критика wf_15f4c1ae). strictSafe = decisive · один сенс без
+  // перечисления · нет коллизии (никакая другая лемма не делит сенс) · глосс ≤3 слов. Для таких
+  // слов валидных альтернатив НЕТ по построению → wrong честен, синоним-приём не нужен.
+  const glossSenses = _glossSenses(gloss);
+  const strictSafe = decisive && glossSenses.length === 1 && alts.size === 0 &&
+    gloss.split(/\s+/).filter(Boolean).length <= 3 && !!expStrip && HEB_ONLY_RE.test(expStrip);
+  return { sense_id: senseId, gloss: String(gloss), expected, decisive, strictSafe, alts: [...alts] };
 }
 
 // Дисплейная форма item_key для UX-поверхностей (например, /plan): '<lemma>#<pos>' →
@@ -253,4 +333,4 @@ function status() {
   };
 }
 
-module.exports = { resolveWord, resolveWords, ensureLoaded, unloadNow, status, displayForItemKey, MAX_WORDS, RESOLVER_ID };
+module.exports = { resolveWord, resolveWords, ensureLoaded, unloadNow, status, displayForItemKey, glossForItemKey, MAX_WORDS, RESOLVER_ID };

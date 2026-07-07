@@ -171,3 +171,54 @@ review_log (2 юзера) — ожидаемая строка + отсутств
 - evidence_scope='lexeme' требует, чтобы hasProductionSuccess/productionImbalance учитывали scope
   (§6 замер: где индексируется) — если индексируется по item_key (лемме), lexeme-успех НЕ должен
   претендовать на клеточную/парадигменную production-компетенцию; уточнить в коде.
+
+---
+
+## v3 → v4 адъюдикация критики wf_15f4c1ae (owner-решение 2026-07-07: ВАРИАНТ A)
+
+Критика (3 линзы: 4 BLOCKER + 8 MAJOR) — **owner выбрал строгий reverse на однозначных ~25%,
+БЕЗ синоним-приёма.** Это растворяет 2 BLOCKER и упрощает дизайн:
+
+**РАСТВОРЕНЫ вариантом A:**
+- BLOCKER «синоним-набор из свободного глосса ненадёжен (ложный lapse + accept)» → синоним-карта
+  НЕ используется; reverse ТОЛЬКО на strictSafe-словах (один сенс · alts пуст · не широкий) → нет
+  валидных альтернатив ПО ПОСТРОЕНИЮ → wrong честен, grader НЕ меняется (correct/wrong/empty/ktiv).
+- BLOCKER «alternative_valid раскрывает expected + эхо-ретрай» → ветки alternative_valid НЕТ вовсе.
+- MAJOR «abstain-асимметрия / no-progress» → нет abstain-ветки.
+- accepted_alts / senseToLemmas / §3-синоним-приём — ВЫРЕЗАНЫ из P7.2a (курируемый sense-датасет =
+  отдельный будущий слайс для полного reverse).
+
+**ФИКСЫ (встроить в код P7.2a):**
+- [C] eligibility §2: reverse ТОЛЬКО если glossForItemKey.strictSafe (decisive · один сенс без
+  перечисления · нет коллизии/alts · ≤3 слов · не широкий глосс); иначе следующий item / Зал.
+- [C] BLOCKER «complete() пишет несуществующую колонку telegram_update_id» → УБРАНО (agentChallengeRepo).
+- [C] BLOCKER «META_ALLOW реджектит evidence_scope/sense_id/challenge_id» → добавить в META_ALLOW
+  (идентификаторы/enum, не контент — как policy_version); learnerLogRepo в скоуп правок.
+- [C] BLOCKER «cooldown тихий no-op» → content.serve('due') зовёт recordExposure('due_form') для
+  каждой отданной леммы; review.js — recordExposure('review_prompt') при отправке prompt.
+- [C] MAJOR «evidence_scope инертен» → grade-policy.hasProductionSuccess ИСКЛЮЧАЕТ evidence_scope=
+  'lexeme' строки (reverse-lexeme-успех НЕ отключает будущую D1-Hard-мягкость dictate той же леммы;
+  existing-строки без scope = не-lexeme = do-no-harm). reverse ПРОВАЛ на рецептивно-сильном → D1-Hard
+  как обычно.
+- [C] MAJOR «skip→D1 меняет ОБЩИЙ grade-policy, ломает Зал» → скоуп СТРОГО на production-канал:
+  skipped && isProductionChannel(channel) && receptive-strong → 2; рецептивный skip остаётся 1
+  (Зал/Studio do-no-harm; gate-consumers-sweep).
+- [C] MAJOR «/api/agent/review — второй production-unlock» → HTTP-эндпоинт стрипает/реджектит
+  challenge_id И production-каналы; production-unlock ТОЛЬКО через review.js (webhook-trusted-flag в ctx).
+- [C] MAJOR «flag-off не enforced на webhook» → review.js идёт через tools.callTool (флаг там) ИЛИ
+  reviewer.record сам проверяет flagOn на challenge-bound записи.
+- [C] MAJOR «revoke не гасит challenges» → consent-off каскад + unlink зовут
+  agentChallengeRepo.cancelOpenForUser; consent-recheck НЕПОСРЕДСТВЕННО перед claim.
+- [C] MAJOR «сырой ответ в bot_action_log.command» → router для non-command/review-answer пишет
+  фикс-метку ('review-answer'/'free-text'), НИКОГДА первое слово текста.
+- [C] MAJOR «processing невосстановим при phase-1 dedup» → re-claim того же challenge СВЕЖИМ
+  ответом (новый update, не задедуплен) допускается (claim WHERE status IN active/processing И
+  (active OR claimed_attempt=NULL OR expired-processing)); детерминированный chrev-id идемпотентен.
+- [C] MINOR «ForceReply+inline несовместимы, callback_query не обработан» → ReplyKeyboardMarkup со
+  стабильными токенами (приходит как upd.message, совместимо с reply-binding); api.sendMessage +
+  reply_markup + возврат result.message_id.
+- [C] MINOR «structural prompt≠answer тавтология (кириллица vs иврит)» → плюс проверка, что глосс
+  без латинской транслитерации HE-скелета; порог confidence eligibility ≥0.85 (исключить fallback 0.6/0.65).
+- [C] harness: single-use ассерт на WEBHOOK-пути (не тавтологичный /api/agent/review); happy-path
+  claim→ingest→complete с ассертом status='completed' + одна review-строка; cooldown-кейс с реальной
+  /due-экспозицией; flag-off полный webhook-цикл zero-write + challenge НЕ создан.

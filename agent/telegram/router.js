@@ -30,6 +30,7 @@ const HELP =
   "Команды LinguistPro:\n" +
   "/plan — план на сегодня\n" +
   "/due — что пора повторить\n" +
+  "/review — тренировка: припомни слово\n" +
   "/summary — над чем работаешь\n" +
   "/explain — последние объяснения\n" +
   "/status — связан ли аккаунт\n" +
@@ -102,6 +103,15 @@ async function handle(db, ctx) {
       out = reply(HELP, { status: "ok" });
       break;
     }
+    // P7.2a /review — гейт link+consent в txn → дескриптор review-start (produce вне txn: eligibility
+    // читает датасет/getDue, sendMessage внешний; НЕ импортим reviewer/agentChallengeRepo — write-path).
+    case "/review": {
+      const link = await CL.activeLinkByTgTxn(db, tgUserId);
+      if (!link) { out = reply("Не связано. Подключите Telegram на сайте.", { status: "rejected", errorCode: "NOT_LINKED" }); break; }
+      if (!(await CL.telegramConsentActive(db, link.user_id))) { out = reply("Канал отключён. Подключите Telegram заново на сайте.", { status: "rejected", errorCode: "CONSENT_OFF" }); break; }
+      out = { kind: "review-start", command: "review", userId: link.user_id, tgUserId, chatId: tgChatId, status: "ok" };
+      break;
+    }
     default: {
       // P7.1b content-команды: ГЕЙТ в txn (link + telegram_delivery consent), затем ДЕФЕР —
       // производство контента вне txn (server.js), т.к. /plan зовёт LLM (секунды) + пишет
@@ -115,8 +125,23 @@ async function handle(db, ctx) {
         out = { kind: "content", command: CONTENT_CMDS[verb], userId: link.user_id, tgUserId, chatId: tgChatId, status: "ok" };
         break;
       }
-      // неизвестное → справка, БЕЗ LLM (no-free-chat)
-      out = reply(HELP, { status: "ignored" });
+      // P7.2a: сообщение-ОТВЕТ (reply на prompt) → дескриптор review-answer. Challenge-lookup/
+      // reply-binding — в server.js phase-2 (submitAnswer), НЕ здесь (agent_challenges = write-path,
+      // роутер transitive-read-only). Privacy: command='review-answer' — ФИКС-метка, сырой ответ
+      // (verb=первое слово текста) в bot_action_log НЕ пишется.
+      if (ctx.isReply) {
+        const link = await CL.activeLinkByTgTxn(db, tgUserId);
+        if (link && (await CL.telegramConsentActive(db, link.user_id))) {
+          out = { kind: "review-answer", command: "review-answer", userId: link.user_id, tgUserId, chatId: tgChatId,
+                  replyToMessageId: ctx.replyToMessageId, updateId, status: "ok" };
+          break;
+        }
+        // reply без связки/согласия → не review; лог фикс-меткой (не сырой текст)
+        out = { chatId: tgChatId, text: HELP, command: "free-text", status: "ignored" };
+        break;
+      }
+      // неизвестное НЕ-reply → справка, БЕЗ LLM (no-free-chat); лог фикс-меткой 'free-text'
+      out = { chatId: tgChatId, text: HELP, command: "free-text", status: "ignored" };
     }
   }
 

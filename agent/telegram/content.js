@@ -23,6 +23,7 @@ const keyingService = require(path.join(__dirname, "..", "..", "db", "keyingServ
 const agentSentenceRepo = require(path.join(__dirname, "..", "..", "db", "agentSentenceRepo"));
 const agentRepo = require(path.join(__dirname, "..", "..", "db", "agentRepo"));
 const channelLinkRepo = require(path.join(__dirname, "..", "..", "db", "channelLinkRepo"));
+const agentChallengeRepo = require(path.join(__dirname, "..", "..", "db", "agentChallengeRepo"));
 const format = require(path.join(__dirname, "format"));
 
 // авторитетная перепроверка в точке доставки (после produce)
@@ -42,6 +43,7 @@ async function serve({ command, userId, tgUserId, chatId }) {
   try { const p = await agentRepo.getProfile(userId); lang = (p && p.language) || "ru"; } catch (_) {}
 
   let text;
+  let dueItems = null;   // P7.2a cooldown: item_keys, реально показанные в /due (для exposure)
   if (command === "plan") {
     const r = await agentRuntime.plan({ userId, deviceId: null });
     text = format.formatPlan(r, lang);
@@ -50,6 +52,7 @@ async function serve({ command, userId, tgUserId, chatId }) {
     for (const it of (items || [])) {
       try { it.lemma = await keyingService.displayForItemKey(it.item_key); } catch (_) { it.lemma = null; }
     }
+    dueItems = items || [];
     text = format.formatDue(items, lang);
   } else if (command === "summary") {
     const r = await agentRuntime.constructsSummary({ userId });
@@ -66,6 +69,14 @@ async function serve({ command, userId, tgUserId, chatId }) {
   // delivery-point recheck: revoke во время produce (в т.ч. секундного LLM /plan) → не отдаём
   if (!(await stillAuthorized(command, userId, tgUserId, chatId))) {
     return { parts: [format.refusedText(lang)], served: false };
+  }
+  // P7.2a cooldown (§решение-7): /due РЕАЛЬНО показывает HE-форму (=ожидаемый ответ reverse:tg) →
+  // пишем exposure ('due_form') для каждой показанной леммы → selectReverseChallenge не выберет
+  // её следующие 30 мин (иначе «производство» только что увиденного = ложный production-успех).
+  if (command === "due" && dueItems) {
+    for (const it of dueItems) {
+      if (it && it.item_key) { try { await agentChallengeRepo.recordExposure(userId, it.item_key, "due_form"); } catch (_) {} }
+    }
   }
   return { parts: format.splitMessage(text), served: true };
 }

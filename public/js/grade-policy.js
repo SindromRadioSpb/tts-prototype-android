@@ -66,10 +66,24 @@
     return false;
   }
 
+  // P7.2a (owner evidence_scope='lexeme'): читаем scope строки из meta. lexeme-успех (reverse:tg,
+  // «умеет произвести ЛЕММУ из смысла») НЕ доказывает клеточную/парадигменную production-
+  // компетенцию. Строки без scope (все до P7.2a) → не-lexeme → do-no-harm.
+  function _rowEvidenceScope(r) {
+    if (!r) return null;
+    if (r.evidence_scope) return r.evidence_scope;
+    var m = r.meta_json != null ? r.meta_json : r.meta;
+    if (typeof m === "string") { try { m = JSON.parse(m); } catch (_) { m = null; } }
+    return (m && m.evidence_scope) || null;
+  }
   function hasProductionSuccess(rows) {
     for (var i = 0; i < (rows || []).length; i++) {
       var r = rows[i]; if (!r) continue;
-      if (r.kind === "review" && Number(r.grade) >= 3 && isProductionChannel(r.channel)) return true;
+      if (r.kind === "review" && Number(r.grade) >= 3 && isProductionChannel(r.channel)) {
+        // lexeme-scope успех не отключает D1-Hard-смягчение для dictate той же леммы (§решение-5)
+        if (_rowEvidenceScope(r) === "lexeme") continue;
+        return true;
+      }
     }
     return false;
   }
@@ -81,12 +95,18 @@
     var skipped = !!(input && input.skipped);
     var channel = input ? input.channel : null;
     if (correct) return { grade: 3, applied: false, reason: "correct" };
-    if (skipped) return { grade: 1, applied: false, reason: "skip" };   // R17-B: отказ не смягчается
-    if (!isProductionChannel(channel)) return { grade: 1, applied: false, reason: "receptive-fail" };
+    var isProd = isProductionChannel(channel);
     var rows = (input && input.rows) || [];
-    if (hasMemoryState(input && input.prevState) && hasReceptiveEvidence(rows) && !hasProductionSuccess(rows)) {
-      return { grade: 2, applied: true, reason: "production-fail-receptive-strong" };
+    var receptiveStrong = hasMemoryState(input && input.prevState) && hasReceptiveEvidence(rows) && !hasProductionSuccess(rows);
+    if (skipped) {
+      // P7.2a owner-решение #2: skip на PRODUCTION-канале при рецептивной силе идёт тем же
+      // D1-путём, что production-провал (Hard) — честное «не знаю» не должно быть СТРОЖЕ ошибки.
+      // Рецептивный skip (Зал/Studio) остаётся Again(1) — do-no-harm, gate-consumers-sweep.
+      if (isProd && receptiveStrong) return { grade: 2, applied: true, reason: "skip-production-receptive-strong" };
+      return { grade: 1, applied: false, reason: "skip" };
     }
+    if (!isProd) return { grade: 1, applied: false, reason: "receptive-fail" };
+    if (receptiveStrong) return { grade: 2, applied: true, reason: "production-fail-receptive-strong" };
     return { grade: 1, applied: false, reason: "production-fail" };
   }
 

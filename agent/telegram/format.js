@@ -43,6 +43,20 @@ const STR = {
     explainNoAccess: "Объяснения недоступны: доступ наставника к текстам отключён. Включи его на сайте.",
     refused: "Канал отключён. Подключи Telegram заново на сайте.",
     times: "раз",
+    // ── P7.2a reverse:tg ──
+    revPromptHead: "Проверим активное припоминание.\nНапиши на иврите слово со значением:",
+    revPromptFoot: "(ответь на это сообщение · «не знаю» · «не сейчас»)",
+    revPlaceholder: "ивритское слово / не знаю / не сейчас",
+    revUnavailable: "Тренировка пока недоступна.",
+    revBusy: "У тебя уже есть активное задание в другом чате.",
+    revNothing: "Сейчас нечего проверять активным припоминанием — загляни в читальный зал.",
+    vDeclined: "Тренировку отложил, расписание не изменилось.",
+    vCorrect: "✅ Верно. Слово подтверждено в самостоятельном воспроизведении.",
+    vSoft: "Почти — в чтении слово знакомо, прогресс не обнуляю, но верну его раньше.",
+    vWrong: "Не засчитано.", vExpected: "Ожидалось", vSkip: "Отмечено «не знаю».",
+    vSkipSoft: "Отмечено «не знаю». В чтении знакомо — верну слово раньше.",
+    vUnclear: "Не разобрал ответ — можно ответить ещё раз.",
+    vError: "Не получилось записать — попробуй позже.",
   },
   en: {
     planEmpty: "Nothing planned today — open the reading room.",
@@ -52,6 +66,19 @@ const STR = {
     explainNoAccess: "Explanations unavailable: mentor’s text access is off. Turn it on the website.",
     refused: "Channel disconnected. Reconnect Telegram on the website.",
     times: "×",
+    revPromptHead: "Active recall check.\nWrite in Hebrew the word meaning:",
+    revPromptFoot: "(reply to this message · “I don’t know” · “not now”)",
+    revPlaceholder: "Hebrew word / I don’t know / not now",
+    revUnavailable: "Review is not available yet.",
+    revBusy: "You already have an active task in another chat.",
+    revNothing: "Nothing to actively recall right now — open the reading room.",
+    vDeclined: "Postponed — schedule unchanged.",
+    vCorrect: "✅ Correct. Confirmed by your own production.",
+    vSoft: "Almost — the word is familiar in reading, no reset, but I’ll bring it back sooner.",
+    vWrong: "Not counted.", vExpected: "Expected", vSkip: "Marked “I don’t know”.",
+    vSkipSoft: "Marked “I don’t know”. Familiar in reading — I’ll bring it back sooner.",
+    vUnclear: "Couldn’t read the answer — you can reply again.",
+    vError: "Couldn’t save — try again later.",
   },
 };
 function L(lang) { return STR[lang === "en" ? "en" : "ru"]; }
@@ -133,4 +160,39 @@ function formatExplain(listResult, lang, readAllowed) {
   return lines.length ? lines.join("\n") : t.explainEmpty;
 }
 
-module.exports = { splitMessage, formatPlan, formatDue, formatSummary, formatExplain, showLemma, refusedText: (lang) => L(lang).refused, LIMIT };
+// ── P7.2a reverse:tg prompt + verdict (безопасно: expected только на wrong; НИКАКИХ id/провенанса) ─
+function formatReversePrompt(gloss, lang) {
+  const t = L(lang);
+  return t.revPromptHead + "\n\n«" + String(gloss || "").trim() + "»\n\n" + t.revPromptFoot;
+}
+function reversePlaceholder(lang) { return L(lang).revPlaceholder; }
+function reviewUnavailable(lang) { return L(lang).revUnavailable; }
+function reviewBusy(lang) { return L(lang).revBusy; }
+function reviewNothing(lang) { return L(lang).revNothing; }
+function verdictDeclined(lang) { return L(lang).vDeclined; }
+
+// verdictFromResult(reviewerResult, {expected, isDontKnow, lang}) → безопасная строка.
+// Из reviewer-результата берём ТОЛЬКО decision/grade/recorded/ktiv_gate — никогда item_key/
+// challenge_id/sense_id/provenance. expected (display-форма) показываем ЛИШЬ на wrong (обучающая ОС).
+function verdictFromResult(r, opts) {
+  const o = opts || {}; const t = L(o.lang);
+  if (!r || r.ok === false) return t.vError;
+  const soft = r.grade === 2;                 // D1-смягчение применилось
+  if (r.recorded !== true) {
+    if (r.ktiv_gate) return t.vCorrect;        // ktiv-вариант леммы — засчитываем как верный по смыслу
+    return t.vUnclear;                          // MNAR: empty/unsupported
+  }
+  if (r.decision === "skip" || o.isDontKnow) return soft ? t.vSkipSoft : t.vSkip;
+  if (r.decision === "correct" || r.decision === "accepted_variant") return t.vCorrect;
+  // wrong / near_miss → показать ожидаемую форму (класс-безопасно: это правильный ответ, не id)
+  const exp = String(o.expected || "").trim();
+  const tail = exp ? " " + t.vExpected + ": «" + exp + "»." : "";
+  return (soft ? t.vSoft : t.vWrong) + tail;
+}
+
+module.exports = {
+  splitMessage, formatPlan, formatDue, formatSummary, formatExplain, showLemma,
+  refusedText: (lang) => L(lang).refused, LIMIT,
+  formatReversePrompt, reversePlaceholder, reviewUnavailable, reviewBusy, reviewNothing,
+  verdictDeclined, verdictFromResult,
+};

@@ -37,15 +37,20 @@ const grader = require(path.join(__dirname, "grader"));
 const learnerLogRepo = require(path.join(__dirname, "..", "db", "learnerLogRepo"));
 const learnerProjectionRepo = require(path.join(__dirname, "..", "db", "learnerProjectionRepo"));
 const keyingService = require(path.join(__dirname, "..", "db", "keyingService"));
+const agentChallengeRepo = require(path.join(__dirname, "..", "db", "agentChallengeRepo"));
 const LC = require(path.join(__dirname, "..", "public", "js", "lemma-canon.js"));
 
 const HEB_ANY_RE = /[֐-׿]/;
 const CHANNEL_RE = /^(read|listen):[a-z0-9_-]{1,20}$/;
 const PRODUCTION_RE = /^(dictate|reverse)(:|$)/;
+// P7.2a: production-канал(ы), которые challenge-binding РАЗБЛОКИРУЕТ (только reverse:tg в MVP).
+const CHALLENGE_CHANNEL_RE = /^reverse:tg$/;
 const MAX_ANSWER_CHARS = 400;
 const ANNUL_WINDOW_MS = 24 * 3600 * 1000;
 
-const GRADE_ARGS = new Set(["item_key", "answer", "skipped", "channel", "attempt_id"]);
+// challenge_id разблокирует production ТОЛЬКО на webhook-trusted пути (ctx.viaTelegramReview);
+// HTTP /api/agent/review его стрипает/реджектит (BLOCKER-3) — production там остаётся locked.
+const GRADE_ARGS = new Set(["item_key", "answer", "skipped", "channel", "attempt_id", "challenge_id"]);
 const ANNUL_ARGS = new Set(["annul_of", "reason"]);
 
 function flagOn() { return process.env.AGENT_REVIEW_WRITE === "1"; }
@@ -103,21 +108,50 @@ async function _grade(ctx, a) {
   const rawAnswer = a.answer != null ? String(a.answer) : "";
   if (skipped && rawAnswer.trim()) return err("SKIP_WITH_ANSWER");
   const channel = String(a.channel || "");
-  if (PRODUCTION_RE.test(channel)) return err("PRODUCTION_CHANNEL_LOCKED");  // до P7.2 shown-vs-graded (спека v2 п.3)
-  if (!CHANNEL_RE.test(channel)) return err("BAD_CHANNEL");
-  if (rawAnswer.length > MAX_ANSWER_CHARS) return err("ANSWER_TOO_LONG");
   const attemptId = String(a.attempt_id || "").trim();
   if (attemptId.length < 8 || attemptId.length > 64) return err("BAD_ATTEMPT_ID");
 
+  // ── P7.2a challenge-binding: единственный мост к production-записи из Telegram ──
+  const challengeId = a.challenge_id != null ? String(a.challenge_id).trim() : "";
+  let chal = null;
+  if (challengeId) {
+    // challenge_id разблокирует production ТОЛЬКО на webhook-trusted пути (submitAnswer).
+    // HTTP /api/agent/review сюда challenge_id не пускает (стрип + ctx без флага) — BLOCKER-3.
+    if (!ctx || ctx.viaTelegramReview !== true) return err("CHALLENGE_NOT_ALLOWED");
+    // Flag-off enforcement НА ПИШУЩЕЙ ГРАНИЦЕ (точка 4): challenge выдан при ON, флаг выключили,
+    // ответ пришёл → zero-write, challenge НЕ захвачен (остаётся до TTL). callTool-гейт этот путь
+    // не покрывает (submitAnswer зовёт reviewer напрямую), поэтому проверяем здесь.
+    if (!flagOn()) return err("FEATURE_FLAG_OFF");
+    if (!CHALLENGE_CHANNEL_RE.test(channel)) return err("BAD_CHALLENGE_CHANNEL");
+    chal = await agentChallengeRepo.getForReviewer(ctx.userId, challengeId);
+    if (!chal) return err("CHALLENGE_NOT_FOUND");
+    if (chal.item_key !== itemKey || chal.review_mode !== channel) return err("CHALLENGE_MISMATCH");
+    if (chal.status === "completed" || chal.status === "declined" || chal.status === "cancelled" || chal.status === "expired") {
+      return err("CHALLENGE_CLOSED", { status: chal.status });
+    }
+    if (Date.parse(chal.expires_at) <= Date.now()) return err("CHALLENGE_EXPIRED");
+    // резервируем challenge (active→processing, или re-claim того же attempt после крэша).
+    const claimed = await agentChallengeRepo.claimForAttempt(ctx.userId, challengeId, attemptId);
+    if (!claimed) return err("CHALLENGE_CLAIM_FAILED", { status: chal.status });
+  } else {
+    // рецептивный путь P7.0c — production по-прежнему заперт без challenge.
+    if (PRODUCTION_RE.test(channel)) return err("PRODUCTION_CHANNEL_LOCKED");
+    if (!CHANNEL_RE.test(channel)) return err("BAD_CHANNEL");
+  }
+  if (rawAnswer.length > MAX_ANSWER_CHARS) { if (chal) await agentChallengeRepo.release(ctx.userId, challengeId, attemptId); return err("ANSWER_TOO_LONG"); }
+
   // R17-B: агент не минтит новые учебные единицы через грейд — item обязан существовать.
   const rows = itemKey ? await learnerLogRepo.itemRows(ctx.userId, itemKey) : [];
-  if (!rows.length) return err("UNKNOWN_ITEM");
+  if (!rows.length) { if (chal) await agentChallengeRepo.release(ctx.userId, challengeId, attemptId); return err("UNKNOWN_ITEM"); }
 
   // expected — ТОЛЬКО серверной стороны; нерезолвимость проверяем сами (displayForItemKey
   // честно фолбэчит СЫРЫМ ключом). Применяется и к skip: нерезолвимый item не мог быть
   // показан → «не знаю» по нему не факт.
   const display = await keyingService.displayForItemKey(itemKey);
-  if (!display || display === itemKey || !HEB_ANY_RE.test(display)) return err("EXPECTED_UNRESOLVED");
+  if (!display || display === itemKey || !HEB_ANY_RE.test(display)) {
+    if (chal) await agentChallengeRepo.release(ctx.userId, challengeId, attemptId);
+    return err("EXPECTED_UNRESOLVED");
+  }
 
   const prevState = projectionToPrevState(await learnerProjectionRepo.getProjection(ctx.userId, itemKey));
   const verdict = grader.gradeAnswer({
@@ -125,14 +159,16 @@ async function _grade(ctx, a) {
     answer: rawAnswer, channel, prevState, rows, skipped,
   });
 
-  // MNAR: не-ответ ≠ провал — не пишем ничего; вердикт/фидбек уходят вызывателю.
+  // MNAR: не-ответ ≠ провал — не пишем ничего; challenge остаётся active (не сжигаем на не-ответ).
   if (verdict.gradable !== true) {
+    if (chal) await agentChallengeRepo.release(ctx.userId, challengeId, attemptId);
     return { ok: true, recorded: false, decision: verdict.decision, reason: verdict.provenance.reason,
              provenance: verdict.provenance, feedback: verdict.feedback || null };
   }
   // Write-gate v1 (адъюдикация BLOCKER-критики): ktiv-кандидат не пишется — грейдер НЕ
   // меняется (gold цел), но ложный lapse от честного male-ввода в append-only лог не минтится.
   if (verdict.provenance.reason === "ktiv-candidate") {
+    if (chal) await agentChallengeRepo.release(ctx.userId, challengeId, attemptId);
     return { ok: true, recorded: false, decision: verdict.decision, reason: "ktiv-candidate", ktiv_gate: true,
              provenance: verdict.provenance, feedback: verdict.feedback || null };
   }
@@ -152,22 +188,35 @@ async function _grade(ctx, a) {
   if (verdict.policy && verdict.policy.applied) {
     meta.raw_grade = 1; meta.grade_policy = verdict.policy.grade_policy;
   }
+  // challenge-провенанс: evidence_scope='lexeme' (reverse доказывает лемму, не клетку — §решение-5),
+  // sense_id, challenge_id (аудит привязки; все в META_ALLOW). reviewed_at детерминирован по
+  // challenge.created_at → chrev-id стабилен по построению (совместим с LC.reviewId; точка 2).
+  if (chal) {
+    meta.evidence_scope = chal.evidence_scope || "lexeme";
+    if (chal.sense_id) meta.sense_id = String(chal.sense_id);
+    meta.challenge_id = challengeId;
+  }
   const row = {
     id: null, item_key: itemKey, kind: verdict.decision === "skip" ? "skip" : "review",
-    reviewed_at: new Date().toISOString(),   // учебное время = момент грейда; клиентскому не доверяем
+    reviewed_at: chal ? chal.created_at : new Date().toISOString(),
     grade: verdict.grade, source: "agent:review", channel,
     meta_json: JSON.stringify(meta),
   };
   row.id = LC.reviewId(row);
 
   const w = await _ingestOne(ctx, "agentrev:" + attemptId, row, itemKey);
-  if (w.fail) return w.fail;
+  if (w.fail) { if (chal) await agentChallengeRepo.release(ctx.userId, challengeId, attemptId); return w.fail; }
+  // review записан → завершаем challenge (completed невозможен без review-события: complete()
+  // ставится ТОЛЬКО здесь, после успешного ingest). Крэш до complete → challenge в processing,
+  // re-claim тем же attempt на ретрае идемпотентен (chrev-id тот же).
+  if (chal) await agentChallengeRepo.complete(ctx.userId, challengeId, attemptId);
   return {
     ok: true, recorded: true,
     ...(w.replayed ? { replayed: true } : {}),
     ...(w.dup ? { dup: true } : {}),
     decision: verdict.decision, grade: verdict.grade,
     row_id: w.replayed ? null : row.id, item_key: itemKey,
+    ...(chal ? { challenge_completed: true, evidence_scope: meta.evidence_scope } : {}),
     provenance: p, feedback: verdict.feedback || null,
     ...(w.recomputeFailed ? { projections_recompute_failed: true } : {}),
   };

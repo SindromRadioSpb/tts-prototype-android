@@ -1,53 +1,43 @@
 # Handoff
 
 ## State
-- **CLG-P9 «дом наставника» ЗАКРЫТА** (v3.11.114, owner live-verified 2026-07-06).
-- **Решения P7 приняты владельцем** — канон docs/planning/TELEGRAM_P7_DECISION_2026_07_06.md
-  (READ FIRST): «бот — тонкий канал, не новый учебный мозг»; стадирование P7.0a→P7.3;
-  развилки: webhook in-process MVP · отдельный pairing-consent (формулировка утверждена) ·
-  bot_action_log-lite + ОБЯЗАТЕЛЬНЫЙ dedup update_id · MVP только command-response.
-  Readiness-анализ: TELEGRAM_P7_READINESS_2026_07_06.md.
-- **P7.0a annul-семантика SHIPPED v3.11.115** (спека → adversarial-критика wf_1bf34023
-  (3 BLOCKER+8 MAJOR) → код; адъюдикация — в конце decision-дока). Ядро: двухпроходный
-  fold (только review/skip-цели; un-annul НЕ поддерживается; «annul меняет ТОЛЬКО
-  projection»); clearSrsState на клиенте (NOT NULL srs_interval → нули!); withoutAnnulled
-  для D1-вызывателей; LemmaCanon.annulId (reviewId для annul ЗАПРЕЩЁН);
-  ENGINE_VERSION=fsrs6-core-v2 + client one-shot heal (sync_state annul_engine_v) +
-  oracle rebuild на mismatch + oracle.annul_rows; SQL-агрегаты annul-aware.
-
-## Gates
-server-replay 65/65 (golden-v2 ×8 annul-векторов; v1 БАЙТ-СТАБИЛЕН = do-no-harm;
-e2e annul-to-null удаляет проекцию) · memory-canon 63/63 (+6 клиентских annul) ·
-fsrs 30/30 · agent-plan 32/32 (+2: annul гасит fresh_struggles) · agent-explain 43/43 ·
-learner-graph 14/14 · mentor-home 25/25 · grade-policy 24/24 · api-smoke · cloud-sync
-(вердикт последнего прогона — проверить перед пушем, если сессия оборвалась до него).
+- **P7.2a reverse:tg + challenge-binding — SHIPPED (v3.11.120), deploy DORMANT (AGENT_REVIEW_WRITE
+  OFF на проде).** Полный пользовательский review-поток в Telegram: /review → RU-глосс prompt
+  (ForceReply) → reply-ответ → challenge-bound grader → single-use write → FSRS → безопасный verdict.
+  Owner-вариант A: строгий reverse ТОЛЬКО на однозначных словах (strictSafe ~25%), БЕЗ синоним-приёма
+  (карта из свободного глосса ненадёжна — критика wf_15f4c1ae). Гейт **smoke:telegram-review 32/32**
+  (14 owner-пунктов + база). Регрессия зелёная: pairing 33 · content 15 · agent-review 66 ·
+  grade-policy 26 · memory-canon 63 · fsrs 30 · api-smoke.
+- Файлы: migrations/028_agent_challenges.sql · db/agentChallengeRepo.js · db/keyingService.js
+  (glossForItemKey+strictSafe) · public/js/grade-policy.js (skip→D1 scoped-production +
+  hasProductionSuccess исключает lexeme) · db/learnerLogRepo.js (META_ALLOW +=evidence_scope/sense_id/
+  challenge_id) · agent/reviewer.js (challenge-bound) · agent/telegram/{review,api,router,format,content}.js
+  · server.js (webhook dispatch + /api/agent/review guard + consent-off cancel).
 
 ## Next
-0. ✅ P7.0b SHIPPED v3.11.116: agent/grader.js + gold 22/22 + smoke:grader-gold 58/58.
-   Семантика перерешена критикой (замер 226K клеток): lemma-accept выпилен (Зал его
-   и не имел — item.surface, не лемма!), проклитик-пути = маркированный
-   accepted_variant, ktiv = near_miss/'ktiv-candidate', skip в контракте,
-   META_ALLOW+6 провенанс-ключей, канал-словарь '<семья>:<tg-режим>'.
-   Адъюдикация — TELEGRAM_P7_DECISION (конец дока).
-1. **P7.0c — активация record_review_answer** (flag→staging→web-smoke: запись через
-   штатный ingest (source='agent:*') → проекции → annul ошибочного грейда → down-sync
-   в OPFS). Минтер-контракт annul: item_key = item_key ЦЕЛИ (резолв по (user_id,
-   annul_of), цели нет = reject; sent:-цели = reject — их state вне recompute-пути).
-   prevState для fsrsStep: snake→camel адаптер (projection-строка несёт reviewed_at,
-   fsrsStep читает reviewedAt). Privacy-решение владельца: класс/TTL сырого ответа
-   пользователя (сейчас META_STRIP его вычищает — «не знаем» по построению).
-2. P7.1 pairing+channel_links+webhook+read-only команды (/start /link /unlink /status
-   /plan /explain /due /summary /help; consent-копия при pairing) → P7.2 /review
-   (кнопка «Не знаю» ОБЯЗАТЕЛЬНА — иначе уклонение от lapse; unsupported →
-   bot_action_log + shown-vs-graded).
-3. Развилки владельца (не блокируют P7.0c): ужесточение проклитик-строба ОБЕИХ
-   поверхностей · cell-level ktiv-accept · lev1-typo vs lev1-other-word фидбек ·
-   тикет датасета (11 клеток с mid-word финальными буквами: דרבן/קודם/יקום/משופשף).
+1. **Owner live-verify P7.2a на проде:** включить AGENT_REVIEW_WRITE=1 в Coolify → /review в боте
+   @LinguistProMentorBot → ответить → проверить, что запись доехала (Зал видит через down-sync) →
+   ЗАМЕРИТЬ реальное покрытие strictSafe на профиле владельца (если очень низко → приоритизировать
+   P7.2b cloze сразу). Выключить флаг после проверки, если не готов к постоянной работе.
+2. Затем по стадированию: **P7.2b cloze** (контекст-cloze; снимает многозначность контекстом —
+   решает то, что вырезано из reverse) → P7.2c dictate (аудио, инфра) → P7.2d premium selector.
+3. Синоним-приём (owner-решение #4) отложен: нужен КУРИРУЕМЫЙ sense→синонимы датасет (отдельный слайс).
 
 ## Context
-- Прод-деплой P7.0a: ожидание oracle.annul_rows == 0 (писателя ещё нет) — виден
-  в ответе /api/learner/oracle; ☁-модал сам перезапустит rebuild при mismatch.
-- Урок харнесса: chrome-headless-shell CPU НЕ показывает активность рендереров
-  (отдельные процессы) — «завис ли смок» мерить инструментированной копией.
-- Урок схемы: word_status.srs_interval/reps/lapses NOT NULL DEFAULT 0 — «очистка»
-  расписания = NULL только для due/stability/difficulty/reviewed_at/scheme.
+- Каноны: docs/planning/TELEGRAM_P7_2_REVIEW_ASSETS_PROPOSAL_2026_07_07.md + ..._SPEC_..._v3.md
+  (в конце — v3→v4 адъюдикация критики, вариант A). Замер: docs/research/telegram-p72-gloss-ambiguity/.
+- Reply-binding = ОДИН механизм: ForceReply + текстовые токены «не знаю»/«не сейчас» (inline+ForceReply
+  несовместимы, callback_query не обрабатывается — критика). Ответ = reply на сохранённый
+  telegram_prompt_message_id, иначе НЕ review.
+- Транзакц. граница: txnLock НЕРЕЕНТРАНТЕН → «claim+ingest в одной txn» = дедлок; вместо этого
+  recoverable processing (claim active→processing одним statement → ingest своя txn → complete;
+  MNAR/ktiv → release). Детерминированный review-id = LC.reviewId с reviewed_at=challenge.created_at
+  (совместим с merge/down-sync; retry идемпотентен).
+- Гейт-урок: успешные ответы продвигают FSRS-due → слово перестаёт быть due; между тестами
+  resetState() (сброс cooldown-exposure + due). Reply-таргет читать ИЗ БД (setPromptMessageId
+  асинхронен относительно call-log).
+- Git: многострочные коммиты — `git commit -F файл` (heredoc), НЕ PowerShell here-string в Bash.
+- ⚠ Инвариант: запись ТОЛЬКО challenge-bound · production-unlock только на webhook-trusted пути
+  (ctx.viaTelegramReview; /api/agent/review реджектит challenge_id+production) · privacy=A (сырой
+  ответ не персистится: reviewer meta, bot_action_log.command='review-answer', stdout чисты) ·
+  consent recheck перед write · флаг проверяется на пишущей границе (reviewer, не только tool-роутер).

@@ -1374,6 +1374,7 @@ function requireAudioUploadAuth(req, res) {
 // ============================================================================
 const identityRepo = require("./db/identityRepo");
 const channelLinkRepo = require("./db/channelLinkRepo");   // CLG-P7.1a Telegram channel state
+const agentChallengeRepo = require("./db/agentChallengeRepo");   // CLG-P7.2a challenge-binding state
 const AUTH_BOOTSTRAP_MIN_LEN = 22;
 const AUTH_FAIL_WINDOW_MS = 600_000; // 10 min
 const AUTH_FAIL_MAX = 10;            // tighter than audio-upload's 20: login is pure secret-guessing surface
@@ -1539,7 +1540,12 @@ app.post("/api/auth/consent", async (req, res) => {
     if (key === channelLinkRepo.TELEGRAM_CONSENT_KEY && !granted) {
       try {
         const casc = await channelLinkRepo.revokeTelegramCascade(auth.user.id);
-        identityRepo.audit("telegram_consent_cascade", auth.user.id, casc, req.ip);
+        // P7.2a (§8): revoke telegram_delivery ГАСИТ незакрытые challenges — старый prompt не
+        // остаётся действующим правом записи (защита от write — уже в submitAnswer recheck; это
+        // явная зачистка слота). Best-effort: провал не откатывает подтверждённый revoke.
+        let cancelledChallenges = 0;
+        try { cancelledChallenges = await agentChallengeRepo.cancelOpenForUser(auth.user.id); } catch (_) {}
+        identityRepo.audit("telegram_consent_cascade", auth.user.id, { ...casc, challenges: cancelledChallenges }, req.ip);
         purgeInfo = { telegram_revoked_links: casc.links, telegram_revoked_tokens: casc.tokens };
       } catch (e3) {
         identityRepo.audit("telegram_consent_cascade_failed", auth.user.id, { message: String(e3 && e3.message).slice(0, 120) }, req.ip);
@@ -1826,8 +1832,15 @@ const rlAgentReview = makeRateLimiter({ windowMs: 60_000, max: 60, name: "agent-
 app.post("/api/agent/review", rlAgentReview, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   if (!requireCsrf(req, res, auth)) return;
+  // BLOCKER-3 (критика wf_15f4c1ae): HTTP-эндпоинт НЕ разблокирует production. challenge_id —
+  // bearer-токен, обошёл бы Telegram single-use reviewer/reply-binding/cooldown/consent-recheck;
+  // production-каналы (dictate/reverse) заперты вне webhook-trusted пути. Реджектим ОБА здесь
+  // (ctx без viaTelegramReview reviewer тоже отвергает — defense-in-depth) с явным 400.
+  const body = req.body || {};
+  if (body.challenge_id != null) return res.status(400).json({ ok: false, error: "CHALLENGE_ID_NOT_ALLOWED_HERE" });
+  if (/^(dictate|reverse)(:|$)/.test(String(body.channel || ""))) return res.status(400).json({ ok: false, error: "PRODUCTION_CHANNEL_LOCKED" });
   try {
-    const r = await agentRuntime.recordReview({ userId: auth.user.id, deviceId: auth.session.deviceId }, req.body || {});
+    const r = await agentRuntime.recordReview({ userId: auth.user.id, deviceId: auth.session.deviceId }, body);
     if (r && r.ok === false) {
       const code = String(r.error || "");
       const status = code === "TOOL_DISABLED" ? 403
@@ -1888,6 +1901,7 @@ app.post("/api/agent/telegram/unlink", rlTelegramPair, async (req, res) => {
   if (!requireCsrf(req, res, auth)) return;
   try {
     const r = await channelLinkRepo.unlinkByUser(auth.user.id);
+    try { await agentChallengeRepo.cancelOpenForUser(auth.user.id); } catch (_) {}   // P7.2a: гасим challenges
     identityRepo.audit("telegram_unlink", auth.user.id, r, req.ip);
     res.json({ ok: true, ...r });
   } catch (e) { res.status(500).json({ ok: false, error: "TELEGRAM_UNLINK_FAILED", message: e.message }); }
@@ -1918,10 +1932,11 @@ function _bucketAllowed(map, key, max, windowMs) {
 function tgFromIdAllowed(fromId) { return _bucketAllowed(_tgFromBuckets, fromId, 30, 60_000); }
 // P7.1b: тайтовый отдельный cap на content-команды (особенно LLM-дорогой /plan) — критика:
 // generic 30/мин выжигал бы суточный LLM-бюджет за ~2 мин. Превышение → drop-with-200.
-const TG_CONTENT_CMDS = new Set(["/plan", "/due", "/summary", "/explain"]);
+const TG_CONTENT_CMDS = new Set(["/plan", "/due", "/summary", "/explain", "/review"]);
 const TG_CONTENT_MAX = Number(process.env.TG_CONTENT_MAX) || 10;   // человеку хватает; ограничивает LLM-burn /plan
 function tgContentAllowed(fromId) { return _bucketAllowed(_tgContentBuckets, fromId, TG_CONTENT_MAX, 60_000); }
 const telegramContent = require("./agent/telegram/content");
+const telegramReview = require("./agent/telegram/review");   // P7.2a пишущий review-поток (webhook-trusted)
 
 app.post(TELEGRAM_WEBHOOK_PATH, telegramSecretGate, _tgWebhookJson, async (req, res) => {
   const upd = req.body || {};
@@ -1932,6 +1947,11 @@ app.post(TELEGRAM_WEBHOOK_PATH, telegramSecretGate, _tgWebhookJson, async (req, 
   const fromId = String(msg.from.id);
   const chatId = msg.chat.id;
   const updateId = upd.update_id;
+  // P7.2a reply-binding: сообщение-ответ несёт reply_to_message.message_id — сервер передаёт его
+  // роутеру (isReply/replyToMessageId); challenge-lookup/binding — в phase-2 (submitAnswer).
+  const replyToMessageId = (msg.reply_to_message && msg.reply_to_message.message_id != null)
+    ? msg.reply_to_message.message_id : null;
+  const isReply = replyToMessageId != null;
   if (!tgFromIdAllowed(fromId)) return res.json({ ok: true, throttled: true });   // drop-with-200, не 429
   // P7.1b: тайтовый cap на content-команды ДО dedup (throttled command не помечается seen).
   const firstWord = String(msg.text || "").trim().split(/\s+/)[0].toLowerCase().split("@")[0];
@@ -1942,7 +1962,7 @@ app.post(TELEGRAM_WEBHOOK_PATH, telegramSecretGate, _tgWebhookJson, async (req, 
   // dedup) → 500 → Telegram переиграет (at-least-once честен). ──
   try {
     const r = await channelLinkRepo.processUpdateTxn(updateId, async (db) =>
-      telegramRouter.handle(db, { tgUserId: fromId, tgChatId: chatId, text: msg.text || "", updateId }));
+      telegramRouter.handle(db, { tgUserId: fromId, tgChatId: chatId, text: msg.text || "", updateId, isReply, replyToMessageId }));
     if (r.duplicate) return res.json({ ok: true, duplicate: true });   // уже обработан → без эффекта
     result = r.result;
   } catch (e) {
@@ -1950,8 +1970,8 @@ app.post(TELEGRAM_WEBHOOK_PATH, telegramSecretGate, _tgWebhookJson, async (req, 
     return res.status(500).json({ ok: false, error: "WEBHOOK_HANDLER_FAILED" });
   }
 
-  // ── ФАЗА 2 (ВНЕ txn, best-effort → ВСЕГДА 200): content-produce / account-reply. dedup уже
-  // закоммичен — сбой produce НЕ должен давать 500 (иначе retry-шторм без переигрывания). ──
+  // ── ФАЗА 2 (ВНЕ txn, best-effort → ВСЕГДА 200): content-produce / review / account-reply. dedup
+  // уже закоммичен — сбой produce НЕ должен давать 500 (иначе retry-шторм без переигрывания). ──
   res.json({ ok: true });
   try {
     if (result && result.kind === "content") {
@@ -1959,10 +1979,23 @@ app.post(TELEGRAM_WEBHOOK_PATH, telegramSecretGate, _tgWebhookJson, async (req, 
       // делает delivery-point recheck (revoke во время produce → refusal, не контент).
       const served = await telegramContent.serve(result);
       for (const p of (served.parts || [])) await telegramApi.sendMessage(result.chatId != null ? result.chatId : chatId, p);
+    } else if (result && result.kind === "review-start") {
+      // startReview сам отправляет prompt (нужен message_id для reply-binding); note — для
+      // недоступно/нечего/занято (флаг/consent/eligibility). Пишущий путь — reviewer.record внутри.
+      const r = await telegramReview.startReview(result);
+      if (r && r.note) await telegramApi.sendMessage(result.chatId != null ? result.chatId : chatId, r.note);
+    } else if (result && result.kind === "review-answer") {
+      // submitAnswer: reply-binding + grader + challenge-bound reviewer.record. null → сообщение НЕ
+      // относилось к активному review (свободный reply) → тихо игнорируем (не спамим).
+      const r = await telegramReview.submitAnswer({
+        userId: result.userId, tgUserId: result.tgUserId, chatId: result.chatId,
+        replyToMessageId: result.replyToMessageId, text: msg.text || "", updateId: result.updateId,
+      });
+      if (r && r.note) await telegramApi.sendMessage(result.chatId != null ? result.chatId : chatId, r.note);
     } else if (result && result.text) {
       await telegramApi.sendMessage(result.chatId != null ? result.chatId : chatId, result.text);
     }
-  } catch (e) { console.error("[telegram] content/reply failed:", e && e.message); }
+  } catch (e) { console.error("[telegram] content/review/reply failed:", e && e.message); }
 });
 
 // TTL-prune (реальный триггер): telegram_updates >48ч, NULL-user bot_action_log >30д.

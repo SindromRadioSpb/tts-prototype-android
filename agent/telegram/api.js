@@ -22,20 +22,26 @@ function recordCall(chatId, status) {
   } catch (_) {}
 }
 
-// Возвращает { sent, degraded? } — токена нет → честный BOT_TOKEN_MISSING (webhook не падает).
-async function sendMessage(chatId, text) {
+// Возвращает { sent, degraded?, status?, messageId? } — токена нет → честный BOT_TOKEN_MISSING.
+async function sendMessage(chatId, text, opts) {
   const token = botToken();
   if (!token) { recordCall(chatId, "no_token"); return { sent: false, degraded: "BOT_TOKEN_MISSING" }; }
   if (chatId == null || !String(text || "").trim()) { recordCall(chatId, "empty"); return { sent: false, degraded: "EMPTY" }; }
+  // opts.replyMarkup — Telegram reply_markup (ReplyKeyboardMarkup/ForceReply/remove); опционально.
+  // Возвращаем result.message_id — БЕЗ него нельзя доказать reply-binding ответа к конкретному prompt.
+  const body = { chat_id: chatId, text: String(text).slice(0, 4096), disable_web_page_preview: true };
+  if (opts && opts.replyMarkup) body.reply_markup = opts.replyMarkup;
   try {
     const res = await fetch(`${apiBase()}/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text: String(text).slice(0, 4096), disable_web_page_preview: true }),
+      body: JSON.stringify(body),
     });
     const ok = res.status === 200;
     recordCall(chatId, ok ? "ok" : "http_" + res.status);
-    return { sent: ok, status: res.status };
+    let messageId = null;
+    if (ok) { try { const j = await res.json(); messageId = j && j.result && j.result.message_id; } catch (_) {} }
+    return { sent: ok, status: res.status, messageId: messageId != null ? messageId : null };
   } catch (e) {
     recordCall(chatId, "error");
     return { sent: false, degraded: "SEND_FAILED" };
