@@ -151,8 +151,9 @@ function gradeAnswer(input) {
     return out("skip", true, false, d.grade, "explicit-skip", { policy: d });
   }
 
-  // cloze:tg → строгое сравнение поверхности (без проклитик-льготы на обеих сторонах)
-  const strict = /^cloze(:|$)/.test(String(channel || ""));
+  // cloze:tg / dictate:tg → строгое сравнение поверхности (без проклитик-льготы на обеих сторонах).
+  // dictate: звук→написание, проклитик-льгота Зала обесценила бы (כלב→לב не accepted); критика wf_6732a80f.
+  const strict = /^(cloze|dictate)(:|$)/.test(String(channel || ""));
   const accepted = acceptedSkeletons(expected, strict);
   if (!accepted.size) return out("unsupported", false, null, null, "no-expected-form");
 

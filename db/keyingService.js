@@ -116,6 +116,7 @@ function unloadNow() {
   _pidLemmaIndex = null;
   _glossIndex = null;
   _vocFormIndex = null;
+  _phonIndex = null;
   return was;
 }
 
@@ -200,6 +201,52 @@ function _buildVocFormIndex(ds) {
   return m;
 }
 
+// ── P7.2c dictate — ОМОФОН-ИНДЕКС (звук → написание), критика wf_6732a80f BLOCKER ─────────────────
+// Аудио-диктант принципиально НЕ задаёт написание, если у слова есть омофон с ДРУГИМ написанием
+// (звук→одно написание иначе ложный lapse). Порт docs/research/dictate-homophone-coverage/2026-07-07/
+// measure.js (замер: ~78% лемм проходят): фонемная транскрипция = коллапс омофон-согласных классов
+// (ת/ט→t, {ק,כ,ח}→k, {ס,ש}→s, {א,ע,ה}→∅, {ב,ו}→v, matres י→∅, финальные→базовые) + niqqud-гласные.
+// Индекс строится по ОГЛАСОВАННЫМ ЛЕММАМ всех парадигм (тот же лексикон, что в замере) — ключ
+// фонема → Set(консонантных скелетов). Lazy, invalidate в unloadNow как прочие индексы.
+const _D_VOWEL = { "ָ": "a", "ַ": "a", "ֵ": "e", "ֶ": "e", "ִ": "i", "ֹ": "o", "ֻ": "u", "ְ": "" };
+const _D_FINAL = { "ך": "כ", "ם": "מ", "ן": "נ", "ף": "פ", "ץ": "צ" };
+function _consPhon(ch) {
+  if (ch === "ט" || ch === "ת") return "t";                       // ט,ת → /t/
+  if (ch === "ק" || ch === "כ" || ch === "ח") return "k";    // ק,כ,ח (kaf-family, over-merge)
+  if (ch === "ס" || ch === "ש") return "s";                       // ס,ש → /s/ (over-merge shin)
+  if (ch === "א" || ch === "ע" || ch === "ה") return "";     // א,ע,ה глоттали/немые → drop
+  if (ch === "ב" || ch === "ו") return "v";                       // ב,ו → /v/ (ו mater тоже)
+  if (ch === "י") return "";                                            // י mater → drop
+  return ch;                                                                 // прочие согласные — как есть
+}
+function _phon(vocalized) {
+  let out = "";
+  for (let ch of String(vocalized || "")) {
+    if (_D_FINAL[ch]) ch = _D_FINAL[ch];
+    if (_D_VOWEL[ch] != null) { out += _D_VOWEL[ch]; continue; }
+    if (ch === "ּ" || ch === "ֽ" || /[֑-֯׀-ׇ]/.test(ch)) continue; // dagesh/teamim/пункт
+    if (/[א-ת]/.test(ch)) { out += _consPhon(ch); continue; }
+    // прочее (пробел и т.п.) — drop
+  }
+  return out;
+}
+let _phonIndex = null;
+function _buildPhonemeIndex(ds) {
+  if (_phonIndex) return _phonIndex;
+  const m = new Map();   // фонема → Set(консонантных скелетов)
+  for (const p of (ds && ds.paradigms) || []) {
+    if (!p || !p.lemma_niqqud) continue;
+    const v = _normVoc(p.lemma_niqqud);
+    const ph = _phon(v);
+    const sk = LC.stripNiqqud(v);
+    if (!ph || !sk) continue;
+    let s = m.get(ph); if (!s) { s = new Set(); m.set(ph, s); }
+    s.add(sk);
+  }
+  _phonIndex = m;
+  return m;
+}
+
 // clozeFormsForItemKey(itemKey) → { pid, forms:[{voc, skeleton, unambiguous}] } | null.
 // ВОКАЛИЗОВАННЫЕ формы парадигмы due-леммы (voc = огласованная, для точного матча против токена
 // текста пользователя); unambiguous = voc маппится глобально на один pid (омографы с ДРУГОЙ
@@ -241,6 +288,12 @@ async function dictateFormForItemKey(itemKey) {
   if (!written || written.length < 2 || !HEB_ONLY_RE.test(written)) return null;
   const set = fi.get(vocalized);
   if (!(set && set.size === 1)) return null;   // огласованная лемма неоднозначна глобально → skip
+  // ОМОФОН-ФИЛЬТР (критика wf_6732a80f BLOCKER): звук слова должен задавать РОВНО одно написание в
+  // лексиконе — иначе диктант принципиально неоднозначен (омофон с другим написанием) и мис-спеллинг
+  // на самом деле ВЕРНОЕ слово-омофон = ложный lapse. Замер: ~78% лемм проходят (results.txt).
+  const pi = _buildPhonemeIndex(b.ds);
+  const sp = pi.get(_phon(vocalized));
+  if (!(sp && sp.size === 1)) return null;     // звук → >1 написание → dictate НЕ eligible
   return { vocalized, written, pid: String(g.sense_id) };
 }
 

@@ -63,6 +63,13 @@ const STR = {
     czPlaceholder: "слово на пропуск / не знаю / не сейчас",
     czCorrect: "✅ Верно — слово подходит по контексту.",
     czWrong: "Не засчитано.", czMissed: "Пропущено",
+    // ── P7.2c dictate ──
+    diPromptHead: "🎧 Прослушай аудио и напиши это слово на иврите:",
+    diPromptFoot: "(ответь на это сообщение · «не знаю» · «не сейчас»)",
+    diPlaceholder: "ивритское слово / не знаю / не сейчас",
+    diCorrect: "✅ Верно — слово записано правильно на слух.",
+    diNear: "Почти — по звучанию написание неоднозначно, ошибку не засчитываю.",
+    diWrong: "Не засчитано.",
   },
   en: {
     planEmpty: "Nothing planned today — open the reading room.",
@@ -90,6 +97,12 @@ const STR = {
     czPlaceholder: "missing word / I don’t know / not now",
     czCorrect: "✅ Correct — the word fits the context.",
     czWrong: "Not counted.", czMissed: "Missing",
+    diPromptHead: "🎧 Listen to the audio and write this word in Hebrew:",
+    diPromptFoot: "(reply to this message · “I don’t know” · “not now”)",
+    diPlaceholder: "Hebrew word / I don’t know / not now",
+    diCorrect: "✅ Correct — spelled right from listening.",
+    diNear: "Almost — the sound doesn’t pin the spelling, so I won’t count it as a mistake.",
+    diWrong: "Not counted.",
   },
 };
 function L(lang) { return STR[lang === "en" ? "en" : "ru"]; }
@@ -183,6 +196,12 @@ function formatClozePrompt(body, lang) {
   return t.czPromptHead + "\n\n" + String(body || "").trim() + "\n\n" + t.czPromptFoot;
 }
 function clozePlaceholder(lang) { return L(lang).czPlaceholder; }
+// dictate: аудио САМО = стимул; caption = только инструкция (никакого текста слова — иначе не диктант)
+function formatDictatePrompt(lang) {
+  const t = L(lang);
+  return t.diPromptHead + "\n\n" + t.diPromptFoot;
+}
+function dictatePlaceholder(lang) { return L(lang).diPlaceholder; }
 function reviewUnavailable(lang) { return L(lang).revUnavailable; }
 function reviewBusy(lang) { return L(lang).revBusy; }
 function reviewNothing(lang) { return L(lang).revNothing; }
@@ -196,19 +215,28 @@ function verdictFromResult(r, opts) {
   if (!r || r.ok === false) return t.vError;
   const soft = r.grade === 2;                 // D1-смягчение применилось
   if (r.recorded !== true) {
-    if (r.ktiv_gate) return t.vCorrect;        // ktiv-вариант леммы — засчитываем как верный по смыслу
+    // dictate_gate ДО ktiv_gate: на диктанте ktiv-вариант (male/haser) — тоже неоднозначность ЗВУКА
+    // (не «верно по смыслу»), поэтому honest diNear, НЕ ложное «✅ подтверждено» (критика wf_596df7f6).
+    if (r.dictate_gate) {                        // dictate near_miss: звук не задал написание → не lapse, не успех
+      const exp0 = String(o.expected || "").trim();
+      return t.diNear + (exp0 ? " " + t.vExpected + ": «" + exp0 + "»." : "");
+    }
+    if (r.ktiv_gate) return t.vCorrect;        // cloze/reverse: ktiv-вариант ЛЕММЫ — верный по смыслу
     return t.vUnclear;                          // MNAR: empty/unsupported
   }
   if (r.decision === "skip" || o.isDontKnow) return soft ? t.vSkipSoft : t.vSkip;
-  if (r.decision === "correct" || r.decision === "accepted_variant") return o.isCloze ? t.czCorrect : t.vCorrect;
+  if (r.decision === "correct" || r.decision === "accepted_variant") {
+    return o.isCloze ? t.czCorrect : (o.isDictate ? t.diCorrect : t.vCorrect);
+  }
   // wrong / near_miss → показать ожидаемую форму (класс-безопасно: это правильный ответ, не id).
-  // cloze: «Пропущено: <поверхность>»; reverse: «Ожидалось: <лемма>».
+  // cloze: «Пропущено: <поверхность>»; dictate: «Ожидалось: <написание>»; reverse: «Ожидалось: <лемма>».
   const exp = String(o.expected || "").trim();
   if (o.isCloze) {
     const tail = exp ? " " + t.czMissed + ": «" + exp + "»." : "";
     return (soft ? t.vSoft : t.czWrong) + tail;
   }
   const tail = exp ? " " + t.vExpected + ": «" + exp + "»." : "";
+  if (o.isDictate) return (soft ? t.vSoft : t.diWrong) + tail;
   return (soft ? t.vSoft : t.vWrong) + tail;
 }
 
@@ -216,5 +244,6 @@ module.exports = {
   splitMessage, formatPlan, formatDue, formatSummary, formatExplain, showLemma,
   refusedText: (lang) => L(lang).refused, LIMIT,
   formatReversePrompt, reversePlaceholder, formatClozePrompt, clozePlaceholder,
+  formatDictatePrompt, dictatePlaceholder,
   reviewUnavailable, reviewBusy, reviewNothing, verdictDeclined, verdictFromResult,
 };

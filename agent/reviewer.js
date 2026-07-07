@@ -45,8 +45,13 @@ const LC = require(path.join(__dirname, "..", "public", "js", "lemma-canon.js"))
 const HEB_ANY_RE = /[֐-׿]/;
 const CHANNEL_RE = /^(read|listen):[a-z0-9_-]{1,20}$/;
 const PRODUCTION_RE = /^(dictate|reverse|cloze)(:|$)/;
-// P7.2a/b: production-канал(ы), которые challenge-binding РАЗБЛОКИРУЕТ (reverse:tg + cloze:tg).
-const CHALLENGE_CHANNEL_RE = /^(reverse|cloze):tg$/;
+// P7.2a/b/c: production-канал(ы), которые challenge-binding РАЗБЛОКИРУЕТ (reverse + cloze + dictate).
+const CHALLENGE_CHANNEL_RE = /^(reverse|cloze|dictate):tg$/;
+// Канонический evidence_scope по типу challenge (fail-closed, критика wf_596df7f6): reviewer НЕ
+// доверяет сохранённому scope — сверяет с каноном модальности. Незнакомый prompt_kind ИЛИ несовпадение
+// → reject ДО записи (иначе будущая модальность без scope молча писалась бы 'lexeme' = context-
+// supported → снятие D1-мягкости production-провалов, ровно тот вред, что fail-closed предотвращает).
+const EXPECTED_SCOPE = { reverse: "lexeme", cloze: "cloze", dictate: "cell" };
 const MAX_ANSWER_CHARS = 400;
 const ANNUL_WINDOW_MS = 24 * 3600 * 1000;
 
@@ -156,8 +161,10 @@ async function _grade(ctx, a) {
 
   // expected — ТОЛЬКО серверной стороны. P7.2b cloze: expected = ПОВЕРХНОСТЬ вхождения
   // (chal.expected_surface), НЕ лемма — контекст снимает многозначность (иначе верная инфлекция
-  // грейдилась бы против леммы = ложный lapse). reverse/рецептив: displayForItemKey (лемма).
-  const display = (chal && chal.prompt_kind === "cloze")
+  // грейдилась бы против леммы = ложный lapse). P7.2c dictate: expected = ПИСЬМЕННАЯ (консонантная)
+  // форма (chal.expected_surface = stripNiqqud(vocalized) из dictateFormForItemKey — ОДИН источник
+  // с computeDictateAssetKey). reverse/рецептив: displayForItemKey (лемма).
+  const display = (chal && (chal.prompt_kind === "cloze" || chal.prompt_kind === "dictate"))
     ? String(chal.expected_surface || "")
     : await keyingService.displayForItemKey(itemKey);
   if (!display || display === itemKey || !HEB_ANY_RE.test(display)) {
@@ -179,9 +186,21 @@ async function _grade(ctx, a) {
   }
   // Write-gate v1 (адъюдикация BLOCKER-критики): ktiv-кандидат не пишется — грейдер НЕ
   // меняется (gold цел), но ложный lapse от честного male-ввода в append-only лог не минтится.
-  if (verdict.provenance.reason === "ktiv-candidate") {
-    if (chal) await agentChallengeRepo.release(ctx.userId, challengeId, attemptId);
-    return { ok: true, recorded: false, decision: verdict.decision, reason: "ktiv-candidate", ktiv_gate: true,
+  // P7.2c dictate: ЛЮБОЙ near_miss на диктанте (омофон/lev1/lemma) → recorded:false — звук не задал
+  // однозначно написание, близкая-но-иная форма может быть верным словом-омофоном (критика wf_6732a80f).
+  const dictateNearMiss = !!(chal && chal.prompt_kind === "dictate" && verdict.decision === "near_miss");
+  if (verdict.provenance.reason === "ktiv-candidate" || dictateNearMiss) {
+    // dictate near_miss ТЕРМИНАЛЕН (cancel, НЕ release): verdict раскрывает ожидаемое написание →
+    // повторный ответ тем же reply был бы копи-пастом = ложный grade-3 «доказал production» (latch
+    // hasProvenProduction, снятие D1 без реального припоминания — критика wf_596df7f6). Слово остаётся
+    // due (нет записи) → вернётся следующим /review. Non-dictate ktiv (cloze/reverse) → release (как было).
+    if (chal) {
+      if (dictateNearMiss) await agentChallengeRepo.cancelOpenForUser(ctx.userId);
+      else await agentChallengeRepo.release(ctx.userId, challengeId, attemptId);
+    }
+    const isKtiv = verdict.provenance.reason === "ktiv-candidate";
+    return { ok: true, recorded: false, decision: verdict.decision, reason: verdict.provenance.reason,
+             ...(isKtiv ? { ktiv_gate: true } : {}), ...(dictateNearMiss ? { dictate_gate: true } : {}),
              provenance: verdict.provenance, feedback: verdict.feedback || null };
   }
 
@@ -204,7 +223,17 @@ async function _grade(ctx, a) {
   // sense_id, challenge_id (аудит привязки; все в META_ALLOW). reviewed_at детерминирован по
   // challenge.created_at → chrev-id стабилен по построению (совместим с LC.reviewId; точка 2).
   if (chal) {
-    meta.evidence_scope = chal.evidence_scope || "lexeme";
+    // evidence_scope FAIL-CLOSED (критика wf_6732a80f/wf_596df7f6 MAJOR): production-challenge пишется
+    // ТОЛЬКО если сохранённый scope == КАНОНУ его модальности (не молчаливый '||lexeme' — иначе
+    // dictate='cell' мог бы деградировать в lexeme и context-supported-мягкость применилась бы к
+    // unsupported-производству). Реальные теeth: createChallenge коалесит отсутствующий scope в
+    // 'lexeme', поэтому проверять надо ==canon, не !scope. Мис-созданный/будущий challenge → reject.
+    const wantScope = EXPECTED_SCOPE[chal.prompt_kind];
+    if (PRODUCTION_RE.test(channel) && (!wantScope || chal.evidence_scope !== wantScope)) {
+      await agentChallengeRepo.release(ctx.userId, challengeId, attemptId);
+      return err("EVIDENCE_SCOPE_MISMATCH");
+    }
+    meta.evidence_scope = chal.evidence_scope;
     if (chal.sense_id) meta.sense_id = String(chal.sense_id);
     meta.challenge_id = challengeId;
   }

@@ -1,6 +1,9 @@
 "use strict";
 
+const fs = require("fs");
+const path = require("path");
 const { getDb } = require("./sqlite");
+const { AUDIO_CACHE_DIR } = require("../storage");
 
 function dbGet(db, sql, params = []) {
   return new Promise((resolve, reject) => {
@@ -86,9 +89,15 @@ async function getAudioAssetByKey(assetKey) {
 }
 
 // CLG-P7.2c: готов ли аудио-ассет (проверка БЕЗ синтеза — dictate-eligibility на review-пути).
-// bake-tool upsert'ит audio_assets + пишет файл; keyless-раздача /api/audio/:key отдаёт по файлу.
+// FILE-FIRST (критика wf_6732a80f BLOCKER): источник истины = ФАЙЛ на томе. Прод-push кладёт mp3
+// (server.js /api/audio/cache/upload пишет ФАЙЛ, НЕ audio_assets-ряд), и keyless-раздача
+// /api/audio/:key тоже отдаёт по файлу (server.js:9701). DB-only проверка = вечный тихий-0 на проде.
+// DB-ряд — лишь ускоритель (может отсутствовать). assetKey — content-addressed sha256 (path-safe).
 async function hasAsset(assetKey) {
-  try { return !!(await getAudioAssetByKey(assetKey)); } catch (_) { return false; }
+  const key = String(assetKey || "");
+  if (!/^[a-f0-9]{64}$/i.test(key)) return false;   // только content-addressed ключ (защита пути)
+  try { if (fs.existsSync(path.join(AUDIO_CACHE_DIR, key + ".mp3"))) return true; } catch (_) {}
+  try { return !!(await getAudioAssetByKey(key)); } catch (_) { return false; }
 }
 
 async function touchAudioAsset(assetKey) {

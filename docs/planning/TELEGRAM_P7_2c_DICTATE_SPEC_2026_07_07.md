@@ -221,3 +221,33 @@ reverse). Рекомендация: (б). ТРЕБУЕТ owner-решения (�
   privacy=A (shown_stimulus=assetKey не чистится); reply-binding/single-use как P7.2a.
 - Регрессия: grade-policy 28 · agent-review 66 · telegram-review 32 · telegram-cloze 21 · pairing 33 ·
   content 15 · memory-canon 63 · server-keying 24. → commit+push deploy dormant.
+
+---
+
+## SHIPPED v3.11.123 (dormant) + post-impl адъюдикация критики wf_596df7f6 (2026-07-08)
+
+Канал dictate:tg собран целиком (C1–C8). Гейт `smoke:telegram-dictate` **30/30** (независимый оракул:
+файл прод-путём, assetKey обеими сторонами независимо → байт-равенство; file-first hasAsset; омофон-
+фильтр; D-4 контраст на живом пути). Полная регрессия зелёная (9 наборов). Deploy DORMANT (AGENT_
+REVIEW_WRITE прод OFF).
+
+**Пост-имплементационная adversarial-критика (3 линзы, grounded) нашла 5 РЕАЛЬНЫХ дефектов — все
+исправлены + покрыты гейтом:**
+- **[MAJOR] dictate ktiv → ложное «✅ подтверждено».** ktiv-вариант (לכתב vs לכתוב) ставил И ktiv_gate
+  И dictate_gate; format проверял ktiv_gate ПЕРВЫМ → «✅ Верно, подтверждено» на НЕ-записанном ответе.
+  Фикс: verdictFromResult проверяет dictate_gate ДО ktiv_gate (на диктанте ktiv = неоднозначность ЗВУКА
+  → honest diNear, не «верно по смыслу»).
+- **[MAJOR] reveal-then-retry → ложный grade-3.** dictate near_miss делал release (challenge остаётся
+  answerable) И verdict РАСКРЫВАЛ написание → повторный ответ = копи-паст = ложный «доказал production»
+  (latch hasProvenProduction, снятие D1 без припоминания). Фикс: dictate near_miss ТЕРМИНАЛЕН
+  (cancelOpenForUser, не release) → reveal безвреден, слово остаётся due. Non-dictate ktiv → release (как было).
+- **[MAJOR/teeth] evidence_scope fail-closed был мёртв** (createChallenge коалесил в 'lexeme' → `!scope`
+  никогда не истинно). Фикс: reviewer сверяет scope == КАНОНУ модальности (EXPECTED_SCOPE={reverse:lexeme,
+  cloze:cloze, dictate:cell}); несовпадение/незнакомый prompt_kind → EVIDENCE_SCOPE_MISMATCH до записи.
+- **[MINOR] invalid-file_id regex ловил «chat not found»** → сносил bot-общий кеш-ряд на per-chat ошибке.
+  Фикс: только file-identifier-фразы (убрано бле «not found»).
+- **[MINOR] PUBLIC_BASE_URL unset → dictate молча off** (его же «off»-лог был недостижим). Фикс: явный
+  ops-лог «dictate off: PUBLIC_BASE_URL unset/not-https».
+
+**Далее:** P7.2d premium selector (выбор модальности по навыку + объяснение) на трёх честных
+модальностях; сигналы готовы (productionImbalance/channelGap/getRecentStruggles).
