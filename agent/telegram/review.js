@@ -18,8 +18,11 @@
 const path = require("path");
 const crypto = require("crypto");
 const agentChallengeRepo = require(path.join(__dirname, "..", "..", "db", "agentChallengeRepo"));
+const agentClozeRepo = require(path.join(__dirname, "..", "..", "db", "agentClozeRepo"));
 const keyingService = require(path.join(__dirname, "..", "..", "db", "keyingService"));
 const learnerGraphRepo = require(path.join(__dirname, "..", "..", "db", "learnerGraphRepo"));
+const learnerArtifactsRepo = require(path.join(__dirname, "..", "..", "db", "learnerArtifactsRepo"));
+const agentSentenceRepo = require(path.join(__dirname, "..", "..", "db", "agentSentenceRepo"));
 const channelLinkRepo = require(path.join(__dirname, "..", "..", "db", "channelLinkRepo"));
 const agentRepo = require(path.join(__dirname, "..", "..", "db", "agentRepo"));
 const reviewer = require(path.join(__dirname, "..", "reviewer"));
@@ -27,6 +30,7 @@ const api = require(path.join(__dirname, "api"));
 const format = require(path.join(__dirname, "format"));
 
 const REVERSE_CHANNEL = "reverse:tg";
+const CLOZE_CHANNEL = "cloze:tg";
 const STIMULUS_SOURCE = "pealim-infl";
 const STIMULUS_VERSION = "v12";
 
@@ -52,27 +56,71 @@ async function stillAuthorized(userId, tgUserId, chatId) {
   return true;
 }
 
-// eligibility (§2 вариант A): первый due-item, который strictSafe И не показан недавно (cooldown).
+// eligibility: (1) cloze-first (контекст, класс C, двойной consent) → (2) reverse strictSafe →
+// (3) ничего. Возвращает дескриптор {kind:'cloze'|'reverse', ...} для caps. Полный skill-selector = P7.2d.
 async function selectEligible(userId) {
   const items = await learnerGraphRepo.getDue(userId, { limit: 50 });
+  const dueKeys = (items || []).map((it) => it.item_key);
+  const isExposed = (k) => agentChallengeRepo.recentlyExposed(userId, k);
+  // 1) cloze (selectClozeChallenge сам проверяет двойной consent; {none:reason} если недоступно)
+  const cz = await agentClozeRepo.selectClozeChallenge(userId, dueKeys, isExposed);
+  if (cz && cz.item_key) return { kind: "cloze", ...cz };
+  // 2) reverse strictSafe (вариант A)
   for (const it of items || []) {
     let g = null;
     try { g = await keyingService.glossForItemKey(it.item_key); } catch (_) { g = null; }
     if (!g || !g.strictSafe) continue;
-    if (await agentChallengeRepo.recentlyExposed(userId, it.item_key)) continue;
-    return { item_key: it.item_key, gloss: g.gloss, expected: g.expected, sense_id: g.sense_id };
+    if (await isExposed(it.item_key)) continue;
+    return { kind: "reverse", item_key: it.item_key, gloss: g.gloss, expected: g.expected, sense_id: g.sense_id };
   }
   return null;
 }
 
+// caps для createChallenge из дескриптора selectEligible
+function _capsFor(pick, userId, tgUserId, chatId) {
+  if (pick.kind === "cloze") {
+    // shown_stimulus = ВЕСЬ класс-C блок (bланкнутое предложение + перевод) — единый purgeable unit;
+    // recovery-переотправка использует его же. Surface (иврит) в нём отсутствует (blank), ru — кириллица.
+    const body = pick.blanked_he + (pick.sentence_ru ? "\n" + pick.sentence_ru : "");
+    return {
+      userId, tgUserId, tgChatId: chatId, item_key: pick.item_key, review_mode: CLOZE_CHANNEL,
+      prompt_kind: "cloze", evidence_scope: "cloze", expected_form_id: pick.item_key,
+      expected_surface: pick.surface, anchor_text_key: pick.text_key, anchor_order_index: pick.order_index,
+      shown_stimulus: body, stimulus_source: "synced-sentence", stimulus_source_version: null,
+      stimulus_privacy_class: "C", stimulus_hash: sha1(body).slice(0, 16), accepted_alts: [],
+    };
+  }
+  return {
+    userId, tgUserId, tgChatId: chatId, item_key: pick.item_key, review_mode: REVERSE_CHANNEL,
+    prompt_kind: "reverse", evidence_scope: "lexeme", expected_form_id: pick.item_key,
+    sense_id: pick.sense_id, shown_stimulus: pick.gloss, stimulus_source: STIMULUS_SOURCE,
+    stimulus_source_version: STIMULUS_VERSION, stimulus_privacy_class: "A",
+    stimulus_hash: sha1(pick.gloss).slice(0, 16), accepted_alts: [],
+  };
+}
+
 // отправить prompt + сохранить message_id + записать exposure. send упал → отменить challenge
-// (не оставлять active без доставленного prompt — crash-window точка 1).
+// (не оставлять active без доставленного prompt — crash-window точка 1). Для cloze (класс C) —
+// double-consent recheck НЕПОСРЕДСТВЕННО перед send (revoke text-consent → cancel+purge, не слать
+// предложение пользователя). ruHint — перевод предложения (передаётся при создании; в БД класс C).
 async function _deliverPrompt(userId, chal, lng) {
-  const promptText = format.formatReversePrompt(chal.shown_stimulus, lng);
-  const replyMarkup = { force_reply: true, input_field_placeholder: format.reversePlaceholder(lng) };
+  let promptText, replyMarkup = { force_reply: true };
+  if (chal.prompt_kind === "cloze") {
+    // fail-closed перед доставкой класса C (revoke text-consent → cancel+purge, не слать)
+    if (!(await learnerArtifactsRepo.hasConsent(userId)) || !(await agentSentenceRepo.hasAgentReadConsent(userId))) {
+      await agentChallengeRepo.cancelOpenForUser(userId);
+      return { served: false, note: format.refusedText(lng) };
+    }
+    if (!chal.shown_stimulus) return { served: false, note: format.refusedText(lng) };   // class-C purged
+    promptText = format.formatClozePrompt(chal.shown_stimulus, lng);
+    replyMarkup.input_field_placeholder = format.clozePlaceholder(lng);
+  } else {
+    promptText = format.formatReversePrompt(chal.shown_stimulus, lng);
+    replyMarkup.input_field_placeholder = format.reversePlaceholder(lng);
+  }
   const res = await api.sendMessage(chal.telegram_chat_id, promptText, { replyMarkup });
   if (!res || !res.sent) {
-    await agentChallengeRepo.cancelOpenForUser(userId);   // не оставлять challenge без prompt
+    await agentChallengeRepo.cancelOpenForUser(userId);   // не оставлять challenge без prompt (+ purge class-C)
     return { served: false, degraded: (res && res.degraded) || "SEND_FAILED" };
   }
   if (res.messageId != null) await agentChallengeRepo.setPromptMessageId(chal.challenge_id, res.messageId);
@@ -96,14 +144,7 @@ async function startReview({ userId, tgUserId, chatId }) {
   const pick = await selectEligible(userId);
   if (!pick) return { served: false, note: format.reviewNothing(lng) };
 
-  const caps = {
-    userId, tgUserId, tgChatId: chatId, item_key: pick.item_key, review_mode: REVERSE_CHANNEL,
-    prompt_kind: "reverse", evidence_scope: "lexeme", expected_form_id: pick.item_key,
-    sense_id: pick.sense_id, shown_stimulus: pick.gloss, stimulus_source: STIMULUS_SOURCE,
-    stimulus_source_version: STIMULUS_VERSION, stimulus_privacy_class: "A",
-    stimulus_hash: sha1(pick.gloss).slice(0, 16), accepted_alts: [],
-  };
-  const { challenge } = await agentChallengeRepo.createChallenge(caps);
+  const { challenge } = await agentChallengeRepo.createChallenge(_capsFor(pick, userId, tgUserId, chatId));
   if (!challenge) return { served: false, note: format.reviewNothing(lng) };
   return await _deliverPrompt(userId, challenge, lng);
 }
@@ -139,10 +180,12 @@ async function submitAnswer({ userId, tgUserId, chatId, replyToMessageId, text, 
     attempt_id: attemptId, challenge_id: chal.challenge_id,
   });
 
-  // expected display для verdict «Не засчитано. Ожидалось …» (обучающая ОС; не item_key/id).
+  // expected для verdict «Ожидалось …» (обучающая ОС; не item_key/id). cloze → ПОВЕРХНОСТЬ вхождения
+  // (chal.expected_surface), reverse → лемма (displayForItemKey).
   let expected = null;
-  try { expected = await keyingService.displayForItemKey(chal.item_key); } catch (_) {}
-  return { served: true, note: format.verdictFromResult(r, { expected, isDontKnow, lang: lng }) };
+  if (chal.prompt_kind === "cloze") { expected = chal.expected_surface || null; }
+  else { try { expected = await keyingService.displayForItemKey(chal.item_key); } catch (_) {} }
+  return { served: true, note: format.verdictFromResult(r, { expected, isDontKnow, isCloze: chal.prompt_kind === "cloze", lang: lng }) };
 }
 
 module.exports = { startReview, submitAnswer };

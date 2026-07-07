@@ -43,14 +43,17 @@ async function createChallenge(caps) {
       `INSERT INTO agent_challenges
         (challenge_id, user_id, telegram_user_id, telegram_chat_id, item_key, review_mode,
          prompt_kind, evidence_scope, expected_form_id, sense_id, shown_stimulus, stimulus_source,
-         stimulus_source_version, stimulus_privacy_class, stimulus_hash, accepted_alts_json, expires_at)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         stimulus_source_version, stimulus_privacy_class, stimulus_hash, accepted_alts_json, expires_at,
+         expected_surface, anchor_text_key, anchor_order_index)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [id, caps.userId, String(caps.tgUserId), String(caps.tgChatId), caps.item_key,
        caps.review_mode, caps.prompt_kind || "reverse", caps.evidence_scope || "lexeme",
        caps.expected_form_id || null, caps.sense_id || null, caps.shown_stimulus || null,
        caps.stimulus_source || null, caps.stimulus_source_version || null,
        caps.stimulus_privacy_class || null, caps.stimulus_hash || null,
-       JSON.stringify(caps.accepted_alts || []), expiresAt]);
+       JSON.stringify(caps.accepted_alts || []), expiresAt,
+       caps.expected_surface || null, caps.anchor_text_key || null,
+       caps.anchor_order_index != null ? Number(caps.anchor_order_index) : null]);
   } catch (e) {
     // гонка конкурентного /review на partial-unique → вернуть существующий
     if (String(e && e.message).includes("UNIQUE")) {
@@ -101,12 +104,24 @@ async function claimForAttempt(userId, challengeId, attemptId) {
     [attemptId, String(challengeId), userId, nowIso()]);
   return r.changes === 1;
 }
+// P7.2b: класс-C стимул (cloze = blanked-предложение пользователя) НЕ должен переживать закрытие
+// challenge (revoke/cancel/complete/decline/expire) — R15. Зануляем сам текст + якорь на текст
+// пользователя; провенанс/scope/item_key (не контент) остаются для аудита. class-A (reverse глосс)
+// не трогаем. Вызывается из всех терминальных переходов + revoke-каскада.
+async function _purgeClassC(db, whereSql, params) {
+  await dbRun(db,
+    `UPDATE agent_challenges SET shown_stimulus=NULL, expected_surface=NULL,
+       anchor_text_key=NULL, anchor_order_index=NULL
+       WHERE stimulus_privacy_class='C' AND (${whereSql})`, params);
+}
+
 async function complete(userId, challengeId, attemptId) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const r = await dbRun(db,
     `UPDATE agent_challenges SET status='completed', completed_at=?
        WHERE challenge_id=? AND user_id=? AND status='processing' AND claimed_attempt_id=?`,
     [nowIso(), String(challengeId), userId, attemptId]);
+  if (r.changes === 1) await _purgeClassC(db, `challenge_id=?`, [String(challengeId)]);   // класс-C не переживает closure
   return r.changes === 1;
 }
 // MNAR/синоним/ktiv/flag-off → вернуть в active (не сжигать challenge — owner «claim на write-ветке»)
@@ -123,6 +138,7 @@ async function decline(userId, challengeId) {
   const r = await dbRun(db,
     `UPDATE agent_challenges SET status='declined', completed_at=? WHERE challenge_id=? AND user_id=?
        AND status IN ('active','processing')`, [nowIso(), String(challengeId), userId]);
+  if (r.changes === 1) await _purgeClassC(db, `challenge_id=?`, [String(challengeId)]);
   return r.changes === 1;
 }
 async function setPromptMessageId(challengeId, messageId) {
@@ -131,12 +147,14 @@ async function setPromptMessageId(challengeId, messageId) {
     [messageId != null ? Number(messageId) : null, String(challengeId)]);
 }
 
-// consent revoke / unlink → гасим незакрытые challenges (§8)
+// consent revoke / unlink → гасим незакрытые challenges + ЗАНУЛЯЕМ класс-C стимул (R15 — предложение
+// пользователя не переживает отзыв согласия, породившего право его прочитать).
 async function cancelOpenForUser(userId) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const r = await dbRun(db,
     `UPDATE agent_challenges SET status='cancelled', completed_at=? WHERE user_id=? AND status IN ('active','processing')`,
     [nowIso(), userId]);
+  await _purgeClassC(db, `user_id=?`, [userId]);
   return r.changes;
 }
 
@@ -163,6 +181,8 @@ async function pruneOld() {
     challenges = (await dbRun(db,
       `UPDATE agent_challenges SET status='expired' WHERE status IN ('active','processing') AND expires_at < ?`,
       [nowIso()])).changes;
+    // класс-C стимул не переживает истечение (R15): зануляем текст завершённых/истёкших/отменённых
+    await _purgeClassC(db, `status IN ('completed','expired','declined','cancelled')`, []);
   } catch (_) {}
   try {
     exposure = (await dbRun(db, `DELETE FROM tg_stimulus_exposure WHERE shown_at < ?`,

@@ -62,6 +62,10 @@ function channelStats(rows) {
     if (annulled[String(r.id)]) continue;
     const g = Number(r.grade);
     if (!(g >= 1 && g <= 4)) continue;
+    // context-supported (reverse=lexeme / cloze) production-строки НЕ считаем unsupported production
+    // (D-1): иначе один cloze/reverse-успех снимает dictate-рекомендацию productionImbalance,
+    // расходясь с hasProductionSuccess. Такие строки в imbalance-сигнал не входят (ни prod, ни recept).
+    if (GP.isProductionChannel(r.channel) && GP.isContextSupportedRow && GP.isContextSupportedRow(r)) continue;
     const f = GP.isProductionChannel(r.channel) ? out.production : out.receptive;
     f.reps++; any = true;
     if (g === 1) f.again++; else if (g === 2) f.hard++; else f.good++;

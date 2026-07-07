@@ -1532,6 +1532,17 @@ app.post("/api/auth/consent", async (req, res) => {
         purgeInfo = { purge_error: "PURGE_FAILED" };
       }
     }
+    // P7.2b (§5): отзыв cloud_texts ИЛИ agent_read_texts — согласий, породивших право читать текст
+    // пользователя — ГАСИТ открытые cloze-challenges и ЗАНУЛЯЕТ класс-C стимул (blanked-предложение
+    // пользователя не переживает отзыв). cancelOpenForUser зануляет class-C по построению. Best-effort.
+    if ((key === "cloud_texts" || key === "agent_read_texts") && !granted) {
+      try {
+        const cancelled = await agentChallengeRepo.cancelOpenForUser(auth.user.id);
+        identityRepo.audit("cloze_text_consent_cascade", auth.user.id, { key, cancelled_challenges: cancelled }, req.ip);
+      } catch (e4) {
+        identityRepo.audit("cloze_text_consent_cascade_failed", auth.user.id, { key, message: String(e4 && e4.message).slice(0, 120) }, req.ip);
+      }
+    }
     // CLG-P7.1a: отзыв telegram_delivery ОБЯЗАН гасить активные связки + невыгашенные токены
     // АТОМАРНО (критика: доставка авторизуется фактом активной связки, не живым consent — если
     // unlink упадёт, канал доставлял бы после отзыва = fail-open). Здесь каскад — honest-fail:

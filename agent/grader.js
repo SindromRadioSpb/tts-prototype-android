@@ -76,13 +76,17 @@ function stripProclitic(s) {
 
 // Принятые скелеты: ТОЛЬКО форма ± проклитика (байт-паритет с Залом; лемма НЕ входит —
 // см. шапку). Метки: 'form' = точный скелет, 'form_proclitic' = форма со снятой проклитикой.
-function acceptedSkeletons(expected) {
+// strict (cloze:tg) — БЕЗ проклитик-варианта: контекст-cloze требует ТОЧНУЮ поверхность вхождения
+// с её предлогом (בבית, не בית); проклитик-льгота Зала обесценила бы смысл (критика wf_cd5d049a).
+function acceptedSkeletons(expected, strict) {
   const map = new Map();
   const n = normalizeAnswer(expected && expected.form);
   if (n) {
     map.set(n, "form");
-    const p = stripProclitic(n);
-    if (p !== n && !map.has(p)) map.set(p, "form_proclitic");
+    if (!strict) {
+      const p = stripProclitic(n);
+      if (p !== n && !map.has(p)) map.set(p, "form_proclitic");
+    }
   }
   return map;
 }
@@ -147,7 +151,9 @@ function gradeAnswer(input) {
     return out("skip", true, false, d.grade, "explicit-skip", { policy: d });
   }
 
-  const accepted = acceptedSkeletons(expected);
+  // cloze:tg → строгое сравнение поверхности (без проклитик-льготы на обеих сторонах)
+  const strict = /^cloze(:|$)/.test(String(channel || ""));
+  const accepted = acceptedSkeletons(expected, strict);
   if (!accepted.size) return out("unsupported", false, null, null, "no-expected-form");
 
   const ans = normalizeAnswer(rawAnswer);
@@ -165,7 +171,8 @@ function gradeAnswer(input) {
   // маркированный — унаследованная измеренная дыра строба, см. шапку).
   const ansP = stripProclitic(ans);
   const exact = accepted.get(ans);
-  const viaStrip = ansP !== ans ? accepted.get(ansP) : undefined;
+  // strict (cloze): не принимаем ответ со снятой проклитикой (בית вместо בבית) — это near_miss/wrong
+  const viaStrip = (!strict && ansP !== ans) ? accepted.get(ansP) : undefined;
   if (exact === "form") {
     prov.matched_variant = "form";
     const d = decideBinary(true, channel, input);

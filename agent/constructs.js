@@ -63,7 +63,7 @@ function title(id, language) {
 // production-событий нет вовсе → receptive_to_production (gap по отсутствию).
 function isProductionChannel(ch) {
   const c = String(ch || "");
-  return c.startsWith("dictate") || c.startsWith("reverse");
+  return c.startsWith("dictate") || c.startsWith("reverse") || c.startsWith("cloze");
 }
 function channelGapConstruct(events) {
   // P7.0a: аннулированные события (флаг annulled из wordLifecycle) — не свидетельство:

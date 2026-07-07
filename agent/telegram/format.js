@@ -57,6 +57,12 @@ const STR = {
     vSkipSoft: "Отмечено «не знаю». В чтении знакомо — верну слово раньше.",
     vUnclear: "Не разобрал ответ — можно ответить ещё раз.",
     vError: "Не получилось записать — попробуй позже.",
+    // ── P7.2b cloze ──
+    czPromptHead: "Впиши пропущенное слово (из твоего текста):",
+    czPromptFoot: "(ответь словом на пропуск · «не знаю» · «не сейчас»)",
+    czPlaceholder: "слово на пропуск / не знаю / не сейчас",
+    czCorrect: "✅ Верно — слово подходит по контексту.",
+    czWrong: "Не засчитано.", czMissed: "Пропущено",
   },
   en: {
     planEmpty: "Nothing planned today — open the reading room.",
@@ -79,6 +85,11 @@ const STR = {
     vSkipSoft: "Marked “I don’t know”. Familiar in reading — I’ll bring it back sooner.",
     vUnclear: "Couldn’t read the answer — you can reply again.",
     vError: "Couldn’t save — try again later.",
+    czPromptHead: "Fill in the missing word (from your text):",
+    czPromptFoot: "(reply with the missing word · “I don’t know” · “not now”)",
+    czPlaceholder: "missing word / I don’t know / not now",
+    czCorrect: "✅ Correct — the word fits the context.",
+    czWrong: "Not counted.", czMissed: "Missing",
   },
 };
 function L(lang) { return STR[lang === "en" ? "en" : "ru"]; }
@@ -166,6 +177,12 @@ function formatReversePrompt(gloss, lang) {
   return t.revPromptHead + "\n\n«" + String(gloss || "").trim() + "»\n\n" + t.revPromptFoot;
 }
 function reversePlaceholder(lang) { return L(lang).revPlaceholder; }
+// cloze: body = класс-C блок (blanked предложение + перевод), уже собран в review._capsFor
+function formatClozePrompt(body, lang) {
+  const t = L(lang);
+  return t.czPromptHead + "\n\n" + String(body || "").trim() + "\n\n" + t.czPromptFoot;
+}
+function clozePlaceholder(lang) { return L(lang).czPlaceholder; }
 function reviewUnavailable(lang) { return L(lang).revUnavailable; }
 function reviewBusy(lang) { return L(lang).revBusy; }
 function reviewNothing(lang) { return L(lang).revNothing; }
@@ -183,9 +200,14 @@ function verdictFromResult(r, opts) {
     return t.vUnclear;                          // MNAR: empty/unsupported
   }
   if (r.decision === "skip" || o.isDontKnow) return soft ? t.vSkipSoft : t.vSkip;
-  if (r.decision === "correct" || r.decision === "accepted_variant") return t.vCorrect;
-  // wrong / near_miss → показать ожидаемую форму (класс-безопасно: это правильный ответ, не id)
+  if (r.decision === "correct" || r.decision === "accepted_variant") return o.isCloze ? t.czCorrect : t.vCorrect;
+  // wrong / near_miss → показать ожидаемую форму (класс-безопасно: это правильный ответ, не id).
+  // cloze: «Пропущено: <поверхность>»; reverse: «Ожидалось: <лемма>».
   const exp = String(o.expected || "").trim();
+  if (o.isCloze) {
+    const tail = exp ? " " + t.czMissed + ": «" + exp + "»." : "";
+    return (soft ? t.vSoft : t.czWrong) + tail;
+  }
   const tail = exp ? " " + t.vExpected + ": «" + exp + "»." : "";
   return (soft ? t.vSoft : t.vWrong) + tail;
 }
@@ -193,6 +215,6 @@ function verdictFromResult(r, opts) {
 module.exports = {
   splitMessage, formatPlan, formatDue, formatSummary, formatExplain, showLemma,
   refusedText: (lang) => L(lang).refused, LIMIT,
-  formatReversePrompt, reversePlaceholder, reviewUnavailable, reviewBusy, reviewNothing,
-  verdictDeclined, verdictFromResult,
+  formatReversePrompt, reversePlaceholder, formatClozePrompt, clozePlaceholder,
+  reviewUnavailable, reviewBusy, reviewNothing, verdictDeclined, verdictFromResult,
 };

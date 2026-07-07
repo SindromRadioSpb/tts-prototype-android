@@ -115,6 +115,7 @@ function unloadNow() {
   _bundle = null;
   _pidLemmaIndex = null;
   _glossIndex = null;
+  _vocFormIndex = null;
   return was;
 }
 
@@ -161,6 +162,67 @@ function _buildGlossIndex(ds) {
   }
   _glossIndex = { pidGloss, lemmaPos, senseLemmas };
   return _glossIndex;
+}
+
+// ── P7.2b cloze — ВОКАЛИЗОВАННЫЙ форм-индекс (огласованная форма → Set(pid)), для forward-матча
+// «due-лемма → её формы → искать в тексте пользователя» (resolveWord НЕ ключует голые поверхности
+// без Dicta — замер 2026-07-07). Матч по ОГЛАСОВАННОЙ форме (не консонантному skeleton):
+// niqqud различает омографы (כָּתַב «написал» vs כְּתָב «письменность») — критика: dataset-уникальность
+// skeleton ≠ контекстная дизамбигуация. unambiguous = ВОКАЛИЗОВАННАЯ форма → РОВНО один pid глобально.
+let _vocFormIndex = null;
+function _cellForms(cells) {
+  const out = [];
+  (function walk(o) {
+    if (!o || typeof o !== "object") return;
+    if (o.he) out.push(String(o.he));
+    for (const k in o) if (k !== "he" && k !== "translit" && k !== "translit_html") walk(o[k]);
+  })(cells);
+  return out;
+}
+// нормализация огласованной формы (снять пробелы; niqqud СОХРАНЯЕМ)
+function _normVoc(f) { return String(f == null ? "" : f).replace(/\s+/g, "").trim(); }
+function _buildVocFormIndex(ds) {
+  if (_vocFormIndex) return _vocFormIndex;
+  const m = new Map();   // vocForm → Set(pid)
+  for (const p of (ds && ds.paradigms) || []) {
+    if (!p || p.pealim_id == null) continue;
+    const pid = String(p.pealim_id);
+    const forms = _cellForms(p.cells);
+    if (p.lemma_niqqud) forms.push(p.lemma_niqqud);
+    for (const f of forms) {
+      const v = _normVoc(f);
+      if (!v || LC.stripNiqqud(v).length < 2) continue;
+      let set = m.get(v); if (!set) { set = new Set(); m.set(v, set); }
+      set.add(pid);
+    }
+  }
+  _vocFormIndex = m;
+  return m;
+}
+
+// clozeFormsForItemKey(itemKey) → { pid, forms:[{voc, skeleton, unambiguous}] } | null.
+// ВОКАЛИЗОВАННЫЕ формы парадигмы due-леммы (voc = огласованная, для точного матча против токена
+// текста пользователя); unambiguous = voc маппится глобально на один pid (омографы с ДРУГОЙ
+// огласовкой не коллизируют). skeleton — для buildClozeForTarget (бланк по консонантному скелету).
+async function clozeFormsForItemKey(itemKey) {
+  const g = await glossForItemKey(itemKey);
+  if (!g || !g.sense_id) return null;
+  const b = await ensureLoaded();
+  const fi = _buildVocFormIndex(b.ds);
+  const p = ((b.ds && b.ds.paradigms) || []).find((x) => x && String(x.pealim_id) === String(g.sense_id));
+  if (!p) return null;
+  const raw = _cellForms(p.cells);
+  if (p.lemma_niqqud) raw.push(p.lemma_niqqud);
+  const seen = new Set(), forms = [];
+  for (const f of raw) {
+    const v = _normVoc(f);
+    const sk = LC.stripNiqqud(v);
+    if (!v || sk.length < 2 || seen.has(v)) continue;
+    seen.add(v);
+    const set = fi.get(v);
+    forms.push({ voc: v, skeleton: sk, unambiguous: !!(set && set.size === 1) });
+  }
+  return { pid: String(g.sense_id), forms };
 }
 
 // glossForItemKey → { sense_id, gloss, expected (HE-лемма стрип), decisive, alts:[HE-леммы синонимов] }
@@ -333,4 +395,4 @@ function status() {
   };
 }
 
-module.exports = { resolveWord, resolveWords, ensureLoaded, unloadNow, status, displayForItemKey, glossForItemKey, MAX_WORDS, RESOLVER_ID };
+module.exports = { resolveWord, resolveWords, ensureLoaded, unloadNow, status, displayForItemKey, glossForItemKey, clozeFormsForItemKey, MAX_WORDS, RESOLVER_ID };

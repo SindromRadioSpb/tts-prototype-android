@@ -34,7 +34,11 @@
   // checkTrainAnswer). Production = требует ПОРОЖДЕНИЯ формы: диктант (слух→письмо) и
   // reverse (RU→HE). Всё остальное (read/listen/reading:tap/null/Studio null/anki null) —
   // рецептивный класс для целей политики.
-  var PRODUCTION_PREFIXES = { dictate: 1, reverse: 1 };
+  var PRODUCTION_PREFIXES = { dictate: 1, reverse: 1, cloze: 1 };
+  // context-supported production (reverse-из-смысла, cloze-в-контексте) — доказывает ЛЕММУ/форму-в-
+  // контексте, но НЕ unsupported dictate-компетенцию (owner D-1). Успех этих scope НЕ защёлкивает
+  // hasProductionSuccess → не отключает будущую D1-мягкость диктанта.
+  var CONTEXT_SUPPORTED_SCOPES = { lexeme: 1, cloze: 1 };
 
   function channelPrefix(channel) {
     var s = String(channel == null ? "" : channel);
@@ -76,12 +80,18 @@
     if (typeof m === "string") { try { m = JSON.parse(m); } catch (_) { m = null; } }
     return (m && m.evidence_scope) || null;
   }
+  // context-supported (lexeme/cloze) строка НЕ доказывает unsupported production-компетенцию →
+  // должна исключаться из production-статистики gap-сигнала (channelStats) ТОЖЕ, иначе planner
+  // productionImbalance разойдётся с hasProductionSuccess (критика wf_cd5d049a).
+  function isContextSupportedRow(r) {
+    return !!(r && CONTEXT_SUPPORTED_SCOPES[_rowEvidenceScope(r)]);
+  }
   function hasProductionSuccess(rows) {
     for (var i = 0; i < (rows || []).length; i++) {
       var r = rows[i]; if (!r) continue;
       if (r.kind === "review" && Number(r.grade) >= 3 && isProductionChannel(r.channel)) {
-        // lexeme-scope успех не отключает D1-Hard-смягчение для dictate той же леммы (§решение-5)
-        if (_rowEvidenceScope(r) === "lexeme") continue;
+        // context-supported (lexeme/cloze) успех не отключает D1-Hard-смягчение для dictate (D-1)
+        if (CONTEXT_SUPPORTED_SCOPES[_rowEvidenceScope(r)]) continue;
         return true;
       }
     }
@@ -125,6 +135,7 @@
     hasMemoryState: hasMemoryState,
     hasReceptiveEvidence: hasReceptiveEvidence,
     hasProductionSuccess: hasProductionSuccess,
+    isContextSupportedRow: isContextSupportedRow,
     decideGrade: decideGrade,
     policyMeta: policyMeta,
   };

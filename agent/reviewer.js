@@ -38,13 +38,15 @@ const learnerLogRepo = require(path.join(__dirname, "..", "db", "learnerLogRepo"
 const learnerProjectionRepo = require(path.join(__dirname, "..", "db", "learnerProjectionRepo"));
 const keyingService = require(path.join(__dirname, "..", "db", "keyingService"));
 const agentChallengeRepo = require(path.join(__dirname, "..", "db", "agentChallengeRepo"));
+const learnerArtifactsRepo = require(path.join(__dirname, "..", "db", "learnerArtifactsRepo"));
+const agentSentenceRepo = require(path.join(__dirname, "..", "db", "agentSentenceRepo"));
 const LC = require(path.join(__dirname, "..", "public", "js", "lemma-canon.js"));
 
 const HEB_ANY_RE = /[֐-׿]/;
 const CHANNEL_RE = /^(read|listen):[a-z0-9_-]{1,20}$/;
-const PRODUCTION_RE = /^(dictate|reverse)(:|$)/;
-// P7.2a: production-канал(ы), которые challenge-binding РАЗБЛОКИРУЕТ (только reverse:tg в MVP).
-const CHALLENGE_CHANNEL_RE = /^reverse:tg$/;
+const PRODUCTION_RE = /^(dictate|reverse|cloze)(:|$)/;
+// P7.2a/b: production-канал(ы), которые challenge-binding РАЗБЛОКИРУЕТ (reverse:tg + cloze:tg).
+const CHALLENGE_CHANNEL_RE = /^(reverse|cloze):tg$/;
 const MAX_ANSWER_CHARS = 400;
 const ANNUL_WINDOW_MS = 24 * 3600 * 1000;
 
@@ -130,6 +132,14 @@ async function _grade(ctx, a) {
       return err("CHALLENGE_CLOSED", { status: chal.status });
     }
     if (Date.parse(chal.expires_at) <= Date.now()) return err("CHALLENGE_EXPIRED");
+    // P7.2b класс-C: cloze читает СОБСТВЕННЫЙ текст пользователя → двойной text-consent recheck
+    // НА ГРАНИЦЕ ЗАПИСИ (fail-closed): revoke cloud_texts/agent_read_texts между prompt и ответом
+    // → НЕ пишем (запись после отзыва запрещена). Гасим challenge (revoke-каскад тоже гасит).
+    if (chal.prompt_kind === "cloze") {
+      const okCloud = await learnerArtifactsRepo.hasConsent(ctx.userId);
+      const okRead = await agentSentenceRepo.hasAgentReadConsent(ctx.userId);
+      if (!okCloud || !okRead) { await agentChallengeRepo.cancelOpenForUser(ctx.userId); return err("TEXT_CONSENT_REVOKED"); }
+    }
     // резервируем challenge (active→processing, или re-claim того же attempt после крэша).
     const claimed = await agentChallengeRepo.claimForAttempt(ctx.userId, challengeId, attemptId);
     if (!claimed) return err("CHALLENGE_CLAIM_FAILED", { status: chal.status });
@@ -144,10 +154,12 @@ async function _grade(ctx, a) {
   const rows = itemKey ? await learnerLogRepo.itemRows(ctx.userId, itemKey) : [];
   if (!rows.length) { if (chal) await agentChallengeRepo.release(ctx.userId, challengeId, attemptId); return err("UNKNOWN_ITEM"); }
 
-  // expected — ТОЛЬКО серверной стороны; нерезолвимость проверяем сами (displayForItemKey
-  // честно фолбэчит СЫРЫМ ключом). Применяется и к skip: нерезолвимый item не мог быть
-  // показан → «не знаю» по нему не факт.
-  const display = await keyingService.displayForItemKey(itemKey);
+  // expected — ТОЛЬКО серверной стороны. P7.2b cloze: expected = ПОВЕРХНОСТЬ вхождения
+  // (chal.expected_surface), НЕ лемма — контекст снимает многозначность (иначе верная инфлекция
+  // грейдилась бы против леммы = ложный lapse). reverse/рецептив: displayForItemKey (лемма).
+  const display = (chal && chal.prompt_kind === "cloze")
+    ? String(chal.expected_surface || "")
+    : await keyingService.displayForItemKey(itemKey);
   if (!display || display === itemKey || !HEB_ANY_RE.test(display)) {
     if (chal) await agentChallengeRepo.release(ctx.userId, challengeId, attemptId);
     return err("EXPECTED_UNRESOLVED");
