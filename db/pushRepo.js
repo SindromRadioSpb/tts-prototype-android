@@ -142,7 +142,8 @@ async function runPushSweep({ nowMs, force } = {}) {
   // local_day НЕ обходится (единый бюджет). Ручная переотправка на устройство → /api/push/test (sendTest
   // не занимает бюджет). prefsErr отделён от budget (silent_empty_vs_real_empty: оператор различает
   // «Telegram занял день» и «prefs-чтение упало»). outsideWindow — push чтит quiet/window как бот.
-  let notified = 0, skippedDay = 0, quiet = 0, removed = 0, disabled = 0, budget = 0, prefsErr = 0, outsideWindow = 0;
+  let notified = 0, skippedDay = 0, quiet = 0, removed = 0, disabled = 0, budget = 0, prefsErr = 0, outsideWindow = 0, muted = 0;
+  const nowIsoPush = new Date(now).toISOString();
   for (const [userId, list] of byUser) {
     const fresh = list.filter((s) => force || s.last_notified_day !== day);
     if (!fresh.length) { skippedDay += list.length; continue; }
@@ -155,6 +156,9 @@ async function runPushSweep({ nowMs, force } = {}) {
     // день, второй skip:budget. Fanout на все устройства = ОДНО нудж-событие. Fail-CLOSED на prefs-err.
     let prefs; try { prefs = await notificationPrefsRepo.getPrefs(userId); } catch (_) { prefsErr++; continue; }
     if (!prefs.enabled) { disabled++; continue; }
+    // P7.3c: /notoday//mute = КРОСС-КАНАЛЬНАЯ тишина (критика wf_7218a4f4 MAJOR: иначе push шёл бы во
+    // время mute → «сегодня не напомню» ложь). muted_until чтит и push.
+    if (prefs.muted_until && nowIsoPush < prefs.muted_until) { muted++; continue; }
     const parts = LT.localParts(prefs.timezone, now);
     if (!LT.windowOpen(parts.hour, prefs.window, prefs.quiet_start_local, prefs.quiet_end_local)) { outsideWindow++; continue; }
     const claim = await nudgeLedgerRepo.claimDay(userId, parts.day, "push", "DUE_READY");
@@ -168,7 +172,7 @@ async function runPushSweep({ nowMs, force } = {}) {
       } else if (r.removed) removed++;
     }
   }
-  return { ok: true, day, notified, skippedDay, quiet, removed, disabled, budget, prefsErr, outsideWindow };
+  return { ok: true, day, notified, skippedDay, quiet, removed, disabled, budget, prefsErr, outsideWindow, muted };
 }
 
 module.exports = { ensureVapid, subscribe, unsubscribe, status, sendTest, runPushSweep, PUSH_HOUR_UTC };

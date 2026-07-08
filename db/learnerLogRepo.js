@@ -299,6 +299,26 @@ async function itemRows(userId, itemKey) {
     [userId, String(itemKey || "")])) || [];
 }
 
+// P7.3c — CROSS-SURFACE engagement для backoff (критика wf_e9b7e615 MAJOR: review_log ловит только
+// ОЦЕНЁННЫЕ тапы; чистое чтение в Зале = learner_events → активный читатель ложно «игнорщик»). Якорь =
+// СЕРВЕРНЫЙ ingested_at (монотонно, не клиентское reviewed_at → нет clock-skew ложного ignore). ENGAGED
+// = ∃ (review_log review/skip/mark ИЛИ learner_events reading-тип) с ingested_at > since. Индексы
+// (user_id, ingested_at) есть у обеих (mig 021).
+async function engagedSince(userId, sinceIso) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const since = String(sinceIso || "");
+  if (!since) return false;
+  const rl = await dbGet(db,
+    `SELECT 1 x FROM review_log WHERE user_id=? AND ingested_at > ? AND kind IN ('review','skip') LIMIT 1`,
+    [userId, since]);
+  if (rl) return true;
+  const le = await dbGet(db,
+    `SELECT 1 x FROM learner_events WHERE user_id=? AND ingested_at > ?
+       AND type IN ('text_opened','sentence_read','word_clicked','word_marked','audio_played') LIMIT 1`,
+    [userId, since]);
+  return !!le;
+}
+
 // P7.0c annul-минтер: резолв цели строго по (user_id, id) — user-scope структурный.
 async function getRowById(userId, id) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
@@ -308,7 +328,7 @@ async function getRowById(userId, id) {
 }
 
 module.exports = {
-  ingestBatch, readLog, counts, itemRows, getRowById,
+  ingestBatch, readLog, counts, itemRows, getRowById, engagedSince,
   SUPPORTED_SCHEMA_VERSION, SUPPORTED_KEYER_VERSION, MAX_BATCH_ROWS,
   META_ALLOW,   // P7.0b: read-only для гейта «провенанс-полям грейдера есть где жить»
 };

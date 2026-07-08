@@ -1949,8 +1949,10 @@ function tgContentAllowed(fromId) { return _bucketAllowed(_tgContentBuckets, fro
 const telegramContent = require("./agent/telegram/content");
 const telegramReview = require("./agent/telegram/review");   // P7.2a пишущий review-поток (webhook-trusted)
 const telegramFormat = require("./agent/telegram/format");
-const notificationPrefsRepo = require("./db/notificationPrefsRepo");   // P7.3a /stop//resume запись prefs
-const nudgeRepo = require("./db/nudgeRepo");                            // P7.3a проактивный нудж-sweep
+const notificationPrefsRepo = require("./db/notificationPrefsRepo");   // P7.3a /stop//resume + P7.3c /mute//notoday
+const nudgeRepo = require("./db/nudgeRepo");                            // P7.3a/c проактивный нудж-sweep
+const nudgeLedgerRepo = require("./db/nudgeLedgerRepo");                // P7.3c /notoday claimedToday-ответ
+const telegramLocaltime = require("./db/localtime");                    // P7.3c muted_until (tz DST-safe)
 const agentRepoForTg = require("./db/agentRepo");
 
 app.post(TELEGRAM_WEBHOOK_PATH, telegramSecretGate, _tgWebhookJson, async (req, res) => {
@@ -1978,9 +1980,19 @@ app.post(TELEGRAM_WEBHOOK_PATH, telegramSecretGate, _tgWebhookJson, async (req, 
   try {
     const r = await channelLinkRepo.processUpdateTxn(updateId, async (db) => {
       const out = await telegramRouter.handle(db, { tgUserId: fromId, tgChatId: chatId, text: msg.text || "", updateId, isReply, replyToMessageId });
-      // P7.3a /stop//resume: durable-запись prefs ВНУТРИ webhook-txn — атомарно с dedup (сбой → rollback →
-      // Telegram переиграет → opt-out не теряется молча). Роутер остаётся transitive-read-only (пишет здесь).
-      if (out && out.kind === "pref") await notificationPrefsRepo.setTelegramEnabledTxn(db, out.userId, out.enable);
+      // P7.3a/c: durable-запись prefs ВНУТРИ webhook-txn — атомарно с dedup (сбой → rollback → Telegram
+      // переиграет → opt-out/mute не теряется). Роутер transitive-read-only (пишет здесь).
+      if (out && out.kind === "pref") {
+        await notificationPrefsRepo.setTelegramEnabledTxn(db, out.userId, out.enable);
+        if (out.enable) await notificationPrefsRepo.clearMuteTxn(db, out.userId);   // /resume снимает и mute
+      } else if (out && out.kind === "snooze") {
+        // muted_until = начало (today+days) local-дня в tz пользователя (DST-safe); tz из prefs (txn-read)
+        const tzRow = await new Promise((res, rej) => db.get(`SELECT timezone FROM notification_preferences WHERE user_id=?`, [out.userId], (e, x) => (e ? rej(e) : res(x))));
+        const tz = telegramLocaltime.safeTz(tzRow && tzRow.timezone);
+        out._mutedUntil = telegramLocaltime.startOfLocalDay(tz, Date.now(), out.days);
+        out._tz = tz;
+        await notificationPrefsRepo.setMuteTxn(db, out.userId, out._mutedUntil);
+      }
       return out;
     });
     if (r.duplicate) return res.json({ ok: true, duplicate: true });   // уже обработан → без эффекта
@@ -2018,6 +2030,21 @@ app.post(TELEGRAM_WEBHOOK_PATH, telegramSecretGate, _tgWebhookJson, async (req, 
       let lng = "ru"; try { const p = await agentRepoForTg.getProfile(result.userId); lng = (p && p.language) || "ru"; } catch (_) {}
       const txt = result.enable ? telegramFormat.nudgeResumeText(lng) : telegramFormat.nudgeStopText(lng);
       await telegramApi.sendMessage(result.chatId != null ? result.chatId : chatId, txt);
+    } else if (result && result.kind === "snooze") {
+      // P7.3c /notoday//mute: запись muted_until уже применена в phase-1. Подтверждение (класс A). /notoday:
+      // если день УЖЕ нуджнут/занят — честный «на сегодня всё», иначе «понял, сегодня не напомню».
+      let lng = "ru"; try { const p = await agentRepoForTg.getProfile(result.userId); lng = (p && p.language) || "ru"; } catch (_) {}
+      let txt;
+      if (result.command === "mute") txt = telegramFormat.formatMuteOk(result.days, lng);
+      else {
+        let already = false;
+        try { already = await nudgeLedgerRepo.claimedToday(result.userId, telegramLocaltime.localDay(result._tz || "Asia/Jerusalem", Date.now())); } catch (_) {}
+        txt = telegramFormat.notodayText(lng, already);
+      }
+      await telegramApi.sendMessage(result.chatId != null ? result.chatId : chatId, txt);
+    } else if (result && result.kind === "mute-bad") {
+      let lng = "ru"; try { const p = await agentRepoForTg.getProfile(result.userId); lng = (p && p.language) || "ru"; } catch (_) {}
+      await telegramApi.sendMessage(result.chatId != null ? result.chatId : chatId, telegramFormat.muteBadText(lng));
     } else if (result && result.text) {
       await telegramApi.sendMessage(result.chatId != null ? result.chatId : chatId, result.text);
     }

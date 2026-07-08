@@ -183,6 +183,13 @@ const b64u = (buf) => Buffer.from(buf).toString("base64url");
     eq(sOff.json && sOff.json.notified === 0 && sOff.json.disabled >= 1, "prefs.enabled=0 гасит push (глобальный opt-out кросс-канальный): " + JSON.stringify(sOff.json));
     await withDb((db) => dbRun(db, `UPDATE notification_preferences SET enabled=1 WHERE user_id=?`, [uid]));
 
+    // P7.3c: muted_until (/notoday//mute = КРОСС-КАНАЛЬНАЯ тишина) гасит и push — не только Telegram
+    await withDb((db) => dbRun(db, `UPDATE notification_preferences SET muted_until='2027-06-01T00:00:00.000Z' WHERE user_id=?`, [uid]));
+    const D16 = Date.UTC(2026, 6, 16, 6, 0, 0);
+    const sMute = await api("POST", "/api/push/sweep", { admin: ADMIN, body: { now: D16 } });
+    eq(sMute.json && sMute.json.notified === 0 && sMute.json.muted >= 1, "muted_until (/mute//notoday) гасит push кросс-канально (не только Telegram): " + JSON.stringify(sMute.json));
+    await withDb((db) => dbRun(db, `UPDATE notification_preferences SET muted_until=NULL WHERE user_id=?`, [uid]));
+
     // 410 → subscription removed
     respond410 = true;
     const t2 = await api("POST", "/api/push/test", { cookie, csrf, body: {} });

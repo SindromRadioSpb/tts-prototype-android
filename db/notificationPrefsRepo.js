@@ -30,6 +30,7 @@ function normalize(row) {
     window: row.window === "evening" ? "evening" : "morning",
     quiet_start_local: Number(row.quiet_start_local),
     quiet_end_local: Number(row.quiet_end_local),
+    muted_until: row.muted_until || null,                  // P7.3c: UTC-Z instant конца тишины (/notoday//mute; кросс-канал)
     _row: true,
   };
 }
@@ -55,4 +56,27 @@ async function setTelegramEnabledTxn(db, userId, enabled) {
   return { ok: true, telegram_enabled: v };
 }
 
-module.exports = { getPrefs, setTelegramEnabledTxn, defaults, normalize };
+// P7.3c /notoday//mute: UPSERT muted_until ВНУТРИ webhook-txn (атомарно с dedup; сбой → rollback →
+// Telegram переиграет → mute не теряется — критика). mutedUntilIso = UTC-Z instant (localtime.
+// startOfLocalDay). НЕ трогает backoff (mute нейтрален к consecutive_ignored — не сокращает и не растит).
+async function setMuteTxn(db, userId, mutedUntilIso) {
+  if (!db) throw new Error("DB_NOT_AVAILABLE");
+  await dbRun(db,
+    `INSERT INTO notification_preferences (user_id, muted_until, updated_at)
+       VALUES (?,?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+     ON CONFLICT(user_id) DO UPDATE SET muted_until=excluded.muted_until, updated_at=excluded.updated_at`,
+    [String(userId), String(mutedUntilIso)]);
+  return { ok: true, muted_until: String(mutedUntilIso) };
+}
+// /resume: снять mute (muted_until=NULL). Идемпотентно.
+async function clearMuteTxn(db, userId) {
+  if (!db) throw new Error("DB_NOT_AVAILABLE");
+  await dbRun(db,
+    `INSERT INTO notification_preferences (user_id, muted_until, updated_at)
+       VALUES (?, NULL, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+     ON CONFLICT(user_id) DO UPDATE SET muted_until=NULL, updated_at=excluded.updated_at`,
+    [String(userId)]);
+  return { ok: true };
+}
+
+module.exports = { getPrefs, setTelegramEnabledTxn, setMuteTxn, clearMuteTxn, defaults, normalize };

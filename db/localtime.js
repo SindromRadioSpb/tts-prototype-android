@@ -55,7 +55,29 @@ function windowOpen(hour, window, quietStart, quietEnd) {
   return true;
 }
 
+// смещение зоны (мин) в момент utcMs: (local-стенные-часы как-если-UTC) − utcMs. Минутная гранулярность
+// (offset'ы кратны минутам; Israel — часам) — достаточно для границы дня (00:00).
+function _offsetMinutes(tz, utcMs) {
+  const p = localParts(tz, utcMs);
+  const [Y, Mo, D] = p.day.split("-").map(Number);
+  const asIfUtc = Date.UTC(Y, Mo - 1, D, p.hour, p.minute);
+  return Math.round((asIfUtc - utcMs) / 60000);
+}
+// UTC-Z instant НАЧАЛА (00:00 local) дня (today+addDays) в зоне tz — DST-safe (2 итерации коррекции
+// смещения ловят DST-границу). Для muted_until (/notoday=+1 → тишина до конца сегодня; /mute N=+N).
+function startOfLocalDay(tz, ms, addDays) {
+  const zone = safeTz(tz);
+  const [Y, Mo, D] = localDay(zone, ms).split("-").map(Number);
+  const add = Number(addDays) || 0;
+  let guess = Date.UTC(Y, Mo - 1, D + add, 0, 0, 0);
+  for (let i = 0; i < 2; i++) {
+    const off = _offsetMinutes(zone, guess);
+    guess = Date.UTC(Y, Mo - 1, D + add, 0, 0, 0) - off * 60000;
+  }
+  return new Date(guess).toISOString();
+}
+
 module.exports = {
   DEFAULT_TZ, WINDOW_HOURS,
-  validTz, safeTz, localParts, localDay, localHour, inQuietHours, windowOpen,
+  validTz, safeTz, localParts, localDay, localHour, inQuietHours, windowOpen, startOfLocalDay,
 };

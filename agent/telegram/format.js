@@ -74,6 +74,12 @@ const STR = {
     nudgeDue: "Готово к повторению: ", nudgeDueTail: ". Короткая тренировка (~2 мин) — напиши /review",
     nudgeStop: "Напоминания в Telegram отключены. Команды и тренировки по запросу (/review) остаются доступны.",
     nudgeResume: "Напоминания в Telegram снова включены.",
+    // ── P7.3c backoff / mute / notoday (класс A; RETURN_AFTER_GAP БЕЗ count/guilt) ──
+    nudgeReturn: "Когда будет удобно, у тебя есть короткая тренировка на пару минут — /review",
+    muteOkA: "Напоминания в Telegram отключены на ", muteOkB: " дн. Вернуть — /resume. Тренировки по запросу (/review) работают.",
+    muteBad: "Формат: /mute 1..30 (число дней). Например: /mute 3.",
+    notodayAck: "Понял — сегодня больше не напомню. Вернусь завтра.",
+    notodayDone: "На сегодня напоминаний больше нет — вернусь завтра.",
   },
   en: {
     planEmpty: "Nothing planned today — open the reading room.",
@@ -110,6 +116,11 @@ const STR = {
     nudgeDue: "Ready to review: ", nudgeDueTail: ". A short session (~2 min) — send /review",
     nudgeStop: "Telegram reminders are off. Commands and on-demand practice (/review) still work.",
     nudgeResume: "Telegram reminders are back on.",
+    nudgeReturn: "Whenever it suits you, there's a short couple-minute session — send /review",
+    muteOkA: "Telegram reminders paused for ", muteOkB: " day(s). Resume with /resume. On-demand practice (/review) still works.",
+    muteBad: "Format: /mute 1..30 (number of days). E.g. /mute 3.",
+    notodayAck: "Got it — no more reminders today. Back tomorrow.",
+    notodayDone: "No more reminders today — back tomorrow.",
   },
 };
 function L(lang) { return STR[lang === "en" ? "en" : "ru"]; }
@@ -246,6 +257,11 @@ function withExplanation(promptText, reason, kind, lang) {
 function formatDueNudge(count, lang) { const t = L(lang); return t.nudgeDue + Number(count) + t.nudgeDueTail; }
 function nudgeStopText(lang) { return L(lang).nudgeStop; }
 function nudgeResumeText(lang) { return L(lang).nudgeResume; }
+// P7.3c: RETURN_AFTER_GAP — БЕЗ count, guilt-free (запрещено «пропустил»/«давно не»).
+function formatReturnNudge(lang) { return L(lang).nudgeReturn; }
+function formatMuteOk(days, lang) { const t = L(lang); return t.muteOkA + Number(days) + t.muteOkB; }
+function muteBadText(lang) { return L(lang).muteBad; }
+function notodayText(lang, alreadyDone) { const t = L(lang); return alreadyDone ? t.notodayDone : t.notodayAck; }
 function reviewUnavailable(lang) { return L(lang).revUnavailable; }
 function reviewBusy(lang) { return L(lang).revBusy; }
 function reviewNothing(lang) { return L(lang).revNothing; }
@@ -289,6 +305,6 @@ module.exports = {
   refusedText: (lang) => L(lang).refused, LIMIT,
   formatReversePrompt, reversePlaceholder, formatClozePrompt, clozePlaceholder,
   formatDictatePrompt, dictatePlaceholder, selectExplanation, withExplanation,
-  formatDueNudge, nudgeStopText, nudgeResumeText,
+  formatDueNudge, nudgeStopText, nudgeResumeText, formatReturnNudge, formatMuteOk, muteBadText, notodayText,
   reviewUnavailable, reviewBusy, reviewNothing, verdictDeclined, verdictFromResult,
 };

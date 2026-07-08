@@ -34,6 +34,8 @@ const HELP =
   "/summary — над чем работаешь\n" +
   "/explain — последние объяснения\n" +
   "/status — связан ли аккаунт\n" +
+  "/notoday — не напоминать сегодня\n" +
+  "/mute N — тишина на N дней (1–30)\n" +
   "/stop — отключить напоминания\n" +
   "/resume — включить напоминания\n" +
   "/unlink — отключить Telegram\n" +
@@ -106,9 +108,9 @@ async function handle(db, ctx) {
       break;
     }
     // P7.3a in-channel opt-out: /stop /resume → notification_preferences.telegram_enabled. Роутер
-    // ГЕЙТит (link+consent, in-txn) и возвращает дескриптор; ЗАПИСЬ prefs — в server.js вне txn
-    // (роутер transitive-read-only цел: не импортит notificationPrefsRepo). Связка остаётся активной,
-    // review/content-команды работают (лучше, чем /unlink — не рвёт канал).
+    // ГЕЙТит (link+consent, in-txn) и возвращает дескриптор; ЗАПИСЬ prefs — в server.js ВНУТРИ webhook-txn
+    // (phase-1, атомарно с dedup: сбой→rollback→Telegram переиграет → opt-out не теряется). Роутер
+    // transitive-read-only цел (пишет server.js-обёртка, не роутер). Связка активна, review/content работают.
     case "/stop":
     case "/resume": {
       const link = await CL.activeLinkByTgTxn(db, tgUserId);
@@ -116,6 +118,25 @@ async function handle(db, ctx) {
       if (!(await CL.telegramConsentActive(db, link.user_id))) { out = reply("Канал отключён. Подключите Telegram заново на сайте.", { status: "rejected", errorCode: "CONSENT_OFF" }); break; }
       out = { kind: "pref", command: verb === "/stop" ? "stop" : "resume", enable: verb === "/resume",
               userId: link.user_id, tgUserId, chatId: tgChatId, status: "ok" };
+      break;
+    }
+    // P7.3c /notoday (тишина до конца сегодня) · /mute N (тишина на N дней 1–30, деф.3). Snooze НЕ влияет
+    // на SRS/review; запись muted_until в phase-1 txn (server.js). Гейт link+consent как /stop.
+    case "/notoday":
+    case "/mute": {
+      const link = await CL.activeLinkByTgTxn(db, tgUserId);
+      if (!link) { out = reply("Не связано. Подключите Telegram на сайте.", { status: "rejected", errorCode: "NOT_LINKED" }); break; }
+      if (!(await CL.telegramConsentActive(db, link.user_id))) { out = reply("Канал отключён. Подключите Telegram заново на сайте.", { status: "rejected", errorCode: "CONSENT_OFF" }); break; }
+      if (verb === "/notoday") {
+        out = { kind: "snooze", command: "notoday", days: 1, userId: link.user_id, tgUserId, chatId: tgChatId, status: "ok" };
+      } else {
+        const days = arg ? parseInt(arg, 10) : 3;   // деф. 3; валидация 1..30 (fail-closed → reply)
+        if (!Number.isFinite(days) || String(days) !== (arg || String(days)).trim() || days < 1 || days > 30) {
+          out = { kind: "mute-bad", command: "mute", userId: link.user_id, tgUserId, chatId: tgChatId, status: "rejected" };
+        } else {
+          out = { kind: "snooze", command: "mute", days, userId: link.user_id, tgUserId, chatId: tgChatId, status: "ok" };
+        }
+      }
       break;
     }
     // P7.2a /review — гейт link+consent в txn → дескриптор review-start (produce вне txn: eligibility

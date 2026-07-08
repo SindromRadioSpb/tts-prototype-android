@@ -91,6 +91,7 @@ function dbAll(db, sql, p) { return new Promise((res, rej) => db.all(sql, p || [
 async function withDb(fn) { const db = openDb(); try { return await fn(db); } finally { await new Promise((r) => db.close(() => r())); } }
 
 const PAST = "2026-06-01T08:00:00.000Z";
+const ACTIVE_AT = "2026-07-08T05:00:00.000Z";   // Jul8 08:00 IDT — недавняя активность (recentlyActive → DUE_READY count)
 let _u = 6000; const nid = () => ++_u;
 
 // direct-insert: user + active telegram link + consent(tg-v1) + K due-проекций + опц. prefs-строка.
@@ -111,9 +112,19 @@ async function setupUser(label, tg, chat, opts) {
       [userId, o.prefs.enabled != null ? o.prefs.enabled : 1, o.prefs.telegram_enabled != null ? o.prefs.telegram_enabled : 1]);
     // опциональный предзанятый push-claim (кросс-канал: push уже занял local_day)
     if (o.pushClaimed) await dbRun(db, `INSERT INTO nudge_ledger (user_id, local_day, channel, reason) VALUES (?,?, 'push','DUE_READY')`, [userId, LOCAL_DAY]);
+    // P7.3c: недавняя активность (recentlyActive → DUE_READY count; active:false → нет → RETURN_AFTER_GAP)
+    if (o.active !== false)
+      await dbRun(db, `INSERT INTO review_log (user_id,id,item_key,kind,reviewed_at,grade,source,channel,meta_json,schema_version,ingested_at) VALUES (?,?,?,'review',?,3,'room-recall','read:mc','{}',1,?)`, [userId, "act:" + label, "act#" + label, ACTIVE_AT, ACTIVE_AT]);
+    // reading-only активность (learner_events) — тест cross-surface engagement (без review_log)
+    if (o.readingAt)
+      await dbRun(db, `INSERT INTO learner_events (user_id,id,type,payload_json,created_at_client,schema_version,ingested_at) VALUES (?,?,'sentence_read','{}',?,1,?)`, [userId, "ev:" + label, o.readingAt, o.readingAt]);
+    // backoff-состояние
+    if (o.state)
+      await dbRun(db, `INSERT OR REPLACE INTO nudge_state (user_id, consecutive_ignored, last_nudge_at, last_engaged_at) VALUES (?,?,?,?)`, [userId, o.state.consecutive_ignored || 0, o.state.last_nudge_at || null, o.state.last_engaged_at || null]);
   });
   return { userId, tg, chat };
 }
+const stateRow = (userId) => withDb((db) => dbAll(db, `SELECT * FROM nudge_state WHERE user_id=?`, [userId]));
 const ledgerRows = (userId) => withDb((db) => dbAll(db, `SELECT * FROM nudge_ledger WHERE user_id=?`, [userId]));
 const prefsRow = (userId) => withDb((db) => dbAll(db, `SELECT * FROM notification_preferences WHERE user_id=?`, [userId]));
 
@@ -227,14 +238,75 @@ const prefsRow = (userId) => withDb((db) => dbAll(db, `SELECT * FROM notificatio
     await withDb(async (db) => {
       await dbRun(db, `INSERT OR IGNORE INTO notification_preferences (user_id, timezone) VALUES (?, 'Asia/Jerusalem')`, [G.userId]);
       await dbRun(db, `INSERT OR IGNORE INTO nudge_ledger (user_id, local_day, channel, reason) VALUES (?,'2030-06-15','telegram','DUE_READY')`, [G.userId]);
+      await dbRun(db, `INSERT OR REPLACE INTO nudge_state (user_id, consecutive_ignored) VALUES (?, 3)`, [G.userId]);
     });
-    eq((await prefsRow(G.userId)).length >= 1 && (await ledgerRows(G.userId)).length >= 1, "GDPR: seeded prefs+ledger строки для delete-теста");
+    eq((await prefsRow(G.userId)).length >= 1 && (await ledgerRows(G.userId)).length >= 1 && (await stateRow(G.userId)).length >= 1, "GDPR: seeded prefs+ledger+nudge_state для delete-теста");
     const del = await fetch(BASE + "/api/account/delete", { method: "POST", headers: { "Content-Type": "application/json", "Cookie": G.cookie, "X-LP-CSRF": G.csrf }, body: JSON.stringify({ confirm: "DELETE" }) });
     const delJson = await del.json().catch(() => ({}));
     eq(del.status === 200 && delJson.ok, "account delete 200");
-    eq((delJson.tablesPurged || []).includes("notification_preferences") && (delJson.tablesPurged || []).includes("nudge_ledger"),
-      "delete покрыл ОБЕ новые таблицы (structural user_id-sweep, не ручной список)");
-    eq((await prefsRow(G.userId)).length === 0 && (await ledgerRows(G.userId)).length === 0, "после delete: 0 строк в обеих таблицах (GDPR-полнота)");
+    eq((delJson.tablesPurged || []).includes("notification_preferences") && (delJson.tablesPurged || []).includes("nudge_ledger") && (delJson.tablesPurged || []).includes("nudge_state"),
+      "delete покрыл ВСЕ новые таблицы prefs+ledger+nudge_state (structural user_id-sweep, не ручной список)");
+    eq((await prefsRow(G.userId)).length === 0 && (await ledgerRows(G.userId)).length === 0 && (await stateRow(G.userId)).length === 0, "после delete: 0 строк во ВСЕХ трёх таблицах (GDPR-полнота)");
+
+    // ═══ P7.3c: backoff · engagement(cross-surface) · RETURN_AFTER_GAP · /notoday · /mute · /resume ═══
+    mark("P7.3c backoff/engagement: skip · reset(review_log) · reset(learner_events reading) · RETURN_AFTER_GAP");
+    const BOFF = await setupUser("BOFF", 61010, 62010, { due: 3, state: { consecutive_ignored: 1, last_nudge_at: "2026-07-09T07:00:00.000Z" } });   // Jul9 = 1 local-день до now(Jul10) < delay 2
+    const ENG = await setupUser("ENG", 61011, 62011, { due: 3, state: { consecutive_ignored: 2, last_nudge_at: "2026-07-07T07:00:00.000Z" } });   // active-seed Jul8 > Jul7 → engaged
+    const ENGE = await setupUser("ENGE", 61012, 62012, { due: 3, active: false, readingAt: ACTIVE_AT, state: { consecutive_ignored: 2, last_nudge_at: "2026-07-07T07:00:00.000Z" } });  // ТОЛЬКО learner_events
+    const RETU = await setupUser("RETU", 61013, 62013, { due: 3, active: false });   // нет активности → RETURN_AFTER_GAP
+    const INCR = await setupUser("INCR", 61017, 62017, { due: 3, state: { consecutive_ignored: 1, last_nudge_at: "2026-07-08T07:00:00.000Z" } });   // 2 local-дня = delay 2 → eligible → send + count→2
+    const INCR2 = await setupUser("INCR2", 61018, 62018, { due: 3, state: { consecutive_ignored: 2, last_nudge_at: "2026-07-08T07:00:00.000Z" } });  // count=2, delay 4, прошло 2 → skip
+    const sP = await sweep(NOW_MORNING, true);
+    eq(msgsToChat(BOFF.chat).length === 0 && sP.backoff >= 1, "BOFF: count=1, прошёл 1 local-день < delay 2 → backoff skip (нет нуджа)");
+    eq((await stateRow(BOFF.userId))[0].consecutive_ignored === 1, "BOFF: count НЕ тронут (skip, не reset, не рост)");
+    eq(msgsToChat(ENG.chat).length === 1, "ENG: engaged (review_log ingested после нуджа) → backoff reset → нуджнут");
+    eq((await stateRow(ENG.userId))[0].consecutive_ignored === 0, "ENG: consecutive_ignored сброшен в 0 (engaged)");
+    eq(msgsToChat(ENGE.chat).length === 1, "ENGE: engaged ТОЛЬКО learner_events (reading-only Зал) → reset → нуджнут (cross-surface fix)");
+    const rMsg = msgsToChat(RETU.chat);
+    eq(rMsg.length === 1 && rMsg[0].text.includes("Когда будет удобно") && !/\d/.test(rMsg[0].text), "RETU: нет активности ≥7д → RETURN_AFTER_GAP (guilt-free, БЕЗ count/цифр)");
+    // ЛАДДЕР РАСТЁТ (increment-on-send) — критика: путь не покрывался, регрессия прошла бы 51/51
+    eq(msgsToChat(INCR.chat).length === 1 && (await stateRow(INCR.userId))[0].consecutive_ignored === 2, "INCR: ignored, delay 2 прошёл → send + consecutive_ignored ВЫРОС 1→2 (лестница растёт, не застревает)");
+    eq(msgsToChat(INCR2.chat).length === 0 && (await stateRow(INCR2.userId))[0].consecutive_ignored === 2, "INCR2: count=2 → delay 4, прошло 2 дня → backoff skip (count 2 не тронут)");
+
+    // ── muted-skip (прямой seed muted_until в будущее — независимо от real-vs-injected времени) ──
+    mark("P7.3c muted → sweep skip");
+    const MUTED = await setupUser("MUTED", 61016, 62016, { due: 3 });
+    await withDb((db) => dbRun(db, `INSERT INTO notification_preferences (user_id, muted_until) VALUES (?, '2027-01-01T00:00:00.000Z') ON CONFLICT(user_id) DO UPDATE SET muted_until='2027-01-01T00:00:00.000Z'`, [MUTED.userId]));
+    const sM = await sweep(NOW_MORNING, true);
+    eq(sM.muted >= 1 && msgsToChat(MUTED.chat).length === 0, "muted_until в будущем → sweep skip:muted (нет нуджа)");
+
+    // ── /notoday: prefs muted_until + backoff НЕ растёт (nudge_state не тронут; явный «не сегодня» ≠ игнор) ──
+    mark("P7.3c /notoday: muted_until + backoff не растёт");
+    const NT = await setupUser("NT", 61014, 62014, { due: 3, state: { consecutive_ignored: 2, last_nudge_at: "2026-07-08T07:00:00.000Z" } });
+    let cb = calls().length; await webhook(NT.tg, NT.chat, "/notoday", nid());
+    for (let i = 0; i < 40 && calls().length === cb; i++) await sleep(50);
+    eq(msgsToChat(NT.chat).length === 1 && /сегодня/i.test(msgsToChat(NT.chat)[0].text), "/notoday → подтверждение «…сегодня…»");
+    eq((await prefsRow(NT.userId))[0].muted_until != null, "/notoday записал muted_until (в prefs, НЕ ledger — single-writer цел)");
+    eq((await stateRow(NT.userId))[0].consecutive_ignored === 2, "/notoday НЕ вырастил backoff (2→2, не наказание за честность)");
+
+    // ── /mute: bad-arg fail-closed reply; N → muted_until; /resume → снят → снова нуджит ──
+    mark("P7.3c /mute (bad/ok) + /resume clears mute");
+    const MU = await setupUser("MU", 61015, 62015, { due: 3 });
+    cb = calls().length; await webhook(MU.tg, MU.chat, "/mute 99", nid());
+    for (let i = 0; i < 40 && calls().length === cb; i++) await sleep(50);
+    eq(/Формат/i.test(msgsToChat(MU.chat).slice(-1)[0].text) && (await prefsRow(MU.userId)).every((r) => r.muted_until == null), "/mute 99 (вне 1..30) → reply «Формат…» + НЕ записал mute (fail-closed)");
+    cb = calls().length; await webhook(MU.tg, MU.chat, "/mute 5", nid());
+    for (let i = 0; i < 40 && calls().length === cb; i++) await sleep(50);
+    eq(/5 дн/.test(msgsToChat(MU.chat).slice(-1)[0].text) && (await prefsRow(MU.userId))[0].muted_until != null, "/mute 5 → «…на 5 дн…» + muted_until записан");
+    cb = calls().length; await webhook(MU.tg, MU.chat, "/resume", nid());
+    for (let i = 0; i < 40 && calls().length === cb; i++) await sleep(50);
+    eq((await prefsRow(MU.userId))[0].muted_until == null, "/resume снял mute (muted_until NULL)");
+    await sweep(NOW_MORNING, true);
+    eq(/Готово к повторению/.test(msgsToChat(MU.chat).slice(-1)[0].text), "/resume → sweep снова нуджит (DUE_READY, active)");
+
+    // ── mute НЕЙТРАЛЕН к backoff (критика MAJOR: last_interaction_at сбрасывал → ЧАЩЕ после mute) ──
+    mark("P7.3c mute нейтрален: /mute+/resume НЕ сбрасывает backoff");
+    const MC = await setupUser("MC", 61019, 62019, { due: 3, state: { consecutive_ignored: 2, last_nudge_at: "2026-07-08T07:00:00.000Z" } });
+    cb = calls().length; await webhook(MC.tg, MC.chat, "/mute 3", nid());
+    for (let i = 0; i < 40 && calls().length === cb; i++) await sleep(50);
+    cb = calls().length; await webhook(MC.tg, MC.chat, "/resume", nid());
+    for (let i = 0; i < 40 && calls().length === cb; i++) await sleep(50);
+    eq((await stateRow(MC.userId))[0].consecutive_ignored === 2, "/mute+/resume НЕ трогают backoff (count 2→2; mute нейтрален — не сокращает cadence)");
 
     // ── 10) stdout-гигиена ──
     eq(!srv.logs.join("").includes(HEB), "ивритский сентинел НЕ в server stdout");
@@ -246,6 +318,6 @@ const prefsRow = (userId) => withDb((db) => dbAll(db, `SELECT * FROM notificatio
     console.error(`\nsmoke:telegram-nudge FAIL (${TOTAL - failures.length}/${TOTAL})`);
     process.exitCode = 1;
   } else {
-    console.log(`\nsmoke:telegram-nudge OK (${TOTAL}/${TOTAL}) — P7.3a proactive: flag-off · quiet-hours(wrap)+окно · honest count==K · класс A · enabled/telegram_enabled/consent/nothing_due гейты · claim-before-send dedup (2 sweep→1) · кросс-канальный бюджет (push claim блокирует Telegram) · /stop//resume · /unlink чистит ledger · GDPR delete чистит обе таблицы`);
+    console.log(`\nsmoke:telegram-nudge OK (${TOTAL}/${TOTAL}) — P7.3a/c proactive: flag-off · quiet-wrap+окно(bounded) · honest count==K · класс A · enabled/telegram_enabled/consent/nothing_due · claim-before-send dedup(2→1) · кросс-канал бюджет · /stop//resume · /unlink чистит ledger · GDPR обе таблицы · send-fail at-most-once · DST лето≠зима · P7.3c: backoff-skip(лестница) · engaged→reset(review_log И learner_events reading, cross-surface) · RETURN_AFTER_GAP guilt-free без count · muted→skip · /notoday(prefs, backoff не растёт) · /mute(fail-closed bad + N) · /resume clears mute`);
   }
 })().catch((e) => { console.error(e); process.exit(1); });
