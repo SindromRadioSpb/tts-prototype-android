@@ -70,6 +70,10 @@ const STR = {
     diCorrect: "✅ Верно — слово записано правильно на слух.",
     diNear: "Почти — по звучанию написание неоднозначно, ошибку не засчитываю.",
     diWrong: "Не засчитано.",
+    // ── P7.3a proactive nudge (класс A — только счётчик, никаких слов/форм) ──
+    nudgeDue: "Готово к повторению: ", nudgeDueTail: ". Короткая тренировка (~2 мин) — напиши /review",
+    nudgeStop: "Напоминания в Telegram отключены. Команды и тренировки по запросу (/review) остаются доступны.",
+    nudgeResume: "Напоминания в Telegram снова включены.",
   },
   en: {
     planEmpty: "Nothing planned today — open the reading room.",
@@ -103,6 +107,9 @@ const STR = {
     diCorrect: "✅ Correct — spelled right from listening.",
     diNear: "Almost — the sound doesn’t pin the spelling, so I won’t count it as a mistake.",
     diWrong: "Not counted.",
+    nudgeDue: "Ready to review: ", nudgeDueTail: ". A short session (~2 min) — send /review",
+    nudgeStop: "Telegram reminders are off. Commands and on-demand practice (/review) still work.",
+    nudgeResume: "Telegram reminders are back on.",
   },
 };
 function L(lang) { return STR[lang === "en" ? "en" : "ru"]; }
@@ -235,6 +242,10 @@ function withExplanation(promptText, reason, kind, lang) {
   const ex = selectExplanation(reason, kind, lang);
   return ex ? ex + "\n\n" + String(promptText || "") : String(promptText || "");
 }
+// P7.3a proactive due-нудж: класс A — ТОЛЬКО честный счётчик (== due-кольцу), НИКОГДА слова/формы/id.
+function formatDueNudge(count, lang) { const t = L(lang); return t.nudgeDue + Number(count) + t.nudgeDueTail; }
+function nudgeStopText(lang) { return L(lang).nudgeStop; }
+function nudgeResumeText(lang) { return L(lang).nudgeResume; }
 function reviewUnavailable(lang) { return L(lang).revUnavailable; }
 function reviewBusy(lang) { return L(lang).revBusy; }
 function reviewNothing(lang) { return L(lang).revNothing; }
@@ -278,5 +289,6 @@ module.exports = {
   refusedText: (lang) => L(lang).refused, LIMIT,
   formatReversePrompt, reversePlaceholder, formatClozePrompt, clozePlaceholder,
   formatDictatePrompt, dictatePlaceholder, selectExplanation, withExplanation,
+  formatDueNudge, nudgeStopText, nudgeResumeText,
   reviewUnavailable, reviewBusy, reviewNothing, verdictDeclined, verdictFromResult,
 };

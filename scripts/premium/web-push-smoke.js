@@ -65,8 +65,12 @@ async function api(method, p, { cookie, csrf, admin, body } = {}) {
 const b64u = (buf) => Buffer.from(buf).toString("base64url");
 
 (async () => {
-  const failures = []; const eq = (c, m) => { if (!c) failures.push(m); };
+  const failures = []; let _ne = 0; const eq = (c, m) => { _ne++; if (!c) failures.push(m); };
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "lp-push-smoke-"));
+  const openDb = () => { const s = require(path.join(REPO, "node_modules", "sqlite3")); return new s.Database(path.join(scratch, "app.db")); };
+  const dbRun = (db, sql, p) => new Promise((res, rej) => db.run(sql, p || [], function (e) { (e ? rej(e) : res(this)); }));
+  const dbAll = (db, sql, p) => new Promise((res, rej) => db.all(sql, p || [], (e, r) => (e ? rej(e) : res(r || []))));
+  const withDb = async (fn) => { const db = openDb(); try { return await fn(db); } finally { await new Promise((r) => db.close(() => r())); } };
   const srv = startServer(scratch);
 
   // fake push service (HTTPS — web-push refuses plain http). Self-signed cert генерируется
@@ -159,6 +163,26 @@ const b64u = (buf) => Buffer.from(buf).toString("base64url");
     eq(s3.json && s3.json.notified === 1, "next day must nudge again: " + JSON.stringify(s3.json));
     eq(received.length === 3, "fake service must have exactly 3 pushes (test + hour + next-day), got " + received.length);
 
+    // ── P7.3a cross-channel budget (push side, LIVE): push claims the shared nudge_ledger by LOCAL day ──
+    const uid = li.json.user.id;
+    const led = await withDb((db) => dbAll(db, `SELECT * FROM nudge_ledger WHERE user_id=? AND channel='push'`, [uid]));
+    eq(led.length >= 1 && led.some((r) => r.local_day === "2026-07-10"), "push sweep CLAIMED shared ledger (channel=push, local_day) — real cross-channel arbiter, not faked");
+
+    // Telegram уже занял local_day (2026-07-14) → push sweep того же дня SKIPs budget (обратное направление)
+    const D14 = Date.UTC(2026, 6, 14, 6, 0, 0);
+    await withDb((db) => dbRun(db, `INSERT INTO nudge_ledger (user_id, local_day, channel, reason) VALUES (?, '2026-07-14', 'telegram', 'DUE_READY')`, [uid]));
+    const recvBefore = received.length;
+    const sTG = await api("POST", "/api/push/sweep", { admin: ADMIN, body: { now: D14 } });
+    eq(sTG.json && sTG.json.notified === 0 && sTG.json.budget >= 1, "Telegram claim блокирует push (cross-channel единый бюджет): " + JSON.stringify(sTG.json));
+    eq(received.length === recvBefore, "push НЕ отправлен (день занят Telegram) — ноль новых пушей");
+
+    // prefs.enabled=0 (глобальный opt-out) гасит и push (не только Telegram)
+    await withDb((db) => dbRun(db, `INSERT INTO notification_preferences (user_id, enabled, telegram_enabled, timezone) VALUES (?,0,1,'Asia/Jerusalem') ON CONFLICT(user_id) DO UPDATE SET enabled=0`, [uid]));
+    const D15 = Date.UTC(2026, 6, 15, 6, 0, 0);
+    const sOff = await api("POST", "/api/push/sweep", { admin: ADMIN, body: { now: D15 } });
+    eq(sOff.json && sOff.json.notified === 0 && sOff.json.disabled >= 1, "prefs.enabled=0 гасит push (глобальный opt-out кросс-канальный): " + JSON.stringify(sOff.json));
+    await withDb((db) => dbRun(db, `UPDATE notification_preferences SET enabled=1 WHERE user_id=?`, [uid]));
+
     // 410 → subscription removed
     respond410 = true;
     const t2 = await api("POST", "/api/push/test", { cookie, csrf, body: {} });
@@ -172,12 +196,12 @@ const b64u = (buf) => Buffer.from(buf).toString("base64url");
     await new Promise((r) => fakeSvc.close(() => r()));
     try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {}
   }
-  const total = 15;
+  const total = _ne;
   if (failures.length) {
     console.error(`smoke:web-push FAIL (${total - failures.length}/${total})`);
     for (const f of failures) console.error("  ✗ " + f);
     process.exitCode = 1;
   } else {
-    console.log(`smoke:web-push OK (${total}/${total}) — CLG-P4.5: vapid стабилен · подписка · honest quiet при due=0 · реальный aes128gcm+VAPID пуш дошёл · sweep час/суточный дедуп/след. день · 410-очистка`);
+    console.log(`smoke:web-push OK (${total}/${total}) — CLG-P4.5: vapid стабилен · подписка · honest quiet при due=0 · реальный aes128gcm+VAPID пуш дошёл · sweep час/суточный дедуп/след. день · 410-очистка · P7.3a: push claim'ит общий nudge_ledger · Telegram claim блокирует push · prefs.enabled=0 гасит push`);
   }
 })();

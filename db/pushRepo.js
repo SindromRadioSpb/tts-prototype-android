@@ -15,6 +15,9 @@ const webpush = require("web-push");
 const { getDb } = require("./sqlite");
 const { DATA_DIR } = require("../storage");
 const learnerGraphRepo = require("./learnerGraphRepo");
+const LT = require("./localtime");                               // P7.3a — local_day (общий кросс-канальный ключ)
+const notificationPrefsRepo = require("./notificationPrefsRepo");
+const nudgeLedgerRepo = require("./nudgeLedgerRepo");
 
 const PUSH_HOUR_UTC = Math.min(23, Math.max(0, Number(process.env.PUSH_HOUR_UTC) || 6));   // ≈9:00 Израиля
 const SUBJECT = process.env.VAPID_SUBJECT || "mailto:sindromradiospb@gmail.com";
@@ -135,12 +138,27 @@ async function runPushSweep({ nowMs, force } = {}) {
   const subs = await dbAll(db, `SELECT * FROM push_subscriptions`, []);
   const byUser = new Map();
   for (const s of (subs || [])) { if (!byUser.has(s.user_id)) byUser.set(s.user_id, []); byUser.get(s.user_id).push(s); }
-  let notified = 0, skippedDay = 0, quiet = 0, removed = 0;
+  // force = force-TICK (обходит час-гейт + per-subscription fresh-фильтр), НЕ force-resend: claim по
+  // local_day НЕ обходится (единый бюджет). Ручная переотправка на устройство → /api/push/test (sendTest
+  // не занимает бюджет). prefsErr отделён от budget (silent_empty_vs_real_empty: оператор различает
+  // «Telegram занял день» и «prefs-чтение упало»). outsideWindow — push чтит quiet/window как бот.
+  let notified = 0, skippedDay = 0, quiet = 0, removed = 0, disabled = 0, budget = 0, prefsErr = 0, outsideWindow = 0;
   for (const [userId, list] of byUser) {
     const fresh = list.filter((s) => force || s.last_notified_day !== day);
     if (!fresh.length) { skippedDay += list.length; continue; }
     const due = await learnerGraphRepo.getDue(userId, { nowMs: now, limit: 500 });
     if (!due.length) { quiet++; continue; }
+    // P7.3a — ЕДИНЫЙ кросс-канальный бюджет + ЕДИНЫЙ prefs-контракт (критика wf_858259da MAJOR: push
+    // жив на проде, читал бы enabled/tz, но игнорировал quiet/window = half-config). Глобальный opt-out
+    // (prefs.enabled) гасит push; push честно чтит quiet-hours + window (fixed PUSH_HOUR_UTC → фактически
+    // morning-window; evening/quiet/чужой-tz → skip). claim по LOCAL day (общий ключ с ботом) → кто занял
+    // день, второй skip:budget. Fanout на все устройства = ОДНО нудж-событие. Fail-CLOSED на prefs-err.
+    let prefs; try { prefs = await notificationPrefsRepo.getPrefs(userId); } catch (_) { prefsErr++; continue; }
+    if (!prefs.enabled) { disabled++; continue; }
+    const parts = LT.localParts(prefs.timezone, now);
+    if (!LT.windowOpen(parts.hour, prefs.window, prefs.quiet_start_local, prefs.quiet_end_local)) { outsideWindow++; continue; }
+    const claim = await nudgeLedgerRepo.claimDay(userId, parts.day, "push", "DUE_READY");
+    if (!claim.claimed) { budget++; continue; }
     const payload = _nudgePayload(due.length);
     for (const s of fresh) {
       const r = await _send(db, s, payload);
@@ -150,7 +168,7 @@ async function runPushSweep({ nowMs, force } = {}) {
       } else if (r.removed) removed++;
     }
   }
-  return { ok: true, day, notified, skippedDay, quiet, removed };
+  return { ok: true, day, notified, skippedDay, quiet, removed, disabled, budget, prefsErr, outsideWindow };
 }
 
 module.exports = { ensureVapid, subscribe, unsubscribe, status, sendTest, runPushSweep, PUSH_HOUR_UTC };

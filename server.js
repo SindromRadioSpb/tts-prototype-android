@@ -1948,6 +1948,10 @@ const TG_CONTENT_MAX = Number(process.env.TG_CONTENT_MAX) || 10;   // челов
 function tgContentAllowed(fromId) { return _bucketAllowed(_tgContentBuckets, fromId, TG_CONTENT_MAX, 60_000); }
 const telegramContent = require("./agent/telegram/content");
 const telegramReview = require("./agent/telegram/review");   // P7.2a пишущий review-поток (webhook-trusted)
+const telegramFormat = require("./agent/telegram/format");
+const notificationPrefsRepo = require("./db/notificationPrefsRepo");   // P7.3a /stop//resume запись prefs
+const nudgeRepo = require("./db/nudgeRepo");                            // P7.3a проактивный нудж-sweep
+const agentRepoForTg = require("./db/agentRepo");
 
 app.post(TELEGRAM_WEBHOOK_PATH, telegramSecretGate, _tgWebhookJson, async (req, res) => {
   const upd = req.body || {};
@@ -1972,8 +1976,13 @@ app.post(TELEGRAM_WEBHOOK_PATH, telegramSecretGate, _tgWebhookJson, async (req, 
   // ── ФАЗА 1 (в txn): dedup + эффект роутера + bot_action_log. Сбой ЗДЕСЬ → rollback (включая
   // dedup) → 500 → Telegram переиграет (at-least-once честен). ──
   try {
-    const r = await channelLinkRepo.processUpdateTxn(updateId, async (db) =>
-      telegramRouter.handle(db, { tgUserId: fromId, tgChatId: chatId, text: msg.text || "", updateId, isReply, replyToMessageId }));
+    const r = await channelLinkRepo.processUpdateTxn(updateId, async (db) => {
+      const out = await telegramRouter.handle(db, { tgUserId: fromId, tgChatId: chatId, text: msg.text || "", updateId, isReply, replyToMessageId });
+      // P7.3a /stop//resume: durable-запись prefs ВНУТРИ webhook-txn — атомарно с dedup (сбой → rollback →
+      // Telegram переиграет → opt-out не теряется молча). Роутер остаётся transitive-read-only (пишет здесь).
+      if (out && out.kind === "pref") await notificationPrefsRepo.setTelegramEnabledTxn(db, out.userId, out.enable);
+      return out;
+    });
     if (r.duplicate) return res.json({ ok: true, duplicate: true });   // уже обработан → без эффекта
     result = r.result;
   } catch (e) {
@@ -2003,6 +2012,12 @@ app.post(TELEGRAM_WEBHOOK_PATH, telegramSecretGate, _tgWebhookJson, async (req, 
         replyToMessageId: result.replyToMessageId, text: msg.text || "", updateId: result.updateId,
       });
       if (r && r.note) await telegramApi.sendMessage(result.chatId != null ? result.chatId : chatId, r.note);
+    } else if (result && result.kind === "pref") {
+      // P7.3a /stop//resume: запись prefs УЖЕ применена атомарно в phase-1 (durable). Здесь — только
+      // локализованное подтверждение (класс A). Связка/consent остаются активны (не /unlink).
+      let lng = "ru"; try { const p = await agentRepoForTg.getProfile(result.userId); lng = (p && p.language) || "ru"; } catch (_) {}
+      const txt = result.enable ? telegramFormat.nudgeResumeText(lng) : telegramFormat.nudgeStopText(lng);
+      await telegramApi.sendMessage(result.chatId != null ? result.chatId : chatId, txt);
     } else if (result && result.text) {
       await telegramApi.sendMessage(result.chatId != null ? result.chatId : chatId, result.text);
     }
@@ -2121,6 +2136,20 @@ setInterval(() => {
   try {
     if (getDbHealth().ready !== true) return;
     pushRepo.runPushSweep({ nowMs: Date.now() }).catch(() => {});
+  } catch (_) {}
+}, 15 * 60_000).unref();
+
+// P7.3a — проактивный Telegram-нудж sweep (за флагом AGENT_NUDGE_ENABLED; runNudgeSweep сам гейтит).
+// 15-мин tick ловит начало локального окна пользователя; claim-ledger + single-flight → без дублей.
+app.post("/api/nudge/sweep", async (req, res) => {
+  if (!requireAdminToken(req, res)) return;
+  try { res.json(await nudgeRepo.runNudgeSweep({ nowMs: req.body && req.body.now ? Number(req.body.now) : null, force: !!(req.body && req.body.force) })); }
+  catch (e) { res.status(500).json({ ok: false, error: "NUDGE_SWEEP_FAILED", message: e.message }); }
+});
+setInterval(() => {
+  try {
+    if (getDbHealth().ready !== true) return;
+    nudgeRepo.runNudgeSweep({ nowMs: Date.now() }).catch(() => {});
   } catch (_) {}
 }, 15 * 60_000).unref();
 

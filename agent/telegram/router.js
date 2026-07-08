@@ -34,6 +34,8 @@ const HELP =
   "/summary — над чем работаешь\n" +
   "/explain — последние объяснения\n" +
   "/status — связан ли аккаунт\n" +
+  "/stop — отключить напоминания\n" +
+  "/resume — включить напоминания\n" +
   "/unlink — отключить Telegram\n" +
   "/help — эта справка";
 
@@ -101,6 +103,19 @@ async function handle(db, ctx) {
     }
     case "/help": {
       out = reply(HELP, { status: "ok" });
+      break;
+    }
+    // P7.3a in-channel opt-out: /stop /resume → notification_preferences.telegram_enabled. Роутер
+    // ГЕЙТит (link+consent, in-txn) и возвращает дескриптор; ЗАПИСЬ prefs — в server.js вне txn
+    // (роутер transitive-read-only цел: не импортит notificationPrefsRepo). Связка остаётся активной,
+    // review/content-команды работают (лучше, чем /unlink — не рвёт канал).
+    case "/stop":
+    case "/resume": {
+      const link = await CL.activeLinkByTgTxn(db, tgUserId);
+      if (!link) { out = reply("Не связано. Подключите Telegram на сайте.", { status: "rejected", errorCode: "NOT_LINKED" }); break; }
+      if (!(await CL.telegramConsentActive(db, link.user_id))) { out = reply("Канал отключён. Подключите Telegram заново на сайте.", { status: "rejected", errorCode: "CONSENT_OFF" }); break; }
+      out = { kind: "pref", command: verb === "/stop" ? "stop" : "resume", enable: verb === "/resume",
+              userId: link.user_id, tgUserId, chatId: tgChatId, status: "ok" };
       break;
     }
     // P7.2a /review — гейт link+consent в txn → дескриптор review-start (produce вне txn: eligibility

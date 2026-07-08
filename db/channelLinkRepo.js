@@ -141,6 +141,10 @@ async function unlinkByTg(db, tgUserId, channel = "telegram") {
   const r = await dbRun(db,
     `UPDATE channel_links SET status = 'revoked', revoked_at = ? WHERE channel = ? AND telegram_user_id = ? AND status = 'active'`,
     [nowIso(), channel, String(tgUserId)]);
+  // P7.3a: очистить nudge-runtime юзера этого telegram (backoff не переживает /unlink). user_id — из
+  // связки (в той же webhook-txn: subquery видит запись независимо от только что выставленного status).
+  await dbRun(db, `DELETE FROM nudge_ledger WHERE user_id IN (SELECT user_id FROM channel_links WHERE channel=? AND telegram_user_id=?)`,
+    [channel, String(tgUserId)]);
   return { ok: true, revoked: r.changes };
 }
 
@@ -179,6 +183,7 @@ async function unlinkByUser(userId, channel = "telegram") {
       const r = await dbRun(db,
         `UPDATE channel_links SET status='revoked', revoked_at=? WHERE user_id=? AND channel=? AND status IN ('active','pending')`,
         [nowIso(), userId, channel]);
+      await dbRun(db, `DELETE FROM nudge_ledger WHERE user_id=?`, [userId]);   // P7.3a: backoff не переживает unlink
       await dbRun(db, `COMMIT`);
       return { ok: true, revoked: r.changes };
     } catch (e) { try { await dbRun(db, `ROLLBACK`); } catch (_) {} throw e; }
@@ -199,6 +204,9 @@ async function revokeTelegramCascade(userId, channel = "telegram") {
       const toks = await dbRun(db,
         `UPDATE channel_pairing_tokens SET consumed_at=? WHERE user_id=? AND channel=? AND consumed_at IS NULL`,
         [nowIso(), userId, channel]);
+      // P7.3a: очистить nudge-runtime/backoff (не переживает re-pair; стейл-backoff не должен подавлять
+      // новый канал — критика R14/R15). Prefs (tz/enabled) — пользовательские, сохраняются.
+      await dbRun(db, `DELETE FROM nudge_ledger WHERE user_id=?`, [userId]);
       await dbRun(db, `COMMIT`);
       return { ok: true, links: links.changes, tokens: toks.changes };
     } catch (e) { try { await dbRun(db, `ROLLBACK`); } catch (_) {} throw e; }
