@@ -202,6 +202,39 @@ function formatDictatePrompt(lang) {
   return t.diPromptHead + "\n\n" + t.diPromptFoot;
 }
 function dictatePlaceholder(lang) { return L(lang).diPlaceholder; }
+
+// ── P7.2d premium selector — объяснение выбора модальности (класс A, детерминированное) ──────────
+// R17: детерминированный СЕЛЕКТОР выбрал модальность И код-причину (chal.select_reason); здесь —
+// СТАТИЧНАЯ строка по (reason × kind), НИКОГДА LLM/item_key/лемма/ответ. Показываем ТОЛЬКО для skill-
+// driven причин (flagship gap + cloze-на-struggle) — default_* без строки (премиум = редко+точно,
+// критика R5). Fail-safe: любой (reason×kind) вне таблицы → "" (не только неизвестный reason).
+// Язык — как весь format.js: ru/en (he→ru surface-wide, избегаем mixed-language, критика wf_72c44361).
+const SELECT_EXPLAIN = {
+  reading_strong_close_dictation_gap: {
+    dictate: {
+      ru: "Это слово тебе уже знакомо при чтении — проверим, сможешь ли записать его на слух.",
+      en: "You already recognize this word in reading — let's see if you can write it from listening.",
+    },
+  },
+  recent_struggle_prefer_cued: {
+    cloze: {
+      ru: "Недавно это слово давалось трудно — потренируем его в контексте твоего текста.",
+      en: "This word was tricky recently — let's practice it in the context of your text.",
+    },
+  },
+};
+function selectExplanation(reason, kind, lang) {
+  const byKind = SELECT_EXPLAIN[String(reason || "")];
+  if (!byKind) return "";
+  const s = byKind[String(kind || "")];
+  if (!s) return "";
+  return (lang === "en" ? s.en : s.ru) || "";
+}
+// префикс prompt объяснением (пустое → prompt без изменений)
+function withExplanation(promptText, reason, kind, lang) {
+  const ex = selectExplanation(reason, kind, lang);
+  return ex ? ex + "\n\n" + String(promptText || "") : String(promptText || "");
+}
 function reviewUnavailable(lang) { return L(lang).revUnavailable; }
 function reviewBusy(lang) { return L(lang).revBusy; }
 function reviewNothing(lang) { return L(lang).revNothing; }
@@ -244,6 +277,6 @@ module.exports = {
   splitMessage, formatPlan, formatDue, formatSummary, formatExplain, showLemma,
   refusedText: (lang) => L(lang).refused, LIMIT,
   formatReversePrompt, reversePlaceholder, formatClozePrompt, clozePlaceholder,
-  formatDictatePrompt, dictatePlaceholder,
+  formatDictatePrompt, dictatePlaceholder, selectExplanation, withExplanation,
   reviewUnavailable, reviewBusy, reviewNothing, verdictDeclined, verdictFromResult,
 };

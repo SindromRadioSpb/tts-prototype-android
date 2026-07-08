@@ -1,0 +1,102 @@
+# P7.2d measure — dictate-safe set by written-length & POS
+
+dataset: pealim-infl-v12 (9279 paradigms, 9279 distinct pids)
+predicate: keyingService.dictateFormForItemKey (омофон-фильтр + vocForm-однозначность), сервер-идентичный
+
+dictate-SAFE lemmas: 6912 (74.5% of pids)
+
+## By written (consonantal) length
+  len=2: 85  (cum 85, 1.2% of safe)
+  len=3: 620  (cum 705, 10.2% of safe)
+  len=4: 1849  (cum 2554, 37.0% of safe)
+  len=5: 2361  (cum 4915, 71.1% of safe)
+  len=6: 1403  (cum 6318, 91.4% of safe)
+  len=7: 488  (cum 6806, 98.5% of safe)
+  len=8: 75  (cum 6881, 99.6% of safe)
+  len=9: 22  (cum 6903, 99.9% of safe)
+  len=10: 7  (cum 6910, 100.0% of safe)
+  len=11: 1  (cum 6911, 100.0% of safe)
+  len=12: 1  (cum 6912, 100.0% of safe)
+
+## Fork #3 impact
+  written === 1: 0  (0.00% of safe)
+  written <= 2 : 85  (1.23% of safe)  ← «min length >=3» отсекает столько
+    of which function-POS: 11
+    of which content-POS : 74
+  function-POS (ANY length): 193  (2.79% of safe)  ← «exclude function-POS» отсекает столько
+
+  Overlap: content-POS words with len<=2 that survive «exclude function-POS» but «min>=3» would cut: 74
+  Overlap: function-POS words with len>=3 that survive «min>=3» but «exclude function» would cut: 182
+
+## POS breakdown of dictate-safe set
+  noun: 3584
+  verb: 2484
+  adjective: 650
+  adverb: 161  [FUNCTION]
+  conjunction: 11  [FUNCTION]
+  pronoun: 10  [FUNCTION]
+  other: 6  [FUNCTION]
+  interjection: 5  [FUNCTION]
+  preposition: 1
+
+## Sample of written<=2 items (first 60)
+  «של»  pos=noun  [content]
+  «גל»  pos=noun  [content]
+  «גן»  pos=noun  [content]
+  «בת»  pos=noun  [content]
+  «מס»  pos=noun  [content]
+  «דף»  pos=noun  [content]
+  «לא»  pos=other  [FUNCTION]
+  «פת»  pos=noun  [content]
+  «פה»  pos=adverb  [FUNCTION]
+  «שם»  pos=noun  [content]
+  «נר»  pos=noun  [content]
+  «עץ»  pos=noun  [content]
+  «דק»  pos=adjective  [content]
+  «גס»  pos=adjective  [content]
+  «נס»  pos=noun  [content]
+  «הר»  pos=noun  [content]
+  «אב»  pos=noun  [content]
+  «צל»  pos=noun  [content]
+  «רע»  pos=adjective  [content]
+  «קל»  pos=adjective  [content]
+  «טל»  pos=noun  [content]
+  «חם»  pos=adjective  [content]
+  «צי»  pos=noun  [content]
+  «לב»  pos=noun  [content]
+  «סף»  pos=noun  [content]
+  «זך»  pos=adjective  [content]
+  «צר»  pos=adjective  [content]
+  «פן»  pos=noun  [content]
+  «גב»  pos=noun  [content]
+  «חג»  pos=noun  [content]
+  «צד»  pos=noun  [content]
+  «קו»  pos=noun  [content]
+  «זר»  pos=noun  [content]
+  «זר»  pos=adjective  [content]
+  «דת»  pos=noun  [content]
+  «דם»  pos=noun  [content]
+  «נא»  pos=other  [FUNCTION]
+  «כה»  pos=adverb  [FUNCTION]
+  «חם»  pos=noun  [content]
+  «מה»  pos=pronoun  [FUNCTION]
+  «גו»  pos=noun  [content]
+  «עז»  pos=noun  [content]
+  «זו»  pos=conjunction  [FUNCTION]
+  «זה»  pos=pronoun  [FUNCTION]
+  «שן»  pos=noun  [content]
+  «צח»  pos=adjective  [content]
+  «פר»  pos=noun  [content]
+  «פן»  pos=conjunction  [FUNCTION]
+  «אף»  pos=noun  [content]
+  «כך»  pos=adverb  [FUNCTION]
+  «כס»  pos=noun  [content]
+  «בז»  pos=noun  [content]
+  «תם»  pos=adjective  [content]
+  «פה»  pos=noun  [content]
+  «לח»  pos=adjective  [content]
+  «זן»  pos=noun  [content]
+  «רז»  pos=noun  [content]
+  «תא»  pos=noun  [content]
+  «סל»  pos=noun  [content]
+  «תה»  pos=noun  [content]

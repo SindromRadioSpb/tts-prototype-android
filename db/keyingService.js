@@ -285,7 +285,11 @@ async function dictateFormForItemKey(itemKey) {
   if (!p || !p.lemma_niqqud) return null;
   const vocalized = _normVoc(p.lemma_niqqud);
   const written = LC.stripNiqqud(vocalized);
-  if (!written || written.length < 2 || !HEB_ONLY_RE.test(written)) return null;
+  // P7.2d (owner + live-verify 2026-07-08): мин. письменной длины ≥3. 2-буквенные слова (85 лемм =
+  // 1.23%; замер scripts/premium/measure-dictate-length-pos.js — 74 content вкл. владельческий פן) —
+  // плохие цели аудио-диктанта (сигнал слишком мал, «Ожидалось: 2 буквы» несправедливо). ЕДИНАЯ точка
+  // фильтра → сервер-селектор + bake + оракул-гейт согласованы ПО ПОСТРОЕНИЮ (2-букв → null обеими).
+  if (!written || written.length < 3 || !HEB_ONLY_RE.test(written)) return null;
   const set = fi.get(vocalized);
   if (!(set && set.size === 1)) return null;   // огласованная лемма неоднозначна глобально → skip
   // ОМОФОН-ФИЛЬТР (критика wf_6732a80f BLOCKER): звук слова должен задавать РОВНО одно написание в

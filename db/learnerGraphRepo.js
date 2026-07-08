@@ -55,21 +55,31 @@ async function manualStatusMap(userId) {
 
 // Due-now items: schedule from projections, 'ignore' excluded by the manual axis — the same
 // rule the Room's cross-text due queue applies (getDueWithSource: srs_due<=now AND status!='ignore').
-async function getDue(userId, { nowMs, limit } = {}) {
+async function getDue(userId, { nowMs, limit, withChannelStats } = {}) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const now = Number(nowMs) || Date.now();
   const lim = Math.max(1, Math.min(500, Number(limit) || 100));
   const manual = await manualStatusMap(userId);
+  // P7.2d: item_key ASC — ТОТАЛЬНЫЙ порядок (детерминизм селектора; иначе (lapses,due)-ties SQLite-
+  // произвольны → нестабильный выбор модальности между рансами). channel_stats_json прикрепляется к
+  // строке ТОЛЬКО при opts.withChannelStats (селектор) → НЕ течёт в HTTP /api/learner/due и LLM-tool
+  // (gate-consumers-sweep: getDue зовут ещё /api/learner/due, tools.js, pushRepo, content.js — форма их
+  // ответа/контекста не меняется без флага).
   const rows = await dbAll(db,
-    `SELECT item_key, due, interval_days, reps, lapses, stability, difficulty, reviewed_at
+    `SELECT item_key, due, interval_days, reps, lapses, stability, difficulty, reviewed_at, channel_stats_json
        FROM srs_projections WHERE user_id = ? AND due IS NOT NULL AND due <= ?
-      ORDER BY lapses DESC, due ASC`, [userId, new Date(now).toISOString()]);
+      ORDER BY lapses DESC, due ASC, item_key ASC`, [userId, new Date(now).toISOString()]);
   const out = [];
   for (const r of (rows || [])) {
     const st = manual[r.item_key] || "";
     if (st === "ignore") continue;
-    out.push({ item_key: r.item_key, status: st, due: r.due, interval_days: r.interval_days,
-      reps: r.reps, lapses: r.lapses, stability: r.stability, difficulty: r.difficulty, reviewed_at: r.reviewed_at });
+    const item = { item_key: r.item_key, status: st, due: r.due, interval_days: r.interval_days,
+      reps: r.reps, lapses: r.lapses, stability: r.stability, difficulty: r.difficulty, reviewed_at: r.reviewed_at };
+    if (withChannelStats) {
+      let cs = null; try { cs = r.channel_stats_json ? JSON.parse(r.channel_stats_json) : null; } catch (_) {}
+      item.channel_stats = cs;
+    }
+    out.push(item);
     if (out.length >= lim) break;
   }
   return out;
@@ -151,6 +161,31 @@ async function getRecentStruggles(userId, { sinceMs, minFails, limit } = {}) {
     .map(([k, a]) => ({ item_key: k, fails: a.fails, prod_fails: a.prod_fails, last_fail_at: a.last_fail_at }));
 }
 
+// P7.2d — ПОЛНЫЙ Set item_key'ов с ≥minFails провалами (grade≤2, kind='review', минус
+// аннулированные) за окно sinceMs по учебному времени reviewed_at. В отличие от getRecentStruggles
+// (ranked top-N, cap 20 — для ПОКАЗА в /plan), это МНОЖЕСТВО-ПРИНАДЛЕЖНОСТЬ для селектора: критика
+// wf_58b7c1d6 (R2/R11 MAJOR) — усечённый top-N молча теряет горящие due-слова за пределами cap →
+// ложная flagship-промоция самой сложной модальностью. БЕЗ cap; ignore-исключён как везде.
+async function recentStruggleKeySet(userId, { sinceMs, minFails } = {}) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const min = Math.max(1, Number(minFails) || 2);
+  const since = new Date(Number(sinceMs) || (Date.now() - 24 * 3600 * 1000)).toISOString();
+  const manual = await manualStatusMap(userId);
+  const annulled = await annulledIdSet(db, userId);   // annul_of в meta_json → агрегируем в JS (как getRecentStruggles)
+  const failRows = await dbAll(db,
+    `SELECT id, item_key FROM review_log
+      WHERE user_id = ? AND kind = 'review' AND grade IS NOT NULL AND grade <= 2 AND reviewed_at >= ?`,
+    [userId, since]);
+  const counts = new Map();
+  for (const r of failRows || []) {
+    if (annulled.has(String(r.id))) continue;
+    counts.set(r.item_key, (counts.get(r.item_key) || 0) + 1);
+  }
+  const set = new Set();
+  for (const [k, n] of counts) if (n >= min && (manual[k] || "") !== "ignore") set.add(k);
+  return set;
+}
+
 // Compact agent-facing summary (the getAgentContext primitive; grows in CLG-P6).
 async function getAgentContext(userId, { nowMs } = {}) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
@@ -196,4 +231,4 @@ async function getAgentContext(userId, { nowMs } = {}) {
   };
 }
 
-module.exports = { manualStatusMap, getDue, getKnownWords, getWeakWords, getRecentStruggles, getAgentContext };
+module.exports = { manualStatusMap, getDue, getKnownWords, getWeakWords, getRecentStruggles, recentStruggleKeySet, getAgentContext };
