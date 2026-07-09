@@ -26,8 +26,15 @@ table (`review_log`, `agent_challenges`, `channel_links`, `srs_projections`, `us
 the prod volume**. This is an **owner-gated** action (prod DB access).
 
 ## Status of these numbers
-Raw query tooling — **not yet run** against the owner profile. The output, once captured, should
-be pasted back into recon §2.2 with the run date.
+**Partially MEASURED 2026-07-09** — the HTTP-reachable subset was captured via the owner's
+authenticated prod browser session (kapture, `/api/learner/context|due|log`), aggregated in-page
+(no `item_key`/content persisted), and folded into **recon §2.2 "MEASURED 2026-07-09"**. Headline:
+51 due / 98 scheduled, all overdue; 15 fragile (stability<1); 36/51 zero-lapse; 10 Telegram
+production reviews to date (dictate 6 / cloze 4 / reverse 0). This `.sql` file still covers the
+subset **not** exposed over HTTP and must be run on the prod DB to complete the table:
+- §6 challenge outcomes (`agent_challenges.status` abandonment proxy)
+- §8 exposure ledger, §9 `select_reason` mix
+Plus the builder-driven §2.3 anchor-coverage probe (the gating number) is still outstanding.
 
 ## PENDING (not pure SQL — builder-driven, recon §2.3)
 - **% of current due items with a resolvable, non-leaking source-sentence anchor** (the number

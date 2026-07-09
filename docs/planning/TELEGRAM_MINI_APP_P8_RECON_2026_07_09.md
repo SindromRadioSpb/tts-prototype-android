@@ -80,15 +80,33 @@ Enablement is owner-only and explicit: `MINI_APP_ENABLED=0` by default **plus** 
 
 **Deliverable:** `docs/research/miniapp-p8-readiness/2026-07-09/measure-readiness.sql` — read-only, emits **distributions not verdicts** (overdue-day histogram, stability buckets) so thresholds (§7) are set *from* data, not guessed. Run: `sqlite3 -readonly /app/data/app.db < measure-readiness.sql` on the prod host.
 
+**MEASURED 2026-07-09 (prod owner profile, via the authenticated browser session hitting `/api/learner/*` — kapture; aggregates only, no `item_key`/content persisted):**
+
+| Metric | Value |
+|---|---|
+| tracked distinct items / log rows | 5235 items · 5596 log rows (of which **5367 are manual `mark`s** — bulk status-marking; only **143 reviews**, 74 seed, 12 skip) |
+| **scheduled (in FSRS) / due now** | **98 scheduled · 51 due** |
+| overdue distribution (all 51 due are overdue) | <1d: 24 · 1–3d: 13 · 3–7d: 14 · none >7d |
+| stability (fragility) | s<1: **15** · 1–3: 31 · 3–7: 5 |
+| lapses among due | 0 lapses: **36** · 1: 8 · 2–3: 4 · >3: 3 (⇒ ~15 lapsed/fragile) |
+| review grades (all channels) | g1: 44 · g2: 14 · g3: 97 |
+| **Telegram production reviews to date** | **10 completed** (dictate:tg 6, cloze:tg 4) · 6 tg skips · **reverse:tg 0 completed / 3 skipped** |
+| reading-surface reviews (baseline) | read:mc 80 · read:tiles 29 · read:typed 7 · dictate:tiles 13 · reading:tap 2 · … |
+| consents | cloud_texts ✓ · agent_read_texts ✓ · telegram_delivery ✓ · Telegram linked |
+| latency_ms | **null on agent reviews** → not recorded; needs P8.0 telemetry |
+
+**Interpretation (feeds §7 thresholds, honestly):** (1) the due pool is **small (51)** and cycles on ~1-day intervals, so *almost everything due is already overdue* — a "fresh-due reservation" reserves little at this maturity; the meaningful Mini-App-vs-reading split is better keyed on **lapsed/fragile** (~15 items: lapses≥1 or stability<1) vs **healthy** (~36) than on overdue-age. (2) Telegram review volume is **tiny (10)** — confirms owner-pilot framing; completion/abandonment can't yet be compared, which is exactly why P8.0 adds bot baseline telemetry. (3) reverse:tg is avoided by the owner (0/3) — dictate+cloze are the live modalities.
+
 | Metric (§3.2) | Source | Status |
 |---|---|---|
-| due count / overdue buckets / stability distribution | `srs_projections` | **query ready** — run on prod |
-| reviews by channel+kind, latency, cadence | `review_log` | **query ready** — run on prod |
-| challenge outcomes (abandonment proxy = expired/cancelled ÷ completed) | `agent_challenges.status` | **query ready** — run on prod |
-| exposure ledger, select_reason mix | `tg_stimulus_exposure`, `agent_challenges.select_reason` | **query ready** — run on prod |
-| **% due with source-sentence anchor** | builder-driven, **not pure SQL** | **PENDING builder probe** (§2.3) — this is the gating number for the §6/fork-4 context-first decision |
-| % due eligible for cloze/dictate/reverse assets | builder-driven | **PENDING builder probe** (homophone filter, vocalized-surface match, gloss strictness) |
-| avg messages per completed bot review | Telegram-side, not in DB (`bot_action_log` partial) | needs P7 instrumentation or manual count |
+| due count / overdue / stability / lapses | `srs_projections` (via `/api/learner/due`+`/context`) | **MEASURED ✅** (above) |
+| reviews by channel+kind, grades, cadence | `review_log` (via `/api/learner/log` full paging) | **MEASURED ✅** (above) |
+| latency per review | `review_log.latency_ms` | **null** — not recorded; add in P8.0 telemetry |
+| challenge outcomes (abandonment = expired/cancelled ÷ completed) | `agent_challenges.status` | **PENDING prod DB** — not exposed via HTTP (`measure-readiness.sql` §6) |
+| exposure ledger, select_reason mix | `tg_stimulus_exposure`, `agent_challenges.select_reason` | **PENDING prod DB** (`measure-readiness.sql` §8–9) |
+| **% due with source-sentence anchor** | builder-driven, **not pure SQL** | **PENDING builder probe** (§2.3) — the gating number for §6/fork-4 |
+| % due eligible for cloze/dictate/reverse assets | builder-driven | **PENDING builder probe** |
+| avg messages per completed bot review | Telegram-side | needs P8.0 bot telemetry |
 
 ### 2.3 The one measurement that gates the product (must run before P8.3)
 
@@ -220,7 +238,7 @@ ReviewAllocationPolicy
 
 The chosen `allocation_policy`/`scope`/`override` are stamped into **challenge provenance** so a review event is self-describing and auditable — e.g. `{"selection":{"allocation_policy":"reading-first-v1","scope":"overdue_or_almost_lapsed","override":false,"select_reason":"recent_struggle_prefer_cued"}}`. **Bot and Mini App call the SAME module** — neither surface classifies due items itself.
 
-**Values to SET FROM the §2.2 measurement, not guess (§7 discipline):** the `almost_lapsed` predicate/threshold, overdue threshold, fresh-due reservation, session cap, anti-starvation floor, user override. Each lives in the one policy file, carries `policy_version`, and is used identically by both surfaces. The overdue histogram + stability buckets in `measure-readiness.sql` exist precisely to set these. **Anti-starvation already exists** (selector tier "default_dictation" guarantees a due word eligible only for dictate is never silently dropped — `review.js:170`) and must be preserved.
+**Values to SET FROM the §2.2 measurement, not guess (§7 discipline):** the `almost_lapsed` predicate/threshold, overdue threshold, fresh-due reservation, session cap, anti-starvation floor, user override. Each lives in the one policy file, carries `policy_version`, and is used identically by both surfaces. **Data-driven starting point from the 2026-07-09 measurement** (owner to confirm as `reading-first-v1`): because at this profile maturity *all 51 due are already overdue*, keying the Mini-App pool on overdue-age reserves almost nothing for reading; instead default the Mini-App pool to **`almost_lapsed := lapses≥1 OR stability<1`** (~15 items) and reserve the **~36 zero-lapse healthy due** for reading, with the explicit "review everything now" override lifting the reservation. Re-derive as the pool grows (more scheduled items, longer intervals → overdue-age regains signal). **Anti-starvation already exists** (selector tier "default_dictation" guarantees a due word eligible only for dictate is never silently dropped — `review.js:170`) and must be preserved.
 
 **Minimal guardrail telemetry (P8, events only — analysis is P10):** reviews completed in Mini App; reviews completed in reading; reading opens after Mini App; source deep-link success; share of Mini App reviews carrying source context; reading-session frequency (for later delta). See §10.
 
