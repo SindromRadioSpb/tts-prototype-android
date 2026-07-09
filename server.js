@@ -1556,6 +1556,7 @@ app.post("/api/auth/consent", async (req, res) => {
         // явная зачистка слота). Best-effort: провал не откатывает подтверждённый revoke.
         let cancelledChallenges = 0;
         try { cancelledChallenges = await agentChallengeRepo.cancelOpenForUser(auth.user.id); } catch (_) {}
+        try { await identityRepo.bumpUserAuthContextVersion(auth.user.id); } catch (_) {} // P8.1: invalidate miniapp sessions
         identityRepo.audit("telegram_consent_cascade", auth.user.id, { ...casc, challenges: cancelledChallenges }, req.ip);
         purgeInfo = { telegram_revoked_links: casc.links, telegram_revoked_tokens: casc.tokens };
       } catch (e3) {
@@ -1913,9 +1914,111 @@ app.post("/api/agent/telegram/unlink", rlTelegramPair, async (req, res) => {
   try {
     const r = await channelLinkRepo.unlinkByUser(auth.user.id);
     try { await agentChallengeRepo.cancelOpenForUser(auth.user.id); } catch (_) {}   // P7.2a: гасим challenges
+    try { await identityRepo.bumpUserAuthContextVersion(auth.user.id); } catch (_) {} // P8.1: invalidate miniapp sessions
     identityRepo.audit("telegram_unlink", auth.user.id, r, req.ip);
     res.json({ ok: true, ...r });
   } catch (e) { res.status(500).json({ ok: false, error: "TELEGRAM_UNLINK_FAILED", message: e.message }); }
+});
+
+// ============================================================================
+// CLG-P8.1 — Telegram Mini App: auth exchange + BFF (TELEGRAM_MINI_APP_P8_1_SPEC).
+// Separate cookie (lp_miniapp_session), fixed session_kind='telegram_miniapp',
+// BFF /api/miniapp/* guarded by requireMiniappSession (never direct /api/learner/*).
+// Everything fail-closed; nothing writes review_log. Owner-pilot: MINI_APP_ENABLED
+// off by default + MINI_APP_OWNER_USER_IDS allowlist (by Telegram principal).
+// ============================================================================
+const miniappAuth = require("./agent/telegram/miniappAuth");
+
+function miniappEnabled() { return process.env.MINI_APP_ENABLED === "1"; }
+function miniappOwnerAllow() {
+  return new Set(String(process.env.MINI_APP_OWNER_USER_IDS || "").split(",").map((s) => s.trim()).filter(Boolean));
+}
+function miniappCfg() {
+  return {
+    maxAgeSec: Number(process.env.MINIAPP_INITDATA_MAX_AGE_SECONDS) || 3600,
+    idleMs: (Number(process.env.MINIAPP_SESSION_IDLE_SECONDS) || 7200) * 1000,
+    absoluteMs: (Number(process.env.MINIAPP_SESSION_ABSOLUTE_SECONDS) || 86400) * 1000,
+  };
+}
+function getMiniappCookie(req) {
+  const h = String(req.headers.cookie || "");
+  for (const part of h.split(";")) {
+    const eq = part.indexOf("=");
+    if (eq <= 0) continue;
+    if (part.slice(0, eq).trim() === "lp_miniapp_session") {
+      try { return decodeURIComponent(part.slice(eq + 1).trim()); } catch (_) { return part.slice(eq + 1).trim(); }
+    }
+  }
+  return "";
+}
+function setMiniappCookie(req, res, value, maxAgeSec) {
+  const secure = req.secure || req.get("x-forwarded-proto") === "https";
+  res.append("Set-Cookie",
+    `lp_miniapp_session=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}; Max-Age=${Math.max(0, maxAgeSec | 0)}`);
+}
+// BFF audience guard: valid scoped session + LIVE fail-closed re-checks (link active + telegram
+// consent granted). auth_context_version match is enforced inside validateMiniappSession.
+async function requireMiniappSession(req, res) {
+  if (!miniappEnabled()) { res.status(503).json({ ok: false, error: "FEATURE_DISABLED" }); return null; }
+  const cfg = miniappCfg();
+  const auth = await identityRepo.validateMiniappSession(getMiniappCookie(req), { idleMs: cfg.idleMs }).catch(() => null);
+  if (!auth) { res.status(401).json({ ok: false, error: "MINIAPP_SESSION_INVALID" }); return null; }
+  try {
+    const link = await channelLinkRepo.getLinkForUser(auth.user.id);
+    if (!link || link.status !== "active") { res.status(401).json({ ok: false, error: "MINIAPP_LINK_INACTIVE" }); return null; }
+    if (!(await channelLinkRepo.telegramConsentActive(null, auth.user.id))) { res.status(401).json({ ok: false, error: "MINIAPP_CONSENT_REVOKED" }); return null; }
+  } catch (_) { res.status(401).json({ ok: false, error: "MINIAPP_SESSION_INVALID" }); return null; }
+  return auth;
+}
+
+// initData → scoped session. user_id NEVER from body — derived from the active channel link only.
+app.post("/api/miniapp/session", async (req, res) => {
+  if (!miniappEnabled()) return res.status(503).json({ ok: false, error: "FEATURE_DISABLED" });
+  const ip = req.ip || "unknown";
+  // shares the login fail-limiter (both are Telegram/secret surfaces on one owner-pilot host)
+  if (authFailExceeded(ip)) { res.set("Retry-After", String(Math.ceil(AUTH_FAIL_WINDOW_MS / 1000))); return res.status(429).json({ ok: false, error: "TOO_MANY_AUTH_FAILURES" }); }
+  const cfg = miniappCfg();
+  const v = miniappAuth.validateInitData((req.body && req.body.init_data) || "", { maxAgeSec: cfg.maxAgeSec });
+  if (!v.ok) {
+    authFailRecord(ip);
+    identityRepo.audit("miniapp_auth_failed", null, { code: v.code }, ip);   // enum only — never raw initData
+    return res.status(401).json({ ok: false, error: "MINIAPP_AUTH_FAILED", code: v.code });
+  }
+  const allow = miniappOwnerAllow();
+  if (allow.size && !allow.has(v.telegramUserId)) return res.status(503).json({ ok: false, error: "NOT_ALLOWLISTED" });
+  try {
+    const link = await channelLinkRepo.getActiveLinkByTg(v.telegramUserId, "telegram");
+    if (!link) return res.status(401).json({ ok: false, error: "MINIAPP_NOT_PAIRED" });
+    const userId = link.user_id;
+    if (!(await channelLinkRepo.telegramConsentActive(null, userId))) return res.status(401).json({ ok: false, error: "MINIAPP_CONSENT_REVOKED" });
+    // Replay ledger = audit/observability. The real replay bound is the short auth_date TTL; a
+    // legit lost-response retry reuses the SAME initData and must still get a session, so a replay
+    // is NOT hard-rejected here (it would break retry) — it is recorded.
+    try {
+      const seen = await identityRepo.recordMiniappInitDataSeen(userId, miniappAuth.initDataDedupKey(v.hash), v.authDate);
+      if (!seen.fresh) identityRepo.audit("miniapp_auth_replay", userId, {}, ip);
+    } catch (_) {}
+    const acv = await identityRepo.getUserAuthContextVersion(userId);
+    const s = await identityRepo.createMiniappSession(userId, {
+      channelLinkId: link.id, authContextVersion: acv, ip, userAgent: req.get("user-agent"),
+      idleMs: cfg.idleMs, absoluteMs: cfg.absoluteMs,
+    });
+    setMiniappCookie(req, res, s.cookieValue, Math.floor(cfg.absoluteMs / 1000));
+    identityRepo.audit("miniapp_auth", userId, { sessionId: s.sessionId }, ip);
+    const consents = await identityRepo.listConsents(userId);
+    res.json({ ok: true, csrf: s.csrf, user: { id: userId }, consents: consents.current, expiresAt: s.expiresAt });
+  } catch (e) { res.status(500).json({ ok: false, error: "MINIAPP_AUTH_FAILED", code: "SERVER" }); }
+});
+
+// Read-only home payload (MNAR: opening the home is not a learning event; writes NOTHING).
+app.get("/api/miniapp/home", async (req, res) => {
+  const auth = await requireMiniappSession(req, res); if (!auth) return;
+  try {
+    const lg = require("./db/learnerGraphRepo");
+    const ctx = await lg.getAgentContext(auth.user.id);
+    const consents = await identityRepo.listConsents(auth.user.id);
+    res.json({ ok: true, counts: ctx.counts, last_review_at: ctx.last_review_at, recommendation: null, consents: consents.current });
+  } catch (e) { res.status(500).json({ ok: false, error: "MINIAPP_HOME_FAILED" }); }
 });
 
 // ── webhook: secret-middleware (raw, ДО парсинга) → 256kb-json → handler ──────
