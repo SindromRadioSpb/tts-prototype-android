@@ -70,6 +70,10 @@ async function validateSession(cookieValue) {
   let s;
   try { s = await dbGet(db, `SELECT * FROM user_sessions WHERE id = ?`, [sessionId]); } catch (_) { return null; }
   if (!s || s.revoked_at) return null;
+  // Audience separation (CLG-P8.1): the PWA validator accepts ONLY 'pwa'-kind sessions, so a
+  // Mini App session secret can never authorize a PWA route. Pre-034 rows have no column (undefined
+  // → treated as pwa). Mini App sessions go through validateMiniappSession instead.
+  if (s.session_kind && s.session_kind !== "pwa") return null;
   if (Date.parse(s.expires_at) < Date.now()) return null;
   const a = Buffer.from(sha256Hex(secret)), b = Buffer.from(String(s.token_hash || ""));
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
@@ -96,6 +100,95 @@ async function listSessions(userId) {
        FROM user_sessions s LEFT JOIN devices d ON d.id = s.device_id
       WHERE s.user_id = ? ORDER BY s.created_at DESC`, [userId]);
   return rows || [];
+}
+
+// ── CLG-P8.1 Mini App scoped sessions ─────────────────────────────────────────
+// One user_sessions table, fixed session_kind. Mint sets a SHORT idle expiry + a hard absolute cap,
+// binds channel_link_id + a snapshot of the user's auth_context_version (structural revoke).
+const MINIAPP_IDLE_MS_DEFAULT = 2 * 3600 * 1000;        // 2h
+const MINIAPP_ABSOLUTE_MS_DEFAULT = 24 * 3600 * 1000;   // 24h first launch (configurable at call site)
+
+async function createMiniappSession(userId, opts = {}) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const idleMs = Number(opts.idleMs) > 0 ? Number(opts.idleMs) : MINIAPP_IDLE_MS_DEFAULT;
+  const absoluteMs = Number(opts.absoluteMs) > 0 ? Number(opts.absoluteMs) : MINIAPP_ABSOLUTE_MS_DEFAULT;
+  const deviceId = rndId("d_", 8);
+  await dbRun(db, `INSERT INTO devices (id, user_id, label, last_seen_at) VALUES (?,?,?,?)`,
+    [deviceId, userId, "telegram_miniapp", nowIso()]);
+  const sessionId = rndId("s_", 8);
+  const secret = crypto.randomBytes(32).toString("hex");
+  const csrf = crypto.randomBytes(24).toString("hex");
+  const now = Date.now();
+  const expiresAt = new Date(now + idleMs).toISOString();            // idle (slid on each validate)
+  const absoluteExpiresAt = new Date(now + absoluteMs).toISOString();// hard cap
+  await dbRun(db,
+    `INSERT INTO user_sessions
+       (id, user_id, device_id, token_hash, csrf_token, expires_at, ip, user_agent,
+        session_kind, auth_method, channel_link_id, auth_context_version, absolute_expires_at)
+     VALUES (?,?,?,?,?,?,?,?, 'telegram_miniapp','telegram_init_data', ?, ?, ?)`,
+    [sessionId, userId, deviceId, sha256Hex(secret), csrf, expiresAt,
+     opts.ip ? String(opts.ip).slice(0, 64) : null, opts.userAgent ? String(opts.userAgent).slice(0, 200) : null,
+     opts.channelLinkId ? String(opts.channelLinkId) : null, Number(opts.authContextVersion) || 0, absoluteExpiresAt]);
+  return { cookieValue: sessionId + "." + secret, sessionId, deviceId, csrf, expiresAt, absoluteExpiresAt };
+}
+
+// Validate a Mini App session cookie. Returns { user, session, channelLinkId } | null.
+// Enforces (in order): kind='telegram_miniapp', not revoked, idle not passed, absolute not passed,
+// constant-time secret match, auth_context_version snapshot == user's current (structural revoke).
+// On success slides the idle window: expires_at = min(now+idle, absolute).
+async function validateMiniappSession(cookieValue, opts = {}) {
+  const db = getDb(); if (!db) return null;
+  const v = String(cookieValue || "");
+  const dot = v.indexOf(".");
+  if (dot <= 0) return null;
+  const sessionId = v.slice(0, dot), secret = v.slice(dot + 1);
+  if (!sessionId || !secret) return null;
+  let s;
+  try { s = await dbGet(db, `SELECT * FROM user_sessions WHERE id = ?`, [sessionId]); } catch (_) { return null; }
+  if (!s || s.revoked_at) return null;
+  if (s.session_kind !== "telegram_miniapp") return null;
+  const now = Date.now();
+  if (Date.parse(s.expires_at) < now) return null;                                  // idle expired
+  if (s.absolute_expires_at && Date.parse(s.absolute_expires_at) < now) return null; // absolute cap
+  const a = Buffer.from(sha256Hex(secret)), b = Buffer.from(String(s.token_hash || ""));
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+  const user = await dbGet(db, `SELECT id, role, display_name, email, created_at, auth_context_version FROM users WHERE id = ?`, [s.user_id]);
+  if (!user) return null;
+  if (Number(s.auth_context_version || 0) !== Number(user.auth_context_version || 0)) return null; // structural revoke
+  const idleMs = Number(opts.idleMs) > 0 ? Number(opts.idleMs) : MINIAPP_IDLE_MS_DEFAULT;
+  const absMs = s.absolute_expires_at ? Date.parse(s.absolute_expires_at) : Infinity;
+  const newExpires = new Date(Math.min(now + idleMs, absMs)).toISOString();
+  try {
+    await dbRun(db, `UPDATE user_sessions SET last_used_at = ?, expires_at = ? WHERE id = ?`, [nowIso(), newExpires, sessionId]);
+    if (s.device_id) await dbRun(db, `UPDATE devices SET last_seen_at = ? WHERE id = ?`, [nowIso(), s.device_id]);
+  } catch (_) {}
+  return {
+    user: { id: user.id, role: user.role, display_name: user.display_name, email: user.email, created_at: user.created_at },
+    session: { id: s.id, deviceId: s.device_id, csrf: s.csrf_token, kind: s.session_kind, expiresAt: newExpires, absoluteExpiresAt: s.absolute_expires_at },
+    channelLinkId: s.channel_link_id || null,
+  };
+}
+
+async function getUserAuthContextVersion(userId) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const r = await dbGet(db, `SELECT auth_context_version FROM users WHERE id = ?`, [userId]);
+  return Number(r && r.auth_context_version) || 0;
+}
+
+// Bump = invalidate every session whose snapshot differs (structural revoke; no row sweep). Called by
+// unlink / consent revoke / consent-version bump / channel-link deactivation / security logout.
+async function bumpUserAuthContextVersion(userId) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const r = await dbRun(db, `UPDATE users SET auth_context_version = auth_context_version + 1 WHERE id = ?`, [userId]);
+  return r.changes > 0;
+}
+
+// Replay ledger: returns { fresh:true } on first sight of this (user, initData-hash), { fresh:false } on replay.
+async function recordMiniappInitDataSeen(userId, dedupKey, authDate) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const r = await dbRun(db, `INSERT OR IGNORE INTO miniapp_initdata_seen (user_id, auth_hash, auth_date) VALUES (?,?,?)`,
+    [userId, String(dedupKey), Number(authDate) || 0]);
+  return { fresh: r.changes > 0 };
 }
 
 // ── consent (append-only history) ────────────────────────────────────────────
@@ -209,6 +302,8 @@ async function countUserRows(userId) {
 
 module.exports = {
   ensureOwnerUser, createSession, validateSession, revokeSession, listSessions,
+  createMiniappSession, validateMiniappSession, getUserAuthContextVersion,
+  bumpUserAuthContextVersion, recordMiniappInitDataSeen,
   recordConsent, listConsents, audit,
   listUserScopedTables, exportUserData, deleteUserData, countUserRows,
   SESSION_TTL_MS,
