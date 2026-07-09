@@ -1,5 +1,13 @@
 # CLG-P7.3d — reason-aware nudges (SKILL_GAP_AVAILABLE): RECON + SPEC (2026-07-09)
 
+> **СТАТУС: ⏸ ОТЛОЖЕНО (owner 2026-07-09).** P7 полный и живой (reverse+cloze+dictate+selector+нуджи+
+> backoff). Дизайн-фаза (recon + 3-линза-критика) ЗАВЕРШЕНА; код НЕ писан. Причина отсрочки: dictate LIVE
+> → пул flagship САМО-ИСТОЩАЕТСЯ → SKILL_GAP при n=1 РЕДКО фаерит (в основном DUE_READY); высокая
+> сложность ради редкой причины (measure-before-code, R10). **Вернуться, когда пул flagship нетривиален**
+> (больше запечённых dictate-ассетов / новые reading-strong-due слова / больше юзеров). Решения ниже
+> ЗАФИКСИРОВАНЫ для возобновления. ⚠ ПЕРЕД кодом закрыть BLOCKER §8e (getDue-window-pin) — иначе нудж
+> обещает то, что /review не даст.
+>
 > Премиальная СОДЕРЖАТЕЛЬНАЯ причина нуджа поверх DUE_READY/RETURN_AFTER_GAP. Владелец 2026-07-09.
 > ГЛАВНЫЙ ИНВАРИАНТ: **нудж не обещает того, что /review не сможет выдать** → SKILL_GAP считается ТЕМ ЖЕ
 > eligibility-путём, что P7.2d selector (не упрощённой копией). Продолжение P7.3a/c (нудж LIVE, флаг ON).
@@ -30,14 +38,15 @@ withChannelStats + struggleSet + readingStrong + dictateEligible(мемо) + has
 ## 2. Reason-приоритет (детерминированный, decoupled от dedup-ключа)
 
 ```
-flagship = await dictateGap.firstFlagshipDictate(userId, {nowMs})   // дорого → ТОЛЬКО когда about-to-nudge
-recentlyActive = engagedSince(now-7д)
-reason = flagship ? SKILL_GAP_AVAILABLE
-       : !recentlyActive ? RETURN_AFTER_GAP
+recentlyActive = engagedSince(now-7д)                       // ДЁШЕВО первым
+reason = !recentlyActive ? RETURN_AFTER_GAP                  // вернувшийся → ВСЕГДА мягкий возврат
+       : (await dictateGap.firstFlagshipDictate(userId, {nowMs})) ? SKILL_GAP_AVAILABLE   // flagship ТОЛЬКО для активных
        : DUE_READY
 ```
-Приоритет **SKILL_GAP > RETURN_AFTER_GAP > DUE_READY** (owner-гипотеза — форк: перебивает ли SKILL_GAP
-мягкий возврат для долго-отсутствовавшего). claim пишет реальный reason. Один нудж/local_day (dedup цел).
+Приоритет **RETURN_AFTER_GAP > SKILL_GAP > DUE_READY** (ЗАФИКСИРОВАНО owner 2026-07-09, раунд 2 после
+критики: SKILL_GAP gated за recentlyActive — вернувшийся не получает холодный аудио-вызов; flagship-скан
+[дорогой keyingService] НЕ грузится для вернувшихся = cost-win). claim пишет реальный reason. Один нудж/
+local_day (dedup цел).
 
 ## 3. Класс-A текст (БЕЗ раскрытия целей)
 
@@ -117,17 +126,15 @@ consent recheck перед эффектом · per-from rate · answerCallbackQu
   выбрал «N слов, НЕКОТОРЫЕ можно проверить на слух» — «некоторые» хеджирует (момент-честно). Остаточный
   trade: премиум-повод vs редкий мис-промис. Принять хедж + документировать ИЛИ softer без модальности.
 
-### ⚠ ДВЕ OWNER-РАЗВИЛКИ (критика дала НОВУЮ инфу — пере-решить):
-1. **Priority (пере-решить):** owner выбрал SKILL_GAP>RETURN, НО readingStrong КУМУЛЯТИВЕН → у
-   вернувшегося (≥7д) старое reading-strong слово выпадает due → SKILL_GAP фаерит на ВОЗВРАТЕ → холодный
-   аудио-вызов churn-риск-юзеру; RETURN становится near-dead для своей аудитории. Критика (3 линзы):
-   **RETURN > SKILL_GAP** (SKILL_GAP только для recentlyActive) — педагогически безопаснее + cost-win
-   (не грузить keyingService для вернувшихся). Рекомендация: RETURN > SKILL_GAP.
-2. **Строить сейчас vs отложить (measure-before-code):** dictate LIVE → каждый /review-диктант даёт
-   dictate-history → слово НАВСЕГДА вне flagship-набора → пул САМО-ИСТОЩАЕТСЯ → SKILL_GAP при n=1 РЕДКО
-   фаерит (в основном DUE_READY). Высокая сложность (общий модуль, рефактор selectEligible, keying-load,
-   гейт) ради редко-срабатывающей причины. Критика: замерить частоту firstFlagshipDictate на профиле
-   owner (неделя offline-replay) ДО кода; если редко — ОТЛОЖИТЬ до нетривиального пула.
+### ✅ OWNER-РЕШЕНИЯ (2026-07-09, раунд 2 после критики):
+1. **Priority → RETURN_AFTER_GAP > SKILL_GAP > DUE_READY** (ЗАФИКСИРОВАНО). Критика дала новый факт:
+   readingStrong КУМУЛЯТИВЕН → вернувшийся (≥7д) со старым reading-strong словом иначе получил бы холодный
+   аудио-вызов вместо мягкого возврата (RETURN стал бы near-dead). SKILL_GAP gated за recentlyActive.
+2. **Строить сейчас → ⏸ ОТЛОЖЕНО** (ЗАФИКСИРОВАНО). dictate LIVE → каждый /review-диктант даёт dictate-
+   history → слово НАВСЕГДА вне flagship → пул САМО-ИСТОЩАЕТСЯ → SKILL_GAP при n=1 РЕДКО фаерит. Высокая
+   сложность ради редкой причины (measure-before-code, R10). Вернуться, когда пул flagship нетривиален.
+   При возобновлении: закрыть BLOCKER (window-pin) + MAJORs (dictCache-проброс, cost, real-/review гейт)
+   выше ДО кода; priority уже зафиксирован (RETURN>SKILL_GAP).
 
 ## 9. Дисциплина
 
