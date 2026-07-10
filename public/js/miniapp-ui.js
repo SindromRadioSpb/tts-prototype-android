@@ -64,6 +64,7 @@
     open_pwa: { ru: "Открыть LinguistPro", en: "Open LinguistPro" },
     home_title: { ru: "Наставник", en: "Mentor" },
     due_now: { ru: "Слов к повторению", en: "Words due" },
+    done_today: { ru: "Сделано сегодня", en: "Done today" },
     scheduled: { ru: "В расписании", en: "Scheduled" },
     last_review: { ru: "Последнее повторение", en: "Last review" },
     never: { ru: "ещё не было", en: "none yet" },
@@ -72,6 +73,22 @@
       en: "In-app training arrives in the next update. For now, review in the Reading Room or via /review in the bot.",
     },
     open_room: { ru: "Открыть Зал", en: "Open the Reading Room" },
+    rec_title: { ru: "Рекомендация наставника", en: "Mentor recommendation" },
+    kind_dictate: { ru: "диктант (запись на слух)", en: "dictation (write from listening)" },
+    kind_cloze: { ru: "пропуск в своём тексте", en: "cloze in your own text" },
+    kind_reverse: { ru: "перевод → иврит", en: "translation → Hebrew" },
+    rec_next: { ru: "Следующее упражнение: ", en: "Next exercise: " },
+    plan_btn: { ru: "🧭 План на сегодня", en: "🧭 Today's plan" },
+    plan_loading: { ru: "Составляем план…", en: "Building the plan…" },
+    plan_failed: { ru: "План сейчас недоступен. Попробуйте позже.", en: "The plan is unavailable right now. Try again later." },
+    plan_minutes_a: { ru: "≈", en: "≈" },
+    plan_minutes_b: { ru: " мин", en: " min" },
+    expl_btn: { ru: "Последние объяснения", en: "Recent explanations" },
+    expl_loading: { ru: "Загружаем объяснения…", en: "Loading explanations…" },
+    expl_empty: { ru: "Объяснений пока нет — спросите /explain в боте или в Зале.", en: "No explanations yet — ask via /explain in the bot or the Room." },
+    expl_failed: { ru: "Объяснения сейчас недоступны.", en: "Explanations are unavailable right now." },
+    expl_purged: { ru: "очищено по отзыву согласия", en: "purged after consent revoke" },
+    types_line: { ru: "Типы упражнений сегодня: ", en: "Exercise types today: " },
   };
   const t = (k) => (STR[k] && (STR[k][S.lang] || STR[k].en)) || k;
 
@@ -129,6 +146,7 @@
 
   function renderHome(home) {
     const counts = (home && home.counts) || {};
+    const today = (home && home.today) || {};
     const box = el("div", "ma-home");
     box.appendChild(el("h1", "ma-title", t("home_title")));
 
@@ -140,13 +158,31 @@
       return s;
     };
     stats.appendChild(stat(t("due_now"), counts.due_now != null ? counts.due_now : "—"));
+    stats.appendChild(stat(t("done_today"), today.completed != null ? today.completed : "—"));
     stats.appendChild(stat(t("scheduled"), counts.scheduled != null ? counts.scheduled : "—"));
     box.appendChild(stats);
+
+    // exercise types today (only when something was done — no empty noise)
+    const types = Object.keys(today.by_type || {});
+    if (types.length) {
+      box.appendChild(el("p", "ma-last", t("types_line") + types.map((k) => k + " ×" + today.by_type[k]).join(", ")));
+    }
 
     const last = el("p", "ma-last");
     const when = home && home.last_review_at ? new Date(home.last_review_at).toLocaleString() : t("never");
     last.textContent = t("last_review") + ": " + when;
     box.appendChild(last);
+
+    // deterministic mentor recommendation (server-picked kind + optional static why)
+    const rec = home && home.recommendation;
+    if (rec && rec.kind) {
+      const card = el("div", "ma-rec");
+      card.appendChild(el("div", "ma-rec-title", t("rec_title")));
+      const kindKey = "kind_" + rec.kind;
+      card.appendChild(el("p", "ma-rec-kind", t("rec_next") + (STR[kindKey] ? t(kindKey) : rec.kind)));
+      if (rec.explain) card.appendChild(el("p", "ma-rec-why", rec.explain));
+      box.appendChild(card);
+    }
 
     box.appendChild(el("p", "ma-note", t("coming_soon")));
 
@@ -154,7 +190,66 @@
     openRoom.addEventListener("click", () => HOST.openExternal(PWA_URL));
     box.appendChild(openRoom);
 
+    // ── lazy blocks (loaded ONLY on tap — the plan spends LLM quota) ──
+    const planBox = el("div", "ma-lazy");
+    const planBtn = el("button", "ma-btn", t("plan_btn"));
+    planBtn.addEventListener("click", () => loadPlan(planBtn, planBox));
+    box.appendChild(planBtn); box.appendChild(planBox);
+
+    const explBox = el("div", "ma-lazy");
+    const explBtn = el("button", "ma-btn", t("expl_btn"));
+    explBtn.addEventListener("click", () => loadExplanations(explBtn, explBox));
+    box.appendChild(explBtn); box.appendChild(explBox);
+
     render([box]);
+  }
+
+  async function loadPlan(btn, box) {
+    btn.disabled = true;
+    box.textContent = t("plan_loading");
+    let r;
+    try { r = await api("/api/miniapp/plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }); }
+    catch (_) { box.textContent = t("plan_failed"); btn.disabled = false; return; }
+    if (r.status !== 200 || !r.body || r.body.ok !== true) { box.textContent = t("plan_failed"); btn.disabled = false; return; }
+    const p = r.body;
+    box.textContent = "";
+    if (p.llm_used && p.text) { const n = el("p", "ma-plan-text", String(p.text)); n.setAttribute("dir", "auto"); box.appendChild(n); }
+    const plan = p.plan || {};
+    if (plan.est_minutes) box.appendChild(el("p", "ma-last", t("plan_minutes_a") + plan.est_minutes + t("plan_minutes_b")));
+    for (const s of plan.sections || []) {
+      const row = el("p", "ma-plan-row", "• " + String((S.lang === "ru" ? s.title_ru : s.title_en) || s.title_ru || "") +
+        (s.items && s.items.length ? " (" + s.items.length + ")" : ""));
+      row.setAttribute("dir", "auto");
+      box.appendChild(row);
+    }
+  }
+
+  async function loadExplanations(btn, box) {
+    btn.disabled = true;
+    box.textContent = t("expl_loading");
+    let r;
+    try { r = await api("/api/miniapp/explanations?limit=5"); }
+    catch (_) { box.textContent = t("expl_failed"); btn.disabled = false; return; }
+    if (r.status !== 200 || !r.body || r.body.ok !== true) { box.textContent = t("expl_failed"); btn.disabled = false; return; }
+    const list = r.body.explanations || [];
+    box.textContent = "";
+    if (!list.length) { box.textContent = t("expl_empty"); return; }
+    for (const x of list) {
+      const item = el("div", "ma-expl");
+      const date = x.created_at ? new Date(x.created_at).toLocaleDateString() : "";
+      if (x.purged) {
+        item.appendChild(el("p", "ma-last", date + " · " + t("expl_purged")));   // R11 tombstone: no content
+      } else {
+        if (x.sentence_he) {
+          const he = el("p", "ma-expl-he", String(x.sentence_he));
+          he.setAttribute("dir", "rtl"); he.setAttribute("lang", "he");
+          item.appendChild(he);
+        }
+        if (x.text) { const tx = el("p", "ma-expl-text", String(x.text)); tx.setAttribute("dir", "auto"); item.appendChild(tx); }
+        if (date) item.appendChild(el("p", "ma-last", date));
+      }
+      box.appendChild(item);
+    }
   }
 
   // ── boot state machine ────────────────────────────────────────────────────

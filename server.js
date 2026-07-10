@@ -2039,15 +2039,38 @@ app.post("/api/miniapp/session", async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: "MINIAPP_AUTH_FAILED", code: "SERVER" }); }
 });
 
-// Read-only home payload (MNAR: opening the home is not a learning event; writes NOTHING).
-app.get("/api/miniapp/home", async (req, res) => {
+// ── P8.2 read-only home + lazy plan/explanations (BFF: same application services as
+// the PWA/bot, guarded ONCE by requireMiniappSession — the miniapp cookie never calls
+// /api/agent/* directly). All read-only except plan (LLM-quota spend → CSRF). ──
+const miniappHome = require("./agent/miniappHome");
+const rlMiniapp = makeRateLimiter({ windowMs: 60_000, max: 30, name: "miniapp" });
+
+// Home payload (MNAR: opening the home is not a learning event; writes NOTHING).
+// Composition lives in agent/miniappHome.js — the smoke gate tests that exact function.
+app.get("/api/miniapp/home", rlMiniapp, async (req, res) => {
   const auth = await requireMiniappSession(req, res); if (!auth) return;
   try {
-    const lg = require("./db/learnerGraphRepo");
-    const ctx = await lg.getAgentContext(auth.user.id);
+    const payload = await miniappHome.buildHomePayload(auth.user.id, { lang: req.query.lang });
     const consents = await identityRepo.listConsents(auth.user.id);
-    res.json({ ok: true, counts: ctx.counts, last_review_at: ctx.last_review_at, recommendation: null, consents: consents.current });
+    res.json({ ok: true, ...payload, consents: consents.current });
   } catch (e) { res.status(500).json({ ok: false, error: "MINIAPP_HOME_FAILED" }); }
+});
+
+// Lazy plan (on-tap ONLY — LLM-quota spend; same deterministic-plan runtime as PWA/bot).
+app.post("/api/miniapp/plan", rlMiniapp, async (req, res) => {
+  const auth = await requireMiniappSession(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try { res.json(await agentRuntime.plan({ userId: auth.user.id, deviceId: auth.session.deviceId })); }
+  catch (e) { res.status(500).json({ ok: false, error: "AGENT_PLAN_FAILED" }); }
+});
+
+// Lazy explanation history (purge-aware tombstones — same runtime as the P9 home).
+app.get("/api/miniapp/explanations", rlMiniapp, async (req, res) => {
+  const auth = await requireMiniappSession(req, res); if (!auth) return;
+  try {
+    res.json({ ok: true, ...(await agentRuntime.listExplanations({ userId: auth.user.id },
+      { limit: req.query.limit, beforeRid: req.query.before_rid })) });
+  } catch (e) { res.status(500).json({ ok: false, error: "AGENT_EXPLANATIONS_FAILED" }); }
 });
 
 // ── webhook: secret-middleware (raw, ДО парсинга) → 256kb-json → handler ──────

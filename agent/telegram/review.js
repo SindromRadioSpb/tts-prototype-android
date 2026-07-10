@@ -345,4 +345,8 @@ async function submitAnswer({ userId, tgUserId, chatId, replyToMessageId, text, 
     expected, isDontKnow, isCloze: chal.prompt_kind === "cloze", isDictate: chal.prompt_kind === "dictate", lang: lng }) };
 }
 
-module.exports = { startReview, submitAnswer };
+// selectEligible экспортирован для CLG-P8.2+ (Mini App home «рекомендация» + будущий
+// reviewSessionService): ОДИН детерминированный селектор обслуживает обе Telegram-поверхности
+// (норма §20.1/§20.4 P8-recon) — второй селектор запрещён каноном P7.2d. Read-only (пишет
+// exposure/challenge НЕ селектор, а delivery-путь startReview).
+module.exports = { startReview, submitAnswer, selectEligible };

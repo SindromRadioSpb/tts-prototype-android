@@ -186,6 +186,30 @@ async function recentStruggleKeySet(userId, { sinceMs, minFails } = {}) {
   return set;
 }
 
+// CLG-P8.2 — honest "done today" for the Mini App home (§12 progress MVP): explicit
+// review attempts (kind='review') since sinceIso (caller passes the USER-LOCAL day start
+// via db/localtime.startOfLocalDay — one truth with the nudge system), EXCLUDING annulled
+// rows (annul-исключение живёт в этом модуле — тот же паттерн, что getRecentStruggles).
+// by_type = channel prefix before ':' (read/dictate/cloze/reverse/...). Read-only.
+async function getTodayActivity(userId, { sinceIso } = {}) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const since = String(sinceIso || new Date(new Date().setUTCHours(0, 0, 0, 0)).toISOString());
+  const annulled = await annulledIdSet(db, userId);
+  const rows = await dbAll(db,
+    `SELECT id, channel FROM review_log
+      WHERE user_id = ? AND kind = 'review' AND reviewed_at >= ?`, [userId, since]);
+  let completed = 0; const byType = {};
+  for (const r of rows || []) {
+    if (annulled.has(String(r.id))) continue;
+    completed++;
+    const ch = String(r.channel || "");
+    const i = ch.indexOf(":");
+    const prefix = (i > 0 ? ch.slice(0, i) : ch) || "other";
+    byType[prefix] = (byType[prefix] || 0) + 1;
+  }
+  return { completed, by_type: byType, since };
+}
+
 // Compact agent-facing summary (the getAgentContext primitive; grows in CLG-P6).
 async function getAgentContext(userId, { nowMs } = {}) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
@@ -231,4 +255,4 @@ async function getAgentContext(userId, { nowMs } = {}) {
   };
 }
 
-module.exports = { manualStatusMap, getDue, getKnownWords, getWeakWords, getRecentStruggles, recentStruggleKeySet, getAgentContext };
+module.exports = { manualStatusMap, getDue, getKnownWords, getWeakWords, getRecentStruggles, recentStruggleKeySet, getTodayActivity, getAgentContext };
