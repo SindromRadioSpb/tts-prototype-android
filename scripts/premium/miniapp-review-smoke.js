@@ -287,7 +287,7 @@ async function freshChallenge(caps) {
   // ── 13-quinquies) P8.4c listen-MC (рецептив) ──
   await dbRun(`DELETE FROM tg_stimulus_exposure WHERE user_id=?`, [userId]);
   const LCANDS = [ITEM, "ספר#noun", "שלום#noun", "ילד#noun", "מורה#noun", "דלת#noun", "שולחן#noun", "חלון#noun"];
-  let lseeded = 0;
+  let lseeded = 0; const lseededKeys = [];
   for (const k of LCANDS) {
     let d = null, g = null;
     try { d = await keyingService.dictateFormForItemKey(k); } catch (_) {}
@@ -299,7 +299,7 @@ async function freshChallenge(caps) {
       await dbRun(`INSERT OR IGNORE INTO review_log (user_id,id,item_key,kind,reviewed_at,grade,source,channel,meta_json) VALUES (?,?,?,'seed',?,NULL,'seed-sm2',NULL,'{}')`, [userId, "seed:" + k, k, past]);
       await dbRun(`INSERT OR IGNORE INTO srs_projections (user_id,item_key,due,interval_days,reps,lapses,stability,difficulty,reviewed_at,scheme,engine) VALUES (?,?,?,1,1,0,12.0,5.0,?,'fsrs','fsrs6')`, [userId, k, past, past]);
     }
-    lseeded++;
+    lseeded++; lseededKeys.push(k);
   }
   ok("listen fixture: ≥4 dictate-form+gloss candidates in dict", lseeded >= 4);
   if (lseeded >= 4) {
@@ -329,6 +329,21 @@ async function freshChallenge(caps) {
     process.env.MINI_APP_REVIEW_WRITE = "1";
   }
   await learnerProjectionRepo.recomputeForKeys(userId, LCANDS);   // fixture-урок №3: прямые INSERT-проекции → replay-истина
+
+  // ── 13-sexies) listen при ОДНОМ due-кандидате: дистракторы добираются из словаря (не-due) ──
+  if (lseeded >= 4) {
+    await dbRun(`DELETE FROM tg_stimulus_exposure WHERE user_id=?`, [userId]);
+    // все LCANDS-проекции после recompute уже НЕ due (seed-only → нет due) кроме… сделаем due ТОЛЬКО одному
+    // прослушиваемому слову: возьмём первое из посеянных не-ITEM (у него есть форма+глосс+ассет).
+    const oneDue = lseededKeys.find((k) => k !== ITEM);   // из РЕАЛЬНО посеянных (форма+глосс+ассет)
+    await dbRun(`UPDATE srs_projections SET due=? WHERE user_id=? AND item_key=?`, [past, userId, oneDue]);
+    await dbRun(`UPDATE srs_projections SET due=NULL WHERE user_id=? AND item_key!=?`, [userId, oneDue]);
+    const lp1 = await reviewSession.selectForModality(userId, "listen");
+    ok("listen: single due candidate + vocab distractors → MC assembled",
+      !!lp1 && lp1.kind === "listen" && lp1.item_key === oneDue && lp1.options.length === 4);
+    await dbRun(`UPDATE srs_projections SET due=? WHERE user_id=? AND item_key=?`, [past, userId, ITEM]);
+    await learnerProjectionRepo.recomputeForKeys(userId, [...LCANDS]);   // вернуть replay-истину (оракул)
+  }
 
   // ── 14) down-sync источник + оракул ──
   const log = await learnerLogRepo.readLog(userId, { afterRid: 0, limit: 100 });

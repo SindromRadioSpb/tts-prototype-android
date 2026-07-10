@@ -310,12 +310,33 @@ async function selectForModality(userId, modality, { nowMs } = {}) {
       cands.push({ k, voc: d.vocalized, written: d.written, assetKey, gloss: String(g.gloss), sense_id: d.pid });
       if (cands.length >= 12) break;   // хватит на цель + богатый выбор дистракторов
     }
-    if (cands.length < 4) return null;                       // честно: MC без 4 опций не собрать
-    const target = cands[0];                                 // due-order (приоритет lapses)
+    if (!cands.length) return null;                          // нет ни одного прослушиваемого due
+    const target = cands[0];                                 // due-order (приоритет lapses); ЦЕЛЬ обязана быть due
     const tSkel = RM.stripNiqqud(target.voc);
     const pool = cands.slice(1).filter((c) =>
       RM.stripNiqqud(c.voc) !== tSkel && c.gloss.toLowerCase() !== target.gloss.toLowerCase());
-    if (pool.length < 3) return null;
+    // owner live-verify 2026-07-10: дистракторам НЕЗАЧЕМ быть due — при нехватке добираем из
+    // ВСЕГО словаря ученика (scheduled-проекции): listen доступен уже при ОДНОМ due-слове.
+    // Дистрактору ассет не нужен (звучит только цель); нужен лишь skeleton≠цели (+глосс-дедуп).
+    if (pool.length < 3) {
+      const learnerProjectionRepo = require(path.join(__dirname, "..", "db", "learnerProjectionRepo"));
+      let vocab = [];
+      try { vocab = await learnerProjectionRepo.distinctItemKeys(userId); } catch (_) { vocab = []; }
+      const dueSet = new Set(dueKeys);
+      for (const k of vocab) {
+        if (pool.length >= 6) break;
+        if (dueSet.has(k) || k === target.k) continue;
+        let d = null;
+        try { d = await keyingService.dictateFormForItemKey(k); } catch (_) { d = null; }
+        if (!d) continue;
+        if (RM.stripNiqqud(d.vocalized) === tSkel) continue;
+        let g = null;
+        try { g = await keyingService.glossForItemKey(k); } catch (_) { g = null; }
+        if (g && g.gloss && String(g.gloss).toLowerCase() === target.gloss.toLowerCase()) continue;
+        pool.push({ k, voc: d.vocalized, gloss: g && g.gloss ? String(g.gloss) : "" });
+      }
+    }
+    if (pool.length < 3) return null;                        // честно: MC без 4 опций не собрать
     for (let i = pool.length - 1; i > 0; i--) { const j = crypto.randomInt(i + 1); [pool[i], pool[j]] = [pool[j], pool[i]]; }
     const options = [target.voc, pool[0].voc, pool[1].voc, pool[2].voc];
     for (let i = options.length - 1; i > 0; i--) { const j = crypto.randomInt(i + 1); [options[i], options[j]] = [options[j], options[i]]; }

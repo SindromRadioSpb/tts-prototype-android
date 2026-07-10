@@ -100,8 +100,8 @@
     train_none_all: { ru: "Сейчас нет подходящих упражнений — загляните в Зал.", en: "No eligible exercises right now — visit the Reading Room." },
     train_none_prod_a: { ru: "Слов к повторению: ", en: "Words due: " },
     train_none_prod_b: {
-      ru: ", но письменные упражнения для них сейчас недоступны: часть недавно показывалась (пауза ~30 мин), остальным нужен рецептивный режим «Аудио» — он появится в ближайшем обновлении. Эти слова уже ждут вас в Зале.",
-      en: ", but written exercises are unavailable for them right now: some were shown recently (~30 min pause), the rest need the receptive Audio mode coming in the next update. These words await you in the Room.",
+      ru: ", но упражнения для них сейчас недоступны: часть недавно показывалась (пауза ~30 мин), у остальных пока нет озвучки или однозначной формы. Эти слова уже ждут вас в Зале.",
+      en: ", but exercises are unavailable for them right now: some were shown recently (~30 min pause), the rest lack audio or an unambiguous form yet. These words await you in the Room.",
     },
     fallback_note: { ru: "Приоритетный пул пуст — продолжаем по всем словам к повторению.", en: "Priority pool is empty — continuing across all due words." },
     train_all_btn: { ru: "Повторить всё сейчас", en: "Review everything now" },
