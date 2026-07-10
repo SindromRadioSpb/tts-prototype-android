@@ -138,7 +138,19 @@ async function complete(userId, challengeId, attemptId, result) {
     [nowIso(), result && result.decision != null ? String(result.decision) : null,
      result && result.grade != null ? Number(result.grade) : null,
      String(challengeId), userId, attemptId]);
-  if (r.changes === 1) await _purgeClassC(db, `challenge_id=?`, [String(challengeId)]);   // класс-C не переживает closure
+  if (r.changes === 1) {
+    await _purgeClassC(db, `challenge_id=?`, [String(challengeId)]);   // класс-C не переживает closure
+    // P8.4c-fix (owner live-verify 2026-07-10, тотальный тупик при 11 due): ГРЕЙД снимает exposure —
+    // после записанного review планирование принадлежит FSRS (слово с ошибкой легально возвращается
+    // в due через минуты и НЕ должно блокироваться кулдауном во всех модальностях). Кулдаун остаётся
+    // только для НЕпрограйженных показов: /due-форма ('due_form') и decline/expire (prompt показан,
+    // грейда нет — анти-повтор/анти-фарм цел).
+    try {
+      await dbRun(db,
+        `DELETE FROM tg_stimulus_exposure WHERE user_id=? AND item_key=(SELECT item_key FROM agent_challenges WHERE challenge_id=?)`,
+        [userId, String(challengeId)]);
+    } catch (_) {}
+  }
   else if (result) console.error("[agent-challenge] complete-with-result 0-changes (replay source lost):", String(challengeId));
   return r.changes === 1;
 }

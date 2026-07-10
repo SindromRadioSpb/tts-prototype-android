@@ -345,6 +345,30 @@ async function freshChallenge(caps) {
     await learnerProjectionRepo.recomputeForKeys(userId, [...LCANDS]);   // вернуть replay-истину (оракул)
   }
 
+  // ── 13-septies) грейд снимает exposure (FSRS-континьюити); decline — держит кулдаун ──
+  {
+    await dbRun(`DELETE FROM tg_stimulus_exposure WHERE user_id=?`, [userId]);
+    await dbRun(`UPDATE srs_projections SET due=? WHERE user_id=? AND item_key=?`, [past, userId, ITEM]);
+    process.env.MINI_APP_REVIEW_WRITE = "1";
+    await agentChallengeRepo.cancelOpenForUser(userId);
+    // грейд: create→answer wrong → слово вернулось в due (FSRS) и НЕ должно быть заперто кулдауном
+    const s1 = await reviewSession.start({ userId, surface: S, mode: "all_due", lng: "ru", tgUserId: "111", tgChatId: "222" });
+    const a1 = await reviewSession.answer({ userId, surface: S, challengeId: s1.challenge_id, clientNonce: "nonceN444", answer: "שגוי" });
+    const expAfter = await dbGet(`SELECT COUNT(*) c FROM tg_stimulus_exposure WHERE user_id=? AND item_key=?`, [userId, ITEM]);
+    ok("graded challenge clears exposure (FSRS owns scheduling)", !!(a1 && a1.ok && a1.recorded) && expAfter.c === 0);
+    const s2 = await reviewSession.start({ userId, surface: S, mode: "all_due", lng: "ru", tgUserId: "111", tgChatId: "222" });
+    ok("re-due word immediately selectable after grade (no dead-end)", !!(s2 && s2.ok && s2.challenge_id));
+    // decline: prompt показан, грейда нет → кулдаун ОСТАЁТСЯ (по ФАКТИЧЕСКИ выбранному слову —
+    // s2 мог отдать другой item через listen-fallback)
+    const s2item = (await dbGet(`SELECT item_key FROM agent_challenges WHERE challenge_id=?`, [s2.challenge_id])).item_key;
+    await agentChallengeRepo.decline(userId, s2.challenge_id);
+    const expDecl = await dbGet(`SELECT COUNT(*) c FROM tg_stimulus_exposure WHERE user_id=? AND item_key=?`, [userId, s2item]);
+    ok("declined challenge keeps exposure cooldown (anti-farm intact)", expDecl.c >= 1);
+    await dbRun(`DELETE FROM tg_stimulus_exposure WHERE user_id=?`, [userId]);
+    await agentChallengeRepo.cancelOpenForUser(userId);
+    await learnerProjectionRepo.recomputeForKeys(userId, [ITEM]);
+  }
+
   // ── 14) down-sync источник + оракул ──
   const log = await learnerLogRepo.readLog(userId, { afterRid: 0, limit: 100 });
   const maRows = (log.rows || log || []).filter((x) => String(x.channel || "").endsWith(":ma"));
