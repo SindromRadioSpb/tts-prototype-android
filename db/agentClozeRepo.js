@@ -23,7 +23,12 @@ const RM = require(path.join(__dirname, "..", "public", "js", "reader-morph.js")
 const MAX_ARTIFACTS_SCAN = 25;      // сколько текстов максимум открываем за один /review
 const MAX_SENTENCES_SCAN = 800;     // глобальный потолок предложений на скан
 const MAX_WORDS_PER_SENT = 40;      // одно слово / гигант — не cloze
-const MAX_DUE_FORMS = 40;           // сколько due-лемм разворачиваем в формы (skeleton-карта)
+// P8.3 §2-v2: собственного окна у builder'а БОЛЬШЕ НЕТ — dueItems приходит УЖЕ обрезанным
+// snapshot'ом (REVIEW_DUE_WINDOW=50, agent/reviewSession.js) — одно окно у селектора и builder'а
+// (§2.3-проба: независимый кап 40 терял 4 якорных слова при пуле 50). map/collide — одни на весь
+// список (кросс-«чанковые» vocForm-коллизии ловятся by construction). TIME_BUDGET_MS остаётся
+// cost-guard'ом. MAX_DUE_FORMS сохранён в экспорте как исторический маркер (не режет).
+const MAX_DUE_FORMS = null;
 const TIME_BUDGET_MS = 2500;        // мягкий бюджет; исчерпан → честный null (не виснем)
 const BLANK = "―――――";   // ───── визуальный пропуск
 
@@ -51,7 +56,7 @@ function _normVoc(f) { return String(f == null ? "" : f).replace(/\s+/g, "").tri
 // разными due → исключаем. Возврат { vocMap: Map(vocForm→item_key) }.
 async function _dueVocMap(dueItems) {
   const map = new Map(), collide = new Set();
-  for (const itemKey of dueItems.slice(0, MAX_DUE_FORMS)) {
+  for (const itemKey of dueItems) {
     let cf = null;
     try { cf = await keyingService.clozeFormsForItemKey(itemKey); } catch (_) { cf = null; }
     if (!cf || !cf.forms) continue;

@@ -23,7 +23,7 @@ const learnerGraphRepo = require(path.join(__dirname, "..", "db", "learnerGraphR
 const notificationPrefsRepo = require(path.join(__dirname, "..", "db", "notificationPrefsRepo"));
 const LT = require(path.join(__dirname, "..", "db", "localtime"));
 const reviewer = require(path.join(__dirname, "reviewer"));
-const tgReview = require(path.join(__dirname, "telegram", "review"));
+const reviewSession = require(path.join(__dirname, "reviewSession"));   // P8.3: канонический дом селектора
 const format = require(path.join(__dirname, "telegram", "format"));
 
 const KIND_TO_CHANNEL_LABEL = { cloze: "cloze", dictate: "dictate", reverse: "reverse" };
@@ -47,7 +47,7 @@ async function buildHomePayload(userId, { lang, nowMs } = {}) {
   let recommendation = null;
   if (reviewer.flagOn()) {
     let pick = null;
-    try { pick = await tgReview.selectEligible(userId); } catch (_) { pick = null; }
+    try { pick = await reviewSession.selectEligible(userId, { nowMs: now }); } catch (_) { pick = null; }
     if (pick && pick.kind) {
       recommendation = {
         kind: KIND_TO_CHANNEL_LABEL[pick.kind] || String(pick.kind),

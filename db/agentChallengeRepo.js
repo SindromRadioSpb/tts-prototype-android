@@ -173,6 +173,20 @@ async function recentlyExposed(userId, itemKey) {
     [userId, String(itemKey), cutoff]);
   return !!r;
 }
+// P8.3 §9 п.9 — МАТЕРИАЛИЗОВАННЫЙ exposure-снимок для due-окна: один запрос на весь snapshot
+// (одно nowMs), вместо N per-item recentlyExposed → selector и builder видят ОДИН и тот же
+// exposure-мир (иначе поздний per-item запрос внутри скана видит уже другой момент времени).
+async function recentlyExposedSet(userId, itemKeys, nowMs) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const keys = (itemKeys || []).map(String);
+  if (!keys.length) return new Set();
+  const cutoff = new Date((Number(nowMs) || Date.now()) - EXPOSURE_COOLDOWN_MS).toISOString();
+  const rows = await new Promise((res, rej) => db.all(
+    `SELECT DISTINCT item_key FROM tg_stimulus_exposure
+      WHERE user_id=? AND shown_at >= ? AND item_key IN (${keys.map(() => "?").join(",")})`,
+    [userId, cutoff, ...keys], (e, r) => e ? rej(e) : res(r || [])));
+  return new Set(rows.map((r) => String(r.item_key)));
+}
 
 // ── prune (TTL-триггер) ────────────────────────────────────────────────────────
 async function pruneOld() {
@@ -195,6 +209,6 @@ async function pruneOld() {
 module.exports = {
   createChallenge, getOpenForUser, getActiveForTg, getForReviewer,
   claimForAttempt, complete, release, decline, setPromptMessageId, cancelOpenForUser,
-  recordExposure, recentlyExposed, pruneOld,
+  recordExposure, recentlyExposed, recentlyExposedSet, pruneOld,
   CHALLENGE_TTL_MS, EXPOSURE_COOLDOWN_MS,
 };
