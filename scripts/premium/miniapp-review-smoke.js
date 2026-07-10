@@ -229,6 +229,26 @@ async function freshChallenge(caps) {
   ok("AGENT_REVIEW_WRITE off → annul тоже заперт (двойной гейт)", !!(r && r.error === "MINIAPP_REVIEW_WRITE_OFF"));
   process.env.AGENT_REVIEW_WRITE = "1";
 
+  // ── 13-bis) TTL (owner live-verify: resume отдавал протухший active) ──
+  // fixture-reset: прошлые ответы сдвинули due в будущее + exposure-cooldown жив → вернуть ITEM в due
+  await dbRun(`UPDATE srs_projections SET due=? WHERE user_id=? AND item_key=?`, [past, userId, ITEM]);
+  await dbRun(`DELETE FROM tg_stimulus_exposure WHERE user_id=?`, [userId]);
+  ch = await freshChallenge(clozeCaps(userId));
+  await dbRun(`UPDATE agent_challenges SET expires_at=? WHERE challenge_id=?`, [new Date(Date.now() - 1000).toISOString(), ch.challenge_id]);
+  const sFresh = await reviewSession.start({ userId, surface: S, mode: "all_due", lng: "ru" });
+  ok("expired open challenge: start prunes and serves a FRESH one (not resume)",
+    !!(sFresh && sFresh.ok && sFresh.challenge_id && sFresh.challenge_id !== ch.challenge_id));
+  const chExp = await dbGet(`SELECT status FROM agent_challenges WHERE challenge_id=?`, [ch.challenge_id]);
+  ok("expired challenge flipped to 'expired'", chExp.status === "expired");
+  // answer на протухший-но-active (эмулируем): новый challenge, протухаем, отвечаем
+  await agentChallengeRepo.cancelOpenForUser(userId);
+  ch = await freshChallenge(clozeCaps(userId));
+  await dbRun(`UPDATE agent_challenges SET expires_at=? WHERE challenge_id=?`, [new Date(Date.now() - 1000).toISOString(), ch.challenge_id]);
+  r = await reviewSession.answer({ userId, surface: S, challengeId: ch.challenge_id, clientNonce: "nonceL222", answer: "כותב" });
+  ok("answer on expired-active → CHALLENGE_EXPIRED (fast path, zero-write)", !!(r && r.error === "CHALLENGE_EXPIRED"));
+  await agentChallengeRepo.cancelOpenForUser(userId);
+  await learnerProjectionRepo.recomputeForKeys(userId, [ITEM]);   // fixture мутировал производный due → вернуть replay-истину (оракул ниже)
+
   // ── 14) down-sync источник + оракул ──
   const log = await learnerLogRepo.readLog(userId, { afterRid: 0, limit: 100 });
   const maRows = (log.rows || log || []).filter((x) => String(x.channel || "").endsWith(":ma"));

@@ -262,7 +262,14 @@ async function start({ userId, surface, mode, lng, nowMs, tgUserId, tgChatId } =
   if (surface !== "telegram_miniapp") return { ok: false, error: "BAD_SURFACE" };
 
   // открытый challenge? (single-use слот общий across surfaces — ux_agent_challenges_open)
-  const open = await agentChallengeRepo.getOpenForUser(userId);
+  // TTL-гигиена (owner live-verify 2026-07-10: resume отдавал «active» строку с прошедшим
+  // expires_at → answer честно падал CHALLENGE_EXPIRED): pruneOld нигде не вызывался — протухшие
+  // висели active вечно. Прячем класс: протух → expired (+purge класса C) → свежий выбор.
+  let open = await agentChallengeRepo.getOpenForUser(userId);
+  if (open && Date.parse(open.expires_at) <= now) {
+    await agentChallengeRepo.pruneOld();
+    open = null;
+  }
   if (open) {
     const openSurface = open.surface || "telegram_bot";
     if (openSurface !== surface) return { ok: true, busy_surface: openSurface };   // «заверши в боте»
@@ -399,6 +406,12 @@ async function _submit({ userId, surface, challengeId, clientNonce, answer, inpu
   // анти-double-row (§10 п.7): застрявший processing с ЧУЖИМ attempt → повторить исходным nonce
   if (chal.status === "processing" && chal.claimed_attempt_id && chal.claimed_attempt_id !== attemptEff) {
     return errOut("RETRY_WITH_ORIGINAL");
+  }
+  // TTL: протухший (но ещё не pruned) challenge — быстрый честный отказ ДО дорогого reveal-скана;
+  // reviewer-проверка остаётся defense-in-depth.
+  if (Date.parse(chal.expires_at) <= Date.now()) {
+    await agentChallengeRepo.pruneOld();
+    return errOut("CHALLENGE_EXPIRED");
   }
 
   // reveal — ДО записи (§10 п.8: fail-closed default, attach только на терминале ниже)

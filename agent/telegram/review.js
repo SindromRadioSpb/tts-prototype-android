@@ -170,7 +170,13 @@ async function startReview({ userId, tgUserId, chatId }) {
   if (!(await stillAuthorized(userId, tgUserId, chatId))) return { served: false, note: format.refusedText(lng) };
 
   // уже есть открытый challenge → восстановить/переотправить его prompt (recovery message_id).
-  const open = await agentChallengeRepo.getOpenForUser(userId);
+  // P8.4a-fix: протухший active (pruneOld нигде не гонялся) НЕ редоставляется — expired + свежий
+  // выбор (та же латентная дыра, что в miniapp-resume; owner live-verify 2026-07-10).
+  let open = await agentChallengeRepo.getOpenForUser(userId);
+  if (open && Date.parse(open.expires_at) <= Date.now()) {
+    await agentChallengeRepo.pruneOld();
+    open = null;
+  }
   if (open) {
     // P8.4a §10 п.1 (BLOCKER): challenge ЧУЖОЙ поверхности (Mini App) НЕ редоставляется ботом —
     // иначе recovery выдал бы prompt_message_id и превратил :ma-challenge в бот-отвечаемый
