@@ -24,7 +24,8 @@ const agentChallengeRepo = require(path.join(ROOT, "db", "agentChallengeRepo"));
 const learnerLogRepo = require(path.join(ROOT, "db", "learnerLogRepo"));
 const learnerProjectionRepo = require(path.join(ROOT, "db", "learnerProjectionRepo"));
 const tgReview = require(path.join(ROOT, "agent", "telegram", "review"));
-const { computeAssetKey } = require(path.join(ROOT, "db", "premium", "ttsAssetKey"));
+const { computeAssetKey, computeDictateAssetKey } = require(path.join(ROOT, "db", "premium", "ttsAssetKey"));
+const keyingService = require(path.join(ROOT, "db", "keyingService"));
 
 const ITEM = "לכתוב#verb", SURFACE = "כּוֹתֵב";
 const BLANKED = "הַיֶּלֶד ――――― מִכְתָּב", SENT_RU = "мальчик пишет письмо";
@@ -282,6 +283,52 @@ async function freshChallenge(caps) {
     !!(sn && sn.ok && sn.none === "nothing-production-eligible" && Number(sn.due_count) >= 1));
   await dbRun(`DELETE FROM tg_stimulus_exposure WHERE user_id=?`, [userId]);
   await learnerProjectionRepo.recomputeForKeys(userId, [ITEM]);
+
+  // ── 13-quinquies) P8.4c listen-MC (рецептив) ──
+  await dbRun(`DELETE FROM tg_stimulus_exposure WHERE user_id=?`, [userId]);
+  const LCANDS = [ITEM, "ספר#noun", "שלום#noun", "ילד#noun", "מורה#noun", "דלת#noun", "שולחן#noun", "חלון#noun"];
+  let lseeded = 0;
+  for (const k of LCANDS) {
+    let d = null, g = null;
+    try { d = await keyingService.dictateFormForItemKey(k); } catch (_) {}
+    if (!d) continue;
+    try { g = await keyingService.glossForItemKey(k); } catch (_) {}
+    if (!g || !g.gloss) continue;
+    fs.writeFileSync(path.join(dir, "audio-cache", computeDictateAssetKey(d.vocalized) + ".mp3"), Buffer.from("x"));
+    if (k !== ITEM) {
+      await dbRun(`INSERT OR IGNORE INTO review_log (user_id,id,item_key,kind,reviewed_at,grade,source,channel,meta_json) VALUES (?,?,?,'seed',?,NULL,'seed-sm2',NULL,'{}')`, [userId, "seed:" + k, k, past]);
+      await dbRun(`INSERT OR IGNORE INTO srs_projections (user_id,item_key,due,interval_days,reps,lapses,stability,difficulty,reviewed_at,scheme,engine) VALUES (?,?,?,1,1,0,12.0,5.0,?,'fsrs','fsrs6')`, [userId, k, past, past]);
+    }
+    lseeded++;
+  }
+  ok("listen fixture: ≥4 dictate-form+gloss candidates in dict", lseeded >= 4);
+  if (lseeded >= 4) {
+    const RM = require(path.join(ROOT, "public", "js", "reader-morph.js"));
+    const lp = await reviewSession.selectForModality(userId, "listen");
+    const tSkel = lp ? RM.stripNiqqud(lp.vocalized) : "";
+    ok("listen MC: 4 options, target included, distractor skeletons differ",
+      !!lp && lp.kind === "listen" && Array.isArray(lp.options) && lp.options.length === 4 &&
+      lp.options.includes(lp.vocalized) &&
+      lp.options.filter((o) => RM.stripNiqqud(o) === tSkel).length === 1);
+    // manual listen (ON): challenge listen:ma receptive; правильная опция → grade 3, meta.input_mode=mc
+    process.env.MINI_APP_REVIEW_WRITE = "1";
+    await agentChallengeRepo.cancelOpenForUser(userId);
+    const ls = await reviewSession.start({ userId, surface: S, mode: "manual", modality: "listen", lng: "ru", tgUserId: "111", tgChatId: "222" });
+    const lch = ls && ls.challenge_id ? await dbGet(`SELECT * FROM agent_challenges WHERE challenge_id=?`, [ls.challenge_id]) : null;
+    ok("listen challenge: listen:ma + receptive + options persisted",
+      !!lch && lch.review_mode === "listen:ma" && lch.evidence_scope === "receptive" &&
+      JSON.parse(lch.shown_stimulus).options.length === 4);
+    const lr = await reviewSession.answer({ userId, surface: S, challengeId: ls.challenge_id, clientNonce: "nonceM333", answer: lch.expected_surface, inputMode: "mc" });
+    const lrow = await dbGet(`SELECT * FROM review_log WHERE user_id=? AND channel='listen:ma' ORDER BY ingested_at DESC LIMIT 1`, [userId]);
+    ok("listen answer: recorded grade≥3, input_mode=mc in canon",
+      !!(lr && lr.ok && lr.recorded && Number(lr.grade) >= 3) && !!lrow && JSON.parse(lrow.meta_json).input_mode === "mc");
+    const GPl = require(path.join(ROOT, "public", "js", "grade-policy.js"));
+    ok("listen is receptive: no production latch",
+      GPl.hasProductionSuccess([{ kind: "review", grade: 3, channel: "listen:ma", meta_json: lrow.meta_json }]) === false);
+    delete process.env.MINI_APP_REVIEW_WRITE;
+    process.env.MINI_APP_REVIEW_WRITE = "1";
+  }
+  await learnerProjectionRepo.recomputeForKeys(userId, LCANDS);   // fixture-урок №3: прямые INSERT-проекции → replay-истина
 
   // ── 14) down-sync источник + оракул ──
   const log = await learnerLogRepo.readLog(userId, { afterRid: 0, limit: 100 });

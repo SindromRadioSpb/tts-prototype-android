@@ -222,6 +222,10 @@ function buildDescriptor(pick, { lng, mode, preview, userId } = {}) {
   // (нет challenge/exposure → letter-multiset не утекает без учтённого показа).
   if (pick.kind === "cloze") base.stimulus = { blanked_he: pick.blanked_he, sentence_ru: pick.sentence_ru || "" };
   else if (pick.kind === "dictate") base.stimulus = { audio_token: mintAudioToken(pick.assetKey, { userId, classC: false }) };
+  else if (pick.kind === "listen") base.stimulus = {
+    audio_token: mintAudioToken(pick.assetKey, { userId, classC: false }),
+    gloss: pick.gloss, options: pick.options,
+  };
   else base.stimulus = { gloss: pick.gloss };
   return base;
 }
@@ -255,7 +259,7 @@ function _tilesFor(surface) {
 // что selectEligible (selectClozeChallenge / strictSafe-глосс / dictate-предикаты). Тот же
 // due-snapshot (окно/exposure/nowMs); порядок — due-order, первый eligible. Manual =
 // осознанный override → reading-first-резервация НЕ применяется (чартер §2); cooldown ДА.
-const MANUAL_MODALITIES = { cloze: 1, dictate: 1, reverse: 1 };
+const MANUAL_MODALITIES = { cloze: 1, dictate: 1, reverse: 1, listen: 1 };
 async function selectForModality(userId, modality, { nowMs } = {}) {
   const now = Number(nowMs) || Date.now();
   const items = await learnerGraphRepo.getDue(userId, { nowMs: now, limit: REVIEW_DUE_WINDOW });
@@ -284,6 +288,39 @@ async function selectForModality(userId, modality, { nowMs } = {}) {
                assetKey, url: audioUrlFor(assetKey), sense_id: d.pid, select_reason: "user_choice" };
     }
     return null;
+  }
+  if (modality === "listen") {
+    // P8.4c: рецептивный MC — цель + 3 дистрактора из ДРУГИХ due-кандидатов (серверные, без LLM).
+    // Ассет = word-audio (dictate-набор); PUBLIC_BASE_URL НЕ нужен (стрим своим token-маршрутом).
+    // Дистрактор-фильтры: скелет ≠ скелету цели (иначе skeleton-грейдер ложно примет), глосс ≠.
+    const RM = require(path.join(__dirname, "..", "public", "js", "reader-morph.js"));
+    const crypto = require("crypto");
+    const cands = [];
+    for (const k of dueKeys) {
+      if (isExposed(k)) continue;
+      let d = null, g = null;
+      try { d = await keyingService.dictateFormForItemKey(k); } catch (_) { d = null; }
+      if (!d) continue;
+      const assetKey = computeDictateAssetKey(d.vocalized);
+      let ready = false;
+      try { ready = await audioRepo.hasAsset(assetKey); } catch (_) { ready = false; }
+      if (!ready) continue;
+      try { g = await keyingService.glossForItemKey(k); } catch (_) { g = null; }
+      if (!g || !g.gloss) continue;
+      cands.push({ k, voc: d.vocalized, written: d.written, assetKey, gloss: String(g.gloss), sense_id: d.pid });
+      if (cands.length >= 12) break;   // хватит на цель + богатый выбор дистракторов
+    }
+    if (cands.length < 4) return null;                       // честно: MC без 4 опций не собрать
+    const target = cands[0];                                 // due-order (приоритет lapses)
+    const tSkel = RM.stripNiqqud(target.voc);
+    const pool = cands.slice(1).filter((c) =>
+      RM.stripNiqqud(c.voc) !== tSkel && c.gloss.toLowerCase() !== target.gloss.toLowerCase());
+    if (pool.length < 3) return null;
+    for (let i = pool.length - 1; i > 0; i--) { const j = crypto.randomInt(i + 1); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    const options = [target.voc, pool[0].voc, pool[1].voc, pool[2].voc];
+    for (let i = options.length - 1; i > 0; i--) { const j = crypto.randomInt(i + 1); [options[i], options[j]] = [options[j], options[i]]; }
+    return { kind: "listen", item_key: target.k, vocalized: target.voc, assetKey: target.assetKey,
+             gloss: target.gloss, options, sense_id: target.sense_id, select_reason: "user_choice" };
   }
   // reverse strictSafe
   for (const k of dueKeys) {
@@ -347,6 +384,12 @@ async function start({ userId, surface, mode, modality, lng, nowMs, tgUserId, tg
     pick = await selectEligible(userId, { nowMs: now });
     if (pick) { effectiveMode = "all_due"; fellBack = true; }
   }
+  // P8.4c: продукционный пул исчерпан → рецептивный listen-fallback (continuity: тупик остаётся
+  // только когда честно НЕЧЕГО). Manual каскада не имеет.
+  if (!pick && !isManual) {
+    pick = await selectForModality(userId, "listen", { nowMs: now });
+    if (pick) { pick.select_reason = "receptive_fallback"; effectiveMode = "all_due"; }
+  }
   if (!pick) {
     const due = await learnerGraphRepo.getDue(userId, { nowMs: now, limit: REVIEW_DUE_WINDOW });
     const dueCount = (due || []).length;
@@ -392,6 +435,14 @@ function _capsForSurface(pick, { userId, surface, tgUserId, tgChatId }) {
       shown_stimulus: pick.assetKey, stimulus_source: "dictate-tts", stimulus_source_version: "v12",
       stimulus_privacy_class: "A", stimulus_hash: sha1(pick.assetKey).slice(0, 16) };
   }
+  if (pick.kind === "listen") {
+    // P8.4c: рецептив; опции ПЕРСИСТЯТСЯ (resume-стабильный MC); класс A — словарные данные.
+    const body = JSON.stringify({ assetKey: pick.assetKey, gloss: pick.gloss, options: pick.options });
+    return { ...common, review_mode: "listen:ma", prompt_kind: "listen", evidence_scope: "receptive",
+      expected_form_id: pick.item_key, sense_id: pick.sense_id, expected_surface: pick.vocalized,
+      shown_stimulus: body, stimulus_source: "listen-mc", stimulus_source_version: "v12",
+      stimulus_privacy_class: "A", stimulus_hash: sha1(body).slice(0, 16) };
+  }
   return { ...common, review_mode: "reverse:ma", prompt_kind: "reverse", evidence_scope: "lexeme",
     expected_form_id: pick.item_key, sense_id: pick.sense_id, shown_stimulus: pick.gloss,
     stimulus_source: "pealim-infl", stimulus_source_version: "v12",
@@ -415,6 +466,13 @@ function _descriptorFromChallenge(chal, lng) {
     if (tiles) base.stimulus.tiles = tiles;
   } else if (chal.prompt_kind === "dictate") {
     base.stimulus = { audio_token: mintAudioToken(chal.shown_stimulus, { userId: chal.user_id, challengeId: chal.challenge_id, classC: false }) };
+  } else if (chal.prompt_kind === "listen") {
+    let p = null;
+    try { p = JSON.parse(chal.shown_stimulus || "{}"); } catch (_) { p = {}; }
+    base.stimulus = {
+      audio_token: p.assetKey ? mintAudioToken(p.assetKey, { userId: chal.user_id, challengeId: chal.challenge_id, classC: false }) : null,
+      gloss: String(p.gloss || ""), options: Array.isArray(p.options) ? p.options : [],
+    };
   } else {
     base.stimulus = { gloss: String(chal.shown_stimulus || "") };
   }
@@ -433,7 +491,7 @@ function _writeAllowed() { return miniappWriteOn() && reviewer.flagOn(); }
 
 // вердикт «ожидалось …» для result-карточки (пост-вердикт — утечкой не является)
 async function _expectedFor(chal) {
-  if (chal.prompt_kind === "cloze" || chal.prompt_kind === "dictate") return chal.expected_surface || null;
+  if (chal.prompt_kind === "cloze" || chal.prompt_kind === "dictate" || chal.prompt_kind === "listen") return chal.expected_surface || null;
   try { return await keyingService.displayForItemKey(chal.item_key); } catch (_) { return null; }
 }
 

@@ -47,7 +47,9 @@ const CHANNEL_RE = /^(read|listen):[a-z0-9_-]{1,20}$/;
 const PRODUCTION_RE = /^(dictate|reverse|cloze)(:|$)/;
 // P7.2a/b/c: production-канал(ы), которые challenge-binding РАЗБЛОКИРУЕТ (reverse + cloze + dictate).
 // P8.4a: суффикс = surface-провенанс (:tg бот, :ma Mini App); префикс = модальность (channel_stats цел).
-const CHALLENGE_CHANNEL_RE = /^(reverse|cloze|dictate):(tg|ma)$/;
+// P8.4c: +listen (рецептивный MC Mini App; PRODUCTION_RE его не матчит → EXPECTED_SCOPE-проверка
+// production-only не применяется by construction; бот listen не рендерит — :tg-канала нет).
+const CHALLENGE_CHANNEL_RE = /^(reverse|cloze|dictate|listen):(tg|ma)$/;
 // суффикс канала ↔ surface challenge-строки (fail-closed §10 п.4 P8.3 / §3.2 P8.4a)
 const CHANNEL_SUFFIX_SURFACE = { tg: "telegram_bot", ma: "telegram_miniapp" };
 // Канонический evidence_scope по типу challenge (fail-closed, критика wf_596df7f6): reviewer НЕ
@@ -125,7 +127,7 @@ async function _grade(ctx, a) {
   if (attemptId.length < 8 || attemptId.length > 64) return err("BAD_ATTEMPT_ID");
   // P8.4a §10 п.10: assisted-провенанс ввода — закрытый enum, доезжает до meta.
   const inputMode = a.input_mode != null ? String(a.input_mode) : "";
-  if (inputMode && inputMode !== "tiles" && inputMode !== "keyboard") return err("BAD_INPUT_MODE");
+  if (inputMode && inputMode !== "tiles" && inputMode !== "keyboard" && inputMode !== "mc") return err("BAD_INPUT_MODE");
 
   // ── P7.2a challenge-binding: единственный мост к production-записи из Telegram ──
   const challengeId = a.challenge_id != null ? String(a.challenge_id).trim() : "";
@@ -188,8 +190,8 @@ async function _grade(ctx, a) {
   // грейдилась бы против леммы = ложный lapse). P7.2c dictate: expected = ПИСЬМЕННАЯ (консонантная)
   // форма (chal.expected_surface = stripNiqqud(vocalized) из dictateFormForItemKey — ОДИН источник
   // с computeDictateAssetKey). reverse/рецептив: displayForItemKey (лемма).
-  const display = (chal && (chal.prompt_kind === "cloze" || chal.prompt_kind === "dictate"))
-    ? String(chal.expected_surface || "")
+  const display = (chal && (chal.prompt_kind === "cloze" || chal.prompt_kind === "dictate" || chal.prompt_kind === "listen"))
+    ? String(chal.expected_surface || "")   // listen (P8.4c): expected = ОГЛАСОВАННАЯ опция MC
     : await keyingService.displayForItemKey(itemKey);
   if (!display || display === itemKey || !HEB_ANY_RE.test(display)) {
     if (chal) await agentChallengeRepo.release(ctx.userId, challengeId, attemptId);

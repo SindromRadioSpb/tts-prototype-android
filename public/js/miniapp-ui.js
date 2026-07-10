@@ -109,6 +109,9 @@
     mode_cloze: { ru: "📖 Контекст", en: "📖 Context" },
     mode_reverse: { ru: "🔤 RU→HE", en: "🔤 RU→HE" },
     mode_dictate: { ru: "✍️ Диктант", en: "✍️ Dictation" },
+    mode_listen: { ru: "🎧 Аудио", en: "🎧 Audio" },
+    card_listen: { ru: "Аудио: выберите услышанное слово", en: "Audio: pick the word you heard" },
+    listen_fallback_note: { ru: "Письменные упражнения для оставшихся слов недоступны — продолжаем на слух.", en: "Written exercises are unavailable for the remaining words — continuing by ear." },
     train_none_modality: { ru: "Для этого режима сейчас нет подходящих слов.", en: "No eligible words for this mode right now." },
     smart_train_btn: { ru: "Умная тренировка", en: "Smart training" },
     change_mode_btn: { ru: "Сменить режим", en: "Change mode" },
@@ -245,7 +248,7 @@
     // P8.4b: «Выбрать режим» — пользователь выбирает МОДАЛЬНОСТЬ, сервер — слова (чартер §2)
     box.appendChild(el("p", "ma-last", t("mode_row")));
     const modeRow = el("div", "ma-stats");
-    for (const m of ["cloze", "reverse", "dictate"]) {
+    for (const m of ["cloze", "reverse", "dictate", "listen"]) {
       const mb = el("button", "ma-btn ma-mode", t("mode_" + m));
       mb.addEventListener("click", () => startSession("manual", home, m));
       modeRow.appendChild(mb);
@@ -393,6 +396,44 @@
       if (st.sentence_ru) box.appendChild(el("p", "ma-last", String(st.sentence_ru)));
     } else if (d.kind === "dictate") {
       if (st.audio_token) box.appendChild(audioEl(st.audio_token));
+    } else if (d.kind === "listen") {
+      // P8.4c: рецептивный MC — плеер + глосс + 4 опции-кнопки; выбор = сразу submit (mc)
+      if (d.select_reason === "receptive_fallback") box.appendChild(el("p", "ma-note", t("listen_fallback_note")));
+      if (st.audio_token) box.appendChild(audioEl(st.audio_token));
+      if (st.gloss) box.appendChild(el("p", "ma-rec-kind", String(st.gloss)));
+      if (!d.preview && d.challenge_id && Array.isArray(st.options)) {
+        for (const opt of st.options) {
+          const ob = el("button", "ma-btn ma-opt", String(opt));
+          ob.setAttribute("dir", "rtl"); ob.setAttribute("lang", "he");
+          ob.addEventListener("click", async () => {
+            const nonce = nonceFor(d.challenge_id);
+            spinner("auth_loading");
+            let r;
+            try { r = await api("/api/miniapp/review-sessions/" + encodeURIComponent(d.challenge_id) + "/answer", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ nonce, answer: String(opt), input_mode: "mc" }) }); }
+            catch (_) { return message("warn", "submit_failed", [{ label: "retry_btn", onClick: () => renderChallenge(d, home) }]); }
+            renderResult(d, r, home);
+          });
+          box.appendChild(ob);
+        }
+        const dk = el("button", "ma-btn", t("dontknow_btn"));
+        dk.addEventListener("click", async () => {
+          const nonce = nonceFor(d.challenge_id);
+          spinner("auth_loading");
+          let r;
+          try { r = await api("/api/miniapp/review-sessions/" + encodeURIComponent(d.challenge_id) + "/skip", {
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nonce }) }); }
+          catch (_) { return message("warn", "submit_failed", [{ label: "retry_btn", onClick: () => renderChallenge(d, home) }]); }
+          renderResult(d, r, home);
+        });
+        box.appendChild(dk);
+      }
+      if (d.preview) box.appendChild(el("p", "ma-note", t("preview_note")));
+      const backL = el("button", "ma-btn", t("back_home"));
+      backL.addEventListener("click", () => renderHome(home));
+      box.appendChild(backL);
+      return render([box]);
     } else if (d.kind === "reverse") {
       box.appendChild(el("p", "ma-rec-kind", String(st.gloss || "")));
     }
