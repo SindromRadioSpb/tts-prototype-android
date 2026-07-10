@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru" data-scheme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <title>LinguistPro — Наставник</title>
+  <!-- CLG-P8.1 Telegram Mini App shell (TELEGRAM_MINI_APP_P8_1_SPEC §4).
+       No inline JS — the shell's ENFORCED CSP (server.js MINIAPP_CSP) allows scripts
+       only from self + telegram.org. Styling consumes Telegram-managed CSS vars
+       (--tg-theme-*, safe-area) with fallbacks; light/dark via data-scheme set by
+       miniapp-host.js from Telegram colorScheme. NOT precached by the PWA SW. -->
+  <style>
+    :root {
+      --bg: var(--tg-theme-bg-color, #ffffff);
+      --fg: var(--tg-theme-text-color, #1c1c1e);
+      --hint: var(--tg-theme-hint-color, #6d6d72);
+      --accent: var(--tg-theme-button-color, #2481cc);
+      --accent-fg: var(--tg-theme-button-text-color, #ffffff);
+      --card: var(--tg-theme-secondary-bg-color, #f2f2f7);
+    }
+    :root[data-scheme="dark"] {
+      --bg: var(--tg-theme-bg-color, #1c1c1e);
+      --fg: var(--tg-theme-text-color, #ffffff);
+      --hint: var(--tg-theme-hint-color, #98989e);
+      --card: var(--tg-theme-secondary-bg-color, #2c2c2e);
+    }
+    * { box-sizing: border-box; margin: 0; }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg); color: var(--fg);
+      font: 16px/1.45 -apple-system, "Segoe UI", Roboto, sans-serif;
+      padding:
+        calc(var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, 0px)) + 16px)
+        calc(var(--tg-safe-area-inset-right, 0px) + 16px)
+        calc(var(--tg-content-safe-area-inset-bottom, var(--tg-safe-area-inset-bottom, 0px)) + 16px)
+        calc(var(--tg-safe-area-inset-left, 0px) + 16px);
+    }
+    #app { max-width: 480px; margin: 0 auto; }
+    .ma-state { display: flex; flex-direction: column; gap: 14px; padding-top: 12vh; text-align: center; }
+    .ma-msg { color: var(--fg); }
+    .ma-busy .ma-msg { color: var(--hint); }
+    .ma-btn {
+      min-height: 44px; padding: 10px 18px; border: 0; border-radius: 10px;
+      background: var(--card); color: var(--fg); font: inherit; cursor: pointer;
+    }
+    .ma-btn-primary { background: var(--accent); color: var(--accent-fg); }
+    .ma-home { display: flex; flex-direction: column; gap: 16px; padding-top: 8px; }
+    .ma-title { font-size: 22px; }
+    .ma-stats { display: flex; gap: 12px; }
+    .ma-stat { flex: 1; background: var(--card); border-radius: 12px; padding: 14px 10px; text-align: center; }
+    .ma-stat-num { font-size: 28px; font-weight: 700; }
+    .ma-stat-label { color: var(--hint); font-size: 13px; margin-top: 2px; }
+    .ma-last, .ma-note { color: var(--hint); font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div id="app" aria-live="polite"></div>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="/js/miniapp-host.js"></script>
+  <script src="/js/miniapp-ui.js"></script>
+</body>
+</html>

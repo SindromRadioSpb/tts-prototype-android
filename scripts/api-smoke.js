@@ -81,6 +81,7 @@ function startServer(dbPath, port, dataDir) {
       // writes) never touch the dev/prod data dir; run() removes it afterwards.
       DATA_DIR: dataDir,
       AUDIO_UPLOAD_TOKEN: SMOKE_AUDIO_TOKEN, // BRR-P0-010 — exercise the upload lock
+      MINI_APP_ENABLED: "0", // CLG-P8.1 — hermetic: assert the dormant 503 regardless of host env
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -286,6 +287,39 @@ async function run() {
       }
     }
     console.log("PASS /api/tts -> self-cache: seeded mp3+timing served keyless; /timing returns words[]");
+
+    // 7. CLG-P8.1 Mini App shell contract:
+    //    (a) /miniapp.html serves with the ENFORCED per-path CSP (frame-ancestors pinned to
+    //        self + web.telegram.org — Telegram Web embeds us as an iframe), WITHOUT
+    //        X-Frame-Options/COEP (those would block the Telegram webview), no-cache;
+    //    (b) every other path keeps the global hardening headers (control: /healthz);
+    //    (c) with MINI_APP_ENABLED unset the BFF is dormant: 503 FEATURE_DISABLED, never 404.
+    {
+      const res = await fetch(`${BASE_URL}/miniapp.html`);
+      const csp = res.headers.get("content-security-policy") || "";
+      if (!res.ok) throw new Error(`/miniapp.html expected 200, got ${res.status}`);
+      if (!csp.includes("frame-ancestors 'self' https://web.telegram.org") || !csp.includes("script-src 'self' https://telegram.org")) {
+        throw new Error(`/miniapp.html missing enforced CSP (got: ${csp.slice(0, 200)})`);
+      }
+      if (res.headers.get("x-frame-options")) throw new Error("/miniapp.html must NOT send X-Frame-Options (blocks Telegram Web iframe)");
+      if (res.headers.get("cross-origin-embedder-policy")) throw new Error("/miniapp.html must NOT send COEP (blocks telegram-web-app.js)");
+      if (!(res.headers.get("cache-control") || "").includes("no-cache")) throw new Error("/miniapp.html must be no-cache (auth shell)");
+    }
+    {
+      const res = await fetch(`${BASE_URL}/healthz`);
+      if (res.headers.get("x-frame-options") !== "SAMEORIGIN") throw new Error("control: /healthz lost X-Frame-Options SAMEORIGIN");
+      if (!res.headers.get("cross-origin-embedder-policy")) throw new Error("control: /healthz lost COEP");
+    }
+    {
+      const res = await fetch(`${BASE_URL}/api/miniapp/session`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ init_data: "x" }),
+      });
+      const { data, text } = await readBody(res);
+      if (res.status !== 503 || !data || data.error !== "FEATURE_DISABLED") {
+        throw new Error(`flag-off /api/miniapp/session expected 503 FEATURE_DISABLED, got ${res.status}: ${text.slice(0, 200)}`);
+      }
+    }
+    console.log("PASS /miniapp.html -> enforced CSP for Telegram webview (no XFO/COEP, no-cache); BFF dormant 503 when flag off");
 
     console.log("API smoke: OK");
   } catch (error) {

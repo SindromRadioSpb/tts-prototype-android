@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.126";
+const CACHE_VERSION = "v3.11.127";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -244,6 +244,12 @@ self.addEventListener("fetch", (event) => {
   // Only handle same-origin requests. Cross-origin (e.g. dev tools, future
   // CDN) goes straight to network.
   if (url.origin !== self.location.origin) return;
+
+  // CLG-P8.1: the Telegram Mini App shell is an AUTH surface — never serve it
+  // (or its JS) from SW caches: a stale shell could break the initData exchange
+  // or resurrect a disabled feature. Network-only. The Telegram webview itself
+  // has no SW; this guard is for a regular browser sharing the origin.
+  if (url.pathname === "/miniapp.html" || url.pathname.startsWith("/js/miniapp-")) return;
 
   // /api/client-config — network-first with timeout, fall back to cache.
   if (CONFIG_URL_RE.test(url.pathname + url.search)) {

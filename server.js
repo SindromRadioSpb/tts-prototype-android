@@ -215,21 +215,50 @@ const CSP_REPORT_ONLY_VALUE = [
   "report-to csp-endpoint",
 ].join("; ");
 
+// CLG-P8.1 — /miniapp.html runs inside Telegram webviews and is embedded as an
+// IFRAME by Telegram Web (web.telegram.org): X-Frame-Options SAMEORIGIN would
+// block it there, and COEP require-corp would block the mandatory SDK script
+// https://telegram.org/js/telegram-web-app.js. The shell uses no
+// SharedArrayBuffer/OPFS, so cross-origin isolation is not needed on it —
+// instead it gets an ENFORCED strict CSP (frame-ancestors pinned to self +
+// web.telegram.org; scripts pinned to self + telegram.org, no inline JS) and
+// no-cache (an auth shell must never be served stale from HTTP cache).
+const MINIAPP_SHELL_PATH = "/miniapp.html";
+const MINIAPP_CSP = [
+  "default-src 'self'",
+  "base-uri 'none'",
+  "object-src 'none'",
+  "frame-ancestors 'self' https://web.telegram.org",
+  "script-src 'self' https://telegram.org",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data:",
+  "connect-src 'self'",
+  "form-action 'none'",
+].join("; ");
+
 // Security + cross-origin-isolation headers on every response.
 //   • COOP/COEP/CORP enable SharedArrayBuffer (wa-sqlite AccessHandlePoolVFS).
 //   • HSTS: site is HTTPS-only behind Traefik + Let's Encrypt — pin it.
 //   • nosniff / frame-deny / referrer / permissions: standard hardening.
 //   • CSP: Report-Only (see above) — observational, never blocks.
 app.use((req, res, next) => {
-  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
-  res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+  const isMiniappShell = req.path === MINIAPP_SHELL_PATH;
+  if (isMiniappShell) {
+    res.setHeader("Content-Security-Policy", MINIAPP_CSP);
+    res.setHeader("Cache-Control", "no-cache");
+  } else {
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+    res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+    res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  }
   res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "SAMEORIGIN");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), browsing-topics=()");
-  if (CSP_REPORT_ONLY_ENABLED) {
+  if (CSP_REPORT_ONLY_ENABLED && !isMiniappShell) {
     // Modern Reporting API endpoint (Chrome) + classic report-uri (all browsers).
+    // The miniapp shell is excluded: it carries its own ENFORCED CSP above, and the
+    // report-only frame-ancestors 'self' would spam violation reports from Telegram Web.
     res.setHeader("Reporting-Endpoints", 'csp-endpoint="/api/csp-report"');
     res.setHeader("Content-Security-Policy-Report-Only", CSP_REPORT_ONLY_VALUE);
   }
