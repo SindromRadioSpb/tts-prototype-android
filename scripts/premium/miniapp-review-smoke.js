@@ -249,6 +249,24 @@ async function freshChallenge(caps) {
   await agentChallengeRepo.cancelOpenForUser(userId);
   await learnerProjectionRepo.recomputeForKeys(userId, [ITEM]);   // fixture мутировал производный due → вернуть replay-истину (оракул ниже)
 
+  // ── 13-ter) P8.4b manual mode: провенанс серверный, пустой пул честный ──
+  await dbRun(`UPDATE srs_projections SET due=? WHERE user_id=? AND item_key=?`, [past, userId, ITEM]);
+  await dbRun(`DELETE FROM tg_stimulus_exposure WHERE user_id=?`, [userId]);
+  const cols37 = await new Promise((rz) => getDb().all("PRAGMA table_info(agent_challenges)", [], (e, rows) => rz((rows || []).map((c) => c.name))));
+  ok("037: selection_origin/requested_modality", cols37.includes("selection_origin") && cols37.includes("requested_modality"));
+  const sm = await reviewSession.start({ userId, surface: S, mode: "manual", modality: "cloze", lng: "ru", tgUserId: "111", tgChatId: "222" });
+  const chM = sm && sm.challenge_id ? await dbGet(`SELECT * FROM agent_challenges WHERE challenge_id=?`, [sm.challenge_id]) : null;
+  ok("manual cloze: challenge with server-written provenance",
+    !!chM && chM.selection_origin === "manual" && chM.requested_modality === "cloze" &&
+    chM.select_reason === "user_choice" && chM.review_mode === "cloze:ma");
+  ok("manual: descriptor has no static explanation (user_choice fail-safe)", !!(sm.descriptor && sm.descriptor.explain === ""));
+  await agentChallengeRepo.cancelOpenForUser(userId);
+  const smD = await reviewSession.start({ userId, surface: S, mode: "manual", modality: "dictate", lng: "ru" });
+  ok("manual dictate without PUBLIC_BASE_URL → honest nothing-for-modality", !!(smD && smD.ok && smD.none === "nothing-for-modality"));
+  const smBad = await reviewSession.start({ userId, surface: S, mode: "manual", modality: "evil", lng: "ru" });
+  ok("manual: unknown modality rejected", !!(smBad && smBad.ok === false && smBad.error === "BAD_MODALITY"));
+  await learnerProjectionRepo.recomputeForKeys(userId, [ITEM]);
+
   // ── 14) down-sync источник + оракул ──
   const log = await learnerLogRepo.readLog(userId, { afterRid: 0, limit: 100 });
   const maRows = (log.rows || log || []).filter((x) => String(x.channel || "").endsWith(":ma"));

@@ -2086,11 +2086,13 @@ app.post("/api/miniapp/review-sessions", rlMiniapp, async (req, res) => {
   const auth = await requireMiniappSession(req, res); if (!auth) return;
   if (!requireCsrf(req, res, auth)) return;
   const mode = String((req.body && req.body.mode) || "reading_first");
-  if (mode !== "reading_first" && mode !== "all_due") return res.status(400).json({ ok: false, error: "BAD_MODE" });
+  if (mode !== "reading_first" && mode !== "all_due" && mode !== "manual") return res.status(400).json({ ok: false, error: "BAD_MODE" });
+  // P8.4b: клиент передаёт ТОЛЬКО интент (mode + modality-enum); провенанс пишет сервер
+  const modality = mode === "manual" ? String((req.body && req.body.modality) || "") : undefined;
   try {
     const link = await channelLinkRepo.getLinkForUser(auth.user.id);   // для ON-пути (chat ids by construction)
     const r = await reviewSessionSvc.start({
-      userId: auth.user.id, surface: "telegram_miniapp", mode, lng: String(req.body && req.body.lang || "ru"),
+      userId: auth.user.id, surface: "telegram_miniapp", mode, modality, lng: String(req.body && req.body.lang || "ru"),
       tgUserId: link && link.telegram_user_id, tgChatId: link && link.telegram_chat_id,
     });
     if (!r || r.ok === false) return res.status(400).json(r || { ok: false, error: "START_FAILED" });

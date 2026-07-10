@@ -49,8 +49,9 @@ async function createChallenge(caps) {
         (challenge_id, user_id, telegram_user_id, telegram_chat_id, item_key, review_mode,
          prompt_kind, evidence_scope, expected_form_id, sense_id, shown_stimulus, stimulus_source,
          stimulus_source_version, stimulus_privacy_class, stimulus_hash, accepted_alts_json, expires_at,
-         expected_surface, anchor_text_key, anchor_order_index, select_reason, surface)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         expected_surface, anchor_text_key, anchor_order_index, select_reason, surface,
+         selection_origin, requested_modality)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [id, caps.userId, String(caps.tgUserId), String(caps.tgChatId), caps.item_key,
        caps.review_mode, caps.prompt_kind || "reverse", caps.evidence_scope || "lexeme",
        caps.expected_form_id || null, caps.sense_id || null, caps.shown_stimulus || null,
@@ -60,7 +61,10 @@ async function createChallenge(caps) {
        caps.expected_surface || null, caps.anchor_text_key || null,
        caps.anchor_order_index != null ? Number(caps.anchor_order_index) : null,
        caps.select_reason || null,   // P7.2d: класс-A enum-провенанс выбора (объяснение читает chal.select_reason)
-       surface]);
+       surface,
+       // P8.4b: происхождение выбора — пишет СЕРВЕР (клиент шлёт только mode/modality-интент)
+       caps.selection_origin === "manual" ? "manual" : "selector",
+       caps.requested_modality || null]);
   } catch (e) {
     // гонка конкурентного /review на partial-unique → вернуть существующий
     if (String(e && e.message).includes("UNIQUE")) {

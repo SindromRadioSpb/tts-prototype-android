@@ -250,6 +250,53 @@ function _tilesFor(surface) {
   return letters;
 }
 
+// ── P8.4b manual mode: пользователь выбрал МОДАЛЬНОСТЬ — сервер выбирает слова ────
+// НЕ второй ranking-селектор (§20.1 цел): modality-фильтр над ТЕМИ ЖЕ предикатами-истинами,
+// что selectEligible (selectClozeChallenge / strictSafe-глосс / dictate-предикаты). Тот же
+// due-snapshot (окно/exposure/nowMs); порядок — due-order, первый eligible. Manual =
+// осознанный override → reading-first-резервация НЕ применяется (чартер §2); cooldown ДА.
+const MANUAL_MODALITIES = { cloze: 1, dictate: 1, reverse: 1 };
+async function selectForModality(userId, modality, { nowMs } = {}) {
+  const now = Number(nowMs) || Date.now();
+  const items = await learnerGraphRepo.getDue(userId, { nowMs: now, limit: REVIEW_DUE_WINDOW });
+  const dueKeys = (items || []).map((it) => it.item_key);
+  if (!dueKeys.length) return null;
+  const exposedSet = await agentChallengeRepo.recentlyExposedSet(userId, dueKeys, now);
+  const isExposed = (k) => exposedSet.has(String(k));
+
+  if (modality === "cloze") {
+    const cz = await agentClozeRepo.selectClozeChallenge(userId, dueKeys, isExposed);
+    return cz && cz.item_key ? { kind: "cloze", ...cz, select_reason: "user_choice" } : null;
+  }
+  if (modality === "dictate") {
+    const base = publicBaseUrl();
+    if (!base) return null;                                  // fail-closed как у селектора (без https-base диктант выключен)
+    for (const k of dueKeys) {
+      if (isExposed(k)) continue;
+      let d = null;
+      try { d = await keyingService.dictateFormForItemKey(k); } catch (_) { d = null; }
+      if (!d) continue;
+      const assetKey = computeDictateAssetKey(d.vocalized);
+      let ready = false;
+      try { ready = await audioRepo.hasAsset(assetKey); } catch (_) { ready = false; }
+      if (!ready) continue;
+      return { kind: "dictate", item_key: k, vocalized: d.vocalized, written: d.written,
+               assetKey, url: audioUrlFor(assetKey), sense_id: d.pid, select_reason: "user_choice" };
+    }
+    return null;
+  }
+  // reverse strictSafe
+  for (const k of dueKeys) {
+    if (isExposed(k)) continue;
+    let g = null;
+    try { g = await keyingService.glossForItemKey(k); } catch (_) { g = null; }
+    if (!g || !g.strictSafe) continue;
+    return { kind: "reverse", item_key: k, gloss: g.gloss, expected: g.expected,
+             sense_id: g.sense_id, select_reason: "user_choice" };
+  }
+  return null;
+}
+
 // ── start (§3, §9 п.5): P8.3 = render-only preview при write-OFF ──────────────
 // write-OFF (MINI_APP_REVIEW_WRITE≠1): дескриптор БЕЗ createChallenge и БЕЗ recordExposure —
 // превью не лочит /review бота (challenge один на пользователя!) и не жжёт cooldown.
@@ -257,9 +304,11 @@ function _tilesFor(surface) {
 // ДРУГОЙ поверхности → честный busy (бот-адаптер зеркально НЕ редоставляет miniapp-challenge).
 function miniappWriteOn() { return process.env.MINI_APP_REVIEW_WRITE === "1"; }
 
-async function start({ userId, surface, mode, lng, nowMs, tgUserId, tgChatId } = {}) {
+async function start({ userId, surface, mode, modality, lng, nowMs, tgUserId, tgChatId } = {}) {
   const now = Number(nowMs) || Date.now();
   if (surface !== "telegram_miniapp") return { ok: false, error: "BAD_SURFACE" };
+  const isManual = mode === "manual";
+  if (isManual && !MANUAL_MODALITIES[String(modality || "")]) return { ok: false, error: "BAD_MODALITY" };
 
   // открытый challenge? (single-use слот общий across surfaces — ux_agent_challenges_open)
   // TTL-гигиена (owner live-verify 2026-07-10: resume отдавал «active» строку с прошедшим
@@ -284,8 +333,11 @@ async function start({ userId, surface, mode, lng, nowMs, tgUserId, tgChatId } =
     return { ok: true, resumed: true, challenge_id: open.challenge_id, descriptor: _descriptorFromChallenge(open, lng) };
   }
 
-  const pick = await selectEligible(userId, { nowMs: now, allocationMode: mode === "all_due" ? undefined : "reading_first" });
-  if (!pick) return { ok: true, none: mode === "all_due" ? "nothing-eligible" : "nothing-in-reading-first-pool" };
+  const pick = isManual
+    ? await selectForModality(userId, modality, { nowMs: now })
+    : await selectEligible(userId, { nowMs: now, allocationMode: mode === "all_due" ? undefined : "reading_first" });
+  if (!pick) return { ok: true, none: isManual ? "nothing-for-modality"
+    : (mode === "all_due" ? "nothing-eligible" : "nothing-in-reading-first-pool") };
 
   if (!miniappWriteOn()) {
     // P8.3 preview: рендер без состояния (no challenge row, no exposure; tiles отсутствуют — §10 п.11)
@@ -294,6 +346,7 @@ async function start({ userId, surface, mode, lng, nowMs, tgUserId, tgChatId } =
 
   // P8.4-путь (dormant в P8.3): challenge с surface-провенансом; chat-ids из активной связки.
   const caps = _capsForSurface(pick, { userId, surface, tgUserId, tgChatId });
+  if (isManual) { caps.selection_origin = "manual"; caps.requested_modality = String(modality); }
   const r = await agentChallengeRepo.createChallenge(caps);
   const chal = r.challenge;
   await agentChallengeRepo.recordExposure(userId, chal.item_key, "review_prompt");
@@ -515,7 +568,7 @@ async function annul({ userId, surface, reviewRowId, reason }) {
 }
 
 module.exports = {
-  selectEligible, publicBaseUrl, audioUrlFor, start, buildDescriptor,
+  selectEligible, selectForModality, publicBaseUrl, audioUrlFor, start, buildDescriptor,
   answer, skip, hint, annul,
   mintAudioToken, resolveAudioToken, dropTokensForChallenge, miniappWriteOn,
   REVIEW_DUE_WINDOW, ALLOCATION_POLICY_VERSION, almostLapsed,
