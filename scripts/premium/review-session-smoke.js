@@ -86,9 +86,11 @@ const dbGet = (sql, p = []) => new Promise((res, rej) => getDb().get(sql, p, (e,
   ok("preview: zero challenge rows created", before.c === after.c);
   ok("preview: zero exposure rows created", before.e === after.e);
 
-  // ── allocation reading-first v1: ITEM (не almost-lapsed) вне пула → честный none ──
+  // ── allocation reading-first v1 + continuity-каскад (owner 2026-07-10): здоровый ITEM вне
+  // rf-пула → авто-fallback в all_due СРАЗУ отдаёт работу (fallback:true — провенанс честный) ──
   const rf = await reviewSession.start({ userId, surface: "telegram_miniapp", mode: "reading_first", lng: "ru" });
-  ok("allocation: reading_first excludes healthy ITEM → none", !!(rf && rf.ok && rf.none === "nothing-in-reading-first-pool"));
+  ok("allocation: rf excludes healthy ITEM → auto-fallback serves it (fallback:true)",
+    !!(rf && rf.ok && rf.fallback === true && rf.descriptor && rf.descriptor.kind === "cloze"));
   ok("allocation: almostLapsed predicate (lapses/stability)", reviewSession.almostLapsed({ lapses: 1 }) && reviewSession.almostLapsed({ lapses: 0, stability: 0.4 }) && !reviewSession.almostLapsed({ lapses: 0, stability: 12 }));
 
   // ── ON-путь (dormant в проде): surface-провенанс + resume + busy ──
