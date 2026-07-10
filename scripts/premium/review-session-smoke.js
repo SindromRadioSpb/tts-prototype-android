@@ -111,10 +111,15 @@ const dbGet = (sql, p = []) => new Promise((res, rej) => getDb().get(sql, p, (e,
   try { await agentChallengeRepo.createChallenge({ userId, surface: "evil", tgUserId: "1", tgChatId: "2", item_key: ITEM, review_mode: "cloze:ma" }); }
   catch (e) { badSurfaceThrew = String(e.message).includes("BAD_CHALLENGE_SURFACE"); }
   ok("createChallenge: unknown surface rejected", badSurfaceThrew);
-  const tok = reviewSession.mintAudioToken("someAssetKey123");
-  ok("audio token: mint→resolve roundtrip", reviewSession.resolveAudioToken(tok) === "someAssetKey123");
+  // P8.4a: токен несёт привязку {assetKey, userId, challengeId, classC} (§10 п.9)
+  const tok = reviewSession.mintAudioToken("someAssetKey123", { userId, challengeId: "ch_x", classC: true });
+  const rec = reviewSession.resolveAudioToken(tok);
+  ok("audio token: mint→resolve roundtrip (record)", !!rec && rec.assetKey === "someAssetKey123");
+  ok("audio token: binding carried (userId/challengeId/classC)", !!rec && rec.userId === userId && rec.challengeId === "ch_x" && rec.classC === true);
   ok("audio token: junk token → null", reviewSession.resolveAudioToken("nope") === null);
   ok("audio token: opaque (no assetKey inside)", tok.indexOf("someAssetKey123") === -1);
+  reviewSession.dropTokensForChallenge("ch_x");
+  ok("audio token: dropped with its challenge", reviewSession.resolveAudioToken(tok) === null);
 
   await closeDb();
   console.log(`\nsmoke:review-session — ${pass}/${pass + fail} passed`);

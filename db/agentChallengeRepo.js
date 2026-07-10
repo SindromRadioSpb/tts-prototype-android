@@ -122,13 +122,33 @@ async function _purgeClassC(db, whereSql, params) {
        WHERE stimulus_privacy_class='C' AND (${whereSql})`, params);
 }
 
-async function complete(userId, challengeId, attemptId) {
+// P8.4a §10 п.5: complete опционально персистит МИНИМАЛЬНЫЙ вердикт (enum decision + grade —
+// класс A, raw answer НИКОГДА) тем же ОДНИМ условным UPDATE — источник lost-response replay:
+// повторный answer тем же attempt_eff на completed реконструирует результат из result_*.
+// 0-changes с result — громкий лог (не тихая потеря replay-источника).
+async function complete(userId, challengeId, attemptId, result) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const r = await dbRun(db,
-    `UPDATE agent_challenges SET status='completed', completed_at=?
+    `UPDATE agent_challenges SET status='completed', completed_at=?, result_decision=?, result_grade=?
        WHERE challenge_id=? AND user_id=? AND status='processing' AND claimed_attempt_id=?`,
-    [nowIso(), String(challengeId), userId, attemptId]);
+    [nowIso(), result && result.decision != null ? String(result.decision) : null,
+     result && result.grade != null ? Number(result.grade) : null,
+     String(challengeId), userId, attemptId]);
   if (r.changes === 1) await _purgeClassC(db, `challenge_id=?`, [String(challengeId)]);   // класс-C не переживает closure
+  else if (result) console.error("[agent-challenge] complete-with-result 0-changes (replay source lost):", String(challengeId));
+  return r.changes === 1;
+}
+
+// P8.4a §10 п.4: hint-latch — АТОМАРНЫЙ условный UPDATE (никакого check-then-act). Вызывается
+// ТОЛЬКО после успешной резолюции payload'а (payload-first): changes=0 при прежнем hint →
+// идемпотентная ре-резолюция на вызывающей стороне; changes=0 из-за claim/closure → 409 там же.
+// kind валидируется вызывающим (context|sentence_audio). Один hint на challenge (первый липнет).
+async function markHint(userId, challengeId, kind) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const r = await dbRun(db,
+    `UPDATE agent_challenges SET hint_used_at=?, hint_kind=?
+       WHERE challenge_id=? AND user_id=? AND status='active' AND hint_used_at IS NULL`,
+    [nowIso(), String(kind), String(challengeId), userId]);
   return r.changes === 1;
 }
 // MNAR/синоним/ktiv/flag-off → вернуть в active (не сжигать challenge — owner «claim на write-ветке»)
@@ -214,7 +234,7 @@ async function pruneOld() {
 
 module.exports = {
   createChallenge, getOpenForUser, getActiveForTg, getForReviewer,
-  claimForAttempt, complete, release, decline, setPromptMessageId, cancelOpenForUser,
+  claimForAttempt, complete, markHint, release, decline, setPromptMessageId, cancelOpenForUser,
   recordExposure, recentlyExposed, recentlyExposedSet, pruneOld,
   CHALLENGE_TTL_MS, EXPOSURE_COOLDOWN_MS,
 };

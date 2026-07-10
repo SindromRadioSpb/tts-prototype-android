@@ -131,4 +131,61 @@ async function selectClozeChallenge(userId, dueItems, isExposed) {
   return { none: budgetHit ? "budget" : "no-match" };
 }
 
-module.exports = { selectClozeChallenge, MAX_ARTIFACTS_SCAN, MAX_SENTENCES_SCAN, TIME_BUDGET_MS, BLANK };
+// P8.4a §10 п.6 — LIVE-резолюция якоря для dictate/reverse hint/reveal (якорь НЕ персистится:
+// нет create-латентности, нет class-C-указателей на классе A, нет purge-дельты). Те же honesty-
+// гейты, что скан выше: двойной consent fail-closed, voc-forward-match unambiguous-форм,
+// function-gate, бюджет. Возврат { text_key, order_index, sentence_he, sentence_ru, masked_he } |
+// null (нет якоря/consent/бюджет — вызывающий деградирует честно: hint/reveal без предложения).
+// masked_he: target замаскирован (buildClozeForTarget count===1), иначе null (полное предложение
+// до вердикта НЕ отдаём — masked-only для hint; reveal после вердикта использует sentence_he).
+async function resolveAnchorLive(userId, itemKey) {
+  if (!(await learnerArtifactsRepo.hasConsent(userId))) return null;
+  if (!(await agentSentenceRepo.hasAgentReadConsent(userId))) return null;
+  let cf = null;
+  try { cf = await keyingService.clozeFormsForItemKey(itemKey); } catch (_) { cf = null; }
+  if (!cf || !cf.forms) return null;
+  const vocSet = new Set();
+  for (const f of cf.forms) if (f.unambiguous) vocSet.add(f.voc);
+  if (!vocSet.size) return null;
+
+  const started = Date.now();
+  let artifacts;
+  try { artifacts = await learnerArtifactsRepo.list(userId); } catch (_) { return null; }
+  let sentencesSeen = 0;
+  for (const meta of (artifacts || []).slice(0, MAX_ARTIFACTS_SCAN)) {
+    if (Date.now() - started > TIME_BUDGET_MS || sentencesSeen >= MAX_SENTENCES_SCAN) return null;
+    let art;
+    try { art = await learnerArtifactsRepo.get(userId, meta.artifact_key); } catch (_) { continue; }
+    if (!art) continue;
+    let payload;
+    try { payload = JSON.parse(art.payload_json); } catch (_) { continue; }
+    for (const text of (Array.isArray(payload && payload.texts) ? payload.texts : [])) {
+      const textKey = String(text && text.text_key || meta.artifact_key);
+      for (const row of _rowsOf(text)) {
+        if (Date.now() - started > TIME_BUDGET_MS || sentencesSeen >= MAX_SENTENCES_SCAN) return null;
+        const he = row.he_niqqud;
+        if (!he || !Number.isFinite(row.order_index)) continue;
+        sentencesSeen++;
+        const tokens = RM.tokenize(he);
+        const wordToks = tokens.filter((t) => t.isWord);
+        if (wordToks.length < 2 || wordToks.length > MAX_WORDS_PER_SENT) continue;
+        for (const tk of wordToks) {
+          const voc = _normVoc(tk.text);
+          if (!vocSet.has(voc)) continue;
+          const sk = RM.stripNiqqud(voc);
+          const fg = RM.functionGate(sk);
+          if (fg && fg.isFunc) continue;
+          const cz = RM.buildClozeForTarget(tokens, sk);
+          return {
+            text_key: textKey, order_index: row.order_index,
+            sentence_he: he.trim(), sentence_ru: row.ru || "",
+            masked_he: cz && cz.count === 1 ? _renderBlanked(cz.segments) : null,
+          };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+module.exports = { selectClozeChallenge, resolveAnchorLive, MAX_ARTIFACTS_SCAN, MAX_SENTENCES_SCAN, TIME_BUDGET_MS, BLANK };

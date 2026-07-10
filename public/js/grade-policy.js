@@ -38,7 +38,12 @@
   // context-supported production (reverse-из-смысла, cloze-в-контексте) — доказывает ЛЕММУ/форму-в-
   // контексте, но НЕ unsupported dictate-компетенцию (owner D-1). Успех этих scope НЕ защёлкивает
   // hasProductionSuccess → не отключает будущую D1-мягкость диктанта.
-  var CONTEXT_SUPPORTED_SCOPES = { lexeme: 1, cloze: 1 };
+  // P8.4a (+context_supported): hinted-диктант (пользователь запросил «Показать контекст» —
+  // глосс+предложение до ответа) НЕ доказывает unsupported production — демоция scope пишется
+  // reviewer'ом в момент record (hint_used_at на challenge-строке — один дом факта). МОДУЛЬ
+  // КЛИЕНТ-ШАРЕННЫЙ: изменение требует SW CACHE_VERSION bump (stale-клиент латчил бы
+  // hasProvenProduction на down-synced hinted-строках — version-skew окно до refresh).
+  var CONTEXT_SUPPORTED_SCOPES = { lexeme: 1, cloze: 1, context_supported: 1 };
 
   function channelPrefix(channel) {
     var s = String(channel == null ? "" : channel);

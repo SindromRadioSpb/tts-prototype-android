@@ -2095,13 +2095,21 @@ app.post("/api/miniapp/review-sessions", rlMiniapp, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: "REVIEW_SESSION_FAILED" }); }
 });
 
-// dictate-аудио: challenge-scoped опак-токен → стрим байтов (assetKey контент-производен и
-// инвертируем против публичного датасета → НИКОГДА в клиентском payload/URL, §9 п.15).
+// dictate/sentence-аудио: опак-токен с привязкой {userId, challengeId, classC} → стрим байтов
+// (assetKey контент-производен и инвертируем → НИКОГДА в клиентском payload/URL, §9 п.15).
+// §10 п.9 P8.4a: сверка userId сессии; class-C-производное (TTS предложения пользователя) —
+// double-consent recheck В МОМЕНТ стрима (revoke между hint и play → 404, fail-closed).
 app.get("/api/miniapp/review-audio", rlMiniapp, async (req, res) => {
   const auth = await requireMiniappSession(req, res); if (!auth) return;
-  const assetKey = reviewSessionSvc.resolveAudioToken(req.query.t);
-  if (!assetKey || !/^[A-Za-z0-9_-]+$/.test(assetKey)) return res.status(404).json({ ok: false, error: "AUDIO_TOKEN_INVALID" });
-  const abs = path.resolve(DATA_DIR, "audio-cache/" + assetKey + ".mp3");
+  const tok = reviewSessionSvc.resolveAudioToken(req.query.t);
+  if (!tok || !/^[A-Za-z0-9_-]+$/.test(tok.assetKey)) return res.status(404).json({ ok: false, error: "AUDIO_TOKEN_INVALID" });
+  if (tok.userId && tok.userId !== auth.user.id) return res.status(404).json({ ok: false, error: "AUDIO_TOKEN_INVALID" });
+  if (tok.classC) {
+    const okCloud = await require("./db/learnerArtifactsRepo").hasConsent(auth.user.id).catch(() => false);
+    const okRead = await require("./db/agentSentenceRepo").hasAgentReadConsent(auth.user.id).catch(() => false);
+    if (!okCloud || !okRead) return res.status(404).json({ ok: false, error: "AUDIO_TOKEN_INVALID" });
+  }
+  const abs = path.resolve(DATA_DIR, "audio-cache/" + tok.assetKey + ".mp3");
   if (!abs.startsWith(path.resolve(DATA_DIR))) return res.status(400).json({ ok: false, error: "BAD_PATH" });
   fs.stat(abs, (err, st) => {
     if (err || !st.isFile()) return res.status(404).json({ ok: false, error: "AUDIO_NOT_FOUND" });
@@ -2111,13 +2119,70 @@ app.get("/api/miniapp/review-audio", rlMiniapp, async (req, res) => {
   });
 });
 
-// P8.4-заглушки: запись ЗАПРЕЩЕНА в P8.3 — точный код, не generic (states-honesty §5.3 recon).
-for (const p of ["/api/miniapp/review-sessions/:id/answer", "/api/miniapp/review-sessions/:id/skip"]) {
-  app.post(p, rlMiniapp, async (req, res) => {
-    const auth = await requireMiniappSession(req, res); if (!auth) return;
-    res.status(403).json({ ok: false, error: "MINIAPP_REVIEW_WRITE_OFF" });
-  });
-}
+// ── P8.4a write-flow: answer/skip/hint/annul через reviewSessionService → reviewer (канон).
+// Оба флага (MINI_APP_REVIEW_WRITE + AGENT_REVIEW_WRITE) проверяет сервис — dormant по умолчанию.
+const _miniappWriteStatus = (r) =>
+  r && r.error === "MINIAPP_REVIEW_WRITE_OFF" ? 403
+  : r && (r.error === "CHALLENGE_NOT_FOUND" || r.error === "ANNUL_TARGET_NOT_FOUND") ? 404
+  : r && r.error === "CHALLENGE_CLOSED" ? 409
+  : r && (r.error === "HINT_TOO_LATE" || r.error === "HINT_KIND_MISMATCH" || r.error === "RETRY_WITH_ORIGINAL") ? 409
+  : 400;
+
+app.post("/api/miniapp/review-sessions/:id/answer", rlMiniapp, async (req, res) => {
+  const auth = await requireMiniappSession(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const b = req.body || {};
+    const r = await reviewSessionSvc.answer({
+      userId: auth.user.id, surface: "telegram_miniapp", challengeId: req.params.id,
+      clientNonce: b.nonce, answer: b.answer, inputMode: b.input_mode,
+    });
+    if (!r || r.ok !== true) return res.status(_miniappWriteStatus(r)).json(r || { ok: false, error: "REVIEW_FAILED" });
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: "REVIEW_FAILED" }); }
+});
+
+app.post("/api/miniapp/review-sessions/:id/skip", rlMiniapp, async (req, res) => {
+  const auth = await requireMiniappSession(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const r = await reviewSessionSvc.skip({
+      userId: auth.user.id, surface: "telegram_miniapp", challengeId: req.params.id,
+      clientNonce: (req.body || {}).nonce,
+    });
+    if (!r || r.ok !== true) return res.status(_miniappWriteStatus(r)).json(r || { ok: false, error: "REVIEW_FAILED" });
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: "REVIEW_FAILED" }); }
+});
+
+app.post("/api/miniapp/review-sessions/:id/hint", rlMiniapp, async (req, res) => {
+  const auth = await requireMiniappSession(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const r = await reviewSessionSvc.hint({
+      userId: auth.user.id, surface: "telegram_miniapp", challengeId: req.params.id,
+      kind: String((req.body || {}).kind || ""),
+    });
+    if (!r || r.ok !== true) {
+      const code = r && (r.error === "HINT_UNAVAILABLE" ? 404 : _miniappWriteStatus(r));
+      return res.status(code || 400).json(r || { ok: false, error: "HINT_UNAVAILABLE" });
+    }
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: "HINT_FAILED" }); }
+});
+
+app.post("/api/miniapp/review-events/:id/annul", rlMiniapp, async (req, res) => {
+  const auth = await requireMiniappSession(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const r = await reviewSessionSvc.annul({
+      userId: auth.user.id, surface: "telegram_miniapp",
+      reviewRowId: req.params.id, reason: String((req.body || {}).reason || "user_undo"),
+    });
+    if (!r || r.ok !== true) return res.status(_miniappWriteStatus(r)).json(r || { ok: false, error: "ANNUL_FAILED" });
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: "ANNUL_FAILED" }); }
+});
 
 // ── webhook: secret-middleware (raw, ДО парсинга) → 256kb-json → handler ──────
 const _tgWebhookJson = bodyParser.json({ limit: "256kb" });

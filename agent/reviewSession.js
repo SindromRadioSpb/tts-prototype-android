@@ -21,7 +21,8 @@ const learnerLogRepo = require(path.join(__dirname, "..", "db", "learnerLogRepo"
 const GP = require(path.join(__dirname, "..", "public", "js", "grade-policy"));
 const FC = require(path.join(__dirname, "..", "public", "js", "fsrs-core"));
 const audioRepo = require(path.join(__dirname, "..", "db", "audioRepo"));
-const { computeDictateAssetKey } = require(path.join(__dirname, "..", "db", "premium", "ttsAssetKey"));
+const { computeDictateAssetKey, computeAssetKey } = require(path.join(__dirname, "..", "db", "premium", "ttsAssetKey"));
+const reviewer = require(path.join(__dirname, "reviewer"));
 
 // §2-v2: одно окно для селектора И builder'а. Расширение 40→50 для cloze — НАМЕРЕННОЕ
 // исправление (§9 п.11): выбор cloze остаётся sentence-scan-order-first ВНУТРИ окна.
@@ -174,26 +175,41 @@ function almostLapsed(it) {
 // парадигм → до ответа клиенту НЕЛЬЗЯ отдавать ни assetKey, ни /api/audio/<key>-URL. Дескриптор
 // несёт опак-токен; сервер мапит токен→assetKey и стримит байты challenge-скоуп-маршрутом.
 // In-memory (один процесс, TTL=окно challenge): рестарт сервера жертвует только превью-ссылкой.
+// P8.4a §10 п.9: токен привязан к {userId, challengeId, classC} — маршрут сверяет пользователя
+// сессии, class-C-производное аудио (TTS предложения пользователя) ре-чекает double-consent В
+// МОМЕНТ стрима; закрытие challenge удаляет его токены. Single-process Map (рестарт → потеря
+// токена → shell ре-минтит через resume, §10 п.14).
 const AUDIO_TOKEN_TTL_MS = 10 * 60 * 1000;
-const _audioTokens = new Map();   // token → { assetKey, exp }
-function mintAudioToken(assetKey) {
+const _audioTokens = new Map();   // token → { assetKey, userId, challengeId, classC, exp }
+function mintAudioToken(assetKey, bind) {
   const crypto = require("crypto");
   for (const [t, v] of _audioTokens) if (v.exp <= Date.now()) _audioTokens.delete(t);   // прюн по ходу
   const token = crypto.randomBytes(18).toString("base64url");
-  _audioTokens.set(token, { assetKey: String(assetKey), exp: Date.now() + AUDIO_TOKEN_TTL_MS });
+  _audioTokens.set(token, {
+    assetKey: String(assetKey),
+    userId: bind && bind.userId != null ? String(bind.userId) : null,
+    challengeId: bind && bind.challengeId != null ? String(bind.challengeId) : null,
+    classC: !!(bind && bind.classC),
+    exp: Date.now() + AUDIO_TOKEN_TTL_MS,
+  });
   return token;
 }
+// возвращает ПОЛНУЮ запись токена (вызывающий сверяет userId/classC), не голый assetKey
 function resolveAudioToken(token) {
   const v = _audioTokens.get(String(token || ""));
   if (!v || v.exp <= Date.now()) return null;
-  return v.assetKey;
+  return v;
+}
+function dropTokensForChallenge(challengeId) {
+  const id = String(challengeId || "");
+  for (const [t, v] of _audioTokens) if (v.challengeId === id) _audioTokens.delete(t);
 }
 
 // ── masked challenge descriptor (§6, leak-gate) ───────────────────────────────
 // ЗАКРЫТАЯ форма: {kind, select_reason, explain, allocation, stimulus} — НИКОГДА item_key /
 // expected / surface / written / vocalized / assetKey / anchor до ответа. cloze-предложение —
 // blanked (ответ вырезан) — это само задание (P8-D4C: context-before только у cloze).
-function buildDescriptor(pick, { lng, mode, preview } = {}) {
+function buildDescriptor(pick, { lng, mode, preview, userId } = {}) {
   const format = require(path.join(__dirname, "telegram", "format"));   // одна таблица объяснений с ботом
   const base = {
     kind: pick.kind,
@@ -202,10 +218,28 @@ function buildDescriptor(pick, { lng, mode, preview } = {}) {
     allocation: { policy: ALLOCATION_POLICY_VERSION, mode: mode === "all_due" ? "all_due" : "reading_first" },
     ...(preview ? { preview: true } : {}),
   };
+  // §10 п.11: tiles ТОЛЬКО на challenge-backed пути (_descriptorFromChallenge) — preview без tiles
+  // (нет challenge/exposure → letter-multiset не утекает без учтённого показа).
   if (pick.kind === "cloze") base.stimulus = { blanked_he: pick.blanked_he, sentence_ru: pick.sentence_ru || "" };
-  else if (pick.kind === "dictate") base.stimulus = { audio_token: mintAudioToken(pick.assetKey) };
+  else if (pick.kind === "dictate") base.stimulus = { audio_token: mintAudioToken(pick.assetKey, { userId, classC: false }) };
   else base.stimulus = { gloss: pick.gloss };
   return base;
+}
+
+// server-shuffled буквы expected-surface для тайловой сборки (cloze, §10 п.11): только len≥3
+// (зеркало dictate-правила P7.2d — короткое слово тайлы раскрывают тривиально), crypto-шафл.
+function _tilesFor(surface) {
+  const s = String(surface || "");
+  const letters = Array.from(s.replace(/\s+/g, ""));
+  if (letters.length < 3) return null;
+  const crypto = require("crypto");
+  for (let i = letters.length - 1; i > 0; i--) {
+    const j = crypto.randomInt(i + 1);
+    [letters[i], letters[j]] = [letters[j], letters[i]];
+  }
+  // шафл, совпавший с исходником, пере-шафлим один раз (не гарантия, но дёшево)
+  if (letters.join("") === s) [letters[0], letters[letters.length - 1]] = [letters[letters.length - 1], letters[0]];
+  return letters;
 }
 
 // ── start (§3, §9 п.5): P8.3 = render-only preview при write-OFF ──────────────
@@ -239,8 +273,8 @@ async function start({ userId, surface, mode, lng, nowMs, tgUserId, tgChatId } =
   if (!pick) return { ok: true, none: mode === "all_due" ? "nothing-eligible" : "nothing-in-reading-first-pool" };
 
   if (!miniappWriteOn()) {
-    // P8.3 preview: рендер без состояния (no challenge row, no exposure)
-    return { ok: true, descriptor: buildDescriptor(pick, { lng, mode, preview: true }) };
+    // P8.3 preview: рендер без состояния (no challenge row, no exposure; tiles отсутствуют — §10 п.11)
+    return { ok: true, descriptor: buildDescriptor(pick, { lng, mode, preview: true, userId }) };
   }
 
   // P8.4-путь (dormant в P8.3): challenge с surface-провенансом; chat-ids из активной связки.
@@ -291,16 +325,164 @@ function _descriptorFromChallenge(chal, lng) {
     const s = String(chal.shown_stimulus || "");
     const nl = s.indexOf("\n");
     base.stimulus = { blanked_he: nl > 0 ? s.slice(0, nl) : s, sentence_ru: nl > 0 ? s.slice(nl + 1) : "" };
+    const tiles = _tilesFor(chal.expected_surface);   // challenge-backed only (§10 п.11), len≥3
+    if (tiles) base.stimulus.tiles = tiles;
   } else if (chal.prompt_kind === "dictate") {
-    base.stimulus = { audio_token: mintAudioToken(chal.shown_stimulus) };
+    base.stimulus = { audio_token: mintAudioToken(chal.shown_stimulus, { userId: chal.user_id, challengeId: chal.challenge_id, classC: false }) };
   } else {
     base.stimulus = { gloss: String(chal.shown_stimulus || "") };
   }
+  base.challenge_id = chal.challenge_id;
   return base;
+}
+
+// ══ P8.4a write-flow (SPEC §4 + §10) ══════════════════════════════════════════
+
+function _sha1(s) { const crypto = require("crypto"); return crypto.createHash("sha1").update(String(s)).digest("hex"); }
+const NONCE_RE = /^[A-Za-z0-9_-]{8,64}$/;
+const errOut = (code, extra) => Object.assign({ ok: false, error: code }, extra || {});
+
+// оба флага (§10 п.3: и answer/skip/hint, и annul)
+function _writeAllowed() { return miniappWriteOn() && reviewer.flagOn(); }
+
+// вердикт «ожидалось …» для result-карточки (пост-вердикт — утечкой не является)
+async function _expectedFor(chal) {
+  if (chal.prompt_kind === "cloze" || chal.prompt_kind === "dictate") return chal.expected_surface || null;
+  try { return await keyingService.displayForItemKey(chal.item_key); } catch (_) { return null; }
+}
+
+// reveal-пейлоад (§10 пп.6,8): резолвится ДО record, прикладывается ТОЛЬКО на терминале.
+// cloze: полное предложение = blanked + подстановка expected (артефакты не нужны, consent был
+// на показе blanked). dictate/reverse: live-скан с consent-гейтами внутри (null → честно без).
+async function _resolveReveal(userId, chal) {
+  try {
+    if (chal.prompt_kind === "cloze") {
+      const s = String(chal.shown_stimulus || "");
+      const nl = s.indexOf("\n");
+      const blanked = nl > 0 ? s.slice(0, nl) : s;
+      if (!blanked || !chal.expected_surface) return null;
+      return { sentence_he: blanked.split(BLANK_RE).join(chal.expected_surface), sentence_ru: nl > 0 ? s.slice(nl + 1) : "" };
+    }
+    const a = await agentClozeRepo.resolveAnchorLive(userId, chal.item_key);
+    return a ? { sentence_he: a.sentence_he, sentence_ru: a.sentence_ru } : null;
+  } catch (_) { return null; }
+}
+const BLANK_RE = new RegExp(agentClozeRepo.BLANK.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g");
+
+// answer/skip — единый каркас (§4.1-4.6 + §10 пп.2,5,7,8)
+async function _submit({ userId, surface, challengeId, clientNonce, answer, inputMode, skipped }) {
+  if (!_writeAllowed()) return errOut("MINIAPP_REVIEW_WRITE_OFF");
+  if (surface !== "telegram_miniapp") return errOut("BAD_SURFACE");
+  if (!NONCE_RE.test(String(clientNonce || ""))) return errOut("BAD_NONCE");
+  const chal = await agentChallengeRepo.getForReviewer(userId, String(challengeId || ""));
+  if (!chal) return errOut("CHALLENGE_NOT_FOUND");
+  // attempt_eff challenge-bound by construction (§10 п.3 P8.3-критики): кросс-challenge replay невозможен
+  const attemptEff = "ma" + _sha1(chal.challenge_id + ":" + clientNonce).slice(0, 40);
+
+  const terminal = chal.status === "completed" || chal.status === "declined" || chal.status === "cancelled" || chal.status === "expired";
+  if (terminal) {
+    // lost-response replay (§10 п.5): реконструкция из персистированного минимального вердикта
+    if (chal.claimed_attempt_id === attemptEff && chal.result_decision != null) {
+      return { ok: true, recorded: true, replayed: true, decision: chal.result_decision,
+               grade: chal.result_grade != null ? Number(chal.result_grade) : null, reveal: null };
+    }
+    return errOut("CHALLENGE_CLOSED", { status: chal.status });
+  }
+  // анти-double-row (§10 п.7): застрявший processing с ЧУЖИМ attempt → повторить исходным nonce
+  if (chal.status === "processing" && chal.claimed_attempt_id && chal.claimed_attempt_id !== attemptEff) {
+    return errOut("RETRY_WITH_ORIGINAL");
+  }
+
+  // reveal — ДО записи (§10 п.8: fail-closed default, attach только на терминале ниже)
+  const reveal = await _resolveReveal(userId, chal);
+
+  const r = await reviewer.record({ userId, deviceId: null, viaMiniappReview: true }, {
+    item_key: chal.item_key, channel: chal.review_mode,
+    answer: skipped ? "" : String(answer || ""), skipped: !!skipped,
+    attempt_id: attemptEff, challenge_id: chal.challenge_id,
+    ...(inputMode ? { input_mode: String(inputMode) } : {}),
+  });
+
+  if (!r || r.ok !== true) return r || errOut("REVIEW_FAILED");          // ошибка → БЕЗ reveal
+  const expected = await _expectedFor(chal);
+  if (r.recorded === true) {                                             // терминал: записано
+    dropTokensForChallenge(chal.challenge_id);
+    return { ...r, expected, reveal };
+  }
+  if (r.dictate_gate) {                                                  // терминал: near_miss cancel
+    dropTokensForChallenge(chal.challenge_id);
+    return { ...r, expected, reveal };
+  }
+  return r;                                                              // released (MNAR/ktiv): БЕЗ reveal
+}
+
+async function answer(args) { return _submit({ ...args, skipped: false }); }
+async function skip(args) { return _submit({ ...args, skipped: true, answer: "" }); }
+
+// hint (§10 п.4: payload-FIRST → атомарный latch; §10 п.9: токены с привязкой)
+const HINT_KIND_FOR = { context: "dictate", sentence_audio: "cloze" };
+const SENTENCE_TTS_PROFILE = { language: "he-IL", voiceName: "he-IL-Wavenet-A", speakingRate: 1.0, pitch: 0.0 };
+async function hint({ userId, surface, challengeId, kind }) {
+  if (!_writeAllowed()) return errOut("MINIAPP_REVIEW_WRITE_OFF");
+  if (surface !== "telegram_miniapp") return errOut("BAD_SURFACE");
+  if (!HINT_KIND_FOR[kind]) return errOut("BAD_HINT_KIND");
+  const chal = await agentChallengeRepo.getForReviewer(userId, String(challengeId || ""));
+  if (!chal) return errOut("CHALLENGE_NOT_FOUND");
+  if ((chal.surface || "telegram_bot") !== "telegram_miniapp") return errOut("HINT_NOT_AVAILABLE");   // BLOCKER §10 п.1 (P8.3-критика #17)
+  if (chal.prompt_kind !== HINT_KIND_FOR[kind]) return errOut("HINT_KIND_MISMATCH");
+  if (chal.status !== "active") return errOut("HINT_TOO_LATE");          // после claim подсказка невозможна
+  if (chal.hint_used_at && chal.hint_kind !== kind) return errOut("HINT_KIND_MISMATCH");   // один hint на challenge
+
+  // 1) payload-FIRST (провал → HINT_UNAVAILABLE, состояние НЕ пишется — §10 п.4)
+  let payload = null;
+  if (kind === "context") {
+    let gloss = null;
+    try { const g = await keyingService.glossForItemKey(chal.item_key); gloss = g && g.gloss || null; } catch (_) {}
+    const anchor = await agentClozeRepo.resolveAnchorLive(userId, chal.item_key);   // consent-гейты внутри
+    if (!gloss && !anchor) return errOut("HINT_UNAVAILABLE");
+    payload = { gloss, masked_he: anchor ? anchor.masked_he : null, sentence_ru: anchor ? anchor.sentence_ru : null };
+  } else {
+    // sentence_audio (cloze): TTS ПОЛНОГО предложения = class-C-производное (текст пользователя).
+    // Восстановление полного предложения: blanked + expected_surface (как в reveal).
+    const s = String(chal.shown_stimulus || "");
+    const nl = s.indexOf("\n");
+    const blanked = nl > 0 ? s.slice(0, nl) : s;
+    if (!blanked || !chal.expected_surface) return errOut("HINT_UNAVAILABLE");
+    const full = blanked.split(BLANK_RE).join(chal.expected_surface);
+    const assetKey = computeAssetKey({ text: full, ttsProfile: SENTENCE_TTS_PROFILE, assetType: "row" });
+    let ready = false;
+    try { ready = await audioRepo.hasAsset(assetKey); } catch (_) { ready = false; }
+    if (!ready) return errOut("HINT_UNAVAILABLE");
+    payload = { audio_token: mintAudioToken(assetKey, { userId, challengeId: chal.challenge_id, classC: true }) };
+  }
+
+  // 2) атомарный latch; changes=0 → различаем прежний hint (идемпотентная ре-резолюция) vs claim/closure
+  const latched = await agentChallengeRepo.markHint(userId, chal.challenge_id, kind);
+  if (!latched) {
+    const fresh = await agentChallengeRepo.getForReviewer(userId, chal.challenge_id);
+    if (!(fresh && fresh.hint_used_at && fresh.hint_kind === kind && fresh.status === "active")) return errOut("HINT_TOO_LATE");
+  }
+  return { ok: true, kind, ...payload };
+}
+
+// annul-гард (§10 п.15): только строки, чей challenge принадлежит miniapp-поверхности этого юзера
+async function annul({ userId, surface, reviewRowId, reason }) {
+  if (!_writeAllowed()) return errOut("MINIAPP_REVIEW_WRITE_OFF");
+  if (surface !== "telegram_miniapp") return errOut("BAD_SURFACE");
+  let row = null;
+  try { row = await learnerLogRepo.getRowById(userId, String(reviewRowId || "")); } catch (_) {}
+  if (!row) return errOut("ANNUL_TARGET_NOT_FOUND");
+  let chalId = null;
+  try { chalId = JSON.parse(row.meta_json || "{}").challenge_id || null; } catch (_) {}
+  if (!chalId) return errOut("MINIAPP_ANNUL_NOT_ALLOWED");               // v1: только challenge-bound строки
+  const chal = await agentChallengeRepo.getForReviewer(userId, chalId);
+  if (!chal || (chal.surface || "telegram_bot") !== "telegram_miniapp") return errOut("MINIAPP_ANNUL_NOT_ALLOWED");
+  return reviewer.record({ userId, deviceId: null }, { annul_of: String(reviewRowId), reason: String(reason || "") });
 }
 
 module.exports = {
   selectEligible, publicBaseUrl, audioUrlFor, start, buildDescriptor,
-  mintAudioToken, resolveAudioToken, miniappWriteOn,
+  answer, skip, hint, annul,
+  mintAudioToken, resolveAudioToken, dropTokensForChallenge, miniappWriteOn,
   REVIEW_DUE_WINDOW, ALLOCATION_POLICY_VERSION, almostLapsed,
 };

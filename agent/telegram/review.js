@@ -172,6 +172,10 @@ async function startReview({ userId, tgUserId, chatId }) {
   // уже есть открытый challenge → восстановить/переотправить его prompt (recovery message_id).
   const open = await agentChallengeRepo.getOpenForUser(userId);
   if (open) {
+    // P8.4a §10 п.1 (BLOCKER): challenge ЧУЖОЙ поверхности (Mini App) НЕ редоставляется ботом —
+    // иначе recovery выдал бы prompt_message_id и превратил :ma-challenge в бот-отвечаемый
+    // (обход surface-binding). Честная нота, challenge не тронут (ни send, ни exposure, ни decline).
+    if ((open.surface || "telegram_bot") !== "telegram_bot") return { served: false, note: format.reviewBusy(lng) };
     if (String(open.telegram_chat_id) !== String(chatId)) return { served: false, note: format.reviewBusy(lng) };
     return await _deliverPrompt(userId, open, lng);
   }
@@ -189,6 +193,9 @@ async function startReview({ userId, tgUserId, chatId }) {
 async function submitAnswer({ userId, tgUserId, chatId, replyToMessageId, text, updateId }) {
   const chal = await agentChallengeRepo.getActiveForTg(userId, tgUserId, chatId);
   if (!chal) return null;                                  // нет активного challenge → не review
+  // P8.4a: challenge чужой поверхности инертен для бота (защитный слой к reply-binding ниже:
+  // у :ma-challenge prompt_message_id и так null, но surface-гард не зависит от этого инварианта).
+  if ((chal.surface || "telegram_bot") !== "telegram_bot") return null;
   // reply-binding: ответ засчитывается ТОЛЬКО как reply на КОНКРЕТНЫЙ prompt этого challenge.
   if (chal.telegram_prompt_message_id == null) return null; // prompt ещё не доставлен/не сохранён
   if (String(replyToMessageId || "") !== String(chal.telegram_prompt_message_id)) return null; // «спасибо/ок» мимо

@@ -67,6 +67,10 @@ const META_ALLOW = new Set([
   // evidence_scope='lexeme' (reverse доказывает лемму, не клетку), sense_id (pealim_id значения),
   // challenge_id (аудит привязки). Как policy_version/expected_form_id в P7.0b.
   "evidence_scope", "sense_id", "challenge_id",
+  // P8.4a (§10 п.10): assisted-провенанс — идентификаторы/enum, НЕ контент. input_mode
+  // (tiles|keyboard) и hint_kind (context|sentence_audio) обязаны доезжать до канона, иначе
+  // charter-§3-таксономия остаётся только на challenge-строке (которая смертна).
+  "input_mode", "hint_kind",
 ]);
 // Known CONTENT keys → stripped (accepted row, cleaned meta). Everything else unknown → reject.
 const META_STRIP = new Set([

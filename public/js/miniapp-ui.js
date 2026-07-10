@@ -101,6 +101,25 @@
     card_cloze: { ru: "Заполните пропуск (из вашего текста)", en: "Fill the blank (from your text)" },
     card_dictate: { ru: "Диктант: прослушайте и запишите", en: "Dictation: listen and write" },
     card_reverse: { ru: "Как это на иврите?", en: "How is this in Hebrew?" },
+    check_btn: { ru: "Проверить", en: "Check" },
+    dontknow_btn: { ru: "Не знаю", en: "I don't know" },
+    hint_context: { ru: "Показать контекст", en: "Show context" },
+    hint_audio: { ru: "🔊 Прослушать предложение", en: "🔊 Play the sentence" },
+    hint_note: { ru: "Подсказка учтена: результат будет засчитан как «с опорой на контекст».", en: "Hint noted: the result will count as context-supported." },
+    answer_ph: { ru: "Ответ на иврите…", en: "Answer in Hebrew…" },
+    tiles_clear: { ru: "⌫", en: "⌫" },
+    res_correct: { ru: "✅ Верно", en: "✅ Correct" },
+    res_variant: { ru: "≈ Засчитано (вариант)", en: "≈ Accepted (variant)" },
+    res_wrong: { ru: "✗ Неверно", en: "✗ Incorrect" },
+    res_skip: { ru: "⏭ Пропущено", en: "⏭ Skipped" },
+    res_expected: { ru: "Ожидалось: ", en: "Expected: " },
+    res_replayed: { ru: "Ответ уже был записан ранее — показан прежний результат.", en: "Already recorded earlier — showing the previous result." },
+    res_unclear: { ru: "Ответ не распознан как попытка — ничего не записано. Попробуйте ещё раз.", en: "Not counted as an attempt — nothing was written. Try again." },
+    res_closed: { ru: "Это задание уже закрыто.", en: "This challenge is already closed." },
+    res_retry_orig: { ru: "Ответ на это задание уже отправлялся с этого устройства — откройте задание заново.", en: "An answer was already submitted for this challenge — reopen it." },
+    next_btn: { ru: "Дальше", en: "Next" },
+    retry_btn: { ru: "Ещё раз", en: "Try again" },
+    submit_failed: { ru: "Не удалось отправить ответ. Проверьте связь и повторите.", en: "Could not submit. Check your connection and retry." },
   };
   const t = (k) => (STR[k] && (STR[k][S.lang] || STR[k].en)) || k;
 
@@ -289,6 +308,25 @@
     renderChallenge(b.descriptor || {}, home);
   }
 
+  // nonce per challenge (localStorage): ретрай/потеря ответа шлёт ТОТ ЖЕ nonce → сервер
+  // реплеит прежний результат (attempt_eff challenge-bound). Новая попытка после released
+  // (MNAR) — новый nonce (dropNonce).
+  function nonceFor(chId) {
+    const k = "ma.nonce." + chId;
+    try {
+      let n = localStorage.getItem(k);
+      if (!n) { n = (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, "") : String(Date.now()) + Math.random().toString(36).slice(2, 12)); localStorage.setItem(k, n); }
+      return n;
+    } catch (_) { return "mem" + Date.now() + Math.random().toString(36).slice(2, 10); }
+  }
+  function dropNonce(chId) { try { localStorage.removeItem("ma.nonce." + chId); } catch (_) {} }
+  function audioEl(token) {
+    const au = document.createElement("audio");
+    au.controls = true; au.preload = "none"; au.className = "ma-audio";
+    au.src = "/api/miniapp/review-audio?t=" + encodeURIComponent(token);
+    return au;
+  }
+
   function renderChallenge(d, home) {
     const box = el("div", "ma-home");
     const kindKey = "card_" + d.kind;
@@ -302,18 +340,123 @@
       box.appendChild(he);
       if (st.sentence_ru) box.appendChild(el("p", "ma-last", String(st.sentence_ru)));
     } else if (d.kind === "dictate") {
-      if (st.audio_token) {
-        const au = document.createElement("audio");
-        au.controls = true; au.preload = "none";
-        au.src = "/api/miniapp/review-audio?t=" + encodeURIComponent(st.audio_token);
-        au.className = "ma-audio";
-        box.appendChild(au);
-      }
+      if (st.audio_token) box.appendChild(audioEl(st.audio_token));
     } else if (d.kind === "reverse") {
       box.appendChild(el("p", "ma-rec-kind", String(st.gloss || "")));
     }
 
+    // ── P8.4a: форма ответа (только challenge-backed, не preview) ──
+    if (!d.preview && d.challenge_id) {
+      let usedTiles = false;
+      const input = document.createElement("input");
+      input.type = "text"; input.className = "ma-input";
+      input.setAttribute("dir", "rtl"); input.setAttribute("lang", "he");
+      input.placeholder = t("answer_ph");
+      box.appendChild(input);
+
+      if (Array.isArray(st.tiles) && st.tiles.length) {      // тайлы (cloze, len≥3, server-shuffled)
+        const row = el("div", "ma-tiles");
+        for (const ch of st.tiles) {
+          const b = el("button", "ma-tile", String(ch));
+          b.addEventListener("click", () => { input.value += String(ch); usedTiles = true; });
+          row.appendChild(b);
+        }
+        const bs = el("button", "ma-tile", t("tiles_clear"));
+        bs.addEventListener("click", () => { input.value = input.value.slice(0, -1); });
+        row.appendChild(bs);
+        box.appendChild(row);
+      }
+
+      const hintBox = el("div", "ma-lazy");
+      const hintKind = d.kind === "dictate" ? "context" : (d.kind === "cloze" ? "sentence_audio" : null);
+      if (hintKind) {
+        const hb = el("button", "ma-btn", t(hintKind === "context" ? "hint_context" : "hint_audio"));
+        hb.addEventListener("click", async () => {
+          hb.disabled = true;
+          let r;
+          try { r = await api("/api/miniapp/review-sessions/" + encodeURIComponent(d.challenge_id) + "/hint", {
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: hintKind }) }); }
+          catch (_) { hb.disabled = false; return; }
+          if (r.status !== 200 || !r.body || r.body.ok !== true) { hb.hidden = true; return; }   // HINT_UNAVAILABLE → честно прячем
+          hintBox.textContent = "";
+          if (hintKind === "context") {
+            if (r.body.gloss) hintBox.appendChild(el("p", "ma-rec-kind", String(r.body.gloss)));
+            if (r.body.masked_he) { const m = el("p", "ma-expl-he", String(r.body.masked_he)); m.setAttribute("dir", "rtl"); m.setAttribute("lang", "he"); hintBox.appendChild(m); }
+            if (r.body.sentence_ru) hintBox.appendChild(el("p", "ma-last", String(r.body.sentence_ru)));
+            hintBox.appendChild(el("p", "ma-note", t("hint_note")));   // честно: демоция провенанса
+          } else if (r.body.audio_token) {
+            hintBox.appendChild(audioEl(r.body.audio_token));
+          }
+        });
+        box.appendChild(hb);
+        box.appendChild(hintBox);
+      }
+
+      const submit = async (skipped) => {
+        const nonce = nonceFor(d.challenge_id);
+        const path = "/api/miniapp/review-sessions/" + encodeURIComponent(d.challenge_id) + (skipped ? "/skip" : "/answer");
+        const body = skipped ? { nonce } : { nonce, answer: input.value, input_mode: usedTiles ? "tiles" : "keyboard" };
+        spinner("auth_loading");
+        let r;
+        try { r = await api(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); }
+        catch (_) { return message("warn", "submit_failed", [{ label: "retry_btn", onClick: () => renderChallenge(d, home) }]); }
+        renderResult(d, r, home);
+      };
+      const check = el("button", "ma-btn ma-btn-primary", t("check_btn"));
+      check.addEventListener("click", () => { if (input.value.trim()) submit(false); });
+      box.appendChild(check);
+      const dk = el("button", "ma-btn", t("dontknow_btn"));
+      dk.addEventListener("click", () => submit(true));
+      box.appendChild(dk);
+    }
+
     if (d.preview) box.appendChild(el("p", "ma-note", t("preview_note")));
+    const back = el("button", "ma-btn", t("back_home"));
+    back.addEventListener("click", () => renderHome(home));
+    box.appendChild(back);
+    render([box]);
+  }
+
+  // result-карточка: терминал → reveal+«Дальше»; released → честно «не записано» + новый nonce
+  function renderResult(d, r, home) {
+    const b = r && r.body;
+    if (!b || (r.status !== 200 && !b.error)) return message("warn", "submit_failed", [{ label: "retry_btn", onClick: () => renderChallenge(d, home) }]);
+    const box = el("div", "ma-home");
+    const nextBtn = (label) => { const n = el("button", "ma-btn ma-btn-primary", t(label)); n.addEventListener("click", () => { dropNonce(d.challenge_id); startSession("reading_first", home); }); return n; };
+
+    if (b.ok && (b.recorded === true || b.dictate_gate)) {           // терминал
+      const dec = String(b.decision || "");
+      const key = b.recorded && dec === "correct" ? "res_correct"
+        : b.recorded && dec === "skip" ? "res_skip"
+        : b.recorded && (dec === "variant" || dec === "near_miss") ? "res_variant" : "res_wrong";
+      box.appendChild(el("h1", "ma-title", t(key)));
+      if (b.replayed) box.appendChild(el("p", "ma-note", t("res_replayed")));
+      if (b.expected && key !== "res_correct") {
+        const ex = el("p", "ma-rec-kind", t("res_expected") + String(b.expected));
+        ex.setAttribute("dir", "auto");
+        box.appendChild(ex);
+      }
+      if (b.reveal && b.reveal.sentence_he) {                        // reveal только с терминалом (§10 п.8)
+        const he = el("p", "ma-expl-he", String(b.reveal.sentence_he));
+        he.setAttribute("dir", "rtl"); he.setAttribute("lang", "he");
+        box.appendChild(he);
+        if (b.reveal.sentence_ru) box.appendChild(el("p", "ma-last", String(b.reveal.sentence_ru)));
+      }
+      box.appendChild(nextBtn("next_btn"));
+    } else if (b.ok && b.recorded === false) {                       // released: без reveal, новый nonce
+      box.appendChild(el("h1", "ma-title", t("res_unclear")));
+      dropNonce(d.challenge_id);
+      const again = el("button", "ma-btn ma-btn-primary", t("retry_btn"));
+      again.addEventListener("click", () => renderChallenge(d, home));
+      box.appendChild(again);
+    } else {
+      const code = String(b.error || "");
+      const key = code === "CHALLENGE_CLOSED" ? "res_closed"
+        : code === "RETRY_WITH_ORIGINAL" ? "res_retry_orig"
+        : code === "MINIAPP_REVIEW_WRITE_OFF" ? "preview_note" : "submit_failed";
+      box.appendChild(el("p", "ma-msg", t(key)));
+      box.appendChild(nextBtn("next_btn"));
+    }
     const back = el("button", "ma-btn", t("back_home"));
     back.addEventListener("click", () => renderHome(home));
     box.appendChild(back);

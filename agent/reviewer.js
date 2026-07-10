@@ -46,7 +46,10 @@ const HEB_ANY_RE = /[֐-׿]/;
 const CHANNEL_RE = /^(read|listen):[a-z0-9_-]{1,20}$/;
 const PRODUCTION_RE = /^(dictate|reverse|cloze)(:|$)/;
 // P7.2a/b/c: production-канал(ы), которые challenge-binding РАЗБЛОКИРУЕТ (reverse + cloze + dictate).
-const CHALLENGE_CHANNEL_RE = /^(reverse|cloze|dictate):tg$/;
+// P8.4a: суффикс = surface-провенанс (:tg бот, :ma Mini App); префикс = модальность (channel_stats цел).
+const CHALLENGE_CHANNEL_RE = /^(reverse|cloze|dictate):(tg|ma)$/;
+// суффикс канала ↔ surface challenge-строки (fail-closed §10 п.4 P8.3 / §3.2 P8.4a)
+const CHANNEL_SUFFIX_SURFACE = { tg: "telegram_bot", ma: "telegram_miniapp" };
 // Канонический evidence_scope по типу challenge (fail-closed, критика wf_596df7f6): reviewer НЕ
 // доверяет сохранённому scope — сверяет с каноном модальности. Незнакомый prompt_kind ИЛИ несовпадение
 // → reject ДО записи (иначе будущая модальность без scope молча писалась бы 'lexeme' = context-
@@ -57,7 +60,7 @@ const ANNUL_WINDOW_MS = 24 * 3600 * 1000;
 
 // challenge_id разблокирует production ТОЛЬКО на webhook-trusted пути (ctx.viaTelegramReview);
 // HTTP /api/agent/review его стрипает/реджектит (BLOCKER-3) — production там остаётся locked.
-const GRADE_ARGS = new Set(["item_key", "answer", "skipped", "channel", "attempt_id", "challenge_id"]);
+const GRADE_ARGS = new Set(["item_key", "answer", "skipped", "channel", "attempt_id", "challenge_id", "input_mode"]);
 const ANNUL_ARGS = new Set(["annul_of", "reason"]);
 
 function flagOn() { return process.env.AGENT_REVIEW_WRITE === "1"; }
@@ -90,9 +93,12 @@ async function _ingestOne(ctx, idemKey, row, itemKey) {
   catch (e) { recomputeFailed = true; console.error("[agent-review] projections recompute failed:", e && e.message); }
   const rl = out.review_log || {};
   const replayed = out.replayed === true;
-  if (!replayed && Number(rl.new) !== 1 && Number(rl.dup) !== 1) {
+  // P8.4a §10 п.2 (BLOCKER wf_0996f9ea): счётчики проверяются И на replayed-результате —
+  // реплей СОХРАНЁННОГО РЕДЖЕКТА не должен становиться фантомным recorded:true (challenge
+  // сгорал бы «completed» с нулём строк в каноне).
+  if (Number(rl.new) !== 1 && Number(rl.dup) !== 1) {
     const rej = (out.rejected && out.rejected[0]) || {};
-    return { fail: err("ROW_REJECTED", { reason: rej.reason || "unknown" }) };
+    return { fail: err("ROW_REJECTED", { reason: rej.reason || "unknown", ...(replayed ? { replayed: true } : {}) }) };
   }
   return { replayed, dup: !replayed && Number(rl.dup) === 1, recomputeFailed };
 }
@@ -117,14 +123,20 @@ async function _grade(ctx, a) {
   const channel = String(a.channel || "");
   const attemptId = String(a.attempt_id || "").trim();
   if (attemptId.length < 8 || attemptId.length > 64) return err("BAD_ATTEMPT_ID");
+  // P8.4a §10 п.10: assisted-провенанс ввода — закрытый enum, доезжает до meta.
+  const inputMode = a.input_mode != null ? String(a.input_mode) : "";
+  if (inputMode && inputMode !== "tiles" && inputMode !== "keyboard") return err("BAD_INPUT_MODE");
 
   // ── P7.2a challenge-binding: единственный мост к production-записи из Telegram ──
   const challengeId = a.challenge_id != null ? String(a.challenge_id).trim() : "";
   let chal = null;
   if (challengeId) {
-    // challenge_id разблокирует production ТОЛЬКО на webhook-trusted пути (submitAnswer).
-    // HTTP /api/agent/review сюда challenge_id не пускает (стрип + ctx без флага) — BLOCKER-3.
-    if (!ctx || ctx.viaTelegramReview !== true) return err("CHALLENGE_NOT_ALLOWED");
+    // challenge_id разблокирует production ТОЛЬКО на trusted-путях: webhook-бот (submitAnswer,
+    // viaTelegramReview) или Mini App BFF (reviewSession.answer, viaMiniappReview — P8.4a).
+    // HTTP /api/agent/review сюда challenge_id не пускает (стрип + ctx без флагов) — BLOCKER-3.
+    const trustedSurface = ctx && ctx.viaTelegramReview === true ? "telegram_bot"
+      : (ctx && ctx.viaMiniappReview === true ? "telegram_miniapp" : null);
+    if (!trustedSurface) return err("CHALLENGE_NOT_ALLOWED");
     // Flag-off enforcement НА ПИШУЩЕЙ ГРАНИЦЕ (точка 4): challenge выдан при ON, флаг выключили,
     // ответ пришёл → zero-write, challenge НЕ захвачен (остаётся до TTL). callTool-гейт этот путь
     // не покрывает (submitAnswer зовёт reviewer напрямую), поэтому проверяем здесь.
@@ -133,6 +145,13 @@ async function _grade(ctx, a) {
     chal = await agentChallengeRepo.getForReviewer(ctx.userId, challengeId);
     if (!chal) return err("CHALLENGE_NOT_FOUND");
     if (chal.item_key !== itemKey || chal.review_mode !== channel) return err("CHALLENGE_MISMATCH");
+    // P8.4a §3.2: тройной surface-binding ДО claim — challenge отвечает только своя поверхность,
+    // и суффикс канала обязан совпадать с surface строки (иначе провенанс канала лжёт).
+    const chalSurface = chal.surface || "telegram_bot";
+    const sfx = channel.slice(channel.lastIndexOf(":") + 1);
+    if (chalSurface !== trustedSurface || CHANNEL_SUFFIX_SURFACE[sfx] !== chalSurface) {
+      return err("CHALLENGE_SURFACE_MISMATCH");
+    }
     if (chal.status === "completed" || chal.status === "declined" || chal.status === "cancelled" || chal.status === "expired") {
       return err("CHALLENGE_CLOSED", { status: chal.status });
     }
@@ -148,6 +167,11 @@ async function _grade(ctx, a) {
     // резервируем challenge (active→processing, или re-claim того же attempt после крэша).
     const claimed = await agentChallengeRepo.claimForAttempt(ctx.userId, challengeId, attemptId);
     if (!claimed) return err("CHALLENGE_CLAIM_FAILED", { status: chal.status });
+    // P8.4a §10 п.4: ПЕРЕ-ЧИТАТЬ после claim — hint валиден только при status='active', claim
+    // закрывает окно → свежая строка = единственная истина hint-состояния для производного scope
+    // (гонка markHint↔claim: оба атомарные условные UPDATE, после claim hint невозможен).
+    chal = await agentChallengeRepo.getForReviewer(ctx.userId, challengeId);
+    if (!chal) return err("CHALLENGE_NOT_FOUND");
   } else {
     // рецептивный путь P7.0c — production по-прежнему заперт без challenge.
     if (PRODUCTION_RE.test(channel)) return err("PRODUCTION_CHANNEL_LOCKED");
@@ -233,7 +257,12 @@ async function _grade(ctx, a) {
       await agentChallengeRepo.release(ctx.userId, challengeId, attemptId);
       return err("EVIDENCE_SCOPE_MISMATCH");
     }
-    meta.evidence_scope = chal.evidence_scope;
+    // P8.4a §10 п.7 (P8.3): challenge-строка НЕ мутируется — ЗАПИСЫВАЕМЫЙ scope выводится здесь:
+    // hinted-диктант (context-подсказка показана до ответа) → context_supported (демоция D4C).
+    const hintedDictate = !!(chal.hint_used_at && chal.hint_kind === "context" && chal.prompt_kind === "dictate");
+    meta.evidence_scope = hintedDictate ? "context_supported" : chal.evidence_scope;
+    if (chal.hint_kind && chal.hint_used_at) meta.hint_kind = String(chal.hint_kind);
+    if (inputMode) meta.input_mode = inputMode;
     if (chal.sense_id) meta.sense_id = String(chal.sense_id);
     meta.challenge_id = challengeId;
   }
@@ -250,7 +279,10 @@ async function _grade(ctx, a) {
   // review записан → завершаем challenge (completed невозможен без review-события: complete()
   // ставится ТОЛЬКО здесь, после успешного ingest). Крэш до complete → challenge в processing,
   // re-claim тем же attempt на ретрае идемпотентен (chrev-id тот же).
-  if (chal) await agentChallengeRepo.complete(ctx.userId, challengeId, attemptId);
+  // P8.4a §10 п.5: минимальный вердикт (enum+grade, класс A) персистится ТЕМ ЖЕ условным UPDATE —
+  // источник lost-response replay для Mini App (bot-строкам безвреден).
+  if (chal) await agentChallengeRepo.complete(ctx.userId, challengeId, attemptId,
+    { decision: verdict.decision, grade: verdict.grade });
   return {
     ok: true, recorded: true,
     ...(w.replayed ? { replayed: true } : {}),
