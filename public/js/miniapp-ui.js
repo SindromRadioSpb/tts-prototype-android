@@ -98,6 +98,12 @@
     train_busy_bot: { ru: "У вас открыто задание в боте — завершите его там (или дождитесь истечения, ~10 мин).", en: "You have an open challenge in the bot — finish it there (or wait ~10 min for it to expire)." },
     train_none_rf: { ru: "В приоритетном пуле повторения сейчас пусто (свежие слова оставлены чтению).", en: "The priority review pool is empty right now (fresh words are reserved for reading)." },
     train_none_all: { ru: "Сейчас нет подходящих упражнений — загляните в Зал.", en: "No eligible exercises right now — visit the Reading Room." },
+    train_none_prod_a: { ru: "Слов к повторению: ", en: "Words due: " },
+    train_none_prod_b: {
+      ru: ", но письменные упражнения для них сейчас недоступны: часть недавно показывалась (пауза ~30 мин), остальным нужен рецептивный режим «Аудио» — он появится в ближайшем обновлении. Эти слова уже ждут вас в Зале.",
+      en: ", but written exercises are unavailable for them right now: some were shown recently (~30 min pause), the rest need the receptive Audio mode coming in the next update. These words await you in the Room.",
+    },
+    fallback_note: { ru: "Приоритетный пул пуст — продолжаем по всем словам к повторению.", en: "Priority pool is empty — continuing across all due words." },
     train_all_btn: { ru: "Повторить всё сейчас", en: "Review everything now" },
     mode_row: { ru: "Выбрать режим:", en: "Pick a mode:" },
     mode_cloze: { ru: "📖 Контекст", en: "📖 Context" },
@@ -329,11 +335,26 @@
     if (b.busy_surface) return message("info", "train_busy_bot", [{ label: "back_home", onClick: () => renderHome(home) }]);
     if (b.none) {
       const actions = [{ label: "back_home", onClick: () => renderHome(home) }];
-      // пустой пул: reading_first → override; manual → предложить умную (НЕ тихая подмена — явная кнопка)
-      if (mode === "reading_first") actions.unshift({ label: "train_all_btn", onClick: () => startSession("all_due", home) });
       if (mode === "manual") actions.unshift({ label: "smart_train_btn", onClick: () => startSession("reading_first", home) });
-      const key = mode === "manual" ? "train_none_modality" : (mode === "reading_first" ? "train_none_rf" : "train_none_all");
+      // due>0, но письменные модальности исчерпаны → объясняющая копия с числом (не тупик-заглушка)
+      if (b.none === "nothing-production-eligible") {
+        const box = el("div", "ma-state ma-info");
+        box.appendChild(el("p", "ma-msg", t("train_none_prod_a") + String(b.due_count || 0) + t("train_none_prod_b")));
+        const goRoom = el("button", "ma-btn ma-btn-primary", t("open_room"));
+        goRoom.addEventListener("click", () => HOST.openExternal(PWA_URL));
+        box.appendChild(goRoom);
+        for (const a of actions) { const btn = el("button", "ma-btn", t(a.label)); btn.addEventListener("click", a.onClick); box.appendChild(btn); }
+        return render([box]);
+      }
+      const key = mode === "manual" ? "train_none_modality" : "train_none_all";
       return message("info", key, actions);
+    }
+    if (b.fallback) {
+      // авто-каскад reading_first→all_due: пользователь информирован, работа продолжается
+      S.mode = "all_due";
+      const d = b.descriptor || {};
+      d._fallbackNote = true;
+      return renderChallenge(d, home);
     }
     renderChallenge(b.descriptor || {}, home);
   }
@@ -361,6 +382,7 @@
     const box = el("div", "ma-home");
     const kindKey = "card_" + d.kind;
     box.appendChild(el("h1", "ma-title", STR[kindKey] ? t(kindKey) : String(d.kind || "")));
+    if (d._fallbackNote) box.appendChild(el("p", "ma-note", t("fallback_note")));
     if (d.explain) box.appendChild(el("p", "ma-rec-why", d.explain));
 
     const st = d.stimulus || {};

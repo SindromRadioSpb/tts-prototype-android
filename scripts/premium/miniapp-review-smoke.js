@@ -267,6 +267,22 @@ async function freshChallenge(caps) {
   ok("manual: unknown modality rejected", !!(smBad && smBad.ok === false && smBad.error === "BAD_MODALITY"));
   await learnerProjectionRepo.recomputeForKeys(userId, [ITEM]);
 
+  // ── 13-quater) continuity (owner-критика): авто-каскад rf→all_due + диагностируемый none ──
+  await dbRun(`UPDATE srs_projections SET due=? WHERE user_id=? AND item_key=?`, [past, userId, ITEM]);
+  await dbRun(`DELETE FROM tg_stimulus_exposure WHERE user_id=?`, [userId]);
+  // ITEM здоров (lapses=0/stability высокий после ответов) → reading_first пул пуст → каскад в all_due
+  const sc = await reviewSession.start({ userId, surface: S, mode: "reading_first", lng: "ru", tgUserId: "111", tgChatId: "222" });
+  ok("continuity: rf-empty auto-falls-back to all_due (one tap, work served)",
+    !!(sc && sc.ok && sc.fallback === true && sc.challenge_id));
+  await agentChallengeRepo.cancelOpenForUser(userId);
+  // все due в кулдауне → none с числом due (объяснимый, не тупик)
+  await dbRun(`INSERT INTO tg_stimulus_exposure (user_id, item_key, exposure_kind) VALUES (?,?,'review_prompt')`, [userId, ITEM]);
+  const sn = await reviewSession.start({ userId, surface: S, mode: "all_due", lng: "ru" });
+  ok("continuity: due>0 + no production modality → nothing-production-eligible with due_count",
+    !!(sn && sn.ok && sn.none === "nothing-production-eligible" && Number(sn.due_count) >= 1));
+  await dbRun(`DELETE FROM tg_stimulus_exposure WHERE user_id=?`, [userId]);
+  await learnerProjectionRepo.recomputeForKeys(userId, [ITEM]);
+
   // ── 14) down-sync источник + оракул ──
   const log = await learnerLogRepo.readLog(userId, { afterRid: 0, limit: 100 });
   const maRows = (log.rows || log || []).filter((x) => String(x.channel || "").endsWith(":ma"));

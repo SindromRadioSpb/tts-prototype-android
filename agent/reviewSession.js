@@ -333,24 +333,42 @@ async function start({ userId, surface, mode, modality, lng, nowMs, tgUserId, tg
     return { ok: true, resumed: true, challenge_id: open.challenge_id, descriptor: _descriptorFromChallenge(open, lng) };
   }
 
-  const pick = isManual
+  // owner-критика 2026-07-10 (анти-continuity): при 19 due и пустом результате система обязана
+  // (а) НЕ упираться в reading-first-тупик — авто-каскад в all_due (провенанс честный:
+  // allocation.mode отражает фактический пул + fallback-флаг); (б) если и all_due пуст при
+  // живом due — объяснить ПОЧЕМУ (кулдаун/непригодность для письменных модальностей), не
+  // отделываться «нет упражнений». Manual-режим каскада не имеет (явный выбор пользователя).
+  let effectiveMode = mode === "all_due" ? "all_due" : "reading_first";
+  let fellBack = false;
+  let pick = isManual
     ? await selectForModality(userId, modality, { nowMs: now })
-    : await selectEligible(userId, { nowMs: now, allocationMode: mode === "all_due" ? undefined : "reading_first" });
-  if (!pick) return { ok: true, none: isManual ? "nothing-for-modality"
-    : (mode === "all_due" ? "nothing-eligible" : "nothing-in-reading-first-pool") };
+    : await selectEligible(userId, { nowMs: now, allocationMode: effectiveMode === "all_due" ? undefined : "reading_first" });
+  if (!pick && !isManual && effectiveMode === "reading_first") {
+    pick = await selectEligible(userId, { nowMs: now });
+    if (pick) { effectiveMode = "all_due"; fellBack = true; }
+  }
+  if (!pick) {
+    const due = await learnerGraphRepo.getDue(userId, { nowMs: now, limit: REVIEW_DUE_WINDOW });
+    const dueCount = (due || []).length;
+    return { ok: true, due_count: dueCount,
+      none: isManual ? "nothing-for-modality"
+        : (dueCount > 0 ? "nothing-production-eligible" : "nothing-eligible") };
+  }
 
   if (!miniappWriteOn()) {
     // P8.3 preview: рендер без состояния (no challenge row, no exposure; tiles отсутствуют — §10 п.11)
-    return { ok: true, descriptor: buildDescriptor(pick, { lng, mode, preview: true, userId }) };
+    return { ok: true, ...(fellBack ? { fallback: true } : {}),
+      descriptor: buildDescriptor(pick, { lng, mode: effectiveMode, preview: true, userId }) };
   }
 
-  // P8.4-путь (dormant в P8.3): challenge с surface-провенансом; chat-ids из активной связки.
+  // P8.4-путь: challenge с surface-провенансом; chat-ids из активной связки.
   const caps = _capsForSurface(pick, { userId, surface, tgUserId, tgChatId });
   if (isManual) { caps.selection_origin = "manual"; caps.requested_modality = String(modality); }
   const r = await agentChallengeRepo.createChallenge(caps);
   const chal = r.challenge;
   await agentChallengeRepo.recordExposure(userId, chal.item_key, "review_prompt");
-  return { ok: true, created: r.created, challenge_id: chal.challenge_id, descriptor: _descriptorFromChallenge(chal, lng) };
+  return { ok: true, created: r.created, ...(fellBack ? { fallback: true } : {}),
+    challenge_id: chal.challenge_id, descriptor: _descriptorFromChallenge(chal, lng) };
 }
 
 // caps miniapp-challenge: канал = <modality>:ma (префикс=модальность → channel_stats/grade-policy
