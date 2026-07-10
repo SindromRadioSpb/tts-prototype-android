@@ -111,6 +111,7 @@
     mode_dictate: { ru: "✍️ Диктант", en: "✍️ Dictation" },
     mode_listen: { ru: "🎧 Аудио", en: "🎧 Audio" },
     card_listen: { ru: "Аудио: выберите услышанное слово", en: "Audio: pick the word you heard" },
+    card_read: { ru: "Выберите слово по переводу", en: "Pick the word by its meaning" },
     listen_fallback_note: { ru: "Письменные упражнения для оставшихся слов недоступны — продолжаем на слух.", en: "Written exercises are unavailable for the remaining words — continuing by ear." },
     train_none_modality: { ru: "Для этого режима сейчас нет подходящих слов.", en: "No eligible words for this mode right now." },
     smart_train_btn: { ru: "Умная тренировка", en: "Smart training" },
@@ -396,7 +397,7 @@
       if (st.sentence_ru) box.appendChild(el("p", "ma-last", String(st.sentence_ru)));
     } else if (d.kind === "dictate") {
       if (st.audio_token) box.appendChild(audioEl(st.audio_token));
-    } else if (d.kind === "listen") {
+    } else if (d.kind === "listen" || d.kind === "read") {
       // P8.4c: рецептивный MC — плеер + глосс + 4 опции-кнопки; выбор = сразу submit (mc)
       if (d.select_reason === "receptive_fallback") box.appendChild(el("p", "ma-note", t("listen_fallback_note")));
       if (st.audio_token) box.appendChild(audioEl(st.audio_token));

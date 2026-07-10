@@ -222,8 +222,8 @@ function buildDescriptor(pick, { lng, mode, preview, userId } = {}) {
   // (нет challenge/exposure → letter-multiset не утекает без учтённого показа).
   if (pick.kind === "cloze") base.stimulus = { blanked_he: pick.blanked_he, sentence_ru: pick.sentence_ru || "" };
   else if (pick.kind === "dictate") base.stimulus = { audio_token: mintAudioToken(pick.assetKey, { userId, classC: false }) };
-  else if (pick.kind === "listen") base.stimulus = {
-    audio_token: mintAudioToken(pick.assetKey, { userId, classC: false }),
+  else if (pick.kind === "listen" || pick.kind === "read") base.stimulus = {
+    audio_token: pick.assetKey ? mintAudioToken(pick.assetKey, { userId, classC: false }) : null,
     gloss: pick.gloss, options: pick.options,
   };
   else base.stimulus = { gloss: pick.gloss };
@@ -343,6 +343,50 @@ async function selectForModality(userId, modality, { nowMs } = {}) {
     return { kind: "listen", item_key: target.k, vocalized: target.voc, assetKey: target.assetKey,
              gloss: target.gloss, options, sense_id: target.sense_id, select_reason: "user_choice" };
   }
+  if (modality === "read") {
+    // P8.4c-fix (owner live-verify 23:03: 11-словный «neither»-хвост вне аудио-набора) —
+    // РЕЦЕПТИВНЫЙ word-recognition MC: глосс → выбор огласованного слова из 4. Нужны только
+    // display-форма (универсальна) + глосс (~96%) → замыкает continuity там, где нет ни якоря,
+    // ни ассета, ни strictSafe. Fallback-only (5-й кнопки нет — чартер: 4 режима).
+    const RM = require(path.join(__dirname, "..", "public", "js", "reader-morph.js"));
+    const crypto = require("crypto");
+    const HEB_RE = /[֐-׿]/;
+    let target = null;
+    for (const k of dueKeys) {
+      if (isExposed(k)) continue;
+      let disp = null, g = null;
+      try { disp = await keyingService.displayForItemKey(k); } catch (_) { disp = null; }
+      if (!disp || disp === k || !HEB_RE.test(disp)) continue;
+      try { g = await keyingService.glossForItemKey(k); } catch (_) { g = null; }
+      if (!g || !g.gloss) continue;
+      target = { k, voc: disp, gloss: String(g.gloss), sense_id: g.sense_id };
+      break;
+    }
+    if (!target) return null;
+    const tSkel = RM.stripNiqqud(target.voc);
+    const pool = [];
+    const learnerProjectionRepo = require(path.join(__dirname, "..", "db", "learnerProjectionRepo"));
+    let vocab = [];
+    try { vocab = await learnerProjectionRepo.distinctItemKeys(userId); } catch (_) { vocab = []; }
+    for (const k of vocab) {
+      if (pool.length >= 6) break;
+      if (k === target.k) continue;
+      let disp = null;
+      try { disp = await keyingService.displayForItemKey(k); } catch (_) { disp = null; }
+      if (!disp || disp === k || !HEB_RE.test(disp) || RM.stripNiqqud(disp) === tSkel) continue;
+      let g = null;
+      try { g = await keyingService.glossForItemKey(k); } catch (_) { g = null; }
+      if (g && g.gloss && String(g.gloss).toLowerCase() === target.gloss.toLowerCase()) continue;
+      if (pool.some((p) => RM.stripNiqqud(p.voc) === RM.stripNiqqud(disp))) continue;
+      pool.push({ voc: disp });
+    }
+    if (pool.length < 3) return null;
+    for (let i = pool.length - 1; i > 0; i--) { const j = crypto.randomInt(i + 1); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    const options = [target.voc, pool[0].voc, pool[1].voc, pool[2].voc];
+    for (let i = options.length - 1; i > 0; i--) { const j = crypto.randomInt(i + 1); [options[i], options[j]] = [options[j], options[i]]; }
+    return { kind: "read", item_key: target.k, vocalized: target.voc, gloss: target.gloss,
+             options, sense_id: target.sense_id, select_reason: "user_choice" };
+  }
   // reverse strictSafe
   for (const k of dueKeys) {
     if (isExposed(k)) continue;
@@ -405,10 +449,11 @@ async function start({ userId, surface, mode, modality, lng, nowMs, tgUserId, tg
     pick = await selectEligible(userId, { nowMs: now });
     if (pick) { effectiveMode = "all_due"; fellBack = true; }
   }
-  // P8.4c: продукционный пул исчерпан → рецептивный listen-fallback (continuity: тупик остаётся
-  // только когда честно НЕЧЕГО). Manual каскада не имеет.
+  // P8.4c: продукционный пул исчерпан → рецептивная цепочка listen → read-MC (continuity:
+  // тупик остаётся только когда честно НЕЧЕГО). Manual каскада не имеет.
   if (!pick && !isManual) {
     pick = await selectForModality(userId, "listen", { nowMs: now });
+    if (!pick) pick = await selectForModality(userId, "read", { nowMs: now });
     if (pick) { pick.select_reason = "receptive_fallback"; effectiveMode = "all_due"; }
   }
   if (!pick) {
@@ -456,12 +501,13 @@ function _capsForSurface(pick, { userId, surface, tgUserId, tgChatId }) {
       shown_stimulus: pick.assetKey, stimulus_source: "dictate-tts", stimulus_source_version: "v12",
       stimulus_privacy_class: "A", stimulus_hash: sha1(pick.assetKey).slice(0, 16) };
   }
-  if (pick.kind === "listen") {
-    // P8.4c: рецептив; опции ПЕРСИСТЯТСЯ (resume-стабильный MC); класс A — словарные данные.
-    const body = JSON.stringify({ assetKey: pick.assetKey, gloss: pick.gloss, options: pick.options });
-    return { ...common, review_mode: "listen:ma", prompt_kind: "listen", evidence_scope: "receptive",
+  if (pick.kind === "listen" || pick.kind === "read") {
+    // P8.4c: рецептивы; опции ПЕРСИСТЯТСЯ (resume-стабильный MC); класс A — словарные данные.
+    // read = word-recognition без ассета (assetKey отсутствует → дескриптор без audio_token).
+    const body = JSON.stringify({ ...(pick.assetKey ? { assetKey: pick.assetKey } : {}), gloss: pick.gloss, options: pick.options });
+    return { ...common, review_mode: pick.kind + ":ma", prompt_kind: pick.kind, evidence_scope: "receptive",
       expected_form_id: pick.item_key, sense_id: pick.sense_id, expected_surface: pick.vocalized,
-      shown_stimulus: body, stimulus_source: "listen-mc", stimulus_source_version: "v12",
+      shown_stimulus: body, stimulus_source: pick.kind + "-mc", stimulus_source_version: "v12",
       stimulus_privacy_class: "A", stimulus_hash: sha1(body).slice(0, 16) };
   }
   return { ...common, review_mode: "reverse:ma", prompt_kind: "reverse", evidence_scope: "lexeme",
@@ -487,7 +533,7 @@ function _descriptorFromChallenge(chal, lng) {
     if (tiles) base.stimulus.tiles = tiles;
   } else if (chal.prompt_kind === "dictate") {
     base.stimulus = { audio_token: mintAudioToken(chal.shown_stimulus, { userId: chal.user_id, challengeId: chal.challenge_id, classC: false }) };
-  } else if (chal.prompt_kind === "listen") {
+  } else if (chal.prompt_kind === "listen" || chal.prompt_kind === "read") {
     let p = null;
     try { p = JSON.parse(chal.shown_stimulus || "{}"); } catch (_) { p = {}; }
     base.stimulus = {
@@ -512,7 +558,7 @@ function _writeAllowed() { return miniappWriteOn() && reviewer.flagOn(); }
 
 // вердикт «ожидалось …» для result-карточки (пост-вердикт — утечкой не является)
 async function _expectedFor(chal) {
-  if (chal.prompt_kind === "cloze" || chal.prompt_kind === "dictate" || chal.prompt_kind === "listen") return chal.expected_surface || null;
+  if (chal.prompt_kind === "cloze" || chal.prompt_kind === "dictate" || chal.prompt_kind === "listen" || chal.prompt_kind === "read") return chal.expected_surface || null;
   try { return await keyingService.displayForItemKey(chal.item_key); } catch (_) { return null; }
 }
 

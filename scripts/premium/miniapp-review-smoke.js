@@ -369,6 +369,18 @@ async function freshChallenge(caps) {
     await learnerProjectionRepo.recomputeForKeys(userId, [ITEM]);
   }
 
+  // ── 13-octies) read-MC (P8.4c-fix): «neither»-хвост без ассета/якоря/strictSafe получает
+  // word-recognition MC (display+глосс универсальны) ──
+  {
+    await dbRun(`DELETE FROM tg_stimulus_exposure WHERE user_id=?`, [userId]);
+    await dbRun(`UPDATE srs_projections SET due=? WHERE user_id=? AND item_key=?`, [past, userId, ITEM]);
+    const rp = await reviewSession.selectForModality(userId, "read");
+    ok("read-MC: assembled from display+gloss (4 options incl target)",
+      !!rp && rp.kind === "read" && rp.options.length === 4 && rp.options.includes(rp.vocalized) && !rp.assetKey);
+    // fallback-цепочка кода: listen→read (read сработает и при недоступном listen — проверено выше unit'ом)
+    await learnerProjectionRepo.recomputeForKeys(userId, [ITEM]);
+  }
+
   // ── 14) down-sync источник + оракул ──
   const log = await learnerLogRepo.readLog(userId, { afterRid: 0, limit: 100 });
   const maRows = (log.rows || log || []).filter((x) => String(x.channel || "").endsWith(":ma"));

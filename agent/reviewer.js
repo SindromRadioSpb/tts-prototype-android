@@ -49,7 +49,8 @@ const PRODUCTION_RE = /^(dictate|reverse|cloze)(:|$)/;
 // P8.4a: суффикс = surface-провенанс (:tg бот, :ma Mini App); префикс = модальность (channel_stats цел).
 // P8.4c: +listen (рецептивный MC Mini App; PRODUCTION_RE его не матчит → EXPECTED_SCOPE-проверка
 // production-only не применяется by construction; бот listen не рендерит — :tg-канала нет).
-const CHALLENGE_CHANNEL_RE = /^(reverse|cloze|dictate|listen):(tg|ma)$/;
+// P8.4c-fix: +read (рецептивный word-recognition MC — continuity-хвост без аудио/якоря/strictSafe).
+const CHALLENGE_CHANNEL_RE = /^(reverse|cloze|dictate|listen|read):(tg|ma)$/;
 // суффикс канала ↔ surface challenge-строки (fail-closed §10 п.4 P8.3 / §3.2 P8.4a)
 const CHANNEL_SUFFIX_SURFACE = { tg: "telegram_bot", ma: "telegram_miniapp" };
 // Канонический evidence_scope по типу challenge (fail-closed, критика wf_596df7f6): reviewer НЕ
@@ -190,8 +191,8 @@ async function _grade(ctx, a) {
   // грейдилась бы против леммы = ложный lapse). P7.2c dictate: expected = ПИСЬМЕННАЯ (консонантная)
   // форма (chal.expected_surface = stripNiqqud(vocalized) из dictateFormForItemKey — ОДИН источник
   // с computeDictateAssetKey). reverse/рецептив: displayForItemKey (лемма).
-  const display = (chal && (chal.prompt_kind === "cloze" || chal.prompt_kind === "dictate" || chal.prompt_kind === "listen"))
-    ? String(chal.expected_surface || "")   // listen (P8.4c): expected = ОГЛАСОВАННАЯ опция MC
+  const display = (chal && (chal.prompt_kind === "cloze" || chal.prompt_kind === "dictate" || chal.prompt_kind === "listen" || chal.prompt_kind === "read"))
+    ? String(chal.expected_surface || "")   // listen/read (P8.4c): expected = ОГЛАСОВАННАЯ опция MC
     : await keyingService.displayForItemKey(itemKey);
   if (!display || display === itemKey || !HEB_ANY_RE.test(display)) {
     if (chal) await agentChallengeRepo.release(ctx.userId, challengeId, attemptId);
