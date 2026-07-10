@@ -48,3 +48,26 @@ happy-path 3 канала `:ma` (ровно одна строка, верный 
 
 ## §9 Rollout
 Код ships dormant (`MINI_APP_REVIEW_WRITE` unset). Owner: включить флаг в Coolify → live-verify (одна cloze + один dictate с hint и без, annul, обрыв сети на submit → replay) → зафиксировать. Rollback: флаг off — записанные строки остаются (§18 recon).
+
+---
+
+## §10 CRITIQUE ADJUDICATION (wf_0996f9ea-0e3, 2026-07-10) — ВСЕ 23 ПРИНЯТЫ; при противоречии §10 ПОБЕЖДАЕТ
+
+**BLOCKER-дельты:**
+1. **Бот-гард на чужой surface (#1/#17):** `startReview` open-challenge ветка проверяет `(open.surface||'telegram_bot') !== 'telegram_bot'` → честная нота «заверши в Mini App», БЕЗ send/setPromptMessageId/exposure/decline; `submitAnswer` на foreign-surface challenge → null (reply, «не сейчас», «не знаю» НЕ трогают challenge). Обе стороны в гейт-матрице.
+2. **Реплей реджекта ≠ успех (#7):** `_ingestOne` применяет new/dup-проверку И к replayed-результату (сохранённый результат несёт счётчики) — фантомный `recorded:true` с нулём строк невозможен. Гейт: committed-batch reject + retry same nonce → recorded:false, challenge НЕ completed, result_* пуст.
+3. **Annul под обоими флагами (#14/#3/#8):** BFF annul-роут требует `MINI_APP_REVIEW_WRITE` И `reviewer.flagOn()` (reviewer._annul не трогаем — bot-путь через tools уже гейтится). Гейт: AGENT_REVIEW_WRITE=0 → annul 403 zero-write.
+4. **Hint: payload-first, latch-атомарно (#15/#6/#12):** сначала ПОЛНАЯ резолюция (consent+якорь+masked_he/audio); только при готовом payload — `UPDATE … SET hint_used_at=?,hint_kind=? WHERE challenge_id=? AND status='active' AND hint_used_at IS NULL`; changes=0 при прежнем hint → идемпотентная ре-резолюция (свежий токен), changes=0 из-за claim → 409; провал резолюции → HINT_UNAVAILABLE БЕЗ записи состояния. Post-claim re-read — единственный источник challenge-state для scope.
+
+**MAJOR-дельты:**
+5. **Персист вердикта внутри complete() (#2/#11):** `complete(userId, challengeId, attemptId, result?)` — ОДИН UPDATE (status/completed_at/result_decision/result_grade WHERE processing AND claimed_attempt_id=?); reviewer передаёт вердикт; возврат проверяется (0-changes → громкий лог). Replay-контракт: на closed-статусах при `claimed_attempt_id===attempt_eff` и заполненных result_* → реконструированный вердикт (не CHALLENGE_CLOSED). Purge-списки result_* не трогают.
+6. **ЯКОРЯ НЕ ПЕРСИСТЯТСЯ для dictate/reverse (#4 — упрощение):** findAnchorForItem-при-create ОТМЕНЁН; вместо него `resolveAnchorLive(userId, itemKey)` (bounded-scan, consent-гейты) вызывается ТОЛЬКО в hint/reveal. Следствия: нет create-латентности, нет якорей на классе A, §5-purge-дельта НЕ НУЖНА (класс-C purge как был), нет расхождения форм bot/miniapp-строк.
+7. **Анти-double-row (#10):** ответ на `processing` c `claimed_attempt_id ≠ attempt_eff` → reject `RETRY_WITH_ORIGINAL` (не тихий re-claim); shell персистит nonce per challenge_id (localStorage) и на этот код повторяет исходным nonce.
+8. **Reveal fail-closed default (#16):** attach ТОЛЬКО на `recorded:true` ИЛИ `dictate_gate`; ЛЮБОЙ ok:false / recorded:false / исключение → reveal discarded. Гейты: ANSWER_TOO_LONG и TEXT_CONSENT_REVOKED → без reveal, challenge active.
+9. **Audio-токены с привязкой (#18):** токен = {assetKey, userId, challengeId?, classC, exp}; маршрут сверяет userId сессии; classC → double-consent recheck В МОМЕНТ стрима; закрытие challenge/revoke-каскад удаляет его токены. Гейт: hint → revoke → валидный токен → 404.
+10. **Провенанс в канон (#19):** `GRADE_ARGS += input_mode` (enum tiles|keyboard), `META_ALLOW += input_mode, hint_kind`; reviewer копирует hint_kind из re-read challenge, input_mode из args. Гейт: tiles-ответ → meta.input_mode='tiles'; sentence_audio-cloze → meta.hint_kind.
+11. **Tiles ≥3 (#20) + не в preview (#21):** tiles только при len(expected_surface)≥3 (зеркало dictate-правила) и только на challenge-backed пути (preview-дескриптор без tiles). Гейты на оба.
+12. **Grade-policy = клиент-шаренный модуль (#13/#23):** изменение CONTEXT_SUPPORTED_SCOPES требует **SW CACHE_VERSION bump** (правило проекта) + отметка version-skew окна в коммите.
+13. **Hint sticky через release (#5) — ЯВНО:** hint per-challenge липкий (пользователь ВИДЕЛ контекст; retry после MNAR остаётся context_supported) — документировано, не баг.
+14. **Токены после рестарта (#22):** shell на AUDIO_TOKEN_INVALID → re-POST review-sessions (resume ре-минтит); повторный hint = ре-резолюция + свежий токен; single-process допущение отмечено.
+15. **Кросс-surface annul запрещён (#9):** BFF annul принимает только строки, чей meta.challenge_id резолвится в challenge с surface='telegram_miniapp' этого пользователя (session-local undo). Бот-строки из Mini App не аннулируются (v1). Гейт: annul :tg-строки → reject.
