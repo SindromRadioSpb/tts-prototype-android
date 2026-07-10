@@ -226,19 +226,27 @@ function buildDescriptor(pick, { lng, mode, preview, userId } = {}) {
   return base;
 }
 
-// server-shuffled буквы expected-surface для тайловой сборки (cloze, §10 п.11): только len≥3
-// (зеркало dictate-правила P7.2d — короткое слово тайлы раскрывают тривиально), crypto-шафл.
+// Тайлы для сборки слова (cloze, §10 п.11 + owner live-verify 2026-07-10 А2):
+// СКЕЛЕТ-буквы (огласовки НЕ тайлы — грейдер и так skeleton-матчит) + 2-3 буквы-дистрактора
+// (как в ПК-тренажёре: без «лишних» букв набор тривиально раскрывает ответ). len≥3, crypto-шафл.
+const HE_LETTERS = "אבגדהוזחטיכלמנסעפצקרשתםןףץך";
 function _tilesFor(surface) {
-  const s = String(surface || "");
-  const letters = Array.from(s.replace(/\s+/g, ""));
+  const RM = require(path.join(__dirname, "..", "public", "js", "reader-morph.js"));
+  const skeleton = RM.stripNiqqud(String(surface || "")).replace(/\s+/g, "");
+  const letters = Array.from(skeleton);
   if (letters.length < 3) return null;
   const crypto = require("crypto");
+  const inWord = new Set(letters);
+  let added = 0;
+  while (added < 3) {                                   // дистракторы: буквы НЕ из слова
+    const ch = HE_LETTERS[crypto.randomInt(HE_LETTERS.length)];
+    if (inWord.has(ch)) continue;
+    letters.push(ch); inWord.add(ch); added++;
+  }
   for (let i = letters.length - 1; i > 0; i--) {
     const j = crypto.randomInt(i + 1);
     [letters[i], letters[j]] = [letters[j], letters[i]];
   }
-  // шафл, совпавший с исходником, пере-шафлим один раз (не гарантия, но дёшево)
-  if (letters.join("") === s) [letters[0], letters[letters.length - 1]] = [letters[letters.length - 1], letters[0]];
   return letters;
 }
 
@@ -405,13 +413,17 @@ async function _submit({ userId, surface, challengeId, clientNonce, answer, inpu
 
   if (!r || r.ok !== true) return r || errOut("REVIEW_FAILED");          // ошибка → БЕЗ reveal
   const expected = await _expectedFor(chal);
+  // owner live-verify Б: терминальная карточка информативна и на «Верно» — слово+перевод
+  // (словарный глосс, класс A; пост-вердикт — утечкой не является).
+  let gloss = null;
+  try { const g = await keyingService.glossForItemKey(chal.item_key); gloss = (g && g.gloss) || null; } catch (_) {}
   if (r.recorded === true) {                                             // терминал: записано
     dropTokensForChallenge(chal.challenge_id);
-    return { ...r, expected, reveal };
+    return { ...r, expected, gloss, reveal };
   }
   if (r.dictate_gate) {                                                  // терминал: near_miss cancel
     dropTokensForChallenge(chal.challenge_id);
-    return { ...r, expected, reveal };
+    return { ...r, expected, gloss, reveal };
   }
   return r;                                                              // released (MNAR/ktiv): БЕЗ reveal
 }
@@ -449,10 +461,19 @@ async function hint({ userId, surface, challengeId, kind }) {
     const blanked = nl > 0 ? s.slice(0, nl) : s;
     if (!blanked || !chal.expected_surface) return errOut("HINT_UNAVAILABLE");
     const full = blanked.split(BLANK_RE).join(chal.expected_surface);
-    const assetKey = computeAssetKey({ text: full, ttsProfile: SENTENCE_TTS_PROFILE, assetType: "row" });
-    let ready = false;
-    try { ready = await audioRepo.hasAsset(assetKey); } catch (_) { ready = false; }
-    if (!ready) return errOut("HINT_UNAVAILABLE");
+    // owner live-verify А1: assetKey зависит от TTS-профиля — перебираем профили, которыми
+    // РЕАЛЬНО пекли row-аудио на сервере (+дефолт-фолбэк), а не угадываем один.
+    const profiles = await audioRepo.listRowTtsProfiles();
+    if (!profiles.length) profiles.push(SENTENCE_TTS_PROFILE);
+    let assetKey = null;
+    for (const prof of profiles) {
+      let k = null;
+      try { k = computeAssetKey({ text: full, ttsProfile: prof, assetType: "row" }); } catch (_) { continue; }
+      let ready = false;
+      try { ready = await audioRepo.hasAsset(k); } catch (_) { ready = false; }
+      if (ready) { assetKey = k; break; }
+    }
+    if (!assetKey) return errOut("HINT_UNAVAILABLE");
     payload = { audio_token: mintAudioToken(assetKey, { userId, challengeId: chal.challenge_id, classC: true }) };
   }
 

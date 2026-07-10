@@ -100,6 +100,21 @@ async function hasAsset(assetKey) {
   try { return !!(await getAudioAssetByKey(key)); } catch (_) { return false; }
 }
 
+// P8.4a-fix (owner live-verify 2026-07-10 А1): TTS-профили, которыми РЕАЛЬНО пекли row-аудио на
+// этом сервере (обычно 1-3). Sentence-audio hint перебирает их при расчёте assetKey полного
+// предложения — угаданный хардкод-профиль не совпадал с фактическим → ложный HINT_UNAVAILABLE.
+async function listRowTtsProfiles(limit = 10) {
+  const db = getDb(); if (!db) return [];
+  try {
+    const rows = await dbAll(db,
+      `SELECT DISTINCT tts_profile_json FROM audio_assets
+        WHERE asset_type='row' AND tts_profile_json IS NOT NULL LIMIT ?`, [Math.max(1, Math.min(25, limit))]);
+    const out = [];
+    for (const r of rows || []) { try { const p = JSON.parse(r.tts_profile_json); if (p) out.push(p); } catch (_) {} }
+    return out;
+  } catch (_) { return []; }
+}
+
 async function touchAudioAsset(assetKey) {
   const db = getDb();
   if (!db) throw new Error("DB_NOT_AVAILABLE");
@@ -303,6 +318,7 @@ module.exports = {
   upsertAudioAsset,
   getAudioAssetByKey,
   touchAudioAsset,
+  listRowTtsProfiles,
 
   // link / defaults
   linkSentenceAudio,

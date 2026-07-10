@@ -86,7 +86,14 @@ async function freshChallenge(caps) {
   let ch = await freshChallenge(clozeCaps(userId));
   const tiles = require(path.join(ROOT, "agent", "reviewSession"));   // same module (alias)
   const desc = (await reviewSession.start({ userId, surface: S, mode: "all_due", lng: "ru" }));
-  ok("challenge-backed descriptor: tiles present (len≥3, shuffled)", !!(desc && desc.descriptor && Array.isArray(desc.descriptor.stimulus.tiles) && desc.descriptor.stimulus.tiles.length >= 3 && desc.descriptor.stimulus.tiles.join("") !== SURFACE.replace(/\s+/g, "")));
+  {
+    // owner А2: тайлы = СКЕЛЕТ-буквы (без огласовок) + 3 дистрактора, шафл
+    const RM = require(path.join(ROOT, "public", "js", "reader-morph.js"));
+    const skel = Array.from(RM.stripNiqqud(SURFACE));
+    const tl = desc && desc.descriptor && desc.descriptor.stimulus.tiles;
+    ok("tiles: skeleton+3 distractors, no niqqud marks", Array.isArray(tl) && tl.length === skel.length + 3 &&
+      !/[֑-ׇ]/.test(tl.join("")) && skel.every((ch) => tl.includes(ch)));
+  }
   const c0 = await rowCount();
   let r = await reviewSession.answer({ userId, surface: S, challengeId: ch.challenge_id, clientNonce: "nonceA111", answer: "כותב", inputMode: "tiles" });
   ok("answer: recorded correct", !!(r && r.ok && r.recorded && r.decision === "correct"));

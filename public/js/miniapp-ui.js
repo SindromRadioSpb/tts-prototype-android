@@ -9,7 +9,10 @@
 (function () {
   const HOST = window.MiniappHost;
   const PWA_URL = location.origin + "/library.html";
-  const S = { csrf: null, lang: "en" };
+  // mode — липкий на сессию (owner live-verify В): выбрав «Повторить всё сейчас», пользователь
+  // продолжает в all_due до возврата на home, а не утыкается в пустой приоритетный пул после
+  // каждого ответа. Непрерывное обучение.
+  const S = { csrf: null, lang: "en", mode: "reading_first" };
 
   // ── i18n (shell copy only: ru/en; Hebrew content arrives in later slices) ──
   const STR = {
@@ -113,6 +116,9 @@
     res_wrong: { ru: "✗ Неверно", en: "✗ Incorrect" },
     res_skip: { ru: "⏭ Пропущено", en: "⏭ Skipped" },
     res_expected: { ru: "Ожидалось: ", en: "Expected: " },
+    tiles_toggle: { ru: "Собрать из букв", en: "Assemble from letters" },
+    hint_no_audio: { ru: "Озвучка этого предложения ещё не создана.", en: "Audio for this sentence is not baked yet." },
+    hint_no_context: { ru: "Контекст для этого слова недоступен.", en: "Context is unavailable for this word." },
     res_replayed: { ru: "Ответ уже был записан ранее — показан прежний результат.", en: "Already recorded earlier — showing the previous result." },
     res_unclear: { ru: "Ответ не распознан как попытка — ничего не записано. Попробуйте ещё раз.", en: "Not counted as an attempt — nothing was written. Try again." },
     res_closed: { ru: "Это задание уже закрыто.", en: "This challenge is already closed." },
@@ -288,6 +294,7 @@
 
   // ── P8.3 preview session (render-only; сервер решает item/modality) ────────
   async function startSession(mode, home) {
+    S.mode = mode;                        // липкий режим сессии (В)
     spinner("train_loading");
     let r;
     try {
@@ -354,8 +361,11 @@
       input.placeholder = t("answer_ph");
       box.appendChild(input);
 
-      if (Array.isArray(st.tiles) && st.tiles.length) {      // тайлы (cloze, len≥3, server-shuffled)
+      if (Array.isArray(st.tiles) && st.tiles.length) {
+        // тайлы (скелет+дистракторы, server-shuffled) — СВЁРНУТЫ за тумблером (owner А3):
+        // опытный пользователь печатает; сборка из букв — явный облегчающий выбор.
         const row = el("div", "ma-tiles");
+        row.hidden = true;
         for (const ch of st.tiles) {
           const b = el("button", "ma-tile", String(ch));
           b.addEventListener("click", () => { input.value += String(ch); usedTiles = true; });
@@ -364,6 +374,9 @@
         const bs = el("button", "ma-tile", t("tiles_clear"));
         bs.addEventListener("click", () => { input.value = input.value.slice(0, -1); });
         row.appendChild(bs);
+        const toggle = el("button", "ma-btn", t("tiles_toggle"));
+        toggle.addEventListener("click", () => { row.hidden = !row.hidden; });
+        box.appendChild(toggle);
         box.appendChild(row);
       }
 
@@ -377,7 +390,12 @@
           try { r = await api("/api/miniapp/review-sessions/" + encodeURIComponent(d.challenge_id) + "/hint", {
             method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: hintKind }) }); }
           catch (_) { hb.disabled = false; return; }
-          if (r.status !== 200 || !r.body || r.body.ok !== true) { hb.hidden = true; return; }   // HINT_UNAVAILABLE → честно прячем
+          if (r.status !== 200 || !r.body || r.body.ok !== true) {
+            // owner А1-UX: не тихое исчезновение — честная причина
+            hb.hidden = true;
+            hintBox.textContent = t(hintKind === "sentence_audio" ? "hint_no_audio" : "hint_no_context");
+            return;
+          }
           hintBox.textContent = "";
           if (hintKind === "context") {
             if (r.body.gloss) hintBox.appendChild(el("p", "ma-rec-kind", String(r.body.gloss)));
@@ -422,7 +440,7 @@
     const b = r && r.body;
     if (!b || (r.status !== 200 && !b.error)) return message("warn", "submit_failed", [{ label: "retry_btn", onClick: () => renderChallenge(d, home) }]);
     const box = el("div", "ma-home");
-    const nextBtn = (label) => { const n = el("button", "ma-btn ma-btn-primary", t(label)); n.addEventListener("click", () => { dropNonce(d.challenge_id); startSession("reading_first", home); }); return n; };
+    const nextBtn = (label) => { const n = el("button", "ma-btn ma-btn-primary", t(label)); n.addEventListener("click", () => { dropNonce(d.challenge_id); startSession(S.mode, home); }); return n; };   // липкий режим (В)
 
     if (b.ok && (b.recorded === true || b.dictate_gate)) {           // терминал
       const dec = String(b.decision || "");
@@ -431,10 +449,15 @@
         : b.recorded && (dec === "variant" || dec === "near_miss") ? "res_variant" : "res_wrong";
       box.appendChild(el("h1", "ma-title", t(key)));
       if (b.replayed) box.appendChild(el("p", "ma-note", t("res_replayed")));
-      if (b.expected && key !== "res_correct") {
-        const ex = el("p", "ma-rec-kind", t("res_expected") + String(b.expected));
+      // owner Б: информативная карточка И на «Верно» — слово + перевод; на «Неверно» —
+      // ожидаемое слово + перевод.
+      if (b.expected) {
+        const ex = el("p", "ma-rec-kind",
+          (key === "res_correct" ? "" : t("res_expected")) + String(b.expected) + (b.gloss ? " — " + String(b.gloss) : ""));
         ex.setAttribute("dir", "auto");
         box.appendChild(ex);
+      } else if (b.gloss) {
+        box.appendChild(el("p", "ma-rec-kind", String(b.gloss)));
       }
       if (b.reveal && b.reveal.sentence_he) {                        // reveal только с терминалом (§10 п.8)
         const he = el("p", "ma-expl-he", String(b.reveal.sentence_he));
