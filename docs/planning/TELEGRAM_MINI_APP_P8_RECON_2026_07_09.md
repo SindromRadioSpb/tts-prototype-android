@@ -108,9 +108,17 @@ Enablement is owner-only and explicit: `MINI_APP_ENABLED=0` by default **plus** 
 | % due eligible for cloze/dictate/reverse assets | builder-driven | **PENDING builder probe** |
 | avg messages per completed bot review | Telegram-side | needs P8.0 bot telemetry |
 
-### 2.3 The one measurement that gates the product (must run before P8.3)
+### 2.3 The one measurement that gates the product — **MEASURED 2026-07-10 ✅**
 
-**"For what % of current due items does a resolvable, non-leaking source sentence exist?"** This is *the* number that decides fork-4 (missing-source-sentence policy) and whether context-first is honestly achievable. It is **not** a static join — it requires running the live context-first builder (which the selector already exercises for cloze via `agentClozeRepo.selectClozeChallenge`, and for dictate via `keyingService.dictateFormForItemKey` + `audioRepo.hasAsset`). **Action:** a small builder probe that iterates the owner's due set on prod and reports anchor-coverage % per modality. If coverage is high → strict context-first (fork-4A). If low → the missing-source policy matters a lot and we bias to fork-4C (mixed by modality) or 4B (honest lexeme fallback). **Do not design the missing-source UX before this number exists.**
+**"For what % of current due items does a resolvable, non-leaking source sentence exist?"** Full-scan builder probe on the prod owner profile (81/81 artifacts, 3568 sentences; same primitives as `selectEligible`; aggregates only) — artifact: `docs/research/miniapp-p8-readiness/2026-07-10/anchor-coverage-probe.md`. Headline (n_due=50):
+
+- **anchor coverage 64%** (32/50 due items have their unambiguous form in the user's own texts; all 32 also admit a single-blank cloze);
+- **dictate-ready 62%** (31/50, всё с запечёнными ассетами) · reverse-strict 14% (7/50);
+- **any production modality 84%** (42/50); modality∧anchor 64%; **neither 16%** (8/50);
+- dictate-only 9 · cloze-only 8 · reverse-only 1 → 20% of due trainable ONLY through honest lexeme modalities;
+- serving cap `MAX_DUE_FORMS=40` loses 4 anchored items at pool=50 — P8.3 orchestrator note.
+
+**Fork-4 → C (mixed by modality), data-driven:** cloze = anchor-required by construction; dictate/reverse = honest lexeme modalities with the sentence ATTACHED when it exists (64%), honestly omitted when not; the 8 no-modality-no-anchor items route to reading. Strict 4A would over-exclude 20% of due; 4B would under-use 64% real context. **P8.3 is unlocked.**
 
 ---
 
@@ -296,7 +304,8 @@ Each slice: grounded recon → spec → adversarial role-critique → owner fork
 
 The 4 most decision-gating forks are asked via `AskUserQuestion` this session; all 10 are recorded here with recommendations. Unasked ones default to the recommendation unless the owner overrides.
 
-> **RESOLVED 2026-07-09 (owner):** Fork 1 → **A (context micro-session)** · Fork 2 → **A (owner-pilot now)** · Fork 3 → **A (reading-first)** · Fork 7 → **A (scoped cookie on `user_sessions`)**. Forks 5, 6, 8, 9, 10 **default to their recommendations** (opaque handoff token · single active challenge across surfaces · coordinated MainButton+DOM · today-completed+due-remaining+reading CTA · owner→closed-pilot→wider-flag). **Fork 4 (missing source sentence) remains DEFERRED** until the §2.3 builder-probe anchor-coverage number exists.
+> **RESOLVED 2026-07-09 (owner):** Fork 1 → **A (context micro-session)** · Fork 2 → **A (owner-pilot now)** · Fork 3 → **A (reading-first)** · Fork 7 → **A (scoped cookie on `user_sessions`)**. Forks 5, 6, 8, 9, 10 **default to their recommendations** (opaque handoff token · single active challenge across surfaces · coordinated MainButton+DOM · today-completed+due-remaining+reading CTA · owner→closed-pilot→wider-flag).
+> **Fork 4 → C (mixed by modality), MEASURED 2026-07-10 (§2.3):** anchor coverage 64% / any-modality 84% / dictate-only+reverse-only 20% → strict 4A would over-exclude, 4B would under-use context. cloze = anchor-required by construction; dictate/reverse = honest lexeme with anchor attached when it exists; no-modality-no-anchor (16%) → route to reading. Awaiting owner confirm at P8.3 spec approval.
 
 1. **Role of P8** → **A. context micro-session + return-to-reading (RECOMMENDED)** · B. mirror Mentor Home · C. full PWA-lite.
 2. **Launch gate** → **A. owner-pilot now, product-validation later (RECOMMENDED at n=1)** · B. wait for external pilot · C. instrument the bot first.
