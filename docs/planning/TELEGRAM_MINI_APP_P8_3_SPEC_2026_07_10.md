@@ -88,10 +88,37 @@ Descriptor (closed shape, leak-gate): `{challenge_id, kind, select_reason, expla
 - **smoke:review-session (новый):** parity бот-путь vs Mini App-путь на ОДНОМ snapshot (тот же item+modality+reason) · due-window teeth (якорь на позиции >40 найден) · leak-gate (payload/descriptor без expected/anchor pre-answer; dictate/reverse без предложения pre-answer; cloze с предложением) · hint: server-side демоция, masked sentence, `context_supported` ∈ CONTEXT_SUPPORTED_SCOPES, hasProductionSuccess/hasDictateHistory игнорируют hinted-успех · write OFF: answer/skip → 403, zero review_log rows · migration 035: rebuild сохраняет данные + open-challenge uniqueness across surfaces.
 - **Регрессия:** telegram-review/selector/cloze/dictate (бот через сервис!), agent-review, grade-policy, miniapp-auth/home, server-replay, memory-canon, api-smoke.
 
-## §8 Порядок работ
+## §8 Порядок работ (v2 — после критики, см. §9 п.8)
 
-1. **Pre-code:** due-snapshot unification (§2) как отдельный коммит с гейтом (чинит бота сразу);
-2. adversarial-критика этой спеки (workflow) → фиксы;
-3. migration 035 + service extraction (бот делегирует) + регрессия;
-4. BFF start/hint + shell-рендер трёх модальностей (write OFF);
-5. прод-деплой (dormant для answer), owner live-verify рендера.
+1. **Extraction first:** `reviewSessionService` как ЧИСТЫЙ перенос из `agent/telegram/review.js` (бот делегирует; parity-гейт: поведение бота байт-идентично, сегодняшние окна сохранены);
+2. **Due-snapshot unification ВНУТРИ сервиса** (§2-v2) — гейт с teeth уже существует;
+3. migration 035 (additive-only, §9 п.2) + surface-provenance в createChallenge;
+4. BFF start (render-only preview при write-OFF, §9 п.5) + shell-рендер трёх модальностей;
+5. прод-деплой (dormant для answer/hint), owner live-verify рендера.
+
+---
+
+## §9 CRITIQUE ADJUDICATION (wf_df27248f-748, 2026-07-10) — ВСЕ 23 находки ПРИНЯТЫ
+
+3 линзы (pedagogy-grader · security-parity · migration-ops), 5 BLOCKER (2 сошлись кросс-линзово) + 15 MAJOR + 3 MINOR. Ниже — обязательные дельты к §1–§8; при противоречии §9 ПОБЕЖДАЕТ.
+
+**BLOCKER-дельты:**
+1. **Hint = write-путь, не рендер** (#17/#1): hint-endpoint за `MINI_APP_REVIEW_WRITE` (в P8.3 — 403); hint отвергает `surface='telegram_bot'` (иначе бот-ответ на демоцированный challenge пишет `context_supported` на живом AGENT_REVIEW_WRITE=ON ДО P8.4). EXPECTED_SCOPE-расширение шипится только вместе с включением hint. Гейт: bot-challenge + miniapp-hint → reject; последующий бот-ответ пишет `cell`.
+2. **Class-C консент + purge для якорей** (#18/#12/#16/#22): двойной text-consent recheck (cloud_texts+agent_read_texts) fail-closed в hint, в post-verdict-reveal и при cloze-resume; `_purgeClassC` расширяется на anchor-колонки НЕЗАВИСИМО от stimulus_privacy_class; revoke-каскад чистит hint-state; reveal-payload резолвится ДО `reviewer.record` и прикладывается только на терминальном исходе.
+3. **attempt_id связывается с challenge СЕРВЕРОМ** (#9/#6): `attempt_eff = "ma"+sha1(challenge_id+":"+client_nonce).slice(0,40)` — зеркало бот-конструкции; кросс-challenge idempotency-replay (challenge B completed с нулевой записью) невозможен by construction; неймспейсы tg/ma разделены. Гейт: reuse nonce across 2 challenges → второй НЕ completed без строки.
+4. **Surface-binding на ответе** (#10/#7): `answer/skip/hint` fail-closed при `chal.surface !== caller-surface` (`CHALLENGE_SURFACE_MISMATCH`); reviewer дополнительно сверяет суффикс канала ↔ chal.surface (tg↔bot, ma↔miniapp); бот-адаптер НЕ редоставляет чужой surface-challenge — честное «заверши в Mini App» (challenge не тронут).
+
+**MAJOR-дельты:**
+5. **Dormant-режим без DoS бота** (#11): при write-OFF `start()` render-only — дескриптор БЕЗ `createChallenge` и БЕЗ `recordExposure` (не лочит `/review` бота на 10 мин, не жжёт cooldown); явно маркирован `preview:true`.
+6. **Migration 035 = additive-only, rebuild ОТМЕНЁН** (#2/#3/#4): `ADD COLUMN surface` + `ADD COLUMN hint_used_at`; `telegram_chat_id` ОСТАЁТСЯ NOT NULL — для miniapp-challenge заполняется из активного channel_link (существует by construction); enum в коде (паттерн 034), без CHECK. Класс rebuild-рисков (FK-pragma в txn, потеря 2 из 3 индексов, живые active-строки) снят целиком.
+7. **Один дом факта для демоции** (#20): evidence_scope на challenge-строке НЕ мутируется; hint пишет ТОЛЬКО `hint_used_at` (dictate-only, status='active'-only — после claim подсказка невозможна, #12); reviewer выводит записываемый scope в момент record: `hint_used_at → context_supported`, иначе `cell` (перечитывает ПОСЛЕ claimForAttempt — гонка hint↔answer закрыта).
+8. **Порядок работ** (#8): extraction ПЕРВЫМ (чистый перенос + parity-гейт), snapshot-фикс — вторым внутри сервиса (§8-v2 выше); двойного churn нет.
+9. **Snapshot one-truth внутри start()** (#13): due/struggle/exposure материализуются ОДИН раз внутри `reviewSessionService.start` (getDue(REVIEW_DUE_WINDOW,{nowMs}) + recentStruggleKeySet + materialized exposure-set одним запросом) и передаются вниз; `dueItems` как внешний параметр УБРАН из интерфейса (§3 поправлен по построению).
+10. **Чанкинг с общей collide-картой** (#14): `_dueVocMap` принимает полный 50-item список, батчится ВНУТРИ, `map`+`collide` — одни на все батчи (кросс-чанковые vocForm-коллизии ловятся). Гейт: одна vocForm у item#5 и item#45 → исключена.
+11. **Семантика 40→50 честно** (#5): выбор cloze — sentence-scan-order-first ВНУТРИ due-окна; расширение окна меняет, какой cloze выберет бот — это НАМЕРЕННОЕ исправление (документировано), не тихий дрейф.
+12. **createChallenge получает surface явно** (#15): валидируется по code-enum; tg-ids null-preserving (не `String(null)`).
+13. **Reveal только на терминале** (#19): released-исходы (MNAR, non-dictate ktiv) → текущий «unclear»-фидбек БЕЗ предложения/подсветки (reveal-then-retry остаётся закрытым); resume released-challenge возвращает исходный masked-дескриптор.
+14. **P8.4 lost-response replay** (#21): при complete персистится минимальный вердикт (enum+grade, класс A, без raw answer) на challenge-строке; повторный answer с тем же claimed_attempt_id на completed → реконструированный результат, не CHALLENGE_CLOSED.
+15. **Dictate-аудио без утечки assetKey** (#23): дескриптор отдаёт challenge-scoped маршрут `/api/miniapp/review-sessions/:id/audio` (сервер мапит на assetKey; content-derived ключ инвертируем против публичного датасета — pre-answer не выдаётся).
+
+**Гейт smoke:review-session дополняется** случаями из пп.1–4, 10 (§7 расширен по ссылке).
