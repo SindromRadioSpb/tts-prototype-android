@@ -21,9 +21,15 @@ const TEST_TOKEN = "123456:TEST_BOT_TOKEN_smoke_only";
 const OTHER_TOKEN = "999999:WRONG_TOKEN";
 
 // ── independent Telegram initData signer (spec-faithful, not the module's helper) ──
+// Per core.telegram.org first-party validation: the data-check-string is ALL received
+// fields sorted alphabetically with ONLY `hash` removed — the Bot API 8.0+ Ed25519
+// `signature` field IS part of the HMAC-signed string. (Excluding it was the live
+// BAD_HASH bug caught by owner verify 2026-07-10: the pre-fix fixture also lacked a
+// signature field, so the gate matched the buggy validator — fixtures must mirror the
+// REAL production payload shape, not a simplified one.)
 function signInitData(fields, token) {
   const data = {};
-  for (const k of Object.keys(fields)) if (k !== "hash" && k !== "signature") data[k] = fields[k];
+  for (const k of Object.keys(fields)) if (k !== "hash") data[k] = fields[k];
   const dcs = Object.keys(data).sort().map((k) => k + "=" + data[k]).join("\n");
   const secretKey = crypto.createHmac("sha256", "WebAppData").update(token).digest();
   const hash = crypto.createHmac("sha256", secretKey).update(dcs).digest("hex");
@@ -69,13 +75,28 @@ const dbRun = (sql, p = []) => new Promise((res, rej) => getDb().run(sql, p, fun
   ok("mapping: getActiveLinkByTg resolves to user", link && link.user_id === userId);
 
   // ── validateInitData ──
+  // Fixture = REAL Bot API 8.0+ shape: initData carries an Ed25519 `signature` field,
+  // and that field is INSIDE the HMAC data-check-string (only `hash` is excluded).
   const nowSec = Math.floor(Date.now() / 1000);
-  const goodFields = { auth_date: String(nowSec), query_id: "AAA", user: JSON.stringify({ id: TG_ID, first_name: "Owner" }) };
+  const goodFields = {
+    auth_date: String(nowSec), query_id: "AAA",
+    user: JSON.stringify({ id: TG_ID, first_name: "Owner" }),
+    signature: "fakeEd25519_base64url_payload-xyz",
+  };
   const goodRaw = signInitData(goodFields, TEST_TOKEN);
 
   const v = miniappAuth.validateInitData(goodRaw, { token: TEST_TOKEN });
-  ok("initData: valid signature accepted", v.ok === true);
+  ok("initData: valid post-8.0 payload (WITH signature field) accepted", v.ok === true);
   ok("initData: telegram id preserved as full string", v.ok && v.telegramUserId === TG_ID);
+
+  // pre-8.0 shape (no signature field) must also validate — old Telegram clients
+  const legacyRaw = signInitData({ auth_date: String(nowSec), user: goodFields.user }, TEST_TOKEN);
+  ok("initData: legacy payload (no signature field) accepted", miniappAuth.validateInitData(legacyRaw, { token: TEST_TOKEN }).ok === true);
+
+  // a signature field TAMPERED after signing must break the HMAC (it is part of the DCS)
+  const sigTampered = goodRaw.replace("fakeEd25519_base64url_payload-xyz", "fakeEd25519_base64url_payload-abc");
+  ok("initData: tampered signature field → BAD_HASH (signature is inside the HMAC DCS)",
+    miniappAuth.validateInitData(sigTampered, { token: TEST_TOKEN }).code === "BAD_HASH");
 
   const vNoTok = miniappAuth.validateInitData(goodRaw, { token: "" });
   ok("initData: missing bot token → BOT_TOKEN_MISSING", vNoTok.code === "BOT_TOKEN_MISSING");

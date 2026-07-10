@@ -22,11 +22,17 @@ function parseInitData(raw) {
   return out;
 }
 
-// data-check-string: every field EXCEPT hash (and signature), sorted alphabetically by key,
-// joined "key=value" with a single LF. (Verified against core.telegram.org 2026-07-09.)
+// data-check-string (FIRST-PARTY HMAC): every field EXCEPT hash — and ONLY hash —
+// sorted alphabetically by key, joined "key=value" with a single LF. Since Bot API 8.0
+// initData also carries an Ed25519 `signature` field: it STAYS IN the HMAC check-string
+// ("all received fields ... with the hash field removed" — core.telegram.org; matches
+// aiogram/telegraf reference validators). Excluding it was the P8.1 live BAD_HASH bug
+// (owner live-verify 2026-07-10): our string differed from what Telegram signed.
+// (`signature` is excluded only in the separate THIRD-PARTY Ed25519 check, which also
+// prepends "<bot_id>:WebAppData" — a different scheme we do not use: we hold the token.)
 function buildDataCheckString(data) {
   return Object.keys(data)
-    .filter((k) => k !== "hash" && k !== "signature")
+    .filter((k) => k !== "hash")
     .sort()
     .map((k) => k + "=" + data[k])
     .join("\n");
@@ -88,9 +94,10 @@ function initDataDedupKey(hash) {
 
 // Test-only helper: build a correctly-signed initData string (used by smoke:miniapp-auth to construct
 // expected inputs INDEPENDENTLY of validateInitData — not exported for production callers).
+// Mirrors Telegram's real signer: `signature` (if present) is part of the signed check-string.
 function _signInitDataForTest(fields, token) {
   const data = Object.assign({}, fields);
-  delete data.hash; delete data.signature;
+  delete data.hash;
   const dcs = Object.keys(data).sort().map((k) => k + "=" + data[k]).join("\n");
   const secretKey = crypto.createHmac("sha256", "WebAppData").update(String(token)).digest();
   const hash = crypto.createHmac("sha256", secretKey).update(dcs).digest("hex");
