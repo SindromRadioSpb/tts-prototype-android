@@ -30,10 +30,15 @@ const EXPOSURE_TTL_MS = 45 * 60 * 1000;
 // ── создание (§2 selectReverseChallenge вызывает после eligibility) ────────────
 // caps = { userId, tgUserId, tgChatId, item_key, review_mode, prompt_kind, expected_form_id,
 //          sense_id, shown_stimulus, stimulus_source, stimulus_source_version,
-//          stimulus_privacy_class, stimulus_hash, accepted_alts (array), evidence_scope }
+//          stimulus_privacy_class, stimulus_hash, accepted_alts (array), evidence_scope, surface }
 // partial-unique ловит конкурентный /review → возврат существующего активного (идемпотентно).
+// P8.3 §9 п.12: surface — ЯВНЫЙ параметр, валидируется по code-enum (никаких тихих дефолтов от
+// callers'а: бот-адаптер передаёт telegram_bot, miniapp-сервис — telegram_miniapp).
+const SURFACES = { telegram_bot: 1, telegram_miniapp: 1 };
 async function createChallenge(caps) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const surface = caps.surface != null ? String(caps.surface) : "telegram_bot";
+  if (!SURFACES[surface]) throw new Error("BAD_CHALLENGE_SURFACE");
   const existing = await getOpenForUser(caps.userId);
   if (existing) return { created: false, challenge: existing };
   const id = rndId("ch_");
@@ -44,8 +49,8 @@ async function createChallenge(caps) {
         (challenge_id, user_id, telegram_user_id, telegram_chat_id, item_key, review_mode,
          prompt_kind, evidence_scope, expected_form_id, sense_id, shown_stimulus, stimulus_source,
          stimulus_source_version, stimulus_privacy_class, stimulus_hash, accepted_alts_json, expires_at,
-         expected_surface, anchor_text_key, anchor_order_index, select_reason)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         expected_surface, anchor_text_key, anchor_order_index, select_reason, surface)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [id, caps.userId, String(caps.tgUserId), String(caps.tgChatId), caps.item_key,
        caps.review_mode, caps.prompt_kind || "reverse", caps.evidence_scope || "lexeme",
        caps.expected_form_id || null, caps.sense_id || null, caps.shown_stimulus || null,
@@ -54,7 +59,8 @@ async function createChallenge(caps) {
        JSON.stringify(caps.accepted_alts || []), expiresAt,
        caps.expected_surface || null, caps.anchor_text_key || null,
        caps.anchor_order_index != null ? Number(caps.anchor_order_index) : null,
-       caps.select_reason || null]);   // P7.2d: класс-A enum-провенанс выбора (объяснение читает chal.select_reason)
+       caps.select_reason || null,   // P7.2d: класс-A enum-провенанс выбора (объяснение читает chal.select_reason)
+       surface]);
   } catch (e) {
     // гонка конкурентного /review на partial-unique → вернуть существующий
     if (String(e && e.message).includes("UNIQUE")) {

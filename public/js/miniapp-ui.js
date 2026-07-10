@@ -89,6 +89,18 @@
     expl_failed: { ru: "Объяснения сейчас недоступны.", en: "Explanations are unavailable right now." },
     expl_purged: { ru: "очищено по отзыву согласия", en: "purged after consent revoke" },
     types_line: { ru: "Типы упражнений сегодня: ", en: "Exercise types today: " },
+    train_btn: { ru: "Начать тренировку (превью)", en: "Start training (preview)" },
+    train_loading: { ru: "Подбираем упражнение…", en: "Picking an exercise…" },
+    train_failed: { ru: "Тренировка сейчас недоступна. Попробуйте позже.", en: "Training is unavailable right now. Try again later." },
+    train_busy_bot: { ru: "У вас открыто задание в боте — завершите его там (или дождитесь истечения, ~10 мин).", en: "You have an open challenge in the bot — finish it there (or wait ~10 min for it to expire)." },
+    train_none_rf: { ru: "В приоритетном пуле повторения сейчас пусто (свежие слова оставлены чтению).", en: "The priority review pool is empty right now (fresh words are reserved for reading)." },
+    train_none_all: { ru: "Сейчас нет подходящих упражнений — загляните в Зал.", en: "No eligible exercises right now — visit the Reading Room." },
+    train_all_btn: { ru: "Повторить всё сейчас", en: "Review everything now" },
+    preview_note: { ru: "Превью: ответы появятся в следующем обновлении.", en: "Preview: answering arrives in the next update." },
+    back_home: { ru: "← Назад", en: "← Back" },
+    card_cloze: { ru: "Заполните пропуск (из вашего текста)", en: "Fill the blank (from your text)" },
+    card_dictate: { ru: "Диктант: прослушайте и запишите", en: "Dictation: listen and write" },
+    card_reverse: { ru: "Как это на иврите?", en: "How is this in Hebrew?" },
   };
   const t = (k) => (STR[k] && (STR[k][S.lang] || STR[k].en)) || k;
 
@@ -184,9 +196,12 @@
       box.appendChild(card);
     }
 
-    box.appendChild(el("p", "ma-note", t("coming_soon")));
+    // P8.3: primary CTA — превью-тренировка (сервер выбирает item/modality; write OFF)
+    const trainBtn = el("button", "ma-btn ma-btn-primary", t("train_btn"));
+    trainBtn.addEventListener("click", () => startSession("reading_first", home));
+    box.appendChild(trainBtn);
 
-    const openRoom = el("button", "ma-btn ma-btn-primary", t("open_room"));
+    const openRoom = el("button", "ma-btn", t("open_room"));
     openRoom.addEventListener("click", () => HOST.openExternal(PWA_URL));
     box.appendChild(openRoom);
 
@@ -250,6 +265,59 @@
       }
       box.appendChild(item);
     }
+  }
+
+  // ── P8.3 preview session (render-only; сервер решает item/modality) ────────
+  async function startSession(mode, home) {
+    spinner("train_loading");
+    let r;
+    try {
+      r = await api("/api/miniapp/review-sessions", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode, lang: S.lang }),
+      });
+    } catch (_) { return message("warn", "offline", [{ label: "retry", onClick: () => renderHome(home) }]); }
+    if (r.status !== 200 || !r.body || r.body.ok !== true)
+      return message("warn", "train_failed", [{ label: "back_home", onClick: () => renderHome(home) }]);
+    const b = r.body;
+    if (b.busy_surface) return message("info", "train_busy_bot", [{ label: "back_home", onClick: () => renderHome(home) }]);
+    if (b.none) {
+      const actions = [{ label: "back_home", onClick: () => renderHome(home) }];
+      if (mode === "reading_first") actions.unshift({ label: "train_all_btn", onClick: () => startSession("all_due", home) });
+      return message("info", mode === "reading_first" ? "train_none_rf" : "train_none_all", actions);
+    }
+    renderChallenge(b.descriptor || {}, home);
+  }
+
+  function renderChallenge(d, home) {
+    const box = el("div", "ma-home");
+    const kindKey = "card_" + d.kind;
+    box.appendChild(el("h1", "ma-title", STR[kindKey] ? t(kindKey) : String(d.kind || "")));
+    if (d.explain) box.appendChild(el("p", "ma-rec-why", d.explain));
+
+    const st = d.stimulus || {};
+    if (d.kind === "cloze") {
+      const he = el("p", "ma-expl-he", String(st.blanked_he || ""));
+      he.setAttribute("dir", "rtl"); he.setAttribute("lang", "he");
+      box.appendChild(he);
+      if (st.sentence_ru) box.appendChild(el("p", "ma-last", String(st.sentence_ru)));
+    } else if (d.kind === "dictate") {
+      if (st.audio_token) {
+        const au = document.createElement("audio");
+        au.controls = true; au.preload = "none";
+        au.src = "/api/miniapp/review-audio?t=" + encodeURIComponent(st.audio_token);
+        au.className = "ma-audio";
+        box.appendChild(au);
+      }
+    } else if (d.kind === "reverse") {
+      box.appendChild(el("p", "ma-rec-kind", String(st.gloss || "")));
+    }
+
+    if (d.preview) box.appendChild(el("p", "ma-note", t("preview_note")));
+    const back = el("button", "ma-btn", t("back_home"));
+    back.addEventListener("click", () => renderHome(home));
+    box.appendChild(back);
+    render([box]);
   }
 
   // ── boot state machine ────────────────────────────────────────────────────

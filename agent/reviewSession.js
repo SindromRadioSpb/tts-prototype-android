@@ -53,9 +53,14 @@ function audioUrlFor(assetKey) {
 // dictateProven НЕ берём из channel_stats.production (полосуется клиентскими reverse/cloze без
 // evidence_scope — критика R17 ВЕРИФИЦИРОВАНА library-ui.js) → history ТОЛЬКО из itemRows +
 // grade-policy channelPrefix-сегментации.
-async function selectEligible(userId, { nowMs } = {}) {
+async function selectEligible(userId, { nowMs, allocationMode } = {}) {
   const now = Number(nowMs) || Date.now();
-  const items = await learnerGraphRepo.getDue(userId, { nowMs: now, limit: REVIEW_DUE_WINDOW, withChannelStats: true });
+  let items = await learnerGraphRepo.getDue(userId, { nowMs: now, limit: REVIEW_DUE_WINDOW, withChannelStats: true });
+  // §7 ReviewAllocationPolicy v1 (reading-first-v1, замер 2026-07-09): reading_first оставляет
+  // Mini App'у almost-lapsed пул (lapses≥1 ИЛИ stability<1, ~15/51 на owner-профиле), здоровые
+  // due резервируются чтению; all_due = явный override пользователя. Фильтр ДО селектора,
+  // ranking селектора не меняется. Бот не передаёт mode → поведение бота нетронуто (parity).
+  if (allocationMode === "reading_first") items = (items || []).filter(almostLapsed);
   const dueKeys = (items || []).map((it) => it.item_key);
   // §9 п.9: exposure — материализованный снимок на ОДНОМ nowMs (selector и builder видят одно).
   const exposedSet = await agentChallengeRepo.recentlyExposedSet(userId, dueKeys, now);
@@ -158,4 +163,144 @@ async function selectEligible(userId, { nowMs } = {}) {
   return null;
 }
 
-module.exports = { selectEligible, publicBaseUrl, audioUrlFor, REVIEW_DUE_WINDOW };
+// ── §7 ReviewAllocationPolicy v1 ──────────────────────────────────────────────
+const ALLOCATION_POLICY_VERSION = "reading-first-v1";
+function almostLapsed(it) {
+  return !!(it && (Number(it.lapses) > 0 || (it.stability != null && Number(it.stability) < 1)));
+}
+
+// ── challenge-scoped audio tokens (§9 п.15) ───────────────────────────────────
+// computeDictateAssetKey — контент-производный ключ, инвертируемый против публичного датасета
+// парадигм → до ответа клиенту НЕЛЬЗЯ отдавать ни assetKey, ни /api/audio/<key>-URL. Дескриптор
+// несёт опак-токен; сервер мапит токен→assetKey и стримит байты challenge-скоуп-маршрутом.
+// In-memory (один процесс, TTL=окно challenge): рестарт сервера жертвует только превью-ссылкой.
+const AUDIO_TOKEN_TTL_MS = 10 * 60 * 1000;
+const _audioTokens = new Map();   // token → { assetKey, exp }
+function mintAudioToken(assetKey) {
+  const crypto = require("crypto");
+  for (const [t, v] of _audioTokens) if (v.exp <= Date.now()) _audioTokens.delete(t);   // прюн по ходу
+  const token = crypto.randomBytes(18).toString("base64url");
+  _audioTokens.set(token, { assetKey: String(assetKey), exp: Date.now() + AUDIO_TOKEN_TTL_MS });
+  return token;
+}
+function resolveAudioToken(token) {
+  const v = _audioTokens.get(String(token || ""));
+  if (!v || v.exp <= Date.now()) return null;
+  return v.assetKey;
+}
+
+// ── masked challenge descriptor (§6, leak-gate) ───────────────────────────────
+// ЗАКРЫТАЯ форма: {kind, select_reason, explain, allocation, stimulus} — НИКОГДА item_key /
+// expected / surface / written / vocalized / assetKey / anchor до ответа. cloze-предложение —
+// blanked (ответ вырезан) — это само задание (P8-D4C: context-before только у cloze).
+function buildDescriptor(pick, { lng, mode, preview } = {}) {
+  const format = require(path.join(__dirname, "telegram", "format"));   // одна таблица объяснений с ботом
+  const base = {
+    kind: pick.kind,
+    select_reason: String(pick.select_reason || ""),
+    explain: format.selectExplanation(pick.select_reason, pick.kind, lng === "en" ? "en" : "ru"),
+    allocation: { policy: ALLOCATION_POLICY_VERSION, mode: mode === "all_due" ? "all_due" : "reading_first" },
+    ...(preview ? { preview: true } : {}),
+  };
+  if (pick.kind === "cloze") base.stimulus = { blanked_he: pick.blanked_he, sentence_ru: pick.sentence_ru || "" };
+  else if (pick.kind === "dictate") base.stimulus = { audio_token: mintAudioToken(pick.assetKey) };
+  else base.stimulus = { gloss: pick.gloss };
+  return base;
+}
+
+// ── start (§3, §9 п.5): P8.3 = render-only preview при write-OFF ──────────────
+// write-OFF (MINI_APP_REVIEW_WRITE≠1): дескриптор БЕЗ createChallenge и БЕЗ recordExposure —
+// превью не лочит /review бота (challenge один на пользователя!) и не жжёт cooldown.
+// write-ON (P8.4): создание challenge с surface + exposure (как бот-путь). Открытый challenge
+// ДРУГОЙ поверхности → честный busy (бот-адаптер зеркально НЕ редоставляет miniapp-challenge).
+function miniappWriteOn() { return process.env.MINI_APP_REVIEW_WRITE === "1"; }
+
+async function start({ userId, surface, mode, lng, nowMs, tgUserId, tgChatId } = {}) {
+  const now = Number(nowMs) || Date.now();
+  if (surface !== "telegram_miniapp") return { ok: false, error: "BAD_SURFACE" };
+
+  // открытый challenge? (single-use слот общий across surfaces — ux_agent_challenges_open)
+  const open = await agentChallengeRepo.getOpenForUser(userId);
+  if (open) {
+    const openSurface = open.surface || "telegram_bot";
+    if (openSurface !== surface) return { ok: true, busy_surface: openSurface };   // «заверши в боте»
+    // resume своего surface: дескриптор из challenge-строки (cloze → двойной consent recheck, §9 п.16)
+    if (open.prompt_kind === "cloze") {
+      const learnerArtifactsRepo = require(path.join(__dirname, "..", "db", "learnerArtifactsRepo"));
+      const agentSentenceRepo = require(path.join(__dirname, "..", "db", "agentSentenceRepo"));
+      const okCloud = await learnerArtifactsRepo.hasConsent(userId);
+      const okRead = await agentSentenceRepo.hasAgentReadConsent(userId);
+      if (!okCloud || !okRead) { await agentChallengeRepo.cancelOpenForUser(userId); return { ok: true, none: "no-consent" }; }
+    }
+    return { ok: true, resumed: true, challenge_id: open.challenge_id, descriptor: _descriptorFromChallenge(open, lng) };
+  }
+
+  const pick = await selectEligible(userId, { nowMs: now, allocationMode: mode === "all_due" ? undefined : "reading_first" });
+  if (!pick) return { ok: true, none: mode === "all_due" ? "nothing-eligible" : "nothing-in-reading-first-pool" };
+
+  if (!miniappWriteOn()) {
+    // P8.3 preview: рендер без состояния (no challenge row, no exposure)
+    return { ok: true, descriptor: buildDescriptor(pick, { lng, mode, preview: true }) };
+  }
+
+  // P8.4-путь (dormant в P8.3): challenge с surface-провенансом; chat-ids из активной связки.
+  const caps = _capsForSurface(pick, { userId, surface, tgUserId, tgChatId });
+  const r = await agentChallengeRepo.createChallenge(caps);
+  const chal = r.challenge;
+  await agentChallengeRepo.recordExposure(userId, chal.item_key, "review_prompt");
+  return { ok: true, created: r.created, challenge_id: chal.challenge_id, descriptor: _descriptorFromChallenge(chal, lng) };
+}
+
+// caps miniapp-challenge: канал = <modality>:ma (префикс=модальность → channel_stats/grade-policy
+// сегментация цела; суффикс=surface-провенанс, §5). Поля 1:1 с бот-_capsFor.
+function _capsForSurface(pick, { userId, surface, tgUserId, tgChatId }) {
+  const crypto = require("crypto");
+  const sha1 = (s) => crypto.createHash("sha1").update(String(s)).digest("hex");
+  const common = { userId, surface, tgUserId, tgChatId, item_key: pick.item_key,
+    select_reason: pick.select_reason || null, accepted_alts: [] };
+  if (pick.kind === "cloze") {
+    const body = pick.blanked_he + (pick.sentence_ru ? "\n" + pick.sentence_ru : "");
+    return { ...common, review_mode: "cloze:ma", prompt_kind: "cloze", evidence_scope: "cloze",
+      expected_form_id: pick.item_key, expected_surface: pick.surface,
+      anchor_text_key: pick.text_key, anchor_order_index: pick.order_index,
+      shown_stimulus: body, stimulus_source: "synced-sentence", stimulus_source_version: null,
+      stimulus_privacy_class: "C", stimulus_hash: sha1(body).slice(0, 16) };
+  }
+  if (pick.kind === "dictate") {
+    return { ...common, review_mode: "dictate:ma", prompt_kind: "dictate", evidence_scope: "cell",
+      expected_form_id: pick.item_key, sense_id: pick.sense_id, expected_surface: pick.written,
+      shown_stimulus: pick.assetKey, stimulus_source: "dictate-tts", stimulus_source_version: "v12",
+      stimulus_privacy_class: "A", stimulus_hash: sha1(pick.assetKey).slice(0, 16) };
+  }
+  return { ...common, review_mode: "reverse:ma", prompt_kind: "reverse", evidence_scope: "lexeme",
+    expected_form_id: pick.item_key, sense_id: pick.sense_id, shown_stimulus: pick.gloss,
+    stimulus_source: "pealim-infl", stimulus_source_version: "v12",
+    stimulus_privacy_class: "A", stimulus_hash: sha1(pick.gloss).slice(0, 16) };
+}
+
+// дескриптор из challenge-СТРОКИ (resume/create-путь): та же закрытая форма, что buildDescriptor.
+// cloze: shown_stimulus = "blanked\nru" (класс-C блок); dictate: shown_stimulus = assetKey → токен.
+function _descriptorFromChallenge(chal, lng) {
+  const format = require(path.join(__dirname, "telegram", "format"));
+  const base = {
+    kind: chal.prompt_kind,
+    select_reason: String(chal.select_reason || ""),
+    explain: format.selectExplanation(chal.select_reason, chal.prompt_kind, lng === "en" ? "en" : "ru"),
+  };
+  if (chal.prompt_kind === "cloze") {
+    const s = String(chal.shown_stimulus || "");
+    const nl = s.indexOf("\n");
+    base.stimulus = { blanked_he: nl > 0 ? s.slice(0, nl) : s, sentence_ru: nl > 0 ? s.slice(nl + 1) : "" };
+  } else if (chal.prompt_kind === "dictate") {
+    base.stimulus = { audio_token: mintAudioToken(chal.shown_stimulus) };
+  } else {
+    base.stimulus = { gloss: String(chal.shown_stimulus || "") };
+  }
+  return base;
+}
+
+module.exports = {
+  selectEligible, publicBaseUrl, audioUrlFor, start, buildDescriptor,
+  mintAudioToken, resolveAudioToken, miniappWriteOn,
+  REVIEW_DUE_WINDOW, ALLOCATION_POLICY_VERSION, almostLapsed,
+};

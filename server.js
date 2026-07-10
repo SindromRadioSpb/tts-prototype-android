@@ -2073,6 +2073,52 @@ app.get("/api/miniapp/explanations", rlMiniapp, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: "AGENT_EXPLANATIONS_FAILED" }); }
 });
 
+// ── P8.3 review-session (SPEC §3/§6 + адъюдикация §9). P8.3 = render-only preview:
+// MINI_APP_REVIEW_WRITE выключен → start НЕ создаёт challenge/exposure (§9 п.5, не DoS-ит
+// бота), answer/skip — честный 403. Клиент передаёт только ИНТЕНТ {mode}; item/modality/
+// select_reason решает сервер (norm §20.4). ──
+const reviewSessionSvc = require("./agent/reviewSession");
+
+app.post("/api/miniapp/review-sessions", rlMiniapp, async (req, res) => {
+  const auth = await requireMiniappSession(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  const mode = String((req.body && req.body.mode) || "reading_first");
+  if (mode !== "reading_first" && mode !== "all_due") return res.status(400).json({ ok: false, error: "BAD_MODE" });
+  try {
+    const link = await channelLinkRepo.getLinkForUser(auth.user.id);   // для ON-пути (chat ids by construction)
+    const r = await reviewSessionSvc.start({
+      userId: auth.user.id, surface: "telegram_miniapp", mode, lng: String(req.body && req.body.lang || "ru"),
+      tgUserId: link && link.telegram_user_id, tgChatId: link && link.telegram_chat_id,
+    });
+    if (!r || r.ok === false) return res.status(400).json(r || { ok: false, error: "START_FAILED" });
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: "REVIEW_SESSION_FAILED" }); }
+});
+
+// dictate-аудио: challenge-scoped опак-токен → стрим байтов (assetKey контент-производен и
+// инвертируем против публичного датасета → НИКОГДА в клиентском payload/URL, §9 п.15).
+app.get("/api/miniapp/review-audio", rlMiniapp, async (req, res) => {
+  const auth = await requireMiniappSession(req, res); if (!auth) return;
+  const assetKey = reviewSessionSvc.resolveAudioToken(req.query.t);
+  if (!assetKey || !/^[A-Za-z0-9_-]+$/.test(assetKey)) return res.status(404).json({ ok: false, error: "AUDIO_TOKEN_INVALID" });
+  const abs = path.resolve(DATA_DIR, "audio-cache/" + assetKey + ".mp3");
+  if (!abs.startsWith(path.resolve(DATA_DIR))) return res.status(400).json({ ok: false, error: "BAD_PATH" });
+  fs.stat(abs, (err, st) => {
+    if (err || !st.isFile()) return res.status(404).json({ ok: false, error: "AUDIO_NOT_FOUND" });
+    res.setHeader("Content-Type", "audio/mpeg");
+    res.setHeader("Cache-Control", "no-store");   // токен одноразового окна — не кешировать
+    fs.createReadStream(abs).pipe(res);
+  });
+});
+
+// P8.4-заглушки: запись ЗАПРЕЩЕНА в P8.3 — точный код, не generic (states-honesty §5.3 recon).
+for (const p of ["/api/miniapp/review-sessions/:id/answer", "/api/miniapp/review-sessions/:id/skip"]) {
+  app.post(p, rlMiniapp, async (req, res) => {
+    const auth = await requireMiniappSession(req, res); if (!auth) return;
+    res.status(403).json({ ok: false, error: "MINIAPP_REVIEW_WRITE_OFF" });
+  });
+}
+
 // ── webhook: secret-middleware (raw, ДО парсинга) → 256kb-json → handler ──────
 const _tgWebhookJson = bodyParser.json({ limit: "256kb" });
 function telegramSecretGate(req, res, next) {
