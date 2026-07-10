@@ -80,6 +80,18 @@
     try { window.open(url, "_blank", "noopener"); } catch (_) {}
   }
 
+  // P8.5: нативный BackButton — один живой хендлер (teardown-инвариант: без stale/double).
+  let _backHandler = null;
+  function backButton(onClick) {
+    const w = tg();
+    if (!w || !w.BackButton) return;
+    try {
+      if (_backHandler) { w.BackButton.offClick(_backHandler); _backHandler = null; }
+      if (onClick) { _backHandler = onClick; w.BackButton.onClick(onClick); w.BackButton.show(); }
+      else w.BackButton.hide();
+    } catch (_) {}
+  }
+
   function teardown() {
     const w = tg();
     if (w && typeof w.offEvent === "function") {
@@ -88,5 +100,5 @@
     S.handlers = [];
   }
 
-  window.MiniappHost = { available, init, versionAtLeast, rawInitData, language, openExternal, on, teardown };
+  window.MiniappHost = { available, init, versionAtLeast, rawInitData, language, openExternal, backButton, on, teardown };
 })();

@@ -254,6 +254,8 @@ async function exportUserData(userId) {
   if (out.tables.user_sessions) for (const s of out.tables.user_sessions) { delete s.token_hash; delete s.csrf_token; }
   // CLG-P7.1a: pairing-token hashes get the same treatment (secret hashes have no place in export)
   if (out.tables.channel_pairing_tokens) for (const t of out.tables.channel_pairing_tokens) { delete t.token_hash; }
+  // CLG-P8.5: reading-handoff tokens — тот же принцип
+  if (out.tables.handoff_tokens) for (const t of out.tables.handoff_tokens) { delete t.token_hash; }
   return out;
 }
 

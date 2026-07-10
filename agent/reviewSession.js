@@ -695,6 +695,28 @@ async function hint({ userId, surface, challengeId, kind }) {
   return { ok: true, kind, ...payload };
 }
 
+// ── P8.5 reading-handoff (SECURITY_SPEC §9): «Открыть в Зале» → одноразовый opaque-токен ──
+// Явный user-gesture на клиенте; сервер РЕ-РЕЗОЛВИТ якорь сам (клиентские указатели не
+// принимаются): challenge → item_key → resolveAnchorLive (consent-гейты внутри) → mint.
+// Нет якоря/consent → HANDOFF_UNAVAILABLE (кнопка честно прячется).
+async function issueHandoff({ userId, surface, challengeId } = {}) {
+  if (surface !== "telegram_miniapp") return errOut("BAD_SURFACE");
+  const handoffRepo = require(path.join(__dirname, "..", "db", "handoffRepo"));
+  const chal = await agentChallengeRepo.getForReviewer(userId, String(challengeId || ""));
+  if (!chal) return errOut("CHALLENGE_NOT_FOUND");
+  let anchor = null;
+  if (chal.anchor_text_key != null && chal.anchor_order_index != null) {
+    anchor = { text_key: chal.anchor_text_key, order_index: chal.anchor_order_index };   // cloze до closure
+  } else {
+    const a = await agentClozeRepo.resolveAnchorLive(userId, chal.item_key);
+    if (a) anchor = { text_key: a.text_key, order_index: a.order_index };
+  }
+  if (!anchor) return errOut("HANDOFF_UNAVAILABLE");
+  const t = await handoffRepo.mint(userId, { textKey: anchor.text_key, orderIndex: anchor.order_index });
+  try { await handoffRepo.pruneOld(); } catch (_) {}
+  return { ok: true, token: t.raw, expires_in_ms: t.expiresInMs };
+}
+
 // annul-гард (§10 п.15): только строки, чей challenge принадлежит miniapp-поверхности этого юзера
 async function annul({ userId, surface, reviewRowId, reason }) {
   if (!_writeAllowed()) return errOut("MINIAPP_REVIEW_WRITE_OFF");
@@ -712,7 +734,7 @@ async function annul({ userId, surface, reviewRowId, reason }) {
 
 module.exports = {
   selectEligible, selectForModality, publicBaseUrl, audioUrlFor, start, buildDescriptor,
-  answer, skip, hint, annul,
+  answer, skip, hint, annul, issueHandoff,
   mintAudioToken, resolveAudioToken, dropTokensForChallenge, miniappWriteOn,
   REVIEW_DUE_WINDOW, ALLOCATION_POLICY_VERSION, almostLapsed,
 };

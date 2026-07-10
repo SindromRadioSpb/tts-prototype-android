@@ -12,7 +12,7 @@
   // mode — липкий на сессию (owner live-verify В): выбрав «Повторить всё сейчас», пользователь
   // продолжает в all_due до возврата на home, а не утыкается в пустой приоритетный пул после
   // каждого ответа. Непрерывное обучение.
-  const S = { csrf: null, lang: "en", mode: "reading_first", modality: null };
+  const S = { csrf: null, lang: "en", mode: "reading_first", modality: null, sessionDone: 0 };
 
   // ── i18n (shell copy only: ru/en; Hebrew content arrives in later slices) ──
   const STR = {
@@ -116,6 +116,8 @@
     train_none_modality: { ru: "Для этого режима сейчас нет подходящих слов.", en: "No eligible words for this mode right now." },
     smart_train_btn: { ru: "Умная тренировка", en: "Smart training" },
     change_mode_btn: { ru: "Сменить режим", en: "Change mode" },
+    open_at_room: { ru: "📖 Открыть это место в Зале", en: "📖 Open this spot in the Room" },
+    session_count: { ru: "В этой сессии: ", en: "This session: " },
     preview_note: { ru: "Превью: ответы появятся в следующем обновлении.", en: "Preview: answering arrives in the next update." },
     back_home: { ru: "← Назад", en: "← Back" },
     card_cloze: { ru: "Заполните пропуск (из вашего текста)", en: "Fill the blank (from your text)" },
@@ -202,6 +204,7 @@
   }
 
   function renderHome(home) {
+    try { HOST.backButton(null); } catch (_) {}
     const counts = (home && home.counts) || {};
     const today = (home && home.today) || {};
     const box = el("div", "ma-home");
@@ -383,6 +386,7 @@
   }
 
   function renderChallenge(d, home) {
+    try { HOST.backButton(() => renderHome(home)); } catch (_) {}
     const box = el("div", "ma-home");
     const kindKey = "card_" + d.kind;
     box.appendChild(el("h1", "ma-title", STR[kindKey] ? t(kindKey) : String(d.kind || "")));
@@ -524,6 +528,7 @@
 
   // result-карточка: терминал → reveal+«Дальше»; released → честно «не записано» + новый nonce
   function renderResult(d, r, home) {
+    try { HOST.backButton(() => renderHome(home)); } catch (_) {}
     const b = r && r.body;
     if (!b || (r.status !== 200 && !b.error)) return message("warn", "submit_failed", [{ label: "retry_btn", onClick: () => renderChallenge(d, home) }]);
     const box = el("div", "ma-home");
@@ -552,6 +557,24 @@
         he.setAttribute("dir", "rtl"); he.setAttribute("lang", "he");
         box.appendChild(he);
         if (b.reveal.sentence_ru) box.appendChild(el("p", "ma-last", String(b.reveal.sentence_ru)));
+      }
+      // P8.5: n-прогресс сессии (клиентский честный счётчик записанных попыток)
+      if (b.recorded === true && !b.replayed) S.sessionDone++;
+      if (S.sessionDone > 0) box.appendChild(el("p", "ma-last", t("session_count") + S.sessionDone));
+      // P8.5: handoff — «Открыть это место в Зале» (сервер ре-резолвит якорь; нет якоря → кнопка прячется)
+      {
+        const hbtn = el("button", "ma-btn", t("open_at_room"));
+        hbtn.addEventListener("click", async () => {
+          hbtn.disabled = true;
+          let hr;
+          try { hr = await api("/api/miniapp/reading-handoffs", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ challenge_id: d.challenge_id }) }); }
+          catch (_) { hbtn.disabled = false; return; }
+          if (hr.status !== 200 || !hr.body || !hr.body.token) { hbtn.hidden = true; return; }
+          HOST.openExternal(PWA_URL + "?handoff=" + encodeURIComponent(hr.body.token));   // user-gesture ✓
+        });
+        box.appendChild(hbtn);
       }
       box.appendChild(nextBtn("next_btn"));
       box.appendChild(changeModeBtn());

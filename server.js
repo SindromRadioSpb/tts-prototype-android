@@ -2176,6 +2176,32 @@ app.post("/api/miniapp/review-sessions/:id/hint", rlMiniapp, async (req, res) =>
   } catch (e) { console.error("[miniapp] hint route failed:", e && e.message); res.status(500).json({ ok: false, error: "HINT_FAILED" }); }
 });
 
+// P8.5: issue — за miniapp-сессией (сервер ре-резолвит якорь; клиентские указатели не принимаются)
+app.post("/api/miniapp/reading-handoffs", rlMiniapp, async (req, res) => {
+  const auth = await requireMiniappSession(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const r = await reviewSessionSvc.issueHandoff({
+      userId: auth.user.id, surface: "telegram_miniapp", challengeId: String((req.body || {}).challenge_id || ""),
+    });
+    if (!r || r.ok !== true) {
+      const code = r && r.error === "HANDOFF_UNAVAILABLE" ? 404 : _miniappWriteStatus(r);
+      return res.status(code || 400).json(r || { ok: false, error: "HANDOFF_FAILED" });
+    }
+    res.json(r);
+  } catch (e) { console.error("[miniapp] handoff issue failed:", e && e.message); res.status(500).json({ ok: false, error: "HANDOFF_FAILED" }); }
+});
+
+// P8.5: redeem — ПУБЛИЧНЫЙ (токен = одноразовая capability, TTL 5 мин; отдаёт ТОЛЬКО указатели —
+// контент текста живёт в OPFS устройства). PWA зовёт при boot по ?handoff= и сразу чистит URL.
+app.get("/api/reading-handoffs/redeem", rlMiniapp, async (req, res) => {
+  try {
+    const r = await require("./db/handoffRepo").redeem(String(req.query.t || ""));
+    if (!r) return res.status(404).json({ ok: false, error: "HANDOFF_INVALID" });
+    res.json({ ok: true, text_key: r.text_key, order_index: r.order_index, action: r.action });
+  } catch (e) { res.status(500).json({ ok: false, error: "HANDOFF_FAILED" }); }
+});
+
 app.post("/api/miniapp/review-events/:id/annul", rlMiniapp, async (req, res) => {
   const auth = await requireMiniappSession(req, res); if (!auth) return;
   if (!requireCsrf(req, res, auth)) return;

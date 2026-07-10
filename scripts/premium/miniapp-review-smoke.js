@@ -381,6 +381,31 @@ async function freshChallenge(caps) {
     await learnerProjectionRepo.recomputeForKeys(userId, [ITEM]);
   }
 
+  // ── 13-nonies) P8.5 reading-handoff: одноразовый opaque-токен → указатели ──
+  {
+    const handoffRepo = require(path.join(ROOT, "db", "handoffRepo"));
+    await dbRun(`DELETE FROM tg_stimulus_exposure WHERE user_id=?`, [userId]);
+    await dbRun(`UPDATE srs_projections SET due=? WHERE user_id=? AND item_key=?`, [past, userId, ITEM]);
+    ch = await freshChallenge(clozeCaps(userId));   // cloze несёт якорь t1/0
+    const hi = await reviewSession.issueHandoff({ userId, surface: S, challengeId: ch.challenge_id });
+    ok("handoff: issued for anchored challenge (opaque token)", !!(hi && hi.ok && hi.token && hi.token.indexOf("t1") === -1));
+    const rd1 = await handoffRepo.redeem(hi.token);
+    ok("handoff: redeem returns pointers once", !!rd1 && rd1.text_key === "t1" && Number(rd1.order_index) === 0);
+    ok("handoff: second redeem → null (single-use)", (await handoffRepo.redeem(hi.token)) === null);
+    ok("handoff: junk token → null", (await handoffRepo.redeem("junk")) === null);
+    // протухший: минтим напрямую и старим
+    const hx = await handoffRepo.mint(userId, { textKey: "t1", orderIndex: 0 });
+    await dbRun(`UPDATE handoff_tokens SET expires_at=? WHERE used_at IS NULL`, [new Date(Date.now() - 1000).toISOString()]);
+    ok("handoff: expired token → null", (await handoffRepo.redeem(hx.raw)) === null);
+    // GDPR: таблица в свипе, token_hash стрипается из экспорта
+    const swept2 = await identity.listUserScopedTables();
+    const exp2 = await identity.exportUserData(userId);
+    ok("handoff: gdpr sweep + export strip", swept2.includes("handoff_tokens") &&
+      (exp2.tables.handoff_tokens || []).every((t) => t.token_hash === undefined));
+    await agentChallengeRepo.cancelOpenForUser(userId);
+    await learnerProjectionRepo.recomputeForKeys(userId, [ITEM]);
+  }
+
   // ── 14) down-sync источник + оракул ──
   const log = await learnerLogRepo.readLog(userId, { afterRid: 0, limit: 100 });
   const maRows = (log.rows || log || []).filter((x) => String(x.channel || "").endsWith(":ma"));

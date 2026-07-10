@@ -6812,6 +6812,22 @@ async function boot() {
         const rows = await localDb.dbQuery('SELECT id, title FROM texts WHERE text_key = ? LIMIT 1', [String(openKey)]);
         if (rows && rows[0]) openReader(rows[0].id, rows[0].title, { resume: true });
       }
+      // CLG-P8.5 — reading-handoff из Mini App: ?handoff=<opaque одноразовый токен> → redeem
+      // (сервер отдаёт ТОЛЬКО указатели) → открыть текст на предложении. URL чистится СРАЗУ
+      // (токен не должен жить в history); все отказы — честный тост, не тихий no-op (R11).
+      const handoffTok = new URLSearchParams(location.search).get('handoff');
+      if (handoffTok) {
+        try { history.replaceState(null, '', location.pathname); } catch (_) {}
+        let hj = null;
+        try { hj = await (await fetch('/api/reading-handoffs/redeem?t=' + encodeURIComponent(handoffTok))).json(); } catch (_) {}
+        if (hj && hj.ok && hj.text_key) {
+          const hrows = await localDb.dbQuery('SELECT id, title FROM texts WHERE text_key = ? LIMIT 1', [String(hj.text_key)]);
+          if (hrows && hrows[0]) openReader(hrows[0].id, hrows[0].title, { scrollToOrderIndex: Number(hj.order_index) });
+          else roomToast(tt('room.mentor.textMissing', 'Текст не найден на этом устройстве — синхронизируйте «Мои тексты» в ☁.'));
+        } else {
+          roomToast(tt('room.handoff.expired', 'Ссылка из мини-приложения устарела — откройте её заново.'));
+        }
+      }
     } catch (_) {}
     // CLG-P9 — deep-link #mentor (пуш/закладка): открыть дом наставника. Это ЯВНОЕ
     // намерение пользователя (URL), не автооткрытие — этикет R17 §2.3 соблюдён.
