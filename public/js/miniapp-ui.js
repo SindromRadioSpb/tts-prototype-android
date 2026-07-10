@@ -126,6 +126,8 @@
     next_btn: { ru: "Дальше", en: "Next" },
     retry_btn: { ru: "Ещё раз", en: "Try again" },
     submit_failed: { ru: "Не удалось отправить ответ. Проверьте связь и повторите.", en: "Could not submit. Check your connection and retry." },
+    res_rate_limited: { ru: "Слишком много запросов подряд — подождите минуту и продолжите.", en: "Too many requests — wait a minute and continue." },
+    res_server_code: { ru: "Сервер отклонил запрос: ", en: "Server rejected the request: " },
   };
   const t = (k) => (STR[k] && (STR[k][S.lang] || STR[k].en)) || k;
 
@@ -473,11 +475,18 @@
       again.addEventListener("click", () => renderChallenge(d, home));
       box.appendChild(again);
     } else {
+      // states-honesty (§5.3 recon): у сервера точный код → показываем ЕГО, не generic
       const code = String(b.error || "");
-      const key = code === "CHALLENGE_CLOSED" ? "res_closed"
-        : code === "RETRY_WITH_ORIGINAL" ? "res_retry_orig"
-        : code === "MINIAPP_REVIEW_WRITE_OFF" ? "preview_note" : "submit_failed";
-      box.appendChild(el("p", "ma-msg", t(key)));
+      if (code === "CHALLENGE_CLOSED") box.appendChild(el("p", "ma-msg", t("res_closed")));
+      else if (code === "RETRY_WITH_ORIGINAL") box.appendChild(el("p", "ma-msg", t("res_retry_orig")));
+      else if (code === "MINIAPP_REVIEW_WRITE_OFF") box.appendChild(el("p", "ma-msg", t("preview_note")));
+      else if (code === "TOO_MANY_REQUESTS") box.appendChild(el("p", "ma-msg", t("res_rate_limited")));
+      else if (code) box.appendChild(el("p", "ma-msg", t("res_server_code") + code));
+      else box.appendChild(el("p", "ma-msg", t("submit_failed")));
+      // ретрай той же карточкой (nonce сохранён — идемпотентно), не терять задание
+      const again = el("button", "ma-btn", t("retry_btn"));
+      again.addEventListener("click", () => renderChallenge(d, home));
+      box.appendChild(again);
       box.appendChild(nextBtn("next_btn"));
     }
     const back = el("button", "ma-btn", t("back_home"));

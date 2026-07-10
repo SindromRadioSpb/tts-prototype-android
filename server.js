@@ -2043,7 +2043,10 @@ app.post("/api/miniapp/session", async (req, res) => {
 // the PWA/bot, guarded ONCE by requireMiniappSession — the miniapp cookie never calls
 // /api/agent/* directly). All read-only except plan (LLM-quota spend → CSRF). ──
 const miniappHome = require("./agent/miniappHome");
-const rlMiniapp = makeRateLimiter({ windowMs: 60_000, max: 30, name: "miniapp" });
+// P8.4a-fix (owner live-verify 2026-07-10: серия из ~5 заданий за 3 мин — start+hint+audio+answer+
+// next — пробила 30/мин → 429 маскировался под «проверьте связь»). Тренировочная сессия легально
+// делает ~30-60 req/мин; 120 остаётся анти-abuse потолком (auth имеет свой fail-limiter жёстче).
+const rlMiniapp = makeRateLimiter({ windowMs: 60_000, max: 120, name: "miniapp" });
 
 // Home payload (MNAR: opening the home is not a learning event; writes NOTHING).
 // Composition lives in agent/miniappHome.js — the smoke gate tests that exact function.
@@ -2139,7 +2142,7 @@ app.post("/api/miniapp/review-sessions/:id/answer", rlMiniapp, async (req, res) 
     });
     if (!r || r.ok !== true) return res.status(_miniappWriteStatus(r)).json(r || { ok: false, error: "REVIEW_FAILED" });
     res.json(r);
-  } catch (e) { res.status(500).json({ ok: false, error: "REVIEW_FAILED" }); }
+  } catch (e) { console.error("[miniapp] review route failed:", e && e.message); res.status(500).json({ ok: false, error: "REVIEW_FAILED" }); }
 });
 
 app.post("/api/miniapp/review-sessions/:id/skip", rlMiniapp, async (req, res) => {
@@ -2152,7 +2155,7 @@ app.post("/api/miniapp/review-sessions/:id/skip", rlMiniapp, async (req, res) =>
     });
     if (!r || r.ok !== true) return res.status(_miniappWriteStatus(r)).json(r || { ok: false, error: "REVIEW_FAILED" });
     res.json(r);
-  } catch (e) { res.status(500).json({ ok: false, error: "REVIEW_FAILED" }); }
+  } catch (e) { console.error("[miniapp] review route failed:", e && e.message); res.status(500).json({ ok: false, error: "REVIEW_FAILED" }); }
 });
 
 app.post("/api/miniapp/review-sessions/:id/hint", rlMiniapp, async (req, res) => {
@@ -2168,7 +2171,7 @@ app.post("/api/miniapp/review-sessions/:id/hint", rlMiniapp, async (req, res) =>
       return res.status(code || 400).json(r || { ok: false, error: "HINT_UNAVAILABLE" });
     }
     res.json(r);
-  } catch (e) { res.status(500).json({ ok: false, error: "HINT_FAILED" }); }
+  } catch (e) { console.error("[miniapp] hint route failed:", e && e.message); res.status(500).json({ ok: false, error: "HINT_FAILED" }); }
 });
 
 app.post("/api/miniapp/review-events/:id/annul", rlMiniapp, async (req, res) => {
@@ -2181,7 +2184,7 @@ app.post("/api/miniapp/review-events/:id/annul", rlMiniapp, async (req, res) => 
     });
     if (!r || r.ok !== true) return res.status(_miniappWriteStatus(r)).json(r || { ok: false, error: "ANNUL_FAILED" });
     res.json(r);
-  } catch (e) { res.status(500).json({ ok: false, error: "ANNUL_FAILED" }); }
+  } catch (e) { console.error("[miniapp] annul route failed:", e && e.message); res.status(500).json({ ok: false, error: "ANNUL_FAILED" }); }
 });
 
 // ── webhook: secret-middleware (raw, ДО парсинга) → 256kb-json → handler ──────
