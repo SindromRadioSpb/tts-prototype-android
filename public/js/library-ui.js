@@ -1427,8 +1427,9 @@ async function startDueReview() {
     // R2 — HONEST empty copy: with a live due backlog that couldn't be assembled the old «нет слов
     // к повторению» would be a lie under a badge saying N (critика r4-3). Distinct states.
     if (due.length) {
-      body.appendChild(el('div', { class: 'room-study-empty', i18n: 'room.morph.study.dueUnservable',
-        text: tt('room.morph.study.dueUnservable', 'Слова ждут повторения (' + due.length + '), но их пока нельзя собрать на этом устройстве — открой их тексты в Зале.') }));
+      // dynamic {n} → no data-i18n attr (a locale switch would clobber the substituted count)
+      body.appendChild(el('div', { class: 'room-study-empty',
+        text: tt('room.morph.study.dueUnservable', 'Слова ждут повторения ({n}), но их пока нельзя собрать на этом устройстве — открой их тексты в Зале.').replace('{n}', String(due.length)) }));
     } else {
       body.appendChild(el('div', { class: 'room-study-empty', i18n: 'room.morph.study.dueEmpty', text: tt('room.morph.study.dueEmpty', 'Нет слов к повторению сегодня — открой текст и потренируй новые слова.') }));
     }

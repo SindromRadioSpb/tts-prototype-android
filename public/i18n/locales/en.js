@@ -2339,6 +2339,9 @@ window.I18N_LOCALES.en = {
         reverseHint: "🔤 Recall the word in Hebrew",
         replay: "Play again",
         dueEmpty: "Nothing due for review today — open a text and practice new words.",
+        dueUnservable: "{n} word(s) are waiting for review, but they can't be assembled on this device yet — open their texts in the Reading Room.",
+        aheadUnservable: "These words can't be assembled on this device yet — open their texts in the Reading Room.",
+        wordOnlyNote: "🔤 No context: this word has no sentence on this device yet — one will appear after you read its text.",
       },
       legend: {
         title: "What do the confidence badges mean?",
