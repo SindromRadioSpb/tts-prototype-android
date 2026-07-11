@@ -357,6 +357,38 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         out.annulD1Filter = !filtered.some((r) => r.id === ar2.id) && filtered.some((r) => r.kind === "annul");
       } catch (e) { out.annulErr = String(e && e.message || e); }
 
+      // ── R1 source-at-mark (ROOM_DUE_CONTINUITY §3) — updateSrsSource semantics ────────
+      // fillOnly (mark path) writes ONLY a missing source (R11 do-no-harm); plain (reading-tap
+      // grade) is latest-occurrence-wins like the recall canon; both are scheduled-only no-ops.
+      try {
+        const SRC_A = { textKey: "tkA", sentenceId: "sA", orderIndex: 1, surface: "מקורא" };
+        const SRC_B = { textKey: "tkB", sentenceId: "sB", orderIndex: 2, surface: "מקורב" };
+        // scheduled, no source (srs-only carrier — exactly the pre-R1 gap class)
+        const RK1 = "ר1חסר#noun";
+        await ldb.updateSrsState(RK1, { due: 4102444800000, interval: 3, reps: 1, lapses: 0, stability: 3, difficulty: 5, scheme: "fsrs" });
+        await ldb.updateSrsSource(RK1, { ...SRC_A, fillOnly: true });
+        const rw1 = await one("SELECT srs_surface, srs_sentence_id, srs_text_key, srs_order_index FROM word_status WHERE lemma_key = ?", [RK1]);
+        out.r1FillWritesMissing = !!(rw1 && rw1.srs_surface === SRC_A.surface && rw1.srs_sentence_id === "sA" && rw1.srs_text_key === "tkA" && Number(rw1.srs_order_index) === 1);
+        // fillOnly must NOT churn an existing (proven) source
+        await ldb.updateSrsSource(RK1, { ...SRC_B, fillOnly: true });
+        const rw2 = await one("SELECT srs_surface FROM word_status WHERE lemma_key = ?", [RK1]);
+        out.r1FillPreservesExisting = !!(rw2 && rw2.srs_surface === SRC_A.surface);
+        // plain (grade path) → latest occurrence wins
+        await ldb.updateSrsSource(RK1, SRC_B);
+        const rw3 = await one("SELECT srs_surface, srs_sentence_id FROM word_status WHERE lemma_key = ?", [RK1]);
+        out.r1LatestWins = !!(rw3 && rw3.srs_surface === SRC_B.surface && rw3.srs_sentence_id === "sB");
+        // manual-only row (no schedule) → guarded UPDATE must not write a dead source
+        const RK2 = "ר1בלי#noun";
+        await ldb.setWordStatus(RK2, "l1");
+        await ldb.updateSrsSource(RK2, { ...SRC_A, fillOnly: true });
+        const rw4 = await one("SELECT srs_surface FROM word_status WHERE lemma_key = ?", [RK2]);
+        out.r1NoScheduleNoop = !!(rw4 && rw4.srs_surface == null);
+        // surface is the sourced-due marker — a source without it must be refused outright
+        const refused = await ldb.updateSrsSource(RK1, { textKey: "tkC", sentenceId: "sC", orderIndex: 3 });
+        const rw5 = await one("SELECT srs_surface FROM word_status WHERE lemma_key = ?", [RK1]);
+        out.r1RequiresSurface = refused === false && !!(rw5 && rw5.srs_surface === SRC_B.surface);
+      } catch (e) { out.r1SrcErr = String(e && e.message || e); }
+
       return out;
     });
 
@@ -424,17 +456,23 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.annulPrecondition === true, "P7.0a: precondition failed — single review did not project a schedule");
     eq(res.annulCarrierCleared === true, "P7.0a BLOCKER-fix: annul-to-null must DELETE the ''-carrier row (stale schedule survived)");
     eq(res.annulManualKept === true, "P7.0a: annul must clear ONLY srs_* — manual axis lost or srs_* survived");
+    // R1 source-at-mark — updateSrsSource
+    eq(res.r1FillWritesMissing === true, "R1: fillOnly did not backfill a missing source on a scheduled word" + (res.r1SrcErr ? " err:" + res.r1SrcErr : ""));
+    eq(res.r1FillPreservesExisting === true, "R1 DEFECT: fillOnly CHURNED an existing source (R11 do-no-harm)");
+    eq(res.r1LatestWins === true, "R1: plain updateSrsSource did not apply latest-occurrence-wins (recall canon)");
+    eq(res.r1NoScheduleNoop === true, "R1 DEFECT: source written onto an UNSCHEDULED word (dead pointer)");
+    eq(res.r1RequiresSurface === true, "R1: a source without surface must be refused (surface IS the sourced-due marker)");
     eq(res.annulD1Filter === true, "P7.0a: FsrsCore.withoutAnnulled did not exclude the annulled row (D1 evidence poisoning)");
     eq(errs.length === 0, "page errors: " + errs.join(" | "));
 
-    const total = 63;
+    const total = 68;
     if (failures.length) {
       console.error(`smoke:memory-canon FAIL (${total - failures.length}/${total})`);
       for (const f of failures) console.error("  ✗ " + f);
       console.error(JSON.stringify(res, null, 1).slice(0, 4000));
       process.exitCode = 1;
     } else {
-      console.log(`smoke:memory-canon OK (${total}/${total}) — mig 041/042 · keyer conformance · content-id log · bundle 3-table merge · Pass 8/12 no-dup · P2 FSRS handover (seed-once · Again-due-now · plain-set-preserve · independent oracle) · P3 Studio→FSRS (scheme=fsrs · meta_json.fsrs · projections · Studio oracle) · P4 Anki-merge (canon-log ingest+filters · updateSrsState srs-only · recompute · Anki oracle) · P4.1 ''-carrier (no-demotion · manual-wins kept · recompute-carrier · merge-safe) · P7.0a annul (annulId-канон · reject-без-цели · annul-to-null удаляет carrier · ручная ось цела · withoutAnnulled для D1)`);
+      console.log(`smoke:memory-canon OK (${total}/${total}) — mig 041/042 · keyer conformance · content-id log · bundle 3-table merge · Pass 8/12 no-dup · P2 FSRS handover (seed-once · Again-due-now · plain-set-preserve · independent oracle) · P3 Studio→FSRS (scheme=fsrs · meta_json.fsrs · projections · Studio oracle) · P4 Anki-merge (canon-log ingest+filters · updateSrsState srs-only · recompute · Anki oracle) · P4.1 ''-carrier (no-demotion · manual-wins kept · recompute-carrier · merge-safe) · P7.0a annul (annulId-канон · reject-без-цели · annul-to-null удаляет carrier · ручная ось цела · withoutAnnulled для D1) · R1 source-at-mark (fill-only backfill · do-no-harm · latest-wins · scheduled-only · surface-required)`);
     }
   } catch (e) {
     console.error("smoke:memory-canon CRASH", e);

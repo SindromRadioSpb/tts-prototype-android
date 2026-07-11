@@ -1118,8 +1118,10 @@
     _markConfirm = null;
     // setWordStatus returns {dueMs} when the mark SCHEDULED the word (l1–l4 seed, recon P5.6) —
     // independent of the 🎨 axis, so the closure shows even with colouring off.
+    // R1 source-at-mark: pass the tap occurrence as an ADDITIVE 3rd arg — hosts that don't
+    // take it (Studio wires no setWordStatus at all) are untouched; the Зал host persists a source.
     var res = null;
-    try { res = await _attachOpts.setWordStatus(_activeCard.lemmaKey, st); } catch (_) {}
+    try { res = await _attachOpts.setWordStatus(_activeCard.lemmaKey, st, _activeOcc); } catch (_) {}
     _activeCard.manualStatus = st;
     // P5.7 Т1 — a level mark scheduled the word → re-render with the in-card closure (confirmation +
     // live schedule line + a one-time «what the colours/ring mean» explainer) + pulse the word.
@@ -1158,7 +1160,7 @@
 
   // Epic 4.2 — in-text quick-status popover (long-press a word → set its level without opening the
   // full card). A floating singleton anchored near the word; reuses STATUS_OPTS + setWordStatus.
-  var _statpop = null, _statpopKey = "", _statpopCur = "";
+  var _statpop = null, _statpopKey = "", _statpopCur = "", _statpopOcc = null;
   function ensureStatPop() {
     if (_statpop) return _statpop;
     var el = document.createElement("div");
@@ -1170,10 +1172,11 @@
     document.body.appendChild(el);
     return (_statpop = el);
   }
-  function openStatPop(span, lemmaKey, cur, isConf) {
+  function openStatPop(span, lemmaKey, cur, isConf, occ) {
     var el = ensureStatPop();
     _statpopKey = lemmaKey;
     _statpopCur = cur || "";   // the ACTUAL stored status — drives the toggle (clear on re-tap)
+    _statpopOcc = occ || null; // R1 source-at-mark — the long-press occurrence, forwarded on set
     var active = _statpopCur || (isConf ? "new" : "");   // effective highlight (confident default = new)
     var btns = STATUS_OPTS.map(function (o) {
       var val = o[0], lab = o[1] ? escapeHtml(tt(o[1][0], o[1][1])) : val.replace("l", "");
@@ -1192,13 +1195,13 @@
     if (!_statpopKey || typeof _attachOpts.setWordStatus !== "function") { closeStatPop(); return; }
     // Toggle on the ACTUAL stored status: re-tap the stored value → clear; else store it (incl. «new»).
     var st = (_statpopCur === value) ? "" : value;
-    try { await _attachOpts.setWordStatus(_statpopKey, st); } catch (_) {}
+    try { await _attachOpts.setWordStatus(_statpopKey, st, _statpopOcc); } catch (_) {}
     closeStatPop();
   }
-  function closeStatPop() { if (_statpop) _statpop.hidden = true; _statpopKey = ""; _statpopCur = ""; }
+  function closeStatPop() { if (_statpop) _statpop.hidden = true; _statpopKey = ""; _statpopCur = ""; _statpopOcc = null; }
   // Resolve the long-pressed word → lemmaKey + current status → show the popover. Falls back to the
   // full card when the word can't be confidently keyed (so a long-press is never a dead end).
-  async function showStatusPopover(span) {
+  async function showStatusPopover(span, occ) {
     if (typeof _attachOpts.setWordStatus !== "function") return false;
     try { window.getSelection().removeAllRanges(); } catch (_) {}
     var surface = span.getAttribute("data-surface") || span.textContent || "";
@@ -1214,7 +1217,7 @@
     } catch (_) { lk = ""; }
     if (!lk) return false;   // caller falls back to opening the card
     if (typeof _attachOpts.getWordStatus === "function") { try { cur = (await _attachOpts.getWordStatus(lk)) || ""; } catch (_) {} }
-    openStatPop(span, lk, cur, isConf);
+    openStatPop(span, lk, cur, isConf, occ);
     return true;
   }
 
@@ -1683,6 +1686,9 @@
         return {
           text_id: row && row._v3_textId ? String(row._v3_textId) : null,
           sentence_id: row && row._v3_sentenceId ? String(row._v3_sentenceId) : null,
+          // R1 source-at-mark (ROOM_DUE_CONTINUITY §3): the sentence position, so a status mark
+          // can persist a re-clozeable SOURCE (the host resolves textKey — reader-morph stays host-agnostic).
+          order_index: row && row._v3_orderIndex != null ? Number(row._v3_orderIndex) : null,
           word_offset: Number.isFinite(off) ? off : null,
           surface: span.getAttribute("data-surface") || "",
         };
@@ -1748,7 +1754,7 @@
       _lpTimer = setTimeout(function () {
         _lpTimer = null;
         if (_lpSpan !== span) return;
-        showStatusPopover(span).then(function (ok) { if (ok) _suppressClick = true; });
+        showStatusPopover(span, computeOcc(span)).then(function (ok) { if (ok) _suppressClick = true; });
       }, LP_MS);
     };
     var onPointerMove = function (e) {

@@ -2753,6 +2753,30 @@ export async function updateSrsState(itemKey, sched) {
     return true;
   } catch (_) { return false; }
 }
+// R1 source-at-mark (ROOM_DUE_CONTINUITY §3) — persist/backfill the SOURCE occurrence on an
+// ALREADY-SCHEDULED word without touching status or schedule. `fillOnly` (mark path): write only
+// when the word has NO source yet — a mark is incidental, never churns a proven source (R11
+// do-no-harm). Non-fillOnly (reading-tap grade): latest-occurrence-wins via COALESCE, matching
+// the recall canon in setWordStatus. Scheduled-only guard: a source without a schedule is dead
+// weight — the sourced-due queue keys off srs_due anyway.
+export async function updateSrsSource(itemKey, source) {
+  const lk = String(itemKey || "").trim();
+  const src = source && typeof source === "object" ? source : null;
+  if (!lk || !src || src.surface == null) return false;   // surface IS the sourced-due marker — required
+  const tk = src.textKey != null ? String(src.textKey) : null;
+  const sid = src.sentenceId != null ? String(src.sentenceId) : null;
+  const oix = src.orderIndex != null ? Number(src.orderIndex) : null;
+  const fillOnly = !!src.fillOnly;
+  try {
+    await r(
+      `UPDATE word_status SET
+         srs_text_key = COALESCE(?, srs_text_key), srs_sentence_id = COALESCE(?, srs_sentence_id),
+         srs_order_index = COALESCE(?, srs_order_index), srs_surface = COALESCE(?, srs_surface)
+       WHERE lemma_key = ? AND srs_due IS NOT NULL${fillOnly ? " AND srs_surface IS NULL" : ""}`,
+      [tk, sid, oix, String(src.surface), lk]);
+    return true;
+  } catch (_) { return false; }
+}
 // P7.0a — «память стёрта» на клиенте (зеркало серверного DELETE в learnerProjectionRepo:79-82;
 // блокер adversarial-критики wf_1bf34023: annul-до-пустого-фолда раньше оставлял stale srs_*
 // НАВСЕГДА — due-кольцо планировало слово по отменённому грейду). Ручная ось НЕ трогается:

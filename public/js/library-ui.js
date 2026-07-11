@@ -3250,7 +3250,20 @@ function applyReveal(mount) {
 // Returns the effective schedule for the in-card closure (P5.7 Т1): { dueMs } for an l1–l4 mark
 // (whether freshly seeded or already scheduled — do-no-harm), null otherwise. The caller shows
 // «✓ В повторении · вернётся <when>» from it, so the loop closes at the moment of action.
-async function markWordStatus(lemmaKey, status) {
+// R1 source-at-mark (ROOM_DUE_CONTINUITY §3) — canonical source {textKey, sentenceId, orderIndex,
+// surface} from a tap occurrence, VERIFIED resolvable (getSentenceForReview) before it is ever
+// written: corpus works have no OPFS sentences (R4 re-anchors them later) → an unresolvable occ
+// writes NOTHING, so «sourced» keeps meaning «servable» (no new §1 contradiction class).
+async function occToVerifiedSource(occ) {
+  if (!occ || !occ.surface) return null;
+  const sid = occ.sentence_id != null ? String(occ.sentence_id) : null;
+  const oix = occ.order_index != null ? Number(occ.order_index) : null;
+  const tk = readerTextKey || null;
+  if (!sid && !(tk && oix != null)) return null;
+  try { if (!(await localDb.getSentenceForReview(sid, tk, oix))) return null; } catch (_) { return null; }
+  return { textKey: tk, sentenceId: sid, orderIndex: oix, surface: String(occ.surface) };
+}
+async function markWordStatus(lemmaKey, status, source) {
   try { await localDb.setWordStatus(lemmaKey, status); } catch (_) {}
   const isLevel = /^l[1-4]$/.test(String(status || ''));
   try {
@@ -3275,12 +3288,16 @@ async function markWordStatus(lemmaKey, status) {
               reviewed_at: new Date(now).toISOString(), grade: null, source: 'seed-manual',
               meta: seedMeta,
             });
-            if (res && res.accepted === 1) await localDb.setWordStatus(lemmaKey, status, seed.sched, null);
+            if (res && res.accepted === 1) await localDb.setWordStatus(lemmaKey, status, seed.sched, source || null);   // R1 — the seed write carries the mark's source
           }
         }
       }
     }
   } catch (_) {}
+  // R1 — backfill the source on a word that was ALREADY scheduled (or restored from the log) but
+  // never sourced: fillOnly so a mark never churns a proven source (R11 do-no-harm); the fresh-seed
+  // path above already carried it (fillOnly no-ops there); no schedule → the guarded UPDATE no-ops.
+  if (isLevel && source) { try { await localDb.updateSrsSource(lemmaKey, { ...source, fillOnly: true }); } catch (_) {} }
   if (!isLevel) return null;
   try { const s = (await localDb.getSrsSchedule()) || {}; return s[lemmaKey] ? { dueMs: s[lemmaKey].due } : null; }
   catch (_) { return null; }
@@ -3321,13 +3338,20 @@ async function gradeReadingTap(card, occ, correct, prev) {
   const now = Date.now();
   const fs = window.ReaderMorph.fsrsStep ? window.ReaderMorph.fsrsStep(window.FsrsCore, prev || null, correct, now) : null;
   const sched = fs ? fs.sched : window.ReaderMorph.nextSrs(prev || null, correct, now);
+  // R1 source-at-mark — a graded reading-tap IS a retrieval on THIS occurrence: persist it as the
+  // word's source (latest-occurrence-wins, same as the recall canon), verified-resolvable only.
+  let src = null;
+  try { src = await occToVerifiedSource(occ); } catch (_) {}
   let cur = card.manualStatus || '';
   if (!cur) { try { cur = (await localDb.getWordStatus(card.lemmaKey)) || ''; } catch (_) {} }
-  if (cur && cur !== 'ignore') { try { await localDb.setWordStatus(card.lemmaKey, cur, sched, null); } catch (_) {} }
+  if (cur && cur !== 'ignore') { try { await localDb.setWordStatus(card.lemmaKey, cur, sched, src); } catch (_) {} }
   // P4.1 — no manual status (srs-carrier row from the Anki merge, or a never-tracked word): persist
   // the schedule srs-ONLY so replay(log)==stored still holds, WITHOUT asserting a manual level
   // (setWordStatus with '' would DELETE the row; asserting 'new' would demote via manual-wins).
-  else if (!cur) { try { await localDb.updateSrsState(card.lemmaKey, sched); } catch (_) {} }
+  else if (!cur) {
+    try { await localDb.updateSrsState(card.lemmaKey, sched); } catch (_) {}
+    if (src) { try { await localDb.updateSrsSource(card.lemmaKey, src); } catch (_) {} }   // R1 — srs-carrier rows get the source too
+  }
   try {
     const LC = window.LemmaCanon;
     if (LC) {
@@ -3389,9 +3413,13 @@ function attachReaderMorph(mount) {
   // Epic 4 — one-tap manual status: persist (separate word_status store, no flashcard) then
   // invalidate the cached states + repaint the text so the colour updates immediately.
   opts.getWordStatus = (lk) => localDb.getWordStatus(lk);
-  opts.setWordStatus = async (lk, st) => {
+  opts.setWordStatus = async (lk, st, occ) => {
     let res = null;
-    try { res = await markWordStatus(lk, st); } catch (_) {}   // P5.6 R-2(a): l1–l4 mark seeds the schedule
+    // R1 source-at-mark: the tap/long-press occurrence (additive 3rd arg from reader-morph) becomes
+    // a verified source, so a fresh mark is immediately visible to the sourced-due queue/ahead pool.
+    let source = null;
+    try { source = await occToVerifiedSource(occ); } catch (_) {}
+    try { res = await markWordStatus(lk, st, source); } catch (_) {}   // P5.6 R-2(a): l1–l4 mark seeds the schedule
     readerWordStates = null;
     try { applyDecorations(); } catch (_) {}
     try { refreshDueBadge(); } catch (_) {}   // seeding may change the future-due horizon
