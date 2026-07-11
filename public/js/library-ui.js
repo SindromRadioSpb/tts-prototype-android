@@ -1424,6 +1424,31 @@ async function startDueReview() {
   if (!ranked.length) {
     body.innerHTML = '';
     body.appendChild(el('div', { class: 'room-study-empty', i18n: 'room.morph.study.dueEmpty', text: tt('room.morph.study.dueEmpty', 'Нет слов к повторению сегодня — открой текст и потренируй новые слова.') }));
+    // Owner-директива 2026-07-11 (непрерывное обучение): due-на-сегодня исчерпан → явная опция
+    // продолжить БЛИЖАЙШИМИ словами «в работе» (расписание в будущем, earliest-first). FSRS
+    // считает ранний повтор нативно (elapsed-time в fsrsStep) — «зубрёжка вперёд» честна для
+    // памяти. Тот же sourced-конвейер (несорсованные — отдельный слайс Room-continuity).
+    try {
+      let ahead = [];
+      try { ahead = (await localDb.getDueWithSource(Date.now() + 400 * 86400000)) || []; } catch (_) { ahead = []; }
+      const now2 = Date.now();
+      ahead = ahead.filter((d) => d && d.srs && d.srs.due > now2 && d.source && d.source.surface)
+                   .sort((a, b) => a.srs.due - b.srs.due);
+      if (ahead.length) {
+        const btn = el('button', { class: 'room-study-aheadbtn', attrs: { type: 'button' },
+          i18n: 'room.morph.study.aheadBtn', text: tt('room.morph.study.aheadBtn', '▶ Продолжить: слова в работе') });
+        btn.addEventListener('click', async () => {
+          btn.disabled = true;
+          const aheadItems = await _buildDueSourcedItems(ahead);
+          const aheadRanked = aheadItems.slice(0, TRAIN_N);   // earliest-due порядок (не weakness: пул будущий)
+          if (!aheadRanked.length) { btn.hidden = true; return; }
+          await _launchTrainSession(aheadRanked, { cross: true });
+        });
+        body.appendChild(btn);
+        body.appendChild(el('div', { class: 'room-study-aheadnote', i18n: 'room.morph.study.aheadNote',
+          text: tt('room.morph.study.aheadNote', 'Повторение раньше срока — расписание пересчитается честно.') }));
+      }
+    } catch (_) {}
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
     return;
   }
