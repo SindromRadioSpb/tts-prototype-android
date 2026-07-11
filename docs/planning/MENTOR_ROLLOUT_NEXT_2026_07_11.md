@@ -6,7 +6,7 @@
 ## §1 Текущее состояние (проверено live 2026-07-11)
 
 - **Прод:** `https://linguistpro.kolosei.com`, деплой = push в main → Coolify (Dockerfile).
-- **Флаги:** `AGENT_REVIEW_WRITE=1` **ON** (весь P7.2 write-path живой) · `AGENT_NUDGE_ENABLED` **OFF** (P7.3a/c задеплоены, ждут активации) · Mini App живой (`@LinguistProMentorBot`), `PUBLIC_BASE_URL` задан (dictate-аудио работает).
+- **Флаги:** `AGENT_REVIEW_WRITE=1` **ON** (весь P7.2 write-path живой) · `AGENT_NUDGE_ENABLED=1` **ON с 2026-07-11** (§2 п.2 закрыт live-verify) · Mini App живой (`@LinguistProMentorBot`), `PUBLIC_BASE_URL` задан (dictate-аудио работает).
 - **Счётчики ПК↔TG:** единая типология 4 метрик (К повторению · Сделано сегодня · В работе · В расписании), единые каноны, синк-каденс R4b (ре-синк на visibility+после сессии, троттл 90с). ⓘ «Мои показатели» в Зале объясняет всё, включая all-surface стрик (R3.3).
 - **Due-петля кросс-поверхностна:** метка в Зале сорсится сразу (R1), несорсованный backlog дренируется boot-heal'ом по флексиям парадигмы (R4a: 179→104 на момент закрытия, ~48/бут), несобираемое сервится word-only с честным чипом (R2).
 
@@ -15,7 +15,7 @@
 | # | Пункт | Поверхность | Канон/спека | Статус | Размер |
 |---|---|---|---|---|---|
 | 1 | **P8.6 — ops rollout Mini App** | TG/MA + инфра | `TELEGRAM_MINI_APP_P8_RECON` §15/§19 · **ранбук `MINIAPP_P8_6_OPS_RUNBOOK_2026_07_11.md`** | **агентская часть SHIPPED v3.11.152** (ops-sweep, rollback-drill 30/30, GDPR-teeth, log-гейт; бэкап прода починен — был мёртв 44 дня; диск 84→65%); остались owner-шаги ранбука §2 (UptimeRobot disk-монитор, firewall :8000, ре-ротация AUDIO_UPLOAD_TOKEN, offsite-бэкап) | M |
-| 2 | **Активация нуджей** (`AGENT_NUDGE_ENABLED=1`) + live-verify первого DUE_READY-нуджа и backoff-петли (/notoday, /mute) | TG | `TELEGRAM_P7_3_PROACTIVE_RECON` | код задеплоен, флаг OFF | S |
+| 2 | **Активация нуджей** (`AGENT_NUDGE_ENABLED=1`) + live-verify первого DUE_READY-нуджа и backoff-петли (/notoday, /mute) | TG | `TELEGRAM_P7_3_PROACTIVE_RECON` | **ЗАКРЫТ 2026-07-11 owner-live**: флаг ON в контейнере; sweep-ворота верифицированы по одному (`outside_window` при quiet 22:15 → `budget` при занятом дне → `sent:1` натуральным путём без force; day-ключ 07-12 занят тестом — утренний push 07-12 честно скипнется); нудж пришёл с честным count 12; `/notoday` → `muted_until`=полночь Иерусалима + sweep `muted:1`; `/mute 3` → +3 дня; `/resume` → NULL; bot_action_log verb-only. ⚠ Наблюдение для п.3/п.4: push- и telegram-sweep'ы делят суточный бюджет и тикают одновременно — при живой push-подписке утренний push почти всегда выигрывает день, telegram-DUE_READY натурально редок; приоритет/чередование каналов — решение в P7.3d | S |
 | 3 | **P7.3d — premium reason-aware нуджи** (SKILL_GAP_AVAILABLE через selector-сигнал, разные типы возврата; анти-over-claim правила из критики уже зафиксированы) | TG | `TELEGRAM_P7_3d_REASON_AWARE_RECON_2026_07_09.md` | recon готов, код не начат | M |
 | 4 | **Web Push P4.5** — PWA-нудж «N слов ждут» без содержимого; ОБЯЗАН уважать единый кросс-канальный суточный бюджет `notification_preferences` (TG+Push суммарно) | Зал/PWA | `AI_MENTOR_RECON` §8 | не начат | M |
 | 5 | **Агент в Студии**: per-row 🤖-кнопки + token_index (остаток скоупа P9 «за P10-горизонтом») + сценарий «агент генерирует draft → [Открыть в Студии]» (recon §2.2) | Студия | `AI_MENTOR_RECON` §2.2, P9-остаток | не начат; ⚠ Studio live-JS INLINE в index.html (память: feedback_studio_live_source_inline) | L |
