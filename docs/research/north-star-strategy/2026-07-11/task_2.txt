@@ -1,0 +1,1344 @@
+Продолжаю стратегическую программу LinguistPro.
+
+Работай одновременно как:
+
+1. principal architect AI/agentic educational systems;
+2. learning scientist по second-language acquisition, retrieval practice,
+   scaffolding, mastery и transfer;
+3. product strategist EdTech;
+4. архитектор data/evaluation платформ;
+5. security/privacy/cost governor;
+6. строгий adversarial reviewer.
+
+Это ИССЛЕДОВАТЕЛЬСКАЯ И ПЛАНИРОВОЧНАЯ сессия.
+
+НЕ писать production-код.
+НЕ создавать миграции.
+НЕ менять API, UI, env или конфигурацию прода.
+Все результаты оформить в tracked `docs/planning/`.
+
+Дата исследования: 2026-07-11.
+
+Пакет North Star создан на commit:
+`b426b1b7a91abcb4afb8fde7f0e34c042a9bc0d6`.
+
+После него проект продолжал развиваться; сообщаемая текущая production-версия —
+v3.11.146. Поэтому документационный пакет является стартовой гипотезой, а не
+заменой grounded-recon живого кода и истории коммитов.
+
+# ГЛАВНАЯ ЦЕЛЬ
+
+Исследовать современные возможности AI и агентных систем — одного агента,
+набора специализированных агентов и гибридов deterministic systems + agents —
+для развития LinguistPro как образовательной программы и продукта.
+
+Нужно определить:
+
+1. где AI и агенты реально повышают образовательную эффективность;
+2. где они делают обучение более персональным, гибким и доступным;
+3. где они создают заметную продуктовую дифференциацию;
+4. где agentic-подход избыточен и лучше deterministic workflow;
+5. какие возможности можно построить на текущей платформе;
+6. каких архитектурных, data, evaluation, tool, privacy, security и operational
+   компонентов для этого не хватает;
+7. что нужно достроить, чтобы AI-возможности были зрелыми, проверяемыми,
+   безопасными, экономически устойчивыми и масштабируемыми;
+8. какая стратегическая последовательность даст максимальный эффект без
+   превращения продукта в feature supermarket или generic AI chat;
+9. какие learner-facing, content-facing, research-facing и operations-facing
+   агенты могут образовать согласованную систему;
+10. какой стратегический и оперативный план необходим на горизонтах
+    90 дней, 6 месяцев, 12 месяцев и 24 месяцев.
+
+Исследование должно выявить и те возможности, риски и зависимости, которые
+владелец не сформулировал прямо.
+
+# ИСХОДНАЯ NORTH STAR
+
+Рабочая стратегическая формула:
+
+`Real-text wedge → evidence-grounded relationship → invisible learning platform`
+
+Рабочее пользовательское обещание:
+
+«Читай настоящий иврит сейчас — и запоминай то, чему учишься».
+
+Основной сегмент:
+
+независимый учащийся иврита уровня A2–B2, который пытается читать реальные
+тексты и сейчас вынужден соединять переводчик, словарь, Anki, заметки и AI-chat.
+
+Основной образовательный цикл:
+
+`значимый текст
+→ сфокусированное чтение
+→ трудность и evidence в исходном контексте
+→ своевременное извлечение
+→ успех в новом контексте после задержки
+→ следующий значимый текст`
+
+Предлагаемая North Star Metric:
+
+`weekly learners с минимум одним independently gradeable knowledge transfer
+в новом контексте после задержки не менее 24 часов`.
+
+AI и агенты должны усиливать этот цикл, а не подменять его количеством
+сообщений, упражнений или сгенерированного текста.
+
+# READ FIRST
+
+Прочитай полностью, в указанном порядке:
+
+1. `01_CURRENT_PRODUCT_BASELINE.md`
+2. `11_STRATEGIC_RECOMMENDATION.md`
+3. `06_HIERARCHY_OPTIONS.md`
+4. `02_SEGMENTS_AND_JTBD.md`
+5. `07_PRODUCT_ARCHITECTURE.md`
+6. `03_STRATEGY_A_READING_INTELLIGENCE.md`
+7. `04_STRATEGY_B_PERSONAL_HEBREW_MENTOR.md`
+8. `05_STRATEGY_D_HEBREW_OPERATING_SYSTEM.md`
+9. `08_USER_JOURNEYS.md`
+10. `09_METRICS_AND_EVALUATION.md`
+11. `10_ROLE_CRITIQUE.md`
+12. `README.md`
+
+Затем обязательно прочитай живые источники проекта:
+
+- `CLAUDE.md`;
+- `docs/PROJECT_ROLES.md`;
+- актуальные retention/review-log/FSRS документы;
+- `AI_MENTOR_RECON_2026_07_04.md`;
+- актуальный mentor rollout handoff;
+- актуальные P7/P8 решения и статус;
+- Room continuity / R1–R3 документы;
+- текущие privacy/security/cost документы;
+- текущие migrations;
+- `agent/`;
+- `db/`;
+- релевантные `public/js/`;
+- package smoke inventory;
+- git history от source commit пакета до текущего HEAD.
+
+Не считать старые roadmaps текущей истиной без сверки с кодом и более новыми
+status-доками.
+
+# ДОКАЗАТЕЛЬНАЯ ДИСЦИПЛИНА
+
+Каждое содержательное утверждение помечать как:
+
+- `FACT` — подтверждено живым кодом, миграцией, тестом, официальным источником
+  или измерением;
+- `INFERENCE` — вывод из фактов;
+- `HYPOTHESIS` — требует эксперимента;
+- `PROPOSAL` — предлагаемое решение;
+- `UNKNOWN` — данных недостаточно.
+
+Не выдавать:
+
+- owner-live verification за доказательство образовательного эффекта;
+- наличие функции за product-market fit;
+- поведение одного пользователя за общую закономерность;
+- vendor marketing за технический факт;
+- LLM output за педагогическую или языковую истину.
+
+# АКТУАЛЬНОЕ ВНЕШНЕЕ ИССЛЕДОВАНИЕ
+
+Обязательно выполнить актуальный web-research на дату сессии.
+
+Использовать преимущественно:
+
+1. официальную документацию и model cards поставщиков;
+2. первичные научные статьи и систематические обзоры;
+3. официальные спецификации agent frameworks/protocols;
+4. официальные pricing, privacy и data-retention документы;
+5. проверяемые конкурентные продукты;
+6. вторичные источники только как дополнение.
+
+Для быстро меняющихся фактов обязательно указывать дату проверки.
+
+Исследовать текущее состояние:
+
+- tool-using agents;
+- structured outputs;
+- long context;
+- multimodal text/image/audio/video;
+- speech-to-speech и realtime voice;
+- ASR, TTS, pronunciation assessment;
+- vision/OCR документов;
+- computer use/browser use;
+- retrieval и RAG;
+- memory architectures;
+- multi-agent orchestration;
+- agent-to-agent protocols;
+- MCP и аналогичные tool protocols;
+- workflow engines и durable execution;
+- local/on-device/open-weight models;
+- model routing;
+- prompt/context caching;
+- batch inference;
+- evaluation frameworks;
+- tracing/observability;
+- sandboxing;
+- guardrails;
+- privacy-preserving inference;
+- cost-control patterns.
+
+Сравнить актуальные предложения основных model/provider экосистем, но не
+выбирать модель по benchmark-лидерству без связи с конкретной задачей.
+
+По каждой значимой capability проверить:
+
+- качество;
+- latency;
+- cost;
+- context limit;
+- structured/tool reliability;
+- language/Hebrew quality;
+- voice quality;
+- privacy/data retention;
+- regional availability;
+- vendor lock-in;
+- fallback options;
+- suitability for owner-only, pilot и scale.
+
+# GROUNDED RECON ТЕКУЩЕЙ СИСТЕМЫ
+
+До генерации новых идей составить фактический inventory.
+
+## 1. Текущие AI/agent components
+
+Для каждого определить:
+
+- фактический статус;
+- входы;
+- outputs;
+- tools;
+- provider/model dependency;
+- данные, которые читает;
+- данные, которые пишет;
+- consent class;
+- provenance;
+- deterministic fallback;
+- rate/cost limits;
+- evaluation gate;
+- user-facing surface;
+- known failure modes.
+
+Обязательно покрыть:
+
+- planner;
+- explainer;
+- grader;
+- selector;
+- constructs;
+- context pack builder;
+- Telegram bot;
+- Mini App;
+- TTS/audio;
+- translation;
+- morphology resolver;
+- cloud sync;
+- notification/nudge stack;
+- Mentor Home;
+- content/artifact layer;
+- analytics/evaluation foundations.
+
+## 2. Текущие источники truth
+
+Построить карту:
+
+`artifact
+→ linguistic evidence
+→ learner event
+→ projection
+→ construct hypothesis
+→ plan
+→ challenge
+→ grade
+→ new event`
+
+Указать:
+
+- где truth authoritative;
+- где derived;
+- где curated;
+- где probabilistic;
+- где LLM advisory;
+- где данных пока недостаточно.
+
+## 3. Текущая AI readiness
+
+Оценить зрелость по шкале:
+
+0. отсутствует;
+1. prototype;
+2. owner-live;
+3. technically pilot-ready;
+4. externally validated;
+5. scalable production;
+6. outcome-optimized.
+
+Не смешивать техническую зрелость и доказанный образовательный эффект.
+
+# КЛЮЧЕВОЙ ПРИНЦИП
+
+Не начинать с вопроса:
+
+«Какие AI-фичи можно добавить?»
+
+Начинать с вопросов:
+
+1. Какое learner decision или educational action сейчас выполняется плохо?
+2. Какие данные позволяют его улучшить?
+3. Может ли задача быть решена правилом, SQL, resolver, scheduler или обычным
+   workflow без LLM?
+4. Нужен ли один агент?
+5. Нужны ли несколько независимых специализированных агентов?
+6. Нужна ли вообще автономность?
+7. Кто проверяет результат?
+8. Как пользователь может понять, изменить или отменить решение?
+9. Как измеряется delayed transfer?
+10. Что происходит при отсутствии модели, сети, consent или бюджета?
+
+Использовать принцип:
+
+**least-agentic sufficient solution**.
+
+Для каждой возможности сравнить четыре реализации:
+
+A. deterministic rule/workflow;
+B. LLM как bounded function;
+C. один tool-using agent;
+D. orchestrator + специализированные агенты.
+
+Многоагентность рекомендовать только там, где разделение ответственности,
+независимая проверка или параллельная работа дают измеримое преимущество.
+
+# ИССЛЕДОВАТЕЛЬСКИЕ ПОТОКИ
+
+Провести исследование по четырём независимым плоскостям.
+
+## ПЛОСКОСТЬ A — LEARNER-FACING AI И АГЕНТЫ
+
+Исследовать минимум следующие классы возможностей:
+
+1. персональный planner / next-best-action;
+2. adaptive session composer;
+3. adaptive scaffolding и постепенное снятие:
+   - перевод;
+   - никуд;
+   - транслитерация;
+   - аудио;
+   - hint;
+   - multiple choice;
+   - tiles;
+   - free input;
+4. contextual explainer;
+5. morphology/syntax tutor поверх authoritative resolver;
+6. misconception detector;
+7. personal curriculum engine;
+8. next-text recommender;
+9. cross-text transfer planner;
+10. spaced retrieval adaptation;
+11. listening coach;
+12. pronunciation and speaking coach;
+13. controlled role-play;
+14. writing coach;
+15. official/everyday Hebrew assistant;
+16. document/photo/OCR learning flow;
+17. conversation-to-learning-artifact flow;
+18. micro-missions;
+19. reflection/metacognition assistant;
+20. accessibility adaptations;
+21. multilingual support;
+22. cold-start diagnostic;
+23. reactivation after gaps;
+24. user-controlled manual mode и AI-recommended mode;
+25. dynamic choice of modality and input difficulty.
+
+Для каждой определить:
+
+- educational mechanism;
+- target JTBD;
+- learner level;
+- required evidence;
+- minimum data threshold;
+- user control;
+- AI role;
+- deterministic role;
+- expected improvement;
+- risk of false personalization;
+- risk of hint dependency;
+- risk of reading displacement;
+- evaluation method;
+- platform prerequisites;
+- estimated complexity;
+- cost;
+- recommended horizon.
+
+Особое внимание:
+
+- speaking и free writing нельзя рекомендовать как mature capability без
+  независимого evaluation contract;
+- same-day drill не считать mastery;
+- non-response не считать failure;
+- emotion, motivation и mental state не выводить из слабых косвенных сигналов;
+- пользователь должен иметь manual override, opt-out и понятное объяснение.
+
+## ПЛОСКОСТЬ B — CONTENT, CURRICULUM И EDUCATOR AGENTS
+
+Исследовать:
+
+1. corpus curator;
+2. text difficulty estimator;
+3. comprehensibility estimator;
+4. register/genre/period classifier;
+5. graded reading path builder;
+6. lesson/unit composer;
+7. exercise generator;
+8. distractor generator;
+9. cloze quality checker;
+10. audio-script and TTS QA;
+11. translation QA;
+12. morphology conflict reviewer;
+13. duplicate/content-quality detector;
+14. cultural/context annotation;
+15. curriculum graph builder;
+16. prerequisite detector;
+17. construct ontology curator;
+18. misconception taxonomy curator;
+19. human authoring copilot;
+20. localization agent;
+21. accessibility content adapter;
+22. professional-domain pack builder;
+23. automated gold-fixture candidate generator.
+
+Разделить:
+
+- генерацию кандидатов;
+- автоматическую валидацию;
+- независимую модельную критику;
+- обязательное human approval;
+- полностью автоматическое publishing.
+
+Определить, какие content operations можно безопасно масштабировать агентами,
+а какие требуют curated/human ownership.
+
+## ПЛОСКОСТЬ C — RESEARCH, EVALUATION И PRODUCT AGENTS
+
+Исследовать:
+
+1. research agent по SLA/EdTech;
+2. experiment-design agent;
+3. cohort-analysis agent;
+4. transfer-evaluation agent;
+5. grader calibration agent;
+6. gold-set maintenance agent;
+7. error-clustering agent;
+8. data-quality agent;
+9. recommendation audit agent;
+10. counterfactual/control comparison agent;
+11. prompt/model regression agent;
+12. privacy leakage scanner;
+13. bias/fairness auditor;
+14. cost/outcome optimizer;
+15. product-support agent;
+16. user-feedback synthesis agent;
+17. UX friction detector;
+18. onboarding diagnosis agent;
+19. W1/W4 retention analysis agent;
+20. competitor/market intelligence agent.
+
+Эти агенты не должны менять learner-state. Их outputs — research artifacts,
+alerts, experiment proposals и review queues.
+
+## ПЛОСКОСТЬ D — ENGINEERING, SECURITY И OPERATIONS AGENTS
+
+Исследовать:
+
+1. production incident investigator;
+2. log/anomaly analyst;
+3. migration reviewer;
+4. cross-surface consistency checker;
+5. security threat-model agent;
+6. dependency/CVE agent;
+7. consent/delete/export auditor;
+8. cost anomaly detector;
+9. provider outage router;
+10. quality degradation monitor;
+11. test/golden fixture generator;
+12. adversarial diff reviewer;
+13. release readiness agent;
+14. rollback assistant;
+15. documentation drift detector;
+16. prompt/version registry maintainer;
+17. content-pipeline operations agent;
+18. TTS/cache capacity planner.
+
+Определить, какие из них:
+
+- работают offline/batch;
+- работают event-driven;
+- требуют approval;
+- могут только читать;
+- могут создавать issue/task;
+- могут выполнять ограниченный remediation tool;
+- никогда не должны иметь production write access.
+
+# MULTI-AGENT DESIGN SPACE
+
+Сравнить минимум четыре целевые архитектуры:
+
+## M-A — Один расширенный Mentor
+
+Плюсы, минусы, context pressure, permission sprawl, evaluation risk.
+
+## M-B — Orchestrator + специализированные learner agents
+
+Возможные роли:
+
+- Session Planner;
+- Context Tutor;
+- Practice Builder;
+- Text Recommender;
+- Scaffolding Controller;
+- Reflection Coach;
+- Independent Evaluator.
+
+## M-C — Learner agents + backstage agents
+
+Отдельно:
+
+- learner interaction plane;
+- content/curation plane;
+- evaluation/research plane;
+- operations/governance plane.
+
+## M-D — Event-driven agent platform
+
+Агенты запускаются на конкретные события:
+
+- text imported;
+- reading completed;
+- repeated error;
+- due threshold;
+- hint dependency rise;
+- long inactivity;
+- model/provider degradation;
+- content candidate added;
+- grader drift detected.
+
+Для каждой архитектуры оценить:
+
+- user value;
+- coordination complexity;
+- failure isolation;
+- cost;
+- latency;
+- observability;
+- privacy;
+- debugging;
+- vendor lock-in;
+- deterministic fallback;
+- team burden;
+- readiness of current repository;
+- scale to 20 / 100 / 1,000 active users.
+
+Выбрать рекомендуемую целевую архитектуру и ближайший transitional architecture.
+
+# ОБЯЗАТЕЛЬНЫЕ АРХИТЕКТУРНЫЕ КОНТРАКТЫ
+
+Любая рекомендация должна сохранять:
+
+1. Learner Graph — центр continuity.
+2. `review_log` — единственный canonical дом review-семантики.
+3. Agent memory ≠ learner-state.
+4. Agent task ≠ SRS state.
+5. Agent explanation ≠ linguistic fact.
+6. LLM не утверждает lemma/root/binyan/sense.
+7. Planner предлагает, но не меняет state.
+8. Grader независим от tutor/generator.
+9. Non-response = missing data.
+10. Все изменения памяти — только через разрешённый grader/reviewer/write path.
+11. Provenance обязателен.
+12. Annul/correction обязателен.
+13. Consent проверяется в момент действия.
+14. user_id выводится только из principal.
+15. Нет silent upload.
+16. Нет hidden auto-open.
+17. Нет forced AI path.
+18. LLM-less core сохраняет полезность.
+19. Local-only tier остаётся поддерживаемым.
+20. Cross-channel consistency проходит независимый oracle.
+
+# PLATFORM GAP ANALYSIS
+
+Для каждой перспективной agent capability определить недостающие компоненты.
+
+Проверить необходимость следующих платформенных слоёв.
+
+## Agent Control Plane
+
+- agent registry;
+- agent identity;
+- versioned roles;
+- scopes/permissions;
+- tool registry;
+- tool schemas;
+- policy engine;
+- approval levels;
+- feature flags;
+- kill switches;
+- per-agent budgets;
+- per-user budgets;
+- global budgets;
+- task queue;
+- retries;
+- idempotency;
+- deadlines;
+- cancellation;
+- durable execution;
+- agent-to-agent handoff;
+- provenance;
+- audit trail.
+
+## Context Platform
+
+- context pack builder;
+- data minimization;
+- consent-aware retrieval;
+- source citations;
+- TTL;
+- redaction;
+- prompt injection defence;
+- document trust levels;
+- content-class awareness;
+- context dedup/cache;
+- context versioning.
+
+## Model Gateway
+
+- provider abstraction;
+- model routing by task;
+- quality/cost/latency policy;
+- deterministic fallback;
+- local/open-weight fallback;
+- structured-output validation;
+- timeout/retry;
+- circuit breaker;
+- cache;
+- batch;
+- token accounting;
+- model/prompt version registry;
+- provider data-policy registry.
+
+## Educational Intelligence Platform
+
+- versioned knowledge-unit identity;
+- skill/construct graph;
+- evidence model;
+- uncertainty/calibration;
+- modality-specific state;
+- hint/scaffolding ledger;
+- transfer event;
+- prerequisite graph;
+- misconception confidence;
+- cold-start model;
+- curriculum constraints;
+- user goals/preferences;
+- manual override policy.
+
+## Evaluation Platform
+
+- gold-set registry;
+- human review queue;
+- independent oracle;
+- offline replay;
+- simulation users;
+- shadow mode;
+- A/B framework;
+- model regression suite;
+- prompt regression suite;
+- transfer rubric;
+- grader calibration;
+- recommendation calibration;
+- false-positive/harm metrics;
+- abstention quality;
+- evaluation dataset governance.
+
+## Operations and Governance
+
+- tracing;
+- decision logs;
+- content-safe logs;
+- privacy-safe telemetry;
+- anomaly alerts;
+- cost dashboard;
+- incident playbooks;
+- deletion/export sweep;
+- prompt/context purge;
+- tenant isolation;
+- sandbox;
+- rate limits;
+- queue health;
+- provider outage mode;
+- compliance documentation.
+
+Для каждого gap указать:
+
+- существует ли уже;
+- частично существует;
+- отсутствует;
+- переиспользуемый код;
+- минимальный зрелый MVP;
+- scale-ready вариант;
+- dependency;
+- risk;
+- рекомендуемую фазу.
+
+# AI КАК ПРОДУКТОВАЯ ФИШКА
+
+Отдельно исследовать, какие AI-возможности могут стать заметной пользователю
+дифференциацией, а какие должны оставаться невидимой инфраструктурой.
+
+Оценивать не по wow-effect, а по:
+
+- ускорению понимания реального иврита;
+- качеству персонального следующего действия;
+- сохранению исходного контекста;
+- delayed transfer;
+- снижению потребности в пяти внешних инструментах;
+- уменьшению hint dependency;
+- росту самостоятельности;
+- контролю пользователя;
+- inspectability;
+- reversibility;
+- доверительности;
+- стоимости на outcome.
+
+Сформировать максимум три сильные product bets.
+
+Для каждой product bet дать:
+
+- пользовательское обещание;
+- конкретный demo moment;
+- why now;
+- почему конкуренту сложно скопировать;
+- required data;
+- required architecture;
+- time-to-value;
+- pricing hypothesis;
+- pilot design;
+- kill criterion.
+
+Не использовать как самостоятельную дифференциацию:
+
+- «у нас есть AI»;
+- generic chat;
+- бесконечную генерацию упражнений;
+- chatbot personality;
+- число агентов;
+- скрытую автоматизацию без измеримого результата.
+
+# USER AGENCY И ГИБКОСТЬ
+
+Исследовать зрелую модель взаимодействия:
+
+- AI-recommended default;
+- manual mode;
+- modality picker;
+- session length;
+- input mode;
+- hint policy;
+- scaffolding preference;
+- notification preference;
+- privacy/consent tier;
+- explain why;
+- undo/annul;
+- “not now”;
+- “show alternatives”;
+- “less AI / deterministic only”;
+- accessibility controls.
+
+Определить:
+
+- что AI решает автоматически;
+- что AI только рекомендует;
+- что требует подтверждения;
+- что пользователь выбирает вручную;
+- что запрещено автоматизировать.
+
+Не считать максимальную автоматизацию синонимом зрелости.
+
+# ECONOMICS И SCALE
+
+Построить ориентировочную cost model для:
+
+- owner;
+- 20 MAU;
+- 100 MAU;
+- 1,000 MAU.
+
+Минимум три профиля использования:
+
+- low;
+- medium;
+- active.
+
+Разделить:
+
+- LLM inference;
+- ASR;
+- TTS;
+- embeddings/search;
+- storage;
+- bandwidth;
+- queues/workers;
+- observability;
+- human review;
+- content curation;
+- support;
+- engineering operations.
+
+Основная единица:
+
+`cost per confirmed contextual transfer`
+
+Дополнительные:
+
+- cost per activated learner;
+- cost per completed recommended action;
+- cost per 1,000 generated-and-approved content units;
+- cost per minute of speaking practice;
+- cost per external pilot user.
+
+Указать все assumptions и чувствительность модели.
+
+Сравнить:
+
+- premium models always;
+- model routing;
+- small-model first;
+- batch/background;
+- local/open-weight;
+- cache-heavy;
+- human-in-loop.
+
+# EVALUATION И EXPERIMENTS
+
+Для каждой приоритетной возможности определить:
+
+- null hypothesis;
+- deterministic/control arm;
+- AI arm;
+- eligibility;
+- intervention;
+- primary outcome;
+- leading proxy;
+- delayed outcome;
+- guardrails;
+- sample requirements;
+- missingness;
+- stop rule;
+- promotion rule;
+- rollback.
+
+Обязательные сравнения:
+
+1. deterministic due rule vs personalized planner;
+2. generic explanation vs evidence-grounded explanation;
+3. fixed scaffolding vs adaptive scaffolding;
+4. manual modality vs AI recommendation;
+5. ordinary next text vs personalized next-text recommender;
+6. single agent vs specialized agents там, где предлагается multi-agent;
+7. premium model vs routed cheaper models;
+8. AI-generated curriculum candidate vs curated baseline.
+
+Не позволять agent/generator оценивать собственный результат.
+
+# MULTI-AGENT RESEARCH WORKFLOW ЭТОЙ СЕССИИ
+
+Использовать независимые исследовательские субагенты, если среда это поддерживает.
+
+Запустить минимум восемь линз независимо, до общего синтеза:
+
+## Agent R-A — Learning Science
+
+Retrieval, transfer, scaffolding, SLA, mastery, productive/receptive distinction,
+misconceptions, measurement validity.
+
+## Agent R-B — Learner Product
+
+JTBD, UX, user agency, activation, retention, accessibility, product positioning.
+
+## Agent R-C — Agent Architecture
+
+Single vs multi-agent, tools, orchestration, state, durable execution, model gateway.
+
+## Agent R-D — Content and Curriculum
+
+Corpus curation, graded progression, exercise/content generation, authoring workflows.
+
+## Agent R-E — Evaluation and Data
+
+Metrics, experiments, gold sets, calibration, causal evidence, telemetry.
+
+## Agent R-F — Security, Privacy and Governance
+
+Tenant isolation, consent, TTL, audit, tool permissions, prompt injection,
+agent-to-agent trust, deletion/export.
+
+## Agent R-G — Cost, Scale and Operations
+
+Provider costs, latency, queues, observability, failure modes, staffing,
+20/100/1,000-user scenarios.
+
+## Agent R-H — Adversarial Refuter
+
+Попытаться доказать, что:
+- multi-agent избыточен;
+- AI не создаёт moat;
+- рекомендации не улучшают transfer;
+- продукт становится feature supermarket;
+- cost и governance делают стратегию нежизнеспособной.
+
+Каждый агент обязан:
+
+- читать живой код и пакет;
+- искать внешние первичные источники;
+- отделять FACT от HYPOTHESIS;
+- давать BLOCKER/MAJOR/MINOR;
+- предлагать falsifiable tests;
+- не переписывать решения других агентов до независимого отчёта.
+
+После этого выполнить cross-agent synthesis и явно показать:
+
+- где линзы согласились;
+- где разошлись;
+- какие расхождения требуют owner decision;
+- какие идеи были отвергнуты.
+
+# PRIORITIZATION
+
+Оценить каждую opportunity по отдельным осям, не скрывая trade-offs:
+
+- educational impact;
+- product differentiation;
+- user frequency;
+- evidence availability;
+- current readiness;
+- architecture dependency;
+- privacy risk;
+- grading risk;
+- hallucination risk;
+- UX complexity;
+- operating cost;
+- human-review burden;
+- time-to-first-value;
+- defensibility;
+- external validation difficulty.
+
+Использовать итоговые категории:
+
+- `NOW`;
+- `NEXT`;
+- `LATER`;
+- `RESEARCH ONLY`;
+- `DO NOT BUILD`.
+
+Не превращать всё в один непрозрачный numerical score.
+Числа можно использовать как вспомогательный сигнал, но сохранять qualitative
+trade-offs.
+
+# СТРАТЕГИЧЕСКОЕ ПЛАНИРОВАНИЕ
+
+Сформировать минимум три стратегических сценария:
+
+## S1 — Conservative / Reading-led
+
+AI усиливает чтение, объяснение, next action и curation; автономность ограничена.
+
+## S2 — Balanced / Agent-assisted Learning Platform
+
+Learner-facing orchestrator + специализированные content/evaluation agents.
+
+## S3 — Agent-native Hebrew Learning System
+
+Глубокая персональная curriculum orchestration, multimodal practice,
+background agents и развитая platform control plane.
+
+Для каждого:
+
+- user promise;
+- moat;
+- required platform;
+- 12/24-month roadmap;
+- cost;
+- staffing;
+- risks;
+- validation gates;
+- kill criteria.
+
+Дать рекомендуемый сценарий и объяснить, почему два других сейчас не являются
+основным выбором.
+
+# ОПЕРАТИВНОЕ ПЛАНИРОВАНИЕ
+
+Сформировать:
+
+## 1. План на 90 дней
+
+По неделям или двухнедельным слайсам:
+
+- research;
+- measurement;
+- architecture;
+- eval;
+- prototypes;
+- shadow mode;
+- owner live;
+- external pilot preparation.
+
+Для каждого слайса:
+
+- цель;
+- deliverable;
+- dependency;
+- acceptance gate;
+- rollback/stop rule;
+- модель/агент;
+- ориентировочная стоимость.
+
+## 2. План на 6 месяцев
+
+По epics и critical path.
+
+## 3. План на 12 месяцев
+
+Что должно быть доказано продуктово, педагогически, технически и экономически.
+
+## 4. План на 24 месяца
+
+Только condition-based, без ложной точности.
+
+## 5. Capability dependency graph
+
+Показать, что блокирует что.
+
+## 6. Build / Buy / Partner
+
+Для каждого значимого слоя:
+
+- build internally;
+- use provider;
+- open source;
+- partner;
+- postpone.
+
+## 7. Team and operating model
+
+Не использовать конкретные персональные имена.
+Указать необходимые роли и объём:
+
+- product;
+- learning science;
+- backend;
+- frontend/mobile;
+- data/evaluation;
+- content curation;
+- security/privacy;
+- operations;
+- human reviewers.
+
+# ОБЯЗАТЕЛЬНЫЕ OWNER DECISIONS
+
+В конце подготовить decision packet.
+
+Каждая развилка должна содержать:
+
+- варианты;
+- рекомендацию;
+- почему;
+- что теряем;
+- какой факт может изменить рекомендацию;
+- крайний срок решения;
+- что можно делать до решения.
+
+Минимум решения:
+
+1. уровень agent autonomy;
+2. single-agent vs multi-agent target;
+3. learner-facing vs backstage priority;
+4. speaking/writing horizon;
+5. personal curriculum scope;
+6. user manual control;
+7. cloud/local model strategy;
+8. provider/model routing;
+9. human-review policy;
+10. content publishing autonomy;
+11. experimentation policy;
+12. external pilot size;
+13. acceptable cost per confirmed transfer;
+14. privacy tier;
+15. public positioning AI vs reading-led;
+16. teacher/author horizon;
+17. 12-month product bet.
+
+# DELIVERABLES
+
+Создать каталог:
+
+`docs/planning/ai_agent_education_strategy_2026_07_11/`
+
+В нём создать:
+
+1. `README.md`
+   - задача;
+   - метод;
+   - reading order;
+   - status;
+   - source commit;
+   - дата;
+   - ограничения.
+
+2. `01_GROUNDED_AI_AGENT_BASELINE.md`
+   - фактический inventory живой системы;
+   - status reconciliation;
+   - current maturity.
+
+3. `02_STATE_OF_THE_ART_2026.md`
+   - актуальные AI/agent capabilities;
+   - provider/framework comparison;
+   - primary-source citations;
+   - pricing/privacy snapshot.
+
+4. `03_EDUCATIONAL_OPPORTUNITY_MAP.md`
+   - learner-facing portfolio;
+   - pedagogical mechanisms;
+   - opportunities and anti-goals.
+
+5. `04_CONTENT_RESEARCH_OPERATIONS_AGENTS.md`
+   - backstage agent portfolio.
+
+6. `05_MULTI_AGENT_ARCHITECTURE_OPTIONS.md`
+   - M-A–M-D;
+   - recommendation;
+   - transitional and target architectures.
+
+7. `06_TARGET_AGENT_PLATFORM.md`
+   - control plane;
+   - context platform;
+   - model gateway;
+   - tool contracts;
+   - permissions;
+   - diagrams.
+
+8. `07_PLATFORM_GAP_ANALYSIS.md`
+   - current / partial / missing;
+   - dependencies;
+   - recommended build order.
+
+9. `08_PEDAGOGICAL_MODEL_AND_USER_CONTROL.md`
+   - curriculum;
+   - scaffolding;
+   - modalities;
+   - transfer;
+   - manual override;
+   - uncertainty.
+
+10. `09_EVALUATION_AND_EXPERIMENTS.md`
+    - NSM;
+    - metrics;
+    - gold;
+    - experiments;
+    - guardrails;
+    - promotion rules.
+
+11. `10_SECURITY_PRIVACY_COST_GOVERNANCE.md`
+    - risks;
+    - scopes;
+    - consent;
+    - audit;
+    - cost model;
+    - 20/100/1,000-user estimates.
+
+12. `11_STRATEGIC_SCENARIOS_AND_ROADMAP.md`
+    - S1–S3;
+    - recommendation;
+    - 90d/6m/12m/24m.
+
+13. `12_OPERATIONAL_PLAN.md`
+    - epics;
+    - slices;
+    - gates;
+    - dependencies;
+    - staffing;
+    - build/buy.
+
+14. `13_ADVERSARIAL_CRITIQUE.md`
+    - independent findings;
+    - adjudication;
+    - rejected ideas.
+
+15. `14_OWNER_DECISIONS.md`
+    - decision packet.
+
+16. `15_EXECUTIVE_RECOMMENDATION.md`
+    - не более 3–5 страниц;
+    - recommended product/agent formula;
+    - top 3 bets;
+    - top 5 platform investments;
+    - top 5 experiments;
+    - top risks;
+    - first 90 days.
+
+Не создавать пустые или дублирующие документы.
+Если два deliverable логичнее объединить, объединение допустимо только с явным
+объяснением в README.
+
+# REQUIRED MATRICES
+
+Обязательно включить:
+
+## 1. Agent portfolio matrix
+
+Колонки:
+
+- agent/workflow;
+- user;
+- JTBD;
+- trigger;
+- inputs;
+- tools;
+- output artifact;
+- writes allowed;
+- autonomy;
+- human approval;
+- deterministic fallback;
+- evaluation;
+- cost;
+- risk;
+- maturity;
+- dependency;
+- horizon.
+
+## 2. Opportunity matrix
+
+- problem;
+- current workaround;
+- AI advantage;
+- non-AI alternative;
+- educational effect;
+- product effect;
+- evidence;
+- complexity;
+- recommendation.
+
+## 3. Platform gap matrix
+
+- capability;
+- current status;
+- reuse;
+- missing;
+- MVP;
+- scale-ready;
+- owner decision;
+- gate.
+
+## 4. Experiment matrix
+
+- hypothesis;
+- control;
+- treatment;
+- population;
+- metric;
+- guardrail;
+- duration/sample assumption;
+- pass;
+- fail;
+- next action.
+
+## 5. Roadmap matrix
+
+- phase;
+- outcome;
+- epics;
+- dependency;
+- gate;
+- cost band;
+- risk;
+- rollback;
+- evidence produced.
+
+# НЕПРИКОСНОВЕННЫЕ ЗАПРЕТЫ
+
+Не рекомендовать без прямого owner decision и независимого гейта:
+
+- generic free chat как центр продукта;
+- LLM как источник морфологических фактов;
+- LLM self-grading;
+- direct DB access агента;
+- direct projection writes;
+- отдельную agent memory как учебную истину;
+- hidden personalization;
+- mental-state inference;
+- non-response grading;
+- automatic personal-text upload;
+- unbounded agent loops;
+- shared cross-tenant context;
+- public speaking/writing certification;
+- OS-first marketing;
+- teacher dashboard как ближайший приоритет;
+- сбор данных без outcome decision;
+- multi-agent ради самого слова multi-agent.
+
+# КРИТЕРИИ КАЧЕСТВА
+
+Исследование считается зрелым только если:
+
+1. оно различает AI feature, agent workflow, multi-agent system и ordinary automation;
+2. хотя бы часть идей получает статус `DO NOT BUILD`;
+3. каждая NOW/NEXT идея имеет измеримый educational outcome;
+4. каждая agent write capability имеет scope, audit, idempotency и rollback;
+5. grader/evaluator независимы от генератора;
+6. указан deterministic fallback;
+7. рассчитана стоимость;
+8. указана privacy/data class;
+9. определён minimum evidence threshold;
+10. учтён cold start;
+11. учтён degraded/offline mode;
+12. учтён user manual override;
+13. нет обещаний speaking/writing без доказательной базы;
+14. multi-agent recommendation сравнена с более простой системой;
+15. roadmap привязан к validation gates, а не только к календарю;
+16. есть ясный 90-day plan;
+17. есть конкретные owner decisions;
+18. вывод сохраняет reading-led product clarity.
+
+# ПОРЯДОК РАБОТЫ
+
+1. Grounded repository recon.
+2. Status reconciliation.
+3. External state-of-the-art research.
+4. Independent subagent reports.
+5. Opportunity portfolio.
+6. Architecture options.
+7. Platform gap analysis.
+8. Educational/evaluation design.
+9. Strategic scenarios.
+10. Operational planning.
+11. Adversarial refutation.
+12. Final synthesis.
+13. Owner decision packet.
+
+Не начинать код.
+Не начинать с UI.
+Не спрашивать владельца о решениях, которые можно сначала исследовать.
+Сначала представить grounded findings и только затем owner forks.
+
+Первый исследовательский вопрос:
+
+**Какие решения в образовательном цикле LinguistPro действительно становятся
+лучше благодаря AI или нескольким агентам, какие должны остаться
+детерминированными, и какую платформу нужно достроить, чтобы это улучшение
+измерялось подтверждённым переносом знания, а не количеством AI-взаимодействий?**
