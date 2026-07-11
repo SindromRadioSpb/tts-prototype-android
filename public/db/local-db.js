@@ -2522,6 +2522,31 @@ const _SENT_SELECT = `SELECT s.*, aa.asset_key AS audio_asset_key
                         FROM sentences s
                    LEFT JOIN sentence_audio sa ON sa.sentence_id = s.id AND sa.is_default = 1
                    LEFT JOIN audio_assets   aa ON aa.id = sa.audio_id`;
+// R2 serve-unsourced (ROOM_DUE_CONTINUITY §3) — candidate sentences containing ANY of the word
+// skeletons, for the re-source scan that heals scheduled-but-unsourced words. ONE batched pass:
+// the un-indexable infix LIKE pages the sentences table once per session, not once per word
+// (critique r4-2). LIKE is only a PREFILTER (substring hits inside longer words); the caller MUST
+// token-verify against he_niqqud||he_plain AND identity-gate via the canonical keyer before
+// serving or healing. Archived texts excluded; text_key/order_index included so a verified hit
+// can be written back as a canonical source. Short-first: cheaper to verify, likelier clean.
+export async function findSentencesForWords(skeletons, totalLimit) {
+  const list = Array.from(new Set((skeletons || []).map((s) => String(s || "").trim()).filter(Boolean))).slice(0, 16);
+  if (!list.length) return [];
+  const n = Math.max(1, Math.min(Number(totalLimit) || 240, 400));
+  try {
+    return (await q(
+      `SELECT s.id, s.text_id, s.order_index, s.he_plain, s.he_niqqud, s.ru,
+              t.text_key, aa.asset_key AS audio_asset_key
+         FROM sentences s
+         JOIN texts t ON t.id = s.text_id AND t.is_archived = 0
+    LEFT JOIN sentence_audio sa ON sa.sentence_id = s.id AND sa.is_default = 1
+    LEFT JOIN audio_assets   aa ON aa.id = sa.audio_id
+        WHERE (${list.map(() => `s.he_plain LIKE ?`).join(" OR ")})
+        ORDER BY LENGTH(s.he_plain) ASC
+        LIMIT ?`,
+      [...list.map((x) => "%" + x + "%"), n])) || [];
+  } catch (_) { return []; }
+}
 export async function getSentenceForReview(sentenceId, textKey, orderIndex) {
   try {
     if (sentenceId) {

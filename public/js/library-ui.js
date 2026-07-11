@@ -1381,6 +1381,7 @@ async function _launchTrainSession(items, opts) {
   if (typeof window.ReaderMorph.buildMcSlotOptions === 'function') {
     for (const it of items) {
       if (!window.ReaderMorph.isMcLevel(it.status)) continue;
+      if (it._wordOnly) continue;   // R2: slot-MC bank is gloss-collision-prone without a sentence — render uses B1+veto
       try {
         const ans = it._card || await window.ReaderMorph.resolveWordLight(it.surface, it.niqqud);   // D2 reuses its resolved card
         if (ans) { if (!ans.gloss) ans.gloss = it.gloss; const o = await window.ReaderMorph.buildMcSlotOptions(ans, 3); if (o && o.options && o.options.length >= 3) it._mcOptions = o; }
@@ -1417,13 +1418,20 @@ async function startDueReview() {
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   let due = [];
   try { due = (await localDb.getDueWithSource(Date.now())) || []; } catch (_) { due = []; }
-  const items = await _buildDueSourcedItems(due);
+  const items = await _buildDueSourcedItems(due, { scanBudget: 12 });
   if (!_studySheet || _studySheet.hidden) return;
   const R = window.ReaderMorph;
   const ranked = (R.rankByWeakness ? R.rankByWeakness(items) : items).slice(0, TRAIN_N);
   if (!ranked.length) {
     body.innerHTML = '';
-    body.appendChild(el('div', { class: 'room-study-empty', i18n: 'room.morph.study.dueEmpty', text: tt('room.morph.study.dueEmpty', 'Нет слов к повторению сегодня — открой текст и потренируй новые слова.') }));
+    // R2 — HONEST empty copy: with a live due backlog that couldn't be assembled the old «нет слов
+    // к повторению» would be a lie under a badge saying N (critика r4-3). Distinct states.
+    if (due.length) {
+      body.appendChild(el('div', { class: 'room-study-empty', i18n: 'room.morph.study.dueUnservable',
+        text: tt('room.morph.study.dueUnservable', 'Слова ждут повторения (' + due.length + '), но их пока нельзя собрать на этом устройстве — открой их тексты в Зале.') }));
+    } else {
+      body.appendChild(el('div', { class: 'room-study-empty', i18n: 'room.morph.study.dueEmpty', text: tt('room.morph.study.dueEmpty', 'Нет слов к повторению сегодня — открой текст и потренируй новые слова.') }));
+    }
     // Owner-директива 2026-07-11 (непрерывное обучение): due-на-сегодня исчерпан → явная опция
     // продолжить БЛИЖАЙШИМИ словами «в работе» (расписание в будущем, earliest-first). FSRS
     // считает ранний повтор нативно (elapsed-time в fsrsStep) — «зубрёжка вперёд» честна для
@@ -1432,16 +1440,24 @@ async function startDueReview() {
       let ahead = [];
       try { ahead = (await localDb.getDueWithSource(Date.now() + 400 * 86400000)) || []; } catch (_) { ahead = []; }
       const now2 = Date.now();
-      ahead = ahead.filter((d) => d && d.srs && d.srs.due > now2 && d.source && d.source.surface)
+      // R2: unsourced words join the ahead pool too — the builder's ladder serves or honestly skips them.
+      ahead = ahead.filter((d) => d && d.srs && d.srs.due > now2)
                    .sort((a, b) => a.srs.due - b.srs.due);
       if (ahead.length) {
         const btn = el('button', { class: 'room-study-aheadbtn', attrs: { type: 'button' },
           i18n: 'room.morph.study.aheadBtn', text: tt('room.morph.study.aheadBtn', '▶ Продолжить: слова в работе') });
         btn.addEventListener('click', async () => {
           btn.disabled = true;
-          const aheadItems = await _buildDueSourcedItems(ahead);
+          const aheadItems = await _buildDueSourcedItems(ahead, { scanBudget: 6 });
           const aheadRanked = aheadItems.slice(0, TRAIN_N);   // earliest-due порядок (не weakness: пул будущий)
-          if (!aheadRanked.length) { btn.hidden = true; return; }
+          if (!aheadRanked.length) {
+            // R2 — the button must not silently evaporate (critique r4-6): say why nothing came.
+            btn.hidden = true;
+            body.appendChild(el('div', { class: 'room-study-aheadnote', i18n: 'room.morph.study.aheadUnservable',
+              text: tt('room.morph.study.aheadUnservable', 'Эти слова пока нельзя собрать на этом устройстве — открой их тексты в Зале.') }));
+            try { window.applyI18n && window.applyI18n(); } catch (_) {}
+            return;
+          }
           await _launchTrainSession(aheadRanked, { cross: true });
         });
         body.appendChild(btn);
@@ -1454,21 +1470,87 @@ async function startDueReview() {
   }
   await _launchTrainSession(ranked, { cross: true });
 }
+// ── R2 serve-unsourced helpers (ROOM_DUE_CONTINUITY §3, критика wf_d242bed2) ─────────────────────
+// Surface derivation for an unsourced scheduled word: the most recent NON-annulled log row that
+// actually CARRIES meta.surface (mark/seed rows don't — critique r11-2), else the '<skel>#pos' key
+// parse; a pid: key with no logged surface → null (honest skip — the key alone names no form).
+async function _r2DeriveSurface(lemmaKey) {
+  const R = window.ReaderMorph;
+  try {
+    let rows = await localDb.getReviewLog(lemmaKey);
+    try { if (window.FsrsCore && window.FsrsCore.withoutAnnulled) rows = window.FsrsCore.withoutAnnulled(rows); } catch (_) {}
+    for (let i = rows.length - 1; i >= 0; i--) {
+      let m = null;
+      try { m = rows[i].meta_json ? JSON.parse(rows[i].meta_json) : (rows[i].meta || null); } catch (_) { m = null; }
+      const s = m && m.surface ? R.stripNiqqud(String(m.surface)).trim() : '';
+      if (s) return s;
+    }
+  } catch (_) {}
+  const k = String(lemmaKey || '');
+  if (k.startsWith('pid:')) return null;
+  const h = k.lastIndexOf('#');
+  const skel = (h > 0 ? k.slice(0, h) : k).trim();
+  return /[א-ת]/.test(skel) ? skel : null;
+}
+// Day-keyed negative scan cache: a skeleton that scanned dry is not re-scanned for 7 days, so a
+// permanently-unhealable prefix can't monopolize the per-session scan budget (critique r4-1/r11-5).
+const R2_MISS_KEY = 'room.r2.scanMiss', R2_MISS_MS = 7 * 86400000;
+function _r2MissGet() { try { return JSON.parse(localStorage.getItem(R2_MISS_KEY) || '{}'); } catch (_) { return {}; } }
+function _r2MissFresh(cache, skel) { const t = Number(cache[skel]) || 0; return !!t && (Date.now() - t) < R2_MISS_MS; }
+function _r2MissMark(cache, skel) { cache[skel] = Date.now(); try { localStorage.setItem(R2_MISS_KEY, JSON.stringify(cache)); } catch (_) {} }
+// RU-gloss token overlap — word-only MC distractor veto (a distractor that is ALSO a plausible
+// translation of the gloss-question would be a false negative — critique r17-5).
+function _r2GlossOverlap(a, b) {
+  const tok = (s) => String(s || '').toLowerCase().split(/[^a-zа-яё]+/).filter((w) => w.length >= 4);
+  const B = new Set(tok(b));
+  return tok(a).some((w) => B.has(w));
+}
+const _HEB_VOWELED_RE = /[֑-ׇ]/;
+// Verify one scan candidate for one word: token-in-sentence (± proclitic) + cloze + the SAME
+// canonical-keyer identity gate the whole product keys on (BLOCKER r11-1/r17-1: skeleton presence
+// proves orthography, not lemma — a homograph sentence must never be served or healed onto this
+// word's schedule key). Returns {cz, tskel, card, heN} or null.
+async function _r2VerifyCandidate(R, d, needle, sent) {
+  const heN = String(sent.he_niqqud || sent.he_plain || sent.he || '');
+  if (!heN) return null;
+  const tokens = R.tokenize(heN);
+  let tskel = '';
+  for (const t of tokens) {
+    const sk = R.stripNiqqud(String(t || ''));
+    if (sk === needle || _stripProclitic(sk) === needle) { tskel = sk; break; }
+  }
+  if (!tskel) return null;
+  const cz = R.buildClozeForTarget(tokens, tskel);
+  if (!cz) return null;
+  let card = null;
+  try { card = await R.resolveWordLight(tskel, cz.answer); } catch (_) { card = null; }
+  if (!card || !card.lemmaKey || card.lemmaKey !== d.lemmaKey) return null;
+  // unvocalized sentence → no niqqud discriminator for homographs → require a decisive resolve
+  if (!_HEB_VOWELED_RE.test(cz.answer || '') && card.label !== 'exact') return null;
+  return { cz, tskel, card, heN };
+}
 // Общая сборка кросс-текстовых айтемов из source-якорных строк (вынесено из startDueReview
 // без изменения поведения; используется и P6.5 startPlanSectionTraining). R11: слово без
 // якоря/предложения/cloze — честный skip, никогда не сфабрикованное задание.
-async function _buildDueSourcedItems(due) {
-  const R = window.ReaderMorph, items = [];
+// R2 (opts.ladder): слово без ОБСЛУЖИВАЕМОГО якоря идёт в лестницу heal-first: (1) батч-скан OPFS
+// sentences → верифицированное предложение → полный контекстный айтем + write-back heal;
+// (2) word-only fallback (независим от скан-бюджета — критика r4-1). opts: {ladder=true,
+// scanBudget=12}. Каждый ярус под identity-гейтом канон-кейера; ничего не фабрикуется.
+async function _buildDueSourcedItems(due, opts) {
+  opts = opts || {};
+  const ladder = opts.ladder !== false;
+  const scanBudget = Number.isFinite(opts.scanBudget) ? opts.scanBudget : 12;
+  const R = window.ReaderMorph, items = [], laddered = [];
   for (const d of due) {
     if (items.length >= TRAIN_N * 2) break;   // bound the fetch work; weakness-rank + slice below
-    if (!d.source || !d.source.surface) continue;   // never-sourced (legacy) → skip (trains in its own text)
+    if (!d.source || !d.source.surface) { if (ladder) laddered.push(d); continue; }   // never-sourced → R2 ladder
     let sent = null;
     try { sent = await localDb.getSentenceForReview(d.source.sentenceId, d.source.textKey, d.source.orderIndex); } catch (_) { sent = null; }
-    if (!sent) continue;   // sentence gone (deleted / re-import) → skip
+    if (!sent) { if (ladder) laddered.push(d); continue; }   // dead anchor (deleted / re-import) → R2 ladder (re-heal)
     const heN = String(sent.he_niqqud || sent.he_plain || sent.he || '');
-    if (!heN) continue;
+    if (!heN) { if (ladder) laddered.push(d); continue; }
     const cz = R.buildClozeForTarget(R.tokenize(heN), R.stripNiqqud(d.source.surface));
-    if (!cz) continue;   // word not present in the sentence (re-anchor mismatch) → skip
+    if (!cz) { if (ladder) laddered.push(d); continue; }   // re-anchor mismatch → R2 ladder (re-heal)
     let card = null;
     try { card = await R.resolveWordLight(R.stripNiqqud(d.source.surface), cz.answer); } catch (_) {}
     items.push({
@@ -1477,6 +1559,68 @@ async function _buildDueSourcedItems(due) {
       status: d.status, _srs: d.srs, _source: d.source, _card: card || null,   // reuse in the D1 MC pre-compute
       _built: { cz, ru: sent.ru || '', sentence: heN, audioAssetKey: String(sent.audio_asset_key || ''), rowIdx: null },
     });
+  }
+  if (!ladder || !laddered.length) return items;
+  // ── R2 ladder ────────────────────────────────────────────────────────────────────────────────
+  const miss = _r2MissGet();
+  const cand = [];   // {d, needle}
+  for (const d of laddered) {
+    if (cand.length >= TRAIN_N * 2) break;
+    const needle = await _r2DeriveSurface(d.lemmaKey);
+    if (needle) cand.push({ d, needle });
+  }
+  // ONE batched prefilter pass for every scannable needle this call (critique r4-2)
+  const scanNeedles = [];
+  for (const c of cand) {
+    if (scanNeedles.length >= scanBudget) break;
+    if (!_r2MissFresh(miss, c.needle) && scanNeedles.indexOf(c.needle) < 0) scanNeedles.push(c.needle);
+  }
+  let scanRows = [];
+  if (scanNeedles.length) { try { scanRows = (await localDb.findSentencesForWords(scanNeedles, 240)) || []; } catch (_) { scanRows = []; } }
+  for (const c of cand) {
+    if (items.length >= TRAIN_N * 2) break;
+    const d = c.d, needle = c.needle;
+    let served = null;
+    // tier 1 — re-source scan: verified sentence → full contextual item + write-back heal
+    if (scanNeedles.indexOf(needle) >= 0) {
+      let hit = null;
+      for (const row of scanRows) {
+        if (String(row.he_plain || '').indexOf(needle) < 0) continue;
+        try { hit = await _r2VerifyCandidate(R, d, needle, row); } catch (_) { hit = null; }
+        if (hit) { hit.row = row; break; }
+      }
+      if (hit) {
+        // fillOnly for the never-sourced; a PROVEN-dead anchor is replaced outright (R11: verified > dead)
+        const src = { textKey: hit.row.text_key || null, sentenceId: hit.row.id != null ? String(hit.row.id) : null,
+          orderIndex: hit.row.order_index != null ? Number(hit.row.order_index) : null, surface: hit.tskel,
+          fillOnly: !(d.source && d.source.surface) };
+        try { await localDb.updateSrsSource(d.lemmaKey, src); } catch (_) {}
+        served = {
+          lemmaKey: d.lemmaKey, surface: hit.tskel, niqqud: hit.card.niqqud || hit.cz.answer || '',
+          gloss: (hit.card.meaning || hit.card.gloss) || '', root: hit.card.root || '', pos: hit.card.pos || '',
+          status: d.status, _srs: d.srs, _card: hit.card,
+          _source: { textKey: src.textKey, sentenceId: src.sentenceId, orderIndex: src.orderIndex, surface: hit.tskel },
+          _built: { cz: hit.cz, ru: hit.row.ru || '', sentence: hit.heN, audioAssetKey: String(hit.row.audio_asset_key || ''), rowIdx: null },
+        };
+      } else { _r2MissMark(miss, needle); }
+    }
+    // tier 2 — word-only fallback: independent of the scan budget (critique r4-1). Honesty gates:
+    // canonical-key round-trip + DECISIVE resolve only (a hedged gloss can't be the question —
+    // critique r17-3) + non-empty gloss. _source pinned to null (critique r11-4).
+    if (!served) {
+      let card = null;
+      try { card = await R.resolveWordLight(needle, ''); } catch (_) { card = null; }
+      const gloss = card ? String(card.meaning || card.gloss || '') : '';
+      if (card && card.lemmaKey === d.lemmaKey && card.label === 'exact' && gloss) {
+        served = {
+          lemmaKey: d.lemmaKey, surface: needle, niqqud: card.niqqud || '',
+          gloss, root: card.root || '', pos: card.pos || '',
+          status: d.status, _srs: d.srs, _card: card, _source: null, _wordOnly: true,
+          _built: { cz: { answer: card.niqqud || needle, segments: null }, ru: '', sentence: '', audioAssetKey: '', rowIdx: null },
+        };
+      }
+    }
+    if (served) items.push(served);
   }
   return items;
 }
@@ -1499,7 +1643,9 @@ async function startPlanSectionTraining(itemKeys, channel) {
   let rows = [];
   // «все якорные слова расписания» = getDueWithSource с горизонтом-в-будущее (due<=горизонт)
   try { rows = (await localDb.getDueWithSource(Date.now() + 10 * 365 * 24 * 3600 * 1000)) || []; } catch (_) { rows = []; }
-  const items = await _buildDueSourcedItems(rows.filter((d) => keySet.has(String(d.lemmaKey))));
+  // R2: ladder OFF — the plan section keeps its own honest anchor-less empty-state, and the section's
+  // recommended channel assumed sentence context (gate-consumers-sweep, critique r11-5).
+  const items = await _buildDueSourcedItems(rows.filter((d) => keySet.has(String(d.lemmaKey))), { ladder: false });
   if (!_studySheet || _studySheet.hidden) return;
   if (!items.length) {
     body.innerHTML = '';
@@ -1633,20 +1779,47 @@ function renderTrainItem() {
   // gloss + 🔊 + the word in its sentence) so the first encounter isn't a cold guess. The show writes
   // NOTHING (R2: not counted as recall); the following test scores normally. _taught guards re-render.
   if (item.status === 'new' && !item._srs && !item._taught) { return renderTrainTeach(item); }
+  // R2 word-only (no context sentence on this device): the sentence-dependent channels can't pose
+  // this item — read/listen degrade to the reverse prompt (gloss = question), dictate stays ONLY
+  // when the answer is vocalized (TTS of a bare skeleton could voice a different homograph —
+  // critique r4-4). The EFFECTIVE channel is per-item state so the review_log row and the D1
+  // grade policy describe what actually happened (R17), not what the bar shows.
+  const wordOnly = !!item._wordOnly;
+  let channel = s.channel || 'read';
+  if (wordOnly && (channel === 'read' || channel === 'listen')) channel = 'reverse';
+  if (wordOnly && channel === 'dictate' && !/[֑-ׇ]/.test(String(built.cz.answer || ''))) channel = 'reverse';
+  s._effChannel = channel;
   // Escalation ladder: MC (recognition) for new/l1/l2 · tap-letters (assisted production, mobile-OK)
   // for l3/l4 · free typing (top production tier) only for known. A5 — too few honest distractors →
   // fall back to tap-letters (not free typing — keyboard-free on mobile).
   let mode = window.ReaderMorph.isMcLevel(item.status) ? 'mc' : (item.status === 'known' ? 'type' : 'tiles');
+  // R2 word-only: free typing rejects valid paradigm forms the gloss-only prompt licenses (an
+  // infinitive answer to a verb gloss — critique r17-4) → tiles steer to the target's own letters.
+  // A bare (unvocalized) answer among vocalized MC options is a visual tell → tiles (critique r4-5).
+  if (wordOnly && mode === 'type') mode = 'tiles';
+  if (wordOnly && mode === 'mc' && !/[֑-ׇ]/.test(String(built.cz.answer || ''))) mode = 'tiles';
   let distractors = [];
-  const slotMc = (mode === 'mc' && item._mcOptions && item._mcOptions.options && item._mcOptions.options.length >= 3) ? item._mcOptions : null;
-  if (mode === 'mc' && !slotMc) { distractors = window.ReaderMorph.pickDistractors(item, s.pool, 3); if (distractors.length < 3) mode = 'tiles'; }
+  // R2 word-only: the slot-MC bank ranks same-root/gloss-near rivals FIRST — with no sentence to
+  // disambiguate, a rival that also translates the gloss is a false negative → skip slotMc and use
+  // the B1 pool with an RU-gloss-overlap veto (critique r17-5).
+  const slotMc = (mode === 'mc' && !wordOnly && item._mcOptions && item._mcOptions.options && item._mcOptions.options.length >= 3) ? item._mcOptions : null;
+  if (mode === 'mc' && !slotMc) {
+    distractors = window.ReaderMorph.pickDistractors(item, s.pool, 3);
+    if (wordOnly) distractors = distractors.filter((dd) => !_r2GlossOverlap(item.gloss, dd.gloss));
+    if (distractors.length < 3) mode = 'tiles';
+  }
   // D6 — extraction channels share the answer/grading machinery; ONLY the PROMPT differs. Dictation
   // (hear → write) is inherently production → never MC (drop to tap-letters even for a fresh word).
-  const channel = s.channel || 'read';
   if (channel === 'dictate' && mode === 'mc') mode = 'tiles';
   s._mode = mode;
   body.innerHTML = '';
   body.appendChild(_trainChannelBar());   // D6 — read/listen/reverse/dictate selector (availability-gated)
+  // R2 word-only: the bar may show 📖/🎧 while this item poses as RU→HE — say WHY per-item, so a
+  // silent modality flip never reads as «audio is broken» (critique r4-4).
+  if (wordOnly) {
+    body.appendChild(el('div', { class: 'room-train-wordonly-note', attrs: { dir: uiDirRoom() }, i18n: 'room.morph.study.wordOnlyNote',
+      text: tt('room.morph.study.wordOnlyNote', '🔤 Без контекста: у этого слова пока нет предложения на этом устройстве — оно появится после чтения его текста.') }));
+  }
   body.appendChild(el('div', { class: 'room-train-progress', text: (s.idx + 1) + ' / ' + s.total }));
   // ── per-channel PROMPT ────────────────────────────────────────────────────────────────────────────
   if (channel === 'listen') {
@@ -1799,7 +1972,9 @@ async function checkTrainAnswer(correct, skipped, mode) {
   // планировщика; schedule И log-строка используют ОДИН policy-грейд (иначе оракул
   // replay==stored разошёлся бы). Политика детерминированная (grade-policy.js, общая с
   // сервером); skip не смягчается (R17-B: явный отказ = честный no-recall).
-  const trainChannel = String(s.channel || 'read') + (mode ? ':' + mode : '');
+  // R2: the EFFECTIVE channel (word-only items degrade read/listen→reverse at render) — the log
+  // row and the D1 policy must describe the modality that actually posed the question (R17).
+  const trainChannel = String(s._effChannel || s.channel || 'read') + (mode ? ':' + mode : '');
   let d1 = null;
   if (window.GradePolicy && !skipped && !correct) {
     let logRows = []; try { logRows = await localDb.getReviewLog(item.lemmaKey); } catch (_) {}
@@ -1855,6 +2030,11 @@ async function checkTrainAnswer(correct, skipped, mode) {
             ? { scheme: 'fsrs', engine_version: window.FsrsCore.ENGINE_VERSION, request_retention: window.FsrsCore.REQUEST_RETENTION }
             : { scheme: 'sm2-lite' },
           postTeach: item._taught ? 1 : undefined,
+          // R2 word-only: gloss-cued recognition without a sentence is LEXEME-scoped evidence —
+          // CONTEXT_SUPPORTED_SCOPES demotes it, so a lucky 4-option pick can never latch
+          // hasProvenProduction / poison the P7.2d selector (BLOCKER r17-2). word_only = provenance.
+          word_only: item._wordOnly ? 1 : undefined,
+          evidence_scope: item._wordOnly ? 'lexeme' : undefined,
           ...((fs && d1 && d1.applied) ? window.GradePolicy.policyMeta(d1) : {}),
         },
       };

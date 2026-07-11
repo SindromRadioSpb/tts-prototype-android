@@ -389,6 +389,27 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         out.r1RequiresSurface = refused === false && !!(rw5 && rw5.srs_surface === SRC_B.surface);
       } catch (e) { out.r1SrcErr = String(e && e.message || e); }
 
+      // ── R2 serve-unsourced — findSentencesForWords (batched LIKE prefilter for the re-source scan)
+      try {
+        const tId = "r2t-1";
+        await ldb.createText({ id: tId, text_key: "r2-key-live", title: "r2", source_text: "" });
+        const tArc = "r2t-arc";
+        await ldb.createText({ id: tArc, text_key: "r2-key-arc", title: "r2a", source_text: "" });
+        await ldb.addSentence(tId, { id: tId + ":s1", he_plain: "הוא ראה בית גדול", he_niqqud: "", ru: "он увидел большой дом" });
+        await ldb.addSentence(tId, { id: tId + ":s2", he_plain: "ספר על השולחן", he_niqqud: "", ru: "книга на столе" });
+        await ldb.addSentence(tArc, { id: tArc + ":s1", he_plain: "בית ישן מאוד", he_niqqud: "", ru: "архив" });
+        await ldb.archiveText(tArc);
+        // batched: BOTH needles in ONE call; archived text's hit must NOT appear
+        const found = await ldb.findSentencesForWords(["בית", "ספר"], 50);
+        const ids = new Set((found || []).map((r) => String(r.id)));
+        out.r2ScanFindsBoth = ids.has(tId + ":s1") && ids.has(tId + ":s2");
+        out.r2ScanSkipsArchived = !ids.has(tArc + ":s1");
+        out.r2ScanCarriesAnchor = (found || []).length > 0 && (found || []).every((r) => r.text_key && r.order_index != null && r.he_plain);
+        // empty/blank needles → empty result, never a full-table dump
+        const none = await ldb.findSentencesForWords(["", null], 50);
+        out.r2ScanRefusesEmpty = Array.isArray(none) && none.length === 0;
+      } catch (e) { out.r2ScanErr = String(e && e.message || e); }
+
       return out;
     });
 
@@ -462,17 +483,22 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.r1LatestWins === true, "R1: plain updateSrsSource did not apply latest-occurrence-wins (recall canon)");
     eq(res.r1NoScheduleNoop === true, "R1 DEFECT: source written onto an UNSCHEDULED word (dead pointer)");
     eq(res.r1RequiresSurface === true, "R1: a source without surface must be refused (surface IS the sourced-due marker)");
+    // R2 serve-unsourced — findSentencesForWords
+    eq(res.r2ScanFindsBoth === true, "R2: batched scan did not find both needles in one call" + (res.r2ScanErr ? " err:" + res.r2ScanErr : ""));
+    eq(res.r2ScanSkipsArchived === true, "R2: scan returned a sentence from an ARCHIVED text");
+    eq(res.r2ScanCarriesAnchor === true, "R2: scan rows lack text_key/order_index/he_plain (heal write-back needs the anchor)");
+    eq(res.r2ScanRefusesEmpty === true, "R2: blank needles must return [] (never a full-table dump)");
     eq(res.annulD1Filter === true, "P7.0a: FsrsCore.withoutAnnulled did not exclude the annulled row (D1 evidence poisoning)");
     eq(errs.length === 0, "page errors: " + errs.join(" | "));
 
-    const total = 68;
+    const total = 72;
     if (failures.length) {
       console.error(`smoke:memory-canon FAIL (${total - failures.length}/${total})`);
       for (const f of failures) console.error("  ✗ " + f);
       console.error(JSON.stringify(res, null, 1).slice(0, 4000));
       process.exitCode = 1;
     } else {
-      console.log(`smoke:memory-canon OK (${total}/${total}) — mig 041/042 · keyer conformance · content-id log · bundle 3-table merge · Pass 8/12 no-dup · P2 FSRS handover (seed-once · Again-due-now · plain-set-preserve · independent oracle) · P3 Studio→FSRS (scheme=fsrs · meta_json.fsrs · projections · Studio oracle) · P4 Anki-merge (canon-log ingest+filters · updateSrsState srs-only · recompute · Anki oracle) · P4.1 ''-carrier (no-demotion · manual-wins kept · recompute-carrier · merge-safe) · P7.0a annul (annulId-канон · reject-без-цели · annul-to-null удаляет carrier · ручная ось цела · withoutAnnulled для D1) · R1 source-at-mark (fill-only backfill · do-no-harm · latest-wins · scheduled-only · surface-required)`);
+      console.log(`smoke:memory-canon OK (${total}/${total}) — mig 041/042 · keyer conformance · content-id log · bundle 3-table merge · Pass 8/12 no-dup · P2 FSRS handover (seed-once · Again-due-now · plain-set-preserve · independent oracle) · P3 Studio→FSRS (scheme=fsrs · meta_json.fsrs · projections · Studio oracle) · P4 Anki-merge (canon-log ingest+filters · updateSrsState srs-only · recompute · Anki oracle) · P4.1 ''-carrier (no-demotion · manual-wins kept · recompute-carrier · merge-safe) · P7.0a annul (annulId-канон · reject-без-цели · annul-to-null удаляет carrier · ручная ось цела · withoutAnnulled для D1) · R1 source-at-mark (fill-only backfill · do-no-harm · latest-wins · scheduled-only · surface-required) · R2 scan (batched needles · archived-excluded · anchor-carrying · blank-refused)`);
     }
   } catch (e) {
     console.error("smoke:memory-canon CRASH", e);
