@@ -3520,6 +3520,33 @@ async function markWordStatus(lemmaKey, status, source) {
   try { const s = (await localDb.getSrsSchedule()) || {}; return s[lemmaKey] ? { dueMs: s[lemmaKey].due } : null; }
   catch (_) { return null; }
 }
+// R3.1 (ROOM_DUE_CONTINUITY, live-диагноз 2026-07-11) — зомби-класс: слова, размеченные l1–l4 ДО
+// P5.6 (метка тогда НЕ сеяла расписание) — в логе только mark-строки, srs_due NULL: «В работе» по
+// ярлыку, но невидимы ЛЮБОЙ очереди на ЛЮБОЙ поверхности, навсегда (live-замер owner: 60+ из 229).
+// Идемпотентный boot-sweep: каждое такое слово проходит ТОТ ЖЕ канонический markWordStatus-путь
+// (seed kind='seed'/'seed-manual' → oracle-clean replay; исторический seed без расписания →
+// restore). Повторная запись того же статуса mark-строку НЕ минтит (_emitMarkRow guard). После
+// первого прохода запрос пуст — постоянный self-heal, не одноразовая миграция. Fire-and-forget
+// после первой отрисовки; сеянные слова уходят на сервер обычным cloud-sync.
+async function backfillZombieMarkSeeds() {
+  try {
+    const rows = await localDb.dbQuery(
+      "SELECT lemma_key, status FROM word_status WHERE status IN ('l1','l2','l3','l4') AND srs_due IS NULL LIMIT 300", []);
+    if (!rows || !rows.length) return;
+    let seeded = 0;
+    for (const r of rows) {
+      try { const res = await markWordStatus(String(r.lemma_key), String(r.status)); if (res && res.dueMs) seeded++; } catch (_) {}
+    }
+    if (seeded) {
+      try { console.info('[room] R3.1 zombie-mark backfill: seeded', seeded, 'of', rows.length); } catch (_) {}
+      try { refreshDueBadge(); } catch (_) {}
+    }
+    return seeded;
+  } catch (_) { return 0; }
+}
+// Gate hook (smoke:memory-canon): cross-page OPFS navigation silently lands on the fallback VFS
+// in headless Playwright, so the sweep is asserted same-page through this handle instead.
+try { window.__r31BackfillZombieSeeds = backfillZombieMarkSeeds; } catch (_) {}
 // P5.7 Т1/Т3 — humanize a future due into «сегодня»/«через ~N дн.»/«через ~N ч.» for closures + badge.
 function _dueWhenText(dueMs) {
   const d = (Number(dueMs) || 0) - Date.now();
@@ -7072,6 +7099,7 @@ async function boot() {
     }
     setActiveTrack(activeTrack);
     try { refreshDueBadge(); } catch (_) {}   // D2 — surface the «🔁 К повторению» home CTA on first load
+    backfillZombieMarkSeeds();   // R3.1 — fire-and-forget: pre-P5.6 marks re-enter the FSRS loop
     roomCloudAutoSync();   // CLG-P3.2 — fire-and-forget; no-op (single 401) without a live session
     maybeRunValidation();   // BRR-P1-007 §7: ?validate=1 runs on-device real-profile validation
     // Studio↔Room compat Ф1 — deep-link «Открыть в Зале»: ?open=<text_key> resolves a locally

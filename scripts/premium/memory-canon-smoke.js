@@ -489,16 +489,43 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.r2ScanCarriesAnchor === true, "R2: scan rows lack text_key/order_index/he_plain (heal write-back needs the anchor)");
     eq(res.r2ScanRefusesEmpty === true, "R2: blank needles must return [] (never a full-table dump)");
     eq(res.annulD1Filter === true, "P7.0a: FsrsCore.withoutAnnulled did not exclude the annulled row (D1 evidence poisoning)");
+
+    // ── R3.1 zombie-mark backfill — a pre-P5.6 mark-only word (manual level, NO schedule, NO seed)
+    // must be seeded by the sweep through the canonical markWordStatus path. Same-page via the
+    // gate hook (cross-page OPFS navigation silently lands on the fallback VFS in headless).
+    let r31 = null;
+    try {
+      r31 = await pg.evaluate(async () => {
+        const ldb = await import("/db/local-db.js");
+        await ldb.setWordStatus("זומבי31#noun", "l2");   // plain set → manual level, srs_due NULL (the zombie shape)
+        const seeded = await window.__r31BackfillZombieSeeds();
+        const rows = await ldb.dbQuery("SELECT srs_due FROM word_status WHERE lemma_key='זומבי31#noun'", []);
+        const lg = await ldb.getReviewLog("זומבי31#noun");
+        // idempotency: a second sweep must find nothing new for this word (no re-seed)
+        await window.__r31BackfillZombieSeeds();
+        const lg2 = await ldb.getReviewLog("זומבי31#noun");
+        return {
+          due: !!(rows && rows[0] && rows[0].srs_due),
+          seedRow: lg.some((r) => r.kind === "seed"),
+          noReseed: lg2.filter((r) => r.kind === "seed").length === 1,
+          seededCount: seeded,
+        };
+      });
+    } catch (e) { r31 = { err: String((e && e.message) || e) }; }
+    eq(!!r31 && r31.due === true, "R3.1: sweep did not seed the zombie mark (srs_due still NULL)" + (r31 && r31.err ? " err:" + r31.err : ""));
+    eq(!!r31 && r31.seedRow === true, "R3.1: seeded zombie lacks the canonical seed row (kind='seed')");
+    eq(!!r31 && r31.noReseed === true, "R3.1: second sweep RE-SEEDED an already-scheduled word (must be idempotent)");
+
     eq(errs.length === 0, "page errors: " + errs.join(" | "));
 
-    const total = 72;
+    const total = 75;
     if (failures.length) {
       console.error(`smoke:memory-canon FAIL (${total - failures.length}/${total})`);
       for (const f of failures) console.error("  ✗ " + f);
       console.error(JSON.stringify(res, null, 1).slice(0, 4000));
       process.exitCode = 1;
     } else {
-      console.log(`smoke:memory-canon OK (${total}/${total}) — mig 041/042 · keyer conformance · content-id log · bundle 3-table merge · Pass 8/12 no-dup · P2 FSRS handover (seed-once · Again-due-now · plain-set-preserve · independent oracle) · P3 Studio→FSRS (scheme=fsrs · meta_json.fsrs · projections · Studio oracle) · P4 Anki-merge (canon-log ingest+filters · updateSrsState srs-only · recompute · Anki oracle) · P4.1 ''-carrier (no-demotion · manual-wins kept · recompute-carrier · merge-safe) · P7.0a annul (annulId-канон · reject-без-цели · annul-to-null удаляет carrier · ручная ось цела · withoutAnnulled для D1) · R1 source-at-mark (fill-only backfill · do-no-harm · latest-wins · scheduled-only · surface-required) · R2 scan (batched needles · archived-excluded · anchor-carrying · blank-refused)`);
+      console.log(`smoke:memory-canon OK (${total}/${total}) — mig 041/042 · keyer conformance · content-id log · bundle 3-table merge · Pass 8/12 no-dup · P2 FSRS handover (seed-once · Again-due-now · plain-set-preserve · independent oracle) · P3 Studio→FSRS (scheme=fsrs · meta_json.fsrs · projections · Studio oracle) · P4 Anki-merge (canon-log ingest+filters · updateSrsState srs-only · recompute · Anki oracle) · P4.1 ''-carrier (no-demotion · manual-wins kept · recompute-carrier · merge-safe) · P7.0a annul (annulId-канон · reject-без-цели · annul-to-null удаляет carrier · ручная ось цела · withoutAnnulled для D1) · R1 source-at-mark (fill-only backfill · do-no-harm · latest-wins · scheduled-only · surface-required) · R2 scan (batched needles · archived-excluded · anchor-carrying · blank-refused) · R3.1 zombie-mark backfill (boot-seed · canonical seed row)`);
     }
   } catch (e) {
     console.error("smoke:memory-canon CRASH", e);
