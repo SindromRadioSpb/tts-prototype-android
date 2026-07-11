@@ -14,7 +14,7 @@
 
 | # | Пункт | Поверхность | Канон/спека | Статус | Размер |
 |---|---|---|---|---|---|
-| 1 | **P8.6 — ops rollout Mini App** | TG/MA + инфра | `TELEGRAM_MINI_APP_P8_RECON` §15/§19 | спека есть; в основном owner-действия по ранбуку (агент готовит чек-лист и верифицирует) | M |
+| 1 | **P8.6 — ops rollout Mini App** | TG/MA + инфра | `TELEGRAM_MINI_APP_P8_RECON` §15/§19 · **ранбук `MINIAPP_P8_6_OPS_RUNBOOK_2026_07_11.md`** | **агентская часть SHIPPED v3.11.152** (ops-sweep, rollback-drill 30/30, GDPR-teeth, log-гейт; бэкап прода починен — был мёртв 44 дня; диск 84→65%); остались owner-шаги ранбука §2 (UptimeRobot disk-монитор, firewall :8000, ре-ротация AUDIO_UPLOAD_TOKEN, offsite-бэкап) | M |
 | 2 | **Активация нуджей** (`AGENT_NUDGE_ENABLED=1`) + live-verify первого DUE_READY-нуджа и backoff-петли (/notoday, /mute) | TG | `TELEGRAM_P7_3_PROACTIVE_RECON` | код задеплоен, флаг OFF | S |
 | 3 | **P7.3d — premium reason-aware нуджи** (SKILL_GAP_AVAILABLE через selector-сигнал, разные типы возврата; анти-over-claim правила из критики уже зафиксированы) | TG | `TELEGRAM_P7_3d_REASON_AWARE_RECON_2026_07_09.md` | recon готов, код не начат | M |
 | 4 | **Web Push P4.5** — PWA-нудж «N слов ждут» без содержимого; ОБЯЗАН уважать единый кросс-канальный суточный бюджет `notification_preferences` (TG+Push суммарно) | Зал/PWA | `AI_MENTOR_RECON` §8 | не начат | M |

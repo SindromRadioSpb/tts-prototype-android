@@ -2354,6 +2354,35 @@ const _tgPruneInterval = setInterval(() => {
 }, 6 * 3600 * 1000);
 if (_tgPruneInterval.unref) _tgPruneInterval.unref();
 
+// ── P8.6 часовой ops-sweep (§19: session-purge + challenge-expiry cleanup) ──────
+// До него protuхшие user_sessions/miniapp_initdata_seen копились бессрочно (lazy-validate
+// их лишь игнорировал), а agentChallengeRepo.pruneOld/handoffRepo.pruneOld звались только
+// lazy на review-путях — при простое протухшее висело. Каждый purge — одиночный
+// autocommit-стейтмент; пачка под withTxnLock, чтобы стейтменты не всасывались в чужую
+// открытую BEGIN..COMMIT на общем коннекте (критика r11: молчаливый откат при чужом
+// ROLLBACK). Лог — только счётчики (класс A). Boot-тик через 2 мин + каждый час.
+const { withTxnLock } = require("./db/txnLock");
+const handoffRepo = require("./db/handoffRepo");
+async function opsSweepTick() {
+  if (getDbHealth().ready !== true) return;
+  try {
+    await withTxnLock(async () => {
+      const sessions = await identityRepo.purgeStaleSessions();
+      const initSeen = await identityRepo.purgeStaleInitDataSeen();
+      const devices = await identityRepo.purgeOrphanDevices();
+      const ch = await agentChallengeRepo.pruneOld();
+      await handoffRepo.pruneOld();
+      if (sessions || initSeen || devices || ch.challenges || ch.purgedTerminal) {
+        console.log(`[ops-sweep] sessions=${sessions} initdata_seen=${initSeen} devices=${devices} challenges_expired=${ch.challenges} challenges_purged=${ch.purgedTerminal}`);
+      }
+    });
+  } catch (e) { console.error("[ops-sweep] failed:", e && e.message); }
+}
+const _opsSweepBoot = setTimeout(() => { opsSweepTick(); }, 2 * 60 * 1000);
+if (_opsSweepBoot.unref) _opsSweepBoot.unref();
+const _opsSweepInterval = setInterval(opsSweepTick, 3600 * 1000);
+if (_opsSweepInterval.unref) _opsSweepInterval.unref();
+
 // ============================================================================
 // CLG-P5.5 — Artifact Sync, класс B (AI_MENTOR_RECON §5/§9): OPAQUE per-text
 // bundle store под ЯВНЫМ consent'ом (consent_records 'cloud_texts'). Server-side
@@ -10611,6 +10640,8 @@ app.use((err, req, res, next) => {
 // --------------------------------------------------------
 // 13. ЗАПУСК СЕРВЕРА
 // --------------------------------------------------------
-app.listen(PORT, () => {
+// BIND_HOST (P8.6, критика r14): hermetic-гейты поднимают write-enabled инстанс и обязаны
+// мочь запереть его на loopback; без env — прежнее поведение (все интерфейсы, за Traefik).
+app.listen(PORT, process.env.BIND_HOST || undefined, () => {
   console.log(`Server is running on port ${PORT}`);
 });

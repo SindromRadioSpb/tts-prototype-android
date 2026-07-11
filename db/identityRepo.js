@@ -191,6 +191,42 @@ async function recordMiniappInitDataSeen(userId, dedupKey, authDate) {
   return { fresh: r.changes > 0 };
 }
 
+// ── P8.6 ops-sweep: TTL-гигиена auth-таблиц (каждый вызов = ОДИН autocommit-стейтмент,
+// без явных транзакций — txnLock-инвариант; таймер в server.js оборачивает пачку в withTxnLock).
+// Grace 7d: lazy-отказ validate*Session наступает СТРОГО раньше физического удаления
+// (PWA expires_at фиксированный с минта, НЕ sliding — бампается только last_used_at;
+// miniapp: sliding idle ≤ absolute cap), так что purge никогда не убивает живую сессию.
+async function purgeStaleSessions(graceMs = 7 * 86400e3) {
+  const db = getDb(); if (!db) return 0;
+  const cutoff = new Date(Date.now() - graceMs).toISOString();
+  const r = await dbRun(db,
+    `DELETE FROM user_sessions
+      WHERE (revoked_at IS NOT NULL AND revoked_at < ?)
+         OR (COALESCE(absolute_expires_at, expires_at) < ?)`, [cutoff, cutoff]);
+  return r.changes;
+}
+
+// initData replay-ledger: реальная replay-граница = короткий auth_date TTL (1ч); строки
+// старше окна наблюдаемости — чистый рост.
+async function purgeStaleInitDataSeen(maxAgeMs = 7 * 86400e3) {
+  const db = getDb(); if (!db) return 0;
+  const r = await dbRun(db, `DELETE FROM miniapp_initdata_seen WHERE seen_at < ?`,
+    [new Date(Date.now() - maxAgeMs).toISOString()]);
+  return r.changes;
+}
+
+// Каждый минт сессии создаёт СВОЮ devices-строку (miniapp: каждый launch) — без этой чистки
+// devices растут 1:1 с purged-сессиями. Удаляем только осиротевшие И давно не виденные.
+async function purgeOrphanDevices(graceMs = 7 * 86400e3) {
+  const db = getDb(); if (!db) return 0;
+  const r = await dbRun(db,
+    `DELETE FROM devices
+      WHERE (last_seen_at IS NULL OR last_seen_at < ?)
+        AND id NOT IN (SELECT device_id FROM user_sessions WHERE device_id IS NOT NULL)`,
+    [new Date(Date.now() - graceMs).toISOString()]);
+  return r.changes;
+}
+
 // ── consent (append-only history) ────────────────────────────────────────────
 async function recordConsent(userId, consentKey, granted, consentVersion) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
@@ -306,6 +342,7 @@ module.exports = {
   ensureOwnerUser, createSession, validateSession, revokeSession, listSessions,
   createMiniappSession, validateMiniappSession, getUserAuthContextVersion,
   bumpUserAuthContextVersion, recordMiniappInitDataSeen,
+  purgeStaleSessions, purgeStaleInitDataSeen, purgeOrphanDevices,
   recordConsent, listConsents, audit,
   listUserScopedTables, exportUserData, deleteUserData, countUserRows,
   SESSION_TTL_MS,

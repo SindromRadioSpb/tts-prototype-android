@@ -230,14 +230,21 @@ async function recentlyExposedSet(userId, itemKeys, nowMs) {
   return new Set(rows.map((r) => String(r.item_key)));
 }
 
-// ── prune (TTL-триггер) ────────────────────────────────────────────────────────
+// ── prune (TTL-триггер: lazy на review-путях + часовой ops-sweep P8.6) ─────────
+const TERMINAL_RETENTION_MS = 7 * 86400e3;   // >> annul-окна 24ч и lost-response replay-горизонта
+
 async function pruneOld() {
-  const db = getDb(); if (!db) return { challenges: 0, exposure: 0 };
-  let challenges = 0, exposure = 0;
+  const db = getDb(); if (!db) return { challenges: 0, exposure: 0, purgedTerminal: 0 };
+  let challenges = 0, exposure = 0, purgedTerminal = 0;
   try {
+    // 'active' — по факту истечения; 'processing' (claimed — чей-то answer в полёте) — только
+    // с grace в полный TTL: критика P8.6 (r11) — prune, стреляющий внутри чужого окна
+    // claim→complete, давал complete() 0-changes → потеря replay-источника result_*.
     challenges = (await dbRun(db,
-      `UPDATE agent_challenges SET status='expired' WHERE status IN ('active','processing') AND expires_at < ?`,
-      [nowIso()])).changes;
+      `UPDATE agent_challenges SET status='expired'
+        WHERE (status='active' AND expires_at < ?)
+           OR (status='processing' AND expires_at < ?)`,
+      [nowIso(), new Date(Date.now() - CHALLENGE_TTL_MS).toISOString()])).changes;
     // класс-C стимул не переживает истечение (R15): зануляем текст завершённых/истёкших/отменённых
     await _purgeClassC(db, `status IN ('completed','expired','declined','cancelled')`, []);
   } catch (_) {}
@@ -245,7 +252,15 @@ async function pruneOld() {
     exposure = (await dbRun(db, `DELETE FROM tg_stimulus_exposure WHERE shown_at < ?`,
       [new Date(Date.now() - EXPOSURE_TTL_MS).toISOString()])).changes;
   } catch (_) {}
-  return { challenges, exposure };
+  try {
+    // терминальные строки — чистый рост (annul резолвится по review_log, не по challenge-строке);
+    // физическое удаление bound'ит единственную таблицу, растущую на каждый review
+    purgedTerminal = (await dbRun(db,
+      `DELETE FROM agent_challenges
+        WHERE status IN ('completed','expired','declined','cancelled') AND created_at < ?`,
+      [new Date(Date.now() - TERMINAL_RETENTION_MS).toISOString()])).changes;
+  } catch (_) {}
+  return { challenges, exposure, purgedTerminal };
 }
 
 module.exports = {

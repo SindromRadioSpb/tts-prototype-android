@@ -144,6 +144,23 @@ async function api(base, method, p, { cookie, csrf, headers, body } = {}) {
     eq((ex.json.tables.consent_records || []).length === 2, "consent history must carry both grant+revoke rows");
     eq((ex.json.tables.user_sessions || []).every((s) => !("token_hash" in s) && !("csrf_token" in s)), "export leaked session token_hash/csrf");
 
+    // P8.6 GDPR-teeth seed (критика wf_2e4d3fe5 r14/r15): user_id-скан слеп к chat-keyed PII —
+    // NULL-user строка bot_action_log несёт telegram_chat_id и чистится ТОЛЬКО
+    // purgeTelegramTraceForUser ДО каскада. Сидируем link+residue напрямую (busyTimeout:
+    // сервер жив, WAL) и после delete ассертим прямым SQL, что residue ушёл.
+    const RESIDUE_CHAT = "424242424242";
+    {
+      const sqlite3w = require(path.join(REPO, "node_modules", "sqlite3"));
+      const wdb = new sqlite3w.Database(path.join(scratch, "app.db"));
+      wdb.configure("busyTimeout", 5000);
+      const wrun = (sql, p) => new Promise((res2, rej) => wdb.run(sql, p || [], function (e) { e ? rej(e) : res2(this); }));
+      await wrun(
+        `INSERT INTO channel_links (id,user_id,channel,telegram_user_id,telegram_chat_id,status,consent_version,confirmed_at)
+         VALUES ('cl_gdpr',?,'telegram',?,?,'active','tg-v1',datetime('now'))`, [userId1, RESIDUE_CHAT, RESIDUE_CHAT]);
+      await wrun(`INSERT INTO bot_action_log (user_id, channel, telegram_chat_id, command, status) VALUES (NULL,'telegram',?,'start','ignored')`, [RESIDUE_CHAT]);
+      await new Promise((r) => wdb.close(() => r()));
+    }
+
     // delete: confirm guard → forget-the-stream → 401 → new owner on re-login
     const d400 = await api(BASE, "POST", "/api/account/delete", { cookie: cookieA, csrf: csrfA, body: {} });
     eq(d400.status === 400, "delete without confirm must 400");
@@ -169,14 +186,38 @@ async function api(base, method, p, { cookie, csrf, headers, body } = {}) {
     const all = (sql, p) => new Promise((res2, rej) => db.all(sql, p || [], (e, r) => (e ? rej(e) : res2(r))));
     const jj = await all("SELECT user_id FROM deletion_journal");
     eq(jj.length === 1 && jj[0].user_id === userId1, "deletion_journal must keep exactly the erased user_id");
+    // P8.6: НЕЗАВИСИМАЯ энумерация user_id-таблиц (свой sqlite_master+PRAGMA, НЕ
+    // listUserScopedTables — им delete сам выбирал таблицы; общий баг был бы невидим обеим
+    // сторонам) + динамический zero-rows по ВСЕМ таблицам, не по фиксированной четвёрке.
+    const tRows = await all("SELECT name FROM sqlite_master WHERE type='table'");
+    const userTables = [];
+    for (const { name } of tRows) {
+      if (name === "deletion_journal" || name === "sqlite_sequence") continue;
+      const cols = await all(`PRAGMA table_info(${JSON.stringify(name)})`);
+      if (cols.some((c) => c.name === "user_id")) userTables.push(name);
+    }
+    const mustHave = ["miniapp_initdata_seen", "handoff_tokens", "agent_challenges", "tg_stimulus_exposure",
+      "channel_pairing_tokens", "channel_links", "devices", "user_sessions", "consent_records", "audit_log"];
+    const missing = mustHave.filter((t) => !userTables.includes(t));
+    eq(missing.length === 0, `independent sweep enumeration misses: ${missing.join(",")}`);
     let leftover = 0;
-    for (const t of ["devices", "user_sessions", "consent_records", "audit_log"]) {
+    for (const t of userTables) {
       const r = await all(`SELECT COUNT(*) c FROM ${JSON.stringify(t)} WHERE user_id = ?`, [userId1]);
       leftover += Number(r[0].c) || 0;
     }
     const u = await all("SELECT COUNT(*) c FROM users WHERE id = ?", [userId1]);
     leftover += Number(u[0].c) || 0;
-    eq(leftover === 0, `forget-the-stream leftover rows: ${leftover}`);
+    eq(leftover === 0, `forget-the-stream leftover rows across ${userTables.length} tables: ${leftover}`);
+    // chat-keyed residue: NULL-user bot_action_log строка обязана уйти вместе с delete
+    const resid = await all("SELECT COUNT(*) c FROM bot_action_log WHERE telegram_chat_id = ?", [RESIDUE_CHAT]);
+    eq(Number(resid[0].c) === 0, "NULL-user bot_action_log residue by telegram_chat_id survived account-delete");
+    // кросс-проверка: живой listUserScopedTables == независимая энумерация (дрейф = баг энумератора)
+    const { initDb: initDbX, closeDb: closeDbX } = require(path.join(REPO, "db", "sqlite"));
+    await initDbX(path.join(scratch, "app.db"));
+    const liveList = (await require(path.join(REPO, "db", "identityRepo")).listUserScopedTables()).slice().sort();
+    await closeDbX();
+    eq(JSON.stringify(liveList) === JSON.stringify(userTables.slice().sort()),
+      `listUserScopedTables diverges from independent enumeration (live=${liveList.length}, own=${userTables.length})`);
     const adel = await all("SELECT user_id FROM audit_log WHERE action = 'account_delete'");
     eq(adel.length === 1 && adel[0].user_id == null, "audit account_delete row must survive with user_id NULL");
     const afail = await all("SELECT COUNT(*) c FROM audit_log WHERE action = 'login_failed'");
@@ -190,12 +231,12 @@ async function api(base, method, p, { cookie, csrf, headers, body } = {}) {
     try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {}
     try { fs.rmSync(scratch2, { recursive: true, force: true }); } catch (_) {}
   }
-  const total = 26;
+  const total = 29;
   if (failures.length) {
     console.error(`smoke:auth FAIL (${total - failures.length}/${total})`);
     for (const f of failures) console.error("  ✗ " + f);
     process.exitCode = 1;
   } else {
-    console.log(`smoke:auth OK (${total}/${total}) — CLG-P1: fail-closed bootstrap · cookie flags · CSRF double-submit · consent history · session revoke · dynamic export (no secret leak) · forget-the-stream delete + deletion_journal · new-owner re-login · per-IP 429 limiter · healthz disk watermark`);
+    console.log(`smoke:auth OK (${total}/${total}) — CLG-P1: fail-closed bootstrap · cookie flags · CSRF double-submit · consent history · session revoke · dynamic export (no secret leak) · forget-the-stream delete + deletion_journal (P8.6: независимая энумерация, zero-rows по ВСЕМ user_id-таблицам, chat-id residue, кросс-чек listUserScopedTables) · new-owner re-login · per-IP 429 limiter · healthz disk watermark`);
   }
 })();
