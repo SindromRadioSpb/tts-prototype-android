@@ -57,9 +57,14 @@ async function buildHomePayload(userId, { lang, nowMs } = {}) {
     }
   }
 
+  // R3.2 (ROOM_DUE_CONTINUITY, owner 2026-07-11) — counter typology parity with the Зал badge:
+  // «В работе» = words with a manual level (l1–l4), the same definition the Room strip shows, so
+  // the two surfaces list the SAME four counters (К повторению · Сделано · В работе · В расписании).
+  const inProgress = ["l1", "l2", "l3", "l4"].reduce((a, s) => a + (Number(ctx.manual && ctx.manual[s]) || 0), 0);
+
   // Closed payload shape — nothing beyond these keys ever ships to the shell.
   return {
-    counts: { due_now: ctx.counts.due_now, scheduled: ctx.counts.scheduled },
+    counts: { due_now: ctx.counts.due_now, scheduled: ctx.counts.scheduled, in_progress: inProgress },
     today: { completed: today.completed, by_type: today.by_type },
     last_review_at: ctx.last_review_at || null,
     recommendation,

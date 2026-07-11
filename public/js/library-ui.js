@@ -915,10 +915,66 @@ function _dueBadgeEl(extraClass) {
   sg.appendChild(el('b', { class: 'db-n', text: '0', attrs: { 'data-streak-cur': '1' } }));
   sg.appendChild(el('span', { class: 'db-streak-goal', attrs: { 'data-streak-goal': '1' }, text: '' }));
   sg.appendChild(el('span', { class: 'db-streak-cal', text: ' 📅' }));   // D7.1 — affordance: tap the streak → activity heatmap
+  // R3.2 — instant tooltip for the flame (a new user has no idea what «🔥 2» means); the full
+  // typology lives one tap away in the ⓘ sheet.
+  sg.title = tt('room.morph.stats.streakTip', 'Стрик: дней подряд с выполненной целью. «сегодня N/M» — прогресс дневной цели на этом устройстве. Тап — календарь.');
   sg.addEventListener('click', (e) => { e.stopPropagation(); openStudyHeatmap(); });
   sg.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); openStudyHeatmap(); } });
   box.appendChild(sg);
+  // R3.2 (owner 2026-07-11) — ⓘ: one tap explains EVERY counter (badge + Mini App share the
+  // typology; the numbers themselves must never need reverse-engineering).
+  const info = el('button', { class: 'db-info', text: 'ⓘ', attrs: { type: 'button', 'aria-label': tt('room.morph.stats.title', 'Мои показатели'), title: tt('room.morph.stats.title', 'Мои показатели') } });
+  info.addEventListener('click', (e) => { e.stopPropagation(); openStatsInfo(); });
+  box.appendChild(info);
   return box;
+}
+// R3.2 — «Мои показатели»: the counter typology, one definition per number, cross-surface scope
+// spelled out (Зал + Telegram). Values are computed FRESH on open (not the possibly-stale badge
+// paint); «Сделано сегодня» uses the same canon as the Mini App tile (countTodayAllReviews).
+let _statsSheetOpen = false;
+async function openStatsInfo() {
+  if (_statsSheetOpen) return; _statsSheetOpen = true;
+  try {
+    let schedTotal = 0, todayAll = 0;
+    try { schedTotal = Number((await localDb.dbQuery("SELECT COUNT(*) c FROM word_status WHERE srs_due IS NOT NULL", []))[0].c) || 0; } catch (_) {}
+    try {
+      const d = new Date(); d.setHours(0, 0, 0, 0);
+      todayAll = await localDb.countTodayAllReviews(d.toISOString());
+    } catch (_) {}
+    const c = _dueCounts || { dueNow: 0, inProgress: 0 };
+    const sv = _streakView;
+    const ov = el('div', { class: 'list-picker-ov heatmap-sheet-ov' });
+    const box = el('div', { class: 'list-picker heatmap-sheet room-stats-sheet' });
+    box.appendChild(el('div', { class: 'list-picker-title', text: 'ⓘ ' + tt('room.morph.stats.title', 'Мои показатели') }));
+    const body = el('div', { class: 'room-stats-body', attrs: { dir: uiDirRoom() } });
+    const row = (num, labelKey, labelFb, expKey, expFb) => {
+      const r = el('div', { class: 'room-stats-row' });
+      r.appendChild(el('div', { class: 'room-stats-head', text: String(num) + ' — ' + tt(labelKey, labelFb) }));
+      r.appendChild(el('div', { class: 'room-stats-exp', text: tt(expKey, expFb) }));
+      return r;
+    };
+    body.appendChild(row(c.dueNow || 0, 'room.morph.study.due', 'К повторению',
+      'room.morph.stats.dueExp', 'Слова, чей срок повторения наступил. Одна и та же цифра в Зале и в Telegram-наставнике.'));
+    body.appendChild(row(todayAll, 'room.morph.stats.todayAll', 'Сделано сегодня',
+      'room.morph.stats.todayAllExp', 'Повторения за сегодня на всех поверхностях (Зал + Telegram), после синхронизации. Пропуски «Не знаю» не считаются.'));
+    body.appendChild(row(c.inProgress || 0, 'room.morph.study.inProgress', 'В работе',
+      'room.morph.stats.inprogExp', 'Слова с вашей отметкой уровня (1–4) — активный набор, который вы учите.'));
+    body.appendChild(row(schedTotal, 'room.morph.stats.sched', 'В расписании',
+      'room.morph.stats.schedExp', 'Все слова с расписанием повторений — включая выученные и импортированные из Anki.'));
+    body.appendChild(row('🔥 ' + ((sv && sv.cur) || 0), 'room.morph.stats.streak', 'Стрик',
+      'room.morph.stats.streakExp', 'Дней подряд с выполненной дневной целью. «сегодня N/M» рядом — прогресс цели (M повторений в день) на этом устройстве.'));
+    box.appendChild(body);
+    const close = () => { _statsSheetOpen = false; try { ov.remove(); } catch (_) {} document.removeEventListener('keydown', onKey); };
+    const done = el('button', { class: 'list-picker-done', attrs: { type: 'button' } }); done.textContent = tt('room.corpus.lists.done', 'Готово');
+    done.addEventListener('click', close);
+    box.appendChild(done);
+    ov.appendChild(box);
+    ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(ov);
+    try { done.focus(); } catch (_) {}
+  } catch (_) { _statsSheetOpen = false; }
 }
 function _paintDueBadge(box, c) {
   const dueShow = !!(c && (c.inProgress > 0 || c.dueNow > 0));

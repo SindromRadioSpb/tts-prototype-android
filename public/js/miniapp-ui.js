@@ -66,7 +66,10 @@
     retry: { ru: "Повторить", en: "Retry" },
     open_pwa: { ru: "Открыть LinguistPro", en: "Open LinguistPro" },
     home_title: { ru: "Наставник", en: "Mentor" },
-    due_now: { ru: "Слов к повторению", en: "Words due" },
+    due_now: { ru: "К повторению", en: "Due now" },
+    in_progress: { ru: "В работе", en: "In progress" },
+    type_read: { ru: "📖 Чтение", en: "📖 Reading" },
+    type_reading: { ru: "📖 Чтение (тап)", en: "📖 Reading (tap)" },
     done_today: { ru: "Сделано сегодня", en: "Done today" },
     scheduled: { ru: "В расписании", en: "Scheduled" },
     last_review: { ru: "Последнее повторение", en: "Last review" },
@@ -220,15 +223,24 @@
       s.appendChild(el("div", "ma-stat-label", label));
       return s;
     };
+    // R3.2 — the SAME four counters as the Зал badge (typology parity): К повторению ·
+    // Сделано сегодня · В работе · В расписании. 2×2 on narrow screens (CSS wrap).
     stats.appendChild(stat(t("due_now"), counts.due_now != null ? counts.due_now : "—"));
     stats.appendChild(stat(t("done_today"), today.completed != null ? today.completed : "—"));
+    stats.appendChild(stat(t("in_progress"), counts.in_progress != null ? counts.in_progress : "—"));
     stats.appendChild(stat(t("scheduled"), counts.scheduled != null ? counts.scheduled : "—"));
     box.appendChild(stats);
 
-    // exercise types today (only when something was done — no empty noise)
+    // exercise types today (only when something was done — no empty noise). R3.2: the raw
+    // channel prefixes are localized through the SAME mode labels the buttons use (config-string
+    // match by construction — a user must recognize «Диктант ×14» as the button they pressed).
+    const TYPE_LABEL_KEY = { cloze: "mode_cloze", reverse: "mode_reverse", dictate: "mode_dictate", listen: "mode_listen", read: "type_read", reading: "type_reading" };
     const types = Object.keys(today.by_type || {});
     if (types.length) {
-      box.appendChild(el("p", "ma-last", t("types_line") + types.map((k) => k + " ×" + today.by_type[k]).join(", ")));
+      box.appendChild(el("p", "ma-last", t("types_line") + types.map((k) => {
+        const lk = TYPE_LABEL_KEY[k];
+        return (lk && STR[lk] ? t(lk) : k) + " ×" + today.by_type[k];
+      }).join(", ")));
     }
 
     const last = el("p", "ma-last");

@@ -410,6 +410,20 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         out.r2ScanRefusesEmpty = Array.isArray(none) && none.length === 0;
       } catch (e) { out.r2ScanErr = String(e && e.message || e); }
 
+      // ── R3.2 countTodayAllReviews — SAME canon as server getTodayActivity: review-kind only
+      // (skip is not «сделано»), annul-excluded, since the given local midnight.
+      try {
+        const K32 = "היום32#noun";
+        await ldb.appendReviewLog([
+          { id: "r32a", item_key: K32, kind: "review", reviewed_at: "2099-12-01T10:00:00.000Z", grade: 3, source: "s", channel: "read:mc", meta: {} },
+          { id: "r32b", item_key: K32, kind: "review", reviewed_at: "2099-12-01T11:00:00.000Z", grade: 1, source: "s", channel: "reverse:ma", meta: {} },
+          { id: "r32c", item_key: K32, kind: "skip", reviewed_at: "2099-12-01T12:00:00.000Z", grade: 2, source: "s", channel: "read", meta: {} },
+          { id: "r32d", item_key: K32, kind: "review", reviewed_at: "2099-11-30T10:00:00.000Z", grade: 3, source: "s", channel: "read:mc", meta: {} },
+        ]);
+        await ldb.appendReviewLog({ id: LC.annulId("r32b"), item_key: K32, kind: "annul", reviewed_at: "2099-12-01T12:30:00.000Z", grade: null, source: "op", meta: { annul_of: "r32b" } });
+        out.r32TodayCount = await ldb.countTodayAllReviews("2099-12-01T00:00:00.000Z");
+      } catch (e) { out.r32Err = String(e && e.message || e); }
+
       return out;
     });
 
@@ -488,6 +502,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.r2ScanSkipsArchived === true, "R2: scan returned a sentence from an ARCHIVED text");
     eq(res.r2ScanCarriesAnchor === true, "R2: scan rows lack text_key/order_index/he_plain (heal write-back needs the anchor)");
     eq(res.r2ScanRefusesEmpty === true, "R2: blank needles must return [] (never a full-table dump)");
+    eq(res.r32TodayCount === 1, "R3.2: countTodayAllReviews must count ONLY today's non-annulled review-kind rows (expected 1, got " + res.r32TodayCount + ")" + (res.r32Err ? " err:" + res.r32Err : ""));
     eq(res.annulD1Filter === true, "P7.0a: FsrsCore.withoutAnnulled did not exclude the annulled row (D1 evidence poisoning)");
 
     // ── R3.1 zombie-mark backfill — a pre-P5.6 mark-only word (manual level, NO schedule, NO seed)
@@ -518,7 +533,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
 
     eq(errs.length === 0, "page errors: " + errs.join(" | "));
 
-    const total = 75;
+    const total = 76;
     if (failures.length) {
       console.error(`smoke:memory-canon FAIL (${total - failures.length}/${total})`);
       for (const f of failures) console.error("  ✗ " + f);

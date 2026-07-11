@@ -82,6 +82,11 @@ const dbGet = (sql, p = []) => new Promise((res, rej) => getDb().get(sql, p, (e,
   ok("payload: today.completed == 2", payload.today.completed === 2);
   ok("payload: closed key set", JSON.stringify(Object.keys(payload).sort()) ===
     JSON.stringify(["counts", "last_review_at", "recommendation", "today"]));
+  // R3.2 — counter typology parity with the Зал badge: counts is ALSO a closed set, and
+  // in_progress == manual l1–l4 words (the m1 'l2' mark → exactly 1).
+  ok("payload: counts closed key set (R3.2)", JSON.stringify(Object.keys(payload.counts).sort()) ===
+    JSON.stringify(["due_now", "in_progress", "scheduled"]));
+  ok("payload: counts.in_progress == 1 (the l2 mark)", payload.counts.in_progress === 1);
   const raw = JSON.stringify(payload);
   ok("privacy: no item_key in payload", raw.indexOf("item_key") === -1 && raw.indexOf("pid:9999") === -1);
   ok("privacy: no Hebrew content in payload", !/[֐-׿]/.test(raw));

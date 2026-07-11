@@ -2343,6 +2343,18 @@ window.I18N_LOCALES.en = {
         aheadUnservable: "These words can't be assembled on this device yet — open their texts in the Reading Room.",
         wordOnlyNote: "🔤 No context: this word has no sentence on this device yet — one will appear after you read its text.",
       },
+      stats: {
+        title: "My numbers",
+        streakTip: "Streak: consecutive days with the daily goal met. \"today N/M\" is this device's goal progress. Tap for the calendar.",
+        dueExp: "Words whose review time has arrived. The same number in the Room and the Telegram mentor.",
+        todayAll: "Done today",
+        todayAllExp: "Today's reviews across all surfaces (Room + Telegram), after sync. \"Don't know\" skips don't count.",
+        inprogExp: "Words with your level mark (1–4) — the active set you're learning.",
+        sched: "Scheduled",
+        schedExp: "All words with a review schedule — including known ones and Anki imports.",
+        streak: "Streak",
+        streakExp: "Consecutive days with the daily goal met. \"today N/M\" next to it is this device's goal progress (M reviews per day).",
+      },
       legend: {
         title: "What do the confidence badges mean?",
         exact: "the offline dictionary recognized the word unambiguously",

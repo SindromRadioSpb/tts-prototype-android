@@ -2767,6 +2767,25 @@ export async function updateSrsState(itemKey, sched) {
     return true;
   } catch (_) { return false; }
 }
+// R3.2 (ROOM_DUE_CONTINUITY) — «Сделано сегодня» by the SAME canon the server's getTodayActivity
+// uses (learnerGraphRepo): kind='review' ONLY (a skip is not «сделано»), annul-excluded, since the
+// local midnight the caller passes. Down-synced agent rows (Telegram/Mini App) live in the same
+// local log, so this number CONVERGES with the Mini App home tile once synced — one definition,
+// two surfaces. Annul filtering is done in JS (no JSON1 dependency in wa-sqlite builds).
+export async function countTodayAllReviews(sinceIso) {
+  const since = String(sinceIso || "");
+  if (!since) return 0;
+  try {
+    const ann = new Set();
+    for (const a of (await q(`SELECT meta_json FROM review_log WHERE kind = 'annul'`, [])) || []) {
+      try { const m = a.meta_json ? JSON.parse(a.meta_json) : null; if (m && m.annul_of) ann.add(String(m.annul_of)); } catch (_) {}
+    }
+    const rows = await q(`SELECT id FROM review_log WHERE kind = 'review' AND reviewed_at >= ?`, [since]);
+    let n = 0;
+    for (const r of rows || []) { if (!ann.has(String(r.id))) n++; }
+    return n;
+  } catch (_) { return 0; }
+}
 // R1 source-at-mark (ROOM_DUE_CONTINUITY §3) — persist/backfill the SOURCE occurrence on an
 // ALREADY-SCHEDULED word without touching status or schedule. `fillOnly` (mark path): write only
 // when the word has NO source yet — a mark is incidental, never churns a proven source (R11
