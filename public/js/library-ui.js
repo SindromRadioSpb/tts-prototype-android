@@ -875,7 +875,6 @@ function uiDirRoom() { return (document.documentElement && document.documentElem
 // (getSrsSchedule overdue, «ignore» excluded). Pure arithmetic lives in ReaderMorph.dueCounts (gated).
 // Scope = ALL your words (the daily-review habit is cross-text; serving them in any text is D2).
 let _dueCounts = null;
-let _dueReviewCount = 0;  // D2 — count of due words the cross-text queue can actually serve (sourced)
 let _streakView = null;   // D7 — last computed streak/goal (pure ReaderMorph.streakView over study_day)
 // D7 — TODAY as a LOCAL calendar day-string ('YYYY-MM-DD'). Computed in the UI layer ONLY (the engine
 // stays Date-free for determinism, invariant #5); injected into the pure streak fold.
@@ -972,9 +971,6 @@ async function refreshDueBadge() {
     try { _streakView = window.ReaderMorph.streakView((await localDb.getStudyDays()) || [], window.ReaderMorph.STREAK_GOAL_CAP, _localDayStr()); }
     catch (_) { _streakView = null; }
   }
-  // D2 — sourced-due count for the home CTA (what the cross-text queue can actually serve; never over-claim).
-  try { _dueReviewCount = (typeof localDb.getDueReviewCount === 'function') ? (await localDb.getDueReviewCount(Date.now())) : ((_dueCounts && _dueCounts.dueNow) || 0); }
-  catch (_) { _dueReviewCount = 0; }
   document.querySelectorAll('[data-due-badge]').forEach((b) => _paintDueBadge(b, _dueCounts));
   _paintDueCTA();
 }
@@ -984,7 +980,13 @@ function _paintDueCTA() {
   const cta = document.getElementById('roomDueCta'); if (!cta) return;
   const reader = $('roomReader');
   const mentor = $('roomMentorView');   // P9 — дом наставника тоже «не home»: CTA не поверх вида
-  const n = _dueReviewCount || 0;   // sourced-due only → the CTA never promises more than the queue serves
+  // R3 (ROOM_DUE_CONTINUITY §3) — ONE number everywhere: the CTA shows the SAME schedule-due count
+  // as the badge (shared predicate: due<=now, ignore excluded — dueCounts == getDueWithSource by
+  // construction). The old sourced-only count under-claimed after R2 (the ladder serves unsourced
+  // words too) and HID the CTA entirely for a fully-unsourced backlog — itself a dead end. The
+  // honest-residue guarantee moved to click-time: a due word that still can't be assembled gets
+  // the R2 «нельзя собрать на этом устройстве» empty-state, never a silent dead end.
+  const n = (_dueCounts && _dueCounts.dueNow) || 0;
   const show = n > 0 && !!(reader && reader.hidden) && !(mentor && !mentor.hidden);   // home only — not while reading
   cta.hidden = !show;
   if (show) cta.textContent = '🔁 ' + tt('room.morph.study.due', 'К повторению') + ': ' + n + ' →';

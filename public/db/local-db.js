@@ -2500,21 +2500,10 @@ export async function getDueWithSource(nowMs) {
     return out;
   } catch (_) { return []; }
 }
-// D2 — count of due words the cross-text queue can ACTUALLY serve = scheduled-due (srs_due<=now, not
-// ignore) AND carrying a stored source (srs_surface). Drives the home «🔁 К повторению» CTA so it never
-// over-claims: a word recall-tested BEFORE migration 060 (or whose source text was deleted) has srs_due
-// but no source → it can't be re-clozed cross-text yet → it must NOT inflate the CTA (R11 honest count;
-// it still trains, and gets sourced, when its own text is opened). The D3 schedule badge keeps dueNow.
-export async function getDueReviewCount(nowMs) {
-  const now = Number(nowMs) || 0;
-  try {
-    const rows = await q(`SELECT srs_due FROM word_status
-                           WHERE srs_due IS NOT NULL AND status != 'ignore' AND srs_surface IS NOT NULL`, []);
-    let n = 0;
-    for (const w of (rows || [])) { const d = w.srs_due ? Date.parse(w.srs_due) : 0; if (d <= now) n++; }
-    return n;
-  } catch (_) { return 0; }
-}
+// (R3, ROOM_DUE_CONTINUITY §3: the sourced-only getDueReviewCount is RETIRED — after the R2
+// serve-unsourced ladder the cross-text queue serves schedule-due words with or without a stored
+// source, so the CTA reads the same dueCounts.dueNow as the badge; residue honesty moved to the
+// click-time «нельзя собрать» empty-state.)
 // D2 — fetch a sentence for the cross-text queue: by sentence_id (fast path), else re-anchor by
 // text_key + order_index (survives a delete/re-import that regenerated the sentence id — bookmarks pattern).
 // Returns the sentence row (he_plain/he_niqqud/ru + default audio_asset_key) or null.
