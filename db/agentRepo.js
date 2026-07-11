@@ -124,23 +124,29 @@ async function purgeExplanationContent(userId, reason = "consent_revoked") {
   return { purged: n };
 }
 
-// PAS-A1 same-day dedupe (корпус): свежее сегодняшнее объяснение того же якоря/языка.
+// PAS-A1/A4 same-day dedupe: свежее сегодняшнее объяснение того же якоря/языка/вида.
+// kind различает sentence (body.kind отсутствует) и word (kind='word' + матч по слову) —
+// иначе word-объяснение того же sentence_id маскировало бы sentence-dedupe и наоборот.
 // Возвращает МИНИМУМ для повторного ответа (не факты) либо null.
-async function getFreshExplanation(userId, sentenceId, { language } = {}) {
+async function getFreshExplanation(userId, sentenceId, { language, kind, word } = {}) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
-  const row = await dbGet(db,
+  const rows = await dbAll(db,
     `SELECT id, body_json, created_at FROM agent_explanations
-      WHERE user_id = ? AND sentence_id = ? ORDER BY rowid DESC LIMIT 1`,
+      WHERE user_id = ? AND sentence_id = ? ORDER BY rowid DESC LIMIT 10`,
     [userId, String(sentenceId)]);
-  if (!row) return null;
-  let b = null;
-  try { b = JSON.parse(row.body_json); } catch (_) { return null; }
-  if (!b || b.purge_reason || b.text == null) return null;
-  if (language && b.language !== language) return null;
   const todayUtc = new Date().toISOString().slice(0, 10);
-  if (String(row.created_at || "").slice(0, 10) !== todayUtc) return null;
-  return { id: row.id, text: String(b.text), llm_used: b.llm_used === true,
-           provider: b.provider || null, model: b.model || null };
+  for (const row of rows || []) {
+    let b = null;
+    try { b = JSON.parse(row.body_json); } catch (_) { continue; }
+    if (!b || b.purge_reason || b.text == null) continue;
+    if (language && b.language !== language) continue;
+    if ((kind || null) !== (b.kind || null)) continue;
+    if (kind === "word" && String(b.word || "") !== String(word || "")) continue;
+    if (String(row.created_at || "").slice(0, 10) !== todayUtc) continue;
+    return { id: row.id, text: String(b.text), llm_used: b.llm_used === true,
+             provider: b.provider || null, model: b.model || null };
+  }
+  return null;
 }
 
 // ── P9 «дом наставника»: история объяснений (list, строго user-scoped) ───────

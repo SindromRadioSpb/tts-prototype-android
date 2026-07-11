@@ -306,4 +306,156 @@ async function explain(ctx, { text_key, order_index, source, work_id } = {}) {
   };
 }
 
-module.exports = { explain, buildExplainCore, SCOPE_SENTENCE_ONLY };
+// ── PAS-A4: «объяснить это слово в этом предложении» (tap-карточка Зала) ────────
+// Displayed-чтение карточки (offline-резолвер ИЛИ Dicta-context промоушен) приходит от
+// клиента как ЗАЯВЛЕННЫЙ факт с провенансом client_card — сервер его НЕ переутверждает
+// (R9 derived≠asserted), но промпт обязан подавать его ОСНОВНЫМ: критика wf_35f46603 —
+// серверный offline-резолв на гомографе противоречил бы карточке прямо под ней.
+const DISPLAYED_PROV = new Set(["offline", "dicta-context", "baked-context"]);
+function sanitizeDisplayed(d) {
+  if (!d || typeof d !== "object") return null;
+  const s = (v, n) => (v == null || v === "" ? null : String(v).slice(0, n));
+  const out = {
+    lemma: s(d.lemma, 40), root: s(d.root, 20), binyan: s(d.binyan, 20), pos: s(d.pos, 20),
+    meaning: s(d.meaning, 80),
+    provenance: DISPLAYED_PROV.has(String(d.provenance)) ? String(d.provenance) : "offline",
+  };
+  return (out.lemma || out.root || out.pos || out.meaning) ? out : null;
+}
+
+// Pure (гейтится напрямую unit-ассертами — capture-mock беззуб, критика r11): displayed —
+// основной блок, server_resolver — вторичный, diverges выставлен ДЕТЕРМИНИРОВАННО сервером.
+function buildWordPromptPayload({ language, surface, displayed, resolver, diverges, sentence, translation, learner }) {
+  return {
+    language, word: { surface },
+    displayed_reading: displayed || null,
+    server_resolver: resolver || null,
+    readings_diverge: !!diverges,
+    sentence, translation: translation || null,
+    learner: learner || {},
+  };
+}
+function _wordSystemPrompt(language) {
+  return language === "en"
+    ? "You are the LinguistPro Hebrew mentor. Explain how the given word works IN THIS SENTENCE in 2-5 short warm English sentences. displayed_reading is what the learner's card shows — treat it as the primary reading. If readings_diverge is true, present the displayed reading as the main one and mention the alternative as a possibility, never as a verdict. Never invent morphology beyond the given facts. Output PLAIN PROSE ONLY: no backticks, no braces, no JSON, no field names."
+    : "Ты — наставник LinguistPro по ивриту. Объясни, как данное слово работает В ЭТОМ предложении, 2–5 короткими тёплыми фразами по-русски. displayed_reading — то, что показывает карточка ученика: подавай его как ОСНОВНОЕ чтение. Если readings_diverge=true — основным остаётся чтение карточки, альтернативу упомяни как возможность, не как вердикт. Не выдумывай морфологию сверх данных фактов. Пиши ТОЛЬКО обычным текстом: без обратных кавычек, фигурных скобок, JSON и имён полей.";
+}
+function _wordFallback({ surface, displayed, resolver, learner, translation }, language) {
+  const en = language === "en";
+  const lines = [];
+  const src = displayed || resolver || null;
+  if (src) {
+    const bits = [];
+    if (src.meaning) bits.push(src.meaning);
+    if (src.root) bits.push((en ? "root " : "корень ") + src.root);
+    if (src.binyan) bits.push((en ? "binyan " : "биньян ") + src.binyan);
+    if (src.pos) bits.push((en ? "part of speech " : "часть речи ") + src.pos);
+    if (bits.length) lines.push("• " + surface + ": " + bits.join(", "));
+  }
+  if (learner && learner.due) lines.push(en ? "This word is due for review." : "Это слово пора повторить.");
+  else if (learner && learner.weak) lines.push(en ? "This is one of your weak words." : "Это одно из ваших слабых слов.");
+  if (translation) lines.push((en ? "Sentence: " : "Предложение: ") + translation);
+  if (!lines.length) lines.push(en ? "No offline facts found for this word." : "Офлайн-фактов по этому слову не нашлось.");
+  return lines.join("\n");
+}
+
+async function explainWord(ctx, { text_key, order_index, source, work_id, surface, displayed } = {}) {
+  const profile = await agentRepo.getProfile(ctx.userId);
+  const language = (profile && profile.language) || "ru";
+  const surf = String(surface || "").trim().slice(0, 40);
+  if (!surf || !/[א-ת]/.test(surf)) return { ok: false, error: "BAD_WORD" };
+  const isCorpus = source === "corpus";
+  const sres = isCorpus
+    ? await tools.callTool(ctx, "get_corpus_sentence_context", { corpus: "benyehuda", work_id, text_key, order_index })
+    : await tools.callTool(ctx, "get_sentence_context_if_available", { text_key, order_index });
+  if (!sres.ok) return { ok: false, error: sres.error || "TOOL_FAILED" };
+  if (!sres.result.ok) return { ok: false, error: sres.result.error, ...(sres.result.key ? { key: sres.result.key } : {}) };
+  const sctx = sres.result;
+
+  const kres = await tools.callTool(ctx, "resolve_item_key", { words: [{ surface: surf }] });
+  const k = kres.ok && kres.result && Array.isArray(kres.result.results) ? kres.result.results[0] : null;
+  const resolverReading = k && k.keyable && k.body ? {
+    lemma: k.body.word || null, niqqud: k.body.niqqud || null, root: k.body.root || null,
+    binyan: k.body.binyan || null, pos: k.body.pos || null, meaning: k.body.meaning || null,
+    ambiguous: !!k.ambiguous,
+  } : null;
+  const itemKey = k && k.keyable ? k.item_key : null;
+
+  const disp = sanitizeDisplayed(displayed);
+  const diverges = !!(disp && resolverReading && (
+    (disp.root && resolverReading.root && disp.root !== resolverReading.root) ||
+    (disp.pos && resolverReading.pos && disp.pos !== resolverReading.pos) ||
+    (disp.binyan && resolverReading.binyan && disp.binyan !== resolverReading.binyan)));
+
+  let learnerFlags = { due: false, weak: false, production_gap: false };
+  if (itemKey) {
+    const dueRes = await tools.callTool(ctx, "get_due_words", { limit: 100 });
+    const weakRes = await tools.callTool(ctx, "get_weak_words", { limit: 20 });
+    const due = (dueRes.ok ? dueRes.result : []).some((w) => w.item_key === itemKey);
+    const weakRow = (weakRes.ok ? weakRes.result : []).find((w) => w.item_key === itemKey) || null;
+    learnerFlags = { due, weak: !!weakRow, production_gap: !!(weakRow && planner.productionImbalance(weakRow.channel_stats)) };
+  }
+
+  const sid = sctx.anchor.text_key + "#" + sctx.anchor.order_index;
+  const cached = await agentRepo.getFreshExplanation(ctx.userId, sid, { language, kind: "word", word: surf });
+  if (cached) {
+    return { ok: true, from_history: true, kind: "word", word: surf, category: CATEGORY,
+      source: isCorpus ? "corpus" : "personal", language, anchor: sctx.anchor,
+      text: cached.text, llm_used: cached.llm_used,
+      ...(cached.provider ? { provider: cached.provider, model: cached.model } : {}),
+      explanation_id: cached.id, usage: await _usage(ctx.userId) };
+  }
+
+  let text = null, llmUsed = false, degradedReason = null, provider = null, model = null;
+  const lim = planner.limits();
+  const reserve = llm.killSwitchOn()
+    ? { ok: false, reason: "KILL_SWITCH" }
+    : await agentRepo.reserveLlmCall(ctx.userId, {
+        scenario: "explain_word", provider: llm.providerName(), perUserDaily: lim.perUserDaily, globalDaily: lim.globalDaily,
+      });
+  const payload = buildWordPromptPayload({
+    language, surface: surf, displayed: disp, resolver: resolverReading, diverges,
+    sentence: sctx.sentence.he_niqqud || sctx.sentence.he, translation: sctx.sentence.ru || null,
+    learner: learnerFlags,
+  });
+  if (!reserve.ok) degradedReason = reserve.reason;
+  else {
+    const out = await llm.generate({ system: _wordSystemPrompt(language), prompt: JSON.stringify(payload), maxOutputTokens: 384 });
+    await agentRepo.finalizeLlmCall(reserve.reserveId, { ok: out.ok, actualUnits: out.ok ? (out.output_tokens || 1) : null });
+    if (out.ok && planner.isCleanProse(out.text)) { text = out.text; llmUsed = true; provider = out.provider; model = out.model; }
+    else if (out.ok) degradedReason = "LLM_OUTPUT_INVALID";
+    else degradedReason = out.error;
+  }
+  if (!text) text = _wordFallback({ surface: surf, displayed: disp, resolver: resolverReading, learner: learnerFlags, translation: sctx.sentence.ru || null }, language);
+
+  const factsUsed = [
+    isCorpus
+      ? { kind: "corpus_sentence", source: "corpus_artifact", license: "public-domain",
+          scope_level: SCOPE_SENTENCE_ONLY, anchor: sctx.anchor, text: sctx.sentence.he }
+      : { kind: "user_sentence", source: "consented_artifact", scope_level: SCOPE_SENTENCE_ONLY,
+          anchor: sctx.anchor, text: sctx.sentence.he },
+    { kind: "word_focus", surface: surf, item_key: itemKey,
+      displayed: disp ? { ...disp, source: "client_card", provenance_note: "derived" } : null,
+      resolver: resolverReading ? { ...resolverReading, source: "resolver", provenance: "asserted" } : null,
+      readings_diverge: diverges },
+    { kind: "learner_state", source: "learner_graph", flags: learnerFlags },
+  ];
+  const created = await tools.callTool(ctx, "create_explanation", {
+    sentence_id: sid, item_key: itemKey, facts_used: factsUsed,
+    llm_model: llmUsed ? (provider + ":" + model) : null,
+    body: { scope_level: SCOPE_SENTENCE_ONLY, category: CATEGORY, language,
+      kind: "word", word: surf, source: isCorpus ? "corpus" : "personal",
+      llm_used: llmUsed, ...(provider ? { provider, model } : {}),
+      ...(degradedReason ? { degraded_reason: degradedReason } : {}), text },
+  });
+
+  return { ok: true, kind: "word", word: surf, category: CATEGORY,
+    source: isCorpus ? "corpus" : "personal", language, anchor: sctx.anchor,
+    readings_diverge: diverges, text, llm_used: llmUsed,
+    ...(provider ? { provider, model } : {}),
+    ...(degradedReason ? { degraded_reason: degradedReason } : {}),
+    usage: await _usage(ctx.userId),
+    explanation_id: created.ok && created.result ? created.result.id : null };
+}
+
+module.exports = { explain, explainWord, buildExplainCore, buildWordPromptPayload, sanitizeDisplayed, SCOPE_SENTENCE_ONLY };

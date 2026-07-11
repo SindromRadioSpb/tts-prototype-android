@@ -2016,6 +2016,7 @@ window.I18N_LOCALES.en = {
       offline: "🤖 The mentor works online — the explanation will be available when connected.",
       timeout: "The mentor did not answer in time — try again (the call may have been counted).",
       editionMismatch: "The work's text has been updated — the explanation may not match the shown line.",
+      corpusAckFirst: "First confirm corpus explanations: tap 🤖 on a row (one-time confirmation).",
       err: "Could not get an explanation",
       purged: "Stored explanations cleared",
     },
@@ -2034,6 +2035,7 @@ window.I18N_LOCALES.en = {
       consEmpty: "Nothing yet — constructions will appear from plans and explanations.",
       textMissing: "Text not found on this device — sync “My Texts” in ☁.",
       corpusTextMissing: "Work not found on this device — open it in the Corpus tab.",
+      histWord: "word",
     },
     tg: {
       title: "🔗 Telegram",
@@ -2243,6 +2245,7 @@ window.I18N_LOCALES.en = {
       refineAll: "Turn on for all words",
       refineMiss: "Context didn’t add a clarification.",
       refining: "Refining by context…",
+      explainWord: "Explain (mentor)",
       pronounce: "Pronounce",
       status: { title: "My status", "new": "new", known: "known", ignore: "ignore" },
       recall: {

@@ -23,6 +23,11 @@ async function explain(ctx, args) {
   return explainer.explain(ctx, args || {});
 }
 
+// PAS-A4: «объяснить это слово в этом предложении» (tap-карточка Зала).
+async function explainWord(ctx, args) {
+  return explainer.explainWord(ctx, args || {});
+}
+
 // P7.0c: запись ответа/annul — СТРОГО через closed tool router (единственные ворота
 // записи; флаг/whitelist/B2 живут там и в reviewer). Контрактные реджекты reviewer
 // ВОЗВРАЩАЕТ (не бросает), callTool оборачивает их в {ok:true, result:{ok:false…}} —
@@ -82,6 +87,7 @@ function _explanationListItem(row) {
     id: row.id, rid: row.rid, created_at: row.created_at, sentence_id: row.sentence_id,
     anchor,
     ...(fSent && fSent.kind === "corpus_sentence" ? { source: "corpus" } : {}),
+    ...(body.kind ? { kind: body.kind } : {}),   // PAS-A4: 'word' → бейдж в истории
     purged,
     ...(purged ? { purge_reason: body.purge_reason, purged_at: body.purged_at || null } : {}),
     text: purged ? null : (body.text != null ? String(body.text) : null),
@@ -134,4 +140,4 @@ async function updateProfile(ctx, patch) {
   return { mode: p.mode, language: p.language };
 }
 
-module.exports = { plan, explain, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };
+module.exports = { plan, explain, explainWord, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };

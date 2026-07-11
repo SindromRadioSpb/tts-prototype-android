@@ -978,6 +978,19 @@
     .rm-niqqud-prov { font-size: 11.5px; color: var(--text-faint); margin: -2px 0 12px; display: flex; align-items: center; gap: 5px; }
     .rm-niqqud-prov-ic { font-size: 12px; opacity: .8; }
     /* Epic-2 #2 — per-card one-off Tier-3 refine (offered only when online + global mode off). */
+    /* PAS-A4 — «🤖 Объяснить (наставник)» на tap-карточке: сплошная кнопка (платный вызов,
+       визуально отличается от dashed Dicta-refine «уточнить чтение») + аккордеон-ответ */
+    .rm-explain { margin-top: 12px; }
+    .rm-explain-btn {
+      appearance: none; cursor: pointer; width: 100%; text-align: center; padding: 10px 12px;
+      border-radius: 8px; border: 1px solid var(--accent); background: transparent; color: var(--accent);
+      font-size: 13px; font-weight: 600;
+    }
+    .rm-explain-btn:hover { background: rgba(56,139,253,.10); }
+    .rm-explain-btn[disabled] { opacity: .6; cursor: default; }
+    .rm-explain-out { margin-top: 8px; padding: 11px 12px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-muted); font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
+    .rm-explain-out[hidden] { display: none; }
+    .rm-explain-meta { margin-top: 8px; font-size: 11px; color: var(--text-secondary); }
     .rm-refine { margin-top: 12px; }
     .rm-refine-btn {
       appearance: none; cursor: pointer; width: 100%; text-align: center; padding: 10px 12px;

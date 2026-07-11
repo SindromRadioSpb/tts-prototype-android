@@ -265,6 +265,7 @@
     head.appendChild(el("span", "mentor-hist-badge",
       x.llm_used ? "🤖 " + (x.provider || "") + (x.model ? " · " + x.model : "")
                  : t("room.explain.noLlm", "без AI: перевод и морфология офлайн")));
+    if (x.kind === "word") head.appendChild(el("span", "mentor-hist-badge", t("room.mentor.histWord", "слово")));   // PAS-A4
     if (x.anchor && x.anchor.text_key) {
       var openBtn = el("button", "mentor-hist-open", t("room.mentor.histOpen", "↗ к предложению"));
       openBtn.type = "button";

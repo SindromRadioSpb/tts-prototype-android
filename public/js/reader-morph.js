@@ -1032,6 +1032,7 @@
       var sbtn = t && t.closest ? t.closest("[data-rm-status]") : null;
       if (sbtn) { onStatusSet(sbtn.getAttribute("data-rm-status")); return; }
       if (t && t.closest && t.closest("[data-rm-speak]")) { onSpeak(); return; }
+      if (t && t.closest && t.closest("[data-rm-explain]")) { onExplainWord(); return; }   // PAS-A4
       if (t && t.closest && t.closest("[data-rm-legend]")) { onLegendToggle(); return; }
       if (t && t.closest && t.closest("[data-rm-refine-go]")) { onRefine(false); return; }
       if (t && t.closest && t.closest("[data-rm-refine-all]")) { onRefine(true); return; }
@@ -1240,6 +1241,49 @@
     var show = panel.hidden;
     panel.hidden = !show;
     if (btn) btn.setAttribute("aria-expanded", show ? "true" : "false");
+  }
+
+  // PAS-A4 — «🤖 Объяснить (наставник)»: LLM-объяснение слова В ЭТОМ предложении.
+  // Отличается от «Уточнить чтение» (Dicta = машинное уточнение чтения): здесь платный
+  // наставник-вызов, поэтому явная кнопка + свой in-flight guard. Ответ — СТРОГО
+  // textContent; displayed-чтение карточки уходит на сервер как основной факт (спека v2).
+  var _explainWordBusy = false;
+  function explainWordHtml() {
+    if (typeof _attachOpts.explainWord !== "function" || !_activeWordCtx || _activeWordCtx.orderIndex == null) return "";
+    return '<div class="rm-explain"><button type="button" class="rm-explain-btn" data-rm-explain aria-expanded="false">🤖 ' +
+      escapeHtml(tt("room.morph.explainWord", "Объяснить (наставник)")) + "</button>" +
+      '<div class="rm-explain-out" data-rm-explain-out hidden></div></div>';
+  }
+  async function onExplainWord() {
+    if (_explainWordBusy || typeof _attachOpts.explainWord !== "function" || !_activeWordCtx) return;
+    var out = _sheet && _sheet.querySelector("[data-rm-explain-out]");
+    var btn = _sheet && _sheet.querySelector("[data-rm-explain]");
+    if (!out) return;
+    _explainWordBusy = true;
+    if (btn) { btn.disabled = true; btn.setAttribute("aria-expanded", "true"); }
+    out.hidden = false; out.textContent = tt("room.explain.loading", "Наставник думает…");
+    var card = _activeCard || {};
+    var payload = {
+      surface: _activeWordCtx.surface,
+      orderIndex: _activeWordCtx.orderIndex,
+      displayed: {
+        lemma: card.lemma || null, root: card.root || null, binyan: card.binyan || null,
+        pos: card.contextPos || card.pos || null, meaning: card.meaning || null,
+        provenance: card.contextPos ? "dicta-context" : "offline",
+      },
+    };
+    var r = null;
+    try { r = await _attachOpts.explainWord(payload); } catch (_) { r = null; }
+    _explainWordBusy = false;
+    if (btn) btn.disabled = false;
+    if (!r || !r.ok) { out.textContent = (r && r.message) || tt("room.explain.err", "Не удалось получить объяснение"); return; }
+    out.textContent = r.text || "";
+    if (r.meta) {
+      var m = document.createElement("div");
+      m.className = "rm-explain-meta";
+      m.textContent = r.meta;
+      out.appendChild(m);
+    }
   }
 
   // Epic-2 #2 — per-card refine. The button reveals a one-line consent confirm (R5: the
@@ -1512,7 +1556,7 @@
     var backRow = _cardStack.length
       ? '<button type="button" class="rm-back" data-rm-back>‹ ' + escapeHtml(tt("room.morph.back", "Назад")) + "</button>"
       : "";
-    return backRow + head + legendHtml() + niqMark + meaning + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + refineHtml + fam + conj;
+    return backRow + head + legendHtml() + niqMark + meaning + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + explainWordHtml() + refineHtml + fam + conj;
   }
 
   function openCardLoading() {
@@ -1709,7 +1753,8 @@
         var rowIdx = tr ? Number(tr.getAttribute("data-row-idx")) : NaN;
         var row = Number.isFinite(rowIdx) ? getRow(rowIdx) : null;
         var sentence = row ? (String(row.he || "") || stripNiqqud(String(row.he_niqqud || ""))) : "";
-        _activeWordCtx = { surface: stripNiqqud(surface), niqqud: niqqud, sentence: sentence };
+        _activeWordCtx = { surface: stripNiqqud(surface), niqqud: niqqud, sentence: sentence,
+          orderIndex: occ && occ.order_index != null ? occ.order_index : null };   // PAS-A4 — якорь для explain-word
         _cardStack = [];   // a fresh word tap starts a new drill history
         // Tier-3 «точный режим» (opt-in, GLOBAL auto): when a contextProvider is wired it
         // gates on the user's standing consent and returns the context reading (or null when

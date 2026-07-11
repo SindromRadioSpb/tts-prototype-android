@@ -3646,6 +3646,53 @@ async function _explainRequest(textKey, orderIndex, opts) {
   _explainShowMeta(metaParts.join(' · '));
 }
 
+// PAS-A4 — host-обвязка word-explain для tap-карточки: источник (корпус/личный), честные
+// offline/consent-состояния, таймаут; ответ карточке = {ok, text, meta} | {ok:false, message}.
+async function explainWordFromCard(p) {
+  if (!p || !p.surface || p.orderIndex == null || !readerTextKey) {
+    return { ok: false, message: tt('room.explain.err', 'Не удалось получить объяснение') };
+  }
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return { ok: false, message: tt('room.explain.offline', '🤖 Наставник доступен онлайн — объяснение появится при подключении.') };
+  }
+  const isCorpus = !readerIsOwnText && !!readerCorpusWorkId;
+  if (isCorpus) {
+    let acked = false;
+    try { acked = localStorage.getItem('room.corpusExplainAck') === '1'; } catch (_) {}
+    if (!acked) return { ok: false, message: tt('room.explain.corpusAckFirst', 'Сначала подтвердите корпус-объяснения: тапните 🤖 у строки (разовое подтверждение).') };
+  }
+  const ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = ac ? setTimeout(() => { try { ac.abort(); } catch (_) {} }, 30000) : null;
+  let r = null;
+  try {
+    const body = { surface: p.surface, text_key: readerTextKey, order_index: p.orderIndex, displayed: p.displayed || null };
+    if (isCorpus) { body.source = 'corpus'; body.work_id = readerCorpusWorkId; }
+    r = await fetch('/api/agent/explain-word', { method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
+      body: JSON.stringify(body), ...(ac ? { signal: ac.signal } : {}) }).then((x) => x.json());
+  } catch (_) {}
+  finally { if (timer) clearTimeout(timer); }
+  if (!r || !r.ok) {
+    const code = (r && r.error) || '';
+    let message;
+    if (code === 'CLOUD_TEXTS_CONSENT_REQUIRED') message = tt('room.explain.needTexts', 'Сначала включите «Синхронизировать Мои тексты» в ☁ и запустите синк.');
+    else if (code === 'AGENT_READ_TEXTS_CONSENT_REQUIRED') message = tt('room.explain.needConsent', 'Разрешите наставнику читать тексты (галочка 🤖 в доме наставника).');
+    else if (code === 'CORPUS_WORK_NOT_FOUND' || code === 'CORPUS_SENTENCE_NOT_FOUND' || code === 'CORPUS_WORK_TOO_LARGE')
+      message = tt('room.explain.corpusUnavailable', 'Эта работа ещё не опубликована на сервере — объяснение недоступно.');
+    else if (!r && typeof navigator !== 'undefined' && navigator.onLine === false)
+      message = tt('room.explain.offline', '🤖 Наставник доступен онлайн — объяснение появится при подключении.');
+    else message = '✗ ' + tt('room.explain.err', 'Не удалось получить объяснение') + (code ? ' (' + code + ')' : '');
+    return { ok: false, message };
+  }
+  const metaParts = [];
+  if (r.source === 'corpus') metaParts.push(tt('room.explain.srcCorpus', 'Источник: корпус Бен-Иегуды · public domain'));
+  if (r.from_history) metaParts.push(tt('room.explain.fromHistory', 'из истории — без нового вызова'));
+  if (r.llm_used) metaParts.push('🤖 ' + (r.provider || '') + (r.model ? ' · ' + r.model : ''));
+  else if (!r.from_history) metaParts.push(tt('room.explain.noLlm', 'без AI: перевод и морфология офлайн') + (r.degraded_reason ? ' (' + r.degraded_reason + ')' : ''));
+  if (r.usage && r.usage.limit) metaParts.push(tt('room.explain.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit);
+  return { ok: true, text: r.text || '', meta: metaParts.join(' · ') };
+}
+
 // BRR-P1-006 D2 — progressive translation reveal (active recall). In 'reveal' mode the ru cells
 // start blurred (.ru-veiled); a capture-phase tap reveals that row (.ru-revealed). Per-row state is
 // DOM-only (resets on rerender/new text — fine for v1; the MODE itself persists). The handler runs
@@ -3958,6 +4005,9 @@ function attachReaderMorph(mount) {
   };
   opts.noteRecallShown = () => bumpTapStat('shown');
   opts.gradeReadingTap = gradeReadingTap;
+  // PAS-A4 — «🤖 Объяснить (наставник)» на карточке: слово В ЭТОМ предложении. Источник
+  // (личный/корпус) и все честные состояния решает host; reader-morph только рендерит.
+  opts.explainWord = explainWordFromCard;
   try { readerMorph = window.ReaderMorph.attach(mount, opts); } catch (_) {}
   applyDecorations();   // colour (P1-009) + adaptive niqqud fade (P1-006) in one pass
 }

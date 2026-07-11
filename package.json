@@ -123,6 +123,7 @@
     "smoke:miniapp-review": "node scripts/premium/miniapp-review-smoke.js",
     "smoke:miniapp-rollback": "node scripts/premium/miniapp-rollback-drill.js",
     "smoke:agent-explain-corpus": "node scripts/premium/agent-explain-corpus-smoke.js",
+    "smoke:agent-explain-word": "node scripts/premium/agent-explain-word-smoke.js",
     "gate:log-hygiene": "node scripts/premium/log-hygiene-gate.js",
     "smoke:learner-graph": "node scripts/premium/learner-graph-smoke.js",
     "smoke:artifact-sync": "node scripts/premium/artifact-sync-smoke.js",
