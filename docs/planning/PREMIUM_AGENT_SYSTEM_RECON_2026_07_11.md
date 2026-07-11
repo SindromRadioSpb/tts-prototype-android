@@ -1,6 +1,10 @@
 # PAS — Премиум-система агентов в Студии и Читальном зале (программа-чартер)
 
-**Дата:** 2026-07-11 · **Прод:** v3.11.152 · **Статус:** ЧАРТЕР — стадирование к approve, код каждого слайса только после adversarial-критики его спеки. · **Grounded:** две разведки живого кода этой сессии (субстрат агента + поверхности), факты с file:line ниже.
+**Дата:** 2026-07-11 · **Прод на старте:** v3.11.152 · **Статус на 2026-07-12: слайс A ЗАКРЫТ owner-live (v3.11.153–155), next = слайс B.** Код каждого слайса — только после adversarial-критики его спеки. · **Grounded:** две разведки живого кода (субстрат агента + поверхности).
+
+**Решения владельца (записаны):** стадирование A→B→C→D утверждено 2026-07-12; форки PAS-F1..F5 = по рекомендациям (F1 гибрид: серверная базовая квота + BYOK-расширение [BYOK-расширение ещё не реализовано — хвост волны 1]; F2 text-first; F3 follow-up ≤3; F4 Студия через synced artifacts; F5 порядок A→B→C→D). Дополнительно 2026-07-12: расширение личного scope до `sentence_window_5` ТОЛЬКО для проверки понимания (см. `PAS_SLICE_A_SPEC` статус-блок).
+
+**Слайс A — ЗАКРЫТ:** спека/адъюдикация `PAS_SLICE_A_SPEC_2026_07_11.md` (критика wf_35f46603: 39 находок, все приняты). A1 корпус-объяснения v3.11.153 · A4 слово-в-контексте + A2 follow-up ≤3 + A3 «проверь меня» v3.11.154 · полировка (квиз на «Мои тексты», 🔊+перевод в модале) v3.11.155. Гейты: agent-explain-corpus 27/27 · word 15/15 · followup 18/18 · comprehension 20/20; всё live-verified на прод-профиле.
 
 ## §0 Мандат владельца (записан 2026-07-11)
 
@@ -100,4 +104,51 @@ Duolingo Max «Explain my answer» → A2/A4 (у нас честнее: resolver
 
 ## §10 Следующий шаг
 
-По «Стартуй PAS-A» (или с правками форков): спека-дельта слайса A → adversarial-критика → код A1 (corpus-tool + generalized explain) → гейты → деплой → live-verify в Зале на корпусном тексте.
+~~Слайс A~~ ЗАКРЫТ (см. шапку). Следующий — **слайс B (агент-редактор Студии)**, затем C (диалог), D (оркестрация).
+
+## §11 Промт для новой сессии (слайс B)
+
+```
+Продолжаем программу PAS — премиум-система агентов (мандат владельца, capability-led).
+
+READ FIRST:
+1. docs/planning/PREMIUM_AGENT_SYSTEM_RECON_2026_07_11.md — чартер, решения
+   владельца, статус (слайс A закрыт v3.11.153–155, все 4 фичи owner-live).
+2. docs/planning/PAS_SLICE_A_SPEC_2026_07_11.md — образец цикла слайса
+   (спека-дельта → adversarial-критика → адъюдикация → код по кускам → гейты
+   с exit-кодами → SW bump → deploy-poll → kapture live-verify на прод-профиле).
+
+Стартуй СЛАЙС B — агент-редактор Студии (чартер §2-B):
+  B1. Per-row 🤖 «объяснить предложение» в таблице перевода Студии — тот же
+      POST /api/agent/explain через synced artifacts (форк F4); честный
+      empty-state «текст не синкан → включи облако».
+  B2. «Сделай из текста материал» — агент-оркестрация СУЩЕСТВУЮЩИХ
+      детерминированных движков (autogen-заметки ②, квизы) + LLM-резюме
+      «что стоит выучить» (advisory). Никакой LLM-морфологии (R1).
+  B3. Draft→[Открыть в Студии] — хвост AI_MENTOR_RECON §2.2.
+
+ОБЯЗАТЕЛЬНО ПЕРВЫМ ШАГОМ (ещё до спеки): вынести agent-UI Студии в отдельный
+public/js/studio-agent.js — live-JS Студии INLINE в index.html (39K строк,
+public/check_script.js = МЁРТВАЯ копия; память feedback_studio_live_source_inline).
+CSS-ловушки index.html — в CLAUDE.md (глобальный button width:100% на mobile и т.д.).
+
+Ключевые факты для B (из разведок слайса A, проверить актуальность):
+- Студия: единственный AI-хук = BYOK Gemini-перевод (localStorage v3.geminiApiKey);
+  extension-points: .col-action-cell строк таблицы (index.html ~32377 renderTable/
+  currentTableData), панель провайдера, паттерн quota-bar (#geminiModelInfo).
+- Серверные /api/agent/* уже отдают usage {calls/limit}; scenario добавляется без
+  миграций (reserveLlmCall); explain/word/followup/comprehension работают для
+  synced-текстов (personal путь: двойной consent, scope sentence_only / окно
+  sentence_window_5 только для квиза).
+- Autogen-движок: public/js/notes-autogen.js (pure, lock-step c
+  scripts/premium/build-notes-from-bundle.js, гейт autogen-parity).
+- Гейты-регрессия при серверных правках: smoke:agent-explain(-corpus/-word),
+  smoke:agent-followup, smoke:agent-comprehension, smoke:agent-plan, api-smoke,
+  gate:log-hygiene; при правках index.html — Playwright-скриншот @380px ДО коммита.
+
+Дисциплина прежняя: роли-линзы автоматически; существенный дизайн — adversarial-
+критика до кода (малый фронт, 3 линзы); гейты с явными exit-кодами; SW bump при
+задетых precached (index.html precached!); локали ru/en/he для новых строк;
+commit+push+deploy-poll; live-verify через kapture на linguistpro.kolosei.com
+(Студия = корень «/», НЕ library.html) на прод-профиле владельца.
+```

@@ -2,6 +2,8 @@
 
 **Дата:** 2026-07-11 → **v2 2026-07-12** (адъюдикация критики wf_35f46603: 39 находок, 3 BLOCKER / 17 MAJOR — ВСЕ приняты; ключевые развороты помечены ⚡). **Программа:** `PREMIUM_AGENT_SYSTEM_RECON_2026_07_11.md` §2-A. Порядок имплементации: **A1 → A4 → A2 → A3**, отдельные коммиты/гейты.
 
+> **СТАТУС: СЛАЙС ЗАКРЫТ, всё owner-live-verified.** A1 v3.11.153 (62e4f9c) · A4+A2+A3 v3.11.154 (d0f84a9) · полировка по owner-фидбэку v3.11.155 (3731d82): (1) «Проверь меня» И на «Мои тексты» — **записанное решение владельца 2026-07-12 о расширении scope**: новый физический `sentence_window_5` (`agentSentenceRepo.getSentenceWindow`, cap 5, тот же двойной consent, closed-tool `get_sentence_window_if_available`; `/explain` остаётся `sentence_only` by construction; first-use раскрытие «до 5 предложений» + обновлённый agent_read_texts-хинт ×3 локали) — этим снят и v2-BLOCKER «A3 corpus-only»; (2) модал объяснения: 🔊 предложения (speakWord, паттерн Тренировки) + перевод строки под предложением. Гейты: agent-explain-corpus 27/27 · agent-explain-word 15/15 · agent-followup 18/18 · agent-comprehension 20/20.
+
 ## A1 — Объяснение предложения из КОРПУСА
 
 ### Сервер
