@@ -537,16 +537,36 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(!!r31 && r31.seedRow === true, "R3.1: seeded zombie lacks the canonical seed row (kind='seed')");
     eq(!!r31 && r31.noReseed === true, "R3.1: second sweep RE-SEEDED an already-scheduled word (must be idempotent)");
 
+    // ── R4a paradigm-aware heal drain — a scheduled pid-word whose INFLECTED cell form appears in
+    // a local sentence must be healed with that sentence (identity-gated; pair צריכה→pid:6018 is
+    // live-proven on the shipped dict). Same-page via the gate hook (headless OPFS trap).
+    let r4 = null;
+    try {
+      r4 = await pg.evaluate(async () => {
+        const ldb = await import("/db/local-db.js");
+        await ldb.initLocalDB();
+        await ldb.createText({ id: "r4t-1", text_key: "r4-key-1", title: "r4", source_text: "" });
+        await ldb.addSentence("r4t-1", { id: "r4t-1:s1", he_plain: "היא צריכה ספר חדש", he_niqqud: "הִיא צְרִיכָה סֵפֶר חָדָשׁ", ru: "ей нужна новая книга" });
+        // due within the drain's +400d horizon (a 2100 due would fall OUTSIDE the pool)
+        await ldb.updateSrsState("pid:6018", { due: Date.now() + 3600e3, interval: 3, reps: 1, lapses: 0, stability: 3, difficulty: 5, scheme: "fsrs" });
+        await window.__r4HealDrain();
+        const rows = await ldb.dbQuery("SELECT srs_surface, srs_sentence_id FROM word_status WHERE lemma_key = 'pid:6018'", []);
+        return rows && rows[0] ? { surface: rows[0].srs_surface, sid: rows[0].srs_sentence_id } : null;
+      });
+    } catch (e) { r4 = { err: String((e && e.message) || e) }; }
+    eq(!!r4 && r4.surface === "צריכה", "R4a: heal drain did not source the pid-word from its INFLECTED cell form (got " + (r4 && r4.surface) + ")" + (r4 && r4.err ? " err:" + r4.err : ""));
+    eq(!!r4 && r4.sid === "r4t-1:s1", "R4a: healed source anchored to the wrong sentence (got " + (r4 && r4.sid) + ")");
+
     eq(errs.length === 0, "page errors: " + errs.join(" | "));
 
-    const total = 77;
+    const total = 79;
     if (failures.length) {
       console.error(`smoke:memory-canon FAIL (${total - failures.length}/${total})`);
       for (const f of failures) console.error("  ✗ " + f);
       console.error(JSON.stringify(res, null, 1).slice(0, 4000));
       process.exitCode = 1;
     } else {
-      console.log(`smoke:memory-canon OK (${total}/${total}) — mig 041/042 · keyer conformance · content-id log · bundle 3-table merge · Pass 8/12 no-dup · P2 FSRS handover (seed-once · Again-due-now · plain-set-preserve · independent oracle) · P3 Studio→FSRS (scheme=fsrs · meta_json.fsrs · projections · Studio oracle) · P4 Anki-merge (canon-log ingest+filters · updateSrsState srs-only · recompute · Anki oracle) · P4.1 ''-carrier (no-demotion · manual-wins kept · recompute-carrier · merge-safe) · P7.0a annul (annulId-канон · reject-без-цели · annul-to-null удаляет carrier · ручная ось цела · withoutAnnulled для D1) · R1 source-at-mark (fill-only backfill · do-no-harm · latest-wins · scheduled-only · surface-required) · R2 scan (batched needles · archived-excluded · anchor-carrying · blank-refused) · R3.1 zombie-mark backfill (boot-seed · canonical seed row)`);
+      console.log(`smoke:memory-canon OK (${total}/${total}) — mig 041/042 · keyer conformance · content-id log · bundle 3-table merge · Pass 8/12 no-dup · P2 FSRS handover (seed-once · Again-due-now · plain-set-preserve · independent oracle) · P3 Studio→FSRS (scheme=fsrs · meta_json.fsrs · projections · Studio oracle) · P4 Anki-merge (canon-log ingest+filters · updateSrsState srs-only · recompute · Anki oracle) · P4.1 ''-carrier (no-demotion · manual-wins kept · recompute-carrier · merge-safe) · P7.0a annul (annulId-канон · reject-без-цели · annul-to-null удаляет carrier · ручная ось цела · withoutAnnulled для D1) · R1 source-at-mark (fill-only backfill · do-no-harm · latest-wins · scheduled-only · surface-required) · R2 scan (batched needles · archived-excluded · anchor-carrying · blank-refused) · R3.1 zombie-mark backfill (boot-seed · canonical seed row) · R4a paradigm-heal (inflected-cell needle · identity-gated anchor)`);
     }
   } catch (e) {
     console.error("smoke:memory-canon CRASH", e);

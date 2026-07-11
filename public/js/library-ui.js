@@ -1589,10 +1589,25 @@ async function _r2PidEntry(lemmaKey) {
     return (e && (e.lemma || e.lemma_niqqud)) ? e : null;
   } catch (_) { return null; }
 }
-// Day-keyed negative scan cache: a skeleton that scanned dry is not re-scanned for 7 days, so a
+// R4a — the needle SET for a word: the logged surface + citation skeleton + the paradigm CELL
+// skeletons from the shipped dict (a word marked in text was almost always an INFLECTED form —
+// the citation-lemma needle alone misses it; live measure: 179 unsourced words whose contexts
+// sit in 14.7K local sentences). Bounded; the identity gate downstream carries ALL the honesty.
+function _r4NeedlesFor(needle, pidEntry) {
+  const R = window.ReaderMorph, set = [];
+  const add = (s) => { const sk = R.stripNiqqud(String(s || '')).trim(); if (sk && sk.length >= 2 && /[א-ת]/.test(sk) && set.indexOf(sk) < 0 && set.length < 12) set.push(sk); };
+  add(needle);
+  if (pidEntry) {
+    add(pidEntry.lemma || pidEntry.lemma_niqqud);
+    const cells = pidEntry.cells && typeof pidEntry.cells === 'object' ? pidEntry.cells : null;
+    if (cells) for (const k of Object.keys(cells)) { add(cells[k] && cells[k].he); if (set.length >= 12) break; }
+  }
+  return set;
+}
+// Day-keyed negative scan cache: a WORD that scanned dry is not re-scanned for 7 days, so a
 // permanently-unhealable prefix can't monopolize the per-session scan budget (critique r4-1/r11-5).
-// v2: the v1 key was poisoned by the tokenize-objects bug (live-found 2026-07-11) — orphaned.
-const R2_MISS_KEY = 'room.r2.scanMiss.v2', R2_MISS_MS = 7 * 86400000;
+// v3 (R4a): keyed by lemmaKey — the needle SET is derived, per-needle keys would leak budget.
+const R2_MISS_KEY = 'room.r2.scanMiss.v3', R2_MISS_MS = 7 * 86400000;
 function _r2MissGet() { try { return JSON.parse(localStorage.getItem(R2_MISS_KEY) || '{}'); } catch (_) { return {}; } }
 function _r2MissFresh(cache, skel) { const t = Number(cache[skel]) || 0; return !!t && (Date.now() - t) < R2_MISS_MS; }
 function _r2MissMark(cache, skel) { cache[skel] = Date.now(); try { localStorage.setItem(R2_MISS_KEY, JSON.stringify(cache)); } catch (_) {} }
@@ -1608,15 +1623,16 @@ const _HEB_VOWELED_RE = /[֑-ׇ]/;
 // canonical-keyer identity gate the whole product keys on (BLOCKER r11-1/r17-1: skeleton presence
 // proves orthography, not lemma — a homograph sentence must never be served or healed onto this
 // word's schedule key). Returns {cz, tskel, card, heN} or null.
-async function _r2VerifyCandidate(R, d, needle, sent) {
+async function _r2VerifyCandidate(R, d, needles, sent) {
   const heN = String(sent.he_niqqud || sent.he_plain || sent.he || '');
   if (!heN) return null;
+  const nset = Array.isArray(needles) ? needles : [needles];   // R4a: a needle SET (paradigm cells)
   const tokens = R.tokenize(heN);   // token objects {text, start, end, isWord} — NOT strings (R2.1 live-found fix)
   let tskel = '';
   for (const t of tokens) {
     if (!t || !t.isWord) continue;
     const sk = R.stripNiqqud(String(t.text || ''));
-    if (sk === needle || _stripProclitic(sk) === needle) { tskel = sk; break; }
+    if (nset.indexOf(sk) >= 0 || nset.indexOf(_stripProclitic(sk)) >= 0) { tskel = sk; break; }
   }
   if (!tskel) return null;
   const cz = R.buildClozeForTarget(tokens, tskel);
@@ -1662,33 +1678,37 @@ async function _buildDueSourcedItems(due, opts) {
   if (!ladder || !laddered.length) return items;
   // ── R2 ladder ────────────────────────────────────────────────────────────────────────────────
   const miss = _r2MissGet();
-  const cand = [];   // {d, needle, pidEntry}
+  const cand = [];   // {d, needle, needles[], pidEntry, scanned}
   for (const d of laddered) {
     if (cand.length >= TRAIN_N * 2) break;
-    // R2.1: a pid: key names its paradigm in the shipped dict — the entry supplies the scan needle
-    // (citation-lemma skeleton) AND a by-construction-honest word-only card (lemma+gloss+niqqud).
+    // R2.1: a pid: key names its paradigm in the shipped dict — the entry supplies the scan needles
+    // AND a by-construction-honest word-only card (lemma+gloss+niqqud).
     const pidEntry = await _r2PidEntry(d.lemmaKey);
     const needle = (await _r2DeriveSurface(d.lemmaKey)) || (pidEntry ? R.stripNiqqud(String(pidEntry.lemma || pidEntry.lemma_niqqud || '')).trim() : null);
-    if (needle || pidEntry) cand.push({ d, needle, pidEntry });
+    if (needle || pidEntry) cand.push({ d, needle, needles: _r4NeedlesFor(needle, pidEntry), pidEntry, scanned: false });
   }
-  // ONE batched prefilter pass for every scannable needle this call (critique r4-2)
+  // ONE batched prefilter pass; budget counts WORDS (their needle SETS ride in one 96-cap call — R4a)
   const scanNeedles = [];
+  let scanWords = 0;
   for (const c of cand) {
-    if (scanNeedles.length >= scanBudget) break;
-    if (c.needle && !_r2MissFresh(miss, c.needle) && scanNeedles.indexOf(c.needle) < 0) scanNeedles.push(c.needle);
+    if (scanWords >= scanBudget || scanNeedles.length >= 90) break;
+    if (!c.needles.length || _r2MissFresh(miss, c.d.lemmaKey)) continue;
+    c.scanned = true; scanWords++;
+    for (const n of c.needles) if (scanNeedles.indexOf(n) < 0) scanNeedles.push(n);
   }
   let scanRows = [];
-  if (scanNeedles.length) { try { scanRows = (await localDb.findSentencesForWords(scanNeedles, 240)) || []; } catch (_) { scanRows = []; } }
+  if (scanNeedles.length) { try { scanRows = (await localDb.findSentencesForWords(scanNeedles, 400)) || []; } catch (_) { scanRows = []; } }
   for (const c of cand) {
     if (items.length >= TRAIN_N * 2) break;
     const d = c.d, needle = c.needle;
     let served = null;
     // tier 1 — re-source scan: verified sentence → full contextual item + write-back heal
-    if (needle && scanNeedles.indexOf(needle) >= 0) {
+    if (c.scanned) {
       let hit = null;
       for (const row of scanRows) {
-        if (String(row.he_plain || '').indexOf(needle) < 0) continue;
-        try { hit = await _r2VerifyCandidate(R, d, needle, row); } catch (_) { hit = null; }
+        const hp = String(row.he_plain || '');
+        if (!c.needles.some((n) => hp.indexOf(n) >= 0)) continue;
+        try { hit = await _r2VerifyCandidate(R, d, c.needles, row); } catch (_) { hit = null; }
         if (hit) { hit.row = row; break; }
       }
       if (hit) {
@@ -1704,7 +1724,7 @@ async function _buildDueSourcedItems(due, opts) {
           _source: { textKey: src.textKey, sentenceId: src.sentenceId, orderIndex: src.orderIndex, surface: hit.tskel },
           _built: { cz: hit.cz, ru: hit.row.ru || '', sentence: hit.heN, audioAssetKey: String(hit.row.audio_asset_key || ''), rowIdx: null },
         };
-      } else { _r2MissMark(miss, needle); }
+      } else { _r2MissMark(miss, d.lemmaKey); }   // v3: per-WORD miss (the needle set is derived)
     }
     // tier 2 — word-only fallback: independent of the scan budget (critique r4-1). _source pinned
     // to null (critique r11-4). Two honest identities:
@@ -2241,6 +2261,7 @@ function onTrainNext() {
 function renderTrainSummary() {
   const s = _trainSession, body = _studySheet && _studySheet.querySelector('.room-study-body');
   if (!s || !body) return;
+  try { roomCloudMaybeResync(); } catch (_) {}   // R4b — a finished session is a natural sync moment (throttled)
   body.innerHTML = '';
   if (!s.total) {
     body.appendChild(el('div', { class: 'room-study-empty', i18n: 'room.morph.study.trainEmpty', text: tt('room.morph.study.trainEmpty', 'Нет слов для тренировки на этом экране — отметь слова в «Список».') }));
@@ -2832,9 +2853,33 @@ async function roomCloudAutoSync() {
     if (new URLSearchParams(location.search).has('nocloudauto')) return;
     const CS = window.CloudSync; if (!CS) return;
     const session = await CS.me(); if (!session) return;
+    _cloudLastAutoAt = Date.now();   // R4b — the boot sync starts the throttle window
     await _cloudRunSync(true);
   } catch (_) {}
 }
+// R4b (owner 2026-07-11: «Мои показатели синхронизированы ПК↔Telegram») — the boot-only sync left
+// the counters stale for a whole tab lifetime: reviews done in Telegram reached the Зал (and vice
+// versa) only after a reload. Re-sync at the NATURAL cross-surface moments — returning to the tab
+// and finishing a session — throttled to one run per 90s; a successful pull already refreshes the
+// badge/streak via _cloudRunSync (asd-cache reset below).
+let _cloudLastAutoAt = 0;
+async function roomCloudMaybeResync() {
+  try {
+    if (Date.now() - _cloudLastAutoAt < 90000) return;
+    if (new URLSearchParams(location.search).has('nocloudauto')) return;
+    const CS = window.CloudSync; if (!CS) return;
+    const session = await CS.me(); if (!session) return;
+    _cloudLastAutoAt = Date.now();
+    await _cloudRunSync(true);
+    _asdCache = null;                          // merged streak fold must see pulled rows
+    try { refreshDueBadge(); } catch (_) {}    // counters/streak reflect the fresh log now
+  } catch (_) {}
+}
+try {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') roomCloudMaybeResync();
+  });
+} catch (_) {}
 
 // ── CLG-P9 — «Дом наставника» (MENTOR_HOME_P9_DECISION_2026_07_06) ───────────────────────────
 // Полноэкранный вид ВНУТРИ Зала: 🤖 в шапке ↔ hash #mentor, паттерн roomContent↔roomReader
@@ -3628,6 +3673,66 @@ async function backfillZombieMarkSeeds() {
 // Gate hook (smoke:memory-canon): cross-page OPFS navigation silently lands on the fallback VFS
 // in headless Playwright, so the sweep is asserted same-page through this handle instead.
 try { window.__r31BackfillZombieSeeds = backfillZombieMarkSeeds; } catch (_) {}
+// R4a — boot-time HEAL DRAIN: the unsourced backlog (live measure: 179 scheduled words whose
+// contexts sit in local sentences under INFLECTED forms) is healed in the background, budget
+// 48 words per boot — no item building, just verify+write через ТОТ ЖЕ identity-гейт
+// (_r2VerifyCandidate) и updateSrsSource fillOnly. Misses are day-cached (.v3) so successive
+// boots advance through the backlog instead of re-scanning the same dead prefix.
+async function r4HealDrain() {
+  try {
+    const R = window.ReaderMorph; if (!R) return;
+    let pool = [];
+    try { pool = (await localDb.getDueWithSource(Date.now() + 400 * 86400000)) || []; } catch (_) { pool = []; }
+    const uns = pool.filter((d) => !(d.source && d.source.surface));
+    if (!uns.length) return;
+    const miss = _r2MissGet();
+    const cand = [];
+    for (const d of uns) {
+      if (cand.length >= 48) break;
+      if (_r2MissFresh(miss, d.lemmaKey)) continue;
+      const pidEntry = await _r2PidEntry(d.lemmaKey);
+      const needle = (await _r2DeriveSurface(d.lemmaKey)) || (pidEntry ? R.stripNiqqud(String(pidEntry.lemma || pidEntry.lemma_niqqud || '')).trim() : null);
+      const needles = _r4NeedlesFor(needle, pidEntry);
+      if (needles.length) cand.push({ d, needles });
+    }
+    if (!cand.length) return;
+    let healed = 0;
+    // chunk the union of needle sets under the 96-needle cap → a few batched passes, not N scans
+    for (let i = 0; i < cand.length;) {
+      const chunk = []; const needles = [];
+      while (i < cand.length && needles.length + cand[i].needles.length <= 90) {
+        for (const n of cand[i].needles) if (needles.indexOf(n) < 0) needles.push(n);
+        chunk.push(cand[i]); i++;
+      }
+      if (!chunk.length) break;
+      let rows = [];
+      try { rows = (await localDb.findSentencesForWords(needles, 400)) || []; } catch (_) { rows = []; }
+      for (const c of chunk) {
+        let hit = null;
+        for (const row of rows) {
+          const hp = String(row.he_plain || '');
+          if (!c.needles.some((n) => hp.indexOf(n) >= 0)) continue;
+          try { hit = await _r2VerifyCandidate(R, c.d, c.needles, row); } catch (_) { hit = null; }
+          if (hit) { hit.row = row; break; }
+        }
+        if (hit) {
+          try {
+            await localDb.updateSrsSource(c.d.lemmaKey, { textKey: hit.row.text_key || null,
+              sentenceId: hit.row.id != null ? String(hit.row.id) : null,
+              orderIndex: hit.row.order_index != null ? Number(hit.row.order_index) : null,
+              surface: hit.tskel, fillOnly: true });
+            healed++;
+          } catch (_) {}
+        } else { _r2MissMark(miss, c.d.lemmaKey); }
+      }
+    }
+    if (healed) {
+      try { console.info('[room] R4a heal-drain: sourced', healed, 'of', cand.length, 'scanned (' + uns.length + ' backlog)'); } catch (_) {}
+      try { refreshDueBadge(); } catch (_) {}
+    }
+  } catch (_) {}
+}
+try { window.__r4HealDrain = r4HealDrain; } catch (_) {}   // gate hook (same-page, как __r31)
 // P5.7 Т1/Т3 — humanize a future due into «сегодня»/«через ~N дн.»/«через ~N ч.» for closures + badge.
 function _dueWhenText(dueMs) {
   const d = (Number(dueMs) || 0) - Date.now();
@@ -7181,7 +7286,7 @@ async function boot() {
     }
     setActiveTrack(activeTrack);
     try { refreshDueBadge(); } catch (_) {}   // D2 — surface the «🔁 К повторению» home CTA on first load
-    backfillZombieMarkSeeds();   // R3.1 — fire-and-forget: pre-P5.6 marks re-enter the FSRS loop
+    backfillZombieMarkSeeds().then(() => r4HealDrain());   // R3.1 seeds → R4a heals (fire-and-forget chain)
     roomCloudAutoSync();   // CLG-P3.2 — fire-and-forget; no-op (single 401) without a live session
     maybeRunValidation();   // BRR-P1-007 §7: ?validate=1 runs on-device real-profile validation
     // Studio↔Room compat Ф1 — deep-link «Открыть в Зале»: ?open=<text_key> resolves a locally

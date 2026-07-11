@@ -2519,7 +2519,9 @@ const _SENT_SELECT = `SELECT s.*, aa.asset_key AS audio_asset_key
 // serving or healing. Archived texts excluded; text_key/order_index included so a verified hit
 // can be written back as a canonical source. Short-first: cheaper to verify, likelier clean.
 export async function findSentencesForWords(skeletons, totalLimit) {
-  const list = Array.from(new Set((skeletons || []).map((s) => String(s || "").trim()).filter(Boolean))).slice(0, 16);
+  // R4a: cap raised 16→96 — paradigm-aware needles (≤12 inflected-cell skeletons per word) still
+  // page the table ONCE per call; the OR-chain is a per-row predicate, not extra passes.
+  const list = Array.from(new Set((skeletons || []).map((s) => String(s || "").trim()).filter(Boolean))).slice(0, 96);
   if (!list.length) return [];
   const n = Math.max(1, Math.min(Number(totalLimit) || 240, 400));
   try {
