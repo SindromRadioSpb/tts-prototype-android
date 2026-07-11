@@ -1,15 +1,15 @@
 # AI and agent education strategy — 2026-07-11
 
-**Status:** PROPOSAL / owner decisions required
+**Status:** PHASE 1 STRATEGIC SYNTHESIS COMPLETE; PHASE 2 EVIDENCE / IMPLEMENTATION DESIGN IN PROGRESS
 **Research date:** 2026-07-11
 **Live source commit:** `a510b1e1ce5378702987f6a244d79b2782199430`
 **North Star packet source:** `b426b1b7a91abcb4afb8fde7f0e34c042a9bc0d6`
 
 ## Task and method
 
-This packet answers which educational decisions become better with AI or multiple agents, which must remain deterministic, and which platform contracts are required to measure confirmed transfer rather than AI interaction volume.
+This packet's original `01`–`15` documents are a compact strategic synthesis and owner decision layer. They answer which educational decisions may become better with AI, which must remain deterministic, and which platform contracts are required. They are not a completed provider benchmark, implementation specification, validated economic model or external-pilot authorization. Phase 2 adds the evidence and implementation layer in `16`–`21` and `appendices/`.
 
-Method: ordered reading of the North Star packet; live recon of `agent/`, `db/`, migrations, relevant `public/js/`, smoke inventory and history; current external research checked on 2026-07-11; eight independent lenses (learning science, learner product, architecture, content, evaluation, governance, economics/operations and adversarial refutation); cross-lens adjudication under R1–R17.
+Method: ordered reading of the North Star packet; live recon of `agent/`, `db/`, migrations, relevant `public/js/`, smoke inventory and history; current external research checked on 2026-07-11; eight separately tasked lenses (learning science, learner product, architecture, content, evaluation, governance, economics/operations and adversarial refutation); cross-lens adjudication under R1–R17. Their primary run artifacts were not persisted, so independence is not auditable post hoc; the appendix is explicitly reconstructed.
 
 Evidence labels used throughout:
 
@@ -39,6 +39,10 @@ Formula:
 8. `11_STRATEGIC_SCENARIOS_AND_ROADMAP.md` and `12_OPERATIONAL_PLAN.md`
 9. `13_ADVERSARIAL_CRITIQUE.md`
 10. `14_OWNER_DECISIONS.md`
+11. `16_EVIDENCE_LEDGER.md` and `appendices/subagent_reports/` — partial claim traceability and reconstructed lens archive; primary artifacts unavailable.
+12. `17_HEBREW_MODEL_PROVIDER_BENCHMARK.md` — benchmark protocol and measured/not-measured ledger.
+13. `18_CONFIRMED_CONTEXTUAL_TRANSFER_SPEC.md` and `19_AGENT_CONTROL_PLANE_DESIGN.md` — implementation specifications.
+14. `20_AI_COST_AND_CAPACITY_MODEL.md` and `21_90_DAY_EXECUTION_BACKLOG.md` — bottom-up measurement design and proposed execution backlog pending owner/RACI assignment.
 
 ## Constraints
 

@@ -1,0 +1,23 @@
+{
+  "status": "reconstructed_secondary",
+  "verbatim_available": false,
+  "independence_auditable": false,
+  "research_date": "2026-07-11",
+  "source_commits": {
+    "north_star": "b426b1b7a91abcb4afb8fde7f0e34c042a9bc0d6",
+    "phase1_recon": "a510b1e1ce5378702987f6a244d79b2782199430",
+    "phase1_synthesis": "d2d3c68fc0bc50f2082091252796b1d34d9c4147",
+    "phase2_baseline": "5f2a6f378cc2eea77fe53c2597a15f0bd865e484"
+  },
+  "missing_primary_metadata": ["exact_prompt", "context_allowlist", "model_version", "run_id", "utc_timestamps", "tool_log", "raw_output_hash"],
+  "reports": [
+    {"id":"R-A","file":"R-A_LEARNING_SCIENCE_RECONSTRUCTED.md","artifact_status":"reconstructed_secondary"},
+    {"id":"R-B","file":"R-B_LEARNER_PRODUCT_RECONSTRUCTED.md","artifact_status":"reconstructed_secondary"},
+    {"id":"R-C","file":"R-C_AGENT_ARCHITECTURE_RECONSTRUCTED.md","artifact_status":"reconstructed_secondary"},
+    {"id":"R-D","file":"R-D_CONTENT_CURRICULUM_RECONSTRUCTED.md","artifact_status":"reconstructed_secondary"},
+    {"id":"R-E","file":"R-E_EVALUATION_DATA_RECONSTRUCTED.md","artifact_status":"reconstructed_secondary"},
+    {"id":"R-F","file":"R-F_SECURITY_PRIVACY_GOVERNANCE_RECONSTRUCTED.md","artifact_status":"reconstructed_secondary"},
+    {"id":"R-G","file":"R-G_COST_SCALE_OPERATIONS_RECONSTRUCTED.md","artifact_status":"reconstructed_secondary"},
+    {"id":"R-H","file":"R-H_ADVERSARIAL_REFUTER_RECONSTRUCTED.md","artifact_status":"reconstructed_secondary"}
+  ]
+}
