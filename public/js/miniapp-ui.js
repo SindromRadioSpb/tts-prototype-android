@@ -115,6 +115,9 @@
     listen_fallback_note: { ru: "Письменные упражнения для оставшихся слов недоступны — продолжаем на слух.", en: "Written exercises are unavailable for the remaining words — continuing by ear." },
     train_none_modality: { ru: "Для этого режима сейчас нет подходящих слов.", en: "No eligible words for this mode right now." },
     smart_train_btn: { ru: "Умная тренировка", en: "Smart training" },
+    ahead_btn: { ru: "▶ Продолжить: слова в работе", en: "▶ Continue: words in progress" },
+    ahead_note: { ru: "Повторение раньше срока — расписание пересчитается честно.", en: "Reviewing ahead of schedule — the schedule recalculates honestly." },
+    train_none_ahead: { ru: "Все слова повторены — расписание пусто. Загляните в Зал за новыми.", en: "Everything reviewed — the schedule is empty. Visit the Room for new words." },
     change_mode_btn: { ru: "Сменить режим", en: "Change mode" },
     open_at_room: { ru: "📖 Открыть это место в Зале", en: "📖 Open this spot in the Room" },
     session_count: { ru: "В этой сессии: ", en: "This session: " },
@@ -343,6 +346,9 @@
     if (b.none) {
       const actions = [{ label: "back_home", onClick: () => renderHome(home) }];
       if (mode === "manual") actions.unshift({ label: "smart_train_btn", onClick: () => startSession("reading_first", home) });
+      // Room-continuity паритет (owner 2026-07-11): due исчерпан → явная опция «в работе»
+      // (кроме случая, когда мы УЖЕ в ahead — тогда честный финиш без петли).
+      if (mode !== "ahead") actions.unshift({ label: "ahead_btn", onClick: () => startSession("ahead", home) });
       // due>0, но письменные модальности исчерпаны → объясняющая копия с числом (не тупик-заглушка)
       if (b.none === "nothing-production-eligible") {
         const box = el("div", "ma-state ma-info");
@@ -353,7 +359,7 @@
         for (const a of actions) { const btn = el("button", "ma-btn", t(a.label)); btn.addEventListener("click", a.onClick); box.appendChild(btn); }
         return render([box]);
       }
-      const key = mode === "manual" ? "train_none_modality" : "train_none_all";
+      const key = mode === "ahead" ? "train_none_ahead" : (mode === "manual" ? "train_none_modality" : "train_none_all");
       return message("info", key, actions);
     }
     if (b.fallback) {
@@ -391,6 +397,7 @@
     const kindKey = "card_" + d.kind;
     box.appendChild(el("h1", "ma-title", STR[kindKey] ? t(kindKey) : String(d.kind || "")));
     if (d._fallbackNote) box.appendChild(el("p", "ma-note", t("fallback_note")));
+    if (d.select_reason === "ahead_of_schedule") box.appendChild(el("p", "ma-note", t("ahead_note")));   // честность раннего повтора
     if (d.explain) box.appendChild(el("p", "ma-rec-why", d.explain));
 
     const st = d.stimulus || {};

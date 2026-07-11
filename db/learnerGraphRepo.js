@@ -186,6 +186,27 @@ async function recentStruggleKeySet(userId, { sinceMs, minFails } = {}) {
   return set;
 }
 
+// Room-continuity 2026-07-11 (owner-директива, паритет с Залом): пул «в работе» — слова с
+// расписанием В БУДУЩЕМ (due > now), earliest-first, ignore-исключён тем же manual-правилом,
+// что getDue. Для ahead-режима Mini App (ранний повтор; FSRS считает elapsed нативно).
+async function getUpcoming(userId, { nowMs, limit } = {}) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const now = Number(nowMs) || Date.now();
+  const lim = Math.max(1, Math.min(500, Number(limit) || 100));
+  const manual = await manualStatusMap(userId);
+  const rows = await dbAll(db,
+    `SELECT item_key, due, interval_days, reps, lapses, stability, difficulty, reviewed_at
+       FROM srs_projections WHERE user_id = ? AND due IS NOT NULL AND due > ?
+      ORDER BY due ASC, item_key ASC`, [userId, new Date(now).toISOString()]);
+  const out = [];
+  for (const r of (rows || [])) {
+    if ((manual[r.item_key] || "") === "ignore") continue;
+    out.push({ item_key: r.item_key, due: r.due, lapses: r.lapses, stability: r.stability });
+    if (out.length >= lim) break;
+  }
+  return out;
+}
+
 // CLG-P8.2 — honest "done today" for the Mini App home (§12 progress MVP): explicit
 // review attempts (kind='review') since sinceIso (caller passes the USER-LOCAL day start
 // via db/localtime.startOfLocalDay — one truth with the nudge system), EXCLUDING annulled
@@ -255,4 +276,4 @@ async function getAgentContext(userId, { nowMs } = {}) {
   };
 }
 
-module.exports = { manualStatusMap, getDue, getKnownWords, getWeakWords, getRecentStruggles, recentStruggleKeySet, getTodayActivity, getAgentContext };
+module.exports = { manualStatusMap, getDue, getUpcoming, getKnownWords, getWeakWords, getRecentStruggles, recentStruggleKeySet, getTodayActivity, getAgentContext };

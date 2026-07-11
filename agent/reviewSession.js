@@ -260,10 +260,16 @@ function _tilesFor(surface) {
 // due-snapshot (окно/exposure/nowMs); порядок — due-order, первый eligible. Manual =
 // осознанный override → reading-first-резервация НЕ применяется (чартер §2); cooldown ДА.
 const MANUAL_MODALITIES = { cloze: 1, dictate: 1, reverse: 1, listen: 1 };
-async function selectForModality(userId, modality, { nowMs } = {}) {
+// opts.poolKeys (Room-continuity 2026-07-11): явный пул ключей вместо due-выборки — ahead-режим
+// подаёт слова «в работе» (due в будущем) через ТЕ ЖЕ предикаты модальностей.
+async function selectForModality(userId, modality, { nowMs, poolKeys } = {}) {
   const now = Number(nowMs) || Date.now();
-  const items = await learnerGraphRepo.getDue(userId, { nowMs: now, limit: REVIEW_DUE_WINDOW });
-  const dueKeys = (items || []).map((it) => it.item_key);
+  let dueKeys;
+  if (Array.isArray(poolKeys)) dueKeys = poolKeys.slice(0, REVIEW_DUE_WINDOW);
+  else {
+    const items = await learnerGraphRepo.getDue(userId, { nowMs: now, limit: REVIEW_DUE_WINDOW });
+    dueKeys = (items || []).map((it) => it.item_key);
+  }
   if (!dueKeys.length) return null;
   const exposedSet = await agentChallengeRepo.recentlyExposedSet(userId, dueKeys, now);
   const isExposed = (k) => exposedSet.has(String(k));
@@ -410,6 +416,7 @@ async function start({ userId, surface, mode, modality, lng, nowMs, tgUserId, tg
   const now = Number(nowMs) || Date.now();
   if (surface !== "telegram_miniapp") return { ok: false, error: "BAD_SURFACE" };
   const isManual = mode === "manual";
+  const isAhead = mode === "ahead";
   if (isManual && !MANUAL_MODALITIES[String(modality || "")]) return { ok: false, error: "BAD_MODALITY" };
 
   // открытый challenge? (single-use слот общий across surfaces — ux_agent_challenges_open)
@@ -440,11 +447,28 @@ async function start({ userId, surface, mode, modality, lng, nowMs, tgUserId, tg
   // allocation.mode отражает фактический пул + fallback-флаг); (б) если и all_due пуст при
   // живом due — объяснить ПОЧЕМУ (кулдаун/непригодность для письменных модальностей), не
   // отделываться «нет упражнений». Manual-режим каскада не имеет (явный выбор пользователя).
-  let effectiveMode = mode === "all_due" ? "all_due" : "reading_first";
+  let effectiveMode = mode === "all_due" || isAhead ? "all_due" : "reading_first";
   let fellBack = false;
-  let pick = isManual
-    ? await selectForModality(userId, modality, { nowMs: now })
-    : await selectEligible(userId, { nowMs: now, allocationMode: effectiveMode === "all_due" ? undefined : "reading_first" });
+  let pick = null;
+  if (isAhead) {
+    // Room-continuity (owner 2026-07-11, паритет с Залом): due-на-сегодня исчерпан → ЯВНАЯ опция
+    // «продолжить словами в работе» — ближайшие по расписанию (earliest-first), ранний повтор
+    // FSRS-нативен (elapsed). Та же цепочка модальностей по явному пулу.
+    const upcoming = await learnerGraphRepo.getUpcoming(userId, { nowMs: now, limit: REVIEW_DUE_WINDOW });
+    const poolKeys = (upcoming || []).map((u) => u.item_key);
+    if (poolKeys.length) {
+      for (const m of ["cloze", "dictate", "reverse", "listen", "read"]) {
+        pick = await selectForModality(userId, m, { nowMs: now, poolKeys });
+        if (pick) break;
+      }
+      if (pick) pick.select_reason = "ahead_of_schedule";
+    }
+    if (!pick) return { ok: true, none: "nothing-ahead", due_count: 0 };
+  } else {
+    pick = isManual
+      ? await selectForModality(userId, modality, { nowMs: now })
+      : await selectEligible(userId, { nowMs: now, allocationMode: effectiveMode === "all_due" ? undefined : "reading_first" });
+  }
   if (!pick && !isManual && effectiveMode === "reading_first") {
     pick = await selectEligible(userId, { nowMs: now });
     if (pick) { effectiveMode = "all_due"; fellBack = true; }

@@ -406,6 +406,29 @@ async function freshChallenge(caps) {
     await learnerProjectionRepo.recomputeForKeys(userId, [ITEM]);
   }
 
+  // ── 13-decies) ahead-режим (Room-continuity паритет): due пуст → «в работе» подаётся раньше срока ──
+  {
+    await dbRun(`DELETE FROM tg_stimulus_exposure WHERE user_id=?`, [userId]);
+    // ITEM в будущем расписании (due +1д), остальное вне due
+    await dbRun(`UPDATE srs_projections SET due=? WHERE user_id=? AND item_key=?`,
+      [new Date(Date.now() + 86400000).toISOString(), userId, ITEM]);
+    await dbRun(`UPDATE srs_projections SET due=NULL WHERE user_id=? AND item_key!=?`, [userId, ITEM]);
+    await agentChallengeRepo.cancelOpenForUser(userId);
+    const sm2 = await reviewSession.start({ userId, surface: S, mode: "all_due", lng: "ru" });
+    ok("ahead precondition: due-now honestly empty", !!(sm2 && sm2.ok && sm2.none));
+    const sa = await reviewSession.start({ userId, surface: S, mode: "ahead", lng: "ru", tgUserId: "111", tgChatId: "222" });
+    const chA = sa && sa.challenge_id ? await dbGet(`SELECT select_reason FROM agent_challenges WHERE challenge_id=?`, [sa.challenge_id]) : null;
+    ok("ahead: future-due word served with ahead_of_schedule provenance",
+      !!(sa && sa.ok && sa.challenge_id && chA && chA.select_reason === "ahead_of_schedule"));
+    await agentChallengeRepo.cancelOpenForUser(userId);
+    // пустое расписание → честный nothing-ahead
+    await dbRun(`UPDATE srs_projections SET due=NULL WHERE user_id=?`, [userId]);
+    const sa2 = await reviewSession.start({ userId, surface: S, mode: "ahead", lng: "ru" });
+    ok("ahead: empty schedule → honest nothing-ahead", !!(sa2 && sa2.ok && sa2.none === "nothing-ahead"));
+    await dbRun(`UPDATE srs_projections SET due=? WHERE user_id=? AND item_key=?`, [past, userId, ITEM]);
+    await learnerProjectionRepo.recomputeForKeys(userId, [ITEM, ...LCANDS]);   // replay-истина для оракула
+  }
+
   // ── 14) down-sync источник + оракул ──
   const log = await learnerLogRepo.readLog(userId, { afterRid: 0, limit: 100 });
   const maRows = (log.rows || log || []).filter((x) => String(x.channel || "").endsWith(":ma"));
