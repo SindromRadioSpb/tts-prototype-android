@@ -917,7 +917,7 @@ function _dueBadgeEl(extraClass) {
   sg.appendChild(el('span', { class: 'db-streak-cal', text: ' 📅' }));   // D7.1 — affordance: tap the streak → activity heatmap
   // R3.2 — instant tooltip for the flame (a new user has no idea what «🔥 2» means); the full
   // typology lives one tap away in the ⓘ sheet.
-  sg.title = tt('room.morph.stats.streakTip', 'Стрик: дней подряд с выполненной целью. «сегодня N/M» — прогресс дневной цели на этом устройстве. Тап — календарь.');
+  sg.title = tt('room.morph.stats.streakTip', 'Стрик: дней подряд с выполненной целью. «сегодня N/M» — прогресс дневной цели (все поверхности: Зал + Telegram). Тап — календарь.');
   sg.addEventListener('click', (e) => { e.stopPropagation(); openStudyHeatmap(); });
   sg.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); openStudyHeatmap(); } });
   box.appendChild(sg);
@@ -962,7 +962,7 @@ async function openStatsInfo() {
     body.appendChild(row(schedTotal, 'room.morph.stats.sched', 'В расписании',
       'room.morph.stats.schedExp', 'Все слова с расписанием повторений — включая выученные и импортированные из Anki.'));
     body.appendChild(row('🔥 ' + ((sv && sv.cur) || 0), 'room.morph.stats.streak', 'Стрик',
-      'room.morph.stats.streakExp', 'Дней подряд с выполненной дневной целью. «сегодня N/M» рядом — прогресс цели (M повторений в день) на этом устройстве.'));
+      'room.morph.stats.streakExp', 'Дней подряд с выполненной дневной целью. «сегодня N/M» рядом — прогресс цели (M повторений в день) на всех поверхностях: Зал + Telegram.'));
     box.appendChild(body);
     const close = () => { _statsSheetOpen = false; try { ov.remove(); } catch (_) {} document.removeEventListener('keydown', onKey); };
     const done = el('button', { class: 'list-picker-done', attrs: { type: 'button' } }); done.textContent = tt('room.corpus.lists.done', 'Готово');
@@ -1016,6 +1016,30 @@ function _paintDueBadge(box, c) {
   }
   box.hidden = !(dueShow || streakShow);
 }
+// R3.3 (owner 2026-07-11: all-surface стрик) — the study-day rows the streak/heatmap folds consume,
+// merged with the per-local-day review count from the LOG (which carries down-synced Telegram/Mini
+// App rows): recalls/available = max(device ledger, log count). A Telegram-only day thus qualifies
+// the daily goal honestly (reviews done ARE evidence work was available); a pure local rest day is
+// untouched. TTL-cached — refreshDueBadge fires on every answer, the log scan shouldn't.
+let _asdCache = null;
+async function _allSurfaceStudyDays() {
+  if (_asdCache && (Date.now() - _asdCache.at) < 4000) return _asdCache.rows;
+  let sd = [], byDay = {};
+  try { sd = (await localDb.getStudyDays()) || []; } catch (_) { sd = []; }
+  try { byDay = (typeof localDb.countReviewsByLocalDay === 'function' ? (await localDb.countReviewsByLocalDay()) : {}) || {}; } catch (_) { byDay = {}; }
+  const map = new Map();
+  for (const r of sd) { if (r && r.day) map.set(String(r.day), { day: String(r.day), recalls: Number(r.recalls) || 0, available: Number(r.available) || 0 }); }
+  for (const day of Object.keys(byDay)) {
+    const n = Number(byDay[day]) || 0;
+    const row = map.get(day) || { day, recalls: 0, available: 0 };
+    row.recalls = Math.max(row.recalls, n);
+    row.available = Math.max(row.available, n);
+    map.set(day, row);
+  }
+  const rows = Array.from(map.values());
+  _asdCache = { at: Date.now(), rows };
+  return rows;
+}
 async function refreshDueBadge() {
   if (!window.ReaderMorph || typeof window.ReaderMorph.dueCounts !== 'function') return;
   let states = readerWordStates, schedule = {};
@@ -1024,7 +1048,7 @@ async function refreshDueBadge() {
   _dueCounts = window.ReaderMorph.dueCounts(states || {}, schedule, Date.now());
   // D7 — streak/goal folded from the study_day ledger (today injected from the LOCAL date).
   if (typeof window.ReaderMorph.streakView === 'function' && typeof localDb.getStudyDays === 'function') {
-    try { _streakView = window.ReaderMorph.streakView((await localDb.getStudyDays()) || [], window.ReaderMorph.STREAK_GOAL_CAP, _localDayStr()); }
+    try { _streakView = window.ReaderMorph.streakView(await _allSurfaceStudyDays(), window.ReaderMorph.STREAK_GOAL_CAP, _localDayStr()); }   // R3.3 all-surface
     catch (_) { _streakView = null; }
   }
   document.querySelectorAll('[data-due-badge]').forEach((b) => _paintDueBadge(b, _dueCounts));
@@ -2147,6 +2171,7 @@ async function checkTrainAnswer(correct, skipped, mode) {
   // genuinely-due count (NOT s.total) so the per-day MAX never re-inflates available with padding. Awaited
   // so the session-summary's fresh ledger read can't race a step behind this write.
   if (!skipped) { try { await localDb.recordRecall(_localDayStr(), s.dueAvail || 0); } catch (_) {} }
+  _asdCache = null;   // R3.3 — the merged streak fold must see THIS answer immediately
   readerWordStates = null;
   try { invalidateReadableSet(); } catch (_) {}
   try { applyDecorations(); } catch (_) {}   // repaint the reader behind
@@ -2234,7 +2259,7 @@ function renderTrainSummary() {
     try {
       if (streakHidden() || !window.ReaderMorph || !window.ReaderMorph.streakView || !localDb.getStudyDays) return;
       if (!streakSlot.isConnected) return;
-      const sv = window.ReaderMorph.streakView((await localDb.getStudyDays()) || [], window.ReaderMorph.STREAK_GOAL_CAP, _localDayStr());
+      const sv = window.ReaderMorph.streakView(await _allSurfaceStudyDays(), window.ReaderMorph.STREAK_GOAL_CAP, _localDayStr());   // R3.3 all-surface
       if (!streakSlot.isConnected || !sv || (!sv.cur && !sv.todayRecalls)) return;
       const line = el('div', { class: 'room-train-streak', attrs: { dir: uiDirRoom(), role: 'button', tabindex: '0', 'data-heatmap-toggle': '1', 'aria-label': tt('room.morph.study.heatToggle', 'Календарь активности') } });
       const g1 = el('span', { class: 'rts-g rts-flame' }); g1.textContent = '🔥 ' + sv.cur + ' ' + tt('room.morph.study.streakDays', 'дн.'); line.appendChild(g1);
@@ -2301,7 +2326,7 @@ async function openStudyHeatmap() {
   if (_heatmapSheetOpen) return; _heatmapSheetOpen = true;
   try {
   let rows = [];
-  try { rows = (typeof localDb.getStudyDays === 'function' ? (await localDb.getStudyDays()) : []) || []; } catch (_) { rows = []; }
+  try { rows = await _allSurfaceStudyDays(); } catch (_) { rows = []; }   // R3.3 — the calendar shows EVERY surface's days
   const hm = (window.ReaderMorph && typeof window.ReaderMorph.studyHeatmap === 'function')
     ? window.ReaderMorph.studyHeatmap(rows, _localDayStr(), 84)
     : { cells: [], activeDays: 0, totalRecalls: 0 };
@@ -3687,6 +3712,7 @@ async function gradeReadingTap(card, occ, correct, prev) {
   } catch (_) {}
   bumpTapStat('graded');
   try { await localDb.recordRecall(_localDayStr(), (_dueCounts && _dueCounts.dueNow) || 0); } catch (_) {}
+  _asdCache = null;   // R3.3 — merged streak fold sees the tap-grade immediately
   try { await applyDecorations(); } catch (_) {}   // the ring leaves this word now (due moved to the future)
   try { refreshDueBadge(); } catch (_) {}          // D3/D7 — badge + streak reflect the write
   return sched;

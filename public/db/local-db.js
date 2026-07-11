@@ -2786,6 +2786,28 @@ export async function countTodayAllReviews(sinceIso) {
     return n;
   } catch (_) { return 0; }
 }
+// R3.3 (owner decision 2026-07-11: all-surface стрик) — review-kind rows per DEVICE-LOCAL day,
+// annul-excluded. The local log already carries down-synced Telegram/Mini App rows, so this map
+// makes the daily goal / streak qualify from EVERY surface — same truth as «Сделано сегодня»,
+// bucketed by day. study_day stays the device diary (available/rest-credit source).
+export async function countReviewsByLocalDay() {
+  try {
+    const ann = new Set();
+    for (const a of (await q(`SELECT meta_json FROM review_log WHERE kind = 'annul'`, [])) || []) {
+      try { const m = a.meta_json ? JSON.parse(a.meta_json) : null; if (m && m.annul_of) ann.add(String(m.annul_of)); } catch (_) {}
+    }
+    const rows = await q(`SELECT id, reviewed_at FROM review_log WHERE kind = 'review'`, []);
+    const out = {};
+    for (const r of rows || []) {
+      if (ann.has(String(r.id))) continue;
+      const d = new Date(r.reviewed_at);
+      if (isNaN(d.getTime())) continue;
+      const day = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+      out[day] = (out[day] || 0) + 1;
+    }
+    return out;
+  } catch (_) { return {}; }
+}
 // R1 source-at-mark (ROOM_DUE_CONTINUITY §3) — persist/backfill the SOURCE occurrence on an
 // ALREADY-SCHEDULED word without touching status or schedule. `fillOnly` (mark path): write only
 // when the word has NO source yet — a mark is incidental, never churns a proven source (R11

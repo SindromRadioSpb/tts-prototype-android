@@ -422,6 +422,11 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         ]);
         await ldb.appendReviewLog({ id: LC.annulId("r32b"), item_key: K32, kind: "annul", reviewed_at: "2099-12-01T12:30:00.000Z", grade: null, source: "op", meta: { annul_of: "r32b" } });
         out.r32TodayCount = await ldb.countTodayAllReviews("2099-12-01T00:00:00.000Z");
+        // R3.3 — per-local-day buckets (headless tz = UTC → local==UTC deterministic): the same
+        // fixture must land r32a on 12-01 (r32b annulled, r32c a skip) and r32d on 11-30.
+        const byDay = await ldb.countReviewsByLocalDay();
+        out.r33Day1 = byDay["2099-12-01"];
+        out.r33Day0 = byDay["2099-11-30"];
       } catch (e) { out.r32Err = String(e && e.message || e); }
 
       return out;
@@ -503,6 +508,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.r2ScanCarriesAnchor === true, "R2: scan rows lack text_key/order_index/he_plain (heal write-back needs the anchor)");
     eq(res.r2ScanRefusesEmpty === true, "R2: blank needles must return [] (never a full-table dump)");
     eq(res.r32TodayCount === 1, "R3.2: countTodayAllReviews must count ONLY today's non-annulled review-kind rows (expected 1, got " + res.r32TodayCount + ")" + (res.r32Err ? " err:" + res.r32Err : ""));
+    eq(res.r33Day1 === 1 && res.r33Day0 === 1, "R3.3: countReviewsByLocalDay buckets wrong (12-01=" + res.r33Day1 + ", 11-30=" + res.r33Day0 + " — annul/skip must be excluded, days split)");
     eq(res.annulD1Filter === true, "P7.0a: FsrsCore.withoutAnnulled did not exclude the annulled row (D1 evidence poisoning)");
 
     // ── R3.1 zombie-mark backfill — a pre-P5.6 mark-only word (manual level, NO schedule, NO seed)
@@ -533,7 +539,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
 
     eq(errs.length === 0, "page errors: " + errs.join(" | "));
 
-    const total = 76;
+    const total = 77;
     if (failures.length) {
       console.error(`smoke:memory-canon FAIL (${total - failures.length}/${total})`);
       for (const f of failures) console.error("  ✗ " + f);
