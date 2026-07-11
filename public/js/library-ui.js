@@ -1492,9 +1492,24 @@ async function _r2DeriveSurface(lemmaKey) {
   const skel = (h > 0 ? k.slice(0, h) : k).trim();
   return /[א-ת]/.test(skel) ? skel : null;
 }
+// R2.1 — pid:-keyed word → its paradigm entry in the shipped offline dict (eng.pidMap): lemma +
+// vocalization + R1-verified gloss. For a pid: key the IDENTITY is given by construction (the mark
+// was keyed to this exact paradigm at tap time) — no resolver round-trip needed or wanted (live
+// measure: resolveWordLight('להיגרע') labels the dict's own citation form 'guessed').
+async function _r2PidEntry(lemmaKey) {
+  const k = String(lemmaKey || '');
+  if (!k.startsWith('pid:')) return null;
+  try {
+    const eng = await window.ReaderMorph.ensureEngine();
+    const pid = k.slice(4);
+    const e = (eng && eng.pidMap && (eng.pidMap.get(pid) || eng.pidMap.get(Number(pid)))) || null;
+    return (e && (e.lemma || e.lemma_niqqud)) ? e : null;
+  } catch (_) { return null; }
+}
 // Day-keyed negative scan cache: a skeleton that scanned dry is not re-scanned for 7 days, so a
 // permanently-unhealable prefix can't monopolize the per-session scan budget (critique r4-1/r11-5).
-const R2_MISS_KEY = 'room.r2.scanMiss', R2_MISS_MS = 7 * 86400000;
+// v2: the v1 key was poisoned by the tokenize-objects bug (live-found 2026-07-11) — orphaned.
+const R2_MISS_KEY = 'room.r2.scanMiss.v2', R2_MISS_MS = 7 * 86400000;
 function _r2MissGet() { try { return JSON.parse(localStorage.getItem(R2_MISS_KEY) || '{}'); } catch (_) { return {}; } }
 function _r2MissFresh(cache, skel) { const t = Number(cache[skel]) || 0; return !!t && (Date.now() - t) < R2_MISS_MS; }
 function _r2MissMark(cache, skel) { cache[skel] = Date.now(); try { localStorage.setItem(R2_MISS_KEY, JSON.stringify(cache)); } catch (_) {} }
@@ -1513,10 +1528,11 @@ const _HEB_VOWELED_RE = /[֑-ׇ]/;
 async function _r2VerifyCandidate(R, d, needle, sent) {
   const heN = String(sent.he_niqqud || sent.he_plain || sent.he || '');
   if (!heN) return null;
-  const tokens = R.tokenize(heN);
+  const tokens = R.tokenize(heN);   // token objects {text, start, end, isWord} — NOT strings (R2.1 live-found fix)
   let tskel = '';
   for (const t of tokens) {
-    const sk = R.stripNiqqud(String(t || ''));
+    if (!t || !t.isWord) continue;
+    const sk = R.stripNiqqud(String(t.text || ''));
     if (sk === needle || _stripProclitic(sk) === needle) { tskel = sk; break; }
   }
   if (!tskel) return null;
@@ -1563,17 +1579,20 @@ async function _buildDueSourcedItems(due, opts) {
   if (!ladder || !laddered.length) return items;
   // ── R2 ladder ────────────────────────────────────────────────────────────────────────────────
   const miss = _r2MissGet();
-  const cand = [];   // {d, needle}
+  const cand = [];   // {d, needle, pidEntry}
   for (const d of laddered) {
     if (cand.length >= TRAIN_N * 2) break;
-    const needle = await _r2DeriveSurface(d.lemmaKey);
-    if (needle) cand.push({ d, needle });
+    // R2.1: a pid: key names its paradigm in the shipped dict — the entry supplies the scan needle
+    // (citation-lemma skeleton) AND a by-construction-honest word-only card (lemma+gloss+niqqud).
+    const pidEntry = await _r2PidEntry(d.lemmaKey);
+    const needle = (await _r2DeriveSurface(d.lemmaKey)) || (pidEntry ? R.stripNiqqud(String(pidEntry.lemma || pidEntry.lemma_niqqud || '')).trim() : null);
+    if (needle || pidEntry) cand.push({ d, needle, pidEntry });
   }
   // ONE batched prefilter pass for every scannable needle this call (critique r4-2)
   const scanNeedles = [];
   for (const c of cand) {
     if (scanNeedles.length >= scanBudget) break;
-    if (!_r2MissFresh(miss, c.needle) && scanNeedles.indexOf(c.needle) < 0) scanNeedles.push(c.needle);
+    if (c.needle && !_r2MissFresh(miss, c.needle) && scanNeedles.indexOf(c.needle) < 0) scanNeedles.push(c.needle);
   }
   let scanRows = [];
   if (scanNeedles.length) { try { scanRows = (await localDb.findSentencesForWords(scanNeedles, 240)) || []; } catch (_) { scanRows = []; } }
@@ -1582,7 +1601,7 @@ async function _buildDueSourcedItems(due, opts) {
     const d = c.d, needle = c.needle;
     let served = null;
     // tier 1 — re-source scan: verified sentence → full contextual item + write-back heal
-    if (scanNeedles.indexOf(needle) >= 0) {
+    if (needle && scanNeedles.indexOf(needle) >= 0) {
       let hit = null;
       for (const row of scanRows) {
         if (String(row.he_plain || '').indexOf(needle) < 0) continue;
@@ -1604,14 +1623,30 @@ async function _buildDueSourcedItems(due, opts) {
         };
       } else { _r2MissMark(miss, needle); }
     }
-    // tier 2 — word-only fallback: independent of the scan budget (critique r4-1). Honesty gates:
-    // canonical-key round-trip + DECISIVE resolve only (a hedged gloss can't be the question —
-    // critique r17-3) + non-empty gloss. _source pinned to null (critique r11-4).
-    if (!served) {
+    // tier 2 — word-only fallback: independent of the scan budget (critique r4-1). _source pinned
+    // to null (critique r11-4). Two honest identities:
+    //   • pid: key → the shipped-dict paradigm entry IS the identity (marked to this exact pid at
+    //     tap time); lemma + R1-verified gloss + vocalization come straight from the dataset (R2.1).
+    //   • skel key → canonical-key round-trip + confident resolve ('exact' or the resolver's own
+    //     confident 'function' class for particles — live-found R2.1) + non-empty gloss (r17-3).
+    if (!served && c.pidEntry) {
+      const e = c.pidEntry;
+      const skel = R.stripNiqqud(String(e.lemma || e.lemma_niqqud || '')).trim();
+      const gloss = String(e.meaning || '');
+      if (skel && gloss) {
+        served = {
+          lemmaKey: d.lemmaKey, surface: skel, niqqud: e.lemma_niqqud || '',
+          gloss, root: e.root || '', pos: e.pos || '',
+          status: d.status, _srs: d.srs, _card: null, _source: null, _wordOnly: true,
+          _built: { cz: { answer: e.lemma_niqqud || skel, segments: null }, ru: '', sentence: '', audioAssetKey: '', rowIdx: null },
+        };
+      }
+    }
+    if (!served && needle) {
       let card = null;
       try { card = await R.resolveWordLight(needle, ''); } catch (_) { card = null; }
       const gloss = card ? String(card.meaning || card.gloss || '') : '';
-      if (card && card.lemmaKey === d.lemmaKey && card.label === 'exact' && gloss) {
+      if (card && card.lemmaKey === d.lemmaKey && (card.label === 'exact' || card.label === 'function') && gloss) {
         served = {
           lemmaKey: d.lemmaKey, surface: needle, niqqud: card.niqqud || '',
           gloss, root: card.root || '', pos: card.pos || '',
