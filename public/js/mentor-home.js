@@ -269,7 +269,8 @@
       var openBtn = el("button", "mentor-hist-open", t("room.mentor.histOpen", "↗ к предложению"));
       openBtn.type = "button";
       openBtn.addEventListener("click", function () {
-        try { S.host.openTextAt(x.anchor.text_key, x.anchor.order_index); } catch (_) {}
+        // PAS-A1: source='corpus' → корпус-осознанный тост при отсутствии работы на устройстве
+        try { S.host.openTextAt(x.anchor.text_key, x.anchor.order_index, x.source); } catch (_) {}
       });
       head.appendChild(openBtn);
     }
@@ -297,7 +298,7 @@
     if (!j || !j.ok) { box.appendChild(el("div", "mentor-hint", "✗ " + t("room.cloud.err", "Ошибка синхронизации"))); if (more) more.hidden = true; return; }
     var items = j.explanations || [];
     if (!items.length && !append) {
-      box.appendChild(el("div", "mentor-hint", t("room.mentor.histEmpty", "Объяснений пока нет — тапните 🤖 на предложении своего текста в читалке.")));
+      box.appendChild(el("div", "mentor-hint", t("room.mentor.histEmpty", "Объяснений пока нет — тапните 🤖 на предложении в читалке (свой текст или корпус).")));
     }
     items.forEach(function (x) { box.appendChild(historyItemNode(x)); });
     if (more) {

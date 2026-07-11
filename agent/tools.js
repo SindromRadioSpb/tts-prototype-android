@@ -22,6 +22,7 @@ const path = require("path");
 const learnerGraphRepo = require(path.join(__dirname, "..", "db", "learnerGraphRepo"));
 const learnerArtifactsRepo = require(path.join(__dirname, "..", "db", "learnerArtifactsRepo"));
 const agentSentenceRepo = require(path.join(__dirname, "..", "db", "agentSentenceRepo"));
+const corpusSentenceRepo = require(path.join(__dirname, "..", "db", "corpusSentenceRepo"));
 const keyingService = require(path.join(__dirname, "..", "db", "keyingService"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
 const reviewer = require(path.join(__dirname, "reviewer"));
@@ -81,6 +82,17 @@ const REGISTRY = {
   get_sentence_context_if_available: {
     readOnly: true,
     run: (ctx, a) => agentSentenceRepo.getSentenceContext(ctx.userId, {
+      text_key: a && a.text_key, order_index: a && a.order_index,
+    }),
+  },
+  // ── ОБЩИЙ артефакт (PAS-A1): предложение public-domain корпуса — consent-гейта нет
+  // by-design (содержимое не является данными пользователя; learner-раскрытие — в
+  // first-use confirm клиента). Якорь несёт text_key: многоглавные работы делят один
+  // work_id, выбор текста строго по ключу (спека v2 после критики wf_35f46603).
+  get_corpus_sentence_context: {
+    readOnly: true,
+    run: (ctx, a) => corpusSentenceRepo.getCorpusSentenceContext({
+      corpus: a && a.corpus, work_id: a && a.work_id,
       text_key: a && a.text_key, order_index: a && a.order_index,
     }),
   },

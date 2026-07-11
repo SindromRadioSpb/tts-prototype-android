@@ -97,24 +97,50 @@ async function createExplanation(userId, { sentence_id, item_key, facts_used, ll
 }
 
 // Purge-on-revoke (решение владельца 2026-07-06, §5 v3 «отзыв C-consent → каскад на
-// derived»): отзыв agent_read_texts → контентные поля ВСЕХ объяснений пользователя
+// derived»): отзыв agent_read_texts → контентные поля объяснений ЛИЧНЫХ текстов
 // зануляются до tombstone (explanation-текст и facts_used цитируют предложение — это
 // цитирование пользовательского текста, «пометить и оставить» недостаточно). Остаются
 // только технические поля: id/user_id/created_at/llm_model/sentence_id-якорь + причина.
+// PAS-A1 (критика wf_35f46603 MAJOR): корпус-объяснения (facts[0].kind='corpus_sentence')
+// purge ЩАДИТ — public-domain контент к agent_read_texts не относился; тумбстоунить его
+// с purge_reason='consent_revoked' = ложный провенанс (R9).
 async function purgeExplanationContent(userId, reason = "consent_revoked") {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
-  const rows = await dbAll(db, `SELECT id, body_json FROM agent_explanations WHERE user_id = ?`, [userId]);
+  const rows = await dbAll(db, `SELECT id, body_json, facts_used_json FROM agent_explanations WHERE user_id = ?`, [userId]);
   const purgedAt = nowIso();
   let n = 0;
   for (const r of rows || []) {
     let scope = null;
     try { const b = JSON.parse(r.body_json); if (b && b.purge_reason) continue; scope = b && b.scope_level || null; } catch (_) {}
+    try {
+      const facts = JSON.parse(r.facts_used_json);
+      if (Array.isArray(facts) && facts[0] && facts[0].kind === "corpus_sentence") continue;   // общий артефакт — не трогаем
+    } catch (_) {}   // нечитаемый facts_used → консервативно PURGE (fail-closed к приватности)
     const tomb = JSON.stringify({ scope_level: scope, purged_at: purgedAt, purge_reason: String(reason) });
     await dbRun(db, `UPDATE agent_explanations SET facts_used_json = '[]', body_json = ? WHERE id = ? AND user_id = ?`,
       [tomb, r.id, userId]);
     n++;
   }
   return { purged: n };
+}
+
+// PAS-A1 same-day dedupe (корпус): свежее сегодняшнее объяснение того же якоря/языка.
+// Возвращает МИНИМУМ для повторного ответа (не факты) либо null.
+async function getFreshExplanation(userId, sentenceId, { language } = {}) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const row = await dbGet(db,
+    `SELECT id, body_json, created_at FROM agent_explanations
+      WHERE user_id = ? AND sentence_id = ? ORDER BY rowid DESC LIMIT 1`,
+    [userId, String(sentenceId)]);
+  if (!row) return null;
+  let b = null;
+  try { b = JSON.parse(row.body_json); } catch (_) { return null; }
+  if (!b || b.purge_reason || b.text == null) return null;
+  if (language && b.language !== language) return null;
+  const todayUtc = new Date().toISOString().slice(0, 10);
+  if (String(row.created_at || "").slice(0, 10) !== todayUtc) return null;
+  return { id: row.id, text: String(b.text), llm_used: b.llm_used === true,
+           provider: b.provider || null, model: b.model || null };
 }
 
 // ── P9 «дом наставника»: история объяснений (list, строго user-scoped) ───────
@@ -252,7 +278,7 @@ async function usageToday(userId) {
 module.exports = {
   getProfile, updateProfile,
   createTask, listTasks, setTaskStatus,
-  createExplanation, purgeExplanationContent,
+  createExplanation, purgeExplanationContent, getFreshExplanation,
   listExplanations, constructOccurrences,
   wordLifecycle,
   reserveLlmCall, finalizeLlmCall, usageToday,

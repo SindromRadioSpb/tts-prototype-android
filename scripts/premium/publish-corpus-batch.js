@@ -146,6 +146,30 @@ function selfCheck(outDir, next, expectBaked) {
   ok.push(["sidecar exists", fs.existsSync(path.join(outDir, root.index_file || ""))]);
   ok.push(["search exists", fs.existsSync(path.join(outDir, root.search_file || ""))]);
   ok.push(["all manifests on disk", (root.manifests || []).every((m) => fs.existsSync(path.join(outDir, m.file)))]);
+  // PAS-A1 (спека v2): agent corpus-explain матчит ряд по ЗНАЧЕНИЮ rows[].order_index, а
+  // клиент шлёт ПОЗИЦИЮ ряда своей OPFS-копии — инвариант «позиция==значение» обязан
+  // держаться для каждого текста каждой публикуемой работы (критика wf_35f46603 MAJOR).
+  {
+    const worksDir = path.join(outDir, "works");
+    let checked = 0, broken = 0;
+    if (fs.existsSync(worksDir)) {
+      for (const f of fs.readdirSync(worksDir)) {
+        if (!/^\d+\.json$/.test(f)) continue;
+        try {
+          const w = JSON.parse(fs.readFileSync(path.join(worksDir, f), "utf8"));
+          const texts = (w.library && w.library.texts) || w.texts || [];
+          for (const t of texts) {
+            const rows = Array.isArray(t.rows) ? t.rows : [];
+            for (let i = 0; i < rows.length; i++) {
+              if (Number(rows[i].order_index) !== i) { broken++; break; }
+            }
+          }
+          checked++;
+        } catch (_) { broken++; }
+      }
+    }
+    ok.push(["works: позиция==order_index (agent-anchor инвариант, " + checked + " файлов)", broken === 0]);
+  }
   if (APPLY) { // anti-drift: sw precache literal must match the client version after the bump
     const sw = fs.readFileSync(SW, "utf8"), lui = fs.readFileSync(LIB_UI, "utf8");
     const cv = Number((lui.match(/CORPUS_CATALOG_VERSION\s*=\s*(\d+)/) || [])[1]);

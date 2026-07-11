@@ -1857,6 +1857,15 @@
         <button id="roomExplainCancel" type="button" class="room-cloud-ghost" data-i18n="room.explain.cancel">Отмена</button>
       </div>
     </div>
+    <!-- PAS-A1 — first-use подтверждение КОРПУСНОГО пути: consent-классы не нужны (public
+         domain), но раскрытие честное — learner-факты уходят в LLM (критика wf_35f46603). -->
+    <div id="roomExplainCorpusAck" hidden>
+      <p class="room-cloud-hint room-explain-confirm" data-i18n="room.explain.corpusAckBody">Предложение — из открытого корпуса (public domain), согласие на чтение ваших текстов не требуется. Наставник отправит его внешнему LLM вместе с ВАШИМИ учебными фактами (слабые/просроченные слова) и потратит 1 вызов из дневного лимита. Продолжить?</p>
+      <div class="room-cloud-actions">
+        <button id="roomExplainCorpusOk" type="button" data-i18n="room.explain.corpusAckBtn">Понятно, объяснить</button>
+        <button id="roomExplainCorpusCancel" type="button" class="room-cloud-ghost" data-i18n="room.explain.cancel">Отмена</button>
+      </div>
+    </div>
     <div id="roomExplainBody" class="room-explain-body" hidden></div>
     <!-- P6.4 — серверные construct-титулы (детерминированные, не LLM) -->
     <div id="roomExplainConstructs" class="room-cloud-hint" hidden></div>

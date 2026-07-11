@@ -489,7 +489,9 @@ let readerMorph = null; // ReaderMorph attach detach handle
 let readerTextId = null; // BRR-P2-002 — local OPFS id of the open text (for progress)
 let readerTextTitle = ''; // BRR-P2-003 — title + key of the open text (denormalised into bookmarks)
 let readerTextKey = null;
-let readerIsOwnText = false; // CLG-P6.2 — «Объяснить» только на СВОИХ текстах (корпус не в artifact-store)
+let readerIsOwnText = false; // CLG-P6.2 — личный explain-путь (двойной consent)
+let readerCorpusWorkId = null;      // PAS-A1 — byehuda_id открытой корпусной работы (null для личных; сброс в closeReader)
+let readerCorpusExplainOk = false;  // PAS-A1 — HEAD-probe: works-файл опубликован на сервере (26/57 canon — нет)
 let _bookmarkSet = null;  // Set of bookmarked sentence_ids in the current text
 
 // BYOK GCP TTS key — same localStorage slot index.html uses (v3.gcpTtsApiKey).
@@ -2896,15 +2898,21 @@ function _mentorHost() {
     csrf: () => { try { return localStorage.getItem('cloud.csrf') || ''; } catch (_) { return ''; } },
     runTrainer: (itemKeys, channel) => { try { startPlanSectionTraining(itemKeys, channel); } catch (_) {} },
     openReading: () => closeMentorView(),
-    openTextAt: async (textKey, orderIndex) => {
+    openTextAt: async (textKey, orderIndex, source) => {
       let row = null;
       try {
         const rows = await localDb.dbQuery('SELECT id, title FROM texts WHERE text_key = ? LIMIT 1', [String(textKey)]);
         row = rows && rows[0];
       } catch (_) {}
-      // R11: якорь может указывать на текст, которого нет НА ЭТОМ устройстве (синк с другого) —
-      // честный тост вместо тихого no-op.
-      if (!row) { roomToast(tt('room.mentor.textMissing', 'Текст не найден на этом устройстве — синхронизируйте «Мои тексты» в ☁.')); return; }
+      // R11: якорь может указывать на текст, которого нет НА ЭТОМ устройстве — честный тост
+      // вместо тихого no-op. PAS-A1: для корпус-якоря совет «синхронизируйте Мои тексты» был
+      // бы ложной диагностикой (public-domain работа) — своя копия.
+      if (!row) {
+        roomToast(source === 'corpus'
+          ? tt('room.mentor.corpusTextMissing', 'Работа не найдена на устройстве — откройте её во вкладке «Корпус».')
+          : tt('room.mentor.textMissing', 'Текст не найден на этом устройстве — синхронизируйте «Мои тексты» в ☁.'));
+        return;
+      }
       closeMentorView();
       openReader(row.id, row.title, { scrollToOrderIndex: Number(orderIndex) });
     },
@@ -3447,6 +3455,7 @@ function _explainEls() {
   return {
     modal: $('roomExplainModal'), sentence: $('roomExplainSentence'),
     consent: $('roomExplainConsent'), allow: $('roomExplainAllow'), cancel: $('roomExplainCancel'),
+    corpusAck: $('roomExplainCorpusAck'), corpusOk: $('roomExplainCorpusOk'), corpusCancel: $('roomExplainCorpusCancel'),
     body: $('roomExplainBody'), constructs: $('roomExplainConstructs'), meta: $('roomExplainMeta'),
   };
 }
@@ -3469,15 +3478,40 @@ function roomExplainInit() {
         body: JSON.stringify({ key: 'agent_read_texts', granted: true, version: 'v1' }) });
       if (!r.ok) { _explainShowMeta(tt('room.cloud.err', 'Ошибка синхронизации')); return; }
     } catch (_) { _explainShowMeta(tt('room.cloud.err', 'Ошибка синхронизации')); return; }
-    _explainRequest(p.textKey, p.orderIndex);
+    _explainRequest(p.textKey, p.orderIndex, { rowIdx: p.rowIdx });
+  });
+  // PAS-A1 — first-use подтверждение корпусного пути: durable-consent НЕ включается
+  // (классы B/C не участвуют), запоминается локальный ack-флаг
+  if (els.corpusCancel) els.corpusCancel.addEventListener('click', () => { els.modal.hidden = true; _explainPending = null; });
+  if (els.corpusOk) els.corpusOk.addEventListener('click', () => {
+    const p = _explainPending; _explainPending = null;
+    if (els.corpusAck) els.corpusAck.hidden = true;
+    if (!p || !p.corpus) { els.modal.hidden = true; return; }
+    try { localStorage.setItem('room.corpusExplainAck', '1'); } catch (_) {}
+    _explainRequest(p.textKey, p.orderIndex, { corpus: true, workId: p.workId, rowIdx: p.rowIdx });
   });
 }
 function _explainShowMeta(text) {
   const els = _explainEls(); if (!els.meta) return;
   els.meta.textContent = text || ''; els.meta.hidden = !text;
 }
+// PAS-A1 — разовый HEAD-probe опубликованности works-файла: кнопка 🤖 не вешается на
+// работы без файла на сервере (26/57 canon живут только в canon-zip — тупика нет).
+const _corpusProbeCache = {};   // workId → true|false (память вкладки)
+async function probeCorpusExplain(workId) {
+  if (_corpusProbeCache[workId] == null) {
+    let ok = false;
+    try { const r = await fetch('/data/benyehuda/works/' + encodeURIComponent(workId) + '.json', { method: 'HEAD' }); ok = !!r.ok; } catch (_) {}
+    _corpusProbeCache[workId] = ok;
+  }
+  if (readerCorpusWorkId !== workId) return;   // читалка уже на другом тексте
+  readerCorpusExplainOk = _corpusProbeCache[workId];
+  if (readerCorpusExplainOk) { try { attachExplainButtons($('roomReaderTable')); } catch (_) {} }
+}
 function attachExplainButtons(mount) {
-  if (!mount || !readerIsOwnText) return;   // корпус: артефактов нет by-design — кнопки нет
+  // личные тексты — сразу; корпус — после успешного probe (PAS-A1)
+  const corpusOk = !readerIsOwnText && !!readerCorpusWorkId && readerCorpusExplainOk;
+  if (!mount || (!readerIsOwnText && !corpusOk)) return;
   mount.querySelectorAll('tr[data-row-idx]').forEach((tr) => {
     const idx = Number(tr.getAttribute('data-row-idx'));
     const row = readerRows[idx];
@@ -3500,6 +3534,7 @@ async function explainRow(idx) {
   if (_explainInFlight) return;   // P6.3 — тап по другой строке при живом запросе не перерисовывает модал
   const row = readerRows[idx];
   if (!row || !readerTextKey) return;
+  const isCorpus = !readerIsOwnText && !!readerCorpusWorkId;   // PAS-A1
   const orderIndex = row._v3_orderIndex != null ? Number(row._v3_orderIndex) : idx;
   const els = _explainEls(); if (!els.modal) return;
   els.modal.hidden = false;
@@ -3507,11 +3542,30 @@ async function explainRow(idx) {
   if (els.body) { els.body.hidden = true; els.body.textContent = ''; }
   if (els.constructs) { els.constructs.hidden = true; els.constructs.textContent = ''; }
   if (els.consent) els.consent.hidden = true;
+  if (els.corpusAck) els.corpusAck.hidden = true;
   _explainShowMeta('');
+  // PAS-A1 — Зал offline-first, наставник онлайн: честное состояние вместо ложного «войдите в ☁»
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    _explainShowMeta(tt('room.explain.offline', '🤖 Наставник доступен онлайн — объяснение появится при подключении.'));
+    return;
+  }
   const CS = window.CloudSync;
   let session = null;
   try { session = CS ? await CS.me() : null; } catch (_) {}
   if (!session) { _explainShowMeta(tt('room.explain.needLogin', 'Для объяснений нужен вход в облако — откройте ☁ в шапке.')); return; }
+  if (isCorpus) {
+    // корпус: consent-классы B/C не участвуют (public domain), но first-use раскрытие
+    // learner-фактов честное (критика wf_35f46603 — «ничего личного» было бы ложью)
+    let acked = false;
+    try { acked = localStorage.getItem('room.corpusExplainAck') === '1'; } catch (_) {}
+    if (!acked) {
+      _explainPending = { corpus: true, workId: readerCorpusWorkId, textKey: readerTextKey, orderIndex, rowIdx: idx };
+      if (els.corpusAck) els.corpusAck.hidden = false;
+      return;
+    }
+    _explainRequest(readerTextKey, orderIndex, { corpus: true, workId: readerCorpusWorkId, rowIdx: idx });
+    return;
+  }
   const consents = session.consents || {};
   if (!(consents.cloud_texts && consents.cloud_texts.granted === true)) {
     _explainShowMeta(tt('room.explain.needTexts', 'Сначала включите «Синхронизировать Мои тексты» в ☁ и запустите синк.'));
@@ -3523,31 +3577,42 @@ async function explainRow(idx) {
     if (els.consent) els.consent.hidden = false;
     return;
   }
-  _explainRequest(readerTextKey, orderIndex);
+  _explainRequest(readerTextKey, orderIndex, { rowIdx: idx });
 }
 // P6.3 — duplicate-tap guard: ОДИН explain-запрос в полёте на всю читалку (мобильный
 // паттерн «тапнул → не дождался → тапнул ещё» не должен жечь ledger повторно; серверный
 // pre-call reserve — вторая линия, эта — первая). Повторный тап при живом запросе
 // игнорируется молча: модал уже показывает «Наставник думает…».
 let _explainInFlight = false;
-async function _explainRequest(textKey, orderIndex) {
+const _stripNiq = (s) => String(s || '').replace(/[֑-ׇ]/g, '').replace(/\s+/g, ' ').trim();
+async function _explainRequest(textKey, orderIndex, opts) {
   if (_explainInFlight) return;
   _explainInFlight = true;
+  const o = opts || {};
   const els = _explainEls();
   if (els.body) { els.body.hidden = false; els.body.textContent = tt('room.explain.loading', 'Наставник думает…'); }
   _explainShowMeta('');
-  let r = null;
+  // PAS-A1 — таймаут/abort: «думает…» не бесконечен; закрытие модала гасит fetch
+  // (серверный вызов может доехать и лечь в историю — dedupe отдаст его без нового расхода)
+  const ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = ac ? setTimeout(() => { try { ac.abort(); } catch (_) {} }, 30000) : null;
+  let r = null, aborted = false;
   try {
+    const body = { text_key: textKey, order_index: orderIndex, scope_level: 'sentence_only' };
+    if (o.corpus) { body.source = 'corpus'; body.work_id = String(o.workId || ''); }
     r = await fetch('/api/agent/explain', { method: 'POST', credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
-      body: JSON.stringify({ text_key: textKey, order_index: orderIndex, scope_level: 'sentence_only' }) }).then((x) => x.json());
-  } catch (_) {}
-  finally { _explainInFlight = false; }
+      body: JSON.stringify(body), ...(ac ? { signal: ac.signal } : {}) }).then((x) => x.json());
+  } catch (e) { aborted = !!(e && e.name === 'AbortError'); }
+  finally { _explainInFlight = false; if (timer) clearTimeout(timer); }
   if (!r || !r.ok) {
     const code = (r && r.error) || '';
     let msg;
-    if (code === 'TEXT_NOT_IN_CLOUD') msg = tt('room.explain.notInCloud', 'Текст ещё не синхронизирован — запустите синк в ☁ и повторите.');
-    else if (code === 'SENTENCE_NOT_FOUND') msg = tt('room.explain.notInCloud', 'Текст ещё не синхронизирован — запустите синк в ☁ и повторите.');
+    if (aborted) msg = tt('room.explain.timeout', 'Наставник не успел ответить — попробуйте ещё раз (вызов мог быть учтён).');
+    else if (!r && typeof navigator !== 'undefined' && navigator.onLine === false) msg = tt('room.explain.offline', '🤖 Наставник доступен онлайн — объяснение появится при подключении.');
+    else if (code === 'CORPUS_WORK_NOT_FOUND' || code === 'CORPUS_SENTENCE_NOT_FOUND' || code === 'CORPUS_WORK_TOO_LARGE')
+      msg = tt('room.explain.corpusUnavailable', 'Эта работа ещё не опубликована на сервере — объяснение недоступно.');
+    else if (code === 'TEXT_NOT_IN_CLOUD' || code === 'SENTENCE_NOT_FOUND') msg = tt('room.explain.notInCloud', 'Текст ещё не синхронизирован — запустите синк в ☁ и повторите.');
     else if (code === 'CLOUD_TEXTS_CONSENT_REQUIRED') msg = tt('room.explain.needTexts', 'Сначала включите «Синхронизировать Мои тексты» в ☁ и запустите синк.');
     else if (code === 'AGENT_READ_TEXTS_CONSENT_REQUIRED') msg = tt('room.explain.needConsent', 'Разрешите наставнику читать тексты (галочка 🤖 в доме наставника).');
     else msg = '✗ ' + tt('room.explain.err', 'Не удалось получить объяснение') + (code ? ' (' + code + ')' : '');
@@ -3555,14 +3620,30 @@ async function _explainRequest(textKey, orderIndex) {
     return;
   }
   // LLM/фолбэк-текст — СТРОГО textContent (никогда не HTML)
-  if (els.body) { els.body.hidden = false; els.body.textContent = r.text || ''; }
+  let bodyText = r.text || '';
+  // PAS-A1 — skeleton-сверка: OPFS-издание могло отстать от тома → честная приписка вместо
+  // молчаливого объяснения другого предложения (критика: silent wrongness)
+  if (o.rowIdx != null && r.sentence && r.sentence.he) {
+    const local = readerRows[o.rowIdx];
+    const localHe = local ? (local.he || local.he_niqqud || '') : '';
+    if (localHe && _stripNiq(localHe) !== _stripNiq(r.sentence.he)) {
+      bodyText += '\n\n⚠ ' + tt('room.explain.editionMismatch', 'Текст работы обновился — объяснение может не совпадать с показанной строкой.');
+    }
+  }
+  if (els.body) { els.body.hidden = false; els.body.textContent = bodyText; }
   // P6.4 — детерминированные construct-титулы сервера (видны ВСЕГДА, не только в fallback)
   if (els.constructs && Array.isArray(r.constructs) && r.constructs.length) {
     els.constructs.textContent = '⚙ ' + r.constructs.map((c) => c && c.title).filter(Boolean).join(' · ');
     els.constructs.hidden = false;
   }
-  if (r.llm_used) _explainShowMeta('🤖 ' + (r.provider || '') + (r.model ? ' · ' + r.model : ''));
-  else _explainShowMeta(tt('room.explain.noLlm', 'без AI: перевод и морфология офлайн') + (r.degraded_reason ? ' (' + r.degraded_reason + ')' : ''));
+  // PAS-A1 — мета: провенанс источника + provider + видимость квоты в точке трат (R16)
+  const metaParts = [];
+  if (r.source === 'corpus') metaParts.push(tt('room.explain.srcCorpus', 'Источник: корпус Бен-Иегуды · public domain'));
+  if (r.from_history) metaParts.push(tt('room.explain.fromHistory', 'из истории — без нового вызова'));
+  if (r.llm_used) metaParts.push('🤖 ' + (r.provider || '') + (r.model ? ' · ' + r.model : ''));
+  else if (!r.from_history) metaParts.push(tt('room.explain.noLlm', 'без AI: перевод и морфология офлайн') + (r.degraded_reason ? ' (' + r.degraded_reason + ')' : ''));
+  if (r.usage && r.usage.limit) metaParts.push(tt('room.explain.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit);
+  _explainShowMeta(metaParts.join(' · '));
 }
 
 // BRR-P1-006 D2 — progressive translation reveal (active recall). In 'reveal' mode the ru cells
@@ -4134,9 +4215,19 @@ async function openReader(textId, title, opts) {
   // CLG-P6.2 — own vs corpus (то же правило, что listOwnTextsForSync/maybeNudgeNiqqud):
   // корпусные работы не живут в artifact-store → объяснение наставника недоступно by-design.
   readerIsOwnText = false;
+  readerCorpusWorkId = null; readerCorpusExplainOk = false;   // безусловный сброс (singleton-reset)
   try {
     const meta = res && res.text && res.text.source_meta_json ? JSON.parse(res.text.source_meta_json) : null;
     readerIsOwnText = !!readerTextKey && !(meta && meta.corpus);
+    // PAS-A1 — id работы: та же фолбэк-цепочка, что loadProcliticOverlay (ранние импорты
+    // могли не иметь поля в source_meta_json)
+    if (!readerIsOwnText && readerTextKey) {
+      const t0 = res.text || {};
+      let bid = (t0.byehuda_id || (t0.corpus && t0.corpus.byehuda_id) || (meta && meta.corpus && meta.corpus.byehuda_id)) || '';
+      if (!bid) { const m = String(textId == null ? '' : textId).match(/(\d+)/); bid = m ? m[1] : ''; }
+      readerCorpusWorkId = bid ? String(bid) : null;
+      if (readerCorpusWorkId) probeCorpusExplain(readerCorpusWorkId);
+    }
   } catch (_) { readerIsOwnText = !!readerTextKey; }
   try { setReaderSubtitle(res && res.ok && res.text ? res.text : null); } catch (_) {}   // Epic-6 W1-a — per-work source/context
   if (res && res.ok) {
@@ -4234,6 +4325,7 @@ async function closeReader() {
   karaokeActive = false; setReadAloudBtn(false);   // BRR-P1-008 — reset karaoke on close
   clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip(); clearFadeGradNudge(); closeReaderFind(); _sessionMaxRow = -1; readerTextId = null;   // BRR-P2-002/005/S15 + Epic-5 W1/W4/W5 — stop recording + clear find/end-card/cov-chip/fade-nudge after close
   _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null; readerIsOwnText = false;   // BRR-P2-003 — reset bookmark state
+  readerCorpusWorkId = null; readerCorpusExplainOk = false;   // PAS-A1 — singleton-reset (устаревший id не переживает переход corpus→личный)
   try { setReaderSubtitle(null); } catch (_) {}   // Epic-6 W1-a — drop the per-work byline on close
   const rm = $('roomReaderTable');
   if (rm && revealHandler) { try { rm.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }

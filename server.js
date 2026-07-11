@@ -1793,26 +1793,36 @@ app.post("/api/agent/plan", rlAgent, async (req, res) => {
 // сервер принимает ТОЛЬКО scope_level='sentence_only' (явный, не дефолтный: это
 // privacy-контракт, а не удобство); consent-провалы = 403 с точным кодом (fail-closed,
 // НЕ тихая деградация — consent это не optional LLM-limit); неизвестный якорь = 404.
-app.post("/api/agent/explain", rlAgent, async (req, res) => {
+// PAS-A1: source='corpus' — общий артефакт (work_id+text_key+order_index, consent не
+// нужен by-design); смешанный body-контракт → 400 (гейты путей не смешиваются).
+// Отдельный limiter explain-семьи: rlAgent 20/мин делится с Mentor-Home GET'ами и
+// душил бы интерактивную сессию чтения (критика wf_35f46603; прецедент rlAgentReview).
+const rlAgentExplain = makeRateLimiter({ windowMs: 60_000, max: 40, name: "agent-explain" });
+app.post("/api/agent/explain", rlAgentExplain, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   if (!requireCsrf(req, res, auth)) return;
   const b = req.body || {};
   if (String(b.scope_level || "") !== "sentence_only") {
     return res.status(400).json({ ok: false, error: "UNSUPPORTED_EXPLAIN_SCOPE", supported: ["sentence_only"] });
   }
+  const isCorpus = String(b.source || "") === "corpus";
+  if (!isCorpus && b.work_id != null) return res.status(400).json({ ok: false, error: "BAD_SOURCE_MIX" });
   const textKey = String(b.text_key || "").trim();
   const orderIndex = Number(b.order_index);
   if (!textKey || !Number.isFinite(orderIndex)) {
     return res.status(400).json({ ok: false, error: "BAD_ANCHOR" });
   }
+  if (isCorpus && !String(b.work_id || "").trim()) return res.status(400).json({ ok: false, error: "BAD_ANCHOR" });
   try {
     const r = await agentRuntime.explain({ userId: auth.user.id, deviceId: auth.session.deviceId },
-      { text_key: textKey, order_index: orderIndex });
+      { text_key: textKey, order_index: orderIndex, ...(isCorpus ? { source: "corpus", work_id: String(b.work_id).trim() } : {}) });
     if (!r.ok) {
       const code = String(r.error || "");
       if (code === "CLOUD_TEXTS_CONSENT_REQUIRED" || code === "AGENT_READ_TEXTS_CONSENT_REQUIRED") return res.status(403).json(r);
-      if (code === "TEXT_NOT_IN_CLOUD" || code === "SENTENCE_NOT_FOUND") return res.status(404).json(r);
-      if (code === "BAD_ANCHOR") return res.status(400).json(r);
+      if (code === "TEXT_NOT_IN_CLOUD" || code === "SENTENCE_NOT_FOUND" ||
+          code === "CORPUS_WORK_NOT_FOUND" || code === "CORPUS_SENTENCE_NOT_FOUND") return res.status(404).json(r);
+      if (code === "CORPUS_WORK_TOO_LARGE") return res.status(413).json(r);
+      if (code === "BAD_ANCHOR" || code === "BAD_WORK_ID" || code === "BAD_TEXT_KEY" || code === "BAD_CORPUS") return res.status(400).json(r);
       return res.status(500).json(r);
     }
     res.json(r);

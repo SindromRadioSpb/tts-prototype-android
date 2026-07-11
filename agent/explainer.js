@@ -43,10 +43,14 @@ function hebrewTokens(text) {
   return out;
 }
 
-// Детерминированное ядро: предложение (consent-gated) + резолвер-морфология +
-// пересечение с учебным состоянием. Всё, что уйдёт в LLM/facts_used, собирается ЗДЕСЬ.
-async function buildExplainCore(ctx, { text_key, order_index } = {}) {
-  const sres = await tools.callTool(ctx, "get_sentence_context_if_available", { text_key, order_index });
+// Детерминированное ядро: предложение (личное — consent-gated; корпус — общий артефакт,
+// PAS-A1) + резолвер-морфология + пересечение с учебным состоянием. Всё, что уйдёт в
+// LLM/facts_used, собирается ЗДЕСЬ; всё ниже первой ступени — source-агностично.
+async function buildExplainCore(ctx, { text_key, order_index, source, work_id } = {}) {
+  const isCorpus = source === "corpus";
+  const sres = isCorpus
+    ? await tools.callTool(ctx, "get_corpus_sentence_context", { corpus: "benyehuda", work_id, text_key, order_index })
+    : await tools.callTool(ctx, "get_sentence_context_if_available", { text_key, order_index });
   if (!sres.ok) return { ok: false, error: sres.error || "TOOL_FAILED" };
   if (!sres.result.ok) return { ok: false, error: sres.result.error, ...(sres.result.key ? { key: sres.result.key } : {}) };
   const sctx = sres.result;
@@ -107,6 +111,8 @@ async function buildExplainCore(ctx, { text_key, order_index } = {}) {
   return {
     ok: true,
     scope_level: SCOPE_SENTENCE_ONLY,
+    source: isCorpus ? "corpus" : "personal",
+    work: isCorpus ? (sctx.work || null) : null,
     anchor: sctx.anchor,
     sentence: sctx.sentence,
     morphology,
@@ -146,14 +152,44 @@ function fallbackText(core, language) {
   return lines.join("\n");
 }
 
+// R16-видимость квоты в точке трат (критика wf_35f46603): usage в каждом ответе.
+async function _usage(userId) {
+  try {
+    const u = await agentRepo.usageToday(userId);
+    return { user_llm_calls: u.user_llm_calls, limit: planner.limits().perUserDaily };
+  } catch (_) { return null; }
+}
+
 // Полный сценарий: ядро → (опц.) LLM-формулировка под pre-call reserve → persist в
 // agent_explanations (facts_used-провенанс ОБЯЗАТЕЛЕН — объяснение без провенанса
 // не создаётся вовсе, §7).
-async function explain(ctx, { text_key, order_index } = {}) {
+async function explain(ctx, { text_key, order_index, source, work_id } = {}) {
   const profile = await agentRepo.getProfile(ctx.userId);
   const language = (profile && profile.language) || "ru";
-  const core = await buildExplainCore(ctx, { text_key, order_index });
+
+  const core = await buildExplainCore(ctx, { text_key, order_index, source, work_id });
   if (!core.ok) return core;   // consent/anchor-ошибки наружу — endpoint мапит на 403/404
+
+  // PAS-A1 same-day dedupe (ТОЛЬКО корпус — личный путь не трогаем, его гейты держат
+  // прежний контракт): повторный тап того же предложения сегодня = ответ из истории,
+  // БЕЗ нового reserve (R16 — критика: re-tap в потоке чтения жёг вызов). Проверяется
+  // ПОСЛЕ ядра: якорь провалидирован реальным путём (иначе кэш-хит маскировал бы
+  // traversal/404 — поймано гейтом), а LLM-reserve всё равно не тратится.
+  if (core.source === "corpus") {
+    const cached = await agentRepo.getFreshExplanation(ctx.userId,
+      core.anchor.text_key + "#" + core.anchor.order_index, { language });
+    if (cached) {
+      return {
+        ok: true, from_history: true, scope_level: SCOPE_SENTENCE_ONLY, category: CATEGORY,
+        source: "corpus", ...(core.work ? { work: core.work } : {}), language,
+        anchor: core.anchor, sentence: core.sentence,
+        text: cached.text, llm_used: cached.llm_used,
+        ...(cached.provider ? { provider: cached.provider, model: cached.model } : {}),
+        explanation_id: cached.id,
+        usage: await _usage(ctx.userId),
+      };
+    }
+  }
 
   let text = null, llmUsed = false, degradedReason = null, provider = null, model = null;
   const lim = planner.limits();
@@ -203,11 +239,18 @@ async function explain(ctx, { text_key, order_index } = {}) {
   // статусом (R9). Первый факт несёт scope_level + якорь — по нему гейт доказывает, что
   // конкретное объяснение не выходило за sentence_only.
   const factsUsed = [
-    {
-      kind: "user_sentence", source: "consented_artifact", scope_level: SCOPE_SENTENCE_ONLY,
-      anchor: core.anchor, text: core.sentence.he,
-    },
-    ...(core.sentence.ru ? [{ kind: "translation", source: "studio_translation", provenance: "derived", text: core.sentence.ru }] : []),
+    core.source === "corpus"
+      ? {
+          // PAS-A1: общий артефакт — provenance различает corpus от личного (R9); purge
+          // на revoke agent_read_texts эту строку ЩАДИТ (consent к ней не относился).
+          kind: "corpus_sentence", source: "corpus_artifact", license: "public-domain",
+          scope_level: SCOPE_SENTENCE_ONLY, anchor: core.anchor, text: core.sentence.he,
+        }
+      : {
+          kind: "user_sentence", source: "consented_artifact", scope_level: SCOPE_SENTENCE_ONLY,
+          anchor: core.anchor, text: core.sentence.he,
+        },
+    ...(core.sentence.ru ? [{ kind: "translation", source: core.source === "corpus" ? "corpus_translation" : "studio_translation", provenance: "derived", text: core.sentence.ru }] : []),
     {
       kind: "morphology", source: "resolver", provenance: "asserted",
       resolver: core.resolver, items: core.morphology,
@@ -233,6 +276,7 @@ async function explain(ctx, { text_key, order_index } = {}) {
     llm_model: llmUsed ? (provider + ":" + model) : null,
     body: {
       scope_level: SCOPE_SENTENCE_ONLY, category: CATEGORY, language,
+      source: core.source,
       llm_used: llmUsed, ...(provider ? { provider, model } : {}),
       ...(degradedReason ? { degraded_reason: degradedReason } : {}),
       text,
@@ -243,6 +287,9 @@ async function explain(ctx, { text_key, order_index } = {}) {
     ok: true,
     scope_level: SCOPE_SENTENCE_ONLY,
     category: CATEGORY,
+    source: core.source,
+    ...(core.work ? { work: core.work } : {}),
+    usage: await _usage(ctx.userId),
     anchor: core.anchor,
     sentence: core.sentence,
     morphology: core.morphology,

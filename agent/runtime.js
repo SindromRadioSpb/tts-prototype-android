@@ -75,10 +75,13 @@ function _explanationListItem(row) {
     const oi = Number(sid.slice(hi + 1));
     if (Number.isFinite(oi)) anchor = { text_key: sid.slice(0, hi), order_index: oi };
   }
-  const fSent = purged ? null : (Array.isArray(facts) ? facts.find((f) => f && f.kind === "user_sentence") : null);
+  // PAS-A1: corpus_sentence — общий артефакт, та же privacy-плоскость (public domain);
+  // source различает копию клиента (тост «откройте работу в Корпусе», не «синхронизируйте»).
+  const fSent = purged ? null : (Array.isArray(facts) ? facts.find((f) => f && (f.kind === "user_sentence" || f.kind === "corpus_sentence")) : null);
   return {
     id: row.id, rid: row.rid, created_at: row.created_at, sentence_id: row.sentence_id,
     anchor,
+    ...(fSent && fSent.kind === "corpus_sentence" ? { source: "corpus" } : {}),
     purged,
     ...(purged ? { purge_reason: body.purge_reason, purged_at: body.purged_at || null } : {}),
     text: purged ? null : (body.text != null ? String(body.text) : null),
