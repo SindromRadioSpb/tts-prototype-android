@@ -991,6 +991,11 @@
     .rm-explain-out { margin-top: 8px; padding: 11px 12px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-muted); font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
     .rm-explain-out[hidden] { display: none; }
     .rm-explain-meta { margin-top: 8px; font-size: 11px; color: var(--text-secondary); }
+    /* PAS-A-полировка — 🔊 у предложения + перевод-строка */
+    .room-explain-hewrap { display: flex; gap: 8px; align-items: flex-start; }
+    .room-explain-hewrap .room-explain-sentence { flex: 1; min-width: 0; }
+    .room-explain-ru { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+    .room-explain-ru[hidden] { display: none; }
     /* PAS-A3 — comprehension-вопросы (advisory) */
     #roomExplainComp { margin-top: 10px; }
     #roomExplainCompBtn { appearance: none; cursor: pointer; width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px dashed var(--accent); background: transparent; color: var(--accent); font-size: 13px; font-weight: 600; }
@@ -1878,7 +1883,12 @@
   <div class="room-about-card">
     <button class="room-about-x" type="button" aria-label="Close" data-explain-close="1">✕</button>
     <h2 id="roomExplainTitle" data-i18n="room.explain.title">🤖 Объяснение наставника</h2>
-    <div id="roomExplainSentence" class="room-explain-sentence" lang="he" dir="rtl"></div>
+    <!-- PAS-A-полировка (owner 2026-07-12): 🔊 в начале предложения (паттерн Тренировки) + перевод строки -->
+    <div class="room-explain-hewrap" dir="rtl">
+      <button id="roomExplainSpeak" class="room-study-speak" type="button" aria-label="Произнести" hidden>🔊</button>
+      <div id="roomExplainSentence" class="room-explain-sentence" lang="he" dir="rtl"></div>
+    </div>
+    <div id="roomExplainRu" class="room-explain-ru" hidden></div>
     <div id="roomExplainConsent" hidden>
       <p class="room-cloud-hint room-explain-confirm" data-i18n="room.explain.confirmBody">AI-наставник отправит это предложение внешнему LLM-провайдеру для объяснения. Будут использованы само предложение и учебные факты: слабые слова, слова к повторению и статистика каналов. Продолжить?</p>
       <div class="room-cloud-actions">

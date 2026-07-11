@@ -11,9 +11,12 @@
 //
 // Оба согласия проверяются на КАЖДЫЙ вызов (fail-closed), не кэшируются.
 //
-// SCOPE-КОНТРАКТ (решение владельца): scope_level = 'sentence_only' — модуль ФИЗИЧЕСКИ
-// возвращает одну строку по (text_key, order_index); соседние предложения/абзац не
-// извлекаются вовсе (расширение до sentence_plus_neighbors — отдельное решение + consent-копия).
+// SCOPE-КОНТРАКТ: /explain остаётся scope_level='sentence_only' — getSentenceContext
+// ФИЗИЧЕСКИ возвращает одну строку по (text_key, order_index).
+// РАСШИРЕНИЕ (решение владельца 2026-07-12, PAS-A3 на «Мои тексты»): ОТДЕЛЬНЫЙ метод
+// getSentenceWindow со scope_level='sentence_window_5' — ТОЛЬКО для проверки понимания,
+// физический cap 5 строк, тот же двойной consent; consent-копия/first-use раскрытие
+// обновлены («до 5 предложений»). /explain через окно НЕ ходит by construction.
 //
 // STDOUT-ГИГИЕНА: контент предложения никогда не попадает в console/throw-message (класс D).
 
@@ -91,4 +94,39 @@ async function getSentenceContext(userId, { text_key, order_index } = {}) {
   };
 }
 
-module.exports = { hasAgentReadConsent, getSentenceContext, CONSENT_KEY_AGENT, SCOPE_SENTENCE_ONLY };
+// PAS-A3 (решение владельца 2026-07-12): окно ≤5 строк ЛИЧНОГО текста для проверки
+// понимания. Тот же двойной consent fail-closed на каждый вызов; cap — физический.
+const SCOPE_SENTENCE_WINDOW = "sentence_window_5";
+const WINDOW_MAX = 5;
+async function getSentenceWindow(userId, { text_key, order_index, window } = {}) {
+  const textKey = String(text_key || "").trim();
+  const orderIndex = Number(order_index);
+  if (!textKey || !Number.isFinite(orderIndex)) return { ok: false, error: "BAD_ANCHOR" };
+  if (!(await learnerArtifactsRepo.hasConsent(userId))) {
+    return { ok: false, error: "CLOUD_TEXTS_CONSENT_REQUIRED", key: learnerArtifactsRepo.CONSENT_KEY };
+  }
+  if (!(await hasAgentReadConsent(userId))) {
+    return { ok: false, error: "AGENT_READ_TEXTS_CONSENT_REQUIRED", key: CONSENT_KEY_AGENT };
+  }
+  const art = await learnerArtifactsRepo.get(userId, textKey);
+  if (!art) return { ok: false, error: "TEXT_NOT_IN_CLOUD" };
+  let payload = null;
+  try { payload = JSON.parse(art.payload_json); } catch (_) { return { ok: false, error: "ARTIFACT_UNREADABLE" }; }
+  const texts = payload && Array.isArray(payload.texts) ? payload.texts : null;
+  if (!texts || !texts.length) return { ok: false, error: "SENTENCE_NOT_FOUND" };
+  const t = texts.find((x) => x && String(x.text_key) === textKey) || texts[0];
+  const win = Math.max(1, Math.min(WINDOW_MAX, Number(window) || WINDOW_MAX));
+  const rows = (Array.isArray(t.rows) ? t.rows : [])
+    .filter((r) => r && Number(r.order_index) >= orderIndex && Number(r.order_index) < orderIndex + win)
+    .sort((a, b) => Number(a.order_index) - Number(b.order_index))
+    .map((r) => ({
+      order_index: Number(r.order_index),
+      he: String(r.hebrew_niqqud || r.hebrew_plain || r.he_niqqud || r.he || "").trim(),
+      ru: String(r.russian != null ? r.russian : (r.ru || "")).trim() || null,
+    }))
+    .filter((r) => r.he);
+  if (!rows.length) return { ok: false, error: "SENTENCE_NOT_FOUND" };
+  return { ok: true, scope_level: SCOPE_SENTENCE_WINDOW, anchor: { text_key: textKey, order_index: orderIndex }, rows };
+}
+
+module.exports = { hasAgentReadConsent, getSentenceContext, getSentenceWindow, CONSENT_KEY_AGENT, SCOPE_SENTENCE_ONLY, SCOPE_SENTENCE_WINDOW };

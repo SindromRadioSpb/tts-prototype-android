@@ -107,8 +107,29 @@ async function login() {
       "passage window must be 5 rows from the anchor");
     eq(happy.json.usage && happy.json.usage.user_llm_calls >= 1, "usage must be visible");
 
-    const personal = await api("POST", "/api/agent/comprehension", { cookie, csrf, body: { text_key: "own-1", order_index: 0 } });
-    eq(personal.status === 400 && personal.json.error === "CORPUS_ONLY", "personal source must be 400 CORPUS_ONLY (sentence_only-контракт не расширен)");
+    // ЛИЧНЫЙ текст (решение владельца 2026-07-12: scope sentence_window_5 за двойным consent)
+    const pNoC = await api("POST", "/api/agent/comprehension", { cookie, csrf, body: { text_key: "own-comp-1", order_index: 0 } });
+    eq(pNoC.status === 403 && pNoC.json.error === "CLOUD_TEXTS_CONSENT_REQUIRED",
+      "personal comprehension without consent must be 403 (double-consent gate), got " + pNoC.status + "/" + (pNoC.json && pNoC.json.error));
+    for (const k of ["cloud_texts", "agent_read_texts"]) {
+      const c = await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: k, granted: true, version: "v1" } });
+      eq(c.status === 200, k + " grant failed");
+    }
+    const ownRows = [];
+    for (let i = 0; i < 7; i++) ownRows.push({ order_index: i, hebrew_plain: "משפט אישי " + (i + 1), hebrew_niqqud: "", translit: "", russian: "личное предложение " + (i + 1) });
+    const put = await api("POST", "/api/learner/artifacts/put", { cookie, csrf, body: {
+      artifact_key: "own-comp-1", updated_at: "2026-07-01T00:00:00.000Z",
+      payload: { manifest: { export_schema_version: 1 }, texts: [{ text_key: "own-comp-1", title: "own", rows: ownRows }] },
+    } });
+    eq(put.status === 200, "personal artifact put failed");
+    const pOk = await api("POST", "/api/agent/comprehension", { cookie, csrf, body: { text_key: "own-comp-1", order_index: 1 } });
+    eq(pOk.status === 200 && pOk.json.ok === true && pOk.json.advisory === true,
+      "personal comprehension with consents must be 200 advisory, got " + pOk.status + "/" + (pOk.json && pOk.json.error));
+    eq(Array.isArray(pOk.json.passage_rows) && pOk.json.passage_rows.length === 5 && pOk.json.passage_rows[0] === 1,
+      "personal window must be PHYSICALLY capped at 5 rows from the anchor (scope sentence_window_5)");
+    const pTail = await api("POST", "/api/agent/comprehension", { cookie, csrf, body: { text_key: "own-comp-1", order_index: 5 } });
+    eq(pTail.status === 200 && pTail.json.passage_rows.length === 2, "personal window at tail must honestly shrink (2 rows)");
+
     const noWork = await api("POST", "/api/agent/comprehension", { cookie, csrf, body: { source: "corpus", work_id: "90000081", text_key: KEY_A, order_index: 0 } });
     eq(noWork.status === 404, "unknown work must be 404");
 
@@ -132,12 +153,12 @@ async function login() {
     try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {}
   }
 
-  const total = 14;
+  const total = 20;
   if (failures.length) {
     console.error(`smoke:agent-comprehension FAIL (${total - failures.length}/${total})`);
     for (const f of failures) console.error("  ✗ " + f);
     process.exit(1);
   }
-  console.log(`smoke:agent-comprehension OK (${total}/${total}) — PAS-A3: pure-валидация (дубли/индексы/caps) · happy advisory+окно-5 · CORPUS_ONLY · 404 · review_log пуст (R17) · kill-switch честный`);
+  console.log(`smoke:agent-comprehension OK (${total}/${total}) — PAS-A3: pure-валидация (дубли/индексы/caps) · corpus happy advisory+окно-5 · ЛИЧНЫЙ текст: 403 без consent → happy с consent + физический cap 5 + честный хвост (owner 2026-07-12, scope sentence_window_5) · 404 · review_log пуст (R17) · kill-switch честный`);
   process.exit(0);
 })();

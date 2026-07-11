@@ -1993,7 +1993,7 @@ window.I18N_LOCALES.en = {
       planRead: "▶ To the Room",
       planNoAnchors: "These words have no anchored sentences on this device — train them inside their text.",
       agentTextsToggle: "🤖 Let the mentor read my texts",
-      agentTextsHint: "The mentor will be able to send the selected sentence to an external AI provider to explain it with your progress in mind. Only one sentence is sent — never the whole text; revoking clears stored explanations.",
+      agentTextsHint: "The mentor may send an external AI provider the selected sentence (explanation) or a short fragment of up to 5 sentences (comprehension check) — never the whole text; revoking consent purges saved explanations.",
     },
     explain: {
       title: "🤖 Mentor's explanation",
@@ -2024,6 +2024,7 @@ window.I18N_LOCALES.en = {
       compBtn: "Quiz me on this passage",
       compPlate: "Comprehension · mentor check, not a grade — nothing is written to memory.",
       compFail: "Could not build questions — try again.",
+      ownCompAck: "The mentor will send up to 5 sentences of this text (from the selected one) to an external LLM and spend 1 call from the daily limit. Continue?",
       err: "Could not get an explanation",
       purged: "Stored explanations cleared",
     },

@@ -85,6 +85,14 @@ const REGISTRY = {
       text_key: a && a.text_key, order_index: a && a.order_index,
     }),
   },
+  // PAS-A3 (решение владельца 2026-07-12): окно ≤5 строк ЛИЧНОГО текста — ТОЛЬКО для
+  // проверки понимания; scope sentence_window_5, тот же двойной consent в репо (fail-closed).
+  get_sentence_window_if_available: {
+    readOnly: true,
+    run: (ctx, a) => agentSentenceRepo.getSentenceWindow(ctx.userId, {
+      text_key: a && a.text_key, order_index: a && a.order_index, window: a && a.window,
+    }),
+  },
   // ── ОБЩИЙ артефакт (PAS-A1): предложение public-domain корпуса — consent-гейта нет
   // by-design (содержимое не является данными пользователя; learner-раскрытие — в
   // first-use confirm клиента). Якорь несёт text_key: многоглавные работы делят один

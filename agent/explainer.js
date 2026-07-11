@@ -560,9 +560,18 @@ function validateComprehension(raw) {
 async function comprehension(ctx, { work_id, text_key, order_index } = {}) {
   const profile = await agentRepo.getProfile(ctx.userId);
   const language = (profile && profile.language) || "ru";
-  const corpusSentenceRepo = require(path.join(__dirname, "..", "db", "corpusSentenceRepo"));
-  const win = await corpusSentenceRepo.getCorpusWindow({ corpus: "benyehuda", work_id, text_key, order_index, window: 5 });
-  if (!win.ok) return { ok: false, error: win.error };
+  // Источник окна: корпус (public domain, work_id задан) ИЛИ личный текст (решение
+  // владельца 2026-07-12: scope sentence_window_5 за двойным consent — через closed tool).
+  let win;
+  if (work_id != null && String(work_id).trim()) {
+    const corpusSentenceRepo = require(path.join(__dirname, "..", "db", "corpusSentenceRepo"));
+    win = await corpusSentenceRepo.getCorpusWindow({ corpus: "benyehuda", work_id, text_key, order_index, window: 5 });
+  } else {
+    const wres = await tools.callTool(ctx, "get_sentence_window_if_available", { text_key, order_index, window: 5 });
+    if (!wres.ok) return { ok: false, error: wres.error || "TOOL_FAILED" };
+    win = wres.result;
+  }
+  if (!win.ok) return { ok: false, error: win.error, ...(win.key ? { key: win.key } : {}) };
 
   const lim = planner.limits();
   const reserve = llm.killSwitchOn()

@@ -3483,14 +3483,18 @@ function _followupPaintTurns() {
   if (els.q) els.q.disabled = out;
   if (els.ask) els.ask.disabled = out;
 }
-// PAS-A3 — «проверь меня по абзацу» (corpus-only, advisory: НЕ оценка, память не пишется)
-let _compCtx = null;   // { workId, textKey, orderIndex }
+// PAS-A3 — «проверь меня по абзацу» (advisory: НЕ оценка, память не пишется).
+// Корпус — public domain; СВОЙ текст — owner 2026-07-12: окно ≤5 строк за двойным
+// consent + разовое first-use раскрытие («уйдёт до 5 предложений»).
+let _explainSpeakText = '';
+let _compCtx = null;   // { workId|null, textKey, orderIndex, corpus }
 let _compBusy = false;
 function _compSetup(o, textKey, orderIndex) {
   const box = $('roomExplainComp'), out = $('roomExplainCompOut'), btn = $('roomExplainCompBtn');
   if (!box) return;
-  if (!o || !o.corpus) { box.hidden = true; _compCtx = null; return; }
-  _compCtx = { workId: o.workId, textKey, orderIndex };
+  const isCorpus = !!(o && o.corpus);
+  if (!textKey || orderIndex == null) { box.hidden = true; _compCtx = null; return; }
+  _compCtx = { workId: isCorpus ? o.workId : null, textKey, orderIndex, corpus: isCorpus };
   box.hidden = false;
   if (out) { out.hidden = true; out.textContent = ''; }
   if (btn) { btn.disabled = false; btn.textContent = '🧠 ' + tt('room.explain.compBtn', 'Проверь меня по абзацу'); }
@@ -3499,14 +3503,33 @@ async function _compRun() {
   if (_compBusy || !_compCtx) return;
   const out = $('roomExplainCompOut'), btn = $('roomExplainCompBtn');
   if (!out) return;
+  // Свой текст: first-use раскрытие объёма (окно до 5 предложений уходит внешнему LLM)
+  if (!_compCtx.corpus) {
+    let acked = false;
+    try { acked = localStorage.getItem('room.ownCompAck') === '1'; } catch (_) {}
+    if (!acked) {
+      out.hidden = false; out.textContent = '';
+      out.appendChild(el('div', { class: 'room-comp-plate', text: tt('room.explain.ownCompAck', 'Наставник отправит внешнему LLM до 5 предложений этого текста (начиная с выбранного) и потратит 1 вызов из дневного лимита. Продолжить?') }));
+      const row = el('div', { class: 'room-cloud-actions' });
+      const okB = el('button', { attrs: { type: 'button' }, text: tt('room.explain.corpusAckBtn', 'Понятно, объяснить') });
+      okB.addEventListener('click', () => { try { localStorage.setItem('room.ownCompAck', '1'); } catch (_) {} out.textContent = ''; _compRun(); });
+      const noB = el('button', { class: 'room-cloud-ghost', attrs: { type: 'button' }, text: tt('room.explain.cancel', 'Отмена') });
+      noB.addEventListener('click', () => { out.hidden = true; out.textContent = ''; });
+      row.appendChild(okB); row.appendChild(noB);
+      out.appendChild(row);
+      return;
+    }
+  }
   _compBusy = true;
   if (btn) btn.disabled = true;
   out.hidden = false; out.textContent = tt('room.explain.loading', 'Наставник думает…');
   let r = null;
   try {
+    const body = { text_key: _compCtx.textKey, order_index: _compCtx.orderIndex };
+    if (_compCtx.corpus) { body.source = 'corpus'; body.work_id = _compCtx.workId; }
     r = await fetch('/api/agent/comprehension', { method: 'POST', credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
-      body: JSON.stringify({ source: 'corpus', work_id: _compCtx.workId, text_key: _compCtx.textKey, order_index: _compCtx.orderIndex }) }).then((x) => x.json());
+      body: JSON.stringify(body) }).then((x) => x.json());
   } catch (_) {}
   _compBusy = false;
   if (btn) btn.disabled = false;
@@ -3514,6 +3537,9 @@ async function _compRun() {
     const code = (r && r.error) || '';
     out.textContent = code === 'USER_LIMIT' || code === 'GLOBAL_LIMIT'
       ? tt('room.mentor.planLimit', 'дневной лимит LLM исчерпан')
+      : code === 'CLOUD_TEXTS_CONSENT_REQUIRED' ? tt('room.explain.needTexts', 'Сначала включите «Синхронизировать Мои тексты» в ☁ и запустите синк.')
+      : code === 'AGENT_READ_TEXTS_CONSENT_REQUIRED' ? tt('room.explain.needConsent', 'Разрешите наставнику читать тексты (галочка 🤖 в доме наставника).')
+      : code === 'TEXT_NOT_IN_CLOUD' ? tt('room.explain.notInCloud', 'Текст ещё не синхронизирован — запустите синк в ☁ и повторите.')
       : tt('room.explain.compFail', 'Не получилось составить вопросы — попробуйте ещё раз.');
     return;
   }
@@ -3596,6 +3622,9 @@ function roomExplainInit() {
   });
   // PAS-A1 — first-use подтверждение корпусного пути: durable-consent НЕ включается
   // (классы B/C не участвуют), запоминается локальный ack-флаг
+  // PAS-A-полировка — 🔊 предложения в модале
+  const spkBtn = $('roomExplainSpeak');
+  if (spkBtn) spkBtn.addEventListener('click', () => { try { if (_explainSpeakText) speakWord(_explainSpeakText); } catch (_) {} });
   // PAS-A3 — «проверь меня по абзацу»
   const compBtn = $('roomExplainCompBtn');
   if (compBtn) compBtn.addEventListener('click', () => { _compRun(); });
@@ -3662,6 +3691,12 @@ async function explainRow(idx) {
   const els = _explainEls(); if (!els.modal) return;
   els.modal.hidden = false;
   if (els.sentence) els.sentence.textContent = row.he_niqqud || row.he || '';
+  // PAS-A-полировка (owner 2026-07-12): 🔊 предложения (speakWord — тот же путь, что Тренировка)
+  // + перевод из табличной колонки — контекст и полнота картины прямо в модале.
+  _explainSpeakText = row.he_niqqud || row.he || '';
+  const spk = $('roomExplainSpeak'); if (spk) spk.hidden = !_explainSpeakText;
+  const ruEl = $('roomExplainRu');
+  if (ruEl) { const ru = String(row.ru || '').trim(); ruEl.textContent = ru; ruEl.hidden = !ru; }
   if (els.body) { els.body.hidden = true; els.body.textContent = ''; }
   if (els.constructs) { els.constructs.hidden = true; els.constructs.textContent = ''; }
   if (els.consent) els.consent.hidden = true;

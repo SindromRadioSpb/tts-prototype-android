@@ -1854,23 +1854,26 @@ app.post("/api/agent/explain/followup", rlAgentExplain, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: "AGENT_FOLLOWUP_FAILED", message: e.message }); }
 });
 
-// PAS-A3 — «проверь меня по абзацу» (CORPUS-ONLY advisory; личный sentence_only-контракт
-// не расширяется). Никогда не пишет review_log; ключ ответа = утверждение LLM (плашка).
+// PAS-A3 — «проверь меня по абзацу» (advisory). Корпус (work_id) — public domain;
+// ЛИЧНЫЙ текст (без work_id) — решение владельца 2026-07-12: окно ≤5 строк за двойным
+// consent (scope sentence_window_5). Никогда не пишет review_log; ключ ответа =
+// утверждение LLM (плашка «не оценка» обязательна на клиенте).
 app.post("/api/agent/comprehension", rlAgentExplain, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   if (!requireCsrf(req, res, auth)) return;
   const b = req.body || {};
-  if (String(b.source || "corpus") !== "corpus" || b.text_key == null || b.work_id == null) {
-    return res.status(400).json({ ok: false, error: "CORPUS_ONLY" });
-  }
+  if (b.text_key == null) return res.status(400).json({ ok: false, error: "BAD_ANCHOR" });
   const orderIndex = Number(b.order_index);
   if (!Number.isFinite(orderIndex)) return res.status(400).json({ ok: false, error: "BAD_ANCHOR" });
+  const isCorpus = b.work_id != null && String(b.work_id).trim();
   try {
     const r = await agentRuntime.comprehension({ userId: auth.user.id, deviceId: auth.session.deviceId },
-      { work_id: String(b.work_id).trim(), text_key: String(b.text_key).trim(), order_index: orderIndex });
+      { ...(isCorpus ? { work_id: String(b.work_id).trim() } : {}), text_key: String(b.text_key).trim(), order_index: orderIndex });
     if (!r.ok) {
       const code = String(r.error || "");
-      if (code === "CORPUS_WORK_NOT_FOUND" || code === "CORPUS_SENTENCE_NOT_FOUND") return res.status(404).json(r);
+      if (code === "CLOUD_TEXTS_CONSENT_REQUIRED" || code === "AGENT_READ_TEXTS_CONSENT_REQUIRED") return res.status(403).json(r);
+      if (code === "CORPUS_WORK_NOT_FOUND" || code === "CORPUS_SENTENCE_NOT_FOUND" ||
+          code === "TEXT_NOT_IN_CLOUD" || code === "SENTENCE_NOT_FOUND") return res.status(404).json(r);
       if (code === "CORPUS_WORK_TOO_LARGE") return res.status(413).json(r);
       if (code === "BAD_ANCHOR" || code === "BAD_WORK_ID" || code === "BAD_TEXT_KEY" || code === "BAD_CORPUS") return res.status(400).json(r);
       if (code === "USER_LIMIT" || code === "GLOBAL_LIMIT") return res.status(429).json(r);
