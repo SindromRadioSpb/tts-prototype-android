@@ -3457,7 +3457,66 @@ function _explainEls() {
     consent: $('roomExplainConsent'), allow: $('roomExplainAllow'), cancel: $('roomExplainCancel'),
     corpusAck: $('roomExplainCorpusAck'), corpusOk: $('roomExplainCorpusOk'), corpusCancel: $('roomExplainCorpusCancel'),
     body: $('roomExplainBody'), constructs: $('roomExplainConstructs'), meta: $('roomExplainMeta'),
+    followup: $('roomExplainFollowup'), turns: $('roomExplainTurns'), q: $('roomExplainQ'), ask: $('roomExplainAsk'),
   };
+}
+// PAS-A2 — состояние follow-up текущего объяснения (эфемерно, живёт до нового explainRow)
+let _followupCtx = null;   // { explanationId, left, baseText }
+let _followupBusy = false;
+function _followupSetup(r) {
+  const els = _explainEls();
+  if (!els.followup) return;
+  if (!r || !r.explanation_id || r.followups_left == null) { els.followup.hidden = true; _followupCtx = null; return; }
+  _followupCtx = { explanationId: r.explanation_id, left: Number(r.followups_left) || 0, baseText: (els.body && els.body.textContent) || '' };
+  els.followup.hidden = false;
+  if (els.q) { els.q.value = ''; els.q.placeholder = tt('room.explain.askPh', 'Спросить о предложении…'); }
+  _followupPaintTurns();
+}
+function _followupPaintTurns() {
+  const els = _explainEls();
+  if (!els.turns || !_followupCtx) return;
+  const n = _followupCtx.left;
+  const out = n <= 0;
+  els.turns.textContent = out
+    ? tt('room.explain.turnsOut', 'Вопросы по этому объяснению исчерпаны.')
+    : tt('room.explain.turnsLeft', 'Осталось вопросов') + ': ' + n + '/3';
+  if (els.q) els.q.disabled = out;
+  if (els.ask) els.ask.disabled = out;
+}
+async function _followupSend() {
+  const els = _explainEls();
+  const q = (els.q && els.q.value || '').trim();
+  if (!q || _followupBusy || !_followupCtx || _followupCtx.left <= 0) return;
+  _followupBusy = true;
+  if (els.ask) els.ask.disabled = true;
+  if (els.body) {
+    els.body.textContent = _followupCtx.baseText + '\n\n❓ ' + q + '\n' + tt('room.explain.loading', 'Наставник думает…');
+    try { els.body.scrollTop = els.body.scrollHeight; } catch (_) {}
+  }
+  let r = null;
+  try {
+    r = await fetch('/api/agent/explain/followup', { method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
+      body: JSON.stringify({ explanation_id: _followupCtx.explanationId, question: q }) }).then((x) => x.json());
+  } catch (_) {}
+  _followupBusy = false;
+  if (!r || !r.ok) {
+    const code = (r && r.error) || '';
+    let msg;
+    if (code === 'FOLLOWUP_LIMIT') { _followupCtx.left = 0; msg = tt('room.explain.turnsOut', 'Вопросы по этому объяснению исчерпаны.'); }
+    else if (code === 'USER_LIMIT' || code === 'GLOBAL_LIMIT') msg = tt('room.mentor.planLimit', 'дневной лимит LLM исчерпан');
+    else if (code === 'LLM_UNAVAILABLE') msg = tt('room.explain.noLlm', 'без AI: перевод и морфология офлайн');
+    else if (code === 'AGENT_READ_TEXTS_CONSENT_REQUIRED') msg = tt('room.explain.needConsent', 'Разрешите наставнику читать тексты (галочка 🤖 в доме наставника).');
+    else msg = '✗ ' + tt('room.explain.err', 'Не удалось получить объяснение') + (code ? ' (' + code + ')' : '');
+    if (els.body) els.body.textContent = _followupCtx.baseText + '\n\n❓ ' + q + '\n' + msg;
+    _followupPaintTurns();
+    return;
+  }
+  _followupCtx.baseText = _followupCtx.baseText + '\n\n❓ ' + q + '\n💬 ' + (r.text || '');
+  _followupCtx.left = Number(r.turns_left) || 0;
+  if (els.body) { els.body.textContent = _followupCtx.baseText; try { els.body.scrollTop = els.body.scrollHeight; } catch (_) {} }
+  if (els.q) els.q.value = '';
+  _followupPaintTurns();
 }
 let _explainPending = null;   // { textKey, orderIndex } — ждёт first-use подтверждения
 function roomExplainInit() {
@@ -3482,6 +3541,12 @@ function roomExplainInit() {
   });
   // PAS-A1 — first-use подтверждение корпусного пути: durable-consent НЕ включается
   // (классы B/C не участвуют), запоминается локальный ack-флаг
+  // PAS-A2 — follow-up: клик/Enter; фокус подтягивает input в видимую зону (мобильная клавиатура)
+  if (els.ask) els.ask.addEventListener('click', () => { _followupSend(); });
+  if (els.q) {
+    els.q.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); _followupSend(); } });
+    els.q.addEventListener('focus', () => { try { els.q.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (_) {} });
+  }
   if (els.corpusCancel) els.corpusCancel.addEventListener('click', () => { els.modal.hidden = true; _explainPending = null; });
   if (els.corpusOk) els.corpusOk.addEventListener('click', () => {
     const p = _explainPending; _explainPending = null;
@@ -3543,6 +3608,8 @@ async function explainRow(idx) {
   if (els.constructs) { els.constructs.hidden = true; els.constructs.textContent = ''; }
   if (els.consent) els.consent.hidden = true;
   if (els.corpusAck) els.corpusAck.hidden = true;
+  if (els.followup) els.followup.hidden = true;   // PAS-A2 — новый тап = новый контекст
+  _followupCtx = null;
   _explainShowMeta('');
   // PAS-A1 — Зал offline-first, наставник онлайн: честное состояние вместо ложного «войдите в ☁»
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
@@ -3644,6 +3711,7 @@ async function _explainRequest(textKey, orderIndex, opts) {
   else if (!r.from_history) metaParts.push(tt('room.explain.noLlm', 'без AI: перевод и морфология офлайн') + (r.degraded_reason ? ' (' + r.degraded_reason + ')' : ''));
   if (r.usage && r.usage.limit) metaParts.push(tt('room.explain.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit);
   _explainShowMeta(metaParts.join(' · '));
+  _followupSetup(r);   // PAS-A2 — вопросы к этому объяснению (≤3, серверный лимит)
 }
 
 // PAS-A4 — host-обвязка word-explain для tap-карточки: источник (корпус/личный), честные

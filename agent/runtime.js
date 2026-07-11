@@ -28,6 +28,11 @@ async function explainWord(ctx, args) {
   return explainer.explainWord(ctx, args || {});
 }
 
+// PAS-A2: bounded follow-up к объяснению (сервер пересобирает pack, лимит ходов серверный).
+async function explainFollowup(ctx, args) {
+  return explainer.followup(ctx, args || {});
+}
+
 // P7.0c: запись ответа/annul — СТРОГО через closed tool router (единственные ворота
 // записи; флаг/whitelist/B2 живут там и в reviewer). Контрактные реджекты reviewer
 // ВОЗВРАЩАЕТ (не бросает), callTool оборачивает их в {ok:true, result:{ok:false…}} —
@@ -140,4 +145,4 @@ async function updateProfile(ctx, patch) {
   return { mode: p.mode, language: p.language };
 }
 
-module.exports = { plan, explain, explainWord, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };
+module.exports = { plan, explain, explainWord, explainFollowup, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };

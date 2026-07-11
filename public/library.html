@@ -991,6 +991,11 @@
     .rm-explain-out { margin-top: 8px; padding: 11px 12px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-muted); font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
     .rm-explain-out[hidden] { display: none; }
     .rm-explain-meta { margin-top: 8px; font-size: 11px; color: var(--text-secondary); }
+    /* PAS-A2 — follow-up: input прижат к низу карточки модала, RTL-совместимо */
+    .room-explain-ask { display: flex; gap: 8px; margin-top: 8px; }
+    .room-explain-ask input { flex: 1; min-width: 0; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--border-soft); background: var(--bg-muted); color: var(--text-primary); font-size: 13px; }
+    .room-explain-ask button { appearance: none; cursor: pointer; padding: 9px 13px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-contrast); font-size: 13px; font-weight: 700; }
+    .room-explain-ask button[disabled], .room-explain-ask input[disabled] { opacity: .55; cursor: default; }
     .rm-refine { margin-top: 12px; }
     .rm-refine-btn {
       appearance: none; cursor: pointer; width: 100%; text-align: center; padding: 10px 12px;
@@ -1883,6 +1888,14 @@
     <!-- P6.4 — серверные construct-титулы (детерминированные, не LLM) -->
     <div id="roomExplainConstructs" class="room-cloud-hint" hidden></div>
     <div id="roomExplainMeta" class="room-cloud-hint" hidden></div>
+    <!-- PAS-A2 — bounded follow-up (≤3 ходов, лимит серверный); ходы эфемерны (класс D) -->
+    <div id="roomExplainFollowup" hidden>
+      <div id="roomExplainTurns" class="room-cloud-hint"></div>
+      <div class="room-explain-ask">
+        <input id="roomExplainQ" type="text" maxlength="500" autocomplete="off" placeholder="Спросить о предложении…">
+        <button id="roomExplainAsk" type="button" data-i18n="room.explain.askBtn">Спросить</button>
+      </div>
+    </div>
   </div>
 </div>
 

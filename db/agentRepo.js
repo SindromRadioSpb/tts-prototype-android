@@ -144,9 +144,29 @@ async function getFreshExplanation(userId, sentenceId, { language, kind, word } 
     if (kind === "word" && String(b.word || "") !== String(word || "")) continue;
     if (String(row.created_at || "").slice(0, 10) !== todayUtc) continue;
     return { id: row.id, text: String(b.text), llm_used: b.llm_used === true,
-             provider: b.provider || null, model: b.model || null };
+             provider: b.provider || null, model: b.model || null,
+             followups: Number(b.followups || 0) };
   }
   return null;
+}
+
+// PAS-A2 — follow-up: чтение строки по id (user-scoped) + серверный счётчик ходов в body.
+async function getExplanationById(userId, id) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  return dbGet(db,
+    `SELECT id, sentence_id, item_key, facts_used_json, body_json, created_at
+       FROM agent_explanations WHERE user_id = ? AND id = ?`, [userId, String(id)]);
+}
+async function bumpExplanationFollowups(userId, id) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const row = await dbGet(db, `SELECT body_json FROM agent_explanations WHERE user_id = ? AND id = ?`, [userId, String(id)]);
+  if (!row) throw new Error("EXPLANATION_NOT_FOUND");
+  let b = {};
+  try { b = JSON.parse(row.body_json) || {}; } catch (_) {}
+  b.followups = Number(b.followups || 0) + 1;
+  await dbRun(db, `UPDATE agent_explanations SET body_json = ? WHERE user_id = ? AND id = ?`,
+    [JSON.stringify(b), userId, String(id)]);
+  return b.followups;
 }
 
 // ── P9 «дом наставника»: история объяснений (list, строго user-scoped) ───────
@@ -285,6 +305,7 @@ module.exports = {
   getProfile, updateProfile,
   createTask, listTasks, setTaskStatus,
   createExplanation, purgeExplanationContent, getFreshExplanation,
+  getExplanationById, bumpExplanationFollowups,
   listExplanations, constructOccurrences,
   wordLifecycle,
   reserveLlmCall, finalizeLlmCall, usageToday,

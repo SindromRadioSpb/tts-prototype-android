@@ -1829,6 +1829,31 @@ app.post("/api/agent/explain", rlAgentExplain, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: "AGENT_EXPLAIN_FAILED", message: e.message }); }
 });
 
+// PAS-A2 — bounded follow-up (≤3 ходов, серверный счётчик): клиент шлёт ТОЛЬКО
+// {explanation_id, question}; pack пересобирается сервером (consent-recheck на каждый
+// ход личного пути). Фолбэка нет по природе — коды честные.
+app.post("/api/agent/explain/followup", rlAgentExplain, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  const b = req.body || {};
+  try {
+    const r = await agentRuntime.explainFollowup({ userId: auth.user.id, deviceId: auth.session.deviceId },
+      { explanation_id: b.explanation_id, question: b.question });
+    if (!r.ok) {
+      const code = String(r.error || "");
+      if (code === "CLOUD_TEXTS_CONSENT_REQUIRED" || code === "AGENT_READ_TEXTS_CONSENT_REQUIRED") return res.status(403).json(r);
+      if (code === "EXPLANATION_NOT_FOUND" || code === "TEXT_NOT_IN_CLOUD" || code === "SENTENCE_NOT_FOUND" ||
+          code === "CORPUS_WORK_NOT_FOUND" || code === "CORPUS_SENTENCE_NOT_FOUND") return res.status(404).json(r);
+      if (code === "EXPLANATION_PURGED") return res.status(410).json(r);
+      if (code === "FOLLOWUP_LIMIT" || code === "USER_LIMIT" || code === "GLOBAL_LIMIT") return res.status(429).json(r);
+      if (code === "LLM_UNAVAILABLE") return res.status(503).json(r);
+      if (code === "BAD_QUESTION" || code === "QUESTION_TOO_LONG") return res.status(400).json(r);
+      return res.status(500).json(r);
+    }
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: "AGENT_FOLLOWUP_FAILED", message: e.message }); }
+});
+
 // PAS-A4 — «объяснить это слово в этом предложении» (tap-карточка Зала). Те же
 // source-правила и коды, что /explain; surface обязателен (иврит), displayed-чтение
 // карточки — опциональный client_card-факт (sanitize внутри explainer).
