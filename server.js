@@ -1854,6 +1854,34 @@ app.post("/api/agent/explain/followup", rlAgentExplain, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: "AGENT_FOLLOWUP_FAILED", message: e.message }); }
 });
 
+// PAS-A3 — «проверь меня по абзацу» (CORPUS-ONLY advisory; личный sentence_only-контракт
+// не расширяется). Никогда не пишет review_log; ключ ответа = утверждение LLM (плашка).
+app.post("/api/agent/comprehension", rlAgentExplain, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  const b = req.body || {};
+  if (String(b.source || "corpus") !== "corpus" || b.text_key == null || b.work_id == null) {
+    return res.status(400).json({ ok: false, error: "CORPUS_ONLY" });
+  }
+  const orderIndex = Number(b.order_index);
+  if (!Number.isFinite(orderIndex)) return res.status(400).json({ ok: false, error: "BAD_ANCHOR" });
+  try {
+    const r = await agentRuntime.comprehension({ userId: auth.user.id, deviceId: auth.session.deviceId },
+      { work_id: String(b.work_id).trim(), text_key: String(b.text_key).trim(), order_index: orderIndex });
+    if (!r.ok) {
+      const code = String(r.error || "");
+      if (code === "CORPUS_WORK_NOT_FOUND" || code === "CORPUS_SENTENCE_NOT_FOUND") return res.status(404).json(r);
+      if (code === "CORPUS_WORK_TOO_LARGE") return res.status(413).json(r);
+      if (code === "BAD_ANCHOR" || code === "BAD_WORK_ID" || code === "BAD_TEXT_KEY" || code === "BAD_CORPUS") return res.status(400).json(r);
+      if (code === "USER_LIMIT" || code === "GLOBAL_LIMIT") return res.status(429).json(r);
+      if (code === "LLM_UNAVAILABLE") return res.status(503).json(r);
+      if (code === "COMPREHENSION_INVALID") return res.status(502).json(r);
+      return res.status(500).json(r);
+    }
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: "AGENT_COMPREHENSION_FAILED", message: e.message }); }
+});
+
 // PAS-A4 — «объяснить это слово в этом предложении» (tap-карточка Зала). Те же
 // source-правила и коды, что /explain; surface обязателен (иврит), displayed-чтение
 // карточки — опциональный client_card-факт (sanitize внутри explainer).

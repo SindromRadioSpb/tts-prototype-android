@@ -991,6 +991,17 @@
     .rm-explain-out { margin-top: 8px; padding: 11px 12px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-muted); font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
     .rm-explain-out[hidden] { display: none; }
     .rm-explain-meta { margin-top: 8px; font-size: 11px; color: var(--text-secondary); }
+    /* PAS-A3 — comprehension-вопросы (advisory) */
+    #roomExplainComp { margin-top: 10px; }
+    #roomExplainCompBtn { appearance: none; cursor: pointer; width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px dashed var(--accent); background: transparent; color: var(--accent); font-size: 13px; font-weight: 600; }
+    #roomExplainCompBtn[disabled] { opacity: .55; cursor: default; }
+    .room-comp-plate { margin-top: 8px; font-size: 11px; color: var(--text-secondary); }
+    .room-comp-q { margin-top: 10px; font-size: 13px; font-weight: 600; }
+    .room-comp-opts { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+    .room-comp-opts button { appearance: none; cursor: pointer; text-align: start; padding: 8px 11px; border-radius: 8px; border: 1px solid var(--border-soft); background: var(--bg-muted); color: var(--text-primary); font-size: 13px; }
+    .room-comp-opts button.comp-right { border-color: #2ea04366; background: #2ea04322; }
+    .room-comp-opts button.comp-wrong { border-color: #f8514966; background: #f8514922; }
+    .room-comp-opts button[disabled] { cursor: default; }
     /* PAS-A2 — follow-up: input прижат к низу карточки модала, RTL-совместимо */
     .room-explain-ask { display: flex; gap: 8px; margin-top: 8px; }
     .room-explain-ask input { flex: 1; min-width: 0; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--border-soft); background: var(--bg-muted); color: var(--text-primary); font-size: 13px; }
@@ -1895,6 +1906,11 @@
         <input id="roomExplainQ" type="text" maxlength="500" autocomplete="off" placeholder="Спросить о предложении…">
         <button id="roomExplainAsk" type="button" data-i18n="room.explain.askBtn">Спросить</button>
       </div>
+    </div>
+    <!-- PAS-A3 — advisory-вопросы понимания (corpus-only; НЕ оценка, review_log не пишется) -->
+    <div id="roomExplainComp" hidden>
+      <button id="roomExplainCompBtn" type="button" data-i18n="room.explain.compBtn">🧠 Проверь меня по абзацу</button>
+      <div id="roomExplainCompOut" hidden></div>
     </div>
   </div>
 </div>

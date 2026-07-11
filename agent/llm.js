@@ -71,7 +71,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const RETRYABLE_STATUS = new Set([503, 429]);
 const RETRY_BACKOFF_MS = 700;
 
-async function generateGemini({ system, prompt, maxOutputTokens }) {
+async function generateGemini({ system, prompt, maxOutputTokens, json }) {
   const key = geminiKey();
   if (!key) return { ok: false, error: "NO_API_KEY" };
   const { GoogleGenerativeAI } = require("@google/generative-ai");
@@ -80,7 +80,10 @@ async function generateGemini({ system, prompt, maxOutputTokens }) {
   const model = genAI.getGenerativeModel({
     model: modelName,
     ...(system ? { systemInstruction: system } : {}),
-    generationConfig: { maxOutputTokens: Math.max(64, Math.min(2048, Number(maxOutputTokens) || 512)) },
+    generationConfig: {
+      maxOutputTokens: Math.max(64, Math.min(2048, Number(maxOutputTokens) || 512)),
+      ...(json ? { responseMimeType: "application/json" } : {}),   // PAS-A3 — structured output
+    },
   });
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
@@ -112,7 +115,7 @@ async function generateGemini({ system, prompt, maxOutputTokens }) {
 // С флагом: finish_reason:"stop", reasoning_tokens:0, чистый короткий ответ. Параметр —
 // no-op для моделей без reasoning-режима (OpenRouter passthrough), не ломает будущую смену
 // AGENT_OPENROUTER_MODEL на нерассуждающую модель.
-async function generateOpenRouter({ system, prompt, maxOutputTokens }) {
+async function generateOpenRouter({ system, prompt, maxOutputTokens, json }) {
   const key = openrouterKey();
   if (!key) return { ok: false, error: "NO_API_KEY" };
   const modelName = process.env.AGENT_OPENROUTER_MODEL || DEFAULT_OPENROUTER_MODEL;
@@ -123,6 +126,7 @@ async function generateOpenRouter({ system, prompt, maxOutputTokens }) {
     model: modelName, messages,
     max_tokens: Math.max(64, Math.min(2048, Number(maxOutputTokens) || 512)),
     reasoning: { enabled: false },
+    ...(json ? { response_format: { type: "json_object" } } : {}),   // PAS-A3 — structured output
   });
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
@@ -152,10 +156,18 @@ async function generateOpenRouter({ system, prompt, maxOutputTokens }) {
   }
 }
 
-function generateMock({ prompt }) {
+function generateMock({ prompt, json }) {
   // Детерминированно и БЕЗ эха prompt-контента: только длина как «подпись» вызова —
   // гейт проверяет и llm_used-путь, и то, что payload не утёк в ответ/логи.
   const len = String(prompt || "").length;
+  if (json) {
+    // PAS-A3 — валидный фикстурный JSON (критика: mock без json-режима блокировал happy-path гейта)
+    return { ok: true, provider: "mock", model: "mock-1", output_tokens: 24,
+      text: JSON.stringify({ questions: [
+        { question: "О чём говорится в отрывке? (mock ctx=" + len + ")", options: ["вариант А", "вариант Б", "вариант В", "вариант Г"], correct_index: 0 },
+        { question: "Что делает герой? (mock)", options: ["читает", "пишет", "идёт", "спит"], correct_index: 1 },
+      ] }) };
+  }
   return { ok: true, text: "[mock-mentor] план сформулирован (ctx=" + len + " chars).", provider: "mock", model: "mock-1", output_tokens: 8 };
 }
 

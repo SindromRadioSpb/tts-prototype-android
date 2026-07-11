@@ -3483,6 +3483,61 @@ function _followupPaintTurns() {
   if (els.q) els.q.disabled = out;
   if (els.ask) els.ask.disabled = out;
 }
+// PAS-A3 — «проверь меня по абзацу» (corpus-only, advisory: НЕ оценка, память не пишется)
+let _compCtx = null;   // { workId, textKey, orderIndex }
+let _compBusy = false;
+function _compSetup(o, textKey, orderIndex) {
+  const box = $('roomExplainComp'), out = $('roomExplainCompOut'), btn = $('roomExplainCompBtn');
+  if (!box) return;
+  if (!o || !o.corpus) { box.hidden = true; _compCtx = null; return; }
+  _compCtx = { workId: o.workId, textKey, orderIndex };
+  box.hidden = false;
+  if (out) { out.hidden = true; out.textContent = ''; }
+  if (btn) { btn.disabled = false; btn.textContent = '🧠 ' + tt('room.explain.compBtn', 'Проверь меня по абзацу'); }
+}
+async function _compRun() {
+  if (_compBusy || !_compCtx) return;
+  const out = $('roomExplainCompOut'), btn = $('roomExplainCompBtn');
+  if (!out) return;
+  _compBusy = true;
+  if (btn) btn.disabled = true;
+  out.hidden = false; out.textContent = tt('room.explain.loading', 'Наставник думает…');
+  let r = null;
+  try {
+    r = await fetch('/api/agent/comprehension', { method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
+      body: JSON.stringify({ source: 'corpus', work_id: _compCtx.workId, text_key: _compCtx.textKey, order_index: _compCtx.orderIndex }) }).then((x) => x.json());
+  } catch (_) {}
+  _compBusy = false;
+  if (btn) btn.disabled = false;
+  if (!r || !r.ok || !Array.isArray(r.questions)) {
+    const code = (r && r.error) || '';
+    out.textContent = code === 'USER_LIMIT' || code === 'GLOBAL_LIMIT'
+      ? tt('room.mentor.planLimit', 'дневной лимит LLM исчерпан')
+      : tt('room.explain.compFail', 'Не получилось составить вопросы — попробуйте ещё раз.');
+    return;
+  }
+  out.textContent = '';
+  // Плашка честности рендерится ВМЕСТЕ с вопросами, ДО ответа (R17: не оценка)
+  out.appendChild(el('div', { class: 'room-comp-plate', text: '🧠 ' + tt('room.explain.compPlate', 'Понимание · проверка наставником, не оценка — в память не записывается.') }));
+  r.questions.forEach((q) => {
+    out.appendChild(el('div', { class: 'room-comp-q', text: q.question }));
+    const opts = el('div', { class: 'room-comp-opts' });
+    q.options.forEach((optText, oi) => {
+      const b = el('button', { attrs: { type: 'button' }, text: optText });
+      b.addEventListener('click', () => {
+        opts.querySelectorAll('button').forEach((x, xi) => {
+          x.disabled = true;
+          if (xi === q.correct_index) x.classList.add('comp-right');
+        });
+        if (oi !== q.correct_index) b.classList.add('comp-wrong');
+      });
+      opts.appendChild(b);
+    });
+    out.appendChild(opts);
+  });
+  if (r.usage && r.usage.limit) out.appendChild(el('div', { class: 'room-comp-plate', text: tt('room.explain.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit }));
+}
 async function _followupSend() {
   const els = _explainEls();
   const q = (els.q && els.q.value || '').trim();
@@ -3541,6 +3596,9 @@ function roomExplainInit() {
   });
   // PAS-A1 — first-use подтверждение корпусного пути: durable-consent НЕ включается
   // (классы B/C не участвуют), запоминается локальный ack-флаг
+  // PAS-A3 — «проверь меня по абзацу»
+  const compBtn = $('roomExplainCompBtn');
+  if (compBtn) compBtn.addEventListener('click', () => { _compRun(); });
   // PAS-A2 — follow-up: клик/Enter; фокус подтягивает input в видимую зону (мобильная клавиатура)
   if (els.ask) els.ask.addEventListener('click', () => { _followupSend(); });
   if (els.q) {
@@ -3610,6 +3668,7 @@ async function explainRow(idx) {
   if (els.corpusAck) els.corpusAck.hidden = true;
   if (els.followup) els.followup.hidden = true;   // PAS-A2 — новый тап = новый контекст
   _followupCtx = null;
+  const compBox = $('roomExplainComp'); if (compBox) compBox.hidden = true; _compCtx = null;   // PAS-A3
   _explainShowMeta('');
   // PAS-A1 — Зал offline-first, наставник онлайн: честное состояние вместо ложного «войдите в ☁»
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
@@ -3712,6 +3771,7 @@ async function _explainRequest(textKey, orderIndex, opts) {
   if (r.usage && r.usage.limit) metaParts.push(tt('room.explain.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit);
   _explainShowMeta(metaParts.join(' · '));
   _followupSetup(r);   // PAS-A2 — вопросы к этому объяснению (≤3, серверный лимит)
+  _compSetup(o, textKey, orderIndex);   // PAS-A3 — corpus-only «проверь меня»
 }
 
 // PAS-A4 — host-обвязка word-explain для tap-карточки: источник (корпус/личный), честные

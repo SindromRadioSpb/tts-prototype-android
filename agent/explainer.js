@@ -529,4 +529,64 @@ async function followup(ctx, { explanation_id, question } = {}) {
     turns_used: used, turns_left: Math.max(0, FOLLOWUP_LIMIT - used), usage: await _usage(ctx.userId) };
 }
 
-module.exports = { explain, explainWord, followup, buildExplainCore, buildWordPromptPayload, buildFollowupPayload, sanitizeDisplayed, SCOPE_SENTENCE_ONLY, FOLLOWUP_LIMIT };
+// ── PAS-A3: «проверь меня по абзацу» — advisory-вопросы понимания (CORPUS-ONLY) ──
+// Ключ ответа = утверждение LLM → плашка «проверка наставником, не оценка» рендерится
+// ВМЕСТЕ с вопросом; выбор грейдится детерминированно по correct_index; НИКОГДА не
+// пишет review_log (R17). Личные тексты исключены v1 (sentence_only-контракт, BLOCKER).
+const COMP_Q_MAX = 200, COMP_OPT_MAX = 80;
+
+// Pure — валидация LLM-JSON (гейтится напрямую): 1–2 вопроса, 4 попарно-различные опции,
+// correct_index целое 0..3, строки с cap. Невалид → null (честное «не получилось»).
+function validateComprehension(raw) {
+  let j = null;
+  try { j = typeof raw === "string" ? JSON.parse(raw) : raw; } catch (_) { return null; }
+  const qs = j && Array.isArray(j.questions) ? j.questions.slice(0, 2) : null;
+  if (!qs || !qs.length) return null;
+  const out = [];
+  for (const q of qs) {
+    if (!q || typeof q.question !== "string" || !q.question.trim()) return null;
+    if (!Array.isArray(q.options) || q.options.length !== 4) return null;
+    const opts = q.options.map((o) => String(o == null ? "" : o).trim().slice(0, COMP_OPT_MAX));
+    if (opts.some((o) => !o)) return null;
+    const norm = opts.map((o) => o.toLowerCase().replace(/\s+/g, " "));
+    if (new Set(norm).size !== 4) return null;                       // попарно различны
+    const ci = Number(q.correct_index);
+    if (!Number.isInteger(ci) || ci < 0 || ci > 3) return null;
+    out.push({ question: q.question.trim().slice(0, COMP_Q_MAX), options: opts, correct_index: ci });
+  }
+  return out;
+}
+
+async function comprehension(ctx, { work_id, text_key, order_index } = {}) {
+  const profile = await agentRepo.getProfile(ctx.userId);
+  const language = (profile && profile.language) || "ru";
+  const corpusSentenceRepo = require(path.join(__dirname, "..", "db", "corpusSentenceRepo"));
+  const win = await corpusSentenceRepo.getCorpusWindow({ corpus: "benyehuda", work_id, text_key, order_index, window: 5 });
+  if (!win.ok) return { ok: false, error: win.error };
+
+  const lim = planner.limits();
+  const reserve = llm.killSwitchOn()
+    ? { ok: false, reason: "KILL_SWITCH" }
+    : await agentRepo.reserveLlmCall(ctx.userId, {
+        scenario: "comprehension", provider: llm.providerName(), perUserDaily: lim.perUserDaily, globalDaily: lim.globalDaily,
+      });
+  if (!reserve.ok) return { ok: false, error: reserve.reason === "KILL_SWITCH" ? "LLM_UNAVAILABLE" : reserve.reason };
+
+  const system = language === "en"
+    ? 'You are the LinguistPro Hebrew mentor. Given a short passage (Hebrew sentences with translations), write 1-2 multiple-choice comprehension questions in English ABOUT THE CONTENT. Respond with STRICT JSON only: {"questions":[{"question":"…","options":["…","…","…","…"],"correct_index":0}]}. Exactly 4 distinct plausible options per question; correct_index is the 0-based index of the right option; questions must be answerable from the passage alone.'
+    : 'Ты — наставник LinguistPro по ивриту. По короткому отрывку (ивритские предложения с переводами) составь 1–2 вопроса на понимание СОДЕРЖАНИЯ с выбором ответа, по-русски. Ответь СТРОГО JSON: {"questions":[{"question":"…","options":["…","…","…","…"],"correct_index":0}]}. Ровно 4 различных правдоподобных варианта на вопрос; correct_index — 0-based индекс верного; вопросы должны решаться только по отрывку.';
+  const out = await llm.generate({
+    system, json: true, maxOutputTokens: 512,
+    prompt: JSON.stringify({ language, passage: win.rows.map((r) => ({ he: r.he, ru: r.ru })) }),
+  });
+  await agentRepo.finalizeLlmCall(reserve.reserveId, { ok: out.ok, actualUnits: out.ok ? (out.output_tokens || 1) : null });
+  if (!out.ok) return { ok: false, error: out.error || "LLM_FAILED" };
+  const questions = validateComprehension(out.text);
+  if (!questions) return { ok: false, error: "COMPREHENSION_INVALID" };   // честно, без цикла ретраев
+  return { ok: true, questions, passage_rows: win.rows.map((r) => r.order_index),
+    llm_used: true, provider: out.provider, model: out.model,
+    advisory: true,   // клиент обязан показать плашку ДО ответа (R17: не оценка)
+    usage: await _usage(ctx.userId) };
+}
+
+module.exports = { explain, explainWord, followup, comprehension, buildExplainCore, buildWordPromptPayload, buildFollowupPayload, validateComprehension, sanitizeDisplayed, SCOPE_SENTENCE_ONLY, FOLLOWUP_LIMIT };

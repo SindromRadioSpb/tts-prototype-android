@@ -111,4 +111,27 @@ async function getCorpusSentenceContext({ corpus, work_id, text_key, order_index
   };
 }
 
-module.exports = { getCorpusSentenceContext };
+// PAS-A3 — окно ≤5 предложений ТОЛЬКО для корпуса (личный scope-контракт sentence_only
+// физически не расширяется — BLOCKER критики wf_35f46603). Те же валидации, что выше.
+const WINDOW_MAX = 5;
+async function getCorpusWindow({ corpus, work_id, text_key, order_index, window } = {}) {
+  const base = await getCorpusSentenceContext({ corpus, work_id, text_key, order_index });
+  if (!base.ok) return base;
+  const win = Math.max(1, Math.min(WINDOW_MAX, Number(window) || WINDOW_MAX));
+  const loaded = _loadTexts(String(work_id).trim());
+  if (!loaded.ok) return loaded;
+  const text = loaded.texts.find((t) => t && String(t.text_key || "").toLowerCase() === String(text_key).trim().toLowerCase());
+  const rows = (Array.isArray(text.rows) ? text.rows : [])
+    .filter((r) => r && Number(r.order_index) >= Number(order_index) && Number(r.order_index) < Number(order_index) + win)
+    .sort((a, b) => Number(a.order_index) - Number(b.order_index))
+    .map((r) => ({
+      order_index: Number(r.order_index),
+      he: String(r.hebrew_niqqud || r.hebrew_plain || "").trim(),
+      ru: String(r.russian || "").trim() || null,
+    }))
+    .filter((r) => r.he);
+  if (!rows.length) return { ok: false, error: "CORPUS_SENTENCE_NOT_FOUND" };
+  return { ok: true, anchor: base.anchor, work: base.work, rows };
+}
+
+module.exports = { getCorpusSentenceContext, getCorpusWindow };
