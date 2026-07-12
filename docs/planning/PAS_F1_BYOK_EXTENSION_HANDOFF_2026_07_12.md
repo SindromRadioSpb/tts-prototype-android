@@ -1,0 +1,61 @@
+# PAS-F1 BYOK-расширение — HANDOFF-пакет для исполняющей сессии (Opus 4.8)
+
+**Дата:** 2026-07-12 · **Прод на старте:** v3.11.167 (волна 1 PAS завершена, слайсы A–D shipped) · **Подготовил:** сессия слайса D (архитектурные решения ЗАФИКСИРОВАНЫ здесь — исполнитель РЕАЛИЗУЕТ, не перепроектирует; отклонение от решения = только через BLOCKER-находку критики с записью в журнал).
+
+**Цель (форк PAS-F1, решение владельца — гибрид (c), чартер §5):** пользователь с собственным LLM-ключом (OpenRouter/Gemini) снимает серверный дневной потолок агента (50/юзер + 200-глобал + аккаунт-wide 50 OpenRouter-free). Серверная базовая квота остаётся «премиальностью из коробки» для всех без ключа. Экономика: стоимость владельца не растёт с числом тяжёлых пользователей.
+
+## §1 Grounded-факты (проверены 2026-07-12 по живому коду; перепроверь строки перед правкой — feedback: verify stale plan vs live code)
+
+- **BYOK-прецедент body-транспорта:** TTS `gcpTtsApiKey` — `server.js:4000-4018` (строка в body → формат-валидация «AIza», ≥20 → `byokKey`, дальше per-request, НЕ персистится); Gemini-перевод `geminiApiKey` — `server.js:5206-5220`. Паттерн подтверждён memory `feedback_curl_utf8_egress_myth`-эпохой: ключи в body POST, не в заголовках.
+- **agent/llm.js:** провайдер-ветки `generateGemini({system,prompt,maxOutputTokens,json})` (`:74`, ключ = `geminiKey()` = env `AGENT_GEMINI_API_KEY`, `:51`) и `generateOpenRouter(...)` (`:118`, `openrouterKey()` env `AGENT_OPENROUTER_API_KEY`, `:54`); `generate(opts)` диспетчит по `providerName()` (`:195-203`); `keySource()` `:58`; mock игнорирует ключи; `AGENT_MOCK_BREAK=<fixture>` — тест-переключатель битого ответа (`:168`). Ретраи 503/429 внутри (`RETRYABLE_STATUS`, `:70`).
+- **Ledger:** `llm_usage_ledger` (`migrations/026_agent_runtime.sql:53-67`) несёт колонку **`kind`** (`'llm_call' | 'tts_chars'`); `usageToday` (`db/agentRepo.js:317-327`), лимиты `reserveLlmCall` (`:285-305`) И `scenarioCallsToday` (`:329-336`, ПРОВЕРЕНО 2026-07-12) фильтруют **`kind='llm_call'`** — новый kind `llm_call_byok` невидим ВСЕМ трём счётчикам ПО ПОСТРОЕНИЮ (гейт-зуб §3(е) это подтверждает, править ничего не нужно).
+- **Сценарии-потребители LLM (10 точек, единый блок killSwitch→reserve→generate→finalize):** `planner.plan` · `explainer.explain` / `explainWord` / `followup` / `comprehension` · `material.studySummary` / `draftRetell` · `roleplay.turn` (start БЕЗ LLM — не трогать) · `writing.review` · `nextText.explain`. Все получают `ctx = {userId, deviceId}` из endpoint'ов server.js (CLG-P6-регион, `:1798-2100`).
+- **Клиентские дома agent-fetch'ей:** `mentor-home.js` (`jpost`, `:45-51`; блок «⚙ Наставник» D4 — дом для поля ключа, `renderSettings`) · `library-ui.js` (roleplay/explain Зала) · `studio-agent.js` (Студия). ВСЕ precached → SW bump.
+- **R16-инвариант (чартер §7.5):** BYOK-ключи никогда не логируются/не персистятся сервером; молчаливое заимствование ключей запрещено В ОБЕ СТОРОНЫ (серверный ключ не платит за BYOK-фейл).
+- **Гейт-семья:** smoke:agent-{plan,explain,explain-corpus,explain-word,followup,comprehension,material,roleplay,writing,next-text,profile} · api-smoke · gate:log-hygiene (скоуп: CLG-P6-регион server.js + agent/*) · smoke:studio-agent (innerHTML=РОВНО 3 — НЕ добавлять шаблонов) · smoke:i18n.
+
+## §2 Зафиксированные решения (исполнять как есть)
+
+1. **Транспорт:** body-поле `byok: { provider: 'openrouter'|'gemini', key: string }` в LLM-тратящих POST-агент-запросах. Валидация НА СЕРВЕРЕ до ctx: provider ∈ enum; key = trim, длина 20..200, `^[\x21-\x7e]+$` (печатный ASCII); gemini-ключ дополнительно `^AIza` (прецедент TTS). Невалид → 400 `BYOK_INVALID` (без эха ключа). GET-эндпоинты LLM не зовут — byok не принимают.
+2. **Прокидывание:** endpoint кладёт провалидированное в `ctx.byok = {provider, key}` (рядом с userId/deviceId). Модули передают его НОВОМУ хелперу (п.3).
+3. **Единая точка (обязательно, класс критики D3-EXTRACTION-DUP — логика в одной копии):** новый `agent/llmGate.js`:
+   ```
+   async function gatedGenerate(ctx, { scenario, system, prompt, maxOutputTokens, json, fixture })
+     → { ok, text?, provider?, model?, output_tokens?, error?, key_source: 'agent'|'byok' }
+   ```
+   Внутри: (а) `llm.killSwitchOn()` → `{ok:false, error:'KILL_SWITCH'}` — kill-switch глушит И BYOK (аварийный тормоз всего агентного LLM); (б) `ctx.byok` есть → БЕЗ reserveLlmCall: `llm.generate({system,prompt,maxOutputTokens,json,fixture, byokProvider: ctx.byok.provider, byokKey: ctx.byok.key})` → `agentRepo.recordByokCall(userId, {scenario, provider: ctx.byok.provider, ok, actualUnits})` (п.4) → фейл = честный `{ok:false, error:'BYOK_FAILED', provider_error:<код>}` — НИКОГДА не фолбэк на серверный ключ; (в) byok нет → прежний путь reserve→generate→finalize БАЙТ-ЭКВИВАЛЕНТНО. Миграция модулей на хелпер — ПО ОДНОМУ, после каждого прогон его гейта (порядок: nextText → writing → roleplay.turn → planner → explainer×4 → material×2).
+4. **Учёт (телеметрия без квоты):** `agentRepo.recordByokCall` = INSERT в `llm_usage_ledger` с **`kind='llm_call_byok'`**, `provider='byok:'+provider`, `status = ok?'final':'failed'`, `scenario` как есть. Счётчики usageToday/reserveLlmCall/scenarioCallsToday его не видят by construction (все фильтруют kind='llm_call' — проверено). `usageToday` ДОПОЛНИТЬ полем `byok_calls_today` (COUNT kind='llm_call_byok') — для строки usage в UI.
+5. **llm.generate:** `generateGemini`/`generateOpenRouter` принимают `opts.byokKey` (override env-ключа); при `opts.byokProvider` `generate()` диспетчит ПО НЕМУ, не по `providerName()` (юзер с Gemini-ключом работает при серверном openrouter). `generateMock`: если `opts.byokKey` — префиксовать text маркером `[mock-byok] ` (зуб гейта «ключ реально дошёл до провайдер-ветки»).
+6. **Scenario-cap:** roleplay `ROLEPLAY_DAILY`-проверка (`roleplay.js:210-212`) выполняется ТОЛЬКО на серверном пути (`if (!ctx.byok) …`) — кап защищал аккаунт-wide потолок серверного ключа; на своём ключе стоимость = дело пользователя. `TURNS_MAX=8` per-session ОСТАЁТСЯ (структура сессии, не экономика).
+7. **Ответы/провенанс:** сценарии добавляют `key_source: 'byok'` при BYOK-пути (иначе поле отсутствует — back-compat); клиентские меты рендерят «🤖 ваш ключ · provider · model» (ключ `room.cloud.byokProvenance` ×3 локали); usage-строка показывает серверный счётчик + «· на своём ключе: N» при byok_calls_today>0.
+8. **UI (только Зал/дом наставника v1; Студия наследует автоматически через общий localStorage):** в блок «⚙ Наставник» (mentor-home.js `renderSettings`) — секция «Свой LLM-ключ»: селект провайдера + password-поле + [Сохранить]/[Убрать]; localStorage `agent.byok.provider` / `agent.byok.key` (браузер-only, копия: «Ключ хранится только в этом браузере и передаётся с каждым запросом наставнику; серверный лимит на него не тратится»). Клиентский хелпер `_agentByok()` (возврат {provider,key}|null) — в mentor-home.js, library-ui.js (host-adapter отдаёт его mentor-home!), studio-agent.js; вплести в СУЩЕСТВУЮЩИЕ LLM-тратящие jpost/fetch body: `...( _agentByok() ? { byok: _agentByok() } : {})`. Точки клиента перечислить в критике-фронте (грубо: mentor-home plan/writing/nextText-why; library-ui explain/word/followup/comprehension/roleplay-turn/draft; studio-agent explain/followup/comprehension/summary/retell/roleplay-turn).
+9. **Приватность (R16, log-hygiene):** ключ не логируется, не в throw-message, не в ledger, не в agent_explanations; гейт — БАЙТОВЫЙ скан файла БД + stdout на sentinel-ключ (паттерн smoke:agent-writing SENTINEL).
+10. **Что НЕ делать:** НЕ трогать reserveLlmCall-сигнатуру; НЕ вводить серверное хранение ключа (никаких колонок/env); НЕ фолбэчить BYOK→сервер; НЕ добавлять 4-й innerHTML в studio-agent.js; НЕ менять selectEligible/reviewSession (не касается).
+
+## §3 Гейт `smoke:agent-byok` (новый файл scripts/premium/agent-byok-smoke.js; образец — agent-writing-smoke.js: hermetic boot, explicit exit)
+
+Pure: llmGate `gatedGenerate` — byok-путь не зовёт reserve (spy/мок agentRepo нельзя — проверить через boot); формат-валидация ключа (таблица).
+Boot #1 (mock): (а) happy BYOK на `/api/agent/next-text/explain` (самый дешёвый сид): body.byok → 200, text содержит `[mock-byok]`, `key_source='byok'`, `usage.user_llm_calls` НЕ вырос, ledger несёт ровно одну строку kind='llm_call_byok'; (б) тот же запрос БЕЗ byok → прежний путь (user_llm_calls=1) — серверная регрессия; (в) `BYOK_INVALID` 400: короткий ключ / кривой provider / gemini-ключ без AIza; (г) sentinel-ключ (`BYOKSENTINEL…` 40 симв.) НЕ в stdout и НЕ в файле БД (байт-скан app.db/wal/shm); (д) roleplay: env ROLEPLAY_DAILY=1 → серверный ход №2 = 429, ход №2 С byok = 200 (кап скипнут); (е) scenarioCallsToday не растёт от byok-ходов (проверка через п.д); (ж) mock-фейл BYOK (переключатель `AGENT_MOCK_BREAK`-паттерном или невалидный json-фикстурой) → `BYOK_FAILED`, user_llm_calls не вырос, серверный ключ НЕ подставлен. Boot #2 (kill-switch): BYOK-запрос → честный отказ (KILL_SWITCH), ledger пуст.
+**Регрессия после КАЖДОГО мигрированного модуля:** его собственный smoke; финально — вся agent-семья + api-smoke + log-hygiene + i18n + studio-agent + reader-parity.
+
+## §4 Порядок исполнения (дисциплина проекта — не пропускать шаги)
+
+1. READ FIRST: этот файл → чартер `PREMIUM_AGENT_SYSTEM_RECON_2026_07_11.md` (§5, §7) → `PAS_SLICE_D_SPEC_2026_07_12.md` (образец цикла и статус-блока).
+2. **Adversarial-критика ЭТОЙ спеки до кода** (инвариант §7.6 чартера): Workflow 3 линзы малым фронтом — (1) R16/приватность ключа + анти-«молчаливое заимствование», (2) R4/R5 UX (копии, деградации, провенанс), (3) R11/регрессия (байт-эквивалентность серверного пути, счётчики, гейты). Промт линзам: «прочти handoff + проверь план против живого кода (файл:строки в §1), найди дефекты с конкретным сценарием провала». Адъюдикация — журналом в ЭТОТ файл (v2), развороты — только BLOCKER'ами.
+3. Код по кускам с гейтами: llm.js+llmGate+recordByokCall (+pure-гейт) → endpoint-валидация+ctx (боты/GET не трогать) → миграция модулей по одному → клиент (⚙-секция, _agentByok, вплетение) → локали ru/en/he (tt-fallback мёртв!) → SW bump (mentor-home.js, library-ui.js, studio-agent.js precached).
+4. Версия v3.11.168, один коммит на логический кусок; commit+push → deploy-poll (`/api/client-config` .version) → live-verify на прод-профиле владельца: вставить реальный ключ в ⚙ → «Почему?»/диалог-ход → usage не растёт, провенанс «ваш ключ»; затем УБРАТЬ ключ → серверный путь жив. kapture может быть занят — рабочий путь claude-in-chrome javascript_tool.
+5. Статус-блок в этот файл + чартер §10 + память (project_premium_agent_system: «BYOK-расширение F1 SHIPPED»).
+
+## §5 Промт для исполняющей сессии (скопировать)
+
+```
+Реализуй PAS-F1 BYOK-расширение (гибрид: серверная базовая квота + свой ключ
+снимает лимит). READ FIRST: docs/planning/PAS_F1_BYOK_EXTENSION_HANDOFF_2026_07_12.md
+— там ЗАФИКСИРОВАННЫЕ архитектурные решения (§2), grounded-факты с файл:строками
+(§1), скелет гейта (§3) и порядок исполнения (§4). Решения §2 не перепроектировать —
+отклонение только через BLOCKER-находку adversarial-критики с записью в журнал.
+Дисциплина: критика спеки 3 линзами ДО кода; гейты с явными exit-кодами; миграция
+LLM-модулей на llmGate ПО ОДНОМУ с прогоном их smoke; локали ru/en/he; SW bump;
+commit+push+deploy-poll; live-verify на linguistpro.kolosei.com на прод-профиле
+владельца. Ключ пользователя НИКОГДА не логируется/не персистится сервером (R16).
+```
