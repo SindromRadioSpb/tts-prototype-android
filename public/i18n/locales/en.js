@@ -2036,6 +2036,19 @@ window.I18N_LOCALES.en = {
       err: "Could not get an explanation",
       purged: "Stored explanations cleared",
     },
+    // PAS-C2 — constrained writing practice (mentor home)
+    writing: {
+      btn: "Writing practice",
+      hint: "3 of your words — write 1-2 Hebrew sentences with them; the mentor's review is advice, not an assessment.",
+      empty: "No practice words yet — read and mark words; targets come from your weak/due words.",
+      ph: "Write 1-2 sentences using these words…",
+      check: "Check",
+      ack: "Your text will be sent to an external LLM and spend 1 call from the daily limit; the text is not stored. Continue?",
+      plate: "Practice · not an assessment, nothing is written to memory; the text is not stored.",
+      probable: "(probably used)",
+      notHebrew: "Please write in Hebrew — at least half of it.",
+      tooLong: "Too long — up to 300 characters.",
+    },
     // PAS-C1 — grounded dialogue "discuss the passage" (sheet over the reader)
     talk: {
       btn: "Discuss the passage",

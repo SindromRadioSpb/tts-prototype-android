@@ -2049,6 +2049,32 @@ app.post("/api/agent/roleplay/stop", rlAgentExplain, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: "AGENT_ROLEPLAY_STOP_FAILED", message: e.message }); }
 });
 
+// PAS-C2 — constrained writing (agent/writing.js): targets — детерминированный
+// выбор целей (без LLM/леджера); review — advisory-разбор поверх forward-матча
+// (класс D: submission не персистится; review_log/agent_explanations не пишутся).
+app.get("/api/agent/writing/targets", rlAgent, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try { res.json(await agentRuntime.writingTargets({ userId: auth.user.id, deviceId: auth.session.deviceId })); }
+  catch (e) { res.status(500).json({ ok: false, error: "AGENT_WRITING_TARGETS_FAILED", message: e.message }); }
+});
+app.post("/api/agent/writing/review", rlAgentExplain, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  const b = req.body || {};
+  try {
+    const r = await agentRuntime.writingReview({ userId: auth.user.id, deviceId: auth.session.deviceId },
+      { targets: b.targets, text: b.text });
+    if (!r.ok) {
+      const code = String(r.error || "");
+      if (code === "BAD_TEXT" || code === "TEXT_TOO_LONG" || code === "NOT_HEBREW_ENOUGH" ||
+          code === "BAD_TARGETS" || code === "TARGET_NOT_ELIGIBLE") return res.status(400).json(r);
+      if (code === "USER_LIMIT" || code === "GLOBAL_LIMIT") return res.status(429).json(r);
+      return res.status(500).json(r);
+    }
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: "AGENT_WRITING_REVIEW_FAILED", message: e.message }); }
+});
+
 app.get("/api/agent/status", rlAgent, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   try { res.json({ ok: true, ...(await agentRuntime.status({ userId: auth.user.id })) }); }

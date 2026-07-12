@@ -368,6 +368,118 @@
     });
   }
 
+  // ── PAS-C2: «✍️ Практика письма» — constrained writing (advisory, класс D:
+  // текст не сохраняется, review_log не пишется; факт «слово использовано»
+  // утверждает детерминированный сервер-матч, LLM — совет поверх). Всё textContent. ──
+  var _wrTargets = null;
+  var _wrBusy = false;
+  function renderWriting(box) {
+    box.textContent = "";
+    var btn = el("button", "mentor-plan-btn", "✍️ " + t("room.writing.btn", "Практика письма"));
+    btn.type = "button";
+    btn.addEventListener("click", function () { writingLoad(box); });
+    box.appendChild(btn);
+    box.appendChild(el("div", "mentor-hint", t("room.writing.hint", "3 ваших слова — напишите с ними 1–2 предложения на иврите; разбор наставника, не оценка.")));
+  }
+  async function writingLoad(box) {
+    if (_wrBusy) return;
+    _wrBusy = true;
+    box.textContent = "";
+    box.appendChild(el("div", "mentor-hint", t("room.explain.loading", "Наставник думает…")));
+    var r = null;
+    try { r = await jget("/api/agent/writing/targets"); } catch (_) {}
+    _wrBusy = false;
+    box.textContent = "";
+    var targets = r && r.status === 200 && r.json && r.json.ok ? (r.json.targets || []) : null;
+    if (!targets) { box.appendChild(el("div", "mentor-hint", "✗ " + t("room.explain.err", "Не удалось получить объяснение"))); return; }
+    if (!targets.length) {
+      box.appendChild(el("div", "mentor-hint", t("room.writing.empty", "Пока нет слов для практики — читайте и отмечайте слова, цели появятся из ваших слабых/просроченных.")));
+      return;
+    }
+    _wrTargets = targets;
+    var chips = el("div", "mentor-wr-chips");
+    targets.forEach(function (tg) {
+      var chip = el("span", "mentor-wr-chip");
+      var he = el("bdi", null, tg.lemma); he.setAttribute("lang", "he");
+      chip.appendChild(he);
+      if (tg.meaning) chip.appendChild(el("span", "mentor-wr-gloss", " · " + tg.meaning));
+      chips.appendChild(chip);
+    });
+    box.appendChild(chips);
+    var ta = document.createElement("textarea");
+    ta.className = "mentor-wr-input";
+    ta.maxLength = 300;
+    ta.setAttribute("dir", "rtl"); ta.setAttribute("lang", "he");
+    ta.placeholder = t("room.writing.ph", "Напишите 1–2 предложения с этими словами…");
+    box.appendChild(ta);
+    var row = el("div", "mentor-plan-actions");
+    var go = el("button", "mentor-plan-btn", t("room.writing.check", "Проверить"));
+    go.type = "button";
+    go.addEventListener("click", function () { writingSubmit(box, ta, go); });
+    row.appendChild(go);
+    box.appendChild(row);
+    box.appendChild(el("div", "mentor-wr-out"));
+  }
+  async function writingSubmit(box, ta, go) {
+    var text = (ta.value || "").trim();
+    if (!text || _wrBusy || !_wrTargets) return;
+    var out = box.querySelector(".mentor-wr-out");
+    if (!out) return;
+    // First-use раскрытие ДО первой отправки (критика wf_5ea38001 MAJOR: сочинённый
+    // учеником текст — самый личный контент слайса; паттерн ownCompAck)
+    var acked = false;
+    try { acked = localStorage.getItem("room.writingAck") === "1"; } catch (_) {}
+    if (!acked) {
+      out.textContent = "";
+      out.appendChild(el("div", "mentor-hint", t("room.writing.ack", "Ваш текст будет отправлен внешнему LLM и потратит 1 вызов из дневного лимита; текст не сохраняется. Продолжить?")));
+      var arow = el("div", "mentor-plan-actions");
+      var ok = el("button", "mentor-plan-btn", t("room.explain.corpusAckBtn", "Понятно, объяснить"));
+      ok.type = "button";
+      ok.addEventListener("click", function () { try { localStorage.setItem("room.writingAck", "1"); } catch (_) {} out.textContent = ""; writingSubmit(box, ta, go); });
+      var no = el("button", "mentor-wr-ghost", t("room.explain.cancel", "Отмена"));
+      no.type = "button";
+      no.addEventListener("click", function () { out.textContent = ""; });
+      arow.appendChild(ok); arow.appendChild(no);
+      out.appendChild(arow);
+      return;
+    }
+    _wrBusy = true; go.disabled = true;
+    out.textContent = "";
+    out.appendChild(el("div", "mentor-hint", t("room.explain.loading", "Наставник думает…")));
+    var r = null;
+    try { r = await jpost("/api/agent/writing/review", { targets: _wrTargets.map(function (x) { return x.item_key; }), text: text }); } catch (_) {}
+    _wrBusy = false; go.disabled = false;
+    out.textContent = "";
+    if (!r || r.status !== 200 || !r.json || !r.json.ok) {
+      var code = (r && r.json && r.json.error) || "";
+      var msg = code === "NOT_HEBREW_ENOUGH" ? t("room.writing.notHebrew", "Нужно писать на иврите — хотя бы наполовину.")
+        : code === "TEXT_TOO_LONG" ? t("room.writing.tooLong", "Слишком длинно — до 300 символов.")
+        : code === "USER_LIMIT" || code === "GLOBAL_LIMIT" ? t("room.cloud.planLimit", "дневной лимит LLM исчерпан")
+        : "✗ " + t("room.explain.err", "Не удалось получить объяснение") + (code ? " (" + code + ")" : "");
+      out.appendChild(el("div", "mentor-hint", msg));
+      return;
+    }
+    out.appendChild(el("div", "mentor-wr-plate", "✍️ " + t("room.writing.plate", "Практика · не оценка, в память не записывается; текст не сохраняется.")));
+    var list = el("div", "mentor-wr-used");
+    (r.json.used || []).forEach(function (u) {
+      var mark = u.matched === "exact" ? "✓" : u.matched === "probable" ? "≈" : "✗";
+      var line = el("div", "mentor-wr-used-line", mark + " ");
+      var he = el("bdi", null, u.lemma); he.setAttribute("lang", "he");
+      line.appendChild(he);
+      if (u.matched === "probable") line.appendChild(el("span", "mentor-wr-gloss", " " + t("room.writing.probable", "(вероятно использовано)")));
+      list.appendChild(line);
+    });
+    out.appendChild(list);
+    var advisory = el("div", "mentor-wr-text");
+    advisory.textContent = r.json.text || "";
+    out.appendChild(advisory);
+    var metaBits = [];
+    if (r.json.llm_used) metaBits.push("🤖 " + (r.json.provider || "") + (r.json.model ? " · " + r.json.model : ""));
+    else if (r.json.degraded_reason) metaBits.push(degradeLabel(r.json.degraded_reason));
+    if (r.json.usage && r.json.usage.limit) metaBits.push(t("room.explain.usage", "AI сегодня") + ": " + r.json.usage.user_llm_calls + "/" + r.json.usage.limit);
+    if (metaBits.length) out.appendChild(el("div", "mentor-hint", metaBits.join(" · ")));
+  }
+
   // ── mount / refresh ─────────────────────────────────────────────────────────
   function blockNode(titleKey, titleFb) {
     var b = el("section", "mentor-block");
@@ -393,6 +505,7 @@
     }
     var status = blockNode(null, null);
     var planB = blockNode(null, null);   // кнопка «🧭 План на сегодня» самоописательна — без дубля-заголовка
+    var wrB = blockNode(null, null);     // PAS-C2 — «✍️ Практика письма» (кнопка самоописательна)
     var tgB = blockNode("room.tg.title", "🔗 Telegram");
     var histWrap = blockNode("room.mentor.histTitle", "История объяснений");
     var consB = blockNode("room.mentor.consTitle", "Ваши конструкции");
@@ -402,6 +515,7 @@
     S.els = { status: status, plan: planB, telegram: tgBox, history: histBox, constructs: null };
     m.appendChild(status);
     m.appendChild(planB);
+    m.appendChild(wrB);
     m.appendChild(tgB);
     m.appendChild(histWrap);
     m.appendChild(consB);
@@ -410,6 +524,7 @@
     S.els.constructs = consBox;
     renderStatus(status);
     renderPlanBlock(planB.appendChild(el("div", "mentor-plan-wrap")));
+    renderWriting(wrB.appendChild(el("div", "mentor-wr-wrap")));
     renderTelegramBlock(tgBox);
     renderHistoryBlock(histWrap, histBox);
     renderConstructs(consBox);

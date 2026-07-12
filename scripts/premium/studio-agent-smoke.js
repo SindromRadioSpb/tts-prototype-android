@@ -111,6 +111,8 @@ const usedKeys = [...new Set([
   // PAS-C1: talk-ключи ОБЩИЕ для обеих поверхностей (Студия переиспользует room.talk.*)
   ...[...agentJs.matchAll(/tt\('(room\.talk\.[\w.]+)'/g)].map((m) => m[1]),
   ...[...libraryUi.matchAll(/tt\('(room\.talk\.[\w.]+)'/g)].map((m) => m[1]),
+  // PAS-C2: writing-ключи дома наставника (mentor-home.js, t("...") хост-адаптера)
+  ...[...read("public/js/mentor-home.js").matchAll(/t\("(room\.writing\.[\w.]+)"/g)].map((m) => m[1]),
 ])];
 eq(usedKeys.length >= 20, "expected >=20 agent locale keys, found " + usedKeys.length);
 function loadLocale(file) {

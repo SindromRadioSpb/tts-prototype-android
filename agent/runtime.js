@@ -11,6 +11,7 @@ const planner = require(path.join(__dirname, "planner"));
 const explainer = require(path.join(__dirname, "explainer"));
 const material = require(path.join(__dirname, "material"));
 const roleplay = require(path.join(__dirname, "roleplay"));
+const writing = require(path.join(__dirname, "writing"));
 const tools = require(path.join(__dirname, "tools"));
 const llm = require(path.join(__dirname, "llm"));
 const constructs = require(path.join(__dirname, "constructs"));
@@ -57,6 +58,11 @@ async function roleplayStart(ctx, args) { return roleplay.start(ctx, args || {})
 async function roleplayTurn(ctx, args) { return roleplay.turn(ctx, args || {}); }
 async function roleplayState(ctx, args) { return roleplay.state(ctx, args || {}); }
 async function roleplayStop(ctx, args) { return roleplay.stop(ctx, args || {}); }
+
+// PAS-C2: constrained writing (agent/writing.js; advisory вне памяти, класс D,
+// детерминированный forward-матч целей — R1).
+async function writingTargets(ctx) { return writing.targets(ctx); }
+async function writingReview(ctx, args) { return writing.review(ctx, args || {}); }
 
 // P7.0c: запись ответа/annul — СТРОГО через closed tool router (единственные ворота
 // записи; флаг/whitelist/B2 живут там и в reviewer). Контрактные реджекты reviewer
@@ -170,4 +176,4 @@ async function updateProfile(ctx, patch) {
   return { mode: p.mode, language: p.language };
 }
 
-module.exports = { plan, explain, explainWord, explainFollowup, comprehension, studySummary, draftRetell, roleplayStart, roleplayTurn, roleplayState, roleplayStop, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };
+module.exports = { plan, explain, explainWord, explainFollowup, comprehension, studySummary, draftRetell, roleplayStart, roleplayTurn, roleplayState, roleplayStop, writingTargets, writingReview, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };
