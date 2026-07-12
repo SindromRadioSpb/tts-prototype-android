@@ -86,6 +86,33 @@
     '.row-agent-btn:hover{background:rgba(120,160,220,.15)}',
     '#saMaterialBtn{background:none;border:1px solid rgba(120,160,220,.45);border-radius:8px;cursor:pointer;font-size:13px;padding:4px 10px;margin-left:6px;width:auto}',
     '@media (max-width:600px){.sa-modal{align-items:flex-end}.sa-modal .sa-card{max-height:78vh;border-radius:14px 14px 0 0;width:100%}}',
+    // PAS-C1b — шит grounded-диалога (порт Room-шита в sa-стиле); ловушка №1:
+    // width:auto по id против глобального mobile button{width:100%}
+    '#saTalkSheet{position:fixed;inset:0;z-index:9600}',
+    '#saTalkSheet[hidden]{display:none!important}',
+    '#saTalkSheet button{width:auto}',
+    '.sa-talk-backdrop{position:absolute;inset:0;background:rgba(10,14,20,.55)}',
+    '.sa-talk-card{position:absolute;left:0;right:0;bottom:0;max-height:88vh;display:flex;flex-direction:column;background:var(--panel-bg,#141a22);color:var(--text,#e8eef5);border:1px solid rgba(255,255,255,.12);border-radius:14px 14px 0 0;padding:12px 14px;box-shadow:0 -8px 30px rgba(0,0,0,.5)}',
+    '@media (min-width:700px){.sa-talk-card{left:50%;right:auto;transform:translateX(-50%);width:640px;bottom:4vh;border-radius:14px}}',
+    '.sa-talk-head{display:flex;align-items:center;gap:8px}',
+    '.sa-talk-title{font-weight:600;font-size:14px;flex:1;min-width:0}',
+    '.sa-talk-end{padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:transparent;color:inherit;font-size:12px;cursor:pointer}',
+    '.sa-talk-x{background:none;border:none;color:inherit;font-size:18px;cursor:pointer;padding:2px 8px}',
+    '.sa-talk-passage{margin-top:8px;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:6px 10px;font-size:13px}',
+    '.sa-talk-passage summary{cursor:pointer;opacity:.75;font-size:12px}',
+    '.sa-talk-feed{flex:1;min-height:80px;overflow-y:auto;margin-top:8px;display:flex;flex-direction:column;gap:6px}',
+    '.sa-talk-m{align-self:flex-start;max-width:88%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:10px 10px 10px 4px;padding:8px 11px;font-size:15px;direction:rtl;text-align:right}',
+    '.sa-talk-mru{align-self:flex-start;max-width:88%;font-size:12px;opacity:.7;padding:0 4px}',
+    '.sa-talk-l{align-self:flex-end;max-width:88%;background:rgba(43,108,176,.25);border:1px solid rgba(43,108,176,.5);border-radius:10px 10px 4px 10px;padding:8px 11px;font-size:14px}',
+    '.sa-talk-op{font-size:13px;background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.2);border-radius:10px;padding:8px 11px}',
+    '.sa-talk-err{margin-top:6px;font-size:12px;color:#f56565}',
+    '.sa-talk-err[hidden]{display:none!important}',
+    '.sa-talk-ack,.sa-talk-confirm{margin-top:8px;padding:10px 12px;border:1px solid rgba(255,193,7,.35);border-radius:10px;background:rgba(255,193,7,.06);font-size:12.5px}',
+    '.sa-talk-ack[hidden],.sa-talk-confirm[hidden]{display:none!important}',
+    '.sa-talk-inputrow{display:flex;gap:8px;margin-top:8px}',
+    '.sa-talk-inputrow input{flex:1;min-width:0;padding:9px 11px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:inherit;font-size:14px}',
+    '.sa-talk-inputrow button{padding:9px 14px;border-radius:8px;border:1px solid #2b6cb0;background:#2b6cb0;color:#fff;font-size:14px;font-weight:700;cursor:pointer}',
+    '.sa-talk-status{margin-top:6px;font-size:12px;opacity:.7}',
   ].join('\n');
 
   // Статический шаблон модала — ЕДИНСТВЕННОЕ innerHTML-присваивание файла, без
@@ -117,6 +144,8 @@
     '<div class="sa-extra" id="saExplainDraft" hidden>' +
     '<button type="button" id="saExplainDraftBtn"></button>' +
     '<div class="sa-extra-out" id="saExplainDraftOut" hidden></div></div>' +
+    '<div class="sa-extra" id="saExplainTalk" hidden>' +
+    '<button type="button" id="saExplainTalkBtn"></button></div>' +
     '</div>';
 
   // Второй статический шаблон (гейт: ровно ДВА innerHTML, оба — литералы без интерполяции).
@@ -137,6 +166,29 @@
     '<div id="saMatActionsText"></div>' +
     '<div class="sa-actions-row" id="saMatActionsRow"></div></div>' +
     '<div class="sa-meta" id="saMatMeta"></div>' +
+    '</div>';
+
+  // PAS-C1b — ТРЕТИЙ статический шаблон (гейт: ровно ТРИ innerHTML, все — литералы):
+  // шит grounded-диалога «обсудить прочитанное», порт Room-шита (library-ui.js).
+  var TALK_HTML =
+    '<div class="sa-talk-backdrop" data-sa-talk-hide="1"></div>' +
+    '<div class="sa-talk-card" role="dialog" aria-modal="true" aria-labelledby="saTalkTitle">' +
+    '<div class="sa-talk-head"><span class="sa-talk-title" id="saTalkTitle"></span>' +
+    '<button type="button" class="sa-talk-end" data-sa-talk-end="1"></button>' +
+    '<button type="button" class="sa-talk-x" data-sa-talk-hide="1" aria-label="close">✕</button></div>' +
+    '<details class="sa-talk-passage"><summary id="saTalkPassageSum"></summary>' +
+    '<div id="saTalkPassageBody"></div></details>' +
+    '<div class="sa-plate" id="saTalkPlate"></div>' +
+    '<div class="sa-talk-feed" id="saTalkFeed"></div>' +
+    '<div class="sa-talk-err" id="saTalkErr" hidden></div>' +
+    '<div class="sa-talk-ack" id="saTalkAck" hidden></div>' +
+    '<div class="sa-talk-confirm" id="saTalkConfirm" hidden>' +
+    '<div id="saTalkConfirmText"></div>' +
+    '<div class="sa-actions-row"><button type="button" class="sa-primary" id="saTalkConfirmYes"></button>' +
+    '<button type="button" id="saTalkConfirmNo"></button></div></div>' +
+    '<div class="sa-talk-inputrow"><input type="text" id="saTalkInput" maxlength="400" dir="auto" lang="he" autocomplete="off">' +
+    '<button type="button" id="saTalkSend" aria-label="send">➤</button></div>' +
+    '<div class="sa-talk-status" id="saTalkStatus"></div>' +
     '</div>';
 
   var $ = function (id) { return document.getElementById(id); };
@@ -171,6 +223,7 @@
     });
     $('saExplainCompBtn').addEventListener('click', compRun);
     $('saExplainDraftBtn').addEventListener('click', draftRun);
+    $('saExplainTalkBtn').addEventListener('click', talkOpen);   // PAS-C1b
     return _modal;
   }
 
@@ -200,6 +253,7 @@
     var co = $('saExplainCompOut'); if (co) { co.hidden = true; co.textContent = ''; }
     var dr = $('saExplainDraft'); if (dr) dr.hidden = true;
     var dro = $('saExplainDraftOut'); if (dro) { dro.hidden = true; dro.textContent = ''; }
+    var tk = $('saExplainTalk'); if (tk) tk.hidden = true;   // PAS-C1b
     _extraCtx = null;
   }
 
@@ -356,6 +410,9 @@
     if (_inFlight) return;
     _inFlight = true;
     hidePanels();
+    // PAS-C1b — диалог доступен НЕЗАВИСИМО от исхода/цены explain (критика wf_5ea38001):
+    // якорь уже live-резолвлен — кнопка ставится до запроса, не в success-ветке.
+    talkSetup(anchor, row);
     setBody(tt('studio.agent.loading', 'Наставник думает…'));
     _abort = typeof AbortController !== 'undefined' ? new AbortController() : null;
     var timer = _abort ? setTimeout(function () { try { _abort.abort(); } catch (_) {} }, 30000) : null;
@@ -560,6 +617,297 @@
     var fresh = await resolveAnchor(row);   // порядок мог поменяться — резолвим заново
     if (!fresh) { setBody(tt('studio.agent.noAnchor', 'Ряд не найден в локальной базе — пересохраните текст в библиотеку.')); return; }
     requestExplain(fresh, row);
+  }
+
+  // ══ PAS-C1b — «Обсудить прочитанное»: grounded-диалог, порт Room-шита (паритет
+  // модала — owner-ожидание из B-фидбэка). Сессия СЕРВЕРНАЯ эфемерная (класс D);
+  // hide≠stop (Escape/backdrop прячут, сессия живёт до TTL, reopen = GET state);
+  // завершение — только кнопкой с confirm при потраченных ходах. Локале-ключи —
+  // ОБЩИЕ room.talk.* (те же файлы локалей грузятся обеими поверхностями; копии
+  // идентичны by construction — R4-паритет). Личный текст: ack-ключ room.ownTalkAck
+  // (та же кладовка, что Зал — не спрашиваем дважды). ══
+  var _talkSheet = null;
+  var _talkCtx = null;   // { textKey, orderIndex, rowId, tid, row, sessionId, turnsUsed, turnsLeft, busy }
+
+  function talkSetup(anchor, row) {
+    var btn = $('saExplainTalkBtn'), box = $('saExplainTalk');
+    if (!btn || !box) return;
+    if (!_talkCtx || _talkCtx.textKey !== anchor.textKey || _talkCtx.orderIndex !== anchor.orderIndex) {
+      _talkCtx = { textKey: anchor.textKey, orderIndex: anchor.orderIndex, rowId: anchor.sid || null,
+        tid: anchor.tid || null, row: row || null, sessionId: null, turnsUsed: 0, turnsLeft: null, busy: false };
+    } else {
+      _talkCtx.row = row || _talkCtx.row;
+    }
+    box.hidden = false;
+    btn.disabled = false;
+    btn.textContent = '💬 ' + tt('room.talk.btn', 'Обсудить прочитанное');
+  }
+  function ensureTalkSheet() {
+    if (_talkSheet) return _talkSheet;
+    ensureModal();
+    _talkSheet = document.createElement('div');
+    _talkSheet.id = 'saTalkSheet';
+    _talkSheet.hidden = true;
+    _talkSheet.innerHTML = TALK_HTML;
+    document.body.appendChild(_talkSheet);
+    $('saTalkTitle').textContent = '💬 ' + tt('room.talk.title', 'Разговор о прочитанном');
+    $('saTalkPassageSum').textContent = '📖 ' + tt('room.talk.passage', 'Отрывок');
+    $('saTalkPlate').textContent = '💬 ' + tt('room.talk.plate', 'Не оценка — в память не записывается, реплики не сохраняются. Иврит наставника сгенерирован ИИ и может содержать ошибки.');
+    $('saTalkConfirmText').textContent = tt('room.talk.confirmStop', 'Завершить диалог? Ходы не вернутся.');
+    $('saTalkConfirmYes').textContent = tt('room.talk.confirmYes', 'Завершить');
+    $('saTalkConfirmNo').textContent = tt('room.talk.confirmNo', 'Продолжить диалог');
+    $('saTalkInput').placeholder = tt('room.talk.inputPh', 'Ваша реплика (лучше на иврите)…');
+    _talkSheet.addEventListener('click', function (e) {
+      var t = e.target;
+      if (t && t.getAttribute && t.getAttribute('data-sa-talk-hide') === '1') { talkHide(); return; }
+      if (t && t.getAttribute && t.getAttribute('data-sa-talk-end') === '1') { talkEndClick(); return; }
+    });
+    // Escape = скрыть (НЕ-деструктивно; сессия живёт до TTL)
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && _talkSheet && !_talkSheet.hidden) talkHide();
+    });
+    $('saTalkConfirmYes').addEventListener('click', function () { $('saTalkConfirm').hidden = true; talkStop(); });
+    $('saTalkConfirmNo').addEventListener('click', function () { $('saTalkConfirm').hidden = true; });
+    $('saTalkSend').addEventListener('click', talkSend);
+    $('saTalkInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); talkSend(); } });
+    var endB = _talkSheet.querySelector('.sa-talk-end');
+    if (endB) endB.textContent = tt('room.talk.stop', 'Завершить');
+    return _talkSheet;
+  }
+  function talkHide() { if (_talkSheet) _talkSheet.hidden = true; }
+  function talkErr(msg) {
+    var e = $('saTalkErr'); if (!e) return;
+    e.textContent = msg || ''; e.hidden = !msg;
+  }
+  var _TALK_FATAL = { SESSION_NOT_FOUND: 1, TEXT_NOT_IN_CLOUD: 1, SENTENCE_NOT_FOUND: 1,
+    CLOUD_TEXTS_CONSENT_REQUIRED: 1, AGENT_READ_TEXTS_CONSENT_REQUIRED: 1 };
+  function talkErrMsg(code) {
+    if (code === 'SESSION_NOT_FOUND') return tt('room.talk.expired', 'Сессия завершена (истекла или начата новая).');
+    if (code === 'TURN_IN_FLIGHT') return tt('room.talk.busy', 'Наставник ещё отвечает…');
+    if (code === 'TURNS_LIMIT') return tt('room.talk.turnsOut', 'Ходы этой сессии исчерпаны — завершите и начните новую.');
+    if (code === 'ROLEPLAY_DAILY_LIMIT') return tt('room.talk.dailyOut', 'Дневной лимит диалогов исчерпан — продолжите завтра.');
+    if (code === 'USER_LIMIT' || code === 'GLOBAL_LIMIT') return tt('studio.agent.limit', 'дневной лимит LLM исчерпан');
+    if (code === 'LLM_UNAVAILABLE') return tt('studio.agent.noLlm', 'без AI: перевод и морфология офлайн');
+    if (code === 'ROLEPLAY_INVALID') return tt('room.talk.invalid', 'Ответ не получился — попробуйте ещё раз (вызов учтён).');
+    if (code === 'CLOUD_TEXTS_CONSENT_REQUIRED') return tt('studio.agent.needTexts', 'Сначала включите «Синхронизировать Мои тексты» в ☁ Зала.');
+    if (code === 'AGENT_READ_TEXTS_CONSENT_REQUIRED') return tt('room.explain.needConsent', 'Разрешите наставнику читать тексты (галочка 🤖 в доме наставника).');
+    return '✗ ' + tt('studio.agent.err', 'Не удалось получить объяснение') + (code ? ' (' + code + ')' : '');
+  }
+  function talkRenderPassage(rows) {
+    var box = $('saTalkPassageBody'); if (!box) return;
+    box.textContent = '';
+    (rows || []).forEach(function (r) {
+      var he = document.createElement('div');
+      he.className = 'sa-draft-he'; he.setAttribute('dir', 'rtl'); he.setAttribute('lang', 'he');
+      he.textContent = r.he; box.appendChild(he);
+      if (r.ru) { var ru = document.createElement('div'); ru.className = 'sa-draft-ru'; ru.textContent = r.ru; box.appendChild(ru); }
+    });
+  }
+  function talkRenderFeed(transcript, openingText) {
+    var feed = $('saTalkFeed'); if (!feed) return;
+    feed.textContent = '';
+    if (openingText) {
+      var op = document.createElement('div'); op.className = 'sa-talk-op';
+      op.textContent = '🤖 ' + openingText; feed.appendChild(op);
+    }
+    (transcript || []).forEach(function (t) {
+      if (t.who === 'mentor') {
+        var m = document.createElement('div'); m.className = 'sa-talk-m';
+        m.setAttribute('lang', 'he'); m.textContent = t.he || ''; feed.appendChild(m);
+        if (t.ru) { var mr = document.createElement('div'); mr.className = 'sa-talk-mru'; mr.textContent = t.ru; feed.appendChild(mr); }
+      } else {
+        var l = document.createElement('div'); l.className = 'sa-talk-l';
+        l.setAttribute('dir', 'auto'); l.textContent = t.text || ''; feed.appendChild(l);
+      }
+    });
+    try { feed.scrollTop = feed.scrollHeight; } catch (_) {}
+  }
+  function talkRenderStatus(usage) {
+    var s = $('saTalkStatus'); if (!s || !_talkCtx) return;
+    var bits = [];
+    if (_talkCtx.turnsLeft != null) bits.push(tt('room.talk.turns', 'Ходы') + ': ' + _talkCtx.turnsUsed + '/' + (_talkCtx.turnsUsed + _talkCtx.turnsLeft));
+    if (usage && usage.limit) bits.push(tt('studio.agent.usage', 'AI сегодня') + ': ' + usage.user_llm_calls + '/' + usage.limit);
+    s.textContent = bits.join(' · ');
+  }
+  async function talkOpen() {
+    if (!_talkCtx) return;
+    closeModal();   // модал уступает место шиту
+    var sheet = ensureTalkSheet();
+    sheet.hidden = false;
+    talkErr('');
+    var c = $('saTalkConfirm'); if (c) c.hidden = true;
+    if (_talkCtx.sessionId) { await talkResync(); return; }
+    talkAckFlow();
+  }
+  function talkAckFlow() {
+    // Студия видит только ЛИЧНЫЕ тексты → ack-ключ личного пути (общая кладовка с Залом)
+    var acked = false;
+    try { acked = localStorage.getItem('room.ownTalkAck') === '1'; } catch (_) {}
+    if (acked) { talkStart(); return; }
+    var ack = $('saTalkAck'); if (!ack) return;
+    ack.textContent = '';
+    var txt = document.createElement('div');
+    txt.textContent = tt('room.talk.ownAck', 'Наставник отправит внешнему LLM до 5 предложений вашего текста и ваши реплики; 1 вызов из дневного лимита за каждый ход диалога. Продолжить?');
+    ack.appendChild(txt);
+    var row = document.createElement('div'); row.className = 'sa-actions-row';
+    var ok = document.createElement('button'); ok.type = 'button'; ok.className = 'sa-primary';
+    ok.textContent = tt('room.talk.start', 'Начать разговор');
+    ok.addEventListener('click', function () { try { localStorage.setItem('room.ownTalkAck', '1'); } catch (_) {} ack.hidden = true; talkStart(); });
+    var no = document.createElement('button'); no.type = 'button';
+    no.textContent = tt('studio.agent.consentCancel', 'Отмена');
+    no.addEventListener('click', function () { ack.hidden = true; talkHide(); });
+    row.appendChild(ok); row.appendChild(no); ack.appendChild(row);
+    ack.hidden = false;
+  }
+  async function talkStart() {
+    if (!_talkCtx || _talkCtx.busy) return;
+    talkErr('');
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      talkErr(tt('studio.agent.offline', '🤖 Наставник доступен онлайн — объяснение появится при подключении.')); return;
+    }
+    _talkCtx.busy = true;
+    talkRenderFeed([], tt('studio.agent.loading', 'Наставник думает…'));
+    var r = null;
+    try {
+      r = await jpost('/api/agent/roleplay/start', {
+        text_key: _talkCtx.textKey, order_index: _talkCtx.orderIndex,
+        sentence_row_id: _talkCtx.rowId || undefined,
+      });
+    } catch (_) {}
+    _talkCtx.busy = false;
+    if (!r || !r.ok) {
+      var code = (r && r.error) || '';
+      talkRenderFeed([], null);
+      // Несинканный/стейл текст — штатный случай Студии: адресный пуш и повтор (B1-паттерн)
+      if (code === 'TEXT_NOT_IN_CLOUD' || code === 'SENTENCE_NOT_FOUND') { talkPushOffer(code); return; }
+      talkErr(talkErrMsg(code));
+      return;
+    }
+    _talkCtx.sessionId = r.session_id;
+    _talkCtx.turnsUsed = r.turns_used || 0;
+    _talkCtx.turnsLeft = r.turns_left != null ? r.turns_left : null;
+    talkRenderPassage(r.passage);
+    talkRenderFeed([], r.opening && r.opening.text);
+    talkRenderStatus(r.usage);
+    var inp = $('saTalkInput'); if (inp) { try { inp.focus(); } catch (_) {} }
+  }
+  function talkPushOffer(code) {
+    var ack = $('saTalkAck'); if (!ack) { talkErr(talkErrMsg(code)); return; }
+    ack.textContent = '';
+    var txt = document.createElement('div');
+    txt.textContent = code === 'TEXT_NOT_IN_CLOUD'
+      ? tt('studio.agent.notInCloud', 'Этот текст ещё не в облаке — можно отправить его копию сейчас (только этот текст).')
+      : tt('studio.agent.staleCloud', 'Локальная версия текста новее облачной копии — обновить копию и объяснить?');
+    ack.appendChild(txt);
+    var row = document.createElement('div'); row.className = 'sa-actions-row';
+    var ok = document.createElement('button'); ok.type = 'button'; ok.className = 'sa-primary';
+    ok.textContent = tt('studio.agent.pushBtn', 'Отправить и объяснить');
+    ok.addEventListener('click', function () { ack.hidden = true; talkPushAndStart(); });
+    var no = document.createElement('button'); no.type = 'button';
+    no.textContent = tt('studio.agent.consentCancel', 'Отмена');
+    no.addEventListener('click', function () { ack.hidden = true; });
+    row.appendChild(ok); row.appendChild(no); ack.appendChild(row);
+    ack.hidden = false;
+  }
+  async function talkPushAndStart() {
+    if (!_talkCtx || !_talkCtx.tid) { talkErr(talkErrMsg('TEXT_NOT_IN_CLOUD')); return; }
+    talkErr('');
+    talkRenderFeed([], tt('studio.agent.pushing', 'Отправляю копию текста в облако…'));
+    try {
+      var host = window.StudioAgentHost;
+      var ldb = await host.ldb();
+      var bundle = await ldb.exportBundle({ textIds: [_talkCtx.tid] });
+      var text = await ldb.getTextById(_talkCtx.tid);
+      var r = await jpost('/api/learner/artifacts/put', {
+        artifact_key: text.text_key, updated_at: text.updated_at, payload: bundle,
+      });
+      if (!r || r.ok === false) { talkRenderFeed([], null); talkErr(tt('studio.agent.pushFail', 'Не удалось отправить текст в облако')); return; }
+    } catch (_) { talkRenderFeed([], null); talkErr(tt('studio.agent.pushFail', 'Не удалось отправить текст в облако')); return; }
+    // порядок мог поменяться — пере-резолв якоря по живому ряду (B1-паттерн)
+    if (_talkCtx.row) {
+      var fresh = await resolveAnchor(_talkCtx.row);
+      if (fresh) { _talkCtx.textKey = fresh.textKey; _talkCtx.orderIndex = fresh.orderIndex; _talkCtx.rowId = fresh.sid; _talkCtx.tid = fresh.tid; }
+    }
+    talkStart();
+  }
+  async function talkResync() {
+    if (!_talkCtx || !_talkCtx.sessionId) { talkAckFlow(); return; }
+    var r = null;
+    try {
+      r = await fetch('/api/agent/roleplay/state?session_id=' + encodeURIComponent(_talkCtx.sessionId),
+        { credentials: 'same-origin' }).then(function (x) { return x.json(); });
+    } catch (_) {}
+    if (!r || !r.ok) {
+      var code = (r && r.error) || '';
+      _talkCtx.sessionId = null;
+      if (code === 'SESSION_NOT_FOUND') { talkAckFlow(); return; }   // TTL/замена/деплой — start бесплатен
+      talkErr(talkErrMsg(code));
+      return;
+    }
+    _talkCtx.turnsUsed = r.turns_used || 0;
+    _talkCtx.turnsLeft = r.turns_left != null ? r.turns_left : null;
+    talkRenderPassage(r.passage);
+    talkRenderFeed(r.transcript, r.opening && r.opening.text);
+    talkRenderStatus(r.usage);
+  }
+  async function talkSend() {
+    var inp = $('saTalkInput');
+    var msg = (inp && inp.value || '').trim();
+    if (!msg || !_talkCtx || _talkCtx.busy || !_talkCtx.sessionId) return;
+    _talkCtx.busy = true;
+    talkErr('');
+    var sendB = $('saTalkSend'); if (sendB) sendB.disabled = true;
+    var feed = $('saTalkFeed');
+    if (feed) {
+      var l = document.createElement('div'); l.className = 'sa-talk-l'; l.setAttribute('dir', 'auto'); l.textContent = msg;
+      feed.appendChild(l);
+      var w = document.createElement('div'); w.className = 'sa-talk-op'; w.textContent = tt('studio.agent.loading', 'Наставник думает…');
+      feed.appendChild(w);
+      try { feed.scrollTop = feed.scrollHeight; } catch (_) {}
+    }
+    var r = null;
+    try { r = await jpost('/api/agent/roleplay/turn', { session_id: _talkCtx.sessionId, message: msg }); } catch (_) {}
+    _talkCtx.busy = false;
+    if (sendB) sendB.disabled = false;
+    if (!r || !r.ok) {
+      var code = (r && r.error) || '';
+      // реплика в input НЕ очищается (переживает ошибку); лента ре-синкается из state
+      if (_TALK_FATAL[code]) _talkCtx.sessionId = null;
+      await talkResyncAfterError();
+      talkErr(talkErrMsg(code));
+      return;
+    }
+    if (inp) inp.value = '';
+    _talkCtx.turnsUsed = r.turns_used || 0;
+    _talkCtx.turnsLeft = r.turns_left != null ? r.turns_left : null;
+    talkRenderFeed(r.transcript, null);
+    talkRenderStatus(r.usage);
+  }
+  async function talkResyncAfterError() {
+    if (_talkCtx && _talkCtx.sessionId) { await talkResync(); return; }
+    var feed = $('saTalkFeed'); if (!feed) return;
+    var row = document.createElement('div'); row.className = 'sa-actions-row';
+    var rb = document.createElement('button'); rb.type = 'button'; rb.className = 'sa-primary';
+    rb.textContent = tt('room.talk.restart', 'Начать заново');
+    rb.addEventListener('click', function () { talkErr(''); talkAckFlow(); });
+    row.appendChild(rb);
+    feed.appendChild(row);
+    try { feed.scrollTop = feed.scrollHeight; } catch (_) {}
+  }
+  function talkEndClick() {
+    if (_talkCtx && _talkCtx.sessionId && _talkCtx.turnsUsed > 0) {
+      var c = $('saTalkConfirm'); if (c) { c.hidden = false; return; }
+    }
+    talkStop();
+  }
+  async function talkStop() {
+    var sid = _talkCtx && _talkCtx.sessionId;
+    if (sid) { try { await jpost('/api/agent/roleplay/stop', { session_id: sid }); } catch (_) {} }
+    if (_talkCtx) { _talkCtx.sessionId = null; _talkCtx.turnsUsed = 0; _talkCtx.turnsLeft = null; }
+    var feed = $('saTalkFeed'); if (feed) feed.textContent = '';
+    var p = $('saTalkPassageBody'); if (p) p.textContent = '';
+    talkErr('');
+    talkHide();
   }
 
   // ══ PAS-B2 — «Материал из текста»: sheet с тремя действиями. Детерминированные

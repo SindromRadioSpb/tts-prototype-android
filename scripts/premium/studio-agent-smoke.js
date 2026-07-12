@@ -50,9 +50,9 @@ const mVer = swJs.match(/CACHE_VERSION\s*=\s*"v([\d.]+)"/);
 eq(!!mVer && mVer[1] === pkg.version, "sw.js CACHE_VERSION (v" + (mVer && mVer[1]) + ") must equal package.json version (" + pkg.version + ")");
 
 // ── 4. рендер-дисциплина studio-agent.js ─────────────────────────────────────
-// РОВНО ДВА статических шаблона: explain-модал (B1) + material-sheet (B2)
+// РОВНО ТРИ статических шаблона: explain-модал (B1) + material-sheet (B2) + talk-шит (C1b)
 const innerCount = (agentJs.match(/\.innerHTML\s*=/g) || []).length;
-eq(innerCount === 2, "studio-agent.js must have EXACTLY TWO innerHTML assignments (static modal templates B1+B2), got " + innerCount);
+eq(innerCount === 3, "studio-agent.js must have EXACTLY THREE innerHTML assignments (static templates B1+B2+C1b), got " + innerCount);
 eq(!/\$\{/.test(agentJs), "studio-agent.js must not use template interpolation (server text is textContent-only)");
 eq(agentJs.includes('dir="rtl"') && agentJs.includes('lang="he"'), "modal template must mark the Hebrew sentence dir=rtl lang=he");
 eq(agentJs.includes("AbortController"), "explain request must be abortable (30s timeout + close)");
@@ -94,16 +94,23 @@ const setupIdx = libraryUi.indexOf("function _draftSetup");
 const setupFn = libraryUi.slice(setupIdx, setupIdx + 800);
 eq(setupIdx > 0 && !/if\s*\(!isCorpus/.test(setupFn),
   "_draftSetup must NOT be corpus-only anymore (личные тексты — owner-решение)");
-// Паритет модала Студии: 🔊 + перевод + квиз + пересказ
-for (const id of ["saExplainSpeak", "saExplainRu", "saExplainComp", "saExplainDraft"]) {
+// Паритет модала Студии: 🔊 + перевод + квиз + пересказ + диалог (C1b)
+for (const id of ["saExplainSpeak", "saExplainRu", "saExplainComp", "saExplainDraft", "saExplainTalk", "saTalkSheet"]) {
   eq(agentJs.includes(id), "Studio modal must carry " + id + " (паритет с Залом — owner-фидбэк)");
 }
+// PAS-C1b: mobile-трап width:100% + push-лестница + hide≠stop
+eq(agentJs.includes("#saTalkSheet button{width:auto}"), "talk sheet must override the mobile button{width:100%} trap");
+eq(agentJs.includes("talkPushAndStart"), "talk start must heal TEXT_NOT_IN_CLOUD/SENTENCE_NOT_FOUND via targeted push (B1 pattern)");
+eq(agentJs.includes("roleplay/state"), "talk sheet must resync via GET roleplay/state (hide != stop)");
 
 // ── 7. locale-parity: каждый studio.agent.* ключ — в ru/en/he; плюс room.explain.draft*
 // ключи Зала (PAS-B3) — tt-fallback недостижим при живом t(), промах = сырой ключ в UI
 const usedKeys = [...new Set([
   ...[...agentJs.matchAll(/tt\('(studio\.agent\.[\w.]+)'/g)].map((m) => m[1]),
   ...[...libraryUi.matchAll(/tt\('(room\.explain\.draft[\w.]*)'/g)].map((m) => m[1]),
+  // PAS-C1: talk-ключи ОБЩИЕ для обеих поверхностей (Студия переиспользует room.talk.*)
+  ...[...agentJs.matchAll(/tt\('(room\.talk\.[\w.]+)'/g)].map((m) => m[1]),
+  ...[...libraryUi.matchAll(/tt\('(room\.talk\.[\w.]+)'/g)].map((m) => m[1]),
 ])];
 eq(usedKeys.length >= 20, "expected >=20 agent locale keys, found " + usedKeys.length);
 function loadLocale(file) {
