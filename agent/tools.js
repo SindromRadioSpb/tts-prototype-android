@@ -83,6 +83,7 @@ const REGISTRY = {
     readOnly: true,
     run: (ctx, a) => agentSentenceRepo.getSentenceContext(ctx.userId, {
       text_key: a && a.text_key, order_index: a && a.order_index,
+      row_id: a && a.row_id,   // PAS-B1: опциональный точный якорь Студии (реордер-дрейф)
     }),
   },
   // PAS-A3 (решение владельца 2026-07-12): окно ≤5 строк ЛИЧНОГО текста — ТОЛЬКО для

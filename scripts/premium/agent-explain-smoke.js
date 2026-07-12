@@ -93,9 +93,9 @@ function bundleFixture() {
     texts: [{
       text_key: TEXT_KEY, title: "Smoke explain text",
       rows: [
-        { order_index: 0, hebrew_plain: NEIGHBOR_BEFORE, hebrew_niqqud: "", translit: "", russian: "сосед до" },
-        { order_index: 1, hebrew_plain: SENT_HE, hebrew_niqqud: "", translit: "", russian: SENT_RU },
-        { order_index: 2, hebrew_plain: NEIGHBOR_AFTER, hebrew_niqqud: "", translit: "", russian: "сосед после" },
+        { row_id: "sid-before", order_index: 0, hebrew_plain: NEIGHBOR_BEFORE, hebrew_niqqud: "", translit: "", russian: "сосед до" },
+        { row_id: "sid-anchor", order_index: 1, hebrew_plain: SENT_HE, hebrew_niqqud: "", translit: "", russian: SENT_RU },
+        { row_id: "sid-after", order_index: 2, hebrew_plain: NEIGHBOR_AFTER, hebrew_niqqud: "", translit: "", russian: "сосед после" },
       ],
       created_at: "2026-07-01T00:00:00.000Z", updated_at: "2026-07-01T00:00:00.000Z",
     }],
@@ -267,6 +267,20 @@ function bundleFixture() {
     eq(nf1.status === 404 && nf1.json.error === "TEXT_NOT_IN_CLOUD", "unknown text_key must be 404 TEXT_NOT_IN_CLOUD");
     const nf2 = await api("POST", "/api/agent/explain", { cookie, csrf, body: { text_key: TEXT_KEY, order_index: 999, scope_level: "sentence_only" } });
     eq(nf2.status === 404 && nf2.json.error === "SENTENCE_NOT_FOUND", "unknown order_index must be 404 SENTENCE_NOT_FOUND");
+
+    // ── PAS-B1 row_id-якорь (Студия): row_id ПРИОРИТЕТНЕЕ order_index ─────────
+    // order_index указывает на соседа (кэш протух после реордера), row_id — на якорь:
+    // сервер обязан отдать ряд по row_id и вернуть ЕГО order_index (консистентный sid).
+    const rid1 = await api("POST", "/api/agent/explain", { cookie, csrf,
+      body: { text_key: TEXT_KEY, order_index: 2, sentence_row_id: "sid-anchor", scope_level: "sentence_only" } });
+    eq(rid1.status === 200 && rid1.json.ok && rid1.json.sentence && rid1.json.sentence.he === SENT_HE
+      && rid1.json.anchor && rid1.json.anchor.order_index === 1,
+      "row_id match must win over stale order_index and re-anchor to matched row");
+    // Мусорный/неизвестный row_id мягко игнорируется → фолбэк на order_index (Зал/старые клиенты)
+    const rid2 = await api("POST", "/api/agent/explain", { cookie, csrf,
+      body: { text_key: TEXT_KEY, order_index: 1, sentence_row_id: "no-such-row", scope_level: "sentence_only" } });
+    eq(rid2.status === 200 && rid2.json.ok && rid2.json.sentence && rid2.json.sentence.he === SENT_HE,
+      "unknown row_id must fall back to order_index match");
 
     // ── revoke → fail-closed + purge контентных полей ─────────────────────────
     const rv = await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: "agent_read_texts", granted: false, version: "v1" } });

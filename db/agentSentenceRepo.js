@@ -43,12 +43,17 @@ async function hasAgentReadConsent(userId) {
 // Канонический shape аплоада (cloud-sync → exportBundle): texts[].rows[] с
 // { order_index, hebrew_plain, hebrew_niqqud, translit, russian }; защитно принимаем и
 // importBundle-shape C (sentences[] с he_plain/ru) — фикстуры/старые бандлы.
-function _pickSentenceRow(payload, textKey, orderIndex) {
+function _pickSentenceRow(payload, textKey, orderIndex, rowId) {
   const texts = payload && Array.isArray(payload.texts) ? payload.texts : null;
   if (!texts || !texts.length) return null;
   const t = texts.find((x) => x && String(x.text_key) === String(textKey)) || texts[0];
   const rows = Array.isArray(t.rows) ? t.rows : (Array.isArray(t.sentences) ? t.sentences : []);
-  const row = rows.find((r) => r && Number(r.order_index) === Number(orderIndex));
+  // PAS-B1 (критика wf_7f300c39): row_id-матч ПРИОРИТЕТНЕЕ order_index — клиентский
+  // кэш индекса протухает при реордере, а bundle-ряды несут стабильный row_id=s.id;
+  // без row_id (Зал, старые клиенты) поведение прежнее (backward-compatible).
+  let row = null;
+  if (rowId) row = rows.find((r) => r && String(r.row_id || r.id || "") === String(rowId)) || null;
+  if (!row) row = rows.find((r) => r && Number(r.order_index) === Number(orderIndex));
   if (!row) return null;
   return {
     he: String(row.hebrew_plain != null ? row.hebrew_plain : (row.he_plain != null ? row.he_plain : (row.he || ""))),
@@ -56,14 +61,17 @@ function _pickSentenceRow(payload, textKey, orderIndex) {
     translit: String(row.translit || ""),
     ru: String(row.russian != null ? row.russian : (row.ru || "")),
     text_title: String(t.title || ""),
+    order_index: Number(row.order_index),
   };
 }
 
 // Единая точка доступа агента к содержимому предложения. Возвращает структурированный
 // результат (endpoint мапит на 403/404) — НИКОГДА не бросает контент в исключения.
-async function getSentenceContext(userId, { text_key, order_index } = {}) {
+async function getSentenceContext(userId, { text_key, order_index, row_id } = {}) {
   const textKey = String(text_key || "").trim();
   const orderIndex = Number(order_index);
+  // row_id — опциональный точный якорь (PAS-B1, Студия); валидация мягкая: строка ≤64
+  const rowId = row_id == null ? null : String(row_id).slice(0, 64);
   if (!textKey || !Number.isFinite(orderIndex)) return { ok: false, error: "BAD_ANCHOR" };
 
   // Двойной consent, fail-closed, в порядке иерархии (без cloud_texts на сервере
@@ -81,13 +89,15 @@ async function getSentenceContext(userId, { text_key, order_index } = {}) {
   try { payload = JSON.parse(art.payload_json); } catch (_) {
     return { ok: false, error: "ARTIFACT_UNREADABLE" };   // без содержимого в ошибке
   }
-  const row = _pickSentenceRow(payload, textKey, orderIndex);
+  const row = _pickSentenceRow(payload, textKey, orderIndex, rowId);
   if (!row || !row.he) return { ok: false, error: "SENTENCE_NOT_FOUND" };
 
   return {
     ok: true,
     scope_level: SCOPE_SENTENCE_ONLY,
-    anchor: { text_key: textKey, order_index: orderIndex },
+    // anchor несёт order_index СМАТЧЕННОГО ряда (при row_id-матче может отличаться от
+    // запрошенного) — sentence_id объяснения остаётся консистентным с бандлом.
+    anchor: { text_key: textKey, order_index: Number.isFinite(row.order_index) ? row.order_index : orderIndex },
     sentence: { he: row.he, he_niqqud: row.he_niqqud, translit: row.translit, ru: row.ru },
     text_title: row.text_title || null,
     artifact_updated_at: art.updated_at,

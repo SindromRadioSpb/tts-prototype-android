@@ -46,11 +46,11 @@ function hebrewTokens(text) {
 // Детерминированное ядро: предложение (личное — consent-gated; корпус — общий артефакт,
 // PAS-A1) + резолвер-морфология + пересечение с учебным состоянием. Всё, что уйдёт в
 // LLM/facts_used, собирается ЗДЕСЬ; всё ниже первой ступени — source-агностично.
-async function buildExplainCore(ctx, { text_key, order_index, source, work_id } = {}) {
+async function buildExplainCore(ctx, { text_key, order_index, source, work_id, row_id } = {}) {
   const isCorpus = source === "corpus";
   const sres = isCorpus
     ? await tools.callTool(ctx, "get_corpus_sentence_context", { corpus: "benyehuda", work_id, text_key, order_index })
-    : await tools.callTool(ctx, "get_sentence_context_if_available", { text_key, order_index });
+    : await tools.callTool(ctx, "get_sentence_context_if_available", { text_key, order_index, row_id });
   if (!sres.ok) return { ok: false, error: sres.error || "TOOL_FAILED" };
   if (!sres.result.ok) return { ok: false, error: sres.result.error, ...(sres.result.key ? { key: sres.result.key } : {}) };
   const sctx = sres.result;
@@ -163,11 +163,11 @@ async function _usage(userId) {
 // Полный сценарий: ядро → (опц.) LLM-формулировка под pre-call reserve → persist в
 // agent_explanations (facts_used-провенанс ОБЯЗАТЕЛЕН — объяснение без провенанса
 // не создаётся вовсе, §7).
-async function explain(ctx, { text_key, order_index, source, work_id } = {}) {
+async function explain(ctx, { text_key, order_index, source, work_id, row_id } = {}) {
   const profile = await agentRepo.getProfile(ctx.userId);
   const language = (profile && profile.language) || "ru";
 
-  const core = await buildExplainCore(ctx, { text_key, order_index, source, work_id });
+  const core = await buildExplainCore(ctx, { text_key, order_index, source, work_id, row_id });
   if (!core.ok) return core;   // consent/anchor-ошибки наружу — endpoint мапит на 403/404
 
   // PAS-A1 same-day dedupe (ТОЛЬКО корпус — личный путь не трогаем, его гейты держат

@@ -1813,9 +1813,14 @@ app.post("/api/agent/explain", rlAgentExplain, async (req, res) => {
     return res.status(400).json({ ok: false, error: "BAD_ANCHOR" });
   }
   if (isCorpus && !String(b.work_id || "").trim()) return res.status(400).json({ ok: false, error: "BAD_ANCHOR" });
+  // PAS-B1 — опциональный точный якорь Студии (row_id бандла; кэш order_index на
+  // клиенте протухает при реордере). Личный путь only; мусорный формат → игнор (мягко).
+  const rowIdRaw = !isCorpus && b.sentence_row_id != null ? String(b.sentence_row_id).trim() : "";
+  const rowId = /^[\w-]{1,64}$/.test(rowIdRaw) ? rowIdRaw : null;
   try {
     const r = await agentRuntime.explain({ userId: auth.user.id, deviceId: auth.session.deviceId },
-      { text_key: textKey, order_index: orderIndex, ...(isCorpus ? { source: "corpus", work_id: String(b.work_id).trim() } : {}) });
+      { text_key: textKey, order_index: orderIndex, ...(rowId ? { row_id: rowId } : {}),
+        ...(isCorpus ? { source: "corpus", work_id: String(b.work_id).trim() } : {}) });
     if (!r.ok) {
       const code = String(r.error || "");
       if (code === "CLOUD_TEXTS_CONSENT_REQUIRED" || code === "AGENT_READ_TEXTS_CONSENT_REQUIRED") return res.status(403).json(r);

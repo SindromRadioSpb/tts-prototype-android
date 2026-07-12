@@ -982,6 +982,15 @@ export async function addSentence(textId, data) {
   );
 }
 
+// PAS-B0.5 (критика wf_7f300c39): мутация рядов ОБЯЗАНА бампать texts.updated_at —
+// UP-ветка cloud-sync сравнивает именно его (srvAt >= t.updated_at → upSkipped), без
+// бампа облачная копия текста устаревала НАВСЕГДА после первого аплоада.
+async function _touchTextUpdatedAt(textId) {
+  try {
+    await r('UPDATE texts SET updated_at = ? WHERE id = ?', [new Date().toISOString(), textId]);
+  } catch (_) {}
+}
+
 export async function updateSentence(textId, sentenceId, fields) {
   const allowed = ['he_plain', 'he_niqqud', 'translit', 'translit_ru', 'ru',
                    'meta_json', 'edit_meta_json', 'translation_provider', 'translation_meta_json'];
@@ -991,16 +1000,19 @@ export async function updateSentence(textId, sentenceId, fields) {
   const vals = entries.map(([, v]) => v);
   await r(`UPDATE sentences SET ${sets} WHERE id = ? AND text_id = ?`,
     [...vals, sentenceId, textId]);
+  await _touchTextUpdatedAt(textId);
 }
 
 export async function deleteSentence(textId, sentenceId) {
   await r('DELETE FROM sentences WHERE id = ? AND text_id = ?', [sentenceId, textId]);
+  await _touchTextUpdatedAt(textId);
 }
 
 export async function resetSentence(textId, sentenceId) {
   // Reset: clear edit_meta_json so original values from meta_json are used
   await r(`UPDATE sentences SET edit_meta_json = NULL WHERE id = ? AND text_id = ?`,
     [sentenceId, textId]);
+  await _touchTextUpdatedAt(textId);
 }
 
 export async function reorderSentences(textId, orderedIds) {
@@ -1028,6 +1040,7 @@ export async function reorderSentences(textId, orderedIds) {
     await x('ROLLBACK;').catch(() => {});
     throw e;
   }
+  await _touchTextUpdatedAt(textId);   // PAS-B0.5 — реордер = правка текста для LWW-синка
 }
 
 // Niqqud/diacritic-insensitive search normalization: strip Hebrew niqqud +

@@ -2782,6 +2782,15 @@ function roomCloudInit() {
   const btn = $('roomCloud'); const els = _cloudEls();
   if (!btn || !els.modal) return;
   btn.addEventListener('click', () => { els.modal.hidden = false; _cloudRender(); });
+  // PAS-B1 — deep-link #cloud (лестница Студии шлёт сюда за входом/тумблером; паттерн
+  // #mentor): открыть ☁-модал по хэшу и снять хэш из URL, чтобы reload не переоткрывал.
+  const openCloudByHash = () => {
+    if (location.hash !== '#cloud') return;
+    els.modal.hidden = false; _cloudRender();
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (_) {}
+  };
+  window.addEventListener('hashchange', openCloudByHash);
+  openCloudByHash();
   els.modal.addEventListener('click', (e) => { if (e.target && e.target.getAttribute && e.target.getAttribute('data-cloud-close') === '1') els.modal.hidden = true; });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !els.modal.hidden) els.modal.hidden = true; });
   if (els.loginBtn) els.loginBtn.addEventListener('click', async () => {

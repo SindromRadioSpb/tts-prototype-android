@@ -12136,9 +12136,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=50"></script>
-<script src="/i18n/locales/en.js?v=50"></script>
-<script src="/i18n/locales/he.js?v=50"></script>
+<script src="/i18n/locales/ru.js?v=51"></script>
+<script src="/i18n/locales/en.js?v=51"></script>
+<script src="/i18n/locales/he.js?v=51"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- Phase 9.4.D — Hebrew morphology layer (Tier 1 local dict + Tier 2 seed) -->
@@ -12208,6 +12208,14 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      renderTable is untouched (smoke:reader-parity) — wrapping is post-render only. -->
 <script src="/js/reader-morph.js"></script>
 <script src="/js/studio-karaoke.js"></script>
+
+<!-- PAS-B (слайс B) — агент-UI Студии: ВЕСЬ агент-код в studio-agent.js (чартер §7.7,
+     inline здесь только script-теги + host-bridge). .row-agent-btn инжектится
+     POST-RENDER обёрткой renderTable (renderTable заморожен smoke:reader-parity —
+     паттерн studio-karaoke; room-mode = читальный вид, инъекция скипается).
+     cloud-sync.js — dormant UMD (нужен CS.me()/consents; ничего не вызывает сам). -->
+<script src="/js/cloud-sync.js"></script>
+<script src="/js/studio-agent.js"></script>
 
 <!-- ⑤ Anki-sync A2b — client-side «.apkg» export (UMD globals AnkiApkgCore → AnkiApkg → AnkiSrsExport).
      Card data never leaves the device; sql.js (/db/sql-wasm.*) lazy-loads only when the user exports.
@@ -12304,6 +12312,13 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // ----------------------------
     let currentTableData = [];
     let currentTableHasRuTranslit = false; // set by renderTable; drives translit selector state
+
+    // PAS-B — host-bridge для /js/studio-agent.js: агент-код НЕ лезет в замыкание
+    // inline-скрипта; ему выдаются ровно два хука (ряд таблицы + OPFS-модуль).
+    window.StudioAgentHost = {
+      getRow: (i) => (Array.isArray(currentTableData) ? currentTableData[i] : null),
+      ldb: () => ensureLocalDB(),
+    };
 
 	// --- Mobile toast helper (UI-MOBILE-COLNOTE-02) ---
 function v3IsMobile600() {
@@ -33619,6 +33634,9 @@ try {
                   '<button type="button" class="row-edit-btn btn-del" data-edit-action="del" data-row-idx="' + rowIdx + '" title="Удалить строку" aria-label="Удалить строку">✕</button>' +
                   '</div>'
                 : '';
+            // PAS-B1: 🤖-кнопка НЕ эмитится здесь — renderTable заморожен byte-parity
+            // гейтом smoke:reader-parity (reader-core golden); studio-agent.js инжектит
+            // её post-render (паттерн studio-karaoke; room-mode = читальный вид, скип).
             html += '<td data-col="action" class="col-action-cell">' +
                 '<div class="col-action-row col-action-row-top">' +
                 '<span class="row-audio-ind" data-row-idx="' + rowIdx + '" aria-hidden="true"></span>' +
