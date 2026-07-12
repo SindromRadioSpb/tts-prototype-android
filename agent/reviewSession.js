@@ -54,6 +54,82 @@ function audioUrlFor(assetKey) {
 // dictateProven НЕ берём из channel_stats.production (полосуется клиентскими reverse/cloze без
 // evidence_scope — критика R17 ВЕРИФИЦИРОВАНА library-ui.js) → history ТОЛЬКО из itemRows +
 // grade-policy channelPrefix-сегментации.
+// readingStrong (дёшево, из channel_stats.receptive — рецептив НЕ полосуется production'ом). Слово
+// ВЫБИРАЕТСЯ потому что DUE (частично забыто) → одиночный старый good не «знаком при чтении» (критика
+// diff wf_8cd4658d MAJOR, converged 3 линзы). НЕТТО-сильно И недавно-успешно: good≥2 · good перевешивает
+// ВСЕ трудности (again+hard, не только again) · последний рецептив-грейд успешен (≥3 — channel_stats
+// кумулятивен, last_grade даёт свежесть, консистентно с тем, что слово due).
+function readingStrong(it) {
+  const r = it && it.channel_stats && it.channel_stats.receptive;
+  return !!(r && r.good >= 2 && r.good > (r.again || 0) + (r.hard || 0) && Number(r.last_grade) >= 3);
+}
+
+// когда-либо диктовал это слово (audio→написание)? modality-сегментировано (channelPrefix==='dictate'
+// ловит и dictate:tg, и клиентский Studio 'dictate'; НЕ reverse/cloze). context-supported исключаем.
+// Аннулированные review — НЕ свидетельство (системный инвариант, как channelStats/recentStruggleKeySet/
+// replay; критика diff wf_8cd4658d: иначе слово с ЕДИНСТВЕННЫМ аннулированным диктантом навсегда лишалось
+// бы flagship-gap). collectAnnulled по ТЕМ ЖЕ per-item строкам, что channelStats.
+async function hasDictateHistory(userId, itemKey) {
+  let rows = [];
+  try { rows = await learnerLogRepo.itemRows(userId, itemKey); } catch (_) { rows = []; }
+  const annulled = FC.collectAnnulled ? FC.collectAnnulled(rows) : {};
+  return (rows || []).some((r) => r && r.kind === "review" && !annulled[String(r.id)] &&
+    GP.channelPrefix(r.channel) === "dictate" && !GP.isContextSupportedRow(r));
+}
+
+// PAS-D3: ЕДИНЫЙ eligibility-builder (критика D3-EXTRACTION-DUP: логика в одной копии, ops-счётчик
+// noAsset живёт в stats и НЕ глохнет). Мемоизированная dictate-eligibility (дорого:
+// dictateFormForItemKey O(N) + hasAsset). null = не eligible (омофон/неоднозначно/нет ассета/
+// exposed/2-букв). Один вызов на item_key.
+function makeDictateEligible({ base, isExposed, dictCache, stats }) {
+  return async function dictateEligible(itemKey) {
+    if (dictCache.has(itemKey)) return dictCache.get(itemKey);
+    let out = null;
+    if (base && !isExposed(itemKey)) {
+      let d = null;
+      try { d = await keyingService.dictateFormForItemKey(itemKey); } catch (_) { d = null; }
+      if (d) {
+        const assetKey = computeDictateAssetKey(d.vocalized);
+        let ready = false;
+        try { ready = await audioRepo.hasAsset(assetKey); } catch (_) { ready = false; }
+        if (ready) out = { kind: "dictate", item_key: itemKey, vocalized: d.vocalized, written: d.written,
+                           assetKey, url: audioUrlFor(assetKey), sense_id: d.pid };
+        else stats.noAsset++;   // dictate-безопасно, но ассет не запечён → ops-сигнал у вызывающего
+      }
+    }
+    dictCache.set(itemKey, out);
+    return out;
+  };
+}
+
+// PAS-D3: flagship-шаг ЭКСТРАГИРОВАН (нудж-сторона зовёт ТУ ЖЕ функцию — «нудж не обещает того,
+// что /review не даст», гарантия по построению; критика wf_659f597a BLOCKER window-pin + MAJORs).
+// Omitted-дефолты СЧИТАЮТСЯ, не пустуют (критика D3-FLAGSHIP-DEFAULTS): items → СВОЙ getDue с
+// ТЕМ ЖЕ окном REVIEW_DUE_WINDOW и withChannelStats:true ЗАХАРДКОЖЕННЫМ; isExposed →
+// recentlyExposedSet на том же now; struggleSet → recentStruggleKeySet(minFails:2).
+// Side-effects НЕТ (no exposure/challenge — акцептанс нуджа цел).
+async function firstFlagshipDictate(userId, { nowMs, items, struggleSet, isExposed, dictateEligible } = {}) {
+  const now = Number(nowMs) || Date.now();
+  const base = publicBaseUrl();
+  if (!base) return null;   // fail-closed: без https-base диктанта нет ни в /review, ни в нудже
+  if (!items) items = await learnerGraphRepo.getDue(userId, { nowMs: now, limit: REVIEW_DUE_WINDOW, withChannelStats: true });
+  if (!isExposed) {
+    const dueKeys = (items || []).map((it) => it.item_key);
+    const exposedSet = await agentChallengeRepo.recentlyExposedSet(userId, dueKeys, now);
+    isExposed = (k) => exposedSet.has(String(k));
+  }
+  if (!struggleSet) struggleSet = await learnerGraphRepo.recentStruggleKeySet(userId, { minFails: 2 });
+  const de = dictateEligible || makeDictateEligible({ base, isExposed, dictCache: new Map(), stats: { noAsset: 0 } });
+  for (const it of items || []) {
+    if (!readingStrong(it) || struggleSet.has(it.item_key)) continue;
+    const d = await de(it.item_key);
+    if (!d) continue;
+    if (await hasDictateHistory(userId, it.item_key)) continue;   // уже диктовал → не «gap» (и не dictate-loop)
+    return { ...d, select_reason: "reading_strong_close_dictation_gap" };
+  }
+  return null;
+}
+
 async function selectEligible(userId, { nowMs, allocationMode } = {}) {
   const now = Number(nowMs) || Date.now();
   let items = await learnerGraphRepo.getDue(userId, { nowMs: now, limit: REVIEW_DUE_WINDOW, withChannelStats: true });
@@ -76,63 +152,15 @@ async function selectEligible(userId, { nowMs, allocationMode } = {}) {
     console.log("[tg-review] dictate off: PUBLIC_BASE_URL unset/not-https (audio review disabled)");
   }
 
-  // мемоизированная dictate-eligibility (дорого: dictateFormForItemKey O(N) + hasAsset). null = не
-  // eligible (омофон/неоднозначно/нет ассета/exposed/2-букв). Один вызов на item_key — переиспользуется
-  // шагами 1/3 (тот же !isExposed-фильтр во всех проходах → нет дрейфа).
+  // единый eligibility-builder (D3): шаги 1/3 делят ОДИН dictCache + ОДИН isExposed-снимок → нет дрейфа
+  const dictStats = { noAsset: 0 };
   const dictCache = new Map();
-  let dNoAsset = 0;
-  async function dictateEligible(itemKey) {
-    if (dictCache.has(itemKey)) return dictCache.get(itemKey);
-    let out = null;
-    if (base && !isExposed(itemKey)) {
-      let d = null;
-      try { d = await keyingService.dictateFormForItemKey(itemKey); } catch (_) { d = null; }
-      if (d) {
-        const assetKey = computeDictateAssetKey(d.vocalized);
-        let ready = false;
-        try { ready = await audioRepo.hasAsset(assetKey); } catch (_) { ready = false; }
-        if (ready) out = { kind: "dictate", item_key: itemKey, vocalized: d.vocalized, written: d.written,
-                           assetKey, url: audioUrlFor(assetKey), sense_id: d.pid };
-        else dNoAsset++;   // dictate-безопасно, но ассет не запечён → ops-сигнал ниже
-      }
-    }
-    dictCache.set(itemKey, out);
-    return out;
-  }
+  const dictateEligible = makeDictateEligible({ base, isExposed, dictCache, stats: dictStats });
 
-  // readingStrong (дёшево, из channel_stats.receptive — рецептив НЕ полосуется production'ом). Слово
-  // ВЫБИРАЕТСЯ потому что DUE (частично забыто) → одиночный старый good не «знаком при чтении» (критика
-  // diff wf_8cd4658d MAJOR, converged 3 линзы). НЕТТО-сильно И недавно-успешно: good≥2 · good перевешивает
-  // ВСЕ трудности (again+hard, не только again) · последний рецептив-грейд успешен (≥3 — channel_stats
-  // кумулятивен, last_grade даёт свежесть, консистентно с тем, что слово due).
-  function readingStrong(it) {
-    const r = it && it.channel_stats && it.channel_stats.receptive;
-    return !!(r && r.good >= 2 && r.good > (r.again || 0) + (r.hard || 0) && Number(r.last_grade) >= 3);
-  }
-  // когда-либо диктовал это слово (audio→написание)? modality-сегментировано (channelPrefix==='dictate'
-  // ловит и dictate:tg, и клиентский Studio 'dictate'; НЕ reverse/cloze). context-supported исключаем.
-  // Аннулированные review — НЕ свидетельство (системный инвариант, как channelStats/recentStruggleKeySet/
-  // replay; критика diff wf_8cd4658d: иначе слово с ЕДИНСТВЕННЫМ аннулированным диктантом навсегда лишалось
-  // бы flagship-gap). collectAnnulled по ТЕМ ЖЕ per-item строкам, что channelStats.
-  async function hasDictateHistory(itemKey) {
-    let rows = [];
-    try { rows = await learnerLogRepo.itemRows(userId, itemKey); } catch (_) { rows = []; }
-    const annulled = FC.collectAnnulled ? FC.collectAnnulled(rows) : {};
-    return (rows || []).some((r) => r && r.kind === "review" && !annulled[String(r.id)] &&
-      GP.channelPrefix(r.channel) === "dictate" && !GP.isContextSupportedRow(r));
-  }
-
-  // 1) FLAGSHIP — reading→dictation gap. Дёшево пре-фильтруем (readingStrong && !struggle), дорогой
-  //    dictate-скан + itemRows ТОЛЬКО для выживших.
-  if (base) {
-    for (const it of items || []) {
-      if (!readingStrong(it) || struggleSet.has(it.item_key)) continue;
-      const d = await dictateEligible(it.item_key);
-      if (!d) continue;
-      if (await hasDictateHistory(it.item_key)) continue;   // уже диктовал → не «gap» (и не dictate-loop)
-      return { ...d, select_reason: "reading_strong_close_dictation_gap" };
-    }
-  }
+  // 1) FLAGSHIP — reading→dictation gap (общая firstFlagshipDictate; свой снапшот передаём —
+  //    ноль дрейфа/двойного keyingService-скана; поведение байт-эквивалентно до-экстракции).
+  const flag = await firstFlagshipDictate(userId, { nowMs: now, items, struggleSet, isExposed, dictateEligible });
+  if (flag) return flag;
 
   // 2) cloze (мягчайший, context-cued; двойной consent внутри). struggle → cued-объяснение.
   //    Builder получает ТО ЖЕ due-окно (полный snapshot, §2-v2) и ТОТ ЖЕ exposure-снимок.
@@ -149,7 +177,7 @@ async function selectEligible(userId, { nowMs, allocationMode } = {}) {
       const d = await dictateEligible(it.item_key);
       if (d) return { ...d, select_reason: "default_dictation" };
     }
-    if (dNoAsset) console.log("[tg-review] dictate: " + dNoAsset + " due candidate(s) без ассета → run bake-dictate-audio");
+    if (dictStats.noAsset) console.log("[tg-review] dictate: " + dictStats.noAsset + " due candidate(s) без ассета → run bake-dictate-audio");
   }
 
   // 4) reverse strictSafe (uncued — самая тяжёлая, последней)
@@ -772,4 +800,5 @@ module.exports = {
   answer, skip, hint, annul, issueHandoff,
   mintAudioToken, resolveAudioToken, dropTokensForChallenge, miniappWriteOn,
   REVIEW_DUE_WINDOW, ALLOCATION_POLICY_VERSION, almostLapsed,
+  firstFlagshipDictate, readingStrong,   // PAS-D3: нудж-сторона + гейты
 };

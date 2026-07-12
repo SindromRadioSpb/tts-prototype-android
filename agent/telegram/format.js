@@ -76,6 +76,10 @@ const STR = {
     nudgeResume: "Напоминания в Telegram снова включены.",
     // ── P7.3c backoff / mute / notoday (класс A; RETURN_AFTER_GAP БЕЗ count/guilt) ──
     nudgeReturn: "Когда будет удобно, у тебя есть короткая тренировка на пару минут — /review",
+    // ── PAS-D3 SKILL_GAP (класс A: N = ОБЩИЙ due-count, НИКОГДА не число dictate-кандидатов;
+    //    префикс-паттерн — обход русской плюрализации, как nudgeDue; «часть» хеджирует drift) ──
+    nudgeSkillGap: "Готово к повторению: ", nudgeSkillGapTail: " — часть можно проверить на слух. /review",
+    nudgeSkillGapOne: "Готово к повторению: 1 — можно проверить на слух. /review",
     muteOkA: "Напоминания в Telegram отключены на ", muteOkB: " дн. Вернуть — /resume. Тренировки по запросу (/review) работают.",
     muteBad: "Формат: /mute 1..30 (число дней). Например: /mute 3.",
     notodayAck: "Понял — сегодня больше не напомню. Вернусь завтра.",
@@ -117,6 +121,8 @@ const STR = {
     nudgeStop: "Telegram reminders are off. Commands and on-demand practice (/review) still work.",
     nudgeResume: "Telegram reminders are back on.",
     nudgeReturn: "Whenever it suits you, there's a short couple-minute session — send /review",
+    nudgeSkillGap: "Ready to review: ", nudgeSkillGapTail: " — some can be checked by ear. /review",
+    nudgeSkillGapOne: "Ready to review: 1 — you can check it by ear. /review",
     muteOkA: "Telegram reminders paused for ", muteOkB: " day(s). Resume with /resume. On-demand practice (/review) still works.",
     muteBad: "Format: /mute 1..30 (number of days). E.g. /mute 3.",
     notodayAck: "Got it — no more reminders today. Back tomorrow.",
@@ -271,6 +277,14 @@ function nudgeStopText(lang) { return L(lang).nudgeStop; }
 function nudgeResumeText(lang) { return L(lang).nudgeResume; }
 // P7.3c: RETURN_AFTER_GAP — БЕЗ count, guilt-free (запрещено «пропустил»/«давно не»).
 function formatReturnNudge(lang) { return L(lang).nudgeReturn; }
+// PAS-D3 SKILL_GAP_AVAILABLE — count = ОБЩИЙ due (как DUE_READY), НИКОГДА не dictate-count (класс A);
+// N=1 своя форма («часть» из одного слова — абсурд, критика L2-9).
+function formatSkillGapNudge(count, lang) {
+  const t = L(lang);
+  const n = Number(count) || 0;
+  if (n === 1) return t.nudgeSkillGapOne;
+  return t.nudgeSkillGap + n + t.nudgeSkillGapTail;
+}
 function formatMuteOk(days, lang) { const t = L(lang); return t.muteOkA + Number(days) + t.muteOkB; }
 function muteBadText(lang) { return L(lang).muteBad; }
 function notodayText(lang, alreadyDone) { const t = L(lang); return alreadyDone ? t.notodayDone : t.notodayAck; }
@@ -317,6 +331,6 @@ module.exports = {
   refusedText: (lang) => L(lang).refused, LIMIT,
   formatReversePrompt, reversePlaceholder, formatClozePrompt, clozePlaceholder,
   formatDictatePrompt, dictatePlaceholder, selectExplanation, withExplanation, goalLine,
-  formatDueNudge, nudgeStopText, nudgeResumeText, formatReturnNudge, formatMuteOk, muteBadText, notodayText,
+  formatDueNudge, nudgeStopText, nudgeResumeText, formatReturnNudge, formatSkillGapNudge, formatMuteOk, muteBadText, notodayText,
   reviewUnavailable, reviewBusy, reviewNothing, verdictDeclined, verdictFromResult,
 };

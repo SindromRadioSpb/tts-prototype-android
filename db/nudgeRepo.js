@@ -109,12 +109,22 @@ async function runNudgeSweep({ nowMs, force } = {}) {
         const due = await learnerGraphRepo.getDue(userId, { nowMs: now, limit: 500 });
         if (!due.length) { agg.nothing_due++; continue; }
 
-        // 8) reason (RETURN_AFTER_GAP при no-activity ≥7д — copy-swap, guilt-free, БЕЗ count). Вычисляем
-        //    ДО claim → ledger.reason == реально отправленному (критика: hardcoded DUE_READY мис-атрибутил
-        //    RETURN-нуджи). «Долгое отсутствие» = НЕТ активности за 7д ИЗ review_log/learner_events (honest;
-        //    активный owner → DUE_READY count).
+        // 8) reason-лестница (owner-приоритет 2026-07-09: RETURN_AFTER_GAP > SKILL_GAP > DUE_READY;
+        //    SKILL_GAP только для recentlyActive — вернувшийся получает мягкий возврат, не холодный
+        //    аудио-вызов). Вычисляем ДО claim → ledger.reason == реально отправленному.
+        //    PAS-D3: flagship-скан — ТА ЖЕ firstFlagshipDictate, что шаг 1 selectEligible («нудж не
+        //    обещает того, что /review не даст» — по построению: то же окно REVIEW_DUE_WINDOW,
+        //    withChannelStats захардкожен, real struggle/exposure-сеты). Side-effects нет (акцептанс
+        //    цел). Дорогой keyingService-скан СТРОГО за всеми дешёвыми гейтами выше (≤1/юзер/день).
         const recentlyActive = await learnerLogRepo.engagedSince(userId, new Date(now - RETURN_GAP_MS).toISOString());
-        const reason = recentlyActive ? "DUE_READY" : "RETURN_AFTER_GAP";
+        let reason = "DUE_READY";
+        if (!recentlyActive) reason = "RETURN_AFTER_GAP";
+        else {
+          try {
+            const reviewSession = require("../agent/reviewSession");
+            if (await reviewSession.firstFlagshipDictate(userId, { nowMs: now })) reason = "SKILL_GAP_AVAILABLE";
+          } catch (_) {}   // flagship-скан упал → честный DUE_READY (не блокируем нудж)
+        }
 
         // 9) re-check consent перед claim+send
         const auth2 = await authorizeForSweep(userId);
@@ -125,9 +135,12 @@ async function runNudgeSweep({ nowMs, force } = {}) {
         if (!claim.claimed) { agg.budget++; continue; }
         const newCount = engaged ? 0 : (since ? state.consecutive_ignored + 1 : 0);
 
-        // 11) send (класс A: RETURN_AFTER_GAP без count/guilt; DUE_READY honest count)
+        // 11) send (класс A: RETURN_AFTER_GAP без count/guilt; SKILL_GAP — ОБЩИЙ due-count +
+        //     «часть можно на слух», НИКОГДА не dictate-count; DUE_READY honest count)
         const lng = await lang(userId);
-        const text = reason === "RETURN_AFTER_GAP" ? format.formatReturnNudge(lng) : format.formatDueNudge(due.length, lng);
+        const text = reason === "RETURN_AFTER_GAP" ? format.formatReturnNudge(lng)
+          : reason === "SKILL_GAP_AVAILABLE" ? format.formatSkillGapNudge(due.length, lng)
+          : format.formatDueNudge(due.length, lng);
         const res = await api.sendMessage(auth2.chatId, text);
         if (res && res.sent) {
           agg.sent++;
