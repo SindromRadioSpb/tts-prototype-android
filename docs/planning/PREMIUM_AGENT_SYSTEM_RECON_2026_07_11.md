@@ -104,74 +104,66 @@ Duolingo Max «Explain my answer» → A2/A4 (у нас честнее: resolver
 
 ## §10 Следующий шаг
 
-~~Слайс A~~ ЗАКРЫТ (см. шапку). ~~Слайс B~~ **КОД ЗАВЕРШЁН 2026-07-12, v3.11.156–158** (спека/адъюдикация `PAS_SLICE_B_SPEC_2026_07_12.md`, критика wf_7f300c39: 14 находок приняты): B0 studio-agent.js (§7.7 выполнен; кнопки — post-render инъекцией, renderTable parity-frozen) + B0.5 бамп texts.updated_at в мутаторах рядов (рут-фикс вечного стейла облачной копии) · B1 per-row 🤖 (live-якорь + row_id-матч сервера, лестница честных состояний, адресный пуш одного текста, #cloud deep-link Зала) · B2 «Материал» (② + НОВЫЙ frontier-квиз-лаунчер + study_summary за **НОВЫМ durable-ключом agent_read_texts_digest** — BLOCKER критики: старая копия обещает «не весь текст») · B3 draft-retell (corpus-only, ru-глосс в том же вызове, персист+dedupe) → [Открыть в Студии] (общий OPFS + deep-link без room=1 + closeLocalDB). Гейты: smoke:studio-agent NEW · smoke:agent-material NEW 45/45 · вся explain-семья зелёная. Следующий — **слайс C (диалог/практика)**, затем D (оркестрация).
+~~Слайс A~~ ЗАКРЫТ (см. шапку). ~~Слайс B~~ ЗАКРЫТ owner-live v3.11.156–160 (`PAS_SLICE_B_SPEC_2026_07_12.md`). ~~Слайс C~~ **ЗАКРЫТ live-verified 2026-07-12, v3.11.161–163** (спека/адъюдикация `PAS_SLICE_C_SPEC_2026_07_12.md`, критика wf_5ea38001: 30 находок приняты, 2 BLOCKER — revoke-каскад до RAM-сессий + C2-матчинг через forward-матч парадигм): C1a role-play Зала (agent/roleplay.js — эфемерная RAM-сессия класса D c TTL+sweep, start БЕЗ LLM, scenario-cap ROLEPLAY_DAILY=16/TURNS_MAX=8, inFlight-сериализация, транскрипт+GET state = ре-синк, hide≠stop, анти-инъекция «весь транскрипт = data» c реплей-окном K=6; extras-ряд 🧠✍️💬 + шит #roomTalkSheet) · C1b паритет Студии (#saTalkSheet, push-лестница на несинканный текст, общие room.talk.*-ключи) · C2 constrained writing (agent/writing.js — targets из production_gap→weak→due, forward-матч clozeFormsForItemKey voc=exact/skeleton±проклитика=probable, membership-recheck TARGET_NOT_ELIGIBLE, advisory вне памяти; «✍️ Практика письма» в доме наставника). Consent-копия agent_read_texts расширена третьим назначением window_5 («обсуждение прочитанного»). Гейты: smoke:agent-roleplay NEW (3 бута) · smoke:agent-writing NEW · studio-agent 256+ (83 ключа ×3) · i18n 226/226 · вся семья зелёная. Live-verify прод: заземлённый ход Nemotron (поправил off-topic реплику по РЕАЛЬНОМУ отрывку), цели письма из живого графа владельца, Студия-диалог на личном тексте. C3 (голос, PAS-F2) — отдельный под-слайс ПОСЛЕ text-first, не начат. Следующий — **слайс D (оркестрация обучения)**.
 
-## §11 Промт для новой сессии (слайс C)
+## §11 Промт для новой сессии (слайс D)
 
 ```
 Продолжаем программу PAS — премиум-система агентов (мандат владельца, capability-led).
 
 READ FIRST:
 1. docs/planning/PREMIUM_AGENT_SYSTEM_RECON_2026_07_11.md — чартер, решения
-   владельца, статус (слайсы A v3.11.153–155 и B v3.11.156–160 закрыты owner-live).
-2. docs/planning/PAS_SLICE_B_SPEC_2026_07_12.md — образец цикла слайса
+   владельца, статус (слайсы A v3.11.153–155, B v3.11.156–160, C v3.11.161–163
+   закрыты live-verified).
+2. docs/planning/PAS_SLICE_C_SPEC_2026_07_12.md — образец цикла слайса
    (спека-дельта → adversarial-критика 3 линзы → адъюдикация → код по кускам →
-   гейты с exit-кодами → SW bump → deploy-poll → kapture live-verify на
-   прод-профиле) + все имплементационные отклонения/решения владельца слайса B.
+   гейты с exit-кодами → SW bump → deploy-poll → live-verify на прод-профиле)
+   + все имплементационные отклонения слайса C.
 
-Стартуй СЛАЙС C — диалог/практика (чартер §2-C):
-  C1. Role-play по прочитанному (text-first, форк F2) — разговор с персонажем /
-      о сюжете ТОЛЬКО ЧТО прочитанного фрагмента; context-pack = фрагмент+глоссы;
-      ответы ученика НЕ грейдятся в память (advisory-фидбэк; R17 «кто учит — не
-      сертифицирует»); сессия эфемерна (класс D), явный старт/стоп. Generic-chat
-      ЗАПРЕЩЁН каноном — только grounded-диалог по прочитанному.
-  C2. Constrained writing — «напиши 2 предложения с этими словами» → LLM-разбор
-      с resolver-подтверждением форм (R1: морфологию утверждает резолвер, LLM —
-      переформулировка поверх); advisory, вне review_log.
-  C3. Голос — по форку PAS-F2: v1 text-first; Web Speech — отдельный под-слайс
-      ПОСЛЕ text-first (в кодовой базе ASR/MediaRecorder нет вовсе).
+Стартуй СЛАЙС D — оркестрация обучения (чартер §2-D):
+  D1. Next-text по корпусу — «что читать дальше» из corpus-catalog по покрытию
+      словаря ученика: ДЕТЕРМИНИРОВАННЫЙ скоринг + LLM-объяснение выбора
+      (advisory). ВНИМАНИЕ: клиентский i+1-движок УЖЕ есть (public/js/
+      corpus-vocab.js, S2 «Следующий для тебя» BRR-P1-007) — D1 это скорее
+      агент-интеграция (план наставника/дом наставника рекомендует текст +
+      объясняет ПОЧЕМУ), не новый скоринг. Не дублировать движок.
+  D2. Умная сессия+ — расширение selector/reviewSession (P7.2d score-selector):
+      cross-text цели, scaffold-fade как ПРЕДЛОЖЕНИЯ с preview/undo (никогда
+      молча — R11/R4).
+  D3. Reason-aware возвраты — бывший P7.3d (канон MENTOR_ROLLOUT_NEXT_2026_07_11
+      §9; BLOCKER-фиксы критики wf_659f597a: shared FLAGSHIP_DUE_LIMIT и др.),
+      под лёгкой телеметрией без RCT-гейта.
 
-Ключевые факты для C (субстрат после слайсов A+B, проверить актуальность):
-- Bounded-диалог УЖЕ имеет прецедент: followup ≤3 (agent/explainer.js) — клиент
-  шлёт ТОЛЬКО {explanation_id, question}, context-pack пересобирается СЕРВЕРОМ
-  по якорю на каждый ход, personal consent-recheck на каждый ход, серверный
-  счётчик ходов в body_json, ход тратится только при доставленном ответе.
-  Role-play-сессии нужен свой контур: больше ходов (лимит = R16-развилка спеки),
-  эфемерность класса D (ходы НЕ персистятся — в отличие от followup якорь-
-  объяснения), явный старт/стоп.
-- Окна контекста готовы: corpus getCorpusWindow(5) без consent; личный
-  get_sentence_window_if_available (scope sentence_window_5 = понимание +
-  пересказ, решение владельца 2026-07-12) — role-play по фрагменту, вероятно,
-  тот же физический cap (расширение показа >5 строк = НОВОЕ owner-решение).
-- Consent-ключи: cloud_texts → agent_read_texts → agent_read_texts_digest
-  (иерархия fail-closed в db/agentSentenceRepo.js). Purge: exclusion-list
-  (щадит ТОЛЬКО facts[0].kind='corpus_sentence') + kind-targeted
-  purgeExplanationContentByKind. Ходы диалога класса D не персистятся вовсе —
-  purge их не касается by construction.
-- Новый LLM-сценарий = строка в reserveLlmCall (без миграций); mock LLM
-  различает json-фикстуры по opts.fixture (agent/llm.js, паттерн draft_retell);
-  isCleanProse-гейт прозы; kill-switch → у диалога честный отказ (фолбэк
-  невозможен по природе — прецедент followup/draft).
-- UI-дома: Зал = library-ui.js + модал #roomExplainModal (кнопки comp/draft —
-  паттерн «действие в модале после объяснения»); Студия = public/js/studio-agent.js
-  (ВЕСЬ агент-код Студии здесь; модал #saExplainModal с теми же extras; кнопки
-  рядов — POST-RENDER инъекция, renderTable заморожен smoke:reader-parity).
-  Роль-плей-UI, вероятно, свой вид/шит (многоходовой диалог в explain-модал не
-  влезает — UX-развилка спеки: отдельный вид в Зале после чтения фрагмента?).
-- Гейты-регрессия: smoke:agent-explain(-corpus/-word) · smoke:agent-followup ·
-  smoke:agent-comprehension · smoke:agent-material · smoke:studio-agent ·
-  smoke:agent-plan · api-smoke · gate:log-hygiene (сканирует agent/*.js
-  автоматически + два SERVER_REGION в server.js) · smoke:reader-parity.
-  Новые модули сервера — в agent/ (авто-скан log-hygiene), glue в server.js
-  тонкий. Playwright-скриншот @380px ДО коммита при задетом UI.
-- R16-кандидаты на BLOCKER спеки: диалог жжёт вызовы быстро (лимит ходов/сессий
-  в день, видимость usage в каждом ходе); приватность реплик УЧЕНИКА (класс D,
-  не логировать, не персистить, cap длины); анти-инъекция (реплика ученика =
-  data, не система — прецедент buildFollowupPayload с байт-стабильным system).
+Ключевые факты для D (субстрат после A+B+C, проверить актуальность):
+- Агент-субстрат: 15 tools (agent/tools.js), сценарии plan/explain/word/followup/
+  comprehension/study_summary/draft_retell/roleplay/writing_review; новый
+  сценарий = строка в reserveLlmCall; scenario-cap прецедент — roleplay
+  (agentRepo.scenarioCallsToday + ROLEPLAY_DAILY env).
+- Планнер уже строит детерминированный план (agent/planner.js, R17-категории,
+  D1 production_gap) — D1-рекомендация текста, вероятно, новая секция плана
+  и/или карточка в доме наставника (mentor-home.js, блочный render()).
+- corpus-vocab sidecar: /data/benyehuda/corpus-vocab-v<N>.json (лениво, не
+  precached) — покрытие словаря на КЛИЕНТЕ. Серверу для D1-скоринга нужен свой
+  доступ к нему ЛИБО клиент считает скоринг и шлёт кандидатов (развилка спеки:
+  анти-«LLM-прокси» из критик A/C — grounding не отдаётся клиенту).
+- Ephemeral-паттерн класса D готов (agent/roleplay.js RAM-Map+TTL+sweep+
+  consent-каскад dropPersonalSessions в /api/auth/consent) — если D2-сессии
+  нужно состояние.
+- P7.3d наследие: нуджи живые (AGENT_NUDGE_ENABLED=1 на проде, P7.3a/c
+  v3.11.125-126); reason-aware спека и критика wf_659f597a уже существуют —
+  НАЙТИ и перечитать до новой спеки (feedback: verify stale plan vs live code).
+- Гейты-регрессия: вся agent-семья (…-roleplay, …-writing включительно) ·
+  api-smoke · gate:log-hygiene (glue строго внутрь региона CLG-P6→CLG-P8.1) ·
+  smoke:reader-parity · smoke:studio-agent (innerHTML=РОВНО 3; locale-parity
+  сканирует studio.agent.* + room.talk.* + room.writing.*).
+- UI-дома: Зал library-ui.js (extras-ряд 🧠✍️💬 в #roomExplainModal), дом
+  наставника mentor-home.js (host-adapter, «Практика письма» прецедент блока),
+  Студия studio-agent.js (3 статик-шаблона).
 
 Дисциплина прежняя: роли-линзы автоматически; существенный дизайн — adversarial-
 критика до кода (малый фронт, 3 линзы); гейты с явными exit-кодами; SW bump при
 задетых precached; локали ru/en/he для всех новых строк (t()-fallback мёртв);
-commit+push+deploy-poll; live-verify через kapture на linguistpro.kolosei.com
-на прод-профиле владельца (Зал = /library.html, Студия = корень «/»).
+commit+push+deploy-poll; live-verify на linguistpro.kolosei.com на прод-профиле
+владельца (Зал = /library.html, Студия = корень «/»; kapture-eval может быть
+занят другим дебаггером — рабочий путь: claude-in-chrome javascript_tool).
 ```
