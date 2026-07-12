@@ -996,11 +996,41 @@
     .room-explain-hewrap .room-explain-sentence { flex: 1; min-width: 0; }
     .room-explain-ru { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
     .room-explain-ru[hidden] { display: none; }
-    /* PAS-A3 — comprehension-вопросы (advisory) */
-    #roomExplainComp { margin-top: 10px; }
-    #roomExplainCompBtn { appearance: none; cursor: pointer; width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px dashed var(--accent); background: transparent; color: var(--accent); font-size: 13px; font-weight: 600; }
-    #roomExplainCompBtn[disabled] { opacity: .55; cursor: default; }
+    /* PAS-A3/B3/C1 — extras-ряд компакт-кнопок (критика wf_5ea38001: третий dashed-блок
+       уходил за фолд @380px); outputs — отдельные полноширинные блоки ниже ряда */
+    .room-explain-extras { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .room-explain-extras button { appearance: none; cursor: pointer; flex: 1 1 30%; min-width: 104px; padding: 8px 10px; border-radius: 8px; border: 1px dashed var(--accent); background: transparent; color: var(--accent); font-size: 12px; font-weight: 600; }
+    .room-explain-extras button[disabled] { opacity: .55; cursor: default; }
+    .room-explain-extras button[hidden] { display: none; }
+    #roomExplainCompOut[hidden], #roomExplainDraftOut[hidden] { display: none; }
     .room-comp-plate { margin-top: 8px; font-size: 11px; color: var(--text-secondary); }
+    /* PAS-C1 — шит диалога (study-sheet паттерн: backdrop + карточка снизу) */
+    .room-talk { position: fixed; inset: 0; z-index: 1250; }
+    .room-talk[hidden] { display: none; }
+    .room-talk-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.55); }
+    .room-talk-card { position: absolute; left: 0; right: 0; bottom: 0; max-height: 88vh; display: flex; flex-direction: column; background: var(--bg-card); border-radius: 14px 14px 0 0; padding: 12px 14px calc(10px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -8px 30px rgba(0,0,0,.4); }
+    @media (min-width: 700px) { .room-talk-card { left: 50%; right: auto; transform: translateX(-50%); width: 640px; bottom: 4vh; border-radius: 14px; } }
+    .room-talk-head { display: flex; align-items: center; gap: 8px; }
+    .room-talk-title { font-weight: 700; font-size: 14px; flex: 1; min-width: 0; }
+    .room-talk-end { appearance: none; cursor: pointer; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-soft); background: transparent; color: var(--text-secondary); font-size: 12px; }
+    .room-talk-x { appearance: none; cursor: pointer; border: 0; background: transparent; color: var(--text-secondary); font-size: 16px; padding: 4px 6px; }
+    .room-talk-passage { margin-top: 8px; border: 1px solid var(--border-soft); border-radius: 10px; padding: 6px 10px; font-size: 13px; }
+    .room-talk-passage summary { cursor: pointer; color: var(--text-secondary); font-size: 12px; }
+    .room-talk-feed { flex: 1; min-height: 80px; overflow-y: auto; margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+    .room-talk-m { align-self: flex-start; max-width: 88%; background: var(--bg-muted); border: 1px solid var(--border-soft); border-radius: 10px 10px 10px 4px; padding: 8px 11px; font-size: 15px; }
+    .room-talk-mru { align-self: flex-start; max-width: 88%; font-size: 12px; color: var(--text-secondary); margin-top: -2px; padding: 0 4px; }
+    .room-talk-l { align-self: flex-end; max-width: 88%; background: rgba(56,139,253,.14); border: 1px solid rgba(56,139,253,.35); border-radius: 10px 10px 4px 10px; padding: 8px 11px; font-size: 14px; }
+    .room-talk-op { font-size: 13px; color: var(--text-primary); background: var(--bg-muted); border: 1px dashed var(--border-soft); border-radius: 10px; padding: 8px 11px; }
+    .room-talk-err { margin-top: 6px; font-size: 12px; color: #f85149; }
+    .room-talk-err[hidden] { display: none; }
+    .room-talk-confirm, .room-talk-ack { margin-top: 8px; padding: 10px 12px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-muted); font-size: 12px; }
+    .room-talk-confirm[hidden], .room-talk-ack[hidden] { display: none; }
+    .room-talk-inputrow { display: flex; gap: 8px; margin-top: 8px; }
+    .room-talk-inputrow input { flex: 1; min-width: 0; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--border-soft); background: var(--bg-muted); color: var(--text-primary); font-size: 14px; }
+    .room-talk-inputrow button { appearance: none; cursor: pointer; padding: 9px 14px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-contrast); font-size: 14px; font-weight: 700; }
+    .room-talk-inputrow button[disabled], .room-talk-inputrow input[disabled] { opacity: .55; cursor: default; }
+    .room-talk-status { margin-top: 6px; }
+    #roomTalkSheet .room-cloud-actions button { width: auto; }
     .room-comp-q { margin-top: 10px; font-size: 13px; font-weight: 600; }
     .room-comp-opts { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
     .room-comp-opts button { appearance: none; cursor: pointer; text-align: start; padding: 8px 11px; border-radius: 8px; border: 1px solid var(--border-soft); background: var(--bg-muted); color: var(--text-primary); font-size: 13px; }
@@ -1917,19 +1947,22 @@
         <button id="roomExplainAsk" type="button" data-i18n="room.explain.askBtn">Спросить</button>
       </div>
     </div>
-    <!-- PAS-A3 — advisory-вопросы понимания (corpus-only; НЕ оценка, review_log не пишется) -->
-    <div id="roomExplainComp" hidden>
-      <button id="roomExplainCompBtn" type="button" data-i18n="room.explain.compBtn">🧠 Проверь меня по абзацу</button>
-      <div id="roomExplainCompOut" hidden></div>
+    <!-- PAS-A3/B3/C1 — extras-ряд компакт-кнопок (🧠 понимание · ✍️ пересказ · 💬 диалог) —
+         один ряд под body, discoverability @380px (критика wf_5ea38001); outputs — ниже,
+         на всю ширину. Талк-кнопка ставится при ОТКРЫТИИ модала (не в success-ветке). -->
+    <div class="room-explain-extras">
+      <button id="roomExplainCompBtn" type="button" hidden data-i18n="room.explain.compBtn">🧠 Проверь меня по абзацу</button>
+      <button id="roomExplainDraftBtn" type="button" hidden data-i18n="room.explain.draftBtn">✍️ Пересказ проще</button>
+      <button id="roomExplainTalkBtn" type="button" hidden data-i18n="room.talk.btn">💬 Обсудить прочитанное</button>
     </div>
-    <!-- PAS-B3 — «упрощённый пересказ» corpus-окна → драфт → [Открыть в Студии]
-         (текст в OPFS создаётся ТОЛЬКО по явному тапу; ru-глосс приходит с сервера) -->
-    <div id="roomExplainDraft" hidden>
-      <button id="roomExplainDraftBtn" type="button" data-i18n="room.explain.draftBtn">✍️ Пересказ проще</button>
-      <div id="roomExplainDraftOut" hidden></div>
-    </div>
+    <div id="roomExplainCompOut" hidden></div>
+    <div id="roomExplainDraftOut" hidden></div>
   </div>
 </div>
+
+<!-- PAS-C1 — шит grounded-диалога «обсудить прочитанное» строится JS'ом (library-ui.js,
+     ensureTalkSheet) поверх читалки; скрытие шита НЕ завершает сессию (сервер держит её
+     до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
 <script src="/i18n/locales/ru.js"></script>

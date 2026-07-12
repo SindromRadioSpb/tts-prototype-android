@@ -10,6 +10,7 @@ const path = require("path");
 const planner = require(path.join(__dirname, "planner"));
 const explainer = require(path.join(__dirname, "explainer"));
 const material = require(path.join(__dirname, "material"));
+const roleplay = require(path.join(__dirname, "roleplay"));
 const tools = require(path.join(__dirname, "tools"));
 const llm = require(path.join(__dirname, "llm"));
 const constructs = require(path.join(__dirname, "constructs"));
@@ -49,6 +50,13 @@ async function studySummary(ctx, args) {
 async function draftRetell(ctx, args) {
   return material.draftRetell(ctx, args || {});
 }
+
+// PAS-C1: grounded-диалог «обсуждение прочитанного» (agent/roleplay.js; сессии —
+// эфемерный класс D в RAM модуля, явный старт/стоп, consent-recheck на каждый ход).
+async function roleplayStart(ctx, args) { return roleplay.start(ctx, args || {}); }
+async function roleplayTurn(ctx, args) { return roleplay.turn(ctx, args || {}); }
+async function roleplayState(ctx, args) { return roleplay.state(ctx, args || {}); }
+async function roleplayStop(ctx, args) { return roleplay.stop(ctx, args || {}); }
 
 // P7.0c: запись ответа/annul — СТРОГО через closed tool router (единственные ворота
 // записи; флаг/whitelist/B2 живут там и в reviewer). Контрактные реджекты reviewer
@@ -162,4 +170,4 @@ async function updateProfile(ctx, patch) {
   return { mode: p.mode, language: p.language };
 }
 
-module.exports = { plan, explain, explainWord, explainFollowup, comprehension, studySummary, draftRetell, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };
+module.exports = { plan, explain, explainWord, explainFollowup, comprehension, studySummary, draftRetell, roleplayStart, roleplayTurn, roleplayState, roleplayStop, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };

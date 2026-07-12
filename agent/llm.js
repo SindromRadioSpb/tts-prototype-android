@@ -163,6 +163,15 @@ function generateMock({ prompt, json, fixture }) {
   if (json) {
     // PAS-B3 — mock различает json-сценарии по opts.fixture (реальные провайдеры
     // это поле игнорируют); без хинта — comprehension-фикстура (PAS-A3, дефолт).
+    // PAS-C1 — гейт «ход не тратится при невалидном ответе»: AGENT_MOCK_BREAK=<fixture>
+    // заставляет mock отдать невалидный (не-JSON) ответ ровно для этого сценария.
+    if (fixture && String(process.env.AGENT_MOCK_BREAK || "") === String(fixture)) {
+      return { ok: true, provider: "mock", model: "mock-1", output_tokens: 4, text: "BROKEN mock output (ctx=" + len + ")" };
+    }
+    if (fixture === "roleplay") {
+      return { ok: true, provider: "mock", model: "mock-1", output_tokens: 16,
+        text: JSON.stringify({ he: "אני מבין אותך. מה עוד קרה בקטע?", ru: "Понимаю вас. Что ещё произошло в отрывке? (mock ctx=" + len + ")" }) };
+    }
     if (fixture === "draft_retell") {
       return { ok: true, provider: "mock", model: "mock-1", output_tokens: 32,
         text: JSON.stringify({ lines: [

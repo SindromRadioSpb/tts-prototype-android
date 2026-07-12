@@ -1583,6 +1583,16 @@ app.post("/api/auth/consent", async (req, res) => {
       } catch (e4) {
         identityRepo.audit("cloze_text_consent_cascade_failed", auth.user.id, { key, message: String(e4 && e4.message).slice(0, 120) }, req.ip);
       }
+      // PAS-C1 (критика wf_5ea38001 BLOCKER): RAM-сессия диалога личного текста несёт
+      // derived-контент (реплики наставника пересказывают окно window_5) — каскад отзыва
+      // обязан дотянуться и до RAM, не только до agent_explanations/challenges. Синхронно,
+      // best-effort (in-memory, провал невозможен кроме require-сбоя).
+      try {
+        const dropped = require("./agent/roleplay").dropPersonalSessions(auth.user.id);
+        if (dropped) identityRepo.audit("roleplay_consent_cascade", auth.user.id, { key, dropped_sessions: dropped }, req.ip);
+      } catch (e5) {
+        identityRepo.audit("roleplay_consent_cascade_failed", auth.user.id, { key, message: String(e5 && e5.message).slice(0, 120) }, req.ip);
+      }
     }
     // CLG-P7.1a: отзыв telegram_delivery ОБЯЗАН гасить активные связки + невыгашенные токены
     // АТОМАРНО (критика: доставка авторизуется фактом активной связки, не живым consent — если
@@ -1979,6 +1989,64 @@ app.post("/api/agent/draft-retell", rlAgentExplain, async (req, res) => {
     }
     res.json(r);
   } catch (e) { res.status(500).json({ ok: false, error: "AGENT_DRAFT_RETELL_FAILED", message: e.message }); }
+});
+
+// PAS-C1 — grounded-диалог «обсуждение прочитанного» (agent/roleplay.js; спека
+// PAS_SLICE_C_SPEC v2). Сессия — эфемерный класс D в RAM модуля (не персистится,
+// TTL+sweep); start БЕЗ LLM (детерминированный opening); каждый ход — consent-recheck
+// по якорю + scenario-cap ROLEPLAY_DAILY поверх дневной квоты. Тонкий glue —
+// логика в agent/roleplay.js (авто-скан log-hygiene), маппинг кодов честный.
+function _roleplayHttpCode(code) {
+  if (code === "CLOUD_TEXTS_CONSENT_REQUIRED" || code === "AGENT_READ_TEXTS_CONSENT_REQUIRED") return 403;
+  if (code === "SESSION_NOT_FOUND" || code === "TEXT_NOT_IN_CLOUD" || code === "SENTENCE_NOT_FOUND" ||
+      code === "CORPUS_WORK_NOT_FOUND" || code === "CORPUS_SENTENCE_NOT_FOUND") return 404;
+  if (code === "TURN_IN_FLIGHT") return 409;
+  if (code === "CORPUS_WORK_TOO_LARGE") return 413;
+  if (code === "TURNS_LIMIT" || code === "ROLEPLAY_DAILY_LIMIT" || code === "USER_LIMIT" || code === "GLOBAL_LIMIT") return 429;
+  if (code === "LLM_UNAVAILABLE" || code === "NO_API_KEY") return 503;
+  if (code === "ROLEPLAY_INVALID") return 502;
+  if (code === "BAD_ANCHOR" || code === "BAD_WORK_ID" || code === "BAD_TEXT_KEY" || code === "BAD_CORPUS" ||
+      code === "BAD_MESSAGE" || code === "MESSAGE_TOO_LONG" || code === "ARTIFACT_UNREADABLE") return 400;
+  return 500;
+}
+app.post("/api/agent/roleplay/start", rlAgentExplain, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  const b = req.body || {};
+  try {
+    const r = await agentRuntime.roleplayStart({ userId: auth.user.id, deviceId: auth.session.deviceId },
+      { work_id: b.work_id, text_key: b.text_key, order_index: b.order_index, sentence_row_id: b.sentence_row_id });
+    if (!r.ok) return res.status(_roleplayHttpCode(String(r.error || ""))).json(r);
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: "AGENT_ROLEPLAY_START_FAILED", message: e.message }); }
+});
+app.post("/api/agent/roleplay/turn", rlAgentExplain, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  const b = req.body || {};
+  try {
+    const r = await agentRuntime.roleplayTurn({ userId: auth.user.id, deviceId: auth.session.deviceId },
+      { session_id: b.session_id, message: b.message });
+    if (!r.ok) return res.status(_roleplayHttpCode(String(r.error || ""))).json(r);
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: "AGENT_ROLEPLAY_TURN_FAILED", message: e.message }); }
+});
+app.get("/api/agent/roleplay/state", rlAgent, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try {
+    const r = await agentRuntime.roleplayState({ userId: auth.user.id, deviceId: auth.session.deviceId },
+      { session_id: req.query.session_id });
+    if (!r.ok) return res.status(_roleplayHttpCode(String(r.error || ""))).json(r);
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: "AGENT_ROLEPLAY_STATE_FAILED", message: e.message }); }
+});
+app.post("/api/agent/roleplay/stop", rlAgentExplain, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    res.json(await agentRuntime.roleplayStop({ userId: auth.user.id, deviceId: auth.session.deviceId },
+      { session_id: (req.body || {}).session_id }));
+  } catch (e) { res.status(500).json({ ok: false, error: "AGENT_ROLEPLAY_STOP_FAILED", message: e.message }); }
 });
 
 app.get("/api/agent/status", rlAgent, async (req, res) => {

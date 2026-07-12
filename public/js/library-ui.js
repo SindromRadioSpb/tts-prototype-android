@@ -3499,14 +3499,15 @@ let _explainSpeakText = '';
 let _compCtx = null;   // { workId|null, textKey, orderIndex, corpus }
 let _compBusy = false;
 function _compSetup(o, textKey, orderIndex) {
-  const box = $('roomExplainComp'), out = $('roomExplainCompOut'), btn = $('roomExplainCompBtn');
-  if (!box) return;
+  // PAS-C1 extras-ряд: контейнеров больше нет — кнопка прячется/кажется сама
+  const out = $('roomExplainCompOut'), btn = $('roomExplainCompBtn');
+  if (!btn) return;
   const isCorpus = !!(o && o.corpus);
-  if (!textKey || orderIndex == null) { box.hidden = true; _compCtx = null; return; }
+  if (!textKey || orderIndex == null) { btn.hidden = true; _compCtx = null; return; }
   _compCtx = { workId: isCorpus ? o.workId : null, textKey, orderIndex, corpus: isCorpus };
-  box.hidden = false;
+  btn.hidden = false;
   if (out) { out.hidden = true; out.textContent = ''; }
-  if (btn) { btn.disabled = false; btn.textContent = '🧠 ' + tt('room.explain.compBtn', 'Проверь меня по абзацу'); }
+  btn.disabled = false; btn.textContent = '🧠 ' + tt('room.explain.compBtn', 'Проверь меня по абзацу');
 }
 async function _compRun() {
   if (_compBusy || !_compCtx) return;
@@ -3584,14 +3585,14 @@ const DRAFT_HANDOFF_KEY = 'studio.agentDraftHandoff';   // consumer: studio-agen
 let _draftCtx = null;   // { workId|null, textKey, orderIndex }
 let _draftBusy = false;
 function _draftSetup(o, textKey, orderIndex) {
-  const box = $('roomExplainDraft'), out = $('roomExplainDraftOut'), btn = $('roomExplainDraftBtn');
-  if (!box) return;
+  const out = $('roomExplainDraftOut'), btn = $('roomExplainDraftBtn');
+  if (!btn) return;
   const isCorpus = !!(o && o.corpus);
-  if (!textKey || orderIndex == null) { box.hidden = true; _draftCtx = null; return; }
+  if (!textKey || orderIndex == null) { btn.hidden = true; _draftCtx = null; return; }
   _draftCtx = { workId: isCorpus ? o.workId : null, textKey, orderIndex };
-  box.hidden = false;
+  btn.hidden = false;
   if (out) { out.hidden = true; out.textContent = ''; }
-  if (btn) { btn.disabled = false; btn.textContent = '✍️ ' + tt('room.explain.draftBtn', 'Пересказ проще'); }
+  btn.disabled = false; btn.textContent = '✍️ ' + tt('room.explain.draftBtn', 'Пересказ проще');
 }
 async function _draftRun() {
   if (_draftBusy || !_draftCtx) return;
@@ -3660,6 +3661,305 @@ async function _draftOpenInStudio(r) {
     if (out) out.appendChild(el('div', { class: 'room-cloud-hint', text: '✗ ' + tt('room.explain.draftCreateFail', 'Не удалось создать черновик в библиотеке') }));
   }
 }
+// ============================================================================
+// PAS-C1 — «Обсудить прочитанное»: grounded-диалог по фрагменту (спека
+// PAS_SLICE_C_SPEC_2026_07_12 v2). Сессия — СЕРВЕРНАЯ эфемерная (класс D):
+// клиент держит только session_id; транскрипт приходит с сервера в каждом
+// ответе (ре-синк после сетевого обрыва бесплатен через GET state). Скрытие
+// шита (✕/Escape/backdrop) НЕ завершает сессию — она живёт до TTL 30 мин,
+// повторный тап 💬 восстанавливает ленту; завершение — ТОЛЬКО явной кнопкой
+// с подтверждением при потраченных ходах (критика wf_5ea38001: случайный
+// backdrop-тап не должен терять оплаченные ходы). Ack-ключи РАЗДЕЛЬНЫ
+// по источнику (паттерн corpusExplainAck/ownCompAck). Всё — textContent.
+// ============================================================================
+const TALK_ACK_CORPUS = 'room.talkAck';
+const TALK_ACK_OWN = 'room.ownTalkAck';
+let _talkSheet = null;
+let _talkCtx = null;   // { corpus, workId|null, textKey, orderIndex, rowId|null, sessionId|null, turnsUsed, turnsLeft, busy }
+
+function _talkSetup(o, textKey, orderIndex, rowId) {
+  const btn = $('roomExplainTalkBtn');
+  if (!btn) return;
+  if (!textKey || orderIndex == null) { btn.hidden = true; return; }
+  const isCorpus = !!(o && o.corpus);
+  const workId = isCorpus ? (o.workId || null) : null;
+  // живая сессия того же якоря переживает закрытие модала/шита — контекст не сбрасываем
+  if (!_talkCtx || _talkCtx.textKey !== textKey || _talkCtx.orderIndex !== orderIndex || _talkCtx.workId !== workId) {
+    _talkCtx = { corpus: isCorpus, workId, textKey, orderIndex, rowId: rowId || null, sessionId: null, turnsUsed: 0, turnsLeft: null, busy: false };
+  }
+  btn.hidden = false; btn.disabled = false;
+  btn.textContent = '💬 ' + tt('room.talk.btn', 'Обсудить прочитанное');
+}
+function _talkEls() {
+  const s = _talkSheet;
+  return s ? {
+    sheet: s, feed: s.querySelector('.room-talk-feed'), err: s.querySelector('.room-talk-err'),
+    passage: s.querySelector('.room-talk-passage-body'), status: s.querySelector('.room-talk-status'),
+    input: s.querySelector('.room-talk-input'), send: s.querySelector('.room-talk-send'),
+    ack: s.querySelector('.room-talk-ack'), confirm: s.querySelector('.room-talk-confirm'),
+  } : {};
+}
+function ensureTalkSheet() {
+  if (_talkSheet) return _talkSheet;
+  const sheet = el('div', { class: 'room-talk', attrs: { id: 'roomTalkSheet', role: 'dialog', 'aria-modal': 'true', 'aria-label': tt('room.talk.title', 'Разговор о прочитанном') } });
+  sheet.hidden = true;
+  sheet.appendChild(el('div', { class: 'room-talk-backdrop', attrs: { 'data-talk-hide': '1' } }));
+  const card = el('div', { class: 'room-talk-card' });
+  const head = el('div', { class: 'room-talk-head' });
+  head.appendChild(el('span', { class: 'room-talk-title', text: '💬 ' + tt('room.talk.title', 'Разговор о прочитанном') }));
+  head.appendChild(el('button', { class: 'room-talk-end', text: tt('room.talk.stop', 'Завершить'), attrs: { type: 'button', 'data-talk-end': '1' } }));
+  head.appendChild(el('button', { class: 'room-talk-x', text: '✕', attrs: { type: 'button', 'data-talk-hide': '1', 'aria-label': tt('room.morph.close', 'Закрыть') } }));
+  card.appendChild(head);
+  const det = el('details', { class: 'room-talk-passage' });
+  det.appendChild(el('summary', { text: '📖 ' + tt('room.talk.passage', 'Отрывок') }));
+  det.appendChild(el('div', { class: 'room-talk-passage-body' }));
+  card.appendChild(det);
+  // Плашка честности: advisory + класс D + AI-генерация иврита (R1-критика)
+  card.appendChild(el('div', { class: 'room-comp-plate room-talk-plate', text: '💬 ' + tt('room.talk.plate', 'Не оценка — в память не записывается, реплики не сохраняются. Иврит наставника сгенерирован ИИ и может содержать ошибки.') }));
+  const feed = el('div', { class: 'room-talk-feed' });
+  card.appendChild(feed);
+  const err = el('div', { class: 'room-talk-err' }); err.hidden = true;
+  card.appendChild(err);
+  const ack = el('div', { class: 'room-talk-ack' }); ack.hidden = true;
+  card.appendChild(ack);
+  const conf = el('div', { class: 'room-talk-confirm' }); conf.hidden = true;
+  conf.appendChild(el('div', { class: 'room-cloud-hint', text: tt('room.talk.confirmStop', 'Завершить диалог? Ходы не вернутся.') }));
+  const confRow = el('div', { class: 'room-cloud-actions' });
+  const confYes = el('button', { attrs: { type: 'button' }, text: tt('room.talk.confirmYes', 'Завершить') });
+  confYes.addEventListener('click', () => { conf.hidden = true; _talkStop(); });
+  const confNo = el('button', { class: 'room-cloud-ghost', attrs: { type: 'button' }, text: tt('room.talk.confirmNo', 'Продолжить диалог') });
+  confNo.addEventListener('click', () => { conf.hidden = true; });
+  confRow.appendChild(confYes); confRow.appendChild(confNo);
+  conf.appendChild(confRow);
+  card.appendChild(conf);
+  const row = el('div', { class: 'room-talk-inputrow' });
+  const inp = el('input', { class: 'room-talk-input', attrs: { type: 'text', maxlength: '400', dir: 'auto', lang: 'he', autocomplete: 'off', placeholder: tt('room.talk.inputPh', 'Ваша реплика (лучше на иврите)…') } });
+  const send = el('button', { class: 'room-talk-send', text: '➤', attrs: { type: 'button', 'aria-label': tt('room.talk.send', 'Отправить') } });
+  send.addEventListener('click', () => _talkSend());
+  inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); _talkSend(); } });
+  inp.addEventListener('focus', () => { try { inp.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (_) {} });
+  row.appendChild(inp); row.appendChild(send);
+  card.appendChild(row);
+  card.appendChild(el('div', { class: 'room-talk-status room-cloud-hint' }));
+  sheet.appendChild(card);
+  document.body.appendChild(sheet);
+  sheet.addEventListener('click', (e) => {
+    const t = e.target; if (!t || !t.closest) return;
+    if (t.closest('[data-talk-hide]')) { _talkHide(); return; }
+    if (t.closest('[data-talk-end]')) { _talkEndClick(); return; }
+  });
+  // Escape = скрыть (НЕ-деструктивно: сессия живёт) — layered-guard не нужен
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && _talkSheet && !_talkSheet.hidden) _talkHide();
+  });
+  _talkSheet = sheet;
+  return sheet;
+}
+function _talkHide() { if (_talkSheet) _talkSheet.hidden = true; }
+function _talkErr(msg) {
+  const els = _talkEls(); if (!els.err) return;
+  els.err.textContent = msg || ''; els.err.hidden = !msg;
+}
+function _talkErrMsg(code) {
+  if (code === 'SESSION_NOT_FOUND') return tt('room.talk.expired', 'Сессия завершена (истекла или начата новая).');
+  if (code === 'TURN_IN_FLIGHT') return tt('room.talk.busy', 'Наставник ещё отвечает…');
+  if (code === 'TURNS_LIMIT') return tt('room.talk.turnsOut', 'Ходы этой сессии исчерпаны — завершите и начните новую.');
+  if (code === 'ROLEPLAY_DAILY_LIMIT') return tt('room.talk.dailyOut', 'Дневной лимит диалогов исчерпан — продолжите завтра.');
+  if (code === 'USER_LIMIT' || code === 'GLOBAL_LIMIT') return tt('room.mentor.planLimit', 'дневной лимит LLM исчерпан');
+  if (code === 'LLM_UNAVAILABLE') return tt('room.explain.noLlm', 'без AI: перевод и морфология офлайн');
+  if (code === 'ROLEPLAY_INVALID') return tt('room.talk.invalid', 'Ответ не получился — попробуйте ещё раз (вызов учтён).');
+  if (code === 'TEXT_NOT_IN_CLOUD' || code === 'SENTENCE_NOT_FOUND') return tt('room.talk.anchorLost', 'Текст изменился или недоступен — начните новую сессию.');
+  if (code === 'CLOUD_TEXTS_CONSENT_REQUIRED') return tt('room.explain.needTexts', 'Сначала включите «Синхронизировать Мои тексты» в ☁ и запустите синк.');
+  if (code === 'AGENT_READ_TEXTS_CONSENT_REQUIRED') return tt('room.explain.needConsent', 'Разрешите наставнику читать тексты (галочка 🤖 в доме наставника).');
+  if (code === 'CORPUS_WORK_NOT_FOUND' || code === 'CORPUS_SENTENCE_NOT_FOUND' || code === 'CORPUS_WORK_TOO_LARGE')
+    return tt('room.explain.corpusUnavailable', 'Эта работа ещё не опубликована на сервере — объяснение недоступно.');
+  return '✗ ' + tt('room.explain.err', 'Не удалось получить объяснение') + (code ? ' (' + code + ')' : '');
+}
+// Коды, после которых серверная сессия гарантированно мертва — чистим клиентский id
+const _TALK_FATAL = { SESSION_NOT_FOUND: 1, TEXT_NOT_IN_CLOUD: 1, SENTENCE_NOT_FOUND: 1,
+  CLOUD_TEXTS_CONSENT_REQUIRED: 1, AGENT_READ_TEXTS_CONSENT_REQUIRED: 1,
+  CORPUS_WORK_NOT_FOUND: 1, CORPUS_SENTENCE_NOT_FOUND: 1 };
+function _talkRenderPassage(rows) {
+  const els = _talkEls(); if (!els.passage) return;
+  els.passage.textContent = '';
+  (rows || []).forEach((r) => {
+    els.passage.appendChild(el('div', { class: 'room-draft-he', dir: 'rtl', attrs: { lang: 'he' }, text: r.he }));
+    if (r.ru) els.passage.appendChild(el('div', { class: 'room-cloud-hint', text: r.ru }));
+  });
+}
+function _talkRenderFeed(transcript, openingText) {
+  const els = _talkEls(); if (!els.feed) return;
+  els.feed.textContent = '';
+  if (openingText) els.feed.appendChild(el('div', { class: 'room-talk-op', text: '🤖 ' + openingText }));
+  (transcript || []).forEach((t) => {
+    if (t.who === 'mentor') {
+      els.feed.appendChild(el('div', { class: 'room-talk-m', dir: 'rtl', attrs: { lang: 'he' }, text: t.he || '' }));
+      if (t.ru) els.feed.appendChild(el('div', { class: 'room-talk-mru', text: t.ru }));
+    } else {
+      els.feed.appendChild(el('div', { class: 'room-talk-l', dir: 'auto', text: t.text || '' }));
+    }
+  });
+  try { els.feed.scrollTop = els.feed.scrollHeight; } catch (_) {}
+}
+function _talkRenderStatus(usage) {
+  const els = _talkEls(); if (!els.status || !_talkCtx) return;
+  const bits = [];
+  if (_talkCtx.turnsLeft != null) bits.push(tt('room.talk.turns', 'Ходы') + ': ' + _talkCtx.turnsUsed + '/' + (_talkCtx.turnsUsed + _talkCtx.turnsLeft));
+  if (usage && usage.limit) bits.push(tt('room.explain.usage', 'AI сегодня') + ': ' + usage.user_llm_calls + '/' + usage.limit);
+  els.status.textContent = bits.join(' · ');
+}
+async function _talkFetch(method, url, body) {
+  const opts = { method, credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' } };
+  if (body != null) opts.body = JSON.stringify(body);
+  return fetch(url, opts).then((x) => x.json());
+}
+async function _talkOpen() {
+  if (!_talkCtx) return;
+  const mEls = _explainEls();
+  if (mEls.modal) mEls.modal.hidden = true;   // модал уступает место шиту
+  const sheet = ensureTalkSheet();
+  sheet.hidden = false;
+  _talkErr('');
+  const els = _talkEls();
+  if (els.confirm) els.confirm.hidden = true;
+  if (_talkCtx.sessionId) { await _talkResync(); return; }
+  _talkAckFlow();
+}
+function _talkAckFlow() {
+  const key = _talkCtx.corpus ? TALK_ACK_CORPUS : TALK_ACK_OWN;
+  let acked = false;
+  try { acked = localStorage.getItem(key) === '1'; } catch (_) {}
+  if (acked) { _talkStart(); return; }
+  const els = _talkEls(); if (!els.ack) return;
+  els.ack.textContent = '';
+  els.ack.appendChild(el('div', { text: _talkCtx.corpus
+    ? tt('room.talk.ack', 'Наставник отправит внешнему LLM до 5 предложений фрагмента и ваши реплики; 1 вызов из дневного лимита за каждый ход диалога. Продолжить?')
+    : tt('room.talk.ownAck', 'Наставник отправит внешнему LLM до 5 предложений вашего текста и ваши реплики; 1 вызов из дневного лимита за каждый ход диалога. Продолжить?') }));
+  const rowA = el('div', { class: 'room-cloud-actions' });
+  const okB = el('button', { attrs: { type: 'button' }, text: tt('room.talk.start', 'Начать разговор') });
+  okB.addEventListener('click', () => { try { localStorage.setItem(key, '1'); } catch (_) {} els.ack.hidden = true; _talkStart(); });
+  const noB = el('button', { class: 'room-cloud-ghost', attrs: { type: 'button' }, text: tt('room.explain.cancel', 'Отмена') });
+  noB.addEventListener('click', () => { els.ack.hidden = true; _talkHide(); });
+  rowA.appendChild(okB); rowA.appendChild(noB);
+  els.ack.appendChild(rowA);
+  els.ack.hidden = false;
+}
+async function _talkStart() {
+  if (!_talkCtx || _talkCtx.busy) return;
+  _talkErr('');
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    _talkErr(tt('room.explain.offline', '🤖 Наставник доступен онлайн — объяснение появится при подключении.')); return;
+  }
+  const CS = window.CloudSync;
+  let session = null;
+  try { session = CS ? await CS.me() : null; } catch (_) {}
+  if (!session) { _talkErr(tt('room.explain.needLogin', 'Для объяснений нужен вход в облако — откройте ☁ в шапке.')); return; }
+  _talkCtx.busy = true;
+  _talkRenderFeed([], tt('room.explain.loading', 'Наставник думает…'));
+  let r = null;
+  try {
+    const body = { text_key: _talkCtx.textKey, order_index: _talkCtx.orderIndex };
+    if (_talkCtx.corpus) body.work_id = _talkCtx.workId;
+    else if (_talkCtx.rowId) body.sentence_row_id = _talkCtx.rowId;
+    r = await _talkFetch('POST', '/api/agent/roleplay/start', body);
+  } catch (_) {}
+  _talkCtx.busy = false;
+  if (!r || !r.ok) {
+    _talkRenderFeed([], null);
+    _talkErr(_talkErrMsg((r && r.error) || ''));
+    return;
+  }
+  _talkCtx.sessionId = r.session_id;
+  _talkCtx.turnsUsed = r.turns_used || 0;
+  _talkCtx.turnsLeft = r.turns_left != null ? r.turns_left : null;
+  _talkRenderPassage(r.passage);
+  _talkRenderFeed([], r.opening && r.opening.text);
+  _talkRenderStatus(r.usage);
+  const els = _talkEls();
+  if (els.input) { try { els.input.focus(); } catch (_) {} }
+}
+async function _talkResync() {
+  if (!_talkCtx || !_talkCtx.sessionId) { _talkAckFlow(); return; }
+  let r = null;
+  try { r = await fetch('/api/agent/roleplay/state?session_id=' + encodeURIComponent(_talkCtx.sessionId), { credentials: 'same-origin' }).then((x) => x.json()); } catch (_) {}
+  if (!r || !r.ok) {
+    const code = (r && r.error) || '';
+    _talkCtx.sessionId = null;
+    if (code === 'SESSION_NOT_FOUND') { _talkAckFlow(); return; }   // TTL/замена/деплой — новая сессия (start бесплатен)
+    _talkErr(_talkErrMsg(code));
+    return;
+  }
+  _talkCtx.turnsUsed = r.turns_used || 0;
+  _talkCtx.turnsLeft = r.turns_left != null ? r.turns_left : null;
+  _talkRenderPassage(r.passage);
+  _talkRenderFeed(r.transcript, r.opening && r.opening.text);
+  _talkRenderStatus(r.usage);
+}
+async function _talkSend() {
+  const els = _talkEls();
+  const msg = (els.input && els.input.value || '').trim();
+  if (!msg || !_talkCtx || _talkCtx.busy || !_talkCtx.sessionId) return;
+  _talkCtx.busy = true;
+  _talkErr('');
+  if (els.send) els.send.disabled = true;
+  // оптимистичная реплика + «думает…» (сервер-авторитетный транскрипт заменит ленту)
+  if (els.feed) {
+    els.feed.appendChild(el('div', { class: 'room-talk-l', dir: 'auto', text: msg }));
+    els.feed.appendChild(el('div', { class: 'room-talk-op', text: tt('room.explain.loading', 'Наставник думает…') }));
+    try { els.feed.scrollTop = els.feed.scrollHeight; } catch (_) {}
+  }
+  let r = null;
+  try { r = await _talkFetch('POST', '/api/agent/roleplay/turn', { session_id: _talkCtx.sessionId, message: msg }); } catch (_) {}
+  _talkCtx.busy = false;
+  if (els.send) els.send.disabled = false;
+  if (!r || !r.ok) {
+    const code = (r && r.error) || '';
+    // реплика в input НЕ очищается (критика: текст переживает ошибку и «начать заново»)
+    if (_TALK_FATAL[code]) _talkCtx.sessionId = null;
+    // сетевой обрыв: серверный ход мог доехать — ре-синк state вместо слепого ретрая;
+    // мёртвая сессия — restart-подсказка (внутри _talkResyncAfterError)
+    await _talkResyncAfterError(code);
+    _talkErr(_talkErrMsg(code));
+    return;
+  }
+  if (els.input) els.input.value = '';
+  _talkCtx.turnsUsed = r.turns_used || 0;
+  _talkCtx.turnsLeft = r.turns_left != null ? r.turns_left : null;
+  _talkRenderFeed(r.transcript, null);
+  _talkRenderStatus(r.usage);
+}
+// после ошибки хода лента могла разойтись с сервером (оптимистичная реплика) —
+// перерисовать из state, если сессия ещё жива; иначе показать restart-подсказку
+async function _talkResyncAfterError(code) {
+  if (_talkCtx && _talkCtx.sessionId) { await _talkResync(); return; }
+  const els = _talkEls();
+  if (!els.feed) return;
+  const rowR = el('div', { class: 'room-cloud-actions' });
+  const rb = el('button', { attrs: { type: 'button' }, text: tt('room.talk.restart', 'Начать заново') });
+  rb.addEventListener('click', () => { _talkErr(''); _talkAckFlow(); });
+  rowR.appendChild(rb);
+  els.feed.appendChild(rowR);
+  try { els.feed.scrollTop = els.feed.scrollHeight; } catch (_) {}
+}
+function _talkEndClick() {
+  const els = _talkEls();
+  if (_talkCtx && _talkCtx.sessionId && _talkCtx.turnsUsed > 0) {
+    if (els.confirm) els.confirm.hidden = false;
+    return;
+  }
+  _talkStop();
+}
+async function _talkStop() {
+  const sid = _talkCtx && _talkCtx.sessionId;
+  if (sid) { try { await _talkFetch('POST', '/api/agent/roleplay/stop', { session_id: sid }); } catch (_) {} }
+  if (_talkCtx) { _talkCtx.sessionId = null; _talkCtx.turnsUsed = 0; _talkCtx.turnsLeft = null; }
+  const els = _talkEls();
+  if (els.feed) els.feed.textContent = '';
+  if (els.passage) els.passage.textContent = '';
+  _talkErr('');
+  _talkHide();
+}
+
 async function _followupSend() {
   const els = _explainEls();
   const q = (els.q && els.q.value || '').trim();
@@ -3727,6 +4027,9 @@ function roomExplainInit() {
   // PAS-B3 — «пересказ проще» (corpus-only)
   const draftBtn = $('roomExplainDraftBtn');
   if (draftBtn) draftBtn.addEventListener('click', () => { _draftRun(); });
+  // PAS-C1 — «обсудить прочитанное» → шит grounded-диалога
+  const talkBtn = $('roomExplainTalkBtn');
+  if (talkBtn) talkBtn.addEventListener('click', () => { _talkOpen(); });
   // PAS-A2 — follow-up: клик/Enter; фокус подтягивает input в видимую зону (мобильная клавиатура)
   if (els.ask) els.ask.addEventListener('click', () => { _followupSend(); });
   if (els.q) {
@@ -3802,7 +4105,15 @@ async function explainRow(idx) {
   if (els.corpusAck) els.corpusAck.hidden = true;
   if (els.followup) els.followup.hidden = true;   // PAS-A2 — новый тап = новый контекст
   _followupCtx = null;
-  const compBox = $('roomExplainComp'); if (compBox) compBox.hidden = true; _compCtx = null;   // PAS-A3
+  // PAS-C1 extras-ряд: кнопки/outputs сбрасываются поимённо (контейнеров больше нет)
+  const compBtn0 = $('roomExplainCompBtn'); if (compBtn0) compBtn0.hidden = true; _compCtx = null;   // PAS-A3
+  const compOut0 = $('roomExplainCompOut'); if (compOut0) { compOut0.hidden = true; compOut0.textContent = ''; }
+  const draftBtn0 = $('roomExplainDraftBtn'); if (draftBtn0) draftBtn0.hidden = true; _draftCtx = null;   // PAS-B3
+  const draftOut0 = $('roomExplainDraftOut'); if (draftOut0) { draftOut0.hidden = true; draftOut0.textContent = ''; }
+  // PAS-C1 — диалог доступен с ОТКРЫТИЯ модала: не зависит от исхода и цены explain
+  // (критика wf_5ea38001); личный текст даёт стабильный row_id-якорь (реордер-дрейф).
+  _talkSetup({ corpus: isCorpus, workId: readerCorpusWorkId }, readerTextKey, orderIndex,
+    !isCorpus && row._v3_sentenceId ? String(row._v3_sentenceId) : null);
   _explainShowMeta('');
   // PAS-A1 — Зал offline-first, наставник онлайн: честное состояние вместо ложного «войдите в ☁»
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {

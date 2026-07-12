@@ -110,9 +110,13 @@ async function getSentenceContext(userId, { text_key, order_index, row_id } = {}
 // Тот же двойной consent fail-closed на каждый вызов; cap — физический.
 const SCOPE_SENTENCE_WINDOW = "sentence_window_5";
 const WINDOW_MAX = 5;
-async function getSentenceWindow(userId, { text_key, order_index, window } = {}) {
+async function getSentenceWindow(userId, { text_key, order_index, window, row_id } = {}) {
   const textKey = String(text_key || "").trim();
   const orderIndex = Number(order_index);
+  // PAS-C1 (критика wf_5ea38001): опциональный точный якорь row_id — кэш order_index
+  // Студии протухает при реордере (паттерн B1 _pickSentenceRow); матч по row_id
+  // задаёт НАЧАЛО окна, backward-compatible (comprehension/draft его не шлют).
+  const rowId = row_id == null ? null : String(row_id).slice(0, 64);
   if (!textKey || !Number.isFinite(orderIndex)) return { ok: false, error: "BAD_ANCHOR" };
   if (!(await learnerArtifactsRepo.hasConsent(userId))) {
     return { ok: false, error: "CLOUD_TEXTS_CONSENT_REQUIRED", key: learnerArtifactsRepo.CONSENT_KEY };
@@ -128,8 +132,13 @@ async function getSentenceWindow(userId, { text_key, order_index, window } = {})
   if (!texts || !texts.length) return { ok: false, error: "SENTENCE_NOT_FOUND" };
   const t = texts.find((x) => x && String(x.text_key) === textKey) || texts[0];
   const win = Math.max(1, Math.min(WINDOW_MAX, Number(window) || WINDOW_MAX));
+  let startIdx = orderIndex;
+  if (rowId) {
+    const rr = (Array.isArray(t.rows) ? t.rows : []).find((r) => r && String(r.row_id || r.id || "") === rowId);
+    if (rr && Number.isFinite(Number(rr.order_index))) startIdx = Number(rr.order_index);
+  }
   const rows = (Array.isArray(t.rows) ? t.rows : [])
-    .filter((r) => r && Number(r.order_index) >= orderIndex && Number(r.order_index) < orderIndex + win)
+    .filter((r) => r && Number(r.order_index) >= startIdx && Number(r.order_index) < startIdx + win)
     .sort((a, b) => Number(a.order_index) - Number(b.order_index))
     .map((r) => ({
       order_index: Number(r.order_index),
@@ -138,7 +147,9 @@ async function getSentenceWindow(userId, { text_key, order_index, window } = {})
     }))
     .filter((r) => r.he);
   if (!rows.length) return { ok: false, error: "SENTENCE_NOT_FOUND" };
-  return { ok: true, scope_level: SCOPE_SENTENCE_WINDOW, anchor: { text_key: textKey, order_index: orderIndex }, rows };
+  // anchor несёт order_index СМАТЧЕННОГО начала окна (при row_id-матче может отличаться
+  // от запрошенного) — паттерн getSentenceContext.
+  return { ok: true, scope_level: SCOPE_SENTENCE_WINDOW, anchor: { text_key: textKey, order_index: startIdx }, rows };
 }
 
 // PAS-B2 (критика wf_7f300c39, BLOCKER ×3 линзы): «что стоит выучить из этого текста»

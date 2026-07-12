@@ -1,6 +1,6 @@
 {
   "name": "tts-translator-dashboard",
-  "version": "3.11.160",
+  "version": "3.11.161",
   "description": "TTS & Translator Dashboard (Google Cloud Text-to-Speech + Gemini, Hebrew-Russian tables)",
   "main": "server.js",
   "scripts": {
@@ -244,7 +244,8 @@
     "smoke:prep": "node scripts/research/prepare_smoke_artifacts.js",
     "smoke:prep:clean": "node scripts/research/prepare_smoke_artifacts.js --cleanup",
     "smoke:studio-agent": "node scripts/premium/studio-agent-smoke.js",
-    "smoke:agent-material": "node scripts/premium/agent-material-smoke.js"
+    "smoke:agent-material": "node scripts/premium/agent-material-smoke.js",
+    "smoke:agent-roleplay": "node scripts/premium/agent-roleplay-smoke.js"
   },
   "dependencies": {
     "@google-cloud/text-to-speech": "^5.7.0",

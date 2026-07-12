@@ -323,6 +323,18 @@ async function usageToday(userId) {
   return { day_utc: day, user_llm_calls: Number(u.c) || 0, global_llm_calls: Number(g.c) || 0 };
 }
 
+// PAS-C1 — scenario-cap диалога (критика wf_5ea38001: OpenRouter free-tier 50/день
+// АККАУНТ-wide; диалог — первый сценарий с 8+ вызовами happy-path, дневная квота
+// одна его не страхует). reserved+final — как в usageToday (pre-call reserve честен).
+async function scenarioCallsToday(userId, scenario) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const r = await dbGet(db,
+    `SELECT COUNT(*) c FROM llm_usage_ledger
+      WHERE user_id = ? AND day_utc = ? AND scenario = ? AND kind = 'llm_call' AND status IN ('reserved','final')`,
+    [userId, dayUtc(), String(scenario)]);
+  return Number((r && r.c) || 0);
+}
+
 module.exports = {
   getProfile, updateProfile,
   createTask, listTasks, setTaskStatus,
@@ -330,5 +342,5 @@ module.exports = {
   getExplanationById, bumpExplanationFollowups,
   listExplanations, constructOccurrences,
   wordLifecycle,
-  reserveLlmCall, finalizeLlmCall, usageToday,
+  reserveLlmCall, finalizeLlmCall, usageToday, scenarioCallsToday,
 };

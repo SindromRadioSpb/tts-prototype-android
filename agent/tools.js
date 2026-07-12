@@ -92,6 +92,7 @@ const REGISTRY = {
     readOnly: true,
     run: (ctx, a) => agentSentenceRepo.getSentenceWindow(ctx.userId, {
       text_key: a && a.text_key, order_index: a && a.order_index, window: a && a.window,
+      row_id: a && a.row_id,   // PAS-C1: опциональный точный якорь Студии (реордер-дрейф)
     }),
   },
   // PAS-B2: дайджест ВСЕГО текста (≤40 строк + название) для «что стоит выучить» —

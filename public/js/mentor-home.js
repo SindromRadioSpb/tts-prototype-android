@@ -105,7 +105,7 @@
     label.appendChild(cb);
     label.appendChild(el("span", null, t("room.cloud.agentTextsToggle", "🤖 Разрешить наставнику читать мои тексты")));
     box.appendChild(label);
-    var hint = el("div", "mentor-hint", t("room.cloud.agentTextsHint", "Наставник сможет отправлять выбранное предложение внешнему AI-провайдеру, чтобы объяснить его с учётом вашего прогресса. Уходит только одно предложение — не весь текст; отзыв согласия очищает сохранённые объяснения."));
+    var hint = el("div", "mentor-hint", t("room.cloud.agentTextsHint", "Наставник сможет отправлять внешнему AI-провайдеру выбранное предложение (объяснение) или короткий фрагмент до 5 предложений (проверка понимания, пересказ, обсуждение прочитанного) — не весь текст; отзыв согласия очищает сохранённые объяснения."));
     box.appendChild(hint);
     var msg = el("div", "mentor-hint mentor-consent-msg");
     msg.hidden = true;
