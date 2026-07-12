@@ -45,6 +45,11 @@ async function studySummary(ctx, args) {
   return material.studySummary(ctx, args || {});
 }
 
+// PAS-B3: «упрощённый пересказ» corpus-окна (драфт для [Открыть в Студии]).
+async function draftRetell(ctx, args) {
+  return material.draftRetell(ctx, args || {});
+}
+
 // P7.0c: запись ответа/annul — СТРОГО через closed tool router (единственные ворота
 // записи; флаг/whitelist/B2 живут там и в reviewer). Контрактные реджекты reviewer
 // ВОЗВРАЩАЕТ (не бросает), callTool оборачивает их в {ok:true, result:{ok:false…}} —
@@ -157,4 +162,4 @@ async function updateProfile(ctx, patch) {
   return { mode: p.mode, language: p.language };
 }
 
-module.exports = { plan, explain, explainWord, explainFollowup, comprehension, studySummary, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };
+module.exports = { plan, explain, explainWord, explainFollowup, comprehension, studySummary, draftRetell, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };

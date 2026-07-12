@@ -3573,6 +3573,93 @@ async function _compRun() {
   });
   if (r.usage && r.usage.limit) out.appendChild(el('div', { class: 'room-comp-plate', text: tt('room.explain.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit }));
 }
+// PAS-B3 — «упрощённый пересказ» corpus-окна (producer) → [Открыть в Студии] (приёмник).
+// Corpus-only v1 (window_5 личных текстов — ТОЛЬКО для понимания, решение владельца);
+// текст в ОБЩЕМ OPFS создаётся ТОЛЬКО по явному тапу (R17 — никакого авто-материала);
+// переход в ПОЛНУЮ Студию БЕЗ ?room=1 (room-mode прячет перевод-пайплайн — критика
+// wf_7f300c39) с закрытием БД перед навигацией (SQLITE_CANTOPEN-race, паттерн
+// _roomStudioNavInit). ru-глосс приходит С СЕРВЕРА в том же вызове — драфт сразу рабочий.
+let _draftCtx = null;   // { workId, textKey, orderIndex }
+let _draftBusy = false;
+function _draftSetup(o, textKey, orderIndex) {
+  const box = $('roomExplainDraft'), out = $('roomExplainDraftOut'), btn = $('roomExplainDraftBtn');
+  if (!box) return;
+  const isCorpus = !!(o && o.corpus);
+  if (!isCorpus || !textKey || orderIndex == null) { box.hidden = true; _draftCtx = null; return; }
+  _draftCtx = { workId: o.workId, textKey, orderIndex };
+  box.hidden = false;
+  if (out) { out.hidden = true; out.textContent = ''; }
+  if (btn) { btn.disabled = false; btn.textContent = '✍️ ' + tt('room.explain.draftBtn', 'Пересказ проще'); }
+}
+async function _draftRun() {
+  if (_draftBusy || !_draftCtx) return;
+  const out = $('roomExplainDraftOut'), btn = $('roomExplainDraftBtn');
+  if (!out) return;
+  _draftBusy = true;
+  if (btn) btn.disabled = true;
+  out.hidden = false; out.textContent = tt('room.explain.loading', 'Наставник думает…');
+  let r = null;
+  try {
+    r = await fetch('/api/agent/draft-retell', { method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
+      body: JSON.stringify({ work_id: _draftCtx.workId, text_key: _draftCtx.textKey, order_index: _draftCtx.orderIndex }) }).then((x) => x.json());
+  } catch (_) {}
+  _draftBusy = false;
+  if (btn) btn.disabled = false;
+  if (!r || !r.ok || !r.draft || !Array.isArray(r.draft.lines)) {
+    const code = (r && r.error) || '';
+    out.textContent = code === 'USER_LIMIT' || code === 'GLOBAL_LIMIT' ? tt('room.mentor.planLimit', 'дневной лимит LLM исчерпан')
+      : code === 'LLM_UNAVAILABLE' ? tt('room.explain.noLlm', 'без AI: перевод и морфология офлайн')
+      : code === 'DRAFT_INVALID' ? tt('room.explain.draftInvalid', 'Пересказ не получился — попробуйте ещё раз.')
+      : '✗ ' + tt('room.explain.err', 'Не удалось получить объяснение') + (code ? ' (' + code + ')' : '');
+    return;
+  }
+  out.textContent = '';
+  // Плашка честности ДО контента: что это и что сделает кнопка (R9-провенанс)
+  out.appendChild(el('div', { class: 'room-comp-plate', text: '✍️ ' + tt('room.explain.draftPlate', 'Черновик наставника — простой пересказ отрывка. «Открыть в Студии» создаст новый текст в вашей библиотеке.') }));
+  r.draft.lines.forEach((l) => {
+    out.appendChild(el('div', { class: 'room-draft-he', dir: 'rtl', attrs: { lang: 'he' }, text: l.he }));
+    if (l.ru) out.appendChild(el('div', { class: 'room-cloud-hint', text: l.ru }));
+  });
+  const metaBits = [];
+  if (r.from_history) metaBits.push(tt('room.explain.fromHistory', 'из истории — без нового вызова'));
+  if (r.llm_used) metaBits.push('🤖 ' + (r.provider || '') + (r.model ? ' · ' + r.model : ''));
+  if (r.usage && r.usage.limit) metaBits.push(tt('room.explain.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit);
+  if (metaBits.length) out.appendChild(el('div', { class: 'room-cloud-hint', text: metaBits.join(' · ') }));
+  const row = el('div', { class: 'room-cloud-actions' });
+  const openB = el('button', { attrs: { type: 'button' }, text: tt('room.explain.draftOpen', 'Открыть в Студии') });
+  openB.addEventListener('click', () => { openB.disabled = true; _draftOpenInStudio(r); });
+  row.appendChild(openB);
+  out.appendChild(row);
+}
+async function _draftOpenInStudio(r) {
+  try {
+    const id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'draft-' + Date.now();
+    const textKey = 'text-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+    const title = tt('room.explain.draftTitle', 'Черновик 🤖') + ((r.work && r.work.title) ? ' · ' + r.work.title : '');
+    await localDb.createText({
+      id, text_key: textKey, title,
+      source_text: r.draft.lines.map((l) => l.he).join('\n'),
+      source: 'agent_draft',
+      // createText биндит source_meta_json как есть — СТРОКА обязательна (критика wf_7f300c39)
+      source_meta_json: JSON.stringify({
+        agent: { scenario: 'draft_retell', provider: r.provider || null, model: r.model || null, anchor: r.anchor || null },
+        derived_from: 'benyehuda:' + ((r.anchor && r.anchor.work_id) || ''),
+      }),
+    });
+    for (const l of r.draft.lines) {
+      const sid = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'ds-' + Date.now() + Math.random().toString(36).slice(2, 6);
+      await localDb.addSentence(id, { id: sid, he_plain: l.he, ru: l.ru || '' });
+    }
+    // ПОЛНАЯ Студия (без room=1) — редактор с перевод-пайплайном; закрыть БД до перехода
+    const url = '/index.html#/t/' + b64url(JSON.stringify({ v: 1, type: 'text', id: String(id) }));
+    try { await localDb.closeLocalDB(); } catch (_) {}
+    location.href = url;
+  } catch (_) {
+    const out = $('roomExplainDraftOut');
+    if (out) out.appendChild(el('div', { class: 'room-cloud-hint', text: '✗ ' + tt('room.explain.draftCreateFail', 'Не удалось создать черновик в библиотеке') }));
+  }
+}
 async function _followupSend() {
   const els = _explainEls();
   const q = (els.q && els.q.value || '').trim();
@@ -3637,6 +3724,9 @@ function roomExplainInit() {
   // PAS-A3 — «проверь меня по абзацу»
   const compBtn = $('roomExplainCompBtn');
   if (compBtn) compBtn.addEventListener('click', () => { _compRun(); });
+  // PAS-B3 — «пересказ проще» (corpus-only)
+  const draftBtn = $('roomExplainDraftBtn');
+  if (draftBtn) draftBtn.addEventListener('click', () => { _draftRun(); });
   // PAS-A2 — follow-up: клик/Enter; фокус подтягивает input в видимую зону (мобильная клавиатура)
   if (els.ask) els.ask.addEventListener('click', () => { _followupSend(); });
   if (els.q) {
@@ -3816,6 +3906,7 @@ async function _explainRequest(textKey, orderIndex, opts) {
   _explainShowMeta(metaParts.join(' · '));
   _followupSetup(r);   // PAS-A2 — вопросы к этому объяснению (≤3, серверный лимит)
   _compSetup(o, textKey, orderIndex);   // PAS-A3 — corpus-only «проверь меня»
+  _draftSetup(o, textKey, orderIndex);  // PAS-B3 — corpus-only «пересказ проще»
 }
 
 // PAS-A4 — host-обвязка word-explain для tap-карточки: источник (корпус/личный), честные

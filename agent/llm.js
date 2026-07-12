@@ -156,11 +156,21 @@ async function generateOpenRouter({ system, prompt, maxOutputTokens, json }) {
   }
 }
 
-function generateMock({ prompt, json }) {
+function generateMock({ prompt, json, fixture }) {
   // Детерминированно и БЕЗ эха prompt-контента: только длина как «подпись» вызова —
   // гейт проверяет и llm_used-путь, и то, что payload не утёк в ответ/логи.
   const len = String(prompt || "").length;
   if (json) {
+    // PAS-B3 — mock различает json-сценарии по opts.fixture (реальные провайдеры
+    // это поле игнорируют); без хинта — comprehension-фикстура (PAS-A3, дефолт).
+    if (fixture === "draft_retell") {
+      return { ok: true, provider: "mock", model: "mock-1", output_tokens: 32,
+        text: JSON.stringify({ lines: [
+          { he: "הילד קורא ספר.", ru: "Мальчик читает книгу." },
+          { he: "הספר גדול ויפה.", ru: "Книга большая и красивая." },
+          { he: "הילד שמח מאוד.", ru: "Мальчик очень рад. (mock ctx=" + len + ")" },
+        ] }) };
+    }
     // PAS-A3 — валидный фикстурный JSON (критика: mock без json-режима блокировал happy-path гейта)
     return { ok: true, provider: "mock", model: "mock-1", output_tokens: 24,
       text: JSON.stringify({ questions: [

@@ -30,6 +30,11 @@ const TEXT_KEY = "own-mat-1";
 const SENTINEL_HE = "הילדה שרה שיר יפה";
 const SENTINEL_RU = "МАТСЕНТИНЕЛ девочка поёт красивую песню";
 
+// PAS-B3 corpus-фикстура (реальная форма works-файла, id вне реального диапазона)
+const WORK_ID = "90000078";
+const CKEY = "d".repeat(64);
+const CSENT = "האיש הולך לשוק הגדול";
+
 const failures = [];
 const eq = (c, m) => { if (!c) failures.push(m); };
 
@@ -39,6 +44,7 @@ function startServer(dataDir, extraEnv) {
     env: {
       ...process.env, PORT: String(PORT), DATA_DIR: dataDir, AUTH_BOOTSTRAP_SECRET: SECRET,
       AGENT_LLM_PROVIDER: "mock", AGENT_LLM_DAILY_PER_USER: "10", AGENT_LLM_DAILY_GLOBAL: "100",
+      CORPUS_WORKS_DEV_FALLBACK: "",   // hermetic: git-копия works НЕ видна гейту
       ...(extraEnv || {}),
     },
     stdio: ["ignore", "pipe", "pipe"],
@@ -96,7 +102,42 @@ function exportRows(exp) {
   return (t.agent_explanations || (exp.json && exp.json.data && exp.json.data.agent_explanations) || []);
 }
 
+function worksFixture() {
+  return {
+    library: {
+      schema_version: 1,
+      texts: [{
+        text_id: "by-" + WORK_ID, text_key: CKEY, title: "עבודה לבדיקה",
+        source_meta: { origin: "benyehuda-ingest", corpus: { schema: 1, byehuda_id: WORK_ID, provenance: { source: "Project Ben-Yehuda", license: "public-domain" } } },
+        rows: [
+          { row_id: "r0", order_index: 0, hebrew_plain: CSENT, hebrew_niqqud: "", translit: "", russian: "мужчина идёт на большой рынок" },
+          { row_id: "r1", order_index: 1, hebrew_plain: "הוא קונה לחם", hebrew_niqqud: "", translit: "", russian: "он покупает хлеб" },
+          { row_id: "r2", order_index: 2, hebrew_plain: "השוק מלא אנשים", hebrew_niqqud: "", translit: "", russian: "рынок полон людей" },
+        ],
+      }],
+    },
+    _reniqqud: { pass: 1 },
+  };
+}
+
 (async () => {
+  // ── pure PAS-B3: validateDraft — schema/caps/Hebrew-ratio, честный null ─────
+  const mat0 = require(path.join(REPO, "agent", "material.js"));
+  const okLines = [{ he: "הילד קורא", ru: "мальчик читает" }, { he: "הספר יפה", ru: "книга красивая" }, { he: "הוא שמח", ru: "он рад" }];
+  eq(Array.isArray(mat0.validateDraft({ lines: okLines })) && mat0.validateDraft({ lines: okLines }).length === 3,
+    "validateDraft: valid 3-line draft must pass");
+  eq(mat0.validateDraft({ lines: okLines.slice(0, 2) }) === null, "validateDraft: <3 lines must be rejected");
+  eq(mat0.validateDraft({ lines: Array.from({ length: 9 }, () => okLines[0]) }) === null, "validateDraft: >8 lines must be rejected");
+  eq(mat0.validateDraft({ lines: [{ he: "The boy reads a book", ru: "x" }, { he: "It is nice", ru: "y" }, { he: "He is glad", ru: "z" }] }) === null,
+    "validateDraft: latin junk must fail the Hebrew-ratio guard");
+  eq(mat0.validateDraft({ lines: [{ he: "הילד", ru: "" }, { he: "הספר", ru: "к" }, { he: "הוא", ru: "к" }] }) === null,
+    "validateDraft: missing ru gloss must be rejected (пустая ru-таблица = тупик)");
+  eq(mat0.validateDraft({ lines: [{ he: "א".repeat(201), ru: "к" }, { he: "הספר", ru: "к" }, { he: "הוא", ru: "к" }] }) === null,
+    "validateDraft: >200-char line must be rejected");
+  const dp = mat0.buildDraftPayload([{ he: "סוד", ru: "тайна" }], { title: "T" }, "ru");
+  eq(dp.system.includes("НИКОГДА не утверждай морфологию") && dp.system.includes("JSON"), "draft ru system must carry R1 guard + JSON contract");
+  eq(!dp.system.includes("סוד") && dp.prompt.includes("סוד"), "draft passage lives in prompt-data, not system");
+
   // ── pure: buildSummaryPayload — кэпы и байт-стабильный system без контента ──
   const material = require(path.join(REPO, "agent", "material.js"));
   const digest = { title: "T", rows_total: 60, rows: [{ he: "א", ru: "а" }] };
@@ -114,6 +155,9 @@ function exportRows(exp) {
     "en system must carry the R1 morphology guard");
 
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "lp-material-smoke-"));
+  const worksDir = path.join(scratch, "benyehuda", "works");
+  fs.mkdirSync(worksDir, { recursive: true });
+  fs.writeFileSync(path.join(worksDir, WORK_ID + ".json"), JSON.stringify(worksFixture()));
   const srv = startServer(scratch);
   try {
     if (!(await ready(srv))) { console.error("server failed\n" + srv.logs.join("").slice(-2000)); process.exit(1); }
@@ -178,6 +222,33 @@ function exportRows(exp) {
     const nf = await api("POST", "/api/agent/study-summary", { cookie, csrf, body: { text_key: "no-such" } });
     eq(nf.status === 404 && nf.json.error === "TEXT_NOT_IN_CLOUD", "unknown text_key must be 404 TEXT_NOT_IN_CLOUD");
 
+    // ── PAS-B3: draft-retell (corpus-only) ────────────────────────────────────
+    const d0 = await api("POST", "/api/agent/draft-retell", { cookie, csrf, body: { text_key: TEXT_KEY, order_index: 0 } });
+    eq(d0.status === 400 && d0.json.error === "BAD_ANCHOR", "draft without work_id (личный якорь) must be 400 BAD_ANCHOR");
+    const dTrav = await api("POST", "/api/agent/draft-retell", { cookie, csrf, body: { work_id: "../../etc", text_key: CKEY, order_index: 0 } });
+    eq(dTrav.status === 400 && (dTrav.json.error === "BAD_WORK_ID" || dTrav.json.error === "BAD_ANCHOR"),
+      "traversal work_id must be 400, got " + dTrav.status + "/" + (dTrav.json && dTrav.json.error));
+    const dMiss = await api("POST", "/api/agent/draft-retell", { cookie, csrf, body: { work_id: "90000099", text_key: CKEY, order_index: 0 } });
+    eq(dMiss.status === 404 && dMiss.json.error === "CORPUS_WORK_NOT_FOUND", "unknown work must be 404 CORPUS_WORK_NOT_FOUND");
+    const d1 = await api("POST", "/api/agent/draft-retell", { cookie, csrf, body: { work_id: WORK_ID, text_key: CKEY, order_index: 0 } });
+    eq(d1.status === 200 && d1.json.ok && d1.json.kind === "draft_retell"
+      && d1.json.draft && Array.isArray(d1.json.draft.lines) && d1.json.draft.lines.length >= 3
+      && d1.json.draft.lines.every((l) => l.he && l.ru),
+      "draft happy path must return >=3 he+ru lines, got " + JSON.stringify(d1.json && (d1.json.error || (d1.json.draft && d1.json.draft.lines && d1.json.draft.lines.length))));
+    eq(d1.json.usage && d1.json.usage.user_llm_calls === 2, "draft must burn exactly 1 more call (2 total), got " + JSON.stringify(d1.json.usage));
+    const d2 = await api("POST", "/api/agent/draft-retell", { cookie, csrf, body: { work_id: WORK_ID, text_key: CKEY, order_index: 0 } });
+    eq(d2.status === 200 && d2.json.ok && d2.json.from_history === true
+      && d2.json.draft && Array.isArray(d2.json.draft.lines) && d2.json.draft.lines.length >= 3,
+      "second draft must come from history WITH lines");
+    eq(d2.json.usage && d2.json.usage.user_llm_calls === 2, "draft dedupe must not burn a new reserve");
+    const expD = await api("GET", "/api/account/export", { cookie });
+    const draftRow = exportRows(expD).find((r) => String(r.sentence_id || "") === CKEY + "#0");
+    let draftFacts = [], draftBody = {};
+    try { draftFacts = JSON.parse(draftRow.facts_used_json); draftBody = JSON.parse(draftRow.body_json); } catch (_) {}
+    eq(!!draftRow && draftFacts[0] && draftFacts[0].kind === "corpus_sentence" && draftFacts[0].license === "public-domain",
+      "draft row must carry corpus_sentence provenance (переживает revoke по exclusion-list)");
+    eq(draftBody.kind === "draft_retell" && Array.isArray(draftBody.lines), "draft body must carry kind+lines");
+
     // ── purge fail-closed: synthetic-строка с НЕИЗВЕСТНЫМ kind + study_summary ─
     // Прямая вставка в app.db (sqlite3 из deps репо): будущий/неизвестный personal-kind
     // ОБЯЗАН тумбстоуниться (exclusion-list, не allow-list — критика wf_7f300c39 MAJOR ×3).
@@ -207,6 +278,12 @@ function exportRows(exp) {
     let futBody = {}; try { futBody = JSON.parse(futRow.body_json); } catch (_) {}
     eq(!!futRow && futRow.facts_used_json === "[]" && futBody.purge_reason === "consent_revoked" && !JSON.stringify(futBody).includes("ЛИЧНОЕ"),
       "UNKNOWN facts[0].kind must be tombstoned too (fail-closed exclusion-list, не allow-list)");
+    // PAS-B3: corpus-derived драфт ПЕРЕЖИВАЕТ revoke (facts[0]=corpus_sentence — R9:
+    // ложный purge_reason на public-domain-derived запрещён)
+    const draftRow3 = rows3.find((r) => String(r.sentence_id || "") === CKEY + "#0");
+    let draftBody3 = {}; try { draftBody3 = JSON.parse(draftRow3.body_json); } catch (_) {}
+    eq(!!draftRow3 && !draftBody3.purge_reason && Array.isArray(draftBody3.lines),
+      "corpus draft row must SURVIVE agent_read_texts revoke (exclusion-list щадит corpus_sentence)");
 
     // ── R17: review_log пуст (advisory никогда не пишет память) ───────────────
     const counts = await api("GET", "/api/learner/counts", { cookie });
@@ -234,6 +311,11 @@ function exportRows(exp) {
       "kill-switch must degrade honestly, got " + JSON.stringify(ks.json && { ok: ks.json.ok, llm: ks.json.llm_used, r: ks.json.degraded_reason }));
     eq(ks.json.usage && ks.json.usage.user_llm_calls === 0, "kill-switch must not burn ledger, got " + JSON.stringify(ks.json.usage));
     eq(String(ks.json.text || "").includes("60"), "degraded digest must carry the deterministic rows count");
+    // PAS-B3: пересказ без LLM невозможен по природе → честный 503, НЕ фолбэк
+    fs.mkdirSync(path.join(scratch2, "benyehuda", "works"), { recursive: true });
+    fs.writeFileSync(path.join(scratch2, "benyehuda", "works", WORK_ID + ".json"), JSON.stringify(worksFixture()));
+    const ksd = await api("POST", "/api/agent/draft-retell", { cookie, csrf, body: { work_id: WORK_ID, text_key: CKEY, order_index: 0 } });
+    eq(ksd.status === 503 && ksd.json.error === "LLM_UNAVAILABLE", "draft under kill-switch must be honest 503 LLM_UNAVAILABLE (no fake retelling)");
   } finally { await stop(srv2.c); }
 
   if (failures.length) {
@@ -241,6 +323,6 @@ function exportRows(exp) {
     for (const f of failures) console.error("  ✗ " + f);
     process.exit(1);
   }
-  console.log("smoke:agent-material OK (26/26) — PAS-B2: тройной consent раздельными кодами · cap 60→40 · dedupe после гейта (revoke ≠ from_history) · purge fail-closed (unknown kind tombstone) · R17 review_log пуст · kill-switch честный · stdout-гигиена");
+  console.log("smoke:agent-material OK (45/45) — PAS-B2+B3: тройной consent раздельными кодами · cap 60→40 · dedupe после гейта (revoke ≠ from_history) · purge fail-closed (unknown kind tombstone, corpus-draft переживает) · draft: schema/latin/ru-глосс/caps валидация + corpus-only 400/404 + dedupe с lines + kill-switch 503 без фолбэка · R17 review_log пуст · stdout-гигиена");
   process.exit(0);
 })().catch((e) => { console.error("smoke:agent-material crashed:", e); process.exit(1); });

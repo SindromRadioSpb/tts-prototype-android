@@ -1942,6 +1942,30 @@ app.post("/api/agent/study-summary", rlAgentExplain, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: "AGENT_STUDY_SUMMARY_FAILED", message: e.message }); }
 });
 
+// PAS-B3 — «упрощённый пересказ» corpus-окна (≤5 строк, public domain — consent-классов
+// нет; личные тексты НЕ принимаются v1 — записанное решение владельца о скоупах).
+// Пересказ без LLM невозможен → честные 429/503, фолбэка нет (паттерн followup).
+app.post("/api/agent/draft-retell", rlAgentExplain, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  const b = req.body || {};
+  try {
+    const r = await agentRuntime.draftRetell({ userId: auth.user.id, deviceId: auth.session.deviceId },
+      { work_id: b.work_id, text_key: b.text_key, order_index: b.order_index });
+    if (!r.ok) {
+      const code = String(r.error || "");
+      if (code === "CORPUS_WORK_NOT_FOUND" || code === "CORPUS_SENTENCE_NOT_FOUND") return res.status(404).json(r);
+      if (code === "CORPUS_WORK_TOO_LARGE") return res.status(413).json(r);
+      if (code === "BAD_ANCHOR" || code === "BAD_WORK_ID" || code === "BAD_TEXT_KEY" || code === "BAD_CORPUS") return res.status(400).json(r);
+      if (code === "USER_LIMIT" || code === "GLOBAL_LIMIT") return res.status(429).json(r);
+      if (code === "LLM_UNAVAILABLE" || code === "NO_API_KEY") return res.status(503).json(r);
+      if (code === "DRAFT_INVALID") return res.status(502).json(r);
+      return res.status(500).json(r);
+    }
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: "AGENT_DRAFT_RETELL_FAILED", message: e.message }); }
+});
+
 app.get("/api/agent/status", rlAgent, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   try { res.json({ ok: true, ...(await agentRuntime.status({ userId: auth.user.id })) }); }

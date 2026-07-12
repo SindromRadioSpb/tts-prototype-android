@@ -74,9 +74,23 @@ for (const fn of ["updateSentence", "deleteSentence", "resetSentence", "reorderS
 // ── 6. Зал: deep-link #cloud (лестница шагов 2–3 не полутупик) ───────────────
 eq(libraryUi.includes("'#cloud'"), "library-ui.js must handle the #cloud hash deep-link");
 
-// ── 7. locale-parity: каждый studio.agent.* ключ — в ru/en/he ────────────────
-const usedKeys = [...new Set([...agentJs.matchAll(/tt\('(studio\.agent\.[\w.]+)'/g)].map((m) => m[1]))];
-eq(usedKeys.length >= 20, "expected >=20 studio.agent.* keys in studio-agent.js, found " + usedKeys.length);
+// ── 6b. PAS-B3: [Открыть в Студии] — критика wf_7f300c39 ────────────────────
+const draftFnIdx = libraryUi.indexOf("async function _draftOpenInStudio");
+eq(draftFnIdx > 0, "library-ui.js must define _draftOpenInStudio");
+const draftFn = libraryUi.slice(draftFnIdx, draftFnIdx + 3000);
+eq(draftFn.includes("'/index.html#/t/'") && !draftFn.includes("?room=1"),
+  "draft deep-link must target FULL Studio (без ?room=1 — room-mode прячет перевод-пайплайн)");
+eq(draftFn.includes("closeLocalDB"), "draft nav must close the OPFS DB first (SQLITE_CANTOPEN-race)");
+eq(draftFn.includes("source_meta_json: JSON.stringify"), "createText source_meta_json must be stringified (иначе провенанс молча теряется)");
+eq(draftFn.includes("agent_draft"), "draft text must carry source='agent_draft' provenance");
+
+// ── 7. locale-parity: каждый studio.agent.* ключ — в ru/en/he; плюс room.explain.draft*
+// ключи Зала (PAS-B3) — tt-fallback недостижим при живом t(), промах = сырой ключ в UI
+const usedKeys = [...new Set([
+  ...[...agentJs.matchAll(/tt\('(studio\.agent\.[\w.]+)'/g)].map((m) => m[1]),
+  ...[...libraryUi.matchAll(/tt\('(room\.explain\.draft[\w.]*)'/g)].map((m) => m[1]),
+])];
+eq(usedKeys.length >= 20, "expected >=20 agent locale keys, found " + usedKeys.length);
 function loadLocale(file) {
   const src = read("public/i18n/locales/" + file);
   const sandbox = { window: {} };

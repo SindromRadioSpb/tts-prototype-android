@@ -24,9 +24,16 @@ const planner = require(path.join(__dirname, "planner"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
 const agentSentenceRepo = require(path.join(__dirname, "..", "db", "agentSentenceRepo"));
 
+const corpusSentenceRepo = require(path.join(__dirname, "..", "db", "corpusSentenceRepo"));
+
 const CATEGORY = "создать материал";   // R17-A: одна из 5 канонических категорий
 const KIND = "study_summary";
 const LEARNER_ITEMS_MAX = 30;
+const DRAFT_KIND = "draft_retell";
+const DRAFT_LINES_MIN = 3;
+const DRAFT_LINES_MAX = 8;
+const DRAFT_LINE_CHARS_MAX = 200;
+const DRAFT_HEBREW_RATIO_MIN = 0.7;
 
 async function _usage(userId) {
   try {
@@ -155,4 +162,119 @@ async function studySummary(ctx, { text_key } = {}) {
   };
 }
 
-module.exports = { studySummary, buildSummaryPayload, LEARNER_ITEMS_MAX, KIND };
+// ── PAS-B3: «Упрощённый пересказ» (corpus-only v1) → [Открыть в Студии] ────────
+// Producer: LLM пересказывает окно ≤5 корпусных предложений простым ивритом
+// (алеф+/бет) С ru-глоссом каждой строки В ТОМ ЖЕ вызове (критика wf_7f300c39
+// MAJOR: пустая ru-таблица в Студии = тупик; глосс сразу = нулевая доп. цена).
+// Личные тексты — НЕ в v1 (записанное решение владельца: window_5 только для
+// проверки понимания; расширение скоупа = отдельный owner-форк).
+// Драфт ПЕРСИСТИТСЯ (kind='draft_retell', facts[0]=corpus_sentence → переживает
+// revoke по exclusion-list, корректно: public-domain-derived) → same-day dedupe,
+// повторный тап не жжёт квоту. Текст в OPFS создаёт КЛИЕНТ по явному тапу (R17:
+// никакого авто-материала в библиотеке).
+
+// PURE (unit-гейт): schema+caps+Hebrew-ratio; невалид → null (честный DRAFT_INVALID,
+// без ретрай-циклов).
+function validateDraft(parsed) {
+  if (!parsed || !Array.isArray(parsed.lines)) return null;
+  const lines = parsed.lines
+    .map((l) => ({ he: String((l && l.he) || "").trim(), ru: String((l && l.ru) || "").trim() }))
+    .filter((l) => l.he);
+  if (lines.length < DRAFT_LINES_MIN || lines.length > DRAFT_LINES_MAX) return null;
+  for (const l of lines) {
+    if (l.he.length > DRAFT_LINE_CHARS_MAX || l.ru.length > DRAFT_LINE_CHARS_MAX) return null;
+    if (!l.ru) return null;   // ru-глосс обязателен (иначе тупик пустой таблицы вернулся)
+  }
+  const joined = lines.map((l) => l.he).join("");
+  const hebrew = (joined.match(/[א-ת]/g) || []).length;
+  const other = (joined.match(/[A-Za-zА-Яа-яЁё]/g) || []).length;
+  if (hebrew / Math.max(1, hebrew + other) < DRAFT_HEBREW_RATIO_MIN) return null;
+  return lines;
+}
+
+function buildDraftPayload(rows, work, language) {
+  const system = language === "en"
+    ? "You are the LinguistPro Hebrew mentor. Retell the given Hebrew passage in SIMPLE Hebrew (beginner level, aleph+/bet): 3-6 short sentences, common everyday words, simple syntax. For EVERY sentence also give its Russian translation. NEVER assert morphology (roots, binyanim, parts of speech). Answer STRICTLY as JSON: {\"lines\":[{\"he\":\"...\",\"ru\":\"...\"}]} — no other fields, no prose outside JSON."
+    : "Ты — наставник LinguistPro по ивриту. Перескажи данный ивритский отрывок ПРОСТЫМ ивритом (уровень алеф+/бет): 3–6 коротких предложений, частотные бытовые слова, простой синтаксис. К КАЖДОМУ предложению дай русский перевод. НИКОГДА не утверждай морфологию (корни, биньяны, части речи). Отвечай СТРОГО JSON: {\"lines\":[{\"he\":\"...\",\"ru\":\"...\"}]} — без других полей и текста вне JSON.";
+  const prompt = JSON.stringify({
+    language,
+    work: work ? { title: work.title || null, author: work.author || null } : null,
+    passage: rows.map((r) => ({ he: r.he, ru: r.ru })),
+  });
+  return { system, prompt };
+}
+
+async function draftRetell(ctx, { work_id, text_key, order_index } = {}) {
+  const workId = String(work_id || "").trim();
+  const textKey = String(text_key || "").trim();
+  const orderIndex = Number(order_index);
+  if (!workId || !textKey || !Number.isFinite(orderIndex)) return { ok: false, error: "BAD_ANCHOR" };
+
+  const profile = await agentRepo.getProfile(ctx.userId);
+  const language = (profile && profile.language) || "ru";
+
+  // Corpus-only: валидация якоря/traversal — внутри corpusSentenceRepo (как comprehension).
+  const win = await corpusSentenceRepo.getCorpusWindow({
+    corpus: "benyehuda", work_id: workId, text_key: textKey, order_index: orderIndex, window: 5,
+  });
+  if (!win.ok) return { ok: false, error: win.error };
+
+  const sid = textKey + "#" + orderIndex;
+  const cached = await agentRepo.getFreshExplanation(ctx.userId, sid, { language, kind: DRAFT_KIND });
+  if (cached && Array.isArray(cached.lines) && cached.lines.length) {
+    return {
+      ok: true, kind: DRAFT_KIND, from_history: true, category: CATEGORY, language,
+      anchor: win.anchor, work: win.work, draft: { lines: cached.lines },
+      llm_used: cached.llm_used, ...(cached.provider ? { provider: cached.provider, model: cached.model } : {}),
+      explanation_id: cached.id, usage: await _usage(ctx.userId),
+    };
+  }
+
+  // Пересказ без LLM невозможен по природе — честные коды вместо фолбэка (паттерн followup).
+  const lim = planner.limits();
+  if (llm.killSwitchOn()) return { ok: false, error: "LLM_UNAVAILABLE" };
+  const reserve = await agentRepo.reserveLlmCall(ctx.userId, {
+    scenario: "draft_retell", provider: llm.providerName(), perUserDaily: lim.perUserDaily, globalDaily: lim.globalDaily,
+  });
+  if (!reserve.ok) return { ok: false, error: reserve.reason };
+
+  const payload = buildDraftPayload(win.rows, win.work, language);
+  const out = await llm.generate({ system: payload.system, prompt: payload.prompt, json: true, maxOutputTokens: 768, fixture: DRAFT_KIND });
+  await agentRepo.finalizeLlmCall(reserve.reserveId, { ok: out.ok, actualUnits: out.ok ? (out.output_tokens || 1) : null });
+  if (!out.ok) return { ok: false, error: out.error === "KILL_SWITCH" ? "LLM_UNAVAILABLE" : (out.error || "LLM_UNAVAILABLE") };
+  let parsed = null;
+  try { parsed = JSON.parse(out.text); } catch (_) {}
+  const lines = validateDraft(parsed);
+  if (!lines) return { ok: false, error: "DRAFT_INVALID" };
+
+  const factsUsed = [
+    {
+      kind: "corpus_sentence", source: "corpus_artifact", license: "public-domain",
+      scope_level: "corpus_window_5", anchor: win.anchor, rows_used: win.rows.length,
+    },
+  ];
+  const created = await tools.callTool(ctx, "create_explanation", {
+    sentence_id: sid,
+    facts_used: factsUsed,
+    llm_model: out.provider + ":" + out.model,
+    body: {
+      kind: DRAFT_KIND, category: CATEGORY, language,
+      scope_level: "corpus_window_5",
+      llm_used: true, provider: out.provider, model: out.model,
+      lines,
+      text: lines.map((l) => l.he).join("\n"),
+    },
+  });
+
+  return {
+    ok: true, kind: DRAFT_KIND, category: CATEGORY, language,
+    anchor: win.anchor, work: win.work,
+    draft: { lines },
+    llm_used: true, provider: out.provider, model: out.model,
+    explanation_id: created.ok && created.result ? created.result.id : null,
+    usage: await _usage(ctx.userId),
+  };
+}
+
+module.exports = { studySummary, buildSummaryPayload, LEARNER_ITEMS_MAX, KIND,
+  draftRetell, validateDraft, buildDraftPayload, DRAFT_KIND, DRAFT_LINES_MIN, DRAFT_LINES_MAX };

@@ -145,7 +145,9 @@ async function getFreshExplanation(userId, sentenceId, { language, kind, word } 
     if (String(row.created_at || "").slice(0, 10) !== todayUtc) continue;
     return { id: row.id, text: String(b.text), llm_used: b.llm_used === true,
              provider: b.provider || null, model: b.model || null,
-             followups: Number(b.followups || 0) };
+             followups: Number(b.followups || 0),
+             // PAS-B3: строки драфта (kind='draft_retell') — dedupe отдаёт их клиенту
+             ...(Array.isArray(b.lines) ? { lines: b.lines } : {}) };
   }
   return null;
 }
