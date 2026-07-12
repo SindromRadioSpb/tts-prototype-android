@@ -139,4 +139,59 @@ async function getSentenceWindow(userId, { text_key, order_index, window } = {})
   return { ok: true, scope_level: SCOPE_SENTENCE_WINDOW, anchor: { text_key: textKey, order_index: orderIndex }, rows };
 }
 
-module.exports = { hasAgentReadConsent, getSentenceContext, getSentenceWindow, CONSENT_KEY_AGENT, SCOPE_SENTENCE_ONLY, SCOPE_SENTENCE_WINDOW };
+// PAS-B2 (критика wf_7f300c39, BLOCKER ×3 линзы): «что стоит выучить из этого текста»
+// читает ВЕСЬ текст (до 40 строк + название) — это раскрытие ЗА ПРЕДЕЛАМИ обещания
+// agent_read_texts («уходит только одно предложение — не весь текст») и window_5
+// («только для проверки понимания»). Переиспользование старых ключей сделало бы их
+// копию ложью → ОТДЕЛЬНЫЙ durable-ключ agent_read_texts_digest со своей честной
+// копией; тройная иерархия fail-closed НА КАЖДЫЙ вызов, cap — физический.
+const CONSENT_KEY_DIGEST = "agent_read_texts_digest";
+const SCOPE_TEXT_DIGEST = "text_digest_40";
+const DIGEST_ROWS_MAX = 40;
+const DIGEST_CHARS_MAX = 200;
+async function hasDigestConsent(userId) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const row = await dbGet(db,
+    `SELECT granted FROM consent_records WHERE user_id = ? AND consent_key = ?
+      ORDER BY created_at DESC, id DESC LIMIT 1`, [userId, CONSENT_KEY_DIGEST]);
+  return !!(row && Number(row.granted) === 1);
+}
+async function getTextDigest(userId, { text_key } = {}) {
+  const textKey = String(text_key || "").trim();
+  if (!textKey) return { ok: false, error: "BAD_ANCHOR" };
+  if (!(await learnerArtifactsRepo.hasConsent(userId))) {
+    return { ok: false, error: "CLOUD_TEXTS_CONSENT_REQUIRED", key: learnerArtifactsRepo.CONSENT_KEY };
+  }
+  if (!(await hasAgentReadConsent(userId))) {
+    return { ok: false, error: "AGENT_READ_TEXTS_CONSENT_REQUIRED", key: CONSENT_KEY_AGENT };
+  }
+  if (!(await hasDigestConsent(userId))) {
+    return { ok: false, error: "AGENT_READ_TEXTS_DIGEST_CONSENT_REQUIRED", key: CONSENT_KEY_DIGEST };
+  }
+  const art = await learnerArtifactsRepo.get(userId, textKey);
+  if (!art) return { ok: false, error: "TEXT_NOT_IN_CLOUD" };
+  let payload = null;
+  try { payload = JSON.parse(art.payload_json); } catch (_) { return { ok: false, error: "ARTIFACT_UNREADABLE" }; }
+  const texts = payload && Array.isArray(payload.texts) ? payload.texts : null;
+  if (!texts || !texts.length) return { ok: false, error: "SENTENCE_NOT_FOUND" };
+  const t = texts.find((x) => x && String(x.text_key) === textKey) || texts[0];
+  const all = (Array.isArray(t.rows) ? t.rows : (Array.isArray(t.sentences) ? t.sentences : []))
+    .slice()
+    .sort((a, b) => Number(a.order_index) - Number(b.order_index));
+  const rows = all.slice(0, DIGEST_ROWS_MAX).map((r) => ({
+    he: String(r.hebrew_niqqud || r.hebrew_plain || r.he_niqqud || r.he_plain || r.he || "").trim().slice(0, DIGEST_CHARS_MAX),
+    ru: (String(r.russian != null ? r.russian : (r.ru || "")).trim().slice(0, DIGEST_CHARS_MAX)) || null,
+  })).filter((r) => r.he);
+  if (!rows.length) return { ok: false, error: "SENTENCE_NOT_FOUND" };
+  return {
+    ok: true,
+    scope_level: SCOPE_TEXT_DIGEST,
+    anchor: { text_key: textKey },
+    title: String(t.title || "").slice(0, DIGEST_CHARS_MAX) || null,
+    rows_total: all.length,
+    rows,
+  };
+}
+
+module.exports = { hasAgentReadConsent, hasDigestConsent, getSentenceContext, getSentenceWindow, getTextDigest,
+  CONSENT_KEY_AGENT, CONSENT_KEY_DIGEST, SCOPE_SENTENCE_ONLY, SCOPE_SENTENCE_WINDOW, SCOPE_TEXT_DIGEST, DIGEST_ROWS_MAX };

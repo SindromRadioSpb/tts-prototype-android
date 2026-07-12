@@ -38,30 +38,37 @@
   // ── CSS: инжект при init — ПОЗЖЕ всех документных стилей = побеждает каскад.
   // Ловушки CLAUDE.md: глобальный button{width:100%} на mobile → width:auto по id;
   // [hidden] vs display → явный guard.
+  // Общие правила — под классом .sa-modal (оба модала его несут); ловушки CLAUDE.md:
+  // width:auto по id-селектору против глобального button{width:100%}, [hidden]-guard.
   var STYLE_CSS = [
-    '#saExplainModal{position:fixed;inset:0;z-index:9500;display:flex;align-items:center;justify-content:center;background:rgba(10,14,20,.55)}',
-    '#saExplainModal[hidden]{display:none!important}',
-    '#saExplainModal .sa-card{background:var(--panel-bg,#141a22);color:var(--text,#e8eef5);border:1px solid rgba(255,255,255,.12);border-radius:14px;max-width:560px;width:calc(100% - 24px);max-height:86vh;overflow:auto;padding:14px 16px;box-shadow:0 12px 40px rgba(0,0,0,.5)}',
-    '#saExplainModal .sa-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}',
-    '#saExplainModal .sa-title{font-weight:600;font-size:15px}',
-    '#saExplainModal button{width:auto}',
-    '#saExplainModal .sa-close{background:none;border:none;color:inherit;font-size:20px;cursor:pointer;padding:2px 8px}',
-    '#saExplainModal .sa-he{direction:rtl;text-align:right;font-size:19px;line-height:1.7;padding:8px 10px;background:rgba(255,255,255,.05);border-radius:10px;margin-bottom:8px}',
-    '#saExplainModal .sa-body{white-space:pre-wrap;font-size:14px;line-height:1.55;min-height:40px}',
-    '#saExplainModal .sa-constructs{font-size:12.5px;opacity:.85;margin-top:6px}',
-    '#saExplainModal .sa-meta{font-size:12px;opacity:.7;margin-top:8px}',
-    '#saExplainModal .sa-consent,#saExplainModal .sa-actions{margin-top:10px;padding:10px;border:1px solid rgba(255,193,7,.35);border-radius:10px;font-size:13px;background:rgba(255,193,7,.06)}',
-    '#saExplainModal .sa-actions-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}',
-    '#saExplainModal .sa-actions-row button{padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:inherit;cursor:pointer}',
-    '#saExplainModal .sa-actions-row button.sa-primary{background:#2b6cb0;border-color:#2b6cb0}',
-    '#saExplainModal .sa-followup{margin-top:12px;border-top:1px solid rgba(255,255,255,.12);padding-top:10px}',
-    '#saExplainModal .sa-followup[hidden]{display:none!important}',
-    '#saExplainModal .sa-turns{font-size:12px;opacity:.75;margin-bottom:6px}',
-    '#saExplainModal .sa-ask-row{display:flex;gap:8px}',
-    '#saExplainModal .sa-ask-row input{flex:1;padding:7px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:inherit;font-size:14px}',
+    '.sa-modal{position:fixed;inset:0;z-index:9500;display:flex;align-items:center;justify-content:center;background:rgba(10,14,20,.55)}',
+    '.sa-modal[hidden]{display:none!important}',
+    '.sa-modal .sa-card{background:var(--panel-bg,#141a22);color:var(--text,#e8eef5);border:1px solid rgba(255,255,255,.12);border-radius:14px;max-width:560px;width:calc(100% - 24px);max-height:86vh;overflow:auto;padding:14px 16px;box-shadow:0 12px 40px rgba(0,0,0,.5)}',
+    '.sa-modal .sa-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}',
+    '.sa-modal .sa-title{font-weight:600;font-size:15px}',
+    '#saExplainModal button,#saMaterialModal button{width:auto}',
+    '.sa-modal .sa-close{background:none;border:none;color:inherit;font-size:20px;cursor:pointer;padding:2px 8px;margin:0}',
+    '.sa-modal .sa-he{direction:rtl;text-align:right;font-size:19px;line-height:1.7;padding:8px 10px;background:rgba(255,255,255,.05);border-radius:10px;margin-bottom:8px}',
+    '.sa-modal .sa-body{white-space:pre-wrap;font-size:14px;line-height:1.55;min-height:40px}',
+    '.sa-modal .sa-constructs{font-size:12.5px;opacity:.85;margin-top:6px}',
+    '.sa-modal .sa-meta{font-size:12px;opacity:.7;margin-top:8px}',
+    '.sa-modal .sa-consent,.sa-modal .sa-actions{margin-top:10px;padding:10px;border:1px solid rgba(255,193,7,.35);border-radius:10px;font-size:13px;background:rgba(255,193,7,.06)}',
+    '.sa-modal .sa-consent[hidden],.sa-modal .sa-actions[hidden]{display:none!important}',
+    '.sa-modal .sa-actions-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}',
+    '.sa-modal .sa-actions-row button{padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:inherit;cursor:pointer}',
+    '.sa-modal .sa-actions-row button.sa-primary{background:#2b6cb0;border-color:#2b6cb0}',
+    '.sa-modal .sa-followup{margin-top:12px;border-top:1px solid rgba(255,255,255,.12);padding-top:10px}',
+    '.sa-modal .sa-followup[hidden]{display:none!important}',
+    '.sa-modal .sa-turns{font-size:12px;opacity:.75;margin-bottom:6px}',
+    '.sa-modal .sa-ask-row{display:flex;gap:8px}',
+    '.sa-modal .sa-ask-row input{flex:1;padding:7px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:inherit;font-size:14px}',
+    '.sa-modal .sa-mat-actions{display:flex;flex-direction:column;gap:8px;margin:10px 0}',
+    '.sa-modal .sa-mat-actions button{text-align:left;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:inherit;cursor:pointer;font-size:14px}',
+    '.sa-modal .sa-mat-actions button:hover{background:rgba(120,160,220,.15)}',
     '.row-agent-btn{background:none;border:1px solid rgba(120,160,220,.45);border-radius:8px;cursor:pointer;font-size:13px;line-height:1;padding:3px 6px;margin-top:4px}',
     '.row-agent-btn:hover{background:rgba(120,160,220,.15)}',
-    '@media (max-width:600px){#saExplainModal{align-items:flex-end}#saExplainModal .sa-card{max-height:78vh;border-radius:14px 14px 0 0;width:100%}}',
+    '#saMaterialBtn{background:none;border:1px solid rgba(120,160,220,.45);border-radius:8px;cursor:pointer;font-size:13px;padding:4px 10px;margin-left:6px;width:auto}',
+    '@media (max-width:600px){.sa-modal{align-items:flex-end}.sa-modal .sa-card{max-height:78vh;border-radius:14px 14px 0 0;width:100%}}',
   ].join('\n');
 
   // Статический шаблон модала — ЕДИНСТВЕННОЕ innerHTML-присваивание файла, без
@@ -87,6 +94,26 @@
     '<button type="button" class="sa-primary" id="saExplainAsk">➤</button></div></div>' +
     '</div>';
 
+  // Второй статический шаблон (гейт: ровно ДВА innerHTML, оба — литералы без интерполяции).
+  var MATERIAL_HTML =
+    '<div class="sa-card" role="dialog" aria-modal="true" aria-labelledby="saMatTitle">' +
+    '<div class="sa-head"><div class="sa-title" id="saMatTitle"></div>' +
+    '<button type="button" class="sa-close" data-sa-mclose="1" aria-label="close">×</button></div>' +
+    '<div class="sa-mat-actions">' +
+    '<button type="button" id="saMatNotes"></button>' +
+    '<button type="button" id="saMatQuiz"></button>' +
+    '<button type="button" id="saMatSummary"></button></div>' +
+    '<div class="sa-body" id="saMatBody"></div>' +
+    '<div class="sa-consent" id="saMatConsent" hidden>' +
+    '<div id="saMatConsentText"></div>' +
+    '<div class="sa-actions-row"><button type="button" class="sa-primary" id="saMatAllow"></button>' +
+    '<button type="button" id="saMatCancel"></button></div></div>' +
+    '<div class="sa-actions" id="saMatActions" hidden>' +
+    '<div id="saMatActionsText"></div>' +
+    '<div class="sa-actions-row" id="saMatActionsRow"></div></div>' +
+    '<div class="sa-meta" id="saMatMeta"></div>' +
+    '</div>';
+
   var $ = function (id) { return document.getElementById(id); };
   var _modal = null;
 
@@ -97,6 +124,7 @@
     document.head.appendChild(st);
     _modal = document.createElement('div');
     _modal.id = 'saExplainModal';
+    _modal.className = 'sa-modal';
     _modal.hidden = true;
     _modal.innerHTML = MODAL_HTML;
     document.body.appendChild(_modal);
@@ -371,6 +399,241 @@
     requestExplain(fresh, row);
   }
 
+  // ══ PAS-B2 — «Материал из текста»: sheet с тремя действиями. Детерминированные
+  // движки (② заметки, frontier-квиз) — клиентские/офлайн; LLM-пункт «что стоит
+  // выучить» — POST /api/agent/study-summary за ТРОЙНЫМ consent (server fail-closed;
+  // agent_read_texts_digest — отдельный durable-ключ, критика wf_7f300c39 BLOCKER). ══
+  var _matModal = null;
+  var _matTid = null;
+  var _matBusy = false;
+
+  function ensureMaterialModal() {
+    if (_matModal) return _matModal;
+    ensureModal();   // общий <style> + explain-модал
+    _matModal = document.createElement('div');
+    _matModal.id = 'saMaterialModal';
+    _matModal.className = 'sa-modal';
+    _matModal.hidden = true;
+    _matModal.innerHTML = MATERIAL_HTML;
+    document.body.appendChild(_matModal);
+    $('saMatTitle').textContent = '🤖 ' + tt('studio.agent.matTitle', 'Материал из текста');
+    $('saMatNotes').textContent = '② ' + tt('studio.agent.matNotes', 'Заметки — обзор кандидатов');
+    $('saMatQuiz').textContent = '🎯 ' + tt('studio.agent.matQuiz', 'Квиз i+1 по тексту');
+    $('saMatSummary').textContent = '🤖 ' + tt('studio.agent.matSummary', 'Что стоит выучить (наставник)');
+    _matModal.addEventListener('click', function (e) {
+      if (e.target === _matModal || (e.target.getAttribute && e.target.getAttribute('data-sa-mclose') === '1')) _matModal.hidden = true;
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && _matModal && !_matModal.hidden) _matModal.hidden = true;
+    });
+    $('saMatNotes').addEventListener('click', function () {
+      _matModal.hidden = true;
+      if (typeof window.v3ReviewQueueOpen === 'function' && _matTid) window.v3ReviewQueueOpen(_matTid);
+    });
+    $('saMatQuiz').addEventListener('click', function () {
+      if (!(window.KnowledgeMapQuizLoader && typeof window.KnowledgeMapQuizLoader.open === 'function')) {
+        matBody(tt('studio.agent.matQuizMissing', 'Модуль тренировки недоступен — обновите страницу.'));
+        return;
+      }
+      _matModal.hidden = true;
+      window.KnowledgeMapQuizLoader.open({ mode: 'frontier', textId: _matTid });
+    });
+    $('saMatSummary').addEventListener('click', function () { runSummary(); });
+    return _matModal;
+  }
+
+  function matBody(text) { var b = $('saMatBody'); if (b) b.textContent = text || ''; }
+  function matMeta(text) { var m = $('saMatMeta'); if (m) m.textContent = text || ''; }
+  function matHidePanels() {
+    var c = $('saMatConsent'); if (c) c.hidden = true;
+    var a = $('saMatActions'); if (a) a.hidden = true;
+  }
+  function matShowActions(text, buttons) {
+    var box = $('saMatActions'), t = $('saMatActionsText'), row = $('saMatActionsRow');
+    if (!box || !row) return;
+    t.textContent = text || '';
+    row.textContent = '';
+    (buttons || []).forEach(function (b) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      if (b.primary) btn.className = 'sa-primary';
+      btn.textContent = b.label;
+      btn.addEventListener('click', b.onClick);
+      row.appendChild(btn);
+    });
+    box.hidden = false;
+  }
+  // situated consent-панель материала: key = 'agent_read_texts' | 'agent_read_texts_digest'
+  function matShowConsent(key, copyText, onAllow) {
+    var box = $('saMatConsent');
+    if (!box) return;
+    $('saMatConsentText').textContent = copyText;
+    var allow = $('saMatAllow'), cancel = $('saMatCancel');
+    allow.textContent = tt('studio.agent.consentAllow', 'Разрешить и объяснить');
+    cancel.textContent = tt('studio.agent.consentCancel', 'Отмена');
+    allow.onclick = async function () {
+      box.hidden = true;
+      try {
+        var r = await jpost('/api/auth/consent', { key: key, granted: true, version: 'v1' });
+        if (!r || r.ok === false) { matBody(tt('studio.agent.err', 'Не удалось получить объяснение')); return; }
+      } catch (_) { matBody(tt('studio.agent.err', 'Не удалось получить объяснение')); return; }
+      onAllow();
+    };
+    cancel.onclick = function () { box.hidden = true; };
+    box.hidden = false;
+  }
+
+  async function runSummary() {
+    if (_matBusy || !_matTid) return;
+    matHidePanels();
+    matMeta('');
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      matBody(tt('studio.agent.offline', '🤖 Наставник доступен онлайн — объяснение появится при подключении.'));
+      return;
+    }
+    var CS = window.CloudSync;
+    var session = null;
+    try { session = CS ? await CS.me() : null; } catch (_) {}
+    if (!session) {
+      matBody('');
+      matShowActions(tt('studio.agent.needLogin', 'Для объяснений нужен вход в облако — откройте ☁ в Зале и войдите.'),
+        [{ label: tt('studio.agent.openRoomCloud', 'Открыть ☁ в Зале'), primary: true, onClick: openRoomCloud },
+         { label: tt('studio.agent.retry', 'Повторить'), onClick: runSummary }]);
+      return;
+    }
+    var consents = session.consents || {};
+    if (!(consents.cloud_texts && consents.cloud_texts.granted === true)) {
+      matBody('');
+      matShowActions(tt('studio.agent.needTexts', 'Сначала включите «Синхронизировать Мои тексты» в ☁ Зала.'),
+        [{ label: tt('studio.agent.openRoomCloud', 'Открыть ☁ в Зале'), primary: true, onClick: openRoomCloud },
+         { label: tt('studio.agent.retry', 'Повторить'), onClick: runSummary }]);
+      return;
+    }
+    if (!(consents.agent_read_texts && consents.agent_read_texts.granted === true)) {
+      matBody('');
+      matShowConsent('agent_read_texts',
+        tt('studio.agent.consentBody', 'Наставник отправит ЭТО предложение внешнему AI-провайдеру вместе с вашими слабыми/просроченными словами и потратит 1 вызов из дневного лимита. Разрешить чтение предложений ваших текстов (отзыв — в ☁ Зала)?'),
+        runSummary);
+      return;
+    }
+    if (!(consents.agent_read_texts_digest && consents.agent_read_texts_digest.granted === true)) {
+      matBody('');
+      matShowConsent('agent_read_texts_digest',
+        tt('studio.agent.digestConsentBody', 'Для совета «что стоит выучить» наставник отправит внешнему AI-провайдеру ВЕСЬ этот текст (до 40 предложений с переводами и название) и ваши слабые/просроченные слова; 1 вызов из дневного лимита. Разрешить отправку целых текстов по вашему запросу (отзыв — в ☁ Зала)?'),
+        runSummary);
+      return;
+    }
+    var host = window.StudioAgentHost;
+    var textKey = null;
+    try {
+      var ldb = await host.ldb();
+      var text = await ldb.getTextById(_matTid);
+      textKey = text && text.text_key ? String(text.text_key) : null;
+    } catch (_) {}
+    if (!textKey) { matBody(tt('studio.agent.noAnchor', 'Ряд не найден в локальной базе — пересохраните текст в библиотеку.')); return; }
+    _matBusy = true;
+    matBody(tt('studio.agent.loading', 'Наставник думает…'));
+    var r = null;
+    try { r = await jpost('/api/agent/study-summary', { text_key: textKey }); } catch (_) {}
+    _matBusy = false;
+    if (!r || !r.ok) {
+      var code = (r && r.error) || '';
+      if (code === 'AGENT_READ_TEXTS_DIGEST_CONSENT_REQUIRED') {
+        matBody('');
+        matShowConsent('agent_read_texts_digest',
+          tt('studio.agent.digestConsentBody', 'Для совета «что стоит выучить» наставник отправит внешнему AI-провайдеру ВЕСЬ этот текст (до 40 предложений с переводами и название) и ваши слабые/просроченные слова; 1 вызов из дневного лимита. Разрешить отправку целых текстов по вашему запросу (отзыв — в ☁ Зала)?'),
+          runSummary);
+        return;
+      }
+      if (code === 'TEXT_NOT_IN_CLOUD') {
+        matBody('');
+        matShowActions(tt('studio.agent.notInCloud', 'Этот текст ещё не в облаке — можно отправить его копию сейчас (только этот текст).'),
+          [{ label: tt('studio.agent.pushBtn', 'Отправить и объяснить'), primary: true, onClick: matPushAndRetry },
+           { label: tt('studio.agent.retry', 'Повторить'), onClick: runSummary }]);
+        return;
+      }
+      matBody('✗ ' + tt('studio.agent.err', 'Не удалось получить объяснение') + (code ? ' (' + code + ')' : ''));
+      return;
+    }
+    matBody(r.text || '');
+    var metaParts = [tt('studio.agent.matAdvisory', 'Совет наставника, не оценка — в память не записывается.')];
+    if (r.from_history) metaParts.push(tt('studio.agent.fromHistory', 'из истории — без нового вызова'));
+    if (r.llm_used) metaParts.push('🤖 ' + (r.provider || '') + (r.model ? ' · ' + r.model : ''));
+    else if (!r.from_history) metaParts.push(tt('studio.agent.noLlm', 'без AI: перевод и морфология офлайн') + (r.degraded_reason ? ' (' + r.degraded_reason + ')' : ''));
+    if (r.usage && r.usage.limit) metaParts.push(tt('studio.agent.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit);
+    matMeta(metaParts.join(' · '));
+  }
+
+  async function matPushAndRetry() {
+    if (_matBusy || !_matTid) return;
+    _matBusy = true;
+    matHidePanels();
+    matBody(tt('studio.agent.pushing', 'Отправляю копию текста в облако…'));
+    try {
+      var host = window.StudioAgentHost;
+      var ldb = await host.ldb();
+      var bundle = await ldb.exportBundle({ textIds: [_matTid] });
+      var text = await ldb.getTextById(_matTid);
+      var r = await jpost('/api/learner/artifacts/put', {
+        artifact_key: text.text_key, updated_at: text.updated_at, payload: bundle,
+      });
+      if (!r || r.ok === false) {
+        matBody(tt('studio.agent.pushFail', 'Не удалось отправить текст в облако') + ((r && r.error) ? ' (' + r.error + ')' : ''));
+        _matBusy = false;
+        return;
+      }
+    } catch (_) {
+      matBody(tt('studio.agent.pushFail', 'Не удалось отправить текст в облако'));
+      _matBusy = false;
+      return;
+    }
+    _matBusy = false;
+    runSummary();
+  }
+
+  function openMaterial(tid) {
+    if (!tid) return;
+    _matTid = String(tid);
+    ensureMaterialModal();
+    matHidePanels();
+    matBody('');
+    matMeta('');
+    _matModal.hidden = false;
+  }
+
+  // Кнопка «🤖 Материал» в тулбаре редактора (#tableEditToolbar) — той же post-render
+  // инъекцией; появляется только когда таблица library-linked (есть _v3_textId).
+  function injectMaterialButton() {
+    if (document.body && document.body.classList.contains('room-mode')) return;
+    var bar = document.getElementById('tableEditToolbar');
+    if (!bar || document.getElementById('saMaterialBtn')) return;
+    var host = window.StudioAgentHost;
+    if (!host || !host.getRow) return;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'saMaterialBtn';
+    btn.textContent = '🤖 ' + tt('studio.agent.matBtn', 'Материал');
+    btn.title = tt('studio.agent.matTitle', 'Материал из текста');
+    btn.addEventListener('click', function () {
+      var tid = null;
+      for (var i = 0; i < 2000; i++) {
+        var row = host.getRow(i);
+        if (row === undefined) break;   // за концом currentTableData
+        if (row && row._v3_textId) { tid = String(row._v3_textId); break; }
+      }
+      if (!tid) { alertHonest(); return; }
+      openMaterial(tid);
+    });
+    bar.appendChild(btn);
+    function alertHonest() {
+      ensureMaterialModal();
+      _matTid = null;
+      matHidePanels(); matMeta('');
+      matBody(tt('studio.agent.matNoText', 'Сохраните текст в библиотеку, чтобы собрать материал.'));
+      _matModal.hidden = false;
+    }
+  }
+
   // ── инъекция 🤖-кнопок POST-RENDER (renderTable заморожен byte-parity гейтом
   // smoke:reader-parity — паттерн studio-karaoke: обёртка, не правка). room-mode
   // (index.html?room=1 — читальный вид Зала) — скип: там свой explain-контур. ──
@@ -404,11 +667,13 @@
     var wrapped = function () {
       var out = orig.apply(this, arguments);
       try { injectRowButtons(); } catch (_) {}
+      try { injectMaterialButton(); } catch (_) {}   // PAS-B2 — кнопка тулбара
       return out;
     };
     wrapped.__saWrapped = true;
     window.renderTable = wrapped;
     try { injectRowButtons(); } catch (_) {}
+    try { injectMaterialButton(); } catch (_) {}
     return true;
   }
   if (!wrapRenderTable()) {

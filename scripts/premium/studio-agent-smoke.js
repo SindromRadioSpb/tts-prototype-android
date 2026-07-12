@@ -50,8 +50,9 @@ const mVer = swJs.match(/CACHE_VERSION\s*=\s*"v([\d.]+)"/);
 eq(!!mVer && mVer[1] === pkg.version, "sw.js CACHE_VERSION (v" + (mVer && mVer[1]) + ") must equal package.json version (" + pkg.version + ")");
 
 // ── 4. рендер-дисциплина studio-agent.js ─────────────────────────────────────
+// РОВНО ДВА статических шаблона: explain-модал (B1) + material-sheet (B2)
 const innerCount = (agentJs.match(/\.innerHTML\s*=/g) || []).length;
-eq(innerCount === 1, "studio-agent.js must have EXACTLY ONE innerHTML assignment (static modal template), got " + innerCount);
+eq(innerCount === 2, "studio-agent.js must have EXACTLY TWO innerHTML assignments (static modal templates B1+B2), got " + innerCount);
 eq(!/\$\{/.test(agentJs), "studio-agent.js must not use template interpolation (server text is textContent-only)");
 eq(agentJs.includes('dir="rtl"') && agentJs.includes('lang="he"'), "modal template must mark the Hebrew sentence dir=rtl lang=he");
 eq(agentJs.includes("AbortController"), "explain request must be abortable (30s timeout + close)");

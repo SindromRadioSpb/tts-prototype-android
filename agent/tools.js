@@ -94,6 +94,14 @@ const REGISTRY = {
       text_key: a && a.text_key, order_index: a && a.order_index, window: a && a.window,
     }),
   },
+  // PAS-B2: дайджест ВСЕГО текста (≤40 строк + название) для «что стоит выучить» —
+  // ТРОЙНОЙ consent в репо (cloud_texts → agent_read_texts → agent_read_texts_digest,
+  // fail-closed на каждый вызов; критика wf_7f300c39 BLOCKER: старые ключи обещают
+  // «не весь текст», их переиспользование = ложь копии).
+  get_text_digest_if_available: {
+    readOnly: true,
+    run: (ctx, a) => agentSentenceRepo.getTextDigest(ctx.userId, { text_key: a && a.text_key }),
+  },
   // ── ОБЩИЙ артефакт (PAS-A1): предложение public-domain корпуса — consent-гейта нет
   // by-design (содержимое не является данными пользователя; learner-раскрытие — в
   // first-use confirm клиента). Якорь несёт text_key: многоглавные работы делят один

@@ -22,12 +22,22 @@ for (const f of fs.readdirSync(path.join(ROOT, "agent", "telegram"))) if (f.ends
 for (const f of fs.readdirSync(path.join(ROOT, "db"))) if (/^agent.*\.js$/.test(f)) FULL_FILES.push("db/" + f);
 FULL_FILES.push("db/handoffRepo.js", "db/identityRepo.js", "db/channelLinkRepo.js");
 
-// server.js — только miniapp-регион, вырезанный по СТРУКТУРНЫМ маркерам (не по номерам строк).
-const SERVER_REGION = {
-  file: "server.js",
-  startMarker: "CLG-P8.1 — Telegram Mini App",
-  endMarker: "── webhook: secret-middleware",
-};
+// server.js — регионы по СТРУКТУРНЫМ маркерам (не по номерам строк): miniapp-блок и
+// (PAS-B2, критика wf_7f300c39 MINOR: /api/agent/* были ВНЕ скана — digest = целый
+// личный текст, console.error(req.body) в handler'е проходил бы зелёным) agent-блок
+// /api/agent/* от заголовка CLG-P6 до начала miniapp-региона.
+const SERVER_REGIONS = [
+  {
+    file: "server.js", tag: "server.js[agent]",
+    startMarker: "CLG-P6 — Agent Runtime",
+    endMarker: "CLG-P8.1 — Telegram Mini App",
+  },
+  {
+    file: "server.js", tag: "server.js[miniapp]",
+    startMarker: "CLG-P8.1 — Telegram Mini App",
+    endMarker: "── webhook: secret-middleware",
+  },
+];
 
 // Безопасные выражения-аргументы (whitelist, не денилист).
 const SAFE_ARG = [
@@ -116,11 +126,13 @@ const FIXTURES_MUST_PASS = [
     if (!fs.existsSync(p)) continue;
     all.push(...violationsIn(rel, fs.readFileSync(p, "utf8")));
   }
-  const srv = fs.readFileSync(path.join(ROOT, SERVER_REGION.file), "utf8");
-  const si = srv.indexOf(SERVER_REGION.startMarker), ei = srv.indexOf(SERVER_REGION.endMarker);
-  if (si < 0 || ei < 0 || ei <= si) { console.error("gate:log-hygiene FAIL: маркеры miniapp-региона server.js не найдены (fail-closed)"); process.exit(1); }
-  const offsetLines = srv.slice(0, si).split("\n").length - 1;
-  for (const v of violationsIn("server.js[miniapp]", srv.slice(si, ei))) { v.line += offsetLines; all.push(v); }
+  const srv = fs.readFileSync(path.join(ROOT, SERVER_REGIONS[0].file), "utf8");
+  for (const region of SERVER_REGIONS) {
+    const si = srv.indexOf(region.startMarker), ei = srv.indexOf(region.endMarker);
+    if (si < 0 || ei < 0 || ei <= si) { console.error("gate:log-hygiene FAIL: маркеры региона " + region.tag + " не найдены (fail-closed)"); process.exit(1); }
+    const offsetLines = srv.slice(0, si).split("\n").length - 1;
+    for (const v of violationsIn(region.tag, srv.slice(si, ei))) { v.line += offsetLines; all.push(v); }
+  }
 
   if (all.length) {
     console.error(`gate:log-hygiene FAIL (${all.length} violation(s)):`);

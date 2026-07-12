@@ -1920,6 +1920,28 @@ app.post("/api/agent/explain-word", rlAgentExplain, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: "AGENT_EXPLAIN_WORD_FAILED", message: e.message }); }
 });
 
+// PAS-B2 — «что стоит выучить из этого текста» (advisory-резюме; Студия). Тонкий glue:
+// вся логика в agent/material.js (авто-скан log-hygiene); дайджест-tool внутри держит
+// ТРОЙНОЙ consent fail-closed (agent_read_texts_digest — отдельный durable-ключ).
+app.post("/api/agent/study-summary", rlAgentExplain, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  const textKey = String((req.body && req.body.text_key) || "").trim();
+  if (!textKey) return res.status(400).json({ ok: false, error: "BAD_ANCHOR" });
+  try {
+    const r = await agentRuntime.studySummary({ userId: auth.user.id, deviceId: auth.session.deviceId }, { text_key: textKey });
+    if (!r.ok) {
+      const code = String(r.error || "");
+      if (code === "CLOUD_TEXTS_CONSENT_REQUIRED" || code === "AGENT_READ_TEXTS_CONSENT_REQUIRED" ||
+          code === "AGENT_READ_TEXTS_DIGEST_CONSENT_REQUIRED") return res.status(403).json(r);
+      if (code === "TEXT_NOT_IN_CLOUD" || code === "SENTENCE_NOT_FOUND") return res.status(404).json(r);
+      if (code === "BAD_ANCHOR" || code === "ARTIFACT_UNREADABLE") return res.status(400).json(r);
+      return res.status(500).json(r);
+    }
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: "AGENT_STUDY_SUMMARY_FAILED", message: e.message }); }
+});
+
 app.get("/api/agent/status", rlAgent, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   try { res.json({ ok: true, ...(await agentRuntime.status({ userId: auth.user.id })) }); }

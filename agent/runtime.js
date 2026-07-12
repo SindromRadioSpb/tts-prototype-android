@@ -9,6 +9,7 @@
 const path = require("path");
 const planner = require(path.join(__dirname, "planner"));
 const explainer = require(path.join(__dirname, "explainer"));
+const material = require(path.join(__dirname, "material"));
 const tools = require(path.join(__dirname, "tools"));
 const llm = require(path.join(__dirname, "llm"));
 const constructs = require(path.join(__dirname, "constructs"));
@@ -36,6 +37,12 @@ async function explainFollowup(ctx, args) {
 // PAS-A3: advisory-вопросы понимания по корпус-окну (никогда не пишет review_log).
 async function comprehension(ctx, args) {
   return explainer.comprehension(ctx, args || {});
+}
+
+// PAS-B2: advisory-резюме «что стоит выучить из этого текста» (agent/material.js;
+// digest-tool с тройным consent внутри).
+async function studySummary(ctx, args) {
+  return material.studySummary(ctx, args || {});
 }
 
 // P7.0c: запись ответа/annul — СТРОГО через closed tool router (единственные ворота
@@ -150,4 +157,4 @@ async function updateProfile(ctx, patch) {
   return { mode: p.mode, language: p.language };
 }
 
-module.exports = { plan, explain, explainWord, explainFollowup, comprehension, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };
+module.exports = { plan, explain, explainWord, explainFollowup, comprehension, studySummary, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };
