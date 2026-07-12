@@ -48,7 +48,24 @@
     '.sa-modal .sa-title{font-weight:600;font-size:15px}',
     '#saExplainModal button,#saMaterialModal button{width:auto}',
     '.sa-modal .sa-close{background:none;border:none;color:inherit;font-size:20px;cursor:pointer;padding:2px 8px;margin:0}',
-    '.sa-modal .sa-he{direction:rtl;text-align:right;font-size:19px;line-height:1.7;padding:8px 10px;background:rgba(255,255,255,.05);border-radius:10px;margin-bottom:8px}',
+    '.sa-modal .sa-he-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}',
+    '.sa-modal .sa-he-row #saExplainSpeak{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:8px;cursor:pointer;font-size:14px;padding:6px 8px;flex:0 0 auto}',
+    '.sa-modal .sa-he{direction:rtl;text-align:right;font-size:19px;line-height:1.7;padding:8px 10px;background:rgba(255,255,255,.05);border-radius:10px;flex:1}',
+    '.sa-modal .sa-ru{font-size:13px;opacity:.75;margin:0 0 8px 2px}',
+    '.sa-modal .sa-ru[hidden]{display:none!important}',
+    '.sa-modal .sa-extra{margin-top:10px;border-top:1px solid rgba(255,255,255,.12);padding-top:10px}',
+    '.sa-modal .sa-extra[hidden]{display:none!important}',
+    '.sa-modal .sa-extra>button{padding:7px 12px;border-radius:8px;border:1px dashed rgba(120,160,220,.6);background:rgba(120,160,220,.08);color:inherit;cursor:pointer;font-size:13.5px}',
+    '.sa-modal .sa-extra-out{margin-top:8px;font-size:13.5px}',
+    '.sa-modal .sa-extra-out[hidden]{display:none!important}',
+    '.sa-modal .sa-plate{font-size:12.5px;opacity:.8;padding:6px 8px;background:rgba(255,193,7,.08);border-radius:8px;margin-bottom:6px}',
+    '.sa-modal .sa-q{font-weight:600;margin:8px 0 4px}',
+    '.sa-modal .sa-opts{display:flex;flex-direction:column;gap:6px}',
+    '.sa-modal .sa-opts button{text-align:left;padding:7px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:inherit;cursor:pointer}',
+    '.sa-modal .sa-opts button.sa-right{border-color:#2f855a;background:rgba(47,133,90,.25)}',
+    '.sa-modal .sa-opts button.sa-wrong{border-color:#c53030;background:rgba(197,48,48,.25)}',
+    '.sa-modal .sa-draft-he{direction:rtl;text-align:right;font-size:17px;line-height:1.6;margin-top:6px}',
+    '.sa-modal .sa-draft-ru{font-size:12.5px;opacity:.7;margin-bottom:4px}',
     '.sa-modal .sa-body{white-space:pre-wrap;font-size:14px;line-height:1.55;min-height:40px}',
     '.sa-modal .sa-constructs{font-size:12.5px;opacity:.85;margin-top:6px}',
     '.sa-modal .sa-meta{font-size:12px;opacity:.7;margin-top:8px}',
@@ -77,7 +94,9 @@
     '<div class="sa-card" role="dialog" aria-modal="true" aria-labelledby="saExplainTitle">' +
     '<div class="sa-head"><div class="sa-title" id="saExplainTitle"></div>' +
     '<button type="button" class="sa-close" data-sa-close="1" aria-label="close">×</button></div>' +
-    '<div class="sa-he" id="saExplainHe" dir="rtl" lang="he"></div>' +
+    '<div class="sa-he-row"><button type="button" id="saExplainSpeak" aria-label="tts">🔊</button>' +
+    '<div class="sa-he" id="saExplainHe" dir="rtl" lang="he"></div></div>' +
+    '<div class="sa-ru" id="saExplainRu" hidden></div>' +
     '<div class="sa-body" id="saExplainBody"></div>' +
     '<div class="sa-constructs" id="saExplainConstructs" hidden></div>' +
     '<div class="sa-consent" id="saExplainConsent" hidden>' +
@@ -92,6 +111,12 @@
     '<div class="sa-turns" id="saExplainTurns"></div>' +
     '<div class="sa-ask-row"><input type="text" id="saExplainQ" maxlength="500">' +
     '<button type="button" class="sa-primary" id="saExplainAsk">➤</button></div></div>' +
+    '<div class="sa-extra" id="saExplainComp" hidden>' +
+    '<button type="button" id="saExplainCompBtn"></button>' +
+    '<div class="sa-extra-out" id="saExplainCompOut" hidden></div></div>' +
+    '<div class="sa-extra" id="saExplainDraft" hidden>' +
+    '<button type="button" id="saExplainDraftBtn"></button>' +
+    '<div class="sa-extra-out" id="saExplainDraftOut" hidden></div></div>' +
     '</div>';
 
   // Второй статический шаблон (гейт: ровно ДВА innerHTML, оба — литералы без интерполяции).
@@ -137,6 +162,15 @@
     });
     $('saExplainAsk').addEventListener('click', followupSend);
     $('saExplainQ').addEventListener('keydown', function (e) { if (e.key === 'Enter') followupSend(); });
+    // Паритет с Залом (owner-фидбэк 2026-07-12): 🔊 = штатная per-row озвучка Студии
+    // (клик по .row-tts-btn ряда — кэш/karaoke переиспользуются), квиз и пересказ ниже.
+    $('saExplainSpeak').addEventListener('click', function () {
+      if (_currentRowIdx == null) return;
+      var b = document.querySelector('.row-tts-btn[data-row-idx="' + _currentRowIdx + '"]');
+      if (b) b.click();
+    });
+    $('saExplainCompBtn').addEventListener('click', compRun);
+    $('saExplainDraftBtn').addEventListener('click', draftRun);
     return _modal;
   }
 
@@ -144,6 +178,10 @@
   var _inFlight = false;      // один explain на Студию (двойной тап не жжёт леджер)
   var _followupCtx = null;    // { explanationId, left, baseText }
   var _followupBusy = false;
+  var _currentRowIdx = null;  // ряд текущего модала (🔊 + якорь квиза/пересказа)
+  var _extraCtx = null;       // { textKey, orderIndex } — квиз/пересказ после успешного explain
+  var _compBusy = false;
+  var _draftBusy = false;
 
   function closeModal() {
     if (_modal) _modal.hidden = true;
@@ -158,6 +196,11 @@
     var a = $('saExplainActions'); if (a) a.hidden = true;
     var f = $('saExplainFollowup'); if (f) f.hidden = true;
     var k = $('saExplainConstructs'); if (k) { k.hidden = true; k.textContent = ''; }
+    var cp = $('saExplainComp'); if (cp) cp.hidden = true;
+    var co = $('saExplainCompOut'); if (co) { co.hidden = true; co.textContent = ''; }
+    var dr = $('saExplainDraft'); if (dr) dr.hidden = true;
+    var dro = $('saExplainDraftOut'); if (dro) { dro.hidden = true; dro.textContent = ''; }
+    _extraCtx = null;
   }
 
   // Универсальная панель действий: честный текст + кнопки [основное действие] [Повторить].
@@ -366,6 +409,126 @@
     if (r.usage && r.usage.limit) metaParts.push(tt('studio.agent.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit);
     setMeta(metaParts.join(' · '));
     followupSetup(r);
+    extrasSetup(anchor);   // паритет с Залом: квиз + пересказ (owner-фидбэк 2026-07-12)
+  }
+
+  // ── «Проверь меня по абзацу» + «Пересказ проще» (паритет модала с Залом) ─────
+  function extrasSetup(anchor) {
+    _extraCtx = { textKey: anchor.textKey, orderIndex: anchor.orderIndex };
+    var cp = $('saExplainComp'), cb = $('saExplainCompBtn');
+    if (cp) { cp.hidden = false; }
+    if (cb) { cb.disabled = false; cb.textContent = '🧠 ' + tt('studio.agent.compBtn', 'Проверь меня по абзацу'); }
+    var dr = $('saExplainDraft'), db = $('saExplainDraftBtn');
+    if (dr) { dr.hidden = false; }
+    if (db) { db.disabled = false; db.textContent = '✍️ ' + tt('studio.agent.draftBtn', 'Пересказ проще'); }
+  }
+  async function compRun() {
+    if (_compBusy || !_extraCtx) return;
+    var out = $('saExplainCompOut'), btn = $('saExplainCompBtn');
+    if (!out) return;
+    // first-use раскрытие объёма (та же кладовка, что Зал — не спрашиваем дважды)
+    var acked = false;
+    try { acked = localStorage.getItem('room.ownCompAck') === '1'; } catch (_) {}
+    if (!acked) {
+      out.hidden = false; out.textContent = '';
+      var plate = document.createElement('div');
+      plate.className = 'sa-plate';
+      plate.textContent = tt('studio.agent.ownCompAck', 'Наставник отправит внешнему LLM до 5 предложений этого текста (начиная с выбранного) и потратит 1 вызов из дневного лимита. Продолжить?');
+      out.appendChild(plate);
+      var row = document.createElement('div'); row.className = 'sa-actions-row';
+      var ok = document.createElement('button'); ok.type = 'button'; ok.className = 'sa-primary';
+      ok.textContent = tt('studio.agent.ackOk', 'Понятно, продолжить');
+      ok.addEventListener('click', function () { try { localStorage.setItem('room.ownCompAck', '1'); } catch (_) {} out.textContent = ''; compRun(); });
+      var no = document.createElement('button'); no.type = 'button';
+      no.textContent = tt('studio.agent.consentCancel', 'Отмена');
+      no.addEventListener('click', function () { out.hidden = true; out.textContent = ''; });
+      row.appendChild(ok); row.appendChild(no); out.appendChild(row);
+      return;
+    }
+    _compBusy = true;
+    if (btn) btn.disabled = true;
+    out.hidden = false; out.textContent = tt('studio.agent.loading', 'Наставник думает…');
+    var r = null;
+    try { r = await jpost('/api/agent/comprehension', { text_key: _extraCtx.textKey, order_index: _extraCtx.orderIndex }); } catch (_) {}
+    _compBusy = false;
+    if (btn) btn.disabled = false;
+    if (!r || !r.ok || !Array.isArray(r.questions)) {
+      var code = (r && r.error) || '';
+      out.textContent = code === 'USER_LIMIT' || code === 'GLOBAL_LIMIT' ? tt('studio.agent.limit', 'дневной лимит LLM исчерпан')
+        : code === 'TEXT_NOT_IN_CLOUD' ? tt('studio.agent.notInCloud', 'Этот текст ещё не в облаке — можно отправить его копию сейчас (только этот текст).')
+        : tt('studio.agent.compFail', 'Не получилось составить вопросы — попробуйте ещё раз.');
+      return;
+    }
+    out.textContent = '';
+    var pl = document.createElement('div');
+    pl.className = 'sa-plate';
+    pl.textContent = '🧠 ' + tt('studio.agent.compPlate', 'Понимание · проверка наставником, не оценка — в память не записывается.');
+    out.appendChild(pl);
+    r.questions.forEach(function (q) {
+      var qd = document.createElement('div'); qd.className = 'sa-q'; qd.textContent = q.question;
+      out.appendChild(qd);
+      var opts = document.createElement('div'); opts.className = 'sa-opts';
+      (q.options || []).forEach(function (optText, oi) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = optText;
+        b.addEventListener('click', function () {
+          opts.querySelectorAll('button').forEach(function (x, xi) {
+            x.disabled = true;
+            if (xi === q.correct_index) x.classList.add('sa-right');
+          });
+          if (oi !== q.correct_index) b.classList.add('sa-wrong');
+        });
+        opts.appendChild(b);
+      });
+      out.appendChild(opts);
+    });
+    if (r.usage && r.usage.limit) {
+      var um = document.createElement('div'); um.className = 'sa-plate';
+      um.textContent = tt('studio.agent.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit;
+      out.appendChild(um);
+    }
+  }
+  async function draftRun() {
+    if (_draftBusy || !_extraCtx) return;
+    var out = $('saExplainDraftOut'), btn = $('saExplainDraftBtn');
+    if (!out) return;
+    _draftBusy = true;
+    if (btn) btn.disabled = true;
+    out.hidden = false; out.textContent = tt('studio.agent.loading', 'Наставник думает…');
+    var r = null;
+    try { r = await jpost('/api/agent/draft-retell', { text_key: _extraCtx.textKey, order_index: _extraCtx.orderIndex }); } catch (_) {}
+    _draftBusy = false;
+    if (btn) btn.disabled = false;
+    if (!r || !r.ok || !r.draft || !Array.isArray(r.draft.lines)) {
+      var code = (r && r.error) || '';
+      out.textContent = code === 'USER_LIMIT' || code === 'GLOBAL_LIMIT' ? tt('studio.agent.limit', 'дневной лимит LLM исчерпан')
+        : code === 'DRAFT_INVALID' ? tt('studio.agent.draftInvalid', 'Пересказ не получился — попробуйте ещё раз.')
+        : '✗ ' + tt('studio.agent.err', 'Не удалось получить объяснение') + (code ? ' (' + code + ')' : '');
+      return;
+    }
+    out.textContent = '';
+    var pl2 = document.createElement('div');
+    pl2.className = 'sa-plate';
+    pl2.textContent = '✍️ ' + tt('studio.agent.draftPlate', 'Черновик наставника — простой пересказ. «В редактор» вставит его как несохранённый текст (сборка таблицы штатным путём).');
+    out.appendChild(pl2);
+    r.draft.lines.forEach(function (l) {
+      var he = document.createElement('div');
+      he.className = 'sa-draft-he'; he.setAttribute('dir', 'rtl'); he.setAttribute('lang', 'he');
+      he.textContent = l.he;
+      out.appendChild(he);
+      if (l.ru) { var ru = document.createElement('div'); ru.className = 'sa-draft-ru'; ru.textContent = l.ru; out.appendChild(ru); }
+    });
+    var row2 = document.createElement('div'); row2.className = 'sa-actions-row';
+    var ins = document.createElement('button'); ins.type = 'button'; ins.className = 'sa-primary';
+    ins.textContent = tt('studio.agent.draftInsert', 'В редактор');
+    ins.addEventListener('click', function () {
+      ins.disabled = true;
+      closeModal();
+      applyDraftToComposer({ source_text: r.draft.lines.map(function (l) { return l.he; }).join('\n') });
+    });
+    row2.appendChild(ins);
+    out.appendChild(row2);
   }
 
   // ── адресный пуш ОДНОГО текста (критика: fullSync-комбайн в модале запрещён) ──
@@ -680,6 +843,41 @@
     document.addEventListener('DOMContentLoaded', wrapRenderTable);
   }
 
+  // ── PAS-B3 (owner-фидбэк 2026-07-12): приём драфта наставника как НЕСОХРАНЁННОЙ
+  // карточки — штатный пайплайн Студии (композер #inputText → translateTable():
+  // огласовки/транслит/перевод формируются так же, как у дефолтной таблицы).
+  var DRAFT_HANDOFF_KEY = 'studio.agentDraftHandoff';
+  function applyDraftToComposer(p) {
+    var ta = document.getElementById('inputText');
+    if (!ta || !p || !p.source_text) return false;
+    ta.value = String(p.source_text);
+    try { ta.dispatchEvent(new Event('input', { bubbles: true })); } catch (_) {}
+    try { ta.scrollIntoView({ block: 'center' }); } catch (_) {}
+    try {
+      if (typeof window.showToast === 'function') {
+        window.showToast(tt('studio.agent.draftLoaded', 'Черновик наставника вставлен — собираю таблицу…'), 'info');
+      }
+    } catch (_) {}
+    // Явный тап «Открыть в Студии»/«В редактор» уже был — сборка штатным путём
+    try { if (typeof window.translateTable === 'function') window.translateTable(); } catch (_) {}
+    return true;
+  }
+  function consumeDraftHandoff() {
+    if (document.body && document.body.classList.contains('room-mode')) return;
+    var raw = null;
+    try { raw = localStorage.getItem(DRAFT_HANDOFF_KEY); } catch (_) {}
+    if (!raw) return;
+    try { localStorage.removeItem(DRAFT_HANDOFF_KEY); } catch (_) {}
+    var p = null;
+    try { p = JSON.parse(raw); } catch (_) { return; }
+    if (!p || p.v !== 1 || !p.source_text) return;
+    if (Date.now() - Number(p.ts || 0) > 10 * 60 * 1000) return;   // TTL — залежавшийся handoff не выстрелит
+    // небольшая пауза: дать приложению доинициализироваться (LOCAL_MODE/ключи)
+    setTimeout(function () { applyDraftToComposer(p); }, 1200);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', consumeDraftHandoff);
+  else consumeDraftHandoff();
+
   // ── вход: делегированный клик по .row-agent-btn (инъекция выше) ──
   function startExplain(rowIdx) {
     var host = window.StudioAgentHost;
@@ -687,8 +885,12 @@
     if (!row || !row._v3_sentenceId || !row._v3_textId) return;
     ensureModal();
     hidePanels();
+    _currentRowIdx = rowIdx;
     var he = $('saExplainHe');
     if (he) he.textContent = row.he_niqqud || row.he || '';
+    // Паритет с Залом: перевод ряда под предложением (колонка «Перевод»)
+    var ru = $('saExplainRu');
+    if (ru) { ru.textContent = String(row.ru || ''); ru.hidden = !String(row.ru || '').trim(); }
     setBody('');
     setMeta('');
     _modal.hidden = false;

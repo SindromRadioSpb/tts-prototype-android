@@ -231,8 +231,8 @@ function worksFixture() {
     eq(nf.status === 404 && nf.json.error === "TEXT_NOT_IN_CLOUD", "unknown text_key must be 404 TEXT_NOT_IN_CLOUD");
 
     // ── PAS-B3: draft-retell (corpus-only) ────────────────────────────────────
-    const d0 = await api("POST", "/api/agent/draft-retell", { cookie, csrf, body: { text_key: TEXT_KEY, order_index: 0 } });
-    eq(d0.status === 400 && d0.json.error === "BAD_ANCHOR", "draft without work_id (личный якорь) must be 400 BAD_ANCHOR");
+    const d0 = await api("POST", "/api/agent/draft-retell", { cookie, csrf, body: { order_index: 0 } });
+    eq(d0.status === 400 && d0.json.error === "BAD_ANCHOR", "draft without text_key must be 400 BAD_ANCHOR");
     const dTrav = await api("POST", "/api/agent/draft-retell", { cookie, csrf, body: { work_id: "../../etc", text_key: CKEY, order_index: 0 } });
     eq(dTrav.status === 400 && (dTrav.json.error === "BAD_WORK_ID" || dTrav.json.error === "BAD_ANCHOR"),
       "traversal work_id must be 400, got " + dTrav.status + "/" + (dTrav.json && dTrav.json.error));
@@ -256,6 +256,18 @@ function worksFixture() {
     eq(!!draftRow && draftFacts[0] && draftFacts[0].kind === "corpus_sentence" && draftFacts[0].license === "public-domain",
       "draft row must carry corpus_sentence provenance (переживает revoke по exclusion-list)");
     eq(draftBody.kind === "draft_retell" && Array.isArray(draftBody.lines), "draft body must carry kind+lines");
+
+    // ── PAS-B3 owner-фидбэк: пересказ ЛИЧНОГО текста (window_5, двойной consent) ─
+    const pd = await api("POST", "/api/agent/draft-retell", { cookie, csrf, body: { text_key: TEXT_KEY, order_index: 0 } });
+    eq(pd.status === 200 && pd.json.ok && pd.json.draft && pd.json.draft.lines.length >= 3
+      && pd.json.draft.lines.every((l) => l.he && l.ru),
+      "personal draft (без work_id) must work via sentence_window_5, got " + (pd.json && (pd.json.error || pd.status)));
+    const expPd = await api("GET", "/api/account/export", { cookie });
+    const pdRow = exportRows(expPd).find((r) => String(r.sentence_id || "") === TEXT_KEY + "#0");
+    let pdFacts = [];
+    try { pdFacts = JSON.parse(pdRow.facts_used_json); } catch (_) {}
+    eq(!!pdRow && pdFacts[0] && pdFacts[0].kind === "user_window" && pdFacts[0].scope_level === "sentence_window_5",
+      "personal draft must carry user_window/sentence_window_5 provenance (тумбстоунится на revoke)");
 
     // ── purge fail-closed: synthetic-строка с НЕИЗВЕСТНЫМ kind + study_summary ─
     // Прямая вставка в app.db (sqlite3 из deps репо): будущий/неизвестный personal-kind
@@ -292,6 +304,11 @@ function worksFixture() {
     let draftBody3 = {}; try { draftBody3 = JSON.parse(draftRow3.body_json); } catch (_) {}
     eq(!!draftRow3 && !draftBody3.purge_reason && Array.isArray(draftBody3.lines),
       "corpus draft row must SURVIVE agent_read_texts revoke (exclusion-list щадит corpus_sentence)");
+    // …а ЛИЧНЫЙ драфт (user_window) обязан тумбстоуниться тем же revoke
+    const pdRow3 = rows3.find((r) => String(r.sentence_id || "") === TEXT_KEY + "#0");
+    let pdBody3 = {}; try { pdBody3 = JSON.parse(pdRow3.body_json); } catch (_) {}
+    eq(!!pdRow3 && pdRow3.facts_used_json === "[]" && pdBody3.purge_reason === "consent_revoked",
+      "personal draft row must be TOMBSTONED on agent_read_texts revoke (user_window — личный контент)");
 
     // ── R17: review_log пуст (advisory никогда не пишет память) ───────────────
     const counts = await api("GET", "/api/learner/counts", { cookie });
@@ -331,6 +348,6 @@ function worksFixture() {
     for (const f of failures) console.error("  ✗ " + f);
     process.exit(1);
   }
-  console.log("smoke:agent-material OK (47/47) — PAS-B2+B3: тройной consent раздельными кодами · cap 60→40 · dedupe после гейта (revoke ≠ from_history) · digest-revoke чистит study_summary · purge fail-closed (unknown kind tombstone, corpus-draft переживает) · draft: schema/latin/ru-глосс/caps валидация + corpus-only 400/404 + dedupe с lines + kill-switch 503 без фолбэка · R17 review_log пуст · stdout-гигиена");
+  console.log("smoke:agent-material OK (51/51) — PAS-B2+B3: тройной consent раздельными кодами · cap 60→40 · dedupe после гейта (revoke ≠ from_history) · digest-revoke чистит study_summary · purge fail-closed (unknown kind tombstone, corpus-draft переживает) · draft: schema/latin/ru-глосс/caps валидация + corpus-only 400/404 + dedupe с lines + kill-switch 503 без фолбэка · R17 review_log пуст · stdout-гигиена");
   process.exit(0);
 })().catch((e) => { console.error("smoke:agent-material crashed:", e); process.exit(1); });

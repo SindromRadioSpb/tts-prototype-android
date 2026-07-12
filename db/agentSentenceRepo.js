@@ -105,7 +105,9 @@ async function getSentenceContext(userId, { text_key, order_index, row_id } = {}
 }
 
 // PAS-A3 (решение владельца 2026-07-12): окно ≤5 строк ЛИЧНОГО текста для проверки
-// понимания. Тот же двойной consent fail-closed на каждый вызов; cap — физический.
+// понимания; PAS-B3-фидбэк (решение владельца 2026-07-12, вечер): тем же окном живёт
+// «упрощённый пересказ» — consent-копия обновлена («проверка понимания, пересказ»).
+// Тот же двойной consent fail-closed на каждый вызов; cap — физический.
 const SCOPE_SENTENCE_WINDOW = "sentence_window_5";
 const WINDOW_MAX = 5;
 async function getSentenceWindow(userId, { text_key, order_index, window } = {}) {

@@ -162,16 +162,18 @@ async function studySummary(ctx, { text_key } = {}) {
   };
 }
 
-// ── PAS-B3: «Упрощённый пересказ» (corpus-only v1) → [Открыть в Студии] ────────
-// Producer: LLM пересказывает окно ≤5 корпусных предложений простым ивритом
-// (алеф+/бет) С ru-глоссом каждой строки В ТОМ ЖЕ вызове (критика wf_7f300c39
-// MAJOR: пустая ru-таблица в Студии = тупик; глосс сразу = нулевая доп. цена).
-// Личные тексты — НЕ в v1 (записанное решение владельца: window_5 только для
-// проверки понимания; расширение скоупа = отдельный owner-форк).
-// Драфт ПЕРСИСТИТСЯ (kind='draft_retell', facts[0]=corpus_sentence → переживает
-// revoke по exclusion-list, корректно: public-domain-derived) → same-day dedupe,
-// повторный тап не жжёт квоту. Текст в OPFS создаёт КЛИЕНТ по явному тапу (R17:
-// никакого авто-материала в библиотеке).
+// ── PAS-B3: «Упрощённый пересказ» → в Студию ──────────────────────────────────
+// Producer: LLM пересказывает окно ≤5 предложений простым ивритом (алеф+/бет)
+// С ru-глоссом каждой строки В ТОМ ЖЕ вызове (критика wf_7f300c39 MAJOR: пустая
+// ru-таблица в Студии = тупик; глосс сразу = нулевая доп. цена).
+// Источники: корпус (public domain, без consent-классов) И — записанное решение
+// владельца 2026-07-12 (фидбэк слайса B) — ЛИЧНЫЕ тексты через тот же физический
+// scope sentence_window_5 (двойной consent fail-closed в репо; consent-копия
+// window_5 обновлена: «проверка понимания, пересказ»).
+// Драфт ПЕРСИСТИТСЯ (kind='draft_retell'; corpus-строки переживают revoke по
+// exclusion-list, personal-строки [facts[0].kind='user_window'] тумбстоунятся —
+// by construction) → same-day dedupe, повторный тап не жжёт квоту. Материал в
+// Студию попадает ТОЛЬКО по явному тапу (R17).
 
 // PURE (unit-гейт): schema+caps+Hebrew-ratio; невалид → null (честный DRAFT_INVALID,
 // без ретрай-циклов).
@@ -208,16 +210,27 @@ async function draftRetell(ctx, { work_id, text_key, order_index } = {}) {
   const workId = String(work_id || "").trim();
   const textKey = String(text_key || "").trim();
   const orderIndex = Number(order_index);
-  if (!workId || !textKey || !Number.isFinite(orderIndex)) return { ok: false, error: "BAD_ANCHOR" };
+  if (!textKey || !Number.isFinite(orderIndex)) return { ok: false, error: "BAD_ANCHOR" };
 
   const profile = await agentRepo.getProfile(ctx.userId);
   const language = (profile && profile.language) || "ru";
 
-  // Corpus-only: валидация якоря/traversal — внутри corpusSentenceRepo (как comprehension).
-  const win = await corpusSentenceRepo.getCorpusWindow({
-    corpus: "benyehuda", work_id: workId, text_key: textKey, order_index: orderIndex, window: 5,
-  });
-  if (!win.ok) return { ok: false, error: win.error };
+  // Источник по якорю: work_id → корпус (валидация/traversal в corpusSentenceRepo);
+  // без work_id → ЛИЧНЫЙ текст через window-tool (двойной consent fail-closed в репо).
+  let win;
+  if (workId) {
+    win = await corpusSentenceRepo.getCorpusWindow({
+      corpus: "benyehuda", work_id: workId, text_key: textKey, order_index: orderIndex, window: 5,
+    });
+    if (!win.ok) return { ok: false, error: win.error };
+  } else {
+    const wres = await tools.callTool(ctx, "get_sentence_window_if_available", {
+      text_key: textKey, order_index: orderIndex, window: 5,
+    });
+    if (!wres.ok) return { ok: false, error: wres.error || "TOOL_FAILED" };
+    if (!wres.result.ok) return { ok: false, error: wres.result.error, ...(wres.result.key ? { key: wres.result.key } : {}) };
+    win = { anchor: wres.result.anchor, work: null, rows: wres.result.rows };
+  }
 
   const sid = textKey + "#" + orderIndex;
   const cached = await agentRepo.getFreshExplanation(ctx.userId, sid, { language, kind: DRAFT_KIND });
@@ -248,10 +261,16 @@ async function draftRetell(ctx, { work_id, text_key, order_index } = {}) {
   if (!lines) return { ok: false, error: "DRAFT_INVALID" };
 
   const factsUsed = [
-    {
-      kind: "corpus_sentence", source: "corpus_artifact", license: "public-domain",
-      scope_level: "corpus_window_5", anchor: win.anchor, rows_used: win.rows.length,
-    },
+    workId
+      ? {
+          kind: "corpus_sentence", source: "corpus_artifact", license: "public-domain",
+          scope_level: "corpus_window_5", anchor: win.anchor, rows_used: win.rows.length,
+        }
+      : {
+          // personal-derived → тумбстоунится на revoke agent_read_texts (exclusion-list)
+          kind: "user_window", source: "consented_artifact",
+          scope_level: "sentence_window_5", anchor: win.anchor, rows_used: win.rows.length,
+        },
   ];
   const created = await tools.callTool(ctx, "create_explanation", {
     sentence_id: sid,

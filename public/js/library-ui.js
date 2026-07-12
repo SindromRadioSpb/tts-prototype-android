@@ -3573,20 +3573,22 @@ async function _compRun() {
   });
   if (r.usage && r.usage.limit) out.appendChild(el('div', { class: 'room-comp-plate', text: tt('room.explain.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit }));
 }
-// PAS-B3 — «упрощённый пересказ» corpus-окна (producer) → [Открыть в Студии] (приёмник).
-// Corpus-only v1 (window_5 личных текстов — ТОЛЬКО для понимания, решение владельца);
-// текст в ОБЩЕМ OPFS создаётся ТОЛЬКО по явному тапу (R17 — никакого авто-материала);
-// переход в ПОЛНУЮ Студию БЕЗ ?room=1 (room-mode прячет перевод-пайплайн — критика
-// wf_7f300c39) с закрытием БД перед навигацией (SQLITE_CANTOPEN-race, паттерн
-// _roomStudioNavInit). ru-глосс приходит С СЕРВЕРА в том же вызове — драфт сразу рабочий.
-let _draftCtx = null;   // { workId, textKey, orderIndex }
+// PAS-B3 — «упрощённый пересказ» окна ≤5 строк (producer) → в Студию (приёмник).
+// Источники: корпус И — owner-фидбэк 2026-07-12 — ЛИЧНЫЕ тексты (тот же физический
+// window_5, двойной consent сервером). Приёмник — НЕСОХРАНЁННАЯ таблица через ШТАТНЫЙ
+// пайплайн Студии (handoff в композер + translateTable; owner: «как дефолтная карточка»),
+// НЕ прямой createText. Переход в ПОЛНУЮ Студию БЕЗ ?room=1 (room-mode прячет
+// перевод-пайплайн — критика wf_7f300c39) с закрытием БД перед навигацией
+// (SQLITE_CANTOPEN-race, паттерн _roomStudioNavInit).
+const DRAFT_HANDOFF_KEY = 'studio.agentDraftHandoff';   // consumer: studio-agent.js (TTL 10 мин)
+let _draftCtx = null;   // { workId|null, textKey, orderIndex }
 let _draftBusy = false;
 function _draftSetup(o, textKey, orderIndex) {
   const box = $('roomExplainDraft'), out = $('roomExplainDraftOut'), btn = $('roomExplainDraftBtn');
   if (!box) return;
   const isCorpus = !!(o && o.corpus);
-  if (!isCorpus || !textKey || orderIndex == null) { box.hidden = true; _draftCtx = null; return; }
-  _draftCtx = { workId: o.workId, textKey, orderIndex };
+  if (!textKey || orderIndex == null) { box.hidden = true; _draftCtx = null; return; }
+  _draftCtx = { workId: isCorpus ? o.workId : null, textKey, orderIndex };
   box.hidden = false;
   if (out) { out.hidden = true; out.textContent = ''; }
   if (btn) { btn.disabled = false; btn.textContent = '✍️ ' + tt('room.explain.draftBtn', 'Пересказ проще'); }
@@ -3600,9 +3602,11 @@ async function _draftRun() {
   out.hidden = false; out.textContent = tt('room.explain.loading', 'Наставник думает…');
   let r = null;
   try {
+    const body = { text_key: _draftCtx.textKey, order_index: _draftCtx.orderIndex };
+    if (_draftCtx.workId) body.work_id = _draftCtx.workId;   // корпус; без него — личный путь
     r = await fetch('/api/agent/draft-retell', { method: 'POST', credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
-      body: JSON.stringify({ work_id: _draftCtx.workId, text_key: _draftCtx.textKey, order_index: _draftCtx.orderIndex }) }).then((x) => x.json());
+      body: JSON.stringify(body) }).then((x) => x.json());
   } catch (_) {}
   _draftBusy = false;
   if (btn) btn.disabled = false;
@@ -3611,12 +3615,15 @@ async function _draftRun() {
     out.textContent = code === 'USER_LIMIT' || code === 'GLOBAL_LIMIT' ? tt('room.mentor.planLimit', 'дневной лимит LLM исчерпан')
       : code === 'LLM_UNAVAILABLE' ? tt('room.explain.noLlm', 'без AI: перевод и морфология офлайн')
       : code === 'DRAFT_INVALID' ? tt('room.explain.draftInvalid', 'Пересказ не получился — попробуйте ещё раз.')
+      : code === 'CLOUD_TEXTS_CONSENT_REQUIRED' ? tt('room.explain.needTexts', 'Сначала включите «Синхронизировать Мои тексты» в ☁ и запустите синк.')
+      : code === 'AGENT_READ_TEXTS_CONSENT_REQUIRED' ? tt('room.explain.needConsent', 'Разрешите наставнику читать тексты (галочка 🤖 в доме наставника).')
+      : code === 'TEXT_NOT_IN_CLOUD' ? tt('room.explain.notInCloud', 'Текст ещё не синхронизирован — запустите синк в ☁ и повторите.')
       : '✗ ' + tt('room.explain.err', 'Не удалось получить объяснение') + (code ? ' (' + code + ')' : '');
     return;
   }
   out.textContent = '';
   // Плашка честности ДО контента: что это и что сделает кнопка (R9-провенанс)
-  out.appendChild(el('div', { class: 'room-comp-plate', text: '✍️ ' + tt('room.explain.draftPlate', 'Черновик наставника — простой пересказ отрывка. «Открыть в Студии» создаст новый текст в вашей библиотеке.') }));
+  out.appendChild(el('div', { class: 'room-comp-plate', text: '✍️ ' + tt('room.explain.draftPlate', 'Черновик наставника — простой пересказ отрывка. «Открыть в Студии» вставит его в редактор как несохранённый текст (сборка таблицы штатным путём).') }));
   r.draft.lines.forEach((l) => {
     out.appendChild(el('div', { class: 'room-draft-he', dir: 'rtl', attrs: { lang: 'he' }, text: l.he }));
     if (l.ru) out.appendChild(el('div', { class: 'room-cloud-hint', text: l.ru }));
@@ -3633,28 +3640,21 @@ async function _draftRun() {
   out.appendChild(row);
 }
 async function _draftOpenInStudio(r) {
+  // Owner-фидбэк 2026-07-12: драфт = НЕСОХРАНЁННАЯ карточка через ШТАТНЫЙ пайплайн
+  // Студии (композер → «Собрать таблицу» → огласовки/транслит/перевод), без прямого
+  // создания в библиотеке. Handoff — localStorage (same-origin, TTL у consumer'а);
+  // библиотека не трогается, пока пользователь сам не нажмёт «Сохранить».
   try {
-    const id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'draft-' + Date.now();
-    const textKey = 'text-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
-    const title = tt('room.explain.draftTitle', 'Черновик 🤖') + ((r.work && r.work.title) ? ' · ' + r.work.title : '');
-    await localDb.createText({
-      id, text_key: textKey, title,
+    const payload = {
+      v: 1, ts: Date.now(),
+      title: tt('room.explain.draftTitle', 'Черновик 🤖') + ((r.work && r.work.title) ? ' · ' + r.work.title : ''),
       source_text: r.draft.lines.map((l) => l.he).join('\n'),
-      source: 'agent_draft',
-      // createText биндит source_meta_json как есть — СТРОКА обязательна (критика wf_7f300c39)
-      source_meta_json: JSON.stringify({
-        agent: { scenario: 'draft_retell', provider: r.provider || null, model: r.model || null, anchor: r.anchor || null },
-        derived_from: 'benyehuda:' + ((r.anchor && r.anchor.work_id) || ''),
-      }),
-    });
-    for (const l of r.draft.lines) {
-      const sid = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'ds-' + Date.now() + Math.random().toString(36).slice(2, 6);
-      await localDb.addSentence(id, { id: sid, he_plain: l.he, ru: l.ru || '' });
-    }
-    // ПОЛНАЯ Студия (без room=1) — редактор с перевод-пайплайном; закрыть БД до перехода
-    const url = '/index.html#/t/' + b64url(JSON.stringify({ v: 1, type: 'text', id: String(id) }));
+      agent: { scenario: 'draft_retell', provider: r.provider || null, model: r.model || null, anchor: r.anchor || null },
+    };
+    localStorage.setItem(DRAFT_HANDOFF_KEY, JSON.stringify(payload));
+    // ПОЛНАЯ Студия (room-режим прятал бы перевод-пайплайн); закрыть БД до перехода
     try { await localDb.closeLocalDB(); } catch (_) {}
-    location.href = url;
+    location.href = '/index.html';
   } catch (_) {
     const out = $('roomExplainDraftOut');
     if (out) out.appendChild(el('div', { class: 'room-cloud-hint', text: '✗ ' + tt('room.explain.draftCreateFail', 'Не удалось создать черновик в библиотеке') }));

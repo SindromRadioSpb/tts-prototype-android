@@ -74,15 +74,30 @@ for (const fn of ["updateSentence", "deleteSentence", "resetSentence", "reorderS
 // ── 6. Зал: deep-link #cloud (лестница шагов 2–3 не полутупик) ───────────────
 eq(libraryUi.includes("'#cloud'"), "library-ui.js must handle the #cloud hash deep-link");
 
-// ── 6b. PAS-B3: [Открыть в Студии] — критика wf_7f300c39 ────────────────────
+// ── 6b. PAS-B3 (owner-фидбэк 2026-07-12): драфт = НЕСОХРАНЁННАЯ карточка через
+// штатный пайплайн (handoff в композер), НЕ прямой createText ────────────────
 const draftFnIdx = libraryUi.indexOf("async function _draftOpenInStudio");
 eq(draftFnIdx > 0, "library-ui.js must define _draftOpenInStudio");
-const draftFn = libraryUi.slice(draftFnIdx, draftFnIdx + 3000);
-eq(draftFn.includes("'/index.html#/t/'") && !draftFn.includes("?room=1"),
-  "draft deep-link must target FULL Studio (без ?room=1 — room-mode прячет перевод-пайплайн)");
+const draftFn = libraryUi.slice(draftFnIdx, draftFnIdx + 2500);
+eq(draftFn.includes("studio.agentDraftHandoff") || draftFn.includes("DRAFT_HANDOFF_KEY"),
+  "draft handoff must go through the localStorage handoff key");
+eq(!draftFn.includes("createText"), "draft must NOT create a saved library text (owner: несохранённая карточка)");
+eq(!draftFn.includes("?room=1"), "draft nav must target FULL Studio (без ?room=1 — room-mode прячет перевод-пайплайн)");
 eq(draftFn.includes("closeLocalDB"), "draft nav must close the OPFS DB first (SQLITE_CANTOPEN-race)");
-eq(draftFn.includes("source_meta_json: JSON.stringify"), "createText source_meta_json must be stringified (иначе провенанс молча теряется)");
-eq(draftFn.includes("agent_draft"), "draft text must carry source='agent_draft' provenance");
+// consumer в Студии: штатный translateTable + TTL + room-mode скип
+eq(agentJs.includes("consumeDraftHandoff") && agentJs.includes("studio.agentDraftHandoff"),
+  "studio-agent.js must consume the draft handoff");
+eq(agentJs.includes("translateTable"), "handoff must build the table via the STANDARD pipeline (translateTable)");
+eq(agentJs.includes("inputText"), "handoff must fill the standard composer (#inputText)");
+// Зал: пересказ доступен и для ЛИЧНЫХ текстов (owner-решение 2026-07-12)
+const setupIdx = libraryUi.indexOf("function _draftSetup");
+const setupFn = libraryUi.slice(setupIdx, setupIdx + 800);
+eq(setupIdx > 0 && !/if\s*\(!isCorpus/.test(setupFn),
+  "_draftSetup must NOT be corpus-only anymore (личные тексты — owner-решение)");
+// Паритет модала Студии: 🔊 + перевод + квиз + пересказ
+for (const id of ["saExplainSpeak", "saExplainRu", "saExplainComp", "saExplainDraft"]) {
+  eq(agentJs.includes(id), "Studio modal must carry " + id + " (паритет с Залом — owner-фидбэк)");
+}
 
 // ── 7. locale-parity: каждый studio.agent.* ключ — в ru/en/he; плюс room.explain.draft*
 // ключи Зала (PAS-B3) — tt-fallback недостижим при живом t(), промах = сырой ключ в UI
