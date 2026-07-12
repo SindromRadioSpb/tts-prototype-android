@@ -1,6 +1,6 @@
 # PAS — Премиум-система агентов в Студии и Читальном зале (программа-чартер)
 
-**Дата:** 2026-07-11 · **Прод на старте:** v3.11.152 · **Статус на 2026-07-12: слайсы A (v3.11.153–155) и B (v3.11.156–159) ЗАКРЫТЫ live-verified, next = слайс C (диалог/практика).** Код каждого слайса — только после adversarial-критики его спеки. · **Grounded:** две разведки живого кода (субстрат агента + поверхности).
+**Дата:** 2026-07-11 · **Прод на старте:** v3.11.152 · **Статус на 2026-07-12: слайсы A (v3.11.153–155) и B (v3.11.156–160, включая owner-фидбэк-раунд) ЗАКРЫТЫ owner-live, next = слайс C (диалог/практика).** Код каждого слайса — только после adversarial-критики его спеки. · **Grounded:** две разведки живого кода (субстрат агента + поверхности).
 
 **Решения владельца (записаны):** стадирование A→B→C→D утверждено 2026-07-12; форки PAS-F1..F5 = по рекомендациям (F1 гибрид: серверная базовая квота + BYOK-расширение [BYOK-расширение ещё не реализовано — хвост волны 1]; F2 text-first; F3 follow-up ≤3; F4 Студия через synced artifacts; F5 порядок A→B→C→D). Дополнительно 2026-07-12: расширение личного scope до `sentence_window_5` ТОЛЬКО для проверки понимания (см. `PAS_SLICE_A_SPEC` статус-блок).
 
@@ -106,49 +106,72 @@ Duolingo Max «Explain my answer» → A2/A4 (у нас честнее: resolver
 
 ~~Слайс A~~ ЗАКРЫТ (см. шапку). ~~Слайс B~~ **КОД ЗАВЕРШЁН 2026-07-12, v3.11.156–158** (спека/адъюдикация `PAS_SLICE_B_SPEC_2026_07_12.md`, критика wf_7f300c39: 14 находок приняты): B0 studio-agent.js (§7.7 выполнен; кнопки — post-render инъекцией, renderTable parity-frozen) + B0.5 бамп texts.updated_at в мутаторах рядов (рут-фикс вечного стейла облачной копии) · B1 per-row 🤖 (live-якорь + row_id-матч сервера, лестница честных состояний, адресный пуш одного текста, #cloud deep-link Зала) · B2 «Материал» (② + НОВЫЙ frontier-квиз-лаунчер + study_summary за **НОВЫМ durable-ключом agent_read_texts_digest** — BLOCKER критики: старая копия обещает «не весь текст») · B3 draft-retell (corpus-only, ru-глосс в том же вызове, персист+dedupe) → [Открыть в Студии] (общий OPFS + deep-link без room=1 + closeLocalDB). Гейты: smoke:studio-agent NEW · smoke:agent-material NEW 45/45 · вся explain-семья зелёная. Следующий — **слайс C (диалог/практика)**, затем D (оркестрация).
 
-## §11 Промт для новой сессии (слайс B)
+## §11 Промт для новой сессии (слайс C)
 
 ```
 Продолжаем программу PAS — премиум-система агентов (мандат владельца, capability-led).
 
 READ FIRST:
 1. docs/planning/PREMIUM_AGENT_SYSTEM_RECON_2026_07_11.md — чартер, решения
-   владельца, статус (слайс A закрыт v3.11.153–155, все 4 фичи owner-live).
-2. docs/planning/PAS_SLICE_A_SPEC_2026_07_11.md — образец цикла слайса
-   (спека-дельта → adversarial-критика → адъюдикация → код по кускам → гейты
-   с exit-кодами → SW bump → deploy-poll → kapture live-verify на прод-профиле).
+   владельца, статус (слайсы A v3.11.153–155 и B v3.11.156–160 закрыты owner-live).
+2. docs/planning/PAS_SLICE_B_SPEC_2026_07_12.md — образец цикла слайса
+   (спека-дельта → adversarial-критика 3 линзы → адъюдикация → код по кускам →
+   гейты с exit-кодами → SW bump → deploy-poll → kapture live-verify на
+   прод-профиле) + все имплементационные отклонения/решения владельца слайса B.
 
-Стартуй СЛАЙС B — агент-редактор Студии (чартер §2-B):
-  B1. Per-row 🤖 «объяснить предложение» в таблице перевода Студии — тот же
-      POST /api/agent/explain через synced artifacts (форк F4); честный
-      empty-state «текст не синкан → включи облако».
-  B2. «Сделай из текста материал» — агент-оркестрация СУЩЕСТВУЮЩИХ
-      детерминированных движков (autogen-заметки ②, квизы) + LLM-резюме
-      «что стоит выучить» (advisory). Никакой LLM-морфологии (R1).
-  B3. Draft→[Открыть в Студии] — хвост AI_MENTOR_RECON §2.2.
+Стартуй СЛАЙС C — диалог/практика (чартер §2-C):
+  C1. Role-play по прочитанному (text-first, форк F2) — разговор с персонажем /
+      о сюжете ТОЛЬКО ЧТО прочитанного фрагмента; context-pack = фрагмент+глоссы;
+      ответы ученика НЕ грейдятся в память (advisory-фидбэк; R17 «кто учит — не
+      сертифицирует»); сессия эфемерна (класс D), явный старт/стоп. Generic-chat
+      ЗАПРЕЩЁН каноном — только grounded-диалог по прочитанному.
+  C2. Constrained writing — «напиши 2 предложения с этими словами» → LLM-разбор
+      с resolver-подтверждением форм (R1: морфологию утверждает резолвер, LLM —
+      переформулировка поверх); advisory, вне review_log.
+  C3. Голос — по форку PAS-F2: v1 text-first; Web Speech — отдельный под-слайс
+      ПОСЛЕ text-first (в кодовой базе ASR/MediaRecorder нет вовсе).
 
-ОБЯЗАТЕЛЬНО ПЕРВЫМ ШАГОМ (ещё до спеки): вынести agent-UI Студии в отдельный
-public/js/studio-agent.js — live-JS Студии INLINE в index.html (39K строк,
-public/check_script.js = МЁРТВАЯ копия; память feedback_studio_live_source_inline).
-CSS-ловушки index.html — в CLAUDE.md (глобальный button width:100% на mobile и т.д.).
-
-Ключевые факты для B (из разведок слайса A, проверить актуальность):
-- Студия: единственный AI-хук = BYOK Gemini-перевод (localStorage v3.geminiApiKey);
-  extension-points: .col-action-cell строк таблицы (index.html ~32377 renderTable/
-  currentTableData), панель провайдера, паттерн quota-bar (#geminiModelInfo).
-- Серверные /api/agent/* уже отдают usage {calls/limit}; scenario добавляется без
-  миграций (reserveLlmCall); explain/word/followup/comprehension работают для
-  synced-текстов (personal путь: двойной consent, scope sentence_only / окно
-  sentence_window_5 только для квиза).
-- Autogen-движок: public/js/notes-autogen.js (pure, lock-step c
-  scripts/premium/build-notes-from-bundle.js, гейт autogen-parity).
-- Гейты-регрессия при серверных правках: smoke:agent-explain(-corpus/-word),
-  smoke:agent-followup, smoke:agent-comprehension, smoke:agent-plan, api-smoke,
-  gate:log-hygiene; при правках index.html — Playwright-скриншот @380px ДО коммита.
+Ключевые факты для C (субстрат после слайсов A+B, проверить актуальность):
+- Bounded-диалог УЖЕ имеет прецедент: followup ≤3 (agent/explainer.js) — клиент
+  шлёт ТОЛЬКО {explanation_id, question}, context-pack пересобирается СЕРВЕРОМ
+  по якорю на каждый ход, personal consent-recheck на каждый ход, серверный
+  счётчик ходов в body_json, ход тратится только при доставленном ответе.
+  Role-play-сессии нужен свой контур: больше ходов (лимит = R16-развилка спеки),
+  эфемерность класса D (ходы НЕ персистятся — в отличие от followup якорь-
+  объяснения), явный старт/стоп.
+- Окна контекста готовы: corpus getCorpusWindow(5) без consent; личный
+  get_sentence_window_if_available (scope sentence_window_5 = понимание +
+  пересказ, решение владельца 2026-07-12) — role-play по фрагменту, вероятно,
+  тот же физический cap (расширение показа >5 строк = НОВОЕ owner-решение).
+- Consent-ключи: cloud_texts → agent_read_texts → agent_read_texts_digest
+  (иерархия fail-closed в db/agentSentenceRepo.js). Purge: exclusion-list
+  (щадит ТОЛЬКО facts[0].kind='corpus_sentence') + kind-targeted
+  purgeExplanationContentByKind. Ходы диалога класса D не персистятся вовсе —
+  purge их не касается by construction.
+- Новый LLM-сценарий = строка в reserveLlmCall (без миграций); mock LLM
+  различает json-фикстуры по opts.fixture (agent/llm.js, паттерн draft_retell);
+  isCleanProse-гейт прозы; kill-switch → у диалога честный отказ (фолбэк
+  невозможен по природе — прецедент followup/draft).
+- UI-дома: Зал = library-ui.js + модал #roomExplainModal (кнопки comp/draft —
+  паттерн «действие в модале после объяснения»); Студия = public/js/studio-agent.js
+  (ВЕСЬ агент-код Студии здесь; модал #saExplainModal с теми же extras; кнопки
+  рядов — POST-RENDER инъекция, renderTable заморожен smoke:reader-parity).
+  Роль-плей-UI, вероятно, свой вид/шит (многоходовой диалог в explain-модал не
+  влезает — UX-развилка спеки: отдельный вид в Зале после чтения фрагмента?).
+- Гейты-регрессия: smoke:agent-explain(-corpus/-word) · smoke:agent-followup ·
+  smoke:agent-comprehension · smoke:agent-material · smoke:studio-agent ·
+  smoke:agent-plan · api-smoke · gate:log-hygiene (сканирует agent/*.js
+  автоматически + два SERVER_REGION в server.js) · smoke:reader-parity.
+  Новые модули сервера — в agent/ (авто-скан log-hygiene), glue в server.js
+  тонкий. Playwright-скриншот @380px ДО коммита при задетом UI.
+- R16-кандидаты на BLOCKER спеки: диалог жжёт вызовы быстро (лимит ходов/сессий
+  в день, видимость usage в каждом ходе); приватность реплик УЧЕНИКА (класс D,
+  не логировать, не персистить, cap длины); анти-инъекция (реплика ученика =
+  data, не система — прецедент buildFollowupPayload с байт-стабильным system).
 
 Дисциплина прежняя: роли-линзы автоматически; существенный дизайн — adversarial-
 критика до кода (малый фронт, 3 линзы); гейты с явными exit-кодами; SW bump при
-задетых precached (index.html precached!); локали ru/en/he для новых строк;
+задетых precached; локали ru/en/he для всех новых строк (t()-fallback мёртв);
 commit+push+deploy-poll; live-verify через kapture на linguistpro.kolosei.com
-(Студия = корень «/», НЕ library.html) на прод-профиле владельца.
+на прод-профиле владельца (Зал = /library.html, Студия = корень «/»).
 ```
