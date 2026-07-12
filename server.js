@@ -2110,8 +2110,12 @@ app.get("/api/agent/tasks", rlAgent, async (req, res) => {
 app.post("/api/agent/profile", rlAgent, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   if (!requireCsrf(req, res, auth)) return;
-  try { res.json({ ok: true, profile: await agentRuntime.updateProfile({ userId: auth.user.id }, req.body || {}) }); }
-  catch (e) { res.status(500).json({ ok: false, error: "AGENT_PROFILE_FAILED", message: e.message }); }
+  try {
+    // PAS-D4: валидация в runtime (language enum, goals allowlist) → невалидное 400
+    const r = await agentRuntime.updateProfile({ userId: auth.user.id }, req.body || {});
+    if (!r.ok) return res.status(400).json(r);
+    res.json({ ok: true, profile: { mode: r.mode, language: r.language, depth: r.depth } });
+  } catch (e) { res.status(500).json({ ok: false, error: "AGENT_PROFILE_FAILED", message: e.message }); }
 });
 
 // ============================================================================

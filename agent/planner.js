@@ -173,9 +173,23 @@ function fallbackText(plan, language) {
 }
 
 // Полный сценарий /plan: ядро → (опц.) LLM-формулировка под pre-call reserve → agent_task.
+// PAS-D4: глубина плана — ЗАМЕНА length-клаузы system константой по enum (см. explainer.DEPTH_LEN;
+// brief = байт-в-байт прежняя строка).
+const PLAN_LEN = {
+  brief: { en: "2-4 short, warm sentences in English", ru: "2–4 короткими тёплыми фразами по-русски" },
+  detailed: { en: "4-7 unhurried, thorough sentences in English", ru: "4–7 обстоятельными подробными фразами по-русски" },
+};
+function _depthOf(profile) {
+  try {
+    const g = JSON.parse((profile && profile.goals_json) || "{}");
+    return g && g.depth === "detailed" ? "detailed" : "brief";
+  } catch (_) { return "brief"; }
+}
+
 async function plan(ctx) {
   const profile = await agentRepo.getProfile(ctx.userId);
   const language = (profile && profile.language) || "ru";
+  const depth = _depthOf(profile);
   const core = await buildPlanCore(ctx);
 
   let text = null, llmUsed = false, degradedReason = null, provider = null, model = null;
@@ -199,8 +213,8 @@ async function plan(ctx) {
     };
     const out = await llm.generate({
       system: (language === "en"
-        ? "You are the LinguistPro Hebrew mentor. Rewrite the given study plan as 2-4 short, warm sentences in English. Use ONLY the facts in the JSON. Do not invent words, counts or grammar facts. No greetings, no emoji spam. Output PLAIN PROSE ONLY: no backticks, no braces, no JSON, no field names (never write est_minutes/category/sections) — just natural sentences."
-        : "Ты — наставник LinguistPro по ивриту. Сформулируй данный план занятий 2–4 короткими тёплыми фразами по-русски. Используй ТОЛЬКО факты из JSON. Не выдумывай слова, числа и грамматические факты. Без приветствий. Пиши ТОЛЬКО обычным текстом: без обратных кавычек, без фигурных скобок, без JSON и имён полей (никогда не пиши est_minutes/category/sections) — только естественные предложения."),
+        ? "You are the LinguistPro Hebrew mentor. Rewrite the given study plan as " + PLAN_LEN[depth].en + ". Use ONLY the facts in the JSON. Do not invent words, counts or grammar facts. No greetings, no emoji spam. Output PLAIN PROSE ONLY: no backticks, no braces, no JSON, no field names (never write est_minutes/category/sections) — just natural sentences."
+        : "Ты — наставник LinguistPro по ивриту. Сформулируй данный план занятий " + PLAN_LEN[depth].ru + ". Используй ТОЛЬКО факты из JSON. Не выдумывай слова, числа и грамматические факты. Без приветствий. Пиши ТОЛЬКО обычным текстом: без обратных кавычек, без фигурных скобок, без JSON и имён полей (никогда не пиши est_minutes/category/sections) — только естественные предложения."),
       prompt: JSON.stringify(promptPayload),
       maxOutputTokens: 320,
     });

@@ -80,6 +80,14 @@ async function recordReview(ctx, args) {
   return call.result;
 }
 
+// PAS-D4: depth из goals_json (закрытый allowlist; дефолт brief)
+function _profileDepth(profile) {
+  try {
+    const g = JSON.parse((profile && profile.goals_json) || "{}");
+    return g && g.depth === "detailed" ? "detailed" : "brief";
+  } catch (_) { return "brief"; }
+}
+
 async function status(ctx) {
   const usage = await agentRepo.usageToday(ctx.userId);
   const profile = await agentRepo.getProfile(ctx.userId);
@@ -92,7 +100,7 @@ async function status(ctx) {
       llm_daily_global: Number(process.env.AGENT_LLM_DAILY_GLOBAL) || 200,
     },
     usage,
-    profile: { mode: profile.mode, language: profile.language },
+    profile: { mode: profile.mode, language: profile.language, depth: _profileDepth(profile) },
     tools: tools.listTools(),
   };
 }
@@ -176,9 +184,27 @@ async function constructsSummary(ctx) {
   return { constructs: out };
 }
 
+// PAS-D4: эндпоинт обретает первый UI-вызов — и зубы (критика D4-PROFILE-VALIDATION):
+// language СТРОГО ru/en (весь agent-стек бинарен; «he» был бы переключателем-пустышкой),
+// goals — закрытый allowlist {depth ∈ brief|detailed} (произвольный privacy-blob в
+// goals_json запрещён). Невалидное → {ok:false} (endpoint мапит на 400), НЕ тихий скип.
+const PROFILE_LANGS = new Set(["ru", "en"]);
+const PROFILE_DEPTHS = new Set(["brief", "detailed"]);
 async function updateProfile(ctx, patch) {
-  const p = await agentRepo.updateProfile(ctx.userId, patch || {});
-  return { mode: p.mode, language: p.language };
+  const p = patch || {};
+  if (p.language != null && !PROFILE_LANGS.has(String(p.language))) return { ok: false, error: "BAD_LANGUAGE" };
+  let goals;   // undefined = не трогать
+  if (p.goals !== undefined) {
+    if (p.goals === null) goals = null;
+    else {
+      if (typeof p.goals !== "object" || Array.isArray(p.goals)) return { ok: false, error: "BAD_GOALS" };
+      for (const k of Object.keys(p.goals)) if (k !== "depth") return { ok: false, error: "BAD_GOALS" };
+      if (p.goals.depth != null && !PROFILE_DEPTHS.has(String(p.goals.depth))) return { ok: false, error: "BAD_GOALS" };
+      goals = p.goals.depth ? { depth: String(p.goals.depth) } : {};
+    }
+  }
+  const prof = await agentRepo.updateProfile(ctx.userId, { mode: p.mode, language: p.language, goals });
+  return { ok: true, mode: prof.mode, language: prof.language, depth: _profileDepth(prof) };
 }
 
 module.exports = { plan, explain, explainWord, explainFollowup, comprehension, studySummary, draftRetell, roleplayStart, roleplayTurn, roleplayState, roleplayStop, writingTargets, writingReview, nextTextExplain, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };

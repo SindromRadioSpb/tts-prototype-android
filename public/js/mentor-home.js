@@ -645,6 +645,60 @@
     if (metaBits.length) out.appendChild(el("div", "mentor-hint", metaBits.join(" · ")));
   }
 
+  // ── PAS-D4: «⚙ Наставник» — настройки v1 (ТОЛЬКО потребляемые: язык объяснений ru/en +
+  // глубина brief/detailed; mode не шипится — не потребляется живым кодом [пустышка=обман]).
+  // Сохранение по паттерну consent-тогглов: optimistic + откат + «✗ Ошибка синхронизации». ──
+  async function renderSettings(box) {
+    box.textContent = "";
+    var a = null;
+    try { var r = await jget("/api/agent/status"); if (r.status === 200 && r.json && r.json.ok) a = r.json; } catch (_) {}
+    if (!a || !a.profile) { box.appendChild(el("div", "mentor-hint", "✗ " + t("room.cloud.err", "Ошибка синхронизации"))); return; }
+    var msg = el("div", "mentor-hint mentor-consent-msg");
+    msg.hidden = true;
+    function segRow(labelText, options, current, patchFor) {
+      var row = el("div", "mentor-set-row");
+      row.appendChild(el("span", "mentor-set-label", labelText));
+      var group = el("div", "mentor-set-seg");
+      var btns = [];
+      options.forEach(function (opt) {
+        var b = el("button", "mentor-set-btn" + (opt.value === current ? " on" : ""), opt.label);
+        b.type = "button";
+        b.addEventListener("click", async function () {
+          if (b.classList.contains("on")) return;
+          var prevOn = btns.find(function (x) { return x.classList.contains("on"); });
+          btns.forEach(function (x) { x.classList.remove("on"); x.disabled = true; });
+          b.classList.add("on");   // optimistic
+          try {
+            var r2 = await jpost("/api/agent/profile", patchFor(opt.value));
+            if (r2.status !== 200 || !r2.json || !r2.json.ok) throw new Error("save");
+            msg.hidden = true;
+            _ux("mentor_settings", "accepted");
+          } catch (_) {
+            b.classList.remove("on");   // откат
+            if (prevOn) prevOn.classList.add("on");
+            msg.textContent = "✗ " + t("room.cloud.err", "Ошибка синхронизации");
+            msg.hidden = false;
+          } finally { btns.forEach(function (x) { x.disabled = false; }); }
+        });
+        btns.push(b);
+        group.appendChild(b);
+      });
+      row.appendChild(group);
+      return row;
+    }
+    box.appendChild(segRow(t("room.mentor.settings.lang", "Язык объяснений"),
+      [{ value: "ru", label: "Рус" }, { value: "en", label: "Eng" }],
+      String(a.profile.language || "ru"),
+      function (v) { return { language: v }; }));
+    box.appendChild(segRow(t("room.mentor.settings.depth", "Глубина объяснений"),
+      [{ value: "brief", label: t("room.mentor.settings.brief", "Кратко") },
+       { value: "detailed", label: t("room.mentor.settings.detailed", "Подробно") }],
+      String(a.profile.depth || "brief"),
+      function (v) { return { goals: { depth: v } }; }));
+    box.appendChild(el("div", "mentor-hint", t("room.mentor.settings.hint", "Действует на объяснения, план и ответы наставника; сохраняется в облачном профиле.")));
+    box.appendChild(msg);
+  }
+
   // ── mount / refresh ─────────────────────────────────────────────────────────
   function blockNode(titleKey, titleFb) {
     var b = el("section", "mentor-block");
@@ -673,6 +727,7 @@
     var ntB = blockNode(null, null);     // PAS-D1 — «📖 Что читать дальше» (кнопка самоописательна)
     var wrB = blockNode(null, null);     // PAS-C2 — «✍️ Практика письма» (кнопка самоописательна)
     var tgB = blockNode("room.tg.title", "🔗 Telegram");
+    var setB = blockNode("room.mentor.settings.title", "⚙ Наставник");   // PAS-D4
     var histWrap = blockNode("room.mentor.histTitle", "История объяснений");
     var consB = blockNode("room.mentor.consTitle", "Ваши конструкции");
     var histBox = el("div", "mentor-hist-list");
@@ -684,6 +739,7 @@
     m.appendChild(ntB);
     m.appendChild(wrB);
     m.appendChild(tgB);
+    m.appendChild(setB);
     m.appendChild(histWrap);
     m.appendChild(consB);
     var consBox = el("div", "mentor-cons-list");
@@ -694,6 +750,7 @@
     renderNextText(ntB.appendChild(el("div", "mentor-nt-wrap")));
     renderWriting(wrB.appendChild(el("div", "mentor-wr-wrap")));
     renderTelegramBlock(tgBox);
+    renderSettings(setB.appendChild(el("div", "mentor-set-wrap")));
     renderHistoryBlock(histWrap, histBox);
     renderConstructs(consBox);
     // PAS-D1: блок без capability хоста схлопывается (MA-хост её не отдаёт)

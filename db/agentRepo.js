@@ -148,7 +148,7 @@ async function purgeExplanationContentByKind(userId, kind, reason = "consent_rev
 // kind различает sentence (body.kind отсутствует) и word (kind='word' + матч по слову) —
 // иначе word-объяснение того же sentence_id маскировало бы sentence-dedupe и наоборот.
 // Возвращает МИНИМУМ для повторного ответа (не факты) либо null.
-async function getFreshExplanation(userId, sentenceId, { language, kind, word } = {}) {
+async function getFreshExplanation(userId, sentenceId, { language, kind, word, depth } = {}) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const rows = await dbAll(db,
     `SELECT id, body_json, created_at FROM agent_explanations
@@ -162,6 +162,9 @@ async function getFreshExplanation(userId, sentenceId, { language, kind, word } 
     if (language && b.language !== language) continue;
     if ((kind || null) !== (b.kind || null)) continue;
     if (kind === "word" && String(b.word || "") !== String(word || "")) continue;
+    // PAS-D4: dedupe ключуется по глубине (back-compat: строки без depth = brief) — смена
+    // настройки не должна до конца дня отдавать кеш прежней глубины (критика D4-DEPTH-DEDUPE-KEY).
+    if ((b.depth === "detailed" ? "detailed" : "brief") !== (depth === "detailed" ? "detailed" : "brief")) continue;
     if (String(row.created_at || "").slice(0, 10) !== todayUtc) continue;
     return { id: row.id, text: String(b.text), llm_used: b.llm_used === true,
              provider: b.provider || null, model: b.model || null,

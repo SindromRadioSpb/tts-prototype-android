@@ -2103,6 +2103,15 @@ window.I18N_LOCALES.en = {
       textMissing: "Text not found on this device — sync “My Texts” in ☁.",
       corpusTextMissing: "Work not found on this device — open it in the Corpus tab.",
       histWord: "word",
+      // PAS-D4 — mentor settings
+      settings: {
+        title: "⚙ Mentor",
+        lang: "Explanation language",
+        depth: "Explanation depth",
+        brief: "Brief",
+        detailed: "Detailed",
+        hint: "Applies to explanations, the plan and mentor replies; stored in your cloud profile.",
+      },
     },
     tg: {
       title: "🔗 Telegram",
