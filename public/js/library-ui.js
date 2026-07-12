@@ -2897,6 +2897,44 @@ try {
 // (НЕ страница — DB-teardown урок v3.11.101; НЕ drawer). Логика/данные — в mentor-home.js
 // (API-only, скелет Mini App P8); Зал отдаёт host-adapter действий: тренер P6.5, возврат в
 // чтение, открытие текста на якоре (OPFS-резолв text_key→id — это СТОРОНА ХОСТА, не модуля).
+// PAS-D0.2 — лёгкая телеметрия агент-фич (agent_ux, чартер §6): in-memory очередь +
+// батч-flush fire-and-forget в /api/learner/ingest. ТОЛЬКО при живой cloud-сессии
+// (нет CSRF → честная потеря; телеметрия non-gating, провенанс-оговорка R17 в спеке:
+// эмитят лишь cloud-авторизованные). НИКАКОГО контента — feature/action = закрытые
+// enum'ы, сервер валидирует по значению (learnerLogRepo). Ничего не гейтит.
+let _uxQueue = [];
+let _uxTimer = null;
+function _uxUuid() {
+  try { return crypto.randomUUID(); } catch (_) { return 'ux' + Date.now() + '-' + Math.random().toString(36).slice(2, 10); }
+}
+function agentUx(feature, action, latencyMs) {
+  try {
+    _uxQueue.push({
+      id: _uxUuid(), type: 'agent_ux', created_at_client: new Date().toISOString(),
+      payload: { feature: String(feature), action: String(action),
+        ...(latencyMs != null && isFinite(latencyMs) ? { latency_ms: Math.min(600000, Math.max(0, Math.round(latencyMs))) } : {}) },
+    });
+    if (_uxQueue.length >= 20) { flushAgentUx(); return; }
+    if (!_uxTimer) _uxTimer = setTimeout(flushAgentUx, 30000);
+  } catch (_) {}
+}
+function flushAgentUx() {
+  if (_uxTimer) { clearTimeout(_uxTimer); _uxTimer = null; }
+  const batch = _uxQueue; _uxQueue = [];
+  if (!batch.length) return;
+  let csrf = '';
+  try { csrf = localStorage.getItem('cloud.csrf') || ''; } catch (_) {}
+  if (!csrf) return;
+  try {
+    fetch('/api/learner/ingest', {
+      method: 'POST', credentials: 'same-origin', keepalive: true,
+      headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': csrf },
+      body: JSON.stringify({ idempotency_key: 'ux-' + batch[0].id, schema_version: 1, learner_events: batch }),
+    }).catch(() => {});
+  } catch (_) {}
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushAgentUx(); });
+
 // Этикет R17 §2.3: вид открывается ТОЛЬКО явным тапом или deep-link #mentor (пуш) — никаких
 // автооткрытий.
 let _mentorMounted = false;
@@ -2907,6 +2945,15 @@ function _mentorHost() {
     csrf: () => { try { return localStorage.getItem('cloud.csrf') || ''; } catch (_) { return ''; } },
     runTrainer: (itemKeys, channel) => { try { startPlanSectionTraining(itemKeys, channel); } catch (_) {} },
     openReading: () => closeMentorView(),
+    // PAS-D1 — capability пиков «что читать дальше» (движок/снапшот = рельса Зала) +
+    // открытие пика ИЗ mentor-view (критика: openCorpusWork сам вид не закрывает —
+    // зеркалим openTextAt: сперва closeMentorView) + телеметрия agent_ux.
+    nextTextPicks: () => buildNextTextPicks(),
+    openCorpusPick: (pick) => {
+      try { closeMentorView(); } catch (_) {}
+      try { if (pick && pick.card) openCorpusWork(pick.card); } catch (_) {}
+    },
+    agentUx: (feature, action, latencyMs) => { try { agentUx(feature, action, latencyMs); } catch (_) {} },
     openTextAt: async (textKey, orderIndex, source) => {
       let row = null;
       try {
@@ -3343,6 +3390,72 @@ async function buildHandoffPicks(excludeTextKey) {
     if (pick.length) return { kind: 'coldstart', cards: pick };
     return null;
   } catch (_) { return null; }
+}
+
+// PAS-D1 — пики «что читать дальше» для дома наставника: ТОТ ЖЕ движок и тот же снапшот
+// профиля, что рельса 🎯/🔥/🌱 и handoff (R11: согласованность рекомендаций между
+// поверхностями — по построению; зеркало buildHandoffPicks). Возврат:
+//   { kind:'next'|'challenge', picks:[{work_id, card, title, author, cov, load_flag,
+//     frontier_pids, frontier_count}] }  — cov-канал живой;
+//   { kind:'coldstart', picks:[{work_id, card, title, author}] } — profile-free ez, БЕЗ
+//     cov-полей (бейдж «≈0%» был бы сфабрикован — критика wf_dd4bc294);
+//   { error:'data' } — каталог/сайдкар НЕ загрузились (НЕ путать с пустым профилем —
+//     «тихий 0 ≠ реальный 0»); null — и coldstart пуст.
+async function buildNextTextPicks() {
+  let ready = null, v = null;
+  try {
+    // критика: наследовать index-дефолт v3 при отсутствии corpusRoot ЗАПРЕЩЕНО — честная ошибка
+    if (!corpusRoot || !corpusRoot.index_file || !window.CorpusVocab) return { error: 'data' };
+    await loadCorpusIndex();
+    ready = (corpusIndex && corpusIndex.ready) || [];
+    v = await loadCorpusVocab();
+    if (!ready.length || !v || !v.works) return { error: 'data' };
+  } catch (_) { return { error: 'data' }; }
+  // мёртвый localDb (OPFS недоступен) вешает ensureWordStates навсегда → таймаут в
+  // error-ветку (R4 без тупиков; «профиль пуст» здесь был бы ложью — критика L2-3)
+  const statesRaced = await Promise.race([
+    ensureWordStates().catch(() => null),
+    new Promise((r) => setTimeout(() => r('__timeout__'), 8000)),
+  ]);
+  if (statesRaced === '__timeout__') return { error: 'data' };
+  const states = statesRaced || {};
+  const covById = new Map(), cardById = new Map(), scored = [];
+  for (const c of ready) {
+    const w = v.works[String(c.id)];
+    if (!w) continue;
+    const cov = window.CorpusVocab.coverageForWork(w, v.dict, states);
+    if (!cov) continue;
+    cardById.set(String(c.id), c);
+    covById.set(String(c.id), cov);
+    scored.push({ id: String(c.id), author: c.author, cov: cov });
+  }
+  const decision = window.CorpusVocab.pickPersonalRail(scored);
+  if (decision && decision.kind) {
+    const picks = decision.ids.slice(0, 3).map((id) => {
+      const c = cardById.get(String(id)), cov = covById.get(String(id));
+      if (!c || !cov) return null;
+      return {
+        work_id: String(c.id), card: c, title: c.title, author: c.author,
+        cov: cov.matchedDrillCov, load_flag: !!cov.loadFlag,
+        frontier_pids: cov.frontier.slice(0, 8).map((f) => Number(f.pid)).filter((n) => Number.isInteger(n) && n > 0),
+        frontier_count: cov.frontierCount,
+      };
+    }).filter(Boolean);
+    if (picks.length) return { kind: decision.kind, picks };
+  }
+  // cold-start: profile-free ez (зеркало buildHandoffPicks) — без cov-полей
+  const cold = ready
+    .map((c) => ({ c, ez: (v.works[String(c.id)] || {}).ez || 0 }))
+    .filter((x) => x.ez > 0).sort((a, b) => b.ez - a.ez);
+  const per = {}, picks = [];
+  for (const x of cold) {
+    const a = x.c.author || '?';
+    if ((per[a] || 0) >= 2) continue;
+    per[a] = (per[a] || 0) + 1;
+    picks.push({ work_id: String(x.c.id), card: x.c, title: x.c.title, author: x.c.author });
+    if (picks.length >= 3) break;
+  }
+  return picks.length ? { kind: 'coldstart', picks } : null;
 }
 
 // Append the «что дальше» fan to the end-card (async, guarded against navigation away).

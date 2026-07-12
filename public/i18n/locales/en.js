@@ -2049,6 +2049,20 @@ window.I18N_LOCALES.en = {
       notHebrew: "Please write in Hebrew — at least half of it.",
       tooLong: "Too long — up to 300 characters.",
     },
+    // PAS-D1 — "What to read next" (mentor home): deterministic picks + LLM "Why?"
+    nexttext: {
+      btn: "What to read next",
+      hint: "A corpus text picked against your vocabulary — the same engine as the “Next for you” rail.",
+      loading: "Picking texts…",
+      err: "Could not load the corpus catalog.",
+      retry: "Retry",
+      empty: "Nothing to suggest yet — mark a few words in texts and picks will appear.",
+      coldIntro: "Your profile is still small — here are easy canon texts to start with.",
+      read: "▶ Read",
+      why: "🤖 Why?",
+      again: "Refresh picks",
+      planEg: "for example:",
+    },
     // PAS-C1 — grounded dialogue "discuss the passage" (sheet over the reader)
     talk: {
       btn: "Discuss the passage",

@@ -12,6 +12,7 @@ const explainer = require(path.join(__dirname, "explainer"));
 const material = require(path.join(__dirname, "material"));
 const roleplay = require(path.join(__dirname, "roleplay"));
 const writing = require(path.join(__dirname, "writing"));
+const nextText = require(path.join(__dirname, "nextText"));
 const tools = require(path.join(__dirname, "tools"));
 const llm = require(path.join(__dirname, "llm"));
 const constructs = require(path.join(__dirname, "constructs"));
@@ -63,6 +64,10 @@ async function roleplayStop(ctx, args) { return roleplay.stop(ctx, args || {}); 
 // детерминированный forward-матч целей — R1).
 async function writingTargets(ctx) { return writing.targets(ctx); }
 async function writingReview(ctx, args) { return writing.review(ctx, args || {}); }
+
+// PAS-D1: LLM-объяснение детерминированно выбранного текста (скоринг — клиент,
+// grounding — сервер; advisory класса A, ничего не персистится).
+async function nextTextExplain(ctx, args) { return nextText.explain(ctx, args || {}); }
 
 // P7.0c: запись ответа/annul — СТРОГО через closed tool router (единственные ворота
 // записи; флаг/whitelist/B2 живут там и в reviewer). Контрактные реджекты reviewer
@@ -176,4 +181,4 @@ async function updateProfile(ctx, patch) {
   return { mode: p.mode, language: p.language };
 }
 
-module.exports = { plan, explain, explainWord, explainFollowup, comprehension, studySummary, draftRetell, roleplayStart, roleplayTurn, roleplayState, roleplayStop, writingTargets, writingReview, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };
+module.exports = { plan, explain, explainWord, explainFollowup, comprehension, studySummary, draftRetell, roleplayStart, roleplayTurn, roleplayState, roleplayStop, writingTargets, writingReview, nextTextExplain, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };

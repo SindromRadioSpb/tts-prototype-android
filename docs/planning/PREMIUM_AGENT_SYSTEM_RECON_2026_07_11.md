@@ -134,7 +134,7 @@ READ FIRST:
       §9; BLOCKER-фиксы критики wf_659f597a: shared FLAGSHIP_DUE_LIMIT и др.),
       под лёгкой телеметрией без RCT-гейта.
 
-Ключевые факты для D (субстрат после A+B+C, проверить актуальность):
+Ключевые факты для D (субстрат после A+B+C):
 - Агент-субстрат: 15 tools (agent/tools.js), сценарии plan/explain/word/followup/
   comprehension/study_summary/draft_retell/roleplay/writing_review; новый
   сценарий = строка в reserveLlmCall; scenario-cap прецедент — roleplay

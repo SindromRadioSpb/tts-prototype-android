@@ -250,6 +250,31 @@
           rd.type = "button";
           rd.addEventListener("click", function () { try { S.host.openReading(); } catch (_) {} });
           row.appendChild(rd);
+          // PAS-D1: пример «что читать» — детерминированно и бесплатно (тот же движок,
+          // что рельса; fire-and-forget: план не ждёт 919КБ-сайдкара). Только kind=next
+          // (challenge/coldstart в плановой строке без фрейминга были бы нечестны).
+          if (S.host && typeof S.host.nextTextPicks === "function") {
+            (async function (sectionRow) {
+              var picks = null;
+              try { picks = await S.host.nextTextPicks(); } catch (_) {}
+              if (!picks || picks.error || picks.kind !== "next" || !picks.picks || !picks.picks.length) return;
+              if (!sectionRow.isConnected) return;   // план перерисован/закрыт, пока грузился сайдкар
+              var p = picks.picks[0];
+              var eg = el("div", "mentor-plan-line mentor-plan-example");
+              eg.setAttribute("dir", "auto");
+              eg.appendChild(document.createTextNode(t("room.nexttext.planEg", "например:") + " "));
+              var bdi = el("bdi", null, p.title || p.work_id);
+              bdi.setAttribute("lang", "he");
+              eg.appendChild(bdi);
+              if (typeof p.cov === "number") eg.appendChild(document.createTextNode(" (≈" + Math.round(p.cov * 100) + "% " + t("room.corpus.cov.familiar", "знакомо") + ")"));
+              eg.style.cursor = "pointer";
+              eg.addEventListener("click", function () {
+                _ux("next_text", "accepted");
+                try { S.host.openCorpusPick(p); } catch (_) {}
+              });
+              sectionRow.appendChild(eg);
+            })(row);
+          }
         }
         boxWrap.appendChild(row);
         // P6.4 — конструкции секции: серверные титулы (клиент реестр не дублирует)
@@ -366,6 +391,146 @@
       var title = useRu() ? (c.title_ru || c.title_en) : (c.title_en || c.title_ru);
       box.appendChild(el("div", "mentor-cons-row", "⚙ " + title + " · ×" + c.count));
     });
+  }
+
+  // ── PAS-D1: «📖 Что читать дальше» — next-text по корпусу. Скоринг ДЕТЕРМИНИРОВАН
+  // и живёт у хоста (host.nextTextPicks → движок corpus-vocab.js — тот же, что рельса
+  // Зала: R11 согласованность по построению). LLM — ТОЛЬКО по тапу «Почему?» (1 вызов;
+  // повтор закрыт client-memo). Kind-фрейминг = контракт движка: challenge никогда
+  // не «для тебя», coldstart без %-бейджа. Всё textContent. ──
+  var _ntMemo = {};        // work_id → готовый ответ «Почему?» (сессия; квота не жжётся повторно)
+  var _ntOfferedAt = 0;    // для latency_ms в agent_ux
+  function _ux(feature, action, latencyMs) {
+    try { if (S.host && S.host.agentUx) S.host.agentUx(feature, action, latencyMs); } catch (_) {}
+  }
+  function renderNextText(box) {
+    box.textContent = "";
+    if (!S.host || typeof S.host.nextTextPicks !== "function") return;   // нет capability (MA) — блока нет
+    var btn = el("button", "mentor-plan-btn", "📖 " + t("room.nexttext.btn", "Что читать дальше"));
+    btn.type = "button";
+    btn.addEventListener("click", function () { nextTextLoad(box); });
+    box.appendChild(btn);
+    box.appendChild(el("div", "mentor-hint", t("room.nexttext.hint", "Подбор текста из корпуса по вашему словарю — тем же движком, что рельса «Следующий для тебя».")));
+  }
+  var _ntBusy = false;
+  async function nextTextLoad(box) {
+    if (_ntBusy) return;
+    _ntBusy = true;
+    box.textContent = "";
+    box.appendChild(el("div", "mentor-hint", t("room.nexttext.loading", "Подбираю тексты…")));
+    var r = null;
+    try { r = await S.host.nextTextPicks(); } catch (_) { r = { error: "data" }; }
+    _ntBusy = false;
+    box.textContent = "";
+    // терминальные состояния РАЗЛИЧЕНЫ (критика: ошибка данных ≠ пустой профиль)
+    if (r && r.error) {
+      box.appendChild(el("div", "mentor-hint", "✗ " + t("room.nexttext.err", "Не удалось загрузить каталог корпуса.")));
+      var rb = el("button", "mentor-plan-btn", t("room.nexttext.retry", "Повторить"));
+      rb.type = "button";
+      rb.addEventListener("click", function () { nextTextLoad(box); });
+      box.appendChild(rb);
+      return;
+    }
+    if (!r || !r.picks || !r.picks.length) {
+      box.appendChild(el("div", "mentor-hint", t("room.nexttext.empty", "Пока нечего предложить — отметьте несколько слов в текстах, и подбор появится.")));
+      return;
+    }
+    var kind = r.kind;
+    // kind-фрейминг: паритет с рельсой 🎯/🔥/🌱 (те же ключи локалей Зала)
+    var head = el("div", "mentor-nt-head");
+    var meta = kind === "challenge"
+      ? { emoji: "🔥", key: "room.corpus.challengeTitle", fb: "Следующий вызов", introKey: "room.corpus.challengeIntro", introFb: "Ты перерос лёгкое — вот посильный вызов чуть выше твоего уровня." }
+      : kind === "coldstart"
+        ? { emoji: "🌱", key: "room.corpus.coldStartTitle", fb: "С чего начать", introKey: "room.nexttext.coldIntro", introFb: "Профиль ещё мал — вот лёгкие тексты канона для старта." }
+        : { emoji: "🎯", key: "room.corpus.nextTitle", fb: "Следующий для тебя", introKey: "room.corpus.nextIntro", introFb: "Тексты, где ты уже знаешь ~80–95% слов — идеальны для роста." };
+    head.textContent = meta.emoji + " " + t(meta.key, meta.fb);
+    box.appendChild(head);
+    box.appendChild(el("div", "mentor-hint", t(meta.introKey, meta.introFb)));
+    _ntOfferedAt = Date.now();
+    _ux("next_text", "offered");
+    r.picks.forEach(function (pick) {
+      var row = el("div", "mentor-nt-pick");
+      var line = el("div", "mentor-nt-title");
+      line.setAttribute("dir", "auto");   // bidi: ивритский титул в ru/en-строке
+      var bdi = el("bdi", null, pick.title || pick.work_id);
+      bdi.setAttribute("lang", "he");
+      line.appendChild(bdi);
+      if (pick.author) {
+        var au = el("span", "mentor-nt-author");
+        au.appendChild(document.createTextNode(" · "));
+        var abdi = el("bdi", null, pick.author);
+        abdi.setAttribute("lang", "he");
+        au.appendChild(abdi);
+        line.appendChild(au);
+      }
+      // %-бейдж только у live-cov пиков (coldstart без cov — сфабрикованный «0%» запрещён)
+      if (kind !== "coldstart" && typeof pick.cov === "number") {
+        line.appendChild(el("span", "mentor-nt-badge coverage-" + (kind === "challenge" ? "hard" : "in"),
+          " ≈" + Math.round(pick.cov * 100) + "% " + t("room.corpus.cov.familiar", "знакомо")));
+      }
+      row.appendChild(line);
+      var actions = el("div", "mentor-nt-actions");
+      var read = el("button", "mentor-plan-go", t("room.nexttext.read", "▶ Читать"));
+      read.type = "button";
+      read.addEventListener("click", function () {
+        _ux("next_text", "accepted", Date.now() - _ntOfferedAt);
+        try { S.host.openCorpusPick(pick); } catch (_) {}
+      });
+      actions.appendChild(read);
+      if (kind !== "coldstart") {
+        var why = el("button", "mentor-plan-go", t("room.nexttext.why", "🤖 Почему?"));
+        why.type = "button";
+        var out = el("div", "mentor-nt-why");
+        why.addEventListener("click", function () { nextTextWhy(pick, kind, why, out); });
+        actions.appendChild(why);
+        row.appendChild(actions);
+        row.appendChild(out);
+      } else {
+        row.appendChild(actions);
+      }
+      box.appendChild(row);
+    });
+    var again = el("button", "mentor-wr-ghost", t("room.nexttext.again", "Обновить подбор"));
+    again.type = "button";
+    again.addEventListener("click", function () { nextTextLoad(box); });
+    box.appendChild(again);
+  }
+  function _ntRenderWhy(out, j) {
+    out.textContent = "";
+    var txt = el("div", "mentor-nt-why-text", j.text || "");
+    txt.setAttribute("dir", "auto");
+    out.appendChild(txt);
+    var metaBits = [];
+    if (j.provider) metaBits.push("🤖 " + j.provider + (j.model ? " · " + j.model : ""));
+    if (j.usage && j.usage.limit) metaBits.push(t("room.explain.usage", "AI сегодня") + ": " + j.usage.user_llm_calls + "/" + j.usage.limit);
+    if (metaBits.length) out.appendChild(el("div", "mentor-hint", metaBits.join(" · ")));
+  }
+  async function nextTextWhy(pick, kind, btn, out) {
+    if (_ntMemo[pick.work_id]) { _ntRenderWhy(out, _ntMemo[pick.work_id]); return; }
+    _ux("next_text", "accepted", Date.now() - _ntOfferedAt);
+    btn.disabled = true;
+    out.textContent = "";
+    out.appendChild(el("div", "mentor-hint", t("room.explain.loading", "Наставник думает…")));
+    var r = null;
+    try {
+      r = await jpost("/api/agent/next-text/explain", { pick: {
+        work_id: pick.work_id, cov: pick.cov, load_flag: !!pick.load_flag,
+        kind: kind, frontier_pids: pick.frontier_pids || [],
+      } });
+    } catch (_) {}
+    btn.disabled = false;
+    out.textContent = "";
+    if (!r || r.status !== 200 || !r.json || !r.json.ok) {
+      var code = (r && r.json && r.json.error) || "";
+      var msg = code === "USER_LIMIT" || code === "GLOBAL_LIMIT" ? t("room.cloud.planLimit", "дневной лимит LLM исчерпан")
+        : code === "KILL_SWITCH" ? t("room.cloud.agentKill", "LLM выключен (kill-switch)")
+        : "✗ " + t("room.explain.err", "Не удалось получить объяснение") + (code ? " (" + code + ")" : "");
+      out.appendChild(el("div", "mentor-hint", msg));
+      return;
+    }
+    _ntMemo[pick.work_id] = r.json;
+    _ntRenderWhy(out, r.json);
+    try { renderStatus(S.els.status); } catch (_) {}   // счётчик LLM сразу отражает списание
   }
 
   // ── PAS-C2: «✍️ Практика письма» — constrained writing (advisory, класс D:
@@ -505,6 +670,7 @@
     }
     var status = blockNode(null, null);
     var planB = blockNode(null, null);   // кнопка «🧭 План на сегодня» самоописательна — без дубля-заголовка
+    var ntB = blockNode(null, null);     // PAS-D1 — «📖 Что читать дальше» (кнопка самоописательна)
     var wrB = blockNode(null, null);     // PAS-C2 — «✍️ Практика письма» (кнопка самоописательна)
     var tgB = blockNode("room.tg.title", "🔗 Telegram");
     var histWrap = blockNode("room.mentor.histTitle", "История объяснений");
@@ -515,6 +681,7 @@
     S.els = { status: status, plan: planB, telegram: tgBox, history: histBox, constructs: null };
     m.appendChild(status);
     m.appendChild(planB);
+    m.appendChild(ntB);
     m.appendChild(wrB);
     m.appendChild(tgB);
     m.appendChild(histWrap);
@@ -524,10 +691,13 @@
     S.els.constructs = consBox;
     renderStatus(status);
     renderPlanBlock(planB.appendChild(el("div", "mentor-plan-wrap")));
+    renderNextText(ntB.appendChild(el("div", "mentor-nt-wrap")));
     renderWriting(wrB.appendChild(el("div", "mentor-wr-wrap")));
     renderTelegramBlock(tgBox);
     renderHistoryBlock(histWrap, histBox);
     renderConstructs(consBox);
+    // PAS-D1: блок без capability хоста схлопывается (MA-хост её не отдаёт)
+    if (!(S.host && typeof S.host.nextTextPicks === "function")) ntB.hidden = true;
   }
 
   function mountFn(container, host) {

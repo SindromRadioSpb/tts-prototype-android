@@ -2075,6 +2075,26 @@ app.post("/api/agent/writing/review", rlAgentExplain, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: "AGENT_WRITING_REVIEW_FAILED", message: e.message }); }
 });
 
+// PAS-D1 — next-text (agent/nextText.js): скоринг детерминирован НА КЛИЕНТЕ (единый
+// движок corpus-vocab.js), сервер валидирует иды/числа и деривит ВЕСЬ текстовый
+// grounding сам (index по построению той же версии, R11); advisory класса A.
+app.post("/api/agent/next-text/explain", rlAgentExplain, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const r = await agentRuntime.nextTextExplain({ userId: auth.user.id, deviceId: auth.session.deviceId },
+      { pick: (req.body || {}).pick });
+    if (!r.ok) {
+      const code = String(r.error || "");
+      if (code === "UNKNOWN_WORK" || code === "BAD_COV" || code === "BAD_KIND" || code === "BAD_FRONTIER") return res.status(400).json(r);
+      if (code === "USER_LIMIT" || code === "GLOBAL_LIMIT") return res.status(429).json(r);
+      if (code === "KILL_SWITCH" || code === "INDEX_UNAVAILABLE") return res.status(503).json(r);
+      return res.status(502).json(r);
+    }
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: "AGENT_NEXT_TEXT_FAILED", message: e.message }); }
+});
+
 app.get("/api/agent/status", rlAgent, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   try { res.json({ ok: true, ...(await agentRuntime.status({ userId: auth.user.id })) }); }

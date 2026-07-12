@@ -82,12 +82,19 @@ const META_STRIP = new Set([
 const EVENT_TYPES = new Set([
   "text_opened", "sentence_read", "word_clicked", "word_marked", "audio_played",
   "message_sent", "message_seen", "agent_task_completed",
+  "agent_ux",   // PAS-D0.2 — телеметрия агент-фич (чартер §6): feature/action/latency_ms, БЕЗ контента
 ]);
 const EVENT_TYPES_FORBIDDEN = new Set(["review_answered", "dictation_answered"]);
 const PAYLOAD_ALLOW = new Set([
   "text_key", "sentence_id", "order_index", "item_key", "count", "day", "source", "channel",
   "corpus", "work_id", "status",
+  "feature", "action", "latency_ms",   // agent_ux (по-значению валидируются ниже — PAYLOAD_ALLOW ключи-only)
 ]);
+// PAS-D0.2 (критика wf_dd4bc294 MAJOR: allowlist ключей НЕ ограничивает значения — свободный
+// текст в feature/action просочился бы в class-A поток) — закрытые enum'ы ПО ЗНАЧЕНИЮ.
+const AGENT_UX_FEATURES = new Set(["next_text", "scaffold_advisor", "session_goal", "mentor_settings"]);
+const AGENT_UX_ACTIONS = new Set(["offered", "accepted", "dismissed", "abandoned"]);
+const AGENT_UX_LATENCY_MAX = 600000;
 
 function cleanObjectKeys(obj, allow, strip) {
   // returns { cleaned, stripped: [k...], unknown: [k...] }
@@ -166,6 +173,16 @@ function validateLearnerEvent(raw, nowMs) {
   if (payload == null || typeof payload !== "object" || Array.isArray(payload)) return { ok: false, reason: "bad_payload_json" };
   const pc = cleanObjectKeys(payload, PAYLOAD_ALLOW, META_STRIP);
   if (pc.unknown.length) return { ok: false, reason: "payload_key:" + pc.unknown[0] };
+  // agent_ux — по-значению валидация (reject-not-normalize, как весь валидатор): ключи-only
+  // allowlist пропустил бы свободный текст в class-A поток.
+  if (type === "agent_ux") {
+    if (!AGENT_UX_FEATURES.has(String(pc.cleaned.feature || ""))) return { ok: false, reason: "payload_value:feature" };
+    if (!AGENT_UX_ACTIONS.has(String(pc.cleaned.action || ""))) return { ok: false, reason: "payload_value:action" };
+    if (pc.cleaned.latency_ms != null) {
+      const lm = Number(pc.cleaned.latency_ms);
+      if (!Number.isInteger(lm) || lm < 0 || lm > AGENT_UX_LATENCY_MAX) return { ok: false, reason: "payload_value:latency_ms" };
+    }
+  }
   const payloadStr = JSON.stringify(pc.cleaned);
   if (Buffer.byteLength(payloadStr, "utf8") > MAX_PAYLOAD_BYTES) return { ok: false, reason: "payload_too_big" };
   return { ok: true, strippedKeys: pc.strippedKeys, row: { id, type, created_at_client: t.value, payload_json: payloadStr } };
@@ -335,4 +352,5 @@ module.exports = {
   ingestBatch, readLog, counts, itemRows, getRowById, engagedSince,
   SUPPORTED_SCHEMA_VERSION, SUPPORTED_KEYER_VERSION, MAX_BATCH_ROWS,
   META_ALLOW,   // P7.0b: read-only для гейта «провенанс-полям грейдера есть где жить»
+  validateLearnerEvent,   // PAS-D0.2: unit-гейт по-значению валидации agent_ux
 };
