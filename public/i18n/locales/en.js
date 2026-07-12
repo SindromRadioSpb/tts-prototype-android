@@ -1994,6 +1994,8 @@ window.I18N_LOCALES.en = {
       planNoAnchors: "These words have no anchored sentences on this device — train them inside their text.",
       agentTextsToggle: "🤖 Let the mentor read my texts",
       agentTextsHint: "The mentor may send an external AI provider the selected sentence (explanation) or a short fragment of up to 5 sentences (comprehension check) — never the whole text; revoking consent purges saved explanations.",
+      agentDigestToggle: "📄 Let the mentor read a whole text (on request)",
+      agentDigestHint: "For the Studio's “what to learn” advice the mentor sends the whole text (up to 40 sentences with translations plus the title) to the AI provider. Revoking purges saved advice.",
     },
     explain: {
       title: "🤖 Mentor's explanation",

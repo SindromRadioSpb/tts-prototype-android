@@ -126,6 +126,36 @@
       } catch (_) { cb.checked = !granted; }
       finally { cb.disabled = false; }
     });
+
+    // PAS-B2 — отдельный durable-ключ «целые тексты» (agent_read_texts_digest):
+    // выдаётся situated-панелью Студии («что стоит выучить»), отзыв — ЗДЕСЬ (копия
+    // обещает «отзыв — в ☁ Зала»); отзыв чистит сохранённые study_summary (сервер).
+    var cd = consents.agent_read_texts_digest;
+    var label2 = el("label", "mentor-consent");
+    var cb2 = document.createElement("input");
+    cb2.type = "checkbox";
+    cb2.checked = !!(cd && cd.granted === true);
+    label2.appendChild(cb2);
+    label2.appendChild(el("span", null, t("room.cloud.agentDigestToggle", "📄 Разрешить наставнику читать текст целиком (по запросу)")));
+    box.appendChild(label2);
+    box.appendChild(el("div", "mentor-hint", t("room.cloud.agentDigestHint", "Для совета «что стоит выучить» в Студии наставник отправляет AI-провайдеру весь текст (до 40 предложений с переводами и название). Отзыв очищает сохранённые советы.")));
+    var msg2 = el("div", "mentor-hint mentor-consent-msg");
+    msg2.hidden = true;
+    box.appendChild(msg2);
+    cb2.addEventListener("change", async function () {
+      var granted = !!cb2.checked;
+      cb2.disabled = true;
+      try {
+        var r3 = await jpost("/api/auth/consent", { key: "agent_read_texts_digest", granted: granted, version: "v1" });
+        if (r3.status !== 200 || !r3.json || !r3.json.ok) { cb2.checked = !granted; msg2.textContent = "✗ " + t("room.cloud.err", "Ошибка синхронизации"); msg2.hidden = false; return; }
+        if (S.session && S.session.consents) S.session.consents.agent_read_texts_digest = { granted: granted };
+        if (!granted && r3.json.explanations && r3.json.explanations.purged >= 1) {
+          msg2.textContent = "✓ " + t("room.explain.purged", "Сохранённые объяснения очищены");
+          msg2.hidden = false;
+        } else { msg2.hidden = true; }
+      } catch (_) { cb2.checked = !granted; }
+      finally { cb2.disabled = false; }
+    });
   }
 
   // ── блок Telegram: pairing (web-initiated + двусторонний confirm, P7.1a) ─────

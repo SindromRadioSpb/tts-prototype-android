@@ -2,6 +2,8 @@
 
 **Дата:** 2026-07-12 → **v2** (адъюдикация критики wf_7f300c39: 14 находок, 3 BLOCKER / 7 MAJOR / 4 MINOR — ВСЕ приняты; развороты помечены ⚡). **Программа:** `PREMIUM_AGENT_SYSTEM_RECON_2026_07_11.md` §2-B. **Прод на старте:** v3.11.155. Порядок имплементации: **B0+B1 → B2 → B3**, отдельные коммиты/гейты (v3.11.156/157/158).
 
+> **СТАТУС: КОД ЗАВЕРШЁН И ЗАДЕПЛОЕН.** B0+B1 v3.11.156 (6b9319b) · B2 v3.11.157 (1c6f9e9) · B3 v3.11.158 (37d1736). Гейты: smoke:studio-agent NEW 133+ (42 ключа ×3 локали, B3-ассерты) · smoke:agent-material NEW 45/45 (B2 тройной consent + B3 draft) · agent-explain 43/43 (+2 row_id) · corpus 27/27 · word 15/15 · followup 18/18 · comprehension 20/20 · api-smoke · log-hygiene (+второй SERVER_REGION /api/agent/*) · reader-parity (кнопка — post-render инъекцией, renderTable не тронут). ⚠ Имплементационное отклонение от v2: эмиссия .row-agent-btn ПЕРЕЕХАЛА из renderTable в post-render-инъекцию studio-agent.js (byte-parity гейт: reader-core golden; паттерн studio-karaoke; room-mode скип). Новый consent-ключ **agent_read_texts_digest** — записать владельцу: B2 «что выучить» требует разовое разрешение «весь текст» (situated-панель в sheet). Live-verify на прод-профиле — см. итог сессии.
+
 ## Grounded-факты разведки (2026-07-12, живой код)
 
 - Студия: `renderTable` index.html:33456; action-cell собирается в `if (k==="action")` 33594–33631; ряды несут `_v3_sentenceId/_v3_textId`; `_v3_orderIndex` УЖЕ существует в маппере `v3MapSentenceApiRowToUiRow` (20889) — но ⚡критика: КЭШИРОВАННЫЙ индекс протухает на всех трёх путях реордера (↑↓ 34359, DnD 34608, мобильные 34706) и mid-insert (34419) — реордер переписывает DB order_index (local-db.js:1006-1031), не трогая кэш ряда → якорь НЕ кэшируем (см. B1).

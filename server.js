@@ -1549,6 +1549,18 @@ app.post("/api/auth/consent", async (req, res) => {
     // agent_read_texts зануляет контентные поля agent_explanations до tombstone —
     // объяснения цитируют предложения пользователя, «оставить как было» недостаточно.
     let purgeInfo = null;
+    // PAS-B2: отзыв digest-ключа чистит study_summary (резюме цитируют ВЕСЬ текст —
+    // «пометить и оставить» недостаточно, та же логика, что agent_read_texts ниже).
+    if (key === "agent_read_texts_digest" && !granted) {
+      try {
+        const purged = await require("./db/agentRepo").purgeExplanationContentByKind(auth.user.id, "study_summary", "consent_revoked");
+        identityRepo.audit("agent_summaries_purge", auth.user.id, { purged: purged.purged }, req.ip);
+        purgeInfo = { purged: purged.purged };
+      } catch (e2) {
+        identityRepo.audit("agent_summaries_purge_failed", auth.user.id, { message: String(e2 && e2.message).slice(0, 120) }, req.ip);
+        purgeInfo = { purge_error: "PURGE_FAILED" };
+      }
+    }
     if (key === "agent_read_texts" && !granted) {
       // Revoke обязан устоять даже при провале purge (fail-closed для НОВЫХ объяснений),
       // но провал НЕ молчит (R11): он виден в ответе и в audit_log.

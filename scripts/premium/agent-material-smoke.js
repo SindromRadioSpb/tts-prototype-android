@@ -211,8 +211,16 @@ function worksFixture() {
     eq(h2.status === 200 && h2.json.ok && h2.json.from_history === true, "second call must be from_history");
     eq(h2.json.usage && h2.json.usage.user_llm_calls === 1, "dedupe must not burn a new reserve, got " + JSON.stringify(h2.json.usage));
 
-    // ── dedupe СТРОГО после consent-гейта: revoke digest → 403, НЕ from_history ─
-    await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: "agent_read_texts_digest", granted: false, version: "v1" } });
+    // ── dedupe СТРОГО после consent-гейта: revoke digest → 403, НЕ from_history;
+    //    отзыв digest-ключа чистит study_summary (советы цитируют весь текст) ─────
+    const rvD = await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: "agent_read_texts_digest", granted: false, version: "v1" } });
+    eq(rvD.status === 200 && rvD.json.ok && rvD.json.explanations && rvD.json.explanations.purged >= 1,
+      "digest revoke must report purged summaries, got " + JSON.stringify(rvD.json && rvD.json.explanations));
+    const expRvD = await api("GET", "/api/account/export", { cookie });
+    const sumAfterRvD = exportRows(expRvD).find((r) => String(r.sentence_id || "") === TEXT_KEY + "#summary");
+    let sumAfterBody = {}; try { sumAfterBody = JSON.parse(sumAfterRvD.body_json); } catch (_) {}
+    eq(!!sumAfterRvD && sumAfterRvD.facts_used_json === "[]" && sumAfterBody.purge_reason === "consent_revoked",
+      "study_summary must be tombstoned on DIGEST revoke (советы = цитаты текста)");
     const afterRevoke = await api("POST", "/api/agent/study-summary", { cookie, csrf, body: { text_key: TEXT_KEY } });
     eq(afterRevoke.status === 403 && afterRevoke.json.error === "AGENT_READ_TEXTS_DIGEST_CONSENT_REQUIRED",
       "after digest revoke must be 403 (dedupe must NOT serve history), got " + afterRevoke.status + "/" + (afterRevoke.json && afterRevoke.json.error));
@@ -323,6 +331,6 @@ function worksFixture() {
     for (const f of failures) console.error("  ✗ " + f);
     process.exit(1);
   }
-  console.log("smoke:agent-material OK (45/45) — PAS-B2+B3: тройной consent раздельными кодами · cap 60→40 · dedupe после гейта (revoke ≠ from_history) · purge fail-closed (unknown kind tombstone, corpus-draft переживает) · draft: schema/latin/ru-глосс/caps валидация + corpus-only 400/404 + dedupe с lines + kill-switch 503 без фолбэка · R17 review_log пуст · stdout-гигиена");
+  console.log("smoke:agent-material OK (47/47) — PAS-B2+B3: тройной consent раздельными кодами · cap 60→40 · dedupe после гейта (revoke ≠ from_history) · digest-revoke чистит study_summary · purge fail-closed (unknown kind tombstone, corpus-draft переживает) · draft: schema/latin/ru-глосс/caps валидация + corpus-only 400/404 + dedupe с lines + kill-switch 503 без фолбэка · R17 review_log пуст · stdout-гигиена");
   process.exit(0);
 })().catch((e) => { console.error("smoke:agent-material crashed:", e); process.exit(1); });

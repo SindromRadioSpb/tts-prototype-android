@@ -124,6 +124,26 @@ async function purgeExplanationContent(userId, reason = "consent_revoked") {
   return { purged: n };
 }
 
+// PAS-B2: таргетный purge по body.kind — отзыв agent_read_texts_digest чистит ТОЛЬКО
+// study_summary (они цитируют весь текст; остальные виды живут под своими ключами).
+// Та же tombstone-семантика, что purgeExplanationContent.
+async function purgeExplanationContentByKind(userId, kind, reason = "consent_revoked") {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const rows = await dbAll(db, `SELECT id, body_json FROM agent_explanations WHERE user_id = ?`, [userId]);
+  const purgedAt = nowIso();
+  let n = 0;
+  for (const r of rows || []) {
+    let b = null;
+    try { b = JSON.parse(r.body_json); } catch (_) { continue; }   // нечитаемые кроет общий purge
+    if (!b || b.purge_reason || String(b.kind || "") !== String(kind)) continue;
+    const tomb = JSON.stringify({ scope_level: b.scope_level || null, purged_at: purgedAt, purge_reason: String(reason) });
+    await dbRun(db, `UPDATE agent_explanations SET facts_used_json = '[]', body_json = ? WHERE id = ? AND user_id = ?`,
+      [tomb, r.id, userId]);
+    n++;
+  }
+  return { purged: n };
+}
+
 // PAS-A1/A4 same-day dedupe: свежее сегодняшнее объяснение того же якоря/языка/вида.
 // kind различает sentence (body.kind отсутствует) и word (kind='word' + матч по слову) —
 // иначе word-объяснение того же sentence_id маскировало бы sentence-dedupe и наоборот.
@@ -306,7 +326,7 @@ async function usageToday(userId) {
 module.exports = {
   getProfile, updateProfile,
   createTask, listTasks, setTaskStatus,
-  createExplanation, purgeExplanationContent, getFreshExplanation,
+  createExplanation, purgeExplanationContent, purgeExplanationContentByKind, getFreshExplanation,
   getExplanationById, bumpExplanationFollowups,
   listExplanations, constructOccurrences,
   wordLifecycle,
