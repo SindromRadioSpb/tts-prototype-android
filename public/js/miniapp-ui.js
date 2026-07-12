@@ -411,6 +411,8 @@
     if (d._fallbackNote) box.appendChild(el("p", "ma-note", t("fallback_note")));
     if (d.select_reason === "ahead_of_schedule") box.appendChild(el("p", "ma-note", t("ahead_note")));   // честность раннего повтора
     if (d.explain) box.appendChild(el("p", "ma-rec-why", d.explain));
+    // PAS-D2a: чип цели (сервер-локализованная строка; взаимоисключающ с explain by construction)
+    if (d.goal_line) box.appendChild(el("p", "ma-rec-why", d.goal_line));
 
     const st = d.stimulus || {};
     if (d.kind === "cloze") {

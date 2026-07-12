@@ -2242,6 +2242,14 @@ window.I18N_LOCALES.en = {
         done: "Adaptive niqqud on — it fades on words you know",
         dismiss: "Not now",
       },
+      // PAS-D2b — scaffold advisor (rule R: hide translation until tap)
+      advisor: {
+        ruMsg: "📖 This text is within your reach — hide translations until tap? Applies to all texts; revert in ⚙ or with the Undo button.",
+        try: "Try it",
+        ruOn: "Translations now hidden until tap — in all texts",
+        undo: "Undo",
+        undone: "Reverted",
+      },
       empty: "This text has no lines yet.",
       translit: "Translit",
       profileSbl: "SBL",

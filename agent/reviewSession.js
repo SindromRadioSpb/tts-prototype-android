@@ -218,6 +218,12 @@ function buildDescriptor(pick, { lng, mode, preview, userId } = {}) {
     allocation: { policy: ALLOCATION_POLICY_VERSION, mode: mode === "all_due" ? "all_due" : "reading_first" },
     ...(preview ? { preview: true } : {}),
   };
+  // PAS-D2a: goal_line из select_reason (только default_* — goalLine "" для skill-driven/manual/
+  // ahead причин; дедуп с explain по построению: непустые explain и goalLine взаимоисключающие)
+  if (!base.explain) {
+    const gl = format.goalLine(pick.select_reason, lng === "en" ? "en" : "ru");
+    if (gl) base.goal_line = gl;
+  }
   // §10 п.11: tiles ТОЛЬКО на challenge-backed пути (_descriptorFromChallenge) — preview без tiles
   // (нет challenge/exposure → letter-multiset не утекает без учтённого показа).
   if (pick.kind === "cloze") base.stimulus = { blanked_he: pick.blanked_he, sentence_ru: pick.sentence_ru || "" };
@@ -549,6 +555,11 @@ function _descriptorFromChallenge(chal, lng) {
     select_reason: String(chal.select_reason || ""),
     explain: format.selectExplanation(chal.select_reason, chal.prompt_kind, lng === "en" ? "en" : "ru"),
   };
+  // PAS-D2a: та же goal-деривация на resume-пути (select_reason персистирован → консистентно)
+  if (!base.explain) {
+    const gl = format.goalLine(chal.select_reason, lng === "en" ? "en" : "ru");
+    if (gl) base.goal_line = gl;
+  }
   if (chal.prompt_kind === "cloze") {
     const s = String(chal.shown_stimulus || "");
     const nl = s.indexOf("\n");

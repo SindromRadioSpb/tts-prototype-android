@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.164";
+const CACHE_VERSION = "v3.11.165";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -119,6 +119,7 @@ const PRECACHE_URLS = [
   // BRR-P1-007 S2 «Следующий для тебя» (i+1) — pure client coverage engine (the vocab sidecar
   // DATA stays lazy via /data/benyehuda/corpus-vocab-v<N>.json, NOT precached).
   "/js/corpus-vocab.js",
+  "/js/scaffold-advisor.js",
   // BRR-P1-009 Stage 2 — ported Pealim inflection-table renderer (1:1 with Studio).
   "/js/inflection-render.js",
   // BRR Phase-3 — proclitic segmentation detector (offline FSA + bake-Dicta overlay).

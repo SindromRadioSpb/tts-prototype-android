@@ -802,47 +802,100 @@ async function refreshCovChip() {
   }
 }
 
-// ── BRR Epic 5 W5 — niqqud-fade-graduation: one-time opt-in to adaptive fade ──────────────────
-// The flagship adaptive niqqud fade defaults to 'full' with NO path to ever turn on (the «леса, что не
-// затухают»). Once the reader has GENUINELY learned enough words (ReaderMorph.fadeGraduationReady), OFFER —
-// once, opt-in — to switch to 'adaptive' (огласовка сходит со знакомых слов). The USER accepts; we NEVER
-// auto-flip the mode (R5 autonomy) and NEVER relax the confidence gate (fadeDecision is untouched, R9/R11).
+// ── PAS-D2b Scaffold-советник (обобщение BRR Epic 5 W5) — «леса сходят ТОЛЬКО по предложению» ──
+// Решение «что предлагать» — pure-модуль public/js/scaffold-advisor.js (node-гейт):
+//   N (W5, гейт fadeGraduationReady НЕ менялся): огласовка full→adaptive;
+//   R (новое): перевод show→reveal — corpus-текст в зоне in/easy БЕЗ loadFlag (второй канал
+//     честности: текстам с именами/архаикой «читать по-иврит-ски» не предлагаем).
+// Механика: не-модальный бар (1 предложение за сессию чтения, приоритет N>R внутри advise),
+// [Попробовать] → применить + undo-toast 10с (undo восстанавливает cfg, offered-ключ НЕ снимает —
+// не переспрашиваем), [✕] → dismissed-ключ. НИКОГДА auto-flip (R5); гейт уверенности N не
+// ослаблен (R9/R11). agent_ux feature=scaffold_advisor.
 function clearFadeGradNudge() { const b = $('readerFadeGrad'); if (b && b.remove) b.remove(); }
-async function maybeOfferFadeGraduation() {
+async function maybeOfferScaffoldAdvice() {
   try {
-    if (readerCfg.niqqudMode !== 'full') return;                       // already adaptive/off → nothing to offer
-    if (localStorage.getItem('room.fadeGradOffered') === '1') return;  // one-time (accepted OR dismissed)
-    if (!window.ReaderMorph || typeof window.ReaderMorph.fadeGraduationReady !== 'function') return;
+    if (!window.ScaffoldAdvisor) return;
     const tid = readerTextId;
-    const states = (await ensureWordStates()) || {};
-    if (readerTextId !== tid) return;                                  // navigated away while loading
-    if (!window.ReaderMorph.fadeGraduationReady(states)) return;
-    showFadeGradNudge();
+    // входы правила N (дорогая часть — только когда мод full и ключ не стоит)
+    let fadeReady = false;
+    if (readerCfg.niqqudMode === 'full' && localStorage.getItem('room.fadeGradOffered') !== '1'
+        && window.ReaderMorph && typeof window.ReaderMorph.fadeGraduationReady === 'function') {
+      const states = (await ensureWordStates()) || {};
+      if (readerTextId !== tid) return;                              // navigated away while loading
+      fadeReady = !!window.ReaderMorph.fadeGraduationReady(states);
+    }
+    // входы правила R: coverage ТЕКУЩЕГО текста (только corpus-работы; личные тексты честно вне)
+    let coverage = null;
+    if (readerCfg.ruMode === 'show' && localStorage.getItem('room.ruRevealOffered') !== '1') {
+      try {
+        const card = readerTextKey && typeof corpusReadyKeyMap === 'function' ? corpusReadyKeyMap().get(String(readerTextKey)) : null;
+        if (card && card.id != null) coverage = await roomVocabCoverageFor(card.id);
+        if (readerTextId !== tid) return;
+      } catch (_) { coverage = null; }
+    }
+    const advice = window.ScaffoldAdvisor.advise({
+      niqqudMode: readerCfg.niqqudMode, ruMode: readerCfg.ruMode,
+      fadeReady,
+      fadeGradOffered: localStorage.getItem('room.fadeGradOffered') === '1',
+      ruRevealOffered: localStorage.getItem('room.ruRevealOffered') === '1',
+      coverage: coverage ? { zone: coverage.zone, loadFlag: !!coverage.loadFlag } : null,
+    });
+    if (advice) showScaffoldAdviceBar(advice.rule);
   } catch (_) {}
 }
-function showFadeGradNudge() {
+function showScaffoldAdviceBar(rule) {
   const reader = $('roomReader'); if (!reader || $('readerFadeGrad')) return;
+  const isN = rule === 'N';
+  const offeredKey = isN ? 'room.fadeGradOffered' : 'room.ruRevealOffered';
   const bar = el('div', { class: 'reader-fadegrad' }); bar.id = 'readerFadeGrad';
-  bar.appendChild(el('span', { class: 'reader-fadegrad-msg', i18n: 'room.reader.fadeGrad.msg', text: tt('room.reader.fadeGrad.msg', '🎯 Ты уже знаешь много слов — убрать огласовку со знакомых?') }));
+  const msg = isN
+    ? { i18n: 'room.reader.fadeGrad.msg', fb: '🎯 Ты уже знаешь много слов — убрать огласовку со знакомых?' }
+    : { i18n: 'room.reader.advisor.ruMsg', fb: '📖 Этот текст тебе по силам — скрывать перевод до тапа? Действует во всех текстах; вернуть можно в ⚙ или кнопкой «Вернуть».' };
+  bar.appendChild(el('span', { class: 'reader-fadegrad-msg', i18n: msg.i18n, text: tt(msg.i18n, msg.fb) }));
   const actions = el('div', { class: 'reader-fadegrad-actions' });
-  const dismiss = () => { try { localStorage.setItem('room.fadeGradOffered', '1'); } catch (_) {} clearFadeGradNudge(); };
-  const go = el('button', { class: 'reader-fadegrad-go', i18n: 'room.reader.fadeGrad.on', text: tt('room.reader.fadeGrad.on', 'Включить') });
+  const dismiss = (emit) => {
+    try { localStorage.setItem(offeredKey, '1'); } catch (_) {}
+    if (emit !== false) { try { agentUx('scaffold_advisor', 'dismissed'); } catch (_) {} }
+    clearFadeGradNudge();
+  };
+  const go = el('button', {
+    class: 'reader-fadegrad-go',
+    i18n: isN ? 'room.reader.fadeGrad.on' : 'room.reader.advisor.try',
+    text: isN ? tt('room.reader.fadeGrad.on', 'Включить') : tt('room.reader.advisor.try', 'Попробовать'),
+  });
   go.type = 'button';
   go.addEventListener('click', () => {
-    readerCfg.niqqudMode = 'adaptive';
+    const prev = isN ? readerCfg.niqqudMode : readerCfg.ruMode;
+    if (isN) readerCfg.niqqudMode = 'adaptive'; else readerCfg.ruMode = 'reveal';
     try { saveReaderCfg(); } catch (_) {}
     try { rerenderReader(); } catch (_) { try { applyDecorations(); } catch (_) {} }
-    try { roomToast(tt('room.reader.fadeGrad.done', 'Адаптивная огласовка включена — сходит со знакомых слов')); } catch (_) {}
-    dismiss();
+    try { agentUx('scaffold_advisor', 'accepted'); } catch (_) {}
+    // undo-toast 10с: возврат прежнего cfg БЕЗ повторного показа (offered-ключ уже стоит)
+    try {
+      roomToast(
+        isN ? tt('room.reader.fadeGrad.done', 'Адаптивная огласовка включена — сходит со знакомых слов')
+            : tt('room.reader.advisor.ruOn', 'Перевод скрыт до тапа — во всех текстах'),
+        tt('room.reader.advisor.undo', 'Вернуть'),
+        () => {
+          if (isN) readerCfg.niqqudMode = prev; else readerCfg.ruMode = prev;
+          try { saveReaderCfg(); } catch (_) {}
+          try { rerenderReader(); } catch (_) { try { applyDecorations(); } catch (_) {} }
+          try { agentUx('scaffold_advisor', 'dismissed'); } catch (_) {}
+          try { roomToast(tt('room.reader.advisor.undone', 'Возвращено')); } catch (_) {}
+        },
+        10000);
+    } catch (_) {}
+    dismiss(false);   // offered-ключ ставим, dismissed НЕ эмитим (accepted уже ушёл)
   });
   const x = el('button', { class: 'reader-fadegrad-x', text: '✕', attrs: { 'aria-label': tt('room.reader.fadeGrad.dismiss', 'Не сейчас') } });
   x.type = 'button'; x.title = tt('room.reader.fadeGrad.dismiss', 'Не сейчас');
-  x.addEventListener('click', dismiss);
+  x.addEventListener('click', () => dismiss());
   actions.appendChild(go); actions.appendChild(x);
   bar.appendChild(actions);
   const tbl = $('roomReaderTable');
   if (tbl && tbl.parentNode === reader) reader.insertBefore(bar, tbl);
   else reader.appendChild(bar);
+  try { agentUx('scaffold_advisor', 'offered'); } catch (_) {}
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
@@ -4983,7 +5036,7 @@ async function openReader(textId, title, opts) {
     // check once after layout settles so the «✓ Прочитано» card can surface (readerAtEnd handles
     // both the «last row visible» and the resume/karaoke-latch cases).
     try { setTimeout(() => { try { maybeShowEndOfText(); } catch (_) {} }, 450); } catch (_) {}
-    try { maybeOfferFadeGraduation(); } catch (_) {}   // Epic-5 W5 — one-time opt-in to adaptive niqqud fade
+    try { maybeOfferScaffoldAdvice(); } catch (_) {}   // PAS-D2b — scaffold-советник (W5-fade + reveal-предложение)
     try { maybeNudgeNiqqud(res.text); } catch (_) {}   // P5.6 R-6 — unvocalized own text → one-time hint
   }
 }

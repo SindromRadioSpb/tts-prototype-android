@@ -248,9 +248,21 @@ function selectExplanation(reason, kind, lang) {
   if (!s) return "";
   return (lang === "en" ? s.en : s.ru) || "";
 }
-// префикс prompt объяснением (пустое → prompt без изменений)
+// PAS-D2a — «цель сессии»: деривится ИЗ select_reason (персистирован в challenge →
+// консистентна на первой доставке И recovery по построению; селектор не тронут).
+// ТОЛЬКО default_*-причины (skill-driven reasons уже несут цель своей explain-строкой —
+// дубль на 380px запрещён, критика L2-16). БЕЗ чисел (унифицированные счётчики R3.x не лгут).
+const GOAL_DUE_BACKLOG = {
+  ru: "📚 Цель: разобрать очередь повторения.",
+  en: "📚 Goal: work through the review queue.",
+};
+function goalLine(reason, lang) {
+  if (!/^default_/.test(String(reason || ""))) return "";
+  return (lang === "en" ? GOAL_DUE_BACKLOG.en : GOAL_DUE_BACKLOG.ru) || "";
+}
+// префикс prompt объяснением (пустое → goal-строка default_*-причин; иначе prompt как есть)
 function withExplanation(promptText, reason, kind, lang) {
-  const ex = selectExplanation(reason, kind, lang);
+  const ex = selectExplanation(reason, kind, lang) || goalLine(reason, lang);
   return ex ? ex + "\n\n" + String(promptText || "") : String(promptText || "");
 }
 // P7.3a proactive due-нудж: класс A — ТОЛЬКО честный счётчик (== due-кольцу), НИКОГДА слова/формы/id.
@@ -304,7 +316,7 @@ module.exports = {
   splitMessage, formatPlan, formatDue, formatSummary, formatExplain, showLemma,
   refusedText: (lang) => L(lang).refused, LIMIT,
   formatReversePrompt, reversePlaceholder, formatClozePrompt, clozePlaceholder,
-  formatDictatePrompt, dictatePlaceholder, selectExplanation, withExplanation,
+  formatDictatePrompt, dictatePlaceholder, selectExplanation, withExplanation, goalLine,
   formatDueNudge, nudgeStopText, nudgeResumeText, formatReturnNudge, formatMuteOk, muteBadText, notodayText,
   reviewUnavailable, reviewBusy, reviewNothing, verdictDeclined, verdictFromResult,
 };
