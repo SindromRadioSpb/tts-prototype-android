@@ -765,7 +765,10 @@
               _ux("mentor_settings", "accepted");
             } else {
               var pe = String((r.json && r.json.provider_error) || "");
-              verdict.textContent = "✗ " + (pe === "429" ? t("room.cloud.byokQuota", "У вашего ключа закончилась квота провайдера на сегодня.")
+              // 503/TIMEOUT/EMPTY_RESPONSE = перегрузка провайдера, НЕ проблема ключа (live 2026-07-13)
+              var busy = pe === "503" || pe === "TIMEOUT" || pe === "EMPTY_RESPONSE";
+              verdict.textContent = "✗ " + (busy ? t("room.mentor.byok.busy", "Провайдер сейчас перегружен или не ответил — это не проблема ключа, попробуйте ещё раз чуть позже.") + " (" + pe + ")"
+                : pe === "429" ? t("room.cloud.byokQuota", "У вашего ключа закончилась квота провайдера на сегодня.")
                 : (pe === "401" || pe === "403") ? t("room.cloud.byokRejected", "Ключ не принят провайдером — проверьте его в «⚙ Наставник».")
                 : t("room.cloud.byokFailed", "Вызов на вашем ключе не прошёл — проверьте ключ в «⚙ Наставник».") + (pe ? " (" + pe + ")" : ""));
             }

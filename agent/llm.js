@@ -71,6 +71,18 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const RETRYABLE_STATUS = new Set([503, 429]);
 const RETRY_BACKOFF_MS = 700;
 
+// Вечный спиннер невозможен by construction: LLM-вызов без ответа за LLM_TIMEOUT_MS →
+// честный {ok:false, error:'TIMEOUT'} (live-найдено 2026-07-13: перегруженный Gemini
+// держал check-запрос минутами — браузер крутил «⏳» без конца).
+const LLM_TIMEOUT_MS = 30_000;
+function withTimeout(p) {
+  let t;
+  return Promise.race([
+    p.finally(() => clearTimeout(t)),
+    new Promise((resolve) => { t = setTimeout(() => resolve({ __timeout: true }), LLM_TIMEOUT_MS); }),
+  ]);
+}
+
 async function generateGemini({ system, prompt, maxOutputTokens, json, byokKey }) {
   // PAS-F1: byokKey (ключ ПОЛЬЗОВАТЕЛЯ per-request) переопределяет env-ключ агента;
   // ключ НИКОГДА не попадает в error/логи (ветка и так дисциплинирована: только код).
@@ -79,17 +91,24 @@ async function generateGemini({ system, prompt, maxOutputTokens, json, byokKey }
   const { GoogleGenerativeAI } = require("@google/generative-ai");
   const modelName = process.env.AGENT_LLM_MODEL || DEFAULT_GEMINI_MODEL;
   const genAI = new GoogleGenerativeAI(key);
+  // Gemini 2.5 — thinking-модели: без thinkingBudget:0 размышления выжигают весь
+  // maxOutputTokens → EMPTY_RESPONSE (live-найдено 2026-07-13 на byok-check; тот же
+  // класс, что reasoning:{enabled:false} у Nemotron). На 1.5/2.0 поле дало бы 400 —
+  // применяем только thinking-семейству (live-verified SDK v0.19 пробрасывает поле).
+  const thinkingFamily = /2\.5|flash-latest|flash-lite-latest|pro-latest/.test(modelName);
   const model = genAI.getGenerativeModel({
     model: modelName,
     ...(system ? { systemInstruction: system } : {}),
     generationConfig: {
       maxOutputTokens: Math.max(64, Math.min(2048, Number(maxOutputTokens) || 512)),
       ...(json ? { responseMimeType: "application/json" } : {}),   // PAS-A3 — structured output
+      ...(thinkingFamily ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
     },
   });
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const result = await model.generateContent(prompt);
+      const result = await withTimeout(model.generateContent(prompt));
+      if (result && result.__timeout) return { ok: false, error: "TIMEOUT" };
       const text = result && result.response && typeof result.response.text === "function" ? result.response.text() : "";
       if (!text || !String(text).trim()) return { ok: false, error: "EMPTY_RESPONSE" };
       let outTokens = null;
@@ -141,6 +160,7 @@ async function generateOpenRouter({ system, prompt, maxOutputTokens, json, byokK
           "X-Title": "LinguistPro Mentor",
         },
         body,
+        signal: AbortSignal.timeout(LLM_TIMEOUT_MS),   // вечный спиннер невозможен
       });
       if (!res.ok) {
         if (attempt === 0 && RETRYABLE_STATUS.has(res.status)) { await sleep(RETRY_BACKOFF_MS); continue; }
@@ -152,6 +172,7 @@ async function generateOpenRouter({ system, prompt, maxOutputTokens, json, byokK
       const outTokens = (json.usage && Number(json.usage.completion_tokens)) || null;
       return { ok: true, text: String(text).trim(), provider: "openrouter", model: modelName, output_tokens: outTokens };
     } catch (e) {
+      if (e && (e.name === "TimeoutError" || e.name === "AbortError")) return { ok: false, error: "TIMEOUT" };   // 30с вышло — ретрай бессмыслен
       if (attempt === 0) { await sleep(RETRY_BACKOFF_MS); continue; }   // сетевой сбой — тоже транзиент, один повтор
       return { ok: false, error: "OPENROUTER_NETWORK_ERROR" };
     }

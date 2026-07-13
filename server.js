@@ -2125,7 +2125,7 @@ app.post("/api/agent/byok/check", rlAgent, async (req, res) => {
       scenario: "byok_check",
       system: "Reply with exactly: OK",
       prompt: "ping",
-      maxOutputTokens: 16,
+      maxOutputTokens: 64,   // 16 не хватало даже thinking-off моделям
     });
     if (g.phase === "kill") return res.status(503).json({ ok: false, error: "KILL_SWITCH" });
     if (g.phase === "byok") return res.status(502).json({ ok: false, error: "BYOK_FAILED", provider_error: g.provider_error });

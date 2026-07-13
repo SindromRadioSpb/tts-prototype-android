@@ -2136,6 +2136,7 @@ window.I18N_LOCALES.en = {
         check: "Check key",
         checking: "Checking the key (a micro-call on your key)…",
         ok: "The key works",
+        busy: "The provider is overloaded or didn't respond — not a key problem, try again in a bit.",
       },
     },
     tg: {
