@@ -26,6 +26,7 @@
 const path = require("path");
 const tools = require(path.join(__dirname, "tools"));
 const llm = require(path.join(__dirname, "llm"));
+const llmGate = require(path.join(__dirname, "llmGate"));
 const planner = require(path.join(__dirname, "planner"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
 const keyingService = require(path.join(__dirname, "..", "db", "keyingService"));
@@ -189,23 +190,17 @@ async function review(ctx, { targets: targetKeys, text } = {}) {
     targetsInfo.push({ ...disp, matched: matchTarget(tokens, forms, disp.lemma) });
   }
 
-  let advisory = null, llmUsed = false, degradedReason = null, provider = null, model = null;
-  const lim = planner.limits();
-  const reserve = llm.killSwitchOn()
-    ? { ok: false, reason: "KILL_SWITCH" }
-    : await agentRepo.reserveLlmCall(ctx.userId, {
-        scenario: SCENARIO, provider: llm.providerName(), perUserDaily: lim.perUserDaily, globalDaily: lim.globalDaily,
-      });
-  if (!reserve.ok) {
-    degradedReason = reserve.reason;
-  } else {
-    const pp = buildReviewPayload({ language, targetsInfo, submission });
-    const out = await llm.generate({ system: pp.system, prompt: pp.prompt, maxOutputTokens: 512 });
-    await agentRepo.finalizeLlmCall(reserve.reserveId, { ok: out.ok, actualUnits: out.ok ? (out.output_tokens || 1) : null });
-    if (out.ok && planner.isCleanProse(out.text)) { advisory = out.text; llmUsed = true; provider = out.provider; model = out.model; }
-    else if (out.ok) degradedReason = "LLM_OUTPUT_INVALID";
-    else degradedReason = out.error;
-  }
+  // PAS-F1: единый гейт (llmGate); degradable-класс — BYOK_FAILED деградирует честно
+  // (ok:true + детерминированный отчёт + degraded_reason), без серверного фолбэка.
+  let advisory = null, llmUsed = false, degradedReason = null, provider = null, model = null, keySource = null;
+  const pp = buildReviewPayload({ language, targetsInfo, submission });
+  const g = await llmGate.gatedGenerate(ctx, { scenario: SCENARIO, system: pp.system, prompt: pp.prompt, maxOutputTokens: 512 });
+  if (g.phase === "ok") {
+    const out = g.out;
+    if (planner.isCleanProse(out.text)) { advisory = out.text; llmUsed = true; provider = out.provider; model = out.model; keySource = g.key_source; }
+    else degradedReason = "LLM_OUTPUT_INVALID";
+  } else if (g.phase === "byok") degradedReason = "BYOK_FAILED";
+  else degradedReason = g.reason;
   if (!advisory) advisory = fallbackText(targetsInfo, language);
 
   // Класс D: НИКАКОГО персиста — ответ эфемерен (advisory вне памяти, R17).
@@ -214,6 +209,7 @@ async function review(ctx, { targets: targetKeys, text } = {}) {
     used: targetsInfo.map((t) => ({ item_key: t.item_key, lemma: t.lemma, matched: t.matched })),
     text: advisory, llm_used: llmUsed,
     ...(provider ? { provider, model } : {}),
+    ...(keySource === "byok" ? { key_source: "byok" } : {}),
     ...(degradedReason ? { degraded_reason: degradedReason } : {}),
     usage: await _usage(ctx.userId),
   };

@@ -26,6 +26,7 @@
 const path = require("path");
 const tools = require(path.join(__dirname, "tools"));
 const llm = require(path.join(__dirname, "llm"));
+const llmGate = require(path.join(__dirname, "llmGate"));
 const planner = require(path.join(__dirname, "planner"));
 const constructs = require(path.join(__dirname, "constructs"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
@@ -220,48 +221,41 @@ async function explain(ctx, { text_key, order_index, source, work_id, row_id } =
     }
   }
 
-  let text = null, llmUsed = false, degradedReason = null, provider = null, model = null;
-  const lim = planner.limits();
-  const reserve = llm.killSwitchOn()
-    ? { ok: false, reason: "KILL_SWITCH" }
-    : await agentRepo.reserveLlmCall(ctx.userId, {
-        scenario: "explain", provider: llm.providerName(), perUserDaily: lim.perUserDaily, globalDaily: lim.globalDaily,
-      });
-  if (!reserve.ok) {
-    degradedReason = reserve.reason;
-  } else {
-    // Класс D: prompt собирается, отправляется и НЕ персистится/НЕ логируется.
-    // В пакет уходит РОВНО scope sentence_only: одно предложение + перевод + резолвер-
-    // морфология + идентификаторы слабостей. Названия текста в пакете НЕТ.
-    const promptPayload = {
-      language,
-      sentence: core.sentence.he_niqqud || core.sentence.he,
-      translation: core.sentence.ru || null,
-      morphology: core.morphology.map((m) => ({
-        surface: m.surface, lemma: m.lemma, root: m.root, binyan: m.binyan, pos: m.pos,
-        meaning: m.meaning, ambiguous: m.ambiguous || undefined,
-      })),
-      learner: {
-        due_lemmas: core.morphology.filter((m) => core.learner.due_in_sentence.includes(m.item_key)).map((m) => m.lemma || m.surface),
-        weak_lemmas: core.morphology.filter((m) => core.learner.weak_in_sentence.some((w) => w.item_key === m.item_key)).map((m) => m.lemma || m.surface),
-        production_gap_lemmas: core.morphology.filter((m) => core.learner.production_gap.includes(m.item_key)).map((m) => m.lemma || m.surface),
-        // P6.4: LLM получает ТОЛЬКО человекочитаемые названия конструкций — не ids
-        // (идентификаторы назначены сервером до вызова и никогда не парсятся из ответа LLM).
-        constructs: (core.constructs || []).map((c) => constructs.title(c.id, language)).filter(Boolean),
-      },
-    };
-    const out = await llm.generate({
-      system: (language === "en"
-        ? "You are the LinguistPro Hebrew mentor. Explain the given Hebrew sentence to the learner in " + DEPTH_LEN.explain[depth].en + ": what it says, how the key words work, and what to pay attention to. Use ONLY the facts in the JSON. The morphology (roots, binyanim, parts of speech) is already asserted by the resolver — never contradict or invent it; if a word is marked ambiguous, present its reading as one possibility. Emphasize the learner's weak/due words if any are present. Output PLAIN PROSE ONLY: no backticks, no braces, no JSON, no field names — just natural sentences."
-        : "Ты — наставник LinguistPro по ивриту. Объясни данное ивритское предложение ученику " + DEPTH_LEN.explain[depth].ru + ": о чём оно, как устроены ключевые слова, на что обратить внимание. Используй ТОЛЬКО факты из JSON. Морфология (корни, биньяны, части речи) уже определена резолвером — не противоречь ей и не выдумывай новой; слово с пометкой ambiguous подавай как одну из возможностей, не как вердикт. Если есть слабые/просроченные слова — сделай акцент на них. Пиши ТОЛЬКО обычным текстом: без обратных кавычек, фигурных скобок, JSON и имён полей — только естественные предложения."),
-      prompt: JSON.stringify(promptPayload),
-      maxOutputTokens: 512,
-    });
-    await agentRepo.finalizeLlmCall(reserve.reserveId, { ok: out.ok, actualUnits: out.ok ? (out.output_tokens || 1) : null });
-    if (out.ok && planner.isCleanProse(out.text)) { text = out.text; llmUsed = true; provider = out.provider; model = out.model; }
-    else if (out.ok) degradedReason = "LLM_OUTPUT_INVALID";
-    else degradedReason = out.error;
-  }
+  // PAS-F1: единый гейт (llmGate); degradable — офлайн-ядро объяснения всегда полезно (R16).
+  let text = null, llmUsed = false, degradedReason = null, provider = null, model = null, keySource = null;
+  // Класс D: prompt собирается, отправляется и НЕ персистится/НЕ логируется.
+  // В пакет уходит РОВНО scope sentence_only: одно предложение + перевод + резолвер-
+  // морфология + идентификаторы слабостей. Названия текста в пакете НЕТ.
+  const promptPayload = {
+    language,
+    sentence: core.sentence.he_niqqud || core.sentence.he,
+    translation: core.sentence.ru || null,
+    morphology: core.morphology.map((m) => ({
+      surface: m.surface, lemma: m.lemma, root: m.root, binyan: m.binyan, pos: m.pos,
+      meaning: m.meaning, ambiguous: m.ambiguous || undefined,
+    })),
+    learner: {
+      due_lemmas: core.morphology.filter((m) => core.learner.due_in_sentence.includes(m.item_key)).map((m) => m.lemma || m.surface),
+      weak_lemmas: core.morphology.filter((m) => core.learner.weak_in_sentence.some((w) => w.item_key === m.item_key)).map((m) => m.lemma || m.surface),
+      production_gap_lemmas: core.morphology.filter((m) => core.learner.production_gap.includes(m.item_key)).map((m) => m.lemma || m.surface),
+      // P6.4: LLM получает ТОЛЬКО человекочитаемые названия конструкций — не ids
+      // (идентификаторы назначены сервером до вызова и никогда не парсятся из ответа LLM).
+      constructs: (core.constructs || []).map((c) => constructs.title(c.id, language)).filter(Boolean),
+    },
+  };
+  const g = await llmGate.gatedGenerate(ctx, {
+    scenario: "explain",
+    system: (language === "en"
+      ? "You are the LinguistPro Hebrew mentor. Explain the given Hebrew sentence to the learner in " + DEPTH_LEN.explain[depth].en + ": what it says, how the key words work, and what to pay attention to. Use ONLY the facts in the JSON. The morphology (roots, binyanim, parts of speech) is already asserted by the resolver — never contradict or invent it; if a word is marked ambiguous, present its reading as one possibility. Emphasize the learner's weak/due words if any are present. Output PLAIN PROSE ONLY: no backticks, no braces, no JSON, no field names — just natural sentences."
+      : "Ты — наставник LinguistPro по ивриту. Объясни данное ивритское предложение ученику " + DEPTH_LEN.explain[depth].ru + ": о чём оно, как устроены ключевые слова, на что обратить внимание. Используй ТОЛЬКО факты из JSON. Морфология (корни, биньяны, части речи) уже определена резолвером — не противоречь ей и не выдумывай новой; слово с пометкой ambiguous подавай как одну из возможностей, не как вердикт. Если есть слабые/просроченные слова — сделай акцент на них. Пиши ТОЛЬКО обычным текстом: без обратных кавычек, фигурных скобок, JSON и имён полей — только естественные предложения."),
+    prompt: JSON.stringify(promptPayload),
+    maxOutputTokens: 512,
+  });
+  if (g.phase === "ok") {
+    if (planner.isCleanProse(g.out.text)) { text = g.out.text; llmUsed = true; provider = g.out.provider; model = g.out.model; keySource = g.key_source; }
+    else degradedReason = "LLM_OUTPUT_INVALID";
+  } else if (g.phase === "byok") degradedReason = "BYOK_FAILED";
+  else degradedReason = g.reason;
   if (!text) text = fallbackText(core, language);
 
   // §7 facts_used — replayable provenance: КАЖДЫЙ факт с источником и asserted/derived-
@@ -307,6 +301,7 @@ async function explain(ctx, { text_key, order_index, source, work_id, row_id } =
       scope_level: SCOPE_SENTENCE_ONLY, category: CATEGORY, language,
       source: core.source,
       llm_used: llmUsed, ...(provider ? { provider, model } : {}),
+      ...(keySource === "byok" ? { key_source: "byok" } : {}),   // PAS-F1: провенанс переживает from_history (R11-9)
       ...(degradedReason ? { degraded_reason: degradedReason } : {}),
       ...(depth === "detailed" ? { depth } : {}),   // PAS-D4: back-compat — brief без поля
       text,
@@ -331,6 +326,7 @@ async function explain(ctx, { text_key, order_index, source, work_id, row_id } =
     language,
     llm_used: llmUsed,
     ...(provider ? { provider, model } : {}),
+    ...(keySource === "byok" ? { key_source: "byok" } : {}),
     ...(degradedReason ? { degraded_reason: degradedReason } : {}),
     explanation_id: created.ok && created.result ? created.result.id : null,
     followups_left: FOLLOWUP_LIMIT,   // PAS-A2 — свежее объяснение: полный запас ходов
@@ -439,26 +435,20 @@ async function explainWord(ctx, { text_key, order_index, source, work_id, surfac
       explanation_id: cached.id, usage: await _usage(ctx.userId) };
   }
 
-  let text = null, llmUsed = false, degradedReason = null, provider = null, model = null;
-  const lim = planner.limits();
-  const reserve = llm.killSwitchOn()
-    ? { ok: false, reason: "KILL_SWITCH" }
-    : await agentRepo.reserveLlmCall(ctx.userId, {
-        scenario: "explain_word", provider: llm.providerName(), perUserDaily: lim.perUserDaily, globalDaily: lim.globalDaily,
-      });
+  // PAS-F1: единый гейт; degradable — resolver-фолбэк всегда полезен.
+  let text = null, llmUsed = false, degradedReason = null, provider = null, model = null, keySource = null;
   const payload = buildWordPromptPayload({
     language, surface: surf, displayed: disp, resolver: resolverReading, diverges,
     sentence: sctx.sentence.he_niqqud || sctx.sentence.he, translation: sctx.sentence.ru || null,
     learner: learnerFlags,
   });
-  if (!reserve.ok) degradedReason = reserve.reason;
-  else {
-    const out = await llm.generate({ system: _wordSystemPrompt(language, depth), prompt: JSON.stringify(payload), maxOutputTokens: 384 });
-    await agentRepo.finalizeLlmCall(reserve.reserveId, { ok: out.ok, actualUnits: out.ok ? (out.output_tokens || 1) : null });
-    if (out.ok && planner.isCleanProse(out.text)) { text = out.text; llmUsed = true; provider = out.provider; model = out.model; }
-    else if (out.ok) degradedReason = "LLM_OUTPUT_INVALID";
-    else degradedReason = out.error;
-  }
+  const g = await llmGate.gatedGenerate(ctx, { scenario: "explain_word",
+    system: _wordSystemPrompt(language, depth), prompt: JSON.stringify(payload), maxOutputTokens: 384 });
+  if (g.phase === "ok") {
+    if (planner.isCleanProse(g.out.text)) { text = g.out.text; llmUsed = true; provider = g.out.provider; model = g.out.model; keySource = g.key_source; }
+    else degradedReason = "LLM_OUTPUT_INVALID";
+  } else if (g.phase === "byok") degradedReason = "BYOK_FAILED";
+  else degradedReason = g.reason;
   if (!text) text = _wordFallback({ surface: surf, displayed: disp, resolver: resolverReading, learner: learnerFlags, translation: sctx.sentence.ru || null }, language);
 
   const factsUsed = [
@@ -479,6 +469,7 @@ async function explainWord(ctx, { text_key, order_index, source, work_id, surfac
     body: { scope_level: SCOPE_SENTENCE_ONLY, category: CATEGORY, language,
       kind: "word", word: surf, source: isCorpus ? "corpus" : "personal",
       llm_used: llmUsed, ...(provider ? { provider, model } : {}),
+      ...(keySource === "byok" ? { key_source: "byok" } : {}),   // PAS-F1
       ...(degradedReason ? { degraded_reason: degradedReason } : {}),
       ...(depth === "detailed" ? { depth } : {}),   // PAS-D4
       text },
@@ -488,6 +479,7 @@ async function explainWord(ctx, { text_key, order_index, source, work_id, surfac
     source: isCorpus ? "corpus" : "personal", language, anchor: sctx.anchor,
     readings_diverge: diverges, text, llm_used: llmUsed,
     ...(provider ? { provider, model } : {}),
+    ...(keySource === "byok" ? { key_source: "byok" } : {}),
     ...(degradedReason ? { degraded_reason: degradedReason } : {}),
     usage: await _usage(ctx.userId),
     explanation_id: created.ok && created.result ? created.result.id : null };
@@ -541,26 +533,22 @@ async function followup(ctx, { explanation_id, question } = {}) {
 
   const profile = await agentRepo.getProfile(ctx.userId);
   const language = (profile && profile.language) || "ru";
-  const lim = planner.limits();
-  const reserve = llm.killSwitchOn()
-    ? { ok: false, reason: "KILL_SWITCH" }
-    : await agentRepo.reserveLlmCall(ctx.userId, {
-        scenario: "explain_followup", provider: llm.providerName(), perUserDaily: lim.perUserDaily, globalDaily: lim.globalDaily,
-      });
-  // Детерминированного фолбэка у follow-up НЕТ по природе — честный отказ (спека v2).
-  if (!reserve.ok) {
-    return { ok: false, error: reserve.reason === "KILL_SWITCH" ? "LLM_UNAVAILABLE" : reserve.reason };
-  }
+  // PAS-F1: единый гейт; hard-fail класс — детерминированного фолбэка у follow-up НЕТ
+  // по природе, коды честные (спека v2).
   const pp = buildFollowupPayload({
     language, depth: depthOf(profile), sentence: sctx.sentence.he_niqqud || sctx.sentence.he,
     translation: sctx.sentence.ru || null, previousExplanation: body.text || null, question: q,
   });
-  const out = await llm.generate({ system: pp.system, prompt: pp.prompt, maxOutputTokens: 384 });
-  await agentRepo.finalizeLlmCall(reserve.reserveId, { ok: out.ok, actualUnits: out.ok ? (out.output_tokens || 1) : null });
-  if (!out.ok) return { ok: false, error: out.error || "LLM_FAILED" };
+  const g = await llmGate.gatedGenerate(ctx, { scenario: "explain_followup", system: pp.system, prompt: pp.prompt, maxOutputTokens: 384 });
+  if (g.phase === "kill") return { ok: false, error: "LLM_UNAVAILABLE" };
+  if (g.phase === "reserve") return { ok: false, error: g.reason };
+  if (g.phase === "byok") return { ok: false, error: "BYOK_FAILED", provider_error: g.provider_error };
+  if (g.phase === "generate") return { ok: false, error: g.reason || "LLM_FAILED" };
+  const out = g.out;
   if (!planner.isCleanProse(out.text)) return { ok: false, error: "LLM_OUTPUT_INVALID" };
   const used = await agentRepo.bumpExplanationFollowups(ctx.userId, row.id);   // ход потрачен только при доставленном ответе
   return { ok: true, text: out.text, llm_used: true, provider: out.provider, model: out.model,
+    ...(g.key_source === "byok" ? { key_source: "byok" } : {}),
     turns_used: used, turns_left: Math.max(0, FOLLOWUP_LIMIT - used), usage: await _usage(ctx.userId) };
 }
 
@@ -608,27 +596,24 @@ async function comprehension(ctx, { work_id, text_key, order_index } = {}) {
   }
   if (!win.ok) return { ok: false, error: win.error, ...(win.key ? { key: win.key } : {}) };
 
-  const lim = planner.limits();
-  const reserve = llm.killSwitchOn()
-    ? { ok: false, reason: "KILL_SWITCH" }
-    : await agentRepo.reserveLlmCall(ctx.userId, {
-        scenario: "comprehension", provider: llm.providerName(), perUserDaily: lim.perUserDaily, globalDaily: lim.globalDaily,
-      });
-  if (!reserve.ok) return { ok: false, error: reserve.reason === "KILL_SWITCH" ? "LLM_UNAVAILABLE" : reserve.reason };
-
+  // PAS-F1: единый гейт; hard-fail класс — вопросы либо честные, либо честный код.
   const system = language === "en"
     ? 'You are the LinguistPro Hebrew mentor. Given a short passage (Hebrew sentences with translations), write 1-2 multiple-choice comprehension questions in English ABOUT THE CONTENT. Respond with STRICT JSON only: {"questions":[{"question":"…","options":["…","…","…","…"],"correct_index":0}]}. Exactly 4 distinct plausible options per question; correct_index is the 0-based index of the right option; questions must be answerable from the passage alone.'
     : 'Ты — наставник LinguistPro по ивриту. По короткому отрывку (ивритские предложения с переводами) составь 1–2 вопроса на понимание СОДЕРЖАНИЯ с выбором ответа, по-русски. Ответь СТРОГО JSON: {"questions":[{"question":"…","options":["…","…","…","…"],"correct_index":0}]}. Ровно 4 различных правдоподобных варианта на вопрос; correct_index — 0-based индекс верного; вопросы должны решаться только по отрывку.';
-  const out = await llm.generate({
-    system, json: true, maxOutputTokens: 512,
+  const g = await llmGate.gatedGenerate(ctx, {
+    scenario: "comprehension", system, json: true, maxOutputTokens: 512,
     prompt: JSON.stringify({ language, passage: win.rows.map((r) => ({ he: r.he, ru: r.ru })) }),
   });
-  await agentRepo.finalizeLlmCall(reserve.reserveId, { ok: out.ok, actualUnits: out.ok ? (out.output_tokens || 1) : null });
-  if (!out.ok) return { ok: false, error: out.error || "LLM_FAILED" };
+  if (g.phase === "kill") return { ok: false, error: "LLM_UNAVAILABLE" };
+  if (g.phase === "reserve") return { ok: false, error: g.reason };
+  if (g.phase === "byok") return { ok: false, error: "BYOK_FAILED", provider_error: g.provider_error };
+  if (g.phase === "generate") return { ok: false, error: g.reason || "LLM_FAILED" };
+  const out = g.out;
   const questions = validateComprehension(out.text);
   if (!questions) return { ok: false, error: "COMPREHENSION_INVALID" };   // честно, без цикла ретраев
   return { ok: true, questions, passage_rows: win.rows.map((r) => r.order_index),
     llm_used: true, provider: out.provider, model: out.model,
+    ...(g.key_source === "byok" ? { key_source: "byok" } : {}),
     advisory: true,   // клиент обязан показать плашку ДО ответа (R17: не оценка)
     usage: await _usage(ctx.userId) };
 }

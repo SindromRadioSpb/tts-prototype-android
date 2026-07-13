@@ -25,11 +25,25 @@
   var CSRF = function () { try { return localStorage.getItem('cloud.csrf') || ''; } catch (_) { return ''; } };
   var stripNiq = function (s) { return String(s || '').replace(/[֑-ׇ]/g, '').replace(/\s+/g, ' ').trim(); };
 
+  // PAS-F1 — BYOK-ключ агента: литералы БАЙТ-РАВНЫ library-ui.js (критика UX-6 — гейт
+  // сверяет); ключ только в localStorage, вплетается в body ТОЛЬКО LLM-тратящих запросов.
+  var BYOK_LS_PROVIDER = 'agent.byok.provider';
+  var BYOK_LS_KEY = 'agent.byok.key';
+  var BYOK_LLM_URL_RE = /\/api\/agent\/(explain(\/followup)?|explain-word|comprehension|study-summary|draft-retell|roleplay\/turn|writing\/review|next-text\/explain|plan)$/;
+  function agentByok() {
+    try {
+      var provider = localStorage.getItem(BYOK_LS_PROVIDER) || '';
+      var key = (localStorage.getItem(BYOK_LS_KEY) || '').trim();
+      if ((provider !== 'openrouter' && provider !== 'gemini') || key.length < 20) return null;
+      return { provider: provider, key: key };
+    } catch (_) { return null; }
+  }
   function jpost(url, body, signal) {
+    var b = BYOK_LLM_URL_RE.test(url) ? agentByok() : null;
     var opts = {
       method: 'POST', credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': CSRF() },
-      body: JSON.stringify(body),
+      body: JSON.stringify(b ? Object.assign({}, body, { byok: b }) : body),
     };
     if (signal) opts.signal = signal;
     return fetch(url, opts).then(function (x) { return x.json(); });
@@ -461,7 +475,7 @@
     }
     var metaParts = [];
     if (r.from_history) metaParts.push(tt('studio.agent.fromHistory', 'из истории — без нового вызова'));
-    if (r.llm_used) metaParts.push('🤖 ' + (r.provider || '') + (r.model ? ' · ' + r.model : ''));
+    if (r.llm_used) metaParts.push('🤖 ' + (r.key_source === 'byok' ? tt('room.cloud.byokProvenance', 'ваш ключ') + ' · ' : '') + (r.provider || '') + (r.model ? ' · ' + r.model : ''));
     else if (!r.from_history) metaParts.push(tt('studio.agent.noLlm', 'без AI: перевод и морфология офлайн') + (r.degraded_reason ? ' (' + r.degraded_reason + ')' : ''));
     if (r.usage && r.usage.limit) metaParts.push(tt('studio.agent.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit);
     setMeta(metaParts.join(' · '));
@@ -542,7 +556,7 @@
     });
     if (r.usage && r.usage.limit) {
       var um = document.createElement('div'); um.className = 'sa-plate';
-      um.textContent = tt('studio.agent.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit;
+      um.textContent = tt('studio.agent.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit + (r.key_source === 'byok' ? ' · 🤖 ' + tt('room.cloud.byokProvenance', 'ваш ключ') : '');
       out.appendChild(um);
     }
   }
@@ -681,7 +695,15 @@
   }
   var _TALK_FATAL = { SESSION_NOT_FOUND: 1, TEXT_NOT_IN_CLOUD: 1, SENTENCE_NOT_FOUND: 1,
     CLOUD_TEXTS_CONSENT_REQUIRED: 1, AGENT_READ_TEXTS_CONSENT_REQUIRED: 1 };
-  function talkErrMsg(code) {
+  function talkErrMsg(code, providerError) {
+    // PAS-F1: постоянная мисконфигурация ключа ≠ транзиент (критика UX-1/UX-2)
+    if (code === 'BYOK_INVALID') return tt('room.cloud.byokInvalid', 'Ваш ключ не подходит выбранному провайдеру — проверьте его в «⚙ Наставник».');
+    if (code === 'BYOK_FAILED') {
+      var pe = String(providerError || '');
+      if (pe === '429') return tt('room.cloud.byokQuota', 'У вашего ключа закончилась квота провайдера на сегодня.');
+      if (pe === '401' || pe === '403') return tt('room.cloud.byokRejected', 'Ключ не принят провайдером — проверьте его в «⚙ Наставник».');
+      return tt('room.cloud.byokFailed', 'Вызов на вашем ключе не прошёл — проверьте ключ в «⚙ Наставник».') + (pe ? ' (' + pe + ')' : '');
+    }
     if (code === 'SESSION_NOT_FOUND') return tt('room.talk.expired', 'Сессия завершена (истекла или начата новая).');
     if (code === 'TURN_IN_FLIGHT') return tt('room.talk.busy', 'Наставник ещё отвечает…');
     if (code === 'TURNS_LIMIT') return tt('room.talk.turnsOut', 'Ходы этой сессии исчерпаны — завершите и начните новую.');
@@ -727,6 +749,7 @@
     var bits = [];
     if (_talkCtx.turnsLeft != null) bits.push(tt('room.talk.turns', 'Ходы') + ': ' + _talkCtx.turnsUsed + '/' + (_talkCtx.turnsUsed + _talkCtx.turnsLeft));
     if (usage && usage.limit) bits.push(tt('studio.agent.usage', 'AI сегодня') + ': ' + usage.user_llm_calls + '/' + usage.limit);
+    if (_talkCtx.lastKeySource === 'byok') bits.push('🤖 ' + tt('room.cloud.byokProvenance', 'ваш ключ'));   // PAS-F1 (UX-4)
     s.textContent = bits.join(' · ');
   }
   async function talkOpen() {
@@ -780,7 +803,7 @@
       talkRenderFeed([], null);
       // Несинканный/стейл текст — штатный случай Студии: адресный пуш и повтор (B1-паттерн)
       if (code === 'TEXT_NOT_IN_CLOUD' || code === 'SENTENCE_NOT_FOUND') { talkPushOffer(code); return; }
-      talkErr(talkErrMsg(code));
+      talkErr(talkErrMsg(code, r && r.provider_error));
       return;
     }
     _talkCtx.sessionId = r.session_id;
@@ -792,7 +815,7 @@
     var inp = $('saTalkInput'); if (inp) { try { inp.focus(); } catch (_) {} }
   }
   function talkPushOffer(code) {
-    var ack = $('saTalkAck'); if (!ack) { talkErr(talkErrMsg(code)); return; }
+    var ack = $('saTalkAck'); if (!ack) { talkErr(talkErrMsg(code, r && r.provider_error)); return; }
     ack.textContent = '';
     var txt = document.createElement('div');
     txt.textContent = code === 'TEXT_NOT_IN_CLOUD'
@@ -841,7 +864,7 @@
       var code = (r && r.error) || '';
       _talkCtx.sessionId = null;
       if (code === 'SESSION_NOT_FOUND') { talkAckFlow(); return; }   // TTL/замена/деплой — start бесплатен
-      talkErr(talkErrMsg(code));
+      talkErr(talkErrMsg(code, r && r.provider_error));
       return;
     }
     _talkCtx.turnsUsed = r.turns_used || 0;
@@ -874,12 +897,13 @@
       // реплика в input НЕ очищается (переживает ошибку); лента ре-синкается из state
       if (_TALK_FATAL[code]) _talkCtx.sessionId = null;
       await talkResyncAfterError();
-      talkErr(talkErrMsg(code));
+      talkErr(talkErrMsg(code, r && r.provider_error));
       return;
     }
     if (inp) inp.value = '';
     _talkCtx.turnsUsed = r.turns_used || 0;
     _talkCtx.turnsLeft = r.turns_left != null ? r.turns_left : null;
+    _talkCtx.lastKeySource = r.key_source === 'byok' ? 'byok' : 'agent';   // PAS-F1
     talkRenderFeed(r.transcript, null);
     talkRenderStatus(r.usage);
   }
@@ -1069,7 +1093,7 @@
     matBody(r.text || '');
     var metaParts = [tt('studio.agent.matAdvisory', 'Совет наставника, не оценка — в память не записывается.')];
     if (r.from_history) metaParts.push(tt('studio.agent.fromHistory', 'из истории — без нового вызова'));
-    if (r.llm_used) metaParts.push('🤖 ' + (r.provider || '') + (r.model ? ' · ' + r.model : ''));
+    if (r.llm_used) metaParts.push('🤖 ' + (r.key_source === 'byok' ? tt('room.cloud.byokProvenance', 'ваш ключ') + ' · ' : '') + (r.provider || '') + (r.model ? ' · ' + r.model : ''));
     else if (!r.from_history) metaParts.push(tt('studio.agent.noLlm', 'без AI: перевод и морфология офлайн') + (r.degraded_reason ? ' (' + r.degraded_reason + ')' : ''));
     if (r.usage && r.usage.limit) metaParts.push(tt('studio.agent.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit);
     matMeta(metaParts.join(' · '));

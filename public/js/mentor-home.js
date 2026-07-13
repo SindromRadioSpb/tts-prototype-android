@@ -64,8 +64,18 @@
     if (code === "KILL_SWITCH") return t("room.cloud.agentKill", "LLM выключен (kill-switch)");
     if (code === "NO_API_KEY") return t("room.cloud.agentKeyNone", "без LLM-ключа — план детерминированный");
     if (code === "LLM_OUTPUT_INVALID") return t("room.cloud.planQualityReject", "ответ модели не прошёл проверку качества");
+    if (code === "BYOK_FAILED") return t("room.cloud.byokFailed", "Вызов на вашем ключе не прошёл — проверьте ключ в «⚙ Наставник».");   // PAS-F1
+    if (code === "BYOK_INVALID") return t("room.cloud.byokInvalid", "Ваш ключ не подходит выбранному провайдеру — проверьте его в «⚙ Наставник».");
     if (code === "429" || code === "403") return t("room.cloud.planKeyQuota", "у ключа нет квоты к модели — проверьте проект ключа в Google Console") + " (" + code + ")";
     return code;
+  }
+  // PAS-F1: byok из host-capability вплетается в LLM-тратящие body (host отсутствует/без
+  // ключа → серверный путь как раньше)
+  function _mhByok(body) {
+    try { const b = S.host && S.host.agentByok ? S.host.agentByok() : null; return b ? Object.assign({}, body, { byok: b }) : body; } catch (_) { return body; }
+  }
+  function _byokProv(r) {
+    return r && r.key_source === "byok" ? t("room.cloud.byokProvenance", "ваш ключ") + " · " : "";
   }
 
   async function renderStatus(box) {
@@ -85,6 +95,16 @@
       + " · " + t("room.cloud.hintAgentGlobal", "Всего за сегодня") + ": "
       + ((a.usage && a.usage.global_llm_calls) || 0) + "/" + ((a.limits && a.limits.llm_daily_global) || "—");
     line.textContent = "🤖 " + t("room.cloud.agentLine", "Наставник") + ": " + val;
+    // PAS-F1 (критика UX-7): при живом byok-ключе статус честен — «без LLM-ключа» с рабочим
+    // своим ключом было бы ложью; + счётчик доставленных ответов на своём ключе.
+    try {
+      var bk = S.host && S.host.agentByok ? S.host.agentByok() : null;
+      if (bk) {
+        var bline = "🔑 " + t("room.cloud.byokActive", "Свой ключ активен") + " (" + bk.provider + ") — " + t("room.cloud.byokNoServerSpend", "серверный лимит не тратится");
+        if (a.usage && a.usage.byok_calls_today > 0) bline += " · " + t("room.cloud.byokToday", "на своём ключе сегодня") + ": " + a.usage.byok_calls_today;
+        box.appendChild(el("div", "mentor-hint", bline));
+      }
+    } catch (_) {}
     // tap-ⓘ: как работает ключ/лимит (title-тултипы @380px не работают — паттерн ☁-модала)
     var infoI = el("span", "mentor-status-i", " ⓘ");
     line.appendChild(infoI);
@@ -222,7 +242,7 @@
     boxWrap.hidden = false;
     boxWrap.textContent = t("room.cloud.planRun", "Составляю план…");
     try {
-      var r = await jpost("/api/agent/plan", {});
+      var r = await jpost("/api/agent/plan", _mhByok({}));
       var j = r.json;
       if (!j || !j.ok) { boxWrap.textContent = "✗ " + ((j && j.error) || t("room.cloud.err", "Ошибка синхронизации")); return; }
       boxWrap.textContent = "";
@@ -230,7 +250,11 @@
       var addLine = function (text, cls) { if (!text) return; var n = el("div", cls || "mentor-plan-line", text); n.setAttribute("dir", "auto"); boxWrap.appendChild(n); };
       // LLM-текст показываем только когда он ЕСТЬ от LLM: fallback-текст сервера
       // дублирует секции, которые рендерятся пунктами ниже (урок P6.5).
-      if (j.llm_used && j.text) addLine(j.text);
+      if (j.llm_used && j.text) {
+        addLine(j.text);
+        // PAS-F1 (критика UX-4): у плана не было provider-строки вовсе — добавляем провенанс
+        if (j.provider) addLine("🤖 " + _byokProv(j) + j.provider + (j.model ? " · " + j.model : ""), "mentor-plan-line mentor-plan-construct");
+      }
       var plan = j.plan || {};
       if (plan.est_minutes) addLine("≈ " + plan.est_minutes + " " + t("room.cloud.planMin", "мин"));
       (plan.sections || []).forEach(function (s) {
@@ -501,7 +525,7 @@
     txt.setAttribute("dir", "auto");
     out.appendChild(txt);
     var metaBits = [];
-    if (j.provider) metaBits.push("🤖 " + j.provider + (j.model ? " · " + j.model : ""));
+    if (j.provider) metaBits.push("🤖 " + _byokProv(j) + j.provider + (j.model ? " · " + j.model : ""));
     if (j.usage && j.usage.limit) metaBits.push(t("room.explain.usage", "AI сегодня") + ": " + j.usage.user_llm_calls + "/" + j.usage.limit);
     if (metaBits.length) out.appendChild(el("div", "mentor-hint", metaBits.join(" · ")));
   }
@@ -513,10 +537,10 @@
     out.appendChild(el("div", "mentor-hint", t("room.explain.loading", "Наставник думает…")));
     var r = null;
     try {
-      r = await jpost("/api/agent/next-text/explain", { pick: {
+      r = await jpost("/api/agent/next-text/explain", _mhByok({ pick: {
         work_id: pick.work_id, cov: pick.cov, load_flag: !!pick.load_flag,
         kind: kind, frontier_pids: pick.frontier_pids || [],
-      } });
+      } }));
     } catch (_) {}
     btn.disabled = false;
     out.textContent = "";
@@ -524,6 +548,7 @@
       var code = (r && r.json && r.json.error) || "";
       var msg = code === "USER_LIMIT" || code === "GLOBAL_LIMIT" ? t("room.cloud.planLimit", "дневной лимит LLM исчерпан")
         : code === "KILL_SWITCH" ? t("room.cloud.agentKill", "LLM выключен (kill-switch)")
+        : code === "BYOK_FAILED" || code === "BYOK_INVALID" ? degradeLabel(code)   // PAS-F1
         : "✗ " + t("room.explain.err", "Не удалось получить объяснение") + (code ? " (" + code + ")" : "");
       out.appendChild(el("div", "mentor-hint", msg));
       return;
@@ -612,7 +637,7 @@
     out.textContent = "";
     out.appendChild(el("div", "mentor-hint", t("room.explain.loading", "Наставник думает…")));
     var r = null;
-    try { r = await jpost("/api/agent/writing/review", { targets: _wrTargets.map(function (x) { return x.item_key; }), text: text }); } catch (_) {}
+    try { r = await jpost("/api/agent/writing/review", _mhByok({ targets: _wrTargets.map(function (x) { return x.item_key; }), text: text })); } catch (_) {}
     _wrBusy = false; go.disabled = false;
     out.textContent = "";
     if (!r || r.status !== 200 || !r.json || !r.json.ok) {
@@ -639,7 +664,7 @@
     advisory.textContent = r.json.text || "";
     out.appendChild(advisory);
     var metaBits = [];
-    if (r.json.llm_used) metaBits.push("🤖 " + (r.json.provider || "") + (r.json.model ? " · " + r.json.model : ""));
+    if (r.json.llm_used) metaBits.push("🤖 " + _byokProv(r.json) + (r.json.provider || "") + (r.json.model ? " · " + r.json.model : ""));
     else if (r.json.degraded_reason) metaBits.push(degradeLabel(r.json.degraded_reason));
     if (r.json.usage && r.json.usage.limit) metaBits.push(t("room.explain.usage", "AI сегодня") + ": " + r.json.usage.user_llm_calls + "/" + r.json.usage.limit);
     if (metaBits.length) out.appendChild(el("div", "mentor-hint", metaBits.join(" · ")));
@@ -696,6 +721,90 @@
       String(a.profile.depth || "brief"),
       function (v) { return { goals: { depth: v } }; }));
     box.appendChild(el("div", "mentor-hint", t("room.mentor.settings.hint", "Действует на объяснения, план и ответы наставника; сохраняется в облачном профиле.")));
+    box.appendChild(msg);
+    renderByokSection(box);
+  }
+
+  // ── PAS-F1: «Свой LLM-ключ» — BYOK-расширение гибрида (серверная базовая квота +
+  // свой ключ снимает лимит). Ключ живёт ТОЛЬКО в localStorage браузера (host-capability
+  // agentByok/agentByokSet — модуль data-portable, localStorage сам не трогает); сервер
+  // его не хранит и не логирует. UX-паритет с BYOK-прецедентом Студии (критика UX-5):
+  // masked saved-строка, ✓/✗-фидбэк, get-key ссылки, cross-check формата (UX-2). ──
+  function renderByokSection(box) {
+    if (!S.host || typeof S.host.agentByok !== "function" || typeof S.host.agentByokSet !== "function") return;
+    box.appendChild(el("h4", "mentor-byok-title", "🔑 " + t("room.mentor.byok.title", "Свой LLM-ключ")));
+    box.appendChild(el("div", "mentor-hint", t("room.mentor.byok.hint",
+      "Вызовы наставника пойдут на вашем ключе — серверный дневной лимит не тратится. Ключ хранится только в этом браузере в открытом виде и передаётся с каждым запросом; на общем устройстве удаляйте ключ после занятия.")));
+    var wrap = el("div", "mentor-byok-wrap");
+    box.appendChild(wrap);
+    var msg = el("div", "mentor-hint mentor-consent-msg");
+    msg.hidden = true;
+
+    function paint() {
+      wrap.textContent = "";
+      var cur = null;
+      try { cur = S.host.agentByok(); } catch (_) {}
+      if (cur) {
+        // masked saved-строка: провайдер + последние 4 символа — ключ целиком НЕ показывается
+        var tail = cur.key.length > 4 ? cur.key.slice(-4) : "";
+        wrap.appendChild(el("div", "mentor-status-line", "✓ " + t("room.mentor.byok.saved", "Ключ сохранён") + " · " + cur.provider + (tail ? " · …" + tail : "")));
+        var rm = el("button", "mentor-wr-ghost", t("room.mentor.byok.remove", "Убрать ключ"));
+        rm.type = "button";
+        rm.addEventListener("click", function () {
+          S.host.agentByokSet(null, null);
+          _ux("mentor_settings", "dismissed");
+          paint();
+          try { renderStatus(S.els.status); } catch (_) {}
+        });
+        var row0 = el("div", "mentor-plan-actions");
+        row0.appendChild(rm);
+        wrap.appendChild(row0);
+        return;
+      }
+      var provSel = document.createElement("select");
+      provSel.className = "mentor-byok-select";
+      [{ v: "openrouter", l: "OpenRouter" }, { v: "gemini", l: "Google Gemini" }].forEach(function (o) {
+        var op = document.createElement("option"); op.value = o.v; op.textContent = o.l; provSel.appendChild(op);
+      });
+      var input = document.createElement("input");
+      input.type = "password";
+      input.className = "mentor-byok-input";
+      input.placeholder = t("room.mentor.byok.ph", "Вставьте API-ключ…");
+      input.setAttribute("autocomplete", "off");
+      var save = el("button", "mentor-plan-btn", t("room.mentor.byok.save", "Сохранить"));
+      save.type = "button";
+      save.addEventListener("click", function () {
+        var key = String(input.value || "").trim();
+        var provider = provSel.value;
+        if (key.length < 20) { msg.textContent = "✗ " + t("room.mentor.byok.tooShort", "Ключ слишком короткий."); msg.hidden = false; return; }
+        // cross-check формата = серверному правилу буквально (критика UX-2, config-string-match)
+        if (provider === "gemini" && key.indexOf("AIza") !== 0) {
+          msg.textContent = "✗ " + t("room.mentor.byok.mismatchGemini", "Ключ Gemini начинается с «AIza» — проверьте провайдера."); msg.hidden = false; return;
+        }
+        if (provider === "openrouter" && key.indexOf("AIza") === 0) {
+          msg.textContent = "✗ " + t("room.mentor.byok.mismatchOr", "Это ключ Google («AIza…») — выберите провайдера Gemini."); msg.hidden = false; return;
+        }
+        if (!S.host.agentByokSet(provider, key)) { msg.textContent = "✗ " + t("room.cloud.err", "Ошибка синхронизации"); msg.hidden = false; return; }
+        msg.hidden = true;
+        _ux("mentor_settings", "accepted");
+        paint();
+        try { renderStatus(S.els.status); } catch (_) {}
+      });
+      var row = el("div", "mentor-plan-actions");
+      row.appendChild(provSel); row.appendChild(save);
+      wrap.appendChild(input);
+      wrap.appendChild(row);
+      // get-key ссылки (паритет с BYOK-прецедентом Студии)
+      var links = el("div", "mentor-hint");
+      var a1 = el("a", "mentor-tg-link", "openrouter.ai/settings/keys");
+      a1.setAttribute("href", "https://openrouter.ai/settings/keys"); a1.setAttribute("target", "_blank"); a1.setAttribute("rel", "noopener");
+      var a2 = el("a", "mentor-tg-link", "aistudio.google.com/app/apikey");
+      a2.setAttribute("href", "https://aistudio.google.com/app/apikey"); a2.setAttribute("target", "_blank"); a2.setAttribute("rel", "noopener");
+      links.appendChild(document.createTextNode(t("room.mentor.byok.get", "Где взять ключ:") + " "));
+      links.appendChild(a1); links.appendChild(document.createTextNode(" · ")); links.appendChild(a2);
+      wrap.appendChild(links);
+    }
+    paint();
     box.appendChild(msg);
   }
 

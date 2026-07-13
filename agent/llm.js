@@ -71,8 +71,10 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const RETRYABLE_STATUS = new Set([503, 429]);
 const RETRY_BACKOFF_MS = 700;
 
-async function generateGemini({ system, prompt, maxOutputTokens, json }) {
-  const key = geminiKey();
+async function generateGemini({ system, prompt, maxOutputTokens, json, byokKey }) {
+  // PAS-F1: byokKey (ключ ПОЛЬЗОВАТЕЛЯ per-request) переопределяет env-ключ агента;
+  // ключ НИКОГДА не попадает в error/логи (ветка и так дисциплинирована: только код).
+  const key = byokKey || geminiKey();
   if (!key) return { ok: false, error: "NO_API_KEY" };
   const { GoogleGenerativeAI } = require("@google/generative-ai");
   const modelName = process.env.AGENT_LLM_MODEL || DEFAULT_GEMINI_MODEL;
@@ -115,8 +117,8 @@ async function generateGemini({ system, prompt, maxOutputTokens, json }) {
 // С флагом: finish_reason:"stop", reasoning_tokens:0, чистый короткий ответ. Параметр —
 // no-op для моделей без reasoning-режима (OpenRouter passthrough), не ломает будущую смену
 // AGENT_OPENROUTER_MODEL на нерассуждающую модель.
-async function generateOpenRouter({ system, prompt, maxOutputTokens, json }) {
-  const key = openrouterKey();
+async function generateOpenRouter({ system, prompt, maxOutputTokens, json, byokKey }) {
+  const key = byokKey || openrouterKey();   // PAS-F1: per-request ключ пользователя
   if (!key) return { ok: false, error: "NO_API_KEY" };
   const modelName = process.env.AGENT_OPENROUTER_MODEL || DEFAULT_OPENROUTER_MODEL;
   const messages = [];
@@ -156,9 +158,12 @@ async function generateOpenRouter({ system, prompt, maxOutputTokens, json }) {
   }
 }
 
-function generateMock({ prompt, json, fixture }) {
+function generateMock({ prompt, json, fixture, byokKey }) {
   // Детерминированно и БЕЗ эха prompt-контента: только длина как «подпись» вызова —
   // гейт проверяет и llm_used-путь, и то, что payload не утёк в ответ/логи.
+  // PAS-F1 (критика R11-3): in-band фейл-триггер — byokKey /^BYOKFAIL/ ломает ТОЛЬКО
+  // byok-вызов (same-boot с happy-кейсом; env заморожен после старта child-процесса).
+  if (byokKey && /^BYOKFAIL/.test(String(byokKey))) return { ok: false, error: "MOCK_BYOK_FAIL" };
   const len = String(prompt || "").length;
   if (json) {
     // PAS-B3 — mock различает json-сценарии по opts.fixture (реальные провайдеры
@@ -187,17 +192,27 @@ function generateMock({ prompt, json, fixture }) {
         { question: "Что делает герой? (mock)", options: ["читает", "пишет", "идёт", "спит"], correct_index: 1 },
       ] }) };
   }
-  return { ok: true, text: "[mock-mentor] план сформулирован (ctx=" + len + " chars).", provider: "mock", model: "mock-1", output_tokens: 8 };
+  // PAS-F1 (критика R11-1): [mock-byok]-маркер ТОЛЬКО в prose-режиме — json-сценарии
+  // ломались бы на JSON.parse; их byok-зуб = key_source + ledger-строка kind='llm_call_byok'.
+  const byokMark = byokKey ? "[mock-byok] " : "";
+  return { ok: true, text: byokMark + "[mock-mentor] план сформулирован (ctx=" + len + " chars).", provider: "mock", model: "mock-1", output_tokens: 8 };
 }
 
 // Единая точка генерации. Возвращает { ok, text, provider, model, output_tokens } |
 // { ok:false, error } — НИКОГДА не бросает наружу содержимое prompt.
+// PAS-F1 диспатч-прецеденс (критика R16-02/R11-2): mock ВСЕГДА выигрывает (герметичность
+// гейтов — sentinel-ключ не должен уходить в реальную сеть); byokProvider переключает
+// ТОЛЬКО между реальными провайдерами (пользователь с Gemini-ключом работает при
+// серверном openrouter и наоборот); прод mock не достигает (env gemini/openrouter).
 async function generate(opts) {
   if (killSwitchOn()) return { ok: false, error: "KILL_SWITCH" };
+  const o = opts || {};
   const p = providerName();
-  if (p === "mock") return generateMock(opts || {});
-  if (p === "gemini") return generateGemini(opts || {});
-  if (p === "openrouter") return generateOpenRouter(opts || {});
+  if (p === "mock") return generateMock(o);
+  if (o.byokProvider === "gemini") return generateGemini(o);
+  if (o.byokProvider === "openrouter") return generateOpenRouter(o);
+  if (p === "gemini") return generateGemini(o);
+  if (p === "openrouter") return generateOpenRouter(o);
   if (p === "claude") return { ok: false, error: "PROVIDER_NOT_IMPLEMENTED" };   // §13.3: третий провайдер — не блокер P6
   return { ok: false, error: "UNKNOWN_PROVIDER" };
 }

@@ -19,6 +19,7 @@
 const path = require("path");
 const tools = require(path.join(__dirname, "tools"));
 const llm = require(path.join(__dirname, "llm"));
+const llmGate = require(path.join(__dirname, "llmGate"));
 const constructs = require(path.join(__dirname, "constructs"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
 const keyingService = require(path.join(__dirname, "..", "db", "keyingService"));
@@ -192,37 +193,29 @@ async function plan(ctx) {
   const depth = _depthOf(profile);
   const core = await buildPlanCore(ctx);
 
-  let text = null, llmUsed = false, degradedReason = null, provider = null, model = null;
-  const lim = limits();
-  // Kill-switch — ДО резерва: выключенный LLM не должен жечь ledger-бюджет (§11).
-  const reserve = llm.killSwitchOn()
-    ? { ok: false, reason: "KILL_SWITCH" }
-    : await agentRepo.reserveLlmCall(ctx.userId, {
-        scenario: "plan", provider: llm.providerName(), perUserDaily: lim.perUserDaily, globalDaily: lim.globalDaily,
-      });
-  if (!reserve.ok) {
-    degradedReason = reserve.reason;   // KILL_SWITCH | USER_LIMIT | GLOBAL_LIMIT — план всё равно полезен (R16)
-  } else {
-    // Класс D: prompt собирается, отправляется и НЕ персистится/НЕ логируется.
-    const promptPayload = {
-      language, est_minutes: core.est_minutes,
-      sections: core.sections.map((s) => ({
-        category: s.category, title: language === "en" ? s.title_en : s.title_ru,
-        lemmas: (s.items || []).map((x) => x.lemma), recommended_channel: s.recommended_channel || null,
-      })),
-    };
-    const out = await llm.generate({
-      system: (language === "en"
-        ? "You are the LinguistPro Hebrew mentor. Rewrite the given study plan as " + PLAN_LEN[depth].en + ". Use ONLY the facts in the JSON. Do not invent words, counts or grammar facts. No greetings, no emoji spam. Output PLAIN PROSE ONLY: no backticks, no braces, no JSON, no field names (never write est_minutes/category/sections) — just natural sentences."
-        : "Ты — наставник LinguistPro по ивриту. Сформулируй данный план занятий " + PLAN_LEN[depth].ru + ". Используй ТОЛЬКО факты из JSON. Не выдумывай слова, числа и грамматические факты. Без приветствий. Пиши ТОЛЬКО обычным текстом: без обратных кавычек, без фигурных скобок, без JSON и имён полей (никогда не пиши est_minutes/category/sections) — только естественные предложения."),
-      prompt: JSON.stringify(promptPayload),
-      maxOutputTokens: 320,
-    });
-    await agentRepo.finalizeLlmCall(reserve.reserveId, { ok: out.ok, actualUnits: out.ok ? (out.output_tokens || 1) : null });
-    if (out.ok && isCleanProse(out.text)) { text = out.text; llmUsed = true; provider = out.provider; model = out.model; }
-    else if (out.ok) degradedReason = "LLM_OUTPUT_INVALID";   // вызов потрачен, но ответ не прошёл quality-фильтр
-    else degradedReason = out.error;   // KILL_SWITCH | NO_API_KEY | provider error → деградация
-  }
+  // PAS-F1: единый гейт (llmGate); degradable — план всегда полезен детерминированно (R16).
+  let text = null, llmUsed = false, degradedReason = null, provider = null, model = null, keySource = null;
+  // Класс D: prompt собирается, отправляется и НЕ персистится/НЕ логируется.
+  const promptPayload = {
+    language, est_minutes: core.est_minutes,
+    sections: core.sections.map((s) => ({
+      category: s.category, title: language === "en" ? s.title_en : s.title_ru,
+      lemmas: (s.items || []).map((x) => x.lemma), recommended_channel: s.recommended_channel || null,
+    })),
+  };
+  const g = await llmGate.gatedGenerate(ctx, {
+    scenario: "plan",
+    system: (language === "en"
+      ? "You are the LinguistPro Hebrew mentor. Rewrite the given study plan as " + PLAN_LEN[depth].en + ". Use ONLY the facts in the JSON. Do not invent words, counts or grammar facts. No greetings, no emoji spam. Output PLAIN PROSE ONLY: no backticks, no braces, no JSON, no field names (never write est_minutes/category/sections) — just natural sentences."
+      : "Ты — наставник LinguistPro по ивриту. Сформулируй данный план занятий " + PLAN_LEN[depth].ru + ". Используй ТОЛЬКО факты из JSON. Не выдумывай слова, числа и грамматические факты. Без приветствий. Пиши ТОЛЬКО обычным текстом: без обратных кавычек, без фигурных скобок, без JSON и имён полей (никогда не пиши est_minutes/category/sections) — только естественные предложения."),
+    prompt: JSON.stringify(promptPayload),
+    maxOutputTokens: 320,
+  });
+  if (g.phase === "ok") {
+    if (isCleanProse(g.out.text)) { text = g.out.text; llmUsed = true; provider = g.out.provider; model = g.out.model; keySource = g.key_source; }
+    else degradedReason = "LLM_OUTPUT_INVALID";   // вызов потрачен, но ответ не прошёл quality-фильтр
+  } else if (g.phase === "byok") degradedReason = "BYOK_FAILED";
+  else degradedReason = g.reason;   // KILL_SWITCH | USER_LIMIT | GLOBAL_LIMIT | provider error
   if (!text) text = fallbackText(core, language);
 
   const task = await agentRepo.createTask(ctx.userId, {
@@ -245,6 +238,7 @@ async function plan(ctx) {
     language,
     llm_used: llmUsed,
     ...(provider ? { provider, model } : {}),
+    ...(keySource === "byok" ? { key_source: "byok" } : {}),
     ...(degradedReason ? { degraded_reason: degradedReason } : {}),
     task_id: task.id,
     categories: CATEGORIES,   // канон 5 категорий — самоописание для R17-гейта

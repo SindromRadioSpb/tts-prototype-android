@@ -20,6 +20,7 @@
 const path = require("path");
 const tools = require(path.join(__dirname, "tools"));
 const llm = require(path.join(__dirname, "llm"));
+const llmGate = require(path.join(__dirname, "llmGate"));
 const planner = require(path.join(__dirname, "planner"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
 const agentSentenceRepo = require(path.join(__dirname, "..", "db", "agentSentenceRepo"));
@@ -112,22 +113,14 @@ async function studySummary(ctx, { text_key } = {}) {
   };
   const payload = buildSummaryPayload(digest, learner, language);
 
-  let text = null, llmUsed = false, degradedReason = null, provider = null, model = null;
-  const lim = planner.limits();
-  const reserve = llm.killSwitchOn()
-    ? { ok: false, reason: "KILL_SWITCH" }
-    : await agentRepo.reserveLlmCall(ctx.userId, {
-        scenario: "study_summary", provider: llm.providerName(), perUserDaily: lim.perUserDaily, globalDaily: lim.globalDaily,
-      });
-  if (!reserve.ok) {
-    degradedReason = reserve.reason;
-  } else {
-    const out = await llm.generate({ system: payload.system, prompt: payload.prompt, maxOutputTokens: 512 });
-    await agentRepo.finalizeLlmCall(reserve.reserveId, { ok: out.ok, actualUnits: out.ok ? (out.output_tokens || 1) : null });
-    if (out.ok && planner.isCleanProse(out.text)) { text = out.text; llmUsed = true; provider = out.provider; model = out.model; }
-    else if (out.ok) degradedReason = "LLM_OUTPUT_INVALID";
-    else degradedReason = out.error;
-  }
+  // PAS-F1: единый гейт; degradable — детерминированный фолбэк-совет всегда полезен.
+  let text = null, llmUsed = false, degradedReason = null, provider = null, model = null, keySource = null;
+  const g = await llmGate.gatedGenerate(ctx, { scenario: "study_summary", system: payload.system, prompt: payload.prompt, maxOutputTokens: 512 });
+  if (g.phase === "ok") {
+    if (planner.isCleanProse(g.out.text)) { text = g.out.text; llmUsed = true; provider = g.out.provider; model = g.out.model; keySource = g.key_source; }
+    else degradedReason = "LLM_OUTPUT_INVALID";
+  } else if (g.phase === "byok") degradedReason = "BYOK_FAILED";
+  else degradedReason = g.reason;
   if (!text) text = fallbackText(digest, payload.due, payload.weak, language);
 
   // §7 provenance: якорь+счёт, НЕ содержимое дайджеста (replay — из артефакта по якорю).
@@ -146,6 +139,7 @@ async function studySummary(ctx, { text_key } = {}) {
       kind: KIND, category: CATEGORY, language,
       scope_level: agentSentenceRepo.SCOPE_TEXT_DIGEST,
       llm_used: llmUsed, ...(provider ? { provider, model } : {}),
+      ...(keySource === "byok" ? { key_source: "byok" } : {}),   // PAS-F1
       ...(degradedReason ? { degraded_reason: degradedReason } : {}),
       text,
     },
@@ -156,6 +150,7 @@ async function studySummary(ctx, { text_key } = {}) {
     anchor: { text_key: textKey },
     text, llm_used: llmUsed,
     ...(provider ? { provider, model } : {}),
+    ...(keySource === "byok" ? { key_source: "byok" } : {}),
     ...(degradedReason ? { degraded_reason: degradedReason } : {}),
     explanation_id: created.ok && created.result ? created.result.id : null,
     usage: await _usage(ctx.userId),
@@ -244,17 +239,14 @@ async function draftRetell(ctx, { work_id, text_key, order_index } = {}) {
   }
 
   // Пересказ без LLM невозможен по природе — честные коды вместо фолбэка (паттерн followup).
-  const lim = planner.limits();
-  if (llm.killSwitchOn()) return { ok: false, error: "LLM_UNAVAILABLE" };
-  const reserve = await agentRepo.reserveLlmCall(ctx.userId, {
-    scenario: "draft_retell", provider: llm.providerName(), perUserDaily: lim.perUserDaily, globalDaily: lim.globalDaily,
-  });
-  if (!reserve.ok) return { ok: false, error: reserve.reason };
-
+  // PAS-F1: единый гейт; hard-fail класс.
   const payload = buildDraftPayload(win.rows, win.work, language);
-  const out = await llm.generate({ system: payload.system, prompt: payload.prompt, json: true, maxOutputTokens: 768, fixture: DRAFT_KIND });
-  await agentRepo.finalizeLlmCall(reserve.reserveId, { ok: out.ok, actualUnits: out.ok ? (out.output_tokens || 1) : null });
-  if (!out.ok) return { ok: false, error: out.error === "KILL_SWITCH" ? "LLM_UNAVAILABLE" : (out.error || "LLM_UNAVAILABLE") };
+  const g = await llmGate.gatedGenerate(ctx, { scenario: "draft_retell", system: payload.system, prompt: payload.prompt, json: true, maxOutputTokens: 768, fixture: DRAFT_KIND });
+  if (g.phase === "kill") return { ok: false, error: "LLM_UNAVAILABLE" };
+  if (g.phase === "reserve") return { ok: false, error: g.reason };
+  if (g.phase === "byok") return { ok: false, error: "BYOK_FAILED", provider_error: g.provider_error };
+  if (g.phase === "generate") return { ok: false, error: g.reason === "KILL_SWITCH" ? "LLM_UNAVAILABLE" : (g.reason || "LLM_UNAVAILABLE") };
+  const out = g.out;
   let parsed = null;
   try { parsed = JSON.parse(out.text); } catch (_) {}
   const lines = validateDraft(parsed);
@@ -280,6 +272,7 @@ async function draftRetell(ctx, { work_id, text_key, order_index } = {}) {
       kind: DRAFT_KIND, category: CATEGORY, language,
       scope_level: "corpus_window_5",
       llm_used: true, provider: out.provider, model: out.model,
+      ...(g.key_source === "byok" ? { key_source: "byok" } : {}),   // PAS-F1
       lines,
       text: lines.map((l) => l.he).join("\n"),
     },
@@ -290,6 +283,7 @@ async function draftRetell(ctx, { work_id, text_key, order_index } = {}) {
     anchor: win.anchor, work: win.work,
     draft: { lines },
     llm_used: true, provider: out.provider, model: out.model,
+    ...(g.key_source === "byok" ? { key_source: "byok" } : {}),
     explanation_id: created.ok && created.result ? created.result.id : null,
     usage: await _usage(ctx.userId),
   };

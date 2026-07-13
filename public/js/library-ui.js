@@ -2988,6 +2988,23 @@ function flushAgentUx() {
 }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushAgentUx(); });
 
+// PAS-F1 — BYOK-ключ агента (гибрид: серверная базовая квота + свой ключ снимает лимит).
+// Ключ живёт ТОЛЬКО в localStorage браузера и передаётся per-request в body LLM-тратящих
+// агент-запросов; сервер его не хранит и не логирует. Литералы — const'ы (критика UX-6:
+// копия в studio-agent.js обязана быть байт-равной — гейт сверяет).
+const BYOK_LS_PROVIDER = 'agent.byok.provider';
+const BYOK_LS_KEY = 'agent.byok.key';
+function agentByok() {
+  try {
+    const provider = localStorage.getItem(BYOK_LS_PROVIDER) || '';
+    const key = (localStorage.getItem(BYOK_LS_KEY) || '').trim();
+    // null ТОЛЬКО при полной валидности обоих полей — деградат не отправляется вовсе
+    // (сервер отверг бы 400; молчаливый серверный путь при «установленном» ключе запрещён)
+    if ((provider !== 'openrouter' && provider !== 'gemini') || key.length < 20) return null;
+    return { provider: provider, key: key };
+  } catch (_) { return null; }
+}
+
 // Этикет R17 §2.3: вид открывается ТОЛЬКО явным тапом или deep-link #mentor (пуш) — никаких
 // автооткрытий.
 let _mentorMounted = false;
@@ -3007,6 +3024,15 @@ function _mentorHost() {
       try { if (pick && pick.card) openCorpusWork(pick.card); } catch (_) {}
     },
     agentUx: (feature, action, latencyMs) => { try { agentUx(feature, action, latencyMs); } catch (_) {} },
+    // PAS-F1 — BYOK-capability для mentor-home (данные-portable модуль localStorage не трогает)
+    agentByok: () => agentByok(),
+    agentByokSet: (provider, key) => {
+      try {
+        if (provider && key) { localStorage.setItem(BYOK_LS_PROVIDER, String(provider)); localStorage.setItem(BYOK_LS_KEY, String(key)); }
+        else { localStorage.removeItem(BYOK_LS_PROVIDER); localStorage.removeItem(BYOK_LS_KEY); }   // «Убрать» = обе записи атомарно
+        return true;
+      } catch (_) { return false; }
+    },
     openTextAt: async (textKey, orderIndex, source) => {
       let row = null;
       try {
@@ -3705,7 +3731,7 @@ async function _compRun() {
     if (_compCtx.corpus) { body.source = 'corpus'; body.work_id = _compCtx.workId; }
     r = await fetch('/api/agent/comprehension', { method: 'POST', credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
-      body: JSON.stringify(body) }).then((x) => x.json());
+      body: JSON.stringify(_withByok(body)) }).then((x) => x.json());
   } catch (_) {}
   _compBusy = false;
   if (btn) btn.disabled = false;
@@ -3738,7 +3764,7 @@ async function _compRun() {
     });
     out.appendChild(opts);
   });
-  if (r.usage && r.usage.limit) out.appendChild(el('div', { class: 'room-comp-plate', text: tt('room.explain.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit }));
+  if (r.usage && r.usage.limit) out.appendChild(el('div', { class: 'room-comp-plate', text: tt('room.explain.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit + (r.key_source === 'byok' ? ' · 🤖 ' + tt('room.cloud.byokProvenance', 'ваш ключ') : '') }));
 }
 // PAS-B3 — «упрощённый пересказ» окна ≤5 строк (producer) → в Студию (приёмник).
 // Источники: корпус И — owner-фидбэк 2026-07-12 — ЛИЧНЫЕ тексты (тот же физический
@@ -3773,13 +3799,14 @@ async function _draftRun() {
     if (_draftCtx.workId) body.work_id = _draftCtx.workId;   // корпус; без него — личный путь
     r = await fetch('/api/agent/draft-retell', { method: 'POST', credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
-      body: JSON.stringify(body) }).then((x) => x.json());
+      body: JSON.stringify(_withByok(body)) }).then((x) => x.json());
   } catch (_) {}
   _draftBusy = false;
   if (btn) btn.disabled = false;
   if (!r || !r.ok || !r.draft || !Array.isArray(r.draft.lines)) {
     const code = (r && r.error) || '';
-    out.textContent = code === 'USER_LIMIT' || code === 'GLOBAL_LIMIT' ? tt('room.mentor.planLimit', 'дневной лимит LLM исчерпан')
+    out.textContent = byokErrMsg(code, r && r.provider_error) ? byokErrMsg(code, r && r.provider_error)
+      : code === 'USER_LIMIT' || code === 'GLOBAL_LIMIT' ? tt('room.mentor.planLimit', 'дневной лимит LLM исчерпан')
       : code === 'LLM_UNAVAILABLE' ? tt('room.explain.noLlm', 'без AI: перевод и морфология офлайн')
       : code === 'DRAFT_INVALID' ? tt('room.explain.draftInvalid', 'Пересказ не получился — попробуйте ещё раз.')
       : code === 'CLOUD_TEXTS_CONSENT_REQUIRED' ? tt('room.explain.needTexts', 'Сначала включите «Синхронизировать Мои тексты» в ☁ и запустите синк.')
@@ -3797,7 +3824,7 @@ async function _draftRun() {
   });
   const metaBits = [];
   if (r.from_history) metaBits.push(tt('room.explain.fromHistory', 'из истории — без нового вызова'));
-  if (r.llm_used) metaBits.push('🤖 ' + (r.provider || '') + (r.model ? ' · ' + r.model : ''));
+  if (r.llm_used) metaBits.push('🤖 ' + (r.key_source === 'byok' ? tt('room.cloud.byokProvenance', 'ваш ключ') + ' · ' : '') + (r.provider || '') + (r.model ? ' · ' + r.model : ''));
   if (r.usage && r.usage.limit) metaBits.push(tt('room.explain.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit);
   if (metaBits.length) out.appendChild(el('div', { class: 'room-cloud-hint', text: metaBits.join(' · ') }));
   const row = el('div', { class: 'room-cloud-actions' });
@@ -3926,7 +3953,21 @@ function _talkErr(msg) {
   const els = _talkEls(); if (!els.err) return;
   els.err.textContent = msg || ''; els.err.hidden = !msg;
 }
-function _talkErrMsg(code) {
+// PAS-F1 — общие копии BYOK-ошибок (критика UX-1: постоянная мисконфигурация ключа не
+// должна выглядеть транзиентной; UX-2: 401/403 «ключ не принят» ≠ 429 «квота ключа»).
+function byokErrMsg(code, providerError) {
+  if (code === 'BYOK_INVALID') return tt('room.cloud.byokInvalid', 'Ваш ключ не подходит выбранному провайдеру — проверьте его в «⚙ Наставник».');
+  if (code === 'BYOK_FAILED') {
+    const pe = String(providerError || '');
+    if (pe === '429') return tt('room.cloud.byokQuota', 'У вашего ключа закончилась квота провайдера на сегодня.');
+    if (pe === '401' || pe === '403') return tt('room.cloud.byokRejected', 'Ключ не принят провайдером — проверьте его в «⚙ Наставник».');
+    return tt('room.cloud.byokFailed', 'Вызов на вашем ключе не прошёл — проверьте ключ в «⚙ Наставник».') + (pe ? ' (' + pe + ')' : '');
+  }
+  return null;
+}
+function _talkErrMsg(code, providerError) {
+  const bk = byokErrMsg(code, providerError);
+  if (bk) return bk;
   if (code === 'SESSION_NOT_FOUND') return tt('room.talk.expired', 'Сессия завершена (истекла или начата новая).');
   if (code === 'TURN_IN_FLIGHT') return tt('room.talk.busy', 'Наставник ещё отвечает…');
   if (code === 'TURNS_LIMIT') return tt('room.talk.turnsOut', 'Ходы этой сессии исчерпаны — завершите и начните новую.');
@@ -3972,11 +4013,17 @@ function _talkRenderStatus(usage) {
   const bits = [];
   if (_talkCtx.turnsLeft != null) bits.push(tt('room.talk.turns', 'Ходы') + ': ' + _talkCtx.turnsUsed + '/' + (_talkCtx.turnsUsed + _talkCtx.turnsLeft));
   if (usage && usage.limit) bits.push(tt('room.explain.usage', 'AI сегодня') + ': ' + usage.user_llm_calls + '/' + usage.limit);
+  // PAS-F1 (критика UX-4): диалог — самый call-тяжёлый byok-поток; провенанс в статус-строке
+  if (_talkCtx.lastKeySource === 'byok') bits.push('🤖 ' + tt('room.cloud.byokProvenance', 'ваш ключ'));
   els.status.textContent = bits.join(' · ');
 }
+// PAS-F1: byok вплетается в body LLM-тратящих запросов (turn; start/state/stop LLM не зовут,
+// но лишний byok безвреден — сервер валидирует и игнорирует на не-LLM путях... нет: start
+// LLM-тратящим не является и _agentByokCtx там не зовётся — byok прикладываем ТОЛЬКО к turn).
+function _withByok(body) { const b = agentByok(); return b ? { ...body, byok: b } : body; }
 async function _talkFetch(method, url, body) {
   const opts = { method, credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' } };
-  if (body != null) opts.body = JSON.stringify(body);
+  if (body != null) opts.body = JSON.stringify(/\/turn$/.test(url) ? _withByok(body) : body);
   return fetch(url, opts).then((x) => x.json());
 }
 async function _talkOpen() {
@@ -4052,7 +4099,7 @@ async function _talkResync() {
     const code = (r && r.error) || '';
     _talkCtx.sessionId = null;
     if (code === 'SESSION_NOT_FOUND') { _talkAckFlow(); return; }   // TTL/замена/деплой — новая сессия (start бесплатен)
-    _talkErr(_talkErrMsg(code));
+    _talkErr(_talkErrMsg(code, r && r.provider_error));
     return;
   }
   _talkCtx.turnsUsed = r.turns_used || 0;
@@ -4085,12 +4132,13 @@ async function _talkSend() {
     // сетевой обрыв: серверный ход мог доехать — ре-синк state вместо слепого ретрая;
     // мёртвая сессия — restart-подсказка (внутри _talkResyncAfterError)
     await _talkResyncAfterError(code);
-    _talkErr(_talkErrMsg(code));
+    _talkErr(_talkErrMsg(code, r && r.provider_error));
     return;
   }
   if (els.input) els.input.value = '';
   _talkCtx.turnsUsed = r.turns_used || 0;
   _talkCtx.turnsLeft = r.turns_left != null ? r.turns_left : null;
+  _talkCtx.lastKeySource = r.key_source === 'byok' ? 'byok' : 'agent';   // PAS-F1 провенанс
   _talkRenderFeed(r.transcript, null);
   _talkRenderStatus(r.usage);
 }
@@ -4140,13 +4188,15 @@ async function _followupSend() {
   try {
     r = await fetch('/api/agent/explain/followup', { method: 'POST', credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
-      body: JSON.stringify({ explanation_id: _followupCtx.explanationId, question: q }) }).then((x) => x.json());
+      body: JSON.stringify(_withByok({ explanation_id: _followupCtx.explanationId, question: q })) }).then((x) => x.json());
   } catch (_) {}
   _followupBusy = false;
   if (!r || !r.ok) {
     const code = (r && r.error) || '';
     let msg;
-    if (code === 'FOLLOWUP_LIMIT') { _followupCtx.left = 0; msg = tt('room.explain.turnsOut', 'Вопросы по этому объяснению исчерпаны.'); }
+    const bkF = byokErrMsg(code, r && r.provider_error);
+    if (bkF) msg = bkF;
+    else if (code === 'FOLLOWUP_LIMIT') { _followupCtx.left = 0; msg = tt('room.explain.turnsOut', 'Вопросы по этому объяснению исчерпаны.'); }
     else if (code === 'USER_LIMIT' || code === 'GLOBAL_LIMIT') msg = tt('room.mentor.planLimit', 'дневной лимит LLM исчерпан');
     else if (code === 'LLM_UNAVAILABLE') msg = tt('room.explain.noLlm', 'без AI: перевод и морфология офлайн');
     else if (code === 'AGENT_READ_TEXTS_CONSENT_REQUIRED') msg = tt('room.explain.needConsent', 'Разрешите наставнику читать тексты (галочка 🤖 в доме наставника).');
@@ -4339,7 +4389,7 @@ async function _explainRequest(textKey, orderIndex, opts) {
     if (o.corpus) { body.source = 'corpus'; body.work_id = String(o.workId || ''); }
     r = await fetch('/api/agent/explain', { method: 'POST', credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
-      body: JSON.stringify(body), ...(ac ? { signal: ac.signal } : {}) }).then((x) => x.json());
+      body: JSON.stringify(_withByok(body)), ...(ac ? { signal: ac.signal } : {}) }).then((x) => x.json());
   } catch (e) { aborted = !!(e && e.name === 'AbortError'); }
   finally { _explainInFlight = false; if (timer) clearTimeout(timer); }
   if (!r || !r.ok) {
@@ -4377,8 +4427,8 @@ async function _explainRequest(textKey, orderIndex, opts) {
   const metaParts = [];
   if (r.source === 'corpus') metaParts.push(tt('room.explain.srcCorpus', 'Источник: корпус Бен-Иегуды · public domain'));
   if (r.from_history) metaParts.push(tt('room.explain.fromHistory', 'из истории — без нового вызова'));
-  if (r.llm_used) metaParts.push('🤖 ' + (r.provider || '') + (r.model ? ' · ' + r.model : ''));
-  else if (!r.from_history) metaParts.push(tt('room.explain.noLlm', 'без AI: перевод и морфология офлайн') + (r.degraded_reason ? ' (' + r.degraded_reason + ')' : ''));
+  if (r.llm_used) metaParts.push('🤖 ' + (r.key_source === 'byok' ? tt('room.cloud.byokProvenance', 'ваш ключ') + ' · ' : '') + (r.provider || '') + (r.model ? ' · ' + r.model : ''));
+  else if (!r.from_history) metaParts.push((byokErrMsg(r.degraded_reason === 'BYOK_FAILED' ? 'BYOK_FAILED' : '', r.provider_error) || (tt('room.explain.noLlm', 'без AI: перевод и морфология офлайн') + (r.degraded_reason ? ' (' + r.degraded_reason + ')' : ''))));
   if (r.usage && r.usage.limit) metaParts.push(tt('room.explain.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit);
   _explainShowMeta(metaParts.join(' · '));
   _followupSetup(r);   // PAS-A2 — вопросы к этому объяснению (≤3, серверный лимит)
@@ -4409,7 +4459,7 @@ async function explainWordFromCard(p) {
     if (isCorpus) { body.source = 'corpus'; body.work_id = readerCorpusWorkId; }
     r = await fetch('/api/agent/explain-word', { method: 'POST', credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
-      body: JSON.stringify(body), ...(ac ? { signal: ac.signal } : {}) }).then((x) => x.json());
+      body: JSON.stringify(_withByok(body)), ...(ac ? { signal: ac.signal } : {}) }).then((x) => x.json());
   } catch (_) {}
   finally { if (timer) clearTimeout(timer); }
   if (!r || !r.ok) {
@@ -4427,8 +4477,8 @@ async function explainWordFromCard(p) {
   const metaParts = [];
   if (r.source === 'corpus') metaParts.push(tt('room.explain.srcCorpus', 'Источник: корпус Бен-Иегуды · public domain'));
   if (r.from_history) metaParts.push(tt('room.explain.fromHistory', 'из истории — без нового вызова'));
-  if (r.llm_used) metaParts.push('🤖 ' + (r.provider || '') + (r.model ? ' · ' + r.model : ''));
-  else if (!r.from_history) metaParts.push(tt('room.explain.noLlm', 'без AI: перевод и морфология офлайн') + (r.degraded_reason ? ' (' + r.degraded_reason + ')' : ''));
+  if (r.llm_used) metaParts.push('🤖 ' + (r.key_source === 'byok' ? tt('room.cloud.byokProvenance', 'ваш ключ') + ' · ' : '') + (r.provider || '') + (r.model ? ' · ' + r.model : ''));
+  else if (!r.from_history) metaParts.push((byokErrMsg(r.degraded_reason === 'BYOK_FAILED' ? 'BYOK_FAILED' : '', r.provider_error) || (tt('room.explain.noLlm', 'без AI: перевод и морфология офлайн') + (r.degraded_reason ? ' (' + r.degraded_reason + ')' : ''))));
   if (r.usage && r.usage.limit) metaParts.push(tt('room.explain.usage', 'AI сегодня') + ': ' + r.usage.user_llm_calls + '/' + r.usage.limit);
   return { ok: true, text: r.text || '', meta: metaParts.join(' · ') };
 }

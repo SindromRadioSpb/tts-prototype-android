@@ -1807,7 +1807,8 @@ const rlAgent = makeRateLimiter({ windowMs: 60_000, max: 20, name: "agent" });
 app.post("/api/agent/plan", rlAgent, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   if (!requireCsrf(req, res, auth)) return;
-  try { res.json(await agentRuntime.plan({ userId: auth.user.id, deviceId: auth.session.deviceId })); }
+  const ctx = _agentByokCtx(req, res, auth); if (!ctx) return;
+  try { res.json(await agentRuntime.plan(ctx)); }
   catch (e) { res.status(500).json({ ok: false, error: "AGENT_PLAN_FAILED", message: e.message }); }
 });
 
@@ -1817,6 +1818,29 @@ app.post("/api/agent/plan", rlAgent, async (req, res) => {
 // НЕ тихая деградация — consent это не optional LLM-limit); неизвестный якорь = 404.
 // PAS-A1: source='corpus' — общий артефакт (work_id+text_key+order_index, consent не
 // нужен by-design); смешанный body-контракт → 400 (гейты путей не смешиваются).
+// PAS-F1 — BYOK-ctx хелпер для ВСЕХ LLM-тратящих агент-endpoint'ов (критика R11-5:
+// инъекция и валидация корректны ПО ПОСТРОЕНИЮ — один хелпер, забыть невозможно).
+// Present-семантика (критика R16-04): byok !== undefined/null → ПОЛНАЯ валидация,
+// ЛЮБАЯ деформация (не-объект, пустой/короткий key, provider вне enum, gemini без
+// AIza) → 400 BYOK_INVALID — деградат НИКОГДА не проваливается тихо на серверный
+// путь (молчаливое заимствование серверного бюджета). Ключ не логируется и не
+// попадает в ответ. Возврат: ctx | null (ответ уже отправлен).
+const BYOK_PROVIDERS = new Set(["openrouter", "gemini"]);
+function _agentByokCtx(req, res, auth) {
+  const ctx = { userId: auth.user.id, deviceId: auth.session.deviceId };
+  const b = (req.body || {}).byok;
+  if (b === undefined || b === null) return ctx;   // полностью отсутствует → серверный путь
+  const bad = () => { res.status(400).json({ ok: false, error: "BYOK_INVALID" }); return null; };
+  if (typeof b !== "object" || Array.isArray(b)) return bad();
+  const provider = String(b.provider || "");
+  if (!BYOK_PROVIDERS.has(provider)) return bad();
+  const key = typeof b.key === "string" ? b.key.trim() : "";
+  if (key.length < 20 || key.length > 200 || !/^[\x21-\x7e]+$/.test(key)) return bad();
+  if (provider === "gemini" && !key.startsWith("AIza")) return bad();
+  ctx.byok = { provider, key };
+  return ctx;
+}
+
 // Отдельный limiter explain-семьи: rlAgent 20/мин делится с Mentor-Home GET'ами и
 // душил бы интерактивную сессию чтения (критика wf_35f46603; прецедент rlAgentReview).
 const rlAgentExplain = makeRateLimiter({ windowMs: 60_000, max: 40, name: "agent-explain" });
@@ -1840,7 +1864,8 @@ app.post("/api/agent/explain", rlAgentExplain, async (req, res) => {
   const rowIdRaw = !isCorpus && b.sentence_row_id != null ? String(b.sentence_row_id).trim() : "";
   const rowId = /^[\w-]{1,64}$/.test(rowIdRaw) ? rowIdRaw : null;
   try {
-    const r = await agentRuntime.explain({ userId: auth.user.id, deviceId: auth.session.deviceId },
+    const ctx = _agentByokCtx(req, res, auth); if (!ctx) return;
+    const r = await agentRuntime.explain(ctx,
       { text_key: textKey, order_index: orderIndex, ...(rowId ? { row_id: rowId } : {}),
         ...(isCorpus ? { source: "corpus", work_id: String(b.work_id).trim() } : {}) });
     if (!r.ok) {
@@ -1864,7 +1889,8 @@ app.post("/api/agent/explain/followup", rlAgentExplain, async (req, res) => {
   if (!requireCsrf(req, res, auth)) return;
   const b = req.body || {};
   try {
-    const r = await agentRuntime.explainFollowup({ userId: auth.user.id, deviceId: auth.session.deviceId },
+    const ctx = _agentByokCtx(req, res, auth); if (!ctx) return;
+    const r = await agentRuntime.explainFollowup(ctx,
       { explanation_id: b.explanation_id, question: b.question });
     if (!r.ok) {
       const code = String(r.error || "");
@@ -1874,6 +1900,7 @@ app.post("/api/agent/explain/followup", rlAgentExplain, async (req, res) => {
       if (code === "EXPLANATION_PURGED") return res.status(410).json(r);
       if (code === "FOLLOWUP_LIMIT" || code === "USER_LIMIT" || code === "GLOBAL_LIMIT") return res.status(429).json(r);
       if (code === "LLM_UNAVAILABLE") return res.status(503).json(r);
+      if (code === "BYOK_FAILED") return res.status(502).json(r);   // PAS-F1: фейл ключа пользователя
       if (code === "BAD_QUESTION" || code === "QUESTION_TOO_LONG") return res.status(400).json(r);
       return res.status(500).json(r);
     }
@@ -1894,7 +1921,8 @@ app.post("/api/agent/comprehension", rlAgentExplain, async (req, res) => {
   if (!Number.isFinite(orderIndex)) return res.status(400).json({ ok: false, error: "BAD_ANCHOR" });
   const isCorpus = b.work_id != null && String(b.work_id).trim();
   try {
-    const r = await agentRuntime.comprehension({ userId: auth.user.id, deviceId: auth.session.deviceId },
+    const ctx = _agentByokCtx(req, res, auth); if (!ctx) return;
+    const r = await agentRuntime.comprehension(ctx,
       { ...(isCorpus ? { work_id: String(b.work_id).trim() } : {}), text_key: String(b.text_key).trim(), order_index: orderIndex });
     if (!r.ok) {
       const code = String(r.error || "");
@@ -1905,7 +1933,7 @@ app.post("/api/agent/comprehension", rlAgentExplain, async (req, res) => {
       if (code === "BAD_ANCHOR" || code === "BAD_WORK_ID" || code === "BAD_TEXT_KEY" || code === "BAD_CORPUS") return res.status(400).json(r);
       if (code === "USER_LIMIT" || code === "GLOBAL_LIMIT") return res.status(429).json(r);
       if (code === "LLM_UNAVAILABLE") return res.status(503).json(r);
-      if (code === "COMPREHENSION_INVALID") return res.status(502).json(r);
+      if (code === "COMPREHENSION_INVALID" || code === "BYOK_FAILED") return res.status(502).json(r);
       return res.status(500).json(r);
     }
     res.json(r);
@@ -1926,7 +1954,8 @@ app.post("/api/agent/explain-word", rlAgentExplain, async (req, res) => {
   if (!textKey || !Number.isFinite(orderIndex)) return res.status(400).json({ ok: false, error: "BAD_ANCHOR" });
   if (isCorpus && !String(b.work_id || "").trim()) return res.status(400).json({ ok: false, error: "BAD_ANCHOR" });
   try {
-    const r = await agentRuntime.explainWord({ userId: auth.user.id, deviceId: auth.session.deviceId },
+    const ctx = _agentByokCtx(req, res, auth); if (!ctx) return;
+    const r = await agentRuntime.explainWord(ctx,
       { text_key: textKey, order_index: orderIndex, surface: b.surface, displayed: b.displayed,
         ...(isCorpus ? { source: "corpus", work_id: String(b.work_id).trim() } : {}) });
     if (!r.ok) {
@@ -1951,7 +1980,8 @@ app.post("/api/agent/study-summary", rlAgentExplain, async (req, res) => {
   const textKey = String((req.body && req.body.text_key) || "").trim();
   if (!textKey) return res.status(400).json({ ok: false, error: "BAD_ANCHOR" });
   try {
-    const r = await agentRuntime.studySummary({ userId: auth.user.id, deviceId: auth.session.deviceId }, { text_key: textKey });
+    const ctx = _agentByokCtx(req, res, auth); if (!ctx) return;
+    const r = await agentRuntime.studySummary(ctx, { text_key: textKey });
     if (!r.ok) {
       const code = String(r.error || "");
       if (code === "CLOUD_TEXTS_CONSENT_REQUIRED" || code === "AGENT_READ_TEXTS_CONSENT_REQUIRED" ||
@@ -1973,7 +2003,8 @@ app.post("/api/agent/draft-retell", rlAgentExplain, async (req, res) => {
   if (!requireCsrf(req, res, auth)) return;
   const b = req.body || {};
   try {
-    const r = await agentRuntime.draftRetell({ userId: auth.user.id, deviceId: auth.session.deviceId },
+    const ctx = _agentByokCtx(req, res, auth); if (!ctx) return;
+    const r = await agentRuntime.draftRetell(ctx,
       { work_id: b.work_id, text_key: b.text_key, order_index: b.order_index });
     if (!r.ok) {
       const code = String(r.error || "");
@@ -1984,7 +2015,7 @@ app.post("/api/agent/draft-retell", rlAgentExplain, async (req, res) => {
       if (code === "BAD_ANCHOR" || code === "BAD_WORK_ID" || code === "BAD_TEXT_KEY" || code === "BAD_CORPUS") return res.status(400).json(r);
       if (code === "USER_LIMIT" || code === "GLOBAL_LIMIT") return res.status(429).json(r);
       if (code === "LLM_UNAVAILABLE" || code === "NO_API_KEY") return res.status(503).json(r);
-      if (code === "DRAFT_INVALID") return res.status(502).json(r);
+      if (code === "DRAFT_INVALID" || code === "BYOK_FAILED") return res.status(502).json(r);
       return res.status(500).json(r);
     }
     res.json(r);
@@ -2004,7 +2035,7 @@ function _roleplayHttpCode(code) {
   if (code === "CORPUS_WORK_TOO_LARGE") return 413;
   if (code === "TURNS_LIMIT" || code === "ROLEPLAY_DAILY_LIMIT" || code === "USER_LIMIT" || code === "GLOBAL_LIMIT") return 429;
   if (code === "LLM_UNAVAILABLE" || code === "NO_API_KEY") return 503;
-  if (code === "ROLEPLAY_INVALID") return 502;
+  if (code === "ROLEPLAY_INVALID" || code === "BYOK_FAILED") return 502;
   if (code === "BAD_ANCHOR" || code === "BAD_WORK_ID" || code === "BAD_TEXT_KEY" || code === "BAD_CORPUS" ||
       code === "BAD_MESSAGE" || code === "MESSAGE_TOO_LONG" || code === "ARTIFACT_UNREADABLE") return 400;
   return 500;
@@ -2025,7 +2056,8 @@ app.post("/api/agent/roleplay/turn", rlAgentExplain, async (req, res) => {
   if (!requireCsrf(req, res, auth)) return;
   const b = req.body || {};
   try {
-    const r = await agentRuntime.roleplayTurn({ userId: auth.user.id, deviceId: auth.session.deviceId },
+    const ctx = _agentByokCtx(req, res, auth); if (!ctx) return;
+    const r = await agentRuntime.roleplayTurn(ctx,
       { session_id: b.session_id, message: b.message });
     if (!r.ok) return res.status(_roleplayHttpCode(String(r.error || ""))).json(r);
     res.json(r);
@@ -2062,7 +2094,8 @@ app.post("/api/agent/writing/review", rlAgentExplain, async (req, res) => {
   if (!requireCsrf(req, res, auth)) return;
   const b = req.body || {};
   try {
-    const r = await agentRuntime.writingReview({ userId: auth.user.id, deviceId: auth.session.deviceId },
+    const ctx = _agentByokCtx(req, res, auth); if (!ctx) return;
+    const r = await agentRuntime.writingReview(ctx,
       { targets: b.targets, text: b.text });
     if (!r.ok) {
       const code = String(r.error || "");
@@ -2082,8 +2115,8 @@ app.post("/api/agent/next-text/explain", rlAgentExplain, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   if (!requireCsrf(req, res, auth)) return;
   try {
-    const r = await agentRuntime.nextTextExplain({ userId: auth.user.id, deviceId: auth.session.deviceId },
-      { pick: (req.body || {}).pick });
+    const ctx = _agentByokCtx(req, res, auth); if (!ctx) return;
+    const r = await agentRuntime.nextTextExplain(ctx, { pick: (req.body || {}).pick });
     if (!r.ok) {
       const code = String(r.error || "");
       if (code === "UNKNOWN_WORK" || code === "BAD_COV" || code === "BAD_KIND" || code === "BAD_FRONTIER") return res.status(400).json(r);
@@ -10910,11 +10943,18 @@ app.delete("/api/research/v1/student/:student_id", async (req, res) => {
 });
 
 // Global error handler — ensures all unhandled Express errors return JSON, never HTML.
+// PAS-F1 BLOCKER-фикс (критика wf_59ca6197 F1-R16-01): body-parser вешает на JSON-parse-
+// ошибку ПОЛНОЕ сырое тело запроса (enumerable err.body) — console.error(err) печатал бы
+// BYOK/TTS/Gemini-ключи из битых запросов в контейнер-логи. Логируем ТОЛЬКО безопасные
+// скалярные поля; err.body/err целиком — НИКОГДА.
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-  console.error("[server] unhandled error:", err);
+  // parse-ошибки: Node ≥19 кладёт СНИППЕТ ввода в SyntaxError.message — тоже редактируем
+  const isParse = !!(err && err.type === "entity.parse.failed");
+  const safeMsg = isParse ? "Invalid JSON body" : ((err && err.message) || "Internal server error");
+  console.error("[server] unhandled error:", (err && err.type) || "", (err && err.status) || "", isParse ? "Invalid JSON body" : String(safeMsg).slice(0, 200));
   if (res.headersSent) return;
-  res.status(err.status || 500).json({ error: err.message || "Internal server error" });
+  res.status(err.status || 500).json({ error: safeMsg });
 });
 
 // --------------------------------------------------------

@@ -32,6 +32,7 @@ const path = require("path");
 const crypto = require("crypto");
 const tools = require(path.join(__dirname, "tools"));
 const llm = require(path.join(__dirname, "llm"));
+const llmGate = require(path.join(__dirname, "llmGate"));
 const planner = require(path.join(__dirname, "planner"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
 const corpusSentenceRepo = require(path.join(__dirname, "..", "db", "corpusSentenceRepo"));
@@ -207,21 +208,21 @@ async function turn(ctx, { session_id, message } = {}) {
       return { ok: false, error: win.error, ...(win.key ? { key: win.key } : {}) };
     }
 
-    // Scenario-cap ДО reserve: диалог не может съесть весь аккаунт-wide потолок провайдера.
-    const spent = await agentRepo.scenarioCallsToday(ctx.userId, SCENARIO);
-    if (spent >= dailyMax()) return { ok: false, error: "ROLEPLAY_DAILY_LIMIT", limit: dailyMax() };
-
-    const lim = planner.limits();
-    if (llm.killSwitchOn()) return { ok: false, error: "LLM_UNAVAILABLE" };
-    const reserve = await agentRepo.reserveLlmCall(ctx.userId, {
-      scenario: SCENARIO, provider: llm.providerName(), perUserDaily: lim.perUserDaily, globalDaily: lim.globalDaily,
-    });
-    if (!reserve.ok) return { ok: false, error: reserve.reason };
+    // Scenario-cap ДО reserve — ТОЛЬКО серверный путь (PAS-F1: кап защищал аккаунт-wide
+    // потолок СЕРВЕРНОГО ключа; на своём ключе стоимость = дело пользователя; TURNS_MAX
+    // per-session остаётся — структура сессии, не экономика).
+    if (!(ctx && ctx.byok)) {
+      const spent = await agentRepo.scenarioCallsToday(ctx.userId, SCENARIO);
+      if (spent >= dailyMax()) return { ok: false, error: "ROLEPLAY_DAILY_LIMIT", limit: dailyMax() };
+    }
 
     const pp = buildTurnPayload({ language: s.language, rows: win.rows, transcript: s.transcript, message: msg });
-    const out = await llm.generate({ system: pp.system, prompt: pp.prompt, json: true, maxOutputTokens: 512, fixture: SCENARIO });
-    await agentRepo.finalizeLlmCall(reserve.reserveId, { ok: out.ok, actualUnits: out.ok ? (out.output_tokens || 1) : null });
-    if (!out.ok) return { ok: false, error: out.error === "KILL_SWITCH" ? "LLM_UNAVAILABLE" : (out.error || "LLM_UNAVAILABLE") };
+    const g = await llmGate.gatedGenerate(ctx, { scenario: SCENARIO, system: pp.system, prompt: pp.prompt, json: true, maxOutputTokens: 512, fixture: SCENARIO });
+    if (g.phase === "kill") return { ok: false, error: "LLM_UNAVAILABLE" };
+    if (g.phase === "reserve") return { ok: false, error: g.reason };
+    if (g.phase === "byok") return { ok: false, error: "BYOK_FAILED", provider_error: g.provider_error };
+    if (g.phase === "generate") return { ok: false, error: g.reason === "KILL_SWITCH" ? "LLM_UNAVAILABLE" : (g.reason || "LLM_UNAVAILABLE") };
+    const out = g.out;
     let parsed = null;
     try { parsed = JSON.parse(out.text); } catch (_) {}
     const reply = validateTurn(parsed);
@@ -239,6 +240,7 @@ async function turn(ctx, { session_id, message } = {}) {
       transcript: s.transcript.slice(),
       turns_used: s.turnsUsed, turns_left: Math.max(0, turnsMax() - s.turnsUsed),
       llm_used: true, provider: out.provider, model: out.model,
+      ...(g.key_source === "byok" ? { key_source: "byok" } : {}),
       usage: await _usage(ctx.userId),
     };
   } finally {

@@ -314,6 +314,24 @@ async function finalizeLlmCall(reserveId, { ok, actualUnits } = {}) {
     [ok ? "final" : "failed", actualUnits != null ? Number(actualUnits) : null, nowIso(), String(reserveId)]);
 }
 
+// PAS-F1 — телеметрия BYOK-вызова (ключ ПОЛЬЗОВАТЕЛЯ): kind='llm_call_byok' — НЕВИДИМ
+// всем квота-счётчикам по построению (usageToday/reserveLlmCall/scenarioCallsToday
+// фильтруют kind='llm_call'). Пишется сразу final|failed (reserved-состояния нет —
+// резервировать нечего, бюджет не наш). Сам КЛЮЧ сюда не попадает никогда — только
+// имя провайдера. Вызывающий (llmGate) оборачивает в try/catch: телеметрия best-effort,
+// сбой INSERT не роняет уже оплаченный пользователем ответ (критика R16-06/R11-8).
+async function recordByokCall(userId, { scenario, provider, ok, actualUnits } = {}) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const id = "lb_" + crypto.randomUUID();
+  await dbRun(db,
+    `INSERT INTO llm_usage_ledger (id, user_id, day_utc, kind, scenario, provider, status, actual_units, finalized_at)
+     VALUES (?,?,?,'llm_call_byok',?,?,?,?,?)`,
+    [id, userId, dayUtc(), scenario != null ? String(scenario) : null,
+     "byok:" + String(provider || ""), ok ? "final" : "failed",
+     actualUnits != null ? Number(actualUnits) : null, nowIso()]);
+  return { id };
+}
+
 async function usageToday(userId) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const day = dayUtc();
@@ -323,7 +341,13 @@ async function usageToday(userId) {
   const g = await dbGet(db,
     `SELECT COUNT(*) c FROM llm_usage_ledger WHERE day_utc = ? AND kind = 'llm_call' AND status IN ('reserved','final')`,
     [day]);
-  return { day_utc: day, user_llm_calls: Number(u.c) || 0, global_llm_calls: Number(g.c) || 0 };
+  // PAS-F1: доставленные ответы на СВОЁМ ключе (status='final' only — failed не считаем,
+  // критика R16-07: счётчик рядом с честным user_llm_calls не должен врать).
+  const b = await dbGet(db,
+    `SELECT COUNT(*) c FROM llm_usage_ledger WHERE user_id = ? AND day_utc = ? AND kind = 'llm_call_byok' AND status = 'final'`,
+    [userId, day]);
+  return { day_utc: day, user_llm_calls: Number(u.c) || 0, global_llm_calls: Number(g.c) || 0,
+    byok_calls_today: Number(b.c) || 0 };
 }
 
 // PAS-C1 — scenario-cap диалога (критика wf_5ea38001: OpenRouter free-tier 50/день
@@ -346,4 +370,5 @@ module.exports = {
   listExplanations, constructOccurrences,
   wordLifecycle,
   reserveLlmCall, finalizeLlmCall, usageToday, scenarioCallsToday,
+  recordByokCall,   // PAS-F1: телеметрия вызовов на ключе пользователя (вне квоты)
 };

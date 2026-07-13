@@ -31,6 +31,7 @@ const fs = require("fs");
 const path = require("path");
 const tools = require(path.join(__dirname, "tools"));
 const llm = require(path.join(__dirname, "llm"));
+const llmGate = require(path.join(__dirname, "llmGate"));
 const planner = require(path.join(__dirname, "planner"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
 const keyingService = require(path.join(__dirname, "..", "db", "keyingService"));
@@ -148,24 +149,22 @@ async function explain(ctx, { pick } = {}) {
   const profile = await agentRepo.getProfile(ctx.userId);
   const language = (profile && profile.language) || "ru";
 
-  // R16: kill-switch → честный отказ ДО reserve (детерминированная канва уже на клиенте)
-  if (llm.killSwitchOn()) return { ok: false, error: "KILL_SWITCH", usage: await _usage(ctx.userId) };
-  const lim = planner.limits();
-  const reserve = await agentRepo.reserveLlmCall(ctx.userId, {
-    scenario: SCENARIO, provider: llm.providerName(), perUserDaily: lim.perUserDaily, globalDaily: lim.globalDaily,
-  });
-  if (!reserve.ok) return { ok: false, error: reserve.reason, usage: await _usage(ctx.userId) };
-
+  // PAS-F1: единый гейт killSwitch→(reserve|byok)→generate→finalize (agent/llmGate).
+  // Hard-fail класс: BYOK_FAILED → честный код (502), без серверного фолбэка.
   const pp = buildNextTextPayload({ language, card, zone, cov, loadFlag, kind, frontier, learner });
-  const out = await llm.generate({ system: pp.system, prompt: pp.prompt, maxOutputTokens: 512 });
-  await agentRepo.finalizeLlmCall(reserve.reserveId, { ok: out.ok, actualUnits: out.ok ? (out.output_tokens || 1) : null });
-  if (!out.ok) return { ok: false, error: out.error, usage: await _usage(ctx.userId) };
+  const g = await llmGate.gatedGenerate(ctx, { scenario: SCENARIO, system: pp.system, prompt: pp.prompt, maxOutputTokens: 512 });
+  if (g.phase === "kill") return { ok: false, error: "KILL_SWITCH", usage: await _usage(ctx.userId) };
+  if (g.phase === "reserve") return { ok: false, error: g.reason, usage: await _usage(ctx.userId) };
+  if (g.phase === "byok") return { ok: false, error: "BYOK_FAILED", provider_error: g.provider_error, usage: await _usage(ctx.userId) };
+  if (g.phase === "generate") return { ok: false, error: g.reason, usage: await _usage(ctx.userId) };
+  const out = g.out;
   if (!planner.isCleanProse(out.text)) return { ok: false, error: "LLM_OUTPUT_INVALID", usage: await _usage(ctx.userId) };
 
   // Ничего не персистится: advisory-ответ класса A (повтор закрыт client-memo).
   return {
     ok: true, category: CATEGORY, language, advisory: true,
     text: out.text, provider: out.provider, model: out.model,
+    ...(g.key_source === "byok" ? { key_source: "byok" } : {}),
     grounding: {
       title: card.title || null, author: card.author || null, zone,
       frontier: frontier.map((f) => ({ pid: f.pid, lemma: f.lemma, ...(f.meaning ? { meaning: f.meaning } : {}) })),
