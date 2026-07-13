@@ -210,6 +210,21 @@ function worksFixture() {
     const t5 = await api("POST", "/api/agent/roleplay/turn", B({ session_id: sid, message: "אחרון" }));
     eq(t5.status === 429 && t5.json.error === "ROLEPLAY_DAILY_LIMIT", "turn#5 серверный → 429 (кап жив для серверного пути)");
 
+    // ── /api/agent/byok/check (owner-фидбэк: мгновенный вердикт ключа) ──────────
+    const c1 = await api("POST", "/api/agent/byok/check", B({}));
+    eq(c1.status === 400 && c1.json.error === "BYOK_REQUIRED", "check без byok → 400 BYOK_REQUIRED");
+    const c2 = await api("POST", "/api/agent/byok/check", B({ byok: OR }));
+    eq(c2.status === 200 && c2.json.ok && c2.json.provider === "mock" && c2.json.key_source === "byok",
+      "check happy → ok + provider (микро-вызов на ключе)");
+    const c3 = await api("POST", "/api/agent/byok/check", B({ byok: { provider: "openrouter", key: FAIL_KEY } }));
+    eq(c3.status === 502 && c3.json.error === "BYOK_FAILED", "check с битым ключом → 502 BYOK_FAILED");
+    // серверных вызовов к этой точке ровно 4 (next-text h2 + f2-после-фейла + roleplay t1/t4) —
+    // check их НЕ добавил
+    const uC = await api("GET", "/api/agent/status", { cookie });
+    eq(uC.json.usage.user_llm_calls === 4, "check НЕ тратит серверную квоту");
+    const lbC = await ledgerRows(scratch, "llm_call_byok");
+    eq(lbC.some((r) => r.scenario === "byok_check" && r.status === "final"), "ledger несёт byok_check-строку (телеметрия)");
+
     // ── BLOCKER F1-R16-01: malformed JSON с ключом → 400, ключ НЕ в логах ───────
     const mj = await api("POST", "/api/agent/plan", { cookie, csrf, rawBody: '{"byok":{"provider":"openrouter","key":"' + SENTINEL_KEY + '"},,,' });
     eq(mj.status === 400, "malformed JSON → 400, got " + mj.status);

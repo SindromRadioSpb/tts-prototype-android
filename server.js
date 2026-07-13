@@ -2108,6 +2108,30 @@ app.post("/api/agent/writing/review", rlAgentExplain, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: "AGENT_WRITING_REVIEW_FAILED", message: e.message }); }
 });
 
+// PAS-F1 — проверка BYOK-ключа (owner-фидбэк 2026-07-13: «премиальное ощущение» =
+// мгновенный вердикт после сохранения). Микро-вызов НА КЛЮЧЕ ПОЛЬЗОВАТЕЛЯ через
+// llmGate (byok-ветка: серверная квота не резервируется; телеметрия kind='llm_call_byok'
+// scenario='byok_check'); byok ОБЯЗАТЕЛЕН — без него 400 (серверный ключ проверять нечего).
+app.post("/api/agent/byok/check", rlAgent, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  const ctx = _agentByokCtx(req, res, auth); if (!ctx) return;
+  if (!ctx.byok) return res.status(400).json({ ok: false, error: "BYOK_REQUIRED" });
+  try {
+    const llmGate = require("./agent/llmGate");
+    const g = await llmGate.gatedGenerate(ctx, {
+      scenario: "byok_check",
+      system: "Reply with exactly: OK",
+      prompt: "ping",
+      maxOutputTokens: 16,
+    });
+    if (g.phase === "kill") return res.status(503).json({ ok: false, error: "KILL_SWITCH" });
+    if (g.phase === "byok") return res.status(502).json({ ok: false, error: "BYOK_FAILED", provider_error: g.provider_error });
+    if (g.phase !== "ok") return res.status(502).json({ ok: false, error: "BYOK_FAILED" });
+    res.json({ ok: true, provider: g.out.provider, model: g.out.model, key_source: "byok" });
+  } catch (e) { res.status(500).json({ ok: false, error: "BYOK_CHECK_FAILED", message: e.message }); }
+});
+
 // PAS-D1 — next-text (agent/nextText.js): скоринг детерминирован НА КЛИЕНТЕ (единый
 // движок corpus-vocab.js), сервер валидирует иды/числа и деривит ВЕСЬ текстовый
 // grounding сам (index по построению той же версии, R11); advisory класса A.

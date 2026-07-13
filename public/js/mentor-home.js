@@ -748,6 +748,30 @@
         // masked saved-строка: провайдер + последние 4 символа — ключ целиком НЕ показывается
         var tail = cur.key.length > 4 ? cur.key.slice(-4) : "";
         wrap.appendChild(el("div", "mentor-status-line", "✓ " + t("room.mentor.byok.saved", "Ключ сохранён") + " · " + cur.provider + (tail ? " · …" + tail : "")));
+        // owner-фидбэк 2026-07-13: мгновенная проверка ключа — микро-вызов НА ключе
+        // пользователя (серверный лимит не тратится), вердикт с честным сплитом ошибок
+        var chk = el("button", "mentor-plan-btn", t("room.mentor.byok.check", "Проверить ключ"));
+        chk.type = "button";
+        var verdict = el("div", "mentor-hint");
+        verdict.hidden = true;
+        chk.addEventListener("click", async function () {
+          chk.disabled = true;
+          verdict.hidden = false;
+          verdict.textContent = "⏳ " + t("room.mentor.byok.checking", "Проверяю ключ (микро-вызов на вашем ключе)…");
+          try {
+            var r = await jpost("/api/agent/byok/check", { byok: cur });
+            if (r.status === 200 && r.json && r.json.ok) {
+              verdict.textContent = "✓ " + t("room.mentor.byok.ok", "Ключ работает") + " · " + (r.json.provider || cur.provider) + (r.json.model ? " · " + r.json.model : "");
+              _ux("mentor_settings", "accepted");
+            } else {
+              var pe = String((r.json && r.json.provider_error) || "");
+              verdict.textContent = "✗ " + (pe === "429" ? t("room.cloud.byokQuota", "У вашего ключа закончилась квота провайдера на сегодня.")
+                : (pe === "401" || pe === "403") ? t("room.cloud.byokRejected", "Ключ не принят провайдером — проверьте его в «⚙ Наставник».")
+                : t("room.cloud.byokFailed", "Вызов на вашем ключе не прошёл — проверьте ключ в «⚙ Наставник».") + (pe ? " (" + pe + ")" : ""));
+            }
+          } catch (_) { verdict.textContent = "✗ " + t("room.cloud.err", "Ошибка синхронизации"); }
+          finally { chk.disabled = false; }
+        });
         var rm = el("button", "mentor-wr-ghost", t("room.mentor.byok.remove", "Убрать ключ"));
         rm.type = "button";
         rm.addEventListener("click", function () {
@@ -757,8 +781,10 @@
           try { renderStatus(S.els.status); } catch (_) {}
         });
         var row0 = el("div", "mentor-plan-actions");
+        row0.appendChild(chk);
         row0.appendChild(rm);
         wrap.appendChild(row0);
+        wrap.appendChild(verdict);
         return;
       }
       var provSel = document.createElement("select");

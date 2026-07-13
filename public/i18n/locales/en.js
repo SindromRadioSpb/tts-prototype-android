@@ -2133,6 +2133,9 @@ window.I18N_LOCALES.en = {
         mismatchGemini: "Gemini keys start with “AIza” — check the provider.",
         mismatchOr: "That's a Google key (“AIza…”) — select the Gemini provider.",
         get: "Where to get a key:",
+        check: "Check key",
+        checking: "Checking the key (a micro-call on your key)…",
+        ok: "The key works",
       },
     },
     tg: {

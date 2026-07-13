@@ -2143,6 +2143,9 @@ window.I18N_LOCALES.he = {
         mismatchGemini: "מפתח Gemini מתחיל ב-«AIza» — בדקו את הספק.",
         mismatchOr: "זה מפתח של Google («AIza…») — בחרו בספק Gemini.",
         get: "היכן משיגים מפתח:",
+        check: "לבדוק מפתח",
+        checking: "בודק את המפתח (מיקרו-קריאה על המפתח שלך)…",
+        ok: "המפתח עובד",
       },
     },
     tg: {
