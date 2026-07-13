@@ -213,6 +213,13 @@ function worksFixture() {
     // ── /api/agent/byok/check (owner-фидбэк: мгновенный вердикт ключа) ──────────
     const c1 = await api("POST", "/api/agent/byok/check", B({}));
     eq(c1.status === 400 && c1.json.error === "BYOK_REQUIRED", "check без byok → 400 BYOK_REQUIRED");
+    // Gemini-форматы: классический AIza И новый AQ. (live-verified 2026-07-13); мусор → 400
+    const cAq = await api("POST", "/api/agent/byok/check", B({ byok: { provider: "gemini", key: "AQ.Ab8RN6" + "x".repeat(30) } }));
+    eq(cAq.status === 200 && cAq.json.ok, "gemini AQ.-формат проходит валидацию (новые ключи Google)");
+    const cAi = await api("POST", "/api/agent/byok/check", B({ byok: { provider: "gemini", key: "AIzaSy" + "x".repeat(30) } }));
+    eq(cAi.status === 200 && cAi.json.ok, "gemini AIza-формат проходит (классика)");
+    const cBad = await api("POST", "/api/agent/byok/check", B({ byok: { provider: "gemini", key: "sk-or-v1-" + "x".repeat(30) } }));
+    eq(cBad.status === 400 && cBad.json.error === "BYOK_INVALID", "gemini с чужим форматом → 400");
     const c2 = await api("POST", "/api/agent/byok/check", B({ byok: OR }));
     eq(c2.status === 200 && c2.json.ok && c2.json.provider === "mock" && c2.json.key_source === "byok",
       "check happy → ok + provider (микро-вызов на ключе)");

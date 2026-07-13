@@ -803,12 +803,14 @@
         var key = String(input.value || "").trim();
         var provider = provSel.value;
         if (key.length < 20) { msg.textContent = "✗ " + t("room.mentor.byok.tooShort", "Ключ слишком короткий."); msg.hidden = false; return; }
-        // cross-check формата = серверному правилу буквально (критика UX-2, config-string-match)
-        if (provider === "gemini" && key.indexOf("AIza") !== 0) {
-          msg.textContent = "✗ " + t("room.mentor.byok.mismatchGemini", "Ключ Gemini начинается с «AIza» — проверьте провайдера."); msg.hidden = false; return;
+        // cross-check формата = серверному правилу буквально (критика UX-2, config-string-match);
+        // Gemini = AIza (классика) ИЛИ AQ. (новый формат Google, live-verified 2026-07-13)
+        var looksGoogle = key.indexOf("AIza") === 0 || key.indexOf("AQ.") === 0;
+        if (provider === "gemini" && !looksGoogle) {
+          msg.textContent = "✗ " + t("room.mentor.byok.mismatchGemini", "Ключ Gemini начинается с «AIza» или «AQ.» — проверьте провайдера."); msg.hidden = false; return;
         }
-        if (provider === "openrouter" && key.indexOf("AIza") === 0) {
-          msg.textContent = "✗ " + t("room.mentor.byok.mismatchOr", "Это ключ Google («AIza…») — выберите провайдера Gemini."); msg.hidden = false; return;
+        if (provider === "openrouter" && looksGoogle) {
+          msg.textContent = "✗ " + t("room.mentor.byok.mismatchOr", "Это ключ Google — выберите провайдера Gemini."); msg.hidden = false; return;
         }
         if (!S.host.agentByokSet(provider, key)) { msg.textContent = "✗ " + t("room.cloud.err", "Ошибка синхронизации"); msg.hidden = false; return; }
         msg.hidden = true;

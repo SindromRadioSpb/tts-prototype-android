@@ -1836,7 +1836,9 @@ function _agentByokCtx(req, res, auth) {
   if (!BYOK_PROVIDERS.has(provider)) return bad();
   const key = typeof b.key === "string" ? b.key.trim() : "";
   if (key.length < 20 || key.length > 200 || !/^[\x21-\x7e]+$/.test(key)) return bad();
-  if (provider === "gemini" && !key.startsWith("AIza")) return bad();
+  // Gemini: классический AIza-формат ИЛИ новый AQ.-формат Google (live-verified 2026-07-13:
+  // AI Studio выдаёт AQ.-ключи, они работают против generativelanguage.googleapis.com)
+  if (provider === "gemini" && !(key.startsWith("AIza") || key.startsWith("AQ."))) return bad();
   ctx.byok = { provider, key };
   return ctx;
 }
