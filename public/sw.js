@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.176";
+const CACHE_VERSION = "v3.11.177";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -198,6 +198,21 @@ const NETWORK_FIRST_TIMEOUT_MS = 2500;
 self.addEventListener("install", (event) => {
   self.skipWaiting();   // auto-activate the new SW (no waiting state) → first-reload pickup
   event.waitUntil((async () => {
+    // Coolify can briefly serve a new sw.js while an old application container
+    // still answers parallel asset requests. Refuse that mixed precache: a
+    // failed install leaves the previous complete worker active and the browser
+    // retries later, after the deployment converges.
+    const expectedVersion = CACHE_VERSION.slice(1);
+    let deploymentReady = false;
+    for (let attempt = 0; attempt < 6 && !deploymentReady; attempt++) {
+      try {
+        const check = await fetch(`/api/client-config?sw_install=${encodeURIComponent(CACHE_VERSION)}&attempt=${attempt}`, { cache: "no-store" });
+        const json = check.ok ? await check.json() : null;
+        deploymentReady = !!(json && String(json.version) === expectedVersion);
+      } catch (_) {}
+      if (!deploymentReady && attempt < 5) await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
+    if (!deploymentReady) throw new Error("deployment version not converged");
     const cache = await caches.open(PRECACHE);
     // Use { cache: 'reload' } to bypass HTTP cache for the precache fetch
     // — we want fresh assets at install time, not whatever the browser

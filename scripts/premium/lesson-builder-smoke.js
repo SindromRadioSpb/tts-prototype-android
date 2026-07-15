@@ -115,11 +115,14 @@ function request() { return { sources: [
   ok(ui.includes("startLesson") && ui.includes("lessonSources"), "editable explicit-start UI wired");
   ok(ui.includes("sentence_count") && ui.includes("range_preset") && ui.includes("aria-pressed"), "transparent source size, range presets and accessible multi-focus UI wired");
   const room = fs.readFileSync(path.join(REPO, "public", "js", "library-ui.js"), "utf8");
-  ok(room.includes("COUNT(s.id) AS sentence_count") && room.includes("c.segments"), "personal and corpus source catalogs expose sentence counts");
+  ok(room.includes("COUNT(s.id) AS sentence_count") && room.includes("await loadCorpusIndex()") && room.includes("c.segments"), "personal and lazy corpus source catalogs expose sentence counts");
+  ok(ui.includes('e.type==="source_reading"?"reading":e.type'), "draft exercise types render as localized user labels");
   ok(learnerLog.validateLearnerEvent({ id: "lb-ux", type: "agent_ux", created_at_client: new Date().toISOString(),
     payload: { feature: "lesson_builder", action: "offered" } }, Date.now()).ok, "content-free lesson UX telemetry allowlisted");
   const html = fs.readFileSync(path.join(REPO, "public", "library.html"), "utf8");
   ok(html.includes("@media (max-width: 480px)") && html.includes("mentor-lb-grid") && html.includes("mentor-lb-focus"), "mobile 380px single-column and multi-focus controls present");
+  const sw = fs.readFileSync(path.join(REPO, "public", "sw.js"), "utf8");
+  ok(sw.includes("deployment version not converged") && sw.includes("sw_install="), "service worker refuses mixed-version rolling-deploy precache");
 
   if (failures.length) { console.error(`[lesson-builder] FAIL ${checks - failures.length}/${checks}`); failures.forEach((x) => console.error(" - " + x)); process.exit(1); }
   console.log(`[lesson-builder] PASS ${checks}/${checks}`);

@@ -271,6 +271,9 @@ The same hardening pass resolves the owner-observed usability gaps:
   deterministic degradation remains useful and focus-complete;
 - the build action is unavailable until a source is selected, and internal
   exception text is no longer returned to the browser.
+- the lazy corpus sidecar is awaited by the source browser, exercise type IDs
+  are localized in the draft, and the service worker refuses a mixed-version
+  precache while a rolling deployment has not converged.
 
 This remains LB0: the premium setup experience does not introduce durable
 storage, automatic cards, mastery writes, hidden source expansion or background

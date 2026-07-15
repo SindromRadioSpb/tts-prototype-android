@@ -3048,6 +3048,10 @@ function _mentorHost() {
         }
       } catch (_) {}
       try {
+        // The corpus sidecar is lazy. Lesson Builder can be the first surface
+        // that needs it, so await it instead of freezing an early empty map.
+        await loadCorpusIndex();
+        if (corpusReadyById && corpusReadyById.size === 0) corpusReadyById = null;
         for (const c of corpusReadyMap().values()) {
           if (!c || !c.text_key || c.id == null) continue;
           const title = String(c.title || c.t || c.text_key), author = String(c.author || c.a || '');
