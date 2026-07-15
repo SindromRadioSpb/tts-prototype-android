@@ -191,7 +191,11 @@ function request() { return { sources: [
   ok(room.includes("COUNT(s.id) AS sentence_count") && room.includes("await loadCorpusIndex()") && room.includes("c.segments"), "personal and lazy corpus source catalogs expose sentence counts");
   ok(room.includes("items: all.slice(offset, offset + limit)") && room.includes("total: all.length") && !room.includes("out.length >= 30"),
     "catalog filters before paging and exposes the full eligible result count");
+  ok(room.includes("returnToLesson: true") && room.includes("if (returnRoute === 'lesson-builder') openLessonStudio()"),
+    "lesson anchor drill-down closes the loop back from reader to the active lesson");
   ok(ui.includes('e.type==="source_reading"?"reading":e.type'), "draft exercise types render as localized user labels");
+  ok(ui.includes("basicPlanRejected") && ui.includes('qualityReason==="LLM_OUTPUT_INVALID"'),
+    "degraded UI distinguishes a rejected AI draft from AI not being connected");
   ok(learnerLog.validateLearnerEvent({ id: "lb-ux", type: "agent_ux", created_at_client: new Date().toISOString(),
     payload: { feature: "lesson_builder", action: "offered" } }, Date.now()).ok, "content-free lesson UX telemetry allowlisted");
   const html = fs.readFileSync(path.join(REPO, "public", "library.html"), "utf8");

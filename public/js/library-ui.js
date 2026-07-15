@@ -493,6 +493,16 @@ let readerIsOwnText = false; // CLG-P6.2 — личный explain-путь (дв
 let readerCorpusWorkId = null;      // PAS-A1 — byehuda_id открытой корпусной работы (null для личных; сброс в closeReader)
 let readerCorpusExplainOk = false;  // PAS-A1 — HEAD-probe: works-файл опубликован на сервере (26/57 canon — нет)
 let _bookmarkSet = null;  // Set of bookmarked sentence_ids in the current text
+let readerReturnRoute = null;       // LB1: exact anchor drill-down must return to the active lesson, not strand on shelves
+
+function setReaderReturnRoute(route) {
+  readerReturnRoute = route || null;
+  const back = $('readerBack'); if (!back) return;
+  const key = readerReturnRoute === 'lesson-builder' ? 'room.lesson.backToLesson' : 'room.reader.back';
+  back.setAttribute('data-i18n', key);
+  back.textContent = readerReturnRoute === 'lesson-builder'
+    ? tt(key, '← К уроку') : tt(key, '← Полки');
+}
 
 // BYOK GCP TTS key — same localStorage slot index.html uses (v3.gcpTtsApiKey).
 // Empty is fine: audio falls back to keyless browser SpeechSynthesis.
@@ -3075,9 +3085,10 @@ function _mentorHost() {
       if (ref.kind === 'corpus') {
         let card = null; try { card = corpusReadyMap().get(String(ref.work_id)) || null; } catch (_) {}
         if (!card) { roomToast(tt('room.mentor.corpusTextMissing', 'Работа не найдена на устройстве — откройте её во вкладке «Корпус».')); return; }
-        closeAgentViews(); await openCorpusWork(card, { scrollToOrderIndex: Number(orderIndex) || 0 }); return;
+        setReaderReturnRoute('lesson-builder');
+        closeAgentViews(); await openCorpusWork(card, { scrollToOrderIndex: Number(orderIndex) || 0, returnToLesson: true }); return;
       }
-      return _mentorHost().openTextAt(ref.text_key, Number(orderIndex) || 0, 'personal');
+      return _mentorHost().openTextAt(ref.text_key, Number(orderIndex) || 0, 'personal', true);
     },
     openCorpusPick: (pick) => {
       try { closeAgentViews(); } catch (_) {}
@@ -3093,7 +3104,7 @@ function _mentorHost() {
         return true;
       } catch (_) { return false; }
     },
-    openTextAt: async (textKey, orderIndex, source) => {
+    openTextAt: async (textKey, orderIndex, source, returnToLesson) => {
       let row = null;
       try {
         const rows = await localDb.dbQuery('SELECT id, title FROM texts WHERE text_key = ? LIMIT 1', [String(textKey)]);
@@ -3108,8 +3119,9 @@ function _mentorHost() {
           : tt('room.mentor.textMissing', 'Текст не найден на этом устройстве — синхронизируйте «Мои тексты» в ☁.'));
         return;
       }
+      if (returnToLesson) setReaderReturnRoute('lesson-builder');
       closeAgentViews();
-      openReader(row.id, row.title, { scrollToOrderIndex: Number(orderIndex) });
+      openReader(row.id, row.title, { scrollToOrderIndex: Number(orderIndex), returnToLesson: !!returnToLesson });
     },
   };
 }
@@ -5147,6 +5159,7 @@ async function loadContextOverlay(textId, text) {
 async function openReader(textId, title, opts) {
   const reader = $('roomReader'), content = $('roomContent');
   if (!reader) return;
+  setReaderReturnRoute(opts && opts.returnToLesson ? 'lesson-builder' : null);
   if (content) content.hidden = true;
   reader.hidden = false;
   try { refreshDueBadge(); } catch (_) {}   // D2 — entering the reader hides the home «🔁 К повторению» CTA
@@ -5275,6 +5288,7 @@ async function closeReader() {
   // may not have fired if Back is tapped quickly). Read the top-visible row while the table is
   // still laid out, persist it, then stop recording.
   const tid = readerTextId;
+  const returnRoute = readerReturnRoute;
   if (_progressTimer) { clearTimeout(_progressTimer); _progressTimer = null; }
   if (tid != null) {
     // BRR-P2-005 — flush the FURTHEST row reached (max of session-max + current top), NEVER a
@@ -5296,11 +5310,13 @@ async function closeReader() {
   const reader = $('roomReader'), content = $('roomContent');
   if (reader) reader.hidden = true;
   if (content) content.hidden = false;
+  setReaderReturnRoute(null);
   try { refreshDueBadge(); } catch (_) {}   // D2 — back on the home → surface the «🔁 К повторению» CTA
   // Surface the just-read text in «Продолжить чтение» (corpus home only; results / other tabs untouched).
   if (tid != null && activeTrack === 'corpus' && corpusNav.corpus === 'benyehuda' && corpusNav.level === 'home' && !corpusFilterActive()) {
     try { corpusRefreshL1Body(); } catch (_) {}
   }
+  if (returnRoute === 'lesson-builder') openLessonStudio();
 }
 
 // ── BRR-S15 — in-reader find (Kindle/Apple-Books table-stakes) ──────────────────────────────

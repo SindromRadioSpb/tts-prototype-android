@@ -9,7 +9,7 @@
 **Predecessor:** `LINGUISTPRO_WAVE2_LB0_LESSON_BUILDER_DECISION_2026_07_15.md`
 **Current baseline:** LB0 policy `lesson-builder-lb0-v1`, ephemeral browser artifact, app `3.11.177`.
 
-**Implementation target:** policy `lesson-builder-lb1-v2`, schema 2, app `3.11.180`.
+**Implementation target:** policy `lesson-builder-lb1-v2`, schema 2, app `3.11.181`.
 
 ## 1. Observed problem
 
@@ -231,6 +231,6 @@ Premium-ready invariants:
 - Vocabulary eligibility excludes common function words, ambiguous/low-confidence facts and missing glosses.
 - Grammar focus first performs resolver-only discovery. No LLM budget is spent until the learner selects one registry-known construction found in the chosen scope; no confirmed construct means no grammar lesson.
 - Shadow critic plumbing is present behind `LESSON_BUILDER_SHADOW_CRITIC_ENABLED` (default off). It receives a typed draft, emits only allowlisted quality codes/score, is metered separately and cannot alter the learner-visible artifact.
-- Independent fixtures live in `scripts/premium/fixtures/lesson-builder-lb1/`: a versioned rubric plus valid/adversarial composition cases. Current targeted gate: `69/69`.
+- Independent fixtures live in `scripts/premium/fixtures/lesson-builder-lb1/`: a versioned rubric plus valid/adversarial composition cases. Current targeted gate: `71/71`.
 
 Remaining outside this implementation result: durable retain-until-delete library, background generation of each series lesson, human-scored Hebrew gold, and promotion of the shadow critic. Those remain governed by the owner gates above.
