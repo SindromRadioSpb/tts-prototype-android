@@ -1332,6 +1332,19 @@
     #roomMentorView[hidden] { display: none; }
     #roomMentorView { max-width: 640px; margin-inline: auto; padding: 0 12px 24px; }
     #roomMentorView button { width: auto; }
+    #roomLessonView[hidden] { display: none; }
+    #roomLessonView { width: min(1440px,100%); margin-inline: auto; padding: 0 18px 32px; box-sizing: border-box; }
+    #roomLessonView button { width: auto; }
+    #roomLessonMount { animation: lesson-workbench-in .18s ease-out both; }
+    .mentor-lb-workspace { display: grid; grid-template-columns: minmax(320px,.9fr) minmax(420px,1.1fr); gap: 0; min-height: calc(100svh - 132px); border-block: 1px solid var(--border-soft); }
+    .mentor-lb-pane { min-width: 0; padding: 0 24px 24px; }
+    .mentor-lb-source-pane { border-inline-end: 1px solid var(--border-soft); }
+    .mentor-lb-source-pane::before { content: ''; display: block; width: 3px; height: 38px; margin-top: -1px; background: var(--accent); }
+    .mentor-lb-pager { min-height: 42px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 8px; }
+    .mentor-lb-page-status { font-size: 12px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+    .mentor-lb-mobile-nav { display: none; }
+    @keyframes lesson-workbench-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) { #roomLessonMount { animation: none; } }
     .mentor-block { border: 1px solid var(--border-soft); border-radius: 12px; padding: 12px 14px; margin-top: 12px; }
     .mentor-block-title { margin: 0 0 8px; font-size: 14px; color: var(--text-primary); }
     .mentor-status-line { font-size: 13px; color: var(--text-secondary); }
@@ -1373,6 +1386,14 @@
     .mentor-lb-empty { padding: 13px; border: 1px dashed var(--border-soft); border-radius: 10px; color: var(--text-secondary); font-size: 12px; text-align: center; }
     .mentor-lb-edit { width: 100%; min-height: 84px; box-sizing: border-box; padding: 9px 10px; border: 1px solid var(--border-soft); border-radius: 8px; background: var(--bg-muted); color: var(--text-primary); resize: vertical; }
     .mentor-lb-active { border-inline-start: 4px solid #22c55e; padding-inline-start: 10px; }
+    .mentor-lb-quality-basic, .mentor-lb-quality-draft { margin: 10px 0; padding: 9px 12px; border-inline-start: 3px solid #d97706; background: color-mix(in srgb,#d97706 8%,transparent); color: var(--text-secondary); font-size: 12px; }
+    .mentor-lb-quality-draft { border-inline-start-color: var(--accent); background: color-mix(in srgb,var(--accent) 8%,transparent); }
+    .mentor-lb-series { margin: 12px 0; padding-block: 10px; border-block: 1px solid var(--border-soft); }
+    .mentor-lb-purpose { margin: 6px 0; color: var(--text-secondary); font-size: 12px; font-weight: 600; }
+    .mentor-lb-anchor-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+    .mentor-lb-anchor { border: 0; border-bottom: 1px solid currentColor; padding: 3px 0; background: transparent; color: var(--accent); font-size: 11px; cursor: pointer; }
+    .mentor-lb-answer, .mentor-lb-criteria { margin-top: 7px; padding: 7px 9px; background: var(--bg-muted); color: var(--text-secondary); font-size: 12px; line-height: 1.45; }
+    @media (max-width: 760px) { #roomLessonView { padding-inline: 10px; } .mentor-lb-mobile-nav { display: flex; gap: 4px; position: sticky; top: 0; z-index: 2; padding: 6px; border-bottom: 1px solid var(--border-soft); background: var(--bg); } .mentor-lb-mobile-step { flex: 1; border: 0; border-radius: 7px; padding: 8px 12px; background: transparent; color: var(--text-secondary); } .mentor-lb-mobile-step[aria-pressed="true"] { background: var(--bg-muted); color: var(--accent); font-weight: 700; } .mentor-lb-workspace { grid-template-columns: 1fr; min-height: 0; } .mentor-lb-pane { padding-inline: 8px; } .mentor-lb-source-pane { border-inline-end: 0; border-bottom: 0; } [data-lb-mobile-step="source"] .mentor-lb-lesson-pane, [data-lb-mobile-step="lesson"] .mentor-lb-source-pane { display: none; } }
     @media (max-width: 480px) { .mentor-lb-grid { grid-template-columns: 1fr; } .mentor-lb-field.wide { grid-column: auto; } .mentor-lb-steps { border-radius: 10px; line-height: 1.5; } .mentor-lb-range { grid-template-columns: 1fr 1fr; } .mentor-lb-filter, .mentor-lb-focus { width: auto !important; } }
     .mentor-wr-plate { margin-top: 8px; font-size: 11px; color: var(--text-secondary); }
     .mentor-wr-used { margin-top: 6px; display: flex; flex-direction: column; gap: 3px; font-size: 14px; }
@@ -1883,6 +1904,16 @@
     <h2 class="reader-title" data-i18n="room.mentor.title">🤖 Наставник</h2>
   </div>
   <div id="roomMentorMount"></div>
+</section>
+
+<!-- LB1.1 — full-screen logical Lesson Studio in the same document/OPFS owner.
+     Mentor Home only launches this workspace; source data remains behind the Room host adapter. -->
+<section id="roomLessonView" hidden aria-label="Студия урока">
+  <div class="reader-bar">
+    <button id="lessonBack" class="reader-back" type="button" data-i18n="room.lesson.back">← Наставник</button>
+    <h2 class="reader-title" data-i18n="room.lesson.studioTitle">Студия урока</h2>
+  </div>
+  <div id="roomLessonMount"></div>
 </section>
 
 <!-- ── Trust footer (R4/R5) + Ben-Yehuda source attribution (R6/R9) ───────────── -->

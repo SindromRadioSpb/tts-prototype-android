@@ -1,0 +1,25 @@
+{
+  "version": "lesson-quality-rubric-lb1-v1",
+  "status": "independent_contract_fixture",
+  "hard_failures": [
+    "MISSING_ANCHOR",
+    "UNSUPPORTED_FACT",
+    "MISSING_ANSWER",
+    "MISSING_CRITERIA",
+    "FOCUS_MISMATCH"
+  ],
+  "dimensions": {
+    "source_grounding": 25,
+    "answerability": 20,
+    "pedagogical_sequence": 20,
+    "target_quality": 15,
+    "level_and_load_fit": 10,
+    "learner_control_and_honesty": 10
+  },
+  "shadow_promotion_gate": {
+    "minimum_absolute_gain_points": 5,
+    "requires_human_hebrew_gold": true,
+    "authority_after_promotion": "advisory_only",
+    "cost_and_latency_must_be_accepted": true
+  }
+}

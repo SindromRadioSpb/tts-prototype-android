@@ -23,6 +23,7 @@ const MAX_BYTES = 8 * 1024 * 1024;       // реальный максимум wo
 const LRU_MAX = 8;                        // критика: parse до 8MB на каждый вызов — кэшируем
 const WORK_ID_RE = /^\d{1,8}$/;           // анти-traversal: только цифры
 const TEXT_KEY_RE = /^[a-f0-9]{16,64}$/;  // sha256-подобный ключ текста
+const LESSON_SCOPE_ROWS_MAX = 2000;
 
 const _lru = new Map();                   // `${workId}:${mtimeMs}` → texts[]
 
@@ -143,7 +144,7 @@ async function getCorpusLessonWindow({ corpus, work_id, text_key, start_order_in
   const start = Number(start_order_index), count = Number(row_count);
   if (!WORK_ID_RE.test(workId)) return { ok: false, error: "BAD_WORK_ID" };
   if (!TEXT_KEY_RE.test(textKey)) return { ok: false, error: "BAD_TEXT_KEY" };
-  if (!Number.isInteger(start) || start < 0 || !Number.isInteger(count) || count < 1 || count > 40) {
+  if (!Number.isInteger(start) || start < 0 || !Number.isInteger(count) || count < 1 || count > LESSON_SCOPE_ROWS_MAX) {
     return { ok: false, error: "BAD_ANCHOR" };
   }
   const loaded = _loadTexts(workId); if (!loaded.ok) return loaded;
@@ -157,11 +158,11 @@ async function getCorpusLessonWindow({ corpus, work_id, text_key, start_order_in
   })).filter((r) => r.he);
   if (!rows.length) return { ok: false, error: "CORPUS_SENTENCE_NOT_FOUND" };
   const cmeta = (text.source_meta && text.source_meta.corpus) || text.corpus || {};
-  return { ok: true, scope_level: "corpus_lesson_window_40", anchor: { corpus: "benyehuda", work_id: workId,
+  return { ok: true, scope_level: "corpus_lesson_scope_2000", anchor: { corpus: "benyehuda", work_id: workId,
     text_key: textKey, start_order_index: rows[0].order_index, row_count: rows.length },
     title: String(text.title || "").slice(0, 200) || null, rows_total: all.length, rows,
     work: { title: String(text.title || "") || null, author: cmeta.author || null,
       era: cmeta.era || null, license: cmeta.license || "public-domain" } };
 }
 
-module.exports = { getCorpusSentenceContext, getCorpusWindow, getCorpusLessonWindow };
+module.exports = { getCorpusSentenceContext, getCorpusWindow, getCorpusLessonWindow, LESSON_SCOPE_ROWS_MAX };

@@ -209,11 +209,12 @@ async function getTextDigest(userId, { text_key } = {}) {
 // Wave 2 LB0: an explicitly selected, bounded window from an existing personal
 // text. The full-text consent is reused because this scope may exceed five
 // sentences; no content is persisted or included in errors/logs.
+const LESSON_SCOPE_ROWS_MAX = 2000;
 async function getLessonWindow(userId, { text_key, start_order_index, row_count } = {}) {
   const textKey = String(text_key || "").trim();
   const start = Number(start_order_index);
   const count = Number(row_count);
-  if (!textKey || !Number.isInteger(start) || start < 0 || !Number.isInteger(count) || count < 1 || count > DIGEST_ROWS_MAX) {
+  if (!textKey || !Number.isInteger(start) || start < 0 || !Number.isInteger(count) || count < 1 || count > LESSON_SCOPE_ROWS_MAX) {
     return { ok: false, error: "BAD_ANCHOR" };
   }
   if (!(await learnerArtifactsRepo.hasConsent(userId))) {
@@ -241,11 +242,11 @@ async function getLessonWindow(userId, { text_key, start_order_index, row_count 
     ru: String(r.russian != null ? r.russian : (r.ru || "")).trim() || null,
   })).filter((r) => r.he);
   if (!rows.length) return { ok: false, error: "SENTENCE_NOT_FOUND" };
-  return { ok: true, scope_level: "lesson_window_40", anchor: { text_key: textKey,
+  return { ok: true, scope_level: "lesson_scope_2000", anchor: { text_key: textKey,
     start_order_index: rows[0].order_index, row_count: rows.length }, title: String(t.title || "").slice(0, 200) || null,
     rows_total: all.length, rows, artifact_updated_at: art.updated_at };
 }
 
 module.exports = { hasAgentReadConsent, hasDigestConsent, getSentenceContext, getSentenceWindow, getTextDigest,
   getLessonWindow, CONSENT_KEY_AGENT, CONSENT_KEY_DIGEST, SCOPE_SENTENCE_ONLY, SCOPE_SENTENCE_WINDOW,
-  SCOPE_TEXT_DIGEST, DIGEST_ROWS_MAX };
+  SCOPE_TEXT_DIGEST, DIGEST_ROWS_MAX, LESSON_SCOPE_ROWS_MAX };

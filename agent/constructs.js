@@ -38,13 +38,13 @@ const REGISTRY = {
     title_en: "Receptively known but production skill unproven",
   },
   // ── morphology (источник: резолвер; recognition — контекст чтения) ──────────
-  "construct:hebrew.binyan.paal.recognition": { kind: "morphology", title_ru: "Биньян пааль — узнавание формы", title_en: "Binyan pa'al — form recognition" },
-  "construct:hebrew.binyan.nifal.recognition": { kind: "morphology", title_ru: "Биньян нифаль — узнавание формы", title_en: "Binyan nif'al — form recognition" },
-  "construct:hebrew.binyan.piel.recognition": { kind: "morphology", title_ru: "Биньян пиэль — узнавание формы", title_en: "Binyan pi'el — form recognition" },
-  "construct:hebrew.binyan.pual.recognition": { kind: "morphology", title_ru: "Биньян пуаль — узнавание формы", title_en: "Binyan pu'al — form recognition" },
-  "construct:hebrew.binyan.hifil.recognition": { kind: "morphology", title_ru: "Биньян хифъиль — узнавание формы", title_en: "Binyan hif'il — form recognition" },
-  "construct:hebrew.binyan.hufal.recognition": { kind: "morphology", title_ru: "Биньян хуфъаль — узнавание формы", title_en: "Binyan huf'al — form recognition" },
-  "construct:hebrew.binyan.hitpael.recognition": { kind: "morphology", title_ru: "Биньян хитпаэль — узнавание формы", title_en: "Binyan hitpa'el — form recognition" },
+  "construct:hebrew.binyan.paal.recognition": { kind: "morphology", title_ru: "Биньян пааль — узнавание формы", title_en: "Binyan pa'al — form recognition", title_he: "בניין פָּעַל — זיהוי הצורה" },
+  "construct:hebrew.binyan.nifal.recognition": { kind: "morphology", title_ru: "Биньян нифаль — узнавание формы", title_en: "Binyan nif'al — form recognition", title_he: "בניין נִפְעַל — זיהוי הצורה" },
+  "construct:hebrew.binyan.piel.recognition": { kind: "morphology", title_ru: "Биньян пиэль — узнавание формы", title_en: "Binyan pi'el — form recognition", title_he: "בניין פִּעֵל — זיהוי הצורה" },
+  "construct:hebrew.binyan.pual.recognition": { kind: "morphology", title_ru: "Биньян пуаль — узнавание формы", title_en: "Binyan pu'al — form recognition", title_he: "בניין פֻּעַל — זיהוי הצורה" },
+  "construct:hebrew.binyan.hifil.recognition": { kind: "morphology", title_ru: "Биньян хифъиль — узнавание формы", title_en: "Binyan hif'il — form recognition", title_he: "בניין הִפְעִיל — זיהוי הצורה" },
+  "construct:hebrew.binyan.hufal.recognition": { kind: "morphology", title_ru: "Биньян хуфъаль — узнавание формы", title_en: "Binyan huf'al — form recognition", title_he: "בניין הֻפְעַל — זיהוי הצורה" },
+  "construct:hebrew.binyan.hitpael.recognition": { kind: "morphology", title_ru: "Биньян хитпаэль — узнавание формы", title_en: "Binyan hitpa'el — form recognition", title_he: "בניין הִתְפַּעֵל — זיהוי הצורה" },
 };
 
 function isKnown(id) { return Object.prototype.hasOwnProperty.call(REGISTRY, String(id || "")); }
@@ -53,7 +53,7 @@ function list() { return Object.keys(REGISTRY); }
 function title(id, language) {
   const c = REGISTRY[String(id || "")];
   if (!c) return null;
-  return language === "en" ? c.title_en : c.title_ru;
+  return language === "en" ? c.title_en : language === "he" ? (c.title_he || c.title_ru) : c.title_ru;
 }
 
 // ── детекция: channel-gap ─────────────────────────────────────────────────────

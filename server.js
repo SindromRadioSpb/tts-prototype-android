@@ -2131,9 +2131,10 @@ app.post("/api/agent/lesson-builder/build", rlAgentExplain, async (req, res) => 
           code === "AGENT_READ_TEXTS_DIGEST_CONSENT_REQUIRED") return res.status(403).json(r);
       if (code === "TEXT_NOT_IN_CLOUD" || code === "SENTENCE_NOT_FOUND" || code === "CORPUS_WORK_NOT_FOUND" ||
           code === "CORPUS_SENTENCE_NOT_FOUND") return res.status(404).json(r);
-      if (code === "CORPUS_WORK_TOO_LARGE" || code === "SOURCE_SELECTION_TOO_LARGE" ||
+      if (code === "CORPUS_WORK_TOO_LARGE" || code === "SOURCE_SELECTION_TOO_LARGE" || code === "SOURCE_ANCHOR_TOO_LARGE" ||
           code === "SOURCE_TOTAL_TOO_LARGE") return res.status(413).json(r);
       if (code === "LESSON_BUILDER_DISABLED") return res.status(503).json(r);
+      if (code === "GRAMMAR_TARGET_REQUIRED" || code === "GRAMMAR_TARGET_UNAVAILABLE") return res.status(409).json(r);
       if (code.startsWith("BAD_") || code === "DUPLICATE_SOURCE" || code === "SOURCE_SELECTION_TOO_SHORT" ||
           code === "ARTIFACT_UNREADABLE") return res.status(400).json(r);
       return res.status(500).json(r);

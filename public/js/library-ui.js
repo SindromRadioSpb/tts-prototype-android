@@ -1115,6 +1115,7 @@ function _paintDueCTA() {
   const cta = document.getElementById('roomDueCta'); if (!cta) return;
   const reader = $('roomReader');
   const mentor = $('roomMentorView');   // P9 — дом наставника тоже «не home»: CTA не поверх вида
+  const lesson = $('roomLessonView');
   // R3 (ROOM_DUE_CONTINUITY §3) — ONE number everywhere: the CTA shows the SAME schedule-due count
   // as the badge (shared predicate: due<=now, ignore excluded — dueCounts == getDueWithSource by
   // construction). The old sourced-only count under-claimed after R2 (the ladder serves unsourced
@@ -1122,7 +1123,7 @@ function _paintDueCTA() {
   // honest-residue guarantee moved to click-time: a due word that still can't be assembled gets
   // the R2 «нельзя собрать на этом устройстве» empty-state, never a silent dead end.
   const n = (_dueCounts && _dueCounts.dueNow) || 0;
-  const show = n > 0 && !!(reader && reader.hidden) && !(mentor && !mentor.hidden);   // home only — not while reading
+  const show = n > 0 && !!(reader && reader.hidden) && !(mentor && !mentor.hidden) && !(lesson && !lesson.hidden);   // home only — not while reading/working
   cta.hidden = !show;
   if (show) cta.textContent = '🔁 ' + tt('room.morph.study.due', 'К повторению') + ': ' + n + ' →';
 }
@@ -3014,6 +3015,7 @@ function agentByok() {
 // Этикет R17 §2.3: вид открывается ТОЛЬКО явным тапом или deep-link #mentor (пуш) — никаких
 // автооткрытий.
 let _mentorMounted = false;
+let _lessonMounted = false;
 function _mentorHost() {
   return {
     t: tt,
@@ -3021,15 +3023,20 @@ function _mentorHost() {
     csrf: () => { try { return localStorage.getItem('cloud.csrf') || ''; } catch (_) { return ''; } },
     runTrainer: (itemKeys, channel) => { try { startPlanSectionTraining(itemKeys, channel); } catch (_) {} },
     openReading: () => closeMentorView(),
+    openLessonStudio: () => openLessonStudio(),
     // PAS-D1 — capability пиков «что читать дальше» (движок/снапшот = рельса Зала) +
     // открытие пика ИЗ mentor-view (критика: openCorpusWork сам вид не закрывает —
     // зеркалим openTextAt: сперва closeMentorView) + телеметрия agent_ux.
     nextTextPicks: () => buildNextTextPicks(),
     // LB0 source catalog stays a host capability: MentorHome remains API-only
     // and receives identifiers/metadata, never direct OPFS access.
-    lessonSources: async (query) => {
-      const q = String(query || '').trim().toLocaleLowerCase();
-      const out = [];
+    lessonSources: async (request) => {
+      const opts = request && typeof request === 'object' ? request : { query: request };
+      const q = String(opts.query || '').trim().toLocaleLowerCase();
+      const kind = ['all', 'personal', 'corpus'].includes(String(opts.kind)) ? String(opts.kind) : 'all';
+      const offset = Math.max(0, Number(opts.offset) || 0);
+      const limit = Math.max(1, Math.min(50, Number(opts.limit) || 20));
+      const personal = [], corpus = [];
       try {
         const rows = await localDb.dbQuery(
           `SELECT t.id, t.text_key, t.title, t.source_meta_json, t.last_opened_at,
@@ -3042,9 +3049,8 @@ function _mentorHost() {
           if (!r || isCorpusTextRow(r) || !r.text_key) continue;
           const title = String(r.title || r.text_key);
           if (q && !title.toLocaleLowerCase().includes(q)) continue;
-          out.push({ kind: 'personal', text_key: String(r.text_key), title: title,
+          personal.push({ kind: 'personal', text_key: String(r.text_key), title: title,
             sentence_count: Math.max(0, Number(r.sentence_count) || 0) });
-          if (out.length >= 15) break;
         }
       } catch (_) {}
       try {
@@ -3056,24 +3062,25 @@ function _mentorHost() {
           if (!c || !c.text_key || c.id == null) continue;
           const title = String(c.title || c.t || c.text_key), author = String(c.author || c.a || '');
           if (q && !(title + ' ' + author).toLocaleLowerCase().includes(q)) continue;
-          out.push({ kind: 'corpus', work_id: String(c.id), text_key: String(c.text_key), title: title, author: author,
+          corpus.push({ kind: 'corpus', work_id: String(c.id), text_key: String(c.text_key), title: title, author: author,
             sentence_count: Math.max(0, Number(c.segments || c.rows || 0) || 0) });
-          if (out.length >= 30) break;
         }
       } catch (_) {}
-      return out;
+      const all = kind === 'personal' ? personal : kind === 'corpus' ? corpus : personal.concat(corpus);
+      return { items: all.slice(offset, offset + limit), total: all.length, offset, limit,
+        hasMore: offset + limit < all.length };
     },
     openLessonSource: async (ref, orderIndex) => {
       if (!ref) return;
       if (ref.kind === 'corpus') {
         let card = null; try { card = corpusReadyMap().get(String(ref.work_id)) || null; } catch (_) {}
         if (!card) { roomToast(tt('room.mentor.corpusTextMissing', 'Работа не найдена на устройстве — откройте её во вкладке «Корпус».')); return; }
-        closeMentorView(); await openCorpusWork(card, { scrollToOrderIndex: Number(orderIndex) || 0 }); return;
+        closeAgentViews(); await openCorpusWork(card, { scrollToOrderIndex: Number(orderIndex) || 0 }); return;
       }
       return _mentorHost().openTextAt(ref.text_key, Number(orderIndex) || 0, 'personal');
     },
     openCorpusPick: (pick) => {
-      try { closeMentorView(); } catch (_) {}
+      try { closeAgentViews(); } catch (_) {}
       try { if (pick && pick.card) openCorpusWork(pick.card); } catch (_) {}
     },
     agentUx: (feature, action, latencyMs) => { try { agentUx(feature, action, latencyMs); } catch (_) {} },
@@ -3101,7 +3108,7 @@ function _mentorHost() {
           : tt('room.mentor.textMissing', 'Текст не найден на этом устройстве — синхронизируйте «Мои тексты» в ☁.'));
         return;
       }
-      closeMentorView();
+      closeAgentViews();
       openReader(row.id, row.title, { scrollToOrderIndex: Number(orderIndex) });
     },
   };
@@ -3118,11 +3125,40 @@ function openMentorView() {
   // открытая читалка закрывается ШТАТНО (flush прогресса) — не просто прячется
   try { const rd = $('roomReader'); if (rd && !rd.hidden) closeReader(); } catch (_) {}
   const content = $('roomContent'); if (content) content.hidden = true;
+  const lesson = $('roomLessonView'); if (lesson) lesson.hidden = true;
   view.hidden = false;
   try { window.scrollTo(0, 0); } catch (_) {}
   // replaceState — без мусора в истории и без hashchange-петли; hash = deep-link контракт (пуши)
   if (location.hash !== '#mentor') { try { history.replaceState(null, '', '#mentor'); } catch (_) {} }
   _mountMentorHome();
+}
+function _mountLessonStudio() {
+  const mount = $('roomLessonMount');
+  if (!mount || !window.MentorHome || typeof window.MentorHome.mountLessonStudio !== 'function') return;
+  _lessonMounted = true;
+  try { window.MentorHome.mountLessonStudio(mount, _mentorHost()); } catch (_) {}
+}
+function openLessonStudio() {
+  const view = $('roomLessonView'); if (!view || !view.hidden) return;
+  try { const rd = $('roomReader'); if (rd && !rd.hidden) closeReader(); } catch (_) {}
+  const content = $('roomContent'); if (content) content.hidden = true;
+  const mentor = $('roomMentorView'); if (mentor) mentor.hidden = true;
+  view.hidden = false;
+  try { window.scrollTo(0, 0); } catch (_) {}
+  if (location.hash !== '#lesson-builder') { try { history.replaceState(null, '', '#lesson-builder'); } catch (_) {} }
+  _mountLessonStudio();
+}
+function closeLessonStudio(returnToMentor) {
+  const view = $('roomLessonView'); if (!view || view.hidden) return;
+  view.hidden = true;
+  const content = $('roomContent'); if (content) content.hidden = false;
+  if (location.hash === '#lesson-builder') { try { history.replaceState(null, '', location.pathname + location.search); } catch (_) {} }
+  if (returnToMentor) { openMentorView(); return; }
+  try { refreshDueBadge(); } catch (_) {}
+}
+function closeAgentViews() {
+  try { closeMentorView(); } catch (_) {}
+  try { closeLessonStudio(); } catch (_) {}
 }
 function closeMentorView() {
   const view = $('roomMentorView'); if (!view || view.hidden) return;
@@ -3136,8 +3172,14 @@ function roomMentorInit() {
   if (btn) btn.addEventListener('click', openMentorView);
   const back = $('mentorBack');
   if (back) back.addEventListener('click', closeMentorView);
+  const lessonBack = $('lessonBack');
+  if (lessonBack) lessonBack.addEventListener('click', () => closeLessonStudio(true));
   // deep-link при УЖЕ открытой странице (notificationclick focus-existing меняет hash)
-  window.addEventListener('hashchange', () => { if (location.hash === '#mentor') openMentorView(); });
+  window.addEventListener('hashchange', () => {
+    if (location.hash === '#mentor') openMentorView();
+    else if (location.hash === '#lesson-builder') openLessonStudio();
+  });
+  if (location.hash === '#lesson-builder') openLessonStudio();
 }
 
 // Theme — shared with Studio via localStorage.appTheme_v1 (light|dark|auto). body.theme-light/

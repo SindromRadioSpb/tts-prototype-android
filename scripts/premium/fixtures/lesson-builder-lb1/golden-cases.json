@@ -1,0 +1,53 @@
+{
+  "version": "lesson-builder-lb1-gold-v1",
+  "source_ids": ["source-1"],
+  "anchor_ids": ["source-1-anchor-1"],
+  "cases": [
+    {
+      "id": "valid_anchored_vocabulary",
+      "expect_valid": true,
+      "focuses": ["reading", "vocabulary"],
+      "composition": {
+        "objective": "Understand one claim and use two verified words",
+        "sections": [{"title":"Source pass","body":"Read for claim and evidence.","source_ids":["source-1"],"anchor_ids":["source-1-anchor-1"]}],
+        "exercises": [
+          {"type":"source_reading","purpose":"Separate claim from evidence","instruction":"Read the cited range and identify one claim with two supporting details.","source_ids":["source-1"],"anchor_ids":["source-1-anchor-1"],"expected_answer":null,"hints":[],"success_criteria":["One claim","Two details"]},
+          {"type":"vocabulary","purpose":"Use verified words","instruction":"Use the two supplied target words in new sentences with the same contextual meanings.","source_ids":["source-1"],"anchor_ids":["source-1-anchor-1"],"expected_answer":"Two original sentences","hints":[],"success_criteria":["Meanings preserved"]}
+        ]
+      }
+    },
+    {
+      "id": "reject_foreign_anchor",
+      "expect_valid": false,
+      "focuses": ["reading"],
+      "composition": {
+        "objective": "Grounded reading",
+        "sections": [{"title":"Read","body":"Read closely.","source_ids":["source-1"],"anchor_ids":["foreign-anchor"]}],
+        "exercises": [{"type":"source_reading","purpose":"Find the claim","instruction":"Read the cited sentences and identify the main claim with one supporting detail.","source_ids":["source-1"],"anchor_ids":["foreign-anchor"],"expected_answer":null,"hints":[],"success_criteria":["One claim"]}]
+      }
+    },
+    {
+      "id": "reject_vocabulary_without_answer",
+      "expect_valid": false,
+      "focuses": ["reading", "vocabulary"],
+      "composition": {
+        "objective": "Use vocabulary",
+        "sections": [{"title":"Read","body":"Read closely.","source_ids":["source-1"],"anchor_ids":["source-1-anchor-1"]}],
+        "exercises": [
+          {"type":"source_reading","purpose":"Find the claim","instruction":"Read the cited sentences and identify the main claim with one supporting detail.","source_ids":["source-1"],"anchor_ids":["source-1-anchor-1"],"expected_answer":null,"hints":[],"success_criteria":["One claim"]},
+          {"type":"vocabulary","purpose":"Use words","instruction":"Use the supplied words in new sentences that preserve their contextual meanings.","source_ids":["source-1"],"anchor_ids":["source-1-anchor-1"],"expected_answer":null,"hints":[],"success_criteria":["Meaning preserved"]}
+        ]
+      }
+    },
+    {
+      "id": "reject_missing_focus_exercise",
+      "expect_valid": false,
+      "focuses": ["reading", "dialogue"],
+      "composition": {
+        "objective": "Discuss the text",
+        "sections": [{"title":"Read","body":"Read closely.","source_ids":["source-1"],"anchor_ids":["source-1-anchor-1"]}],
+        "exercises": [{"type":"source_reading","purpose":"Find the claim","instruction":"Read the cited sentences and identify the main claim with one supporting detail.","source_ids":["source-1"],"anchor_ids":["source-1-anchor-1"],"expected_answer":null,"hints":[],"success_criteria":["One claim"]}]
+      }
+    }
+  ]
+}
