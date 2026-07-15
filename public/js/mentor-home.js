@@ -691,61 +691,105 @@
   function lessonForm(box) {
     box.textContent = "";
     box.appendChild(el("h3", "mentor-block-title", t("room.lesson.title", "🧩 Конструктор урока")));
+    box.appendChild(el("div", "mentor-lb-steps", t("room.lesson.steps", "1 · Источники   →   2 · Настройка   →   3 · Черновик")));
+    var sourceKind = "all", latestSources = [];
+    var sourceHead = el("div", "mentor-lb-section-head");
+    sourceHead.appendChild(el("strong", null, t("room.lesson.sourceTitle", "Выберите материалы")));
+    var sourceCount = el("span", "mentor-lb-count"); sourceHead.appendChild(sourceCount); box.appendChild(sourceHead);
+    box.appendChild(el("div", "mentor-hint", t("room.lesson.sourceHint", "До 3 текстов. Для каждого будет использован только указанный диапазон.")));
     var selected = el("div", "mentor-lb-selected"); box.appendChild(selected);
+    var build = null;
+    function totalOf(s) { return Math.max(0, Number(s.sentence_count) || 0); }
+    function applyPreset(s, mode) {
+      var total = totalOf(s), count = Math.min(total || 20, total && total <= 40 ? total : 20, 40);
+      if (mode === "whole") { s.start_order_index = 0; s.row_count = Math.min(total || 20, 40); }
+      else if (mode === "middle") { s.row_count = count; s.start_order_index = Math.max(0, Math.floor(((total || count) - count) / 2)); }
+      else if (mode === "end") { s.row_count = count; s.start_order_index = Math.max(0, (total || count) - count); }
+      else { s.start_order_index = 0; s.row_count = count; }
+    }
+    function updateReady() {
+      sourceCount.textContent = _lbSelected.length + "/3";
+      if (build) build.disabled = _lbBusy || _lbSelected.length < 1 || _lbSelected.length > 3;
+    }
     function paintSelected() {
       selected.textContent = "";
+      if (!_lbSelected.length) selected.appendChild(el("div", "mentor-lb-empty", t("room.lesson.sourceEmpty", "Выбранные тексты появятся здесь.")));
       _lbSelected.forEach(function (s, idx) {
         var card = el("div", "mentor-lb-source");
         var head = el("div", "mentor-lb-source-head");
-        var title = el("div", null, (s.kind === "corpus" ? "📚 " : "📝 ") + s.title + (s.author ? " · " + s.author : "")); title.setAttribute("dir", "auto");
+        var titleWrap = el("div", "mentor-lb-source-copy");
+        var title = el("strong", null, (s.kind === "corpus" ? "📚 " : "📝 ") + s.title); title.setAttribute("dir", "auto"); titleWrap.appendChild(title);
+        var meta = [(s.kind === "corpus" ? t("room.lesson.corpus", "Корпус") : t("room.lesson.personal", "Мои тексты"))];
+        if (s.author) meta.push(s.author); if (totalOf(s)) meta.push(totalOf(s) + " " + t("room.lesson.sentences", "предл."));
+        titleWrap.appendChild(el("div", "mentor-lb-source-meta", meta.join(" · ")));
         var rm = el("button", "mentor-wr-ghost", "×"); rm.type = "button"; rm.setAttribute("aria-label", t("room.lesson.remove", "Удалить источник"));
-        rm.addEventListener("click", function () { _lbSelected.splice(idx, 1); paintSelected(); });
-        head.appendChild(title); head.appendChild(rm); card.appendChild(head);
+        rm.addEventListener("click", function () { _lbSelected.splice(idx, 1); paintSelected(); find(); });
+        head.appendChild(titleWrap); head.appendChild(rm); card.appendChild(head);
+        var preset = document.createElement("select"); preset.className = "mentor-lb-preset"; preset.setAttribute("aria-label", t("room.lesson.rangePreset", "Фрагмент текста"));
+        [["start",t("room.lesson.rangeStart","Начало")],["middle",t("room.lesson.rangeMiddle","Середина")],["end",t("room.lesson.rangeEnd","Конец")],["custom",t("room.lesson.rangeCustom","Свой диапазон")]].forEach(function(x){var o=document.createElement("option");o.value=x[0];o.textContent=x[1];preset.appendChild(o);});
+        if (totalOf(s) && totalOf(s) <= 40) { var whole=document.createElement("option");whole.value="whole";whole.textContent=t("room.lesson.rangeWhole","Весь текст");preset.insertBefore(whole,preset.firstChild); }
+        preset.value=s.range_preset||"start"; card.appendChild(preset);
         var range = el("div", "mentor-lb-range");
-        var a = el("label", "mentor-lb-field", t("room.lesson.start", "С предложения"));
-        var ai = document.createElement("input"); ai.type = "number"; ai.min = "0"; ai.max = "99999"; ai.value = String(s.start_order_index || 0);
-        ai.addEventListener("change", function () { s.start_order_index = Math.max(0, Number(ai.value) || 0); }); a.appendChild(ai);
-        var c = el("label", "mentor-lb-field", t("room.lesson.rows", "Количество предложений"));
-        var ci = document.createElement("input"); ci.type = "number"; ci.min = "1"; ci.max = "40"; ci.value = String(s.row_count || 12);
-        ci.addEventListener("change", function () { s.row_count = Math.max(1, Math.min(40, Number(ci.value) || 12)); }); c.appendChild(ci);
-        range.appendChild(a); range.appendChild(c); card.appendChild(range); selected.appendChild(card);
+        var a = el("label", "mentor-lb-field", t("room.lesson.fromSentence", "От предложения"));
+        var ai = document.createElement("input"); ai.type = "number"; ai.min = "1"; ai.max = String(totalOf(s) || 99999); ai.value = String((s.start_order_index || 0) + 1); a.appendChild(ai);
+        var c = el("label", "mentor-lb-field", t("room.lesson.toSentence", "До предложения"));
+        var ci = document.createElement("input"); ci.type = "number"; ci.min = "1"; ci.max = String(totalOf(s) || 99999); ci.value = String((s.start_order_index || 0) + (s.row_count || 20)); c.appendChild(ci);
+        var summary = el("div", "mentor-lb-range-summary");
+        function syncRange(custom) { var total=totalOf(s), from=Math.max(1,Number(ai.value)||1), to=Math.max(from,Number(ci.value)||from); if(total){from=Math.min(from,total);to=Math.min(to,total);} if(to-from+1>40)to=from+39; s.start_order_index=from-1;s.row_count=to-from+1;ai.value=String(from);ci.value=String(to);if(custom){preset.value="custom";s.range_preset="custom";}summary.textContent=from+"–"+to+(total?" "+t("room.lesson.of","из")+" "+total:"")+" · "+s.row_count+" "+t("room.lesson.sentences","предл."); }
+        ai.addEventListener("change",function(){syncRange(true);});ci.addEventListener("change",function(){syncRange(true);});
+        preset.addEventListener("change",function(){s.range_preset=preset.value;if(preset.value!=="custom")applyPreset(s,preset.value);paintSelected();});
+        range.appendChild(a); range.appendChild(c); card.appendChild(range); card.appendChild(summary); syncRange(false); selected.appendChild(card);
       });
+      updateReady();
     }
     paintSelected();
+    var filters = el("div", "mentor-lb-filters");
+    [["all",t("room.lesson.allSources","Все")],["personal",t("room.lesson.personal","Мои тексты")],["corpus",t("room.lesson.corpus","Корпус")]].forEach(function(x){var b=el("button","mentor-lb-filter",x[1]);b.type="button";b.dataset.kind=x[0];b.setAttribute("aria-pressed",String(sourceKind===x[0]));b.addEventListener("click",function(){sourceKind=x[0];Array.from(filters.children).forEach(function(n){n.setAttribute("aria-pressed",String(n.dataset.kind===sourceKind));});paintResults();});filters.appendChild(b);}); box.appendChild(filters);
     var search = document.createElement("input"); search.className = "mentor-wr-input"; search.style.minHeight = "auto";
     search.placeholder = t("room.lesson.search", "Найти мой текст или работу корпуса…"); search.setAttribute("aria-label", search.placeholder);
     box.appendChild(search);
     var results = el("div", "mentor-lb-results"); box.appendChild(results);
+    function paintResults() {
+      results.textContent = "";
+      var visible=latestSources.filter(function(s){return sourceKind==="all"||s.kind===sourceKind;});
+      if(!visible.length){results.appendChild(el("div","mentor-lb-empty",t("room.lesson.noSources","Ничего не найдено.")));return;}
+      visible.forEach(function (s) {
+        if (_lbSelected.some(function (x) { return x.kind === s.kind && x.text_key === s.text_key && String(x.work_id || "") === String(s.work_id || ""); })) return;
+        var b = el("button", "mentor-lb-result"); b.type = "button"; b.setAttribute("dir", "auto");
+        b.appendChild(el("strong",null,(s.kind === "corpus" ? "📚 " : "📝 ") + s.title));
+        var bits=[];if(s.author)bits.push(s.author);bits.push(totalOf(s)?totalOf(s)+" "+t("room.lesson.sentences","предл."):t("room.lesson.countUnknown","объём уточняется"));b.appendChild(el("span","mentor-lb-result-meta",bits.join(" · ")));
+        b.addEventListener("click", function () { if (_lbSelected.length >= 3) return; var picked=Object.assign({},s,{range_preset:"start"});applyPreset(picked,"start");_lbSelected.push(picked);paintSelected();paintResults(); }); results.appendChild(b);
+      });
+    }
     async function find() {
       results.textContent = "";
       if (!(S.host && typeof S.host.lessonSources === "function")) return;
-      var list = []; try { list = await S.host.lessonSources(search.value); } catch (_) {}
-      list.forEach(function (s) {
-        if (_lbSelected.some(function (x) { return x.kind === s.kind && x.text_key === s.text_key && String(x.work_id || "") === String(s.work_id || ""); })) return;
-        var b = el("button", "mentor-lb-result", (s.kind === "corpus" ? "📚 " : "📝 ") + s.title + (s.author ? " · " + s.author : ""));
-        b.type = "button"; b.setAttribute("dir", "auto"); b.addEventListener("click", function () {
-          if (_lbSelected.length >= 3) return;
-          _lbSelected.push(Object.assign({}, s, { start_order_index: 0, row_count: 12 })); paintSelected(); find();
-        }); results.appendChild(b);
-      });
+      try { latestSources = await S.host.lessonSources(search.value); } catch (_) { latestSources=[]; }
+      paintResults();
     }
     var timer = null; search.addEventListener("input", function () { clearTimeout(timer); timer = setTimeout(find, 180); }); find();
     var grid = el("div", "mentor-lb-grid");
     function field(label, node, wide) { var f = el("label", "mentor-lb-field" + (wide ? " wide" : ""), label); f.appendChild(node); grid.appendChild(f); return node; }
-    var goal = document.createElement("input"); goal.maxLength = 240; goal.value = t("room.lesson.goalDefault", "Понять выбранные тексты и применить ключевые слова"); field(t("room.lesson.goal", "Цель"), goal, true);
+    var setupHead=el("div","mentor-lb-section-head");setupHead.appendChild(el("strong",null,t("room.lesson.setupTitle","Настройте урок")));box.appendChild(setupHead);
+    var goal = document.createElement("select"); [["active_vocabulary",t("room.lesson.goals.activeVocabulary","Понять текст и применить ключевые слова")],["understand",t("room.lesson.goals.understand","Понять основную мысль и детали")],["grammar_in_context",t("room.lesson.goals.grammar","Разобрать грамматику в контексте")],["retell",t("room.lesson.goals.retell","Пересказать своими словами")],["discuss",t("room.lesson.goals.discuss","Обсудить идеи и выразить мнение")],["write_response",t("room.lesson.goals.write","Написать связный отклик")],["custom",t("room.lesson.goals.custom","Своя цель…")]].forEach(function(x){var o=document.createElement("option");o.value=x[0];o.textContent=x[1];goal.appendChild(o);}); field(t("room.lesson.goal", "Цель"), goal, true);
+    var customGoal=document.createElement("input");customGoal.maxLength=240;customGoal.placeholder=t("room.lesson.customGoal","Сформулируйте результат урока…");var customField=field(t("room.lesson.customGoalLabel","Своя цель"),customGoal,true).parentNode;customField.hidden=true;goal.addEventListener("change",function(){customField.hidden=goal.value!=="custom";});
     var lng = document.createElement("select"); [["ru","Русский"],["en","English"],["he","עברית"]].forEach(function (x) { var o=document.createElement("option");o.value=x[0];o.textContent=x[1];lng.appendChild(o); }); lng.value = lang().slice(0,2); field(t("room.lesson.language", "Язык объяснений"), lng);
-    var level = document.createElement("select"); ["unknown","A1","A2","B1","B2"].forEach(function (x) { var o=document.createElement("option");o.value=x;o.textContent=x;level.appendChild(o); }); field(t("room.lesson.level", "Примерный уровень"), level);
-    var duration = document.createElement("select"); [10,20,30].forEach(function (x) { var o=document.createElement("option");o.value=String(x);o.textContent=x+" min";duration.appendChild(o); }); duration.value="20"; field(t("room.lesson.duration", "Длительность"), duration);
-    var focus = document.createElement("select"); [["reading","Чтение"],["vocabulary","Лексика"],["grammar","Грамматика"],["writing","Письмо"],["dialogue","Диалог"]].forEach(function(x){var o=document.createElement("option");o.value=x[0];o.textContent=t("room.lesson.focus."+x[0],x[1]);focus.appendChild(o);}); field(t("room.lesson.focusLabel", "Фокус"), focus);
+    var level = document.createElement("select"); ["unknown","A1","A2","B1","B2"].forEach(function (x) { var o=document.createElement("option");o.value=x;o.textContent=x==="unknown"?t("room.lesson.levelAuto","Определить автоматически"):x;level.appendChild(o); }); field(t("room.lesson.level", "Примерный уровень"), level);
+    var duration = document.createElement("select"); [10,20,30].forEach(function (x) { var o=document.createElement("option");o.value=String(x);o.textContent=x+" "+t("room.lesson.minutes","мин");duration.appendChild(o); }); duration.value="20"; field(t("room.lesson.duration", "Длительность"), duration);
+    var focusSet=new Set(["reading"]), focusBox=el("div","mentor-lb-focuses");
+    [["reading","Чтение"],["vocabulary","Лексика"],["grammar","Грамматика"],["writing","Письмо"],["dialogue","Диалог"]].forEach(function(x){var b=el("button","mentor-lb-focus",t("room.lesson.focus."+x[0],x[1]));b.type="button";b.dataset.focus=x[0];b.setAttribute("aria-pressed",String(focusSet.has(x[0])));b.addEventListener("click",function(){var max=Number(duration.value)===10?2:3;if(focusSet.has(x[0])){if(focusSet.size>1)focusSet.delete(x[0]);}else if(focusSet.size<max)focusSet.add(x[0]);Array.from(focusBox.children).forEach(function(n){n.setAttribute("aria-pressed",String(focusSet.has(n.dataset.focus)));});});focusBox.appendChild(b);});
+    var ff=el("div","mentor-lb-field wide");ff.appendChild(el("span",null,t("room.lesson.focusLabel","Фокусы")));ff.appendChild(focusBox);ff.appendChild(el("span","mentor-hint",t("room.lesson.focusHint","Выберите до 3 направлений; для 10 минут — до 2.")));grid.appendChild(ff);
+    duration.addEventListener("change",function(){var max=Number(duration.value)===10?2:3;while(focusSet.size>max){var last=Array.from(focusSet).pop();focusSet.delete(last);}Array.from(focusBox.children).forEach(function(n){n.setAttribute("aria-pressed",String(focusSet.has(n.dataset.focus)));});});
     box.appendChild(grid);
     var out = el("div", "mentor-hint"); box.appendChild(out);
     var actions = el("div", "mentor-plan-actions");
-    var build = el("button", "mentor-plan-btn", t("room.lesson.build", "Создать черновик")); build.type="button";
+    build = el("button", "mentor-plan-btn", t("room.lesson.build", "Создать черновик")); build.type="button"; updateReady();
     build.addEventListener("click", async function () {
       if (_lbBusy || _lbSelected.length < 1 || _lbSelected.length > 3) { out.textContent=t("room.lesson.needSources","Выберите от одного до трёх источников."); return; }
+      if(goal.value==="custom"&&!customGoal.value.trim()){out.textContent=t("room.lesson.needGoal","Сформулируйте свою цель.");return;}
       _lbBusy=true; build.disabled=true; out.textContent=t("room.explain.loading","Наставник думает…");
-      var body={ sources:_lbSelected.map(function(s){return {kind:s.kind,text_key:s.text_key,work_id:s.work_id,start_order_index:Number(s.start_order_index)||0,row_count:Number(s.row_count)||12};}), goal:goal.value,
-        explanationLanguage:lng.value, approximateLevel:level.value, durationMinutes:Number(duration.value), focus:focus.value };
+      var body={ sources:_lbSelected.map(function(s){return {kind:s.kind,text_key:s.text_key,work_id:s.work_id,start_order_index:Number(s.start_order_index)||0,row_count:Number(s.row_count)||20};}), goalId:goal.value, customGoal:customGoal.value,
+        explanationLanguage:lng.value, approximateLevel:level.value, durationMinutes:Number(duration.value), focuses:Array.from(focusSet) };
       var r=null; try { r=await jpost("/api/agent/lesson-builder/build",_mhByok(body)); } catch(_){}
       _lbBusy=false; build.disabled=false;
       if(!r||r.status!==200||!r.json||!r.json.ok){var code=r&&r.json&&r.json.error||"";out.textContent=lessonError(code,r&&r.json);return;}

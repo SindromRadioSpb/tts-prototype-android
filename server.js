@@ -2139,7 +2139,7 @@ app.post("/api/agent/lesson-builder/build", rlAgentExplain, async (req, res) => 
       return res.status(500).json(r);
     }
     res.json(r);
-  } catch (e) { res.status(500).json({ ok: false, error: "LESSON_BUILD_FAILED", message: e.message }); }
+  } catch (_) { res.status(500).json({ ok: false, error: "LESSON_BUILD_FAILED" }); }
 });
 
 // PAS-F1 — проверка BYOK-ключа (owner-фидбэк 2026-07-13: «премиальное ощущение» =

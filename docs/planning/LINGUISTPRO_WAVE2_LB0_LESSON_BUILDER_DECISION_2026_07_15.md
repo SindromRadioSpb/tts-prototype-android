@@ -247,3 +247,31 @@ durability, dual-write or a shadow corpus in LB0.
 - Draft prose is editable; source references and deterministic facts are not. “Start lesson” is a separate explicit activation and does not write learner truth.
 - ru/en/he, RTL strings and a 380px single-column layout are included. Automated browser control was unavailable in the implementation session, so an interactive 380×844 screenshot check remains a manual release check rather than a claimed automated pass.
 - Independent LB0 gate: 34/34, plus i18n 226/226, auth 29/29, API, log hygiene, agent/provider/keying and Studio regressions.
+
+## Production hardening after owner smoke-check — 2026-07-16
+
+Kapture reproduced the live `LESSON_BUILD_FAILED` response and isolated a
+contract mismatch: `learnerGraphRepo.getKnownWords()` returns an item-keyed
+object, while the builder and its smoke fixture assumed an array. The builder
+now accepts the repository's real shape, and the fixture deliberately mirrors
+production so this regression cannot be hidden by a convenient stub.
+
+The same hardening pass resolves the owner-observed usability gaps:
+
+- the source browser has explicit All / My texts / Corpus scopes and preserves
+  provenance rather than presenting an opaque mixed list;
+- both search results and selected-source cards show sentence counts;
+- range selection uses human 1-based From/To values, live “N–M of total”
+  feedback and Beginning/Middle/End/Whole/Custom presets;
+- the primary learning goal is selected from stable typed presets, with a
+  bounded custom-goal escape hatch;
+- focus is a typed multi-selection: up to two areas for 10 minutes and up to
+  three for 20/30 minutes; source reading remains the mandatory anchor;
+- strict composition validation requires an exercise for every chosen focus;
+  deterministic degradation remains useful and focus-complete;
+- the build action is unavailable until a source is selected, and internal
+  exception text is no longer returned to the browser.
+
+This remains LB0: the premium setup experience does not introduce durable
+storage, automatic cards, mastery writes, hidden source expansion or background
+autonomy. The approved M1 durable-library transition above is unchanged.

@@ -3031,12 +3031,19 @@ function _mentorHost() {
       const q = String(query || '').trim().toLocaleLowerCase();
       const out = [];
       try {
-        const rows = await localDb.listTexts({ limit: 500 });
+        const rows = await localDb.dbQuery(
+          `SELECT t.id, t.text_key, t.title, t.source_meta_json, t.last_opened_at,
+                  COUNT(s.id) AS sentence_count
+             FROM texts t LEFT JOIN sentences s ON s.text_id = t.id
+            WHERE t.is_archived = 0
+            GROUP BY t.id, t.text_key, t.title, t.source_meta_json, t.last_opened_at
+            ORDER BY (t.last_opened_at IS NULL), t.last_opened_at DESC, t.title COLLATE NOCASE`, []);
         for (const r of (rows || [])) {
           if (!r || isCorpusTextRow(r) || !r.text_key) continue;
           const title = String(r.title || r.text_key);
           if (q && !title.toLocaleLowerCase().includes(q)) continue;
-          out.push({ kind: 'personal', text_key: String(r.text_key), title: title });
+          out.push({ kind: 'personal', text_key: String(r.text_key), title: title,
+            sentence_count: Math.max(0, Number(r.sentence_count) || 0) });
           if (out.length >= 15) break;
         }
       } catch (_) {}
@@ -3045,7 +3052,8 @@ function _mentorHost() {
           if (!c || !c.text_key || c.id == null) continue;
           const title = String(c.title || c.t || c.text_key), author = String(c.author || c.a || '');
           if (q && !(title + ' ' + author).toLocaleLowerCase().includes(q)) continue;
-          out.push({ kind: 'corpus', work_id: String(c.id), text_key: String(c.text_key), title: title, author: author });
+          out.push({ kind: 'corpus', work_id: String(c.id), text_key: String(c.text_key), title: title, author: author,
+            sentence_count: Math.max(0, Number(c.segments || c.rows || 0) || 0) });
           if (out.length >= 30) break;
         }
       } catch (_) {}
