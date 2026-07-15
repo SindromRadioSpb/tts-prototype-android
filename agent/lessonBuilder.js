@@ -219,20 +219,22 @@ function fallbackComposition(req, sources, facts) {
       writing: (r) => `כתבו תגובה של 4–6 משפטים: טענה, שני פרטים מ${r} ומסקנה אישית.`,
       dialogue: (r) => `הכינו ארבע תגובות על ${r}: עמדה, שאלה, תשובה המעוגנת בטקסט והבהרה.` } };
   const l = labels[req.explanationLanguage] || labels.ru;
-  const primary = sources[0].sourceMap.anchorWindows[0];
-  const range = l.range(primary.start_order_index, primary.end_order_index);
+  const anchorWindows = sources.flatMap((s) => s.sourceMap.anchorWindows.map((a) => ({ source: s, anchor: a })));
+  const anchorIds = anchorWindows.map((x) => x.anchor.id);
+  const sourceIds = [...new Set(anchorWindows.map((x) => x.source.id))];
+  const range = anchorWindows.map((x) => l.range(x.anchor.start_order_index, x.anchor.end_order_index)).join("; ");
   const words = (facts && facts.candidate_vocabulary || []).filter((x) => x.meaning && !x.ambiguous).slice(0, 2)
     .map((x) => `${x.surface} (${x.meaning})`).join(", ");
   const criteria = req.explanationLanguage === "en" ? ["Uses the cited range", "Separates the main idea from supporting details"]
     : req.explanationLanguage === "he" ? ["התגובה נשענת על הטווח המצוטט", "הרעיון המרכזי נפרד מן הפרטים התומכים"]
     : ["Ответ опирается на указанный диапазон", "Основная мысль отделена от подтверждающих деталей"];
-  const exercises = [{ type: "source_reading", purpose: req.goal, instruction: l.read(range), source_ids: [sources[0].id],
-    anchor_ids: [primary.id], expected_answer: null, hints: [], success_criteria: criteria }];
+  const exercises = [{ type: "source_reading", purpose: req.goal, instruction: l.read(range), source_ids: sourceIds,
+    anchor_ids: anchorIds, expected_answer: null, hints: [], success_criteria: criteria }];
   for (const focus of req.focuses) if (focus !== "reading") exercises.push({ type: focus,
-    purpose: req.goal, instruction: focus === "vocabulary" ? l.vocabulary(range, words) : l[focus](range), source_ids: [sources[0].id],
-    anchor_ids: [primary.id], expected_answer: null, hints: [], success_criteria: criteria });
-  return { objective: req.goal, sections: sources.map((s) => { const a=s.sourceMap.anchorWindows[0], r=l.range(a.start_order_index,a.end_order_index);return { title: s.ref.title || l.title,
-    body: l.read(r), source_ids: [s.id], anchor_ids: [a.id] }; }), exercises };
+    purpose: req.goal, instruction: focus === "vocabulary" ? l.vocabulary(range, words) : l[focus](range), source_ids: sourceIds,
+    anchor_ids: anchorIds, expected_answer: null, hints: [], success_criteria: criteria });
+  return { objective: req.goal, sections: sources.map((s) => { const anchors=s.sourceMap.anchorWindows, r=anchors.map((a)=>l.range(a.start_order_index,a.end_order_index)).join("; ");return { title: s.ref.title || l.title,
+    body: l.read(r), source_ids: [s.id], anchor_ids: anchors.map((a)=>a.id) }; }), exercises };
 }
 
 function seriesPlan(sources, minutes) {

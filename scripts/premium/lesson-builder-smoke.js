@@ -91,6 +91,11 @@ function request() { return { sources: [
   ok(LB.resolvedLessonMode("auto", [{ rows: seriesRows, sourceMap: seriesMapped }]) === "series" &&
     LB.resolvedLessonMode("auto", [{ rows: longRows, sourceMap: mapped }]) === "overview",
     "auto mode selects a series above 200 rows and an overview for a long bounded text");
+  const mappedFallback = LB.fallbackComposition({ goal: "Read the whole selection", explanationLanguage: "en", focuses: ["reading"] },
+    [{ id: "source-1", ref: { title: "Long" }, sourceMap: mapped }], { candidate_vocabulary: [] });
+  ok(mappedFallback.sections[0].anchor_ids.length === 3 && /sentences 1.?12/i.test(mappedFallback.exercises[0].instruction) &&
+    /sentences 135.?146/i.test(mappedFallback.exercises[0].instruction),
+    "deterministic overview remains grounded in start, middle and end anchor windows");
   ok(LB.normalizeRequest({ ...request(), goalId: undefined, goal: "Legacy goal", focuses: undefined, focus: "reading" }).ok, "cached LB0 request remains backward compatible");
 
   const built = await LB.build({ userId: "u1" }, request());
@@ -181,6 +186,7 @@ function request() { return { sources: [
   ok(ui.includes("startLesson") && ui.includes("lessonSources"), "editable explicit-start UI wired");
   ok(ui.includes("sentence_count") && ui.includes("range_preset") && ui.includes("aria-pressed"), "transparent source size, range presets and accessible multi-focus UI wired");
   ok(!ui.includes("if(to-from+1>40)") && ui.includes('lessonMode:lessonMode.value'), "UI preserves whole ranges and offers overview/series mode");
+  ok(ui.includes('new Set(["reading","vocabulary"])'), "default focuses match the default active-vocabulary goal");
   const room = fs.readFileSync(path.join(REPO, "public", "js", "library-ui.js"), "utf8");
   ok(room.includes("COUNT(s.id) AS sentence_count") && room.includes("await loadCorpusIndex()") && room.includes("c.segments"), "personal and lazy corpus source catalogs expose sentence counts");
   ok(room.includes("items: all.slice(offset, offset + limit)") && room.includes("total: all.length") && !room.includes("out.length >= 30"),
