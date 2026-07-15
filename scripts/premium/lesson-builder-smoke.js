@@ -175,6 +175,8 @@ function request() { return { sources: [
   ok(!/console\./.test(src), "builder emits no source content logs");
   const server = fs.readFileSync(path.join(REPO, "server.js"), "utf8");
   ok(server.includes("/api/agent/lesson-builder/build"), "authenticated build API wired");
+  ok(server.includes("shellIntegrity: shellIntegrity()") && server.includes("/i18n/locales/ru.js"),
+    "client config publishes critical shell hashes for rolling-deploy coherence");
   const ui = fs.readFileSync(path.join(REPO, "public", "js", "mentor-home.js"), "utf8");
   ok(ui.includes("startLesson") && ui.includes("lessonSources"), "editable explicit-start UI wired");
   ok(ui.includes("sentence_count") && ui.includes("range_preset") && ui.includes("aria-pressed"), "transparent source size, range presets and accessible multi-focus UI wired");
@@ -192,6 +194,8 @@ function request() { return { sources: [
     "same-document Lesson Studio route and two-pane workspace are wired with a hidden guard");
   const sw = fs.readFileSync(path.join(REPO, "public", "sw.js"), "utf8");
   ok(sw.includes("deployment version not converged") && sw.includes("sw_install="), "service worker refuses mixed-version rolling-deploy precache");
+  ok(sw.includes("shell integrity mismatch") && sw.includes('crypto.subtle.digest("SHA-256"'),
+    "service worker rejects a byte-mixed critical shell cohort");
 
   if (failures.length) { console.error(`[lesson-builder] FAIL ${checks - failures.length}/${checks}`); failures.forEach((x) => console.error(" - " + x)); process.exit(1); }
   console.log(`[lesson-builder] PASS ${checks}/${checks}`);

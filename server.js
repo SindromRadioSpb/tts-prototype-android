@@ -946,6 +946,30 @@ app.get("/docs/:file", (req, res) => {
 // path is self-explanatory and easy to remove when no longer needed.
 app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 
+// Rolling deploys may briefly route /api and static files to different
+// containers. The service worker verifies these content hashes before it
+// activates a new shell cache, so a mixed release fails closed and retries.
+const SHELL_INTEGRITY_PATHS = [
+  "/library.html",
+  "/js/library-ui.js",
+  "/js/mentor-home.js",
+  "/js/lesson-artifact.js",
+  "/i18n/locales/ru.js",
+  "/i18n/locales/en.js",
+  "/i18n/locales/he.js",
+];
+let shellIntegrityCache = null;
+function shellIntegrity() {
+  if (shellIntegrityCache) return shellIntegrityCache;
+  const out = {};
+  for (const url of SHELL_INTEGRITY_PATHS) {
+    const file = path.join(__dirname, "public", ...url.slice(1).split("/"));
+    out[url] = crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
+  }
+  shellIntegrityCache = Object.freeze(out);
+  return shellIntegrityCache;
+}
+
 app.get("/api/client-config", (_req, res) => {
   const ttsEnabledRaw = String(process.env.TTS_ENABLED || "true").trim().toLowerCase();
   const debugDiagnosticsRaw = String(process.env.TTS_DEBUG_DIAGNOSTICS || "").trim().toLowerCase();
@@ -1028,6 +1052,7 @@ app.get("/api/client-config", (_req, res) => {
   return res.json({
     ok: true,
     version: appVersion,
+    shellIntegrity: shellIntegrity(),
     tts: {
       enabled,
       provider: "online_tts",

@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.178";
+const CACHE_VERSION = "v3.11.179";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -204,11 +204,13 @@ self.addEventListener("install", (event) => {
     // retries later, after the deployment converges.
     const expectedVersion = CACHE_VERSION.slice(1);
     let deploymentReady = false;
+    let expectedIntegrity = null;
     for (let attempt = 0; attempt < 6 && !deploymentReady; attempt++) {
       try {
         const check = await fetch(`/api/client-config?sw_install=${encodeURIComponent(CACHE_VERSION)}&attempt=${attempt}`, { cache: "no-store" });
         const json = check.ok ? await check.json() : null;
-        deploymentReady = !!(json && String(json.version) === expectedVersion);
+        deploymentReady = !!(json && String(json.version) === expectedVersion && json.shellIntegrity && typeof json.shellIntegrity === "object");
+        if (deploymentReady) expectedIntegrity = json.shellIntegrity;
       } catch (_) {}
       if (!deploymentReady && attempt < 5) await new Promise((resolve) => setTimeout(resolve, 1500));
     }
@@ -226,6 +228,17 @@ self.addEventListener("install", (event) => {
         })
       )
     );
+    // /api and static requests can hit different old/new containers during a
+    // rolling deploy. Verify the exact bytes of the critical shell cohort;
+    // otherwise reject this worker and keep the previous coherent cache.
+    for (const [url, expected] of Object.entries(expectedIntegrity)) {
+      const hit = await cache.match(url);
+      if (!hit || !/^[a-f0-9]{64}$/.test(String(expected))) throw new Error("shell integrity manifest invalid");
+      const bytes = await hit.arrayBuffer();
+      const digest = await crypto.subtle.digest("SHA-256", bytes);
+      const actual = Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
+      if (actual !== expected) throw new Error("shell integrity mismatch");
+    }
   })());
 });
 
