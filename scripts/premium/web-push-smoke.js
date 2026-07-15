@@ -29,7 +29,8 @@ function startServer(dataDir) {
     cwd: REPO,
     // NODE_TLS_REJECT_UNAUTHORIZED=0 — ТОЛЬКО для этого child-теста: web-push всегда ходит
     // по TLS, а фейковый push-сервис живёт на self-signed фикстурном сертификате.
-    env: { ...process.env, PORT: String(PORT), DATA_DIR: dataDir, AUTH_BOOTSTRAP_SECRET: SECRET, RESEARCH_ADMIN_TOKEN: ADMIN, NODE_TLS_REJECT_UNAUTHORIZED: "0" },
+    env: { ...process.env, PORT: String(PORT), DATA_DIR: dataDir, AUTH_BOOTSTRAP_SECRET: SECRET, RESEARCH_ADMIN_TOKEN: ADMIN,
+      NODE_TLS_REJECT_UNAUTHORIZED: "0", NUDGE_CHANNEL_SELECTOR_ENABLED: "0" },
     stdio: ["ignore", "pipe", "pipe"],
   });
   const logs = []; c.stdout.on("data", (x) => logs.push(String(x))); c.stderr.on("data", (x) => logs.push(String(x)));

@@ -41,7 +41,21 @@ async function lastNudge(userId) {
     `SELECT local_day, channel, reason, last_nudge_at FROM nudge_ledger WHERE user_id=? ORDER BY last_nudge_at DESC LIMIT 1`,
     [String(userId)])) || null;
 }
+
+// N1 fairness anchor: the latest RESERVED channel, not a delivery guess. A failed
+// send deliberately remains the alternation fact (claim-before-send/at-most-once).
+// local_day is ISO and user-scoped, so lexical DESC is deterministic; timestamp is
+// retained as a defensive tie-break for imported/legacy rows.
+async function lastClaimedChannel(userId) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const row = await dbGet(db,
+    `SELECT channel FROM nudge_ledger
+      WHERE user_id=? AND channel IN ('push','telegram')
+      ORDER BY local_day DESC, last_nudge_at DESC, channel ASC LIMIT 1`,
+    [String(userId)]);
+  return row && (row.channel === "push" || row.channel === "telegram") ? row.channel : null;
+}
 // revoke/unlink чистит ledger юзера ИНЛАЙН в revoke-txn channelLinkRepo (DELETE FROM nudge_ledger) —
 // backoff не переживает re-pair. Отдельный clearForUser убран как дублирующий (критика: одна точка).
 
-module.exports = { claimDay, claimedToday, lastNudge };
+module.exports = { claimDay, claimedToday, lastNudge, lastClaimedChannel };

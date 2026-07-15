@@ -55,7 +55,8 @@ function startServer() {
     cwd: REPO,
     env: { ...process.env, PORT: String(PORT), DATA_DIR: scratch, AUTH_BOOTSTRAP_SECRET: SECRET, RESEARCH_ADMIN_TOKEN: ADMIN,
       TELEGRAM_BOT_TOKEN: BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET: WEBHOOK_SECRET,
-      TELEGRAM_API_BASE: "http://127.0.0.1:" + STUB_PORT, TELEGRAM_BOT_USERNAME: "LinguistProMentorBot" },
+      TELEGRAM_API_BASE: "http://127.0.0.1:" + STUB_PORT, TELEGRAM_BOT_USERNAME: "LinguistProMentorBot",
+      NUDGE_CHANNEL_SELECTOR_ENABLED: "0" },
       // ⚠ AGENT_NUDGE_ENABLED НЕ выставлен → sweep без force = disabled_flag
     stdio: ["ignore", "pipe", "pipe"] });
   const logs = []; c.stdout.on("data", (x) => logs.push(String(x))); c.stderr.on("data", (x) => logs.push(String(x)));

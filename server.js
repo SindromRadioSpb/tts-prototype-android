@@ -2779,6 +2779,7 @@ app.post("/api/learner/artifacts/put", rlLearnerArtifacts, async (req, res) => {
 // стабильные авто-ключи на томе. Sweep — раз в 15 минут (суточный дедуп внутри).
 // ============================================================================
 const pushRepo = require("./db/pushRepo");
+const nudgeCoordinator = require("./db/nudgeCoordinator");              // Wave 2 N1 shared channel policy+claim
 const rlPush = makeRateLimiter({ windowMs: 60_000, max: 30, name: "push" });
 
 app.get("/api/push/vapid-key", rlPush, async (req, res) => {
@@ -2825,29 +2826,32 @@ app.post("/api/push/test", rlPush, async (req, res) => {
 // Ops/gate-триггер sweep-а (требует RESEARCH_ADMIN_TOKEN — паттерн requireAdminToken).
 app.post("/api/push/sweep", async (req, res) => {
   if (!requireAdminToken(req, res)) return;
-  try { res.json(await pushRepo.runPushSweep({ nowMs: req.body && req.body.now ? Number(req.body.now) : null, force: !!(req.body && req.body.force) })); }
+  const options = { nowMs: req.body && req.body.now ? Number(req.body.now) : null, force: !!(req.body && req.body.force) };
+  try { res.json(await (nudgeCoordinator.flagOn() ? nudgeCoordinator.runUnifiedSweep(options) : pushRepo.runPushSweep(options))); }
   catch (e) { res.status(500).json({ ok: false, error: "SWEEP_FAILED", message: e.message }); }
 });
 
-// Час нуджа ловится 15-минутным интервалом (суточный дедуп не даст дублей внутри часа).
-setInterval(() => {
-  try {
-    if (getDbHealth().ready !== true) return;
-    pushRepo.runPushSweep({ nowMs: Date.now() }).catch(() => {});
-  } catch (_) {}
-}, 15 * 60_000).unref();
-
 // P7.3a — проактивный Telegram-нудж sweep (за флагом AGENT_NUDGE_ENABLED; runNudgeSweep сам гейтит).
-// 15-мин tick ловит начало локального окна пользователя; claim-ledger + single-flight → без дублей.
+// При N1 оба admin endpoint делегируют ОДНОМУ coordinator: channel выбран ДО единого claim.
 app.post("/api/nudge/sweep", async (req, res) => {
   if (!requireAdminToken(req, res)) return;
-  try { res.json(await nudgeRepo.runNudgeSweep({ nowMs: req.body && req.body.now ? Number(req.body.now) : null, force: !!(req.body && req.body.force) })); }
+  const options = { nowMs: req.body && req.body.now ? Number(req.body.now) : null, force: !!(req.body && req.body.force) };
+  try { res.json(await (nudgeCoordinator.flagOn() ? nudgeCoordinator.runUnifiedSweep(options) : nudgeRepo.runNudgeSweep(options))); }
   catch (e) { res.status(500).json({ ok: false, error: "NUDGE_SWEEP_FAILED", message: e.message }); }
 });
+
+// Wave 2 N1 — ровно ОДИН scheduler-mode на процесс. Flag-off откатывает два
+// legacy adapter sweep'а; flag-on запускает общий selector. Они никогда не
+// работают одновременно, иначе timing-race вернулась бы через rollback-флаг.
 setInterval(() => {
   try {
     if (getDbHealth().ready !== true) return;
-    nudgeRepo.runNudgeSweep({ nowMs: Date.now() }).catch(() => {});
+    const options = { nowMs: Date.now() };
+    if (nudgeCoordinator.flagOn()) nudgeCoordinator.runUnifiedSweep(options).catch(() => {});
+    else {
+      pushRepo.runPushSweep(options).catch(() => {});
+      nudgeRepo.runNudgeSweep(options).catch(() => {});
+    }
   } catch (_) {}
 }, 15 * 60_000).unref();
 

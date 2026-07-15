@@ -113,6 +113,37 @@ function _nudgePayload(dueN) {
   };
 }
 
+// N1 transport-adapter boundary. Eligibility/selection/claim live in the shared
+// coordinator; this adapter only fans one already-claimed nudge out to the user's
+// subscriptions and performs the shipped 404/410 cleanup.
+async function getNudgeSubscriptions(userId) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  return dbAll(db, `SELECT * FROM push_subscriptions WHERE user_id=? ORDER BY endpoint ASC`, [String(userId)]);
+}
+
+async function deliverNudge(userId, dueN, { nowMs, subscriptions } = {}) {
+  ensureVapid();
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const subs = Array.isArray(subscriptions) ? subscriptions : await getNudgeSubscriptions(userId);
+  if (!subs.length) return { delivered: false, deliveryCount: 0, removed: 0, failures: 0, failureCode: "NO_SUBSCRIPTIONS" };
+  const utcDay = new Date(Number(nowMs) || Date.now()).toISOString().slice(0, 10);
+  const payload = _nudgePayload(dueN);
+  let deliveryCount = 0, removed = 0, failures = 0;
+  for (const sub of subs) {
+    const result = await _send(db, sub, payload);
+    if (result.ok) {
+      deliveryCount++;
+      await dbRun(db, `UPDATE push_subscriptions SET last_notified_day=? WHERE user_id=? AND endpoint=?`,
+        [utcDay, String(userId), sub.endpoint]);
+    } else {
+      failures++;
+      if (result.removed) removed++;
+    }
+  }
+  return { delivered: deliveryCount > 0, deliveryCount, removed, failures,
+    failureCode: deliveryCount > 0 ? null : "PUSH_SEND_FAILED" };
+}
+
 // Immediate send to ALL of the user's subscriptions (the ☁-modal «Проверить» + owner verify).
 async function sendTest(userId) {
   ensureVapid();
@@ -163,16 +194,12 @@ async function runPushSweep({ nowMs, force } = {}) {
     if (!LT.windowOpen(parts.hour, prefs.window, prefs.quiet_start_local, prefs.quiet_end_local)) { outsideWindow++; continue; }
     const claim = await nudgeLedgerRepo.claimDay(userId, parts.day, "push", "DUE_READY");
     if (!claim.claimed) { budget++; continue; }
-    const payload = _nudgePayload(due.length);
-    for (const s of fresh) {
-      const r = await _send(db, s, payload);
-      if (r.ok) {
-        notified++;
-        await dbRun(db, `UPDATE push_subscriptions SET last_notified_day = ? WHERE user_id = ? AND endpoint = ?`, [day, userId, s.endpoint]);
-      } else if (r.removed) removed++;
-    }
+    const delivered = await deliverNudge(userId, due.length, { nowMs: now, subscriptions: fresh });
+    notified += delivered.deliveryCount;
+    removed += delivered.removed;
   }
   return { ok: true, day, notified, skippedDay, quiet, removed, disabled, budget, prefsErr, outsideWindow, muted };
 }
 
-module.exports = { ensureVapid, subscribe, unsubscribe, status, sendTest, runPushSweep, PUSH_HOUR_UTC };
+module.exports = { ensureVapid, subscribe, unsubscribe, status, sendTest, runPushSweep,
+  getNudgeSubscriptions, deliverNudge, PUSH_HOUR_UTC };
