@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-15
 
-**Status:** accepted implementation contract
+**Status:** `OWNER_APPROVED_IMPLEMENTED`; shipped in app `3.11.173` (`0a477dd`).
 
 **Scope:** existing Room and Studio role-play only
 

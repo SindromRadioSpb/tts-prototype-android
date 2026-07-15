@@ -5,6 +5,8 @@
 **Baseline when authored:** main at 7b4d24776853293e49257e340f4c891215907d45; package 3.11.171.
 **Owner rule:** after the owner approves a plan or repository change, make a scoped commit and push it. During execution, keep the task plan current at every substantive completed, blocked or re-scoped step.
 
+> **Continuation update — 2026-07-16:** the immediate G0 package below is historical and completed. G0, C3a, N1, LB0 and LB1 have been implemented; production is `3.11.181`. Do not restart at section 4. The current paste-ready continuation is `docs/planning/LINGUISTPRO_WAVE2_LB2_AI_QUALITY_EXECUTION_PROMPT_2026_07_16.md`, governed by `LINGUISTPRO_WAVE2_LB2_AI_QUALITY_DECISION_2026_07_16.md`.
+
 ## Paste the following prompt into GPT-5.6 sol
 
 You are the implementation agent for LinguistPro in E:\projects\tts-prototype-android. Execute Wave 2 as a controlled sequence of small, evidence-backed slices. The source of truth is docs/planning/LINGUISTPRO_WAVE2_REPLAN_DECISION_PACKET_2026_07_15.md; research documents are quality inputs and proposals, never silent implementation permission.

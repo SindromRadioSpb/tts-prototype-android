@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-16
 
-**Status:** `OWNER_APPROVED_IN_PROGRESS`
+**Status:** `SHIPPED_PROD_VERIFIED`; superseded for AI-quality continuation by `LINGUISTPRO_WAVE2_LB2_AI_QUALITY_DECISION_2026_07_16.md`.
 
 **Owner decision:** `1B + 1C + 2B + 3B + 3C-shadow + 4A`
 
@@ -234,3 +234,11 @@ Premium-ready invariants:
 - Independent fixtures live in `scripts/premium/fixtures/lesson-builder-lb1/`: a versioned rubric plus valid/adversarial composition cases. Current targeted gate: `71/71`.
 
 Remaining outside this implementation result: durable retain-until-delete library, background generation of each series lesson, human-scored Hebrew gold, and promotion of the shadow critic. Those remain governed by the owner gates above.
+
+## 13. Production closeout and LB2 handoff
+
+- Production `3.11.181` closes the `lesson -> source anchor -> lesson` navigation loop and distinguishes an unavailable AI route from an AI candidate rejected by the quality gate.
+- Owner live verification showed that AI generation is already connected: the build endpoint returned HTTP 200, but first and repair candidates collapsed to `LLM_OUTPUT_INVALID`, after which the deterministic plan was shown.
+- The remaining quality problem is therefore acceptance diagnostics and measured generation quality, not initial AI connectivity.
+- `validateComposition` currently returns a value or `null`; it cannot identify the failed invariant or direct a precise repair.
+- The approved next slice is LB2-A in `LINGUISTPRO_WAVE2_LB2_AI_QUALITY_DECISION_2026_07_16.md`. Shadow promotion, numeric human-quality thresholds and durable lesson storage remain separate owner gates.
