@@ -3875,6 +3875,7 @@ const TALK_ACK_CORPUS = 'room.talkAck';
 const TALK_ACK_OWN = 'room.ownTalkAck';
 let _talkSheet = null;
 let _talkCtx = null;   // { corpus, workId|null, textKey, orderIndex, rowId|null, sessionId|null, turnsUsed, turnsLeft, busy }
+let _talkVoice = null; // Wave 2 C3a — DOM-only voice draft controller; never owns Send/API.
 
 function _talkSetup(o, textKey, orderIndex, rowId) {
   const btn = $('roomExplainTalkBtn');
@@ -3895,6 +3896,7 @@ function _talkEls() {
     sheet: s, feed: s.querySelector('.room-talk-feed'), err: s.querySelector('.room-talk-err'),
     passage: s.querySelector('.room-talk-passage-body'), status: s.querySelector('.room-talk-status'),
     input: s.querySelector('.room-talk-input'), send: s.querySelector('.room-talk-send'),
+    voice: s.querySelector('.room-talk-voice'), voiceStatus: s.querySelector('.room-talk-voice-status'),
     ack: s.querySelector('.room-talk-ack'), confirm: s.querySelector('.room-talk-confirm'),
   } : {};
 }
@@ -3933,12 +3935,15 @@ function ensureTalkSheet() {
   card.appendChild(conf);
   const row = el('div', { class: 'room-talk-inputrow' });
   const inp = el('input', { class: 'room-talk-input', attrs: { type: 'text', maxlength: '400', dir: 'auto', lang: 'he', autocomplete: 'off', placeholder: tt('room.talk.inputPh', 'Ваша реплика (лучше на иврите)…') } });
+  const voice = el('button', { class: 'room-talk-voice', text: '🎙', attrs: { type: 'button', hidden: 'hidden' } });
   const send = el('button', { class: 'room-talk-send', text: '➤', attrs: { type: 'button', 'aria-label': tt('room.talk.send', 'Отправить') } });
   send.addEventListener('click', () => _talkSend());
   inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); _talkSend(); } });
   inp.addEventListener('focus', () => { try { inp.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (_) {} });
-  row.appendChild(inp); row.appendChild(send);
+  row.appendChild(inp); row.appendChild(voice); row.appendChild(send);
   card.appendChild(row);
+  const voiceStatus = el('div', { class: 'room-talk-voice-status', attrs: { role: 'status', 'aria-live': 'polite' } });
+  card.appendChild(voiceStatus);
   card.appendChild(el('div', { class: 'room-talk-status room-cloud-hint' }));
   sheet.appendChild(card);
   document.body.appendChild(sheet);
@@ -3952,9 +3957,32 @@ function ensureTalkSheet() {
     if (e.key === 'Escape' && _talkSheet && !_talkSheet.hidden) _talkHide();
   });
   _talkSheet = sheet;
+  const VD = window.LinguistProVoiceDraft;
+  if (VD && typeof VD.create === 'function') {
+    _talkVoice = VD.create({
+      input: inp, button: voice, status: voiceStatus, language: 'he-IL',
+      messages: {
+        micLabel: tt('room.talk.voiceMic', 'Произнести реплику на иврите'),
+        stopLabel: tt('room.talk.voiceStop', 'Остановить запись'),
+        listening: tt('room.talk.voiceListening', 'Слушаю иврит… Нажмите стоп для отмены.'),
+        ready: tt('room.talk.voiceReady', 'Речь добавлена как черновик. Проверьте текст и отправьте сами.'),
+        cancelled: tt('room.talk.voiceCancelled', 'Запись отменена — можно продолжить печатать.'),
+        timeout: tt('room.talk.voiceTimeout', 'Время ожидания истекло — можно продолжить печатать.'),
+        denied: tt('room.talk.voiceDenied', 'Доступ к микрофону недоступен — можно продолжить печатать.'),
+        error: tt('room.talk.voiceError', 'Речь не распознана — можно продолжить печатать.'),
+        privacy: tt('room.talk.voicePrivacy', 'Речь распознаёт браузер; приложение не получает и не хранит аудио.'),
+      },
+    });
+  }
   return sheet;
 }
-function _talkHide() { if (_talkSheet) _talkSheet.hidden = true; }
+// C3a visual gate hook: opens the real Room sheet without creating a role-play
+// session. It carries no data/API authority and is used by the 380x844 oracle.
+try { window.__c3aEnsureRoomTalkSheet = ensureTalkSheet; } catch (_) {}
+function _talkHide() {
+  if (_talkVoice) _talkVoice.cancel(true);
+  if (_talkSheet) _talkSheet.hidden = true;
+}
 function _talkErr(msg) {
   const els = _talkEls(); if (!els.err) return;
   els.err.textContent = msg || ''; els.err.hidden = !msg;
@@ -4115,6 +4143,7 @@ async function _talkResync() {
   _talkRenderStatus(r.usage);
 }
 async function _talkSend() {
+  if (_talkVoice) _talkVoice.cancel(true);
   const els = _talkEls();
   const msg = (els.input && els.input.value || '').trim();
   if (!msg || !_talkCtx || _talkCtx.busy || !_talkCtx.sessionId) return;

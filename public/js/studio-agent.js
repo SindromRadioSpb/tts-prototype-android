@@ -126,6 +126,9 @@
     '.sa-talk-inputrow{display:flex;gap:8px;margin-top:8px}',
     '.sa-talk-inputrow input{flex:1;min-width:0;padding:9px 11px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:inherit;font-size:14px}',
     '.sa-talk-inputrow button{padding:9px 14px;border-radius:8px;border:1px solid #2b6cb0;background:#2b6cb0;color:#fff;font-size:14px;font-weight:700;cursor:pointer}',
+    '.sa-talk-inputrow .sa-talk-voice{min-width:42px;padding-inline:10px;border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:inherit}',
+    '.sa-talk-inputrow .sa-talk-voice[aria-pressed="true"]{border-color:#f56565;color:#f56565}',
+    '.sa-talk-voice-status{min-height:1.35em;margin-top:5px;font-size:12px;opacity:.78}',
     '.sa-talk-status{margin-top:6px;font-size:12px;opacity:.7}',
   ].join('\n');
 
@@ -201,7 +204,9 @@
     '<div class="sa-actions-row"><button type="button" class="sa-primary" id="saTalkConfirmYes"></button>' +
     '<button type="button" id="saTalkConfirmNo"></button></div></div>' +
     '<div class="sa-talk-inputrow"><input type="text" id="saTalkInput" maxlength="400" dir="auto" lang="he" autocomplete="off">' +
+    '<button type="button" class="sa-talk-voice" id="saTalkVoice" hidden>🎙</button>' +
     '<button type="button" id="saTalkSend" aria-label="send">➤</button></div>' +
+    '<div class="sa-talk-voice-status" id="saTalkVoiceStatus" role="status" aria-live="polite"></div>' +
     '<div class="sa-talk-status" id="saTalkStatus"></div>' +
     '</div>';
 
@@ -642,6 +647,7 @@
   // (та же кладовка, что Зал — не спрашиваем дважды). ══
   var _talkSheet = null;
   var _talkCtx = null;   // { textKey, orderIndex, rowId, tid, row, sessionId, turnsUsed, turnsLeft, busy }
+  var _talkVoice = null; // Wave 2 C3a — DOM-only draft controller, never Send/API owner.
 
   function talkSetup(anchor, row) {
     var btn = $('saExplainTalkBtn'), box = $('saExplainTalk');
@@ -684,11 +690,34 @@
     $('saTalkConfirmNo').addEventListener('click', function () { $('saTalkConfirm').hidden = true; });
     $('saTalkSend').addEventListener('click', talkSend);
     $('saTalkInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); talkSend(); } });
+    var VD = window.LinguistProVoiceDraft;
+    if (VD && typeof VD.create === 'function') {
+      _talkVoice = VD.create({
+        input: $('saTalkInput'), button: $('saTalkVoice'), status: $('saTalkVoiceStatus'), language: 'he-IL',
+        messages: {
+          micLabel: tt('room.talk.voiceMic', 'Произнести реплику на иврите'),
+          stopLabel: tt('room.talk.voiceStop', 'Остановить запись'),
+          listening: tt('room.talk.voiceListening', 'Слушаю иврит… Нажмите стоп для отмены.'),
+          ready: tt('room.talk.voiceReady', 'Речь добавлена как черновик. Проверьте текст и отправьте сами.'),
+          cancelled: tt('room.talk.voiceCancelled', 'Запись отменена — можно продолжить печатать.'),
+          timeout: tt('room.talk.voiceTimeout', 'Время ожидания истекло — можно продолжить печатать.'),
+          denied: tt('room.talk.voiceDenied', 'Доступ к микрофону недоступен — можно продолжить печатать.'),
+          error: tt('room.talk.voiceError', 'Речь не распознана — можно продолжить печатать.'),
+          privacy: tt('room.talk.voicePrivacy', 'Речь распознаёт браузер; приложение не получает и не хранит аудио.'),
+        },
+      });
+    }
     var endB = _talkSheet.querySelector('.sa-talk-end');
     if (endB) endB.textContent = tt('room.talk.stop', 'Завершить');
     return _talkSheet;
   }
-  function talkHide() { if (_talkSheet) _talkSheet.hidden = true; }
+  // C3a visual gate hook: opens the real Studio sheet without a role-play/API
+  // session. The 380x844 oracle uses it to inspect all three locales and RTL.
+  try { window.__c3aEnsureStudioTalkSheet = ensureTalkSheet; } catch (_) {}
+  function talkHide() {
+    if (_talkVoice) _talkVoice.cancel(true);
+    if (_talkSheet) _talkSheet.hidden = true;
+  }
   function talkErr(msg) {
     var e = $('saTalkErr'); if (!e) return;
     e.textContent = msg || ''; e.hidden = !msg;
@@ -874,6 +903,7 @@
     talkRenderStatus(r.usage);
   }
   async function talkSend() {
+    if (_talkVoice) _talkVoice.cancel(true);
     var inp = $('saTalkInput');
     var msg = (inp && inp.value || '').trim();
     if (!msg || !_talkCtx || _talkCtx.busy || !_talkCtx.sessionId) return;

@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.172";
+const CACHE_VERSION = "v3.11.173";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -114,6 +114,8 @@ const PRECACHE_URLS = [
   "/js/studio-karaoke.js",
   // PAS-B — Studio agent UI (per-row 🤖 explain; весь агент-код Студии в этом модуле).
   "/js/studio-agent.js",
+  // Wave 2 C3a — browser-owned voice -> editable role-play draft.
+  "/js/voice-draft.js",
   // Tier-3 «точный режим» — client-side Dicta context morphology (opt-in; no outbound until enabled).
   "/js/reader-dicta.js",
   // BRR-P1-007 S2 «Следующий для тебя» (i+1) — pure client coverage engine (the vocab sidecar

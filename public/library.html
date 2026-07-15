@@ -1028,8 +1028,11 @@
     .room-talk-inputrow { display: flex; gap: 8px; margin-top: 8px; }
     .room-talk-inputrow input { flex: 1; min-width: 0; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--border-soft); background: var(--bg-muted); color: var(--text-primary); font-size: 14px; }
     .room-talk-inputrow button { appearance: none; cursor: pointer; padding: 9px 14px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-contrast); font-size: 14px; font-weight: 700; }
+    .room-talk-inputrow .room-talk-voice { min-width: 42px; padding-inline: 10px; border-color: var(--border-soft); background: var(--bg-muted); color: var(--text-primary); }
+    .room-talk-inputrow .room-talk-voice[aria-pressed="true"] { border-color: #f85149; color: #f85149; }
     .room-talk-inputrow button[disabled], .room-talk-inputrow input[disabled] { opacity: .55; cursor: default; }
     .room-talk-status { margin-top: 6px; }
+    .room-talk-voice-status { min-height: 1.35em; margin-top: 5px; font-size: 12px; color: var(--text-secondary); }
     #roomTalkSheet .room-cloud-actions button { width: auto; }
     .room-comp-q { margin-top: 10px; font-size: 13px; font-weight: 600; }
     .room-comp-opts { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
@@ -2040,6 +2043,8 @@
 <!-- BRR-P2-001 full-text «поиск внутри текстов»: Hebrew-aware inverted-index query engine
      (window.CorpusFTS; shared with the build + Node gates). Index shards are lazy (NOT precached). -->
 <script src="/js/corpus-fts.js"></script>
+<!-- Wave 2 C3a — shared browser-owned voice -> editable draft controller. -->
+<script src="/js/voice-draft.js"></script>
 <script type="module" src="/js/library-ui.js"></script>
 </body>
 </html>

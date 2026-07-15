@@ -1002,6 +1002,11 @@ app.get("/api/client-config", (_req, res) => {
   // and obeys this flag before any LOCAL_MODE-dependent code runs.
   const killLocalModeRaw = String(process.env.KILL_LOCAL_MODE || "0").trim().toLowerCase();
   const killLocalMode = killLocalModeRaw === "1" || killLocalModeRaw === "true" || killLocalModeRaw === "on";
+  // Wave 2 C3a — runtime rollback for browser-owned voice-to-editable-text.
+  // Default-on; false/0/off removes only the microphone affordance and leaves
+  // the existing text role-play untouched.
+  const c3aVoiceRaw = String(process.env.C3A_VOICE_ENABLED || "true").trim().toLowerCase();
+  const c3aVoiceEnabled = !(c3aVoiceRaw === "false" || c3aVoiceRaw === "0" || c3aVoiceRaw === "off");
 
   // Feedback config — phone number for WhatsApp deep-link / QR, plus
   // typical response time used in the WOW card. Both are environment-
@@ -1042,6 +1047,7 @@ app.get("/api/client-config", (_req, res) => {
     },
     flags: {
       killLocalMode,
+      c3aVoiceEnabled,
     },
     feedback: {
       whatsappPhone: developerWhatsappPhoneRaw,
