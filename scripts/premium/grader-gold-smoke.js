@@ -19,7 +19,14 @@ const zlib = require("zlib");
 
 const REPO = path.resolve(__dirname, "..", "..");
 const G = require(path.join(REPO, "agent", "grader.js"));
-const GOLD = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", "grader", "grader-gold-v1.json"), "utf8"));
+const GOLD_V1 = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", "grader", "grader-gold-v1.json"), "utf8"));
+const CHANNEL_GOLD = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", "grader", "grader-channel-gold-v2.json"), "utf8"));
+// The four v1 proclitic rows are retained as historical evidence, but their generic Room-parity
+// expectations are superseded by the owner-approved channel matrix. They must not be silently run
+// as dictated typing again. G0 v2 tests strict production here and guarded read in reader-morph-smoke.
+const LEGACY_PROCLITIC = new Set(["answer-proclitic", "form-proclitic", "proclitic-swap", "proclitic-inherited-collision"]);
+const BASE_CASES = GOLD_V1.cases.filter((c) => !LEGACY_PROCLITIC.has(c.name));
+const CHANNEL_SERVER_CASES = CHANNEL_GOLD.cases.filter((c) => c.surface === "server");
 
 const failures = [];
 const eq = (c, m) => { if (!c) failures.push(m); };
@@ -31,7 +38,7 @@ eq(!/require\([^)]*llm/.test(src) && !/generate\s*\(/.test(src),
 
 // ── 1) gold: 100% ─────────────────────────────────────────────────────────────
 let goldPass = 0;
-for (const c of GOLD.cases) {
+for (const c of BASE_CASES) {
   const r = G.gradeAnswer({ expected: c.expected, answer: c.answer, channel: "dictate:typed", prevState: null, rows: [] });
   const w = c.want || {};
   let ok = r.decision === w.decision;
@@ -54,11 +61,36 @@ for (const c of GOLD.cases) {
   if (r.gradable === false) eq(r.grade === null && r.correct === null,
     `gold[${c.name}]: non-gradable verdict must carry grade=null (MNAR: caller writes nothing)`);
 }
-eq(goldPass === GOLD.cases.length, `GOLD THRESHOLD: ${goldPass}/${GOLD.cases.length} — порог 100%`);
+eq(goldPass === BASE_CASES.length, `BASE GOLD THRESHOLD: ${goldPass}/${BASE_CASES.length} — порог 100%`);
+
+// ── G0 v2 independent channel matrix: reverse/cloze/dictate are strict ───────
+let channelPass = 0;
+for (const c of CHANNEL_SERVER_CASES) {
+  const r = G.gradeAnswer({ expected: c.expected, answer: c.answer, channel: c.channel, prevState: null, rows: [] });
+  const w = c.want || {};
+  let ok = true;
+  if (w.decision !== undefined) ok = ok && r.decision === w.decision;
+  if (w.gradable !== undefined) ok = ok && r.gradable === w.gradable;
+  if (w.correct !== undefined) ok = ok && r.correct === w.correct;
+  if (w.matched_variant !== undefined) ok = ok && r.provenance.matched_variant === w.matched_variant;
+  if (w.reason !== undefined) ok = ok && r.provenance.reason === w.reason;
+  if (ok) channelPass++;
+  else failures.push(`channel-gold[${c.name}/${c.channel}]: want ${JSON.stringify(w)} got ` +
+    JSON.stringify({ decision: r.decision, gradable: r.gradable, correct: r.correct, matched_variant: r.provenance.matched_variant, reason: r.provenance.reason }));
+  const p = r.provenance;
+  eq(p && "policy_version" in p && "normalizer_version" in p && "resolver_version" in p
+    && "expected_form_id" in p && "matched_variant" in p && "decision" in p && "reason" in p
+    && p.expected_form_id === (c.expected.item_key != null ? c.expected.item_key : null),
+    `channel-gold[${c.name}]: provenance must carry all 7 owner fields`);
+  if (r.gradable === false) eq(r.grade === null && r.correct === null,
+    `channel-gold[${c.name}]: non-gradable verdict must carry grade=null (MNAR)`);
+}
+eq(channelPass === CHANNEL_SERVER_CASES.length,
+  `CHANNEL GOLD THRESHOLD: ${channelPass}/${CHANNEL_SERVER_CASES.length} — порог 100%`);
 
 // ── 4) детерминизм ────────────────────────────────────────────────────────────
 {
-  const c = GOLD.cases[0];
+  const c = BASE_CASES[0];
   const a = JSON.stringify(G.gradeAnswer({ expected: c.expected, answer: c.answer, channel: "read:mc", prevState: null, rows: [] }));
   const b = JSON.stringify(G.gradeAnswer({ expected: c.expected, answer: c.answer, channel: "read:mc", prevState: null, rows: [] }));
   eq(a === b, "determinism: same input must produce byte-equal output");
@@ -93,12 +125,12 @@ const rcv = (n, g) => ({ id: "r" + n, kind: "review", grade: g, channel: "read:m
   const rc = G.gradeAnswer({ expected: EXP, answer: "שלום", channel: "dictate:typed", prevState, rows: [] });
   eq(rc.grade === 3 && rc.correct === true, "correct must be Good(3)");
 }
-// (д) skip — явный отказ («Не знаю» P7.2): grade 1 БЕЗ D1-смягчения даже на
-// рецептивно-сильном слове (R17-B «отказ не смягчается»); gradable=true — пишется
+// (д) owner G0-D1: explicit production skip on a receptively-strong word → Hard(2).
+// It is an observed action and is written; empty/timeout/later remain MNAR and write nothing.
 {
   const rs = G.gradeAnswer({ expected: EXP, answer: "", skipped: true, channel: "dictate:typed", prevState, rows: [rcv(1, 3), rcv(2, 3)] });
-  eq(rs.decision === "skip" && rs.gradable === true && rs.grade === 1 && rs.policy.applied === false,
-    "explicit skip must be gradable Again(1) with NO mitigation, got " + JSON.stringify({ d: rs.decision, g: rs.grade, p: rs.policy }));
+  eq(rs.decision === "skip" && rs.gradable === true && rs.grade === 2 && rs.policy.applied === true && rs.policy.reason === "skip-production-receptive-strong",
+    "G0-D1: receptively-strong production skip must be Hard(2), got " + JSON.stringify({ d: rs.decision, g: rs.grade, p: rs.policy }));
 }
 // (е) словарь каналов P7.2 (критика: 'telegram*' не узнался бы grade-policy → D1 мёртв,
 // production-успехи падали бы в receptive): бот ОБЯЗАН писать '<семья>:<tg-режим>'
@@ -162,14 +194,14 @@ const rcv = (n, g) => ({ id: "r" + n, kind: "review", grade: g, channel: "read:m
   eq(negExactAccepts === 0, `SWEEP negatives: ${negExactAccepts} НЕмаркированных (matched_variant='form') false-accept — точный матч не имеет права принять чужую клетку`);
   const negRate = negTotal ? negAccepted / negTotal : 0;
   eq(negRate <= 0.10, `SWEEP negatives: accept-rate ${(negRate * 100).toFixed(2)}% > 10% — унаследованная проклитик-дыра шире замеренной: ` + JSON.stringify(negMarked));
-  console.log(`[grader-gold] sweep: pos ${posPass}/${posTotal} · neg accepted ${negAccepted}/${negTotal} (${(negRate * 100).toFixed(2)}%, все маркированы: ${JSON.stringify(negMarked)}) · gold: ${goldPass}/${GOLD.cases.length}`);
+  console.log(`[grader-gold] sweep: pos ${posPass}/${posTotal} · neg accepted ${negAccepted}/${negTotal} (${(negRate * 100).toFixed(2)}%, все маркированы: ${JSON.stringify(negMarked)}) · base: ${goldPass}/${BASE_CASES.length} · channel: ${channelPass}/${CHANNEL_SERVER_CASES.length}`);
 }
 
-const TOTAL = 2 + GOLD.cases.length * 2 + 1 + 8 + 3;   // llm-guard+gold-threshold · per-case (вердикт+провенанс) · детерминизм · D1/skip/каналы/META (а,б×2,в,г,д,е,ж) · свип×3
+const TOTAL = 15 + (BASE_CASES.length + CHANNEL_SERVER_CASES.length) * 2;
 if (failures.length) {
   console.error(`smoke:grader-gold FAIL (${TOTAL - failures.length}/${TOTAL})`);
   for (const f of failures) console.error("  ✗ " + f);
   process.exitCode = 1;
 } else {
-  console.log(`smoke:grader-gold OK (${TOTAL}/${TOTAL}) — P7.0b: gold 100% (${GOLD.cases.length} кейсов: точный/огласовки/финальные/проклитики/лемма/ktiv-candidate/lev1/wrong/empty/не-иврит) · датасет-свип ≥99% · провенанс 7 полей на каждом вердикте · детерминизм byte-equal · D1 через общий grade-policy (Hard на рецептивно-сильном; annulled production-успех отфильтрован P7.0a) · MNAR (empty/unsupported без grade) · LLM структурно недостижим`);
+  console.log(`smoke:grader-gold OK (${TOTAL}/${TOTAL}) — G0: base ${BASE_CASES.length}/${BASE_CASES.length} + channel ${CHANNEL_SERVER_CASES.length}/${CHANNEL_SERVER_CASES.length} (reverse/cloze/dictate strict; read guarded in smoke:reader-morph) · dataset sweep positives 100%, exact false-accepts 0 · explicit receptively-strong production skip Hard(2) · annul/MNAR/provenance/determinism preserved · LLM structurally unreachable`);
 }

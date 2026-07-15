@@ -1422,16 +1422,9 @@ async function roomOpenStudyList() {
 const TRAIN_N = 12;
 const LEECH_LAPSES = 4;   // D4 — after this many misses on a word, gently offer «отметить ignore?» (leech)
 function _normHe(s) { return window.ReaderMorph.stripNiqqud(String(s || '')).replace(/ך/g, 'כ').replace(/ם/g, 'מ').replace(/ן/g, 'נ').replace(/ף/g, 'פ').replace(/ץ/g, 'צ').trim(); }
-// B5 — typed-answer tolerance: drop ONE leading proclitic (ו/ה/ב/כ/ל/ש/מ) so the bare lemma matches a
-// proclitic-carrying sentence form and vice-versa. Conservative (single letter, length>2).
+// R2 source scan helper: match a sentence token to an identity needle ± one leading proclitic.
+// Answer grading no longer uses this heuristic (Wave-2 G0 uses ReaderMorph channel policies).
 function _stripProclitic(s) { return (s && s.length > 2 && /^[והבכלשמ]/.test(s)) ? s.slice(1) : s; }
-// Accepted normalized skeletons for a cloze: the inflected sentence form + the lemma, each with/without
-// a leading proclitic. The typed/assembled answer is correct if its skeleton (or proclitic-stripped) is here.
-function _acceptedSkeletons(answerForm, lemmaSurface) {
-  const set = new Set();
-  [answerForm, lemmaSurface].forEach((b) => { const n = _normHe(b || ''); if (n) { set.add(n); set.add(_stripProclitic(n)); } });
-  return set;
-}
 // C1 — tap-letters production tier (mobile-friendly Hebrew input, no keyboard). Returns the answer's
 // consonantal letters + 2 decoys, deterministically scrambled (seed = item index; NO Math.random).
 const HE_LETTERS = ['א','ב','ג','ד','ה','ו','ז','ח','ט','י','כ','ל','מ','נ','ס','ע','פ','צ','ק','ר','ש','ת'];
@@ -2029,7 +2022,7 @@ function renderTrainItem() {
     au.appendChild(el('span', { class: 'room-train-audiohint', i18n: 'room.morph.study.dictateHint', text: tt('room.morph.study.dictateHint', '✍️ Прослушай и впиши слово') }));
     body.appendChild(au);
     // play the sentence-INFLECTED vocalized form (built.cz.answer) — it matches what the reveal shows and
-    // what _acceptedSkeletons grades against (item.niqqud is the lemma form, which can differ / be empty).
+    // what the guarded read-answer path grades against (item.niqqud can differ / be empty).
     try { speakWord(built.cz.answer || item.niqqud || item.surface || ''); } catch (_) {}   // auto-play once
   } else if (channel === 'reverse') {
     // RU→HE production: the meaning is the question, NO Hebrew shown → produce/recognize the Hebrew. NOTE:
@@ -2100,8 +2093,8 @@ function onTrainOption(btn) {
   });
   checkTrainAnswer(correct, false, 'mc');
 }
-function onTrainSubmit() {
-  if (!_trainSession || _trainSession.answered) return;
+async function onTrainSubmit() {
+  if (!_trainSession || _trainSession.answered || _trainSession._checking) return;
   const built = _trainSession._built, item = _trainSession.items[_trainSession.idx];
   const buildEl = _studySheet && _studySheet.querySelector('[data-train-build]');
   let val, target;
@@ -2116,8 +2109,20 @@ function onTrainSubmit() {
     if (!val) { try { inp.focus(); } catch (_) {} return; }
     inp.disabled = true; target = inp;
   }
-  const accepted = _acceptedSkeletons(built.cz.answer, item.surface);   // B5 — form OR lemma, ± proclitic
-  const correct = accepted.has(val) || accepted.has(_stripProclitic(val));
+  // Wave-2 G0: read remains proclitic-tolerant, but only behind resolver-backed SAME-lemma
+  // identity. The old unconditional one-letter strip accepted lexical collisions (כלב→לב).
+  // Fail closed when resolver/key is unavailable; every non-read typed channel is strict here too.
+  _trainSession._checking = true;
+  let correct = false;
+  try {
+    const family = String(_trainSession._effChannel || _trainSession.channel || 'read');
+    correct = family === 'read'
+      ? !!(window.ReaderMorph && window.ReaderMorph.acceptReadAnswer &&
+          await window.ReaderMorph.acceptReadAnswer([built.cz.answer, item.surface, item.niqqud], val, item.lemmaKey))
+      : !!(window.ReaderMorph && window.ReaderMorph.acceptStrictAnswer &&
+          window.ReaderMorph.acceptStrictAnswer(built.cz.answer, val));
+  } catch (_) { correct = false; }
+  finally { if (_trainSession) _trainSession._checking = false; }
   if (target) target.classList.add(correct ? 'room-train-ok' : 'room-train-bad');
   checkTrainAnswer(correct, false, buildEl ? 'tiles' : 'typed');
 }
@@ -2147,7 +2152,7 @@ function onTrainUnbuild(pos) {
 // B2 — «Не знаю»/skip: reveal the answer without a blind guess; soft no-recall (nextLevel(false)),
 // never counted correct. Honest "don't know" beats a 25%-lucky MC promotion.
 function onTrainSkip() {
-  if (!_trainSession || _trainSession.answered) return;
+  if (!_trainSession || _trainSession.answered || _trainSession._checking) return;
   const grid = _studySheet && _studySheet.querySelector('.room-train-opts');
   if (grid) grid.querySelectorAll('.room-train-opt').forEach((b) => { if (b.getAttribute('data-correct') === '1') b.classList.add('room-train-ok'); b.disabled = true; });
   const inp = _studySheet && _studySheet.querySelector('[data-train-input]');
@@ -2164,12 +2169,13 @@ async function checkTrainAnswer(correct, skipped, mode) {
   // (dictate/reverse) на рецептивно-сильном слове = Hard(2), не Again(1). Решение ДО шага
   // планировщика; schedule И log-строка используют ОДИН policy-грейд (иначе оракул
   // replay==stored разошёлся бы). Политика детерминированная (grade-policy.js, общая с
-  // сервером); skip не смягчается (R17-B: явный отказ = честный no-recall).
+  // сервером); explicit production skip на receptively-strong слове = Hard(2), а отсутствие
+  // ответа/timeout остаётся MNAR и сюда не попадает (owner G0-D1, 2026-07-15).
   // R2: the EFFECTIVE channel (word-only items degrade read/listen→reverse at render) — the log
   // row and the D1 policy must describe the modality that actually posed the question (R17).
   const trainChannel = String(s._effChannel || s.channel || 'read') + (mode ? ':' + mode : '');
   let d1 = null;
-  if (window.GradePolicy && !skipped && !correct) {
+  if (window.GradePolicy && !correct) {
     let logRows = []; try { logRows = await localDb.getReviewLog(item.lemmaKey); } catch (_) {}
     // P7.0a: аннулированные строки — не свидетельство для D1 (иначе отменённый
     // production-успех навсегда отключал бы Hard-смягчение, а write-time порча

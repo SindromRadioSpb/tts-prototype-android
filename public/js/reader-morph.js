@@ -876,6 +876,55 @@
     return card;
   }
 
+  // G0 Wave 2 — guarded non-strict acceptance for the READING trainer only.
+  // Exact normalized forms are accepted immediately. A one-letter proclitic-assisted match is
+  // accepted only when resolving the learner's actual answer returns the SAME canonical lemma key
+  // as the review item. This keeps useful ספר↔הספר tolerance without the inherited lexical-
+  // collision false positive כלב→לב. Resolver failure degrades fail-closed to false.
+  // Production channels do not call this helper: reverse/cloze/dictate are strict by owner decision.
+  var _ANSWER_FINALS = { "ך": "כ", "ם": "מ", "ן": "נ", "ף": "פ", "ץ": "צ" };
+  var _ANSWER_PROCLITICS = { "ו": 1, "ה": 1, "ב": 1, "כ": 1, "ל": 1, "ש": 1, "מ": 1 };
+  function _answerSkeleton(s) {
+    return stripNiqqud(String(s == null ? "" : s))
+      .replace(/[ךםןףץ]/g, function (c) { return _ANSWER_FINALS[c] || c; })
+      .trim().replace(/\s+/g, " ");
+  }
+  function _dropAnswerProclitic(s) {
+    return s && s.length > 2 && _ANSWER_PROCLITICS[s[0]] ? s.slice(1) : s;
+  }
+  function acceptStrictAnswer(expected, answer) {
+    var exp = _answerSkeleton(expected), ans = _answerSkeleton(answer);
+    return !!exp && !!ans && exp === ans;
+  }
+  async function acceptReadAnswer(expectedForms, answer, itemKey) {
+    var ans = _answerSkeleton(answer);
+    if (!ans) return false;
+    var exact = [];
+    for (var i = 0; i < (expectedForms || []).length; i++) {
+      var raw = String(expectedForms[i] == null ? "" : expectedForms[i]);
+      var e = _answerSkeleton(raw);
+      if (e && !exact.some(function (x) { return x.skel === e; })) exact.push({ skel: e, raw: raw });
+    }
+    if (exact.some(function (x) { return x.skel === ans; })) return true;
+    // Tolerance is one-way from an ACTUAL target form supplied by the item: the answer may add or
+    // swap one leading proclitic around that form. We never manufacture a target by stripping an
+    // arbitrary expected word (which is exactly how כלב became the false target לב).
+    var ansBare = _dropAnswerProclitic(ans);
+    var matched = ansBare !== ans ? exact.find(function (x) { return x.skel === ansBare; }) : null;
+    if (!matched || !itemKey) return false;
+    try {
+      var stemCard = await resolveWordLight(matched.skel, matched.raw);
+      if (!(stemCard && stemCard.lemmaKey === itemKey)) return false;
+      // An added leading letter may itself form a confident different lexeme (לב→כלב). Reject that
+      // competing identity; an unresolved whole prefixed form may still use the proven stem.
+      if (ansBare !== ans) {
+        var whole = await resolveWordLight(stripNiqqud(String(answer || "")), String(answer || ""));
+        if (whole && (whole.label === "exact" || whole.label === "likely") && whole.lemmaKey && whole.lemmaKey !== itemKey) return false;
+      }
+      return true;
+    } catch (_) { return false; }
+  }
+
   // ── DOM: post-render word-wrap (Room-only; builder untouched) ───────────────
   var WRAP_FLAG = "data-rm-wrapped";
 
@@ -2522,7 +2571,8 @@
     wrapCellHtml: wrapCellHtml, isWordChar: isWordChar, fadeDecision: fadeDecision,
     fadeGraduationReady: fadeGraduationReady, FADE_GRADUATION_MIN: FADE_GRADUATION_MIN,
     // browser
-    ensureEngine: ensureEngine, resolveWordLight: resolveWordLight, attach: attach,
+    ensureEngine: ensureEngine, resolveWordLight: resolveWordLight,
+    acceptStrictAnswer: acceptStrictAnswer, acceptReadAnswer: acceptReadAnswer, attach: attach,
     setProcliticOverlay: setProcliticOverlay,
     closeSheet: closeSheet, paintLearningStatus: paintLearningStatus, clearLearningStatus: clearLearningStatus,
     decorateWords: decorateWords, clearDecorations: clearDecorations, collectNewWords: collectNewWords,

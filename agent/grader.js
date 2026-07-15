@@ -5,11 +5,10 @@
 // импортируется и не участвует в грейде вовсе (llm-assisted feedback — advisory,
 // отдельным путём, БЕЗ права на grade).
 //
-// R11 кросс-поверхностность: правило приёма зеркалит ЖИВОЕ правило Зала БАЙТ-В-БАЙТ
-// (library-ui.js:1728-1729): accepted = {N(form), strip(N(form))}, ответ принят если
-// N(ans) ∈ accepted ИЛИ strip(N(ans)) ∈ accepted (стрип ОБЕИХ сторон — проклитик-своп
-// לבית↔בבית принимается, как в Зале). Нормализация = стрип никуда + фолд конечных
-// букв + пробелы (db/hebrewNorm — семантика _normHe).
+// G0 owner policy (2026-07-15): production families reverse/cloze/dictate are STRICT after
+// normalization. The Room's reading-only tolerance lives in reader-morph.acceptReadAnswer and
+// requires same-canonical-lemma proof; this server grader never grants that guarded exception to
+// production. Normalization = strip niqqud + final-letter fold + spaces (db/hebrewNorm).
 //
 // СЛОВАРНАЯ ЛЕММА НЕ ПРИНИМАЕТСЯ (адъюдикация критики wf_ccbad91d: замер показал, что
 // Зал её и не принимал — в _acceptedSkeletons(built.cz.answer, item.surface) вторым
@@ -18,11 +17,9 @@
 // ложный production-успех навсегда отключает D1-смягчение). Ответ-лемма → near_miss
 // с reason='lemma-not-form' (честный фидбек «вы написали словарную форму»).
 //
-// Проклитик-матчи (любая сторона стрипнута) — ИЗМЕРЕННО дырявы (20 400 пар датасета,
-// где строб принимает чужое слово: כלב→לב, מלח→לח) — это УНАСЛЕДОВАННЫЙ паритет Зала:
-// исход сохранён (успех), но decision='accepted_variant' + matched_variant честно
-// маркирует путь ('form_proclitic'/'answer_proclitic'/'proclitic_swap') — ужесточение
-// обеих поверхностей синхронно = отдельная развилка владельца.
+// Legacy non-strict proclitic matches are measured-dangerous (20 400 dataset pairs, e.g.
+// כלב→לב, מלח→לח). They remain provenance-labelled only for a non-production caller; the v2
+// channel gold forbids them for reverse/cloze/dictate. Room read rejects collisions via identity.
 //
 // Ktiv male/haser в v1 НЕ принимается (замер: Зал не принимает; per-lemma item_key-замок
 // не работает — 99.9% глагольных парадигм имеют же-парадигменные י/ו-пары клеток) —
@@ -68,16 +65,14 @@ function normalizeAnswer(s) {
   return n.replace(NON_HEB_LETTER_RE, "").trim().replace(/\s+/g, " ");
 }
 
-// Та же консервативная проклитик-толерантность, что у Зала (B5): ОДНА ведущая
-// буква из ו/ה/ב/כ/ל/ש/מ при длине >2.
+// Legacy non-strict helper: one leading ו/ה/ב/כ/ל/ש/מ at length >2. G0 production
+// channels never reach this tolerance; Room read uses a separate resolver-backed guard.
 function stripProclitic(s) {
   return (s && s.length > 2 && /^[והבכלשמ]/.test(s)) ? s.slice(1) : s;
 }
 
-// Принятые скелеты: ТОЛЬКО форма ± проклитика (байт-паритет с Залом; лемма НЕ входит —
-// см. шапку). Метки: 'form' = точный скелет, 'form_proclitic' = форма со снятой проклитикой.
-// strict (cloze:tg) — БЕЗ проклитик-варианта: контекст-cloze требует ТОЧНУЮ поверхность вхождения
-// с её предлогом (בבית, не בית); проклитик-льгота Зала обесценила бы смысл (критика wf_cd5d049a).
+// Принятые скелеты: только форма; non-strict legacy caller may add its one-prefix variant.
+// Lemma is not an implicit alternative. strict production means no proclitic variant at all.
 function acceptedSkeletons(expected, strict) {
   const map = new Map();
   const n = normalizeAnswer(expected && expected.form);
@@ -151,9 +146,10 @@ function gradeAnswer(input) {
     return out("skip", true, false, d.grade, "explicit-skip", { policy: d });
   }
 
-  // cloze:tg / dictate:tg → строгое сравнение поверхности (без проклитик-льготы на обеих сторонах).
-  // dictate: звук→написание, проклитик-льгота Зала обесценила бы (כלב→לב не accepted); критика wf_6732a80f.
-  const strict = /^(cloze|dictate)(:|$)/.test(String(channel || ""));
+  // Owner G0-P (2026-07-15): every production family is strict. reverse asks for the declared
+  // lemma, cloze for the source surface, dictate for the written cell; a stripped/swapped prefix
+  // is a production miss. Only the reading trainer may use resolver-guarded tolerance.
+  const strict = /^(reverse|cloze|dictate)(:|$)/.test(String(channel || ""));
   const accepted = acceptedSkeletons(expected, strict);
   if (!accepted.size) return out("unsupported", false, null, null, "no-expected-form");
 
@@ -166,13 +162,11 @@ function gradeAnswer(input) {
     return out("empty", false, null, null, "empty-after-normalization");
   }
 
-  // Приём — байт-паритет с Залом (library-ui.js:1729): N(ans) ∈ accepted ИЛИ
-  // strip(N(ans)) ∈ accepted. ТОЛЬКО точный form-матч без стрипов = 'correct';
-  // любой проклитик-ассистированный путь = 'accepted_variant' (успех, но
-  // маркированный — унаследованная измеренная дыра строба, см. шапку).
+  // Exact normalized form is correct. A legacy non-strict caller may reach a provenance-labelled
+  // accepted_variant; owner-approved production channels are strict and cannot reach it.
   const ansP = stripProclitic(ans);
   const exact = accepted.get(ans);
-  // strict (cloze): не принимаем ответ со снятой проклитикой (בית вместо בבית) — это near_miss/wrong
+  // strict production: a stripped/swapped proclitic is near_miss/wrong, never accepted_variant.
   const viaStrip = (!strict && ansP !== ans) ? accepted.get(ansP) : undefined;
   if (exact === "form") {
     prov.matched_variant = "form";

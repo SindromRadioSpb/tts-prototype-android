@@ -24,6 +24,7 @@ const { spawn, spawnSync } = require("child_process");
 const REPO = path.resolve(__dirname, "..", "..");
 const PORT = 3284, BASE = "http://127.0.0.1:" + PORT;
 const SHOT = path.join(REPO, ".tmp", "reader-morph-380.png");
+const CHANNEL_GOLD = JSON.parse(fs.readFileSync(path.join(REPO, "scripts", "premium", "fixtures", "grader", "grader-channel-gold-v2.json"), "utf8"));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function startServer() {
@@ -99,6 +100,28 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     // R1: never fabricate.
     eq(eng.xyz && eng.xyz.meaning === "" && eng.xyz.label === "unknown", "xyz must be honest-empty/unknown");
     eq(eng.avraham && eng.avraham.meaning === "" && eng.avraham.label === "unknown", "proper noun must be honest-empty/unknown");
+
+    // Wave-2 G0 independent Room matrix: read is non-strict ONLY when the resolver proves that the
+    // learner's actual answer has the same canonical lemma identity. This preserves useful prefix
+    // tolerance while rejecting the inherited כלב→לב lexical-initial collision.
+    const readGoldCases = CHANNEL_GOLD.cases.filter((c) => c.surface === "room");
+    const readGold = await pg.evaluate(async (cases) => {
+      const R = window.ReaderMorph, out = [];
+      for (const c of cases) {
+        if (c.policy === "strict") {
+          out.push({ name: c.name, got: R.acceptStrictAnswer(c.expected_form, c.answer), want: c.want_accept, targetKey: "strict" });
+          continue;
+        }
+        const target = await R.resolveWordLight(R.stripNiqqud(c.target_niqqud), c.target_niqqud);
+        const got = await R.acceptReadAnswer(c.expected_forms, c.answer, target && target.lemmaKey);
+        out.push({ name: c.name, got, want: c.want_accept, targetKey: target && target.lemmaKey });
+      }
+      return out;
+    }, readGoldCases);
+    for (const c of readGold) {
+      eq(!!c.targetKey && c.got === c.want,
+        "G0 read-channel gold[" + c.name + "] want=" + c.want + " got=" + c.got + " targetKey=" + c.targetKey);
+    }
 
     // R10 honest-gloss gate — function forms get the honest reading (no homograph content gloss,
     // no leaf-noun table); genuine content words keep their full reading + paradigm.

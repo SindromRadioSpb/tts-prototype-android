@@ -1,0 +1,204 @@
+{
+  "provenance": {
+    "what": "Wave-2 G0 owner-approved independent channel matrix",
+    "decision": "2026-07-15: read=resolver-guarded non-strict; reverse/cloze/dictate=strict; receptively-strong explicit production skip=Hard(2)",
+    "independence": "Hand-authored expected outcomes. Neither grader nor resolver generates this fixture.",
+    "gates": [
+      "scripts/premium/grader-gold-smoke.js",
+      "scripts/premium/reader-morph-smoke.js"
+    ]
+  },
+  "cases": [
+    {
+      "name": "read-exact",
+      "surface": "room",
+      "policy": "guarded_read",
+      "channel": "read:typed",
+      "target_niqqud": "סֵפֶר",
+      "expected_forms": ["סֵפֶר"],
+      "answer": "ספר",
+      "want_accept": true
+    },
+    {
+      "name": "read-answer-proclitic-same-lemma",
+      "surface": "room",
+      "policy": "guarded_read",
+      "channel": "read:typed",
+      "target_niqqud": "סֵפֶר",
+      "expected_forms": ["סֵפֶר"],
+      "answer": "הספר",
+      "want_accept": true
+    },
+    {
+      "name": "read-form-proclitic-same-lemma",
+      "surface": "room",
+      "policy": "guarded_read",
+      "channel": "read:typed",
+      "target_niqqud": "בַּיִת",
+      "expected_forms": ["בְּבַיִת", "בַּיִת"],
+      "answer": "בית",
+      "want_accept": true
+    },
+    {
+      "name": "read-proclitic-swap-same-lemma",
+      "surface": "room",
+      "policy": "guarded_read",
+      "channel": "read:typed",
+      "target_niqqud": "בַּיִת",
+      "expected_forms": ["בְּבַיִת", "בַּיִת"],
+      "answer": "לבית",
+      "want_accept": true
+    },
+    {
+      "name": "read-lexical-initial-collision",
+      "surface": "room",
+      "policy": "guarded_read",
+      "channel": "read:typed",
+      "target_niqqud": "כֶּלֶב",
+      "expected_forms": ["כֶּלֶב"],
+      "answer": "לב",
+      "want_accept": false
+    },
+    {
+      "name": "read-wrong-word",
+      "surface": "room",
+      "policy": "guarded_read",
+      "channel": "read:typed",
+      "target_niqqud": "שָׁלוֹם",
+      "expected_forms": ["שָׁלוֹם"],
+      "answer": "ספר",
+      "want_accept": false
+    },
+    {
+      "name": "room-reverse-exact",
+      "surface": "room",
+      "policy": "strict",
+      "channel": "reverse:typed",
+      "expected_form": "סֵפֶר",
+      "answer": "ספר",
+      "want_accept": true
+    },
+    {
+      "name": "room-reverse-added-proclitic",
+      "surface": "room",
+      "policy": "strict",
+      "channel": "reverse:typed",
+      "expected_form": "סֵפֶר",
+      "answer": "הספר",
+      "want_accept": false
+    },
+    {
+      "name": "room-dictate-omitted-proclitic",
+      "surface": "room",
+      "policy": "strict",
+      "channel": "dictate:typed",
+      "expected_form": "בְּבַיִת",
+      "answer": "בית",
+      "want_accept": false
+    },
+    {
+      "name": "reverse-exact-lemma",
+      "surface": "server",
+      "channel": "reverse:tg",
+      "expected": { "form": "סֵפֶר", "item_key": "ספר#noun" },
+      "answer": "ספר",
+      "want": { "decision": "correct", "correct": true, "matched_variant": "form" }
+    },
+    {
+      "name": "reverse-added-proclitic",
+      "surface": "server",
+      "channel": "reverse:tg",
+      "expected": { "form": "סֵפֶר", "item_key": "ספר#noun" },
+      "answer": "הספר",
+      "want": { "correct": false }
+    },
+    {
+      "name": "reverse-lexical-initial-collision",
+      "surface": "server",
+      "channel": "reverse:ma",
+      "expected": { "form": "כֶּלֶב", "item_key": "כלב#noun" },
+      "answer": "לב",
+      "want": { "correct": false }
+    },
+    {
+      "name": "cloze-exact-surface",
+      "surface": "server",
+      "channel": "cloze:tg",
+      "expected": { "form": "בְּבַיִת", "item_key": "בית#noun" },
+      "answer": "בבית",
+      "want": { "decision": "correct", "correct": true }
+    },
+    {
+      "name": "cloze-omitted-proclitic",
+      "surface": "server",
+      "channel": "cloze:ma",
+      "expected": { "form": "בְּבַיִת", "item_key": "בית#noun" },
+      "answer": "בית",
+      "want": { "correct": false }
+    },
+    {
+      "name": "cloze-swapped-proclitic",
+      "surface": "server",
+      "channel": "cloze:tg",
+      "expected": { "form": "בְּבַיִת", "item_key": "בית#noun" },
+      "answer": "לבית",
+      "want": { "correct": false }
+    },
+    {
+      "name": "dictate-exact-cell",
+      "surface": "server",
+      "channel": "dictate:tg",
+      "expected": { "form": "כֶּלֶב", "item_key": "כלב#noun" },
+      "answer": "כלב",
+      "want": { "decision": "correct", "correct": true }
+    },
+    {
+      "name": "dictate-lexical-initial-collision",
+      "surface": "server",
+      "channel": "dictate:ma",
+      "expected": { "form": "כֶּלֶב", "item_key": "כלב#noun" },
+      "answer": "לב",
+      "want": { "correct": false }
+    },
+    {
+      "name": "dictate-added-proclitic",
+      "surface": "server",
+      "channel": "dictate:typed",
+      "expected": { "form": "סֵפֶר", "item_key": "ספר#noun" },
+      "answer": "הספר",
+      "want": { "correct": false }
+    },
+    {
+      "name": "dictate-omitted-proclitic",
+      "surface": "server",
+      "channel": "dictate:tg",
+      "expected": { "form": "בְּבַיִת", "item_key": "בית#noun" },
+      "answer": "בית",
+      "want": { "correct": false }
+    },
+    {
+      "name": "reverse-empty-is-mnar",
+      "surface": "server",
+      "channel": "reverse:tg",
+      "expected": { "form": "סֵפֶר", "item_key": "ספר#noun" },
+      "answer": "",
+      "want": { "decision": "empty", "gradable": false }
+    },
+    {
+      "name": "cloze-empty-is-mnar",
+      "surface": "server",
+      "channel": "cloze:ma",
+      "expected": { "form": "בְּבַיִת", "item_key": "בית#noun" },
+      "answer": "",
+      "want": { "decision": "empty", "gradable": false }
+    },
+    {
+      "name": "dictate-empty-is-mnar",
+      "surface": "server",
+      "channel": "dictate:tg",
+      "expected": { "form": "כֶּלֶב", "item_key": "כלב#noun" },
+      "answer": "",
+      "want": { "decision": "empty", "gradable": false }
+    }
+  ]
+}
