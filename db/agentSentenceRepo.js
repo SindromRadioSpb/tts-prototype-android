@@ -206,5 +206,46 @@ async function getTextDigest(userId, { text_key } = {}) {
   };
 }
 
+// Wave 2 LB0: an explicitly selected, bounded window from an existing personal
+// text. The full-text consent is reused because this scope may exceed five
+// sentences; no content is persisted or included in errors/logs.
+async function getLessonWindow(userId, { text_key, start_order_index, row_count } = {}) {
+  const textKey = String(text_key || "").trim();
+  const start = Number(start_order_index);
+  const count = Number(row_count);
+  if (!textKey || !Number.isInteger(start) || start < 0 || !Number.isInteger(count) || count < 1 || count > DIGEST_ROWS_MAX) {
+    return { ok: false, error: "BAD_ANCHOR" };
+  }
+  if (!(await learnerArtifactsRepo.hasConsent(userId))) {
+    return { ok: false, error: "CLOUD_TEXTS_CONSENT_REQUIRED", key: learnerArtifactsRepo.CONSENT_KEY };
+  }
+  if (!(await hasAgentReadConsent(userId))) {
+    return { ok: false, error: "AGENT_READ_TEXTS_CONSENT_REQUIRED", key: CONSENT_KEY_AGENT };
+  }
+  if (!(await hasDigestConsent(userId))) {
+    return { ok: false, error: "AGENT_READ_TEXTS_DIGEST_CONSENT_REQUIRED", key: CONSENT_KEY_DIGEST };
+  }
+  const art = await learnerArtifactsRepo.get(userId, textKey);
+  if (!art) return { ok: false, error: "TEXT_NOT_IN_CLOUD" };
+  let payload = null;
+  try { payload = JSON.parse(art.payload_json); } catch (_) { return { ok: false, error: "ARTIFACT_UNREADABLE" }; }
+  const texts = payload && Array.isArray(payload.texts) ? payload.texts : null;
+  if (!texts || !texts.length) return { ok: false, error: "SENTENCE_NOT_FOUND" };
+  const t = texts.find((x) => x && String(x.text_key) === textKey) || null;
+  if (!t) return { ok: false, error: "SENTENCE_NOT_FOUND" };
+  const all = (Array.isArray(t.rows) ? t.rows : (Array.isArray(t.sentences) ? t.sentences : []))
+    .slice().sort((a, b) => Number(a.order_index) - Number(b.order_index));
+  const rows = all.filter((r) => r && Number(r.order_index) >= start).slice(0, count).map((r) => ({
+    order_index: Number(r.order_index),
+    he: String(r.hebrew_niqqud || r.hebrew_plain || r.he_niqqud || r.he_plain || r.he || "").trim(),
+    ru: String(r.russian != null ? r.russian : (r.ru || "")).trim() || null,
+  })).filter((r) => r.he);
+  if (!rows.length) return { ok: false, error: "SENTENCE_NOT_FOUND" };
+  return { ok: true, scope_level: "lesson_window_40", anchor: { text_key: textKey,
+    start_order_index: rows[0].order_index, row_count: rows.length }, title: String(t.title || "").slice(0, 200) || null,
+    rows_total: all.length, rows, artifact_updated_at: art.updated_at };
+}
+
 module.exports = { hasAgentReadConsent, hasDigestConsent, getSentenceContext, getSentenceWindow, getTextDigest,
-  CONSENT_KEY_AGENT, CONSENT_KEY_DIGEST, SCOPE_SENTENCE_ONLY, SCOPE_SENTENCE_WINDOW, SCOPE_TEXT_DIGEST, DIGEST_ROWS_MAX };
+  getLessonWindow, CONSENT_KEY_AGENT, CONSENT_KEY_DIGEST, SCOPE_SENTENCE_ONLY, SCOPE_SENTENCE_WINDOW,
+  SCOPE_TEXT_DIGEST, DIGEST_ROWS_MAX };

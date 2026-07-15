@@ -1349,6 +1349,18 @@
     .mentor-wr-chip { border: 1px solid var(--border-soft); border-radius: 8px; padding: 5px 9px; font-size: 14px; background: var(--bg-muted); }
     .mentor-wr-gloss { font-size: 12px; color: var(--text-secondary); }
     .mentor-wr-input { width: 100%; min-height: 72px; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--border-soft); background: var(--bg-muted); color: var(--text-primary); font-size: 15px; resize: vertical; box-sizing: border-box; }
+    .mentor-lb-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin-top: 10px; }
+    .mentor-lb-field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-secondary); }
+    .mentor-lb-field.wide { grid-column: 1 / -1; }
+    .mentor-lb-field input, .mentor-lb-field select { width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid var(--border-soft); border-radius: 8px; background: var(--bg-muted); color: var(--text-primary); }
+    .mentor-lb-source { border: 1px solid var(--border-soft); border-radius: 9px; padding: 9px; margin-top: 7px; }
+    .mentor-lb-source-head { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+    .mentor-lb-range { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 7px; }
+    .mentor-lb-results { max-height: 220px; overflow: auto; margin-top: 7px; }
+    .mentor-lb-result { width: 100%; text-align: start; margin: 3px 0; padding: 8px 9px; border: 1px solid var(--border-soft); border-radius: 8px; background: transparent; color: var(--text-primary); }
+    .mentor-lb-edit { width: 100%; min-height: 84px; box-sizing: border-box; padding: 9px 10px; border: 1px solid var(--border-soft); border-radius: 8px; background: var(--bg-muted); color: var(--text-primary); resize: vertical; }
+    .mentor-lb-active { border-inline-start: 4px solid #22c55e; padding-inline-start: 10px; }
+    @media (max-width: 480px) { .mentor-lb-grid { grid-template-columns: 1fr; } .mentor-lb-field.wide { grid-column: auto; } }
     .mentor-wr-plate { margin-top: 8px; font-size: 11px; color: var(--text-secondary); }
     .mentor-wr-used { margin-top: 6px; display: flex; flex-direction: column; gap: 3px; font-size: 14px; }
     .mentor-wr-text { margin-top: 8px; padding: 10px 12px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-muted); font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
@@ -2023,6 +2035,7 @@
 <script src="/js/cloud-sync.js"></script>
 <!-- CLG-P9 — «Дом наставника»: API-only модуль (скелет Mini App P8); данные только из cloud API,
      действия через host-adapter Зала. Ничего не делает до explicit-открытия вида (🤖). -->
+<script src="/js/lesson-artifact.js"></script>
 <script src="/js/mentor-home.js"></script>
 <script src="/js/inflection-dict.js"></script>
 <script src="/js/pealim-function-links.js"></script>

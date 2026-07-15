@@ -670,6 +670,115 @@
     if (metaBits.length) out.appendChild(el("div", "mentor-hint", metaBits.join(" · ")));
   }
 
+  // ── Wave 2 LB0: selected-source lesson draft. Source discovery is a host
+  // capability; typed artifact persistence is session-only through the shared
+  // store boundary. No build/activate action writes learner truth. ──
+  var _lbSelected = [];
+  var _lbBusy = false;
+  function _lbApi() { try { return typeof globalThis !== "undefined" ? globalThis.LessonArtifact : null; } catch (_) { return null; } }
+  function _lbStore() {
+    try { var api = _lbApi(); return api && api.createSessionStore(); } catch (_) { return null; }
+  }
+  function renderLessonBuilder(box) {
+    box.textContent = "";
+    var store = _lbStore(), saved = store && store.load();
+    if (saved) { renderLessonDraft(box, saved, store); return; }
+    var open = el("button", "mentor-plan-btn", "🧩 " + t("room.lesson.btn", "Собрать урок из текстов"));
+    open.type = "button"; open.addEventListener("click", function () { lessonForm(box); });
+    box.appendChild(open);
+    box.appendChild(el("div", "mentor-hint", t("room.lesson.hint", "Выберите 1–3 существующих текста. Черновик редактируется и хранится в этом браузере не более 24 часов.")));
+  }
+  function lessonForm(box) {
+    box.textContent = "";
+    box.appendChild(el("h3", "mentor-block-title", t("room.lesson.title", "🧩 Конструктор урока")));
+    var selected = el("div", "mentor-lb-selected"); box.appendChild(selected);
+    function paintSelected() {
+      selected.textContent = "";
+      _lbSelected.forEach(function (s, idx) {
+        var card = el("div", "mentor-lb-source");
+        var head = el("div", "mentor-lb-source-head");
+        var title = el("div", null, (s.kind === "corpus" ? "📚 " : "📝 ") + s.title + (s.author ? " · " + s.author : "")); title.setAttribute("dir", "auto");
+        var rm = el("button", "mentor-wr-ghost", "×"); rm.type = "button"; rm.setAttribute("aria-label", t("room.lesson.remove", "Удалить источник"));
+        rm.addEventListener("click", function () { _lbSelected.splice(idx, 1); paintSelected(); });
+        head.appendChild(title); head.appendChild(rm); card.appendChild(head);
+        var range = el("div", "mentor-lb-range");
+        var a = el("label", "mentor-lb-field", t("room.lesson.start", "С предложения"));
+        var ai = document.createElement("input"); ai.type = "number"; ai.min = "0"; ai.max = "99999"; ai.value = String(s.start_order_index || 0);
+        ai.addEventListener("change", function () { s.start_order_index = Math.max(0, Number(ai.value) || 0); }); a.appendChild(ai);
+        var c = el("label", "mentor-lb-field", t("room.lesson.rows", "Количество предложений"));
+        var ci = document.createElement("input"); ci.type = "number"; ci.min = "1"; ci.max = "40"; ci.value = String(s.row_count || 12);
+        ci.addEventListener("change", function () { s.row_count = Math.max(1, Math.min(40, Number(ci.value) || 12)); }); c.appendChild(ci);
+        range.appendChild(a); range.appendChild(c); card.appendChild(range); selected.appendChild(card);
+      });
+    }
+    paintSelected();
+    var search = document.createElement("input"); search.className = "mentor-wr-input"; search.style.minHeight = "auto";
+    search.placeholder = t("room.lesson.search", "Найти мой текст или работу корпуса…"); search.setAttribute("aria-label", search.placeholder);
+    box.appendChild(search);
+    var results = el("div", "mentor-lb-results"); box.appendChild(results);
+    async function find() {
+      results.textContent = "";
+      if (!(S.host && typeof S.host.lessonSources === "function")) return;
+      var list = []; try { list = await S.host.lessonSources(search.value); } catch (_) {}
+      list.forEach(function (s) {
+        if (_lbSelected.some(function (x) { return x.kind === s.kind && x.text_key === s.text_key && String(x.work_id || "") === String(s.work_id || ""); })) return;
+        var b = el("button", "mentor-lb-result", (s.kind === "corpus" ? "📚 " : "📝 ") + s.title + (s.author ? " · " + s.author : ""));
+        b.type = "button"; b.setAttribute("dir", "auto"); b.addEventListener("click", function () {
+          if (_lbSelected.length >= 3) return;
+          _lbSelected.push(Object.assign({}, s, { start_order_index: 0, row_count: 12 })); paintSelected(); find();
+        }); results.appendChild(b);
+      });
+    }
+    var timer = null; search.addEventListener("input", function () { clearTimeout(timer); timer = setTimeout(find, 180); }); find();
+    var grid = el("div", "mentor-lb-grid");
+    function field(label, node, wide) { var f = el("label", "mentor-lb-field" + (wide ? " wide" : ""), label); f.appendChild(node); grid.appendChild(f); return node; }
+    var goal = document.createElement("input"); goal.maxLength = 240; goal.value = t("room.lesson.goalDefault", "Понять выбранные тексты и применить ключевые слова"); field(t("room.lesson.goal", "Цель"), goal, true);
+    var lng = document.createElement("select"); [["ru","Русский"],["en","English"],["he","עברית"]].forEach(function (x) { var o=document.createElement("option");o.value=x[0];o.textContent=x[1];lng.appendChild(o); }); lng.value = lang().slice(0,2); field(t("room.lesson.language", "Язык объяснений"), lng);
+    var level = document.createElement("select"); ["unknown","A1","A2","B1","B2"].forEach(function (x) { var o=document.createElement("option");o.value=x;o.textContent=x;level.appendChild(o); }); field(t("room.lesson.level", "Примерный уровень"), level);
+    var duration = document.createElement("select"); [10,20,30].forEach(function (x) { var o=document.createElement("option");o.value=String(x);o.textContent=x+" min";duration.appendChild(o); }); duration.value="20"; field(t("room.lesson.duration", "Длительность"), duration);
+    var focus = document.createElement("select"); [["reading","Чтение"],["vocabulary","Лексика"],["grammar","Грамматика"],["writing","Письмо"],["dialogue","Диалог"]].forEach(function(x){var o=document.createElement("option");o.value=x[0];o.textContent=t("room.lesson.focus."+x[0],x[1]);focus.appendChild(o);}); field(t("room.lesson.focusLabel", "Фокус"), focus);
+    box.appendChild(grid);
+    var out = el("div", "mentor-hint"); box.appendChild(out);
+    var actions = el("div", "mentor-plan-actions");
+    var build = el("button", "mentor-plan-btn", t("room.lesson.build", "Создать черновик")); build.type="button";
+    build.addEventListener("click", async function () {
+      if (_lbBusy || _lbSelected.length < 1 || _lbSelected.length > 3) { out.textContent=t("room.lesson.needSources","Выберите от одного до трёх источников."); return; }
+      _lbBusy=true; build.disabled=true; out.textContent=t("room.explain.loading","Наставник думает…");
+      var body={ sources:_lbSelected.map(function(s){return {kind:s.kind,text_key:s.text_key,work_id:s.work_id,start_order_index:Number(s.start_order_index)||0,row_count:Number(s.row_count)||12};}), goal:goal.value,
+        explanationLanguage:lng.value, approximateLevel:level.value, durationMinutes:Number(duration.value), focus:focus.value };
+      var r=null; try { r=await jpost("/api/agent/lesson-builder/build",_mhByok(body)); } catch(_){}
+      _lbBusy=false; build.disabled=false;
+      if(!r||r.status!==200||!r.json||!r.json.ok){var code=r&&r.json&&r.json.error||"";out.textContent=lessonError(code,r&&r.json);return;}
+      var store=_lbStore(); if(!store||!store.save(r.json.draft).ok){out.textContent=t("room.lesson.storageError","Не удалось сохранить черновик в этой сессии.");return;}
+      _ux("lesson_builder","offered"); renderLessonDraft(box,r.json.draft,store,r.json);
+    });
+    var cancel=el("button","mentor-wr-ghost",t("room.explain.cancel","Отмена"));cancel.type="button";cancel.addEventListener("click",function(){renderLessonBuilder(box);});
+    actions.appendChild(build);actions.appendChild(cancel);box.appendChild(actions);
+  }
+  function lessonError(code, body) {
+    if(code==="SOURCE_SELECTION_TOO_SHORT")return t("room.lesson.tooShort","Выбранный фрагмент короче 500 символов — увеличьте число предложений.");
+    if(code==="SOURCE_SELECTION_TOO_LARGE"||code==="SOURCE_TOTAL_TOO_LARGE")return t("room.lesson.tooLarge","Фрагмент слишком большой — уменьшите диапазон; обрезание не выполняется.");
+    if(code&&code.indexOf("CONSENT_REQUIRED")>=0)return t("room.lesson.consent","Для личного текста включите синхронизацию и разрешение наставнику читать целые тексты в настройках выше.");
+    if(code==="TEXT_NOT_IN_CLOUD")return t("room.lesson.sync","Личный текст ещё не синхронизирован с облаком.");
+    return "✗ "+t("room.lesson.error","Не удалось создать урок")+(code?" ("+code+")":"");
+  }
+  function renderLessonDraft(box,draft,store,meta){
+    box.textContent="";var active=draft.status==="active";
+    var title=el("h3","mentor-block-title"+(active?" mentor-lb-active":""),active?t("room.lesson.active","✓ Урок начат"):t("room.lesson.draft","Черновик урока"));box.appendChild(title);
+    box.appendChild(el("div","mentor-hint",t("room.lesson.ephemeral","Хранится только в этой браузерной сессии и удалится не позднее чем через 24 часа.")));
+    if(typeof draft.coverage==="number")box.appendChild(el("div","mentor-hint",t("room.lesson.coverage","Оценка покрытия")+": ≈"+Math.round(draft.coverage*100)+"% · "+t("room.lesson.reviewTargets","доступных целей повторения")+": "+((draft.availableReviewTargets||[]).length)));
+    var obj=el("label","mentor-lb-field wide",t("room.lesson.objective","Цель урока"));var oi=document.createElement("textarea");oi.className="mentor-lb-edit";oi.value=draft.objective;oi.disabled=active;obj.appendChild(oi);box.appendChild(obj);
+    var secInputs=[];draft.sections.forEach(function(s,i){var card=el("div","mentor-lb-source");var ti=document.createElement("input");ti.className="mentor-lb-result";ti.value=s.title;ti.disabled=active;var bi=document.createElement("textarea");bi.className="mentor-lb-edit";bi.value=s.body;bi.disabled=active;card.appendChild(ti);card.appendChild(bi);card.appendChild(el("div","mentor-hint",t("room.lesson.sources","Источники")+": "+s.source_ids.join(", ")));box.appendChild(card);secInputs.push({t:ti,b:bi});});
+    var exInputs=[];draft.exercises.forEach(function(e){var card=el("div","mentor-lb-source");card.appendChild(el("strong",null,e.type));var bi=document.createElement("textarea");bi.className="mentor-lb-edit";bi.value=e.instruction;bi.disabled=active;card.appendChild(bi);box.appendChild(card);exInputs.push(bi);});
+    if(draft.candidateVocabulary&&draft.candidateVocabulary.length){var vocab=el("div","mentor-lb-source");vocab.appendChild(el("strong",null,t("room.lesson.candidates","Кандидаты для изучения · не добавлены в повторение")));draft.candidateVocabulary.forEach(function(v){var row=el("div","mentor-hint");var he=el("bdi",null,v.surface);he.setAttribute("lang","he");row.appendChild(he);if(v.meaning)row.appendChild(document.createTextNode(" · "+v.meaning));vocab.appendChild(row);});box.appendChild(vocab);}
+    var refs=el("div","mentor-plan-actions");draft.sourceRefs.forEach(function(ref){var b=el("button","mentor-wr-ghost","↩ "+(ref.title||ref.id));b.type="button";b.addEventListener("click",function(){try{S.host.openLessonSource(ref,ref.start_order_index);}catch(_){}});refs.appendChild(b);});box.appendChild(refs);
+    if(meta&&meta.degraded_reason)box.appendChild(el("div","mentor-hint",degradeLabel(meta.degraded_reason)));
+    var notice=el("div","mentor-hint");box.appendChild(notice);
+    var actions=el("div","mentor-plan-actions");
+    if(!active){var start=el("button","mentor-plan-btn",t("room.lesson.startLesson","Начать урок"));start.type="button";start.addEventListener("click",function(){var edited=Object.assign({},draft,{objective:oi.value,sections:draft.sections.map(function(s,i){return Object.assign({},s,{title:secInputs[i].t.value,body:secInputs[i].b.value});}),exercises:draft.exercises.map(function(e,i){return Object.assign({},e,{instruction:exInputs[i].value});})});var r=store.activate(edited);if(r.ok){_ux("lesson_builder","accepted");renderLessonDraft(box,r.draft,store);}else notice.textContent=t("room.lesson.invalidEdit","Заполните цель, названия, разделы и упражнения перед началом урока.");});actions.appendChild(start);}
+    var discard=el("button","mentor-wr-ghost",t("room.lesson.discard","Удалить черновик"));discard.type="button";discard.addEventListener("click",function(){store.discard();_lbSelected=[];renderLessonBuilder(box);});actions.appendChild(discard);box.appendChild(actions);
+  }
+
   // ── PAS-D4: «⚙ Наставник» — настройки v1 (ТОЛЬКО потребляемые: язык объяснений ru/en +
   // глубина brief/detailed; mode не шипится — не потребляется живым кодом [пустышка=обман]).
   // Сохранение по паттерну consent-тогглов: optimistic + откат + «✗ Ошибка синхронизации». ──
@@ -866,6 +975,7 @@
     var planB = blockNode(null, null);   // кнопка «🧭 План на сегодня» самоописательна — без дубля-заголовка
     var ntB = blockNode(null, null);     // PAS-D1 — «📖 Что читать дальше» (кнопка самоописательна)
     var wrB = blockNode(null, null);     // PAS-C2 — «✍️ Практика письма» (кнопка самоописательна)
+    var lbB = blockNode(null, null);     // Wave 2 LB0 — typed ephemeral lesson draft
     var tgB = blockNode("room.tg.title", "🔗 Telegram");
     var setB = blockNode("room.mentor.settings.title", "⚙ Наставник");   // PAS-D4
     var histWrap = blockNode("room.mentor.histTitle", "История объяснений");
@@ -878,6 +988,7 @@
     m.appendChild(planB);
     m.appendChild(ntB);
     m.appendChild(wrB);
+    m.appendChild(lbB);
     m.appendChild(tgB);
     m.appendChild(setB);
     m.appendChild(histWrap);
@@ -889,12 +1000,14 @@
     renderPlanBlock(planB.appendChild(el("div", "mentor-plan-wrap")));
     renderNextText(ntB.appendChild(el("div", "mentor-nt-wrap")));
     renderWriting(wrB.appendChild(el("div", "mentor-wr-wrap")));
+    renderLessonBuilder(lbB.appendChild(el("div", "mentor-lb-wrap")));
     renderTelegramBlock(tgBox);
     renderSettings(setB.appendChild(el("div", "mentor-set-wrap")));
     renderHistoryBlock(histWrap, histBox);
     renderConstructs(consBox);
     // PAS-D1: блок без capability хоста схлопывается (MA-хост её не отдаёт)
     if (!(S.host && typeof S.host.nextTextPicks === "function")) ntB.hidden = true;
+    if (!(S.host && typeof S.host.lessonSources === "function") || !_lbApi()) lbB.hidden = true;
   }
 
   function mountFn(container, host) {

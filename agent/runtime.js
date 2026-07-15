@@ -12,6 +12,7 @@ const explainer = require(path.join(__dirname, "explainer"));
 const material = require(path.join(__dirname, "material"));
 const roleplay = require(path.join(__dirname, "roleplay"));
 const writing = require(path.join(__dirname, "writing"));
+const lessonBuilder = require(path.join(__dirname, "lessonBuilder"));
 const nextText = require(path.join(__dirname, "nextText"));
 const tools = require(path.join(__dirname, "tools"));
 const llm = require(path.join(__dirname, "llm"));
@@ -64,6 +65,7 @@ async function roleplayStop(ctx, args) { return roleplay.stop(ctx, args || {}); 
 // детерминированный forward-матч целей — R1).
 async function writingTargets(ctx) { return writing.targets(ctx); }
 async function writingReview(ctx, args) { return writing.review(ctx, args || {}); }
+async function buildLesson(ctx, args) { return lessonBuilder.build(ctx, args || {}); }
 
 // PAS-D1: LLM-объяснение детерминированно выбранного текста (скоринг — клиент,
 // grounding — сервер; advisory класса A, ничего не персистится).
@@ -207,4 +209,4 @@ async function updateProfile(ctx, patch) {
   return { ok: true, mode: prof.mode, language: prof.language, depth: _profileDepth(prof) };
 }
 
-module.exports = { plan, explain, explainWord, explainFollowup, comprehension, studySummary, draftRetell, roleplayStart, roleplayTurn, roleplayState, roleplayStop, writingTargets, writingReview, nextTextExplain, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };
+module.exports = { plan, explain, explainWord, explainFollowup, comprehension, studySummary, draftRetell, roleplayStart, roleplayTurn, roleplayState, roleplayStop, writingTargets, writingReview, buildLesson, nextTextExplain, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };

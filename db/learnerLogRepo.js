@@ -92,7 +92,7 @@ const PAYLOAD_ALLOW = new Set([
 ]);
 // PAS-D0.2 (критика wf_dd4bc294 MAJOR: allowlist ключей НЕ ограничивает значения — свободный
 // текст в feature/action просочился бы в class-A поток) — закрытые enum'ы ПО ЗНАЧЕНИЮ.
-const AGENT_UX_FEATURES = new Set(["next_text", "scaffold_advisor", "session_goal", "mentor_settings"]);
+const AGENT_UX_FEATURES = new Set(["next_text", "scaffold_advisor", "session_goal", "mentor_settings", "lesson_builder"]);
 const AGENT_UX_ACTIONS = new Set(["offered", "accepted", "dismissed", "abandoned"]);
 const AGENT_UX_LATENCY_MAX = 600000;
 

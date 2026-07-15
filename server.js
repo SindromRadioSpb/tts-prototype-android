@@ -2116,6 +2116,32 @@ app.post("/api/agent/writing/review", rlAgentExplain, async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: "AGENT_WRITING_REVIEW_FAILED", message: e.message }); }
 });
 
+// Wave 2 LB0 — one bounded, editable lesson draft from 1–3 explicitly selected
+// existing sources. The service is read-only for learner truth and returns an
+// ephemeral typed artifact; browser session storage owns the 24-hour draft.
+app.post("/api/agent/lesson-builder/build", rlAgentExplain, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const ctx = _agentByokCtx(req, res, auth); if (!ctx) return;
+    const r = await agentRuntime.buildLesson(ctx, req.body || {});
+    if (!r.ok) {
+      const code = String(r.error || "");
+      if (code === "CLOUD_TEXTS_CONSENT_REQUIRED" || code === "AGENT_READ_TEXTS_CONSENT_REQUIRED" ||
+          code === "AGENT_READ_TEXTS_DIGEST_CONSENT_REQUIRED") return res.status(403).json(r);
+      if (code === "TEXT_NOT_IN_CLOUD" || code === "SENTENCE_NOT_FOUND" || code === "CORPUS_WORK_NOT_FOUND" ||
+          code === "CORPUS_SENTENCE_NOT_FOUND") return res.status(404).json(r);
+      if (code === "CORPUS_WORK_TOO_LARGE" || code === "SOURCE_SELECTION_TOO_LARGE" ||
+          code === "SOURCE_TOTAL_TOO_LARGE") return res.status(413).json(r);
+      if (code === "LESSON_BUILDER_DISABLED") return res.status(503).json(r);
+      if (code.startsWith("BAD_") || code === "DUPLICATE_SOURCE" || code === "SOURCE_SELECTION_TOO_SHORT" ||
+          code === "ARTIFACT_UNREADABLE") return res.status(400).json(r);
+      return res.status(500).json(r);
+    }
+    res.json(r);
+  } catch (e) { res.status(500).json({ ok: false, error: "LESSON_BUILD_FAILED", message: e.message }); }
+});
+
 // PAS-F1 — проверка BYOK-ключа (owner-фидбэк 2026-07-13: «премиальное ощущение» =
 // мгновенный вердикт после сохранения). Микро-вызов НА КЛЮЧЕ ПОЛЬЗОВАТЕЛЯ через
 // llmGate (byok-ветка: серверная квота не резервируется; телеметрия kind='llm_call_byok'

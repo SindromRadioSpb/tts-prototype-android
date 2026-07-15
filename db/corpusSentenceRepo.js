@@ -134,4 +134,34 @@ async function getCorpusWindow({ corpus, work_id, text_key, order_index, window 
   return { ok: true, anchor: base.anchor, work: base.work, rows };
 }
 
-module.exports = { getCorpusSentenceContext, getCorpusWindow };
+// Wave 2 LB0: larger explicit selection than the five-sentence advisory tools.
+// Public-domain source provenance remains work_id+text_key+row locators.
+async function getCorpusLessonWindow({ corpus, work_id, text_key, start_order_index, row_count } = {}) {
+  if (String(corpus || "benyehuda") !== "benyehuda") return { ok: false, error: "BAD_CORPUS" };
+  const workId = String(work_id || "").trim();
+  const textKey = String(text_key || "").trim().toLowerCase();
+  const start = Number(start_order_index), count = Number(row_count);
+  if (!WORK_ID_RE.test(workId)) return { ok: false, error: "BAD_WORK_ID" };
+  if (!TEXT_KEY_RE.test(textKey)) return { ok: false, error: "BAD_TEXT_KEY" };
+  if (!Number.isInteger(start) || start < 0 || !Number.isInteger(count) || count < 1 || count > 40) {
+    return { ok: false, error: "BAD_ANCHOR" };
+  }
+  const loaded = _loadTexts(workId); if (!loaded.ok) return loaded;
+  const text = loaded.texts.find((t) => t && String(t.text_key || "").toLowerCase() === textKey) || null;
+  if (!text) return { ok: false, error: "CORPUS_SENTENCE_NOT_FOUND" };
+  const all = (Array.isArray(text.rows) ? text.rows : []).slice().sort((a, b) => Number(a.order_index) - Number(b.order_index));
+  const rows = all.filter((r) => r && Number(r.order_index) >= start).slice(0, count).map((r) => ({
+    order_index: Number(r.order_index),
+    he: String(r.hebrew_niqqud || r.hebrew_plain || r.he_niqqud || r.he || "").trim(),
+    ru: String(r.russian != null ? r.russian : (r.ru || "")).trim() || null,
+  })).filter((r) => r.he);
+  if (!rows.length) return { ok: false, error: "CORPUS_SENTENCE_NOT_FOUND" };
+  const cmeta = (text.source_meta && text.source_meta.corpus) || text.corpus || {};
+  return { ok: true, scope_level: "corpus_lesson_window_40", anchor: { corpus: "benyehuda", work_id: workId,
+    text_key: textKey, start_order_index: rows[0].order_index, row_count: rows.length },
+    title: String(text.title || "").slice(0, 200) || null, rows_total: all.length, rows,
+    work: { title: String(text.title || "") || null, author: cmeta.author || null,
+      era: cmeta.era || null, license: cmeta.license || "public-domain" } };
+}
+
+module.exports = { getCorpusSentenceContext, getCorpusWindow, getCorpusLessonWindow };

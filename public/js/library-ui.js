@@ -3025,6 +3025,41 @@ function _mentorHost() {
     // открытие пика ИЗ mentor-view (критика: openCorpusWork сам вид не закрывает —
     // зеркалим openTextAt: сперва closeMentorView) + телеметрия agent_ux.
     nextTextPicks: () => buildNextTextPicks(),
+    // LB0 source catalog stays a host capability: MentorHome remains API-only
+    // and receives identifiers/metadata, never direct OPFS access.
+    lessonSources: async (query) => {
+      const q = String(query || '').trim().toLocaleLowerCase();
+      const out = [];
+      try {
+        const rows = await localDb.listTexts({ limit: 500 });
+        for (const r of (rows || [])) {
+          if (!r || isCorpusTextRow(r) || !r.text_key) continue;
+          const title = String(r.title || r.text_key);
+          if (q && !title.toLocaleLowerCase().includes(q)) continue;
+          out.push({ kind: 'personal', text_key: String(r.text_key), title: title });
+          if (out.length >= 15) break;
+        }
+      } catch (_) {}
+      try {
+        for (const c of corpusReadyMap().values()) {
+          if (!c || !c.text_key || c.id == null) continue;
+          const title = String(c.title || c.t || c.text_key), author = String(c.author || c.a || '');
+          if (q && !(title + ' ' + author).toLocaleLowerCase().includes(q)) continue;
+          out.push({ kind: 'corpus', work_id: String(c.id), text_key: String(c.text_key), title: title, author: author });
+          if (out.length >= 30) break;
+        }
+      } catch (_) {}
+      return out;
+    },
+    openLessonSource: async (ref, orderIndex) => {
+      if (!ref) return;
+      if (ref.kind === 'corpus') {
+        let card = null; try { card = corpusReadyMap().get(String(ref.work_id)) || null; } catch (_) {}
+        if (!card) { roomToast(tt('room.mentor.corpusTextMissing', 'Работа не найдена на устройстве — откройте её во вкладке «Корпус».')); return; }
+        closeMentorView(); await openCorpusWork(card, { scrollToOrderIndex: Number(orderIndex) || 0 }); return;
+      }
+      return _mentorHost().openTextAt(ref.text_key, Number(orderIndex) || 0, 'personal');
+    },
     openCorpusPick: (pick) => {
       try { closeMentorView(); } catch (_) {}
       try { if (pick && pick.card) openCorpusWork(pick.card); } catch (_) {}

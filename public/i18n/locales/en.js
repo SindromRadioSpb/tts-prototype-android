@@ -2058,6 +2058,21 @@ window.I18N_LOCALES.en = {
       notHebrew: "Please write in Hebrew — at least half of it.",
       tooLong: "Too long — up to 300 characters.",
     },
+    lesson: {
+      btn: "Build a lesson from texts", hint: "Select 1–3 existing texts. The editable draft stays in this browser for no more than 24 hours.",
+      title: "🧩 Lesson Builder", remove: "Remove source", start: "Start at sentence", rows: "Number of sentences",
+      search: "Find one of my texts or a corpus work…", goalDefault: "Understand the selected texts and apply key words", goal: "Goal",
+      language: "Explanation language", level: "Approximate level", duration: "Duration", focusLabel: "Focus",
+      focus: { reading: "Reading", vocabulary: "Vocabulary", grammar: "Grammar", writing: "Writing", dialogue: "Dialogue" },
+      build: "Build draft", needSources: "Select one to three sources.", storageError: "Could not save the draft in this session.",
+      tooShort: "The selected passage is under 500 characters — include more sentences.", tooLarge: "The passage is too large — narrow the range; it will not be silently truncated.",
+      consent: "For a personal text, enable sync and allow the mentor to read whole texts in the settings above.", sync: "The personal text has not been synced to the cloud yet.", error: "Could not build the lesson",
+      active: "✓ Lesson started", draft: "Lesson draft", ephemeral: "Stored only in this browser session and removed no later than 24 hours from now.",
+      coverage: "Coverage estimate", reviewTargets: "available review targets",
+      objective: "Lesson objective", sources: "Sources", candidates: "Learning candidates · not added to review",
+      startLesson: "Start lesson", discard: "Discard draft",
+      invalidEdit: "Complete the objective, section titles, sections and exercises before starting the lesson.",
+    },
     // PAS-D1 — "What to read next" (mentor home): deterministic picks + LLM "Why?"
     nexttext: {
       btn: "What to read next",
