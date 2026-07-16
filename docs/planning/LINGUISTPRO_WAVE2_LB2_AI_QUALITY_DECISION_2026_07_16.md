@@ -2,13 +2,16 @@
 
 **Date:** 2026-07-16
 
-**Status:** `OWNER_APPROVED_FOR_LB2_A_IMPLEMENTATION`
+**Status:** `OPERATIONALLY_COMPLETE`; `EVIDENCE_DEFERRED`; see `LINGUISTPRO_WAVE2_LB2_CLOSURE_HANDOFF_2026_07_16.md`.
 
 **Predecessor:** `LINGUISTPRO_WAVE2_LB1_LESSON_STUDIO_DECISION_2026_07_16.md`
 
 **Production code baseline:** app `3.11.181`, policy `lesson-builder-lb1-v2`, schema 2, implementation commit `befa734`; the repository HEAD also includes the later documentation-only planning commit that publishes this decision.
 
-**Next implementation prompt:** `LINGUISTPRO_WAVE2_LB2_AI_QUALITY_EXECUTION_PROMPT_2026_07_16.md`.
+**Historical implementation prompt:** `LINGUISTPRO_WAVE2_LB2_AI_QUALITY_EXECUTION_PROMPT_2026_07_16.md`.
+**Next active session:** `LINGUISTPRO_WAVE2_S0_SCALE_ENVELOPE_EXECUTION_PROMPT_2026_07_16.md`.
+
+> **Closure update — 2026-07-16:** LB2-A is shipped and live on app `3.11.183`; the managed owner-only route uses Gemini 3.1 Flash Lite within the approved 60% envelope. Independent human LB2-B evidence and every critic/promotion decision are intentionally deferred. The next active session is S0 Scale Envelope, not further lesson implementation.
 
 ## 1. Observed problem
 

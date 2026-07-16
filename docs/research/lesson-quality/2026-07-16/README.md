@@ -5,6 +5,8 @@
 **Source commit:** `6b2a123` (LB2 decision baseline; implementation is intentionally evaluated by a later declared run manifest).
 **Inputs:** synthetic Hebrew and public-domain Ben-Yehuda source locators only; no private learner text.
 
+> **Program routing update:** LB2-A is operationally complete and independent human LB2-B evidence is intentionally deferred. Preserve this packet unchanged for restart through `docs/planning/LINGUISTPRO_WAVE2_LB2_CLOSURE_HANDOFF_2026_07_16.md`; no threshold or critic authority has been approved.
+
 ## What to review
 
 `cases.json` freezes the case matrix. `rubric.json` links to the existing LB1 rubric and adds no silent scoring semantics. Reviewers edit only `reviewer_worksheet.tsv`: replace `UNSCORED` with declared human ratings and record every critical error explicitly. Blank and unreviewed cells remain `UNSCORED`, never zero.

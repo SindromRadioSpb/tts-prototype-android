@@ -6,7 +6,7 @@
 **Scope of this artifact:** no production code, migration, API/UI/config change, commit, push or production operation.
 **Review target:** owner decision on the next product slices and the architectural runway that must precede durable memory, material ingestion and autonomous work.
 
-> **Execution delta — 2026-07-16:** this packet remains the historical dependency/authority decision. G0, C3a, N1 and LB0 have since been implemented; LB1 Lesson Studio is production-verified in app `3.11.181`. The next bounded product slice is LB2-A AI lesson-quality diagnostics and structured generation, governed by `LINGUISTPRO_WAVE2_LB2_AI_QUALITY_DECISION_2026_07_16.md`. This does not authorize shadow-critic promotion, durable lesson retention, background series generation or M1/S4-S7 work.
+> **Execution delta — 2026-07-16:** this packet remains the historical dependency/authority decision. G0, C3a, N1, LB0, LB1 and LB2-A have since been implemented; lesson-quality evidence is intentionally paused at `OPERATIONALLY_COMPLETE / EVIDENCE_DEFERRED` under `LINGUISTPRO_WAVE2_LB2_CLOSURE_HANDOFF_2026_07_16.md`. The next active direction is the separately bounded, documentation-only S0 Scale Envelope. This does not authorize S1–S3 implementation, shadow-critic promotion, durable lesson retention, F1, background jobs, M1 or S4–S7 work.
 
 ## Executive decision
 

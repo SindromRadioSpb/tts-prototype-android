@@ -1,6 +1,6 @@
 # LinguistPro — LB2-A AI lesson quality execution prompt
 
-**Status:** paste-ready prompt for the next implementation session.
+**Status:** historical completed implementation prompt; do not execute as the next session. Resume through `LINGUISTPRO_WAVE2_LB2_CLOSURE_HANDOFF_2026_07_16.md` only when its restart condition is met.
 
 **Decision source:** `docs/planning/LINGUISTPRO_WAVE2_LB2_AI_QUALITY_DECISION_2026_07_16.md`.
 
