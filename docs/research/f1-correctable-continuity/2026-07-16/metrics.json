@@ -1,7 +1,9 @@
 {
   "schema": "f1-evidence.1.0.0",
   "date": "2026-07-16",
-  "status": "LOCAL_GATES_COMPLETE_DEPLOY_PENDING",
+  "status": "ENGINEERING_COMPLETE_LIVE_EVIDENCE_DEFERRED",
+  "implementation_commit": "4276cf5",
+  "package_version": "3.11.185",
   "logical_operations": 10000,
   "query_receipts": 2000,
   "external_network_attempts": 0,
@@ -19,5 +21,16 @@
     "F1_MEMORY_CANDIDATES_ENABLED": false,
     "F1_MEMORY_CONTEXT_USE_ENABLED": false,
     "CP0_OBSERVER_ENABLED": false
+  },
+  "default_off_deployment": {
+    "verified": true,
+    "health_ok": true,
+    "db_ready": true,
+    "migrations_ready": true,
+    "uptime_reset_observed": true,
+    "f1_enabled_by_change": false,
+    "cp0_enabled_by_change": false,
+    "disk_percent_after_automatic_cleanup": 81,
+    "disk_warning_pre_existing": true
   }
 }

@@ -2,7 +2,9 @@
 
 **Date:** 2026-07-16
 
-**Status:** `LOCAL_GATES_COMPLETE / DEFAULT_OFF_DEPLOY_PENDING`
+**Status:** `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`
+
+**Source:** implementation commit `4276cf5`; package `3.11.185`.
 **Epistemic limit:** synthetic and local evidence proves implementation contracts, not learner usefulness. No owner-live window was opened.
 
 ## Scope proved
@@ -70,6 +72,10 @@ The visual pass confirmed 380px containment, readable authority/boundary copy, c
 
 No unresolved R1–R17 blocker remains for a default-off deployment. Live usefulness, consent comprehension and owner behavior remain deferred to a separately approved owner-live packet.
 
+## Default-off deployment
+
+The public rollout of `3.11.185` was witnessed after an uptime reset with `ok=true`, `db.ready=true` and `migrations.ready=true`. No F1 or CP0 configuration was changed, so all new feature gates remain at their code defaults. Disk usage returned from the transient build peak to the pre-existing 81% warning level already recorded by CP0; this is inherited ops debt, not an F1 green-disk claim.
+
 ## Boundaries retained
 
 - CP0 was neither included nor enabled; only content-safe scenario parity was extended.
@@ -77,6 +83,6 @@ No unresolved R1–R17 blocker remains for a default-off deployment. Live useful
 - F2 misconception/skill memory, S4 background jobs, S5 retrieval, S6 evaluation and S7 cohort operations remain out of scope.
 - No production secret or `.claude/PROD_OPS_PRIVATE.md` was read for this evidence.
 
-## Next authorized step
+## Next step requiring separate authority
 
-Publish the scoped commit and verify a healthy default-off deployment. Do not enable F1/CP0 or start an owner-live window. After deployment, update this file with the source commit and ordinary production health result and label the slice `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`.
+Do not enable F1/CP0 or start an owner-live window under this packet. A separate owner-live packet must approve exact owner IDs, consent copy, flags, rollback and the evidence window.
