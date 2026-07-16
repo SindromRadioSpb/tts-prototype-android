@@ -95,3 +95,28 @@ and maps all closed verdict/decision codes to RU/EN/HE learner copy. B1 now
 uses the canonical large speaker stimulus and `Прослушай и впиши слово`
 hierarchy from the ordinary training flow. Durable prevention rules are in
 `docs/planning/LINGUISTPRO_WAVE2_F2_LESSONS_LEARNED_2026_07_17.md`.
+
+## Kapture owner-live regression — 2026-07-17
+
+The remediated production flow was exercised through the authenticated owner
+profile with real button presses at a 380x844 viewport:
+
+1. opened an existing `OFFERED` B1 chain through the top-level `Продолжить`;
+2. pressed `Начать` and confirmed the canonical large speaker stimulus,
+   `Прослушай и впиши слово`, inline input/check controls and `Не знаю`;
+3. pressed the speaker control and observed successful playback startup with no
+   visible audio error; the replay control returned to enabled state;
+4. submitted the explicit synthetic value `TESTONLY`, received only learner
+   copy (`Пока не совпало` plus the later-practice guidance), and observed no
+   evaluator or reducer enum in the dialog;
+5. closed the completed result with `X`, not `Готово`, and confirmed that the
+   mentor surface showed `Найти небольшую проверку`, not stale `Продолжить`;
+6. confirmed the completed history card also used learner copy, then deleted
+   the entire synthetic chain;
+7. pressed `Найти небольшую проверку` from the empty state, confirmed that the
+   newly created offer opened directly in the training dialog, closed it and
+   deleted that second test chain before any attempt.
+
+Final owner state after the regression: evidence list empty; both agent-created
+test chains deleted. No provider/LLM, planner, CP0, background job, notification
+or canonical learner-memory write was invoked by this test.
