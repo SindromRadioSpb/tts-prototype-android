@@ -1593,9 +1593,10 @@ async function getAgentAccessOAuthRuntime() {
   }
   return agentAccessOAuthRuntimePromise;
 }
-// AA2-B3 — routes exist only as an exact double-default-off gate. This code
-// intentionally has no production key or provider adapter. A later deployment
-// approval must inject a complete runtime; enabling flags without it fails 503.
+// AA2-B3.1 — discovery exists only behind the exact double-default-off gate;
+// authorization/interaction/token/revoke additionally require the independent
+// AGENT_ACCESS_OAUTH_CLIENTS_ENABLED=1 kill switch. A client row alone cannot
+// activate access. Enabling discovery without a complete runtime fails 503.
 const agentAccessOAuthGate = createOAuthDefaultOffGate({ getRuntime: getAgentAccessOAuthRuntime, limiter: agentAccessOAuthLimiter });
 app.all("/.well-known/oauth-protected-resource/agent-access", agentAccessOAuthGate);
 app.all("/.well-known/oauth-authorization-server/oauth", agentAccessOAuthGate);

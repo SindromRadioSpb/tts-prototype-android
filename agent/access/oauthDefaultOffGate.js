@@ -4,11 +4,12 @@ const { validateOAuthHttpRequest } = require("./oauthHttpBoundary");
 const { protectedResourceMetadata, authorizationServerMetadata } = require("./oauthDeploymentContracts");
 
 function routeClass(path, method) {
-  if (path.includes("/.well-known/") || path.endsWith("/jwks")) return "discovery";
-  if (path.endsWith("/token/revocation")) return "revocation";
-  if (path.endsWith("/token")) return "token";
-  if (path.includes("/interaction/")) return "interaction";
-  if (path.endsWith("/auth")) return "authorization";
+  const pathname = String(path || "").split("?", 1)[0];
+  if (pathname.includes("/.well-known/") || pathname.endsWith("/jwks")) return "discovery";
+  if (pathname.endsWith("/token/revocation")) return "revocation";
+  if (pathname.endsWith("/token")) return "token";
+  if (pathname.includes("/interaction/")) return "interaction";
+  if (pathname.endsWith("/auth")) return "authorization";
   return method === "OPTIONS" ? "discovery" : null;
 }
 
@@ -20,6 +21,7 @@ function createOAuthDefaultOffGate({ getRuntime = async () => null, limiter = nu
     const verdict = validateOAuthHttpRequest({
       enabled: process.env.AGENT_ACCESS_OAUTH_ENABLED,
       agent_access_enabled: process.env.AGENT_ACCESS_UI_ENABLED,
+      clients_enabled: process.env.AGENT_ACCESS_OAUTH_CLIENTS_ENABLED,
       host: req.headers.host,
       socket_protocol: req.socket && req.socket.encrypted ? "https" : "http",
       forwarded_host: req.headers["x-forwarded-host"],

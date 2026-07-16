@@ -328,14 +328,14 @@ Owner decisions recorded by the 2026-07-17 implementation approval:
 | D5 | Process-memory short interaction/session, fail-closed on restart; single instance only | **Approved and implemented for B3; still not HA/live.** |
 | D6 | Exact quotas in §10 and content-safe audit in §11 | **Approved; bounded multi-dimensional limiter and closed audit schema implemented.** |
 | D7 | No DCR/CIMD, no client secret, no upstream token passthrough, no MCP | **Approved and enforced.** |
-| D8 | Private proxy topology/secret custody/public key fingerprint | Deliberately deferred to separate default-off deployment approval. |
+| D8 | B3.1 explicit client kill switch; one-hop private proxy; independent secret custody; metadata/JWKS-only first deploy; zero client rows; 30-minute negative validation; flag-first rollback | **Owner-approved 2026-07-17 as decisions only. B3.1 engineering is authorized and complete; production coordinates/config/deploy remain unapproved.** |
 
 No password, cookie, key, Hermes token store, redirect result or user payload is requested from the owner for the B3 implementation packet. Before a deploy/live window, the owner must provide or approve only the private infrastructure coordinates described by D8.
 
 The approved implementation completed the following bounded work:
 
 1. add a production-shaped but default-off AS factory and B0/B2 adapter;
-2. add exact discovery/PRM/JWKS/authorization/token/revocation mounts behind `AGENT_ACCESS_OAUTH_ENABLED=1` plus the existing Agent Access flag;
+2. add exact discovery/PRM/JWKS mounts behind `AGENT_ACCESS_OAUTH_ENABLED=1` plus the existing Agent Access flag; authorization/interaction/token/revocation additionally require `AGENT_ACCESS_OAUTH_CLIENTS_ENABLED=1`;
 3. add an injected key-loader interface and use only ephemeral fixture keys in tests;
 4. add the exact two static fixture clients from §4 in scratch DB only;
 5. implement rotating refresh-family mapping, content-safe audit/CP0 hooks and limits from §§6/10;
@@ -401,7 +401,7 @@ Stop B3 implementation and return to the owner if:
 
 ## 18. Definition of done and later approvals
 
-B3 is `ENGINEERING_COMPLETE / DEFAULT_OFF / FIXTURE_TWO_CLIENT / PRODUCTION_KEY_ABSENT / PRODUCTION_CLIENT_ABSENT / MCP_ABSENT` after the evidence in §19 and the scoped commit/push accompanying this record.
+B3/B3.1 is `ENGINEERING_COMPLETE / EXPLICIT_CLIENT_KILL_SWITCH / DEFAULT_OFF / FIXTURE_TWO_CLIENT / PRODUCTION_KEY_ABSENT / PRODUCTION_CLIENT_ABSENT / MCP_ABSENT` after the evidence in §§19–20 and the scoped commit/push accompanying this record.
 
 That status still does not authorize deployment. A separate default-off deployment packet must privately record secret custody, exact proxy topology and production key fingerprint/public `kid`, then verify metadata/JWKS with OAuth disabled for clients. A later AA2-C packet must add the thin MCP resource-server adapter and revalidate Hermes plus Inspector. A final bounded owner-live approval is required before one real connection.
 
@@ -453,3 +453,33 @@ The repository-wide `npm test` is not a green baseline: 269/278 pass, with one p
 R1–R17 closure remains as §14 states: B3 adds security mechanics, not learning value or evidence; external memory/prose is not learner truth, grade or evaluation; domain controllers retain consent/lifecycle authority; no managed LLM spend, notification path, learner write, F1/F2 field, tool or MCP handler exists.
 
 Still absent and prohibited without a separate owner approval: D8 proxy/secret/fingerprint coordinates, production client rows, production key/config injection, deployment, public metadata/JWKS verification, Hermes/Inspector installation/configuration, MCP/resource-server tools, live connection and AA2-C owner evidence.
+
+## 20. B3.1 explicit client-activation hardening — 2026-07-17
+
+Owner approval: D8-1–D8-8 are accepted as the future deployment policy. Only B3.1 default-off hardening and fixture validation were authorized in this session; this is not deployment or production-configuration authority.
+
+Implemented contract:
+
+1. `AGENT_ACCESS_OAUTH_ENABLED=1` plus `AGENT_ACCESS_UI_ENABLED=1` permits configured discovery/PRM/JWKS readiness only.
+2. Authorization, interaction, token and revocation additionally require exact `AGENT_ACCESS_OAUTH_CLIENTS_ENABLED=1`; missing, empty, `true`, malformed and every other value fail content-safe `404 AGENT_ACCESS_OAUTH_CLIENTS_DISABLED`.
+3. The client gate runs before rate limiting, runtime dispatch, consent staging or provider handling. A production client row, injected key or complete runtime cannot independently activate client access.
+4. Route classification uses the pathname rather than the raw query-bearing URL. Real Authorization Code requests such as `/oauth/auth?...` therefore cannot evade or bypass the client gate.
+5. No production environment template, secret, key, client row, connection, token, proxy, DNS or deployment state changed.
+
+Fixture/regression evidence:
+
+```text
+npm run smoke:agent-access:oauth-deployment
+npm run smoke:agent-access:oidc-loopback
+npm run smoke:agent-access:oauth
+npm run smoke:agent-access
+npm run smoke:auth
+node scripts/premium/agent-access-boundary-smoke.js
+node scripts/api-smoke.js
+node --check server.js
+git diff --check
+```
+
+All listed gates pass. The deployment smoke verifies discovery remains separable, every query-bearing client route is classified correctly, client access is `404` while the third flag is absent, and a fully enabled but missing runtime remains `503`. The default baseline API smoke still observes no OAuth metadata, key or client surface.
+
+Next gate: create a separate D8 deployment approval packet containing the privately verified proxy topology, secret-custody procedure and public `kid`/thumbprint recording procedure. Until that packet receives explicit execution approval, all production configuration, deployment and public verification remain prohibited.

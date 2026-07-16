@@ -35,6 +35,11 @@ function validateOAuthHttpRequest(input) {
 
   const routeClass = String(input.route_class || "");
   if (!["discovery", "authorization", "interaction", "token", "revocation", "resource"].includes(routeClass)) return failure("AA_OAUTH_BOUNDARY_BAD_ROUTE");
+  // Discovery/JWKS may be deployed and verified before any client can start an
+  // authorization flow. A client row alone must never activate OAuth access.
+  if (routeClass !== "discovery" && String(input.clients_enabled || "") !== "1") {
+    return failure("AGENT_ACCESS_OAUTH_CLIENTS_DISABLED", 404);
+  }
   const method = String(input.method || "GET").toUpperCase();
   if (method === "OPTIONS") return failure("AA_OAUTH_CORS_DISABLED", 404);
   if (String(input.origin || "") && routeClass !== "interaction") return failure("AA_OAUTH_CORS_DISABLED", 403);

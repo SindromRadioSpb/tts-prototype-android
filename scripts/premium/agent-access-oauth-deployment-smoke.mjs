@@ -81,6 +81,17 @@ assert.throws(() => deploymentContracts.validateFixtureClient({ ...FIXTURE_CLIEN
 
 const productionBoundary = boundary.validateOAuthHttpRequest({ enabled: '1', agent_access_enabled: '1', host: 'linguistpro.kolosei.com', socket_protocol: 'https', route_class: 'discovery', method: 'GET' });
 assert.equal(productionBoundary.ok, true);
+assert.deepEqual(
+  boundary.validateOAuthHttpRequest({ enabled: '1', agent_access_enabled: '1', host: 'linguistpro.kolosei.com', socket_protocol: 'https', route_class: 'authorization', method: 'GET' }),
+  { ok: false, error: 'AGENT_ACCESS_OAUTH_CLIENTS_DISABLED', status: 404 },
+);
+assert.equal(boundary.validateOAuthHttpRequest({ enabled: '1', agent_access_enabled: '1', clients_enabled: '1', host: 'linguistpro.kolosei.com', socket_protocol: 'https', route_class: 'authorization', method: 'GET' }).ok, true);
+for (const [path, method, expected] of [
+  ['/oauth/auth?client_id=fixture&response_type=code', 'GET', 'authorization'],
+  ['/oauth/interaction/fixture?request_id=opaque', 'GET', 'interaction'],
+  ['/oauth/token?fixture=negative', 'POST', 'token'],
+  ['/oauth/token/revocation?fixture=negative', 'POST', 'revocation'],
+]) assert.equal(gateModule.routeClass(path, method), expected);
 for (const input of [
   { enabled: '0', agent_access_enabled: '1', host: 'linguistpro.kolosei.com', socket_protocol: 'https', route_class: 'discovery' },
   { enabled: '1', agent_access_enabled: '1', host: 'evil.linguistpro.kolosei.com', socket_protocol: 'https', route_class: 'discovery' },
@@ -98,6 +109,7 @@ function mockResponse() {
 }
 const oldOauthFlag = process.env.AGENT_ACCESS_OAUTH_ENABLED;
 const oldUiFlag = process.env.AGENT_ACCESS_UI_ENABLED;
+const oldClientsFlag = process.env.AGENT_ACCESS_OAUTH_CLIENTS_ENABLED;
 try {
   const gate = gateModule.createOAuthDefaultOffGate();
   const requestShape = { method: 'GET', originalUrl: '/oauth/.well-known/openid-configuration', headers: { host: 'linguistpro.kolosei.com' }, socket: { encrypted: true } };
@@ -116,9 +128,33 @@ try {
   await gate(requestShape, response);
   assert.equal(response.statusCode, 503);
   assert.equal(response.body.error, 'AA_OAUTH_RUNTIME_NOT_CONFIGURED');
+  const authorizationRequest = { ...requestShape, originalUrl: '/oauth/auth?client_id=fixture', url: '/oauth/auth?client_id=fixture' };
+  response = mockResponse();
+  await gate(authorizationRequest, response);
+  assert.equal(response.statusCode, 404);
+  assert.equal(response.body.error, 'AGENT_ACCESS_OAUTH_CLIENTS_DISABLED');
+  process.env.AGENT_ACCESS_OAUTH_CLIENTS_ENABLED = '1';
+  response = mockResponse();
+  await gate(authorizationRequest, response);
+  assert.equal(response.statusCode, 503);
+  assert.equal(response.body.error, 'AA_OAUTH_RUNTIME_NOT_CONFIGURED');
+  delete process.env.AGENT_ACCESS_OAUTH_CLIENTS_ENABLED;
+  let stagedRuntimeLookups = 0;
+  const stagedGate = gateModule.createOAuthDefaultOffGate({ getRuntime: async () => { stagedRuntimeLookups += 1; return { nodeHandler() { throw new Error('client runtime must not be dispatched'); } }; } });
+  response = mockResponse();
+  await stagedGate({ ...requestShape, originalUrl: '/.well-known/oauth-protected-resource/agent-access', url: '/.well-known/oauth-protected-resource/agent-access' }, response);
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.resource, RESOURCE);
+  assert.equal(stagedRuntimeLookups, 1);
+  response = mockResponse();
+  await stagedGate(authorizationRequest, response);
+  assert.equal(response.statusCode, 404);
+  assert.equal(response.body.error, 'AGENT_ACCESS_OAUTH_CLIENTS_DISABLED');
+  assert.equal(stagedRuntimeLookups, 1);
 } finally {
   if (oldOauthFlag === undefined) delete process.env.AGENT_ACCESS_OAUTH_ENABLED; else process.env.AGENT_ACCESS_OAUTH_ENABLED = oldOauthFlag;
   if (oldUiFlag === undefined) delete process.env.AGENT_ACCESS_UI_ENABLED; else process.env.AGENT_ACCESS_UI_ENABLED = oldUiFlag;
+  if (oldClientsFlag === undefined) delete process.env.AGENT_ACCESS_OAUTH_CLIENTS_ENABLED; else process.env.AGENT_ACCESS_OAUTH_CLIENTS_ENABLED = oldClientsFlag;
 }
 
 const auditRows = [];
