@@ -2,11 +2,11 @@
 
 **Date:** 2026-07-16
 
-**Status:** `OWNER_APPROVED / EXECUTION_AUTHORIZED`.
+**Status:** `OWNER_PATH_TECHNICALLY_VERIFIED / LONGITUDINAL_EVIDENCE_DEFERRED`.
 
 **Owner resolution:** same-session staged activation; short product consent copy; exact single-owner allowlist; real goals/tasks/explanations and personal anchors permitted; automatic rollback permitted; production read/env/redeploy authority approved. Longitudinal monitoring is deferred.
 
-**Implementation baseline:** `3.11.185`, commits `4276cf5` and `6777887`; F1 engineering complete and deployed default-off.
+**Execution result:** production `3.11.188`; entry-point commit `6388269`, terminal-history hotfix `1e051dc`, visible-export hotfix `6ac91fa`. All three owner-only stages passed in one session; no longitudinal monitoring claim is made.
 
 **Privacy:** the exact production `users.id` was verified read-only and is stored only in gitignored `.claude/F1_OWNER_LIVE_PRIVATE.md`. It must never enter git, screenshots or public evidence. The production digest secret is generated directly into the secret store and is never printed or committed.
 

@@ -1,0 +1,69 @@
+{
+  "schema": "f1-owner-live-evidence.1.0.0",
+  "date": "2026-07-16",
+  "status": "OWNER_PATH_TECHNICALLY_VERIFIED_LONGITUDINAL_EVIDENCE_DEFERRED",
+  "package_version": "3.11.188",
+  "commits": {
+    "manual_entry_points": "6388269",
+    "terminal_history": "1e051dc",
+    "visible_export": "6ac91fa"
+  },
+  "owner_allowlist": {
+    "exact_principals": 1,
+    "public_id_recorded": false,
+    "unauthenticated_status": 401
+  },
+  "final_flags": {
+    "F1_MEMORY_ENABLED": true,
+    "F1_MEMORY_CONTEXT_USE_ENABLED": true,
+    "F1_MEMORY_CANDIDATES_ENABLED": true,
+    "CP0_OBSERVER_ENABLED": false
+  },
+  "stage_1": {
+    "short_consent_visible": true,
+    "store_consent_granted": true,
+    "unfinished_consent_granted": true,
+    "manual_explanation_thread_saved": true,
+    "context_queries_before_stage_2": 0
+  },
+  "stage_2": {
+    "continue_selected": true,
+    "source_available": true,
+    "suppression_removed_continue": true,
+    "unsuppress_restored_continue": true
+  },
+  "stage_3": {
+    "explicit_scan_only": true,
+    "proposals_created": 3,
+    "proposal_kept": 1,
+    "proposal_annulled": 1,
+    "proposal_pending": 1,
+    "pending_selected_in_continue": false
+  },
+  "lifecycle": {
+    "isolated_test_record_deleted": true,
+    "erasure_journal_rows": 1,
+    "annulled_visible_in_history": true,
+    "export_ready_visible": true
+  },
+  "authority_boundaries": {
+    "review_log_rows_before": 6146,
+    "review_log_rows_after": 6146,
+    "llm_calls_in_window": 0,
+    "cp0_rows": 0
+  },
+  "final_content_safe_counts": {
+    "user_declared_active": 1,
+    "user_confirmed_derived_active": 1,
+    "derived_pending": 1,
+    "derived_annulled": 1,
+    "context_query_receipts": 15
+  },
+  "production_health": {
+    "ok": true,
+    "db_ready": true,
+    "migrations_ready": true,
+    "disk_percent_after_cleanup": 80,
+    "disk_warning_inherited": true
+  }
+}
