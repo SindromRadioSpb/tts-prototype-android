@@ -2,11 +2,11 @@
 
 **Date:** 2026-07-17
 
-**Status:** `OWNER_APPROVED / AA2-B0 AUTHORIZED / AA2-B1-B3 GATED`.
+**Status:** `AA2-B0 ENGINEERING_COMPLETE / NO_OAUTH_ENDPOINT / LIVE_RUNTIME_ABSENT / AA2-B1-B3 GATED`.
 
 **Authority:** the owner's 2026-07-17 “Утверждаю. Стартуй.” authorizes the persistence-first AA2-B0 slice defined here after this packet is committed and pushed. AA2-B0 may add migration `042`, a default-off connection/grant/authorization-code/token-family lifecycle repository, export/delete/restore integration and fixture-only smokes. It may not add an HTTP route, authorization/resource endpoint, signing/JWKS key, plaintext credential/token, MCP SDK/adapter/client, Hermes mutation, live connection, real private-data read, provider call, CP0 live window or public UI.
 
-**Implementation baseline:** `main` / `c84f872`; package `3.11.190`; AA2-A `ENGINEERING_COMPLETE / LIVE_RUNTIME_ABSENT`.
+**Implementation baseline:** approved packet commit `4138cac`; implementation package checkpoint `3.11.191`; AA2-A `ENGINEERING_COMPLETE / LIVE_RUNTIME_ABSENT`.
 
 **Canonical parents:** AA1 OAuth/tool-schema/threat-model contract and AA2 read-only execution packet dated 2026-07-16/17.
 
@@ -323,3 +323,38 @@ Before any live use, rollback is code/migration rollback on a disposable or defa
 AA2-B0 becomes `ENGINEERING_COMPLETE / NO_OAUTH_ENDPOINT / LIVE_RUNTIME_ABSENT` only when all §8 fixtures and existing focused auth/CP0/API/account lifecycle gates pass, evidence is recorded here, scoped changes are committed/pushed and no unrelated worktree file is included.
 
 The next decision is a B1 loopback approval after reviewing B0 evidence and the refreshed pinned `oidc-provider` dependency/advisory surface. B0 completion does not authorize installing that dependency or mounting a route.
+
+## 14. Engineering evidence — 2026-07-17
+
+Implemented B0 only:
+
+- migration `042_agent_access_oauth_lifecycle.sql` with public-client registry, opaque subject mapping, isolated connections/grants, single-use authorization-code hashes, refresh-token families, access-token deny hashes and content-free connection tombstones;
+- pure OAuth lifecycle validators with exact public redirect/resource/scope/PKCE/hash bounds;
+- transaction-locked repository for incremental consent, activation/scope reduction, authorization-code consume, refresh rotation/reuse response, connection/client/account security revoke, export, delete and TTL purge;
+- structural account export strips subject/code/token/JTI/PKCE values; account delete and row-count completeness include the exempt Agent Access journal;
+- restore replay removes a resurrected connection and its cascaded security rows while preserving the other user;
+- no AS/MCP dependency, endpoint, key, plaintext credential, live data handler, Hermes mutation or provider call.
+
+Repository reconciliation found one concrete design constraint: existing `identityRepo.recordConsent` bounds `consent_key` to 80 characters. B0 therefore caps `connection_id` at 24 safe ASCII characters, which keeps the canonical `external_agent_access:<connection_id>:<scope>` key complete and non-truncated for every v0 scope. This is now an enforced contract, not an assumption.
+
+Gate results:
+
+| Gate | Result |
+|---|---|
+| `npm run smoke:agent-access:oauth` | **PASS** — 24 lifecycle/isolation checks plus restore; 0 cross-user leaks, 0 exported secret values, refresh reuse family revoked, 0 endpoints/provider calls |
+| `npm run smoke:agent-access` | **PASS** — 20 closed capability checks, 0 network/provider/live-data calls |
+| `npm run smoke:cp0` | **PASS** — observer/integration/parity/lifecycle/restore/process-failure |
+| `npm run smoke:f1` | **PASS** — contract/lifecycle/isolation/restore/UI |
+| `npm run smoke:f2` | **PASS** — contract/observation/target/evaluator/lifecycle/isolation/restore/UI; Agent Access replay count remains zero in the F2 fixture |
+| `npm run test:api-smoke` | **PASS** |
+| `npm test` | **UNCHANGED BASELINE DEBT** — 269/278 pass; the same stale classic-mode DOM expectation and eight GCP pipeline tests without BYOK key |
+
+### Post-implementation R1–R17 conclusion
+
+- **R2/R5:** B0 is not marketed as learner value; it is independent revoke/consent infrastructure for the already bounded AA2 capabilities.
+- **R9/R12/R17:** no learner truth, business logic, grade/evidence or external prose enters OAuth storage.
+- **R14:** two-user and two-connection negatives, security epochs, exact client/resource/scope bindings and atomic single-use transitions are executable.
+- **R15:** secret stripping, per-connection tombstone, account deletion and restore non-resurrection are executable.
+- **R16:** no route, polling, SDK or managed-model spend exists.
+
+AA2-B0 is complete. AA2-B1 remains a new authority boundary: installing `oidc-provider`, running loopback authorization or mounting any AS handler still requires the separate post-B0 approval stated in §3.

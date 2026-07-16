@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-17
 
-**Status:** `AA2-A ENGINEERING_COMPLETE / LIVE_RUNTIME_ABSENT / AA2-B-C GATED`.
+**Status:** `AA2-A ENGINEERING_COMPLETE / AA2-B0 COMPLETE IN SUCCESSOR / LIVE_RUNTIME_ABSENT / AA2-B1-C GATED`.
 
 **Authority:** this packet authorizes only AA2-A: default-off closed contracts, capability registry, a transport-neutral Agent Access domain service, content-safe scenario registration and fixture/smoke validation. It does not authorize an OAuth authorization/resource endpoint, MCP endpoint/adapter/client, credential/token/client registration, connection persistence, migration, SDK dependency, UI/config/env change, provider call, live external connection, real private-data read, CP0 live window, AA3 action or public launch.
 
@@ -136,9 +136,9 @@ The implementation is not complete merely because happy-path fixtures pass.
 
 ## 7. AA2-B and AA2-C gates
 
-### AA2-B — persistence and OAuth foundation, not authorized here
+### AA2-B — B0 complete in successor; B1+ OAuth protocol/runtime gated
 
-Requires a new owner-reviewed packet containing audited AS/product bake-off, exact DDL and erasure journal, issuer/key/audience design, PKCE, refresh rotation/reuse response, incremental consent, independent revoke, export/delete/restore proof, Origin/Host/CORS/redirect controls, rate limiters and security regression matrix.
+Persistence/lifecycle B0 is `ENGINEERING_COMPLETE / NO_OAUTH_ENDPOINT` under `LINGUISTPRO_AGENT_ACCESS_AA2B_OAUTH_PERSISTENCE_AUTHORIZATION_SERVER_EXECUTION_APPROVAL_PACKET_2026_07_17.md`. The certified-AS loopback, issuer/key/audience protocol layer, Origin/Host/CORS controls, rate limiters and every endpoint remain separately gated as B1+.
 
 ### AA2-C — thin MCP adapter and client proof, not authorized here
 

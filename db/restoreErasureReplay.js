@@ -32,7 +32,10 @@ async function replayDeletionJournal(preRestoreDbPath, restoredDbPath) {
     let f2Deleted=[];
     try { f2Deleted=await all(source,"SELECT user_id,chain_id,deleted_at,reason_code FROM f2_erasure_journal ORDER BY deleted_at,user_id,chain_id"); }
     catch(e){ if(/no such table/i.test(String(e&&e.message))) f2Deleted=[]; else throw e; }
-    if(!deleted.length&&!memoryDeleted.length&&!f2Deleted.length) return {ok:true,replayed_users:0,replayed_memories:0,replayed_f2_chains:0,deleted_rows:0};
+    let agentConnectionsDeleted=[];
+    try { agentConnectionsDeleted=await all(source,"SELECT user_id,connection_id,deleted_at,reason_code FROM agent_access_erasure_journal ORDER BY deleted_at,user_id,connection_id"); }
+    catch(e){ if(/no such table/i.test(String(e&&e.message))) agentConnectionsDeleted=[]; else throw e; }
+    if(!deleted.length&&!memoryDeleted.length&&!f2Deleted.length&&!agentConnectionsDeleted.length) return {ok:true,replayed_users:0,replayed_memories:0,replayed_f2_chains:0,replayed_agent_connections:0,deleted_rows:0};
     target=await open(restoredDbPath, sqlite3.OPEN_READWRITE);
     await exec(target,"PRAGMA foreign_keys=ON;");
     const tables=await userScopedTables(target);
@@ -74,10 +77,17 @@ async function replayDeletionJournal(preRestoreDbPath, restoredDbPath) {
           await run(target,`INSERT INTO f2_erasure_journal (user_id,chain_id,deleted_at,reason_code) SELECT ?,?,?,? WHERE NOT EXISTS (SELECT 1 FROM f2_erasure_journal WHERE user_id=? AND chain_id=? AND deleted_at=?)`,[uid,hid,String(j.deleted_at),String(j.reason_code||"RESTORE_REPLAY"),uid,hid,String(j.deleted_at)]);
         } catch(e) { if(!/no such table/i.test(String(e&&e.message))) throw e; }
       }
+      for(const j of agentConnectionsDeleted){
+        const uid=String(j.user_id),cid=String(j.connection_id);if(accountDeleted.has(uid))continue;
+        try { const rr=await run(target,"DELETE FROM agent_connections WHERE user_id=? AND connection_id=?",[uid,cid]);deletedRows+=Number(rr.changes)||0; }
+        catch(e) { if(!/no such table/i.test(String(e&&e.message))) throw e; }
+        try { await run(target,`INSERT INTO agent_access_erasure_journal (user_id,connection_id,deleted_at,reason_code) SELECT ?,?,?,? WHERE NOT EXISTS (SELECT 1 FROM agent_access_erasure_journal WHERE user_id=? AND connection_id=? AND deleted_at=?)`,[uid,cid,String(j.deleted_at),String(j.reason_code||"RESTORE_REPLAY"),uid,cid,String(j.deleted_at)]); }
+        catch(e) { if(!/no such table/i.test(String(e&&e.message))) throw e; }
+      }
       await exec(target,"COMMIT;");
     }catch(e){try{await exec(target,"ROLLBACK;");}catch(_){}throw e;}
     const deletedUsers=new Set(deleted.map((x)=>String(x.user_id)));
-    return {ok:true,replayed_users:deletedUsers.size,replayed_memories:memoryDeleted.filter((x)=>!deletedUsers.has(String(x.user_id))).length,replayed_f2_chains:f2Deleted.filter((x)=>!deletedUsers.has(String(x.user_id))).length,deleted_rows:deletedRows};
+    return {ok:true,replayed_users:deletedUsers.size,replayed_memories:memoryDeleted.filter((x)=>!deletedUsers.has(String(x.user_id))).length,replayed_f2_chains:f2Deleted.filter((x)=>!deletedUsers.has(String(x.user_id))).length,replayed_agent_connections:agentConnectionsDeleted.filter((x)=>!deletedUsers.has(String(x.user_id))).length,deleted_rows:deletedRows};
   } catch(e) { return {ok:false,error:String(e&&e.message||e)}; }
   finally { if(source)await close(source);if(target)await close(target); }
 }
