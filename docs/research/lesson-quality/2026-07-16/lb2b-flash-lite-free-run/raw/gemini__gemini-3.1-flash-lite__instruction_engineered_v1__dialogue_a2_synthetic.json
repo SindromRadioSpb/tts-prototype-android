@@ -1,0 +1,242 @@
+{
+  "status": "UNSCORED",
+  "case_id": "dialogue_a2_synthetic",
+  "provider": "gemini",
+  "model": "gemini-3.1-flash-lite",
+  "prompt_variant": "instruction_engineered_v1",
+  "prompt_contract_hash": "1a999183e3ac3bef37e3a48e249507ebede11f1341c4814283c8f1c8cab7b4fb",
+  "source": {
+    "id": "synthetic:dialogue_a2_synthetic",
+    "title": "חוג הצילום",
+    "author": "LinguistPro synthetic fixture",
+    "locator": "synthetic:a2-dialogue-v1",
+    "license": "CC0 synthetic fixture",
+    "content_hash": null,
+    "row_count": 24,
+    "anchor_windows": [
+      {
+        "id": "synthetic:dialogue_a2_synthetic-anchor-1",
+        "start_order_index": 0,
+        "end_order_index": 23,
+        "rows": [
+          {
+            "order_index": 0,
+            "he": "דנה: שלום, אפשר לקבל מידע על חוג הצילום?",
+            "ru": "Дана: Здравствуйте, можно получить информацию о фотокружке?"
+          },
+          {
+            "order_index": 1,
+            "he": "אורי: בוודאי. החוג מתקיים בימי שלישי.",
+            "ru": "Ури: Конечно. Кружок проходит по вторникам."
+          },
+          {
+            "order_index": 2,
+            "he": "דנה: באיזו שעה מתחילים?",
+            "ru": "Дана: В котором часу начинаете?"
+          },
+          {
+            "order_index": 3,
+            "he": "אורי: מתחילים בחמש ומסיימים בשש וחצי.",
+            "ru": "Ури: Начинаем в пять и заканчиваем в половине седьмого."
+          },
+          {
+            "order_index": 4,
+            "he": "דנה: צריך להביא מצלמה אישית?",
+            "ru": "Дана: Нужно приносить собственную камеру?"
+          },
+          {
+            "order_index": 5,
+            "he": "אורי: לא. אפשר להשתמש במצלמות של המרכז.",
+            "ru": "Ури: Нет. Можно пользоваться камерами центра."
+          },
+          {
+            "order_index": 6,
+            "he": "דנה: כמה עולה החוג לחודש?",
+            "ru": "Дана: Сколько кружок стоит в месяц?"
+          },
+          {
+            "order_index": 7,
+            "he": "אורי: מאה ועשרים שקלים.",
+            "ru": "Ури: Сто двадцать шекелей."
+          },
+          {
+            "order_index": 8,
+            "he": "דנה: יש הנחה לתלמידים?",
+            "ru": "Дана: Есть скидка для школьников?"
+          },
+          {
+            "order_index": 9,
+            "he": "אורי: כן, עם כרטיס תלמיד המחיר הוא מאה שקלים.",
+            "ru": "Ури: Да, с ученическим билетом цена сто шекелей."
+          },
+          {
+            "order_index": 10,
+            "he": "דנה: אפשר להגיע לשיעור ניסיון?",
+            "ru": "Дана: Можно прийти на пробное занятие?"
+          },
+          {
+            "order_index": 11,
+            "he": "אורי: כן, אבל צריך להירשם מראש.",
+            "ru": "Ури: Да, но нужно записаться заранее."
+          },
+          {
+            "order_index": 12,
+            "he": "דנה: איך נרשמים?",
+            "ru": "Дана: Как записаться?"
+          },
+          {
+            "order_index": 13,
+            "he": "אורי: ממלאים טופס קצר באתר.",
+            "ru": "Ури: Нужно заполнить короткую форму на сайте."
+          },
+          {
+            "order_index": 14,
+            "he": "דנה: מה לומדים בשיעור הראשון?",
+            "ru": "Дана: Что изучают на первом занятии?"
+          },
+          {
+            "order_index": 15,
+            "he": "אורי: לומדים על אור ועל מסגרת התמונה.",
+            "ru": "Ури: Изучают свет и композицию кадра."
+          },
+          {
+            "order_index": 16,
+            "he": "דנה: האם יוצאים גם לצלם בחוץ?",
+            "ru": "Дана: Вы также выходите фотографировать на улицу?"
+          },
+          {
+            "order_index": 17,
+            "he": "אורי: פעם בחודש יוצאים לפארק הקרוב.",
+            "ru": "Ури: Раз в месяц выходим в ближайший парк."
+          },
+          {
+            "order_index": 18,
+            "he": "דנה: נשמע מעניין מאוד.",
+            "ru": "Дана: Звучит очень интересно."
+          },
+          {
+            "order_index": 19,
+            "he": "אורי: בשבוע הבא נפתחת קבוצה חדשה.",
+            "ru": "Ури: На следующей неделе открывается новая группа."
+          },
+          {
+            "order_index": 20,
+            "he": "דנה: מצוין, אירשם היום.",
+            "ru": "Дана: Отлично, я запишусь сегодня."
+          },
+          {
+            "order_index": 21,
+            "he": "אורי: אל תשכחי להביא כרטיס תלמיד.",
+            "ru": "Ури: Не забудь принести ученический билет."
+          },
+          {
+            "order_index": 22,
+            "he": "דנה: תודה על העזרה.",
+            "ru": "Дана: Спасибо за помощь."
+          },
+          {
+            "order_index": 23,
+            "he": "אורי: בשמחה, נתראה בחוג.",
+            "ru": "Ури: Пожалуйста, увидимся на кружке."
+          }
+        ]
+      }
+    ]
+  },
+  "deterministic_facts": {
+    "vocabulary_candidates": [],
+    "selected_construct": null,
+    "excluded_ambiguous_morphology": [],
+    "rule": "Only asserted facts below may be explained as Hebrew facts."
+  },
+  "request": {
+    "explanationLanguage": "ru",
+    "approximateLevel": "A2",
+    "durationMinutes": 10,
+    "focuses": [
+      "reading",
+      "dialogue"
+    ],
+    "goal": "Понять ситуацию и разыграть достижимый диалог",
+    "resolvedMode": "single"
+  },
+  "attempts": [
+    {
+      "stage": "first",
+      "outcome": "accepted",
+      "validation_codes": [],
+      "schema_mode": "provider_json_schema",
+      "latency_ms": 1779,
+      "latency_bucket_ms": "0-2s",
+      "output_size_bytes": 2622,
+      "output_size_bucket": "small",
+      "estimated_input_tokens": 2441,
+      "measured_output_tokens": 456,
+      "estimated_cost_usd": 0.001294,
+      "conservative_cost_bound_usd": 0.004059,
+      "error_code": null
+    }
+  ],
+  "lesson": {
+    "objective": "Понять детали записи в фотокружок и научиться вести диалог о расписании, ценах и условиях участия в кружке.",
+    "sections": [
+      {
+        "title": "Запись в фотокружок",
+        "body": "Дана узнает у Ури подробности о работе фотокружка. Занятия проходят по вторникам с пяти до половины седьмого. Участникам не нужно приносить свою камеру, так как можно использовать технику центра. Стоимость составляет 120 шекелей в месяц, но школьники со студенческим билетом платят 100 шекелей. Для пробного занятия требуется предварительная регистрация через сайт.",
+        "source_ids": [
+          "synthetic:dialogue_a2_synthetic"
+        ],
+        "anchor_ids": [
+          "synthetic:dialogue_a2_synthetic-anchor-1"
+        ]
+      }
+    ],
+    "exercises": [
+      {
+        "type": "source_reading",
+        "purpose": "Проверить понимание текста",
+        "instruction": "Прочитайте диалог и ответьте на вопрос: в какое время заканчивается занятие в фотокружке?",
+        "source_ids": [
+          "synthetic:dialogue_a2_synthetic"
+        ],
+        "anchor_ids": [
+          "synthetic:dialogue_a2_synthetic-anchor-1"
+        ],
+        "expected_answer": "В половине седьмого (שש וחצי).",
+        "hints": [
+          "Обратите внимание на третью реплику Ури."
+        ],
+        "success_criteria": [
+          "Правильно указано время окончания занятия."
+        ]
+      },
+      {
+        "type": "dialogue",
+        "purpose": "Практика участия в диалоге",
+        "instruction": "Разыграйте ситуацию: вы хотите записаться на кружок. Спросите о цене для школьника и как нужно регистрироваться, основываясь на данных из диалога.",
+        "source_ids": [
+          "synthetic:dialogue_a2_synthetic"
+        ],
+        "anchor_ids": [
+          "synthetic:dialogue_a2_synthetic-anchor-1"
+        ],
+        "expected_answer": "Для школьника цена 100 шекелей, регистрироваться нужно через сайт.",
+        "hints": [
+          "Используйте слова 'מחיר' (цена) и 'אתר' (сайт)."
+        ],
+        "success_criteria": [
+          "Задан вопрос о цене",
+          "Задан вопрос о способе регистрации",
+          "Использованы корректные факты из текста"
+        ]
+      }
+    ]
+  },
+  "delivery": {
+    "tier": "premium_draft",
+    "reason": null
+  },
+  "shadow_evaluation": {
+    "status": "NOT_RUN_DISABLED"
+  }
+}

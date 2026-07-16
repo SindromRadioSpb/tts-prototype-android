@@ -1,0 +1,61 @@
+{
+  "schema_version": "lesson-quality-run-manifest-v1",
+  "status": "UNSCORED",
+  "source_commit": "411b6e472985be4ae9b54f9cc957d9bd2976ccf2",
+  "package_version": "3.11.182",
+  "policy_version": "lesson-builder-lb1-v2",
+  "case_set_version": "lesson-quality-hebrew-gold-lb2-v1",
+  "rubric_version": "lesson-quality-hebrew-gold-lb2-rubric-v1",
+  "config_hash": "530b7054bdb214efcc764d8707f8928cabcf43bb57ab13ee845d030370a99fbd",
+  "generation_command": "node scripts/premium/lesson-quality-lb2b.js --config docs/research/lesson-quality/2026-07-16/lb2b-run-config-flash-lite-free.json --out docs/research/lesson-quality/2026-07-16/lb2b-flash-lite-free-run",
+  "started_at": "2026-07-16T01:52:44.487Z",
+  "completed_at": "2026-07-16T01:55:23.166Z",
+  "artifact_directory": "docs/research/lesson-quality/2026-07-16/lb2b-flash-lite-free-run",
+  "composer_cells": [
+    {
+      "id": "gemini_direct_3_1_flash_lite_free",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "schema_mode": "provider_json_schema_plus_post_validation",
+      "price_input_per_million": 0.25,
+      "price_output_per_million": 1.5,
+      "price_source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "key_env_present": true
+    }
+  ],
+  "prompt_variants": [
+    {
+      "id": "lb2a_contract_v1",
+      "hash": "bff82848f49581296abc2c50cde2c8206874591907aafb32da62e64e758fc03e"
+    },
+    {
+      "id": "instruction_engineered_v1",
+      "hash": "1169aeccfceb6e320937ee397891a0c254b6996e808d633d06ad398b14313531"
+    }
+  ],
+  "provider_preflight": [
+    {
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "schema_mode": "provider_json_schema",
+      "latency_ms": 709,
+      "output_size_bytes": 16,
+      "estimated_cost_usd": 0.000019,
+      "conservative_cost_bound_usd": 0.000912
+    }
+  ],
+  "budget_usd": 5,
+  "rate_policy": {
+    "request_spacing_ms": 5200,
+    "max_provider_calls": 60
+  },
+  "observed_non_thought_cost_estimate_usd": 0.048921,
+  "conservative_cost_bound_usd": 0.132846,
+  "human_review_status": "UNSCORED",
+  "reviewer_count": 1,
+  "adjudicator_count": 1,
+  "shadow_critic_enabled_offline_only": false,
+  "promotion_result": "UNSCORED_NO_DECISION",
+  "content_free_operational_metrics_only": true,
+  "raw_candidates_content_policy": "synthetic_or_public_domain_only"
+}

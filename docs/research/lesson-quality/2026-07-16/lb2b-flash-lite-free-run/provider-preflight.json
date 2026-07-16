@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "models": [
+    {
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "schema_mode": "provider_json_schema",
+      "latency_ms": 709,
+      "output_size_bytes": 16,
+      "estimated_cost_usd": 0.000019,
+      "conservative_cost_bound_usd": 0.000912
+    }
+  ]
+}
