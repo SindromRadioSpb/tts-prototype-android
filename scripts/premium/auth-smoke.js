@@ -191,8 +191,15 @@ async function api(base, method, p, { cookie, csrf, headers, body } = {}) {
     // сторонам) + динамический zero-rows по ВСЕМ таблицам, не по фиксированной четвёрке.
     const tRows = await all("SELECT name FROM sqlite_master WHERE type='table'");
     const userTables = [];
+    const erasureJournalExemptions = new Set([
+      "deletion_journal",
+      "memory_erasure_journal",
+      "f2_erasure_journal",
+      "agent_access_erasure_journal",
+      "sqlite_sequence",
+    ]);
     for (const { name } of tRows) {
-      if (name === "deletion_journal" || name === "sqlite_sequence") continue;
+      if (erasureJournalExemptions.has(name)) continue;
       const cols = await all(`PRAGMA table_info(${JSON.stringify(name)})`);
       if (cols.some((c) => c.name === "user_id")) userTables.push(name);
     }
