@@ -1,6 +1,7 @@
 {
-  "status": "S3_T_S3_L_GREEN_DEFAULT_OFF_DEPLOY_PENDING",
+  "status": "ENGINEERING_COMPLETE_LIVE_EVIDENCE_DEFERRED",
   "baseline_commit": "2c367764cba1020f0f9cca1aade617d9c0f11962",
+  "implementation_commit": "34a0c2e",
   "package_version": "3.11.184",
   "synthetic": {
     "logical_runs_total": 10000,
@@ -35,6 +36,16 @@
     "old_backup_erasure_replay": true,
     "restored_cp0_rows_removed": true,
     "other_user_preserved": true
+  },
+  "default_off_deployment": {
+    "verified": true,
+    "health_ok": true,
+    "db_ready": true,
+    "migrations_ready": true,
+    "uptime_reset_observed": true,
+    "cp0_enabled_by_change": false,
+    "disk_percent_after_automatic_cleanup": 81,
+    "disk_warning_pre_existing": true
   },
   "known_non_cp0_gate": {
     "command": "npm test",

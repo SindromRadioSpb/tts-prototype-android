@@ -1,7 +1,7 @@
 # LinguistPro Wave 2 — S3 CP0 Observe-Only decision packet
 
 **Date:** 2026-07-16
-**Status:** `DESIGN_APPROVED`; S3 design direction A/A/A/A/A/A/A/A/A is canonical. Documentation and execution-contract design only; operational evidence remains absent.
+**Status:** `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`; S3 design A/A/A/A/A/A/A/A/A and execution A/A/A/A/A/A/A/A/A are implemented in `34a0c2e`. CP0 is deployed default-off; S3-O evidence remains absent, so this is not `OPERATIONALLY_COMPLETE`.
 **Authority:** S3 design only. No production observer, tracing table, migration, runtime hook, schema registry, API/UI/config, provider, deployment, enforcement, background job, durable memory or material ingestion is authorized.
 **Owner approval:** 2026-07-16 — Decisions 1–9: A/A/A/A/A/A/A/A/A. This closes the S3 design decision only. It does not authorize CP0 implementation/deployment and does not mark S3 `OPERATIONALLY_COMPLETE`; §20 remains the binding execution and evidence gate.
 **Repository baseline:** `main` / `3e8a780`; package `3.11.183`; `origin/main` aligned after the owner-approved S2 push.

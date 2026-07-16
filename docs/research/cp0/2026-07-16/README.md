@@ -1,8 +1,8 @@
 # S3 CP0 engineering evidence — 2026-07-16
 
-**Artifact status:** S3-T and S3-L green; default-off deployment pending at artifact creation. This is engineering evidence, not owner-live evidence and not `OPERATIONALLY_COMPLETE`.
+**Artifact status:** `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`. S3-T, S3-L and default-off production deployment are green. This is not owner-live evidence and not `OPERATIONALLY_COMPLETE`.
 **Source baseline:** `2c367764cba1020f0f9cca1aade617d9c0f11962`.
-**Implementation version:** `3.11.184`; final implementation commit is the commit that contains this directory.
+**Implementation version:** `3.11.184`; implementation commit `34a0c2e`.
 **Raw vs scored:** `metrics.json` is a bounded scored summary copied from witnessed command output. Disposable SQLite files and verbose smoke logs were created under OS temp directories and are not user artifacts.
 **Commands:** `npm run smoke:cp0`, `npm run smoke:cp0:load`, plus the existing product smoke matrix listed below.
 
@@ -16,6 +16,7 @@
 - Route p95 changed from 5.045 ms to 5.248 ms on the declared 5 ms deterministic fixture: +4.02%, below the 5% instrumentation budget.
 - Queue wait p95/p99 were 37/52 ms; flush p95/p99 were 12/27 ms; the inherited p95 <50 ms and p99 <250 ms gates passed.
 - The first load attempts caught and caused fixes for a concurrent-flush queue accumulation bug and excessive queue wait under a CPU-blocking fixture. Failed attempts are retained here as lessons, not silently discarded.
+- Production deployment was witnessed through a fresh uptime reset with `ok=true`, `db.ready=true` and `migrations.ready=true`. CP0 configuration was not enabled. Disk usage temporarily rose during build and returned to the pre-existing 81% warning level after automatic cleanup; this remains ops debt, not a green disk claim.
 
 ## Hook matrix
 
