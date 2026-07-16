@@ -2,13 +2,13 @@
 
 **Date:** 2026-07-17
 
-**Status:** `OWNER_APPROVED / AA2-A AUTHORIZED / AA2-B-C GATED`.
+**Status:** `AA2-A ENGINEERING_COMPLETE / LIVE_RUNTIME_ABSENT / AA2-B-C GATED`.
 
 **Authority:** this packet authorizes only AA2-A: default-off closed contracts, capability registry, a transport-neutral Agent Access domain service, content-safe scenario registration and fixture/smoke validation. It does not authorize an OAuth authorization/resource endpoint, MCP endpoint/adapter/client, credential/token/client registration, connection persistence, migration, SDK dependency, UI/config/env change, provider call, live external connection, real private-data read, CP0 live window, AA3 action or public launch.
 
 **Owner approval:** 2026-07-17 — start implementation after the approved AA0/AA1/AA2 documentation commit is pushed. The narrow AA2-R0 surface is a safe first increment, not the long-term product ceiling.
 
-**Repository baseline:** committed `main` / `ed3cf11`; package `3.11.189`; F2 `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`, deployed default-off.
+**Implementation baseline:** approved documentation commit `2cbc2fa`; implementation package checkpoint `3.11.190`; F2 `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`, deployed default-off.
 
 **Canonical parents:**
 
@@ -224,3 +224,24 @@ The next separate packet is **AA2-B OAuth persistence and authorization-server e
 **Before:** AA1 defines a secure, extensible Agent Access contract, but nothing executable enforces its tool/principal boundary.
 
 **After AA2-A:** a default-off, network-free, transport-neutral service can execute five closed fixture capabilities through injected handlers and reject cross-scope/oversized/poisoned calls. No OAuth server, MCP endpoint, Hermes connection or private-data access exists.
+
+## 15. Engineering evidence — 2026-07-17
+
+Implemented exactly the additive AA2-A slice:
+
+- five closed capability contracts and immutable scope/purpose/scenario registry;
+- trusted-principal, owner-allowlist, status/expiry/scope/purpose and connection-binding checks;
+- injected fixture-only handlers with closed output validation and content-safe error envelopes;
+- five `external_agent` CP0 scenario registrations; observer remains default-off and no AA2 runtime hook exists;
+- no route, migration, database/repository/provider import, dependency, OAuth/MCP token/client or Hermes mutation.
+
+Gate results:
+
+| Gate | Result |
+|---|---|
+| `npm run smoke:agent-access` | **PASS** — 20 checks, 5 capabilities, 0 network calls, 0 provider calls, 0 live-data reads |
+| `npm run smoke:cp0` | **PASS** — observer/integration/parity/lifecycle/restore/process-failure; 40 registered scenarios, prior 35 expected scenarios preserved |
+| `npm run test:api-smoke` | **PASS** — server/auth/owner-token/Mini App default-off regression green |
+| `npm test` | **BASELINE DEBT, not AA2-A failure** — 269/278 pass; one stale classic-mode DOM expectation for `btnTableCustomizeToggle`, plus eight premium translation-pipeline tests requiring an absent GCP BYOK key |
+
+No failing full-suite test imports or exercises `agent/access/*`. AA2-A's required focused gates are green. The unrelated nine-test baseline is recorded rather than repaired outside this authority.

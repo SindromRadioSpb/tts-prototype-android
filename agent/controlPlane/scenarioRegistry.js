@@ -40,6 +40,11 @@ const SCENARIOS = Object.freeze({
   "evidence.handoff_preview": { role: "evidence.reducer.shadow", surfaces: ["pwa"], capabilities: ["repo:evidence_query"] },
   "evidence.export": { role: "evidence.manager", surfaces: ["pwa"], capabilities: ["repo:evidence_export"] },
   "evidence.delete": { role: "evidence.manager", surfaces: ["pwa"], capabilities: ["repo:evidence_delete"] },
+  "agent_access.learning_brief": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:bounded_aggregate_read"] },
+  "agent_access.review_summary": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:bounded_aggregate_read"] },
+  "agent_access.public_reading_search": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:public_corpus_read"] },
+  "agent_access.explanation_metadata": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:explanation_metadata_read"] },
+  "agent_access.connection_read": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:connection_self_read"] },
 });
 
 function get(id) { return SCENARIOS[String(id)] || null; }
