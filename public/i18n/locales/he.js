@@ -2174,6 +2174,7 @@ window.I18N_LOCALES.he = {
         edit: "לערוך", saveEdit: "לשמור תיקון", stopUse: "להפסיק להשתמש", useAgain: "להשתמש שוב", resolve: "הושלם", delete: "למחוק", export: "ייצוא הזיכרון", deleteAll: "מחיקת כל הזיכרון",
         confirmDelete: "אישור מחיקה", confirmExact: "יש להקליד DELETE MEMORY בדיוק", saveFailed: "לא ניתן לשמור", actionFailed: "הפעולה נכשלה",
         later: "להמשיך מאוחר יותר", savedLater: "נשמר להמשך", enableFirst: "יש להפעיל תחילה זיכרון וחוטים לא גמורים", planLabel: "לחזור לתוכנית הזאת", explanationLabel: "לחזור להסבר הזה",
+        statusAnnulled: "לא מתאים · אינו בשימוש", statusExpired: "פג תוקף · אינו בשימוש", statusResolved: "הושלם",
         goal: { read_more:"לקרוא יותר", review_regularly:"לחזור בקביעות", improve_vocabulary:"להרחיב אוצר מילים", improve_writing:"לשפר כתיבה", improve_speaking:"לשפר דיבור", custom:"מטרה אישית" },
       },
       // PAS-F1 — מפתח LLM משלך (הרחבת BYOK)

@@ -2178,6 +2178,7 @@ window.I18N_LOCALES.ru = {
         edit: "Изменить", saveEdit: "Сохранить правку", stopUse: "Не использовать", useAgain: "Использовать снова", resolve: "Завершено", delete: "Удалить", export: "Экспорт памяти", deleteAll: "Удалить всю память",
         confirmDelete: "Подтвердить удаление", confirmExact: "Введите DELETE MEMORY точно", saveFailed: "Не удалось сохранить", actionFailed: "Действие не выполнено",
         later: "Продолжить позже", savedLater: "Сохранено на потом", enableFirst: "Сначала включите память и незавершённые нити", planLabel: "Вернуться к этому плану", explanationLabel: "Вернуться к этому объяснению",
+        statusAnnulled: "Не подходит · не используется", statusExpired: "Срок истёк · не используется", statusResolved: "Завершено",
         goal: { read_more:"Больше читать", review_regularly:"Повторять регулярно", improve_vocabulary:"Расширить словарь", improve_writing:"Улучшить письмо", improve_speaking:"Улучшить речь", custom:"Своя цель" },
       },
       // PAS-F1 — свой LLM-ключ (BYOK-расширение гибрида)
