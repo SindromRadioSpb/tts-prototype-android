@@ -6,7 +6,8 @@
 **Owner approval:** 2026-07-16 — Decisions 1–10: A/A/A/A/A/A/A/A/A/A. This approval adds the parallel AA roadmap track and authorizes its documentation gates only; it does not authorize AA0 execution, Hermes configuration, AA2 implementation or any external data connection.
 **Repository baseline:** `main` / `60e98dc`; package `3.11.183`; `origin/main` aligned after the owner-approved S3 design push.
 **Current foundation:** S0, S1 and S2 are owner-approved; S3 is `DESIGN_APPROVED`, not `OPERATIONALLY_COMPLETE`. CP0 implementation/evidence remains separately gated.
-**Execution-order decision:** for one primary implementer, the default critical path is S3 engineering implementation/zero-real-provider synthetic evidence/default-off deployment → F1 correctable continuity. The unavailable S3 seven-day owner-live window is deferred and later remediated without blocking F1, but AA2 runtime access remains gated on completed S3 live evidence. AA0 personal evidence and AA1 design may proceed in parallel under separate authority.
+**Execution-order decision:** for one primary implementer, the default critical path is S3 engineering implementation/zero-real-provider synthetic/default-off deployment → F1 correctable continuity → AA2 read-only runtime/MCP engineering → AA3 propose-first engineering → AA4-required S7 capabilities → AA4 product engineering. Unavailable live windows are deferred/remediated and gate activation/promotion, not default-off engineering. AA0 packaging/evidence and AA1 design proceed in parallel under separate authority.
+**Owner implementation amendment:** 2026-07-16 — the complete AA0→AA4 engineering chain is an intended product direction and must not be blocked by currently unavailable owner-live windows. S3 `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED` may unblock AA2 default-off engineering after AA1; AA0 and each AA live-evidence window are non-blocking evidence debts. Live connection/promotion remains separately gated, and AA4 public enablement still requires S7 plus resolved critical deferred findings.
 **Question:** should the owner use LinguistPro with a personal Hermes agent, and should LinguistPro expose a vendor-neutral agent-access surface with Hermes as the first reference client?
 
 ## 1. Revised verdict
@@ -442,34 +443,60 @@ Use vendor-neutral names; Hermes is the first compatibility target.
 - a structured diary: task, time saved, mistaken claims, unwanted reminders, privacy/cost friction;
 - no secrets, scraping, browser-cookie export or canonical action.
 
-Exit: at least 14 days and 20 real uses; owner judges whether cross-app coordination adds value beyond existing Telegram/Mentor Home.
+Engineering exit: reviewed no-secret skill/deep-link package, duplicate-notification policy and diary contract. The 14-day/20-use usability window becomes `LIVE_EVIDENCE_DEFERRED`: it informs prioritization and remediation but does not block AA1 or AA2 engineering.
 
 ### AA1 — Agent Access contract and OAuth/security design
 
-Docs/schema/threat-model work may run in parallel with S3 execution planning. It does not change runtime and does not pre-empt F1.
+Docs/schema/threat-model work may run in parallel with S3/F1. It does not change runtime.
 
 Exit: exact tools/scopes/output schemas, authorization-server decision, consent copy, connection lifecycle, CP0 mapping, load/deletion/support gates.
 
 ### AA2 — owner-only read-only MCP reference implementation
 
-Starts only after:
+Default-off engineering starts after:
 
-- S3 is `OPERATIONALLY_COMPLETE` for existing scenarios;
+- S3 is at least `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED` for existing scenarios;
 - separate implementation/migration/deploy authority;
-- OAuth/resource-server design and security review;
-- Agent Access scenarios are added to CP0 observation before owner live use.
+- approved AA1 OAuth/resource-server/tool/schema/threat-model contract;
+- Agent Access scenarios are added to CP0 before any live enablement;
+- fixture/loopback OAuth and MCP clients can prove behavior without external user data or real provider spend.
 
 Tools: learning brief, due summary, public search, explanation metadata and app handoff. Hermes is the first tested client; at least one second MCP client must pass contract tests before claiming vendor neutrality.
 
-S3 `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED` is sufficient for F1, not AA2 runtime access. Completed S3 owner-live evidence remains AA2's minimum technical dependency because Agent Access adds a new external principal/surface. Later S3-O findings must be remediated and relevant gates rerun before AA2 starts. With one primary implementer, F1 remains first regardless.
+AA2 may be implemented, migrated and deployed default-off without completed S3-O. It may not accept a live Hermes/other external connection until an AA2 launch packet proves OAuth subject/audience/scope/connection binding, consent, tenant isolation, CP0 coverage, rollback and downstream-retention copy. Later S3-O findings are remediated against AA2 before its live promotion; critical authority/privacy/canonical-write findings keep the AA2 live switch off but do not erase already-green unrelated engineering.
 
 ### AA3 — propose-first in-app intents
 
-Add lesson-intent handoff and later other reversible proposals. No durable lesson or managed model spend from the external call.
+Add lesson-intent handoff and later other reversible proposals after AA2 engineering gates. AA3 may also reach `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED` behind default-off flags using contract/loopback clients. No durable lesson or managed model spend from the external call. Live mutation-like intent issuance remains separately gated and user-confirmed in LinguistPro.
 
 ### AA4 — connected agents product
 
-Public/premium access waits for S7 tenancy/FinOps/audit/support ownership, external-agent abuse tests, consent UX, quotas, incident response and a measured AA2/AA3 owner pilot. Public OAuth client registration and support are product work, not a protocol toggle.
+The AA4 public/premium product may be engineered after AA2/AA3 engineering completion and the required S7 tenancy/FinOps/audit/support contracts and implementation. This includes connection management, consent UX, quotas, audit, revoke, incident/support paths and client registration behind default-off/allowlisted gates. Public enablement still waits for S7 operational readiness, external-agent abuse tests and resolution of critical deferred S3/AA2/AA3 findings. A measured owner pilot is desirable evidence, not a reason to freeze engineering when it is unavailable.
+
+### 15.1 Engineering and promotion state model
+
+Every AA stage uses the same non-conflating status ladder:
+
+| Status | Meaning | May unblock |
+|---|---|---|
+| `CONTRACT_APPROVED` | Exact scope, schemas, threats, tests and rollback accepted | That stage's implementation packet |
+| `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED` | CI/fixture/load/lifecycle green and runtime deployed default-off; unavailable real-use evidence recorded as debt | Next default-off engineering stage |
+| `LIVE_READY` | Exact owner/allowlisted launch gate, credentials/scopes/consent/rollback and critical remediation green | Bounded live enablement only |
+| `PUBLIC_READY` | S7 operational controls, public abuse/support/incident gates and required evidence green | Staged public cohort after separate owner approval |
+
+Engineering completion never self-promotes a switch. Conversely, lack of a currently feasible live window does not force the codebase to stop evolving.
+
+### 15.2 Full AA dependency chain
+
+| Stage | Engineering entry | Engineering exit | Live/public dependency |
+|---|---|---|---|
+| AA0 | Exact local Hermes host/profile/channel and reviewed no-secret package | Skill/deep links/notification policy/diary ready | 14-day/20-use evidence deferred if unavailable |
+| AA1 | Agent Access direction approved | OAuth topology, scopes, tools, schemas, consent, lifecycle, threat/load/support contract approved | None; documentation stage |
+| AA2 | S3 engineering-complete + AA1 contract + separate execution authority | Read-only Agent Access Service + thin MCP adapter + OAuth/resource boundary + CP0 tests deployed default-off | Exact owner connection and live evidence separately gated |
+| AA3 | AA2 engineering gates green | Reversible intent/handoff tools, idempotency/audit/user-confirmation tests deployed default-off | Live intents separately gated; no silent publication |
+| AA4 | AA2/AA3 engineering green + AA4-required S7 capabilities and any proven prerequisite slices | Connected-agent management, quotas, audit, revoke, consent UX, support/incident controls deployed default-off | Public enablement needs `PUBLIC_READY` and explicit cohort approval |
+
+No stage may use deferred evidence to weaken schemas, tenant boundaries, deterministic truth or rollback. Deferred findings are attached to the first affected stage and must be closed before that stage's live/public promotion.
 
 ## 16. Effect on the current development direction
 
@@ -484,18 +511,23 @@ S3 execution authorization
   → healthy default-off deploy
   → S3 ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED
   → F1 correctable continuity design / implementation / evidence
+  → AA2 read-only Agent Access engineering / default-off deploy
+  → AA3 propose-first engineering / default-off deploy
+  → AA4-required S7 tenancy/FinOps/ops engineering
+     (plus only those S4–S6 prerequisites proven necessary by the S7 contract)
+  → AA4 connected-agents product engineering / default-off deploy
 
-parallel non-critical path:
-AA0 personal no-secret experiment
-AA1 Agent Access / OAuth / tool-schema / threat-model documentation
-deferred S3-O seven-day owner-live → remediation/re-run → S3 OPERATIONALLY_COMPLETE
+parallel evidence/design path:
+AA0 no-secret package + deferred 14-day/20-use evidence
+AA1 Agent Access / OAuth / tool-schema / threat-model contract
+deferred S3-O and AA owner-live windows → remediation/re-run
 
 dependency note:
-AA2 runtime implementation remains ineligible until deferred S3-O evidence closes,
-and stays after F1 by default when one implementer owns both tracks
+S3/AA live evidence gates live enablement and promotion, not default-off engineering;
+AA2 stays after F1 by scheduling default, not by technical prohibition
 
-after evidence/S7:
-AA3 bounded intents → AA4 public connected agents
+public promotion:
+S7 operational readiness + critical deferred findings resolved → staged AA4 enablement
 ```
 
 Why F1 remains ahead of public Agent Access:
@@ -505,7 +537,7 @@ Why F1 remains ahead of public Agent Access:
 - public agent auth/support/privacy adds platform burden before learning value is proven;
 - owner AA0 can validate orchestration demand without delaying the core.
 
-The roadmap should therefore gain an **AA track**, not replace the S/F tracks.
+The roadmap therefore carries the **entire AA engineering track**, while keeping engineering completion distinct from live readiness and public promotion.
 
 ## 17. R1–R17 adversarial critique
 
@@ -591,7 +623,7 @@ The strategic opportunity is real because the external-interoperability boundary
 
 ### Decision 10 — roadmap placement
 
-- **A — add AA0/AA1 in parallel; use S3 engineering-complete/deferred-live → F1 on the critical path; complete/remediate S3-O before AA2 runtime; public AA4 waits for S7 (recommended).**
+- **A — implement the full AA0→AA4 engineering chain behind staged default-off gates; S3/AA live evidence is deferrable for engineering but mandatory before corresponding live/public promotion; AA4 enablement waits for S7 (recommended).**
 - **B — make Agent Access the next critical-path implementation:** delays core continuity for platform work.
 - **C — wait until after all S4–S7 even for docs/personal experiment:** misses low-risk evidence now.
 
@@ -608,7 +640,7 @@ Approve **A/A/A/A/A/A/A/A/A/A**:
 7. Use lesson-intent handoff, not durable remote drafts.
 8. Do not let Hermes bypass LinguistPro notification fatigue/claim policy.
 9. Treat each connected agent as a separate external data recipient.
-10. Add a parallel AA track; keep S3 engineering evidence then F1 on the single-owner critical path, while deferred S3-O evidence/remediation remains mandatory before AA2 runtime.
+10. Implement the full AA0→AA4 engineering track after its sequential contracts/gates; deferred live evidence does not block code/default-off deployment, but critical findings must be remediated before live/public promotion.
 
 ## 20. Exact next gates
 
@@ -617,8 +649,8 @@ Approve **A/A/A/A/A/A/A/A/A/A**:
 Approval of this packet permits only:
 
 - recording the AA roadmap direction in planning canon;
-- preparing a separate AA0 personal-experiment execution prompt;
-- preparing AA1 OAuth/tool/schema/threat-model documents;
+- preparing sequential AA0/AA1/AA2/AA3/AA4 execution packets;
+- beginning AA1 OAuth/tool/schema/threat-model documentation under its docs-only boundary;
 - no live connection, credential, skill install, API or code.
 
 ### 20.2 Before AA0 execution
@@ -626,29 +658,43 @@ Approval of this packet permits only:
 - owner approves the exact Hermes host/profile/channel;
 - no-secret skill contents and deep-link allowlist are reviewed;
 - duplicate LinguistPro/Hermes notification policy is selected;
-- diary fields, 14-day/20-use evidence and stop conditions are locked;
+- diary fields, deferred 14-day/20-use evidence and stop conditions are locked;
 - Hermes session retention/prune choice is explicit.
 
-### 20.3 Before AA2 implementation
+### 20.3 Before AA2 default-off implementation
 
-- S3 is `OPERATIONALLY_COMPLETE`;
+- S3 is at least `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`;
 - exact Agent Access schemas/scopes/consent copy and OAuth topology are approved;
 - migration/export/delete/restore/rate/abuse/support design is approved;
-- CP0 accepts new external-agent scenarios in shadow;
-- owner-only flag/allowlist/rollback and second-client contract test are specified;
+- CP0 mapping for new external-agent scenarios is specified and implemented before live enablement;
+- global default-off flag/allowlist/rollback and fixture/loopback second-client contract test are specified;
 - separate implementation and deployment authority is granted.
+
+### 20.4 Before AA2 or AA3 live enablement
+
+- separate owner launch approval names the exact client/profile/scopes and rollback;
+- OAuth negative, tenant isolation, consent/revoke, downstream retention, rate/abuse and CP0 gates pass;
+- critical deferred S3 findings affecting Agent Access are resolved;
+- live evidence is collected when feasible and every finding enters the remediation ledger.
+
+### 20.5 Before AA4 public enablement
+
+- AA2/AA3 engineering is complete and their critical findings are resolved;
+- required S7 tenancy, quotas/FinOps, audit, purge, incident and support controls are operational;
+- public OAuth client lifecycle, consent UX, abuse tests, rollback and staged cohort gates are approved;
+- default-off engineering completion alone is never represented as public readiness.
 
 ## 21. Explicitly prohibited by this packet
 
 - No Hermes installation/configuration/skill/cron or credential mutation.
-- No MCP server, endpoint, SDK dependency or schema file.
-- No OAuth/token/client/connection table or migration.
+- No MCP server, endpoint, SDK dependency or schema file until a separately approved AA2 execution packet.
+- No OAuth/token/client/connection table or migration until that same separate authority.
 - No browser cookie/CSRF/shared-token export to Hermes.
 - No personal text/library/explanation-body egress.
 - No durable lesson draft, remote build/status or publication.
 - No external grading/review/FSRS/mastery/linguistic/consent/profile/delete write.
 - No duplicate official notification path.
-- No change to S3 operational or F1 authority.
+- No live/public Agent Access enablement merely from this roadmap amendment.
 - No commit/push before owner approval of this packet; the recorded A/A/A/A/A/A/A/A/A/A approval now permits this documentation-only commit.
 
 ## 22. Source map

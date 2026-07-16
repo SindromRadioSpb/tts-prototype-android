@@ -6,7 +6,7 @@
 **Repository baseline:** `main` / `5199d61`; package `3.11.183`; `origin/main` aligned at recon start.
 **Predecessors:** owner-approved S0 B/B/B/B/B, S1 A/A/A/A/A/A/A/A/A, S2 A/A/A/A/A/A/A/A/A and S3 design A/A/A/A/A/A/A/A/A.
 **Current state:** S3 remains `DESIGN_APPROVED`, not `OPERATIONALLY_COMPLETE`; CP0 implementation and evidence are absent.
-**Owner amendment:** 2026-07-16 — the 10,000-run synthetic gate must consume zero real external-provider/API calls, and the unavailable seven-day owner-live window is deferred rather than allowed to block F1. S3-T/S3-L plus healthy default-off deployment may earn `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`; this permits the separately approved F1 track to proceed, but not CP1, AA2 runtime access or an external cohort.
+**Owner amendment:** 2026-07-16 — the 10,000-run synthetic gate must consume zero real external-provider/API calls, and unavailable live windows are deferred rather than allowed to block downstream engineering. S3-T/S3-L plus healthy default-off deployment may earn `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`; this permits separately approved F1 and AA2 default-off engineering to proceed, but not CP1, a live external-agent connection or an external cohort.
 
 ## 1. Purpose and recommended authorization
 
@@ -21,7 +21,7 @@ This packet converts the approved S3 design into an exact implementation contrac
 
 Recommended owner resolution: **A/A/A/A/A/A/A/A/A** in §18.
 
-This packet still does not itself authorize F1, CP1, AA2, a generic event bus or raw debug capture. It defines the evidence state after which F1 may receive/consume its own separate authority without waiting for the deferred live window.
+This packet still does not itself authorize F1, CP1, AA2, a generic event bus or raw debug capture. It defines the evidence state after which F1 and then AA2 default-off engineering may receive their own separate authorities without waiting for the deferred live window.
 
 ## 2. Live-code findings that constrain implementation
 
@@ -421,11 +421,12 @@ No production backup or restore drill is authorized by initial execution approva
 | S3-O owner-live enable | **No; separate future launch approval; not an F1 blocker** | Seven consecutive eligible days ≥99.5%, zero violation/mismatch after remediation/re-run as needed |
 | `OPERATIONALLY_COMPLETE` | **No; separate evidence adjudication** | Owner reviews preserved evidence and records completion |
 | F1 | Separate authority after engineering-complete state | Does not wait for S3-O |
-| CP1/AA2 runtime/external cohort | No | Remain blocked on completed live evidence and separate authority |
+| AA2 default-off engineering | Separate AA2 authority after AA1/S3 engineering gates | Does not wait for S3-O |
+| CP1/live Agent Access/external cohort | No | Remain blocked on completed relevant live/security evidence and separate authority |
 
 A successful implementation commit alone is not even engineering completion. S3-T/S3-L evidence plus a healthy default-off deployment may establish `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`, but not `OPERATIONALLY_COMPLETE`. An owner-live interval with a drop, leak, unresolved mismatch or incomplete boot triggers a corrective slice and restarts the eligible window after correction.
 
-Deferred live findings are binding engineering debt, not optional feedback. A future S3-O evidence packet must list every finding, severity, affected downstream epic and disposition. Any fix reruns the relevant scenario parity, sentinel, lifecycle and load subsets; a foundational authority/privacy/canonical-write finding blocks CP1/AA2 and pauses the affected downstream rollout until corrected. Previously completed F1 work is regression-tested against the fix but is not automatically discarded when the finding is unrelated.
+Deferred live findings are binding engineering debt, not optional feedback. A future S3-O evidence packet must list every finding, severity, affected downstream epic and disposition. Any fix reruns the relevant scenario parity, sentinel, lifecycle and load subsets; a foundational authority/privacy/canonical-write finding blocks CP1 and AA2 live promotion and pauses the affected downstream rollout until corrected. Previously completed F1/AA engineering is regression-tested against the fix but is not automatically discarded when the finding is unrelated.
 
 ## 15. R1–R17 pre-code adversarial critique
 
@@ -533,13 +534,13 @@ Stop implementation and return to the owner if:
 
 ### Decision 9 — completion, remediation and next track
 
-- **A — S3-T/S3-L + default-off health permit `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED` and F1 next; later S3-O findings require tracked remediation/relevant gate reruns before final completion or CP1/AA2 (recommended).**
+- **A — S3-T/S3-L + default-off health permit `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`, F1 and later separately approved AA2 default-off engineering; S3-O findings require tracked remediation/relevant gate reruns before final completion or live promotion (recommended).**
 - **B — green CI/synthetic evidence marks full `OPERATIONALLY_COMPLETE`:** erases the deferred live-evidence distinction.
 - **C — successful CP0 automatically starts CP1/AA2:** observation cannot self-authorize new authority.
 
 ## 19. Recommended owner resolution
 
-Approve **S3 execution A/A/A/A/A/A/A/A/A**. This authorizes implementation, local/CI/synthetic evidence and default-off deployment only. The 10,000-run gate must make zero real external API calls. Green S3-T/S3-L plus deployment health establish `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`, making F1 the next separately authorized implementation without waiting seven days. It does not authorize the production flag/environment change, owner-live observation, full `OPERATIONALLY_COMPLETE`, CP1, F1 by itself or Agent Access implementation.
+Approve **S3 execution A/A/A/A/A/A/A/A/A**. This authorizes implementation, local/CI/synthetic evidence and default-off deployment only. The 10,000-run gate must make zero real external API calls. Green S3-T/S3-L plus deployment health establish `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`, making F1 and subsequently AA2 default-off engineering eligible for their own approvals without waiting seven days. It does not authorize the production flag/environment change, owner-live observation, full `OPERATIONALLY_COMPLETE`, CP1, F1 or Agent Access implementation by itself.
 
 After approval, the next executable work is S3-T/S3-L. After those gates pass, the agent returns with engineering evidence and the F1 gate. The S3-O launch request is deferred until the owner can provide a seven-day window; its eventual findings must be remediated and relevant gates rerun before final S3 completion or dependent promotion.
 

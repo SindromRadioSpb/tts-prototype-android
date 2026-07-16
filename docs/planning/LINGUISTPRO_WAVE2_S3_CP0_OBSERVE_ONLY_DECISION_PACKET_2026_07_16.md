@@ -8,7 +8,7 @@
 **Predecessors:** owner-approved S0 B/B/B/B/B, S1 A/A/A/A/A/A/A/A/A and S2 A/A/A/A/A/A/A/A/A.
 **S3 exit gate inherited from Wave 2:** existing scenarios are frozen and traced through a CP0 shadow envelope with no behavior change or new authority. Design approval alone does not satisfy the operational evidence gate.
 
-> **Owner execution amendment — 2026-07-16:** the 10,000-run synthetic layer must use deterministic/local provider doubles with hard outbound-network denial and exactly zero real API/provider calls. Because a seven-day owner-live window is not currently available, S3-T/S3-L plus healthy default-off deployment may be recorded as `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED` and F1 may proceed under separate authority. This does not equal `OPERATIONALLY_COMPLETE` and does not unblock CP1, AA2 runtime access or an external cohort. When S3-O later becomes feasible, findings are mandatory remediation debt: fix, rerun affected gates and restart the eligible seven-day window where required.
+> **Owner execution amendment — 2026-07-16:** the 10,000-run synthetic layer must use deterministic/local provider doubles with hard outbound-network denial and exactly zero real API/provider calls. Because a seven-day owner-live window is not currently available, S3-T/S3-L plus healthy default-off deployment may be recorded as `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`; F1 and later AA2 default-off engineering may proceed under their own authorities. This does not equal `OPERATIONALLY_COMPLETE` and does not unblock CP1, a live external-agent connection or an external cohort. When S3-O later becomes feasible, findings are mandatory remediation debt: fix, rerun affected gates and restart the eligible seven-day window where required.
 
 ## 1. Executive recommendation
 
@@ -35,7 +35,7 @@ The recommendation is deliberately not “add logging.” CP0 is a bounded compa
 - **`PROPOSED_CONTRACT`** — S3 design only; no implementation authority.
 - **`DESIGN_APPROVED`** — owner accepted the S3 direction; no live evidence implied.
 - **`OPERATIONALLY_COMPLETE`** — a separately authorized CP0 implementation passed every evidence gate in this packet.
-- **`ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`** — CI/fixture, zero-real-provider synthetic, lifecycle and default-off deployment gates passed, but the unavailable owner-live window remains an explicit evidence debt. This state is sufficient to continue separately authorized F1 work, not CP1/AA2/external promotion.
+- **`ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`** — CI/fixture, zero-real-provider synthetic, lifecycle and default-off deployment gates passed, but the unavailable owner-live window remains an explicit evidence debt. This state is sufficient for separately authorized F1 and AA2 default-off engineering, not CP1, live Agent Access or external promotion.
 - **`PARITY_INELIGIBLE`** — coverage, privacy, load or observer-health evidence is insufficient; enforcement cannot advance.
 - **`ZERO_BUDGET_VIOLATION`** — content leak, cross-user scope error, unauthorized canonical write, duplicate grade or deletion resurrection; one occurrence fails the gate.
 
@@ -307,7 +307,7 @@ S3 operational completion requires all three layers:
 2. **Synthetic:** at least 10,000 mixed runs at the S0 5× accepted-pilot peak, including DB unavailable/busy, process interruption and observer saturation. All provider/model behavior is fixture/local/loopback; hard network/provider tripwires must prove `external_provider_calls_total == 0` and `external_network_attempts_total == 0`, so free-tier API limits and cost are not consumed.
 3. **Owner-only live, deferrable:** at least seven consecutive eligible days with ≥99.5% coverage, zero content leaks/behavior divergence and no unresolved active-scenario mismatch. Rare/destructive paths remain fixture-proven rather than manufactured on the owner profile. Its current unavailability does not block F1 after the engineering-complete gate, but does block full S3 completion and dependent promotions.
 
-Any later owner-live defect creates a tracked corrective slice. Relevant CI/parity/sentinel/lifecycle/load gates are rerun after the fix; authority/privacy/canonical-write defects block CP1/AA2 and the affected rollout, and the seven-day window restarts when continuity was invalidated.
+Any later owner-live defect creates a tracked corrective slice. Relevant CI/parity/sentinel/lifecycle/load gates are rerun after the fix; authority/privacy/canonical-write defects block CP1/AA2 live promotion and the affected rollout, and the seven-day window restarts when continuity was invalidated.
 
 Before any later CP1 enforcement proposal at an external controlled pilot, require a separate 14-day/≥1,000-run content-free parity window at the accepted tier. Owner-only S3 completion does not automatically authorize CP1 rollout.
 
@@ -497,7 +497,7 @@ All of the following must be witnessed:
 7. CI, zero-real-provider 10,000-run synthetic and seven-day owner evidence packets are preserved; the first two may support the explicit deferred-live intermediate state but not full completion;
 8. owner explicitly records `OPERATIONALLY_COMPLETE` only after the later live evidence and required remediation.
 
-Only then is the S0→S1→S2→S3 foundation fully operationally complete. Under the owner amendment, `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED` may separately unblock F1 implementation before that point; it still does not authorize CP1 enforcement, AA2 runtime access, S4 jobs or external pilot expansion.
+Only then is the S0→S1→S2→S3 foundation fully operationally complete. Under the owner amendment, `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED` may separately unblock F1 and AA2 default-off engineering before that point; it still does not authorize CP1 enforcement, live Agent Access, S4 jobs or external pilot expansion.
 
 ## 21. Explicitly prohibited by this S3 packet
 
