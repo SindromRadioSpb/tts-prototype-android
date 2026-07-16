@@ -29,12 +29,17 @@ const path = require("path");
 const llm = require(path.join(__dirname, "llm"));
 const { managedLimits } = require(path.join(__dirname, "llmLimits"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
+const cp0 = require(path.join(__dirname, "controlPlane", "observer"));
 
 async function gatedGenerate(ctx, { scenario, system, prompt, maxOutputTokens, json, jsonSchema, fixture, model } = {}) {
   const requestedSchemaMode = jsonSchema ? "provider_json_schema" : "prompt_json";
   const started = Date.now();
-  if (llm.killSwitchOn()) return { phase: "kill", reason: "KILL_SWITCH", key_source: "agent",
-    provider: llm.providerName(), schema_mode: requestedSchemaMode, latency_ms: Date.now() - started, output_size_bytes: 0 };
+  if (llm.killSwitchOn()) {
+    cp0.noteRoute(String(scenario || "unknown"), llm.providerName(), requestedSchemaMode, "KILL_SWITCH", null);
+    cp0.noteDegradation("KILL_SWITCH");
+    return { phase: "kill", reason: "KILL_SWITCH", key_source: "agent",
+      provider: llm.providerName(), schema_mode: requestedSchemaMode, latency_ms: Date.now() - started, output_size_bytes: 0 };
+  }
 
   const byok = ctx && ctx.byok && ctx.byok.key && ctx.byok.provider ? ctx.byok : null;
   if (byok) {
@@ -53,7 +58,8 @@ async function gatedGenerate(ctx, { scenario, system, prompt, maxOutputTokens, j
     }
     const meta = { provider: byok.provider, schema_mode: out.schema_mode || requestedSchemaMode,
       latency_ms: Date.now() - started, output_size_bytes: out.ok ? Buffer.byteLength(String(out.text || ""), "utf8") : 0 };
-    if (!out.ok) return { phase: "byok", reason: "BYOK_FAILED", provider_error: String(out.error || "").slice(0, 60), key_source: "byok", ...meta };
+    cp0.noteRoute(String(scenario || "unknown"), byok.provider, meta.schema_mode, out.ok ? "OK" : "BYOK_FAILED", null);
+    if (!out.ok) { cp0.noteDegradation("BYOK_FAILED"); return { phase: "byok", reason: "BYOK_FAILED", provider_error: String(out.error || "").slice(0, 60), key_source: "byok", ...meta }; }
     return { phase: "ok", out, key_source: "byok", ...meta };
   }
 
@@ -65,14 +71,19 @@ async function gatedGenerate(ctx, { scenario, system, prompt, maxOutputTokens, j
     providerDaily: enforceProviderQuota ? lim.providerDaily : 0,
     providerMinute: enforceProviderQuota ? lim.providerMinute : 0,
   });
-  if (!reserve.ok) return { phase: "reserve", reason: reserve.reason, key_source: "agent", provider: llm.providerName(),
-    schema_mode: requestedSchemaMode, latency_ms: Date.now() - started, output_size_bytes: 0 };
+  if (!reserve.ok) {
+    cp0.noteRoute(String(scenario || "unknown"), provider, requestedSchemaMode, String(reserve.reason || "RESERVE_DENIED"), null);
+    cp0.noteDegradation("RESERVE_DENIED");
+    return { phase: "reserve", reason: reserve.reason, key_source: "agent", provider: llm.providerName(),
+      schema_mode: requestedSchemaMode, latency_ms: Date.now() - started, output_size_bytes: 0 };
+  }
   const out = await llm.generate({ system, prompt, maxOutputTokens, json, jsonSchema, fixture, model,
     managedFreeTier: enforceProviderQuota });
   await agentRepo.finalizeLlmCall(reserve.reserveId, { ok: out.ok, actualUnits: out.ok ? (out.output_tokens || 1) : null });
   const meta = { provider: llm.providerName(), schema_mode: out.schema_mode || requestedSchemaMode,
     latency_ms: Date.now() - started, output_size_bytes: out.ok ? Buffer.byteLength(String(out.text || ""), "utf8") : 0 };
-  if (!out.ok) return { phase: "generate", reason: out.error, key_source: "agent", ...meta };
+  cp0.noteRoute(String(scenario || "unknown"), provider, meta.schema_mode, out.ok ? "OK" : "GENERATE_FAILED", reserve.reserveId);
+  if (!out.ok) { cp0.noteDegradation("GENERATE_FAILED"); return { phase: "generate", reason: out.error, key_source: "agent", ...meta }; }
   return { phase: "ok", out, key_source: "agent", ...meta };
 }
 

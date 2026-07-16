@@ -15,6 +15,7 @@ const writing = require(path.join(__dirname, "writing"));
 const lessonBuilder = require(path.join(__dirname, "lessonBuilder"));
 const nextText = require(path.join(__dirname, "nextText"));
 const tools = require(path.join(__dirname, "tools"));
+const cp0 = require(path.join(__dirname, "controlPlane", "observer"));
 const llm = require(path.join(__dirname, "llm"));
 const { managedLimits } = require(path.join(__dirname, "llmLimits"));
 const constructs = require(path.join(__dirname, "constructs"));
@@ -214,4 +215,35 @@ async function updateProfile(ctx, patch) {
   return { ok: true, mode: prof.mode, language: prof.language, depth: _profileDepth(prof) };
 }
 
-module.exports = { plan, explain, explainWord, explainFollowup, comprehension, studySummary, draftRetell, roleplayStart, roleplayTurn, roleplayState, roleplayStop, writingTargets, writingReview, buildLesson, nextTextExplain, recordReview, status, listTasks, updateProfile, listExplanations, constructsSummary };
+function observed(scenarioId, fn) {
+  return function observedRuntime(ctx, ...args) {
+    return cp0.observe(ctx, { scenarioId, surface: ctx && ctx.surface }, () => fn(ctx, ...args));
+  };
+}
+
+function observedReview(ctx, args) {
+  const scenarioId = args && args.annul_of ? "review.annul" : "review.answer";
+  return cp0.observe(ctx, { scenarioId, surface: ctx && ctx.surface }, () => recordReview(ctx, args));
+}
+
+module.exports = {
+  plan: observed("agent.plan", plan),
+  explain: observed("agent.explain_sentence", explain),
+  explainWord: observed("agent.explain_word", explainWord),
+  explainFollowup: observed("agent.explain_followup", explainFollowup),
+  comprehension: observed("agent.comprehension", comprehension),
+  studySummary: observed("agent.study_summary", studySummary),
+  draftRetell: observed("agent.draft_retell", draftRetell),
+  roleplayStart: observed("agent.roleplay_start", roleplayStart),
+  roleplayTurn: observed("agent.roleplay_turn", roleplayTurn),
+  roleplayState: observed("agent.roleplay_state", roleplayState),
+  roleplayStop: observed("agent.roleplay_stop", roleplayStop),
+  writingTargets: observed("agent.writing_targets", writingTargets),
+  writingReview: observed("agent.writing_review", writingReview),
+  buildLesson: observed("agent.lesson_build", buildLesson),
+  nextTextExplain: observed("agent.next_text_explain", nextTextExplain),
+  recordReview: observedReview,
+  status, listTasks,
+  updateProfile: observed("profile.update", updateProfile),
+  listExplanations, constructsSummary,
+};

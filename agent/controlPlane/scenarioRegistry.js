@@ -1,0 +1,36 @@
+"use strict";
+
+const VERSION = "role-registry.1.0.0";
+const WORKFLOW_VERSION = "cp0-workflow.1.0.0";
+
+// Allowed capability names are diagnostic boundaries, never permissions.
+const SCENARIOS = Object.freeze({
+  "agent.plan": { role: "mentor.planner", surfaces: ["pwa", "miniapp", "telegram"], capabilities: ["tool:*", "repo:agent_task", "model:generate"] },
+  "agent.explain_sentence": { role: "mentor.explainer", surfaces: ["pwa"], capabilities: ["tool:*", "repo:explanation", "model:generate"] },
+  "agent.explain_word": { role: "mentor.explainer", surfaces: ["pwa"], capabilities: ["tool:*", "repo:explanation", "model:generate"] },
+  "agent.explain_followup": { role: "mentor.explainer", surfaces: ["pwa"], capabilities: ["tool:*", "repo:explanation", "model:generate"] },
+  "agent.comprehension": { role: "mentor.comprehension_coach", surfaces: ["pwa"], capabilities: ["tool:*", "model:generate"] },
+  "agent.roleplay_start": { role: "mentor.dialogue_coach", surfaces: ["pwa"], capabilities: ["repo:scoped_read"] },
+  "agent.roleplay_turn": { role: "mentor.dialogue_coach", surfaces: ["pwa"], capabilities: ["repo:scoped_read", "model:generate"] },
+  "agent.roleplay_state": { role: "mentor.dialogue_coach", surfaces: ["pwa"], capabilities: [] },
+  "agent.roleplay_stop": { role: "mentor.dialogue_coach", surfaces: ["pwa"], capabilities: [] },
+  "agent.writing_targets": { role: "mentor.dialogue_coach", surfaces: ["pwa"], capabilities: ["repo:scoped_read"] },
+  "agent.writing_review": { role: "mentor.dialogue_coach", surfaces: ["pwa"], capabilities: ["repo:scoped_read", "model:generate"] },
+  "agent.study_summary": { role: "mentor.material_advisor", surfaces: ["pwa"], capabilities: ["tool:*", "repo:explanation", "model:generate"] },
+  "agent.draft_retell": { role: "mentor.material_advisor", surfaces: ["pwa"], capabilities: ["tool:*", "model:generate"] },
+  "agent.lesson_build": { role: "lesson.composer", surfaces: ["pwa"], capabilities: ["repo:scoped_read", "model:generate"] },
+  "agent.next_text_explain": { role: "reading.recommender", surfaces: ["pwa"], capabilities: ["repo:scoped_read", "model:generate"] },
+  "review.start": { role: "review.selector", surfaces: ["miniapp", "telegram"], capabilities: ["repo:challenge"] },
+  "review.answer": { role: "review.grader", surfaces: ["miniapp", "telegram", "pwa"], capabilities: ["repo:challenge", "canonical:review_event"] },
+  "review.skip": { role: "review.grader", surfaces: ["miniapp", "telegram"], capabilities: ["repo:challenge", "canonical:review_event"] },
+  "review.hint": { role: "review.selector", surfaces: ["miniapp"], capabilities: ["repo:challenge"] },
+  "review.annul": { role: "review.writer", surfaces: ["miniapp", "telegram", "pwa"], capabilities: ["canonical:review_event"] },
+  "profile.update": { role: "profile.editor", surfaces: ["pwa"], capabilities: ["repo:profile"] },
+  "notification.nudge": { role: "notification.policy", surfaces: ["background"], capabilities: ["repo:nudge_claim", "delivery:push", "delivery:telegram"] },
+  "provider.byok_check": { role: "policy.controller", surfaces: ["pwa"], capabilities: ["model:generate"] },
+});
+
+function get(id) { return SCENARIOS[String(id)] || null; }
+function ids() { return Object.keys(SCENARIOS); }
+
+module.exports = { VERSION, WORKFLOW_VERSION, SCENARIOS, get, ids };

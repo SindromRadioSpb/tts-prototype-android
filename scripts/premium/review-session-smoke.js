@@ -76,7 +76,8 @@ const dbGet = (sql, p = []) => new Promise((res, rej) => getDb().get(sql, p, (e,
   ok("leak: no item_key in descriptor", raw.indexOf("item_key") === -1 && raw.indexOf(ITEM) === -1);
   ok("leak: expected surface absent pre-answer", raw.indexOf(SURFACE_FORM) === -1);
   ok("leak: blank marker present + ru translation carried", raw.indexOf("―") !== -1 && raw.indexOf(SENT_RU) !== -1);
-  ok("descriptor: closed keys", JSON.stringify(Object.keys(d).sort()) === JSON.stringify(["allocation", "explain", "kind", "preview", "select_reason", "stimulus"]));
+  const descriptorKeys = ["allocation", "explain", "kind", "preview", "select_reason", "stimulus", ...(d.goal_line ? ["goal_line"] : [])].sort();
+  ok("descriptor: closed keys", JSON.stringify(Object.keys(d).sort()) === JSON.stringify(descriptorKeys));
 
   // ── preview write-OFF: ничего не создано ──
   const before = await dbGet(`SELECT (SELECT COUNT(*) FROM agent_challenges) c, (SELECT COUNT(*) FROM tg_stimulus_exposure) e`);

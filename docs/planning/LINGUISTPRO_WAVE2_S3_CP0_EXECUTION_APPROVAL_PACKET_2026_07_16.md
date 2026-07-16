@@ -1,11 +1,11 @@
 # LinguistPro Wave 2 — S3 CP0 execution approval packet
 
 **Date:** 2026-07-16
-**Status:** `OWNER_APPROVAL_REQUIRED`; implementation contract prepared after the owner instruction “Стартуй”.
+**Status:** `OWNER_APPROVED`; Decisions 1–9 A/A/A/A/A/A/A/A/A approved 2026-07-16. S3-T/S3-L implementation and evidence are green in `docs/research/cp0/2026-07-16/`; default-off deployment verification is pending. This is not owner-live evidence or `OPERATIONALLY_COMPLETE`.
 **Authority:** documentation and execution-adjudication only. Until Decisions 1–9 are explicitly approved, this packet authorizes no migration, runtime hook, CP0 table, feature flag, deployment or live observation.
 **Repository baseline:** `main` / `5199d61`; package `3.11.183`; `origin/main` aligned at recon start.
 **Predecessors:** owner-approved S0 B/B/B/B/B, S1 A/A/A/A/A/A/A/A/A, S2 A/A/A/A/A/A/A/A/A and S3 design A/A/A/A/A/A/A/A/A.
-**Current state:** S3 remains `DESIGN_APPROVED`, not `OPERATIONALLY_COMPLETE`; CP0 implementation and evidence are absent.
+**Current state:** S3-T/S3-L are locally evidenced; CP0 remains default-off and S3 is not yet `OPERATIONALLY_COMPLETE`. A healthy default-off production deployment is the remaining engineering checkpoint before recording `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`.
 **Owner amendment:** 2026-07-16 — the 10,000-run synthetic gate must consume zero real external-provider/API calls, and unavailable live windows are deferred rather than allowed to block downstream engineering. S3-T/S3-L plus healthy default-off deployment may earn `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`; this permits separately approved F1 and AA2 default-off engineering to proceed, but not CP1, a live external-agent connection or an external cohort.
 
 ## 1. Purpose and recommended authorization
@@ -229,7 +229,7 @@ Initial fixed bounds:
 | Queue bytes | 512 KiB |
 | Record bytes | ≤4 KiB total; manifest ≤3 KiB |
 | Flush batch | ≤64 records |
-| Flush cadence | 50 ms or batch full |
+| Flush cadence | ≤25 ms or batch full |
 | Storage retry | Same batch only; at most 2 retries within 250 ms total |
 | Saturation policy | Drop newest observation, increment reason counter, never backpressure live work |
 | Boot checkpoint | At least every 1 second or 100 eligible runs, plus clean shutdown |

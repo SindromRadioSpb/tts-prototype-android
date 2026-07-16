@@ -178,11 +178,11 @@ function restoreBackup(backupPath, targetDbPath, options = {}) {
     // Create pre-restore backup (unless skipped)
     let preRestoreBackup = null;
     if (!options.skipPreBackup && fs.existsSync(targetDbPath)) {
-      const preResult = createBackup(targetDbPath, { label: "pre-restore" });
+      const preResult = createBackup(targetDbPath, { label: "pre-restore", ...(options.backupsDir ? { backupsDir: options.backupsDir } : {}) });
       if (preResult.ok) {
         preRestoreBackup = preResult.backupPath;
       } else {
-        console.warn("Pre-restore backup failed:", preResult.error);
+        return { ok: false, error: `Pre-restore backup failed; refusing unsafe restore: ${preResult.error}` };
       }
     }
 

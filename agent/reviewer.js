@@ -286,6 +286,7 @@ async function _grade(ctx, a) {
   // источник lost-response replay для Mini App (bot-строкам безвреден).
   if (chal) await agentChallengeRepo.complete(ctx.userId, challengeId, attemptId,
     { decision: verdict.decision, grade: verdict.grade });
+  try { require("./controlPlane/observer").noteCanonicalEvent("review", row.id); } catch (_) {}
   return {
     ok: true, recorded: true,
     ...(w.replayed ? { replayed: true } : {}),
@@ -320,6 +321,7 @@ async function _annul(ctx, a) {
   };
   const w = await _ingestOne(ctx, "agent:" + row.id, row, target.item_key);
   if (w.fail) return w.fail;
+  try { require("./controlPlane/observer").noteCanonicalEvent("annul", row.id); } catch (_) {}
   return {
     ok: true, recorded: true,
     ...(w.replayed ? { replayed: true } : {}),

@@ -45,7 +45,7 @@ async function serve({ command, userId, tgUserId, chatId }) {
   let text;
   let dueItems = null;   // P7.2a cooldown: item_keys, реально показанные в /due (для exposure)
   if (command === "plan") {
-    const r = await agentRuntime.plan({ userId, deviceId: null });
+    const r = await agentRuntime.plan({ userId, deviceId: null, surface: "telegram" });
     text = format.formatPlan(r, lang);
   } else if (command === "due") {
     const items = await learnerGraphRepo.getDue(userId, { limit: 20 });

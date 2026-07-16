@@ -49,6 +49,7 @@ async function updateProfile(userId, { mode, language, goals } = {}) {
   if (!sets.length) return getProfile(userId);
   sets.push("updated_at = ?"); params.push(nowIso()); params.push(userId);
   await dbRun(db, `UPDATE agent_profiles SET ${sets.join(", ")} WHERE user_id = ?`, params);
+  try { require("../agent/controlPlane/observer").noteCapability("repo:profile"); } catch (_) {}
   return getProfile(userId);
 }
 
@@ -61,6 +62,7 @@ async function createTask(userId, { kind, payload } = {}) {
   await dbRun(db,
     `INSERT INTO agent_tasks (id, user_id, kind, status, payload_json) VALUES (?,?,?,'open',?)`,
     [id, userId, k, JSON.stringify(payload || {})]);
+  try { const cp0 = require("../agent/controlPlane/observer"); cp0.noteCapability("repo:agent_task"); cp0.noteArtifact("mentor.plan_task.v1", id, "DERIVED_HISTORY"); } catch (_) {}
   return { id, kind: k, status: "open" };
 }
 
@@ -93,6 +95,7 @@ async function createExplanation(userId, { sentence_id, item_key, facts_used, ll
      VALUES (?,?,?,?,?,?,?)`,
     [id, userId, sentence_id != null ? String(sentence_id) : null, item_key != null ? String(item_key) : null,
      JSON.stringify(facts_used), llm_model != null ? String(llm_model) : null, JSON.stringify(body || {})]);
+  try { const cp0 = require("../agent/controlPlane/observer"); cp0.noteCapability("repo:explanation"); cp0.noteArtifact("mentor.explanation.v1", id, "DERIVED_HISTORY"); } catch (_) {}
   return { id };
 }
 

@@ -13,6 +13,7 @@
 // start/answer/skip/annul/hint появляются следующими шагами P8.3/P8.4 (§9-адъюдикация).
 
 const path = require("path");
+const cp0 = require(path.join(__dirname, "controlPlane", "observer"));
 const agentChallengeRepo = require(path.join(__dirname, "..", "db", "agentChallengeRepo"));
 const agentClozeRepo = require(path.join(__dirname, "..", "db", "agentClozeRepo"));
 const keyingService = require(path.join(__dirname, "..", "db", "keyingService"));
@@ -795,9 +796,20 @@ async function annul({ userId, surface, reviewRowId, reason }) {
   return reviewer.record({ userId, deviceId: null }, { annul_of: String(reviewRowId), reason: String(reason || "") });
 }
 
+function observeReview(scenarioId, fn) {
+  return function observedReviewSession(args) {
+    const a = args || {};
+    return cp0.observe({ userId: a.userId, surface: a.surface }, { scenarioId, surface: a.surface }, () => fn(a));
+  };
+}
+
 module.exports = {
-  selectEligible, selectForModality, publicBaseUrl, audioUrlFor, start, buildDescriptor,
-  answer, skip, hint, annul, issueHandoff,
+  selectEligible, selectForModality, publicBaseUrl, audioUrlFor,
+  start: observeReview("review.start", start), buildDescriptor,
+  answer: observeReview("review.answer", answer),
+  skip: observeReview("review.skip", skip),
+  hint: observeReview("review.hint", hint),
+  annul: observeReview("review.annul", annul), issueHandoff,
   mintAudioToken, resolveAudioToken, dropTokensForChallenge, miniappWriteOn,
   REVIEW_DUE_WINDOW, ALLOCATION_POLICY_VERSION, almostLapsed,
   firstFlagshipDictate, readingStrong,   // PAS-D3: нудж-сторона + гейты

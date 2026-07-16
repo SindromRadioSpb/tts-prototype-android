@@ -1833,6 +1833,7 @@ app.get("/api/learner/keying/status", rlLearnerKeying, async (req, res) => {
 // Гейт: smoke:agent-plan (honest counts, degradation, лимиты, stdout-гигиена).
 // ============================================================================
 const agentRuntime = require("./agent/runtime");
+const cp0Observer = require("./agent/controlPlane/observer");
 const rlAgent = makeRateLimiter({ windowMs: 60_000, max: 20, name: "agent" });
 
 app.post("/api/agent/plan", rlAgent, async (req, res) => {
@@ -2178,17 +2179,19 @@ app.post("/api/agent/byok/check", rlAgent, async (req, res) => {
   const ctx = _agentByokCtx(req, res, auth); if (!ctx) return;
   if (!ctx.byok) return res.status(400).json({ ok: false, error: "BYOK_REQUIRED" });
   try {
-    const llmGate = require("./agent/llmGate");
-    const g = await llmGate.gatedGenerate(ctx, {
-      scenario: "byok_check",
-      system: "Reply with exactly: OK",
-      prompt: "ping",
-      maxOutputTokens: 64,   // 16 не хватало даже thinking-off моделям
+    await cp0Observer.observe({ ...ctx, surface: "pwa" }, { scenarioId: "provider.byok_check", surface: "pwa" }, async () => {
+      const llmGate = require("./agent/llmGate");
+      const g = await llmGate.gatedGenerate(ctx, {
+        scenario: "byok_check",
+        system: "Reply with exactly: OK",
+        prompt: "ping",
+        maxOutputTokens: 64,   // 16 не хватало даже thinking-off моделям
+      });
+      if (g.phase === "kill") return res.status(503).json({ ok: false, error: "KILL_SWITCH" });
+      if (g.phase === "byok") return res.status(502).json({ ok: false, error: "BYOK_FAILED", provider_error: g.provider_error });
+      if (g.phase !== "ok") return res.status(502).json({ ok: false, error: "BYOK_FAILED" });
+      return res.json({ ok: true, provider: g.out.provider, model: g.out.model, key_source: "byok" });
     });
-    if (g.phase === "kill") return res.status(503).json({ ok: false, error: "KILL_SWITCH" });
-    if (g.phase === "byok") return res.status(502).json({ ok: false, error: "BYOK_FAILED", provider_error: g.provider_error });
-    if (g.phase !== "ok") return res.status(502).json({ ok: false, error: "BYOK_FAILED" });
-    res.json({ ok: true, provider: g.out.provider, model: g.out.model, key_source: "byok" });
   } catch (e) { res.status(500).json({ ok: false, error: "BYOK_CHECK_FAILED", message: e.message }); }
 });
 
@@ -2460,7 +2463,7 @@ app.get("/api/miniapp/home", rlMiniapp, async (req, res) => {
 app.post("/api/miniapp/plan", rlMiniapp, async (req, res) => {
   const auth = await requireMiniappSession(req, res); if (!auth) return;
   if (!requireCsrf(req, res, auth)) return;
-  try { res.json(await agentRuntime.plan({ userId: auth.user.id, deviceId: auth.session.deviceId })); }
+  try { res.json(await agentRuntime.plan({ userId: auth.user.id, deviceId: auth.session.deviceId, surface: "miniapp" })); }
   catch (e) { res.status(500).json({ ok: false, error: "AGENT_PLAN_FAILED" }); }
 });
 
@@ -2760,6 +2763,7 @@ if (_tgPruneInterval.unref) _tgPruneInterval.unref();
 // ROLLBACK). Лог — только счётчики (класс A). Boot-тик через 2 мин + каждый час.
 const { withTxnLock } = require("./db/txnLock");
 const handoffRepo = require("./db/handoffRepo");
+const cp0ObservationRepo = require("./db/cp0ObservationRepo");
 async function opsSweepTick() {
   if (getDbHealth().ready !== true) return;
   try {
@@ -2769,8 +2773,9 @@ async function opsSweepTick() {
       const devices = await identityRepo.purgeOrphanDevices();
       const ch = await agentChallengeRepo.pruneOld();
       await handoffRepo.pruneOld();
-      if (sessions || initSeen || devices || ch.challenges || ch.purgedTerminal) {
-        console.log(`[ops-sweep] sessions=${sessions} initdata_seen=${initSeen} devices=${devices} challenges_expired=${ch.challenges} challenges_purged=${ch.purgedTerminal}`);
+      const cp0Purged = await cp0ObservationRepo.purgeExpired();
+      if (sessions || initSeen || devices || ch.challenges || ch.purgedTerminal || cp0Purged.observations || cp0Purged.boots) {
+        console.log(`[ops-sweep] sessions=${sessions} initdata_seen=${initSeen} devices=${devices} challenges_expired=${ch.challenges} challenges_purged=${ch.purgedTerminal} cp0_observations=${cp0Purged.observations} cp0_boots=${cp0Purged.boots}`);
       }
     });
   } catch (e) { console.error("[ops-sweep] failed:", e && e.message); }

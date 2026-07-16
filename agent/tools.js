@@ -26,6 +26,7 @@ const corpusSentenceRepo = require(path.join(__dirname, "..", "db", "corpusSente
 const keyingService = require(path.join(__dirname, "..", "db", "keyingService"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
 const reviewer = require(path.join(__dirname, "reviewer"));
+const cp0 = require(path.join(__dirname, "controlPlane", "observer"));
 
 const REGISTRY = {
   // ── read-only: Learner Graph (CLG-P5) ──────────────────────────────────────
@@ -162,8 +163,11 @@ async function callTool(ctx, name, args) {
   const disabledReason = _disabledReason(t);
   if (disabledReason) return { ok: false, error: "TOOL_DISABLED", reason: disabledReason };
   try {
-    return { ok: true, result: await t.run(ctx, args || {}) };
+    const result = await t.run(ctx, args || {});
+    cp0.noteCapability(`tool:${name}`, "OK");
+    return { ok: true, result };
   } catch (e) {
+    cp0.noteCapability(`tool:${name}`, "FAILED");
     return { ok: false, error: "TOOL_FAILED", message: String((e && e.message) || e).slice(0, 120) };
   }
 }

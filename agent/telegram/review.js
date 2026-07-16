@@ -16,6 +16,7 @@
 // Сырой ответ передаётся grader'у, но НИГДЕ не персистится (privacy=A).
 
 const path = require("path");
+const cp0 = require(path.join(__dirname, "..", "controlPlane", "observer"));
 const crypto = require("crypto");
 const agentChallengeRepo = require(path.join(__dirname, "..", "..", "db", "agentChallengeRepo"));
 const agentClozeRepo = require(path.join(__dirname, "..", "..", "db", "agentClozeRepo"));
@@ -241,4 +242,10 @@ async function submitAnswer({ userId, tgUserId, chatId, replyToMessageId, text, 
 // reviewSessionService): ОДИН детерминированный селектор обслуживает обе Telegram-поверхности
 // (норма §20.1/§20.4 P8-recon) — второй селектор запрещён каноном P7.2d. Read-only (пишет
 // exposure/challenge НЕ селектор, а delivery-путь startReview).
-module.exports = { startReview, submitAnswer, selectEligible };
+module.exports = {
+  startReview: (args) => cp0.observe({ userId: args && args.userId, surface: "telegram" },
+    { scenarioId: "review.start", surface: "telegram" }, () => startReview(args || {})),
+  submitAnswer: (args) => cp0.observe({ userId: args && args.userId, surface: "telegram" },
+    { scenarioId: "review.answer", surface: "telegram" }, () => submitAnswer(args || {})),
+  selectEligible,
+};

@@ -12,6 +12,7 @@ const learnerGraphRepo = require("./learnerGraphRepo");
 const pushRepo = require("./pushRepo");
 const telegramRepo = require("./nudgeRepo");
 const { selectChannel } = require("./nudgeChannelSelector");
+const cp0 = require("../agent/controlPlane/observer");
 
 const POLICY_VERSION = "nudge-channel-selector-v1";
 
@@ -73,65 +74,68 @@ function createCoordinator(overrides = {}) {
       for (const userIdRaw of userIds) {
         const userId = String(userIdRaw);
         agg.examined++;
-        try {
-          let prefs;
-          try { prefs = await deps.getPrefs(userId); } catch (_) { agg.errors++; continue; }
-          if (!prefs || !prefs.enabled) { agg.disabled++; continue; }
-          if (prefs.muted_until && nowIso < prefs.muted_until) { agg.muted++; continue; }
-          const parts = deps.localParts(prefs.timezone, now);
-          if (!deps.windowOpen(parts.hour, prefs.window, prefs.quiet_start_local, prefs.quiet_end_local)) {
-            agg.outside_window++; continue;
-          }
-          if (await deps.claimedToday(userId, parts.day)) { agg.budget++; continue; }
+        await cp0.observe({ userId, surface: "background" },
+          { scenarioId: "notification.nudge", surface: "background" }, async () => {
+            try {
+              let prefs;
+              try { prefs = await deps.getPrefs(userId); } catch (_) { agg.errors++; return; }
+              if (!prefs || !prefs.enabled) { agg.disabled++; return; }
+              if (prefs.muted_until && nowIso < prefs.muted_until) { agg.muted++; return; }
+              const parts = deps.localParts(prefs.timezone, now);
+              if (!deps.windowOpen(parts.hour, prefs.window, prefs.quiet_start_local, prefs.quiet_end_local)) {
+                agg.outside_window++; return;
+              }
+              if (await deps.claimedToday(userId, parts.day)) { agg.budget++; return; }
 
-          const pushSubs = await deps.getPushSubscriptions(userId);
-          const pushEligible = Array.isArray(pushSubs) && pushSubs.length > 0;
-          let telegram = { eligible: false, skip: prefs.telegram_enabled ? "no_consent" : "disabled" };
-          try { telegram = await deps.telegramEligibility(userId, prefs, { nowMs: now, force: !!force }); }
-          catch (_) { telegram = { eligible: false, skip: "error" }; agg.errors++; }
-          const telegramEligible = !!telegram.eligible;
-          if (!telegramEligible && telegram.skip === "backoff") agg.telegram_backoff++;
-          if (!telegramEligible && telegram.skip === "no_consent") agg.no_consent++;
-          if (!pushEligible && !telegramEligible) { agg.no_channel++; continue; }
+              const pushSubs = await deps.getPushSubscriptions(userId);
+              const pushEligible = Array.isArray(pushSubs) && pushSubs.length > 0;
+              let telegram = { eligible: false, skip: prefs.telegram_enabled ? "no_consent" : "disabled" };
+              try { telegram = await deps.telegramEligibility(userId, prefs, { nowMs: now, force: !!force }); }
+              catch (_) { telegram = { eligible: false, skip: "error" }; agg.errors++; }
+              const telegramEligible = !!telegram.eligible;
+              if (!telegramEligible && telegram.skip === "backoff") agg.telegram_backoff++;
+              if (!telegramEligible && telegram.skip === "no_consent") agg.no_consent++;
+              if (!pushEligible && !telegramEligible) { agg.no_channel++; return; }
 
-          const due = await deps.getDue(userId, now);
-          if (!Array.isArray(due) || !due.length) { agg.nothing_due++; continue; }
-          const last = await deps.lastClaimedChannel(userId);
-          const decision = selectChannel({ pushEligible, telegramEligible, lastClaimedChannel: last });
-          if (pushEligible && telegramEligible) agg.both++;
-          else if (pushEligible) agg.push_only++;
-          else agg.telegram_only++;
+              const due = await deps.getDue(userId, now);
+              if (!Array.isArray(due) || !due.length) { agg.nothing_due++; return; }
+              const last = await deps.lastClaimedChannel(userId);
+              const decision = selectChannel({ pushEligible, telegramEligible, lastClaimedChannel: last });
+              if (pushEligible && telegramEligible) agg.both++;
+              else if (pushEligible) agg.push_only++;
+              else agg.telegram_only++;
 
-          let claimReason = "DUE_READY";
-          let prepared = null;
-          if (decision.selected === "telegram") {
-            prepared = await deps.prepareTelegram(userId, due, telegram, { nowMs: now });
-            // Consent/link may change between eligibility and action. No fallback
-            // and no claim in this tick; the next tick recomputes the candidate.
-            if (!prepared || !prepared.ok) {
-              if (prepared && prepared.skip === "no_consent") agg.no_consent++;
-              else agg.errors++;
-              continue;
-            }
-            claimReason = prepared.reason;
-          }
+              let claimReason = "DUE_READY";
+              let prepared = null;
+              if (decision.selected === "telegram") {
+                prepared = await deps.prepareTelegram(userId, due, telegram, { nowMs: now });
+                if (!prepared || !prepared.ok) {
+                  if (prepared && prepared.skip === "no_consent") agg.no_consent++;
+                  else agg.errors++;
+                  return;
+                }
+                claimReason = prepared.reason;
+              }
 
-          const claim = await deps.claimDay(userId, parts.day, decision.selected, claimReason);
-          if (!claim || !claim.claimed) { agg.claim_lost++; continue; }
-          if (decision.selected === "push") agg.selected_push++;
-          else agg.selected_telegram++;
+              const claim = await deps.claimDay(userId, parts.day, decision.selected, claimReason);
+              if (!claim || !claim.claimed) { agg.claim_lost++; return; }
+              cp0.noteCapability("repo:nudge_claim");
+              if (decision.selected === "push") agg.selected_push++;
+              else agg.selected_telegram++;
 
-          let result;
-          try {
-            result = decision.selected === "push"
-              ? await deps.deliverPush(userId, due.length, { nowMs: now, selectionReason: decision.reason })
-              : await deps.deliverTelegram(userId, prepared, { nowMs: now, selectionReason: decision.reason });
-          } catch (_) {
-            result = { delivered: false, deliveryCount: 0, failureCode: "ADAPTER_THROW" };
-          }
-          if (result && result.delivered) agg.delivered++;
-          else agg.delivery_failed++;
-        } catch (_) { agg.errors++; }
+              let result;
+              try {
+                result = decision.selected === "push"
+                  ? await deps.deliverPush(userId, due.length, { nowMs: now, selectionReason: decision.reason })
+                  : await deps.deliverTelegram(userId, prepared, { nowMs: now, selectionReason: decision.reason });
+              } catch (_) {
+                result = { delivered: false, deliveryCount: 0, failureCode: "ADAPTER_THROW" };
+              }
+              cp0.noteDelivery("daily_claim", decision.selected, result && result.delivered ? "DELIVERED" : "FAILED");
+              if (result && result.delivered) agg.delivered++;
+              else agg.delivery_failed++;
+            } catch (_) { agg.errors++; }
+          });
       }
       return { ok: true, policy: POLICY_VERSION, local_now: nowIso, ...agg };
     } finally {
