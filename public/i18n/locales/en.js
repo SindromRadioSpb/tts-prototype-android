@@ -2165,6 +2165,7 @@ window.I18N_LOCALES.en = {
         confirmDelete: "Confirm deletion", confirmExact: "Enter DELETE MEMORY exactly", saveFailed: "Could not save", actionFailed: "Action failed",
         later: "Continue later", savedLater: "Saved for later", enableFirst: "Enable memory and unfinished threads first", planLabel: "Return to this plan", explanationLabel: "Return to this explanation",
         statusAnnulled: "Not for me · not used", statusExpired: "Expired · not used", statusResolved: "Completed",
+        exportReady: "Export prepared", exportFailed: "Could not prepare export",
         goal: { read_more:"Read more", review_regularly:"Review regularly", improve_vocabulary:"Grow vocabulary", improve_writing:"Improve writing", improve_speaking:"Improve speaking", custom:"Custom goal" },
       },
       // PAS-F1 — your own LLM key (BYOK extension of the hybrid)
