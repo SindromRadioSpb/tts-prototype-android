@@ -63,7 +63,7 @@ async function cmdRestore(backupPath) {
     if (result.preRestoreBackup) {
       console.log(`  Pre-restore backup: ${result.preRestoreBackup}`);
     }
-    console.log(`  Erasure replay: ${erasure.replayed_users} user(s), ${erasure.deleted_rows} restored row(s) removed.`);
+    console.log(`  Erasure replay: ${erasure.replayed_users} user(s), ${erasure.replayed_memories || 0} memory record(s), ${erasure.deleted_rows} restored row(s) removed.`);
     console.log();
     console.log("  NOTE: Restart the server to use the restored database.");
   } else {

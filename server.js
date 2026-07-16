@@ -1625,6 +1625,18 @@ app.post("/api/auth/consent", async (req, res) => {
         identityRepo.audit("roleplay_consent_cascade_failed", auth.user.id, { key, message: String(e5 && e5.message).slice(0, 120) }, req.ip);
       }
     }
+    // F1: revoking durable-memory consent is an immediate bounded purge, not a
+    // cosmetic toggle. Any failure is visible and context use remains fail-closed.
+    if (["mentor_memory_store", "mentor_memory_unfinished", "mentor_memory_candidates"].includes(key) && !granted) {
+      try {
+        const purged = await require("./agent/memory/runtime").revoke(auth.user.id, key);
+        identityRepo.audit("memory_consent_purge", auth.user.id, { key, deleted: purged.deleted || 0 }, req.ip);
+        purgeInfo = { memory_deleted: purged.deleted || 0 };
+      } catch (e6) {
+        identityRepo.audit("memory_consent_purge_failed", auth.user.id, { key, message: String(e6 && e6.message).slice(0, 120) }, req.ip);
+        return res.status(500).json({ ok: false, error: "PURGE_FAILED", key });
+      }
+    }
     // CLG-P7.1a: отзыв telegram_delivery ОБЯЗАН гасить активные связки + невыгашенные токены
     // АТОМАРНО (критика: доставка авторизуется фактом активной связки, не живым consent — если
     // unlink упадёт, канал доставлял бы после отзыва = fail-open). Здесь каскад — honest-fail:
@@ -1834,7 +1846,9 @@ app.get("/api/learner/keying/status", rlLearnerKeying, async (req, res) => {
 // ============================================================================
 const agentRuntime = require("./agent/runtime");
 const cp0Observer = require("./agent/controlPlane/observer");
+const memoryRuntime = require("./agent/memory/runtime");
 const rlAgent = makeRateLimiter({ windowMs: 60_000, max: 20, name: "agent" });
+const rlMemory = makeRateLimiter({ windowMs: 60_000, max: 40, name: "agent-memory" });
 
 app.post("/api/agent/plan", rlAgent, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
@@ -2237,6 +2251,29 @@ app.post("/api/agent/profile", rlAgent, async (req, res) => {
     res.json({ ok: true, profile: { mode: r.mode, language: r.language, depth: r.depth } });
   } catch (e) { res.status(500).json({ ok: false, error: "AGENT_PROFILE_FAILED", message: e.message }); }
 });
+
+// Wave 2 F1 — correctable continuity. First-party, deterministic and default-off.
+function sendMemoryResult(res, out) {
+  if (out && out.ok) return res.json(out);
+  const code = String(out && out.error || "MEMORY_FAILED");
+  const status = code === "MEMORY_NOT_FOUND" ? 404
+    : code === "STATE_CONFLICT" || code === "IDEMPOTENCY_CONFLICT" ? 409
+    : ["F1_DISABLED","F1_NOT_ALLOWLISTED","CONSENT_REQUIRED","CATEGORY_DISABLED","F1_CANDIDATES_DISABLED","F1_CONTEXT_DISABLED"].includes(code) ? 403
+    : 400;
+  return res.status(status).json(out || { ok:false,error:code });
+}
+function memoryError(res, e) {
+  const code=String(e&&e.message||"MEMORY_FAILED");
+  const known=/^(BAD_|MEMORY_|PENDING_|REVISION_|ACTION_|STATE_|IDEMPOTENCY_|SOURCE_|CONSENT_|CUSTOM_|F1_)/.test(code);
+  return res.status(known?(code==="MEMORY_NOT_FOUND"?404:code==="STATE_CONFLICT"?409:400):500).json({ok:false,error:known?code:"MEMORY_FAILED"});
+}
+app.get("/api/agent/memory", rlMemory, async(req,res)=>{const auth=await requireUser(req,res);if(!auth)return;try{return sendMemoryResult(res,await memoryRuntime.list({userId:auth.user.id,surface:"pwa"},{status:req.query.status,limit:req.query.limit,before:req.query.before}));}catch(e){return memoryError(res,e);}});
+app.post("/api/agent/memory", rlMemory, async(req,res)=>{const auth=await requireUser(req,res);if(!auth)return;if(!requireCsrf(req,res,auth))return;try{return sendMemoryResult(res,await memoryRuntime.create({userId:auth.user.id,surface:"pwa"},req.body||{}));}catch(e){return memoryError(res,e);}});
+app.post("/api/agent/memory/proposals", rlMemory, async(req,res)=>{const auth=await requireUser(req,res);if(!auth)return;if(!requireCsrf(req,res,auth))return;try{return sendMemoryResult(res,await memoryRuntime.propose({userId:auth.user.id,surface:"pwa"}));}catch(e){return memoryError(res,e);}});
+app.post("/api/agent/memory/:id/action", rlMemory, async(req,res)=>{const auth=await requireUser(req,res);if(!auth)return;if(!requireCsrf(req,res,auth))return;if(req.body&&("user_id" in req.body||"userId" in req.body))return res.status(403).json({ok:false,error:"USER_ID_FORBIDDEN"});try{return sendMemoryResult(res,await memoryRuntime.action({userId:auth.user.id,surface:"pwa"},req.params.id,req.body||{}));}catch(e){return memoryError(res,e);}});
+app.get("/api/agent/memory/continue", rlMemory, async(req,res)=>{const auth=await requireUser(req,res);if(!auth)return;try{return sendMemoryResult(res,await memoryRuntime.continueItem({userId:auth.user.id,surface:"pwa"}));}catch(e){return memoryError(res,e);}});
+app.get("/api/agent/memory/export", rlMemory, async(req,res)=>{const auth=await requireUser(req,res);if(!auth)return;try{const out=await memoryRuntime.exportMemory({userId:auth.user.id,surface:"pwa"});res.set("Content-Disposition",`attachment; filename="linguistpro-memory-${auth.user.id}.json"`);return res.json(out);}catch(e){return memoryError(res,e);}});
+app.post("/api/agent/memory/delete-all", rlMemory, async(req,res)=>{const auth=await requireUser(req,res);if(!auth)return;if(!requireCsrf(req,res,auth))return;try{return sendMemoryResult(res,await memoryRuntime.deleteAll({userId:auth.user.id,surface:"pwa"},req.body||{}));}catch(e){return memoryError(res,e);}});
 
 // ============================================================================
 // CLG-P9 «дом наставника» (MENTOR_HOME_P9_DECISION_2026_07_06). Оба endpoint'а
@@ -2764,6 +2801,7 @@ if (_tgPruneInterval.unref) _tgPruneInterval.unref();
 const { withTxnLock } = require("./db/txnLock");
 const handoffRepo = require("./db/handoffRepo");
 const cp0ObservationRepo = require("./db/cp0ObservationRepo");
+const learnerMemoryRepo = require("./db/learnerMemoryRepo");
 async function opsSweepTick() {
   if (getDbHealth().ready !== true) return;
   try {
@@ -2774,8 +2812,9 @@ async function opsSweepTick() {
       const ch = await agentChallengeRepo.pruneOld();
       await handoffRepo.pruneOld();
       const cp0Purged = await cp0ObservationRepo.purgeExpired();
-      if (sessions || initSeen || devices || ch.challenges || ch.purgedTerminal || cp0Purged.observations || cp0Purged.boots) {
-        console.log(`[ops-sweep] sessions=${sessions} initdata_seen=${initSeen} devices=${devices} challenges_expired=${ch.challenges} challenges_purged=${ch.purgedTerminal} cp0_observations=${cp0Purged.observations} cp0_boots=${cp0Purged.boots}`);
+      const memoryPurged = await learnerMemoryRepo.expireAndPurge();
+      if (sessions || initSeen || devices || ch.challenges || ch.purgedTerminal || cp0Purged.observations || cp0Purged.boots || memoryPurged.expired || memoryPurged.records || memoryPurged.queries || memoryPurged.journal) {
+        console.log(`[ops-sweep] sessions=${sessions} initdata_seen=${initSeen} devices=${devices} challenges_expired=${ch.challenges} challenges_purged=${ch.purgedTerminal} cp0_observations=${cp0Purged.observations} cp0_boots=${cp0Purged.boots} memory_expired=${memoryPurged.expired} memory_records=${memoryPurged.records} memory_queries=${memoryPurged.queries} memory_journal=${memoryPurged.journal}`);
       }
     });
   } catch (e) { console.error("[ops-sweep] failed:", e && e.message); }

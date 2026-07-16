@@ -1,0 +1,20 @@
+#!/usr/bin/env node
+"use strict";
+process.env.F1_MEMORY_ENABLED="1";process.env.F1_MEMORY_OWNER_IDS="u1";process.env.F1_MEMORY_CANDIDATES_ENABLED="1";process.env.F1_MEMORY_CONTEXT_USE_ENABLED="1";process.env.F1_MEMORY_DIGEST_SECRET="f1-lifecycle-secret-012345678";
+const dbh=require("./lib/cp0-test-db");const runtime=require("../../agent/memory/runtime");const repo=require("../../db/learnerMemoryRepo");
+(async()=>{const c=await dbh.setup("cp0-f1-life");try{
+  await c.run(`INSERT INTO consent_records (id,user_id,consent_key,granted,consent_version) VALUES ('s','u1','mentor_memory_store',1,'f1-v1'),('u','u1','mentor_memory_unfinished',1,'f1-v1'),('p','u1','mentor_memory_candidates',1,'f1-v1')`);
+  await c.run(`INSERT INTO agent_tasks (id,user_id,kind,status,payload_json,created_at) VALUES ('at_f1','u1','plan','open','{}',datetime('now'))`);
+  const prop=await runtime.propose({userId:"u1",surface:"pwa"});if(!prop.ok||!prop.items.length||prop.items[0].status!=="PENDING")throw new Error("proposal");
+  let cont=await runtime.continueItem({userId:"u1",surface:"pwa"});if(!cont.ok||cont.item)throw new Error("pending leaked");
+  let item=prop.items[0];let kept=await runtime.action({userId:"u1",surface:"pwa"},item.id,{action:"KEEP",expected_revision_id:item.current_revision_id});if(!kept.ok||kept.item.authority_class!=="USER_CONFIRMED_DERIVED")throw new Error("keep");item=kept.item;
+  cont=await runtime.continueItem({userId:"u1",surface:"pwa"});if(!cont.item||cont.item.id!==item.id)throw new Error("continue select");
+  await c.run(`UPDATE agent_tasks SET status='done' WHERE user_id='u1' AND id='at_f1'`);cont=await runtime.continueItem({userId:"u1",surface:"pwa"});if(cont.item)throw new Error("closed source leaked");const revoked=await c.get(`SELECT COUNT(*) c FROM learner_memory_source_links WHERE user_id='u1' AND memory_id=? AND source_status='REVOKED'`,[item.id]);if(!revoked.c)throw new Error("source revoke not recorded");
+  let x=await runtime.action({userId:"u1",surface:"pwa"},item.id,{action:"SUPPRESS",expected_revision_id:item.current_revision_id});if(!x.ok||x.item.use_enabled)throw new Error("suppress");item=x.item;cont=await runtime.continueItem({userId:"u1",surface:"pwa"});if(cont.item)throw new Error("suppressed leaked");
+  x=await runtime.action({userId:"u1",surface:"pwa"},item.id,{action:"UNSUPPRESS",expected_revision_id:item.current_revision_id});item=x.item;x=await runtime.action({userId:"u1",surface:"pwa"},item.id,{action:"RESOLVE",expected_revision_id:item.current_revision_id});if(x.item.status!=="RESOLVED")throw new Error("resolve");
+  let g=(await runtime.create({userId:"u1",surface:"pwa"},{kind:"declared_goal",payload:{goal_code:"CUSTOM",text:"Old"}})).item;x=await runtime.action({userId:"u1",surface:"pwa"},g.id,{action:"CORRECT",expected_revision_id:g.current_revision_id,payload:{goal_code:"CUSTOM",text:"New"}});if(x.item.payload.text!=="New"||x.item.revision!==2)throw new Error("correct");g=x.item;
+  x=await runtime.action({userId:"u1",surface:"pwa"},g.id,{action:"ANNUL",expected_revision_id:g.current_revision_id});if(x.item.status!=="ANNULLED")throw new Error("annul");
+  const del=await runtime.action({userId:"u1",surface:"pwa"},g.id,{action:"DELETE"});if(!del.ok||!del.item.deleted)throw new Error("delete");const jr=await c.get(`SELECT COUNT(*) c FROM memory_erasure_journal WHERE user_id='u1' AND memory_id=?`,[g.id]);if(jr.c!==1)throw new Error("erasure journal");
+  await c.run(`UPDATE learner_memory_records SET expires_at='2000-01-01T00:00:00.000Z' WHERE user_id='u1'`);await repo.expireAndPurge("2026-07-16T00:00:00.000Z");const active=await c.get(`SELECT COUNT(*) c FROM learner_memory_records WHERE user_id='u1' AND status='ACTIVE'`);if(active.c)throw new Error("expiry");
+  console.log("smoke:f1 lifecycle OK — pending no-use · keep · continue · suppress/unsuppress · resolve · correct · annul · hard delete+journal · query-time expiry");
+}finally{await dbh.cleanup(c);}})().catch(e=>{console.error(e.stack||e);process.exit(1);});

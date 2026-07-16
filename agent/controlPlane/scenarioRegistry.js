@@ -28,6 +28,11 @@ const SCENARIOS = Object.freeze({
   "profile.update": { role: "profile.editor", surfaces: ["pwa"], capabilities: ["repo:profile"] },
   "notification.nudge": { role: "notification.policy", surfaces: ["background"], capabilities: ["repo:nudge_claim", "delivery:push", "delivery:telegram"] },
   "provider.byok_check": { role: "policy.controller", surfaces: ["pwa"], capabilities: ["model:generate"] },
+  "memory.manage": { role: "memory.manager", surfaces: ["pwa"], capabilities: ["repo:memory"] },
+  "memory.propose": { role: "memory.manager", surfaces: ["pwa"], capabilities: ["repo:memory"] },
+  "memory.context_continue": { role: "memory.manager", surfaces: ["pwa"], capabilities: ["repo:memory_query"] },
+  "memory.export": { role: "memory.manager", surfaces: ["pwa"], capabilities: ["repo:memory_export"] },
+  "memory.delete": { role: "memory.manager", surfaces: ["pwa"], capabilities: ["repo:memory_delete"] },
 });
 
 function get(id) { return SCENARIOS[String(id)] || null; }

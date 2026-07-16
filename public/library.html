@@ -1416,6 +1416,23 @@
     .mentor-set-btn { width: auto; appearance: none; border: 0; background: var(--bg-muted); color: var(--text-secondary); padding: 6px 12px; font-size: 13px; cursor: pointer; }
     .mentor-set-btn.on { background: var(--accent); color: var(--accent-contrast); }
     .mentor-set-btn[disabled] { opacity: .6; cursor: default; }
+    /* Wave 2 F1 — correctable continuity */
+    .mentor-memory-wrap { display: grid; gap: 9px; }
+    .mentor-memory-options { display: grid; gap: 4px; }
+    .mentor-memory-add { display: grid; grid-template-columns: minmax(130px,.8fr) minmax(160px,1.4fr) auto; gap: 7px; align-items: center; }
+    .mentor-memory-select, .mentor-memory-input, .mentor-memory-confirm input { min-width: 0; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border-soft); border-radius: 8px; background: var(--bg-muted); color: var(--text-primary); }
+    .mentor-memory-group { border-top: 1px solid var(--border-soft); padding-top: 9px; }
+    .mentor-memory-group-title { margin: 0 0 5px; font-size: 13px; color: var(--text-secondary); }
+    .mentor-memory-card { margin-top: 7px; padding: 10px 11px; border: 1px solid var(--border-soft); border-radius: 11px; background: color-mix(in srgb,var(--bg-muted) 55%,transparent); }
+    .mentor-memory-featured { border-color: var(--accent); background: color-mix(in srgb,var(--accent) 8%,var(--bg-muted)); }
+    .mentor-memory-badge { color: var(--accent); font-size: 11px; font-weight: 700; }
+    .mentor-memory-value { margin-top: 3px; font-size: 14px; line-height: 1.4; overflow-wrap: anywhere; }
+    .mentor-memory-why { margin-top: 6px; font-size: 12px; color: var(--text-secondary); }
+    .mentor-memory-why summary { cursor: pointer; }
+    .mentor-memory-empty { padding: 9px 10px; border: 1px dashed var(--border-soft); border-radius: 9px; color: var(--text-secondary); font-size: 12px; }
+    .mentor-memory-confirm { display: flex; gap: 7px; flex-wrap: wrap; }
+    .mentor-memory-card button, .mentor-memory-wrap > button, .mentor-memory-add button, .mentor-memory-confirm button { width: auto !important; }
+    @media (max-width: 480px) { .mentor-memory-add { grid-template-columns: 1fr; } .mentor-memory-add button { justify-self: start; } }
     /* PAS-F1 — «Свой LLM-ключ» */
     .mentor-byok-title { margin: 14px 0 4px; font-size: 14px; }
     .mentor-byok-input { width: 100%; padding: 8px 11px; border-radius: 8px; border: 1px solid var(--border-soft); background: var(--bg-muted); color: var(--text-primary); font-size: 14px; box-sizing: border-box; margin-top: 6px; }

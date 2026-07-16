@@ -1,0 +1,23 @@
+{
+  "schema": "f1-evidence.1.0.0",
+  "date": "2026-07-16",
+  "status": "LOCAL_GATES_COMPLETE_DEPLOY_PENDING",
+  "logical_operations": 10000,
+  "query_receipts": 2000,
+  "external_network_attempts": 0,
+  "external_provider_calls": 0,
+  "latency_ms": {
+    "p50": 0.309,
+    "p95": 2.88,
+    "p99": 3.712
+  },
+  "lock_errors": 0,
+  "cross_user_leaks": 0,
+  "canonical_writes": 0,
+  "flags": {
+    "F1_MEMORY_ENABLED": false,
+    "F1_MEMORY_CANDIDATES_ENABLED": false,
+    "F1_MEMORY_CONTEXT_USE_ENABLED": false,
+    "CP0_OBSERVER_ENABLED": false
+  }
+}

@@ -26,7 +26,10 @@ async function replayDeletionJournal(preRestoreDbPath, restoredDbPath) {
     let deleted=[];
     try { deleted=await all(source,"SELECT user_id,deleted_at,tables_purged_json FROM deletion_journal ORDER BY deleted_at,user_id"); }
     catch(e){ if(/no such table/i.test(String(e&&e.message))) deleted=[]; else throw e; }
-    if(!deleted.length) return {ok:true,replayed_users:0,deleted_rows:0};
+    let memoryDeleted=[];
+    try { memoryDeleted=await all(source,"SELECT user_id,memory_id,deleted_at,reason_code FROM memory_erasure_journal ORDER BY deleted_at,user_id,memory_id"); }
+    catch(e){ if(/no such table/i.test(String(e&&e.message))) memoryDeleted=[]; else throw e; }
+    if(!deleted.length&&!memoryDeleted.length) return {ok:true,replayed_users:0,replayed_memories:0,deleted_rows:0};
     target=await open(restoredDbPath, sqlite3.OPEN_READWRITE);
     await exec(target,"PRAGMA foreign_keys=ON;");
     const tables=await userScopedTables(target);
@@ -49,9 +52,17 @@ async function replayDeletionJournal(preRestoreDbPath, restoredDbPath) {
           SELECT ?,?,? WHERE NOT EXISTS (SELECT 1 FROM deletion_journal WHERE user_id=? AND deleted_at=?)`,
           [uid,String(j.deleted_at),String(j.tables_purged_json||"[]"),uid,String(j.deleted_at)]);
       }
+      const accountDeleted=new Set(deleted.map((x)=>String(x.user_id)));
+      for(const j of memoryDeleted){
+        const uid=String(j.user_id),mid=String(j.memory_id);
+        if(accountDeleted.has(uid)) continue;
+        try { const rr=await run(target,"DELETE FROM learner_memory_records WHERE user_id=? AND id=?",[uid,mid]);deletedRows+=Number(rr.changes)||0; } catch(e) { if(!/no such table/i.test(String(e&&e.message))) throw e; }
+        try { const rr=await run(target,"DELETE FROM memory_context_queries WHERE user_id=? AND selected_ids_json LIKE ?",[uid,`%${mid}%`]);deletedRows+=Number(rr.changes)||0; } catch(e) { if(!/no such table/i.test(String(e&&e.message))) throw e; }
+        try { await run(target,`INSERT INTO memory_erasure_journal (user_id,memory_id,deleted_at,reason_code) SELECT ?,?,?,? WHERE NOT EXISTS (SELECT 1 FROM memory_erasure_journal WHERE user_id=? AND memory_id=? AND deleted_at=?)`,[uid,mid,String(j.deleted_at),String(j.reason_code||"RESTORE_REPLAY"),uid,mid,String(j.deleted_at)]); } catch(e) { if(!/no such table/i.test(String(e&&e.message))) throw e; }
+      }
       await exec(target,"COMMIT;");
     }catch(e){try{await exec(target,"ROLLBACK;");}catch(_){}throw e;}
-    return {ok:true,replayed_users:new Set(deleted.map((x)=>String(x.user_id))).size,deleted_rows:deletedRows};
+    return {ok:true,replayed_users:new Set(deleted.map((x)=>String(x.user_id))).size,replayed_memories:memoryDeleted.filter((x)=>!new Set(deleted.map((d)=>String(d.user_id))).has(String(x.user_id))).length,deleted_rows:deletedRows};
   } catch(e) { return {ok:false,error:String(e&&e.message||e)}; }
   finally { if(source)await close(source);if(target)await close(target); }
 }

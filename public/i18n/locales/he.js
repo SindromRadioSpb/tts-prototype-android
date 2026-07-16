@@ -2162,6 +2162,19 @@ window.I18N_LOCALES.he = {
         detailed: "בהרחבה",
         hint: "חל על הסברים, התוכנית ותשובות המנטור; נשמר בפרופיל הענן.",
       },
+      memory: {
+        title: "🧠 זיכרון המנטור", store: "לשמור זיכרון מנטור שבחרתם",
+        boundary: "רק מטרות וחוטים לא גמורים שבחרתם. זה אינו זיכרון מילים, הערכה או אמת לשונית.",
+        off: "הזיכרון כבוי. המנטור ממשיך לעבוד בלעדיו.", unfinished: "לשמור חוטים לא גמורים", candidates: "להציע המשכים אפשריים",
+        goalPh: "פירוט המטרה (לא חובה)…", addGoal: "הוספת מטרה", find: "חיפוש המשכים אפשריים", findFailed: "לא ניתן לבדוק המשכים",
+        active: "פעילים", proposals: "הצעות", hidden: "מוסתרים", history: "היסטוריה", empty: "עדיין אין כאן פריטים.",
+        returnExplanation: "לחזור להסבר אחרון", continueTask: "להמשיך משימה שלא הושלמה", continueNow: "להמשיך עכשיו", open: "לפתוח",
+        youSaid: "שמרתם", youKept: "אישרתם", suggested: "הצעה · עדיין אינה בשימוש",
+        expires: "תוקף", why: "למה זה כאן?", userAction: "פעולה מפורשת שלכם", keep: "לשמור", notTrue: "לא מתאים",
+        edit: "לערוך", saveEdit: "לשמור תיקון", stopUse: "להפסיק להשתמש", useAgain: "להשתמש שוב", resolve: "הושלם", delete: "למחוק", export: "ייצוא הזיכרון", deleteAll: "מחיקת כל הזיכרון",
+        confirmDelete: "אישור מחיקה", confirmExact: "יש להקליד DELETE MEMORY בדיוק", saveFailed: "לא ניתן לשמור", actionFailed: "הפעולה נכשלה",
+        goal: { read_more:"לקרוא יותר", review_regularly:"לחזור בקביעות", improve_vocabulary:"להרחיב אוצר מילים", improve_writing:"לשפר כתיבה", improve_speaking:"לשפר דיבור", custom:"מטרה אישית" },
+      },
       // PAS-F1 — מפתח LLM משלך (הרחבת BYOK)
       byok: {
         title: "מפתח LLM משלך",

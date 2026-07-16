@@ -75,6 +75,11 @@ async function listTasks(userId, { status, limit } = {}) {
   return rows || [];
 }
 
+async function getTaskById(userId, taskId) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  return dbGet(db, `SELECT * FROM agent_tasks WHERE user_id = ? AND id = ?`, [userId, String(taskId || "")]);
+}
+
 async function setTaskStatus(userId, taskId, status) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const ST = new Set(["open", "done", "dismissed"]);
@@ -394,7 +399,7 @@ async function scenarioCallsToday(userId, scenario) {
 
 module.exports = {
   getProfile, updateProfile,
-  createTask, listTasks, setTaskStatus,
+  createTask, listTasks, getTaskById, setTaskStatus,
   createExplanation, purgeExplanationContent, purgeExplanationContentByKind, getFreshExplanation,
   getExplanationById, bumpExplanationFollowups,
   listExplanations, constructOccurrences,

@@ -1042,6 +1042,53 @@
     box.appendChild(msg);
   }
 
+  // Wave 2 F1 — first-party, deterministic and correctable continuity.
+  // Mount only reads. Candidate creation is behind the explicit button.
+  function memoryText(item) {
+    if (item.kind === "declared_goal") return item.payload.text || t("room.mentor.memory.goal." + String(item.payload.goal_code || "").toLowerCase(), item.payload.goal_code || "—");
+    if (item.payload.next_action === "OPEN_EXPLANATION") return t("room.mentor.memory.returnExplanation", "Вернуться к недавнему объяснению");
+    return t("room.mentor.memory.continueTask", "Продолжить незавершённую задачу");
+  }
+  async function setMemoryConsent(key, granted) {
+    var r = await jpost("/api/auth/consent", { key: key, granted: granted, version: "f1-v1" });
+    if (r.status !== 200 || !r.json || !r.json.ok) throw new Error("CONSENT_FAILED");
+    if (S.session && S.session.consents) S.session.consents[key] = { granted: granted };
+  }
+  async function renderMemory(section, box) {
+    box.textContent = "";
+    var probe = await jget("/api/agent/memory?status=ACTIVE&limit=5").catch(function(){ return null; });
+    if (!probe || (probe.status === 403 && probe.json && ["F1_DISABLED","F1_NOT_ALLOWLISTED"].indexOf(probe.json.error) >= 0)) { section.hidden = true; return; }
+    section.hidden = false;
+    var cons = (S.session && S.session.consents) || {};
+    var storeOn = !!(cons.mentor_memory_store && cons.mentor_memory_store.granted === true);
+    var msg = el("div", "mentor-hint mentor-consent-msg"); msg.hidden = true;
+    function toggle(key, text, checked) {
+      var l=el("label","mentor-consent"), c=document.createElement("input");c.type="checkbox";c.checked=checked;l.appendChild(c);l.appendChild(el("span",null,text));
+      c.addEventListener("change",async function(){var v=c.checked;c.disabled=true;try{await setMemoryConsent(key,v);await renderMemory(section,box);}catch(_){c.checked=!v;msg.textContent="✗ "+t("room.cloud.err","Ошибка синхронизации");msg.hidden=false;}finally{c.disabled=false;}});return l;
+    }
+    box.appendChild(toggle("mentor_memory_store",t("room.mentor.memory.store","Сохранять выбранную память наставника"),storeOn));
+    box.appendChild(el("div","mentor-hint",t("room.mentor.memory.boundary","Только выбранные вами цели и незавершённые нити. Это не память слов, не оценка и не языковая истина.")));
+    box.appendChild(msg);
+    if(!storeOn){box.appendChild(el("div","mentor-memory-empty",t("room.mentor.memory.off","Память выключена. Наставник продолжит работать без неё.")));return;}
+    var unfinished=!!(cons.mentor_memory_unfinished&&cons.mentor_memory_unfinished.granted===true), cand=!!(cons.mentor_memory_candidates&&cons.mentor_memory_candidates.granted===true);
+    box.appendChild(toggle("mentor_memory_unfinished",t("room.mentor.memory.unfinished","Сохранять незавершённые нити"),unfinished));
+    box.appendChild(toggle("mentor_memory_candidates",t("room.mentor.memory.candidates","Предлагать возможные продолжения"),cand));
+
+    if(unfinished){var cr=await jget("/api/agent/memory/continue").catch(function(){return null;});var ci=cr&&cr.json&&cr.json.ok&&cr.json.item;if(ci){var featured=el("div","mentor-memory-card mentor-memory-featured");featured.appendChild(el("div","mentor-memory-badge",t("room.mentor.memory.continueNow","Продолжить сейчас")));featured.appendChild(el("div","mentor-memory-value",memoryText(ci)));var go=el("button","mentor-plan-btn",t("room.mentor.memory.open","Открыть"));go.type="button";go.addEventListener("click",function(){try{if(ci.payload.next_action==="OPEN_READING"&&S.host.openReading)S.host.openReading();else if(ci.payload.next_action==="OPEN_EXPLANATION"){var h=S.els&&S.els.history;if(h&&h.scrollIntoView)h.scrollIntoView({behavior:"smooth",block:"start"});}else if(S.els&&S.els.plan&&S.els.plan.scrollIntoView)S.els.plan.scrollIntoView({behavior:"smooth",block:"start"});}catch(_){}});featured.appendChild(go);box.appendChild(featured);}}
+
+    var add=el("div","mentor-memory-add"), goal=document.createElement("select"), note=document.createElement("input");goal.className="mentor-memory-select";note.className="mentor-memory-input";note.maxLength=280;note.placeholder=t("room.mentor.memory.goalPh","Уточнение цели (необязательно)…");
+    [["READ_MORE","Больше читать"],["REVIEW_REGULARLY","Повторять регулярно"],["IMPROVE_VOCABULARY","Расширить словарь"],["IMPROVE_WRITING","Улучшить письмо"],["IMPROVE_SPEAKING","Улучшить речь"],["CUSTOM","Своя цель"]].forEach(function(x){var o=document.createElement("option");o.value=x[0];o.textContent=t("room.mentor.memory.goal."+x[0].toLowerCase(),x[1]);goal.appendChild(o);});
+    var save=el("button","mentor-plan-btn",t("room.mentor.memory.addGoal","Добавить цель"));save.type="button";save.addEventListener("click",async function(){save.disabled=true;try{var r=await jpost("/api/agent/memory",{kind:"declared_goal",payload:{goal_code:goal.value,text:note.value||undefined,language:lang().slice(0,2)}});if(!r.json||!r.json.ok)throw new Error();note.value="";await renderMemory(section,box);}catch(_){msg.textContent="✗ "+t("room.mentor.memory.saveFailed","Не удалось сохранить");msg.hidden=false;}finally{save.disabled=false;}});add.appendChild(goal);add.appendChild(note);add.appendChild(save);box.appendChild(add);
+    if(cand){var find=el("button","mentor-wr-ghost",t("room.mentor.memory.find","Найти возможные продолжения"));find.type="button";find.addEventListener("click",async function(){find.disabled=true;try{var r=await jpost("/api/agent/memory/proposals",{});if(!r.json||!r.json.ok)throw new Error();await renderMemory(section,box);}catch(_){msg.textContent="✗ "+t("room.mentor.memory.findFailed","Не удалось проверить продолжения");msg.hidden=false;}finally{find.disabled=false;}});box.appendChild(find);}
+
+    var states=[["ACTIVE","active","Активные"],["PENDING","proposals","Предложения"],["SUPPRESSED","hidden","Скрытые"],["RESOLVED","history","История"]];
+    var results={ACTIVE:probe};for(var si=1;si<states.length;si++)results[states[si][0]]=await jget("/api/agent/memory?status="+states[si][0]+"&limit=5").catch(function(){return null;});
+    async function act(item,action,extra){var r=await jpost("/api/agent/memory/"+encodeURIComponent(item.id)+"/action",Object.assign({action:action,expected_revision_id:item.current_revision_id},extra||{}));if(!r.json||!r.json.ok)throw new Error(r.json&&r.json.error);await renderMemory(section,box);}
+    states.forEach(function(st){var items=(results[st[0]]&&results[st[0]].json&&results[st[0]].json.items)||[];var group=el("div","mentor-memory-group");group.appendChild(el("h4","mentor-memory-group-title",t("room.mentor.memory."+st[1],st[2])));if(!items.length)group.appendChild(el("div","mentor-memory-empty",t("room.mentor.memory.empty","Здесь пока пусто.")));
+      items.forEach(function(item){var card=el("article","mentor-memory-card");var badge=item.authority_class==="USER_DECLARED"?t("room.mentor.memory.youSaid","Вы сохранили"):item.authority_class==="USER_CONFIRMED_DERIVED"?t("room.mentor.memory.youKept","Вы подтвердили"):t("room.mentor.memory.suggested","Предложено · пока не используется");card.appendChild(el("div","mentor-memory-badge",badge));card.appendChild(el("div","mentor-memory-value",memoryText(item)));card.appendChild(el("div","mentor-hint",t("room.mentor.memory.expires","Срок")+": "+String(item.expires_at||"").slice(0,10)));var why=document.createElement("details");why.className="mentor-memory-why";why.appendChild(el("summary",null,t("room.mentor.memory.why","Почему это здесь?")));why.appendChild(el("div","mentor-hint",(item.sources||[]).map(function(s){return s.source_kind+" · "+s.source_status;}).join(" · ")||t("room.mentor.memory.userAction","Ваше явное действие")));card.appendChild(why);var actions=el("div","mentor-plan-actions");function button(label,action,extra){var b=el("button",action==="DELETE"?"mentor-wr-ghost":"mentor-plan-btn",label);b.type="button";b.addEventListener("click",async function(){b.disabled=true;try{await act(item,action,extra);}catch(_){msg.textContent="✗ "+t("room.mentor.memory.actionFailed","Действие не выполнено");msg.hidden=false;}finally{b.disabled=false;}});actions.appendChild(b);}if(item.status==="PENDING"){button(t("room.mentor.memory.keep","Сохранить"),"KEEP");button(t("room.mentor.memory.notTrue","Не подходит"),"ANNUL");}if(item.status==="ACTIVE"){if(item.kind==="declared_goal"){var edit=el("button","mentor-wr-ghost",t("room.mentor.memory.edit","Изменить"));edit.type="button";edit.addEventListener("click",function(){var row=el("div","mentor-memory-confirm"),inp=document.createElement("input"),ok=el("button","mentor-plan-btn",t("room.mentor.memory.saveEdit","Сохранить правку"));inp.maxLength=280;inp.value=item.payload.text||"";ok.type="button";ok.addEventListener("click",async function(){await act(item,"CORRECT",{payload:{goal_code:item.payload.goal_code,text:inp.value||undefined,language:item.payload.language}});});row.appendChild(inp);row.appendChild(ok);card.appendChild(row);});actions.appendChild(edit);}button(t("room.mentor.memory.stopUse","Не использовать"),"SUPPRESS");if(item.kind==="unfinished_thread")button(t("room.mentor.memory.resolve","Завершено"),"RESOLVE");}if(item.status==="SUPPRESSED")button(t("room.mentor.memory.useAgain","Использовать снова"),"UNSUPPRESS");button(t("room.mentor.memory.delete","Удалить"),"DELETE",{reason_code:"USER_DELETE"});card.appendChild(actions);group.appendChild(card);});box.appendChild(group);});
+    var life=el("div","mentor-plan-actions"), exp=el("button","mentor-wr-ghost",t("room.mentor.memory.export","Экспорт памяти")), del=el("button","mentor-wr-ghost",t("room.mentor.memory.deleteAll","Удалить всю память"));exp.type=del.type="button";exp.addEventListener("click",async function(){var r=await fetch("/api/agent/memory/export",{credentials:"same-origin"});if(!r.ok)return;var blob=await r.blob(),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="linguistpro-memory.json";a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);});del.addEventListener("click",function(){var row=el("div","mentor-memory-confirm"),inp=document.createElement("input"),ok=el("button","mentor-plan-btn",t("room.mentor.memory.confirmDelete","Подтвердить удаление"));inp.placeholder="DELETE MEMORY";ok.type="button";ok.addEventListener("click",async function(){var r=await jpost("/api/agent/memory/delete-all",{confirm:inp.value});if(r.json&&r.json.ok)await renderMemory(section,box);else{msg.textContent=t("room.mentor.memory.confirmExact","Введите DELETE MEMORY точно");msg.hidden=false;}});row.appendChild(inp);row.appendChild(ok);box.appendChild(row);});life.appendChild(exp);life.appendChild(del);box.appendChild(life);
+  }
+
   // ── mount / refresh ─────────────────────────────────────────────────────────
   function blockNode(titleKey, titleFb) {
     var b = el("section", "mentor-block");
@@ -1072,6 +1119,8 @@
     var lbB = blockNode(null, null);     // Wave 2 LB0 — typed ephemeral lesson draft
     var tgB = blockNode("room.tg.title", "🔗 Telegram");
     var setB = blockNode("room.mentor.settings.title", "⚙ Наставник");   // PAS-D4
+    var memB = blockNode("room.mentor.memory.title", "🧠 Память наставника");
+    var memBox = el("div", "mentor-memory-wrap"); memB.appendChild(memBox);
     var histWrap = blockNode("room.mentor.histTitle", "История объяснений");
     var consB = blockNode("room.mentor.consTitle", "Ваши конструкции");
     var histBox = el("div", "mentor-hist-list");
@@ -1085,6 +1134,7 @@
     m.appendChild(lbB);
     m.appendChild(tgB);
     m.appendChild(setB);
+    m.appendChild(memB);
     m.appendChild(histWrap);
     m.appendChild(consB);
     var consBox = el("div", "mentor-cons-list");
@@ -1097,6 +1147,7 @@
     renderLessonLauncher(lbB.appendChild(el("div", "mentor-lb-wrap")));
     renderTelegramBlock(tgBox);
     renderSettings(setB.appendChild(el("div", "mentor-set-wrap")));
+    renderMemory(memB, memBox);
     renderHistoryBlock(histWrap, histBox);
     renderConstructs(consBox);
     // PAS-D1: блок без capability хоста схлопывается (MA-хост её не отдаёт)

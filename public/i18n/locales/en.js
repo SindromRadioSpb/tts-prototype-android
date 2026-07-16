@@ -2152,6 +2152,19 @@ window.I18N_LOCALES.en = {
         detailed: "Detailed",
         hint: "Applies to explanations, the plan and mentor replies; stored in your cloud profile.",
       },
+      memory: {
+        title: "🧠 Mentor memory", store: "Save selected mentor memory",
+        boundary: "Only goals and unfinished threads you choose. This is not word memory, an assessment, or linguistic truth.",
+        off: "Memory is off. The mentor continues to work without it.", unfinished: "Save unfinished threads", candidates: "Suggest possible continuations",
+        goalPh: "Goal detail (optional)…", addGoal: "Add goal", find: "Find possible continuations", findFailed: "Could not check continuations",
+        active: "Active", proposals: "Proposals", hidden: "Hidden", history: "History", empty: "Nothing here yet.",
+        returnExplanation: "Return to a recent explanation", continueTask: "Continue an unfinished task", continueNow: "Continue now", open: "Open",
+        youSaid: "You saved", youKept: "You confirmed", suggested: "Suggested · not used yet",
+        expires: "Expires", why: "Why is this here?", userAction: "Your explicit action", keep: "Keep", notTrue: "Not for me",
+        edit: "Edit", saveEdit: "Save correction", stopUse: "Stop using", useAgain: "Use again", resolve: "Completed", delete: "Delete", export: "Export memory", deleteAll: "Delete all memory",
+        confirmDelete: "Confirm deletion", confirmExact: "Enter DELETE MEMORY exactly", saveFailed: "Could not save", actionFailed: "Action failed",
+        goal: { read_more:"Read more", review_regularly:"Review regularly", improve_vocabulary:"Grow vocabulary", improve_writing:"Improve writing", improve_speaking:"Improve speaking", custom:"Custom goal" },
+      },
       // PAS-F1 — your own LLM key (BYOK extension of the hybrid)
       byok: {
         title: "Your own LLM key",
