@@ -39,6 +39,7 @@ function currentCommit() { return childProcess.execFileSync("git", ["rev-parse",
 function roundUsd(value) { return Math.round((Number(value) || 0) * 1e6) / 1e6; }
 function tokenEstimate(text) { return Math.max(1, Math.ceil(Buffer.byteLength(String(text || ""), "utf8") / 3)); }
 function conservativeTokenUpperBound(text) { return Math.max(1, Buffer.byteLength(String(text || ""), "utf8") + 512); }
+function wait(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 function latencyBucket(ms) { return ms < 2000 ? "0-2s" : ms < 5000 ? "2-5s" : ms < 10000 ? "5-10s" : "10s+"; }
 function sizeBucket(bytes) { return bytes <= 4096 ? "small" : bytes <= 12288 ? "medium" : "large"; }
 
@@ -119,8 +120,11 @@ function plannedWorstCost(cell, system, prompt, maxOutputTokens) {
 async function providerCall(cell, payload, state) {
   const key = keyFor(cell);
   if (!key) return { ok: false, skipped: true, error: "NOT_RUN_NO_CLI_KEY" };
+  if (state.calls >= state.max_provider_calls) return { ok: false, skipped: true, error: "REQUEST_GUARD" };
   const worst = plannedWorstCost(cell, payload.system, payload.prompt, payload.maxOutputTokens);
   if (state.conservative_cost_bound_usd + worst > state.budget_usd) return { ok: false, skipped: true, error: "BUDGET_GUARD" };
+  const delay = Math.max(0, state.request_spacing_ms - (Date.now() - state.last_provider_call_at));
+  if (delay > 0) await wait(delay);
   const oldProvider = process.env.AGENT_LLM_PROVIDER;
   const oldGeminiModel = process.env.AGENT_LLM_MODEL;
   const oldOpenRouterModel = process.env.AGENT_OPENROUTER_MODEL;
@@ -128,6 +132,7 @@ async function providerCall(cell, payload, state) {
   if (cell.provider === "gemini") process.env.AGENT_LLM_MODEL = cell.model;
   if (cell.provider === "openrouter") process.env.AGENT_OPENROUTER_MODEL = cell.model;
   const started = Date.now();
+  state.last_provider_call_at = started;
   let out;
   try {
     out = await llm.generate({ system: payload.system, prompt: payload.prompt, json: true, jsonSchema: payload.schema,
@@ -343,7 +348,8 @@ function aggregate(artifacts, state) {
     injected_controls: group(artifacts.filter((artifact) => CONTROL_CASES.has(artifact.case_id))),
     rejection_code_distribution: Object.fromEntries(Object.entries(codes).sort(([a], [b]) => a.localeCompare(b))),
     latency_ms: { p50: percentile(0.5), p90: percentile(0.9), p95: percentile(0.95), max: latencies.length ? latencies[latencies.length - 1] : null },
-    calls: state.calls, preflight_calls: state.preflight_calls,
+    calls: state.calls, preflight_calls: state.preflight_calls, request_spacing_ms: state.request_spacing_ms,
+    max_provider_calls: state.max_provider_calls,
     observed_non_thought_cost_estimate_usd: state.observed_non_thought_cost_estimate_usd,
     conservative_cost_bound_usd: state.conservative_cost_bound_usd, budget_usd: state.budget_usd,
     cost_status: "CONSERVATIVE_BOUND_INCLUDES_MAX_OUTPUT_NOT_PROVIDER_BILLED", human_scores: "UNSCORED", promotion_result: "NO_DECISION" };
@@ -437,9 +443,16 @@ async function main() {
   const config = readJson(args.config);
   const caseFile = path.resolve(ROOT, config.case_file);
   const loaded = caseLoader.loadCases(caseFile);
+  const configuredSpacing = config.rate_policy && config.rate_policy.request_spacing_ms;
+  const configuredMaxCalls = config.rate_policy && config.rate_policy.max_provider_calls;
   const state = { budget_usd: Number(config.budget_usd), observed_non_thought_cost_estimate_usd: 0,
-    conservative_cost_bound_usd: 0, calls: 0, preflight_calls: 0 };
+    conservative_cost_bound_usd: 0, calls: 0, preflight_calls: 0,
+    request_spacing_ms: configuredSpacing == null ? 0 : Number(configuredSpacing),
+    max_provider_calls: configuredMaxCalls == null ? Number.MAX_SAFE_INTEGER : Number(configuredMaxCalls),
+    last_provider_call_at: 0 };
   if (!Number.isFinite(state.budget_usd) || state.budget_usd <= 0 || state.budget_usd > 5) throw new Error("LB2B_BUDGET_INVALID");
+  if (!Number.isFinite(state.request_spacing_ms) || state.request_spacing_ms < 0 ||
+      !Number.isInteger(state.max_provider_calls) || state.max_provider_calls <= 0) throw new Error("LB2B_REQUEST_GUARD_INVALID");
   if (!args.resume && fs.existsSync(args.out) && fs.readdirSync(args.out).length) throw new Error("LB2B_OUTPUT_EXISTS_USE_RESUME_OR_NEW_PATH");
   if (args.resume && fs.existsSync(path.join(args.out, "run-manifest.json"))) throw new Error("LB2B_COMPLETED_RUN_IMMUTABLE");
   const preflightFile = path.join(args.out, "provider-preflight.json");
@@ -495,6 +508,7 @@ async function main() {
     composer_cells: config.composer_cells.map(({ key_env, ...cell }) => ({ ...cell, key_env_present: !!process.env[key_env] })),
     prompt_variants: config.prompt_variants.map((entry) => ({ id: entry.id, hash: stableHash(entry) })),
     provider_preflight: preflight, budget_usd: state.budget_usd,
+    rate_policy: { request_spacing_ms: state.request_spacing_ms, max_provider_calls: state.max_provider_calls },
     observed_non_thought_cost_estimate_usd: state.observed_non_thought_cost_estimate_usd,
     conservative_cost_bound_usd: state.conservative_cost_bound_usd,
     human_review_status: "UNSCORED", reviewer_count: 1, adjudicator_count: 1,

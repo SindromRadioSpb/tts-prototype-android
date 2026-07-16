@@ -8,9 +8,11 @@ const path = require("path");
 const ROOT = path.resolve(__dirname, "..", "..");
 const RUNNER = path.join(ROOT, "scripts", "premium", "lesson-quality-lb2b.js");
 const ANALYZER = path.join(ROOT, "scripts", "premium", "lesson-quality-lb2b-analyze.js");
+const FLASH_LITE_CONFIG = path.join(ROOT, "docs", "research", "lesson-quality", "2026-07-16", "lb2b-run-config-flash-lite-free.json");
 const contract = require(path.join(ROOT, "agent", "lessonCompositionContract"));
 const base = path.join(ROOT, ".tmp", `lb2b-smoke-${process.pid}`);
 const dry = path.join(base, "dry");
+const flashLiteDry = path.join(base, "flash-lite-dry");
 const controls = path.join(base, "controls");
 const sentinel = "LB2B_SMOKE_SECRET_SENTINEL_4d91";
 let checks = 0;
@@ -36,6 +38,17 @@ try {
   ok(counts.overview_146_b1_grammar_synthetic === 146, "146-row overview");
   ok(counts.series_241_b2_writing_public_domain >= 241, "241-plus public-domain series");
   ok(counts.double_reject_safe_plan >= 220, "220-plus double-reject series");
+
+  const flashLiteDryResult = run(RUNNER, ["--dry-run", "--config", FLASH_LITE_CONFIG, "--out", flashLiteDry], cleanEnv);
+  ok(flashLiteDryResult.status === 0, "Flash Lite free-tier dry run must pass");
+  const flashLiteMetrics = json(path.join(flashLiteDry, "metrics.json"));
+  const flashLiteManifest = json(path.join(flashLiteDry, "run-manifest.json"));
+  ok(fs.readdirSync(path.join(flashLiteDry, "raw")).length === 26, "Flash Lite matrix must contain 26 slots");
+  ok(flashLiteMetrics.request_spacing_ms === 5200 && flashLiteMetrics.max_provider_calls === 60,
+    "Flash Lite free-tier rate guard must remain frozen");
+  ok(flashLiteManifest.composer_cells.length === 1 && flashLiteManifest.composer_cells[0].model === "gemini-3.1-flash-lite",
+    "Flash Lite probe must use one composer model");
+  ok(flashLiteManifest.shadow_critic_enabled_offline_only === false, "single-model probe must not self-review");
 
   const controlResult = run(RUNNER, ["--out", controls], cleanEnv);
   ok(controlResult.status === 0, "no-key control run must pass");

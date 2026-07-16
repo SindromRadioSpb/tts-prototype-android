@@ -1,0 +1,52 @@
+{
+  "schema_version": "lesson-quality-lb2b-config-v1",
+  "status": "OWNER_APPROVED_OFFLINE_EVIDENCE_ONLY",
+  "source_commit": "AUTO_CURRENT_HEAD",
+  "case_file": "docs/research/lesson-quality/2026-07-16/cases.json",
+  "budget_usd": 5,
+  "latency_policy": {
+    "per_provider_attempt_timeout_ms": 30000,
+    "rationale": "Keep the existing adapter timeout and report measured latency without setting a production threshold."
+  },
+  "rate_policy": {
+    "request_spacing_ms": 5200,
+    "max_provider_calls": 60,
+    "rationale": "Free-tier probe: stay below 15 RPM with one sequential route and bound worst-case first plus repair calls."
+  },
+  "randomization_seed": "lb2b-hebrew-gold-2026-07-16-flash-lite-free-v1",
+  "composer_cells": [
+    {
+      "id": "gemini_direct_3_1_flash_lite_free",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "key_env": "LB2B_GEMINI_KEY",
+      "schema_mode": "provider_json_schema_plus_post_validation",
+      "price_input_per_million": 0.25,
+      "price_output_per_million": 1.5,
+      "price_source": "https://ai.google.dev/gemini-api/docs/pricing"
+    }
+  ],
+  "prompt_variants": [
+    {
+      "id": "lb2a_contract_v1",
+      "system_suffix": ""
+    },
+    {
+      "id": "instruction_engineered_v1",
+      "system_suffix": "Before emitting JSON, silently perform this bounded checklist: map each objective claim to an allowed anchor; allocate one admissible exercise to every selected focus; ensure every controlled exercise has an answer derivable from supplied facts; remove unsupported cultural or historical claims; keep each exercise to one primary learner action; confirm the declared level and duration. Emit only the final JSON, never the checklist or hidden reasoning."
+    }
+  ],
+  "shadow_critic": {
+    "enabled": false,
+    "offline_only": true,
+    "authority": "disabled_for_single_model_probe",
+    "sample_policy": "one_per_case_stratified",
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite",
+    "key_env": "LB2B_GEMINI_KEY",
+    "price_input_per_million": 0.25,
+    "price_output_per_million": 1.5,
+    "price_source": "https://ai.google.dev/gemini-api/docs/pricing",
+    "independence_limitation": "Disabled because the only available free-tier model must not review its own compositions."
+  }
+}
