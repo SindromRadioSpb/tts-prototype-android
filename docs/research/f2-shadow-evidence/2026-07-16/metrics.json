@@ -2,7 +2,8 @@
   "date": "2026-07-16",
   "baseline_commit": "bcf9482",
   "package_version": "3.11.189",
-  "status": "LOCAL_ENGINEERING_COMPLETE_LIVE_EVIDENCE_DEFERRED",
+  "implementation_commit": "ed3cf11",
+  "status": "ENGINEERING_COMPLETE_DEFAULT_OFF_DEPLOYED_LIVE_EVIDENCE_DEFERRED",
   "constructs": [
     "UNSUPPORTED_ORTHOGRAPHIC_PRODUCTION",
     "READING_TO_NEW_CONTEXT_TRANSFER"
@@ -49,6 +50,15 @@
     "passed": 269,
     "failed": 9,
     "classification": "pre_existing_unrelated"
+  },
+  "production": {
+    "verified_runtime_implementation_commit": "ed3cf11",
+    "health_ok": true,
+    "db_ready": true,
+    "migrations_ready": true,
+    "migration_041_applied": true,
+    "f2_table_count": 10,
+    "forbidden_enablement_flags_off": true
   },
   "live_enablement": false,
   "cp0_enablement": false,

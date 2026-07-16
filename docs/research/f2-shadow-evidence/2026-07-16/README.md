@@ -1,6 +1,8 @@
 # F2 bounded shadow evidence — 2026-07-16
 
-**Статус:** `LOCAL_ENGINEERING_COMPLETE / DEFAULT_OFF_DEPLOY_PENDING / LIVE_EVIDENCE_DEFERRED`
+**Статус:** `ENGINEERING_COMPLETE / DEFAULT_OFF_DEPLOYED / LIVE_EVIDENCE_DEFERRED`
+
+**Commit/version:** `ed3cf11`, package/service-worker cache `3.11.189`.
 
 Этот bundle фиксирует bounded end-to-end shadow-срез Option B. Он не является
 минимальной демонстрацией: покрыты два construct, observation -> hypothesis ->
@@ -35,6 +37,7 @@ provider-вызовов, planner/S4 jobs или live enablement не выпол�
 | Mobile | PASS at requested 380×844 override; screenshot `mobile-380x844.png` |
 | Existing focused regressions | PASS: F1, memory-canon 79/79, FSRS 30/30, grader gold 77/77, Mentor Home 25/25, CP0, API smoke |
 | Full `npm test` | 278 total; 269 pass; 9 pre-existing unrelated failures |
+| Default-off production | PASS: image `ed3cf11`; health/DB/migrations ready; migration 041 + 10 F2 tables; F2/CP0 flags off |
 
 Full-suite baseline failures are outside the F2 diff: one classic-mode assertion
 expects absent `btnTableCustomizeToggle` in `public/index.html`; eight are in the

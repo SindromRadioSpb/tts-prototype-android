@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-16
 
-**Статус:** `CONTRACT_APPROVED / EXECUTION_AUTHORIZED`
+**Статус:** `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`
 
 **Contract:** `LINGUISTPRO_WAVE2_F2_EVIDENCE_CHAIN_DECISION_PACKET_2026_07_16.md`, Option B owner-approved 2026-07-16.
 
@@ -610,3 +610,23 @@ After execution approval the implementer follows §18 and returns with:
 - separate owner-live launch packet.
 
 Without explicit approval of §22, stop at this document.
+
+## 25. Execution return — 2026-07-16
+
+- Commit/version: `ed3cf11`, package/cache `3.11.189`, pushed to `main`.
+- Stable evidence: `docs/research/f2-shadow-evidence/2026-07-16/`.
+- Gates: F2 contract/observation/target/evaluator/lifecycle/isolation/restore/UI,
+  10,000-op load, F1, memory-canon, FSRS, grader-gold, Mentor Home, CP0 parity
+  35/35 and API smoke all pass.
+- Load tripwire: zero network attempts, provider calls and quota reservations.
+- Production: default-off image for `ed3cf11` healthy; DB and migrations ready;
+  `041_f2_shadow_evidence_chain` applied; ten F2 tables present.
+- Enablement: F2, both constructs, context use, planner handoff, external
+  evaluator and CP0 remain off. No live F2 endpoint/user/provider operation was
+  performed.
+- Full-suite disclosure: 269/278 pass; nine pre-existing failures remain in
+  untouched classic-mode and premium pipeline/provider/quota paths.
+- Post-diff R1–R17 findings and epistemic limits are recorded in the evidence
+  README.
+- Separate next approval surface:
+  `LINGUISTPRO_WAVE2_F2_OWNER_LIVE_APPROVAL_PACKET_2026_07_16.md`.
