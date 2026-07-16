@@ -4,10 +4,12 @@
 **Status:** `OWNER_APPROVED`; Agent Access direction A/A/A/A/A/A/A/A/A/A is canonical. Research, architecture and roadmap decision only.
 **Authority:** documentation only. No Hermes skill, MCP endpoint, OAuth server/client, token, scope, API/UI/config, migration, runtime hook, deployment, external connection, notification, durable lesson or canonical write is authorized.
 **Owner approval:** 2026-07-16 — Decisions 1–10: A/A/A/A/A/A/A/A/A/A. This approval adds the parallel AA roadmap track and authorizes its documentation gates only; it does not authorize AA0 execution, Hermes configuration, AA2 implementation or any external data connection.
-**Repository baseline:** `main` / `60e98dc`; package `3.11.183`; `origin/main` aligned after the owner-approved S3 design push.
-**Current foundation:** S0–S2 are owner-approved; S3 commit `34a0c2e` is `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED` and deployed default-off. This is sufficient for F1 and later AA2 default-off engineering under separate approvals, not for a live external-agent connection.
-**Execution-order decision:** for one primary implementer, the default critical path is S3 engineering implementation/zero-real-provider synthetic/default-off deployment → F1 correctable continuity → AA2 read-only runtime/MCP engineering → AA3 propose-first engineering → AA4-required S7 capabilities → AA4 product engineering. Unavailable live windows are deferred/remediated and gate activation/promotion, not default-off engineering. AA0 packaging/evidence and AA1 design proceed in parallel under separate authority.
+**Repository baseline:** current committed `main` / `ed3cf11`; package `3.11.189`; F2 bounded shadow evidence chain is deployed default-off.
+**Current foundation:** S0–S2 are owner-approved; S3 is `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED` and deployed default-off; F1 is technically verified owner-only; F2 commit `ed3cf11` is `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`, default-off and provider-free. This is sufficient for the separately approved AA2-A default-off domain-service foundation, not for a live external-agent connection.
+**Execution-order decision:** for one primary implementer, the current learning critical path is S3 engineering/default-off deployment → F1 correctable continuity → sufficient F2 shadow evidence chain → bounded next-session/weekly preparation → personalized AA2 read-only runtime/MCP engineering → AA3 propose-first engineering → AA4-required S7 capabilities → AA4 product engineering. AA2-A's network-free domain-service foundation may proceed in parallel after approved AA1 and its own execution packet. Unavailable live windows are deferred/remediated and gate activation/promotion, not bounded default-off engineering. AA0 packaging/evidence remains parallel.
 **Owner implementation amendment:** 2026-07-16 — the complete AA0→AA4 engineering chain is an intended product direction and must not be blocked by currently unavailable owner-live windows. S3 `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED` may unblock AA2 default-off engineering after AA1; AA0 and each AA live-evidence window are non-blocking evidence debts. Live connection/promotion remains separately gated, and AA4 public enablement still requires S7 plus resolved critical deferred findings.
+**Owner sequencing amendment:** 2026-07-16 — F1 is technically verified owner-only. Product scheduling prioritizes a **sufficient F2 shadow evidence chain**, followed by a separately approved bounded next-session/weekly preparation slice, before personalized AA2-B/AA2-C and AA3 engineering. This is a product-priority decision, not a new OAuth/MCP technical dependency. The 2026-07-17 amendment permits only AA2-A's network-free domain-service foundation to proceed in parallel after approved AA1 and its separate execution packet.
+**Owner capability-horizon and implementation amendment:** 2026-07-17 — the narrow AA0 and AA2-v0 surfaces are rollout gates, not the product ceiling. The owner approves the extensible capability horizon in §15.3, approves AA1 as the foundation contract and authorizes a separate AA2 execution packet plus the first default-off AA2-A domain-service implementation slice. AA2-A may proceed in parallel with bounded preparation because it adds no endpoint, OAuth credential, MCP connection, provider spend or live data egress. Bounded preparation remains ahead of any learner-facing personalized brief promotion; AA2-B/C live/runtime gates remain separate.
 **Question:** should the owner use LinguistPro with a personal Hermes agent, and should LinguistPro expose a vendor-neutral agent-access surface with Hermes as the first reference client?
 
 ## 1. Revised verdict
@@ -498,6 +500,31 @@ Engineering completion never self-promotes a switch. Conversely, lack of a curre
 
 No stage may use deferred evidence to weaken schemas, tenant boundaries, deterministic truth or rollback. Deferred findings are attached to the first affected stage and must be closed before that stage's live/public promotion.
 
+### 15.3 Owner-approved capability expansion horizon
+
+AA0 is a no-secret navigation preflight. AA1 is an extensible security/authority contract. Neither defines the eventual usefulness ceiling for Hermes or another user-owned agent.
+
+The expansion model is cumulative and scope-specific:
+
+| Horizon | Additional value | Required proof before grant/live use |
+|---|---|---|
+| **AA2-R0 — initial read-only** | Learning brief, review summary, public-catalog search, explanation metadata and this-connection status. | AA1 schemas/OAuth/connection lifecycle, CP0 mapping, loopback clients and separate live approval. |
+| **AA2-R1 — richer consented reads** | Server/device-parity reading recommendation; personal-library metadata; selected explanation bodies; minimized F1 continuity summary; minimized F2 advisory evidence summary. | One independent scope and consent amendment per data class; source authority, retention, export/delete and downstream-recipient proof. No ambient personal body access. |
+| **AA3-P0 — first-party proposals** | Reading-session intent, lesson intent, plan-change proposal, reminder proposal and calendar-aware bounded intent. | Closed schema, idempotency, expiry, first-party review/confirmation and no canonical write from the external call. |
+| **AA3-P1 — controlled orchestration** | Approved lesson-draft lifecycle/status, selected-source workflows and official external delivery. | Durable artifact lifecycle where needed; notification eligibility + atomic `nudge_ledger` claim/receipt; budget and support gates. |
+| **AA4 — connected-agents product** | Multiple clients/connections, public registration policy, quotas, audit, revoke, support/incident controls and premium packaging. | S7 operational readiness, abuse/load evidence and staged cohort approval. |
+
+Expansion rules:
+
+1. Each new read or proposal is a separate least-privilege scope; old grants never widen silently.
+2. Hermes may compose LinguistPro capabilities with its own calendar, mail, files, browser and channels. LinguistPro need not receive those external datasets unless a bounded first-party intent explicitly requires them.
+3. Agent usefulness comes from composition of high-level domain capabilities, not repository/root access.
+4. AA0 evidence never blocks AA1/AA2 engineering and is never used as a learning-efficacy claim.
+5. The permanently prohibited canonical/consent/delete/server-command scopes remain prohibited across every horizon.
+6. A capability may move earlier or later by owner decision, but it cannot bypass its authority, privacy, lifecycle, cost and rollback proof.
+
+This horizon restores the original product promise — “connect your personal agent to LinguistPro” — while preserving LinguistPro as the educational system of record.
+
 ## 16. Effect on the current development direction
 
 The idea **activates the previously deferred external-interoperability design trigger**, because a concrete client and owner use case now exist. It does not overturn the current foundation or reorder the core product around Hermes.
@@ -511,7 +538,10 @@ S3 execution authorization
   → healthy default-off deploy
   → S3 ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED
   → F1 correctable continuity design / implementation / evidence
-  → AA2 read-only Agent Access engineering / default-off deploy
+  → F2 sufficient shadow evidence chain / default-off engineering
+  ├→ bounded next-session/weekly preparation / separately approved engineering
+  └→ AA2-A closed contracts + network-free domain service / default-off
+  → AA2-B/C personalized read-only OAuth/MCP engineering / default-off deploy
   → AA3 propose-first engineering / default-off deploy
   → AA4-required S7 tenancy/FinOps/ops engineering
      (plus only those S4–S6 prerequisites proven necessary by the S7 contract)
@@ -524,7 +554,9 @@ deferred S3-O and AA owner-live windows → remediation/re-run
 
 dependency note:
 S3/AA live evidence gates live enablement and promotion, not default-off engineering;
-AA2 stays after F1 by scheduling default, not by technical prohibition
+personalized AA2-B/C stays after sufficient F2 shadow and bounded preparation by owner scheduling priority;
+AA2-A may proceed in parallel because it has no live data, endpoint or connection;
+F2 is not an OAuth/MCP technical prerequisite, and AA1 remains mandatory
 
 public promotion:
 S7 operational readiness + critical deferred findings resolved → staged AA4 enablement
@@ -536,6 +568,13 @@ Why F1 remains ahead of public Agent Access:
 - Agent Access without mature memory/authority only exports thin summaries;
 - public agent auth/support/privacy adds platform burden before learning value is proven;
 - owner AA0 can validate orchestration demand without delaying the core.
+
+Why sufficient F2 shadow and bounded preparation now also remain ahead of AA2 scheduling:
+
+- F1 preserves continuity but does not yet turn an observation into tested evidence or a governed next action;
+- exporting read-only summaries before that chain exists would expose a thin activity view rather than a high-quality learning brief;
+- a complete shadow chain can prove provenance, uncertainty, MNAR, independent evaluation and zero canonical authority before an external client consumes any derived brief;
+- AA1 contract work is independent and may proceed without moving the AA2 runtime ahead of the core learning loop.
 
 The roadmap therefore carries the **entire AA engineering track**, while keeping engineering completion distinct from live readiness and public promotion.
 
