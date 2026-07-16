@@ -16,6 +16,7 @@ export function createFixtureAdapter() {
   const sessionUidIndex = new Map();
   const userCodeIndex = new Map();
   const models = new Set();
+  const fields = new Map();
 
   const keyFor = (model, id) => `${model}:${id}`;
   const liveRecord = (key) => {
@@ -35,6 +36,7 @@ export function createFixtureAdapter() {
     }
 
     async upsert(id, payload, expiresIn) {
+      fields.set(this.model, new Set([...(fields.get(this.model) || []), ...Object.keys(payload || {})]));
       const key = keyFor(this.model, id);
       const expiresAt = Number.isFinite(expiresIn)
         ? Date.now() + (expiresIn * 1000)
@@ -98,12 +100,16 @@ export function createFixtureAdapter() {
         counts,
       };
     },
+    schema() {
+      return Object.fromEntries([...fields].sort(([a], [b]) => a.localeCompare(b)).map(([model, names]) => [model, [...names].sort()]));
+    },
     clear() {
       records.clear();
       grantIndex.clear();
       sessionUidIndex.clear();
       userCodeIndex.clear();
       models.clear();
+      fields.clear();
     },
   };
 }

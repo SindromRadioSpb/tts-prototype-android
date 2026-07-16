@@ -264,6 +264,7 @@
     "smoke:agent-access": "node scripts/premium/agent-access-domain-smoke.js",
     "smoke:agent-access:oauth": "node scripts/premium/agent-access-oauth-lifecycle-smoke.js && node scripts/premium/agent-access-oauth-restore-smoke.js",
     "smoke:agent-access:oidc-loopback": "node scripts/premium/agent-access-oidc-loopback-smoke.mjs",
+    "smoke:agent-access:oauth-deployment": "node scripts/premium/agent-access-oauth-deployment-smoke.mjs && node scripts/premium/agent-access-oauth-b0-adapter-smoke.mjs && node scripts/premium/agent-access-oauth-consent-bridge-smoke.mjs",
     "smoke:cp0:load": "node scripts/premium/cp0-load-smoke.js"
   },
   "dependencies": {

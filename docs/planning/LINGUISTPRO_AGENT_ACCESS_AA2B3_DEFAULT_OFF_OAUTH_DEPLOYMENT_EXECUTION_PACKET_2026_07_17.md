@@ -2,13 +2,13 @@
 
 **Date:** 2026-07-17
 
-**Status:** `OWNER_APPROVED_FOR_PACKET / IMPLEMENTATION_NOT_AUTHORIZED / NO_DEPLOY / NO_LIVE_CLIENT`.
+**Status:** `ENGINEERING_COMPLETE / DEFAULT_OFF / FIXTURE_TWO_CLIENT / PRODUCTION_KEY_ABSENT / PRODUCTION_CLIENT_ABSENT / MCP_ABSENT / NO_DEPLOY / NO_LIVE_CLIENT`.
 
-**Owner approval:** 2026-07-17 — “Утверждаю.” This approves preparation and publication of this decision packet only. A second explicit owner approval is required before B3 runtime implementation.
+**Owner approval:** 2026-07-17 — “Утверждаю решения D1–D7 в AA2‑B3 packet. Разрешаю default-off B3 implementation и fixture validation. Не разрешаю production key/config, deploy, MCP, Hermes installation/configuration или live connection.” D1–D7 and the bounded B3 engineering slice are therefore approved; D8, deployment and every live/external action remain unapproved.
 
-**Repository baseline:** `main` / `36e2e76`; package `3.11.194`; Node `v22.22.1`; AA2-A/B0 engineering complete; AA2-B1 `LOOPBACK_ENGINEERING_COMPLETE / PRODUCTION_MOUNT_ABSENT`; AA2-B2 `ENGINEERING_COMPLETE / DEFAULT_OFF / AS_UNMOUNTED / LIVE_CONNECTION_ABSENT`.
+**Repository baseline:** implementation started from `main` / `dac5199`; package `3.11.194`; Node `v22.22.1`; AA2-A/B0 engineering complete; AA2-B1 `LOOPBACK_ENGINEERING_COMPLETE`; AA2-B2 `ENGINEERING_COMPLETE / DEFAULT_OFF`; B3 evidence and final commit are recorded in §19.
 
-**Authority boundary:** this packet may decide the proposed issuer, discovery/resource metadata, static public-client profiles, token/key policy, provider mapping, proxy/rate-limit/CP0 contracts, implementation gates and rollback. This session may not mount `/oauth`, generate/store a production key, register or configure Hermes/Inspector, mint a token/code, create a connection, add a dependency or migration, change runtime/config/env/UI, deploy, expose MCP, read private/F1/F2 payloads or make a provider call.
+**Authority boundary:** the approved session may implement exact default-off OAuth routes, the B0/B2 adapter/interaction bridge and synthetic local fixtures. It may mint only ephemeral fixture codes/tokens/keys in scratch databases. It may not create or inject a production key/config/client, install/configure Hermes or Inspector, deploy, expose MCP, connect a real client, read private/F1/F2 payloads, call a model/provider or enable CP0 live capture.
 
 ## 1. Repo-grounded starting point
 
@@ -20,7 +20,7 @@ Already present:
 - B2 default-off first-party consent/revoke UI, server-held trusted request ceremony, cookie/CSRF management routes and strict Agent Access browser boundary;
 - five closed AA2 read-only capabilities and a resource identifier fixed at `https://linguistpro.kolosei.com/agent-access`.
 
-Not present:
+Absent at the start of B3 (post-implementation reconciliation is in §19):
 
 - production AS or protected-resource metadata route;
 - production signing key, key loader, JWKS rotation or custody procedure;
@@ -317,22 +317,22 @@ Observed current sources:
 
 ## 15. B3 implementation approval scope
 
-Owner decisions requested with the later implementation approval:
+Owner decisions recorded by the 2026-07-17 implementation approval:
 
 | ID | Recommended decision | State after this packet |
 |---|---|---|
-| D1 | Option B; issuer/resource/endpoints exactly as §3 | Proposed; implementation approval confirms it. |
-| D2 | Static public clients only: Hermes v0.18.2/fixed port 8765 plus Inspector 0.21.2/ports 6274 callbacks | Proposed; no real registration yet. |
-| D3 | ES256; managed-secret injection; 90-day rotation; 30-minute planned overlap | Proposed; concrete secret coordinate deferred to deploy packet. |
-| D4 | 5-minute code, 10-minute access token, rotating refresh with 30-day idle/90-day absolute lifetime | Proposed. |
-| D5 | Process-memory short interaction/session, fail-closed on restart; single instance only | Proposed for B3 engineering, explicitly not HA/live. |
-| D6 | Exact quotas in §10 and content-safe audit in §11 | Proposed. |
-| D7 | No DCR/CIMD, no client secret, no upstream token passthrough, no MCP | Fixed B3 prohibition. |
+| D1 | Option B; issuer/resource/endpoints exactly as §3 | **Approved and implemented default-off.** |
+| D2 | Static public clients only: Hermes v0.18.2/fixed port 8765 plus Inspector 0.21.2/ports 6274 callbacks | **Approved for fixtures; both pass locally; no production registration.** |
+| D3 | ES256; managed-secret injection; 90-day rotation; 30-minute planned overlap | **Approved; injected-loader and active+previous verification implemented; production secret/fingerprint absent.** |
+| D4 | 5-minute code, 10-minute access token, rotating refresh with 30-day idle/90-day absolute lifetime | **Approved and fixture-verified.** |
+| D5 | Process-memory short interaction/session, fail-closed on restart; single instance only | **Approved and implemented for B3; still not HA/live.** |
+| D6 | Exact quotas in §10 and content-safe audit in §11 | **Approved; bounded multi-dimensional limiter and closed audit schema implemented.** |
+| D7 | No DCR/CIMD, no client secret, no upstream token passthrough, no MCP | **Approved and enforced.** |
 | D8 | Private proxy topology/secret custody/public key fingerprint | Deliberately deferred to separate default-off deployment approval. |
 
 No password, cookie, key, Hermes token store, redirect result or user payload is requested from the owner for the B3 implementation packet. Before a deploy/live window, the owner must provide or approve only the private infrastructure coordinates described by D8.
 
-After a new explicit owner approval, B3 implementation may:
+The approved implementation completed the following bounded work:
 
 1. add a production-shaped but default-off AS factory and B0/B2 adapter;
 2. add exact discovery/PRM/JWKS/authorization/token/revocation mounts behind `AGENT_ACCESS_OAUTH_ENABLED=1` plus the existing Agent Access flag;
@@ -401,6 +401,55 @@ Stop B3 implementation and return to the owner if:
 
 ## 18. Definition of done and later approvals
 
-B3 implementation may become `ENGINEERING_COMPLETE / DEFAULT_OFF / FIXTURE_TWO_CLIENT / PRODUCTION_KEY_ABSENT / MCP_ABSENT` only after §16 passes and scoped code/evidence is committed and pushed.
+B3 is `ENGINEERING_COMPLETE / DEFAULT_OFF / FIXTURE_TWO_CLIENT / PRODUCTION_KEY_ABSENT / PRODUCTION_CLIENT_ABSENT / MCP_ABSENT` after the evidence in §19 and the scoped commit/push accompanying this record.
 
 That status still does not authorize deployment. A separate default-off deployment packet must privately record secret custody, exact proxy topology and production key fingerprint/public `kid`, then verify metadata/JWKS with OAuth disabled for clients. A later AA2-C packet must add the thin MCP resource-server adapter and revalidate Hermes plus Inspector. A final bounded owner-live approval is required before one real connection.
+
+## 19. B3 implementation record — 2026-07-17
+
+Implemented, still exact default-off:
+
+- `server.js` mounts the exact PRM/RFC 8414/OIDC `/oauth` coordinates behind both `AGENT_ACCESS_OAUTH_ENABLED=1` and the existing Agent Access flag. Baseline and malformed flags return content-safe `404`; enabled-without-complete injected runtime returns `503`.
+- `oauthRuntime.mjs` and `oidcDeployment.mjs` provide the production-shaped AS factory, Authorization Code + PKCE S256, exact resource, ES256/JWKS, 5-minute code, 10-minute access token, 30-day idle/90-day absolute rotating refresh, same-client revocation policy and a 56 KiB form cap. No ID token/userinfo/DCR/CIMD/introspection/device/CIBA/PAR/token exchange is enabled.
+- `oidcB0Adapter.mjs` maps `Client`, `Grant`, `AuthorizationCode` and `RefreshToken` to migration 042 domain rows; JWT access tokens are never persisted; only `Interaction` and `Session` are bounded process memory. Unknown provider models and unexpected model fields fail closed. No generic provider JSON table or migration was added.
+- The B2 bridge derives the first-party user from `lp_session`, stages only server-read provider parameters, generates opaque subject/connection/request IDs server-side, and resumes through a single-use same-session continuation after the existing CSRF-protected consent decision. The browser cannot supply client, scope, resource, redirect, connection, subject or grant authority.
+- signing keys, provider cookies and audit HMAC are injection-only interfaces. No durable key is generated on boot and no production value or fingerprint exists in the repository/session.
+- quotas are bounded in memory and applied at the raw socket/IP gate plus client/user/connection protocol points. OAuth audit accepts a closed allowlist, HMAC-digests connection/request/JTI identifiers, rejects raw secret fields and is explicitly `cp0_eligible=false`; B3 performs no tool/LLM/CP0 observation.
+- public consent completion redirects only to the existing provider interaction; no cookie, CSRF, token, verifier, challenge, subject or private payload enters the URL, DOM, export or audit.
+
+Fixture evidence:
+
+```text
+npm run smoke:agent-access:oauth-deployment
+  PASS two static clients, Authorization Code + PKCE S256, exact resource
+  PASS ES256 active signing plus previous-key overlap verification
+  PASS rotating refresh; old-token replay revokes/suspends only its bound connection
+  PASS wrong-client revocation isolation and explicit bound-connection revoke
+  PASS exact B0 durable adapter; restart finds durable refresh state
+  PASS B2 trusted interaction/consent/one-time continuation
+  PASS bounded quotas, forbidden endpoints absent, zero generic JSON persistence
+  PASS zero external connection, MCP, provider/model call or private/F1/F2 read
+```
+
+Regression evidence passed:
+
+```text
+npm run smoke:agent-access
+npm run smoke:agent-access:oauth
+npm run smoke:agent-access:oidc-loopback
+node scripts/premium/agent-access-consent-smoke.js
+node scripts/premium/agent-access-boundary-smoke.js
+npm run smoke:auth
+npm run test:api-smoke
+npm run smoke:cp0
+node --check server.js
+git diff --check
+```
+
+The API smoke explicitly verifies all five public OAuth/discovery paths return `404 AGENT_ACCESS_OAUTH_DISABLED` in the normal baseline. `npm audit --omit=dev` reports 13 pre-existing dependency-tree advisories, but none is attributed to `oidc-provider@9.8.2` or `jose@6.2.2`; no dependency was changed. The newer upstream `oidc-provider@9.9.1` therefore remains a later compatibility refresh, not an unreviewed B3 upgrade.
+
+The repository-wide `npm test` is not a green baseline: 269/278 pass, with one pre-existing `classicModeRedesign` assertion for absent `btnTableCustomizeToggle` and eight pre-existing `tests/premium/pipeline.test.js` GCP/quota fixture failures. B3 changes neither `index.html`, those tests nor the provider pipeline; both failing files reproduce independently. This packet does not hide or repair those unrelated failures. Every Agent Access/auth/API/CP0 gate listed above is green.
+
+R1–R17 closure remains as §14 states: B3 adds security mechanics, not learning value or evidence; external memory/prose is not learner truth, grade or evaluation; domain controllers retain consent/lifecycle authority; no managed LLM spend, notification path, learner write, F1/F2 field, tool or MCP handler exists.
+
+Still absent and prohibited without a separate owner approval: D8 proxy/secret/fingerprint coordinates, production client rows, production key/config injection, deployment, public metadata/JWKS verification, Hermes/Inspector installation/configuration, MCP/resource-server tools, live connection and AA2-C owner evidence.

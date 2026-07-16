@@ -10,6 +10,12 @@ const get = (db, sql, params = []) => new Promise((resolve, reject) => db.get(sq
 const all = (db, sql, params = []) => new Promise((resolve, reject) => db.all(sql, params, (err, rows) => err ? reject(err) : resolve(rows || [])));
 const opaque = (prefix) => prefix + crypto.randomBytes(10).toString("hex");
 const nowIso = () => new Date().toISOString();
+const hashOpaque = (value) => {
+  const text = C.bounded(value, 8192, "AA_OAUTH_PROVIDER_ID_INVALID");
+  return crypto.createHash("sha256").update(text).digest("hex");
+};
+const epochIso = (value) => new Date(Number(value) * 1000).toISOString();
+const isoEpoch = (value) => Math.floor(Date.parse(value) / 1000);
 function error(code) { const e = new Error(code); e.code = code; throw e; }
 function requireDb() { const db = getDb(); if (!db) error("DB_NOT_AVAILABLE"); return db; }
 
@@ -332,10 +338,221 @@ async function purgeExpiredSecurityArtifacts(at = nowIso()) {
   });
 }
 
+async function providerClientMetadata(clientId) {
+  const client = await loadClientForAuthorization(clientId);
+  if (client.status !== "ACTIVE") error("AA_OAUTH_CLIENT_INACTIVE");
+  return {
+    clientId: client.oauth_client_id,
+    clientName: client.display_name,
+    redirectUris: client.redirect_uris,
+    tokenEndpointAuthMethod: "none",
+    grantTypes: ["authorization_code", "refresh_token"],
+    responseTypes: ["code"],
+    idTokenSignedResponseAlg: "ES256",
+  };
+}
+
+async function subjectForUser(userId) {
+  const db = requireDb(), uid = C.safeId(userId);
+  return get(db, `SELECT subject_id,user_id,subject_version,security_epoch FROM agent_subject_mappings WHERE user_id=?`, [uid]);
+}
+
+async function userForSubject(subjectId) {
+  const db = requireDb(), sid = C.safeId(subjectId);
+  return get(db, `SELECT subject_id,user_id,subject_version,security_epoch FROM agent_subject_mappings WHERE subject_id=?`, [sid]);
+}
+
+async function ensureSubjectForUser(userId, at = nowIso()) {
+  const existing = await subjectForUser(userId);
+  if (existing) return existing;
+  const subjectId = `aas_${crypto.randomBytes(12).toString("hex")}`;
+  try { await createSubjectMapping(userId, subjectId, "aa-subject-v1", at); }
+  catch (e) { if (!String(e && e.message).includes("UNIQUE")) throw e; }
+  const created = await subjectForUser(userId);
+  if (!created) error("AA_OAUTH_SUBJECT_NOT_FOUND");
+  return created;
+}
+
+async function providerPrincipal(subjectId, clientId, connectionId, requestedScopes) {
+  const subject = await userForSubject(subjectId);
+  if (!subject) error("AA_OAUTH_SUBJECT_NOT_FOUND");
+  const snapshot = await validateConnectionSnapshot(subject.user_id, connectionId, { oauth_client_id: clientId, scopes: requestedScopes });
+  if (snapshot.subject_id !== subject.subject_id) error("AA_OAUTH_SUBJECT_BINDING_INVALID");
+  return snapshot;
+}
+
+async function providerGrant(grantId) {
+  const db = requireDb(), cid = C.connectionId(grantId);
+  const row = await get(db, `SELECT c.connection_id,c.user_id,c.oauth_client_id,c.status,c.created_at,c.updated_at,s.subject_id
+    FROM agent_connections c JOIN agent_subject_mappings s ON s.user_id=c.user_id
+    WHERE c.connection_id=?`, [cid]);
+  if (!row || !new Set(["ACTIVE", "SCOPE_REDUCED"]).has(row.status)) return null;
+  const scopes = (await all(db, `SELECT scope FROM agent_connection_grants WHERE connection_id=? AND status='ACTIVE' ORDER BY scope`, [cid])).map((x) => x.scope);
+  if (!scopes.length) return null;
+  return {
+    accountId: row.subject_id,
+    clientId: row.oauth_client_id,
+    resources: { [C.RESOURCE_URI]: scopes.join(" ") },
+    iat: isoEpoch(row.created_at),
+    exp: isoEpoch(row.updated_at) + 90 * 86400,
+    jti: cid,
+    kind: "Grant",
+  };
+}
+
+async function validateProviderGrant(grantId, payload) {
+  const grant = await providerGrant(grantId);
+  if (!grant || grant.accountId !== payload.accountId || grant.clientId !== payload.clientId) error("AA_OAUTH_PROVIDER_GRANT_BINDING");
+  const requested = String(payload.resources && payload.resources[C.RESOURCE_URI] || "").split(" ").filter(Boolean).sort();
+  const active = String(grant.resources[C.RESOURCE_URI]).split(" ").filter(Boolean).sort();
+  if (JSON.stringify(requested) !== JSON.stringify(active)) error("AA_OAUTH_PROVIDER_GRANT_SCOPE");
+  return grant;
+}
+
+async function revokeProviderGrant(grantId, reason = "PROVIDER_GRANT_REVOKE", at = nowIso()) {
+  const db = requireDb(), cid = C.connectionId(grantId);
+  const row = await get(db, `SELECT user_id,status FROM agent_connections WHERE connection_id=?`, [cid]);
+  if (!row) return;
+  if (new Set(["ACTIVE", "SCOPE_REDUCED", "PENDING_AUTH"]).has(row.status)) await suspendConnection(row.user_id, cid, reason, at);
+}
+
+async function storeProviderAuthorizationCode(code, payload) {
+  const db = requireDb();
+  const subject = await get(db, `SELECT user_id FROM agent_subject_mappings WHERE subject_id=?`, [C.safeId(payload.accountId)]);
+  if (!subject) error("AA_OAUTH_SUBJECT_NOT_FOUND");
+  const scopes = String(payload.scope || "").split(" ").filter(Boolean);
+  return storeAuthorizationCodeHash(subject.user_id, {
+    authorization_code_id: opaque("aac_"), oauth_client_id: payload.clientId,
+    connection_id: payload.grantId, code_hash: hashOpaque(code), redirect_uri: payload.redirectUri,
+    resource_uri: payload.resource, pkce_method: payload.codeChallengeMethod,
+    pkce_challenge: payload.codeChallenge, scopes,
+    issued_at: epochIso(payload.iat), expires_at: epochIso(payload.exp),
+  });
+}
+
+async function findProviderAuthorizationCode(code) {
+  const db = requireDb();
+  const row = parseCode(await get(db, `SELECT a.*,s.subject_id FROM agent_authorization_codes a
+    JOIN agent_subject_mappings s ON s.user_id=a.user_id WHERE a.code_hash=?`, [hashOpaque(code)]));
+  if (!row || row.status === "REVOKED") return null;
+  return {
+    accountId: row.subject_id, authTime: isoEpoch(row.issued_at), clientId: row.oauth_client_id,
+    codeChallenge: row.pkce_challenge, codeChallengeMethod: row.pkce_method,
+    exp: isoEpoch(row.expires_at), grantId: row.connection_id, iat: isoEpoch(row.issued_at),
+    jti: code, kind: "AuthorizationCode", redirectUri: row.redirect_uri,
+    resource: row.resource_uri, scope: row.scopes.join(" "),
+    ...(row.consumed_at ? { consumed: isoEpoch(row.consumed_at) } : {}),
+  };
+}
+
+async function consumeProviderAuthorizationCode(code, at = nowIso()) {
+  const t = C.iso(at), hash = hashOpaque(code);
+  return transaction(async (db) => {
+    const row = await get(db, `SELECT status FROM agent_authorization_codes WHERE code_hash=?`, [hash]);
+    if (!row) error("AA_OAUTH_CODE_INVALID");
+    if (row.status !== "ACTIVE") return;
+    await run(db, `UPDATE agent_authorization_codes SET status='CONSUMED',consumed_at=? WHERE code_hash=? AND status='ACTIVE'`, [t, hash]);
+  });
+}
+
+async function destroyProviderAuthorizationCode(code, at = nowIso()) {
+  const db = requireDb(), t = C.iso(at);
+  await run(db, `UPDATE agent_authorization_codes SET status='REVOKED',revoked_at=? WHERE code_hash=? AND status='ACTIVE'`, [t, hashOpaque(code)]);
+}
+
+async function storeInitialProviderRefreshToken(token, payload) {
+  const db = requireDb();
+  const subject = await get(db, `SELECT user_id FROM agent_subject_mappings WHERE subject_id=?`, [C.safeId(payload.accountId)]);
+  if (!subject) error("AA_OAUTH_SUBJECT_NOT_FOUND");
+  const issued = epochIso(payload.iat), expires = epochIso(payload.exp);
+  const absolute = epochIso((payload.iiat || payload.iat) + 90 * 86400);
+  return createTokenFamily(subject.user_id, {
+    token_family_id: opaque("aatf_"), refresh_token_id: opaque("aart_"), oauth_client_id: payload.clientId,
+    connection_id: payload.grantId, token_hash: hashOpaque(token), issued_at: issued,
+    expires_at: expires, idle_expires_at: expires, absolute_expires_at: absolute,
+  });
+}
+
+async function prepareProviderRefreshRotation(token, at = nowIso()) {
+  const t = C.iso(at), hash = hashOpaque(token);
+  return transaction(async (db) => {
+    const row = await get(db, `SELECT r.*,f.oauth_client_id,f.absolute_expires_at,f.status family_status,s.subject_id
+      FROM agent_refresh_tokens r JOIN agent_token_families f ON f.token_family_id=r.token_family_id
+      JOIN agent_subject_mappings s ON s.user_id=r.user_id WHERE r.token_hash=?`, [hash]);
+    if (!row) error("AA_OAUTH_REFRESH_INVALID");
+    if (row.status !== "ACTIVE" || row.family_status !== "ACTIVE") error("AA_OAUTH_REFRESH_REVOKED");
+    const changed = await run(db, `UPDATE agent_refresh_tokens SET status='ROTATED',used_at=? WHERE refresh_token_id=? AND status='ACTIVE'`, [t, row.refresh_token_id]);
+    if (changed.changes !== 1) error("AA_OAUTH_REFRESH_REVOKED");
+    return row;
+  });
+}
+
+async function completeProviderRefreshRotation(previous, token, payload, at = nowIso()) {
+  const t = C.iso(at), expires = epochIso(payload.exp);
+  return transaction(async (db) => {
+    if (payload.grantId !== previous.connection_id || payload.clientId !== previous.oauth_client_id || payload.accountId !== previous.subject_id) error("AA_OAUTH_REFRESH_BINDING_INVALID");
+    if (Date.parse(expires) > Date.parse(previous.absolute_expires_at)) error("AA_OAUTH_REFRESH_EXPIRED");
+    const nextId = opaque("aart_");
+    await run(db, `INSERT INTO agent_refresh_tokens (refresh_token_id,user_id,connection_id,token_family_id,token_hash,status,issued_at,expires_at) VALUES (?,?,?,?,?,'ACTIVE',?,?)`, [nextId, previous.user_id, previous.connection_id, previous.token_family_id, hashOpaque(token), t, expires]);
+    await run(db, `UPDATE agent_refresh_tokens SET replaced_by_id=? WHERE refresh_token_id=?`, [nextId, previous.refresh_token_id]);
+    await run(db, `UPDATE agent_token_families SET last_rotated_at=?,idle_expires_at=? WHERE token_family_id=? AND status='ACTIVE'`, [t, expires, previous.token_family_id]);
+    return { refresh_token_id: nextId, token_family_id: previous.token_family_id };
+  });
+}
+
+async function findProviderRefreshToken(token) {
+  const db = requireDb();
+  const row = await get(db, `SELECT r.*,f.oauth_client_id,f.status family_status,f.created_at family_created,f.absolute_expires_at,s.subject_id,
+      (SELECT COUNT(*) FROM agent_refresh_tokens q WHERE q.token_family_id=r.token_family_id AND q.issued_at<=r.issued_at) rotations
+    FROM agent_refresh_tokens r JOIN agent_token_families f ON f.token_family_id=r.token_family_id
+    JOIN agent_subject_mappings s ON s.user_id=r.user_id WHERE r.token_hash=?`, [hashOpaque(token)]);
+  if (!row || !new Set(["ACTIVE", "ROTATED"]).has(row.status) || row.family_status !== "ACTIVE") return null;
+  const scopes = (await all(db, `SELECT scope FROM agent_connection_grants WHERE connection_id=? AND status='ACTIVE' ORDER BY scope`, [row.connection_id])).map((x) => x.scope);
+  return {
+    accountId: row.subject_id, authTime: isoEpoch(row.family_created), clientId: row.oauth_client_id,
+    exp: isoEpoch(row.expires_at), grantId: row.connection_id,
+    gty: Number(row.rotations) > 1 ? "authorization_code refresh_token" : "authorization_code",
+    iat: isoEpoch(row.issued_at), iiat: isoEpoch(row.family_created), jti: token, kind: "RefreshToken",
+    resource: C.RESOURCE_URI, rotations: Math.max(0, Number(row.rotations) - 1), scope: scopes.join(" "),
+    ...(row.used_at ? { consumed: isoEpoch(row.used_at) } : {}),
+  };
+}
+
+async function revokeProviderRefreshByGrant(grantId, reason = "PROVIDER_GRANT_REVOKE", at = nowIso()) {
+  const db = requireDb(), cid = C.connectionId(grantId), t = C.iso(at), why = C.safeId(reason, 64);
+  await transaction(async (tx) => {
+    await run(tx, `UPDATE agent_token_families SET status='REVOKED',revoked_at=?,revoke_reason=? WHERE connection_id=? AND status='ACTIVE'`, [t, why, cid]);
+    await run(tx, `UPDATE agent_refresh_tokens SET status='REVOKED',revoked_at=? WHERE connection_id=? AND status='ACTIVE'`, [t, cid]);
+  });
+}
+
+async function revokeProviderRefreshToken(token, at = nowIso()) {
+  const db = requireDb(), row = await get(db, `SELECT connection_id FROM agent_refresh_tokens WHERE token_hash=?`, [hashOpaque(token)]);
+  if (row) await revokeProviderRefreshByGrant(row.connection_id, "REFRESH_REUSE", at);
+}
+
+async function providerCredentialContext(input) {
+  const db = requireDb();
+  if (!input || typeof input !== "object" || Array.isArray(input)) return null;
+  if (typeof input.code === "string" && input.code) {
+    return get(db, `SELECT user_id,oauth_client_id,connection_id FROM agent_authorization_codes WHERE code_hash=?`, [hashOpaque(input.code)]);
+  }
+  const refresh = typeof input.refresh_token === "string" ? input.refresh_token : typeof input.token === "string" ? input.token : null;
+  if (refresh) return get(db, `SELECT r.user_id,f.oauth_client_id,r.connection_id FROM agent_refresh_tokens r JOIN agent_token_families f ON f.token_family_id=r.token_family_id WHERE r.token_hash=?`, [hashOpaque(refresh)]);
+  return null;
+}
+
 module.exports = {
   registerClientFixture, loadClientForAuthorization, setClientStatus, createSubjectMapping, bumpSubjectSecurityEpoch, createPendingConnection, loadConnection, listConnectionsForUser,
   activateConnectionWithGrants, addConnectionGrants, reduceConnectionScopes, suspendConnection,
   revokeConnection, storeAuthorizationCodeHash, consumeAuthorizationCodeHash, createTokenFamily,
   rotateRefreshTokenHash, denyAccessTokenHash, validateConnectionSnapshot, exportAgentAccess,
   deleteConnection, purgeExpiredSecurityArtifacts,
+  providerClientMetadata, providerGrant, validateProviderGrant, revokeProviderGrant,
+  subjectForUser, userForSubject, ensureSubjectForUser, providerPrincipal,
+  storeProviderAuthorizationCode, findProviderAuthorizationCode, consumeProviderAuthorizationCode,
+  destroyProviderAuthorizationCode, storeInitialProviderRefreshToken,
+  prepareProviderRefreshRotation, completeProviderRefreshRotation, findProviderRefreshToken,
+  revokeProviderRefreshByGrant, revokeProviderRefreshToken,
+  providerCredentialContext,
 };

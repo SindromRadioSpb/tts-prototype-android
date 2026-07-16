@@ -321,6 +321,23 @@ async function run() {
     }
     console.log("PASS /miniapp.html -> enforced CSP for Telegram webview (no XFO/COEP, no-cache); BFF dormant 503 when flag off");
 
+    // 8. AA2-B3: OAuth coordinates are mounted but exactly default-off. No
+    // discovery, key, authorization or token surface may appear in baseline.
+    for (const endpoint of [
+      "/.well-known/oauth-protected-resource/agent-access",
+      "/.well-known/oauth-authorization-server/oauth",
+      "/oauth/.well-known/openid-configuration",
+      "/oauth/jwks",
+      "/oauth/auth",
+    ]) {
+      const res = await fetch(`${BASE_URL}${endpoint}`, { redirect: "manual" });
+      const { data, text } = await readBody(res);
+      if (res.status !== 404 || !data || data.error !== "AGENT_ACCESS_OAUTH_DISABLED") {
+        throw new Error(`flag-off ${endpoint} expected 404 AGENT_ACCESS_OAUTH_DISABLED, got ${res.status}: ${text.slice(0, 200)}`);
+      }
+    }
+    console.log("PASS /oauth + well-known -> exact default-off 404; no metadata/key/client surface");
+
     console.log("API smoke: OK");
   } catch (error) {
     const tail = logs.length ? `\nServer log tail:\n${logs.join("\n")}` : "";

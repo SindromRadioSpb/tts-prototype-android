@@ -1552,10 +1552,54 @@ function requireCsrf(req, res, auth) {
 // future caller of stageTrustedRequest after protocol validation.
 const agentAccessOAuthRepo = require("./db/agentAccessOAuthRepo");
 const { createConsentCeremony } = require("./agent/access/consentCeremony");
+const { createOAuthDefaultOffGate } = require("./agent/access/oauthDefaultOffGate");
+const { createOAuthInteractionBridge } = require("./agent/access/oauthInteractionBridge");
+const { createContentSafeOAuthAudit } = require("./agent/access/oauthAudit");
+const { createOAuthRateLimiter } = require("./agent/access/oauthRateLimiter");
 const agentAccessConsent = createConsentCeremony({
   oauthRepo: agentAccessOAuthRepo,
   recordConsent: identityRepo.recordConsent,
 });
+const agentAccessOAuthBridge = createOAuthInteractionBridge({ consentCeremony: agentAccessConsent });
+const agentAccessOAuthLimiter = createOAuthRateLimiter();
+let agentAccessOAuthRuntimePromise = null;
+async function getAgentAccessOAuthRuntime() {
+  if (String(process.env.AGENT_ACCESS_OAUTH_ENABLED || "") !== "1"
+    || String(process.env.AGENT_ACCESS_UI_ENABLED || "") !== "1") return null;
+  if (!agentAccessOAuthRuntimePromise) {
+    agentAccessOAuthRuntimePromise = (async () => {
+      let cookieKeys;
+      try { cookieKeys = JSON.parse(String(process.env.AGENT_ACCESS_OAUTH_COOKIE_KEYS_JSON || "")); }
+      catch (_) { throw new Error("AA_OAUTH_COOKIE_KEYS_REQUIRED"); }
+      const audit = createContentSafeOAuthAudit({
+        key: String(process.env.AGENT_ACCESS_OAUTH_AUDIT_HMAC_KEY || ""),
+        emit: (row) => { void identityRepo.audit("agent_access_oauth", null, row, null); },
+      });
+      const { createDefaultOffOAuthRuntime } = await import("./agent/access/oauthRuntime.mjs");
+      return createDefaultOffOAuthRuntime({
+        repo: agentAccessOAuthRepo,
+        consentCeremony: agentAccessConsent,
+        interactionBridge: agentAccessOAuthBridge,
+        resolveUser: async (req, res) => {
+          const auth = await requireUser(req, res);
+          return auth ? auth.user : null;
+        },
+        privateJwksJson: String(process.env.AGENT_ACCESS_OAUTH_PRIVATE_JWKS_JSON || ""),
+        cookieKeys,
+        audit,
+        limiter: agentAccessOAuthLimiter,
+      });
+    })();
+  }
+  return agentAccessOAuthRuntimePromise;
+}
+// AA2-B3 — routes exist only as an exact double-default-off gate. This code
+// intentionally has no production key or provider adapter. A later deployment
+// approval must inject a complete runtime; enabling flags without it fails 503.
+const agentAccessOAuthGate = createOAuthDefaultOffGate({ getRuntime: getAgentAccessOAuthRuntime, limiter: agentAccessOAuthLimiter });
+app.all("/.well-known/oauth-protected-resource/agent-access", agentAccessOAuthGate);
+app.all("/.well-known/oauth-authorization-server/oauth", agentAccessOAuthGate);
+app.all(/^\/oauth(?:\/|$)/, agentAccessOAuthGate);
 function agentAccessHttpError(res, err) {
   const code = String((err && (err.code || err.message)) || "AA_CONSENT_FAILED");
   const status = code.endsWith("NOT_FOUND") ? 404
@@ -1587,8 +1631,9 @@ app.post("/api/agent-access/consent/decision", requireAgentAccessBoundary, async
   if (!requireCsrf(req, res, auth)) return;
   try {
     const result = await agentAccessConsent.decide(auth.user.id, req.body || {});
+    const continuation = agentAccessOAuthBridge.complete(auth.user.id, req.body.request_id, result.decision);
     identityRepo.audit(`agent_access_consent_${result.decision}`, auth.user.id, { scopes: result.granted_scopes || [] }, req.ip);
-    return res.json(result);
+    return res.json({ ...result, continue_url: `/oauth/interaction/${encodeURIComponent(continuation.interaction_uid)}/complete?request_id=${encodeURIComponent(req.body.request_id)}` });
   } catch (e) { return agentAccessHttpError(res, e); }
 });
 app.post("/api/agent-access/connections/:connectionId/revoke", requireAgentAccessBoundary, async (req, res) => {
