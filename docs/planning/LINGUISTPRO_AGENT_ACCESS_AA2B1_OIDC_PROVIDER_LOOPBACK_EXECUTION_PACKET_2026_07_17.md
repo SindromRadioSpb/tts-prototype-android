@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-17
 
-**Status:** `OWNER_APPROVED / LOOPBACK_ONLY / NO_LIVE_AUTHORITY`.
+**Status:** `LOOPBACK_ENGINEERING_COMPLETE / PRODUCTION_MOUNT_ABSENT / NO_LIVE_AUTHORITY`.
 
 **Owner approval:** 2026-07-17 — “Утверждаю. Стартуй.” No additional owner data is required for B1 because every identity, client, redirect, key, connection, grant and token is disposable fixture data.
 
@@ -87,6 +87,7 @@ The B1 in-memory adapter exists only to exercise provider protocol mechanics. It
 
 | Provider model class | Future owner |
 |---|---|
+| Client | B0 `agent_oauth_clients`; B1 configured fixture plus adapter-backed negative lookup only |
 | AuthorizationCode | B0 `agent_authorization_codes` via audited adapter mapping |
 | RefreshToken | B0 token family/refresh rows |
 | AccessToken | JWT issuance plus bounded deny hash/security epoch; no plaintext persistence |
@@ -168,3 +169,50 @@ B1 is `LOOPBACK_ENGINEERING_COMPLETE / PRODUCTION_MOUNT_ABSENT` only when §§6�
 Rollback removes the B1 factory/adapter/smoke and exact dependencies. Migration `042` and B0 lifecycle remain useful and unchanged. No token revocation, key rotation, user notice or external coordination is required because every B1 artifact dies with the smoke process.
 
 B1 completion does not authorize B2 consent UI/resource validator, B3 deployment or AA2-C MCP/Hermes connection.
+
+## 11. Execution evidence — 2026-07-17
+
+Implementation result: `LOOPBACK_ENGINEERING_COMPLETE / PRODUCTION_MOUNT_ABSENT`.
+
+Scoped implementation:
+
+- `agent/access/oidcFixtureAdapter.mjs` — process-memory fixture adapter with TTL, consume, grant revoke, inventory and explicit purge;
+- `agent/access/oidcLoopback.mjs` — narrow ESM AS factory, ephemeral ES256 signing/cookie keys, exact public client/redirect/resource/scope and fixture-only interaction;
+- `scripts/premium/agent-access-oidc-loopback-smoke.mjs` — independent loopback public client/JWKS verifier and adversarial matrix;
+- exact direct dependencies `oidc-provider@9.8.2` and `jose@6.2.2` plus `smoke:agent-access:oidc-loopback`.
+
+Observed provider model inventory is exactly:
+
+```text
+AccessToken, AuthorizationCode, Client, Grant, Interaction, Session
+```
+
+No `RefreshToken`, `DeviceCode`, `RegistrationAccessToken` or unidentified model was created. The `Client` model appears only when the negative unregistered-client lookup reaches the configured adapter; its future durable owner is the existing B0 `agent_oauth_clients` registry. Fixture state is explicitly cleared and both AS/client listeners are proven closed.
+
+Positive proof passed for a distinct AS and client listener, both bound to OS-assigned `127.0.0.1` ports: discovery, Authorization Code, exact redirect/state, PKCE S256, exact RFC 8707 resource, fixture login/consent, token exchange, no refresh token, and independent ES256/JWKS validation of `iss`, `aud`, `sub`, `client_id`, `connection_id`, scope, `iat`, `exp` and `jti`.
+
+Observed protocol/library discrepancy: `oidc-provider` follows RFC 8707's allowance to infer the sole granted non-OpenID resource during code exchange, so `useGrantedResource=false` alone does **not** reject an omitted token-endpoint `resource`. MCP's stricter client contract requires that parameter on both requests. The B1 Node handler therefore applies a 56 KiB content-safe form preflight, rejects missing/wrong token resource before provider execution, then replays the unchanged body into the provider. This policy belongs above the thin provider protocol core and must be retained or equivalently proven in B2/B3.
+
+Seventeen content-safe adversarial checks passed: missing/plain PKCE, wrong verifier, wrong resource plus resource omission at both authorization and token endpoints, wrong redirect, unauthorized scope, unregistered client, unsupported response and grant types, state mismatch, code replay, wrong JWT issuer/audience/key, token-as-tool-input rejection, exact adapter inventory and listener cleanup. The smoke prints no code, verifier, token, private key or redirect query.
+
+Dependency evidence:
+
+- `npm ls oidc-provider jose --depth=2` resolves only direct `jose@6.2.2` and `oidc-provider@9.8.2` with deduped `jose@6.2.2`;
+- lockfile integrity for `oidc-provider@9.8.2` matches §2;
+- `npm audit --omit=dev` reports 13 existing findings (2 low, 5 moderate, 6 high), none in `oidc-provider`, `jose` or their newly introduced dependency chain; the reported packages are the pre-existing `sqlite3`/npm-fetch and Google client paths. B1 does not claim a repository-wide zero-advisory state.
+
+Regression evidence:
+
+```text
+smoke:agent-access                 PASS (20 checks; 0 network/provider/live-data calls)
+smoke:agent-access:oauth           PASS (24 lifecycle checks + restore replay)
+smoke:agent-access:oidc-loopback   PASS (positive flow + 17 negatives)
+smoke:auth                         PASS (29/29)
+test:api-smoke                     PASS
+```
+
+The first auth run exposed a pre-existing test drift: its independent enumeration excluded only `deletion_journal`, while production export/delete already exempts the durable memory/F2/Agent Access erasure journals. Commit `409f60f` corrected only that independent smoke classification; it did not change runtime, schema or erasure behavior.
+
+Static boundary proof: `server.js` has no B1 import or route; no migration/config/env/UI/API production file was added; no Hermes/MCP/client connection, real user/payload, F1/F2 payload, browser cookie/CSRF, provider call or CP0 live path was used. Package version `3.11.192` arrived on `main` in the parallel F2 commit `2136539`; B1 did not claim or perform a production release.
+
+Next authority remains a separate owner-approved **AA2-B2 execution packet** for first-party consent ceremony, production adapter mapping, issuer/Host/Origin/CORS/proxy policy and signing-key operations. This result does not authorize B2, B3, MCP, Hermes or live Agent Access.
