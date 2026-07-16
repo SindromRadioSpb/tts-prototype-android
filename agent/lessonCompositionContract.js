@@ -19,6 +19,8 @@ const VALIDATION_CODES = [
   "GENERIC_INSTRUCTION",
   "MISSING_SUCCESS_CRITERIA",
   "MISSING_EXPECTED_ANSWER",
+  "UNSUPPORTED_FACT",
+  "ANSWER_LEAKAGE",
   "LOAD_EXCEEDED",
 ];
 
@@ -85,7 +87,23 @@ function ordered(codes) {
   return VALIDATION_CODES.filter((code) => found.has(code));
 }
 
-function validateCompositionDetailed(parsed, { sourceIds, anchorIds, maxItems, focuses } = {}) {
+function visibleStrings(value, out = []) {
+  if (typeof value === "string") out.push(value);
+  else if (Array.isArray(value)) value.forEach((item) => visibleStrings(item, out));
+  else if (value && typeof value === "object") Object.values(value).forEach((item) => visibleStrings(item, out));
+  return out;
+}
+function normalizedWords(value) {
+  return String(value || "").toLocaleLowerCase().match(/[\p{L}\p{N}]+/gu) || [];
+}
+function leaksAnswer(answer, sectionBodies) {
+  const answerWords = [...new Set(normalizedWords(answer).filter((word) => word.length > 2))];
+  if (answerWords.length < 4) return false;
+  const bodyWords = new Set(normalizedWords(sectionBodies.join(" ")));
+  return answerWords.filter((word) => bodyWords.has(word)).length / answerWords.length >= 0.8;
+}
+
+function validateCompositionDetailed(parsed, { sourceIds, anchorIds, maxItems, focuses, selectedConstruct, excludedAmbiguousMorphology } = {}) {
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
     return { ok: false, value: null, codes: ["INVALID_JSON"] };
   }
@@ -95,6 +113,8 @@ function validateCompositionDetailed(parsed, { sourceIds, anchorIds, maxItems, f
   const limit = Math.max(1, Number(maxItems) || 1);
   const rawSections = Array.isArray(parsed.sections) ? parsed.sections : [];
   const rawExercises = Array.isArray(parsed.exercises) ? parsed.exercises : [];
+  const visible = visibleStrings(parsed);
+  const placeholder = /\b(?:undefined|null|nan)\b|\[object Object\]/i;
 
   if (!hasText(parsed.objective)) codes.push("MISSING_OBJECTIVE");
   if (!rawSections.length || rawSections.some((s) => !s || !hasText(s.title) || !hasText(s.body))) codes.push("MISSING_SECTION");
@@ -113,6 +133,9 @@ function validateCompositionDetailed(parsed, { sourceIds, anchorIds, maxItems, f
   const required = new Set(["source_reading", ...(focuses || []).filter((x) => x !== "reading")]);
   if (!rawExercises.length || exerciseTypes.some((type) => !TYPES.includes(type)) ||
       [...required].some((type) => !exerciseTypes.includes(type))) codes.push("MISSING_FOCUS");
+  if ((focuses || []).includes("grammar") && selectedConstruct !== undefined &&
+      (!selectedConstruct || !hasText(selectedConstruct.id))) codes.push("MISSING_FOCUS");
+  if (visible.some((value) => placeholder.test(value))) codes.push("MISSING_FOCUS");
   for (const exercise of rawExercises) {
     const type = typeof (exercise && exercise.type) === "string" ? text(exercise.type, 40) : "";
     if (!hasText(exercise && exercise.purpose)) codes.push("MISSING_PURPOSE");
@@ -121,6 +144,11 @@ function validateCompositionDetailed(parsed, { sourceIds, anchorIds, maxItems, f
     if (!Array.isArray(criteria) || !criteria.length || criteria.some((x) => !hasText(x))) codes.push("MISSING_SUCCESS_CRITERIA");
     if (CONTROLLED_TYPES.has(type) && !hasText(exercise && exercise.expected_answer)) codes.push("MISSING_EXPECTED_ANSWER");
   }
+  const excluded = (excludedAmbiguousMorphology || []).map((value) => text(value, 100)).filter(Boolean);
+  if (excluded.some((surface) => visible.some((value) => String(value).includes(surface)))) codes.push("UNSUPPORTED_FACT");
+  const sectionBodies = rawSections.map((section) => section && section.body || "");
+  if (rawExercises.some((exercise) => hasText(exercise && exercise.expected_answer) && leaksAnswer(exercise.expected_answer, sectionBodies)))
+    codes.push("ANSWER_LEAKAGE");
 
   const finalCodes = ordered(codes);
   if (finalCodes.length) return { ok: false, value: null, codes: finalCodes };

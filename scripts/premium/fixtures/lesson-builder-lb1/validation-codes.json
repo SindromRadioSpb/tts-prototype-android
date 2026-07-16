@@ -4,6 +4,8 @@
   "anchor_ids": ["source-1-anchor-1"],
   "max_items": 3,
   "focuses": ["reading", "vocabulary"],
+  "selected_construct": {"id":"construct:test"},
+  "excluded_ambiguous_morphology": ["שמר"],
   "base": {
     "objective": "Understand the grounded claim and use one verified word",
     "sections": [
@@ -28,6 +30,9 @@
     {"id":"generic_instruction","operations":[{"path":"exercises.0.instruction","value":"Read it."}],"expected_codes":["GENERIC_INSTRUCTION"]},
     {"id":"missing_success_criteria","operations":[{"path":"exercises.0.success_criteria","value":[]}],"expected_codes":["MISSING_SUCCESS_CRITERIA"]},
     {"id":"missing_expected_answer","operations":[{"path":"exercises.1.expected_answer","value":null}],"expected_codes":["MISSING_EXPECTED_ANSWER"]},
+    {"id":"undefined_grammar_target","focuses":["reading","grammar"],"selected_construct":null,"operations":[{"path":"exercises.1.type","value":"grammar"},{"path":"exercises.1.instruction","value":"Find examples of the grammar target undefined and explain their role in context."}],"expected_codes":["MISSING_FOCUS"]},
+    {"id":"unsupported_fact","operations":[{"path":"sections.0.body","value":"The source proves that שמר is a specific grammatical form."}],"expected_codes":["UNSUPPORTED_FACT"]},
+    {"id":"answer_leakage","operations":[{"path":"sections.0.body","value":"The expected response is one original sentence using the target word."},{"path":"exercises.1.expected_answer","value":"One original sentence using the target word"}],"expected_codes":["ANSWER_LEAKAGE"]},
     {"id":"load_exceeded","max_items":1,"operations":[],"expected_codes":["LOAD_EXCEEDED"]},
     {"id":"combined_ordered_deduplicated","operations":[{"path":"objective","value":""},{"path":"sections.0.source_ids","value":[]},{"path":"exercises.0.source_ids","value":[]},{"path":"exercises.0.anchor_ids","value":["foreign-anchor"]},{"path":"exercises.1.expected_answer","value":null}],"expected_codes":["MISSING_OBJECTIVE","MISSING_SOURCE_ID","FOREIGN_ANCHOR","MISSING_EXPECTED_ANSWER"]}
   ]

@@ -15,6 +15,7 @@ const llmGate = require(path.join(REPO, "agent", "llmGate"));
 const agentRepo = require(path.join(REPO, "db", "agentRepo"));
 const learnerLog = require(path.join(REPO, "db", "learnerLogRepo"));
 const LB = require(path.join(REPO, "agent", "lessonBuilder"));
+const { managedLimits } = require(path.join(REPO, "agent", "llmLimits"));
 const Artifact = require(path.join(REPO, "public", "js", "lesson-artifact"));
 const realCorpusLessonWindow = corpus.getCorpusLessonWindow;
 
@@ -51,6 +52,16 @@ function request() { return { sources: [
 ], goalId: "active_vocabulary", explanationLanguage: "en", approximateLevel: "A2", durationMinutes: 20, focuses: ["reading", "vocabulary"] }; }
 
 (async () => {
+  const limitEnv = ["AGENT_LLM_DAILY_GLOBAL","AGENT_GEMINI_FREE_RPD","AGENT_GEMINI_FREE_RPM","AGENT_GEMINI_FREE_UTILIZATION_PERCENT"];
+  const savedLimitEnv = Object.fromEntries(limitEnv.map((name) => [name, process.env[name]]));
+  limitEnv.forEach((name) => { delete process.env[name]; });
+  ok(JSON.stringify(managedLimits("gemini")) === JSON.stringify({ perUserDaily: 50, globalDaily: 300, providerDaily: 300,
+    providerMinute: 9, utilizationPercent: 60 }), "managed Flash Lite defaults reserve 40% of the verified 500 RPD / 15 RPM free allowance");
+  process.env.AGENT_GEMINI_FREE_RPD = "100"; process.env.AGENT_GEMINI_FREE_RPM = "10";
+  process.env.AGENT_GEMINI_FREE_UTILIZATION_PERCENT = "50";
+  ok(managedLimits("gemini").providerDaily === 50 && managedLimits("gemini").providerMinute === 5,
+    "managed provider quota is configurable without changing BYOK or adding a second ledger");
+  for (const name of limitEnv) savedLimitEnv[name] == null ? delete process.env[name] : process.env[name] = savedLimitEnv[name];
   const corpusDir = fs.mkdtempSync(path.join(os.tmpdir(), "lp-lb0-corpus-"));
   fs.mkdirSync(path.join(corpusDir, "benyehuda", "works"), { recursive: true });
   fs.writeFileSync(path.join(corpusDir, "benyehuda", "works", "42.json"), JSON.stringify({ library: { texts: [{
@@ -92,11 +103,14 @@ function request() { return { sources: [
   for (const c of validationGold.cases) {
     const raw = Object.prototype.hasOwnProperty.call(c, "raw") ? c.raw : JSON.stringify(applyOperations(validationGold.base, c.operations));
     const got = LB.parseAndValidateComposition(raw, { sourceIds: validationGold.source_ids, anchorIds: validationGold.anchor_ids,
-      maxItems: c.max_items || validationGold.max_items, focuses: c.focuses || validationGold.focuses });
+      maxItems: c.max_items || validationGold.max_items, focuses: c.focuses || validationGold.focuses,
+      selectedConstruct: Object.prototype.hasOwnProperty.call(c, "selected_construct") ? c.selected_construct : validationGold.selected_construct,
+      excludedAmbiguousMorphology: validationGold.excluded_ambiguous_morphology });
     ok(JSON.stringify(got.codes) === JSON.stringify(c.expected_codes) && got.ok === !c.expected_codes.length,
       "detailed validation fixture: " + c.id + " => " + got.codes.join(","));
   }
-  ok(JSON.stringify(LB.VALIDATION_CODES) === JSON.stringify(validationGold.cases.slice(1, 14).map((c) => c.expected_codes[0])),
+  const independentlyCoveredCodes = [...new Set(validationGold.cases.flatMap((c) => c.expected_codes))];
+  ok(JSON.stringify(LB.VALIDATION_CODES) === JSON.stringify(independentlyCoveredCodes),
     "fixture covers the exact ordered LB2 minimum validation vocabulary");
   const sharedSchema = LB.compositionSchema(3);
   ok(sharedSchema.properties.exercises.maxItems === 3 && sharedSchema.properties.exercises.items.properties.type.enum.includes("grammar"),
@@ -139,7 +153,7 @@ function request() { return { sources: [
   ok(built.draft.exercises.some((e) => e.type === "vocabulary") && built.draft.request.focuses.length === 2, "each selected focus is represented and preserved");
   ok(built.draft.quality.premium_ready === true && built.draft.exercises.every((e) => e.anchor_ids.length && e.success_criteria.length),
     "premium draft requires exact anchors and success criteria on every exercise");
-  ok(gateOptions[0].jsonSchema && gateOptions[0].system.includes('"maxItems":5') &&
+  ok(gateOptions[0].jsonSchema && gateOptions[0].model === "gemini-3.1-flash-lite" && gateOptions[0].system.includes('"maxItems":5') &&
     built.draft.quality.diagnostics[0].schema_mode === "provider_json_schema" && built.draft.quality.diagnostics[0].latency_bucket_ms === "2-5s",
     "one shared contract drives prompt, provider schema and content-free diagnostics");
   ok(!("review_log" in built.draft) && !("mastery" in built.draft), "no learner-truth fields");

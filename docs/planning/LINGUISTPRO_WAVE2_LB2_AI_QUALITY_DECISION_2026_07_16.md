@@ -92,6 +92,8 @@ Codes are stable, deduplicated and ordered by validation stage. The minimum appr
 | `GENERIC_INSTRUCTION` | Instruction is absent or below the declared minimum specificity floor. |
 | `MISSING_SUCCESS_CRITERIA` | Exercise has no usable success criterion. |
 | `MISSING_EXPECTED_ANSWER` | Controlled vocabulary/grammar task has no expected answer. |
+| `UNSUPPORTED_FACT` | Candidate uses a resolver-excluded ambiguous surface as an asserted language fact. |
+| `ANSWER_LEAKAGE` | A section substantially reveals a controlled expected answer before the exercise. |
 | `LOAD_EXCEEDED` | Candidate exceeds the duration-derived section/exercise load. |
 
 Implementation may add a code only with a fixture, localized learner-facing grouping where relevant and documentation update. Codes never contain source text, model text, learner text, IDs that reveal content, or provider error bodies.
@@ -214,3 +216,11 @@ No fixed numerical threshold is silently approved here. LB2-B must report the me
 3. Numerical human-quality and shadow-agreement promotion thresholds.
 4. Whether a proven critic may block publication, request another repair or remain advisory only.
 5. Durable lesson retention and background series generation, which remain part of the later M1/S4-S7 decision.
+
+## 12. Owner addendum — 2026-07-16 managed Flash Lite and measured remediation
+
+The owner approved the existing Gemini/OpenRouter routes for an offline LB2-B evidence run, capped spend at USD 5, allowed synthetic/public-domain raw candidates, and kept the shadow critic offline without authority. The completed Gemini 3.1 Flash Lite packet is engineering pre-review evidence only: the supplied adjudication is a second pass by the same AI assessor, not an independent human adjudicator.
+
+For a future managed Gemini route, the owner proposed a 60% safety envelope around the live AI Studio Free Tier limits observed for the project: 300 of 500 RPD and 9 of 15 RPM, followed by deterministic fallback. The implementation uses the existing atomic `llm_usage_ledger`, keeps BYOK outside the managed quota, and makes one managed reservation correspond to at most one provider HTTP attempt.
+
+This addendum does not authorize silent production activation. Effective Gemini API terms verified on 2026-07-16 state that unpaid-service content may be used to improve Google products and restrict API-client use. The managed key therefore remains a deployment gate until the owner selects a compliant route and any required user disclosure/consent. No provider key is committed.

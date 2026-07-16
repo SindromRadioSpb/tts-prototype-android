@@ -20,6 +20,7 @@ const path = require("path");
 const tools = require(path.join(__dirname, "tools"));
 const llm = require(path.join(__dirname, "llm"));
 const llmGate = require(path.join(__dirname, "llmGate"));
+const { managedLimits } = require(path.join(__dirname, "llmLimits"));
 const constructs = require(path.join(__dirname, "constructs"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
 const keyingService = require(path.join(__dirname, "..", "db", "keyingService"));
@@ -49,10 +50,7 @@ function isCleanProse(text) {
 }
 
 function limits() {
-  return {
-    perUserDaily: Number(process.env.AGENT_LLM_DAILY_PER_USER) || 50,
-    globalDaily: Number(process.env.AGENT_LLM_DAILY_GLOBAL) || 200,
-  };
+  return managedLimits(llm.providerName());
 }
 
 // D1-диагностика «судьбы слова»: рецептивно знает, production проваливает →

@@ -16,6 +16,7 @@ const lessonBuilder = require(path.join(__dirname, "lessonBuilder"));
 const nextText = require(path.join(__dirname, "nextText"));
 const tools = require(path.join(__dirname, "tools"));
 const llm = require(path.join(__dirname, "llm"));
+const { managedLimits } = require(path.join(__dirname, "llmLimits"));
 const constructs = require(path.join(__dirname, "constructs"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
 
@@ -93,13 +94,17 @@ function _profileDepth(profile) {
 async function status(ctx) {
   const usage = await agentRepo.usageToday(ctx.userId);
   const profile = await agentRepo.getProfile(ctx.userId);
+  const limits = managedLimits(llm.providerName());
+  if (limits.providerDaily) usage.managed_provider = await agentRepo.providerUsageNow(llm.providerName());
   return {
     provider: llm.providerName(),
     key_source: llm.keySource(),   // agent | none (R16: агент платит ТОЛЬКО своим ключом)
     kill_switch: llm.killSwitchOn(),
     limits: {
-      llm_daily_per_user: Number(process.env.AGENT_LLM_DAILY_PER_USER) || 50,
-      llm_daily_global: Number(process.env.AGENT_LLM_DAILY_GLOBAL) || 200,
+      llm_daily_per_user: limits.perUserDaily,
+      llm_daily_global: limits.globalDaily,
+      ...(limits.providerDaily ? { provider_daily: limits.providerDaily, provider_per_minute: limits.providerMinute,
+        provider_utilization_percent: limits.utilizationPercent } : {}),
     },
     usage,
     profile: { mode: profile.mode, language: profile.language, depth: _profileDepth(profile) },

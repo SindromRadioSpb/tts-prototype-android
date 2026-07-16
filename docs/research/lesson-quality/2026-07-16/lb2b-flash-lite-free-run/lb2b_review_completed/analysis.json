@@ -1,0 +1,172 @@
+{
+  "schema_version": "lesson-quality-lb2b-analysis-v2",
+  "status": "ENGINEERING_PRE_REVIEW_COMPLETE",
+  "candidates_in_packet": 26,
+  "scored_candidates": 26,
+  "human_scored_candidates": 0,
+  "evidence_roles": {
+    "reviewer_type": "ai_pre_review",
+    "adjudicator_type": "same_ai_second_pass",
+    "independent_adjudicator": false,
+    "adjudicated_candidates": 26
+  },
+  "structural_metrics": {
+    "schema_version": "lesson-quality-lb2b-metrics-v1",
+    "status": "HUMAN_REVIEW_PENDING",
+    "generated_candidates": 26,
+    "not_run": 0,
+    "first_pass_accepts": 14,
+    "first_pass_rejects": 8,
+    "repair_attempts": 8,
+    "repair_recoveries": 6,
+    "basic_plans": 6,
+    "organic": {
+      "candidate_slots": 14,
+      "generated_candidates": 14,
+      "first_pass_accepts": 14,
+      "first_pass_rejects": 0,
+      "repair_attempts": 0,
+      "repair_recoveries": 0,
+      "basic_plans": 0
+    },
+    "injected_controls": {
+      "candidate_slots": 12,
+      "generated_candidates": 12,
+      "first_pass_accepts": 0,
+      "first_pass_rejects": 8,
+      "repair_attempts": 8,
+      "repair_recoveries": 6,
+      "basic_plans": 6
+    },
+    "rejection_code_distribution": {
+      "FOREIGN_ANCHOR": 4,
+      "GENERIC_INSTRUCTION": 4,
+      "MISSING_EXPECTED_ANSWER": 2
+    },
+    "latency_ms": {
+      "p50": 1928,
+      "p90": 3477,
+      "p95": 3520,
+      "max": 3828
+    },
+    "calls": 31,
+    "preflight_calls": 1,
+    "request_spacing_ms": 5200,
+    "max_provider_calls": 60,
+    "observed_non_thought_cost_estimate_usd": 0.048921,
+    "conservative_cost_bound_usd": 0.132846,
+    "budget_usd": 5,
+    "cost_status": "CONSERVATIVE_BOUND_INCLUDES_MAX_OUTPUT_NOT_PROVIDER_BILLED",
+    "human_scores": "UNSCORED",
+    "promotion_result": "NO_DECISION"
+  },
+  "review_by_model": {
+    "gemini-3.1-flash-lite": {
+      "candidates": 26,
+      "dimension_means": {
+        "linguistic_correctness": 3.962,
+        "naturalness": 3.269,
+        "level_fit": 3.654,
+        "source_grounding": 3.808,
+        "answerability": 3.885,
+        "pedagogical_value": 2.769,
+        "cognitive_load": 4.308
+      },
+      "overall_mean": 3.665,
+      "critical_error_candidates": 8
+    }
+  },
+  "review_by_prompt": {
+    "instruction_engineered_v1": {
+      "candidates": 13,
+      "dimension_means": {
+        "linguistic_correctness": 3.769,
+        "naturalness": 3.231,
+        "level_fit": 3.615,
+        "source_grounding": 3.692,
+        "answerability": 4,
+        "pedagogical_value": 2.692,
+        "cognitive_load": 4.308
+      },
+      "overall_mean": 3.615,
+      "critical_error_candidates": 4
+    },
+    "lb2a_contract_v1": {
+      "candidates": 13,
+      "dimension_means": {
+        "linguistic_correctness": 4.154,
+        "naturalness": 3.308,
+        "level_fit": 3.692,
+        "source_grounding": 3.923,
+        "answerability": 3.769,
+        "pedagogical_value": 2.846,
+        "cognitive_load": 4.308
+      },
+      "overall_mean": 3.714,
+      "critical_error_candidates": 4
+    }
+  },
+  "shadow_agreement": {
+    "status": "NOT_AVAILABLE",
+    "paired_candidates": 0
+  },
+  "pairwise": {
+    "status": "PILOT_SINGLE_REVIEWER",
+    "scored_pairs": 13,
+    "ties": 3,
+    "invalid": 0,
+    "wins": {
+      "gemini::gemini-3.1-flash-lite::lb2a_contract_v1": 7,
+      "gemini::gemini-3.1-flash-lite::instruction_engineered_v1": 3
+    }
+  },
+  "threshold_options": {
+    "review_quality": [
+      {
+        "id": "strict",
+        "rule": "no critical error; every dimension >= 4; mean >= 4.5",
+        "evaluated_candidates": 26,
+        "accepted_candidates": 4,
+        "acceptance_rate": 0.154
+      },
+      {
+        "id": "balanced",
+        "rule": "no critical error; every dimension >= 3; mean >= 4",
+        "evaluated_candidates": 26,
+        "accepted_candidates": 15,
+        "acceptance_rate": 0.577
+      },
+      {
+        "id": "exploratory",
+        "rule": "no critical error; every dimension >= 3; mean >= 3.7",
+        "evaluated_candidates": 26,
+        "accepted_candidates": 16,
+        "acceptance_rate": 0.615
+      }
+    ],
+    "latency": [
+      {
+        "id": "measured_p90",
+        "rule": "candidate-generation p90 <= 3477 ms",
+        "note": "Measured service target, not a hard kill threshold."
+      },
+      {
+        "id": "measured_p95",
+        "rule": "candidate-generation p95 <= 3520 ms",
+        "note": "More tolerant offline target."
+      },
+      {
+        "id": "existing_timeout",
+        "rule": "each provider attempt <= 30000 ms",
+        "note": "Existing fail-closed adapter timeout; one repair remains separate."
+      }
+    ]
+  },
+  "promotion_result": "NO_DECISION",
+  "limitations": [
+    "AI pre-review only",
+    "same-assessor adjudication is not independent",
+    "human reviewer and independent adjudicator remain pending",
+    "cost is estimated rather than provider-billed"
+  ]
+}

@@ -65,7 +65,9 @@ try {
     shadowStatuses.push(artifact.shadow_evaluation && artifact.shadow_evaluation.status);
     const result = contract.validateCompositionDetailed(artifact.lesson, { sourceIds: [artifact.source.id],
       anchorIds: artifact.source.anchor_windows.map((anchor) => anchor.id), focuses: artifact.request.focuses, maxItems: 7 });
-    ok(result.ok, "every deterministic control lesson must validate");
+    const controllerRejectedConstruct = artifact.delivery && artifact.delivery.reason === "SIMULATED_CONTROLLER_REJECT_INVENTED_CONSTRUCT";
+    ok(result.ok || (controllerRejectedConstruct && JSON.stringify(result.codes) === JSON.stringify(["MISSING_FOCUS"])),
+      `deterministic controls either validate or honestly omit a rejected construct (${entry.blind_id}: ${result.codes.join(",")})`);
   }
   ok(shadowStatuses.filter((status) => status === "NOT_RUN_NO_CLI_KEY").length === 2, "one stratified critic slot per generated control case");
   ok(shadowStatuses.filter((status) => status === "NOT_RUN_STRATIFIED_SAMPLE").length === 6, "non-sampled critic slots make no call");

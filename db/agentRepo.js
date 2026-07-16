@@ -282,14 +282,17 @@ async function wordLifecycle(userId, itemKey) {
 }
 
 // ── §11 cost ledger: атомарный pre-call check-and-reserve ────────────────────
-// Возвращает { ok:true, reserveId } либо { ok:false, reason:'USER_LIMIT'|'GLOBAL_LIMIT' }.
-// reserved И final считаются занятыми (failed освобождает бюджет). Атомарность —
+// Возвращает { ok:true, reserveId } либо content-free USER/GLOBAL/PROVIDER_* reason.
+// User/global: reserved+final (failed освобождает бюджет). Managed provider envelopes:
+// reserved+final+failed, потому что неуспешный HTTP-вызов тоже расходует RPM/RPD. Атомарность —
 // process-wide txnLock: конкурентные вызовы не пере-подписывают последний кредит.
-async function reserveLlmCall(userId, { scenario, provider, perUserDaily, globalDaily } = {}) {
+async function reserveLlmCall(userId, { scenario, provider, perUserDaily, globalDaily, providerDaily, providerMinute } = {}) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const day = dayUtc();
   const userMax = Math.max(0, Number(perUserDaily) || 0);
   const globalMax = Math.max(0, Number(globalDaily) || 0);
+  const providerDayMax = Math.max(0, Number(providerDaily) || 0);
+  const providerMinuteMax = Math.max(0, Number(providerMinute) || 0);
   return withTxnLock(async () => {
     const u = await dbGet(db,
       `SELECT COUNT(*) c FROM llm_usage_ledger WHERE user_id = ? AND day_utc = ? AND kind = 'llm_call' AND status IN ('reserved','final')`,
@@ -299,6 +302,18 @@ async function reserveLlmCall(userId, { scenario, provider, perUserDaily, global
       `SELECT COUNT(*) c FROM llm_usage_ledger WHERE day_utc = ? AND kind = 'llm_call' AND status IN ('reserved','final')`,
       [day]);
     if (globalMax > 0 && Number(g.c) >= globalMax) return { ok: false, reason: "GLOBAL_LIMIT", used: Number(g.c), max: globalMax };
+    if (providerDayMax > 0) {
+      const p = await dbGet(db,
+        `SELECT COUNT(*) c FROM llm_usage_ledger WHERE day_utc = ? AND kind = 'llm_call' AND provider = ? AND status IN ('reserved','final','failed')`,
+        [day, String(provider || "")]);
+      if (Number(p.c) >= providerDayMax) return { ok: false, reason: "PROVIDER_DAILY_LIMIT", used: Number(p.c), max: providerDayMax };
+    }
+    if (providerMinuteMax > 0) {
+      const p = await dbGet(db,
+        `SELECT COUNT(*) c FROM llm_usage_ledger WHERE kind = 'llm_call' AND provider = ? AND status IN ('reserved','final','failed') AND julianday(created_at) >= julianday('now','-60 seconds')`,
+        [String(provider || "")]);
+      if (Number(p.c) >= providerMinuteMax) return { ok: false, reason: "PROVIDER_MINUTE_LIMIT", used: Number(p.c), max: providerMinuteMax };
+    }
     const id = "lu_" + crypto.randomUUID();
     await dbRun(db,
       `INSERT INTO llm_usage_ledger (id, user_id, day_utc, kind, scenario, provider) VALUES (?,?,?,'llm_call',?,?)`,
@@ -350,6 +365,18 @@ async function usageToday(userId) {
     byok_calls_today: Number(b.c) || 0 };
 }
 
+async function providerUsageNow(provider) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const name = String(provider || "");
+  const d = await dbGet(db,
+    `SELECT COUNT(*) c FROM llm_usage_ledger WHERE day_utc = ? AND kind = 'llm_call' AND provider = ? AND status IN ('reserved','final','failed')`,
+    [dayUtc(), name]);
+  const m = await dbGet(db,
+    `SELECT COUNT(*) c FROM llm_usage_ledger WHERE kind = 'llm_call' AND provider = ? AND status IN ('reserved','final','failed') AND julianday(created_at) >= julianday('now','-60 seconds')`,
+    [name]);
+  return { attempts_today: Number(d.c) || 0, attempts_last_60s: Number(m.c) || 0 };
+}
+
 // PAS-C1 — scenario-cap диалога (критика wf_5ea38001: OpenRouter free-tier 50/день
 // АККАУНТ-wide; диалог — первый сценарий с 8+ вызовами happy-path, дневная квота
 // одна его не страхует). reserved+final — как в usageToday (pre-call reserve честен).
@@ -369,6 +396,6 @@ module.exports = {
   getExplanationById, bumpExplanationFollowups,
   listExplanations, constructOccurrences,
   wordLifecycle,
-  reserveLlmCall, finalizeLlmCall, usageToday, scenarioCallsToday,
+  reserveLlmCall, finalizeLlmCall, usageToday, providerUsageNow, scenarioCallsToday,
   recordByokCall,   // PAS-F1: телеметрия вызовов на ключе пользователя (вне квоты)
 };

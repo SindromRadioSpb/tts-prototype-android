@@ -1,0 +1,27 @@
+blind_id	adjudication_status	critical_error_decision	dimension_changes	adjudicator_notes
+LB2B-001	REVIEWED	CONFIRMED: UNSUPPORTED_HEBREW_FACT	NONE	Second-pass review confirms that the lesson turns יֵאור into a false lexical gloss and misstates ותרנות. Scores retained.
+LB2B-002	REVIEWED	OVERTURNED: NONE	linguistic_correctness=5; naturalness=4; level_fit=4; source_grounding=4; answerability=5; pedagogical_value=3; cognitive_load=5	Canonical LB2B-002 was independently re-opened from the hashed blind packet. The prior review used the wrong duplicated input; the actual A2 candidate has no critical error.
+LB2B-003	NOT_REQUIRED	NONE	NONE	No critical error and reviewer confidence is high; no adjudication trigger.
+LB2B-004	NOT_REQUIRED	NONE	NONE	No critical error and reviewer confidence is high; no adjudication trigger.
+LB2B-005	NOT_REQUIRED	NONE	NONE	No critical error and reviewer confidence is high; no adjudication trigger.
+LB2B-006	REVIEWED	CONFIRMED: UNSUPPORTED_HEBREW_FACT	NONE	Second-pass review confirms that excluded ambiguous forms are taught as facts without deterministic morphology. Scores retained.
+LB2B-007	NOT_REQUIRED	NONE	NONE	No critical error and reviewer confidence is high; no adjudication trigger.
+LB2B-008	NOT_REQUIRED	NONE	NONE	No critical error and reviewer confidence is high; no adjudication trigger.
+LB2B-009	NOT_REQUIRED	NONE	NONE	No critical error and reviewer confidence is high; no adjudication trigger.
+LB2B-010	NOT_REQUIRED	NONE	NONE	No critical error and reviewer confidence is high; no adjudication trigger.
+LB2B-011	NOT_REQUIRED	NONE	NONE	No critical error and reviewer confidence is high; no adjudication trigger.
+LB2B-012	REVIEWED	CONFIRMED: UNSUPPORTED_HEBREW_FACT	NONE	Second-pass review confirms the surface-form/morphology error around שמר/שמרה and use of excluded ambiguity. Scores retained.
+LB2B-013	REVIEWED	CONFIRMED: UNANSWERABLE_CONTROLLED_TASK; MISSING_SELECTED_FOCUS	NONE	Second-pass review confirms that «undefined» makes the controlled grammar task impossible and leaves grammar focus absent. Scores retained.
+LB2B-014	NOT_REQUIRED	NONE	NONE	No critical error and reviewer confidence is high; no adjudication trigger.
+LB2B-015	NOT_REQUIRED	NONE	NONE	No critical error and reviewer confidence is high; no adjudication trigger.
+LB2B-016	REVIEWED	CONFIRMED: UNANSWERABLE_CONTROLLED_TASK; MISSING_SELECTED_FOCUS	NONE	Same confirmed defect as LB2B-013; candidate is materially identical. Scores retained.
+LB2B-017	REVIEWED	CONFIRMED: UNANSWERABLE_CONTROLLED_TASK; MISSING_SELECTED_FOCUS	NONE	Second-pass review confirms undefined grammar and missing focus; the fragmented historical source further weakens answerability. Scores retained.
+LB2B-018	NOT_REQUIRED	NONE	NONE	No critical error and reviewer confidence is high; no adjudication trigger.
+LB2B-019	NOT_REQUIRED	NONE	NONE	No critical error and reviewer confidence is high; no adjudication trigger.
+LB2B-020	REVIEWED	CONFIRMED: UNANSWERABLE_CONTROLLED_TASK; MISSING_SELECTED_FOCUS	NONE	Same confirmed defect as LB2B-017; candidate is materially identical. Scores retained.
+LB2B-021	NOT_REQUIRED	NONE	NONE	No critical error and reviewer confidence is high; no adjudication trigger.
+LB2B-022	NOT_REQUIRED	NONE	NONE	No critical error and reviewer confidence is high; no adjudication trigger.
+LB2B-023	REVIEWED	CONFIRMED: FOREIGN_OR_FALSE_ANCHOR; UNANSWERABLE_CONTROLLED_TASK	NONE	Second-pass review confirms actor substitution: children play, Noa is only stated to eat an apple. The two-actions-by-Noa task is therefore not determinable. Scores retained.
+LB2B-024	NOT_REQUIRED	NONE	NONE	No critical error and reviewer confidence is high; no adjudication trigger.
+LB2B-025	NOT_REQUIRED	NONE	NONE	No critical error and reviewer confidence is high; no adjudication trigger.
+LB2B-026	NOT_REQUIRED	NONE	NONE	No critical error and reviewer confidence is high; no adjudication trigger.

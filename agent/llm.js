@@ -65,9 +65,9 @@ function keySource() {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // Транзитные HTTP-коды free-tier Gemini (перегрузка модели / per-minute rate limit) —
 // Google сам рекомендует backoff-retry именно на них; НЕ ретраим 400/401/403/404 (постоянная
-// ошибка ключа/запроса — повтор не поможет, только тратит латентность). Один повтор: ledger
-// уже держит РОВНО один reserved-слот на вызов независимо от числа внутренних HTTP-попыток —
-// ретрай бесплатен для дневного бюджета (§11), платится только за реально доставленный ответ.
+// ошибка ключа/запроса — повтор не поможет, только тратит латентность). Один повтор остаётся
+// для BYOK/офлайн-маршрутов. Managed Gemini Free Tier передаёт managedFreeTier=true и не
+// повторяет 429/503: один ledger reservation должен соответствовать максимум одному HTTP-вызову.
 const RETRYABLE_STATUS = new Set([503, 429]);
 const RETRY_BACKOFF_MS = 700;
 
@@ -100,13 +100,13 @@ function geminiResponseSchema(schema) {
   return out;
 }
 
-async function generateGemini({ system, prompt, maxOutputTokens, json, jsonSchema, byokKey }) {
+async function generateGemini({ system, prompt, maxOutputTokens, json, jsonSchema, byokKey, managedFreeTier, model: modelOverride }) {
   // PAS-F1: byokKey (ключ ПОЛЬЗОВАТЕЛЯ per-request) переопределяет env-ключ агента;
   // ключ НИКОГДА не попадает в error/логи (ветка и так дисциплинирована: только код).
   const key = byokKey || geminiKey();
   if (!key) return { ok: false, error: "NO_API_KEY" };
   const { GoogleGenerativeAI } = require("@google/generative-ai");
-  const modelName = process.env.AGENT_LLM_MODEL || DEFAULT_GEMINI_MODEL;
+  const modelName = modelOverride || process.env.AGENT_LLM_MODEL || DEFAULT_GEMINI_MODEL;
   const genAI = new GoogleGenerativeAI(key);
   // Gemini 2.5 — thinking-модели: без thinkingBudget:0 размышления выжигают весь
   // maxOutputTokens → EMPTY_RESPONSE (live-найдено 2026-07-13 на byok-check; тот же
@@ -123,7 +123,8 @@ async function generateGemini({ system, prompt, maxOutputTokens, json, jsonSchem
       ...(thinkingFamily ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
     },
   });
-  for (let attempt = 0; attempt < 2; attempt++) {
+  const attempts = managedFreeTier ? 1 : 2;
+  for (let attempt = 0; attempt < attempts; attempt++) {
     try {
       const result = await withTimeout(model.generateContent(prompt));
       if (result && result.__timeout) return { ok: false, error: "TIMEOUT" };
@@ -135,7 +136,7 @@ async function generateGemini({ system, prompt, maxOutputTokens, json, jsonSchem
         schema_mode: jsonSchema ? "provider_json_schema" : "prompt_json" };
     } catch (e) {
       const status = e && e.status;
-      if (attempt === 0 && RETRYABLE_STATUS.has(status)) { await sleep(RETRY_BACKOFF_MS); continue; }
+      if (attempt + 1 < attempts && RETRYABLE_STATUS.has(status)) { await sleep(RETRY_BACKOFF_MS); continue; }
       // Никакого prompt-контента в сообщении об ошибке (stdout-гигиена).
       const code = status || (e && e.code) || "GEMINI_ERROR";
       return { ok: false, error: String(code).slice(0, 60) };

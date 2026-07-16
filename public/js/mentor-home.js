@@ -58,9 +58,10 @@
   }
 
   // ── блок A: статус/лимиты + consent-переезд ────────────────────────────────
+  function isQuotaCode(code) { return ["USER_LIMIT","GLOBAL_LIMIT","PROVIDER_DAILY_LIMIT","PROVIDER_MINUTE_LIMIT"].indexOf(String(code||""))>=0; }
   function degradeLabel(code) {
     code = String(code || "");
-    if (code === "USER_LIMIT" || code === "GLOBAL_LIMIT") return t("room.cloud.planLimit", "дневной лимит LLM исчерпан");
+    if (isQuotaCode(code)) return t("room.cloud.planLimit", "дневной лимит LLM исчерпан");
     if (code === "KILL_SWITCH") return t("room.cloud.agentKill", "LLM выключен (kill-switch)");
     if (code === "NO_API_KEY") return t("room.cloud.agentKeyNone", "без LLM-ключа — план детерминированный");
     if (code === "LLM_OUTPUT_INVALID") return t("room.cloud.planQualityReject", "ответ модели не прошёл проверку качества");
@@ -546,7 +547,7 @@
     out.textContent = "";
     if (!r || r.status !== 200 || !r.json || !r.json.ok) {
       var code = (r && r.json && r.json.error) || "";
-      var msg = code === "USER_LIMIT" || code === "GLOBAL_LIMIT" ? t("room.cloud.planLimit", "дневной лимит LLM исчерпан")
+      var msg = isQuotaCode(code) ? t("room.cloud.planLimit", "дневной лимит LLM исчерпан")
         : code === "KILL_SWITCH" ? t("room.cloud.agentKill", "LLM выключен (kill-switch)")
         : code === "BYOK_FAILED" || code === "BYOK_INVALID" ? degradeLabel(code)   // PAS-F1
         : "✗ " + t("room.explain.err", "Не удалось получить объяснение") + (code ? " (" + code + ")" : "");
@@ -644,7 +645,7 @@
       var code = (r && r.json && r.json.error) || "";
       var msg = code === "NOT_HEBREW_ENOUGH" ? t("room.writing.notHebrew", "Нужно писать на иврите — хотя бы наполовину.")
         : code === "TEXT_TOO_LONG" ? t("room.writing.tooLong", "Слишком длинно — до 300 символов.")
-        : code === "USER_LIMIT" || code === "GLOBAL_LIMIT" ? t("room.cloud.planLimit", "дневной лимит LLM исчерпан")
+        : isQuotaCode(code) ? t("room.cloud.planLimit", "дневной лимит LLM исчерпан")
         : "✗ " + t("room.explain.err", "Не удалось получить объяснение") + (code ? " (" + code + ")" : "");
       out.appendChild(el("div", "mentor-hint", msg));
       return;
@@ -850,9 +851,11 @@
       if(codes.length&&codes.every(function(code){return code==="INVALID_JSON";}))return t("room.lesson.basicWhyJson","Ответ AI не был допустимым JSON.");
       if(codes.some(function(code){return code==="MISSING_ANCHOR"||code==="FOREIGN_ANCHOR"||code==="MISSING_SOURCE_ID"||code==="FOREIGN_SOURCE_ID";}))return t("room.lesson.basicWhyAnchors","Черновик не сохранил точные опоры на выбранный источник.");
       if(codes.some(function(code){return code==="MISSING_FOCUS"||code==="MISSING_EXPECTED_ANSWER"||code==="MISSING_SUCCESS_CRITERIA";}))return t("room.lesson.basicWhyStructure","В черновике не хватило выбранного фокуса, ответа или критерия успеха.");
+      if(codes.indexOf("UNSUPPORTED_FACT")>=0)return t("room.lesson.basicWhyGrounding","Черновик использовал неподтверждённое языковое утверждение.");
+      if(codes.indexOf("ANSWER_LEAKAGE")>=0)return t("room.lesson.basicWhyPedagogy","Черновик заранее раскрывал ответ вместо учебной последовательности.");
       if(codes.length)return t("room.lesson.basicWhyContract","Черновик не прошёл обязательный контракт качества урока.");
       if(qualityReason==="BYOK_FAILED")return t("room.lesson.basicWhyKey","Ваш AI-ключ не смог выполнить запрос; общий ключ не использовался.");
-      if(qualityReason==="USER_LIMIT"||qualityReason==="GLOBAL_LIMIT")return t("room.lesson.basicWhyBudget","Дневной AI-лимит исчерпан.");
+      if(isQuotaCode(qualityReason))return t("room.lesson.basicWhyBudget","Безопасный лимит общего AI-маршрута достигнут.");
       return t("room.lesson.basicWhyProvider","AI-провайдер сейчас недоступен или не настроен.");
     }
     if(draft.quality&&draft.quality.tier==="basic_plan"){var disclosure=el("div","mentor-lb-quality-basic");disclosure.setAttribute("role","status");disclosure.appendChild(el("strong",null,t("room.lesson.basicWhyTitle","Почему базовый план?")));disclosure.appendChild(document.createTextNode(" "+basicReasonLabel()+" "+t("room.lesson.basicSafeShown","Показан безопасный план с точными опорами.")));box.appendChild(disclosure);}

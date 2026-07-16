@@ -9,11 +9,13 @@ const DEFAULT_RUN = path.join(ROOT, "docs", "research", "lesson-quality", "2026-
 const DIMENSIONS = ["linguistic_correctness", "naturalness", "level_fit", "source_grounding", "answerability", "pedagogical_value", "cognitive_load"];
 
 function parseArgs(argv) {
-  const args = { run: DEFAULT_RUN };
+  const args = { run: DEFAULT_RUN, reviewDir: null };
   for (let i = 2; i < argv.length; i += 1) {
     if (argv[i] === "--run") args.run = path.resolve(argv[++i]);
+    else if (argv[i] === "--review-dir") args.reviewDir = path.resolve(argv[++i]);
     else throw new Error("LB2B_ANALYZE_UNKNOWN_ARGUMENT");
   }
+  if (!args.reviewDir) args.reviewDir = args.run;
   return args;
 }
 
@@ -26,6 +28,11 @@ function readTsv(file) {
 }
 function round(value, places = 3) { const scale = 10 ** places; return Math.round((Number(value) || 0) * scale) / scale; }
 function mean(values) { return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null; }
+function assertExactIds(rows, expected, field, code) {
+  const actual = rows.map((row) => String(row[field] || ""));
+  if (actual.length !== new Set(actual).size) throw new Error(code + "_DUPLICATE");
+  if (actual.length !== expected.size || actual.some((id) => !expected.has(id))) throw new Error(code + "_COVERAGE");
+}
 
 function humanRow(row) {
   const scores = {};
@@ -109,12 +116,14 @@ function latencyOptions(metrics) {
 
 function markdown(result) {
   const lines = ["# LB2-B threshold options", "", `**Status:** \`${result.status}\`; no production decision.`, "",
-    "## Human-quality options", ""];
-  for (const option of result.threshold_options.human_quality) lines.push(`- **${option.id}:** ${option.rule}; accepted ${option.accepted_candidates}/${option.evaluated_candidates}${option.acceptance_rate == null ? "" : ` (${Math.round(option.acceptance_rate * 100)}%)`}.`);
+    "## Review-quality options", ""];
+  for (const option of result.threshold_options.review_quality) lines.push(`- **${option.id}:** ${option.rule}; accepted ${option.accepted_candidates}/${option.evaluated_candidates}${option.acceptance_rate == null ? "" : ` (${Math.round(option.acceptance_rate * 100)}%)`}.`);
   lines.push("", "A critical error vetoes every option. These are comparison scenarios, not approved promotion gates.", "", "## Latency options", "");
   for (const option of result.threshold_options.latency) lines.push(`- **${option.id}:** ${option.rule}${option.note ? ` — ${option.note}` : ""}`);
   lines.push("", "## Shadow boundary", "", `- ${result.shadow_agreement.authority_eligibility || "No paired human-shadow evidence; critic remains advisory."}`,
-    "- One reviewer plus one adjudicator is pilot evidence; it cannot establish inter-rater reliability.",
+    result.evidence_roles && result.evidence_roles.independent_adjudicator
+      ? "- One reviewer plus one adjudicator is pilot evidence; it cannot establish inter-rater reliability."
+      : "- This packet is AI engineering pre-review; independent human reviewer and adjudicator evidence is still pending.",
     "- No critic may edit, repair, select or publish a learner-visible lesson in LB2-B.");
   return lines.join("\n");
 }
@@ -123,25 +132,47 @@ function main() {
   const args = parseArgs(process.argv);
   const key = readJson(path.join(args.run, "blind-key.json"));
   const metrics = readJson(path.join(args.run, "metrics.json"));
-  const reviewerRows = readTsv(path.join(args.run, "reviewer_worksheet.tsv"));
-  const pairRows = readTsv(path.join(args.run, "pairwise_worksheet.tsv"));
+  const reviewerRows = readTsv(path.join(args.reviewDir, "reviewer_worksheet.tsv"));
+  const pairRows = readTsv(path.join(args.reviewDir, "pairwise_worksheet.tsv"));
+  const adjudicatorRows = readTsv(path.join(args.reviewDir, "adjudicator_worksheet.tsv"));
+  const reviewSummaryFile = path.join(args.reviewDir, "review_summary.json");
+  const reviewMeta = fs.existsSync(reviewSummaryFile) ? readJson(reviewSummaryFile) : {};
   const identityByBlind = new Map(key.candidates.map((entry) => [entry.blind_id, entry]));
+  const expectedIds = new Set(identityByBlind.keys());
+  assertExactIds(reviewerRows, expectedIds, "blind_id", "LB2B_ANALYZE_REVIEWER");
+  assertExactIds(adjudicatorRows, expectedIds, "blind_id", "LB2B_ANALYZE_ADJUDICATOR");
+  for (const row of pairRows) {
+    if (!expectedIds.has(row.candidate_a) || !expectedIds.has(row.candidate_b)) throw new Error("LB2B_ANALYZE_PAIR_COVERAGE");
+    if (row.preferred_candidate !== "UNSCORED" && row.preferred_candidate !== "TIE" &&
+        row.preferred_candidate !== row.candidate_a && row.preferred_candidate !== row.candidate_b)
+      throw new Error("LB2B_ANALYZE_PAIR_PREFERENCE");
+  }
   const humans = reviewerRows.map(humanRow).map((row) => {
     const identity = identityByBlind.get(row.blind_id);
     if (!identity) throw new Error("LB2B_ANALYZE_UNKNOWN_BLIND_ID");
     return { ...row, identity, artifact: readJson(path.join(args.run, identity.raw_artifact)) };
   });
   const complete = humans.filter((row) => row.complete);
-  const result = { schema_version: "lesson-quality-lb2b-analysis-v1",
-    status: complete.length === humans.length && humans.length ? "HUMAN_REVIEW_COMPLETE_PILOT" : "HUMAN_REVIEW_PENDING",
-    candidates_in_packet: humans.length, human_scored_candidates: complete.length,
-    structural_metrics: metrics, human_by_model: groupHuman(humans, "model"), human_by_prompt: groupHuman(humans, "prompt_variant"),
+  const adjudicationComplete = adjudicatorRows.length > 0 && adjudicatorRows.every((row) =>
+    String(row.adjudication_status || "").trim() && String(row.adjudication_status || "").trim() !== "UNSCORED");
+  const independentHumanEvidence = reviewMeta.reviewer_type === "human" && reviewMeta.adjudicator_type === "human" &&
+    reviewMeta.independent_adjudicator === true;
+  const result = { schema_version: "lesson-quality-lb2b-analysis-v2",
+    status: complete.length === humans.length && humans.length && adjudicationComplete
+      ? (independentHumanEvidence ? "HUMAN_REVIEW_COMPLETE_PILOT" : "ENGINEERING_PRE_REVIEW_COMPLETE") : "HUMAN_REVIEW_PENDING",
+    candidates_in_packet: humans.length, scored_candidates: complete.length,
+    human_scored_candidates: reviewMeta.reviewer_type === "human" ? complete.length : 0,
+    evidence_roles: { reviewer_type: reviewMeta.reviewer_type || "unknown", adjudicator_type: reviewMeta.adjudicator_type || "unknown",
+      independent_adjudicator: independentHumanEvidence, adjudicated_candidates: adjudicatorRows.length },
+    structural_metrics: metrics, review_by_model: groupHuman(humans, "model"), review_by_prompt: groupHuman(humans, "prompt_variant"),
     shadow_agreement: shadowAgreement(humans), pairwise: pairwiseSummary(pairRows, identityByBlind),
-    threshold_options: { human_quality: [thresholdOption(humans, "strict", 4, 4.5), thresholdOption(humans, "balanced", 3, 4), thresholdOption(humans, "exploratory", 3, 3.7)], latency: latencyOptions(metrics) },
-    promotion_result: "NO_DECISION", limitations: ["single human reviewer", "one adjudicator", "no inter-rater reliability", "cost is estimated rather than provider-billed"] };
-  writeJson(path.join(args.run, "analysis.json"), result);
-  fs.writeFileSync(path.join(args.run, "threshold-options.md"), markdown(result) + "\n");
-  process.stdout.write(`[lb2b-analysis] status=${result.status} scored=${result.human_scored_candidates}/${result.candidates_in_packet}\n`);
+    threshold_options: { review_quality: [thresholdOption(humans, "strict", 4, 4.5), thresholdOption(humans, "balanced", 3, 4), thresholdOption(humans, "exploratory", 3, 3.7)], latency: latencyOptions(metrics) },
+    promotion_result: "NO_DECISION", limitations: independentHumanEvidence
+      ? ["single human reviewer", "one adjudicator", "no inter-rater reliability", "cost is estimated rather than provider-billed"]
+      : ["AI pre-review only", "same-assessor adjudication is not independent", "human reviewer and independent adjudicator remain pending", "cost is estimated rather than provider-billed"] };
+  writeJson(path.join(args.reviewDir, "analysis.json"), result);
+  fs.writeFileSync(path.join(args.reviewDir, "threshold-options.md"), markdown(result) + "\n");
+  process.stdout.write(`[lb2b-analysis] status=${result.status} scored=${result.scored_candidates}/${result.candidates_in_packet}\n`);
 }
 
 try { main(); } catch (error) {

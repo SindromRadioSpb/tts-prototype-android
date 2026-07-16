@@ -1,0 +1,25 @@
+{
+  "reviewed_candidates": 26,
+  "critical_error_candidates": 8,
+  "noncritical_candidates": 18,
+  "overall_dimension_means": {
+    "linguistic_correctness": 3.962,
+    "naturalness": 3.269,
+    "level_fit": 3.654,
+    "source_grounding": 3.808,
+    "answerability": 3.885,
+    "pedagogical_value": 2.769,
+    "cognitive_load": 4.308
+  },
+  "threshold_scenarios": {
+    "strict": 4,
+    "balanced": 15,
+    "exploratory": 16
+  },
+  "pairwise_scored": 13,
+  "pairwise_ties": 3,
+  "reviewer_type": "ai_pre_review",
+  "adjudicator_type": "same_ai_second_pass",
+  "independent_adjudicator": false,
+  "methodological_note": "The adjudication sheet is a second-pass consistency review by the same AI assessor, not an independent human adjudicator."
+}

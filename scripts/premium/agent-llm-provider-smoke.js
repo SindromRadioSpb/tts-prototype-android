@@ -125,7 +125,7 @@ const errStatus = (status) => { const e = new Error("boom"); e.status = status; 
     const t0 = Date.now();
     const out = await llm.generate({ system: "s", prompt: "p" });
     undo();
-    eq(out.ok === true && out.text === "Тёплый план." && out.provider === "gemini" && out.output_tokens === 9,
+    eq(out.ok === true && out.text === "Тёплый план." && out.provider === "gemini" && out.model === "gemini-flash-latest" && out.output_tokens === 9,
       "gemini must retry once on 503 and return the second attempt's text, got " + JSON.stringify(out));
     eq(Date.now() - t0 >= 650, "gemini retry must actually back off (~700ms), elapsed=" + (Date.now() - t0));
 
@@ -133,6 +133,13 @@ const errStatus = (status) => { const e = new Error("boom"); e.status = status; 
     const out2 = await llm.generate({ system: "s", prompt: "p" });
     undo();
     eq(out2.ok === false && out2.error === "403", "gemini permanent 403 must NOT retry and must surface the code, got " + JSON.stringify(out2));
+
+    undo = mockGoogleGenerativeAI([errStatus(429), () => okGeminiResp("must-not-run", 1)]);
+    const managedStarted = Date.now();
+    const managed = await llm.generate({ system: "s", prompt: "p", managedFreeTier: true, model: "gemini-3.1-flash-lite" });
+    undo();
+    eq(managed.ok === false && managed.error === "429", "managed free-tier Gemini must fallback after one HTTP attempt, got " + JSON.stringify(managed));
+    eq(Date.now() - managedStarted < 650, "managed free-tier Gemini must not spend quota on an internal retry");
   });
 
   // ── openrouter: retry once on 429 then succeed; 403 must NOT retry ───────
@@ -201,7 +208,7 @@ const errStatus = (status) => { const e = new Error("boom"); e.status = status; 
     eq(out.ok === true && out.provider === "mock" && /ctx=10 chars/.test(out.text), "mock provider text must stay byte-stable, got " + JSON.stringify(out));
   });
 
-  const TOTAL = 20;
+  const TOTAL = 22;
   if (failures.length) {
     console.error(`smoke:agent-llm-provider FAIL (${TOTAL - failures.length}/${TOTAL})`);
     for (const f of failures) console.error("  ✗ " + f);

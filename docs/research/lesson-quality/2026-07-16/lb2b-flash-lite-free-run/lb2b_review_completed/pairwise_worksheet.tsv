@@ -1,0 +1,14 @@
+pair_id	candidate_a	candidate_b	preferred_candidate	critical_reason	reviewer_notes
+PAIR-001	LB2B-002	LB2B-010	LB2B-010	candidate_b requires direct work with the Hebrew source before answering	LB2B-002 is valid and grounded, but its Russian summary reveals most answers before practice; LB2B-010 preserves stronger source-first progression.
+PAIR-002	LB2B-019	LB2B-023	LB2B-019	candidate_b falsely attributes children’s play to Noa	LB2B-019 keeps actor roles and answers grounded; LB2B-023 creates an unanswerable two-actions-by-Noa task.
+PAIR-003	LB2B-013	LB2B-016	TIE	both contain the same undefined grammar task	The candidates are materially identical and both require fail-closed removal of the grammar exercise.
+PAIR-004	LB2B-022	LB2B-014	LB2B-014	candidate_b covers both asserted vocabulary items	LB2B-014 has stronger vocabulary coverage; both need removal of ecological/plastic inferences.
+PAIR-005	LB2B-012	LB2B-006	LB2B-012	both are critical, but candidate_a is more structured and locally repairable	LB2B-012 is clearer and more answerable, although its morphology claims still require deterministic correction.
+PAIR-006	LB2B-005	LB2B-024	LB2B-005	candidate_a actually elicits a role-play with two learner questions	LB2B-024 labels a single factual reply as dialogue; LB2B-005 better exercises the declared dialogue focus.
+PAIR-007	LB2B-017	LB2B-020	TIE	both are identical and contain undefined grammar	No pedagogical difference is observable.
+PAIR-008	LB2B-018	LB2B-007	LB2B-007	candidate_b provides broader coverage and productive recall	LB2B-007 better fulfils reading plus vocabulary, while LB2B-018 under-delivers the actions promised by its objective.
+PAIR-009	LB2B-004	LB2B-008	LB2B-008	candidate_b requires Hebrew production of אם...אז	LB2B-004 only translates a ready-made sentence into Russian; LB2B-008 more directly practises the grammar focus.
+PAIR-010	LB2B-003	LB2B-009	TIE	both are materially identical basic plans	No meaningful pedagogical difference is observable.
+PAIR-011	LB2B-001	LB2B-011	LB2B-011	candidate_b avoids false Hebrew glosses and is better grounded	LB2B-011 gives an accurate B2 interpretation and answerable writing task; LB2B-001 mislabels Hebrew forms and over-interprets anchors.
+PAIR-012	LB2B-026	LB2B-015	LB2B-015	candidate_b is more exact and simpler for A1	LB2B-015 avoids the plural/new-word and dinner inferences found in LB2B-026.
+PAIR-013	LB2B-021	LB2B-025	LB2B-025	candidate_b is concise and strictly source-grounded	LB2B-025 avoids unsupported taste/ecology additions and asks a stronger comprehension question.

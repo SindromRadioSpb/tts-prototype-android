@@ -20,24 +20,17 @@
 //
 // Возврат (phase-контракт — вызывающий маппит на своё поведение 1:1):
 //   { phase:'kill',     reason:'KILL_SWITCH',            key_source:'agent' }
-//   { phase:'reserve',  reason:'USER_LIMIT'|'GLOBAL_LIMIT', key_source:'agent' }
+//   { phase:'reserve',  reason:'USER_LIMIT'|'GLOBAL_LIMIT'|'PROVIDER_DAILY_LIMIT'|'PROVIDER_MINUTE_LIMIT', key_source:'agent' }
 //   { phase:'byok',     reason:'BYOK_FAILED', provider_error, key_source:'byok' }
 //   { phase:'generate', reason:<код провайдера>,         key_source:'agent' }  // вызов сгорел (finalize failed)
 //   { phase:'ok',       out:{text,provider,model,output_tokens}, key_source:'agent'|'byok' }
 
 const path = require("path");
 const llm = require(path.join(__dirname, "llm"));
+const { managedLimits } = require(path.join(__dirname, "llmLimits"));
 const agentRepo = require(path.join(__dirname, "..", "db", "agentRepo"));
 
-function _limits() {
-  // env-чтение = planner.limits() (lazy — planner require'ит llmGate-потребителей; без циклов)
-  return {
-    perUserDaily: Number(process.env.AGENT_LLM_DAILY_PER_USER) || 50,
-    globalDaily: Number(process.env.AGENT_LLM_DAILY_GLOBAL) || 200,
-  };
-}
-
-async function gatedGenerate(ctx, { scenario, system, prompt, maxOutputTokens, json, jsonSchema, fixture } = {}) {
+async function gatedGenerate(ctx, { scenario, system, prompt, maxOutputTokens, json, jsonSchema, fixture, model } = {}) {
   const requestedSchemaMode = jsonSchema ? "provider_json_schema" : "prompt_json";
   const started = Date.now();
   if (llm.killSwitchOn()) return { phase: "kill", reason: "KILL_SWITCH", key_source: "agent",
@@ -46,7 +39,7 @@ async function gatedGenerate(ctx, { scenario, system, prompt, maxOutputTokens, j
   const byok = ctx && ctx.byok && ctx.byok.key && ctx.byok.provider ? ctx.byok : null;
   if (byok) {
     const out = await llm.generate({
-      system, prompt, maxOutputTokens, json, jsonSchema, fixture,
+      system, prompt, maxOutputTokens, json, jsonSchema, fixture, model,
       byokProvider: byok.provider, byokKey: byok.key,
     });
     try {
@@ -64,13 +57,18 @@ async function gatedGenerate(ctx, { scenario, system, prompt, maxOutputTokens, j
     return { phase: "ok", out, key_source: "byok", ...meta };
   }
 
-  const lim = _limits();
+  const provider = llm.providerName();
+  const lim = managedLimits(provider);
+  const enforceProviderQuota = provider === "gemini" && llm.keySource() === "agent";
   const reserve = await agentRepo.reserveLlmCall(ctx.userId, {
-    scenario, provider: llm.providerName(), perUserDaily: lim.perUserDaily, globalDaily: lim.globalDaily,
+    scenario, provider, perUserDaily: lim.perUserDaily, globalDaily: lim.globalDaily,
+    providerDaily: enforceProviderQuota ? lim.providerDaily : 0,
+    providerMinute: enforceProviderQuota ? lim.providerMinute : 0,
   });
   if (!reserve.ok) return { phase: "reserve", reason: reserve.reason, key_source: "agent", provider: llm.providerName(),
     schema_mode: requestedSchemaMode, latency_ms: Date.now() - started, output_size_bytes: 0 };
-  const out = await llm.generate({ system, prompt, maxOutputTokens, json, jsonSchema, fixture });
+  const out = await llm.generate({ system, prompt, maxOutputTokens, json, jsonSchema, fixture, model,
+    managedFreeTier: enforceProviderQuota });
   await agentRepo.finalizeLlmCall(reserve.reserveId, { ok: out.ok, actualUnits: out.ok ? (out.output_tokens || 1) : null });
   const meta = { provider: llm.providerName(), schema_mode: out.schema_mode || requestedSchemaMode,
     latency_ms: Date.now() - started, output_size_bytes: out.ok ? Buffer.byteLength(String(out.text || ""), "utf8") : 0 };
