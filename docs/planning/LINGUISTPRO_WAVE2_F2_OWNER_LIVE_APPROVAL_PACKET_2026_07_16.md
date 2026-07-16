@@ -12,6 +12,14 @@ handoff, external evaluator, background jobs и notifications остаются o
 **Engineering basis:** commit `ed3cf11`, package `3.11.189`, migration 041;
 `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`.
 
+**Current routing update, 2026-07-17:** F2 evidence run 1 continues in parallel
+with the separately approved AA2-B3 engineering line. The next pedagogical
+decision surface is the still-unapproved bounded next-session/weekly preparation
+bridge; it is not Wave-2 F3. Wave-2 F3 remains the private user learning corpus
+M1 and is not authorized for implementation. Canonical reconciliation and
+parallel boundaries:
+`LINGUISTPRO_WAVE2_F2_F3_AA2_PARALLEL_ROUTING_2026_07_17.md`.
+
 **Owner UX addendum, 2026-07-17:** F2 remains a separate non-canonical shadow
 artifact path, but its learner-facing attempt must use the established
 `Учить новые слова` dialog grammar: visible `Тренировка` mode and the common
