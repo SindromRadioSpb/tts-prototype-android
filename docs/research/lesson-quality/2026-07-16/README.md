@@ -34,6 +34,18 @@ To prepare a later evidence run, copy `run_manifest.example.json`, fill only the
 
 The packet itself is a review scaffold. It does not enable the shadow critic, grade a learner, change `review_log`, or authorize publication.
 
+## LB2-B offline evidence run
+
+The owner-authorized bounded run is declared in:
+
+- `LB2B_RUN_PLAN.md` — matrix, credential boundary, reviewer/adjudicator workflow and commands;
+- `LB2B_R1_R17_CRITIQUE.md` — adversarial resolutions;
+- `lb2b-run-config.json` — USD 5 hard ceiling, two composer cells, two prompt variants and an offline-only critic;
+- `scripts/premium/lesson-quality-lb2b.js` — generation, one repair, cost guard, blind packet and content-free metrics;
+- `scripts/premium/lesson-quality-lb2b-analyze.js` — human/shadow/pairwise analysis and non-binding threshold scenarios.
+
+Browser-stored BYOK is deliberately unavailable to these scripts. Dedicated CLI environment variables are read in memory and only presence booleans enter the manifest. Until the generated `reviewer_worksheet.tsv` and `adjudicator_worksheet.tsv` are completed by the declared humans, every quality result remains `UNSCORED` and promotion remains `NO_DECISION`.
+
 ## Provider-capability record
 
 Verified 2026-07-16 against primary provider documentation and the installed adapter:
