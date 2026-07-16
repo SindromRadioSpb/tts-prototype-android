@@ -31,7 +31,7 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
-  var S = { mount: null, host: null, session: null, statusCache: null };
+  var S = { mount: null, host: null, session: null, statusCache: null, memoryAvailable: false };
 
   function t(key, fb) { return S.host && S.host.t ? S.host.t(key, fb) : fb; }
   function lang() { try { return String(S.host.language() || "ru"); } catch (_) { return "ru"; } }
@@ -55,6 +55,16 @@
     if (cls) n.className = cls;
     if (text != null) n.textContent = text;
     return n;
+  }
+
+  function revealMemoryLaterButtons() {
+    try { document.querySelectorAll(".mentor-memory-later").forEach(function (b) { b.hidden = !S.memoryAvailable; }); } catch (_) {}
+  }
+  function memoryLaterButton(sourceKind, sourceRef, nextAction, label) {
+    var b=el("button","mentor-wr-ghost mentor-memory-later",t("room.mentor.memory.later","Продолжить позже"));
+    b.type="button";b.hidden=!S.memoryAvailable;
+    b.addEventListener("click",async function(){b.disabled=true;try{var r=await jpost("/api/agent/memory",{kind:"unfinished_thread",payload:{next_action:nextAction,label:label},sources:[{source_kind:sourceKind,relation_kind:"CONTINUES",source_ref:String(sourceRef),source_authority:"PRIVATE_SELECTED",anchor:{action_target:sourceKind==="AGENT_EXPLANATION"?"explanation":"mentor_home"}}]});if(!r.json||!r.json.ok)throw new Error(r.json&&r.json.error);b.textContent="✓ "+t("room.mentor.memory.savedLater","Сохранено на потом");}catch(e){b.textContent="✗ "+t("room.mentor.memory.enableFirst","Сначала включите память и незавершённые нити");b.disabled=false;}});
+    return b;
   }
 
   // ── блок A: статус/лимиты + consent-переезд ────────────────────────────────
@@ -311,6 +321,7 @@
       if (j.degraded_reason) {
         addLine("ⓘ " + t("room.cloud.planNoLlm", "план собран без LLM (детерминированно)") + " · " + degradeLabel(j.degraded_reason));
       }
+      if (j.task_id) boxWrap.appendChild(memoryLaterButton("AGENT_TASK",j.task_id,"OPEN_TASK",t("room.mentor.memory.planLabel","Вернуться к этому плану")));
     } catch (e) {
       boxWrap.textContent = "✗ " + String((e && e.message) || e);
     } finally {
@@ -355,6 +366,7 @@
       });
       head.appendChild(openBtn);
     }
+    if (x.id) head.appendChild(memoryLaterButton("AGENT_EXPLANATION",x.id,"OPEN_EXPLANATION",t("room.mentor.memory.explanationLabel","Вернуться к этому объяснению")));
     item.appendChild(head);
     if (x.sentence_he) {
       var sent = el("div", "mentor-hist-sentence", x.sentence_he);
@@ -1057,7 +1069,8 @@
   async function renderMemory(section, box) {
     box.textContent = "";
     var probe = await jget("/api/agent/memory?status=ACTIVE&limit=5").catch(function(){ return null; });
-    if (!probe || (probe.status === 403 && probe.json && ["F1_DISABLED","F1_NOT_ALLOWLISTED"].indexOf(probe.json.error) >= 0)) { section.hidden = true; return; }
+    if (!probe || (probe.status === 403 && probe.json && ["F1_DISABLED","F1_NOT_ALLOWLISTED"].indexOf(probe.json.error) >= 0)) { S.memoryAvailable=false;revealMemoryLaterButtons();section.hidden = true; return; }
+    S.memoryAvailable=true;revealMemoryLaterButtons();
     section.hidden = false;
     var cons = (S.session && S.session.consents) || {};
     var storeOn = !!(cons.mentor_memory_store && cons.mentor_memory_store.granted === true);
