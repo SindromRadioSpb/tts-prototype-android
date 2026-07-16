@@ -6,6 +6,7 @@
 **Repository baseline:** `main` / `5199d61`; package `3.11.183`; `origin/main` aligned at recon start.
 **Predecessors:** owner-approved S0 B/B/B/B/B, S1 A/A/A/A/A/A/A/A/A, S2 A/A/A/A/A/A/A/A/A and S3 design A/A/A/A/A/A/A/A/A.
 **Current state:** S3 remains `DESIGN_APPROVED`, not `OPERATIONALLY_COMPLETE`; CP0 implementation and evidence are absent.
+**Owner amendment:** 2026-07-16 — the 10,000-run synthetic gate must consume zero real external-provider/API calls, and the unavailable seven-day owner-live window is deferred rather than allowed to block F1. S3-T/S3-L plus healthy default-off deployment may earn `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`; this permits the separately approved F1 track to proceed, but not CP1, AA2 runtime access or an external cohort.
 
 ## 1. Purpose and recommended authorization
 
@@ -13,14 +14,14 @@ This packet converts the approved S3 design into an exact implementation contrac
 
 1. implement CP0 fixtures, storage, observer and evidence harnesses;
 2. prove observer-off/on behavior, provider and canonical-write parity in CI;
-3. prove the S0 5×/10,000-run synthetic envelope and lifecycle drills;
+3. prove the S0 5×/10,000-run synthetic envelope and lifecycle drills with deterministic/local provider doubles and **zero real external API calls**;
 4. deploy the migration and code with CP0 globally **off**;
-5. stop and obtain a separate owner launch approval before enabling the owner-only production observation window;
-6. collect seven eligible live days, then present witnessed evidence for a separate `OPERATIONALLY_COMPLETE` decision.
+5. record `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED` when S3-T/S3-L and default-off health are green, allowing separately authorized F1 work to proceed;
+6. when owner-live evidence becomes feasible, obtain a separate launch approval, collect seven eligible live days in parallel with non-dependent downstream work, remediate any findings and only then adjudicate `OPERATIONALLY_COMPLETE`.
 
 Recommended owner resolution: **A/A/A/A/A/A/A/A/A** in §18.
 
-This is not authority for CP1 enforcement, F1, AA2, a generic event bus or raw debug capture.
+This packet still does not itself authorize F1, CP1, AA2, a generic event bus or raw debug capture. It defines the evidence state after which F1 may receive/consume its own separate authority without waiting for the deferred live window.
 
 ## 2. Live-code findings that constrain implementation
 
@@ -74,7 +75,7 @@ No new package, service, telemetry provider, worker process or network call is p
 | `scripts/premium/cp0-observer-smoke.js` | schemas, start/terminal, shadow classification, fail-open, content sentinels, off/on parity |
 | `scripts/premium/cp0-scenario-parity-smoke.js` | every active S1 scenario and every declared path |
 | `scripts/premium/cp0-lifecycle-smoke.js` | export/delete/revoke/purge/backup/restore/no-resurrection |
-| `scripts/premium/cp0-load-smoke.js` | 10,000 mixed runs at S0 5× profile, queue/DB/SLO/storage measurements |
+| `scripts/premium/cp0-load-smoke.js` | 10,000 mixed runs at S0 5× profile, queue/DB/SLO/storage measurements, hard network/provider tripwire and zero real API calls |
 | `scripts/premium/cp0-process-failure-smoke.js` | busy/unavailable DB, queue saturation, malformed record, process interruption and circuit breaker |
 | `docs/research/cp0/2026-07-16/README.md` | stable evidence manifest, commands, source commit and epistemic labels |
 
@@ -360,7 +361,20 @@ The parity harness must compare independent snapshots; CP0 cannot declare its ow
 
 ## 12. Synthetic and performance evidence
 
-`cp0-load-smoke.js` must run at least 10,000 deterministic/mock mixed runs representing the S0 5× accepted 100-DAU peak. It records:
+`cp0-load-smoke.js` must run at least 10,000 deterministic/mock mixed runs representing the S0 5× accepted 100-DAU peak. These are logical scenario invocations, not users and not real model calls. Every LLM/provider branch uses committed deterministic fixtures, the existing local provider shim or a loopback fake server.
+
+The load harness must install a hard outbound-network/provider tripwire before the first run. Any attempt to reach Gemini, OpenRouter, Google TTS/Translate, Dicta or another non-loopback provider fails the gate immediately. Required evidence includes:
+
+```text
+logical_runs_total >= 10000
+external_provider_calls_total == 0
+external_network_attempts_total == 0
+managed_quota_reservations_against_real_service == 0
+```
+
+This keeps the 10,000-run gate independent of free-tier RPM/RPD/token limits and gives it a reproducible cost of zero external API units. Provider compatibility remains covered separately by bounded contract smokes against fixtures/loopback doubles; an explicitly approved single real-provider probe may diagnose production configuration, but is never multiplied by the synthetic run count and is not required to pass S3-L.
+
+The harness records:
 
 - p50/p95/p99 live-route latency off/on;
 - DB transaction queue wait/duration, WAL growth and `SQLITE_BUSY` rate;
@@ -379,6 +393,7 @@ Acceptance remains inherited from S0/S3:
 - observer-on p95 regression ≤5% without breaching absolute SLO;
 - ≥99.5% start and ≥99.5% terminal persistence with every gap/drop classified;
 - zero content, cross-user or resurrection violation.
+- exactly zero real external-provider/network attempts during the 10,000-run workload.
 
 ## 13. Lifecycle, backup and restore evidence
 
@@ -400,13 +415,17 @@ No production backup or restore drill is authorized by initial execution approva
 | Stage | Authorized after A/A/A/A/A/A/A/A/A? | Exit |
 |---|---:|---|
 | S3-T implementation/CI | Yes | Hook matrix, all fixture/parity/leak gates green |
-| S3-L synthetic/lifecycle | Yes | 10,000-run S0 thresholds and lifecycle drills green |
+| S3-L synthetic/lifecycle | Yes | 10,000-run S0 thresholds/lifecycle green and zero real external API calls |
 | Default-off deploy | Yes | Migration/code healthy; flag remains `0`; no observation |
-| S3-O owner-live enable | **No; separate launch approval** | Seven consecutive eligible days ≥99.5%, zero violation/mismatch |
+| `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED` | Yes, after S3-T/S3-L + deploy health | F1 may proceed under separate authority; deferred evidence debt is recorded |
+| S3-O owner-live enable | **No; separate future launch approval; not an F1 blocker** | Seven consecutive eligible days ≥99.5%, zero violation/mismatch after remediation/re-run as needed |
 | `OPERATIONALLY_COMPLETE` | **No; separate evidence adjudication** | Owner reviews preserved evidence and records completion |
-| CP1/F1/AA2 | No | Separate future authority |
+| F1 | Separate authority after engineering-complete state | Does not wait for S3-O |
+| CP1/AA2 runtime/external cohort | No | Remain blocked on completed live evidence and separate authority |
 
-A successful implementation commit is not S3 completion. A deployed empty table with the flag off is not evidence. An owner-live interval with a drop, leak, unresolved mismatch or incomplete boot restarts the eligible window after correction.
+A successful implementation commit alone is not even engineering completion. S3-T/S3-L evidence plus a healthy default-off deployment may establish `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`, but not `OPERATIONALLY_COMPLETE`. An owner-live interval with a drop, leak, unresolved mismatch or incomplete boot triggers a corrective slice and restarts the eligible window after correction.
+
+Deferred live findings are binding engineering debt, not optional feedback. A future S3-O evidence packet must list every finding, severity, affected downstream epic and disposition. Any fix reruns the relevant scenario parity, sentinel, lifecycle and load subsets; a foundational authority/privacy/canonical-write finding blocks CP1/AA2 and pauses the affected downstream rollout until corrected. Previously completed F1 work is regression-tested against the fix but is not automatically discarded when the finding is unrelated.
 
 ## 15. R1–R17 pre-code adversarial critique
 
@@ -442,11 +461,11 @@ The highest-risk false shortcut is route-level JSON logging. It appears observab
 4. Implement migration/repository/contracts/registry/observer with CP0 default off.
 5. Instrument one scenario family at a time and keep existing suites green off/on.
 6. Run the complete §11 matrix and post-implementation R1–R17 diff critique.
-7. Run lifecycle/failure injection and 10,000-run synthetic evidence.
+7. Run lifecycle/failure injection and 10,000-run synthetic evidence with hard outbound-network denial and zero external provider calls.
 8. Preserve bounded results under `docs/research/cp0/2026-07-16/`.
 9. Stage only S3 files, run `git diff --check`, commit and push.
 10. Verify normal production health after default-off deployment without enabling CP0.
-11. Present S3-T/S3-L evidence and request separate owner approval for S3-O.
+11. Present S3-T/S3-L evidence for `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`; proceed to separately authorized F1. Request S3-O only when a seven-day owner-live window becomes feasible.
 
 ## 17. Stop conditions
 
@@ -459,6 +478,7 @@ Stop implementation and return to the owner if:
 - observer off/on changes a response, provider attempt, grade, canonical row, notification claim or delivery;
 - load/lifecycle evidence breaches S0 thresholds;
 - production enablement would be required to finish S3-T/S3-L;
+- any real external API/provider/network attempt occurs in the 10,000-run harness;
 - any secret/content/cross-user/deletion-resurrection sentinel appears.
 
 ## 18. Owner decisions
@@ -501,27 +521,27 @@ Stop implementation and return to the owner if:
 
 ### Decision 7 — evidence
 
-- **A — independent off/on snapshots, full scenario matrix, lifecycle/failure gates and 10,000-run 5× load (recommended).**
+- **A — independent off/on snapshots, full scenario matrix, lifecycle/failure gates and 10,000-run 5× load with hard zero-real-provider/network proof (recommended).**
 - **B — new CP0 unit smoke only:** self-consistent implementation can still alter live behavior.
 - **C — owner-live evidence only:** destructive and sparse paths remain unproved.
 
-### Decision 8 — rollout
+### Decision 8 — rollout and deferred live evidence
 
-- **A — deploy default off; separate approval for owner-only allowlisted enablement (recommended).**
+- **A — deploy default off; record engineering-complete/live-evidence-deferred when green; let separately authorized F1 proceed; run owner-only evidence later under separate approval (recommended).**
 - **B — enable owner automatically after push:** conflates deployment with evidence launch.
 - **C — enable a 20-user cohort immediately:** S3-O and S3-P gates skipped.
 
-### Decision 9 — completion and next track
+### Decision 9 — completion, remediation and next track
 
-- **A — S3 stays incomplete until seven eligible live days and explicit owner adjudication; then F1 remains next critical implementation (recommended).**
-- **B — green CI/synthetic evidence closes S3:** omits owner-live requirement.
+- **A — S3-T/S3-L + default-off health permit `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED` and F1 next; later S3-O findings require tracked remediation/relevant gate reruns before final completion or CP1/AA2 (recommended).**
+- **B — green CI/synthetic evidence marks full `OPERATIONALLY_COMPLETE`:** erases the deferred live-evidence distinction.
 - **C — successful CP0 automatically starts CP1/AA2:** observation cannot self-authorize new authority.
 
 ## 19. Recommended owner resolution
 
-Approve **S3 execution A/A/A/A/A/A/A/A/A**. This authorizes implementation, local/CI/synthetic evidence and default-off deployment only. It does not authorize the production flag/environment change, owner-live observation, `OPERATIONALLY_COMPLETE`, CP1, F1 or Agent Access implementation.
+Approve **S3 execution A/A/A/A/A/A/A/A/A**. This authorizes implementation, local/CI/synthetic evidence and default-off deployment only. The 10,000-run gate must make zero real external API calls. Green S3-T/S3-L plus deployment health establish `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`, making F1 the next separately authorized implementation without waiting seven days. It does not authorize the production flag/environment change, owner-live observation, full `OPERATIONALLY_COMPLETE`, CP1, F1 by itself or Agent Access implementation.
 
-After approval, the next executable work is S3-T/S3-L. After those gates pass, the agent must return with evidence and an exact S3-O launch request.
+After approval, the next executable work is S3-T/S3-L. After those gates pass, the agent returns with engineering evidence and the F1 gate. The S3-O launch request is deferred until the owner can provide a seven-day window; its eventual findings must be remediated and relevant gates rerun before final S3 completion or dependent promotion.
 
 ## 20. Source map
 

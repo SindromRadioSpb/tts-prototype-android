@@ -6,7 +6,7 @@
 **Owner approval:** 2026-07-16 — Decisions 1–10: A/A/A/A/A/A/A/A/A/A. This approval adds the parallel AA roadmap track and authorizes its documentation gates only; it does not authorize AA0 execution, Hermes configuration, AA2 implementation or any external data connection.
 **Repository baseline:** `main` / `60e98dc`; package `3.11.183`; `origin/main` aligned after the owner-approved S3 design push.
 **Current foundation:** S0, S1 and S2 are owner-approved; S3 is `DESIGN_APPROVED`, not `OPERATIONALLY_COMPLETE`. CP0 implementation/evidence remains separately gated.
-**Execution-order decision:** for one primary implementer, the default critical path is S3 implementation/evidence → F1 correctable continuity → AA2. AA0 personal evidence and AA1 design may proceed in parallel under separate authority without delaying that path.
+**Execution-order decision:** for one primary implementer, the default critical path is S3 engineering implementation/zero-real-provider synthetic evidence/default-off deployment → F1 correctable continuity. The unavailable S3 seven-day owner-live window is deferred and later remediated without blocking F1, but AA2 runtime access remains gated on completed S3 live evidence. AA0 personal evidence and AA1 design may proceed in parallel under separate authority.
 **Question:** should the owner use LinguistPro with a personal Hermes agent, and should LinguistPro expose a vendor-neutral agent-access surface with Hermes as the first reference client?
 
 ## 1. Revised verdict
@@ -461,7 +461,7 @@ Starts only after:
 
 Tools: learning brief, due summary, public search, explanation metadata and app handoff. Hermes is the first tested client; at least one second MCP client must pass contract tests before claiming vendor neutrality.
 
-S3 operational completion is AA2's minimum technical dependency. With one primary implementer, however, the default scheduling decision is to complete F1 correctable continuity before starting AA2 implementation. Reordering AA2 ahead of F1 requires a separate owner decision backed by AA0 evidence of exceptional user value; this packet does not make that exception.
+S3 `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED` is sufficient for F1, not AA2 runtime access. Completed S3 owner-live evidence remains AA2's minimum technical dependency because Agent Access adds a new external principal/surface. Later S3-O findings must be remediated and relevant gates rerun before AA2 starts. With one primary implementer, F1 remains first regardless.
 
 ### AA3 — propose-first in-app intents
 
@@ -480,18 +480,19 @@ Recommended priority:
 ```text
 single-owner critical path:
 S3 execution authorization
-  → CP0 implementation / CI + synthetic + owner evidence
-  → S3 OPERATIONALLY_COMPLETE
+  → CP0 implementation / CI + zero-real-provider synthetic
+  → healthy default-off deploy
+  → S3 ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED
   → F1 correctable continuity design / implementation / evidence
-  → AA2 owner-only read-only MCP implementation
 
 parallel non-critical path:
 AA0 personal no-secret experiment
 AA1 Agent Access / OAuth / tool-schema / threat-model documentation
+deferred S3-O seven-day owner-live → remediation/re-run → S3 OPERATIONALLY_COMPLETE
 
 dependency note:
-AA2 becomes technically eligible after S3 OPERATIONALLY_COMPLETE,
-but stays scheduled after F1 by default when one implementer owns both tracks
+AA2 runtime implementation remains ineligible until deferred S3-O evidence closes,
+and stays after F1 by default when one implementer owns both tracks
 
 after evidence/S7:
 AA3 bounded intents → AA4 public connected agents
@@ -590,7 +591,7 @@ The strategic opportunity is real because the external-interoperability boundary
 
 ### Decision 10 — roadmap placement
 
-- **A — add AA0/AA1 in parallel; keep S3 operational evidence then F1 on the single-owner critical path; AA2 is technically eligible after S3 but scheduled after F1 by default; public AA4 waits for S7 (recommended).**
+- **A — add AA0/AA1 in parallel; use S3 engineering-complete/deferred-live → F1 on the critical path; complete/remediate S3-O before AA2 runtime; public AA4 waits for S7 (recommended).**
 - **B — make Agent Access the next critical-path implementation:** delays core continuity for platform work.
 - **C — wait until after all S4–S7 even for docs/personal experiment:** misses low-risk evidence now.
 
@@ -607,7 +608,7 @@ Approve **A/A/A/A/A/A/A/A/A/A**:
 7. Use lesson-intent handoff, not durable remote drafts.
 8. Do not let Hermes bypass LinguistPro notification fatigue/claim policy.
 9. Treat each connected agent as a separate external data recipient.
-10. Add a parallel AA track; keep S3 operational evidence then F1 on the single-owner critical path, with AA2 scheduled after F1 by default.
+10. Add a parallel AA track; keep S3 engineering evidence then F1 on the single-owner critical path, while deferred S3-O evidence/remediation remains mandatory before AA2 runtime.
 
 ## 20. Exact next gates
 
