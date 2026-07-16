@@ -115,7 +115,7 @@ function markdown(result) {
   for (const option of result.threshold_options.latency) lines.push(`- **${option.id}:** ${option.rule}${option.note ? ` — ${option.note}` : ""}`);
   lines.push("", "## Shadow boundary", "", `- ${result.shadow_agreement.authority_eligibility || "No paired human-shadow evidence; critic remains advisory."}`,
     "- One reviewer plus one adjudicator is pilot evidence; it cannot establish inter-rater reliability.",
-    "- No critic may edit, repair, select or publish a learner-visible lesson in LB2-B.", "");
+    "- No critic may edit, repair, select or publish a learner-visible lesson in LB2-B.");
   return lines.join("\n");
 }
 

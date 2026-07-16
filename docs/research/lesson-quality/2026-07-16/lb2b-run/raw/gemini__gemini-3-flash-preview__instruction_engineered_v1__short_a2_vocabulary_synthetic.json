@@ -1,0 +1,219 @@
+{
+  "status": "UNSCORED",
+  "case_id": "short_a2_vocabulary_synthetic",
+  "provider": "gemini",
+  "model": "gemini-3-flash-preview",
+  "prompt_variant": "instruction_engineered_v1",
+  "prompt_contract_hash": "1a999183e3ac3bef37e3a48e249507ebede11f1341c4814283c8f1c8cab7b4fb",
+  "source": {
+    "id": "synthetic:short_a2_vocabulary_synthetic",
+    "title": "בשוק השכונתי",
+    "author": "LinguistPro synthetic fixture",
+    "locator": "synthetic:a2-vocabulary-v1",
+    "license": "CC0 synthetic fixture",
+    "content_hash": null,
+    "row_count": 18,
+    "anchor_windows": [
+      {
+        "id": "synthetic:short_a2_vocabulary_synthetic-anchor-1",
+        "start_order_index": 0,
+        "end_order_index": 17,
+        "rows": [
+          {
+            "order_index": 0,
+            "he": "ביום שישי יעל הלכה לשוק השכונתי.",
+            "ru": "В пятницу Яэль пошла на районный рынок."
+          },
+          {
+            "order_index": 1,
+            "he": "היא הביאה סל בד כדי לא להשתמש בשקיות.",
+            "ru": "Она принесла тканевую корзину, чтобы не пользоваться пакетами."
+          },
+          {
+            "order_index": 2,
+            "he": "בדוכן הראשון היו עגבניות טריות.",
+            "ru": "На первом прилавке были свежие помидоры."
+          },
+          {
+            "order_index": 3,
+            "he": "המוכר הסביר שהירקות הגיעו ממשק מקומי.",
+            "ru": "Продавец объяснил, что овощи поступили с местной фермы."
+          },
+          {
+            "order_index": 4,
+            "he": "יעל השוותה מחירים לפני שבחרה.",
+            "ru": "Яэль сравнила цены перед выбором."
+          },
+          {
+            "order_index": 5,
+            "he": "היא קנתה כמות קטנה כדי למנוע בזבוז.",
+            "ru": "Она купила небольшое количество, чтобы избежать расточительства."
+          },
+          {
+            "order_index": 6,
+            "he": "ליד המאפייה היא פגשה את שכנתה.",
+            "ru": "Возле пекарни она встретила соседку."
+          },
+          {
+            "order_index": 7,
+            "he": "השתיים חלקו מתכון פשוט למרק.",
+            "ru": "Они поделились простым рецептом супа."
+          },
+          {
+            "order_index": 8,
+            "he": "יעל חיפשה גם עשבי תיבול.",
+            "ru": "Яэль искала также пряные травы."
+          },
+          {
+            "order_index": 9,
+            "he": "המוכרת הציעה פטרוזיליה וכוסברה.",
+            "ru": "Продавщица предложила петрушку и кинзу."
+          },
+          {
+            "order_index": 10,
+            "he": "יעל בחרה בפטרוזיליה כי טעמה עדין יותר.",
+            "ru": "Яэль выбрала петрушку, потому что её вкус мягче."
+          },
+          {
+            "order_index": 11,
+            "he": "היא ביקשה קבלה ושמרה אותה.",
+            "ru": "Она попросила чек и сохранила его."
+          },
+          {
+            "order_index": 12,
+            "he": "בדרך הביתה הסל היה כבד.",
+            "ru": "По дороге домой корзина была тяжёлой."
+          },
+          {
+            "order_index": 13,
+            "he": "שכן צעיר עזר לה לשאת אותו.",
+            "ru": "Молодой сосед помог ей её нести."
+          },
+          {
+            "order_index": 14,
+            "he": "בבית יעל שטפה את הירקות.",
+            "ru": "Дома Яэль вымыла овощи."
+          },
+          {
+            "order_index": 15,
+            "he": "היא שמרה חלק מהם במקרר.",
+            "ru": "Часть из них она положила в холодильник."
+          },
+          {
+            "order_index": 16,
+            "he": "מהשאר היא הכינה ארוחה למשפחה.",
+            "ru": "Из остального она приготовила еду для семьи."
+          },
+          {
+            "order_index": 17,
+            "he": "כולם שמחו שהמוצרים היו טריים ומקומיים.",
+            "ru": "Все обрадовались, что продукты были свежими и местными."
+          }
+        ]
+      }
+    ]
+  },
+  "deterministic_facts": {
+    "vocabulary_candidates": [
+      {
+        "surface": "טרי",
+        "meaning": "свежий",
+        "source_id": "synthetic:short_a2_vocabulary_synthetic"
+      },
+      {
+        "surface": "בזבוז",
+        "meaning": "расточительство; ненужная трата",
+        "source_id": "synthetic:short_a2_vocabulary_synthetic"
+      }
+    ],
+    "selected_construct": null,
+    "excluded_ambiguous_morphology": [],
+    "rule": "Only asserted facts below may be explained as Hebrew facts."
+  },
+  "request": {
+    "explanationLanguage": "ru",
+    "approximateLevel": "A2",
+    "durationMinutes": 10,
+    "focuses": [
+      "reading",
+      "vocabulary"
+    ],
+    "goal": "Понять текст и применить только подтверждённую лексику",
+    "resolvedMode": "single"
+  },
+  "attempts": [
+    {
+      "stage": "first",
+      "outcome": "provider_error",
+      "validation_codes": [],
+      "schema_mode": null,
+      "latency_ms": 1070,
+      "latency_bucket_ms": "0-2s",
+      "output_size_bytes": 0,
+      "output_size_bucket": "small",
+      "estimated_input_tokens": 2270,
+      "measured_output_tokens": 0,
+      "estimated_cost_usd": 0,
+      "conservative_cost_bound_usd": 0.00786,
+      "error_code": "429"
+    }
+  ],
+  "lesson": {
+    "objective": "Понять текст и применить только подтверждённую лексику",
+    "sections": [
+      {
+        "title": "בשוק השכונתי",
+        "body": "Прочитайте предложения 1–18. Сформулируйте основную мысль одним предложением и выпишите две детали, которые её подтверждают.",
+        "source_ids": [
+          "synthetic:short_a2_vocabulary_synthetic"
+        ],
+        "anchor_ids": [
+          "synthetic:short_a2_vocabulary_synthetic-anchor-1"
+        ]
+      }
+    ],
+    "exercises": [
+      {
+        "type": "source_reading",
+        "purpose": "Понять текст и применить только подтверждённую лексику",
+        "instruction": "Прочитайте предложения 1–18. Сформулируйте основную мысль одним предложением и выпишите две детали, которые её подтверждают.",
+        "source_ids": [
+          "synthetic:short_a2_vocabulary_synthetic"
+        ],
+        "anchor_ids": [
+          "synthetic:short_a2_vocabulary_synthetic-anchor-1"
+        ],
+        "expected_answer": null,
+        "hints": [],
+        "success_criteria": [
+          "Ответ опирается на указанный диапазон",
+          "Основная мысль отделена от подтверждающих деталей"
+        ]
+      },
+      {
+        "type": "vocabulary",
+        "purpose": "Понять текст и применить только подтверждённую лексику",
+        "instruction": "Вернитесь к предложения 1–18. Объясните по контексту два содержательных слова, затем составьте по одному новому предложению с каждым словом.",
+        "source_ids": [
+          "synthetic:short_a2_vocabulary_synthetic"
+        ],
+        "anchor_ids": [
+          "synthetic:short_a2_vocabulary_synthetic-anchor-1"
+        ],
+        "expected_answer": "Два новых предложения с целевыми словами в их контекстных значениях",
+        "hints": [],
+        "success_criteria": [
+          "Ответ опирается на указанный диапазон",
+          "Основная мысль отделена от подтверждающих деталей"
+        ]
+      }
+    ]
+  },
+  "delivery": {
+    "tier": "basic_plan",
+    "reason": "PROVIDER_UNAVAILABLE"
+  },
+  "shadow_evaluation": {
+    "status": "NOT_RUN_STRATIFIED_SAMPLE"
+  }
+}

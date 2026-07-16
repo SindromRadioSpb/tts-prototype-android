@@ -1,0 +1,200 @@
+{
+  "status": "UNSCORED",
+  "case_id": "no_eligible_vocabulary_a1",
+  "provider": "gemini",
+  "model": "gemini-3.1-flash-lite",
+  "prompt_variant": "lb2a_contract_v1",
+  "prompt_contract_hash": "121759b60bcff878254109542b858e60440d56a8b2c9b3235524f672527abd2a",
+  "source": {
+    "id": "synthetic:no_eligible_vocabulary_a1",
+    "title": "משפטים קצרים",
+    "author": "LinguistPro synthetic fixture",
+    "locator": "synthetic:no-eligible-vocabulary-v1",
+    "license": "CC0 synthetic fixture",
+    "content_hash": null,
+    "row_count": 16,
+    "anchor_windows": [
+      {
+        "id": "synthetic:no_eligible_vocabulary_a1-anchor-1",
+        "start_order_index": 0,
+        "end_order_index": 15,
+        "rows": [
+          {
+            "order_index": 0,
+            "he": "אני בבית.",
+            "ru": "Я дома."
+          },
+          {
+            "order_index": 1,
+            "he": "את בבית.",
+            "ru": "Ты дома."
+          },
+          {
+            "order_index": 2,
+            "he": "הוא פה.",
+            "ru": "Он здесь."
+          },
+          {
+            "order_index": 3,
+            "he": "היא פה.",
+            "ru": "Она здесь."
+          },
+          {
+            "order_index": 4,
+            "he": "יש לי מים.",
+            "ru": "У меня есть вода."
+          },
+          {
+            "order_index": 5,
+            "he": "יש לך לחם.",
+            "ru": "У тебя есть хлеб."
+          },
+          {
+            "order_index": 6,
+            "he": "זה טוב.",
+            "ru": "Это хорошо."
+          },
+          {
+            "order_index": 7,
+            "he": "זה לא רע.",
+            "ru": "Это неплохо."
+          },
+          {
+            "order_index": 8,
+            "he": "אבא בא.",
+            "ru": "Папа приходит."
+          },
+          {
+            "order_index": 9,
+            "he": "אמא באה.",
+            "ru": "Мама приходит."
+          },
+          {
+            "order_index": 10,
+            "he": "אני קם.",
+            "ru": "Я встаю."
+          },
+          {
+            "order_index": 11,
+            "he": "אני הולך.",
+            "ru": "Я иду."
+          },
+          {
+            "order_index": 12,
+            "he": "אני שב.",
+            "ru": "Я возвращаюсь."
+          },
+          {
+            "order_index": 13,
+            "he": "אנחנו פה.",
+            "ru": "Мы здесь."
+          },
+          {
+            "order_index": 14,
+            "he": "הם בבית.",
+            "ru": "Они дома."
+          },
+          {
+            "order_index": 15,
+            "he": "לילה טוב.",
+            "ru": "Спокойной ночи."
+          }
+        ]
+      }
+    ]
+  },
+  "deterministic_facts": {
+    "vocabulary_candidates": [],
+    "selected_construct": null,
+    "excluded_ambiguous_morphology": [],
+    "rule": "Only asserted facts below may be explained as Hebrew facts."
+  },
+  "request": {
+    "explanationLanguage": "ru",
+    "approximateLevel": "A1",
+    "durationMinutes": 10,
+    "focuses": [
+      "reading",
+      "vocabulary"
+    ],
+    "goal": "Понять текст и применить только подтверждённую лексику",
+    "resolvedMode": "single"
+  },
+  "attempts": [
+    {
+      "stage": "first",
+      "outcome": "accepted",
+      "validation_codes": [],
+      "schema_mode": "provider_json_schema",
+      "latency_ms": 1429,
+      "latency_bucket_ms": "0-2s",
+      "output_size_bytes": 1744,
+      "output_size_bucket": "small",
+      "estimated_input_tokens": 1406,
+      "measured_output_tokens": 322,
+      "estimated_cost_usd": 0.000835,
+      "conservative_cost_bound_usd": 0.003282,
+      "error_code": null
+    }
+  ],
+  "lesson": {
+    "objective": "Изучение простых предложений на иврите для описания местоположения и базовых действий.",
+    "sections": [
+      {
+        "title": "Базовые фразы",
+        "body": "В этом уроке мы изучим простые предложения о местоположении и действиях. Например: אני בבית (Я дома), הוא פה (Он здесь), אני קם (Я встаю).",
+        "source_ids": [
+          "synthetic:no_eligible_vocabulary_a1"
+        ],
+        "anchor_ids": [
+          "synthetic:no_eligible_vocabulary_a1-anchor-1"
+        ]
+      }
+    ],
+    "exercises": [
+      {
+        "type": "source_reading",
+        "purpose": "Понимание смысла простых предложений",
+        "instruction": "Прочитайте фразы из списка и переведите предложение 'אני בבית' на русский язык.",
+        "source_ids": [
+          "synthetic:no_eligible_vocabulary_a1"
+        ],
+        "anchor_ids": [
+          "synthetic:no_eligible_vocabulary_a1-anchor-1"
+        ],
+        "expected_answer": "Я дома",
+        "hints": [
+          "Обратите внимание на первое предложение в списке"
+        ],
+        "success_criteria": [
+          "Правильный перевод на русский язык"
+        ]
+      },
+      {
+        "type": "vocabulary",
+        "purpose": "Закрепление базовой лексики",
+        "instruction": "Как на иврите сказать 'Он здесь'? Используйте данные из текста.",
+        "source_ids": [
+          "synthetic:no_eligible_vocabulary_a1"
+        ],
+        "anchor_ids": [
+          "synthetic:no_eligible_vocabulary_a1-anchor-1"
+        ],
+        "expected_answer": "הוא פה",
+        "hints": [
+          "Посмотрите на третью строку в списке"
+        ],
+        "success_criteria": [
+          "Точное написание фразы на иврите"
+        ]
+      }
+    ]
+  },
+  "delivery": {
+    "tier": "premium_draft",
+    "reason": null
+  },
+  "shadow_evaluation": {
+    "status": "NOT_RUN_STRATIFIED_SAMPLE"
+  }
+}

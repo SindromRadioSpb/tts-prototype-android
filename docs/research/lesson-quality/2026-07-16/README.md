@@ -41,6 +41,8 @@ The owner-authorized bounded run is declared in:
 - `LB2B_RUN_PLAN.md` — matrix, credential boundary, reviewer/adjudicator workflow and commands;
 - `LB2B_R1_R17_CRITIQUE.md` — adversarial resolutions;
 - `lb2b-run-config.json` — USD 5 hard ceiling, two composer cells, two prompt variants and an offline-only critic;
+- `LB2B_EVIDENCE_REPORT.md` — measured structural/operational results, limitations and non-binding threshold options;
+- `lb2b-run/` — sealed raw/blind evidence packet; human worksheets remain `UNSCORED`;
 - `scripts/premium/lesson-quality-lb2b.js` — generation, one repair, cost guard, blind packet and content-free metrics;
 - `scripts/premium/lesson-quality-lb2b-analyze.js` — human/shadow/pairwise analysis and non-binding threshold scenarios.
 

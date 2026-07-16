@@ -1,0 +1,85 @@
+{
+  "schema_version": "lesson-quality-run-manifest-v1",
+  "status": "UNSCORED",
+  "source_commit": "fddc3a2efba81e4c1918b451ce73ba9e50e4c912",
+  "package_version": "3.11.182",
+  "policy_version": "lesson-builder-lb1-v2",
+  "case_set_version": "lesson-quality-hebrew-gold-lb2-v1",
+  "rubric_version": "lesson-quality-hebrew-gold-lb2-rubric-v1",
+  "config_hash": "54b2b7f51c8c8332ec6c5b0d55f89cf7c918f4e9aedf5f4beae6e8ee9806521b",
+  "generation_command": "node scripts/premium/lesson-quality-lb2b.js --config docs/research/lesson-quality/2026-07-16/lb2b-run-config.json --out docs/research/lesson-quality/2026-07-16/lb2b-run",
+  "started_at": "2026-07-16T01:15:11.778Z",
+  "completed_at": "2026-07-16T01:23:37.290Z",
+  "artifact_directory": "docs/research/lesson-quality/2026-07-16/lb2b-run",
+  "composer_cells": [
+    {
+      "id": "gemini_direct_3_flash_preview",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "schema_mode": "provider_json_schema_plus_post_validation",
+      "price_input_per_million": 0.5,
+      "price_output_per_million": 3,
+      "price_source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "key_env_present": true
+    },
+    {
+      "id": "gemini_direct_3_1_flash_lite",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "schema_mode": "provider_json_schema_plus_post_validation",
+      "price_input_per_million": 0.25,
+      "price_output_per_million": 1.5,
+      "price_source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "key_env_present": true
+    }
+  ],
+  "prompt_variants": [
+    {
+      "id": "lb2a_contract_v1",
+      "hash": "bff82848f49581296abc2c50cde2c8206874591907aafb32da62e64e758fc03e"
+    },
+    {
+      "id": "instruction_engineered_v1",
+      "hash": "1169aeccfceb6e320937ee397891a0c254b6996e808d633d06ad398b14313531"
+    }
+  ],
+  "provider_preflight": [
+    {
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "schema_mode": "provider_json_schema",
+      "latency_ms": 1794,
+      "output_size_bytes": 11,
+      "estimated_cost_usd": 0.000026,
+      "conservative_cost_bound_usd": 0.001823
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "schema_mode": "provider_json_schema",
+      "latency_ms": 661,
+      "output_size_bytes": 16,
+      "estimated_cost_usd": 0.000019,
+      "conservative_cost_bound_usd": 0.000912
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.5-flash",
+      "schema_mode": "provider_json_schema",
+      "latency_ms": 7717,
+      "output_size_bytes": 11,
+      "estimated_cost_usd": 0.000077,
+      "conservative_cost_bound_usd": 0.019293
+    }
+  ],
+  "budget_usd": 5,
+  "observed_non_thought_cost_estimate_usd": 0.121336,
+  "conservative_cost_bound_usd": 0.802389,
+  "human_review_status": "UNSCORED",
+  "reviewer_count": 1,
+  "adjudicator_count": 1,
+  "shadow_critic_enabled_offline_only": true,
+  "promotion_result": "UNSCORED_NO_DECISION",
+  "content_free_operational_metrics_only": true,
+  "raw_candidates_content_policy": "synthetic_or_public_domain_only"
+}

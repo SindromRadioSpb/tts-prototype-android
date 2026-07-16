@@ -395,8 +395,8 @@ function blindArtifacts(artifacts, outDir, seed) {
     key.push({ blind_id: blindId, case_id: artifact.case_id, provider: artifact.provider, model: artifact.model, prompt_variant: artifact.prompt_variant,
       raw_artifact: `raw/${artifact.provider}__${artifact.model.replace(/[^A-Za-z0-9._-]+/g, "_")}__${artifact.prompt_variant}__${artifact.case_id}.json` });
     artifactBlindIds.set(artifact, blindId);
-    worksheet.push([blindId, ...HUMAN_DIMENSIONS.map(() => "UNSCORED"), "UNSCORED", "UNSCORED", ""].join("\t"));
-    adjudication.push([blindId, "PENDING_REVIEW", "UNSCORED", "UNSCORED", ""].join("\t"));
+    worksheet.push([blindId, ...HUMAN_DIMENSIONS.map(() => "UNSCORED"), "UNSCORED", "UNSCORED", "UNSCORED"].join("\t"));
+    adjudication.push([blindId, "PENDING_REVIEW", "UNSCORED", "UNSCORED", "UNSCORED"].join("\t"));
   });
   writeJson(path.join(outDir, "blind-key.json"), { status: "SEALED_FROM_REVIEWER", instruction: "Do not give this file to the reviewer before worksheet lock.", candidates: key });
   fs.writeFileSync(path.join(outDir, "reviewer_worksheet.tsv"), worksheet.join("\n") + "\n");
@@ -410,11 +410,11 @@ function blindArtifacts(artifacts, outDir, seed) {
   let pairIndex = 1;
   for (const [caseId, candidates] of [...byCase.entries()].sort(([a], [b]) => a.localeCompare(b))) {
     const baseline = candidates.filter((artifact) => artifact.prompt_variant === "lb2a_contract_v1").sort((a, b) => a.provider.localeCompare(b.provider));
-    if (baseline.length >= 2) pairs.push([`PAIR-${String(pairIndex++).padStart(3, "0")}`, artifactBlindIds.get(baseline[0]), artifactBlindIds.get(baseline[1]), "UNSCORED", "UNSCORED", ""].join("\t"));
+    if (baseline.length >= 2) pairs.push([`PAIR-${String(pairIndex++).padStart(3, "0")}`, artifactBlindIds.get(baseline[0]), artifactBlindIds.get(baseline[1]), "UNSCORED", "UNSCORED", "UNSCORED"].join("\t"));
     const providers = [...new Set(candidates.map((artifact) => artifact.provider))].sort();
     const selectedProvider = providers[parseInt(sha256(seed + caseId).slice(0, 2), 16) % providers.length];
     const promptPair = candidates.filter((artifact) => artifact.provider === selectedProvider).sort((a, b) => a.prompt_variant.localeCompare(b.prompt_variant));
-    if (promptPair.length >= 2) pairs.push([`PAIR-${String(pairIndex++).padStart(3, "0")}`, artifactBlindIds.get(promptPair[0]), artifactBlindIds.get(promptPair[1]), "UNSCORED", "UNSCORED", ""].join("\t"));
+    if (promptPair.length >= 2) pairs.push([`PAIR-${String(pairIndex++).padStart(3, "0")}`, artifactBlindIds.get(promptPair[0]), artifactBlindIds.get(promptPair[1]), "UNSCORED", "UNSCORED", "UNSCORED"].join("\t"));
   }
   fs.writeFileSync(path.join(outDir, "pairwise_worksheet.tsv"), pairs.join("\n") + "\n");
 }

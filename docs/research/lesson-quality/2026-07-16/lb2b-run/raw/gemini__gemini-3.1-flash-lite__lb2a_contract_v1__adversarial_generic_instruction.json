@@ -1,0 +1,230 @@
+{
+  "status": "UNSCORED",
+  "case_id": "adversarial_generic_instruction",
+  "provider": "gemini",
+  "model": "gemini-3.1-flash-lite",
+  "prompt_variant": "lb2a_contract_v1",
+  "prompt_contract_hash": "121759b60bcff878254109542b858e60440d56a8b2c9b3235524f672527abd2a",
+  "source": {
+    "id": "synthetic:adversarial_generic_instruction",
+    "title": "יום בבית הספר",
+    "author": "LinguistPro synthetic fixture",
+    "locator": "synthetic:generic-instruction-v1",
+    "license": "CC0 synthetic fixture",
+    "content_hash": null,
+    "row_count": 20,
+    "anchor_windows": [
+      {
+        "id": "synthetic:adversarial_generic_instruction-anchor-1",
+        "start_order_index": 0,
+        "end_order_index": 19,
+        "rows": [
+          {
+            "order_index": 0,
+            "he": "נועה קמה בשבע בבוקר.",
+            "ru": "Ноа встаёт в семь утра."
+          },
+          {
+            "order_index": 1,
+            "he": "היא שותה מים ואוכלת לחם.",
+            "ru": "Она пьёт воду и ест хлеб."
+          },
+          {
+            "order_index": 2,
+            "he": "אחר כך היא הולכת לבית הספר.",
+            "ru": "Затем она идёт в школу."
+          },
+          {
+            "order_index": 3,
+            "he": "בכיתה היא יושבת ליד דניאל.",
+            "ru": "В классе она сидит рядом с Даниэлем."
+          },
+          {
+            "order_index": 4,
+            "he": "המורה כותבת מילה חדשה על הלוח.",
+            "ru": "Учительница пишет новое слово на доске."
+          },
+          {
+            "order_index": 5,
+            "he": "נועה קוראת את המילה בקול.",
+            "ru": "Ноа читает слово вслух."
+          },
+          {
+            "order_index": 6,
+            "he": "בהפסקה הילדים משחקים בחצר.",
+            "ru": "На перемене дети играют во дворе."
+          },
+          {
+            "order_index": 7,
+            "he": "נועה אוכלת תפוח.",
+            "ru": "Ноа ест яблоко."
+          },
+          {
+            "order_index": 8,
+            "he": "אחרי הלימודים היא חוזרת הביתה.",
+            "ru": "После занятий она возвращается домой."
+          },
+          {
+            "order_index": 9,
+            "he": "בבית היא מכינה שיעורים.",
+            "ru": "Дома она делает уроки."
+          },
+          {
+            "order_index": 10,
+            "he": "בערב המשפחה אוכלת יחד.",
+            "ru": "Вечером семья ест вместе."
+          },
+          {
+            "order_index": 11,
+            "he": "נועה הולכת לישון בעשר.",
+            "ru": "Ноа ложится спать в десять."
+          },
+          {
+            "order_index": 12,
+            "he": "נועה קמה בשבע בבוקר.",
+            "ru": "Ноа встаёт в семь утра."
+          },
+          {
+            "order_index": 13,
+            "he": "היא שותה מים ואוכלת לחם.",
+            "ru": "Она пьёт воду и ест хлеб."
+          },
+          {
+            "order_index": 14,
+            "he": "אחר כך היא הולכת לבית הספר.",
+            "ru": "Затем она идёт в школу."
+          },
+          {
+            "order_index": 15,
+            "he": "בכיתה היא יושבת ליד דניאל.",
+            "ru": "В классе она сидит рядом с Даниэлем."
+          },
+          {
+            "order_index": 16,
+            "he": "המורה כותבת מילה חדשה על הלוח.",
+            "ru": "Учительница пишет новое слово на доске."
+          },
+          {
+            "order_index": 17,
+            "he": "נועה קוראת את המילה בקול.",
+            "ru": "Ноа читает слово вслух."
+          },
+          {
+            "order_index": 18,
+            "he": "בהפסקה הילדים משחקים בחצר.",
+            "ru": "На перемене дети играют во дворе."
+          },
+          {
+            "order_index": 19,
+            "he": "נועה אוכלת תפוח.",
+            "ru": "Ноа ест яблоко."
+          }
+        ]
+      }
+    ]
+  },
+  "deterministic_facts": {
+    "vocabulary_candidates": [],
+    "selected_construct": null,
+    "excluded_ambiguous_morphology": [],
+    "rule": "Only asserted facts below may be explained as Hebrew facts."
+  },
+  "request": {
+    "explanationLanguage": "ru",
+    "approximateLevel": "A1",
+    "durationMinutes": 10,
+    "focuses": [
+      "reading"
+    ],
+    "goal": "Понять основную мысль и подтверждающие детали",
+    "resolvedMode": "single"
+  },
+  "attempts": [
+    {
+      "stage": "first",
+      "outcome": "rejected",
+      "validation_codes": [
+        "GENERIC_INSTRUCTION"
+      ],
+      "schema_mode": "provider_json_schema",
+      "latency_ms": 1551,
+      "latency_bucket_ms": "0-2s",
+      "output_size_bytes": 2100,
+      "output_size_bucket": "small",
+      "estimated_input_tokens": 1885,
+      "measured_output_tokens": 431,
+      "estimated_cost_usd": 0.001118,
+      "conservative_cost_bound_usd": 0.003642,
+      "error_code": null
+    },
+    {
+      "stage": "repair",
+      "outcome": "accepted",
+      "validation_codes": [],
+      "schema_mode": "provider_json_schema",
+      "latency_ms": 1625,
+      "latency_bucket_ms": "0-2s",
+      "output_size_bytes": 2076,
+      "output_size_bucket": "small",
+      "estimated_input_tokens": 3180,
+      "measured_output_tokens": 409,
+      "estimated_cost_usd": 0.001409,
+      "conservative_cost_bound_usd": 0.004613,
+      "error_code": null
+    }
+  ],
+  "lesson": {
+    "objective": "Изучить распорядок дня Ноа в школе и дома, анализируя ключевые действия, описанные в тексте на иврите.",
+    "sections": [
+      {
+        "title": "Утро и школа",
+        "body": "נועה קמה בשבע בבוקר. היא שותה מים ואוכלת לחם. אחר כך היא הולכת לבית הספר. בכיתה היא יושבת ליד דניאל. המורה כותבת מילה חדשה על הלוח. נועה קוראת את המילה בקול.",
+        "source_ids": [
+          "synthetic:adversarial_generic_instruction"
+        ],
+        "anchor_ids": [
+          "synthetic:adversarial_generic_instruction-anchor-1"
+        ]
+      },
+      {
+        "title": "Перемена и окончание дня",
+        "body": "בהפסקה הילדים משחקים בחצר. נועה אוכלת תפוח. אחרי הלימודים היא חוזרת הביתה. בבית היא מכינה שיעורים. בערב המשפחה אוכלת יחד. נועה הולכת לישון בעשר.",
+        "source_ids": [
+          "synthetic:adversarial_generic_instruction"
+        ],
+        "anchor_ids": [
+          "synthetic:adversarial_generic_instruction-anchor-1"
+        ]
+      }
+    ],
+    "exercises": [
+      {
+        "type": "source_reading",
+        "purpose": "Проверить понимание последовательности ежедневных действий Ноа.",
+        "instruction": "На основе прочитанного текста определите, во сколько Ноа ложится спать, выбрав правильное число из текста.",
+        "source_ids": [
+          "synthetic:adversarial_generic_instruction"
+        ],
+        "anchor_ids": [
+          "synthetic:adversarial_generic_instruction-anchor-1"
+        ],
+        "expected_answer": "נועה הולכת לישון בעשר (в десять).",
+        "hints": [
+          "Посмотрите на последнее предложение второго раздела.",
+          "Ищите слово, обозначающее число 10."
+        ],
+        "success_criteria": [
+          "Правильно идентифицировано время отхода ко сну.",
+          "Ответ подтвержден информацией из текста."
+        ]
+      }
+    ]
+  },
+  "delivery": {
+    "tier": "premium_draft",
+    "reason": null
+  },
+  "shadow_evaluation": {
+    "status": "NOT_RUN_STRATIFIED_SAMPLE"
+  }
+}

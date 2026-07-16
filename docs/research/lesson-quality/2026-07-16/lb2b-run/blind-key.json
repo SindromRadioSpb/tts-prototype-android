@@ -1,0 +1,422 @@
+{
+  "status": "SEALED_FROM_REVIEWER",
+  "instruction": "Do not give this file to the reviewer before worksheet lock.",
+  "candidates": [
+    {
+      "blind_id": "LB2B-001",
+      "case_id": "overview_146_b1_grammar_synthetic",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__overview_146_b1_grammar_synthetic.json"
+    },
+    {
+      "blind_id": "LB2B-002",
+      "case_id": "adversarial_invented_construct",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__adversarial_invented_construct.json"
+    },
+    {
+      "blind_id": "LB2B-003",
+      "case_id": "short_a1_reading_synthetic",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__short_a1_reading_synthetic.json"
+    },
+    {
+      "blind_id": "LB2B-004",
+      "case_id": "ambiguous_morphology_b1",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__ambiguous_morphology_b1.json"
+    },
+    {
+      "blind_id": "LB2B-005",
+      "case_id": "adversarial_missing_answer",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__adversarial_missing_answer.json"
+    },
+    {
+      "blind_id": "LB2B-006",
+      "case_id": "short_a2_vocabulary_synthetic",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__short_a2_vocabulary_synthetic.json"
+    },
+    {
+      "blind_id": "LB2B-007",
+      "case_id": "short_a2_vocabulary_synthetic",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__short_a2_vocabulary_synthetic.json"
+    },
+    {
+      "blind_id": "LB2B-008",
+      "case_id": "dialogue_a2_synthetic",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__dialogue_a2_synthetic.json"
+    },
+    {
+      "blind_id": "LB2B-009",
+      "case_id": "adversarial_foreign_anchor",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__adversarial_foreign_anchor.json"
+    },
+    {
+      "blind_id": "LB2B-010",
+      "case_id": "provider_absent_safe_plan",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__provider_absent_safe_plan.json"
+    },
+    {
+      "blind_id": "LB2B-011",
+      "case_id": "adversarial_generic_instruction",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__adversarial_generic_instruction.json"
+    },
+    {
+      "blind_id": "LB2B-012",
+      "case_id": "short_a1_reading_synthetic",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__short_a1_reading_synthetic.json"
+    },
+    {
+      "blind_id": "LB2B-013",
+      "case_id": "adversarial_missing_answer",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__adversarial_missing_answer.json"
+    },
+    {
+      "blind_id": "LB2B-014",
+      "case_id": "provider_absent_safe_plan",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__provider_absent_safe_plan.json"
+    },
+    {
+      "blind_id": "LB2B-015",
+      "case_id": "adversarial_invented_construct",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__adversarial_invented_construct.json"
+    },
+    {
+      "blind_id": "LB2B-016",
+      "case_id": "ambiguous_morphology_b1",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__ambiguous_morphology_b1.json"
+    },
+    {
+      "blind_id": "LB2B-017",
+      "case_id": "series_241_b2_writing_public_domain",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__series_241_b2_writing_public_domain.json"
+    },
+    {
+      "blind_id": "LB2B-018",
+      "case_id": "overview_146_b1_grammar_synthetic",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__overview_146_b1_grammar_synthetic.json"
+    },
+    {
+      "blind_id": "LB2B-019",
+      "case_id": "no_eligible_vocabulary_a1",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__no_eligible_vocabulary_a1.json"
+    },
+    {
+      "blind_id": "LB2B-020",
+      "case_id": "series_241_b2_writing_public_domain",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__series_241_b2_writing_public_domain.json"
+    },
+    {
+      "blind_id": "LB2B-021",
+      "case_id": "double_reject_safe_plan",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__double_reject_safe_plan.json"
+    },
+    {
+      "blind_id": "LB2B-022",
+      "case_id": "series_241_b2_writing_public_domain",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__series_241_b2_writing_public_domain.json"
+    },
+    {
+      "blind_id": "LB2B-023",
+      "case_id": "double_reject_safe_plan",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__double_reject_safe_plan.json"
+    },
+    {
+      "blind_id": "LB2B-024",
+      "case_id": "dialogue_a2_synthetic",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__dialogue_a2_synthetic.json"
+    },
+    {
+      "blind_id": "LB2B-025",
+      "case_id": "adversarial_generic_instruction",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__adversarial_generic_instruction.json"
+    },
+    {
+      "blind_id": "LB2B-026",
+      "case_id": "ambiguous_morphology_b1",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__ambiguous_morphology_b1.json"
+    },
+    {
+      "blind_id": "LB2B-027",
+      "case_id": "provider_absent_safe_plan",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__provider_absent_safe_plan.json"
+    },
+    {
+      "blind_id": "LB2B-028",
+      "case_id": "adversarial_missing_answer",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__adversarial_missing_answer.json"
+    },
+    {
+      "blind_id": "LB2B-029",
+      "case_id": "adversarial_foreign_anchor",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__adversarial_foreign_anchor.json"
+    },
+    {
+      "blind_id": "LB2B-030",
+      "case_id": "adversarial_invented_construct",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__adversarial_invented_construct.json"
+    },
+    {
+      "blind_id": "LB2B-031",
+      "case_id": "ambiguous_morphology_b1",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__ambiguous_morphology_b1.json"
+    },
+    {
+      "blind_id": "LB2B-032",
+      "case_id": "double_reject_safe_plan",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__double_reject_safe_plan.json"
+    },
+    {
+      "blind_id": "LB2B-033",
+      "case_id": "adversarial_generic_instruction",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__adversarial_generic_instruction.json"
+    },
+    {
+      "blind_id": "LB2B-034",
+      "case_id": "no_eligible_vocabulary_a1",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__no_eligible_vocabulary_a1.json"
+    },
+    {
+      "blind_id": "LB2B-035",
+      "case_id": "no_eligible_vocabulary_a1",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__no_eligible_vocabulary_a1.json"
+    },
+    {
+      "blind_id": "LB2B-036",
+      "case_id": "series_241_b2_writing_public_domain",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__series_241_b2_writing_public_domain.json"
+    },
+    {
+      "blind_id": "LB2B-037",
+      "case_id": "overview_146_b1_grammar_synthetic",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__overview_146_b1_grammar_synthetic.json"
+    },
+    {
+      "blind_id": "LB2B-038",
+      "case_id": "double_reject_safe_plan",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__double_reject_safe_plan.json"
+    },
+    {
+      "blind_id": "LB2B-039",
+      "case_id": "short_a1_reading_synthetic",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__short_a1_reading_synthetic.json"
+    },
+    {
+      "blind_id": "LB2B-040",
+      "case_id": "no_eligible_vocabulary_a1",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__no_eligible_vocabulary_a1.json"
+    },
+    {
+      "blind_id": "LB2B-041",
+      "case_id": "dialogue_a2_synthetic",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__dialogue_a2_synthetic.json"
+    },
+    {
+      "blind_id": "LB2B-042",
+      "case_id": "adversarial_generic_instruction",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__adversarial_generic_instruction.json"
+    },
+    {
+      "blind_id": "LB2B-043",
+      "case_id": "adversarial_foreign_anchor",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__adversarial_foreign_anchor.json"
+    },
+    {
+      "blind_id": "LB2B-044",
+      "case_id": "adversarial_missing_answer",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__adversarial_missing_answer.json"
+    },
+    {
+      "blind_id": "LB2B-045",
+      "case_id": "adversarial_invented_construct",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__adversarial_invented_construct.json"
+    },
+    {
+      "blind_id": "LB2B-046",
+      "case_id": "adversarial_foreign_anchor",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__adversarial_foreign_anchor.json"
+    },
+    {
+      "blind_id": "LB2B-047",
+      "case_id": "short_a1_reading_synthetic",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__short_a1_reading_synthetic.json"
+    },
+    {
+      "blind_id": "LB2B-048",
+      "case_id": "dialogue_a2_synthetic",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__dialogue_a2_synthetic.json"
+    },
+    {
+      "blind_id": "LB2B-049",
+      "case_id": "overview_146_b1_grammar_synthetic",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__overview_146_b1_grammar_synthetic.json"
+    },
+    {
+      "blind_id": "LB2B-050",
+      "case_id": "provider_absent_safe_plan",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__provider_absent_safe_plan.json"
+    },
+    {
+      "blind_id": "LB2B-051",
+      "case_id": "short_a2_vocabulary_synthetic",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "lb2a_contract_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__short_a2_vocabulary_synthetic.json"
+    },
+    {
+      "blind_id": "LB2B-052",
+      "case_id": "short_a2_vocabulary_synthetic",
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_variant": "instruction_engineered_v1",
+      "raw_artifact": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__short_a2_vocabulary_synthetic.json"
+    }
+  ]
+}

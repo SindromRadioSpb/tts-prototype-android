@@ -1,0 +1,453 @@
+{
+  "generated_at": "2026-07-16T01:23:37.291Z",
+  "files": [
+    {
+      "path": "adjudicator_worksheet.tsv",
+      "sha256": "25fcada95dd273f39f36f555154503269a91b45d2a34253fdbbe191f2cffce0c"
+    },
+    {
+      "path": "blind-key.json",
+      "sha256": "1e357bb7c2089ff27cae0c8635e9f36d9e5542bd2abbc87cfe88f9884f66a149"
+    },
+    {
+      "path": "blind/LB2B-001.json",
+      "sha256": "e54b0b1dc14dfd9e7cfe7c7de9085b7a61079ed42f20f6b0ea57b1deeb536c7e"
+    },
+    {
+      "path": "blind/LB2B-002.json",
+      "sha256": "de5130ecde44f60fda81dd7a5a13c756737136ee5820aa1010ec41f6ca7ae912"
+    },
+    {
+      "path": "blind/LB2B-003.json",
+      "sha256": "7af0cc13d1ed6431135bae133d45b554a1eeeaf4976be12b6d9a7d79a88c7f92"
+    },
+    {
+      "path": "blind/LB2B-004.json",
+      "sha256": "154a92f9e3bdfaec8daf231cd9b89910591a55c48cdef675306eaa7f75aad852"
+    },
+    {
+      "path": "blind/LB2B-005.json",
+      "sha256": "993901bfad28cc0cec7cd201b8836c81ff1c0bc995929f40c84f1af866554281"
+    },
+    {
+      "path": "blind/LB2B-006.json",
+      "sha256": "19d0634c80e0012c3aa5287f70e957b82eb5cdc1140206da8f0ab244f4141a73"
+    },
+    {
+      "path": "blind/LB2B-007.json",
+      "sha256": "b329cb33a6fa76339e2648e8d6e212eab6ba180fdc879e732b97f2dce967364b"
+    },
+    {
+      "path": "blind/LB2B-008.json",
+      "sha256": "e748731b4497825c5b7c45ee4ffefa760eacc9852e397fbd7b2fc67bd959dd37"
+    },
+    {
+      "path": "blind/LB2B-009.json",
+      "sha256": "c99b9551e891c6bba18b225b9deb8c0d44afaf52f32e31c9c43969b2e4b016a6"
+    },
+    {
+      "path": "blind/LB2B-010.json",
+      "sha256": "7c7f0715dfedad5d236289c972e4f8f6de869a14b3b193d8405b7e6c9a72ea05"
+    },
+    {
+      "path": "blind/LB2B-011.json",
+      "sha256": "ee12bc9b925c8bf955afbd20fb3f8bcc6e61a883af92581dc2bfa81ef51143df"
+    },
+    {
+      "path": "blind/LB2B-012.json",
+      "sha256": "fa4802d8af38b371ba220989a665b44f9bb35ffaecbfc1ab3754b41864bd9398"
+    },
+    {
+      "path": "blind/LB2B-013.json",
+      "sha256": "f0a60c25ffd514090865cf3184cf56f23dda13b536730e9049285336b434b317"
+    },
+    {
+      "path": "blind/LB2B-014.json",
+      "sha256": "d00aa54164a8b855480c8c488296039b90e63fce7ca048e7086ab119e98ec332"
+    },
+    {
+      "path": "blind/LB2B-015.json",
+      "sha256": "db8b8a0b4f1df13fc306c4ef6c93ad04e229a1fde60e5a7a37971e39f7e5496d"
+    },
+    {
+      "path": "blind/LB2B-016.json",
+      "sha256": "b9a4c0f9991597633fc3429b9869e5d910fc177324203709ad0da0b33b09c383"
+    },
+    {
+      "path": "blind/LB2B-017.json",
+      "sha256": "0b6dfdcc44e84e79417e399fdb2fd841c5a48d4bf0ff5e5bfeb5ac188fd49d76"
+    },
+    {
+      "path": "blind/LB2B-018.json",
+      "sha256": "76436fd0f070ae7a19f84b1b83670b9777a664eda70caa8048da86916f8806e5"
+    },
+    {
+      "path": "blind/LB2B-019.json",
+      "sha256": "ebed65e0085c52af57b6fe338cc99663d6ee267d3ff3c6a441b4ca516191c62a"
+    },
+    {
+      "path": "blind/LB2B-020.json",
+      "sha256": "53f91522d9142accba61ec6a30dbc4a9846507178d851f0632b6aea711a27be1"
+    },
+    {
+      "path": "blind/LB2B-021.json",
+      "sha256": "760c6cb1d22062976d915965276a2c6f1a8607df71e32edfaf01fbd0195ae77f"
+    },
+    {
+      "path": "blind/LB2B-022.json",
+      "sha256": "2591cd33c5b6919e18d796c341408e67ee1308db37e2306345db9a7aedf14599"
+    },
+    {
+      "path": "blind/LB2B-023.json",
+      "sha256": "41e6679524b83dc94aed5cf8e7bbd4c5a3b1bada81e30b5a3738e15961580ce0"
+    },
+    {
+      "path": "blind/LB2B-024.json",
+      "sha256": "0e8eccae82e432eac00d2e76c8490c67120184e2191e34b0dc580ea8040cfb22"
+    },
+    {
+      "path": "blind/LB2B-025.json",
+      "sha256": "8876853712ae0841d9fdd7270c0a44b3d02ef08d2f65fa90a552f7cb3861f7b2"
+    },
+    {
+      "path": "blind/LB2B-026.json",
+      "sha256": "52fa26fb175af10f99200ec2dd8b7c0ba0f7e5d4ee110a23663af2c68c7beee5"
+    },
+    {
+      "path": "blind/LB2B-027.json",
+      "sha256": "0f18bb273dbaa6b0f73a36b1ff771416467cf5a02f59caa06bba4c6a9993ea6b"
+    },
+    {
+      "path": "blind/LB2B-028.json",
+      "sha256": "53218a0543fe8094b41117e7aa9ef3a5d401a261bf46dc088cf0683ebe4000f9"
+    },
+    {
+      "path": "blind/LB2B-029.json",
+      "sha256": "5eaac8397d035b861a1b77205eacc6ac8a1e0946af065d54b5a927e440ae7fab"
+    },
+    {
+      "path": "blind/LB2B-030.json",
+      "sha256": "bcc517df36dde14d9ab057b315cdd776ed9687c824c13a5daad91d23003a2431"
+    },
+    {
+      "path": "blind/LB2B-031.json",
+      "sha256": "bc320b6d852845d91a96b386dcb10effffdfec65d555c7c0428e158748b7b0a5"
+    },
+    {
+      "path": "blind/LB2B-032.json",
+      "sha256": "a054da04becb52ed063318998800ade541d387550194c76bad608baa90c3c627"
+    },
+    {
+      "path": "blind/LB2B-033.json",
+      "sha256": "082e643b1d1b127539ac54df0e8e8109ae8b73cf1d8b75dba6730f20183c102f"
+    },
+    {
+      "path": "blind/LB2B-034.json",
+      "sha256": "a1315a815c12138e76abf2205a67466fbcfe823cc42078a208a9286d8c6d9233"
+    },
+    {
+      "path": "blind/LB2B-035.json",
+      "sha256": "70da77af8142593e9c123820cf2b67c05992aef15881265fb0cbe0130920e4d5"
+    },
+    {
+      "path": "blind/LB2B-036.json",
+      "sha256": "32c460e8017c030332ed46cc384d655bb26c8d24e65233a48e767e2c12a25709"
+    },
+    {
+      "path": "blind/LB2B-037.json",
+      "sha256": "25aae3be2ff920d4e5c06adeeed557fcd4fc3c16b6309224dd5831758abcc7e8"
+    },
+    {
+      "path": "blind/LB2B-038.json",
+      "sha256": "7f785605a64afdec8b13d3121179591b5490b6aff0ab559b0e292a319f33a197"
+    },
+    {
+      "path": "blind/LB2B-039.json",
+      "sha256": "5db396709748155a48834c71224aed7c7b49b41034a244a8bf65f5487654f599"
+    },
+    {
+      "path": "blind/LB2B-040.json",
+      "sha256": "a569bad2689a33b4848401c38c508f3415b8b0355266658abfd736fb8ce474ba"
+    },
+    {
+      "path": "blind/LB2B-041.json",
+      "sha256": "64ee5285b661fc954a55d79eecbfde5cb59f2d56e1634c0e40fe6b49cf96ef7c"
+    },
+    {
+      "path": "blind/LB2B-042.json",
+      "sha256": "c45c5357d0cba043d21c64fef33e7a921ccb2c4ce854e8e26a1f78f58c867b0f"
+    },
+    {
+      "path": "blind/LB2B-043.json",
+      "sha256": "2e89a49a0b4a3ce143ce480946a3c1106b98ae4ce7d01f26b3460c47fea09805"
+    },
+    {
+      "path": "blind/LB2B-044.json",
+      "sha256": "de93259c9253d83d183f11c0245784893b911bc87b60d94d968604c7314bd859"
+    },
+    {
+      "path": "blind/LB2B-045.json",
+      "sha256": "3ab8f1aec32be5818845cdaa517c9392654166c92ab99dd5660ed07a5417f782"
+    },
+    {
+      "path": "blind/LB2B-046.json",
+      "sha256": "128d497b23a4aa8949dd5caa84f1f941db3107cffad93d5fe8dc43d5165455de"
+    },
+    {
+      "path": "blind/LB2B-047.json",
+      "sha256": "bf9edfafd4f8a57c5807d46b86b67658a85e8c00f10e3e7e090ab41f953b6592"
+    },
+    {
+      "path": "blind/LB2B-048.json",
+      "sha256": "0ee6ef5731331e6d0bc832aaec5347e67265898ed3fcd76e47207039fec8f3eb"
+    },
+    {
+      "path": "blind/LB2B-049.json",
+      "sha256": "6cfc331e838416e57e6bf69b568841e5671dc848e6a530e64c64cdd796dbb338"
+    },
+    {
+      "path": "blind/LB2B-050.json",
+      "sha256": "bc4e13ede2a86c2e653d7ad96cb75ec8c6e3fa6e83c2c5e36ea4c4b8ab8b4231"
+    },
+    {
+      "path": "blind/LB2B-051.json",
+      "sha256": "656870f35dced24c5e8667bb9bdfc99f80d9970e50bf88b9cb91106b01797b60"
+    },
+    {
+      "path": "blind/LB2B-052.json",
+      "sha256": "bd189a85efc632ae6929919a21d50e7c140fdd80726b0131526813d6354ebc14"
+    },
+    {
+      "path": "metrics.json",
+      "sha256": "f81a5007e933eaef282c91d5f997b447085940ba1417a56647328b32aacdc4d7"
+    },
+    {
+      "path": "pairwise_worksheet.tsv",
+      "sha256": "e1f2c7051d97a09fad82e6fec5b947903bbca2001d6eddd06c33107be3c36147"
+    },
+    {
+      "path": "provider-preflight.json",
+      "sha256": "44087b0ae631725aeb38d4949e6c98dec48fae8a5a57da356a2c1921af8b4d03"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__adversarial_foreign_anchor.json",
+      "sha256": "9fc58e51e8ed81c97a1ecd956274d25ec6f5c4059fee3a85ba352523dacec841"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__adversarial_generic_instruction.json",
+      "sha256": "7ac5a05189c60bc76ad82659e9fc83716de068227f511198cede76fe7f3e106b"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__adversarial_invented_construct.json",
+      "sha256": "bc0d234c7eef21ed9adb40dca781608b17f7adde3dff938dfdf2abc1bfeef39c"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__adversarial_missing_answer.json",
+      "sha256": "fda150aeca40f41f46f0a77333ea724c94305ff1a1c82aa9f7dbf36c9bb393ac"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__ambiguous_morphology_b1.json",
+      "sha256": "15d490235852a475a09072d90be8415372f6d31db6a1efbcc145180845d317f9"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__dialogue_a2_synthetic.json",
+      "sha256": "36beb83c67c9129ceae3fd5678017e72a434cddcd3a7fed9ea84704733471cab"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__double_reject_safe_plan.json",
+      "sha256": "8874d8a66729049c426ca9d375d18e4832c3b0b13c4ce43045b0721d7b1df9ea"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__no_eligible_vocabulary_a1.json",
+      "sha256": "0b016cff9fa1dca12dffcd17942ad62627512baaa52ee7fde012b6429164c212"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__overview_146_b1_grammar_synthetic.json",
+      "sha256": "b92fb557a41ea6c4e30080332ab9a5309b3c2584afc5655ecf84c09e2ba0c142"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__provider_absent_safe_plan.json",
+      "sha256": "3f4b8a0cd998d5f6a998815e6054c86dd979d4897b6828a4f03e3130db0c8156"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__series_241_b2_writing_public_domain.json",
+      "sha256": "b8ea51c7888326113a1a4828f632cb418c2ed4f16551e4b2162c2245da15f1d7"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__short_a1_reading_synthetic.json",
+      "sha256": "a107e09f5d468854dc61fbcb6db1f121be714547853244538f4841ee230940bc"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__instruction_engineered_v1__short_a2_vocabulary_synthetic.json",
+      "sha256": "2ab09e6c7ea3fb45996a6c735fec70c5c2f8d3f5d85b92d5780e80385af60e12"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__adversarial_foreign_anchor.json",
+      "sha256": "15060dcaff4797183369f9caaa1d34fcd95794a53dbeb2ebf11b77c40f4fd504"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__adversarial_generic_instruction.json",
+      "sha256": "41a9ff332fb922d9046c3028a52ad5b11d803e702b66bff3b3078d48ffc8466e"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__adversarial_invented_construct.json",
+      "sha256": "abba4b11280056ece711bfe1080b0d9cb66f8b9fee2c6b70b5666c9ab0dc81c5"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__adversarial_missing_answer.json",
+      "sha256": "d363acc6436a03b1a206129d300aa491b9f17b1fae9a5e91181de0fbbf6ed769"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__ambiguous_morphology_b1.json",
+      "sha256": "1e930bc31ce1633805258914b26977f9f11da0103ae4e81a714b49a3cbe1d401"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__dialogue_a2_synthetic.json",
+      "sha256": "eb4b6025116b421894e0b31c5d6be4ad88a3fb8750bf90ba73dbb7cafac4c455"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__double_reject_safe_plan.json",
+      "sha256": "6b093e714a7146c728912de9377b874c3dfb2a7056ba5020070ef982183b3fdf"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__no_eligible_vocabulary_a1.json",
+      "sha256": "987d7617ac896ef8a5c419e663efab51dcce251238171cb375cf24225dad1adc"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__overview_146_b1_grammar_synthetic.json",
+      "sha256": "b39ccaf956a3e245c289af5297258f2f142668202f3b2388ff0f0ab948f2f06f"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__provider_absent_safe_plan.json",
+      "sha256": "b24e236b2a3a75b74c13b327c838a41bbf6d3c6422885f9967bbdbdb87ad5219"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__series_241_b2_writing_public_domain.json",
+      "sha256": "276ddd954aeec4eeb6a7bae240366185239d3879a74898c3f4cb4dfa6f22a448"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__short_a1_reading_synthetic.json",
+      "sha256": "f01cada901ff2ffa13421f68990b158a59c38824a7138efa94f2409413aa6b5b"
+    },
+    {
+      "path": "raw/gemini__gemini-3-flash-preview__lb2a_contract_v1__short_a2_vocabulary_synthetic.json",
+      "sha256": "1cab8a0bd45f0b3f18103ea13a0ce216d038a5152515ea8f17e3a5afafc944f6"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__adversarial_foreign_anchor.json",
+      "sha256": "90fb57ee91f25bd6bfec3e596fe2260d54dd399a1eb452b8383b63c3b38aac47"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__adversarial_generic_instruction.json",
+      "sha256": "90d87e78202f9f58c426efd3658cbb6d726db8084f7fceac2f356f2680548548"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__adversarial_invented_construct.json",
+      "sha256": "d0c8a66d3ce6fc3be3efcd238bc9f4f4248a130775b076b12b0ee3f7f214b8ef"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__adversarial_missing_answer.json",
+      "sha256": "b866f7fa14efb900fc8678fdb70bc22f14852a9d42cb2a566baf11121344ac2c"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__ambiguous_morphology_b1.json",
+      "sha256": "7d851c796c490724c22705d8750c83d01ddaaaed8971568a4861bac89604042e"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__dialogue_a2_synthetic.json",
+      "sha256": "84c3c643050104a72053c4488a0bac61f5021564dc91a084a75d7d6c788eb9c1"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__double_reject_safe_plan.json",
+      "sha256": "be51ba6fe61bc94bd51b356bbfb7a1e0de5cf360c22675a9507f4dd771047313"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__no_eligible_vocabulary_a1.json",
+      "sha256": "9c519e3b86bdd8e6f9af5f6e33e552dc7857519fa388bc311a9537b5962d9070"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__overview_146_b1_grammar_synthetic.json",
+      "sha256": "f63d246bf9d6b724da72d2d518a486ebdb0e7bbba51fc63eb9d40403019115a1"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__provider_absent_safe_plan.json",
+      "sha256": "8a228f62b44b19bbe1957d4c666869523b6e1b52d994499e413bde12f3b25857"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__series_241_b2_writing_public_domain.json",
+      "sha256": "e07d68007ff8f36f62db3eb4eaced017b068c4b0881a6ac20b2aa1b9eef403c8"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__short_a1_reading_synthetic.json",
+      "sha256": "0e240451101cc8669148cb46f569272a341820af81768f495a96ada1f77a4547"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__instruction_engineered_v1__short_a2_vocabulary_synthetic.json",
+      "sha256": "d6b66b956ee87711b11d9cffe5ce38613e14e71917da5ebe3cffc9616903df71"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__adversarial_foreign_anchor.json",
+      "sha256": "2544ff05362f0b3609b2e00567b35b86fd987d9ccb2d2028353020d5911258b0"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__adversarial_generic_instruction.json",
+      "sha256": "a31ed482d41be04a6c1d7327402e5cd3609e86b0fa58c5fec5122b308969f677"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__adversarial_invented_construct.json",
+      "sha256": "c53b8e9e4a54b790ec8dbbb8a3580f17426c09f61a264cdbfd72c00202596f62"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__adversarial_missing_answer.json",
+      "sha256": "7ce3cc3676ac90f23bd1c30ebbb825b55c88002d98c0216d28277755acddf901"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__ambiguous_morphology_b1.json",
+      "sha256": "10df6c6aff0070b5eb5cfd4f8d6939a416ea441e0eb5418b0a67529836631c2d"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__dialogue_a2_synthetic.json",
+      "sha256": "9306c117543bd846a871b578b213c289987407ebb4b12945c17dc12c91fa0ffa"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__double_reject_safe_plan.json",
+      "sha256": "52d20bca1354c5d0fcedc80f2729992ae9f964b91f0969df2d666ef6b52c390d"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__no_eligible_vocabulary_a1.json",
+      "sha256": "80b740e12984f893372cd431dcc48821c3af1bb4083666199e91a5d846e61e95"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__overview_146_b1_grammar_synthetic.json",
+      "sha256": "55a1c113dacaeb9b167633826d4e3e4607744b1388041a2f5df721a98e54c853"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__provider_absent_safe_plan.json",
+      "sha256": "9d21e6fd37ee3e8787641bcc5e27df9a4d384bf59a97d1fda47c328f15601dd9"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__series_241_b2_writing_public_domain.json",
+      "sha256": "b1dcb0420c072822919234e88ddcbb71e626fca79f0f52835b3c27df05d5d41e"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__short_a1_reading_synthetic.json",
+      "sha256": "8e426ecb64ae1306feea918f61a1d71eb01edbbec287b1c22cb459dc7b92c3bc"
+    },
+    {
+      "path": "raw/gemini__gemini-3.1-flash-lite__lb2a_contract_v1__short_a2_vocabulary_synthetic.json",
+      "sha256": "67b01cab6209c2b77a98dd83be4e8fe4ef4b40ba668a2a79f2a20334bdd89422"
+    },
+    {
+      "path": "reviewer_worksheet.tsv",
+      "sha256": "6012f3f21d1dc250490937d01084b09fba4669c50ce566230bd35fb595de9207"
+    },
+    {
+      "path": "run-manifest.json",
+      "sha256": "c0fc1a7f092647d85bc99427393451631bd35506cdea070de2603cfeba6e5d7d"
+    },
+    {
+      "path": "source-packets.json",
+      "sha256": "bc67a928dcc24653fefd43b152a0a5e9b273d02b2a191675e52e9283f6aeacf3"
+    }
+  ]
+}
