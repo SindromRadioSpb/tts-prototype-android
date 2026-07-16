@@ -2,11 +2,11 @@
 
 **Date:** 2026-07-17
 
-**Status:** `OWNER_APPROVED / DEFAULT_OFF / NO_EXTERNAL_CONNECTION`.
+**Status:** `ENGINEERING_COMPLETE / DEFAULT_OFF / AS_UNMOUNTED / LIVE_CONNECTION_ABSENT`.
 
 **Owner approval:** 2026-07-17 — “Стартуй.” This is a separate approval after AA2-B1 closure.
 
-**Baseline:** `main` / `93a83fa`; package `3.11.192`; AA2-A and AA2-B0 engineering complete; AA2-B1 `LOOPBACK_ENGINEERING_COMPLETE / PRODUCTION_MOUNT_ABSENT`.
+**Approval baseline:** `main` / `93a83fa`; package `3.11.192`; AA2-A and AA2-B0 engineering complete; AA2-B1 `LOOPBACK_ENGINEERING_COMPLETE / PRODUCTION_MOUNT_ABSENT`. Concurrent first-party work advanced the verification baseline to `bfda3df` / package `3.11.193`; B2 did not absorb those unrelated changes.
 
 **Authority:** B2 may add a first-party mobile/RTL Agent Access page, a closed consent-ceremony controller, connection list/revoke/delete APIs, strict browser request-boundary validation and default-off route wiring. It may reuse the existing cookie session, CSRF gate, `consent_records`, B0 lifecycle repository and exact AA2 v0 scope registry. It may not mount the OAuth authorization/token server, mint or persist a key/token/code, register Hermes or another real client, add MCP, make a provider call, read tool/private/F1/F2 payloads, enable CP0 live capture, deploy, or create a live connection.
 
@@ -206,7 +206,15 @@ Stop B2 and return to the owner if:
 
 Rollback is the default-off flag plus revert of B2 controller/routes/assets/repository helpers. Any fixture connection lives only in scratch DB and is destroyed. There is no client coordination, token/key revoke, data migration or production cleanup.
 
-B2 is `ENGINEERING_COMPLETE / DEFAULT_OFF / AS_UNMOUNTED / LIVE_CONNECTION_ABSENT` only after packet-first commit/push, all §8 checks, local mobile/RTL proof, regressions and a scoped implementation commit/push. It does not authorize B3 deployment, OAuth mount/keys, AA2-C MCP/Hermes, AA3 propose-first or a live owner connection.
+B2 is `ENGINEERING_COMPLETE / DEFAULT_OFF / AS_UNMOUNTED / LIVE_CONNECTION_ABSENT`: packet-first approval is pushed; the controller, UI, route boundary and lifecycle APIs pass §8 fixture and regression gates; local mobile/RTL proof is complete. The scoped implementation commit/push is the final publication step. This does not authorize B3 deployment, OAuth mount/keys, AA2-C MCP/Hermes, AA3 propose-first or a live owner connection.
+
+### Completion evidence — 2026-07-17
+
+- consent/connection fixture: 10 checks; minimized preview, exact append-only consents, cross-user isolation, independent revoke/delete, secret-free export; zero external connection, OAuth/MCP endpoint or provider call;
+- real-server boundary fixture: default-off page/API, enforced CSP/no-store/frame deny, unauthenticated denial, exact cross-origin rejection and fail-closed OPTIONS with no CORS allow-origin;
+- mobile visual fixture at the narrow viewport: RU and HE RTL, five closed scope cards, downstream-retention disclosure, 48px controls, no horizontal overflow and language-correct independent revoke/delete actions;
+- regressions: Agent Access domain 20 checks; OAuth lifecycle/restore 24 checks plus restore; OIDC loopback Authorization Code + PKCE and 17 negative cases; auth 29/29; API smoke; complete CP0 observer/runtime/parity/lifecycle/restore/process-failure suite;
+- no live/private/F1/F2 payload read, provider call, production connection, OAuth/MCP mount, dependency, migration, deploy or production operation occurred.
 
 ## 12. Separate B3 execution packet plan
 

@@ -25,6 +25,14 @@ async function transaction(fn) {
 function parseClient(row) { if (!row) return null; return { ...row, redirect_uris: C.parseJson(row.redirect_uris_json, []) }; }
 function parseCode(row) { if (!row) return null; return { ...row, scopes: C.parseJson(row.scopes_json, []) }; }
 
+async function loadClientForAuthorization(clientId) {
+  const db = requireDb(), id = C.safeId(clientId);
+  const row = parseClient(await get(db, `SELECT oauth_client_id,display_name,software_id,software_version,redirect_uris_json,status,registration_version,created_at,updated_at,revoked_at FROM agent_oauth_clients WHERE oauth_client_id=?`, [id]));
+  if (!row) error("AA_OAUTH_CLIENT_NOT_FOUND");
+  delete row.redirect_uris_json;
+  return row;
+}
+
 async function registerClientFixture(input, at = nowIso()) {
   const db = requireDb(), x = C.validateClient(input), t = C.iso(at);
   await run(db, `INSERT INTO agent_oauth_clients (oauth_client_id,display_name,software_id,software_version,client_type,redirect_uris_json,status,registration_version,created_at,updated_at)
@@ -86,6 +94,25 @@ async function loadConnection(userId, connectionId) {
   if (!row) error("AA_OAUTH_CONNECTION_NOT_FOUND");
   const grants = await all(db, `SELECT scope,status,consent_version,created_at,updated_at,revoked_at FROM agent_connection_grants WHERE user_id=? AND connection_id=? ORDER BY scope`, [uid, cid]);
   return { ...row, grants };
+}
+
+async function listConnectionsForUser(userId) {
+  const db = requireDb(), uid = C.safeId(userId);
+  const rows = await all(db, `SELECT c.connection_id,c.display_label,c.status,c.retention_notice_version,cl.display_name client_display_name
+    FROM agent_connections c JOIN agent_oauth_clients cl ON cl.oauth_client_id=c.oauth_client_id
+    WHERE c.user_id=? ORDER BY c.created_at,c.connection_id`, [uid]);
+  const grants = await all(db, `SELECT connection_id,scope,status FROM agent_connection_grants WHERE user_id=? ORDER BY connection_id,scope`, [uid]);
+  const byConnection = new Map();
+  for (const grant of grants) {
+    const list = byConnection.get(grant.connection_id) || [];
+    list.push(Object.freeze({ ...grant }));
+    byConnection.set(grant.connection_id, list);
+  }
+  return rows.map((row) => Object.freeze({
+    ...row,
+    grants: Object.freeze(byConnection.get(row.connection_id) || []),
+    downstream_retention_notice: "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO",
+  }));
 }
 
 async function exactConsent(db, userId, connectionId, requestedScope, version) {
@@ -306,7 +333,7 @@ async function purgeExpiredSecurityArtifacts(at = nowIso()) {
 }
 
 module.exports = {
-  registerClientFixture, setClientStatus, createSubjectMapping, bumpSubjectSecurityEpoch, createPendingConnection, loadConnection,
+  registerClientFixture, loadClientForAuthorization, setClientStatus, createSubjectMapping, bumpSubjectSecurityEpoch, createPendingConnection, loadConnection, listConnectionsForUser,
   activateConnectionWithGrants, addConnectionGrants, reduceConnectionScopes, suspendConnection,
   revokeConnection, storeAuthorizationCodeHash, consumeAuthorizationCodeHash, createTokenFamily,
   rotateRefreshTokenHash, denyAccessTokenHash, validateConnectionSnapshot, exportAgentAccess,

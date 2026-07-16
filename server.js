@@ -224,6 +224,7 @@ const CSP_REPORT_ONLY_VALUE = [
 // web.telegram.org; scripts pinned to self + telegram.org, no inline JS) and
 // no-cache (an auth shell must never be served stale from HTTP cache).
 const MINIAPP_SHELL_PATH = "/miniapp.html";
+const AGENT_ACCESS_SHELL_PATH = "/agent-access.html";
 const MINIAPP_CSP = [
   "default-src 'self'",
   "base-uri 'none'",
@@ -235,6 +236,17 @@ const MINIAPP_CSP = [
   "connect-src 'self'",
   "form-action 'none'",
 ].join("; ");
+const AGENT_ACCESS_CSP = [
+  "default-src 'self'",
+  "base-uri 'none'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "script-src 'self'",
+  "style-src 'self'",
+  "img-src 'self' data:",
+  "connect-src 'self'",
+  "form-action 'self'",
+].join("; ");
 
 // Security + cross-origin-isolation headers on every response.
 //   • COOP/COEP/CORP enable SharedArrayBuffer (wa-sqlite AccessHandlePoolVFS).
@@ -243,9 +255,15 @@ const MINIAPP_CSP = [
 //   • CSP: Report-Only (see above) — observational, never blocks.
 app.use((req, res, next) => {
   const isMiniappShell = req.path === MINIAPP_SHELL_PATH;
+  const isAgentAccessShell = req.path === AGENT_ACCESS_SHELL_PATH;
   if (isMiniappShell) {
     res.setHeader("Content-Security-Policy", MINIAPP_CSP);
     res.setHeader("Cache-Control", "no-cache");
+  } else if (isAgentAccessShell) {
+    res.setHeader("Content-Security-Policy", AGENT_ACCESS_CSP);
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("Referrer-Policy", "no-referrer");
   } else {
     res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
     res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
@@ -255,7 +273,7 @@ app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), browsing-topics=()");
-  if (CSP_REPORT_ONLY_ENABLED && !isMiniappShell) {
+  if (CSP_REPORT_ONLY_ENABLED && !isMiniappShell && !isAgentAccessShell) {
     // Modern Reporting API endpoint (Chrome) + classic report-uri (all browsers).
     // The miniapp shell is excluded: it carries its own ENFORCED CSP above, and the
     // report-only frame-ancestors 'self' would spam violation reports from Telegram Web.
@@ -427,6 +445,39 @@ function requireSameOriginJson(req, res, next) {
   }
   next();
 }
+
+// AA2-B2 — browser-only Agent Access boundary. This is intentionally stricter
+// than requireSameOriginJson: no absent-Origin exception, no permissive CORS,
+// and no forwarded-host trust unless its own flag is explicitly enabled.
+const agentAccessRequestBoundary = require("./agent/access/requestBoundary");
+function agentAccessBoundaryVerdict(req) {
+  return agentAccessRequestBoundary.validateBrowserRequest({
+    enabled: process.env.AGENT_ACCESS_UI_ENABLED,
+    canonical_origin: process.env.AGENT_ACCESS_CANONICAL_ORIGIN,
+    host: req.get("host"),
+    protocol: req.socket && req.socket.encrypted ? "https" : "http",
+    forwarded_host: req.get("x-forwarded-host"),
+    forwarded_proto: req.get("x-forwarded-proto"),
+    trust_proxy: String(process.env.AGENT_ACCESS_TRUST_PROXY || "") === "1",
+    allow_loopback_fixture: process.env.NODE_ENV === "test"
+      && String(process.env.AGENT_ACCESS_LOOPBACK_FIXTURE || "") === "1",
+    method: req.method,
+    content_type: req.get("content-type"),
+    origin: req.get("origin"),
+  });
+}
+function requireAgentAccessBoundary(req, res, next) {
+  const verdict = agentAccessBoundaryVerdict(req);
+  res.set("Cache-Control", "no-store");
+  res.set("Vary", "Origin");
+  if (verdict.ok) return next();
+  const disabled = verdict.error === "AGENT_ACCESS_DISABLED";
+  return res.status(disabled ? 404 : 403).json({ ok: false, error: verdict.error });
+}
+
+// Gate the HTML before express.static. JS/CSS contain no authority or data, but
+// the product entry point itself remains absent unless B2 is explicitly enabled.
+app.get(AGENT_ACCESS_SHELL_PATH, requireAgentAccessBoundary, (_req, _res, next) => next());
 
 // Static assets with PWA-aware Cache-Control. Three tiers:
 //   1. Long-immutable (1 year) for content-stable assets — fonts, raster
@@ -1495,6 +1546,73 @@ function requireCsrf(req, res, auth) {
   }
   return true;
 }
+
+// AA2-B2 — first-party consent/revoke controller. No route stages a trusted
+// authorization request in B2; the unmounted B3 AS bridge will be the only
+// future caller of stageTrustedRequest after protocol validation.
+const agentAccessOAuthRepo = require("./db/agentAccessOAuthRepo");
+const { createConsentCeremony } = require("./agent/access/consentCeremony");
+const agentAccessConsent = createConsentCeremony({
+  oauthRepo: agentAccessOAuthRepo,
+  recordConsent: identityRepo.recordConsent,
+});
+function agentAccessHttpError(res, err) {
+  const code = String((err && (err.code || err.message)) || "AA_CONSENT_FAILED");
+  const status = code.endsWith("NOT_FOUND") ? 404
+    : code.includes("REPLAYED") || code.includes("STATE_CONFLICT") ? 409
+    : code.includes("INACTIVE") || code.includes("BINDING") ? 403
+    : 400;
+  return res.status(status).json({ ok: false, error: /^AA_[A-Z0-9_]+$/.test(code) ? code : "AA_CONSENT_FAILED" });
+}
+
+// Express otherwise synthesizes a permissive 200 Allow response for OPTIONS.
+// Agent Access has no browser cross-origin contract, so preflight is an exact
+// fail-closed route and never reaches the generic automatic responder.
+app.options(/^\/api\/agent-access(?:\/|$)/, requireAgentAccessBoundary);
+
+app.get("/api/agent-access/connections", requireAgentAccessBoundary, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try {
+    const connections = await agentAccessOAuthRepo.listConnectionsForUser(auth.user.id);
+    return res.json({ ok: true, schema_version: "aa.connections.1.0.0", connections });
+  } catch (e) { return agentAccessHttpError(res, e); }
+});
+app.get("/api/agent-access/consent/:requestId", requireAgentAccessBoundary, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try { return res.json({ ok: true, preview: agentAccessConsent.preview(auth.user.id, req.params.requestId) }); }
+  catch (e) { return agentAccessHttpError(res, e); }
+});
+app.post("/api/agent-access/consent/decision", requireAgentAccessBoundary, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const result = await agentAccessConsent.decide(auth.user.id, req.body || {});
+    identityRepo.audit(`agent_access_consent_${result.decision}`, auth.user.id, { scopes: result.granted_scopes || [] }, req.ip);
+    return res.json(result);
+  } catch (e) { return agentAccessHttpError(res, e); }
+});
+app.post("/api/agent-access/connections/:connectionId/revoke", requireAgentAccessBoundary, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const connection = await agentAccessOAuthRepo.revokeConnection(auth.user.id, req.params.connectionId, "USER_REVOKE");
+    identityRepo.audit("agent_access_connection_revoke", auth.user.id, { connection_id: connection.connection_id }, req.ip);
+    return res.json({ ok: true, connection_id: connection.connection_id, status: connection.status });
+  } catch (e) { return agentAccessHttpError(res, e); }
+});
+app.delete("/api/agent-access/connections/:connectionId", requireAgentAccessBoundary, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const existing = await agentAccessOAuthRepo.loadConnection(auth.user.id, req.params.connectionId);
+    if (!new Set(["REVOKED", "DELETED"]).has(existing.status)) {
+      await agentAccessOAuthRepo.revokeConnection(auth.user.id, existing.connection_id, "USER_DELETE");
+    }
+    const deleted = await agentAccessOAuthRepo.deleteConnection(auth.user.id, existing.connection_id, "USER_DELETE");
+    identityRepo.audit("agent_access_connection_delete", auth.user.id, { connection_id: deleted.connection_id }, req.ip);
+    return res.json({ ok: true, connection_id: deleted.connection_id, deleted: true });
+  } catch (e) { return agentAccessHttpError(res, e); }
+});
 
 app.post("/api/auth/bootstrap-login", async (req, res) => {
   const secret = process.env.AUTH_BOOTSTRAP_SECRET || "";
