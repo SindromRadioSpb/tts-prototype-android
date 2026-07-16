@@ -1,0 +1,23 @@
+{
+  "schema_version": "lesson-quality-run-manifest-v1",
+  "status": "UNSCORED",
+  "source_commit": "REQUIRED_AT_RUN",
+  "package_version": "REQUIRED_AT_RUN",
+  "policy_version": "lesson-builder-lb1-v2",
+  "case_set_version": "lesson-quality-hebrew-gold-lb2-v1",
+  "rubric_version": "lesson-quality-hebrew-gold-lb2-rubric-v1",
+  "provider": "OWNER_APPROVAL_REQUIRED",
+  "model": "OWNER_APPROVAL_REQUIRED",
+  "schema_mode": "provider_json_schema_or_prompt_json",
+  "prompt_contract_hash": "REQUIRED_AT_RUN",
+  "generation_command": "REQUIRED_AT_RUN",
+  "started_at": "REQUIRED_AT_RUN",
+  "completed_at": "REQUIRED_AT_RUN",
+  "artifact_directory": "REQUIRED_AT_RUN",
+  "artifact_hash_manifest": "REQUIRED_AT_RUN",
+  "case_count": 13,
+  "human_review_status": "UNSCORED",
+  "shadow_critic_enabled": false,
+  "promotion_result": "UNSCORED_NO_DECISION",
+  "content_free_metrics_only": true
+}

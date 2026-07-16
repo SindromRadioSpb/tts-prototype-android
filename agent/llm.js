@@ -83,7 +83,24 @@ function withTimeout(p) {
   ]);
 }
 
-async function generateGemini({ system, prompt, maxOutputTokens, json, byokKey }) {
+function geminiResponseSchema(schema) {
+  if (!schema || typeof schema !== "object") return null;
+  const type = Array.isArray(schema.type) ? schema.type.find((x) => x !== "null") : schema.type;
+  const out = {};
+  if (type) out.type = type;
+  if (schema.description) out.description = String(schema.description);
+  if (Array.isArray(schema.enum)) out.enum = schema.enum.map(String);
+  if (Array.isArray(schema.type) && schema.type.includes("null")) out.nullable = true;
+  if (type === "array" && schema.items) out.items = geminiResponseSchema(schema.items);
+  if (type === "object" && schema.properties) {
+    out.properties = {};
+    for (const [key, value] of Object.entries(schema.properties)) out.properties[key] = geminiResponseSchema(value);
+    if (Array.isArray(schema.required)) out.required = schema.required.slice();
+  }
+  return out;
+}
+
+async function generateGemini({ system, prompt, maxOutputTokens, json, jsonSchema, byokKey }) {
   // PAS-F1: byokKey (ключ ПОЛЬЗОВАТЕЛЯ per-request) переопределяет env-ключ агента;
   // ключ НИКОГДА не попадает в error/логи (ветка и так дисциплинирована: только код).
   const key = byokKey || geminiKey();
@@ -102,6 +119,7 @@ async function generateGemini({ system, prompt, maxOutputTokens, json, byokKey }
     generationConfig: {
       maxOutputTokens: Math.max(64, Math.min(2048, Number(maxOutputTokens) || 512)),
       ...(json ? { responseMimeType: "application/json" } : {}),   // PAS-A3 — structured output
+      ...(jsonSchema ? { responseSchema: geminiResponseSchema(jsonSchema) } : {}),
       ...(thinkingFamily ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
     },
   });
@@ -113,7 +131,8 @@ async function generateGemini({ system, prompt, maxOutputTokens, json, byokKey }
       if (!text || !String(text).trim()) return { ok: false, error: "EMPTY_RESPONSE" };
       let outTokens = null;
       try { outTokens = result.response.usageMetadata ? Number(result.response.usageMetadata.candidatesTokenCount) || null : null; } catch (_) {}
-      return { ok: true, text: String(text).trim(), provider: "gemini", model: modelName, output_tokens: outTokens };
+      return { ok: true, text: String(text).trim(), provider: "gemini", model: modelName, output_tokens: outTokens,
+        schema_mode: jsonSchema ? "provider_json_schema" : "prompt_json" };
     } catch (e) {
       const status = e && e.status;
       if (attempt === 0 && RETRYABLE_STATUS.has(status)) { await sleep(RETRY_BACKOFF_MS); continue; }
@@ -136,7 +155,7 @@ async function generateGemini({ system, prompt, maxOutputTokens, json, byokKey }
 // С флагом: finish_reason:"stop", reasoning_tokens:0, чистый короткий ответ. Параметр —
 // no-op для моделей без reasoning-режима (OpenRouter passthrough), не ломает будущую смену
 // AGENT_OPENROUTER_MODEL на нерассуждающую модель.
-async function generateOpenRouter({ system, prompt, maxOutputTokens, json, byokKey }) {
+async function generateOpenRouter({ system, prompt, maxOutputTokens, json, jsonSchema, byokKey }) {
   const key = byokKey || openrouterKey();   // PAS-F1: per-request ключ пользователя
   if (!key) return { ok: false, error: "NO_API_KEY" };
   const modelName = process.env.AGENT_OPENROUTER_MODEL || DEFAULT_OPENROUTER_MODEL;
@@ -147,7 +166,8 @@ async function generateOpenRouter({ system, prompt, maxOutputTokens, json, byokK
     model: modelName, messages,
     max_tokens: Math.max(64, Math.min(2048, Number(maxOutputTokens) || 512)),
     reasoning: { enabled: false },
-    ...(json ? { response_format: { type: "json_object" } } : {}),   // PAS-A3 — structured output
+    ...(jsonSchema ? { response_format: { type: "json_schema", json_schema: { name: "linguistpro_lesson_composition", strict: true, schema: jsonSchema } },
+      provider: { require_parameters: true } } : json ? { response_format: { type: "json_object" } } : {}),
   });
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
@@ -170,7 +190,8 @@ async function generateOpenRouter({ system, prompt, maxOutputTokens, json, byokK
       const text = json && json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content;
       if (!text || !String(text).trim()) return { ok: false, error: "EMPTY_RESPONSE" };
       const outTokens = (json.usage && Number(json.usage.completion_tokens)) || null;
-      return { ok: true, text: String(text).trim(), provider: "openrouter", model: modelName, output_tokens: outTokens };
+      return { ok: true, text: String(text).trim(), provider: "openrouter", model: modelName, output_tokens: outTokens,
+        schema_mode: jsonSchema ? "provider_json_schema" : "prompt_json" };
     } catch (e) {
       if (e && (e.name === "TimeoutError" || e.name === "AbortError")) return { ok: false, error: "TIMEOUT" };   // 30с вышло — ретрай бессмыслен
       if (attempt === 0) { await sleep(RETRY_BACKOFF_MS); continue; }   // сетевой сбой — тоже транзиент, один повтор
@@ -179,7 +200,7 @@ async function generateOpenRouter({ system, prompt, maxOutputTokens, json, byokK
   }
 }
 
-function generateMock({ prompt, json, fixture, byokKey }) {
+function generateMock({ prompt, json, jsonSchema, fixture, byokKey }) {
   // Детерминированно и БЕЗ эха prompt-контента: только длина как «подпись» вызова —
   // гейт проверяет и llm_used-путь, и то, что payload не утёк в ответ/логи.
   // PAS-F1 (критика R11-3): in-band фейл-триггер — byokKey /^BYOKFAIL/ ломает ТОЛЬКО
@@ -192,14 +213,14 @@ function generateMock({ prompt, json, fixture, byokKey }) {
     // PAS-C1 — гейт «ход не тратится при невалидном ответе»: AGENT_MOCK_BREAK=<fixture>
     // заставляет mock отдать невалидный (не-JSON) ответ ровно для этого сценария.
     if (fixture && String(process.env.AGENT_MOCK_BREAK || "") === String(fixture)) {
-      return { ok: true, provider: "mock", model: "mock-1", output_tokens: 4, text: "BROKEN mock output (ctx=" + len + ")" };
+      return { ok: true, provider: "mock", model: "mock-1", output_tokens: 4, schema_mode: jsonSchema ? "provider_json_schema" : "prompt_json", text: "BROKEN mock output (ctx=" + len + ")" };
     }
     if (fixture === "roleplay") {
-      return { ok: true, provider: "mock", model: "mock-1", output_tokens: 16,
+      return { ok: true, provider: "mock", model: "mock-1", output_tokens: 16, schema_mode: jsonSchema ? "provider_json_schema" : "prompt_json",
         text: JSON.stringify({ he: "אני מבין אותך. מה עוד קרה בקטע?", ru: "Понимаю вас. Что ещё произошло в отрывке? (mock ctx=" + len + ")" }) };
     }
     if (fixture === "draft_retell") {
-      return { ok: true, provider: "mock", model: "mock-1", output_tokens: 32,
+      return { ok: true, provider: "mock", model: "mock-1", output_tokens: 32, schema_mode: jsonSchema ? "provider_json_schema" : "prompt_json",
         text: JSON.stringify({ lines: [
           { he: "הילד קורא ספר.", ru: "Мальчик читает книгу." },
           { he: "הספר גדול ויפה.", ru: "Книга большая и красивая." },
@@ -207,7 +228,7 @@ function generateMock({ prompt, json, fixture, byokKey }) {
         ] }) };
     }
     // PAS-A3 — валидный фикстурный JSON (критика: mock без json-режима блокировал happy-path гейта)
-    return { ok: true, provider: "mock", model: "mock-1", output_tokens: 24,
+    return { ok: true, provider: "mock", model: "mock-1", output_tokens: 24, schema_mode: jsonSchema ? "provider_json_schema" : "prompt_json",
       text: JSON.stringify({ questions: [
         { question: "О чём говорится в отрывке? (mock ctx=" + len + ")", options: ["вариант А", "вариант Б", "вариант В", "вариант Г"], correct_index: 0 },
         { question: "Что делает герой? (mock)", options: ["читает", "пишет", "идёт", "спит"], correct_index: 1 },
@@ -238,4 +259,4 @@ async function generate(opts) {
   return { ok: false, error: "UNKNOWN_PROVIDER" };
 }
 
-module.exports = { generate, providerName, killSwitchOn, keySource };
+module.exports = { generate, providerName, killSwitchOn, keySource, geminiResponseSchema };

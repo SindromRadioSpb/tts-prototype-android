@@ -1,0 +1,22 @@
+{
+  "version": "lesson-quality-hebrew-gold-lb2-rubric-v1",
+  "status": "UNSCORED",
+  "inherits": {
+    "path": "scripts/premium/fixtures/lesson-builder-lb1/rubric.json",
+    "version": "lesson-quality-rubric-lb1-v1",
+    "semantics": "hard failures and quality dimensions are linked without silent redefinition",
+    "promotion_note": "the LB1 fixture's historical minimum_absolute_gain_points is not an LB2 promotion threshold; the controlling LB2 decision explicitly leaves every numerical threshold to a later owner decision"
+  },
+  "human_dimensions": [
+    {"id":"linguistic_correctness","scale":"1-5_or_UNSCORED","critical_if":"fabricated or materially wrong Hebrew form, meaning, morphology, or rule"},
+    {"id":"naturalness","scale":"1-5_or_UNSCORED","critical_if":"Hebrew is unusable or systematically unnatural for the declared task/register"},
+    {"id":"level_fit","scale":"1-5_or_UNSCORED","critical_if":"task cannot reasonably be completed at the declared CEFR approximation"},
+    {"id":"source_grounding","scale":"1-5_or_UNSCORED","critical_if":"claim, task, or answer is unsupported by the cited source anchors"},
+    {"id":"answerability","scale":"1-5_or_UNSCORED","critical_if":"controlled task lacks a determinable answer or open task lacks usable criteria"},
+    {"id":"pedagogical_value","scale":"1-5_or_UNSCORED","critical_if":"sequence is misleading, harmful, or does not practise the declared objective"},
+    {"id":"cognitive_load","scale":"1-5_or_UNSCORED","critical_if":"load materially exceeds the declared duration/level or obscures the primary action"}
+  ],
+  "critical_failure_categories": ["UNSUPPORTED_HEBREW_FACT","FOREIGN_OR_FALSE_ANCHOR","UNANSWERABLE_CONTROLLED_TASK","LEVEL_BREAK","LOAD_BREAK","MISSING_SELECTED_FOCUS","UNSAFE_AUTHORITY_CLAIM"],
+  "aggregation": "NO_THRESHOLD_APPROVED; report raw human dimensions, critical errors, reviewer identity/qualification, and disagreements for owner decision",
+  "shadow_critic": "advisory_only_default_off_not_a_human_score"
+}

@@ -1,0 +1,20 @@
+{
+  "version": "lesson-quality-hebrew-gold-lb2-v1",
+  "status": "UNSCORED",
+  "content_policy": "synthetic_or_public_domain_only",
+  "cases": [
+    {"id":"short_a1_reading_synthetic","scope":"short","row_count":12,"level":"A1","focuses":["reading"],"register":"modern_synthetic","source":{"kind":"synthetic","locator":"synthetic:a1-reading-v1"},"quality_risk":"basic source grounding"},
+    {"id":"short_a2_vocabulary_synthetic","scope":"short","row_count":18,"level":"A2","focuses":["reading","vocabulary"],"register":"modern_synthetic","source":{"kind":"synthetic","locator":"synthetic:a2-vocabulary-v1"},"quality_risk":"eligible vocabulary and answerability"},
+    {"id":"overview_146_b1_grammar_synthetic","scope":"overview","row_count":146,"level":"B1","focuses":["reading","grammar"],"register":"modern_synthetic","source":{"kind":"synthetic","locator":"synthetic:b1-overview-146-v1"},"quality_risk":"representative windows and verified construct"},
+    {"id":"series_241_b2_writing_public_domain","scope":"series","row_count":241,"level":"B2","focuses":["reading","writing"],"register":"literary_public_domain","source":{"kind":"benyehuda_public_domain","locator":"select_at_run:ready_work_with_241_plus_rows"},"quality_risk":"literary register and whole-scope accountability"},
+    {"id":"dialogue_a2_synthetic","scope":"short","row_count":24,"level":"A2","focuses":["reading","dialogue"],"register":"modern_synthetic","source":{"kind":"synthetic","locator":"synthetic:a2-dialogue-v1"},"quality_risk":"natural dialogue and cognitive load"},
+    {"id":"ambiguous_morphology_b1","scope":"short","row_count":30,"level":"B1","focuses":["reading","vocabulary"],"register":"mixed_synthetic","source":{"kind":"synthetic","locator":"synthetic:ambiguous-morphology-v1"},"quality_risk":"model must not promote ambiguous resolver readings"},
+    {"id":"no_eligible_vocabulary_a1","scope":"short","row_count":16,"level":"A1","focuses":["reading","vocabulary"],"register":"modern_synthetic","source":{"kind":"synthetic","locator":"synthetic:no-eligible-vocabulary-v1"},"quality_risk":"honest deterministic degradation"},
+    {"id":"adversarial_foreign_anchor","scope":"short","row_count":12,"level":"A2","focuses":["reading"],"register":"synthetic","source":{"kind":"synthetic","locator":"synthetic:foreign-anchor-v1"},"adversarial_expected":"FOREIGN_ANCHOR"},
+    {"id":"adversarial_invented_construct","scope":"short","row_count":20,"level":"B1","focuses":["reading","grammar"],"register":"synthetic","source":{"kind":"synthetic","locator":"synthetic:invented-construct-v1"},"adversarial_expected":"controller_reject_before_publication"},
+    {"id":"adversarial_missing_answer","scope":"short","row_count":20,"level":"A2","focuses":["reading","vocabulary"],"register":"synthetic","source":{"kind":"synthetic","locator":"synthetic:missing-answer-v1"},"adversarial_expected":"MISSING_EXPECTED_ANSWER"},
+    {"id":"adversarial_generic_instruction","scope":"short","row_count":20,"level":"A1","focuses":["reading"],"register":"synthetic","source":{"kind":"synthetic","locator":"synthetic:generic-instruction-v1"},"adversarial_expected":"GENERIC_INSTRUCTION"},
+    {"id":"provider_absent_safe_plan","scope":"overview","row_count":146,"level":"B2","focuses":["reading","writing"],"register":"synthetic","source":{"kind":"synthetic","locator":"synthetic:provider-absent-v1"},"adversarial_expected":"provider_unavailable_and_deterministic_basic_plan"},
+    {"id":"double_reject_safe_plan","scope":"series","row_count":220,"level":"B2","focuses":["reading","grammar","writing"],"register":"literary_public_domain","source":{"kind":"benyehuda_public_domain","locator":"select_at_run:ready_work_with_220_plus_rows"},"adversarial_expected":"first_reject_repair_reject_and_deterministic_basic_plan"}
+  ]
+}

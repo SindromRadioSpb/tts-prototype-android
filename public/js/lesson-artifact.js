@@ -10,6 +10,7 @@
   var SCHEMA_VERSION = 2;
   var POLICY_VERSION = "lesson-builder-lb1-v2";
   var MAX_SECTIONS = 7, MAX_EXERCISES = 7;
+  var DIAGNOSTIC_CODES = ["INVALID_JSON","MISSING_OBJECTIVE","MISSING_SECTION","MISSING_SOURCE_ID","FOREIGN_SOURCE_ID","MISSING_ANCHOR","FOREIGN_ANCHOR","MISSING_FOCUS","MISSING_PURPOSE","GENERIC_INSTRUCTION","MISSING_SUCCESS_CRITERIA","MISSING_EXPECTED_ANSWER","LOAD_EXCEEDED"];
 
   function str(v, max) { return String(v == null ? "" : v).trim().slice(0, max); }
   function validSourceRefs(refs) {
@@ -22,6 +23,17 @@
       return Number.isInteger(Number(r.start_order_index)) && Number(r.start_order_index) >= 0 &&
         Number.isInteger(Number(r.row_count)) && Number(r.row_count) >= 1 && Number(r.row_count) <= 2000;
     });
+  }
+  function validDiagnostics(value) {
+    var stages=["first","repair"],outcomes=["accepted","rejected","provider_unavailable"],modes=["provider_json_schema","prompt_json"];
+    var providers=["gemini","openrouter","mock","claude"],latencies=["0-2s","2-5s","5-10s","10s+"],sizes=["small","medium","large"];
+    return (Array.isArray(value)?value:[]).slice(0,2).map(function(d){
+      if(!d||stages.indexOf(d.stage)<0||outcomes.indexOf(d.outcome)<0||modes.indexOf(d.schema_mode)<0)return null;
+      var model=str(d.model,120);if(model&&!/^[A-Za-z0-9._:/-]+$/.test(model))model="";
+      return {stage:d.stage,outcome:d.outcome,validation_codes:DIAGNOSTIC_CODES.filter(function(code){return Array.isArray(d.validation_codes)&&d.validation_codes.indexOf(code)>=0;}),schema_mode:d.schema_mode,
+        provider:providers.indexOf(d.provider)>=0?d.provider:null,model:model||null,
+        latency_bucket_ms:latencies.indexOf(d.latency_bucket_ms)>=0?d.latency_bucket_ms:"10s+",output_size_bucket:sizes.indexOf(d.output_size_bucket)>=0?d.output_size_bucket:"large"};
+    }).filter(Boolean);
   }
   function validate(draft) {
     var supported = draft && ((draft.schemaVersion === SCHEMA_VERSION && draft.policyVersion === POLICY_VERSION) ||
@@ -52,7 +64,11 @@
       (!anchors.size || (e.anchor_ids.length && e.anchor_ids.every(function (id) { return anchors.has(id); }))); });
     var objective = str(draft.objective, 500);
     if (!objective || !sections.length || !exercises.length || !exercises.some(function (e) { return e.type === "source_reading"; })) return null;
-    return Object.assign({}, draft, { objective: objective, sections: sections, exercises: exercises });
+    var q=draft.quality&&typeof draft.quality==="object"?draft.quality:{};
+    var quality={tier:q.tier==="premium_draft"?"premium_draft":"basic_plan",premium_ready:q.premium_ready===true,
+      checks:q.checks&&typeof q.checks==="object"?{exact_anchors:q.checks.exact_anchors===true,purpose:q.checks.purpose===true,success_criteria:q.checks.success_criteria===true}:{},
+      reason:/^(?:[A-Z][A-Z0-9_]{1,59}|[0-9]{3})$/.test(str(q.reason,60))?str(q.reason,60):null,diagnostics:validDiagnostics(q.diagnostics)};
+    return Object.assign({}, draft, { objective: objective, sections: sections, exercises: exercises, quality:quality });
   }
 
   function createSessionStore(storage, nowFn) {

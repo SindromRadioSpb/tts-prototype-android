@@ -83,6 +83,11 @@ const errStatus = (status) => { const e = new Error("boom"); e.status = status; 
   await withEnv({ AGENT_LLM_PROVIDER: "openrouter" }, () => {
     const llm = freshLlm();
     eq(llm.providerName() === "openrouter", "openrouter must be a recognized provider");
+    const projected = llm.geminiResponseSchema({ type: "object", additionalProperties: false, required: ["answer"],
+      properties: { answer: { type: ["string", "null"], minLength: 1 } } });
+    eq(projected.type === "object" && projected.required[0] === "answer" && projected.properties.answer.type === "string" &&
+      projected.properties.answer.nullable === true && !("additionalProperties" in projected),
+      "Gemini legacy SDK schema projection keeps its supported subset without inventing fields");
   });
 
   // ── kill-switch short-circuits BEFORE any network/SDK access ─────────────
@@ -157,10 +162,15 @@ const errStatus = (status) => { const e = new Error("boom"); e.status = status; 
     let capturedBody = null;
     const origFetch = global.fetch;
     global.fetch = async (url, opts) => { capturedBody = JSON.parse(opts.body); return okOpenRouterResp("ok", 1); };
-    await llm.generate({ system: "s", prompt: "p" });
+    const nativeSchema = { type: "object", additionalProperties: false, required: ["answer"], properties: { answer: { type: "string" } } };
+    const structured = await llm.generate({ system: "s", prompt: "p", json: true, jsonSchema: nativeSchema });
     global.fetch = origFetch;
     eq(!!capturedBody && capturedBody.reasoning && capturedBody.reasoning.enabled === false,
       "openrouter request body must set reasoning:{enabled:false}, got " + JSON.stringify(capturedBody && capturedBody.reasoning));
+    eq(capturedBody.response_format.type === "json_schema" && capturedBody.response_format.json_schema.strict === true &&
+      JSON.stringify(capturedBody.response_format.json_schema.schema) === JSON.stringify(nativeSchema) && capturedBody.provider.require_parameters === true &&
+      structured.schema_mode === "provider_json_schema",
+      "OpenRouter current route must send strict native JSON Schema with required-parameter routing");
 
     // stdout hygiene: error path must not leak prompt content
     undo = mockFetch([{ ok: false, status: 500 }]);
@@ -191,7 +201,7 @@ const errStatus = (status) => { const e = new Error("boom"); e.status = status; 
     eq(out.ok === true && out.provider === "mock" && /ctx=10 chars/.test(out.text), "mock provider text must stay byte-stable, got " + JSON.stringify(out));
   });
 
-  const TOTAL = 18;
+  const TOTAL = 20;
   if (failures.length) {
     console.error(`smoke:agent-llm-provider FAIL (${TOTAL - failures.length}/${TOTAL})`);
     for (const f of failures) console.error("  ✗ " + f);

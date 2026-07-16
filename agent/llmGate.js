@@ -37,13 +37,16 @@ function _limits() {
   };
 }
 
-async function gatedGenerate(ctx, { scenario, system, prompt, maxOutputTokens, json, fixture } = {}) {
-  if (llm.killSwitchOn()) return { phase: "kill", reason: "KILL_SWITCH", key_source: "agent" };
+async function gatedGenerate(ctx, { scenario, system, prompt, maxOutputTokens, json, jsonSchema, fixture } = {}) {
+  const requestedSchemaMode = jsonSchema ? "provider_json_schema" : "prompt_json";
+  const started = Date.now();
+  if (llm.killSwitchOn()) return { phase: "kill", reason: "KILL_SWITCH", key_source: "agent",
+    provider: llm.providerName(), schema_mode: requestedSchemaMode, latency_ms: Date.now() - started, output_size_bytes: 0 };
 
   const byok = ctx && ctx.byok && ctx.byok.key && ctx.byok.provider ? ctx.byok : null;
   if (byok) {
     const out = await llm.generate({
-      system, prompt, maxOutputTokens, json, fixture,
+      system, prompt, maxOutputTokens, json, jsonSchema, fixture,
       byokProvider: byok.provider, byokKey: byok.key,
     });
     try {
@@ -55,19 +58,24 @@ async function gatedGenerate(ctx, { scenario, system, prompt, maxOutputTokens, j
       // телеметрия best-effort: ответ пользователя (оплаченный ЕГО ключом) важнее строки учёта
       try { console.log("[llm-gate] byok telemetry insert failed (answer delivered)"); } catch (_) {}
     }
-    if (!out.ok) return { phase: "byok", reason: "BYOK_FAILED", provider_error: String(out.error || "").slice(0, 60), key_source: "byok" };
-    return { phase: "ok", out, key_source: "byok" };
+    const meta = { provider: byok.provider, schema_mode: out.schema_mode || requestedSchemaMode,
+      latency_ms: Date.now() - started, output_size_bytes: out.ok ? Buffer.byteLength(String(out.text || ""), "utf8") : 0 };
+    if (!out.ok) return { phase: "byok", reason: "BYOK_FAILED", provider_error: String(out.error || "").slice(0, 60), key_source: "byok", ...meta };
+    return { phase: "ok", out, key_source: "byok", ...meta };
   }
 
   const lim = _limits();
   const reserve = await agentRepo.reserveLlmCall(ctx.userId, {
     scenario, provider: llm.providerName(), perUserDaily: lim.perUserDaily, globalDaily: lim.globalDaily,
   });
-  if (!reserve.ok) return { phase: "reserve", reason: reserve.reason, key_source: "agent" };
-  const out = await llm.generate({ system, prompt, maxOutputTokens, json, fixture });
+  if (!reserve.ok) return { phase: "reserve", reason: reserve.reason, key_source: "agent", provider: llm.providerName(),
+    schema_mode: requestedSchemaMode, latency_ms: Date.now() - started, output_size_bytes: 0 };
+  const out = await llm.generate({ system, prompt, maxOutputTokens, json, jsonSchema, fixture });
   await agentRepo.finalizeLlmCall(reserve.reserveId, { ok: out.ok, actualUnits: out.ok ? (out.output_tokens || 1) : null });
-  if (!out.ok) return { phase: "generate", reason: out.error, key_source: "agent" };
-  return { phase: "ok", out, key_source: "agent" };
+  const meta = { provider: llm.providerName(), schema_mode: out.schema_mode || requestedSchemaMode,
+    latency_ms: Date.now() - started, output_size_bytes: out.ok ? Buffer.byteLength(String(out.text || ""), "utf8") : 0 };
+  if (!out.ok) return { phase: "generate", reason: out.error, key_source: "agent", ...meta };
+  return { phase: "ok", out, key_source: "agent", ...meta };
 }
 
 module.exports = { gatedGenerate };

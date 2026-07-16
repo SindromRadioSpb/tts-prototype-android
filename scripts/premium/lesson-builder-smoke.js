@@ -37,11 +37,13 @@ graph.getDue = async () => [{ item_key: "item:1" }];
 graph.getWeakWords = async () => [{ item_key: "item:2" }];
 agentRepo.usageToday = async () => ({ user_llm_calls: 1 });
 let llmCalls = 0;
-llmGate.gatedGenerate = async () => { llmCalls++; return ({ phase: "ok", key_source: "agent", out: { provider: "mock", model: "fixture", text: JSON.stringify({
+const gateOptions = [];
+llmGate.gatedGenerate = async (_ctx, opts) => { llmCalls++; gateOptions.push(opts); const text = JSON.stringify({
   objective: "Grounded objective", sections: [{ title: "Read", body: "Read closely", source_ids: ["source-1"], anchor_ids: ["source-1-anchor-1"] }],
   exercises: [{ type: "source_reading", purpose: "Identify the claim and evidence", instruction: "Read the cited sentences and separate the main claim from two supporting details.", source_ids: ["source-1", "source-2"], anchor_ids: ["source-1-anchor-1", "source-2-anchor-1"], expected_answer: null, hints: ["Look for repeated ideas"], success_criteria: ["One claim", "Two cited details"] },
     { type: "vocabulary", purpose: "Use verified vocabulary in context", instruction: "Use two supplied target words in new sentences that preserve their contextual meanings.", source_ids: ["source-1", "source-2"], anchor_ids: ["source-1-anchor-1", "source-2-anchor-1"], expected_answer: "Two original sentences", hints: [], success_criteria: ["Meaning preserved", "One target per sentence"] }],
-}) } }); };
+}); return ({ phase: "ok", key_source: "agent", provider: "mock", schema_mode: opts.jsonSchema ? "provider_json_schema" : "prompt_json",
+  latency_ms: 2100, output_size_bytes: Buffer.byteLength(text), out: { provider: "mock", model: "fixture", text } }); };
 
 function request() { return { sources: [
   { kind: "personal", text_key: "personal-key", start_order_index: 0, row_count: 12 },
@@ -77,6 +79,28 @@ function request() { return { sources: [
     const got = LB.validateComposition(c.composition, gold.source_ids, 7, c.focuses, gold.anchor_ids);
     ok(!!got === c.expect_valid, "independent quality fixture: " + c.id);
   }
+  const validationGold = JSON.parse(fs.readFileSync(path.join(REPO, "scripts", "premium", "fixtures", "lesson-builder-lb1", "validation-codes.json"), "utf8"));
+  function applyOperations(base, operations) {
+    const out = JSON.parse(JSON.stringify(base));
+    for (const op of operations || []) {
+      const parts = op.path.split("."); let target = out;
+      for (let i = 0; i < parts.length - 1; i++) target = target[parts[i]];
+      target[parts[parts.length - 1]] = op.value;
+    }
+    return out;
+  }
+  for (const c of validationGold.cases) {
+    const raw = Object.prototype.hasOwnProperty.call(c, "raw") ? c.raw : JSON.stringify(applyOperations(validationGold.base, c.operations));
+    const got = LB.parseAndValidateComposition(raw, { sourceIds: validationGold.source_ids, anchorIds: validationGold.anchor_ids,
+      maxItems: c.max_items || validationGold.max_items, focuses: c.focuses || validationGold.focuses });
+    ok(JSON.stringify(got.codes) === JSON.stringify(c.expected_codes) && got.ok === !c.expected_codes.length,
+      "detailed validation fixture: " + c.id + " => " + got.codes.join(","));
+  }
+  ok(JSON.stringify(LB.VALIDATION_CODES) === JSON.stringify(validationGold.cases.slice(1, 14).map((c) => c.expected_codes[0])),
+    "fixture covers the exact ordered LB2 minimum validation vocabulary");
+  const sharedSchema = LB.compositionSchema(3);
+  ok(sharedSchema.properties.exercises.maxItems === 3 && sharedSchema.properties.exercises.items.properties.type.enum.includes("grammar"),
+    "shared contract emits the provider schema and duration-derived load");
   const longRows = Array.from({ length: 146 }, (_, i) => ({ order_index: i, he: heb, ru: "translation " + i }));
   const longReq = { ...request(), sources: [{ ...request().sources[0], row_count: 146 }], lessonMode: "overview" };
   ok(LB.normalizeRequest(longReq).ok && LB.normalizeRequest(longReq).request.sources[0].row_count === 146,
@@ -96,6 +120,10 @@ function request() { return { sources: [
   ok(mappedFallback.sections[0].anchor_ids.length === 3 && /sentences 1.?12/i.test(mappedFallback.exercises[0].instruction) &&
     /sentences 135.?146/i.test(mappedFallback.exercises[0].instruction),
     "deterministic overview remains grounded in start, middle and end anchor windows");
+  const controlledFallback = LB.fallbackComposition({ goal: "Use verified targets", explanationLanguage: "en", focuses: ["reading","vocabulary","grammar"], grammarTitle: "Verified pattern" },
+    [{ id: "source-1", ref: { title: "Long" }, sourceMap: mapped }], { candidate_vocabulary: [] });
+  ok(controlledFallback.exercises.filter((e) => ["vocabulary","grammar"].includes(e.type)).every((e) => !!e.expected_answer),
+    "deterministic fallback also gives every controlled vocabulary/grammar exercise an expected answer");
   ok(LB.normalizeRequest({ ...request(), goalId: undefined, goal: "Legacy goal", focuses: undefined, focus: "reading" }).ok, "cached LB0 request remains backward compatible");
 
   const built = await LB.build({ userId: "u1" }, request());
@@ -111,9 +139,16 @@ function request() { return { sources: [
   ok(built.draft.exercises.some((e) => e.type === "vocabulary") && built.draft.request.focuses.length === 2, "each selected focus is represented and preserved");
   ok(built.draft.quality.premium_ready === true && built.draft.exercises.every((e) => e.anchor_ids.length && e.success_criteria.length),
     "premium draft requires exact anchors and success criteria on every exercise");
+  ok(gateOptions[0].jsonSchema && gateOptions[0].system.includes('"maxItems":5') &&
+    built.draft.quality.diagnostics[0].schema_mode === "provider_json_schema" && built.draft.quality.diagnostics[0].latency_bucket_ms === "2-5s",
+    "one shared contract drives prompt, provider schema and content-free diagnostics");
   ok(!("review_log" in built.draft) && !("mastery" in built.draft), "no learner-truth fields");
   ok(Date.parse(built.draft.expiresAt) - Date.parse(built.draft.createdAt) === 86400000, "24-hour TTL exact");
   ok(!!Artifact.validate(built.draft), "shared client artifact schema accepts server output");
+  const sanitizedArtifact = Artifact.validate({ ...built.draft, quality: { ...built.draft.quality,
+    reason: "LEARNER SENTENCE MUST NOT SURVIVE", diagnostics: [{ ...built.draft.quality.diagnostics[0], model: "model plus learner sentence" }] } });
+  ok(sanitizedArtifact.quality.reason === null && sanitizedArtifact.quality.diagnostics[0].model === null,
+    "session adapter cannot persist content through reason or model diagnostic fields");
   ok(!!Artifact.validate({ ...built.draft, schemaVersion: 1, policyVersion: "lesson-builder-lb0-v1" }),
     "session adapter keeps previously saved LB0 drafts readable during the LB1 transition");
 
@@ -146,17 +181,27 @@ function request() { return { sources: [
   storage.setItem(Artifact.KEY, JSON.stringify(built.draft)); ok(expiredStore.load() === null, "expired draft purged on read");
 
   let repairStep = 0;
-  llmGate.gatedGenerate = async () => { repairStep++; return repairStep === 1
-    ? { phase: "ok", out: { provider: "mock", model: "bad", text: JSON.stringify({ objective: "Incomplete", sections: [], exercises: [] }) } }
-    : { phase: "ok", key_source: "agent", out: { provider: "mock", model: "repaired", text: JSON.stringify({ objective: "Repaired objective",
+  let repairPayload = null;
+  llmGate.gatedGenerate = async (_ctx, opts) => { repairStep++; if (repairStep === 2) repairPayload = JSON.parse(opts.prompt); return repairStep === 1
+    ? { phase: "ok", provider: "mock", schema_mode: "provider_json_schema", latency_ms: 10, output_size_bytes: 50,
+      out: { provider: "mock", model: "bad", text: JSON.stringify({ objective: "Incomplete", sections: [], exercises: [] }) } }
+    : { phase: "ok", key_source: "agent", provider: "mock", schema_mode: "provider_json_schema", latency_ms: 15, output_size_bytes: 500,
+      out: { provider: "mock", model: "repaired", text: JSON.stringify({ objective: "Repaired objective",
       sections: [{ title: "Anchored reading", body: "Work from the cited source window.", source_ids: ["source-1"], anchor_ids: ["source-1-anchor-1"] }],
       exercises: [{ type: "source_reading", purpose: "Identify the central claim", instruction: "Read the cited sentences and identify one claim with two supporting details.", source_ids: ["source-1"], anchor_ids: ["source-1-anchor-1"], expected_answer: null, hints: [], success_criteria: ["One claim", "Two details"] },
         { type: "vocabulary", purpose: "Use verified words", instruction: "Use the supplied verified vocabulary in two new contextually accurate sentences.", source_ids: ["source-1"], anchor_ids: ["source-1-anchor-1"], expected_answer: "Two sentences", hints: [], success_criteria: ["Meanings preserved"] }] }) } }; };
   const repairedDraft = await LB.build({ userId: "u1" }, { ...request(), sources: [request().sources[0]] });
   ok(repairedDraft.ok && repairedDraft.repair_used === true && repairedDraft.draft.quality.premium_ready === true,
     "one bounded same-route repair can recover an invalid first candidate through the same quality gate");
+  ok(JSON.stringify(repairPayload.failure_codes) === JSON.stringify(["MISSING_SECTION", "MISSING_FOCUS"]) &&
+    repairPayload.allowed_source_ids.length === 1 && repairPayload.allowed_anchor_ids.length === 1 && repairPayload.composition_contract,
+    "repair receives exact content-free codes and the same frozen allowlists and contract");
+  ok(repairedDraft.draft.quality.diagnostics.length === 2 && repairedDraft.draft.quality.diagnostics[0].outcome === "rejected" &&
+    repairedDraft.draft.quality.diagnostics[1].outcome === "accepted",
+    "first reject and repair recovery remain separately diagnosable");
 
-  llmGate.gatedGenerate = async () => ({ phase: "ok", out: { provider: "mock", model: "bad", text: JSON.stringify({ objective: "x",
+  llmGate.gatedGenerate = async () => ({ phase: "ok", provider: "mock", schema_mode: "provider_json_schema", latency_ms: 5, output_size_bytes: 100,
+    out: { provider: "mock", model: "bad", text: JSON.stringify({ objective: "x",
     sections: [{ title: "Injected", body: "bad", source_ids: ["foreign-source"] }], exercises: [] }) } });
   const fallback = await LB.build({ userId: "u1" }, { ...request(), sources: [request().sources[0]] });
   ok(fallback.ok && fallback.degraded_reason === "LLM_OUTPUT_INVALID", "invalid/injected LLM source falls back honestly");
@@ -164,6 +209,31 @@ function request() { return { sources: [
   ok(fallback.draft.quality.tier === "basic_plan" && fallback.draft.quality.premium_ready === false,
     "deterministic degradation cannot masquerade as a premium lesson");
   ok(/sentences 1.?12/i.test(fallback.draft.exercises[0].instruction), "basic plan is tied to an exact source range instead of a generic reading instruction");
+  ok(fallback.draft.quality.diagnostics.length === 2 && fallback.draft.quality.diagnostics.every((x) => x.outcome === "rejected") &&
+    fallback.draft.quality.diagnostics[0].validation_codes.includes("FOREIGN_SOURCE_ID"),
+    "double rejection exposes only bounded content-free diagnostics");
+
+  const secretSentinel = "MODEL_SENTINEL_7f91_LEARNER_CONTENT";
+  let invalidStep = 0;
+  llmGate.gatedGenerate = async () => { invalidStep++; return { phase: "ok", provider: "mock", schema_mode: "provider_json_schema",
+    latency_ms: 1, output_size_bytes: secretSentinel.length, out: { provider: "mock", model: "bad", text: "not-json " + secretSentinel } }; };
+  const invalidJson = await LB.build({ userId: "u1" }, { ...request(), sources: [request().sources[0]] });
+  ok(invalidJson.draft.quality.diagnostics.every((x) => JSON.stringify(x).indexOf(secretSentinel) < 0) &&
+    invalidJson.draft.quality.diagnostics.every((x) => JSON.stringify(x).indexOf(heb.trim()) < 0) &&
+    invalidJson.draft.quality.diagnostics[0].validation_codes[0] === "INVALID_JSON",
+    "source, model and learner sentinels cannot enter diagnostics");
+
+  llmGate.gatedGenerate = async () => ({ phase: "reserve", reason: "USER_LIMIT", provider: "gemini", schema_mode: "provider_json_schema",
+    latency_ms: 2, output_size_bytes: 0, key_source: "agent" });
+  const unavailable = await LB.build({ userId: "u1" }, { ...request(), sources: [request().sources[0]] });
+  ok(unavailable.degraded_reason === "USER_LIMIT" && unavailable.draft.quality.diagnostics.length === 1 &&
+    unavailable.draft.quality.diagnostics[0].outcome === "provider_unavailable",
+    "provider/budget unavailable degrades without a repair or second cost authority");
+  llmGate.gatedGenerate = async () => ({ phase: "byok", reason: "BYOK_FAILED", provider: "gemini", schema_mode: "provider_json_schema",
+    latency_ms: 2, output_size_bytes: 0, key_source: "byok" });
+  const byokFailure = await LB.build({ userId: "u1", byok: { provider: "gemini", key: "sentinel" } }, { ...request(), sources: [request().sources[0]] });
+  ok(byokFailure.degraded_reason === "BYOK_FAILED" && byokFailure.draft.quality.diagnostics.length === 1,
+    "BYOK failure is fail-closed and never falls back to the managed route");
 
   const oldPersonal = personal.getLessonWindow;
   personal.getLessonWindow = async () => ({ ok: true, anchor: { start_order_index: 0, row_count: 1 }, title: "short", rows: [{ order_index: 0, he: "קצר", ru: null }] });
@@ -194,8 +264,8 @@ function request() { return { sources: [
   ok(room.includes("returnToLesson: true") && room.includes("if (returnRoute === 'lesson-builder') openLessonStudio()"),
     "lesson anchor drill-down closes the loop back from reader to the active lesson");
   ok(ui.includes('e.type==="source_reading"?"reading":e.type'), "draft exercise types render as localized user labels");
-  ok(ui.includes("basicPlanRejected") && ui.includes('qualityReason==="LLM_OUTPUT_INVALID"'),
-    "degraded UI distinguishes a rejected AI draft from AI not being connected");
+  ok(ui.includes("basicWhyJson") && ui.includes("basicWhyAnchors") && ui.includes("basicWhyKey") && ui.includes("basicWhyBudget") &&
+    ui.includes('x.outcome==="rejected"'), "degraded UI distinguishes provider/key/budget, invalid JSON and contract rejection");
   ok(learnerLog.validateLearnerEvent({ id: "lb-ux", type: "agent_ux", created_at_client: new Date().toISOString(),
     payload: { feature: "lesson_builder", action: "offered" } }, Date.now()).ok, "content-free lesson UX telemetry allowlisted");
   const html = fs.readFileSync(path.join(REPO, "public", "library.html"), "utf8");

@@ -1,0 +1,34 @@
+{
+  "version": "lesson-builder-lb2-validation-v1",
+  "source_ids": ["source-1"],
+  "anchor_ids": ["source-1-anchor-1"],
+  "max_items": 3,
+  "focuses": ["reading", "vocabulary"],
+  "base": {
+    "objective": "Understand the grounded claim and use one verified word",
+    "sections": [
+      {"title":"Source pass","body":"Read for claim and evidence.","source_ids":["source-1"],"anchor_ids":["source-1-anchor-1"]}
+    ],
+    "exercises": [
+      {"type":"source_reading","purpose":"Separate claim from evidence","instruction":"Read the cited range and identify one claim with two supporting details.","source_ids":["source-1"],"anchor_ids":["source-1-anchor-1"],"expected_answer":null,"hints":[],"success_criteria":["One claim","Two details"]},
+      {"type":"vocabulary","purpose":"Use one verified word","instruction":"Use the supplied target word in a new sentence with the same contextual meaning.","source_ids":["source-1"],"anchor_ids":["source-1-anchor-1"],"expected_answer":"One original sentence","hints":[],"success_criteria":["Meaning preserved"]}
+    ]
+  },
+  "cases": [
+    {"id":"valid_control","operations":[],"expected_codes":[]},
+    {"id":"invalid_json","raw":"{not-json","expected_codes":["INVALID_JSON"]},
+    {"id":"missing_objective","operations":[{"path":"objective","value":""}],"expected_codes":["MISSING_OBJECTIVE"]},
+    {"id":"missing_section","operations":[{"path":"sections","value":[]}],"expected_codes":["MISSING_SECTION"]},
+    {"id":"missing_source_id","operations":[{"path":"sections.0.source_ids","value":[]}],"expected_codes":["MISSING_SOURCE_ID"]},
+    {"id":"foreign_source_id","operations":[{"path":"exercises.0.source_ids","value":["foreign-source"]}],"expected_codes":["FOREIGN_SOURCE_ID"]},
+    {"id":"missing_anchor","operations":[{"path":"exercises.0.anchor_ids","value":[]}],"expected_codes":["MISSING_ANCHOR"]},
+    {"id":"foreign_anchor","operations":[{"path":"sections.0.anchor_ids","value":["foreign-anchor"]}],"expected_codes":["FOREIGN_ANCHOR"]},
+    {"id":"missing_focus","focuses":["reading","dialogue"],"operations":[],"expected_codes":["MISSING_FOCUS"]},
+    {"id":"missing_purpose","operations":[{"path":"exercises.0.purpose","value":""}],"expected_codes":["MISSING_PURPOSE"]},
+    {"id":"generic_instruction","operations":[{"path":"exercises.0.instruction","value":"Read it."}],"expected_codes":["GENERIC_INSTRUCTION"]},
+    {"id":"missing_success_criteria","operations":[{"path":"exercises.0.success_criteria","value":[]}],"expected_codes":["MISSING_SUCCESS_CRITERIA"]},
+    {"id":"missing_expected_answer","operations":[{"path":"exercises.1.expected_answer","value":null}],"expected_codes":["MISSING_EXPECTED_ANSWER"]},
+    {"id":"load_exceeded","max_items":1,"operations":[],"expected_codes":["LOAD_EXCEEDED"]},
+    {"id":"combined_ordered_deduplicated","operations":[{"path":"objective","value":""},{"path":"sections.0.source_ids","value":[]},{"path":"exercises.0.source_ids","value":[]},{"path":"exercises.0.anchor_ids","value":["foreign-anchor"]},{"path":"exercises.1.expected_answer","value":null}],"expected_codes":["MISSING_OBJECTIVE","MISSING_SOURCE_ID","FOREIGN_ANCHOR","MISSING_EXPECTED_ANSWER"]}
+  ]
+}
