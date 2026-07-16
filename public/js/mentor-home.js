@@ -33,7 +33,14 @@
 
   var S = { mount: null, host: null, session: null, statusCache: null, memoryAvailable: false };
 
-  function t(key, fb) { return S.host && S.host.t ? S.host.t(key, fb) : fb; }
+  function t(key, fb) {
+    try {
+      var value = S.host && S.host.t ? S.host.t(key, fb) : null;
+      // window.t() returns the dotted key itself when a locale bundle is stale
+      // or incomplete. Never surface that implementation detail to a learner.
+      return value == null || value === "" || value === key ? (fb == null ? "" : fb) : value;
+    } catch (_) { return fb == null ? "" : fb; }
+  }
   function lang() { try { return String(S.host.language() || "ru"); } catch (_) { return "ru"; } }
   function useRu() { return lang().indexOf("ru") === 0; }   // he-UI → английские серверные титулы (у сервера ru/en)
 

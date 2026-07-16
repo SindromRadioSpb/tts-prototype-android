@@ -79,6 +79,26 @@ what the learner can do next. A visible retry remains enabled only when retry
 can plausibly succeed; terminal or expired work returns to the parent surface
 without counting as learner failure.
 
+## LL-F2-06 — PWA asset skew must degrade to learner copy
+
+**Observed:** a mobile PWA loaded the new F2 result renderer while retaining an
+older unversioned locale bundle. The shared `window.t()` correctly returned the
+missing dotted key as its diagnostic fallback, but the mentor adapter treated
+that value as a valid translation. The learner saw
+`room.mentor.evidence.verdictNearMiss` and
+`room.mentor.evidence.adviceContext`.
+
+**Rule:** dynamically rendered learner copy must treat `translated === key` as
+a cache-skew/missing-key condition and use its hardcoded user-facing fallback.
+HTML entry points must version locale script URLs whenever new locale keys ship;
+the service-worker cache version alone is not sufficient protection against
+browser HTTP cache or partial PWA activation.
+
+**Required gate:** every newly added dynamic copy family needs both locale
+symmetry and a stale-locale test where the host translator returns the key
+unchanged. The screen must still show meaningful learner copy and must never
+show dotted namespace paths.
+
 ## Review checklist for the next F2 change
 
 - R2/R17: learner feedback is educationally legible and non-authoritative.
@@ -88,3 +108,4 @@ without counting as learner failure.
 - R15: terminal, expiry, deletion and revoked-consent paths expose no stale data.
 - R16: audio recovery cannot silently invoke a provider.
 - Internal enums appear only in machine-readable export/audit surfaces.
+- Missing/stale translations fall back to learner copy, never dotted keys.

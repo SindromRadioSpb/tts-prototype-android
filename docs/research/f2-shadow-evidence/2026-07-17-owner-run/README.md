@@ -120,3 +120,17 @@ profile with real button presses at a 380x844 viewport:
 Final owner state after the regression: evidence list empty; both agent-created
 test chains deleted. No provider/LLM, planner, CP0, background job, notification
 or canonical learner-memory write was invoked by this test.
+
+## Owner UX finding 3 — stale locale bundle exposed dotted keys
+
+The next real mobile attempt produced `NEAR_MISS`, but the result panel showed
+the dotted i18n keys `room.mentor.evidence.verdictNearMiss` and
+`room.mentor.evidence.adviceContext`. The mobile PWA had loaded the new result
+renderer with an older locale bundle, and the mentor host adapter did not treat
+`translated === key` as a missing translation.
+
+Remediation is two-layered: Reading Room locale script URLs are now versioned
+in lockstep with Studio, and the mentor translation adapter always falls back
+to its user-facing copy when the host translator returns a missing dotted key.
+This prevents raw namespace leakage even during partial service-worker/browser
+cache activation.
