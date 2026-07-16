@@ -1,0 +1,59 @@
+{
+  "date": "2026-07-16",
+  "baseline_commit": "bcf9482",
+  "package_version": "3.11.189",
+  "status": "LOCAL_ENGINEERING_COMPLETE_LIVE_EVIDENCE_DEFERRED",
+  "constructs": [
+    "UNSUPPORTED_ORTHOGRAPHIC_PRODUCTION",
+    "READING_TO_NEW_CONTEXT_TRANSFER"
+  ],
+  "f2_smoke": {
+    "passed": true,
+    "suites": 8,
+    "restore_replayed_f2_chains": 1,
+    "restore_deleted_rows": 3
+  },
+  "target_selector": {
+    "catalog_version": 7,
+    "model_id": "pealim-infl-v12",
+    "scanned_works": 1,
+    "scanned_rows": 33,
+    "elapsed_ms": 6,
+    "limits": { "works": 24, "rows": 2000, "ms": 150 }
+  },
+  "load": {
+    "operations": 10000,
+    "network_attempts": 0,
+    "provider_calls": 0,
+    "quota_reservations": 0,
+    "pure_p95_ms": 0.002,
+    "db_p95_ms": 2.304,
+    "db_p99_ms": 3.108
+  },
+  "mobile": {
+    "requested_viewport": "380x844",
+    "passed": true,
+    "artifact": "mobile-380x844.png"
+  },
+  "focused_regressions": {
+    "f1": "pass",
+    "memory_canon": "79/79",
+    "fsrs": "30/30",
+    "grader_gold": "77/77",
+    "mentor_home": "25/25",
+    "cp0": "pass",
+    "api_smoke": "pass"
+  },
+  "full_test": {
+    "total": 278,
+    "passed": 269,
+    "failed": 9,
+    "classification": "pre_existing_unrelated"
+  },
+  "live_enablement": false,
+  "cp0_enablement": false,
+  "provider_evaluator": false,
+  "planner": false,
+  "background_jobs": false,
+  "aa2": false
+}

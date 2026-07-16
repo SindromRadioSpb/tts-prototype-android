@@ -1637,6 +1637,18 @@ app.post("/api/auth/consent", async (req, res) => {
         return res.status(500).json({ ok: false, error: "PURGE_FAILED", key });
       }
     }
+    // F2: every relevant revoke is synchronous and fail-closed. The store and
+    // construct keys erase their bounded chains; handoff revoke blocks preview.
+    if (["f2_shadow_store", "f2_shadow_b1_dictation", "f2_shadow_b2_context_transfer", "f2_shadow_planner_handoff"].includes(key) && !granted) {
+      try {
+        const purged = await require("./agent/evidence/runtime").revoke(auth.user.id, key);
+        identityRepo.audit("f2_consent_purge", auth.user.id, { key, deleted: purged.deleted || 0 }, req.ip);
+        purgeInfo = { f2_deleted: purged.deleted || 0 };
+      } catch (e7) {
+        identityRepo.audit("f2_consent_purge_failed", auth.user.id, { key, message: String(e7 && e7.message).slice(0, 120) }, req.ip);
+        return res.status(500).json({ ok: false, error: "PURGE_FAILED", key });
+      }
+    }
     // CLG-P7.1a: отзыв telegram_delivery ОБЯЗАН гасить активные связки + невыгашенные токены
     // АТОМАРНО (критика: доставка авторизуется фактом активной связки, не живым consent — если
     // unlink упадёт, канал доставлял бы после отзыва = fail-open). Здесь каскад — honest-fail:
@@ -1847,8 +1859,11 @@ app.get("/api/learner/keying/status", rlLearnerKeying, async (req, res) => {
 const agentRuntime = require("./agent/runtime");
 const cp0Observer = require("./agent/controlPlane/observer");
 const memoryRuntime = require("./agent/memory/runtime");
+const evidenceRuntime = require("./agent/evidence/runtime");
+evidenceRuntime.validateStartupConfig();
 const rlAgent = makeRateLimiter({ windowMs: 60_000, max: 20, name: "agent" });
 const rlMemory = makeRateLimiter({ windowMs: 60_000, max: 40, name: "agent-memory" });
+const rlEvidence = makeRateLimiter({ windowMs: 60_000, max: 30, name: "agent-evidence" });
 
 app.post("/api/agent/plan", rlAgent, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
@@ -2274,6 +2289,19 @@ app.post("/api/agent/memory/:id/action", rlMemory, async(req,res)=>{const auth=a
 app.get("/api/agent/memory/continue", rlMemory, async(req,res)=>{const auth=await requireUser(req,res);if(!auth)return;try{return sendMemoryResult(res,await memoryRuntime.continueItem({userId:auth.user.id,surface:"pwa"}));}catch(e){return memoryError(res,e);}});
 app.get("/api/agent/memory/export", rlMemory, async(req,res)=>{const auth=await requireUser(req,res);if(!auth)return;try{const out=await memoryRuntime.exportMemory({userId:auth.user.id,surface:"pwa"});res.set("Content-Disposition",`attachment; filename="linguistpro-memory-${auth.user.id}.json"`);return res.json(out);}catch(e){return memoryError(res,e);}});
 app.post("/api/agent/memory/delete-all", rlMemory, async(req,res)=>{const auth=await requireUser(req,res);if(!auth)return;if(!requireCsrf(req,res,auth))return;try{return sendMemoryResult(res,await memoryRuntime.deleteAll({userId:auth.user.id,surface:"pwa"},req.body||{}));}catch(e){return memoryError(res,e);}});
+
+// Wave 2 F2 — bounded deterministic shadow evidence. No route writes review_log,
+// projections, F1 memory, planner tasks, notifications or provider usage.
+function sendEvidenceResult(res,out){if(out&&out.ok)return res.json(out);const code=String(out&&out.error||"F2_FAILED");const status=code==="F2_NOT_FOUND"?404:["STATE_CONFLICT","IDEMPOTENCY_CONFLICT","REQUEST_EXPIRED","ATTEMPT_FINAL","SOURCE_DRIFT"].includes(code)?409:["F2_DISABLED","F2_NOT_ALLOWLISTED","CONSENT_REQUIRED","CONSTRUCT_DISABLED","F2_CONTEXT_DISABLED"].includes(code)?403:400;return res.status(status).json(out||{ok:false,error:code});}
+function evidenceError(res,e){const code=String(e&&e.message||"F2_FAILED");const known=/^(BAD_F2_|F2_|STATE_|REQUEST_|ATTEMPT_|SOURCE_|CONSENT_|CONFIRM_)/.test(code);return res.status(known?(code==="F2_NOT_FOUND"?404:code==="STATE_CONFLICT"?409:400):500).json({ok:false,error:known?code:"F2_FAILED"});}
+app.get("/api/agent/evidence",rlEvidence,async(req,res)=>{const auth=await requireUser(req,res);if(!auth)return;try{return sendEvidenceResult(res,await evidenceRuntime.list({userId:auth.user.id,surface:"pwa"},{state:req.query.state,limit:req.query.limit,before:req.query.before}));}catch(e){return evidenceError(res,e);}});
+app.post("/api/agent/evidence/scan",rlEvidence,async(req,res)=>{const auth=await requireUser(req,res);if(!auth)return;if(!requireCsrf(req,res,auth))return;try{return sendEvidenceResult(res,await evidenceRuntime.scan({userId:auth.user.id,surface:"pwa"},req.body||{}));}catch(e){return evidenceError(res,e);}});
+app.get("/api/agent/evidence/offer",rlEvidence,async(req,res)=>{const auth=await requireUser(req,res);if(!auth)return;try{return sendEvidenceResult(res,await evidenceRuntime.offer({userId:auth.user.id,surface:"pwa"}));}catch(e){return evidenceError(res,e);}});
+app.post("/api/agent/evidence/:id/action",rlEvidence,async(req,res)=>{const auth=await requireUser(req,res);if(!auth)return;if(!requireCsrf(req,res,auth))return;try{return sendEvidenceResult(res,await evidenceRuntime.action({userId:auth.user.id,surface:"pwa"},req.params.id,req.body||{}));}catch(e){return evidenceError(res,e);}});
+app.post("/api/agent/evidence/:id/attempt",rlEvidence,async(req,res)=>{const auth=await requireUser(req,res);if(!auth)return;if(!requireCsrf(req,res,auth))return;try{return sendEvidenceResult(res,await evidenceRuntime.attempt({userId:auth.user.id,surface:"pwa"},req.params.id,req.body||{}));}catch(e){return evidenceError(res,e);}});
+app.get("/api/agent/evidence/handoff-preview",rlEvidence,async(req,res)=>{const auth=await requireUser(req,res);if(!auth)return;try{return sendEvidenceResult(res,await evidenceRuntime.handoffPreview({userId:auth.user.id,surface:"pwa"}));}catch(e){return evidenceError(res,e);}});
+app.get("/api/agent/evidence/export",rlEvidence,async(req,res)=>{const auth=await requireUser(req,res);if(!auth)return;try{const out=await evidenceRuntime.exportEvidence({userId:auth.user.id,surface:"pwa"});res.set("Content-Disposition",`attachment; filename="linguistpro-evidence-${auth.user.id}.json"`);return sendEvidenceResult(res,out);}catch(e){return evidenceError(res,e);}});
+app.post("/api/agent/evidence/delete-all",rlEvidence,async(req,res)=>{const auth=await requireUser(req,res);if(!auth)return;if(!requireCsrf(req,res,auth))return;try{return sendEvidenceResult(res,await evidenceRuntime.deleteAll({userId:auth.user.id,surface:"pwa"},req.body||{}));}catch(e){return evidenceError(res,e);}});
 
 // ============================================================================
 // CLG-P9 «дом наставника» (MENTOR_HOME_P9_DECISION_2026_07_06). Оба endpoint'а
@@ -2802,6 +2830,7 @@ const { withTxnLock } = require("./db/txnLock");
 const handoffRepo = require("./db/handoffRepo");
 const cp0ObservationRepo = require("./db/cp0ObservationRepo");
 const learnerMemoryRepo = require("./db/learnerMemoryRepo");
+const f2EvidenceRepo = require("./db/f2EvidenceRepo");
 async function opsSweepTick() {
   if (getDbHealth().ready !== true) return;
   try {
@@ -2817,6 +2846,10 @@ async function opsSweepTick() {
         console.log(`[ops-sweep] sessions=${sessions} initdata_seen=${initSeen} devices=${devices} challenges_expired=${ch.challenges} challenges_purged=${ch.purgedTerminal} cp0_observations=${cp0Purged.observations} cp0_boots=${cp0Purged.boots} memory_expired=${memoryPurged.expired} memory_records=${memoryPurged.records} memory_queries=${memoryPurged.queries} memory_journal=${memoryPurged.journal}`);
       }
     });
+    const f2Purged = await f2EvidenceRepo.expireAndPurge();
+    if (f2Purged.requests || f2Purged.content || f2Purged.queries || f2Purged.audit || f2Purged.journal) {
+      console.log(`[ops-sweep] f2_expired=${f2Purged.requests} f2_content=${f2Purged.content} f2_queries=${f2Purged.queries} f2_audit=${f2Purged.audit} f2_journal=${f2Purged.journal}`);
+    }
   } catch (e) { console.error("[ops-sweep] failed:", e && e.message); }
 }
 const _opsSweepBoot = setTimeout(() => { opsSweepTick(); }, 2 * 60 * 1000);

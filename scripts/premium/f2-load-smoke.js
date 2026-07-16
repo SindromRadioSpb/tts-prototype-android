@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+"use strict";
+process.env.AUTH_BOOTSTRAP_SECRET="f2-test-secret-123456789";
+let attempts=0;const deny=()=>{attempts++;throw new Error("F2_NETWORK_TRIPWIRE");};
+const http=require("http"),https=require("https"),net=require("net"),dns=require("dns"),cp=require("child_process");http.request=deny;http.get=deny;https.request=deny;https.get=deny;net.connect=deny;net.createConnection=deny;dns.lookup=deny;dns.resolve=deny;cp.exec=deny;cp.execFile=deny;cp.spawn=deny;global.fetch=deny;
+const assert=require("assert"),T=require("./lib/f2-test-db"),repo=require("../../db/f2EvidenceRepo"),E=require("../../agent/evidence/evaluators");
+const pct=(a,p)=>a.slice().sort((x,y)=>x-y)[Math.min(a.length-1,Math.floor(a.length*p))]||0;
+(async()=>{let c;try{c=await T.setup("f2-load");const pure=[];for(let i=0;i<9000;i++){const s=process.hrtime.bigint();E.evaluateB1({kind:"dictate_shadow_v1",surface:"כתב"},{answer:i%2?"כתב":"כתכ"});pure.push(Number(process.hrtime.bigint()-s)/1e6);}const db=[];for(let i=0;i<1000;i++){const s=process.hrtime.bigint();await repo.writeQueryReceipt(i%2?"f2u1":"f2u2",{purpose:"F2_MANAGEMENT",consent_snapshot_ref:"c",eligible_count:1,selected_ids:[],terminal_code:"LOAD"});db.push(Number(process.hrtime.bigint()-s)/1e6);}const metrics={operations:10000,network_attempts:attempts,provider_calls:0,quota_reservations:0,pure_p95_ms:+pct(pure,.95).toFixed(3),db_p95_ms:+pct(db,.95).toFixed(3),db_p99_ms:+pct(db,.99).toFixed(3)};assert.equal(attempts,0);assert(metrics.db_p95_ms<50,JSON.stringify(metrics));assert(metrics.db_p99_ms<250,JSON.stringify(metrics));console.log("f2-load-smoke: ok",JSON.stringify(metrics));}finally{if(c)await T.cleanup(c);}})().catch(e=>{console.error(e);process.exit(1)});

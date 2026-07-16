@@ -29,7 +29,10 @@ async function replayDeletionJournal(preRestoreDbPath, restoredDbPath) {
     let memoryDeleted=[];
     try { memoryDeleted=await all(source,"SELECT user_id,memory_id,deleted_at,reason_code FROM memory_erasure_journal ORDER BY deleted_at,user_id,memory_id"); }
     catch(e){ if(/no such table/i.test(String(e&&e.message))) memoryDeleted=[]; else throw e; }
-    if(!deleted.length&&!memoryDeleted.length) return {ok:true,replayed_users:0,replayed_memories:0,deleted_rows:0};
+    let f2Deleted=[];
+    try { f2Deleted=await all(source,"SELECT user_id,chain_id,deleted_at,reason_code FROM f2_erasure_journal ORDER BY deleted_at,user_id,chain_id"); }
+    catch(e){ if(/no such table/i.test(String(e&&e.message))) f2Deleted=[]; else throw e; }
+    if(!deleted.length&&!memoryDeleted.length&&!f2Deleted.length) return {ok:true,replayed_users:0,replayed_memories:0,replayed_f2_chains:0,deleted_rows:0};
     target=await open(restoredDbPath, sqlite3.OPEN_READWRITE);
     await exec(target,"PRAGMA foreign_keys=ON;");
     const tables=await userScopedTables(target);
@@ -60,9 +63,21 @@ async function replayDeletionJournal(preRestoreDbPath, restoredDbPath) {
         try { const rr=await run(target,"DELETE FROM memory_context_queries WHERE user_id=? AND selected_ids_json LIKE ?",[uid,`%${mid}%`]);deletedRows+=Number(rr.changes)||0; } catch(e) { if(!/no such table/i.test(String(e&&e.message))) throw e; }
         try { await run(target,`INSERT INTO memory_erasure_journal (user_id,memory_id,deleted_at,reason_code) SELECT ?,?,?,? WHERE NOT EXISTS (SELECT 1 FROM memory_erasure_journal WHERE user_id=? AND memory_id=? AND deleted_at=?)`,[uid,mid,String(j.deleted_at),String(j.reason_code||"RESTORE_REPLAY"),uid,mid,String(j.deleted_at)]); } catch(e) { if(!/no such table/i.test(String(e&&e.message))) throw e; }
       }
+      for(const j of f2Deleted){
+        const uid=String(j.user_id),hid=String(j.chain_id);if(accountDeleted.has(uid))continue;
+        try {
+          const h=(await all(target,"SELECT observation_id FROM f2_hypotheses WHERE user_id=? AND id=?",[uid,hid]))[0];
+          const reqs=(await all(target,"SELECT id FROM f2_requests WHERE user_id=? AND hypothesis_id=?",[uid,hid])).map(x=>String(x.id));
+          for(const rid of reqs){for(const table of ["f2_source_links","f2_audit_events"])deletedRows+=Number((await run(target,`DELETE FROM ${table} WHERE user_id=? AND artifact_id=?`,[uid,rid])).changes)||0;deletedRows+=Number((await run(target,"DELETE FROM f2_context_queries WHERE user_id=? AND selected_ids_json LIKE ?",[uid,`%${rid}%`])).changes)||0;}
+          for(const aid of [hid,h&&h.observation_id].filter(Boolean))for(const table of ["f2_source_links","f2_audit_events"])deletedRows+=Number((await run(target,`DELETE FROM ${table} WHERE user_id=? AND artifact_id=?`,[uid,aid])).changes)||0;
+          if(h)deletedRows+=Number((await run(target,"DELETE FROM f2_observations WHERE user_id=? AND id=?",[uid,h.observation_id])).changes)||0;
+          await run(target,`INSERT INTO f2_erasure_journal (user_id,chain_id,deleted_at,reason_code) SELECT ?,?,?,? WHERE NOT EXISTS (SELECT 1 FROM f2_erasure_journal WHERE user_id=? AND chain_id=? AND deleted_at=?)`,[uid,hid,String(j.deleted_at),String(j.reason_code||"RESTORE_REPLAY"),uid,hid,String(j.deleted_at)]);
+        } catch(e) { if(!/no such table/i.test(String(e&&e.message))) throw e; }
+      }
       await exec(target,"COMMIT;");
     }catch(e){try{await exec(target,"ROLLBACK;");}catch(_){}throw e;}
-    return {ok:true,replayed_users:new Set(deleted.map((x)=>String(x.user_id))).size,replayed_memories:memoryDeleted.filter((x)=>!new Set(deleted.map((d)=>String(d.user_id))).has(String(x.user_id))).length,deleted_rows:deletedRows};
+    const deletedUsers=new Set(deleted.map((x)=>String(x.user_id)));
+    return {ok:true,replayed_users:deletedUsers.size,replayed_memories:memoryDeleted.filter((x)=>!deletedUsers.has(String(x.user_id))).length,replayed_f2_chains:f2Deleted.filter((x)=>!deletedUsers.has(String(x.user_id))).length,deleted_rows:deletedRows};
   } catch(e) { return {ok:false,error:String(e&&e.message||e)}; }
   finally { if(source)await close(source);if(target)await close(target); }
 }

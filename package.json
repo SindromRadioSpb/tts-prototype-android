@@ -1,6 +1,6 @@
 {
   "name": "tts-translator-dashboard",
-  "version": "3.11.188",
+  "version": "3.11.189",
   "description": "TTS & Translator Dashboard (Google Cloud Text-to-Speech + Gemini, Hebrew-Russian tables)",
   "main": "server.js",
   "scripts": {
@@ -258,6 +258,8 @@
     "smoke:agent-byok": "node scripts/premium/agent-byok-smoke.js",
     "smoke:f1": "node scripts/premium/f1-memory-contract-smoke.js && node scripts/premium/f1-memory-lifecycle-smoke.js && node scripts/premium/f1-memory-isolation-smoke.js && node scripts/premium/f1-memory-restore-smoke.js && node scripts/premium/f1-memory-ui-smoke.js",
     "smoke:f1:load": "node scripts/premium/f1-memory-load-smoke.js",
+    "smoke:f2": "node scripts/premium/f2-contract-smoke.js && node scripts/premium/f2-observation-smoke.js && node scripts/premium/f2-target-smoke.js && node scripts/premium/f2-evaluator-smoke.js && node scripts/premium/f2-lifecycle-smoke.js && node scripts/premium/f2-isolation-smoke.js && node scripts/premium/f2-restore-smoke.js && node scripts/premium/f2-ui-smoke.js",
+    "smoke:f2:load": "node scripts/premium/f2-load-smoke.js",
     "smoke:cp0": "node scripts/premium/cp0-observer-smoke.js && node scripts/premium/cp0-runtime-integration-smoke.js && node scripts/premium/cp0-scenario-parity-smoke.js && node scripts/premium/cp0-lifecycle-smoke.js && node scripts/premium/cp0-restore-smoke.js && node scripts/premium/cp0-process-failure-smoke.js",
     "smoke:cp0:load": "node scripts/premium/cp0-load-smoke.js"
   },

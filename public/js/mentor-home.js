@@ -1104,6 +1104,36 @@
     var life=el("div","mentor-plan-actions"), exp=el("button","mentor-wr-ghost",t("room.mentor.memory.export","Экспорт памяти")), del=el("button","mentor-wr-ghost",t("room.mentor.memory.deleteAll","Удалить всю память"));exp.type=del.type="button";exp.addEventListener("click",async function(){exp.disabled=true;try{var r=await fetch("/api/agent/memory/export",{credentials:"same-origin"});if(!r.ok)throw new Error("EXPORT_FAILED");var blob=await r.blob(),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="linguistpro-memory.json";a.hidden=true;document.body.appendChild(a);a.click();a.remove();msg.textContent="✓ "+t("room.mentor.memory.exportReady","Экспорт подготовлен");msg.hidden=false;setTimeout(function(){URL.revokeObjectURL(a.href);},1000);}catch(_){msg.textContent="✗ "+t("room.mentor.memory.exportFailed","Не удалось подготовить экспорт");msg.hidden=false;}finally{exp.disabled=false;}});del.addEventListener("click",function(){var row=el("div","mentor-memory-confirm"),inp=document.createElement("input"),ok=el("button","mentor-plan-btn",t("room.mentor.memory.confirmDelete","Подтвердить удаление"));inp.placeholder="DELETE MEMORY";ok.type="button";ok.addEventListener("click",async function(){var r=await jpost("/api/agent/memory/delete-all",{confirm:inp.value});if(r.json&&r.json.ok)await renderMemory(section,box);else{msg.textContent=t("room.mentor.memory.confirmExact","Введите DELETE MEMORY точно");msg.hidden=false;}});row.appendChild(inp);row.appendChild(ok);box.appendChild(row);});life.appendChild(exp);life.appendChild(del);box.appendChild(life);
   }
 
+  // Wave 2 F2 — separate, explicit shadow-evidence surface. Mount is read-only;
+  // only the Find button may scan/create an offer. Results never alter grades,
+  // word memory, FSRS schedule or planner tasks.
+  async function setEvidenceConsent(key, granted) {
+    var r=await jpost("/api/auth/consent",{key:key,granted:granted,version:"f2-v1"});
+    if(r.status!==200||!r.json||!r.json.ok)throw new Error("CONSENT_FAILED");
+    if(S.session&&S.session.consents)S.session.consents[key]={granted:granted};
+  }
+  async function renderEvidence(section,box){
+    box.textContent="";var probe=await jget("/api/agent/evidence?limit=5").catch(function(){return null;});
+    if(!probe||(probe.status===403&&probe.json&&["F2_DISABLED","F2_NOT_ALLOWLISTED"].indexOf(probe.json.error)>=0)){section.hidden=true;return;}
+    section.hidden=false;var cons=(S.session&&S.session.consents)||{},storeOn=!!(cons.f2_shadow_store&&cons.f2_shadow_store.granted),b1=!!(cons.f2_shadow_b1_dictation&&cons.f2_shadow_b1_dictation.granted),b2=!!(cons.f2_shadow_b2_context_transfer&&cons.f2_shadow_b2_context_transfer.granted),msg=el("div","mentor-hint mentor-consent-msg");msg.hidden=true;
+    function toggle(key,label,on){var l=el("label","mentor-consent"),c=document.createElement("input");c.type="checkbox";c.checked=on;l.appendChild(c);l.appendChild(el("span",null,label));c.addEventListener("change",async function(){var v=c.checked;c.disabled=true;try{await setEvidenceConsent(key,v);await renderEvidence(section,box);}catch(_){c.checked=!v;msg.textContent="✗ "+t("room.cloud.err","Ошибка синхронизации");msg.hidden=false;}finally{c.disabled=false;}});return l;}
+    box.appendChild(toggle("f2_shadow_store",t("room.mentor.evidence.store","Хранить мои проверки доказательств"),storeOn));
+    box.appendChild(el("div","mentor-hint",t("room.mentor.evidence.boundary","Небольшая теневая проверка. Она не меняет память слова, оценку или расписание; пропуск, позже и отсутствие ответа не считаются ошибкой.")));box.appendChild(msg);
+    if(!storeOn){box.appendChild(el("div","mentor-memory-empty",t("room.mentor.evidence.off","Проверки выключены.")));return;}
+    box.appendChild(toggle("f2_shadow_b1_dictation",t("room.mentor.evidence.b1","Проверять самостоятельное написание"),b1));
+    box.appendChild(toggle("f2_shadow_b2_context_transfer",t("room.mentor.evidence.b2","Проверять перенос в новый публичный контекст"),b2));
+    box.appendChild(el("div","mentor-hint",t("room.mentor.evidence.selfReport","Наблюдение из Читального зала может быть самоотчётом о воспроизведении, а не независимой оценкой.")));
+    var find=el("button","mentor-plan-btn",t("room.mentor.evidence.find","Найти небольшую проверку"));find.type="button";find.disabled=!(b1||b2);find.addEventListener("click",async function(){find.disabled=true;try{var r=await jpost("/api/agent/evidence/scan",{});if(!r.json||!r.json.ok)throw new Error(r.json&&r.json.error);await jget("/api/agent/evidence/offer");await renderEvidence(section,box);}catch(e){msg.textContent=t("room.mentor.evidence.none","Подходящей однозначной проверки сейчас нет.")+" "+String(e&&e.message||"");msg.hidden=false;}finally{find.disabled=false;}});box.appendChild(find);
+    var items=(probe.json&&probe.json.items)||[];if(!items.length)box.appendChild(el("div","mentor-memory-empty",t("room.mentor.evidence.empty","Здесь пока нет проверок.")));
+    async function act(item,action){var r=await jpost("/api/agent/evidence/"+encodeURIComponent(item.id)+"/action",{action:action});if(!r.json||!r.json.ok)throw new Error(r.json&&r.json.error);await renderEvidence(section,box);}
+    items.forEach(function(item){var card=el("article","mentor-memory-card mentor-evidence-card"),isB2=item.construct_id==="READING_TO_NEW_CONTEXT_TRANSFER";card.appendChild(el("div","mentor-memory-badge",isB2?t("room.mentor.evidence.badgeB2","Новый публичный контекст · теневая проверка"):t("room.mentor.evidence.badgeB1","Самостоятельное написание · теневая проверка")));if(item.authority_class==="SELF_REPORTED_RETRIEVAL")card.appendChild(el("div","mentor-hint",t("room.mentor.evidence.selfReportedBadge","Источник наблюдения: самоотчёт в Читальном зале")));var stim=item.stimulus||{};if(stim.sentence)card.appendChild(el("div","mentor-evidence-stimulus",stim.sentence));var actions=el("div","mentor-plan-actions");function button(label,action,ghost){var b=el("button",ghost?"mentor-wr-ghost":"mentor-plan-btn",label);b.type="button";b.addEventListener("click",async function(){b.disabled=true;try{await act(item,action);}catch(_){msg.textContent=t("room.mentor.evidence.actionFailed","Действие не выполнено.");msg.hidden=false;}finally{b.disabled=false;}});actions.appendChild(b);}
+      if(item.state==="OFFERED"){button(t("room.mentor.evidence.accept","Начать"),"ACCEPT");button(t("room.mentor.evidence.later","Позже"),"DEFER",true);button(t("room.mentor.evidence.skip","Пропустить"),"SKIP",true);button(t("room.mentor.evidence.suppress","Не предлагать"),"SUPPRESS",true);}
+      if(item.state==="ACCEPTED"){var input=document.createElement("input");input.className="mentor-memory-input";input.maxLength=512;input.autocomplete="off";if(isB2&&(stim.options||[]).length){var sel=document.createElement("select");sel.className="mentor-memory-select";(stim.options||[]).forEach(function(o){var op=document.createElement("option");op.value=o.id;op.textContent=o.surface;sel.appendChild(op);});input=sel;}else input.placeholder=t("room.mentor.evidence.answer","Введите услышанное слово…");card.appendChild(input);var submit=el("button","mentor-plan-btn",t("room.mentor.evidence.submit","Проверить"));submit.type="button";submit.addEventListener("click",async function(){submit.disabled=true;try{var body=isB2?{option_id:input.value,input_mode:"closed_option"}:{answer:input.value,input_mode:"keyboard"},r=await jpost("/api/agent/evidence/"+encodeURIComponent(item.id)+"/attempt",body);if(!r.json||!r.json.ok)throw new Error(r.json&&r.json.error);await renderEvidence(section,box);}catch(_){msg.textContent=t("room.mentor.evidence.actionFailed","Действие не выполнено.");msg.hidden=false;}finally{submit.disabled=false;}});actions.appendChild(submit);button(t("room.mentor.evidence.skip","Пропустить"),"SKIP",true);}
+      if(item.evaluation){card.appendChild(el("div","mentor-evidence-result",t("room.mentor.evidence.result","Детерминированная оценка")+": "+item.evaluation.verdict));if(item.decision)card.appendChild(el("div","mentor-hint",t("room.mentor.evidence.shadow","Теневой совет, не действие планировщика")+": "+item.decision.decision_code));if(item.evaluation.status==="VALID"){button(t("room.mentor.evidence.dispute","Оспорить"),"DISPUTE",true);button(t("room.mentor.evidence.annul","Аннулировать"),"ANNUL",true);}}
+      button(t("room.mentor.evidence.delete","Удалить"),"DELETE",true);card.appendChild(actions);box.appendChild(card);});
+    var life=el("div","mentor-plan-actions"),exp=el("button","mentor-wr-ghost",t("room.mentor.evidence.export","Экспорт проверок")),del=el("button","mentor-wr-ghost",t("room.mentor.evidence.deleteAll","Удалить все проверки"));exp.type=del.type="button";exp.addEventListener("click",async function(){var r=await fetch("/api/agent/evidence/export",{credentials:"same-origin"});if(r.ok){var blob=await r.blob(),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="linguistpro-evidence.json";a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);}});del.addEventListener("click",function(){var row=el("div","mentor-memory-confirm"),inp=document.createElement("input"),ok=el("button","mentor-plan-btn",t("room.mentor.evidence.confirm","Подтвердить"));inp.placeholder="DELETE EVIDENCE";ok.type="button";ok.addEventListener("click",async function(){var r=await jpost("/api/agent/evidence/delete-all",{confirm:inp.value});if(r.json&&r.json.ok)await renderEvidence(section,box);else{msg.textContent=t("room.mentor.evidence.confirmExact","Введите DELETE EVIDENCE точно");msg.hidden=false;}});row.appendChild(inp);row.appendChild(ok);box.appendChild(row);});life.appendChild(exp);life.appendChild(del);box.appendChild(life);
+  }
+
   // ── mount / refresh ─────────────────────────────────────────────────────────
   function blockNode(titleKey, titleFb) {
     var b = el("section", "mentor-block");
@@ -1136,6 +1166,8 @@
     var setB = blockNode("room.mentor.settings.title", "⚙ Наставник");   // PAS-D4
     var memB = blockNode("room.mentor.memory.title", "🧠 Память наставника");
     var memBox = el("div", "mentor-memory-wrap"); memB.appendChild(memBox);
+    var evidenceB = blockNode("room.mentor.evidence.title", "🔎 Проверки доказательств");
+    var evidenceBox = el("div", "mentor-memory-wrap mentor-evidence-wrap"); evidenceB.appendChild(evidenceBox);
     var histWrap = blockNode("room.mentor.histTitle", "История объяснений");
     var consB = blockNode("room.mentor.consTitle", "Ваши конструкции");
     var histBox = el("div", "mentor-hist-list");
@@ -1150,6 +1182,7 @@
     m.appendChild(tgB);
     m.appendChild(setB);
     m.appendChild(memB);
+    m.appendChild(evidenceB);
     m.appendChild(histWrap);
     m.appendChild(consB);
     var consBox = el("div", "mentor-cons-list");
@@ -1163,6 +1196,7 @@
     renderTelegramBlock(tgBox);
     renderSettings(setB.appendChild(el("div", "mentor-set-wrap")));
     renderMemory(memB, memBox);
+    renderEvidence(evidenceB, evidenceBox);
     renderHistoryBlock(histWrap, histBox);
     renderConstructs(consBox);
     // PAS-D1: блок без capability хоста схлопывается (MA-хост её не отдаёт)

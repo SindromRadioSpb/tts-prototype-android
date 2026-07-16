@@ -33,6 +33,13 @@ const SCENARIOS = Object.freeze({
   "memory.context_continue": { role: "memory.manager", surfaces: ["pwa"], capabilities: ["repo:memory_query"] },
   "memory.export": { role: "memory.manager", surfaces: ["pwa"], capabilities: ["repo:memory_export"] },
   "memory.delete": { role: "memory.manager", surfaces: ["pwa"], capabilities: ["repo:memory_delete"] },
+  "evidence.scan": { role: "evidence.selector", surfaces: ["pwa"], capabilities: ["repo:evidence_read", "repo:public_corpus_read"] },
+  "evidence.manage": { role: "evidence.manager", surfaces: ["pwa"], capabilities: ["repo:evidence"] },
+  "evidence.attempt": { role: "evidence.evaluator.deterministic", surfaces: ["pwa"], capabilities: ["repo:evidence", "eval:deterministic"] },
+  "evidence.context_offer": { role: "evidence.manager", surfaces: ["pwa"], capabilities: ["repo:evidence_query"] },
+  "evidence.handoff_preview": { role: "evidence.reducer.shadow", surfaces: ["pwa"], capabilities: ["repo:evidence_query"] },
+  "evidence.export": { role: "evidence.manager", surfaces: ["pwa"], capabilities: ["repo:evidence_export"] },
+  "evidence.delete": { role: "evidence.manager", surfaces: ["pwa"], capabilities: ["repo:evidence_delete"] },
 });
 
 function get(id) { return SCENARIOS[String(id)] || null; }

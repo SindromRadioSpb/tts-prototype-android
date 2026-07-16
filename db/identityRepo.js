@@ -260,7 +260,7 @@ async function audit(action, userId, detail, ip) {
 // ── dynamic user_id-table sweep (the §10 completeness invariant, structural) ──
 // Every table with a user_id column is in scope for export AND delete automatically.
 // deletion_journal is the one documented exemption (erasure record, survives delete).
-const SWEEP_EXEMPT = { deletion_journal: 1, memory_erasure_journal: 1, sqlite_sequence: 1 };
+const SWEEP_EXEMPT = { deletion_journal: 1, memory_erasure_journal: 1, f2_erasure_journal: 1, sqlite_sequence: 1 };
 async function listUserScopedTables() {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const tables = await dbAll(db, `SELECT name FROM sqlite_master WHERE type='table'`);
@@ -295,10 +295,15 @@ async function exportUserData(userId) {
   if (out.tables.learner_memory_records) for (const r of out.tables.learner_memory_records) delete r.dedupe_key;
   if (out.tables.learner_memory_revisions) for (const r of out.tables.learner_memory_revisions) delete r.payload_digest;
   if (out.tables.learner_memory_source_links) for (const r of out.tables.learner_memory_source_links) delete r.keyed_digest;
+  if (out.tables.f2_requests) for (const r of out.tables.f2_requests) { delete r.expected_digest; delete r.expected_json; }
+  if (out.tables.f2_attempts) for (const r of out.tables.f2_attempts) delete r.answer_digest;
+  if (out.tables.f2_source_links) for (const r of out.tables.f2_source_links) delete r.keyed_digest;
   // F1 per-memory erasure journal is deliberately outside the structural sweep so an old
   // backup cannot resurrect a deleted record. It is content-free and exported explicitly.
   try { out.memory_erasures = await dbAll(db, `SELECT memory_id,deleted_at,reason_code FROM memory_erasure_journal WHERE user_id=? ORDER BY deleted_at,memory_id`, [userId]); }
   catch (_) { out.memory_erasures = []; }
+  try { out.f2_erasures = await dbAll(db, `SELECT chain_id,deleted_at,reason_code FROM f2_erasure_journal WHERE user_id=? ORDER BY deleted_at,chain_id`, [userId]); }
+  catch (_) { out.f2_erasures = []; }
   return out;
 }
 
@@ -316,6 +321,7 @@ async function deleteUserData(userId) {
       try { await dbRun(db, `DELETE FROM ${JSON.stringify(name)} WHERE user_id = ?`, [userId]); } catch (_) {}
     }
     try { await dbRun(db, `DELETE FROM memory_erasure_journal WHERE user_id = ?`, [userId]); } catch (_) {}
+    try { await dbRun(db, `DELETE FROM f2_erasure_journal WHERE user_id = ?`, [userId]); } catch (_) {}
     await dbRun(db, `DELETE FROM users WHERE id = ?`, [userId]);
     await dbRun(db, `INSERT INTO deletion_journal (user_id, tables_purged_json) VALUES (?, ?)`,
       [userId, JSON.stringify(tables)]);
@@ -344,6 +350,7 @@ async function countUserRows(userId) {
   const u = await dbGet(db, `SELECT COUNT(*) c FROM users WHERE id = ?`, [userId]);
   if (Number(u && u.c)) { perTable.users = Number(u.c); total += Number(u.c); }
   try { const m = await dbGet(db, `SELECT COUNT(*) c FROM memory_erasure_journal WHERE user_id=?`, [userId]); if(Number(m&&m.c)){perTable.memory_erasure_journal=Number(m.c);total+=Number(m.c);} } catch (_) {}
+  try { const f = await dbGet(db, `SELECT COUNT(*) c FROM f2_erasure_journal WHERE user_id=?`, [userId]); if(Number(f&&f.c)){perTable.f2_erasure_journal=Number(f.c);total+=Number(f.c);} } catch (_) {}
   return { total, perTable };
 }
 
