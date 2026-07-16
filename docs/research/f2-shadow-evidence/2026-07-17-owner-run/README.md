@@ -61,3 +61,19 @@ UI occurs.
 Production disk reported approximately 90% used after backup/deploy, with
 reclaimable Docker images/build cache. This is a separate maintenance item, not
 an F2 evidence result.
+
+## Owner UX finding 2026-07-17
+
+The first owner interaction found a material UI ambiguity: manual scan created
+or offered an F2 chain inline, but discarded the `/offer` response instead of
+opening the established `Учить новые слова` training dialog. B1 also exposed a
+text field without a playable stimulus. Per the run stop condition, the owner
+path is not counted as completed evidence until remediation is deployed and
+reverified.
+
+Remediation keeps F2 storage and evaluation separate while reusing the familiar
+training dialog vocabulary: `Тренировка` plus the visible Reading/Audio/RU→HE/
+Dictation channel rail. Only the construct-valid channel is enabled (B1
+Dictation, B2 Reading). B1 eligibility now requires an already-baked public
+audio asset and playback uses an authenticated owner-scoped endpoint; it cannot
+invoke a provider or write canonical learning state.

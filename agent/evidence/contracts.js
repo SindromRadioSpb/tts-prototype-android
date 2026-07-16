@@ -4,7 +4,7 @@ const crypto = require("crypto");
 
 const SCHEMA_VERSION = "f2-shadow.1.0.0";
 const POLICY_VERSION = "f2-shadow-policy.1.0.0";
-const B1_PREDICATE_VERSION = "f2-b1-predicate.1.0.0";
+const B1_PREDICATE_VERSION = "f2-b1-predicate.1.1.0";
 const B2_PREDICATE_VERSION = "f2-b2-predicate.1.0.0";
 const EVALUATOR_VERSION = "f2-deterministic-evaluator.1.0.0";
 const RUBRIC_VERSION = "f2-closed-answer-rubric.1.0.0";

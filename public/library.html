@@ -1436,6 +1436,17 @@
     .mentor-evidence-stimulus { margin-top: 8px; padding: 10px; border-radius: 9px; background: var(--bg-muted); font-size: 16px; line-height: 1.55; direction: rtl; text-align: start; overflow-wrap: anywhere; }
     .mentor-evidence-result { margin-top: 8px; color: var(--text-primary); font-size: 13px; font-weight: 600; }
     .mentor-evidence-wrap input, .mentor-evidence-wrap select { max-width: 100%; }
+    .room-evidence-study { z-index: 1040; }
+    .room-evidence-study .room-study-card { max-width: 560px; }
+    .room-evidence-dialog-badge { align-self: flex-start; margin-bottom: 7px; }
+    .room-evidence-dialog-boundary { margin-bottom: 14px; }
+    .room-evidence-dialog-body { display: grid; gap: 12px; }
+    .room-evidence-dialog-intro { color: var(--text-primary); font-size: 14px; line-height: 1.5; }
+    .room-evidence-answer { width: 100%; box-sizing: border-box; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--border-soft); background: var(--bg-card); color: var(--text-primary); font-size: 18px; }
+    .room-evidence-listen { appearance: none; cursor: pointer; justify-self: start; width: auto !important; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-contrast); font-weight: 700; }
+    .room-evidence-dialog-status[hidden] { display: none; }
+    .room-evidence-study button { width: auto !important; }
+    @media (max-width: 480px) { .room-evidence-study .room-study-card { max-height: 92vh; } .room-evidence-study .room-train-channels { justify-content: flex-start; } }
     @media (max-width: 480px) { .mentor-memory-add { grid-template-columns: 1fr; } .mentor-memory-add button { justify-self: start; } }
     /* PAS-F1 — «Свой LLM-ключ» */
     .mentor-byok-title { margin: 14px 0 4px; font-size: 14px; }

@@ -3,6 +3,8 @@ const log=require("../../db/learnerLogRepo");
 const projections=require("../../db/learnerProjectionRepo");
 const keying=require("../../db/keyingService");
 const corpus=require("../../db/f2CorpusTargetRepo");
+const audio=require("../../db/audioRepo");
+const {computeDictateAssetKey}=require("../../db/premium/ttsAssetKey");
 const C=require("./contracts");
 
 function parsed(row){try{return JSON.parse(row.meta_json||"{}");}catch(_){return {};}}
@@ -20,6 +22,7 @@ async function selectB1(userId,nowMs=Date.now()){
     let code=dates.size<2?"B1_RECEPTIVE_DATES_LT2":dictate?"B1_DICTATE_ALREADY_SUPPORTED":(!recent.length||nowMs-Date.parse(recent[recent.length-1].reviewed_at)<86400000)?"B1_TOO_RECENT":null;
     const projection=await projections.getProjection(userId,item_key);if(!code&&!projection)code="B1_PROJECTION_MISSING";
     const form=code?null:await keying.dictateFormForItemKey(item_key);if(!code&&!form)code="B1_ASSET_OR_AMBIGUITY";
+    if(!code){const assetKey=computeDictateAssetKey(form.vocalized);if(!await audio.hasAsset(assetKey))code="B1_AUDIO_ASSET_MISSING";}
     if(code){exclusions[code]=(exclusions[code]||0)+1;continue;}
     eligible.push({construct_id:C.CONSTRUCTS.B1,item_key,authority_class:"CANONICAL_PATTERN",canonical_event_refs:recent.map(r=>r.id).slice(-5),source_a:{event_ids:recent.map(r=>r.id).slice(-5)},predicate_version:C.B1_PREDICATE_VERSION,observed_at:recent[recent.length-1].reviewed_at,form});
   }

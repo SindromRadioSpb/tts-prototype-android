@@ -12,6 +12,16 @@ handoff, external evaluator, background jobs и notifications остаются o
 **Engineering basis:** commit `ed3cf11`, package `3.11.189`, migration 041;
 `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED`.
 
+**Owner UX addendum, 2026-07-17:** F2 remains a separate non-canonical shadow
+artifact path, but its learner-facing attempt must use the established
+`Учить новые слова` dialog grammar: visible `Тренировка` mode and the common
+Reading/Audio/RU→HE/Dictation channel rail. Only the construct-valid channel is
+enabled (B1 Dictation, B2 Reading), and the dialog must state that the attempt
+does not change word memory, grade or schedule. An inline answer control without
+this dialog, or B1 without playable already-baked audio, is materially ambiguous
+and does not count as owner-live evidence. This addendum does not enable normal
+training writes, providers, planner handoff, background work, CP0 or AA2.
+
 Этот packet фиксирует утверждённую permanent owner-only capability и отдельный
 bounded evidence run после успешного default-off engineering deploy.
 
