@@ -77,3 +77,21 @@ Dictation channel rail. Only the construct-valid channel is enabled (B1
 Dictation, B2 Reading). B1 eligibility now requires an already-baked public
 audio asset and playback uses an authenticated owner-scoped endpoint; it cannot
 invoke a provider or write canonical learning state.
+
+## Owner UX finding 2 — terminal-state and learner-copy defects
+
+The owner completed the B1 attempt on a real mobile device and found two more
+material defects:
+
+1. the result exposed internal evaluator/reducer vocabulary
+   (`CORRECT_UNASSISTED`, `NO_EXTRA_TARGETED_PRACTICE`) instead of learner copy;
+2. after submission, closing the dialog outside the `Готово` path left a stale
+   `Продолжить` action. Reopening it displayed an audio control for a request
+   already terminal on the server, producing an audio error and a dead end.
+
+The remediation keeps the server's terminal-state protection intact, updates
+the client request to `COMPLETED` immediately, refreshes the mentor projection,
+and maps all closed verdict/decision codes to RU/EN/HE learner copy. B1 now
+uses the canonical large speaker stimulus and `Прослушай и впиши слово`
+hierarchy from the ordinary training flow. Durable prevention rules are in
+`docs/planning/LINGUISTPRO_WAVE2_F2_LESSONS_LEARNED_2026_07_17.md`.
