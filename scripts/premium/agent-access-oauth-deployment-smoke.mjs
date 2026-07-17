@@ -125,7 +125,9 @@ assert.equal(boundary.validateOAuthHttpRequest({ enabled: '1', agent_access_enab
 for (const [path, method, expected] of [
   ['/.well-known/oauth-protected-resource/agent-access/mcp', 'GET', 'discovery'],
   ['/oauth/auth?client_id=fixture&response_type=code', 'GET', 'authorization'],
+  ['/oauth/auth/provider_resume_1', 'GET', 'authorization'],
   ['/oauth/interaction/fixture?request_id=opaque', 'GET', 'interaction'],
+  ['/oauth/interaction/fixture/complete?request_id=opaque', 'GET', 'interaction'],
   ['/oauth/token?fixture=negative', 'POST', 'token'],
   ['/oauth/token/revocation?fixture=negative', 'POST', 'revocation'],
 ]) assert.equal(gateModule.routeClass(path, method), expected);
@@ -136,6 +138,9 @@ for (const path of [
   '/oauth/.well-known/oauth-authorization-server',
   '/oauth/request',
   '/oauth/register',
+  '/oauth/auth/',
+  '/oauth/auth/provider.resume',
+  '/oauth/interaction/fixture/complete/extra',
   '/oauth/jwks/alternate',
 ]) {
   assert.equal(gateModule.routeClass(path, 'GET'), null);

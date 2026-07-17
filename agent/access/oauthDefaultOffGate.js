@@ -23,8 +23,12 @@ function routeClass(path, method) {
   ].includes(pathname)) return "discovery";
   if (pathname === "/oauth/token/revocation") return "revocation";
   if (pathname === "/oauth/token") return "token";
-  if (/^\/oauth\/interaction\/[A-Za-z0-9_-]+$/.test(pathname)) return "interaction";
-  if (pathname === "/oauth/auth") return "authorization";
+  if (/^\/oauth\/interaction\/[A-Za-z0-9_-]{1,96}(?:\/complete)?$/.test(pathname)) return "interaction";
+  // oidc-provider resumes an authorization after each first-party interaction
+  // at the configured authorization route plus the opaque interaction uid.
+  // Keep that provider-owned continuation behind the same clients/default-off
+  // boundary as the initial authorization request.
+  if (pathname === "/oauth/auth" || /^\/oauth\/auth\/[A-Za-z0-9_-]{1,96}$/.test(pathname)) return "authorization";
   return null;
 }
 
