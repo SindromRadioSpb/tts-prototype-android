@@ -3,10 +3,20 @@
 const { validateOAuthHttpRequest } = require("./oauthHttpBoundary");
 const { protectedResourceMetadata, authorizationServerMetadata, openidConfiguration } = require("./oauthDeploymentContracts");
 
+const PROTECTED_RESOURCE_METADATA_PATH = "/.well-known/oauth-protected-resource/agent-access";
+const PROTECTED_RESOURCE_METADATA_MCP_ALIAS_PATH = `${PROTECTED_RESOURCE_METADATA_PATH}/mcp`;
+
 function routeClass(path, method) {
-  const pathname = String(path || "").split("?", 1)[0];
+  const rawPath = String(path || "");
+  const pathname = rawPath.split("?", 1)[0];
+  // The compatibility alias is an exact protocol path, not a prefix or a
+  // query-bearing discovery surface. Keep the canonical route's historical
+  // query handling unchanged while failing closed on alias variants.
+  if (pathname === PROTECTED_RESOURCE_METADATA_MCP_ALIAS_PATH
+    && rawPath !== PROTECTED_RESOURCE_METADATA_MCP_ALIAS_PATH) return null;
   if ([
-    "/.well-known/oauth-protected-resource/agent-access",
+    PROTECTED_RESOURCE_METADATA_PATH,
+    PROTECTED_RESOURCE_METADATA_MCP_ALIAS_PATH,
     "/.well-known/oauth-authorization-server/oauth",
     "/oauth/.well-known/openid-configuration",
     "/oauth/jwks",
@@ -54,7 +64,9 @@ function createOAuthDefaultOffGate({ getRuntime = async () => null, limiter = nu
     catch (_) { return res.status(503).json({ error: "AA_OAUTH_RUNTIME_NOT_CONFIGURED" }); }
     if (!runtime || typeof runtime.nodeHandler !== "function") return res.status(503).json({ error: "AA_OAUTH_RUNTIME_NOT_CONFIGURED" });
     const path = String(req.originalUrl || req.url || "").split("?", 1)[0];
-    if (path === "/.well-known/oauth-protected-resource/agent-access") return res.json(protectedResourceMetadata());
+    if ([PROTECTED_RESOURCE_METADATA_PATH, PROTECTED_RESOURCE_METADATA_MCP_ALIAS_PATH].includes(path)) {
+      return res.json(protectedResourceMetadata());
+    }
     if (path === "/.well-known/oauth-authorization-server/oauth") return res.json(authorizationServerMetadata());
     if (path === "/oauth/.well-known/openid-configuration") return res.json(openidConfiguration());
     if (!path.startsWith("/oauth/")) return res.status(404).json({ error: "not_found" });
@@ -63,4 +75,9 @@ function createOAuthDefaultOffGate({ getRuntime = async () => null, limiter = nu
   };
 }
 
-module.exports = { createOAuthDefaultOffGate, routeClass };
+module.exports = {
+  createOAuthDefaultOffGate,
+  routeClass,
+  PROTECTED_RESOURCE_METADATA_PATH,
+  PROTECTED_RESOURCE_METADATA_MCP_ALIAS_PATH,
+};

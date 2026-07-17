@@ -123,12 +123,21 @@ assert.deepEqual(
 );
 assert.equal(boundary.validateOAuthHttpRequest({ enabled: '1', agent_access_enabled: '1', clients_enabled: '1', host: 'linguistpro.kolosei.com', socket_protocol: 'https', route_class: 'authorization', method: 'GET' }).ok, true);
 for (const [path, method, expected] of [
+  ['/.well-known/oauth-protected-resource/agent-access/mcp', 'GET', 'discovery'],
   ['/oauth/auth?client_id=fixture&response_type=code', 'GET', 'authorization'],
   ['/oauth/interaction/fixture?request_id=opaque', 'GET', 'interaction'],
   ['/oauth/token?fixture=negative', 'POST', 'token'],
   ['/oauth/token/revocation?fixture=negative', 'POST', 'revocation'],
 ]) assert.equal(gateModule.routeClass(path, method), expected);
-for (const path of ['/oauth/.well-known/oauth-authorization-server', '/oauth/request', '/oauth/register', '/oauth/jwks/alternate']) {
+for (const path of [
+  '/.well-known/oauth-protected-resource/agent-access/mcp?client=inspector',
+  '/.well-known/oauth-protected-resource/agent-access/mcp/',
+  '/.well-known/oauth-protected-resource/agent-access/mcp/extra',
+  '/oauth/.well-known/oauth-authorization-server',
+  '/oauth/request',
+  '/oauth/register',
+  '/oauth/jwks/alternate',
+]) {
   assert.equal(gateModule.routeClass(path, 'GET'), null);
 }
 for (const input of [
@@ -184,17 +193,45 @@ try {
   await stagedGate({ ...requestShape, originalUrl: '/.well-known/oauth-protected-resource/agent-access', url: '/.well-known/oauth-protected-resource/agent-access' }, response);
   assert.equal(response.statusCode, 200);
   assert.equal(response.body.resource, RESOURCE);
+  const canonicalProtectedResourceMetadata = response.body;
   assert.equal(stagedRuntimeLookups, 1);
+  response = mockResponse();
+  await stagedGate({ ...requestShape, originalUrl: '/.well-known/oauth-protected-resource/agent-access/mcp', url: '/.well-known/oauth-protected-resource/agent-access/mcp' }, response);
+  assert.equal(response.statusCode, 200);
+  assert.deepEqual(response.body, canonicalProtectedResourceMetadata);
+  assert.equal(response.body.resource, RESOURCE);
+  assert.equal(stagedRuntimeLookups, 2);
+  for (const request of [
+    { ...requestShape, originalUrl: '/.well-known/oauth-protected-resource/agent-access/mcp?client=inspector', url: '/.well-known/oauth-protected-resource/agent-access/mcp?client=inspector' },
+    { ...requestShape, originalUrl: '/.well-known/oauth-protected-resource/agent-access/mcp/', url: '/.well-known/oauth-protected-resource/agent-access/mcp/' },
+  ]) {
+    response = mockResponse();
+    await stagedGate(request, response);
+    assert.equal(response.statusCode, 404);
+    assert.equal(stagedRuntimeLookups, 2);
+  }
+  for (const [request, status, error] of [
+    [{ ...requestShape, method: 'POST', originalUrl: '/.well-known/oauth-protected-resource/agent-access/mcp', url: '/.well-known/oauth-protected-resource/agent-access/mcp' }, 405, 'AA_OAUTH_METHOD_NOT_ALLOWED'],
+    [{ ...requestShape, headers: { host: 'evil.example' }, originalUrl: '/.well-known/oauth-protected-resource/agent-access/mcp', url: '/.well-known/oauth-protected-resource/agent-access/mcp' }, 400, 'AA_OAUTH_BOUNDARY_BAD_HOST'],
+    [{ ...requestShape, headers: { host: 'linguistpro.kolosei.com', origin: 'https://evil.example' }, originalUrl: '/.well-known/oauth-protected-resource/agent-access/mcp', url: '/.well-known/oauth-protected-resource/agent-access/mcp' }, 403, 'AA_OAUTH_CORS_DISABLED'],
+    [{ ...requestShape, socket: { encrypted: false }, headers: { host: 'linguistpro.kolosei.com', 'x-forwarded-host': 'linguistpro.kolosei.com', 'x-forwarded-proto': 'https' }, originalUrl: '/.well-known/oauth-protected-resource/agent-access/mcp', url: '/.well-known/oauth-protected-resource/agent-access/mcp' }, 400, 'AA_OAUTH_BOUNDARY_UNTRUSTED_FORWARDING'],
+  ]) {
+    response = mockResponse();
+    await stagedGate(request, response);
+    assert.equal(response.statusCode, status);
+    assert.equal(response.body.error, error);
+    assert.equal(stagedRuntimeLookups, 2);
+  }
   response = mockResponse();
   await stagedGate(requestShape, response);
   assert.equal(response.statusCode, 200);
   assert.deepEqual(response.body, oidcCompatibility);
-  assert.equal(stagedRuntimeLookups, 2);
+  assert.equal(stagedRuntimeLookups, 3);
   response = mockResponse();
   await stagedGate(authorizationRequest, response);
   assert.equal(response.statusCode, 404);
   assert.equal(response.body.error, 'AGENT_ACCESS_OAUTH_CLIENTS_DISABLED');
-  assert.equal(stagedRuntimeLookups, 2);
+  assert.equal(stagedRuntimeLookups, 3);
 } finally {
   if (oldOauthFlag === undefined) delete process.env.AGENT_ACCESS_OAUTH_ENABLED; else process.env.AGENT_ACCESS_OAUTH_ENABLED = oldOauthFlag;
   if (oldUiFlag === undefined) delete process.env.AGENT_ACCESS_UI_ENABLED; else process.env.AGENT_ACCESS_UI_ENABLED = oldUiFlag;
@@ -291,6 +328,14 @@ try {
   const liveJwks = JSON.parse(liveJwksResponse.body);
   assert.deepEqual(liveJwks.keys.map((key) => key.kid), ['aa2b3-active-fixture', 'aa2b3-old-fixture']);
   assert.equal(liveJwks.keys.some((key) => key.d), false);
+  const liveCanonicalPrmResponse = await rawRequest(readinessOrigin, '/.well-known/oauth-protected-resource/agent-access', proxyHeaders);
+  const liveCompatibilityPrmResponse = await rawRequest(readinessOrigin, '/.well-known/oauth-protected-resource/agent-access/mcp', proxyHeaders);
+  assert.equal(liveCanonicalPrmResponse.status, 200);
+  assert.equal(liveCompatibilityPrmResponse.status, 200);
+  assert.deepEqual(JSON.parse(liveCompatibilityPrmResponse.body), JSON.parse(liveCanonicalPrmResponse.body));
+  assert.equal(JSON.parse(liveCompatibilityPrmResponse.body).resource, RESOURCE);
+  const liveAliasQueryResponse = await rawRequest(readinessOrigin, '/.well-known/oauth-protected-resource/agent-access/mcp?client=inspector', proxyHeaders);
+  assert.equal(liveAliasQueryResponse.status, 404);
   const alternateDiscovery = await rawRequest(readinessOrigin, '/oauth/.well-known/oauth-authorization-server', proxyHeaders);
   assert.equal(alternateDiscovery.status, 404);
   const clientDisabled = await rawRequest(readinessOrigin, '/oauth/auth?client_id=fixture&response_type=code', proxyHeaders);

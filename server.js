@@ -1553,7 +1553,11 @@ function requireCsrf(req, res, auth) {
 // future caller of stageTrustedRequest after protocol validation.
 const agentAccessOAuthRepo = require("./db/agentAccessOAuthRepo");
 const { createConsentCeremony } = require("./agent/access/consentCeremony");
-const { createOAuthDefaultOffGate } = require("./agent/access/oauthDefaultOffGate");
+const {
+  createOAuthDefaultOffGate,
+  PROTECTED_RESOURCE_METADATA_PATH,
+  PROTECTED_RESOURCE_METADATA_MCP_ALIAS_PATH,
+} = require("./agent/access/oauthDefaultOffGate");
 const { createOAuthInteractionBridge } = require("./agent/access/oauthInteractionBridge");
 const { createContentSafeOAuthAudit } = require("./agent/access/oauthAudit");
 const { createOAuthRateLimiter } = require("./agent/access/oauthRateLimiter");
@@ -1604,7 +1608,8 @@ async function getAgentAccessOAuthRuntime() {
 // AGENT_ACCESS_OAUTH_CLIENTS_ENABLED=1 kill switch. A client row alone cannot
 // activate access. Enabling discovery without a complete runtime fails 503.
 const agentAccessOAuthGate = createOAuthDefaultOffGate({ getRuntime: getAgentAccessOAuthRuntime, limiter: agentAccessOAuthLimiter });
-app.all("/.well-known/oauth-protected-resource/agent-access", agentAccessOAuthGate);
+app.all(PROTECTED_RESOURCE_METADATA_PATH, agentAccessOAuthGate);
+app.all(PROTECTED_RESOURCE_METADATA_MCP_ALIAS_PATH, agentAccessOAuthGate);
 app.all("/.well-known/oauth-authorization-server/oauth", agentAccessOAuthGate);
 app.all(/^\/oauth(?:\/|$)/, agentAccessOAuthGate);
 

@@ -35,8 +35,8 @@ const CLIENTS = new Map([
 const TOOL_ARGS = Object.freeze({
   get_learning_brief: {},
   get_review_summary: {},
-  search_public_reading_catalog: { language: 'he', audio: 'ANY', ready: 'ANY', sort: 'RELEVANCE', limit: 10 },
-  get_recent_explanation_metadata: { kinds: ['word'], limit: 10 },
+  search_public_reading_catalog: { language: 'he', audio: 'ANY', ready: 'ANY', sort: 'RELEVANCE', limit: 1 },
+  get_recent_explanation_metadata: { kinds: ['word'], limit: 1 },
   get_agent_connection: {},
 });
 
@@ -106,8 +106,11 @@ app.use((req, res, next) => {
   if (req.method === 'OPTIONS') return res.status(204).end();
   next();
 });
-app.get('/.well-known/oauth-protected-resource/agent-access', (_req, res) => { count('prm'); res.json({ resource: `${state.origin}${RESOURCE_PATH}`, authorization_servers: [`${state.origin}/oauth`], bearer_methods_supported: ['header'], scopes_supported: SCOPES }); });
-app.get('/.well-known/oauth-protected-resource', (_req, res) => { count('prm'); res.json({ resource: `${state.origin}${RESOURCE_PATH}`, authorization_servers: [`${state.origin}/oauth`], bearer_methods_supported: ['header'], scopes_supported: SCOPES }); });
+function protectedResourceMetadata() { return { resource: `${state.origin}${RESOURCE_PATH}`, authorization_servers: [`${state.origin}/oauth`], bearer_methods_supported: ['header'], scopes_supported: SCOPES }; }
+app.get('/.well-known/oauth-protected-resource/agent-access', (_req, res) => { count('prm-canonical'); res.json(protectedResourceMetadata()); });
+app.get('/.well-known/oauth-protected-resource/agent-access/mcp', (_req, res) => { count('prm-compatibility'); res.json(protectedResourceMetadata()); });
+app.get('/.well-known/oauth-protected-resource', (_req, res) => { count('prm-root-fallback'); res.json(protectedResourceMetadata()); });
+app.all('/authorize', (_req, res) => { count('authorize-root-fallback'); res.status(404).json({ error: 'not_found' }); });
 function metadata(_req, res) { count('metadata'); res.json({ issuer: `${state.origin}/oauth`, authorization_endpoint: `${state.origin}/oauth/auth`, token_endpoint: `${state.origin}/oauth/token`, revocation_endpoint: `${state.origin}/oauth/revoke`, jwks_uri: `${state.origin}/oauth/jwks`, response_types_supported: ['code'], response_modes_supported: ['query'], grant_types_supported: ['authorization_code', 'refresh_token'], token_endpoint_auth_methods_supported: ['none'], code_challenge_methods_supported: ['S256'], scopes_supported: SCOPES }); }
 app.get('/.well-known/oauth-authorization-server/oauth', metadata); app.get('/.well-known/oauth-authorization-server', metadata); app.get('/oauth/.well-known/openid-configuration', metadata);
 app.get('/oauth/jwks', (_req, res) => { count('jwks'); res.json({ keys: [publicJwk] }); });
@@ -158,6 +161,11 @@ try {
   const hermesResult = JSON.parse(hermes.stdout.trim().split(/\r?\n/).at(-1)); assert.equal(hermesResult.version, '0.18.2'); assert.equal(hermesResult.tools, 5); assert.equal(hermesResult.protocol, MCP_PROTOCOL_VERSION);
 
   const proxyAuth = randomBytes(32).toString('hex');
+  const inspectorDiscoveryBaseline = {
+    compatibility: state.routes.get('prm-compatibility') || 0,
+    rootFallback: state.routes.get('prm-root-fallback') || 0,
+    authorizeRootFallback: state.routes.get('authorize-root-fallback') || 0,
+  };
   inspectorProcess = spawn('node', [inspectorCli], { cwd: inspectorRoot, env: { ...process.env, MCP_PROXY_AUTH_TOKEN: proxyAuth, MCP_AUTO_OPEN_ENABLED: 'false', CLIENT_PORT: '6274', SERVER_PORT: '6277' }, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
   const inspectorOutput = []; inspectorProcess.stdout.on('data', (chunk) => inspectorOutput.push(chunk)); inspectorProcess.stderr.on('data', (chunk) => inspectorOutput.push(chunk));
   for (let attempt = 0; attempt < 60; attempt += 1) { try { const response = await fetch('http://localhost:6274'); if (response.ok) break; } catch {} await new Promise((resolve) => setTimeout(resolve, 250)); if (attempt === 59) throw new Error('INSPECTOR_START_TIMEOUT'); }
@@ -177,6 +185,9 @@ try {
     if (!inspectorToken) await new Promise((resolve) => setTimeout(resolve, 250));
   }
   assert.ok(inspectorToken?.access_token && inspectorToken?.refresh_token && !inspectorOutput.some((chunk) => chunk.toString('utf8').includes(inspectorToken.access_token)));
+  assert.ok((state.routes.get('prm-compatibility') || 0) > inspectorDiscoveryBaseline.compatibility);
+  assert.equal(state.routes.get('prm-root-fallback') || 0, inspectorDiscoveryBaseline.rootFallback);
+  assert.equal(state.routes.get('authorize-root-fallback') || 0, inspectorDiscoveryBaseline.authorizeRootFallback);
   const inspectorStorage = await page.evaluate((accessToken) => ({
     sessionHasToken: Object.values(sessionStorage).some((value) => value?.includes(accessToken)),
     localHasToken: Object.values(localStorage).some((value) => value?.includes(accessToken)),
@@ -235,15 +246,23 @@ try {
   });
   lifecycle = await mcpProbe(rotatedHermes.access_token); assert.equal(lifecycle.status, 401);
   lifecycle = await mcpProbe(inspectorToken.access_token); assert.equal(lifecycle.status, 200);
-  const inspectorRevokeForm = new URLSearchParams({ token: inspectorToken.refresh_token, client_id: INSPECTOR_CLIENT_ID });
+  const inspectorRefreshForm = new URLSearchParams({ grant_type: 'refresh_token', refresh_token: inspectorToken.refresh_token, client_id: INSPECTOR_CLIENT_ID, resource: `${state.origin}${RESOURCE_PATH}` });
+  lifecycle = await fetch(`${state.origin}/oauth/token`, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: inspectorRefreshForm });
+  assert.equal(lifecycle.status, 200);
+  const rotatedInspector = await lifecycle.json();
+  assert.equal(typeof rotatedInspector.refresh_token, 'string');
+  assert.notEqual(rotatedInspector.refresh_token, inspectorToken.refresh_token);
+  lifecycle = await mcpProbe(rotatedInspector.access_token); assert.equal(lifecycle.status, 200);
+  const inspectorRevokeForm = new URLSearchParams({ token: rotatedInspector.refresh_token, client_id: INSPECTOR_CLIENT_ID });
   lifecycle = await fetch(`${state.origin}/oauth/revoke`, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: inspectorRevokeForm });
   assert.equal(lifecycle.status, 200);
   lifecycle = await mcpProbe(inspectorToken.access_token); assert.equal(lifecycle.status, 401);
+  lifecycle = await mcpProbe(rotatedInspector.access_token); assert.equal(lifecycle.status, 401);
 
   assert.equal(state.dcr, 0); assert.equal(state.cimd, 0); assert.equal(state.registration, 0); assert.equal(state.production, 0); assert.equal(state.provider, 0); assert.equal(externalNetworkCalls, 0);
-  assert.equal(state.toolCalls.get(HERMES_CLIENT_ID), 5); assert.ok((state.toolCalls.get(INSPECTOR_CLIENT_ID) || 0) >= 5);
+  assert.equal(state.toolCalls.get(HERMES_CLIENT_ID), 5); assert.equal(state.toolCalls.get(INSPECTOR_CLIENT_ID) || 0, 5);
   assert.ok((state.routes.get('token') || 0) >= 3); assert.ok((state.routes.get('mcp') || 0) >= 12);
-  console.log(JSON.stringify({ ok: true, status: 'TWO_CLIENT_FIXTURE_PASS', protocol: MCP_PROTOCOL_VERSION, hermes: '0.18.2', inspector: '0.22.0', tools_per_client: 5, refresh_rotation: true, refresh_reuse_isolated: true, revoke_isolated: true, dcr_requests: 0, cimd_requests: 0, registration_requests: 0, hermes_token_store: tokenStoreProtection, inspector_token_store: 'SESSION_STORAGE_ONLY', token_store_values_logged: 0, external_network_calls: 0, production_requests: 0, provider_calls: 0, live_data_reads: 0 }));
+  console.log(JSON.stringify({ ok: true, status: 'TWO_CLIENT_FIXTURE_PASS', protocol: MCP_PROTOCOL_VERSION, hermes: '0.18.2', inspector: '0.22.0', tools_per_client: 5, inspector_prm_alias_discovered: true, inspector_root_authorize_fallbacks: 0, inspector_refresh_rotation: true, refresh_rotation: true, refresh_reuse_isolated: true, revoke_isolated: true, dcr_requests: 0, cimd_requests: 0, registration_requests: 0, hermes_token_store: tokenStoreProtection, inspector_token_store: 'SESSION_STORAGE_ONLY', token_store_values_logged: 0, external_network_calls: 0, production_requests: 0, provider_calls: 0, live_data_reads: 0 }));
 } finally {
   await browser?.close().catch(() => {}); await stop(inspectorProcess); await close(server); await fsp.rm(scratch, { recursive: true, force: true });
 }
