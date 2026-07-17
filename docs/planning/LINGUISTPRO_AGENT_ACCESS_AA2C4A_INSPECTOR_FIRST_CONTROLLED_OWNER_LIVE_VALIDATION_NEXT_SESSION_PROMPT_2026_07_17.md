@@ -1,8 +1,16 @@
-# Next-session prompt — AA2-C4A Inspector-first controlled owner-only live validation
+# Next-session prompt — AA2-C4A Inspector discovery-compatibility blocker
 
 Work in `E:\projects\tts-prototype-android`.
 
-This is a durable handoff for a separately approved C4A production window. It is not execution authority. Do not read the private production runbook, create a backup, change production config/data/client state, restart, configure Inspector, start OAuth or call MCP until the owner supplies the exact approval in the C4A packet §16 naming the final packet commit.
+The former §16 approval for packet commit `5601aeac5108122242e20c39c47653b61ed9a21d` was consumed on 2026-07-17. The window stopped before consent, token issuance, MCP initialization or handler dispatch because Inspector `0.22.0` derived protected-resource metadata discovery from `/agent-access/mcp`, while production publishes the reviewed resource metadata for `/agent-access`. The single permitted pre-dispatch retry was exhausted.
+
+Flag-first rollback completed: OAuth clients gate `0`, MCP gate `0`, owner allowlist removed, Inspector and Hermes `SUSPENDED`, exact production revision/package unchanged, lifecycle live authority `0`, isolated Inspector runtime/profile removed, and 15 one-minute health samples all `200`. Two bounded content-safe audit rows remain from the pre-dispatch failures; they are not live authority.
+
+Read the execution evidence before planning anything:
+
+`docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_EVIDENCE_2026_07_17.md`
+
+This prompt is not authority to retry C4A. Do not read the private production runbook, create a backup, mutate production config/data/client state, restart, configure Inspector, start OAuth, call MCP or touch Hermes. First prepare a separate default-off discovery-compatibility repair/validation packet and obtain exact owner approval.
 
 ## Read fully before action
 
@@ -53,9 +61,9 @@ Report content-safely:
 
 Do not print the owner ID, environment values, production coordinates, credentials, tokens, cookies, headers, connection IDs or learner metadata.
 
-## Exact window
+## Historical exact window — consumed, not executable
 
-Follow C4A packet §§6–9 literally:
+The following was the consumed C4A sequence and must not be repeated under the old approval:
 
 1. take one fresh verified backup;
 2. activate only Inspector while both gates remain off;
@@ -76,13 +84,12 @@ Expected non-authoritative residue is permitted only as defined in packet §11: 
 
 On any mismatch or leak: set clients gate `0` and restart first; fail-close OAuth/MCP; suspend Inspector; revoke/delete the Inspector connection; clear the isolated profile; remove owner allowlist; disable/remove MCP; restart the same revision; verify zero live authority for 15 minutes. Restore the fresh backup only for DB integrity damage. Never touch Hermes or broaden scope to repair a failing gate.
 
-## Terminal status
+## Actual terminal status and next gate
 
-Only a fully successful window may be called:
+The 2026-07-17 execution ended as:
 
 ```text
-INSPECTOR_OWNER_WINDOW_PASS /
-INSPECTOR_REVOKED_DELETED_SUSPENDED /
+INSPECTOR_OWNER_WINDOW_STOPPED_PRE_DISPATCH /
 OWNER_ALLOWLIST_REMOVED /
 CLIENTS_GATE_OFF /
 MCP_GATE_OFF /
@@ -90,4 +97,4 @@ ZERO_LIVE_AUTHORITY /
 HERMES_UNTOUCHED
 ```
 
-This is not production MCP readiness, Hermes integration, learning evidence or launch. After success, stop and prepare a separate AA2-C4B Hermes decision packet; do not execute it.
+Do not call this production MCP readiness, five-handler live evidence, Hermes integration, learning evidence or launch. The next permissible planning artifact is a bounded Inspector discovery-compatibility repair/validation packet. It must choose and synthetically prove an exact metadata mechanism, obtain separate code/deployment authority if a route compatibility change is selected, and require a new owner approval for any later live window. AA2-C4B remains blocked.

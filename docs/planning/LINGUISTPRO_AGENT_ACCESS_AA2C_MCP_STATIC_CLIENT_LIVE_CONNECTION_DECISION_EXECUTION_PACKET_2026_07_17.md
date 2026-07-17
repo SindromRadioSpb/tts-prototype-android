@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-17
 
-**Status:** `AA2_C3_REGISTRATION_COMPLETE / C4_PRE_DEPLOYED_DEFAULT_OFF / C4A_PACKET_PREPARED_AWAITING_EXACT_OWNER_APPROVAL / ZERO_LIVE_AUTHORITY`.
+**Status:** `AA2_C3_REGISTRATION_COMPLETE / C4_PRE_DEPLOYED_DEFAULT_OFF / C4A_STOPPED_PRE_DISPATCH / FLAG_FIRST_ROLLBACK_COMPLETE / ZERO_LIVE_AUTHORITY / C4B_BLOCKED`.
 
 **C1 evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C1_DEFAULT_OFF_MCP_ENGINEERING_EVIDENCE_2026_07_17.md`. C1 completion does not authorize or imply C2, production registration, client activation, OAuth lifecycle execution, Hermes/Inspector configuration or a live connection.
 
@@ -12,13 +12,13 @@
 
 **C3 evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C3_PRODUCTION_REGISTRATION_STILL_DISABLED_EVIDENCE_2026_07_17.md`. Exact production registration completed with both reviewed public clients initially and continuously `SUSPENDED`, client/MCP gates off, zero dependent lifecycle rows, zero live connection and no deploy/restart. C4 remains separately prohibited.
 
-**C4A packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_PACKET_2026_07_17.md`. It is rebased onto deployed revision `e77241acb4fc1e8a0de58c2e7e2c05a41ada3cd3` and now fixes exact Inspector-only mutations, five-call allowlist, residue semantics, flag-first cleanup, rollback and owner wording. Preparation does not authorize any live action.
+**C4A packet/evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_PACKET_2026_07_17.md` and `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_EVIDENCE_2026_07_17.md`. The owner-approved window stopped before consent/token/MCP dispatch on an Inspector `0.22.0` protected-resource metadata path mismatch. The one pre-dispatch retry was exhausted; flag-first rollback restored both gates to `0`, removed the owner allowlist, suspended both clients and proved zero live authority for 15 minutes. C4A did not pass and C4B/Hermes remains blocked.
 
 **C4A handoff:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_NEXT_SESSION_PROMPT_2026_07_17.md`. It repeats exact read-first canon, frozen revision/tool/client identities, preflight, flag sequence, content-safe evidence boundary, rollback and terminal status.
 
 **C4-PRE packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_PACKET_2026_07_17.md`. The owner-approved bounded engineering and separately approved default-off deployment completed with five thin handlers, exact-one owner enforcement, package `3.11.197` and green gates. No live authority was enabled.
 
-**C4-PRE evidence:** engineering evidence is in `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_EVIDENCE_2026_07_17.md`; deployment evidence is in `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_EVIDENCE_2026_07_17.md`. C4A remains blocked pending a separate Inspector-only owner-live approval.
+**C4-PRE evidence:** engineering evidence is in `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_EVIDENCE_2026_07_17.md`; deployment evidence is in `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_EVIDENCE_2026_07_17.md`. C4-PRE remains complete; the later C4A attempt stopped pre-dispatch and now requires a separate discovery-compatibility repair/validation decision before any new live approval.
 
 **C4-PRE deployment packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_APPROVAL_PACKET_2026_07_17.md`. The owner approved exact packet-carrier commit `e77241acb4fc1e8a0de58c2e7e2c05a41ada3cd3`; its bounded default-off deployment and observation completed on 2026-07-17.
 

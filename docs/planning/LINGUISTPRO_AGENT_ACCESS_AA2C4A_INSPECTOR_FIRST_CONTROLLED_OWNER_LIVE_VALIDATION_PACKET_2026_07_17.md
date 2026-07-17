@@ -2,15 +2,21 @@
 
 **Date:** 2026-07-17
 
-**Packet status:** `EXECUTION_PACKET_PREPARED / AWAITING_EXACT_PACKET_COMMIT_OWNER_APPROVAL / C4A_EXECUTION_BLOCKED`
+**Packet status:** `EXECUTION_STOPPED_PRE_DISPATCH / FLAG_FIRST_ROLLBACK_COMPLETE / ZERO_LIVE_AUTHORITY / DISCOVERY_COMPATIBILITY_REPAIR_PACKET_REQUIRED`
 
 **Snapshot revision:** deployed packet-carrier `e77241acb4fc1e8a0de58c2e7e2c05a41ada3cd3`, reviewed handler revision `57527403893b8291a1648d989eead743a349cb96`, package `3.11.197`.
 
 **Durable execution handoff:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_NEXT_SESSION_PROMPT_2026_07_17.md`.
 
+**Execution evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_EVIDENCE_2026_07_17.md`.
+
 **Intended future terminal status:** `INSPECTOR_OWNER_WINDOW_PASS / INSPECTOR_REVOKED_DELETED_SUSPENDED / OWNER_ALLOWLIST_REMOVED / CLIENTS_GATE_OFF / MCP_GATE_OFF / ZERO_LIVE_AUTHORITY / HERMES_UNTOUCHED`.
 
-Packet preparation and its non-deploy docs commit do not authorize production mutation, backup creation, restart, owner-allowlist configuration, client activation, flag enablement, authorization, interaction, consent, token issuance/revocation, Inspector configuration, MCP/live calls or AA2-C4B. Execution requires a new owner message equivalent to §16 and naming the exact final packet commit.
+**Actual 2026-07-17 terminal status:** `INSPECTOR_OWNER_WINDOW_STOPPED_PRE_DISPATCH / OWNER_ALLOWLIST_REMOVED / CLIENTS_GATE_OFF / MCP_GATE_OFF / ZERO_LIVE_AUTHORITY / HERMES_UNTOUCHED`. The intended PASS status was not reached.
+
+The owner approved §16 for exact packet commit `5601aeac5108122242e20c39c47653b61ed9a21d`. Execution reached the bounded Inspector OAuth discovery step, then stopped before consent, token issuance, MCP initialization or handler dispatch because Inspector `0.22.0` derived protected-resource metadata locations from `/agent-access/mcp` while production publishes the reviewed resource metadata for `/agent-access`. The single permitted pre-dispatch retry was exhausted. Flag-first rollback and the full 15-minute zero-live-authority observation completed. No further C4A retry or C4B/Hermes action is authorized.
+
+This packet is now an executed historical control document. Its former §16 approval has been consumed and does not authorize another attempt. A separate discovery-compatibility repair/validation packet, any required code/deployment approval, and a new live-window approval are required before production mutation or another Inspector request. AA2-C4B remains prohibited.
 
 ## 1. Purpose
 
