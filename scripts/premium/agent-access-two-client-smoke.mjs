@@ -162,6 +162,8 @@ try {
   const inspectorOutput = []; inspectorProcess.stdout.on('data', (chunk) => inspectorOutput.push(chunk)); inspectorProcess.stderr.on('data', (chunk) => inspectorOutput.push(chunk));
   for (let attempt = 0; attempt < 60; attempt += 1) { try { const response = await fetch('http://localhost:6274'); if (response.ok) break; } catch {} await new Promise((resolve) => setTimeout(resolve, 250)); if (attempt === 59) throw new Error('INSPECTOR_START_TIMEOUT'); }
   browser = await chromium.launch({ headless: true }); const page = await browser.newPage();
+  let externalNetworkCalls = 0;
+  page.on('request', (request) => { try { if (!['127.0.0.1', 'localhost'].includes(new URL(request.url()).hostname)) externalNetworkCalls += 1; } catch { externalNetworkCalls += 1; } });
   await page.goto(`http://localhost:6274/?MCP_PROXY_AUTH_TOKEN=${proxyAuth}`, { waitUntil: 'networkidle' });
   await page.getByRole('combobox').first().click(); await page.getByRole('option', { name: 'Streamable HTTP' }).click();
   await page.locator('input[placeholder="URL"]').fill(`${state.origin}${MCP_PATH}`);
@@ -238,10 +240,10 @@ try {
   assert.equal(lifecycle.status, 200);
   lifecycle = await mcpProbe(inspectorToken.access_token); assert.equal(lifecycle.status, 401);
 
-  assert.equal(state.dcr, 0); assert.equal(state.cimd, 0); assert.equal(state.registration, 0); assert.equal(state.production, 0); assert.equal(state.provider, 0);
+  assert.equal(state.dcr, 0); assert.equal(state.cimd, 0); assert.equal(state.registration, 0); assert.equal(state.production, 0); assert.equal(state.provider, 0); assert.equal(externalNetworkCalls, 0);
   assert.equal(state.toolCalls.get(HERMES_CLIENT_ID), 5); assert.ok((state.toolCalls.get(INSPECTOR_CLIENT_ID) || 0) >= 5);
   assert.ok((state.routes.get('token') || 0) >= 3); assert.ok((state.routes.get('mcp') || 0) >= 12);
-  console.log(JSON.stringify({ ok: true, status: 'TWO_CLIENT_FIXTURE_PASS', protocol: MCP_PROTOCOL_VERSION, hermes: '0.18.2', inspector: '0.22.0', tools_per_client: 5, refresh_rotation: true, refresh_reuse_isolated: true, revoke_isolated: true, dcr_requests: 0, cimd_requests: 0, registration_requests: 0, hermes_token_store: tokenStoreProtection, inspector_token_store: 'SESSION_STORAGE_ONLY', token_store_values_logged: 0, production_requests: 0, provider_calls: 0, live_data_reads: 0 }));
+  console.log(JSON.stringify({ ok: true, status: 'TWO_CLIENT_FIXTURE_PASS', protocol: MCP_PROTOCOL_VERSION, hermes: '0.18.2', inspector: '0.22.0', tools_per_client: 5, refresh_rotation: true, refresh_reuse_isolated: true, revoke_isolated: true, dcr_requests: 0, cimd_requests: 0, registration_requests: 0, hermes_token_store: tokenStoreProtection, inspector_token_store: 'SESSION_STORAGE_ONLY', token_store_values_logged: 0, external_network_calls: 0, production_requests: 0, provider_calls: 0, live_data_reads: 0 }));
 } finally {
   await browser?.close().catch(() => {}); await stop(inspectorProcess); await close(server); await fsp.rm(scratch, { recursive: true, force: true });
 }
