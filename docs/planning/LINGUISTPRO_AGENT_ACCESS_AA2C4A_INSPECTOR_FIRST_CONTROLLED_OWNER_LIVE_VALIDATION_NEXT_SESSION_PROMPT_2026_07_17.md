@@ -1,4 +1,4 @@
-# Next-session prompt — AA2-C4A Inspector discovery-compatibility blocker
+# Next-session prompt — autonomous AA2-C4A repair through the Hermes configuration boundary
 
 Work in `E:\projects\tts-prototype-android`.
 
@@ -10,7 +10,11 @@ Read the execution evidence before planning anything:
 
 `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_EVIDENCE_2026_07_17.md`
 
-This prompt is not authority to retry C4A. Do not read the private production runbook, create a backup, mutate production config/data/client state, restart, configure Inspector, start OAuth, call MCP or touch Hermes. First prepare a separate default-off discovery-compatibility repair/validation packet and obtain exact owner approval.
+The separate repair/revalidation packet is now prepared:
+
+`docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_DISCOVERY_COMPATIBILITY_REPAIR_AND_REVALIDATION_PACKET_2026_07_17.md`
+
+This prompt is a durable handoff, not execution authority by itself. Start only when the owner message names the exact commit containing that packet and grants its §13 authority. Once that exact approval is present, execute the whole packet as one continuous terminal goal without intermediate approval requests, except the single bounded first-party browser gesture allowed there when human login/consent is objectively required.
 
 ## Read fully before action
 
@@ -26,8 +30,10 @@ This prompt is not authority to retry C4A. Do not read the private production ru
 10. `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_EVIDENCE_2026_07_17.md`
 11. `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_EVIDENCE_2026_07_17.md`
 12. `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_PACKET_2026_07_17.md`
+13. `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_EVIDENCE_2026_07_17.md`
+14. `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_DISCOVERY_COMPATIBILITY_REPAIR_AND_REVALIDATION_PACKET_2026_07_17.md`
 
-Read `.claude/PROD_OPS_PRIVATE.md` only after the exact §16 approval and only locally for minimum operations coordinates. Never reproduce it.
+Read `.claude/PROD_OPS_PRIVATE.md` only after the new packet's exact §13 approval, and only after local engineering gates are green, locally for minimum operations coordinates. Never reproduce it.
 
 ## Frozen execution identity
 
@@ -42,7 +48,7 @@ Inspector client    = linguistpro-mcp-inspector-v0
 Hermes client       = linguistpro-hermes-owner-v0, always SUSPENDED
 ```
 
-The final packet commit is supplied by the owner approval. Any production/main/package drift, code delta, unexpected lifecycle row or inability to prove rollback is a stop condition. Do not merge/rebase around drift.
+The exact packet commit is supplied by the owner approval. The approved packet selects a standards-aligned path-scoped protected-resource metadata alias, package target `3.11.198`, exact engineering file allowlist, synthetic gates, one exact fast-forward main deploy, default-off observation, one C4A Inspector window, cleanup and a C4B planning handoff. Any production/main/package drift, unknown code delta, unexpected live-authority row or inability to prove rollback is a stop condition. Do not merge/rebase around drift.
 
 ## Preflight before any mutation
 
@@ -61,22 +67,21 @@ Report content-safely:
 
 Do not print the owner ID, environment values, production coordinates, credentials, tokens, cookies, headers, connection IDs or learner metadata.
 
-## Historical exact window — consumed, not executable
+## Autonomous terminal goal after exact approval
 
-The following was the consumed C4A sequence and must not be repeated under the old approval:
+Follow the new packet exactly:
 
-1. take one fresh verified backup;
-2. activate only Inspector while both gates remain off;
-3. configure one exact owner allowlist plus MCP gate `1`, restart and prove OAuth clients still off;
-4. set clients gate `1`, restart the same revision and prove Hermes remains suspended and lifecycle pre-state zero;
-5. pause only for the owner’s first-party login/consent interaction if interactive input is required;
-6. execute one authorization, one consent, one `initialize`, one `tools/list`, and exactly one call to each of the five allowlisted tools;
-7. retain only booleans/schema versions/status/byte and cardinality counts; never capture result values, IDs, titles/authors or learner aggregates;
-8. perform one refresh rotation without reuse, then revoke;
-9. close clients gate first and restart before cleanup;
-10. suspend Inspector, revoke/delete its connection, clear/destroy Inspector token store/profile;
-11. remove owner allowlist, disable/remove MCP gate, retain clients gate `0`, restart;
-12. verify exact zero live authority and observe for 15 minutes; write content-safe evidence on a non-deploy branch and stop.
+1. perform the complete preflight and create a scoped branch from exact `origin/main`;
+2. implement only the exact PRM compatibility alias and tests inside the packet allowlist;
+3. run all focused and adjacent synthetic gates, autonomously repairing only in-scope defects;
+4. bump `3.11.197 -> 3.11.198`, prove lock/dependency parity, create one scoped engineering commit;
+5. take one fresh backup, exact fast-forward that commit to main and observe normal production auto-deploy;
+6. prove both PRM routes identical and the deployment fully default-off for 15 minutes;
+7. execute the single preauthorized Inspector C4A window, pausing only for an unavoidable owner login/consent gesture;
+8. revoke/delete, close clients first, suspend Inspector, remove owner allowlist, disable MCP and destroy isolated token residue;
+9. prove zero live authority and stable health for 15 minutes;
+10. commit content-safe evidence/status plus a separate C4B Hermes configuration approval packet/prompt only on a non-deploy branch;
+11. stop before opening or changing Hermes.
 
 Expected non-authoritative residue is permitted only as defined in packet §11: one opaque subject mapping, consent history, erasure/audit tombstone and bounded denial metadata. Do not delete it ad hoc and do not call it live authority.
 
@@ -84,17 +89,21 @@ Expected non-authoritative residue is permitted only as defined in packet §11: 
 
 On any mismatch or leak: set clients gate `0` and restart first; fail-close OAuth/MCP; suspend Inspector; revoke/delete the Inspector connection; clear the isolated profile; remove owner allowlist; disable/remove MCP; restart the same revision; verify zero live authority for 15 minutes. Restore the fresh backup only for DB integrity damage. Never touch Hermes or broaden scope to repair a failing gate.
 
-## Actual terminal status and next gate
+## Required terminal status
 
-The 2026-07-17 execution ended as:
+The new session succeeds only as:
 
 ```text
-INSPECTOR_OWNER_WINDOW_STOPPED_PRE_DISPATCH /
+INSPECTOR_DISCOVERY_COMPATIBILITY_REPAIRED /
+DEFAULT_OFF_DEPLOYMENT_VERIFIED /
+C4A_INSPECTOR_OWNER_WINDOW_PASS /
+INSPECTOR_REVOKED_DELETED_SUSPENDED /
 OWNER_ALLOWLIST_REMOVED /
 CLIENTS_GATE_OFF /
 MCP_GATE_OFF /
 ZERO_LIVE_AUTHORITY /
+HERMES_CONFIGURATION_PACKET_READY /
 HERMES_UNTOUCHED
 ```
 
-Do not call this production MCP readiness, five-handler live evidence, Hermes integration, learning evidence or launch. The next permissible planning artifact is a bounded Inspector discovery-compatibility repair/validation packet. It must choose and synthetically prove an exact metadata mechanism, obtain separate code/deployment authority if a route compatibility change is selected, and require a new owner approval for any later live window. AA2-C4B remains blocked.
+Do not call this Hermes integration/readiness, learning evidence or launch. C4B execution remains blocked. The session ends after the C4B packet/prompt non-deploy push; it does not install, configure, activate, authorize, contact or connect Hermes.

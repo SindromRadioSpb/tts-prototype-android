@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-17
 
-**Status:** `AA2_C3_REGISTRATION_COMPLETE / C4_PRE_DEPLOYED_DEFAULT_OFF / C4A_STOPPED_PRE_DISPATCH / FLAG_FIRST_ROLLBACK_COMPLETE / ZERO_LIVE_AUTHORITY / C4B_BLOCKED`.
+**Status:** `AA2_C3_REGISTRATION_COMPLETE / C4_PRE_DEPLOYED_DEFAULT_OFF / C4A_STOPPED_PRE_DISPATCH / DISCOVERY_REPAIR_PACKET_PREPARED / ZERO_LIVE_AUTHORITY / C4B_BLOCKED`.
 
 **C1 evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C1_DEFAULT_OFF_MCP_ENGINEERING_EVIDENCE_2026_07_17.md`. C1 completion does not authorize or imply C2, production registration, client activation, OAuth lifecycle execution, Hermes/Inspector configuration or a live connection.
 
@@ -15,6 +15,8 @@
 **C4A packet/evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_PACKET_2026_07_17.md` and `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_EVIDENCE_2026_07_17.md`. The owner-approved window stopped before consent/token/MCP dispatch on an Inspector `0.22.0` protected-resource metadata path mismatch. The one pre-dispatch retry was exhausted; flag-first rollback restored both gates to `0`, removed the owner allowlist, suspended both clients and proved zero live authority for 15 minutes. C4A did not pass and C4B/Hermes remains blocked.
 
 **C4A handoff:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_NEXT_SESSION_PROMPT_2026_07_17.md`. It repeats exact read-first canon, frozen revision/tool/client identities, preflight, flag sequence, content-safe evidence boundary, rollback and terminal status.
+
+**C4A repair/revalidation packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_DISCOVERY_COMPATIBILITY_REPAIR_AND_REVALIDATION_PACKET_2026_07_17.md`. It selects one path-scoped protected-resource metadata compatibility alias, preserves the canonical resource/scopes/client model, and defines a single separately approved terminal goal: default-off repair and synthetic proof, exact scoped deploy, default-off observation, one Inspector-only C4A window, full cleanup, then preparation of a C4B packet. It stops before all Hermes configuration/contact.
 
 **C4-PRE packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_PACKET_2026_07_17.md`. The owner-approved bounded engineering and separately approved default-off deployment completed with five thin handlers, exact-one owner enforcement, package `3.11.197` and green gates. No live authority was enabled.
 
@@ -66,7 +68,7 @@ The recommended MCP transport URL is separately fixed as:
 https://linguistpro.kolosei.com/agent-access/mcp
 ```
 
-The URL decision does not make the route exist. Protected-resource metadata must advertise the resource identifier and authorization server; the client connects to the transport URL supplied in its configuration. No alternate MCP path, per-client endpoint or discovery alias is allowed.
+The URL decision does not make the route exist. Protected-resource metadata must advertise the resource identifier and authorization server; the client connects to the transport URL supplied in its configuration. The failed C4A window proved that Inspector `0.22.0` also requires the MCP-spec path-scoped fallback at `/.well-known/oauth-protected-resource/agent-access/mcp`. A byte-equivalent alias to the existing metadata document is now the selected compatibility repair. It does not create an alternate MCP path, per-client endpoint, resource, scope or authority; all other discovery aliases remain prohibited.
 
 ## 3. Protocol and exact dependency freeze
 
@@ -305,7 +307,7 @@ Each slice uses a scoped allowlist commit. Unrelated owner files are excluded. P
 
 ## 15. Current executable slice
 
-The next possible executable slice is AA2-C4A Inspector-first controlled owner-only validation. Its packet is prepared, but execution remains blocked until the owner names the exact final packet commit and grants the bounded §16 authority. C1-C3 plus C4-PRE engineering/default-off deployment are complete. C4B Hermes remains a later separate unapproved decision.
+The next possible executable slice is the combined C4A discovery repair and Inspector revalidation packet. Execution remains blocked until the owner names its exact final packet commit and grants the bounded §13 engineering/deployment/live authority. C1-C3 plus C4-PRE engineering/default-off deployment are complete. C4B Hermes remains a later separate unapproved decision; the combined slice may prepare its packet but must stop before Hermes configuration or contact.
 
 ## 16. Source map
 

@@ -10,6 +10,8 @@
 
 **Execution evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_EVIDENCE_2026_07_17.md`.
 
+**Selected successor design awaiting exact owner approval:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_DISCOVERY_COMPATIBILITY_REPAIR_AND_REVALIDATION_PACKET_2026_07_17.md`. It supersedes the consumed §16 only after its own exact-commit §13 approval; this historical packet grants no retry authority.
+
 **Intended future terminal status:** `INSPECTOR_OWNER_WINDOW_PASS / INSPECTOR_REVOKED_DELETED_SUSPENDED / OWNER_ALLOWLIST_REMOVED / CLIENTS_GATE_OFF / MCP_GATE_OFF / ZERO_LIVE_AUTHORITY / HERMES_UNTOUCHED`.
 
 **Actual 2026-07-17 terminal status:** `INSPECTOR_OWNER_WINDOW_STOPPED_PRE_DISPATCH / OWNER_ALLOWLIST_REMOVED / CLIENTS_GATE_OFF / MCP_GATE_OFF / ZERO_LIVE_AUTHORITY / HERMES_UNTOUCHED`. The intended PASS status was not reached.
