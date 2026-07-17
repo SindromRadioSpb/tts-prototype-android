@@ -2,11 +2,15 @@
 
 **Date:** 2026-07-17
 
-**Status:** `AA2_C2_TWO_CLIENT_FIXTURE_COMPLETE / STATIC_PUBLIC_CLIENT_PROVEN / NO_DCR / C3_SEPARATE_APPROVAL_REQUIRED`.
+**Status:** `AA2_C3_REGISTRATION_COMPLETE / TWO_STATIC_PUBLIC_CLIENTS_SUSPENDED / C4_SEPARATE_APPROVAL_REQUIRED`.
 
 **C1 evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C1_DEFAULT_OFF_MCP_ENGINEERING_EVIDENCE_2026_07_17.md`. C1 completion does not authorize or imply C2, production registration, client activation, OAuth lifecycle execution, Hermes/Inspector configuration or a live connection.
 
 **C2 evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C2_TWO_CLIENT_LOOPBACK_COMPATIBILITY_EVIDENCE_2026_07_17.md`. C2 proves only local synthetic two-client compatibility, static public clients and zero DCR; it does not authorize or imply C3/C4, production registration/activation/deploy or a live connection.
+
+**C3 packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C3_PRODUCTION_REGISTRATION_STILL_DISABLED_EXECUTION_PACKET_2026_07_17.md`. The packet contains a content-safe read-only production snapshot and exact execution approval wording. Packet preparation does not authorize the production DB transaction, backup creation, client-row creation or any later slice.
+
+**C3 evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C3_PRODUCTION_REGISTRATION_STILL_DISABLED_EVIDENCE_2026_07_17.md`. Exact production registration completed with both reviewed public clients initially and continuously `SUSPENDED`, client/MCP gates off, zero dependent lifecycle rows, zero live connection and no deploy/restart. C4 remains separately prohibited.
 
 **Authority:** documentation-only successor to successful D8. This packet defines bounded AA2-C slices and the approvals each slice would require. It does not itself authorize an MCP dependency or endpoint, code/config/env change, production client row, `AGENT_ACCESS_OAUTH_CLIENTS_ENABLED=1`, authorization/consent/token lifecycle, Hermes/Inspector installation or configuration, live connection, credential/token export, provider call, CP0 live window, notification, F1/F2 payload read, canonical learner-state write, commit/push or deploy.
 
@@ -102,7 +106,7 @@ linguistpro-mcp-inspector-v0
 
 Both use authorization code + refresh token, exact redirect matching, PKCE `S256`, state and RFC 8707 resource indicator. They have no client secret. A loopback redirect is allowed only for the exact pre-registered localhost/127.0.0.1 URI and port.
 
-The current code fixture identifies Inspector `0.21.2`. AA2-C engineering must update it to the pinned `0.22.0` only after compatibility tests prove its redirect and OAuth behavior. This is an implementation diff, not a documentation-only mutation.
+AA2-C2 proved the pinned Inspector behavior and updated the code fixture from `0.21.2` to exact `0.22.0`. This completed compatibility diff does not itself authorize a production client row or activation.
 
 ### 5.1 Hermes compatibility stop condition
 
