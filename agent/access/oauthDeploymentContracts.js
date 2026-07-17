@@ -34,7 +34,7 @@ const FIXTURE_CLIENTS = Object.freeze([
     client_id: "linguistpro-mcp-inspector-v0",
     client_name: "MCP Inspector fixture",
     software_id: "modelcontextprotocol-inspector",
-    software_version: "0.21.2",
+    software_version: "0.22.0",
     token_endpoint_auth_method: "none",
     grant_types: Object.freeze(["authorization_code", "refresh_token"]),
     response_types: Object.freeze(["code"]),
