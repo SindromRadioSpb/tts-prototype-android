@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-17
 
-**Status:** `AA2_C3_REGISTRATION_COMPLETE / C4_PRE_DEPLOYED_DEFAULT_OFF / ZERO_LIVE_AUTHORITY / C4A_BLOCKED`.
+**Status:** `AA2_C3_REGISTRATION_COMPLETE / C4_PRE_DEPLOYED_DEFAULT_OFF / C4A_PACKET_PREPARED_AWAITING_EXACT_OWNER_APPROVAL / ZERO_LIVE_AUTHORITY`.
 
 **C1 evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C1_DEFAULT_OFF_MCP_ENGINEERING_EVIDENCE_2026_07_17.md`. C1 completion does not authorize or imply C2, production registration, client activation, OAuth lifecycle execution, Hermes/Inspector configuration or a live connection.
 
@@ -12,7 +12,9 @@
 
 **C3 evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C3_PRODUCTION_REGISTRATION_STILL_DISABLED_EVIDENCE_2026_07_17.md`. Exact production registration completed with both reviewed public clients initially and continuously `SUSPENDED`, client/MCP gates off, zero dependent lifecycle rows, zero live connection and no deploy/restart. C4 remains separately prohibited.
 
-**C4A packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_PACKET_2026_07_17.md`. Read-only recon found that exact revision `854411c` still mounts `handlers: {}` and has no configured MCP owner allowlist, so a production Inspector window cannot complete its five-call gate. A separate default-off handler engineering/deployment slice is required before C4A execution can be approved. Packet preparation does not authorize that predecessor or any live action.
+**C4A packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_PACKET_2026_07_17.md`. It is rebased onto deployed revision `e77241acb4fc1e8a0de58c2e7e2c05a41ada3cd3` and now fixes exact Inspector-only mutations, five-call allowlist, residue semantics, flag-first cleanup, rollback and owner wording. Preparation does not authorize any live action.
+
+**C4A handoff:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_NEXT_SESSION_PROMPT_2026_07_17.md`. It repeats exact read-first canon, frozen revision/tool/client identities, preflight, flag sequence, content-safe evidence boundary, rollback and terminal status.
 
 **C4-PRE packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_PACKET_2026_07_17.md`. The owner-approved bounded engineering and separately approved default-off deployment completed with five thin handlers, exact-one owner enforcement, package `3.11.197` and green gates. No live authority was enabled.
 
@@ -303,7 +305,7 @@ Each slice uses a scoped allowlist commit. Unrelated owner files are excluded. P
 
 ## 15. Current executable slice
 
-The next possible executable slice is AA2-C4A Inspector-first controlled owner-only validation, but it remains blocked until a new exact-revision owner approval is prepared and explicitly granted. C1-C3 plus C4-PRE engineering/default-off deployment are complete. C4B Hermes remains a later separate unapproved decision.
+The next possible executable slice is AA2-C4A Inspector-first controlled owner-only validation. Its packet is prepared, but execution remains blocked until the owner names the exact final packet commit and grants the bounded §16 authority. C1-C3 plus C4-PRE engineering/default-off deployment are complete. C4B Hermes remains a later separate unapproved decision.
 
 ## 16. Source map
 
