@@ -14,6 +14,8 @@ This packet is a predecessor to AA2-C4A. The owner approved the bounded engineer
 
 **Engineering evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_EVIDENCE_2026_07_17.md`. Package `3.11.197`; C4A remains blocked pending a separate default-off production deployment approval and execution.
 
+**Deployment approval packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_APPROVAL_PACKET_2026_07_17.md`. Prepared docs-only on 2026-07-17 and awaiting an exact owner approval naming its final tracked commit; no production action is authorized by preparation.
+
 ## 1. Purpose and present blocker
 
 AA2-C1 completed the stateless Streamable HTTP adapter, bearer/resource validator and five closed MCP tool contracts. AA2-C2 proved exact Inspector `0.22.0` and Hermes `0.18.2` interoperability against isolated synthetic handlers. AA2-C3 registered both reviewed static public clients in production as `SUSPENDED` while all lifecycle counts remained zero.

@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-17
 
-**Packet status:** `DOCS_ONLY_COMPLETE / C4_PRE_ENGINEERING_COMPLETE / DEFAULT_OFF_DEPLOYMENT_NOT_APPROVED / C4A_EXECUTION_BLOCKED`
+**Packet status:** `DOCS_ONLY_COMPLETE / C4_PRE_ENGINEERING_COMPLETE / DEFAULT_OFF_DEPLOYMENT_PACKET_PREPARED_AWAITING_OWNER_APPROVAL / C4A_EXECUTION_BLOCKED`
 
 **Snapshot revision:** `854411cd7069c6c0f8e3695cf295fc84e1d268ea`, package `3.11.196`.
 
@@ -284,5 +284,7 @@ Restore from the fresh backup only for DB integrity damage under a separate reco
 No valid C4A execution approval can name revision `854411c`, because that revision lacks production handlers and owner-allowlist readiness. C4A execution wording is intentionally withheld until the predecessor is engineered, independently reviewed, deployed under a separate default-off approval, and this packet is rebased onto that exact revision.
 
 The C4-PRE bounded local engineering completed on 2026-07-17 with package `3.11.197`; content-safe proof is in `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_EVIDENCE_2026_07_17.md`.
+
+The separate docs-only deployment approval packet is now `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_APPROVAL_PACKET_2026_07_17.md`. It awaits exact owner approval and has not changed production.
 
 That engineering approval still does not authorize production deployment or any C4A action. Only a separately approved default-off deployment may produce a new exact-revision C4A execution approval.

@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-17
 
-**Status:** `AA2_C3_REGISTRATION_COMPLETE / C4_PRE_ENGINEERING_COMPLETE / C4A_BLOCKED_PENDING_SEPARATE_DEFAULT_OFF_DEPLOYMENT`.
+**Status:** `AA2_C3_REGISTRATION_COMPLETE / C4_PRE_ENGINEERING_COMPLETE / DEFAULT_OFF_DEPLOYMENT_PACKET_PREPARED_AWAITING_OWNER_APPROVAL / C4A_BLOCKED`.
 
 **C1 evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C1_DEFAULT_OFF_MCP_ENGINEERING_EVIDENCE_2026_07_17.md`. C1 completion does not authorize or imply C2, production registration, client activation, OAuth lifecycle execution, Hermes/Inspector configuration or a live connection.
 
@@ -17,6 +17,8 @@
 **C4-PRE packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_PACKET_2026_07_17.md`. The owner-approved bounded engineering completed on an isolated non-deploy branch with five thin handlers, exact-one owner enforcement, package `3.11.197` and green synthetic/regression gates. Production deploy and live action remain unauthorized.
 
 **C4-PRE evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_EVIDENCE_2026_07_17.md`. This is content-safe engineering evidence only; C4A remains blocked until a separately approved exact-revision default-off deployment completes.
+
+**C4-PRE deployment packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_APPROVAL_PACKET_2026_07_17.md`. The docs-only packet fixes the exact default-off deployment, observation and rollback boundary. It awaits an owner approval naming the final packet-carrier commit; it does not authorize `main` push, deploy or production access.
 
 **C4-PRE next-session prompt:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_ENGINEERING_NEXT_SESSION_PROMPT_2026_07_17.md`. It repeats exact authority, read-first canon, working-tree exclusions, implementation allowlist, gates, stop conditions and handoff requirements.
 
@@ -301,7 +303,7 @@ Each slice uses a scoped allowlist commit. Unrelated owner files are excluded. P
 
 ## 15. Current executable slice
 
-The next possible executable slice is a separately approved exact-revision default-off production deployment. C1-C3 and C4-PRE engineering are complete. Production deployment, C4A and C4B remain separate unapproved decisions.
+The next possible executable slice is the exact-revision default-off production deployment now specified in its docs-only approval packet. C1-C3 and C4-PRE engineering are complete. The deployment still awaits explicit owner approval; C4A and C4B remain separate unapproved decisions.
 
 ## 16. Source map
 
