@@ -75,17 +75,32 @@ function createProtocolServer(runtime, trusted) {
   return server;
 }
 
-function createMcpDefaultOffGate({ getRuntime = async () => null } = {}) {
+function createMcpDefaultOffGate({ getRuntime = async () => null, resolveFlags = null } = {}) {
   if (typeof getRuntime !== "function") throw new TypeError("AA_MCP_GATE_BAD_RUNTIME_PROVIDER");
+  if (resolveFlags !== null && typeof resolveFlags !== "function") throw new TypeError("AA_MCP_GATE_BAD_FLAG_RESOLVER");
   return async function mcpDefaultOffGate(req, res) {
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("Vary", "Origin");
-    if (String(process.env.AGENT_ACCESS_MCP_ENABLED || "") !== "1") return send(res, 404, { error: "AGENT_ACCESS_MCP_DISABLED" });
+    // AA2-CP1: effective flags come from the injected resolver (env OR the
+    // owner journal). Default stays a per-request env read — byte-equivalent
+    // to the historical direct checks. A resolver failure fails closed.
+    let flags;
+    try {
+      flags = resolveFlags
+        ? await resolveFlags()
+        : {
+          ui: process.env.AGENT_ACCESS_UI_ENABLED,
+          oauth: process.env.AGENT_ACCESS_OAUTH_ENABLED,
+          clients: process.env.AGENT_ACCESS_OAUTH_CLIENTS_ENABLED,
+          mcp: process.env.AGENT_ACCESS_MCP_ENABLED,
+        };
+    } catch (_) { flags = { ui: "0", oauth: "0", clients: "0", mcp: "0" }; }
+    if (String(flags.mcp || "") !== "1") return send(res, 404, { error: "AGENT_ACCESS_MCP_DISABLED" });
 
     const verdict = validateOAuthHttpRequest({
-      enabled: process.env.AGENT_ACCESS_OAUTH_ENABLED,
-      agent_access_enabled: process.env.AGENT_ACCESS_UI_ENABLED,
-      clients_enabled: process.env.AGENT_ACCESS_OAUTH_CLIENTS_ENABLED,
+      enabled: flags.oauth,
+      agent_access_enabled: flags.ui,
+      clients_enabled: flags.clients,
       host: req.headers.host,
       socket_protocol: req.socket?.encrypted ? "https" : "http",
       forwarded_host: req.headers["x-forwarded-host"],
@@ -111,7 +126,7 @@ function createMcpDefaultOffGate({ getRuntime = async () => null } = {}) {
     if (!acceptsMcp(req.headers.accept)) return send(res, 406, jsonRpcError(-32600, "Accept must include application/json and text/event-stream."));
 
     let runtime;
-    try { runtime = await getRuntime(); }
+    try { runtime = await getRuntime(flags); }
     catch (_) { return send(res, 503, { error: "AA_MCP_RUNTIME_NOT_CONFIGURED" }); }
     if (!runtime?.validator || !runtime?.service || !runtime?.limiter) return send(res, 503, { error: "AA_MCP_RUNTIME_NOT_CONFIGURED" });
 

@@ -14,7 +14,7 @@ const {
   getDefaultDbPath,
   getDefaultBackupsDir,
 } = require("./backup");
-const { replayDeletionJournal } = require("./restoreErasureReplay");
+const { replayDeletionJournal, agentAccessControlFailClosed } = require("./restoreErasureReplay");
 
 function formatSize(bytes) {
   if (bytes < 1024) return `${bytes} B`;
@@ -59,10 +59,18 @@ async function cmdRestore(backupPath) {
       process.exitCode = 1;
       return;
     }
+    const agentAccess = await agentAccessControlFailClosed(targetDbPath);
+    if (!agentAccess.ok) {
+      console.error(`✗ Restore copied the backup but agent-access fail-closed failed: ${agentAccess.error}`);
+      console.error(`  Recovery snapshot: ${result.preRestoreBackup}`);
+      process.exitCode = 1;
+      return;
+    }
     console.log("✓ Restore completed successfully.");
     if (result.preRestoreBackup) {
       console.log(`  Pre-restore backup: ${result.preRestoreBackup}`);
     }
+    console.log(`  Agent Access fail-closed: ${agentAccess.flags_closed} flag(s) closed, ${agentAccess.clients_suspended} client(s) suspended (reopen explicitly).`);
     console.log(`  Erasure replay: ${erasure.replayed_users} user(s), ${erasure.replayed_memories || 0} memory record(s), ${erasure.deleted_rows} restored row(s) removed.`);
     console.log();
     console.log("  NOTE: Restart the server to use the restored database.");

@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const { getDb } = require("./sqlite");
 const { withTxnLock } = require("./txnLock");
 const C = require("../agent/access/oauthContracts");
+const controlRepo = require("./agentAccessControlRepo");
 
 const run = (db, sql, params = []) => new Promise((resolve, reject) => db.run(sql, params, function (err) { err ? reject(err) : resolve(this); }));
 const get = (db, sql, params = []) => new Promise((resolve, reject) => db.get(sql, params, (err, row) => err ? reject(err) : resolve(row || null)));
@@ -46,12 +47,26 @@ async function registerClientFixture(input, at = nowIso()) {
   return parseClient(await get(db, `SELECT * FROM agent_oauth_clients WHERE oauth_client_id=?`, [x.oauth_client_id]));
 }
 
-async function setClientStatus(clientId, status, at = nowIso()) {
-  const id = C.safeId(clientId), next = String(status), t = C.iso(at);
+async function setClientStatus(clientId, status, at = nowIso(), opts = {}) {
+  const id = C.safeId(clientId), next = String(status), t = C.iso(at ?? nowIso());
   if (!new Set(["ACTIVE", "SUSPENDED", "REVOKED"]).has(next)) error("AA_OAUTH_BAD_CLIENT_STATUS");
   return transaction(async (db) => {
     const client = await get(db, `SELECT status FROM agent_oauth_clients WHERE oauth_client_id=?`, [id]);
     if (!client) error("AA_OAUTH_CLIENT_NOT_FOUND");
+    // AA2-CP1: control-plane transitions journal inside THIS transaction so a
+    // status change can never commit without its who/when/why row (no dual-write).
+    if (opts && opts.controlEvent) {
+      if (!["ACTIVE", "SUSPENDED"].includes(next)) error("AA_CP_CLIENT_STATUS_NOT_RUNTIME");
+      if (next === "ACTIVE" && client.status === "REVOKED") error("AA_CP_CLIENT_REVOKED_TERMINAL");
+      await controlRepo.appendEventTx(db, {
+        actor_user_id: opts.controlEvent.actor_user_id,
+        action: opts.controlEvent.action || "CLIENT_STATUS_SET",
+        subject: id,
+        value: next,
+        expires_at: null,
+        reason: opts.controlEvent.reason,
+      }, t);
+    }
     await run(db, `UPDATE agent_oauth_clients SET status=?,updated_at=?,revoked_at=CASE WHEN ?='REVOKED' THEN ? ELSE revoked_at END WHERE oauth_client_id=?`, [next, t, next, t, id]);
     if (next !== "ACTIVE") {
       await run(db, `UPDATE agent_connections SET status='SUSPENDED',security_epoch=security_epoch+1,updated_at=? WHERE oauth_client_id=? AND status IN ('ACTIVE','SCOPE_REDUCED')`, [t, id]);

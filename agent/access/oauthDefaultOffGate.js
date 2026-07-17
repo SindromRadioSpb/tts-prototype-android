@@ -32,15 +32,28 @@ function routeClass(path, method) {
   return null;
 }
 
-function createOAuthDefaultOffGate({ getRuntime = async () => null, limiter = null } = {}) {
+function createOAuthDefaultOffGate({ getRuntime = async () => null, limiter = null, resolveFlags = null } = {}) {
   if (typeof getRuntime !== "function") throw new TypeError("AA_OAUTH_GATE_BAD_RUNTIME_PROVIDER");
+  if (resolveFlags !== null && typeof resolveFlags !== "function") throw new TypeError("AA_OAUTH_GATE_BAD_FLAG_RESOLVER");
   return async function oauthDefaultOffGate(req, res) {
     const kind = routeClass(String(req.originalUrl || req.url || ""), String(req.method || "GET").toUpperCase());
     if (!kind) return res.status(404).json({ error: "not_found" });
+    // AA2-CP1: same injected-resolver contract as the MCP gate; the default is
+    // a per-request env read and a resolver failure fails closed.
+    let flags;
+    try {
+      flags = resolveFlags
+        ? await resolveFlags()
+        : {
+          ui: process.env.AGENT_ACCESS_UI_ENABLED,
+          oauth: process.env.AGENT_ACCESS_OAUTH_ENABLED,
+          clients: process.env.AGENT_ACCESS_OAUTH_CLIENTS_ENABLED,
+        };
+    } catch (_) { flags = { ui: "0", oauth: "0", clients: "0" }; }
     const verdict = validateOAuthHttpRequest({
-      enabled: process.env.AGENT_ACCESS_OAUTH_ENABLED,
-      agent_access_enabled: process.env.AGENT_ACCESS_UI_ENABLED,
-      clients_enabled: process.env.AGENT_ACCESS_OAUTH_CLIENTS_ENABLED,
+      enabled: flags.oauth,
+      agent_access_enabled: flags.ui,
+      clients_enabled: flags.clients,
       host: req.headers.host,
       socket_protocol: req.socket && req.socket.encrypted ? "https" : "http",
       forwarded_host: req.headers["x-forwarded-host"],

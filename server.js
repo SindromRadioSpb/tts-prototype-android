@@ -1565,6 +1565,19 @@ const { createMcpDefaultOffGate } = require("./agent/access/mcpAdapter");
 const { createMcpRateLimiter } = require("./agent/access/mcpRateLimiter");
 const { createAgentAccessService } = require("./agent/access/service");
 const agentAccessDeployment = require("./agent/access/oauthDeploymentContracts");
+// AA2-CP1 — runtime control plane: effective flags = env OR owner journal.
+// The resolver never rejects and fails closed; with
+// AGENT_ACCESS_RUNTIME_FLAGS_ENABLED unset it never touches the DB and the
+// gates behave byte-identically to the historical direct env reads.
+const agentAccessControlRepo = require("./db/agentAccessControlRepo");
+const { createRuntimeFlagResolver } = require("./agent/access/runtimeControl");
+const { createControlPlane } = require("./agent/access/controlPlane");
+const agentAccessFlagResolver = createRuntimeFlagResolver({ readLatest: agentAccessControlRepo.latestFlagStates });
+const agentAccessControlPlane = createControlPlane({
+  controlRepo: agentAccessControlRepo,
+  oauthRepo: agentAccessOAuthRepo,
+  resolver: agentAccessFlagResolver,
+});
 const agentAccessConsent = createConsentCeremony({
   oauthRepo: agentAccessOAuthRepo,
   recordConsent: identityRepo.recordConsent,
@@ -1599,7 +1612,13 @@ async function getAgentAccessOAuthRuntime() {
         limiter: agentAccessOAuthLimiter,
         trustProxy: String(process.env.AGENT_ACCESS_OAUTH_TRUST_PROXY || "") === "1",
       });
-    })();
+    })().catch((err) => {
+      // AA2-CP1: a rejected build must not stay memoized — under runtime flag
+      // control the process now lives across config fixes, so the next request
+      // retries instead of 503ing until a redeploy.
+      agentAccessOAuthRuntimePromise = null;
+      throw err;
+    });
   }
   return agentAccessOAuthRuntimePromise;
 }
@@ -1607,7 +1626,11 @@ async function getAgentAccessOAuthRuntime() {
 // authorization/interaction/token/revoke additionally require the independent
 // AGENT_ACCESS_OAUTH_CLIENTS_ENABLED=1 kill switch. A client row alone cannot
 // activate access. Enabling discovery without a complete runtime fails 503.
-const agentAccessOAuthGate = createOAuthDefaultOffGate({ getRuntime: getAgentAccessOAuthRuntime, limiter: agentAccessOAuthLimiter });
+const agentAccessOAuthGate = createOAuthDefaultOffGate({
+  getRuntime: getAgentAccessOAuthRuntime,
+  limiter: agentAccessOAuthLimiter,
+  resolveFlags: () => agentAccessFlagResolver.resolve(),
+});
 app.all(PROTECTED_RESOURCE_METADATA_PATH, agentAccessOAuthGate);
 app.all(PROTECTED_RESOURCE_METADATA_MCP_ALIAS_PATH, agentAccessOAuthGate);
 app.all("/.well-known/oauth-authorization-server/oauth", agentAccessOAuthGate);
@@ -1628,9 +1651,18 @@ function agentAccessOwnerIds() {
   }
   return Object.freeze(values);
 }
-async function getAgentAccessMcpRuntime() {
-  if (["AGENT_ACCESS_UI_ENABLED", "AGENT_ACCESS_OAUTH_ENABLED", "AGENT_ACCESS_OAUTH_CLIENTS_ENABLED", "AGENT_ACCESS_MCP_ENABLED"]
-    .some((name) => String(process.env[name] || "") !== "1")) return null;
+async function getAgentAccessMcpRuntime(effectiveFlags) {
+  // AA2-CP1: the gate resolves flags ONCE per request and passes the snapshot
+  // here, so gate and runtime getter can never disagree (a second independent
+  // resolve could straddle a cache/TTL boundary and 503 inside an open
+  // window). Without a snapshot (defensive default) fall back to env.
+  const flags = effectiveFlags || {
+    ui: process.env.AGENT_ACCESS_UI_ENABLED,
+    oauth: process.env.AGENT_ACCESS_OAUTH_ENABLED,
+    clients: process.env.AGENT_ACCESS_OAUTH_CLIENTS_ENABLED,
+    mcp: process.env.AGENT_ACCESS_MCP_ENABLED,
+  };
+  if (["ui", "oauth", "clients", "mcp"].some((name) => String(flags[name] || "") !== "1")) return null;
   if (!agentAccessMcpRuntimePromise) {
     agentAccessMcpRuntimePromise = (async () => {
       const oauthRuntime = await getAgentAccessOAuthRuntime();
@@ -1682,11 +1714,18 @@ async function getAgentAccessMcpRuntime() {
         execute: (principal, tool, args) => principalContext.run(principal, () => baseService.execute(principal, tool, args)),
       });
       return Object.freeze({ validator, service, limiter: agentAccessMcpLimiter, audit });
-    })();
+    })().catch((err) => {
+      // AA2-CP1: same memo-heal as the OAuth runtime — never cache a rejection.
+      agentAccessMcpRuntimePromise = null;
+      throw err;
+    });
   }
   return agentAccessMcpRuntimePromise;
 }
-app.all(AGENT_ACCESS_MCP_PATH, createMcpDefaultOffGate({ getRuntime: getAgentAccessMcpRuntime }));
+app.all(AGENT_ACCESS_MCP_PATH, createMcpDefaultOffGate({
+  getRuntime: getAgentAccessMcpRuntime,
+  resolveFlags: () => agentAccessFlagResolver.resolve(),
+}));
 function agentAccessHttpError(res, err) {
   const code = String((err && (err.code || err.message)) || "AA_CONSENT_FAILED");
   const status = code.endsWith("NOT_FOUND") ? 404
@@ -1744,6 +1783,51 @@ app.delete("/api/agent-access/connections/:connectionId", requireAgentAccessBoun
     identityRepo.audit("agent_access_connection_delete", auth.user.id, { connection_id: deleted.connection_id }, req.ip);
     return res.json({ ok: true, connection_id: deleted.connection_id, deleted: true });
   } catch (e) { return agentAccessHttpError(res, e); }
+});
+
+// AA2-CP1 — owner-only runtime control plane. Guard order is deliberate:
+// boundary -> requireUser(401) -> owner allowlist(404, an invalid/absent env
+// allowlist also 404s) -> CSRF -> control-plane logic (503 disabled, 403
+// step-up, 409 env-pin/terminal). A denied authenticated user is audited so
+// an env/owner-id mismatch is diagnosable from logs instead of a silent 404.
+async function requireAgentAccessOwner(req, res) {
+  const auth = await requireUser(req, res);
+  if (!auth) return null;
+  let owners = null;
+  try { owners = agentAccessOwnerIds(); } catch (_) { owners = null; }
+  if (!owners || !owners.includes(auth.user.id)) {
+    identityRepo.audit("agent_access_admin_denied", auth.user.id, { owner_env_configured: !!owners }, req.ip);
+    res.status(404).json({ ok: false, error: "not_found" });
+    return null;
+  }
+  return auth;
+}
+function agentAccessAdminHttpError(res, err) {
+  const code = String((err && (err.code || err.message)) || "AA_CP_FAILED");
+  const status = code === "AA_CP_DISABLED" ? 503
+    : code === "AA_CP_STEP_UP_REQUIRED" || code === "AA_CP_STEP_UP_UNAVAILABLE" ? 403
+    : code === "AA_CP_FLAG_ENV_PINNED" || code === "AA_CP_CLIENT_REVOKED_TERMINAL" ? 409
+    : code === "AA_CP_CLIENT_NOT_FOUND" ? 404
+    : 400;
+  return res.status(status).json({ ok: false, error: /^AA_[A-Z0-9_]+$/.test(code) ? code : "AA_CP_FAILED" });
+}
+app.get("/api/agent-access/admin/state", requireAgentAccessBoundary, async (req, res) => {
+  const auth = await requireAgentAccessOwner(req, res); if (!auth) return;
+  try { return res.json(await agentAccessControlPlane.state()); }
+  catch (e) { return agentAccessAdminHttpError(res, e); }
+});
+app.post("/api/agent-access/admin/transition", requireAgentAccessBoundary, async (req, res) => {
+  const auth = await requireAgentAccessOwner(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  const type = String(((req.body || {}).type) || "");
+  try {
+    const result = await agentAccessControlPlane.transition(auth.user.id, req.body || {});
+    identityRepo.audit("agent_access_admin_transition", auth.user.id, { type, ok: result.ok === true }, req.ip);
+    return res.json(result);
+  } catch (e) {
+    identityRepo.audit("agent_access_admin_transition_denied", auth.user.id, { type, code: String(e.code || e.message || "") }, req.ip);
+    return agentAccessAdminHttpError(res, e);
+  }
 });
 
 app.post("/api/auth/bootstrap-login", async (req, res) => {

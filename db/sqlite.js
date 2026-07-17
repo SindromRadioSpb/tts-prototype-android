@@ -98,6 +98,11 @@ async function initDb(dbPath) {
     // Enable WAL mode for better crash recovery and concurrent access.
     await exec(_db, "PRAGMA journal_mode = WAL;");
 
+    // A rolling deploy briefly runs two containers against this file; without
+    // a busy timeout the second writer's BEGIN IMMEDIATE fails instantly with
+    // SQLITE_BUSY (observed as silent boot-migration failures).
+    await exec(_db, "PRAGMA busy_timeout = 5000;");
+
     // Minimal ping.
     await get(_db, "SELECT 1 AS one;");
 

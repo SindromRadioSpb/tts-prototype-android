@@ -92,4 +92,48 @@ async function replayDeletionJournal(preRestoreDbPath, restoredDbPath) {
   finally { if(source)await close(source);if(target)await close(target); }
 }
 
-module.exports={replayDeletionJournal};
+// AA2-CP1 — a restored backup must never silently reopen an agent-access
+// window (or resurrect credentials revoked after the backup was taken). The
+// journal in the restored file reflects backup time, not now, so we append
+// fail-closed rows: both window flags -> "0" and every ACTIVE client ->
+// SUSPENDED with the standard cascade. The owner reopens explicitly.
+async function agentAccessControlFailClosed(restoredDbPath){
+  let target=null;
+  try {
+    target=await open(restoredDbPath, sqlite3.OPEN_READWRITE);
+    const t=new Date().toISOString();
+    const insertEvent=(action,subject,value,reason)=>run(target,
+      `INSERT INTO agent_access_control_events (created_at,actor_user_id,action,subject,value,expires_at,reason) VALUES (?,?,?,?,?,NULL,?)`,
+      [t,"system:restore",action,subject,value,reason]);
+    await exec(target,"BEGIN IMMEDIATE;");
+    try {
+      let flagsClosed=0,clientsSuspended=0;
+      try {
+        await insertEvent("RESTORE_FAIL_CLOSED","clients","0","restore fail-closed");
+        await insertEvent("RESTORE_FAIL_CLOSED","mcp","0","restore fail-closed");
+        flagsClosed=2;
+      } catch(e){ if(!/no such table/i.test(String(e&&e.message))) throw e; }
+      try {
+        const active=await all(target,"SELECT oauth_client_id FROM agent_oauth_clients WHERE status='ACTIVE'");
+        for(const row of active){
+          const id=String(row.oauth_client_id);
+          await run(target,"UPDATE agent_oauth_clients SET status='SUSPENDED',updated_at=? WHERE oauth_client_id=?",[t,id]);
+          await run(target,"UPDATE agent_connections SET status='SUSPENDED',security_epoch=security_epoch+1,updated_at=? WHERE oauth_client_id=? AND status IN ('ACTIVE','SCOPE_REDUCED')",[t,id]);
+          await run(target,"UPDATE agent_authorization_codes SET status='REVOKED',revoked_at=? WHERE oauth_client_id=? AND status='ACTIVE'",[t,id]);
+          await run(target,"UPDATE agent_token_families SET status='REVOKED',revoked_at=?,revoke_reason='CLIENT_DISABLED' WHERE oauth_client_id=? AND status='ACTIVE'",[t,id]);
+          await run(target,"UPDATE agent_refresh_tokens SET status='REVOKED',revoked_at=? WHERE status='ACTIVE' AND token_family_id IN (SELECT token_family_id FROM agent_token_families WHERE oauth_client_id=?)",[t,id]);
+          try { await insertEvent("RESTORE_FAIL_CLOSED",id,"SUSPENDED","restore fail-closed"); } catch(e){ if(!/no such table/i.test(String(e&&e.message))) throw e; }
+          clientsSuspended+=1;
+        }
+      } catch(e){ if(!/no such table/i.test(String(e&&e.message))) throw e; }
+      await exec(target,"COMMIT;");
+      return {ok:true,flags_closed:flagsClosed,clients_suspended:clientsSuspended};
+    } catch(err){ try { await exec(target,"ROLLBACK;"); } catch(_){} throw err; }
+  } catch(err){
+    return {ok:false,error:String(err&&err.message||err)};
+  } finally {
+    if(target)await close(target);
+  }
+}
+
+module.exports={replayDeletionJournal,agentAccessControlFailClosed};
