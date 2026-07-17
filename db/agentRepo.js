@@ -12,6 +12,7 @@
 
 const crypto = require("crypto");
 const { getDb } = require("./sqlite");
+const constructs = require("../agent/constructs");
 const { withTxnLock } = require("./txnLock");
 
 function dbAll(db, sql, params = []) {
@@ -73,6 +74,28 @@ async function listTasks(userId, { status, limit } = {}) {
     ? await dbAll(db, `SELECT * FROM agent_tasks WHERE user_id = ? AND status = ? ORDER BY created_at DESC LIMIT ?`, [userId, String(status), lim])
     : await dbAll(db, `SELECT * FROM agent_tasks WHERE user_id = ? ORDER BY created_at DESC LIMIT ?`, [userId, lim]);
   return rows || [];
+}
+
+// AA2-C4-PRE — newest open plan metadata only. The payload is parsed and
+// reduced inside the repository; item keys and the plan body never reach the
+// Agent Access handler. Unknown or malformed structure is not an empty plan.
+async function getLatestOpenPlanAction(userId) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const row = await dbGet(db,
+    `SELECT payload_json FROM agent_tasks
+      WHERE user_id = ? AND kind = 'plan' AND status = 'open'
+      ORDER BY created_at DESC, id DESC LIMIT 1`, [userId]);
+  if (!row) return null;
+  let payload;
+  try { payload = JSON.parse(row.payload_json); }
+  catch (_) { throw new Error("AA_PLAN_METADATA_JSON_INVALID"); }
+  if (!payload || typeof payload !== "object" || Array.isArray(payload) || !Array.isArray(payload.sections) || !payload.sections.length) {
+    throw new Error("AA_PLAN_METADATA_INVALID");
+  }
+  const first = payload.sections[0];
+  if (!first || typeof first !== "object" || Array.isArray(first) || typeof first.id !== "string") throw new Error("AA_PLAN_METADATA_INVALID");
+  if (!["fresh_struggles", "production_gap", "due", "read"].includes(first.id)) throw new Error("AA_PLAN_METADATA_ACTION_UNKNOWN");
+  return Object.freeze({ section_id: first.id });
 }
 
 async function getTaskById(userId, taskId) {
@@ -221,6 +244,96 @@ async function listExplanations(userId, { limit, beforeRid } = {}) {
        FROM agent_explanations WHERE ${where} ORDER BY rowid DESC LIMIT ?`, params);
   const hasMore = (rows || []).length > lim;
   return { rows: (rows || []).slice(0, lim), has_more: hasMore };
+}
+
+// AA2-C4-PRE — metadata-only SQL projection. Neither body_json nor
+// facts_used_json is selected into application code. SQLite performs the JSON
+// projection; validity flags make malformed stored authority fail closed.
+async function listExplanationMetadata(userId, { before, kinds, limit } = {}) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const allowedKinds = new Set(["sentence", "word", "study_summary", "draft_retell"]);
+  if (!Array.isArray(kinds) || !kinds.length || kinds.length > 4 || new Set(kinds).size !== kinds.length
+    || kinds.some((kind) => !allowedKinds.has(String(kind)))) throw new Error("AA_EXPLANATION_KINDS_INVALID");
+  const lim = Number(limit);
+  if (!Number.isInteger(lim) || lim < 1 || lim > 20) throw new Error("AA_EXPLANATION_LIMIT_INVALID");
+  let boundary = null;
+  if (before != null) {
+    const parsed = new Date(String(before));
+    if (!Number.isFinite(parsed.getTime()) || parsed.toISOString() !== String(before)) throw new Error("AA_EXPLANATION_BEFORE_INVALID");
+    boundary = String(before);
+  }
+
+  const placeholders = kinds.map(() => "?").join(",");
+  const whereBefore = boundary ? "AND created_at < ?" : "";
+  const integrityParams = [userId, ...(boundary ? [boundary] : [])];
+  const integrity = await dbGet(db, `
+    SELECT COUNT(*) AS c FROM agent_explanations
+     WHERE user_id = ? ${whereBefore}
+       AND CASE
+         WHEN json_valid(body_json)=0 THEN 1
+         WHEN json_type(body_json)<>'object' THEN 1
+         WHEN json_valid(facts_used_json)=0 THEN 1
+         WHEN json_type(facts_used_json)<>'array' THEN 1
+         WHEN json_type(body_json,'$.kind') IS NOT NULL
+           AND (json_type(body_json,'$.kind')<>'text'
+             OR json_extract(body_json,'$.kind') NOT IN ('sentence','word','study_summary','draft_retell')) THEN 1
+         ELSE 0
+       END = 1`, integrityParams);
+  if (Number(integrity && integrity.c) > 0) throw new Error("AA_EXPLANATION_JSON_INVALID");
+  const params = [userId, ...(boundary ? [boundary] : []), ...kinds.map(String), lim + 1];
+  const rows = await dbAll(db, `
+    WITH projected AS (
+      SELECT id, created_at,
+        json_valid(body_json) AS body_valid,
+        json_valid(facts_used_json) AS facts_valid,
+        CASE
+          WHEN json_valid(body_json)=0 THEN NULL
+          WHEN json_type(body_json,'$.kind') IS NULL THEN 'sentence'
+          ELSE json_extract(body_json,'$.kind')
+        END AS kind,
+        CASE
+          WHEN json_valid(body_json)=0 THEN NULL
+          WHEN json_type(body_json,'$.purge_reason') IS NOT NULL THEN 'PURGED'
+          ELSE 'AVAILABLE'
+        END AS purge_state,
+        COALESCE((
+          SELECT json_group_array(cid) FROM (
+            SELECT DISTINCT CAST(json_extract(item.value,'$.id') AS TEXT) AS cid
+              FROM json_each(CASE WHEN json_valid(agent_explanations.facts_used_json) THEN agent_explanations.facts_used_json ELSE '[]' END) fact
+              JOIN json_each(CASE WHEN json_type(fact.value,'$.items')='array' THEN json_extract(fact.value,'$.items') ELSE '[]' END) item
+             WHERE json_extract(fact.value,'$.kind')='constructs'
+               AND json_type(item.value,'$.id')='text'
+             ORDER BY cid
+          )
+        ), '[]') AS construct_ids_json
+      FROM agent_explanations
+      WHERE user_id = ? ${whereBefore}
+    )
+    SELECT id, created_at, body_valid, facts_valid, kind, purge_state, construct_ids_json
+      FROM projected WHERE kind IN (${placeholders})
+      ORDER BY created_at DESC, id DESC LIMIT ?`, params);
+
+  const projected = [];
+  for (const row of rows || []) {
+    if (Number(row.body_valid) !== 1 || Number(row.facts_valid) !== 1) throw new Error("AA_EXPLANATION_JSON_INVALID");
+    if (!allowedKinds.has(row.kind) || !["AVAILABLE", "PURGED"].includes(row.purge_state)) throw new Error("AA_EXPLANATION_METADATA_INVALID");
+    let rawIds;
+    try { rawIds = JSON.parse(row.construct_ids_json); }
+    catch (_) { throw new Error("AA_EXPLANATION_CONSTRUCTS_INVALID"); }
+    if (!Array.isArray(rawIds)) throw new Error("AA_EXPLANATION_CONSTRUCTS_INVALID");
+    const constructIds = [...new Set(rawIds.map(String).filter((id) => constructs.isKnown(id)))].sort();
+    if (constructIds.length > 12) throw new Error("AA_EXPLANATION_CONSTRUCTS_OVERFLOW");
+    const created = new Date(String(row.created_at));
+    if (!Number.isFinite(created.getTime()) || created.toISOString() !== String(row.created_at)) throw new Error("AA_EXPLANATION_CREATED_AT_INVALID");
+    projected.push(Object.freeze({
+      explanation_id: String(row.id), created_at: String(row.created_at), kind: row.kind,
+      construct_ids: Object.freeze(constructIds), purge_state: row.purge_state,
+    }));
+  }
+  const hasMore = projected.length > lim;
+  if (hasMore && projected[lim - 1].created_at === projected[lim].created_at) throw new Error("AA_EXPLANATION_CURSOR_COLLISION");
+  const items = projected.slice(0, lim);
+  return Object.freeze({ items: Object.freeze(items), next_before: hasMore ? items[items.length - 1].created_at : null });
 }
 
 // ── P9 зачаток misconception-блока: сырые вхождения construct_id ─────────────
@@ -399,10 +512,10 @@ async function scenarioCallsToday(userId, scenario) {
 
 module.exports = {
   getProfile, updateProfile,
-  createTask, listTasks, getTaskById, setTaskStatus,
+  createTask, listTasks, getLatestOpenPlanAction, getTaskById, setTaskStatus,
   createExplanation, purgeExplanationContent, purgeExplanationContentByKind, getFreshExplanation,
   getExplanationById, bumpExplanationFollowups,
-  listExplanations, constructOccurrences,
+  listExplanations, listExplanationMetadata, constructOccurrences,
   wordLifecycle,
   reserveLlmCall, finalizeLlmCall, usageToday, providerUsageNow, scenarioCallsToday,
   recordByokCall,   // PAS-F1: телеметрия вызовов на ключе пользователя (вне квоты)

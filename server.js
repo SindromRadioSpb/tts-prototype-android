@@ -1615,9 +1615,13 @@ app.all(/^\/oauth(?:\/|$)/, agentAccessOAuthGate);
 const agentAccessMcpLimiter = createMcpRateLimiter();
 let agentAccessMcpRuntimePromise = null;
 function agentAccessOwnerIds() {
-  const values = String(process.env.AGENT_ACCESS_OWNER_IDS || "").split(",").map((value) => value.trim()).filter(Boolean);
-  if (!values.length || values.some((value) => value === "*" || !/^[A-Za-z0-9._:@/-]{1,128}$/.test(value))) throw new Error("AA_MCP_OWNER_ALLOWLIST_INVALID");
-  return values;
+  const raw = String(process.env.AGENT_ACCESS_OWNER_IDS || "");
+  const values = raw.split(",").map((value) => value.trim());
+  if (!raw.trim() || values.length !== 1 || !values[0] || values[0] === "*"
+    || !/^[A-Za-z0-9._:@/-]{1,128}$/.test(values[0]) || new Set(values).size !== 1) {
+    throw new Error("AA_MCP_OWNER_ALLOWLIST_INVALID");
+  }
+  return Object.freeze(values);
 }
 async function getAgentAccessMcpRuntime() {
   if (["AGENT_ACCESS_UI_ENABLED", "AGENT_ACCESS_OAUTH_ENABLED", "AGENT_ACCESS_OAUTH_CLIENTS_ENABLED", "AGENT_ACCESS_MCP_ENABLED"]
@@ -1640,7 +1644,38 @@ async function getAgentAccessMcpRuntime() {
         allowedClientIds: agentAccessDeployment.FIXTURE_CLIENTS.map((client) => client.client_id),
         allowedOwnerIds: ownerIds,
       });
-      const service = createAgentAccessService({ enabled: true, ownerIds, handlers: {} });
+      // C4-PRE: production handlers are created only after every exact-1 gate,
+      // OAuth runtime and exact-one owner contract pass. Merely importing the
+      // server with default-off flags performs no handler construction, DB read
+      // or public-catalog load.
+      const { AsyncLocalStorage } = require("async_hooks");
+      const { createProductionHandlers } = require("./agent/access/productionHandlers");
+      const { createPublicReadingCatalog } = require("./agent/access/publicReadingCatalog");
+      const learnerGraphRepoForAgentAccess = require("./db/learnerGraphRepo");
+      const agentRepoForAgentAccess = require("./db/agentRepo");
+      const nextTextForAgentAccess = require("./agent/nextText");
+      const principalContext = new AsyncLocalStorage();
+      const handlers = createProductionHandlers({
+        learnerGraphRepo: learnerGraphRepoForAgentAccess,
+        agentRepo: agentRepoForAgentAccess,
+        oauthRepo: agentAccessOAuthRepo,
+        publicCatalog: createPublicReadingCatalog({ catalogVersion: nextTextForAgentAccess.catalogVersion }),
+        now: Date.now,
+        principalAccessExpiresAt: (context) => {
+          const principal = principalContext.getStore();
+          if (!principal || principal.user_id !== context.user_id || principal.oauth_client_id !== context.oauth_client_id
+            || principal.connection_id !== context.connection_id || principal.request_id !== context.request_id) {
+            throw new Error("AA_MCP_PRINCIPAL_CONTEXT_INVALID");
+          }
+          return principal.access_expires_at;
+        },
+      });
+      const baseService = createAgentAccessService({ enabled: true, ownerIds, handlers });
+      const service = Object.freeze({
+        enabled: baseService.enabled,
+        capability_version: baseService.capability_version,
+        execute: (principal, tool, args) => principalContext.run(principal, () => baseService.execute(principal, tool, args)),
+      });
       return Object.freeze({ validator, service, limiter: agentAccessMcpLimiter, audit });
     })();
   }

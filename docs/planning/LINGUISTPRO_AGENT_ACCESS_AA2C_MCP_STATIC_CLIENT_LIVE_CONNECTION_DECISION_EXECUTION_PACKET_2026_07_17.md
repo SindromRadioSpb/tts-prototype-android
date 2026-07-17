@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-17
 
-**Status:** `AA2_C3_REGISTRATION_COMPLETE / TWO_STATIC_PUBLIC_CLIENTS_SUSPENDED / C4_SEPARATE_APPROVAL_REQUIRED`.
+**Status:** `AA2_C3_REGISTRATION_COMPLETE / C4_PRE_ENGINEERING_COMPLETE / C4A_BLOCKED_PENDING_SEPARATE_DEFAULT_OFF_DEPLOYMENT`.
 
 **C1 evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C1_DEFAULT_OFF_MCP_ENGINEERING_EVIDENCE_2026_07_17.md`. C1 completion does not authorize or imply C2, production registration, client activation, OAuth lifecycle execution, Hermes/Inspector configuration or a live connection.
 
@@ -11,6 +11,14 @@
 **C3 packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C3_PRODUCTION_REGISTRATION_STILL_DISABLED_EXECUTION_PACKET_2026_07_17.md`. The packet contains a content-safe read-only production snapshot and exact execution approval wording. Packet preparation does not authorize the production DB transaction, backup creation, client-row creation or any later slice.
 
 **C3 evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C3_PRODUCTION_REGISTRATION_STILL_DISABLED_EVIDENCE_2026_07_17.md`. Exact production registration completed with both reviewed public clients initially and continuously `SUSPENDED`, client/MCP gates off, zero dependent lifecycle rows, zero live connection and no deploy/restart. C4 remains separately prohibited.
+
+**C4A packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_PACKET_2026_07_17.md`. Read-only recon found that exact revision `854411c` still mounts `handlers: {}` and has no configured MCP owner allowlist, so a production Inspector window cannot complete its five-call gate. A separate default-off handler engineering/deployment slice is required before C4A execution can be approved. Packet preparation does not authorize that predecessor or any live action.
+
+**C4-PRE packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_PACKET_2026_07_17.md`. The owner-approved bounded engineering completed on an isolated non-deploy branch with five thin handlers, exact-one owner enforcement, package `3.11.197` and green synthetic/regression gates. Production deploy and live action remain unauthorized.
+
+**C4-PRE evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_EVIDENCE_2026_07_17.md`. This is content-safe engineering evidence only; C4A remains blocked until a separately approved exact-revision default-off deployment completes.
+
+**C4-PRE next-session prompt:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_ENGINEERING_NEXT_SESSION_PROMPT_2026_07_17.md`. It repeats exact authority, read-first canon, working-tree exclusions, implementation allowlist, gates, stop conditions and handoff requirements.
 
 **Authority:** documentation-only successor to successful D8. This packet defines bounded AA2-C slices and the approvals each slice would require. It does not itself authorize an MCP dependency or endpoint, code/config/env change, production client row, `AGENT_ACCESS_OAUTH_CLIENTS_ENABLED=1`, authorization/consent/token lifecycle, Hermes/Inspector installation or configuration, live connection, credential/token export, provider call, CP0 live window, notification, F1/F2 payload read, canonical learner-state write, commit/push or deploy.
 
@@ -291,13 +299,9 @@ Evidence may contain versions, public endpoints, public client IDs, public signi
 
 Each slice uses a scoped allowlist commit. Unrelated owner files are excluded. Production evidence is committed/pushed only with separate owner approval.
 
-## 15. Approval wording for the next executable slice
+## 15. Current executable slice
 
-To authorize only AA2-C1, the owner may state:
-
-> Утверждаю AA2-C1 default-off MCP engineering по packet от 2026-07-17. Разрешаю exact pin `@modelcontextprotocol/sdk@1.29.0`, thin Streamable HTTP adapter `/agent-access/mcp`, независимый exact-`1` gate `AGENT_ACCESS_MCP_ENABLED`, fixture-only tests, content-safe docs и scoped commit/push. Не разрешаю production env/deploy, client rows, `AGENT_ACCESS_OAUTH_CLIENTS_ENABLED=1`, authorization/consent/token flow, Hermes/Inspector installation/configuration, live connection, provider calls, F1/F2 payload read или canonical learner-state write.
-
-Approval of this packet or C1 does not authorize C2, C3 or C4.
+The next possible executable slice is a separately approved exact-revision default-off production deployment. C1-C3 and C4-PRE engineering are complete. Production deployment, C4A and C4B remain separate unapproved decisions.
 
 ## 16. Source map
 

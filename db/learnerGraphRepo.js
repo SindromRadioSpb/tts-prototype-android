@@ -53,6 +53,51 @@ async function manualStatusMap(userId) {
   return out;
 }
 
+// AA2-C4-PRE — bounded aggregate for external read-only projections. This is
+// deliberately separate from getAgentContext(): the latter's historical
+// `scheduled` counter includes manual `ignore`, while Agent Access must use the
+// same ignore-excluded predicate as getDue for every count. Malformed mark JSON
+// is authority corruption here and therefore fails closed instead of becoming
+// an invented empty/manual state.
+async function getAgentAccessReviewAggregates(userId, { nowMs } = {}) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const now = Number(nowMs);
+  if (!Number.isFinite(now)) throw new Error("AA_REVIEW_AGGREGATE_TIME_INVALID");
+  const generatedAt = new Date(now);
+  if (!Number.isFinite(generatedAt.getTime())) throw new Error("AA_REVIEW_AGGREGATE_TIME_INVALID");
+
+  const marks = await dbAll(db,
+    `SELECT item_key, meta_json FROM review_log
+      WHERE user_id = ? AND kind = 'mark' ORDER BY reviewed_at ASC, id ASC`, [userId]);
+  const manual = {};
+  for (const row of marks || []) {
+    let meta;
+    try { meta = JSON.parse(row.meta_json || "{}"); }
+    catch (_) { throw new Error("AA_REVIEW_AGGREGATE_MARK_JSON_INVALID"); }
+    if (!meta || typeof meta !== "object" || Array.isArray(meta)) throw new Error("AA_REVIEW_AGGREGATE_MARK_JSON_INVALID");
+    if (meta.status != null) manual[String(row.item_key)] = String(meta.status);
+  }
+  for (const key of Object.keys(manual)) if (manual[key] === "") delete manual[key];
+
+  const rows = await dbAll(db,
+    `SELECT item_key, due FROM srs_projections WHERE user_id = ? AND due IS NOT NULL`, [userId]);
+  let scheduled = 0, due = 0, urgent = 0;
+  const urgentBoundary = now - 24 * 60 * 60 * 1000;
+  for (const row of rows || []) {
+    if ((manual[row.item_key] || "") === "ignore") continue;
+    const dueMs = Date.parse(String(row.due || ""));
+    if (!Number.isFinite(dueMs)) throw new Error("AA_REVIEW_AGGREGATE_DUE_INVALID");
+    scheduled += 1;
+    if (scheduled > 100000) throw new Error("AA_REVIEW_AGGREGATE_OVERFLOW");
+    if (dueMs <= now) {
+      due += 1;
+      if (dueMs <= urgentBoundary) urgent += 1;
+    }
+  }
+  if (urgent > due || due > scheduled) throw new Error("AA_REVIEW_AGGREGATE_INVALID");
+  return Object.freeze({ scheduled_total: scheduled, due_total: due, urgent_total: urgent });
+}
+
 // Due-now items: schedule from projections, 'ignore' excluded by the manual axis — the same
 // rule the Room's cross-text due queue applies (getDueWithSource: srs_due<=now AND status!='ignore').
 async function getDue(userId, { nowMs, limit, withChannelStats } = {}) {
@@ -276,4 +321,4 @@ async function getAgentContext(userId, { nowMs } = {}) {
   };
 }
 
-module.exports = { manualStatusMap, getDue, getUpcoming, getKnownWords, getWeakWords, getRecentStruggles, recentStruggleKeySet, getTodayActivity, getAgentContext };
+module.exports = { manualStatusMap, getAgentAccessReviewAggregates, getDue, getUpcoming, getKnownWords, getWeakWords, getRecentStruggles, recentStruggleKeySet, getTodayActivity, getAgentContext };
