@@ -1588,6 +1588,7 @@ async function getAgentAccessOAuthRuntime() {
         cookieKeys,
         audit,
         limiter: agentAccessOAuthLimiter,
+        trustProxy: String(process.env.AGENT_ACCESS_OAUTH_TRUST_PROXY || "") === "1",
       });
     })();
   }

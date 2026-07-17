@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
+import fs from 'node:fs';
 import http from 'node:http';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { exportJWK, generateKeyPair, importJWK, SignJWT } from 'jose';
 
@@ -15,6 +20,7 @@ import { createOidcDeployment } from '../../agent/access/oidcDeployment.mjs';
 import { validateInjectedSigningJwks, verifyAccessToken } from '../../agent/access/oauthSigningKeys.mjs';
 
 const { FIXTURE_CLIENTS, RESOURCE, SCOPES } = deploymentContracts;
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SUBJECTS = new Map([
   [FIXTURE_CLIENTS[0].client_id, { subject: 'aa2b3_subject_hermes', connection_id: 'aa2b3_hermes_conn' }],
   [FIXTURE_CLIENTS[1].client_id, { subject: 'aa2b3_subject_inspector', connection_id: 'aa2b3_inspector_conn' }],
@@ -23,6 +29,25 @@ const SUBJECTS = new Map([
 function listen(server) { return new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', () => resolve(server.address())); }); }
 function close(server) { return new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve()))); }
 function challenge(verifier) { return createHash('sha256').update(verifier).digest('base64url'); }
+function rawRequest(origin, pathname, headers = {}) {
+  return new Promise((resolve, reject) => {
+    const req = http.request(new URL(pathname, origin), { method: 'GET', headers }, (res) => {
+      const chunks = [];
+      res.on('data', (chunk) => chunks.push(chunk));
+      res.on('end', () => resolve({ status: res.statusCode, body: Buffer.concat(chunks).toString('utf8') }));
+    });
+    req.once('error', reject);
+    req.end();
+  });
+}
+async function stopChild(child) {
+  if (!child || child.killed) return;
+  child.kill('SIGTERM');
+  await new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(), 5000);
+    child.once('exit', () => { clearTimeout(timer); resolve(); });
+  });
+}
 
 class Cookies {
   #values = new Map();
@@ -73,14 +98,25 @@ async function tokenRequest(metadata, form) {
 }
 
 const metadata = deploymentContracts.authorizationServerMetadata();
+const oidcCompatibility = deploymentContracts.openidConfiguration();
 assert.equal(metadata.issuer, deploymentContracts.ISSUER);
 assert.equal(deploymentContracts.protectedResourceMetadata().resource, RESOURCE);
 assert.deepEqual(metadata.code_challenge_methods_supported, ['S256']);
 assert.equal(metadata.grant_types_supported.includes('client_credentials'), false);
+for (const name of ['issuer', 'authorization_endpoint', 'token_endpoint', 'revocation_endpoint', 'jwks_uri']) {
+  assert.equal(new URL(oidcCompatibility[name]).protocol, 'https:');
+}
+assert.deepEqual(oidcCompatibility.scopes_supported, SCOPES);
+assert.deepEqual(oidcCompatibility.token_endpoint_auth_methods_supported, ['none']);
+assert.deepEqual(oidcCompatibility.response_modes_supported, ['query']);
+for (const forbidden of ['registration_endpoint', 'pushed_authorization_request_endpoint', 'userinfo_endpoint', 'introspection_endpoint', 'device_authorization_endpoint', 'backchannel_authentication_endpoint', 'dpop_signing_alg_values_supported']) {
+  assert.equal(Object.hasOwn(oidcCompatibility, forbidden), false);
+}
 assert.throws(() => deploymentContracts.validateFixtureClient({ ...FIXTURE_CLIENTS[0], redirect_uris: ['http://127.0.0.1:9999/callback'] }), /AA_OAUTH_CLIENT_PROFILE_MISMATCH/);
 
 const productionBoundary = boundary.validateOAuthHttpRequest({ enabled: '1', agent_access_enabled: '1', host: 'linguistpro.kolosei.com', socket_protocol: 'https', route_class: 'discovery', method: 'GET' });
 assert.equal(productionBoundary.ok, true);
+assert.equal(boundary.validateOAuthHttpRequest({ enabled: '1', agent_access_enabled: '1', host: 'linguistpro.kolosei.com', socket_protocol: 'http', forwarded_host: 'linguistpro.kolosei.com', forwarded_proto: 'https', trust_proxy: true, route_class: 'discovery', method: 'GET' }).ok, true);
 assert.deepEqual(
   boundary.validateOAuthHttpRequest({ enabled: '1', agent_access_enabled: '1', host: 'linguistpro.kolosei.com', socket_protocol: 'https', route_class: 'authorization', method: 'GET' }),
   { ok: false, error: 'AGENT_ACCESS_OAUTH_CLIENTS_DISABLED', status: 404 },
@@ -92,6 +128,9 @@ for (const [path, method, expected] of [
   ['/oauth/token?fixture=negative', 'POST', 'token'],
   ['/oauth/token/revocation?fixture=negative', 'POST', 'revocation'],
 ]) assert.equal(gateModule.routeClass(path, method), expected);
+for (const path of ['/oauth/.well-known/oauth-authorization-server', '/oauth/request', '/oauth/register', '/oauth/jwks/alternate']) {
+  assert.equal(gateModule.routeClass(path, 'GET'), null);
+}
 for (const input of [
   { enabled: '0', agent_access_enabled: '1', host: 'linguistpro.kolosei.com', socket_protocol: 'https', route_class: 'discovery' },
   { enabled: '1', agent_access_enabled: '1', host: 'evil.linguistpro.kolosei.com', socket_protocol: 'https', route_class: 'discovery' },
@@ -147,10 +186,15 @@ try {
   assert.equal(response.body.resource, RESOURCE);
   assert.equal(stagedRuntimeLookups, 1);
   response = mockResponse();
+  await stagedGate(requestShape, response);
+  assert.equal(response.statusCode, 200);
+  assert.deepEqual(response.body, oidcCompatibility);
+  assert.equal(stagedRuntimeLookups, 2);
+  response = mockResponse();
   await stagedGate(authorizationRequest, response);
   assert.equal(response.statusCode, 404);
   assert.equal(response.body.error, 'AGENT_ACCESS_OAUTH_CLIENTS_DISABLED');
-  assert.equal(stagedRuntimeLookups, 1);
+  assert.equal(stagedRuntimeLookups, 2);
 } finally {
   if (oldOauthFlag === undefined) delete process.env.AGENT_ACCESS_OAUTH_ENABLED; else process.env.AGENT_ACCESS_OAUTH_ENABLED = oldOauthFlag;
   if (oldUiFlag === undefined) delete process.env.AGENT_ACCESS_UI_ENABLED; else process.env.AGENT_ACCESS_UI_ENABLED = oldUiFlag;
@@ -190,6 +234,72 @@ const activeKey = await fixtureJwk('aa2b3-active-fixture');
 const keyset = await validateInjectedSigningJwks({ keys: [activeKey, oldKey] });
 assert.deepEqual(keyset.public_jwks.keys.map((key) => key.kid), ['aa2b3-active-fixture', 'aa2b3-old-fixture']);
 assert.equal(keyset.public_jwks.keys.some((key) => key.d), false);
+
+// Production-like D8 proof: real server.js, TLS terminated by exactly one
+// synthetic proxy hop, client activation still explicitly off.
+const readinessDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-aa-d8-readiness-'));
+const reservation = http.createServer();
+const readinessAddress = await listen(reservation);
+const readinessPort = readinessAddress.port;
+await close(reservation);
+const readinessOrigin = `http://127.0.0.1:${readinessPort}`;
+const readinessLogs = [];
+let readinessChild;
+try {
+  readinessChild = spawn(process.execPath, ['server.js'], {
+    cwd: ROOT,
+    env: {
+      ...process.env,
+      NODE_ENV: 'test',
+      PORT: String(readinessPort),
+      BIND_HOST: '127.0.0.1',
+      DATA_DIR: readinessDir,
+      AUTH_BOOTSTRAP_SECRET: 'aa-d8-readiness-bootstrap-secret-32-bytes',
+      AGENT_ACCESS_UI_ENABLED: '1',
+      AGENT_ACCESS_CANONICAL_ORIGIN: deploymentContracts.CANONICAL_ORIGIN,
+      AGENT_ACCESS_TRUST_PROXY: '1',
+      AGENT_ACCESS_OAUTH_ENABLED: '1',
+      AGENT_ACCESS_OAUTH_CLIENTS_ENABLED: '0',
+      AGENT_ACCESS_OAUTH_TRUST_PROXY: '1',
+      AGENT_ACCESS_OAUTH_PRIVATE_JWKS_JSON: JSON.stringify(keyset.private_jwks),
+      AGENT_ACCESS_OAUTH_COOKIE_KEYS_JSON: JSON.stringify([randomBytes(32).toString('base64url')]),
+      AGENT_ACCESS_OAUTH_AUDIT_HMAC_KEY: randomBytes(32).toString('base64url'),
+    },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  readinessChild.stdout.on('data', (value) => readinessLogs.push(String(value)));
+  readinessChild.stderr.on('data', (value) => readinessLogs.push(String(value)));
+  let ready = false;
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    try {
+      const health = await rawRequest(readinessOrigin, '/healthz');
+      if (health.status === 200 && JSON.parse(health.body).migrations?.ready) { ready = true; break; }
+    } catch (_) {}
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  assert.equal(ready, true, readinessLogs.join('').slice(-1000));
+  const proxyHeaders = {
+    host: 'linguistpro.kolosei.com',
+    'x-forwarded-host': 'linguistpro.kolosei.com',
+    'x-forwarded-proto': 'https',
+  };
+  const liveCompatibilityResponse = await rawRequest(readinessOrigin, '/oauth/.well-known/openid-configuration', proxyHeaders);
+  assert.equal(liveCompatibilityResponse.status, 200);
+  assert.deepEqual(JSON.parse(liveCompatibilityResponse.body), oidcCompatibility);
+  const liveJwksResponse = await rawRequest(readinessOrigin, '/oauth/jwks', proxyHeaders);
+  assert.equal(liveJwksResponse.status, 200);
+  const liveJwks = JSON.parse(liveJwksResponse.body);
+  assert.deepEqual(liveJwks.keys.map((key) => key.kid), ['aa2b3-active-fixture', 'aa2b3-old-fixture']);
+  assert.equal(liveJwks.keys.some((key) => key.d), false);
+  const alternateDiscovery = await rawRequest(readinessOrigin, '/oauth/.well-known/oauth-authorization-server', proxyHeaders);
+  assert.equal(alternateDiscovery.status, 404);
+  const clientDisabled = await rawRequest(readinessOrigin, '/oauth/auth?client_id=fixture&response_type=code', proxyHeaders);
+  assert.equal(clientDisabled.status, 404);
+  assert.equal(JSON.parse(clientDisabled.body).error, 'AGENT_ACCESS_OAUTH_CLIENTS_DISABLED');
+} finally {
+  await stopChild(readinessChild);
+  fs.rmSync(readinessDir, { recursive: true, force: true });
+}
 const overlapToken = await new SignJWT({ client_id: FIXTURE_CLIENTS[0].client_id, connection_id: 'rotation_overlap_conn', scope: SCOPES[0] })
   .setProtectedHeader({ alg: 'ES256', kid: oldKey.kid })
   .setIssuer('https://rotation.fixture.invalid/oauth')
@@ -220,7 +330,9 @@ try {
     findAccount: async (ctx, accountId) => [...SUBJECTS.values()].some((value) => value.subject === accountId) ? { accountId, async claims() { return { sub: accountId }; } } : undefined,
     interactionUrl: (ctx, interaction) => `${issuer}/interaction/${interaction.uid}`,
     principalForToken: async (token) => ({ ...SUBJECTS.get(token.clientId), client_id: token.clientId, security_epoch: 1, subject_epoch: 1 }),
+    trustProxy: true,
   });
+  assert.equal(deployment.provider.proxy, true);
   dispatch = async (req, res) => {
     try {
       const url = new URL(req.url, origin);
@@ -249,6 +361,9 @@ try {
   const discovered = await (await fetch(`${issuer}/.well-known/oauth-authorization-server`)).json();
   assert.equal(discovered.issuer, issuer);
   assert.deepEqual(discovered.code_challenge_methods_supported, ['S256']);
+  assert.deepEqual(discovered.token_endpoint_auth_methods_supported, ['none']);
+  assert.equal(discovered.pushed_authorization_request_endpoint, undefined);
+  assert.equal(discovered.dpop_signing_alg_values_supported, undefined);
   const principals = [];
   for (let clientIndex = 0; clientIndex < FIXTURE_CLIENTS.length; clientIndex += 1) {
     const client = FIXTURE_CLIENTS[clientIndex];
@@ -278,7 +393,7 @@ try {
   }
   assert.notEqual(principals[0].subject, principals[1].subject);
   assert.notEqual(principals[0].connection, principals[1].connection);
-  for (const prohibitedPath of ['/reg', '/me', '/token/introspection', '/device/auth', '/backchannel']) {
+  for (const prohibitedPath of ['/reg', '/request', '/me', '/token/introspection', '/device/auth', '/backchannel']) {
     const response = await fetch(`${issuer}${prohibitedPath}`, { redirect: 'manual' });
     assert.equal(response.status, 404);
   }

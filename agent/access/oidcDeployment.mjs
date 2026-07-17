@@ -35,6 +35,7 @@ export function createOidcDeployment({
   interactionUrl,
   principalForToken,
   protocolPreflight = async () => ({ ok: true }),
+  trustProxy = false,
 }) {
   if (typeof issuer !== 'string' || !issuer) fail('AA_OAUTH_ISSUER_REQUIRED');
   if (!privateJwks || !Array.isArray(privateJwks.keys) || !privateJwks.keys.length) fail('AA_OAUTH_KEYSET_INVALID');
@@ -42,6 +43,7 @@ export function createOidcDeployment({
   if (!Array.isArray(cookieKeys) || cookieKeys.length < 1 || cookieKeys.some((key) => typeof key !== 'string' || key.length < 32)) fail('AA_OAUTH_COOKIE_KEYS_REQUIRED');
   if (!Array.isArray(clients) || !clients.length) fail('AA_OAUTH_CLIENTS_REQUIRED');
   if (typeof findAccount !== 'function' || typeof interactionUrl !== 'function' || typeof principalForToken !== 'function' || typeof protocolPreflight !== 'function') fail('AA_OAUTH_CALLBACK_REQUIRED');
+  if (typeof trustProxy !== 'boolean') fail('AA_OAUTH_PROXY_CONFIG_INVALID');
 
   for (const client of clients) deploymentContracts.validateFixtureClient(client);
   const providerClients = clients.map((client) => ({
@@ -56,11 +58,14 @@ export function createOidcDeployment({
   const provider = new Provider(issuer, {
     adapter: Adapter,
     clients: providerClients,
+    clientAuthMethods: ['none'],
     cookies: { keys: cookieKeys },
     features: {
       devInteractions: { enabled: false },
       deviceFlow: { enabled: false },
+      dPoP: { enabled: false },
       introspection: { enabled: false },
+      pushedAuthorizationRequests: { enabled: false },
       registration: { enabled: false },
       revocation: {
         enabled: true,
@@ -106,6 +111,8 @@ export function createOidcDeployment({
       ctx.type = 'application/json';
       ctx.body = { error: out.error || 'invalid_request' };
     },
+    // Agent Access scopes are resource-indicator scopes, not global OIDC
+    // scopes. Publishing is owned by the closed compatibility document.
     scopes: [],
     ttl: {
       AccessToken: TTL.access_token_seconds,
@@ -120,6 +127,9 @@ export function createOidcDeployment({
       },
     },
   });
+  // Forwarded Host/Proto reach Koa only after the outer OAuth gate has
+  // validated the canonical host, a single value and the explicit trust flag.
+  provider.proxy = trustProxy;
 
   const callback = provider.callback();
   async function nodeHandler(req, res) {

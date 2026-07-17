@@ -1,16 +1,21 @@
 "use strict";
 
 const { validateOAuthHttpRequest } = require("./oauthHttpBoundary");
-const { protectedResourceMetadata, authorizationServerMetadata } = require("./oauthDeploymentContracts");
+const { protectedResourceMetadata, authorizationServerMetadata, openidConfiguration } = require("./oauthDeploymentContracts");
 
 function routeClass(path, method) {
   const pathname = String(path || "").split("?", 1)[0];
-  if (pathname.includes("/.well-known/") || pathname.endsWith("/jwks")) return "discovery";
-  if (pathname.endsWith("/token/revocation")) return "revocation";
-  if (pathname.endsWith("/token")) return "token";
-  if (pathname.includes("/interaction/")) return "interaction";
-  if (pathname.endsWith("/auth")) return "authorization";
-  return method === "OPTIONS" ? "discovery" : null;
+  if ([
+    "/.well-known/oauth-protected-resource/agent-access",
+    "/.well-known/oauth-authorization-server/oauth",
+    "/oauth/.well-known/openid-configuration",
+    "/oauth/jwks",
+  ].includes(pathname)) return "discovery";
+  if (pathname === "/oauth/token/revocation") return "revocation";
+  if (pathname === "/oauth/token") return "token";
+  if (/^\/oauth\/interaction\/[A-Za-z0-9_-]+$/.test(pathname)) return "interaction";
+  if (pathname === "/oauth/auth") return "authorization";
+  return null;
 }
 
 function createOAuthDefaultOffGate({ getRuntime = async () => null, limiter = null } = {}) {
@@ -51,6 +56,7 @@ function createOAuthDefaultOffGate({ getRuntime = async () => null, limiter = nu
     const path = String(req.originalUrl || req.url || "").split("?", 1)[0];
     if (path === "/.well-known/oauth-protected-resource/agent-access") return res.json(protectedResourceMetadata());
     if (path === "/.well-known/oauth-authorization-server/oauth") return res.json(authorizationServerMetadata());
+    if (path === "/oauth/.well-known/openid-configuration") return res.json(openidConfiguration());
     if (!path.startsWith("/oauth/")) return res.status(404).json({ error: "not_found" });
     req.url = req.url.slice("/oauth".length) || "/";
     return runtime.nodeHandler(req, res);

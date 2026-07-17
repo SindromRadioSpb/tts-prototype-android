@@ -23,6 +23,7 @@ export async function createDefaultOffOAuthRuntime({
   limiter,
   allowLoopbackFixture = false,
   fixtureIssuer,
+  trustProxy = false,
 }) {
   if (!repo || typeof repo.ensureSubjectForUser !== 'function' || typeof repo.providerPrincipal !== 'function') fail('AA_OAUTH_RUNTIME_REPO_INVALID');
   if (!consentCeremony || !interactionBridge || typeof resolveUser !== 'function' || !limiter || typeof limiter.take !== 'function') fail('AA_OAUTH_RUNTIME_DEPENDENCY_INVALID');
@@ -58,6 +59,7 @@ export async function createDefaultOffOAuthRuntime({
     findAccount,
     interactionUrl: (requestContext, interaction) => `${issuer}/interaction/${interaction.uid}`,
     principalForToken,
+    trustProxy,
     protocolPreflight: async ({ route_class: routeClass, form }) => {
       const clientId = typeof form.client_id === 'string' ? form.client_id : '';
       const context = await repo.providerCredentialContext(form);

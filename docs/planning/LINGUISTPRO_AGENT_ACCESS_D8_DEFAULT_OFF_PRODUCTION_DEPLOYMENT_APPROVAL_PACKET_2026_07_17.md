@@ -8,6 +8,8 @@
 
 **Engineering baseline:** `main` commit `8bf2b92`; package `3.11.194`; AA2-B3/B3.1 is `ENGINEERING_COMPLETE / EXPLICIT_CLIENT_KILL_SWITCH / DEFAULT_OFF / FIXTURE_TWO_CLIENT / PRODUCTION_KEY_ABSENT / PRODUCTION_CLIENT_ABSENT / MCP_ABSENT`.
 
+**Execution approval:** 2026-07-17 — the owner approved bounded D8 Option B execution and explicitly approved reconciling the two first-party boundary variables added in this revision. This does not expand D8 into client activation, OAuth authorization/token flow, MCP, Hermes/Inspector configuration, live connection, provider calls, CP0 live or F1/F2 reads.
+
 **Canonical parents:**
 
 - `LINGUISTPRO_AGENT_ACCESS_AA1_OAUTH_TOOL_SCHEMA_THREAT_MODEL_CONTRACT_2026_07_16.md`;
@@ -50,6 +52,8 @@ The future operator may configure only these Agent Access variables:
 
 ```text
 AGENT_ACCESS_UI_ENABLED=1
+AGENT_ACCESS_CANONICAL_ORIGIN=https://linguistpro.kolosei.com
+AGENT_ACCESS_TRUST_PROXY=1
 AGENT_ACCESS_OAUTH_ENABLED=1
 AGENT_ACCESS_OAUTH_CLIENTS_ENABLED=0
 AGENT_ACCESS_OAUTH_TRUST_PROXY=1
@@ -60,7 +64,7 @@ AGENT_ACCESS_OAUTH_AUDIT_HMAC_KEY=<independent managed secret>
 
 Exact `1` is the only enabled value. Exact `0` is required for the client flag so the intended state is inspectable rather than dependent on absence. No tracked env/example/config file is changed.
 
-`AGENT_ACCESS_UI_ENABLED=1` is currently a prerequisite for OAuth runtime construction. Its bounded production effect must be acknowledged: the existing first-party Agent Access management surface becomes available behind the normal LinguistPro session/Origin/CSRF boundary and should show an empty connection state. This is not external-agent authorization. If an unauthenticated/cross-origin caller can read or mutate that surface, stop and roll back.
+`AGENT_ACCESS_UI_ENABLED=1` is currently a prerequisite for OAuth runtime construction. `AGENT_ACCESS_CANONICAL_ORIGIN` and `AGENT_ACCESS_TRUST_PROXY=1` are independently required by the existing first-party browser boundary; `AGENT_ACCESS_OAUTH_TRUST_PROXY=1` does not configure that boundary. Their bounded production effect must be acknowledged: the existing first-party Agent Access management surface becomes available behind the normal LinguistPro session/Origin/CSRF boundary and should show an empty connection state. This is not external-agent authorization. If an unauthenticated/cross-origin caller can read or mutate that surface, stop and roll back.
 
 The deployment must contain no OAuth client row. An empty registry is a second control, not a substitute for `AGENT_ACCESS_OAUTH_CLIENTS_ENABLED=0`.
 
@@ -100,7 +104,7 @@ Before any configuration write, locally read `.claude/PROD_OPS_PRIVATE.md` and v
 3. the application backend/listening port is not internet-reachable;
 4. the proxy replaces untrusted inbound `X-Forwarded-Host` and `X-Forwarded-Proto` rather than preserving an attacker-controlled list;
 5. the application receives one canonical forwarded host and `https` proto;
-6. `AGENT_ACCESS_OAUTH_TRUST_PROXY=1` therefore represents exactly one verified hop, not a guess;
+6. `AGENT_ACCESS_TRUST_PROXY=1` and `AGENT_ACCESS_OAUTH_TRUST_PROXY=1` therefore each represent the same exactly one verified hop for their separate first-party and OAuth boundaries, not a guess;
 7. a current database/volume backup and rollback coordinates exist;
 8. no unexpected Agent Access/OAuth production variables or client rows already exist.
 
@@ -258,3 +262,25 @@ The owner must approve the production session with an exact bounded statement eq
 > Утверждаю D8 Option B и execution packet. Разрешаю read-only production preflight, безопасное создание/ввод трёх независимых Agent Access secrets, изменение только перечисленных D8 env flags, default-off redeploy, metadata/JWKS и negative validation, 30-minute observation и flag-first rollback при stop condition. Не разрешаю production client rows, client activation, OAuth authorization/token flow, MCP, Hermes/Inspector configuration, live connection, provider calls, CP0 live, F1/F2 reads или иные production/code changes.
 
 Without that approval, the next session may only reconcile and report; it must not mutate production.
+
+## 16. Production execution evidence — 2026-07-17
+
+**Result:** `ROLLED_BACK / WRONG_OIDC_DISCOVERY_SCHEME / ZERO_CLIENTS / ZERO_CONNECTIONS / ZERO_TOKENS / NO_MCP / NO_LIVE_CONNECTION`.
+
+The owner supplied the separate bounded §15 execution approval and manually injected the approved independent secrets through the trusted Coolify UI. Production remained on revision `b9fd3593c6162046567567fa09caf6c3a9bead84`, package `3.11.194`; migration 042 was already applied; the preflight client, connection, grant, code, token-family, refresh-token and denial counts were zero.
+
+The readiness restart produced healthy DB/migration state and the static protected-resource and RFC 8414 metadata used the closed HTTPS coordinates. The public JWKS contained one public P-256/ES256 signing key, the expected `kid` `lp-aa2-es256-2026q3-01`, no private `d`, and public thumbprint `euxjU4GvmFXKRvdGgA8P_ZGbVbmhlLHeniGKNP5Z40I` (planned rotation due 2026-10-15).
+
+The deployment hit immediate stop conditions before client registration or any live flow: `/oauth/.well-known/openid-configuration` returned provider-generated authorization, token, revocation, JWKS and PAR endpoint coordinates with `http://` rather than the required canonical `https://`; it also advertised a forbidden PAR endpoint and client-secret/private-key token authentication methods, while its scopes list did not match the closed Agent Access scope registry. The static AS metadata was not accepted as a substitute for the inconsistent OIDC compatibility document. Authorization remained client-disabled and no client authority was activated. The full negative matrix and 30-minute observation were not continued after these positive-contract failures.
+
+Flag-first rollback set `AGENT_ACCESS_OAUTH_ENABLED=0`, retained `AGENT_ACCESS_OAUTH_CLIENTS_ENABLED=0`, restored `AGENT_ACCESS_UI_ENABLED=0`, and redeployed the same revision. Post-rollback evidence:
+
+- `/healthz` returned `200`, DB and migrations ready, disk warning false;
+- metadata, discovery, JWKS, authorization, token and revocation returned baseline `404 AGENT_ACCESS_OAUTH_DISABLED`;
+- first-party Agent Access page/API returned baseline `404 AGENT_ACCESS_DISABLED`;
+- OAuth clients, connections, grants, authorization codes, token families, refresh tokens, token denials, Agent Access consent rows and OAuth audit rows were all zero;
+- ordinary unauthenticated auth behavior remained `401 UNAUTHENTICATED`.
+
+D8 is not production-ready. A separate engineering decision/execution slice must reconcile the provider-generated OIDC endpoint scheme behind the verified single Traefik hop without deriving authority from hostile headers or weakening the existing exact Host/proxy boundary, rerun the local deployment/loopback/boundary gates, and only then request a new bounded D8 deployment window. AA2-C, production client rows, client activation, MCP, Hermes/Inspector configuration and live connection remain prohibited.
+
+**Successor engineering closure:** the separately owner-approved `LINGUISTPRO_AGENT_ACCESS_D8_OIDC_DISCOVERY_REMEDIATION_EXECUTION_PACKET_2026_07_17.md` is `ENGINEERING_COMPLETE`. It adds closed HTTPS compatibility metadata, exact discovery-route allowlisting, PAR/DPoP/auth-method closure and a real-`server.js` one-hop regression gate. This does not change the rolled-back production state or authorize a second D8 deployment; a new bounded production approval remains required.

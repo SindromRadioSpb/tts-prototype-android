@@ -86,6 +86,8 @@
 
 ```text
 AGENT_ACCESS_UI_ENABLED=1
+AGENT_ACCESS_CANONICAL_ORIGIN=https://linguistpro.kolosei.com
+AGENT_ACCESS_TRUST_PROXY=1
 AGENT_ACCESS_OAUTH_ENABLED=1
 AGENT_ACCESS_OAUTH_CLIENTS_ENABLED=0
 AGENT_ACCESS_OAUTH_TRUST_PROXY=1
@@ -93,6 +95,8 @@ AGENT_ACCESS_OAUTH_PRIVATE_JWKS_JSON=<managed secret>
 AGENT_ACCESS_OAUTH_COOKIE_KEYS_JSON=<independent managed secret>
 AGENT_ACCESS_OAUTH_AUDIT_HMAC_KEY=<independent managed secret>
 ```
+
+`AGENT_ACCESS_TRUST_PROXY` защищает существующую first-party management surface, а `AGENT_ACCESS_OAUTH_TRUST_PROXY` — отдельную OAuth boundary. Оба exact-`1` разрешены только после доказательства одного и того же единственного Traefik hop; один флаг не заменяет другой. `AGENT_ACCESS_CANONICAL_ORIGIN` обязан быть ровно публичным canonical origin выше.
 
 Создай/введи три независимых high-entropy secrets. ES256 key должен быть P-256, `alg=ES256`, `use=sig`, с non-secret unique `kid`; cookie key array и audit HMAC не связаны с ним или друг с другом. Не используй LinguistPro credentials, cookies, CSRF, owner token, BYOK/provider key или shared bearer.
 

@@ -94,6 +94,26 @@ function authorizationServerMetadata() {
   });
 }
 
+function openidConfiguration() {
+  return Object.freeze({
+    issuer: ISSUER,
+    authorization_endpoint: ENDPOINTS.authorization_endpoint,
+    token_endpoint: ENDPOINTS.token_endpoint,
+    revocation_endpoint: ENDPOINTS.revocation_endpoint,
+    jwks_uri: ENDPOINTS.jwks_uri,
+    response_types_supported: Object.freeze(["code"]),
+    response_modes_supported: Object.freeze(["query"]),
+    grant_types_supported: Object.freeze(["authorization_code", "refresh_token"]),
+    token_endpoint_auth_methods_supported: Object.freeze(["none"]),
+    code_challenge_methods_supported: Object.freeze(["S256"]),
+    scopes_supported: C.SCOPES,
+    subject_types_supported: Object.freeze(["public"]),
+    id_token_signing_alg_values_supported: Object.freeze(["ES256"]),
+    claims_supported: Object.freeze(["sub"]),
+    resource_indicators_supported: true,
+  });
+}
+
 function validateFixtureClient(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) C.fail("AA_OAUTH_BAD_CLIENT");
   const allowed = ["client_id", "client_name", "software_id", "software_version", "token_endpoint_auth_method", "grant_types", "response_types", "redirect_uris"];
@@ -106,5 +126,5 @@ function validateFixtureClient(value) {
 module.exports = {
   DEPLOYMENT_VERSION, ISSUER, RESOURCE, CANONICAL_ORIGIN, ENDPOINTS, FIXTURE_CLIENTS, SCOPES: C.SCOPES,
   TTL, RATE_LIMITS, PROHIBITED_ENDPOINTS, protectedResourceMetadata,
-  authorizationServerMetadata, validateFixtureClient,
+  authorizationServerMetadata, openidConfiguration, validateFixtureClient,
 };
