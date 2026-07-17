@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-17
 
-**Status:** `DECISION_PACKET_READY / OWNER_EXECUTION_APPROVAL_REQUIRED / NO_PRODUCTION_MUTATION`.
+**Status:** `PRODUCTION_METADATA_READY / CLIENTS_EXPLICITLY_OFF / ZERO_CLIENTS / ZERO_CONNECTIONS / ZERO_TOKENS / NO_MCP / NO_LIVE_CONNECTION`.
 
 **Authority:** docs-only definition of a future production-readiness deployment. This packet does not itself authorize production secret generation/injection, configuration mutation, redeploy, database write, client registration, OAuth connection, MCP, Hermes/Inspector configuration, live authorization or learner-data access.
 
@@ -284,3 +284,75 @@ Flag-first rollback set `AGENT_ACCESS_OAUTH_ENABLED=0`, retained `AGENT_ACCESS_O
 D8 is not production-ready. A separate engineering decision/execution slice must reconcile the provider-generated OIDC endpoint scheme behind the verified single Traefik hop without deriving authority from hostile headers or weakening the existing exact Host/proxy boundary, rerun the local deployment/loopback/boundary gates, and only then request a new bounded D8 deployment window. AA2-C, production client rows, client activation, MCP, Hermes/Inspector configuration and live connection remain prohibited.
 
 **Successor engineering closure:** the separately owner-approved `LINGUISTPRO_AGENT_ACCESS_D8_OIDC_DISCOVERY_REMEDIATION_EXECUTION_PACKET_2026_07_17.md` is `ENGINEERING_COMPLETE`. It adds closed HTTPS compatibility metadata, exact discovery-route allowlisting, PAR/DPoP/auth-method closure and a real-`server.js` one-hop regression gate. This does not change the rolled-back production state or authorize a second D8 deployment; a new bounded production approval remains required.
+
+## 17. Successful remediated D8 evidence — 2026-07-17
+
+**Final result:** `PRODUCTION_METADATA_READY / CLIENTS_EXPLICITLY_OFF / ZERO_CLIENTS / ZERO_CONNECTIONS / ZERO_TOKENS / NO_MCP / NO_LIVE_CONNECTION`.
+
+The owner separately approved the remediated D8 rerun, the allowlisted `a6300db` and `2976bd9` push, the key-identity correction, content-safe evidence recording and the scoped tracked commit/push. Production deployed exact revision `2976bd9d3ed5321caa416385117d0d1855c37fcd`, package `3.11.194`, with:
+
+```text
+AGENT_ACCESS_UI_ENABLED=1
+AGENT_ACCESS_CANONICAL_ORIGIN=https://linguistpro.kolosei.com
+AGENT_ACCESS_TRUST_PROXY=1
+AGENT_ACCESS_OAUTH_ENABLED=1
+AGENT_ACCESS_OAUTH_CLIENTS_ENABLED=0
+AGENT_ACCESS_OAUTH_TRUST_PROXY=1
+```
+
+The three independent managed secrets are present but are not recorded here. The active public signing identity is:
+
+```text
+kid=lp-aa2-es256-2026q3-03
+RFC7638 thumbprint=t9lj866YWIL-AqEXsy8oAogKl79q0cJkIcUKqM60vpk
+rotation due=2026-10-15
+```
+
+The public JWKS contains exactly one EC P-256 signing key with `alg=ES256`, `use=sig`, the expected `kid` and no private `d` member. The private JWKS passed the exact production loader and real `oidc-provider` construction locally before injection.
+
+### 17.1 Corrective deviations
+
+The first remediated rerun stopped because the public key under `lp-aa2-es256-2026q3-01` did not match the previously approved thumbprint. Flag-first rollback restored UI/OAuth/client flags to `0/0/0` with health and zero-state intact. The next generated key `lp-aa2-es256-2026q3-02` included the otherwise standard JWK member `key_ops`; the closed production loader correctly rejected that unapproved field as `AA_OAUTH_KEY_FIELD_INVALID`, producing metadata `503`. OAuth and clients were disabled and redeployed before correction. No client, connection, grant, code, token, consent or audit row was created in either stopped attempt.
+
+The final key `lp-aa2-es256-2026q3-03` omits `key_ops`, uses only the closed field set `kty/crv/x/y/d/use/alg/kid`, and passed both loader and provider construction before the successful production deployment. The superseded q3-01/q3-02 identities must not be reused.
+
+### 17.2 Positive and negative proof
+
+The final public suite passed 30/30 checks:
+
+- `/healthz` returned `200` with DB and migrations ready and disk warning false;
+- protected-resource, authorization-server, closed OIDC compatibility metadata and JWKS returned exact `200` documents with canonical HTTPS coordinates;
+- OIDC metadata advertises only code/query, authorization-code plus refresh, public `none` client authentication, S256, the five closed Agent Access scopes, public subject and ES256; it advertises no PAR, DPoP, registration, userinfo, introspection, device, CIBA, token exchange or secret/private-key client authentication;
+- realistic authorization, form token, form revocation and interaction requests returned `404 AGENT_ACCESS_OAUTH_CLIENTS_DISABLED` before client/runtime/consent dispatch;
+- browser preflight and non-interaction Origin failed closed without permissive CORS;
+- synthetic cookie, CSRF and bearer sentinels were not accepted;
+- alternate/suffix discovery and every prohibited endpoint remained `404`;
+- hostile public forwarded input was replaced by the single Traefik hop, while real alternate Host failed closed at the public boundary;
+- direct private-app tests passed 7/7: one canonical forwarded hop was accepted, while comma/suffix/alternate Host, malformed forwarded proto and missing trusted forwarding were rejected with exact boundary errors;
+- authenticated owner management read showed an empty connection state; unauthenticated read returned `401` and cross-origin mutation returned `403`.
+
+The backend has zero host-bound ports and remains reachable publicly only through Traefik.
+
+### 17.3 Zero-state and observation
+
+After all validation and at each observation checkpoint:
+
+```text
+agent_oauth_clients=0
+agent_connections=0
+agent_connection_grants=0
+agent_authorization_codes=0
+agent_token_families=0
+agent_refresh_tokens=0
+agent_access_token_denials=0
+Agent Access consent rows=0
+OAuth audit rows=0
+```
+
+The content-safe observation ran from `2026-07-17T01:36:36Z` through `2026-07-17T02:07:17Z` (30.7 minutes). All 34 health samples were ready; uptime increased monotonically; restart count remained `0`; memory remained approximately 56–58 MiB; disk warning remained false. The 10-, 20- and 30-minute checkpoints each returned metadata/JWKS `200`, client-disabled authorization `404`, exact flags `1/1/0` and the full zero-state above. No secret/error leakage, polling client, provider/LLM call, notification, CP0 live evidence or learner-data read occurred.
+
+### 17.4 Authority conclusion
+
+R2/R5/R10 remain operational-only: metadata deployment is not learning value, product launch or vendor-neutral integration evidence. R9/R12 retain no external memory, MCP or second business authority. R11/R17 retain no external prose, evaluator, grade or evidence. R14/R15 retain the independent client kill switch, zero registry and no consent/downstream delivery. R16 retains zero client polling, provider call or managed LLM cost.
+
+D8 does not authorize AA2-C. Production client rows, `AGENT_ACCESS_OAUTH_CLIENTS_ENABLED=1`, authorization/token lifecycle, MCP endpoint/SDK, Hermes/Inspector configuration and live connection require a separate owner-approved AA2-C decision/execution packet.
