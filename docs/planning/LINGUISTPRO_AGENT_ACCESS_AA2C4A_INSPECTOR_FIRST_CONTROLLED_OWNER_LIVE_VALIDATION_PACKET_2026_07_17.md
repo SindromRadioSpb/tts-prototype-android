@@ -2,13 +2,23 @@
 
 **Date:** 2026-07-17
 
-**Packet status:** `DOCS_ONLY_COMPLETE / C4_PRE_ENGINEERING_COMPLETE / DEFAULT_OFF_DEPLOYMENT_PACKET_PREPARED_AWAITING_OWNER_APPROVAL / C4A_EXECUTION_BLOCKED`
+**Packet status:** `EXECUTION_STOPPED_PRE_DISPATCH / FLAG_FIRST_ROLLBACK_COMPLETE / ZERO_LIVE_AUTHORITY / DISCOVERY_COMPATIBILITY_REPAIR_PACKET_REQUIRED`
 
-**Snapshot revision:** `854411cd7069c6c0f8e3695cf295fc84e1d268ea`, package `3.11.196`.
+**Snapshot revision:** deployed packet-carrier `e77241acb4fc1e8a0de58c2e7e2c05a41ada3cd3`, reviewed handler revision `57527403893b8291a1648d989eead743a349cb96`, package `3.11.197`.
 
-**Intended future terminal status:** `INSPECTOR_OWNER_WINDOW_PASS / CLIENT_REVOKED_AND_SUSPENDED / CLIENTS_GATE_OFF / MCP_GATE_OFF / ZERO_LIVE_AUTHORITY / HERMES_UNTOUCHED`.
+**Durable execution handoff:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_NEXT_SESSION_PROMPT_2026_07_17.md`.
 
-This packet does not authorize production mutation, backup creation, deploy/restart, owner-allowlist configuration, client activation, flag enablement, authorization, interaction, consent, token issuance/revocation, Inspector or Hermes production configuration, MCP/live calls, code or migration changes, commit/push or AA2-C4B.
+**Execution evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_EVIDENCE_2026_07_17.md`.
+
+**Selected successor design awaiting exact owner approval:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_DISCOVERY_COMPATIBILITY_REPAIR_AND_REVALIDATION_PACKET_2026_07_17.md`. It supersedes the consumed §16 only after its own exact-commit §13 approval; this historical packet grants no retry authority.
+
+**Intended future terminal status:** `INSPECTOR_OWNER_WINDOW_PASS / INSPECTOR_REVOKED_DELETED_SUSPENDED / OWNER_ALLOWLIST_REMOVED / CLIENTS_GATE_OFF / MCP_GATE_OFF / ZERO_LIVE_AUTHORITY / HERMES_UNTOUCHED`.
+
+**Actual 2026-07-17 terminal status:** `INSPECTOR_OWNER_WINDOW_STOPPED_PRE_DISPATCH / OWNER_ALLOWLIST_REMOVED / CLIENTS_GATE_OFF / MCP_GATE_OFF / ZERO_LIVE_AUTHORITY / HERMES_UNTOUCHED`. The intended PASS status was not reached.
+
+The owner approved §16 for exact packet commit `5601aeac5108122242e20c39c47653b61ed9a21d`. Execution reached the bounded Inspector OAuth discovery step, then stopped before consent, token issuance, MCP initialization or handler dispatch because Inspector `0.22.0` derived protected-resource metadata locations from `/agent-access/mcp` while production publishes the reviewed resource metadata for `/agent-access`. The single permitted pre-dispatch retry was exhausted. Flag-first rollback and the full 15-minute zero-live-authority observation completed. No further C4A retry or C4B/Hermes action is authorized.
+
+This packet is now an executed historical control document. Its former §16 approval has been consumed and does not authorize another attempt. A separate discovery-compatibility repair/validation packet, any required code/deployment approval, and a new live-window approval are required before production mutation or another Inspector request. AA2-C4B remains prohibited.
 
 ## 1. Purpose
 
@@ -16,14 +26,14 @@ AA2-C4A is intended to be the first bounded production OAuth/MCP window. It vali
 
 This is not Hermes integration, general production readiness, learning evidence or product launch. Successful C4A would only permit a later separately approved C4B Hermes packet.
 
-## 2. Authority used in this docs-only session
+## 2. Authority used in packet preparation
 
 Allowed and completed:
 
 - private read-only use of the production runbook;
 - read-only local/origin/production revision, package, health, flag-presence, secret-presence, owner-allowlist-presence and aggregate DB-count checks;
 - read-only inspection of the exact runtime, consent, schema, lifecycle and rollback code;
-- preparation of this packet and reconciliation of the parent AA2-C status.
+- preparation of this exact execution packet, durable next-session prompt, scoped docs-only commit and safe non-deploy branch push.
 
 Not allowed and not performed:
 
@@ -32,14 +42,14 @@ Not allowed and not performed:
 - authorization, consent, token, revoke or MCP execution;
 - Inspector/Hermes production configuration;
 - real credentials, tokens, learner payload reads, provider calls or canonical writes;
-- code/migration/API/UI mutation, commit or push.
+- code/migration/API/UI mutation or production-bound branch push.
 
 ## 3. Content-safe production snapshot
 
 | Gate | Observed state |
 |---|---|
-| Local / origin / production revision | exact `854411cd7069c6c0f8e3695cf295fc84e1d268ea` |
-| Package | exact `3.11.196` |
+| Production `main` / deployed artifacts | exact packet carrier `e77241acb4fc1e8a0de58c2e7e2c05a41ada3cd3`; eight executable/package artifacts match |
+| Package | exact `3.11.197` |
 | `/healthz` | HTTP `200` |
 | OAuth UI/runtime flags | exact `1 / 1` |
 | OAuth clients gate | exact `0` |
@@ -54,9 +64,9 @@ Not allowed and not performed:
 
 Existing unrelated owner F1/F2/research and `.agents/` files remain outside this packet's allowlist.
 
-## 4. Hard blocker discovered by code-first recon
+## 4. Predecessor blocker resolved; live authority still blocked
 
-The exact production runtime constructs the MCP service with:
+At the former `854411c` baseline, production constructed the MCP service with:
 
 ```text
 handlers: {}
@@ -64,15 +74,15 @@ handlers: {}
 
 This is an intentional C1 boundary: the transport, validator, schemas and fixture handlers were completed, but no production business-data handlers were mounted. `initialize` and `tools/list` can describe the five tools, but every production `tools/call` would return `CAPABILITY_UNAVAILABLE` after successful authorization.
 
-The runtime also requires a non-empty exact owner allowlist before it can construct an enabled MCP resource runtime. Production currently has no owner allowlist configured.
+The deployed revision now contains the five reviewed production handlers and exact-one owner parser. Production still has no owner allowlist configured, both public clients remain `SUSPENDED`, the OAuth clients gate is `0`, and the MCP gate is absent.
 
-Therefore revision `854411c` is not executable for AA2-C4A. Enabling flags or activating Inspector on this revision would create OAuth/live state without the ability to complete the approved five-call validation. That is an immediate stop condition, not a reason to weaken the matrix.
+Therefore the engineering/deployment predecessor is complete, but C4A itself is still not executable under existing authority. Owner allowlist configuration, Inspector activation, flag enablement, OAuth lifecycle execution and live MCP calls require a new exact C4A approval; none occurred during C4-PRE.
 
-## 5. Mandatory predecessor: AA2-C4-PRE default-off handler engineering
+## 5. Completed predecessor: AA2-C4-PRE
 
-The separate docs-only packet is now prepared at `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_PACKET_2026_07_17.md`. Its preparation authorizes no engineering or production action; the exact approval in that packet is still required.
+The engineering packet is `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_PACKET_2026_07_17.md`; the completed default-off deployment is recorded in `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_EVIDENCE_2026_07_17.md`.
 
-A separate owner-approved engineering/deployment slice is required before C4A can be rebased and approved. It must:
+A separately owner-approved engineering/deployment slice was required and completed. It:
 
 1. implement exactly five production read-only handlers over existing deterministic first-party repositories/services;
 2. preserve every existing closed input/output schema and byte/cardinality/TTL bound;
@@ -86,7 +96,7 @@ A separate owner-approved engineering/deployment slice is required before C4A ca
 10. deploy a new exact revision with both production clients still `SUSPENDED`, OAuth clients gate `0`, MCP gate absent/exact `0`, and all lifecycle counts `0`;
 11. record content-safe default-off evidence and then rebase this C4A packet onto that exact revision.
 
-This predecessor is specified but not authorized by the present packet.
+All eleven predecessor conditions are now evidenced as complete. They do not authorize any C4A action.
 
 ## 6. Intended exact Inspector scopes after prerequisites pass
 
@@ -171,7 +181,7 @@ The following sequence is non-operative until §5 passes and a new exact revisio
 14. Verify authorization/token/revoke and MCP are fail-closed before cleanup.
 15. Set Inspector row back to `SUSPENDED`; Hermes remains unchanged.
 16. Revoke and delete the Inspector connection through existing lifecycle APIs; clear Inspector session storage and close its isolated browser profile.
-17. Set MCP gate to exact `0` or remove it, retain clients gate `0`, and restart the same revision.
+17. Set MCP gate to exact `0` or remove it, remove the temporary owner allowlist, retain clients gate `0`, and restart the same revision.
 18. Run the zero-live-authority matrix, observe for 15 minutes, and stop. Do not enter C4B.
 
 No step may combine Inspector and Hermes activation.
@@ -281,10 +291,18 @@ Restore from the fresh backup only for DB integrity damage under a separate reco
 
 ## 15. Approval boundary and current predecessor
 
-No valid C4A execution approval can name revision `854411c`, because that revision lacks production handlers and owner-allowlist readiness. C4A execution wording is intentionally withheld until the predecessor is engineered, independently reviewed, deployed under a separate default-off approval, and this packet is rebased onto that exact revision.
+No C4A execution approval exists yet. This packet is rebased onto deployed packet-carrier revision `e77241acb4fc1e8a0de58c2e7e2c05a41ada3cd3`, package `3.11.197`, after the predecessor was engineered, reviewed and deployed default-off.
 
 The C4-PRE bounded local engineering completed on 2026-07-17 with package `3.11.197`; content-safe proof is in `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_EVIDENCE_2026_07_17.md`.
 
-The separate docs-only deployment approval packet is now `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_APPROVAL_PACKET_2026_07_17.md`. It awaits exact owner approval and has not changed production.
+The separate deployment approval packet is `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_APPROVAL_PACKET_2026_07_17.md`; its exact bounded execution completed without enabling live authority.
 
-That engineering approval still does not authorize production deployment or any C4A action. Only a separately approved default-off deployment may produce a new exact-revision C4A execution approval.
+The completed predecessor does not authorize C4A. The exact approval in §16 must explicitly authorize owner configuration, temporary Inspector activation, exact gates, lifecycle window, five read-only calls and flag-first cleanup before any such action.
+
+## 16. Required exact owner execution approval
+
+After this packet and its durable handoff are committed/pushed to a non-deploy branch, execution requires a new owner message naming that exact packet commit and equivalent to:
+
+> Утверждаю AA2-C4A Inspector-first controlled owner-only live validation packet для exact packet commit `<EXACT_C4A_PACKET_COMMIT>` и production revision `e77241acb4fc1e8a0de58c2e7e2c05a41ada3cd3`, package `3.11.197`, Inspector `0.22.0`. Разрешаю read-only repo/production preflight, локальные synthetic regressions, private runbook только для минимальных production coordinates, один свежий backup, временную exact-one `AGENT_ACCESS_OWNER_IDS` конфигурацию из одного owner ID, переданного локально вне evidence/chat, временную активацию только `linguistpro-mcp-inspector-v0` при Hermes `SUSPENDED`, exact flag sequence packet §9 с restart того же revision, isolated Inspector profile, один owner authorization/consent flow с exact PKCE S256/resource и пятью scopes, один `initialize`, один `tools/list`, ровно пять allowlisted read-only calls из §7, один refresh rotation без reuse, revoke, flag-first close, Inspector suspend, connection revoke/delete, удаление owner allowlist, очистку Inspector token store/profile, 15-minute zero-live-authority observation, content-safe evidence, scoped evidence/status docs commit/push только в отдельную non-deploy ветку и packet-defined rollback. Разрешаю пяти handlers прочитать только bounded private learner metadata, необходимую для этих пяти ответов; запрещаю вывод learner values/IDs/titles/authors в chat/stdout/evidence/screenshots. Принимаю ожидаемый non-authoritative residue из §11: одна opaque subject mapping, consent history, erasure/audit tombstone и bounded denial metadata могут остаться, если live authority exact zero. Не разрешаю Hermes configuration/contact, AA2-C4B, дополнительные MCP calls/retries после dispatch, arbitrary query/cursor, DCR/CIMD/registration, client secret/shared bearer/token passthrough, token/code/cookie/header disclosure, F1/F2/private body/source reads, canonical learner writes, provider/LLM/BYOK calls, CP0 live, migration/code/API/UI/schema/scope/dependency changes, unrelated repair, main push/deploy нового revision или product/learning/Hermes readiness claims.
+
+The placeholder must be replaced by the exact final docs commit. A short “утверждаю/приступай” without that commit and bounded mutation wording is not execution authority. The owner ID itself must never be placed in the approval, git, chat, stdout or evidence.

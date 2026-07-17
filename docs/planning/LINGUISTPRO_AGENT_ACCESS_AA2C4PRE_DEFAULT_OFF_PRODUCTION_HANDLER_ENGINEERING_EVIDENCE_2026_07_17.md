@@ -72,10 +72,10 @@ Exact deltas are zero for the watched learner, task, explanation, subject, conne
 
 Only the approved production-handler modules, two read-only repository additions, default-off server wiring, focused smoke, package/lock version fields, the four approved Agent Access planning documents and this evidence are part of the scoped commit. No migration, dependency, API route, UI, OAuth/MCP schema/scope, provider module, public body artifact or production runbook changed.
 
-## 7. Next separately approvable slice
+## 7. Deployment successor
 
-C4A remains blocked. The next possible packet is a separate exact-revision **default-off production deployment approval** limited to deploying the reviewed commit while the existing UI/OAuth metadata readiness remains unchanged and the independent OAuth-client/MCP authority gates remain off, with no owner allowlist configuration, client activation, authorization/consent/token flow or MCP request. Its gates should be exact revision/package and public health verification, default-off route behavior, startup/static synthetic checks and a bounded zero-lifecycle-delta observation, followed by rollback criteria. This evidence does not approve or execute that packet.
+C4A remains blocked. The separately approved exact-revision default-off production deployment completed for packet-carrier `e77241acb4fc1e8a0de58c2e7e2c05a41ada3cd3`, with the independent OAuth-client/MCP authority gates off, no owner allowlist configuration, no client activation, no lifecycle flow and no live connection.
 
-That docs-only packet is now prepared at `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_APPROVAL_PACKET_2026_07_17.md` and awaits an explicit owner execution approval naming its final tracked commit.
+The deployment packet is `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_APPROVAL_PACKET_2026_07_17.md`; content-safe execution proof is `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_EVIDENCE_2026_07_17.md`.
 
 Production deploy/restart, production config/env mutation, production owner configuration, client activation, flag enablement, authorization/interaction/consent/token/refresh/revoke, Inspector/Hermes production configuration, any live MCP call, registration/DCR/CIMD, secret/shared-bearer/token passthrough, real credentials, private learner reads, canonical writes, provider/LLM/BYOK calls, polling/notification, AA2-C4A, AA2-C4B and launch claims remain prohibited.

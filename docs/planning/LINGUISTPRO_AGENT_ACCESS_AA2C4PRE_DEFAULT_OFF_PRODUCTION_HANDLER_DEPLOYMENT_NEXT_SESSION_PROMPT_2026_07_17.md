@@ -1,8 +1,10 @@
 # Next-session prompt — AA2-C4-PRE default-off production-handler deployment
 
+**Handoff status:** `CONSUMED / DEPLOYMENT_COMPLETE / DEFAULT_OFF / NO_PRODUCTION_CONNECTION` on 2026-07-17 for exact packet-carrier `e77241acb4fc1e8a0de58c2e7e2c05a41ada3cd3`, package `3.11.197`. Do not rerun this prompt. Continue only from a separately approved C4A packet.
+
 Work in `E:\projects\tts-prototype-android`.
 
-This prompt is a durable handoff for a separately approved production deployment session. It is not execution authority. Do not read the private production runbook, push `main`, deploy, restart or mutate production until the owner supplies the exact approval in the deployment packet §15 naming the final packet-carrier commit.
+This prompt was the durable handoff for the completed production deployment session. It is retained as audit context, not execution authority. Its approval was consumed and grants no permission for another deploy, restart, production mutation or C4A/C4B action.
 
 ## Read fully before action
 

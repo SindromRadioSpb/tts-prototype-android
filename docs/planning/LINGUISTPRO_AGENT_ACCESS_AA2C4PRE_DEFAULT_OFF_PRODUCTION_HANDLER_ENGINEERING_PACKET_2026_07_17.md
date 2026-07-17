@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-17
 
-**Packet status:** `OWNER_APPROVED / ENGINEERING_COMPLETE / SYNTHETIC_AND_REGRESSION_GATES_GREEN / DEFAULT_OFF / NO_PRODUCTION_MUTATION`.
+**Packet status:** `OWNER_APPROVED / ENGINEERING_COMPLETE / DEFAULT_OFF_DEPLOYMENT_COMPLETE / ZERO_LIVE_AUTHORITY`.
 
 **Baseline:** local `main = origin/main = 854411cd7069c6c0f8e3695cf295fc84e1d268ea`, package `3.11.196`.
 
@@ -12,15 +12,15 @@ This packet is a predecessor to AA2-C4A. The owner approved the bounded engineer
 
 **Durable next-session prompt:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_ENGINEERING_NEXT_SESSION_PROMPT_2026_07_17.md`.
 
-**Engineering evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_EVIDENCE_2026_07_17.md`. Package `3.11.197`; C4A remains blocked pending a separate default-off production deployment approval and execution.
+**Engineering evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_EVIDENCE_2026_07_17.md`. Package `3.11.197`; C4A remains blocked pending separate Inspector-only approval.
 
-**Deployment approval packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_APPROVAL_PACKET_2026_07_17.md`. Prepared docs-only on 2026-07-17 and awaiting an exact owner approval naming its final tracked commit; no production action is authorized by preparation.
+**Deployment approval/evidence:** exact packet-carrier `e77241acb4fc1e8a0de58c2e7e2c05a41ada3cd3` was approved and deployed default-off on 2026-07-17 under `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_APPROVAL_PACKET_2026_07_17.md`; content-safe proof is in `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_EVIDENCE_2026_07_17.md`.
 
 ## 1. Purpose and present blocker
 
 AA2-C1 completed the stateless Streamable HTTP adapter, bearer/resource validator and five closed MCP tool contracts. AA2-C2 proved exact Inspector `0.22.0` and Hermes `0.18.2` interoperability against isolated synthetic handlers. AA2-C3 registered both reviewed static public clients in production as `SUSPENDED` while all lifecycle counts remained zero.
 
-The exact production revision still constructs the service with `handlers: {}`. Therefore a live `tools/call` would fail `CAPABILITY_UNAVAILABLE`, even though `initialize` and `tools/list` can succeed. Production also has no MCP owner allowlist configured, and the current parser accepts more than one syntactically valid owner ID. C4A must remain blocked.
+At the engineering baseline, production still constructed the service with `handlers: {}` and the owner parser did not require exact one. Those code blockers are now resolved and deployed, but production remains deliberately dormant: no owner allowlist, both clients suspended, clients gate `0`, MCP gate absent and zero lifecycle rows. C4A remains blocked by its separate approval boundary.
 
 C4-PRE is limited to engineering five thin, deterministic, read-only projections and exact-one owner enforcement while all production access stays default-off. It is not Hermes integration, production MCP readiness, learning evidence or launch evidence.
 
