@@ -2,9 +2,9 @@
 
 **Date:** 2026-07-17
 
-**Packet status:** `DOCS_ONLY_COMPLETE / C4_PRE_ENGINEERING_COMPLETE / DEFAULT_OFF_DEPLOYMENT_PACKET_PREPARED_AWAITING_OWNER_APPROVAL / C4A_EXECUTION_BLOCKED`
+**Packet status:** `DOCS_ONLY_REBASED / C4_PRE_DEPLOYED_DEFAULT_OFF / ZERO_LIVE_AUTHORITY / C4A_EXECUTION_BLOCKED`
 
-**Snapshot revision:** `854411cd7069c6c0f8e3695cf295fc84e1d268ea`, package `3.11.196`.
+**Snapshot revision:** deployed packet-carrier `e77241acb4fc1e8a0de58c2e7e2c05a41ada3cd3`, reviewed handler revision `57527403893b8291a1648d989eead743a349cb96`, package `3.11.197`.
 
 **Intended future terminal status:** `INSPECTOR_OWNER_WINDOW_PASS / CLIENT_REVOKED_AND_SUSPENDED / CLIENTS_GATE_OFF / MCP_GATE_OFF / ZERO_LIVE_AUTHORITY / HERMES_UNTOUCHED`.
 
@@ -38,8 +38,8 @@ Not allowed and not performed:
 
 | Gate | Observed state |
 |---|---|
-| Local / origin / production revision | exact `854411cd7069c6c0f8e3695cf295fc84e1d268ea` |
-| Package | exact `3.11.196` |
+| Production `main` / deployed artifacts | exact packet carrier `e77241acb4fc1e8a0de58c2e7e2c05a41ada3cd3`; eight executable/package artifacts match |
+| Package | exact `3.11.197` |
 | `/healthz` | HTTP `200` |
 | OAuth UI/runtime flags | exact `1 / 1` |
 | OAuth clients gate | exact `0` |
@@ -54,9 +54,9 @@ Not allowed and not performed:
 
 Existing unrelated owner F1/F2/research and `.agents/` files remain outside this packet's allowlist.
 
-## 4. Hard blocker discovered by code-first recon
+## 4. Predecessor blocker resolved; live authority still blocked
 
-The exact production runtime constructs the MCP service with:
+At the former `854411c` baseline, production constructed the MCP service with:
 
 ```text
 handlers: {}
@@ -64,13 +64,13 @@ handlers: {}
 
 This is an intentional C1 boundary: the transport, validator, schemas and fixture handlers were completed, but no production business-data handlers were mounted. `initialize` and `tools/list` can describe the five tools, but every production `tools/call` would return `CAPABILITY_UNAVAILABLE` after successful authorization.
 
-The runtime also requires a non-empty exact owner allowlist before it can construct an enabled MCP resource runtime. Production currently has no owner allowlist configured.
+The deployed revision now contains the five reviewed production handlers and exact-one owner parser. Production still has no owner allowlist configured, both public clients remain `SUSPENDED`, the OAuth clients gate is `0`, and the MCP gate is absent.
 
-Therefore revision `854411c` is not executable for AA2-C4A. Enabling flags or activating Inspector on this revision would create OAuth/live state without the ability to complete the approved five-call validation. That is an immediate stop condition, not a reason to weaken the matrix.
+Therefore the engineering/deployment predecessor is complete, but C4A itself is still not executable under existing authority. Owner allowlist configuration, Inspector activation, flag enablement, OAuth lifecycle execution and live MCP calls require a new exact C4A approval; none occurred during C4-PRE.
 
 ## 5. Mandatory predecessor: AA2-C4-PRE default-off handler engineering
 
-The separate docs-only packet is now prepared at `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_PACKET_2026_07_17.md`. Its preparation authorizes no engineering or production action; the exact approval in that packet is still required.
+The engineering packet is `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_PACKET_2026_07_17.md`; the completed default-off deployment is recorded in `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_EVIDENCE_2026_07_17.md`.
 
 A separate owner-approved engineering/deployment slice is required before C4A can be rebased and approved. It must:
 
@@ -86,7 +86,7 @@ A separate owner-approved engineering/deployment slice is required before C4A ca
 10. deploy a new exact revision with both production clients still `SUSPENDED`, OAuth clients gate `0`, MCP gate absent/exact `0`, and all lifecycle counts `0`;
 11. record content-safe default-off evidence and then rebase this C4A packet onto that exact revision.
 
-This predecessor is specified but not authorized by the present packet.
+This predecessor is complete. It does not authorize any C4A action.
 
 ## 6. Intended exact Inspector scopes after prerequisites pass
 
@@ -281,10 +281,10 @@ Restore from the fresh backup only for DB integrity damage under a separate reco
 
 ## 15. Approval boundary and current predecessor
 
-No valid C4A execution approval can name revision `854411c`, because that revision lacks production handlers and owner-allowlist readiness. C4A execution wording is intentionally withheld until the predecessor is engineered, independently reviewed, deployed under a separate default-off approval, and this packet is rebased onto that exact revision.
+No C4A execution approval exists. This packet is now rebased onto deployed packet-carrier revision `e77241acb4fc1e8a0de58c2e7e2c05a41ada3cd3`, package `3.11.197`, after the predecessor was engineered, reviewed and deployed default-off.
 
 The C4-PRE bounded local engineering completed on 2026-07-17 with package `3.11.197`; content-safe proof is in `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_EVIDENCE_2026_07_17.md`.
 
-The separate docs-only deployment approval packet is now `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_APPROVAL_PACKET_2026_07_17.md`. It awaits exact owner approval and has not changed production.
+The separate deployment approval packet is `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_APPROVAL_PACKET_2026_07_17.md`; its exact bounded execution completed without enabling live authority.
 
-That engineering approval still does not authorize production deployment or any C4A action. Only a separately approved default-off deployment may produce a new exact-revision C4A execution approval.
+The completed predecessor does not authorize C4A. A new Inspector-only packet must explicitly authorize owner configuration, temporary Inspector activation, exact gates, lifecycle window, five read-only calls and flag-first cleanup before any such action.

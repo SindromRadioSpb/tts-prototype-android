@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-17
 
-**Status:** `AA2_C3_REGISTRATION_COMPLETE / C4_PRE_ENGINEERING_COMPLETE / DEFAULT_OFF_DEPLOYMENT_PACKET_PREPARED_AWAITING_OWNER_APPROVAL / C4A_BLOCKED`.
+**Status:** `AA2_C3_REGISTRATION_COMPLETE / C4_PRE_DEPLOYED_DEFAULT_OFF / ZERO_LIVE_AUTHORITY / C4A_BLOCKED`.
 
 **C1 evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C1_DEFAULT_OFF_MCP_ENGINEERING_EVIDENCE_2026_07_17.md`. C1 completion does not authorize or imply C2, production registration, client activation, OAuth lifecycle execution, Hermes/Inspector configuration or a live connection.
 
@@ -14,11 +14,11 @@
 
 **C4A packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4A_INSPECTOR_FIRST_CONTROLLED_OWNER_LIVE_VALIDATION_PACKET_2026_07_17.md`. Read-only recon found that exact revision `854411c` still mounts `handlers: {}` and has no configured MCP owner allowlist, so a production Inspector window cannot complete its five-call gate. A separate default-off handler engineering/deployment slice is required before C4A execution can be approved. Packet preparation does not authorize that predecessor or any live action.
 
-**C4-PRE packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_PACKET_2026_07_17.md`. The owner-approved bounded engineering completed on an isolated non-deploy branch with five thin handlers, exact-one owner enforcement, package `3.11.197` and green synthetic/regression gates. Production deploy and live action remain unauthorized.
+**C4-PRE packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_PACKET_2026_07_17.md`. The owner-approved bounded engineering and separately approved default-off deployment completed with five thin handlers, exact-one owner enforcement, package `3.11.197` and green gates. No live authority was enabled.
 
-**C4-PRE evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_EVIDENCE_2026_07_17.md`. This is content-safe engineering evidence only; C4A remains blocked until a separately approved exact-revision default-off deployment completes.
+**C4-PRE evidence:** engineering evidence is in `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_ENGINEERING_EVIDENCE_2026_07_17.md`; deployment evidence is in `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_EVIDENCE_2026_07_17.md`. C4A remains blocked pending a separate Inspector-only owner-live approval.
 
-**C4-PRE deployment packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_APPROVAL_PACKET_2026_07_17.md`. The docs-only packet fixes the exact default-off deployment, observation and rollback boundary. It awaits an owner approval naming the final packet-carrier commit; it does not authorize `main` push, deploy or production access.
+**C4-PRE deployment packet:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_APPROVAL_PACKET_2026_07_17.md`. The owner approved exact packet-carrier commit `e77241acb4fc1e8a0de58c2e7e2c05a41ada3cd3`; its bounded default-off deployment and observation completed on 2026-07-17.
 
 **C4-PRE next-session prompt:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_ENGINEERING_NEXT_SESSION_PROMPT_2026_07_17.md`. It repeats exact authority, read-first canon, working-tree exclusions, implementation allowlist, gates, stop conditions and handoff requirements.
 
@@ -303,7 +303,7 @@ Each slice uses a scoped allowlist commit. Unrelated owner files are excluded. P
 
 ## 15. Current executable slice
 
-The next possible executable slice is the exact-revision default-off production deployment now specified in its docs-only approval packet. C1-C3 and C4-PRE engineering are complete. The deployment still awaits explicit owner approval; C4A and C4B remain separate unapproved decisions.
+The next possible executable slice is AA2-C4A Inspector-first controlled owner-only validation, but it remains blocked until a new exact-revision owner approval is prepared and explicitly granted. C1-C3 plus C4-PRE engineering/default-off deployment are complete. C4B Hermes remains a later separate unapproved decision.
 
 ## 16. Source map
 

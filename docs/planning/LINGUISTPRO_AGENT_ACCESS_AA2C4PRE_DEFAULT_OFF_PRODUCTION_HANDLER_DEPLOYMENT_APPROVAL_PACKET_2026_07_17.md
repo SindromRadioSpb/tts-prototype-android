@@ -2,11 +2,11 @@
 
 **Date:** 2026-07-17
 
-**Packet status:** `DOCS_ONLY_COMPLETE / AWAITING_EXACT_OWNER_EXECUTION_APPROVAL / NO_PRODUCTION_MUTATION`.
+**Packet status:** `OWNER_APPROVED / EXACT_DEPLOYMENT_COMPLETE / DEFAULT_OFF / ZERO_LIVE_AUTHORITY`.
 
 **Engineering code revision:** `57527403893b8291a1648d989eead743a349cb96`, package `3.11.197`.
 
-**Current production/main baseline expected at packet preparation:** `854411cd7069c6c0f8e3695cf295fc84e1d268ea`, package `3.11.196`.
+**Execution revision:** packet-carrier `e77241acb4fc1e8a0de58c2e7e2c05a41ada3cd3`, deployed from baseline `854411cd7069c6c0f8e3695cf295fc84e1d268ea`; package `3.11.196 -> 3.11.197`.
 
 **Intended deployment terminal status:**
 
@@ -20,11 +20,11 @@ ZERO_LIVE_AUTHORITY /
 NO_PRODUCTION_CONNECTION
 ```
 
-This packet authorizes nothing by itself. In particular it does not authorize a `main` push, production auto-deploy, production runbook access, backup, restart, config/env mutation, owner allowlist configuration, client activation, OAuth/MCP flag enablement, authorization/consent/token/revoke flow, Inspector/Hermes production configuration, MCP request, live connection or C4A/C4B.
+This packet authorized nothing by itself. The owner supplied the exact bounded execution approval for `e77241acb4fc1e8a0de58c2e7e2c05a41ada3cd3`; execution stayed within that approval. It did not authorize config/env mutation, owner allowlist configuration, client activation, OAuth/MCP flag enablement, authorization/consent/token/revoke flow, Inspector/Hermes production configuration, live connection or C4A/C4B.
 
 ## 1. Purpose and exact boundary
 
-AA2-C4-PRE engineering completed five thin read-only handlers and exact-one owner validation on an isolated non-deploy branch. Production still runs the prior revision without those handlers. C4A therefore remains blocked.
+AA2-C4-PRE engineering completed five thin read-only handlers and exact-one owner validation on an isolated non-deploy branch. The reviewed artifacts are now deployed in dormant default-off production. C4A remains blocked pending separate approval.
 
 The next separable step is deployment of the reviewed code while all external authority remains off. It proves only that the production image can start and serve the existing application/OAuth metadata with the new handler code dormant behind the existing exact gates. It is not production MCP readiness, Inspector evidence, Hermes integration, learning evidence or launch evidence.
 
@@ -275,4 +275,4 @@ The future execution approval must name the exact packet-carrier/deploy commit s
 
 > Утверждаю AA2-C4-PRE default-off production-handler deployment packet для exact commit `<EXACT_PACKET_CARRIER_COMMIT>`, содержащего reviewed handler revision `57527403893b8291a1648d989eead743a349cb96`, package `3.11.197`. Разрешаю read-only repo/production preflight, локальные synthetic gates, один свежий backup, exact fast-forward push этого commit в `main` с normal production auto-deploy, content-safe health/revision/default-off validation, 15-minute zero-lifecycle-delta observation, content-safe evidence, allowlisted evidence/status docs commit и push только в отдельную non-deploy ветку, а также prior-image/flag-first rollback при stop condition. Не разрешаю иные code/docs изменения во время production execution, evidence follow-up push в `main`, migration/schema/API/UI/scope/dependency change, production env/config/secret/proxy mutation, owner allowlist configuration, client activation, `AGENT_ACCESS_OAUTH_CLIENTS_ENABLED=1`, `AGENT_ACCESS_MCP_ENABLED=1`, authorization/interaction/consent/token/refresh/revoke flow, Inspector/Hermes production configuration, production MCP request, live connection, DCR/CIMD/registration, credential/token/cookie disclosure, private learner reads, canonical writes, provider/LLM/BYOK calls, CP0 live, AA2-C4A или AA2-C4B.
 
-Without that exact approval, the packet remains docs-only and production must not be touched.
+The owner supplied that exact approval for packet-carrier commit `e77241acb4fc1e8a0de58c2e7e2c05a41ada3cd3` on 2026-07-17. Execution completed with the terminal status in §14; see `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C4PRE_DEFAULT_OFF_PRODUCTION_HANDLER_DEPLOYMENT_EVIDENCE_2026_07_17.md`. No authority carries forward to C4A or C4B.
