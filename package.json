@@ -1,6 +1,6 @@
 {
   "name": "tts-translator-dashboard",
-  "version": "3.11.194",
+  "version": "3.11.195",
   "description": "TTS & Translator Dashboard (Google Cloud Text-to-Speech + Gemini, Hebrew-Russian tables)",
   "main": "server.js",
   "scripts": {
@@ -265,12 +265,14 @@
     "smoke:agent-access:oauth": "node scripts/premium/agent-access-oauth-lifecycle-smoke.js && node scripts/premium/agent-access-oauth-restore-smoke.js",
     "smoke:agent-access:oidc-loopback": "node scripts/premium/agent-access-oidc-loopback-smoke.mjs",
     "smoke:agent-access:oauth-deployment": "node scripts/premium/agent-access-oauth-deployment-smoke.mjs && node scripts/premium/agent-access-oauth-b0-adapter-smoke.mjs && node scripts/premium/agent-access-oauth-consent-bridge-smoke.mjs",
+    "smoke:agent-access:mcp": "node scripts/premium/agent-access-mcp-smoke.mjs",
     "smoke:cp0:load": "node scripts/premium/cp0-load-smoke.js"
   },
   "dependencies": {
     "@google-cloud/text-to-speech": "^5.7.0",
     "@google-cloud/translate": "^9.3.0",
     "@google/generative-ai": "^0.19.0",
+    "@modelcontextprotocol/sdk": "1.29.0",
     "adm-zip": "^0.5.17",
     "archiver": "^7.0.1",
     "body-parser": "^1.20.3",

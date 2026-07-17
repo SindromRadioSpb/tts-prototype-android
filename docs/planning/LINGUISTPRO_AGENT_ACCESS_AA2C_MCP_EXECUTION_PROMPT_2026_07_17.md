@@ -1,5 +1,7 @@
 # Next-session prompt — LinguistPro Agent Access AA2-C1 default-off MCP engineering
 
+> **Completion note (2026-07-17):** AA2-C1 is engineering-complete. Do not reuse this prompt to repeat C1. Review `LINGUISTPRO_AGENT_ACCESS_AA2C1_DEFAULT_OFF_MCP_ENGINEERING_EVIDENCE_2026_07_17.md`; the next possible slice is separately approved AA2-C2 only.
+
 Работаем в `E:\projects\tts-prototype-android`.
 
 Это отдельная engineering-сессия AA2-C1. Не расширяй её до production client registration, client activation, OAuth consent/token lifecycle, Hermes/Inspector host configuration или live connection.

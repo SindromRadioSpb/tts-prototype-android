@@ -171,8 +171,9 @@ app.set("trust proxy", 1);
 // exclude the webhook path from the global parser; the webhook route mounts its own secret gate
 // + a tiny 256 KB parser (a Telegram update is small). Adjudication of critique wf_a67874c5.
 const TELEGRAM_WEBHOOK_PATH = "/api/telegram/webhook";
+const AGENT_ACCESS_MCP_PATH = "/agent-access/mcp";
 const _globalJson = bodyParser.json({ limit: "10mb" });
-app.use((req, res, next) => (req.path === TELEGRAM_WEBHOOK_PATH ? next() : _globalJson(req, res, next)));
+app.use((req, res, next) => ([TELEGRAM_WEBHOOK_PATH, AGENT_ACCESS_MCP_PATH].includes(req.path) ? next() : _globalJson(req, res, next)));
 
 // ── Content-Security-Policy: REPORT-ONLY rollout ───────────────────────────
 // index.html is inline-script/style heavy, so we can't enforce a strict CSP
@@ -1556,6 +1557,10 @@ const { createOAuthDefaultOffGate } = require("./agent/access/oauthDefaultOffGat
 const { createOAuthInteractionBridge } = require("./agent/access/oauthInteractionBridge");
 const { createContentSafeOAuthAudit } = require("./agent/access/oauthAudit");
 const { createOAuthRateLimiter } = require("./agent/access/oauthRateLimiter");
+const { createMcpDefaultOffGate } = require("./agent/access/mcpAdapter");
+const { createMcpRateLimiter } = require("./agent/access/mcpRateLimiter");
+const { createAgentAccessService } = require("./agent/access/service");
+const agentAccessDeployment = require("./agent/access/oauthDeploymentContracts");
 const agentAccessConsent = createConsentCeremony({
   oauthRepo: agentAccessOAuthRepo,
   recordConsent: identityRepo.recordConsent,
@@ -1602,6 +1607,46 @@ const agentAccessOAuthGate = createOAuthDefaultOffGate({ getRuntime: getAgentAcc
 app.all("/.well-known/oauth-protected-resource/agent-access", agentAccessOAuthGate);
 app.all("/.well-known/oauth-authorization-server/oauth", agentAccessOAuthGate);
 app.all(/^\/oauth(?:\/|$)/, agentAccessOAuthGate);
+
+// AA2-C1 — stateless Streamable HTTP MCP adapter. The independent exact-1
+// flag is checked before bearer parsing, body reads, runtime/session creation,
+// rate buckets, tool dispatch or audit writes. No production handler is added
+// in C1: the endpoint remains default-off and fixture tests inject handlers.
+const agentAccessMcpLimiter = createMcpRateLimiter();
+let agentAccessMcpRuntimePromise = null;
+function agentAccessOwnerIds() {
+  const values = String(process.env.AGENT_ACCESS_OWNER_IDS || "").split(",").map((value) => value.trim()).filter(Boolean);
+  if (!values.length || values.some((value) => value === "*" || !/^[A-Za-z0-9._:@/-]{1,128}$/.test(value))) throw new Error("AA_MCP_OWNER_ALLOWLIST_INVALID");
+  return values;
+}
+async function getAgentAccessMcpRuntime() {
+  if (["AGENT_ACCESS_UI_ENABLED", "AGENT_ACCESS_OAUTH_ENABLED", "AGENT_ACCESS_OAUTH_CLIENTS_ENABLED", "AGENT_ACCESS_MCP_ENABLED"]
+    .some((name) => String(process.env[name] || "") !== "1")) return null;
+  if (!agentAccessMcpRuntimePromise) {
+    agentAccessMcpRuntimePromise = (async () => {
+      const oauthRuntime = await getAgentAccessOAuthRuntime();
+      if (!oauthRuntime?.keyset) throw new Error("AA_MCP_OAUTH_RUNTIME_REQUIRED");
+      const ownerIds = agentAccessOwnerIds();
+      const audit = createContentSafeOAuthAudit({
+        key: String(process.env.AGENT_ACCESS_OAUTH_AUDIT_HMAC_KEY || ""),
+        emit: (row) => { void identityRepo.audit("agent_access_mcp", null, row, null); },
+      });
+      const { createMcpResourceValidator } = await import("./agent/access/mcpResourceValidator.mjs");
+      const validator = createMcpResourceValidator({
+        keyset: oauthRuntime.keyset,
+        repo: agentAccessOAuthRepo,
+        issuer: agentAccessDeployment.ISSUER,
+        resource: agentAccessDeployment.RESOURCE,
+        allowedClientIds: agentAccessDeployment.FIXTURE_CLIENTS.map((client) => client.client_id),
+        allowedOwnerIds: ownerIds,
+      });
+      const service = createAgentAccessService({ enabled: true, ownerIds, handlers: {} });
+      return Object.freeze({ validator, service, limiter: agentAccessMcpLimiter, audit });
+    })();
+  }
+  return agentAccessMcpRuntimePromise;
+}
+app.all(AGENT_ACCESS_MCP_PATH, createMcpDefaultOffGate({ getRuntime: getAgentAccessMcpRuntime }));
 function agentAccessHttpError(res, err) {
   const code = String((err && (err.code || err.message)) || "AA_CONSENT_FAILED");
   const status = code.endsWith("NOT_FOUND") ? 404

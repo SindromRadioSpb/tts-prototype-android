@@ -2,6 +2,7 @@
 "use strict";
 
 const assert = require("assert");
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const T = require("./lib/cp0-test-db");
@@ -87,12 +88,16 @@ function connectionInput(connectionId, label = "Fixture profile") {
 
     const stillIndependent = await repo.validateConnectionSnapshot("u1", C2, { oauth_client_id: CLIENT, scopes: ["agent.connection.read"] }, T3);
     assert.strictEqual(stillIndependent.connection_id, C2); checks++;
-    await repo.denyAccessTokenHash("u1", { denial_id: "deny-one", connection_id: C2, token_family_id: null, jti_hash: "e".repeat(64), reason_code: "INCIDENT", expires_at: "2026-07-17T09:10:00.000Z" }, T3); checks++;
+    const deniedJti = "fixture-jti-one";
+    const deniedJtiHash = crypto.createHash("sha256").update(deniedJti).digest("hex");
+    await repo.denyAccessTokenHash("u1", { denial_id: "deny-one", connection_id: C2, token_family_id: null, jti_hash: deniedJtiHash, reason_code: "INCIDENT", expires_at: "2026-07-17T09:10:00.000Z" }, T3);
+    assert.strictEqual(await repo.isAccessTokenDenied("u1", C2, deniedJti, T3), true);
+    assert.strictEqual(await repo.isAccessTokenDenied("u1", C2, deniedJti, "2026-07-17T09:11:00.000Z"), false); checks++;
 
     const exported = await repo.exportAgentAccess("u1");
     const identityExport = await identity.exportUserData("u1");
     const serialized = JSON.stringify({ exported, identityExport });
-    for (const secret of [H1, H2, H3, H4, "e".repeat(64), PKCE, "subject-owner-opaque"]) assert.ok(!serialized.includes(secret), `secret-like value exported: ${secret.slice(0, 8)}`);
+    for (const secret of [H1, H2, H3, H4, deniedJtiHash, PKCE, "subject-owner-opaque"]) assert.ok(!serialized.includes(secret), `secret-like value exported: ${secret.slice(0, 8)}`);
     assert.ok(exported.connections.length === 2 && exported.token_families.length === 1); checks++;
 
     await repo.deleteConnection("u1", C2, "USER_DELETE", T3);

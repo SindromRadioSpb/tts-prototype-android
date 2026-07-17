@@ -289,6 +289,13 @@ async function denyAccessTokenHash(userId, input, at = nowIso()) {
   return { denial_id: x.denial_id, expires_at: x.expires_at };
 }
 
+async function isAccessTokenDenied(userId, connectionId, jti, at = nowIso()) {
+  const db = requireDb(), uid = C.safeId(userId), cid = C.connectionId(connectionId), t = C.iso(at);
+  const digest = crypto.createHash("sha256").update(C.bounded(jti, 256, "AA_OAUTH_JTI_INVALID")).digest("hex");
+  const row = await get(db, `SELECT denial_id FROM agent_access_token_denials WHERE user_id=? AND connection_id=? AND jti_hash=? AND expires_at>?`, [uid, cid, digest, t]);
+  return Boolean(row);
+}
+
 async function validateConnectionSnapshot(userId, connectionId, expected = {}, at = nowIso()) {
   const db = requireDb(), uid = C.safeId(userId), cid = C.connectionId(connectionId), t = C.iso(at);
   const row = await get(db, `SELECT c.*,cl.status client_status,s.subject_id,s.security_epoch subject_epoch FROM agent_connections c JOIN agent_oauth_clients cl ON cl.oauth_client_id=c.oauth_client_id JOIN agent_subject_mappings s ON s.user_id=c.user_id WHERE c.user_id=? AND c.connection_id=?`, [uid, cid]);
@@ -546,7 +553,7 @@ module.exports = {
   registerClientFixture, loadClientForAuthorization, setClientStatus, createSubjectMapping, bumpSubjectSecurityEpoch, createPendingConnection, loadConnection, listConnectionsForUser,
   activateConnectionWithGrants, addConnectionGrants, reduceConnectionScopes, suspendConnection,
   revokeConnection, storeAuthorizationCodeHash, consumeAuthorizationCodeHash, createTokenFamily,
-  rotateRefreshTokenHash, denyAccessTokenHash, validateConnectionSnapshot, exportAgentAccess,
+  rotateRefreshTokenHash, denyAccessTokenHash, isAccessTokenDenied, validateConnectionSnapshot, exportAgentAccess,
   deleteConnection, purgeExpiredSecurityArtifacts,
   providerClientMetadata, providerGrant, validateProviderGrant, revokeProviderGrant,
   subjectForUser, userForSubject, ensureSubjectForUser, providerPrincipal,

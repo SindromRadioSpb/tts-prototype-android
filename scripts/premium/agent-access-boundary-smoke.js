@@ -66,6 +66,13 @@ async function ready(origin, timeout = 30000) {
     assert.ok(await ready(current.origin), current.logs.join(""));
     assert.strictEqual((await fetch(`${current.origin}/agent-access.html`)).status, 404);
     assert.strictEqual((await fetch(`${current.origin}/api/agent-access/connections`)).status, 404);
+    const mcpOff = await fetch(`${current.origin}/agent-access/mcp`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{invalid-json-that-must-not-be-parsed",
+    });
+    assert.strictEqual(mcpOff.status, 404);
+    assert.deepStrictEqual(await mcpOff.json(), { error: "AGENT_ACCESS_MCP_DISABLED" });
     checks++;
     await stop(current.child); current = null;
 

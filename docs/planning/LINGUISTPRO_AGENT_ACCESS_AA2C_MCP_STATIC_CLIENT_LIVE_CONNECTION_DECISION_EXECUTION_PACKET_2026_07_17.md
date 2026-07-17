@@ -2,7 +2,9 @@
 
 **Date:** 2026-07-17
 
-**Status:** `DECISION_PACKET_READY / OWNER_EXECUTION_APPROVAL_REQUIRED / NO_AA2C_IMPLEMENTATION`.
+**Status:** `AA2_C1_ENGINEERING_COMPLETE / MCP_DEFAULT_OFF / C2_OWNER_APPROVAL_REQUIRED`.
+
+**C1 evidence:** `docs/planning/LINGUISTPRO_AGENT_ACCESS_AA2C1_DEFAULT_OFF_MCP_ENGINEERING_EVIDENCE_2026_07_17.md`. C1 completion does not authorize or imply C2, production registration, client activation, OAuth lifecycle execution, Hermes/Inspector configuration or a live connection.
 
 **Authority:** documentation-only successor to successful D8. This packet defines bounded AA2-C slices and the approvals each slice would require. It does not itself authorize an MCP dependency or endpoint, code/config/env change, production client row, `AGENT_ACCESS_OAUTH_CLIENTS_ENABLED=1`, authorization/consent/token lifecycle, Hermes/Inspector installation or configuration, live connection, credential/token export, provider call, CP0 live window, notification, F1/F2 payload read, canonical learner-state write, commit/push or deploy.
 
