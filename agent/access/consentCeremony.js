@@ -3,6 +3,7 @@
 const crypto = require("crypto");
 const C = require("./oauthContracts");
 const { CAPABILITY_VERSION } = require("./capabilities");
+const PROPOSAL_POLICY = require("./proposalPolicy");
 
 const CONSENT_VERSION = "agent-access-consent-v1";
 // AA3: bumped so content-class scopes acknowledge the stronger retention framing.
@@ -23,9 +24,21 @@ const SCOPE_PRESENTATION = Object.freeze({
   "profile.read": Object.freeze({ capability: "get_learner_profile", purpose: "LEARNING_PROFILE_CONTEXT", data_class: "COARSE_PROFILE_MODE_LANGUAGE_DEPTH", retention_tier: "CONTENT", excludes: "NO_FREE_TEXT_GOALS_OR_IDENTIFIERS", first_party_action: "/agent-access.html" }),
   "explanations.body.read": Object.freeze({ capability: "get_explanation_body", purpose: "EXPLANATION_BODY_REVISIT", data_class: "MENTOR_EXPLANATION_TEXT", retention_tier: "CONTENT", excludes: "NO_QUOTED_SOURCE_SENTENCE_OR_PURGED_BODY", first_party_action: "/index.html" }),
   "reading.corpus.read": Object.freeze({ capability: "get_reading_content", purpose: "PUBLIC_CORPUS_READING", data_class: "PUBLIC_DOMAIN_CORPUS_TEXT", retention_tier: "AGGREGATE", excludes: "NO_PRIVATE_TEXTS_ONLY_PUBLIC_CORPUS", first_party_action: "/library.html" }),
-  // reading.handoff.create presentation is held until create_reading_handoff ships
-  // (needs work_id in handoff_tokens + library-ui open_corpus); consent fails
-  // closed for it until then.
+  // AA3 commit 3c — write-capability pair. Both are AGGREGATE on the EGRESS
+  // axis (no learner content leaves through them), but intent.propose is the
+  // first scope where the agent writes INTO the account, so its card carries
+  // an explicit direction + internal-retention bound (R15: consent must
+  // describe the real processing) with a scope-specific downstream line.
+  "reading.handoff.create": Object.freeze({ capability: "create_reading_handoff", purpose: "MINT_FIRST_PARTY_READING_LINK", data_class: "SINGLE_USE_LINK_TO_PUBLIC_CORPUS_WORK", retention_tier: "AGGREGATE", excludes: "NO_CONTENT_NO_PERSONAL_TEXTS_OWNER_CLICKS_LINK", first_party_action: "/library.html" }),
+  "intent.propose": Object.freeze({
+    capability: "propose_action", purpose: "AGENT_PROPOSES_OWNER_CONFIRMS",
+    data_class: "PROPOSAL_STATUS_ONLY", retention_tier: "AGGREGATE",
+    direction: "AGENT_WRITES_INTO_YOUR_ACCOUNT",
+    internal_retention: PROPOSAL_POLICY.INTERNAL_RETENTION_NOTICE,
+    downstream_retention_override: "NO_LEARNER_CONTENT_LEAVES_DENY_DECISIONS_VISIBLE_TO_AGENT",
+    excludes: "NO_EXECUTION_WITHOUT_OWNER_CONFIRM_NO_LEARNING_TRUTH_WRITE",
+    first_party_action: "/agent-access.html",
+  }),
 });
 
 function error(code) { const e = new Error(code); e.code = code; throw e; }
@@ -123,9 +136,10 @@ function createConsentCeremony({ oauthRepo, recordConsent, now = () => new Date(
         return Object.freeze({
           scope,
           ...presentation,
-          downstream_retention: presentation.retention_tier === "CONTENT"
-            ? "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO_CONTENT_IRRECOVERABLE"
-            : "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO",
+          downstream_retention: presentation.downstream_retention_override
+            || (presentation.retention_tier === "CONTENT"
+              ? "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO_CONTENT_IRRECOVERABLE"
+              : "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO"),
         });
       })),
       retention_tier: row.requested_scopes.some((scope) => (SCOPE_PRESENTATION[scope] || {}).retention_tier === "CONTENT") ? "CONTENT" : "AGGREGATE",

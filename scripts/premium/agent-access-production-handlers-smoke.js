@@ -25,7 +25,7 @@ const OTHER = "synthetic-other";
 const CLIENT = "synthetic-client";
 const CONNECTION = "synthetic-connection";
 const OTHER_CONNECTION = "synthetic-other";
-const SCOPES = ["learning.brief.read", "review.summary.read", "reading.public.search", "explanations.metadata.read", "agent.connection.read", "review.items.read", "profile.read", "explanations.body.read", "reading.corpus.read"];
+const SCOPES = ["learning.brief.read", "review.summary.read", "reading.public.search", "explanations.metadata.read", "agent.connection.read", "review.items.read", "profile.read", "explanations.body.read", "reading.corpus.read", "reading.handoff.create", "intent.propose"];
 const KNOWN_CONSTRUCT = "construct:hebrew.channel_gap.reading_to_dictation";
 
 function expectCode(promise, code) {
@@ -144,9 +144,16 @@ function exactOwnerParser() {
         ? { ok: true, rows: [{ order_index: 0, he: "בְּרֵאשִׁית", ru: "В начале" }, { order_index: 1, he: "בָּרָא", ru: "сотворил" }], work: { title: "Тестовая работа", author: "Автор", era: "revival", license: "public-domain" } }
         : { ok: false, error: "CORPUS_SENTENCE_NOT_FOUND" }),
     };
-    let mintCount = 0;
-    const handoffFixture = { mint: async (userId, { textKey, orderIndex, action }) => { mintCount += 1; return { raw: "abcdefABCDEF0123456789_-xy", expiresInMs: 300000, _echo: { userId, textKey, orderIndex, action } }; } };
-    const aa3Deps = { keyingService: keyingFixture, connectionPersistence: persistenceFixture, corpusSentenceRepo: corpusFixture, handoffRepo: handoffFixture };
+    let mintCount = 0, lastMintArgs = null, activeCount = 0;
+    const handoffFixture = {
+      mint: async (userId, args) => { mintCount += 1; lastMintArgs = { userId, ...args }; return { raw: "abcdefABCDEF0123456789_-xy", expiresInMs: 300000 }; },
+      countActive: async () => activeCount,
+    };
+    let lastProposalArgs = null, proposalStatus = "PENDING";
+    const proposalsFixture = {
+      create: async (userId, args) => { lastProposalArgs = { userId, ...args }; return { proposal_id: "ap_0123456789abcdef0123456789abcdef", status: proposalStatus, expires_at: "2026-07-24T12:00:00.000Z", reused: false }; },
+    };
+    const aa3Deps = { keyingService: keyingFixture, connectionPersistence: persistenceFixture, corpusSentenceRepo: corpusFixture, handoffRepo: handoffFixture, agentProposalsRepo: proposalsFixture };
     const handlers = createProductionHandlers({ learnerGraphRepo, agentRepo, oauthRepo, publicCatalog: catalog, ...aa3Deps, now: () => NOW, principalAccessExpiresAt: () => EXPIRY });
     const service = createAgentAccessService({ enabled: true, ownerIds: [OWNER], handlers, now: () => NOW });
 
@@ -243,10 +250,43 @@ function exactOwnerParser() {
     const badWork = await service.execute(principal({ request_id: "reading-bad" }), "get_reading_content", { work_id: "999" });
     assert.ok(!badWork.ok && badWork.error.code === "INTERNAL_ERROR"); checks++;
 
-    // create_reading_handoff is held out of the exposed capability set (needs
-    // work_id in handoff_tokens + library-ui open_corpus) — assert it is NOT callable.
-    assert.strictEqual((await service.execute(principal({ request_id: "handoff-held" }), "create_reading_handoff", { work_id: "42" })).error.code, "UNKNOWN_TOOL");
-    assert.strictEqual(mintCount, 0, "handoff must not mint while held");
+    // AA3 commit 3c — create_reading_handoff un-held: mint carries work_id +
+    // action open_corpus (R17 lockstep gate: capture the ACTUAL mint args).
+    const handoff = await service.execute(principal({ request_id: "handoff-mint" }), "create_reading_handoff", { work_id: "42", order_index: 1 });
+    assert.ok(handoff.ok, JSON.stringify(handoff));
+    assert.strictEqual(handoff.result.handoff_url, "https://linguistpro.kolosei.com/library.html?handoff=abcdefABCDEF0123456789_-xy");
+    assert.strictEqual(handoff.result.work_id, "42"); assert.strictEqual(handoff.result.action, "open_corpus");
+    assert.strictEqual(mintCount, 1);
+    assert.deepStrictEqual(lastMintArgs, { userId: OWNER, textKey: CORPUS_TK, orderIndex: 1, action: "open_corpus", workId: "42" }); checks++;
+    // Corpus-only fail-closed + active-token cap + scope gating.
+    assert.strictEqual((await service.execute(principal({ request_id: "handoff-bad" }), "create_reading_handoff", { work_id: "999" })).error.code, "INTERNAL_ERROR");
+    activeCount = 20;
+    assert.strictEqual((await service.execute(principal({ request_id: "handoff-cap" }), "create_reading_handoff", { work_id: "42" })).error.code, "INTERNAL_ERROR");
+    activeCount = 0;
+    assert.strictEqual(mintCount, 1, "failed handoff paths must not mint");
+    assert.strictEqual((await service.execute(principal({ request_id: "handoff-narrow", scopes: ["agent.connection.read"] }), "create_reading_handoff", { work_id: "42" })).error.code, "INSUFFICIENT_SCOPE"); checks++;
+
+    // AA3 commit 3c — propose_action: normalized payload reaches the repo with
+    // the principal's connection binding; open_reading resolves display_title
+    // at create time; unknown work fails closed; agent never sees CONFIRMED.
+    const proposeNote = await service.execute(principal({ request_id: "propose-note" }), "propose_action", { kind: "note", payload: { body: "агентская заметка", title: "т" } });
+    assert.ok(proposeNote.ok, JSON.stringify(proposeNote));
+    assert.strictEqual(proposeNote.result.status, "PENDING"); assert.strictEqual(proposeNote.result.kind, "note");
+    assert.deepStrictEqual(lastProposalArgs.payload, { body: "агентская заметка", title: "т" });
+    assert.strictEqual(lastProposalArgs.userId, OWNER); assert.strictEqual(lastProposalArgs.oauthClientId, CLIENT); assert.strictEqual(lastProposalArgs.connectionId, CONNECTION);
+    assert.strictEqual(lastProposalArgs.displayTitle, null); checks++;
+    const proposeOpen = await service.execute(principal({ request_id: "propose-open" }), "propose_action", { kind: "open_reading", payload: { work_id: "42", reason: "продолжим тут" } });
+    assert.ok(proposeOpen.ok, JSON.stringify(proposeOpen));
+    assert.strictEqual(lastProposalArgs.displayTitle, "Тестовая работа — Автор"); checks++;
+    assert.strictEqual((await service.execute(principal({ request_id: "propose-badwork" }), "propose_action", { kind: "open_reading", payload: { work_id: "999" } })).error.code, "INTERNAL_ERROR");
+    // Cross-kind field bleed is a client input error, not INTERNAL_ERROR.
+    const bleed = await service.execute(principal({ request_id: "propose-bleed" }), "propose_action", { kind: "note", payload: { body: "x", work_id: "42" } });
+    assert.ok(!bleed.ok && bleed.error.code === "UNKNOWN_FIELD" && bleed.error.retryable === false);
+    proposalStatus = "DENIED";
+    const proposeDenied = await service.execute(principal({ request_id: "propose-denied" }), "propose_action", { kind: "note", payload: { body: "агентская заметка" } });
+    assert.ok(proposeDenied.ok && proposeDenied.result.status === "DENIED");
+    proposalStatus = "PENDING";
+    assert.strictEqual((await service.execute(principal({ request_id: "propose-narrow", scopes: ["agent.connection.read"] }), "propose_action", { kind: "note", payload: { body: "x" } })).error.code, "INSUFFICIENT_SCOPE"); checks++;
     // Scope gating on the corpus read.
     assert.strictEqual((await service.execute(principal({ request_id: "rc-narrow", scopes: ["agent.connection.read"] }), "get_reading_content", { work_id: "42" })).error.code, "INSUFFICIENT_SCOPE"); checks++;
 
@@ -304,6 +344,76 @@ function exactOwnerParser() {
     assert.strictEqual((await service.execute(principal({ request_id: "unknown-input" }), "get_learning_brief", { user_id: OWNER })).error.code, "UNKNOWN_FIELD"); checks++;
 
     assert.deepStrictEqual(await tableCounts(ctx, watched), beforeCounts); assert.strictEqual(networkCalls, 0); checks++;
+
+    // ── REAL repos (after the zero-delta window): raw-DB independent oracles ──
+    // handoffRepo mint→redeem round trip must carry work_id (R17 lockstep gate:
+    // the redeem side recomputes from the stored row, not the mint return).
+    const realHandoff = require("../../db/handoffRepo");
+    const mintedReal = await realHandoff.mint(OWNER, { textKey: "a1b2c3d4e5f60718", orderIndex: 3, action: "open_corpus", workId: "42" });
+    const redeemed = await realHandoff.redeem(mintedReal.raw);
+    assert.ok(redeemed, "real redeem failed");
+    assert.strictEqual(redeemed.work_id, "42"); assert.strictEqual(redeemed.text_key, "a1b2c3d4e5f60718");
+    assert.strictEqual(redeemed.order_index, 3); assert.strictEqual(redeemed.action, "open_corpus");
+    assert.strictEqual(await realHandoff.redeem(mintedReal.raw), null, "single-use must not re-redeem");
+    const rawRow = await ctx.get("SELECT work_id, action FROM handoff_tokens WHERE work_id='42'");
+    assert.ok(rawRow && rawRow.action === "open_corpus", "raw handoff row must persist work_id");
+    await expectCode(realHandoff.mint(OWNER, { orderIndex: 0, action: "open_corpus", workId: "42" }), "HANDOFF_TEXT_KEY_REQUIRED"); checks++;
+
+    // agentProposalsRepo lifecycle on the real migrated schema (migration 045).
+    const realProposals = require("../../db/agentProposalsRepo");
+    const propArgs = (payload, nowIso) => ({ oauthClientId: CLIENT, connectionId: CONNECTION, kind: "note", payload, displayTitle: null, nowIso });
+    const created1 = await realProposals.create(OWNER, propArgs({ body: "первая заметка" }, "2026-07-17T12:00:00.000Z"));
+    assert.ok(/^ap_[a-f0-9]{32}$/.test(created1.proposal_id) && created1.status === "PENDING" && created1.reused === false);
+    const createdDup = await realProposals.create(OWNER, propArgs({ body: "первая заметка" }, "2026-07-17T12:01:00.000Z"));
+    assert.strictEqual(createdDup.proposal_id, created1.proposal_id); assert.strictEqual(createdDup.reused, true); checks++;
+    // Owner-scoped access: another user can neither see nor decide it.
+    assert.deepStrictEqual(await realProposals.listPending(OTHER, { nowIso: "2026-07-17T12:02:00.000Z" }), []);
+    await expectCode(realProposals.decide(OTHER, created1.proposal_id, "DENIED", { nowIso: "2026-07-17T12:02:00.000Z" }), "AA_PROPOSAL_NOT_FOUND");
+    const pendingList = await realProposals.listPending(OWNER, { nowIso: "2026-07-17T12:02:00.000Z" });
+    assert.strictEqual(pendingList.length, 1);
+    assert.strictEqual(pendingList[0].client_display_name, "Synthetic public client");
+    assert.strictEqual(pendingList[0].authority, "AGENT_ASSERTED"); checks++;
+    // Confirm flips authority to USER_CONFIRMED_AGENT_ASSERTED and touches ZERO
+    // learner-truth tables (R17 independent oracle: raw COUNT deltas).
+    const truthBefore = await tableCounts(ctx, ["review_log", "srs_projections", "word_status", "agent_explanations"]);
+    const decided1 = await realProposals.decide(OWNER, created1.proposal_id, "CONFIRMED", { nowIso: "2026-07-17T12:03:00.000Z" });
+    assert.strictEqual(decided1.status, "CONFIRMED");
+    assert.deepStrictEqual(await tableCounts(ctx, ["review_log", "srs_projections", "word_status", "agent_explanations"]), truthBefore);
+    const confirmedRaw = await ctx.get("SELECT status, authority, decided_at FROM agent_proposals WHERE proposal_id=?", [created1.proposal_id]);
+    assert.strictEqual(confirmedRaw.status, "CONFIRMED"); assert.strictEqual(confirmedRaw.authority, "USER_CONFIRMED_AGENT_ASSERTED");
+    await expectCode(realProposals.decide(OWNER, created1.proposal_id, "DENIED", { nowIso: "2026-07-17T12:04:00.000Z" }), "AA_PROPOSAL_NOT_PENDING"); checks++;
+    // Deny-cooldown: identical re-propose after DENIED returns the denial (no new nag).
+    const created2 = await realProposals.create(OWNER, propArgs({ body: "вторая" }, "2026-07-17T12:05:00.000Z"));
+    await realProposals.decide(OWNER, created2.proposal_id, "DENIED", { nowIso: "2026-07-17T12:06:00.000Z" });
+    const reDenied = await realProposals.create(OWNER, propArgs({ body: "вторая" }, "2026-07-17T12:07:00.000Z"));
+    assert.strictEqual(reDenied.proposal_id, created2.proposal_id); assert.strictEqual(reDenied.status, "DENIED"); checks++;
+    // Zombie-expiry (R14): an expired PENDING frees its dedupe slot and never
+    // returns as a live idempotent hit; the raw row flips to EXPIRED.
+    const created3 = await realProposals.create(OWNER, propArgs({ body: "третья" }, "2026-07-01T00:00:00.000Z"));
+    const created3b = await realProposals.create(OWNER, propArgs({ body: "третья" }, "2026-07-17T12:08:00.000Z"));
+    assert.notStrictEqual(created3b.proposal_id, created3.proposal_id, "expired PENDING must not be returned as live");
+    const expiredRaw = await ctx.get("SELECT status FROM agent_proposals WHERE proposal_id=?", [created3.proposal_id]);
+    assert.strictEqual(expiredRaw.status, "EXPIRED"); checks++;
+    // PENDING cap (policy): live PENDING per user is bounded.
+    const POLICY = require("../../agent/access/proposalPolicy");
+    for (let i = 0; ; i += 1) {
+      const live = await ctx.get("SELECT COUNT(*) c FROM agent_proposals WHERE user_id=? AND status='PENDING'", [OWNER]);
+      if (Number(live.c) >= POLICY.PENDING_CAP) break;
+      assert.ok(i < POLICY.PENDING_CAP + 2, "cap seed runaway");
+      await realProposals.create(OWNER, propArgs({ body: `cap-${i}` }, "2026-07-17T12:09:00.000Z"));
+    }
+    await expectCode(realProposals.create(OWNER, propArgs({ body: "over-cap" }, "2026-07-17T12:10:00.000Z")), "AA_PROPOSAL_PENDING_LIMIT"); checks++;
+    // Export redaction (R15): dedupe_key never leaves via the GDPR export.
+    const exported = await identityRepo.exportUserData(OWNER);
+    assert.ok((exported.table_list || []).includes("agent_proposals"), "structural sweep must cover agent_proposals");
+    assert.ok((exported.tables.agent_proposals || []).length > 0 && exported.tables.agent_proposals.every((r) => !("dedupe_key" in r)), "export leaked proposal dedupe_key");
+    assert.ok((exported.tables.handoff_tokens || []).every((r) => !("token_hash" in r)), "export leaked handoff token_hash"); checks++;
+    // Retention sweep bounds mirror proposalPolicy (match by construction).
+    const swept = await realProposals.pruneOld("2027-02-01T00:00:00.000Z");
+    assert.ok(swept.purged >= 1, "old DENIED/EXPIRED rows must purge");
+    const blankCheck = await ctx.get("SELECT payload_json, dedupe_key FROM agent_proposals WHERE proposal_id=?", [created1.proposal_id]);
+    if (blankCheck) { assert.strictEqual(blankCheck.payload_json, '{"purged":true}'); assert.strictEqual(blankCheck.dedupe_key, null); }
+    checks++;
 
     for (const sectionId of ["production_gap", "due", "read"]) {
       await ctx.run("UPDATE agent_tasks SET payload_json=? WHERE id='plan-open'", [JSON.stringify({ sections: [{ id: sectionId }] })]);
@@ -405,7 +515,7 @@ function exactOwnerParser() {
     }
     checks++;
 
-    console.log(JSON.stringify({ ok: true, checks, tools: 10, owner_allowlist_count: 1, owner_match: true, zero_table_deltas: true, network_calls: 0, provider_calls: 0, llm_calls: 0, byok_calls: 0, sentinel_occurrences: 0 }));
+    console.log(JSON.stringify({ ok: true, checks, tools: 12, owner_allowlist_count: 1, owner_match: true, zero_table_deltas: true, network_calls: 0, provider_calls: 0, llm_calls: 0, byok_calls: 0, sentinel_occurrences: 0 }));
   } finally {
     global.fetch = originalFetch; http.request = originalHttpRequest; http.get = originalHttpGet; https.request = originalHttpsRequest; https.get = originalHttpsGet;
     await T.cleanup(ctx);

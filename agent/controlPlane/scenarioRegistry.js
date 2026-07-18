@@ -50,7 +50,11 @@ const SCENARIOS = Object.freeze({
   "agent_access.learner_profile": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:learner_profile_read"] },
   "agent_access.explanation_body": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:explanation_body_read"] },
   "agent_access.reading_content": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:public_corpus_read"] },
-  "agent_access.reading_handoff": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:reading_handoff_mint"] },
+  // Write-scenarios: the agent INITIATES, the owner/LinguistPro executes. A mint
+  // is a write, so the role is proposer, not reader (R17: the domain smoke derives
+  // the expected role per capability and asserts reader-scenarios only read).
+  "agent_access.reading_handoff": { role: "agent_access.proposer", surfaces: ["external_agent"], capabilities: ["repo:reading_handoff_mint"] },
+  "agent_access.propose_action": { role: "agent_access.proposer", surfaces: ["external_agent"], capabilities: ["repo:proposal_create"] },
 });
 
 function get(id) { return SCENARIOS[String(id)] || null; }

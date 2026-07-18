@@ -1907,6 +1907,11 @@ window.I18N_LOCALES.en = {
     },
   },
   room: {
+    handoff: {
+      expired: "This link has expired or was already used — open it again.",
+      corpusMissing: "The work was not found in the Reading Room catalog — refresh the page and open the Corpus tab.",
+      unknown: "This link is not supported by this app version — refresh the page.",
+    },
     pageTitle: "Reading Room",
     back: "← Library",
     readingTitle: "Reading",

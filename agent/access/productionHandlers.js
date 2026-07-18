@@ -64,6 +64,7 @@ function createProductionHandlers(options = {}) {
   const connectionPersistence = options.connectionPersistence; // AA3: control-plane window state
   const corpusRepo = options.corpusSentenceRepo; // AA3 commit 3b: public-domain corpus reads
   const handoffRepo = options.handoffRepo; // AA3 commit 3b: first-party reading handoff mint
+  const proposalsRepo = options.agentProposalsRepo; // AA3 commit 3c: PENDING proposals (owner confirms)
   const now = options.now || Date.now;
   const principalAccessExpiresAt = options.principalAccessExpiresAt;
   if (!learnerRepo || typeof learnerRepo.getAgentAccessReviewAggregates !== "function" || typeof learnerRepo.getDue !== "function"
@@ -72,7 +73,8 @@ function createProductionHandlers(options = {}) {
     || !publicCatalog || typeof publicCatalog.isReadable !== "function" || typeof publicCatalog.search !== "function"
     || !keyingService || typeof keyingService.displayForItemKey !== "function" || typeof keyingService.glossForItemKey !== "function"
     || !corpusRepo || typeof corpusRepo.listWorkTexts !== "function" || typeof corpusRepo.getCorpusLessonWindow !== "function"
-    || !handoffRepo || typeof handoffRepo.mint !== "function"
+    || !handoffRepo || typeof handoffRepo.mint !== "function" || typeof handoffRepo.countActive !== "function"
+    || !proposalsRepo || typeof proposalsRepo.create !== "function"
     || typeof connectionPersistence !== "function"
     || typeof now !== "function" || typeof principalAccessExpiresAt !== "function") fail("AA_PRODUCTION_HANDLER_DEPENDENCY_INVALID");
 
@@ -233,23 +235,60 @@ function createProductionHandlers(options = {}) {
     });
   }
 
-  // AA3 commit 3b: mint a first-party handoff link to open a CORPUS work in the
-  // Reading Room. The agent proposes the link; the OWNER clicks it — the agent
-  // never opens content. Corpus-only enforced via listWorkTexts.
+  // AA3 commit 3b/3c: mint a first-party handoff link to open a CORPUS work in
+  // the Reading Room. The agent proposes the link; the OWNER clicks it — the
+  // agent never opens content. Corpus-only enforced via listWorkTexts (the
+  // server derives text_key; the agent can never address a personal text).
+  // Live-token cap bounds table churn beyond the per-tool rate limit (R14-m7).
   async function create_reading_handoff(context, args) {
     const clock = fixedNow(now);
     const listed = corpusRepo.listWorkTexts(args.work_id);
     if (!listed || !listed.ok) fail("AA_CORPUS_WORK_NOT_FOUND");
     const text = args.text_key ? listed.texts.find((t) => t.text_key === args.text_key) : listed.texts[0];
     if (!text) fail("AA_CORPUS_TEXT_NOT_FOUND");
+    if ((await handoffRepo.countActive(context.user_id)) >= 20) fail("AA_HANDOFF_ACTIVE_LIMIT");
     const orderIndex = args.order_index != null ? args.order_index : Number(text.first_order_index) || 0;
-    const minted = await handoffRepo.mint(context.user_id, { textKey: text.text_key, orderIndex, action: "open_corpus" });
+    const minted = await handoffRepo.mint(context.user_id, { textKey: text.text_key, orderIndex, action: "open_corpus", workId: String(args.work_id) });
     if (!minted || typeof minted.raw !== "string" || !/^[A-Za-z0-9_-]{16,256}$/.test(minted.raw)) fail("AA_HANDOFF_MINT_FAILED");
     return Object.freeze({
       schema_version: "aa.reading_handoff.1.0.0",
       handoff_url: `https://linguistpro.kolosei.com/library.html?handoff=${minted.raw}`,
       expires_in_ms: Math.max(1, Math.min(3600000, Number(minted.expiresInMs) || 300000)),
       work_id: String(args.work_id), text_key: text.text_key, action: "open_corpus", generated_at: clock.iso,
+    });
+  }
+
+  // AA3 commit 3c: create a PENDING proposal the OWNER decides in the panel.
+  // The agent never executes and never learns confirmation state through this
+  // channel (output status is PENDING or, on deny-cooldown, DENIED). For
+  // open_reading the work is validated + display_title resolved ONCE here so
+  // the owner GET never fans out into disk reads (R14).
+  async function propose_action(context, args) {
+    const clock = fixedNow(now);
+    let displayTitle = null;
+    if (args.kind === "open_reading") {
+      const listed = corpusRepo.listWorkTexts(args.payload.work_id);
+      if (!listed || !listed.ok) fail("AA_PROPOSAL_WORK_NOT_FOUND");
+      const text = args.payload.text_key ? listed.texts.find((t) => t.text_key === args.payload.text_key) : listed.texts[0];
+      if (!text) fail("AA_PROPOSAL_TEXT_NOT_FOUND");
+      displayTitle = byteSlice([text.title, text.author].filter(Boolean).join(" — "), 200) || null;
+    }
+    const created = await proposalsRepo.create(context.user_id, {
+      oauthClientId: context.oauth_client_id,
+      connectionId: context.connection_id,
+      kind: args.kind,
+      payload: args.payload,
+      displayTitle,
+      nowIso: clock.iso,
+    });
+    if (!created || typeof created.proposal_id !== "string") fail("AA_PROPOSAL_CREATE_FAILED");
+    return Object.freeze({
+      schema_version: "aa.proposal.1.0.0",
+      proposal_id: created.proposal_id,
+      kind: args.kind,
+      status: created.status === "DENIED" ? "DENIED" : "PENDING",
+      expires_at: String(created.expires_at),
+      generated_at: clock.iso,
     });
   }
 
@@ -336,6 +375,7 @@ function createProductionHandlers(options = {}) {
     get_explanation_body,
     get_reading_content,
     create_reading_handoff,
+    propose_action,
   });
 }
 

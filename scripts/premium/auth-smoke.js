@@ -204,7 +204,8 @@ async function api(base, method, p, { cookie, csrf, headers, body } = {}) {
       if (cols.some((c) => c.name === "user_id")) userTables.push(name);
     }
     const mustHave = ["miniapp_initdata_seen", "handoff_tokens", "agent_challenges", "tg_stimulus_exposure",
-      "channel_pairing_tokens", "channel_links", "devices", "user_sessions", "consent_records", "audit_log"];
+      "channel_pairing_tokens", "channel_links", "devices", "user_sessions", "consent_records", "audit_log",
+      "agent_proposals"];
     const missing = mustHave.filter((t) => !userTables.includes(t));
     eq(missing.length === 0, `independent sweep enumeration misses: ${missing.join(",")}`);
     let leftover = 0;

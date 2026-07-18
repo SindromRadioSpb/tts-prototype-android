@@ -36,6 +36,7 @@ const fixtures = Object.freeze({
   get_explanation_body: Object.freeze({ schema_version: 'aa.explanation_body.1.0.0', explanation_id: 'explanation-fixture', created_at: new Date(nowSeconds * 1000).toISOString(), kind: 'word', purge_state: 'AVAILABLE', language: 'ru', text: 'fixture explanation body', lines: null, generated_at: new Date(nowSeconds * 1000).toISOString() }),
   get_reading_content: Object.freeze({ schema_version: 'aa.reading_content.1.0.0', work: { title: 'Fixture work', author: 'Fixture author', era: 'REVIVAL', license: 'public-domain' }, anchor: { work_id: '42', text_key: 'a1b2c3d4e5f60718', start_order_index: 0, row_count: 1 }, rows: [{ order_index: 0, he: 'בְּרֵאשִׁית', ru: 'В начале' }], available_text_keys: ['a1b2c3d4e5f60718'], generated_at: new Date(nowSeconds * 1000).toISOString() }),
   create_reading_handoff: Object.freeze({ schema_version: 'aa.reading_handoff.1.0.0', handoff_url: 'https://linguistpro.kolosei.com/library.html?handoff=abcdefABCDEF0123456789_-xy', expires_in_ms: 300000, work_id: '42', text_key: 'a1b2c3d4e5f60718', action: 'open_corpus', generated_at: new Date(nowSeconds * 1000).toISOString() }),
+  propose_action: Object.freeze({ schema_version: 'aa.proposal.1.0.0', proposal_id: 'ap_0123456789abcdef0123456789abcdef', kind: 'note', status: 'PENDING', expires_at: new Date((nowSeconds + 7 * 86400) * 1000).toISOString(), generated_at: new Date(nowSeconds * 1000).toISOString() }),
 });
 const args = Object.freeze({
   get_learning_brief: {}, get_review_summary: {}, get_agent_connection: {},
@@ -43,6 +44,7 @@ const args = Object.freeze({
   get_recent_explanation_metadata: { kinds: ['word'], limit: 10 },
   get_due_review_items: { limit: 10 }, get_learner_profile: {}, get_access_window: {}, get_explanation_body: { explanation_id: 'explanation-fixture' },
   get_reading_content: { work_id: '42' }, create_reading_handoff: { work_id: '42' },
+  propose_action: { kind: 'note', payload: { body: 'fixture note body' } },
 });
 
 function listen(server) { return new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', () => resolve(server.address())); }); }

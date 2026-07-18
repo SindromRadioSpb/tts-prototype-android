@@ -113,6 +113,32 @@ Read-фундамент задеплоен default-off (`415ef50`), миграц
 
 **Осталось:** `create_reading_handoff` (см. выше) + **`propose_action` (W1)** — миграция 045 `agent_proposals` (шаблон миграции 040 `learner_memory_records`: PENDING-lifecycle + partial-unique dedupe-индекс), db/agentProposalsRepo.js (create-idempotent/list/decide), handler → PENDING, owner-confirm endpoints + UI-секция в панели, execution-модель per-kind (для W1 минимум: agent предлагает → owner подтверждает → LinguistPro исполняет/handoff). Кандидат: delta/changelog-инструмент (Hermes-flagged).
 
+## 5e. Commit 3c SHIPPED (v3.11.206) — create_reading_handoff live + propose_action W1
+
+3-роле адверсариальная критика ДО кода (R14 / R15+R9 / R17+R11) дала 8 BLOCKER + 13 MAJOR/MINOR; все BLOCKER и MAJOR зафиксированы в дизайне до первой строчки:
+
+**Миграция 045** (`agent_proposals` + `handoff_tokens.work_id`):
+- `oauth_client_id`/`connection_id` **NOT NULL** + композитный FK `(connection_id,user_id,oauth_client_id)` → cascade при удалении подключения И restore-erasure-replay (R15-B2: агентский текст не переживает отзыв);
+- `authority` CHECK `AGENT_ASSERTED` / `USER_CONFIRMED_AGENT_ASSERTED` — confirm НЕ перелейбливает в user-authored (R9, паттерн F1 `USER_CONFIRMED_DERIVED`);
+- dedupe-индекс `(user_id,connection_id,dedupe_key) WHERE status='PENDING'` — сервер-derived sha256(connection|kind|canonicalJson(payload)), в MCP-схеме dedupe-поля НЕТ (R17: анти-confusion);
+- `display_title` резолвится ОДИН раз на create (R14: owner-GET без sync-IO fan-out); `decided_at` для retention.
+
+**Lifecycle (R14-B1 zombie-фикс):** lazy-expire перед каждым insert/count/list; PENDING-cap 10 живых; deny-cooldown 7д (идентичный re-propose после DENIED возвращает отказ — MNAR-этикет, транспарентность заявлена в consent-карте); sweep в ops-каденции. **Retention (R15-M3, match-by-construction через `agent/access/proposalPolicy.js`):** PENDING 7д → EXPIRED; DENIED/EXPIRED purge 90д; CONFIRMED payload blank 180д, скелет purge 365д; consent-карта `intent.propose` показывает ровно эти границы (`internal_retention`) + `direction: AGENT_WRITES_INTO_YOUR_ACCOUNT` + scope-специфичный downstream (R15-B1). Экспорт стрипает `dedupe_key`; структурный GDPR-sweep покрывает таблицу автоматически (проверено оракулом auth-smoke).
+
+**propose_action** (scope `intent.propose`, AGGREGATE): per-kind CLOSED валидация в contracts (`open_reading{work_id!,text_key?,order_index?,reason?}` / `note{body!,title?}` / `suggestion{body!}`), кросс-kind поля → UNKNOWN_FIELD (R14-B2); хранится НОРМАЛИЗОВАННЫЙ payload. Выход: `{proposal_id, status: PENDING|DENIED}` — CONFIRMED через этот канал НЕ возвращается никогда (R17).
+
+**Owner-поток:** `GET /api/agent-access/proposals` (только живые PENDING подключений ACTIVE/SCOPE_REDUCED — revoked-агент теряет влияние, R14-M6) → панель `/agent-access.html` секция «Предложения агента» (enforced-CSP shell, только textContent, провенанс-строка «Предложение внешнего агента X — не проверено…» на каждой карте, R17-M6/R14-B3) → `POST …/:id/decision {confirm|deny}` (session+CSRF; mint ДО флипа PENDING→CONFIRMED — сбой mint'а оставляет строку re-confirmable, R14-M7) → для open_reading ответ несёт `handoff_url`. `DELETE /:id` — per-row owner-удаление (R15-m9; advisory-класс, резуррект из бэкапа документирован). Аудит обоих действий.
+
+**create_reading_handoff un-hold:** mint несёт `workId`; `handoffRepo.countActive` cap 20 живых токенов; guard `HANDOFF_TEXT_KEY_REQUIRED` (анти-"undefined"-коэрсия). Redeem-ответ дополнен `work_id` (оба потребителя field-access — additive-safe). **PWA:** redeem-ветка строго по `action`: `open_corpus` → **`await loadCorpusIndex()`** (R17-B1: без этого карта-мапа детерминированно пуста на холодном боте) → `corpusReadyMap().get(work_id)` → `openCorpusWork({scrollToOrderIndex})`; фолбэк — локальный text_key-lookup; неизвестный action → честный тост (никогда не проваливается в чужой opener). Заодно починен пре-существующий баг P8.5: ключи `room.handoff.*` ОТСУТСТВОВАЛИ в локалях (тост показывал литеральный ключ) — добавлены ru/en/he + SW bump v3.11.206.
+
+**Гейты с зубами (новые):** derived role-map в domain-smoke (write-инструменты → `agent_access.proposer`, reader-сценарии только `*_read`-capabilities; `agent_access.reading_handoff` реклассифицирован — mint это write); key-parity CAPABILITIES==валидаторы==TOOL_LIMITS==схемы==описания (R14-B4); W0-скан `productionHandlers.js` (code-only, без комментариев) + allowlist write-вызовов (`handoffRepo.mint/countActive`, `proposalsRepo.create`) + read-back fence `agent_proposals` (R17-M4/M7); XSS-sink скан панели; mint-args capture + raw-DB mint→redeem round-trip c work_id (R17-B2); zero-delta learner-truth таблиц при confirm (R17-M5); реальный repo-lifecycle (идемпотентность, deny-cooldown, zombie-expiry, cap, purge/blank, export-редакция).
+
+Зелёные: domain 33 (12 caps), mcp 52 (12 tools), production-handlers 55, oauth, oauth-deployment, control-plane 54, api-smoke, миграция 045 — upgrade-путь на temp-БД с данными (строки сохранены). **Локально click-through проверен в реальном Chrome:** панель 380px → Подтвердить → «Открыть в Зале →» → Зал открыл «הַשַּׁחַר נִדְמֹה נִדְמָה» (работа 101, каталог v7) на нужной строке.
+
+Принятые残-риски (documented): mint валидирует по works-тому (superset опубликованного каталога) — работа baked-но-не-published даст честный тост, не sync-совет (R17-m14); link-preview-префетч чужого канала может сжечь single-use токен (агент может пере-минтить, 6/мин) (R14-m9); NUL-байт в library-ui.js ломает repo-wide grep (R11-m11 — hazard записан здесь).
+
+Кандидат следующего слайса: delta/changelog-инструмент («что изменилось с прошлого раза», Hermes-flagged) + Studio-surface подтверждений.
+
 ## 6. Вне scope AA3
 
 Запись в учебную правду (Ярус C — Ментор, не Hermes); мультиарендность; новые LLM-вызовы от агента (R16 — агент не тратит серверный бюджет); client-side OPFS-мост для client-only данных.

@@ -14,9 +14,13 @@ const CAPABILITIES = Object.freeze({
   get_learner_profile: Object.freeze({ scope: "profile.read", purpose: "EXPLICIT_LEARNER_PROFILE", scenario_id: "agent_access.learner_profile", max_output_bytes: 512 }),
   // AA3 commit 3: read a single explanation's body (purge-aware).
   get_explanation_body: Object.freeze({ scope: "explanations.body.read", purpose: "EXPLICIT_EXPLANATION_BODY", scenario_id: "agent_access.explanation_body", max_output_bytes: 8192 }),
-  // AA3 commit 3b: read public-domain corpus text. (create_reading_handoff held
-  // until handoff_tokens carries work_id + library-ui handles open_corpus.)
+  // AA3 commit 3b: read public-domain corpus text.
   get_reading_content: Object.freeze({ scope: "reading.corpus.read", purpose: "EXPLICIT_CORPUS_READING", scenario_id: "agent_access.reading_content", max_output_bytes: 16384 }),
+  // AA3 commit 3c: write-capability pair (agent initiates, LinguistPro/owner
+  // executes). handoff_tokens carries work_id + library-ui handles open_corpus
+  // since migration 045, so the hold on create_reading_handoff is lifted.
+  create_reading_handoff: Object.freeze({ scope: "reading.handoff.create", purpose: "EXPLICIT_READING_HANDOFF_MINT", scenario_id: "agent_access.reading_handoff", max_output_bytes: 1024 }),
+  propose_action: Object.freeze({ scope: "intent.propose", purpose: "EXPLICIT_ACTION_PROPOSAL", scenario_id: "agent_access.propose_action", max_output_bytes: 1024 }),
 });
 
 function getCapability(name) { return CAPABILITIES[String(name)] || null; }

@@ -15,6 +15,8 @@ const TOOL_LIMITS = Object.freeze({
   get_reading_content: Object.freeze({ minute: 20, day: 400 }),
   // Handoff mints a DB token — keep it tight to bound table churn.
   create_reading_handoff: Object.freeze({ minute: 6, day: 60 }),
+  // Propose writes a PENDING row (idempotent by dedupe); tight to bound owner-panel churn.
+  propose_action: Object.freeze({ minute: 6, day: 120 }),
 });
 const MINUTE = 60_000;
 const DAY = 86_400_000;

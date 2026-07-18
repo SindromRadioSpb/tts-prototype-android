@@ -1693,6 +1693,7 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
       const keyingServiceForAgentAccess = require("./db/keyingService");
       const corpusSentenceRepoForAgentAccess = require("./db/corpusSentenceRepo");
       const handoffRepoForAgentAccess = require("./db/handoffRepo");
+      const agentProposalsRepoForAgentAccess = require("./db/agentProposalsRepo");
       const nextTextForAgentAccess = require("./agent/nextText");
       const principalContext = new AsyncLocalStorage();
       const handlers = createProductionHandlers({
@@ -1703,6 +1704,7 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
         keyingService: keyingServiceForAgentAccess,
         corpusSentenceRepo: corpusSentenceRepoForAgentAccess,
         handoffRepo: handoffRepoForAgentAccess,
+        agentProposalsRepo: agentProposalsRepoForAgentAccess,
         // AA3: report the real access window (control-plane) rather than the token TTL.
         connectionPersistence: async () => {
           try {
@@ -1799,6 +1801,62 @@ app.delete("/api/agent-access/connections/:connectionId", requireAgentAccessBoun
     const deleted = await agentAccessOAuthRepo.deleteConnection(auth.user.id, existing.connection_id, "USER_DELETE");
     identityRepo.audit("agent_access_connection_delete", auth.user.id, { connection_id: deleted.connection_id }, req.ip);
     return res.json({ ok: true, connection_id: deleted.connection_id, deleted: true });
+  } catch (e) { return agentAccessHttpError(res, e); }
+});
+
+// AA3-3c — W1 propose-then-confirm. The agent creates PENDING rows via MCP;
+// ONLY these owner-session routes can decide them (R17: the decision channel is
+// first-party, session+CSRF; no MCP tool can reach it). listPending already
+// filters to live PENDING rows of ACTIVE/SCOPE_REDUCED connections.
+const agentProposalsRepo = require("./db/agentProposalsRepo");
+app.get("/api/agent-access/proposals", requireAgentAccessBoundary, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try {
+    const rows = await agentProposalsRepo.listPending(auth.user.id);
+    // payload_json stays server-side; the panel gets the parsed payload + the
+    // SERVER-resolved display_title (never an agent-asserted work description).
+    const proposals = rows.map((r) => ({
+      proposal_id: r.proposal_id, kind: r.kind, payload: r.payload,
+      display_title: r.display_title, authority: r.authority,
+      client_display_name: r.client_display_name, created_at: r.created_at, expires_at: r.expires_at,
+    }));
+    return res.json({ ok: true, schema_version: "aa.proposals.1.0.0", proposals });
+  } catch (e) { return agentAccessHttpError(res, e); }
+});
+app.post("/api/agent-access/proposals/:proposalId/decision", requireAgentAccessBoundary, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  const decision = String(((req.body || {}).decision) || "");
+  if (!["confirm", "deny"].includes(decision)) return res.status(400).json({ ok: false, error: "AA_PROPOSAL_BAD_DECISION" });
+  try {
+    const row = await agentProposalsRepo.getPending(auth.user.id, req.params.proposalId);
+    // Execute-before-flip (R14): mint first so a mint failure leaves the row
+    // PENDING and re-confirmable; an orphaned token dies in 5 min unused.
+    let handoffUrl = null;
+    if (decision === "confirm" && row.kind === "open_reading" && row.payload) {
+      const listed = require("./db/corpusSentenceRepo").listWorkTexts(row.payload.work_id);
+      if (!listed || !listed.ok) return res.status(409).json({ ok: false, error: "AA_PROPOSAL_WORK_UNAVAILABLE" });
+      const text = row.payload.text_key ? listed.texts.find((t) => t.text_key === row.payload.text_key) : listed.texts[0];
+      if (!text) return res.status(409).json({ ok: false, error: "AA_PROPOSAL_WORK_UNAVAILABLE" });
+      const minted = await handoffRepo.mint(auth.user.id, {
+        textKey: text.text_key,
+        orderIndex: row.payload.order_index != null ? Number(row.payload.order_index) : (Number(text.first_order_index) || 0),
+        action: "open_corpus", workId: String(row.payload.work_id),
+      });
+      handoffUrl = "/library.html?handoff=" + encodeURIComponent(minted.raw);
+    }
+    const decided = await agentProposalsRepo.decide(auth.user.id, req.params.proposalId, decision === "confirm" ? "CONFIRMED" : "DENIED");
+    identityRepo.audit("agent_access_proposal_decision", auth.user.id, { proposal_id: decided.proposal_id, kind: decided.kind, decision: decided.status }, req.ip);
+    return res.json({ ok: true, proposal_id: decided.proposal_id, status: decided.status, handoff_url: handoffUrl });
+  } catch (e) { return agentAccessHttpError(res, e); }
+});
+app.delete("/api/agent-access/proposals/:proposalId", requireAgentAccessBoundary, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const out = await agentProposalsRepo.deleteProposal(auth.user.id, req.params.proposalId);
+    identityRepo.audit("agent_access_proposal_delete", auth.user.id, { proposal_id: out.proposal_id }, req.ip);
+    return res.json({ ok: true, proposal_id: out.proposal_id, deleted: true });
   } catch (e) { return agentAccessHttpError(res, e); }
 });
 
@@ -3015,7 +3073,10 @@ app.get("/api/reading-handoffs/redeem", rlMiniapp, async (req, res) => {
   try {
     const r = await require("./db/handoffRepo").redeem(String(req.query.t || ""));
     if (!r) return res.status(404).json({ ok: false, error: "HANDOFF_INVALID" });
-    res.json({ ok: true, text_key: r.text_key, order_index: r.order_index, action: r.action });
+    // work_id (AA3-3c, nullable): corpus tokens carry the catalog id so the Room
+    // can open a not-yet-materialized work via openCorpusWork. Additive field —
+    // both redeem consumers access fields by name (verified sweep).
+    res.json({ ok: true, text_key: r.text_key, order_index: r.order_index, action: r.action, work_id: r.work_id || null });
   } catch (e) { res.status(500).json({ ok: false, error: "HANDOFF_FAILED" }); }
 });
 
@@ -3192,6 +3253,7 @@ async function opsSweepTick() {
       const devices = await identityRepo.purgeOrphanDevices();
       const ch = await agentChallengeRepo.pruneOld();
       await handoffRepo.pruneOld();
+      await agentProposalsRepo.pruneOld();   // AA3-3c: expire PENDING + retention bounds (proposalPolicy)
       const cp0Purged = await cp0ObservationRepo.purgeExpired();
       const memoryPurged = await learnerMemoryRepo.expireAndPurge();
       if (sessions || initSeen || devices || ch.challenges || ch.purgedTerminal || cp0Purged.observations || cp0Purged.boots || memoryPurged.expired || memoryPurged.records || memoryPurged.queries || memoryPurged.journal) {

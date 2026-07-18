@@ -238,6 +238,47 @@ function readingContent(value) {
   return Object.freeze({ ...x, work: Object.freeze({ ...w }), anchor: Object.freeze({ ...a }), rows: Object.freeze(rows), available_text_keys: Object.freeze([...x.available_text_keys]) });
 }
 
+// AA3 commit 3c — propose_action. Per-kind CLOSED payload schema (R14: no
+// cross-kind field bleed; the MCP JSON schema is a stable superset, exact
+// closedness is enforced HERE). The returned payload is the NORMALIZED object
+// the handler stores — never the raw agent bytes. No dedupe field exists in
+// the input by construction (server derives it, R17).
+const PROPOSAL_KINDS = new Set(["open_reading", "note", "suggestion"]);
+const PROPOSAL_ID_RE = /^ap_[a-f0-9]{32}$/;
+function validateProposeInput(value) {
+  const x = closed(value, ["kind", "payload"], ["kind", "payload"], "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, 3072, "ARGUMENTS_TOO_LARGE");
+  const kind = oneOf(x.kind, PROPOSAL_KINDS, "ARGUMENT_SCHEMA_INVALID");
+  let payload;
+  if (kind === "open_reading") {
+    const y = closed(x.payload, ["work_id", "text_key", "order_index", "reason"], ["work_id"], "ARGUMENT_SCHEMA_INVALID");
+    payload = { work_id: workId(y.work_id) };
+    if (y.text_key != null) payload.text_key = textKey(y.text_key);
+    if (y.order_index != null) payload.order_index = integer(y.order_index, 0, 1000000, "ARGUMENT_SCHEMA_INVALID");
+    if (y.reason != null) payload.reason = string(y.reason, 280, "ARGUMENT_SCHEMA_INVALID");
+  } else if (kind === "note") {
+    const y = closed(x.payload, ["title", "body"], ["body"], "ARGUMENT_SCHEMA_INVALID");
+    payload = { body: string(y.body, 2000, "ARGUMENT_SCHEMA_INVALID") };
+    if (y.title != null) payload.title = string(y.title, 160, "ARGUMENT_SCHEMA_INVALID");
+  } else {
+    const y = closed(x.payload, ["body"], ["body"], "ARGUMENT_SCHEMA_INVALID");
+    payload = { body: string(y.body, 2000, "ARGUMENT_SCHEMA_INVALID") };
+  }
+  return Object.freeze({ kind, payload: Object.freeze(payload) });
+}
+function proposal(value) {
+  const keys = ["schema_version", "proposal_id", "kind", "status", "expires_at", "generated_at"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 1024, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.proposal.1.0.0") fail("OUTPUT_SCHEMA_INVALID");
+  if (typeof x.proposal_id !== "string" || !PROPOSAL_ID_RE.test(x.proposal_id)) fail("OUTPUT_SCHEMA_INVALID");
+  oneOf(x.kind, PROPOSAL_KINDS);
+  // The agent may see PENDING or (deny-cooldown transparency) DENIED — NEVER
+  // CONFIRMED: confirmation state does not flow back through the propose channel.
+  if (x.status !== "PENDING" && x.status !== "DENIED") fail("OUTPUT_SCHEMA_INVALID");
+  timestamp(x.expires_at); timestamp(x.generated_at);
+  return Object.freeze({ ...x });
+}
+
 function validateHandoffInput(value) {
   const x = closed(value, ["work_id", "text_key", "order_index"], ["work_id"], "ARGUMENT_SCHEMA_INVALID");
   bytes(x, 512, "ARGUMENTS_TOO_LARGE");
@@ -347,6 +388,7 @@ const INPUT_VALIDATORS = Object.freeze({
   get_explanation_body: validateExplanationBodyInput,
   get_reading_content: validateReadingContentInput,
   create_reading_handoff: validateHandoffInput,
+  propose_action: validateProposeInput,
 });
 const OUTPUT_VALIDATORS = Object.freeze({
   get_learning_brief: learningBrief,
@@ -360,6 +402,7 @@ const OUTPUT_VALIDATORS = Object.freeze({
   get_explanation_body: explanationBody,
   get_reading_content: readingContent,
   create_reading_handoff: readingHandoff,
+  propose_action: proposal,
 });
 
 function validateInput(tool, value) { const fn = INPUT_VALIDATORS[tool]; if (!fn) fail("UNKNOWN_TOOL"); return fn(value); }

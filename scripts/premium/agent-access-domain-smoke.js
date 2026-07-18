@@ -8,6 +8,8 @@ const capabilities = require("../../agent/access/capabilities");
 const { createAgentAccessService } = require("../../agent/access/service");
 const { SCOPE_PRESENTATION } = require("../../agent/access/consentCeremony");
 const scenarios = require("../../agent/controlPlane/scenarioRegistry");
+const { TOOL_LIMITS } = require("../../agent/access/mcpRateLimiter");
+const mcpSchemas = require("../../agent/access/mcpSchemas");
 
 const NOW = Date.parse("2026-07-17T09:00:00.000Z");
 const GENERATED = "2026-07-17T09:00:00.000Z";
@@ -75,6 +77,10 @@ const fixtures = Object.freeze({
     schema_version: "aa.reading_handoff.1.0.0", handoff_url: "https://linguistpro.kolosei.com/library.html?handoff=abcdefABCDEF0123456789_-xy",
     expires_in_ms: 300000, work_id: "42", text_key: "a1b2c3d4e5f60718", action: "open_corpus", generated_at: GENERATED,
   }),
+  propose_action: Object.freeze({
+    schema_version: "aa.proposal.1.0.0", proposal_id: "ap_0123456789abcdef0123456789abcdef",
+    kind: "note", status: "PENDING", expires_at: "2026-07-24T09:00:00.000Z", generated_at: GENERATED,
+  }),
 });
 
 const validArgs = Object.freeze({
@@ -89,6 +95,7 @@ const validArgs = Object.freeze({
   get_explanation_body: Object.freeze({ explanation_id: "explanation-1" }),
   get_reading_content: Object.freeze({ work_id: "42" }),
   create_reading_handoff: Object.freeze({ work_id: "42" }),
+  propose_action: Object.freeze({ kind: "note", payload: Object.freeze({ body: "fixture note body" }) }),
 });
 
 function handlers(overrides = {}) {
@@ -157,14 +164,57 @@ async function expectCode(promise, code) {
     }
     checks++;
 
+    // Role assertion with teeth (R17): the expected role is DERIVED per
+    // capability from the write-tool set — a loose 2-role allowlist would let
+    // any future scenario pick either role freely. Reader scenarios may only
+    // hold *_read capabilities; proposer scenarios only the known write repos.
+    const WRITE_TOOLS = mcpSchemas.WRITE_TOOLS;
+    assert.deepStrictEqual([...WRITE_TOOLS].sort(), ["create_reading_handoff", "propose_action"]);
+    const PROPOSER_CAPS = new Set(["repo:reading_handoff_mint", "repo:proposal_create"]);
     const capScenarioIds = Object.values(capabilities.CAPABILITIES).map((x) => x.scenario_id).sort();
     assert.strictEqual(new Set(capScenarioIds).size, capabilities.capabilityNames().length);
-    for (const scenarioId of capScenarioIds) {
-      const scenario = scenarios.get(scenarioId);
-      assert.ok(scenario, `missing CP0 scenario ${scenarioId}`);
+    for (const [toolName, cap] of Object.entries(capabilities.CAPABILITIES)) {
+      const scenario = scenarios.get(cap.scenario_id);
+      assert.ok(scenario, `missing CP0 scenario ${cap.scenario_id}`);
       assert.deepStrictEqual(scenario.surfaces, ["external_agent"]);
-      assert.strictEqual(scenario.role, "agent_access.reader");
+      const expectedRole = WRITE_TOOLS.has(toolName) ? "agent_access.proposer" : "agent_access.reader";
+      assert.strictEqual(scenario.role, expectedRole, `${toolName} scenario role`);
+      if (expectedRole === "agent_access.reader") {
+        assert.ok(scenario.capabilities.every((c) => /_read$/.test(c)), `reader scenario ${cap.scenario_id} holds a non-read capability`);
+      } else {
+        assert.ok(scenario.capabilities.every((c) => PROPOSER_CAPS.has(c)), `proposer scenario ${cap.scenario_id} holds an unknown capability`);
+      }
     }
+    checks++;
+
+    // Registry key-parity (R14): a tool present in one registry but missing in
+    // another is UNKNOWN_TOOL / AA_MCP_UNKNOWN_TOOL / schema-less at runtime.
+    const toolNames = capabilities.capabilityNames().slice().sort();
+    for (const [label, keys] of [
+      ["TOOL_LIMITS", Object.keys(TOOL_LIMITS)],
+      ["INPUT_SCHEMAS", Object.keys(mcpSchemas.INPUT_SCHEMAS)],
+      ["OUTPUT_SCHEMAS", Object.keys(mcpSchemas.OUTPUT_SCHEMAS)],
+      ["DESCRIPTIONS", Object.keys(mcpSchemas.DESCRIPTIONS)],
+    ]) {
+      assert.deepStrictEqual(keys.slice().sort(), toolNames, `${label} keys diverge from CAPABILITIES`);
+    }
+    for (const name of toolNames) {
+      assert.strictEqual(typeof validArgs[name], "object", `smoke validArgs missing ${name}`);
+      assert.strictEqual(typeof fixtures[name], "object", `smoke fixtures missing ${name}`);
+    }
+    checks++;
+
+    // Deny-cooldown transparency shape: propose output may be DENIED, never CONFIRMED.
+    const deniedOut = await service({ handlers: handlers({ propose_action: async () => ({ ...fixtures.propose_action, status: "DENIED" }) }) })
+      .execute(principal, "propose_action", validArgs.propose_action);
+    assert.strictEqual(deniedOut.ok, true); assert.strictEqual(deniedOut.result.status, "DENIED");
+    await expectCode(service({ handlers: handlers({ propose_action: async () => ({ ...fixtures.propose_action, status: "CONFIRMED" }) }) })
+      .execute(principal, "propose_action", validArgs.propose_action), "OUTPUT_SCHEMA_INVALID"); checks++;
+    // Per-kind closedness (R14): cross-kind field bleed must be UNKNOWN_FIELD-rejected.
+    await expectCode(service().execute(principal, "propose_action", { kind: "note", payload: { body: "x", work_id: "42" } }), "UNKNOWN_FIELD");
+    await expectCode(service().execute(principal, "propose_action", { kind: "open_reading", payload: { work_id: "42", body: "smuggled" } }), "UNKNOWN_FIELD");
+    await expectCode(service().execute(principal, "propose_action", { kind: "suggestion", payload: { body: "x", title: "t" } }), "UNKNOWN_FIELD");
+    await expectCode(service().execute(principal, "propose_action", { kind: "note", payload: { body: "x", dedupe_key: "attacker" } }), "UNKNOWN_FIELD");
     checks++;
 
     const root = path.resolve(__dirname, "../..");
@@ -174,6 +224,29 @@ async function expectCode(promise, code) {
       const source = fs.readFileSync(path.join(root, file), "utf8");
       assert.ok(!forbidden.test(source), `forbidden dependency or network call in ${file}`);
     }
+    checks++;
+
+    // W0 static oracle over the file that actually holds live repos (R17): the
+    // handlers must never touch learning truth, raw SQL, or the network, and the
+    // ONLY write-repo methods reachable from agent/access are the two known ones.
+    const handlersRaw = fs.readFileSync(path.join(root, "agent/access/productionHandlers.js"), "utf8");
+    // Scan CODE only (comments legitimately document what is excluded, e.g. «raw FSRS floats»).
+    const handlersSource = handlersRaw.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|\s)\/\/[^\n]*/g, "$1");
+    const w0Forbidden = /(review_log|word_status|\bmastery\b|\bfsrs\b|updateSrs|recordReview|appendReview|INSERT\s+INTO|UPDATE\s+\w+\s+SET|DELETE\s+FROM|require\(["'][^"']*sqlite|https?\.request|fetch\s*\()/i;
+    assert.ok(!w0Forbidden.test(handlersSource), "W0/SQL/network pattern in productionHandlers.js");
+    const writeCalls = handlersSource.match(/\b(?:handoffRepo|proposalsRepo)\.(\w+)\s*\(/g) || [];
+    const allowedWrites = new Set(["handoffRepo.mint(", "handoffRepo.countActive(", "proposalsRepo.create("]);
+    for (const call of writeCalls) assert.ok(allowedWrites.has(call.replace(/\s+/g, "")), `unexpected write-repo call ${call}`);
+    // Read-back fence: proposals are terminal artifacts — no agent-access read
+    // tool may serve them back (anti-circularity, R17).
+    assert.ok(!/proposalsRepo\.(listPending|getPending|decide|deleteProposal)/.test(handlersSource), "agent_proposals read-back in handlers");
+    checks++;
+
+    // Panel rendering discipline (R14): the enforced-CSP agent-access shell must
+    // paint agent-authored strings inertly — no HTML-injection sinks at all.
+    const panelSource = fs.readFileSync(path.join(root, "public/js/agent-access.js"), "utf8");
+    assert.ok(!/innerHTML|insertAdjacentHTML|outerHTML|document\.write/.test(panelSource), "HTML-injection sink in agent-access.js");
+    assert.ok(/propProvenance/.test(panelSource), "proposal provenance label missing from panel");
     checks++;
 
     console.log(JSON.stringify({ ok: true, checks, capabilities: capabilities.capabilityNames().length, network_calls: 0, provider_calls: 0, live_data_reads: 0 }));

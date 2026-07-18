@@ -8379,11 +8379,42 @@ async function boot() {
         let hj = null;
         try { hj = await (await fetch('/api/reading-handoffs/redeem?t=' + encodeURIComponent(handoffTok))).json(); } catch (_) {}
         if (hj && hj.ok && hj.text_key) {
-          const hrows = await localDb.dbQuery('SELECT id, title FROM texts WHERE text_key = ? LIMIT 1', [String(hj.text_key)]);
-          if (hrows && hrows[0]) openReader(hrows[0].id, hrows[0].title, { scrollToOrderIndex: Number(hj.order_index) });
-          else roomToast(tt('room.mentor.textMissing', 'Текст не найден на этом устройстве — синхронизируйте «Мои тексты» в ☁.'));
+          const hAction = String(hj.action || 'open_reader');
+          // Local-first resolver: a materialized text (personal OR an already-imported
+          // corpus work) opens directly by text_key on either action branch.
+          const openLocal = async () => {
+            const hrows = await localDb.dbQuery('SELECT id, title FROM texts WHERE text_key = ? LIMIT 1', [String(hj.text_key)]);
+            if (hrows && hrows[0]) { openReader(hrows[0].id, hrows[0].title, { scrollToOrderIndex: Number(hj.order_index) }); return true; }
+            return false;
+          };
+          if (hAction === 'open_corpus') {
+            // AA3-3c — corpus handoff (agent-minted, owner-clicked): resolve the ready
+            // card by work_id. The corpus index sidecar is LAZY — await it here or the
+            // map is deterministically empty on a cold boot (R11: a false «не найдена»
+            // toast for a present work). Mirrors openLessonSource (see ~line 3066).
+            let card = null;
+            if (hj.work_id) {
+              try { await loadCorpusIndex(); } catch (_) {}
+              if (corpusReadyById && corpusReadyById.size === 0) corpusReadyById = null;
+              try { card = corpusReadyMap().get(String(hj.work_id)) || null; } catch (_) {}
+            }
+            if (card) {
+              // Chapter tokens carry a chapter text_key ≠ the card's first-chapter key;
+              // the work bundle contains all chapters, so override the resolve key.
+              const target = (hj.text_key && String(hj.text_key) !== String(card.text_key))
+                ? { ...card, text_key: String(hj.text_key) } : card;
+              await openCorpusWork(target, { scrollToOrderIndex: Number(hj.order_index) || 0 });
+            } else if (!(await openLocal())) {
+              roomToast(tt('room.handoff.corpusMissing', 'Работа не найдена в каталоге Зала — обновите страницу и откройте вкладку «Корпус».'));
+            }
+          } else if (hAction === 'open_reader') {
+            if (!(await openLocal())) roomToast(tt('room.mentor.textMissing', 'Текст не найден на этом устройстве — синхронизируйте «Мои тексты» в ☁.'));
+          } else {
+            // Unknown future action: honest stop, never fall through to a wrong opener.
+            roomToast(tt('room.handoff.unknown', 'Ссылка не поддерживается этой версией приложения — обновите страницу.'));
+          }
         } else {
-          roomToast(tt('room.handoff.expired', 'Ссылка из мини-приложения устарела — откройте её заново.'));
+          roomToast(tt('room.handoff.expired', 'Ссылка устарела или уже использована — откройте её заново.'));
         }
       }
     } catch (_) {}

@@ -293,6 +293,8 @@ async function exportUserData(userId) {
   // CLG-P8.5: reading-handoff tokens — тот же принцип
   if (out.tables.handoff_tokens) for (const t of out.tables.handoff_tokens) { delete t.token_hash; }
   if (out.tables.learner_memory_records) for (const r of out.tables.learner_memory_records) delete r.dedupe_key;
+  // AA3-3c: proposal dedupe hashes are derivable oracles for (possibly purged) payloads
+  if (out.tables.agent_proposals) for (const r of out.tables.agent_proposals) delete r.dedupe_key;
   if (out.tables.learner_memory_revisions) for (const r of out.tables.learner_memory_revisions) delete r.payload_digest;
   if (out.tables.learner_memory_source_links) for (const r of out.tables.learner_memory_source_links) delete r.keyed_digest;
   if (out.tables.f2_requests) for (const r of out.tables.f2_requests) { delete r.expected_digest; delete r.expected_json; }
