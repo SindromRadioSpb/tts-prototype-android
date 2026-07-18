@@ -36,6 +36,9 @@ const PROFILE_MODE = new Set(["silent", "coach", "intensive"]);
 const PROFILE_DEPTH = new Set(["brief", "detailed"]);
 const ACCESS_LIFETIME = new Set(["PERSISTENT_WINDOW", "TIMED_WINDOW", "TOKEN_ONLY"]);
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+const WORK_ID_RE = /^\d{1,8}$/;
+const TEXT_KEY_RE = /^[a-f0-9]{16,64}$/;
+const HANDOFF_URL_RE = /^https:\/\/linguistpro\.kolosei\.com\/library\.html\?handoff=[A-Za-z0-9_-]{16,256}$/;
 
 class AgentAccessError extends Error {
   constructor(code, message, retryable = false) {
@@ -145,7 +148,19 @@ function validateDueItemsInput(value) {
   bytes(x, 512, "ARGUMENTS_TOO_LARGE");
   const out = {};
   if (x.limit != null) out.limit = integer(x.limit, 1, 100, "ARGUMENT_SCHEMA_INVALID");
-  if (x.cursor != null) { out.cursor = string(x.cursor, 256, "ARGUMENT_SCHEMA_INVALID"); if (!CURSOR.test(out.cursor)) fail("ARGUMENT_SCHEMA_INVALID"); }
+  // Decode + validate the pagination cursor HERE so a malformed cursor is a
+  // clean client ARGUMENT_SCHEMA_INVALID (retryable:false) instead of reaching
+  // the handler as INTERNAL_ERROR — the latter makes clients retry and can trip
+  // their transport circuit breaker (Hermes-observed).
+  if (x.cursor != null) {
+    out.cursor = string(x.cursor, 256, "ARGUMENT_SCHEMA_INVALID");
+    if (!CURSOR.test(out.cursor)) fail("ARGUMENT_SCHEMA_INVALID");
+    let decoded = "";
+    try { decoded = Buffer.from(out.cursor, "base64url").toString("utf8"); } catch (_) { fail("ARGUMENT_SCHEMA_INVALID"); }
+    const m = /^o(\d{1,6})$/.exec(decoded);
+    if (!m || Number(m[1]) > 500) fail("ARGUMENT_SCHEMA_INVALID");
+    out.cursor_offset = Number(m[1]);
+  }
   return Object.freeze(out);
 }
 
@@ -191,6 +206,54 @@ function explanationBody(value) {
   if (x.purge_state === "AVAILABLE" && x.kind === null) fail("OUTPUT_SCHEMA_INVALID");
   if (x.text !== null && x.lines !== null) fail("OUTPUT_SCHEMA_INVALID");
   return Object.freeze({ ...x, lines: x.lines === null ? null : Object.freeze(x.lines.map((r) => Object.freeze({ ...r }))) });
+}
+
+function workId(v, code = "ARGUMENT_SCHEMA_INVALID") { const s = string(v, 8, code); if (!WORK_ID_RE.test(s)) fail(code); return s; }
+function textKey(v, code = "ARGUMENT_SCHEMA_INVALID") { const s = string(v, 64, code); if (!TEXT_KEY_RE.test(s.toLowerCase())) fail(code); return s.toLowerCase(); }
+
+function validateReadingContentInput(value) {
+  const x = closed(value, ["work_id", "text_key", "start", "rows"], ["work_id"], "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, 512, "ARGUMENTS_TOO_LARGE");
+  const out = { work_id: workId(x.work_id) };
+  if (x.text_key != null) out.text_key = textKey(x.text_key);
+  if (x.start != null) out.start = integer(x.start, 0, 1000000, "ARGUMENT_SCHEMA_INVALID");
+  if (x.rows != null) out.rows = integer(x.rows, 1, 20, "ARGUMENT_SCHEMA_INVALID");
+  return Object.freeze(out);
+}
+function readingContent(value) {
+  const keys = ["schema_version", "work", "anchor", "rows", "available_text_keys", "generated_at"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 16384, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.reading_content.1.0.0") fail("OUTPUT_SCHEMA_INVALID");
+  timestamp(x.generated_at);
+  const w = closed(x.work, ["title", "author", "era", "license"], ["title", "author", "era", "license"], "OUTPUT_SCHEMA_INVALID");
+  if (w.title !== null) string(w.title, 200); if (w.author !== null) string(w.author, 200);
+  if (w.era !== null) oneOf(w.era, ERAS); if (w.license !== "public-domain") fail("OUTPUT_SCHEMA_INVALID");
+  const a = closed(x.anchor, ["work_id", "text_key", "start_order_index", "row_count"], ["work_id", "text_key", "start_order_index", "row_count"], "OUTPUT_SCHEMA_INVALID");
+  if (!WORK_ID_RE.test(String(a.work_id)) || !TEXT_KEY_RE.test(String(a.text_key))) fail("OUTPUT_SCHEMA_INVALID");
+  integer(a.start_order_index, 0, 1000000); integer(a.row_count, 0, 20);
+  if (!Array.isArray(x.rows) || x.rows.length > 20) fail("OUTPUT_SCHEMA_INVALID");
+  const rows = x.rows.map((row) => { const r = closed(row, ["order_index", "he", "ru"], ["order_index", "he", "ru"], "OUTPUT_SCHEMA_INVALID"); integer(r.order_index, 0, 1000000); string(r.he, 400); if (r.ru !== null) string(r.ru, 400); return Object.freeze({ ...r }); });
+  if (!Array.isArray(x.available_text_keys) || x.available_text_keys.length > 20) fail("OUTPUT_SCHEMA_INVALID");
+  x.available_text_keys.forEach((k) => { if (!TEXT_KEY_RE.test(String(k))) fail("OUTPUT_SCHEMA_INVALID"); });
+  return Object.freeze({ ...x, work: Object.freeze({ ...w }), anchor: Object.freeze({ ...a }), rows: Object.freeze(rows), available_text_keys: Object.freeze([...x.available_text_keys]) });
+}
+
+function validateHandoffInput(value) {
+  const x = closed(value, ["work_id", "text_key", "order_index"], ["work_id"], "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, 512, "ARGUMENTS_TOO_LARGE");
+  const out = { work_id: workId(x.work_id) };
+  if (x.text_key != null) out.text_key = textKey(x.text_key);
+  if (x.order_index != null) out.order_index = integer(x.order_index, 0, 1000000, "ARGUMENT_SCHEMA_INVALID");
+  return Object.freeze(out);
+}
+function readingHandoff(value) {
+  const keys = ["schema_version", "handoff_url", "expires_in_ms", "work_id", "text_key", "action", "generated_at"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 1024, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.reading_handoff.1.0.0") fail("OUTPUT_SCHEMA_INVALID");
+  if (typeof x.handoff_url !== "string" || !HANDOFF_URL_RE.test(x.handoff_url)) fail("OUTPUT_SCHEMA_INVALID"); // canonical origin only, no PII
+  integer(x.expires_in_ms, 1, 3600000); if (!WORK_ID_RE.test(String(x.work_id)) || !TEXT_KEY_RE.test(String(x.text_key))) fail("OUTPUT_SCHEMA_INVALID");
+  if (x.action !== "open_corpus") fail("OUTPUT_SCHEMA_INVALID"); timestamp(x.generated_at);
+  return Object.freeze({ ...x });
 }
 
 function learnerProfile(value) {
@@ -282,6 +345,8 @@ const INPUT_VALIDATORS = Object.freeze({
   get_due_review_items: validateDueItemsInput,
   get_learner_profile: emptyInput,
   get_explanation_body: validateExplanationBodyInput,
+  get_reading_content: validateReadingContentInput,
+  create_reading_handoff: validateHandoffInput,
 });
 const OUTPUT_VALIDATORS = Object.freeze({
   get_learning_brief: learningBrief,
@@ -293,6 +358,8 @@ const OUTPUT_VALIDATORS = Object.freeze({
   get_due_review_items: dueReviewItems,
   get_learner_profile: learnerProfile,
   get_explanation_body: explanationBody,
+  get_reading_content: readingContent,
+  create_reading_handoff: readingHandoff,
 });
 
 function validateInput(tool, value) { const fn = INPUT_VALIDATORS[tool]; if (!fn) fail("UNKNOWN_TOOL"); return fn(value); }

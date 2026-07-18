@@ -37,6 +37,8 @@ const INPUT_SCHEMAS = Object.freeze({
   get_due_review_items: closedObject({ limit: integer(1, 100), cursor: string({ maxLength: 256, pattern: "^[A-Za-z0-9_.~:@/+\\-=]{1,256}$" }) }, []),
   get_learner_profile: closedObject({}, []),
   get_explanation_body: closedObject({ explanation_id: string({ maxLength: 128, pattern: ID }) }, ["explanation_id"]),
+  get_reading_content: closedObject({ work_id: string({ maxLength: 8, pattern: "^\\d{1,8}$" }), text_key: string({ maxLength: 64, pattern: "^[a-f0-9]{16,64}$" }), start: integer(0, 1000000), rows: integer(1, 20) }, ["work_id"]),
+  create_reading_handoff: closedObject({ work_id: string({ maxLength: 8, pattern: "^\\d{1,8}$" }), text_key: string({ maxLength: 64, pattern: "^[a-f0-9]{16,64}$" }), order_index: integer(0, 1000000) }, ["work_id"]),
 });
 
 const timestamp = string({ maxLength: 40, pattern: TIME });
@@ -121,6 +123,19 @@ const OUTPUT_SCHEMAS = Object.freeze({
     lines: Object.freeze({ anyOf: Object.freeze([Object.freeze({ type: "array", maxItems: 8, items: closedObject({ he: string({ maxLength: 500 }), ru: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 500 }), Object.freeze({ type: "null" })]) }) }) }), Object.freeze({ type: "null" })]) }),
     generated_at: timestamp,
   }),
+  get_reading_content: closedObject({
+    schema_version: string({ const: "aa.reading_content.1.0.0" }),
+    work: closedObject({ title: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 200 }), Object.freeze({ type: "null" })]) }), author: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 200 }), Object.freeze({ type: "null" })]) }), era: Object.freeze({ anyOf: Object.freeze([string({ enum: Object.freeze(["BIBLICAL", "RABBINIC", "MEDIEVAL", "REVIVAL", "MODERN", "CONTEMPORARY", "UNKNOWN"]) }), Object.freeze({ type: "null" })]) }), license: string({ const: "public-domain" }) }),
+    anchor: closedObject({ work_id: string({ maxLength: 8 }), text_key: string({ maxLength: 64 }), start_order_index: integer(0, 1000000), row_count: integer(0, 20) }),
+    rows: Object.freeze({ type: "array", maxItems: 20, items: closedObject({ order_index: integer(0, 1000000), he: string({ maxLength: 400 }), ru: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 400 }), Object.freeze({ type: "null" })]) }) }) }),
+    available_text_keys: Object.freeze({ type: "array", maxItems: 20, items: string({ maxLength: 64 }) }),
+    generated_at: timestamp,
+  }),
+  create_reading_handoff: closedObject({
+    schema_version: string({ const: "aa.reading_handoff.1.0.0" }),
+    handoff_url: string({ maxLength: 256 }), expires_in_ms: integer(1, 3600000),
+    work_id: string({ maxLength: 8 }), text_key: string({ maxLength: 64 }), action: string({ const: "open_corpus" }), generated_at: timestamp,
+  }),
 });
 
 const DESCRIPTIONS = Object.freeze({
@@ -133,6 +148,8 @@ const DESCRIPTIONS = Object.freeze({
   get_due_review_items: "Return a page of the owner's due study words (most overdue first) with meaning and a coarse struggle band, for discussion. Page with limit (1-100) + cursor; next_cursor is null on the last page. Never returns the acceptance set, expected answer, or raw memory model; grading stays in LinguistPro.",
   get_learner_profile: "Return the owner's coarse learning profile (mode, language, depth) only; never free-text goals or identifiers.",
   get_explanation_body: "Return one past explanation's body by explanation_id (from get_recent_explanation_metadata): the mentor's own explanation text or retell lines. Returns purge_state PURGED with no content for revoked explanations; never returns the quoted source sentence.",
+  get_reading_content: "Return a bounded window of public-domain Reading Room corpus text by work_id (from search_public_reading_catalog). Optional text_key (chapter), start, rows (1-20). Corpus only; never personal texts. available_text_keys lists the work's chapters.",
+  create_reading_handoff: "Mint a single-use first-party link that opens a public-domain corpus work in the LinguistPro Reading Room. Input is a catalog work_id (optional text_key/order_index); the server resolves and validates it. Returns handoff_url on the canonical origin only. The owner clicks it — the agent never opens content itself.",
 });
 
 function toolDefinitions() {
@@ -141,7 +158,7 @@ function toolDefinitions() {
     description: DESCRIPTIONS[name],
     inputSchema: INPUT_SCHEMAS[name],
     outputSchema: OUTPUT_SCHEMAS[name],
-    annotations: Object.freeze({ readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: name === "search_public_reading_catalog" }),
+    annotations: Object.freeze({ readOnlyHint: name !== "create_reading_handoff", destructiveHint: false, idempotentHint: name !== "create_reading_handoff", openWorldHint: name === "search_public_reading_catalog" }),
   })));
 }
 

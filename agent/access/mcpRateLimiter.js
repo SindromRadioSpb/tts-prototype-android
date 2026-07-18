@@ -12,6 +12,9 @@ const TOOL_LIMITS = Object.freeze({
   get_due_review_items: Object.freeze({ minute: 6, day: 120 }),
   get_learner_profile: Object.freeze({ minute: 12, day: 240 }),
   get_explanation_body: Object.freeze({ minute: 20, day: 400 }),
+  get_reading_content: Object.freeze({ minute: 20, day: 400 }),
+  // Handoff mints a DB token — keep it tight to bound table churn.
+  create_reading_handoff: Object.freeze({ minute: 6, day: 60 }),
 });
 const MINUTE = 60_000;
 const DAY = 86_400_000;

@@ -25,7 +25,7 @@ const OTHER = "synthetic-other";
 const CLIENT = "synthetic-client";
 const CONNECTION = "synthetic-connection";
 const OTHER_CONNECTION = "synthetic-other";
-const SCOPES = ["learning.brief.read", "review.summary.read", "reading.public.search", "explanations.metadata.read", "agent.connection.read", "review.items.read", "profile.read", "explanations.body.read"];
+const SCOPES = ["learning.brief.read", "review.summary.read", "reading.public.search", "explanations.metadata.read", "agent.connection.read", "review.items.read", "profile.read", "explanations.body.read", "reading.corpus.read"];
 const KNOWN_CONSTRUCT = "construct:hebrew.channel_gap.reading_to_dictation";
 
 function expectCode(promise, code) {
@@ -135,7 +135,19 @@ function exactOwnerParser() {
       glossForItemKey: async (k) => (k === "כתב#verb" ? { gloss: LONG_GLOSS, expected: "כתב", decisive: true, strictSafe: true, alts: ["רשם"] } : null),
     };
     const persistenceFixture = async () => ({ access_lifetime: "PERSISTENT_WINDOW", window_expires_at: null });
-    const handlers = createProductionHandlers({ learnerGraphRepo, agentRepo, oauthRepo, publicCatalog: catalog, keyingService: keyingFixture, connectionPersistence: persistenceFixture, now: () => NOW, principalAccessExpiresAt: () => EXPIRY });
+    const CORPUS_TK = "a1b2c3d4e5f60718";
+    const corpusFixture = {
+      listWorkTexts: (work_id) => (String(work_id) === "42"
+        ? { ok: true, work_id: "42", texts: [{ text_key: CORPUS_TK, title: "Тестовая работа", rows_total: 2, first_order_index: 0, last_order_index: 1, author: "Автор", era: "revival", license: "public-domain" }] }
+        : { ok: false, error: "CORPUS_WORK_NOT_FOUND" }),
+      getCorpusLessonWindow: ({ work_id, text_key }) => ((String(work_id) === "42" && text_key === CORPUS_TK)
+        ? { ok: true, rows: [{ order_index: 0, he: "בְּרֵאשִׁית", ru: "В начале" }, { order_index: 1, he: "בָּרָא", ru: "сотворил" }], work: { title: "Тестовая работа", author: "Автор", era: "revival", license: "public-domain" } }
+        : { ok: false, error: "CORPUS_SENTENCE_NOT_FOUND" }),
+    };
+    let mintCount = 0;
+    const handoffFixture = { mint: async (userId, { textKey, orderIndex, action }) => { mintCount += 1; return { raw: "abcdefABCDEF0123456789_-xy", expiresInMs: 300000, _echo: { userId, textKey, orderIndex, action } }; } };
+    const aa3Deps = { keyingService: keyingFixture, connectionPersistence: persistenceFixture, corpusSentenceRepo: corpusFixture, handoffRepo: handoffFixture };
+    const handlers = createProductionHandlers({ learnerGraphRepo, agentRepo, oauthRepo, publicCatalog: catalog, ...aa3Deps, now: () => NOW, principalAccessExpiresAt: () => EXPIRY });
     const service = createAgentAccessService({ enabled: true, ownerIds: [OWNER], handlers, now: () => NOW });
 
     global.fetch = networkTripwire; http.request = networkTripwire; http.get = networkTripwire; https.request = networkTripwire; https.get = networkTripwire;
@@ -178,9 +190,10 @@ function exactOwnerParser() {
       assert.ok(pn.ok, JSON.stringify(pn)); pn.result.items.forEach((it) => seen.add(it.display)); cursor = pn.result.next_cursor;
     }
     assert.strictEqual(seen.size, 3); // full walk covered every due item exactly once
-    // Bad cursor fails closed.
+    // Bad cursor is a CLIENT input error (not INTERNAL_ERROR): retryable:false so
+    // the client does not retry and trip its transport circuit breaker.
     const badCur = await service.execute(principal({ request_id: "due-badcur" }), "get_due_review_items", { limit: 1, cursor: "not-a-real-cursor" });
-    assert.ok(!badCur.ok && badCur.error.code === "INTERNAL_ERROR"); checks++;
+    assert.ok(!badCur.ok && badCur.error.code === "ARGUMENT_SCHEMA_INVALID" && badCur.error.retryable === false, JSON.stringify(badCur)); checks++;
 
     // AA3 slice-1 — get_learner_profile (typed projection, no goals_json/user_id).
     const prof = await service.execute(principal({ request_id: "profile" }), "get_learner_profile", {});
@@ -217,6 +230,25 @@ function exactOwnerParser() {
     // Scope gating for the body scope.
     const bodyNarrow = await service.execute(principal({ request_id: "body-narrow", scopes: ["agent.connection.read"] }), "get_explanation_body", { explanation_id: "exp-word" });
     assert.ok(!bodyNarrow.ok && bodyNarrow.error.code === "INSUFFICIENT_SCOPE"); checks++;
+
+    // AA3 commit 3b — get_reading_content (corpus, bounded) + create_reading_handoff.
+    const reading = await service.execute(principal({ request_id: "reading" }), "get_reading_content", { work_id: "42", rows: 5 });
+    assert.ok(reading.ok, JSON.stringify(reading)); const rc = reading.result;
+    assert.strictEqual(rc.schema_version, "aa.reading_content.1.0.0");
+    assert.strictEqual(rc.work.license, "public-domain"); assert.strictEqual(rc.work.era, "REVIVAL");
+    assert.strictEqual(rc.anchor.work_id, "42"); assert.strictEqual(rc.anchor.text_key, "a1b2c3d4e5f60718");
+    assert.strictEqual(rc.rows.length, 2); assert.strictEqual(rc.rows[0].he, "בְּרֵאשִׁית"); assert.strictEqual(rc.rows[0].ru, "В начале");
+    assert.deepStrictEqual(rc.available_text_keys, ["a1b2c3d4e5f60718"]); checks++;
+    // Non-corpus / unknown work_id fails closed (corpus-only by construction).
+    const badWork = await service.execute(principal({ request_id: "reading-bad" }), "get_reading_content", { work_id: "999" });
+    assert.ok(!badWork.ok && badWork.error.code === "INTERNAL_ERROR"); checks++;
+
+    // create_reading_handoff is held out of the exposed capability set (needs
+    // work_id in handoff_tokens + library-ui open_corpus) — assert it is NOT callable.
+    assert.strictEqual((await service.execute(principal({ request_id: "handoff-held" }), "create_reading_handoff", { work_id: "42" })).error.code, "UNKNOWN_TOOL");
+    assert.strictEqual(mintCount, 0, "handoff must not mint while held");
+    // Scope gating on the corpus read.
+    assert.strictEqual((await service.execute(principal({ request_id: "rc-narrow", scopes: ["agent.connection.read"] }), "get_reading_content", { work_id: "42" })).error.code, "INSUFFICIENT_SCOPE"); checks++;
 
     const searchArgs = { language: "he", audio: "ANY", ready: "ANY", sort: "RELEVANCE", limit: 3 };
     const search = await service.execute(principal({ request_id: "search-request" }), "search_public_reading_catalog", searchArgs);
@@ -266,7 +298,7 @@ function exactOwnerParser() {
     assert.deepStrictEqual(connection.result.granted_scopes, SCOPES.slice().sort()); assert.strictEqual(connection.result.access_expires_at, EXPIRY); checks++;
     const wrongUser = await service.execute(principal({ user_id: OTHER, connection_id: CONNECTION, request_id: "wrong-user" }), "get_agent_connection", {});
     assert.ok(!wrongUser.ok && wrongUser.error.code === "OWNER_NOT_ALLOWED"); checks++;
-    const wrongClientHandlers = createProductionHandlers({ learnerGraphRepo, agentRepo, oauthRepo, publicCatalog: catalog, keyingService: keyingFixture, connectionPersistence: persistenceFixture, now: () => NOW, principalAccessExpiresAt: () => EXPIRY });
+    const wrongClientHandlers = createProductionHandlers({ learnerGraphRepo, agentRepo, oauthRepo, publicCatalog: catalog, ...aa3Deps, now: () => NOW, principalAccessExpiresAt: () => EXPIRY });
     await expectCode(wrongClientHandlers.get_agent_connection({ user_id: OWNER, oauth_client_id: "wrong-client", connection_id: CONNECTION, request_id: "wrong-client" }), "AA_CONNECTION_BINDING_MISMATCH"); checks++;
     await expectCode(wrongClientHandlers.get_agent_connection({ user_id: OWNER, oauth_client_id: CLIENT, connection_id: OTHER_CONNECTION, request_id: "wrong-connection" }), "AA_OAUTH_CONNECTION_NOT_FOUND"); checks++;
     assert.strictEqual((await service.execute(principal({ request_id: "unknown-input" }), "get_learning_brief", { user_id: OWNER })).error.code, "UNKNOWN_FIELD"); checks++;
@@ -302,7 +334,7 @@ function exactOwnerParser() {
     const poisonedHandlers = createProductionHandlers({
       learnerGraphRepo: { getAgentAccessReviewAggregates: async () => ({ scheduled_total: 100001, due_total: 0, urgent_total: 0 }), getDue: async () => [] },
       agentRepo: { getLatestOpenPlanAction: async () => null, listExplanationMetadata: async () => ({ items: [{ explanation_id: "bad", created_at: "2026-07-17T11:00:00.000Z", kind: "word", construct_ids: [], purge_state: "AVAILABLE", leaked: true }], next_before: null }), getProfile: async () => ({}), getExplanationById: async () => null },
-      oauthRepo, publicCatalog: catalog, keyingService: keyingFixture, connectionPersistence: persistenceFixture, now: () => NOW, principalAccessExpiresAt: () => EXPIRY,
+      oauthRepo, publicCatalog: catalog, ...aa3Deps, now: () => NOW, principalAccessExpiresAt: () => EXPIRY,
     });
     await expectCode(poisonedHandlers.get_learning_brief({ user_id: OWNER }), "AA_REVIEW_AGGREGATE_OVERFLOW");
     const poisonedService = createAgentAccessService({ enabled: true, ownerIds: [OWNER], handlers: poisonedHandlers, now: () => NOW });
@@ -373,7 +405,7 @@ function exactOwnerParser() {
     }
     checks++;
 
-    console.log(JSON.stringify({ ok: true, checks, tools: 9, owner_allowlist_count: 1, owner_match: true, zero_table_deltas: true, network_calls: 0, provider_calls: 0, llm_calls: 0, byok_calls: 0, sentinel_occurrences: 0 }));
+    console.log(JSON.stringify({ ok: true, checks, tools: 10, owner_allowlist_count: 1, owner_match: true, zero_table_deltas: true, network_calls: 0, provider_calls: 0, llm_calls: 0, byok_calls: 0, sentinel_occurrences: 0 }));
   } finally {
     global.fetch = originalFetch; http.request = originalHttpRequest; http.get = originalHttpGet; https.request = originalHttpsRequest; https.get = originalHttpsGet;
     await T.cleanup(ctx);

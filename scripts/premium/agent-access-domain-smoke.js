@@ -64,6 +64,17 @@ const fixtures = Object.freeze({
     schema_version: "aa.explanation_body.1.0.0", explanation_id: "explanation-1", created_at: GENERATED,
     kind: "word", purge_state: "AVAILABLE", language: "ru", text: "fixture explanation body", lines: null, generated_at: GENERATED,
   }),
+  get_reading_content: Object.freeze({
+    schema_version: "aa.reading_content.1.0.0",
+    work: Object.freeze({ title: "Fixture work", author: "Fixture author", era: "REVIVAL", license: "public-domain" }),
+    anchor: Object.freeze({ work_id: "42", text_key: "a1b2c3d4e5f60718", start_order_index: 0, row_count: 1 }),
+    rows: Object.freeze([Object.freeze({ order_index: 0, he: "בְּרֵאשִׁית", ru: "В начале" })]),
+    available_text_keys: Object.freeze(["a1b2c3d4e5f60718"]), generated_at: GENERATED,
+  }),
+  create_reading_handoff: Object.freeze({
+    schema_version: "aa.reading_handoff.1.0.0", handoff_url: "https://linguistpro.kolosei.com/library.html?handoff=abcdefABCDEF0123456789_-xy",
+    expires_in_ms: 300000, work_id: "42", text_key: "a1b2c3d4e5f60718", action: "open_corpus", generated_at: GENERATED,
+  }),
 });
 
 const validArgs = Object.freeze({
@@ -76,6 +87,8 @@ const validArgs = Object.freeze({
   get_due_review_items: Object.freeze({ limit: 10 }),
   get_learner_profile: Object.freeze({}),
   get_explanation_body: Object.freeze({ explanation_id: "explanation-1" }),
+  get_reading_content: Object.freeze({ work_id: "42" }),
+  create_reading_handoff: Object.freeze({ work_id: "42" }),
 });
 
 function handlers(overrides = {}) {

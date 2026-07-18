@@ -22,6 +22,10 @@ const SCOPE_PRESENTATION = Object.freeze({
   "review.items.read": Object.freeze({ capability: "get_due_review_items", purpose: "DUE_STUDY_WORDS_FOR_DISCUSSION", data_class: "LEARNING_CONTENT_STUDY_WORDS", retention_tier: "CONTENT", excludes: "NO_ACCEPTANCE_SET_EXPECTED_ANSWER_OR_RAW_MEMORY_MODEL", first_party_action: "/index.html" }),
   "profile.read": Object.freeze({ capability: "get_learner_profile", purpose: "LEARNING_PROFILE_CONTEXT", data_class: "COARSE_PROFILE_MODE_LANGUAGE_DEPTH", retention_tier: "CONTENT", excludes: "NO_FREE_TEXT_GOALS_OR_IDENTIFIERS", first_party_action: "/agent-access.html" }),
   "explanations.body.read": Object.freeze({ capability: "get_explanation_body", purpose: "EXPLANATION_BODY_REVISIT", data_class: "MENTOR_EXPLANATION_TEXT", retention_tier: "CONTENT", excludes: "NO_QUOTED_SOURCE_SENTENCE_OR_PURGED_BODY", first_party_action: "/index.html" }),
+  "reading.corpus.read": Object.freeze({ capability: "get_reading_content", purpose: "PUBLIC_CORPUS_READING", data_class: "PUBLIC_DOMAIN_CORPUS_TEXT", retention_tier: "AGGREGATE", excludes: "NO_PRIVATE_TEXTS_ONLY_PUBLIC_CORPUS", first_party_action: "/library.html" }),
+  // reading.handoff.create presentation is held until create_reading_handoff ships
+  // (needs work_id in handoff_tokens + library-ui open_corpus); consent fails
+  // closed for it until then.
 });
 
 function error(code) { const e = new Error(code); e.code = code; throw e; }

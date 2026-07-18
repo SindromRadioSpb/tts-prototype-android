@@ -165,4 +165,29 @@ async function getCorpusLessonWindow({ corpus, work_id, text_key, start_order_in
       era: cmeta.era || null, license: cmeta.license || "public-domain" } };
 }
 
-module.exports = { getCorpusSentenceContext, getCorpusWindow, getCorpusLessonWindow, LESSON_SCOPE_ROWS_MAX };
+// Metadata-only lister for a work's texts (NO bodies) — resolves work_id -> its
+// text_key(s) + valid order-index bounds so a caller that only knows work_id
+// (e.g. the public catalog) can pick a text_key + anchor before reading a window.
+function listWorkTexts(work_id) {
+  const workId = String(work_id || "").trim();
+  if (!WORK_ID_RE.test(workId)) return { ok: false, error: "BAD_WORK_ID" };
+  const loaded = _loadTexts(workId);
+  if (!loaded.ok) return loaded;
+  const texts = loaded.texts.map((t) => {
+    const rows = Array.isArray(t.rows) ? t.rows : [];
+    const orders = rows.map((r) => Number(r.order_index)).filter((n) => Number.isFinite(n));
+    const cmeta = (t.source_meta && t.source_meta.corpus) || t.corpus || {};
+    return {
+      text_key: String(t.text_key || "").toLowerCase(),
+      title: String(t.title || "").slice(0, 200) || null,
+      rows_total: rows.length,
+      first_order_index: orders.length ? Math.min(...orders) : null,
+      last_order_index: orders.length ? Math.max(...orders) : null,
+      author: cmeta.author || null, era: cmeta.era || null, license: cmeta.license || "public-domain",
+    };
+  }).filter((t) => TEXT_KEY_RE.test(t.text_key) && Number.isInteger(t.first_order_index));
+  if (!texts.length) return { ok: false, error: "CORPUS_WORK_UNREADABLE" };
+  return { ok: true, work_id: workId, texts };
+}
+
+module.exports = { getCorpusSentenceContext, getCorpusWindow, getCorpusLessonWindow, listWorkTexts, LESSON_SCOPE_ROWS_MAX };

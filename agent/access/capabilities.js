@@ -14,6 +14,9 @@ const CAPABILITIES = Object.freeze({
   get_learner_profile: Object.freeze({ scope: "profile.read", purpose: "EXPLICIT_LEARNER_PROFILE", scenario_id: "agent_access.learner_profile", max_output_bytes: 512 }),
   // AA3 commit 3: read a single explanation's body (purge-aware).
   get_explanation_body: Object.freeze({ scope: "explanations.body.read", purpose: "EXPLICIT_EXPLANATION_BODY", scenario_id: "agent_access.explanation_body", max_output_bytes: 8192 }),
+  // AA3 commit 3b: read public-domain corpus text. (create_reading_handoff held
+  // until handoff_tokens carries work_id + library-ui handles open_corpus.)
+  get_reading_content: Object.freeze({ scope: "reading.corpus.read", purpose: "EXPLICIT_CORPUS_READING", scenario_id: "agent_access.reading_content", max_output_bytes: 16384 }),
 });
 
 function getCapability(name) { return CAPABILITIES[String(name)] || null; }

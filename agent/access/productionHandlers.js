@@ -49,19 +49,11 @@ function byteSlice(value, maxBytes) {
   while (Buffer.byteLength(s, "utf8") > maxBytes) s = s.slice(0, -1);
   return s;
 }
-// Opaque offset cursor for due-item pagination. No item_key leaks into it.
+// Opaque offset cursor for due-item pagination. The cursor is DECODED and
+// validated in the input validator (contracts.validateDueItemsInput), so the
+// handler only encodes the next page and reads the pre-validated offset.
 const DUE_SCAN_MAX = 500;
 function encodeDueCursor(offset) { return Buffer.from(`o${offset}`, "utf8").toString("base64url"); }
-function decodeDueCursor(cursor) {
-  if (cursor == null) return 0;
-  let decoded = "";
-  try { decoded = Buffer.from(String(cursor), "base64url").toString("utf8"); } catch (_) { fail("AA_DUE_CURSOR_INVALID"); }
-  const m = /^o(\d{1,6})$/.exec(decoded);
-  if (!m) fail("AA_DUE_CURSOR_INVALID");
-  const offset = Number(m[1]);
-  if (!Number.isInteger(offset) || offset < 0 || offset > DUE_SCAN_MAX) fail("AA_DUE_CURSOR_INVALID");
-  return offset;
-}
 
 function createProductionHandlers(options = {}) {
   const learnerRepo = options.learnerGraphRepo;
@@ -70,6 +62,8 @@ function createProductionHandlers(options = {}) {
   const publicCatalog = options.publicCatalog;
   const keyingService = options.keyingService; // AA3: derives content from the shared public lexicon
   const connectionPersistence = options.connectionPersistence; // AA3: control-plane window state
+  const corpusRepo = options.corpusSentenceRepo; // AA3 commit 3b: public-domain corpus reads
+  const handoffRepo = options.handoffRepo; // AA3 commit 3b: first-party reading handoff mint
   const now = options.now || Date.now;
   const principalAccessExpiresAt = options.principalAccessExpiresAt;
   if (!learnerRepo || typeof learnerRepo.getAgentAccessReviewAggregates !== "function" || typeof learnerRepo.getDue !== "function"
@@ -77,6 +71,8 @@ function createProductionHandlers(options = {}) {
     || !oauthRepo || typeof oauthRepo.loadConnection !== "function" || typeof oauthRepo.listConnectionsForUser !== "function"
     || !publicCatalog || typeof publicCatalog.isReadable !== "function" || typeof publicCatalog.search !== "function"
     || !keyingService || typeof keyingService.displayForItemKey !== "function" || typeof keyingService.glossForItemKey !== "function"
+    || !corpusRepo || typeof corpusRepo.listWorkTexts !== "function" || typeof corpusRepo.getCorpusLessonWindow !== "function"
+    || !handoffRepo || typeof handoffRepo.mint !== "function"
     || typeof connectionPersistence !== "function"
     || typeof now !== "function" || typeof principalAccessExpiresAt !== "function") fail("AA_PRODUCTION_HANDLER_DEPENDENCY_INVALID");
 
@@ -146,7 +142,7 @@ function createProductionHandlers(options = {}) {
   async function get_due_review_items(context, args) {
     const clock = fixedNow(now);
     const limit = Math.max(1, Math.min(100, Number(args && args.limit) || 100));
-    const offset = decodeDueCursor(args && args.cursor);
+    const offset = Number(args && args.cursor_offset) || 0;
     const [aggregate, due] = await Promise.all([
       learnerRepo.getAgentAccessReviewAggregates(context.user_id, { nowMs: clock.ms }).then(validateAggregate),
       learnerRepo.getDue(context.user_id, { nowMs: clock.ms, limit: DUE_SCAN_MAX }),
@@ -202,6 +198,59 @@ function createProductionHandlers(options = {}) {
       text = typeof body.text === "string" ? byteSlice(body.text, 6000) : null;
     }
     return Object.freeze({ ...base, kind, purge_state: "AVAILABLE", language, text, lines: lines === null ? null : Object.freeze(lines.map((l) => Object.freeze(l))) });
+  }
+
+  // AA3 commit 3b: bounded public-domain corpus reading. Corpus-only by
+  // construction (listWorkTexts validates the work_id against the works volume).
+  async function get_reading_content(context, args) {
+    const clock = fixedNow(now);
+    const listed = corpusRepo.listWorkTexts(args.work_id);
+    if (!listed || !listed.ok) fail("AA_CORPUS_WORK_NOT_FOUND");
+    const availableTextKeys = listed.texts.map((t) => t.text_key).filter(Boolean).slice(0, 20);
+    const text = args.text_key ? listed.texts.find((t) => t.text_key === args.text_key) : listed.texts[0];
+    if (!text) fail("AA_CORPUS_TEXT_NOT_FOUND");
+    const start = args.start != null ? args.start : Number(text.first_order_index) || 0;
+    const rows = Math.max(1, Math.min(20, Number(args.rows) || 5));
+    const win = await corpusRepo.getCorpusLessonWindow({ corpus: "benyehuda", work_id: args.work_id, text_key: text.text_key, start_order_index: start, row_count: rows });
+    if (!win || !win.ok) fail("AA_CORPUS_WINDOW_UNAVAILABLE");
+    const outRows = (Array.isArray(win.rows) ? win.rows : []).slice(0, 20)
+      .map((r) => ({ order_index: Number(r.order_index), he: byteSlice(r.he, 400), ru: r.ru != null && r.ru !== "" ? byteSlice(r.ru, 400) : null }))
+      .filter((r) => r.he && Number.isInteger(r.order_index));
+    const eraRaw = String((win.work && win.work.era) || text.era || "").toUpperCase();
+    const ERA_OK = new Set(["BIBLICAL", "RABBINIC", "MEDIEVAL", "REVIVAL", "MODERN", "CONTEMPORARY", "UNKNOWN"]);
+    return Object.freeze({
+      schema_version: "aa.reading_content.1.0.0",
+      work: Object.freeze({
+        title: ((win.work && win.work.title) || text.title) ? byteSlice((win.work && win.work.title) || text.title, 200) : null,
+        author: ((win.work && win.work.author) || text.author) ? byteSlice((win.work && win.work.author) || text.author, 200) : null,
+        era: ERA_OK.has(eraRaw) ? eraRaw : null,
+        license: "public-domain",
+      }),
+      anchor: Object.freeze({ work_id: String(args.work_id), text_key: text.text_key, start_order_index: outRows.length ? outRows[0].order_index : start, row_count: outRows.length }),
+      rows: Object.freeze(outRows.map((r) => Object.freeze(r))),
+      available_text_keys: Object.freeze(availableTextKeys),
+      generated_at: clock.iso,
+    });
+  }
+
+  // AA3 commit 3b: mint a first-party handoff link to open a CORPUS work in the
+  // Reading Room. The agent proposes the link; the OWNER clicks it — the agent
+  // never opens content. Corpus-only enforced via listWorkTexts.
+  async function create_reading_handoff(context, args) {
+    const clock = fixedNow(now);
+    const listed = corpusRepo.listWorkTexts(args.work_id);
+    if (!listed || !listed.ok) fail("AA_CORPUS_WORK_NOT_FOUND");
+    const text = args.text_key ? listed.texts.find((t) => t.text_key === args.text_key) : listed.texts[0];
+    if (!text) fail("AA_CORPUS_TEXT_NOT_FOUND");
+    const orderIndex = args.order_index != null ? args.order_index : Number(text.first_order_index) || 0;
+    const minted = await handoffRepo.mint(context.user_id, { textKey: text.text_key, orderIndex, action: "open_corpus" });
+    if (!minted || typeof minted.raw !== "string" || !/^[A-Za-z0-9_-]{16,256}$/.test(minted.raw)) fail("AA_HANDOFF_MINT_FAILED");
+    return Object.freeze({
+      schema_version: "aa.reading_handoff.1.0.0",
+      handoff_url: `https://linguistpro.kolosei.com/library.html?handoff=${minted.raw}`,
+      expires_in_ms: Math.max(1, Math.min(3600000, Number(minted.expiresInMs) || 300000)),
+      work_id: String(args.work_id), text_key: text.text_key, action: "open_corpus", generated_at: clock.iso,
+    });
   }
 
   async function get_learner_profile(context) {
@@ -285,6 +334,8 @@ function createProductionHandlers(options = {}) {
     get_due_review_items,
     get_learner_profile,
     get_explanation_body,
+    get_reading_content,
+    create_reading_handoff,
   });
 }
 

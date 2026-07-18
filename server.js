@@ -1691,6 +1691,8 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
       const learnerGraphRepoForAgentAccess = require("./db/learnerGraphRepo");
       const agentRepoForAgentAccess = require("./db/agentRepo");
       const keyingServiceForAgentAccess = require("./db/keyingService");
+      const corpusSentenceRepoForAgentAccess = require("./db/corpusSentenceRepo");
+      const handoffRepoForAgentAccess = require("./db/handoffRepo");
       const nextTextForAgentAccess = require("./agent/nextText");
       const principalContext = new AsyncLocalStorage();
       const handlers = createProductionHandlers({
@@ -1699,6 +1701,8 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
         oauthRepo: agentAccessOAuthRepo,
         publicCatalog: createPublicReadingCatalog({ catalogVersion: nextTextForAgentAccess.catalogVersion }),
         keyingService: keyingServiceForAgentAccess,
+        corpusSentenceRepo: corpusSentenceRepoForAgentAccess,
+        handoffRepo: handoffRepoForAgentAccess,
         // AA3: report the real access window (control-plane) rather than the token TTL.
         connectionPersistence: async () => {
           try {
