@@ -56,6 +56,7 @@ const SCENARIOS = Object.freeze({
   "agent_access.reading_handoff": { role: "agent_access.proposer", surfaces: ["external_agent"], capabilities: ["repo:reading_handoff_mint"] },
   "agent_access.propose_action": { role: "agent_access.proposer", surfaces: ["external_agent"], capabilities: ["repo:proposal_create"] },
   "agent_access.progress_delta": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:learner_activity_read"] },
+  "agent_access.review_handoff": { role: "agent_access.proposer", surfaces: ["external_agent"], capabilities: ["repo:reading_handoff_mint"] },
 });
 
 function get(id) { return SCENARIOS[String(id)] || null; }

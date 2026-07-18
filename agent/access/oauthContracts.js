@@ -17,6 +17,8 @@ const SCOPES = Object.freeze([
   "intent.propose",
   // AA4 slice 4a: pure-activity delta (kept in lockstep with contracts.SCOPES + migration 046 CHECK).
   "review.activity.read",
+  // AA4 slice 4b-final: anchor-less review handoff (migration 047 CHECK).
+  "review.handoff.create",
 ]);
 const SCOPE_SET = new Set(SCOPES);
 const SAFE = /^[A-Za-z0-9_.:@/-]+$/;

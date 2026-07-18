@@ -42,6 +42,10 @@ const SCOPE_PRESENTATION = Object.freeze({
   // AA4 slice 4a: PURE activity delta — the excludes claim is enforced by the
   // output validator (no struggle/grades fields exist in the schema).
   "review.activity.read": Object.freeze({ capability: "get_progress_delta", purpose: "STUDY_ACTIVITY_DELTA_FOR_DISCUSSION", data_class: "LEARNING_CONTENT_STUDY_WORDS_ACTIVITY", retention_tier: "CONTENT", excludes: "NO_GRADES_NO_ACCURACY_NO_STRUGGLE_NO_ACCEPTANCE_SET_OR_RAW_MEMORY_MODEL", first_party_action: "/index.html" }),
+  // AA4 slice 4b-final: anchor-less «открой повторение» link. The excludes string
+  // honestly ADMITS the one bit this scope can disclose (empty-or-not schedule,
+  // via the typed refusal) — presentation claims stay true by construction.
+  "review.handoff.create": Object.freeze({ capability: "create_review_handoff", purpose: "MINT_FIRST_PARTY_REVIEW_SESSION_LINK", data_class: "SINGLE_USE_LINK_NO_LEARNER_CONTENT", retention_tier: "AGGREGATE", excludes: "NO_DUE_WORDS_NO_ANSWERS_NO_GRADES_ONLY_EMPTY_OR_NOT_OWNER_CLICKS", first_party_action: "/library.html" }),
 });
 
 function error(code) { const e = new Error(code); e.code = code; throw e; }

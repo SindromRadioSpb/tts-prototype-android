@@ -23,6 +23,8 @@ const CAPABILITIES = Object.freeze({
   propose_action: Object.freeze({ scope: "intent.propose", purpose: "EXPLICIT_ACTION_PROPOSAL", scenario_id: "agent_access.propose_action", max_output_bytes: 1024 }),
   // AA4 slice 4a: pure-activity delta («что изменилось») — no grades/accuracy/struggle.
   get_progress_delta: Object.freeze({ scope: "review.activity.read", purpose: "EXPLICIT_PROGRESS_DELTA", scenario_id: "agent_access.progress_delta", max_output_bytes: 8192 }),
+  // AA4 slice 4b-final: «открой мне повторение» — anchor-less open_review handoff.
+  create_review_handoff: Object.freeze({ scope: "review.handoff.create", purpose: "EXPLICIT_REVIEW_HANDOFF_MINT", scenario_id: "agent_access.review_handoff", max_output_bytes: 512 }),
 });
 
 function getCapability(name) { return CAPABILITIES[String(name)] || null; }

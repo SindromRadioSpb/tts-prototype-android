@@ -19,6 +19,8 @@ const TOOL_LIMITS = Object.freeze({
   propose_action: Object.freeze({ minute: 6, day: 120 }),
   // Delta walks the user's review_log window + keyingService enrichment (lazy heavy).
   get_progress_delta: Object.freeze({ minute: 6, day: 120 }),
+  // Review handoff mints a DB token — same tight budget as the corpus handoff.
+  create_review_handoff: Object.freeze({ minute: 6, day: 60 }),
 });
 const MINUTE = 60_000;
 const DAY = 86_400_000;

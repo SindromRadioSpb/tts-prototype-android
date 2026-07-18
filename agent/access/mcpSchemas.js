@@ -58,6 +58,7 @@ const INPUT_SCHEMAS = Object.freeze({
     since: string({ maxLength: 40, pattern: TIME }),
     top_limit: integer(1, 20),
   }, ["since"]),
+  create_review_handoff: closedObject({}, []),
 });
 
 const timestamp = string({ maxLength: 40, pattern: TIME });
@@ -176,6 +177,11 @@ const OUTPUT_SCHEMAS = Object.freeze({
     }) }),
     generated_at: timestamp,
   }),
+  create_review_handoff: closedObject({
+    schema_version: string({ const: "aa.review_handoff.1.0.0" }),
+    handoff_url: string({ maxLength: 256 }), expires_in_ms: integer(1, 3600000),
+    action: string({ const: "open_review" }), generated_at: timestamp,
+  }),
 });
 
 const DESCRIPTIONS = Object.freeze({
@@ -192,17 +198,21 @@ const DESCRIPTIONS = Object.freeze({
   create_reading_handoff: "Mint a single-use first-party link that opens a public-domain corpus work in the LinguistPro Reading Room. Input is a catalog work_id (optional text_key/order_index); the work must be READY (search with ready:\"READY\") — a METADATA_ONLY work returns AA_CORPUS_WORK_NOT_FOUND (not an outage; do not retry). Returns handoff_url on the canonical origin only. The owner clicks it — the agent never opens content itself.",
   propose_action: "Create a PENDING action proposal the owner reviews and confirms or denies inside LinguistPro; the agent never executes. kind=open_reading proposes opening a corpus work (payload: work_id required — must be a READY work from search_public_reading_catalog, else AA_PROPOSAL_WORK_NOT_FOUND; optional text_key/order_index/reason); kind=note stores an agent-authored note draft (payload: body required, optional title); kind=suggestion stores a free-form suggestion (payload: body). Identical re-proposals return the same proposal_id; a recently denied identical proposal returns status DENIED. Confirmation state is never returned through this tool.",
   get_progress_delta: "Return the owner's study-ACTIVITY delta since a timestamp (must be within the last 90 days, else AA_ACTIVITY_SINCE_OUT_OF_RANGE — do not retry): review/skip totals, distinct items reviewed, newly scheduled items, active days (owner-local calendar), practice-channel mix, and the most-reviewed words with meanings (top_limit 1-20, default 10). Pure activity — never grades, accuracy, struggle bands, or the raw memory model; days are folded in the owner's timezone (one truth with the in-app heatmap).",
+  create_review_handoff: "Mint a single-use first-party link that opens the owner's due-review session in the Reading Room («открой мне повторение»). No input. Refuses with AA_REVIEW_NOTHING_SCHEDULED (do not retry) only when the owner has no scheduled words at all; with zero due-now but scheduled words the link still works — the Room honestly offers ahead-of-schedule training. The owner clicks the link; answers are recorded first-party by LinguistPro and the agent never sees them.",
 });
 
-const WRITE_TOOLS = Object.freeze(new Set(["create_reading_handoff", "propose_action"]));
+const WRITE_TOOLS = Object.freeze(new Set(["create_reading_handoff", "create_review_handoff", "propose_action"]));
+// Mint tools are NOT idempotent: an auto-retrying client would mint live tokens
+// against the cap + rate limit (adversarial critique). propose_action stays
+// idempotent by server-side dedupe.
+const MINT_TOOLS = Object.freeze(new Set(["create_reading_handoff", "create_review_handoff"]));
 function toolDefinitions() {
   return Object.freeze(Object.keys(CAPABILITIES).map((name) => Object.freeze({
     name,
     description: DESCRIPTIONS[name],
     inputSchema: INPUT_SCHEMAS[name],
     outputSchema: OUTPUT_SCHEMAS[name],
-    // propose_action is idempotent by server-side dedupe; a handoff mint is not.
-    annotations: Object.freeze({ readOnlyHint: !WRITE_TOOLS.has(name), destructiveHint: false, idempotentHint: name !== "create_reading_handoff", openWorldHint: name === "search_public_reading_catalog" }),
+    annotations: Object.freeze({ readOnlyHint: !WRITE_TOOLS.has(name), destructiveHint: false, idempotentHint: !MINT_TOOLS.has(name), openWorldHint: name === "search_public_reading_catalog" }),
   })));
 }
 

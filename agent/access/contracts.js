@@ -31,6 +31,7 @@ const SCOPES = new Set([
   "reading.handoff.create",
   "intent.propose",
   "review.activity.read",
+  "review.handoff.create",
 ]);
 const STRUGGLE = new Set(["none", "some", "high"]);
 const PROFILE_MODE = new Set(["silent", "coach", "intensive"]);
@@ -338,6 +339,20 @@ function progressDelta(value) {
   return Object.freeze({ ...x, by_channel: Object.freeze(channels), top_items: Object.freeze(items) });
 }
 
+// AA4 slice 4b-final — anchor-less review handoff (same canonical-origin URL
+// shape; action pinned to open_review; deliberately NO due count in the output
+// so summary data cannot launder through the mint scope).
+function reviewHandoff(value) {
+  const keys = ["schema_version", "handoff_url", "expires_in_ms", "action", "generated_at"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 512, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.review_handoff.1.0.0") fail("OUTPUT_SCHEMA_INVALID");
+  if (typeof x.handoff_url !== "string" || !HANDOFF_URL_RE.test(x.handoff_url)) fail("OUTPUT_SCHEMA_INVALID");
+  integer(x.expires_in_ms, 1, 3600000);
+  if (x.action !== "open_review") fail("OUTPUT_SCHEMA_INVALID");
+  timestamp(x.generated_at);
+  return Object.freeze({ ...x });
+}
+
 function learnerProfile(value) {
   const keys = ["schema_version", "mode", "language", "depth", "generated_at"];
   const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 512, "OUTPUT_TOO_LARGE");
@@ -431,6 +446,7 @@ const INPUT_VALIDATORS = Object.freeze({
   create_reading_handoff: validateHandoffInput,
   propose_action: validateProposeInput,
   get_progress_delta: validateProgressDeltaInput,
+  create_review_handoff: emptyInput,
 });
 const OUTPUT_VALIDATORS = Object.freeze({
   get_learning_brief: learningBrief,
@@ -446,6 +462,7 @@ const OUTPUT_VALIDATORS = Object.freeze({
   create_reading_handoff: readingHandoff,
   propose_action: proposal,
   get_progress_delta: progressDelta,
+  create_review_handoff: reviewHandoff,
 });
 
 function validateInput(tool, value) { const fn = INPUT_VALIDATORS[tool]; if (!fn) fail("UNKNOWN_TOOL"); return fn(value); }

@@ -88,6 +88,10 @@ const fixtures = Object.freeze({
     top_items: Object.freeze([Object.freeze({ display: "כָּתַב", gloss: "написал", times: 3 })]),
     generated_at: GENERATED,
   }),
+  create_review_handoff: Object.freeze({
+    schema_version: "aa.review_handoff.1.0.0", handoff_url: "https://linguistpro.kolosei.com/library.html?handoff=abcdefABCDEF0123456789_-xy",
+    expires_in_ms: 300000, action: "open_review", generated_at: GENERATED,
+  }),
 });
 
 const validArgs = Object.freeze({
@@ -104,6 +108,7 @@ const validArgs = Object.freeze({
   create_reading_handoff: Object.freeze({ work_id: "42" }),
   propose_action: Object.freeze({ kind: "note", payload: Object.freeze({ body: "fixture note body" }) }),
   get_progress_delta: Object.freeze({ since: "2026-07-10T00:00:00.000Z", top_limit: 10 }),
+  create_review_handoff: Object.freeze({}),
 });
 
 function handlers(overrides = {}) {
@@ -177,7 +182,14 @@ async function expectCode(promise, code) {
     // any future scenario pick either role freely. Reader scenarios may only
     // hold *_read capabilities; proposer scenarios only the known write repos.
     const WRITE_TOOLS = mcpSchemas.WRITE_TOOLS;
-    assert.deepStrictEqual([...WRITE_TOOLS].sort(), ["create_reading_handoff", "propose_action"]);
+    assert.deepStrictEqual([...WRITE_TOOLS].sort(), ["create_reading_handoff", "create_review_handoff", "propose_action"]);
+    // Mint tools must NOT advertise idempotency — a retrying client would mint
+    // live tokens against the cap + rate limit (adversarial critique 4b-final).
+    for (const def of mcpSchemas.toolDefinitions()) {
+      const expectIdem = !["create_reading_handoff", "create_review_handoff"].includes(def.name);
+      assert.strictEqual(def.annotations.idempotentHint, expectIdem, `${def.name} idempotentHint`);
+      assert.strictEqual(def.annotations.readOnlyHint, !WRITE_TOOLS.has(def.name), `${def.name} readOnlyHint`);
+    }
     const PROPOSER_CAPS = new Set(["repo:reading_handoff_mint", "repo:proposal_create"]);
     const capScenarioIds = Object.values(capabilities.CAPABILITIES).map((x) => x.scenario_id).sort();
     assert.strictEqual(new Set(capScenarioIds).size, capabilities.capabilityNames().length);

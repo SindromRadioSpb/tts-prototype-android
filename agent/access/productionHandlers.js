@@ -327,6 +327,27 @@ function createProductionHandlers(options = {}) {
     });
   }
 
+  // AA4 slice 4b-final: anchor-less «открой мне повторение». Refuses only a
+  // truly EMPTY schedule (scheduled==0 && due==0 → typed client fault): with
+  // due==0 but scheduled>0 the Room honestly offers ahead-of-schedule training
+  // (owner directive 2026-07-11), so the link still helps. Same aggregates fn
+  // as get_review_summary — no second truth on the agent surface.
+  async function create_review_handoff(context) {
+    const clock = fixedNow(now);
+    const aggregate = validateAggregate(await learnerRepo.getAgentAccessReviewAggregates(context.user_id, { nowMs: clock.ms }));
+    if (aggregate.scheduled_total === 0 && aggregate.due_total === 0) fail("AA_REVIEW_NOTHING_SCHEDULED");
+    if ((await handoffRepo.countActive(context.user_id)) >= 20) fail("AA_HANDOFF_ACTIVE_LIMIT");
+    const minted = await handoffRepo.mint(context.user_id, { action: "open_review" });
+    if (!minted || typeof minted.raw !== "string" || !/^[A-Za-z0-9_-]{16,256}$/.test(minted.raw)) fail("AA_HANDOFF_MINT_FAILED");
+    return Object.freeze({
+      schema_version: "aa.review_handoff.1.0.0",
+      handoff_url: `https://linguistpro.kolosei.com/library.html?handoff=${minted.raw}`,
+      expires_in_ms: Math.max(1, Math.min(3600000, Number(minted.expiresInMs) || 300000)),
+      action: "open_review",
+      generated_at: clock.iso,
+    });
+  }
+
   async function get_learner_profile(context) {
     const clock = fixedNow(now);
     const profile = (await agentRepo.getProfile(context.user_id)) || {};
@@ -412,6 +433,7 @@ function createProductionHandlers(options = {}) {
     create_reading_handoff,
     propose_action,
     get_progress_delta,
+    create_review_handoff,
   });
 }
 

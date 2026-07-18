@@ -25,7 +25,7 @@ const OTHER = "synthetic-other";
 const CLIENT = "synthetic-client";
 const CONNECTION = "synthetic-connection";
 const OTHER_CONNECTION = "synthetic-other";
-const SCOPES = ["learning.brief.read", "review.summary.read", "reading.public.search", "explanations.metadata.read", "agent.connection.read", "review.items.read", "profile.read", "explanations.body.read", "reading.corpus.read", "reading.handoff.create", "intent.propose", "review.activity.read"];
+const SCOPES = ["learning.brief.read", "review.summary.read", "reading.public.search", "explanations.metadata.read", "agent.connection.read", "review.items.read", "profile.read", "explanations.body.read", "reading.corpus.read", "reading.handoff.create", "intent.propose", "review.activity.read", "review.handoff.create"];
 const KNOWN_CONSTRUCT = "construct:hebrew.channel_gap.reading_to_dictation";
 
 function expectCode(promise, code) {
@@ -328,6 +328,35 @@ function exactOwnerParser() {
     }
     assert.strictEqual((await service.execute(principal({ request_id: "delta-narrow", scopes: ["agent.connection.read"] }), "get_progress_delta", { since: "2026-07-10T00:00:00.000Z" })).error.code, "INSUFFICIENT_SCOPE"); checks++;
 
+    // AA4 4b-final — create_review_handoff: anchor-less mint (capture args),
+    // active-cap, scope gating; empty-schedule refusal is typed; due==0 with
+    // scheduled>0 still mints (Room offers ahead-training honestly).
+    const mintsBefore = mintCount;
+    const reviewHandoff = await service.execute(principal({ request_id: "review-handoff" }), "create_review_handoff", {});
+    assert.ok(reviewHandoff.ok, JSON.stringify(reviewHandoff));
+    assert.strictEqual(reviewHandoff.result.action, "open_review");
+    assert.strictEqual(reviewHandoff.result.handoff_url, "https://linguistpro.kolosei.com/library.html?handoff=abcdefABCDEF0123456789_-xy");
+    assert.strictEqual(mintCount, mintsBefore + 1);
+    assert.deepStrictEqual(lastMintArgs, { userId: OWNER, action: "open_review" }, JSON.stringify(lastMintArgs)); checks++;
+    activeCount = 20;
+    assert.strictEqual((await service.execute(principal({ request_id: "review-cap" }), "create_review_handoff", {})).error.code, "AA_HANDOFF_ACTIVE_LIMIT");
+    activeCount = 0;
+    assert.strictEqual((await service.execute(principal({ request_id: "review-narrow", scopes: ["agent.connection.read"] }), "create_review_handoff", {})).error.code, "INSUFFICIENT_SCOPE");
+    assert.strictEqual((await service.execute(principal({ request_id: "review-args" }), "create_review_handoff", { extra: 1 })).error.code, "UNKNOWN_FIELD"); checks++;
+    const emptySchedule = createProductionHandlers({
+      learnerGraphRepo: { getAgentAccessReviewAggregates: async () => ({ scheduled_total: 0, due_total: 0, urgent_total: 0 }), getDue: async () => [], getActivityDelta: async () => ({ reviews_total: 0, skips_total: 0, distinct_items: 0, new_items_scheduled: 0, active_days: 0, by_channel: [], top: [] }) },
+      agentRepo, oauthRepo, publicCatalog: catalog, ...aa3Deps, now: () => NOW, principalAccessExpiresAt: () => EXPIRY,
+    });
+    const emptyService = createAgentAccessService({ enabled: true, ownerIds: [OWNER], handlers: emptySchedule, now: () => NOW });
+    const nothing = await emptyService.execute(principal({ request_id: "review-empty" }), "create_review_handoff", {});
+    assert.ok(!nothing.ok && nothing.error.code === "AA_REVIEW_NOTHING_SCHEDULED" && nothing.error.retryable === false, JSON.stringify(nothing));
+    const aheadOnly = createProductionHandlers({
+      learnerGraphRepo: { getAgentAccessReviewAggregates: async () => ({ scheduled_total: 5, due_total: 0, urgent_total: 0 }), getDue: async () => [], getActivityDelta: async () => ({ reviews_total: 0, skips_total: 0, distinct_items: 0, new_items_scheduled: 0, active_days: 0, by_channel: [], top: [] }) },
+      agentRepo, oauthRepo, publicCatalog: catalog, ...aa3Deps, now: () => NOW, principalAccessExpiresAt: () => EXPIRY,
+    });
+    const aheadService = createAgentAccessService({ enabled: true, ownerIds: [OWNER], handlers: aheadOnly, now: () => NOW });
+    assert.ok((await aheadService.execute(principal({ request_id: "review-ahead" }), "create_review_handoff", {})).ok, "due==0 with scheduled>0 must still mint"); checks++;
+
     const searchArgs = { language: "he", audio: "ANY", ready: "ANY", sort: "RELEVANCE", limit: 3 };
     const search = await service.execute(principal({ request_id: "search-request" }), "search_public_reading_catalog", searchArgs);
     assert.ok(search.ok && search.result.results.length === 3 && search.result.catalog_version === "7" && search.result.next_cursor);
@@ -396,6 +425,16 @@ function exactOwnerParser() {
     const rawRow = await ctx.get("SELECT work_id, action FROM handoff_tokens WHERE work_id='42'");
     assert.ok(rawRow && rawRow.action === "open_corpus", "raw handoff row must persist work_id");
     await expectCode(realHandoff.mint(OWNER, { orderIndex: 0, action: "open_corpus", workId: "42" }), "HANDOFF_TEXT_KEY_REQUIRED"); checks++;
+    // AA4 4b-final — anchor-less open_review round trip on the migrated schema
+    // (independent oracle: redeem recomputes from the stored row), plus the
+    // two-way guard: a hybrid review row with an anchor must be rejected.
+    const mintedReview = await realHandoff.mint(OWNER, { action: "open_review" });
+    const redeemedReview = await realHandoff.redeem(mintedReview.raw);
+    assert.ok(redeemedReview, "review redeem failed");
+    assert.strictEqual(redeemedReview.action, "open_review");
+    assert.strictEqual(redeemedReview.text_key, null); assert.strictEqual(redeemedReview.order_index, null); assert.strictEqual(redeemedReview.work_id, null);
+    await expectCode(realHandoff.mint(OWNER, { action: "open_review", textKey: "a1b2c3d4e5f60718" }), "HANDOFF_REVIEW_UNEXPECTED_ANCHOR");
+    await expectCode(realHandoff.mint(OWNER, { action: "open_review", workId: "42" }), "HANDOFF_REVIEW_UNEXPECTED_ANCHOR"); checks++;
 
     // agentProposalsRepo lifecycle on the real migrated schema (migration 045).
     const realProposals = require("../../db/agentProposalsRepo");
@@ -553,7 +592,7 @@ function exactOwnerParser() {
     }
     checks++;
 
-    console.log(JSON.stringify({ ok: true, checks, tools: 13, owner_allowlist_count: 1, owner_match: true, zero_table_deltas: true, network_calls: 0, provider_calls: 0, llm_calls: 0, byok_calls: 0, sentinel_occurrences: 0 }));
+    console.log(JSON.stringify({ ok: true, checks, tools: 14, owner_allowlist_count: 1, owner_match: true, zero_table_deltas: true, network_calls: 0, provider_calls: 0, llm_calls: 0, byok_calls: 0, sentinel_occurrences: 0 }));
   } finally {
     global.fetch = originalFetch; http.request = originalHttpRequest; http.get = originalHttpGet; https.request = originalHttpsRequest; https.get = originalHttpsGet;
     await T.cleanup(ctx);
