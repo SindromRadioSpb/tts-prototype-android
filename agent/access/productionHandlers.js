@@ -67,7 +67,7 @@ function createProductionHandlers(options = {}) {
   const proposalsRepo = options.agentProposalsRepo; // AA3 commit 3c: PENDING proposals (owner confirms)
   const now = options.now || Date.now;
   const principalAccessExpiresAt = options.principalAccessExpiresAt;
-  if (!learnerRepo || typeof learnerRepo.getAgentAccessReviewAggregates !== "function" || typeof learnerRepo.getDue !== "function"
+  if (!learnerRepo || typeof learnerRepo.getAgentAccessReviewAggregates !== "function" || typeof learnerRepo.getDue !== "function" || typeof learnerRepo.getActivityDelta !== "function"
     || !agentRepo || typeof agentRepo.getLatestOpenPlanAction !== "function" || typeof agentRepo.listExplanationMetadata !== "function" || typeof agentRepo.getProfile !== "function" || typeof agentRepo.getExplanationById !== "function"
     || !oauthRepo || typeof oauthRepo.loadConnection !== "function" || typeof oauthRepo.listConnectionsForUser !== "function"
     || !publicCatalog || typeof publicCatalog.isReadable !== "function" || typeof publicCatalog.search !== "function"
@@ -292,6 +292,41 @@ function createProductionHandlers(options = {}) {
     });
   }
 
+  // AA4 slice 4a: pure-activity delta since a timestamp. The 90-day window check
+  // lives HERE (contracts are clock-free) and fails with a TYPED client code.
+  // Top items are enriched with display/gloss only — no struggle band, no
+  // grades, no item_key (the consent excludes claim must stay true).
+  const DELTA_WINDOW_MS = 90 * 86400000;
+  async function get_progress_delta(context, args) {
+    const clock = fixedNow(now);
+    const sinceMs = Date.parse(args.since);
+    if (!Number.isFinite(sinceMs) || sinceMs > clock.ms || sinceMs < clock.ms - DELTA_WINDOW_MS) fail("AA_ACTIVITY_SINCE_OUT_OF_RANGE");
+    const topLimit = Math.max(1, Math.min(20, Number(args.top_limit) || 10));
+    const sinceIso = new Date(sinceMs).toISOString();
+    const delta = await learnerRepo.getActivityDelta(context.user_id, { sinceIso, nowMs: clock.ms });
+    if (!delta || typeof delta !== "object" || !Array.isArray(delta.by_channel) || !Array.isArray(delta.top)) fail("AA_ACTIVITY_DELTA_INVALID");
+    const items = [];
+    for (const row of delta.top.slice(0, topLimit)) {
+      let display = byteSlice(row.item_key, 64);
+      let gloss = null;
+      try { const d = await keyingService.displayForItemKey(row.item_key); if (d) display = byteSlice(d, 64); } catch (_) {}
+      try { const g = await keyingService.glossForItemKey(row.item_key); gloss = g && g.gloss ? byteSlice(g.gloss, 120) : null; } catch (_) { gloss = null; }
+      items.push(Object.freeze({ display: display || "?", gloss, times: Math.max(1, Number(row.times) || 1) }));
+    }
+    return Object.freeze({
+      schema_version: "aa.progress_delta.1.0.0",
+      since: sinceIso,
+      reviews_total: Number(delta.reviews_total) || 0,
+      skips_total: Number(delta.skips_total) || 0,
+      distinct_items: Number(delta.distinct_items) || 0,
+      new_items_scheduled: Number(delta.new_items_scheduled) || 0,
+      active_days: Math.min(100, Number(delta.active_days) || 0),
+      by_channel: Object.freeze(delta.by_channel.slice(0, 8).map((c) => Object.freeze({ channel: String(c.channel), count: Number(c.count) || 1 }))),
+      top_items: Object.freeze(items),
+      generated_at: clock.iso,
+    });
+  }
+
   async function get_learner_profile(context) {
     const clock = fixedNow(now);
     const profile = (await agentRepo.getProfile(context.user_id)) || {};
@@ -376,6 +411,7 @@ function createProductionHandlers(options = {}) {
     get_reading_content,
     create_reading_handoff,
     propose_action,
+    get_progress_delta,
   });
 }
 

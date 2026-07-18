@@ -1137,6 +1137,30 @@ function _paintDueCTA() {
   cta.hidden = !show;
   if (show) cta.textContent = '🔁 ' + tt('room.morph.study.due', 'К повторению') + ': ' + n + ' →';
 }
+// AA4-4b — pending agent-proposal chip (count ONLY — agent text never renders on
+// this surface; the enforced-CSP agent-access page is the sole text surface).
+// Quiet-fail: 401/403/404/network → stay hidden. Hidden-at-zero == hidden-on-error
+// is a considered decision (the chip may under-claim, never over-claim — the
+// panel remains reachable through its normal entry). Refetches when the tab
+// becomes visible again (long-lived PWA tabs; return from the panel).
+async function refreshAgentProposalsChip() {
+  const chip = document.getElementById('roomAgentProposals');
+  if (!chip) return;
+  let n = 0;
+  try {
+    const r = await fetch('/api/agent-access/proposals/summary', { credentials: 'same-origin' });
+    if (r.ok) { const j = await r.json(); n = (j && j.ok && Number(j.pending_total)) || 0; }
+  } catch (_) { n = 0; }
+  chip.hidden = !(n > 0);
+  if (n > 0) chip.textContent = '🤝 ' + tt('room.agent.proposalsChip', 'Предложения агента') + ': ' + n + ' →';
+}
+try {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') refreshAgentProposalsChip();
+  });
+  window.addEventListener('pageshow', () => refreshAgentProposalsChip());
+} catch (_) {}
+
 // Humanize a future due-instant → { n, unit:'d'|'h' } for the «next review in …» summary line.
 function _humanizeUntil(ms, nowMs) {
   const d = Math.max(0, (Number(ms) || 0) - (Number(nowMs) || 0));
@@ -8358,6 +8382,7 @@ async function boot() {
     }
     setActiveTrack(activeTrack);
     try { refreshDueBadge(); } catch (_) {}   // D2 — surface the «🔁 К повторению» home CTA on first load
+    refreshAgentProposalsChip();   // AA4-4b — pending agent proposals (quiet-fail without a session)
     backfillZombieMarkSeeds().then(() => r4HealDrain());   // R3.1 seeds → R4a heals (fire-and-forget chain)
     roomCloudAutoSync();   // CLG-P3.2 — fire-and-forget; no-op (single 401) without a live session
     maybeRunValidation();   // BRR-P1-007 §7: ?validate=1 runs on-device real-profile validation

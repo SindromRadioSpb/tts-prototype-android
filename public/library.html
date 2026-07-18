@@ -133,6 +133,8 @@
     }
     .room-due-cta[hidden] { display: none; }   /* author display:block beats UA [hidden] → explicit guard */
     .room-due-cta:hover { filter: brightness(1.06); }
+    /* AA4-4b — agent-proposals chip: outlined secondary (must not compete with the due CTA) */
+    .room-agent-cta { background: var(--bg-muted); color: var(--text-primary); border: 1px solid var(--border-soft); text-decoration: none; box-sizing: border-box; }
 
     /* ── shelves ─────────────────────────────────────────────────────────── */
     main { padding: 14px 0 32px; }
@@ -1902,6 +1904,9 @@
   <!-- D2 — cross-text «due today» CTA: the daily-review habit entry, launchable WITHOUT opening a text.
        Shown on the home (reader closed) only when scheduled words are due now. Count set by JS. -->
   <button class="room-due-cta" id="roomDueCta" type="button" hidden></button>
+  <!-- AA4-4b — pending agent-proposal chip (count only; agent TEXT renders solely on the
+       enforced-CSP agent-access page). Quiet-fail: hidden without a session or at zero. -->
+  <a class="room-due-cta room-agent-cta" id="roomAgentProposals" href="/agent-access.html" hidden></a>
 </header>
 
 <main id="roomContent">

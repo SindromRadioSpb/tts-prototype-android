@@ -276,6 +276,70 @@ async function getTodayActivity(userId, { sinceIso } = {}) {
   return { completed, by_type: byType, since };
 }
 
+// AA4 slice 4a — activity delta over review_log for get_progress_delta.
+// PURE ACTIVITY read (R17): no grades, no accuracy, no struggle bands, no raw
+// FSRS. Adversarial-review decisions baked in:
+// - ONE row fetch + JS fold AFTER the annulled-id filter (annul rows legally sit
+//   outside the window while gating targets inside it — the getTodayActivity /
+//   getRecentStruggles pattern; SQL aggregates cannot honor annul);
+// - top items count kind='review' ONLY (per-item skip counts would leak an
+//   MNAR avoidance signal; skips stay aggregate-only);
+// - new_items_scheduled = DISTINCT item_key among in-window seeds (seed ids are
+//   content-hashed and re-seeds are legal — a raw row count would over-claim);
+// - active_days folds USER-LOCAL days via db/localtime + the nudge timezone
+//   (one truth with the in-app heatmap/streak; a UTC slice would contradict it);
+// - deterministic order: top by (times DESC, item_key ASC), channels by
+//   (count DESC, name ASC); overflow guard mirrors the aggregates fail-closed.
+const CHANNEL_RE = /^[a-z0-9_-]{1,16}$/;
+async function getActivityDelta(userId, { sinceIso, nowMs } = {}) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const now = Number(nowMs) || Date.now();
+  const since = String(sinceIso);
+  const nowIso = new Date(now).toISOString();
+  let tz = null;
+  try { tz = (await require("./notificationPrefsRepo").getPrefs(userId)).timezone; } catch (_) { tz = null; }
+  const LT = require("./localtime");
+  const rows = await dbAll(db,
+    `SELECT id, item_key, kind, reviewed_at, channel FROM review_log
+      WHERE user_id = ? AND kind IN ('review','skip','seed') AND reviewed_at >= ? AND reviewed_at <= ?
+      ORDER BY reviewed_at ASC, id ASC`, [userId, since, nowIso]);
+  if ((rows || []).length > 100000) { const e = new Error("AA_ACTIVITY_LOG_OVERFLOW"); e.code = "AA_ACTIVITY_LOG_OVERFLOW"; throw e; }
+  const annulled = await annulledIdSet(db, userId);
+  let reviews = 0, skips = 0;
+  const items = new Set(), seeded = new Set(), days = new Set(), byChannel = new Map(), perItem = new Map();
+  for (const r of rows || []) {
+    if (annulled.has(String(r.id))) continue;
+    if (r.kind === "seed") { seeded.add(String(r.item_key)); continue; }
+    if (r.kind === "skip") { skips++; continue; }
+    reviews++;
+    items.add(String(r.item_key));
+    try { days.add(LT.localDay(tz, Date.parse(r.reviewed_at))); } catch (_) {}
+    const ch = String(r.channel || "");
+    const i = ch.indexOf(":");
+    let prefix = (i > 0 ? ch.slice(0, i) : ch) || "other";
+    if (!CHANNEL_RE.test(prefix)) prefix = "other";
+    byChannel.set(prefix, (byChannel.get(prefix) || 0) + 1);
+    perItem.set(String(r.item_key), (perItem.get(String(r.item_key)) || 0) + 1);
+  }
+  const channels = [...byChannel.entries()].sort((a, b) => (b[1] - a[1]) || (a[0] < b[0] ? -1 : 1));
+  const channelsOut = channels.slice(0, 7).map(([channel, count]) => ({ channel, count }));
+  const rest = channels.slice(7).reduce((n, [, c]) => n + c, 0);
+  if (rest > 0) {
+    // Lump the tail into 'other' WITHOUT duplicating an existing 'other' entry
+    // (the output schema requires unique channel names).
+    const existing = channelsOut.find((c) => c.channel === "other");
+    if (existing) existing.count += rest; else channelsOut.push({ channel: "other", count: rest });
+  }
+  const top = [...perItem.entries()]
+    .sort((a, b) => (b[1] - a[1]) || (a[0] < b[0] ? -1 : 1))
+    .map(([item_key, times]) => ({ item_key, times }));
+  return {
+    reviews_total: reviews, skips_total: skips,
+    distinct_items: items.size, new_items_scheduled: seeded.size,
+    active_days: days.size, by_channel: channelsOut, top,
+  };
+}
+
 // Compact agent-facing summary (the getAgentContext primitive; grows in CLG-P6).
 async function getAgentContext(userId, { nowMs } = {}) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
@@ -321,4 +385,4 @@ async function getAgentContext(userId, { nowMs } = {}) {
   };
 }
 
-module.exports = { manualStatusMap, getAgentAccessReviewAggregates, getDue, getUpcoming, getKnownWords, getWeakWords, getRecentStruggles, recentStruggleKeySet, getTodayActivity, getAgentContext };
+module.exports = { manualStatusMap, getAgentAccessReviewAggregates, getDue, getUpcoming, getKnownWords, getWeakWords, getRecentStruggles, recentStruggleKeySet, getTodayActivity, getActivityDelta, getAgentContext };

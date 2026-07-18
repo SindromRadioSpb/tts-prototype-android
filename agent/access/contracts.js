@@ -30,6 +30,7 @@ const SCOPES = new Set([
   "reading.corpus.read",
   "reading.handoff.create",
   "intent.propose",
+  "review.activity.read",
 ]);
 const STRUGGLE = new Set(["none", "some", "high"]);
 const PROFILE_MODE = new Set(["silent", "coach", "intensive"]);
@@ -297,6 +298,46 @@ function readingHandoff(value) {
   return Object.freeze({ ...x });
 }
 
+// AA4 slice 4a — progress delta. Input: strict ISO shape here (clock-free —
+// contracts have no clock); the [now-90d, now] window check lives in the
+// handler as typed AA_ACTIVITY_SINCE_OUT_OF_RANGE (retryable:false).
+function validateProgressDeltaInput(value) {
+  const x = closed(value, ["since", "top_limit"], ["since"], "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, 256, "ARGUMENTS_TOO_LARGE");
+  const out = { since: timestamp(x.since, "ARGUMENT_SCHEMA_INVALID") };
+  if (x.top_limit != null) out.top_limit = integer(x.top_limit, 1, 20, "ARGUMENT_SCHEMA_INVALID");
+  return Object.freeze(out);
+}
+const CHANNEL_NAME_RE = /^[a-z0-9_-]{1,16}$/;
+function progressDelta(value) {
+  const keys = ["schema_version", "since", "reviews_total", "skips_total", "distinct_items", "new_items_scheduled", "active_days", "by_channel", "top_items", "generated_at"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 8192, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.progress_delta.1.0.0") fail("OUTPUT_SCHEMA_INVALID");
+  timestamp(x.since); timestamp(x.generated_at);
+  integer(x.reviews_total, 0, 1000000); integer(x.skips_total, 0, 1000000);
+  integer(x.distinct_items, 0, 1000000); integer(x.new_items_scheduled, 0, 1000000);
+  integer(x.active_days, 0, 100);
+  if (!Array.isArray(x.by_channel) || x.by_channel.length > 8) fail("OUTPUT_SCHEMA_INVALID");
+  const channels = x.by_channel.map((row) => {
+    const r = closed(row, ["channel", "count"], ["channel", "count"], "OUTPUT_SCHEMA_INVALID");
+    if (typeof r.channel !== "string" || !CHANNEL_NAME_RE.test(r.channel)) fail("OUTPUT_SCHEMA_INVALID");
+    integer(r.count, 1, 1000000);
+    return Object.freeze({ ...r });
+  });
+  if (new Set(channels.map((c) => c.channel)).size !== channels.length) fail("OUTPUT_SCHEMA_INVALID");
+  if (!Array.isArray(x.top_items) || x.top_items.length > 20) fail("OUTPUT_SCHEMA_INVALID");
+  // Pure activity: display + gloss + times only. NO struggle band, NO grades,
+  // NO item_key — the excludes claim in the consent card must stay true.
+  const items = x.top_items.map((row) => {
+    const r = closed(row, ["display", "gloss", "times"], ["display", "gloss", "times"], "OUTPUT_SCHEMA_INVALID");
+    string(r.display, 64);
+    if (r.gloss !== null) string(r.gloss, 120);
+    integer(r.times, 1, 1000000);
+    return Object.freeze({ ...r });
+  });
+  return Object.freeze({ ...x, by_channel: Object.freeze(channels), top_items: Object.freeze(items) });
+}
+
 function learnerProfile(value) {
   const keys = ["schema_version", "mode", "language", "depth", "generated_at"];
   const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 512, "OUTPUT_TOO_LARGE");
@@ -389,6 +430,7 @@ const INPUT_VALIDATORS = Object.freeze({
   get_reading_content: validateReadingContentInput,
   create_reading_handoff: validateHandoffInput,
   propose_action: validateProposeInput,
+  get_progress_delta: validateProgressDeltaInput,
 });
 const OUTPUT_VALIDATORS = Object.freeze({
   get_learning_brief: learningBrief,
@@ -403,6 +445,7 @@ const OUTPUT_VALIDATORS = Object.freeze({
   get_reading_content: readingContent,
   create_reading_handoff: readingHandoff,
   propose_action: proposal,
+  get_progress_delta: progressDelta,
 });
 
 function validateInput(tool, value) { const fn = INPUT_VALIDATORS[tool]; if (!fn) fail("UNKNOWN_TOOL"); return fn(value); }

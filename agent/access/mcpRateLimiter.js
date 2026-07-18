@@ -17,6 +17,8 @@ const TOOL_LIMITS = Object.freeze({
   create_reading_handoff: Object.freeze({ minute: 6, day: 60 }),
   // Propose writes a PENDING row (idempotent by dedupe); tight to bound owner-panel churn.
   propose_action: Object.freeze({ minute: 6, day: 120 }),
+  // Delta walks the user's review_log window + keyingService enrichment (lazy heavy).
+  get_progress_delta: Object.freeze({ minute: 6, day: 120 }),
 });
 const MINUTE = 60_000;
 const DAY = 86_400_000;

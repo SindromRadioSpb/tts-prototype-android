@@ -54,6 +54,10 @@ const INPUT_SCHEMAS = Object.freeze({
       body: string({ maxLength: 2000 }),
     }, []),
   }, ["kind", "payload"]),
+  get_progress_delta: closedObject({
+    since: string({ maxLength: 40, pattern: TIME }),
+    top_limit: integer(1, 20),
+  }, ["since"]),
 });
 
 const timestamp = string({ maxLength: 40, pattern: TIME });
@@ -158,6 +162,20 @@ const OUTPUT_SCHEMAS = Object.freeze({
     status: string({ enum: Object.freeze(["PENDING", "DENIED"]) }),
     expires_at: timestamp, generated_at: timestamp,
   }),
+  get_progress_delta: closedObject({
+    schema_version: string({ const: "aa.progress_delta.1.0.0" }),
+    since: timestamp,
+    reviews_total: integer(0, 1000000), skips_total: integer(0, 1000000),
+    distinct_items: integer(0, 1000000), new_items_scheduled: integer(0, 1000000),
+    active_days: integer(0, 100),
+    by_channel: Object.freeze({ type: "array", maxItems: 8, items: closedObject({ channel: string({ maxLength: 16, pattern: "^[a-z0-9_-]{1,16}$" }), count: integer(1, 1000000) }) }),
+    top_items: Object.freeze({ type: "array", maxItems: 20, items: closedObject({
+      display: string({ maxLength: 64 }),
+      gloss: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 120 }), Object.freeze({ type: "null" })]) }),
+      times: integer(1, 1000000),
+    }) }),
+    generated_at: timestamp,
+  }),
 });
 
 const DESCRIPTIONS = Object.freeze({
@@ -173,6 +191,7 @@ const DESCRIPTIONS = Object.freeze({
   get_reading_content: "Return a bounded window of public-domain Reading Room corpus text by work_id (from search_public_reading_catalog). ONLY works with ready_state READY have text — search with ready:\"READY\" first; a METADATA_ONLY work_id returns AA_CORPUS_WORK_NOT_FOUND (not an outage; do not retry). Optional text_key (chapter), start, rows (1-20). Corpus only; never personal texts. available_text_keys lists the work's chapters.",
   create_reading_handoff: "Mint a single-use first-party link that opens a public-domain corpus work in the LinguistPro Reading Room. Input is a catalog work_id (optional text_key/order_index); the work must be READY (search with ready:\"READY\") — a METADATA_ONLY work returns AA_CORPUS_WORK_NOT_FOUND (not an outage; do not retry). Returns handoff_url on the canonical origin only. The owner clicks it — the agent never opens content itself.",
   propose_action: "Create a PENDING action proposal the owner reviews and confirms or denies inside LinguistPro; the agent never executes. kind=open_reading proposes opening a corpus work (payload: work_id required — must be a READY work from search_public_reading_catalog, else AA_PROPOSAL_WORK_NOT_FOUND; optional text_key/order_index/reason); kind=note stores an agent-authored note draft (payload: body required, optional title); kind=suggestion stores a free-form suggestion (payload: body). Identical re-proposals return the same proposal_id; a recently denied identical proposal returns status DENIED. Confirmation state is never returned through this tool.",
+  get_progress_delta: "Return the owner's study-ACTIVITY delta since a timestamp (must be within the last 90 days, else AA_ACTIVITY_SINCE_OUT_OF_RANGE — do not retry): review/skip totals, distinct items reviewed, newly scheduled items, active days (owner-local calendar), practice-channel mix, and the most-reviewed words with meanings (top_limit 1-20, default 10). Pure activity — never grades, accuracy, struggle bands, or the raw memory model; days are folded in the owner's timezone (one truth with the in-app heatmap).",
 });
 
 const WRITE_TOOLS = Object.freeze(new Set(["create_reading_handoff", "propose_action"]));

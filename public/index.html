@@ -10002,6 +10002,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     <button id="v3IdeFeedbackBtn" class="btn-ide" onclick="v3FeedbackOpen()" data-i18n-title="feedback.btnTitle" data-i18n-aria-label="feedback.btnTitle" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">
       📬
     </button>
+    <!-- AA4-4b — pending agent-proposal chip (count only; agent TEXT renders solely on the
+         enforced-CSP agent-access page). Quiet-fail hidden without session or at zero. -->
+    <a id="v3IdeAgentProposals" class="btn-ide" href="/agent-access.html" hidden style="text-decoration:none;"></a>
     <button id="v3IdeThemeBtn" class="app-theme-toggle" onclick="v3ThemeCycle()" data-i18n-title="theme.toggleTitle" data-i18n-aria-label="theme.toggleTitle" title="Переключить тему интерфейса" aria-label="Переключить тему интерфейса">🌗</button>
     <div class="lang-select-wrap">
       <select id="appLangSelectIde" class="lang-select" onchange="appSetLocale(this.value)" aria-label="Язык интерфейса" title="Язык интерфейса">
@@ -46108,6 +46111,32 @@ document.addEventListener("i18n:changed", function () {
         })
         .catch((err) => console.warn("[sw] registration failed:", err));
     });
+  })();
+</script>
+
+<script>
+  // AA4-4b — pending agent-proposal chip (IDE header). Count ONLY: agent-authored
+  // text renders solely on the enforced-CSP /agent-access.html. Quiet-fail:
+  // 401/403/404/network → chip stays hidden (may under-claim, never over-claim;
+  // the panel keeps its own entry). Refetch on tab return (long-lived PWA tabs).
+  (() => {
+    const chip = document.getElementById("v3IdeAgentProposals");
+    if (!chip) return;
+    async function refresh() {
+      let n = 0;
+      try {
+        const r = await fetch("/api/agent-access/proposals/summary", { credentials: "same-origin" });
+        if (r.ok) { const j = await r.json(); n = (j && j.ok && Number(j.pending_total)) || 0; }
+      } catch (_) { n = 0; }
+      chip.hidden = !(n > 0);
+      if (n > 0) {
+        const label = (typeof window.t === "function" ? window.t("ide.agentProposals") : null);
+        chip.textContent = (label && label !== "ide.agentProposals" ? label : "🤝 Агент") + ": " + n;
+      }
+    }
+    refresh();
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refresh(); });
+    window.addEventListener("pageshow", () => refresh());
   })();
 </script>
 

@@ -25,7 +25,7 @@ const OTHER = "synthetic-other";
 const CLIENT = "synthetic-client";
 const CONNECTION = "synthetic-connection";
 const OTHER_CONNECTION = "synthetic-other";
-const SCOPES = ["learning.brief.read", "review.summary.read", "reading.public.search", "explanations.metadata.read", "agent.connection.read", "review.items.read", "profile.read", "explanations.body.read", "reading.corpus.read", "reading.handoff.create", "intent.propose"];
+const SCOPES = ["learning.brief.read", "review.summary.read", "reading.public.search", "explanations.metadata.read", "agent.connection.read", "review.items.read", "profile.read", "explanations.body.read", "reading.corpus.read", "reading.handoff.create", "intent.propose", "review.activity.read"];
 const KNOWN_CONSTRUCT = "construct:hebrew.channel_gap.reading_to_dictation";
 
 function expectCode(promise, code) {
@@ -101,6 +101,18 @@ function exactOwnerParser() {
     await due("ignored", "2026-07-15T12:00:00.000Z");
     await ctx.run(`INSERT INTO review_log (user_id,id,item_key,kind,reviewed_at,source,meta_json) VALUES (?,?,?,?,?,?,?)`,
       [OWNER, "mark-ignore", "ignored", "mark", "2026-07-17T10:00:00.000Z", "fixture", JSON.stringify({ status: "ignore" })]);
+    // AA4 — activity-delta fixture: 3 reviews (1 later annulled), 1 skip, 2 seeds
+    // of ONE item (re-seed must not double-count), odd channel lumps to 'other'.
+    const act = (id, item, kind, at, channel, meta) => ctx.run(
+      `INSERT INTO review_log (user_id,id,item_key,kind,reviewed_at,channel,source,meta_json) VALUES (?,?,?,?,?,?,?,?)`,
+      [OWNER, id, item, kind, at, channel || null, "fixture", JSON.stringify(meta || {})]);
+    await act("act-r1", "כתב#verb", "review", "2026-07-15T10:00:00.000Z", "read:tap");
+    await act("act-r2", "כתב#verb", "review", "2026-07-16T09:00:00.000Z", "cloze:mc");
+    await act("act-r3", "שלום#noun", "review", "2026-07-16T10:00:00.000Z", "WeIrD:z");
+    await act("act-s1", "כתב#verb", "skip", "2026-07-16T11:00:00.000Z", "read:tap");
+    await act("act-d1", "חדש#noun", "seed", "2026-07-15T08:00:00.000Z", null);
+    await act("act-d2", "חדש#noun", "seed", "2026-07-16T08:00:00.000Z", null);
+    await act("act-a1", "שלום#noun", "annul", "2026-07-17T11:30:00.000Z", null, { annul_of: "act-r3" });
     // AA3: a resolvable, struggling (lapses>=3) due item + a coach/detailed profile.
     await ctx.run(`INSERT INTO srs_projections (user_id,item_key,due,lapses) VALUES (?,?,?,?)`, [OWNER, "כתב#verb", "2026-07-17T09:00:00.000Z", 3]);
     await ctx.run(`INSERT INTO agent_profiles (user_id,mode,language,goals_json) VALUES (?,?,?,?)`, [OWNER, "coach", "ru", JSON.stringify({ depth: "detailed" })]);
@@ -293,6 +305,29 @@ function exactOwnerParser() {
     // Scope gating on the corpus read.
     assert.strictEqual((await service.execute(principal({ request_id: "rc-narrow", scopes: ["agent.connection.read"] }), "get_reading_content", { work_id: "42" })).error.code, "INSUFFICIENT_SCOPE"); checks++;
 
+    // AA4 — get_progress_delta: pure activity over the real repo + migrated DB.
+    // Annulled review excluded; re-seeded item counted once; odd channel → other;
+    // local-day fold (Asia/Jerusalem default tz); NO struggle/grade/item_key leak.
+    const deltaOut = await service.execute(principal({ request_id: "delta" }), "get_progress_delta", { since: "2026-07-10T00:00:00.000Z", top_limit: 5 });
+    assert.ok(deltaOut.ok, JSON.stringify(deltaOut)); const dl = deltaOut.result;
+    assert.strictEqual(dl.schema_version, "aa.progress_delta.1.0.0");
+    assert.strictEqual(dl.reviews_total, 2); assert.strictEqual(dl.skips_total, 1);
+    assert.strictEqual(dl.distinct_items, 1); assert.strictEqual(dl.new_items_scheduled, 1);
+    assert.strictEqual(dl.active_days, 2);
+    assert.deepStrictEqual(dl.by_channel, [{ channel: "cloze", count: 1 }, { channel: "read", count: 1 }]);
+    assert.strictEqual(dl.top_items.length, 1);
+    assert.strictEqual(dl.top_items[0].display, "כָּתַב"); assert.strictEqual(dl.top_items[0].times, 2);
+    assert.ok(Buffer.byteLength(dl.top_items[0].gloss, "utf8") <= 120);
+    const dlStr = JSON.stringify(dl);
+    for (const forbidden of ["struggle", "grade", "item_key", "stability", "difficulty", "accuracy"]) assert.ok(!dlStr.includes(forbidden), `delta leak:${forbidden}`);
+    checks++;
+    // since outside [now-90d, now] → TYPED client fault, not INTERNAL_ERROR.
+    for (const badSince of ["2026-01-01T00:00:00.000Z", "2026-08-01T00:00:00.000Z"]) {
+      const badDelta = await service.execute(principal({ request_id: `delta-bad-${badSince.slice(5, 7)}` }), "get_progress_delta", { since: badSince });
+      assert.ok(!badDelta.ok && badDelta.error.code === "AA_ACTIVITY_SINCE_OUT_OF_RANGE" && badDelta.error.retryable === false, JSON.stringify(badDelta));
+    }
+    assert.strictEqual((await service.execute(principal({ request_id: "delta-narrow", scopes: ["agent.connection.read"] }), "get_progress_delta", { since: "2026-07-10T00:00:00.000Z" })).error.code, "INSUFFICIENT_SCOPE"); checks++;
+
     const searchArgs = { language: "he", audio: "ANY", ready: "ANY", sort: "RELEVANCE", limit: 3 };
     const search = await service.execute(principal({ request_id: "search-request" }), "search_public_reading_catalog", searchArgs);
     assert.ok(search.ok && search.result.results.length === 3 && search.result.catalog_version === "7" && search.result.next_cursor);
@@ -445,7 +480,7 @@ function exactOwnerParser() {
     assert.throws(() => corruptJoin.isReadable(), /AA_PUBLIC_CATALOG_READY_JOIN_MISMATCH/); checks++;
 
     const poisonedHandlers = createProductionHandlers({
-      learnerGraphRepo: { getAgentAccessReviewAggregates: async () => ({ scheduled_total: 100001, due_total: 0, urgent_total: 0 }), getDue: async () => [] },
+      learnerGraphRepo: { getAgentAccessReviewAggregates: async () => ({ scheduled_total: 100001, due_total: 0, urgent_total: 0 }), getDue: async () => [], getActivityDelta: async () => ({ reviews_total: 0, skips_total: 0, distinct_items: 0, new_items_scheduled: 0, active_days: 0, by_channel: [], top: [] }) },
       agentRepo: { getLatestOpenPlanAction: async () => null, listExplanationMetadata: async () => ({ items: [{ explanation_id: "bad", created_at: "2026-07-17T11:00:00.000Z", kind: "word", construct_ids: [], purge_state: "AVAILABLE", leaked: true }], next_before: null }), getProfile: async () => ({}), getExplanationById: async () => null },
       oauthRepo, publicCatalog: catalog, ...aa3Deps, now: () => NOW, principalAccessExpiresAt: () => EXPIRY,
     });
@@ -518,7 +553,7 @@ function exactOwnerParser() {
     }
     checks++;
 
-    console.log(JSON.stringify({ ok: true, checks, tools: 12, owner_allowlist_count: 1, owner_match: true, zero_table_deltas: true, network_calls: 0, provider_calls: 0, llm_calls: 0, byok_calls: 0, sentinel_occurrences: 0 }));
+    console.log(JSON.stringify({ ok: true, checks, tools: 13, owner_allowlist_count: 1, owner_match: true, zero_table_deltas: true, network_calls: 0, provider_calls: 0, llm_calls: 0, byok_calls: 0, sentinel_occurrences: 0 }));
   } finally {
     global.fetch = originalFetch; http.request = originalHttpRequest; http.get = originalHttpGet; https.request = originalHttpsRequest; https.get = originalHttpsGet;
     await T.cleanup(ctx);

@@ -262,6 +262,7 @@ window.I18N_LOCALES.en = {
     },
   },
   ide: {
+    agentProposals: "🤝 Agent",
     tabNotes: "Notes",
     tabSrs: "SRS",
     tabAudio: "Audio",
@@ -1911,6 +1912,9 @@ window.I18N_LOCALES.en = {
       expired: "This link has expired or was already used — open it again.",
       corpusMissing: "The work was not found in the Reading Room catalog — refresh the page and open the Corpus tab.",
       unknown: "This link is not supported by this app version — refresh the page.",
+    },
+    agent: {
+      proposalsChip: "Agent proposals",
     },
     pageTitle: "Reading Room",
     back: "← Library",

@@ -264,6 +264,7 @@ window.I18N_LOCALES.he = {
     },
   },
   ide: {
+    agentProposals: "🤝 סוכן",
     // translate-review: HE drafted by Claude — pending native review.
     tabNotes: "הערות",
     tabSrs: "SRS",
@@ -1921,6 +1922,9 @@ window.I18N_LOCALES.he = {
       expired: "הקישור פג תוקף או כבר נוצל — פתחו אותו מחדש.",
       corpusMissing: "היצירה לא נמצאה בקטלוג חדר הקריאה — רעננו את הדף ופתחו את לשונית הקורפוס.",
       unknown: "הקישור אינו נתמך בגרסה זו של האפליקציה — רעננו את הדף.",
+    },
+    agent: {
+      proposalsChip: "הצעות הסוכן",
     },
     pageTitle: "חדר קריאה",
     back: "← לספרייה",

@@ -21,6 +21,8 @@ const CAPABILITIES = Object.freeze({
   // since migration 045, so the hold on create_reading_handoff is lifted.
   create_reading_handoff: Object.freeze({ scope: "reading.handoff.create", purpose: "EXPLICIT_READING_HANDOFF_MINT", scenario_id: "agent_access.reading_handoff", max_output_bytes: 1024 }),
   propose_action: Object.freeze({ scope: "intent.propose", purpose: "EXPLICIT_ACTION_PROPOSAL", scenario_id: "agent_access.propose_action", max_output_bytes: 1024 }),
+  // AA4 slice 4a: pure-activity delta («что изменилось») — no grades/accuracy/struggle.
+  get_progress_delta: Object.freeze({ scope: "review.activity.read", purpose: "EXPLICIT_PROGRESS_DELTA", scenario_id: "agent_access.progress_delta", max_output_bytes: 8192 }),
 });
 
 function getCapability(name) { return CAPABILITIES[String(name)] || null; }

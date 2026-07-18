@@ -39,6 +39,9 @@ const SCOPE_PRESENTATION = Object.freeze({
     excludes: "NO_EXECUTION_WITHOUT_OWNER_CONFIRM_NO_LEARNING_TRUTH_WRITE",
     first_party_action: "/agent-access.html",
   }),
+  // AA4 slice 4a: PURE activity delta — the excludes claim is enforced by the
+  // output validator (no struggle/grades fields exist in the schema).
+  "review.activity.read": Object.freeze({ capability: "get_progress_delta", purpose: "STUDY_ACTIVITY_DELTA_FOR_DISCUSSION", data_class: "LEARNING_CONTENT_STUDY_WORDS_ACTIVITY", retention_tier: "CONTENT", excludes: "NO_GRADES_NO_ACCURACY_NO_STRUGGLE_NO_ACCEPTANCE_SET_OR_RAW_MEMORY_MODEL", first_party_action: "/index.html" }),
 });
 
 function error(code) { const e = new Error(code); e.code = code; throw e; }

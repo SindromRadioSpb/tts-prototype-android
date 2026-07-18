@@ -15,6 +15,8 @@ const SCOPES = Object.freeze([
   "reading.corpus.read",
   "reading.handoff.create",
   "intent.propose",
+  // AA4 slice 4a: pure-activity delta (kept in lockstep with contracts.SCOPES + migration 046 CHECK).
+  "review.activity.read",
 ]);
 const SCOPE_SET = new Set(SCOPES);
 const SAFE = /^[A-Za-z0-9_.:@/-]+$/;

@@ -1809,6 +1809,20 @@ app.delete("/api/agent-access/connections/:connectionId", requireAgentAccessBoun
 // first-party, session+CSRF; no MCP tool can reach it). listPending already
 // filters to live PENDING rows of ACTIVE/SCOPE_REDUCED connections.
 const agentProposalsRepo = require("./db/agentProposalsRepo");
+// AA4-4b — count-only badge feed for Studio/Room chips. By construction the
+// SAME predicate as the panel list (literally listPending().length, ≤10 rows by
+// PENDING_CAP) so the badge can never over-claim vs what the panel shows (R11).
+// No proposal content leaves this endpoint: index/library run Report-Only CSP —
+// agent-authored TEXT renders only on the enforced-CSP /agent-access.html.
+// Hidden-at-zero == hidden-on-error is a considered decision: the badge may
+// under-claim (panel stays reachable via its normal entry), never over-claim.
+app.get("/api/agent-access/proposals/summary", requireAgentAccessBoundary, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try {
+    const rows = await agentProposalsRepo.listPending(auth.user.id);
+    return res.json({ ok: true, schema_version: "aa.proposals_summary.1.0.0", pending_total: rows.length });
+  } catch (e) { return agentAccessHttpError(res, e); }
+});
 app.get("/api/agent-access/proposals", requireAgentAccessBoundary, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   try {

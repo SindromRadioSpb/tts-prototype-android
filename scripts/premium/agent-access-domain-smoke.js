@@ -81,6 +81,13 @@ const fixtures = Object.freeze({
     schema_version: "aa.proposal.1.0.0", proposal_id: "ap_0123456789abcdef0123456789abcdef",
     kind: "note", status: "PENDING", expires_at: "2026-07-24T09:00:00.000Z", generated_at: GENERATED,
   }),
+  get_progress_delta: Object.freeze({
+    schema_version: "aa.progress_delta.1.0.0", since: "2026-07-10T00:00:00.000Z",
+    reviews_total: 12, skips_total: 1, distinct_items: 7, new_items_scheduled: 3, active_days: 4,
+    by_channel: Object.freeze([Object.freeze({ channel: "read", count: 8 }), Object.freeze({ channel: "cloze", count: 4 })]),
+    top_items: Object.freeze([Object.freeze({ display: "כָּתַב", gloss: "написал", times: 3 })]),
+    generated_at: GENERATED,
+  }),
 });
 
 const validArgs = Object.freeze({
@@ -96,6 +103,7 @@ const validArgs = Object.freeze({
   get_reading_content: Object.freeze({ work_id: "42" }),
   create_reading_handoff: Object.freeze({ work_id: "42" }),
   propose_action: Object.freeze({ kind: "note", payload: Object.freeze({ body: "fixture note body" }) }),
+  get_progress_delta: Object.freeze({ since: "2026-07-10T00:00:00.000Z", top_limit: 10 }),
 });
 
 function handlers(overrides = {}) {
