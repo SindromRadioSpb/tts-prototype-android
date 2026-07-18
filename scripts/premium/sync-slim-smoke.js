@@ -73,6 +73,7 @@ async function ready(srv, ms = 30000) {
     T_REVIVE: iso(NOW + 180000),        // B правит sl-t4 ПОСЛЕ удаления («правка воскрешает»)
     T_OLD_DELETE: iso(NOW - 3600000),   // delete-интент СТАРШЕ серверной копии (DELETED_OLDER)
     T_GARBAGE: iso(NOW + 240000),       // битый артефакт новее локального (replace-устойчивость)
+    T_PURGEDEL: iso(NOW + 300000),      // удаление в purge-окне (новее ЛЮБОГО штампа сцен выше)
   };
 
   const mkDevice = async () => b.newContext({ serviceWorkers: "block", viewport: { width: 380, height: 844 } });
@@ -466,6 +467,38 @@ async function ready(srv, ms = 30000) {
     eq(aRevoke.art && aRevoke.art.uploaded >= 2 && aRevoke.rows >= 2, "P2: re-grant → полный re-upload текстов: " + JSON.stringify({ up: aRevoke.art && aRevoke.art.uploaded, rows: aRevoke.rows }));
     eq(aRevoke.state === true, "P2: state_bundle перезалит после purge (server-lost детекция)");
 
+    // ── Live-инцидент 2026-07-18: удаление в окне после revoke-purge ────────
+    // Артефакт отсутствует на сервере в момент дренажа интента → tombstone ОБЯЗАН создаться
+    // всё равно, иначе волна перезаливки другого устройства воскрешает удалённый текст.
+    const aPurgeWin = await act(ctxA, "A-purge-window", async (A) => {
+      const ldb = window.__ldb, CS = window.CloudSync;
+      await CS.fullSync(ldb);
+      const csrf = localStorage.getItem("cloud.csrf") || "";
+      await fetch("/api/auth/consent", { method: "POST", credentials: "same-origin",
+        headers: { "Content-Type": "application/json", "X-LP-CSRF": csrf },
+        body: JSON.stringify({ key: "cloud_texts", granted: false, version: CS.CLOUD_TEXTS_CONSENT_VERSION }) });
+      await fetch("/api/auth/consent", { method: "POST", credentials: "same-origin",
+        headers: { "Content-Type": "application/json", "X-LP-CSRF": csrf },
+        body: JSON.stringify({ key: "cloud_texts", granted: true, version: CS.CLOUD_TEXTS_CONSENT_VERSION }) });
+      const t1 = (await ldb.dbQuery("SELECT id FROM texts WHERE text_key='sl-t1'"))[0];
+      if (t1) { await ldb.queueArtifactIntent("delete", "sl-t1", A.T_PURGEDEL); await ldb.deleteText(t1.id); }
+      const s = await CS.fullSync(ldb);   // drain по ПУСТОМУ (только что purged) серверу
+      const list = await fetch("/api/learner/artifacts", { credentials: "same-origin" }).then((r) => r.json());
+      return { tombKeys: (list.tombstones || []).map((t) => t.artifact_key), rows: (list.rows || []).map((r) => r.artifact_key) };
+    }, ARGS);
+    eq(aPurgeWin.tombKeys.includes("sl-t1"), "инцидент: tombstone создаётся и когда артефакта нет (purge-окно): " + JSON.stringify(aPurgeWin.tombKeys));
+    eq(!aPurgeWin.rows.includes("sl-t1"), "инцидент: удалённый текст не перезалит собственным UP");
+    const bNoRes = await act(ctxB, "B-no-resurrect", async () => {
+      const ldb = window.__ldb, CS = window.CloudSync;
+      await CS.fullSync(ldb);   // у B текст ещё жив локально — волна UP не должна воскресить
+      const list = await fetch("/api/learner/artifacts", { credentials: "same-origin" }).then((r) => r.json());
+      return {
+        local: (await ldb.dbQuery("SELECT 1 x FROM texts WHERE text_key='sl-t1'")).length,
+        rows: (list.rows || []).map((r) => r.artifact_key),
+      };
+    }, {});
+    eq(bNoRes.local === 0 && !bNoRes.rows.includes("sl-t1"), "инцидент: B применяет удаление вместо воскрешения: " + JSON.stringify(bNoRes));
+
     await ctxA.close(); await ctxB.close();
   } catch (e) {
     failures.push("CRASH: " + (e && e.stack || e));
@@ -474,7 +507,7 @@ async function ready(srv, ms = 30000) {
     await stop(srv.c);
     try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {}
   }
-  const total = 47;
+  const total = 50;
   if (failures.length) {
     console.error(`smoke:sync-slim FAIL (${total - failures.length}/${total})`);
     for (const f of failures) console.error("  ✗ " + f);

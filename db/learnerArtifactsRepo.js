@@ -161,8 +161,12 @@ async function listTombstones(userId) {
 
 // Физическое удаление артефакта + tombstone. LWW-guard (критика F1-4): удаление СТАРШЕ
 // серверной копии не уничтожает более новый артефакт (DELETED_OLDER — клиент дропает интент,
-// следующий DOWN принесёт новую версию). Tombstone ставится только при реальном удалении
-// (changes>0) — фантомные ключи не копят мусор (критика F2-8). Идемпотентно.
+// следующий DOWN принесёт новую версию). Tombstone ставится ВСЕГДА (кроме DELETED_OLDER) —
+// live-инцидент 2026-07-18: drain интента попал в окно после revoke-purge (артефакт отсутствовал)
+// → прежнее правило «tombstone только при changes>0» дало no-op → re-upload другого устройства
+// ВОСКРЕСИЛ удалённый текст. Анти-мусор от фантомных ключей (F2-8) — кап на пользователя с
+// прюнингом старейших, не existence-требование. Идемпотентно.
+const MAX_TOMBSTONES_PER_USER = 2000;
 async function deleteArtifact(userId, { artifact_key, deleted_at, kind = KIND } = {}) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const k = String(kind || KIND);
@@ -178,15 +182,19 @@ async function deleteArtifact(userId, { artifact_key, deleted_at, kind = KIND } 
     return { ok: true, deleted: false, reason: "DELETED_OLDER", server_updated_at: existing.updated_at };
   }
   const r = await dbRun(db, `DELETE FROM learner_artifacts WHERE user_id = ? AND kind = ? AND artifact_key = ?`, [userId, k, key]);
-  if (r && r.changes > 0) {
+  const n = await dbGet(db, `SELECT COUNT(*) c FROM artifact_tombstones WHERE user_id = ?`, [userId]);
+  if (Number(n && n.c) >= MAX_TOMBSTONES_PER_USER) {
     await dbRun(db,
-      `INSERT INTO artifact_tombstones (user_id, kind, artifact_key, deleted_at) VALUES (?,?,?,?)
-       ON CONFLICT(user_id, kind, artifact_key) DO UPDATE SET deleted_at = excluded.deleted_at`,
-      [userId, k, key, delAt]);
-    return { ok: true, deleted: true, tombstoned: true };
+      `DELETE FROM artifact_tombstones WHERE user_id = ? AND rowid IN
+         (SELECT rowid FROM artifact_tombstones WHERE user_id = ? ORDER BY created_at ASC LIMIT ?)`,
+      [userId, userId, Math.max(1, Number(n.c) - MAX_TOMBSTONES_PER_USER + 1)]);
   }
-  const tomb = await dbGet(db, `SELECT deleted_at FROM artifact_tombstones WHERE user_id = ? AND kind = ? AND artifact_key = ?`, [userId, k, key]);
-  return { ok: true, deleted: false, tombstoned: !!tomb };   // повторный delete/фантом — идемпотентный no-op
+  await dbRun(db,
+    `INSERT INTO artifact_tombstones (user_id, kind, artifact_key, deleted_at) VALUES (?,?,?,?)
+     ON CONFLICT(user_id, kind, artifact_key) DO UPDATE SET
+       deleted_at = CASE WHEN excluded.deleted_at > deleted_at THEN excluded.deleted_at ELSE deleted_at END`,
+    [userId, k, key, delAt]);
+  return { ok: true, deleted: !!(r && r.changes > 0), tombstoned: true };
 }
 
 // Снятие tombstone без PUT (пере-импорт текста пользователем: undelete-интент клиента).

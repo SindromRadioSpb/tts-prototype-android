@@ -2926,6 +2926,14 @@ function roomCloudInit() {
   // CLG-P5.5 — класс B: галочка пишет consent-запись (append-only история) и сразу синкает
   if (els.textsCb) els.textsCb.addEventListener('change', async () => {
     const granted = !!els.textsCb.checked;
+    // P2-hardening (live-инцидент 2026-07-18): снятие галочки = НЕМЕДЛЕННЫЙ purge всех облачных
+    // копий (обещание карты). Случайный тап по уже-включённой галочке трижды покруживал
+    // purge→полная перезаливка и съел tombstone удаления — теперь снятие требует подтверждения.
+    if (!granted) {
+      const okRevoke = window.confirm(tt('room.cloud.revokeConfirm',
+        'Выключить синхронизацию? Облачные копии всех текстов будут УДАЛЕНЫ с сервера немедленно (локальные останутся). Повторное включение зальёт всё заново.'));
+      if (!okRevoke) { els.textsCb.checked = true; return; }
+    }
     try {
       const r = await fetch('/api/auth/consent', { method: 'POST', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },

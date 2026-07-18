@@ -1970,6 +1970,7 @@ window.I18N_LOCALES.en = {
       textsToggle: "📄 Sync “My texts”",
       textsHint: "What goes to the cloud: texts from “My texts” (never the corpus) together with their notes, reading position and bookmarks; separately — your word notes, shelves, manual translations, Anki links and the study diary. Only your devices read this; the mentor needs its own permissions in the 🤖 home. Kept until you delete a text or turn this off: turning it off deletes the server copies immediately; deleting a text propagates to the cloud and your other devices (the deletion marker lives up to 180 days).",
       reconsent: "⚠ The sync description has changed — please read it and confirm again with the checkbox above. Until then text sync is paused (the word-memory log keeps syncing as before); text deletions still propagate.",
+      revokeConfirm: "Turn sync off? Cloud copies of ALL texts will be DELETED from the server immediately (local copies stay). Turning it back on re-uploads everything.",
       pushTitle: "Daily nudge",
       pushHint: "Once a day and only when words are due; only the count is sent — no content. On iPhone, add the app to the Home Screen first.",
       pushEnable: "Enable on this device",
