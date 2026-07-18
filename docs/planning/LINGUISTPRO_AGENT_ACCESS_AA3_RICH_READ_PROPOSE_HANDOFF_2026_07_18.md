@@ -105,6 +105,14 @@ Read-фундамент задеплоен default-off (`415ef50`), миграц
 
 **Осталось — commit 3b (actions):** `get_reading_content` (нужен новый `corpusSentenceRepo.listWorkTexts(work_id)` для резолва text_key + мультиглавные работы), `create_reading_handoff` (corpus-only, mint напрямую), `propose_action` (W1, миграция 045 `agent_proposals` — шаблон из мигр.040 `learner_memory_records` с partial-unique dedupe-индексом; owner-confirm UI). Кандидат отдельно: delta/changelog-инструмент («что изменилось с прошлого раза») — Hermes отметил пробел.
 
+## 5d. Commit 3b SHIPPED + owner live-verified (v3.11.205 `60289da`)
+
+- **`get_reading_content`** (scope reading.corpus.read) — LIVE, читает реальный корпус на проде: work_id 11784 = «המרגלים» (Аронсон), 5 строк he+ru («Шпионы»…), chapters=1. Новый `corpusSentenceRepo.listWorkTexts(work_id)` резолвит work_id→text_key(и)+anchors серверно (window-функции требуют text_key, которого нет в каталоге); corpus-only by construction; byte-safe строки; available_text_keys = главы. (era иногда null — источник не всегда несёт валидный ERA enum; честная деградация.)
+- **Cursor-error фикс (Hermes-наблюдение):** битый курсор get_due_review_items теперь декодируется/валидируется в input-валидаторе → чистый `ARGUMENT_SCHEMA_INVALID` (retryable:false) вместо `INTERNAL_ERROR` → клиент не ретраит и не роняет транспортный circuit-breaker на 3 страйка (Hermes видел «unreachable ~60c»).
+- **`create_reading_handoff` — ПРИДЕРЖАН (dormant):** redeem-путь `library-ui.js:8381` открывает ТОЛЬКО личные OPFS-тексты (`SELECT ... FROM texts WHERE text_key=?`), а токен не несёт work_id → корпусная ссылка упёрлась бы в ложный «синхронизируйте Мои тексты». Отдавать нерабочую ссылку = silent dead-end (анти-честность). Контракт/схема/handler сохранены dormant (нет capability = не экспонируется); consent-презентация reading.handoff.create withheld (fail-closed). Ship когда: **handoff_tokens получит work_id (миграция) + library-ui обработает action=open_corpus** (открыть корпусную работу по work_id+text_key через openCorpusWork) + браузер-тест click-through.
+
+**Осталось:** `create_reading_handoff` (см. выше) + **`propose_action` (W1)** — миграция 045 `agent_proposals` (шаблон миграции 040 `learner_memory_records`: PENDING-lifecycle + partial-unique dedupe-индекс), db/agentProposalsRepo.js (create-idempotent/list/decide), handler → PENDING, owner-confirm endpoints + UI-секция в панели, execution-модель per-kind (для W1 минимум: agent предлагает → owner подтверждает → LinguistPro исполняет/handoff). Кандидат: delta/changelog-инструмент (Hermes-flagged).
+
 ## 6. Вне scope AA3
 
 Запись в учебную правду (Ярус C — Ментор, не Hermes); мультиарендность; новые LLM-вызовы от агента (R16 — агент не тратит серверный бюджет); client-side OPFS-мост для client-only данных.
