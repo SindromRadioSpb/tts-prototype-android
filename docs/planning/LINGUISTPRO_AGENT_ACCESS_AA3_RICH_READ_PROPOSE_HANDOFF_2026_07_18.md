@@ -157,6 +157,14 @@ Owner выбрал roadmap «4a → 4b → 5» и скомандовал ста�
 
 Проверено: миграция 046 upgrade-путь с grant-строками (сохранены, 12-й scope вставляется); смоуки 34/53/57 + oauth/deployment/control-plane/api; Playwright: чип скрыт без сессии → «🤝 Предложения агента: 1 →» после логина (380px, без overflow) + Studio IDE «🤝 Агент: 1».
 
+## 5h. AA4 4b-final SHIPPED (v3.11.210–211) — create_review_handoff «открой мне повторение»
+
+Точечная адверсариальная критика дельт до кода: 1 BLOCKER (DDL rebuild-а `handoff_tokens` обязан нести ВСЕ 8 колонок включая `work_id` из 045 — иначе все минты всех поверхностей умирают тихо) + 4 MAJOR, все зафиксированы. **Двухкоммитный rollout client-first** (критика: первый заход в Зал после деплоя по построению исполняет stale-SW код — open_review-токен сгорел бы с ложным «устарела»): коммит 1 `3d216f3` = миграция 047 (grants CHECK 13 scope + rebuild handoff_tokens c nullable `text_key`, COPY строк — токен, сминченный за секунды до деплоя, остаётся редимимым) + двусторонний guard mint'а (`open_review` БЕЗ якоря / якорные действия с обязательным text_key) + action-first диспатч в boot Зала (open_review → тот же вход, что roomDueCta, c guard'ом на ReaderMorph + честным тостом `room.handoff.reviewFailed` ru/en/he) + SW v3.11.210; после live-проверки свежести клиента — коммит 2 `ab27934` = 14-й инструмент.
+
+**`create_review_handoff`** (scope `review.handoff.create` — НОВЫЙ: review-сессия ≠ корпусная работа по data_class; вход `{}`; выход `{handoff_url, expires_in_ms, action:'open_review'}` БЕЗ due-счётчика — summary-данные не отмываются через mint-scope). Отказ typed `AA_REVIEW_NOTHING_SCHEDULED` ТОЛЬКО при `scheduled==0 && due==0` — при `due==0, scheduled>0` минтит (Зал честно предлагает review-ahead, owner-директива 2026-07-11). Consent-строка ЧЕСТНО признаёт единственный бит, который scope может раскрыть (empty-or-not через отказ). Mint-инструменты больше не рекламируют `idempotentHint` (ретраящий клиент минтил бы живые токены против cap'а); domain-smoke ассертит аннотации по-инструментно.
+
+Гейты: domain 35 / mcp 54 (14 tools) / production-handlers 61 + oauth/deployment/control-plane/api; миграция 047 upgrade-путь с живым токеном (сохранён вкл. work_id; nullable+DEFAULT работают). **Live на проде:** Hermes-токен сминтил ссылку → клик → Зал открыл РЕАЛЬНУЮ due-сессию владельца (154 к повторению, карточка «Диктант» 1/12) → закрыто через ✕ без оценок (live-verify правило). Re-consent №4 на 13 scope; `hermes mcp test` → 14 tools.
+
 ## 6. Вне scope AA3
 
 Запись в учебную правду (Ярус C — Ментор, не Hermes); мультиарендность; новые LLM-вызовы от агента (R16 — агент не тратит серверный бюджет); client-side OPFS-мост для client-only данных.
