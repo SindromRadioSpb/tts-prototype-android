@@ -181,16 +181,6 @@ function createProductionHandlers(options = {}) {
     const expiry = new Date(String(accessExpiresAt));
     if (!Number.isFinite(expiry.getTime()) || expiry.toISOString() !== String(accessExpiresAt) || expiry.getTime() <= clock.ms) fail("AA_CONNECTION_EXPIRY_INVALID");
     if (connection.capability_version !== CAPABILITY_VERSION) fail("AA_CONNECTION_CAPABILITY_INVALID");
-    // AA3: report the real access window (control-plane) so the agent stops
-    // mistaking the short access-token TTL for the connection lifetime.
-    const persistence = await connectionPersistence();
-    const lifetime = persistence && ["PERSISTENT_WINDOW", "TIMED_WINDOW", "TOKEN_ONLY"].includes(persistence.access_lifetime) ? persistence.access_lifetime : "TOKEN_ONLY";
-    let windowExpiresAt = null;
-    if (lifetime === "TIMED_WINDOW") {
-      const w = new Date(String(persistence.window_expires_at));
-      if (!Number.isFinite(w.getTime()) || w.toISOString() !== String(persistence.window_expires_at)) fail("AA_CONNECTION_PERSISTENCE_INVALID");
-      windowExpiresAt = w.toISOString();
-    }
     return Object.freeze({
       schema_version: "aa.connection.1.0.0",
       connection_id: context.connection_id,
@@ -199,11 +189,32 @@ function createProductionHandlers(options = {}) {
       connection_status: connection.status,
       granted_scopes: Object.freeze(activeFromConnection),
       access_expires_at: String(accessExpiresAt),
-      access_lifetime: lifetime,
-      window_expires_at: windowExpiresAt,
       consent_version: connection.consent_version,
       capability_version: connection.capability_version,
       downstream_retention_notice: "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO",
+      generated_at: clock.iso,
+    });
+  }
+
+  // AA3: separate additive tool so get_agent_connection's schema stays stable.
+  async function get_access_window(context) {
+    const clock = fixedNow(now);
+    const accessExpiresAt = principalAccessExpiresAt(context);
+    const expiry = new Date(String(accessExpiresAt));
+    if (!Number.isFinite(expiry.getTime()) || expiry.toISOString() !== String(accessExpiresAt) || expiry.getTime() <= clock.ms) fail("AA_ACCESS_WINDOW_EXPIRY_INVALID");
+    const persistence = await connectionPersistence();
+    const lifetime = persistence && ["PERSISTENT_WINDOW", "TIMED_WINDOW", "TOKEN_ONLY"].includes(persistence.access_lifetime) ? persistence.access_lifetime : "TOKEN_ONLY";
+    let windowExpiresAt = null;
+    if (lifetime === "TIMED_WINDOW") {
+      const w = new Date(String(persistence.window_expires_at));
+      if (!Number.isFinite(w.getTime()) || w.toISOString() !== String(persistence.window_expires_at)) fail("AA_ACCESS_WINDOW_INVALID");
+      windowExpiresAt = w.toISOString();
+    }
+    return Object.freeze({
+      schema_version: "aa.access_window.1.0.0",
+      access_lifetime: lifetime,
+      window_expires_at: windowExpiresAt,
+      access_expires_at: String(accessExpiresAt),
       generated_at: clock.iso,
     });
   }
@@ -214,6 +225,7 @@ function createProductionHandlers(options = {}) {
     search_public_reading_catalog,
     get_recent_explanation_metadata,
     get_agent_connection,
+    get_access_window,
     get_due_review_items,
     get_learner_profile,
   });

@@ -16,7 +16,7 @@ const principal = Object.freeze({
   connection_id: "connection-fixture-1",
   external_actor_id: "actor-fixture-1",
   request_id: "request-fixture-1",
-  scopes: Object.freeze(Object.values(capabilities.CAPABILITIES).map((x) => x.scope)),
+  scopes: Object.freeze([...new Set(Object.values(capabilities.CAPABILITIES).map((x) => x.scope))]),
   connection_status: "ACTIVE",
   access_expires_at: "2026-07-17T09:10:00.000Z",
 });
@@ -44,9 +44,12 @@ const fixtures = Object.freeze({
   get_agent_connection: Object.freeze({
     schema_version: "aa.connection.1.0.0", connection_id: principal.connection_id, oauth_client_id: principal.oauth_client_id,
     client_display_name: "Fixture client", connection_status: "ACTIVE", granted_scopes: principal.scopes,
-    access_expires_at: principal.access_expires_at, access_lifetime: "PERSISTENT_WINDOW", window_expires_at: null,
-    consent_version: "consent-1", capability_version: "aa-v0.1",
+    access_expires_at: principal.access_expires_at, consent_version: "consent-1", capability_version: "aa-v0.1",
     downstream_retention_notice: "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO", generated_at: GENERATED,
+  }),
+  get_access_window: Object.freeze({
+    schema_version: "aa.access_window.1.0.0", access_lifetime: "PERSISTENT_WINDOW", window_expires_at: null,
+    access_expires_at: principal.access_expires_at, generated_at: GENERATED,
   }),
   get_due_review_items: Object.freeze({
     schema_version: "aa.due_review_items.1.0.0",
@@ -64,6 +67,7 @@ const validArgs = Object.freeze({
   search_public_reading_catalog: Object.freeze({ language: "he", audio: "ANY", ready: "ANY", sort: "RELEVANCE", limit: 10 }),
   get_recent_explanation_metadata: Object.freeze({ kinds: Object.freeze(["word"]), limit: 10 }),
   get_agent_connection: Object.freeze({}),
+  get_access_window: Object.freeze({}),
   get_due_review_items: Object.freeze({ limit: 10 }),
   get_learner_profile: Object.freeze({}),
 });

@@ -178,9 +178,12 @@ function exactOwnerParser() {
     for (const forbidden of ["goals_json", "user_id", "created_at", "updated_at", "detailed", "coach"]) { /* only enums allowed as values */ }
     assert.ok(!JSON.stringify(prof.result).includes("user_id") && !JSON.stringify(prof.result).includes("goals_json")); checks++;
 
-    // AA3 — connection_persistence: PERSISTENT_WINDOW from the fixture resolver.
-    const conn = await service.execute(principal({ request_id: "conn-persist" }), "get_agent_connection", {});
-    assert.ok(conn.ok); assert.strictEqual(conn.result.access_lifetime, "PERSISTENT_WINDOW"); assert.strictEqual(conn.result.window_expires_at, null); checks++;
+    // AA3 — access window is a SEPARATE tool; get_agent_connection stays schema-stable.
+    const conn = await service.execute(principal({ request_id: "conn-stable" }), "get_agent_connection", {});
+    assert.ok(conn.ok); assert.ok(!("access_lifetime" in conn.result) && !("window_expires_at" in conn.result), "get_agent_connection must stay schema-stable"); checks++;
+    const win = await service.execute(principal({ request_id: "access-window" }), "get_access_window", {});
+    assert.ok(win.ok); assert.strictEqual(win.result.schema_version, "aa.access_window.1.0.0");
+    assert.strictEqual(win.result.access_lifetime, "PERSISTENT_WINDOW"); assert.strictEqual(win.result.window_expires_at, null); checks++;
 
     // Scope gating: a token WITHOUT review.items.read cannot call get_due_review_items.
     const narrow = await service.execute(principal({ request_id: "narrow", scopes: ["agent.connection.read"] }), "get_due_review_items", { limit: 5 });
@@ -290,8 +293,7 @@ function exactOwnerParser() {
         get_agent_connection: async () => ({
           schema_version: "aa.connection.1.0.0", connection_id: CONNECTION, oauth_client_id: CLIENT,
           client_display_name: "x".repeat(5000), connection_status: "ACTIVE", granted_scopes: SCOPES,
-          access_expires_at: EXPIRY, access_lifetime: "PERSISTENT_WINDOW", window_expires_at: null,
-          consent_version: "aa-consent-v1", capability_version: "aa-v0.1",
+          access_expires_at: EXPIRY, consent_version: "aa-consent-v1", capability_version: "aa-v0.1",
           downstream_retention_notice: "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO", generated_at: "2026-07-17T12:00:00.000Z",
         }),
       },
@@ -342,7 +344,7 @@ function exactOwnerParser() {
     }
     checks++;
 
-    console.log(JSON.stringify({ ok: true, checks, tools: 7, owner_allowlist_count: 1, owner_match: true, zero_table_deltas: true, network_calls: 0, provider_calls: 0, llm_calls: 0, byok_calls: 0, sentinel_occurrences: 0 }));
+    console.log(JSON.stringify({ ok: true, checks, tools: 8, owner_allowlist_count: 1, owner_match: true, zero_table_deltas: true, network_calls: 0, provider_calls: 0, llm_calls: 0, byok_calls: 0, sentinel_occurrences: 0 }));
   } finally {
     global.fetch = originalFetch; http.request = originalHttpRequest; http.get = originalHttpGet; https.request = originalHttpsRequest; https.get = originalHttpsGet;
     await T.cleanup(ctx);

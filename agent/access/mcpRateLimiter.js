@@ -6,6 +6,7 @@ const TOOL_LIMITS = Object.freeze({
   search_public_reading_catalog: Object.freeze({ minute: 30, day: 1000 }),
   get_recent_explanation_metadata: Object.freeze({ minute: 12, day: 240 }),
   get_agent_connection: Object.freeze({ minute: 30, day: 500 }),
+  get_access_window: Object.freeze({ minute: 30, day: 500 }),
   // AA3: get_due_review_items triggers the heavy keyingService lexicon (lazy 306MB);
   // keep it deliberately tight so an external caller cannot force repeated cold loads.
   get_due_review_items: Object.freeze({ minute: 6, day: 120 }),

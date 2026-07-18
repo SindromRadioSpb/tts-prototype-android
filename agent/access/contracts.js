@@ -227,15 +227,23 @@ function explanationMetadata(value) {
   return Object.freeze({ ...x, items: Object.freeze(items) });
 }
 function connection(value) {
-  const keys = ["schema_version", "connection_id", "oauth_client_id", "client_display_name", "connection_status", "granted_scopes", "access_expires_at", "access_lifetime", "window_expires_at", "consent_version", "capability_version", "downstream_retention_notice", "generated_at"];
+  // Stable contract — AA3 keeps this UNCHANGED. Access-window state moved to the
+  // separate additive get_access_window tool so a schema mutation never breaks a
+  // client that cached this tool's output with additionalProperties:false.
+  const keys = ["schema_version", "connection_id", "oauth_client_id", "client_display_name", "connection_status", "granted_scopes", "access_expires_at", "consent_version", "capability_version", "downstream_retention_notice", "generated_at"];
   const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 2048, "OUTPUT_TOO_LARGE");
   if (x.schema_version !== "aa.connection.1.0.0" || x.capability_version !== "aa-v0.1" || x.downstream_retention_notice !== "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO") fail("OUTPUT_SCHEMA_INVALID");
   id(x.connection_id); id(x.oauth_client_id); string(x.client_display_name, 120); oneOf(x.connection_status, CONNECTION_STATES); uniqueStrings(x.granted_scopes, 16, (v) => oneOf(v, SCOPES)); timestamp(x.access_expires_at); id(x.consent_version); timestamp(x.generated_at);
-  // AA3: distinguish the short access-token TTL from the owner's actual access window.
-  oneOf(x.access_lifetime, ACCESS_LIFETIME);
+  return Object.freeze({ ...x, granted_scopes: Object.freeze([...x.granted_scopes]) });
+}
+function accessWindow(value) {
+  const keys = ["schema_version", "access_lifetime", "window_expires_at", "access_expires_at", "generated_at"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 512, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.access_window.1.0.0") fail("OUTPUT_SCHEMA_INVALID");
+  oneOf(x.access_lifetime, ACCESS_LIFETIME); timestamp(x.access_expires_at); timestamp(x.generated_at);
   timestamp(x.window_expires_at, "OUTPUT_SCHEMA_INVALID", true);
   if ((x.access_lifetime === "TIMED_WINDOW") !== (x.window_expires_at !== null)) fail("OUTPUT_SCHEMA_INVALID");
-  return Object.freeze({ ...x, granted_scopes: Object.freeze([...x.granted_scopes]) });
+  return Object.freeze({ ...x });
 }
 
 const INPUT_VALIDATORS = Object.freeze({
@@ -244,6 +252,7 @@ const INPUT_VALIDATORS = Object.freeze({
   search_public_reading_catalog: validateSearchInput,
   get_recent_explanation_metadata: validateExplanationInput,
   get_agent_connection: emptyInput,
+  get_access_window: emptyInput,
   get_due_review_items: validateDueItemsInput,
   get_learner_profile: emptyInput,
 });
@@ -253,6 +262,7 @@ const OUTPUT_VALIDATORS = Object.freeze({
   search_public_reading_catalog: publicSearch,
   get_recent_explanation_metadata: explanationMetadata,
   get_agent_connection: connection,
+  get_access_window: accessWindow,
   get_due_review_items: dueReviewItems,
   get_learner_profile: learnerProfile,
 });
