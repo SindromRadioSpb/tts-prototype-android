@@ -23,7 +23,19 @@ const SCOPES = new Set([
   "reading.public.search",
   "explanations.metadata.read",
   "agent.connection.read",
+  // AA3 slice-1 (kept in lockstep with oauthContracts.SCOPES + migration 044 CHECK).
+  "review.items.read",
+  "profile.read",
+  "explanations.body.read",
+  "reading.corpus.read",
+  "reading.handoff.create",
+  "intent.propose",
 ]);
+const STRUGGLE = new Set(["none", "some", "high"]);
+const PROFILE_MODE = new Set(["silent", "coach", "intensive"]);
+const PROFILE_DEPTH = new Set(["brief", "detailed"]);
+const ACCESS_LIFETIME = new Set(["PERSISTENT_WINDOW", "TIMED_WINDOW", "TOKEN_ONLY"]);
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 class AgentAccessError extends Error {
   constructor(code, message, retryable = false) {
@@ -128,6 +140,43 @@ function validateExplanationInput(value) {
   return Object.freeze({ ...out, kinds: Object.freeze(out.kinds) });
 }
 
+function validateDueItemsInput(value) {
+  const x = closed(value, ["limit"], [], "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, 256, "ARGUMENTS_TOO_LARGE");
+  const out = {};
+  if (x.limit != null) out.limit = integer(x.limit, 1, 20, "ARGUMENT_SCHEMA_INVALID");
+  return Object.freeze(out);
+}
+
+function dueReviewItems(value) {
+  const keys = ["schema_version", "items", "due_total", "truncated", "generated_at"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 8192, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.due_review_items.1.0.0") fail("OUTPUT_SCHEMA_INVALID");
+  integer(x.due_total, 0, 100000); bool(x.truncated); timestamp(x.generated_at);
+  if (!Array.isArray(x.items) || x.items.length > 20) fail("OUTPUT_SCHEMA_INVALID");
+  const itemKeys = ["display", "gloss", "struggle", "due_day", "content_available"];
+  const items = x.items.map((row) => {
+    const r = closed(row, itemKeys, itemKeys, "OUTPUT_SCHEMA_INVALID");
+    string(r.display, 64); // HE lemma display form; never the acceptance set (no expected/alts)
+    if (r.gloss !== null) string(r.gloss, 120);
+    oneOf(r.struggle, STRUGGLE); bool(r.content_available);
+    if (typeof r.due_day !== "string" || !DAY_RE.test(r.due_day)) fail("OUTPUT_SCHEMA_INVALID");
+    return Object.freeze({ ...r });
+  });
+  if (items.length > x.due_total) fail("OUTPUT_SCHEMA_INVALID");
+  return Object.freeze({ ...x, items: Object.freeze(items) });
+}
+
+function learnerProfile(value) {
+  const keys = ["schema_version", "mode", "language", "depth", "generated_at"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 512, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.learner_profile.1.0.0") fail("OUTPUT_SCHEMA_INVALID");
+  oneOf(x.mode, PROFILE_MODE); oneOf(x.depth, PROFILE_DEPTH); timestamp(x.generated_at);
+  string(x.language, 8);
+  // No user_id, goals_json, or timestamps ever leave the boundary.
+  return Object.freeze({ ...x });
+}
+
 function learningBrief(value) {
   const keys = ["schema_version", "due_total", "urgent_total", "scheduled_total", "estimated_minutes", "priority_code", "unfinished_action_code", "generated_at", "expires_at"];
   const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 1024, "OUTPUT_TOO_LARGE");
@@ -178,10 +227,14 @@ function explanationMetadata(value) {
   return Object.freeze({ ...x, items: Object.freeze(items) });
 }
 function connection(value) {
-  const keys = ["schema_version", "connection_id", "oauth_client_id", "client_display_name", "connection_status", "granted_scopes", "access_expires_at", "consent_version", "capability_version", "downstream_retention_notice", "generated_at"];
+  const keys = ["schema_version", "connection_id", "oauth_client_id", "client_display_name", "connection_status", "granted_scopes", "access_expires_at", "access_lifetime", "window_expires_at", "consent_version", "capability_version", "downstream_retention_notice", "generated_at"];
   const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 2048, "OUTPUT_TOO_LARGE");
   if (x.schema_version !== "aa.connection.1.0.0" || x.capability_version !== "aa-v0.1" || x.downstream_retention_notice !== "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO") fail("OUTPUT_SCHEMA_INVALID");
   id(x.connection_id); id(x.oauth_client_id); string(x.client_display_name, 120); oneOf(x.connection_status, CONNECTION_STATES); uniqueStrings(x.granted_scopes, 16, (v) => oneOf(v, SCOPES)); timestamp(x.access_expires_at); id(x.consent_version); timestamp(x.generated_at);
+  // AA3: distinguish the short access-token TTL from the owner's actual access window.
+  oneOf(x.access_lifetime, ACCESS_LIFETIME);
+  timestamp(x.window_expires_at, "OUTPUT_SCHEMA_INVALID", true);
+  if ((x.access_lifetime === "TIMED_WINDOW") !== (x.window_expires_at !== null)) fail("OUTPUT_SCHEMA_INVALID");
   return Object.freeze({ ...x, granted_scopes: Object.freeze([...x.granted_scopes]) });
 }
 
@@ -191,6 +244,8 @@ const INPUT_VALIDATORS = Object.freeze({
   search_public_reading_catalog: validateSearchInput,
   get_recent_explanation_metadata: validateExplanationInput,
   get_agent_connection: emptyInput,
+  get_due_review_items: validateDueItemsInput,
+  get_learner_profile: emptyInput,
 });
 const OUTPUT_VALIDATORS = Object.freeze({
   get_learning_brief: learningBrief,
@@ -198,6 +253,8 @@ const OUTPUT_VALIDATORS = Object.freeze({
   search_public_reading_catalog: publicSearch,
   get_recent_explanation_metadata: explanationMetadata,
   get_agent_connection: connection,
+  get_due_review_items: dueReviewItems,
+  get_learner_profile: learnerProfile,
 });
 
 function validateInput(tool, value) { const fn = INPUT_VALIDATORS[tool]; if (!fn) fail("UNKNOWN_TOOL"); return fn(value); }

@@ -31,17 +31,32 @@ function unfinishedAction(plan) {
   fail("AA_PLAN_METADATA_ACTION_UNKNOWN");
 }
 
+function struggleBand(lapses) {
+  const n = Number(lapses) || 0;
+  if (n >= 3) return "high";
+  if (n >= 1) return "some";
+  return "none";
+}
+function dueDay(due) {
+  const s = String(due || "");
+  return /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : null;
+}
+
 function createProductionHandlers(options = {}) {
   const learnerRepo = options.learnerGraphRepo;
   const agentRepo = options.agentRepo;
   const oauthRepo = options.oauthRepo;
   const publicCatalog = options.publicCatalog;
+  const keyingService = options.keyingService; // AA3: derives content from the shared public lexicon
+  const connectionPersistence = options.connectionPersistence; // AA3: control-plane window state
   const now = options.now || Date.now;
   const principalAccessExpiresAt = options.principalAccessExpiresAt;
-  if (!learnerRepo || typeof learnerRepo.getAgentAccessReviewAggregates !== "function"
-    || !agentRepo || typeof agentRepo.getLatestOpenPlanAction !== "function" || typeof agentRepo.listExplanationMetadata !== "function"
+  if (!learnerRepo || typeof learnerRepo.getAgentAccessReviewAggregates !== "function" || typeof learnerRepo.getDue !== "function"
+    || !agentRepo || typeof agentRepo.getLatestOpenPlanAction !== "function" || typeof agentRepo.listExplanationMetadata !== "function" || typeof agentRepo.getProfile !== "function"
     || !oauthRepo || typeof oauthRepo.loadConnection !== "function" || typeof oauthRepo.listConnectionsForUser !== "function"
     || !publicCatalog || typeof publicCatalog.isReadable !== "function" || typeof publicCatalog.search !== "function"
+    || !keyingService || typeof keyingService.displayForItemKey !== "function" || typeof keyingService.glossForItemKey !== "function"
+    || typeof connectionPersistence !== "function"
     || typeof now !== "function" || typeof principalAccessExpiresAt !== "function") fail("AA_PRODUCTION_HANDLER_DEPENDENCY_INVALID");
 
   async function get_learning_brief(context) {
@@ -104,6 +119,45 @@ function createProductionHandlers(options = {}) {
     });
   }
 
+  // AA3: due study words with meaning + a COARSE struggle band. Deliberately
+  // omits the acceptance set (alts), the expected answer, and the raw FSRS
+  // floats — grading stays deterministic and first-party in LinguistPro.
+  async function get_due_review_items(context, args) {
+    const clock = fixedNow(now);
+    const limit = Math.max(1, Math.min(20, Number(args && args.limit) || 20));
+    const [aggregate, due] = await Promise.all([
+      learnerRepo.getAgentAccessReviewAggregates(context.user_id, { nowMs: clock.ms }).then(validateAggregate),
+      learnerRepo.getDue(context.user_id, { nowMs: clock.ms, limit }),
+    ]);
+    const rows = Array.isArray(due) ? due.slice(0, limit) : [];
+    const items = [];
+    for (const row of rows) {
+      let display = String(row.item_key || "");
+      let gloss = null;
+      try { display = String(await keyingService.displayForItemKey(row.item_key)).slice(0, 64) || display.slice(0, 64); } catch (_) {}
+      try { const g = await keyingService.glossForItemKey(row.item_key); gloss = g && g.gloss ? String(g.gloss).slice(0, 120) : null; } catch (_) { gloss = null; }
+      const day = dueDay(row.due) || clock.iso.slice(0, 10);
+      items.push(Object.freeze({ display: display.slice(0, 64) || "?", gloss, struggle: struggleBand(row.lapses), due_day: day, content_available: gloss !== null }));
+    }
+    return Object.freeze({
+      schema_version: "aa.due_review_items.1.0.0",
+      items: Object.freeze(items),
+      due_total: aggregate.due_total,
+      truncated: aggregate.due_total > items.length,
+      generated_at: clock.iso,
+    });
+  }
+
+  async function get_learner_profile(context) {
+    const clock = fixedNow(now);
+    const profile = (await agentRepo.getProfile(context.user_id)) || {};
+    const mode = ["silent", "coach", "intensive"].includes(profile.mode) ? profile.mode : "silent";
+    const language = (String(profile.language || "ru").slice(0, 8)) || "ru";
+    let depth = "brief";
+    try { const g = profile.goals_json ? JSON.parse(profile.goals_json) : null; if (g && g.depth === "detailed") depth = "detailed"; } catch (_) {}
+    return Object.freeze({ schema_version: "aa.learner_profile.1.0.0", mode, language, depth, generated_at: clock.iso });
+  }
+
   async function get_agent_connection(context) {
     const clock = fixedNow(now);
     const [connection, listed] = await Promise.all([
@@ -127,6 +181,16 @@ function createProductionHandlers(options = {}) {
     const expiry = new Date(String(accessExpiresAt));
     if (!Number.isFinite(expiry.getTime()) || expiry.toISOString() !== String(accessExpiresAt) || expiry.getTime() <= clock.ms) fail("AA_CONNECTION_EXPIRY_INVALID");
     if (connection.capability_version !== CAPABILITY_VERSION) fail("AA_CONNECTION_CAPABILITY_INVALID");
+    // AA3: report the real access window (control-plane) so the agent stops
+    // mistaking the short access-token TTL for the connection lifetime.
+    const persistence = await connectionPersistence();
+    const lifetime = persistence && ["PERSISTENT_WINDOW", "TIMED_WINDOW", "TOKEN_ONLY"].includes(persistence.access_lifetime) ? persistence.access_lifetime : "TOKEN_ONLY";
+    let windowExpiresAt = null;
+    if (lifetime === "TIMED_WINDOW") {
+      const w = new Date(String(persistence.window_expires_at));
+      if (!Number.isFinite(w.getTime()) || w.toISOString() !== String(persistence.window_expires_at)) fail("AA_CONNECTION_PERSISTENCE_INVALID");
+      windowExpiresAt = w.toISOString();
+    }
     return Object.freeze({
       schema_version: "aa.connection.1.0.0",
       connection_id: context.connection_id,
@@ -135,6 +199,8 @@ function createProductionHandlers(options = {}) {
       connection_status: connection.status,
       granted_scopes: Object.freeze(activeFromConnection),
       access_expires_at: String(accessExpiresAt),
+      access_lifetime: lifetime,
+      window_expires_at: windowExpiresAt,
       consent_version: connection.consent_version,
       capability_version: connection.capability_version,
       downstream_retention_notice: "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO",
@@ -148,6 +214,8 @@ function createProductionHandlers(options = {}) {
     search_public_reading_catalog,
     get_recent_explanation_metadata,
     get_agent_connection,
+    get_due_review_items,
+    get_learner_profile,
   });
 }
 

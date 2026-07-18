@@ -29,12 +29,15 @@ const fixtures = Object.freeze({
   get_review_summary: Object.freeze({ schema_version: 'aa.review_summary.1.0.0', due_total: 12, urgent_total: 4, estimated_minutes: 9, handoff_eligible: false, handoff_scope_available: false, generated_at: new Date(nowSeconds * 1000).toISOString(), expires_at: new Date((nowSeconds + 120) * 1000).toISOString() }),
   search_public_reading_catalog: Object.freeze({ schema_version: 'aa.public_reading_search.1.0.0', catalog_version: 'catalog-fixture', results: Object.freeze([{ work_id: 'work-fixture', title: 'Public fixture work', author: 'Public fixture author', era: 'REVIVAL', genre: 'PROSE', language: 'he', sentence_count: 120, audio_available: false, ready_state: 'READY', first_party_path: '/library.html' }]), next_cursor: null, generated_at: new Date(nowSeconds * 1000).toISOString() }),
   get_recent_explanation_metadata: Object.freeze({ schema_version: 'aa.explanation_metadata.1.0.0', items: Object.freeze([{ explanation_id: 'explanation-fixture', created_at: new Date(nowSeconds * 1000).toISOString(), kind: 'word', construct_ids: Object.freeze(['construct-fixture']), purge_state: 'AVAILABLE' }]), next_before: null, generated_at: new Date(nowSeconds * 1000).toISOString() }),
-  get_agent_connection: Object.freeze({ schema_version: 'aa.connection.1.0.0', connection_id: connectionId, oauth_client_id: clientId, client_display_name: 'Fixture client', connection_status: 'ACTIVE', granted_scopes: Object.freeze(allScopes), access_expires_at: expiresAt, consent_version: 'consent-fixture', capability_version: 'aa-v0.1', downstream_retention_notice: 'EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO', generated_at: new Date(nowSeconds * 1000).toISOString() }),
+  get_agent_connection: Object.freeze({ schema_version: 'aa.connection.1.0.0', connection_id: connectionId, oauth_client_id: clientId, client_display_name: 'Fixture client', connection_status: 'ACTIVE', granted_scopes: Object.freeze(allScopes), access_expires_at: expiresAt, access_lifetime: 'PERSISTENT_WINDOW', window_expires_at: null, consent_version: 'consent-fixture', capability_version: 'aa-v0.1', downstream_retention_notice: 'EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO', generated_at: new Date(nowSeconds * 1000).toISOString() }),
+  get_due_review_items: Object.freeze({ schema_version: 'aa.due_review_items.1.0.0', items: Object.freeze([{ display: 'כָּתַב', gloss: 'написал', struggle: 'high', due_day: '2026-07-17', content_available: true }]), due_total: 12, truncated: true, generated_at: new Date(nowSeconds * 1000).toISOString() }),
+  get_learner_profile: Object.freeze({ schema_version: 'aa.learner_profile.1.0.0', mode: 'coach', language: 'ru', depth: 'detailed', generated_at: new Date(nowSeconds * 1000).toISOString() }),
 });
 const args = Object.freeze({
   get_learning_brief: {}, get_review_summary: {}, get_agent_connection: {},
   search_public_reading_catalog: { language: 'he', audio: 'ANY', ready: 'ANY', sort: 'RELEVANCE', limit: 10 },
   get_recent_explanation_metadata: { kinds: ['word'], limit: 10 },
+  get_due_review_items: { limit: 10 }, get_learner_profile: {},
 });
 
 function listen(server) { return new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', () => resolve(server.address())); }); }

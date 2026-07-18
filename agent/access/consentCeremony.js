@@ -5,15 +5,22 @@ const C = require("./oauthContracts");
 const { CAPABILITY_VERSION } = require("./capabilities");
 
 const CONSENT_VERSION = "agent-access-consent-v1";
-const RETENTION_NOTICE_VERSION = "downstream-retention-v1";
+// AA3: bumped so content-class scopes acknowledge the stronger retention framing.
+const RETENTION_NOTICE_VERSION = "downstream-retention-v2";
 const MAX_PENDING = 100;
 
+// retention_tier drives the consent UI's heightened block. AGGREGATE = counts/
+// metadata/public (AA2). CONTENT = learner-specific study data that leaves to the
+// external provider and cannot be recalled.
 const SCOPE_PRESENTATION = Object.freeze({
-  "learning.brief.read": Object.freeze({ capability: "get_learning_brief", purpose: "CURRENT_LEARNING_PRIORITY", data_class: "BOUNDED_AGGREGATE", excludes: "NO_WORDS_ITEMS_ANSWERS_OR_PRIVATE_EVIDENCE", first_party_action: "/index.html" }),
-  "review.summary.read": Object.freeze({ capability: "get_review_summary", purpose: "REVIEW_AVAILABILITY_AND_HANDOFF_ELIGIBILITY", data_class: "COUNTS_DURATION_ELIGIBILITY", excludes: "NO_REVIEW_ITEMS_ANSWERS_GRADES_OR_FSRS", first_party_action: "/index.html" }),
-  "reading.public.search": Object.freeze({ capability: "search_public_reading_catalog", purpose: "PUBLIC_READING_DISCOVERY", data_class: "PUBLIC_CORPUS_METADATA", excludes: "NO_PRIVATE_TEXT_OR_CORPUS_BODY", first_party_action: "/library.html" }),
-  "explanations.metadata.read": Object.freeze({ capability: "get_recent_explanation_metadata", purpose: "EXPLANATION_REVISIT", data_class: "IDS_DATES_KINDS_CONSTRUCT_IDS_PURGE_STATE", excludes: "NO_EXPLANATION_BODY_OR_SOURCE_BODY", first_party_action: "/index.html" }),
-  "agent.connection.read": Object.freeze({ capability: "get_agent_connection", purpose: "CONNECTION_SELF_INSPECTION", data_class: "CONNECTION_AND_GRANT_METADATA", excludes: "NO_TOKEN_COOKIE_CSRF_SUBJECT_OR_PRIVATE_DATA", first_party_action: "/agent-access.html" }),
+  "learning.brief.read": Object.freeze({ capability: "get_learning_brief", purpose: "CURRENT_LEARNING_PRIORITY", data_class: "BOUNDED_AGGREGATE", retention_tier: "AGGREGATE", excludes: "NO_WORDS_ITEMS_ANSWERS_OR_PRIVATE_EVIDENCE", first_party_action: "/index.html" }),
+  "review.summary.read": Object.freeze({ capability: "get_review_summary", purpose: "REVIEW_AVAILABILITY_AND_HANDOFF_ELIGIBILITY", data_class: "COUNTS_DURATION_ELIGIBILITY", retention_tier: "AGGREGATE", excludes: "NO_REVIEW_ITEMS_ANSWERS_GRADES_OR_FSRS", first_party_action: "/index.html" }),
+  "reading.public.search": Object.freeze({ capability: "search_public_reading_catalog", purpose: "PUBLIC_READING_DISCOVERY", data_class: "PUBLIC_CORPUS_METADATA", retention_tier: "AGGREGATE", excludes: "NO_PRIVATE_TEXT_OR_CORPUS_BODY", first_party_action: "/library.html" }),
+  "explanations.metadata.read": Object.freeze({ capability: "get_recent_explanation_metadata", purpose: "EXPLANATION_REVISIT", data_class: "IDS_DATES_KINDS_CONSTRUCT_IDS_PURGE_STATE", retention_tier: "AGGREGATE", excludes: "NO_EXPLANATION_BODY_OR_SOURCE_BODY", first_party_action: "/index.html" }),
+  "agent.connection.read": Object.freeze({ capability: "get_agent_connection", purpose: "CONNECTION_SELF_INSPECTION", data_class: "CONNECTION_AND_GRANT_METADATA", retention_tier: "AGGREGATE", excludes: "NO_TOKEN_COOKIE_CSRF_SUBJECT_OR_PRIVATE_DATA", first_party_action: "/agent-access.html" }),
+  // AA3 slice-1 content scopes.
+  "review.items.read": Object.freeze({ capability: "get_due_review_items", purpose: "DUE_STUDY_WORDS_FOR_DISCUSSION", data_class: "LEARNING_CONTENT_STUDY_WORDS", retention_tier: "CONTENT", excludes: "NO_ACCEPTANCE_SET_EXPECTED_ANSWER_OR_RAW_MEMORY_MODEL", first_party_action: "/index.html" }),
+  "profile.read": Object.freeze({ capability: "get_learner_profile", purpose: "LEARNING_PROFILE_CONTEXT", data_class: "COARSE_PROFILE_MODE_LANGUAGE_DEPTH", retention_tier: "CONTENT", excludes: "NO_FREE_TEXT_GOALS_OR_IDENTIFIERS", first_party_action: "/agent-access.html" }),
 });
 
 function error(code) { const e = new Error(code); e.code = code; throw e; }
@@ -104,11 +111,19 @@ function createConsentCeremony({ oauthRepo, recordConsent, now = () => new Date(
       request_id: row.request_id,
       client_display_name: row.client_display_name,
       connection_label: row.connection_label,
-      requested_scopes: Object.freeze(row.requested_scopes.map((scope) => Object.freeze({
-        scope,
-        ...SCOPE_PRESENTATION[scope],
-        downstream_retention: "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO",
-      }))),
+      requested_scopes: Object.freeze(row.requested_scopes.map((scope) => {
+        // Fail-closed: an un-presented scope must never render approvable.
+        const presentation = SCOPE_PRESENTATION[scope];
+        if (!presentation || !presentation.data_class || !presentation.retention_tier) error("AA_CONSENT_SCOPE_UNPRESENTED");
+        return Object.freeze({
+          scope,
+          ...presentation,
+          downstream_retention: presentation.retention_tier === "CONTENT"
+            ? "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO_CONTENT_IRRECOVERABLE"
+            : "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO",
+        });
+      })),
+      retention_tier: row.requested_scopes.some((scope) => (SCOPE_PRESENTATION[scope] || {}).retention_tier === "CONTENT") ? "CONTENT" : "AGGREGATE",
       consent_version: CONSENT_VERSION,
       capability_version: CAPABILITY_VERSION,
       retention_notice_version: RETENTION_NOTICE_VERSION,
@@ -136,9 +151,13 @@ function createConsentCeremony({ oauthRepo, recordConsent, now = () => new Date(
       }
     }
 
-    if (x.retention_ack !== true
-      || selected.length !== row.requested_scopes.length
-      || selected.some((scope, index) => scope !== row.requested_scopes[index])) error("AA_CONSENT_PARTIAL_APPROVAL");
+    // AA3 (R15-F3): allow a strict SUBSET of the requested scopes so the owner
+    // can take coarse-without-fine (e.g. review.summary.read without
+    // review.items.read). Selected must be non-empty and ⊆ requested.
+    const requestedSet = new Set(row.requested_scopes);
+    if (x.retention_ack !== true || !selected.length
+      || new Set(selected).size !== selected.length
+      || selected.some((scope) => !requestedSet.has(scope))) error("AA_CONSENT_APPROVAL_INVALID");
 
     pending.set(row.request_id, Object.freeze({ ...row, status: "PROCESSING" }));
     try {

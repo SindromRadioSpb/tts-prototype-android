@@ -8,6 +8,13 @@ const SCOPES = Object.freeze([
   "reading.public.search",
   "explanations.metadata.read",
   "agent.connection.read",
+  // AA3 slice-1: richer reads (content), first-party handoff, propose-then-confirm.
+  "review.items.read",
+  "profile.read",
+  "explanations.body.read",
+  "reading.corpus.read",
+  "reading.handoff.create",
+  "intent.propose",
 ]);
 const SCOPE_SET = new Set(SCOPES);
 const SAFE = /^[A-Za-z0-9_.:@/-]+$/;

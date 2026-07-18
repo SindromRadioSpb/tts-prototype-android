@@ -25,7 +25,7 @@ const OTHER = "synthetic-other";
 const CLIENT = "synthetic-client";
 const CONNECTION = "synthetic-connection";
 const OTHER_CONNECTION = "synthetic-other";
-const SCOPES = ["learning.brief.read", "review.summary.read", "reading.public.search", "explanations.metadata.read", "agent.connection.read"];
+const SCOPES = ["learning.brief.read", "review.summary.read", "reading.public.search", "explanations.metadata.read", "agent.connection.read", "review.items.read", "profile.read"];
 const KNOWN_CONSTRUCT = "construct:hebrew.channel_gap.reading_to_dictation";
 
 function expectCode(promise, code) {
@@ -101,6 +101,9 @@ function exactOwnerParser() {
     await due("ignored", "2026-07-15T12:00:00.000Z");
     await ctx.run(`INSERT INTO review_log (user_id,id,item_key,kind,reviewed_at,source,meta_json) VALUES (?,?,?,?,?,?,?)`,
       [OWNER, "mark-ignore", "ignored", "mark", "2026-07-17T10:00:00.000Z", "fixture", JSON.stringify({ status: "ignore" })]);
+    // AA3: a resolvable, struggling (lapses>=3) due item + a coach/detailed profile.
+    await ctx.run(`INSERT INTO srs_projections (user_id,item_key,due,lapses) VALUES (?,?,?,?)`, [OWNER, "כתב#verb", "2026-07-17T09:00:00.000Z", 3]);
+    await ctx.run(`INSERT INTO agent_profiles (user_id,mode,language,goals_json) VALUES (?,?,?,?)`, [OWNER, "coach", "ru", JSON.stringify({ depth: "detailed" })]);
     await ctx.run(`INSERT INTO agent_tasks (id,user_id,kind,status,payload_json,created_at) VALUES (?,?,?,?,?,?)`,
       ["plan-open", OWNER, "plan", "open", JSON.stringify({ sections: [{ id: "fresh_struggles", items: ["private-item-sentinel"] }] }), "2026-07-17T11:00:00.000Z"]);
 
@@ -124,7 +127,13 @@ function exactOwnerParser() {
 
     sidecars(ctx.dir);
     const catalog = createPublicReadingCatalog({ baseDir: ctx.dir, catalogVersion: () => 7, cursorKey: Buffer.alloc(32, 7) });
-    const handlers = createProductionHandlers({ learnerGraphRepo, agentRepo, oauthRepo, publicCatalog: catalog, now: () => NOW, principalAccessExpiresAt: () => EXPIRY });
+    // AA3: light keying fixture (avoid loading the real 306MB lexicon in tests).
+    const keyingFixture = {
+      displayForItemKey: async (k) => (k === "כתב#verb" ? "כָּתַב" : String(k)),
+      glossForItemKey: async (k) => (k === "כתב#verb" ? { gloss: "написал", expected: "כתב", decisive: true, strictSafe: true, alts: ["רשם"] } : null),
+    };
+    const persistenceFixture = async () => ({ access_lifetime: "PERSISTENT_WINDOW", window_expires_at: null });
+    const handlers = createProductionHandlers({ learnerGraphRepo, agentRepo, oauthRepo, publicCatalog: catalog, keyingService: keyingFixture, connectionPersistence: persistenceFixture, now: () => NOW, principalAccessExpiresAt: () => EXPIRY });
     const service = createAgentAccessService({ enabled: true, ownerIds: [OWNER], handlers, now: () => NOW });
 
     global.fetch = networkTripwire; http.request = networkTripwire; http.get = networkTripwire; https.request = networkTripwire; https.get = networkTripwire;
@@ -133,16 +142,49 @@ function exactOwnerParser() {
 
     const brief = await service.execute(principal(), "get_learning_brief", {});
     assert.ok(brief.ok); assert.deepStrictEqual(brief.result, {
-      schema_version: "aa.learning_brief.1.0.0", due_total: 2, urgent_total: 1, scheduled_total: 3,
-      estimated_minutes: 2, priority_code: "REVIEW_DUE", unfinished_action_code: "REVIEW_AVAILABLE",
+      schema_version: "aa.learning_brief.1.0.0", due_total: 3, urgent_total: 1, scheduled_total: 4,
+      estimated_minutes: 3, priority_code: "REVIEW_DUE", unfinished_action_code: "REVIEW_AVAILABLE",
       generated_at: "2026-07-17T12:00:00.000Z", expires_at: "2026-07-17T12:05:00.000Z",
     }); checks++;
     const review = await service.execute(principal({ request_id: "review-request" }), "get_review_summary", {});
     assert.ok(review.ok); assert.deepStrictEqual(review.result, {
-      schema_version: "aa.review_summary.1.0.0", due_total: 2, urgent_total: 1, estimated_minutes: 2,
+      schema_version: "aa.review_summary.1.0.0", due_total: 3, urgent_total: 1, estimated_minutes: 3,
       handoff_eligible: false, handoff_scope_available: false,
       generated_at: "2026-07-17T12:00:00.000Z", expires_at: "2026-07-17T12:02:00.000Z",
     }); checks++;
+
+    // AA3 slice-1 — get_due_review_items (content, coarse band, NO answer-key).
+    const dueItems = await service.execute(principal({ request_id: "due-items" }), "get_due_review_items", { limit: 20 });
+    assert.ok(dueItems.ok, JSON.stringify(dueItems)); const di = dueItems.result;
+    assert.strictEqual(di.schema_version, "aa.due_review_items.1.0.0");
+    assert.strictEqual(di.due_total, 3); assert.strictEqual(di.truncated, false);
+    const struggler = di.items.find((it) => it.display === "כָּתַב");
+    assert.ok(struggler && struggler.gloss === "написал" && struggler.struggle === "high" && struggler.content_available === true, JSON.stringify(di.items));
+    // Answer-key / raw-model fields must NEVER appear.
+    for (const it of di.items) assert.deepStrictEqual(Object.keys(it).sort(), ["content_available", "display", "due_day", "gloss", "struggle"]);
+    const leakStr = JSON.stringify(di);
+    for (const forbidden of ["alts", "expected", "stability", "difficulty", "reps", "reviewed_at", "item_key"]) assert.ok(!leakStr.includes(forbidden), `leak:${forbidden}`);
+    checks++;
+    // Truncation honesty: limit smaller than due_total -> truncated true.
+    const dueCapped = await service.execute(principal({ request_id: "due-cap" }), "get_due_review_items", { limit: 1 });
+    assert.ok(dueCapped.ok && dueCapped.result.items.length === 1 && dueCapped.result.due_total === 3 && dueCapped.result.truncated === true); checks++;
+
+    // AA3 slice-1 — get_learner_profile (typed projection, no goals_json/user_id).
+    const prof = await service.execute(principal({ request_id: "profile" }), "get_learner_profile", {});
+    assert.ok(prof.ok); assert.deepStrictEqual(prof.result, {
+      schema_version: "aa.learner_profile.1.0.0", mode: "coach", language: "ru", depth: "detailed",
+      generated_at: "2026-07-17T12:00:00.000Z",
+    }); checks++;
+    for (const forbidden of ["goals_json", "user_id", "created_at", "updated_at", "detailed", "coach"]) { /* only enums allowed as values */ }
+    assert.ok(!JSON.stringify(prof.result).includes("user_id") && !JSON.stringify(prof.result).includes("goals_json")); checks++;
+
+    // AA3 — connection_persistence: PERSISTENT_WINDOW from the fixture resolver.
+    const conn = await service.execute(principal({ request_id: "conn-persist" }), "get_agent_connection", {});
+    assert.ok(conn.ok); assert.strictEqual(conn.result.access_lifetime, "PERSISTENT_WINDOW"); assert.strictEqual(conn.result.window_expires_at, null); checks++;
+
+    // Scope gating: a token WITHOUT review.items.read cannot call get_due_review_items.
+    const narrow = await service.execute(principal({ request_id: "narrow", scopes: ["agent.connection.read"] }), "get_due_review_items", { limit: 5 });
+    assert.ok(!narrow.ok && narrow.error.code === "INSUFFICIENT_SCOPE"); checks++;
 
     const searchArgs = { language: "he", audio: "ANY", ready: "ANY", sort: "RELEVANCE", limit: 3 };
     const search = await service.execute(principal({ request_id: "search-request" }), "search_public_reading_catalog", searchArgs);
@@ -192,7 +234,7 @@ function exactOwnerParser() {
     assert.deepStrictEqual(connection.result.granted_scopes, SCOPES.slice().sort()); assert.strictEqual(connection.result.access_expires_at, EXPIRY); checks++;
     const wrongUser = await service.execute(principal({ user_id: OTHER, connection_id: CONNECTION, request_id: "wrong-user" }), "get_agent_connection", {});
     assert.ok(!wrongUser.ok && wrongUser.error.code === "OWNER_NOT_ALLOWED"); checks++;
-    const wrongClientHandlers = createProductionHandlers({ learnerGraphRepo, agentRepo, oauthRepo, publicCatalog: catalog, now: () => NOW, principalAccessExpiresAt: () => EXPIRY });
+    const wrongClientHandlers = createProductionHandlers({ learnerGraphRepo, agentRepo, oauthRepo, publicCatalog: catalog, keyingService: keyingFixture, connectionPersistence: persistenceFixture, now: () => NOW, principalAccessExpiresAt: () => EXPIRY });
     await expectCode(wrongClientHandlers.get_agent_connection({ user_id: OWNER, oauth_client_id: "wrong-client", connection_id: CONNECTION, request_id: "wrong-client" }), "AA_CONNECTION_BINDING_MISMATCH"); checks++;
     await expectCode(wrongClientHandlers.get_agent_connection({ user_id: OWNER, oauth_client_id: CLIENT, connection_id: OTHER_CONNECTION, request_id: "wrong-connection" }), "AA_OAUTH_CONNECTION_NOT_FOUND"); checks++;
     assert.strictEqual((await service.execute(principal({ request_id: "unknown-input" }), "get_learning_brief", { user_id: OWNER })).error.code, "UNKNOWN_FIELD"); checks++;
@@ -226,9 +268,9 @@ function exactOwnerParser() {
     assert.throws(() => corruptJoin.isReadable(), /AA_PUBLIC_CATALOG_READY_JOIN_MISMATCH/); checks++;
 
     const poisonedHandlers = createProductionHandlers({
-      learnerGraphRepo: { getAgentAccessReviewAggregates: async () => ({ scheduled_total: 100001, due_total: 0, urgent_total: 0 }) },
-      agentRepo: { getLatestOpenPlanAction: async () => null, listExplanationMetadata: async () => ({ items: [{ explanation_id: "bad", created_at: "2026-07-17T11:00:00.000Z", kind: "word", construct_ids: [], purge_state: "AVAILABLE", leaked: true }], next_before: null }) },
-      oauthRepo, publicCatalog: catalog, now: () => NOW, principalAccessExpiresAt: () => EXPIRY,
+      learnerGraphRepo: { getAgentAccessReviewAggregates: async () => ({ scheduled_total: 100001, due_total: 0, urgent_total: 0 }), getDue: async () => [] },
+      agentRepo: { getLatestOpenPlanAction: async () => null, listExplanationMetadata: async () => ({ items: [{ explanation_id: "bad", created_at: "2026-07-17T11:00:00.000Z", kind: "word", construct_ids: [], purge_state: "AVAILABLE", leaked: true }], next_before: null }), getProfile: async () => ({}) },
+      oauthRepo, publicCatalog: catalog, keyingService: keyingFixture, connectionPersistence: persistenceFixture, now: () => NOW, principalAccessExpiresAt: () => EXPIRY,
     });
     await expectCode(poisonedHandlers.get_learning_brief({ user_id: OWNER }), "AA_REVIEW_AGGREGATE_OVERFLOW");
     const poisonedService = createAgentAccessService({ enabled: true, ownerIds: [OWNER], handlers: poisonedHandlers, now: () => NOW });
@@ -248,7 +290,8 @@ function exactOwnerParser() {
         get_agent_connection: async () => ({
           schema_version: "aa.connection.1.0.0", connection_id: CONNECTION, oauth_client_id: CLIENT,
           client_display_name: "x".repeat(5000), connection_status: "ACTIVE", granted_scopes: SCOPES,
-          access_expires_at: EXPIRY, consent_version: "aa-consent-v1", capability_version: "aa-v0.1",
+          access_expires_at: EXPIRY, access_lifetime: "PERSISTENT_WINDOW", window_expires_at: null,
+          consent_version: "aa-consent-v1", capability_version: "aa-v0.1",
           downstream_retention_notice: "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO", generated_at: "2026-07-17T12:00:00.000Z",
         }),
       },
@@ -299,7 +342,7 @@ function exactOwnerParser() {
     }
     checks++;
 
-    console.log(JSON.stringify({ ok: true, checks, tools: 5, owner_allowlist_count: 1, owner_match: true, zero_table_deltas: true, network_calls: 0, provider_calls: 0, llm_calls: 0, byok_calls: 0, sentinel_occurrences: 0 }));
+    console.log(JSON.stringify({ ok: true, checks, tools: 7, owner_allowlist_count: 1, owner_match: true, zero_table_deltas: true, network_calls: 0, provider_calls: 0, llm_calls: 0, byok_calls: 0, sentinel_occurrences: 0 }));
   } finally {
     global.fetch = originalFetch; http.request = originalHttpRequest; http.get = originalHttpGet; https.request = originalHttpsRequest; https.get = originalHttpsGet;
     await T.cleanup(ctx);

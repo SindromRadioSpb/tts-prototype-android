@@ -1690,6 +1690,7 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
       const { createPublicReadingCatalog } = require("./agent/access/publicReadingCatalog");
       const learnerGraphRepoForAgentAccess = require("./db/learnerGraphRepo");
       const agentRepoForAgentAccess = require("./db/agentRepo");
+      const keyingServiceForAgentAccess = require("./db/keyingService");
       const nextTextForAgentAccess = require("./agent/nextText");
       const principalContext = new AsyncLocalStorage();
       const handlers = createProductionHandlers({
@@ -1697,6 +1698,18 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
         agentRepo: agentRepoForAgentAccess,
         oauthRepo: agentAccessOAuthRepo,
         publicCatalog: createPublicReadingCatalog({ catalogVersion: nextTextForAgentAccess.catalogVersion }),
+        keyingService: keyingServiceForAgentAccess,
+        // AA3: report the real access window (control-plane) rather than the token TTL.
+        connectionPersistence: async () => {
+          try {
+            const resolved = await agentAccessFlagResolver.resolve(true);
+            const mcp = resolved && resolved.detail ? resolved.detail.mcp : null;
+            if (!mcp) return { access_lifetime: "TOKEN_ONLY", window_expires_at: null };
+            if (mcp.source === "env" || mcp.source === "db_permanent") return { access_lifetime: "PERSISTENT_WINDOW", window_expires_at: null };
+            if (mcp.source === "db_window" && mcp.expires_at) return { access_lifetime: "TIMED_WINDOW", window_expires_at: mcp.expires_at };
+            return { access_lifetime: "TOKEN_ONLY", window_expires_at: null };
+          } catch (_) { return { access_lifetime: "TOKEN_ONLY", window_expires_at: null }; }
+        },
         now: Date.now,
         principalAccessExpiresAt: (context) => {
           const principal = principalContext.getStore();

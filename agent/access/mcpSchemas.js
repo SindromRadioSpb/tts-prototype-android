@@ -33,6 +33,8 @@ const INPUT_SCHEMAS = Object.freeze({
     limit: integer(1, 20),
   }, ["kinds", "limit"]),
   get_agent_connection: closedObject({}, []),
+  get_due_review_items: closedObject({ limit: integer(1, 20) }, []),
+  get_learner_profile: closedObject({}, []),
 });
 
 const timestamp = string({ maxLength: 40, pattern: TIME });
@@ -78,8 +80,28 @@ const OUTPUT_SCHEMAS = Object.freeze({
     schema_version: string({ const: "aa.connection.1.0.0" }), connection_id: id, oauth_client_id: id,
     client_display_name: string({ maxLength: 120 }), connection_status: connectionState,
     granted_scopes: Object.freeze({ type: "array", maxItems: 16, uniqueItems: true, items: scope }), access_expires_at: timestamp,
+    access_lifetime: string({ enum: Object.freeze(["PERSISTENT_WINDOW", "TIMED_WINDOW", "TOKEN_ONLY"]) }),
+    window_expires_at: Object.freeze({ anyOf: Object.freeze([timestamp, Object.freeze({ type: "null" })]) }),
     consent_version: id, capability_version: string({ const: "aa-v0.1" }),
     downstream_retention_notice: string({ const: "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO" }), generated_at: timestamp,
+  }),
+  get_due_review_items: closedObject({
+    schema_version: string({ const: "aa.due_review_items.1.0.0" }),
+    items: Object.freeze({ type: "array", maxItems: 20, items: closedObject({
+      display: string({ maxLength: 64 }),
+      gloss: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 120 }), Object.freeze({ type: "null" })]) }),
+      struggle: string({ enum: Object.freeze(["none", "some", "high"]) }),
+      due_day: string({ maxLength: 10, pattern: "^\\d{4}-\\d{2}-\\d{2}$" }),
+      content_available: Object.freeze({ type: "boolean" }),
+    }) }),
+    due_total: integer(0, 100000), truncated: Object.freeze({ type: "boolean" }), generated_at: timestamp,
+  }),
+  get_learner_profile: closedObject({
+    schema_version: string({ const: "aa.learner_profile.1.0.0" }),
+    mode: string({ enum: Object.freeze(["silent", "coach", "intensive"]) }),
+    language: string({ maxLength: 8 }),
+    depth: string({ enum: Object.freeze(["brief", "detailed"]) }),
+    generated_at: timestamp,
   }),
 });
 
@@ -88,7 +110,9 @@ const DESCRIPTIONS = Object.freeze({
   get_review_summary: "Return bounded review availability counts and duration only; never return review items, answers, or grades.",
   search_public_reading_catalog: "Search public Reading Room metadata only; never return corpus bodies, snippets, or learner-specific ranking.",
   get_recent_explanation_metadata: "Return bounded explanation history metadata only; never return explanation or source content.",
-  get_agent_connection: "Return status, grants, expiry, and retention notice for the current Agent Access connection only.",
+  get_agent_connection: "Return status, grants, access lifetime, and retention notice for the current Agent Access connection only.",
+  get_due_review_items: "Return the owner's due study words with meaning and a coarse struggle band, for discussion. Never returns the acceptance set, expected answer, or raw memory model; grading stays in LinguistPro.",
+  get_learner_profile: "Return the owner's coarse learning profile (mode, language, depth) only; never free-text goals or identifiers.",
 });
 
 function toolDefinitions() {
