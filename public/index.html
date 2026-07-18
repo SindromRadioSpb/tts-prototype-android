@@ -585,6 +585,17 @@
         gap: 6px;
     }
 
+    /* AA4-4b — pending agent-proposal chip (classic home). Outlined banner under the
+       shell head; <a>, so the mobile button{width:100%} trap does not apply. */
+    .classic-agent-cta {
+        display: block; margin: 0 0 12px; padding: 10px 14px; text-align: center;
+        border: 1px solid var(--theme-border-soft); border-radius: 10px;
+        background: var(--theme-bg-input, rgba(0,0,0,0.03)); color: inherit;
+        font-size: 14px; font-weight: 700; text-decoration: none; box-sizing: border-box;
+    }
+    .classic-agent-cta[hidden] { display: none; }   /* author display beats UA [hidden] → explicit guard */
+    .classic-agent-cta:hover { filter: brightness(1.05); }
+
     .classic-nav-card {
         display: flex;
         flex-direction: column;
@@ -10002,9 +10013,6 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     <button id="v3IdeFeedbackBtn" class="btn-ide" onclick="v3FeedbackOpen()" data-i18n-title="feedback.btnTitle" data-i18n-aria-label="feedback.btnTitle" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">
       📬
     </button>
-    <!-- AA4-4b — pending agent-proposal chip (count only; agent TEXT renders solely on the
-         enforced-CSP agent-access page). Quiet-fail hidden without session or at zero. -->
-    <a id="v3IdeAgentProposals" class="btn-ide" href="/agent-access.html" hidden style="text-decoration:none;"></a>
     <button id="v3IdeThemeBtn" class="app-theme-toggle" onclick="v3ThemeCycle()" data-i18n-title="theme.toggleTitle" data-i18n-aria-label="theme.toggleTitle" title="Переключить тему интерфейса" aria-label="Переключить тему интерфейса">🌗</button>
     <div class="lang-select-wrap">
       <select id="appLangSelectIde" class="lang-select" onchange="appSetLocale(this.value)" aria-label="Язык интерфейса" title="Язык интерфейса">
@@ -10487,6 +10495,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                   </div>
                 </div>
             </div>
+
+            <!-- AA4-4b — pending agent-proposal chip (count only; agent TEXT renders solely on
+                 the enforced-CSP agent-access page). Quiet-fail hidden without session/at zero. -->
+            <a id="v3ClassicAgentProposals" class="classic-agent-cta" href="/agent-access.html" hidden></a>
 
             <div class="classic-workspace-grid">
                 <div class="classic-workflow-column">
@@ -46115,12 +46127,13 @@ document.addEventListener("i18n:changed", function () {
 </script>
 
 <script>
-  // AA4-4b — pending agent-proposal chip (IDE header). Count ONLY: agent-authored
-  // text renders solely on the enforced-CSP /agent-access.html. Quiet-fail:
-  // 401/403/404/network → chip stays hidden (may under-claim, never over-claim;
-  // the panel keeps its own entry). Refetch on tab return (long-lived PWA tabs).
+  // AA4-4b — pending agent-proposal chip (classic home; owner runs classic, not
+  // IDE). Count ONLY: agent-authored text renders solely on the enforced-CSP
+  // /agent-access.html. Quiet-fail: 401/403/404/network → chip stays hidden
+  // (may under-claim, never over-claim; the panel keeps its own entry).
+  // Refetch on tab return (long-lived PWA tabs).
   (() => {
-    const chip = document.getElementById("v3IdeAgentProposals");
+    const chip = document.getElementById("v3ClassicAgentProposals");
     if (!chip) return;
     async function refresh() {
       let n = 0;
@@ -46130,8 +46143,8 @@ document.addEventListener("i18n:changed", function () {
       } catch (_) { n = 0; }
       chip.hidden = !(n > 0);
       if (n > 0) {
-        const label = (typeof window.t === "function" ? window.t("ide.agentProposals") : null);
-        chip.textContent = (label && label !== "ide.agentProposals" ? label : "🤝 Агент") + ": " + n;
+        const label = (typeof window.t === "function" ? window.t("room.agent.proposalsChip") : null);
+        chip.textContent = "🤝 " + (label && label !== "room.agent.proposalsChip" ? label : "Предложения агента") + ": " + n + " →";
       }
     }
     refresh();
