@@ -93,6 +93,18 @@ Read-фундамент задеплоен default-off (`415ef50`), миграц
 
 **Commit 2 (actions) — остался:** `get_explanation_body` (purge_state), `get_reading_content` (корпус-окна), `create_reading_handoff` (corpus-only через `publicCatalog.resolveWork`, rate-limit), `propose_action` (W1, миграция 045 `agent_proposals`, owner-confirm UI). Спец — §1/§2 + план `toasty-greeting-balloon.md`.
 
+## 5c. Commit 2 + 3a SHIPPED + owner live-verified (v3.11.201–204)
+
+Итерации по фактам live-тестирования Hermes:
+- **v3.11.201 `aff697b`** — schema-stability fix: `get_agent_connection` вернули к стабильной 11-полевой схеме (мутация выхода существующего инструмента ломала клиента с закешированной схемой `additionalProperties:false`), информацию об окне вынесли в новый additive `get_access_window` (scope agent.connection.read). **УРОК: не мутировать выходную схему существующего MCP-инструмента — добавлять новый.**
+- **v3.11.202 `424cb60`** — commit 3a: `get_due_review_items` теперь ПАГИНИРУЕТ (limit 1–100 + opaque offset-курсор; next_cursor null на последней странице) — агент проходит все 140 due, не только топ-20; `get_explanation_body` (scope explanations.body.read, purge-aware) — читает тело объяснения ментора (text / retell lines), НЕ переэкспонирует цитируемое исходное предложение.
+- **v3.11.203 `2218cbd`** — fail-closed consent поймал отсутствие SCOPE_PRESENTATION для explanations.body.read (AA_CONSENT_SCOPE_UNPRESENTED); добавили content-tier запись + independent-oracle смоук (каждый capability-scope обязан иметь presentation).
+- **v3.11.204 `2f08015`** — byte-safe truncation: handler резал display/gloss/text по СИМВОЛАМ, а валидатор капает по БАЙТАМ (иврит/кириллица ~2 б/симв) → SCHEMA_INVALID при limit 100; `byteSlice(v,maxBytes)` для display(64)/gloss(120)/text(6000)/lines(500).
+
+**Live через токен Hermes (9 инструментов):** пагинация — стр.1 (100 слов)+cursor → стр.2 (40)+null; `get_explanation_body` — kind sentence, AVAILABLE, реальный текст объяснения; purged → PURGED без контента. Owner re-consent на 8 scope (3 content-карточки). Гейты: production-handlers 38/9-tools, mcp 49/9, domain 25/9-caps, control-plane 54.
+
+**Осталось — commit 3b (actions):** `get_reading_content` (нужен новый `corpusSentenceRepo.listWorkTexts(work_id)` для резолва text_key + мультиглавные работы), `create_reading_handoff` (corpus-only, mint напрямую), `propose_action` (W1, миграция 045 `agent_proposals` — шаблон из мигр.040 `learner_memory_records` с partial-unique dedupe-индексом; owner-confirm UI). Кандидат отдельно: delta/changelog-инструмент («что изменилось с прошлого раза») — Hermes отметил пробел.
+
 ## 6. Вне scope AA3
 
 Запись в учебную правду (Ярус C — Ментор, не Hermes); мультиарендность; новые LLM-вызовы от агента (R16 — агент не тратит серверный бюджет); client-side OPFS-мост для client-only данных.
