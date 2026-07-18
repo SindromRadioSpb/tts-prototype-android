@@ -6,6 +6,7 @@ const fs = require("fs");
 const path = require("path");
 const capabilities = require("../../agent/access/capabilities");
 const { createAgentAccessService } = require("../../agent/access/service");
+const { SCOPE_PRESENTATION } = require("../../agent/access/consentCeremony");
 const scenarios = require("../../agent/controlPlane/scenarioRegistry");
 
 const NOW = Date.parse("2026-07-17T09:00:00.000Z");
@@ -133,6 +134,15 @@ async function expectCode(promise, code) {
     await expectCode(service({ handlers: poisoned }).execute(principal, "get_learning_brief", {}), "UNKNOWN_FIELD"); checks++;
     const mismatched = handlers({ get_agent_connection: async () => ({ ...fixtures.get_agent_connection, connection_id: "connection-other" }) });
     await expectCode(service({ handlers: mismatched }).execute(principal, "get_agent_connection", {}), "CONNECTION_BINDING_MISMATCH"); checks++;
+
+    // Independent oracle (R15-F1 fail-closed): every capability scope must have a
+    // consent presentation entry with data_class + retention_tier, or the consent
+    // preview fails closed (AA_CONSENT_SCOPE_UNPRESENTED) and the scope is unusable.
+    for (const scope of new Set(Object.values(capabilities.CAPABILITIES).map((x) => x.scope))) {
+      const p = SCOPE_PRESENTATION[scope];
+      assert.ok(p && p.data_class && ["AGGREGATE", "CONTENT"].includes(p.retention_tier), `scope ${scope} missing consent presentation`);
+    }
+    checks++;
 
     const capScenarioIds = Object.values(capabilities.CAPABILITIES).map((x) => x.scenario_id).sort();
     assert.strictEqual(new Set(capScenarioIds).size, capabilities.capabilityNames().length);
