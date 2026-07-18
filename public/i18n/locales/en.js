@@ -1909,6 +1909,7 @@ window.I18N_LOCALES.en = {
   },
   room: {
     handoff: {
+      reviewFailed: "Could not open the review session — refresh the page and tap «🔁 Review».",
       expired: "This link has expired or was already used — open it again.",
       corpusMissing: "The work was not found in the Reading Room catalog — refresh the page and open the Corpus tab.",
       unknown: "This link is not supported by this app version — refresh the page.",

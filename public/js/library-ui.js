@@ -8403,16 +8403,27 @@ async function boot() {
         try { history.replaceState(null, '', location.pathname); } catch (_) {}
         let hj = null;
         try { hj = await (await fetch('/api/reading-handoffs/redeem?t=' + encodeURIComponent(handoffTok))).json(); } catch (_) {}
-        if (hj && hj.ok && hj.text_key) {
+        if (hj && hj.ok) {
           const hAction = String(hj.action || 'open_reader');
           // Local-first resolver: a materialized text (personal OR an already-imported
-          // corpus work) opens directly by text_key on either action branch.
+          // corpus work) opens directly by text_key on either anchor branch.
           const openLocal = async () => {
+            if (!hj.text_key) return false;
             const hrows = await localDb.dbQuery('SELECT id, title FROM texts WHERE text_key = ? LIMIT 1', [String(hj.text_key)]);
             if (hrows && hrows[0]) { openReader(hrows[0].id, hrows[0].title, { scrollToOrderIndex: Number(hj.order_index) }); return true; }
             return false;
           };
-          if (hAction === 'open_corpus') {
+          if (hAction === 'open_review') {
+            // AA4-4b — agent-minted «открой мне повторение»: same entry as the due-CTA.
+            // Guarded + честный тост: startDueReview would show a visibly EMPTY sheet if
+            // ReaderMorph is missing (partial SW cache), and the outer catch is silent.
+            if (window.ReaderMorph && typeof localDb.getDueWithSource === 'function') {
+              try { await startDueReview(); }
+              catch (_) { roomToast(tt('room.handoff.reviewFailed', 'Не получилось открыть повторение — обновите страницу и нажмите «🔁 К повторению».')); }
+            } else {
+              roomToast(tt('room.handoff.reviewFailed', 'Не получилось открыть повторение — обновите страницу и нажмите «🔁 К повторению».'));
+            }
+          } else if (hj.text_key && hAction === 'open_corpus') {
             // AA3-3c — corpus handoff (agent-minted, owner-clicked): resolve the ready
             // card by work_id. The corpus index sidecar is LAZY — await it here or the
             // map is deterministically empty on a cold boot (R11: a false «не найдена»
@@ -8432,7 +8443,7 @@ async function boot() {
             } else if (!(await openLocal())) {
               roomToast(tt('room.handoff.corpusMissing', 'Работа не найдена в каталоге Зала — обновите страницу и откройте вкладку «Корпус».'));
             }
-          } else if (hAction === 'open_reader') {
+          } else if (hj.text_key && hAction === 'open_reader') {
             if (!(await openLocal())) roomToast(tt('room.mentor.textMissing', 'Текст не найден на этом устройстве — синхронизируйте «Мои тексты» в ☁.'));
           } else {
             // Unknown future action: honest stop, never fall through to a wrong opener.

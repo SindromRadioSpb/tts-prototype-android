@@ -17,15 +17,21 @@ const sha256 = (s) => crypto.createHash("sha256").update(String(s), "utf8").dige
 
 async function mint(userId, { textKey, orderIndex, action, workId } = {}) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
-  // Guard the String() coercion trap: a skipped resolver would otherwise store
-  // the literal "undefined" and satisfy NOT NULL silently (R14 critique).
-  if (typeof textKey !== "string" || !textKey) throw new Error("HANDOFF_TEXT_KEY_REQUIRED");
+  // Two-way guard (adversarial critique): anchor actions REQUIRE a real text_key
+  // (the String() coercion would otherwise store the literal "undefined"), while
+  // open_review must carry NO anchor at all — a hybrid row would be a lie.
+  const act = String(action || "open_reader");
+  if (act === "open_review") {
+    if (textKey != null || workId != null || orderIndex != null) throw new Error("HANDOFF_REVIEW_UNEXPECTED_ANCHOR");
+  } else if (typeof textKey !== "string" || !textKey) {
+    throw new Error("HANDOFF_TEXT_KEY_REQUIRED");
+  }
   const raw = crypto.randomBytes(24).toString("base64url");
   await dbRun(db,
     `INSERT INTO handoff_tokens (token_hash, user_id, text_key, order_index, action, work_id, expires_at)
      VALUES (?,?,?,?,?,?,?)`,
-    [sha256(raw), userId, textKey, orderIndex != null ? Number(orderIndex) : null,
-     String(action || "open_reader"), workId != null ? String(workId) : null,
+    [sha256(raw), userId, textKey ?? null, orderIndex != null ? Number(orderIndex) : null,
+     act, workId != null ? String(workId) : null,
      new Date(Date.now() + TOKEN_TTL_MS).toISOString()]);
   return { raw, expiresInMs: TOKEN_TTL_MS };
 }
