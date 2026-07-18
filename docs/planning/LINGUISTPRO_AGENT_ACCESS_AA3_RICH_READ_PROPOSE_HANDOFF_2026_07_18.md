@@ -81,6 +81,18 @@
 
 Default-off по построению (новые scope'ы не в гранте, пока владелец не выдаст). Стадии: A1 (один самый ценный rich-read tool из карты) → B1 (handoff) → B2 (propose) → A2 (остальные rich-read). Каждая — свой гейт + адверсариальная критика до кода (R14/R15/R17) + owner live-verify.
 
+## 5b. Commit 1 SHIPPED + owner live-verified (2026-07-18, v3.11.200)
+
+Read-фундамент задеплоен default-off (`415ef50`), миграция 044 применена на проде (grants CHECK расширен до 11 scope), owner re-consent проведён (7 scope, content-class consent-экран с 2 усиленными карточками). Live на проде через токен Hermes:
+- **`get_due_review_items`** → реальные due-слова владельца с глоссом + грубым struggle-band, БЕЗ ключа-ответов: `לקטון`/уменьшаться/high, `רב`/великий/high, `אב`/отец/high, `להיגרע`/быть убавленным/some (due_total 140, truncated, cap 5).
+- **`get_learner_profile`** → `{mode:silent, language:ru, depth:detailed}` (без goals_json/user_id).
+- **`get_agent_connection`** → `access_lifetime: PERSISTENT_WINDOW`, 7 granted scopes (фикс TTL-паники).
+- Гейты зелёные (production-handlers 33, mcp 47/7-tools, domain 22, control-plane 54). two-client — live-Hermes-repo смоук (env-gated, не тронут).
+
+Метод re-consent (воспроизводимо): owner-сессия в браузере → удалить старое подключение → authorize URL с 7 scope → approve content-класс consent (7 боксов + ack) → capture code с `127.0.0.1:8765/callback` → cookie-free `POST /oauth/token` → записать `HERMES_HOME/mcp-tokens/linguistpro.json` → restart hermes. Скрипты: scratchpad `aa-token-exchange.mjs` (SCOPE через env AA_SCOPE), `aa-owner-verify.mjs`.
+
+**Commit 2 (actions) — остался:** `get_explanation_body` (purge_state), `get_reading_content` (корпус-окна), `create_reading_handoff` (corpus-only через `publicCatalog.resolveWork`, rate-limit), `propose_action` (W1, миграция 045 `agent_proposals`, owner-confirm UI). Спец — §1/§2 + план `toasty-greeting-balloon.md`.
+
 ## 6. Вне scope AA3
 
 Запись в учебную правду (Ярус C — Ментор, не Hermes); мультиарендность; новые LLM-вызовы от агента (R16 — агент не тратит серверный бюджет); client-side OPFS-мост для client-only данных.
