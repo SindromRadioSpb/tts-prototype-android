@@ -139,6 +139,12 @@ Read-фундамент задеплоен default-off (`415ef50`), миграц
 
 Кандидат следующего слайса: delta/changelog-инструмент («что изменилось с прошлого раза», Hermes-flagged) + Studio-surface подтверждений.
 
+## 5f. v3.11.207 — typed client-fault errors (по факту Hermes-тестирования 3c)
+
+Hermes эмпирически прогнал 12 инструментов и «уронил» корпусную ветку: `create_reading_handoff`/`get_reading_content`/`propose open_reading` на работе **3600** → INTERNAL_ERROR ×3 ретрая → вердикт «частично задеплоенный релиз». Диагноз: **ложная тревога с реальным уроком**. Работа 3600 (`r:0`) — METADATA_ONLY, не запечена (том несёт ровно 796 работ; 11784 на месте, click-through работал). «ready=READY пуст» не воспроизводится (796 READY на идентичном коде/данных; вероятно комбинировал с опечаткой ארונסון вместо אהרנסון — с верным написанием находится READY «המרגלים»). Подсистема была здорова; сломанной была ЧЕСТНОСТЬ ошибки: семантический not-found маскировался под INTERNAL_ERROR → агент читал как outage и ретраил (повтор урока cursor-фикса 3b на handler-уровне).
+
+Фикс: `service.js` CLIENT_FAULT_CODES-allowlist (`AA_CORPUS_WORK_NOT_FOUND`, `AA_CORPUS_TEXT_NOT_FOUND`, `AA_PROPOSAL_WORK/TEXT_NOT_FOUND`, `AA_EXPLANATION_NOT_FOUND`, `AA_PROPOSAL_PENDING_LIMIT`, `AA_HANDOFF_ACTIVE_LIMIT`) — эти коды выходят наружу как есть, `retryable:false`; всё вне списка по-прежнему коллапсирует в INTERNAL_ERROR (fail-closed сохранён). Описания 3 корпусных инструментов теперь прямо говорят: work_id должен быть READY (`search ready:"READY"`), METADATA_ONLY → typed not-found, «не outage, не ретраить». Error-envelope схемой не валидируется клиентом (isError+JSON text) — additive-safe. Смоук-ассерты обновлены на typed-коды + retryable:false. **Урок (третий раз — теперь норма): любая ошибка, вызванная ВХОДОМ или текущим состоянием данных, обязана выходить типизированной и non-retryable; INTERNAL_ERROR только для настоящих сбоев.**
+
 ## 6. Вне scope AA3
 
 Запись в учебную правду (Ярус C — Ментор, не Hermes); мультиарендность; новые LLM-вызовы от агента (R16 — агент не тратит серверный бюджет); client-side OPFS-мост для client-only данных.

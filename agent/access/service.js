@@ -6,6 +6,18 @@ const registry = require("./capabilities");
 const ERROR_SCHEMA_VERSION = "aa.error.1.0.0";
 const SUCCESS_SCHEMA_VERSION = "aa.result.1.0.0";
 
+// Client-addressable handler failures (bad work_id, missing explanation, caps).
+// Surfaced with their own code + retryable:false so an agent reads them as
+// «my input / current state», not «backend down» — a generic INTERNAL_ERROR
+// makes clients retry and misdiagnose an un-baked work as an outage
+// (Hermes-observed, same lesson as the 3b cursor fix). Fail-closed: any code
+// NOT in this allowlist still collapses to INTERNAL_ERROR.
+const CLIENT_FAULT_CODES = new Set([
+  "AA_CORPUS_WORK_NOT_FOUND", "AA_CORPUS_TEXT_NOT_FOUND",
+  "AA_PROPOSAL_WORK_NOT_FOUND", "AA_PROPOSAL_TEXT_NOT_FOUND",
+  "AA_EXPLANATION_NOT_FOUND", "AA_PROPOSAL_PENDING_LIMIT", "AA_HANDOFF_ACTIVE_LIMIT",
+]);
+
 function errorEnvelope(requestId, code, retryable = false) {
   return Object.freeze({
     ok: false,
@@ -66,6 +78,7 @@ function createAgentAccessService(options = {}) {
       });
     } catch (err) {
       if (err instanceof C.AgentAccessError) return errorEnvelope(principal && principal.request_id, err.code, err.retryable);
+      if (err && CLIENT_FAULT_CODES.has(err.code)) return errorEnvelope(principal && principal.request_id, err.code, false);
       return errorEnvelope(principal && principal.request_id, "INTERNAL_ERROR", false);
     }
   }

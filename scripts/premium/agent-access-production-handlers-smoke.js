@@ -232,8 +232,10 @@ function exactOwnerParser() {
     assert.ok(purgedBody.ok); const pb = purgedBody.result;
     assert.strictEqual(pb.purge_state, "PURGED"); assert.strictEqual(pb.kind, null); assert.strictEqual(pb.text, null); assert.strictEqual(pb.lines, null);
     assert.ok(!JSON.stringify(pb).includes("private-body-sentinel"), "purged body must not leak content"); checks++;
+    // Client-addressable not-found is TYPED + non-retryable (never INTERNAL_ERROR:
+    // agents read that as an outage and retry — Hermes-observed misdiagnosis).
     const notFound = await service.execute(principal({ request_id: "exp-404" }), "get_explanation_body", { explanation_id: "no-such-explanation" });
-    assert.ok(!notFound.ok && notFound.error.code === "INTERNAL_ERROR"); checks++;
+    assert.ok(!notFound.ok && notFound.error.code === "AA_EXPLANATION_NOT_FOUND" && notFound.error.retryable === false, JSON.stringify(notFound)); checks++;
     // Scope gating for the body scope.
     const bodyNarrow = await service.execute(principal({ request_id: "body-narrow", scopes: ["agent.connection.read"] }), "get_explanation_body", { explanation_id: "exp-word" });
     assert.ok(!bodyNarrow.ok && bodyNarrow.error.code === "INSUFFICIENT_SCOPE"); checks++;
@@ -246,9 +248,9 @@ function exactOwnerParser() {
     assert.strictEqual(rc.anchor.work_id, "42"); assert.strictEqual(rc.anchor.text_key, "a1b2c3d4e5f60718");
     assert.strictEqual(rc.rows.length, 2); assert.strictEqual(rc.rows[0].he, "בְּרֵאשִׁית"); assert.strictEqual(rc.rows[0].ru, "В начале");
     assert.deepStrictEqual(rc.available_text_keys, ["a1b2c3d4e5f60718"]); checks++;
-    // Non-corpus / unknown work_id fails closed (corpus-only by construction).
+    // Non-corpus / unknown / un-baked work_id fails closed with a TYPED code.
     const badWork = await service.execute(principal({ request_id: "reading-bad" }), "get_reading_content", { work_id: "999" });
-    assert.ok(!badWork.ok && badWork.error.code === "INTERNAL_ERROR"); checks++;
+    assert.ok(!badWork.ok && badWork.error.code === "AA_CORPUS_WORK_NOT_FOUND" && badWork.error.retryable === false); checks++;
 
     // AA3 commit 3c — create_reading_handoff un-held: mint carries work_id +
     // action open_corpus (R17 lockstep gate: capture the ACTUAL mint args).
@@ -258,10 +260,10 @@ function exactOwnerParser() {
     assert.strictEqual(handoff.result.work_id, "42"); assert.strictEqual(handoff.result.action, "open_corpus");
     assert.strictEqual(mintCount, 1);
     assert.deepStrictEqual(lastMintArgs, { userId: OWNER, textKey: CORPUS_TK, orderIndex: 1, action: "open_corpus", workId: "42" }); checks++;
-    // Corpus-only fail-closed + active-token cap + scope gating.
-    assert.strictEqual((await service.execute(principal({ request_id: "handoff-bad" }), "create_reading_handoff", { work_id: "999" })).error.code, "INTERNAL_ERROR");
+    // Corpus-only fail-closed + active-token cap + scope gating (typed codes).
+    assert.strictEqual((await service.execute(principal({ request_id: "handoff-bad" }), "create_reading_handoff", { work_id: "999" })).error.code, "AA_CORPUS_WORK_NOT_FOUND");
     activeCount = 20;
-    assert.strictEqual((await service.execute(principal({ request_id: "handoff-cap" }), "create_reading_handoff", { work_id: "42" })).error.code, "INTERNAL_ERROR");
+    assert.strictEqual((await service.execute(principal({ request_id: "handoff-cap" }), "create_reading_handoff", { work_id: "42" })).error.code, "AA_HANDOFF_ACTIVE_LIMIT");
     activeCount = 0;
     assert.strictEqual(mintCount, 1, "failed handoff paths must not mint");
     assert.strictEqual((await service.execute(principal({ request_id: "handoff-narrow", scopes: ["agent.connection.read"] }), "create_reading_handoff", { work_id: "42" })).error.code, "INSUFFICIENT_SCOPE"); checks++;
@@ -278,7 +280,8 @@ function exactOwnerParser() {
     const proposeOpen = await service.execute(principal({ request_id: "propose-open" }), "propose_action", { kind: "open_reading", payload: { work_id: "42", reason: "продолжим тут" } });
     assert.ok(proposeOpen.ok, JSON.stringify(proposeOpen));
     assert.strictEqual(lastProposalArgs.displayTitle, "Тестовая работа — Автор"); checks++;
-    assert.strictEqual((await service.execute(principal({ request_id: "propose-badwork" }), "propose_action", { kind: "open_reading", payload: { work_id: "999" } })).error.code, "INTERNAL_ERROR");
+    const badPropose = await service.execute(principal({ request_id: "propose-badwork" }), "propose_action", { kind: "open_reading", payload: { work_id: "999" } });
+    assert.ok(badPropose.error.code === "AA_PROPOSAL_WORK_NOT_FOUND" && badPropose.error.retryable === false);
     // Cross-kind field bleed is a client input error, not INTERNAL_ERROR.
     const bleed = await service.execute(principal({ request_id: "propose-bleed" }), "propose_action", { kind: "note", payload: { body: "x", work_id: "42" } });
     assert.ok(!bleed.ok && bleed.error.code === "UNKNOWN_FIELD" && bleed.error.retryable === false);
