@@ -2820,7 +2820,7 @@ async function _cloudRunSync(auto) {
   if (els.syncBtn) els.syncBtn.disabled = true;
   if (!auto) _cloudStatus(tt('room.cloud.syncing', 'Синхронизация…'));
   let res = null;
-  try { res = await CS.fullSync(localDb); } catch (e) { res = { ok: false, error: String(e && e.message || e) }; }
+  try { res = await CS.fullSync(localDb, { auto: !!auto }); } catch (e) { res = { ok: false, error: String(e && e.message || e) }; }
   if (els.syncBtn) els.syncBtn.disabled = false;
   if (res && res.ok) {
     const up = res.up || {}, down = res.down || {};
@@ -2830,6 +2830,10 @@ async function _cloudRunSync(auto) {
     if (a && a.ok && !a.skipped && (a.uploaded || a.downloaded || a.updated)) {
       line += ' · 📄 ↑' + (a.uploaded || 0) + ' ↓' + ((a.downloaded || 0) + (a.updated || 0));
     }
+    // P0 — приближение к капу артефакта НЕ молчит (урок §3.4: тикающий отказ был невидим)
+    if (a && a.nearCap) line += ' · 📄⚠' + a.nearCap;
+    // провал state-синка виден так же, как провалы текстов
+    if (a && a.state && a.state.ok === false) line += ' · 🗂✗';
     // провалы текстов НИКОГДА не молчат (урок: «в облаке 0» без единой видимой ошибки)
     if (a && ((a.failed && a.failed.length) || a.ok === false)) {
       artErr = true;

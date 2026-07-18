@@ -200,12 +200,19 @@
     return { ok: true, pulled: pulled, lwwApplied: lwwApplied, recomputedKeys: Array.from(addedKeys) };
   }
 
-  // ── CLG-P5.5 class-B artifact sync («Мои тексты») ─────────────────────────
+  // ── CLG-P5.5 class-B artifact sync («Мои тексты») + Sync-hardening P0 (slim/state) ────────
   // Consent-gated on BOTH sides: the engine checks the session's consents (server enforces 403
-  // independently). Payload = the battle-tested per-text bundle (exportBundle({textIds})); merge
-  // on the receiving device = importBundle (skip for new, delete+import when server is NEWER —
-  // LWW by the text's updated_at). Corpus works never travel (listOwnTextsForSync excludes them).
-  async function syncArtifacts(ldb, session) {
+  // independently). Payload = per-text bundle exportBundle({textIds, slim}) — P0: slim несёт
+  // ТОЛЬКО данные этого текста; text-независимое состояние (заметки/полки/overrides/anki/
+  // study_day) едет ОДНИМ артефактом kind='state_bundle' (см. _syncState ниже). Merge на
+  // приёмнике = importBundle (skip для нового, delete+import при server-NEWER — LWW по
+  // updated_at текста; P0 §6.1: importBundle теперь СОХРАНЯЕТ updated_at бандла — пинг-понг
+  // погашен). Corpus works never travel (listOwnTextsForSync excludes them).
+  // Откат без редеплоя: sync_state['sync_slim_disabled']='1' → старое поведение (fat, без state).
+  var STATE_KEY = "__state__", STATE_KIND = "state_bundle";
+  var STATE_UP_MIN_MS = 10 * 60 * 1000;   // троттлинг авто-UP state (§6.2; ручной синк — сразу)
+  async function syncArtifacts(ldb, session, opts) {
+    opts = opts || {};
     var consents = (session && session.consents) || {};
     if (!consents.cloud_texts || consents.cloud_texts.granted !== true) {
       return { ok: true, skipped: "no_consent" };
@@ -213,14 +220,22 @@
     if (typeof ldb.listOwnTextsForSync !== "function" || typeof ldb.exportBundle !== "function") {
       return { ok: true, skipped: "no_ldb_support" };
     }
-    var out = { ok: true, uploaded: 0, downloaded: 0, updated: 0, upSkipped: 0, failed: [] };
+    var slim = typeof ldb.exportStateBundle === "function";
+    try { if ((await ldb.getSyncState("sync_slim_disabled")) === "1") slim = false; } catch (_) {}
+    var out = { ok: true, uploaded: 0, downloaded: 0, updated: 0, upSkipped: 0, failed: [], nearCap: 0, state: null };
     var listRes = await jfetch("GET", "/api/learner/artifacts");
     if (listRes.status !== 200 || !listRes.json || !listRes.json.ok) {
       return { ok: false, error: (listRes.json && listRes.json.error) || "ARTIFACTS_LIST_FAILED", status: listRes.status };
     }
     var server = new Map((listRes.json.rows || []).map(function (r) { return [String(r.artifact_key), String(r.updated_at)]; }));
+    var serverState = listRes.json.state || null;   // additive-поле; старый сервер его не шлёт
     var local = await ldb.listOwnTextsForSync();
     var localByKey = new Map(local.map(function (t) { return [t.text_key, t]; }));
+    // Одноразовая миграция формата (§1.5): равный updated_at + slim ⇒ replace_equal
+    // (тот же контентный момент, меняется только состав) — 7,5-МБ fat-артефакты
+    // перезаписываются слимами БЕЗ клок-игр. Флаг ставится после полного прохода без провалов.
+    var migrated = "1";
+    if (slim) { try { migrated = (await ldb.getSyncState("slim_migrated")) || ""; } catch (_) { migrated = ""; } }
     // UP: new or locally-newer texts. PER-TEXT BEST-EFFORT: один негабаритный/битый текст не
     // должен абортить остальные 80 (урок owner-верифи 2026-07-05: «в облаке 0» при 81 локально —
     // и ошибка была НЕВИДИМА). Каждый провал — в failed[] с причиной, наружу и в console.
@@ -228,12 +243,17 @@
       var t = local[i];
       try {
         var srvAt = server.get(t.text_key);
-        if (srvAt && Date.parse(srvAt) >= Date.parse(t.updated_at)) { out.upSkipped++; continue; }
-        var bundle = await ldb.exportBundle({ textIds: [t.id] });
+        var needMigrate = slim && !migrated && srvAt && Date.parse(srvAt) === Date.parse(t.updated_at);
+        if (srvAt && Date.parse(srvAt) >= Date.parse(t.updated_at) && !needMigrate) { out.upSkipped++; continue; }
+        var bundle = await ldb.exportBundle({ textIds: [t.id], slim: slim });
         var put = await jfetch("POST", "/api/learner/artifacts/put", {
           artifact_key: t.text_key, updated_at: t.updated_at, payload: bundle,
+          replace_equal: needMigrate ? true : undefined,
         });
-        if (put.status === 200 && put.json && put.json.stored) out.uploaded++;
+        if (put.status === 200 && put.json && put.json.stored) {
+          out.uploaded++;
+          if (put.json.warn === "NEAR_CAP") out.nearCap++;   // тикающий кап больше НЕ молчит
+        }
         else if (put.status === 200) out.upSkipped++;   // OLDER_OR_EQUAL race — уже на сервере
         else {
           out.failed.push({ key: t.text_key, title: t.title, error: (put.json && put.json.error) || ("HTTP_" + put.status) });
@@ -244,6 +264,7 @@
         try { console.warn("[cloud-sync] artifact export/PUT threw:", t.title, e); } catch (_) {}
       }
     }
+    if (slim && !migrated && !out.failed.length) { try { await ldb.setSyncState("slim_migrated", "1"); } catch (_) {} }
     // DOWN: missing or server-newer texts
     for (const entry of server) {
       var key = entry[0], srvUpdated = entry[1];
@@ -252,8 +273,8 @@
       var got = await jfetch("GET", "/api/learner/artifacts/get?key=" + encodeURIComponent(key));
       if (got.status !== 200 || !got.json || !got.json.ok) continue;   // per-text best-effort down
       if (loc && typeof ldb.deleteText === "function") {
-        // server is NEWER → LWW replace (delete + fresh import; anchors re-attach by
-        // text_key+order_index — the bookmarks re-anchor pattern)
+        // server is NEWER → LWW replace (delete + fresh import; закладки и occurrences
+        // канонических заметок восстанавливаются из СВОЕГО slim-бандла — §6.6)
         try { await ldb.deleteText(loc.id); } catch (_) {}
       }
       try {
@@ -261,7 +282,97 @@
         if (imp && imp.imported >= 1) { if (loc) out.updated++; else out.downloaded++; }
       } catch (_) {}
     }
+    // state_bundle — ПОСЛЕ текстов (§1.3: якоря state-occurrences резолвятся по text_key
+    // уже-импортированных текстов). forceDown после LWW-replace: replace снёс occurrences
+    // канонических заметок этого текста — state re-apply их возвращает (merge идемпотентен).
+    if (slim) {
+      try {
+        out.state = await _syncState(ldb, serverState, { manual: !opts.auto, forceDown: out.updated > 0 });
+        if (out.state && out.state.nearCap) out.nearCap++;
+      } catch (e2) {
+        out.state = { ok: false, error: String(e2 && e2.message || e2) };
+      }
+    }
     return out;
+  }
+
+  // state-синк (§6.2): change-signal вместо слепого ts (occurrence-only действия и удаления
+  // видимы); DOWN при ЛЮБОМ изменении серверного ts относительно запомненного (ловит
+  // равный-ts-новый-контент); merge-back публикует union СТРОГО новее серверного ts —
+  // replace_equal здесь НЕ используется (критика F1-2: равный ts не идентифицирует контент).
+  async function _syncState(ldb, serverState, o) {
+    var st = { ok: true, action: "none" };
+    var lastServerTs = (await ldb.getSyncState("state_server_ts")) || "";
+    var lastSig = (await ldb.getSyncState("state_up_sig")) || "";
+    var lastUpAt = Number(await ldb.getSyncState("state_up_at")) || 0;
+    var sig = await ldb.stateChangeSignal();
+    var needDown = !!serverState && String(serverState.updated_at || "") !== lastServerTs;
+    if (o.forceDown && serverState) needDown = true;
+    var localChanged = sig.signal !== lastSig;
+    if (!needDown && !localChanged) return st;
+    if (!needDown && localChanged && !o.manual && Date.now() - lastUpAt < STATE_UP_MIN_MS) {
+      st.action = "deferred";   // авто-троттлинг: правки заметок не молотят 5-МБ PUT каждые 90 с
+      return st;
+    }
+    var _finish = async function (serverTs, exp2) {
+      await ldb.setSyncState("state_server_ts", String(serverTs));
+      await ldb.setSyncState("state_up_sig", exp2 && exp2.signal ? exp2.signal : (await ldb.stateChangeSignal()).signal);
+      await ldb.setSyncState("state_up_at", String(Date.now()));
+    };
+    if (needDown) {
+      var got = await jfetch("GET", "/api/learner/artifacts/get?kind=" + STATE_KIND + "&key=" + encodeURIComponent(STATE_KEY));
+      if (got.status !== 200 || !got.json || !got.json.ok) {
+        st.ok = false; st.error = (got.json && got.json.error) || ("STATE_GET_HTTP_" + got.status);
+        return st;
+      }
+      st.merged = await ldb.importStateBundle(got.json.payload);
+      var expAfter = await ldb.exportStateBundle();
+      var serverCanon = JSON.stringify((got.json.payload && got.json.payload.state) || null);
+      if (JSON.stringify(expAfter.state) === serverCanon) {
+        await _finish(serverState.updated_at, expAfter);
+        st.action = "downloaded";
+        return st;
+      }
+      // union отличается → merge-back строго-новее серверного (другие устройства детектируют)
+      var srvTsMs = Date.parse(serverState.updated_at) || 0;
+      var upTs = (expAfter.updated_at && Date.parse(expAfter.updated_at) > srvTsMs)
+        ? expAfter.updated_at
+        : new Date(srvTsMs + 1).toISOString();
+      var putM = await jfetch("POST", "/api/learner/artifacts/put", {
+        kind: STATE_KIND, artifact_key: STATE_KEY, updated_at: upTs, payload: expAfter,
+      });
+      if (putM.status === 200 && putM.json && putM.json.stored) {
+        if (putM.json.warn === "NEAR_CAP") st.nearCap = true;
+        await _finish(upTs, expAfter);
+        st.action = "merged";
+      } else if (putM.status === 200) {
+        // OLDER_OR_EQUAL: сервер успел уйти вперёд (гонка второго устройства) — честно
+        // отложить до следующего цикла (state_server_ts не обновляем → DOWN повторится).
+        st.action = "conflict-deferred";
+      } else {
+        st.ok = false; st.error = (putM.json && putM.json.error) || ("STATE_PUT_HTTP_" + putM.status);
+      }
+      return st;
+    }
+    // локальные изменения без серверных: обычный UP
+    var exp = await ldb.exportStateBundle();
+    if (!exp.updated_at) { st.action = "empty"; return st; }
+    var put2 = await jfetch("POST", "/api/learner/artifacts/put", {
+      kind: STATE_KIND, artifact_key: STATE_KEY, updated_at: exp.updated_at, payload: exp,
+    });
+    if (put2.status === 200 && put2.json && put2.json.stored) {
+      if (put2.json.warn === "NEAR_CAP") st.nearCap = true;
+      await _finish(exp.updated_at, exp);
+      st.action = "uploaded";
+    } else if (put2.status === 200) {
+      // OLDER_OR_EQUAL: сервер держит равный/новее ts, о котором мы не знали (lastServerTs
+      // стейл) — сбросить память серверного ts, следующий цикл сделает DOWN+merge.
+      await ldb.setSyncState("state_server_ts", "");
+      st.action = "conflict-deferred";
+    } else {
+      st.ok = false; st.error = (put2.json && put2.json.error) || ("STATE_PUT_HTTP_" + put2.status);
+    }
+    return st;
   }
 
   // ── full cycle + reconciliation ──────────────────────────────────────────
@@ -307,7 +418,7 @@
       if (serverN != null && serverN !== localN && !(opts && opts.noHeal)) {
         await ldb.setSyncState(CUTOVER_OK, "");
         await ldb.setSyncState(DOWN_CURSOR, "");
-        var again = await fullSync(ldb, { noHeal: true });
+        var again = await fullSync(ldb, { noHeal: true, auto: !!(opts && opts.auto) });
         if (again && again.ok) {
           healed = true;
           up = { totals: again.up }; up.ok = true; up.totals = again.up;
@@ -319,7 +430,7 @@
     } catch (_) {}
     // CLG-P5.5 — class-B artifacts ride the same cycle (consent-gated; no-op otherwise)
     var artifacts = null;
-    try { artifacts = await syncArtifacts(ldb, session); } catch (e) { artifacts = { ok: false, error: String(e && e.message || e) }; }
+    try { artifacts = await syncArtifacts(ldb, session, { auto: !!(opts && opts.auto) }); } catch (e) { artifacts = { ok: false, error: String(e && e.message || e) }; }
     try { await ldb.setSyncState(LAST_SYNC, new Date().toISOString()); } catch (_) {}
     return { ok: true, up: up.totals, down: { pulled: down.pulled }, healed: healed,
              artifacts: artifacts, counts: { local: localN, cloud: serverN }, user: session.user };

@@ -4589,7 +4589,12 @@ function computeSM2(card, rating) {
 //                 library/library.json
 //   audioAssetsMap — Map<assetKey, audioAssetMeta> the caller can iterate to
 //                 fetch MP3 blobs.
-export async function exportBundle({ includeArchived = false, textIds = null } = {}) {
+// Sync-hardening P0 (LINGUISTPRO_SYNC_HARDENING_P0P2_DESIGN §1/§6): `slim: true` — состав для
+// sync-пути: per-text артефакт несёт ТОЛЬКО данные этого текста (text-bound заметки, его
+// occurrences/sentence_morph/bookmarks); text-независимое состояние (канонические word-заметки,
+// полки, overrides, Anki-связки, study_day) едет ОДНИМ артефактом exportStateBundle().
+// ZIP/бэкап-путь (без slim) не меняется — полный бандл остаётся полным.
+export async function exportBundle({ includeArchived = false, textIds = null, slim = false } = {}) {
   let exportList;
   if (Array.isArray(textIds) && textIds.length) {
     // Targeted export — used by B3 undo-delete to snapshot a specific text
@@ -4696,6 +4701,20 @@ export async function exportBundle({ includeArchived = false, textIds = null } =
     const _srcMeta = safeJsonParse(text.source_meta_json);
     const _corpus = (_srcMeta && typeof _srcMeta === 'object' && _srcMeta.corpus) ? _srcMeta.corpus : null;
 
+    // Sync-hardening P0 §6.6 — закладки едут с текстом (additive-поле; раньше гибли молча при
+    // LWW-replace: FK ON DELETE CASCADE, а бандл их не нёс). Якорь = order_index предложения
+    // (id регенерируются на импорте); закладка без резолвимого якоря честно дропается счётно.
+    let bookmarksOut = [];
+    try {
+      const bms = await q(
+        `SELECT COALESCE(b.order_index, s.order_index) AS oi, b.title, b.snippet, b.note, b.created_at
+           FROM bookmarks b LEFT JOIN sentences s ON s.id = b.sentence_id
+          WHERE b.text_id = ?`, [text.id]);
+      bookmarksOut = (bms || [])
+        .filter((b) => b.oi != null)
+        .map((b) => ({ order_index: Number(b.oi), title: b.title ?? null, snippet: b.snippet ?? null, note: b.note ?? null, created_at: b.created_at || null }));
+    } catch (_) {}
+
     texts.push({
       text_id: text.id,
       text_key: text.text_key,
@@ -4719,6 +4738,7 @@ export async function exportBundle({ includeArchived = false, textIds = null } =
       manual_smart_tag: text.manual_smart_tag || null,
       tts_profile_json: text.tts_profile_json || null,
       progress,
+      bookmarks: bookmarksOut,
     });
   }
 
@@ -4733,12 +4753,13 @@ export async function exportBundle({ includeArchived = false, textIds = null } =
   // needed). Web → web roundtrip preserves everything; web → Android
   // → web degrades to only sentence-bound free notes (those that ride
   // inline on row.note). Documented in PREMIUM_NOTES_PLAN_v3_2.md § 5.
-  const notesAdvanced = await _buildAdvancedNotesPayload(exportList.map((t) => t.id));
+  const notesAdvanced = await _buildAdvancedNotesPayload(exportList.map((t) => t.id), { slim });
 
   const manifest = {
     export_schema_version: 1,
     app_id: 'linguist-pro-web',
     created_at: new Date().toISOString(),
+    slim_bundle: !!slim,          // P0 — sync-состав (без full-state carry); ZIP всегда false
     partial_backup: false,        // overwritten by caller after MP3 fetch
     text_count: texts.length,
     row_count: rowCount,
@@ -4771,7 +4792,8 @@ export async function exportBundle({ includeArchived = false, textIds = null } =
   // BRR-P0-003 — shelves ride the bundle as an additive sibling array (like
   // texts/corpus). Exported in full (the bundle is the user's complete backup);
   // members reference texts by text_key, so they survive id-remap on import.
-  const shelves = await _exportShelves();
+  // P0 slim: полки — text-независимое состояние, едут в state_bundle, не в каждом артефакте.
+  const shelves = slim ? [] : await _exportShelves();
   const library = { schema_version: 1, corpus_meta_version: 1, shelves, texts, audio_assets: audioAssets };
   // Backwards-compat: also expose `texts` at the top of the returned object so
   // callers that iterate `bundle.texts` directly (importBundle round-trip,
@@ -4791,7 +4813,7 @@ export async function exportBundle({ includeArchived = false, textIds = null } =
 // final filter on text-bound notes — but we INTENTIONALLY include
 // text-independent notes (root / binyan / free) regardless, since they're
 // per-user, not per-text.
-async function _buildAdvancedNotesPayload(textIds) {
+async function _buildAdvancedNotesPayload(textIds, { slim = false } = {}) {
   const TEXT_BOUND_KINDS = new Set(['sentence', 'word', 'text']);
   const _filterByText = (rows, key) => {
     if (!Array.isArray(textIds) || !textIds.length) return rows;
@@ -4821,8 +4843,19 @@ async function _buildAdvancedNotesPayload(textIds) {
   //    bound free note. To avoid duplicates, importer detects existing
   //    sentence-bound free notes by (text_id, sentence_id) and merges
   //    versions/links onto them instead of inserting a new row.
+  //
+  // P0 slim (§6 дизайна): per-text артефакт несёт ТОЛЬКО text-bound заметки ЭТОГО текста
+  // (комплемент — text-независимые — едет в state_bundle; вместе покрытие полное by
+  // construction, предикат тот же TEXT_BOUND_KINDS+text_id).
   const allNotes = await q('SELECT * FROM notes_v2 ORDER BY created_at ASC');
-  const notes = _filterByText(allNotes, 'note');
+  const notes = slim
+    ? allNotes.filter((r) => {
+        const tk = String(r.target_kind || '');
+        if (!(TEXT_BOUND_KINDS.has(tk) && r.text_id)) return false;
+        if (!Array.isArray(textIds) || !textIds.length) return false;
+        return textIds.map(String).includes(String(r.text_id));
+      })
+    : _filterByText(allNotes, 'note');
 
   // 2) note_versions — every snapshot we have. FIFO retention already
   //    capped at 50 per note at write time.
@@ -4876,14 +4909,51 @@ async function _buildAdvancedNotesPayload(textIds) {
   //    table; without exporting it, an imported canonical note loses every
   //    position and vanishes from the reading view. Keyed by old ids; remapped
   //    on import. Additive field — older importers ignore it.
-  const occurrences = noteIds.length
-    ? (await q(
-        `SELECT note_id, text_id, sentence_id, word_offset, surface
-           FROM note_occurrences
-          WHERE note_id IN (${noteIds.map(() => '?').join(',')})`,
-        noteIds
-      ))
-    : [];
+  //
+  //    P0 slim: occurrences НА этих текстах для ЛЮБОЙ заметки — для заметок бандла по
+  //    note_id, для внешних канонических по note_dedup_key + якорь (text_key, order_index)
+  //    вместо девайс-локальных sentence-id. Нужны для LWW-replace-устойчивости (§6.6):
+  //    заменённый текст восстанавливает позиции канонических заметок из СВОЕГО бандла.
+  let occurrences;
+  if (slim) {
+    const tids = (Array.isArray(textIds) ? textIds : []).map(String);
+    occurrences = [];
+    if (tids.length) {
+      const occRaw = await q(
+        `SELECT o.note_id, o.word_offset, o.surface, s.order_index AS oi, t.text_key AS tk,
+                n.gen_dedup_key AS dk
+           FROM note_occurrences o
+           JOIN sentences s ON s.id = o.sentence_id
+           JOIN texts t ON t.id = s.text_id
+           LEFT JOIN notes_v2 n ON n.id = o.note_id
+          WHERE s.text_id IN (${tids.map(() => '?').join(',')})
+          ORDER BY o.note_id, o.id`,
+        tids
+      );
+      const inBundle = new Set(noteIds.map(String));
+      for (const o of (occRaw || [])) {
+        if (o.oi == null || !o.tk) continue;                      // без якоря не переносимо
+        const own = inBundle.has(String(o.note_id));
+        if (!own && !o.dk) continue;                              // внешняя заметка без dedup-key — неадресуема (едет в state)
+        occurrences.push({
+          note_id: own ? String(o.note_id) : null,
+          note_dedup_key: o.dk != null ? String(o.dk) : null,
+          text_key: String(o.tk), order_index: Number(o.oi),
+          word_offset: Number.isFinite(o.word_offset) ? o.word_offset : null,
+          surface: o.surface != null ? String(o.surface) : null,
+        });
+      }
+    }
+  } else {
+    occurrences = noteIds.length
+      ? (await q(
+          `SELECT note_id, text_id, sentence_id, word_offset, surface
+             FROM note_occurrences
+            WHERE note_id IN (${noteIds.map(() => '?').join(',')})`,
+          noteIds
+        ))
+      : [];
+  }
 
   // 7) R-3.7 — full-backup state: SRS scheduling, Anki sync links, analytics
   //    events, translation overrides. Exported in FULL (the bundle is the user's
@@ -4891,7 +4961,9 @@ async function _buildAdvancedNotesPayload(textIds) {
   //    re-sync). All FK ids (note/sentence/text/card) are remapped on import;
   //    rows whose refs don't remap are dropped there. Bumps schema_version → 2;
   //    v1 importers ignore these arrays (additive), v1 bundles import unchanged.
-  const _all = async (sql) => { try { return await q(sql, []); } catch (_) { return []; } };
+  // P0 slim: full-state секции НЕ едут в per-text sync-артефакте (это и был over-carry §3.4
+  // канона: 99,8% веса каждого из 83 артефактов). ZIP/бэкап-путь (slim=false) несёт всё как раньше.
+  const _all = async (sql) => { if (slim) return []; try { return await q(sql, []); } catch (_) { return []; } };
   const srsCards            = await _all('SELECT * FROM srs_cards');
   const srsReviewEvents     = await _all('SELECT * FROM srs_review_events');
   const srsAttempts         = await _all('SELECT * FROM srs_attempts');
@@ -5109,6 +5181,7 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
         pin_order: (item.pin_order != null ? item.pin_order : null),
         manual_smart_tag: (item.manual_smart_tag != null ? String(item.manual_smart_tag) : null),
         progress: item.progress || null,
+        bookmarks: Array.isArray(item.bookmarks) ? item.bookmarks : [],
         created_at: item.created_at || null,
         updated_at: item.updated_at || null,
         sentences: (Array.isArray(item.rows) ? item.rows : []).map((r) => ({
@@ -5167,10 +5240,17 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
       await createText({ ...textData, text_key, id: newTextId });
 
       const sentences = textData.sentences ?? textData.rows ?? [];
+      // P0 §6.6 — карта order_index → новый sentence-id для re-anchor закладок и
+      // anchor-shaped occurrences (sentence-id регенерируются на каждом импорте).
+      const _oiToNewSid = new Map();
+      let _sIdx = 0;
       for (const s of sentences) {
         const newSentenceId = crypto.randomUUID();
         const _oldSid = String(s.row_id || s.id || '');
         if (_oldSid) oldToNewSentenceId.set(_oldSid, newSentenceId);
+        const _oi = (s.order_index != null ? Number(s.order_index) : _sIdx);
+        if (Number.isFinite(_oi) && !_oiToNewSid.has(_oi)) _oiToNewSid.set(_oi, newSentenceId);
+        _sIdx++;
         await addSentence(newTextId, { ...s, id: newSentenceId });
         if (s.note && s.note.trim()) {
           const _inlineRow = await upsertNote(newTextId, newSentenceId, s.note);
@@ -5211,15 +5291,41 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
           }
         }
       }
+      // P0 §6.6 — восстановление закладок (re-anchor по order_index; OR IGNORE по
+      // ux_bookmarks_pos). Раньше закладки гибли молча при LWW-replace (CASCADE есть,
+      // в бандле их не было). Нерезолвимый якорь — тихий счётный пропуск.
+      const _bmsIn = Array.isArray(textData.bookmarks) ? textData.bookmarks : [];
+      for (const bm of _bmsIn) {
+        try {
+          const _boi = (bm && bm.order_index != null) ? Number(bm.order_index) : null;
+          const _bsid = (_boi != null && Number.isFinite(_boi)) ? _oiToNewSid.get(_boi) : null;
+          if (!_bsid) continue;
+          await r(
+            `INSERT OR IGNORE INTO bookmarks (id, text_id, text_key, sentence_id, order_index, title, snippet, note, created_at)
+             VALUES (?,?,?,?,?,?,?,?,?)`,
+            [crypto.randomUUID(), newTextId, text_key, _bsid, _boi,
+             bm.title ?? null, bm.snippet ?? null, bm.note ?? null,
+             bm.created_at || new Date().toISOString()]
+          );
+        } catch (_) {}
+      }
       // R-3.7 — restore text settings createText() doesn't cover (was lost on
       // import): archive flag, pin state/order, manual smart-tag, reading position.
+      // Sync-hardening P0 §6.1 (критика F1-1) — created_at/updated_at бандла ВОССТАНАВЛИВАЮТСЯ:
+      // createText штампует «сейчас», что отравляло LWW-время артефактов (пинг-понг полных
+      // бандлов между устройствами: каждый DOWN-импорт выглядел «новее» сервера) и лишало
+      // опоры tombstone-математику P2. Гейт: roundtrip-инвариантность updated_at в smoke:sync-slim.
       try {
         await r(
-          `UPDATE texts SET is_archived = ?, is_pinned = ?, pin_order = ?, manual_smart_tag = ? WHERE id = ?`,
+          `UPDATE texts SET is_archived = ?, is_pinned = ?, pin_order = ?, manual_smart_tag = ?,
+                            created_at = COALESCE(?, created_at), updated_at = COALESCE(?, updated_at)
+            WHERE id = ?`,
           [textData.is_archived ? 1 : 0,
            textData.is_pinned ? 1 : 0,
            (textData.pin_order != null ? textData.pin_order : null),
            (textData.manual_smart_tag != null ? String(textData.manual_smart_tag) : null),
+           (textData.created_at ? String(textData.created_at) : null),
+           (textData.updated_at ? String(textData.updated_at) : null),
            newTextId]
         );
       } catch (_) {}
@@ -5592,19 +5698,52 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
   // INSERT OR IGNORE is idempotent via ux_note_occ (note_id,sentence_id,offset).
   out.occurrences = { inserted: 0, dropped: 0 };
   const occ = Array.isArray(payload.occurrences) ? payload.occurrences : [];
+  // P0 slim — anchor-shaped строки {note_dedup_key?, text_key, order_index}: sentence-id
+  // экспортёра бесполезны на другом устройстве; резолв по (text_key, order_index) + заметка
+  // по dedup-key (внешняя каноническая) или по бандловому remap. Кэши — на время импорта.
+  const _tidByKey = new Map();
+  const _sidByAnchor = new Map();
+  const _resolveTextIdByKey = async (tk) => {
+    if (_tidByKey.has(tk)) return _tidByKey.get(tk);
+    let tid = null;
+    try { const rows = await q('SELECT id FROM texts WHERE text_key = ?', [tk]); tid = rows[0] ? String(rows[0].id) : null; } catch (_) {}
+    _tidByKey.set(tk, tid);
+    return tid;
+  };
+  const _resolveSidByAnchor = async (tid, oi) => {
+    const ck = tid + ':' + oi;
+    if (_sidByAnchor.has(ck)) return _sidByAnchor.get(ck);
+    let sid = null;
+    try { const rows = await q('SELECT id FROM sentences WHERE text_id = ? AND order_index = ?', [tid, oi]); sid = rows[0] ? String(rows[0].id) : null; } catch (_) {}
+    _sidByAnchor.set(ck, sid);
+    return sid;
+  };
   for (const o of occ) {
     if (!o || typeof o !== 'object') { out.occurrences.dropped++; continue; }
-    const newNoteId = oldToNewNoteId.get(String(o.note_id || ''));
-    if (!newNoteId) { out.occurrences.dropped++; continue; }     // note wasn't imported
-    const newSid = o.sentence_id ? _remap(oldToNewSentenceId, o.sentence_id) : null;
-    const newTid = o.text_id ? _remap(oldToNewTextId, o.text_id) : null;
+    let newNoteId = oldToNewNoteId.get(String(o.note_id || '')) || null;
+    if (!newNoteId && o.note_dedup_key) {
+      try { const exn = await findNoteByDedupKey(String(o.note_dedup_key)); newNoteId = exn && exn.id ? String(exn.id) : null; } catch (_) {}
+    }
+    if (!newNoteId) { out.occurrences.dropped++; continue; }     // note neither imported nor resolvable
+    let newSid = o.sentence_id ? _remap(oldToNewSentenceId, o.sentence_id) : null;
+    let newTid = o.text_id ? _remap(oldToNewTextId, o.text_id) : null;
+    if (!newSid && o.text_key && o.order_index != null) {
+      newTid = await _resolveTextIdByKey(String(o.text_key));
+      newSid = newTid ? await _resolveSidByAnchor(newTid, Number(o.order_index)) : null;
+    }
     if (!newSid) { out.occurrences.dropped++; continue; }         // can't anchor without a sentence
     try {
+      // NULL-safe дедуп (критика F1-9): ux_note_occ с NULL word_offset НЕ дедупит (NULLs
+      // distinct) — существование проверяем IS-сравнением, не полагаясь на OR IGNORE.
+      const _wo = Number.isFinite(o.word_offset) ? o.word_offset : null;
+      const dup = await q(
+        'SELECT 1 x FROM note_occurrences WHERE note_id = ? AND sentence_id = ? AND word_offset IS ? LIMIT 1',
+        [newNoteId, newSid, _wo]);
+      if (dup && dup.length) { out.occurrences.inserted++; continue; }   // уже есть — идемпотентно
       await r(
         `INSERT OR IGNORE INTO note_occurrences (note_id, text_id, sentence_id, word_offset, surface)
          VALUES (?, ?, ?, ?, ?)`,
-        [newNoteId, newTid, newSid,
-         Number.isFinite(o.word_offset) ? o.word_offset : null,
+        [newNoteId, newTid, newSid, _wo,
          o.surface != null ? String(o.surface) : null]
       );
       out.occurrences.inserted++;
@@ -5863,6 +6002,362 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
     } catch (_) { out.study_day.dropped++; }
   }
 
+  return out;
+}
+
+// ── Sync-hardening P0 — state_bundle (SYNC_HARDENING_P0P2_DESIGN §1/§6.2) ────────────────────
+// ОДИН артефакт kind='state_bundle' с text-независимым состоянием, выпавшим из slim per-text
+// бандлов: канонические word-заметки (text_id NULL) + versions/links, их occurrences с
+// портируемыми якорями (text_key, order_index; corpus-тексты исключены — паритет: сегодня их
+// occurrences всё равно дропались на импорте, плюс honesty «корпус — никогда»), полки,
+// translation_overrides, anki_word_exports, study_day (канала ingest у него НЕТ — F2-4),
+// user-customized roots. Комплемент TEXT_BOUND-предиката → покрытие полное by construction.
+// Строки едут со СВОИМИ id (UUID глобально уникальны; state не проходит text-remap) — merge
+// по gen_dedup_key, затем по id. srs_card_id вырезается (device-local FK на несинкуемый overlay).
+// review_log/word_status НЕ едут: у лога свой канонический двусторонний синк (R12 no-dual-write).
+const _STATE_BOUND_SQL = `(n.target_kind IN ('sentence','word','text') AND n.text_id IS NOT NULL)`;
+const _NOTES_COLS = `n.id, n.target_kind, n.target_id, n.text_id, n.note_type, n.title, n.body_json,
+  n.audio_anchor_ms, n.audio_asset_key, n.source, n.confidence, n.model_version, n.user_touched,
+  n.gen_dedup_key, n.created_at, n.updated_at`;
+
+// Дешёвый вектор изменений (§6.2, критика F1-3/F2-12): max-ts + counts КАЖДОГО компонента,
+// чтобы occurrence-only действия (у occurrences есть только created_at) и УДАЛЕНИЯ (count
+// падает, ts не растёт) были видимы. Future-ts клампится к now (F2-13): одна кривая строка
+// не должна навсегда травить LWW-штамп.
+export async function stateChangeSignal() {
+  const one = async (sql) => { try { const rows = await q(sql, []); return rows && rows[0] ? rows[0] : {}; } catch (_) { return {}; } };
+  const n   = await one(`SELECT COUNT(*) c, MAX(updated_at) m FROM notes_v2 n WHERE NOT ${_STATE_BOUND_SQL}`);
+  const v   = await one(`SELECT COUNT(*) c FROM note_versions vv JOIN notes_v2 n ON n.id = vv.note_id WHERE NOT ${_STATE_BOUND_SQL}`);
+  const l   = await one(`SELECT COUNT(*) c FROM note_links ll JOIN notes_v2 n ON n.id = ll.from_note_id WHERE NOT ${_STATE_BOUND_SQL}`);
+  const o   = await one(`SELECT COUNT(*) c, MAX(oo.created_at) m FROM note_occurrences oo JOIN notes_v2 n ON n.id = oo.note_id WHERE NOT ${_STATE_BOUND_SQL}`);
+  const sh  = await one(`SELECT COUNT(*) c, MAX(updated_at) m FROM shelves`);
+  const tov = await one(`SELECT COUNT(*) c, MAX(updated_at) m FROM translation_overrides`);
+  const aw  = await one(`SELECT COUNT(*) c, MAX(updated_at) m FROM anki_word_exports`);
+  const sd  = await one(`SELECT COUNT(*) c, MAX(updated_at) m FROM study_day`);
+  const rt  = await one(`SELECT COUNT(*) c FROM roots WHERE my_note_id IS NOT NULL`);
+  const maxTs = [n.m, o.m, sh.m, tov.m, aw.m, sd.m].filter(Boolean).sort().slice(-1)[0] || null;
+  const now = new Date().toISOString();
+  // ts (публикуемый LWW-штамп) клампится; signal строится на СЫРОМ max — клампленный «дрожит»
+  // (double-now при future-строке) и давал бы ложный localChanged каждый цикл.
+  const ts = (maxTs && maxTs > now) ? now : maxTs;
+  const counts = [n.c, v.c, l.c, o.c, sh.c, tov.c, aw.c, sd.c, rt.c].map((x2) => Number(x2) || 0);
+  return { ts, signal: JSON.stringify([maxTs].concat(counts)) };
+}
+
+export async function exportStateBundle() {
+  const sig = await stateChangeSignal();
+  const notes = await q(`SELECT ${_NOTES_COLS} FROM notes_v2 n WHERE NOT ${_STATE_BOUND_SQL} ORDER BY n.created_at ASC, n.id ASC`);
+  const versions = await q(
+    `SELECT vv.note_id, vv.version, vv.body_json, vv.diff_summary, vv.edited_at
+       FROM note_versions vv JOIN notes_v2 n ON n.id = vv.note_id
+      WHERE NOT ${_STATE_BOUND_SQL} ORDER BY vv.note_id, vv.version ASC`);
+  // Ссылки: to_dedup_key — фолбэк для канонических целей (id заметок другого множества
+  // per-device и не резолвятся напрямую; счётный drop для нерезолвимого — §1.4).
+  const links = await q(
+    `SELECT ll.from_note_id, ll.to_kind, ll.to_id, ll.link_alias, ll.created_at,
+            tn.gen_dedup_key AS to_dedup_key
+       FROM note_links ll JOIN notes_v2 n ON n.id = ll.from_note_id
+       LEFT JOIN notes_v2 tn ON (ll.to_kind = 'note' AND tn.id = ll.to_id)
+      WHERE NOT ${_STATE_BOUND_SQL} ORDER BY ll.from_note_id, ll.to_kind, ll.to_id`);
+  // Якоря occurrences — JOIN через sentences (o.text_id бывает NULL by design, критика F1-9).
+  const occRaw = await q(
+    `SELECT oo.note_id, oo.word_offset, oo.surface, s.order_index AS oi, s.text_id AS tid
+       FROM note_occurrences oo
+       JOIN notes_v2 n ON n.id = oo.note_id
+       JOIN sentences s ON s.id = oo.sentence_id
+      WHERE NOT ${_STATE_BOUND_SQL} ORDER BY oo.note_id, oo.id`);
+  const textRows = await q('SELECT id, text_key, source_meta_json FROM texts', []);
+  const tMeta = new Map();
+  for (const t of (textRows || [])) {
+    let corpus = false;
+    try { const sm = t.source_meta_json ? JSON.parse(t.source_meta_json) : null; corpus = !!(sm && sm.corpus); } catch (_) {}
+    tMeta.set(String(t.id), { key: t.text_key ? String(t.text_key) : null, corpus });
+  }
+  const occurrences = [];
+  let occSkipped = 0;
+  for (const o2 of (occRaw || [])) {
+    const tm = tMeta.get(String(o2.tid));
+    if (!tm || !tm.key || tm.corpus || o2.oi == null) { occSkipped++; continue; }
+    occurrences.push({
+      note_id: String(o2.note_id), text_key: tm.key, order_index: Number(o2.oi),
+      word_offset: Number.isFinite(o2.word_offset) ? o2.word_offset : null,
+      surface: o2.surface != null ? String(o2.surface) : null,
+    });
+  }
+  const noteIdSet = new Set(notes.map((n2) => String(n2.id)));
+  const rootsAll = await q('SELECT root_3letter, gloss, my_note_id FROM roots WHERE my_note_id IS NOT NULL ORDER BY root_3letter', []);
+  const roots = (rootsAll || []).filter((r2) => noteIdSet.has(String(r2.my_note_id)));
+  // Полки — С таймстампами (per-slug LWW на импорте; _exportShelves их вырезает — критика F1-2).
+  const shelfRows = await q('SELECT * FROM shelves ORDER BY slug', []);
+  const shelves = (shelfRows || []).map((row) => {
+    let items = [];
+    try { items = JSON.parse(row.items_json || '[]') || []; } catch (_) { items = []; }
+    return {
+      slug: row.slug, title: row.title, track: row.track, era: row.era || null, genre: row.genre || null,
+      editorial_intro: row.editorial_intro || null, items,
+      order: (row.order_index != null ? row.order_index : null),
+      schema: row.schema_version || 1, origin: row.origin || null,
+      canon_version: (row.canon_version != null ? row.canon_version : null),
+      created_at: row.created_at || null, updated_at: row.updated_at || null,
+    };
+  });
+  const overrides = await q('SELECT id, he_hash, he, he_niqqud, translit, ru, target_lang, provider_scope, note, created_at, updated_at FROM translation_overrides ORDER BY he_hash, target_lang, provider_scope', []);
+  const anki = await q('SELECT note_id, deck_name, model_name, body_hash, exported_at, updated_at FROM anki_word_exports ORDER BY note_id', []);
+  const studyDays = await q('SELECT day, recalls, available, updated_at FROM study_day ORDER BY day', []);
+  const state = {
+    notes, versions, links, occurrences, roots, shelves,
+    translation_overrides: overrides || [], anki_word_exports: anki || [], study_day: studyDays || [],
+  };
+  return {
+    format: 'linguistpro-state-v1', schema_version: 1,
+    updated_at: sig.ts,                       // null ⇒ состояния нет, публиковать нечего
+    occ_skipped: occSkipped,                  // corpus/безъякорные — счётно (не молча)
+    state, signal: sig.signal,
+  };
+}
+
+// Per-row LWW merge (§6.2, критика F1-2: union-by-ignore НЕ проносит правки и реверсит их
+// в облаке). Идемпотентен; безопасен к повторному применению того же payload.
+export async function importStateBundle(payload) {
+  const st = payload && payload.state;
+  if (!st || typeof st !== 'object') return { ok: false, error: 'BAD_STATE' };
+  const out = {
+    ok: true,
+    notes: { inserted: 0, updated: 0, kept: 0, dropped: 0 },
+    versions: { inserted: 0, dropped: 0 }, links: { inserted: 0, dropped: 0 },
+    occurrences: { inserted: 0, dropped: 0 }, roots: { inserted: 0 },
+    shelves: { inserted: 0, updated: 0, kept: 0, dropped: 0 },
+    translation_overrides: { upserted: 0, dropped: 0 }, anki_word_exports: { upserted: 0, dropped: 0 },
+    study_day: { merged: 0, dropped: 0 },
+  };
+  const uuid = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : ('st-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
+  let _txOpen = false;
+  try {
+    await x('BEGIN;'); _txOpen = true;
+    // Pass 1 — notes: dedup-key → id → insert-с-оригинальным-id. LWW: body проезжает ТОЛЬКО
+    // если входящая строка СТРОГО новее (ISO-строки сравниваются лексически).
+    const idMap = new Map();
+    for (const nn of (Array.isArray(st.notes) ? st.notes : [])) {
+      if (!nn || !nn.id) { out.notes.dropped++; continue; }
+      const tk = String(nn.target_kind || 'sentence');
+      const nt = String(nn.note_type || 'free');
+      if (!_TARGET_KINDS.has(tk) || !_NOTE_TYPES.has(nt)) { out.notes.dropped++; continue; }
+      // Зеркало экспорт-предиката: text-bound строкам в state не место (защита от кривого payload).
+      if ((tk === 'sentence' || tk === 'word' || tk === 'text') && nn.text_id) { out.notes.dropped++; continue; }
+      const bodyJson = (typeof nn.body_json === 'string') ? nn.body_json : JSON.stringify({});
+      try { JSON.parse(bodyJson); } catch (_) { out.notes.dropped++; continue; }
+      let local = null;
+      if (nn.gen_dedup_key) {
+        try { local = await findNoteByDedupKey(String(nn.gen_dedup_key)); } catch (_) {}
+      }
+      if (!local) {
+        const ex = await q('SELECT id, updated_at FROM notes_v2 WHERE id = ?', [String(nn.id)]);
+        local = ex && ex[0] ? ex[0] : null;
+      }
+      if (local) {
+        idMap.set(String(nn.id), String(local.id));
+        if (String(nn.updated_at || '') > String(local.updated_at || '')) {
+          try {
+            await r(
+              `UPDATE notes_v2 SET title = ?, body_json = ?, note_type = ?, audio_anchor_ms = ?,
+                 audio_asset_key = ?, source = ?, confidence = ?, model_version = ?, user_touched = ?, updated_at = ?
+               WHERE id = ?`,
+              [String(nn.title || ''), bodyJson, nt,
+               Number.isFinite(nn.audio_anchor_ms) ? Math.max(0, Math.round(nn.audio_anchor_ms)) : null,
+               nn.audio_asset_key != null ? String(nn.audio_asset_key) : null,
+               (nn.source != null ? String(nn.source) : 'user'),
+               (Number.isFinite(nn.confidence) ? nn.confidence : null),
+               (nn.model_version != null ? String(nn.model_version) : null),
+               (nn.user_touched != null ? (nn.user_touched ? 1 : 0) : 1),
+               String(nn.updated_at), String(local.id)]
+            );
+            out.notes.updated++;
+          } catch (_) { out.notes.dropped++; }
+        } else out.notes.kept++;
+      } else {
+        try {
+          await r(
+            `INSERT INTO notes_v2
+               (id, target_kind, target_id, text_id, note_type, title, body_json,
+                audio_anchor_ms, audio_asset_key, srs_card_id,
+                source, confidence, model_version, user_touched, gen_dedup_key, created_at, updated_at)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+            [String(nn.id), tk, (nn.target_id != null ? String(nn.target_id) : null), null, nt,
+             String(nn.title || ''), bodyJson,
+             Number.isFinite(nn.audio_anchor_ms) ? Math.max(0, Math.round(nn.audio_anchor_ms)) : null,
+             nn.audio_asset_key != null ? String(nn.audio_asset_key) : null,
+             null,   // srs_card_id — device-local overlay FK, не переносится
+             (nn.source != null ? String(nn.source) : 'user'),
+             (Number.isFinite(nn.confidence) ? nn.confidence : null),
+             (nn.model_version != null ? String(nn.model_version) : null),
+             (nn.user_touched != null ? (nn.user_touched ? 1 : 0) : 1),
+             (nn.gen_dedup_key != null ? String(nn.gen_dedup_key) : null),
+             nn.created_at || new Date().toISOString(), nn.updated_at || new Date().toISOString()]
+          );
+          idMap.set(String(nn.id), String(nn.id));
+          out.notes.inserted++;
+        } catch (_) { out.notes.dropped++; }
+      }
+    }
+    // Pass 2 — versions (OR IGNORE по (note_id, version)).
+    for (const vv of (Array.isArray(st.versions) ? st.versions : [])) {
+      const nid = vv && idMap.get(String(vv.note_id || ''));
+      if (!nid) { out.versions.dropped++; continue; }
+      const bodyJson = (typeof vv.body_json === 'string') ? vv.body_json : JSON.stringify({});
+      try { JSON.parse(bodyJson); } catch (_) { out.versions.dropped++; continue; }
+      try {
+        await r(`INSERT OR IGNORE INTO note_versions (note_id, version, body_json, diff_summary, edited_at) VALUES (?,?,?,?,?)`,
+          [nid, Math.max(1, Number(vv.version) || 1), bodyJson, vv.diff_summary ?? null, vv.edited_at || new Date().toISOString()]);
+        out.versions.inserted++;
+      } catch (_) { out.versions.dropped++; }
+    }
+    // Pass 3 — links (to_kind='note' через idMap → to_dedup_key; иначе verbatim).
+    for (const ll of (Array.isArray(st.links) ? st.links : [])) {
+      const fromId = ll && idMap.get(String(ll.from_note_id || ''));
+      if (!fromId) { out.links.dropped++; continue; }
+      const toKind = String(ll.to_kind || '');
+      let toId = null;
+      if (toKind === 'note') {
+        toId = idMap.get(String(ll.to_id || '')) || null;
+        if (!toId && ll.to_dedup_key) {
+          try { const exn = await findNoteByDedupKey(String(ll.to_dedup_key)); toId = exn && exn.id ? String(exn.id) : null; } catch (_) {}
+        }
+      } else {
+        toId = ll.to_id != null ? String(ll.to_id) : null;
+      }
+      if (!toId) { out.links.dropped++; continue; }
+      try {
+        await r(`INSERT OR IGNORE INTO note_links (from_note_id, to_kind, to_id, link_alias, created_at) VALUES (?,?,?,?,?)`,
+          [fromId, toKind, toId, ll.link_alias ?? null, ll.created_at || new Date().toISOString()]);
+        out.links.inserted++;
+      } catch (_) { out.links.dropped++; }
+    }
+    // Pass 4 — roots (OR IGNORE; у roots нет таймстампов — паритет с сегодняшним merge).
+    for (const rt of (Array.isArray(st.roots) ? st.roots : [])) {
+      if (!rt || !rt.root_3letter) continue;
+      const myNote = rt.my_note_id ? (idMap.get(String(rt.my_note_id)) || null) : null;
+      try {
+        await r(`INSERT OR IGNORE INTO roots (root_3letter, gloss, my_note_id) VALUES (?,?,?)`,
+          [String(rt.root_3letter), rt.gloss ?? null, myNote]);
+        out.roots.inserted++;
+      } catch (_) {}
+    }
+    // Pass 5 — occurrences (anchor-shaped; NULL-safe дедуп — F1-9).
+    const tidByKey = new Map();
+    const sidByAnchor = new Map();
+    for (const oo of (Array.isArray(st.occurrences) ? st.occurrences : [])) {
+      const nid = oo && idMap.get(String(oo.note_id || ''));
+      const tk2 = oo && oo.text_key ? String(oo.text_key) : null;
+      if (!nid || !tk2 || oo.order_index == null) { out.occurrences.dropped++; continue; }
+      let tid = tidByKey.get(tk2);
+      if (tid === undefined) {
+        const rows = await q('SELECT id FROM texts WHERE text_key = ?', [tk2]);
+        tid = rows && rows[0] ? String(rows[0].id) : null;
+        tidByKey.set(tk2, tid);
+      }
+      if (!tid) { out.occurrences.dropped++; continue; }          // текст не синкан/не материализован
+      const ak = tid + ':' + Number(oo.order_index);
+      let sid = sidByAnchor.get(ak);
+      if (sid === undefined) {
+        const rows = await q('SELECT id FROM sentences WHERE text_id = ? AND order_index = ?', [tid, Number(oo.order_index)]);
+        sid = rows && rows[0] ? String(rows[0].id) : null;
+        sidByAnchor.set(ak, sid);
+      }
+      if (!sid) { out.occurrences.dropped++; continue; }
+      const wo = Number.isFinite(oo.word_offset) ? oo.word_offset : null;
+      try {
+        const dup = await q('SELECT 1 x FROM note_occurrences WHERE note_id = ? AND sentence_id = ? AND word_offset IS ? LIMIT 1', [nid, sid, wo]);
+        if (dup && dup.length) { out.occurrences.inserted++; continue; }
+        await r(`INSERT OR IGNORE INTO note_occurrences (note_id, text_id, sentence_id, word_offset, surface) VALUES (?,?,?,?,?)`,
+          [nid, tid, sid, wo, oo.surface != null ? String(oo.surface) : null]);
+        out.occurrences.inserted++;
+      } catch (_) { out.occurrences.dropped++; }
+    }
+    // Pass 6 — shelves: per-slug newer-wins по updated_at (валидация — как у бандл-импорта).
+    for (const sh of (Array.isArray(st.shelves) ? st.shelves : [])) {
+      const v2 = _validateShelfForImport(sh);
+      if (!v2.ok) { out.shelves.dropped++; continue; }
+      const slug = String(sh.slug).trim();
+      try {
+        const ex = await q('SELECT id, updated_at FROM shelves WHERE slug = ?', [slug]);
+        const itemsJson = JSON.stringify(Array.isArray(sh.items) ? sh.items : []);
+        if (!ex || !ex.length) {
+          await r(
+            `INSERT INTO shelves (id, slug, title, track, era, genre, editorial_intro, items_json, order_index, schema_version, origin, canon_version, created_at, updated_at)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+            [uuid(), slug, String(sh.title), String(sh.track), sh.era ?? null, sh.genre ?? null,
+             sh.editorial_intro ?? null, itemsJson, (sh.order != null ? Number(sh.order) : null),
+             Number(sh.schema) || 1, sh.origin ?? null, (sh.canon_version != null ? Number(sh.canon_version) : null),
+             sh.created_at || new Date().toISOString(), sh.updated_at || new Date().toISOString()]);
+          out.shelves.inserted++;
+        } else if (String(sh.updated_at || '') > String(ex[0].updated_at || '')) {
+          await r(
+            `UPDATE shelves SET title = ?, track = ?, era = ?, genre = ?, editorial_intro = ?, items_json = ?,
+                    order_index = ?, schema_version = ?, origin = ?, canon_version = ?, updated_at = ?
+              WHERE id = ?`,
+            [String(sh.title), String(sh.track), sh.era ?? null, sh.genre ?? null, sh.editorial_intro ?? null,
+             itemsJson, (sh.order != null ? Number(sh.order) : null), Number(sh.schema) || 1,
+             sh.origin ?? null, (sh.canon_version != null ? Number(sh.canon_version) : null),
+             String(sh.updated_at), String(ex[0].id)]);
+          out.shelves.updated++;
+        } else out.shelves.kept++;
+      } catch (_) { out.shelves.dropped++; }
+    }
+    // Pass 7 — translation_overrides: newer-wins по natural key.
+    for (const tv of (Array.isArray(st.translation_overrides) ? st.translation_overrides : [])) {
+      if (!tv || !tv.he_hash || !tv.target_lang) { out.translation_overrides.dropped++; continue; }
+      try {
+        await r(
+          `INSERT INTO translation_overrides (id, he_hash, he, he_niqqud, translit, ru, target_lang, provider_scope, note, created_at, updated_at)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?)
+           ON CONFLICT(he_hash, target_lang, provider_scope) DO UPDATE SET
+             he = excluded.he, he_niqqud = excluded.he_niqqud, translit = excluded.translit,
+             ru = excluded.ru, note = excluded.note, updated_at = excluded.updated_at
+           WHERE excluded.updated_at > translation_overrides.updated_at`,
+          [uuid(), String(tv.he_hash), String(tv.he || ''), tv.he_niqqud ?? null, tv.translit ?? null,
+           tv.ru ?? null, String(tv.target_lang), String(tv.provider_scope || '*'), tv.note ?? null,
+           tv.created_at || new Date().toISOString(), tv.updated_at || new Date().toISOString()]);
+        out.translation_overrides.upserted++;
+      } catch (_) { out.translation_overrides.dropped++; }
+    }
+    // Pass 8 — anki_word_exports: newer-wins (НЕ безусловный REPLACE — F1-2).
+    for (const aw of (Array.isArray(st.anki_word_exports) ? st.anki_word_exports : [])) {
+      const nid = aw && (idMap.get(String(aw.note_id || '')) || (aw.note_id != null ? String(aw.note_id) : null));
+      if (!nid) { out.anki_word_exports.dropped++; continue; }
+      try {
+        await r(
+          `INSERT INTO anki_word_exports (note_id, deck_name, model_name, body_hash, exported_at, updated_at)
+           VALUES (?,?,?,?,?,?)
+           ON CONFLICT(note_id) DO UPDATE SET
+             deck_name = excluded.deck_name, model_name = excluded.model_name, body_hash = excluded.body_hash,
+             exported_at = excluded.exported_at, updated_at = excluded.updated_at
+           WHERE excluded.updated_at > anki_word_exports.updated_at`,
+          [nid, aw.deck_name ?? null, aw.model_name ?? null, aw.body_hash ?? null,
+           aw.exported_at || new Date().toISOString(), aw.updated_at || new Date().toISOString()]);
+        out.anki_word_exports.upserted++;
+      } catch (_) { out.anki_word_exports.dropped++; }
+    }
+    // Pass 9 — study_day: per-day MAX (ledger-семантика — union может только прибавить).
+    for (const d of (Array.isArray(st.study_day) ? st.study_day : [])) {
+      const day = d && d.day != null ? String(d.day).trim() : '';
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) { out.study_day.dropped++; continue; }
+      try {
+        await r(
+          `INSERT INTO study_day (day, recalls, available, updated_at) VALUES (?,?,?,?)
+           ON CONFLICT(day) DO UPDATE SET
+             recalls = MAX(study_day.recalls, excluded.recalls),
+             available = MAX(study_day.available, excluded.available),
+             updated_at = MAX(study_day.updated_at, excluded.updated_at)`,
+          [day, Math.max(0, Number(d.recalls) || 0), Math.max(0, Number(d.available) || 0),
+           d.updated_at || new Date().toISOString()]);
+        out.study_day.merged++;
+      } catch (_) { out.study_day.dropped++; }
+    }
+    await x('COMMIT;'); _txOpen = false;
+  } catch (eOuter) {
+    if (_txOpen) { try { await x('ROLLBACK;'); } catch (_) {} }
+    return { ok: false, error: (eOuter && eOuter.message) ? eOuter.message : String(eOuter) };
+  }
   return out;
 }
 

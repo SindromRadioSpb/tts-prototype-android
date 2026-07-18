@@ -172,8 +172,13 @@ app.set("trust proxy", 1);
 // + a tiny 256 KB parser (a Telegram update is small). Adjudication of critique wf_a67874c5.
 const TELEGRAM_WEBHOOK_PATH = "/api/telegram/webhook";
 const AGENT_ACCESS_MCP_PATH = "/agent-access/mcp";
+// Sync-hardening P0 (§6.3, критика F2-2): artifacts/put выведен из-под глобального парсера —
+// state_bundle (кап 24 МБ) не влезает в 10mb, а auth/CSRF/consent обязаны отработать ДО
+// тяжёлого парса (тот же инвариант, что у webhook'а: unauth не должен заставлять сервер
+// парсить мегабайты). Роут монтирует свой 32mb-парсер ПОСЛЕ гейтов.
+const LEARNER_ARTIFACTS_PUT_PATH = "/api/learner/artifacts/put";
 const _globalJson = bodyParser.json({ limit: "10mb" });
-app.use((req, res, next) => ([TELEGRAM_WEBHOOK_PATH, AGENT_ACCESS_MCP_PATH].includes(req.path) ? next() : _globalJson(req, res, next)));
+app.use((req, res, next) => ([TELEGRAM_WEBHOOK_PATH, AGENT_ACCESS_MCP_PATH, LEARNER_ARTIFACTS_PUT_PATH].includes(req.path) ? next() : _globalJson(req, res, next)));
 
 // ── Content-Security-Policy: REPORT-ONLY rollout ───────────────────────────
 // index.html is inline-script/style heavy, so we can't enforce a strict CSP
@@ -3292,7 +3297,8 @@ if (_opsSweepInterval.unref) _opsSweepInterval.unref();
 // для чтения (класс B живёт в облаке только пока согласие активно).
 // ============================================================================
 const learnerArtifactsRepo = require("./db/learnerArtifactsRepo");
-const rlLearnerArtifacts = makeRateLimiter({ windowMs: 60_000, max: 120, name: "learner-artifacts" });
+// 240/мин: fresh-device restore = 80+ GET подряд (83 текста у владельца) — 120 было впритык.
+const rlLearnerArtifacts = makeRateLimiter({ windowMs: 60_000, max: 240, name: "learner-artifacts" });
 
 async function requireArtifactConsent(req, res, auth) {
   let ok = false;
@@ -3304,7 +3310,14 @@ async function requireArtifactConsent(req, res, auth) {
 app.get("/api/learner/artifacts", rlLearnerArtifacts, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   if (!(await requireArtifactConsent(req, res, auth))) return;
-  try { res.json({ ok: true, rows: await learnerArtifactsRepo.list(auth.user.id) }); }
+  try {
+    const rows = await learnerArtifactsRepo.list(auth.user.id);
+    // P0 — additive-поле state (метаданные state_bundle БЕЗ payload); старые клиенты игнорируют,
+    // rows остаётся чистым text_bundle-списком (старый клиент не увидит state-артефакт вовсе).
+    let state = null;
+    try { state = await learnerArtifactsRepo.getMeta(auth.user.id, "__state__", learnerArtifactsRepo.STATE_KIND); } catch (_) {}
+    res.json({ ok: true, rows, state: state || null });
+  }
   catch (e) { res.status(500).json({ ok: false, error: "ARTIFACTS_FAILED", message: e.message }); }
 });
 
@@ -3312,22 +3325,39 @@ app.get("/api/learner/artifacts/get", rlLearnerArtifacts, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   if (!(await requireArtifactConsent(req, res, auth))) return;
   try {
-    const row = await learnerArtifactsRepo.get(auth.user.id, req.query.key || "");
+    const kind = String(req.query.kind || learnerArtifactsRepo.KIND);
+    if (!learnerArtifactsRepo.KINDS.has(kind)) return res.status(400).json({ ok: false, error: "BAD_KIND" });
+    const row = await learnerArtifactsRepo.get(auth.user.id, req.query.key || "", kind);
     if (!row) return res.status(404).json({ ok: false, error: "NOT_FOUND" });
-    res.json({ ok: true, artifact_key: row.artifact_key, updated_at: row.updated_at, payload: JSON.parse(row.payload_json) });
+    // Raw-passthrough (§6.3, критика F2-9): payload_json валидирован на PUT — не тратим
+    // event-loop 1.5-vCPU контейнера на JSON.parse+re-stringify многомегабайтного блоба.
+    res.set("Content-Type", "application/json; charset=utf-8");
+    res.send('{"ok":true,"artifact_key":' + JSON.stringify(row.artifact_key)
+      + ',"updated_at":' + JSON.stringify(row.updated_at)
+      + ',"payload":' + row.payload_json + '}');
   } catch (e) { res.status(500).json({ ok: false, error: "ARTIFACT_GET_FAILED", message: e.message }); }
 });
 
-app.post("/api/learner/artifacts/put", rlLearnerArtifacts, async (req, res) => {   // global bodyParser (10mb) covers the 3mb payload cap
-  const auth = await requireUser(req, res); if (!auth) return;
-  if (!requireCsrf(req, res, auth)) return;
-  if (!(await requireArtifactConsent(req, res, auth))) return;
-  try {
-    const out = await learnerArtifactsRepo.put(auth.user.id, auth.session.deviceId, req.body || {});
-    if (out.ok === false) return res.status(400).json(out);
-    res.json(out);
-  } catch (e) { res.status(500).json({ ok: false, error: "ARTIFACT_PUT_FAILED", message: e.message }); }
-});
+// P0 §6.3 — гейты КАК route-middleware ДО 32mb-парсера (путь исключён из глобального 10mb):
+// неавторизованный/без-CSRF/без-consent запрос отваливается до того, как сервер согласится
+// парсить мегабайты. Порядок: rate-limit → auth → CSRF (заголовок, тело не нужно) → consent → parse.
+const _artifactsJson = bodyParser.json({ limit: "32mb" });
+const _mwArtifactsUser = (req, res, next) => {
+  requireUser(req, res).then((auth) => { if (!auth) return; req._auth = auth; next(); })
+    .catch(() => { try { res.status(500).json({ ok: false, error: "AUTH_FAILED" }); } catch (_) {} });
+};
+app.post(LEARNER_ARTIFACTS_PUT_PATH, rlLearnerArtifacts,
+  _mwArtifactsUser,
+  (req, res, next) => { if (!requireCsrf(req, res, req._auth)) return; next(); },
+  (req, res, next) => { requireArtifactConsent(req, res, req._auth).then((ok) => { if (ok) next(); }).catch(() => { try { res.status(500).json({ ok: false, error: "CONSENT_CHECK_FAILED" }); } catch (_) {} }); },
+  _artifactsJson,
+  async (req, res) => {
+    try {
+      const out = await learnerArtifactsRepo.put(req._auth.user.id, req._auth.session.deviceId, req.body || {});
+      if (out.ok === false) return res.status(400).json(out);
+      res.json(out);
+    } catch (e) { res.status(500).json({ ok: false, error: "ARTIFACT_PUT_FAILED", message: e.message }); }
+  });
 
 // ============================================================================
 // CLG-P4.5 — Web Push (AI_MENTOR_RECON §8/§9 P4.5): ежедневный нудж «N слов
