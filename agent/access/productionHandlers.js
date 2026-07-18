@@ -41,6 +41,19 @@ function dueDay(due) {
   const s = String(due || "");
   return /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : null;
 }
+// Opaque offset cursor for due-item pagination. No item_key leaks into it.
+const DUE_SCAN_MAX = 500;
+function encodeDueCursor(offset) { return Buffer.from(`o${offset}`, "utf8").toString("base64url"); }
+function decodeDueCursor(cursor) {
+  if (cursor == null) return 0;
+  let decoded = "";
+  try { decoded = Buffer.from(String(cursor), "base64url").toString("utf8"); } catch (_) { fail("AA_DUE_CURSOR_INVALID"); }
+  const m = /^o(\d{1,6})$/.exec(decoded);
+  if (!m) fail("AA_DUE_CURSOR_INVALID");
+  const offset = Number(m[1]);
+  if (!Number.isInteger(offset) || offset < 0 || offset > DUE_SCAN_MAX) fail("AA_DUE_CURSOR_INVALID");
+  return offset;
+}
 
 function createProductionHandlers(options = {}) {
   const learnerRepo = options.learnerGraphRepo;
@@ -52,7 +65,7 @@ function createProductionHandlers(options = {}) {
   const now = options.now || Date.now;
   const principalAccessExpiresAt = options.principalAccessExpiresAt;
   if (!learnerRepo || typeof learnerRepo.getAgentAccessReviewAggregates !== "function" || typeof learnerRepo.getDue !== "function"
-    || !agentRepo || typeof agentRepo.getLatestOpenPlanAction !== "function" || typeof agentRepo.listExplanationMetadata !== "function" || typeof agentRepo.getProfile !== "function"
+    || !agentRepo || typeof agentRepo.getLatestOpenPlanAction !== "function" || typeof agentRepo.listExplanationMetadata !== "function" || typeof agentRepo.getProfile !== "function" || typeof agentRepo.getExplanationById !== "function"
     || !oauthRepo || typeof oauthRepo.loadConnection !== "function" || typeof oauthRepo.listConnectionsForUser !== "function"
     || !publicCatalog || typeof publicCatalog.isReadable !== "function" || typeof publicCatalog.search !== "function"
     || !keyingService || typeof keyingService.displayForItemKey !== "function" || typeof keyingService.glossForItemKey !== "function"
@@ -124,14 +137,18 @@ function createProductionHandlers(options = {}) {
   // floats — grading stays deterministic and first-party in LinguistPro.
   async function get_due_review_items(context, args) {
     const clock = fixedNow(now);
-    const limit = Math.max(1, Math.min(20, Number(args && args.limit) || 20));
+    const limit = Math.max(1, Math.min(100, Number(args && args.limit) || 100));
+    const offset = decodeDueCursor(args && args.cursor);
     const [aggregate, due] = await Promise.all([
       learnerRepo.getAgentAccessReviewAggregates(context.user_id, { nowMs: clock.ms }).then(validateAggregate),
-      learnerRepo.getDue(context.user_id, { nowMs: clock.ms, limit }),
+      learnerRepo.getDue(context.user_id, { nowMs: clock.ms, limit: DUE_SCAN_MAX }),
     ]);
-    const rows = Array.isArray(due) ? due.slice(0, limit) : [];
+    // Deterministic order (most overdue first, then item_key) so offset paging is stable within a snapshot.
+    const all = (Array.isArray(due) ? due.slice(0, DUE_SCAN_MAX) : [])
+      .slice().sort((a, b) => String(a.due).localeCompare(String(b.due)) || String(a.item_key).localeCompare(String(b.item_key)));
+    const page = all.slice(offset, offset + limit);
     const items = [];
-    for (const row of rows) {
+    for (const row of page) {
       let display = String(row.item_key || "");
       let gloss = null;
       try { display = String(await keyingService.displayForItemKey(row.item_key)).slice(0, 64) || display.slice(0, 64); } catch (_) {}
@@ -139,13 +156,44 @@ function createProductionHandlers(options = {}) {
       const day = dueDay(row.due) || clock.iso.slice(0, 10);
       items.push(Object.freeze({ display: display.slice(0, 64) || "?", gloss, struggle: struggleBand(row.lapses), due_day: day, content_available: gloss !== null }));
     }
+    const nextOffset = offset + page.length;
     return Object.freeze({
       schema_version: "aa.due_review_items.1.0.0",
       items: Object.freeze(items),
       due_total: aggregate.due_total,
-      truncated: aggregate.due_total > items.length,
+      next_cursor: nextOffset < all.length ? encodeDueCursor(nextOffset) : null,
       generated_at: clock.iso,
     });
+  }
+
+  // AA3: read ONE past explanation's body by id. Purge-aware; never re-exposes
+  // the quoted source sentence (facts_used) — only the mentor's own text/lines.
+  async function get_explanation_body(context, args) {
+    const clock = fixedNow(now);
+    const row = await agentRepo.getExplanationById(context.user_id, args.explanation_id);
+    if (!row || String(row.id) !== String(args.explanation_id)) fail("AA_EXPLANATION_NOT_FOUND");
+    let body;
+    try { body = JSON.parse(String(row.body_json || "")); } catch (_) { fail("AA_EXPLANATION_BODY_INVALID"); }
+    if (!body || typeof body !== "object" || Array.isArray(body)) fail("AA_EXPLANATION_BODY_INVALID");
+    const createdAt = String(row.created_at || clock.iso);
+    const base = { schema_version: "aa.explanation_body.1.0.0", explanation_id: String(args.explanation_id), created_at: createdAt, generated_at: clock.iso };
+    if (body.purge_reason !== undefined && body.purge_reason !== null) {
+      return Object.freeze({ ...base, kind: null, purge_state: "PURGED", language: null, text: null, lines: null });
+    }
+    const kind = ["sentence", "word", "study_summary", "draft_retell"].includes(body.kind) ? body.kind : "sentence";
+    const language = typeof body.language === "string" ? body.language.slice(0, 8) : null;
+    let text = null, lines = null;
+    if (kind === "draft_retell") {
+      if (Array.isArray(body.lines)) {
+        lines = body.lines.slice(0, 8)
+          .map((l) => ({ he: String((l && l.he) || "").slice(0, 500), ru: (l && l.ru != null) ? String(l.ru).slice(0, 500) : null }))
+          .filter((l) => l.he);
+      }
+      if (!lines || !lines.length) lines = null;
+    } else {
+      text = typeof body.text === "string" ? body.text.slice(0, 6000) : null;
+    }
+    return Object.freeze({ ...base, kind, purge_state: "AVAILABLE", language, text, lines: lines === null ? null : Object.freeze(lines.map((l) => Object.freeze(l))) });
   }
 
   async function get_learner_profile(context) {
@@ -228,6 +276,7 @@ function createProductionHandlers(options = {}) {
     get_access_window,
     get_due_review_items,
     get_learner_profile,
+    get_explanation_body,
   });
 }
 

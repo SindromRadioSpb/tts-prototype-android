@@ -25,7 +25,7 @@ const OTHER = "synthetic-other";
 const CLIENT = "synthetic-client";
 const CONNECTION = "synthetic-connection";
 const OTHER_CONNECTION = "synthetic-other";
-const SCOPES = ["learning.brief.read", "review.summary.read", "reading.public.search", "explanations.metadata.read", "agent.connection.read", "review.items.read", "profile.read"];
+const SCOPES = ["learning.brief.read", "review.summary.read", "reading.public.search", "explanations.metadata.read", "agent.connection.read", "review.items.read", "profile.read", "explanations.body.read"];
 const KNOWN_CONSTRUCT = "construct:hebrew.channel_gap.reading_to_dictation";
 
 function expectCode(promise, code) {
@@ -109,7 +109,7 @@ function exactOwnerParser() {
 
     const explanations = [
       ["exp-sentence", {}, [], "2026-07-17T11:04:00.000Z"],
-      ["exp-word", { kind: "word" }, [{ kind: "constructs", items: [{ id: KNOWN_CONSTRUCT }, { id: "construct:unknown" }, { id: KNOWN_CONSTRUCT }] }], "2026-07-17T11:03:00.000Z"],
+      ["exp-word", { kind: "word", word: "כתב", text: "объяснение слова כתב", language: "ru" }, [{ kind: "constructs", items: [{ id: KNOWN_CONSTRUCT }, { id: "construct:unknown" }, { id: KNOWN_CONSTRUCT }] }], "2026-07-17T11:03:00.000Z"],
       ["exp-summary", { kind: "study_summary", purge_reason: "fixture-purge", prose: "private-body-sentinel" }, [], "2026-07-17T11:02:00.000Z"],
       ["exp-draft", { kind: "draft_retell" }, [], "2026-07-17T11:01:00.000Z"],
     ];
@@ -154,10 +154,10 @@ function exactOwnerParser() {
     }); checks++;
 
     // AA3 slice-1 — get_due_review_items (content, coarse band, NO answer-key).
-    const dueItems = await service.execute(principal({ request_id: "due-items" }), "get_due_review_items", { limit: 20 });
+    const dueItems = await service.execute(principal({ request_id: "due-items" }), "get_due_review_items", { limit: 100 });
     assert.ok(dueItems.ok, JSON.stringify(dueItems)); const di = dueItems.result;
     assert.strictEqual(di.schema_version, "aa.due_review_items.1.0.0");
-    assert.strictEqual(di.due_total, 3); assert.strictEqual(di.truncated, false);
+    assert.strictEqual(di.due_total, 3); assert.strictEqual(di.next_cursor, null); // all 3 fit on one page
     const struggler = di.items.find((it) => it.display === "כָּתַב");
     assert.ok(struggler && struggler.gloss === "написал" && struggler.struggle === "high" && struggler.content_available === true, JSON.stringify(di.items));
     // Answer-key / raw-model fields must NEVER appear.
@@ -165,9 +165,18 @@ function exactOwnerParser() {
     const leakStr = JSON.stringify(di);
     for (const forbidden of ["alts", "expected", "stability", "difficulty", "reps", "reviewed_at", "item_key"]) assert.ok(!leakStr.includes(forbidden), `leak:${forbidden}`);
     checks++;
-    // Truncation honesty: limit smaller than due_total -> truncated true.
-    const dueCapped = await service.execute(principal({ request_id: "due-cap" }), "get_due_review_items", { limit: 1 });
-    assert.ok(dueCapped.ok && dueCapped.result.items.length === 1 && dueCapped.result.due_total === 3 && dueCapped.result.truncated === true); checks++;
+    // Pagination: page 1 (limit 1) returns a cursor; page 2 continues; last page cursor null; full walk covers all 3 uniquely.
+    const p1 = await service.execute(principal({ request_id: "due-p1" }), "get_due_review_items", { limit: 1 });
+    assert.ok(p1.ok && p1.result.items.length === 1 && p1.result.due_total === 3 && typeof p1.result.next_cursor === "string");
+    const seen = new Set(p1.result.items.map((it) => it.display)); let cursor = p1.result.next_cursor, guard = 0;
+    while (cursor && guard++ < 10) {
+      const pn = await service.execute(principal({ request_id: `due-pn-${guard}` }), "get_due_review_items", { limit: 1, cursor });
+      assert.ok(pn.ok, JSON.stringify(pn)); pn.result.items.forEach((it) => seen.add(it.display)); cursor = pn.result.next_cursor;
+    }
+    assert.strictEqual(seen.size, 3); // full walk covered every due item exactly once
+    // Bad cursor fails closed.
+    const badCur = await service.execute(principal({ request_id: "due-badcur" }), "get_due_review_items", { limit: 1, cursor: "not-a-real-cursor" });
+    assert.ok(!badCur.ok && badCur.error.code === "INTERNAL_ERROR"); checks++;
 
     // AA3 slice-1 — get_learner_profile (typed projection, no goals_json/user_id).
     const prof = await service.execute(principal({ request_id: "profile" }), "get_learner_profile", {});
@@ -188,6 +197,22 @@ function exactOwnerParser() {
     // Scope gating: a token WITHOUT review.items.read cannot call get_due_review_items.
     const narrow = await service.execute(principal({ request_id: "narrow", scopes: ["agent.connection.read"] }), "get_due_review_items", { limit: 5 });
     assert.ok(!narrow.ok && narrow.error.code === "INSUFFICIENT_SCOPE"); checks++;
+
+    // AA3 commit 3 — get_explanation_body: live body + purge tombstone + not-found.
+    const liveBody = await service.execute(principal({ request_id: "exp-live" }), "get_explanation_body", { explanation_id: "exp-word" });
+    assert.ok(liveBody.ok, JSON.stringify(liveBody)); const eb = liveBody.result;
+    assert.strictEqual(eb.schema_version, "aa.explanation_body.1.0.0");
+    assert.strictEqual(eb.kind, "word"); assert.strictEqual(eb.purge_state, "AVAILABLE");
+    assert.strictEqual(eb.text, "объяснение слова כתב"); assert.strictEqual(eb.language, "ru"); assert.strictEqual(eb.lines, null); checks++;
+    const purgedBody = await service.execute(principal({ request_id: "exp-purged" }), "get_explanation_body", { explanation_id: "exp-summary" });
+    assert.ok(purgedBody.ok); const pb = purgedBody.result;
+    assert.strictEqual(pb.purge_state, "PURGED"); assert.strictEqual(pb.kind, null); assert.strictEqual(pb.text, null); assert.strictEqual(pb.lines, null);
+    assert.ok(!JSON.stringify(pb).includes("private-body-sentinel"), "purged body must not leak content"); checks++;
+    const notFound = await service.execute(principal({ request_id: "exp-404" }), "get_explanation_body", { explanation_id: "no-such-explanation" });
+    assert.ok(!notFound.ok && notFound.error.code === "INTERNAL_ERROR"); checks++;
+    // Scope gating for the body scope.
+    const bodyNarrow = await service.execute(principal({ request_id: "body-narrow", scopes: ["agent.connection.read"] }), "get_explanation_body", { explanation_id: "exp-word" });
+    assert.ok(!bodyNarrow.ok && bodyNarrow.error.code === "INSUFFICIENT_SCOPE"); checks++;
 
     const searchArgs = { language: "he", audio: "ANY", ready: "ANY", sort: "RELEVANCE", limit: 3 };
     const search = await service.execute(principal({ request_id: "search-request" }), "search_public_reading_catalog", searchArgs);
@@ -272,7 +297,7 @@ function exactOwnerParser() {
 
     const poisonedHandlers = createProductionHandlers({
       learnerGraphRepo: { getAgentAccessReviewAggregates: async () => ({ scheduled_total: 100001, due_total: 0, urgent_total: 0 }), getDue: async () => [] },
-      agentRepo: { getLatestOpenPlanAction: async () => null, listExplanationMetadata: async () => ({ items: [{ explanation_id: "bad", created_at: "2026-07-17T11:00:00.000Z", kind: "word", construct_ids: [], purge_state: "AVAILABLE", leaked: true }], next_before: null }), getProfile: async () => ({}) },
+      agentRepo: { getLatestOpenPlanAction: async () => null, listExplanationMetadata: async () => ({ items: [{ explanation_id: "bad", created_at: "2026-07-17T11:00:00.000Z", kind: "word", construct_ids: [], purge_state: "AVAILABLE", leaked: true }], next_before: null }), getProfile: async () => ({}), getExplanationById: async () => null },
       oauthRepo, publicCatalog: catalog, keyingService: keyingFixture, connectionPersistence: persistenceFixture, now: () => NOW, principalAccessExpiresAt: () => EXPIRY,
     });
     await expectCode(poisonedHandlers.get_learning_brief({ user_id: OWNER }), "AA_REVIEW_AGGREGATE_OVERFLOW");
@@ -344,7 +369,7 @@ function exactOwnerParser() {
     }
     checks++;
 
-    console.log(JSON.stringify({ ok: true, checks, tools: 8, owner_allowlist_count: 1, owner_match: true, zero_table_deltas: true, network_calls: 0, provider_calls: 0, llm_calls: 0, byok_calls: 0, sentinel_occurrences: 0 }));
+    console.log(JSON.stringify({ ok: true, checks, tools: 9, owner_allowlist_count: 1, owner_match: true, zero_table_deltas: true, network_calls: 0, provider_calls: 0, llm_calls: 0, byok_calls: 0, sentinel_occurrences: 0 }));
   } finally {
     global.fetch = originalFetch; http.request = originalHttpRequest; http.get = originalHttpGet; https.request = originalHttpsRequest; https.get = originalHttpsGet;
     await T.cleanup(ctx);

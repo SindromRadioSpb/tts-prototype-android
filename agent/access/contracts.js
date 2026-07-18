@@ -141,19 +141,21 @@ function validateExplanationInput(value) {
 }
 
 function validateDueItemsInput(value) {
-  const x = closed(value, ["limit"], [], "ARGUMENT_SCHEMA_INVALID");
-  bytes(x, 256, "ARGUMENTS_TOO_LARGE");
+  const x = closed(value, ["limit", "cursor"], [], "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, 512, "ARGUMENTS_TOO_LARGE");
   const out = {};
-  if (x.limit != null) out.limit = integer(x.limit, 1, 20, "ARGUMENT_SCHEMA_INVALID");
+  if (x.limit != null) out.limit = integer(x.limit, 1, 100, "ARGUMENT_SCHEMA_INVALID");
+  if (x.cursor != null) { out.cursor = string(x.cursor, 256, "ARGUMENT_SCHEMA_INVALID"); if (!CURSOR.test(out.cursor)) fail("ARGUMENT_SCHEMA_INVALID"); }
   return Object.freeze(out);
 }
 
 function dueReviewItems(value) {
-  const keys = ["schema_version", "items", "due_total", "truncated", "generated_at"];
-  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 8192, "OUTPUT_TOO_LARGE");
+  const keys = ["schema_version", "items", "due_total", "next_cursor", "generated_at"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 24576, "OUTPUT_TOO_LARGE");
   if (x.schema_version !== "aa.due_review_items.1.0.0") fail("OUTPUT_SCHEMA_INVALID");
-  integer(x.due_total, 0, 100000); bool(x.truncated); timestamp(x.generated_at);
-  if (!Array.isArray(x.items) || x.items.length > 20) fail("OUTPUT_SCHEMA_INVALID");
+  integer(x.due_total, 0, 100000); timestamp(x.generated_at);
+  if (x.next_cursor !== null && (typeof x.next_cursor !== "string" || !CURSOR.test(x.next_cursor))) fail("OUTPUT_SCHEMA_INVALID");
+  if (!Array.isArray(x.items) || x.items.length > 100) fail("OUTPUT_SCHEMA_INVALID");
   const itemKeys = ["display", "gloss", "struggle", "due_day", "content_available"];
   const items = x.items.map((row) => {
     const r = closed(row, itemKeys, itemKeys, "OUTPUT_SCHEMA_INVALID");
@@ -165,6 +167,30 @@ function dueReviewItems(value) {
   });
   if (items.length > x.due_total) fail("OUTPUT_SCHEMA_INVALID");
   return Object.freeze({ ...x, items: Object.freeze(items) });
+}
+
+function validateExplanationBodyInput(value) {
+  const x = closed(value, ["explanation_id"], ["explanation_id"], "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, 256, "ARGUMENTS_TOO_LARGE");
+  return Object.freeze({ explanation_id: id(x.explanation_id, "ARGUMENT_SCHEMA_INVALID") });
+}
+function explanationBody(value) {
+  const keys = ["schema_version", "explanation_id", "created_at", "kind", "purge_state", "language", "text", "lines", "generated_at"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 8192, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.explanation_body.1.0.0") fail("OUTPUT_SCHEMA_INVALID");
+  id(x.explanation_id); timestamp(x.created_at); timestamp(x.generated_at); oneOf(x.purge_state, PURGE_STATES);
+  if (x.kind !== null) oneOf(x.kind, EXPLANATION_KINDS);
+  if (x.language !== null) string(x.language, 8);
+  if (x.text !== null) string(x.text, 6000);
+  if (x.lines !== null) {
+    if (!Array.isArray(x.lines) || x.lines.length > 8) fail("OUTPUT_SCHEMA_INVALID");
+    x.lines.forEach((row) => { const r = closed(row, ["he", "ru"], ["he", "ru"], "OUTPUT_SCHEMA_INVALID"); string(r.he, 500); if (r.ru !== null) string(r.ru, 500); });
+  }
+  // Tombstone: a purged explanation must expose no content and no kind.
+  if (x.purge_state === "PURGED" && (x.kind !== null || x.text !== null || x.lines !== null || x.language !== null)) fail("OUTPUT_SCHEMA_INVALID");
+  if (x.purge_state === "AVAILABLE" && x.kind === null) fail("OUTPUT_SCHEMA_INVALID");
+  if (x.text !== null && x.lines !== null) fail("OUTPUT_SCHEMA_INVALID");
+  return Object.freeze({ ...x, lines: x.lines === null ? null : Object.freeze(x.lines.map((r) => Object.freeze({ ...r }))) });
 }
 
 function learnerProfile(value) {
@@ -255,6 +281,7 @@ const INPUT_VALIDATORS = Object.freeze({
   get_access_window: emptyInput,
   get_due_review_items: validateDueItemsInput,
   get_learner_profile: emptyInput,
+  get_explanation_body: validateExplanationBodyInput,
 });
 const OUTPUT_VALIDATORS = Object.freeze({
   get_learning_brief: learningBrief,
@@ -265,6 +292,7 @@ const OUTPUT_VALIDATORS = Object.freeze({
   get_access_window: accessWindow,
   get_due_review_items: dueReviewItems,
   get_learner_profile: learnerProfile,
+  get_explanation_body: explanationBody,
 });
 
 function validateInput(tool, value) { const fn = INPUT_VALIDATORS[tool]; if (!fn) fail("UNKNOWN_TOOL"); return fn(value); }

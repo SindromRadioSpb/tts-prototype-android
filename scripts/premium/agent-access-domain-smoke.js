@@ -54,10 +54,14 @@ const fixtures = Object.freeze({
   get_due_review_items: Object.freeze({
     schema_version: "aa.due_review_items.1.0.0",
     items: Object.freeze([Object.freeze({ display: "כָּתַב", gloss: "написал", struggle: "high", due_day: "2026-07-17", content_available: true })]),
-    due_total: 12, truncated: true, generated_at: GENERATED,
+    due_total: 12, next_cursor: null, generated_at: GENERATED,
   }),
   get_learner_profile: Object.freeze({
     schema_version: "aa.learner_profile.1.0.0", mode: "coach", language: "ru", depth: "detailed", generated_at: GENERATED,
+  }),
+  get_explanation_body: Object.freeze({
+    schema_version: "aa.explanation_body.1.0.0", explanation_id: "explanation-1", created_at: GENERATED,
+    kind: "word", purge_state: "AVAILABLE", language: "ru", text: "fixture explanation body", lines: null, generated_at: GENERATED,
   }),
 });
 
@@ -70,6 +74,7 @@ const validArgs = Object.freeze({
   get_access_window: Object.freeze({}),
   get_due_review_items: Object.freeze({ limit: 10 }),
   get_learner_profile: Object.freeze({}),
+  get_explanation_body: Object.freeze({ explanation_id: "explanation-1" }),
 });
 
 function handlers(overrides = {}) {

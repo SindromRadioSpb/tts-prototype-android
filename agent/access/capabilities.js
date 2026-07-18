@@ -10,8 +10,10 @@ const CAPABILITIES = Object.freeze({
   get_agent_connection: Object.freeze({ scope: "agent.connection.read", purpose: "EXPLICIT_CONNECTION_STATUS", scenario_id: "agent_access.connection_read", max_output_bytes: 2048 }),
   get_access_window: Object.freeze({ scope: "agent.connection.read", purpose: "EXPLICIT_ACCESS_WINDOW", scenario_id: "agent_access.access_window", max_output_bytes: 512 }),
   // AA3 slice-1 (owner-approved, single-tenant personal use, deterministic grading kept first-party).
-  get_due_review_items: Object.freeze({ scope: "review.items.read", purpose: "EXPLICIT_DUE_REVIEW_ITEMS", scenario_id: "agent_access.due_review_items", max_output_bytes: 8192 }),
+  get_due_review_items: Object.freeze({ scope: "review.items.read", purpose: "EXPLICIT_DUE_REVIEW_ITEMS", scenario_id: "agent_access.due_review_items", max_output_bytes: 24576 }),
   get_learner_profile: Object.freeze({ scope: "profile.read", purpose: "EXPLICIT_LEARNER_PROFILE", scenario_id: "agent_access.learner_profile", max_output_bytes: 512 }),
+  // AA3 commit 3: read a single explanation's body (purge-aware).
+  get_explanation_body: Object.freeze({ scope: "explanations.body.read", purpose: "EXPLICIT_EXPLANATION_BODY", scenario_id: "agent_access.explanation_body", max_output_bytes: 8192 }),
 });
 
 function getCapability(name) { return CAPABILITIES[String(name)] || null; }
