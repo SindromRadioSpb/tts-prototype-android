@@ -67,6 +67,12 @@ async function ready(srv, ms = 30000) {
     T_B4: iso(NOW + 101000),            // конфликт-заметка B
     T_T1_EDIT: iso(NOW + 120000),       // fat-правка T1 на A (rollback-сцена)
     T_FUTURE: iso(NOW + 2 * 3600000),   // skew-guard
+    // P2-сцены (§3.3/§6.4–6.5)
+    T_T4: iso(NOW + 150000),            // sl-t4 создан на A (СТАРШЕ T_DEL3 — иначе delete = DELETED_OLDER)
+    T_DEL3: iso(NOW + 160000),          // A удаляет sl-t4
+    T_REVIVE: iso(NOW + 180000),        // B правит sl-t4 ПОСЛЕ удаления («правка воскрешает»)
+    T_OLD_DELETE: iso(NOW - 3600000),   // delete-интент СТАРШЕ серверной копии (DELETED_OLDER)
+    T_GARBAGE: iso(NOW + 240000),       // битый артефакт новее локального (replace-устойчивость)
   };
 
   const mkDevice = async () => b.newContext({ serviceWorkers: "block", viewport: { width: 380, height: 844 } });
@@ -323,6 +329,127 @@ async function ready(srv, ms = 30000) {
     }, {});
     eq(bFat.title === "T1 fat-edit", "B: правка через fat-артефакт применилась (обратная совместимость): " + bFat.title);
 
+    // ── P2: delete-семантика ─────────────────────────────────────────────────
+    // A: удаление sl-t2 через интент; Undo-vs-delete (last-intent-wins) на sl-t1;
+    // DELETED_OLDER на свежем sl-t4.
+    const aDel = await act(ctxA, "A-delete", async (A) => {
+      const ldb = window.__ldb, CS = window.CloudSync;
+      await CS.fullSync(ldb);
+      // sl-t4 — свежий текст для DELETED_OLDER-сцены
+      await ldb.importBundle({ manifest: {}, texts: [
+        { text_key: "sl-t4", title: "Текст четыре", updated_at: A.T_T4, created_at: A.T_T4,
+          sentences: [{ he_plain: "עץ ירוק", ru: "Зелёное дерево", order_index: 0 }] },
+      ] }, { mode: "skip" });
+      // (1) реальное удаление sl-t2 (интент ставится ДО deleteText — как в Студии)
+      const t2 = (await ldb.dbQuery("SELECT id FROM texts WHERE text_key='sl-t2'"))[0];
+      if (t2) { await ldb.queueArtifactDeleteForText(t2.id); await ldb.deleteText(t2.id); }
+      // (2) Undo-сценарий: delete → undelete тем же ключом (Undo гасит delete ДО дренажа)
+      await ldb.queueArtifactIntent("delete", "sl-t1", new Date().toISOString());
+      await ldb.queueArtifactIntent("undelete", "sl-t1");
+      // (3) DELETED_OLDER: интент старше серверной копии sl-t4 — сервер обязан отказать
+      const s1 = await CS.fullSync(ldb);   // sl-t4 уезжает этим же циклом (интент t4 поставим после)
+      await ldb.queueArtifactIntent("delete", "sl-t4", A.T_OLD_DELETE);
+      const s2 = await CS.fullSync(ldb);
+      const list = await fetch("/api/learner/artifacts", { credentials: "same-origin" }).then((r) => r.json());
+      return {
+        art1: s1.artifacts, art2: s2.artifacts,
+        serverKeys: (list.rows || []).map((r) => r.artifact_key).sort(),
+        tombKeys: (list.tombstones || []).map((t) => t.artifact_key),
+        intentsLeft: (await ldb.listArtifactIntents()).length,
+      };
+    }, ARGS);
+    eq(!aDel.serverKeys.includes("sl-t2"), "P2: sl-t2 удалён с сервера интентом: " + JSON.stringify(aDel.serverKeys));
+    eq(aDel.tombKeys.includes("sl-t2"), "P2: tombstone sl-t2 существует: " + JSON.stringify(aDel.tombKeys));
+    eq(aDel.serverKeys.includes("sl-t1"), "P2: Undo (last-intent-wins) обязан спасти sl-t1 от удаления");
+    eq(aDel.serverKeys.includes("sl-t4"), "P2: DELETED_OLDER — интент старше серверной копии НЕ удаляет sl-t4");
+    eq(aDel.intentsLeft === 0, "P2: очередь интентов дренирована: " + aDel.intentsLeft);
+
+    // B: tombstone применяется ЛОКАЛЬНО (sl-t2 исчезает, не ресурректится) + «правка воскрешает»
+    const bDel = await act(ctxB, "B-tombstone", async (A) => {
+      const ldb = window.__ldb, CS = window.CloudSync;
+      await CS.fullSync(ldb);
+      const t2gone = (await ldb.dbQuery("SELECT 1 x FROM texts WHERE text_key='sl-t2'")).length === 0;
+      const list = await fetch("/api/learner/artifacts", { credentials: "same-origin" }).then((r) => r.json());
+      return { t2gone, serverKeys: (list.rows || []).map((r) => r.artifact_key).sort() };
+    }, ARGS);
+    eq(bDel.t2gone === true, "P2: B применил tombstone локально — sl-t2 удалён, ресуррекции нет");
+    eq(!bDel.serverKeys.includes("sl-t2"), "P2: B не ресурректил sl-t2 своим UP'ом (tombstone ДО UP)");
+
+    // «Правка воскрешает»: A удаляет sl-t4; B (не зная об этом) правит sl-t4 новее deleted_at →
+    // B-синк: текст выживает локально, UP снимает tombstone, сервер снова держит sl-t4.
+    await act(ctxA, "A-delete-t4", async (A) => {
+      const ldb = window.__ldb, CS = window.CloudSync;
+      await CS.fullSync(ldb);
+      const t4 = (await ldb.dbQuery("SELECT id FROM texts WHERE text_key='sl-t4'"))[0];
+      if (t4) { await ldb.queueArtifactIntent("delete", "sl-t4", A.T_DEL3); await ldb.deleteText(t4.id); }
+      await CS.fullSync(ldb);
+      return {};
+    }, ARGS);
+    const bRevive = await act(ctxB, "B-revive", async (A) => {
+      const ldb = window.__ldb, CS = window.CloudSync;
+      // БЕЗ boot-синка: «правка воскрешает» = офлайн-правка ДО того, как устройство узнало об
+      // удалении. Правка НОВЕЕ deleted_at (T_REVIVE > T_DEL3) → tombstone НЕ применяется,
+      // UP снимает его. Если headless-OPFS не сохранил sl-t4 с прошлого act'а — восстанавливаем
+      // локальную копию с тем же смыслом (updated_at = T_REVIVE).
+      const t4 = (await ldb.dbQuery("SELECT id FROM texts WHERE text_key='sl-t4'"))[0];
+      if (t4) await ldb.dbRun("UPDATE texts SET title='T4 revived', updated_at=? WHERE id=?", [A.T_REVIVE, t4.id]);
+      else await ldb.importBundle({ manifest: {}, texts: [
+        { text_key: "sl-t4", title: "T4 revived", updated_at: A.T_REVIVE, created_at: A.T_T4,
+          sentences: [{ he_plain: "עץ ירוק", ru: "Зелёное дерево", order_index: 0 }] },
+      ] }, { mode: "skip" });
+      const s = await CS.fullSync(ldb);
+      const list = await fetch("/api/learner/artifacts", { credentials: "same-origin" }).then((r) => r.json());
+      return {
+        localAlive: (await ldb.dbQuery("SELECT 1 x FROM texts WHERE text_key='sl-t4'")).length === 1,
+        serverKeys: (list.rows || []).map((r) => r.artifact_key),
+        tombKeys: (list.tombstones || []).map((t) => t.artifact_key),
+      };
+    }, ARGS);
+    eq(bRevive.localAlive === true, "P2: правка НОВЕЕ deleted_at выживает локально (LWW)");
+    eq(bRevive.serverKeys.includes("sl-t4") && !bRevive.tombKeys.includes("sl-t4"), "P2: «правка воскрешает» — PUT снял tombstone: " + JSON.stringify(bRevive.tombKeys));
+
+    // Битый артефакт новее локального: replace-путь НЕ теряет старый текст (R11)
+    const bGarbage = await act(ctxB, "B-garbage", async (A) => {
+      const ldb = window.__ldb, CS = window.CloudSync;
+      await CS.fullSync(ldb);
+      const before = (await ldb.dbQuery("SELECT title FROM texts WHERE text_key='sl-t1'"))[0];
+      await fetch("/api/learner/artifacts/put", { method: "POST", credentials: "same-origin",
+        headers: { "Content-Type": "application/json", "X-LP-CSRF": localStorage.getItem("cloud.csrf") || "" },
+        body: JSON.stringify({ artifact_key: "sl-t1", updated_at: A.T_GARBAGE, payload: { broken: true } }) });
+      await CS.fullSync(ldb);
+      const after = (await ldb.dbQuery("SELECT title FROM texts WHERE text_key='sl-t1'"))[0];
+      return { before: before && before.title, after: after && after.title };
+    }, ARGS);
+    eq(bGarbage.after === bGarbage.before && !!bGarbage.after, "P2/R11: битый server-newer артефакт НЕ уничтожает локальный текст: " + JSON.stringify(bGarbage));
+
+    // Отзыв consent → немедленный purge; re-grant → полный re-upload (включая state)
+    const aRevoke = await act(ctxA, "A-revoke", async () => {
+      const ldb = window.__ldb, CS = window.CloudSync;
+      await CS.fullSync(ldb);
+      const csrf = localStorage.getItem("cloud.csrf") || "";
+      const rv = await fetch("/api/auth/consent", { method: "POST", credentials: "same-origin",
+        headers: { "Content-Type": "application/json", "X-LP-CSRF": csrf },
+        body: JSON.stringify({ key: "cloud_texts", granted: false, version: "v1" }) }).then((r) => r.json());
+      const listAfterRevoke = await fetch("/api/learner/artifacts", { credentials: "same-origin" });
+      const rg = await fetch("/api/auth/consent", { method: "POST", credentials: "same-origin",
+        headers: { "Content-Type": "application/json", "X-LP-CSRF": csrf },
+        body: JSON.stringify({ key: "cloud_texts", granted: true, version: "v1" }) }).then((r) => r.json());
+      const s = await CS.fullSync(ldb);
+      const list = await fetch("/api/learner/artifacts", { credentials: "same-origin" }).then((r) => r.json());
+      return {
+        purged: rv && rv.explanations && rv.explanations.artifacts_purged,
+        after403: listAfterRevoke.status === 403,
+        regrant: !!(rg && rg.ok),
+        art: s.artifacts,
+        rows: (list.rows || []).length,
+        state: !!(list.state && list.state.updated_at),
+      };
+    }, ARGS);
+    eq(Number(aRevoke.purged) >= 2, "P2: отзыв purge'ит артефакты немедленно (deletion-семантика класса C): " + aRevoke.purged);
+    eq(aRevoke.after403 === true, "P2: после отзыва list честно 403");
+    eq(aRevoke.art && aRevoke.art.uploaded >= 2 && aRevoke.rows >= 2, "P2: re-grant → полный re-upload текстов: " + JSON.stringify({ up: aRevoke.art && aRevoke.art.uploaded, rows: aRevoke.rows }));
+    eq(aRevoke.state === true, "P2: state_bundle перезалит после purge (server-lost детекция)");
+
     await ctxA.close(); await ctxB.close();
   } catch (e) {
     failures.push("CRASH: " + (e && e.stack || e));
@@ -331,12 +458,12 @@ async function ready(srv, ms = 30000) {
     await stop(srv.c);
     try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {}
   }
-  const total = 31;
+  const total = 45;
   if (failures.length) {
     console.error(`smoke:sync-slim FAIL (${total - failures.length}/${total})`);
     for (const f of failures) console.error("  ✗ " + f);
     process.exitCode = 1;
   } else {
-    console.log(`smoke:sync-slim OK (${total}/${total}) — P0: slim-состав (без full-state, <200КБ, закладки едут) · state_bundle (заметки/якоря без корпуса/полки/override/anki/study_day/roots) · updated_at-инвариантность (пинг-понг погашен) · fresh-restore=фикстура · LWW body-merge · occurrence-only signal · двухдевайсный union · fat-откат+replace_equal-миграция · skew-guard`);
+    console.log(`smoke:sync-slim OK (${total}/${total}) — P0: slim-состав (без full-state, <200КБ, закладки едут) · state_bundle (заметки/якоря без корпуса/полки/override/anki/study_day/roots) · updated_at-инвариантность (пинг-понг погашен) · fresh-restore=фикстура · LWW body-merge · occurrence-only signal · двухдевайсный union · fat-откат+replace_equal-миграция · skew-guard · P2: интент-delete+tombstone (без ресуррекции) · Undo=last-intent-wins · DELETED_OLDER · «правка воскрешает» · битый server-newer не теряет текст · revoke=purge+re-grant re-upload`);
   }
 })();

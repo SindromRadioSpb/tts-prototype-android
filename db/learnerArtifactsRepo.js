@@ -101,6 +101,17 @@ async function put(userId, deviceId, { artifact_key, updated_at, payload, kind =
       return { ok: true, stored: false, reason: "OLDER_OR_EQUAL", server_updated_at: existing.updated_at };
     }
   }
+  // P2 §6.4 — tombstone-LWW: PUT новее deleted_at воскрешает (снимает tombstone — «правка
+  // воскрешает», в т.ч. пере-импорт с undelete-интентом); PUT старше — DELETED_NEWER, клиент
+  // применяет удаление локально (стейл-девайс не ресурректит удалённое своим UP'ом).
+  const tomb = await dbGet(db, `SELECT deleted_at FROM artifact_tombstones WHERE user_id = ? AND kind = ? AND artifact_key = ?`, [userId, k, key]);
+  if (tomb) {
+    if (Date.parse(at) > Date.parse(tomb.deleted_at)) {
+      await dbRun(db, `DELETE FROM artifact_tombstones WHERE user_id = ? AND kind = ? AND artifact_key = ?`, [userId, k, key]);
+    } else {
+      return { ok: true, stored: false, reason: "DELETED_NEWER", deleted_at: tomb.deleted_at };
+    }
+  }
   if (!existing && k === KIND) {
     const n = await dbGet(db, `SELECT COUNT(*) c FROM learner_artifacts WHERE user_id = ? AND kind = ?`, [userId, k]);
     if (Number(n && n.c) >= MAX_ARTIFACTS_PER_USER) return { ok: false, error: "TOO_MANY_ARTIFACTS" };
@@ -117,4 +128,103 @@ async function put(userId, deviceId, { artifact_key, updated_at, payload, kind =
   return out;
 }
 
-module.exports = { hasConsent, list, get, getMeta, put, CONSENT_KEY, KIND, STATE_KIND, KINDS, MAX_PAYLOAD_BYTES, MAX_STATE_PAYLOAD_BYTES };
+// ── P2 — delete-семантика (§3.1/§6.4) ────────────────────────────────────────────────────────
+
+async function listTombstones(userId) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const rows = await dbAll(db,
+    `SELECT artifact_key, deleted_at FROM artifact_tombstones WHERE user_id = ? AND kind = ? ORDER BY artifact_key`,
+    [userId, KIND]);
+  return rows || [];
+}
+
+// Физическое удаление артефакта + tombstone. LWW-guard (критика F1-4): удаление СТАРШЕ
+// серверной копии не уничтожает более новый артефакт (DELETED_OLDER — клиент дропает интент,
+// следующий DOWN принесёт новую версию). Tombstone ставится только при реальном удалении
+// (changes>0) — фантомные ключи не копят мусор (критика F2-8). Идемпотентно.
+async function deleteArtifact(userId, { artifact_key, deleted_at, kind = KIND } = {}) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const k = String(kind || KIND);
+  if (!KINDS.has(k)) return { ok: false, error: "BAD_KIND" };
+  const key = String(artifact_key || "").trim();
+  if (!key || key.length > 200) return { ok: false, error: "BAD_KEY" };
+  let delAt = String(deleted_at || "").trim();
+  if (!delAt || !Number.isFinite(Date.parse(delAt))) delAt = new Date().toISOString();
+  // future-clamp (удаление — интент пользователя, не блокируем, но не даём отравить LWW-ось)
+  if (Date.parse(delAt) > Date.now() + MAX_FUTURE_SKEW_MS) delAt = new Date().toISOString();
+  const existing = await dbGet(db, `SELECT updated_at FROM learner_artifacts WHERE user_id = ? AND kind = ? AND artifact_key = ?`, [userId, k, key]);
+  if (existing && Date.parse(existing.updated_at) > Date.parse(delAt)) {
+    return { ok: true, deleted: false, reason: "DELETED_OLDER", server_updated_at: existing.updated_at };
+  }
+  const r = await dbRun(db, `DELETE FROM learner_artifacts WHERE user_id = ? AND kind = ? AND artifact_key = ?`, [userId, k, key]);
+  if (r && r.changes > 0) {
+    await dbRun(db,
+      `INSERT INTO artifact_tombstones (user_id, kind, artifact_key, deleted_at) VALUES (?,?,?,?)
+       ON CONFLICT(user_id, kind, artifact_key) DO UPDATE SET deleted_at = excluded.deleted_at`,
+      [userId, k, key, delAt]);
+    return { ok: true, deleted: true, tombstoned: true };
+  }
+  const tomb = await dbGet(db, `SELECT deleted_at FROM artifact_tombstones WHERE user_id = ? AND kind = ? AND artifact_key = ?`, [userId, k, key]);
+  return { ok: true, deleted: false, tombstoned: !!tomb };   // повторный delete/фантом — идемпотентный no-op
+}
+
+// Снятие tombstone без PUT (пере-импорт текста пользователем: undelete-интент клиента).
+async function restoreArtifact(userId, { artifact_key, kind = KIND } = {}) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const k = String(kind || KIND);
+  if (!KINDS.has(k)) return { ok: false, error: "BAD_KIND" };
+  const key = String(artifact_key || "").trim();
+  if (!key || key.length > 200) return { ok: false, error: "BAD_KEY" };
+  const r = await dbRun(db, `DELETE FROM artifact_tombstones WHERE user_id = ? AND kind = ? AND artifact_key = ?`, [userId, k, key]);
+  return { ok: true, restored: !!(r && r.changes > 0) };
+}
+
+// Отзыв cloud_texts → deletion-семантика класса C (§3.1/§6.8): purge ВСЕХ артефактов (оба kind)
+// + tombstones. Возвращает счётчики для audit; провал — вверх (роут отвечает 500 PURGE_FAILED).
+async function purgeAllForUser(userId) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const a = await dbRun(db, `DELETE FROM learner_artifacts WHERE user_id = ?`, [userId]);
+  const t = await dbRun(db, `DELETE FROM artifact_tombstones WHERE user_id = ?`, [userId]);
+  return { artifacts: (a && a.changes) || 0, tombstones: (t && t.changes) || 0 };
+}
+
+// ops-sweep: прюнинг tombstones старше N дней (к этому моменту все девайсы синканы; TTL заявлен
+// в consent-карте) + кап на пользователя как belt (критика F2-8).
+async function pruneTombstones(maxAgeDays = 180) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const cutoff = new Date(Date.now() - maxAgeDays * 86400000).toISOString();
+  const r = await dbRun(db, `DELETE FROM artifact_tombstones WHERE created_at < ?`, [cutoff]);
+  return { pruned: (r && r.changes) || 0 };
+}
+
+// Штамп «purge выполнен» на КОНКРЕТНОЙ revoke-строке (id из recordConsent — критика F2-11:
+// код отбрасывал возвращаемый id, и purged_at было некуда ставить).
+async function markConsentPurged(consentRowId) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  await dbRun(db, `UPDATE consent_records SET purged_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`, [String(consentRowId || "")]);
+}
+
+// ops-sweep reconcile (§6.8): отзыв записан, а purge упал/прерван → артефакты висят
+// 403-замороженными вопреки обещанию карты и НИКТО не ретраит. Находим пользователей, чья
+// ПОСЛЕДНЯЯ cloud_texts-строка = revoke без purged_at при живых артефактах/tombstones — допурж.
+async function reconcileRevokedPurges() {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const rows = await dbAll(db,
+    `SELECT c.user_id, c.id AS cid FROM consent_records c
+      WHERE c.consent_key = ? AND c.granted = 0 AND c.purged_at IS NULL
+        AND c.id = (SELECT c2.id FROM consent_records c2
+                     WHERE c2.user_id = c.user_id AND c2.consent_key = ?
+                     ORDER BY c2.created_at DESC, c2.id DESC LIMIT 1)
+        AND (EXISTS (SELECT 1 FROM learner_artifacts a WHERE a.user_id = c.user_id)
+          OR EXISTS (SELECT 1 FROM artifact_tombstones t WHERE t.user_id = c.user_id))`,
+    [CONSENT_KEY, CONSENT_KEY]);
+  let users = 0, artifacts = 0;
+  for (const row of (rows || [])) {
+    const p = await purgeAllForUser(row.user_id);
+    await markConsentPurged(row.cid);
+    users++; artifacts += p.artifacts;
+  }
+  return { users, artifacts };
+}
+
+module.exports = { hasConsent, list, get, getMeta, put, deleteArtifact, restoreArtifact, listTombstones, purgeAllForUser, pruneTombstones, markConsentPurged, reconcileRevokedPurges, CONSENT_KEY, KIND, STATE_KIND, KINDS, MAX_PAYLOAD_BYTES, MAX_STATE_PAYLOAD_BYTES };

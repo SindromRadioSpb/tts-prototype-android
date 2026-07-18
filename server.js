@@ -1995,14 +1995,17 @@ app.post("/api/auth/sessions/revoke", async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: "REVOKE_FAILED", message: e.message }); }
 });
 
-app.post("/api/auth/consent", async (req, res) => {
+// P2 (критика F2-15): на consent-роуте висят самые тяжёлые каскады (purge артефактов до
+// 2000×8МБ строк в single-writer sqlite) — toggle-спам не должен блокировать event-loop.
+const rlConsent = makeRateLimiter({ windowMs: 60_000, max: 10, name: "auth-consent" });
+app.post("/api/auth/consent", rlConsent, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   if (!requireCsrf(req, res, auth)) return;
   const key = String((req.body && req.body.key) || "");
   const granted = !!(req.body && req.body.granted);
   const version = String((req.body && req.body.version) || "v1");
   try {
-    await identityRepo.recordConsent(auth.user.id, key, granted, version);
+    const consentRowId = await identityRepo.recordConsent(auth.user.id, key, granted, version);
     identityRepo.audit(granted ? "consent_grant" : "consent_revoke", auth.user.id, { key, version }, req.ip);
     // CLG-P6.2 (решение владельца 2026-07-06, §5 v3 «отзыв → каскад на derived»): отзыв
     // agent_read_texts зануляет контентные поля agent_explanations до tombstone —
@@ -2051,6 +2054,23 @@ app.post("/api/auth/consent", async (req, res) => {
         if (dropped) identityRepo.audit("roleplay_consent_cascade", auth.user.id, { key, dropped_sessions: dropped }, req.ip);
       } catch (e5) {
         identityRepo.audit("roleplay_consent_cascade_failed", auth.user.id, { key, message: String(e5 && e5.message).slice(0, 120) }, req.ip);
+      }
+    }
+    // P2 §6.8 — отзыв cloud_texts = deletion-семантика класса C (BRIDGE_RECON §2.5, GDPR-канон
+    // AI_MENTOR_RECON:421–425): немедленный purge ВСЕХ артефактов (text_bundle + state_bundle)
+    // и tombstones, purged_at на этой revoke-строке. Провал НЕ молчит (паттерн memory-ключей
+    // F1/F2, НЕ best-effort соседей): 500 PURGE_FAILED; отзыв уже записан (чтение fail-closed),
+    // допурж доделает ops-sweep reconcile. TODO(S-пакет): сюда же каскад отзыва agent_text_grants,
+    // когда таблица появится.
+    if (key === "cloud_texts" && !granted) {
+      try {
+        const purged = await require("./db/learnerArtifactsRepo").purgeAllForUser(auth.user.id);
+        await require("./db/learnerArtifactsRepo").markConsentPurged(consentRowId);
+        identityRepo.audit("artifacts_purge", auth.user.id, { artifacts: purged.artifacts, tombstones: purged.tombstones }, req.ip);
+        purgeInfo = { ...(purgeInfo || {}), artifacts_purged: purged.artifacts };
+      } catch (e7) {
+        identityRepo.audit("artifacts_purge_failed", auth.user.id, { message: String(e7 && e7.message).slice(0, 120) }, req.ip);
+        return res.status(500).json({ ok: false, error: "PURGE_FAILED", key });
       }
     }
     // F1: revoking durable-memory consent is an immediate bounded purge, not a
@@ -3283,6 +3303,14 @@ async function opsSweepTick() {
     if (f2Purged.requests || f2Purged.content || f2Purged.queries || f2Purged.audit || f2Purged.journal) {
       console.log(`[ops-sweep] f2_expired=${f2Purged.requests} f2_content=${f2Purged.content} f2_queries=${f2Purged.queries} f2_audit=${f2Purged.audit} f2_journal=${f2Purged.journal}`);
     }
+    // P2 §6.4/§6.8 — tombstone-TTL (180 дн, заявлен в consent-карте) + допурж после упавшего
+    // revoke-purge (обещание «отзыв = немедленное удаление» не должно тихо провисать).
+    try {
+      const laRepo = require("./db/learnerArtifactsRepo");
+      const pr = await laRepo.pruneTombstones(180);
+      const rc = await laRepo.reconcileRevokedPurges();
+      if (pr.pruned || rc.users) console.log(`[ops-sweep] tombstones_pruned=${pr.pruned} revoked_purge_reconciled=${rc.users} (artifacts=${rc.artifacts})`);
+    } catch (e2) { console.error("[ops-sweep] artifacts-reconcile failed:", e2 && e2.message); }
   } catch (e) { console.error("[ops-sweep] failed:", e && e.message); }
 }
 const _opsSweepBoot = setTimeout(() => { opsSweepTick(); }, 2 * 60 * 1000);
@@ -3316,7 +3344,11 @@ app.get("/api/learner/artifacts", rlLearnerArtifacts, async (req, res) => {
     // rows остаётся чистым text_bundle-списком (старый клиент не увидит state-артефакт вовсе).
     let state = null;
     try { state = await learnerArtifactsRepo.getMeta(auth.user.id, "__state__", learnerArtifactsRepo.STATE_KIND); } catch (_) {}
-    res.json({ ok: true, rows, state: state || null });
+    // P2 — additive-поле tombstones: клиент применяет их ЛОКАЛЬНО ДО своего UP-цикла
+    // (иначе стейл-девайс ресурректит удалённое раньше, чем узнает об удалении).
+    let tombstones = [];
+    try { tombstones = await learnerArtifactsRepo.listTombstones(auth.user.id); } catch (_) {}
+    res.json({ ok: true, rows, state: state || null, tombstones });
   }
   catch (e) { res.status(500).json({ ok: false, error: "ARTIFACTS_FAILED", message: e.message }); }
 });
@@ -3358,6 +3390,26 @@ app.post(LEARNER_ARTIFACTS_PUT_PATH, rlLearnerArtifacts,
       res.json(out);
     } catch (e) { res.status(500).json({ ok: false, error: "ARTIFACT_PUT_FAILED", message: e.message }); }
   });
+
+// P2 §3.1/§6.4 — right-to-delete: физическое удаление артефакта + tombstone (анти-ресуррекция),
+// restore:true снимает tombstone (пере-импорт пользователем). Consent-гейт — грант ЛЮБОЙ версии
+// (сокращение данных НЕ запирается за новым согласием — критика F2-10; requireArtifactConsent
+// проверяет только granted, и при ужесточении карты до v2 этот роут ОСТАЁТСЯ на any-version).
+app.post("/api/learner/artifacts/delete", rlLearnerArtifacts, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  if (!(await requireArtifactConsent(req, res, auth))) return;
+  try {
+    const body = req.body || {};
+    const out = body.restore === true
+      ? await learnerArtifactsRepo.restoreArtifact(auth.user.id, body)
+      : await learnerArtifactsRepo.deleteArtifact(auth.user.id, body);
+    if (out.ok === false) return res.status(400).json(out);
+    identityRepo.audit(body.restore === true ? "artifact_restore" : "artifact_delete", auth.user.id,
+      { key: String(body.artifact_key || "").slice(0, 64), deleted: out.deleted === true, restored: out.restored === true, reason: out.reason }, req.ip);
+    res.json(out);
+  } catch (e) { res.status(500).json({ ok: false, error: "ARTIFACT_DELETE_FAILED", message: e.message }); }
+});
 
 // ============================================================================
 // CLG-P4.5 — Web Push (AI_MENTOR_RECON §8/§9 P4.5): ежедневный нудж «N слов

@@ -24914,6 +24914,9 @@ async function v3LibraryDeleteText(textId) {
         const bundle = await ldb.exportBundle({ includeArchived: true, textIds: [String(textId)] });
         snapshot = bundle && bundle.library ? bundle : null;
       } catch (e) { console.warn("[delete] snapshot failed; undo unavailable", e); }
+      // Sync-hardening P2 — интент удаления облачной копии (дренаж на следующем синке Зала;
+      // ключ достаётся ДО удаления строки; corpus-тексты интент не ставят)
+      try { if (ldb.queueArtifactDeleteForText) await ldb.queueArtifactDeleteForText(textId); } catch (_) {}
       await ldb.deleteText(textId);
     } else {
       await v3Delete("/api/library/texts/" + encodeURIComponent(textId));
@@ -24927,7 +24930,9 @@ async function v3LibraryDeleteText(textId) {
     if (snapshot) {
       v3UndoToast("Текст удалён", async () => {
         const ldb = await ensureLocalDB();
-        await ldb.importBundle(snapshot, { mode: "skip" });
+        // P2: Undo = пользовательское утверждение существования → undelete-интент гасит
+        // pending-delete этого ключа (last-intent-wins) и снимет облачный tombstone
+        await ldb.importBundle(snapshot, { mode: "skip", userRestore: true });
         v3LibraryRefresh();
         showToast(t("toast.restored"), "success");
       });
@@ -25431,7 +25436,7 @@ async function v3LibraryOnImportSelected(ev) {
     let resp;
     if (LOCAL_MODE) {
       const ldb = await ensureLocalDB();
-      const r = await ldb.importBundle(parsed, { mode: "skip" });
+      const r = await ldb.importBundle(parsed, { mode: "skip", userRestore: true });   // P2: пользовательский импорт → undelete-интенты
       resp = { ok: true, importedCount: r.imported, skippedCount: r.skipped, errorCount: (r.errors || []).length };
     } else {
       resp = await v3PostJson("/api/library/import", {
@@ -25492,7 +25497,7 @@ async function v3LibraryImportFromCloud() {
       return;
     }
     const ldb = await ensureLocalDB();
-    const r = await ldb.importBundle(payload, { mode: "skip" });
+    const r = await ldb.importBundle(payload, { mode: "skip", userRestore: true });   // P2: пользовательский импорт → undelete-интенты
     const errorCount = (r.errors && r.errors.length) ? r.errors.length : 0;
     // B2: same undo-record path as Phase 6 migration so cloud-import is
     // also reversible from window.v3Phase6UndoLastMigration().
@@ -27923,6 +27928,8 @@ async function v3LibraryBulkDelete() {
     try {
       if (LOCAL_MODE) {
         const ldb = await ensureLocalDB();
+        // P2 — интент удаления облачной копии (см. одиночный delete)
+        try { if (ldb.queueArtifactDeleteForText) await ldb.queueArtifactDeleteForText(id); } catch (_) {}
         await ldb.deleteText(id);
       } else {
         await v3Delete("/api/library/texts/" + encodeURIComponent(id));
@@ -27937,7 +27944,8 @@ async function v3LibraryBulkDelete() {
   if (snapshot && done > 0) {
     v3UndoToast("Удалено: " + done + (failed ? " · ошибок: " + failed : ""), async () => {
       const ldb = await ensureLocalDB();
-      await ldb.importBundle(snapshot, { mode: "skip" });
+      // P2: Undo → undelete-интенты (гасят pending-delete, снимают облачные tombstones)
+      await ldb.importBundle(snapshot, { mode: "skip", userRestore: true });
       v3LibraryRefresh();
       showToast(t("toast.restoredCount", { count: done }), "success");
     });
@@ -28555,7 +28563,7 @@ async function v3LibraryOnBundleImportSelected(ev) {
       const _zipImportT0 = Date.now();
       let r;
       try {
-        r = await ldb.importBundle(parsed, { mode: "skip" });
+        r = await ldb.importBundle(parsed, { mode: "skip", userRestore: true });   // P2: ZIP-импорт пользователя → undelete-интенты
         try { v3OpfsTelemetryPush({
           kind: "import.zip.success", durationMs: Date.now() - _zipImportT0,
           imported: r.imported, skipped: r.skipped, errors: (r.errors || []).length,
@@ -39512,7 +39520,7 @@ async function v3TextCardImportConfirm() {
   try {
     const ldb = await ensureLocalDB();
     const bundle = v3TextCardImportAdapter(v3TciPendingPayload);
-    const result = await ldb.importBundle(bundle, { mode: 'skip' });
+    const result = await ldb.importBundle(bundle, { mode: 'skip', userRestore: true });   // P2: импорт карточки текста → undelete-интент
     // Pre-load audio if user opted in.
     let preloaded = 0;
     if (wantPreload) {

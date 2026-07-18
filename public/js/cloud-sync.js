@@ -222,7 +222,36 @@
     }
     var slim = typeof ldb.exportStateBundle === "function";
     try { if ((await ldb.getSyncState("sync_slim_disabled")) === "1") slim = false; } catch (_) {}
-    var out = { ok: true, uploaded: 0, downloaded: 0, updated: 0, upSkipped: 0, failed: [], nearCap: 0, state: null };
+    var out = { ok: true, uploaded: 0, downloaded: 0, updated: 0, upSkipped: 0, failed: [], nearCap: 0, state: null, intents: 0, tombstoned: 0 };
+    // P2 §6.6 — разовый heal dangling occurrences (годы delete+reimport копили строки с
+    // мёртвыми sentence-id; mode:'replace' далее не создаёт новых).
+    if (typeof ldb.healDanglingOccurrences === "function") {
+      try {
+        if ((await ldb.getSyncState("occ_dangle_healed_v1")) !== "1") {
+          await ldb.healDanglingOccurrences();
+          await ldb.setSyncState("occ_dangle_healed_v1", "1");
+        }
+      } catch (_) {}
+    }
+    // P2 §6.5 — дренаж delete/undelete-интентов ДО list (и до любого UP): удаление, сделанное
+    // в Студии офлайн, доезжает раньше, чем чей-либо UP успеет ресурректить. Per-intent
+    // best-effort: 4xx-ответ снимает интент (не ретраить вечно), сбой сети оставляет в очереди.
+    if (typeof ldb.listArtifactIntents === "function") {
+      try {
+        var intents = await ldb.listArtifactIntents();
+        for (var ii = 0; ii < intents.length; ii++) {
+          var it = intents[ii];
+          var dres = await jfetch("POST", "/api/learner/artifacts/delete",
+            it.op === "undelete"
+              ? { artifact_key: it.artifact_key, restore: true }
+              : { artifact_key: it.artifact_key, deleted_at: it.deleted_at || undefined });
+          if (dres.status === 200 || dres.status === 400) {
+            await ldb.removeArtifactIntent(it.id);
+            if (dres.status === 200) out.intents++;
+          }
+        }
+      } catch (_) {}
+    }
     var listRes = await jfetch("GET", "/api/learner/artifacts");
     if (listRes.status !== 200 || !listRes.json || !listRes.json.ok) {
       return { ok: false, error: (listRes.json && listRes.json.error) || "ARTIFACTS_LIST_FAILED", status: listRes.status };
@@ -231,6 +260,25 @@
     var serverState = listRes.json.state || null;   // additive-поле; старый сервер его не шлёт
     var local = await ldb.listOwnTextsForSync();
     var localByKey = new Map(local.map(function (t) { return [t.text_key, t]; }));
+    // P2 §6.4 — применение серверных tombstones СТРОГО ДО UP (иначе стейл-девайс ресурректит
+    // удалённое своим UP'ом раньше, чем узнает об удалении). LWW: локальная копия НОВЕЕ
+    // deleted_at → живёт, её UP снимет tombstone («правка воскрешает»).
+    var tombs = (listRes.json.tombstones || []);
+    if (tombs.length && typeof ldb.deleteText === "function") {
+      var deadKeys = new Set();
+      for (var ti = 0; ti < tombs.length; ti++) {
+        var tb = tombs[ti];
+        var locT = localByKey.get(String(tb.artifact_key));
+        if (!locT) continue;
+        if (Date.parse(locT.updated_at) <= Date.parse(tb.deleted_at)) {
+          try { await ldb.deleteText(locT.id); deadKeys.add(String(tb.artifact_key)); out.tombstoned++; } catch (_) {}
+        }
+      }
+      if (deadKeys.size) {
+        local = local.filter(function (t) { return !deadKeys.has(String(t.text_key)); });
+        deadKeys.forEach(function (k) { localByKey.delete(k); });
+      }
+    }
     // Одноразовая миграция формата (§1.5): равный updated_at + slim ⇒ replace_equal
     // (тот же контентный момент, меняется только состав) — 7,5-МБ fat-артефакты
     // перезаписываются слимами БЕЗ клок-игр. Флаг ставится после полного прохода без провалов.
@@ -254,6 +302,11 @@
           out.uploaded++;
           if (put.json.warn === "NEAR_CAP") out.nearCap++;   // тикающий кап больше НЕ молчит
         }
+        else if (put.status === 200 && put.json && put.json.reason === "DELETED_NEWER") {
+          // P2 §6.4 — текст удалён на другом устройстве ПОЗЖЕ нашей версии: LWW deletion-wins,
+          // применяем удаление локально (наша копия старее события удаления).
+          try { await ldb.deleteText(t.id); out.tombstoned++; } catch (_) {}
+        }
         else if (put.status === 200) out.upSkipped++;   // OLDER_OR_EQUAL race — уже на сервере
         else {
           out.failed.push({ key: t.text_key, title: t.title, error: (put.json && put.json.error) || ("HTTP_" + put.status) });
@@ -272,15 +325,16 @@
       if (loc && Date.parse(loc.updated_at) >= Date.parse(srvUpdated)) continue;
       var got = await jfetch("GET", "/api/learner/artifacts/get?key=" + encodeURIComponent(key));
       if (got.status !== 200 || !got.json || !got.json.ok) continue;   // per-text best-effort down
-      if (loc && typeof ldb.deleteText === "function") {
-        // server is NEWER → LWW replace (delete + fresh import; закладки и occurrences
-        // канонических заметок восстанавливаются из СВОЕГО slim-бандла — §6.6)
-        try { await ldb.deleteText(loc.id); } catch (_) {}
-      }
       try {
-        var imp = await ldb.importBundle(got.json.payload, { mode: "skip" });
+        // P2 §6.6 — server NEWER → mode:'replace': удаление старой версии АТОМАРНО с вставкой
+        // внутри sp_text (сбой импорта откатывает — старый текст цел; раньше deleteText шёл ДО
+        // импорта и сбой глотался = локальная потеря) + снапшот в lww_replace_backups + чистка
+        // occurrences; закладки/occurrences восстанавливаются из самого slim-бандла.
+        var imp = await ldb.importBundle(got.json.payload, { mode: loc ? "replace" : "skip" });
         if (imp && imp.imported >= 1) { if (loc) out.updated++; else out.downloaded++; }
-      } catch (_) {}
+      } catch (e3) {
+        try { console.warn("[cloud-sync] artifact DOWN import failed:", key, e3 && e3.message); } catch (_) {}
+      }
     }
     // state_bundle — ПОСЛЕ текстов (§1.3: якоря state-occurrences резолвятся по text_key
     // уже-импортированных текстов). forceDown после LWW-replace: replace снёс occurrences
@@ -309,6 +363,9 @@
     var needDown = !!serverState && String(serverState.updated_at || "") !== lastServerTs;
     if (o.forceDown && serverState) needDown = true;
     var localChanged = sig.signal !== lastSig;
+    // P2: сервер потерял state (revoke→purge→re-grant) — сигнал не менялся, но перезалить надо
+    var serverLost = !serverState && !!lastServerTs;
+    if (serverLost) { localChanged = true; lastUpAt = 0; }
     if (!needDown && !localChanged) return st;
     if (!needDown && localChanged && !o.manual && Date.now() - lastUpAt < STATE_UP_MIN_MS) {
       st.action = "deferred";   // авто-троттлинг: правки заметок не молотят 5-МБ PUT каждые 90 с

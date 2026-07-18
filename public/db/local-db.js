@@ -2706,12 +2706,14 @@ export async function listReviewLogAfterRowid(rowid, limit) {
     return rows || [];
   } catch (_) { return []; }
 }
-// CLG-P5.5 — own texts eligible for class-B artifact sync: «Мои тексты» only. Corpus-materialized
+// CLG-P5.5 — own texts eligible for artifact sync: «Мои тексты» only. Corpus-materialized
 // works (source_meta_json.corpus — the multi-corpus discriminator) are SHIPPED data and are never
-// uploaded (privacy + size); archived texts stay local.
+// uploaded (privacy + size). P2 (§3.2): архивные СИНКАЮТСЯ (is_archived едет в бандле и
+// восстанавливается) — прежний фильтр замораживал серверную копию стейлом И заставлял DOWN-цикл
+// скачивать полный артефакт каждого архивного текста КАЖДЫЙ fullSync (localByKey его не видел).
 export async function listOwnTextsForSync() {
   try {
-    const rows = await q(`SELECT id, text_key, title, updated_at, source_meta_json FROM texts WHERE COALESCE(is_archived,0) = 0`, []);
+    const rows = await q(`SELECT id, text_key, title, updated_at, source_meta_json FROM texts`, []);
     const out = [];
     for (const t of (rows || [])) {
       let corpus = false;
@@ -2722,6 +2724,52 @@ export async function listOwnTextsForSync() {
     }
     return out;
   } catch (_) { return []; }
+}
+
+// ── Sync-hardening P2 — интент-очередь delete/undelete облачных артефактов (§6.5) ────────────
+// Last-intent-wins per key: enqueue снимает ВСЕ pending-интенты этого ключа (Undo после
+// удаления гасит delete ДО дренажа — критика F2-3). Таблица, не JSON-блоб (RMW-гонка
+// мультивкладки F1-10); дренаж по id в syncArtifacts, обработанные удаляются точечно.
+export async function queueArtifactIntent(op, artifactKey, deletedAt) {
+  const key = String(artifactKey || '').trim();
+  if (!key || (op !== 'delete' && op !== 'undelete')) return false;
+  try {
+    await r(`DELETE FROM artifact_sync_intents WHERE artifact_key = ?`, [key]);
+    await r(`INSERT INTO artifact_sync_intents (op, artifact_key, deleted_at) VALUES (?,?,?)`,
+      [op, key, op === 'delete' ? (deletedAt || new Date().toISOString()) : null]);
+    return true;
+  } catch (_) { return false; }
+}
+// Вызывается ДО deleteText (после строки ключ не достать). Corpus-тексты не синкаются —
+// интент для них не ставится. НЕ вызывается из wipe/rollbackImportedTexts (§6.11).
+export async function queueArtifactDeleteForText(textId) {
+  try {
+    const rows = await q(`SELECT text_key, source_meta_json FROM texts WHERE id = ?`, [String(textId)]);
+    const t = rows && rows[0];
+    if (!t || !t.text_key) return false;
+    try { const sm = t.source_meta_json ? JSON.parse(t.source_meta_json) : null; if (sm && sm.corpus) return false; } catch (_) {}
+    return await queueArtifactIntent('delete', t.text_key, new Date().toISOString());
+  } catch (_) { return false; }
+}
+export async function listArtifactIntents() {
+  try { return await q(`SELECT id, op, artifact_key, deleted_at FROM artifact_sync_intents ORDER BY id ASC`, []); }
+  catch (_) { return []; }
+}
+export async function removeArtifactIntent(id) {
+  try { await r(`DELETE FROM artifact_sync_intents WHERE id = ?`, [Number(id)]); return true; } catch (_) { return false; }
+}
+
+// Разовый heal накопленных dangling note_occurrences (§6.6, критика F1-6): у occurrences НЕТ FK
+// на text/sentence — сегодняшний delete+reimport-путь годами копил строки с мёртвыми sentence-id
+// (заметка «теряла» позицию, growth-метрики инфлировались). Идемпотентен; гейтится sync_state-флагом.
+export async function healDanglingOccurrences() {
+  try {
+    await r(`DELETE FROM note_occurrences WHERE sentence_id IS NOT NULL
+               AND sentence_id NOT IN (SELECT id FROM sentences)`, []);
+    await r(`DELETE FROM note_occurrences WHERE text_id IS NOT NULL
+               AND text_id NOT IN (SELECT id FROM texts)`, []);
+    return { ok: true };
+  } catch (_) { return { ok: false }; }
 }
 
 // Down-sync pre-check: appendReviewLog's OR IGNORE reports "accepted" for dups too, so the sync
@@ -5004,7 +5052,13 @@ async function _buildAdvancedNotesPayload(textIds, { slim = false } = {}) {
   };
 }
 
-export async function importBundle(bundleObj, { mode = 'skip', canonVersion = null } = {}) {
+// P2 (§6.5/§6.6): `mode: 'replace'` — LWW-replace ВНУТРИ per-text SAVEPOINT (существующий текст
+// удаляется атомарно с вставкой новой версии; сбой импорта откатывает всё — старый текст цел;
+// раньше cloud-sync делал deleteText ДО импорта и глотал сбой = локальная потеря) + снапшот
+// старой версии в lww_replace_backups + чистка occurrences заменяемого текста (FK нет).
+// `userRestore: true` — ПОЛЬЗОВАТЕЛЬСКИЙ импорт/Undo: ставит undelete-интенты для non-corpus
+// text_key бандла (пере-импорт снимает облачный tombstone). Cloud-sync/canon-автоимпорт НЕ передают.
+export async function importBundle(bundleObj, { mode = 'skip', canonVersion = null, userRestore = false } = {}) {
   // Accept three bundle shapes:
   //   A) UNIFIED (Android v2 spec, current web export):
   //      { manifest, library: { texts: [{text_id, rows: [{hebrew_plain, ...}], ...}], audio_assets: [...] } }
@@ -5234,6 +5288,21 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
       // leave an unreleased savepoint. A throw before this point (e.g. the dedup SELECT)
       // hits the catch where ROLLBACK TO is try-guarded for the no-savepoint case.
       await x('SAVEPOINT sp_text;');
+      if (existing.length > 0 && mode === 'replace') {
+        const _exId = String(existing[0].id);
+        // §6.9 — снапшот старой версии ДО удаления (кап 20). Внутри sp_text: откат импорта
+        // откатит и снапшот (старый текст цел — снапшот не нужен); закоммиченный replace
+        // оставляет страховку от slow-clock edit-loss (восстановление через консоль).
+        try {
+          const _snap = await exportBundle({ textIds: [_exId], slim: true });
+          await r(`INSERT INTO lww_replace_backups (text_key, payload_json) VALUES (?,?)`, [text_key, JSON.stringify(_snap)]);
+          await r(`DELETE FROM lww_replace_backups WHERE id NOT IN (SELECT id FROM lww_replace_backups ORDER BY id DESC LIMIT 20)`);
+        } catch (_) {}
+        // §6.6 — occurrences заменяемого текста (FK на text/sentence НЕТ — без явной чистки
+        // каждый replace копит dangling-строки); восстановятся из occurrences самого бандла.
+        await r(`DELETE FROM note_occurrences WHERE text_id = ? OR sentence_id IN (SELECT id FROM sentences WHERE text_id = ?)`, [_exId, _exId]);
+        await r('DELETE FROM texts WHERE id = ?', [_exId]);
+      }
       newTextId = crypto.randomUUID();
       const _oldTid = String(textData.id || '');
       if (_oldTid) oldToNewTextId.set(_oldTid, newTextId);
@@ -5376,6 +5445,26 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
     } catch (e) {
       try { await x('ROLLBACK TO sp_na;'); await x('RELEASE sp_na;'); } catch (_) {}
       result.errors.push({ stage: 'notes_advanced', error: e && e.message ? e.message : String(e) });
+    }
+  }
+
+  // P2 §6.5 — userRestore: пользовательский импорт = утверждение существования → undelete-интенты
+  // для всех non-corpus text_key бандла (снимут облачный tombstone на следующем синке Зала).
+  if (userRestore) {
+    for (const item of texts) {
+      try {
+        const tk = String((item && (item.text_key || (item.text && item.text.text_key))) || '').trim();
+        if (!tk) continue;
+        let corpus = !!(item && item.corpus);
+        if (!corpus && item && item.source_meta && item.source_meta.corpus) corpus = true;
+        if (!corpus) {
+          const smj = (item && (item.source_meta_json || (item.text && item.text.source_meta_json))) || null;
+          if (smj) { try { const sm = JSON.parse(smj); corpus = !!(sm && sm.corpus); } catch (_) {} }
+        }
+        if (corpus) continue;
+        await r(`DELETE FROM artifact_sync_intents WHERE artifact_key = ?`, [tk]);
+        await r(`INSERT INTO artifact_sync_intents (op, artifact_key) VALUES ('undelete', ?)`, [tk]);
+      } catch (_) {}
     }
   }
 

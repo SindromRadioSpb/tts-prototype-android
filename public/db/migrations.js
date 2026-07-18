@@ -902,4 +902,27 @@ export const MIGRATIONS = [
     k TEXT PRIMARY KEY,
     v TEXT
   );`,
+
+  // 044_artifact_sync_intents — Sync-hardening P2 (SYNC_HARDENING_P0P2_DESIGN §6.5/§6.9).
+  // (1) Очередь delete/undelete-интентов облачных артефактов — ТАБЛИЦА, не JSON в sync_state
+  // (RMW-гонка мультивкладки — критика F1-10); last-intent-wins per key обеспечивает enqueue
+  // (снятие противоположного интента — Undo-сценарий F2-3); дренаж по id на следующем синке
+  // Зала (Студия обычно без cloud-сессии — только энкьюит). Device-local, в бандлы не едет.
+  // (2) lww_replace_backups — слим-снапшот текста ПЕРЕД каждым LWW-replace (кап 20, страховка
+  // slow-clock edit-loss из risk-register §4 V2a: отстающие часы → правка тихо съедена
+  // replace'ом); восстановление — вручную через консоль (importBundle(JSON.parse(payload_json))).
+  `CREATE TABLE IF NOT EXISTS artifact_sync_intents (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    op           TEXT NOT NULL CHECK(op IN ('delete','undelete')),
+    artifact_key TEXT NOT NULL,
+    deleted_at   TEXT,
+    created_at   TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+  );
+  CREATE INDEX IF NOT EXISTS ix_artifact_intents_key ON artifact_sync_intents(artifact_key);
+  CREATE TABLE IF NOT EXISTS lww_replace_backups (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    text_key     TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    created_at   TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+  );`,
 ];
