@@ -165,7 +165,9 @@ function exactOwnerParser() {
     const proposalsFixture = {
       create: async (userId, args) => { lastProposalArgs = { userId, ...args }; return { proposal_id: "ap_0123456789abcdef0123456789abcdef", status: proposalStatus, expires_at: "2026-07-24T12:00:00.000Z", reused: false }; },
     };
-    const aa3Deps = { keyingService: keyingFixture, connectionPersistence: persistenceFixture, corpusSentenceRepo: corpusFixture, handoffRepo: handoffFixture, agentProposalsRepo: proposalsFixture };
+    // S1: personalTextsRepo — реальный learnerArtifactsRepo (list_personal_texts живёт на
+    // sidecar-мете; отдельный S1-смоук покрывает его сцены, здесь — dep-guard parity).
+    const aa3Deps = { keyingService: keyingFixture, connectionPersistence: persistenceFixture, corpusSentenceRepo: corpusFixture, handoffRepo: handoffFixture, agentProposalsRepo: proposalsFixture, personalTextsRepo: require("../../db/learnerArtifactsRepo") };
     const handlers = createProductionHandlers({ learnerGraphRepo, agentRepo, oauthRepo, publicCatalog: catalog, ...aa3Deps, now: () => NOW, principalAccessExpiresAt: () => EXPIRY });
     const service = createAgentAccessService({ enabled: true, ownerIds: [OWNER], handlers, now: () => NOW });
 

@@ -5,14 +5,19 @@ const C = require("./oauthContracts");
 const { CAPABILITY_VERSION } = require("./capabilities");
 const PROPOSAL_POLICY = require("./proposalPolicy");
 
-const CONSENT_VERSION = "agent-access-consent-v1";
-// AA3: bumped so content-class scopes acknowledge the stronger retention framing.
-const RETENTION_NOTICE_VERSION = "downstream-retention-v2";
+// S1: bumped — PERSONAL-tier scopes (личные тексты владельца) вводят новую, самую сильную
+// градацию карты. Equality-гейт версий — только approve-time (проверено критикой): живое
+// подключение Hermes НЕ рвётся; re-ceremony нужна лишь для добавления новых scope.
+const CONSENT_VERSION = "agent-access-consent-v2";
+const RETENTION_NOTICE_VERSION = "downstream-retention-v3";
 const MAX_PENDING = 100;
 
 // retention_tier drives the consent UI's heightened block. AGGREGATE = counts/
 // metadata/public (AA2). CONTENT = learner-specific study data that leaves to the
-// external provider and cannot be recalled.
+// external provider and cannot be recalled. PERSONAL (S1) = собственные тексты
+// владельца (класс C) — сильнее CONTENT; порядок AGGREGATE < CONTENT < PERSONAL.
+const RETENTION_TIERS = Object.freeze(["AGGREGATE", "CONTENT", "PERSONAL"]);
+const tierRank = (t) => RETENTION_TIERS.indexOf(String(t));
 const SCOPE_PRESENTATION = Object.freeze({
   "learning.brief.read": Object.freeze({ capability: "get_learning_brief", purpose: "CURRENT_LEARNING_PRIORITY", data_class: "BOUNDED_AGGREGATE", retention_tier: "AGGREGATE", excludes: "NO_WORDS_ITEMS_ANSWERS_OR_PRIVATE_EVIDENCE", first_party_action: "/index.html" }),
   "review.summary.read": Object.freeze({ capability: "get_review_summary", purpose: "REVIEW_AVAILABILITY_AND_HANDOFF_ELIGIBILITY", data_class: "COUNTS_DURATION_ELIGIBILITY", retention_tier: "AGGREGATE", excludes: "NO_REVIEW_ITEMS_ANSWERS_GRADES_OR_FSRS", first_party_action: "/index.html" }),
@@ -46,6 +51,14 @@ const SCOPE_PRESENTATION = Object.freeze({
   // honestly ADMITS the one bit this scope can disclose (empty-or-not schedule,
   // via the typed refusal) — presentation claims stay true by construction.
   "review.handoff.create": Object.freeze({ capability: "create_review_handoff", purpose: "MINT_FIRST_PARTY_REVIEW_SESSION_LINK", data_class: "SINGLE_USE_LINK_NO_LEARNER_CONTENT", retention_tier: "AGGREGATE", excludes: "NO_DUE_WORDS_NO_ANSWERS_NO_GRADES_ONLY_EMPTY_OR_NOT_OWNER_CLICKS", first_party_action: "/library.html" }),
+  // S-пакет — ЛИЧНЫЕ тексты владельца (класс C, PERSONAL-tier). Карта честно называет
+  // раскрываемое множество: metadata = названия ВСЕХ синкованных текстов; content = тела
+  // (окна строк he+ru) ВКЛЮЧАЯ названия (критика R15: при standing-гранте content-scope
+  // раскрывает title и без metadata-scope) — и только по отдельному гранту владельца из
+  // панели (S2), поверх этого scope. Excludes истинны by construction: в sidecar и
+  // output-схемах физически нет полей заметок/оценок/SRS.
+  "personal.texts.metadata.read": Object.freeze({ capability: "list_personal_texts", purpose: "PERSONAL_TEXTS_CATALOG_TITLES_OF_ALL_SYNCED", data_class: "PERSONAL_TEXT_TITLES_SIZES_FRESHNESS", retention_tier: "PERSONAL", excludes: "NO_TEXT_BODY_NO_NOTES_NO_GRADES_NO_SRS", first_party_action: "/library.html" }),
+  "personal.texts.content.read": Object.freeze({ capability: "get_personal_text_content", purpose: "PERSONAL_TEXT_BODY_WINDOWS_AFTER_OWNER_GRANT", data_class: "PERSONAL_TEXT_BODY_HE_RU_INCLUDING_TITLES", retention_tier: "PERSONAL", excludes: "NO_NOTES_NO_GRADES_NO_SRS_REQUIRES_SEPARATE_OWNER_GRANT", first_party_action: "/agent-access.html" }),
 });
 
 function error(code) { const e = new Error(code); e.code = code; throw e; }
@@ -137,19 +150,24 @@ function createConsentCeremony({ oauthRepo, recordConsent, now = () => new Date(
       client_display_name: row.client_display_name,
       connection_label: row.connection_label,
       requested_scopes: Object.freeze(row.requested_scopes.map((scope) => {
-        // Fail-closed: an un-presented scope must never render approvable.
+        // Fail-closed: an un-presented scope must never render approvable. S1 (ревизия по критике):
+        // tier валидируется по ENUM — «любая непустая строка» открывала тихое занижение карты.
         const presentation = SCOPE_PRESENTATION[scope];
-        if (!presentation || !presentation.data_class || !presentation.retention_tier) error("AA_CONSENT_SCOPE_UNPRESENTED");
+        if (!presentation || !presentation.data_class || tierRank(presentation.retention_tier) < 0) error("AA_CONSENT_SCOPE_UNPRESENTED");
         return Object.freeze({
           scope,
           ...presentation,
           downstream_retention: presentation.downstream_retention_override
-            || (presentation.retention_tier === "CONTENT"
-              ? "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO_CONTENT_IRRECOVERABLE"
-              : "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO"),
+            || (presentation.retention_tier === "PERSONAL"
+              ? "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO_PERSONAL_TEXTS_IRRECOVERABLE"
+              : presentation.retention_tier === "CONTENT"
+                ? "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO_CONTENT_IRRECOVERABLE"
+                : "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO"),
         });
       })),
-      retention_tier: row.requested_scopes.some((scope) => (SCOPE_PRESENTATION[scope] || {}).retention_tier === "CONTENT") ? "CONTENT" : "AGGREGATE",
+      // Roll-up = МАКСИМАЛЬНЫЙ tier (критика: бинарный CONTENT?:AGGREGATE занижал бы карту
+      // при PERSONAL-scope — хуже, чем отсутствие карты).
+      retention_tier: RETENTION_TIERS[Math.max(0, ...row.requested_scopes.map((scope) => tierRank((SCOPE_PRESENTATION[scope] || {}).retention_tier)))],
       consent_version: CONSENT_VERSION,
       capability_version: CAPABILITY_VERSION,
       retention_notice_version: RETENTION_NOTICE_VERSION,
@@ -207,6 +225,7 @@ function opaqueRequestId() { return `aar_${crypto.randomBytes(16).toString("hex"
 module.exports = {
   CONSENT_VERSION,
   RETENTION_NOTICE_VERSION,
+  RETENTION_TIERS,
   SCOPE_PRESENTATION,
   createConsentCeremony,
   opaqueRequestId,

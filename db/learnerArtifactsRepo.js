@@ -112,7 +112,9 @@ async function put(userId, deviceId, { artifact_key, updated_at, payload, kind =
   const cap = capFor(k);
   const bytes = Buffer.byteLength(payloadStr, "utf8");
   if (bytes > cap) return { ok: false, error: "PAYLOAD_TOO_BIG" };
-  try { JSON.parse(payloadStr); } catch (_) { return { ok: false, error: "BAD_JSON" }; }
+  // Разбор нужен и для валидации, и для sidecar-меты (S1 §1.1) — один парс на оба.
+  let parsedPayload = null;
+  try { parsedPayload = JSON.parse(payloadStr); } catch (_) { return { ok: false, error: "BAD_JSON" }; }
   const existing = await dbGet(db, `SELECT updated_at FROM learner_artifacts WHERE user_id = ? AND kind = ? AND artifact_key = ?`, [userId, k, key]);
   if (existing) {
     const exMs = Date.parse(existing.updated_at), atMs = Date.parse(at);
@@ -144,9 +146,72 @@ async function put(userId, deviceId, { artifact_key, updated_at, payload, kind =
        updated_at = excluded.updated_at, payload_json = excluded.payload_json,
        device_id = excluded.device_id, ingested_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')`,
     [userId, k, key, at, payloadStr, deviceId || null]);
+  // S1 §1.1 — sidecar-мета: ТОЛЬКО после успешного store (иначе мета отвергнутого payload'а),
+  // ТОЛЬКО text_bundle, best-effort (провал экстракции НЕ роняет первопартийный sync-путь;
+  // стейл лечит reconcileArtifactMeta в ops-sweep по built_at<ingested_at). Порядок artifact-
+  // first обязателен (FK меты смотрит на артефакт). Решение владельца §0.1-5: экстракция
+  // происходит ДО каких-либо агентских согласий; наружу — только под AA-scope.
+  if (k === KIND) {
+    try { await _upsertMeta(db, userId, k, key, parsedPayload); } catch (_) {}
+  }
   const out = { ok: true, stored: true };
   if (bytes > cap * 0.75) { out.warn = "NEAR_CAP"; out.bytes = bytes; out.cap = cap; }
   return out;
+}
+
+// ── S1 — sidecar bounded-метаданных (мигр. 050; derived-at-put, rebuildable) ────────────────
+// Правило усечения title ЕДИНОЕ с SQL-backfill по построению: char-slice(0,128) == substr(1,128).
+// rows_count: только массив rows (канонический путь $.texts[0] единственного парсера); иное → NULL.
+function _extractMeta(parsed) {
+  try {
+    const t = parsed && Array.isArray(parsed.texts) ? parsed.texts[0] : null;
+    if (!t || typeof t !== "object") return { title: null, rows_count: null };
+    const title = t.title != null ? String(t.title).slice(0, 128) : null;
+    const rows = Array.isArray(t.rows) ? t.rows.length : null;
+    return { title, rows_count: rows };
+  } catch (_) { return { title: null, rows_count: null }; }
+}
+async function _upsertMeta(db, userId, kind, key, parsed) {
+  const m = _extractMeta(parsed);
+  await dbRun(db,
+    `INSERT OR REPLACE INTO learner_artifact_meta (user_id, kind, artifact_key, title, rows_count)
+     VALUES (?,?,?,?,?)`,
+    [userId, kind, key, m.title, m.rows_count]);
+}
+
+// Каталог для list_personal_texts: артефакты + мета (LEFT JOIN — отсутствие меты = честный
+// NULL-title, НЕ отказ всего списка; урок silent-batch-partial-failure).
+async function listWithMeta(userId) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const rows = await dbAll(db,
+    `SELECT a.artifact_key, a.updated_at, a.ingested_at, length(a.payload_json) AS bytes,
+            m.title, m.rows_count
+       FROM learner_artifacts a
+       LEFT JOIN learner_artifact_meta m
+         ON m.user_id = a.user_id AND m.kind = a.kind AND m.artifact_key = a.artifact_key
+      WHERE a.user_id = ? AND a.kind = ?
+      ORDER BY a.artifact_key`, [userId, KIND]);
+  return rows || [];
+}
+
+// ops-sweep: production-rebuild derived-слоя (краш-окно между artifact- и meta-upsert'ом,
+// пропуски backfill'а) — «следующий put лечит» ЛОЖЕН (OLDER_OR_EQUAL до меты не доходит).
+async function reconcileArtifactMeta(limit = 200) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const rows = await dbAll(db,
+    `SELECT a.user_id, a.kind, a.artifact_key, a.payload_json
+       FROM learner_artifacts a
+       LEFT JOIN learner_artifact_meta m
+         ON m.user_id = a.user_id AND m.kind = a.kind AND m.artifact_key = a.artifact_key
+      WHERE a.kind = ? AND (m.artifact_key IS NULL OR m.built_at < a.ingested_at)
+      LIMIT ?`, [KIND, Math.max(1, Number(limit) || 200)]);
+  let rebuilt = 0;
+  for (const row of (rows || [])) {
+    let parsed = null;
+    try { parsed = JSON.parse(row.payload_json); } catch (_) {}
+    try { await _upsertMeta(db, row.user_id, row.kind, row.artifact_key, parsed); rebuilt++; } catch (_) {}
+  }
+  return { rebuilt };
 }
 
 // ── P2 — delete-семантика (§3.1/§6.4) ────────────────────────────────────────────────────────
@@ -256,4 +321,4 @@ async function reconcileRevokedPurges() {
   return { users, artifacts };
 }
 
-module.exports = { hasConsent, hasConsentVersioned, list, get, getMeta, put, deleteArtifact, restoreArtifact, listTombstones, purgeAllForUser, pruneTombstones, markConsentPurged, reconcileRevokedPurges, CONSENT_KEY, REQUIRED_CONSENT_VERSION, KIND, STATE_KIND, KINDS, MAX_PAYLOAD_BYTES, MAX_STATE_PAYLOAD_BYTES };
+module.exports = { hasConsent, hasConsentVersioned, list, listWithMeta, get, getMeta, put, deleteArtifact, restoreArtifact, listTombstones, purgeAllForUser, pruneTombstones, markConsentPurged, reconcileRevokedPurges, reconcileArtifactMeta, CONSENT_KEY, REQUIRED_CONSENT_VERSION, KIND, STATE_KIND, KINDS, MAX_PAYLOAD_BYTES, MAX_STATE_PAYLOAD_BYTES };

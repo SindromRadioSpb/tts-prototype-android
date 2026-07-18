@@ -57,6 +57,8 @@ const SCENARIOS = Object.freeze({
   "agent_access.propose_action": { role: "agent_access.proposer", surfaces: ["external_agent"], capabilities: ["repo:proposal_create"] },
   "agent_access.progress_delta": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:learner_activity_read"] },
   "agent_access.review_handoff": { role: "agent_access.proposer", surfaces: ["external_agent"], capabilities: ["repo:reading_handoff_mint"] },
+  // S-пакет S1 — каталог личных текстов (sidecar-мета; тело — S2 отдельным сценарием).
+  "agent_access.personal_texts_list": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:personal_texts_metadata_read"] },
 });
 
 function get(id) { return SCENARIOS[String(id)] || null; }

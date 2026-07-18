@@ -162,6 +162,23 @@ async function activateConnectionWithGrants(userId, connectionId, requestedScope
     if (row.status !== "PENDING_AUTH") error("AA_OAUTH_STATE_CONFLICT");
     await upsertGrantsTx(db, row, requestedScopes, t);
     await run(db, `UPDATE agent_connections SET status='ACTIVE',activated_at=?,updated_at=? WHERE user_id=? AND connection_id=? AND status='PENDING_AUTH'`, [t, t, uid, cid]);
+    // S1 (критика R14): UPGRADE-SUPERSEDE — активация подключения того же (клиент, пользователь),
+    // чьи scope ПОКРЫВАЮТ все ACTIVE-права прежнего, замещает его (suspend + эпоха + revoke
+    // кредов): иначе re-auth ради новых scope оставляет зомби со старой consent-картой и живыми
+    // refresh-токенами у провайдера. Подмножество-предикат сохраняет легитимные НЕЗАВИСИМЫЕ
+    // профили с непересекающимися правами (закреплено lifecycle-смоуком). Suspend, не REVOKE:
+    // владелец видит замещённое в панели и может удалить.
+    const newScopes = new Set(requestedScopes.map(String));
+    const stale = await all(db,
+      `SELECT connection_id FROM agent_connections
+        WHERE user_id=? AND oauth_client_id=? AND connection_id<>? AND status IN ('ACTIVE','SCOPE_REDUCED')`,
+      [uid, row.oauth_client_id, cid]);
+    for (const s of stale) {
+      const oldGrants = await all(db, `SELECT scope FROM agent_connection_grants WHERE user_id=? AND connection_id=? AND status='ACTIVE'`, [uid, s.connection_id]);
+      if (!oldGrants.length || !oldGrants.every((g) => newScopes.has(String(g.scope)))) continue;
+      await run(db, `UPDATE agent_connections SET status='SUSPENDED',security_epoch=security_epoch+1,updated_at=? WHERE user_id=? AND connection_id=?`, [t, uid, s.connection_id]);
+      await revokeActiveCredentialsTx(db, uid, s.connection_id, t, "SUPERSEDED_BY_REAUTH");
+    }
   });
   return loadConnection(uid, cid);
 }

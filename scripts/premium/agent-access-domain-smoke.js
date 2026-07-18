@@ -92,6 +92,11 @@ const fixtures = Object.freeze({
     schema_version: "aa.review_handoff.1.0.0", handoff_url: "https://linguistpro.kolosei.com/library.html?handoff=abcdefABCDEF0123456789_-xy",
     expires_in_ms: 300000, action: "open_review", generated_at: GENERATED,
   }),
+  list_personal_texts: Object.freeze({
+    schema_version: "aa.personal_texts_list.1.0.0",
+    items: Object.freeze([Object.freeze({ text_key: "text-1783830247939-hpbn", title: "Мой текст", rows_count: 12, content_updated_at: GENERATED, replica_ingested_at: GENERATED })]),
+    total: 1, next_cursor: null, authority: "OWNER_DEVICE_CANONICAL", generated_at: GENERATED,
+  }),
 });
 
 const validArgs = Object.freeze({
@@ -109,6 +114,7 @@ const validArgs = Object.freeze({
   propose_action: Object.freeze({ kind: "note", payload: Object.freeze({ body: "fixture note body" }) }),
   get_progress_delta: Object.freeze({ since: "2026-07-10T00:00:00.000Z", top_limit: 10 }),
   create_review_handoff: Object.freeze({}),
+  list_personal_texts: Object.freeze({ limit: 10 }),
 });
 
 function handlers(overrides = {}) {
@@ -171,10 +177,17 @@ async function expectCode(promise, code) {
     // Independent oracle (R15-F1 fail-closed): every capability scope must have a
     // consent presentation entry with data_class + retention_tier, or the consent
     // preview fails closed (AA_CONSENT_SCOPE_UNPRESENTED) and the scope is unusable.
+    // Tier-enum из ЕДИНОГО источника (ceremony.RETENTION_TIERS — S1 добавил PERSONAL);
+    // третья копия списка в смоуке была бы config-string-drift.
+    const TIERS = require("../../agent/access/consentCeremony.js").RETENTION_TIERS;
     for (const scope of new Set(Object.values(capabilities.CAPABILITIES).map((x) => x.scope))) {
       const p = SCOPE_PRESENTATION[scope];
-      assert.ok(p && p.data_class && ["AGGREGATE", "CONTENT"].includes(p.retention_tier), `scope ${scope} missing consent presentation`);
+      assert.ok(p && p.data_class && TIERS.includes(p.retention_tier), `scope ${scope} missing consent presentation`);
     }
+    checks++;
+    // S1: roll-up-порядок tier'ов — PERSONAL сильнее CONTENT сильнее AGGREGATE (критика:
+    // бинарный roll-up занижал бы карту при PERSONAL-scope).
+    assert.deepStrictEqual([...TIERS], ["AGGREGATE", "CONTENT", "PERSONAL"], "tier order must be A<C<P");
     checks++;
 
     // Role assertion with teeth (R17): the expected role is DERIVED per

@@ -1,6 +1,12 @@
 import { createHash, randomBytes } from 'node:crypto';
 
 import { verifyAccessToken } from './oauthSigningKeys.mjs';
+// S1 (критика R14): версия capability — ОДНА константа, не литерал-пин: наивный бамп
+// CAPABILITY_VERSION при добавлении инструментов молча клал либо все новые подключения
+// (строка ≠ 'aa-v0.1'), либо старое Hermes (обновлённый литерал ≠ строка). Политика:
+// version НЕ бампится при additive-инструментах (AA3/AA4/S1 — прецеденты).
+import capabilitiesRegistry from './capabilities.js';
+const { CAPABILITY_VERSION } = capabilitiesRegistry;
 
 function fail(code) { const error = new Error(code); error.code = code; throw error; }
 function exactBearer(value) {
@@ -52,7 +58,7 @@ export function createMcpResourceValidator({ keyset, repo, issuer, resource, all
       scopes: tokenScopes,
     }, new Date(now()).toISOString());
     if (snapshot.subject_id !== payload.sub || snapshot.user_id !== subject.user_id || snapshot.oauth_client_id !== payload.client_id) fail('AA_MCP_PRINCIPAL_BINDING_INVALID');
-    if (snapshot.capability_version !== 'aa-v0.1') fail('AA_MCP_CAPABILITY_VERSION_INVALID');
+    if (snapshot.capability_version !== CAPABILITY_VERSION) fail('AA_MCP_CAPABILITY_VERSION_INVALID');
 
     const principal = Object.freeze({
       user_id: snapshot.user_id,

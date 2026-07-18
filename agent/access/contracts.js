@@ -32,6 +32,11 @@ const SCOPES = new Set([
   "intent.propose",
   "review.activity.read",
   "review.handoff.create",
+  // S-пакет (PERSONAL_TEXTS_S1S2_DESIGN): личные тексты владельца. ОБА scope заведены в S1
+  // (одна re-авторизация Hermes); content-инструмент приходит в S2. Lockstep: oauthContracts +
+  // мигр. 049 CHECK (15 scope; кап клеймов 16 — следующий scope-пакет упрётся, помнить).
+  "personal.texts.metadata.read",
+  "personal.texts.content.read",
 ]);
 const STRUGGLE = new Set(["none", "some", "high"]);
 const PROFILE_MODE = new Set(["silent", "coach", "intensive"]);
@@ -40,6 +45,10 @@ const ACCESS_LIFETIME = new Set(["PERSISTENT_WINDOW", "TIMED_WINDOW", "TOKEN_ONL
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 const WORK_ID_RE = /^\d{1,8}$/;
 const TEXT_KEY_RE = /^[a-f0-9]{16,64}$/;
+// ЛИЧНЫЕ text_key ≠ корпусные hex-хэши: реальные ключи Студии — 'text-<ts>-<rand>',
+// 'text-card-…', импортированные бандлы — произвольные ≤200 (server-кап BAD_KEY). Критика
+// S-пакета: копипаст TEXT_KEY_RE зарубил бы 100% личных ключей. Безопасный алфавит, bounded.
+const PERSONAL_TEXT_KEY_RE = /^[A-Za-z0-9._:-]{1,200}$/;
 const HANDOFF_URL_RE = /^https:\/\/linguistpro\.kolosei\.com\/library\.html\?handoff=[A-Za-z0-9_-]{16,256}$/;
 
 class AgentAccessError extends Error {
@@ -238,6 +247,52 @@ function readingContent(value) {
   if (!Array.isArray(x.available_text_keys) || x.available_text_keys.length > 20) fail("OUTPUT_SCHEMA_INVALID");
   x.available_text_keys.forEach((k) => { if (!TEXT_KEY_RE.test(String(k))) fail("OUTPUT_SCHEMA_INVALID"); });
   return Object.freeze({ ...x, work: Object.freeze({ ...w }), anchor: Object.freeze({ ...a }), rows: Object.freeze(rows), available_text_keys: Object.freeze([...x.available_text_keys]) });
+}
+
+// S-пакет S1 — list_personal_texts (PERSONAL_TEXTS_S1S2_DESIGN §1.2). Каталог синкованных
+// личных текстов из sidecar-меты; НИКАКОГО контента. title nullable — мета может отсутствовать
+// у битого payload'а: деградация одной строки, не отказ всего списка (урок silent-batch).
+// Свежесть: content_updated_at (client-claimed LWW) + replica_ingested_at (server-set) +
+// authority-константа: сервер — LWW-реплика, истина живёт на устройстве владельца.
+function personalTextKey(v, code = "ARGUMENT_SCHEMA_INVALID") { const s = string(v, 200, code); if (!PERSONAL_TEXT_KEY_RE.test(s)) fail(code); return s; }
+
+function validatePersonalTextsListInput(value) {
+  const x = closed(value, ["limit", "cursor"], [], "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, 512, "ARGUMENTS_TOO_LARGE");
+  const out = {};
+  if (x.limit != null) out.limit = integer(x.limit, 1, 100, "ARGUMENT_SCHEMA_INVALID");
+  // Курсор декодируется и валидируется ЗДЕСЬ (паттерн validateDueItemsInput): кривой курсор =
+  // чистый клиентский ARGUMENT_SCHEMA_INVALID, не INTERNAL_ERROR-ретраи у транспорта Hermes.
+  if (x.cursor != null) {
+    out.cursor = string(x.cursor, 256, "ARGUMENT_SCHEMA_INVALID");
+    if (!CURSOR.test(out.cursor)) fail("ARGUMENT_SCHEMA_INVALID");
+    let decoded = "";
+    try { decoded = Buffer.from(out.cursor, "base64url").toString("utf8"); } catch (_) { fail("ARGUMENT_SCHEMA_INVALID"); }
+    const m = /^o(\d{1,6})$/.exec(decoded);
+    if (!m || Number(m[1]) > 2000) fail("ARGUMENT_SCHEMA_INVALID");   // MAX_ARTIFACTS_PER_USER
+    out.cursor_offset = Number(m[1]);
+  }
+  return Object.freeze(out);
+}
+function personalTextsList(value) {
+  const keys = ["schema_version", "items", "total", "next_cursor", "authority", "generated_at"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 24576, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.personal_texts_list.1.0.0") fail("OUTPUT_SCHEMA_INVALID");
+  if (x.authority !== "OWNER_DEVICE_CANONICAL") fail("OUTPUT_SCHEMA_INVALID");
+  integer(x.total, 0, 100000); timestamp(x.generated_at);
+  if (x.next_cursor !== null && (typeof x.next_cursor !== "string" || !CURSOR.test(x.next_cursor))) fail("OUTPUT_SCHEMA_INVALID");
+  if (!Array.isArray(x.items) || x.items.length > 100) fail("OUTPUT_SCHEMA_INVALID");
+  const itemKeys = ["text_key", "title", "rows_count", "content_updated_at", "replica_ingested_at"];
+  const items = x.items.map((row) => {
+    const r = closed(row, itemKeys, itemKeys, "OUTPUT_SCHEMA_INVALID");
+    personalTextKey(r.text_key, "OUTPUT_SCHEMA_INVALID");
+    if (r.title !== null) string(r.title, 512);   // char-slice(0,128) меты ≤ 512 байт UTF-8
+    if (r.rows_count !== null) integer(r.rows_count, 0, 1000000);
+    timestamp(r.content_updated_at); timestamp(r.replica_ingested_at);
+    return Object.freeze({ ...r });
+  });
+  if (items.length > x.total) fail("OUTPUT_SCHEMA_INVALID");
+  return Object.freeze({ ...x, items: Object.freeze(items) });
 }
 
 // AA3 commit 3c — propose_action. Per-kind CLOSED payload schema (R14: no
@@ -447,6 +502,7 @@ const INPUT_VALIDATORS = Object.freeze({
   propose_action: validateProposeInput,
   get_progress_delta: validateProgressDeltaInput,
   create_review_handoff: emptyInput,
+  list_personal_texts: validatePersonalTextsListInput,
 });
 const OUTPUT_VALIDATORS = Object.freeze({
   get_learning_brief: learningBrief,
@@ -463,6 +519,7 @@ const OUTPUT_VALIDATORS = Object.freeze({
   propose_action: proposal,
   get_progress_delta: progressDelta,
   create_review_handoff: reviewHandoff,
+  list_personal_texts: personalTextsList,
 });
 
 function validateInput(tool, value) { const fn = INPUT_VALIDATORS[tool]; if (!fn) fail("UNKNOWN_TOOL"); return fn(value); }

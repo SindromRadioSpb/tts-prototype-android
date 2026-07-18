@@ -19,6 +19,9 @@ const SCOPES = Object.freeze([
   "review.activity.read",
   // AA4 slice 4b-final: anchor-less review handoff (migration 047 CHECK).
   "review.handoff.create",
+  // S-пакет S1: личные тексты (migration 049 CHECK; content-инструмент — S2).
+  "personal.texts.metadata.read",
+  "personal.texts.content.read",
 ]);
 const SCOPE_SET = new Set(SCOPES);
 const SAFE = /^[A-Za-z0-9_.:@/-]+$/;

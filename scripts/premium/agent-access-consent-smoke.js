@@ -89,7 +89,10 @@ function trusted(requestId, connectionId, scopes = SCOPES, overrides = {}) {
     checks++;
 
     await expectCode(() => ceremony.preview("u2", "request-consent-a"), "AA_CONSENT_REQUEST_NOT_FOUND");
-    await expectCode(ceremony.decide("u1", { request_id: "request-consent-a", decision: "approve", selected_scopes: [SCOPES[0]], retention_ack: true }), "AA_CONSENT_PARTIAL_APPROVAL");
+    // AA3 R15-F3: строгое ПОДМНОЖЕСТВО запрошенных scope — легально (coarse-without-fine);
+    // стейл-ожидание AA_CONSENT_PARTIAL_APPROVAL удалено (смоук был красным на main).
+    // Нелегально — scope ВНЕ запрошенного набора (запрос остаётся открытым).
+    await expectCode(ceremony.decide("u1", { request_id: "request-consent-a", decision: "approve", selected_scopes: ["reading.corpus.read"], retention_ack: true }), "AA_CONSENT_APPROVAL_INVALID");
     await expectCode(ceremony.decide("u1", { request_id: "request-consent-a", decision: "approve", selected_scopes: SCOPES, retention_ack: true, user_id: "u2" }), "AA_CONSENT_UNKNOWN_FIELD");
     checks++;
 

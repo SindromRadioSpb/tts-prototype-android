@@ -65,6 +65,7 @@ function createProductionHandlers(options = {}) {
   const corpusRepo = options.corpusSentenceRepo; // AA3 commit 3b: public-domain corpus reads
   const handoffRepo = options.handoffRepo; // AA3 commit 3b: first-party reading handoff mint
   const proposalsRepo = options.agentProposalsRepo; // AA3 commit 3c: PENDING proposals (owner confirms)
+  const personalTextsRepo = options.personalTextsRepo; // S1: sidecar-мета личных текстов (list — БЕЗ payload)
   const now = options.now || Date.now;
   const principalAccessExpiresAt = options.principalAccessExpiresAt;
   if (!learnerRepo || typeof learnerRepo.getAgentAccessReviewAggregates !== "function" || typeof learnerRepo.getDue !== "function" || typeof learnerRepo.getActivityDelta !== "function"
@@ -75,6 +76,7 @@ function createProductionHandlers(options = {}) {
     || !corpusRepo || typeof corpusRepo.listWorkTexts !== "function" || typeof corpusRepo.getCorpusLessonWindow !== "function"
     || !handoffRepo || typeof handoffRepo.mint !== "function" || typeof handoffRepo.countActive !== "function"
     || !proposalsRepo || typeof proposalsRepo.create !== "function"
+    || !personalTextsRepo || typeof personalTextsRepo.hasConsentVersioned !== "function" || typeof personalTextsRepo.listWithMeta !== "function"
     || typeof connectionPersistence !== "function"
     || typeof now !== "function" || typeof principalAccessExpiresAt !== "function") fail("AA_PRODUCTION_HANDLER_DEPENDENCY_INVALID");
 
@@ -419,6 +421,41 @@ function createProductionHandlers(options = {}) {
     });
   }
 
+  // S1 — каталог личных текстов из sidecar-меты (PERSONAL_TEXTS_S1S2_DESIGN §1.2).
+  // Двухслойный fail-closed гейт: (1) первопартийный cloud_texts v2 — ТА ЖЕ функция истины,
+  // что у sync-поверхности; RECONSENT отделён от CONSENT (критика R15: «подтверди обновлённую
+  // карту» ≠ «включи синк»); (2) AA-scope уже энфорсен service-слоем до входа сюда.
+  // payload_json НЕ читается вовсе — только мета; NOT_SYNCED = честный typed-отказ (0 артефактов
+  // при живом consent), НЕ пустой список (silent-empty урок).
+  async function list_personal_texts(context, args) {
+    const clock = fixedNow(now);
+    const consent = await personalTextsRepo.hasConsentVersioned(context.user_id);
+    if (!consent || consent.ok !== true) {
+      fail(consent && consent.reconsent ? "AA_PERSONAL_TEXTS_RECONSENT_REQUIRED" : "AA_PERSONAL_TEXTS_CONSENT_REQUIRED");
+    }
+    const rows = await personalTextsRepo.listWithMeta(context.user_id);
+    if (!Array.isArray(rows) || rows.length === 0) fail("AA_PERSONAL_TEXTS_NOT_SYNCED");
+    const offset = args.cursor_offset || 0;
+    const limit = args.limit || 50;
+    const page = rows.slice(offset, offset + limit);
+    const items = page.map((r) => Object.freeze({
+      text_key: String(r.artifact_key),
+      title: r.title != null ? byteSlice(String(r.title), 512) : null,
+      rows_count: (r.rows_count != null && Number.isFinite(Number(r.rows_count))) ? Number(r.rows_count) : null,
+      content_updated_at: new Date(String(r.updated_at)).toISOString(),
+      replica_ingested_at: new Date(String(r.ingested_at)).toISOString(),
+    }));
+    const nextOffset = offset + page.length;
+    return Object.freeze({
+      schema_version: "aa.personal_texts_list.1.0.0",
+      items: Object.freeze(items),
+      total: Math.min(rows.length, 100000),
+      next_cursor: nextOffset < rows.length ? encodeDueCursor(nextOffset) : null,
+      authority: "OWNER_DEVICE_CANONICAL",
+      generated_at: clock.iso,
+    });
+  }
+
   return Object.freeze({
     get_learning_brief,
     get_review_summary,
@@ -434,6 +471,7 @@ function createProductionHandlers(options = {}) {
     propose_action,
     get_progress_delta,
     create_review_handoff,
+    list_personal_texts,
   });
 }
 

@@ -1710,6 +1710,7 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
         corpusSentenceRepo: corpusSentenceRepoForAgentAccess,
         handoffRepo: handoffRepoForAgentAccess,
         agentProposalsRepo: agentProposalsRepoForAgentAccess,
+        personalTextsRepo: require("./db/learnerArtifactsRepo"),   // S1: sidecar-мета (list_personal_texts); прямой require — const-декларация ниже по файлу (TDZ)
         // AA3: report the real access window (control-plane) rather than the token TTL.
         connectionPersistence: async () => {
           try {
@@ -3309,7 +3310,9 @@ async function opsSweepTick() {
       const laRepo = require("./db/learnerArtifactsRepo");
       const pr = await laRepo.pruneTombstones(180);
       const rc = await laRepo.reconcileRevokedPurges();
-      if (pr.pruned || rc.users) console.log(`[ops-sweep] tombstones_pruned=${pr.pruned} revoked_purge_reconciled=${rc.users} (artifacts=${rc.artifacts})`);
+      // S1 — production-rebuild derived-меты (краш-окно put'а / пропуски backfill'а)
+      const rm = await laRepo.reconcileArtifactMeta(200);
+      if (pr.pruned || rc.users || rm.rebuilt) console.log(`[ops-sweep] tombstones_pruned=${pr.pruned} revoked_purge_reconciled=${rc.users} (artifacts=${rc.artifacts}) meta_rebuilt=${rm.rebuilt}`);
     } catch (e2) { console.error("[ops-sweep] artifacts-reconcile failed:", e2 && e2.message); }
   } catch (e) { console.error("[ops-sweep] failed:", e && e.message); }
 }

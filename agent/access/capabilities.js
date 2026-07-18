@@ -25,6 +25,10 @@ const CAPABILITIES = Object.freeze({
   get_progress_delta: Object.freeze({ scope: "review.activity.read", purpose: "EXPLICIT_PROGRESS_DELTA", scenario_id: "agent_access.progress_delta", max_output_bytes: 8192 }),
   // AA4 slice 4b-final: «открой мне повторение» — anchor-less open_review handoff.
   create_review_handoff: Object.freeze({ scope: "review.handoff.create", purpose: "EXPLICIT_REVIEW_HANDOFF_MINT", scenario_id: "agent_access.review_handoff", max_output_bytes: 512 }),
+  // S-пакет S1 — каталог личных текстов из sidecar-меты (PERSONAL_TEXTS_S1S2_DESIGN §1.2).
+  // NB: CAPABILITY_VERSION НЕ бампится (критика: пин aa-v0.1 живёт в снапшотах подключений —
+  // бамп молча кладёт либо новые подключения, либо старое Hermes; AA3/AA4 тоже не бампили).
+  list_personal_texts: Object.freeze({ scope: "personal.texts.metadata.read", purpose: "EXPLICIT_PERSONAL_TEXTS_CATALOG", scenario_id: "agent_access.personal_texts_list", max_output_bytes: 24576 }),
 });
 
 function getCapability(name) { return CAPABILITIES[String(name)] || null; }

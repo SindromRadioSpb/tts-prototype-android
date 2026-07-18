@@ -59,6 +59,8 @@ const INPUT_SCHEMAS = Object.freeze({
     top_limit: integer(1, 20),
   }, ["since"]),
   create_review_handoff: closedObject({}, []),
+  // S1 — каталог личных текстов (cursor-пагинация; личные ключи ≠ корпусный hex-паттерн).
+  list_personal_texts: closedObject({ limit: integer(1, 100), cursor: string({ maxLength: 256, pattern: "^[A-Za-z0-9_.~:@/+\\-=]{1,256}$" }) }, []),
 });
 
 const timestamp = string({ maxLength: 40, pattern: TIME });
@@ -182,6 +184,20 @@ const OUTPUT_SCHEMAS = Object.freeze({
     handoff_url: string({ maxLength: 256 }), expires_in_ms: integer(1, 3600000),
     action: string({ const: "open_review" }), generated_at: timestamp,
   }),
+  // S1 — каталог личных текстов: title nullable (битый payload = честный NULL одной строки).
+  list_personal_texts: closedObject({
+    schema_version: string({ const: "aa.personal_texts_list.1.0.0" }),
+    items: Object.freeze({ type: "array", maxItems: 100, items: closedObject({
+      text_key: string({ maxLength: 200, pattern: "^[A-Za-z0-9._:-]{1,200}$" }),
+      title: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 512 }), Object.freeze({ type: "null" })]) }),
+      rows_count: Object.freeze({ anyOf: Object.freeze([integer(0, 1000000), Object.freeze({ type: "null" })]) }),
+      content_updated_at: timestamp, replica_ingested_at: timestamp,
+    }) }),
+    total: integer(0, 100000),
+    next_cursor: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 256 }), Object.freeze({ type: "null" })]) }),
+    authority: string({ const: "OWNER_DEVICE_CANONICAL" }),
+    generated_at: timestamp,
+  }),
 });
 
 const DESCRIPTIONS = Object.freeze({
@@ -199,6 +215,7 @@ const DESCRIPTIONS = Object.freeze({
   propose_action: "Create a PENDING action proposal the owner reviews and confirms or denies inside LinguistPro; the agent never executes. kind=open_reading proposes opening a corpus work (payload: work_id required — must be a READY work from search_public_reading_catalog, else AA_PROPOSAL_WORK_NOT_FOUND; optional text_key/order_index/reason); kind=note stores an agent-authored note draft (payload: body required, optional title); kind=suggestion stores a free-form suggestion (payload: body). Identical re-proposals return the same proposal_id; a recently denied identical proposal returns status DENIED. Confirmation state is never returned through this tool.",
   get_progress_delta: "Return the owner's study-ACTIVITY delta since a timestamp (must be within the last 90 days, else AA_ACTIVITY_SINCE_OUT_OF_RANGE — do not retry): review/skip totals, distinct items reviewed, newly scheduled items, active days (owner-local calendar), practice-channel mix, and the most-reviewed words with meanings (top_limit 1-20, default 10). Pure activity — never grades, accuracy, struggle bands, or the raw memory model; days are folded in the owner's timezone (one truth with the in-app heatmap).",
   create_review_handoff: "Mint a single-use first-party link that opens the owner's due-review session in the Reading Room («открой мне повторение»). No input. Refuses with AA_REVIEW_NOTHING_SCHEDULED (do not retry) only when the owner has no scheduled words at all; with zero due-now but scheduled words the link still works — the Room honestly offers ahead-of-schedule training. The owner clicks the link; answers are recorded first-party by LinguistPro and the agent never sees them.",
+  list_personal_texts: "List the owner's own synced personal texts (title, size, freshness) from the server replica — a CATALOG only, never text bodies, notes, grades or SRS state. The replica is Last-Write-Wins from the owner's devices (authority OWNER_DEVICE_CANONICAL): it can lag the device and may contain fewer texts than exist locally. Page with limit (1-100) + cursor. Typed refusals (do not retry): AA_PERSONAL_TEXTS_CONSENT_REQUIRED — the owner has not enabled text sync; AA_PERSONAL_TEXTS_RECONSENT_REQUIRED — the owner must re-confirm the updated sync consent card in the Reading Room; AA_PERSONAL_TEXTS_NOT_SYNCED — sync is on but no texts have reached the server yet (or all were deleted).",
 });
 
 const WRITE_TOOLS = Object.freeze(new Set(["create_reading_handoff", "create_review_handoff", "propose_action"]));

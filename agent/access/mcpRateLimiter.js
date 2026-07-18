@@ -21,6 +21,8 @@ const TOOL_LIMITS = Object.freeze({
   get_progress_delta: Object.freeze({ minute: 6, day: 120 }),
   // Review handoff mints a DB token — same tight budget as the corpus handoff.
   create_review_handoff: Object.freeze({ minute: 6, day: 60 }),
+  // S1: каталог из sidecar-меты (дёшев; числа канона BRIDGE_RECON §6).
+  list_personal_texts: Object.freeze({ minute: 6, day: 120 }),
 });
 const MINUTE = 60_000;
 const DAY = 86_400_000;
