@@ -119,7 +119,7 @@ async function login() {
 
     // личный путь: consent-recheck на КАЖДЫЙ ход (revoke между explain и followup → 403)
     for (const k of ["cloud_texts", "agent_read_texts"]) {
-      const c = await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: k, granted: true, version: "v1" } });
+      const c = await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: k, granted: true, version: k === "cloud_texts" ? require("../../public/js/cloud-sync.js").CLOUD_TEXTS_CONSENT_VERSION : "v1" } });
       eq(c.status === 200, k + " grant failed");
     }
     const put = await api("POST", "/api/learner/artifacts/put", { cookie, csrf, body: {

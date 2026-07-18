@@ -169,7 +169,7 @@ function bundleFixture() {
       "no cloud_texts consent must be 403 CLOUD_TEXTS_CONSENT_REQUIRED, got " + noC1.status + "/" + (noC1.json && noC1.json.error));
 
     // cloud_texts ON + артефакт на сервере; agent_read_texts всё ещё OFF → 403 (свой код)
-    const c1 = await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: "cloud_texts", granted: true, version: "v1" } });
+    const c1 = await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: "cloud_texts", granted: true, version: require("../../public/js/cloud-sync.js").CLOUD_TEXTS_CONSENT_VERSION } });
     eq(c1.status === 200 && c1.json.ok, "cloud_texts grant failed");
     const put = await api("POST", "/api/learner/artifacts/put", { cookie, csrf, body: {
       artifact_key: TEXT_KEY, updated_at: "2026-07-01T00:00:00.000Z", payload: bundleFixture(),

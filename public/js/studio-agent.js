@@ -406,7 +406,7 @@
       return;
     }
     var consents = session.consents || {};
-    if (!(consents.cloud_texts && consents.cloud_texts.granted === true)) {
+    if (!(consents.cloud_texts && consents.cloud_texts.granted === true && String(consents.cloud_texts.version || "") === ((window.CloudSync && window.CloudSync.CLOUD_TEXTS_CONSENT_VERSION) || "v2"))) {   // P1: карта v2 — v1-грант ведёт в ☁ на re-consent
       setBody('');
       showActions(tt('studio.agent.needTexts', 'Сначала включите «Синхронизировать Мои тексты» в ☁ Зала.'),
         [{ label: tt('studio.agent.openRoomCloud', 'Открыть ☁ в Зале'), primary: true, onClick: openRoomCloud }, retryBtn(row)]);
@@ -1067,7 +1067,7 @@
       return;
     }
     var consents = session.consents || {};
-    if (!(consents.cloud_texts && consents.cloud_texts.granted === true)) {
+    if (!(consents.cloud_texts && consents.cloud_texts.granted === true && String(consents.cloud_texts.version || "") === ((window.CloudSync && window.CloudSync.CLOUD_TEXTS_CONSENT_VERSION) || "v2"))) {   // P1: карта v2 — v1-грант ведёт в ☁ на re-consent
       matBody('');
       matShowActions(tt('studio.agent.needTexts', 'Сначала включите «Синхронизировать Мои тексты» в ☁ Зала.'),
         [{ label: tt('studio.agent.openRoomCloud', 'Открыть ☁ в Зале'), primary: true, onClick: openRoomCloud },

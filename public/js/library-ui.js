@@ -2765,10 +2765,16 @@ async function _cloudRender() {
   els.loginBox.hidden = true; els.panel.hidden = false;
   _cloudStatus('✓ ' + tt('room.cloud.connected', 'Подключено'), 'ok');
   try { await _cloudRenderPush(); } catch (_) {}   // CLG-P4.5 — push-блок (честные состояния)
-  // CLG-P5.5 — consent-переключатель класса B отражает СЕРВЕРНУЮ истину (consent_records)
-  if (els.textsCb) {
+  // Consent-переключатель класса C отражает СЕРВЕРНУЮ истину (consent_records).
+  // P1: галочка «включена» только при АКТУАЛЬНОЙ версии карты; грант старой версии —
+  // снятая галочка + амбер re-consent-строка (не переносится молча — решение владельца).
+  const _ctVer = (window.CloudSync && window.CloudSync.CLOUD_TEXTS_CONSENT_VERSION) || 'v2';
+  {
     const c = (session.consents || {}).cloud_texts;
-    els.textsCb.checked = !!(c && c.granted === true);
+    const current = !!(c && c.granted === true && String(c.version || '') === _ctVer);
+    if (els.textsCb) els.textsCb.checked = current;
+    const rc = $('roomCloudReconsent');
+    if (rc) rc.hidden = !(c && c.granted === true && !current);
   }
   const lines = [];
   const hintRow = (hintKey, html) => '<span data-cloud-hint="' + hintKey + '">' + html + '<span class="room-cloud-i" aria-hidden="true">ⓘ</span></span>';
@@ -2781,7 +2787,8 @@ async function _cloudRender() {
     lines.push(hintRow('events', tt('room.cloud.counts', 'События памяти') + ': ' + tt('room.cloud.countLocal', 'на устройстве') + ' <b>' + localN + '</b> · ' + tt('room.cloud.countCloud', 'в облаке') + ' <b>' + cloudN + '</b>'));
     // P5.5 — «Мои тексты»: сверяемые числа на устройстве/в облаке (или честное «выключено»)
     try {
-      const consented = !!((session.consents || {}).cloud_texts && session.consents.cloud_texts.granted === true);
+      const _ct = (session.consents || {}).cloud_texts;
+      const consented = !!(_ct && _ct.granted === true && String(_ct.version || '') === _ctVer);
       if (consented) {
         const ownTexts = await localDb.listOwnTextsForSync();
         let cloudT = '—';
@@ -2830,6 +2837,8 @@ async function _cloudRunSync(auto) {
     if (a && a.ok && !a.skipped && (a.uploaded || a.downloaded || a.updated)) {
       line += ' · 📄 ↑' + (a.uploaded || 0) + ' ↓' + ((a.downloaded || 0) + (a.updated || 0));
     }
+    // P1 — синк текстов приостановлен до re-consent: видимый маркер (амбер-строка в модале)
+    if (a && a.skipped === 'reconsent_required') line += ' · 📄⏸';
     // P0 — приближение к капу артефакта НЕ молчит (урок §3.4: тикающий отказ был невидим)
     if (a && a.nearCap) line += ' · 📄⚠' + a.nearCap;
     // провал state-синка виден так же, как провалы текстов
@@ -2920,7 +2929,8 @@ function roomCloudInit() {
     try {
       const r = await fetch('/api/auth/consent', { method: 'POST', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
-        body: JSON.stringify({ key: 'cloud_texts', granted, version: 'v1' }) });
+        // P1: версия карты — из константы CloudSync (единственный источник, никаких литералов)
+        body: JSON.stringify({ key: 'cloud_texts', granted, version: (window.CloudSync && window.CloudSync.CLOUD_TEXTS_CONSENT_VERSION) || 'v2' }) });
       if (!r.ok) { els.textsCb.checked = !granted; _cloudStatus('✗ ' + tt('room.cloud.err', 'Ошибка синхронизации'), 'err'); return; }
       if (granted) _cloudRunSync(false);
     } catch (_) { els.textsCb.checked = !granted; }

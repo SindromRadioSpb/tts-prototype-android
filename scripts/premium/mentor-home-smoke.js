@@ -113,7 +113,7 @@ function bundleFixture() {
 
     // ── сид: consents + артефакт + D1-дисбаланс due-слова ИЗ предложения ──────
     const { cookie, csrf } = await login();
-    await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: "cloud_texts", granted: true, version: "v1" } });
+    await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: "cloud_texts", granted: true, version: require("../../public/js/cloud-sync.js").CLOUD_TEXTS_CONSENT_VERSION } });
     await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: "agent_read_texts", granted: true, version: "v1" } });
     const put = await api("POST", "/api/learner/artifacts/put", { cookie, csrf, body: {
       artifact_key: TEXT_KEY, updated_at: "2026-07-01T00:00:00.000Z", payload: bundleFixture(),

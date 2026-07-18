@@ -174,7 +174,7 @@ const corpusBody = (over) => ({ scope_level: "sentence_only", source: "corpus", 
 
     // ── revoke agent_read_texts: личная строка tombstone, корпусная нетронута ────
     for (const k of ["cloud_texts", "agent_read_texts"]) {
-      const c = await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: k, granted: true, version: "v1" } });
+      const c = await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: k, granted: true, version: k === "cloud_texts" ? require("../../public/js/cloud-sync.js").CLOUD_TEXTS_CONSENT_VERSION : "v1" } });
       eq(c.status === 200, k + " grant failed");
     }
     const put = await api("POST", "/api/learner/artifacts/put", { cookie, csrf, body: {

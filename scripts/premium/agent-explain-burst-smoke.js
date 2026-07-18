@@ -99,7 +99,7 @@ const callCount = (log) => { try { return fs.readFileSync(log, "utf8").trim().sp
     if (!(await ready(srv))) { console.error("server failed (or port orphan :" + PORT + ")\n" + srv.logs.join("").slice(-2000)); process.exit(1); }
     const { cookie, csrf } = await login();
     for (const k of ["cloud_texts", "agent_read_texts"]) {
-      const r = await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: k, granted: true, version: "v1" } });
+      const r = await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: k, granted: true, version: k === "cloud_texts" ? require("../../public/js/cloud-sync.js").CLOUD_TEXTS_CONSENT_VERSION : "v1" } });
       eq(r.status === 200 && r.json.ok, "consent " + k + " failed");
     }
     for (const [k, s] of [[KEY_OK, SENT_OK], [KEY_FAIL, SENT_FAIL]]) {

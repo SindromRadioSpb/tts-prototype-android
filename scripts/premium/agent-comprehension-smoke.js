@@ -112,7 +112,7 @@ async function login() {
     eq(pNoC.status === 403 && pNoC.json.error === "CLOUD_TEXTS_CONSENT_REQUIRED",
       "personal comprehension without consent must be 403 (double-consent gate), got " + pNoC.status + "/" + (pNoC.json && pNoC.json.error));
     for (const k of ["cloud_texts", "agent_read_texts"]) {
-      const c = await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: k, granted: true, version: "v1" } });
+      const c = await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: k, granted: true, version: k === "cloud_texts" ? require("../../public/js/cloud-sync.js").CLOUD_TEXTS_CONSENT_VERSION : "v1" } });
       eq(c.status === 200, k + " grant failed");
     }
     const ownRows = [];

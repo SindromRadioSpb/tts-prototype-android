@@ -39,7 +39,10 @@ async function validate(userId, raw) {
   }
   if (s.source_kind === "PERSONAL_TEXT_ANCHOR") {
     const db=getDb();if(!db)throw new Error("SOURCE_UNAVAILABLE");
-    for(const key of ["cloud_texts","agent_read_texts"]){const grant=await get(db,`SELECT granted FROM consent_records WHERE user_id=? AND consent_key=? ORDER BY created_at DESC,id DESC LIMIT 1`,[userId,key]);if(!grant||Number(grant.granted)!==1)throw new Error("SOURCE_REVOKED");}
+    // P1 gate-sweep (критика F2-7): cloud_texts — через единую истину learnerArtifactsRepo.hasConsent
+    // (any-version: это иерархический пре-чек «данные есть на сервере»; карта ЧТЕНИЯ = agent_read_texts).
+    if(!(await require("../../db/learnerArtifactsRepo").hasConsent(userId)))throw new Error("SOURCE_REVOKED");
+    {const grant=await get(db,`SELECT granted FROM consent_records WHERE user_id=? AND consent_key=? ORDER BY created_at DESC,id DESC LIMIT 1`,[userId,"agent_read_texts"]);if(!grant||Number(grant.granted)!==1)throw new Error("SOURCE_REVOKED");}
     const a=s.anchor||{};const row=await agentSentenceRepo.getSentenceContext(userId,{text_key:a.text_key,order_index:a.order_index,row_id:a.row_id});
     if(!row)throw new Error("SOURCE_REVOKED");
     const d=C.digest(userId,{text_key:a.text_key,order_index:a.order_index,row_id:a.row_id||null,he:row.he||row.sentence_he||"",ru:row.ru||row.sentence_ru||""});

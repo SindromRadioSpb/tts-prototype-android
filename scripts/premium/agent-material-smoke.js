@@ -174,7 +174,7 @@ function worksFixture() {
     // ── ТРОЙНАЯ consent-лестница, каждый код раздельно ───────────────────────
     const l1 = await api("POST", "/api/agent/study-summary", { cookie, csrf, body: { text_key: TEXT_KEY } });
     eq(l1.status === 403 && l1.json.error === "CLOUD_TEXTS_CONSENT_REQUIRED", "step1 must be 403 CLOUD_TEXTS, got " + (l1.json && l1.json.error));
-    await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: "cloud_texts", granted: true, version: "v1" } });
+    await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: "cloud_texts", granted: true, version: require("../../public/js/cloud-sync.js").CLOUD_TEXTS_CONSENT_VERSION } });
     const put = await api("POST", "/api/learner/artifacts/put", { cookie, csrf, body: {
       artifact_key: TEXT_KEY, updated_at: "2026-07-01T00:00:00.000Z", payload: bundleFixture(),
     } });
@@ -326,7 +326,7 @@ function worksFixture() {
     if (!(await ready(srv2))) { console.error("server#2 failed\n" + srv2.logs.join("").slice(-2000)); process.exit(1); }
     const { cookie, csrf } = await login();
     for (const k of ["cloud_texts", "agent_read_texts", "agent_read_texts_digest"]) {
-      await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: k, granted: true, version: "v1" } });
+      await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: k, granted: true, version: k === "cloud_texts" ? require("../../public/js/cloud-sync.js").CLOUD_TEXTS_CONSENT_VERSION : "v1" } });
     }
     await api("POST", "/api/learner/artifacts/put", { cookie, csrf, body: {
       artifact_key: TEXT_KEY, updated_at: "2026-07-01T00:00:00.000Z", payload: bundleFixture(),

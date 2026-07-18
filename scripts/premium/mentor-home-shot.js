@@ -58,7 +58,7 @@ async function seed() {
   const sc = li.res.headers.getSetCookie ? li.res.headers.getSetCookie() : [li.res.headers.get("set-cookie")];
   const cookie = String((sc || []).find((x) => String(x).startsWith("lp_session=")) || "").split(";")[0];
   const csrf = li.json.csrf;
-  await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: "cloud_texts", granted: true, version: "v1" } });
+  await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: "cloud_texts", granted: true, version: require("../../public/js/cloud-sync.js").CLOUD_TEXTS_CONSENT_VERSION } });
   await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: "agent_read_texts", granted: true, version: "v1" } });
   await api("POST", "/api/learner/artifacts/put", { cookie, csrf, body: {
     artifact_key: TEXT_KEY, updated_at: "2026-07-01T00:00:00.000Z",

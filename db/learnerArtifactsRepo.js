@@ -15,6 +15,13 @@
 
 const { getDb } = require("./sqlite");
 
+// P1 (§6.7) — версия consent-карты cloud_texts: ЕДИНСТВЕННЫЙ источник = клиентский UMD-модуль
+// (config-string-match-by-construction; вторая копия строки запрещена). Bump = новая карта =
+// re-consent: sync-поверхность (list/get/put) требует ТОЧНОГО равенства версии; delete/restore
+// и иерархические пре-чеки агент-путей остаются any-granted (right-to-delete и уже-согласованные
+// ОТДЕЛЬНЫМИ ключами agent_read_texts* чтения не запираются за новой картой синка).
+const REQUIRED_CONSENT_VERSION = require("../public/js/cloud-sync.js").CLOUD_TEXTS_CONSENT_VERSION;
+
 const KIND = "text_bundle";
 const STATE_KIND = "state_bundle";
 const KINDS = new Set([KIND, STATE_KIND]);
@@ -41,12 +48,26 @@ function dbRun(db, sql, params = []) {
   return new Promise((resolve, reject) => db.run(sql, params, function (e) { (e ? reject(e) : resolve(this)); }));
 }
 
+// Any-version грант (иерархические пре-чеки агент-путей + delete/restore). Семантика НЕ менялась.
 async function hasConsent(userId) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   const row = await dbGet(db,
     `SELECT granted FROM consent_records WHERE user_id = ? AND consent_key = ?
       ORDER BY created_at DESC, id DESC LIMIT 1`, [userId, CONSENT_KEY]);
   return !!(row && Number(row.granted) === 1);
+}
+
+// P1 — sync-поверхность (list/get/put): granted И точная версия карты. Возвращает
+// {ok, reconsent} — 403-ответ различает «нет согласия» и «карта обновлена, подтвердите заново».
+async function hasConsentVersioned(userId) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const row = await dbGet(db,
+    `SELECT granted, consent_version FROM consent_records WHERE user_id = ? AND consent_key = ?
+      ORDER BY created_at DESC, id DESC LIMIT 1`, [userId, CONSENT_KEY]);
+  const granted = !!(row && Number(row.granted) === 1);
+  if (!granted) return { ok: false, reconsent: false };
+  const ok = String(row.consent_version || "") === REQUIRED_CONSENT_VERSION;
+  return { ok, reconsent: !ok };
 }
 
 async function list(userId) {
@@ -227,4 +248,4 @@ async function reconcileRevokedPurges() {
   return { users, artifacts };
 }
 
-module.exports = { hasConsent, list, get, getMeta, put, deleteArtifact, restoreArtifact, listTombstones, purgeAllForUser, pruneTombstones, markConsentPurged, reconcileRevokedPurges, CONSENT_KEY, KIND, STATE_KIND, KINDS, MAX_PAYLOAD_BYTES, MAX_STATE_PAYLOAD_BYTES };
+module.exports = { hasConsent, hasConsentVersioned, list, get, getMeta, put, deleteArtifact, restoreArtifact, listTombstones, purgeAllForUser, pruneTombstones, markConsentPurged, reconcileRevokedPurges, CONSENT_KEY, REQUIRED_CONSENT_VERSION, KIND, STATE_KIND, KINDS, MAX_PAYLOAD_BYTES, MAX_STATE_PAYLOAD_BYTES };

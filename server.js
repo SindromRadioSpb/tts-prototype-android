@@ -3319,16 +3319,31 @@ const _opsSweepInterval = setInterval(opsSweepTick, 3600 * 1000);
 if (_opsSweepInterval.unref) _opsSweepInterval.unref();
 
 // ============================================================================
-// CLG-P5.5 — Artifact Sync, класс B (AI_MENTOR_RECON §5/§9): OPAQUE per-text
-// bundle store под ЯВНЫМ consent'ом (consent_records 'cloud_texts'). Server-side
-// enforcement на КАЖДОМ запросе — выключенный переключатель означает 403 даже
-// для чтения (класс B живёт в облаке только пока согласие активно).
+// CLG-P5.5 — Artifact Sync, класс C (постановление 2026-07-18, BRIDGE_RECON §2.5:
+// тела личных текстов = класс C; прежняя маркировка «B» — дрейф ярлыка): OPAQUE
+// bundle store под ЯВНЫМ consent'ом (consent_records 'cloud_texts', карта v2).
+// Server-side enforcement на КАЖДОМ запросе — выключенный переключатель означает
+// 403 даже для чтения; отзыв = немедленный purge (P2 §6.8), не freeze.
 // ============================================================================
 const learnerArtifactsRepo = require("./db/learnerArtifactsRepo");
 // 240/мин: fresh-device restore = 80+ GET подряд (83 текста у владельца) — 120 было впритык.
 const rlLearnerArtifacts = makeRateLimiter({ windowMs: 60_000, max: 240, name: "learner-artifacts" });
 
+// P1 (§6.7) — sync-поверхность требует ТОЧНУЮ версию consent-карты (грант старой карты не
+// переносится молча — решение владельца); 403 различает «нет согласия» и «подтвердите новую
+// карту» (reconsent:true → клиент показывает амбер-строку, а не немую ошибку).
 async function requireArtifactConsent(req, res, auth) {
+  let v = { ok: false, reconsent: false };
+  try { v = await learnerArtifactsRepo.hasConsentVersioned(auth.user.id); } catch (_) {}
+  if (!v.ok) {
+    res.status(403).json({ ok: false, error: "CONSENT_REQUIRED", key: learnerArtifactsRepo.CONSENT_KEY,
+      ...(v.reconsent ? { reconsent: true, required_version: learnerArtifactsRepo.REQUIRED_CONSENT_VERSION } : {}) });
+    return false;
+  }
+  return true;
+}
+// Delete/restore — any-version (right-to-delete не запирается за новым согласием, F2-10).
+async function requireArtifactConsentAnyVersion(req, res, auth) {
   let ok = false;
   try { ok = await learnerArtifactsRepo.hasConsent(auth.user.id); } catch (_) {}
   if (!ok) { res.status(403).json({ ok: false, error: "CONSENT_REQUIRED", key: learnerArtifactsRepo.CONSENT_KEY }); return false; }
@@ -3398,7 +3413,7 @@ app.post(LEARNER_ARTIFACTS_PUT_PATH, rlLearnerArtifacts,
 app.post("/api/learner/artifacts/delete", rlLearnerArtifacts, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   if (!requireCsrf(req, res, auth)) return;
-  if (!(await requireArtifactConsent(req, res, auth))) return;
+  if (!(await requireArtifactConsentAnyVersion(req, res, auth))) return;
   try {
     const body = req.body || {};
     const out = body.restore === true

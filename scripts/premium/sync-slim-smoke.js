@@ -148,10 +148,24 @@ async function ready(srv, ms = 30000) {
       await ldb.dbRun(`INSERT OR IGNORE INTO anki_word_exports (note_id, deck_name, body_hash, exported_at, updated_at) VALUES ('nn-1','Deck','bh',?,?)`, [A.T0, A.T0]);
       await ldb.dbRun(`INSERT INTO study_day (day, recalls, available, updated_at) VALUES ('2026-07-01', 5, 8, ?) ON CONFLICT(day) DO NOTHING`, [A.T0]);
       await ldb.dbRun(`INSERT OR REPLACE INTO roots (root_3letter, gloss, my_note_id) VALUES ('שלמ','целость','nn-1')`);
-      // consent (v1 достаточно для P0; ужесточение до v2 — слайс P1)
-      await fetch("/api/auth/consent", { method: "POST", credentials: "same-origin",
-        headers: { "Content-Type": "application/json", "X-LP-CSRF": localStorage.getItem("cloud.csrf") || "" },
-        body: JSON.stringify({ key: "cloud_texts", granted: true, version: "v1" }) });
+      // P1 re-consent: грант СТАРОЙ карты (v1) → синк честно приостановлен (skip + server 403
+      // с reconsent:true), затем грант актуальной версии → синк работает. Retry-safe: если
+      // повтор act'а застал уже-актуальный грант — v1-ветка честно помечается n/a.
+      const csrf0 = localStorage.getItem("cloud.csrf") || "";
+      const me0 = await CS.me();
+      const cv0 = me0 && me0.consents && me0.consents.cloud_texts;
+      if (!(cv0 && cv0.granted === true && cv0.version === CS.CLOUD_TEXTS_CONSENT_VERSION)) {
+        await fetch("/api/auth/consent", { method: "POST", credentials: "same-origin",
+          headers: { "Content-Type": "application/json", "X-LP-CSRF": csrf0 },
+          body: JSON.stringify({ key: "cloud_texts", granted: true, version: "v1" }) });
+        const sOld = await CS.fullSync(ldb);
+        out.v1Skipped = sOld.artifacts && sOld.artifacts.skipped;
+        const l403 = await fetch("/api/learner/artifacts", { credentials: "same-origin" });
+        out.v1List = { status: l403.status, body: await l403.json().catch(() => ({})) };
+        await fetch("/api/auth/consent", { method: "POST", credentials: "same-origin",
+          headers: { "Content-Type": "application/json", "X-LP-CSRF": csrf0 },
+          body: JSON.stringify({ key: "cloud_texts", granted: true, version: CS.CLOUD_TEXTS_CONSENT_VERSION }) });
+      } else { out.v1Skipped = "n/a-retry"; out.v1List = "n/a-retry"; }
       const s1 = await CS.fullSync(ldb);
       out.art1 = s1.artifacts;
       const list = await fetch("/api/learner/artifacts", { credentials: "same-origin" }).then((r) => r.json());
@@ -191,6 +205,8 @@ async function ready(srv, ms = 30000) {
       return out;
     }, ARGS);
     eq(aRes.login, "A: login failed");
+    eq(aRes.v1Skipped === "reconsent_required" || aRes.v1Skipped === "n/a-retry", "P1: v1-грант → синк приостановлен (reconsent_required), got " + aRes.v1Skipped);
+    eq(aRes.v1List === "n/a-retry" || (aRes.v1List.status === 403 && aRes.v1List.body && aRes.v1List.body.reconsent === true), "P1: сервер 403 с reconsent:true под v1-грантом: " + JSON.stringify(aRes.v1List));
     eq(JSON.stringify(aRes.serverKeys) === JSON.stringify(["sl-t1", "sl-t2"]), "A: на сервере должны быть ровно sl-t1,sl-t2 (корпус НЕ едет): " + JSON.stringify(aRes.serverKeys));
     eq(!!aRes.serverState && !!aRes.serverState.updated_at, "A: state_bundle должен существовать в list.state");
     eq(aRes.t1.slimFlag === true, "A: артефакт обязан быть slim (manifest.slim_bundle)");
@@ -429,11 +445,11 @@ async function ready(srv, ms = 30000) {
       const csrf = localStorage.getItem("cloud.csrf") || "";
       const rv = await fetch("/api/auth/consent", { method: "POST", credentials: "same-origin",
         headers: { "Content-Type": "application/json", "X-LP-CSRF": csrf },
-        body: JSON.stringify({ key: "cloud_texts", granted: false, version: "v1" }) }).then((r) => r.json());
+        body: JSON.stringify({ key: "cloud_texts", granted: false, version: CS.CLOUD_TEXTS_CONSENT_VERSION }) }).then((r) => r.json());
       const listAfterRevoke = await fetch("/api/learner/artifacts", { credentials: "same-origin" });
       const rg = await fetch("/api/auth/consent", { method: "POST", credentials: "same-origin",
         headers: { "Content-Type": "application/json", "X-LP-CSRF": csrf },
-        body: JSON.stringify({ key: "cloud_texts", granted: true, version: "v1" }) }).then((r) => r.json());
+        body: JSON.stringify({ key: "cloud_texts", granted: true, version: CS.CLOUD_TEXTS_CONSENT_VERSION }) }).then((r) => r.json());
       const s = await CS.fullSync(ldb);
       const list = await fetch("/api/learner/artifacts", { credentials: "same-origin" }).then((r) => r.json());
       return {
@@ -458,7 +474,7 @@ async function ready(srv, ms = 30000) {
     await stop(srv.c);
     try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {}
   }
-  const total = 45;
+  const total = 47;
   if (failures.length) {
     console.error(`smoke:sync-slim FAIL (${total - failures.length}/${total})`);
     for (const f of failures) console.error("  ✗ " + f);

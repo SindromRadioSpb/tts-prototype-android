@@ -106,7 +106,8 @@ async function ready(srv, ms = 30000) {
       } else { out.noConsentSkip = "n/a-retry"; out.noConsent403 = "n/a-retry"; }
       const cs = await fetch("/api/auth/consent", { method: "POST", credentials: "same-origin",
         headers: { "Content-Type": "application/json", "X-LP-CSRF": localStorage.getItem("cloud.csrf") || "" },
-        body: JSON.stringify({ key: "cloud_texts", granted: true, version: "v1" }) }).then((r) => r.json());
+        // P1: версия карты — из константы CloudSync (v1-грант синк честно приостанавливает)
+        body: JSON.stringify({ key: "cloud_texts", granted: true, version: CS.CLOUD_TEXTS_CONSENT_VERSION }) }).then((r) => r.json());
       out.consent = !!(cs && cs.ok);
       const s1 = await CS.fullSync(ldb);
       out.art1 = s1.artifacts;

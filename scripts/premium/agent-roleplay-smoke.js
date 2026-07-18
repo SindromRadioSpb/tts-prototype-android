@@ -258,7 +258,7 @@ function scanDbForSentinel(dataDir, marker) {
     // ── personal: consent-лестница РАЗДЕЛЬНО + revoke-каскад + row_id + anchor-потеря ──
     const p1 = await api("POST", "/api/agent/roleplay/start", { cookie, csrf, body: { text_key: TEXT_KEY, order_index: 0 } });
     eq(p1.status === 403 && p1.json.error === "CLOUD_TEXTS_CONSENT_REQUIRED", "personal step1 must be 403 CLOUD_TEXTS, got " + (p1.json && p1.json.error));
-    await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: "cloud_texts", granted: true, version: "v1" } });
+    await api("POST", "/api/auth/consent", { cookie, csrf, body: { key: "cloud_texts", granted: true, version: require("../../public/js/cloud-sync.js").CLOUD_TEXTS_CONSENT_VERSION } });
     const put = await api("POST", "/api/learner/artifacts/put", { cookie, csrf, body: {
       artifact_key: TEXT_KEY, updated_at: "2026-07-01T00:00:00.000Z", payload: bundleFixture(),
     } });

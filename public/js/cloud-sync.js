@@ -211,6 +211,10 @@
   // Откат без редеплоя: sync_state['sync_slim_disabled']='1' → старое поведение (fat, без state).
   var STATE_KEY = "__state__", STATE_KIND = "state_bundle";
   var STATE_UP_MIN_MS = 10 * 60 * 1000;   // троттлинг авто-UP state (§6.2; ручной синк — сразу)
+  // P1 (§2/§6.7) — ЕДИНСТВЕННЫЙ источник версии consent-карты cloud_texts: сервер require'ит
+  // эту же константу (config-string-match-by-construction). Bump версии = новая карта =
+  // обязательный re-consent (грант старой версии НЕ переносится молча — решение владельца).
+  var CLOUD_TEXTS_CONSENT_VERSION = "v2";
   async function syncArtifacts(ldb, session, opts) {
     opts = opts || {};
     var consents = (session && session.consents) || {};
@@ -219,6 +223,25 @@
     }
     if (typeof ldb.listOwnTextsForSync !== "function" || typeof ldb.exportBundle !== "function") {
       return { ok: true, skipped: "no_ldb_support" };
+    }
+    // P1 — грант СТАРОЙ версии карты: синк честно приостановлен до re-consent (сервер и сам
+    // 403-ит list/get/put), но delete-интенты дренируются — right-to-delete работает под
+    // любой версией (§6.7). ☁-модал показывает амбер-строку re-consent.
+    if (String(consents.cloud_texts.version || "") !== CLOUD_TEXTS_CONSENT_VERSION) {
+      if (typeof ldb.listArtifactIntents === "function") {
+        try {
+          var vIntents = await ldb.listArtifactIntents();
+          for (var vi = 0; vi < vIntents.length; vi++) {
+            var vit = vIntents[vi];
+            var vres = await jfetch("POST", "/api/learner/artifacts/delete",
+              vit.op === "undelete"
+                ? { artifact_key: vit.artifact_key, restore: true }
+                : { artifact_key: vit.artifact_key, deleted_at: vit.deleted_at || undefined });
+            if (vres.status === 200 || vres.status === 400) await ldb.removeArtifactIntent(vit.id);
+          }
+        } catch (_) {}
+      }
+      return { ok: true, skipped: "reconsent_required" };
     }
     var slim = typeof ldb.exportStateBundle === "function";
     try { if ((await ldb.getSyncState("sync_slim_disabled")) === "1") slim = false; } catch (_) {}
@@ -514,6 +537,7 @@
     syncArtifacts: syncArtifacts,
     stripMeta: stripMeta,
     CONTENT_META_KEYS: CONTENT_META_KEYS,
+    CLOUD_TEXTS_CONSENT_VERSION: CLOUD_TEXTS_CONSENT_VERSION,
     KEYS: { UP_CURSOR: UP_CURSOR, DOWN_CURSOR: DOWN_CURSOR, CUTOVER_OK: CUTOVER_OK, LAST_SYNC: LAST_SYNC },
   };
 });
