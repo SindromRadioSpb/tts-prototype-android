@@ -148,5 +148,13 @@ mode:'replace' в importBundle: DELETE существующего текста �
 ### 6.10 Оракул и dry-run (F1-8, F1-11)
 smoke:sync-slim: сравнение slim-restored БД против **ИСХОДНОЙ фикстуры** (raw-SQL канонические множества), не только A-vs-B; + merge-сцены (правка body на A → B; occurrence-only add; полка; override; study_day MAX; Undo-vs-delete; DELETED_OLDER/NEWER; roundtrip-инвариантность updated_at). Dry-run масштаба — `scripts/premium/sync-slim-dryrun.js` на `Library/test-enriched.zip` (80 текстов / ~9K заметок): гистограмма slim-размеров, размер state, счётные потери. Порог 200 КБ/текст утверждается по dry-run, не по вере.
 
+### 6.10a РЕЗУЛЬТАТЫ (2026-07-18, все три слайса SHIPPED prod)
+
+Коммиты: P0 436fbb1 (v3.11.212) → P2 77e9550 (v3.11.213) → P1 170230e (v3.11.214). Гейты: `smoke:sync-slim` 47/47 (новый) · artifact-sync 11/11 · cloud-sync 32/32 · api-smoke · весь agent-набор перепрогнан после v2-гейта (explain 43/43, material 51/51, corpus 27/27, burst 19/19, followup 18/18, comprehension 20/20, mentor-home 25/25, review-session 24/24, telegram-cloze 21/21, studio-agent). Dry-run (test-enriched, 79 текстов/9K заметок): slim p50=149КБ p90=215КБ max=877КБ — все ≤11% капа.
+
+**Прод-верифи (19:0x–19:2x UTC):** мигр. 048 применена; устройство владельца успело прогнать slim-миграцию ЧАСТИЧНО в окне между деплоями P0 и P1 (под v1): `learner_artifacts` 611,2 МБ → **230 МБ** (83 text_bundle, из них 36 ещё fat — flag `slim_migrated` не встал, дожмутся после re-consent; + `state_bundle` 2,1 МБ). `VACUUM`: app.db **649 → 259 МБ**. Docker-чистка старых коммит-образов (12×943МБ) + build-cache: диск прод-хоста **94% → 64%** (было 83% на замере — выросло из-за деплой-образов).
+
+**Ожидает владельца:** (1) re-consent v2 в ☁-модале Зала (галочка снята, амбер-строка; до подтверждения синк текстов честно приостановлен — 403/📄⏸, review_log-синк и mentor-пути работают) на обоих устройствах → авто-дожим 36 fat-артефактов (~230 → ~15 МБ); (2) финальный VACUUM + df; (3) live-verify delete-пропагации (удаление в Студии → исчезновение на втором устройстве после синков обеих сторон).
+
 ### 6.11 Порядок деплоя (F2-6)
 **P0 → P2 → P1.** Consent-копия v2 обещает «отзыв = немедленное удаление» — она деплоится ПОСЛЕ существования delete-семантики (P2), иначе P1 сам становится нечестным consent'ом. rollbackImportedTexts НЕ энкьюит delete-интенты (облако = last-known-good при откате миграции; F2-17). Wipe — не энкьюит (§0.3).
