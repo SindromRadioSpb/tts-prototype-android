@@ -41,6 +41,14 @@ function dueDay(due) {
   const s = String(due || "");
   return /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : null;
 }
+// Truncate to at most maxBytes UTF-8 bytes on a char boundary. The output
+// validators cap by BYTES while Hebrew/Cyrillic are multi-byte, so char-based
+// slicing can overshoot and trip OUTPUT_SCHEMA_INVALID.
+function byteSlice(value, maxBytes) {
+  let s = String(value == null ? "" : value);
+  while (Buffer.byteLength(s, "utf8") > maxBytes) s = s.slice(0, -1);
+  return s;
+}
 // Opaque offset cursor for due-item pagination. No item_key leaks into it.
 const DUE_SCAN_MAX = 500;
 function encodeDueCursor(offset) { return Buffer.from(`o${offset}`, "utf8").toString("base64url"); }
@@ -149,12 +157,12 @@ function createProductionHandlers(options = {}) {
     const page = all.slice(offset, offset + limit);
     const items = [];
     for (const row of page) {
-      let display = String(row.item_key || "");
+      let display = byteSlice(row.item_key, 64);
       let gloss = null;
-      try { display = String(await keyingService.displayForItemKey(row.item_key)).slice(0, 64) || display.slice(0, 64); } catch (_) {}
-      try { const g = await keyingService.glossForItemKey(row.item_key); gloss = g && g.gloss ? String(g.gloss).slice(0, 120) : null; } catch (_) { gloss = null; }
+      try { const d = await keyingService.displayForItemKey(row.item_key); if (d) display = byteSlice(d, 64); } catch (_) {}
+      try { const g = await keyingService.glossForItemKey(row.item_key); gloss = g && g.gloss ? byteSlice(g.gloss, 120) : null; } catch (_) { gloss = null; }
       const day = dueDay(row.due) || clock.iso.slice(0, 10);
-      items.push(Object.freeze({ display: display.slice(0, 64) || "?", gloss, struggle: struggleBand(row.lapses), due_day: day, content_available: gloss !== null }));
+      items.push(Object.freeze({ display: display || "?", gloss, struggle: struggleBand(row.lapses), due_day: day, content_available: gloss !== null }));
     }
     const nextOffset = offset + page.length;
     return Object.freeze({
@@ -186,12 +194,12 @@ function createProductionHandlers(options = {}) {
     if (kind === "draft_retell") {
       if (Array.isArray(body.lines)) {
         lines = body.lines.slice(0, 8)
-          .map((l) => ({ he: String((l && l.he) || "").slice(0, 500), ru: (l && l.ru != null) ? String(l.ru).slice(0, 500) : null }))
+          .map((l) => ({ he: byteSlice((l && l.he) || "", 500), ru: (l && l.ru != null) ? byteSlice(l.ru, 500) : null }))
           .filter((l) => l.he);
       }
       if (!lines || !lines.length) lines = null;
     } else {
-      text = typeof body.text === "string" ? body.text.slice(0, 6000) : null;
+      text = typeof body.text === "string" ? byteSlice(body.text, 6000) : null;
     }
     return Object.freeze({ ...base, kind, purge_state: "AVAILABLE", language, text, lines: lines === null ? null : Object.freeze(lines.map((l) => Object.freeze(l))) });
   }

@@ -128,9 +128,11 @@ function exactOwnerParser() {
     sidecars(ctx.dir);
     const catalog = createPublicReadingCatalog({ baseDir: ctx.dir, catalogVersion: () => 7, cursorKey: Buffer.alloc(32, 7) });
     // AA3: light keying fixture (avoid loading the real 306MB lexicon in tests).
+    // Long multi-byte gloss (Cyrillic ≈2 bytes/char) to exercise byte-safe truncation.
+    const LONG_GLOSS = "значение ".repeat(30); // ~270 chars, ~500 bytes
     const keyingFixture = {
       displayForItemKey: async (k) => (k === "כתב#verb" ? "כָּתַב" : String(k)),
-      glossForItemKey: async (k) => (k === "כתב#verb" ? { gloss: "написал", expected: "כתב", decisive: true, strictSafe: true, alts: ["רשם"] } : null),
+      glossForItemKey: async (k) => (k === "כתב#verb" ? { gloss: LONG_GLOSS, expected: "כתב", decisive: true, strictSafe: true, alts: ["רשם"] } : null),
     };
     const persistenceFixture = async () => ({ access_lifetime: "PERSISTENT_WINDOW", window_expires_at: null });
     const handlers = createProductionHandlers({ learnerGraphRepo, agentRepo, oauthRepo, publicCatalog: catalog, keyingService: keyingFixture, connectionPersistence: persistenceFixture, now: () => NOW, principalAccessExpiresAt: () => EXPIRY });
@@ -159,7 +161,9 @@ function exactOwnerParser() {
     assert.strictEqual(di.schema_version, "aa.due_review_items.1.0.0");
     assert.strictEqual(di.due_total, 3); assert.strictEqual(di.next_cursor, null); // all 3 fit on one page
     const struggler = di.items.find((it) => it.display === "כָּתַב");
-    assert.ok(struggler && struggler.gloss === "написал" && struggler.struggle === "high" && struggler.content_available === true, JSON.stringify(di.items));
+    assert.ok(struggler && struggler.struggle === "high" && struggler.content_available === true, JSON.stringify(di.items));
+    // Byte-safe truncation: a long multi-byte gloss must be capped by BYTES, not chars.
+    assert.ok(struggler.gloss.startsWith("значение") && Buffer.byteLength(struggler.gloss, "utf8") <= 120, `gloss bytes: ${Buffer.byteLength(struggler.gloss, "utf8")}`);
     // Answer-key / raw-model fields must NEVER appear.
     for (const it of di.items) assert.deepStrictEqual(Object.keys(it).sort(), ["content_available", "display", "due_day", "gloss", "struggle"]);
     const leakStr = JSON.stringify(di);
