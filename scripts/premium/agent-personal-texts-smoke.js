@@ -235,6 +235,18 @@ async function expectCode(promise, code, label) {
     await ctx.run("UPDATE agent_text_grants SET revoked_at='2026-07-19T09:07:00.000Z' WHERE revoked_at IS NULL");
     assert.notStrictEqual((await grantsRepo.activeGrant("u1")).state, "ACTIVE", "живых грантов нет — ключ подавления снят"); checks++;
 
+    // Роут-предикат eligibility панельной выдачи — против РЕАЛЬНОЙ формы listConnectionsForUser
+    // (live-инцидент 2026-07-19: выдуманное поле granted_scopes = вечный NO_ELIGIBLE_CONNECTION).
+    await oauthRepo.createPendingConnection("u1", connInput("conn-d"), "2026-07-19T09:08:00.000Z");
+    await identity.recordConsent("u1", OC.consentKey("conn-d", SCOPE), true, "aa-consent-v2");
+    await identity.recordConsent("u1", OC.consentKey("conn-d", CSCOPE), true, "aa-consent-v2");
+    await oauthRepo.activateConnectionWithGrants("u1", "conn-d", [SCOPE, CSCOPE], "2026-07-19T09:09:00.000Z");
+    const lcs = await oauthRepo.listConnectionsForUser("u1");
+    const eligible = lcs.filter((c) => new Set(["ACTIVE", "SCOPE_REDUCED"]).has(c.status)
+      && (c.grants || []).some((g) => g.scope === CSCOPE && g.status === "ACTIVE"));
+    assert.ok(eligible.length >= 1, "eligibility-предикат роута находит подключение по РЕАЛЬНОЙ форме (grants[].scope): " + JSON.stringify(lcs.map((c) => Object.keys(c))));
+    assert.ok(!Object.prototype.hasOwnProperty.call(lcs[0], "granted_scopes"), "поле granted_scopes в форме repo НЕ существует — предикат обязан читать grants[]"); checks++;
+
     console.log(JSON.stringify({ ok: true, checks }));
   } catch (e) {
     console.error("smoke:agent-personal-texts FAIL:", e && e.stack || e);

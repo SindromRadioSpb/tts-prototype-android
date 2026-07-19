@@ -1844,8 +1844,10 @@ app.post("/api/agent-access/text-grants", requireAgentAccessBoundary, async (req
     if (!connectionId) {
       // Единственное живое подключение с content-scope — типичный single-owner случай.
       const conns = await agentAccessOAuthRepo.listConnectionsForUser(auth.user.id);
+      // Форма listConnectionsForUser: grants[{scope,status}] — НЕ granted_scopes (live-инцидент
+      // 2026-07-19: выдумка поля = вечный NO_ELIGIBLE_CONNECTION; урок config-string-match).
       const eligible = (conns || []).filter((c) => new Set(["ACTIVE", "SCOPE_REDUCED"]).has(c.status)
-        && (c.granted_scopes || []).includes("personal.texts.content.read"));
+        && (c.grants || []).some((g) => g.scope === "personal.texts.content.read" && g.status === "ACTIVE"));
       if (eligible.length !== 1) return res.status(400).json({ ok: false, error: eligible.length ? "CONNECTION_AMBIGUOUS" : "NO_ELIGIBLE_CONNECTION" });
       connectionId = eligible[0].connection_id;
     }
