@@ -43,13 +43,16 @@ async function createChallenge(caps) {
   if (existing) return { created: false, challenge: existing };
   const id = rndId("ch_");
   const expiresAt = new Date(Date.now() + CHALLENGE_TTL_MS).toISOString();
-  // Этап 1 двухрежимности (мигр. 052): класс-C стимул (личный текст) при живом agent_text_grants
-  // помечается agent_exposed на mint'е — провенанс вместо подавления. Fail-closed к 1:
-  // неопределённость чека = помечаем (консервативная разметка ничего не блокирует).
+  // Провенанс класс-C стимула — по EXPOSURE-ЛЕДЖЕРУ (мигр. 053; заменил ковровую разметку
+  // «грант жив ⇒ помечено всё»): метка ставится, только если предложение-стимул входит в окно,
+  // РЕАЛЬНО прочитанное агентом за 30 дней. Грант-статус не при чём: residual-знание после
+  // отзыва — тоже экспозиция. Fail-closed к 1 при неопределённости чека (разметка не блокирует).
   let agentExposed = 0;
-  if (String(caps.stimulus_privacy_class || "") === "C") {
-    try { agentExposed = (await require("./agentTextGrantsRepo").activeGrant(caps.userId)).state === "ACTIVE" ? 1 : 0; }
-    catch (_) { agentExposed = 1; }
+  if (String(caps.stimulus_privacy_class || "") === "C" && caps.anchor_text_key != null && caps.anchor_order_index != null) {
+    try {
+      agentExposed = (await require("./agentTextExposureRepo").wasExposed(
+        caps.userId, caps.anchor_text_key, caps.anchor_order_index)) ? 1 : 0;
+    } catch (_) { agentExposed = 1; }
   }
   try {
     await dbRun(db,

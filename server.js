@@ -3374,7 +3374,9 @@ async function opsSweepTick() {
       const rc = await laRepo.reconcileRevokedPurges();
       // S1 — production-rebuild derived-меты (краш-окно put'а / пропуски backfill'а)
       const rm = await laRepo.reconcileArtifactMeta(200);
-      if (pr.pruned || rc.users || rm.rebuilt) console.log(`[ops-sweep] tombstones_pruned=${pr.pruned} revoked_purge_reconciled=${rc.users} (artifacts=${rc.artifacts}) meta_rebuilt=${rm.rebuilt}`);
+      // Exposure-леджер (мигр. 053): TTL-прюнинг метаданных прочитанных окон (заявлен в карте гранта)
+      const ex = await require("./db/agentTextExposureRepo").prune();
+      if (pr.pruned || rc.users || rm.rebuilt || ex.pruned) console.log(`[ops-sweep] tombstones_pruned=${pr.pruned} revoked_purge_reconciled=${rc.users} (artifacts=${rc.artifacts}) meta_rebuilt=${rm.rebuilt} exposures_pruned=${ex.pruned}`);
     } catch (e2) { console.error("[ops-sweep] artifacts-reconcile failed:", e2 && e2.message); }
   } catch (e) { console.error("[ops-sweep] failed:", e && e.message); }
 }

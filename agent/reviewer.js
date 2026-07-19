@@ -268,13 +268,15 @@ async function _grade(ctx, a) {
     if (inputMode) meta.input_mode = inputMode;
     if (chal.sense_id) meta.sense_id = String(chal.sense_id);
     meta.challenge_id = challengeId;
-    // Этап 1 двухрежимности (мигр. 052): класс-C задание, выданное ИЛИ отвеченное при живом
-    // agent_text_grants → провенанс agent_exposed в review_log (агент мог видеть стимул/ответ).
-    // OR-проверка на грейде закрывает «грант выдан между mint и ответом». Только РАЗМЕТКА —
+    // Провенанс класс-C (мигр. 052+053): mint-флаг ИЛИ exposure-леджер на момент ответа
+    // (OR закрывает «агент прочитал окно МЕЖДУ выдачей задания и ответом»). Метка означает
+    // «агент реально видел это предложение за 30 дней», не «грант был жив». Только РАЗМЕТКА —
     // грейд и расписание не меняются (будущее D1-взвешивание решается по данным).
     if (String(chal.stimulus_privacy_class || "") === "C") {
       let exposedNow = false;
-      try { exposedNow = (await require("../db/agentTextGrantsRepo").activeGrant(ctx.userId)).state === "ACTIVE"; } catch (_) { exposedNow = true; }
+      if (chal.anchor_text_key != null && chal.anchor_order_index != null) {
+        try { exposedNow = await require("../db/agentTextExposureRepo").wasExposed(ctx.userId, chal.anchor_text_key, chal.anchor_order_index); } catch (_) { exposedNow = true; }
+      }
       if (Number(chal.agent_exposed) === 1 || exposedNow) meta.agent_exposed = true;
     }
   }

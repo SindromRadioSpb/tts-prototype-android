@@ -204,13 +204,22 @@ async function expectCode(promise, code, label) {
     assert.strictEqual(gwin.ok, true, "гигант-окно обязано отдаться (сжатое): " + JSON.stringify(gwin.ok ? {} : gwin));
     assert.ok(gwin.result.rows.length >= 1 && gwin.result.has_more === true, "shrink honest: rows=" + gwin.result.rows.length); checks++;
 
-    // Этап 1 двухрежимности (владелец 2026-07-19): подавление СНЯТО, честность = ПРОВЕНАНС.
-    // (a) класс-C challenge, чеканенный при живом гранте → agent_exposed=1 на mint (мигр. 052)
+    // Двухрежимность + exposure-леджер (мигр. 052+053): подавление СНЯТО, метка = «агент
+    // РЕАЛЬНО читал это предложение за 30 дней» (не «грант жив»).
+    // (0) экстракция окна выше (text-1, rows 0..1) обязана была записаться в леджер
+    const led = await ctx.get("SELECT text_key, from_idx, to_idx FROM agent_text_exposures WHERE user_id='u1' AND text_key='text-1' ORDER BY id DESC LIMIT 1");
+    assert.ok(led && led.from_idx === 0 && led.to_idx >= 0, "экстракция = экспозиция: окно записано в леджер: " + JSON.stringify(led)); checks++;
+    // (a) класс-C challenge с якорем в ПРОЧИТАННОЕ окно → agent_exposed=1 на mint
     await identity.recordConsent("u1", "agent_read_texts", true, "v1");
     const chalRepo = require("../../db/agentChallengeRepo");
-    await chalRepo.createChallenge({ userId: "u1", tgUserId: "1", tgChatId: "1", item_key: "k-exp", review_mode: "cloze:tg", prompt_kind: "cloze", stimulus_privacy_class: "C", surface: "telegram_bot" });
+    await chalRepo.createChallenge({ userId: "u1", tgUserId: "1", tgChatId: "1", item_key: "k-exp", review_mode: "cloze:tg", prompt_kind: "cloze", stimulus_privacy_class: "C", anchor_text_key: "text-1", anchor_order_index: 0, surface: "telegram_bot" });
     const cExp = await ctx.get("SELECT agent_exposed FROM agent_challenges WHERE user_id='u1' ORDER BY rowid DESC LIMIT 1");
-    assert.strictEqual(Number(cExp.agent_exposed), 1, "класс-C при живом гранте помечен agent_exposed на mint"); checks++;
+    assert.strictEqual(Number(cExp.agent_exposed), 1, "якорь ∈ прочитанное окно → метка на mint"); checks++;
+    await chalRepo.cancelOpenForUser("u1");
+    // (a2) якорь в НЕчитанный текст → чистый (ковровой разметки больше нет)
+    await chalRepo.createChallenge({ userId: "u1", tgUserId: "1", tgChatId: "1", item_key: "k-clean", review_mode: "cloze:tg", prompt_kind: "cloze", stimulus_privacy_class: "C", anchor_text_key: "text-2", anchor_order_index: 0, surface: "telegram_bot" });
+    const cClean = await ctx.get("SELECT agent_exposed FROM agent_challenges WHERE user_id='u1' ORDER BY rowid DESC LIMIT 1");
+    assert.strictEqual(Number(cClean.agent_exposed), 0, "непрочитанный текст при ЖИВОМ гранте → метки нет (точечность)"); checks++;
     await chalRepo.cancelOpenForUser("u1");
     // (b) селектор больше НЕ подавляет — статический ассерт (сам вызов тянет 306МБ-лексикон)
     const clozeSrc = require("fs").readFileSync(require("path").join(__dirname, "..", "..", "db", "agentClozeRepo.js"), "utf8");
@@ -235,12 +244,13 @@ async function expectCode(promise, code, label) {
     const iss3 = await grantsRepo.issueGrant("u1", "conn-c", { ttlDays: 1 });
     await ctx.run("UPDATE agent_text_grants SET expires_at='2026-07-01T00:00:00.000Z' WHERE grant_id=?", [iss3.grant_id]);
     assert.strictEqual((await grantsRepo.activeGrant("u1")).state, "EXPIRED"); checks++;
-    // (c) БЕЗ живого гранта класс-C challenge чист: agent_exposed=0 (провенанс не липнет).
+    // (c) Residual-знание: грант ОТОЗВАН, но окно читалось <30 дней назад → метка ставится
+    // (экспозиция реальна независимо от статуса гранта — леджер честнее грант-чека).
     await ctx.run("UPDATE agent_text_grants SET revoked_at='2026-07-19T09:07:00.000Z' WHERE revoked_at IS NULL");
     assert.notStrictEqual((await grantsRepo.activeGrant("u1")).state, "ACTIVE");
-    await chalRepo.createChallenge({ userId: "u1", tgUserId: "1", tgChatId: "1", item_key: "k-noexp", review_mode: "cloze:tg", prompt_kind: "cloze", stimulus_privacy_class: "C", surface: "telegram_bot" });
+    await chalRepo.createChallenge({ userId: "u1", tgUserId: "1", tgChatId: "1", item_key: "k-noexp", review_mode: "cloze:tg", prompt_kind: "cloze", stimulus_privacy_class: "C", anchor_text_key: "text-1", anchor_order_index: 0, surface: "telegram_bot" });
     const cNo = await ctx.get("SELECT agent_exposed FROM agent_challenges WHERE user_id='u1' ORDER BY rowid DESC LIMIT 1");
-    assert.strictEqual(Number(cNo.agent_exposed), 0, "без живого гранта провенанс-метка не ставится"); checks++;
+    assert.strictEqual(Number(cNo.agent_exposed), 1, "residual: прочитанное окно метится и после отзыва гранта"); checks++;
 
     // Роут-предикат eligibility панельной выдачи — против РЕАЛЬНОЙ формы listConnectionsForUser
     // (live-инцидент 2026-07-19: выдуманное поле granted_scopes = вечный NO_ELIGIBLE_CONNECTION).

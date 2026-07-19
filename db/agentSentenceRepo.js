@@ -284,6 +284,16 @@ async function aaGetPersonalTextWindow(userId, { text_key, from_order_index, lim
     he: String(r.hebrew_niqqud || r.hebrew_plain || r.he_niqqud || r.he_plain || r.he || "").trim(),
     ru: (String(r.russian != null ? r.russian : (r.ru || "")).trim() || null),
   })).filter((r) => r.he);
+  // Exposure-леджер (мигр. 053): «экстракция = экспозиция» — окно, реально ушедшее агенту,
+  // фиксируется метаданными (диапазон order_index, без контента) здесь, в ЕДИНСТВЕННОЙ точке
+  // выдачи личного контента наружу. Best-effort: провал записи не рушит чтение (провенанс
+  // деградирует консервативно на стороне читателей леджера).
+  if (rows.length) {
+    try {
+      await require("./agentTextExposureRepo").record(userId, textKey,
+        rows[0].order_index, rows[rows.length - 1].order_index);
+    } catch (_) {}
+  }
   return {
     ok: true,
     title: String(t.title || "").slice(0, 128) || null,
