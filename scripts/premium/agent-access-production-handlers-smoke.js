@@ -167,7 +167,7 @@ function exactOwnerParser() {
     };
     // S1: personalTextsRepo — реальный learnerArtifactsRepo (list_personal_texts живёт на
     // sidecar-мете; отдельный S1-смоук покрывает его сцены, здесь — dep-guard parity).
-    const aa3Deps = { keyingService: keyingFixture, connectionPersistence: persistenceFixture, corpusSentenceRepo: corpusFixture, handoffRepo: handoffFixture, agentProposalsRepo: proposalsFixture, personalTextsRepo: require("../../db/learnerArtifactsRepo") };
+    const aa3Deps = { keyingService: keyingFixture, connectionPersistence: persistenceFixture, corpusSentenceRepo: corpusFixture, handoffRepo: handoffFixture, agentProposalsRepo: proposalsFixture, personalTextsRepo: require("../../db/learnerArtifactsRepo"), personalTextsContentRepo: require("../../db/agentSentenceRepo"), textGrantsRepo: require("../../db/agentTextGrantsRepo") };
     const handlers = createProductionHandlers({ learnerGraphRepo, agentRepo, oauthRepo, publicCatalog: catalog, ...aa3Deps, now: () => NOW, principalAccessExpiresAt: () => EXPIRY });
     const service = createAgentAccessService({ enabled: true, ownerIds: [OWNER], handlers, now: () => NOW });
 

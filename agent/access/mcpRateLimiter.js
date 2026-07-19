@@ -23,6 +23,9 @@ const TOOL_LIMITS = Object.freeze({
   create_review_handoff: Object.freeze({ minute: 6, day: 60 }),
   // S1: каталог из sidecar-меты (дёшев; числа канона BRIDGE_RECON §6).
   list_personal_texts: Object.freeze({ minute: 6, day: 120 }),
+  // S2: окна тел (канон §6: дневной паритет с get_reading_content — текст в 500 строк
+  // прочитываем за день; per-min асимметрия = data-minimization).
+  get_personal_text_content: Object.freeze({ minute: 6, day: 200 }),
 });
 const MINUTE = 60_000;
 const DAY = 86_400_000;

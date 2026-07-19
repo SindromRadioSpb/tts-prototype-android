@@ -1711,6 +1711,8 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
         handoffRepo: handoffRepoForAgentAccess,
         agentProposalsRepo: agentProposalsRepoForAgentAccess,
         personalTextsRepo: require("./db/learnerArtifactsRepo"),   // S1: sidecar-мета (list_personal_texts); прямой require — const-декларация ниже по файлу (TDZ)
+        personalTextsContentRepo: require("./db/agentSentenceRepo"),   // S2: aa-экстрактор окна (single-parser)
+        textGrantsRepo: require("./db/agentTextGrantsRepo"),           // S2: standing-грант владельца
         // AA3: report the real access window (control-plane) rather than the token TTL.
         connectionPersistence: async () => {
           try {
@@ -1792,6 +1794,14 @@ app.post("/api/agent-access/connections/:connectionId/revoke", requireAgentAcces
   if (!requireCsrf(req, res, auth)) return;
   try {
     const connection = await agentAccessOAuthRepo.revokeConnection(auth.user.id, req.params.connectionId, "USER_REVOKE");
+    // S2 §2.5 — revoke подключения = status-флип (FK CASCADE не срабатывает) → явный отзыв
+    // text-грантов этого подключения; провал видим (audit), read-path и так re-assert'ит статус.
+    try {
+      const g = await require("./db/agentTextGrantsRepo").revokeForConnection(auth.user.id, connection.connection_id);
+      if (g.revoked) identityRepo.audit("agent_text_grants_connection_cascade", auth.user.id, { connection_id: connection.connection_id, revoked: g.revoked }, req.ip);
+    } catch (e2) {
+      identityRepo.audit("agent_text_grants_cascade_failed", auth.user.id, { connection_id: connection.connection_id, message: String(e2 && e2.message).slice(0, 120) }, req.ip);
+    }
     identityRepo.audit("agent_access_connection_revoke", auth.user.id, { connection_id: connection.connection_id }, req.ip);
     return res.json({ ok: true, connection_id: connection.connection_id, status: connection.status });
   } catch (e) { return agentAccessHttpError(res, e); }
@@ -1804,9 +1814,63 @@ app.delete("/api/agent-access/connections/:connectionId", requireAgentAccessBoun
     if (!new Set(["REVOKED", "DELETED"]).has(existing.status)) {
       await agentAccessOAuthRepo.revokeConnection(auth.user.id, existing.connection_id, "USER_DELETE");
     }
+    try { await require("./db/agentTextGrantsRepo").revokeForConnection(auth.user.id, existing.connection_id); } catch (_) {}
     const deleted = await agentAccessOAuthRepo.deleteConnection(auth.user.id, existing.connection_id, "USER_DELETE");
     identityRepo.audit("agent_access_connection_delete", auth.user.id, { connection_id: deleted.connection_id }, req.ip);
     return res.json({ ok: true, connection_id: deleted.connection_id, deleted: true });
+  } catch (e) { return agentAccessHttpError(res, e); }
+});
+
+// ── S2 — панель: standing-грант «агент читает тела моих текстов» (DESIGN §2.1/§2.4) ─────────
+// Выдача: session+CSRF; целевое подключение = живое с scope personal.texts.content.read (если
+// несколько — connection_id в теле). ПОРЯДОК: INSERT гранта → cancelOpenForUser (TOCTOU-щель:
+// challenge до cancel — погашен, после — селектор уже видит грант). Отзыв — отдельной кнопкой.
+app.get("/api/agent-access/text-grants", requireAgentAccessBoundary, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try {
+    const grantsRepo = require("./db/agentTextGrantsRepo");
+    const rows = await grantsRepo.listGrants(auth.user.id);
+    const active = await grantsRepo.activeGrant(auth.user.id);
+    res.json({ ok: true, grants: rows, active_state: active.state });
+  } catch (e) { return agentAccessHttpError(res, e); }
+});
+app.post("/api/agent-access/text-grants", requireAgentAccessBoundary, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const grantsRepo = require("./db/agentTextGrantsRepo");
+    const body = req.body || {};
+    let connectionId = body.connection_id != null ? String(body.connection_id) : null;
+    if (!connectionId) {
+      // Единственное живое подключение с content-scope — типичный single-owner случай.
+      const conns = await agentAccessOAuthRepo.listConnectionsForUser(auth.user.id);
+      const eligible = (conns || []).filter((c) => new Set(["ACTIVE", "SCOPE_REDUCED"]).has(c.status)
+        && (c.granted_scopes || []).includes("personal.texts.content.read"));
+      if (eligible.length !== 1) return res.status(400).json({ ok: false, error: eligible.length ? "CONNECTION_AMBIGUOUS" : "NO_ELIGIBLE_CONNECTION" });
+      connectionId = eligible[0].connection_id;
+    }
+    const ttlDays = body.ttl_days == null ? null : Number(body.ttl_days);
+    const out = await grantsRepo.issueGrant(auth.user.id, connectionId, { ttlDays });
+    if (out.ok === false) return res.status(400).json(out);
+    // R17-каскад ПОСЛЕ вставки гранта: гасим открытые challenge'и (партиал-юник даёт ≤1 —
+    // over-broad принят с оговоркой в карте) — «не мог видеть» перестало быть доказуемым.
+    try {
+      const cancelled = await agentChallengeRepo.cancelOpenForUser(auth.user.id);
+      identityRepo.audit("agent_text_grant_challenge_cascade", auth.user.id, { cancelled_challenges: cancelled }, req.ip);
+    } catch (e3) {
+      identityRepo.audit("agent_text_grant_challenge_cascade_failed", auth.user.id, { message: String(e3 && e3.message).slice(0, 120) }, req.ip);
+    }
+    identityRepo.audit("agent_text_grant_issue", auth.user.id, { grant_id: out.grant_id, connection_id: connectionId, ttl_days: ttlDays }, req.ip);
+    res.json(out);
+  } catch (e) { return agentAccessHttpError(res, e); }
+});
+app.post("/api/agent-access/text-grants/:grantId/revoke", requireAgentAccessBoundary, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const out = await require("./db/agentTextGrantsRepo").revokeGrant(auth.user.id, req.params.grantId);
+    identityRepo.audit("agent_text_grant_revoke", auth.user.id, { grant_id: String(req.params.grantId || "").slice(0, 64), revoked: out.revoked }, req.ip);
+    res.json(out);
   } catch (e) { return agentAccessHttpError(res, e); }
 });
 
@@ -2061,13 +2125,14 @@ app.post("/api/auth/consent", rlConsent, async (req, res) => {
     // AI_MENTOR_RECON:421–425): немедленный purge ВСЕХ артефактов (text_bundle + state_bundle)
     // и tombstones, purged_at на этой revoke-строке. Провал НЕ молчит (паттерн memory-ключей
     // F1/F2, НЕ best-effort соседей): 500 PURGE_FAILED; отзыв уже записан (чтение fail-closed),
-    // допурж доделает ops-sweep reconcile. TODO(S-пакет): сюда же каскад отзыва agent_text_grants,
-    // когда таблица появится.
+    // допурж доделает ops-sweep reconcile. S2: сюда же каскад отзыва agent_text_grants —
+    // «воскресающий доступ агента» при повторном включении синка месяцы спустя запрещён.
     if (key === "cloud_texts" && !granted) {
       try {
         const purged = await require("./db/learnerArtifactsRepo").purgeAllForUser(auth.user.id);
         await require("./db/learnerArtifactsRepo").markConsentPurged(consentRowId);
-        identityRepo.audit("artifacts_purge", auth.user.id, { artifacts: purged.artifacts, tombstones: purged.tombstones }, req.ip);
+        const grantsRevoked = await require("./db/agentTextGrantsRepo").revokeAllForUser(auth.user.id);
+        identityRepo.audit("artifacts_purge", auth.user.id, { artifacts: purged.artifacts, tombstones: purged.tombstones, text_grants_revoked: grantsRevoked.revoked }, req.ip);
         purgeInfo = { ...(purgeInfo || {}), artifacts_purged: purged.artifacts };
       } catch (e7) {
         identityRepo.audit("artifacts_purge_failed", auth.user.id, { message: String(e7 && e7.message).slice(0, 120) }, req.ip);

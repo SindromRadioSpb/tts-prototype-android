@@ -25,9 +25,11 @@ const V2 = laRepo.REQUIRED_CONSENT_VERSION;
 const NOW = Date.parse("2026-07-19T10:00:00.000Z");
 const EXPIRY = "2026-07-19T11:00:00.000Z";
 
-const payloadFor = (title, nRows) => ({
+// Внутренний text_key ОБЯЗАН равняться artifact_key (как в реальном exportBundle) —
+// aa-экстрактор strict-матчит без ||texts[0]-фолбэка.
+const payloadFor = (key, title, nRows) => ({
   manifest: { slim_bundle: true },
-  texts: [{ text_key: "x", title, rows: Array.from({ length: nRows }, (_, i) => ({ order_index: i, hebrew_plain: "שלום", russian: "привет" })) }],
+  texts: [{ text_key: key, title, rows: Array.from({ length: nRows }, (_, i) => ({ order_index: i, hebrew_plain: "שלום", russian: "привет" })) }],
 });
 
 function principalFor(scopes) {
@@ -50,8 +52,8 @@ async function expectCode(promise, code, label) {
   try {
     // ── sidecar: put → meta (только stored:true; char-slice; state_bundle мимо) ──
     const longHe = "א".repeat(200);
-    await laRepo.put("u1", "dev1", { artifact_key: "text-1", updated_at: "2026-07-10T00:00:00.000Z", payload: payloadFor("Мой первый текст", 3) });
-    await laRepo.put("u1", "dev1", { artifact_key: "text-2", updated_at: "2026-07-11T00:00:00.000Z", payload: payloadFor(longHe, 7) });
+    await laRepo.put("u1", "dev1", { artifact_key: "text-1", updated_at: "2026-07-10T00:00:00.000Z", payload: payloadFor("text-1", "Мой первый текст", 3) });
+    await laRepo.put("u1", "dev1", { artifact_key: "text-2", updated_at: "2026-07-11T00:00:00.000Z", payload: payloadFor("text-2", longHe, 7) });
     await laRepo.put("u1", "dev1", { artifact_key: "__state__", kind: "state_bundle", updated_at: "2026-07-11T00:00:00.000Z", payload: { format: "linguistpro-state-v1", state: {} } });
     const m1 = await ctx.get("SELECT title, rows_count FROM learner_artifact_meta WHERE user_id='u1' AND artifact_key='text-1'");
     assert.strictEqual(m1.title, "Мой первый текст"); assert.strictEqual(m1.rows_count, 3); checks++;
@@ -59,7 +61,7 @@ async function expectCode(promise, code, label) {
     assert.strictEqual(m2.title, longHe.slice(0, 128), "char-slice(0,128), не байты"); checks++;
     assert.ok(!(await ctx.get("SELECT 1 x FROM learner_artifact_meta WHERE artifact_key='__state__'")), "state_bundle не порождает мету"); checks++;
     // rejected put (OLDER_OR_EQUAL) не трогает мету
-    const rej = await laRepo.put("u1", "dev1", { artifact_key: "text-1", updated_at: "2026-07-09T00:00:00.000Z", payload: payloadFor("ДРУГОЙ TITLE", 9) });
+    const rej = await laRepo.put("u1", "dev1", { artifact_key: "text-1", updated_at: "2026-07-09T00:00:00.000Z", payload: payloadFor("text-1", "ДРУГОЙ TITLE", 9) });
     assert.strictEqual(rej.stored, false);
     assert.strictEqual((await ctx.get("SELECT title FROM learner_artifact_meta WHERE artifact_key='text-1'")).title, "Мой первый текст", "мета отвергнутого payload'а не пишется"); checks++;
 
@@ -70,7 +72,7 @@ async function expectCode(promise, code, label) {
       ('u2','text_bundle','pre-1','2026-07-01T00:00:00.000Z', ?),
       ('u2','text_bundle','pre-bad','2026-07-01T00:00:00.000Z', 'not json {{{'),
       ('u2','text_bundle','pre-shapeless','2026-07-01T00:00:00.000Z', '{"no_texts":true}')`,
-      [JSON.stringify(payloadFor("Бэкфилл", 5))]);
+      [JSON.stringify(payloadFor("pre-1", "Бэкфилл", 5))]);
     const backfillSql = require("fs").readFileSync(require("path").join(__dirname, "..", "..", "migrations", "050_learner_artifact_meta.sql"), "utf8")
       .split("INSERT OR REPLACE")[1];
     await ctx.run("INSERT OR REPLACE" + backfillSql);
@@ -80,7 +82,7 @@ async function expectCode(promise, code, label) {
     const bs = await ctx.get("SELECT title, rows_count FROM learner_artifact_meta WHERE artifact_key='pre-shapeless'");
     assert.ok(bs && bs.title === null, "бесформенный payload → честный NULL-title"); checks++;
     // Парити SQL-backfill == JS-экстракция (тот же put-путь): прогоняем put для того же payload
-    await laRepo.put("u2", "dev1", { artifact_key: "pre-1", updated_at: "2026-07-02T00:00:00.000Z", payload: payloadFor("Бэкфилл", 5) });
+    await laRepo.put("u2", "dev1", { artifact_key: "pre-1", updated_at: "2026-07-02T00:00:00.000Z", payload: payloadFor("pre-1", "Бэкфилл", 5) });
     const b2 = await ctx.get("SELECT title, rows_count FROM learner_artifact_meta WHERE user_id='u2' AND artifact_key='pre-1'");
     assert.deepStrictEqual({ t: b2.title, r: b2.rows_count }, { t: b1.title, r: b1.rows_count }, "SQL-backfill == JS put-time"); checks++;
 
@@ -102,6 +104,8 @@ async function expectCode(promise, code, label) {
       handoffRepo: { mint: stub, countActive: stub },
       agentProposalsRepo: { create: stub },
       personalTextsRepo: laRepo,
+      personalTextsContentRepo: require("../../db/agentSentenceRepo"),
+      textGrantsRepo: require("../../db/agentTextGrantsRepo"),
       connectionPersistence: async () => ({ access_lifetime: "PERSISTENT_WINDOW", window_expires_at: null }),
       now: () => NOW,
       principalAccessExpiresAt: () => EXPIRY,
@@ -169,6 +173,67 @@ async function expectCode(promise, code, label) {
     const stB = await ctx.get("SELECT status FROM agent_connections WHERE connection_id='conn-b'");
     assert.strictEqual(stA.status, "SUSPENDED", "re-auth супersede'ит прежнее подключение (зомби с живыми refresh-токенами запрещён)");
     assert.strictEqual(stB.status, "ACTIVE"); checks++;
+
+    // ═══ S2 — agent_text_grants + get_personal_text_content ═══
+    const grantsRepo = require("../../db/agentTextGrantsRepo");
+    const CSCOPE = "personal.texts.content.read";
+    const pContent = (over = {}) => ({ ...principalFor([SCOPE, CSCOPE]), connection_id: "conn-b", ...over });
+
+    // Гейт 3: scope есть, гранта нет → NOT_GRANTED
+    await expectCode(service.execute(pContent(), "get_personal_text_content", { text_key: "text-1" }), "AA_TEXT_ACCESS_NOT_GRANTED", "no-grant"); checks++;
+    // Выдача TTL-гранта; чтение работает; ОРАКУЛ окна = test-side parse payload_json
+    const iss = await grantsRepo.issueGrant("u1", "conn-b", { ttlDays: 30 });
+    assert.strictEqual(iss.ok, true); assert.ok(iss.expires_at, "TTL-грант несёт expires_at");
+    const win = await service.execute(pContent(), "get_personal_text_content", { text_key: "text-1", rows: 2 });
+    assert.strictEqual(win.ok, true, "content must succeed: " + JSON.stringify(win));
+    const oPayload = JSON.parse((await ctx.get("SELECT payload_json FROM learner_artifacts WHERE user_id='u1' AND artifact_key='text-1'")).payload_json);
+    const oRows = oPayload.texts[0].rows.slice(0, 2).map((r) => ({ order_index: r.order_index, he: r.hebrew_plain, ru: r.russian }));
+    assert.deepStrictEqual(win.result.rows.map((r) => ({ order_index: r.order_index, he: r.he, ru: r.ru })), oRows, "оракул окна");
+    assert.strictEqual(win.result.has_more, true); assert.strictEqual(win.result.rows_total, 3);
+    assert.strictEqual(win.result.authority, "OWNER_DEVICE_CANONICAL"); checks++;
+    // Грант per-connection: чужое подключение (conn-a) права НЕ получает
+    await expectCode(service.execute(pContent({ connection_id: "conn-a" }), "get_personal_text_content", { text_key: "text-1" }), "AA_TEXT_ACCESS_NOT_GRANTED", "wrong-connection"); checks++;
+    // NOT_FOUND / UNREADABLE (битый артефакт вставлен мимо put)
+    await expectCode(service.execute(pContent(), "get_personal_text_content", { text_key: "text-none" }), "AA_PERSONAL_TEXT_NOT_FOUND", "not-found"); checks++;
+    await ctx.run(`INSERT INTO learner_artifacts (user_id,kind,artifact_key,updated_at,payload_json) VALUES ('u1','text_bundle','text-broken','2026-07-01T00:00:00.000Z','{"no_texts":1}')`);
+    await expectCode(service.execute(pContent(), "get_personal_text_content", { text_key: "text-broken" }), "AA_ARTIFACT_UNREADABLE", "unreadable"); checks++;
+    // Адаптивное сужение: гигант-строки не делают окно нечитаемым (byte-slice per-row + shrink)
+    const giant = { manifest: {}, texts: [{ text_key: "text-giant", title: "Г", rows: Array.from({ length: 20 }, (_, i) => ({ order_index: i, hebrew_plain: "ש".repeat(3000), russian: "р".repeat(3000) })) }] };
+    await laRepo.put("u1", "dev1", { artifact_key: "text-giant", updated_at: "2026-07-12T00:00:00.000Z", payload: giant });
+    const gwin = await service.execute(pContent(), "get_personal_text_content", { text_key: "text-giant", rows: 20 });
+    assert.strictEqual(gwin.ok, true, "гигант-окно обязано отдаться (сжатое): " + JSON.stringify(gwin.ok ? {} : gwin));
+    assert.ok(gwin.result.rows.length >= 1 && gwin.result.has_more === true, "shrink honest: rows=" + gwin.result.rows.length); checks++;
+
+    // R17: подавление личнотекстовых cloze при живом гранте (единая точка selectClozeChallenge;
+    // гейт срабатывает ДО тяжёлого keyingService — ранний return, смоук это и проверяет)
+    await identity.recordConsent("u1", "agent_read_texts", true, "v1");
+    const clozeRepo = require("../../db/agentClozeRepo");
+    const supp = await clozeRepo.selectClozeChallenge("u1", ["k1"], () => false);
+    assert.deepStrictEqual(supp, { none: "agent_grant_active" }, "cloze подавлен при живом гранте: " + JSON.stringify(supp)); checks++;
+
+    // Каскад: revoke подключения → грант отозван → EXPIRED/NOT_GRANTED
+    await oauthRepo.revokeConnection("u1", "conn-b", "OWNER_REVOKE");
+    const gAfterRevoke = await grantsRepo.activeGrant("u1");
+    assert.strictEqual(gAfterRevoke.state, "NONE", "status-флип подключения гасит грант через JOIN-предикат"); checks++;
+    // (роут добавляет и явный revokeForConnection — проверяем идемпотентность)
+    await grantsRepo.revokeForConnection("u1", "conn-b");
+    // Новый грант на живом подключении... conn-b REVOKED — переактивируем цепочку через новое подключение
+    await oauthRepo.createPendingConnection("u1", connInput("conn-c"), "2026-07-19T09:05:00.000Z");
+    await identity.recordConsent("u1", OC.consentKey("conn-c", SCOPE), true, "aa-consent-v2");
+    await oauthRepo.activateConnectionWithGrants("u1", "conn-c", [SCOPE], "2026-07-19T09:06:00.000Z");
+    const iss2 = await grantsRepo.issueGrant("u1", "conn-c", { ttlDays: null });
+    assert.strictEqual(iss2.ok, true); assert.strictEqual(iss2.expires_at, null, "PERSISTENT-грант без expires_at");
+    // Каскад отзыва cloud_texts (revokeAllForUser — как в consent-роуте)
+    await grantsRepo.revokeAllForUser("u1");
+    assert.strictEqual((await grantsRepo.activeGrant("u1")).state, "NONE", "cloud_texts-каскад отзывает гранты"); checks++;
+    // Expired: грант с истёкшим TTL → EXPIRED (typed, отличим от NOT_GRANTED)
+    const iss3 = await grantsRepo.issueGrant("u1", "conn-c", { ttlDays: 1 });
+    await ctx.run("UPDATE agent_text_grants SET expires_at='2026-07-01T00:00:00.000Z' WHERE grant_id=?", [iss3.grant_id]);
+    assert.strictEqual((await grantsRepo.activeGrant("u1")).state, "EXPIRED"); checks++;
+    // После гашения всех грантов подавление снято by construction (гейт читает activeGrant;
+    // сам селектор дальше не гоняем — _dueVocMap лениво грузит 306МБ-лексикон, не для смоука).
+    await ctx.run("UPDATE agent_text_grants SET revoked_at='2026-07-19T09:07:00.000Z' WHERE revoked_at IS NULL");
+    assert.notStrictEqual((await grantsRepo.activeGrant("u1")).state, "ACTIVE", "живых грантов нет — ключ подавления снят"); checks++;
 
     console.log(JSON.stringify({ ok: true, checks }));
   } catch (e) {

@@ -97,6 +97,12 @@ const fixtures = Object.freeze({
     items: Object.freeze([Object.freeze({ text_key: "text-1783830247939-hpbn", title: "Мой текст", rows_count: 12, content_updated_at: GENERATED, replica_ingested_at: GENERATED })]),
     total: 1, next_cursor: null, authority: "OWNER_DEVICE_CANONICAL", generated_at: GENERATED,
   }),
+  get_personal_text_content: Object.freeze({
+    schema_version: "aa.personal_text_content.1.0.0", text_key: "text-1783830247939-hpbn", title: "Мой текст",
+    rows: Object.freeze([Object.freeze({ order_index: 0, he: "שלום עולם", ru: "Привет мир" })]),
+    rows_total: 12, has_more: true, content_updated_at: GENERATED, replica_ingested_at: GENERATED,
+    authority: "OWNER_DEVICE_CANONICAL", generated_at: GENERATED,
+  }),
 });
 
 const validArgs = Object.freeze({
@@ -115,6 +121,7 @@ const validArgs = Object.freeze({
   get_progress_delta: Object.freeze({ since: "2026-07-10T00:00:00.000Z", top_limit: 10 }),
   create_review_handoff: Object.freeze({}),
   list_personal_texts: Object.freeze({ limit: 10 }),
+  get_personal_text_content: Object.freeze({ text_key: "text-1783830247939-hpbn", rows: 5 }),
 });
 
 function handlers(overrides = {}) {

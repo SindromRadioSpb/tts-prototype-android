@@ -59,6 +59,8 @@ const SCENARIOS = Object.freeze({
   "agent_access.review_handoff": { role: "agent_access.proposer", surfaces: ["external_agent"], capabilities: ["repo:reading_handoff_mint"] },
   // S-пакет S1 — каталог личных текстов (sidecar-мета; тело — S2 отдельным сценарием).
   "agent_access.personal_texts_list": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:personal_texts_metadata_read"] },
+  // S2 — тело личного текста (scope + agent_text_grants владельца).
+  "agent_access.personal_text_content": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:personal_texts_content_read"] },
 });
 
 function get(id) { return SCENARIOS[String(id)] || null; }

@@ -29,6 +29,8 @@ const CAPABILITIES = Object.freeze({
   // NB: CAPABILITY_VERSION НЕ бампится (критика: пин aa-v0.1 живёт в снапшотах подключений —
   // бамп молча кладёт либо новые подключения, либо старое Hermes; AA3/AA4 тоже не бампили).
   list_personal_texts: Object.freeze({ scope: "personal.texts.metadata.read", purpose: "EXPLICIT_PERSONAL_TEXTS_CATALOG", scenario_id: "agent_access.personal_texts_list", max_output_bytes: 24576 }),
+  // S2 — тело личного текста: scope + ЖИВОЙ agent_text_grants владельца (третий слой в хендлере).
+  get_personal_text_content: Object.freeze({ scope: "personal.texts.content.read", purpose: "EXPLICIT_PERSONAL_TEXT_BODY", scenario_id: "agent_access.personal_text_content", max_output_bytes: 16384 }),
 });
 
 function getCapability(name) { return CAPABILITIES[String(name)] || null; }

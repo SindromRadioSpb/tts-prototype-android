@@ -93,7 +93,7 @@ async function get(userId, artifactKey, kind = KIND) {
   const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
   if (!KINDS.has(kind)) return null;
   return await dbGet(db,
-    `SELECT artifact_key, updated_at, payload_json FROM learner_artifacts
+    `SELECT artifact_key, updated_at, ingested_at, payload_json FROM learner_artifacts
       WHERE user_id = ? AND kind = ? AND artifact_key = ?`, [userId, kind, String(artifactKey || "")]);
 }
 

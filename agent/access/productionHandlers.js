@@ -66,6 +66,8 @@ function createProductionHandlers(options = {}) {
   const handoffRepo = options.handoffRepo; // AA3 commit 3b: first-party reading handoff mint
   const proposalsRepo = options.agentProposalsRepo; // AA3 commit 3c: PENDING proposals (owner confirms)
   const personalTextsRepo = options.personalTextsRepo; // S1: sidecar-мета личных текстов (list — БЕЗ payload)
+  const personalTextsContentRepo = options.personalTextsContentRepo; // S2: aa-экстрактор окна (agentSentenceRepo)
+  const textGrantsRepo = options.textGrantsRepo; // S2: standing-грант владельца (agent_text_grants)
   const now = options.now || Date.now;
   const principalAccessExpiresAt = options.principalAccessExpiresAt;
   if (!learnerRepo || typeof learnerRepo.getAgentAccessReviewAggregates !== "function" || typeof learnerRepo.getDue !== "function" || typeof learnerRepo.getActivityDelta !== "function"
@@ -77,6 +79,8 @@ function createProductionHandlers(options = {}) {
     || !handoffRepo || typeof handoffRepo.mint !== "function" || typeof handoffRepo.countActive !== "function"
     || !proposalsRepo || typeof proposalsRepo.create !== "function"
     || !personalTextsRepo || typeof personalTextsRepo.hasConsentVersioned !== "function" || typeof personalTextsRepo.listWithMeta !== "function"
+    || !personalTextsContentRepo || typeof personalTextsContentRepo.aaGetPersonalTextWindow !== "function"
+    || !textGrantsRepo || typeof textGrantsRepo.activeGrant !== "function"
     || typeof connectionPersistence !== "function"
     || typeof now !== "function" || typeof principalAccessExpiresAt !== "function") fail("AA_PRODUCTION_HANDLER_DEPENDENCY_INVALID");
 
@@ -456,6 +460,51 @@ function createProductionHandlers(options = {}) {
     });
   }
 
+  // S2 — окно ТЕЛА личного текста (DESIGN §2.2–§2.3). Трёхслойный fail-closed гейт:
+  // (1) cloud_texts v2; (2) AA-scope (service-слой); (3) ЖИВОЙ agent_text_grants владельца —
+  // per-connection (грант чужого подключения права этому не даёт, R14 belt) + JOIN на статус
+  // подключения внутри activeGrant (status-флип revoke ловится на каждый вызов). Per-row
+  // byteSlice + адаптивное сужение окна до капа (гигант-строка не делает окно нечитаемым).
+  async function get_personal_text_content(context, args) {
+    const clock = fixedNow(now);
+    const consent = await personalTextsRepo.hasConsentVersioned(context.user_id);
+    if (!consent || consent.ok !== true) {
+      fail(consent && consent.reconsent ? "AA_PERSONAL_TEXTS_RECONSENT_REQUIRED" : "AA_PERSONAL_TEXTS_CONSENT_REQUIRED");
+    }
+    const g = await textGrantsRepo.activeGrant(context.user_id);
+    if (g.state !== "ACTIVE") fail(g.state === "EXPIRED" ? "AA_TEXT_ACCESS_EXPIRED" : "AA_TEXT_ACCESS_NOT_GRANTED");
+    if (String(g.grant.connection_id) !== String(context.connection_id)) fail("AA_TEXT_ACCESS_NOT_GRANTED");
+    const from = args.from || 0;
+    const win = await personalTextsContentRepo.aaGetPersonalTextWindow(context.user_id, {
+      text_key: args.text_key, from_order_index: from, limit: args.rows || 20,
+    });
+    if (!win.ok) {
+      if (win.error === "TEXT_NOT_IN_CLOUD") fail("AA_PERSONAL_TEXT_NOT_FOUND");
+      if (win.error === "ARTIFACT_UNREADABLE") fail("AA_ARTIFACT_UNREADABLE");
+      if (win.error === "RECONSENT_REQUIRED") fail("AA_PERSONAL_TEXTS_RECONSENT_REQUIRED");
+      if (win.error === "CONSENT_REQUIRED") fail("AA_PERSONAL_TEXTS_CONSENT_REQUIRED");
+      fail("AA_PERSONAL_TEXT_NOT_FOUND");
+    }
+    let rows = win.rows.map((r) => Object.freeze({
+      order_index: r.order_index,
+      he: byteSlice(r.he, 800),
+      ru: r.ru != null ? byteSlice(r.ru, 800) : null,
+    }));
+    const base = {
+      schema_version: "aa.personal_text_content.1.0.0",
+      text_key: args.text_key,
+      title: win.title != null ? byteSlice(win.title, 512) : null,
+      rows_total: Math.min(Number(win.rows_total) || 0, 1000000),
+      content_updated_at: new Date(String(win.content_updated_at)).toISOString(),
+      replica_ingested_at: new Date(String(win.replica_ingested_at)).toISOString(),
+      authority: "OWNER_DEVICE_CANONICAL",
+      generated_at: clock.iso,
+    };
+    const fits = (rs) => Buffer.byteLength(JSON.stringify({ ...base, rows: rs, has_more: true }), "utf8") <= 15800;
+    while (rows.length > 1 && !fits(rows)) rows = rows.slice(0, -1);
+    return Object.freeze({ ...base, rows: Object.freeze(rows), has_more: from + rows.length < base.rows_total });
+  }
+
   return Object.freeze({
     get_learning_brief,
     get_review_summary,
@@ -472,6 +521,7 @@ function createProductionHandlers(options = {}) {
     get_progress_delta,
     create_review_handoff,
     list_personal_texts,
+    get_personal_text_content,
   });
 }
 

@@ -58,6 +58,19 @@
       <div id="proposalList" class="connection-list" aria-live="polite"></div>
     </section>
 
+    <!-- S2 — standing-грант «агент читает ТЕЛА моих текстов» (DESIGN §2.1/§2.4). Карта честная:
+         нынешние И БУДУЩИЕ тексты; challenge-проверки приостановлены; Room-петля работает. -->
+    <section id="textGrantsPanel" class="sheet" aria-labelledby="textGrantsTitle" hidden>
+      <div class="section-heading"><span class="step">2c</span><div><p data-i18n="tgLabel">Личное · отдельное решение</p><h2 id="textGrantsTitle" data-i18n="tgTitle">Доступ агента к телам ваших текстов</h2></div></div>
+      <p class="section-copy" data-i18n="tgCopy">Грант открывает агенту чтение ВСЕХ ваших синкованных текстов — нынешних и будущих, пока грант активен. Пока он действует, серверные проверки-задания по вашим текстам не выпускаются (агент мог видеть ответ); повторение в Зале продолжает работать — оно самооценочное. Отзыв мгновенно закрывает доступ, но не удаляет уже прочитанное у агента. После переподключения агента грант нужно выдать заново.</p>
+      <div id="textGrantState" class="connection-list" aria-live="polite"></div>
+      <div class="actions" id="textGrantActions">
+        <button id="tgIssue30" class="button secondary" type="button" data-i18n="tgIssue30">Дать на 30 дней</button>
+        <button id="tgIssue90" class="button secondary" type="button" data-i18n="tgIssue90">На 90 дней</button>
+        <button id="tgIssuePersistent" class="button primary" type="button" data-i18n="tgIssuePersistent">Бессрочно (с кнопкой отзыва)</button>
+      </div>
+    </section>
+
     <section id="ownerPanel" class="sheet" aria-labelledby="ownerTitle" hidden>
       <div class="section-heading"><span class="step">03</span><div><p data-i18n="ownerLabel">Только владелец</p><h2 id="ownerTitle" data-i18n="ownerTitle">Управление доступом</h2></div></div>
       <p class="section-copy" data-i18n="ownerCopy">Окна авторизации открываются и закрываются здесь, без редеплоя. Включение требует повторного ввода секрета владельца.</p>

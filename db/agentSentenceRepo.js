@@ -19,6 +19,14 @@
 // обновлены («до 5 предложений»). /explain через окно НЕ ходит by construction.
 //
 // STDOUT-ГИГИЕНА: контент предложения никогда не попадает в console/throw-message (класс D).
+//
+// ⚠ ДВЕ ИСТИНЫ CONSENT'А В ОДНОМ МОДУЛЕ (S2, анти-drift):
+//   • МЕНТОР (getSentenceContext/Window/Digest/LessonWindow): cloud_texts any-version +
+//     первопартийные ключи agent_read_texts* — НЕ ТРОГАТЬ, Telegram-бот живой.
+//   • ВНЕШНИЙ АГЕНТ (aa*-экстракторы): cloud_texts СТРОГО v2 (hasConsentVersioned — та же
+//     истина, что sync-поверхность) и БЕЗ ключей ментора: согласие Hermes = AA-scope ceremony
+//     + agent_text_grants (слои 2–3 энфорсятся в AA-слое). Ключи ментора агентскими не
+//     переиспользуются и наоборот.
 
 const { getDb } = require("./sqlite");
 const learnerArtifactsRepo = require("./learnerArtifactsRepo");
@@ -247,6 +255,45 @@ async function getLessonWindow(userId, { text_key, start_order_index, row_count 
     rows_total: all.length, rows, artifact_updated_at: art.updated_at };
 }
 
+// ── S2 — экстрактор для ВНЕШНЕГО агента (get_personal_text_content; DESIGN §2.3) ─────────────
+// Гейт: cloud_texts СТРОГО v2 (см. «две истины» в шапке); AA-scope и agent_text_grants
+// энфорсятся в AA-слое ДО вызова. Strict-match по text_key БЕЗ ||texts[0]-фолбэка (критика:
+// фолбэк отдал бы чужой title под произвольным ключом). Окно ≤20 строк he+ru; контент никогда
+// не попадает в ошибки/логи; кламп байтов и адаптивное сужение — на стороне хендлера.
+const AA_WINDOW_ROWS_MAX = 20;
+async function aaGetPersonalTextWindow(userId, { text_key, from_order_index, limit } = {}) {
+  const textKey = String(text_key || "").trim();
+  const from = from_order_index == null ? 0 : Number(from_order_index);
+  const lim = limit == null ? AA_WINDOW_ROWS_MAX : Number(limit);
+  if (!textKey || !Number.isInteger(from) || from < 0 || !Number.isInteger(lim) || lim < 1 || lim > AA_WINDOW_ROWS_MAX) {
+    return { ok: false, error: "BAD_ANCHOR" };
+  }
+  const consent = await learnerArtifactsRepo.hasConsentVersioned(userId);
+  if (!consent.ok) return { ok: false, error: consent.reconsent ? "RECONSENT_REQUIRED" : "CONSENT_REQUIRED" };
+  const art = await learnerArtifactsRepo.get(userId, textKey);
+  if (!art) return { ok: false, error: "TEXT_NOT_IN_CLOUD" };
+  let payload = null;
+  try { payload = JSON.parse(art.payload_json); } catch (_) { return { ok: false, error: "ARTIFACT_UNREADABLE" }; }
+  const texts = payload && Array.isArray(payload.texts) ? payload.texts : null;
+  const t = texts && texts.length ? (texts.find((x) => x && String(x.text_key) === textKey) || null) : null;
+  if (!t) return { ok: false, error: "ARTIFACT_UNREADABLE" };
+  const all = (Array.isArray(t.rows) ? t.rows : (Array.isArray(t.sentences) ? t.sentences : []))
+    .slice().sort((a, b) => Number(a.order_index) - Number(b.order_index));
+  const rows = all.filter((r) => r && Number(r.order_index) >= from).slice(0, lim).map((r) => ({
+    order_index: Number(r.order_index),
+    he: String(r.hebrew_niqqud || r.hebrew_plain || r.he_niqqud || r.he_plain || r.he || "").trim(),
+    ru: (String(r.russian != null ? r.russian : (r.ru || "")).trim() || null),
+  })).filter((r) => r.he);
+  return {
+    ok: true,
+    title: String(t.title || "").slice(0, 128) || null,
+    rows,
+    rows_total: all.length,
+    content_updated_at: art.updated_at,
+    replica_ingested_at: art.ingested_at,
+  };
+}
+
 module.exports = { hasAgentReadConsent, hasDigestConsent, getSentenceContext, getSentenceWindow, getTextDigest,
-  getLessonWindow, CONSENT_KEY_AGENT, CONSENT_KEY_DIGEST, SCOPE_SENTENCE_ONLY, SCOPE_SENTENCE_WINDOW,
-  SCOPE_TEXT_DIGEST, DIGEST_ROWS_MAX, LESSON_SCOPE_ROWS_MAX };
+  getLessonWindow, aaGetPersonalTextWindow, CONSENT_KEY_AGENT, CONSENT_KEY_DIGEST, SCOPE_SENTENCE_ONLY, SCOPE_SENTENCE_WINDOW,
+  SCOPE_TEXT_DIGEST, DIGEST_ROWS_MAX, LESSON_SCOPE_ROWS_MAX, AA_WINDOW_ROWS_MAX };

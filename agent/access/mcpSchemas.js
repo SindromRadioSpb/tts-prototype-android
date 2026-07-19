@@ -61,6 +61,8 @@ const INPUT_SCHEMAS = Object.freeze({
   create_review_handoff: closedObject({}, []),
   // S1 — каталог личных текстов (cursor-пагинация; личные ключи ≠ корпусный hex-паттерн).
   list_personal_texts: closedObject({ limit: integer(1, 100), cursor: string({ maxLength: 256, pattern: "^[A-Za-z0-9_.~:@/+\\-=]{1,256}$" }) }, []),
+  // S2 — окно тела личного текста (по гранту владельца).
+  get_personal_text_content: closedObject({ text_key: string({ maxLength: 200, pattern: "^[A-Za-z0-9._:-]{1,200}$" }), from: integer(0, 1000000), rows: integer(1, 20) }, ["text_key"]),
 });
 
 const timestamp = string({ maxLength: 40, pattern: TIME });
@@ -184,6 +186,22 @@ const OUTPUT_SCHEMAS = Object.freeze({
     handoff_url: string({ maxLength: 256 }), expires_in_ms: integer(1, 3600000),
     action: string({ const: "open_review" }), generated_at: timestamp,
   }),
+  // S2 — окно тела личного текста.
+  get_personal_text_content: closedObject({
+    schema_version: string({ const: "aa.personal_text_content.1.0.0" }),
+    text_key: string({ maxLength: 200, pattern: "^[A-Za-z0-9._:-]{1,200}$" }),
+    title: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 512 }), Object.freeze({ type: "null" })]) }),
+    rows: Object.freeze({ type: "array", maxItems: 20, items: closedObject({
+      order_index: integer(0, 1000000),
+      he: string({ maxLength: 800 }),
+      ru: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 800 }), Object.freeze({ type: "null" })]) }),
+    }) }),
+    rows_total: integer(0, 1000000),
+    has_more: Object.freeze({ type: "boolean" }),
+    content_updated_at: timestamp, replica_ingested_at: timestamp,
+    authority: string({ const: "OWNER_DEVICE_CANONICAL" }),
+    generated_at: timestamp,
+  }),
   // S1 — каталог личных текстов: title nullable (битый payload = честный NULL одной строки).
   list_personal_texts: closedObject({
     schema_version: string({ const: "aa.personal_texts_list.1.0.0" }),
@@ -216,6 +234,7 @@ const DESCRIPTIONS = Object.freeze({
   get_progress_delta: "Return the owner's study-ACTIVITY delta since a timestamp (must be within the last 90 days, else AA_ACTIVITY_SINCE_OUT_OF_RANGE — do not retry): review/skip totals, distinct items reviewed, newly scheduled items, active days (owner-local calendar), practice-channel mix, and the most-reviewed words with meanings (top_limit 1-20, default 10). Pure activity — never grades, accuracy, struggle bands, or the raw memory model; days are folded in the owner's timezone (one truth with the in-app heatmap).",
   create_review_handoff: "Mint a single-use first-party link that opens the owner's due-review session in the Reading Room («открой мне повторение»). No input. Refuses with AA_REVIEW_NOTHING_SCHEDULED (do not retry) only when the owner has no scheduled words at all; with zero due-now but scheduled words the link still works — the Room honestly offers ahead-of-schedule training. The owner clicks the link; answers are recorded first-party by LinguistPro and the agent never sees them.",
   list_personal_texts: "List the owner's own synced personal texts (title, size, freshness) from the server replica — a CATALOG only, never text bodies, notes, grades or SRS state. The replica is Last-Write-Wins from the owner's devices (authority OWNER_DEVICE_CANONICAL): it can lag the device and may contain fewer texts than exist locally. Page with limit (1-100) + cursor. Typed refusals (do not retry): AA_PERSONAL_TEXTS_CONSENT_REQUIRED — the owner has not enabled text sync; AA_PERSONAL_TEXTS_RECONSENT_REQUIRED — the owner must re-confirm the updated sync consent card in the Reading Room; AA_PERSONAL_TEXTS_NOT_SYNCED — sync is on but no texts have reached the server yet (or all were deleted).",
+  get_personal_text_content: "Read a bounded window (rows 1-20, from = start order_index) of ONE of the owner's own texts by text_key (from list_personal_texts): Hebrew + Russian lines and the title. Requires, beyond the scope, a LIVE owner-issued text grant from the agent-access panel — typed refusals (do not retry): AA_TEXT_ACCESS_NOT_GRANTED / AA_TEXT_ACCESS_EXPIRED — ask the owner to (re)issue the grant in /agent-access.html; AA_PERSONAL_TEXT_NOT_FOUND — no such text in the replica; AA_ARTIFACT_UNREADABLE — the stored copy is malformed (owner should re-sync); consent refusals as in list_personal_texts. Long rows are byte-trimmed and the window may shrink to fit the byte cap — follow has_more with a new `from`. Never returns notes, grades or SRS state; while the grant is active LinguistPro stops issuing personal-text cloze challenges (certification integrity).",
 });
 
 const WRITE_TOOLS = Object.freeze(new Set(["create_reading_handoff", "create_review_handoff", "propose_action"]));

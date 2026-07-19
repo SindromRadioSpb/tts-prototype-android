@@ -40,6 +40,7 @@ const fixtures = Object.freeze({
   get_progress_delta: Object.freeze({ schema_version: 'aa.progress_delta.1.0.0', since: new Date((nowSeconds - 7 * 86400) * 1000).toISOString(), reviews_total: 12, skips_total: 1, distinct_items: 7, new_items_scheduled: 3, active_days: 4, by_channel: Object.freeze([{ channel: 'read', count: 8 }]), top_items: Object.freeze([{ display: 'כָּתַב', gloss: 'написал', times: 3 }]), generated_at: new Date(nowSeconds * 1000).toISOString() }),
   create_review_handoff: Object.freeze({ schema_version: 'aa.review_handoff.1.0.0', handoff_url: 'https://linguistpro.kolosei.com/library.html?handoff=abcdefABCDEF0123456789_-xy', expires_in_ms: 300000, action: 'open_review', generated_at: new Date(nowSeconds * 1000).toISOString() }),
   list_personal_texts: Object.freeze({ schema_version: 'aa.personal_texts_list.1.0.0', items: Object.freeze([{ text_key: 'text-1783830247939-hpbn', title: 'Мой текст', rows_count: 12, content_updated_at: new Date(nowSeconds * 1000).toISOString(), replica_ingested_at: new Date(nowSeconds * 1000).toISOString() }]), total: 1, next_cursor: null, authority: 'OWNER_DEVICE_CANONICAL', generated_at: new Date(nowSeconds * 1000).toISOString() }),
+  get_personal_text_content: Object.freeze({ schema_version: 'aa.personal_text_content.1.0.0', text_key: 'text-1783830247939-hpbn', title: 'Мой текст', rows: Object.freeze([{ order_index: 0, he: 'שלום עולם', ru: 'Привет мир' }]), rows_total: 12, has_more: true, content_updated_at: new Date(nowSeconds * 1000).toISOString(), replica_ingested_at: new Date(nowSeconds * 1000).toISOString(), authority: 'OWNER_DEVICE_CANONICAL', generated_at: new Date(nowSeconds * 1000).toISOString() }),
 });
 const args = Object.freeze({
   get_learning_brief: {}, get_review_summary: {}, get_agent_connection: {},
@@ -51,6 +52,7 @@ const args = Object.freeze({
   get_progress_delta: { since: new Date((nowSeconds - 7 * 86400) * 1000).toISOString(), top_limit: 10 },
   create_review_handoff: {},
   list_personal_texts: { limit: 10 },
+  get_personal_text_content: { text_key: 'text-1783830247939-hpbn', rows: 5 },
 });
 
 function listen(server) { return new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', () => resolve(server.address())); }); }

@@ -295,6 +295,35 @@ function personalTextsList(value) {
   return Object.freeze({ ...x, items: Object.freeze(items) });
 }
 
+// S2 — get_personal_text_content (DESIGN §2.3): bounded-окно ТЕЛА личного текста, только по
+// живому agent_text_grants поверх scope (трёхслойный гейт в хендлере). Per-row byte-caps;
+// адаптивное сужение до капа — на стороне хендлера (has_more двигается честно).
+function validatePersonalTextContentInput(value) {
+  const x = closed(value, ["text_key", "from", "rows"], ["text_key"], "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, 512, "ARGUMENTS_TOO_LARGE");
+  const out = { text_key: personalTextKey(x.text_key) };
+  if (x.from != null) out.from = integer(x.from, 0, 1000000, "ARGUMENT_SCHEMA_INVALID");
+  if (x.rows != null) out.rows = integer(x.rows, 1, 20, "ARGUMENT_SCHEMA_INVALID");
+  return Object.freeze(out);
+}
+function personalTextContent(value) {
+  const keys = ["schema_version", "text_key", "title", "rows", "rows_total", "has_more", "content_updated_at", "replica_ingested_at", "authority", "generated_at"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 16384, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.personal_text_content.1.0.0") fail("OUTPUT_SCHEMA_INVALID");
+  personalTextKey(x.text_key, "OUTPUT_SCHEMA_INVALID");
+  if (x.title !== null) string(x.title, 512);
+  if (x.authority !== "OWNER_DEVICE_CANONICAL") fail("OUTPUT_SCHEMA_INVALID");
+  integer(x.rows_total, 0, 1000000); bool(x.has_more);
+  timestamp(x.content_updated_at); timestamp(x.replica_ingested_at); timestamp(x.generated_at);
+  if (!Array.isArray(x.rows) || x.rows.length > 20) fail("OUTPUT_SCHEMA_INVALID");
+  const rows = x.rows.map((row) => {
+    const r = closed(row, ["order_index", "he", "ru"], ["order_index", "he", "ru"], "OUTPUT_SCHEMA_INVALID");
+    integer(r.order_index, 0, 1000000); string(r.he, 800); if (r.ru !== null) string(r.ru, 800);
+    return Object.freeze({ ...r });
+  });
+  return Object.freeze({ ...x, rows: Object.freeze(rows) });
+}
+
 // AA3 commit 3c — propose_action. Per-kind CLOSED payload schema (R14: no
 // cross-kind field bleed; the MCP JSON schema is a stable superset, exact
 // closedness is enforced HERE). The returned payload is the NORMALIZED object
@@ -503,6 +532,7 @@ const INPUT_VALIDATORS = Object.freeze({
   get_progress_delta: validateProgressDeltaInput,
   create_review_handoff: emptyInput,
   list_personal_texts: validatePersonalTextsListInput,
+  get_personal_text_content: validatePersonalTextContentInput,
 });
 const OUTPUT_VALIDATORS = Object.freeze({
   get_learning_brief: learningBrief,
@@ -520,6 +550,7 @@ const OUTPUT_VALIDATORS = Object.freeze({
   get_progress_delta: progressDelta,
   create_review_handoff: reviewHandoff,
   list_personal_texts: personalTextsList,
+  get_personal_text_content: personalTextContent,
 });
 
 function validateInput(tool, value) { const fn = INPUT_VALIDATORS[tool]; if (!fn) fail("UNKNOWN_TOOL"); return fn(value); }
