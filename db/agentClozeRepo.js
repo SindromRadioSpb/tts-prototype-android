@@ -72,23 +72,21 @@ async function _dueVocMap(dueItems) {
 }
 
 // scan → { item_key, surface, blanked_he, sentence_ru, text_key, order_index }
-//        | { none: 'no-consent'|'no-due-forms'|'no-artifacts'|'budget'|'no-match'|'agent_grant_active' }.
+//        | { none: 'no-consent'|'no-due-forms'|'no-artifacts'|'budget'|'no-match' }.
 // Дискриминированный результат (критика: budget-timeout ≠ definitively-empty; caller не должен
 // рендерить «нечего» на таймаут). dueItems: item_key[] из getDue (порядок=приоритет).
+//
+// Этап 1 двухрежимности (владелец 2026-07-19): прежнее S2-подавление при живом agent_text_grants
+// СНЯТО — личнотекстовые cloze (лучшая retrieval-модальность: слово в родном контексте)
+// выпускаются всегда; честность переехала из запрета в ПРОВЕНАНС: createChallenge помечает
+// класс-C задание agent_exposed при живом гранте, reviewer пишет meta.agent_exposed в review_log.
+// Взвешивание (успех мягче / провал полновесен) — будущее D1-решение по накопленным данным.
 async function selectClozeChallenge(userId, dueItems, isExposed) {
   const items = Array.isArray(dueItems) ? dueItems : [];
   if (!items.length) return { none: "no-due-forms" };
   // двойной consent — fail-closed (без него класс-C читать нельзя → fallback на reverse)
   if (!(await learnerArtifactsRepo.hasConsent(userId))) return { none: "no-consent" };
   if (!(await agentSentenceRepo.hasAgentReadConsent(userId))) return { none: "no-consent" };
-  // S2 R17 (DESIGN §2.4): пока живой agent_text_grants — личнотекстовые cloze НЕ выпускаются
-  // (стимул = предложение из текста, который внешний агент может читать → «не мог видеть»
-  // недоказуемо; сертификационная чистота > модальность, честный фолбэк на reverse/dictate
-  // существует). ЕДИНАЯ точка врезки: сюда сходятся авто-путь (reviewSession:168), manual
-  // (selectForModality) и Telegram. Fail-closed: неопределённость чека = подавление.
-  let grantState = "NONE";
-  try { grantState = (await require("./agentTextGrantsRepo").activeGrant(userId)).state; } catch (_) { grantState = "ACTIVE"; }
-  if (grantState === "ACTIVE") return { none: "agent_grant_active" };
 
   const vocMap = await _dueVocMap(items);
   if (vocMap.size === 0) return { none: "no-due-forms" };

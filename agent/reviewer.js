@@ -268,6 +268,15 @@ async function _grade(ctx, a) {
     if (inputMode) meta.input_mode = inputMode;
     if (chal.sense_id) meta.sense_id = String(chal.sense_id);
     meta.challenge_id = challengeId;
+    // Этап 1 двухрежимности (мигр. 052): класс-C задание, выданное ИЛИ отвеченное при живом
+    // agent_text_grants → провенанс agent_exposed в review_log (агент мог видеть стимул/ответ).
+    // OR-проверка на грейде закрывает «грант выдан между mint и ответом». Только РАЗМЕТКА —
+    // грейд и расписание не меняются (будущее D1-взвешивание решается по данным).
+    if (String(chal.stimulus_privacy_class || "") === "C") {
+      let exposedNow = false;
+      try { exposedNow = (await require("../db/agentTextGrantsRepo").activeGrant(ctx.userId)).state === "ACTIVE"; } catch (_) { exposedNow = true; }
+      if (Number(chal.agent_exposed) === 1 || exposedNow) meta.agent_exposed = true;
+    }
   }
   const row = {
     id: null, item_key: itemKey, kind: verdict.decision === "skip" ? "skip" : "review",

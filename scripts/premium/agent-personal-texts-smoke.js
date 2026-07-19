@@ -204,12 +204,17 @@ async function expectCode(promise, code, label) {
     assert.strictEqual(gwin.ok, true, "гигант-окно обязано отдаться (сжатое): " + JSON.stringify(gwin.ok ? {} : gwin));
     assert.ok(gwin.result.rows.length >= 1 && gwin.result.has_more === true, "shrink honest: rows=" + gwin.result.rows.length); checks++;
 
-    // R17: подавление личнотекстовых cloze при живом гранте (единая точка selectClozeChallenge;
-    // гейт срабатывает ДО тяжёлого keyingService — ранний return, смоук это и проверяет)
+    // Этап 1 двухрежимности (владелец 2026-07-19): подавление СНЯТО, честность = ПРОВЕНАНС.
+    // (a) класс-C challenge, чеканенный при живом гранте → agent_exposed=1 на mint (мигр. 052)
     await identity.recordConsent("u1", "agent_read_texts", true, "v1");
-    const clozeRepo = require("../../db/agentClozeRepo");
-    const supp = await clozeRepo.selectClozeChallenge("u1", ["k1"], () => false);
-    assert.deepStrictEqual(supp, { none: "agent_grant_active" }, "cloze подавлен при живом гранте: " + JSON.stringify(supp)); checks++;
+    const chalRepo = require("../../db/agentChallengeRepo");
+    await chalRepo.createChallenge({ userId: "u1", tgUserId: "1", tgChatId: "1", item_key: "k-exp", review_mode: "cloze:tg", prompt_kind: "cloze", stimulus_privacy_class: "C", surface: "telegram_bot" });
+    const cExp = await ctx.get("SELECT agent_exposed FROM agent_challenges WHERE user_id='u1' ORDER BY rowid DESC LIMIT 1");
+    assert.strictEqual(Number(cExp.agent_exposed), 1, "класс-C при живом гранте помечен agent_exposed на mint"); checks++;
+    await chalRepo.cancelOpenForUser("u1");
+    // (b) селектор больше НЕ подавляет — статический ассерт (сам вызов тянет 306МБ-лексикон)
+    const clozeSrc = require("fs").readFileSync(require("path").join(__dirname, "..", "..", "db", "agentClozeRepo.js"), "utf8");
+    assert.ok(!clozeSrc.includes("agent_grant_active"), "подавление снято из селектора (провенанс вместо запрета)"); checks++;
 
     // Каскад: revoke подключения → грант отозван → EXPIRED/NOT_GRANTED
     await oauthRepo.revokeConnection("u1", "conn-b", "OWNER_REVOKE");
@@ -230,10 +235,12 @@ async function expectCode(promise, code, label) {
     const iss3 = await grantsRepo.issueGrant("u1", "conn-c", { ttlDays: 1 });
     await ctx.run("UPDATE agent_text_grants SET expires_at='2026-07-01T00:00:00.000Z' WHERE grant_id=?", [iss3.grant_id]);
     assert.strictEqual((await grantsRepo.activeGrant("u1")).state, "EXPIRED"); checks++;
-    // После гашения всех грантов подавление снято by construction (гейт читает activeGrant;
-    // сам селектор дальше не гоняем — _dueVocMap лениво грузит 306МБ-лексикон, не для смоука).
+    // (c) БЕЗ живого гранта класс-C challenge чист: agent_exposed=0 (провенанс не липнет).
     await ctx.run("UPDATE agent_text_grants SET revoked_at='2026-07-19T09:07:00.000Z' WHERE revoked_at IS NULL");
-    assert.notStrictEqual((await grantsRepo.activeGrant("u1")).state, "ACTIVE", "живых грантов нет — ключ подавления снят"); checks++;
+    assert.notStrictEqual((await grantsRepo.activeGrant("u1")).state, "ACTIVE");
+    await chalRepo.createChallenge({ userId: "u1", tgUserId: "1", tgChatId: "1", item_key: "k-noexp", review_mode: "cloze:tg", prompt_kind: "cloze", stimulus_privacy_class: "C", surface: "telegram_bot" });
+    const cNo = await ctx.get("SELECT agent_exposed FROM agent_challenges WHERE user_id='u1' ORDER BY rowid DESC LIMIT 1");
+    assert.strictEqual(Number(cNo.agent_exposed), 0, "без живого гранта провенанс-метка не ставится"); checks++;
 
     // Роут-предикат eligibility панельной выдачи — против РЕАЛЬНОЙ формы listConnectionsForUser
     // (live-инцидент 2026-07-19: выдуманное поле granted_scopes = вечный NO_ELIGIBLE_CONNECTION).

@@ -1854,14 +1854,9 @@ app.post("/api/agent-access/text-grants", requireAgentAccessBoundary, async (req
     const ttlDays = body.ttl_days == null ? null : Number(body.ttl_days);
     const out = await grantsRepo.issueGrant(auth.user.id, connectionId, { ttlDays });
     if (out.ok === false) return res.status(400).json(out);
-    // R17-каскад ПОСЛЕ вставки гранта: гасим открытые challenge'и (партиал-юник даёт ≤1 —
-    // over-broad принят с оговоркой в карте) — «не мог видеть» перестало быть доказуемым.
-    try {
-      const cancelled = await agentChallengeRepo.cancelOpenForUser(auth.user.id);
-      identityRepo.audit("agent_text_grant_challenge_cascade", auth.user.id, { cancelled_challenges: cancelled }, req.ip);
-    } catch (e3) {
-      identityRepo.audit("agent_text_grant_challenge_cascade_failed", auth.user.id, { message: String(e3 && e3.message).slice(0, 120) }, req.ip);
-    }
+    // Этап 1 двухрежимности (владелец 2026-07-19): прежний cancelOpenForUser-каскад СНЯТ —
+    // открытое задание не гасится, а его грейд получит провенанс meta.agent_exposed
+    // (OR-проверка activeGrant на грейде в agent/reviewer.js покрывает выдачу между mint и ответом).
     identityRepo.audit("agent_text_grant_issue", auth.user.id, { grant_id: out.grant_id, connection_id: connectionId, ttl_days: ttlDays }, req.ip);
     res.json(out);
   } catch (e) { return agentAccessHttpError(res, e); }

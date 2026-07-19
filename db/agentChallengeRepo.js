@@ -43,6 +43,14 @@ async function createChallenge(caps) {
   if (existing) return { created: false, challenge: existing };
   const id = rndId("ch_");
   const expiresAt = new Date(Date.now() + CHALLENGE_TTL_MS).toISOString();
+  // Этап 1 двухрежимности (мигр. 052): класс-C стимул (личный текст) при живом agent_text_grants
+  // помечается agent_exposed на mint'е — провенанс вместо подавления. Fail-closed к 1:
+  // неопределённость чека = помечаем (консервативная разметка ничего не блокирует).
+  let agentExposed = 0;
+  if (String(caps.stimulus_privacy_class || "") === "C") {
+    try { agentExposed = (await require("./agentTextGrantsRepo").activeGrant(caps.userId)).state === "ACTIVE" ? 1 : 0; }
+    catch (_) { agentExposed = 1; }
+  }
   try {
     await dbRun(db,
       `INSERT INTO agent_challenges
@@ -50,8 +58,8 @@ async function createChallenge(caps) {
          prompt_kind, evidence_scope, expected_form_id, sense_id, shown_stimulus, stimulus_source,
          stimulus_source_version, stimulus_privacy_class, stimulus_hash, accepted_alts_json, expires_at,
          expected_surface, anchor_text_key, anchor_order_index, select_reason, surface,
-         selection_origin, requested_modality)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         selection_origin, requested_modality, agent_exposed)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [id, caps.userId, String(caps.tgUserId), String(caps.tgChatId), caps.item_key,
        caps.review_mode, caps.prompt_kind || "reverse", caps.evidence_scope || "lexeme",
        caps.expected_form_id || null, caps.sense_id || null, caps.shown_stimulus || null,
@@ -64,7 +72,7 @@ async function createChallenge(caps) {
        surface,
        // P8.4b: происхождение выбора — пишет СЕРВЕР (клиент шлёт только mode/modality-интент)
        caps.selection_origin === "manual" ? "manual" : "selector",
-       caps.requested_modality || null]);
+       caps.requested_modality || null, agentExposed]);
   } catch (e) {
     // гонка конкурентного /review на partial-unique → вернуть существующий
     if (String(e && e.message).includes("UNIQUE")) {
