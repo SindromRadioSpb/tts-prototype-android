@@ -1,6 +1,6 @@
 # S-пакет: Hermes → личные тексты (S1 metadata + S2-standing content) — дизайн имплементации
 
-Дата: 2026-07-18 · Статус: DRAFT → адверсариальная критика → импл. · Канон: `LINGUISTPRO_AGENT_ACCESS_PERSONAL_CONTENT_BRIDGE_RECON_2026_07_18.md` §0.1 (решения владельца), §6 (staged rollout), §2.2 (R17-каналы). Предшественник выполнен: sync-hardening P0+P2+P1 SHIPPED v3.11.212–215 (`LINGUISTPRO_SYNC_HARDENING_P0P2_DESIGN_2026_07_18.md`) — prerequisites P1 (честный consent v2) и P2 (delete-семантика) закрыты, слим-артефакты ~50 КБ (parse-cost умер как проблема).
+Дата: 2026-07-18 · Статус: **SHIPPED — S1 v3.11.216 (75e6b3f) + S2 v3.11.217 (b544c7b), 2026-07-19; критика §5 интегрирована (§6)**. Owner live-verify S1 пройден; S2 — выдать грант в панели (секция 2c) → Hermes читает окно → revoke. · Канон: `LINGUISTPRO_AGENT_ACCESS_PERSONAL_CONTENT_BRIDGE_RECON_2026_07_18.md` §0.1 (решения владельца), §6 (staged rollout), §2.2 (R17-каналы). Предшественник выполнен: sync-hardening P0+P2+P1 SHIPPED v3.11.212–215 (`LINGUISTPRO_SYNC_HARDENING_P0P2_DESIGN_2026_07_18.md`) — prerequisites P1 (честный consent v2) и P2 (delete-семантика) закрыты, слим-артефакты ~50 КБ (parse-cost умер как проблема).
 Роли: R15 (ведущая), R17, R14, R12, R16, R4.
 
 ## 0. Решения владельца, зафиксированные до дизайна (§0.1 канона + сессия 2026-07-18)
