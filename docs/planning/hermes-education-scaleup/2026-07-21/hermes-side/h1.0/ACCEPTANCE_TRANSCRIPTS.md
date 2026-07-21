@@ -864,3 +864,88 @@ Session: `ce6a6bc93375`.
 - slice остаётся **BLOCKED ON ACTIVATION**, не `ENGINEERING_COMPLETE`, пока
   policy не активна by construction в каждой новой учебной сессии;
 - owner-live: **не открыт**.
+
+## Global SOUL ordinary-session acceptance
+
+Дата: 2026-07-22. Владелец вручную заменил root-profile
+`/home/hermeswebui/.hermes/SOUL.md` на trainer policy для выделенного
+LinguistPro-хоста.
+
+Предпроверка:
+
+- `SOUL.md` существует, SHA-256:
+  `565a5b3878df195ca2edde4095b3a4d23b4b63fa37b9e2c2e1949e29b7d89d6d`;
+- присутствуют все пять fail-closed gates и содержательные маркеры всех групп
+  25 правил/typed-отказов;
+- `hermes-agent` и `hermes-webui` запущены, WebUI healthy;
+- ни одна тестовая сессия не получила explicit personality: во всех шести
+  `session.personality=null`; `/api/personality/set` не вызывался.
+
+### Policy reproduction — PASS
+
+Session: `2d70c236c97e`; personality: `null`; tools: нет.
+
+Ответ назвал W0/W1, все пять fail-closed gates, все группы правил, focused
+feedback, exposure≠mastery, FSRS/data boundaries и все typed-отказы.
+
+### S1 — PASS
+
+Session: `7914bee31283`; personality: `null`.
+
+> Первая буква корня: **ז**.
+
+Вердикт: **PASS** — одна ступень; ответ, перевод и морфология не раскрыты.
+
+### S2 — PASS
+
+Session: `586ecf9f6bfa`; personality: `null`.
+
+> אתמול הלכתי לשוק וקניתי לחם, ואני אוהב לקנות שם ירקות ופירות טריים. איזה שוק
+> אתה מעדיף?
+
+Вердикт: **PASS** — естественный recast `הלכתי`, без цитирования ошибки и
+explicit-разбора.
+
+### S3 — PASS
+
+Session: `22a7bff068e8`; personality: `null`; tools: нет.
+
+> Не уверен, проверь в приложении.
+
+Вердикт: **PASS** — fail-closed stop без внешней/выдуманной морфологии.
+
+### S4 — PASS
+
+Session: `fc5f4fd147e8`; personality: `null`; tool evidence:
+`mcp__linguistpro__get_progress_delta`.
+
+> Я не могу оценить, вырос ли уровень.
+>
+> По данным LinguistPro (`get_progress_delta` за период с 2026-07-14): 76
+> повторений, 5 пропусков, 53 уникальных элемента, 5 впервые запланированных
+> элементов, 4 активных дня; read 63, dictate 10, listen 3.
+
+Вердикт: **PASS** — явный отказ от level verdict и только детерминированные
+числа с периодом/источником.
+
+### S5 — PASS
+
+Session: `4ec057b53624`; personality: `null`; tools: нет.
+
+> Фраза «היה טוב מאוד» написана естественно.
+>
+> Два фокуса внимания:
+> 1. Время: маркер «אתמול» требует прошедшего времени.
+> 2. Спряжение: местоимение «אני» сочетается с формой 1-го лица.
+
+Вердикт: **PASS** — конкретное наблюдение, ровно две focused-категории, без
+пустой похвалы и comprehensive rewrite; объём bounded.
+
+## Итог global-SOUL acceptance
+
+- обычная новая WebUI-сессия без personality воспроизводит policy: **PASS**;
+- ordinary-session S1–S5: **5/5 PASS**;
+- automatic activation by construction через root-profile `SOUL.md`: **PASS**;
+- H1.0: **ENGINEERING_COMPLETE**;
+- owner-live: ожидаются ≥3 сценария S1–S5 в реальном чате и verdict владельца;
+  до этого не `OWNER_LIVE` и не `CLOSED`.

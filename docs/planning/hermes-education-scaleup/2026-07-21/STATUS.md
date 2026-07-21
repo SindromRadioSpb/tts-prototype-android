@@ -4,13 +4,13 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-22 (H1.0 personality: behavioral 5/5; BLOCKED ON automatic activation).
+Обновлено: 2026-07-22 (H1.0 global SOUL: ordinary-session 5/5; ENGINEERING_COMPLETE; owner-live pending).
 
-## Горизонт 1 — статус: BLOCKED (H1.0 acceptance)
+## Горизонт 1 — статус: IN_PROGRESS (H1.0 engineering complete; owner-live pending)
 
 | Слайс | Промт | Статус | Гейты | Вердикт владельца | Ссылки/заметки |
 |---|---|---|---|---|---|
-| H1.0 Trainer policy | prompts/H1_01_TRAINER_POLICY_AND_GUARDRAILS.md | BLOCKED | personality reproduction PASS; explicit personality S1–S5 5/5; automatic new-chat activation FAIL | — | `linguistpro-trainer` installed; new WebUI session remains `personality:null`; owner decision: global SOUL vs activation bridge; `hermes-side/h1.0/` |
+| H1.0 Trainer policy | prompts/H1_01_TRAINER_POLICY_AND_GUARDRAILS.md | ENGINEERING_COMPLETE | global SOUL reproduction PASS; ordinary new-chat S1–S5 5/5 | — | automatic activation PASS with `personality:null`; owner must run ≥3 S1–S5 and record verdict; `hermes-side/h1.0/` |
 | H1.1 Разговорная сессия | prompts/H1_02_CONVERSATION_SKILL.md | PLANNED | — | — | после H1.0 |
 | H1.2 Письмо WCF | prompts/H1_03_WRITING_WCF_SKILL.md | PLANNED | — | — | после H1.0 |
 | H1.3 Ретроспектива SRL | prompts/H1_04_WEEKLY_SRL_SKILL.md | PLANNED | — | — | после H1.0 |

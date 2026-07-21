@@ -167,3 +167,25 @@ always-on activation contract обычного нового чата.
 Rollback remediation: восстановить `config.yaml` из локальной backup-копии,
 удалить только каталог `personalities/linguistpro-trainer`, перезапустить оба
 Hermes-контейнера и проверить новой сессией отсутствие personality.
+
+## Global SOUL — финальное устранение activation blocker
+
+Владелец подтвердил, что Hermes-хост выделен под LinguistPro, и вручную заменил
+root-profile `/home/hermeswebui/.hermes/SOUL.md` на полную условную trainer
+policy. SHA-256 установленного глобального SOUL:
+`565a5b3878df195ca2edde4095b3a4d23b4b63fa37b9e2c2e1949e29b7d89d6d`.
+
+Шесть новых обычных WebUI-сессий были созданы без explicit personality
+(`personality:null`). Policy reproduction прошёл, S1–S5 прошли **5/5**. Тем
+самым global SOUL устранил последний activation blocker: policy теперь приходит
+в system prompt by construction, а custom personality остаётся fallback.
+
+Статус H1.0: **ENGINEERING_COMPLETE**, не `OWNER_LIVE` и не `CLOSED`.
+
+Владельцу осталось открыть реальные обычные чаты, прогнать минимум три разных
+сценария из S1–S5 и записать verdict 1–5 с комментарием в `STATUS.md`.
+
+Rollback global SOUL: вернуть исходный базовый Hermes SOUL из сохранённого
+владельцем текста/истории панели, открыть новую сессию и убедиться, что trainer
+policy больше не воспроизводится автоматически. Custom personality и skill
+можно удалить отдельно только при полном rollback H1.0.
