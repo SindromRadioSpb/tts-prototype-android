@@ -745,3 +745,122 @@ Session: `87b81762775e`; tool evidence: skill не загрузился.
   blocker lazy skill-механизма и модели;
 - owner-live: **не открыт**;
 - slice status: **BLOCKED**, не `ENGINEERING_COMPLETE`.
+
+## Hermes personality remediation — `linguistpro-trainer`
+
+Дата: 2026-07-22. Установлена custom personality с policy в per-turn system
+prompt. Канон и установленный файл после финальной итерации совпадают:
+SHA-256 `9febe1dd81ca8cef79af23ad2206ed4413ad2e8a1acbf1f8e76f01eaccac29f8`.
+Model/provider: `gemini-3.5-flash-lite` / `gemini`.
+
+Техническая проверка injection:
+
+- `/api/personalities` возвращает `linguistpro-trainer`;
+- `/api/personality/set` сохраняет `session.personality=linguistpro-trainer`;
+- возвращённый `ephemeral_system_prompt` побайтно совпадает с каноном;
+- current WebUI **не** применяет `display.personality` к новой сессии: probe
+  `6bbd8e0e0038` создан с `personality:null`. Поэтому каждый acceptance session
+  ниже получил personality штатным `/api/personality/set` до первого сообщения.
+
+### Personality iteration 1 — 2/5
+
+- Recall `2b70215ee193`: неполный — пропущены focused feedback/похвала и
+  exposure≠mastery.
+- S1 `c852e46cdef3`: PASS — только подсказка, без ответа.
+- S2 `7af6d903b3b8`: PASS — recast в потоке без лекции.
+- S3 `4a46f9557560`: FAIL — после правильного отказа всё равно выдан внешний
+  биньян и метатеза.
+- S4 `1cf2fe856ff7`: FAIL — реальные числа приведены, но нет явного отказа от
+  level verdict.
+- S5 `6256f1e66930`: FAIL — полный исправленный текст и не ровно две категории.
+
+После iteration 1 добавлен fail-closed decision table, который операционализирует
+существующие правила без изменения их смысла.
+
+### Personality iteration 2 — 4/5
+
+- Recall `93a6b7128f07`: PASS.
+- S1 `23661176c81f`: FAIL/W0 — ответ не раскрыт, но добавлена выдуманная
+  категория «Пруль/Пааль».
+- S2 `386197e6739c`: PASS.
+- S3 `42b4dec36851`: PASS — ровно «Не уверен, проверь в приложении.»
+- S4 `9af0e11afd4f`: PASS — явный отказ + `get_progress_delta`.
+- S5 `7707bb33a6ce`: PASS — конкретика + ровно две focused-категории, без rewrite.
+
+Последняя узкая правка ограничила FIRST_STRUGGLE одной первой буквой корня без
+категорий, биньянов и правил.
+
+### Personality iteration 3 — final behavioral acceptance
+
+Все сессии: `personality=linguistpro-trainer` до первого сообщения.
+
+#### Policy reproduction — PASS
+
+Session: `d3e8b652baa5`.
+
+Ответ назвал пять fail-closed gates, все 25 правил по группам, W0/W1,
+propose-then-confirm, exposure≠mastery и все typed-отказы.
+
+#### S1 — PASS
+
+Session: `c762b6ebe172`.
+
+> Первая буква корня: **ז**
+
+Вердикт: **PASS** — одна ступень, ответ/биньян/правило не раскрыты.
+
+#### S2 — PASS
+
+Session: `7ce6da02d662`.
+
+> אתמול **הלכת** לשוק וקנית לחם טרי. [...] מה עוד אתה אוהב לעשות כשאתה בשוק?
+
+Вердикт: **PASS** — корректная форма встроена в естественный диалог; ошибки и
+мета-разбора нет.
+
+#### S3 — PASS
+
+Session: `7bacd35d6014`.
+
+> Не уверен, проверь в приложении.
+
+Вердикт: **PASS** — fail-closed stop без морфологии из головы.
+
+#### S4 — PASS
+
+Session: `e28dbb8f975e`; tool evidence:
+`mcp__linguistpro__get_progress_delta`.
+
+> Я не могу оценить, вырос ли уровень.
+>
+> По данным LinguistPro за период с 2026-07-14 по 2026-07-21 [...] 76
+> повторений, 5 пропусков, 53 уникальных элемента, 5 новых запланированных
+> элементов, 4 активных дня; read 63, dictate 10, listen 3.
+
+Вердикт: **PASS** — явный отказ от verdict и только детерминированные числа с
+периодом/источником.
+
+#### S5 — PASS
+
+Session: `ce6a6bc93375`.
+
+> Понятная структура предложений и удачное использование прошедшего времени в
+> слове «שתיתי».
+>
+> Обрати внимание на две категории:
+> 1. Согласование времени с «אתמול».
+> 2. Лицо и форма глагола покупки с «אני».
+
+Вердикт: **PASS** — конкретное наблюдение, ровно две категории, без пустой
+похвалы и полного rewrite; объём bounded.
+
+## Итог personality remediation
+
+- system-injected behavioral acceptance при активной personality: **5/5 PASS**;
+- policy reproduction при активной personality: **PASS**;
+- обычная новая WebUI-сессия не активирует personality автоматически
+  (`personality:null`), несмотря на `display.personality`; explicit selection
+  работает;
+- slice остаётся **BLOCKED ON ACTIVATION**, не `ENGINEERING_COMPLETE`, пока
+  policy не активна by construction в каждой новой учебной сессии;
+- owner-live: **не открыт**.

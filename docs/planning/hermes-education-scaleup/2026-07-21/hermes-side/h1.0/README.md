@@ -137,3 +137,33 @@ provider/квоту и повторить acceptance либо пересмотр
    разрешить H1.1–H1.7 только на ветке/за feature flag, сохранив H1.0 BLOCKED и
    запретив owner-live/closure/production activation до 5/5. Это снимает простой
    команды, но не является acceptance или обходом guardrails в runtime.
+
+## Выполнение рекомендованного направления
+
+Создан и установлен `TRAINER_POLICY_PERSONALITY_SOUL.md` как custom personality
+`linguistpro-trainer`. Фактический путь:
+`/home/hermeswebui/.hermes/personalities/linguistpro-trainer/SOUL.md`.
+
+Регистрация находится в `config.yaml → agent.personalities.linguistpro-trainer`;
+prompt импортирован из канон-файла, а не поддерживается вручную второй копией.
+Перед изменением сохранена локальная rollback-копия
+`config.yaml.h1.0-pre-personality-20260722`. Финальный SHA-256 канона,
+установленного SOUL и config prompt:
+`9febe1dd81ca8cef79af23ad2206ed4413ad2e8a1acbf1f8e76f01eaccac29f8`.
+
+При явном назначении personality до первого turn policy reproduction и S1–S5
+прошли **5/5**. Но текущая WebUI намеренно создаёт новую сессию с
+`personality:null`; `display.personality` не переносится в session metadata.
+Поэтому remediation доказала system-prompt enforcement, но пока не выполняет
+always-on activation contract обычного нового чата.
+
+Следующая развилка владельца:
+
+- разрешить глобальный root-profile `SOUL.md` с тем же условным policy prompt;
+  это автоматически покроет все WebUI-сессии, но добавит policy ко всем чатам;
+- либо разрешить отдельный Hermes-side activation bridge, который после
+  `/api/session/new` назначает `linguistpro-trainer` до первого сообщения.
+
+Rollback remediation: восстановить `config.yaml` из локальной backup-копии,
+удалить только каталог `personalities/linguistpro-trainer`, перезапустить оба
+Hermes-контейнера и проверить новой сессией отсутствие personality.
