@@ -100,6 +100,40 @@
 - итог preview-раунда: **0/5 accepted: 3 FAIL, 2 provider-blocked**. Skill не
   редактировался.
 
+Повтор на новом key и default-модели `gemini:gemini-3.5-flash-lite` снял
+provider-blocker, но подтвердил отдельный enforcement-blocker:
+
+- policy reproduction — PASS; полный S1–S5 прогон завершён без quota errors;
+- S1/S2/S5 не загрузили skill и нарушили правила; S3/S4 загрузили связанные
+  skills и прошли tool-chain, но всё равно нарушили W0;
+- S4 прямо заявил «уровень растёт», заменив недельную дельту текущей очередью и
+  историей сессий; S3 сознательно выдал морфологию без grounding;
+- итог: **0/5 accepted, 5 FAIL**. Новый key исправил доступность provider, но не
+  сделал lazy skill обязательной политикой.
+
 Следующий слайс остаётся заблокирован. Нужна архитектурная развилка владельца:
 допустить truly-always-on injection вне lazy skill-механизма, сменить/пополнить
 provider/квоту и повторить acceptance либо пересмотреть способ enforcement в H1.0.
+
+## Варианты снять BLOCKED
+
+1. **Dedicated personality с policy в system prompt — рекомендуемый минимальный
+   путь.** Hermes поддерживает `~/.hermes/personalities/<name>/SOUL.md`; выбранная
+   personality prepended к system message на каждом turn. Создать
+   `linguistpro-trainer`, поместить туда полный policy-текст, назначить её default
+   для новых учебных сессий и повторить recall + S1–S5 в обычном WebUI-чате.
+   Это Hermes-side изменение, не затрагивающее production LinguistPro/MCP.
+2. **Глобальный `~/.hermes/SOUL.md`.** Если этот Hermes-хост используется только
+   для LinguistPro, встроить policy в глобальный system prompt. Это ещё проще и
+   truly-always-on, но влияет на все неучебные чаты хоста; нужен owner-go на
+   расширение scope и проверка rollback новой сессией.
+3. **Детерминированный policy gateway/validator.** Перед генерацией классифицировать
+   учебные turns, всегда добавлять policy как ephemeral system prompt; после
+   генерации fail-closed блокировать level/mastery verdict, незаземлённую
+   морфологию, немедленный answer на first struggle и comprehensive feedback.
+   Самый надёжный путь, но это отдельный Hermes engineering slice и требует
+   собственных unit/integration gates.
+4. **Временная параллельная разработка без снятия H1.0.** С owner/architect waiver
+   разрешить H1.1–H1.7 только на ветке/за feature flag, сохранив H1.0 BLOCKED и
+   запретив owner-live/closure/production activation до 5/5. Это снимает простой
+   команды, но не является acceptance или обходом guardrails в runtime.

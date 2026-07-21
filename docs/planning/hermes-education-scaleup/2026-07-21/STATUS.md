@@ -4,13 +4,13 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-22 (H1.0 preview rerun: BLOCKED, 0/5 accepted, 3 FAIL, 2 provider-blocked).
+Обновлено: 2026-07-22 (H1.0 new-key rerun: provider PASS; policy reproduction PASS; S1–S5 0/5, 5 FAIL).
 
 ## Горизонт 1 — статус: BLOCKED (H1.0 acceptance)
 
 | Слайс | Промт | Статус | Гейты | Вердикт владельца | Ссылки/заметки |
 |---|---|---|---|---|---|
-| H1.0 Trainer policy | prompts/H1_01_TRAINER_POLICY_AND_GUARDRAILS.md | BLOCKED | preview reproduction FAIL; S1–S5 0/5 accepted: 3 FAIL, 2 provider-blocked | — | `gemini-3-flash-preview`: S1/S2/S3 FAIL; S4/S5 429 after 2 attempts; `hermes-side/h1.0/` |
+| H1.0 Trainer policy | prompts/H1_01_TRAINER_POLICY_AND_GUARDRAILS.md | BLOCKED | new key: provider PASS; reproduction PASS; S1–S5 0/5, 5 FAIL | — | `gemini-3.5-flash-lite`: S1/S2/S5 no skill; S3/S4 W0 fail after tools; owner decision: personality/SOUL vs gateway vs dev waiver; `hermes-side/h1.0/` |
 | H1.1 Разговорная сессия | prompts/H1_02_CONVERSATION_SKILL.md | PLANNED | — | — | после H1.0 |
 | H1.2 Письмо WCF | prompts/H1_03_WRITING_WCF_SKILL.md | PLANNED | — | — | после H1.0 |
 | H1.3 Ретроспектива SRL | prompts/H1_04_WEEKLY_SRL_SKILL.md | PLANNED | — | — | после H1.0 |
