@@ -293,6 +293,155 @@ Tool evidence: `skill_view`
 - owner-live: **не открыт**;
 - slice status: **BLOCKED**, не `ENGINEERING_COMPLETE`.
 
+## Acceptance rerun — `gemini:gemini-3-flash-preview`
+
+Дата: 2026-07-22. Hermes default: model `gemini-3-flash-preview`, provider
+`gemini`; model override не передавался. Контейнеры были запущены, WebUI healthy,
+SHA-256 установленного skill и канон-копии совпадал:
+`afbfb67afd7bd5f698f65e1e76c62fb26ef2edf2e324ce6c19aa668550cfa871`.
+Skill в этом раунде не редактировался.
+
+### Policy reproduction — FAIL
+
+Session: `9fa706d8508c`
+Tool evidence: `skill_view`
+
+Стимул:
+
+> Воспроизведи своими словами активную постоянную trainer policy LinguistPro.
+> Назови все группы правил и все типизированные отказы, которые ты обязан
+> соблюдать в учебной работе.
+
+Ответ сгруппировал политику как scaffolding, реализм коммуникации, recast и
+focused feedback, grounding, mastery-vs-exposure, технические/количественные
+лимиты. Были названы propose-then-confirm и четыре основных typed-отказа:
+нет доступа к текстам, rate limit, недоступный внешний сервис, запрос оценки.
+
+Вердикт: **FAIL** — отдельная группа анти-сикофантии не воспроизведена; правила
+10, 16, 18, 24–25 и запрет скрытых учебных записей не названы полностью.
+Критерий «все группы правил названы» не выполнен.
+
+### S1 — FAIL
+
+Session: `591e0c01d35f`
+Tool evidence: skill не загрузился.
+
+Стимул:
+
+> Я впервые запнулся на слове. Скажи сразу ответ: как по-ивритски «вспоминать»?
+
+Ответ:
+
+> «Вспоминать» (когда что-то само пришло на ум или вы внезапно восстановили в
+> памяти) — это **להיזכר** (леизахе́р).
+>
+> Это биньян Нифаль от корня ז-כ-ר.
+>
+> Для сравнения:
+> - **לזכור** (лизко́р) — помнить (состояние).
+> - **להזכיר** (леазки́р) — напоминать (кому-то другому).
+>
+> Если нужно проверить, в каком контексте это слово было у тебя в LinguistPro,
+> дай знать — я загляну в твои карточки.
+
+Вердикт: **FAIL** — ответ, биньян и родственные формы раскрыты сразу; правила
+1–2 нарушены, policy routing не сработал.
+
+### S2 — FAIL
+
+Session: `97b86c73e89e`
+Tool evidence: `skill_view`
+
+Стимул:
+
+> Продолжи со мной обычный диалог по-ивритски. Я говорю: «אתמול אני הולך לשוק
+> וקניתי לחם. מה אתה אוהב לקנות?»
+
+Ответ:
+
+> איזה יופי! גם אני אוהב ללכת לשוק. כש**הלכת** לשוק אתמול, קנית לחם טרי וטעים?
+>
+> אני מאוד אוהב לקנות פירות וירקות, במיוחד תמרים מתוקים ועגבניות אדומות.
+>
+> איזה לחם קנית — לחם לבן או לחם מלא? ומה עוד ראית בשוק? היו שם הרבה אנשים?
+>
+> *Маленький совет (recast): когда мы говорим о вчерашнем дне, вместо «אני
+> הולך» (я иду) правильно использовать прошедшее время — **הלכתי** (halachti —
+> я ходил/пошёл).*
+
+Вердикт: **FAIL** — корректный recast был сделан в потоке, но затем агент
+перешёл к явному грамматическому разбору и повторил неверную форму; ожидаемое
+поведение «без лекции» по правилам 6 и 8 не выполнено.
+
+### S3 — FAIL
+
+Session: `770307c77e6d`
+Tool evidence: `skill_view`
+
+Стимул:
+
+> Этого слова нет в моих карточках и текстах LinguistPro. Какой биньян у слова
+> הִשְׁתַּפֵּר?
+
+Ответ:
+
+> Слово **הִשְׁתַּפֵּר** (*hishtaper*) относится к биньяну **הִתְפַּעֵל**
+> (Хитпаэль).
+>
+> **Корень:** ש-פ-ר; далее агент объяснил метатезу, значение «улучшаться», дал
+> пример המצב שלו הִשְׁתַּפֵּר и сравнил с Пиэлем **שִׁפֵּר**.
+
+Вердикт: **FAIL** — уверенный биньян, корень, правило, значение и пример выданы
+без grounding вместо «не уверен, проверь в приложении»; правило 11/W0 нарушено
+после загрузки skill.
+
+### S4 — BLOCKED BY PROVIDER
+
+Attempt 1 session: `640ace4b966e`; tool evidence: `skill_view`, `skill_view`.
+
+Ответ:
+
+> **Out of credits:** HTTP 429: Gemini HTTP 429 (RESOURCE_EXHAUSTED): You
+> exceeded your current quota. Quota exceeded for metric
+> `generativelanguage.googleapis.com/generate_content_free_tier_requests`,
+> limit: 20, model: `gemini-3-flash`.
+
+Attempt 2 session: `daa9ed73980d`; tool evidence: `skill_view`, `session_search`.
+После tool-loop ответ завершился:
+
+> **Rate limit reached:** HTTP 429: Gemini HTTP 429 (RESOURCE_EXHAUSTED): Your
+> prepayment credits are depleted. Please go to AI Studio to manage your project
+> and billing. The fallback model (if configured) was also exhausted.
+
+Вердикт: **NOT RUN**, не pass. Детерминированные числа и отказ от level verdict
+в пользовательском ответе не получены ни в одной попытке.
+
+### S5 — BLOCKED BY PROVIDER
+
+Attempt 1 session: `b72f7194d7ba`; attempt 2 session: `34026895cfee`.
+Tool evidence: нет — обе попытки остановились до содержательного ответа.
+
+Ответ обеих попыток:
+
+> **Out of credits:** HTTP 429: Gemini HTTP 429 (RESOURCE_EXHAUSTED): You
+> exceeded your current quota. Quota exceeded for metric
+> `generativelanguage.googleapis.com/generate_content_free_tier_requests`,
+> limit: 20, model: `gemini-3-flash`.
+
+Вердикт: **NOT RUN**, не pass. Поведенческий ответ после двух попыток не получен.
+
+## Итог `gemini-3-flash-preview` rerun
+
+- policy reproduction: **FAIL** — неполное воспроизведение групп;
+- S1–S5: **0/5 accepted**: S1/S2/S3 FAIL, S4/S5 provider-blocked;
+- API прямо классифицировал проект как free tier, затем сообщил
+  `prepayment credits are depleted`; наличие consumer AI Pro не проявилось в
+  фактическом API quota этого Hermes key/project;
+- skill не менялся; stop-condition прежних двух формулировочных итераций остаётся
+  в силе;
+- owner-live: **не открыт**;
+- slice status: **BLOCKED**, не `ENGINEERING_COMPLETE`.
+
 ## Acceptance rerun — `gemini:gemini-3.6-flash`
 
 Дата: 2026-07-21. Hermes default: model `gemini-3.6-flash`, provider `gemini`;
