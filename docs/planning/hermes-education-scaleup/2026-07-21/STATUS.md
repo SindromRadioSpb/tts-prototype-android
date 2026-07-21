@@ -4,13 +4,13 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-21 (создание пакета; ничего не реализовано).
+Обновлено: 2026-07-21 (H1.0 skill установлен; acceptance BLOCKED, 0/5).
 
-## Горизонт 1 — статус: PLANNED
+## Горизонт 1 — статус: BLOCKED (H1.0 acceptance)
 
 | Слайс | Промт | Статус | Гейты | Вердикт владельца | Ссылки/заметки |
 |---|---|---|---|---|---|
-| H1.0 Trainer policy | prompts/H1_01_TRAINER_POLICY_AND_GUARDRAILS.md | PLANNED | — | — | блокирует все H1 |
+| H1.0 Trainer policy | prompts/H1_01_TRAINER_POLICY_AND_GUARDRAILS.md | BLOCKED | policy reproduction PASS; S1–S5 0/5 | — | skill установлен; S1/S3 fail после 2 итераций, S4 provider quota; `hermes-side/h1.0/` |
 | H1.1 Разговорная сессия | prompts/H1_02_CONVERSATION_SKILL.md | PLANNED | — | — | после H1.0 |
 | H1.2 Письмо WCF | prompts/H1_03_WRITING_WCF_SKILL.md | PLANNED | — | — | после H1.0 |
 | H1.3 Ретроспектива SRL | prompts/H1_04_WEEKLY_SRL_SKILL.md | PLANNED | — | — | после H1.0 |
