@@ -4,13 +4,13 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-22 (H1.0 global SOUL: ordinary-session 5/5; ENGINEERING_COMPLETE; owner-live pending).
+Обновлено: 2026-07-22 (H1.0 owner-live 3 сценария, verdict 5/5; CLOSED).
 
-## Горизонт 1 — статус: IN_PROGRESS (H1.0 engineering complete; owner-live pending)
+## Горизонт 1 — статус: IN_PROGRESS (H1.0 CLOSED; H1.1 следующий)
 
 | Слайс | Промт | Статус | Гейты | Вердикт владельца | Ссылки/заметки |
 |---|---|---|---|---|---|
-| H1.0 Trainer policy | prompts/H1_01_TRAINER_POLICY_AND_GUARDRAILS.md | ENGINEERING_COMPLETE | global SOUL reproduction PASS; ordinary new-chat S1–S5 5/5 | — | automatic activation PASS with `personality:null`; owner must run ≥3 S1–S5 and record verdict; `hermes-side/h1.0/` |
+| H1.0 Trainer policy | prompts/H1_01_TRAINER_POLICY_AND_GUARDRAILS.md | CLOSED | global SOUL reproduction PASS; ordinary new-chat S1–S5 5/5; owner-live 3 scenarios PASS | 5/5 — все ответы соответствовали ожиданиям | automatic activation PASS with `personality:null`; `hermes-side/h1.0/` |
 | H1.1 Разговорная сессия | prompts/H1_02_CONVERSATION_SKILL.md | PLANNED | — | — | после H1.0 |
 | H1.2 Письмо WCF | prompts/H1_03_WRITING_WCF_SKILL.md | PLANNED | — | — | после H1.0 |
 | H1.3 Ретроспектива SRL | prompts/H1_04_WEEKLY_SRL_SKILL.md | PLANNED | — | — | после H1.0 |
@@ -58,3 +58,4 @@
 | Дата | Решение | Кто |
 |---|---|---|
 | 2026-07-21 | Направление утверждено (OWNER-APPROVED DIRECTION/PLANNING); пакет создан | владелец / Claude |
+| 2026-07-22 | H1.0 owner-live: 3 сценария пройдены, verdict 5/5; слайс CLOSED | владелец |
