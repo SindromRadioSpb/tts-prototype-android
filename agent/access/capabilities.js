@@ -31,6 +31,8 @@ const CAPABILITIES = Object.freeze({
   list_personal_texts: Object.freeze({ scope: "personal.texts.metadata.read", purpose: "EXPLICIT_PERSONAL_TEXTS_CATALOG", scenario_id: "agent_access.personal_texts_list", max_output_bytes: 24576 }),
   // S2 — тело личного текста: scope + ЖИВОЙ agent_text_grants владельца (третий слой в хендлере).
   get_personal_text_content: Object.freeze({ scope: "personal.texts.content.read", purpose: "EXPLICIT_PERSONAL_TEXT_BODY", scenario_id: "agent_access.personal_text_content", max_output_bytes: 16384 }),
+  // H2.1 — deterministic morphology grounding over the shipped Pealim dataset.
+  get_word_morphology: Object.freeze({ scope: "morphology.read", purpose: "EXPLICIT_WORD_MORPHOLOGY_GROUNDING", scenario_id: "agent_access.word_morphology", max_output_bytes: 8192 }),
 });
 
 function getCapability(name) { return CAPABILITIES[String(name)] || null; }

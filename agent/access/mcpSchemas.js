@@ -63,11 +63,27 @@ const INPUT_SCHEMAS = Object.freeze({
   list_personal_texts: closedObject({ limit: integer(1, 100), cursor: string({ maxLength: 256, pattern: "^[A-Za-z0-9_.~:@/+\\-=]{1,256}$" }) }, []),
   // S2 — окно тела личного текста (по гранту владельца).
   get_personal_text_content: closedObject({ text_key: string({ maxLength: 200, pattern: "^[A-Za-z0-9._:-]{1,200}$" }), from: integer(0, 1000000), rows: integer(1, 20) }, ["text_key"]),
+  get_word_morphology: closedObject({
+    word: string({ minLength: 1, maxLength: 40, pattern: "^[֑-ׇא-ת׳״'-]{1,40}$" }),
+    context_sentence: string({ maxLength: 280 }),
+  }, ["word"]),
 });
 
 const timestamp = string({ maxLength: 40, pattern: TIME });
 const id = string({ maxLength: 128, pattern: ID });
-const scope = string({ enum: Object.freeze(Object.values(CAPABILITIES).map((entry) => entry.scope)) });
+// Frozen by the schema-caching contract: get_agent_connection existed before
+// H2.1, so its granted_scopes enum cannot grow when a new capability is added.
+// New scopes are discoverable through OAuth metadata/consent and their own
+// additive tool definitions; mutating this enum breaks already-open clients.
+const CONNECTION_SCHEMA_SCOPES = Object.freeze([
+  "learning.brief.read", "review.summary.read", "reading.public.search",
+  "explanations.metadata.read", "agent.connection.read", "agent.connection.read",
+  "review.items.read", "profile.read", "explanations.body.read",
+  "reading.corpus.read", "reading.handoff.create", "intent.propose",
+  "review.activity.read", "review.handoff.create", "personal.texts.metadata.read",
+  "personal.texts.content.read",
+]);
+const scope = string({ enum: CONNECTION_SCHEMA_SCOPES });
 const connectionState = string({ enum: Object.freeze(["ACTIVE", "SCOPE_REDUCED", "SUSPENDED", "REVOKED"]) });
 
 const OUTPUT_SCHEMAS = Object.freeze({
@@ -216,6 +232,29 @@ const OUTPUT_SCHEMAS = Object.freeze({
     authority: string({ const: "OWNER_DEVICE_CANONICAL" }),
     generated_at: timestamp,
   }),
+  get_word_morphology: closedObject({
+    schema_version: string({ const: "aa.word_morphology.1.0.0" }),
+    resolution: string({ enum: Object.freeze(["EXACT", "AMBIGUOUS", "UNRESOLVED"]) }),
+    entries: Object.freeze({ type: "array", maxItems: 5, items: closedObject({
+      lemma: string({ maxLength: 80 }),
+      root: string({ maxLength: 40 }),
+      pos: string({ enum: Object.freeze(["adjective", "adverb", "conjunction", "interjection", "noun", "other", "preposition", "pronoun", "verb"]) }),
+      binyan: string({ enum: Object.freeze(["hifil", "hitpael", "hufal", "nifal", "paal", "piel", "pual"]) }),
+      mishkal: string({ maxLength: 40 }),
+      gender: string({ enum: Object.freeze(["MASCULINE", "FEMININE"]) }),
+      number: string({ enum: Object.freeze(["SINGULAR", "PLURAL"]) }),
+      person: string({ enum: Object.freeze(["1", "2", "3"]) }),
+      tense: string({ enum: Object.freeze(["PAST", "PRESENT", "FUTURE", "IMPERATIVE", "INFINITIVE"]) }),
+      niqqud_form: string({ maxLength: 80 }),
+      gloss_ru: string({ maxLength: 400 }),
+      confidence: string({ enum: Object.freeze(["EXACT", "PROBABLE", "POSSIBLE"]) }),
+      provenance: string({ const: "PEALIM_OFFLINE_V12" }),
+    }, ["lemma", "pos", "confidence", "provenance"]) }),
+    unresolved_reason: string({ enum: Object.freeze(["NOT_IN_DICTIONARY", "AMBIGUOUS_WITHOUT_CONTEXT", "NON_HEBREW"]) }),
+    resolver_version: string({ maxLength: 80 }),
+    dataset_version: string({ const: "pealim-infl-v12" }),
+    generated_at: timestamp,
+  }, ["schema_version", "resolution", "entries", "resolver_version", "dataset_version", "generated_at"]),
 });
 
 const DESCRIPTIONS = Object.freeze({
@@ -235,6 +274,7 @@ const DESCRIPTIONS = Object.freeze({
   create_review_handoff: "Mint a single-use first-party link that opens the owner's due-review session in the Reading Room («открой мне повторение»). No input. Refuses with AA_REVIEW_NOTHING_SCHEDULED (do not retry) only when the owner has no scheduled words at all; with zero due-now but scheduled words the link still works — the Room honestly offers ahead-of-schedule training. The owner clicks the link; answers are recorded first-party by LinguistPro and the agent never sees them.",
   list_personal_texts: "List the owner's own synced personal texts (title, size, freshness) from the server replica — a CATALOG only, never text bodies, notes, grades or SRS state. The replica is Last-Write-Wins from the owner's devices (authority OWNER_DEVICE_CANONICAL): it can lag the device and may contain fewer texts than exist locally. Page with limit (1-100) + cursor. Typed refusals (do not retry): AA_PERSONAL_TEXTS_CONSENT_REQUIRED — the owner has not enabled text sync; AA_PERSONAL_TEXTS_RECONSENT_REQUIRED — the owner must re-confirm the updated sync consent card in the Reading Room; AA_PERSONAL_TEXTS_NOT_SYNCED — sync is on but no texts have reached the server yet (or all were deleted).",
   get_personal_text_content: "Read a bounded window (rows 1-20, from = start order_index) of ONE of the owner's own texts by text_key (from list_personal_texts): Hebrew + Russian lines and the title. Requires, beyond the scope, a LIVE owner-issued text grant from the agent-access panel — typed refusals (do not retry): AA_TEXT_ACCESS_NOT_GRANTED / AA_TEXT_ACCESS_EXPIRED — ask the owner to (re)issue the grant in /agent-access.html; AA_PERSONAL_TEXT_NOT_FOUND — no such text in the replica; AA_ARTIFACT_UNREADABLE — the stored copy is malformed (owner should re-sync); consent refusals as in list_personal_texts. Long rows are byte-trimmed and the window may shrink to fit the byte cap — follow has_more with a new `from`. Never returns notes, grades or SRS state; reads are logged as bounded window metadata (30-day exposure ledger, no content) so challenges on sentences the agent actually read are provenance-marked agent-exposed (grading stays first-party).",
+  get_word_morphology: "Ground a Hebrew morphology claim in the shipped offline Pealim v12 dataset. Call this BEFORE asserting a lemma, root, binyan, inflected form, gender, number, person, or tense. EXACT is returned only for a decisive unique dataset match; AMBIGUOUS returns the available homograph analyses (up to the contract cap) and must not be collapsed by the agent; UNRESOLVED means the dataset has no answer and the agent must say so rather than generate a paradigm. Optional context_sentence can only disambiguate when it carries a matching vocalized form. No LLM, Dicta request, network call, learner data, or synthesized form is used.",
 });
 
 const WRITE_TOOLS = Object.freeze(new Set(["create_reading_handoff", "create_review_handoff", "propose_action"]));

@@ -4,7 +4,7 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-23 (Д5: GO H2; G-H2-START PASS; H2.1 PLANNED; parallel H1 monitoring ACTIVE).
+Обновлено: 2026-07-23 (H2.1 IN_PROGRESS; owner approved migration-054 canon correction; parallel H1 monitoring ACTIVE).
 
 ## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
@@ -28,7 +28,7 @@
 
 | Слайс | Промт | Статус |
 |---|---|---|
-| H2.1 get_word_morphology | prompts/H2_01_GET_WORD_MORPHOLOGY.md | PLANNED |
+| H2.1 get_word_morphology | prompts/H2_01_GET_WORD_MORPHOLOGY.md | IN_PROGRESS |
 | H2.2 get_text_coverage | prompts/H2_02_GET_TEXT_COVERAGE.md | BLOCKED |
 | H2.3 W1-семейство + goal-store | prompts/H2_03_W1_PROPOSE_FAMILY.md | BLOCKED |
 | H2.4 Dicta Nakdan | prompts/H2_04_DICTA_NAKDAN.md | BLOCKED |
@@ -81,3 +81,4 @@
 | 2026-07-23 | Owner amendment У7: «Ждать две недели принципиально нельзя. Двухнедельное наблюдение переносим в параллельный мониторинг»; canon/gate consumers updated, 14-day monitor scheduled 2026-07-23—2026-08-05 | владелец / Codex |
 | 2026-07-23 | H1.8 closure under У7: H1.0–H1.8 CLOSED; consent/W1/cost baseline PASS; G-H1-CLOSURE PASS; G-H1-PARALLEL-MONITOR ACTIVE; H2 still awaits explicit Д5 | Codex |
 | 2026-07-23 | Owner decision Д5: точная цитата `Д5: GO H2`; G-H2-START PASS, H2.1 → PLANNED, остальные H2-слайсы остаются BLOCKED до своей очереди | владелец / Codex |
+| 2026-07-23 | H2.1 started; live SQL CHECK makes `morphology.read` impossible without scope migration; owner explicitly approved migration 054 and canon/rollback correction | владелец / Codex |

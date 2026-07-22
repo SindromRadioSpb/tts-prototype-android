@@ -39,6 +39,10 @@
 | Authoritative source | Офлайн Pealim-датасет `pealim-infl-v12` (9279 парадигм, уже shipped) + резолвер-логика `notes-autogen` (серверный запуск pure-core); Dicta НЕ вызывается на запрос (латентность/зависимость) |
 | Scope / tier | `morphology.read` · STANDARD (словарные данные, не learner-данные) |
 
+Storage note (owner-approved correction, 2026-07-23): live `agent_connection_grants.scope`
+has a closed SQL CHECK, therefore H2.1 includes migration 054 widening that CHECK from 15 to 16
+scopes. This is required for a real granular consent grant; reusing another scope is forbidden.
+
 Input: `{ word: string(1..40, иврит-паттерн), context_sentence?: string(≤280) }` (required: word)
 Output:
 ```

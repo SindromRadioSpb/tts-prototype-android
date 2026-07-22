@@ -46,7 +46,7 @@ const fixtures = Object.freeze({
   }),
   get_agent_connection: Object.freeze({
     schema_version: "aa.connection.1.0.0", connection_id: principal.connection_id, oauth_client_id: principal.oauth_client_id,
-    client_display_name: "Fixture client", connection_status: "ACTIVE", granted_scopes: principal.scopes,
+    client_display_name: "Fixture client", connection_status: "ACTIVE", granted_scopes: Object.freeze(principal.scopes.filter((scope) => scope !== "morphology.read")),
     access_expires_at: principal.access_expires_at, consent_version: "consent-1", capability_version: "aa-v0.1",
     downstream_retention_notice: "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO", generated_at: GENERATED,
   }),
@@ -103,6 +103,14 @@ const fixtures = Object.freeze({
     rows_total: 12, has_more: true, content_updated_at: GENERATED, replica_ingested_at: GENERATED,
     authority: "OWNER_DEVICE_CANONICAL", generated_at: GENERATED,
   }),
+  get_word_morphology: Object.freeze({
+    schema_version: "aa.word_morphology.1.0.0", resolution: "EXACT",
+    entries: Object.freeze([Object.freeze({
+      lemma: "לכתוב", root: "כתב", pos: "verb", binyan: "paal", tense: "INFINITIVE",
+      niqqud_form: "לִכְתּוֹב", gloss_ru: "писать", confidence: "EXACT", provenance: "PEALIM_OFFLINE_V12",
+    })]),
+    resolver_version: "word-morphology-resolver-v1", dataset_version: "pealim-infl-v12", generated_at: GENERATED,
+  }),
 });
 
 const validArgs = Object.freeze({
@@ -122,6 +130,7 @@ const validArgs = Object.freeze({
   create_review_handoff: Object.freeze({}),
   list_personal_texts: Object.freeze({ limit: 10 }),
   get_personal_text_content: Object.freeze({ text_key: "text-1783830247939-hpbn", rows: 5 }),
+  get_word_morphology: Object.freeze({ word: "לכתוב" }),
 });
 
 function handlers(overrides = {}) {

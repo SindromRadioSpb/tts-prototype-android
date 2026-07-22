@@ -26,6 +26,8 @@ const TOOL_LIMITS = Object.freeze({
   // S2: окна тел (канон §6: дневной паритет с get_reading_content — текст в 500 строк
   // прочитываем за день; per-min асимметрия = data-minimization).
   get_personal_text_content: Object.freeze({ minute: 6, day: 200 }),
+  // H2.1 canonical read budget.
+  get_word_morphology: Object.freeze({ minute: 6, day: 200 }),
 });
 const MINUTE = 60_000;
 const DAY = 86_400_000;

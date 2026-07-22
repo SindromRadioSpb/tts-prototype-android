@@ -22,6 +22,8 @@ const SCOPES = Object.freeze([
   // S-пакет S1: личные тексты (migration 049 CHECK; content-инструмент — S2).
   "personal.texts.metadata.read",
   "personal.texts.content.read",
+  // H2.1: offline Pealim morphology grounding (migration 054 CHECK).
+  "morphology.read",
 ]);
 const SCOPE_SET = new Set(SCOPES);
 const SAFE = /^[A-Za-z0-9_.:@/-]+$/;

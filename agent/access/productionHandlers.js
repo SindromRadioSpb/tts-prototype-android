@@ -4,6 +4,15 @@ const { CAPABILITIES, CAPABILITY_VERSION } = require("./capabilities");
 
 const REVIEW_ACTIONS = new Set(["fresh_struggles", "production_gap", "due"]);
 const KNOWN_SCOPES = new Set(Object.values(CAPABILITIES).map((entry) => entry.scope));
+// get_agent_connection has a cached, closed 15-scope output schema. Never add
+// H2+ scopes to that old payload; doing so breaks clients with the cached enum.
+const CONNECTION_REPORTABLE_SCOPES = new Set([
+  "learning.brief.read", "review.summary.read", "reading.public.search",
+  "explanations.metadata.read", "agent.connection.read", "review.items.read",
+  "profile.read", "explanations.body.read", "reading.corpus.read",
+  "reading.handoff.create", "intent.propose", "review.activity.read",
+  "review.handoff.create", "personal.texts.metadata.read", "personal.texts.content.read",
+]);
 
 function fail(code) { const error = new Error(code); error.code = code; throw error; }
 function fixedNow(now) {
@@ -68,6 +77,7 @@ function createProductionHandlers(options = {}) {
   const personalTextsRepo = options.personalTextsRepo; // S1: sidecar-мета личных текстов (list — БЕЗ payload)
   const personalTextsContentRepo = options.personalTextsContentRepo; // S2: aa-экстрактор окна (agentSentenceRepo)
   const textGrantsRepo = options.textGrantsRepo; // S2: standing-грант владельца (agent_text_grants)
+  const morphologyResolver = options.wordMorphologyResolver || require("./wordMorphologyResolver");
   const now = options.now || Date.now;
   const principalAccessExpiresAt = options.principalAccessExpiresAt;
   if (!learnerRepo || typeof learnerRepo.getAgentAccessReviewAggregates !== "function" || typeof learnerRepo.getDue !== "function" || typeof learnerRepo.getActivityDelta !== "function"
@@ -81,6 +91,7 @@ function createProductionHandlers(options = {}) {
     || !personalTextsRepo || typeof personalTextsRepo.hasConsentVersioned !== "function" || typeof personalTextsRepo.listWithMeta !== "function"
     || !personalTextsContentRepo || typeof personalTextsContentRepo.aaGetPersonalTextWindow !== "function"
     || !textGrantsRepo || typeof textGrantsRepo.activeGrant !== "function"
+    || !morphologyResolver || typeof morphologyResolver.resolveWordMorphology !== "function"
     || typeof connectionPersistence !== "function"
     || typeof now !== "function" || typeof principalAccessExpiresAt !== "function") fail("AA_PRODUCTION_HANDLER_DEPENDENCY_INVALID");
 
@@ -393,7 +404,7 @@ function createProductionHandlers(options = {}) {
       oauth_client_id: context.oauth_client_id,
       client_display_name: matches[0].client_display_name,
       connection_status: connection.status,
-      granted_scopes: Object.freeze(activeFromConnection),
+      granted_scopes: Object.freeze(activeFromConnection.filter((scope) => CONNECTION_REPORTABLE_SCOPES.has(scope))),
       access_expires_at: String(accessExpiresAt),
       consent_version: connection.consent_version,
       capability_version: connection.capability_version,
@@ -505,6 +516,15 @@ function createProductionHandlers(options = {}) {
     return Object.freeze({ ...base, rows: Object.freeze(rows), has_more: from + rows.length < base.rows_total });
   }
 
+  // H2.1 — shipped Pealim data + pure resolver cores only. No user state, DB,
+  // network, Dicta request or LLM is reachable from this path.
+  async function get_word_morphology(_context, args) {
+    const clock = fixedNow(now);
+    const resolved = await morphologyResolver.resolveWordMorphology(args);
+    if (!resolved || typeof resolved !== "object") fail("AA_MORPHOLOGY_RESOLVER_INVALID");
+    return Object.freeze({ ...resolved, generated_at: clock.iso });
+  }
+
   return Object.freeze({
     get_learning_brief,
     get_review_summary,
@@ -522,6 +542,7 @@ function createProductionHandlers(options = {}) {
     create_review_handoff,
     list_personal_texts,
     get_personal_text_content,
+    get_word_morphology,
   });
 }
 

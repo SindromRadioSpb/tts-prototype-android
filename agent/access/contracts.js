@@ -34,9 +34,10 @@ const SCOPES = new Set([
   "review.handoff.create",
   // S-пакет (PERSONAL_TEXTS_S1S2_DESIGN): личные тексты владельца. ОБА scope заведены в S1
   // (одна re-авторизация Hermes); content-инструмент приходит в S2. Lockstep: oauthContracts +
-  // мигр. 049 CHECK (15 scope; кап клеймов 16 — следующий scope-пакет упрётся, помнить).
+  // Lockstep: oauthContracts + owner-approved migration 054 CHECK (16 scopes).
   "personal.texts.metadata.read",
   "personal.texts.content.read",
+  "morphology.read",
 ]);
 const STRUGGLE = new Set(["none", "some", "high"]);
 const PROFILE_MODE = new Set(["silent", "coach", "intensive"]);
@@ -50,6 +51,16 @@ const TEXT_KEY_RE = /^[a-f0-9]{16,64}$/;
 // S-пакета: копипаст TEXT_KEY_RE зарубил бы 100% личных ключей. Безопасный алфавит, bounded.
 const PERSONAL_TEXT_KEY_RE = /^[A-Za-z0-9._:-]{1,200}$/;
 const HANDOFF_URL_RE = /^https:\/\/linguistpro\.kolosei\.com\/library\.html\?handoff=[A-Za-z0-9_-]{16,256}$/;
+const HEBREW_WORD_RE = /^[֑-ׇא-ת׳״'-]+$/u;
+const MORPH_RESOLUTION = new Set(["EXACT", "AMBIGUOUS", "UNRESOLVED"]);
+const MORPH_UNRESOLVED = new Set(["NOT_IN_DICTIONARY", "AMBIGUOUS_WITHOUT_CONTEXT", "NON_HEBREW"]);
+const MORPH_CONFIDENCE = new Set(["EXACT", "PROBABLE", "POSSIBLE"]);
+const MORPH_POS = new Set(["adjective", "adverb", "conjunction", "interjection", "noun", "other", "preposition", "pronoun", "verb"]);
+const MORPH_BINYAN = new Set(["hifil", "hitpael", "hufal", "nifal", "paal", "piel", "pual"]);
+const MORPH_GENDER = new Set(["MASCULINE", "FEMININE"]);
+const MORPH_NUMBER = new Set(["SINGULAR", "PLURAL"]);
+const MORPH_PERSON = new Set(["1", "2", "3"]);
+const MORPH_TENSE = new Set(["PAST", "PRESENT", "FUTURE", "IMPERATIVE", "INFINITIVE"]);
 
 class AgentAccessError extends Error {
   constructor(code, message, retryable = false) {
@@ -306,6 +317,49 @@ function validatePersonalTextContentInput(value) {
   if (x.rows != null) out.rows = integer(x.rows, 1, 20, "ARGUMENT_SCHEMA_INVALID");
   return Object.freeze(out);
 }
+
+// H2.1 — malformed/non-Hebrew words are a stable AA_INVALID_INPUT client
+// error; an unknown but valid Hebrew word is handled normally as UNRESOLVED.
+function validateWordMorphologyInput(value) {
+  const x = closed(value, ["word", "context_sentence"], ["word"], "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, 2048, "ARGUMENTS_TOO_LARGE");
+  if (typeof x.word !== "string" || [...x.word].length < 1 || [...x.word].length > 40
+    || !HEBREW_WORD_RE.test(x.word) || !/[א-ת]/.test(x.word)) fail("AA_INVALID_INPUT");
+  const out = { word: x.word.normalize("NFC") };
+  if (x.context_sentence != null) {
+    if (typeof x.context_sentence !== "string" || !x.context_sentence.length || [...x.context_sentence].length > 280
+      || Buffer.byteLength(x.context_sentence, "utf8") > 1120) fail("AA_INVALID_INPUT");
+    out.context_sentence = x.context_sentence.normalize("NFC");
+  }
+  return Object.freeze(out);
+}
+
+function wordMorphology(value) {
+  const keys = ["schema_version", "resolution", "entries", "unresolved_reason", "resolver_version", "dataset_version", "generated_at"];
+  const required = ["schema_version", "resolution", "entries", "resolver_version", "dataset_version", "generated_at"];
+  const x = closed(value, keys, required, "OUTPUT_SCHEMA_INVALID"); bytes(x, 8192, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.word_morphology.1.0.0" || x.dataset_version !== "pealim-infl-v12") fail("OUTPUT_SCHEMA_INVALID");
+  oneOf(x.resolution, MORPH_RESOLUTION); id(x.resolver_version); timestamp(x.generated_at);
+  if (!Array.isArray(x.entries) || x.entries.length > 5) fail("OUTPUT_SCHEMA_INVALID");
+  const entryKeys = ["lemma", "root", "pos", "binyan", "mishkal", "gender", "number", "person", "tense", "niqqud_form", "gloss_ru", "confidence", "provenance"];
+  const entries = x.entries.map((row) => {
+    const r = closed(row, entryKeys, ["lemma", "pos", "confidence", "provenance"], "OUTPUT_SCHEMA_INVALID");
+    string(r.lemma, 160); oneOf(r.pos, MORPH_POS); oneOf(r.confidence, MORPH_CONFIDENCE);
+    if (r.provenance !== "PEALIM_OFFLINE_V12") fail("OUTPUT_SCHEMA_INVALID");
+    if (r.root != null) string(r.root, 80); if (r.binyan != null) oneOf(r.binyan, MORPH_BINYAN);
+    if (r.mishkal != null) string(r.mishkal, 80); if (r.gender != null) oneOf(r.gender, MORPH_GENDER);
+    if (r.number != null) oneOf(r.number, MORPH_NUMBER); if (r.person != null) oneOf(r.person, MORPH_PERSON);
+    if (r.tense != null) oneOf(r.tense, MORPH_TENSE); if (r.niqqud_form != null) string(r.niqqud_form, 160);
+    if (r.gloss_ru != null) string(r.gloss_ru, 800);
+    return Object.freeze({ ...r });
+  });
+  if (x.unresolved_reason != null) oneOf(x.unresolved_reason, MORPH_UNRESOLVED);
+  if (x.resolution === "UNRESOLVED" && (entries.length !== 0 || !x.unresolved_reason)) fail("OUTPUT_SCHEMA_INVALID");
+  if (x.resolution === "AMBIGUOUS" && (entries.length < 2 || x.unresolved_reason !== "AMBIGUOUS_WITHOUT_CONTEXT")) fail("OUTPUT_SCHEMA_INVALID");
+  if (x.resolution === "EXACT" && (entries.length !== 1 || x.unresolved_reason != null)) fail("OUTPUT_SCHEMA_INVALID");
+  if (x.resolution !== "EXACT" && entries.some((entry) => entry.confidence === "EXACT")) fail("OUTPUT_SCHEMA_INVALID");
+  return Object.freeze({ ...x, entries: Object.freeze(entries) });
+}
 function personalTextContent(value) {
   const keys = ["schema_version", "text_key", "title", "rows", "rows_total", "has_more", "content_updated_at", "replica_ingested_at", "authority", "generated_at"];
   const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 16384, "OUTPUT_TOO_LARGE");
@@ -533,6 +587,7 @@ const INPUT_VALIDATORS = Object.freeze({
   create_review_handoff: emptyInput,
   list_personal_texts: validatePersonalTextsListInput,
   get_personal_text_content: validatePersonalTextContentInput,
+  get_word_morphology: validateWordMorphologyInput,
 });
 const OUTPUT_VALIDATORS = Object.freeze({
   get_learning_brief: learningBrief,
@@ -551,6 +606,7 @@ const OUTPUT_VALIDATORS = Object.freeze({
   create_review_handoff: reviewHandoff,
   list_personal_texts: personalTextsList,
   get_personal_text_content: personalTextContent,
+  get_word_morphology: wordMorphology,
 });
 
 function validateInput(tool, value) { const fn = INPUT_VALIDATORS[tool]; if (!fn) fail("UNKNOWN_TOOL"); return fn(value); }
