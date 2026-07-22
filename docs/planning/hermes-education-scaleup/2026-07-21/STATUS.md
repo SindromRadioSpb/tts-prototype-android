@@ -82,3 +82,4 @@
 | 2026-07-23 | H1.8 closure under У7: H1.0–H1.8 CLOSED; consent/W1/cost baseline PASS; G-H1-CLOSURE PASS; G-H1-PARALLEL-MONITOR ACTIVE; H2 still awaits explicit Д5 | Codex |
 | 2026-07-23 | Owner decision Д5: точная цитата `Д5: GO H2`; G-H2-START PASS, H2.1 → PLANNED, остальные H2-слайсы остаются BLOCKED до своей очереди | владелец / Codex |
 | 2026-07-23 | H2.1 started; live SQL CHECK makes `morphology.read` impossible without scope migration; owner explicitly approved migration 054 and canon/rollback correction | владелец / Codex |
+| 2026-07-23 | H2.1 first deploy blocked by pre-existing full production disk; bounded cleanup kept active + two rollback app images, removed 12 inactive H1 doc-build images and inactive build cache; disk 100%→64%, Coolify/DB healthy; deploy retry queued | Codex |

@@ -92,6 +92,13 @@ verified separately below. This is an environment prerequisite failure, not a pr
 
 ## Production, Hermes, consent, owner-live
 
-Pending scoped commit/push and Coolify deployment. This section must be completed with production
+Scoped implementation commit `7b0a0a3` was pushed to `main`. The first webhook arrived while the
+production root disk was at 100%, leaving the old `ee4a2cc` container active and Coolify/Coolify DB
+unhealthy. A bounded cleanup removed exactly 12 inactive H1 doc-build app images, retained the active
+image plus the two nearest rollback images (`f4ea132`, `c6dbcec`), and removed only inactive build
+cache. No volume, service image, or active container was removed. Result: disk 100% -> 64%, 14 GiB
+free, Coolify and its DB healthy.
+
+Pending Coolify deployment retry. This section must be completed with production
 revision/health, live `tools/list`, a real call transcript, Hermes restart/new-session evidence, consent
 ceremony result, and the owner's live verdict before H2.1 can become `CLOSED`.
