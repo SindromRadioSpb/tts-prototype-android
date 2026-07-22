@@ -99,6 +99,61 @@ image plus the two nearest rollback images (`f4ea132`, `c6dbcec`), and removed o
 cache. No volume, service image, or active container was removed. Result: disk 100% -> 64%, 14 GiB
 free, Coolify and its DB healthy.
 
-Pending Coolify deployment retry. This section must be completed with production
-revision/health, live `tools/list`, a real call transcript, Hermes restart/new-session evidence, consent
-ceremony result, and the owner's live verdict before H2.1 can become `CLOSED`.
+The retry deployed revision `a3684ec12b9e4f8431c08dbe846675f799382f6b` successfully:
+
+```text
+/api/client-config: version=3.11.222
+/healthz: ok=true db.ready=true migrations.ready=true disk_pct_used=70 disk_warn=false
+/.well-known/oauth-protected-resource/agent-access:
+  scopes_supported=16, morphology.read=true
+```
+
+Hermes install/restart evidence:
+
+```text
+config: morphology.read present; get_word_morphology selected
+global SOUL: H2.1 mandatory morphology policy present; config/SOUL backups=2
+restart order: hermes-agent -> hermes-webui
+WebUI health: status=ok, sessions=0, active_streams=0
+hermes mcp list: linguistpro = 17 selected, enabled
+hermes mcp test linguistpro: connected; tools discovered=17; get_word_morphology visible
+```
+
+Before re-consent, a real Hermes-SDK call returned the expected fail-closed boundary:
+
+```json
+{"tool_visible":true,"tool_count":17,"ok":false,"error_code":"INSUFFICIENT_SCOPE"}
+```
+
+A fresh 16-scope PKCE request and ru consent card visibly stated
+`PUBLIC_DICTIONARY_MORPHOLOGY` and
+`NO_LEARNER_DATA_NO_LLM_NO_NETWORK_NO_SYNTHESIZED_FORMS`. The owner selected all 16 categories,
+confirmed the retention boundary, and approved the request. Token exchange returned 200 and the
+stored scope set contains exactly 16 scopes including `morphology.read`.
+
+Post-consent live Hermes-SDK transcript (token values never printed):
+
+```json
+{"tool_visible":true,"tool_count":17,"ok":true,"schema_version":"aa.word_morphology.1.0.0","resolution":"EXACT","lemma":"לכתוב","root":"כתב","binyan":"paal","confidence":"EXACT","provenance":"PEALIM_OFFLINE_V12","resolver_version":"word-morphology-resolver-v1","dataset_version":"pealim-infl-v12"}
+```
+
+## Owner-live ordinary Hermes session
+
+Owner prompt required Hermes to analyze `כשתבוא`, call `get_word_morphology` first, and avoid filling
+missing fields from memory. The owner supplied this response transcript:
+
+```text
+Результат вызова get_word_morphology для слова כשתבוא:
+- Лемма: לבוא
+- Корень: בוא
+- Биньян: paal
+- Время: FUTURE
+- Число: SINGULAR
+- Лицо: Инструмент не вернул поле лица (person).
+- Грамматическая форма с огласовками: תָּבוֹא
+```
+
+Verdict: **PASS**. The ordinary agent called the required tool, grounded the stacked proclitic,
+reported only returned morphology, and explicitly refused to invent the absent `person` field.
+The owner supplied a qualitative successful transcript; no numeric rating is invented. H2.1 is
+`CLOSED`, and H2.2 becomes `PLANNED`.
