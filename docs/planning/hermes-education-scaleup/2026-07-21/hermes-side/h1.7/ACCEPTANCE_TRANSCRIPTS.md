@@ -108,3 +108,42 @@ due-слов, численные значения/интерпретации а�
 Acceptance: **3/3 PASS**; offline gate PASS; manifest completeness PASS.
 Kaikki представлен как справка «по Викисловарю», wordfreq — advisory, не
 mastery/canonical truth.
+
+## Free-tier owner-live incident и repair — 2026-07-23
+
+Owner-live session `952b25145fab` на `gemini-3.5-flash` трижды завершилась
+`Error: Response truncated due to output length limit`. Трасса показывает:
+
+- live due-read завершился (`5 659` символов tool-result);
+- один `word_frequency` завершился (`4 025` символов tool-result);
+- ни одного tool-result `kaikki_lookup` в сессии нет;
+- перед вторым truncation модель текстом объявила пять Kaikki lookup, но не
+  успела сформировать валидные tool calls;
+- следующая попытка отдельно закончилась Gemini `HTTP 429
+  RESOURCE_EXHAUSTED`.
+
+Следовательно, первичный truncation возник на генерации нескольких tool calls,
+а не после чтения большого Kaikki-result. Repair сочетает два ограничения:
+
+1. tool description требует строго один lookup на model-ход и ожидание его
+   результата;
+2. free-tier due-flow ограничен двумя lookup на сессию, а каждый Kaikki-result
+   сокращён с явными `*_truncated`/`limits` без потери provenance и
+   non-canonical boundary.
+
+Локальная проверка установленного repair:
+
+```text
+py_compile: PASS
+word_frequency(5 real due lemmas): ok=true, results=5
+kaikki_lookup("למד"): ok=true, 2012 JSON chars, entries=3
+kaikki_lookup("נוסח"): ok=true, 1208 JSON chars, entries=1
+kaikki_lookup("למדדד_לא_קיים"): NOT_FOUND, 242 JSON chars
+canon SHA = agent SHA = WebUI SHA
+2 tools selected, hebrew_offline enabled
+```
+
+Принудительный end-to-end rerun на `gemini-3.6-flash` не получил даже
+минимальный одно-tool smoke из-за внешнего `HTTP 429 RESOURCE_EXHAUSTED`
+(`generate_content_free_tier_requests`, reported limit 20). Вердикт repair:
+**LOCAL/INSTALL PASS; MODEL E2E BLOCKED BY QUOTA; owner-live retest pending**.

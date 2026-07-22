@@ -19,8 +19,12 @@ DATASET_PATH = Path(
     )
 )
 MAX_WORDS = 20
-MAX_ENTRIES = 10
-MAX_FORMS_PER_ENTRY = 60
+MAX_ENTRIES = 3
+MAX_SENSES_PER_ENTRY = 3
+MAX_GLOSSES_PER_SENSE = 2
+MAX_FORMS_PER_ENTRY = 8
+MAX_PRONUNCIATIONS_PER_ENTRY = 3
+MAX_TEXT_LENGTH = 240
 SOURCE_KAIKKI = "WIKTIONARY_VIA_KAIKKI"
 SOURCE_WORDFREQ = "WORDFREQ_3.1.1"
 
@@ -38,21 +42,27 @@ def _normalized(text: str) -> str:
     return unicodedata.normalize("NFKC", text).strip()
 
 
-def _clean_senses(raw: Any) -> list[dict[str, Any]]:
+def _clip(value: Any, limit: int = MAX_TEXT_LENGTH) -> str:
+    text = str(value)
+    return text if len(text) <= limit else f"{text[: limit - 1]}…"
+
+
+def _clean_senses(raw: Any) -> tuple[list[dict[str, Any]], bool]:
     if not isinstance(raw, list):
-        return []
+        return [], False
     result = []
     for sense in raw:
         if not isinstance(sense, dict):
             continue
-        result.append(
-            {
-                "glosses": sense.get("glosses") or [],
-                "tags": sense.get("tags") or [],
-                "topics": sense.get("topics") or [],
-            }
-        )
-    return result
+        glosses = [
+            _clip(gloss)
+            for gloss in (sense.get("glosses") or [])[:MAX_GLOSSES_PER_SENSE]
+        ]
+        summary = {"glosses": glosses}
+        if sense.get("tags"):
+            summary["tags"] = sense["tags"][:5]
+        result.append(summary)
+    return result[:MAX_SENSES_PER_ENTRY], len(result) > MAX_SENSES_PER_ENTRY
 
 
 def _clean_forms(raw: Any) -> tuple[list[dict[str, Any]], bool]:
@@ -69,51 +79,64 @@ def _clean_forms(raw: Any) -> tuple[list[dict[str, Any]], bool]:
     return forms[:MAX_FORMS_PER_ENTRY], len(forms) > MAX_FORMS_PER_ENTRY
 
 
-def _clean_pronunciation(raw: Any) -> list[dict[str, Any]]:
+def _clean_pronunciation(raw: Any) -> tuple[list[dict[str, Any]], bool]:
     if not isinstance(raw, list):
-        return []
+        return [], False
     result = []
-    for sound in raw[:10]:
+    for sound in raw:
         if not isinstance(sound, dict):
             continue
         kept = {
-            key: sound[key]
+            key: _clip(sound[key]) if key != "tags" else sound[key][:5]
             for key in ("ipa", "roman", "note", "tags")
             if key in sound
         }
         if kept:
             result.append(kept)
-    return result
+    return (
+        result[:MAX_PRONUNCIATIONS_PER_ENTRY],
+        len(result) > MAX_PRONUNCIATIONS_PER_ENTRY,
+    )
 
 
 def _entry_summary(entry: dict[str, Any]) -> dict[str, Any]:
     forms, forms_truncated = _clean_forms(entry.get("forms"))
+    senses, senses_truncated = _clean_senses(entry.get("senses"))
+    pronunciation, pronunciation_truncated = _clean_pronunciation(entry.get("sounds"))
     return {
         "word": entry.get("word"),
         "pos": entry.get("pos"),
-        "senses": _clean_senses(entry.get("senses")),
+        "senses": senses,
+        "senses_truncated": senses_truncated,
         "forms": forms,
         "forms_truncated": forms_truncated,
-        "pronunciation": _clean_pronunciation(entry.get("sounds")),
-        "etymology": entry.get("etymology_text"),
+        "pronunciation": pronunciation,
+        "pronunciation_truncated": pronunciation_truncated,
+        "etymology": _clip(entry["etymology_text"], 400)
+        if entry.get("etymology_text")
+        else None,
     }
 
 
 @mcp.tool()
 def kaikki_lookup(lemma: str) -> dict[str, Any]:
-    """Look up an exact Hebrew lemma offline; cite as Wiktionary, never as canon."""
+    """Look up one exact lemma offline. Make at most one lookup per assistant turn,
+    wait for its result, and cite it as Wiktionary rather than canonical truth.
+    In a due-list plus frequency workflow on Gemini free tier, look up at most two
+    lemmas total so the final answer fits the five-request quota window."""
     lemma = _normalized(lemma)
     if not lemma or len(lemma) > 100:
         return _error("INVALID_ARGUMENT", "lemma must contain 1–100 characters.")
     try:
         matches = []
+        entries_total = 0
         with DATASET_PATH.open(encoding="utf-8") as source:
             for line in source:
                 entry = json.loads(line)
                 if _normalized(str(entry.get("word", ""))) == lemma:
-                    matches.append(_entry_summary(entry))
-                    if len(matches) >= MAX_ENTRIES:
-                        break
+                    entries_total += 1
+                    if len(matches) < MAX_ENTRIES:
+                        matches.append(_entry_summary(entry))
     except (OSError, UnicodeError, json.JSONDecodeError):
         return _error("DATASET_UNAVAILABLE", "The local Kaikki dataset is unavailable.", True)
 
@@ -136,7 +159,16 @@ def kaikki_lookup(lemma: str) -> dict[str, Any]:
         "attribution": "по Викисловарю",
         "canonical": False,
         "conflict_policy": "LinguistPro/Pealim remains canonical; report conflicts.",
+        "response_compact": True,
+        "limits": {
+            "entries": MAX_ENTRIES,
+            "senses_per_entry": MAX_SENSES_PER_ENTRY,
+            "forms_per_entry": MAX_FORMS_PER_ENTRY,
+            "pronunciations_per_entry": MAX_PRONUNCIATIONS_PER_ENTRY,
+        },
         "lemma": lemma,
+        "entries_total": entries_total,
+        "entries_truncated": entries_total > len(matches),
         "entries": matches,
     }
 

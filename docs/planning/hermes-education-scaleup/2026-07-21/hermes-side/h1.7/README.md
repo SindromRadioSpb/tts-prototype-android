@@ -66,8 +66,8 @@ docker exec hermes-agent mkdir -p /home/hermes/.hermes/mcp-servers/offline-lexic
 docker cp offline_lexicon_mcp.py hermes-agent:/home/hermes/.hermes/mcp-servers/offline-lexicon/offline_lexicon_mcp.py
 ```
 
-Canon/installed SHA-256:
-`83190da50fa69bf958fe9bb22fe0df5b5bedaced0df8f0a83532a266bf7f01aa`.
+Canon/installed SHA-256 после free-tier repair 2026-07-23:
+`2ea36a2c80e443a5ef0ed4da0c15dfa72b9a2ce2e703d75c5a30e56b0a3cf145`.
 
 ## Config и запуск
 
@@ -127,6 +127,27 @@ docker restart hermes-agent hermes-webui
 
 Одна реальная сессия: выбрать до 20 слов из плейлиста/текста, получить
 wordfreq-приоритет и только для нужных лемм — Kaikki-глоссы с атрибуцией.
+На Gemini free tier цепочка с чтением due-набора ограничена двумя
+`kaikki_lookup` за сессию: каждый lookup выполняется отдельным ходом, следующий
+начинается только после результата предыдущего. Это укладывает маршрут
+`due → word_frequency → lookup 1 → lookup 2 → итог` в пять model-запросов.
+Не просить модель сгенерировать несколько lookup-вызовов одним ходом.
+
+Ответ `kaikki_lookup` также ограничен тремя словарными статьями, тремя senses,
+восемью формами и тремя вариантами произношения на статью. Поля
+`*_truncated`, `entries_total` и `limits` делают сокращение явным; полная
+статья не маскируется под возвращённую.
+
+Рекомендуемый owner-live prompt:
+
+```text
+Возьми до 20 слов из моего текущего due-набора. Одним вызовом word_frequency
+оцени их частотность. Выбери ровно 2 полезные леммы и вызови kaikki_lookup
+строго последовательно: один lookup за ход, дождись результата, затем второй.
+Дай компактный итог по-русски с Zipf, атрибуцией «по Викисловарю» и пометкой,
+что справка не канон. Не меняй состояние LinguistPro; exposure ≠ mastery.
+```
+
 Частота advisory, exposure ≠ mastery, FSRS не меняется. После сессии владелец
 ставит вердикт 1–5 с комментарием; до этого максимум
 `ENGINEERING_COMPLETE`.
