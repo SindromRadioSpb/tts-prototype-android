@@ -4,7 +4,7 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-23 (owner amendment У7: H1 CLOSED; обязательный 14-дневный parallel monitoring ACTIVE; Д5 ожидается).
+Обновлено: 2026-07-23 (Д5: GO H2; G-H2-START PASS; H2.1 PLANNED; parallel H1 monitoring ACTIVE).
 
 ## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
@@ -24,11 +24,11 @@
 
 **G-H1-PARALLEL-MONITOR: ACTIVE, 2026-07-23—2026-08-05; day-14 follow-up обязателен.**
 
-## Горизонт 2 — статус: BLOCKED UNTIL explicit owner go (Д5); H1 CLOSED, continuation timing override + monitoring ACTIVE
+## Горизонт 2 — статус: READY (G-H2-START PASS; H2.1 следующий; H1 monitoring идёт параллельно)
 
 | Слайс | Промт | Статус |
 |---|---|---|
-| H2.1 get_word_morphology | prompts/H2_01_GET_WORD_MORPHOLOGY.md | BLOCKED |
+| H2.1 get_word_morphology | prompts/H2_01_GET_WORD_MORPHOLOGY.md | PLANNED |
 | H2.2 get_text_coverage | prompts/H2_02_GET_TEXT_COVERAGE.md | BLOCKED |
 | H2.3 W1-семейство + goal-store | prompts/H2_03_W1_PROPOSE_FAMILY.md | BLOCKED |
 | H2.4 Dicta Nakdan | prompts/H2_04_DICTA_NAKDAN.md | BLOCKED |
@@ -36,7 +36,7 @@
 | H2.6 Async voice loop | prompts/H2_06_ASYNC_VOICE_LOOP.md | BLOCKED |
 | H2.7 Owner-live+closure | prompts/H2_07_OWNER_LIVE_AND_CLOSURE.md | BLOCKED |
 
-**G-H2-START: ожидает только явный Д5; continuation timing override У7 записан. G-H2-CLOSURE: не пройден.**
+**G-H2-START: PASS — owner `Д5: GO H2`, 2026-07-23; continuation timing override У7 + ACTIVE monitor. G-H2-CLOSURE: не пройден.**
 
 ## Горизонт 3 — статус: R&D-чартеры, каждый ждёт owner go (Д6) после G-H2-CLOSURE
 
@@ -53,7 +53,7 @@
 ## Открытые owner decisions
 
 См. 00 §2: Д1 (хранение продукции), Д2 (Spotify), Д3 (P11), Д4 (платные ресурсы),
-Д5 (go H2 — после H1 closure), Д6 (per-charter H3), Д7 (raw audio — default не хранить).
+Д6 (per-charter H3), Д7 (raw audio — default не хранить). Д5 решено: GO H2.
 
 ## Журнал решений
 
@@ -80,3 +80,4 @@
 | 2026-07-23 | H1.8 closure audit: all engineering artifacts present, prod-code diff 0, consent/W1 evidence PASS; G-H1-CLOSURE blocked because installed window is <2 days, per-loop 1–5 ratings/metrics and combined integration analysis are absent; H1.1–H1.7 returned to OWNER_LIVE per gate 10 §1 | Codex |
 | 2026-07-23 | Owner amendment У7: «Ждать две недели принципиально нельзя. Двухнедельное наблюдение переносим в параллельный мониторинг»; canon/gate consumers updated, 14-day monitor scheduled 2026-07-23—2026-08-05 | владелец / Codex |
 | 2026-07-23 | H1.8 closure under У7: H1.0–H1.8 CLOSED; consent/W1/cost baseline PASS; G-H1-CLOSURE PASS; G-H1-PARALLEL-MONITOR ACTIVE; H2 still awaits explicit Д5 | Codex |
+| 2026-07-23 | Owner decision Д5: точная цитата `Д5: GO H2`; G-H2-START PASS, H2.1 → PLANNED, остальные H2-слайсы остаются BLOCKED до своей очереди | владелец / Codex |
