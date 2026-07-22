@@ -1,0 +1,11 @@
+mcp_servers:
+  sefaria:
+    url: https://mcp.sefaria.org/sse
+    transport: sse
+    enabled: true
+    supports_parallel_tool_calls: false
+    timeout: 120
+    connect_timeout: 30
+    tools:
+      resources: false
+      prompts: false

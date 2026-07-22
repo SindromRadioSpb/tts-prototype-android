@@ -4,9 +4,9 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-22 (H1.3 weekly SRL acceptance 3/3; ENGINEERING_COMPLETE).
+Обновлено: 2026-07-22 (H1.4 Sefaria MCP acceptance 3/3; ENGINEERING_COMPLETE).
 
-## Горизонт 1 — статус: IN_PROGRESS (H1.1–H1.3 ENGINEERING_COMPLETE; owner-live pending)
+## Горизонт 1 — статус: IN_PROGRESS (H1.1–H1.4 ENGINEERING_COMPLETE; owner-live pending)
 
 | Слайс | Промт | Статус | Гейты | Вердикт владельца | Ссылки/заметки |
 |---|---|---|---|---|---|
@@ -14,7 +14,7 @@
 | H1.1 Разговорная сессия | prompts/H1_02_CONVERSATION_SKILL.md | ENGINEERING_COMPLETE | gemini-3.6-flash A–C 3/3; live body ACTIVE/GRANTED/OK; personal-first smoke PASS | — | B is simulation only; owner-live: ≥2 real sessions + verdict 1–5; `hermes-side/h1.1/` |
 | H1.2 Письмо WCF | prompts/H1_03_WRITING_WCF_SKILL.md | ENGINEERING_COMPLETE | reproduction PASS; gemini-3.6-flash A–C 3/3; EPHEMERAL PASS; installed hash matches canon | — | owner-live: ≥2 real cycles with revision + verdict 1–5; `hermes-side/h1.2/` |
 | H1.3 Ретроспектива SRL | prompts/H1_04_WEEKLY_SRL_SKILL.md | ENGINEERING_COMPLETE | reproduction PASS; gemini-3.6-flash A–C 3/3; pending proposal visible; installed hash matches canon | — | owner-live: 2 weekly cycles over ≥2 calendar weeks + verdict 1–5; `hermes-side/h1.3/` |
-| H1.4 Sefaria MCP | prompts/H1_05_SEFARIA_MCP.md | PLANNED | — | — | после H1.0; ∥ с H1.5–H1.7 |
+| H1.4 Sefaria MCP | prompts/H1_05_SEFARIA_MCP.md | ENGINEERING_COMPLETE | official hosted SSE connected; 15 tools visible; gemini-3.6-flash A–C 3/3; privacy/provenance PASS | — | owner-live: 1 real song intertext analysis + verdict; `hermes-side/h1.4/` |
 | H1.5 YouTube-transcript | prompts/H1_06_YOUTUBE_TRANSCRIPT_MCP.md | PLANNED | — | — | ∥ |
 | H1.6 LRCLIB | prompts/H1_07_LRCLIB_INTEGRATION.md | PLANNED | — | — | ∥ |
 | H1.7 kaikki+wordfreq | prompts/H1_08_KAIKKI_WORDFREQ_DATASETS.md | PLANNED | — | — | ∥ |
@@ -64,3 +64,4 @@
 | 2026-07-22 | H1.1 clarification: B typed denial was simulation only; live personal-text connection ACTIVE, scope GRANTED, body read OK; skill made explicit personal-first | Codex |
 | 2026-07-22 | H1.2 writing WCF: reproduction PASS, A–C 3/3, EPHEMERAL PASS; ENGINEERING_COMPLETE, owner-live pending | Codex |
 | 2026-07-22 | H1.3 weekly SRL: reproduction PASS, A–C 3/3, propose-then-confirm PASS; ENGINEERING_COMPLETE, owner-live pending | Codex |
+| 2026-07-22 | H1.4 official Sefaria MCP: 15 tools visible, A–C 3/3, privacy/provenance PASS; ENGINEERING_COMPLETE, owner-live pending | Codex |
