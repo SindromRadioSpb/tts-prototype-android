@@ -4,21 +4,21 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-23 (H1.7 free-tier owner-live retest PASS; H1.7 CLOSED).
+Обновлено: 2026-07-23 (H1.8 closure-аудит: owner qualitative PASS принят, но ≥2-недельное окно и оценки 1–5 не доказаны; H1 не закрыт).
 
-## Горизонт 1 — статус: IN_PROGRESS (H1.0/H1.4/H1.6/H1.7 CLOSED; H1.1–H1.3/H1.5 engineering complete; owner-live pending)
+## Горизонт 1 — статус: IN_PROGRESS (H1.0 CLOSED; H1.1–H1.7 OWNER_LIVE; H1.8 BLOCKED ON OWNER WINDOW EVIDENCE)
 
 | Слайс | Промт | Статус | Гейты | Вердикт владельца | Ссылки/заметки |
 |---|---|---|---|---|---|
 | H1.0 Trainer policy | prompts/H1_01_TRAINER_POLICY_AND_GUARDRAILS.md | CLOSED | global SOUL reproduction PASS; ordinary new-chat S1–S5 5/5; owner-live 3 scenarios PASS | 5/5 — все ответы соответствовали ожиданиям | automatic activation PASS with `personality:null`; `hermes-side/h1.0/` |
-| H1.1 Разговорная сессия | prompts/H1_02_CONVERSATION_SKILL.md | ENGINEERING_COMPLETE | gemini-3.6-flash A–C 3/3; live body ACTIVE/GRANTED/OK; personal-first smoke PASS | — | B is simulation only; owner-live: ≥2 real sessions + verdict 1–5; `hermes-side/h1.1/` |
-| H1.2 Письмо WCF | prompts/H1_03_WRITING_WCF_SKILL.md | ENGINEERING_COMPLETE | reproduction PASS; gemini-3.6-flash A–C 3/3; EPHEMERAL PASS; installed hash matches canon | — | owner-live: ≥2 real cycles with revision + verdict 1–5; `hermes-side/h1.2/` |
-| H1.3 Ретроспектива SRL | prompts/H1_04_WEEKLY_SRL_SKILL.md | ENGINEERING_COMPLETE | reproduction PASS; gemini-3.6-flash A–C 3/3; pending proposal visible; installed hash matches canon | — | owner-live: 2 weekly cycles over ≥2 calendar weeks + verdict 1–5; `hermes-side/h1.3/` |
-| H1.4 Sefaria MCP | prompts/H1_05_SEFARIA_MCP.md | CLOSED | official hosted SSE connected; 15 tools visible; A–C 3/3; owner-live successful | H1.4 завершено успешно (числовая оценка не указана) | `hermes-side/h1.4/` |
-| H1.5 YouTube-transcript | prompts/H1_06_YOUTUBE_TRANSCRIPT_MCP.md | ENGINEERING_COMPLETE | `@nadimtuhin/ytranscript@1.3.0`; 2 tools allowlisted; gemini-3.6-flash A–C 3/3; auto-caption warning PASS | — | owner-live: 1 real user-selected video fragment + verdict; `hermes-side/h1.5/` |
-| H1.6 LRCLIB | prompts/H1_07_LRCLIB_INTEGRATION.md | CLOSED | 2 tools allowlisted; A–C 3/3; typed errors PASS; field coverage 2/5; owner-live successful | Протестировано успешно (числовая оценка не указана) | `hermes-side/h1.6/` |
-| H1.7 kaikki+wordfreq | prompts/H1_08_KAIKKI_WORDFREQ_DATASETS.md | CLOSED | 2 offline tools; network-off PASS; A–C 3/3; compact/sequential free-tier repair PASS; owner-live retest PASS for 2 due lemmas | «готово»; `שקר`/`חלק`, correct Zipf+Wiktionary attribution+non-canonical boundary (числовая оценка не указана) | `hermes-side/h1.7/` |
-| H1.8 Owner-live+closure | prompts/H1_09_OWNER_LIVE_AND_CLOSURE.md | PLANNED | — | — | строго последний |
+| H1.1 Разговорная сессия | prompts/H1_02_CONVERSATION_SKILL.md | OWNER_LIVE | gemini-3.6-flash A–C 3/3; live body ACTIVE/GRANTED/OK; owner qualitative PASS | «прошло успешно»; оценка 1–5/окно не записаны | ≥2 real sessions + metrics; `hermes-side/h1.1/` |
+| H1.2 Письмо WCF | prompts/H1_03_WRITING_WCF_SKILL.md | OWNER_LIVE | reproduction PASS; A–C 3/3; EPHEMERAL PASS; owner qualitative PASS | «прошло успешно»; оценка 1–5/окно не записаны | ≥2 revised cycles + metrics; `hermes-side/h1.2/` |
+| H1.3 Ретроспектива SRL | prompts/H1_04_WEEKLY_SRL_SKILL.md | OWNER_LIVE | reproduction PASS; A–C 3/3; owner qualitative PASS | «прошло успешно»; две календарные недели/оценка не доказаны | 2 dated weekly cycles + adherence; `hermes-side/h1.3/` |
+| H1.4 Sefaria MCP | prompts/H1_05_SEFARIA_MCP.md | OWNER_LIVE | official hosted SSE; 15 tools; A–C 3/3; owner qualitative PASS | «H1.4 завершено успешно»; числовая оценка не указана | rating 1–5 required by closure; `hermes-side/h1.4/` |
+| H1.5 YouTube-transcript | prompts/H1_06_YOUTUBE_TRANSCRIPT_MCP.md | OWNER_LIVE | 2 tools; A–C 3/3; auto-caption warning PASS; owner qualitative PASS | «прошло успешно»; видео/оценка 1–5 не записаны | real fragment evidence; `hermes-side/h1.5/` |
+| H1.6 LRCLIB | prompts/H1_07_LRCLIB_INTEGRATION.md | OWNER_LIVE | 2 tools; A–C 3/3; coverage 2/5; owner qualitative PASS | «Протестировано успешно»; числовая оценка не указана | rating 1–5 required; `hermes-side/h1.6/` |
+| H1.7 kaikki+wordfreq | prompts/H1_08_KAIKKI_WORDFREQ_DATASETS.md | OWNER_LIVE | offline A–C 3/3; repair PASS; bounded owner retest PASS | «готово»; `שקר`/`חלק`; числовая оценка не указана | rating 1–5 required; `hermes-side/h1.7/` |
+| H1.8 Owner-live+closure | prompts/H1_09_OWNER_LIVE_AND_CLOSURE.md | BLOCKED | preflight audit complete; `hermes-side/h1.8/EVIDENCE.md` | — | ≥2-week metrics + numeric verdicts + combined integration analysis + cost confirmation |
 
 **G-H1-CLOSURE: не пройден.**
 
@@ -74,3 +74,5 @@
 | 2026-07-22 | H1.7 kaikki+wordfreq: offline mini-MCP, network-off PASS, A–C 3/3, manifest complete; ENGINEERING_COMPLETE, owner-live pending | Codex |
 | 2026-07-23 | H1.7 owner-live found output truncation before Kaikki tool execution; compact payload + one-lookup-per-turn + ≤2-lookups free-tier repair installed; local/install PASS, gemini-3.6-flash E2E blocked by repeated external 429; owner retest pending | владелец / Codex |
 | 2026-07-23 | H1.7 owner-live repair retest: two sequential due lemmas (`שקר`, `חלק`) completed with correct Zipf, Wiktionary attribution, non-canonical/exposure boundaries and no state mutation; owner reported «готово»; CLOSED without invented numeric score | владелец / Codex |
+| 2026-07-23 | Owner confirmed earlier H1.1–H1.3/H1.5 tests were successful; qualitative verdicts recorded without invented numeric scores | владелец / Codex |
+| 2026-07-23 | H1.8 closure audit: all engineering artifacts present, prod-code diff 0, consent/W1 evidence PASS; G-H1-CLOSURE blocked because installed window is <2 days, per-loop 1–5 ratings/metrics and combined integration analysis are absent; H1.1–H1.7 returned to OWNER_LIVE per gate 10 §1 | Codex |
