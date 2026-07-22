@@ -8,7 +8,8 @@
 ## Шаги
 1. Прочитай `docs/planning/hermes-education-scaleup/2026-07-21/STATUS.md`, `README.md`,
    `10_ACCEPTANCE_GATES_AND_CLOSURE.md` §3.
-2. Проверь G-H2-START: H1 CLOSED + continuation evidence + явный owner go (цитата/дата в STATUS).
+2. Проверь G-H2-START: H1 CLOSED + continuation evidence либо зафиксированный
+   owner override с ACTIVE parallel monitoring + явный owner go Д5 (цитата/дата в STATUS).
    Не выполнено → сообщи, что именно отсутствует, и остановись.
 3. Живое состояние: `git log --oneline -3`, версия package.json, `docker ps` на проде не нужен —
    но зафиксируй последний прод-деплой по STATUS/истории.

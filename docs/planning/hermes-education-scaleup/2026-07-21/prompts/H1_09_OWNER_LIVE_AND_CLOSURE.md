@@ -20,22 +20,25 @@ STATUS: H1.0–H1.7 в CLOSED или SKIPPED/LOW_VALUE с owner-вердикто
 ## Пошаговая работа
 1. Сверь каждый CLOSED-слайс с его гейтами (10 §1): артефакты по путям существуют, транскрипты
    есть, вердикты записаны. Дыра → слайс возвращается в OWNER_LIVE, горизонт не закрывается.
-2. Оформи 2-недельное owner-live окно (если оно ещё не отбито в STATUS): согласуй с владельцем
-   план — ≥2 разговорные сессии, ≥2 WCF-цикла, ≥2 ретроспективы (окно H1.3 могло начаться раньше —
-   зачти), ≥1 разбор песни со всеми интеграциями (Sefaria+LRCLIB+YouTube+datasets в одном разборе).
-3. Собери метрики 08 §1 за окно: сессии/циклы/ретро по факту, retry success, инцидент-журнал
-   (галлюцинации/сикофантия/unwanted writes — с объёмом наблюдения), затраты (ожидаемо $0).
-4. Напиши `hermes-side/h1.8/EVIDENCE.md`: таблица слайсов × вердикты владельца; метрики окна;
-   инциденты; per-петля рекомендация (продолжать/чинить/выключить); соответствие continuation
-   evidence (08 §3: ≥1 петля с вердиктом ≥4/5 и регулярным использованием — да/нет).
+2. Если owner amendment переносит longitudinal window, зафиксируй qualitative
+   owner PASS как closure evidence и создай обязательный 14-дневный parallel
+   monitoring: ≥2 conversation, ≥2 WCF, ≥2 SRL, ≥1 общий разбор
+   Sefaria+LRCLIB+YouTube+datasets, ratings/incidents/cost.
+3. Собери доступный initial baseline 08 §1 и создай короткие paste-ready Hermes
+   prompts; не выдумывай отсутствующие longitudinal метрики.
+4. Напиши `hermes-side/h1.8/EVIDENCE.md`: таблица слайсов × owner verdicts;
+   initial baseline; monitoring dates/prompts/stop-условия; per-loop
+   recommendation; continuation evidence либо точный owner override.
 5. Consent- и cost-верификация G-H1-CLOSURE: подтверди (grep/скриншот панели грантов), что за H1
    не появилось новых scopes/грантов и записей мимо W1; затраты = $0 или объяснение.
-6. Обнови STATUS.md: слайсы → CLOSED; горизонт H1 → CLOSED; журнал решений.
+6. Обнови STATUS.md: слайсы → CLOSED; горизонт H1 → CLOSED; parallel monitoring
+   → ACTIVE; журнал решений.
 7. Сформулируй владельцу ЯВНЫЙ запрос Д5: «H1 закрыт, evidence такой-то; давать ли go на H2?»
    — цитатой в отчёте. НЕ начинай H2 сам ни при каких обстоятельствах.
 
 ## Acceptance
-G-H1-CLOSURE (10 §2) — все чекбоксы с артефактами; EVIDENCE.md полон; STATUS обновлён.
+G-H1-CLOSURE (10 §2) — все чекбоксы с артефактами; при owner amendment
+G-H1-PARALLEL-MONITOR спланирован и ACTIVE; EVIDENCE.md полон; STATUS обновлён.
 
 ## Rollback
 Не применим (слайс ничего не устанавливает); отрицательный итог = горизонт не закрыт, дыры

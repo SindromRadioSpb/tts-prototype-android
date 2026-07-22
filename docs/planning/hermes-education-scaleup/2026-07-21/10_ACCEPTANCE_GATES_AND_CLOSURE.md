@@ -26,7 +26,10 @@ STATUS.md (кто, когда, ссылки на артефакты). «SHIPPED/
 
 ### G-SLICE-OWNER-LIVE
 - [ ] Owner-live сценарий из промта слайса прогнан владельцем на реальных данных.
-- [ ] Вердикт владельца (1–5 + комментарий) записан в STATUS.md.
+- [ ] Вердикт владельца (1–5 + комментарий) записан в STATUS.md. Единственное
+      исключение: explicit owner amendment может принять qualitative PASS для
+      closure, если числовая оценка назначена в обязательном monitoring-плане
+      с датами, prompts и stop-условиями.
 - [ ] Инциденты (галлюцинации/сикофантия/unwanted writes) — зафиксированы или явное «0 при N наблюдениях».
 
 ### G-SLICE-CLOSED
@@ -34,17 +37,31 @@ STATUS.md (кто, когда, ссылки на артефакты). «SHIPPED/
 
 ## 2. G-H1-CLOSURE (закрытие Горизонта 1)
 - [ ] Все слайсы H1.0–H1.7 CLOSED (или явный owner-вердикт SKIPPED/LOW_VALUE с причиной).
-- [ ] H1.8 evidence-отчёт существует (hermes-side/h1.8/EVIDENCE.md): метрики 08 §2 за ≥2 нед,
-      вердикты по каждой петле, инцидент-журнал.
+- [ ] H1.8 evidence-отчёт существует (`hermes-side/h1.8/EVIDENCE.md`): initial
+      owner verdicts, consent/W1/cost baseline, инцидент-журнал и, если
+      longitudinal window перенесён explicit owner amendment, обязательный
+      monitoring-план с отдельным prompts-артефактом.
 - [ ] Consent-верификация: подтверждено, что за H1 не появилось ни одного нового скоупа/гранта
       (H1 их не требует) и ни одной записи в LinguistPro мимо W1.
 - [ ] Cost-верификация: фактические затраты H1 = $0 (или объяснение).
 - [ ] STATUS.md: горизонт H1 → CLOSED.
 
+### G-H1-PARALLEL-MONITOR (owner amendment 2026-07-23)
+
+- [ ] 14-дневное окно имеет даты начала/конца и идёт независимо от Codex-сессий.
+- [ ] Собираются метрики 08 §1: реальные conversation/WCF/SRL циклы, общий
+      integration-разбор, ratings, incidents с объёмом наблюдения и cost.
+- [ ] Day-14 follow-up обновляет `hermes-side/h1.8/EVIDENCE.md` и STATUS.
+- [ ] Stop-условия 08 §3 применяются даже если H2 уже начат по Д5.
+
+Этот monitoring обязателен, но по зафиксированному owner override не блокирует
+G-H1-CLOSURE или G-H2-START.
+
 ## 3. G-H2-START (разрешение начинать H2)
 - [ ] G-H1-CLOSURE пройден.
-- [ ] Continuation evidence: ≥1 петля с вердиктом ≥4/5 и регулярным использованием (08 §3) —
-      либо задокументированный owner override.
+- [ ] Continuation evidence: ≥1 петля с вердиктом ≥4/5 и регулярным
+      использованием (08 §3), либо задокументированный owner override с
+      активным G-H1-PARALLEL-MONITOR.
 - [ ] Владелец дал ЯВНОЕ go (Д5) — цитата/дата в STATUS.md.
 
 ## 4. G-H2-CLOSURE

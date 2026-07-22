@@ -1,105 +1,113 @@
 # H1.8 — Horizon 1 closure evidence
 
-Дата аудита: 2026-07-23.
+Дата closure-аудита: 2026-07-23.
 
-Исходный HEAD: `1b86050`; версия LinguistPro: `3.11.221`.
+Исходный HEAD owner-amendment сессии: `c6dbcec`; версия LinguistPro: `3.11.221`.
 
-Итог: **G-H1-CLOSURE НЕ ПРОЙДЕН**. Инженерные артефакты H1.0–H1.7 и
-качественные owner verdicts существуют, но обязательное двухнедельное окно,
-числовые оценки 1–5 и часть ручных метрик не доказаны. H2 остаётся
-заблокирован; запрос Д5 до закрытия H1 не формулируется как доступное решение.
+Итог: **G-H1-CLOSURE ПРОЙДЕН ПО OWNER AMENDMENT У7**. Владелец явно решил,
+что ждать блокирующее двухнедельное окно нельзя, и перенёс longitudinal
+evidence в обязательный параллельный monitoring. Это не отменяет метрики:
+окно 2026-07-23—2026-08-05, prompts и stop-условия зафиксированы, day-14
+follow-up обязателен.
 
-## 1. Аудит слайсов
+## 1. Owner decision и аудит слайсов
 
-| Слайс | Канон + transcripts | Engineering | Owner evidence | Строгий verdict H1.8 | Рекомендация |
-|---|---|---|---|---|---|
-| H1.0 policy | PASS | reproduction + S1–S5 5/5 | 3 сценария, 5/5 | CLOSED | продолжать always-on |
-| H1.1 conversation | PASS | A–C 3/3 | владелец сообщил об успехе; число/даты сессий, retry и оценка 1–5 не записаны | OWNER_LIVE | продолжать; дозаполнить окно |
-| H1.2 writing WCF | PASS | A–C 3/3, EPHEMERAL | владелец сообщил об успехе; число циклов, revised drafts и оценка 1–5 не записаны | OWNER_LIVE | продолжать; дозаполнить окно |
-| H1.3 weekly SRL | PASS | A–C 3/3 | владелец сообщил об успехе; две разные календарные недели и adherence не доказаны | OWNER_LIVE | продолжать; дождаться/зафиксировать вторую неделю |
-| H1.4 Sefaria | PASS | A–C 3/3 | «завершено успешно», без оценки 1–5 | OWNER_LIVE | продолжать |
-| H1.5 YouTube | PASS | A–C 3/3 | владелец подтвердил прежний успешный тест; видео/дата и оценка 1–5 не записаны | OWNER_LIVE | продолжать с маркировкой auto captions |
-| H1.6 LRCLIB | PASS | A–C 3/3, coverage 2/5 | «Протестировано успешно», без оценки 1–5 | OWNER_LIVE | оставить как opportunistic источник |
-| H1.7 Kaikki+wordfreq | PASS | A–C 3/3, offline; repair PASS | bounded retest `שקר`/`חלק` успешен, без оценки 1–5 | OWNER_LIVE | продолжать bounded free-tier flow |
+Цитата владельца 2026-07-23:
 
-Все заявленные `README.md` и `ACCEPTANCE_TRANSCRIPTS.md` для H1.0–H1.7
-существуют. Коммиты слайсов присутствуют в `main` и были запушены.
+> «Утверждаю. Корректируем изменение канона. Ждать две недели принципиально
+> нельзя. Двухнедельное наблюдение переносим в параллельный мониторинг.»
 
-## 2. Двухнедельное окно и метрики
+| Слайс | Engineering evidence | Owner verdict на closure | Статус | Рекомендация |
+|---|---|---|---|---|
+| H1.0 policy | reproduction + S1–S5 5/5 | 5/5, все ответы соответствовали ожиданиям | CLOSED | CONTINUE always-on |
+| H1.1 conversation | A–C 3/3, personal-first | ранее протестировано успешно | CLOSED; rating в monitor | CONTINUE |
+| H1.2 writing WCF | A–C 3/3, EPHEMERAL | ранее протестировано успешно | CLOSED; rating в monitor | CONTINUE |
+| H1.3 weekly SRL | A–C 3/3, W1 proposal | ранее протестировано успешно | CLOSED; 2 датированных цикла в monitor | CONTINUE |
+| H1.4 Sefaria | A–C 3/3, 15 tools | завершено успешно | CLOSED; rating в monitor | CONTINUE |
+| H1.5 YouTube | A–C 3/3, caption warning | ранее протестировано успешно | CLOSED; rating в monitor | CONTINUE с quality label |
+| H1.6 LRCLIB | A–C 3/3, coverage 2/5 | протестировано успешно | CLOSED; rating в monitor | CONTINUE opportunistically |
+| H1.7 Kaikki+wordfreq | A–C 3/3, offline, repair | bounded retest успешен | CLOSED; rating в monitor | CONTINUE bounded flow |
 
-Первый system-enforced H1.0 был завершён 2026-07-22 00:58 +03:00; H1.1–H1.7
-были установлены 2026-07-22, последний repair H1.7 — 2026-07-23. На момент
-аудита прошло менее двух календарных дней. Поэтому требование H1.8 «метрики за
-≥2 недели» нельзя подтвердить задним числом.
+Все `README.md` и `ACCEPTANCE_TRANSCRIPTS.md` H1.0–H1.7 существуют; коммиты
+присутствуют в `main` и запушены.
 
-| Метрика 08 §1 | Подтверждено | Недостаёт для closure |
-|---|---|---|
-| conversation sessions | qualitative PASS | даты, ≥2 реальных сессии, реплики/неделю |
-| production minutes/week | нет надёжного ручного итога | минуты речи + письма за две недели |
-| revised drafts/week | qualitative PASS | ≥2 WCF-ревизии и недельное распределение |
-| weekly retrospectives | qualitative PASS | две даты в разных календарных неделях |
-| goal adherence | нет | выбранная цель и доля дней исполнения |
-| retry success | engineering A PASS | owner-window attempts/success |
-| integrated song analysis | отдельные интеграции проверены | один реальный разбор с Sefaria + LRCLIB + YouTube + datasets вместе |
-| owner usefulness | H1.0 = 5/5; остальные qualitative PASS | числовая оценка 1–5 по H1.1–H1.7 |
-| cost | все H1-компоненты бесплатны; Gemini отвечал free-tier quota errors | явное owner/billing подтверждение факта `$0` |
+## 2. Initial metrics и parallel monitoring
 
-Continuation evidence из 08 §3: **НЕ ДОКАЗАНО**. H1.0 имеет 5/5, но это
-policy, а не регулярно используемая учебная петля; по H1.1–H1.7 нет
-зафиксированного числового verdict ≥4/5 и использования ≥1 раз/нед в
-двухнедельном окне. Owner override также не дан.
+Initial owner smoke подтверждает работоспособность всех семи петель, но не
+подменяет longitudinal результат. Monitoring использует короткие запросы из
+`TWO_WEEK_MONITORING_PROMPTS.md` и собирает:
 
-## 3. Consent, write-boundary и production diff
+- ≥2 реальные conversation sessions: реплики, минуты, retry X/Y, rating;
+- ≥2 WCF cycles: реальные revisions, минуты, исправления, rating;
+- 2 SRL cycles в разных неделях: owner goal, anchor, adherence X/Y, rating;
+- ≥1 общий разбор Sefaria + YouTube + LRCLIB + datasets;
+- safety/consent/cost baseline и day-14 diff;
+- CONTINUE/REPAIR/DISABLE per loop;
+- критерий ≥1 loop с rating ≥4/5 и использованием ≥1 раз в каждую неделю.
 
-Live детерминированный вызов `get_agent_connection` 2026-07-23 вернул:
+Окно: **2026-07-23 — 2026-08-05 включительно**. Day-14 follow-up обновляет
+этот файл и STATUS; он не блокирует H1 closure или H2 start после отдельного Д5.
+
+## 3. Continuation override и stop-условия
+
+Continuation evidence пока `PENDING_MONITORING`; owner decision У7 является
+задокументированным override времени измерения для G-H2-START. Safety gates не
+переносятся:
+
+- unwanted write → немедленно остановить новые H2 mutation-paths;
+- новый scope/consent drift → остановить затронутый путь и расследовать;
+- metered cost >$0 без owner go → остановить cost-path;
+- систематическая hallucination/sycophancy → REPAIR/DISABLE affected loop;
+- day 14 без регулярной loop ≥4/5 → не начинать следующий ещё не начатый
+  H2-слайс до owner решения CONTINUE/REPAIR/DISABLE.
+
+## 4. Consent, W1, cost и production boundary
+
+Live детерминированный `get_agent_connection` 2026-07-23:
 
 - `connection_status=ACTIVE`;
 - `consent_version=agent-access-consent-v2`;
 - `capability_version=aa-v0.1`;
-- 15 уже существующих scopes: connection/explanations/brief/profile,
-  personal-text metadata+content, public reading/search, review
-  activity/items/summary, два handoff-create и `intent.propose`;
-- downstream notice: `EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO`.
+- 15 ранее существующих scopes; новых H1 scopes нет;
+- retention notice: `EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO`.
 
-Дифф `722cddb..1b86050` содержит только `docs/`; production-код LinguistPro,
-его MCP-схемы и `CAPABILITY_VERSION` не менялись. H1 config-изменения
-добавляли только внешние/read-only MCP и не изменяли OAuth-секцию LinguistPro.
-Таким образом, новых LinguistPro scopes/grants в H1 не вводилось.
+Дифф H1 до closure содержит только `docs/`: production-код LinguistPro,
+существующие MCP-схемы и `CAPABILITY_VERSION` не менялись. H1 config-добавления
+были внешними/read-only и не меняли OAuth-секцию LinguistPro.
 
-По финальным acceptance-транскриптам минимум 32 сценарных наблюдения имеют
-**0 unwanted writes**. Единственная state-adjacent операция — H1.3
-`propose_action(kind=note)` после явного owner confirmation; результат остался
-`PENDING`, approval не выполнялся. Это соответствует W1 и не является скрытой
-записью. Для двухнедельного owner-window всё ещё требуется ручное подтверждение
-`0 при N наблюдениях`.
+В документированных финальных сценариях минимум 32 наблюдения и **0 unwanted
+writes**. H1.3 создал один явно подтверждённый `PENDING` proposal; approval не
+выполнялся. Известная инкрементальная стоимость H1-интеграций — `$0`: Sefaria,
+LRCLIB, datasets и YouTube wrapper бесплатны, Gemini фактически работал в free
+tier и возвращал quota errors. Полный account-level cost diff повторяется в
+monitoring; неизвестное не выдаётся за подтверждённый ноль.
 
-## 4. Инцидент-журнал
+## 5. Инцидент baseline
 
-| Класс | Наблюдение | Финальное состояние |
+| Класс | Наблюдение | Состояние на closure |
 |---|---|---|
-| grounding/hallucination | ранние H1.0 модели выдавали незаземлённую морфологию; H1.5 один раз заявил несуществующий `yt-dlp`; H1.7 первая frequency-итерация добавила переводы | исправлено policy/tool descriptions; финальные acceptance PASS |
-| sycophancy | ранние H1.0 S5 давали пустую похвалу/comprehensive rewrite | global SOUL final S5 PASS |
-| unwanted writes | 0 в документированных финальных сценариях; один явно подтверждённый pending proposal | W1 соблюдён |
-| provider/operations | Gemini 429, один empty stream, H1.7 truncation | bounded flow/повторы помогли; quota остаётся внешним ограничением |
-| upstream quality | YouTube auto captions, LRCLIB coverage 2/5, Kaikki non-canonical | честная маркировка и graceful degradation активны |
+| grounding | ранние H1.0 модели давали морфологию без источника; H1.7 добавлял переводы к frequency | final policy/tool contracts PASS |
+| sycophancy | ранние H1.0 S5 давали пустую похвалу | global SOUL final S5 PASS |
+| tool hallucination | ранняя H1.5 policy допустила заявление о `yt-dlp` | усилено; final PASS |
+| unwanted writes | 0; один explicit pending proposal | W1 PASS |
+| provider/operations | Gemini 429, empty stream, H1.7 truncation | bounded repair; quota остаётся внешним ограничением |
+| upstream quality | auto captions, LRCLIB 2/5, Kaikki non-canonical | provenance/degradation PASS |
 
-## 5. Что должен добавить владелец
+## 6. Closure checklist
 
-После реального окна не менее двух недель заполнить одним сообщением:
+- [x] H1.0–H1.7 CLOSED по engineering evidence + owner verdict; ratings
+      H1.1–H1.7 назначены в monitor по У7.
+- [x] Initial H1.8 evidence и incident baseline существуют.
+- [x] Consent/W1 verification PASS; новых scopes/grants H1 не вводил.
+- [x] Known incremental integration cost `$0`; account-level diff monitored.
+- [x] 14-day monitoring dates, prompts и stop-условия существуют.
+- [x] STATUS переводит H1 в CLOSED и monitoring в ACTIVE.
 
-```text
-Период H1 owner-live: YYYY-MM-DD — YYYY-MM-DD.
-H1.1: N разговорных сессий, M минут, retry X/Y, оценка K/5 — комментарий.
-H1.2: N WCF-циклов, N ревизий, M минут, оценка K/5 — комментарий.
-H1.3: ретро даты D1 и D2; цель; исполнено X/Y дней; оценка K/5 — комментарий.
-H1.4: оценка K/5 — комментарий.
-H1.5: видео/фрагмент; оценка K/5 — комментарий.
-H1.6: песня; оценка K/5 — комментарий.
-H1.7: оценка K/5 — комментарий.
-Общий разбор песни: Sefaria + LRCLIB + YouTube + datasets — PASS/FAIL, ссылка/название.
-Инциденты owner-window: hallucination N, sycophancy N, unwanted writes N при T сессиях.
-Фактические затраты H1: $N.
-```
+**G-H1-CLOSURE: PASS.**
 
-После этого H1.8 повторно проверяет G-H1-CLOSURE. Только после реального
-закрытия горизонта владелец получает отдельный запрос Д5: давать ли go на H2.
+## 7. Запрос Д5
+
+> «H1 закрыт по утверждённому переносу двухнедельного наблюдения в
+> параллельный monitoring; давать ли go на H2?»
+
+До отдельного ответа владельца на Д5 H2 остаётся заблокирован.

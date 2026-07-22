@@ -4,25 +4,27 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-23 (H1.8 closure-аудит: owner qualitative PASS принят, но ≥2-недельное окно и оценки 1–5 не доказаны; H1 не закрыт).
+Обновлено: 2026-07-23 (owner amendment У7: H1 CLOSED; обязательный 14-дневный parallel monitoring ACTIVE; Д5 ожидается).
 
-## Горизонт 1 — статус: IN_PROGRESS (H1.0 CLOSED; H1.1–H1.7 OWNER_LIVE; H1.8 BLOCKED ON OWNER WINDOW EVIDENCE)
+## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
 | Слайс | Промт | Статус | Гейты | Вердикт владельца | Ссылки/заметки |
 |---|---|---|---|---|---|
 | H1.0 Trainer policy | prompts/H1_01_TRAINER_POLICY_AND_GUARDRAILS.md | CLOSED | global SOUL reproduction PASS; ordinary new-chat S1–S5 5/5; owner-live 3 scenarios PASS | 5/5 — все ответы соответствовали ожиданиям | automatic activation PASS with `personality:null`; `hermes-side/h1.0/` |
-| H1.1 Разговорная сессия | prompts/H1_02_CONVERSATION_SKILL.md | OWNER_LIVE | gemini-3.6-flash A–C 3/3; live body ACTIVE/GRANTED/OK; owner qualitative PASS | «прошло успешно»; оценка 1–5/окно не записаны | ≥2 real sessions + metrics; `hermes-side/h1.1/` |
-| H1.2 Письмо WCF | prompts/H1_03_WRITING_WCF_SKILL.md | OWNER_LIVE | reproduction PASS; A–C 3/3; EPHEMERAL PASS; owner qualitative PASS | «прошло успешно»; оценка 1–5/окно не записаны | ≥2 revised cycles + metrics; `hermes-side/h1.2/` |
-| H1.3 Ретроспектива SRL | prompts/H1_04_WEEKLY_SRL_SKILL.md | OWNER_LIVE | reproduction PASS; A–C 3/3; owner qualitative PASS | «прошло успешно»; две календарные недели/оценка не доказаны | 2 dated weekly cycles + adherence; `hermes-side/h1.3/` |
-| H1.4 Sefaria MCP | prompts/H1_05_SEFARIA_MCP.md | OWNER_LIVE | official hosted SSE; 15 tools; A–C 3/3; owner qualitative PASS | «H1.4 завершено успешно»; числовая оценка не указана | rating 1–5 required by closure; `hermes-side/h1.4/` |
-| H1.5 YouTube-transcript | prompts/H1_06_YOUTUBE_TRANSCRIPT_MCP.md | OWNER_LIVE | 2 tools; A–C 3/3; auto-caption warning PASS; owner qualitative PASS | «прошло успешно»; видео/оценка 1–5 не записаны | real fragment evidence; `hermes-side/h1.5/` |
-| H1.6 LRCLIB | prompts/H1_07_LRCLIB_INTEGRATION.md | OWNER_LIVE | 2 tools; A–C 3/3; coverage 2/5; owner qualitative PASS | «Протестировано успешно»; числовая оценка не указана | rating 1–5 required; `hermes-side/h1.6/` |
-| H1.7 kaikki+wordfreq | prompts/H1_08_KAIKKI_WORDFREQ_DATASETS.md | OWNER_LIVE | offline A–C 3/3; repair PASS; bounded owner retest PASS | «готово»; `שקר`/`חלק`; числовая оценка не указана | rating 1–5 required; `hermes-side/h1.7/` |
-| H1.8 Owner-live+closure | prompts/H1_09_OWNER_LIVE_AND_CLOSURE.md | BLOCKED | preflight audit complete; `hermes-side/h1.8/EVIDENCE.md` | — | ≥2-week metrics + numeric verdicts + combined integration analysis + cost confirmation |
+| H1.1 Разговорная сессия | prompts/H1_02_CONVERSATION_SKILL.md | CLOSED | A–C 3/3; live body ACTIVE/GRANTED/OK; owner qualitative PASS | «прошло успешно»; rating scheduled in monitor | `hermes-side/h1.1/`; monitoring prompts h1.8 |
+| H1.2 Письмо WCF | prompts/H1_03_WRITING_WCF_SKILL.md | CLOSED | A–C 3/3; EPHEMERAL PASS; owner qualitative PASS | «прошло успешно»; rating scheduled in monitor | `hermes-side/h1.2/`; monitoring prompts h1.8 |
+| H1.3 Ретроспектива SRL | prompts/H1_04_WEEKLY_SRL_SKILL.md | CLOSED | A–C 3/3; owner qualitative PASS; 2 dated cycles moved to monitor by У7 | «прошло успешно»; rating scheduled in monitor | `hermes-side/h1.3/`; monitoring prompts h1.8 |
+| H1.4 Sefaria MCP | prompts/H1_05_SEFARIA_MCP.md | CLOSED | hosted SSE; 15 tools; A–C 3/3; owner qualitative PASS | «H1.4 завершено успешно»; rating scheduled in monitor | `hermes-side/h1.4/` |
+| H1.5 YouTube-transcript | prompts/H1_06_YOUTUBE_TRANSCRIPT_MCP.md | CLOSED | 2 tools; A–C 3/3; auto-caption warning; owner qualitative PASS | «прошло успешно»; rating scheduled in monitor | `hermes-side/h1.5/` |
+| H1.6 LRCLIB | prompts/H1_07_LRCLIB_INTEGRATION.md | CLOSED | 2 tools; A–C 3/3; coverage 2/5; owner qualitative PASS | «Протестировано успешно»; rating scheduled in monitor | `hermes-side/h1.6/` |
+| H1.7 kaikki+wordfreq | prompts/H1_08_KAIKKI_WORDFREQ_DATASETS.md | CLOSED | offline A–C 3/3; repair + bounded owner retest PASS | «готово»; rating scheduled in monitor | `hermes-side/h1.7/` |
+| H1.8 Owner-live+closure | prompts/H1_09_OWNER_LIVE_AND_CLOSURE.md | CLOSED | G-H1-CLOSURE PASS under У7; consent/W1/cost baseline PASS; monitor ACTIVE | owner amendment: ждать 2 недели нельзя, observation parallel | `hermes-side/h1.8/EVIDENCE.md`; `TWO_WEEK_MONITORING_PROMPTS.md` |
 
-**G-H1-CLOSURE: не пройден.**
+**G-H1-CLOSURE: PASS.**
 
-## Горизонт 2 — статус: BLOCKED UNTIL H1 CLOSURE + owner go (Д5)
+**G-H1-PARALLEL-MONITOR: ACTIVE, 2026-07-23—2026-08-05; day-14 follow-up обязателен.**
+
+## Горизонт 2 — статус: BLOCKED UNTIL explicit owner go (Д5); H1 CLOSED, continuation timing override + monitoring ACTIVE
 
 | Слайс | Промт | Статус |
 |---|---|---|
@@ -34,7 +36,7 @@
 | H2.6 Async voice loop | prompts/H2_06_ASYNC_VOICE_LOOP.md | BLOCKED |
 | H2.7 Owner-live+closure | prompts/H2_07_OWNER_LIVE_AND_CLOSURE.md | BLOCKED |
 
-**G-H2-START: не запрошен. G-H2-CLOSURE: не пройден.**
+**G-H2-START: ожидает только явный Д5; continuation timing override У7 записан. G-H2-CLOSURE: не пройден.**
 
 ## Горизонт 3 — статус: R&D-чартеры, каждый ждёт owner go (Д6) после G-H2-CLOSURE
 
@@ -76,3 +78,5 @@
 | 2026-07-23 | H1.7 owner-live repair retest: two sequential due lemmas (`שקר`, `חלק`) completed with correct Zipf, Wiktionary attribution, non-canonical/exposure boundaries and no state mutation; owner reported «готово»; CLOSED without invented numeric score | владелец / Codex |
 | 2026-07-23 | Owner confirmed earlier H1.1–H1.3/H1.5 tests were successful; qualitative verdicts recorded without invented numeric scores | владелец / Codex |
 | 2026-07-23 | H1.8 closure audit: all engineering artifacts present, prod-code diff 0, consent/W1 evidence PASS; G-H1-CLOSURE blocked because installed window is <2 days, per-loop 1–5 ratings/metrics and combined integration analysis are absent; H1.1–H1.7 returned to OWNER_LIVE per gate 10 §1 | Codex |
+| 2026-07-23 | Owner amendment У7: «Ждать две недели принципиально нельзя. Двухнедельное наблюдение переносим в параллельный мониторинг»; canon/gate consumers updated, 14-day monitor scheduled 2026-07-23—2026-08-05 | владелец / Codex |
+| 2026-07-23 | H1.8 closure under У7: H1.0–H1.8 CLOSED; consent/W1/cost baseline PASS; G-H1-CLOSURE PASS; G-H1-PARALLEL-MONITOR ACTIVE; H2 still awaits explicit Д5 | Codex |

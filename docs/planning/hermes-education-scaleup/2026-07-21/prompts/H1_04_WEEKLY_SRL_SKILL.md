@@ -48,8 +48,9 @@ HEAD/версия; STATUS: H1.0 CLOSED, H1.3 PLANNED; Hermes жив; get_progres
 с источником, propose_action создан (и виден владельцу на подтверждение).
 
 ## Owner-live
-2 недельных цикла подряд (календарные ≥2 недель — evidence-окно может продолжаться после
-ENGINEERING_COMPLETE; H1.8 учитывает это). Вердикт 1–5 в STATUS после 2-го цикла.
+Немедленный реальный SRL-smoke + qualitative owner PASS. По owner amendment
+2026-07-23 два цикла в разных календарных неделях и verdict 1–5 переносятся в
+обязательный 14-дневный H1-monitoring и не блокируют closure слайса.
 
 ## Rollback
 Деактивация скилла.
