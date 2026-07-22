@@ -1,0 +1,16 @@
+mcp_servers:
+  lrclib:
+    command: /bin/sh
+    args:
+      - -lc
+      - 'if [ -n "${HERMES_HOME:-}" ]; then exec /opt/hermes/.venv/bin/python "$HERMES_HOME/mcp-servers/lrclib/lrclib_mcp.py"; else exec env PYTHONPATH="$HOME/.hermes/mcp-runtimes/lrclib-py312" python "$HOME/.hermes/mcp-servers/lrclib/lrclib_mcp.py"; fi'
+    enabled: true
+    supports_parallel_tool_calls: false
+    timeout: 15
+    connect_timeout: 30
+    tools:
+      include:
+        - search_lyrics
+        - get_synced_lyrics
+      resources: false
+      prompts: false
