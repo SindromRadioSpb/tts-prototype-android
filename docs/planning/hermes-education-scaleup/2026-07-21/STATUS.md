@@ -4,14 +4,14 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-22 (H1.1 acceptance 1/3 на gemini-3.5-flash-lite; BLOCKED, rollback).
+Обновлено: 2026-07-22 (H1.1 gemini-3.6-flash acceptance 3/3; ENGINEERING_COMPLETE).
 
-## Горизонт 1 — статус: BLOCKED (H1.1 model-behavior acceptance 1/3)
+## Горизонт 1 — статус: IN_PROGRESS (H1.1 ENGINEERING_COMPLETE; owner-live pending)
 
 | Слайс | Промт | Статус | Гейты | Вердикт владельца | Ссылки/заметки |
 |---|---|---|---|---|---|
 | H1.0 Trainer policy | prompts/H1_01_TRAINER_POLICY_AND_GUARDRAILS.md | CLOSED | global SOUL reproduction PASS; ordinary new-chat S1–S5 5/5; owner-live 3 scenarios PASS | 5/5 — все ответы соответствовали ожиданиям | automatic activation PASS with `personality:null`; `hermes-side/h1.0/` |
-| H1.1 Разговорная сессия | prompts/H1_02_CONVERSATION_SKILL.md | BLOCKED | preflight PASS; reproduction PASS; A FAIL, B FAIL, C PASS (1/3); rollback verified | — | `hermes-side/h1.1/`; gemini-3.5-flash-lite nondeterministically skips required steps/limits |
+| H1.1 Разговорная сессия | prompts/H1_02_CONVERSATION_SKILL.md | ENGINEERING_COMPLETE | gemini-3.6-flash metadata + reproduction PASS; A–C 3/3; installed hash matches canon | — | owner-live: ≥2 real sessions; log Hebrew turns + usefulness + verdict 1–5; `hermes-side/h1.1/` |
 | H1.2 Письмо WCF | prompts/H1_03_WRITING_WCF_SKILL.md | PLANNED | — | — | после H1.0 |
 | H1.3 Ретроспектива SRL | prompts/H1_04_WEEKLY_SRL_SKILL.md | PLANNED | — | — | после H1.0 |
 | H1.4 Sefaria MCP | prompts/H1_05_SEFARIA_MCP.md | PLANNED | — | — | после H1.0; ∥ с H1.5–H1.7 |
@@ -60,3 +60,4 @@
 | 2026-07-21 | Направление утверждено (OWNER-APPROVED DIRECTION/PLANNING); пакет создан | владелец / Claude |
 | 2026-07-22 | H1.0 owner-live: 3 сценария пройдены, verdict 5/5; слайс CLOSED | владелец |
 | 2026-07-22 | H1.1: reproduction PASS, acceptance 1/3; после нескольких skill-text итераций BLOCKED, установленный skill откатан | Codex |
+| 2026-07-22 | H1.1 rerun на gemini-3.6-flash: reproduction PASS, A–C 3/3; ENGINEERING_COMPLETE, owner-live pending | Codex |
