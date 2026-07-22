@@ -1,0 +1,16 @@
+mcp_servers:
+  youtube_transcript:
+    command: /bin/sh
+    args:
+      - -lc
+      - 'exec "${HERMES_HOME:-$HOME/.hermes}/mcp-runtimes/node" "${HERMES_HOME:-$HOME/.hermes}/mcp-servers/ytranscript/node_modules/@nadimtuhin/ytranscript/dist/mcp.js"'
+    enabled: true
+    supports_parallel_tool_calls: false
+    timeout: 60
+    connect_timeout: 30
+    tools:
+      include:
+        - get_transcript
+        - get_transcript_languages
+      resources: false
+      prompts: false
