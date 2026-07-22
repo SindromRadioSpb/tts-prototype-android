@@ -4,9 +4,9 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-23 (H1.7 free-tier truncation repair установлен; model E2E заблокирован внешней Gemini quota, owner-live retest pending).
+Обновлено: 2026-07-23 (H1.7 free-tier owner-live retest PASS; H1.7 CLOSED).
 
-## Горизонт 1 — статус: IN_PROGRESS (H1.0/H1.4/H1.6 CLOSED; H1.1–H1.3/H1.5/H1.7 engineering complete; owner-live pending)
+## Горизонт 1 — статус: IN_PROGRESS (H1.0/H1.4/H1.6/H1.7 CLOSED; H1.1–H1.3/H1.5 engineering complete; owner-live pending)
 
 | Слайс | Промт | Статус | Гейты | Вердикт владельца | Ссылки/заметки |
 |---|---|---|---|---|---|
@@ -17,7 +17,7 @@
 | H1.4 Sefaria MCP | prompts/H1_05_SEFARIA_MCP.md | CLOSED | official hosted SSE connected; 15 tools visible; A–C 3/3; owner-live successful | H1.4 завершено успешно (числовая оценка не указана) | `hermes-side/h1.4/` |
 | H1.5 YouTube-transcript | prompts/H1_06_YOUTUBE_TRANSCRIPT_MCP.md | ENGINEERING_COMPLETE | `@nadimtuhin/ytranscript@1.3.0`; 2 tools allowlisted; gemini-3.6-flash A–C 3/3; auto-caption warning PASS | — | owner-live: 1 real user-selected video fragment + verdict; `hermes-side/h1.5/` |
 | H1.6 LRCLIB | prompts/H1_07_LRCLIB_INTEGRATION.md | CLOSED | 2 tools allowlisted; A–C 3/3; typed errors PASS; field coverage 2/5; owner-live successful | Протестировано успешно (числовая оценка не указана) | `hermes-side/h1.6/` |
-| H1.7 kaikki+wordfreq | prompts/H1_08_KAIKKI_WORDFREQ_DATASETS.md | ENGINEERING_COMPLETE | 2 offline tools; network-off PASS; A–C 3/3; compact/sequential free-tier repair local+install PASS; model E2E blocked by Gemini 429 | owner test: `Response truncated due to output length limit`; retest pending | owner-live: ≤20 real words, ≤2 sequential lookups on free tier, verdict 1–5; `hermes-side/h1.7/` |
+| H1.7 kaikki+wordfreq | prompts/H1_08_KAIKKI_WORDFREQ_DATASETS.md | CLOSED | 2 offline tools; network-off PASS; A–C 3/3; compact/sequential free-tier repair PASS; owner-live retest PASS for 2 due lemmas | «готово»; `שקר`/`חלק`, correct Zipf+Wiktionary attribution+non-canonical boundary (числовая оценка не указана) | `hermes-side/h1.7/` |
 | H1.8 Owner-live+closure | prompts/H1_09_OWNER_LIVE_AND_CLOSURE.md | PLANNED | — | — | строго последний |
 
 **G-H1-CLOSURE: не пройден.**
@@ -73,3 +73,4 @@
 | 2026-07-22 | H1.7 kaikki+wordfreq: preflight PASS; engineering started | Codex |
 | 2026-07-22 | H1.7 kaikki+wordfreq: offline mini-MCP, network-off PASS, A–C 3/3, manifest complete; ENGINEERING_COMPLETE, owner-live pending | Codex |
 | 2026-07-23 | H1.7 owner-live found output truncation before Kaikki tool execution; compact payload + one-lookup-per-turn + ≤2-lookups free-tier repair installed; local/install PASS, gemini-3.6-flash E2E blocked by repeated external 429; owner retest pending | владелец / Codex |
+| 2026-07-23 | H1.7 owner-live repair retest: two sequential due lemmas (`שקר`, `חלק`) completed with correct Zipf, Wiktionary attribution, non-canonical/exposure boundaries and no state mutation; owner reported «готово»; CLOSED without invented numeric score | владелец / Codex |

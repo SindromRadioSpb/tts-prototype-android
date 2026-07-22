@@ -147,3 +147,25 @@ canon SHA = agent SHA = WebUI SHA
 минимальный одно-tool smoke из-за внешнего `HTTP 429 RESOURCE_EXHAUSTED`
 (`generate_content_free_tier_requests`, reported limit 20). Вердикт repair:
 **LOCAL/INSTALL PASS; MODEL E2E BLOCKED BY QUOTA; owner-live retest pending**.
+
+## Owner-live repair retest — PASS
+
+Дата: 2026-07-23. Владелец повторил bounded free-tier сценарий и сообщил
+`готово`. Обработаны две due-леммы:
+
+```text
+שקר: Zipf 4.73 — средней частотности.
+По Викисловарю: существительное שֶׁקֶר; множественное число שְׁקָרִים;
+также отмечен глагольный вариант שִׁקֵּר.
+
+חלק: Zipf 5.74 — частое.
+По Викисловарю: многозначная лемма — חָלָק, חֵלֶק и חָלַק.
+
+Данные частотности получены из WORDFREQ, лексическая справка —
+по Викисловарю; справка не канон, состояние LinguistPro не изменялось,
+exposure ≠ mastery.
+```
+
+Вердикт: **PASS** — последовательный двухлеммный маршрут завершился без
+truncation; provenance, advisory/non-canonical boundary и W0/W1 соблюдены.
+Владелец не указал числовую оценку, поэтому она не выдумывается. H1.7 закрыт.
