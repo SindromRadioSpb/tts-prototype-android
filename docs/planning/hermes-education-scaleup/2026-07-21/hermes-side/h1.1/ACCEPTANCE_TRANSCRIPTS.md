@@ -11,6 +11,16 @@
 сохранены имена живых вызовов и диалоговые реплики, достаточные для проверки
 переходов. Ни один write/propose-инструмент не вызывался.
 
+> **Важно:** `AA_TEXT_ACCESS_NOT_GRANTED` в сценарии B был синтетическим
+> acceptance-stimulus, а не ответом живого сервера и не изменением grant.
+> Перепроверка после owner-вопроса, session `a7eb91b273aa`: connection=`ACTIVE`,
+> scope `personal.texts.content.read`=`GRANTED`, минимальный body-read=`OK`.
+
+Personal-first smoke после уточнения skill, session `d060a46058bb`:
+`skill_view`, `get_learner_profile`, `list_personal_texts`,
+`get_due_review_items`, `get_personal_text_content`; агент начал разговор по
+личной песне, корпусные инструменты не вызывались. **PASS**.
+
 ## Повторный прогон — gemini-3.6-flash (текущий результат)
 
 - Session `9b3fd4ea11e5`: metadata новой ordinary-session —
@@ -61,8 +71,10 @@ ASSISTANT CLOSURE: Ты исправил прошедшее время глаг�
 
 ### B — typed refusal → корпус: PASS после одной формулировочной итерации
 
-Реальный owner-grant не отзывался. Stimulus передавал уже полученный typed result
-`AA_TEXT_ACCESS_NOT_GRANTED, retryable:false`, чтобы проверить отказ без мутации.
+Реальный owner-grant не отзывался. Тестовый prompt синтетически объявлял, будто
+body-read уже вернул `AA_TEXT_ACCESS_NOT_GRANTED, retryable:false`, чтобы
+проверить ветку отказа без мутации. Живой сервер в этой B-сессии этот error не
+возвращал.
 Первый session `f1865be248ba` корректно не ретраил и вызвал
 `search_public_reading_catalog`, но выдал меню длиннее двух предложений. Skill
 уточнён: один корпусный материал, ровно два предложения, без списка.
@@ -90,7 +102,7 @@ ASSISTANT: Сессия остановлена в самом начале сос
 ### Итог повторного прогона
 
 Acceptance: **3/3, PASS**. Финальный установленный и канонический SHA-256:
-`0dacf2a0dd8436781a1aa81a704ccdcf432b21724abf4e477598b6f502066d84`.
+`f2051fe37eab684af8d7e48afb0ba8568716d9595b1896791f8443feb0b694d5`.
 H1.1 достигает `ENGINEERING_COMPLETE`; до `CLOSED` нужны две owner-live сессии.
 
 ## История первого прогона — gemini-3.5-flash-lite
@@ -178,9 +190,9 @@ ASSISTANT: מעולה. בוא נסגре את הסשן (CLOSURE):
 
 ### B — typed refusal и корпусная тема
 
-Session `b56803f83605`. Чтобы не отзывать реальный owner-grant ради теста, в
-stimulus передан уже полученный typed result `AA_TEXT_ACCESS_NOT_GRANTED,
-retryable:false`; повторный body-вызов запрещён. Агент вызвал `skill_view`,
+Session `b56803f83605`. Чтобы не отзывать реальный owner-grant ради теста,
+тестовый prompt синтетически объявлял typed result `AA_TEXT_ACCESS_NOT_GRANTED,
+retryable:false`; сервер его не возвращал, повторный body-вызов запрещён. Агент вызвал `skill_view`,
 `get_learner_profile`, `search_public_reading_catalog` и не ретраил личный текст.
 
 ```text
