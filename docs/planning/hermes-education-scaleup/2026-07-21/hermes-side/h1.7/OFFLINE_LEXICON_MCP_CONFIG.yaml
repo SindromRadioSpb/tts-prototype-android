@@ -1,0 +1,16 @@
+mcp_servers:
+  hebrew_offline:
+    command: /bin/sh
+    args:
+      - -lc
+      - 'if [ -n "${HERMES_HOME:-}" ]; then exec env PYTHONPATH="$HERMES_HOME/mcp-runtimes/offline-py313" KAIKKI_JSONL=/workspace/datasets/kaikki/kaikki.org-dictionary-Hebrew-2026-07-20.jsonl /opt/hermes/.venv/bin/python "$HERMES_HOME/mcp-servers/offline-lexicon/offline_lexicon_mcp.py"; else exec env PYTHONPATH="$HOME/.hermes/mcp-runtimes/offline-py312" KAIKKI_JSONL=/workspace/datasets/kaikki/kaikki.org-dictionary-Hebrew-2026-07-20.jsonl python "$HOME/.hermes/mcp-servers/offline-lexicon/offline_lexicon_mcp.py"; fi'
+    enabled: true
+    supports_parallel_tool_calls: false
+    timeout: 15
+    connect_timeout: 30
+    tools:
+      include:
+        - kaikki_lookup
+        - word_frequency
+      resources: false
+      prompts: false

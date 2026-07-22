@@ -4,9 +4,9 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-22 (H1.6 LRCLIB acceptance 3/3; field coverage 2/5; ENGINEERING_COMPLETE).
+Обновлено: 2026-07-22 (H1.6 CLOSED; H1.7 offline Kaikki+wordfreq acceptance 3/3, ENGINEERING_COMPLETE).
 
-## Горизонт 1 — статус: IN_PROGRESS (H1.0/H1.4 CLOSED; H1.1–H1.3/H1.5–H1.6 engineering complete; owner-live pending)
+## Горизонт 1 — статус: IN_PROGRESS (H1.0/H1.4/H1.6 CLOSED; H1.1–H1.3/H1.5/H1.7 engineering complete; owner-live pending)
 
 | Слайс | Промт | Статус | Гейты | Вердикт владельца | Ссылки/заметки |
 |---|---|---|---|---|---|
@@ -16,8 +16,8 @@
 | H1.3 Ретроспектива SRL | prompts/H1_04_WEEKLY_SRL_SKILL.md | ENGINEERING_COMPLETE | reproduction PASS; gemini-3.6-flash A–C 3/3; pending proposal visible; installed hash matches canon | — | owner-live: 2 weekly cycles over ≥2 calendar weeks + verdict 1–5; `hermes-side/h1.3/` |
 | H1.4 Sefaria MCP | prompts/H1_05_SEFARIA_MCP.md | CLOSED | official hosted SSE connected; 15 tools visible; A–C 3/3; owner-live successful | H1.4 завершено успешно (числовая оценка не указана) | `hermes-side/h1.4/` |
 | H1.5 YouTube-transcript | prompts/H1_06_YOUTUBE_TRANSCRIPT_MCP.md | ENGINEERING_COMPLETE | `@nadimtuhin/ytranscript@1.3.0`; 2 tools allowlisted; gemini-3.6-flash A–C 3/3; auto-caption warning PASS | — | owner-live: 1 real user-selected video fragment + verdict; `hermes-side/h1.5/` |
-| H1.6 LRCLIB | prompts/H1_07_LRCLIB_INTEGRATION.md | ENGINEERING_COMPLETE | 2 tools allowlisted; gemini-3.5-flash-lite A–C 3/3; typed errors PASS; field coverage 2/5 | — | owner-live: 1 real song timestamp analysis + verdict 1–5; `hermes-side/h1.6/` |
-| H1.7 kaikki+wordfreq | prompts/H1_08_KAIKKI_WORDFREQ_DATASETS.md | PLANNED | — | — | ∥ |
+| H1.6 LRCLIB | prompts/H1_07_LRCLIB_INTEGRATION.md | CLOSED | 2 tools allowlisted; A–C 3/3; typed errors PASS; field coverage 2/5; owner-live successful | Протестировано успешно (числовая оценка не указана) | `hermes-side/h1.6/` |
+| H1.7 kaikki+wordfreq | prompts/H1_08_KAIKKI_WORDFREQ_DATASETS.md | ENGINEERING_COMPLETE | 2 offline tools; network-off gate PASS; gemini-3.5-flash-lite A–C 3/3; manifest PASS | — | owner-live: prioritize ≤20 real words + verdict 1–5; `hermes-side/h1.7/` |
 | H1.8 Owner-live+closure | prompts/H1_09_OWNER_LIVE_AND_CLOSURE.md | PLANNED | — | — | строго последний |
 
 **G-H1-CLOSURE: не пройден.**
@@ -69,3 +69,6 @@
 | 2026-07-22 | H1.5 YouTube transcript MCP: local stdio server, 2-tool allowlist, A–C 3/3, auto-caption warning PASS; ENGINEERING_COMPLETE, owner-live pending | Codex |
 | 2026-07-22 | H1.6 LRCLIB: preflight PASS; engineering started | Codex |
 | 2026-07-22 | H1.6 LRCLIB: local FastMCP wrapper, A–C 3/3, real-playlist coverage 2/5; ENGINEERING_COMPLETE, owner-live pending | Codex |
+| 2026-07-22 | H1.6 owner-live: владелец сообщил «Протестировано успешно»; CLOSED без выдуманной числовой оценки | владелец / Codex |
+| 2026-07-22 | H1.7 kaikki+wordfreq: preflight PASS; engineering started | Codex |
+| 2026-07-22 | H1.7 kaikki+wordfreq: offline mini-MCP, network-off PASS, A–C 3/3, manifest complete; ENGINEERING_COMPLETE, owner-live pending | Codex |
