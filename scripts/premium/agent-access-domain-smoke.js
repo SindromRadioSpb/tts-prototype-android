@@ -46,7 +46,7 @@ const fixtures = Object.freeze({
   }),
   get_agent_connection: Object.freeze({
     schema_version: "aa.connection.1.0.0", connection_id: principal.connection_id, oauth_client_id: principal.oauth_client_id,
-    client_display_name: "Fixture client", connection_status: "ACTIVE", granted_scopes: Object.freeze(principal.scopes.filter((scope) => scope !== "morphology.read")),
+    client_display_name: "Fixture client", connection_status: "ACTIVE", granted_scopes: Object.freeze(principal.scopes.filter((scope) => !new Set(["morphology.read","learner.coverage.read","reading.group_corpus.read","learner.group_coverage.read"]).has(scope))),
     access_expires_at: principal.access_expires_at, consent_version: "consent-1", capability_version: "aa-v0.1",
     downstream_retention_notice: "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO", generated_at: GENERATED,
   }),
@@ -120,6 +120,15 @@ const fixtures = Object.freeze({
     tokenizer_version: "reader-morph-tokenizer-v1", resolver_version: "text-coverage-resolver-v1",
     generated_at: GENERATED,
   }),
+  search_group_reading_catalog: Object.freeze({
+    schema_version:"aa.group_reading_search.1.0.0",results:Object.freeze([Object.freeze({corpus_id:"fixture-corpus",corpus_title:"Учебные песни",corpus_version:1,work_id:"song-pos-001",title:"כולם גנבים",artist:"אושר כהן",position_no:1,rows_count:42,audio_available:true,level:"A2",topic:"songs",tags:Object.freeze(["fixture"]),access:"GROUP_RESTRICTED",first_party_path:"/library.html"})]),next_cursor:null,generated_at:GENERATED,
+  }),
+  get_group_reading_content: Object.freeze({
+    schema_version:"aa.group_reading_content.1.0.0",corpus:Object.freeze({corpus_id:"fixture-corpus",title:"Учебные песни",version:1,access:"GROUP_RESTRICTED"}),work:Object.freeze({work_id:"song-pos-001",title:"כולם גנבים",artist:"אושר כהן",source_url:null,rights_status:"REVIEW_REQUIRED"}),anchor:Object.freeze({corpus_id:"fixture-corpus",work_id:"song-pos-001",start_order_index:0,row_count:1}),rows:Object.freeze([Object.freeze({order_index:0,he:"לִכְתּוֹב",ru:"писать"})]),rows_total:42,has_more:true,authority:"GROUP_CORPUS_SERVER_CANONICAL",generated_at:GENERATED,
+  }),
+  get_group_text_coverage: Object.freeze({
+    schema_version:"aa.group_text_coverage.1.0.0",target:Object.freeze({corpus_id:"fixture-corpus",work_id:"song-pos-001",title:"כולם גנבים"}),status:"OK",token_total:10,token_known_pct:90,lemma_total:5,lemma_known_pct:80,content_word_known_pct:90,buckets:Object.freeze({known:2,learning:1,due_now:1,unknown:1,unresolved:0,proper_names:0}),top_unknown:Object.freeze([Object.freeze({lemma:"מילה",freq_in_text:1,gloss_ru:"слово"})]),recommendation_band:"STRETCH_90_95",learner_projection_version:"fixture-projection-v1",tokenizer_version:"reader-morph-tokenizer-v1",resolver_version:"text-coverage-resolver-v1",generated_at:GENERATED,
+  }),
 });
 
 const validArgs = Object.freeze({
@@ -141,6 +150,9 @@ const validArgs = Object.freeze({
   get_personal_text_content: Object.freeze({ text_key: "text-1783830247939-hpbn", rows: 5 }),
   get_word_morphology: Object.freeze({ word: "לכתוב" }),
   get_text_coverage: Object.freeze({ target: Object.freeze({ work_id: "42" }), top_unknown_limit: 10 }),
+  search_group_reading_catalog: Object.freeze({ audio:"ANY",sort:"POSITION",limit:10 }),
+  get_group_reading_content: Object.freeze({ corpus_id:"fixture-corpus",work_id:"song-pos-001",rows:5 }),
+  get_group_text_coverage: Object.freeze({ corpus_id:"fixture-corpus",work_id:"song-pos-001",top_unknown_limit:10 }),
 });
 
 function handlers(overrides = {}) {

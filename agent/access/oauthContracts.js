@@ -26,6 +26,10 @@ const SCOPES = Object.freeze([
   "morphology.read",
   // H2.2: learner coverage over Ben-Yehuda + consented personal texts (migration 055 CHECK).
   "learner.coverage.read",
+  // Restricted Group Song Corpus (migration 060 CHECK). Reading and coverage
+  // stay independently revocable because coverage also reveals learner state.
+  "reading.group_corpus.read",
+  "learner.group_coverage.read",
 ]);
 const SCOPE_SET = new Set(SCOPES);
 const SAFE = /^[A-Za-z0-9_.:@/-]+$/;

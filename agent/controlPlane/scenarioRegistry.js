@@ -52,6 +52,9 @@ const SCENARIOS = Object.freeze({
   "agent_access.reading_content": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:public_corpus_read"] },
   "agent_access.word_morphology": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:offline_morphology_read"] },
   "agent_access.text_coverage": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:learner_projection_read", "repo:public_corpus_read", "repo:granted_personal_text_read"] },
+  "agent_access.group_reading_search": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:group_membership_read", "repo:group_corpus_metadata_read"] },
+  "agent_access.group_reading_content": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:group_membership_read", "repo:group_corpus_content_read"] },
+  "agent_access.group_text_coverage": { role: "agent_access.reader", surfaces: ["external_agent"], capabilities: ["repo:group_membership_read", "repo:group_corpus_content_read", "repo:learner_projection_read"] },
   // Write-scenarios: the agent INITIATES, the owner/LinguistPro executes. A mint
   // is a write, so the role is proposer, not reader (R17: the domain smoke derives
   // the expected role per capability and asserts reader-scenarios only read).

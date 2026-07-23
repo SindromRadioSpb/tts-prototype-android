@@ -91,6 +91,25 @@ Output:
 - Negative: оба идентификатора/ни одного → AA_INVALID_INPUT; текст не найден → AA_NOT_FOUND; личный текст без гранта → AA_TEXT_ACCESS_NOT_GRANTED (существующий код).
 - Acceptance: корпусный текст OK; личный текст с грантом; личный без гранта; текст без разметки → COVERAGE_UNAVAILABLE; проекция пуста (новый ученик) → все unknown, band FRUSTRATION.
 
+### 2.1 Аддитивный restricted group-corpus add-on (owner-go 2026-07-23)
+
+После закрытия серверного Group Song Corpus P0 добавляется отдельное семейство, не меняющее
+контракт `get_text_coverage` и не снимающее `H2.3 DEFERRED`:
+
+- `search_group_reading_catalog` + `get_group_reading_content` —
+  `reading.group_corpus.read`, CONTENT, 6/min·200/day;
+- `get_group_text_coverage` — `learner.group_coverage.read`, PERSONAL, 6/min·200/day;
+- authoritative source: тот же membership-bound immutable work bundle, что Reading Room;
+- ACTIVE membership проверяется на каждом вызове; недоступность сводится к `AA_NOT_FOUND`;
+- content — максимум 20 строк; coverage — без тела/grades/raw FSRS, тот же deterministic resolver;
+- существующие 18 input/output schemas byte-identical; новые schema versions:
+  `aa.group_reading_search.1.0.0`, `aa.group_reading_content.1.0.0`,
+  `aa.group_text_coverage.1.0.0`;
+- migration 060 расширяет только consent-store scope CHECK 17→19;
+  `CAPABILITY_VERSION` остаётся `aa-v0.1`.
+
+Канон/skill rule/rollback/snapshot: `hermes-side/group-corpus/README.md`.
+
 ## 3. W1-семейство (H2.3): propose_import_text · propose_track_word · propose_goal · get_current_goal
 
 Общее: хранение в существующем proposals-леджере (новые kind), owner-preview UI по существующему

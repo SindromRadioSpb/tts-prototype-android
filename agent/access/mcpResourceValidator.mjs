@@ -6,7 +6,8 @@ import { verifyAccessToken } from './oauthSigningKeys.mjs';
 // (строка ≠ 'aa-v0.1'), либо старое Hermes (обновлённый литерал ≠ строка). Политика:
 // version НЕ бампится при additive-инструментах (AA3/AA4/S1 — прецеденты).
 import capabilitiesRegistry from './capabilities.js';
-const { CAPABILITY_VERSION } = capabilitiesRegistry;
+const { CAPABILITY_VERSION, CAPABILITIES } = capabilitiesRegistry;
+const MAX_TOKEN_SCOPES = new Set(Object.values(CAPABILITIES).map((entry) => entry.scope)).size;
 
 function fail(code) { const error = new Error(code); error.code = code; throw error; }
 function exactBearer(value) {
@@ -18,7 +19,7 @@ function exactBearer(value) {
 function scopes(value) {
   if (typeof value !== 'string') fail('AA_MCP_TOKEN_CLAIMS_INVALID');
   const out = value.split(' ').filter(Boolean);
-  if (!out.length || out.length > 17 || new Set(out).size !== out.length) fail('AA_MCP_TOKEN_CLAIMS_INVALID');
+  if (!out.length || out.length > MAX_TOKEN_SCOPES || new Set(out).size !== out.length) fail('AA_MCP_TOKEN_CLAIMS_INVALID');
   return Object.freeze(out.sort());
 }
 function epoch(value) {

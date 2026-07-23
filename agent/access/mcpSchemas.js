@@ -74,6 +74,27 @@ const INPUT_SCHEMAS = Object.freeze({
     }, []),
     top_unknown_limit: integer(1, 20),
   }, ["target"]),
+  search_group_reading_catalog: closedObject({
+    corpus_id: string({ maxLength: 128, pattern: "^[A-Za-z0-9_.:-]{1,128}$" }),
+    query: string({ maxLength: 160 }),
+    level: string({ maxLength: 40 }),
+    tag: string({ maxLength: 80 }),
+    audio: string({ enum: Object.freeze(["ANY", "AVAILABLE", "UNAVAILABLE"]) }),
+    sort: string({ enum: Object.freeze(["RELEVANCE", "POSITION", "TITLE", "ROWS_ASC", "ROWS_DESC"]) }),
+    cursor: string({ maxLength: 6, pattern: "^\\d{1,6}$" }),
+    limit: integer(1, 20),
+  }, ["audio", "sort", "limit"]),
+  get_group_reading_content: closedObject({
+    corpus_id: string({ maxLength: 128, pattern: "^[A-Za-z0-9_.:-]{1,128}$" }),
+    work_id: string({ maxLength: 128, pattern: "^[A-Za-z0-9_.:-]{1,128}$" }),
+    start: integer(0, 1000000),
+    rows: integer(1, 20),
+  }, ["corpus_id", "work_id"]),
+  get_group_text_coverage: closedObject({
+    corpus_id: string({ maxLength: 128, pattern: "^[A-Za-z0-9_.:-]{1,128}$" }),
+    work_id: string({ maxLength: 128, pattern: "^[A-Za-z0-9_.:-]{1,128}$" }),
+    top_unknown_limit: integer(1, 20),
+  }, ["corpus_id", "work_id"]),
 });
 
 const timestamp = string({ maxLength: 40, pattern: TIME });
@@ -284,6 +305,48 @@ const OUTPUT_SCHEMAS = Object.freeze({
     resolver_version: string({ maxLength: 120 }),
     generated_at: timestamp,
   }, ["schema_version", "status", "learner_projection_version", "tokenizer_version", "resolver_version", "generated_at"]),
+  search_group_reading_catalog: closedObject({
+    schema_version: string({ const: "aa.group_reading_search.1.0.0" }),
+    results: Object.freeze({ type: "array", maxItems: 20, items: closedObject({
+      corpus_id: id, corpus_title: string({ maxLength: 240 }), corpus_version: integer(1, 1000000),
+      work_id: id, title: string({ maxLength: 500 }),
+      artist: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 300 }), Object.freeze({ type: "null" })]) }),
+      position_no: Object.freeze({ anyOf: Object.freeze([integer(0, 1000000), Object.freeze({ type: "null" })]) }),
+      rows_count: integer(0, 1000000), audio_available: Object.freeze({ type: "boolean" }),
+      level: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 40 }), Object.freeze({ type: "null" })]) }),
+      topic: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 200 }), Object.freeze({ type: "null" })]) }),
+      tags: Object.freeze({ type: "array", maxItems: 20, uniqueItems: true, items: string({ maxLength: 80 }) }),
+      access: string({ const: "GROUP_RESTRICTED" }), first_party_path: string({ const: "/library.html" }),
+    }) }),
+    next_cursor: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 6, pattern: "^\\d{1,6}$" }), Object.freeze({ type: "null" })]) }),
+    generated_at: timestamp,
+  }),
+  get_group_reading_content: closedObject({
+    schema_version: string({ const: "aa.group_reading_content.1.0.0" }),
+    corpus: closedObject({ corpus_id: id, title: string({ maxLength: 240 }), version: integer(1, 1000000), access: string({ const: "GROUP_RESTRICTED" }) }),
+    work: closedObject({
+      work_id: id, title: string({ maxLength: 500 }),
+      artist: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 300 }), Object.freeze({ type: "null" })]) }),
+      source_url: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 1000 }), Object.freeze({ type: "null" })]) }),
+      rights_status: string({ enum: Object.freeze(["REVIEW_REQUIRED", "CLEARED"]) }),
+    }),
+    anchor: closedObject({ corpus_id: id, work_id: id, start_order_index: integer(0, 1000000), row_count: integer(0, 20) }),
+    rows: Object.freeze({ type: "array", maxItems: 20, items: closedObject({ order_index: integer(0, 1000000), he: string({ maxLength: 800 }), ru: Object.freeze({ anyOf: Object.freeze([string({ maxLength: 800 }), Object.freeze({ type: "null" })]) }) }) }),
+    rows_total: integer(0, 1000000), has_more: Object.freeze({ type: "boolean" }),
+    authority: string({ const: "GROUP_CORPUS_SERVER_CANONICAL" }), generated_at: timestamp,
+  }),
+  get_group_text_coverage: closedObject({
+    schema_version: string({ const: "aa.group_text_coverage.1.0.0" }),
+    target: closedObject({ corpus_id: id, work_id: id, title: string({ maxLength: 500 }) }),
+    status: string({ enum: Object.freeze(["OK", "COVERAGE_UNAVAILABLE"]) }),
+    unavailable_reason: string({ enum: Object.freeze(["NO_HEBREW_TOKENS", "TEXT_TOKEN_LIMIT_EXCEEDED", "TEXT_TYPE_LIMIT_EXCEEDED", "LEARNER_PROJECTION_UNAVAILABLE", "TEXT_RESOLVER_UNAVAILABLE"]) }),
+    token_total: integer(0, 1000000), token_known_pct: integer(0, 100),
+    lemma_total: integer(0, 100000), lemma_known_pct: integer(0, 100), content_word_known_pct: integer(0, 100),
+    buckets: closedObject({ known: integer(0, 100000), learning: integer(0, 100000), due_now: integer(0, 100000), unknown: integer(0, 100000), unresolved: integer(0, 100000), proper_names: integer(0, 100000) }),
+    top_unknown: Object.freeze({ type: "array", maxItems: 20, items: closedObject({ lemma: string({ maxLength: 80 }), freq_in_text: integer(1, 1000000), gloss_ru: string({ maxLength: 400 }) }, ["lemma", "freq_in_text"]) }),
+    recommendation_band: string({ enum: Object.freeze(["COMFORT_95_98", "STRETCH_90_95", "FRUSTRATION_BELOW_90", "TRIVIAL_ABOVE_98"]) }),
+    learner_projection_version: string({ maxLength: 120 }), tokenizer_version: string({ maxLength: 80 }), resolver_version: string({ maxLength: 120 }), generated_at: timestamp,
+  }, ["schema_version", "target", "status", "learner_projection_version", "tokenizer_version", "resolver_version", "generated_at"]),
 });
 
 const DESCRIPTIONS = Object.freeze({
@@ -305,6 +368,9 @@ const DESCRIPTIONS = Object.freeze({
   get_personal_text_content: "Read a bounded window (rows 1-20, from = start order_index) of ONE of the owner's own texts by text_key (from list_personal_texts): Hebrew + Russian lines and the title. Requires, beyond the scope, a LIVE owner-issued text grant from the agent-access panel — typed refusals (do not retry): AA_TEXT_ACCESS_NOT_GRANTED / AA_TEXT_ACCESS_EXPIRED — ask the owner to (re)issue the grant in /agent-access.html; AA_PERSONAL_TEXT_NOT_FOUND — no such text in the replica; AA_ARTIFACT_UNREADABLE — the stored copy is malformed (owner should re-sync); consent refusals as in list_personal_texts. Long rows are byte-trimmed and the window may shrink to fit the byte cap — follow has_more with a new `from`. Never returns notes, grades or SRS state; reads are logged as bounded window metadata (30-day exposure ledger, no content) so challenges on sentences the agent actually read are provenance-marked agent-exposed (grading stays first-party).",
   get_word_morphology: "Ground a Hebrew morphology claim in the shipped offline Pealim v12 dataset. Call this BEFORE asserting a lemma, root, binyan, inflected form, gender, number, person, or tense. EXACT is returned only for a decisive unique dataset match; AMBIGUOUS returns the available homograph analyses (up to the contract cap) and must not be collapsed by the agent; UNRESOLVED means the dataset has no answer and the agent must say so rather than generate a paradigm. Optional context_sentence can only disambiguate when it carries a matching vocalized form. No LLM, Dicta request, network call, learner data, or synthesized form is used.",
   get_text_coverage: "Deterministically calculate how readable a complete text is for the owner. BOTH source classes are supported by contract: target.work_id reads the baked public-domain Ben-Yehuda corpus; target.text_key reads one owner-synced personal text and requires the same live per-connection text grant as get_personal_text_content. Provide exactly one identifier. Returns token/lemma/content-word percentages, separate known/learning/due/unknown/unresolved/proper-name buckets, frequent unknown lemmas and a 95-98 recommendation band. Ambiguous or unresolvable morphology stays unresolved; no LLM, network call, source-body output, grade, or raw FSRS field is used. COVERAGE_UNAVAILABLE is an honest per-text result, never a blanket refusal of either supported source class.",
+  search_group_reading_catalog: "Search metadata of server-hosted GROUP_RESTRICTED corpora that the current LinguistPro account can access through ACTIVE group membership. Search title, artist, topic, tags, level or Position; optionally restrict corpus_id. Returns metadata and protected first-party anchors only, never text bodies, audio, learner state or another group's existence. AA_NOT_FOUND means the corpus is absent or membership is inactive; do not infer which.",
+  get_group_reading_content: "Read a bounded 1-20 row Hebrew/Russian window from a GROUP_RESTRICTED work returned by search_group_reading_catalog. ACTIVE membership is rechecked on every call, so revocation closes access immediately. The server corpus is authoritative for shared content; personal progress, notes, grades, FSRS and audio bytes are never returned. Do not reproduce or aggregate the complete restricted corpus outside the owner's explicit learning request.",
+  get_group_text_coverage: "Deterministically calculate readability of one GROUP_RESTRICTED work returned by search_group_reading_catalog against the current owner's learner projection. ACTIVE membership is rechecked on every call. Returns percentages, buckets, frequent unknown lemmas and the 95-98 recommendation band, but never the source body, grades or raw FSRS fields. Call before recommending a group work by difficulty; COVERAGE_UNAVAILABLE is an honest per-work result.",
 });
 
 const WRITE_TOOLS = Object.freeze(new Set(["create_reading_handoff", "create_review_handoff", "propose_action"]));

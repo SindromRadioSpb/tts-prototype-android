@@ -36,6 +36,12 @@ const CAPABILITIES = Object.freeze({
   // H2.2 — deterministic learner coverage for public Ben-Yehuda works AND
   // consented owner-synced personal texts. No source body is returned.
   get_text_coverage: Object.freeze({ scope: "learner.coverage.read", purpose: "EXPLICIT_TEXT_COVERAGE_AGAINST_LEARNER_STATE", scenario_id: "agent_access.text_coverage", max_output_bytes: 8192 }),
+  // Group Song Corpus — restricted server corpus. Catalog/content and learner
+  // coverage are separate revocable scopes because the latter reveals the
+  // owner's derived learning state in addition to group-restricted content.
+  search_group_reading_catalog: Object.freeze({ scope: "reading.group_corpus.read", purpose: "EXPLICIT_GROUP_CORPUS_DISCOVERY", scenario_id: "agent_access.group_reading_search", max_output_bytes: 12288 }),
+  get_group_reading_content: Object.freeze({ scope: "reading.group_corpus.read", purpose: "EXPLICIT_GROUP_CORPUS_READING", scenario_id: "agent_access.group_reading_content", max_output_bytes: 16384 }),
+  get_group_text_coverage: Object.freeze({ scope: "learner.group_coverage.read", purpose: "EXPLICIT_GROUP_TEXT_COVERAGE_AGAINST_LEARNER_STATE", scenario_id: "agent_access.group_text_coverage", max_output_bytes: 8192 }),
 });
 
 function getCapability(name) { return CAPABILITIES[String(name)] || null; }

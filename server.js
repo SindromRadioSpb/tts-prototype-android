@@ -1714,6 +1714,7 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
         personalTextsRepo: require("./db/learnerArtifactsRepo"),   // S1: sidecar-мета (list_personal_texts); прямой require — const-декларация ниже по файлу (TDZ)
         personalTextsContentRepo: require("./db/agentSentenceRepo"),   // S2: aa-экстрактор окна (single-parser)
         textGrantsRepo: require("./db/agentTextGrantsRepo"),           // S2: standing-грант владельца
+        groupCorpusRepo: require("./db/groupCorpusRepo"),             // restricted corpus; ACTIVE membership on every read
         // AA3: report the real access window (control-plane) rather than the token TTL.
         connectionPersistence: async () => {
           try {

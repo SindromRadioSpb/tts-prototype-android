@@ -5,6 +5,7 @@ const MAX_ARGUMENT_BYTES = 4096;
 const MAX_PRINCIPAL_BYTES = 2048;
 const ID = /^[A-Za-z0-9_.:@/-]{1,128}$/;
 const CURSOR = /^[A-Za-z0-9_.~:@/+\-=]{1,256}$/;
+const GROUP_ID_RE = /^[A-Za-z0-9_.:-]{1,128}$/;
 
 const PRIORITY = new Set(["REVIEW_DUE", "READING_AVAILABLE", "MENTOR_AVAILABLE", "NO_CURRENT_ACTION"]);
 const UNFINISHED = new Set(["READING_AVAILABLE", "REVIEW_AVAILABLE", "MENTOR_AVAILABLE", "NONE"]);
@@ -34,11 +35,13 @@ const SCOPES = new Set([
   "review.handoff.create",
   // S-пакет (PERSONAL_TEXTS_S1S2_DESIGN): личные тексты владельца. ОБА scope заведены в S1
   // (одна re-авторизация Hermes); content-инструмент приходит в S2. Lockstep: oauthContracts +
-  // Lockstep: oauthContracts + owner-approved migration 055 CHECK (17 scopes).
+  // Lockstep: oauthContracts + owner-approved migration 060 CHECK (19 scopes).
   "personal.texts.metadata.read",
   "personal.texts.content.read",
   "morphology.read",
   "learner.coverage.read",
+  "reading.group_corpus.read",
+  "learner.group_coverage.read",
 ]);
 const STRUGGLE = new Set(["none", "some", "high"]);
 const PROFILE_MODE = new Set(["silent", "coach", "intensive"]);
@@ -130,7 +133,7 @@ function validatePrincipal(value) {
     connection_id: id(p.connection_id, "PRINCIPAL_INVALID"),
     external_actor_id: id(p.external_actor_id, "PRINCIPAL_INVALID"),
     request_id: id(p.request_id, "PRINCIPAL_INVALID"),
-    scopes: uniqueStrings(p.scopes, 17, (v) => oneOf(v, SCOPES, "PRINCIPAL_INVALID"), "PRINCIPAL_INVALID"),
+    scopes: uniqueStrings(p.scopes, SCOPES.size, (v) => oneOf(v, SCOPES, "PRINCIPAL_INVALID"), "PRINCIPAL_INVALID"),
     connection_status: oneOf(p.connection_status, CONNECTION_STATES, "PRINCIPAL_INVALID"),
     access_expires_at: timestamp(p.access_expires_at, "PRINCIPAL_INVALID"),
   };
@@ -382,6 +385,46 @@ function validateTextCoverageInput(value) {
   return Object.freeze(out);
 }
 
+function groupId(value, code = "ARGUMENT_SCHEMA_INVALID") {
+  const s = string(value, 128, code);
+  if (!GROUP_ID_RE.test(s)) fail(code);
+  return s;
+}
+
+const GROUP_AUDIO = new Set(["ANY", "AVAILABLE", "UNAVAILABLE"]);
+const GROUP_SORT = new Set(["RELEVANCE", "POSITION", "TITLE", "ROWS_ASC", "ROWS_DESC"]);
+function validateGroupSearchInput(value) {
+  const x = closed(value, ["corpus_id", "query", "level", "tag", "audio", "sort", "cursor", "limit"], ["audio", "sort", "limit"], "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, 1024, "ARGUMENTS_TOO_LARGE");
+  const out = { audio: oneOf(x.audio, GROUP_AUDIO, "ARGUMENT_SCHEMA_INVALID"), sort: oneOf(x.sort, GROUP_SORT, "ARGUMENT_SCHEMA_INVALID"), limit: integer(x.limit, 1, 20, "ARGUMENT_SCHEMA_INVALID") };
+  if (x.corpus_id != null) out.corpus_id = groupId(x.corpus_id);
+  if (x.query != null) out.query = string(x.query, 160, "ARGUMENT_SCHEMA_INVALID");
+  if (x.level != null) out.level = string(x.level, 40, "ARGUMENT_SCHEMA_INVALID");
+  if (x.tag != null) out.tag = string(x.tag, 80, "ARGUMENT_SCHEMA_INVALID");
+  if (x.cursor != null) {
+    if (typeof x.cursor !== "string" || !/^\d{1,6}$/.test(x.cursor)) fail("ARGUMENT_SCHEMA_INVALID");
+    out.cursor_offset = integer(Number(x.cursor), 0, 999999, "ARGUMENT_SCHEMA_INVALID");
+  }
+  return Object.freeze(out);
+}
+
+function validateGroupContentInput(value) {
+  const x = closed(value, ["corpus_id", "work_id", "start", "rows"], ["corpus_id", "work_id"], "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, 512, "ARGUMENTS_TOO_LARGE");
+  const out = { corpus_id: groupId(x.corpus_id), work_id: groupId(x.work_id) };
+  if (x.start != null) out.start = integer(x.start, 0, 1000000, "ARGUMENT_SCHEMA_INVALID");
+  if (x.rows != null) out.rows = integer(x.rows, 1, 20, "ARGUMENT_SCHEMA_INVALID");
+  return Object.freeze(out);
+}
+
+function validateGroupCoverageInput(value) {
+  const x = closed(value, ["corpus_id", "work_id", "top_unknown_limit"], ["corpus_id", "work_id"], "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, 512, "ARGUMENTS_TOO_LARGE");
+  const out = { corpus_id: groupId(x.corpus_id), work_id: groupId(x.work_id) };
+  if (x.top_unknown_limit != null) out.top_unknown_limit = integer(x.top_unknown_limit, 1, 20, "ARGUMENT_SCHEMA_INVALID");
+  return Object.freeze(out);
+}
+
 function textCoverage(value) {
   const metricKeys = ["token_total", "token_known_pct", "lemma_total", "lemma_known_pct", "content_word_known_pct", "buckets", "top_unknown", "recommendation_band"];
   const keys = ["schema_version", "status", "unavailable_reason", ...metricKeys,
@@ -412,6 +455,57 @@ function textCoverage(value) {
     return Object.freeze({ ...r });
   });
   return Object.freeze({ ...x, buckets: Object.freeze({ ...b }), top_unknown: Object.freeze(top) });
+}
+
+function groupSearch(value) {
+  const keys = ["schema_version", "results", "next_cursor", "generated_at"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 12288, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.group_reading_search.1.0.0") fail("OUTPUT_SCHEMA_INVALID");
+  timestamp(x.generated_at);
+  if (x.next_cursor !== null && (typeof x.next_cursor !== "string" || !/^\d{1,6}$/.test(x.next_cursor))) fail("OUTPUT_SCHEMA_INVALID");
+  if (!Array.isArray(x.results) || x.results.length > 20) fail("OUTPUT_SCHEMA_INVALID");
+  const rowKeys = ["corpus_id", "corpus_title", "corpus_version", "work_id", "title", "artist", "position_no", "rows_count", "audio_available", "level", "topic", "tags", "access", "first_party_path"];
+  const results = x.results.map((row) => {
+    const r = closed(row, rowKeys, rowKeys, "OUTPUT_SCHEMA_INVALID");
+    groupId(r.corpus_id, "OUTPUT_SCHEMA_INVALID"); groupId(r.work_id, "OUTPUT_SCHEMA_INVALID");
+    string(r.corpus_title, 240); integer(r.corpus_version, 1, 1000000); string(r.title, 500);
+    if (r.artist !== null) string(r.artist, 300); if (r.position_no !== null) integer(r.position_no, 0, 1000000);
+    integer(r.rows_count, 0, 1000000); bool(r.audio_available);
+    if (r.level !== null) string(r.level, 40); if (r.topic !== null) string(r.topic, 200);
+    uniqueStrings(r.tags, 20, (tag) => string(tag, 80));
+    if (r.access !== "GROUP_RESTRICTED" || r.first_party_path !== "/library.html") fail("OUTPUT_SCHEMA_INVALID");
+    return Object.freeze({ ...r, tags: Object.freeze([...r.tags]) });
+  });
+  if (new Set(results.map((r) => `${r.corpus_id}\0${r.work_id}`)).size !== results.length) fail("OUTPUT_SCHEMA_INVALID");
+  return Object.freeze({ ...x, results: Object.freeze(results) });
+}
+
+function groupContent(value) {
+  const keys = ["schema_version", "corpus", "work", "anchor", "rows", "rows_total", "has_more", "authority", "generated_at"];
+  const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 16384, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.group_reading_content.1.0.0" || x.authority !== "GROUP_CORPUS_SERVER_CANONICAL") fail("OUTPUT_SCHEMA_INVALID");
+  const corpus = closed(x.corpus, ["corpus_id", "title", "version", "access"], ["corpus_id", "title", "version", "access"], "OUTPUT_SCHEMA_INVALID");
+  groupId(corpus.corpus_id, "OUTPUT_SCHEMA_INVALID"); string(corpus.title, 240); integer(corpus.version, 1, 1000000); if (corpus.access !== "GROUP_RESTRICTED") fail("OUTPUT_SCHEMA_INVALID");
+  const work = closed(x.work, ["work_id", "title", "artist", "source_url", "rights_status"], ["work_id", "title", "artist", "source_url", "rights_status"], "OUTPUT_SCHEMA_INVALID");
+  groupId(work.work_id, "OUTPUT_SCHEMA_INVALID"); string(work.title, 500); if (work.artist !== null) string(work.artist, 300); if (work.source_url !== null) string(work.source_url, 1000); oneOf(work.rights_status, new Set(["REVIEW_REQUIRED", "CLEARED"]));
+  const anchor = closed(x.anchor, ["corpus_id", "work_id", "start_order_index", "row_count"], ["corpus_id", "work_id", "start_order_index", "row_count"], "OUTPUT_SCHEMA_INVALID");
+  if (anchor.corpus_id !== corpus.corpus_id || anchor.work_id !== work.work_id) fail("OUTPUT_SCHEMA_INVALID");
+  integer(anchor.start_order_index, 0, 1000000); integer(anchor.row_count, 0, 20);
+  integer(x.rows_total, 0, 1000000); bool(x.has_more); timestamp(x.generated_at);
+  if (!Array.isArray(x.rows) || x.rows.length > 20 || x.rows.length !== anchor.row_count) fail("OUTPUT_SCHEMA_INVALID");
+  const rows = x.rows.map((row) => { const r = closed(row, ["order_index", "he", "ru"], ["order_index", "he", "ru"], "OUTPUT_SCHEMA_INVALID"); integer(r.order_index, 0, 1000000); string(r.he, 800); if (r.ru !== null) string(r.ru, 800); return Object.freeze({ ...r }); });
+  return Object.freeze({ ...x, corpus: Object.freeze({ ...corpus }), work: Object.freeze({ ...work }), anchor: Object.freeze({ ...anchor }), rows: Object.freeze(rows) });
+}
+
+function groupTextCoverage(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) fail("OUTPUT_SCHEMA_INVALID");
+  bytes(value, 8192, "OUTPUT_TOO_LARGE");
+  const target = closed(value.target, ["corpus_id", "work_id", "title"], ["corpus_id", "work_id", "title"], "OUTPUT_SCHEMA_INVALID");
+  groupId(target.corpus_id, "OUTPUT_SCHEMA_INVALID"); groupId(target.work_id, "OUTPUT_SCHEMA_INVALID"); string(target.title, 500);
+  const core = { ...value }; delete core.target; core.schema_version = "aa.text_coverage.1.0.0";
+  const validated = textCoverage(core);
+  if (value.schema_version !== "aa.group_text_coverage.1.0.0") fail("OUTPUT_SCHEMA_INVALID");
+  return Object.freeze({ ...validated, schema_version: value.schema_version, target: Object.freeze({ ...target }) });
 }
 function personalTextContent(value) {
   const keys = ["schema_version", "text_key", "title", "rows", "rows_total", "has_more", "content_updated_at", "replica_ingested_at", "authority", "generated_at"];
@@ -642,6 +736,9 @@ const INPUT_VALIDATORS = Object.freeze({
   get_personal_text_content: validatePersonalTextContentInput,
   get_word_morphology: validateWordMorphologyInput,
   get_text_coverage: validateTextCoverageInput,
+  search_group_reading_catalog: validateGroupSearchInput,
+  get_group_reading_content: validateGroupContentInput,
+  get_group_text_coverage: validateGroupCoverageInput,
 });
 const OUTPUT_VALIDATORS = Object.freeze({
   get_learning_brief: learningBrief,
@@ -662,6 +759,9 @@ const OUTPUT_VALIDATORS = Object.freeze({
   get_personal_text_content: personalTextContent,
   get_word_morphology: wordMorphology,
   get_text_coverage: textCoverage,
+  search_group_reading_catalog: groupSearch,
+  get_group_reading_content: groupContent,
+  get_group_text_coverage: groupTextCoverage,
 });
 
 function validateInput(tool, value) { const fn = INPUT_VALIDATORS[tool]; if (!fn) fail("UNKNOWN_TOOL"); return fn(value); }

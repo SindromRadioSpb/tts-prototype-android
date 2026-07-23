@@ -79,6 +79,7 @@ function createProductionHandlers(options = {}) {
   const textGrantsRepo = options.textGrantsRepo; // S2: standing-грант владельца (agent_text_grants)
   const morphologyResolver = options.wordMorphologyResolver || require("./wordMorphologyResolver");
   const coverageResolver = options.textCoverageResolver || require("./textCoverageResolver");
+  const groupCorpusRepo = options.groupCorpusRepo; // restricted shared corpus; membership checked inside repo
   const now = options.now || Date.now;
   const principalAccessExpiresAt = options.principalAccessExpiresAt;
   if (!learnerRepo || typeof learnerRepo.getAgentAccessReviewAggregates !== "function" || typeof learnerRepo.getDue !== "function" || typeof learnerRepo.getActivityDelta !== "function"
@@ -582,6 +583,101 @@ function createProductionHandlers(options = {}) {
     });
   }
 
+  function groupRepoRequired(method) {
+    if (!groupCorpusRepo || typeof groupCorpusRepo[method] !== "function") fail("AA_GROUP_CORPUS_UNAVAILABLE");
+    return groupCorpusRepo[method].bind(groupCorpusRepo);
+  }
+  async function groupRead(call) {
+    try { return await call(); }
+    catch (e) {
+      const code = String((e && (e.code || e.message)) || "");
+      // Do not reveal whether a restricted corpus/work exists when membership
+      // is absent or revoked. Integrity failures remain INTERNAL_ERROR.
+      if (code === "GROUP_CORPUS_NOT_FOUND" || code === "GROUP_CORPUS_WORK_NOT_FOUND") fail("AA_NOT_FOUND");
+      throw e;
+    }
+  }
+  function searchText(value) { return String(value == null ? "" : value).normalize("NFKC").toLocaleLowerCase(); }
+
+  async function search_group_reading_catalog(context, args) {
+    const clock = fixedNow(now);
+    const listCorpora = groupRepoRequired("listCorpora"), listWorks = groupRepoRequired("listWorks");
+    let corpora = await groupRead(() => listCorpora(context.user_id));
+    if (args.corpus_id) {
+      corpora = corpora.filter((row) => String(row.corpus_id) === args.corpus_id);
+      if (!corpora.length) fail("AA_NOT_FOUND");
+    }
+    const query = searchText(args.query).trim(), level = searchText(args.level).trim(), tag = searchText(args.tag).trim();
+    const found = [];
+    for (const corpusRow of corpora) {
+      const page = await groupRead(() => listWorks(context.user_id, corpusRow.corpus_id));
+      for (const work of page.works || []) {
+        const tags = Array.isArray(work.tags) ? [...new Set(work.tags.map((x) => byteSlice(x, 80)).filter(Boolean))].slice(0, 20) : [];
+        const title = searchText(work.title), artist = searchText(work.artist), topic = searchText(work.topic), tagText = searchText(tags.join(" "));
+        const positionText = work.position_no == null ? "" : `position ${work.position_no}`;
+        if (query && ![title, artist, topic, tagText, positionText].some((text) => text.includes(query))) continue;
+        if (level && searchText(work.level) !== level) continue;
+        if (tag && !tags.some((value) => searchText(value) === tag)) continue;
+        const audioAvailable = Number(work.audio_count) > 0;
+        if (args.audio === "AVAILABLE" && !audioAvailable) continue;
+        if (args.audio === "UNAVAILABLE" && audioAvailable) continue;
+        let relevance = 0;
+        if (query) relevance = title.startsWith(query) ? 0 : title.includes(query) ? 1 : artist.includes(query) ? 2 : 3;
+        found.push({
+          corpus_id: String(page.corpus.corpus_id), corpus_title: byteSlice(page.corpus.title, 240), corpus_version: Number(page.corpus.version),
+          work_id: String(work.work_id), title: byteSlice(work.title, 500), artist: work.artist ? byteSlice(work.artist, 300) : null,
+          position_no: work.position_no == null ? null : Number(work.position_no), rows_count: Math.max(0, Number(work.rows_count) || 0), audio_available: audioAvailable,
+          level: work.level ? byteSlice(work.level, 40) : null, topic: work.topic ? byteSlice(work.topic, 200) : null, tags: Object.freeze(tags),
+          access: "GROUP_RESTRICTED", first_party_path: "/library.html", _relevance: relevance,
+        });
+      }
+    }
+    const position = (row) => row.position_no == null ? 1000001 : row.position_no;
+    found.sort((a, b) => {
+      if (args.sort === "TITLE") return a.title.localeCompare(b.title, "he") || position(a) - position(b);
+      if (args.sort === "ROWS_ASC") return a.rows_count - b.rows_count || position(a) - position(b);
+      if (args.sort === "ROWS_DESC") return b.rows_count - a.rows_count || position(a) - position(b);
+      if (args.sort === "RELEVANCE") return a._relevance - b._relevance || position(a) - position(b) || a.title.localeCompare(b.title, "he");
+      return position(a) - position(b) || a.title.localeCompare(b.title, "he");
+    });
+    const offset = Number(args.cursor_offset) || 0;
+    const results = found.slice(offset, offset + args.limit).map(({ _relevance, ...row }) => Object.freeze(row));
+    return Object.freeze({ schema_version: "aa.group_reading_search.1.0.0", results: Object.freeze(results), next_cursor: offset + results.length < found.length ? String(offset + results.length) : null, generated_at: clock.iso });
+  }
+
+  async function get_group_reading_content(context, args) {
+    const clock = fixedNow(now), getWindow = groupRepoRequired("getAgentReadingWindow");
+    const source = await groupRead(() => getWindow(context.user_id, { ...args, start: args.start || 0, rows: args.rows || 5 }));
+    let rows = (source.rows || []).map((row) => Object.freeze({ order_index: Number(row.order_index), he: byteSlice(row.he_niqqud || row.he, 800), ru: row.ru == null ? null : byteSlice(row.ru, 800) })).filter((row) => Number.isInteger(row.order_index) && row.he);
+    const base = {
+      schema_version: "aa.group_reading_content.1.0.0",
+      corpus: Object.freeze({ corpus_id: String(source.corpus.corpus_id), title: byteSlice(source.corpus.title, 240), version: Number(source.corpus.version), access: "GROUP_RESTRICTED" }),
+      work: Object.freeze({ work_id: String(source.work.work_id), title: byteSlice(source.work.title, 500), artist: source.work.artist ? byteSlice(source.work.artist, 300) : null, source_url: /^https:\/\//i.test(String(source.work.source_url || "")) ? byteSlice(source.work.source_url, 1000) : null, rights_status: source.work.rights_status === "CLEARED" ? "CLEARED" : "REVIEW_REQUIRED" }),
+      rows_total: Math.max(0, Number(source.rows_total) || 0), has_more: Boolean(source.has_more), authority: "GROUP_CORPUS_SERVER_CANONICAL", generated_at: clock.iso,
+    };
+    const fits = (value) => Buffer.byteLength(JSON.stringify({ ...base, anchor: { corpus_id: base.corpus.corpus_id, work_id: base.work.work_id, start_order_index: value.length ? value[0].order_index : (args.start || 0), row_count: value.length }, rows: value }), "utf8") <= 16000;
+    while (rows.length > 1 && !fits(rows)) rows = rows.slice(0, -1);
+    return Object.freeze({ ...base, anchor: Object.freeze({ corpus_id: base.corpus.corpus_id, work_id: base.work.work_id, start_order_index: rows.length ? rows[0].order_index : (args.start || 0), row_count: rows.length }), rows: Object.freeze(rows), has_more: Boolean(source.has_more || rows.length < (source.rows || []).length) });
+  }
+
+  async function get_group_text_coverage(context, args) {
+    const clock = fixedNow(now), getCoverageText = groupRepoRequired("getAgentCoverageText");
+    const source = await groupRead(() => getCoverageText(context.user_id, args));
+    let projection = null;
+    try { projection = await learnerRepo.getCoverageProjection(context.user_id, { nowMs: clock.ms }); } catch (_) { projection = null; }
+    let calculated;
+    try { calculated = await coverageResolver.calculate(source.rows, projection, { topUnknownLimit: args.top_unknown_limit || 10 }); }
+    catch (_) { calculated = { status: "COVERAGE_UNAVAILABLE", unavailable_reason: "TEXT_RESOLVER_UNAVAILABLE" }; }
+    if (!calculated || !["OK", "COVERAGE_UNAVAILABLE"].includes(calculated.status)) calculated = { status: "COVERAGE_UNAVAILABLE", unavailable_reason: "TEXT_RESOLVER_UNAVAILABLE" };
+    return Object.freeze({
+      schema_version: "aa.group_text_coverage.1.0.0",
+      target: Object.freeze({ corpus_id: String(source.corpus.corpus_id), work_id: String(source.work.work_id), title: byteSlice(source.work.title, 500) }),
+      ...calculated,
+      learner_projection_version: projection && projection.version ? String(projection.version) : "learner-projection-unavailable-v1",
+      tokenizer_version: coverageResolver.TOKENIZER_VERSION, resolver_version: coverageResolver.RESOLVER_VERSION, generated_at: clock.iso,
+    });
+  }
+
   return Object.freeze({
     get_learning_brief,
     get_review_summary,
@@ -601,6 +697,9 @@ function createProductionHandlers(options = {}) {
     get_personal_text_content,
     get_word_morphology,
     get_text_coverage,
+    search_group_reading_catalog,
+    get_group_reading_content,
+    get_group_text_coverage,
   });
 }
 

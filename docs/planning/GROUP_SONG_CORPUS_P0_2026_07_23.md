@@ -1,6 +1,6 @@
 # GROUP_SONG_CORPUS_P0 — закрытый учебный корпус песен
 
-Дата решения владельца: 2026-07-23. Статус: **FULL 77 OWNER_LIVE — production owner API/UI PASS; second-member live pending**.
+Дата решения владельца: 2026-07-23. Статус: **FULL 77 CLOSED — owner + MEMBER production access PASS; Hermes group-corpus add-on ENGINEERING_COMPLETE, production pending**.
 
 ## 1. Решение
 
@@ -268,3 +268,30 @@ Owner-live на окне 510 px выявил дефект, который не �
 - visual smoke обязан проверять 380, промежуточные 510 и desktop 1280 px;
 - gate на 510 измеряет реальную ширину/высоту identity-блока и horizontal overflow, поэтому
   функционально зелёный, но визуально разрушенный интерфейс не считается принятым.
+
+## 13. Hermes group-corpus add-on (v3.11.231)
+
+Owner-go 2026-07-23: после закрытия серверного MEMBER-пути добавить Agent Access к этому же
+закрытому корпусу, не возобновляя отложенные OPFS-мутации H2.3 и не меняя существующие 18 MCP-схем.
+
+- `search_group_reading_catalog` и `get_group_reading_content` используют scope
+  `reading.group_corpus.read` (CONTENT);
+- `get_group_text_coverage` использует отдельный `learner.group_coverage.read` (PERSONAL), потому
+  что раскрывает производную learner-проекцию; существующий `get_text_coverage` не меняется;
+- каждый вызов повторно проходит `ACTIVE membership`; отсутствующий/чужой/отозванный corpus или
+  work возвращается общим `AA_NOT_FOUND`, без подтверждения существования;
+- content выдаётся только окнами до 20 строк; coverage не возвращает тело, grades или raw FSRS;
+- сервер читает тот же immutable work bundle, что Reading Room; отдельной копии/индекса истины нет;
+- rate каждого инструмента 6/min и 200/day; `CAPABILITY_VERSION` остаётся `aa-v0.1`;
+- migration 060 меняет только CHECK разрешённых scope 17→19. Corpus, membership, `review_log`,
+  `word_status` и FSRS не мигрируют;
+- rollback: отключить три capability/two scopes. Корпус и пользовательские данные не удаляются.
+
+Канон Hermes-правила и schema-before snapshot:
+`hermes-education-scaleup/2026-07-21/hermes-side/group-corpus/`.
+
+Локальная приёмка: `smoke:agent-group-corpus` 40/40 (schema only-addition 18→21),
+MCP 61/61, OAuth 24/24 + restore, control-plane 54/54, production handlers 61/61,
+H2.1 72/72, H2.2 75/75, i18n 226/226, API/group-corpus/Studio/Reader gates PASS.
+Общий `npm test`: 269/278; вне allowlist слайса остаются baseline-дефекты — один устаревший
+assert classic-mode HTML и восемь GCP pipeline fixtures, требующих отсутствующий BYOK key.

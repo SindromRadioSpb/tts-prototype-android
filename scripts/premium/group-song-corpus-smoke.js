@@ -95,6 +95,14 @@ function invoke(apply, expectedSha) {
     assert.strictEqual((await repo.listCorpora("outsider")).length,0);
     await assert.rejects(() => repo.getWork("outsider","fixture-corpus","song-pos-001"), /GROUP_CORPUS_NOT_FOUND/);
     const work = await repo.getWork("member","fixture-corpus","song-pos-001"); assert.ok(work.absolute_path.startsWith(path.resolve(dataDir,"group-corpora") + path.sep));
+    const agentWindow = await repo.getAgentReadingWindow("member",{corpus_id:"fixture-corpus",work_id:"song-pos-001",start:0,rows:5});
+    assert.strictEqual(agentWindow.rows.length,1); assert.strictEqual(agentWindow.rows[0].he_niqqud,"אָב");
+    const agentCoverage = await repo.getAgentCoverageText("member",{corpus_id:"fixture-corpus",work_id:"song-pos-001"});
+    assert.deepStrictEqual(Object.keys(agentCoverage.rows[0]).sort(),["he","he_niqqud"]);
+    const membershipDb = await sqlite.getDb();
+    await new Promise((resolve,reject)=>membershipDb.run("UPDATE reading_group_members SET status='REVOKED',revoked_at=? WHERE group_id='fixture-group' AND user_id='member'",[new Date().toISOString()],(e)=>e?reject(e):resolve()));
+    await assert.rejects(() => repo.getAgentReadingWindow("member",{corpus_id:"fixture-corpus",work_id:"song-pos-001",start:0,rows:5}), /GROUP_CORPUS_NOT_FOUND/);
+    await new Promise((resolve,reject)=>membershipDb.run("UPDATE reading_group_members SET status='ACTIVE',revoked_at=NULL WHERE group_id='fixture-group' AND user_id='member'",(e)=>e?reject(e):resolve()));
     const catalog = await repo.listWorks("owner","fixture-corpus");
     assert.strictEqual(catalog.corpus.role,"OWNER"); assert.deepStrictEqual(catalog.works[0].tags,["fixture"]); assert.strictEqual(catalog.works[0].level,"A1");
     const exported = { schema_version:"group_corpus_catalog_backup.1.0.0", corpus:catalog.corpus, works:catalog.works };

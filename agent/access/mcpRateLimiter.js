@@ -30,6 +30,10 @@ const TOOL_LIMITS = Object.freeze({
   get_word_morphology: Object.freeze({ minute: 6, day: 200 }),
   // H2.2 scans one full text against a derived learner projection.
   get_text_coverage: Object.freeze({ minute: 6, day: 200 }),
+  // Restricted group-corpus reads use the canonical H2 read budget.
+  search_group_reading_catalog: Object.freeze({ minute: 6, day: 200 }),
+  get_group_reading_content: Object.freeze({ minute: 6, day: 200 }),
+  get_group_text_coverage: Object.freeze({ minute: 6, day: 200 }),
 });
 const MINUTE = 60_000;
 const DAY = 86_400_000;

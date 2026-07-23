@@ -127,7 +127,7 @@ async function main() {
   eq(CAPABILITIES.get_text_coverage.scope, "learner.coverage.read");
   eq(TOOL_LIMITS.get_text_coverage.minute, 6); eq(TOOL_LIMITS.get_text_coverage.day, 200);
   eq(SCOPE_PRESENTATION["learner.coverage.read"].retention_tier, "PERSONAL");
-  eq(toolDefinitions().length, 18);
+  ok(toolDefinitions().length >= 18, "coverage tool disappeared from additive catalog");
   ok(INPUT_SCHEMAS.get_text_coverage && OUTPUT_SCHEMAS.get_text_coverage, "coverage schemas missing");
   const before = JSON.parse(fs.readFileSync(path.join(ROOT, "docs/planning/hermes-education-scaleup/2026-07-21/hermes-side/h2.2/schema-before-sha256.json"), "utf8"));
   eq(before.tool_count, 17);
@@ -135,7 +135,7 @@ async function main() {
     eq(sha(INPUT_SCHEMAS[name]), hashes.input_sha256, `${name} input schema mutated`);
     eq(sha(OUTPUT_SCHEMAS[name]), hashes.output_sha256, `${name} output schema mutated`);
   }
-  eq(toolDefinitions().filter((tool) => !before.tools[tool.name]).map((tool) => tool.name).join(","), "get_text_coverage");
+  ok(toolDefinitions().filter((tool) => !before.tools[tool.name]).map((tool) => tool.name).includes("get_text_coverage"), "coverage addition disappeared");
 
   const ui = fs.readFileSync(path.join(ROOT, "public/js/agent-access.js"), "utf8");
   ok(/"learner\.coverage\.read":\{ru:"[^"]+",en:"[^"]+",he:"[^"]+"\}/.test(ui), "ru/en/he scope label missing");
@@ -149,7 +149,7 @@ async function main() {
   const policy = fs.readFileSync(path.join(ROOT, "docs/planning/hermes-education-scaleup/2026-07-21/hermes-side/h2.2/TEXT_COVERAGE_ADDENDUM.md"), "utf8");
   ok(/must call.*get_text_coverage/is.test(policy), "Hermes policy does not require coverage call");
 
-  console.log(`[agent-text-coverage] PASS ${checks} checks; acceptance 5/5; both source classes verified; tools 17 -> 18`);
+  console.log(`[agent-text-coverage] PASS ${checks} checks; acceptance 5/5; both source classes verified; additive catalog preserved`);
 }
 
 main().catch((error) => { console.error(error && error.stack || error); process.exitCode = 1; });

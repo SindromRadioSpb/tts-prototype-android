@@ -7,6 +7,7 @@
 // DATA_DIR/group-corpora root.
 
 const path = require("path");
+const fs = require("fs");
 const { getDb } = require("./sqlite");
 const { DATA_DIR } = require("../storage");
 
@@ -98,6 +99,54 @@ async function getWork(userId, corpusId, workId) {
   return { corpus, work: row, absolute_path: privatePath(row.bundle_path) };
 }
 
+// Agent-facing extraction reuses the same membership-bound resolver and the
+// same immutable work bundle as the Reading Room. Only text rows cross this
+// boundary; notes, audio maps and learner overlays are never returned.
+async function readWorkText(userId, corpusId, workId) {
+  const resolved = await getWork(userId, corpusId, workId);
+  const stat = await fs.promises.stat(resolved.absolute_path);
+  if (!stat.isFile() || stat.size <= 0 || stat.size > 32 * 1024 * 1024) fail("GROUP_CORPUS_FILE_INVALID");
+  let payload;
+  try { payload = JSON.parse(await fs.promises.readFile(resolved.absolute_path, "utf8")); }
+  catch (_) { fail("GROUP_CORPUS_FILE_INVALID"); }
+  const texts = payload && payload.library && Array.isArray(payload.library.texts) ? payload.library.texts : null;
+  const text = texts && (texts.find((row) => String(row && row.text_key) === String(resolved.work.text_key)) || texts[0]);
+  if (!text || !Array.isArray(text.rows)) fail("GROUP_CORPUS_FILE_INVALID");
+  const rows = text.rows.map((row, index) => {
+    const order = Number(row && row.order_index);
+    const he = String((row && (row.hebrew_plain || row.he)) || "").normalize("NFC");
+    const heNiqqud = String((row && (row.hebrew_niqqud || row.he_niqqud)) || "").normalize("NFC");
+    const ruRaw = row && (row.russian != null ? row.russian : row.ru);
+    return { order_index: Number.isInteger(order) && order >= 0 ? order : index, he, he_niqqud: heNiqqud, ru: ruRaw == null || ruRaw === "" ? null : String(ruRaw) };
+  }).sort((a, b) => a.order_index - b.order_index);
+  if (Number(resolved.work.rows_count) !== rows.length) fail("GROUP_CORPUS_FILE_INVALID");
+  return { corpus: resolved.corpus, work: resolved.work, text, rows };
+}
+
+async function getAgentReadingWindow(userId, input) {
+  const source = await readWorkText(userId, input.corpus_id, input.work_id);
+  const start = Number.isInteger(input.start) ? input.start : 0;
+  const count = Math.max(1, Math.min(20, Number(input.rows) || 5));
+  const offset = source.rows.findIndex((row) => row.order_index >= start);
+  const windowRows = offset < 0 ? [] : source.rows.slice(offset, offset + count);
+  return {
+    corpus: source.corpus,
+    work: source.work,
+    rows: windowRows,
+    rows_total: source.rows.length,
+    has_more: offset >= 0 && offset + windowRows.length < source.rows.length,
+  };
+}
+
+async function getAgentCoverageText(userId, input) {
+  const source = await readWorkText(userId, input.corpus_id, input.work_id);
+  return {
+    corpus: source.corpus,
+    work: source.work,
+    rows: source.rows.map((row) => ({ he: row.he || row.he_niqqud, he_niqqud: row.he_niqqud || row.he })),
+  };
+}
+
 async function getAudio(userId, corpusId, assetKey) {
   const corpus = await accessibleCorpus(userId, corpusId);
   const key = String(assetKey || "").trim().toLowerCase();
@@ -161,4 +210,6 @@ async function listBackupFiles(userId, corpusId) {
   return { corpus, files };
 }
 
-module.exports = { listCorpora, accessibleCorpus, ownerCorpus, listWorks, getWork, getAudio, getAudioTiming, updateCatalogMetadata, listBackupFiles, privatePath };
+module.exports = { listCorpora, accessibleCorpus, ownerCorpus, listWorks, getWork,
+  getAgentReadingWindow, getAgentCoverageText,
+  getAudio, getAudioTiming, updateCatalogMetadata, listBackupFiles, privatePath };
