@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.233";
+const CACHE_VERSION = "v3.11.234";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -284,6 +284,11 @@ self.addEventListener("fetch", (event) => {
   // or resurrect a disabled feature. Network-only. The Telegram webview itself
   // has no SW; this guard is for a regular browser sharing the origin.
   if (url.pathname === "/miniapp.html" || url.pathname.startsWith("/js/miniapp-")) return;
+
+  // Agent Access is also an authorization/consent surface. Never combine a
+  // fresh consent shell with stale JS/CSS: that can leave newly introduced
+  // controls visible but inert during a one-time OAuth ceremony.
+  if (url.pathname === "/agent-access.html" || url.pathname === "/js/agent-access.js" || url.pathname === "/css/agent-access.css") return;
 
   // /api/client-config — network-first with timeout, fall back to cache.
   if (CONFIG_URL_RE.test(url.pathname + url.search)) {

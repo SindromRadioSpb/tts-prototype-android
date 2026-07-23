@@ -332,9 +332,16 @@ async function expectCode(promise, code) {
     // checks the visible requested scopes; it never checks the retention ack.
     const panelHtml = fs.readFileSync(path.join(root, "public/agent-access.html"), "utf8");
     assert.ok(/id="selectAllScopes"[^>]+type="button"/.test(panelHtml), "select-all scope control missing");
+    assert.ok(/agent-access\.js\?v=3\.11\.234/.test(panelHtml) && /agent-access\.css\?v=3\.11\.234/.test(panelHtml), "consent assets must be deploy-versioned");
     assert.ok(/selectedScopes/.test(panelSource) && /function selectAllScopes\(\)/.test(panelSource), "select-all state/count logic missing");
     assert.ok(!/selectAllScopes[^}]+retentionAck[^}]+checked=true/.test(panelSource), "select-all must not accept retention on the owner's behalf");
     for (const locale of ["ru", "en", "he"]) assert.ok(new RegExp(`Object\\.assign\\(TEXT\\.${locale},\\{selectAll:`).test(panelSource), `select-all ${locale} locale missing`);
+    checks++;
+
+    const swSource = fs.readFileSync(path.join(root, "public/sw.js"), "utf8");
+    for (const authAsset of ["/agent-access.html", "/js/agent-access.js", "/css/agent-access.css"]) {
+      assert.ok(swSource.includes(`url.pathname === "${authAsset}"`), `${authAsset} must bypass SW caches`);
+    }
     checks++;
 
     console.log(JSON.stringify({ ok: true, checks, capabilities: capabilities.capabilityNames().length, network_calls: 0, provider_calls: 0, live_data_reads: 0 }));
