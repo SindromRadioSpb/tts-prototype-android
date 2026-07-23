@@ -1,6 +1,6 @@
 # GROUP_SONG_CORPUS_P0 — закрытый учебный корпус песен
 
-Дата решения владельца: 2026-07-23. Статус: **ENGINEERING IN PROGRESS — local gates green; prod/owner+member pending**.
+Дата решения владельца: 2026-07-23. Статус: **ENGINEERING_COMPLETE — production owner API live PASS; owner UI + second-member live pending**.
 
 ## 1. Решение
 
@@ -96,3 +96,19 @@ Full 77-song promotion is blocked until P0 passes with the owner and one second 
   после клика, тогда как текущий продукт открывает multi-corpus hub; это baseline test drift,
   не разрешение ослаблять новый security gate. Перед release нужен отдельный authenticated
   browser smoke нового group-corpus пути и осознанная актуализация старого smoke.
+
+## 9. Production evidence
+
+- Code/image: `2202f0f` / `3.11.224`; migration `056_group_song_corpus_p0` applied; health ready.
+- Corpus `study-songs-pilot`: 3 works / 164 rows / 100 unique MP3 / 328 scoped notes /
+  164 sentence-morph rows; active memberships: owner only.
+- Authenticated owner API: catalog 1, works 3, work bundle 200, protected audio HEAD 200;
+  the temporary verification session was logged out.
+- Anonymous `GET /api/group-corpora`: 401. All 100 MP3 hashes and all 3 bundle hashes match DB;
+  shared learner-array rows: 0.
+- Full source ZIP was removed from host and container after import. The owner's source file in
+  `Downloads` remains the recovery source. Production retains only the bounded pilot payload.
+- Disk after deploy/import: approximately 80–81%, 7.3 GB free; health `disk_warn:true`.
+
+P0 stays `OWNER_LIVE`, not `CLOSED`: owner must open/play all three in the real Reading Room;
+a second registered member must independently see/open/play them, while a non-member must not.
