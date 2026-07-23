@@ -78,6 +78,7 @@ function createProductionHandlers(options = {}) {
   const personalTextsContentRepo = options.personalTextsContentRepo; // S2: aa-экстрактор окна (agentSentenceRepo)
   const textGrantsRepo = options.textGrantsRepo; // S2: standing-грант владельца (agent_text_grants)
   const morphologyResolver = options.wordMorphologyResolver || require("./wordMorphologyResolver");
+  const coverageResolver = options.textCoverageResolver || require("./textCoverageResolver");
   const now = options.now || Date.now;
   const principalAccessExpiresAt = options.principalAccessExpiresAt;
   if (!learnerRepo || typeof learnerRepo.getAgentAccessReviewAggregates !== "function" || typeof learnerRepo.getDue !== "function" || typeof learnerRepo.getActivityDelta !== "function"
@@ -92,6 +93,7 @@ function createProductionHandlers(options = {}) {
     || !personalTextsContentRepo || typeof personalTextsContentRepo.aaGetPersonalTextWindow !== "function"
     || !textGrantsRepo || typeof textGrantsRepo.activeGrant !== "function"
     || !morphologyResolver || typeof morphologyResolver.resolveWordMorphology !== "function"
+    || !coverageResolver || typeof coverageResolver.calculate !== "function"
     || typeof connectionPersistence !== "function"
     || typeof now !== "function" || typeof principalAccessExpiresAt !== "function") fail("AA_PRODUCTION_HANDLER_DEPENDENCY_INVALID");
 
@@ -525,6 +527,61 @@ function createProductionHandlers(options = {}) {
     return Object.freeze({ ...resolved, generated_at: clock.iso });
   }
 
+  // H2.2 — one tool, two explicit source namespaces. work_id is the complete
+  // baked Ben-Yehuda work; text_key is a complete owner-synced personal text and
+  // must pass the SAME cloud-consent + live per-connection grant as S2 content.
+  // Only aggregates/top lemmas leave this handler; source rows stay internal.
+  async function get_text_coverage(context, args) {
+    const clock = fixedNow(now);
+    const personal = args.target.text_key != null;
+    let source;
+    if (personal) {
+      const consent = await personalTextsRepo.hasConsentVersioned(context.user_id);
+      if (!consent || consent.ok !== true) {
+        fail(consent && consent.reconsent ? "AA_PERSONAL_TEXTS_RECONSENT_REQUIRED" : "AA_PERSONAL_TEXTS_CONSENT_REQUIRED");
+      }
+      const g = await textGrantsRepo.activeGrant(context.user_id);
+      if (g.state !== "ACTIVE") fail(g.state === "EXPIRED" ? "AA_TEXT_ACCESS_EXPIRED" : "AA_TEXT_ACCESS_NOT_GRANTED");
+      if (String(g.grant.connection_id) !== String(context.connection_id)) fail("AA_TEXT_ACCESS_NOT_GRANTED");
+      if (typeof personalTextsContentRepo.aaGetPersonalCoverageText !== "function") fail("AA_COVERAGE_SOURCE_UNAVAILABLE");
+      source = await personalTextsContentRepo.aaGetPersonalCoverageText(context.user_id, { text_key: args.target.text_key });
+      if (!source || !source.ok) {
+        if (source && source.error === "TEXT_NOT_IN_CLOUD") fail("AA_PERSONAL_TEXT_NOT_FOUND");
+        if (source && source.error === "ARTIFACT_UNREADABLE") fail("AA_ARTIFACT_UNREADABLE");
+        if (source && source.error === "RECONSENT_REQUIRED") fail("AA_PERSONAL_TEXTS_RECONSENT_REQUIRED");
+        if (source && source.error === "CONSENT_REQUIRED") fail("AA_PERSONAL_TEXTS_CONSENT_REQUIRED");
+        fail("AA_PERSONAL_TEXT_NOT_FOUND");
+      }
+    } else {
+      if (typeof corpusRepo.getCorpusCoverageText !== "function") fail("AA_COVERAGE_SOURCE_UNAVAILABLE");
+      source = corpusRepo.getCorpusCoverageText(args.target.work_id);
+      if (!source || !source.ok) fail("AA_NOT_FOUND");
+    }
+
+    let projection = null;
+    try {
+      if (typeof learnerRepo.getCoverageProjection !== "function") throw new Error("AA_COVERAGE_PROJECTION_UNAVAILABLE");
+      projection = await learnerRepo.getCoverageProjection(context.user_id, { nowMs: clock.ms });
+    } catch (_) { projection = null; }
+    let calculated;
+    try {
+      calculated = await coverageResolver.calculate(source.rows, projection, { topUnknownLimit: args.top_unknown_limit || 10 });
+    } catch (_) {
+      calculated = { status: "COVERAGE_UNAVAILABLE", unavailable_reason: "TEXT_RESOLVER_UNAVAILABLE" };
+    }
+    if (!calculated || !["OK", "COVERAGE_UNAVAILABLE"].includes(calculated.status)) {
+      calculated = { status: "COVERAGE_UNAVAILABLE", unavailable_reason: "TEXT_RESOLVER_UNAVAILABLE" };
+    }
+    return Object.freeze({
+      schema_version: "aa.text_coverage.1.0.0",
+      ...calculated,
+      learner_projection_version: projection && projection.version ? String(projection.version) : "learner-projection-unavailable-v1",
+      tokenizer_version: coverageResolver.TOKENIZER_VERSION,
+      resolver_version: coverageResolver.RESOLVER_VERSION,
+      generated_at: clock.iso,
+    });
+  }
+
   return Object.freeze({
     get_learning_brief,
     get_review_summary,
@@ -543,6 +600,7 @@ function createProductionHandlers(options = {}) {
     list_personal_texts,
     get_personal_text_content,
     get_word_morphology,
+    get_text_coverage,
   });
 }
 

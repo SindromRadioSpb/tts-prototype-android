@@ -25,6 +25,10 @@ read-инструмент `get_text_coverage` — детерминированн
 ## Scope / Non-goals
 Scope: capability + схемы + серверный расчёт + consent-карточка PERSONAL (ru/en/he + SW bump) +
 smoke + деплой + прод-верификация + правило в скиллы P3/P5 («материал подбираем по числу»).
+Both source classes are mandatory: complete baked Project Ben-Yehuda works by `work_id` and
+complete synced personal texts by `text_key` after the existing live grant. A per-text
+`COVERAGE_UNAVAILABLE` must never become a blanket source-class refusal.
+
 Non-goals: рекомендательный тур по корпусу (scaffold-advisor не трогать); MC-глоссы (H3-C3);
 изменение lemma-canon.
 
@@ -58,7 +62,8 @@ Smoke 5/5; гейты зелёные; прод-вызов; диф схем то�
 «Что почитать?» на реальном профиле: агент даёт ≥2 варианта с числами покрытия; вердикт в STATUS.
 
 ## Rollback
-Отключение capability; миграций нет (расчёт по существующим данным); revert-коммит.
+Отключение capability; migration 055 only widens the closed grant-scope CHECK and adds no learner
+data/table; revert-коммит отключает capability без влияния на существующие 17 инструментов.
 
 ## Отчёт
 По 11 §4 + факт-таблица предпроверки 2–3 (что покрываемо, что UNAVAILABLE и почему).

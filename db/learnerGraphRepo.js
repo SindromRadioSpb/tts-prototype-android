@@ -11,6 +11,10 @@
 // existing item_keys only (§7 — серверный keying-стек до CLG-P6 не создаёт новых ключей).
 
 const { getDb } = require("./sqlite");
+const LC = require("../public/js/lemma-canon");
+const FC = require("../public/js/fsrs-core");
+
+const COVERAGE_PROJECTION_VERSION = `review-log-keyer-v${LC.KEYER_VERSION}+${FC.ENGINE_VERSION}`;
 
 function dbAll(db, sql, params = []) {
   return new Promise((resolve, reject) => db.all(sql, params, (e, rows) => (e ? reject(e) : resolve(rows))));
@@ -147,6 +151,48 @@ async function getKnownWords(userId) {
     if (!words[k]) words[k] = { status: "", scheduled: true, due: p.due, stability: p.stability };
   }
   return words;
+}
+
+// H2.2 — one deterministic projection snapshot for text coverage. This is a
+// read-only fold over the two existing authorities: last mark in review_log and
+// the replay-derived srs_projections cache. It neither creates a third state
+// store nor exposes raw FSRS fields to the agent.
+async function getCoverageProjection(userId, { nowMs } = {}) {
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const now = Number(nowMs);
+  if (!Number.isFinite(now)) throw new Error("AA_COVERAGE_PROJECTION_TIME_INVALID");
+  const marks = await dbAll(db,
+    `SELECT item_key, meta_json FROM review_log
+      WHERE user_id = ? AND kind = 'mark' ORDER BY reviewed_at ASC, id ASC`, [userId]);
+  const manual = {};
+  for (const row of marks || []) {
+    let meta;
+    try { meta = JSON.parse(row.meta_json || "{}"); } catch (_) { throw new Error("AA_COVERAGE_PROJECTION_INVALID"); }
+    if (!meta || typeof meta !== "object" || Array.isArray(meta)) throw new Error("AA_COVERAGE_PROJECTION_INVALID");
+    if (meta.status != null) {
+      const status = String(meta.status);
+      if (status.length > 32) throw new Error("AA_COVERAGE_PROJECTION_INVALID");
+      manual[String(row.item_key)] = status;
+    }
+  }
+  for (const key of Object.keys(manual)) if (manual[key] === "") delete manual[key];
+
+  const rows = await dbAll(db,
+    `SELECT item_key, due, engine FROM srs_projections WHERE user_id = ? ORDER BY item_key`, [userId]);
+  if ((rows || []).length > 100000) throw new Error("AA_COVERAGE_PROJECTION_OVERFLOW");
+  const scheduled = [];
+  for (const row of rows || []) {
+    if (row.engine && String(row.engine) !== String(FC.ENGINE_VERSION)) throw new Error("AA_COVERAGE_PROJECTION_STALE");
+    const dueMs = row.due == null ? null : Date.parse(String(row.due));
+    if (row.due != null && !Number.isFinite(dueMs)) throw new Error("AA_COVERAGE_PROJECTION_INVALID");
+    scheduled.push(Object.freeze({ item_key: String(row.item_key), due_ms: dueMs }));
+  }
+  return Object.freeze({
+    version: COVERAGE_PROJECTION_VERSION,
+    generated_at_ms: now,
+    manual: Object.freeze({ ...manual }),
+    scheduled: Object.freeze(scheduled),
+  });
 }
 
 // Weakest scheduled items (lapses-heavy, then fragile stability). NOT "weak patterns": the
@@ -385,4 +431,6 @@ async function getAgentContext(userId, { nowMs } = {}) {
   };
 }
 
-module.exports = { manualStatusMap, getAgentAccessReviewAggregates, getDue, getUpcoming, getKnownWords, getWeakWords, getRecentStruggles, recentStruggleKeySet, getTodayActivity, getActivityDelta, getAgentContext };
+module.exports = { manualStatusMap, getAgentAccessReviewAggregates, getDue, getUpcoming, getKnownWords,
+  getCoverageProjection, getWeakWords, getRecentStruggles, recentStruggleKeySet, getTodayActivity,
+  getActivityDelta, getAgentContext, COVERAGE_PROJECTION_VERSION };

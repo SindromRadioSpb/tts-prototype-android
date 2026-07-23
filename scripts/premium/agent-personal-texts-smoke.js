@@ -135,6 +135,12 @@ async function expectCode(promise, code, label) {
     });
     const got = [...page1.result.items, ...page2.result.items].map((i) => ({ text_key: i.text_key, title: i.title, rows_count: i.rows_count }));
     assert.deepStrictEqual(got, oracle, "оракул: list == независимый парс payload_json"); checks++;
+    // H2.2 internal source extractor reads the COMPLETE strict-matched personal
+    // body for aggregate coverage and does not use the metadata sidecar as text.
+    const coverageSource = await require("../../db/agentSentenceRepo").aaGetPersonalCoverageText("u1", { text_key: "text-1" });
+    assert.strictEqual(coverageSource.ok, true);
+    assert.strictEqual(coverageSource.rows.length, 3);
+    assert.ok(coverageSource.rows.every((row) => row.he === "שלום")); checks++;
     // NO_GRADES by construction: в ответе физически нет полей заметок/оценок/SRS
     const flat = JSON.stringify(page1.result) + JSON.stringify(page2.result);
     for (const bad of ["grade", "srs", "notes_advanced", "review_log", "word_status", "body_json"]) {

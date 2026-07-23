@@ -4,7 +4,7 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-23 (H2.1 CLOSED; H2.2 PLANNED; parallel H1 monitoring ACTIVE).
+Обновлено: 2026-07-23 (H2.1 CLOSED; H2.2 IN_PROGRESS; parallel H1 monitoring ACTIVE).
 
 ## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
@@ -29,7 +29,7 @@
 | Слайс | Промт | Статус |
 |---|---|---|
 | H2.1 get_word_morphology | prompts/H2_01_GET_WORD_MORPHOLOGY.md | CLOSED |
-| H2.2 get_text_coverage | prompts/H2_02_GET_TEXT_COVERAGE.md | PLANNED |
+| H2.2 get_text_coverage | prompts/H2_02_GET_TEXT_COVERAGE.md | IN_PROGRESS |
 | H2.3 W1-семейство + goal-store | prompts/H2_03_W1_PROPOSE_FAMILY.md | BLOCKED |
 | H2.4 Dicta Nakdan | prompts/H2_04_DICTA_NAKDAN.md | BLOCKED |
 | H2.5 ivrit.ai ASR MCP | prompts/H2_05_IVRIT_AI_ASR.md | BLOCKED |

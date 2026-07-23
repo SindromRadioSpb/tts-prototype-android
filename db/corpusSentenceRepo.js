@@ -190,4 +190,27 @@ function listWorkTexts(work_id) {
   return { ok: true, work_id: workId, texts };
 }
 
-module.exports = { getCorpusSentenceContext, getCorpusWindow, getCorpusLessonWindow, listWorkTexts, LESSON_SCOPE_ROWS_MAX };
+// H2.2 — full public-domain source for deterministic coverage. This is an
+// INTERNAL read: the MCP result contains aggregates/top lemmas, never the body.
+// All chapters belonging to the work_id are included, so coverage cannot silently
+// describe only texts[0]. The same path/size/traversal gates as every corpus read
+// are inherited from _loadTexts.
+function getCorpusCoverageText(work_id) {
+  const workId = String(work_id || "").trim();
+  if (!WORK_ID_RE.test(workId)) return { ok: false, error: "BAD_WORK_ID" };
+  const loaded = _loadTexts(workId);
+  if (!loaded.ok) return loaded;
+  const rows = [];
+  for (const text of loaded.texts) {
+    for (const row of (Array.isArray(text && text.rows) ? text.rows : [])) {
+      const he = String(row && (row.hebrew_plain != null ? row.hebrew_plain : (row.he || ""))).trim();
+      const heNiqqud = String(row && (row.hebrew_niqqud != null ? row.hebrew_niqqud : (row.he_niqqud || ""))).trim();
+      if (he || heNiqqud) rows.push({ he: he || heNiqqud, he_niqqud: heNiqqud });
+    }
+  }
+  if (!rows.length) return { ok: false, error: "CORPUS_COVERAGE_TEXT_EMPTY" };
+  return { ok: true, source: "BEN_YEHUDA_BAKED_CORPUS", work_id: workId, rows };
+}
+
+module.exports = { getCorpusSentenceContext, getCorpusWindow, getCorpusLessonWindow, listWorkTexts,
+  getCorpusCoverageText, LESSON_SCOPE_ROWS_MAX };

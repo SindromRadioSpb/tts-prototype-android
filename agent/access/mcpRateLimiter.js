@@ -28,6 +28,8 @@ const TOOL_LIMITS = Object.freeze({
   get_personal_text_content: Object.freeze({ minute: 6, day: 200 }),
   // H2.1 canonical read budget.
   get_word_morphology: Object.freeze({ minute: 6, day: 200 }),
+  // H2.2 scans one full text against a derived learner projection.
+  get_text_coverage: Object.freeze({ minute: 6, day: 200 }),
 });
 const MINUTE = 60_000;
 const DAY = 86_400_000;

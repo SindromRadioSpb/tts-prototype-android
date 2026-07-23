@@ -304,6 +304,35 @@ async function aaGetPersonalTextWindow(userId, { text_key, from_order_index, lim
   };
 }
 
+// H2.2 — internal full-text input for deterministic coverage. This deliberately
+// does NOT write agent_text_exposures: Hermes receives aggregate coverage and a
+// bounded unknown-lemma list, not the source sentences, so marking every row as
+// agent-exposed would corrupt grading provenance. AA scope + live per-connection
+// grant are enforced by productionHandlers before this method; cloud_texts v2 is
+// rechecked here on every call, as in aaGetPersonalTextWindow.
+async function aaGetPersonalCoverageText(userId, { text_key } = {}) {
+  const textKey = String(text_key || "").trim();
+  if (!textKey) return { ok: false, error: "BAD_ANCHOR" };
+  const consent = await learnerArtifactsRepo.hasConsentVersioned(userId);
+  if (!consent.ok) return { ok: false, error: consent.reconsent ? "RECONSENT_REQUIRED" : "CONSENT_REQUIRED" };
+  const art = await learnerArtifactsRepo.get(userId, textKey);
+  if (!art) return { ok: false, error: "TEXT_NOT_IN_CLOUD" };
+  let payload = null;
+  try { payload = JSON.parse(art.payload_json); } catch (_) { return { ok: false, error: "ARTIFACT_UNREADABLE" }; }
+  const texts = payload && Array.isArray(payload.texts) ? payload.texts : null;
+  const t = texts && texts.length ? (texts.find((x) => x && String(x.text_key) === textKey) || null) : null;
+  if (!t) return { ok: false, error: "ARTIFACT_UNREADABLE" };
+  const rows = (Array.isArray(t.rows) ? t.rows : (Array.isArray(t.sentences) ? t.sentences : []))
+    .slice().sort((a, b) => Number(a.order_index) - Number(b.order_index)).map((row) => ({
+      he: String(row && (row.hebrew_plain != null ? row.hebrew_plain : (row.he_plain != null ? row.he_plain : (row.he || "")))).trim(),
+      he_niqqud: String(row && (row.hebrew_niqqud != null ? row.hebrew_niqqud : (row.he_niqqud || ""))).trim(),
+    })).filter((row) => row.he || row.he_niqqud);
+  if (!rows.length) return { ok: false, error: "COVERAGE_TEXT_EMPTY" };
+  return { ok: true, source: "OWNER_SYNCED_PERSONAL_TEXT", text_key: textKey, rows,
+    content_updated_at: art.updated_at, replica_ingested_at: art.ingested_at };
+}
+
 module.exports = { hasAgentReadConsent, hasDigestConsent, getSentenceContext, getSentenceWindow, getTextDigest,
-  getLessonWindow, aaGetPersonalTextWindow, CONSENT_KEY_AGENT, CONSENT_KEY_DIGEST, SCOPE_SENTENCE_ONLY, SCOPE_SENTENCE_WINDOW,
+  getLessonWindow, aaGetPersonalTextWindow, aaGetPersonalCoverageText,
+  CONSENT_KEY_AGENT, CONSENT_KEY_DIGEST, SCOPE_SENTENCE_ONLY, SCOPE_SENTENCE_WINDOW,
   SCOPE_TEXT_DIGEST, DIGEST_ROWS_MAX, LESSON_SCOPE_ROWS_MAX, AA_WINDOW_ROWS_MAX };

@@ -111,6 +111,15 @@ const fixtures = Object.freeze({
     })]),
     resolver_version: "word-morphology-resolver-v1", dataset_version: "pealim-infl-v12", generated_at: GENERATED,
   }),
+  get_text_coverage: Object.freeze({
+    schema_version: "aa.text_coverage.1.0.0", status: "OK", token_total: 10, token_known_pct: 90,
+    lemma_total: 5, lemma_known_pct: 80, content_word_known_pct: 90,
+    buckets: Object.freeze({ known: 2, learning: 1, due_now: 1, unknown: 1, unresolved: 0, proper_names: 0 }),
+    top_unknown: Object.freeze([Object.freeze({ lemma: "מילה", freq_in_text: 1, gloss_ru: "слово" })]),
+    recommendation_band: "STRETCH_90_95", learner_projection_version: "fixture-projection-v1",
+    tokenizer_version: "reader-morph-tokenizer-v1", resolver_version: "text-coverage-resolver-v1",
+    generated_at: GENERATED,
+  }),
 });
 
 const validArgs = Object.freeze({
@@ -131,6 +140,7 @@ const validArgs = Object.freeze({
   list_personal_texts: Object.freeze({ limit: 10 }),
   get_personal_text_content: Object.freeze({ text_key: "text-1783830247939-hpbn", rows: 5 }),
   get_word_morphology: Object.freeze({ word: "לכתוב" }),
+  get_text_coverage: Object.freeze({ target: Object.freeze({ work_id: "42" }), top_unknown_limit: 10 }),
 });
 
 function handlers(overrides = {}) {

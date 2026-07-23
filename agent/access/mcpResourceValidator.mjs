@@ -18,7 +18,7 @@ function exactBearer(value) {
 function scopes(value) {
   if (typeof value !== 'string') fail('AA_MCP_TOKEN_CLAIMS_INVALID');
   const out = value.split(' ').filter(Boolean);
-  if (!out.length || out.length > 16 || new Set(out).size !== out.length) fail('AA_MCP_TOKEN_CLAIMS_INVALID');
+  if (!out.length || out.length > 17 || new Set(out).size !== out.length) fail('AA_MCP_TOKEN_CLAIMS_INVALID');
   return Object.freeze(out.sort());
 }
 function epoch(value) {

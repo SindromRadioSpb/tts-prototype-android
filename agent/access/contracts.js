@@ -34,10 +34,11 @@ const SCOPES = new Set([
   "review.handoff.create",
   // S-пакет (PERSONAL_TEXTS_S1S2_DESIGN): личные тексты владельца. ОБА scope заведены в S1
   // (одна re-авторизация Hermes); content-инструмент приходит в S2. Lockstep: oauthContracts +
-  // Lockstep: oauthContracts + owner-approved migration 054 CHECK (16 scopes).
+  // Lockstep: oauthContracts + owner-approved migration 055 CHECK (17 scopes).
   "personal.texts.metadata.read",
   "personal.texts.content.read",
   "morphology.read",
+  "learner.coverage.read",
 ]);
 const STRUGGLE = new Set(["none", "some", "high"]);
 const PROFILE_MODE = new Set(["silent", "coach", "intensive"]);
@@ -61,6 +62,9 @@ const MORPH_GENDER = new Set(["MASCULINE", "FEMININE"]);
 const MORPH_NUMBER = new Set(["SINGULAR", "PLURAL"]);
 const MORPH_PERSON = new Set(["1", "2", "3"]);
 const MORPH_TENSE = new Set(["PAST", "PRESENT", "FUTURE", "IMPERATIVE", "INFINITIVE"]);
+const COVERAGE_STATUS = new Set(["OK", "COVERAGE_UNAVAILABLE"]);
+const COVERAGE_UNAVAILABLE = new Set(["NO_HEBREW_TOKENS", "TEXT_TOKEN_LIMIT_EXCEEDED", "TEXT_TYPE_LIMIT_EXCEEDED", "LEARNER_PROJECTION_UNAVAILABLE", "TEXT_RESOLVER_UNAVAILABLE"]);
+const COVERAGE_BAND = new Set(["COMFORT_95_98", "STRETCH_90_95", "FRUSTRATION_BELOW_90", "TRIVIAL_ABOVE_98"]);
 
 class AgentAccessError extends Error {
   constructor(code, message, retryable = false) {
@@ -126,7 +130,7 @@ function validatePrincipal(value) {
     connection_id: id(p.connection_id, "PRINCIPAL_INVALID"),
     external_actor_id: id(p.external_actor_id, "PRINCIPAL_INVALID"),
     request_id: id(p.request_id, "PRINCIPAL_INVALID"),
-    scopes: uniqueStrings(p.scopes, 16, (v) => oneOf(v, SCOPES, "PRINCIPAL_INVALID"), "PRINCIPAL_INVALID"),
+    scopes: uniqueStrings(p.scopes, 17, (v) => oneOf(v, SCOPES, "PRINCIPAL_INVALID"), "PRINCIPAL_INVALID"),
     connection_status: oneOf(p.connection_status, CONNECTION_STATES, "PRINCIPAL_INVALID"),
     access_expires_at: timestamp(p.access_expires_at, "PRINCIPAL_INVALID"),
   };
@@ -360,6 +364,55 @@ function wordMorphology(value) {
   if (x.resolution !== "EXACT" && entries.some((entry) => entry.confidence === "EXACT")) fail("OUTPUT_SCHEMA_INVALID");
   return Object.freeze({ ...x, entries: Object.freeze(entries) });
 }
+
+// H2.2 — exactly one source namespace: work_id is the public Ben-Yehuda
+// corpus, text_key is an owner-synced personal text. The latter's grant gate is
+// in the production handler, not expressible in a JSON argument schema.
+function validateTextCoverageInput(value) {
+  const x = closed(value, ["target", "top_unknown_limit"], ["target"], "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, 512, "ARGUMENTS_TOO_LARGE");
+  const target = closed(x.target, ["work_id", "text_key"], [], "ARGUMENT_SCHEMA_INVALID");
+  const count = Number(target.work_id != null) + Number(target.text_key != null);
+  if (count !== 1) fail("AA_INVALID_INPUT");
+  const outTarget = {};
+  if (target.work_id != null) outTarget.work_id = workId(target.work_id, "AA_INVALID_INPUT");
+  if (target.text_key != null) outTarget.text_key = personalTextKey(target.text_key, "AA_INVALID_INPUT");
+  const out = { target: Object.freeze(outTarget) };
+  if (x.top_unknown_limit != null) out.top_unknown_limit = integer(x.top_unknown_limit, 1, 20, "AA_INVALID_INPUT");
+  return Object.freeze(out);
+}
+
+function textCoverage(value) {
+  const metricKeys = ["token_total", "token_known_pct", "lemma_total", "lemma_known_pct", "content_word_known_pct", "buckets", "top_unknown", "recommendation_band"];
+  const keys = ["schema_version", "status", "unavailable_reason", ...metricKeys,
+    "learner_projection_version", "tokenizer_version", "resolver_version", "generated_at"];
+  const base = ["schema_version", "status", "learner_projection_version", "tokenizer_version", "resolver_version", "generated_at"];
+  const x = closed(value, keys, base, "OUTPUT_SCHEMA_INVALID"); bytes(x, 8192, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== "aa.text_coverage.1.0.0") fail("OUTPUT_SCHEMA_INVALID");
+  oneOf(x.status, COVERAGE_STATUS); string(x.learner_projection_version, 120);
+  string(x.tokenizer_version, 80); string(x.resolver_version, 120); timestamp(x.generated_at);
+  if (x.status === "COVERAGE_UNAVAILABLE") {
+    oneOf(x.unavailable_reason, COVERAGE_UNAVAILABLE);
+    if (metricKeys.some((key) => Object.prototype.hasOwnProperty.call(x, key))) fail("OUTPUT_SCHEMA_INVALID");
+    return Object.freeze({ ...x });
+  }
+  if (x.unavailable_reason != null || metricKeys.some((key) => !Object.prototype.hasOwnProperty.call(x, key))) fail("OUTPUT_SCHEMA_INVALID");
+  integer(x.token_total, 1, 1000000); integer(x.token_known_pct, 0, 100);
+  integer(x.lemma_total, 1, 100000); integer(x.lemma_known_pct, 0, 100);
+  integer(x.content_word_known_pct, 0, 100); oneOf(x.recommendation_band, COVERAGE_BAND);
+  const b = closed(x.buckets, ["known", "learning", "due_now", "unknown", "unresolved", "proper_names"],
+    ["known", "learning", "due_now", "unknown", "unresolved", "proper_names"], "OUTPUT_SCHEMA_INVALID");
+  for (const key of Object.keys(b)) integer(b[key], 0, 100000, "OUTPUT_SCHEMA_INVALID");
+  if (Object.values(b).reduce((sum, n) => sum + n, 0) !== x.lemma_total) fail("OUTPUT_SCHEMA_INVALID");
+  if (!Array.isArray(x.top_unknown) || x.top_unknown.length > 20) fail("OUTPUT_SCHEMA_INVALID");
+  const top = x.top_unknown.map((row) => {
+    const r = closed(row, ["lemma", "freq_in_text", "gloss_ru"], ["lemma", "freq_in_text"], "OUTPUT_SCHEMA_INVALID");
+    string(r.lemma, 160); integer(r.freq_in_text, 1, 1000000, "OUTPUT_SCHEMA_INVALID");
+    if (r.gloss_ru != null) string(r.gloss_ru, 800);
+    return Object.freeze({ ...r });
+  });
+  return Object.freeze({ ...x, buckets: Object.freeze({ ...b }), top_unknown: Object.freeze(top) });
+}
 function personalTextContent(value) {
   const keys = ["schema_version", "text_key", "title", "rows", "rows_total", "has_more", "content_updated_at", "replica_ingested_at", "authority", "generated_at"];
   const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 16384, "OUTPUT_TOO_LARGE");
@@ -588,6 +641,7 @@ const INPUT_VALIDATORS = Object.freeze({
   list_personal_texts: validatePersonalTextsListInput,
   get_personal_text_content: validatePersonalTextContentInput,
   get_word_morphology: validateWordMorphologyInput,
+  get_text_coverage: validateTextCoverageInput,
 });
 const OUTPUT_VALIDATORS = Object.freeze({
   get_learning_brief: learningBrief,
@@ -607,6 +661,7 @@ const OUTPUT_VALIDATORS = Object.freeze({
   list_personal_texts: personalTextsList,
   get_personal_text_content: personalTextContent,
   get_word_morphology: wordMorphology,
+  get_text_coverage: textCoverage,
 });
 
 function validateInput(tool, value) { const fn = INPUT_VALIDATORS[tool]; if (!fn) fail("UNKNOWN_TOOL"); return fn(value); }

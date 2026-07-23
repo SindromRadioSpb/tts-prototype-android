@@ -67,6 +67,15 @@ Output:
 | Authoritative source | Серверный токенизатор + lemma-canon кейер (тот же `lemma-canon`, что и review_log) × learner-проекция (word_status/review_log sync). ⚠ Pre-check слайса: проверить, для каких текстов сервер РЕАЛЬНО имеет lemma-разметку; где нет — честный `COVERAGE_UNAVAILABLE`, никаких приблизительных процентов |
 | Scope / tier | `learner.coverage.read` · PERSONAL (раскрывает состояние знания) |
 
+**Owner-approved source invariant (2026-07-23):** Hermes and this tool support both complete
+source classes: `work_id` is the full baked Project Ben-Yehuda work; `text_key` is the full synced
+personal text after sync consent and the existing live connection-bound text grant.
+`COVERAGE_UNAVAILABLE` is only a per-text honest result, never a blanket refusal of either class.
+
+Storage note (owner-approved correction, 2026-07-23): live `agent_connection_grants.scope` has a
+closed SQL CHECK, so migration 055 widens it from 16 to 17 scopes for the independently revocable
+`learner.coverage.read` grant. No learner-state table or projection is added.
+
 Input: `{ target: {work_id?|text_key?}, top_unknown_limit?: int(1..20) }` — ровно один идентификатор.
 Output:
 ```

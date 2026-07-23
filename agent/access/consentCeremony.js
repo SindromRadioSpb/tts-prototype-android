@@ -60,6 +60,7 @@ const SCOPE_PRESENTATION = Object.freeze({
   "personal.texts.metadata.read": Object.freeze({ capability: "list_personal_texts", purpose: "PERSONAL_TEXTS_CATALOG_TITLES_OF_ALL_SYNCED", data_class: "PERSONAL_TEXT_TITLES_SIZES_FRESHNESS", retention_tier: "PERSONAL", excludes: "NO_TEXT_BODY_NO_NOTES_NO_GRADES_NO_SRS", first_party_action: "/library.html" }),
   "personal.texts.content.read": Object.freeze({ capability: "get_personal_text_content", purpose: "PERSONAL_TEXT_BODY_WINDOWS_AFTER_OWNER_GRANT", data_class: "PERSONAL_TEXT_BODY_HE_RU_INCLUDING_TITLES", retention_tier: "PERSONAL", excludes: "NO_NOTES_NO_GRADES_NO_SRS_REQUIRES_SEPARATE_OWNER_GRANT", first_party_action: "/agent-access.html" }),
   "morphology.read": Object.freeze({ capability: "get_word_morphology", purpose: "OFFLINE_WORD_MORPHOLOGY_GROUNDING", data_class: "PUBLIC_DICTIONARY_MORPHOLOGY", retention_tier: "AGGREGATE", excludes: "NO_LEARNER_DATA_NO_LLM_NO_NETWORK_NO_SYNTHESIZED_FORMS", first_party_action: "/agent-access.html" }),
+  "learner.coverage.read": Object.freeze({ capability: "get_text_coverage", purpose: "TEXT_DIFFICULTY_AGAINST_YOUR_LEARNER_STATE", data_class: "LEARNER_COVERAGE_PERCENTAGES_BUCKETS_AND_UNKNOWN_LEMMAS_FOR_BEN_YEHUDA_OR_GRANTED_PERSONAL_TEXT", retention_tier: "PERSONAL", excludes: "NO_SOURCE_TEXT_BODY_NO_GRADES_NO_RAW_FSRS_NO_LLM_NO_NETWORK_PERSONAL_TEXT_REQUIRES_LIVE_GRANT", first_party_action: "/agent-access.html" }),
 });
 
 function error(code) { const e = new Error(code); e.code = code; throw e; }

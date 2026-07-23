@@ -67,6 +67,13 @@ const INPUT_SCHEMAS = Object.freeze({
     word: string({ minLength: 1, maxLength: 40, pattern: "^[֑-ׇא-ת׳״'-]{1,40}$" }),
     context_sentence: string({ maxLength: 280 }),
   }, ["word"]),
+  get_text_coverage: closedObject({
+    target: closedObject({
+      work_id: string({ maxLength: 8, pattern: "^\\d{1,8}$" }),
+      text_key: string({ maxLength: 200, pattern: "^[A-Za-z0-9._:-]{1,200}$" }),
+    }, []),
+    top_unknown_limit: integer(1, 20),
+  }, ["target"]),
 });
 
 const timestamp = string({ maxLength: 40, pattern: TIME });
@@ -255,6 +262,28 @@ const OUTPUT_SCHEMAS = Object.freeze({
     dataset_version: string({ const: "pealim-infl-v12" }),
     generated_at: timestamp,
   }, ["schema_version", "resolution", "entries", "resolver_version", "dataset_version", "generated_at"]),
+  get_text_coverage: closedObject({
+    schema_version: string({ const: "aa.text_coverage.1.0.0" }),
+    status: string({ enum: Object.freeze(["OK", "COVERAGE_UNAVAILABLE"]) }),
+    unavailable_reason: string({ enum: Object.freeze(["NO_HEBREW_TOKENS", "TEXT_TOKEN_LIMIT_EXCEEDED", "TEXT_TYPE_LIMIT_EXCEEDED", "LEARNER_PROJECTION_UNAVAILABLE", "TEXT_RESOLVER_UNAVAILABLE"]) }),
+    token_total: integer(0, 1000000),
+    token_known_pct: integer(0, 100),
+    lemma_total: integer(0, 100000),
+    lemma_known_pct: integer(0, 100),
+    content_word_known_pct: integer(0, 100),
+    buckets: closedObject({
+      known: integer(0, 100000), learning: integer(0, 100000), due_now: integer(0, 100000),
+      unknown: integer(0, 100000), unresolved: integer(0, 100000), proper_names: integer(0, 100000),
+    }),
+    top_unknown: Object.freeze({ type: "array", maxItems: 20, items: closedObject({
+      lemma: string({ maxLength: 80 }), freq_in_text: integer(1, 1000000), gloss_ru: string({ maxLength: 400 }),
+    }, ["lemma", "freq_in_text"]) }),
+    recommendation_band: string({ enum: Object.freeze(["COMFORT_95_98", "STRETCH_90_95", "FRUSTRATION_BELOW_90", "TRIVIAL_ABOVE_98"]) }),
+    learner_projection_version: string({ maxLength: 120 }),
+    tokenizer_version: string({ maxLength: 80 }),
+    resolver_version: string({ maxLength: 120 }),
+    generated_at: timestamp,
+  }, ["schema_version", "status", "learner_projection_version", "tokenizer_version", "resolver_version", "generated_at"]),
 });
 
 const DESCRIPTIONS = Object.freeze({
@@ -275,6 +304,7 @@ const DESCRIPTIONS = Object.freeze({
   list_personal_texts: "List the owner's own synced personal texts (title, size, freshness) from the server replica — a CATALOG only, never text bodies, notes, grades or SRS state. The replica is Last-Write-Wins from the owner's devices (authority OWNER_DEVICE_CANONICAL): it can lag the device and may contain fewer texts than exist locally. Page with limit (1-100) + cursor. Typed refusals (do not retry): AA_PERSONAL_TEXTS_CONSENT_REQUIRED — the owner has not enabled text sync; AA_PERSONAL_TEXTS_RECONSENT_REQUIRED — the owner must re-confirm the updated sync consent card in the Reading Room; AA_PERSONAL_TEXTS_NOT_SYNCED — sync is on but no texts have reached the server yet (or all were deleted).",
   get_personal_text_content: "Read a bounded window (rows 1-20, from = start order_index) of ONE of the owner's own texts by text_key (from list_personal_texts): Hebrew + Russian lines and the title. Requires, beyond the scope, a LIVE owner-issued text grant from the agent-access panel — typed refusals (do not retry): AA_TEXT_ACCESS_NOT_GRANTED / AA_TEXT_ACCESS_EXPIRED — ask the owner to (re)issue the grant in /agent-access.html; AA_PERSONAL_TEXT_NOT_FOUND — no such text in the replica; AA_ARTIFACT_UNREADABLE — the stored copy is malformed (owner should re-sync); consent refusals as in list_personal_texts. Long rows are byte-trimmed and the window may shrink to fit the byte cap — follow has_more with a new `from`. Never returns notes, grades or SRS state; reads are logged as bounded window metadata (30-day exposure ledger, no content) so challenges on sentences the agent actually read are provenance-marked agent-exposed (grading stays first-party).",
   get_word_morphology: "Ground a Hebrew morphology claim in the shipped offline Pealim v12 dataset. Call this BEFORE asserting a lemma, root, binyan, inflected form, gender, number, person, or tense. EXACT is returned only for a decisive unique dataset match; AMBIGUOUS returns the available homograph analyses (up to the contract cap) and must not be collapsed by the agent; UNRESOLVED means the dataset has no answer and the agent must say so rather than generate a paradigm. Optional context_sentence can only disambiguate when it carries a matching vocalized form. No LLM, Dicta request, network call, learner data, or synthesized form is used.",
+  get_text_coverage: "Deterministically calculate how readable a complete text is for the owner. BOTH source classes are supported by contract: target.work_id reads the baked public-domain Ben-Yehuda corpus; target.text_key reads one owner-synced personal text and requires the same live per-connection text grant as get_personal_text_content. Provide exactly one identifier. Returns token/lemma/content-word percentages, separate known/learning/due/unknown/unresolved/proper-name buckets, frequent unknown lemmas and a 95-98 recommendation band. Ambiguous or unresolvable morphology stays unresolved; no LLM, network call, source-body output, grade, or raw FSRS field is used. COVERAGE_UNAVAILABLE is an honest per-text result, never a blanket refusal of either supported source class.",
 });
 
 const WRITE_TOOLS = Object.freeze(new Set(["create_reading_handoff", "create_review_handoff", "propose_action"]));

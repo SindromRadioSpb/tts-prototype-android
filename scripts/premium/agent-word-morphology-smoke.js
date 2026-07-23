@@ -97,7 +97,7 @@ async function main() {
   eq(unknown.result.entries.length, 0);
 
   // Additive-only schema proof: every prior input/output schema hashes byte-for-byte
-  // to the snapshot captured at source HEAD; exactly one new tool exists afterward.
+  // to the snapshot captured at source HEAD. Later additive tools may coexist.
   const before = JSON.parse(fs.readFileSync(path.join(ROOT, "docs/planning/hermes-education-scaleup/2026-07-21/hermes-side/h2.1/schema-before-sha256.json"), "utf8"));
   eq(before.tool_count, 16);
   for (const [name, hashes] of Object.entries(before.tools)) {
@@ -105,8 +105,8 @@ async function main() {
     eq(sha(OUTPUT_SCHEMAS[name]), hashes.output_sha256, `${name} output schema mutated`);
   }
   const tools = toolDefinitions();
-  eq(tools.length, 17);
-  eq(tools.filter((tool) => !before.tools[tool.name]).map((tool) => tool.name).join(","), "get_word_morphology");
+  ok(tools.length >= 17, "morphology tool disappeared from additive catalog");
+  ok(tools.some((tool) => tool.name === "get_word_morphology"), "get_word_morphology missing");
   eq(CAPABILITY_VERSION, "aa-v0.1");
   eq(CAPABILITIES.get_word_morphology.scope, "morphology.read");
   eq(TOOL_LIMITS.get_word_morphology.minute, 6);
@@ -125,7 +125,7 @@ async function main() {
   ok(/UNRESOLVED[\s\S]+Не найдено в офлайн-словаре; проверь в приложении/.test(policy), "policy lacks honest UNRESOLVED response");
   ok(/Violation:[\s\S]+without a successful immediately relevant `get_word_morphology` call/.test(policy), "policy violation rule missing");
 
-  console.log(`[agent-word-morphology] PASS ${checks} checks; acceptance 5/5; tools 16 -> 17; existing schema hashes unchanged`);
+  console.log(`[agent-word-morphology] PASS ${checks} checks; acceptance 5/5; morphology remains additive; existing schema hashes unchanged`);
 }
 
 main().catch((error) => { console.error(error && error.stack || error); process.exitCode = 1; });

@@ -33,6 +33,9 @@ const CAPABILITIES = Object.freeze({
   get_personal_text_content: Object.freeze({ scope: "personal.texts.content.read", purpose: "EXPLICIT_PERSONAL_TEXT_BODY", scenario_id: "agent_access.personal_text_content", max_output_bytes: 16384 }),
   // H2.1 — deterministic morphology grounding over the shipped Pealim dataset.
   get_word_morphology: Object.freeze({ scope: "morphology.read", purpose: "EXPLICIT_WORD_MORPHOLOGY_GROUNDING", scenario_id: "agent_access.word_morphology", max_output_bytes: 8192 }),
+  // H2.2 — deterministic learner coverage for public Ben-Yehuda works AND
+  // consented owner-synced personal texts. No source body is returned.
+  get_text_coverage: Object.freeze({ scope: "learner.coverage.read", purpose: "EXPLICIT_TEXT_COVERAGE_AGAINST_LEARNER_STATE", scenario_id: "agent_access.text_coverage", max_output_bytes: 8192 }),
 });
 
 function getCapability(name) { return CAPABILITIES[String(name)] || null; }

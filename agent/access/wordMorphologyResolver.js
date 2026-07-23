@@ -225,4 +225,29 @@ async function resolveWordMorphology({ word, context_sentence } = {}) {
   return Object.freeze(out);
 }
 
-module.exports = { DATASET_PATH, RESOLVER_VERSION, PROVENANCE, buildIndex, resolveWordMorphology, _resetForTests: () => { loadPromise = null; } };
+// H2.2 internal bridge: expose the canonical pid key only to the deterministic
+// coverage engine. The public get_word_morphology output remains byte-for-byte
+// unchanged (its closed schema intentionally does not expose pealim_id).
+async function resolveCoverageToken({ word } = {}) {
+  const index = await loadIndex();
+  const selection = selectCandidates(index, word, null);
+  const byPid = new Map();
+  for (const candidate of selection.candidates) {
+    const pid = String(candidate.paradigm.pealim_id || "");
+    if (pid && !byPid.has(pid)) byPid.set(pid, candidate.paradigm);
+  }
+  if (!byPid.size) return Object.freeze({ resolution: "UNRESOLVED", dataset_version: index.dataset_version });
+  if (byPid.size !== 1) return Object.freeze({ resolution: "AMBIGUOUS", dataset_version: index.dataset_version });
+  const [pid, paradigm] = byPid.entries().next().value;
+  return Object.freeze({
+    resolution: "EXACT",
+    item_key: NotesAutoGen.lemmaKey({ pealim_id: pid }),
+    lemma: String(paradigm.lemma || NotesAutoGen.stripNiqqud(paradigm.lemma_niqqud) || ""),
+    pos: String(paradigm.pos || "other"),
+    gloss_ru: paradigm.meaning ? byteSlice(paradigm.meaning, 800) : null,
+    dataset_version: index.dataset_version,
+  });
+}
+
+module.exports = { DATASET_PATH, RESOLVER_VERSION, PROVENANCE, buildIndex, resolveWordMorphology,
+  resolveCoverageToken, _resetForTests: () => { loadPromise = null; } };

@@ -24,6 +24,8 @@ const SCOPES = Object.freeze([
   "personal.texts.content.read",
   // H2.1: offline Pealim morphology grounding (migration 054 CHECK).
   "morphology.read",
+  // H2.2: learner coverage over Ben-Yehuda + consented personal texts (migration 055 CHECK).
+  "learner.coverage.read",
 ]);
 const SCOPE_SET = new Set(SCOPES);
 const SAFE = /^[A-Za-z0-9_.:@/-]+$/;
