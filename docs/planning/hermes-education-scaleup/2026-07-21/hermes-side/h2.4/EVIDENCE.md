@@ -1,7 +1,7 @@
 # H2.4 evidence — Dicta Nakdan on-demand integration
 
-Status: ENGINEERING_COMPLETE locally on 2026-07-23. Production deploy, one live preview and
-owner-live import remain; H2.4 is deliberately not CLOSED.
+Status: CLOSED on 2026-07-24. Production deploy, live preview, corrected real-song import,
+single-use receipt, Library verification and owner verdict all passed.
 
 ## 1. Slice and canonical prompt
 
@@ -13,8 +13,7 @@ owner-live import remain; H2.4 is deliberately not CLOSED.
 
 - Before HEAD and `origin/main`: `d795d648013e42d0e39dfcb1a8076177a229fc89`.
 - Candidate app version: `3.11.237` (before: `3.11.236`).
-- After revision: the scoped H2.4 commit containing this artifact; record the immutable hash in
-  STATUS after commit/deploy.
+- After revision: `2399c11b9dda50d48326a3c51289bf059cc0119c`.
 
 ## 3. Implemented boundary
 
@@ -60,12 +59,45 @@ owner-live import remain; H2.4 is deliberately not CLOSED.
 ## 5. Gates, owner-live and next slice
 
 - Local engineering gates: PASS. Stable mock makes no live Dicta call.
-- Production: pending preflight, scoped push/deploy, actual image wait, `/healthz`, migration-ready
-  check and exactly one live production preview.
-- Owner-live: pending one real song imported without source niqqud, with machine preview accepted;
-  owner must record readability verdict. Until then H2.4 remains ENGINEERING_COMPLETE/OWNER_LIVE,
-  never CLOSED.
-- H2.5 remains blocked by H2.4 production verification and owner-live closure.
+- Production: PASS on image `2399c11`; `/healthz`, DB and migrations ready; public SW, core
+  precache, Agent Access and Library release assets match `3.11.237`. Disk settled at 78%; no
+  cleanup was performed; rollback images `d795d64` and `de29d35` remain.
+- Exactly one authenticated production preview: HTTP 200, schema `nakdan.on_demand.1.0.0`,
+  `from_cache:false`, result `שָׁלוֹם עוֹלָם.`, provenance `DICTA_NAKDAN_2026_07_23`.
+- Owner-live tool transport: PASS after bounded OAuth recovery, both-container restart and refresh
+  of the stale 16-tool `linguistpro-mcp` skill to the live 25-tool surface. Hermes called
+  `propose_import_text` and created `ap_e1521c39bff98b307fffb1c5148ed91d`.
+- Owner-live content integrity: **FAIL**. The owner-confirmed Reader screenshot ended after a short
+  fabricated body rather than the supplied song beginning `את הזמן החולף`. Read-only production
+  DB verification showed the confirmed proposal payload was 88 characters / 157 bytes, one logical
+  line, three literal backslashes encoding `\n`, first text `כמה עברנו ימים ולילות`, and
+  `starts_with_expected=false`; its consumed receipt truthfully recorded `rows_written:1`.
+  This isolates the incident to stale Hermes conversation/input, not Nakdan, ticket/receipt, OPFS
+  execution or Reader rendering. A completely new chat must create the exact full-body proposal,
+  which must be inspected before confirmation. At this incident checkpoint H2.4 correctly remained
+  OWNER_LIVE and was not closed.
+- Replacement proposal `ap_362d5b90cb5c7561680b22b6bd69a28e` remained `PENDING` and unexecuted
+  during read-only verification. Its body integrity passed the bounded checks: 901 characters /
+  1599 bytes, 58 real lines, expected first/last lines, zero literal backslashes. Its source
+  metadata failed the owner-supplied contract: title was changed to `את הזמן החולף`, author was
+  null and the required YouTube URL was null. It must not be confirmed; a final proposal must carry
+  both the already-correct full body and the exact source metadata.
+- Final proposal `ap_fe9b4872eefb68afdfa8ce5df9cbad64` passed read-only production verification
+  before confirmation: `PENDING`, no decision, zero execution tickets; exact title, author
+  `מתן חסן`, `OWNER_SUPPLIED` origin, required YouTube URL, `language:he`, `niqqud_status:NONE`
+  and exact transformation disclosure. Its body is byte-equal to the verified replacement body:
+  901 characters / 1599 bytes / 58 real lines, expected first/last lines and zero literal
+  backslashes. Owner execution is now permitted; final Dicta preview, receipt, Library provenance
+  and readability verdict remain pending.
+- Owner executed the verified final proposal. Read-only production verification: status
+  `CONFIRMED`; exactly one execution ticket, issued `2026-07-23T22:39:26.318Z`, consumed once at
+  `2026-07-23T22:39:27.425Z`; receipt type `IMPORT_TEXT`, text key
+  `agent-4ccadbc06de0cb55fffecb798a9cdc00`, `rows_written:50` (non-empty lines).
+- Owner screenshot shows the correct opening rows as separate table rows and machine-niqqud output
+  in the dedicated niqqud column; owner states all lines are present.
+- Owner verdict: **5/5 — «всё хорошо в этой итерации»**.
+- H2.4 closure gate: PASS. H2.5 is unblocked and returns to PLANNED; its own canonical start recon
+  and stop conditions remain mandatory.
 
 ## 6. Incidents and unrelated findings
 
