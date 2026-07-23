@@ -197,7 +197,15 @@ const CORPUS_NIQQUD_RE = /[֑-ׇ]/g; // same range as notes-autogen stripNiqqud 
 function corpusNrm(s) { return String(s == null ? '' : s).replace(CORPUS_NIQQUD_RE, '').toLowerCase().trim(); }
 
 const $ = (id) => document.getElementById(id);
-const tt = (key, fallback) => { try { return (window.t && window.t(key)) || fallback || key; } catch (_) { return fallback || key; } };
+const tt = (key, fallback) => {
+  try {
+    const translated = window.t && window.t(key);
+    // A stale service-worker locale returns the key itself. Dynamic UI does
+    // not pass through applyI18n(), so preserve its explicit fallback until
+    // the refreshed locale bundle arrives instead of exposing raw keys.
+    return translated && translated !== key ? translated : (fallback || key);
+  } catch (_) { return fallback || key; }
+};
 const HEBREW_RE = /[֐-׿]/;
 
 // Deep-link payload identical to index.html's router (#/t/<base64url(JSON)>).
