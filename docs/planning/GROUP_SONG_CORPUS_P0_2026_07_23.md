@@ -1,6 +1,6 @@
 # GROUP_SONG_CORPUS_P0 — закрытый учебный корпус песен
 
-Дата решения владельца: 2026-07-23. Статус: **FULL 77 CLOSED — owner + MEMBER production access PASS; Hermes group-corpus add-on ENGINEERING_COMPLETE, production pending**.
+Дата решения владельца: 2026-07-23. Статус: **FULL 77 CLOSED — owner + MEMBER production access PASS; Hermes group-corpus add-on H2.G1 CLOSED**.
 
 ## 1. Решение
 
@@ -295,3 +295,8 @@ MCP 61/61, OAuth 24/24 + restore, control-plane 54/54, production handlers 61/61
 H2.1 72/72, H2.2 75/75, i18n 226/226, API/group-corpus/Studio/Reader gates PASS.
 Общий `npm test`: 269/278; вне allowlist слайса остаются baseline-дефекты — один устаревший
 assert classic-mode HTML и восемь GCP pipeline fixtures, требующих отсутствующий BYOK key.
+
+Production/owner-live: `fee45e4` / `3.11.231`, migration 060 ready, OAuth metadata 19 scopes.
+После owner consent Hermes SDK увидел 21 tool и успешно выполнил все три новых вызова. Свежий
+обычный WebUI-чат нашёл `song-pos-001` (`אושר כהן - כולם גנבים`), вернул ровно 2 запрошенные
+строки и coverage 45% token / 31% lemma / 29% content-word, `FRUSTRATION_BELOW_90`.
