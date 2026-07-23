@@ -79,13 +79,13 @@ async function create(userId, { oauthClientId, connectionId, kind, payload, disp
   const at = iso(nowMs);
   const dedupeKey = dedupeKeyFor(connectionId, kind, payload);
   const payloadJson = JSON.stringify(payload);
-  if (Buffer.byteLength(payloadJson, "utf8") > 4096) error("AA_PROPOSAL_PAYLOAD_TOO_LARGE");
+  if (Buffer.byteLength(payloadJson, "utf8") > 16384) error("AA_PROPOSAL_PAYLOAD_TOO_LARGE");
   return transaction(async (db) => {
     await lazyExpireTx(db, String(userId), at);
     // Deny-cooldown: same connection+payload recently denied → return the denial.
     const denied = await get(db,
       `SELECT proposal_id, status, expires_at FROM agent_proposals
-        WHERE user_id=? AND connection_id=? AND dedupe_key=? AND status='DENIED' AND decided_at>? ORDER BY decided_at DESC LIMIT 1`,
+        WHERE user_id=? AND connection_id=? AND dedupe_key=? AND status IN ('DENIED','REJECTED') AND decided_at>? ORDER BY decided_at DESC LIMIT 1`,
       [String(userId), String(connectionId), dedupeKey, iso(nowMs - POLICY.DENY_COOLDOWN_DAYS * DAY_MS)]);
     if (denied) return { proposal_id: denied.proposal_id, status: "DENIED", expires_at: denied.expires_at, reused: true };
     // Idempotency: live PENDING with the same dedupe slot → same proposal_id.
@@ -97,7 +97,7 @@ async function create(userId, { oauthClientId, connectionId, kind, payload, disp
     const live = await get(db, `SELECT COUNT(*) c FROM agent_proposals WHERE user_id=? AND status='PENDING'`, [String(userId)]);
     if (Number(live && live.c) >= POLICY.PENDING_CAP) error("AA_PROPOSAL_PENDING_LIMIT");
     const proposalId = "ap_" + crypto.randomBytes(16).toString("hex");
-    const expiresAt = iso(nowMs + POLICY.PENDING_TTL_DAYS * DAY_MS);
+    const expiresAt = iso(nowMs + POLICY.ttlDaysForKind(kind) * DAY_MS);
     await run(db,
       `INSERT INTO agent_proposals
          (proposal_id,user_id,oauth_client_id,connection_id,kind,payload_json,display_title,authority,dedupe_key,status,created_at,updated_at,expires_at)
@@ -152,7 +152,7 @@ async function getPending(userId, proposalId, { nowIso } = {}) {
 // Race-safe decision: single conditional UPDATE flips exactly one live PENDING
 // row. Confirm relabels authority; deny keeps AGENT_ASSERTED.
 async function decide(userId, proposalId, decision, { nowIso } = {}) {
-  if (!["CONFIRMED", "DENIED"].includes(decision)) error("AA_PROPOSAL_BAD_DECISION");
+  if (!["CONFIRMED", "DENIED", "REJECTED"].includes(decision)) error("AA_PROPOSAL_BAD_DECISION");
   const at = iso(nowMsOf(nowIso));
   return transaction(async (db) => {
     const row = await get(db,
@@ -195,7 +195,7 @@ async function pruneOld(nowIso) {
   try {
     const e = await run(db, `UPDATE agent_proposals SET status='EXPIRED', updated_at=? WHERE status='PENDING' AND expires_at<=?`, [at, at]);
     out.expired = e.changes || 0;
-    const p1 = await run(db, `DELETE FROM agent_proposals WHERE status IN ('DENIED','EXPIRED') AND COALESCE(decided_at, expires_at) <= ?`, [iso(nowMs - POLICY.PURGE_DECIDED_DAYS * DAY_MS)]);
+    const p1 = await run(db, `DELETE FROM agent_proposals WHERE status IN ('DENIED','REJECTED','EXPIRED') AND COALESCE(decided_at, expires_at) <= ?`, [iso(nowMs - POLICY.PURGE_DECIDED_DAYS * DAY_MS)]);
     const p2 = await run(db, `DELETE FROM agent_proposals WHERE status='CONFIRMED' AND decided_at <= ?`, [iso(nowMs - POLICY.PURGE_CONFIRMED_DAYS * DAY_MS)]);
     out.purged = (p1.changes || 0) + (p2.changes || 0);
     const b = await run(db,

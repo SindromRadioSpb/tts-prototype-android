@@ -80,6 +80,7 @@ function createProductionHandlers(options = {}) {
   const morphologyResolver = options.wordMorphologyResolver || require("./wordMorphologyResolver");
   const coverageResolver = options.textCoverageResolver || require("./textCoverageResolver");
   const groupCorpusRepo = options.groupCorpusRepo; // restricted shared corpus; membership checked inside repo
+  const weeklyGoalsRepo = options.weeklyGoalsRepo || require("../../db/weeklyGoalsRepo");
   const now = options.now || Date.now;
   const principalAccessExpiresAt = options.principalAccessExpiresAt;
   if (!learnerRepo || typeof learnerRepo.getAgentAccessReviewAggregates !== "function" || typeof learnerRepo.getDue !== "function" || typeof learnerRepo.getActivityDelta !== "function"
@@ -95,6 +96,7 @@ function createProductionHandlers(options = {}) {
     || !textGrantsRepo || typeof textGrantsRepo.activeGrant !== "function"
     || !morphologyResolver || typeof morphologyResolver.resolveWordMorphology !== "function"
     || !coverageResolver || typeof coverageResolver.calculate !== "function"
+    || !weeklyGoalsRepo || typeof weeklyGoalsRepo.getCurrent !== "function"
     || typeof connectionPersistence !== "function"
     || typeof now !== "function" || typeof principalAccessExpiresAt !== "function") fail("AA_PRODUCTION_HANDLER_DEPENDENCY_INVALID");
 
@@ -310,6 +312,34 @@ function createProductionHandlers(options = {}) {
       expires_at: String(created.expires_at),
       generated_at: clock.iso,
     });
+  }
+
+  async function propose_import_text(context, args) {
+    const clock = fixedNow(now);
+    const duplicateKey = typeof personalTextsRepo.findTextKeyByNormalizedBody === "function"
+      ? await personalTextsRepo.findTextKeyByNormalizedBody(context.user_id, args.body_preview) : null;
+    const payload = { ...args, duplicate_of_text_key: duplicateKey || null };
+    const created = await proposalsRepo.create(context.user_id, { oauthClientId: context.oauth_client_id, connectionId: context.connection_id, kind: "import_text", payload, displayTitle: byteSlice(args.source.title, 200), nowIso: clock.iso });
+    return Object.freeze({ schema_version: "aa.propose_import_text.1.0.0", proposal_id: created.proposal_id,
+      status: created.reused || duplicateKey ? "DUPLICATE" : "PENDING", ...(duplicateKey ? { duplicate_of_text_key: duplicateKey } : {}), generated_at: clock.iso });
+  }
+  async function propose_track_word(context, args) {
+    const clock = fixedNow(now);
+    const resolved = await keyingService.resolveWords(args.items.map((x) => ({ surface: x.surface, lemma_hint: x.lemma_hint })));
+    const items = args.items.map((x, i) => ({ ...x, item_key: resolved.results[i] && resolved.results[i].keyable ? resolved.results[i].item_key : null }));
+    const created = await proposalsRepo.create(context.user_id, { oauthClientId: context.oauth_client_id, connectionId: context.connection_id, kind: "track_word", payload: { items }, displayTitle: byteSlice(items.map((x) => x.surface).join(" · "), 200), nowIso: clock.iso });
+    return Object.freeze({ schema_version: "aa.propose_track_word.1.0.0", proposal_id: created.proposal_id, status: created.reused ? "DUPLICATE" : "PENDING",
+      per_item: Object.freeze(items.map((x) => Object.freeze({ surface: x.surface, resolution: x.item_key ? "RESOLVED" : "UNRESOLVED_IN_DICTIONARY" }))), generated_at: clock.iso });
+  }
+  async function propose_goal(context, args) {
+    const clock = fixedNow(now);
+    const created = await proposalsRepo.create(context.user_id, { oauthClientId: context.oauth_client_id, connectionId: context.connection_id, kind: "goal", payload: args, displayTitle: byteSlice(args.statement, 200), nowIso: clock.iso });
+    return Object.freeze({ schema_version: "aa.propose_goal.1.0.0", proposal_id: created.proposal_id, status: created.reused ? "DUPLICATE" : "PENDING", generated_at: clock.iso });
+  }
+  async function get_current_goal(context) {
+    const clock = fixedNow(now); const row = await weeklyGoalsRepo.getCurrent(context.user_id);
+    const goal = row ? { statement: row.statement, goal_type: row.goal_type, ...(row.anchor ? { anchor: row.anchor } : {}), week_start: row.week_start, status: row.status, source: row.source } : null;
+    return Object.freeze({ schema_version: "aa.current_goal.1.0.0", goal, generated_at: clock.iso });
   }
 
   // AA4 slice 4a: pure-activity delta since a timestamp. The 90-day window check
@@ -700,6 +730,10 @@ function createProductionHandlers(options = {}) {
     search_group_reading_catalog,
     get_group_reading_content,
     get_group_text_coverage,
+    propose_import_text,
+    propose_track_word,
+    propose_goal,
+    get_current_goal,
   });
 }
 

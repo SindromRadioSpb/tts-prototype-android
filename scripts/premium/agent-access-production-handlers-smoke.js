@@ -145,6 +145,7 @@ function exactOwnerParser() {
     const keyingFixture = {
       displayForItemKey: async (k) => (k === "כתב#verb" ? "כָּתַב" : String(k)),
       glossForItemKey: async (k) => (k === "כתב#verb" ? { gloss: LONG_GLOSS, expected: "כתב", decisive: true, strictSafe: true, alts: ["רשם"] } : null),
+      resolveWords: async (words) => ({ results: words.map((w) => ({ surface:w.surface,keyable:true,item_key:"lemma:"+w.surface })) }),
     };
     const persistenceFixture = async () => ({ access_lifetime: "PERSISTENT_WINDOW", window_expires_at: null });
     const CORPUS_TK = "a1b2c3d4e5f60718";
@@ -167,7 +168,7 @@ function exactOwnerParser() {
     };
     // S1: personalTextsRepo — реальный learnerArtifactsRepo (list_personal_texts живёт на
     // sidecar-мете; отдельный S1-смоук покрывает его сцены, здесь — dep-guard parity).
-    const aa3Deps = { keyingService: keyingFixture, connectionPersistence: persistenceFixture, corpusSentenceRepo: corpusFixture, handoffRepo: handoffFixture, agentProposalsRepo: proposalsFixture, personalTextsRepo: require("../../db/learnerArtifactsRepo"), personalTextsContentRepo: require("../../db/agentSentenceRepo"), textGrantsRepo: require("../../db/agentTextGrantsRepo") };
+    const aa3Deps = { keyingService: keyingFixture, connectionPersistence: persistenceFixture, corpusSentenceRepo: corpusFixture, handoffRepo: handoffFixture, agentProposalsRepo: proposalsFixture, personalTextsRepo: require("../../db/learnerArtifactsRepo"), personalTextsContentRepo: require("../../db/agentSentenceRepo"), textGrantsRepo: require("../../db/agentTextGrantsRepo"), weeklyGoalsRepo:{getCurrent:async()=>null} };
     const handlers = createProductionHandlers({ learnerGraphRepo, agentRepo, oauthRepo, publicCatalog: catalog, ...aa3Deps, now: () => NOW, principalAccessExpiresAt: () => EXPIRY });
     const service = createAgentAccessService({ enabled: true, ownerIds: [OWNER], handlers, now: () => NOW });
 

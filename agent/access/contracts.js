@@ -42,6 +42,10 @@ const SCOPES = new Set([
   "learner.coverage.read",
   "reading.group_corpus.read",
   "learner.group_coverage.read",
+  "intent.import_text.propose",
+  "intent.track_word.propose",
+  "intent.goal.propose",
+  "goal.read",
 ]);
 const STRUGGLE = new Set(["none", "some", "high"]);
 const PROFILE_MODE = new Set(["silent", "coach", "intensive"]);
@@ -68,6 +72,11 @@ const MORPH_TENSE = new Set(["PAST", "PRESENT", "FUTURE", "IMPERATIVE", "INFINIT
 const COVERAGE_STATUS = new Set(["OK", "COVERAGE_UNAVAILABLE"]);
 const COVERAGE_UNAVAILABLE = new Set(["NO_HEBREW_TOKENS", "TEXT_TOKEN_LIMIT_EXCEEDED", "TEXT_TYPE_LIMIT_EXCEEDED", "LEARNER_PROJECTION_UNAVAILABLE", "TEXT_RESOLVER_UNAVAILABLE"]);
 const COVERAGE_BAND = new Set(["COMFORT_95_98", "STRETCH_90_95", "FRUSTRATION_BELOW_90", "TRIVIAL_ABOVE_98"]);
+const IMPORT_ORIGINS = new Set(["LRCLIB", "YOUTUBE_TRANSCRIPT", "SEFARIA", "AGENT_COMPOSED", "OWNER_SUPPLIED", "OTHER"]);
+const NIQQUD_STATES = new Set(["NONE", "PARTIAL", "FULL", "MACHINE_ADDED"]);
+const TRACK_EVIDENCE = new Set(["USER_PRODUCED_SPEECH", "USER_PRODUCED_TEXT", "AGENT_SHOWN_ONLY", "USER_ASKED_ABOUT"]);
+const TRACK_CAVEATS = new Set(["POSSIBLE_ASR_ERROR", "POSSIBLE_MORPH_AMBIGUITY", "STYLE_SUGGESTION"]);
+const GOAL_TYPES = new Set(["PROCESS", "OUTCOME"]);
 
 class AgentAccessError extends Error {
   constructor(code, message, retryable = false) {
@@ -566,6 +575,58 @@ function proposal(value) {
   return Object.freeze({ ...x });
 }
 
+function validateProposeImportInput(value) {
+  const x = closed(value, ["source","body_preview","language","niqqud_status","transformation_disclosure","reason"], ["source","body_preview","language","niqqud_status","reason"], "ARGUMENT_SCHEMA_INVALID");
+  bytes(x, 16384, "ARGUMENTS_TOO_LARGE");
+  const s = closed(x.source, ["url","title","author","origin"], ["title","origin"], "ARGUMENT_SCHEMA_INVALID");
+  const source = { title: string(s.title, 600, "ARGUMENT_SCHEMA_INVALID"), origin: oneOf(s.origin, IMPORT_ORIGINS, "ARGUMENT_SCHEMA_INVALID") };
+  if (s.url != null) source.url = string(s.url, 2000, "ARGUMENT_SCHEMA_INVALID");
+  if (s.author != null) source.author = string(s.author, 360, "ARGUMENT_SCHEMA_INVALID");
+  if (!["AGENT_COMPOSED","OWNER_SUPPLIED"].includes(source.origin) && !source.url) fail("AA_INVALID_INPUT");
+  if (String(s.title).length > 200 || (s.author != null && String(s.author).length > 120) || (s.url != null && String(s.url).length > 500) || String(x.body_preview || "").length > 4000 || String(x.reason || "").length > 280 || (x.transformation_disclosure != null && String(x.transformation_disclosure).length > 500)) fail("AA_INVALID_INPUT");
+  const out = { source: Object.freeze(source), body_preview: string(x.body_preview, 12000, "AA_INVALID_INPUT"), language: oneOf(x.language, new Set(["he"]), "AA_INVALID_INPUT"), niqqud_status: oneOf(x.niqqud_status, NIQQUD_STATES, "AA_INVALID_INPUT"), reason: string(x.reason, 840, "AA_INVALID_INPUT") };
+  if (x.transformation_disclosure != null) out.transformation_disclosure = string(x.transformation_disclosure, 1500, "AA_INVALID_INPUT");
+  return Object.freeze(out);
+}
+function validateProposeTrackInput(value) {
+  const x = closed(value, ["items"], ["items"], "ARGUMENT_SCHEMA_INVALID"); bytes(x, 16384, "ARGUMENTS_TOO_LARGE");
+  if (!Array.isArray(x.items) || x.items.length < 1 || x.items.length > 10) fail("AA_INVALID_INPUT");
+  const items = x.items.map((raw) => {
+    const y = closed(raw, ["surface","lemma_hint","evidence","caveat","context_snippet","reason"], ["surface","evidence","reason"], "ARGUMENT_SCHEMA_INVALID");
+    if (String(y.surface || "").length > 40 || String(y.reason || "").length > 200 || (y.lemma_hint != null && String(y.lemma_hint).length > 40) || (y.context_snippet != null && String(y.context_snippet).length > 200)) fail("AA_INVALID_INPUT");
+    const z = { surface: string(y.surface, 120, "AA_INVALID_INPUT"), evidence: oneOf(y.evidence, TRACK_EVIDENCE, "AA_INVALID_INPUT"), reason: string(y.reason, 600, "AA_INVALID_INPUT") };
+    if (y.lemma_hint != null) z.lemma_hint = string(y.lemma_hint, 120, "AA_INVALID_INPUT");
+    if (y.caveat != null) z.caveat = oneOf(y.caveat, TRACK_CAVEATS, "AA_INVALID_INPUT");
+    if (y.context_snippet != null) z.context_snippet = string(y.context_snippet, 600, "AA_INVALID_INPUT");
+    return Object.freeze(z);
+  });
+  return Object.freeze({ items: Object.freeze(items) });
+}
+function validateProposeGoalInput(value) {
+  const x = closed(value, ["statement","goal_type","anchor","period_days","reason"], ["statement","goal_type","period_days","reason"], "ARGUMENT_SCHEMA_INVALID"); bytes(x, 4096, "ARGUMENTS_TOO_LARGE");
+  if (String(x.statement || "").length > 280 || String(x.reason || "").length > 200 || (x.anchor != null && String(x.anchor).length > 280)) fail("AA_INVALID_INPUT");
+  const out = { statement: string(x.statement, 840, "AA_INVALID_INPUT"), goal_type: oneOf(x.goal_type, GOAL_TYPES, "AA_INVALID_INPUT"), period_days: integer(x.period_days, 7, 14, "AA_INVALID_INPUT"), reason: string(x.reason, 600, "AA_INVALID_INPUT") };
+  if (x.anchor != null) out.anchor = string(x.anchor, 840, "AA_INVALID_INPUT"); return Object.freeze(out);
+}
+function h2ProposalOutput(value, schemaVersion, withItems = false) {
+  const allowed = ["schema_version","proposal_id","status","duplicate_of_text_key","per_item","generated_at"];
+  const x = closed(value, allowed, ["schema_version","proposal_id","status","generated_at"], "OUTPUT_SCHEMA_INVALID"); bytes(x, 4096, "OUTPUT_TOO_LARGE");
+  if (x.schema_version !== schemaVersion || typeof x.proposal_id !== "string" || !PROPOSAL_ID_RE.test(x.proposal_id)) fail("OUTPUT_SCHEMA_INVALID");
+  oneOf(x.status, new Set(["PENDING","DUPLICATE"]), "OUTPUT_SCHEMA_INVALID"); timestamp(x.generated_at);
+  if (x.duplicate_of_text_key != null) string(x.duplicate_of_text_key, 200, "OUTPUT_SCHEMA_INVALID");
+  if (withItems) {
+    if (!Array.isArray(x.per_item) || x.per_item.length < 1 || x.per_item.length > 10) fail("OUTPUT_SCHEMA_INVALID");
+    x.per_item.forEach((r) => { const y=closed(r,["surface","resolution"],["surface","resolution"],"OUTPUT_SCHEMA_INVALID"); string(y.surface,120,"OUTPUT_SCHEMA_INVALID"); oneOf(y.resolution,new Set(["RESOLVED","UNRESOLVED_IN_DICTIONARY"]),"OUTPUT_SCHEMA_INVALID"); });
+  } else if (x.per_item != null) fail("OUTPUT_SCHEMA_INVALID");
+  return Object.freeze({ ...x });
+}
+function currentGoal(value) {
+  const x=closed(value,["schema_version","goal","generated_at"],["schema_version","goal","generated_at"],"OUTPUT_SCHEMA_INVALID"); bytes(x,2048,"OUTPUT_TOO_LARGE");
+  if(x.schema_version!=="aa.current_goal.1.0.0")fail("OUTPUT_SCHEMA_INVALID"); timestamp(x.generated_at);
+  if(x.goal!==null){const g=closed(x.goal,["statement","goal_type","anchor","week_start","status","source"],["statement","goal_type","week_start","status","source"],"OUTPUT_SCHEMA_INVALID");string(g.statement,840,"OUTPUT_SCHEMA_INVALID");oneOf(g.goal_type,GOAL_TYPES,"OUTPUT_SCHEMA_INVALID");if(g.anchor!=null)string(g.anchor,840,"OUTPUT_SCHEMA_INVALID");if(typeof g.week_start!=="string"||!DAY_RE.test(g.week_start))fail("OUTPUT_SCHEMA_INVALID");oneOf(g.status,new Set(["ACTIVE","COMPLETED_SELF_REPORT","DROPPED"]),"OUTPUT_SCHEMA_INVALID");oneOf(g.source,new Set(["OWNER","AGENT_PROPOSED_OWNER_CONFIRMED"]),"OUTPUT_SCHEMA_INVALID");}
+  return Object.freeze({ ...x });
+}
+
 function validateHandoffInput(value) {
   const x = closed(value, ["work_id", "text_key", "order_index"], ["work_id"], "ARGUMENT_SCHEMA_INVALID");
   bytes(x, 512, "ARGUMENTS_TOO_LARGE");
@@ -739,6 +800,10 @@ const INPUT_VALIDATORS = Object.freeze({
   search_group_reading_catalog: validateGroupSearchInput,
   get_group_reading_content: validateGroupContentInput,
   get_group_text_coverage: validateGroupCoverageInput,
+  propose_import_text: validateProposeImportInput,
+  propose_track_word: validateProposeTrackInput,
+  propose_goal: validateProposeGoalInput,
+  get_current_goal: emptyInput,
 });
 const OUTPUT_VALIDATORS = Object.freeze({
   get_learning_brief: learningBrief,
@@ -762,6 +827,10 @@ const OUTPUT_VALIDATORS = Object.freeze({
   search_group_reading_catalog: groupSearch,
   get_group_reading_content: groupContent,
   get_group_text_coverage: groupTextCoverage,
+  propose_import_text: (v) => h2ProposalOutput(v, "aa.propose_import_text.1.0.0"),
+  propose_track_word: (v) => h2ProposalOutput(v, "aa.propose_track_word.1.0.0", true),
+  propose_goal: (v) => h2ProposalOutput(v, "aa.propose_goal.1.0.0"),
+  get_current_goal: currentGoal,
 });
 
 function validateInput(tool, value) { const fn = INPUT_VALIDATORS[tool]; if (!fn) fail("UNKNOWN_TOOL"); return fn(value); }

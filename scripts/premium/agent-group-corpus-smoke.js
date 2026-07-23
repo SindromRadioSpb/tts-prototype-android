@@ -65,18 +65,19 @@ async function main() {
   const revokedContent = await service.execute(principal("revoked-content",["reading.group_corpus.read"]),"get_group_reading_content",{corpus_id:"study-songs-pilot",work_id:"song-pos-001"});
   eq(revokedContent.ok,false); eq(revokedContent.error.code,"AA_NOT_FOUND");
 
-  eq(CAPABILITY_VERSION,"aa-v0.1"); eq(toolDefinitions().length,21);
+  eq(CAPABILITY_VERSION,"aa-v0.1"); eq(toolDefinitions().length,25);
   eq(CAPABILITIES.search_group_reading_catalog.scope,"reading.group_corpus.read"); eq(CAPABILITIES.get_group_text_coverage.scope,"learner.group_coverage.read");
   for(const name of ADDED){eq(TOOL_LIMITS[name].minute,6);eq(TOOL_LIMITS[name].day,200);ok(INPUT_SCHEMAS[name]&&OUTPUT_SCHEMAS[name],name+" schemas missing");}
   eq(SCOPE_PRESENTATION["reading.group_corpus.read"].retention_tier,"CONTENT"); eq(SCOPE_PRESENTATION["learner.group_coverage.read"].retention_tier,"PERSONAL");
   const before=JSON.parse(fs.readFileSync(path.join(ROOT,"docs/planning/hermes-education-scaleup/2026-07-21/hermes-side/group-corpus/schema-before-sha256.json"),"utf8"));
   const oldInput={},oldOutput={};
-  for(const name of Object.keys(INPUT_SCHEMAS))if(!ADDED.has(name))oldInput[name]=INPUT_SCHEMAS[name];
-  for(const name of Object.keys(OUTPUT_SCHEMAS))if(!ADDED.has(name))oldOutput[name]=OUTPUT_SCHEMAS[name];
+  const laterH23=new Set(["propose_import_text","propose_track_word","propose_goal","get_current_goal"]);
+  for(const name of Object.keys(INPUT_SCHEMAS))if(!ADDED.has(name)&&!laterH23.has(name))oldInput[name]=INPUT_SCHEMAS[name];
+  for(const name of Object.keys(OUTPUT_SCHEMAS))if(!ADDED.has(name)&&!laterH23.has(name))oldOutput[name]=OUTPUT_SCHEMAS[name];
   eq(Object.keys(oldInput).length,before.tool_count); eq(sha(oldInput),before.input_map_sha256,"existing input schemas mutated"); eq(sha(oldOutput),before.output_map_sha256,"existing output schemas mutated");
   const migration=fs.readFileSync(path.join(ROOT,"migrations/060_agent_access_group_corpus_scopes.sql"),"utf8");
   ok(migration.includes("'reading.group_corpus.read'")&&migration.includes("'learner.group_coverage.read'"),"migration scopes missing"); ok(!/^\s*(BEGIN|COMMIT)\b/im.test(migration),"migration owns transaction");
   const ui=fs.readFileSync(path.join(ROOT,"public/js/agent-access.js"),"utf8"); ok(/"reading\.group_corpus\.read":\{ru:"[^"]+",en:"[^"]+",he:"[^"]+"\}/.test(ui),"group read i18n missing"); ok(/"learner\.group_coverage\.read":\{ru:"[^"]+",en:"[^"]+",he:"[^"]+"\}/.test(ui),"group coverage i18n missing");
-  console.log(`[agent-group-corpus] PASS ${checks} checks; membership revoke fail-closed; schemas 18 -> 21 only-addition`);
+  console.log(`[agent-group-corpus] PASS ${checks} checks; membership revoke fail-closed; original schemas 18 -> 21 only-addition; current catalog 25 after H2.3`);
 }
 main().catch((e)=>{console.error(e&&e.stack||e);process.exitCode=1;});

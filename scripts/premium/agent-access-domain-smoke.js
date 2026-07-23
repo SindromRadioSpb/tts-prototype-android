@@ -46,7 +46,7 @@ const fixtures = Object.freeze({
   }),
   get_agent_connection: Object.freeze({
     schema_version: "aa.connection.1.0.0", connection_id: principal.connection_id, oauth_client_id: principal.oauth_client_id,
-    client_display_name: "Fixture client", connection_status: "ACTIVE", granted_scopes: Object.freeze(principal.scopes.filter((scope) => !new Set(["morphology.read","learner.coverage.read","reading.group_corpus.read","learner.group_coverage.read"]).has(scope))),
+    client_display_name: "Fixture client", connection_status: "ACTIVE", granted_scopes: Object.freeze(principal.scopes.filter((scope) => !new Set(["morphology.read","learner.coverage.read","reading.group_corpus.read","learner.group_coverage.read","intent.import_text.propose","intent.track_word.propose","intent.goal.propose","goal.read"]).has(scope))),
     access_expires_at: principal.access_expires_at, consent_version: "consent-1", capability_version: "aa-v0.1",
     downstream_retention_notice: "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO", generated_at: GENERATED,
   }),
@@ -129,6 +129,10 @@ const fixtures = Object.freeze({
   get_group_text_coverage: Object.freeze({
     schema_version:"aa.group_text_coverage.1.0.0",target:Object.freeze({corpus_id:"fixture-corpus",work_id:"song-pos-001",title:"כולם גנבים"}),status:"OK",token_total:10,token_known_pct:90,lemma_total:5,lemma_known_pct:80,content_word_known_pct:90,buckets:Object.freeze({known:2,learning:1,due_now:1,unknown:1,unresolved:0,proper_names:0}),top_unknown:Object.freeze([Object.freeze({lemma:"מילה",freq_in_text:1,gloss_ru:"слово"})]),recommendation_band:"STRETCH_90_95",learner_projection_version:"fixture-projection-v1",tokenizer_version:"reader-morph-tokenizer-v1",resolver_version:"text-coverage-resolver-v1",generated_at:GENERATED,
   }),
+  propose_import_text: Object.freeze({schema_version:"aa.propose_import_text.1.0.0",proposal_id:"ap_0123456789abcdef0123456789abcdef",status:"PENDING",generated_at:GENERATED}),
+  propose_track_word: Object.freeze({schema_version:"aa.propose_track_word.1.0.0",proposal_id:"ap_0123456789abcdef0123456789abcdef",status:"PENDING",per_item:Object.freeze([Object.freeze({surface:"מילה",resolution:"RESOLVED"})]),generated_at:GENERATED}),
+  propose_goal: Object.freeze({schema_version:"aa.propose_goal.1.0.0",proposal_id:"ap_0123456789abcdef0123456789abcdef",status:"PENDING",generated_at:GENERATED}),
+  get_current_goal: Object.freeze({schema_version:"aa.current_goal.1.0.0",goal:null,generated_at:GENERATED}),
 });
 
 const validArgs = Object.freeze({
@@ -153,6 +157,10 @@ const validArgs = Object.freeze({
   search_group_reading_catalog: Object.freeze({ audio:"ANY",sort:"POSITION",limit:10 }),
   get_group_reading_content: Object.freeze({ corpus_id:"fixture-corpus",work_id:"song-pos-001",rows:5 }),
   get_group_text_coverage: Object.freeze({ corpus_id:"fixture-corpus",work_id:"song-pos-001",top_unknown_limit:10 }),
+  propose_import_text: Object.freeze({source:Object.freeze({title:"טקסט",origin:"OWNER_SUPPLIED"}),body_preview:"שלום",language:"he",niqqud_status:"NONE",reason:"ללמוד"}),
+  propose_track_word: Object.freeze({items:Object.freeze([Object.freeze({surface:"מילה",evidence:"USER_ASKED_ABOUT",reason:"ללמוד"})])}),
+  propose_goal: Object.freeze({statement:"Read daily",goal_type:"PROCESS",period_days:7,reason:"weekly reflection"}),
+  get_current_goal: Object.freeze({}),
 });
 
 function handlers(overrides = {}) {
@@ -233,7 +241,7 @@ async function expectCode(promise, code) {
     // any future scenario pick either role freely. Reader scenarios may only
     // hold *_read capabilities; proposer scenarios only the known write repos.
     const WRITE_TOOLS = mcpSchemas.WRITE_TOOLS;
-    assert.deepStrictEqual([...WRITE_TOOLS].sort(), ["create_reading_handoff", "create_review_handoff", "propose_action"]);
+    assert.deepStrictEqual([...WRITE_TOOLS].sort(), ["create_reading_handoff", "create_review_handoff", "propose_action", "propose_goal", "propose_import_text", "propose_track_word"]);
     // Mint tools must NOT advertise idempotency — a retrying client would mint
     // live tokens against the cap + rate limit (adversarial critique 4b-final).
     for (const def of mcpSchemas.toolDefinitions()) {

@@ -295,6 +295,7 @@ async function exportUserData(userId) {
   if (out.tables.learner_memory_records) for (const r of out.tables.learner_memory_records) delete r.dedupe_key;
   // AA3-3c: proposal dedupe hashes are derivable oracles for (possibly purged) payloads
   if (out.tables.agent_proposals) for (const r of out.tables.agent_proposals) delete r.dedupe_key;
+  if (out.tables.agent_proposal_execution_tickets) for (const r of out.tables.agent_proposal_execution_tickets) { delete r.token_hash; delete r.action_digest; }
   if (out.tables.learner_memory_revisions) for (const r of out.tables.learner_memory_revisions) delete r.payload_digest;
   if (out.tables.learner_memory_source_links) for (const r of out.tables.learner_memory_source_links) delete r.keyed_digest;
   if (out.tables.f2_requests) for (const r of out.tables.f2_requests) { delete r.expected_digest; delete r.expected_json; }

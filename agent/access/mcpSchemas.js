@@ -95,6 +95,28 @@ const INPUT_SCHEMAS = Object.freeze({
     work_id: string({ maxLength: 128, pattern: "^[A-Za-z0-9_.:-]{1,128}$" }),
     top_unknown_limit: integer(1, 20),
   }, ["corpus_id", "work_id"]),
+  propose_import_text: closedObject({
+    source: closedObject({
+      url: string({ maxLength: 500 }), title: string({ maxLength: 200 }), author: string({ maxLength: 120 }),
+      origin: string({ enum: Object.freeze(["LRCLIB", "YOUTUBE_TRANSCRIPT", "SEFARIA", "AGENT_COMPOSED", "OWNER_SUPPLIED", "OTHER"]) }),
+    }, ["title", "origin"]),
+    body_preview: string({ minLength: 1, maxLength: 4000 }), language: string({ const: "he" }),
+    niqqud_status: string({ enum: Object.freeze(["NONE", "PARTIAL", "FULL", "MACHINE_ADDED"]) }),
+    transformation_disclosure: string({ maxLength: 500 }), reason: string({ minLength: 1, maxLength: 280 }),
+  }, ["source", "body_preview", "language", "niqqud_status", "reason"]),
+  propose_track_word: closedObject({
+    items: Object.freeze({ type: "array", minItems: 1, maxItems: 10, items: closedObject({
+      surface: string({ minLength: 1, maxLength: 40 }), lemma_hint: string({ maxLength: 40 }),
+      evidence: string({ enum: Object.freeze(["USER_PRODUCED_SPEECH", "USER_PRODUCED_TEXT", "AGENT_SHOWN_ONLY", "USER_ASKED_ABOUT"]) }),
+      caveat: Object.freeze({ anyOf: Object.freeze([string({ enum: Object.freeze(["POSSIBLE_ASR_ERROR", "POSSIBLE_MORPH_AMBIGUITY", "STYLE_SUGGESTION"]) }), Object.freeze({ type: "null" })]) }),
+      context_snippet: string({ maxLength: 200 }), reason: string({ minLength: 1, maxLength: 200 }),
+    }, ["surface", "evidence", "reason"]) }),
+  }, ["items"]),
+  propose_goal: closedObject({
+    statement: string({ minLength: 1, maxLength: 280 }), goal_type: string({ enum: Object.freeze(["PROCESS", "OUTCOME"]) }),
+    anchor: string({ maxLength: 280 }), period_days: integer(7, 14), reason: string({ minLength: 1, maxLength: 200 }),
+  }, ["statement", "goal_type", "period_days", "reason"]),
+  get_current_goal: closedObject({}, []),
 });
 
 const timestamp = string({ maxLength: 40, pattern: TIME });
@@ -210,6 +232,24 @@ const OUTPUT_SCHEMAS = Object.freeze({
     kind: string({ enum: Object.freeze(["open_reading", "note", "suggestion"]) }),
     status: string({ enum: Object.freeze(["PENDING", "DENIED"]) }),
     expires_at: timestamp, generated_at: timestamp,
+  }),
+  propose_import_text: closedObject({
+    schema_version: string({ const: "aa.propose_import_text.1.0.0" }), proposal_id: string({ maxLength: 40, pattern: "^ap_[a-f0-9]{32}$" }),
+    status: string({ enum: Object.freeze(["PENDING", "DUPLICATE"]) }), duplicate_of_text_key: string({ maxLength: 200 }), generated_at: timestamp,
+  }, ["schema_version", "proposal_id", "status", "generated_at"]),
+  propose_track_word: closedObject({
+    schema_version: string({ const: "aa.propose_track_word.1.0.0" }), proposal_id: string({ maxLength: 40, pattern: "^ap_[a-f0-9]{32}$" }),
+    status: string({ enum: Object.freeze(["PENDING", "DUPLICATE"]) }),
+    per_item: Object.freeze({ type: "array", minItems: 1, maxItems: 10, items: closedObject({ surface: string({ maxLength: 40 }), resolution: string({ enum: Object.freeze(["RESOLVED", "UNRESOLVED_IN_DICTIONARY"]) }) }) }), generated_at: timestamp,
+  }),
+  propose_goal: closedObject({
+    schema_version: string({ const: "aa.propose_goal.1.0.0" }), proposal_id: string({ maxLength: 40, pattern: "^ap_[a-f0-9]{32}$" }),
+    status: string({ enum: Object.freeze(["PENDING", "DUPLICATE"]) }), generated_at: timestamp,
+  }),
+  get_current_goal: closedObject({
+    schema_version: string({ const: "aa.current_goal.1.0.0" }),
+    goal: Object.freeze({ anyOf: Object.freeze([closedObject({ statement: string({ maxLength: 280 }), goal_type: string({ enum: Object.freeze(["PROCESS", "OUTCOME"]) }), anchor: string({ maxLength: 280 }), week_start: string({ maxLength: 10, pattern: "^\\d{4}-\\d{2}-\\d{2}$" }), status: string({ enum: Object.freeze(["ACTIVE", "COMPLETED_SELF_REPORT", "DROPPED"]) }), source: string({ enum: Object.freeze(["OWNER", "AGENT_PROPOSED_OWNER_CONFIRMED"]) }) }, ["statement", "goal_type", "week_start", "status", "source"]), Object.freeze({ type: "null" })]) }),
+    generated_at: timestamp,
   }),
   get_progress_delta: closedObject({
     schema_version: string({ const: "aa.progress_delta.1.0.0" }),
@@ -371,9 +411,13 @@ const DESCRIPTIONS = Object.freeze({
   search_group_reading_catalog: "Search metadata of server-hosted GROUP_RESTRICTED corpora that the current LinguistPro account can access through ACTIVE group membership. Search title, artist, topic, tags, level or Position; optionally restrict corpus_id. Returns metadata and protected first-party anchors only, never text bodies, audio, learner state or another group's existence. AA_NOT_FOUND means the corpus is absent or membership is inactive; do not infer which.",
   get_group_reading_content: "Read a bounded 1-20 row Hebrew/Russian window from a GROUP_RESTRICTED work returned by search_group_reading_catalog. ACTIVE membership is rechecked on every call, so revocation closes access immediately. The server corpus is authoritative for shared content; personal progress, notes, grades, FSRS and audio bytes are never returned. Do not reproduce or aggregate the complete restricted corpus outside the owner's explicit learning request.",
   get_group_text_coverage: "Deterministically calculate readability of one GROUP_RESTRICTED work returned by search_group_reading_catalog against the current owner's learner projection. ACTIVE membership is rechecked on every call. Returns percentages, buckets, frequent unknown lemmas and the 95-98 recommendation band, but never the source body, grades or raw FSRS fields. Call before recommending a group work by difficulty; COVERAGE_UNAVAILABLE is an honest per-work result.",
+  propose_import_text: "Create a 14-day PENDING proposal to import one Hebrew text into the owner's personal device library. The agent never imports. The owner sees the complete body, source URL, niqqud and transformation disclosure; after confirmation the first-party browser executes through OPFS and the server confirms only after a receipt. External origins require URL. Identical content returns DUPLICATE with the same proposal_id.",
+  propose_track_word: "Create a 14-day PENDING proposal for 1-10 Hebrew words. Each item records whether the user produced, saw or asked about it and any ASR/morphology caveat. The owner confirms words one by one; only dictionary-resolved canonical item keys execute in the first-party browser. No grades, mastery or FSRS state is written by the agent.",
+  propose_goal: "Create a 14-day PENDING weekly-goal proposal. The owner reviews statement, PROCESS/OUTCOME type, optional anchor and 7-14 day period. Only owner confirmation writes the server goal store; the agent never marks completion.",
+  get_current_goal: "Return the owner's single ACTIVE weekly goal or goal:null. Read-only; completion and deletion are owner-only first-party actions.",
 });
 
-const WRITE_TOOLS = Object.freeze(new Set(["create_reading_handoff", "create_review_handoff", "propose_action"]));
+const WRITE_TOOLS = Object.freeze(new Set(["create_reading_handoff", "create_review_handoff", "propose_action", "propose_import_text", "propose_track_word", "propose_goal"]));
 // Mint tools are NOT idempotent: an auto-retrying client would mint live tokens
 // against the cap + rate limit (adversarial critique). propose_action stays
 // idempotent by server-side dedupe.

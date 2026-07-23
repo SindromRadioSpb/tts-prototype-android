@@ -30,6 +30,11 @@ const SCOPES = Object.freeze([
   // stay independently revocable because coverage also reveals learner state.
   "reading.group_corpus.read",
   "learner.group_coverage.read",
+  // H2.3 owner-confirmed proposal family + server goal read.
+  "intent.import_text.propose",
+  "intent.track_word.propose",
+  "intent.goal.propose",
+  "goal.read",
 ]);
 const SCOPE_SET = new Set(SCOPES);
 const SAFE = /^[A-Za-z0-9_.:@/-]+$/;

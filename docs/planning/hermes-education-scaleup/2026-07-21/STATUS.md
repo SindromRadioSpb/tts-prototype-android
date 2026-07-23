@@ -4,7 +4,7 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-23 (H2.1–H2.2 + H2.G1 CLOSED; H2.3 DEFERRED; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1 monitor ACTIVE).
+Обновлено: 2026-07-23 (H2.1–H2.2 + H2.G1 CLOSED; H2.3 IN_PROGRESS under owner-approved OPFS ticket correction; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1 monitor ACTIVE).
 
 ## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
@@ -24,13 +24,13 @@
 
 **G-H1-PARALLEL-MONITOR: ACTIVE, 2026-07-23—2026-08-05; day-14 follow-up обязателен.**
 
-## Горизонт 2 — статус: IN_PROGRESS (G-H2-START PASS; H2.1–H2.2 CLOSED; H2.3 DEFERRED; Group Song Corpus P0 идёт отдельно; H1 monitoring параллельно)
+## Горизонт 2 — статус: IN_PROGRESS (G-H2-START PASS; H2.1–H2.2 CLOSED; H2.3 IN_PROGRESS; Group Song Corpus P0 CLOSED; H1 monitoring параллельно)
 
 | Слайс | Промт | Статус |
 |---|---|---|
 | H2.1 get_word_morphology | prompts/H2_01_GET_WORD_MORPHOLOGY.md | CLOSED |
 | H2.2 get_text_coverage | prompts/H2_02_GET_TEXT_COVERAGE.md | CLOSED |
-| H2.3 W1-семейство + goal-store | prompts/H2_03_W1_PROPOSE_FAMILY.md | DEFERRED — server cannot safely mutate OPFS-local personal texts; owner chose corpus-first |
+| H2.3 W1-семейство + goal-store | prompts/H2_03_W1_PROPOSE_FAMILY.md | IN_PROGRESS — owner approved browser OPFS ticket+receipt correction; local engineering/gates underway |
 | H2.G1 restricted group corpus read+coverage | hermes-side/group-corpus/README.md | CLOSED — prod `fee45e4`, 19-scope consent, SDK + fresh ordinary Hermes chat PASS |
 | H2.4 Dicta Nakdan | prompts/H2_04_DICTA_NAKDAN.md | BLOCKED |
 | H2.5 ivrit.ai ASR MCP | prompts/H2_05_IVRIT_AI_ASR.md | BLOCKED |
@@ -96,3 +96,5 @@
 | 2026-07-23 | Group Song Corpus MEMBER path subsequently passed production JOIN/LOGIN, 77-work visibility, owner-only denial and revoke semantics; P0 CLOSED. Owner approved Hermes add-on. H2.G1 local implementation adds search/content/coverage under two revocable scopes; 40-check slice smoke, membership revoke, old H2.1/H2.2 and AA domain/production/OAuth/i18n gates PASS; prod/consent/fresh Hermes chat remain | владелец / Codex |
 | 2026-07-23 | H2.G1 local final: schema diff 18→21 only-addition, MCP 61/61, OAuth+restore, control-plane, production handlers, H2.1/H2.2, i18n, API/group corpus/Studio/Reader gates PASS. JWT scope cap repaired from stale literal 17 to registry-derived 19. `npm test` 269/278 with 9 confirmed out-of-slice baseline failures (classic HTML assert + GCP BYOK fixtures). Scoped commit/deploy/consent/fresh Hermes chat remain | Codex |
 | 2026-07-23 | H2.G1 CLOSED: `fee45e4` / `3.11.231` deployed, migration 060 and 19-scope protected-resource metadata ready. Hermes config/mandatory policy updated, both containers restarted, owner consent recorded for all 19 scopes. Live SDK: 21 tools, search/content/coverage PASS. Fresh ordinary WebUI chat independently returned `song-pos-001`, exactly 2 requested rows and token/lemma/content-word 45%/31%/29%, `FRUSTRATION_BELOW_90` | владелец / Codex |
+| 2026-07-23 | Owner resumed H2.3 and approved the canonical correction: import/track execute in the first LinguistPro browser through a single-use server ticket and existing OPFS functions; CONFIRMED only after receipt; goals remain server-side. H2.3 → IN_PROGRESS | владелец / Codex |
+| 2026-07-23 | H2.3 local engineering PASS: schema diff 21→25 only-addition (`propose_import_text`, `propose_track_word`, `propose_goal`, `get_current_goal`), `aa-v0.1` unchanged; ticket+receipt, OPFS executor, server goal store and migration 061 implemented. H2.3 25/25, domain 47, MCP 65, handlers 61, OAuth 24, control plane 54, H2.1/H2.2/H2.G1/i18n/API gates PASS; full suite unchanged at baseline 269/278. Deploy, four-scope consent and fresh Hermes owner-live remain | Codex |

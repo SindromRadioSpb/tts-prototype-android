@@ -114,9 +114,13 @@ Output:
 
 Общее: хранение в существующем proposals-леджере (новые kind), owner-preview UI по существующему
 паттерну propose_action (карточка подтверждения в Студии/Mini App), TTL предложений 14 дней,
-статусы `PENDING → CONFIRMED|REJECTED|EXPIRED`, полный аудит. Подтверждение владельцем запускает
-ДЕТЕРМИНИРОВАННЫЙ серверный путь (import-конвейер / track-путь / goal-store write) — агент не
-касается исполнения. Никаких скрытых импортов/карточек/mastery-write.
+статусы `PENDING → CONFIRMED|REJECTED|EXPIRED`, полный аудит. По owner correction 2026-07-23
+goal-store исполняется сервером, а OPFS-local `import_text`/`track_word` исполняются только
+первым браузером LinguistPro: owner confirm → одноразовый server ticket (5 минут, user/proposal/
+item/action-digest binding) → существующие `createText`/`addSentence`/`setWordStatus` → receipt.
+`CONFIRMED` ставится только после валидной квитанции. Закрытая вкладка/ошибка оставляет proposal
+неисполненным; сервер не создаёт вторую библиотеку и не пишет параллельный `word_status`.
+Агент не касается исполнения. Никаких скрытых импортов/карточек/mastery-write.
 
 ### 3.1 propose_import_text — scope `intent.import_text.propose` · PERSONAL
 
@@ -131,7 +135,7 @@ Input:
 ```
 Output: `{ schema_version:"aa.propose_import_text.1.0.0", proposal_id, status:"PENDING"|"DUPLICATE", duplicate_of_text_key?, generated_at }`
 - Сервер на приёме: дедуп по нормализованному телу против существующей библиотеки (`duplicate_of_text_key`), copyright-эвристика (origin+url обязательны для внешних), санитайзинг.
-- Owner-preview показывает: источник+URL, полный body_preview, niqqud_status, transformation_disclosure, вердикт дедупа. Подтверждение → детерминированный import-путь Библиотеки (морфология/TTS/SRS как у любого текста), провенанс `imported_via_agent_proposal:<id>` на тексте.
+- Owner-preview показывает: источник+URL, полный body_preview, niqqud_status, transformation_disclosure, вердикт дедупа. Подтверждение → ticket-bound OPFS import существующими функциями Библиотеки; последующее обогащение текста использует обычные механизмы приложения. Провенанс `imported_via_agent_proposal:<id>` хранится на тексте.
 - R11: MACHINE_ADDED никуд помечается на тексте как machine-generated (derived≠asserted), никогда не перезаписывает выверенный никуд.
 - Negative: body>лимита → AA_INVALID_INPUT; повтор → DUPLICATE (не новая запись); внешний origin без url → AA_INVALID_INPUT.
 
@@ -146,7 +150,7 @@ Input:
 ```
 Output: `{ schema_version:"aa.propose_track_word.1.0.0", proposal_id, status, per_item:[{surface, resolution:"RESOLVED"|"UNRESOLVED_IN_DICTIONARY"}], generated_at }`
 - `evidence` обязателен и различает произведено-юзером / только-показано-агентом (провенанс-инвариант); caveat честно помечает ASR/морфо-сомнения.
-- Подтверждение владельцем (по-словно, не пакетом) → обычный track-путь (word_status через существующий детерминированный код). Никакого FSRS-состояния от агента: слово стартует как любое вручную затреканное.
+- Подтверждение владельцем (по-словно, не пакетом) → ticket-bound вызов существующего browser `setWordStatus`; синхронизация идёт обычным `review_log`-контуром. Никакого FSRS-состояния от агента: слово стартует как любое вручную затреканное.
 - Negative: >10 слов → AA_INVALID_INPUT; не-иврит surface → per-item UNRESOLVED (не глобальная ошибка).
 
 ### 3.3 propose_goal + get_current_goal — scopes `intent.goal.propose` / `goal.read` · STANDARD

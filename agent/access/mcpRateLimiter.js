@@ -34,6 +34,10 @@ const TOOL_LIMITS = Object.freeze({
   search_group_reading_catalog: Object.freeze({ minute: 6, day: 200 }),
   get_group_reading_content: Object.freeze({ minute: 6, day: 200 }),
   get_group_text_coverage: Object.freeze({ minute: 6, day: 200 }),
+  propose_import_text: Object.freeze({ minute: 6, day: 60 }),
+  propose_track_word: Object.freeze({ minute: 6, day: 60 }),
+  propose_goal: Object.freeze({ minute: 6, day: 60 }),
+  get_current_goal: Object.freeze({ minute: 6, day: 200 }),
 });
 const MINUTE = 60_000;
 const DAY = 86_400_000;

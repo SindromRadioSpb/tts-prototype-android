@@ -1715,6 +1715,7 @@ async function getAgentAccessMcpRuntime(effectiveFlags) {
         personalTextsContentRepo: require("./db/agentSentenceRepo"),   // S2: aa-экстрактор окна (single-parser)
         textGrantsRepo: require("./db/agentTextGrantsRepo"),           // S2: standing-грант владельца
         groupCorpusRepo: require("./db/groupCorpusRepo"),             // restricted corpus; ACTIVE membership on every read
+        weeklyGoalsRepo: require("./db/weeklyGoalsRepo"),             // H2.3 server-authoritative weekly goals
         // AA3: report the real access window (control-plane) rather than the token TTL.
         connectionPersistence: async () => {
           try {
@@ -1898,11 +1899,13 @@ app.get("/api/agent-access/proposals", requireAgentAccessBoundary, async (req, r
     const rows = await agentProposalsRepo.listPending(auth.user.id);
     // payload_json stays server-side; the panel gets the parsed payload + the
     // SERVER-resolved display_title (never an agent-asserted work description).
-    const proposals = rows.map((r) => ({
+    const ticketsRepo = require("./db/agentProposalTicketsRepo");
+    const proposals = await Promise.all(rows.map(async (r) => ({
       proposal_id: r.proposal_id, kind: r.kind, payload: r.payload,
       display_title: r.display_title, authority: r.authority,
       client_display_name: r.client_display_name, created_at: r.created_at, expires_at: r.expires_at,
-    }));
+      executions: ["import_text","track_word"].includes(r.kind) ? await ticketsRepo.state(auth.user.id, r.proposal_id) : [],
+    })));
     return res.json({ ok: true, schema_version: "aa.proposals.1.0.0", proposals });
   } catch (e) { return agentAccessHttpError(res, e); }
 });
@@ -1916,6 +1919,9 @@ app.post("/api/agent-access/proposals/:proposalId/decision", requireAgentAccessB
     // Execute-before-flip (R14): mint first so a mint failure leaves the row
     // PENDING and re-confirmable; an orphaned token dies in 5 min unused.
     let handoffUrl = null;
+    if (decision === "confirm" && ["import_text","track_word"].includes(row.kind)) {
+      return res.status(409).json({ ok: false, error: "AA_PROPOSAL_BROWSER_EXECUTION_REQUIRED" });
+    }
     if (decision === "confirm" && row.kind === "open_reading" && row.payload) {
       const listed = require("./db/corpusSentenceRepo").listWorkTexts(row.payload.work_id);
       if (!listed || !listed.ok) return res.status(409).json({ ok: false, error: "AA_PROPOSAL_WORK_UNAVAILABLE" });
@@ -1928,11 +1934,50 @@ app.post("/api/agent-access/proposals/:proposalId/decision", requireAgentAccessB
       });
       handoffUrl = "/library.html?handoff=" + encodeURIComponent(minted.raw);
     }
-    const decided = await agentProposalsRepo.decide(auth.user.id, req.params.proposalId, decision === "confirm" ? "CONFIRMED" : "DENIED");
+    if (decision === "confirm" && row.kind === "goal") {
+      await require("./db/weeklyGoalsRepo").createFromProposal(auth.user.id, row);
+    }
+    const rejectStatus = ["import_text","track_word","goal"].includes(row.kind) ? "REJECTED" : "DENIED";
+    const decided = await agentProposalsRepo.decide(auth.user.id, req.params.proposalId, decision === "confirm" ? "CONFIRMED" : rejectStatus);
     identityRepo.audit("agent_access_proposal_decision", auth.user.id, { proposal_id: decided.proposal_id, kind: decided.kind, decision: decided.status }, req.ip);
     return res.json({ ok: true, proposal_id: decided.proposal_id, status: decided.status, handoff_url: handoffUrl });
   } catch (e) { return agentAccessHttpError(res, e); }
 });
+
+// H2.3 owner-confirmed browser execution. MCP cannot reach these routes:
+// first-party session + CSRF are mandatory, and the ticket expires in 5 min.
+app.post("/api/agent-access/proposals/:proposalId/execution", requireAgentAccessBoundary, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const row = await agentProposalsRepo.getPending(auth.user.id, req.params.proposalId);
+    if (!["import_text","track_word"].includes(row.kind)) return res.status(409).json({ ok:false,error:"AA_PROPOSAL_BROWSER_EXECUTION_NOT_APPLICABLE" });
+    if (row.kind === "import_text" && row.payload && row.payload.duplicate_of_text_key) return res.status(409).json({ ok:false,error:"AA_PROPOSAL_TEXT_DUPLICATE" });
+    const out = await require("./db/agentProposalTicketsRepo").issue(auth.user.id, row, Number((req.body || {}).item_index));
+    identityRepo.audit("agent_access_proposal_ticket_issue", auth.user.id, { proposal_id: row.proposal_id, kind: row.kind, item_index: Number((req.body || {}).item_index) }, req.ip);
+    return res.json({ ok:true, schema_version:"aa.proposal_execution.1.0.0", ...out });
+  } catch (e) { return agentAccessHttpError(res, e); }
+});
+app.post("/api/agent-access/proposals/:proposalId/execution/receipt", requireAgentAccessBoundary, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try {
+    const body = req.body || {}; const row = await agentProposalsRepo.getPending(auth.user.id, req.params.proposalId);
+    const index = Number(body.item_index); const expected = require("./db/agentProposalTicketsRepo").actionFor(row, index);
+    const receipt = body.receipt || {};
+    if (expected.type === "IMPORT_TEXT" && (receipt.type !== "IMPORT_TEXT" || receipt.text_key !== expected.text_key || !Number.isInteger(receipt.rows_written) || receipt.rows_written < 1)) throw Object.assign(new Error("AA_PROPOSAL_RECEIPT_INVALID"),{code:"AA_PROPOSAL_RECEIPT_INVALID"});
+    if (expected.type === "TRACK_WORD" && (receipt.type !== "TRACK_WORD" || receipt.item_key !== expected.item_key || receipt.status !== "new")) throw Object.assign(new Error("AA_PROPOSAL_RECEIPT_INVALID"),{code:"AA_PROPOSAL_RECEIPT_INVALID"});
+    const required = row.kind === "import_text" ? 1 : row.payload.items.filter((x) => x.item_key).length;
+    const consumed = await require("./db/agentProposalTicketsRepo").consume(auth.user.id, row.proposal_id, body.ticket, body.action_digest, receipt, required);
+    const complete = consumed.complete;
+    identityRepo.audit("agent_access_proposal_execution_receipt", auth.user.id, { proposal_id: row.proposal_id, kind: row.kind, item_index:index, complete }, req.ip);
+    return res.json({ ok:true, proposal_id:row.proposal_id, item_index:index, status:complete?"CONFIRMED":"PENDING" });
+  } catch (e) { return agentAccessHttpError(res, e); }
+});
+
+app.get("/api/agent-access/goals/current", requireAgentAccessBoundary, async (req,res)=>{const auth=await requireUser(req,res);if(!auth)return;try{return res.json({ok:true,goal:await require("./db/weeklyGoalsRepo").getCurrent(auth.user.id)});}catch(e){return agentAccessHttpError(res,e);}});
+app.post("/api/agent-access/goals/:goalId/close", requireAgentAccessBoundary, async (req,res)=>{const auth=await requireUser(req,res);if(!auth)return;if(!requireCsrf(req,res,auth))return;try{const out=await require("./db/weeklyGoalsRepo").close(auth.user.id,req.params.goalId,String((req.body||{}).status||""));identityRepo.audit("agent_access_goal_close",auth.user.id,{goal_id:out.id,status:out.status},req.ip);return res.json({ok:true,...out});}catch(e){return agentAccessHttpError(res,e);}});
+app.delete("/api/agent-access/goals/:goalId", requireAgentAccessBoundary, async (req,res)=>{const auth=await requireUser(req,res);if(!auth)return;if(!requireCsrf(req,res,auth))return;try{const out=await require("./db/weeklyGoalsRepo").remove(auth.user.id,req.params.goalId);identityRepo.audit("agent_access_goal_delete",auth.user.id,{goal_id:out.id},req.ip);return res.json({ok:true,...out});}catch(e){return agentAccessHttpError(res,e);}});
 app.delete("/api/agent-access/proposals/:proposalId", requireAgentAccessBoundary, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;
   if (!requireCsrf(req, res, auth)) return;

@@ -42,6 +42,11 @@ const CAPABILITIES = Object.freeze({
   search_group_reading_catalog: Object.freeze({ scope: "reading.group_corpus.read", purpose: "EXPLICIT_GROUP_CORPUS_DISCOVERY", scenario_id: "agent_access.group_reading_search", max_output_bytes: 12288 }),
   get_group_reading_content: Object.freeze({ scope: "reading.group_corpus.read", purpose: "EXPLICIT_GROUP_CORPUS_READING", scenario_id: "agent_access.group_reading_content", max_output_bytes: 16384 }),
   get_group_text_coverage: Object.freeze({ scope: "learner.group_coverage.read", purpose: "EXPLICIT_GROUP_TEXT_COVERAGE_AGAINST_LEARNER_STATE", scenario_id: "agent_access.group_text_coverage", max_output_bytes: 8192 }),
+  // H2.3 — additive W1 family. Proposals never execute through MCP.
+  propose_import_text: Object.freeze({ scope: "intent.import_text.propose", purpose: "EXPLICIT_PERSONAL_TEXT_IMPORT_PROPOSAL", scenario_id: "agent_access.propose_import_text", max_output_bytes: 2048 }),
+  propose_track_word: Object.freeze({ scope: "intent.track_word.propose", purpose: "EXPLICIT_WORD_TRACK_PROPOSAL", scenario_id: "agent_access.propose_track_word", max_output_bytes: 4096 }),
+  propose_goal: Object.freeze({ scope: "intent.goal.propose", purpose: "EXPLICIT_WEEKLY_GOAL_PROPOSAL", scenario_id: "agent_access.propose_goal", max_output_bytes: 2048 }),
+  get_current_goal: Object.freeze({ scope: "goal.read", purpose: "EXPLICIT_CURRENT_WEEKLY_GOAL", scenario_id: "agent_access.current_goal", max_output_bytes: 2048 }),
 });
 
 function getCapability(name) { return CAPABILITIES[String(name)] || null; }

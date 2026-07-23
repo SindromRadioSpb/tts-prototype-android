@@ -20,7 +20,9 @@ import-путь Библиотеки (как владелец добавляет
 номер!) + `db/migrate.js` правила.
 
 ## Инварианты
-Исполнение — ТОЛЬКО сервером после owner confirm; агент не исполняет никогда. Никаких новых kind
+Исполнение — ТОЛЬКО first-party LinguistPro после owner confirm; агент не исполняет никогда.
+Goal пишет сервер. Import/track по owner correction 2026-07-23 исполняет текущий браузер через
+одноразовый server ticket и существующие OPFS-функции; CONFIRMED только после receipt. Никаких новых kind
 в СУЩЕСТВУЮЩЕМ propose_action (схемы не мутировать) — три НОВЫХ инструмента. Идемпотентность:
 сервер derives ключ из содержимого; повтор → DUPLICATE с тем же proposal_id. TTL предложений 14д.
 evidence-поле track_word обязательно (произведено/показано — провенанс); caveat честен.
@@ -39,8 +41,8 @@ Non-goals: автоимпорт чего-либо; изменение FSRS/track
 1. HEAD/версия; STATUS: H2.3 PLANNED; H2.1/H2.2 CLOSED (паттерн проложен).
 2. Факт-проверка: реальная схема proposals-таблицы (kind generic? payload JSON?) — расширение
    новыми kind должно лечь в существующую структуру; иначе — вопрос владельцу, не самодеятельность.
-3. Факт-проверка: живой import-путь и track-путь (какие функции вызывает UI) — подтверждение
-   должно вызывать ИХ, а не параллельную реализацию.
+3. Факт-проверка: живой import/track — OPFS `createText`/`addSentence`/`setWordStatus`; retired
+   server REST writers отвечают 410. Использовать ticket+receipt, не параллельную server truth.
 4. Снапшот схем «до»; `ls migrations/` — следующий номер.
 
 ## Пошаговая работа
@@ -51,7 +53,8 @@ Non-goals: автоимпорт чего-либо; изменение FSRS/track
    get_current_goal — чтение ACTIVE-строки.
 4. Owner-preview карточки: import (источник+URL+полный body_preview+niqqud_status+disclosure+
    вердикт дедупа); track_word (по-словно, evidence/caveat видимы); goal (statement+type+anchor+
-   period, пометка OUTCOME-целей). Подтверждение → детерминированные пути; провенанс-поля
+   period, пометка OUTCOME-целей). Goal подтверждается сервером; import/track получают 5-минутный
+   одноразовый ticket, исполняются OPFS-браузером и подтверждаются receipt; провенанс-поля
    (imported_via_agent_proposal, source AGENT_PROPOSED_OWNER_CONFIRMED) пишутся.
 5. Consent-церемонии 4 scopes (07 §4-тон).
 6. Smoke `scripts/premium/agent-w1-family-smoke.js`: negative-кейсы из 04 §3 (дубль → DUPLICATE;
@@ -73,8 +76,9 @@ Smoke зелёный полностью; гейты; прод; диф схем �
 Вердикты в STATUS.
 
 ## Rollback
-Capabilities отключаемы по одному; миграция — восстановление из db:backup (проверено на копии);
-preview-карточки за capability-гейтом исчезают сами.
+Capabilities отключаемы по одному. При выключенных scopes/ticket routes новые OPFS-исполнения
+невозможны; уже импортированные владельцем тексты/слова остаются обычными пользовательскими данными.
+Миграция — восстановление из db:backup (проверено на копии); preview-карточки исчезают за gate.
 
 ## Отчёт
 По 11 §4 + номера миграции, факт-таблицы предпроверок.

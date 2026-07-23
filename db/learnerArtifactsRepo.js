@@ -194,6 +194,25 @@ async function listWithMeta(userId) {
   return rows || [];
 }
 
+function _normalizedHebrewBody(value) {
+  return String(value || "").normalize("NFKC").replace(/[\u0591-\u05C7\u200e\u200f]/g, "").replace(/\s+/g, " ").trim();
+}
+// H2.3 import dedupe: compare normalized Hebrew bodies inside the owner's
+// already-consented cloud replica. Nothing is returned except the matching key.
+async function findTextKeyByNormalizedBody(userId, body) {
+  const wanted = _normalizedHebrewBody(body); if (!wanted) return null;
+  const db = getDb(); if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const rows = await dbAll(db, `SELECT artifact_key,payload_json FROM learner_artifacts WHERE user_id=? AND kind=? ORDER BY artifact_key LIMIT 500`, [userId, KIND]);
+  for (const row of rows || []) {
+    let payload; try { payload = JSON.parse(row.payload_json); } catch (_) { continue; }
+    for (const t of (payload && Array.isArray(payload.texts) ? payload.texts : [])) {
+      const source = String(t.source_text || t.sourceText || "").trim() || (Array.isArray(t.rows) ? t.rows.map((x) => x.hebrew_niqqud || x.hebrew_plain || x.he_niqqud || x.he_plain || x.he || "").join("\n") : "");
+      if (_normalizedHebrewBody(source) === wanted) return String(t.text_key || row.artifact_key);
+    }
+  }
+  return null;
+}
+
 // ops-sweep: production-rebuild derived-слоя (краш-окно между artifact- и meta-upsert'ом,
 // пропуски backfill'а) — «следующий put лечит» ЛОЖЕН (OLDER_OR_EQUAL до меты не доходит).
 async function reconcileArtifactMeta(limit = 200) {
@@ -321,4 +340,4 @@ async function reconcileRevokedPurges() {
   return { users, artifacts };
 }
 
-module.exports = { hasConsent, hasConsentVersioned, list, listWithMeta, get, getMeta, put, deleteArtifact, restoreArtifact, listTombstones, purgeAllForUser, pruneTombstones, markConsentPurged, reconcileRevokedPurges, reconcileArtifactMeta, CONSENT_KEY, REQUIRED_CONSENT_VERSION, KIND, STATE_KIND, KINDS, MAX_PAYLOAD_BYTES, MAX_STATE_PAYLOAD_BYTES };
+module.exports = { hasConsent, hasConsentVersioned, list, listWithMeta, findTextKeyByNormalizedBody, get, getMeta, put, deleteArtifact, restoreArtifact, listTombstones, purgeAllForUser, pruneTombstones, markConsentPurged, reconcileRevokedPurges, reconcileArtifactMeta, CONSENT_KEY, REQUIRED_CONSENT_VERSION, KIND, STATE_KIND, KINDS, MAX_PAYLOAD_BYTES, MAX_STATE_PAYLOAD_BYTES };
