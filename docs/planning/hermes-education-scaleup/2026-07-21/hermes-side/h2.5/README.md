@@ -120,8 +120,8 @@ runtime imports, inbox and nonempty model. It does not load the model or inspect
 
 ## Current completion boundary
 
-Engineering smoke is 5/5 and local health is PASS. Fresh WebUI session `b0d167bc15b5` reached the
-ordinary chat path but Gemini returned `HTTP 429 RESOURCE_EXHAUSTED` before tool discovery. Per the
-trainer policy it was not retried immediately. H2.5 remains `ENGINEERING_COMPLETE`, not `CLOSED`,
-until a fresh ordinary chat can call the tool on one real owner recording and the owner records the
-readability verdict.
+Engineering smoke is 5/5 and local health is PASS. Fresh WebUI session `b0d167bc15b5` first reached
+the ordinary chat path but Gemini returned `HTTP 429 RESOURCE_EXHAUSTED`; per policy it was not
+retried immediately. After the provider backoff, one fresh session `41fb9d1103aa` succeeded and
+returned exactly `mcp__ivrit_asr__transcribe_audio`. H2.5 remains `ENGINEERING_COMPLETE`, not
+`CLOSED`, until that tool processes one real owner recording and the owner records readability.

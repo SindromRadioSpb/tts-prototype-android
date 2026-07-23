@@ -121,11 +121,15 @@ failed raw files were preserved until manual fixture cleanup.
 
 ## Fresh ordinary WebUI session and owner-live
 
-Fresh WebUI-owned session: `b0d167bc15b5`. The authenticated `/api/session/new` → ordinary chat
-path was exercised after restart. Before it could answer the discovery prompt, the configured
-Gemini provider returned `HTTP 429 RESOURCE_EXHAUSTED` for the free-tier input-token quota. No
-immediate retry was made and no provider/cloud-STT fallback was added.
+Fresh WebUI-owned session `b0d167bc15b5` exercised authenticated `/api/session/new` → ordinary
+chat after restart, but Gemini returned `HTTP 429 RESOURCE_EXHAUSTED` before discovery. No immediate
+retry was made and no provider/cloud-STT fallback was added. After the stated backoff had elapsed,
+one new session `41fb9d1103aa` completed and returned exactly:
 
-Owner-live is therefore pending: in a new ordinary WebUI chat, attach/place one real Hebrew voice
+```text
+mcp__ivrit_asr__transcribe_audio
+```
+
+Owner-live remains pending: in a new ordinary WebUI chat, place one real Hebrew voice
 recording in `G:\HERMES_AGENT\voice-inbox\`, ask Hermes to call
 `mcp__ivrit_asr__transcribe_audio`, confirm or correct the hypothesis, and record readability.
