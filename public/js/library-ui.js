@@ -2685,7 +2685,16 @@ function _cloudEls() {
     textsCb: $('roomCloudTexts'),
     pushState: $('roomCloudPushState'), pushOn: $('roomCloudPushOn'),
     pushTest: $('roomCloudPushTest'), pushOff: $('roomCloudPushOff'),
+    role: $('roomCloudRole'), groupAccess: $('roomCloudGroupAccess'), accountHelp: $('roomCloudAccountHelpBody'),
   };
+}
+const CLOUD_ACCOUNT_BINDING_KEY = 'cloud.account_user_id';
+function roomCloudAccountBinding(userId, establish = true) {
+  const uid = String(userId || ''); if (!uid) return { ok:false };
+  let bound = ''; try { bound = localStorage.getItem(CLOUD_ACCOUNT_BINDING_KEY) || ''; } catch (_) {}
+  if (bound && bound !== uid) return { ok:false, bound };
+  if (!bound && establish) try { localStorage.setItem(CLOUD_ACCOUNT_BINDING_KEY, uid); } catch (_) {}
+  return { ok:true, bound:uid };
 }
 // CLG-P9: «🧭 План на сегодня», consent агента и строка «🤖 Наставник» ПЕРЕЕХАЛИ в дом
 // наставника (mentor-home.js, вид #roomMentorView) — ☁-модал вернулся к синку/пушу/аккаунту.
@@ -2774,8 +2783,22 @@ async function _cloudRender() {
     _cloudStatus(tt('room.cloud.off', 'Не подключено. Локальный режим работает как обычно.'));
     return;
   }
+  const binding = roomCloudAccountBinding(session.user && session.user.id);
+  if (!binding.ok) {
+    els.loginBox.hidden = true; els.panel.hidden = false;
+    if (els.role) els.role.textContent = tt('room.groupAccess.profileMismatch', 'Этот профиль браузера уже связан с другим аккаунтом. Выйдите и откройте приложение в отдельном профиле.');
+    if (els.groupAccess) els.groupAccess.hidden = true;
+    _cloudStatus('✗ ' + tt('room.groupAccess.profileMismatchShort', 'Профиль браузера принадлежит другому аккаунту'), 'err');
+    return;
+  }
   els.loginBox.hidden = true; els.panel.hidden = false;
   _cloudStatus('✓ ' + tt('room.cloud.connected', 'Подключено'), 'ok');
+  const isOwner = String(session.user && session.user.role || '').toLowerCase() === 'owner';
+  if (els.role) els.role.innerHTML = '<strong>' + (isOwner ? tt('room.groupAccess.ownerRole','Вы вошли как владелец') : tt('room.groupAccess.memberRole','Вы вошли как участник')) + '</strong>';
+  if (els.accountHelp) els.accountHelp.textContent = isOwner
+    ? tt('room.groupAccess.ownerHelp','JOIN-ссылка создаёт нового участника. «Новая ссылка входа» сохраняет существующий аккаунт и прогресс. Каждая ссылка одноразовая и действует 24 часа. «Отозвать доступ» немедленно закрывает корпус во всех сессиях участника.')
+    : tt('room.groupAccess.memberHelp','Корпус и общее аудио доступны только участникам. Ваш прогресс, память слов и личные пометки не видны другим участникам. Для входа на новом устройстве попросите владельца прислать новую одноразовую ссылку входа — она откроет тот же аккаунт.');
+  if (els.groupAccess) { els.groupAccess.hidden = !groupCorpora.length; els.groupAccess.textContent = isOwner ? tt('room.groupAccess.manage','Участники и приглашения') : tt('room.groupAccess.open','Доступ к учебной группе'); }
   try { await _cloudRenderPush(); } catch (_) {}   // CLG-P4.5 — push-блок (честные состояния)
   // Consent-переключатель класса C отражает СЕРВЕРНУЮ истину (consent_records).
   // P1: галочка «включена» только при АКТУАЛЬНОЙ версии карты; грант старой версии —
@@ -2836,6 +2859,7 @@ async function _cloudRender() {
 async function _cloudRunSync(auto) {
   const CS = window.CloudSync; if (!CS) return;
   const els = _cloudEls();
+  try { const s=await CS.me(); if(!s||!roomCloudAccountBinding(s.user&&s.user.id).ok){if(!auto)_cloudStatus('✗ '+tt('room.groupAccess.profileMismatchShort','Профиль браузера принадлежит другому аккаунту'),'err');return {ok:false,error:'ACCOUNT_PROFILE_MISMATCH'};} } catch (_) { return {ok:false,error:'UNAUTHENTICATED'}; }
   if (els.syncBtn) els.syncBtn.disabled = true;
   if (!auto) _cloudStatus(tt('room.cloud.syncing', 'Синхронизация…'));
   let res = null;
@@ -2960,6 +2984,10 @@ function roomCloudInit() {
     try { await CS.logout(); } catch (_) {}
     await _cloudRender();
   });
+  if (els.groupAccess) els.groupAccess.addEventListener('click', () => {
+    const corpus = groupCorpora.find((c) => c && (c.role === 'OWNER' || c.role === 'MEMBER'));
+    if (corpus) openGroupAccess(corpus.corpus_id);
+  });
   // CLG-P4.5 — push controls
   if (els.pushOn) els.pushOn.addEventListener('click', _cloudPushEnable);
   if (els.pushOff) els.pushOff.addEventListener('click', _cloudPushDisable);
@@ -2981,6 +3009,76 @@ function roomCloudInit() {
     box.textContent = next; box.setAttribute('data-for', key); box.hidden = !next;
   });
 }
+
+// ── Restricted-group invitations and role help ──────────────────────────────
+let _groupAccessCorpusId = '';
+let _groupJoinToken = '';
+let _groupJoinPreview = null;
+function groupAccessStatus(text, cls='') { const e=$('roomGroupAccessStatus'); if(e){e.textContent=text||'';e.className='group-access-status'+(cls?' '+cls:'');} }
+function groupJoinStatus(text, cls='') { const e=$('roomGroupJoinStatus'); if(e){e.textContent=text||'';e.className='group-access-status'+(cls?' '+cls:'');} }
+async function groupAccessApi(path, options={}) {
+  const headers = { ...(options.headers || {}) };
+  if (options.body != null) { headers['Content-Type']='application/json'; headers['X-LP-CSRF']=localStorage.getItem('cloud.csrf')||''; }
+  const r=await fetch(path,{...options,headers,credentials:'same-origin'});let j=null;try{j=await r.json();}catch(_){}
+  if(!r.ok)throw new Error((j&&j.error)||('HTTP '+r.status));return j;
+}
+function groupAccessActionButton(label, fn, danger=false){const b=el('button',{class:'group-admin-action'+(danger?' danger':''),attrs:{type:'button'},text:label});b.addEventListener('click',fn);return b;}
+function showGroupInviteTicket(created, title){
+  const ticket=$('roomGroupInviteTicket'),input=$('roomGroupInviteLink'),expiry=$('roomGroupInviteExpiry'),head=$('roomGroupInviteTicketTitle');
+  if(head)head.textContent=title;if(input)input.value=created.invite_url||'';if(expiry)expiry.textContent=tt('room.groupAccess.expires','Действует до')+': '+new Date(created.expires_at).toLocaleString();if(ticket)ticket.hidden=false;
+}
+async function copyGroupInvite(){const input=$('roomGroupInviteLink');if(!input||!input.value)return;try{await navigator.clipboard.writeText(input.value);groupAccessStatus('✓ '+tt('room.groupAccess.copied','Ссылка скопирована'),'ok');}catch(_){input.focus();input.select();groupAccessStatus(tt('room.groupAccess.copyManual','Скопируйте выделенную ссылку вручную'));}}
+async function renderGroupAccessOwner(){
+  const box=$('roomGroupAccessOwner'),memberBox=$('roomGroupMembers'),inviteBox=$('roomGroupInvites');if(!box)return;box.hidden=false;$('roomGroupAccessMember').hidden=true;groupAccessStatus(tt('room.groupAccess.loading','Загрузка…'));
+  try{
+    const data=await groupAccessApi('/api/group-corpora/'+encodeURIComponent(_groupAccessCorpusId)+'/access');groupAccessStatus('');memberBox.textContent='';inviteBox.textContent='';
+    for(const m of data.members||[]){
+      const row=el('div',{class:'group-access-row'}),main=el('div',{class:'group-access-row-main'});main.appendChild(el('div',{class:'group-access-row-title',text:(m.display_name||m.user_id)+(m.role==='OWNER'?' · '+tt('room.groupAccess.owner','владелец'): '')}));main.appendChild(el('div',{class:'group-access-row-meta',text:m.status==='ACTIVE'?tt('room.groupAccess.active','доступ активен'):tt('room.groupAccess.revoked','доступ отозван')}));row.appendChild(main);
+      if(m.role==='MEMBER'){
+        const actions=el('div',{class:'group-access-actions'});
+        if(m.status==='ACTIVE'){
+          actions.appendChild(groupAccessActionButton(tt('room.groupAccess.newLogin','Новая ссылка входа'),async()=>{try{const j=await groupAccessApi('/api/group-corpora/'+encodeURIComponent(_groupAccessCorpusId)+'/invites',{method:'POST',body:JSON.stringify({target_user_id:m.user_id})});showGroupInviteTicket(j,tt('room.groupAccess.loginTicket','Ссылка входа для')+' '+(m.display_name||''));await renderGroupAccessOwner();}catch(e){groupAccessStatus(String(e.message||e),'err');}}));
+          actions.appendChild(groupAccessActionButton(tt('room.groupAccess.revokeMember','Отозвать доступ'),async()=>{if(!confirm(tt('room.groupAccess.revokeConfirm','Отозвать доступ к корпусу у этого участника? Открытые сессии сразу перестанут видеть корпус.')))return;try{await groupAccessApi('/api/group-corpora/'+encodeURIComponent(_groupAccessCorpusId)+'/members/'+encodeURIComponent(m.user_id)+'/status',{method:'POST',body:JSON.stringify({status:'REVOKED'})});await renderGroupAccessOwner();}catch(e){groupAccessStatus(String(e.message||e),'err');}},true));
+        } else actions.appendChild(groupAccessActionButton(tt('room.groupAccess.restoreMember','Вернуть доступ'),async()=>{try{await groupAccessApi('/api/group-corpora/'+encodeURIComponent(_groupAccessCorpusId)+'/members/'+encodeURIComponent(m.user_id)+'/status',{method:'POST',body:JSON.stringify({status:'ACTIVE'})});await renderGroupAccessOwner();}catch(e){groupAccessStatus(String(e.message||e),'err');}}));
+        row.appendChild(actions);
+      }memberBox.appendChild(row);
+    }
+    const active=(data.invites||[]).filter((i)=>i.status==='ACTIVE'&&Date.parse(i.expires_at)>Date.now());
+    if(!active.length)inviteBox.appendChild(el('div',{class:'group-access-row-meta',text:tt('room.groupAccess.noInvites','Нет активных приглашений')}));
+    const names=new Map((data.members||[]).map((m)=>[String(m.user_id),m.display_name||m.user_id]));
+    for(const inv of active){const row=el('div',{class:'group-access-row'}),main=el('div',{class:'group-access-row-main'});main.appendChild(el('div',{class:'group-access-row-title',text:inv.kind==='JOIN'?tt('room.groupAccess.joinKind','Новый участник'):tt('room.groupAccess.loginKind','Повторный вход')+' · '+(names.get(String(inv.target_user_id))||'')}));main.appendChild(el('div',{class:'group-access-row-meta',text:tt('room.groupAccess.expires','Действует до')+': '+new Date(inv.expires_at).toLocaleString()}));row.append(main,groupAccessActionButton(tt('room.groupAccess.revokeInvite','Отозвать ссылку'),async()=>{try{await groupAccessApi('/api/group-corpora/'+encodeURIComponent(_groupAccessCorpusId)+'/invites/'+encodeURIComponent(inv.invite_id)+'/revoke',{method:'POST',body:'{}'});await renderGroupAccessOwner();}catch(e){groupAccessStatus(String(e.message||e),'err');}},true));inviteBox.appendChild(row);}
+  }catch(e){groupAccessStatus(String(e.message||e),'err');}
+}
+function openGroupAccess(corpusId){
+  const corpus=groupCorpora.find((c)=>String(c.corpus_id)===String(corpusId));if(!corpus)return;_groupAccessCorpusId=String(corpusId);const modal=$('roomGroupAccessModal');if(!modal)return;modal.hidden=false;$('roomGroupInviteTicket').hidden=true;
+  if(corpus.role==='OWNER')renderGroupAccessOwner();else{$('roomGroupAccessOwner').hidden=true;$('roomGroupAccessMember').hidden=false;groupAccessStatus('');}
+}
+function closeGroupAccess(){const m=$('roomGroupAccessModal');if(m)m.hidden=true;const input=$('roomGroupInviteLink');if(input)input.value='';}
+async function previewGroupJoin(){
+  const modal=$('roomGroupJoinModal');if(!modal||!_groupJoinToken)return;modal.hidden=false;groupJoinStatus(tt('room.groupAccess.checking','Проверяем приглашение…'));$('roomGroupJoinAccept').disabled=true;
+  try{
+    const current=window.CloudSync&&await window.CloudSync.me();let bound='';try{bound=localStorage.getItem(CLOUD_ACCOUNT_BINDING_KEY)||'';}catch(_){}
+    const r=await fetch('/api/group-invites/preview',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:_groupJoinToken})}),j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));_groupJoinPreview=j;
+    const mismatch=current||(bound&&(j.kind==='JOIN'||(j.target_user_id&&bound!==j.target_user_id)));
+    $('roomGroupJoinDescription').textContent=j.kind==='JOIN'?tt('room.groupAccess.joinDescription','Вас приглашают в корпус «{title}». Укажите имя и подтвердите создание отдельного аккаунта.').replace('{title}',j.corpus_title):tt('room.groupAccess.loginDescription','Одноразовый вход в существующий аккаунт «{name}» для корпуса «{title}».').replace('{name}',j.target_display_name||'').replace('{title}',j.corpus_title);
+    $('roomGroupJoinName').hidden=j.kind!=='JOIN';
+    if(mismatch){groupJoinStatus(tt('room.groupAccess.useCleanProfile','Этот профиль уже связан с аккаунтом. Откройте ссылку в инкогнито, отдельном профиле браузера или на устройстве участника.'),'err');return;}
+    groupJoinStatus(tt('room.groupAccess.ready','Приглашение действительно до')+' '+new Date(j.expires_at).toLocaleString(),'ok');$('roomGroupJoinAccept').disabled=false;
+  }catch(e){groupJoinStatus(tt('room.groupAccess.invalid','Ссылка недействительна, отозвана или уже использована.')+' '+String(e.message||''),'err');}
+}
+async function redeemGroupJoin(){
+  if(!_groupJoinToken||!_groupJoinPreview)return;const btn=$('roomGroupJoinAccept');btn.disabled=true;groupJoinStatus(tt('room.groupAccess.joining','Подключаем…'));
+  try{const body={token:_groupJoinToken,device_label:(navigator.platform||'device')+' · '+tt('room.header.title','Читальный зал')};if(_groupJoinPreview.kind==='JOIN')body.display_name=$('roomGroupJoinName').value||'';
+    const r=await fetch('/api/group-invites/redeem',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));const binding=roomCloudAccountBinding(j.user&&j.user.id);if(!binding.ok)throw new Error('ACCOUNT_PROFILE_MISMATCH');localStorage.setItem('cloud.csrf',j.csrf||'');_groupJoinToken='';history.replaceState(null,'',location.pathname+location.search);location.replace('/library.html?joined='+encodeURIComponent(j.corpus.corpus_id));
+  }catch(e){btn.disabled=false;groupJoinStatus(String(e.message||e)==='GROUP_INVITE_DISPLAY_NAME_INVALID'?tt('room.groupAccess.badName','Введите имя от 1 до 80 символов'):tt('room.groupAccess.invalid','Ссылка недействительна, отозвана или уже использована.'),'err');}
+}
+function groupAccessInit(){
+  const modal=$('roomGroupAccessModal');if(modal){modal.addEventListener('click',(e)=>{if(e.target&&e.target.getAttribute&&e.target.getAttribute('data-group-access-close')==='1')closeGroupAccess();});}
+  const create=$('roomGroupInviteCreate');if(create)create.addEventListener('click',async()=>{try{const j=await groupAccessApi('/api/group-corpora/'+encodeURIComponent(_groupAccessCorpusId)+'/invites',{method:'POST',body:'{}'});showGroupInviteTicket(j,tt('room.groupAccess.joinTicket','Приглашение для нового участника'));await renderGroupAccessOwner();}catch(e){groupAccessStatus(String(e.message||e),'err');}});
+  const copy=$('roomGroupInviteCopy');if(copy)copy.addEventListener('click',copyGroupInvite);
+  const accept=$('roomGroupJoinAccept');if(accept)accept.addEventListener('click',redeemGroupJoin);const cancel=$('roomGroupJoinCancel');if(cancel)cancel.addEventListener('click',()=>{_groupJoinToken='';history.replaceState(null,'',location.pathname+location.search);$('roomGroupJoinModal').hidden=true;});
+  if(location.hash.startsWith('#join=')){try{_groupJoinToken=decodeURIComponent(location.hash.slice(6));}catch(_){_groupJoinToken='';}if(_groupJoinToken)previewGroupJoin();}
+}
 // Boot auto-sync: ONLY when a live session already exists (прежний явный вход владельца =
 // durable-согласие Tier 2). Без сессии — один same-origin me() (401, кука HttpOnly и не
 // читается из JS), никаких данных не уходит; Tier 1 остаётся честно-локальным.
@@ -2992,6 +3090,7 @@ async function roomCloudAutoSync() {
     if (new URLSearchParams(location.search).has('nocloudauto')) return;
     const CS = window.CloudSync; if (!CS) return;
     const session = await CS.me(); if (!session) return;
+    if (!roomCloudAccountBinding(session.user && session.user.id).ok) return;
     _cloudLastAutoAt = Date.now();   // R4b — the boot sync starts the throttle window
     await _cloudRunSync(true);
   } catch (_) {}
@@ -3008,6 +3107,7 @@ async function roomCloudMaybeResync() {
     if (new URLSearchParams(location.search).has('nocloudauto')) return;
     const CS = window.CloudSync; if (!CS) return;
     const session = await CS.me(); if (!session) return;
+    if (!roomCloudAccountBinding(session.user && session.user.id).ok) return;
     _cloudLastAutoAt = Date.now();
     await _cloudRunSync(true);
     _asdCache = null;                          // merged streak fold must see pulled rows
@@ -6906,6 +7006,7 @@ async function renderGroupCorpus(corpusId, token) {
     const admin=el('div',{class:'group-corpus-admin',attrs:{'aria-label':tt('room.groupCorpus.backupTools','Резервная копия корпуса')}});
     const download=(kind)=>{const a=document.createElement('a');a.href='/api/group-corpora/'+encodeURIComponent(corpusId)+'/export/'+kind;a.download='';document.body.appendChild(a);a.click();a.remove();};
     const adminBtn=(label,fn)=>{const b=el('button',{class:'group-admin-action',attrs:{type:'button'},text:label});b.addEventListener('click',fn);return b;};
+    admin.appendChild(adminBtn('👥 '+tt('room.groupAccess.manage','Участники и приглашения'),()=>openGroupAccess(corpusId)));
     admin.appendChild(adminBtn('📤 '+tt('room.groupCorpus.exportJson','Экспорт JSON'),()=>download('catalog')));
     admin.appendChild(adminBtn('📤 '+tt('room.groupCorpus.exportZip','Экспорт ZIP (с аудио)'),()=>download('backup')));
     const fileInput=el('input',{attrs:{type:'file',hidden:'',accept:'.json,.zip,application/json,application/zip'}});
@@ -6920,6 +7021,10 @@ async function renderGroupCorpus(corpusId, token) {
         groupCatalogs.delete(corpusId);roomToast(tt('room.groupCorpus.importDone','Импорт завершён и проверен'));renderCorpus();
       }catch(e){roomToast(tt('room.groupCorpus.importFailed','Импорт не выполнен')+': '+String(e&&e.message||e));}});
     admin.appendChild(fileInput); wrap.appendChild(admin);
+  } else {
+    const access=el('div',{class:'group-corpus-admin'});
+    access.appendChild(groupAccessActionButton('ⓘ '+tt('room.groupAccess.open','Доступ к учебной группе'),()=>openGroupAccess(corpusId)));
+    wrap.appendChild(access);
   }
   let state = groupCorpusStates.get(corpusId);
   if (!state) { state = { q:'', status:'all', audio:'all', sort:'position', tags:[], smart:'' }; groupCorpusStates.set(corpusId, state); }
@@ -8557,7 +8662,8 @@ function wireChrome() {
   const aboutModal = $('roomAbout');
   if (aboutModal) aboutModal.addEventListener('click', (e) => { if (e.target && e.target.getAttribute && e.target.getAttribute('data-close') === '1') closeRoomAbout(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeRoomAbout(); });
-  roomCloudInit();   // CLG-P3.2 — «☁ Синхронизация» (owner-only; dormant without login)
+  roomCloudInit();   // CLG-P3.2 — «☁ Синхронизация» (dormant without login)
+  groupAccessInit(); // passwordless MEMBER invite/login + durable role help
   roomExplainInit(); // CLG-P6.2 — модал «Объяснить предложение» (dormant без сессии)
   roomMentorInit();  // CLG-P9 — «Дом наставника» (открытие только тапом/deep-link — R17 §2.3)
   _roomStudioNavInit();   // Room↔Studio cross-nav: graceful DB close before hard navigation

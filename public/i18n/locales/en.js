@@ -1947,7 +1947,7 @@ window.I18N_LOCALES.en = {
     cloud: {
       btn: "Sync",
       title: "☁ Sync",
-      intro: "Word memory and manual marks sync across your devices. Texts are uploaded only with the explicit permission below. Development mode — owner login only.",
+      intro: "Word memory and manual marks sync across your devices. The owner signs in with the secret; a private-group member uses a one-time link.",
       secretPh: "Owner secret",
       login: "Log in",
       loggingIn: "Logging in…",
@@ -2235,6 +2235,15 @@ window.I18N_LOCALES.en = {
       linkUnavailable: "This link is unavailable: sign in as a study-group member",
       backupTools: "Corpus backup", exportJson: "Export JSON", exportZip: "Export ZIP (with audio)", importJson: "Import JSON", importZip: "Import ZIP (with audio)",
       importConfirm: "Import this backup into the server corpus? Members' personal progress will not change.", importDone: "Import completed and verified", importFailed: "Import failed",
+    },
+    groupAccess: {
+      title: "Study group access", open: "Study group access", manage: "Members and invitations", helpTitle: "How sign-in and access work", helpGuest: "The owner signs in with the secret below. A member opens the one-time link sent by the owner. Open it on your own device or in a separate browser profile.",
+      ownerRole: "Signed in as owner", memberRole: "Signed in as member", owner: "owner", ownerIntro: "Create a one-time link for a new member. For an existing member, issue a new sign-in link without creating another account.",
+      createJoin: "Create invitation", copy: "Copy", copied: "Link copied", copyManual: "Copy the selected link manually", expires: "Valid until", membersTitle: "Members", invitesTitle: "Active invitations", active: "access active", revoked: "access revoked", noInvites: "No active invitations",
+      newLogin: "New sign-in link", revokeMember: "Revoke access", restoreMember: "Restore access", revokeConfirm: "Revoke this member's corpus access? Their open sessions will immediately stop seeing the corpus.", revokeInvite: "Revoke link", joinKind: "New member", loginKind: "Repeat sign-in", joinTicket: "Invitation for a new member", loginTicket: "Sign-in link for",
+      ownerHelpTitle: "Owner help", ownerHelp: "A JOIN link creates a member. “New sign-in link” preserves the existing account and progress. Every link is single-use, valid for 24 hours, and shown in full only when created, so copy it immediately. “Revoke access” immediately closes the corpus in all member sessions.", memberHelpTitle: "Member help", memberHelp: "The corpus and shared audio are available only to members. Other members cannot see your progress, word memory, or personal notes. To sign in on another device or after signing out, ask the owner for a new one-time sign-in link; it opens the same account.",
+      joinTitle: "Study group invitation", namePlaceholder: "Name shown to the owner", cleanProfileWarning: "Open the invitation on your own device or in a separate browser profile. Do not mix two users' local libraries in one profile.", accept: "Accept invitation", cancel: "Cancel", checking: "Checking invitation…", ready: "Invitation valid until", joining: "Connecting…", loading: "Loading…",
+      joinDescription: "You are invited to the “{title}” corpus. Enter your name and confirm creation of a separate account.", loginDescription: "One-time sign-in to the existing “{name}” account for the “{title}” corpus.", invalid: "This link is invalid, revoked, or already used.", badName: "Enter a name from 1 to 80 characters", useCleanProfile: "This browser profile is already linked to an account. Open the link in a private window, a separate profile, or on the member's device.", profileMismatch: "This browser profile is already linked to another account. Sign out and open the app in a separate profile.", profileMismatchShort: "Browser profile belongs to another account",
     },
     mytexts: {
       shelfTitle: "My texts",

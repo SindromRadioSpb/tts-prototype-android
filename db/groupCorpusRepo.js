@@ -49,7 +49,7 @@ async function listCorpora(userId) {
 async function accessibleCorpus(userId, corpusId) {
   const cid = cleanId(corpusId);
   const row = await get(db(),
-    `SELECT c.corpus_id, c.slug, c.title, c.version, c.status, c.visibility,
+    `SELECT c.corpus_id, c.group_id, c.slug, c.title, c.version, c.status, c.visibility,
             c.rights_basis, m.role
        FROM group_corpora c
        JOIN reading_groups g ON g.group_id=c.group_id AND g.status='ACTIVE'

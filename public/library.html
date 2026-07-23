@@ -796,6 +796,35 @@
     .group-action.primary { color: #fff; background: var(--accent); border-color: var(--accent); }
     .group-action.primary:hover, .group-action.primary:focus-visible { color: #fff; filter: brightness(1.05); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
     .group-action.quiet { color: var(--text-secondary); }
+    /* Group access uses a quiet "library pass" motif: the dashed edge signals a
+       one-time bearer link without borrowing alarming security-dashboard chrome. */
+    .group-access-card { width: min(720px, calc(100vw - 28px)); max-height: min(86vh, 820px); overflow: auto; }
+    .group-access-card button:not(.room-about-x) { appearance: none; cursor: pointer; border: 1px solid var(--border-soft); border-radius: 9px; padding: 9px 12px; background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 13px; font-weight: 700; }
+    .group-access-card button:not(.room-about-x):hover, .group-access-card button:not(.room-about-x):focus-visible { outline: none; border-color: var(--accent); color: var(--accent); }
+    #roomGroupInviteCreate, #roomGroupJoinAccept { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
+    #roomGroupInviteCreate:hover, #roomGroupInviteCreate:focus-visible, #roomGroupJoinAccept:hover, #roomGroupJoinAccept:focus-visible { color: var(--accent-contrast); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 24%, transparent); }
+    .group-access-card input { border: 1px solid var(--border-soft); border-radius: 9px; padding: 9px 10px; background: var(--bg-card); color: var(--text-primary); font: inherit; }
+    .group-access-card input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent); }
+    .group-access-role { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0 14px; padding: 10px 12px; border: 1px solid var(--border-soft); border-radius: 11px; background: var(--bg-muted); }
+    .group-access-role strong { color: var(--text-primary); }
+    .group-access-ticket { margin: 12px 0; padding: 13px; border: 1px dashed color-mix(in srgb, var(--accent) 62%, var(--border-soft)); border-radius: 12px; background: color-mix(in srgb, var(--accent) 5%, var(--bg-card)); }
+    .group-access-ticket[hidden], .group-access-owner[hidden], .group-access-member[hidden] { display: none; }
+    .group-access-link-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; margin-top: 8px; }
+    .group-access-link { min-width: 0; width: 100%; box-sizing: border-box; font: 12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .group-access-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+    .group-access-actions button, .group-access-row button { width: auto; }
+    .group-access-list { display: flex; flex-direction: column; gap: 7px; margin: 8px 0 14px; }
+    .group-access-row { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 10px; padding: 10px 11px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-card); }
+    .group-access-row-main { min-width: 0; }
+    .group-access-row-title { font-weight: 750; color: var(--text-primary); overflow-wrap: anywhere; }
+    .group-access-row-meta, .group-access-help, .group-join-note { color: var(--text-secondary); font-size: 12px; line-height: 1.5; }
+    .group-access-help { margin: 12px 0 2px; padding: 10px 12px; border-inline-start: 3px solid var(--accent); background: var(--bg-muted); border-radius: 8px; }
+    .group-access-help summary { cursor: pointer; font-weight: 750; color: var(--text-primary); }
+    .group-access-help p { margin: 8px 0 0; }
+    .group-join-name { width: 100%; box-sizing: border-box; margin: 10px 0; }
+    .group-access-status { min-height: 20px; margin: 7px 0; color: var(--text-secondary); font-size: 13px; }
+    .group-access-status.err { color: #b91c1c; }
+    .group-access-status.ok { color: #15803d; }
     @media (prefers-color-scheme: dark) {
       body:not(.theme-light) .group-meta-chip.ok { color: #86efac; border-color: #166534; background: #052e16; }
       body:not(.theme-light) .group-meta-chip.warn { color: #fcd34d; border-color: #92400e; background: #451a03; }
@@ -814,6 +843,8 @@
       .group-work-meta, .group-work-progress, .group-work-actions { margin-left: 0; margin-right: 0; }
       .group-work-actions .group-action { flex: 1 1 auto; min-height: 42px; }
       .group-corpus-admin .group-admin-action { flex: 1 1 calc(50% - 4px); min-height: 42px; }
+      .group-access-link-row, .group-access-row { grid-template-columns: 1fr; }
+      .group-access-actions button, .group-access-row button { min-height: 42px; }
     }
     /* Multi-corpus (B+C «витрина + линза»): L0 hub cards + the in-corpus switcher pill. */
     .hub-cards { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
@@ -2057,13 +2088,19 @@
   <div class="room-about-card">
     <button class="room-about-x" type="button" aria-label="Close" data-cloud-close="1">✕</button>
     <h2 id="roomCloudTitle" data-i18n="room.cloud.title">☁ Синхронизация</h2>
-    <p class="room-cloud-intro" data-i18n="room.cloud.intro">Память слов и ручные пометки синхронизируются между вашими устройствами. Тексты передаются только с явным разрешением ниже. Режим разработки — вход только для владельца.</p>
+    <p class="room-cloud-intro" data-i18n="room.cloud.intro">Память слов и ручные пометки синхронизируются между вашими устройствами. Владелец входит по секрету, участник закрытой группы — по одноразовой ссылке.</p>
     <div id="roomCloudStatus" class="room-cloud-status" aria-live="polite"></div>
+    <details id="roomCloudAccountHelp" class="group-access-help">
+      <summary data-i18n="room.groupAccess.helpTitle">Как устроен вход и доступ</summary>
+      <p id="roomCloudAccountHelpBody" data-i18n="room.groupAccess.helpGuest">Владелец входит по секрету ниже. Участник открывает одноразовую ссылку, которую прислал владелец. Ссылку следует открывать на своём устройстве или в отдельном профиле браузера.</p>
+    </details>
     <div id="roomCloudLoginBox" class="room-cloud-login" hidden>
       <input id="roomCloudSecret" type="password" autocomplete="off" data-i18n-placeholder="room.cloud.secretPh" placeholder="Секрет владельца">
       <button id="roomCloudLoginBtn" type="button" data-i18n="room.cloud.login">Войти</button>
     </div>
     <div id="roomCloudPanel" hidden>
+      <div id="roomCloudRole" class="group-access-role"></div>
+      <div class="group-access-actions"><button id="roomCloudGroupAccess" type="button" class="room-cloud-ghost" hidden data-i18n="room.groupAccess.open">Доступ к учебной группе</button></div>
       <div id="roomCloudInfo" class="room-cloud-info"></div>
       <!-- тап по строке с ⓘ раскрывает пояснение (title-тултипы не работают @380px) -->
       <div id="roomCloudExplain" class="room-cloud-hint room-cloud-explain" hidden></div>
@@ -2092,6 +2129,50 @@
         <button id="roomCloudSyncBtn" type="button" data-i18n="room.cloud.syncNow">Синхронизировать</button>
         <button id="roomCloudLogoutBtn" type="button" class="room-cloud-ghost" data-i18n="room.cloud.logout">Выйти</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Restricted-group access and durable role-specific help. -->
+<div id="roomGroupAccessModal" class="room-about" hidden role="dialog" aria-modal="true" aria-labelledby="roomGroupAccessTitle">
+  <div class="room-about-backdrop" data-group-access-close="1"></div>
+  <div class="room-about-card group-access-card">
+    <button class="room-about-x" type="button" aria-label="Close" data-group-access-close="1">✕</button>
+    <h2 id="roomGroupAccessTitle" data-i18n="room.groupAccess.title">Доступ к учебной группе</h2>
+    <div id="roomGroupAccessStatus" class="group-access-status" aria-live="polite"></div>
+    <section id="roomGroupAccessOwner" class="group-access-owner" hidden>
+      <p data-i18n="room.groupAccess.ownerIntro">Создайте одноразовую ссылку для нового участника. Для уже добавленного участника можно выпустить новую ссылку входа без создания второго аккаунта.</p>
+      <div class="group-access-actions"><button id="roomGroupInviteCreate" type="button" data-i18n="room.groupAccess.createJoin">Создать приглашение</button></div>
+      <div id="roomGroupInviteTicket" class="group-access-ticket" hidden>
+        <strong id="roomGroupInviteTicketTitle"></strong>
+        <div class="group-access-link-row"><input id="roomGroupInviteLink" class="group-access-link" readonly><button id="roomGroupInviteCopy" type="button" data-i18n="room.groupAccess.copy">Копировать</button></div>
+        <div id="roomGroupInviteExpiry" class="group-access-row-meta"></div>
+      </div>
+      <h3 data-i18n="room.groupAccess.membersTitle">Участники</h3>
+      <div id="roomGroupMembers" class="group-access-list"></div>
+      <h3 data-i18n="room.groupAccess.invitesTitle">Активные приглашения</h3>
+      <div id="roomGroupInvites" class="group-access-list"></div>
+      <details class="group-access-help" open><summary data-i18n="room.groupAccess.ownerHelpTitle">Справка владельцу</summary><p data-i18n="room.groupAccess.ownerHelp">JOIN-ссылка создаёт нового участника. «Новая ссылка входа» сохраняет существующий аккаунт и прогресс. Каждая ссылка одноразовая, действует 24 часа и показывается полностью только при создании — скопируйте её сразу. «Отозвать доступ» немедленно закрывает корпус во всех сессиях участника.</p></details>
+    </section>
+    <section id="roomGroupAccessMember" class="group-access-member" hidden>
+      <div class="group-access-role"><strong data-i18n="room.groupAccess.memberRole">Вы вошли как участник</strong></div>
+      <details class="group-access-help" open><summary data-i18n="room.groupAccess.memberHelpTitle">Справка участнику</summary><p data-i18n="room.groupAccess.memberHelp">Корпус и общее аудио доступны только участникам. Ваш прогресс, память слов и личные пометки не видны другим участникам. Для входа на новом устройстве или после выхода попросите владельца прислать новую одноразовую ссылку входа — она откроет тот же аккаунт.</p></details>
+    </section>
+  </div>
+</div>
+
+<!-- Explicit invite acceptance: link previews never consume the bearer token. -->
+<div id="roomGroupJoinModal" class="room-about" hidden role="dialog" aria-modal="true" aria-labelledby="roomGroupJoinTitle">
+  <div class="room-about-backdrop"></div>
+  <div class="room-about-card group-access-card">
+    <h2 id="roomGroupJoinTitle" data-i18n="room.groupAccess.joinTitle">Приглашение в учебную группу</h2>
+    <div id="roomGroupJoinStatus" class="group-access-status" aria-live="polite"></div>
+    <p id="roomGroupJoinDescription"></p>
+    <input id="roomGroupJoinName" class="group-join-name" maxlength="80" autocomplete="name" data-i18n-placeholder="room.groupAccess.namePlaceholder" placeholder="Как вас показывать владельцу">
+    <p class="group-join-note" data-i18n="room.groupAccess.cleanProfileWarning">Открывайте приглашение на своём устройстве или в отдельном профиле браузера. Нельзя смешивать локальную библиотеку двух пользователей в одном профиле.</p>
+    <div class="group-access-actions">
+      <button id="roomGroupJoinAccept" type="button" data-i18n="room.groupAccess.accept">Принять приглашение</button>
+      <button id="roomGroupJoinCancel" type="button" class="room-cloud-ghost" data-i18n="room.groupAccess.cancel">Отмена</button>
     </div>
   </div>
 </div>
@@ -2156,9 +2237,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=63"></script>
-<script src="/i18n/locales/en.js?v=63"></script>
-<script src="/i18n/locales/he.js?v=63"></script>
+<script src="/i18n/locales/ru.js?v=64"></script>
+<script src="/i18n/locales/en.js?v=64"></script>
+<script src="/i18n/locales/he.js?v=64"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->

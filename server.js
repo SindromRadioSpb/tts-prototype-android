@@ -3501,13 +3501,19 @@ app.post("/api/learner/artifacts/delete", rlLearnerArtifacts, async (req, res) =
 // Reading Room can reuse its offline reader without a second content model.
 // ============================================================================
 const groupCorpusRepo = require("./db/groupCorpusRepo");
+const groupInviteRepo = require("./db/groupInviteRepo");
 const rlGroupCorpus = makeRateLimiter({ windowMs: 60_000, max: 120, name: "group-corpus" });
+const rlGroupInviteRedeem = makeRateLimiter({ windowMs: 10 * 60_000, max: 12, name: "group-invite-redeem" });
+const rlGroupInviteOwner = makeRateLimiter({ windowMs: 60 * 60_000, max: 240, name: "group-invite-owner" });
 function groupCorpusError(res, e) {
   const code = String((e && (e.code || e.message)) || "GROUP_CORPUS_FAILED");
   if (["GROUP_CORPUS_NOT_FOUND", "GROUP_CORPUS_WORK_NOT_FOUND", "GROUP_CORPUS_AUDIO_NOT_FOUND", "GROUP_CORPUS_TIMING_NOT_FOUND"].includes(code))
     return res.status(404).json({ ok: false, error: code });
   if (code === "GROUP_CORPUS_FILE_INVALID") return res.status(500).json({ ok: false, error: code });
   if (code === "GROUP_CORPUS_IMPORT_INVALID") return res.status(400).json({ ok: false, error: code });
+  if (["GROUP_INVITE_INVALID","GROUP_INVITE_NOT_FOUND","GROUP_MEMBER_NOT_FOUND"].includes(code)) return res.status(404).json({ok:false,error:code});
+  if (["GROUP_INVITE_DISPLAY_NAME_INVALID","GROUP_MEMBER_STATUS_INVALID"].includes(code)) return res.status(400).json({ok:false,error:code});
+  if (code === "GROUP_INVITE_ACTIVE_LIMIT") return res.status(409).json({ok:false,error:code});
   return res.status(500).json({ ok: false, error: "GROUP_CORPUS_FAILED" });
 }
 
@@ -3527,6 +3533,14 @@ function requireSameOriginUpload(req, res, next) {
   if (!origin && referer && !referer.startsWith(expected+"/")) return res.status(403).json({ok:false,error:"BAD_REFERER"});
   next();
 }
+function requireStrictSameOriginJson(req,res,next){
+  const ct=String(req.headers["content-type"]||"").toLowerCase();
+  if(!ct.startsWith("application/json"))return res.status(415).json({ok:false,error:"UNSUPPORTED_MEDIA_TYPE"});
+  const origin=String(req.headers.origin||"").trim(),host=String(req.headers.host||"").trim();
+  const expected=(req.protocol||"https")+"://"+host;
+  if(!origin||origin!==expected)return res.status(403).json({ok:false,error:"BAD_ORIGIN"});
+  res.set("Cache-Control","no-store");res.set("Vary","Origin");next();
+}
 function groupCorpusFileSha256(file) {
   return new Promise((resolve,reject)=>{const h=crypto.createHash("sha256"),s=fs.createReadStream(file);s.on("error",reject);s.on("data",(b)=>h.update(b));s.on("end",()=>resolve(h.digest("hex")));});
 }
@@ -3537,6 +3551,43 @@ app.get("/api/group-corpora", rlGroupCorpus, async (req, res) => {
     const corpora = await groupCorpusRepo.listCorpora(auth.user.id);
     return res.json({ ok: true, schema_version: "group_corpora.1.0.0", corpora });
   } catch (e) { return groupCorpusError(res, e); }
+});
+
+// Passwordless small-group access. The raw token lives only in the URL fragment
+// and POST body; DB/audit/server URLs retain only opaque invite ids and hashes.
+app.post("/api/group-invites/preview",rlGroupInviteRedeem,requireStrictSameOriginJson,async(req,res)=>{
+  try{return res.json({ok:true,schema_version:"group_invite_preview.1.0.0",...(await groupInviteRepo.preview(req.body&&req.body.token))});}
+  catch(e){return groupCorpusError(res,e);}
+});
+app.post("/api/group-invites/redeem",rlGroupInviteRedeem,requireStrictSameOriginJson,async(req,res)=>{
+  try{
+    const out=await groupInviteRepo.redeem(req.body&&req.body.token,{display_name:req.body&&req.body.display_name,device_label:req.body&&req.body.device_label,ip:req.ip,user_agent:req.get("user-agent")});
+    setSessionCookie(req,res,out.cookie_value,Math.floor(identityRepo.SESSION_TTL_MS/1000));
+    identityRepo.audit("group_invite_redeemed",out.user.id,{kind:out.kind,corpus_id:out.corpus.corpus_id},req.ip);
+    return res.json({ok:true,schema_version:"group_invite_redeem.1.0.0",user:out.user,corpus:out.corpus,csrf:out.csrf,expires_at:out.expires_at});
+  }catch(e){return groupCorpusError(res,e);}
+});
+
+app.get("/api/group-corpora/:corpusId/access",rlGroupInviteOwner,requireGroupCorpusOwner,async(req,res)=>{
+  try{return res.json({ok:true,schema_version:"group_corpus_access.1.0.0",...(await groupInviteRepo.listAccess(req.groupCorpusOwner.auth.user.id,req.params.corpusId))});}
+  catch(e){return groupCorpusError(res,e);}
+});
+app.post("/api/group-corpora/:corpusId/invites",rlGroupInviteOwner,requireGroupCorpusOwner,requireGroupCorpusOwnerCsrf,requireStrictSameOriginJson,async(req,res)=>{
+  try{
+    const out=await groupInviteRepo.createInvite(req.groupCorpusOwner.auth.user.id,req.params.corpusId,{target_user_id:req.body&&req.body.target_user_id});
+    const origin=(req.protocol||"https")+"://"+String(req.headers.host||"");
+    const inviteUrl=origin+"/library.html#join="+encodeURIComponent(out.token);
+    identityRepo.audit("group_invite_created",req.groupCorpusOwner.auth.user.id,{invite_id:out.invite_id,kind:out.kind,corpus_id:out.corpus_id,target_user_id:out.target_user_id},req.ip);
+    return res.status(201).json({ok:true,schema_version:"group_invite_created.1.0.0",invite_id:out.invite_id,kind:out.kind,expires_at:out.expires_at,invite_url:inviteUrl});
+  }catch(e){return groupCorpusError(res,e);}
+});
+app.post("/api/group-corpora/:corpusId/invites/:inviteId/revoke",rlGroupInviteOwner,requireGroupCorpusOwner,requireGroupCorpusOwnerCsrf,requireStrictSameOriginJson,async(req,res)=>{
+  try{const out=await groupInviteRepo.revokeInvite(req.groupCorpusOwner.auth.user.id,req.params.corpusId,req.params.inviteId);identityRepo.audit("group_invite_revoked",req.groupCorpusOwner.auth.user.id,{invite_id:out.invite_id,corpus_id:req.params.corpusId},req.ip);return res.json({ok:true,...out});}
+  catch(e){return groupCorpusError(res,e);}
+});
+app.post("/api/group-corpora/:corpusId/members/:userId/status",rlGroupInviteOwner,requireGroupCorpusOwner,requireGroupCorpusOwnerCsrf,requireStrictSameOriginJson,async(req,res)=>{
+  try{const out=await groupInviteRepo.setMemberStatus(req.groupCorpusOwner.auth.user.id,req.params.corpusId,req.params.userId,req.body&&req.body.status);identityRepo.audit("group_member_status",req.groupCorpusOwner.auth.user.id,{corpus_id:req.params.corpusId,target_user_id:out.user_id,status:out.status},req.ip);return res.json({ok:true,...out});}
+  catch(e){return groupCorpusError(res,e);}
 });
 
 app.get("/api/group-corpora/:corpusId/works", rlGroupCorpus, async (req, res) => {

@@ -215,3 +215,32 @@ CSRF, anonymous deny, hash verification), `smoke:group-corpus-ui` (@380 light/da
 `smoke:i18n`, `smoke:studio-agent`, `smoke:reader-tier3-regression`, `test:api-smoke` — PASS.
 Перед production closure обязательны: migration 058, catalog backfill PLAN/APPLY, owner API/UI
 проверка, MEMBER UI (без backup header), anonymous/non-member negative checks и deep-link live.
+
+## 12. P2 — одноразовый MEMBER-вход и встроенная справка (v3.11.228)
+
+Owner-go 2026-07-23: закрыть second-member gate без общей публичной регистрации. Принят
+passwordless-путь для малой группы:
+
+- `JOIN`-ссылка создаёт нового `users.role=member` и ACTIVE membership;
+- `LOGIN`-ссылка из строки существующего участника создаёт новую PWA-сессию ТОГО ЖЕ user_id,
+  поэтому прогресс не дробится на дубликаты;
+- ссылка одноразовая, TTL 24 часа, сырой 256-bit token существует только в URL fragment и POST;
+  SQLite хранит только SHA-256. Preview не расходует token, redeem требует явного действия;
+- owner может отозвать ссылку, отозвать/вернуть membership и выпустить повторный LOGIN.
+  Отзыв membership немедленно закрывает corpus/work/audio на уже выданных сессиях, потому что
+  каждый read повторно проверяет ACTIVE membership;
+- вход владельца по `AUTH_BOOTSTRAP_SECRET` остаётся отдельным и не создаёт MEMBER;
+- один browser profile жёстко привязывается к одному cloud user_id в localStorage. Смена аккаунта
+  без отдельного профиля блокируется до синка, чтобы OPFS одного ученика не ушёл в аккаунт другого;
+- встроенная справка живёт в ☁ и в corpus-access модале: owner видит JOIN/LOGIN/revoke-процесс,
+  MEMBER — приватность learner-overlay и процедуру входа на новом устройстве.
+
+Migration 059 добавляет только `group_access_invites`; learner-state и corpus content не меняются.
+Rollback: отключить invite endpoints/UI и отозвать ACTIVE invites; существующие users/memberships
+не удалять автоматически. Гейты: API — JOIN/LOGIN/replay/origin/CSRF/hash/isolation/revoke;
+UI — owner help/member controls/explicit preview/@380px; i18n ru/en/he.
+
+Практическая справка не должна оставаться только в planning-документе. Её канонические точки
+в самом продукте: раздел «Как устроен доступ» в модале `☁ Синхронизация` и role-aware справка
+в модале «Участники и приглашения» / «Доступ к учебной группе». При изменении auth-процесса
+обновляются одновременно ru/en/he-тексты обеих точек и smoke `group-corpus-ui`.
