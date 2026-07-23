@@ -6367,6 +6367,46 @@ function isCorpusTextRow(r) {
 function myTextTags(r) {
   try { const t = r && r.tags_json ? JSON.parse(r.tags_json) : null; return Array.isArray(t) ? t.filter(Boolean).map(String) : []; } catch (_) { return []; }
 }
+async function addMachineNiqqud(item, button) {
+  button.disabled = true;
+  try {
+    const local = await localDb.getNiqqudRequestForText(item.id);
+    if (local.state === 'ASSERTED') {
+      roomToast(tt('room.nakdan.protected', 'Пользовательский или выверенный никуд сохранён без изменений.'));
+      button.textContent = tt('room.nakdan.protectedShort', 'Никуд защищён');
+      return;
+    }
+    if (local.state === 'DERIVED_CACHE') {
+      roomToast(tt('room.nakdan.cached', 'Машинный никуд уже в кеше для неизменённого текста.'));
+      button.textContent = '✓ ' + tt('room.nakdan.derivedShort', 'машинный никуд');
+      return;
+    }
+    if (!local.body || !local.row_count) throw new Error('NAKDAN_INVALID_INPUT');
+    if (!window.confirm(tt('room.nakdan.consent', 'Отправить этот личный текст в Dicta Nakdan? Результат будет сохранён только как производный машинный слой.'))) {
+      button.disabled = false;
+      return;
+    }
+    button.textContent = tt('room.nakdan.loading', 'Добавляем никуд…');
+    const response = await fetch('/api/niqqud/on-demand', {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-LP-CSRF': localStorage.getItem('cloud.csrf') || '' },
+      body: JSON.stringify({ text: local.body, purpose: 'LIBRARY_OWNER' }),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || ('HTTP_' + response.status));
+    await localDb.saveDerivedNiqqud(item.id, result);
+    button.textContent = '✓ ' + tt('room.nakdan.derivedShort', 'машинный никуд');
+    roomToast(tt('room.nakdan.ready', 'Машинный никуд добавлен как производный слой · {provenance}').replace('{provenance}', result.niqqud_provenance || 'DICTA_NAKDAN'));
+  } catch (error) {
+    const code = String(error && error.message || error);
+    button.disabled = false;
+    button.textContent = tt('room.nakdan.add', 'Добавить никуд');
+    if (code === 'NAKDAN_UNAVAILABLE') roomToast(tt('room.nakdan.unavailable', 'Dicta сейчас недоступна. Текст остаётся доступен без никуда.'));
+    else if (code === 'UNAUTHENTICATED' || code === 'BAD_CSRF') roomToast(tt('room.nakdan.signIn', 'Войдите в аккаунт, чтобы запросить машинный никуд.'));
+    else if (code === 'NIQQUD_ASSERTED_PROTECTED') roomToast(tt('room.nakdan.protected', 'Пользовательский или выверенный никуд сохранён без изменений.'));
+    else roomToast(tt('room.nakdan.failed', 'Не удалось добавить никуд: {code}').replace('{code}', code));
+  }
+}
 function renderMyTextCard(item, vertical) {
   const node = el('div', { class: 'work-card mytext-card' + (vertical ? ' mytext-card-v' : ''), attrs: { role: 'button', tabindex: '0' } });
   const title = item.title || tt('room.work.untitled', 'Без названия');
@@ -6381,6 +6421,10 @@ function renderMyTextCard(item, vertical) {
   for (const tg of myTextTags(item).slice(0, 2)) meta.appendChild(el('span', { class: 'prov-badge mytext-tag', text: '#' + tg }));
   node.appendChild(meta);
   node.appendChild(el('span', { class: 'work-card-cta', text: started ? tt('room.resume.continue', 'Продолжить') : tt('room.mytexts.read', 'Читать') }));
+  const nakdan = el('button', { class: 'mytext-nakdan', attrs: { type: 'button' }, text: 'אְ ' + tt('room.nakdan.add', 'Добавить никуд') });
+  nakdan.addEventListener('click', (event) => { event.stopPropagation(); event.preventDefault(); addMachineNiqqud(item, nakdan); });
+  nakdan.addEventListener('keydown', (event) => event.stopPropagation());
+  node.appendChild(nakdan);
   const open = () => openReader(item.id, item.title, { resume: started });
   node.addEventListener('click', open);
   node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });

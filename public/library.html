@@ -749,6 +749,9 @@
     .mytexts-toggle:hover, .mytexts-toggle:focus-visible { text-decoration: underline; outline: none; }
     .mytext-card .mytext-level { background: var(--bg-soft); border-color: var(--border-soft); text-transform: none; }
     .mytext-card .mytext-tag { color: var(--text-faint); }
+    .mytext-card .mytext-nakdan { width: auto; min-height: 34px; margin-top: 9px; padding: 6px 10px; border: 1px solid var(--border-soft); border-radius: 9px; background: var(--bg); color: var(--accent); font: 650 12px/1.2 inherit; cursor: pointer; text-align: start; }
+    .mytext-card .mytext-nakdan:hover { border-color: var(--accent); background: var(--bg-soft); }
+    .mytext-card .mytext-nakdan:disabled { cursor: default; opacity: .72; }
     .mytexts-controls { display: flex; align-items: center; gap: 10px; margin: 4px 0 10px; flex-wrap: wrap; }
     .mytexts-controls .mytexts-search { flex: 1 1 200px; min-width: 160px; }
     .mytexts-manage { flex: none; color: var(--text-faint); font-size: 13px; text-decoration: none; }
@@ -2262,9 +2265,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=65"></script>
-<script src="/i18n/locales/en.js?v=65"></script>
-<script src="/i18n/locales/he.js?v=65"></script>
+<script src="/i18n/locales/ru.js?v=66"></script>
+<script src="/i18n/locales/en.js?v=66"></script>
+<script src="/i18n/locales/he.js?v=66"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->

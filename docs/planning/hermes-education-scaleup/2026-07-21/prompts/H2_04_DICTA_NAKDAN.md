@@ -4,8 +4,12 @@
 
 ## Роль и цель
 Инженер-исполнитель в `E:\projects\tts-prototype-android`. Цель: серверная интеграция Dicta
-Nakdan API (`nakdan.dicta.org.il/api`, Modern) для автоникуда в import-preview (H2.3) и
+Nakdan API (`nakdan-5-1.loadbalancer.dicta.org.il/api`, Modern) для автоникуда в import-preview (H2.3) и
 по кнопке владельца в Библиотеке. Контракт — 04 §4. Это НЕ MCP-инструмент.
+
+> **Owner correction 2026-07-23:** старый `nakdan.dicta.org.il/api` в обязательном ручном
+> замере вернул HTTP 404; владелец одобрил Nakdan 5.1 endpoint и ровно один повторный fetch,
+> который вернул HTTP 200 с token-array ответом. Остальные границы неизменны.
 
 ## Обязательное чтение
 Пакет: `README.md`, `STATUS.md`, `04_HORIZON_2_ARCHITECTURE_AND_CONTRACTS.md` (§4),

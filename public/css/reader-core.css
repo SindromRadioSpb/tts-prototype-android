@@ -1,4 +1,6 @@
 /* reader-core.css — BRR-P0-002b: reader table visual fidelity extracted from index.html for the embedded Reading Room reader. Keep in sync until Stage 2 migrates index.html onto this file. */
+.niqqud-derived{position:relative;background:linear-gradient(135deg,rgba(8,116,124,.045),transparent 65%)}
+.niqqud-derived-badge{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-inline-start:5px;border:1px solid #77aeb2;border-radius:999px;color:#08747c;font:700 11px/1 system-ui,sans-serif;vertical-align:middle}
 
 /* ════════════════════════════════════════════════════════════════════════════
    HEBREW WEB FONTS (self-hosted woff2, /fonts/) — load-bearing for niqqud anchoring.

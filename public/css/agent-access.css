@@ -9,3 +9,12 @@ main{max-width:960px;margin:auto;padding:40px clamp(18px,5vw,58px) 80px}.hero{ma
 .scope-card.content{border-color:#d99d95;background:#fdf6f4}
 .scope-card.content:has(input:checked){border-color:var(--danger);background:var(--danger-wash)}
 .scope-content-badge{margin-top:7px;color:#74251e!important;font-weight:700;font-size:12px!important}
+
+/* H2.4 — machine niqqud is visibly a derived preview, never the proposal body. */
+.nakdan-preview-button{margin-top:14px}
+.nakdan-preview{margin-top:12px;padding:14px;border:1px solid #d7b56d;border-radius:10px;background:#fff9e9;color:#6e531b;font-size:13px}
+.nakdan-preview.ready{border-color:#77aeb2;background:var(--teal-wash);color:var(--ink)}
+.nakdan-preview.error{border-color:#d99d95;background:var(--danger-wash);color:#74251e}
+.nakdan-preview.protected{border-color:var(--line);background:#eef2f3;color:var(--muted)}
+.nakdan-preview-label{font-weight:750}
+.nakdan-preview-text{margin-top:8px;white-space:pre-wrap;font-size:18px;line-height:1.8;color:var(--ink)}

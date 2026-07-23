@@ -90,7 +90,7 @@ export function activeWordIndex(words, currentTime) {
 // the render layer can switch profile without a re-fetch.
 export function mapSentenceRowToUiRow(r, textId) {
   const sid = r && (r.id ?? r.sentence_id ?? r.sentenceId);
-  return {
+  const out = {
     he: String(r.he_plain ?? r.he ?? ""),
     he_niqqud: String(r.he_niqqud ?? r.heNiqqud ?? ""),
     translit: String(r.translit ?? ""),
@@ -103,6 +103,11 @@ export function mapSentenceRowToUiRow(r, textId) {
     _v3_textId: textId ? String(textId) : null,
     _v3_orderIndex: r.order_index ?? null,
   };
+  // Preserve byte-parity for every existing row; the two additive fields exist
+  // only on the H2.4 derived projection.
+  if (r.niqqud_authority != null) out.niqqud_authority = r.niqqud_authority;
+  if (r.niqqud_provenance != null) out.niqqud_provenance = r.niqqud_provenance;
+  return out;
 }
 
 // ── Column geometry ──────────────────────────────────────────────────────────
@@ -300,7 +305,9 @@ export function buildBilingualTableHtml(rows, config) {
     html += '<tr data-row-idx="' + rowIdx + '" tabindex="-1"' + (hasSid ? ' draggable="false" data-draggable="1"' : "") + ">";
     cols.forEach((k) => {
       const meta = colMeta[k] || {};
-      const tdClass = meta.cellClass ? ' class="' + meta.cellClass + '"' : "";
+      const machineNiqqud = k === "niqqud" && row && row.niqqud_authority === "DERIVED";
+      const cellClasses = [meta.cellClass || "", machineNiqqud ? "niqqud-derived" : ""].filter(Boolean).join(" ");
+      const tdClass = cellClasses ? ' class="' + cellClasses + '"' : "";
       if (k === "action") {
         const sid = row && row._v3_sentenceId ? String(row._v3_sentenceId) : "";
         const tid = row && row._v3_textId ? String(row._v3_textId) : "";
@@ -343,7 +350,11 @@ export function buildBilingualTableHtml(rows, config) {
       else if (k === "niqqud") value = heNiqqud;
       else if (k === "translit") value = translit;
       else if (k === "ru") value = ru;
-      html += '<td data-col="' + k + '"' + tdClass + ">" + escapeHtml(value) + "</td>";
+      const derivedAttrs = machineNiqqud
+        ? ' data-niqqud-authority="derived" title="' + escapeHtml(t("room.nakdan.derivedCell")) + ' · ' + escapeHtml(row.niqqud_provenance || "DICTA_NAKDAN") + '"'
+        : "";
+      const derivedBadge = machineNiqqud ? '<span class="niqqud-derived-badge" aria-label="' + escapeHtml(t("room.nakdan.derivedCell")) + '">⁕</span>' : "";
+      html += '<td data-col="' + k + '"' + tdClass + derivedAttrs + ">" + escapeHtml(value) + derivedBadge + "</td>";
     });
     html += "</tr>";
   });

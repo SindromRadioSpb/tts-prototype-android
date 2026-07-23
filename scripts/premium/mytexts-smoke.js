@@ -54,12 +54,28 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       const db = await import("/db/local-db.js");
       await db.createText({ id: "mytexts-smoke-a", text_key: "mytexts-smoke-a", title: "שלום עולם — свой текст", source_text: "שלום עולם", level: "alef", tags_json: JSON.stringify(["ульпан"]) });
       await db.addSentence("mytexts-smoke-a", { id: "mytexts-smoke-a-s1", he_plain: "שלום עולם טוב", he_niqqud: "", ru: "привет добрый мир" });
+      const request = await db.getNiqqudRequestForText("mytexts-smoke-a");
+      await db.saveDerivedNiqqud("mytexts-smoke-a", {
+        niqqud: "שָׁלוֹם עוֹלָם טוֹב", source_hash: request.source_hash,
+        niqqud_provenance: "DICTA_NAKDAN_2026_07_23", generated_at: "2026-07-23T12:00:00.000Z",
+        model_version: "dicta-nakdan-modern-2026-07-23",
+      });
+      const projected = await db.getSentences("mytexts-smoke-a");
+      await db.updateSentence("mytexts-smoke-a", "mytexts-smoke-a-s1", { he_plain: "שלום עולם טוב מאוד" });
+      const invalidated = await db.getNiqqudRequestForText("mytexts-smoke-a");
+      await db.updateSentence("mytexts-smoke-a", "mytexts-smoke-a-s1", { he_niqqud: "שָׁלוֹם עוֹלָם טוֹב מְאוּמָּת" });
+      let protectedCode = "";
+      try { await db.saveDerivedNiqqud("mytexts-smoke-a", { niqqud: "machine", source_hash: invalidated.source_hash }); }
+      catch (error) { protectedCode = String(error && (error.code || error.message) || ""); }
       await db.createText({ id: "mytexts-smoke-b", text_key: "mytexts-smoke-b", title: "Второй свой текст", source_text: "טקסט", level: "bet" });
       await db.createText({ id: "mytexts-smoke-c", text_key: "mytexts-smoke-c", title: "CORPUS-META TEXT", source_text: "x", source_meta_json: JSON.stringify({ corpus: { byehuda_id: "999999" } }) });
-      return true;
+      return { projected: projected[0] && projected[0].niqqud_authority, invalidated: invalidated.state, protectedCode };
     }).catch((e) => { failures.push("seed failed: " + e.message); return false; });
 
     if (seeded) {
+      ok(seeded.projected === "DERIVED", "real OPFS read did not project derived niqqud");
+      ok(seeded.invalidated === "NONE", "body edit did not invalidate real OPFS derived cache");
+      ok(seeded.protectedCode === "NIQQUD_ASSERTED_PROTECTED", "real OPFS asserted niqqud was not protected");
       // 1) the tab lands on the L0 hub
       await pg.click("#tabCorpus");
       await pg.waitForSelector(".hub-cards", { timeout: 15000 }).catch(() => failures.push("L0 hub did not render"));
@@ -87,6 +103,22 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       const corpusText = await pg.evaluate(() => (document.querySelector(".mytexts-corpus") || {}).textContent || "");
       ok(corpusText.includes("Второй свой текст"), "own text B missing from the corpus");
       ok(!corpusText.includes("CORPUS-META TEXT"), "corpus-meta text LEAKED into «Мои тексты» (discriminator broken)");
+      const nakdanUi = await pg.evaluate(() => {
+        const cards = Array.from(document.querySelectorAll(".mytexts-grid .mytext-card-v"));
+        const buttons = cards.map((card) => card.querySelector(".mytext-nakdan"));
+        return {
+          cards: cards.length,
+          buttons: buttons.filter(Boolean).length,
+          fit: buttons.every((button, i) => {
+            if (!button) return false;
+            const b = button.getBoundingClientRect(), c = cards[i].getBoundingClientRect();
+            return b.left >= c.left && b.right <= c.right && b.right <= document.documentElement.clientWidth;
+          }),
+        };
+      });
+      ok(nakdanUi.buttons === nakdanUi.cards && nakdanUi.cards === 2,
+        "each own-text card must expose one Nakdan button; got " + JSON.stringify(nakdanUi));
+      ok(nakdanUi.fit, "Nakdan button overflowed its card or the 380px viewport");
       // search narrows
       await pg.fill(".mytexts-search", "Второй");
       await sleep(450);   // > the 200ms input debounce

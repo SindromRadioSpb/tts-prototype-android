@@ -36,6 +36,10 @@
 //   exportBundle()  — GET /api/library/export/bundle
 //   importBundle()  — POST /api/library/import/bundle
 
+import '../js/nakdan-derived-core.js';
+
+const _nakdanDerived = globalThis.NakdanDerivedCore;
+
 // ── worker bridge ──────────────────────────────────────────────────────────
 
 let _worker = null;
@@ -787,7 +791,7 @@ async function _exportShelves() {
 
 // ── sentences ──────────────────────────────────────────────────────────────
 
-export async function getSentences(textId) {
+async function _rawSentences(textId) {
   // Join the default audio asset (if any) so callers see audio_asset_key /
   // audio_tts_profile_json side-by-side with sentence text — matches the
   // shape that the server-side /api/library/texts/:id/sentences returns.
@@ -802,6 +806,72 @@ export async function getSentences(textId) {
    ORDER BY s.order_index`,
     [textId]
   );
+}
+
+async function _sha256Hex(value) {
+  const bytes = new TextEncoder().encode(String(value == null ? '' : value));
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest)).map((x) => x.toString(16).padStart(2, '0')).join('');
+}
+
+async function _niqqudBodyState(rows) {
+  const body = _nakdanDerived.plainBody(rows);
+  const source_hash = await _sha256Hex(body);
+  const asserted = rows.some((row) => _nakdanDerived.hasAssertedNiqqud(row));
+  const derived = !asserted && rows.length > 0 && rows.every((row) => {
+    const d = _nakdanDerived.derivedOf(row);
+    return !!(d && d.source_hash === source_hash && String(d.value || '').trim());
+  });
+  return { body, source_hash, state: asserted ? 'ASSERTED' : (derived ? 'DERIVED_CACHE' : 'NONE') };
+}
+
+export async function getSentences(textId) {
+  const rows = await _rawSentences(textId);
+  const state = await _niqqudBodyState(rows);
+  return _nakdanDerived.applyProjection(rows, state.source_hash);
+}
+
+// H2.4 owner-only request material. No fan-out at card-render time: the Room calls
+// this only after the owner presses “Add niqqud”. ASSERTED covers both imported/
+// verified he_niqqud and an explicit user edit; neither may reach the machine path.
+export async function getNiqqudRequestForText(textId) {
+  const rows = await _rawSentences(textId);
+  const state = await _niqqudBodyState(rows);
+  return { ...state, row_count: rows.length };
+}
+
+export async function saveDerivedNiqqud(textId, result) {
+  const rows = await _rawSentences(textId);
+  const current = await _niqqudBodyState(rows);
+  if (current.state === 'ASSERTED') throw Object.assign(new Error('NIQQUD_ASSERTED_PROTECTED'), { code: 'NIQQUD_ASSERTED_PROTECTED' });
+  if (!result || String(result.source_hash || '') !== current.source_hash) throw Object.assign(new Error('NAKDAN_SOURCE_CHANGED'), { code: 'NAKDAN_SOURCE_CHANGED' });
+  const values = _nakdanDerived.splitLines(result.niqqud);
+  if (values.length !== rows.length) throw Object.assign(new Error('NAKDAN_ROW_ALIGNMENT_FAILED'), { code: 'NAKDAN_ROW_ALIGNMENT_FAILED' });
+  await x('BEGIN;');
+  try {
+    for (let i = 0; i < rows.length; i++) {
+      const meta = _nakdanDerived.mergeDerivedMeta(rows[i], values[i], {
+        provenance: result.niqqud_provenance,
+        source_hash: current.source_hash,
+        generated_at: result.generated_at,
+        model_version: result.model_version,
+      });
+      await r('UPDATE sentences SET meta_json = ? WHERE id = ? AND text_id = ?', [meta, rows[i].id, textId]);
+    }
+    await r('UPDATE texts SET updated_at = ? WHERE id = ?', [new Date().toISOString(), textId]);
+    await x('COMMIT;');
+  } catch (error) {
+    await x('ROLLBACK;').catch(() => {});
+    throw error;
+  }
+  return { state: 'DERIVED_CACHE', source_hash: current.source_hash, rows_written: rows.length };
+}
+
+export async function clearDerivedNiqqud(textId) {
+  await r(`UPDATE sentences
+              SET meta_json = json_remove(meta_json, '$.niqqud_derived')
+            WHERE text_id = ? AND meta_json IS NOT NULL AND json_valid(meta_json)
+              AND json_type(meta_json, '$.niqqud_derived') IS NOT NULL`, [textId]);
 }
 
 // ── Phase D — pre-computed context morphology (Dicta) per sentence ────────
@@ -980,6 +1050,8 @@ export async function addSentence(textId, data) {
      translit_ru == null ? null : String(translit_ru),
      toStr(ru), toJson(meta_json), toJson(edit_meta_json), now]
   );
+  await clearDerivedNiqqud(textId);
+  await _touchTextUpdatedAt(textId);
 }
 
 // PAS-B0.5 (критика wf_7f300c39): мутация рядов ОБЯЗАНА бампать texts.updated_at —
@@ -1000,11 +1072,18 @@ export async function updateSentence(textId, sentenceId, fields) {
   const vals = entries.map(([, v]) => v);
   await r(`UPDATE sentences SET ${sets} WHERE id = ? AND text_id = ?`,
     [...vals, sentenceId, textId]);
+  // Body edits invalidate the whole-text hash; asserted niqqud edits additionally
+  // establish a higher-authority user layer. In either case stale machine data is
+  // physically removed, not merely hidden by the read projection.
+  if (entries.some(([key]) => key === 'he_plain' || key === 'he_niqqud')) {
+    await clearDerivedNiqqud(textId);
+  }
   await _touchTextUpdatedAt(textId);
 }
 
 export async function deleteSentence(textId, sentenceId) {
   await r('DELETE FROM sentences WHERE id = ? AND text_id = ?', [sentenceId, textId]);
+  await clearDerivedNiqqud(textId);
   await _touchTextUpdatedAt(textId);
 }
 
@@ -1040,6 +1119,7 @@ export async function reorderSentences(textId, orderedIds) {
     await x('ROLLBACK;').catch(() => {});
     throw e;
   }
+  await clearDerivedNiqqud(textId);
   await _touchTextUpdatedAt(textId);   // PAS-B0.5 — реордер = правка текста для LWW-синка
 }
 

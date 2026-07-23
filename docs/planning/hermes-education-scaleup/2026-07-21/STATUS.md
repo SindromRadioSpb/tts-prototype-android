@@ -4,7 +4,7 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-23 (H2.1–H2.3 + H2.G1 CLOSED; H2.4 PLANNED; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1 monitor ACTIVE).
+Обновлено: 2026-07-23 (H2.1–H2.3 + H2.G1 CLOSED; H2.4 ENGINEERING_COMPLETE, deploy/owner-live pending; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1 monitor ACTIVE).
 
 ## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
@@ -24,7 +24,7 @@
 
 **G-H1-PARALLEL-MONITOR: ACTIVE, 2026-07-23—2026-08-05; day-14 follow-up обязателен.**
 
-## Горизонт 2 — статус: IN_PROGRESS (G-H2-START PASS; H2.1–H2.3 + H2.G1 CLOSED; H2.4 PLANNED; Group Song Corpus P0 CLOSED; H1 monitoring параллельно)
+## Горизонт 2 — статус: IN_PROGRESS (G-H2-START PASS; H2.1–H2.3 + H2.G1 CLOSED; H2.4 ENGINEERING_COMPLETE; Group Song Corpus P0 CLOSED; H1 monitoring параллельно)
 
 | Слайс | Промт | Статус |
 |---|---|---|
@@ -32,7 +32,7 @@
 | H2.2 get_text_coverage | prompts/H2_02_GET_TEXT_COVERAGE.md | CLOSED |
 | H2.3 W1-семейство + goal-store | prompts/H2_03_W1_PROPOSE_FAMILY.md | CLOSED — prod `de29d35` / `3.11.236`; 23-scope OAuth; import+track OPFS receipts → CONFIRMED; goal ACTIVE; fresh Hermes chat PASS |
 | H2.G1 restricted group corpus read+coverage | hermes-side/group-corpus/README.md | CLOSED — prod `fee45e4`, 19-scope consent, SDK + fresh ordinary Hermes chat PASS |
-| H2.4 Dicta Nakdan | prompts/H2_04_DICTA_NAKDAN.md | PLANNED |
+| H2.4 Dicta Nakdan | prompts/H2_04_DICTA_NAKDAN.md | ENGINEERING_COMPLETE — `3.11.237`; local/mock/API/Library 380px gates PASS; deploy, production preview and owner-live song import pending |
 | H2.5 ivrit.ai ASR MCP | prompts/H2_05_IVRIT_AI_ASR.md | BLOCKED |
 | H2.6 Async voice loop | prompts/H2_06_ASYNC_VOICE_LOOP.md | BLOCKED |
 | H2.7 Owner-live+closure | prompts/H2_07_OWNER_LIVE_AND_CLOSURE.md | BLOCKED |
@@ -100,3 +100,5 @@
 | 2026-07-23 | H2.3 local engineering PASS: schema diff 21→25 only-addition (`propose_import_text`, `propose_track_word`, `propose_goal`, `get_current_goal`), `aa-v0.1` unchanged; ticket+receipt, OPFS executor, server goal store and migration 061 implemented. H2.3 25/25, domain 47, MCP 65, handlers 61, OAuth 24, control plane 54, H2.1/H2.2/H2.G1/i18n/API gates PASS; full suite unchanged at baseline 269/278. Deploy, four-scope consent and fresh Hermes owner-live remain | Codex |
 | 2026-07-23 | H2.3 production repair: consent `Select all` added with ru/en/he and auth assets excluded from stale SW cache. Full 23-scope OAuth exposed the old 512-byte authorization-code scope JSON cap (canonical payload 545 bytes); migration 062 widened only that bound to 1024 and exact 23-scope consent→access/refresh e2e now PASS. Existing `get_agent_connection` schema remains frozen; four new tools stay additive | владелец / Codex |
 | 2026-07-23 | H2.3 CLOSED on prod `de29d35` / `3.11.236`: 23 scopes consented, Hermes restarted and discovers 25 tools. Owner executed import and track in the first-party browser; both single-use tickets have consumed receipts and proposals are CONFIRMED. Server goal is ACTIVE. Fresh ordinary Hermes chat called `get_current_goal` and returned exact statement/type/start/anchor/source. Owner-live PASS; H2.4 → PLANNED. Production healthy but disk at 99%, so next deploy requires bounded cleanup approval | владелец / Codex |
+| 2026-07-23 | H2.4 measure correction: canonical `nakdan.dicta.org.il/api` returned HTTP 404. Owner approved `nakdan-5-1.loadbalancer.dicta.org.il/api` and exactly one additional Node fetch; it returned HTTP 200 with a 10-token JSON array (`word`, boolean `sep`, string-array `options`, `fpasuk`, optional `fconfident`). All other H2.4 bounds remain unchanged | владелец / Codex |
+| 2026-07-23 | H2.4 ENGINEERING_COMPLETE locally on candidate `3.11.237`: separate single-flight Nakdan client (1 req/s, concurrency 1, 10s timeout, circuit, hash cache), authenticated first-party preview/Library paths, OPFS-only derived metadata with asserted precedence and body invalidation, ru/en/he, SW bump. H2.4 mock 7/7, W1 25, Agent domain 50, handlers 61, control plane 54, H2.1 72, H2.2 75, H2.G1, i18n 226, API and real OPFS/Library 380px PASS; full suite unchanged 269/278 baseline. Deploy, one production preview and owner-live real-song import remain; not CLOSED | Codex |

@@ -169,8 +169,10 @@ get_current_goal Output: `{ schema_version:"aa.current_goal.1.0.0", goal?: { sta
 ## 4. Dicta Nakdan integration (H2.4) — серверная, не MCP-инструмент
 
 - Назначение: автоникуд текстов в import-preview (3.1) и по запросу владельца в Библиотеке.
-- Путь: серверный вызов `nakdan.dicta.org.il/api` (Modern) ТОЛЬКО в момент preview/по кнопке;
+- Путь: серверный вызов `nakdan-5-1.loadbalancer.dicta.org.il/api` (Modern) ТОЛЬКО в момент preview/по кнопке;
   результат кешируется рядом с текстом; провенанс `niqqud_provenance:"DICTA_NAKDAN_<date>"`.
+- Endpoint скорректирован владельцем 2026-07-23 после measure-before-code: прежний
+  `nakdan.dicta.org.il/api` фактически возвращает HTTP 404; Nakdan 5.1 вернул HTTP 200.
 - R11 (жёстко): machine-никуд НИКОГДА не перезаписывает пользовательский/выверенный; отображение —
   как derived-слой; конфликт → пользовательский побеждает.
 - R16: rate ≤1 req/s, только on-demand (никаких фоновых прогонов), таймаут 10s → честный отказ

@@ -1,6 +1,6 @@
 {
   "name": "tts-translator-dashboard",
-  "version": "3.11.236",
+  "version": "3.11.237",
   "description": "TTS & Translator Dashboard (Google Cloud Text-to-Speech + Gemini, Hebrew-Russian tables)",
   "main": "server.js",
   "scripts": {
@@ -91,6 +91,7 @@
     "smoke:reader-context": "node scripts/premium/reader-context-smoke.js",
     "smoke:reader-ctx-overlay": "node scripts/premium/context-overlay-smoke.js",
     "smoke:reader-mytexts": "node scripts/premium/mytexts-smoke.js",
+    "smoke:nakdan-integration": "node scripts/premium/nakdan-integration-smoke.js",
     "smoke:studio-corpus": "node scripts/premium/studio-corpus-smoke.js",
     "push:corpus-context": "node scripts/premium/push-context-overlay.js",
     "smoke:function-usage": "node scripts/premium/function-usage-smoke.js",

@@ -337,8 +337,10 @@ async function expectCode(promise, code) {
     // Consent convenience remains explicit and auditable: the bulk action only
     // checks the visible requested scopes; it never checks the retention ack.
     const panelHtml = fs.readFileSync(path.join(root, "public/agent-access.html"), "utf8");
+    const deployVersion = require(path.join(root, "package.json")).version.replace(/\./g, "\\.");
     assert.ok(/id="selectAllScopes"[^>]+type="button"/.test(panelHtml), "select-all scope control missing");
-    assert.ok(/agent-access\.js\?v=3\.11\.235/.test(panelHtml) && /agent-access\.css\?v=3\.11\.235/.test(panelHtml), "consent assets must be deploy-versioned");
+    assert.ok(new RegExp(`agent-access\\.js\\?v=${deployVersion}`).test(panelHtml)
+      && new RegExp(`agent-access\\.css\\?v=${deployVersion}`).test(panelHtml), "consent assets must be deploy-versioned");
     assert.ok(/selectedScopes/.test(panelSource) && /function selectAllScopes\(\)/.test(panelSource), "select-all state/count logic missing");
     assert.ok(!/selectAllScopes[^}]+retentionAck[^}]+checked=true/.test(panelSource), "select-all must not accept retention on the owner's behalf");
     for (const locale of ["ru", "en", "he"]) assert.ok(new RegExp(`Object\\.assign\\(TEXT\\.${locale},\\{selectAll:`).test(panelSource), `select-all ${locale} locale missing`);

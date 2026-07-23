@@ -1879,6 +1879,36 @@ app.post("/api/agent-access/text-grants/:grantId/revoke", requireAgentAccessBoun
 // first-party, session+CSRF; no MCP tool can reach it). listPending already
 // filters to live PENDING rows of ACTIVE/SCOPE_REDUCED connections.
 const agentProposalsRepo = require("./db/agentProposalsRepo");
+
+// H2.4 — authenticated, explicit-owner on-demand niqqud. The server never stores
+// the submitted personal text or the returned niqqud in SQLite/logs; durable cache
+// authority lives beside the OPFS text as a DERIVED sentence meta layer.
+const nakdanOnDemand = require("./db/premium/nakdanOnDemand");
+const rlNakdanOnDemand = makeRateLimiter({ windowMs: 60_000, max: 10, name: "nakdan-on-demand" });
+app.post("/api/niqqud/on-demand", requireSameOriginJson, rlNakdanOnDemand, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  const body = req.body || {};
+  const purpose = String(body.purpose || "");
+  if (!["IMPORT_PREVIEW", "LIBRARY_OWNER"].includes(purpose)) {
+    return res.status(400).json({ ok: false, error: "NAKDAN_INVALID_INPUT" });
+  }
+  try {
+    const out = await nakdanOnDemand.vocalize(body.text);
+    void identityRepo.audit("nakdan_on_demand", auth.user.id, {
+      purpose, source_hash: out.source_hash, from_cache: out.from_cache,
+      model_version: out.model_version,
+    }, req.ip);
+    res.set("Cache-Control", "no-store");
+    return res.json({ ok: true, schema_version: "nakdan.on_demand.1.0.0", ...out });
+  } catch (error) {
+    const code = String(error && (error.code || error.message) || "NAKDAN_UNAVAILABLE");
+    if (code === "NAKDAN_INVALID_INPUT") return res.status(400).json({ ok: false, error: code });
+    const retryMs = Number(error && error.retry_after_ms) || 0;
+    if (retryMs > 0) res.set("Retry-After", String(Math.max(1, Math.ceil(retryMs / 1000))));
+    return res.status(503).json({ ok: false, error: "NAKDAN_UNAVAILABLE" });
+  }
+});
 // AA4-4b — count-only badge feed for Studio/Room chips. By construction the
 // SAME predicate as the panel list (literally listPending().length, ≤10 rows by
 // PENDING_CAP) so the badge can never over-claim vs what the panel shows (R11).

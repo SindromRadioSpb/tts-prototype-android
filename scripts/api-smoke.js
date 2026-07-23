@@ -155,6 +155,26 @@ async function run() {
     }
     console.log("PASS /api/library/export -> data-recovery export still served");
 
+    // H2.4: Nakdan is an authenticated first-party mutation surface. Prove that
+    // cross-origin and anonymous calls stop before the external provider path.
+    const NAKDAN_URL = `${BASE_URL}/api/niqqud/on-demand`;
+    const nakdanBody = JSON.stringify({ text: "שלום", purpose: "LIBRARY_OWNER" });
+    {
+      const res = await fetch(NAKDAN_URL, { method: "POST", headers: { "Content-Type": "application/json", Origin: "https://example.invalid" }, body: nakdanBody });
+      const { data, text } = await readBody(res);
+      if (res.status !== 403 || !data || data.error !== "BAD_ORIGIN") {
+        throw new Error(`Nakdan boundary: cross-origin expected 403 BAD_ORIGIN, got ${res.status}: ${text.slice(0, 200)}`);
+      }
+    }
+    {
+      const res = await fetch(NAKDAN_URL, { method: "POST", headers: { "Content-Type": "application/json", Origin: BASE_URL }, body: nakdanBody });
+      const { data, text } = await readBody(res);
+      if (res.status !== 401 || !data || data.error !== "UNAUTHENTICATED") {
+        throw new Error(`Nakdan boundary: anonymous expected 401 UNAUTHENTICATED, got ${res.status}: ${text.slice(0, 200)}`);
+      }
+    }
+    console.log("PASS /api/niqqud/on-demand -> same-origin + authenticated boundary blocks provider calls");
+
     // 3. BRR-P0-010: /api/audio/cache/upload is owner-token gated. With
     //    AUDIO_UPLOAD_TOKEN set on the server, even a loopback request must present
     //    the token and X-Local-Mode must NOT authorize a write. A deliberately bad

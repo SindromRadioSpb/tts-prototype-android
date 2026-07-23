@@ -26,6 +26,9 @@
   Object.assign(TEXT.ru,{propKindImport:"Импорт личного текста",propKindTrack:"Слова для изучения",propKindGoal:"Недельная цель",propExecute:"Подтвердить и выполнить",propTrack:"Добавить слово",propDone:"Выполнено в этом браузере.",propUnresolved:"Не найдено в словаре — выполнить нельзя",goalTitle:"Текущая недельная цель",goalEmpty:"Активной цели нет.",goalComplete:"Отметить выполненной",goalDrop:"Отказаться",goalDelete:"Удалить"});
   Object.assign(TEXT.en,{propKindImport:"Personal-text import",propKindTrack:"Words to track",propKindGoal:"Weekly goal",propExecute:"Confirm and execute",propTrack:"Add word",propDone:"Executed in this browser.",propUnresolved:"Not found in the dictionary — cannot execute",goalTitle:"Current weekly goal",goalEmpty:"No active goal.",goalComplete:"Mark completed",goalDrop:"Drop",goalDelete:"Delete"});
   Object.assign(TEXT.he,{propKindImport:"ייבוא טקסט אישי",propKindTrack:"מילים למעקב",propKindGoal:"יעד שבועי",propExecute:"אישור וביצוע",propTrack:"הוספת מילה",propDone:"בוצע בדפדפן זה.",propUnresolved:"לא נמצא במילון — לא ניתן לבצע",goalTitle:"היעד השבועי הנוכחי",goalEmpty:"אין יעד פעיל.",goalComplete:"סימון כהושלם",goalDrop:"ויתור",goalDelete:"מחיקה"});
+  Object.assign(TEXT.ru,{nakdanAdd:"Добавить машинный никуд",nakdanSending:"Отправляем в Dicta…",nakdanConsent:"Отправить этот личный текст в Dicta Nakdan для машинной огласовки? Результат будет помечен как производный и не сможет заменить пользовательский или выверенный никуд.",nakdanReady:"Машинный никуд · производный слой",nakdanCached:"из кеша",nakdanUnavailable:"Dicta сейчас недоступна. Импорт без никуда остаётся доступен.",nakdanPersistFailed:"Импорт завершён без машинного никуда ({code}).",nakdanProtected:"Никуд уже указан источником или пользователем — машинная версия не применяется."});
+  Object.assign(TEXT.en,{nakdanAdd:"Add machine niqqud",nakdanSending:"Sending to Dicta…",nakdanConsent:"Send this personal text to Dicta Nakdan for machine vocalization? The result will be marked as derived and cannot replace user or verified niqqud.",nakdanReady:"Machine niqqud · derived layer",nakdanCached:"from cache",nakdanUnavailable:"Dicta is currently unavailable. Import without niqqud remains available.",nakdanPersistFailed:"Import completed without machine niqqud ({code}).",nakdanProtected:"Niqqud was supplied by the source or user — the machine version is not applied."});
+  Object.assign(TEXT.he,{nakdanAdd:"הוספת ניקוד מכונה",nakdanSending:"שולחים ל‑Dicta…",nakdanConsent:"לשלוח את הטקסט האישי הזה ל‑Dicta Nakdan לצורך ניקוד מכונה? התוצאה תסומן כשכבה נגזרת ולא תוכל להחליף ניקוד של המשתמש או ניקוד מאומת.",nakdanReady:"ניקוד מכונה · שכבה נגזרת",nakdanCached:"מהמטמון",nakdanUnavailable:"Dicta אינה זמינה כעת. עדיין אפשר לייבא ללא ניקוד.",nakdanPersistFailed:"הייבוא הושלם ללא ניקוד מכונה ({code}).",nakdanProtected:"הניקוד סופק בידי המקור או המשתמש — גרסת המכונה אינה מוחלת."});
   let lang="ru",csrf="",preview=null,connections=[];
   const $=(id)=>document.getElementById(id);
   const tr=(key,vars={})=>Object.entries(vars).reduce((s,[k,v])=>s.replace(`{${k}}`,String(v)),TEXT[lang][key]||key);
@@ -54,6 +57,7 @@
   // open_reading is the SERVER-resolved work title, agent free text is
   // visually subordinate.
   let proposals=[];
+  const nakdanPreviews=new Map();
   function addMeta(card,text){if(text==null||text==="")return;const el=document.createElement("div");el.className="connection-meta";el.textContent=String(text);card.append(el);}
   function proposalCard(row){
     const card=document.createElement("article");card.className="connection-card";
@@ -73,6 +77,11 @@
       addMeta(card,[payload.source&&payload.source.title,payload.source&&payload.source.author].filter(Boolean).join(" — "));
       addMeta(card,payload.source&&payload.source.url);addMeta(card,`niqqud: ${payload.niqqud_status}`);addMeta(card,payload.transformation_disclosure);addMeta(card,payload.body_preview);
       if(payload.duplicate_of_text_key)addMeta(card,`DUPLICATE: ${payload.duplicate_of_text_key}`);
+      const nqOut=document.createElement("div");nqOut.className="nakdan-preview";nqOut.hidden=true;card.append(nqOut);
+      if(payload.niqqud_status==="NONE"){
+        const nqBtn=document.createElement("button");nqBtn.type="button";nqBtn.className="button secondary nakdan-preview-button";nqBtn.textContent=tr("nakdanAdd");
+        nqBtn.addEventListener("click",()=>requestNakdanPreview(row,nqBtn,nqOut));card.append(nqBtn);
+      }else{nqOut.hidden=false;nqOut.textContent=tr("nakdanProtected");nqOut.classList.add("protected");}
     }
     if(row.kind==="goal"){addMeta(card,payload.statement);addMeta(card,`${payload.goal_type} · ${payload.period_days}d${payload.anchor?" · "+payload.anchor:""}`);addMeta(card,tr("propReason",{text:payload.reason}));}
     const actions=document.createElement("div");actions.className="connection-actions";
@@ -90,6 +99,16 @@
   }
   function renderProposals(){const panel=$("proposalsPanel");const list=$("proposalList");if(!panel||!list)return;list.replaceChildren();if(!proposals.length){panel.hidden=true;return;}panel.hidden=false;proposals.forEach((row)=>list.append(proposalCard(row)));}
   async function loadProposals(){try{const body=await api("/api/agent-access/proposals");proposals=body.proposals||[];}catch(_){proposals=[];}renderProposals();}
+  async function requestNakdanPreview(row,button,out){
+    if(!window.confirm(tr("nakdanConsent")))return;
+    button.disabled=true;button.textContent=tr("nakdanSending");out.hidden=false;out.className="nakdan-preview";out.textContent=tr("nakdanSending");
+    try{
+      const result=await api("/api/niqqud/on-demand",{method:"POST",body:JSON.stringify({text:String((row.payload||{}).body_preview||""),purpose:"IMPORT_PREVIEW"})});
+      nakdanPreviews.set(row.proposal_id,result);out.classList.add("ready");out.replaceChildren();
+      const label=document.createElement("div");label.className="nakdan-preview-label";label.textContent=tr("nakdanReady")+" · "+result.niqqud_provenance+(result.from_cache?" · "+tr("nakdanCached"):"");
+      const text=document.createElement("div");text.className="nakdan-preview-text";text.dir="rtl";text.lang="he";text.textContent=result.niqqud;out.append(label,text);button.textContent=tr("nakdanReady");
+    }catch(err){out.classList.add("error");out.textContent=String(err&&err.message)==="NAKDAN_UNAVAILABLE"?tr("nakdanUnavailable"):tr("propFailed",{code:String(err&&err.message||"")});button.disabled=false;button.textContent=tr("nakdanAdd");}
+  }
   async function decideProposal(id,decision,card,actions){
     try{
       const out=await api(`/api/agent-access/proposals/${encodeURIComponent(id)}/decision`,{method:"POST",body:JSON.stringify({decision})});
@@ -108,17 +127,29 @@
     button.disabled=true;
     try{
       const issued=await api(`/api/agent-access/proposals/${encodeURIComponent(row.proposal_id)}/execution`,{method:"POST",body:JSON.stringify({item_index:itemIndex})});
-      const action=issued.action;const ldb=await import("/db/local-db.js");await ldb.initLocalDB();let receipt;
+      const action=issued.action;const ldb=await import("/db/local-db.js");await ldb.initLocalDB();let receipt;let machineWarning="";
       if(action.type==="IMPORT_TEXT"){
         const existing=await ldb.dbQuery("SELECT id FROM texts WHERE text_key = ?",[action.text_key]);let textId=existing&&existing[0]&&existing[0].id;let rowsWritten=0;
-        if(!textId){textId=crypto.randomUUID();const lines=String(action.body||"").split(/\r?\n/).map((x)=>x.trim()).filter(Boolean);if(!lines.length)throw new Error("AA_PROPOSAL_EMPTY_TEXT");await ldb.createText({id:textId,text_key:action.text_key,title:action.title,source_text:action.body,source:action.source.url||action.source.origin,source_meta_json:JSON.stringify({provenance:action.provenance,origin:action.source.origin,url:action.source.url||null,author:action.author||null,niqqud_status:action.niqqud_status,transformation_disclosure:action.transformation_disclosure})});for(const line of lines){await ldb.addSentence(textId,{id:crypto.randomUUID(),he_plain:line,he_niqqud:action.niqqud_status==="NONE"?"":line,ru:""});rowsWritten++;}}
+        if(!textId){
+          textId=crypto.randomUUID();
+          const lines=String(action.body||"").split(/\r?\n/).map((x)=>x.trim()).filter(Boolean);
+          if(!lines.length)throw new Error("AA_PROPOSAL_EMPTY_TEXT");
+          const nq=nakdanPreviews.get(row.proposal_id)||null;
+          const sourceMeta={provenance:action.provenance,origin:action.source.origin,url:action.source.url||null,author:action.author||null,niqqud_status:action.niqqud_status,niqqud_provenance:null,transformation_disclosure:action.transformation_disclosure};
+          await ldb.createText({id:textId,text_key:action.text_key,title:action.title,source_text:action.body,source:action.source.url||action.source.origin,source_meta_json:JSON.stringify(sourceMeta)});
+          for(const line of lines){await ldb.addSentence(textId,{id:crypto.randomUUID(),he_plain:line,he_niqqud:action.niqqud_status==="NONE"?"":line,ru:""});rowsWritten++;}
+          if(nq){
+            try{await ldb.saveDerivedNiqqud(textId,nq);sourceMeta.niqqud_status="MACHINE_ADDED";sourceMeta.niqqud_provenance=nq.niqqud_provenance;await ldb.updateText(textId,{source_meta_json:JSON.stringify(sourceMeta)});}
+            catch(machineError){machineWarning=tr("nakdanPersistFailed",{code:String(machineError&&machineError.message||"")});}
+          }
+        }
         else {const rows=await ldb.dbQuery("SELECT COUNT(*) c FROM sentences WHERE text_id=?",[textId]);rowsWritten=Number(rows&&rows[0]&&rows[0].c)||1;}
         receipt={type:"IMPORT_TEXT",text_key:action.text_key,text_id:String(textId),rows_written:rowsWritten};
       }else if(action.type==="TRACK_WORD"){
         const ok=await ldb.setWordStatus(action.item_key,"new");if(!ok)throw new Error("AA_PROPOSAL_LOCAL_WRITE_FAILED");receipt={type:"TRACK_WORD",item_key:action.item_key,status:"new"};
       }else throw new Error("AA_PROPOSAL_ACTION_INVALID");
       const out=await api(`/api/agent-access/proposals/${encodeURIComponent(row.proposal_id)}/execution/receipt`,{method:"POST",body:JSON.stringify({item_index:itemIndex,ticket:issued.ticket,action_digest:issued.action_digest,receipt})});
-      setStatus(tr("propDone"));if(out.status==="CONFIRMED")await loadProposals();else{button.textContent=tr("propDone");button.disabled=true;}
+      setStatus(machineWarning?tr("propDone")+" · "+machineWarning:tr("propDone"),!!machineWarning);if(out.status==="CONFIRMED")await loadProposals();else{button.textContent=tr("propDone");button.disabled=true;}
     }catch(err){button.disabled=false;setStatus(tr("propFailed",{code:String(err.message||"")}),true);await loadProposals();}
   }
   let ownerState=null;
