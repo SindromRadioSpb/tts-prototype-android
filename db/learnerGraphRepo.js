@@ -14,7 +14,7 @@ const { getDb } = require("./sqlite");
 const LC = require("../public/js/lemma-canon");
 const FC = require("../public/js/fsrs-core");
 
-const COVERAGE_PROJECTION_VERSION = `review-log-keyer-v${LC.KEYER_VERSION}+${FC.ENGINE_VERSION}`;
+const COVERAGE_PROJECTION_VERSION = `review-log-keyer-v${LC.KEYER_VERSION}+${FC.ENGINE_VERSION}+stale-engine-filter-v1`;
 
 function dbAll(db, sql, params = []) {
   return new Promise((resolve, reject) => db.all(sql, params, (e, rows) => (e ? reject(e) : resolve(rows))));
@@ -182,7 +182,10 @@ async function getCoverageProjection(userId, { nowMs } = {}) {
   if ((rows || []).length > 100000) throw new Error("AA_COVERAGE_PROJECTION_OVERFLOW");
   const scheduled = [];
   for (const row of rows || []) {
-    if (row.engine && String(row.engine) !== String(FC.ENGINE_VERSION)) throw new Error("AA_COVERAGE_PROJECTION_STALE");
+    // Derived rows from an older replay engine are not learner truth under the
+    // current engine. Ignore only those rows (conservative unknown) rather than
+    // making every text unavailable because one historical row is stale.
+    if (row.engine && String(row.engine) !== String(FC.ENGINE_VERSION)) continue;
     const dueMs = row.due == null ? null : Date.parse(String(row.due));
     if (row.due != null && !Number.isFinite(dueMs)) throw new Error("AA_COVERAGE_PROJECTION_INVALID");
     scheduled.push(Object.freeze({ item_key: String(row.item_key), due_ms: dueMs }));

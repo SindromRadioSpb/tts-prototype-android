@@ -23,7 +23,7 @@ const sha = (value) => crypto.createHash("sha256").update(JSON.stringify(value))
 
 function projection(manual = {}) {
   return Object.freeze({
-    version: "review-log-keyer-v1+fsrs6-core-v2",
+    version: "review-log-keyer-v1+fsrs6-core-v2+stale-engine-filter-v1",
     generated_at_ms: NOW,
     manual: Object.freeze({ ...manual }),
     scheduled: Object.freeze([]),

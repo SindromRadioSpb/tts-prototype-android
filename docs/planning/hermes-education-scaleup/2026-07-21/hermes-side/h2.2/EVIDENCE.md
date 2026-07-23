@@ -10,6 +10,12 @@
 | Morphology | Shipped `pealim-infl-v12` and the H2.1 resolver are server-readable | Reuse its unique-pid resolution; ambiguity/OOV remain unresolved; no LLM/network fallback |
 | Runtime | Cold sample: 1,734 tokens about 1.95 s; warm sample: 1,370 tokens about 27 ms; measured largest baked work: 16,556 tokens about 210 ms after index load | Bounded resolver caps: 250,000 tokens and 50,000 token types |
 
+Production repair (2026-07-23): the first live call found 265 current `fsrs6-core-v2`
+projection rows and 4 historical `fsrs6-core-v1` rows. Rejecting the whole projection for one stale
+derived row made every text unavailable. `stale-engine-filter-v1` now ignores only stale scheduled
+rows (conservative `unknown`) while retaining manual marks and current-engine rows; it never promotes
+stale memory to known.
+
 Owner-approved correction (2026-07-23): the original “no migration” note conflicted
 with the live closed CHECK on grant scopes. Migration 055 widens it from 16 to 17
 scopes so `learner.coverage.read` is a real independently revocable grant.
