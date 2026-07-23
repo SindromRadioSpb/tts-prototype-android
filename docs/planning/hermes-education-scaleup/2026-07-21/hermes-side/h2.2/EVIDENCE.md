@@ -91,5 +91,20 @@ Live Hermes-SDK evidence (no token, personal title/key/body, grade or raw FSRS f
 {"source":"OWNER_SYNCED_PERSONAL_TEXT","catalog_ok":true,"status":"OK","token_total":226,"token_known_pct":45,"lemma_known_pct":30,"content_word_known_pct":38,"recommendation_band":"FRUSTRATION_BELOW_90"}
 ```
 
-Both required source classes are therefore live through Hermes. H2.2 is `ENGINEERING_COMPLETE`;
-an ordinary fresh-chat owner-live request for at least two measured choices remains before `CLOSED`.
+Both required source classes were therefore live through Hermes before the owner-live check below.
+
+## Owner-live ordinary Hermes session
+
+The owner asked a fresh ordinary session to compare at least one synced personal text and one READY
+Ben-Yehuda work using immediately relevant `get_text_coverage` calls. Hermes returned:
+
+```text
+personal (title/key redacted from tracked evidence): token 45%, lemma 30%, content-word 38%, FRUSTRATION_BELOW_90
+Ben-Yehuda READY work 11784: token 21%, lemma 9%, content-word 11%, FRUSTRATION_BELOW_90
+recommendation: personal text is closer to 95–98%, while explicitly warning that both are below 90%
+```
+
+Verdict: **PASS**. Both mandatory source classes were measured, all three percentages and bands were
+stated, no 95–98 claim was fabricated, and the recommendation followed the returned numbers. No
+personal body was quoted. The owner provided a successful qualitative transcript; no numeric rating
+is invented. H2.2 is `CLOSED`.
