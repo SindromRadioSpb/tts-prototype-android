@@ -53,6 +53,7 @@ async function seedDb() {
   await dbExec(db, "PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('owner'),('member'),('outsider');");
   await dbExec(db, fs.readFileSync(path.join(root, "migrations", "056_group_song_corpus_p0.sql"), "utf8"));
   await dbExec(db, fs.readFileSync(path.join(root, "migrations", "057_group_corpus_audio_revisions.sql"), "utf8"));
+  await dbExec(db, fs.readFileSync(path.join(root, "migrations", "058_group_corpus_catalog_metadata.sql"), "utf8"));
   await dbClose(db);
 }
 
@@ -94,6 +95,12 @@ function invoke(apply, expectedSha) {
     assert.strictEqual((await repo.listCorpora("outsider")).length,0);
     await assert.rejects(() => repo.getWork("outsider","fixture-corpus","song-pos-001"), /GROUP_CORPUS_NOT_FOUND/);
     const work = await repo.getWork("member","fixture-corpus","song-pos-001"); assert.ok(work.absolute_path.startsWith(path.resolve(dataDir,"group-corpora") + path.sep));
+    const catalog = await repo.listWorks("owner","fixture-corpus");
+    assert.strictEqual(catalog.corpus.role,"OWNER"); assert.deepStrictEqual(catalog.works[0].tags,["fixture"]); assert.strictEqual(catalog.works[0].level,"A1");
+    const exported = { schema_version:"group_corpus_catalog_backup.1.0.0", corpus:catalog.corpus, works:catalog.works };
+    const metaResult = await repo.updateCatalogMetadata("owner","fixture-corpus",exported); assert.strictEqual(metaResult.updated,3);
+    await assert.rejects(() => repo.updateCatalogMetadata("member","fixture-corpus",exported), /GROUP_CORPUS_NOT_FOUND/);
+    const backup = await repo.listBackupFiles("owner","fixture-corpus"); assert.strictEqual(backup.files.filter((f)=>f.kind==="work").length,3);
     const assetKey = bundle.library.audio_assets[0].asset_key;
     const audio = await repo.getAudio("member","fixture-corpus",assetKey); assert.strictEqual(fs.statSync(audio.absolute_path).size,audio.audio.bytes);
     await assert.rejects(() => repo.getAudioTiming("member","fixture-corpus",assetKey), /GROUP_CORPUS_TIMING_NOT_FOUND/);

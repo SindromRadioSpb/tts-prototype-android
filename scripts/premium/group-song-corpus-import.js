@@ -135,7 +135,11 @@ function buildPlan(zip, library, advanced, options) {
     const rawTitle = String(text.title || "");
     const displayTitle = rawTitle.replace(/^Position\s+\d+\.\s*/i, "");
     const split = displayTitle.split(/\s+-\s+/, 2);
+    const sourceUrl = /^https?:\/\//i.test(String(text.source_label || '').trim()) ? String(text.source_label).trim() : null;
     return { positionNo, workId, textKey: String(text.text_key), title: displayTitle, artist: split.length > 1 ? split[0] : null,
+      level: text.level == null ? null : String(text.level), topic: text.topic == null ? null : String(text.topic),
+      tagsJson: JSON.stringify(Array.isArray(text.tags) ? text.tags.filter(Boolean).map(String) : []),
+      sourceUrl, sourceCreatedAt: text.created_at || null, sourceUpdatedAt: text.updated_at || null,
       rowsCount: (text.rows || []).length, notesCount: adv.notes.length, morphCount: adv.sentence_morph.length,
       bundle, body, bundleSha256: sha256(body), assets };
   });
@@ -187,10 +191,10 @@ async function applyPlan(zip, plan, o) {
       ON CONFLICT(corpus_id) DO UPDATE SET group_id=excluded.group_id,status='PILOT',updated_at=excluded.updated_at`, [o.corpusId, o.groupId, "study-songs", now, now]);
     for (const w of plan.works) {
       const bundleRel = path.posix.join("group-corpora", o.corpusId, "v1", "works", w.workId + ".json");
-      await run(db, `INSERT INTO group_corpus_works(corpus_id,work_id,text_key,position_no,title,artist,source_url,rights_status,bundle_path,bundle_sha256,rows_count,audio_count,notes_count,morph_count,source_updated_at,created_at,updated_at)
-        VALUES(?,?,?,?,?,?,NULL,'REVIEW_REQUIRED',?,?,?,?,?,?,NULL,?,?)
-        ON CONFLICT(corpus_id,work_id) DO UPDATE SET text_key=excluded.text_key,title=excluded.title,artist=excluded.artist,bundle_path=excluded.bundle_path,bundle_sha256=excluded.bundle_sha256,rows_count=excluded.rows_count,audio_count=excluded.audio_count,notes_count=excluded.notes_count,morph_count=excluded.morph_count,updated_at=excluded.updated_at`,
-        [o.corpusId,w.workId,w.textKey,w.positionNo,w.title,w.artist,bundleRel,w.bundleSha256,w.rowsCount,w.assets.length,w.notesCount,w.morphCount,now,now]);
+      await run(db, `INSERT INTO group_corpus_works(corpus_id,work_id,text_key,position_no,title,artist,source_url,rights_status,bundle_path,bundle_sha256,rows_count,audio_count,notes_count,morph_count,source_updated_at,created_at,updated_at,level,topic,tags_json,source_created_at)
+        VALUES(?,?,?,?,?,?,?,'REVIEW_REQUIRED',?,?,?,?,?,?,?,?,?,?,?,?,?)
+        ON CONFLICT(corpus_id,work_id) DO UPDATE SET text_key=excluded.text_key,title=excluded.title,artist=excluded.artist,source_url=excluded.source_url,bundle_path=excluded.bundle_path,bundle_sha256=excluded.bundle_sha256,rows_count=excluded.rows_count,audio_count=excluded.audio_count,notes_count=excluded.notes_count,morph_count=excluded.morph_count,source_updated_at=excluded.source_updated_at,level=excluded.level,topic=excluded.topic,tags_json=excluded.tags_json,source_created_at=excluded.source_created_at,updated_at=excluded.updated_at`,
+        [o.corpusId,w.workId,w.textKey,w.positionNo,w.title,w.artist,w.sourceUrl,bundleRel,w.bundleSha256,w.rowsCount,w.assets.length,w.notesCount,w.morphCount,w.sourceUpdatedAt,now,now,w.level,w.topic,w.tagsJson,w.sourceCreatedAt]);
       for (const a of w.assets) {
         const rel = path.posix.join("group-corpora", o.corpusId, "v1", "audio", a.key + ".mp3");
         const bytes = fs.statSync(path.resolve(o.dataDir, rel)).size;

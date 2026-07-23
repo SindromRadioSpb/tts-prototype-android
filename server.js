@@ -177,8 +177,9 @@ const AGENT_ACCESS_MCP_PATH = "/agent-access/mcp";
 // тяжёлого парса (тот же инвариант, что у webhook'а: unauth не должен заставлять сервер
 // парсить мегабайты). Роут монтирует свой 32mb-парсер ПОСЛЕ гейтов.
 const LEARNER_ARTIFACTS_PUT_PATH = "/api/learner/artifacts/put";
+const GROUP_CORPUS_IMPORT_RE = /^\/api\/group-corpora\/[^/]+\/import\/(catalog|backup)$/;
 const _globalJson = bodyParser.json({ limit: "10mb" });
-app.use((req, res, next) => ([TELEGRAM_WEBHOOK_PATH, AGENT_ACCESS_MCP_PATH, LEARNER_ARTIFACTS_PUT_PATH].includes(req.path) ? next() : _globalJson(req, res, next)));
+app.use((req, res, next) => ([TELEGRAM_WEBHOOK_PATH, AGENT_ACCESS_MCP_PATH, LEARNER_ARTIFACTS_PUT_PATH].includes(req.path) || GROUP_CORPUS_IMPORT_RE.test(req.path) ? next() : _globalJson(req, res, next)));
 
 // ── Content-Security-Policy: REPORT-ONLY rollout ───────────────────────────
 // index.html is inline-script/style heavy, so we can't enforce a strict CSP
@@ -3506,7 +3507,28 @@ function groupCorpusError(res, e) {
   if (["GROUP_CORPUS_NOT_FOUND", "GROUP_CORPUS_WORK_NOT_FOUND", "GROUP_CORPUS_AUDIO_NOT_FOUND", "GROUP_CORPUS_TIMING_NOT_FOUND"].includes(code))
     return res.status(404).json({ ok: false, error: code });
   if (code === "GROUP_CORPUS_FILE_INVALID") return res.status(500).json({ ok: false, error: code });
+  if (code === "GROUP_CORPUS_IMPORT_INVALID") return res.status(400).json({ ok: false, error: code });
   return res.status(500).json({ ok: false, error: "GROUP_CORPUS_FAILED" });
+}
+
+async function requireGroupCorpusOwner(req, res, next) {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try { req.groupCorpusOwner = { auth, corpus:await groupCorpusRepo.ownerCorpus(auth.user.id, req.params.corpusId) }; return next(); }
+  catch (e) { return groupCorpusError(res, e); }
+}
+function requireGroupCorpusOwnerCsrf(req,res,next) {
+  if (!req.groupCorpusOwner || !requireCsrf(req,res,req.groupCorpusOwner.auth)) return;
+  next();
+}
+function requireSameOriginUpload(req, res, next) {
+  const origin=String(req.headers.origin||"").trim(), referer=String(req.headers.referer||"").trim();
+  const host=String(req.headers.host||"").trim(), expected=(req.protocol||"https")+"://"+host;
+  if (origin && origin !== expected) return res.status(403).json({ok:false,error:"BAD_ORIGIN"});
+  if (!origin && referer && !referer.startsWith(expected+"/")) return res.status(403).json({ok:false,error:"BAD_REFERER"});
+  next();
+}
+function groupCorpusFileSha256(file) {
+  return new Promise((resolve,reject)=>{const h=crypto.createHash("sha256"),s=fs.createReadStream(file);s.on("error",reject);s.on("data",(b)=>h.update(b));s.on("end",()=>resolve(h.digest("hex")));});
 }
 
 app.get("/api/group-corpora", rlGroupCorpus, async (req, res) => {
@@ -3524,6 +3546,61 @@ app.get("/api/group-corpora/:corpusId/works", rlGroupCorpus, async (req, res) =>
     return res.json({ ok: true, schema_version: "group_corpus_catalog.1.0.0", ...out });
   } catch (e) { return groupCorpusError(res, e); }
 });
+
+app.get("/api/group-corpora/:corpusId/export/catalog", rlGroupCorpus, requireGroupCorpusOwner, async (req,res) => {
+  try {
+    const out=await groupCorpusRepo.listWorks(req.groupCorpusOwner.auth.user.id,req.params.corpusId);
+    res.setHeader("Cache-Control","private, no-store"); res.setHeader("Content-Disposition",`attachment; filename="${out.corpus.slug || "group-corpus"}-catalog.json"`);
+    return res.json({ok:true,schema_version:"group_corpus_catalog_backup.1.0.0",exported_at:new Date().toISOString(),corpus:out.corpus,works:out.works});
+  } catch(e){return groupCorpusError(res,e);}
+});
+
+app.post("/api/group-corpora/:corpusId/import/catalog",rlGroupCorpus,requireGroupCorpusOwner,requireGroupCorpusOwnerCsrf,requireSameOriginUpload,
+  express.json({limit:"2mb"}),async(req,res)=>{
+    try {
+      if(!req.body||req.body.schema_version!=="group_corpus_catalog_backup.1.0.0"||String(req.body.corpus&&req.body.corpus.corpus_id)!==String(req.params.corpusId))
+        return res.status(400).json({ok:false,error:"GROUP_CORPUS_IMPORT_INVALID"});
+      const out=await groupCorpusRepo.updateCatalogMetadata(req.groupCorpusOwner.auth.user.id,req.params.corpusId,req.body);
+      return res.json({ok:true,schema_version:"group_corpus_catalog_import_result.1.0.0",...out});
+    }catch(e){return groupCorpusError(res,e);}
+  });
+
+app.get("/api/group-corpora/:corpusId/export/backup",rlGroupCorpus,requireGroupCorpusOwner,async(req,res)=>{
+  try {
+    const auth=req.groupCorpusOwner.auth; const [inventory,catalog]=await Promise.all([
+      groupCorpusRepo.listBackupFiles(auth.user.id,req.params.corpusId),groupCorpusRepo.listWorks(auth.user.id,req.params.corpusId)]);
+    for(const f of inventory.files){const abs=groupCorpusRepo.privatePath(f.storage_path),st=await fs.promises.stat(abs);if(!st.isFile()||(f.bytes!=null&&st.size!==f.bytes)||(await groupCorpusFileSha256(abs))!==f.sha256)throw new Error("GROUP_CORPUS_FILE_INVALID");}
+    const manifest={schema_version:"group_corpus_backup.1.0.0",exported_at:new Date().toISOString(),corpus_id:inventory.corpus.corpus_id,files:inventory.files};
+    res.setHeader("Content-Type","application/zip"); res.setHeader("Cache-Control","private, no-store");
+    res.setHeader("Content-Disposition",`attachment; filename="${inventory.corpus.slug || "group-corpus"}-backup.zip"`);
+    const archive=archiver("zip",{zlib:{level:6}}); archive.on("error",(e)=>{if(!res.headersSent)groupCorpusError(res,e);else res.destroy(e);}); archive.pipe(res);
+    archive.append(JSON.stringify(manifest,null,2),{name:"manifest.json"});
+    archive.append(JSON.stringify({ok:true,schema_version:"group_corpus_catalog_backup.1.0.0",exported_at:manifest.exported_at,corpus:catalog.corpus,works:catalog.works},null,2),{name:"catalog.json"});
+    for(const f of inventory.files)archive.file(groupCorpusRepo.privatePath(f.storage_path),{name:f.archive_path});
+    archive.finalize();
+  }catch(e){return groupCorpusError(res,e);}
+});
+
+app.post("/api/group-corpora/:corpusId/import/backup",rlGroupCorpus,requireGroupCorpusOwner,requireGroupCorpusOwnerCsrf,requireSameOriginUpload,
+  express.raw({type:"application/zip",limit:"500mb"}),async(req,res)=>{
+    try {
+      if(!Buffer.isBuffer(req.body)||!req.body.length)return res.status(400).json({ok:false,error:"GROUP_CORPUS_IMPORT_INVALID"});
+      let zip;try{zip=new AdmZip(req.body);}catch(_){return res.status(400).json({ok:false,error:"GROUP_CORPUS_IMPORT_INVALID"});}
+      const me=zip.getEntry("manifest.json");if(!me)return res.status(400).json({ok:false,error:"GROUP_CORPUS_IMPORT_INVALID"});
+      let manifest;try{manifest=JSON.parse(me.getData().toString("utf8"));}catch(_){return res.status(400).json({ok:false,error:"GROUP_CORPUS_IMPORT_INVALID"});}
+      if(manifest.schema_version!=="group_corpus_backup.1.0.0"||String(manifest.corpus_id)!==String(req.params.corpusId)||!Array.isArray(manifest.files)||manifest.files.length>20000)
+        return res.status(400).json({ok:false,error:"GROUP_CORPUS_IMPORT_INVALID"});
+      const inventory=await groupCorpusRepo.listBackupFiles(req.groupCorpusOwner.auth.user.id,req.params.corpusId);
+      const supplied=new Map(manifest.files.map((f)=>[String(f.archive_path),f]));if(supplied.size!==inventory.files.length)return res.status(409).json({ok:false,error:"GROUP_CORPUS_BACKUP_MISMATCH"});
+      const verified=[];
+      for(const expected of inventory.files){const listed=supplied.get(expected.archive_path),entry=zip.getEntry(expected.archive_path);if(!listed||!entry||entry.isDirectory||listed.storage_path!==expected.storage_path||listed.sha256!==expected.sha256) return res.status(409).json({ok:false,error:"GROUP_CORPUS_BACKUP_MISMATCH"});
+        const data=entry.getData();if((expected.bytes!=null&&data.length!==expected.bytes)||crypto.createHash("sha256").update(data).digest("hex")!==expected.sha256)return res.status(409).json({ok:false,error:"GROUP_CORPUS_BACKUP_MISMATCH"}); verified.push({expected,data});}
+      let restored=0,already=0;
+      for(const {expected,data} of verified){const dest=groupCorpusRepo.privatePath(expected.storage_path);if(fs.existsSync(dest)){if(crypto.createHash("sha256").update(fs.readFileSync(dest)).digest("hex")!==expected.sha256)return res.status(409).json({ok:false,error:"GROUP_CORPUS_TARGET_MISMATCH"});already++;continue;}
+        await fs.promises.mkdir(path.dirname(dest),{recursive:true});const tmp=dest+".restore-"+process.pid;await fs.promises.writeFile(tmp,data,{flag:"wx"});await fs.promises.rename(tmp,dest);restored++;}
+      return res.json({ok:true,schema_version:"group_corpus_backup_import_result.1.0.0",restored,already});
+    }catch(e){return groupCorpusError(res,e);}
+  });
 
 app.get("/api/group-corpora/:corpusId/works/:workId", rlGroupCorpus, async (req, res) => {
   const auth = await requireUser(req, res); if (!auth) return;

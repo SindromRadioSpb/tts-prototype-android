@@ -171,3 +171,47 @@ write was made. The host is at 87% disk use, so an APPLY is blocked until bounde
 then requires owner selection of the voice/profile and a cost cap of at least 129 clips. The
 currently published revision remains r1; this deploy provides the safe replacement path, not new
 audio itself.
+
+## 11. P1 — premium library surface (v3.11.226)
+
+Владельцем утверждена UX-паритетность с Библиотекой Студии для закрытого песенного корпуса.
+Паритет означает одинаковую скорость поиска и возврата к чтению, но не перенос редакторских или
+опасных действий в поверхность участника.
+
+- Каталог: широкие вертикальные cards; Position, заголовок, исполнитель (без визуального дубля),
+  строки, фактическое audio-покрытие, активная TTS revision, теги и локальный progress bar.
+- Retrieval: поиск по title/artist/topic/level/tag/Position; фильтры status и audio coverage;
+  сортировка по исходному порядку, недавнему открытию, прогрессу и названию; tag chips; те же
+  восемь personal smart filters, что в Студии (`recent/struggling/mastered/fresh/notes/SRS`).
+- Действия: `Продолжить` появляется только при локальном `text_progress`; `Открыть` начинает с
+  начала; `Поделиться` создаёт deep link с `corpus_id/work_id`, но не содержит тела/аудио/token.
+  Получатель снова проходит session + ACTIVE membership; чужой/анонимный пользователь не может
+  определить существование корпуса по ссылке.
+- Learner overlay остаётся per-browser/per-user. Серверный общий слой не получает progress,
+  bookmarks, notes, FSRS/review_log или word_status. Изменение UI не меняет reader/TTS/караоке.
+- Миграция 058 добавляет только searchable projection (`level/topic/tags/source_created_at`) к
+  work-каталогу. Канон текста остаётся в protected bundle; backfill идемпотентно строит проекцию
+  из bundle после проверки SHA-256 и никогда не печатает copyrighted body.
+
+### Owner-only backup header
+
+Четыре действия видны только membership-role `OWNER`; для MEMBER DOM-кнопок нет.
+
+1. `Экспорт JSON` — каталоговые метаданные, без тел, аудио и learner-state.
+2. `Импорт JSON` — только полный exact-set существующих works; может обновить display metadata,
+   но не content bundle, TTS и learner-state. Session + OWNER + same-origin + CSRF обязательны.
+3. `Экспорт ZIP` — private backup всех зарегистрированных work/audio/timing файлов с manifest;
+   каждый файл проверяется по DB size/SHA-256 до начала ответа.
+4. `Импорт ZIP` — recovery-only: manifest должен точно совпасть с DB inventory и SHA-256; можно
+   восстановить отсутствующий файл, но существующий файл с другим hash не перезаписывается.
+
+ZIP остаётся restricted copyrighted material: не публиковать, не класть в git/public и не
+передавать участникам автоматически. Rollback P1: отключить owner import/export routes и вернуть
+старый renderer; migration 058 можно оставить (nullable additive columns), content/TTS/learner
+data не требуют обратной миграции.
+
+Локальные гейты: `smoke:group-song-corpus`, `smoke:group-corpus-api` (owner import/export,
+CSRF, anonymous deny, hash verification), `smoke:group-corpus-ui` (@380 light/dark + @1280),
+`smoke:i18n`, `smoke:studio-agent`, `smoke:reader-tier3-regression`, `test:api-smoke` — PASS.
+Перед production closure обязательны: migration 058, catalog backfill PLAN/APPLY, owner API/UI
+проверка, MEMBER UI (без backup header), anonymous/non-member negative checks и deep-link live.

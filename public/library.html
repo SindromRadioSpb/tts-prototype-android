@@ -756,6 +756,65 @@
     .mytexts-grid { display: flex; flex-direction: column; gap: 8px; }
     .mytexts-grid .mytext-card-v { width: auto; }
     .mytexts-empty { color: var(--text-faint); font-size: 14px; padding: 10px 2px; }
+    /* Restricted group corpus — premium library ledger. The content remains behind
+       membership-authenticated endpoints; this surface only adds local learner overlays. */
+    .group-corpus { max-width: 1120px; margin-inline: auto; }
+    .group-corpus-head { position: relative; padding: 4px 0 12px; }
+    .group-corpus-count { color: var(--text-secondary); font-size: 13px; font-weight: 700; margin-top: 6px; }
+    .group-corpus-admin { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; margin: 2px 0 12px; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--bg-muted); }
+    .group-admin-action { width: auto; appearance: none; cursor: pointer; border: 1px solid var(--border-soft); border-radius: 9px; padding: 8px 12px; background: var(--bg-card); color: var(--text-primary); font-size: 12px; font-weight: 750; }
+    .group-admin-action:hover, .group-admin-action:focus-visible { outline: none; border-color: var(--accent); color: var(--accent); }
+    .group-corpus-controls { display: grid; grid-template-columns: minmax(260px, 1fr) repeat(3, minmax(150px, auto)); gap: 8px; margin: 10px 0 8px; }
+    .group-corpus-controls .group-corpus-search { min-width: 0; width: 100%; box-sizing: border-box; }
+    .group-corpus-tags, .group-corpus-smart { width: 100%; max-width: 100%; overflow-x: auto; scrollbar-width: none; box-sizing: border-box; }
+    .group-corpus-tags { margin: 8px 0; }
+    .group-corpus-results { color: var(--text-faint); font-size: 12px; margin: 9px 2px; }
+    .group-corpus-grid { display: flex; flex-direction: column; gap: 10px; }
+    .group-work-card { background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 14px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(15,23,42,.05); }
+    .group-work-card:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border-soft)); }
+    .group-work-main { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
+    .group-work-position { flex: none; min-width: 34px; height: 28px; padding: 0 7px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; border-radius: 8px; background: var(--bg-muted); color: var(--text-secondary); font-size: 12px; font-weight: 800; }
+    .group-work-identity { min-width: 0; flex: 1; }
+    .group-work-title { margin: 0; color: var(--text-primary); font-size: 17px; line-height: 1.3; font-weight: 800; }
+    .group-work-title[dir="rtl"] { text-align: start; }
+    .group-work-artist { color: var(--text-secondary); font-size: 13px; margin-top: 3px; }
+    .group-work-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 11px 0 9px 46px; }
+    html[dir="rtl"] .group-work-meta { margin-left: 0; margin-right: 46px; }
+    .group-meta-chip { display: inline-flex; align-items: center; min-height: 24px; box-sizing: border-box; border: 1px solid var(--border-soft); border-radius: 999px; padding: 3px 8px; color: var(--text-secondary); background: var(--bg-muted); font-size: 11px; font-weight: 700; }
+    .group-meta-chip.ok { color: #166534; border-color: #bbf7d0; background: #f0fdf4; }
+    .group-meta-chip.warn { color: #92400e; border-color: #fde68a; background: #fffbeb; }
+    .group-meta-chip.tag { color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, var(--bg-card)); }
+    .group-work-progress { display: grid; grid-template-columns: minmax(100px, 1fr) auto; align-items: center; gap: 10px; margin-left: 46px; }
+    html[dir="rtl"] .group-work-progress { margin-left: 0; margin-right: 46px; }
+    .group-progress-track { height: 6px; border-radius: 999px; overflow: hidden; background: var(--bg-muted); }
+    .group-progress-fill { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+    .group-progress-label { color: var(--text-faint); font-size: 11px; white-space: nowrap; }
+    .group-work-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0 46px; }
+    html[dir="rtl"] .group-work-actions { margin-left: 0; margin-right: 46px; }
+    .group-action { width: auto; appearance: none; cursor: pointer; border: 1px solid var(--border-soft); border-radius: 9px; padding: 8px 13px; background: var(--bg-card); color: var(--text-primary); font-size: 13px; font-weight: 750; }
+    .group-action:hover, .group-action:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
+    .group-action.primary { color: #fff; background: var(--accent); border-color: var(--accent); }
+    .group-action.primary:hover, .group-action.primary:focus-visible { color: #fff; filter: brightness(1.05); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
+    .group-action.quiet { color: var(--text-secondary); }
+    @media (prefers-color-scheme: dark) {
+      body:not(.theme-light) .group-meta-chip.ok { color: #86efac; border-color: #166534; background: #052e16; }
+      body:not(.theme-light) .group-meta-chip.warn { color: #fcd34d; border-color: #92400e; background: #451a03; }
+    }
+    body.theme-dark .group-meta-chip.ok { color: #86efac; border-color: #166534; background: #052e16; }
+    body.theme-dark .group-meta-chip.warn { color: #fcd34d; border-color: #92400e; background: #451a03; }
+    @media (max-width: 760px) {
+      .group-corpus-controls { grid-template-columns: 1fr 1fr; }
+      .group-corpus-controls .group-corpus-search { grid-column: 1 / -1; }
+    }
+    @media (max-width: 480px) {
+      .group-corpus-controls { grid-template-columns: 1fr; }
+      .group-corpus-controls .group-corpus-search { grid-column: auto; }
+      .group-work-card { padding: 12px; }
+      .group-work-position { min-width: 30px; }
+      .group-work-meta, .group-work-progress, .group-work-actions { margin-left: 0; margin-right: 0; }
+      .group-work-actions .group-action { flex: 1 1 auto; min-height: 42px; }
+      .group-corpus-admin .group-admin-action { flex: 1 1 calc(50% - 4px); min-height: 42px; }
+    }
     /* Multi-corpus (B+C «витрина + линза»): L0 hub cards + the in-corpus switcher pill. */
     .hub-cards { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
     .hub-card {

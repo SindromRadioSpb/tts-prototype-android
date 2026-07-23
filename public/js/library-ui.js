@@ -49,6 +49,7 @@ let corpusRenderToken = 0;      // guards async renders against rapid navigation
 let corpusImporting = false;
 let groupCorpora = [];          // membership-filtered server catalogs (401 => absent, never public)
 const groupCatalogs = new Map();// corpus_id -> {corpus,works}
+const groupCorpusStates = new Map(); // per-corpus view state; never learner truth
 let readerGroupCorpusId = null; // selects protected audio transport for the open work
 const CORPUS_PAGE = 60;         // "показать ещё" page size for author/work lists
 
@@ -5543,7 +5544,7 @@ async function ensureGroupCatalog(corpusId) {
   return j;
 }
 
-async function openGroupCorpusWork(corpusId, card) {
+async function openGroupCorpusWork(corpusId, card, openOpts = {}) {
   if (!card || corpusImporting) return;
   corpusImporting = true;
   try {
@@ -5569,7 +5570,7 @@ async function openGroupCorpusWork(corpusId, card) {
       if (localId && wantEdition) { try { localStorage.setItem(editionKey, wantEdition); } catch (_) {} }
     }
     if (!localId) throw new Error('group work not resolvable after import');
-    await openReader(localId, card.title);
+    await openReader(localId, card.title, openOpts);
   } catch (e) {
     try { console.warn('[room] open group corpus work failed:', e); } catch (_) {}
     roomToast(tt('room.state.error', 'Не получилось открыть текст'));
@@ -6888,26 +6889,130 @@ async function renderGroupCorpus(corpusId, token) {
     { label: tt('room.hub.crumb', 'Библиотека'), onClick: () => corpusNavToCorpus('hub') },
     { label: (catalog.corpus && catalog.corpus.title) || 'Учебные песни' },
   ]));
-  const head = el('div', { class: 'hub-corpus-header' });
+  const head = el('div', { class: 'hub-corpus-header group-corpus-head' });
   head.appendChild(el('h2', { class: 'hub-corpus-title', text: '🎵 ' + ((catalog.corpus && catalog.corpus.title) || 'Учебные песни') }));
-  head.appendChild(el('p', { class: 'hub-card-desc', text: 'Закрытый учебный корпус вашей группы · доступ только участникам' }));
+  head.appendChild(el('p', { class: 'hub-card-desc', text: tt('room.groupCorpus.privateDesc', 'Закрытый учебный корпус вашей группы · доступ только участникам') }));
+  head.appendChild(el('div', { class: 'group-corpus-count', text: catalog.works.length + ' ' + tt('room.hub.textsN', 'текст(ов)') }));
   wrap.appendChild(head);
-  const grid = el('div', { class: 'mytexts-grid' });
-  for (const work of catalog.works) {
-    const card = el('div', { class: 'work-card', attrs: { role: 'button', tabindex: '0' } });
-    const title = el('span', { class: 'work-card-title', text: work.title || '' });
-    if (HEBREW_RE.test(work.title || '')) title.setAttribute('dir', 'rtl');
-    card.appendChild(title);
-    if (work.artist) card.appendChild(el('span', { class: 'work-card-author', text: work.artist }));
-    card.appendChild(el('span', { class: 'work-card-meta', text: (work.rows_count || 0) + ' строк · ♪ ' + (work.audio_count || 0) + ' · audio r' + (work.audio_revision || 1) }));
-    card.appendChild(el('span', { class: 'work-card-cta', text: tt('room.work.open', 'Открыть') }));
-    const open = () => openGroupCorpusWork(corpusId, work);
-    card.addEventListener('click', open);
-    card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
-    grid.appendChild(card);
+  if (catalog.corpus && catalog.corpus.role === 'OWNER') {
+    const admin=el('div',{class:'group-corpus-admin',attrs:{'aria-label':tt('room.groupCorpus.backupTools','Резервная копия корпуса')}});
+    const download=(kind)=>{const a=document.createElement('a');a.href='/api/group-corpora/'+encodeURIComponent(corpusId)+'/export/'+kind;a.download='';document.body.appendChild(a);a.click();a.remove();};
+    const adminBtn=(label,fn)=>{const b=el('button',{class:'group-admin-action',attrs:{type:'button'},text:label});b.addEventListener('click',fn);return b;};
+    admin.appendChild(adminBtn('📤 '+tt('room.groupCorpus.exportJson','Экспорт JSON'),()=>download('catalog')));
+    admin.appendChild(adminBtn('📤 '+tt('room.groupCorpus.exportZip','Экспорт ZIP (с аудио)'),()=>download('backup')));
+    const fileInput=el('input',{attrs:{type:'file',hidden:'',accept:'.json,.zip,application/json,application/zip'}});
+    const choose=(kind)=>{fileInput.value='';fileInput.dataset.kind=kind;fileInput.accept=kind==='catalog'?'.json,application/json':'.zip,application/zip';fileInput.click();};
+    admin.appendChild(adminBtn('📥 '+tt('room.groupCorpus.importJson','Импорт JSON'),()=>choose('catalog')));
+    admin.appendChild(adminBtn('📥 '+tt('room.groupCorpus.importZip','Импорт ZIP (с аудио)'),()=>choose('backup')));
+    fileInput.addEventListener('change',async()=>{const file=fileInput.files&&fileInput.files[0];if(!file)return;
+      if(!confirm(tt('room.groupCorpus.importConfirm','Импортировать выбранную резервную копию в этот серверный корпус? Личный прогресс участников не изменится.')))return;
+      const kind=fileInput.dataset.kind;try{let body,headers={};if(kind==='catalog'){body=await file.text();headers['Content-Type']='application/json';}else{body=await file.arrayBuffer();headers['Content-Type']='application/zip';}
+        try { headers['X-LP-CSRF']=localStorage.getItem('cloud.csrf')||''; } catch (_) {}
+        const res=await fetch('/api/group-corpora/'+encodeURIComponent(corpusId)+'/import/'+kind,{method:'POST',headers,body});const j=await res.json().catch(()=>({}));if(!res.ok)throw new Error(j.error||('HTTP '+res.status));
+        groupCatalogs.delete(corpusId);roomToast(tt('room.groupCorpus.importDone','Импорт завершён и проверен'));renderCorpus();
+      }catch(e){roomToast(tt('room.groupCorpus.importFailed','Импорт не выполнен')+': '+String(e&&e.message||e));}});
+    admin.appendChild(fileInput); wrap.appendChild(admin);
   }
-  if (!catalog.works.length) grid.appendChild(el('div', { class: 'room-state', text: tt('room.shelf.empty', 'Пока пусто') }));
-  wrap.appendChild(grid); main.appendChild(wrap);
+  let state = groupCorpusStates.get(corpusId);
+  if (!state) { state = { q:'', status:'all', audio:'all', sort:'position', tags:[], smart:'' }; groupCorpusStates.set(corpusId, state); }
+  let local = [];
+  try {
+    local = await localDb.dbQuery(`SELECT t.id,t.text_key,t.last_opened_at,t.created_at,t.updated_at,
+      tp.last_row_idx,tp.finished_at,(SELECT COUNT(*) FROM sentences s WHERE s.text_id=t.id) AS n_rows
+      FROM texts t LEFT JOIN text_progress tp ON tp.text_id=t.id WHERE t.is_archived=0`);
+  } catch (_) { local = []; }
+  let personal=null; try { personal=await ensurePersonalSets(); } catch (_) {}
+  if (token !== corpusRenderToken) return;
+  const byKey = new Map((local || []).filter((r) => r && r.text_key).map((r) => [String(r.text_key), r]));
+  const controls = el('div', { class: 'group-corpus-controls' });
+  const search = el('input', { class: 'corpus-search-input group-corpus-search', attrs: { type:'search',
+    placeholder:tt('room.groupCorpus.search','Поиск: название, исполнитель или тег'),
+    'aria-label':tt('room.groupCorpus.search','Поиск: название, исполнитель или тег') } });
+  search.value = state.q; controls.appendChild(search);
+  const mkSelect = (items, value, label, onChange) => {
+    const s = el('select', { class:'mytexts-select', attrs:{ 'aria-label':label } });
+    for (const [v, txt] of items) { const o=document.createElement('option'); o.value=v; o.textContent=txt; s.appendChild(o); }
+    s.value=value; s.addEventListener('change',()=>onChange(s.value)); return s;
+  };
+  controls.appendChild(mkSelect([
+    ['all',tt('room.groupCorpus.statusAll','Все статусы')],['new',tt('room.groupCorpus.statusNew','Не начаты')],
+    ['reading',tt('room.groupCorpus.statusReading','Читаю')],['finished',tt('room.groupCorpus.statusFinished','Прочитаны')],
+  ],state.status,tt('room.groupCorpus.statusLabel','Статус'),(v)=>{state.status=v;paint();}));
+  controls.appendChild(mkSelect([
+    ['all',tt('room.groupCorpus.audioAll','Любое аудио')],['full',tt('room.groupCorpus.audioFull','Озвучено полностью')],
+    ['partial',tt('room.groupCorpus.audioPartial','Озвучено частично')],['none',tt('room.groupCorpus.audioNone','Без аудио')],
+  ],state.audio,tt('room.groupCorpus.audioLabel','Аудио'),(v)=>{state.audio=v;paint();}));
+  controls.appendChild(mkSelect([
+    ['position',tt('room.groupCorpus.sortPosition','Порядок библиотеки')],['recent',tt('room.groupCorpus.sortRecent','Последние открытые')],
+    ['progress',tt('room.groupCorpus.sortProgress','По прогрессу')],['title',tt('room.groupCorpus.sortTitle','Название А–Я')],
+  ],state.sort,tt('room.corpus.sort.label','Сортировка'),(v)=>{state.sort=v;paint();}));
+  wrap.appendChild(controls);
+  const smartRail=el('div',{class:'corpus-sort mytexts-smart group-corpus-smart',attrs:{title:tt('room.corpus.personalHint','Фильтры по вашей активности — работы, открытые на этом устройстве')}});
+  const SMART=[
+    ['recent','room.mytexts.smartRecent','⏱ Недавние'],['struggling','room.mytexts.smartStruggling','🔥 Сложные'],
+    ['mastered','room.mytexts.smartMastered','✓ Освоено'],['fresh','room.mytexts.smartNew','✨ Новые'],
+    ['with-note','room.mytexts.smartWithNote','📝 С заметкой'],['audio-noted','room.mytexts.smartAudio','📍 Audio-noted'],
+    ['srs-noted','room.mytexts.smartSrs','🎯 SRS-noted'],['templated','room.mytexts.smartTemplated','⭐ Templated'],
+  ];
+  const renderSmart=()=>{smartRail.textContent='';for(const [key,i18nKey,fb] of SMART){const active=state.smart===key,b=el('button',{class:'corpus-sort-btn'+(active?' on':''),attrs:{type:'button','aria-pressed':String(active),'data-smart':key},text:tt(i18nKey,fb)});b.addEventListener('click',()=>{state.smart=active?'':key;renderSmart();paint();});smartRail.appendChild(b);}};
+  renderSmart(); wrap.appendChild(smartRail);
+  const tagCounts = new Map();
+  for (const w of catalog.works) for (const tag of (w.tags || [])) tagCounts.set(String(tag),(tagCounts.get(String(tag))||0)+1);
+  const tagRail = el('div',{class:'corpus-sort group-corpus-tags'});
+  for (const [tag,count] of Array.from(tagCounts.entries()).sort((a,b)=>b[1]-a[1]).slice(0,12)) {
+    const active=state.tags.includes(tag); const b=el('button',{class:'corpus-sort-btn'+(active?' on':''),attrs:{type:'button','aria-pressed':String(active)}});
+    b.textContent='#'+tag+' · '+count; b.addEventListener('click',()=>{state.tags=active?state.tags.filter((x)=>x!==tag):state.tags.concat(tag);renderTags();paint();}); tagRail.appendChild(b);
+  }
+  const renderTags=()=>{ const fresh=tagRail.cloneNode(false); for (const [tag,count] of Array.from(tagCounts.entries()).sort((a,b)=>b[1]-a[1]).slice(0,12)) { const active=state.tags.includes(tag); const b=el('button',{class:'corpus-sort-btn'+(active?' on':''),attrs:{type:'button','aria-pressed':String(active)}}); b.textContent='#'+tag+' · '+count; b.addEventListener('click',()=>{state.tags=active?state.tags.filter((x)=>x!==tag):state.tags.concat(tag);renderTags();paint();}); fresh.appendChild(b); } tagRail.replaceChildren(...fresh.childNodes); };
+  if (tagCounts.size) wrap.appendChild(tagRail);
+  const resultLine=el('div',{class:'group-corpus-results'}); wrap.appendChild(resultLine);
+  const grid = el('div', { class: 'group-corpus-grid' }); wrap.appendChild(grid); main.appendChild(wrap);
+
+  const workStatus=(p)=>p && p.finished_at ? 'finished' : (p && Number(p.last_row_idx)>0 ? 'reading' : 'new');
+  const workAudio=(w)=>Number(w.audio_count)<=0?'none':(Number(w.audio_count)>=Number(w.rows_count)&&Number(w.rows_count)>0?'full':'partial');
+  const progressPct=(w,p)=>p&&Number(p.last_row_idx)>0&&Number(w.rows_count)>0?Math.min(100,Math.round((Number(p.last_row_idx)+1)*100/Number(w.rows_count))):0;
+  function shareWork(work) {
+    const u=new URL(location.href); u.search=''; u.hash=''; u.searchParams.set('group_corpus',corpusId); u.searchParams.set('group_work',work.work_id);
+    const data={title:work.title||'',text:tt('room.groupCorpus.shareText','Текст из закрытого учебного корпуса'),url:u.toString()};
+    if (navigator.share) navigator.share(data).catch(()=>{});
+    else if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(data.url).then(()=>roomToast(tt('room.groupCorpus.linkCopied','Защищённая ссылка скопирована'))).catch(()=>roomToast(data.url));
+    else roomToast(data.url);
+  }
+  function renderCard(work) {
+    const p=byKey.get(String(work.text_key)); const status=workStatus(p); const pct=progressPct(work,p);
+    const card=el('article',{class:'group-work-card',attrs:{'data-status':status}});
+    const top=el('div',{class:'group-work-main'});
+    const pos=el('span',{class:'group-work-position',text:work.position_no==null?'—':String(work.position_no)}); top.appendChild(pos);
+    const identity=el('div',{class:'group-work-identity'}); const title=el('h3',{class:'group-work-title',text:work.title||''});
+    if(HEBREW_RE.test(work.title||''))title.setAttribute('dir','rtl'); identity.appendChild(title);
+    if(work.artist&&!String(work.title||'').startsWith(String(work.artist))){const artist=el('div',{class:'group-work-artist',text:work.artist});if(HEBREW_RE.test(work.artist))artist.setAttribute('dir','rtl');identity.appendChild(artist);} top.appendChild(identity); card.appendChild(top);
+    const meta=el('div',{class:'group-work-meta'});
+    meta.appendChild(el('span',{class:'group-meta-chip',text:(work.rows_count||0)+' '+tt('room.groupCorpus.rows','строк')}));
+    meta.appendChild(el('span',{class:'group-meta-chip '+(workAudio(work)==='full'?'ok':workAudio(work)==='partial'?'warn':''),text:'♪ '+(work.audio_count||0)+'/'+(work.rows_count||0)}));
+    meta.appendChild(el('span',{class:'group-meta-chip',text:'TTS r'+(work.audio_revision||1)}));
+    for(const tag of (work.tags||[]).slice(0,3))meta.appendChild(el('span',{class:'group-meta-chip tag',text:'#'+tag})); card.appendChild(meta);
+    const progress=el('div',{class:'group-work-progress'}); const track=el('div',{class:'group-progress-track'}); track.appendChild(el('span',{class:'group-progress-fill',attrs:{style:'width:'+pct+'%'}})); progress.appendChild(track);
+    progress.appendChild(el('span',{class:'group-progress-label',text:status==='finished'?tt('room.groupCorpus.finished','Прочитано'):status==='reading'?pct+'% · '+tt('room.groupCorpus.inProgress','в процессе'):tt('room.groupCorpus.notStarted','не начато')})); card.appendChild(progress);
+    const actions=el('div',{class:'group-work-actions'});
+    if(status==='reading'){const cont=el('button',{class:'group-action primary',attrs:{type:'button'},text:tt('room.resume.continue','Продолжить')});cont.addEventListener('click',()=>openGroupCorpusWork(corpusId,work,{resume:true}));actions.appendChild(cont);}
+    const open=el('button',{class:'group-action',attrs:{type:'button'},text:tt('room.groupCorpus.open','Открыть')});open.addEventListener('click',()=>openGroupCorpusWork(corpusId,work,{resume:false}));actions.appendChild(open);
+    const share=el('button',{class:'group-action quiet',attrs:{type:'button'},text:'🔗 '+tt('room.groupCorpus.share','Поделиться')});share.addEventListener('click',()=>shareWork(work));actions.appendChild(share); card.appendChild(actions); return card;
+  }
+  function paint(){
+    const q=String(state.q||'').trim().toLocaleLowerCase(); let found=catalog.works.filter((w)=>{
+      const p=byKey.get(String(w.text_key)); if(state.status!=='all'&&workStatus(p)!==state.status)return false;
+      if(state.audio!=='all'&&workAudio(w)!==state.audio)return false;
+      if(state.tags.length&&!state.tags.every((t)=>(w.tags||[]).map(String).includes(t)))return false;
+      if(state.smart){const id=personal&&personal.idByKey.get(String(w.text_key));if(!id)return false;if(state.smart==='recent'){const opened=personal.lastOpenedByKey.get(String(w.text_key));if(!opened||Date.parse(opened)<Date.now()-7*24*3600*1000)return false;}else if(!(personal.smart[state.smart]&&personal.smart[state.smart].has(String(id))))return false;}
+      if(!q)return true; return [w.title,w.artist,w.topic,w.level,(w.tags||[]).join(' '),w.position_no].join(' ').toLocaleLowerCase().includes(q);
+    });
+    const opened=(w)=>{const p=byKey.get(String(w.text_key));return Date.parse(p&&p.last_opened_at||'')||0;};
+    found=found.slice().sort(state.sort==='recent'?(a,b)=>opened(b)-opened(a):state.sort==='progress'?(a,b)=>progressPct(b,byKey.get(String(b.text_key)))-progressPct(a,byKey.get(String(a.text_key))):state.sort==='title'?(a,b)=>String(a.title||'').localeCompare(String(b.title||''),'he'):(a,b)=>(Number(a.position_no)||9999)-(Number(b.position_no)||9999));
+    grid.textContent=''; for(const work of found)grid.appendChild(renderCard(work)); if(!found.length)grid.appendChild(el('div',{class:'mytexts-empty',text:tt('room.mytexts.empty','Ничего не найдено')}));
+    resultLine.textContent=tt('room.groupCorpus.found','Найдено')+': '+found.length+' / '+catalog.works.length;
+  }
+  let timer=null; search.addEventListener('input',()=>{state.q=search.value||'';if(timer)clearTimeout(timer);timer=setTimeout(paint,120);}); paint();
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
 // ── Multi-corpus surface (owner-approved B+C: hub-витрина + switcher-линза) ─────────────────
@@ -7002,8 +7107,8 @@ async function renderCorpusHub(token) {
   for (const gc of groupCorpora) {
     const card = el('div', { class: 'hub-card', attrs: { role: 'button', tabindex: '0', 'data-corpus': 'group:' + gc.corpus_id } });
     card.appendChild(el('div', { class: 'hub-card-title', text: '🎵 ' + (gc.title || 'Учебные песни') }));
-    card.appendChild(el('p', { class: 'hub-card-desc', text: 'Закрытый учебный корпус вашей группы' }));
-    card.appendChild(el('div', { class: 'hub-card-counts', text: (gc.works_count || 0) + ' текст(ов) · ' + (gc.role === 'OWNER' ? 'владелец' : 'участник') }));
+    card.appendChild(el('p', { class: 'hub-card-desc', text: tt('room.groupCorpus.hubDesc', 'Закрытый учебный корпус вашей группы') }));
+    card.appendChild(el('div', { class: 'hub-card-counts', text: (gc.works_count || 0) + ' ' + tt('room.hub.textsN', 'текст(ов)') + ' · ' + (gc.role === 'OWNER' ? tt('room.groupCorpus.owner','владелец') : tt('room.groupCorpus.member','участник')) }));
     const open = () => corpusNavToCorpus('group:' + gc.corpus_id);
     card.addEventListener('click', open);
     card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
@@ -8521,6 +8626,27 @@ async function boot() {
       activeTrack = 'literary';
     }
     setActiveTrack(activeTrack);
+    // Protected group-corpus deep link. The URL carries identifiers only; both
+    // catalog and bundle requests still require a live session + ACTIVE group
+    // membership. Unknown/inaccessible ids deliberately collapse to one generic
+    // message so corpus membership cannot be enumerated.
+    try {
+      const qp = new URLSearchParams(location.search);
+      const groupCorpusId = qp.get('group_corpus');
+      const groupWorkId = qp.get('group_work');
+      if (groupCorpusId && groupWorkId) {
+        const allowed = groupCorpora.some((c) => String(c.corpus_id) === String(groupCorpusId));
+        if (!allowed) roomToast(tt('room.groupCorpus.linkUnavailable', 'Ссылка недоступна: войдите как участник учебной группы'));
+        else {
+          activeTrack = 'corpus'; setActiveTrack(activeTrack);
+          corpusNavToCorpus('group:' + groupCorpusId);
+          const groupCatalog = await ensureGroupCatalog(groupCorpusId);
+          const groupWork = groupCatalog.works.find((w) => String(w.work_id) === String(groupWorkId));
+          if (groupWork) await openGroupCorpusWork(groupCorpusId, groupWork, { resume:true });
+          else roomToast(tt('room.groupCorpus.linkUnavailable', 'Ссылка недоступна: войдите как участник учебной группы'));
+        }
+      }
+    } catch (_) {}
     try { refreshDueBadge(); } catch (_) {}   // D2 — surface the «🔁 К повторению» home CTA on first load
     refreshAgentProposalsChip();   // AA4-4b — pending agent proposals (quiet-fail without a session)
     backfillZombieMarkSeeds().then(() => r4HealDrain());   // R3.1 seeds → R4a heals (fire-and-forget chain)

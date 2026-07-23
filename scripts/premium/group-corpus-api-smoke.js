@@ -1,0 +1,27 @@
+#!/usr/bin/env node
+"use strict";
+const assert=require("assert"),fs=require("fs"),os=require("os"),path=require("path"),crypto=require("crypto"),sqlite3=require("sqlite3");
+const {spawn,spawnSync}=require("child_process");
+const ROOT=path.resolve(__dirname,"..",".."),PORT=3301,BASE=`http://127.0.0.1:${PORT}`,tmp=fs.mkdtempSync(path.join(os.tmpdir(),"lp-group-api-")),data=path.join(tmp,"data"),dbPath=path.join(data,"app.db"),secret="group-corpus-api-smoke-secret";
+const sha=(b)=>crypto.createHash("sha256").update(b).digest("hex"),sleep=(n)=>new Promise((r)=>setTimeout(r,n));
+const open=(f)=>new Promise((resolve,reject)=>{const d=new sqlite3.Database(f,(e)=>e?reject(e):resolve(d));});
+const run=(d,s,p=[])=>new Promise((resolve,reject)=>d.run(s,p,(e)=>e?reject(e):resolve()));
+const close=(d)=>new Promise((r)=>d.close(r));
+async function ready(){for(let i=0;i<100;i++){try{const r=await fetch(BASE+"/healthz"),j=await r.json();if(r.ok&&j.db&&j.db.ready&&j.migrations&&j.migrations.ready)return true;}catch(_){}await sleep(150);}return false;}
+async function stop(c){if(!c||c.killed)return;c.kill("SIGTERM");const done=await new Promise((r)=>{const t=setTimeout(()=>r(false),5000);c.once("exit",()=>{clearTimeout(t);r(true);});});if(!done&&process.platform==="win32")spawnSync("taskkill",["/PID",String(c.pid),"/T","/F"],{stdio:"ignore"});}
+(async()=>{fs.mkdirSync(data,{recursive:true});const srv=spawn(process.execPath,["server.js"],{cwd:ROOT,env:{...process.env,PORT:String(PORT),DATA_DIR:data,DB_PATH:dbPath,AUTH_BOOTSTRAP_SECRET:secret},stdio:["ignore","pipe","pipe"]});let logs="";srv.stdout.on("data",(x)=>logs+=x);srv.stderr.on("data",(x)=>logs+=x);
+ try{assert.ok(await ready(),logs);let r=await fetch(BASE+"/api/auth/bootstrap-login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({secret})});const login=await r.json();assert.strictEqual(r.status,200,JSON.stringify(login)+"\n"+logs);const cookie=String(r.headers.get("set-cookie")||"").split(";")[0];assert.ok(cookie&&login.csrf&&login.user.id);
+  const bundle=Buffer.from(JSON.stringify({library:{texts:[{text_key:"fixture-key",title:"Fixture",rows:[]}],audio_assets:[]},notes_advanced:{}})),audio=Buffer.from("synthetic-audio");
+  const workRel="group-corpora/fixture-corpus/v1/works/song-1.json",audioRel="group-corpora/fixture-corpus/v1/audio/"+sha(audio)+".mp3";fs.mkdirSync(path.dirname(path.join(data,workRel)),{recursive:true});fs.mkdirSync(path.dirname(path.join(data,audioRel)),{recursive:true});fs.writeFileSync(path.join(data,workRel),bundle);fs.writeFileSync(path.join(data,audioRel),audio);
+  const d=await open(dbPath),now=new Date().toISOString();await run(d,"INSERT INTO reading_groups VALUES(?,?,'Fixture','ACTIVE',?,?)",["fixture-group",login.user.id,now,now]);await run(d,"INSERT INTO reading_group_members VALUES(?,?, 'OWNER','ACTIVE',?,?,NULL)",["fixture-group",login.user.id,now,now]);await run(d,"INSERT INTO group_corpora VALUES(?,'fixture-group','fixture','Fixture corpus','GROUP_RESTRICTED',1,'PILOT','EDUCATIONAL_GROUP_RESTRICTED_REVIEW_REQUIRED',?,?)",["fixture-corpus",now,now]);
+  await run(d,`INSERT INTO group_corpus_works(corpus_id,work_id,text_key,position_no,title,artist,source_url,rights_status,bundle_path,bundle_sha256,rows_count,audio_count,notes_count,morph_count,source_updated_at,created_at,updated_at,audio_revision,audio_profile_json,audio_published_at,level,topic,tags_json,source_created_at) VALUES('fixture-corpus','song-1','fixture-key',1,'Fixture song','Fixture artist',NULL,'REVIEW_REQUIRED',?,?,1,1,0,0,?,?,?,1,NULL,NULL,'A1','fixture','["fixture"]',?)`,[workRel,sha(bundle),now,now,now,now]);
+  await run(d,`INSERT INTO group_corpus_audio(corpus_id,work_id,asset_key,relative_path,bytes,sha256,mime,created_at,revision) VALUES('fixture-corpus','song-1',?,?,?,?,'audio/mpeg',?,1)`,[sha(audio),audioRel,audio.length,sha(audio),now]);await close(d);
+  const H={Cookie:cookie};r=await fetch(BASE+"/api/group-corpora/fixture-corpus/export/catalog",{headers:H});assert.strictEqual(r.status,200);const catalog=await r.json();assert.strictEqual(catalog.works.length,1);assert.deepStrictEqual(catalog.works[0].tags,["fixture"]);
+  r=await fetch(BASE+"/api/group-corpora/fixture-corpus/import/catalog",{method:"POST",headers:{...H,"Content-Type":"application/json",Origin:BASE},body:JSON.stringify(catalog)});assert.strictEqual(r.status,403,"catalog import accepted without CSRF");
+  r=await fetch(BASE+"/api/group-corpora/fixture-corpus/import/catalog",{method:"POST",headers:{...H,"Content-Type":"application/json","X-LP-CSRF":login.csrf,Origin:BASE},body:JSON.stringify(catalog)});assert.strictEqual(r.status,200,await r.text());
+  r=await fetch(BASE+"/api/group-corpora/fixture-corpus/export/backup",{headers:H});assert.strictEqual(r.status,200);const backup=await r.arrayBuffer();assert.ok(backup.byteLength>audio.length);
+  r=await fetch(BASE+"/api/group-corpora/fixture-corpus/import/backup",{method:"POST",headers:{...H,"Content-Type":"application/zip","X-LP-CSRF":login.csrf,Origin:BASE},body:backup});assert.strictEqual(r.status,200,await r.text());
+  r=await fetch(BASE+"/api/group-corpora/fixture-corpus/export/catalog");assert.strictEqual(r.status,401);
+  console.log("group-corpus-api-smoke: PASS (owner export/import + CSRF + anonymous deny + hashes)");
+ }finally{await stop(srv);fs.rmSync(tmp,{recursive:true,force:true});}
+})().catch((e)=>{console.error(e&&e.stack||e);process.exit(1);});
