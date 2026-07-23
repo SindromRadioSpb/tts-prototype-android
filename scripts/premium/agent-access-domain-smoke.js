@@ -328,6 +328,12 @@ async function expectCode(promise, code) {
     assert.ok(/propProvenance/.test(panelSource), "proposal provenance label missing from panel");
     checks++;
 
+    // Existing connection schema is intentionally frozen. H2+ scopes are
+    // additive tools and OAuth metadata, never a mutation of this old enum.
+    assert.strictEqual(mcpSchemas.OUTPUT_SCHEMAS.get_agent_connection.properties.granted_scopes.maxItems, 16);
+    assert.strictEqual(mcpSchemas.OUTPUT_SCHEMAS.get_agent_connection.properties.granted_scopes.items.enum.length, 16);
+    checks++;
+
     // Consent convenience remains explicit and auditable: the bulk action only
     // checks the visible requested scopes; it never checks the retention ack.
     const panelHtml = fs.readFileSync(path.join(root, "public/agent-access.html"), "utf8");

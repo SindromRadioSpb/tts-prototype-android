@@ -173,7 +173,7 @@ const OUTPUT_SCHEMAS = Object.freeze({
   get_agent_connection: closedObject({
     schema_version: string({ const: "aa.connection.1.0.0" }), connection_id: id, oauth_client_id: id,
     client_display_name: string({ maxLength: 120 }), connection_status: connectionState,
-    granted_scopes: Object.freeze({ type: "array", maxItems: CONNECTION_SCHEMA_SCOPES.length, uniqueItems: true, items: scope }), access_expires_at: timestamp,
+    granted_scopes: Object.freeze({ type: "array", maxItems: 16, uniqueItems: true, items: scope }), access_expires_at: timestamp,
     consent_version: id, capability_version: string({ const: "aa-v0.1" }),
     downstream_retention_notice: string({ const: "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO" }), generated_at: timestamp,
   }),
