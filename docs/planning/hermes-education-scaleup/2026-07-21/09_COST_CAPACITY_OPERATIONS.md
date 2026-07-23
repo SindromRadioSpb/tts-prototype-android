@@ -13,7 +13,7 @@
 | kaikki JSONL | датасет 52 МБ | часы (скачивание+индекс) | 0 | ~1 ГБ диска | n/a | нет | слова нет → «нет в Викисловаре» | сам датасет | вручную, ≤1/квартал, манифест |
 | wordfreq | pip-пакет | минуты | 0 | ~50 МБ | n/a | нет | n/a | n/a | pip |
 | Dicta Nakdan | REST, free public | дни (серверная интеграция) | 0 (public) | 0 | ≤1 req/s, on-demand only | нет | NAKDAN_UNAVAILABLE → текст без никуда (валидно) | результат при тексте | их сторона |
-| ivrit.ai ASR (локальный) | self-host модель | дни (faster-whisper+CT2+обёртка) | 0 | ~2–3 ГБ диска; CPU: порядка 1–2× реалтайма на 4 ядрах (замер в H2.5) | n/a | нет (HF-скачивание весов) | ASR умер → текстовая сессия | модель на диске | вручную при новых релизах |
+| ivrit.ai ASR (локальный) | self-host модель | дни (faster-whisper+CT2+обёртка) | 0 | H2.5 факт: модель 1.62 ГБ + runtime 519 МБ; Ryzen 5600G CPU int8/6 threads: RTF 1.393 (120s normal), 1.635 (30s clean), 1.637 (30s noisy) | n/a | нет (HF-скачивание весов) | ASR умер → текстовая сессия | модель на диске | вручную при новых релизах; HF revision+hash manifest |
 | Spotify MCP (Д2) | OAuth, Premium | часы | подписка владельца | ~0 | API-лимиты Spotify | dev-app владельца | петля без него живёт (LRCLIB/YouTube) | — | — |
 | Gemini Live (H3-C2) | metered cloud | дни (websocket-клиент) | $/мин аудио — конверт задаёт владелец ДО старта чартера | 0 | квоты API | AGENT_GEMINI_API_KEY (строго, R16) | async-петля | n/a | — |
 | ElevenLabs (Д4) | metered cloud | — | $/1K символов | 0 | квоты | ключ владельца | продуктовый Google TTS (уже есть) | — | не подключать без Д4 |

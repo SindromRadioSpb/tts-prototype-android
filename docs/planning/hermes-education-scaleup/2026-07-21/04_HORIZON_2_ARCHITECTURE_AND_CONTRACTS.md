@@ -182,7 +182,7 @@ get_current_goal Output: `{ schema_version:"aa.current_goal.1.0.0", goal?: { sta
 
 ## 5. ivrit.ai ASR MCP (H2.5) — Hermes-side, локальный
 
-- Что: faster-whisper + CT2-веса `ivrit-ai/whisper-large-v3-turbo`, FastMCP-обёртка, ставится на
+- Что: faster-whisper + CT2-веса `ivrit-ai/whisper-large-v3-turbo-ct2`, FastMCP-обёртка, ставится на
   хост/в контейнер рядом с Hermes. LinguistPro-кода нет.
 - Инструмент `transcribe_audio`: Input `{ file_path: string (внутри voice-inbox), language:"he" }` →
   Output `{ schema_version:"asr.transcribe.1.0.0", text, segments:[{start_s,end_s,text,avg_logprob}],

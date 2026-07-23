@@ -1,0 +1,19 @@
+mcp_servers:
+  ivrit_asr:
+    command: /bin/sh
+    args:
+      - -lc
+      - 'exec "${HERMES_HOME:-$HOME/.hermes}/mcp-runtimes/asr-py312/bin/python" /workspace/mcp-servers/ivrit-asr/ivrit_asr_mcp.py'
+    env:
+      IVRIT_ASR_INBOX: /workspace/voice-inbox
+      IVRIT_ASR_MODEL_DIR: /workspace/models/ivrit-ai-whisper-large-v3-turbo-ct2
+      IVRIT_ASR_CPU_THREADS: "6"
+    enabled: true
+    supports_parallel_tool_calls: false
+    timeout: 300
+    connect_timeout: 30
+    tools:
+      include:
+        - transcribe_audio
+      resources: false
+      prompts: false
