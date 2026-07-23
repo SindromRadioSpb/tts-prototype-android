@@ -4,7 +4,7 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-23 (H2.1 CLOSED; H2.2 IN_PROGRESS; parallel H1 monitoring ACTIVE).
+Обновлено: 2026-07-23 (H2.1 CLOSED; H2.2 ENGINEERING_COMPLETE; owner-live pending; parallel H1 monitoring ACTIVE).
 
 ## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
@@ -29,7 +29,7 @@
 | Слайс | Промт | Статус |
 |---|---|---|
 | H2.1 get_word_morphology | prompts/H2_01_GET_WORD_MORPHOLOGY.md | CLOSED |
-| H2.2 get_text_coverage | prompts/H2_02_GET_TEXT_COVERAGE.md | IN_PROGRESS |
+| H2.2 get_text_coverage | prompts/H2_02_GET_TEXT_COVERAGE.md | ENGINEERING_COMPLETE |
 | H2.3 W1-семейство + goal-store | prompts/H2_03_W1_PROPOSE_FAMILY.md | BLOCKED |
 | H2.4 Dicta Nakdan | prompts/H2_04_DICTA_NAKDAN.md | BLOCKED |
 | H2.5 ivrit.ai ASR MCP | prompts/H2_05_IVRIT_AI_ASR.md | BLOCKED |
@@ -85,3 +85,4 @@
 | 2026-07-23 | H2.1 first deploy blocked by pre-existing full production disk; bounded cleanup kept active + two rollback app images, removed 12 inactive H1 doc-build images and inactive build cache; disk 100%→64%, Coolify/DB healthy; deploy retry queued | Codex |
 | 2026-07-23 | H2.1 deployed as `a3684ec` / `3.11.222`; DB+migrations ready, protected-resource metadata has 16 scopes + `morphology.read`; Hermes restarted with 17 selected/discovered tools and H2.1 SOUL rule; pre-consent live call honestly returns INSUFFICIENT_SCOPE; fresh owner consent card opened | Codex |
 | 2026-07-23 | H2.1 consent + owner-live PASS: owner selected all 16 scopes; token exchange 200; live Hermes-SDK call returned EXACT `לכתוב` from `pealim-infl-v12`; fresh ordinary Hermes chat called `get_word_morphology` for `כשתבוא`, returned grounded lemma/root/binyan/future/singular/vocalized form and explicitly refused to invent absent `person`; H2.1 CLOSED, H2.2 → PLANNED without invented numeric rating | владелец / Codex |
+| 2026-07-23 | H2.2 engineering + production PASS: 18th tool deployed at `2209fff`; owner approved all 17 scopes and reissued the connection-bound personal-text grant; live Hermes-SDK calls returned `OK` for complete Ben-Yehuda work and complete synced personal text; ordinary fresh-chat owner-live remains | владелец / Codex |

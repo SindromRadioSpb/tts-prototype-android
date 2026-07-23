@@ -73,5 +73,23 @@ unchanged and continues to omit post-cache H2 scopes.
 
 ## Production, Hermes, consent, owner-live
 
-Pending. H2.2 remains `IN_PROGRESS` and cannot be marked `CLOSED` before deploy, fresh 17-scope
-consent, an ordinary new Hermes session, and the owner-live two-choice reading check.
+Implementation commits `679deda` and repair `2209fff` were pushed to `main`. Coolify deployed
+`2209fff7be3572f7f9f0abb6737964c045f95f11`; `/healthz` reported app/DB/migrations ready and
+client version `3.11.223`. OAuth protected-resource metadata exposes 17 scopes including
+`learner.coverage.read`.
+
+Hermes config selects 18 LinguistPro tools and carries the mandatory H2.2 policy. Both
+`hermes-agent` and `hermes-webui` were restarted; WebUI became healthy with zero active sessions.
+The owner approved all 17 scopes; token exchange returned 200 and the stored scope set contains
+exactly 17 scopes. Re-auth correctly invalidated the old connection-bound body grant, and the owner
+issued a new personal-text grant.
+
+Live Hermes-SDK evidence (no token, personal title/key/body, grade or raw FSRS field printed):
+
+```json
+{"source":"BEN_YEHUDA_BAKED_CORPUS","work_id":"10","status":"OK","token_total":1734,"token_known_pct":24,"lemma_known_pct":9,"content_word_known_pct":13,"recommendation_band":"FRUSTRATION_BELOW_90","learner_projection_version":"review-log-keyer-v1+fsrs6-core-v2+stale-engine-filter-v1"}
+{"source":"OWNER_SYNCED_PERSONAL_TEXT","catalog_ok":true,"status":"OK","token_total":226,"token_known_pct":45,"lemma_known_pct":30,"content_word_known_pct":38,"recommendation_band":"FRUSTRATION_BELOW_90"}
+```
+
+Both required source classes are therefore live through Hermes. H2.2 is `ENGINEERING_COMPLETE`;
+an ordinary fresh-chat owner-live request for at least two measured choices remains before `CLOSED`.
