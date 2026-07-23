@@ -4,7 +4,7 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-23 (H2.1–H2.2 CLOSED; H2.3 DEFERRED by owner; Group Song Corpus P0 OWNER_LIVE; parallel H1 monitoring ACTIVE).
+Обновлено: 2026-07-23 (H2.1–H2.2 CLOSED; H2.3 DEFERRED; Group Song Corpus owner-live content PASS, P0.1 replaceable karaoke edition IN_PROGRESS; H1 monitor ACTIVE).
 
 ## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
@@ -89,3 +89,4 @@
 | 2026-07-23 | H2.2 owner-live PASS: fresh ordinary Hermes chat measured one synced personal text and one READY Ben-Yehuda work via `get_text_coverage`, reported token/lemma/content-word percentages and honest `FRUSTRATION_BELOW_90` bands, then recommended the numerically closer option without inventing 95–98%; H2.2 CLOSED, H2.3 → PLANNED | владелец / Codex |
 | 2026-07-23 | H2.3 measure-before-code: import/track mutation truth is OPFS-local, so server-side W1 could not preserve consent/data integrity. Owner deferred personal-text mutations and approved separate closed Group Song Corpus P0 from the supplied SHA-pinned backup. Local implementation+synthetic security smoke PASS; prod import and owner+second-member live remain pending | владелец / Codex |
 | 2026-07-23 | Group Song Corpus P0 deployed `2202f0f` / `3.11.224`; migration 056 PASS; SHA-pinned Positions 1/13/101 imported to private volume (3 works, 164 rows, 100 MP3), anonymous 401, owner API catalog/work/audio PASS, all stored hashes match and shared learner arrays are empty. Full temporary ZIP removed. OWNER_LIVE: real Reading Room owner test + second registered member/non-member boundary still required; 77-song promotion blocked | Codex |
+| 2026-07-23 | Group Song Corpus owner-live: owner opened the pilot and reported playback works, but legacy audio has mixed word-karaoke coverage. P0.1 started: immutable audio revisions + protected timing + bundle-hash client reconcile + dry-run/cost-capped revoice CLI; existing revision remains live until a complete timing-gated r2 is deliberately baked | владелец / Codex |

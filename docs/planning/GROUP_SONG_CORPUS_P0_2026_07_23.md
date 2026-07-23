@@ -112,3 +112,32 @@ Full 77-song promotion is blocked until P0 passes with the owner and one second 
 
 P0 stays `OWNER_LIVE`, not `CLOSED`: owner must open/play all three in the real Reading Room;
 a second registered member must independently see/open/play them, while a non-member must not.
+
+## 10. P0.1 — replaceable TTS + karaoke editions
+
+Owner-live confirmed all three works open/play, and exposed mixed karaoke coverage in legacy audio.
+The correction is an edition model, not in-place MP3 overwrite:
+
+- work catalog exposes `audio_revision`, profile, publication time and current `bundle_sha256`;
+- each revision writes new immutable salted asset keys under `audio-r<N>/` plus a timing sidecar;
+- timing is accepted only at complete `got == n` word coverage with contiguous offsets;
+- DB pointer flips only after every selected work is baked and verified; old DB rows/files remain
+  reachable during client transition and for rollback;
+- Reading Room compares the catalog bundle hash with its local edition marker. A new hash runs
+  `importBundle(mode=skip)` + `reconcileAudioLinks`, changing only default sentence audio by stable
+  `order_index`; text, notes, bookmarks and progress are not replaced;
+- protected `/timing` uses the same authenticated membership boundary as MP3. A revision without
+  timing returns 404 and honestly remains sentence-level karaoke.
+
+Developer workflow (default is plan; no provider call or write):
+
+```text
+node scripts/premium/group-corpus-revoice.js \
+  --db-path <DB_PATH> --data-dir <DATA_DIR> \
+  --corpus-id study-songs-pilot --revision 2 \
+  --voice he-IL-Wavenet-A --rate 1 --pitch 0
+```
+
+Apply requires `GCP_TTS_API_KEY`, `--apply`, and an explicit
+`--confirm-cost-max-clips <N>` at least as large as the PLAN `unique_clips`. Concurrency is capped
+at 4. Revision must be strictly newer. Failed/partial timing never becomes current.

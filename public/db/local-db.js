@@ -6562,11 +6562,12 @@ export async function reconcileAudioLinks(bundleObj) {
           const existingLink = await q(
             'SELECT 1 AS x FROM sentence_audio WHERE sentence_id = ? AND audio_id = ?',
             [opfsSentenceId, asset.id]);
+          // The incoming edition is authoritative for the default link. Call
+          // linkSentenceAudio even when this device has seen the asset before:
+          // a rollback from r3 to r2 must promote the existing r2 link again.
+          await linkSentenceAudio(opfsSentenceId, asset.id, 1);
           if (existingLink.length) summary.linksAlready++;
-          else {
-            await linkSentenceAudio(opfsSentenceId, asset.id, 1);
-            summary.linksCreated++;
-          }
+          else summary.linksCreated++;
         }
       } catch (e) {
         summary.errors.push({ asset_key: ak, error: e && e.message ? e.message : String(e) });

@@ -88,7 +88,7 @@ function scopedAdvanced(all, text) {
 
 function safeText(text, corpusId, workId) {
   const sourceMeta = text.source_meta && typeof text.source_meta === "object" ? { ...text.source_meta } : {};
-  sourceMeta.group_corpus = { schema: 1, corpus_id: corpusId, work_id: workId, visibility: "GROUP_RESTRICTED" };
+  sourceMeta.group_corpus = { schema: 1, corpus_id: corpusId, work_id: workId, visibility: "GROUP_RESTRICTED", audio_revision: 1 };
   return {
     ...text,
     source_meta: sourceMeta,
@@ -127,6 +127,7 @@ function buildPlan(zip, library, advanced, options) {
       group_corpus_schema_version: 1,
       corpus_id: options.corpusId,
       work_id: workId,
+      audio_revision: 1,
       library: { schema_version: library.schema_version, corpus_meta_version: library.corpus_meta_version, shelves: [], texts: [cleanText], audio_assets: assets.map((a) => a.meta) },
       notes_advanced: adv,
     };
@@ -190,11 +191,13 @@ async function applyPlan(zip, plan, o) {
         VALUES(?,?,?,?,?,?,NULL,'REVIEW_REQUIRED',?,?,?,?,?,?,NULL,?,?)
         ON CONFLICT(corpus_id,work_id) DO UPDATE SET text_key=excluded.text_key,title=excluded.title,artist=excluded.artist,bundle_path=excluded.bundle_path,bundle_sha256=excluded.bundle_sha256,rows_count=excluded.rows_count,audio_count=excluded.audio_count,notes_count=excluded.notes_count,morph_count=excluded.morph_count,updated_at=excluded.updated_at`,
         [o.corpusId,w.workId,w.textKey,w.positionNo,w.title,w.artist,bundleRel,w.bundleSha256,w.rowsCount,w.assets.length,w.notesCount,w.morphCount,now,now]);
-      await run(db, "DELETE FROM group_corpus_audio WHERE corpus_id=? AND work_id=?", [o.corpusId,w.workId]);
       for (const a of w.assets) {
         const rel = path.posix.join("group-corpora", o.corpusId, "v1", "audio", a.key + ".mp3");
         const bytes = fs.statSync(path.resolve(o.dataDir, rel)).size;
-        await run(db, `INSERT INTO group_corpus_audio(corpus_id,work_id,asset_key,relative_path,bytes,sha256,mime,created_at) VALUES(?,?,?,?,?,?,?,?)`, [o.corpusId,w.workId,a.key,rel,bytes,a.sha256,"audio/mpeg",now]);
+        await run(db, `INSERT INTO group_corpus_audio(corpus_id,work_id,asset_key,relative_path,bytes,sha256,mime,created_at)
+          VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(corpus_id,work_id,asset_key) DO UPDATE SET
+          relative_path=excluded.relative_path,bytes=excluded.bytes,sha256=excluded.sha256,mime=excluded.mime`,
+          [o.corpusId,w.workId,a.key,rel,bytes,a.sha256,"audio/mpeg",now]);
       }
     }
     await exec(db, "COMMIT");

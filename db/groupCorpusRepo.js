@@ -63,7 +63,7 @@ async function listWorks(userId, corpusId) {
   const rows = await all(db(),
     `SELECT work_id, text_key, position_no, title, artist, source_url,
             rights_status, rows_count, audio_count, notes_count, morph_count,
-            bundle_sha256, source_updated_at
+            bundle_sha256, audio_revision, audio_profile_json, audio_published_at, source_updated_at
        FROM group_corpus_works
       WHERE corpus_id=? AND rights_status!='REMOVED'
       ORDER BY CASE WHEN position_no IS NULL THEN 1 ELSE 0 END, position_no, title`, [corpus.corpus_id]);
@@ -71,6 +71,7 @@ async function listWorks(userId, corpusId) {
     position_no: r.position_no == null ? null : Number(r.position_no),
     rows_count: Number(r.rows_count) || 0, audio_count: Number(r.audio_count) || 0,
     notes_count: Number(r.notes_count) || 0, morph_count: Number(r.morph_count) || 0,
+    audio_revision: Number(r.audio_revision) || 1,
   })) };
 }
 
@@ -79,7 +80,8 @@ async function getWork(userId, corpusId, workId) {
   const wid = cleanId(workId);
   const row = await get(db(),
     `SELECT work_id, text_key, position_no, title, artist, source_url, rights_status,
-            bundle_path, bundle_sha256, rows_count, audio_count, notes_count, morph_count
+            bundle_path, bundle_sha256, audio_revision, audio_profile_json, audio_published_at,
+            rows_count, audio_count, notes_count, morph_count
        FROM group_corpus_works
       WHERE corpus_id=? AND work_id=? AND rights_status!='REMOVED'`, [corpus.corpus_id, wid]);
   if (!row) fail("GROUP_CORPUS_WORK_NOT_FOUND");
@@ -91,13 +93,20 @@ async function getAudio(userId, corpusId, assetKey) {
   const key = String(assetKey || "").trim().toLowerCase();
   if (!/^[0-9a-f]{64}$/.test(key)) fail("GROUP_CORPUS_AUDIO_NOT_FOUND");
   const row = await get(db(),
-    `SELECT a.work_id, a.asset_key, a.relative_path, a.bytes, a.sha256, a.mime
+    `SELECT a.work_id, a.asset_key, a.relative_path, a.bytes, a.sha256, a.mime,
+            a.revision, a.timing_relative_path, a.timing_bytes, a.timing_sha256
        FROM group_corpus_audio a
        JOIN group_corpus_works w ON w.corpus_id=a.corpus_id AND w.work_id=a.work_id
       WHERE a.corpus_id=? AND a.asset_key=? AND w.rights_status!='REMOVED'
       LIMIT 1`, [corpus.corpus_id, key]);
   if (!row) fail("GROUP_CORPUS_AUDIO_NOT_FOUND");
-  return { corpus, audio: { ...row, bytes: Number(row.bytes) || 0 }, absolute_path: privatePath(row.relative_path) };
+  return { corpus, audio: { ...row, bytes: Number(row.bytes) || 0, revision: Number(row.revision) || 1 }, absolute_path: privatePath(row.relative_path) };
 }
 
-module.exports = { listCorpora, accessibleCorpus, listWorks, getWork, getAudio, privatePath };
+async function getAudioTiming(userId, corpusId, assetKey) {
+  const out = await getAudio(userId, corpusId, assetKey);
+  if (!out.audio.timing_relative_path || !out.audio.timing_sha256) fail("GROUP_CORPUS_TIMING_NOT_FOUND");
+  return { corpus: out.corpus, audio: out.audio, absolute_path: privatePath(out.audio.timing_relative_path) };
+}
+
+module.exports = { listCorpora, accessibleCorpus, listWorks, getWork, getAudio, getAudioTiming, privatePath };

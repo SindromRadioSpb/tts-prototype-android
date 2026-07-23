@@ -3503,7 +3503,7 @@ const groupCorpusRepo = require("./db/groupCorpusRepo");
 const rlGroupCorpus = makeRateLimiter({ windowMs: 60_000, max: 120, name: "group-corpus" });
 function groupCorpusError(res, e) {
   const code = String((e && (e.code || e.message)) || "GROUP_CORPUS_FAILED");
-  if (["GROUP_CORPUS_NOT_FOUND", "GROUP_CORPUS_WORK_NOT_FOUND", "GROUP_CORPUS_AUDIO_NOT_FOUND"].includes(code))
+  if (["GROUP_CORPUS_NOT_FOUND", "GROUP_CORPUS_WORK_NOT_FOUND", "GROUP_CORPUS_AUDIO_NOT_FOUND", "GROUP_CORPUS_TIMING_NOT_FOUND"].includes(code))
     return res.status(404).json({ ok: false, error: code });
   if (code === "GROUP_CORPUS_FILE_INVALID") return res.status(500).json({ ok: false, error: code });
   return res.status(500).json({ ok: false, error: "GROUP_CORPUS_FAILED" });
@@ -3532,6 +3532,21 @@ app.get("/api/group-corpora/:corpusId/works/:workId", rlGroupCorpus, async (req,
     const st = await fs.promises.stat(out.absolute_path);
     if (!st.isFile()) return res.status(404).json({ ok: false, error: "GROUP_CORPUS_WORK_NOT_FOUND" });
     res.setHeader("Cache-Control", "private, no-store");
+    res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    return res.sendFile(out.absolute_path);
+  } catch (e) { return groupCorpusError(res, e); }
+});
+
+app.get("/api/group-corpora/:corpusId/audio/:assetKey/timing", rlGroupCorpus, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try {
+    const out = await groupCorpusRepo.getAudioTiming(auth.user.id, req.params.corpusId, req.params.assetKey);
+    const st = await fs.promises.stat(out.absolute_path);
+    if (!st.isFile() || st.size !== out.audio.timing_bytes)
+      return res.status(404).json({ ok: false, error: "GROUP_CORPUS_TIMING_NOT_FOUND" });
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Cache-Control", "private, max-age=86400");
     res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
     res.setHeader("X-Content-Type-Options", "nosniff");
     return res.sendFile(out.absolute_path);

@@ -3323,9 +3323,9 @@ function attachReaderAudio() {
     audioUrlForAssetKey: readerGroupCorpusId
       ? (key) => '/api/group-corpora/' + encodeURIComponent(readerGroupCorpusId) + '/audio/' + encodeURIComponent(key)
       : undefined,
-    // Pilot bundles do not carry server-side word timing files. Sentence audio
-    // remains fully usable; the default timing path is preserved elsewhere.
-    timingUrlForAssetKey: readerGroupCorpusId ? () => null : undefined,
+    timingUrlForAssetKey: readerGroupCorpusId
+      ? (key) => '/api/group-corpora/' + encodeURIComponent(readerGroupCorpusId) + '/audio/' + encodeURIComponent(key) + '/timing'
+      : undefined,
     t: (k) => tt(k, k),
     // he/niqqud cell taps are reserved for the word-morphology layer below; the ▶ button +
     // translit cell still play the row. In reveal mode the ru cell tap reveals (not audio).
@@ -5548,14 +5548,25 @@ async function openGroupCorpusWork(corpusId, card) {
   corpusImporting = true;
   try {
     let localId = await resolveLocalIdByKey(card.text_key);
-    if (!localId) {
+    const editionKey = 'room.groupCorpus.edition.' + corpusId + '.' + card.work_id;
+    let haveEdition = ''; try { haveEdition = localStorage.getItem(editionKey) || ''; } catch (_) {}
+    const wantEdition = String(card.bundle_sha256 || '');
+    // Fetch on first materialisation OR when the server publishes a new immutable
+    // bundle/audio edition. importBundle keeps the text; reconcileAudioLinks flips
+    // only default sentence audio by stable order_index.
+    if (!localId || !wantEdition || haveEdition !== wantEdition) {
       const url = '/api/group-corpora/' + encodeURIComponent(corpusId) + '/works/' + encodeURIComponent(card.work_id);
       const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error('group work ' + res.status);
       const bundle = await res.json();
       if (!bundle || !bundle.library) throw new Error('malformed group work');
-      await localDb.importBundle(bundle, { mode: 'skip' });
+      const imported = await localDb.importBundle(bundle, { mode: 'skip' });
       localId = await resolveLocalIdByKey(card.text_key);
+      if (localId && imported && Number(imported.skipped) > 0 && typeof localDb.reconcileAudioLinks === 'function') {
+        const rec = await localDb.reconcileAudioLinks(bundle);
+        if (rec && Array.isArray(rec.errors) && rec.errors.length) throw new Error('audio reconcile failed');
+      }
+      if (localId && wantEdition) { try { localStorage.setItem(editionKey, wantEdition); } catch (_) {} }
     }
     if (!localId) throw new Error('group work not resolvable after import');
     await openReader(localId, card.title);
@@ -6888,7 +6899,7 @@ async function renderGroupCorpus(corpusId, token) {
     if (HEBREW_RE.test(work.title || '')) title.setAttribute('dir', 'rtl');
     card.appendChild(title);
     if (work.artist) card.appendChild(el('span', { class: 'work-card-author', text: work.artist }));
-    card.appendChild(el('span', { class: 'work-card-meta', text: (work.rows_count || 0) + ' строк · ♪ ' + (work.audio_count || 0) }));
+    card.appendChild(el('span', { class: 'work-card-meta', text: (work.rows_count || 0) + ' строк · ♪ ' + (work.audio_count || 0) + ' · audio r' + (work.audio_revision || 1) }));
     card.appendChild(el('span', { class: 'work-card-cta', text: tt('room.work.open', 'Открыть') }));
     const open = () => openGroupCorpusWork(corpusId, work);
     card.addEventListener('click', open);

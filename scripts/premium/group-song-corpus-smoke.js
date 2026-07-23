@@ -52,6 +52,7 @@ async function seedDb() {
   const db = await dbOpen(dbPath);
   await dbExec(db, "PRAGMA foreign_keys=ON; CREATE TABLE users(id TEXT PRIMARY KEY); INSERT INTO users VALUES('owner'),('member'),('outsider');");
   await dbExec(db, fs.readFileSync(path.join(root, "migrations", "056_group_song_corpus_p0.sql"), "utf8"));
+  await dbExec(db, fs.readFileSync(path.join(root, "migrations", "057_group_corpus_audio_revisions.sql"), "utf8"));
   await dbClose(db);
 }
 
@@ -73,6 +74,10 @@ function invoke(apply, expectedSha) {
     p = invoke(true, archiveSha); assert.strictEqual(p.status,0,p.stderr); assert.strictEqual(JSON.parse(p.stdout).works.length,3);
     // Idempotent exact replay.
     p = invoke(true, archiveSha); assert.strictEqual(p.status,0,p.stderr);
+    const revoice = spawnSync(process.execPath, [path.join(root,"scripts","premium","group-corpus-revoice.js"),
+      "--db-path",dbPath,"--data-dir",dataDir,"--corpus-id","fixture-corpus","--revision","2","--voice","he-IL-Wavenet-B"], {cwd:root,encoding:"utf8"});
+    assert.strictEqual(revoice.status,0,revoice.stderr); const rp=JSON.parse(revoice.stdout);
+    assert.strictEqual(rp.mode,"PLAN"); assert.strictEqual(rp.revision,2); assert.strictEqual(rp.works.length,3);
     const bundle = JSON.parse(fs.readFileSync(path.join(dataDir,"group-corpora","fixture-corpus","v1","works","song-pos-001.json"),"utf8"));
     const t = bundle.library.texts[0];
     assert.strictEqual(t.progress,null); assert.deepStrictEqual(t.bookmarks,[]); assert.strictEqual(t.is_pinned,false);
@@ -91,8 +96,22 @@ function invoke(apply, expectedSha) {
     const work = await repo.getWork("member","fixture-corpus","song-pos-001"); assert.ok(work.absolute_path.startsWith(path.resolve(dataDir,"group-corpora") + path.sep));
     const assetKey = bundle.library.audio_assets[0].asset_key;
     const audio = await repo.getAudio("member","fixture-corpus",assetKey); assert.strictEqual(fs.statSync(audio.absolute_path).size,audio.audio.bytes);
+    await assert.rejects(() => repo.getAudioTiming("member","fixture-corpus",assetKey), /GROUP_CORPUS_TIMING_NOT_FOUND/);
+    const revoiceMod = require(path.join(root,"scripts","premium","group-corpus-revoice"));
+    assert.throws(() => revoiceMod.timingBytes({v:1,n:2,got:1,words:[{o:0,t:0}]}), /TIMING_INCOMPLETE/);
+    const timingBody = revoiceMod.timingBytes({v:1,n:2,got:2,words:[{o:0,t:0},{o:1,t:0.2}]});
+    assert.ok(timingBody.length>0);
+    const timingRel = path.join("group-corpora","fixture-corpus","v1","audio",assetKey+".timing.json");
+    fs.writeFileSync(path.join(dataDir,timingRel),timingBody);
+    const timingSha = crypto.createHash("sha256").update(timingBody).digest("hex");
+    const timingDb = await sqlite.getDb();
+    await new Promise((resolve,reject)=>timingDb.run(
+      "UPDATE group_corpus_audio SET timing_relative_path=?,timing_bytes=?,timing_sha256=? WHERE corpus_id=? AND work_id=? AND asset_key=?",
+      [timingRel.replace(/\\/g,"/"),timingBody.length,timingSha,"fixture-corpus","song-pos-001",assetKey],(e)=>e?reject(e):resolve()));
+    const timing = await repo.getAudioTiming("member","fixture-corpus",assetKey);
+    assert.strictEqual(fs.readFileSync(timing.absolute_path,"utf8"),timingBody.toString("utf8"));
     assert.throws(() => repo.privatePath("group-corpora/../secret"), /GROUP_CORPUS_FILE_INVALID/);
     await sqlite.closeDb();
-    process.stdout.write("group-song-corpus-smoke: PASS (plan/hash/privacy/idempotency/membership/path/audio)\n");
+    process.stdout.write("group-song-corpus-smoke: PASS (plan/hash/privacy/idempotency/membership/path/audio/revoice-plan/timing-gate)\n");
   } finally { fs.rmSync(temp, { recursive:true, force:true }); }
 })().catch((e) => { process.stderr.write("group-song-corpus-smoke: FAIL " + (e && e.stack || e) + "\n"); process.exitCode=1; });
