@@ -118,10 +118,13 @@ runtime imports, inbox and nonempty model. It does not load the model or inspect
 4. Remove only the H2.5 block from the host health check. Never restore the whole config backup over
    newer config changes.
 
-## Current completion boundary
+## Completion
 
 Engineering smoke is 5/5 and local health is PASS. Fresh WebUI session `b0d167bc15b5` first reached
 the ordinary chat path but Gemini returned `HTTP 429 RESOURCE_EXHAUSTED`; per policy it was not
-retried immediately. After the provider backoff, one fresh session `41fb9d1103aa` succeeded and
-returned exactly `mcp__ivrit_asr__transcribe_audio`. H2.5 remains `ENGINEERING_COMPLETE`, not
-`CLOSED`, until that tool processes one real owner recording and the owner records readability.
+retried immediately. After the provider backoff, fresh session `41fb9d1103aa` returned exactly
+`mcp__ivrit_asr__transcribe_audio`.
+
+Owner-live then transcribed the owner's real phrase exactly as spoken, presented it with the
+mandatory confirmation question and received readability **5/5**. The raw file was deleted and the
+inbox was empty on verification. H2.5 is **CLOSED**.

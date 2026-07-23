@@ -130,6 +130,18 @@ one new session `41fb9d1103aa` completed and returned exactly:
 mcp__ivrit_asr__transcribe_audio
 ```
 
-Owner-live remains pending: in a new ordinary WebUI chat, place one real Hebrew voice
-recording in `G:\HERMES_AGENT\voice-inbox\`, ask Hermes to call
-`mcp__ivrit_asr__transcribe_audio`, confirm or correct the hypothesis, and record readability.
+## Owner-live
+
+Владелец записал реальную фразу на иврите. Fresh ordinary Hermes chat вызвал
+`mcp__ivrit_asr__transcribe_audio` и ответил:
+
+```text
+Я расслышал «שלום, מה נשמע מעניינים?» — верно?
+```
+
+Владелец подтвердил, что произнёс именно эту фразу, и поставил читаемости **5/5**. Ответ сохранил
+обязательную границу гипотезы и запрос подтверждения; произносительный scoring не вычислялся и не
+имитировался. После успешного вызова `G:\HERMES_AGENT\voice-inbox\` проверен: 0 файлов, raw audio
+удалён.
+
+Owner-live verdict: **PASS, 5/5**. H2.5 closure gate пройден.
