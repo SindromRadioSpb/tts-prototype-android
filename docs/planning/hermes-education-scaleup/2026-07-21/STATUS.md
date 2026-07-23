@@ -4,7 +4,7 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-23 (H2.1–H2.2 CLOSED; H2.3 DEFERRED; Group Song Corpus owner-live content PASS, P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1 monitor ACTIVE).
+Обновлено: 2026-07-23 (H2.1–H2.2 CLOSED; H2.3 DEFERRED; Group Song Corpus full 77 OWNER_LIVE; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1 monitor ACTIVE).
 
 ## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
@@ -91,3 +91,4 @@
 | 2026-07-23 | Group Song Corpus P0 deployed `2202f0f` / `3.11.224`; migration 056 PASS; SHA-pinned Positions 1/13/101 imported to private volume (3 works, 164 rows, 100 MP3), anonymous 401, owner API catalog/work/audio PASS, all stored hashes match and shared learner arrays are empty. Full temporary ZIP removed. OWNER_LIVE: real Reading Room owner test + second registered member/non-member boundary still required; 77-song promotion blocked | Codex |
 | 2026-07-23 | Group Song Corpus owner-live: owner opened the pilot and reported playback works, but legacy audio has mixed word-karaoke coverage. P0.1 started: immutable audio revisions + protected timing + bundle-hash client reconcile + dry-run/cost-capped revoice CLI; existing revision remains live until a complete timing-gated r2 is deliberately baked | владелец / Codex |
 | 2026-07-23 | Group Song Corpus P0.1 ENGINEERING_COMPLETE on prod `0289d42` / `3.11.225`: migration 057 ready; protected timing route unauthenticated 401; live PLAN for pilot r2 = 164 rows / 129 unique clips and made no provider call/write. Current r1 remains live. APPLY blocked at 87% disk until bounded cleanup plus owner voice/profile and explicit cost cap | Codex |
+| 2026-07-23 | Owner authorized full restricted promotion. Initial all-77 replay stopped pre-mutation on byte-hash guard for legacy pilot bundle; corrected bounded APPLY added only remaining 74. Prod now 77 works / 3,106 rows / 2,155 unique MP3 / 7,510 notes / 3,065 morph; all bundle/audio hashes PASS, shared learner state zero, membership still owner-only, staging removed. Real owner UI shows 77 cards. OWNER_LIVE remains pending second-member + non-member boundary; disk 92% blocks next deploy/TTS until bounded cleanup | владелец / Codex |

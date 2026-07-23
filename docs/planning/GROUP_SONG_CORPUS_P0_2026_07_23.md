@@ -1,6 +1,6 @@
 # GROUP_SONG_CORPUS_P0 — закрытый учебный корпус песен
 
-Дата решения владельца: 2026-07-23. Статус: **ENGINEERING_COMPLETE — production owner API live PASS; owner UI + second-member live pending**.
+Дата решения владельца: 2026-07-23. Статус: **FULL 77 OWNER_LIVE — production owner API/UI PASS; second-member live pending**.
 
 ## 1. Решение
 
@@ -86,7 +86,9 @@ cross-group reuse, model training и экспорт корпуса как пуб
 7. Rollback: archive/disable corpus + revoke memberships; delete only the bounded
    `DATA_DIR/group-corpora/<corpus>` tree after an inventory and owner approval.
 
-Full 77-song promotion is blocked until P0 passes with the owner and one second member.
+Первоначальный gate требовал owner + second-member до full promotion. После owner-live пилота
+владелец явно разрешил перенос оставшихся карточек 2026-07-23; second-member boundary остаётся
+обязательным заключительным live-gate, но не блокирует уже выполненный закрытый перенос.
 
 ## 8. Локальная инженерная верификация
 
@@ -110,8 +112,28 @@ Full 77-song promotion is blocked until P0 passes with the owner and one second 
   `Downloads` remains the recovery source. Production retains only the bounded pilot payload.
 - Disk after deploy/import: approximately 80–81%, 7.3 GB free; health `disk_warn:true`.
 
-P0 stays `OWNER_LIVE`, not `CLOSED`: owner must open/play all three in the real Reading Room;
-a second registered member must independently see/open/play them, while a non-member must not.
+P0 stays `OWNER_LIVE`, not `CLOSED`: owner open/play and full-catalog UI passed; a second
+registered member must independently see/open/play a work, while a non-member must not.
+
+## 9.1 Full 77 production promotion
+
+По явному owner-go остальные 74 Position-карточки добавлены в тот же `study-songs-pilot`;
+пилотные Positions 1/13/101 намеренно не переимпортировались. Первый all-77 APPLY честно
+остановился до мутации на `TARGET_HASH_MISMATCH` старого byte-identical r1 pilot bundle;
+повторный bounded APPLY выбрал только оставшиеся 74 и завершился успешно.
+
+- Итог: 77 works / 3,106 rows / 2,160 per-work audio rows / 2,155 unique MP3 files /
+  7,510 scoped notes / 3,065 sentence-morph rows.
+- Все 77 bundle SHA-256 и все 2,160 audio-row SHA-256 совпадают с сохранёнными файлами.
+- Все works остаются `audio_revision=1`; новая TTS не синтезировалась.
+- Общие learner arrays пусты; progress/bookmarks/pins не перенесены; membership остался owner-only.
+- Временный ZIP/report удалены с prod; локальный owner ZIP сохранён как recovery source.
+- Живой owner UI: group hub показывает `77 текст(ов) · владелец`, внутри отрисованы 77 cards.
+- После переноса health/db/migrations готовы; disk warning достиг 92%, поэтому следующий deploy,
+  TTS r2 и дальнейший корпусный рост заблокированы до bounded Docker cleanup.
+
+P0 остаётся `OWNER_LIVE`: требуется независимая проверка вторым ACTIVE member и негативная
+проверка non-member перед `CLOSED`.
 
 ## 10. P0.1 — replaceable TTS + karaoke editions
 
