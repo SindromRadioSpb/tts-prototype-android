@@ -35,7 +35,7 @@ const SCOPES = new Set([
   "review.handoff.create",
   // S-пакет (PERSONAL_TEXTS_S1S2_DESIGN): личные тексты владельца. ОБА scope заведены в S1
   // (одна re-авторизация Hermes); content-инструмент приходит в S2. Lockstep: oauthContracts +
-  // Lockstep: oauthContracts + owner-approved migration 060 CHECK (19 scopes).
+  // Lockstep: oauthContracts + owner-approved migration 061 CHECK (23 scopes).
   "personal.texts.metadata.read",
   "personal.texts.content.read",
   "morphology.read",
@@ -765,7 +765,7 @@ function connection(value) {
   const keys = ["schema_version", "connection_id", "oauth_client_id", "client_display_name", "connection_status", "granted_scopes", "access_expires_at", "consent_version", "capability_version", "downstream_retention_notice", "generated_at"];
   const x = closed(value, keys, keys, "OUTPUT_SCHEMA_INVALID"); bytes(x, 2048, "OUTPUT_TOO_LARGE");
   if (x.schema_version !== "aa.connection.1.0.0" || x.capability_version !== "aa-v0.1" || x.downstream_retention_notice !== "EXTERNAL_STORAGE_OUTSIDE_LINGUISTPRO") fail("OUTPUT_SCHEMA_INVALID");
-  id(x.connection_id); id(x.oauth_client_id); string(x.client_display_name, 120); oneOf(x.connection_status, CONNECTION_STATES); uniqueStrings(x.granted_scopes, 16, (v) => oneOf(v, SCOPES)); timestamp(x.access_expires_at); id(x.consent_version); timestamp(x.generated_at);
+  id(x.connection_id); id(x.oauth_client_id); string(x.client_display_name, 120); oneOf(x.connection_status, CONNECTION_STATES); uniqueStrings(x.granted_scopes, SCOPES.size, (v) => oneOf(v, SCOPES)); timestamp(x.access_expires_at); id(x.consent_version); timestamp(x.generated_at);
   return Object.freeze({ ...x, granted_scopes: Object.freeze([...x.granted_scopes]) });
 }
 function accessWindow(value) {

@@ -15,7 +15,7 @@ import contracts from '../../agent/access/oauthDeploymentContracts.js';
 import { createDefaultOffOAuthRuntime } from '../../agent/access/oauthRuntime.mjs';
 
 const client = contracts.FIXTURE_CLIENTS[0];
-const scope = 'learning.brief.read';
+const scopes = [...contracts.SCOPES].sort();
 function listen(server) { return new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', () => resolve(server.address())); }); }
 function close(server) { return new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve())); }
 class Cookies {
@@ -66,7 +66,7 @@ try {
   const verifier = randomBytes(48).toString('base64url');
   const state = randomBytes(12).toString('hex');
   const authUrl = new URL(`${issuer}/auth`);
-  authUrl.search = new URLSearchParams({ client_id: client.client_id, redirect_uri: client.redirect_uris[0], response_type: 'code', scope, resource: contracts.RESOURCE, code_challenge: createHash('sha256').update(verifier).digest('base64url'), code_challenge_method: 'S256', state });
+  authUrl.search = new URLSearchParams({ client_id: client.client_id, redirect_uri: client.redirect_uris[0], response_type: 'code', scope: scopes.join(' '), resource: contracts.RESOURCE, code_challenge: createHash('sha256').update(verifier).digest('base64url'), code_challenge_method: 'S256', state });
   const cookies = new Cookies();
   let response = await request(authUrl, cookies);
   let requestId;
@@ -79,12 +79,12 @@ try {
   assert.ok(requestId);
   const preview = ceremony.preview('u1', requestId);
   assert.equal(preview.client_display_name, client.client_name);
-  assert.deepEqual(preview.requested_scopes.map((item) => item.scope), [scope]);
+  assert.deepEqual(preview.requested_scopes.map((item) => item.scope), scopes);
   assert.equal(JSON.stringify(preview).includes('code_challenge'), false);
   const connections = await repo.listConnectionsForUser('u1');
   assert.equal(connections.length, 1);
   assert.equal(connections[0].status, 'PENDING_AUTH');
-  const decision = await ceremony.decide('u1', { request_id: requestId, decision: 'approve', selected_scopes: [scope], retention_ack: true });
+  const decision = await ceremony.decide('u1', { request_id: requestId, decision: 'approve', selected_scopes: scopes, retention_ack: true });
   const continuation = bridge.complete('u1', requestId, decision.decision);
   response = await request(`${issuer}/interaction/${continuation.interaction_uid}/complete?request_id=${encodeURIComponent(requestId)}`, cookies);
   let code;
@@ -106,7 +106,7 @@ try {
   assert.equal(auditRows[0].cp0_eligible, false);
   assert.equal(JSON.stringify(auditRows).includes(requestId), false);
 
-  console.log(JSON.stringify({ status: 'PASS', bridge: 'B2_TRUSTED_INTERACTION', browser_authority_fields: 0, first_party_user_bound: true, continuation_single_use: true, connection_status: 'ACTIVE', raw_secret_audit_leaks: 0, cp0_eligible: false }));
+  console.log(JSON.stringify({ status: 'PASS', bridge: 'B2_TRUSTED_INTERACTION', scope_count: scopes.length, browser_authority_fields: 0, first_party_user_bound: true, continuation_single_use: true, connection_status: 'ACTIVE', raw_secret_audit_leaks: 0, cp0_eligible: false }));
 } finally {
   if (server?.listening) await close(server);
   await testDb.cleanup(ctx);

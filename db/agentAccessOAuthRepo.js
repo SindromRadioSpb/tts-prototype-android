@@ -251,7 +251,7 @@ async function storeAuthorizationCodeHash(userId, input) {
   const requested = C.scopes(x.scopes), granted = (await all(db, `SELECT scope FROM agent_connection_grants WHERE user_id=? AND connection_id=? AND status='ACTIVE'`, [uid, cid])).map((r) => r.scope);
   if (requested.some((s) => !granted.includes(s))) error("AA_OAUTH_SCOPE_NOT_GRANTED");
   await run(db, `INSERT INTO agent_authorization_codes (authorization_code_id,user_id,oauth_client_id,connection_id,code_hash,redirect_uri,resource_uri,pkce_method,pkce_challenge,scopes_json,status,issued_at,expires_at)
-    VALUES (?,?,?,?,?,?,?,?,?,?,'ACTIVE',?,?)`, [C.safeId(x.authorization_code_id), uid, clientId, cid, C.digest(x.code_hash), x.redirect_uri, C.resourceUri(x.resource_uri), "S256", C.pkceChallenge(x.pkce_challenge), C.canonicalJson(requested, 512), issued, expires]);
+    VALUES (?,?,?,?,?,?,?,?,?,?,'ACTIVE',?,?)`, [C.safeId(x.authorization_code_id), uid, clientId, cid, C.digest(x.code_hash), x.redirect_uri, C.resourceUri(x.resource_uri), "S256", C.pkceChallenge(x.pkce_challenge), C.canonicalJson(requested, 1024), issued, expires]);
   return { authorization_code_id: x.authorization_code_id, status: "ACTIVE", expires_at: expires };
 }
 

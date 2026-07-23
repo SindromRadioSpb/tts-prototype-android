@@ -14,9 +14,9 @@ import { createB0ProviderAdapter } from '../../agent/access/oidcB0Adapter.mjs';
 import { createOidcDeployment } from '../../agent/access/oidcDeployment.mjs';
 import { validateInjectedSigningJwks, verifyAccessToken } from '../../agent/access/oauthSigningKeys.mjs';
 
-const { FIXTURE_CLIENTS, RESOURCE } = contracts;
+const { FIXTURE_CLIENTS, RESOURCE, SCOPES } = contracts;
 const PROFILES = [
-  { user: 'u1', subject: 'b0_subject_owner_opaque', connection: 'b0_hermes_conn', client: FIXTURE_CLIENTS[0], scopes: ['learning.brief.read'] },
+  { user: 'u1', subject: 'b0_subject_owner_opaque', connection: 'b0_hermes_conn', client: FIXTURE_CLIENTS[0], scopes: [...SCOPES] },
   { user: 'u2', subject: 'b0_subject_other_opaque', connection: 'b0_inspector_conn', client: FIXTURE_CLIENTS[1], scopes: ['agent.connection.read', 'reading.public.search'] },
 ];
 const byClient = new Map(PROFILES.map((profile) => [profile.client.client_id, profile]));
@@ -93,7 +93,7 @@ try {
       }
       req.originalUrl = req.url; req.url = req.url.slice('/oauth'.length) || '/';
       return deployment.nodeHandler(req, res);
-    } catch (error) { res.writeHead(error.statusCode || 500, { 'content-type': 'application/json' }); res.end(JSON.stringify({ error: error.error || error.code || 'fixture_failure' })); }
+    } catch (error) { console.error(error); res.writeHead(error.statusCode || 500, { 'content-type': 'application/json' }); res.end(JSON.stringify({ error: error.error || error.code || error.message || 'fixture_failure' })); }
   };
   const metadata = await (await fetch(`${issuer}/.well-known/oauth-authorization-server`)).json();
   const issued = [];
