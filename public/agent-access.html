@@ -39,7 +39,14 @@
       <p id="clientLine" class="client-line"></p>
       <div class="retention-note"><b data-i18n="retentionTitle">После передачи данные могут остаться у агента</b><p data-i18n="retentionBody">Отзыв остановит будущий доступ LinguistPro, но не удалит сведения из уже созданного внешнего чата, сессии или хранилища провайдера.</p></div>
       <form id="consentForm">
-        <fieldset><legend data-i18n="chooseScopes">Разрешить только выбранные категории</legend><div id="scopeList" class="scope-list"></div></fieldset>
+        <fieldset>
+          <legend data-i18n="chooseScopes">Разрешить только выбранные категории</legend>
+          <div class="scope-tools">
+            <span id="scopeSelection" class="scope-selection" aria-live="polite"></span>
+            <button id="selectAllScopes" class="button scope-select-all" type="button" data-i18n="selectAll">Выбрать всё</button>
+          </div>
+          <div id="scopeList" class="scope-list"></div>
+        </fieldset>
         <label class="ack"><input id="retentionAck" type="checkbox"><span data-i18n="retentionAck">Я понимаю границу хранения и хочу продолжить</span></label>
         <p class="truth-note" data-i18n="truthNote">Память и формулировки внешнего агента не являются оценкой, mastery, ответом ученика или каноническим решением LinguistPro.</p>
         <div class="actions"><button id="denyButton" class="button secondary" type="button" data-i18n="deny">Не подключать</button><button id="approveButton" class="button primary" type="submit" disabled data-i18n="approve">Разрешить выбранное</button></div>

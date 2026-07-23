@@ -328,6 +328,15 @@ async function expectCode(promise, code) {
     assert.ok(/propProvenance/.test(panelSource), "proposal provenance label missing from panel");
     checks++;
 
+    // Consent convenience remains explicit and auditable: the bulk action only
+    // checks the visible requested scopes; it never checks the retention ack.
+    const panelHtml = fs.readFileSync(path.join(root, "public/agent-access.html"), "utf8");
+    assert.ok(/id="selectAllScopes"[^>]+type="button"/.test(panelHtml), "select-all scope control missing");
+    assert.ok(/selectedScopes/.test(panelSource) && /function selectAllScopes\(\)/.test(panelSource), "select-all state/count logic missing");
+    assert.ok(!/selectAllScopes[^}]+retentionAck[^}]+checked=true/.test(panelSource), "select-all must not accept retention on the owner's behalf");
+    for (const locale of ["ru", "en", "he"]) assert.ok(new RegExp(`Object\\.assign\\(TEXT\\.${locale},\\{selectAll:`).test(panelSource), `select-all ${locale} locale missing`);
+    checks++;
+
     console.log(JSON.stringify({ ok: true, checks, capabilities: capabilities.capabilityNames().length, network_calls: 0, provider_calls: 0, live_data_reads: 0 }));
   } finally {
     global.fetch = previousFetch;
