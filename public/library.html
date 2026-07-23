@@ -813,11 +813,29 @@
     .group-access-link { min-width: 0; width: 100%; box-sizing: border-box; font: 12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; }
     .group-access-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
     .group-access-actions button, .group-access-row button { width: auto; }
+    .group-access-invite-hero { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 14px; margin: 4px 0 14px; padding: 14px; border: 1px dashed color-mix(in srgb, var(--accent) 58%, var(--border-soft)); border-radius: 13px; background: color-mix(in srgb, var(--accent) 5%, var(--bg-card)); }
+    .group-access-invite-hero p { margin: 4px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 1.45; }
+    .group-access-eyebrow { color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+    .group-access-summary { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; margin: 0 0 16px; }
+    .group-access-stat { padding: 9px 10px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-muted); }
+    .group-access-stat strong { display: block; color: var(--text-primary); font-size: 18px; line-height: 1.1; }
+    .group-access-stat span { color: var(--text-secondary); font-size: 11px; }
+    .group-access-toolbar { display: flex; align-items: end; justify-content: space-between; gap: 10px; margin-top: 4px; }
+    .group-access-toolbar h3 { margin: 0; }
+    .group-access-refreshed { margin-top: 3px; color: var(--text-secondary); font-size: 11px; }
+    #roomGroupAccessRefresh { white-space: nowrap; }
     .group-access-list { display: flex; flex-direction: column; gap: 7px; margin: 8px 0 14px; }
     .group-access-row { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 10px; padding: 10px 11px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-card); }
+    .group-access-row.is-revoked { opacity: .72; }
+    .group-access-row.is-used { border-style: dashed; }
     .group-access-row-main { min-width: 0; }
     .group-access-row-title { font-weight: 750; color: var(--text-primary); overflow-wrap: anywhere; }
     .group-access-row-meta, .group-access-help, .group-join-note { color: var(--text-secondary); font-size: 12px; line-height: 1.5; }
+    .group-access-row-note { flex-basis: 100%; margin-top: 3px; color: var(--text-secondary); font-size: 11px; }
+    .group-access-badge { display: inline-flex; align-items: center; margin-inline-start: 6px; padding: 2px 6px; border-radius: 999px; background: var(--bg-muted); color: var(--text-secondary); font-size: 10px; font-weight: 800; letter-spacing: .03em; vertical-align: 1px; }
+    .group-access-badge.active, .group-access-badge.used { color: #166534; background: #dcfce7; }
+    .group-access-badge.revoked, .group-access-badge.expired { color: #9a3412; background: #ffedd5; }
+    .group-access-history { max-height: 250px; overflow: auto; padding-inline-end: 2px; }
     .group-access-help { margin: 12px 0 2px; padding: 10px 12px; border-inline-start: 3px solid var(--accent); background: var(--bg-muted); border-radius: 8px; }
     .group-access-help summary { cursor: pointer; font-weight: 750; color: var(--text-primary); }
     .group-access-help p { margin: 8px 0 0; }
@@ -843,7 +861,9 @@
       .group-work-meta, .group-work-progress, .group-work-actions { margin-left: 0; margin-right: 0; }
       .group-work-actions .group-action { flex: 1 1 auto; min-height: 42px; }
       .group-corpus-admin .group-admin-action { flex: 1 1 calc(50% - 4px); min-height: 42px; }
-      .group-access-link-row, .group-access-row { grid-template-columns: 1fr; }
+      .group-access-link-row, .group-access-row, .group-access-invite-hero { grid-template-columns: 1fr; }
+      .group-access-invite-hero #roomGroupInviteCreate { width: 100%; min-height: 44px; }
+      .group-access-summary { grid-template-columns: repeat(3,minmax(0,1fr)); }
       .group-access-actions button, .group-access-row button { min-height: 42px; }
     }
     /* Multi-corpus (B+C «витрина + линза»): L0 hub cards + the in-corpus switcher pill. */
@@ -2141,18 +2161,22 @@
     <h2 id="roomGroupAccessTitle" data-i18n="room.groupAccess.title">Доступ к учебной группе</h2>
     <div id="roomGroupAccessStatus" class="group-access-status" aria-live="polite"></div>
     <section id="roomGroupAccessOwner" class="group-access-owner" hidden>
-      <p data-i18n="room.groupAccess.ownerIntro">Создайте одноразовую ссылку для нового участника. Для уже добавленного участника можно выпустить новую ссылку входа без создания второго аккаунта.</p>
-      <div class="group-access-actions"><button id="roomGroupInviteCreate" type="button" data-i18n="room.groupAccess.createJoin">Создать приглашение</button></div>
+      <div class="group-access-invite-hero">
+        <div><div class="group-access-eyebrow" data-i18n="room.groupAccess.newMemberEyebrow">Новый человек</div><p data-i18n="room.groupAccess.ownerIntro">Эта ссылка создаст отдельного участника и отдельный учебный прогресс.</p></div>
+        <button id="roomGroupInviteCreate" type="button" data-i18n="room.groupAccess.createJoin">Пригласить нового участника</button>
+      </div>
       <div id="roomGroupInviteTicket" class="group-access-ticket" hidden>
         <strong id="roomGroupInviteTicketTitle"></strong>
         <div class="group-access-link-row"><input id="roomGroupInviteLink" class="group-access-link" readonly><button id="roomGroupInviteCopy" type="button" data-i18n="room.groupAccess.copy">Копировать</button></div>
         <div id="roomGroupInviteExpiry" class="group-access-row-meta"></div>
       </div>
-      <h3 data-i18n="room.groupAccess.membersTitle">Участники</h3>
+      <div id="roomGroupAccessSummary" class="group-access-summary"></div>
+      <div class="group-access-toolbar"><div><h3 data-i18n="room.groupAccess.membersTitle">Участники</h3><div id="roomGroupAccessRefreshed" class="group-access-refreshed"></div></div><button id="roomGroupAccessRefresh" type="button" data-i18n="room.groupAccess.refresh">↻ Обновить</button></div>
       <div id="roomGroupMembers" class="group-access-list"></div>
-      <h3 data-i18n="room.groupAccess.invitesTitle">Активные приглашения</h3>
-      <div id="roomGroupInvites" class="group-access-list"></div>
-      <details class="group-access-help" open><summary data-i18n="room.groupAccess.ownerHelpTitle">Справка владельцу</summary><p data-i18n="room.groupAccess.ownerHelp">JOIN-ссылка создаёт нового участника. «Новая ссылка входа» сохраняет существующий аккаунт и прогресс. Каждая ссылка одноразовая, действует 24 часа и показывается полностью только при создании — скопируйте её сразу. «Отозвать доступ» немедленно закрывает корпус во всех сессиях участника.</p></details>
+      <h3 data-i18n="room.groupAccess.invitesTitle">История приглашений и входов</h3>
+      <p class="group-access-row-meta" data-i18n="room.groupAccess.historyHint">Здесь остаётся след: создавался новый участник или выполнялся вход в существующий аккаунт.</p>
+      <div id="roomGroupInvites" class="group-access-list group-access-history"></div>
+      <details class="group-access-help" open><summary data-i18n="room.groupAccess.ownerHelpTitle">Справка владельцу</summary><p data-i18n="room.groupAccess.ownerHelp">«Пригласить нового участника» создаёт отдельный аккаунт. «Ссылка в этот аккаунт» возле участника только открывает его существующий профиль и не добавляет строку. Каждая ссылка одноразовая и действует 24 часа. «Отозвать доступ» немедленно закрывает корпус.</p></details>
     </section>
     <section id="roomGroupAccessMember" class="group-access-member" hidden>
       <div class="group-access-role"><strong data-i18n="room.groupAccess.memberRole">Вы вошли как участник</strong></div>
@@ -2237,9 +2261,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=64"></script>
-<script src="/i18n/locales/en.js?v=64"></script>
-<script src="/i18n/locales/he.js?v=64"></script>
+<script src="/i18n/locales/ru.js?v=65"></script>
+<script src="/i18n/locales/en.js?v=65"></script>
+<script src="/i18n/locales/he.js?v=65"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->

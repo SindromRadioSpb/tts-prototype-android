@@ -87,9 +87,13 @@ async function redeem(token, options={}){
 
 async function listAccess(ownerId,corpusId){
   const {corpus,group}=await ownerContext(ownerId,corpusId);const database=db();await purgeOld(database);
-  const members=await all(database,`SELECT m.user_id,m.role,m.status,m.created_at,m.updated_at,m.revoked_at,u.display_name FROM reading_group_members m JOIN users u ON u.id=m.user_id WHERE m.group_id=? ORDER BY CASE m.role WHEN 'OWNER' THEN 0 ELSE 1 END,u.display_name,m.user_id`,[group.group_id]);
-  const invites=await all(database,`SELECT invite_id,kind,target_user_id,status,expires_at,created_at,used_at,revoked_at FROM group_access_invites WHERE group_id=? ORDER BY created_at DESC LIMIT 100`,[group.group_id]);
-  return {corpus,group,members,invites};
+  const members=await all(database,`SELECT m.user_id,m.role,m.status,m.created_at,m.updated_at,m.revoked_at,u.display_name,
+      (SELECT MAX(COALESCE(s.last_used_at,s.created_at)) FROM user_sessions s WHERE s.user_id=m.user_id AND s.auth_method='group_invite') last_sign_in_at
+    FROM reading_group_members m JOIN users u ON u.id=m.user_id WHERE m.group_id=?
+    ORDER BY CASE m.role WHEN 'OWNER' THEN 0 ELSE 1 END,u.display_name,m.user_id`,[group.group_id]);
+  const invites=await all(database,`SELECT invite_id,kind,target_user_id,status,expires_at,created_at,used_at,used_by_user_id,revoked_at
+    FROM group_access_invites WHERE group_id=? ORDER BY created_at DESC LIMIT 100`,[group.group_id]);
+  return {corpus,group,members,invites,refreshed_at:nowIso()};
 }
 
 async function revokeInvite(ownerId,corpusId,inviteId){

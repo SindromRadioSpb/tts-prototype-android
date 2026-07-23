@@ -3569,7 +3569,7 @@ app.post("/api/group-invites/redeem",rlGroupInviteRedeem,requireStrictSameOrigin
 });
 
 app.get("/api/group-corpora/:corpusId/access",rlGroupInviteOwner,requireGroupCorpusOwner,async(req,res)=>{
-  try{return res.json({ok:true,schema_version:"group_corpus_access.1.0.0",...(await groupInviteRepo.listAccess(req.groupCorpusOwner.auth.user.id,req.params.corpusId))});}
+  try{res.set("Cache-Control","private, no-store, max-age=0");return res.json({ok:true,schema_version:"group_corpus_access.1.0.0",...(await groupInviteRepo.listAccess(req.groupCorpusOwner.auth.user.id,req.params.corpusId))});}
   catch(e){return groupCorpusError(res,e);}
 });
 app.post("/api/group-corpora/:corpusId/invites",rlGroupInviteOwner,requireGroupCorpusOwner,requireGroupCorpusOwnerCsrf,requireStrictSameOriginJson,async(req,res)=>{
