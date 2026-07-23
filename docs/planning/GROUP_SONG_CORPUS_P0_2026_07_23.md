@@ -141,3 +141,11 @@ node scripts/premium/group-corpus-revoice.js \
 Apply requires `GCP_TTS_API_KEY`, `--apply`, and an explicit
 `--confirm-cost-max-clips <N>` at least as large as the PLAN `unique_clips`. Concurrency is capped
 at 4. Revision must be strictly newer. Failed/partial timing never becomes current.
+
+Production mechanism evidence (2026-07-23): commit `0289d42`, app `3.11.225`, migration 057
+ready, protected timing route returns 401 without a session, and a live container PLAN for the
+three pilot works reports 164 rows / 129 unique clips for revision 2. No provider call or file/DB
+write was made. The host is at 87% disk use, so an APPLY is blocked until bounded space recovery,
+then requires owner selection of the voice/profile and a cost cap of at least 129 clips. The
+currently published revision remains r1; this deploy provides the safe replacement path, not new
+audio itself.
