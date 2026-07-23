@@ -2717,7 +2717,7 @@ export async function listOwnTextsForSync() {
     const out = [];
     for (const t of (rows || [])) {
       let corpus = false;
-      try { const sm = t.source_meta_json ? JSON.parse(t.source_meta_json) : null; corpus = !!(sm && sm.corpus); } catch (_) {}
+      try { const sm = t.source_meta_json ? JSON.parse(t.source_meta_json) : null; corpus = !!(sm && (sm.corpus || sm.group_corpus)); } catch (_) {}
       if (corpus) continue;
       if (!t.text_key) continue;
       out.push({ id: String(t.id), text_key: String(t.text_key), title: t.title || "", updated_at: String(t.updated_at || "") });
@@ -2747,7 +2747,7 @@ export async function queueArtifactDeleteForText(textId) {
     const rows = await q(`SELECT text_key, source_meta_json FROM texts WHERE id = ?`, [String(textId)]);
     const t = rows && rows[0];
     if (!t || !t.text_key) return false;
-    try { const sm = t.source_meta_json ? JSON.parse(t.source_meta_json) : null; if (sm && sm.corpus) return false; } catch (_) {}
+    try { const sm = t.source_meta_json ? JSON.parse(t.source_meta_json) : null; if (sm && (sm.corpus || sm.group_corpus)) return false; } catch (_) {}
     return await queueArtifactIntent('delete', t.text_key, new Date().toISOString());
   } catch (_) { return false; }
 }

@@ -4,7 +4,7 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-23 (H2.1–H2.2 CLOSED; H2.3 PLANNED; parallel H1 monitoring ACTIVE).
+Обновлено: 2026-07-23 (H2.1–H2.2 CLOSED; H2.3 DEFERRED by owner; Group Song Corpus P0 IN_PROGRESS; parallel H1 monitoring ACTIVE).
 
 ## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
@@ -24,13 +24,13 @@
 
 **G-H1-PARALLEL-MONITOR: ACTIVE, 2026-07-23—2026-08-05; day-14 follow-up обязателен.**
 
-## Горизонт 2 — статус: IN_PROGRESS (G-H2-START PASS; H2.1–H2.2 CLOSED; H2.3 следующий; H1 monitoring идёт параллельно)
+## Горизонт 2 — статус: IN_PROGRESS (G-H2-START PASS; H2.1–H2.2 CLOSED; H2.3 DEFERRED; Group Song Corpus P0 идёт отдельно; H1 monitoring параллельно)
 
 | Слайс | Промт | Статус |
 |---|---|---|
 | H2.1 get_word_morphology | prompts/H2_01_GET_WORD_MORPHOLOGY.md | CLOSED |
 | H2.2 get_text_coverage | prompts/H2_02_GET_TEXT_COVERAGE.md | CLOSED |
-| H2.3 W1-семейство + goal-store | prompts/H2_03_W1_PROPOSE_FAMILY.md | PLANNED |
+| H2.3 W1-семейство + goal-store | prompts/H2_03_W1_PROPOSE_FAMILY.md | DEFERRED — server cannot safely mutate OPFS-local personal texts; owner chose corpus-first |
 | H2.4 Dicta Nakdan | prompts/H2_04_DICTA_NAKDAN.md | BLOCKED |
 | H2.5 ivrit.ai ASR MCP | prompts/H2_05_IVRIT_AI_ASR.md | BLOCKED |
 | H2.6 Async voice loop | prompts/H2_06_ASYNC_VOICE_LOOP.md | BLOCKED |
@@ -87,3 +87,4 @@
 | 2026-07-23 | H2.1 consent + owner-live PASS: owner selected all 16 scopes; token exchange 200; live Hermes-SDK call returned EXACT `לכתוב` from `pealim-infl-v12`; fresh ordinary Hermes chat called `get_word_morphology` for `כשתבוא`, returned grounded lemma/root/binyan/future/singular/vocalized form and explicitly refused to invent absent `person`; H2.1 CLOSED, H2.2 → PLANNED without invented numeric rating | владелец / Codex |
 | 2026-07-23 | H2.2 engineering + production PASS: 18th tool deployed at `2209fff`; owner approved all 17 scopes and reissued the connection-bound personal-text grant; live Hermes-SDK calls returned `OK` for complete Ben-Yehuda work and complete synced personal text; ordinary fresh-chat owner-live remains | владелец / Codex |
 | 2026-07-23 | H2.2 owner-live PASS: fresh ordinary Hermes chat measured one synced personal text and one READY Ben-Yehuda work via `get_text_coverage`, reported token/lemma/content-word percentages and honest `FRUSTRATION_BELOW_90` bands, then recommended the numerically closer option without inventing 95–98%; H2.2 CLOSED, H2.3 → PLANNED | владелец / Codex |
+| 2026-07-23 | H2.3 measure-before-code: import/track mutation truth is OPFS-local, so server-side W1 could not preserve consent/data integrity. Owner deferred personal-text mutations and approved separate closed Group Song Corpus P0 from the supplied SHA-pinned backup. Local implementation+synthetic security smoke PASS; prod import and owner+second-member live remain pending | владелец / Codex |

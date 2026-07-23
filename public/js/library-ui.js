@@ -47,6 +47,9 @@ let corpusNav = { corpus: 'hub', level: 'home', era: null, author: null }; // dr
 let corpusReveal = 0;           // incremental-reveal cursor for the active long list
 let corpusRenderToken = 0;      // guards async renders against rapid navigation
 let corpusImporting = false;
+let groupCorpora = [];          // membership-filtered server catalogs (401 => absent, never public)
+const groupCatalogs = new Map();// corpus_id -> {corpus,works}
+let readerGroupCorpusId = null; // selects protected audio transport for the open work
 const CORPUS_PAGE = 60;         // "показать ещё" page size for author/work lists
 
 // A3 Slice 2 — global search + facets, backed by ONE lazy flat index (corpus-search-v3.json,
@@ -3317,6 +3320,12 @@ function attachReaderAudio() {
     onRowChange: onKaraokeRowChange,          // idx>=0 → auto-scroll; idx<0 → karaoke ended
     profile: { voiceId: '', rate: 1.0, pitch: 0.0 },
     gcpKey: gcpTtsKey,
+    audioUrlForAssetKey: readerGroupCorpusId
+      ? (key) => '/api/group-corpora/' + encodeURIComponent(readerGroupCorpusId) + '/audio/' + encodeURIComponent(key)
+      : undefined,
+    // Pilot bundles do not carry server-side word timing files. Sentence audio
+    // remains fully usable; the default timing path is preserved elsewhere.
+    timingUrlForAssetKey: readerGroupCorpusId ? () => null : undefined,
     t: (k) => tt(k, k),
     // he/niqqud cell taps are reserved for the word-morphology layer below; the ▶ button +
     // translit cell still play the row. In reveal mode the ru cell tap reveals (not audio).
@@ -5239,12 +5248,15 @@ async function openReader(textId, title, opts) {
   // корпусные работы не живут в artifact-store → объяснение наставника недоступно by-design.
   readerIsOwnText = false;
   readerCorpusWorkId = null; readerCorpusExplainOk = false;   // безусловный сброс (singleton-reset)
+  readerGroupCorpusId = null;
   try {
     const meta = res && res.text && res.text.source_meta_json ? JSON.parse(res.text.source_meta_json) : null;
-    readerIsOwnText = !!readerTextKey && !(meta && meta.corpus);
+    const groupMeta = meta && meta.group_corpus;
+    readerGroupCorpusId = groupMeta && groupMeta.corpus_id ? String(groupMeta.corpus_id) : null;
+    readerIsOwnText = !!readerTextKey && !(meta && (meta.corpus || meta.group_corpus));
     // PAS-A1 — id работы: та же фолбэк-цепочка, что loadProcliticOverlay (ранние импорты
     // могли не иметь поля в source_meta_json)
-    if (!readerIsOwnText && readerTextKey) {
+    if (!readerIsOwnText && !readerGroupCorpusId && readerTextKey) {
       const t0 = res.text || {};
       let bid = (t0.byehuda_id || (t0.corpus && t0.corpus.byehuda_id) || (meta && meta.corpus && meta.corpus.byehuda_id)) || '';
       if (!bid) { const m = String(textId == null ? '' : textId).match(/(\d+)/); bid = m ? m[1] : ''; }
@@ -5255,8 +5267,10 @@ async function openReader(textId, title, opts) {
   try { setReaderSubtitle(res && res.ok && res.text ? res.text : null); } catch (_) {}   // Epic-6 W1-a — per-work source/context
   if (res && res.ok) {
     attachReaderAudio();
-    try { loadProcliticOverlay(readerTextId, res.text); } catch (_) {}   // Phase-3 — this work's Dicta proclitic overlay (best-effort)
-    try { loadContextOverlay(readerTextId, res.text); } catch (_) {}     // context-overlay — this work's baked context facts (best-effort)
+    if (!readerGroupCorpusId) {
+      try { loadProcliticOverlay(readerTextId, res.text); } catch (_) {}   // Phase-3 — this work's Dicta proclitic overlay (best-effort)
+      try { loadContextOverlay(readerTextId, res.text); } catch (_) {}     // context-overlay — this work's baked context facts (best-effort)
+    }
     try { localDb.touchOpened(textId); } catch (_) {}    // recency for the Continue shelf
     try { tagReaderTableLang(mount); } catch (_) {}      // Epic 8b — sr-only/lang on the painted table (parity-safe)
     try { showReaderTip(); } catch (_) {}                // Epic 8a — first-open gesture hint
@@ -5280,7 +5294,7 @@ async function openReader(textId, title, opts) {
 // mostly unvocalized. Corpus works are always baked-vocalized — never nudged.
 function maybeNudgeNiqqud(text) {
   if (!text || !Array.isArray(readerRows) || readerRows.length < 4) return;
-  try { const meta = text.source_meta_json ? JSON.parse(text.source_meta_json) : null; if (meta && meta.corpus) return; } catch (_) {}
+  try { const meta = text.source_meta_json ? JSON.parse(text.source_meta_json) : null; if (meta && (meta.corpus || meta.group_corpus)) return; } catch (_) {}
   const NIQ = /[֑-ׇ]/;
   const voc = readerRows.filter((r) => r && NIQ.test(String(r.he_niqqud || ''))).length;
   if (voc / readerRows.length >= 0.5) return;
@@ -5349,7 +5363,7 @@ async function closeReader() {
   karaokeActive = false; setReadAloudBtn(false);   // BRR-P1-008 — reset karaoke on close
   clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip(); clearFadeGradNudge(); closeReaderFind(); _sessionMaxRow = -1; readerTextId = null;   // BRR-P2-002/005/S15 + Epic-5 W1/W4/W5 — stop recording + clear find/end-card/cov-chip/fade-nudge after close
   _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null; readerIsOwnText = false;   // BRR-P2-003 — reset bookmark state
-  readerCorpusWorkId = null; readerCorpusExplainOk = false;   // PAS-A1 — singleton-reset (устаревший id не переживает переход corpus→личный)
+  readerCorpusWorkId = null; readerCorpusExplainOk = false; readerGroupCorpusId = null;   // singleton-reset
   try { setReaderSubtitle(null); } catch (_) {}   // Epic-6 W1-a — drop the per-work byline on close
   const rm = $('roomReaderTable');
   if (rm && revealHandler) { try { rm.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
@@ -5503,6 +5517,52 @@ async function openCorpusWork(card, openOpts) {
     corpusImporting = false;
     invalidatePersonalSets();   // a work may have just materialized → personal chips see it fresh
   }
+}
+
+// Restricted group corpus uses the same OPFS reader model, but its transport is
+// authenticated and never static. The source marker prevents cloud artifact
+// sync and switches row audio to the protected endpoint.
+async function loadGroupCorpora() {
+  groupCorpora = [];
+  try {
+    const res = await fetch('/api/group-corpora', { cache: 'no-store' });
+    if (!res.ok) return; // signed-out / no membership: no teaser and no leak
+    const j = await res.json();
+    groupCorpora = j && Array.isArray(j.corpora) ? j.corpora : [];
+  } catch (_) { groupCorpora = []; }
+}
+
+async function ensureGroupCatalog(corpusId) {
+  const id = String(corpusId || '');
+  if (groupCatalogs.has(id)) return groupCatalogs.get(id);
+  const res = await fetch('/api/group-corpora/' + encodeURIComponent(id) + '/works', { cache: 'no-store' });
+  if (!res.ok) throw new Error('group catalog ' + res.status);
+  const j = await res.json();
+  if (!j || !j.ok || !Array.isArray(j.works)) throw new Error('malformed group catalog');
+  groupCatalogs.set(id, j);
+  return j;
+}
+
+async function openGroupCorpusWork(corpusId, card) {
+  if (!card || corpusImporting) return;
+  corpusImporting = true;
+  try {
+    let localId = await resolveLocalIdByKey(card.text_key);
+    if (!localId) {
+      const url = '/api/group-corpora/' + encodeURIComponent(corpusId) + '/works/' + encodeURIComponent(card.work_id);
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error('group work ' + res.status);
+      const bundle = await res.json();
+      if (!bundle || !bundle.library) throw new Error('malformed group work');
+      await localDb.importBundle(bundle, { mode: 'skip' });
+      localId = await resolveLocalIdByKey(card.text_key);
+    }
+    if (!localId) throw new Error('group work not resolvable after import');
+    await openReader(localId, card.title);
+  } catch (e) {
+    try { console.warn('[room] open group corpus work failed:', e); } catch (_) {}
+    roomToast(tt('room.state.error', 'Не получилось открыть текст'));
+  } finally { corpusImporting = false; invalidatePersonalSets(); }
 }
 
 // BRR-P0-004 — ship-as-asset: the curated canon ships as a precomputed bundle in
@@ -6791,6 +6851,7 @@ async function renderCorpus() {
   const token = ++corpusRenderToken;
   if (corpusNav.corpus === 'hub') return renderCorpusHub(token);
   if (corpusNav.corpus === 'mytexts') return renderMyTextsCorpus(token);
+  if (String(corpusNav.corpus || '').startsWith('group:')) return renderGroupCorpus(String(corpusNav.corpus).slice(6), token);
   if (!corpusRoot) { showState('room.shelf.emptyTrack', '📚'); return; }
   if (!corpusIndex) {
     showState('room.state.loading', '⏳');
@@ -6801,6 +6862,41 @@ async function renderCorpus() {
   if (corpusNav.level === 'works') return renderCorpusWorks(corpusNav.era, corpusNav.author, token);
   if (corpusNav.level === 'concordance') return renderConcordance(token);   // BRR-S8
   return renderCorpusHome(token);
+}
+
+async function renderGroupCorpus(corpusId, token) {
+  const main = $('roomContent'); if (!main || token !== corpusRenderToken) return;
+  showState('room.state.loading', '⏳');
+  let catalog;
+  try { catalog = await ensureGroupCatalog(corpusId); }
+  catch (_) { if (token === corpusRenderToken) showState('room.state.error', '⚠️'); return; }
+  if (token !== corpusRenderToken) return;
+  main.innerHTML = '';
+  const wrap = el('div', { class: 'corpus-nav group-corpus' });
+  wrap.appendChild(corpusCrumb([
+    { label: tt('room.hub.crumb', 'Библиотека'), onClick: () => corpusNavToCorpus('hub') },
+    { label: (catalog.corpus && catalog.corpus.title) || 'Учебные песни' },
+  ]));
+  const head = el('div', { class: 'hub-corpus-header' });
+  head.appendChild(el('h2', { class: 'hub-corpus-title', text: '🎵 ' + ((catalog.corpus && catalog.corpus.title) || 'Учебные песни') }));
+  head.appendChild(el('p', { class: 'hub-card-desc', text: 'Закрытый учебный корпус вашей группы · доступ только участникам' }));
+  wrap.appendChild(head);
+  const grid = el('div', { class: 'mytexts-grid' });
+  for (const work of catalog.works) {
+    const card = el('div', { class: 'work-card', attrs: { role: 'button', tabindex: '0' } });
+    const title = el('span', { class: 'work-card-title', text: work.title || '' });
+    if (HEBREW_RE.test(work.title || '')) title.setAttribute('dir', 'rtl');
+    card.appendChild(title);
+    if (work.artist) card.appendChild(el('span', { class: 'work-card-author', text: work.artist }));
+    card.appendChild(el('span', { class: 'work-card-meta', text: (work.rows_count || 0) + ' строк · ♪ ' + (work.audio_count || 0) }));
+    card.appendChild(el('span', { class: 'work-card-cta', text: tt('room.work.open', 'Открыть') }));
+    const open = () => openGroupCorpusWork(corpusId, work);
+    card.addEventListener('click', open);
+    card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+    grid.appendChild(card);
+  }
+  if (!catalog.works.length) grid.appendChild(el('div', { class: 'room-state', text: tt('room.shelf.empty', 'Пока пусто') }));
+  wrap.appendChild(grid); main.appendChild(wrap);
 }
 
 // ── Multi-corpus surface (owner-approved B+C: hub-витрина + switcher-линза) ─────────────────
@@ -6888,6 +6984,16 @@ async function renderCorpusHub(token) {
       card.appendChild(cta);
     }
     const open = () => corpusNavToCorpus(c.id);
+    card.addEventListener('click', open);
+    card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+    cards.appendChild(card);
+  }
+  for (const gc of groupCorpora) {
+    const card = el('div', { class: 'hub-card', attrs: { role: 'button', tabindex: '0', 'data-corpus': 'group:' + gc.corpus_id } });
+    card.appendChild(el('div', { class: 'hub-card-title', text: '🎵 ' + (gc.title || 'Учебные песни') }));
+    card.appendChild(el('p', { class: 'hub-card-desc', text: 'Закрытый учебный корпус вашей группы' }));
+    card.appendChild(el('div', { class: 'hub-card-counts', text: (gc.works_count || 0) + ' текст(ов) · ' + (gc.role === 'OWNER' ? 'владелец' : 'участник') }));
+    const open = () => corpusNavToCorpus('group:' + gc.corpus_id);
     card.addEventListener('click', open);
     card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
     cards.appendChild(card);
@@ -8394,6 +8500,7 @@ async function boot() {
     await autoImportCanon();   // publish the shipped canon shelf on first visit (idempotent)
     await loadData();
     await loadCorpusCatalog(); // BRR-P0-007 Проход-3 — catalog-driven "Корпус" track (served-on-open)
+    await loadGroupCorpora();  // authenticated; silently absent for signed-out/non-members
     // Default to the Корпус (Reading Room) track when its catalog is available — the bilingual
     // canon with morphology-on-tap now leads. Fall back to the on-ramp tracks only if the corpus
     // root didn't load or is empty (mirrors the tabCorpus un-hide condition in loadCorpusCatalog).

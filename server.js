@@ -3494,6 +3494,66 @@ app.post("/api/learner/artifacts/delete", rlLearnerArtifacts, async (req, res) =
 });
 
 // ============================================================================
+// GROUP_SONG_CORPUS_P0 — restricted group corpus. Unlike Ben-Yehuda, no work
+// or MP3 is mounted under express.static: every byte requires a signed-in user
+// with ACTIVE membership. Bundles retain the existing importBundle shape so the
+// Reading Room can reuse its offline reader without a second content model.
+// ============================================================================
+const groupCorpusRepo = require("./db/groupCorpusRepo");
+const rlGroupCorpus = makeRateLimiter({ windowMs: 60_000, max: 120, name: "group-corpus" });
+function groupCorpusError(res, e) {
+  const code = String((e && (e.code || e.message)) || "GROUP_CORPUS_FAILED");
+  if (["GROUP_CORPUS_NOT_FOUND", "GROUP_CORPUS_WORK_NOT_FOUND", "GROUP_CORPUS_AUDIO_NOT_FOUND"].includes(code))
+    return res.status(404).json({ ok: false, error: code });
+  if (code === "GROUP_CORPUS_FILE_INVALID") return res.status(500).json({ ok: false, error: code });
+  return res.status(500).json({ ok: false, error: "GROUP_CORPUS_FAILED" });
+}
+
+app.get("/api/group-corpora", rlGroupCorpus, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try {
+    const corpora = await groupCorpusRepo.listCorpora(auth.user.id);
+    return res.json({ ok: true, schema_version: "group_corpora.1.0.0", corpora });
+  } catch (e) { return groupCorpusError(res, e); }
+});
+
+app.get("/api/group-corpora/:corpusId/works", rlGroupCorpus, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try {
+    const out = await groupCorpusRepo.listWorks(auth.user.id, req.params.corpusId);
+    return res.json({ ok: true, schema_version: "group_corpus_catalog.1.0.0", ...out });
+  } catch (e) { return groupCorpusError(res, e); }
+});
+
+app.get("/api/group-corpora/:corpusId/works/:workId", rlGroupCorpus, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try {
+    const out = await groupCorpusRepo.getWork(auth.user.id, req.params.corpusId, req.params.workId);
+    const st = await fs.promises.stat(out.absolute_path);
+    if (!st.isFile()) return res.status(404).json({ ok: false, error: "GROUP_CORPUS_WORK_NOT_FOUND" });
+    res.setHeader("Cache-Control", "private, no-store");
+    res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    return res.sendFile(out.absolute_path);
+  } catch (e) { return groupCorpusError(res, e); }
+});
+
+app.get("/api/group-corpora/:corpusId/audio/:assetKey", rlGroupCorpus, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try {
+    const out = await groupCorpusRepo.getAudio(auth.user.id, req.params.corpusId, req.params.assetKey);
+    const st = await fs.promises.stat(out.absolute_path);
+    if (!st.isFile() || st.size !== out.audio.bytes)
+      return res.status(404).json({ ok: false, error: "GROUP_CORPUS_AUDIO_NOT_FOUND" });
+    res.setHeader("Content-Type", "audio/mpeg");
+    res.setHeader("Cache-Control", "private, max-age=86400");
+    res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    return res.sendFile(out.absolute_path);
+  } catch (e) { return groupCorpusError(res, e); }
+});
+
+// ============================================================================
 // CLG-P4.5 — Web Push (AI_MENTOR_RECON §8/§9 P4.5): ежедневный нудж «N слов
 // ждут повторения» БЕЗ содержимого. Первая видимая ценность пивота. Подписка —
 // класс A (delete/export sweep покрывает автоматически). VAPID: env либо

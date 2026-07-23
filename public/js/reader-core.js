@@ -418,6 +418,8 @@ export async function openText(textId, opts) {
 //                              //   NOT play the row (the ▶ button still plays). The Room
 //                              //   passes ['he','niqqud'] so those cells are free for the
 //                              //   word-tap morphology layer (reader-morph.js).
+//     audioUrlForAssetKey,     // optional protected-corpus resolver; default /api/audio/:key
+//     timingUrlForAssetKey,    // optional timing resolver; null disables word timing
 //   }
 export function attachRowAudio(mount, opts) {
   opts = opts || {};
@@ -426,6 +428,12 @@ export function attachRowAudio(mount, opts) {
   const excludeTapCols = Array.isArray(opts.tapToHearExcludeCols) ? opts.tapToHearExcludeCols : [];
   const profileOf = () => (typeof opts.profile === "function" ? opts.profile() : opts.profile) || {};
   const gcpKeyOf = () => String((typeof opts.gcpKey === "function" ? opts.gcpKey() : opts.gcpKey) || "");
+  const audioUrlOf = (key) => typeof opts.audioUrlForAssetKey === "function"
+    ? opts.audioUrlForAssetKey(key)
+    : "/api/audio/" + encodeURIComponent(key);
+  const timingUrlOf = (key) => typeof opts.timingUrlForAssetKey === "function"
+    ? opts.timingUrlForAssetKey(key)
+    : "/api/audio/" + encodeURIComponent(key) + "/timing";
   const LANG = "he-IL";
   let player = null, playingIdx = null, objUrl = null, mode = null; // mode: 'audio' | 'speech'
   // BRR-P1-008 karaoke — continuous auto-advance. opts.rowCount()=>n and opts.onRowChange(idx)
@@ -450,7 +458,9 @@ export function attachRowAudio(mount, opts) {
     if (timingCache.has(assetKey)) return timingCache.get(assetKey);
     let t = null;
     try {
-      const r = await fetch("/api/audio/" + encodeURIComponent(assetKey) + "/timing", { cache: "force-cache" });
+      const timingUrl = timingUrlOf(assetKey);
+      if (!timingUrl) { timingCache.set(assetKey, null); return null; }
+      const r = await fetch(timingUrl, { cache: "force-cache" });
       if (r && r.ok) { const j = await r.json(); if (j && Array.isArray(j.words) && j.words.length) t = j; }
     } catch (_) { t = null; }
     timingCache.set(assetKey, t);
@@ -566,10 +576,11 @@ export function attachRowAudio(mount, opts) {
       // tier 1 — keyless cached asset
       const assetKey = String(row._v3_audioAssetKey || "").trim();
       if (assetKey) {
+        const assetUrl = audioUrlOf(assetKey);
         let ok = false;
-        try { const h = await fetch("/api/audio/" + encodeURIComponent(assetKey), { method: "HEAD" }); ok = !!(h && h.ok); } catch (_) { ok = false; }
+        try { const h = assetUrl ? await fetch(assetUrl, { method: "HEAD" }) : null; ok = !!(h && h.ok); } catch (_) { ok = false; }
         if (ok) {
-          revoke(); mode = "audio"; p.src = "/api/audio/" + encodeURIComponent(assetKey); setPlaying(idx);
+          revoke(); mode = "audio"; p.src = assetUrl; setPlaying(idx);
           activeTiming = null; speakingWord = -1;   // BRR-P1-008b — load word timing in parallel
           ensureTiming(assetKey).then((tm) => { if (playingIdx === idx && mode === "audio") activeTiming = tm; });
           startWordTick();   // rAF word-highlight loop (iOS-safe)
