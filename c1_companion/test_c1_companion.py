@@ -47,6 +47,8 @@ class CompanionTests(unittest.TestCase):
         exercises = c1.load_exercises()
         self.assertEqual(len(exercises), 25)
         self.assertEqual(len({row["target_word"] for row in exercises.values()}), 25)
+        self.assertTrue(all(row["target_transliteration"] for row in exercises.values()))
+        self.assertTrue(all(row["sentence_translation_ru"] for row in exercises.values()))
         self.assertTrue(all(row["condition"] == "NORMAL" for row in exercises.values()))
         self.assertTrue(all(row["expected_error_type"] == "NONE" for row in exercises.values()))
 

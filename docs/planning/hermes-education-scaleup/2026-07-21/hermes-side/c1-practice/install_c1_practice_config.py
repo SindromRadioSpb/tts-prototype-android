@@ -41,7 +41,11 @@ SERVER = {
     "timeout": 600,
     "connect_timeout": 30,
     "tools": {
-        "include": ["list_pronunciation_exercises", "evaluate_pronunciation_attempt"],
+        "include": [
+            "list_pronunciation_exercises",
+            "evaluate_pronunciation_attempt",
+            "discard_pronunciation_attachment",
+        ],
         "resources": False,
         "prompts": False,
     },

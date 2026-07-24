@@ -168,6 +168,25 @@ class C1PracticeTests(unittest.TestCase):
             self.assertIn("C1_RAW_DELETE_FAILED", str(caught.exception))
             self.assertTrue(path.exists())
 
+    def test_discard_deletes_current_session_voice_attachment_without_evaluation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = self.make_note(root)
+            result = module.discard_attachment_impl("abc", str(path), attachment_root=root)
+            self.assertFalse(path.exists())
+            self.assertTrue(result["raw_deleted"])
+            self.assertFalse(result["evaluated"])
+            self.assertEqual(result["schema_version"], module.DISCARD_SCHEMA_VERSION)
+
+    def test_discard_rejects_cross_session_and_preserves_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = self.make_note(root, session="other")
+            (root / "abc").mkdir()
+            with self.assertRaises(Exception):
+                module.discard_attachment_impl("abc", str(path), attachment_root=root)
+            self.assertTrue(path.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

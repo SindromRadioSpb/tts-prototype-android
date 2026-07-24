@@ -20,8 +20,9 @@ The main surface is a normal Hermes learning conversation, not a detached diagno
 2. Hermes loads the C1-P skill, reads the LinguistPro learner profile and due items, and intersects
    due vocabulary with the frozen allowlist of 25 C1 words. If the intersection is empty, Hermes
    honestly offers an allowlisted exercise without pretending that it is due.
-3. Hermes shows one short sentence, the target word with vocalization and a compact reminder that
-   the experiment can miss errors and can falsely flag correct speech.
+3. Hermes shows one short sentence, its Russian meaning, the target word with vocalization and
+   stable Latin transliteration. The measured limitations are explained once in human language,
+   without internal ids or laboratory terminology.
 4. On iPhone the learner presses and holds the Hermex microphone to send a voice note. In WebUI the
    learner enables raw-audio mode and records through the microphone over HTTPS.
 5. One local Hermes tool validates the current-session attachment, decodes it, computes ivrit.ai
@@ -62,7 +63,8 @@ New local MCP server: `c1_pronunciation`; additive tools only.
 ### `list_pronunciation_exercises`
 
 No input. Returns exactly the 25 frozen exercise ids, sentences, target words, vocalized targets
-and the immutable quality disclosure. It reads no learner data.
+and the immutable quality disclosure. Each item also carries its reviewed Russian sentence meaning
+and stable Latin target transliteration. It reads no learner data.
 
 ### `evaluate_pronunciation_attempt`
 
@@ -90,6 +92,14 @@ The tool accepts only a regular non-symlink file inside the exact sanitized dire
 at 12 seconds, runs with concurrency one, logs no path/transcript/features and deletes raw input in
 `finally` on success or failure. A deletion failure changes the call to a typed privacy error.
 
+### `discard_pronunciation_attachment`
+
+Input is the current `session_id` plus the exact new attachment path. This narrow privacy tool is
+used only when an iPhone voice note intended to start practice arrives before Hermes has selected
+an exercise. It applies the same session/path/type/size/symlink checks, performs no ASR or scoring,
+deletes the raw attachment and returns `c1.practice_discard.1.0.0` with `raw_deleted:true` and
+`evaluated:false`. A cross-session path is rejected and preserved.
+
 ## 5. Educational state machine
 
 `SETUP -> TARGET_SELECTION -> PROMPT -> VOICE_INTAKE -> LOCAL_EVALUATION -> TRANSCRIPT_PREVIEW -> WAIT_CONFIRMATION -> ADVISORY_FEEDBACK -> RETRY|CLOSURE`
@@ -107,12 +117,16 @@ at 12 seconds, runs with concurrency one, logs no path/transcript/features and d
 ## 6. UX design plan and critique
 
 The product uses the existing native Hermex and Hermes WebUI composers rather than introducing a
-third visual shell. The interaction hierarchy is: one Hebrew prompt, one target word, one voice
-action, one confirmation question, one advisory suggestion. The signature interaction is the
-visible two-axis result: `Что распознано` is always confirmed before `Как могло прозвучать`.
+third visual shell. The interaction hierarchy is: one friendly invitation, one Hebrew prompt with
+meaning, one target word with vocalization/transliteration, one voice action, one confirmation
+question, one advisory suggestion. The recognition hypothesis is always confirmed before any
+pronunciation observation.
 
-Copy is specific and calm. No generic score, percentage badge, red/green pass state, celebratory
-animation or dashboard is introduced. Hebrew remains RTL; Russian is used for metacognitive copy.
+Copy is specific, calm and learner-facing. `C1`, exercise ids, schema/status codes, due-list details,
+timestamps and tool names stay hidden unless diagnostics are explicitly requested. The measured
+60%/30%/2-of-10 limits remain visible but are phrased as an honest explanation rather than a lab
+report. No generic score, percentage badge, red/green pass state, celebratory animation or
+dashboard is introduced. Hebrew remains RTL; Russian is used for metacognitive copy.
 Existing system typography, focus states, reduced-motion behavior and mobile composer affordances
 are retained. The detached pronunciation page remains available for diagnostics but is no longer
 linked as the recommended practice entry point.
@@ -144,9 +158,11 @@ Adversarial critique before build:
 ## 8. Secure access and operations
 
 Hermes WebUI remains bound to the local host port but is additionally exposed inside the tailnet
-through Tailscale Serve HTTPS. The existing plain HTTP tailnet URL may remain for Hermex
-compatibility, but browser microphone instructions and product links use the HTTPS MagicDNS URL.
-No Funnel/public exposure is allowed.
+through Tailscale Serve HTTPS. On the Windows host itself Chrome uses
+`http://localhost:8787`: localhost is the supported secure-context route and avoids browser
+Secure-DNS/MagicDNS incompatibility. Other tailnet browser clients use the HTTPS MagicDNS URL.
+The existing plain HTTP tailnet URL may remain for native Hermex compatibility. No Funnel/public
+exposure is allowed.
 
 Runtime rollback is additive and independent:
 
@@ -204,3 +220,23 @@ and no contemporaneous `POST /api/upload`, proving that the short-tap dictation 
 than the hold-to-record voice-note path. This is neither stale C1 configuration nor a missing raw
 audio feature. The installed skill now explicitly requires holding the mic for at least 0.5 s
 until the red recording bar/timer appears, and gives the exact tailnet-only HTTPS WebUI URL.
+
+### Second owner-live attempt and UX/routing correction
+
+- PC session `c570e8be0650` reached the correct flow: the pronunciation skill loaded, the frozen
+  exercise list and LinguistPro due items were read, `evaluate_pronunciation_attempt` processed the
+  new WebUI raw-audio attachment, returned separate ASR/C1 axes and confirmed `raw_deleted:true`.
+  The source WebM and C1 scratch directory were empty afterward. The UI correctly stopped at the
+  transcript-confirmation question; post-confirmation owner evidence is still pending.
+- iPhone session `a6d0dd0b348d` proved native voice-note transport but did not enter C1. Preliminary
+  dictation distorted the spoken request, so Hermes handled it as a generic conversation and called
+  only LinguistPro morphology. This is a routing/UX failure, not a cache or microphone failure.
+- Remediation adds the stable typed shortcut `/ivrit-practice начнём`, fuzzy ASR-noise triggers,
+  learner-facing prompt meaning/transliteration, a shorter confirmation step and friendly advisory
+  copy. Internal ids and engineering terminology are hidden in normal learning conversation.
+- A new discard-only tool closes the privacy gap for a C1-intended voice note received before target
+  selection. It removed the two exact raw attachments from the failed iPhone routing attempt with
+  `raw_deleted:true`; the session directory is now empty and no other attachment was touched.
+- Firefox reached tailnet HTTPS. Chrome on the Hermes host could not resolve the private MagicDNS
+  URL, so the supported same-host Chrome route is now `http://localhost:8787`; remote tailnet
+  browsers keep the HTTPS URL.

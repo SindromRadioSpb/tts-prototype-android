@@ -25,5 +25,6 @@ mcp_servers:
       include:
         - list_pronunciation_exercises
         - evaluate_pronunciation_attempt
+        - discard_pronunciation_attachment
       resources: false
       prompts: false

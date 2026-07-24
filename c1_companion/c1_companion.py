@@ -44,6 +44,33 @@ QUALITY_DISCLOSURE = {
     "maturity": "UNDERPOWERED",
 }
 PHONIKUD_TOKENIZER_SHA256 = "8e62e3b46c924e14fc32c749ef8944c311411ce9c4dc01c5b606953a169140ba"
+EXERCISE_GUIDANCE = {
+    "שלום": ("shalom", "Я говорю соседу «шалом»."),
+    "התלמיד": ("hatalmid", "Ученик читает книгу."),
+    "עברית": ("ivrit", "Я учу иврит каждый день."),
+    "מדינה": ("medina", "Израиль — маленькая страна."),
+    "ספרים": ("sfarim", "На столе лежат книги."),
+    "חברים": ("khaverim", "Хорошие друзья встречаются вечером."),
+    "עבודה": ("avoda", "Хорошая работа требует терпения."),
+    "לומד": ("lomed", "Ребёнок учит иврит."),
+    "כותב": ("kotev", "Дани пишет короткое письмо."),
+    "שומע": ("shomea", "Я слушаю музыку дома."),
+    "מדברת": ("medaberet", "Она хорошо говорит на иврите."),
+    "ילדים": ("yeladim", "Дети играют во дворе."),
+    "אנשים": ("anashim", "Люди ждут на остановке."),
+    "משפחה": ("mishpakha", "Семья ест вместе."),
+    "ארוחה": ("arukha", "Мы приготовили вкусную еду."),
+    "בוקר": ("boker", "Доброе утро начинается с кофе."),
+    "ערב": ("erev", "Тихий вечер опускается на город."),
+    "כסף": ("kesef", "Деньги находятся в кошельке."),
+    "חדר": ("kheder", "Маленькая комната находится наверху."),
+    "ילד": ("yeled", "Счастливый ребёнок бежит во дворе."),
+    "ספר": ("sefer", "Новая книга лежит на столе."),
+    "לחם": ("lekhem", "Свежий хлеб готов на кухне."),
+    "גשם": ("geshem", "Ночью шёл сильный дождь."),
+    "כלב": ("kelev", "Маленькая собака ждёт снаружи."),
+    "שמש": ("shemesh", "Сегодня светит тёплое солнце."),
+}
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FROZEN_DIR = Path(os.environ.get(
@@ -93,6 +120,11 @@ def load_exercises() -> dict[str, dict[str, str]]:
         exercise["condition"] = "NORMAL"
         exercise["expected_error_type"] = "NONE"
         exercise["audio_file"] = exercise_id + ".wav"
+        guidance = EXERCISE_GUIDANCE.get(exercise["target_word"])
+        if guidance is None:
+            raise RuntimeError(f"EXERCISE_GUIDANCE_MISSING:{exercise['target_word']}")
+        exercise["target_transliteration"] = guidance[0]
+        exercise["sentence_translation_ru"] = guidance[1]
         exercises[exercise_id] = exercise
     if len(exercises) != 25 or len({row["target_word"] for row in exercises.values()}) != 25:
         raise RuntimeError("EXERCISE_TARGETS_NOT_UNIQUE")
@@ -328,7 +360,9 @@ class CompanionEngine:
                 "id": exercise_id,
                 "target_word": row["target_word"],
                 "expected_target_vocalized": row["expected_target_vocalized"],
+                "target_transliteration": row["target_transliteration"],
                 "sentence": row["sentence"],
+                "sentence_translation_ru": row["sentence_translation_ru"],
                 "target_index": int(row["target_index"]),
             }
             for exercise_id, row in self.exercises.items()

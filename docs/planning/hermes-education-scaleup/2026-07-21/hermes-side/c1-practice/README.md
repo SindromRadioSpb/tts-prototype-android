@@ -11,9 +11,11 @@ learner state. Canon: `../../C1_HERMES_PRACTICE_LOOP_PLAN_2026_07_24.md`.
 - Native Hermex press-and-hold voice notes and WebUI raw-audio attachments land below the WebUI
   state volume's session-scoped `attachments/` directory.
 - Local stdio MCP `c1_pronunciation` runs as a WebUI child, so no listening port is introduced.
-- One tool call validates the exact session directory, decodes the attachment in memory, runs the
+- The evaluation tool validates the exact session directory, decodes the attachment in memory, runs the
   pinned local ivrit.ai ASR and frozen MMS_FA/Phonikud scorer, then deletes the source attachment in
   `finally`.
+- A separate discard-only tool deletes a current-session voice note that arrived before an exercise
+  was selected; it performs no transcription or scoring.
 - The skill enforces transcript confirmation before it reveals the C1 portion of the tool result.
 - Models and the owner profile stay in gitignored `G:\HERMES_AGENT\models` / `private` paths.
 
@@ -58,9 +60,11 @@ uv pip install --python /home/hermeswebui/.hermes/mcp-runtimes/c1-py312/bin/pyth
    the dedicated sticky scratch directory needed by Hermes' remapped MCP uid; individual scratch
    files remain mode `0600` and are deleted in `finally`. Restart both Hermes containers and open
    a fresh ordinary chat because tool lists are cached.
-4. Enable tailnet-only HTTPS without Funnel: `tailscale serve --bg 8787`. Browser use goes to the
-   resulting `https://<machine>.<tailnet>.ts.net/` URL; Hermex may keep its supported Tailscale HTTP
-   URL because native microphone capture does not use browser secure-context rules.
+4. Enable tailnet-only HTTPS without Funnel: `tailscale serve --bg 8787`. A browser on another
+   tailnet device uses `https://<machine>.<tailnet>.ts.net/`. Chrome on the Hermes Windows host uses
+   `http://localhost:8787`, which is a secure-context route and does not depend on MagicDNS. Hermex
+   may keep its supported Tailscale HTTP URL because native microphone capture does not use browser
+   secure-context rules.
 
 ## Verification and privacy audit
 
@@ -72,7 +76,8 @@ uv pip install --python /home/hermeswebui/.hermes/mcp-runtimes/c1-py312/bin/pyth
 - Inspect the MCP log: request id/bytes/timing/status only; no path, transcript or detailed score.
 - In a fresh ordinary Hermes chat, verify actual tool invocation and the transcript-confirmation
   state machine. Tool discovery alone is not acceptance.
-- Owner-live needs one Hermex iPhone voice note and one HTTPS WebUI raw-audio attempt.
+- Owner-live needs one Hermex iPhone voice note and one secure-context WebUI raw-audio attempt,
+  including transcript confirmation and the post-confirmation advisory response.
 
 ## Rollback
 

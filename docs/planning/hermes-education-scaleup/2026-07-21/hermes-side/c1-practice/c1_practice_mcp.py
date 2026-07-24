@@ -20,6 +20,7 @@ from fastmcp import FastMCP
 from fastmcp.exceptions import ToolError
 
 SCHEMA_VERSION = "c1.practice_attempt.1.0.0"
+DISCARD_SCHEMA_VERSION = "c1.practice_discard.1.0.0"
 EXERCISES_SCHEMA_VERSION = "c1.practice_exercises.1.0.0"
 CONFIDENCE_NOTE = "ASR_HYPOTHESIS_NOT_GROUND_TRUTH"
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
@@ -315,6 +316,59 @@ def evaluate_attempt_impl(
     return result
 
 
+def discard_attachment_impl(
+    session_id: str,
+    file_path: str,
+    *,
+    attachment_root: Path | None = None,
+) -> dict[str, Any]:
+    """Delete an unused C1-intended voice note without evaluating or retaining it."""
+    request_id = uuid.uuid4().hex[:12]
+    root = attachment_root or Path(os.environ.get("C1_ATTACHMENT_ROOT", DEFAULT_ATTACHMENT_ROOT))
+    audio_path = _resolve_attachment(session_id, file_path, root)
+    opened_stat: os.stat_result | None = None
+    failure: BaseException | None = None
+
+    _evaluation_lock.acquire()
+    try:
+        payload, opened_stat = _read_bounded_audio(audio_path)
+        if opened_stat.st_size <= 0 or not payload:
+            raise _tool_error("C1_EMPTY_FILE", "audio file is empty")
+        if opened_stat.st_size > MAX_AUDIO_BYTES or len(payload) > MAX_AUDIO_BYTES:
+            raise _tool_error("C1_AUDIO_TOO_LARGE", "audio exceeds 10 MiB")
+        logger.info(
+            "event=discard_started request_id=%s input_bytes=%d",
+            request_id,
+            opened_stat.st_size,
+        )
+    except BaseException as exc:
+        failure = exc
+    finally:
+        try:
+            if opened_stat is not None:
+                _delete_verified(audio_path, opened_stat)
+        except BaseException as delete_exc:
+            failure = delete_exc
+        _evaluation_lock.release()
+
+    if failure is not None:
+        logger.warning(
+            "event=discard_failed request_id=%s error_type=%s raw_deleted=%s",
+            request_id,
+            type(failure).__name__,
+            not audio_path.exists(),
+        )
+        raise failure
+    logger.info("event=discard_succeeded request_id=%s raw_deleted=true", request_id)
+    return {
+        "ok": True,
+        "schema_version": DISCARD_SCHEMA_VERSION,
+        "raw_deleted": True,
+        "evaluated": False,
+        "generated_at": _utc_now(),
+    }
+
+
 @mcp.tool(
     name="list_pronunciation_exercises",
     description="List the exactly 25 frozen C1 experimental Hebrew pronunciation exercises and measured limitations.",
@@ -346,6 +400,17 @@ def evaluate_pronunciation_attempt(
     language: Literal["he"] = "he",
 ) -> dict[str, Any]:
     return evaluate_attempt_impl(session_id, file_path, exercise_id, language)
+
+
+@mcp.tool(
+    name="discard_pronunciation_attachment",
+    description=(
+        "Delete one current-session Hermex/WebUI voice note that arrived before a C1 exercise was "
+        "active. Performs no ASR or scoring and confirms raw deletion."
+    ),
+)
+def discard_pronunciation_attachment(session_id: str, file_path: str) -> dict[str, Any]:
+    return discard_attachment_impl(session_id, file_path)
 
 
 if __name__ == "__main__":
