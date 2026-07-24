@@ -22,18 +22,28 @@ rate 1/2 = 50%; they are explicitly excluded from owner-live metrics.
 
 ## Owner-live closure gate
 
-Status: **PENDING**. H2.6 remains IN_PROGRESS / ENGINEERING_COMPLETE, not CLOSED.
+Status: **OWNER_LIVE 1/2**. H2.6 is not CLOSED.
+
+Owner session 1, reported 2026-07-24:
+
+- confirmed previews: 1;
+- corrected previews: 0;
+- speech duration: 15.61 seconds = 0.260 minutes;
+- ASR correction rate: 0 / 1 = 0%;
+- transcript content: intentionally not retained here.
+
+This satisfies the first-session metric record. Evidence has not yet been supplied that this
+session reached H1.1 POST_ANALYSIS and RETRY; that gate may be satisfied by session 2.
 
 Required in a fresh ordinary Hermes chat:
 
-1. Complete at least two real owner voice sessions using two separate WAV files and the mandatory
-   preview/confirmation step.
-2. Let at least one session reach H1.1 POST_ANALYSIS and RETRY.
-3. Report for this chat: confirmed preview count, corrected preview count, sum of ASR `max(end_s)`
-   in minutes, and `ASR correction rate = corrected / confirmed`.
+1. Complete owner voice session 2 with a separate WAV and mandatory preview/confirmation.
+2. Let session 2 reach H1.1 POST_ANALYSIS and RETRY unless session 1 already did and the owner
+   explicitly confirms that fact.
+3. Report session-2 confirmed/corrected preview counts and speech minutes; aggregate both sessions.
 4. Owner gives a 1–5 usefulness/readability verdict and confirms that ASR differences were not
    presented as learner errors.
-5. Record the figures and verdict here and in STATUS before declaring H2.6 CLOSED.
+5. Record the final aggregate and verdict here and in STATUS before declaring H2.6 CLOSED.
 
 No transcript or raw owner audio is to be copied into this evidence. Only counts, minutes, rate,
 verdict and a content-free incident note are durable.
