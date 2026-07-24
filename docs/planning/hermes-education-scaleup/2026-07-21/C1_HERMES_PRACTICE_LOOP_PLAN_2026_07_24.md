@@ -193,3 +193,14 @@ Runtime rollback is additive and independent:
 - Remaining gate: the owner must perform one new microphone attempt in native Hermex on iPhone and
   one through the HTTPS WebUI on PC. C1-P stays `ENGINEERING_COMPLETE / OWNER-LIVE pending` until
   both surfaces are observed; the research verdict remains `DONE_NO_GO / UNDERPOWERED`.
+
+### First owner-live attempt and clarified recovery
+
+The first owner attempt did not exercise either raw-audio path. On PC the WebUI was still opened at
+the legacy `http://100.107.242.111:8787` URL; the saved server setting already showed
+`raw_audio_mode:true`, but the browser correctly rejected microphone access outside a secure
+context. On iPhone, WebUI access logs at `2026-07-24T11:01:01Z` recorded `POST /api/transcribe`
+and no contemporaneous `POST /api/upload`, proving that the short-tap dictation path ran rather
+than the hold-to-record voice-note path. This is neither stale C1 configuration nor a missing raw
+audio feature. The installed skill now explicitly requires holding the mic for at least 0.5 s
+until the red recording bar/timer appears, and gives the exact tailnet-only HTTPS WebUI URL.
