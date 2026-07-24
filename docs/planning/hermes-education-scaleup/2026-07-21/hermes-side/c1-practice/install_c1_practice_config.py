@@ -44,6 +44,7 @@ SERVER = {
         "include": [
             "list_pronunciation_exercises",
             "evaluate_pronunciation_attempt",
+            "transcribe_reading_attempt",
             "discard_pronunciation_attachment",
         ],
         "resources": False,

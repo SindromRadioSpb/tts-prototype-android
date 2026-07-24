@@ -20,12 +20,14 @@ from fastmcp import FastMCP
 from fastmcp.exceptions import ToolError
 
 SCHEMA_VERSION = "c1.practice_attempt.1.0.0"
+READING_SCHEMA_VERSION = "c1.reading_attempt.1.0.0"
 DISCARD_SCHEMA_VERSION = "c1.practice_discard.1.0.0"
 EXERCISES_SCHEMA_VERSION = "c1.practice_exercises.1.0.0"
 CONFIDENCE_NOTE = "ASR_HYPOTHESIS_NOT_GROUND_TRUTH"
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MIN_DURATION_S = 0.25
 MAX_DURATION_S = 12.0
+MAX_READING_DURATION_S = 90.0
 ALLOWED_SUFFIXES = {".m4a", ".wav", ".webm", ".ogg", ".mp3", ".flac"}
 ALLOWED_NAME_PREFIXES = ("voice-note-", "voice-input-")
 
@@ -211,6 +213,22 @@ def _pcm_wav_bytes(waveform: Any, sample_rate: int = 16000) -> bytes:
     return output.getvalue()
 
 
+def _audio_duration_s(waveform: Any, *, maximum_s: float, sample_rate: int = 16000) -> float:
+    try:
+        sample_count = len(waveform)
+    except TypeError as exc:
+        raise _tool_error("C1_INVALID_AUDIO", "decoded audio has no samples") from exc
+    duration = sample_count / sample_rate if sample_rate else 0.0
+    if duration < MIN_DURATION_S:
+        raise _tool_error("C1_AUDIO_TOO_SHORT", "audio is shorter than 0.25 seconds")
+    if duration > maximum_s:
+        raise _tool_error(
+            "C1_AUDIO_TOO_LONG",
+            f"audio exceeds {int(maximum_s)} seconds",
+        )
+    return duration
+
+
 def _transcribe(waveform: Any, model: Any) -> dict[str, Any]:
     try:
         generated, _info = model.transcribe(
@@ -316,6 +334,76 @@ def evaluate_attempt_impl(
     return result
 
 
+def transcribe_reading_attempt_impl(
+    session_id: str,
+    file_path: str,
+    language: Literal["he"] = "he",
+    *,
+    attachment_root: Path | None = None,
+    decoder: Any = _decode_audio,
+    asr_model: Any | None = None,
+) -> dict[str, Any]:
+    """Transcribe a bounded Hebrew reading attempt without pronunciation scoring."""
+    if language != "he":
+        raise _tool_error("C1_LANGUAGE_UNSUPPORTED", "language must be 'he'")
+    request_id = uuid.uuid4().hex[:12]
+    started = time.monotonic()
+    root = attachment_root or Path(os.environ.get("C1_ATTACHMENT_ROOT", DEFAULT_ATTACHMENT_ROOT))
+    audio_path = _resolve_attachment(session_id, file_path, root)
+    opened_stat: os.stat_result | None = None
+    result: dict[str, Any] | None = None
+    failure: BaseException | None = None
+
+    _evaluation_lock.acquire()
+    try:
+        payload, opened_stat = _read_bounded_audio(audio_path)
+        if opened_stat.st_size <= 0 or not payload:
+            raise _tool_error("C1_EMPTY_FILE", "audio file is empty")
+        if opened_stat.st_size > MAX_AUDIO_BYTES or len(payload) > MAX_AUDIO_BYTES:
+            raise _tool_error("C1_AUDIO_TOO_LARGE", "audio exceeds 10 MiB")
+        logger.info("event=reading_started request_id=%s input_bytes=%d", request_id, len(payload))
+        waveform = decoder(payload)
+        duration_s = _audio_duration_s(waveform, maximum_s=MAX_READING_DURATION_S)
+        transcript = _transcribe(waveform, asr_model or _get_asr_model())
+        result = {
+            "ok": True,
+            "schema_version": READING_SCHEMA_VERSION,
+            "asr": transcript,
+            "duration_s": round(duration_s, 3),
+            "pronunciation_scored": False,
+            "must_confirm_transcript_before_feedback": True,
+            "advisory_only": True,
+            "raw_deleted": False,
+            "generated_at": _utc_now(),
+        }
+    except BaseException as exc:
+        failure = exc
+    finally:
+        try:
+            if opened_stat is not None:
+                _delete_verified(audio_path, opened_stat)
+        except BaseException as delete_exc:
+            failure = delete_exc
+        _evaluation_lock.release()
+
+    if failure is not None:
+        logger.warning(
+            "event=reading_failed request_id=%s error_type=%s raw_deleted=%s",
+            request_id,
+            type(failure).__name__,
+            not audio_path.exists(),
+        )
+        raise failure
+    assert result is not None
+    result["raw_deleted"] = True
+    logger.info(
+        "event=reading_succeeded request_id=%s elapsed_s=%.3f raw_deleted=true",
+        request_id,
+        time.monotonic() - started,
+    )
+    return result
+
+
 def discard_attachment_impl(
     session_id: str,
     file_path: str,
@@ -400,6 +488,21 @@ def evaluate_pronunciation_attempt(
     language: Literal["he"] = "he",
 ) -> dict[str, Any]:
     return evaluate_attempt_impl(session_id, file_path, exercise_id, language)
+
+
+@mcp.tool(
+    name="transcribe_reading_attempt",
+    description=(
+        "Locally transcribe one current-session Hebrew reading voice note up to 90 seconds, "
+        "delete the raw attachment, and return an ASR hypothesis only. Does not score pronunciation."
+    ),
+)
+def transcribe_reading_attempt(
+    session_id: str,
+    file_path: str,
+    language: Literal["he"] = "he",
+) -> dict[str, Any]:
+    return transcribe_reading_attempt_impl(session_id, file_path, language)
 
 
 @mcp.tool(

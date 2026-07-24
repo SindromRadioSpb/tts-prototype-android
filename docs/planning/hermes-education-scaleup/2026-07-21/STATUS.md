@@ -74,6 +74,15 @@ selection, the ASR-confirmation barrier, post-confirmation C1 feedback, verified
 tailnet-only HTTPS. Closure still requires one owner microphone attempt in Hermex iPhone and one in
 HTTPS WebUI PC; this does not change the C1 R&D `DONE_NO_GO / UNDERPOWERED` verdict.
 
+2026-07-24 compatibility update: Hermex's voice-note auto-caption is now separated from the raw
+attachment by a pinned WebUI bridge. Exact-envelope E2E `365eb53abbc5` ignored a false caption,
+called C1 on the audio, reached ASR confirmation and deleted raw. ASR-only reading practice now
+selects bounded passages from Ben-Yehuda/public corpus, group songs, consented personal texts or
+pasted text; public (`3a9b5bbd86c9`) and song (`c3500a3ad0a4`) routes passed live, and the public
+session's audio turn called the ASR-only tool, reached confirmation and deleted raw. Engineering is
+green (4/4, 13/13, 78/78, 226/226). A fresh real post-bridge iPhone confirmation/advisory turn and
+completion of the PC confirmation/advisory turn remain the owner-live closure gates.
+
 ## P11 Платформенный трек — статус: ОТДЕЛЬНАЯ ОПЦИЯ, не запущен (Д3)
 
 ## Открытые owner decisions

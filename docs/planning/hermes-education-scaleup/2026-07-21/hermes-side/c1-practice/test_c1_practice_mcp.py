@@ -187,6 +187,32 @@ class C1PracticeTests(unittest.TestCase):
                 module.discard_attachment_impl("abc", str(path), attachment_root=root)
             self.assertTrue(path.exists())
 
+    def test_reading_attempt_is_asr_only_and_deletes_source(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = self.make_note(root)
+            result = module.transcribe_reading_attempt_impl(
+                "abc", str(path), attachment_root=root,
+                decoder=waveform, asr_model=FakeAsr(),
+            )
+            self.assertFalse(path.exists())
+            self.assertTrue(result["raw_deleted"])
+            self.assertFalse(result["pronunciation_scored"])
+            self.assertEqual(result["schema_version"], module.READING_SCHEMA_VERSION)
+            self.assertEqual(result["asr"]["text"], "שלום")
+
+    def test_reading_attempt_rejects_over_90_seconds_and_deletes_source(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = self.make_note(root)
+            long_wave = lambda _payload: np.zeros(16000 * 91, dtype=np.float32)
+            with self.assertRaises(Exception):
+                module.transcribe_reading_attempt_impl(
+                    "abc", str(path), attachment_root=root,
+                    decoder=long_wave, asr_model=FakeAsr(),
+                )
+            self.assertFalse(path.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

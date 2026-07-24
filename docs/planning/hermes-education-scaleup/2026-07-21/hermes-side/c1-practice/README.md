@@ -10,12 +10,16 @@ learner state. Canon: `../../C1_HERMES_PRACTICE_LOOP_PLAN_2026_07_24.md`.
 
 - Native Hermex press-and-hold voice notes and WebUI raw-audio attachments land below the WebUI
   state volume's session-scoped `attachments/` directory.
+- Hermex also sends an auto-caption. The pinned WebUI bridge exposes the validated current-turn
+  audio path to the agent without altering the persisted caption or embedding audio bytes.
 - Local stdio MCP `c1_pronunciation` runs as a WebUI child, so no listening port is introduced.
 - The evaluation tool validates the exact session directory, decodes the attachment in memory, runs the
   pinned local ivrit.ai ASR and frozen MMS_FA/Phonikud scorer, then deletes the source attachment in
   `finally`.
 - A separate discard-only tool deletes a current-session voice note that arrived before an exercise
   was selected; it performs no transcription or scoring.
+- `transcribe_reading_attempt` performs local ASR-only comparison for a selected corpus excerpt,
+  allows at most 90 seconds and never invokes the frozen pronunciation scorer.
 - The skill enforces transcript confirmation before it reveals the C1 portion of the tool result.
 - Models and the owner profile stay in gitignored `G:\HERMES_AGENT\models` / `private` paths.
 
@@ -65,6 +69,10 @@ uv pip install --python /home/hermeswebui/.hermes/mcp-runtimes/c1-py312/bin/pyth
    `http://localhost:8787`, which is a secure-context route and does not depend on MagicDNS. Hermex
    may keep its supported Tailscale HTTP URL because native microphone capture does not use browser
    secure-context rules.
+5. Build the bridge from `webui-bridge/Dockerfile` as
+   `linguistpro/hermes-webui-c1:20260724-1` and use it only for `hermes-webui`. The Dockerfile pins
+   the upstream image digest and fails if the expected `streaming.py` hash changes. The Hermes
+   agent container is unchanged.
 
 ## Verification and privacy audit
 
@@ -76,11 +84,20 @@ uv pip install --python /home/hermeswebui/.hermes/mcp-runtimes/c1-py312/bin/pyth
 - Inspect the MCP log: request id/bytes/timing/status only; no path, transcript or detailed score.
 - In a fresh ordinary Hermes chat, verify actual tool invocation and the transcript-confirmation
   state machine. Tool discovery alone is not acceptance.
-- Owner-live needs one Hermex iPhone voice note and one secure-context WebUI raw-audio attempt,
+- Owner-live needs one post-bridge Hermex iPhone voice note and one secure-context WebUI raw-audio attempt,
   including transcript confirmation and the post-confirmation advisory response.
+
+Focused expected results: companion 4/4, MCP 13/13, C1 product smoke 78/78 and i18n 226/226.
+
+Read-only training sources are selected through existing LinguistPro tools: public/Ben-Yehuda
+catalog + content, group-song catalog + content, consent-bounded personal texts, or a fragment
+pasted by the learner. Arbitrary source text uses ASR-only reading comparison. Only the exact 25
+frozen exercise sentences may invoke C1 scoring.
 
 ## Rollback
 
-Run the installer with `--remove`, deactivate only the C1-P skill and restart both containers.
+Restore `hermes-webui` to pinned upstream digest
+`sha256:10eaa2d43efbdd01833e7ff64aaaa5557beb15e2a34d32a489af4fd4ed5fbff5`, run the installer with
+`--remove`, deactivate only the C1-P skill and restart both containers.
 Optionally `tailscale serve reset` removes the HTTPS proxy. H2.5 ASR, H2.6 voice skill, C1-X
 loopback page and all LinguistPro product paths remain unchanged.

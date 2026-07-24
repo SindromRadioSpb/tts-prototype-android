@@ -23,8 +23,9 @@ The main surface is a normal Hermes learning conversation, not a detached diagno
 3. Hermes shows one short sentence, its Russian meaning, the target word with vocalization and
    stable Latin transliteration. The measured limitations are explained once in human language,
    without internal ids or laboratory terminology.
-4. On iPhone the learner presses and holds the Hermex microphone to send a voice note. In WebUI the
-   learner enables raw-audio mode and records through the microphone over HTTPS.
+4. On iPhone the learner presses and holds the Hermex microphone to send a voice note. Hermex also
+   displays its own automatic transcript; that caption is expected and is not the C1 input. In
+   WebUI the learner enables raw-audio mode and records through a secure browser context.
 5. One local Hermes tool validates the current-session attachment, decodes it, computes ivrit.ai
    ASR and the frozen C1 advisory result, and unconditionally deletes the uploaded raw attachment
    and all scratch audio.
@@ -37,9 +38,10 @@ The main surface is a normal Hermes learning conversation, not a detached diagno
 ## 3. Architecture and trust boundary
 
 ```text
-Hermex iPhone voice note OR HTTPS Hermes WebUI raw audio
+Hermex iPhone voice note + auto-caption OR secure-context Hermes WebUI raw audio
   -> password-protected Hermes WebUI over the owner's tailnet
   -> session-scoped attachment
+  -> pinned WebUI bridge exposes only its validated absolute path to the ephemeral agent turn
   -> local stdio MCP c1_pronunciation (same Hermes host)
        |- strict session/path/type/size/duration validation
        |- pinned ivrit.ai faster-whisper ASR
@@ -100,6 +102,14 @@ an exercise. It applies the same session/path/type/size/symlink checks, performs
 deletes the raw attachment and returns `c1.practice_discard.1.0.0` with `raw_deleted:true` and
 `evaluated:false`. A cross-session path is rejected and preserved.
 
+### `transcribe_reading_attempt`
+
+Accepts the same exact current-session attachment and returns local ivrit.ai ASR under schema
+`c1.reading_attempt.1.0.0`. It permits up to 90 seconds, sets
+`pronunciation_scored:false`, requires transcript confirmation and deletes the source in `finally`.
+It is used only for reading an arbitrary sentence or short excerpt; it never applies the frozen
+C1 scorer outside the 25 sentence-bound exercises.
+
 ## 5. Educational state machine
 
 `SETUP -> TARGET_SELECTION -> PROMPT -> VOICE_INTAKE -> LOCAL_EVALUATION -> TRANSCRIPT_PREVIEW -> WAIT_CONFIRMATION -> ADVISORY_FEEDBACK -> RETRY|CLOSURE`
@@ -113,6 +123,22 @@ deletes the raw attachment and returns `c1.practice_discard.1.0.0` with `raw_del
 - `RETRY`: new audio is a new ephemeral attempt. Never compare attempts as a grade or progress.
 - `CLOSURE`: one concrete observation; no proposal/write unless the owner separately asks for an
   existing W1 action unrelated to the C1 score.
+
+### Reading-aloud branch
+
+The learner may request one sentence, 2–4 sentences or a short paragraph from a read-only source:
+
+- songs: `search_group_reading_catalog` then `get_group_reading_content`, at most five rows;
+- Ben-Yehuda/public corpus: `search_public_reading_catalog(ready:"READY")` then
+  `get_reading_content`, at most five rows;
+- personal library: `list_personal_texts`, at most two title choices, then the smallest requested
+  `get_personal_text_content` window after the user's choice and only within the active grant;
+- text pasted explicitly into the chat.
+
+Hermes shows source, Hebrew and an available Russian translation. After local ASR and explicit
+confirmation it may identify at most two omitted, substituted or added words. This is text
+comparison, not pronunciation grading. If the excerpt contains one of the 25 frozen targets,
+Hermes may offer a separate canonical C1 micro-exercise; it must not score the corpus sentence.
 
 ## 6. UX design plan and critique
 
@@ -166,10 +192,12 @@ exposure is allowed.
 
 Runtime rollback is additive and independent:
 
-1. disable/remove only `mcp_servers.c1_pronunciation` and restart Hermes containers;
-2. deactivate/remove only the C1-P skill;
-3. `tailscale serve reset` removes the HTTPS proxy if required;
-4. existing H1/H2 skills, H2.5 ASR and C1-X loopback page remain operational.
+1. restore the WebUI image to the pinned upstream digest
+   `sha256:10eaa2d43efbdd01833e7ff64aaaa5557beb15e2a34d32a489af4fd4ed5fbff5`;
+2. disable/remove only `mcp_servers.c1_pronunciation` and restart Hermes containers;
+3. deactivate/remove only the C1-P skill;
+4. `tailscale serve reset` removes the HTTPS proxy if required;
+5. existing H1/H2 skills, H2.5 ASR and C1-X loopback page remain operational.
 
 ## 9. Acceptance gates
 
@@ -240,3 +268,37 @@ until the red recording bar/timer appears, and gives the exact tailnet-only HTTP
 - Firefox reached tailnet HTTPS. Chrome on the Hermes host could not resolve the private MagicDNS
   URL, so the supported same-host Chrome route is now `http://localhost:8787`; remote tailnet
   browsers keep the HTTPS URL.
+
+### Third owner-live attempt and Hermex compatibility correction
+
+- PC session `63c425c4199b` used the correct raw-audio tool and stopped at the ASR confirmation
+  barrier. The learner intentionally spoke a materially different second word; Hermes therefore
+  showed what local ASR heard and correctly awaited a full correction instead of presenting the
+  C1 candidate as learner feedback.
+- iPhone session `61f2cccf5524` proved that Hermex 1.4 build 3 sends each hold-to-record turn as an
+  audio attachment plus its own auto-caption. The native client has no raw-only toggle: its
+  dictation-provider setting does not change voice-note delivery. Upstream WebUI omitted non-image
+  attachments from agent input, so Hermes answered the Russian auto-caption rather than invoking
+  C1. This was an architectural compatibility defect, not stale settings.
+- A pinned derivative WebUI image, `linguistpro/hermes-webui-c1:20260724-1`, now adds only a
+  server-validated current-turn audio path to the ephemeral agent input. Persisted/displayed text
+  is unchanged and audio bytes are never embedded in the LLM request. Build guards pin upstream
+  digest `sha256:10eaa2d43efbdd01833e7ff64aaaa5557beb15e2a34d32a489af4fd4ed5fbff5`
+  and source hash `585daf34f114326104eeea854ada66e1d5c0eda8d70563489de9fde68d1ec1a3`.
+- A fresh exact Hermex-envelope E2E (`365eb53abbc5`) paired an intentionally false Russian caption
+  with an authorized D01 audio fixture. Hermes ignored the caption, called
+  `evaluate_pronunciation_attempt`, locally recognized `אני אומר שלום לשכן.`, asked for
+  confirmation, and the source attachment was absent afterward.
+- Fresh read-only source E2Es selected a Ben-Yehuda sentence (`3a9b5bbd86c9`) through
+  `search_public_reading_catalog` + `get_reading_content` and a song excerpt (`c3500a3ad0a4`)
+  through `search_group_reading_catalog` + `get_group_reading_content`. The new reading tool uses
+  ASR-only comparison, caps one recording at 90 seconds and cannot produce a C1 score. A subsequent
+  audio turn in `3a9b5bbd86c9` called `transcribe_reading_attempt`, ignored its false auto-caption,
+  reached transcript confirmation and deleted the source attachment.
+- Focused verification is green: companion 4/4, C1 MCP 13/13, C1 product smoke 78/78 and i18n
+  226/226. Two unprocessed iPhone attachments from `61f2cccf5524` and one failed engineering upload
+  were deleted by exact verified paths; no other attachment or persistent data was touched.
+- Remaining closure gate: one new real hold-to-record attempt in Hermex must reach the local-ASR
+  confirmation question and then the advisory response after owner confirmation. PC must likewise
+  complete its existing confirmation/advisory step. Until then status remains
+  `ENGINEERING_COMPLETE / OWNER-LIVE pending`.
