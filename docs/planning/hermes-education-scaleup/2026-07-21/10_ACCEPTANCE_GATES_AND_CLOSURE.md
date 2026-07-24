@@ -76,7 +76,25 @@ G-H1-CLOSURE или G-H2-START.
       через живой Hermes (скриншот/транскрипт).
 - [ ] Экспорт/удаление покрывают новые категории данных (goal-store) — проверено.
 - [ ] Cost: фактические затраты H2 в конвертах; отчёт в STATUS.
+- [ ] Initial metrics snapshot записан; обязательный H2 parallel-monitor имеет даты,
+      prompts-артефакт и stop-условия. По owner amendment 2026-07-24 окончание 14-дневного
+      окна не блокирует closure, но day-14 follow-up остаётся обязательным.
 - [ ] STATUS.md: горизонт H2 → CLOSED.
+
+### G-H2-PARALLEL-MONITOR (owner amendment 2026-07-24)
+
+- [ ] Окно `2026-07-24—2026-08-06` ведётся независимо от Codex-сессий.
+- [ ] Записываются production minutes (речь+письмо), ASR previews/corrections, W1 proposals
+      created/confirmed/rejected, incidents/unwanted writes, per-loop owner verdicts и фактические
+      metered-затраты по конвертам.
+- [ ] Day-14 follow-up обновляет `hermes-side/h2.7/EVIDENCE.md` и `STATUS.md`.
+- [ ] Unwanted write немедленно останавливает новые mutation paths; неожиданный metered-cost
+      `>$0` без owner go останавливает cost-path; систематическая hallucination/sycophancy либо
+      owner verdict `≤2/5` выключает затронутую петлю до owner decision `repair/disable/continue`.
+
+Этот monitor обязателен, но его календарное завершение не блокирует G-H2-CLOSURE. Поправка
+не ослабляет consent, rollback, schema, live-tool, export/delete или cost-snapshot гейты и не
+разрешает H3: каждый чартер по-прежнему требует отдельный Д6-go.
 
 ## 5. G-H3-RND (разрешение отдельного R&D-чартера)
 - [ ] G-H2-CLOSURE пройден (для C1 дополнительно: prerequisites чартера из 05).

@@ -23,7 +23,7 @@ checkbox therefore passes; this audit does not reopen a slice.
 | Disable each capability without breaking the others | PARTIAL | H2.5/H2.6 ASR disable/re-enable isolation is recorded; local scope/capability denial smokes pass; consolidated live isolation for every new LinguistPro tool remains |
 | Prod version/health and each new tool through live Hermes | PARTIAL | Current health/version and 25-tool discovery pass; per-slice live transcripts cover the nine tools, but the prompt's consolidated current manual rerun remains owner-live work |
 | Goal-store export/delete | PASS ON COPY | General export contains `weekly_goals`; delete sweep includes the table; other-user row survives; pre-restore backup exists |
-| ≥2-week metrics and costs | BLOCKED BY TIME/EVIDENCE | H2 began 2026-07-23 and latest slice closed 2026-07-24; 08 §3 requires metrics during two weeks before closure. No owner amendment waives this H2 condition. Exact proposal ledger and metered-cost/account statement also need the end-of-window snapshot |
+| Initial metrics, parallel two-week monitor and costs | PARTIAL; NO LONGER TIME-BLOCKED | Owner amendment 2026-07-24 moves the 14-day window to mandatory parallel monitoring, 2026-07-24—2026-08-06. Initial voice metrics exist; exact proposal-ledger and metered-cost/account snapshot still remain closure evidence |
 | STATUS H2 CLOSED | NOT ALLOWED YET | Depends on every row above becoming PASS and owner closure verdict |
 
 ## 3. Schema and current live health
@@ -86,9 +86,10 @@ production health check, where DB and migrations were explicitly ready.
 - The stable local gates report zero provider calls for H2.1/H2.2/H2.G1/H2.3. H2.5 uses a pinned
   local public model. H2.4 uses on-demand Dicta. No trustworthy account/invoice artifact currently
   establishes the complete actual H2 metered spend, so the audit does **not** invent `$0`.
-- The required two-week observation is not complete on 2026-07-24. Under the current canon the
-  earliest honest closure review is after the latest-slice window reaches 14 days (not before
-  2026-08-06), unless the owner explicitly amends this requirement.
+- Owner amendment 2026-07-24 explicitly moves the two-week H2 observation to parallel monitoring,
+  by analogy with H1. The window remains mandatory for 2026-07-24—2026-08-06, but its calendar
+  completion no longer blocks closure. Initial ledger/cost evidence and all non-time closure gates
+  still apply.
 
 ## 7. H3 charter readiness map
 
@@ -106,11 +107,12 @@ No H3 charter is authorized or recommended as a bundle.
 
 ## 8. Exact remaining closure work
 
-1. Continue the metrics ledger through the required two-week window and capture production minutes,
-   ASR rate, W1 created/confirmed/rejected counts, incidents and actual cost-envelope evidence.
+1. Capture the initial W1 created/confirmed/rejected ledger and actual cost-envelope evidence;
+   continue all metrics through the parallel window and perform the mandatory day-14 follow-up.
 2. In an owner-controlled live ceremony, switch the consent card through ru/en/he and perform
    revoke → typed denial → regrant for each of the eight H2 scopes.
 3. Capture the consolidated live capability-isolation and manual-call transcript for all nine new
    LinguistPro tools while verifying unaffected tools remain usable.
 4. Recheck production version/health, update this evidence and `STATUS.md`, then request the owner
-   verdict for G-H2-CLOSURE. Until then H2.7 remains `IN_PROGRESS` and H2 remains open.
+   verdict for G-H2-CLOSURE. Calendar time is no longer the blocker; until the remaining evidence
+   passes, H2.7 remains `IN_PROGRESS` and H2 remains open.

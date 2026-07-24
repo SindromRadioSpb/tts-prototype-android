@@ -24,7 +24,7 @@
 
 **G-H1-PARALLEL-MONITOR: ACTIVE, 2026-07-23—2026-08-05; day-14 follow-up обязателен.**
 
-## Горизонт 2 — статус: IN_PROGRESS (G-H2-START PASS; H2.1–H2.6 + H2.G1 CLOSED; H2.7 IN_PROGRESS; Group Song Corpus P0 CLOSED; H1 monitoring параллельно)
+## Горизонт 2 — статус: IN_PROGRESS (G-H2-START PASS; H2.1–H2.6 + H2.G1 CLOSED; H2.7 IN_PROGRESS; H2 parallel monitor ACTIVE 2026-07-24—2026-08-06; Group Song Corpus P0 CLOSED; H1 monitoring параллельно)
 
 | Слайс | Промт | Статус |
 |---|---|---|
@@ -35,7 +35,7 @@
 | H2.4 Dicta Nakdan | prompts/H2_04_DICTA_NAKDAN.md | CLOSED — prod `2399c11` / `3.11.237`; engineering/live preview PASS; two failed owner-live inputs documented; final `ap_fe9b4872eefb68afdfa8ce5df9cbad64` exact body+metadata PASS, single-use ticket consumed, CONFIRMED receipt `rows_written:50`; correct multi-row Library + derived machine-niqqud screenshot PASS; owner 5/5 «всё хорошо в этой итерации» |
 | H2.5 ivrit.ai ASR MCP | prompts/H2_05_IVRIT_AI_ASR.md | CLOSED — local stdio tool; smoke 5/5 + corrupt/TOCTOU PASS; CPU benchmark and fresh WebUI discovery PASS; owner real phrase transcribed exactly, hypothesis confirmation preserved, raw deleted; owner readability 5/5 |
 | H2.6 Async voice loop | prompts/H2_06_ASYNC_VOICE_LOOP.md | CLOSED — engineering A–C 3/3; owner-live 2 sessions, 2 confirmed / 1 corrected, 205.28s / 3.421min, correction 50%; POST_ANALYSIS+RETRY and ASR/error separation PASS; owner 5/5 |
-| H2.7 Owner-live+closure | prompts/H2_07_OWNER_LIVE_AND_CLOSURE.md | IN_PROGRESS — schema 16→25 additive-only PASS; goal-store backup/export/delete copy PASS; current prod health/version and local gates PASS; G-H2-CLOSURE pending 2-week metrics/cost snapshot plus consolidated owner-live consent revoke→deny→regrant and capability/manual-tool audit |
+| H2.7 Owner-live+closure | prompts/H2_07_OWNER_LIVE_AND_CLOSURE.md | IN_PROGRESS — schema 16→25 additive-only PASS; goal-store backup/export/delete copy PASS; current prod health/version and local gates PASS; owner amendment moves 2-week metrics to parallel monitor; G-H2-CLOSURE still awaits initial cost/ledger evidence plus consolidated owner-live consent revoke→deny→regrant and capability/manual-tool audit |
 
 **G-H2-START: PASS — owner `Д5: GO H2`, 2026-07-23; continuation timing override У7 + ACTIVE monitor. G-H2-CLOSURE: не пройден.**
 
@@ -114,3 +114,4 @@
 | 2026-07-24 | H2.6 OWNER_LIVE 2/2 metrics complete. Session 2: 1 confirmed preview, 1 corrected, 189.67s = 3.161min, correction 1/1 = 100%. Aggregate: 2 confirmed, 1 corrected, 205.28s = 3.421min, correction 1/2 = 50%. Transcript and filename intentionally not retained. Remaining closure gate: confirm POST_ANALYSIS+RETRY occurred in at least one owner session, confirm ASR differences were not presented as learner errors, and provide final usefulness/readability 1–5 verdict | владелец / Codex |
 | 2026-07-24 | H2.6 CLOSED. Owner confirmed POST_ANALYSIS+RETRY in at least one real voice session and confirmed that ASR differences were not presented as learner errors; usefulness/readability verdict 5/5. Final owner-live aggregate: 2 sessions, 2 confirmed previews, 1 correction, 205.28s = 3.421min, correction rate 1/2 = 50%. Engineering A–C 3/3 remains PASS; H2.7 unblocked → PLANNED | владелец / Codex |
 | 2026-07-24 | H2.7 closure audit started. Schema snapshot PASS (LinguistPro 16→25, nine additions, zero original-schema mutations); goal-store backup restore/export/delete PASS on disposable copy; local H2/Agent Access/i18n/API gates and current production health `3.11.237` PASS. G-H2-CLOSURE is not declared: the canon still requires a two-week H2 metrics window, exact cost/ledger snapshot and consolidated owner-live revoke→typed deny→regrant plus capability/manual-tool verification | Codex |
+| 2026-07-24 | Owner amendment: по аналогии с H1 двухнедельное H2-окно переносится в обязательный parallel monitor `2026-07-24—2026-08-06`. Calendar completion больше не блокирует G-H2-CLOSURE; initial metrics/cost evidence и все consent/rollback/live-tool/export гейты сохраняются. Поправка не является Д6-go на H3 | владелец / Codex |
