@@ -17,10 +17,10 @@
 | У2 | SRL-недельный цикл (g=1.32) — отдельный приоритет | 04 §P6 |
 | У3 | Портфель P1–P10 как состав направления | 04 |
 | У4 | P11 (платформенный трек) — отдельная стратегическая опция, НЕ в образовательной очереди | 05_MERGE §C |
-| У5 | Секвенирование: H1 → H1 closure → H2; H3 запускается только через R&D-гейты. Owner amendment 2026-07-24 снимает `G-H2-CLOSURE` как глобальный календарный prerequisite H3: H2.7 и H3 могут идти параллельно, но H2 stop-условия и per-charter prerequisites обязательны | промт + Д6-P |
+| У5 | Секвенирование: H1 → H1 closure → H2; H3 запускается только через R&D-гейты. Owner amendments Д6-P/Д6-A снимают `G-H2-CLOSURE` и longitudinal maturity thresholds как стартовые блокеры H3: C1–C5 запускаются параллельно с приоритетом/отчётностью C1→C5. Hard action-gates consent/privacy/cost/write-safety и H2 stop-условия обязательны | промт + Д6-P + Д6-A |
 | У6 | Вечные инварианты: W0, провенанс, propose-then-confirm, «кто учит — не сертифицирует» | доктрины репо |
 | У7 | Двухнедельное H1-наблюдение не блокирует closure: оно переносится в обязательный параллельный мониторинг после H1; qualitative owner PASS закрывает H1-слайсы, числовые оценки и регулярность дозаполняются в monitoring evidence | owner amendment 2026-07-23: «Ждать две недели принципиально нельзя. Двухнедельное наблюдение переносим в параллельный мониторинг» |
-| У8 | Необходимость H3 R&D утверждена портфельно; готовый чартер может стартовать до `G-H2-CLOSURE`, если его собственные prerequisites пройдены и нет релевантного active stop condition H2. Это не закрывает H2.7 и не разрешает production delivery | owner amendment 2026-07-24; точная цитата в Д6-P |
+| У8 | Необходимость H3 R&D утверждена портфельно; C1–C5 могут стартовать до `G-H2-CLOSURE`. Недостающие объём/длительность/case-count thresholds собираются параллельно как recommended evidence maturity targets и не блокируют старт; результаты до достижения порога маркируются `UNDERPOWERED`. Это не закрывает H2.7 и не разрешает production delivery | owner amendments 2026-07-24; точные цитаты в Д6-P/Д6-A |
 
 ## 2. Owner decisions (открытые и решённые)
 
@@ -31,7 +31,8 @@
 | Д3 | Запуск P11 (платформенный трек) | Отдельно от H1–H3 | Не запускается; prompts/P11_PLATFORM_TRACK_DECISION_PROMPT.md — только decision-аналитика |
 | Д4 | Платные ресурсы (ElevenLabs, Musixmatch enterprise, подписки easy-Hebrew изданий) | H2/H3, при явной потребности | Не подключать; бесплатные/локальные альтернативы первыми |
 | Д5 — **РЕШЕНО 2026-07-23** | Переход к началу H2 после H1 closure | H1.8 closure | **GO H2**; точная цитата владельца: `Д5: GO H2`; G-H2-START PASS в STATUS |
-| Д6-P — **РЕШЕНО 2026-07-24** | H3 R&D-портфель C1–C5 | После закрытия необходимых per-charter зависимостей; `G-H2-CLOSURE` больше не глобальный prerequisite | **GO H3 R&D portfolio**; точная цитата владельца: `необходимость реализации в H3 - утверждаю. Измени какон документов, чтобы снять блокер и продолжить разработку.` Go покрывает R&D всех пяти чартеров, но не отменяет их prerequisites/stop-условия и не является production-go. C3 — первый runnable чартер |
+| Д6-P — **РЕШЕНО 2026-07-24; readiness-часть superseded Д6-A** | H3 R&D-портфель C1–C5 | `G-H2-CLOSURE` больше не глобальный prerequisite | **GO H3 R&D portfolio**; точная цитата владельца: `необходимость реализации в H3 - утверждаю. Измени какон документов, чтобы снять блокер и продолжить разработку.` Production-go не дан; последующее Д6-A переводит maturity prerequisites в recommended parallel targets и делает runnable все C1–C5 |
+| Д6-A — **РЕШЕНО 2026-07-24; уточняет Д6-P** | Разблокировка C1–C5 и параллельный запуск | Немедленно; исходный порядок C1→C5 сохраняется как priority/reporting order | **GO all H3 R&D charters**; точная цитата владельца: `необходимо разблокировать все С и в предусмотренном изначально порядке. Утверждаю. обязательные требования, которые сейчас блокируют, вносим в категорию рекомендованных и запускаем параллельно.` Longitudinal/data-volume thresholds становятся recommended targets, не start-gates. Consent/privacy/exact cost cap before metered call/no-write invariants остаются hard action-gates и не считаются «рекомендациями». Production-go не дан |
 | Д7 | Хранение raw audio голосовых сообщений (H2 async voice) | H2.6 design-этап | **Не хранить**: transcript-only, raw удаляется после ASR (см. 07 §Голос) |
 
 ## 3. Рекомендуемые defaults, применённые в пакете (обратимы, зафиксированы здесь)
@@ -60,8 +61,9 @@
 H1.0 → (H1.1 ∥ H1.2 ∥ H1.3) → (H1.4 ∥ H1.5 ∥ H1.6 ∥ H1.7) → H1.8 closure
   → [owner go Д5] → H2 (порядок в 04_HORIZON_2) → H2.7 closure/monitor
                        ∥ обязательный 14-дневный H1-monitoring
-  → [owner go Д6-P + per-charter prerequisites] → H3 R&D-чартеры
-       (C3 runnable; H2.7 продолжает consent/cost audit параллельно; production не разрешён)
+  → [owner go Д6-A] → H3 R&D C1 ∥ C2 ∥ C3 ∥ C4 ∥ C5
+       (priority/reporting C1→C5; evidence maturity набирается параллельно;
+        hard action-gates + H2.7 consent/cost audit сохраняются; production не разрешён)
 P11 — вне этой цепи, только по Д3.
 ```
 

@@ -10,9 +10,10 @@
   затем H1_09 (owner-live + closure). Нумерация промтов сдвинута на +1 от номеров слайсов
   (H1_01 = слайс H1.0 и т.д.) — фиксированные имена файлов из промта владельца сохранены.
 - **H2-промты BLOCKED UNTIL H1 CLOSURE** — исполнять только после G-H2-START (STATUS.md — истина).
-- **H3** — только `H3_RND_EVALUATION_PROMPT.md` с подставленным чартером. Д6-P (2026-07-24)
-  разрешает R&D portfolio параллельно H2.7, но сессия обязана доказать prerequisites именно своего
-  чартера и отсутствие релевантного monitor stop condition; текущий runnable — C3. **P11** — только
+- **H3** — только `H3_RND_EVALUATION_PROMPT.md` с подставленным чартером. Д6-A (2026-07-24)
+  разрешает C1–C5 параллельно; priority/reporting order C1→C5. Каждая сессия измеряет maturity
+  (`MATURE|UNDERPOWERED`), соблюдает свои hard action-gates и проверяет отсутствие релевантного
+  monitor stop condition. **P11** — только
   `P11_PLATFORM_TRACK_DECISION_PROMPT.md`, вне цепи H1/H2.
 
 ## 2. Обязательные правила каждой сессии

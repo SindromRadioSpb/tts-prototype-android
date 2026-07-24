@@ -4,8 +4,9 @@
 
 ## Роль и цель
 Свести evidence H2, проверить гейт G-H2-CLOSURE (все чекбоксы — 10 §4) и закрыть горизонт.
-Поддерживать readiness-карту H3: Д6-P уже разрешил R&D portfolio параллельно H2.7; C3 может идти,
-остальные чартеры ждут собственные prerequisites. H2.7 не сертифицирует H3-результаты.
+Поддерживать readiness-карту H3: Д6-A разрешил C1–C5 параллельно H2.7, priority/reporting C1→C5;
+maturity evidence набирается параллельно. H2.7 не сертифицирует H3-результаты, а его active stop
+condition приостанавливает только затронутый charter path.
 
 ## Обязательное чтение
 Пакет: `README.md`, `STATUS.md`, `10_ACCEPTANCE_GATES_AND_CLOSURE.md` (§4–5),

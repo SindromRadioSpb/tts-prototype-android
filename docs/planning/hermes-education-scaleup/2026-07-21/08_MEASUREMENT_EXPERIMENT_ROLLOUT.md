@@ -82,7 +82,8 @@ follow-up обновляет тот же evidence, а H2.7 сводит initial 
 H2 parallel monitor. H2 day-14 follow-up обновляет тот же H2.7 evidence и STATUS даже если
 G-H2-CLOSURE уже пройден.
 
-После Д6-P H3 R&D может идти параллельно H2 monitor. Любой unwanted write, consent/scope drift,
-неожиданный metered cost или systematic quality incident немедленно останавливает связанный H3
-path так же, как H2 path; незатронутые локальные/read-only исследования не объявляются
-автоматически проваленными.
+После Д6-A все C1–C5 H3 R&D могут идти параллельно H2 monitor. Их duration/data-volume/case-count
+thresholds становятся recommended evidence maturity targets: до достижения вывод маркируется
+`UNDERPOWERED`, но старт не блокируется. Любой unwanted write, consent/scope drift, неожиданный
+metered cost или systematic quality incident немедленно останавливает связанный H3 path так же,
+как H2 path; незатронутые локальные/read-only исследования не объявляются автоматически проваленными.

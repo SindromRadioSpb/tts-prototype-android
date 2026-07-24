@@ -47,6 +47,6 @@ H2 parallel monitor closeout, 2026-08-06:
 - per-loop owner ratings and disable/repair/continue verdicts:
 ```
 
-The follow-up must update `EVIDENCE.md` and `STATUS.md`. Д6-P separately authorized the H3 R&D
-portfolio on 2026-07-24; this monitor neither certifies a charter nor waives its prerequisites.
+The follow-up must update `EVIDENCE.md` and `STATUS.md`. Д6-A separately authorized parallel H3 R&D
+C1–C5 on 2026-07-24; this monitor neither certifies a charter nor waives hard action-gates.
 Any active stop condition pauses the affected H3 path until an owner `repair/disable/continue` decision.

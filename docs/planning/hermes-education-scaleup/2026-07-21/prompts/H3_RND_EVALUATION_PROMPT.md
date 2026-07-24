@@ -1,11 +1,10 @@
 # H3 — R&D evaluation prompt (единый для всех чартеров; НЕ production delivery)
 
-> **Owner research-go:** Д6-P на портфель C1–C5 зафиксирован 2026-07-24. `G-H2-CLOSURE` больше
-> не является глобальным prerequisite, но H2.7 и оба parallel monitor продолжаются и их active
-> stop condition блокирует затронутый charter path. Запуск требует фактически выполненных
-> prerequisites конкретного чартера из 05. Текущий разрешённый запуск: `ЧАРТЕР = C3`.
-> C1/C2/C4/C5 остаются BLOCKED по readiness-map и не должны стартовать из этого prompt до
-> обновления `STATUS.md` доказательствами их prerequisites.
+> **Owner research-go:** Д6-A на параллельный портфель C1–C5 зафиксирован 2026-07-24.
+> `ЧАРТЕР = C1 | C2 | C3 | C4 | C5`; все пять runnable отдельными чистыми сессиями, исходный
+> priority/reporting order C1→C5. `G-H2-CLOSURE` и longitudinal maturity thresholds не блокируют
+> старт; evidence набирается параллельно, а ранний вывод маркируется `UNDERPOWERED`. H2.7 и оба
+> parallel monitor продолжаются; active stop condition блокирует затронутый charter path.
 
 ## Роль и цель
 Исследователь-прототипист ОДНОГО чартера. Цель — ответить на research question чартера
@@ -38,8 +37,9 @@
 - Stop conditions чартера соблюдаются по календарю: срок вышел → честная фиксация неуспеха.
 
 ## Пошаговая работа
-1. Предпроверки: STATUS (Д6-P записан; чартер PLANNED), prerequisites из 05 фактически выполнены
-   (проверь живыми данными, не по плану), active H1/H2 stop conditions для этого path отсутствуют.
+1. Предпроверки: STATUS (Д6-A записан; чартер PLANNED), текущий объём evidence измерен живыми
+   данными и помечен `MATURE|UNDERPOWERED`, active H1/H2 stop conditions для path отсутствуют.
+   Недостаток recommended maturity не блокирует prototype/research work.
 2. Спроектируй эксперимент СТРОГО под benchmark чартера (05); опиши протокол ДО прогона
    (pre-registration стиль — в отчёт).
 3. Собери прототип минимальной сложности, достаточной для замера.

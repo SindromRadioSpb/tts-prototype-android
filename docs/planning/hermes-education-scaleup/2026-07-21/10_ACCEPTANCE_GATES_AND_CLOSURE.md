@@ -94,13 +94,17 @@ G-H1-CLOSURE или G-H2-START.
 
 Этот monitor обязателен, но его календарное завершение не блокирует G-H2-CLOSURE. Поправка
 не ослабляет consent, rollback, schema, live-tool, export/delete или cost-snapshot гейты.
-Последующее решение Д6-P от 2026-07-24 разрешает H3 R&D параллельно H2.7 только по собственным
-prerequisites; оно не превращает незакрытые H2-гейты в PASS.
+Последующие решения Д6-P/Д6-A от 2026-07-24 разрешают параллельный H3 R&D C1–C5. Longitudinal
+maturity thresholds больше не являются start-gates; это не превращает незакрытые H2-гейты в PASS.
 
 ## 5. G-H3-RND (разрешение отдельного R&D-чартера)
-- [x] Owner research-go Д6-P на портфель C1–C5 записан в `STATUS.md` (2026-07-24).
-- [ ] Prerequisites КОНКРЕТНОГО чартера из 05 фактически пройдены; другой чартер их не заменяет.
+- [x] Owner research-go Д6-A на параллельный портфель C1–C5 записан в `STATUS.md` (2026-07-24).
+- [ ] Current evidence volume/duration/case-count чартера измерен до старта и отмечен как
+      `MATURE` или `UNDERPOWERED`; недостаток maturity не блокирует старт и набирается параллельно.
 - [ ] В H1/H2 parallel monitoring нет active stop condition, затрагивающего этот charter path.
+- [ ] Hard action-gates конкретного чартера перенесены без ослабления: C2 exact cost cap +
+      cloud-audio consent до live call; C3 no review_log write; C4 scope/consent/provenance до
+      note-read; C5 no FSRS/scheduler mutation; privacy локальных данных для всех.
 - [ ] Пороги успеха/провала и stop-условия чартера перенесены в сессию без ослабления.
 - Выход чартера: evidence-отчёт в docs/research/… + вердикт; НЕ код в проде. Production-планирование
   темы = новый цикл решений владельца.
@@ -108,6 +112,6 @@ prerequisites; оно не превращает незакрытые H2-гейт
 ## 6. Кто проверяет
 
 Гейты G-SLICE-* проверяет исполняющая Codex-сессия и фиксирует артефакты; G-H1-CLOSURE/G-H2-START/
-G-H2-CLOSURE проверяют H1.8/H2.7; G-H3-RND проверяет сессия конкретного чартера против Д6-P и
-собственных prerequisites. Вердикты — владелец. Самопроверка без
+G-H2-CLOSURE проверяют H1.8/H2.7; G-H3-RND проверяет сессия конкретного чартера против Д6-A,
+measured maturity и hard action-gates. Вердикты — владелец. Самопроверка без
 артефактов не считается прохождением (R17: кто делает — не сертифицирует сам себя).

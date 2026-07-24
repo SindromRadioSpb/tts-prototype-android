@@ -29,7 +29,7 @@ flowchart TB
     H25 --> H26
     H21 & H22 & H23 & H24 & H26 --> H27
   end
-  subgraph H3["Горизонт 3 — R&D-чартеры (Д6-P portfolio go; per-charter prerequisites)"]
+  subgraph H3["Горизонт 3 — R&D-чартеры (Д6-A: parallel start; priority C1→C5)"]
     C1[C1 Pronunciation scoring · P1-B]
     C2[C2 Realtime voice · P1-C]
     C3[C3 MC-glosses в Зале · P7]
@@ -38,8 +38,8 @@ flowchart TB
   end
   H18 -->|owner go Д5| H21
   H18 --> H22 & H23 & H24 & H25
-  D6P[owner go Д6-P: H3 R&D portfolio]
-  D6P --> C1 & C2 & C3 & C4 & C5
+  D6A[owner go Д6-A: all H3 R&D]
+  D6A --> C1 & C2 & C3 & C4 & C5
   H27 -. parallel safety/consent/cost evidence .-> C1 & C2 & C3 & C4 & C5
   H26 --> C1
   P11[P11 Платформенный трек — ВНЕ цепи,<br/>отдельное owner-решение Д3]
@@ -55,7 +55,7 @@ flowchart TB
 | H2.1 → (усиливает H1.1/H1.2) | educational | Морфо-grounding убирает главный риск роста роли агента (галлюцинации форм); до него скиллы работают в режиме «честное не уверен» |
 | H2.3 propose_goal → полный SRL | technical | До goal-store цель недели живёт как note (H1.3 деградированный, но рабочий режим) |
 | H2.6 → C1 | evidence+technical | Скоринг произношения строится на ASR-пайплайне и накопленных транскриптах |
-| H2.7 ∥ H3 после Д6-P | governance | Owner amendment 2026-07-24 снимает только глобальную последовательностную блокировку. Незакрытый H2 consent/cost audit остаётся обязательным и его stop condition останавливает затронутый H3 path; prerequisites каждого чартера не ослаблены |
+| H2.7 ∥ H3 после Д6-A | governance | Owner amendment 2026-07-24 снимает глобальную последовательностную блокировку и переводит longitudinal maturity thresholds в recommended parallel evidence. Незакрытый H2 consent/cost audit остаётся обязательным, а active stop condition останавливает затронутый H3 path |
 | consent: Д1 → хранение продукции | consent | Хранение produced-output требует нового scope и церемонии (07 §4) |
 | Все внешние интеграции → R16-конверт | operational | 09: каждый ресурс получает cost/fallback-строку до включения |
 
@@ -81,10 +81,12 @@ flowchart TB
 Выход чартера — evidence-отчёт + go/no-go рекомендация, НЕ код в проде. Провал чартера — валидный
 результат (особенно C1: готового иврит-скоринга не существует в мире — 03_TECH §1.4).
 
-Owner decision Д6-P от 2026-07-24 разрешает портфель C1–C5 без повторного owner-go на каждый
-research charter. Запуск всё равно per-charter: только после фактической проверки его prerequisites,
-cost/privacy условий и отсутствия релевантного active stop condition из H2 monitoring. На дату
-решения C3 — единственный runnable чартер; C1/C2/C4/C5 остаются evidence-blocked.
+Owner decision Д6-A от 2026-07-24 разблокирует C1–C5 для параллельных research-сессий. Исходный
+порядок C1→C5 сохраняется как priority/reporting order, а не dependency chain. Пороговые объёмы
+данных/длительность/case-count набираются параллельно и до достижения маркируют выводы
+`UNDERPOWERED`; они не блокируют старт. Hard action-gates остаются: exact cost cap + cloud-audio
+consent до первого C2 live-call; scope/consent/provenance до первого C4 note-read; no review_log
+write в C3; no FSRS mutation в C5; active H1/H2 stop condition блокирует затронутый path.
 
 ## 6. Почему P11 не блокирует и не блокируется
 

@@ -15,9 +15,10 @@
 propose-then-confirm / «кто учит — не сертифицирует» / провенанс / R16 / R11.
 Исходное секвенирование было: **H1 (Hermes-side, без кода LinguistPro) → closure → H2 (новые
 MCP/W1-инструменты LinguistPro + голос) → closure → H3 (только R&D-чартеры)**. Owner amendment
-Д6-P от 2026-07-24 разрешает H3 R&D после фактических per-charter prerequisites параллельно
-незавершённому H2.7; consent/cost/monitoring H2 остаются обязательными и могут остановить
-затронутый H3 path. P11 (платформенный трек) — отдельная опция вне очереди.
+Д6-P/Д6-A от 2026-07-24 разрешают параллельный H3 R&D C1–C5 до закрытия H2.7. Исходный порядок
+C1→C5 сохраняется как priority/reporting order; longitudinal maturity targets набираются
+параллельно и не блокируют старт. Consent/privacy/exact-cost/no-write gates и monitoring H2
+остаются обязательными и могут остановить затронутый H3 path. P11 — отдельная опция вне очереди.
 
 ## Порядок чтения
 
@@ -44,16 +45,16 @@ MCP/W1-инструменты LinguistPro + голос) → closure → H3 (то
 Одна сессия = один промт = один слайс (11 §1). **Первый промт:
 `prompts/H1_01_TRAINER_POLICY_AND_GUARDRAILS.md`.** Далее H1_02→04 (скиллы, параллелизуемы),
 H1_05→08 (интеграции, параллелизуемы), H1_09 (closure). `H1_00`/`H2_00` — диспетчеры, не задания.
-**Все H2-промты BLOCKED UNTIL H1 CLOSURE + owner go (Д5); H3 — один промт на все чартеры,
-portfolio research-go Д6-P уже записан, но каждый чартер ждёт собственные prerequisites; C3 —
-текущий runnable; P11 — вне цепи (Д3).** Нумерация промтов сдвинута на +1 от слайсов
+**Все H2-промты BLOCKED UNTIL H1 CLOSURE + owner go (Д5); H3 — один parametrized prompt,
+portfolio research-go Д6-A записан для C1–C5, все пять runnable параллельно с priority C1→C5;
+P11 — вне цепи (Д3).** Нумерация промтов сдвинута на +1 от слайсов
 (H1_01 = слайс H1.0).
 
 ## Что разрешено реализовывать сейчас
 
-Живой источник — `STATUS.md`. После Д6-P разрешён только R&D-слайс C3 через
-`prompts/H3_RND_EVALUATION_PROMPT.md` с `ЧАРТЕР=C3`; это не production delivery. H2.7 consent,
-cost и parallel-monitor evidence продолжаются независимо.
+Живой источник — `STATUS.md`. После Д6-A разрешены отдельные параллельные R&D-сессии C1–C5 через
+`prompts/H3_RND_EVALUATION_PROMPT.md`; запускать/сводить в порядке C1→C5. Это не production
+delivery. H2.7 consent, cost и parallel-monitor evidence продолжаются независимо.
 
 ## Adversarial review пакета (проведён 2026-07-21, до коммита)
 

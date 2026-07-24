@@ -4,7 +4,7 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-24 (H2.1–H2.6 + H2.G1 CLOSED; H2.7 IN_PROGRESS; H3 Д6-P PASS и C3 PLANNED; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1/H2 monitors ACTIVE).
+Обновлено: 2026-07-24 (H2.1–H2.6 + H2.G1 CLOSED; H2.7 IN_PROGRESS; H3 Д6-A PASS и C1–C5 PLANNED/RUNNABLE parallel; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1/H2 monitors ACTIVE).
 
 ## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
@@ -39,24 +39,24 @@
 
 **G-H2-START: PASS — owner `Д5: GO H2`, 2026-07-23; continuation timing override У7 + ACTIVE monitor. G-H2-CLOSURE: не пройден.**
 
-## Горизонт 3 — статус: Д6-P GO на R&D portfolio; C3 PLANNED параллельно H2.7
+## Горизонт 3 — статус: Д6-A GO; C1–C5 PLANNED/RUNNABLE parallel, priority C1→C5
 
 | Чартер | Статус |
 |---|---|
-| C1 Pronunciation scoring | BLOCKED — 3.421/≥60 подтверждённых owner-speech минут |
-| C2 Realtime voice | BLOCKED — нет ≥4 недель регулярного async-voice evidence |
-| C3 MC-glosses в Зале | PLANNED / RUNNABLE — H2.2 CLOSED, `get_text_coverage` live, relevant H2 stop condition отсутствует |
-| C4 S4 агент+②-заметки | BLOCKED — не накоплен benchmark «агент хуже моей заметки» |
-| C5 Phase-2 exposure weighting | BLOCKED — нет ≥8 недель ledger и ≥200 `agent_exposed` review events |
+| C1 Pronunciation scoring | PLANNED / RUNNABLE #1 — стартовый corpus 3.421 мин; ≥60 мин recommended parallel target; до него `UNDERPOWERED` |
+| C2 Realtime voice | PLANNED / RUNNABLE #2 — ≥4 недели async baseline recommended parallel target; live cloud call hard-blocked exact cost cap + owner consent |
+| C3 MC-glosses в Зале | PLANNED / RUNNABLE #3 — H2.2 CLOSED, `get_text_coverage` live; no review_log write |
+| C4 S4 агент+②-заметки | PLANNED / RUNNABLE #4 — benchmark cases parallel; first note-read hard-blocked scope/consent/provenance |
+| C5 Phase-2 exposure weighting | PLANNED / RUNNABLE #5 — preliminary offline analysis allowed; ≥8 weeks/≥200 events recommended; FSRS immutable |
 
-**G-H3-RND-C3: READY — Д6-P PASS + charter prerequisites PASS. Это research/prototype go, не production delivery.**
+**G-H3-RND-C1…C5: READY under Д6-A — separate parallel research/prototype sessions, priority/reporting C1→C5. Recommended maturity runs in parallel; hard action-gates remain. No production delivery go.**
 
 ## P11 Платформенный трек — статус: ОТДЕЛЬНАЯ ОПЦИЯ, не запущен (Д3)
 
 ## Открытые owner decisions
 
 См. 00 §2: Д1 (хранение продукции), Д2 (Spotify), Д3 (P11), Д4 (платные ресурсы),
-Д7 (raw audio — default не хранить). Д5 решено: GO H2; Д6-P решено: GO H3 R&D portfolio.
+Д7 (raw audio — default не хранить). Д5 решено: GO H2; Д6-P/Д6-A решено: GO all H3 R&D parallel.
 
 ## Журнал решений
 
@@ -119,3 +119,4 @@
 | 2026-07-24 | Owner amendment: по аналогии с H1 двухнедельное H2-окно переносится в обязательный parallel monitor `2026-07-24—2026-08-06`. Calendar completion больше не блокирует G-H2-CLOSURE; initial metrics/cost evidence и все consent/rollback/live-tool/export гейты сохраняются. Поправка не является Д6-go на H3 | владелец / Codex |
 | 2026-07-24 | Owner-approved Hermes profile refresh PASS. Live `MEMORY.md`, `USER.md`, `SOUL.md` updated with H2 25-tool/23-scope surface, local ASR/voice confirmation and two-container-restart + new-chat recovery rule; recoverable backup retained. Both containers restarted; health, skills manifest, 25-tool discovery, six read paths, three proposal validation-only calls and one-tool ASR stdio PASS. Fresh ordinary WebUI session `69d469542242` called morphology+current-goal and loaded the new memory rule. No proposal/raw/transcript mutation | владелец / Codex |
 | 2026-07-24 | Owner decision Д6-P: exact quote `необходимость реализации в H3 - утверждаю. Измени какон документов, чтобы снять блокер и продолжить разработку.` H3 R&D portfolio C1–C5 authorized; `G-H2-CLOSURE` removed only as global sequencing prerequisite. H2.7 consent/cost/live-tool gates and both monitors remain binding; production delivery remains a separate decision. Readiness audit: C3 → PLANNED/RUNNABLE; C1/C2/C4/C5 remain prerequisite-blocked | владелец / Codex |
+| 2026-07-24 | Owner clarification Д6-A: exact quote `необходимо разблокировать все С и в предусмотренном изначально порядке. Утверждаю. обязательные требования, которые сейчас блокируют, вносим в категорию рекомендованных и запускаем параллельно.` C1–C5 → PLANNED/RUNNABLE parallel; C1→C5 retained as priority/reporting order. Duration/data-volume/case-count thresholds are recommended parallel maturity targets and early results must say `UNDERPOWERED`. Hard consent/privacy/exact-cost/no-write gates and H2 stop conditions remain binding; production go is not granted | владелец / Codex |

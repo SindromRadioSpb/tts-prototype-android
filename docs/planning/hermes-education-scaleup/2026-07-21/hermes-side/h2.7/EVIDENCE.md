@@ -93,20 +93,22 @@ production health check, where DB and migrations were explicitly ready.
 
 ## 7. H3 charter readiness map
 
-Owner decision Д6-P on 2026-07-24 authorizes the H3 R&D portfolio before G-H2-CLOSURE. This does
-not change H2.7 verdicts: its consent/cost/live-tool evidence remains mandatory and an active H2
-stop condition pauses any affected H3 path. Per-charter prerequisites remain independent.
+Owner decisions Д6-P/Д6-A on 2026-07-24 authorize C1–C5 parallel H3 R&D before G-H2-CLOSURE.
+Duration/data-volume/case-count thresholds are recommended parallel maturity targets, not start
+gates; early results must say `UNDERPOWERED`. This does not change H2.7 verdicts: its
+consent/cost/live-tool evidence remains mandatory and an active H2 stop condition pauses any
+affected H3 path. Hard per-action privacy/consent/cost/no-write gates remain independent.
 
 | Charter | Prerequisite state | Readiness |
 |---|---|---|
-| C1 Hebrew pronunciation scoring | H2.5/H2.6 closed; only 3.421 of required ≥60 confirmed owner-speech minutes | BLOCKED |
-| C2 Realtime Hebrew voice | H2.6 closed; required ≥4 weeks regular async-voice evidence absent | BLOCKED |
-| C3 MC-glosses | H2.2 closed; `get_text_coverage` live; no active H2 stop condition affects coverage/Reading Room | PLANNED / RUNNABLE |
-| C4 Agent sees owner ②-notes | Required accumulated “agent worse than my note” cases not evidenced | BLOCKED |
-| C5 Phase-2 exposure weighting | Required ≥8 weeks ledger and ≥200 `agent_exposed` review events not evidenced | BLOCKED |
+| C1 Hebrew pronunciation scoring | 3.421 min available; ≥60 min recommended parallel target | PLANNED / RUNNABLE #1; UNDERPOWERED until target |
+| C2 Realtime Hebrew voice | ≥4 weeks baseline recommended; live cloud call still needs exact cap+consent | PLANNED / RUNNABLE #2 |
+| C3 MC-glosses | H2.2 closed; `get_text_coverage` live; no relevant stop | PLANNED / RUNNABLE #3 |
+| C4 Agent sees owner ②-notes | Cases accumulate in parallel; note-read still needs scope/consent/provenance | PLANNED / RUNNABLE #4 |
+| C5 Phase-2 exposure weighting | Preliminary offline analysis allowed; ≥8 weeks/≥200 events recommended | PLANNED / RUNNABLE #5; UNDERPOWERED until target |
 
-Д6-P authorizes the research portfolio, not a production bundle. Only C3 is currently runnable;
-the other four charters must not start before their evidence prerequisites pass.
+Д6-A authorizes all five research charters in parallel, not a production bundle. Priority and
+consolidated reporting remain C1→C5; each charter uses a separate clean session and artifact path.
 
 ## 8. Exact remaining closure work
 
