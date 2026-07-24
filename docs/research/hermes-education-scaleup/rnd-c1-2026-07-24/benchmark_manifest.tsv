@@ -1,0 +1,76 @@
+id	condition	axis	audio_file	sentence	target_index	target_word	expected_target_vocalized	spoken_target_vocalized	expected_error_type
+N01	NORMAL	NONE	c1-n01.wav	אני אומר שלום לשכן.	2	שלום	שָׁלוֹם	שָׁלוֹם	NONE
+N02	NORMAL	NONE	c1-n02.wav	שלום הוא מילה חשובה.	0	שלום	שָׁלוֹם	שָׁלוֹם	NONE
+D01	DISTORTED	VOWEL	c1-d01.wav	אני אומר שלום לשכן.	2	שלום	שָׁלוֹם	שֶׁלוֹם	VOWEL_SUBSTITUTION
+N03	NORMAL	NONE	c1-n03.wav	התלמיד קורא ספר.	0	התלמיד	הַתַּלְמִיד	הַתַּלְמִיד	NONE
+N04	NORMAL	NONE	c1-n04.wav	כל תלמיד כותב במחברת.	1	תלמיד	תַּלְמִיד	תַּלְמִיד	NONE
+D02	DISTORTED	VOWEL	c1-d02.wav	התלמיד קורא ספר.	0	התלמיד	הַתַּלְמִיד	הַתֶּלְמִיד	VOWEL_SUBSTITUTION
+N05	NORMAL	NONE	c1-n05.wav	אני לומד עברית בכל יום.	2	עברית	עִבְרִית	עִבְרִית	NONE
+N06	NORMAL	NONE	c1-n06.wav	עברית נשמעת יפה.	0	עברית	עִבְרִית	עִבְרִית	NONE
+D03	DISTORTED	VOWEL	c1-d03.wav	אני לומד עברית בכל יום.	2	עברית	עִבְרִית	עַבְרִית	VOWEL_SUBSTITUTION
+N07	NORMAL	NONE	c1-n07.wav	ישראל היא מדינה קטנה.	2	מדינה	מְדִינָה	מְדִינָה	NONE
+N08	NORMAL	NONE	c1-n08.wav	כל מדינה קובעת חוקים.	1	מדינה	מְדִינָה	מְדִינָה	NONE
+D04	DISTORTED	VOWEL	c1-d04.wav	ישראל היא מדינה קטנה.	2	מדינה	מְדִינָה	מַדִינָה	VOWEL_SUBSTITUTION
+N09	NORMAL	NONE	c1-n09.wav	יש ספרים על השולחן.	1	ספרים	סְפָרִים	סְפָרִים	NONE
+N10	NORMAL	NONE	c1-n10.wav	הספרייה קונה ספרים חדשים.	2	ספרים	סְפָרִים	סְפָרִים	NONE
+D05	DISTORTED	VOWEL	c1-d05.wav	יש ספרים על השולחן.	1	ספרים	סְפָרִים	סְפֶרִים	VOWEL_SUBSTITUTION
+N11	NORMAL	NONE	c1-n11.wav	חברים טובים נפגשים בערב.	0	חברים	חֲבֵרִים	חֲבֵרִים	NONE
+N12	NORMAL	NONE	c1-n12.wav	יש לי חברים טובים.	2	חברים	חֲבֵרִים	חֲבֵרִים	NONE
+D06	DISTORTED	VOWEL	c1-d06.wav	חברים טובים נפגשים בערב.	0	חברים	חֲבֵרִים	חֲבָרִים	VOWEL_SUBSTITUTION
+N13	NORMAL	NONE	c1-n13.wav	עבודה טובה דורשת סבלנות.	0	עבודה	עֲבוֹדָה	עֲבוֹדָה	NONE
+N14	NORMAL	NONE	c1-n14.wav	מצאתי עבודה חדשה.	1	עבודה	עֲבוֹדָה	עֲבוֹדָה	NONE
+D07	DISTORTED	VOWEL	c1-d07.wav	עבודה טובה דורשת סבלנות.	0	עבודה	עֲבוֹדָה	עֶבוֹדָה	VOWEL_SUBSTITUTION
+N15	NORMAL	NONE	c1-n15.wav	הילד לומד עברית.	1	לומד	לוֹמֵד	לוֹמֵד	NONE
+N16	NORMAL	NONE	c1-n16.wav	הוא לומד מילים חדשות.	1	לומד	לוֹמֵד	לוֹמֵד	NONE
+D08	DISTORTED	VOWEL	c1-d08.wav	הילד לומד עברית.	1	לומד	לוֹמֵד	לוֹמַד	VOWEL_SUBSTITUTION
+N17	NORMAL	NONE	c1-n17.wav	דני כותב מכתב קצר.	1	כותב	כּוֹתֵב	כּוֹתֵב	NONE
+N18	NORMAL	NONE	c1-n18.wav	הוא כותב תשובה ברורה.	1	כותב	כּוֹתֵב	כּוֹתֵב	NONE
+D09	DISTORTED	VOWEL	c1-d09.wav	דני כותב מכתב קצר.	1	כותב	כּוֹתֵב	כָּתֵב	VOWEL_SUBSTITUTION
+N19	NORMAL	NONE	c1-n19.wav	אני שומע מוזיקה בבית.	1	שומע	שׁוֹמֵעַ	שׁוֹמֵעַ	NONE
+N20	NORMAL	NONE	c1-n20.wav	הוא שומע קול מהרחוב.	1	שומע	שׁוֹמֵעַ	שׁוֹמֵעַ	NONE
+D10	DISTORTED	VOWEL	c1-d10.wav	אני שומע מוזיקה בבית.	1	שומע	שׁוֹמֵעַ	שָׁמֵעַ	VOWEL_SUBSTITUTION
+N21	NORMAL	NONE	c1-n21.wav	היא מדברת עברית היטב.	1	מדברת	מְדַבֶּרֶת	מְדַבֶּרֶת	NONE
+N22	NORMAL	NONE	c1-n22.wav	המורה מדברת לאט.	1	מדברת	מְדַבֶּרֶת	מְדַבֶּרֶת	NONE
+D11	DISTORTED	VOWEL	c1-d11.wav	היא מדברת עברית היטב.	1	מדברת	מְדַבֶּרֶת	מְדַבִּרֶת	VOWEL_SUBSTITUTION
+N23	NORMAL	NONE	c1-n23.wav	ילדים משחקים בחצר.	0	ילדים	יְלָדִים	יְלָדִים	NONE
+N24	NORMAL	NONE	c1-n24.wav	ראינו ילדים ליד הבית.	1	ילדים	יְלָדִים	יְלָדִים	NONE
+D12	DISTORTED	VOWEL	c1-d12.wav	ילדים משחקים בחצר.	0	ילדים	יְלָדִים	יְלֵדִים	VOWEL_SUBSTITUTION
+N25	NORMAL	NONE	c1-n25.wav	אנשים מחכים בתחנה.	0	אנשים	אֲנָשִׁים	אֲנָשִׁים	NONE
+N26	NORMAL	NONE	c1-n26.wav	הרבה אנשים הגיעו מוקדם.	1	אנשים	אֲנָשִׁים	אֲנָשִׁים	NONE
+D13	DISTORTED	VOWEL	c1-d13.wav	אנשים מחכים בתחנה.	0	אנשים	אֲנָשִׁים	אֲנֵשִׁים	VOWEL_SUBSTITUTION
+N27	NORMAL	NONE	c1-n27.wav	משפחה אוכלת יחד.	0	משפחה	מִשְׁפָּחָה	מִשְׁפָּחָה	NONE
+N28	NORMAL	NONE	c1-n28.wav	יש לי משפחה גדולה.	2	משפחה	מִשְׁפָּחָה	מִשְׁפָּחָה	NONE
+D14	DISTORTED	VOWEL	c1-d14.wav	משפחה אוכלת יחד.	0	משפחה	מִשְׁפָּחָה	מַשְׁפָּחָה	VOWEL_SUBSTITUTION
+N29	NORMAL	NONE	c1-n29.wav	הכנו ארוחה טעימה.	1	ארוחה	אֲרוּחָה	אֲרוּחָה	NONE
+N30	NORMAL	NONE	c1-n30.wav	ארוחה חמה מוכנה עכשיו.	0	ארוחה	אֲרוּחָה	אֲרוּחָה	NONE
+D15	DISTORTED	VOWEL	c1-d15.wav	הכנו ארוחה טעימה.	1	ארוחה	אֲרוּחָה	אֶרוּחָה	VOWEL_SUBSTITUTION
+N31	NORMAL	NONE	c1-n31.wav	בוקר טוב מתחיל בקפה.	0	בוקר	בּ֫וֹקֶר	בּ֫וֹקֶר	NONE
+N32	NORMAL	NONE	c1-n32.wav	בכל בוקר אני הולך ברגל.	1	בוקר	בּ֫וֹקֶר	בּ֫וֹקֶר	NONE
+D16	DISTORTED	STRESS	c1-d16.wav	בוקר טוב מתחיל בקפה.	0	בוקר	בּ֫וֹקֶר	בּוֹקֶ֫ר	STRESS_SHIFT
+N33	NORMAL	NONE	c1-n33.wav	ערב שקט יורד על העיר.	0	ערב	עֶ֫רֶב	עֶ֫רֶב	NONE
+N34	NORMAL	NONE	c1-n34.wav	בכל ערב אנחנו קוראים.	1	ערב	עֶ֫רֶב	עֶ֫רֶב	NONE
+D17	DISTORTED	STRESS	c1-d17.wav	ערב שקט יורד על העיר.	0	ערב	עֶ֫רֶב	עֶרֶ֫ב	STRESS_SHIFT
+N35	NORMAL	NONE	c1-n35.wav	כסף נמצא בתוך הארנק.	0	כסף	כֶּ֫סֶף	כֶּ֫סֶף	NONE
+N36	NORMAL	NONE	c1-n36.wav	חסכתי כסף לטיול.	1	כסף	כֶּ֫סֶף	כֶּ֫סֶף	NONE
+D18	DISTORTED	STRESS	c1-d18.wav	כסף נמצא בתוך הארנק.	0	כסף	כֶּ֫סֶף	כֶּסֶ֫ף	STRESS_SHIFT
+N37	NORMAL	NONE	c1-n37.wav	חדר קטן נמצא למעלה.	0	חדר	חֶ֫דֶר	חֶ֫דֶר	NONE
+N38	NORMAL	NONE	c1-n38.wav	סידרתי חדר לאורחים.	1	חדר	חֶ֫דֶר	חֶ֫דֶר	NONE
+D19	DISTORTED	STRESS	c1-d19.wav	חדר קטן נמצא למעלה.	0	חדר	חֶ֫דֶר	חֶדֶ֫ר	STRESS_SHIFT
+N39	NORMAL	NONE	c1-n39.wav	ילד שמח רץ בחצר.	0	ילד	יֶ֫לֶד	יֶ֫לֶד	NONE
+N40	NORMAL	NONE	c1-n40.wav	ראיתי ילד ליד הגינה.	1	ילד	יֶ֫לֶד	יֶ֫לֶד	NONE
+D20	DISTORTED	STRESS	c1-d20.wav	ילד שמח רץ בחצר.	0	ילד	יֶ֫לֶד	יֶלֶ֫ד	STRESS_SHIFT
+N41	NORMAL	NONE	c1-n41.wav	ספר חדש מונח על השולחן.	0	ספר	סֵ֫פֶר	סֵ֫פֶר	NONE
+N42	NORMAL	NONE	c1-n42.wav	קניתי ספר בחנות.	1	ספר	סֵ֫פֶר	סֵ֫פֶר	NONE
+D21	DISTORTED	STRESS	c1-d21.wav	ספר חדש מונח על השולחן.	0	ספר	סֵ֫פֶר	סֵפֶ֫ר	STRESS_SHIFT
+N43	NORMAL	NONE	c1-n43.wav	לחם טרי מוכן במטבח.	0	לחם	לֶ֫חֶם	לֶ֫חֶם	NONE
+N44	NORMAL	NONE	c1-n44.wav	אפיתי לחם בבוקר.	1	לחם	לֶ֫חֶם	לֶ֫חֶם	NONE
+D22	DISTORTED	STRESS	c1-d22.wav	לחם טרי מוכן במטבח.	0	לחם	לֶ֫חֶם	לֶחֶ֫ם	STRESS_SHIFT
+N45	NORMAL	NONE	c1-n45.wav	גשם חזק ירד בלילה.	0	גשם	גֶּ֫שֶׁם	גֶּ֫שֶׁם	NONE
+N46	NORMAL	NONE	c1-n46.wav	מחר צפוי גשם קל.	2	גשם	גֶּ֫שֶׁם	גֶּ֫שֶׁם	NONE
+D23	DISTORTED	STRESS	c1-d23.wav	גשם חזק ירד בלילה.	0	גשם	גֶּ֫שֶׁם	גֶּשֶׁ֫ם	STRESS_SHIFT
+N47	NORMAL	NONE	c1-n47.wav	כלב קטן מחכה בחוץ.	0	כלב	כֶּ֫לֶב	כֶּ֫לֶב	NONE
+N48	NORMAL	NONE	c1-n48.wav	ראיתי כלב ליד השער.	1	כלב	כֶּ֫לֶב	כֶּ֫לֶב	NONE
+D24	DISTORTED	STRESS	c1-d24.wav	כלב קטן מחכה בחוץ.	0	כלב	כֶּ֫לֶב	כֶּלֶ֫ב	STRESS_SHIFT
+N49	NORMAL	NONE	c1-n49.wav	שמש חמה זורחת היום.	0	שמש	שֶׁ֫מֶשׁ	שֶׁ֫מֶשׁ	NONE
+N50	NORMAL	NONE	c1-n50.wav	בבוקר ראינו שמש בהירה.	2	שמש	שֶׁ֫מֶשׁ	שֶׁ֫מֶשׁ	NONE
+D25	DISTORTED	STRESS	c1-d25.wav	שמש חמה זורחת היום.	0	שמש	שֶׁ֫מֶשׁ	שֶׁמֶ֫שׁ	STRESS_SHIFT
