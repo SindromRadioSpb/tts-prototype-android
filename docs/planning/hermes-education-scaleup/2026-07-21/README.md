@@ -53,8 +53,10 @@ P11 — вне цепи (Д3).** Нумерация промтов сдвину�
 ## Что разрешено реализовывать сейчас
 
 Живой источник — `STATUS.md`. После Д6-A разрешены отдельные параллельные R&D-сессии C1–C5 через
-`prompts/H3_RND_EVALUATION_PROMPT.md`; запускать/сводить в порядке C1→C5. Это не production
-delivery. H2.7 consent, cost и parallel-monitor evidence продолжаются независимо.
+`prompts/H3_RND_EVALUATION_PROMPT.md`; запускать/сводить в порядке C1→C5. H2.7 consent, cost и
+parallel-monitor evidence продолжаются независимо. После frozen C1 `DONE_NO_GO / UNDERPOWERED`
+владелец отдельно разрешил C1-X Experimental Local Companion; его product-контракт и гейты живут
+в `C1_EXPERIMENTAL_LOCAL_COMPANION_PLAN_2026_07_24.md`, 05 §C1-X, 10 §5.1 и отдельном prompt.
 
 ## Adversarial review пакета (проведён 2026-07-21, до коммита)
 

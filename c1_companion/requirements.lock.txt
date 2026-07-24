@@ -1,0 +1,8 @@
+numpy==2.2.6
+phonikud==0.4.1
+phonikud-onnx==1.0.6
+praat-parselmouth==0.4.6
+scipy==1.15.3
+soundfile==0.13.1
+torch==2.8.0+cpu
+torchaudio==2.8.0+cpu

@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.237";
+const CACHE_VERSION = "v3.11.238";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -75,6 +75,11 @@ const PRECACHE_URLS = [
   // BRR-P0-002/002a — Reading Room surface (clean sub-brand). Shares this SW
   // (scope "/") for v1; a separate lightweight sw-room.js is deferred to P0-002b.
   "/library.html",
+  // C1-X — production shell only; models/profile/audio stay in the local companion.
+  "/pronunciation.html",
+  "/css/pronunciation.css",
+  "/js/pronunciation-lab.js",
+  "/js/pronunciation-entry.js",
   "/js/library-ui.js",
   // BRR-P0-002b Stage 1 — embedded warm reader (same-page reader inside library.html).
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.

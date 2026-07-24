@@ -1,6 +1,9 @@
 # C1 Hebrew pronunciation scoring — evidence report
 
-Date: 2026-07-24. Status: **IN_PROGRESS / UNDERPOWERED**.
+Date: 2026-07-24. Research status: **DONE_NO_GO / UNDERPOWERED**.
+
+Product follow-up: **C1 EXPERIMENTAL LOCAL COMPANION AUTHORIZED** by the owner after the frozen
+result. This does not change, reinterpret or erase the negative research verdict below.
 
 ## Protocol
 
@@ -15,10 +18,14 @@ separate axes.
 - H2.7: IN_PROGRESS, but no active stop condition affects C1.
 - Historical owner voice evidence: 205.28 seconds / 3.421 minutes, 2 confirmed previews, one
   corrected; owner rating 5/5.
-- Reusable C1 raw data: **0 files / 0 seconds**. H2.5/H2.6 correctly deleted raw audio and retained
+- Reusable C1 raw data at preflight: **0 files / 0 seconds**. H2.5/H2.6 correctly deleted raw audio and retained
   no transcript. `G:\HERMES_AGENT\voice-inbox` was empty and no audio existed under the Hermes
   project tree at preflight.
-- Maturity: `UNDERPOWERED` (<60 confirmed owner minutes).
+- Owner C1 benchmark recorded after preregistration: **75 local WAV files / 430.054 seconds /
+  7.168 minutes**. Files and detailed measurements remain gitignored and local.
+- Combined confirmed duration available as aggregate evidence: **10.589 minutes** (3.421 historical
+  H2.6 + 7.168 C1), still below the recommended 60-minute maturity target.
+- Maturity: `UNDERPOWERED`.
 
 ## Prototype evidence
 
@@ -45,24 +52,35 @@ separate axes.
 
 | Metric | Required | Measured |
 |---|---:|---:|
-| Distortions detected with correct word+type | >=20/25 | PENDING — no owner C1 recordings |
-| False positives on normal sentences | <=10/50 | PENDING — no owner C1 recordings |
-| Target alignment failures | <=5/75 design stop | PENDING |
-| Phonikud target disagreements | <=2/25 | PENDING owner pronunciation review |
-| Evidence maturity | >=60 min recommended | 3.421 min historical aggregate; 0 reusable raw |
+| Distortions detected with correct word+type | >=20/25 | **15/25 (60%) — FAIL** |
+| False positives on normal sentences | <=10/50 | **15/50 (30%) — FAIL** |
+| Vowel substitutions, correct word+type | reported separately | 13/15 |
+| Stress shifts, correct word+type | reported separately | 2/10 |
+| Target alignment failures | <=5/75 design stop | **0/75 — PASS** |
+| One-sided binomial p vs 0.5 | evidence, not a tuned threshold | 0.212178 |
+| Evidence maturity | >=60 min recommended | 10.589 min aggregate; `UNDERPOWERED` |
 
 ## Current recommendation
 
-**ITERATE / OWNER BENCHMARK REQUIRED.** The open-component pipeline is technically runnable and
-the research design is preregistered, but there is no honest GO/NO-GO threshold verdict without
-new local owner recordings. Synthetic TTS is excluded from the charter metric because it cannot
-represent the owner's pronunciation or intentional stress/vowel errors.
+**DONE_NO_GO / UNDERPOWERED.** The frozen owner benchmark did not meet either quality threshold.
+Alignment/localization itself was available on all 75 items, so the measured failure is detector
+quality rather than missing target spans. Stress is the weakest measured axis (2/10). The failed
+result is retained as evidence; the scorer and thresholds were not changed and the owner recordings
+were not rescored.
 
-Production planning is not authorized or started.
+The result does **not** support a claim of reliable pronunciation assessment. On 2026-07-24 the
+owner nevertheless separately authorized an explicitly experimental product path with the measured
+limitations visible to the user. That decision is a product-risk acceptance, not a research GO.
 
 ## What a later GO would require
 
-Only after the frozen owner benchmark passes: repeat on fresh recordings, reach or explicitly
-reassess the 60-minute maturity target, obtain an owner usefulness verdict on the actual localized
-feedback, resolve the non-commercial/deprecated aligner dependency, then seek a separate owner
-decision for production planning.
+Any claim that quality improved requires a new algorithm, new preregistration and fresh recordings.
+The authorized experimental path must remain opt-in and advisory-only, must not write FSRS,
+`review_log`, grades or progress, and must display the measured 60% sensitivity / 30% false-positive
+rate / 2-of-10 stress result. MMS_FA is allowed only while LinguistPro remains noncommercial; its
+CC BY-NC attribution and the pinned/deprecated TorchAudio runtime remain explicit operational debt.
+
+The production architecture is a local loopback companion: raw audio, model inference and the
+speaker calibration profile stay on the user's device. The production web application supplies
+the interface only. Deployment and enabling were separately approved by the owner; rollback is a
+runtime flag that removes the entry point without changing learner data.

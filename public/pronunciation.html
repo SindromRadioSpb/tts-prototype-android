@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#10231d">
+  <title>C1 Experimental · LinguistPro</title>
+  <link rel="stylesheet" href="/css/pronunciation.css">
+</head>
+<body>
+  <header class="c1-topbar">
+    <a class="c1-back" href="/" data-i18n="pronunciation.back">← В Студию</a>
+    <label class="c1-language">
+      <span class="sr-only" data-i18n="pronunciation.language">Язык</span>
+      <select id="c1Language" aria-label="Язык интерфейса">
+        <option value="ru">Рус</option>
+        <option value="en">Eng</option>
+        <option value="he">עב</option>
+      </select>
+    </label>
+  </header>
+
+  <main class="c1-shell">
+    <section class="c1-hero" aria-labelledby="c1Title">
+      <div class="c1-kicker" data-i18n="pronunciation.kicker">Локальная лаборатория</div>
+      <div class="c1-title-row">
+        <h1 id="c1Title" data-i18n="pronunciation.title">Произношение</h1>
+        <span class="c1-badge" data-i18n="pronunciation.experimental">Эксперимент</span>
+      </div>
+      <p data-i18n="pronunciation.subtitle">Проверка 25 исследованных слов. Аудио и голосовой профиль остаются на этом устройстве.</p>
+    </section>
+
+    <section class="c1-disclosure" aria-labelledby="c1DisclosureTitle">
+      <div>
+        <div class="c1-section-label" data-i18n="pronunciation.disclosureLabel">Измеренное качество</div>
+        <h2 id="c1DisclosureTitle" data-i18n="pronunciation.disclosureTitle">Результат может ошибаться</h2>
+        <p data-i18n="pronunciation.disclosureBody">В замороженном тесте система обнаружила 60% намеренных искажений и дала 30% ложных предупреждений. Ошибки ударения: 2 из 10.</p>
+      </div>
+      <div class="c1-metrics" aria-label="Benchmark metrics">
+        <div><strong>60%</strong><span data-i18n="pronunciation.metricDetection">обнаружено</span></div>
+        <div><strong>30%</strong><span data-i18n="pronunciation.metricFalse">ложных сигналов</span></div>
+        <div><strong>2/10</strong><span data-i18n="pronunciation.metricStress">ударение</span></div>
+      </div>
+      <p class="c1-boundary" data-i18n="pronunciation.boundary">Это подсказка, не оценка знаний. Результат не влияет на FSRS, прогресс или расписание.</p>
+    </section>
+
+    <section id="c1Disabled" class="c1-card c1-state" hidden>
+      <h2 data-i18n="pronunciation.disabledTitle">Эксперимент временно выключен</h2>
+      <p data-i18n="pronunciation.disabledBody">Основные функции LinguistPro продолжают работать.</p>
+    </section>
+
+    <section id="c1OptIn" class="c1-card" aria-labelledby="c1OptInTitle">
+      <div class="c1-step">01</div>
+      <h2 id="c1OptInTitle" data-i18n="pronunciation.optInTitle">Включить на этом устройстве</h2>
+      <p data-i18n="pronunciation.optInBody">Я понимаю ограничения качества и согласен использовать результат только как возможную подсказку.</p>
+      <label class="c1-check">
+        <input id="c1Accept" type="checkbox">
+        <span data-i18n="pronunciation.optInCheck">Понимаю: система может пропустить ошибку или предупредить ошибочно.</span>
+      </label>
+      <button id="c1Activate" class="c1-primary" type="button" disabled data-i18n="pronunciation.activate">Включить эксперимент</button>
+    </section>
+
+    <section id="c1Connect" class="c1-card" aria-labelledby="c1ConnectTitle" hidden>
+      <div class="c1-step">02</div>
+      <h2 id="c1ConnectTitle" data-i18n="pronunciation.connectTitle">Подключить локальный companion</h2>
+      <p data-i18n="pronunciation.connectBody">Запустите companion на этом компьютере. LinguistPro свяжется только с 127.0.0.1; аудио не попадёт на production-сервер.</p>
+      <div class="c1-command"><code>powershell -ExecutionPolicy Bypass -File .\c1_companion\start.ps1</code></div>
+      <label class="c1-field">
+        <span data-i18n="pronunciation.tokenLabel">Локальный token из окна companion</span>
+        <input id="c1Token" type="password" autocomplete="off" spellcheck="false" data-i18n-placeholder="pronunciation.tokenPlaceholder" placeholder="Вставьте token">
+      </label>
+      <div class="c1-actions">
+        <button id="c1ConnectButton" class="c1-primary" type="button" data-i18n="pronunciation.connect">Проверить подключение</button>
+        <button id="c1Forget" class="c1-secondary" type="button" data-i18n="pronunciation.forget">Забыть token</button>
+      </div>
+      <p id="c1ConnectStatus" class="c1-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section id="c1Lab" class="c1-card c1-lab" aria-labelledby="c1LabTitle" hidden>
+      <div class="c1-step">03</div>
+      <div class="c1-lab-heading">
+        <div>
+          <h2 id="c1LabTitle" data-i18n="pronunciation.labTitle">Произнесите предложение</h2>
+          <p data-i18n="pronunciation.labBody">Читайте естественно. Система проверяет только выделенное слово.</p>
+        </div>
+        <span id="c1Counter" class="c1-counter" dir="ltr"></span>
+      </div>
+
+      <label class="c1-field">
+        <span data-i18n="pronunciation.exerciseLabel">Исследованное слово</span>
+        <select id="c1Exercise"></select>
+      </label>
+      <article class="c1-prompt">
+        <div id="c1Word" class="c1-word" dir="rtl" lang="he"></div>
+        <p id="c1Sentence" class="c1-sentence" dir="rtl" lang="he"></p>
+      </article>
+
+      <div class="c1-recorder">
+        <button id="c1Record" class="c1-record" type="button">
+          <span aria-hidden="true">●</span>
+          <span data-i18n="pronunciation.record">Начать запись</span>
+        </button>
+        <button id="c1Stop" class="c1-secondary" type="button" disabled data-i18n="pronunciation.stop">Остановить</button>
+      </div>
+      <p id="c1RecordStatus" class="c1-status" role="status" aria-live="polite"></p>
+
+      <section id="c1Result" class="c1-result" aria-labelledby="c1ResultTitle" hidden>
+        <div class="c1-section-label" data-i18n="pronunciation.advisoryLabel">Возможная подсказка</div>
+        <h3 id="c1ResultTitle"></h3>
+        <p id="c1ResultBody"></p>
+        <p id="c1ResultQuality" class="c1-result-quality" data-i18n="pronunciation.resultQuality">Помните: benchmark — 60% обнаружений и 30% ложных предупреждений.</p>
+      </section>
+    </section>
+
+    <section class="c1-notes" aria-labelledby="c1PrivacyTitle">
+      <h2 id="c1PrivacyTitle" data-i18n="pronunciation.privacyTitle">Что остаётся локально</h2>
+      <ul>
+        <li data-i18n="pronunciation.privacyAudio">Запись удаляется сразу после анализа.</li>
+        <li data-i18n="pronunciation.privacyProfile">Калибровочный профиль хранится только у local companion.</li>
+        <li data-i18n="pronunciation.privacyNoWrite">Попытка не сохраняется в истории обучения.</li>
+      </ul>
+      <p class="c1-license" data-i18n-html="pronunciation.license">Локальный анализ: Phonikud + TorchAudio MMS_FA (CC BY-NC 4.0), только для некоммерческого LinguistPro.</p>
+    </section>
+  </main>
+
+  <script src="/i18n/locales/ru.js?v=64"></script>
+  <script src="/i18n/locales/en.js?v=64"></script>
+  <script src="/i18n/locales/he.js?v=64"></script>
+  <script src="/i18n/index.js"></script>
+  <script src="/js/pronunciation-lab.js"></script>
+</body>
+</html>

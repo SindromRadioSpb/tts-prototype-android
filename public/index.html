@@ -613,6 +613,7 @@
     }
     .classic-nav-card:hover { background: var(--theme-bg-hover, rgba(0,0,0,0.06)); }
     .classic-nav-card:active { transform: scale(0.95); }
+    #btnPronunciationLab[hidden], #v3IdePronunciationBtn[hidden] { display: none !important; }
 
     .classic-nav-icon { font-size: 20px; line-height: 1; }
     .classic-nav-label {
@@ -10010,6 +10011,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     <button id="v3IdeRoomBtn" class="btn-ide" onclick="v3NavAwayWithDbClose('/library.html')" data-i18n="ide.readingRoom" data-i18n-title="ide.readingRoomTitle" title="Открыть Читальный зал">
       📖 Зал
     </button>
+    <button id="v3IdePronunciationBtn" class="btn-ide" onclick="v3NavAwayWithDbClose('/pronunciation.html')" data-i18n-title="pronunciation.navTitle" title="Открыть экспериментальную лабораторию произношения" hidden>
+      🎙 C1
+    </button>
     <button id="v3IdeFeedbackBtn" class="btn-ide" onclick="v3FeedbackOpen()" data-i18n-title="feedback.btnTitle" data-i18n-aria-label="feedback.btnTitle" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">
       📬
     </button>
@@ -10475,6 +10479,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                     <button id="btnReadingRoom" class="classic-nav-card" onclick="v3NavAwayWithDbClose('/library.html')" data-i18n-aria-label="classic.navRoom" aria-label="Читальный зал">
                       <span class="classic-nav-icon">📖</span>
                       <span class="classic-nav-label" data-i18n="classic.navRoom">Читальный зал</span>
+                    </button>
+                    <button id="btnPronunciationLab" class="classic-nav-card" onclick="v3NavAwayWithDbClose('/pronunciation.html')" data-i18n-aria-label="pronunciation.navTitle" aria-label="Экспериментальная лаборатория произношения" hidden>
+                      <span class="classic-nav-icon">🎙</span>
+                      <span class="classic-nav-label" data-i18n="pronunciation.navLabel">Произношение</span>
                     </button>
                   </div>
                   <!-- Row 2: Utilities -->
@@ -12151,10 +12159,11 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=63"></script>
-<script src="/i18n/locales/en.js?v=63"></script>
-<script src="/i18n/locales/he.js?v=63"></script>
+<script src="/i18n/locales/ru.js?v=64"></script>
+<script src="/i18n/locales/en.js?v=64"></script>
+<script src="/i18n/locales/he.js?v=64"></script>
 <script src="/i18n/index.js"></script>
+<script src="/js/pronunciation-entry.js"></script>
 
 <!-- Phase 9.4.D — Hebrew morphology layer (Tier 1 local dict + Tier 2 seed) -->
 <script src="/js/morph-normalize.js"></script>

@@ -7,8 +7,10 @@ C1→C5 остаётся priority/reporting order. Недостающая eviden
 вывод до целевого порога маркируется `UNDERPOWERED`, но исследование может начинаться. Hard
 action-gates consent/privacy/exact cost cap/no-write и релевантный H2 stop condition не ослабляются.
 Выход чартера — evidence-отчёт и рекомендация, не код в проде. Провал — валидный
-результат. Production-планирование любой из тем возможно только ПОСЛЕ закрытия чартера с
-положительным вердиктом и отдельного owner-решения.
+результат. Production-планирование любой из тем обычно возможно только ПОСЛЕ закрытия чартера с
+положительным вердиктом и отдельного owner-решения. **Единственное записанное исключение — C1-X:**
+после отрицательного frozen C1 benchmark владелец 2026-07-24 отдельно принял измеренный риск и
+разрешил experimental productization на условиях раздела ниже. Research-вердикт остаётся NO-GO.
 
 ## C1 — Hebrew pronunciation scoring (P1-B)
 
@@ -26,6 +28,25 @@ action-gates consent/privacy/exact cost cap/no-write и релевантный H
 | Cost | Локально, 0 маржинальных; GPU опционален |
 | Stop conditions | 3 недели без прохождения порога; alignment-качество на иврите фундаментально недостаточно; Phonikud-IPA расходится с реальностью на >10% эталона |
 | Evidence до production | Закрытый чартер + повторение результата на свежих записях + owner-вердикт полезности фидбека |
+
+### C1-X — owner-approved experimental product exception (2026-07-24)
+
+- Frozen research outcome: `DONE_NO_GO / UNDERPOWERED`; 15/25 (60%) correct word+type detections,
+  15/50 (30%) false positives, vowel 13/15, stress 2/10, target unscorable 0. Пороги не меняются.
+- Owner risk acceptance: разрешены канон, код, production deploy и включение **только** как
+  `C1 Experimental`; это не научный GO и не разрешение обещать надёжную оценку произношения.
+- Product contract: opt-in; advisory wording («возможное отклонение»); measured limitations видимы
+  до первого использования и рядом с результатом; первый allowlist — 25 исследованных слов.
+- Learner-state boundary: никаких записей в FSRS, `review_log`, grades, mastery, progress или agent
+  memory. Попытка живёт только в UI; audio и детальный результат не отправляются LinguistPro.
+- Architecture: production UI + loopback-only local companion. MMS_FA, Phonikud, калибровочный
+  профиль и raw audio остаются на устройстве. Companion требует origin allowlist + локальный token.
+- License boundary: владелец декларирует продукт некоммерческим и разрешает MMS_FA CC BY-NC.
+  Некоммерческий статус, attribution и license notice обязательны; monetization = disable/replace.
+- Quality iteration: любое изменение детектора или заявление об улучшении → новая preregistration и
+  свежий benchmark. Текущие записи нельзя перескорить для выбора выгодного порога.
+- Rollback: `C1_EXPERIMENTAL_ENABLED=0` убирает entry point; companion можно остановить локально;
+  learner data не требует rollback, потому что write-path отсутствует.
 
 ## C2 — Realtime Hebrew voice (P1-C)
 

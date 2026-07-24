@@ -1,5 +1,10 @@
 # H3 — R&D evaluation prompt (единый для всех чартеров; НЕ production delivery)
 
+> Post-result note for C1 only: this prompt remains the immutable research-session contract.
+> After C1 closed `DONE_NO_GO / UNDERPOWERED`, the owner separately authorized C1-X experimental
+> productization. C1-X executes only through `H3_C1_EXPERIMENTAL_LOCAL_COMPANION_PROMPT.md`; that
+> exception does not retroactively weaken this prompt or the frozen benchmark.
+
 > **Owner research-go:** Д6-A на параллельный портфель C1–C5 зафиксирован 2026-07-24.
 > `ЧАРТЕР = C1 | C2 | C3 | C4 | C5`; все пять runnable отдельными чистыми сессиями, исходный
 > priority/reporting order C1→C5. `G-H2-CLOSURE` и longitudinal maturity thresholds не блокируют

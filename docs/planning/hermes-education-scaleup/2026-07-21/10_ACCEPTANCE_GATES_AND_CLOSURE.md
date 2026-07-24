@@ -109,6 +109,27 @@ maturity thresholds больше не являются start-gates; это не 
 - Выход чартера: evidence-отчёт в docs/research/… + вердикт; НЕ код в проде. Production-планирование
   темы = новый цикл решений владельца.
 
+## 5.1 G-C1-X-EXPERIMENTAL (owner exception after C1 NO-GO)
+
+- [x] C1 research row is `DONE_NO_GO / UNDERPOWERED`; report preserves frozen aggregates.
+- [x] UI says experimental/advisory and displays 60% sensitivity, 30% false positives and stress
+      2/10 before opt-in and beside each result.
+- [x] Initial exercise allowlist contains exactly the 25 preregistered target words; no arbitrary
+      target/G2P claim is exposed.
+- [x] Companion binds loopback only, requires a random local token, allowlists production/dev
+      origins, caps WAV size/duration and deletes every request temp file.
+- [x] Raw audio, calibration profile and detailed scores never reach the LinguistPro server or git.
+- [x] Static/code scan and runtime tests prove no FSRS, `review_log`, grade, mastery, progress,
+      analytics, agent-memory or provider write/call.
+- [x] Missing/stopped companion yields a typed honest unavailable state, never a guessed score.
+- [x] Noncommercial + CC BY-NC attribution notice is visible; monetization stop-condition recorded.
+- [x] `C1_EXPERIMENTAL_ENABLED=0` rollback verified; existing product paths remain operational.
+- [x] 380px screenshot, ru/en/he locale coverage, SW/version bump, focused smokes and API smoke PASS.
+- [ ] Production preflight, deploy landing, health, fresh asset/config and loopback owner path verified.
+
+Passing this engineering gate means only that the bounded experimental function is honestly
+implemented. It does not change the C1 research verdict or certify pronunciation quality.
+
 ## 6. Кто проверяет
 
 Гейты G-SLICE-* проверяет исполняющая Codex-сессия и фиксирует артефакты; G-H1-CLOSURE/G-H2-START/

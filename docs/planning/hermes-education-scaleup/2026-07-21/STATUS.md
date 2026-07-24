@@ -4,7 +4,7 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-24 (H2.1–H2.6 + H2.G1 CLOSED; H2.7 IN_PROGRESS; H3 Д6-A PASS; C1 IN_PROGRESS/UNDERPOWERED, C2–C5 PLANNED/RUNNABLE; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1/H2 monitors ACTIVE).
+Обновлено: 2026-07-24 (H2.1–H2.6 + H2.G1 CLOSED; H2.7 IN_PROGRESS; H3 Д6-A PASS; C1 R&D DONE_NO_GO/UNDERPOWERED; C1-X Experimental Local Companion ENGINEERING_COMPLETE/DEPLOY-PENDING; C2–C5 PLANNED/RUNNABLE; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1/H2 monitors ACTIVE).
 
 ## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
@@ -43,13 +43,23 @@
 
 | Чартер | Статус |
 |---|---|
-| C1 Pronunciation scoring | IN_PROGRESS / UNDERPOWERED — preregistration + local Phonikud/MMS_FA/formant-stress prototype + fixed 50 normal/25 distorted manifest complete; H2.6 raw correctly deleted, reusable audio 0; owner local recording benchmark pending; `docs/research/hermes-education-scaleup/rnd-c1-2026-07-24/REPORT.md` |
+| C1 Pronunciation scoring | **DONE_NO_GO / UNDERPOWERED** — frozen owner benchmark 75/75: 15/25 correct word+type (60%), 15/50 false positives (30%), vowel 13/15, stress 2/10, target unscorable 0; thresholds failed and result retained; separate C1-X product-risk exception below; `docs/research/hermes-education-scaleup/rnd-c1-2026-07-24/REPORT.md` |
 | C2 Realtime voice | PLANNED / RUNNABLE #2 — ≥4 недели async baseline recommended parallel target; live cloud call hard-blocked exact cost cap + owner consent |
 | C3 MC-glosses в Зале | PLANNED / RUNNABLE #3 — H2.2 CLOSED, `get_text_coverage` live; no review_log write |
 | C4 S4 агент+②-заметки | PLANNED / RUNNABLE #4 — benchmark cases parallel; first note-read hard-blocked scope/consent/provenance |
 | C5 Phase-2 exposure weighting | PLANNED / RUNNABLE #5 — preliminary offline analysis allowed; ≥8 weeks/≥200 events recommended; FSRS immutable |
 
 **G-H3-RND-C1…C5: READY under Д6-A — separate parallel research/prototype sessions, priority/reporting C1→C5. Recommended maturity runs in parallel; hard action-gates remain. No production delivery go.**
+
+### C1-X Experimental Local Companion
+
+Status: **ENGINEERING_COMPLETE / DEPLOY-PENDING**. The owner separately authorized canon, code, production
+deploy and enabling after accepting the frozen C1 NO-GO metrics. Contract: production UI + local
+loopback MMS_FA/Phonikud companion; local profile; initial 25 curated words; opt-in/advisory-only;
+limitations always visible; no FSRS/review_log/grades/progress. MMS_FA is permitted while the
+owner-declared product status remains noncommercial. Production rollback:
+`C1_EXPERIMENTAL_ENABLED=0`. Canon:
+`C1_EXPERIMENTAL_LOCAL_COMPANION_PLAN_2026_07_24.md`; gate: 10 §5.1.
 
 ## P11 Платформенный трек — статус: ОТДЕЛЬНАЯ ОПЦИЯ, не запущен (Д3)
 
@@ -121,3 +131,7 @@
 | 2026-07-24 | Owner decision Д6-P: exact quote `необходимость реализации в H3 - утверждаю. Измени какон документов, чтобы снять блокер и продолжить разработку.` H3 R&D portfolio C1–C5 authorized; `G-H2-CLOSURE` removed only as global sequencing prerequisite. H2.7 consent/cost/live-tool gates and both monitors remain binding; production delivery remains a separate decision. Readiness audit: C3 → PLANNED/RUNNABLE; C1/C2/C4/C5 remain prerequisite-blocked | владелец / Codex |
 | 2026-07-24 | Owner clarification Д6-A: exact quote `необходимо разблокировать все С и в предусмотренном изначально порядке. Утверждаю. обязательные требования, которые сейчас блокируют, вносим в категорию рекомендованных и запускаем параллельно.` C1–C5 → PLANNED/RUNNABLE parallel; C1→C5 retained as priority/reporting order. Duration/data-volume/case-count thresholds are recommended parallel maturity targets and early results must say `UNDERPOWERED`. Hard consent/privacy/exact-cost/no-write gates and H2 stop conditions remain binding; production go is not granted | владелец / Codex |
 | 2026-07-24 | H3 C1 started under Д6-A. Live preflight found H2.6's 3.421 min are aggregate-only and raw audio/transcripts were correctly deleted; reusable C1 corpus is 0. Preregistered fixed 50 normal + 25 distorted owner benchmark and built a local-only Phonikud + MMS_FA + Praat formant/stress prototype. Full synthetic engineering diagnostic is deliberately non-gating and fails charter thresholds (9/25 correct word+type, 11/50 FP, stress 0/10); owner recordings are required before GO/NO-GO. C1 remains IN_PROGRESS / UNDERPOWERED; no production/FSRS/review_log/provider mutation | Codex |
+| 2026-07-24 | H3 C1 frozen owner benchmark completed exactly once on 75/75 local recordings (430.054s): correct word+type 15/25 (60%, required ≥80%); false positives 15/50 (30%, required ≤20%); vowel 13/15; stress 2/10; target unscorable 0; one-sided p vs 0.5 = 0.212178. C1 → DONE_NO_GO / UNDERPOWERED. Raw audio/details remain local and gitignored; scorer/thresholds unchanged | владелец / Codex |
+| 2026-07-24 | Owner C1-X exception after NO-GO: exact authorization `Утверждаю C1 Experimental Local Companion: production-интерфейс с локальным MMS_FA/Phonikud companion, локальным калибровочным профилем, первоначальным набором из 25 исследованных слов, opt-in/advisory-only контрактом и явными измеренными ограничениями качества.` Owner additionally authorized code, deployment and enabling as experimental; MMS_FA production use permitted while LinguistPro is noncommercial. No FSRS/review_log/grade/progress authority; deployment rollback remains separate runtime flag | владелец |
+| 2026-07-24 | C1-X production preflight found host 4 GB RAM, main container 1.5 GB and disk 100% full; server-side model path rejected in favor of Local Companion. Owner-approved bounded cleanup removed 11 unused old app images and unused build cache while preserving running+newest images, volumes, backups, data and running containers; disk 100%→65% (~13.4 GB free), health remained PASS. C1-X → IN_PROGRESS | владелец / Codex |
+| 2026-07-24 | C1-X local engineering complete: production shell + two Studio entry points, exact 25-target loopback companion, owner-local calibration profile, random-token/origin/body/duration/single-flight/temp-delete boundary, explicit 60%/30%/2-of-10 disclosure, ru/en/he and 380px RTL verified. Companion tests 4/4, contract smoke 74/74, browser smoke 27/27, i18n 226/226, API smoke and `C1_EXPERIMENTAL_ENABLED=0` rollback PASS. No frozen benchmark rerun and no learner-state/provider path. C1-X → ENGINEERING_COMPLETE / DEPLOY-PENDING | Codex |

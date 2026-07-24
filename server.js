@@ -232,6 +232,7 @@ const CSP_REPORT_ONLY_VALUE = [
 // no-cache (an auth shell must never be served stale from HTTP cache).
 const MINIAPP_SHELL_PATH = "/miniapp.html";
 const AGENT_ACCESS_SHELL_PATH = "/agent-access.html";
+const PRONUNCIATION_SHELL_PATH = "/pronunciation.html";
 const MINIAPP_CSP = [
   "default-src 'self'",
   "base-uri 'none'",
@@ -254,6 +255,18 @@ const AGENT_ACCESS_CSP = [
   "connect-src 'self'",
   "form-action 'self'",
 ].join("; ");
+const PRONUNCIATION_CSP = [
+  "default-src 'self'",
+  "base-uri 'none'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "script-src 'self'",
+  "style-src 'self'",
+  "img-src 'self' data:",
+  "media-src 'self' blob:",
+  "connect-src 'self' http://127.0.0.1:8765",
+  "form-action 'none'",
+].join("; ");
 
 // Security + cross-origin-isolation headers on every response.
 //   • COOP/COEP/CORP enable SharedArrayBuffer (wa-sqlite AccessHandlePoolVFS).
@@ -263,6 +276,7 @@ const AGENT_ACCESS_CSP = [
 app.use((req, res, next) => {
   const isMiniappShell = req.path === MINIAPP_SHELL_PATH;
   const isAgentAccessShell = req.path === AGENT_ACCESS_SHELL_PATH;
+  const isPronunciationShell = req.path === PRONUNCIATION_SHELL_PATH;
   if (isMiniappShell) {
     res.setHeader("Content-Security-Policy", MINIAPP_CSP);
     res.setHeader("Cache-Control", "no-cache");
@@ -271,6 +285,12 @@ app.use((req, res, next) => {
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("X-Frame-Options", "DENY");
     res.setHeader("Referrer-Policy", "no-referrer");
+  } else if (isPronunciationShell) {
+    res.setHeader("Content-Security-Policy", PRONUNCIATION_CSP);
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("Referrer-Policy", "no-referrer");
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
   } else {
     res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
     res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
@@ -279,8 +299,10 @@ app.use((req, res, next) => {
   res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), browsing-topics=()");
-  if (CSP_REPORT_ONLY_ENABLED && !isMiniappShell && !isAgentAccessShell) {
+  res.setHeader("Permissions-Policy", isPronunciationShell
+    ? "camera=(), microphone=(self), geolocation=(), browsing-topics=()"
+    : "camera=(), microphone=(), geolocation=(), browsing-topics=()");
+  if (CSP_REPORT_ONLY_ENABLED && !isMiniappShell && !isAgentAccessShell && !isPronunciationShell) {
     // Modern Reporting API endpoint (Chrome) + classic report-uri (all browsers).
     // The miniapp shell is excluded: it carries its own ENFORCED CSP above, and the
     // report-only frame-ancestors 'self' would spam violation reports from Telegram Web.
@@ -1089,6 +1111,13 @@ app.get("/api/client-config", (_req, res) => {
   // the existing text role-play untouched.
   const c3aVoiceRaw = String(process.env.C3A_VOICE_ENABLED || "true").trim().toLowerCase();
   const c3aVoiceEnabled = !(c3aVoiceRaw === "false" || c3aVoiceRaw === "0" || c3aVoiceRaw === "off");
+  // C1-X — visible product entry point for the loopback-only pronunciation lab.
+  // Default-on under the explicit owner decision; false/0/off is the complete
+  // production rollback because the companion has no server or learner-state authority.
+  const c1ExperimentalRaw = String(process.env.C1_EXPERIMENTAL_ENABLED || "true").trim().toLowerCase();
+  const c1ExperimentalEnabled = !(
+    c1ExperimentalRaw === "false" || c1ExperimentalRaw === "0" || c1ExperimentalRaw === "off"
+  );
 
   // Feedback config — phone number for WhatsApp deep-link / QR, plus
   // typical response time used in the WOW card. Both are environment-
@@ -1131,6 +1160,7 @@ app.get("/api/client-config", (_req, res) => {
     flags: {
       killLocalMode,
       c3aVoiceEnabled,
+      c1ExperimentalEnabled,
     },
     feedback: {
       whatsappPhone: developerWhatsappPhoneRaw,

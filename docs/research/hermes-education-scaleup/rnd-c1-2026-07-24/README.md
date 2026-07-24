@@ -1,7 +1,12 @@
 # C1 Hebrew pronunciation scoring R&D
 
-Статус: **IN PROGRESS / UNDERPOWERED**. Это одноразовый локальный research-прототип, не
-production-функция LinguistPro.
+Research-статус: **DONE_NO_GO / UNDERPOWERED**. Frozen benchmark обработал 75 owner-записей,
+но не прошёл пороги (15/25 корректных детекций, 15/50 false positives, stress 2/10,
+target unscorable 0). Это отрицательный результат одноразового локального прототипа.
+
+Отдельное owner-решение после benchmark разрешает **C1 Experimental Local Companion** как
+opt-in/advisory product-функцию с явным показом этих ограничений. Оно не превращает NO-GO в GO и
+не разрешает C1 влиять на FSRS, `review_log`, оценки или прогресс.
 
 Главные файлы:
 
@@ -43,10 +48,11 @@ External local-only model artifacts:
   it is cache, not a project artifact.
 
 Licensing boundary: Phonikud G2P code is CC BY 4.0 and its referenced ONNX model card says MIT;
-MMS_FA weights are CC BY-NC 4.0. MMS_FA is therefore acceptable for this non-production R&D
-measurement only, not silently cleared for a commercial production path. TorchAudio forced-align
-APIs are also deprecated after 2.8, so the prototype pins 2.8 and production planning would need a
-separately licensed, maintained aligner.
+MMS_FA weights are CC BY-NC 4.0. The owner has declared LinguistPro noncommercial and explicitly
+authorized MMS_FA for the experimental product path on that basis. Noncommercial operation,
+attribution and license notices are hard invariants; monetization requires disabling this path or a
+license-compatible replacement. TorchAudio forced-align APIs are deprecated after 2.8, so the
+companion pins 2.8 and treats replacement as operational debt.
 
 Recreate the environment (PowerShell):
 
