@@ -43,9 +43,13 @@ QUALITY_DISCLOSURE = {
     "stress_total": 10,
     "maturity": "UNDERPOWERED",
 }
+PHONIKUD_TOKENIZER_SHA256 = "8e62e3b46c924e14fc32c749ef8944c311411ce9c4dc01c5b606953a169140ba"
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-FROZEN_DIR = REPO_ROOT / "docs" / "research" / "hermes-education-scaleup" / "rnd-c1-2026-07-24"
+FROZEN_DIR = Path(os.environ.get(
+    "C1_FROZEN_DIR",
+    REPO_ROOT / "docs" / "research" / "hermes-education-scaleup" / "rnd-c1-2026-07-24",
+)).resolve()
 FROZEN_SCORER = FROZEN_DIR / "prototype" / "c1_score.py"
 FROZEN_MANIFEST = FROZEN_DIR / "benchmark_manifest.tsv"
 
@@ -239,6 +243,25 @@ def validate_wav(path: Path) -> float:
     return duration
 
 
+def load_local_phonikud(model_path: Path, tokenizer_path: Path) -> Any:
+    """Load Phonikud without a repository lookup or Hugging Face network path."""
+    if not tokenizer_path.is_file() or sha256(tokenizer_path) != PHONIKUD_TOKENIZER_SHA256:
+        raise CompanionError("PHONIKUD_TOKENIZER_MISSING_OR_MISMATCH", 503)
+    import onnxruntime as ort
+    from phonikud_onnx import OnnxModel, Phonikud
+    from tokenizers import Tokenizer
+
+    model = OnnxModel.__new__(OnnxModel)
+    model.tokenizer = Tokenizer.from_file(str(tokenizer_path))
+    model.max_context_length = 2046
+    model.session = ort.InferenceSession(str(model_path))
+    model.input_names = [item.name for item in model.session.get_inputs()]
+    model.output_names = [item.name for item in model.session.get_outputs()]
+    g2p = Phonikud.__new__(Phonikud)
+    g2p.model = model
+    return g2p
+
+
 class CompanionEngine:
     def __init__(self, profile_path: Path, phonikud_model: Path, torch_home: Path, scratch_dir: Path):
         self.profile_path = profile_path
@@ -271,10 +294,17 @@ class CompanionEngine:
             raise CompanionError("PHONIKUD_MODEL_MISSING_OR_MISMATCH", 503)
         os.environ["TORCH_HOME"] = str(self.torch_home)
         from phonikud import phonemize
-        from phonikud_onnx import Phonikud
 
         self._frozen = frozen
-        self._g2p = Phonikud(str(self.phonikud_model))
+        tokenizer_file = os.environ.get("C1_PHONIKUD_TOKENIZER", "").strip()
+        if tokenizer_file:
+            self._g2p = load_local_phonikud(self.phonikud_model, Path(tokenizer_file).resolve())
+        else:
+            # Backward-compatible C1-X loopback path. C1-P always supplies the
+            # pinned local tokenizer and therefore never reaches this branch.
+            from phonikud_onnx import Phonikud
+
+            self._g2p = Phonikud(str(self.phonikud_model))
         self._phonemize = phonemize
         self._runtime = frozen.load_runtime()
 

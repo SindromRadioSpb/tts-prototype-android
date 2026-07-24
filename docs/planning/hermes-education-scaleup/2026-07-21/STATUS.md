@@ -4,7 +4,7 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-24 (H2.1–H2.6 + H2.G1 CLOSED; H2.7 IN_PROGRESS; H3 Д6-A PASS; C1 R&D DONE_NO_GO/UNDERPOWERED; C1-X Experimental Local Companion ENGINEERING_COMPLETE/OWNER-LIVE-MIC-PENDING; C2–C5 PLANNED/RUNNABLE; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1/H2 monitors ACTIVE).
+Обновлено: 2026-07-24 (H2.1–H2.6 + H2.G1 CLOSED; H2.7 IN_PROGRESS; H3 Д6-A PASS; C1 R&D DONE_NO_GO/UNDERPOWERED; C1-X Local Companion ENGINEERING_COMPLETE; C1-P Hermes practice loop ENGINEERING_COMPLETE/OWNER-LIVE-PENDING; C2–C5 PLANNED/RUNNABLE; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1/H2 monitors ACTIVE).
 
 ## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
@@ -60,6 +60,19 @@ limitations always visible; no FSRS/review_log/grades/progress. MMS_FA is permit
 owner-declared product status remains noncommercial. Production rollback:
 `C1_EXPERIMENTAL_ENABLED=0`. Canon:
 `C1_EXPERIMENTAL_LOCAL_COMPANION_PLAN_2026_07_24.md`; gate: 10 §5.1.
+
+### C1-P Hermes practice loop
+
+Status: **ENGINEERING_COMPLETE / OWNER-LIVE pending**. Owner-authorized amendment integrates the unchanged experimental scorer
+into the real educational conversation used through Hermex iPhone and Hermes WebUI PC. Contract:
+private tailnet voice-note transport to the owner-controlled Hermes host; local combined ASR+C1
+evaluation; unconditional raw deletion; mandatory transcript confirmation before advisory C1
+feedback; due-word grounding where the 25-word allowlist permits; no learner-state/memory write.
+Canon: `C1_HERMES_PRACTICE_LOOP_PLAN_2026_07_24.md`.
+Engineering proof includes fresh ordinary-chat tool execution, natural due-grounded target
+selection, the ASR-confirmation barrier, post-confirmation C1 feedback, verified raw deletion and
+tailnet-only HTTPS. Closure still requires one owner microphone attempt in Hermex iPhone and one in
+HTTPS WebUI PC; this does not change the C1 R&D `DONE_NO_GO / UNDERPOWERED` verdict.
 
 ## P11 Платформенный трек — статус: ОТДЕЛЬНАЯ ОПЦИЯ, не запущен (Д3)
 

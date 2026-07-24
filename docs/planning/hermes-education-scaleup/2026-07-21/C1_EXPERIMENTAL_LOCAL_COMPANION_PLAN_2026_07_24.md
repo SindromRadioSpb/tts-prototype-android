@@ -127,3 +127,11 @@ production server cannot certify a loopback service running on the owner's Windo
 - Cloud audio upload or server-side MMS_FA.
 - Any FSRS, `review_log`, grade, progress, agent-memory or analytics integration.
 - Production deployment of a new quality algorithm without a new preregistration and fresh set.
+
+## 10. Hermes educational-loop amendment
+
+The owner subsequently requested the complete C1 Hermes↔LinguistPro practice loop for Hermex on
+iPhone and Hermes WebUI on PC. The additive C1-P contract, private audio transport, transcript
+confirmation gate and acceptance criteria are canonical in
+`C1_HERMES_PRACTICE_LOOP_PLAN_2026_07_24.md`. That amendment does not replace this loopback
+companion, change the frozen scorer or weaken any measured limitation/no-write boundary.

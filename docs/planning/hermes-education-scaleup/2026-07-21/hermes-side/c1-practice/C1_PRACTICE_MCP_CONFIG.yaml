@@ -1,0 +1,29 @@
+mcp_servers:
+  c1_pronunciation:
+    command: /bin/sh
+    args:
+      - -lc
+      - 'exec "${HERMES_HOME:-$HOME/.hermes}/mcp-runtimes/c1-py312/bin/python" /workspace/mcp-servers/c1-pronunciation/c1_practice_mcp.py'
+    env:
+      C1_ATTACHMENT_ROOT: /home/hermeswebui/.hermes/webui/attachments
+      C1_ASR_MODEL_DIR: /workspace/models/ivrit-ai-whisper-large-v3-turbo-ct2
+      C1_COMPANION_MODULE: /workspace/mcp-servers/c1-pronunciation/c1_companion.py
+      C1_FROZEN_DIR: /workspace/mcp-servers/c1-pronunciation/frozen
+      C1_PROFILE: /workspace/private/c1-practice/profile.json
+      C1_PHONIKUD_MODEL: /workspace/models/c1-pronunciation/phonikud-1.0.int8.onnx
+      C1_PHONIKUD_TOKENIZER: /workspace/models/c1-pronunciation/dictabert-tokenizer.json
+      C1_TORCH_HOME: /workspace/models/c1-pronunciation/torch-cache
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      C1_SCRATCH: /workspace/private/c1-practice/requests
+      C1_CPU_THREADS: "6"
+    enabled: true
+    supports_parallel_tool_calls: false
+    timeout: 600
+    connect_timeout: 30
+    tools:
+      include:
+        - list_pronunciation_exercises
+        - evaluate_pronunciation_attempt
+      resources: false
+      prompts: false
