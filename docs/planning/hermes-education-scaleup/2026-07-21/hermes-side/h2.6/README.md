@@ -1,6 +1,6 @@
 # H2.6 — async voice loop
 
-Дата: 2026-07-24. Статус: **ENGINEERING_COMPLETE; owner-live pending**.
+Дата: 2026-07-24. Статус: **CLOSED**.
 
 H2.6 is a Hermes skill-only overlay on the already closed H2.5 local ASR and H1.1
 conversation skill. It adds no LinguistPro code, storage, realtime voice, pronunciation scoring,
@@ -52,5 +52,7 @@ localhost OK, Tailscale OK and exactly one ready `ivrit_asr` tool; inbox count w
 Rollback only deactivates/removes `linguistpro-voice-session`. H1.1 and the H2.5 wrapper remain
 installed and enabled. Do not delete `voice-inbox`, because it may contain a failed owner recording.
 
-Closure still requires at least two real owner voice sessions, total speech minutes, ASR correction
-rate, usefulness/readability verdict and the STATUS entry. Until then H2.6 is not CLOSED.
+Owner-live completed two real voice sessions: 2 confirmed previews, 1 corrected preview,
+205.28 seconds / 3.421 minutes and aggregate correction rate 50%. The owner confirmed that at
+least one session reached POST_ANALYSIS+RETRY, ASR differences were not presented as learner
+errors, and rated the loop **5/5**. H2.6 is **CLOSED**.

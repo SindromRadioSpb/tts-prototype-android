@@ -22,7 +22,7 @@ rate 1/2 = 50%; they are explicitly excluded from owner-live metrics.
 
 ## Owner-live closure gate
 
-Status: **OWNER_LIVE 2/2, final verdict pending**. H2.6 is not CLOSED.
+Status: **CLOSED**.
 
 Owner session 1, reported 2026-07-24:
 
@@ -50,12 +50,13 @@ Aggregate owner-live metrics:
 - speech duration: 205.28 seconds = 3.421 minutes;
 - ASR correction rate: 1 / 2 = 50%.
 
-Required in a fresh ordinary Hermes chat:
+Final owner verdict, reported 2026-07-24:
 
-1. Confirm that at least one owner session reached H1.1 POST_ANALYSIS and RETRY.
-2. Owner gives a 1–5 usefulness/readability verdict and confirms that ASR differences were not
-   presented as learner errors.
-3. Record the confirmations and verdict here and in STATUS before declaring H2.6 CLOSED.
+- at least one real session reached H1.1 POST_ANALYSIS and RETRY: **yes**;
+- ASR differences were not presented as learner errors: **yes**;
+- usefulness/readability: **5/5**.
+
+All engineering and owner-live gates are satisfied. H2.6 is **CLOSED** and H2.7 is unblocked.
 
 No transcript or raw owner audio is to be copied into this evidence. Only counts, minutes, rate,
 verdict and a content-free incident note are durable.
