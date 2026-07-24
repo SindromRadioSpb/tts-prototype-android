@@ -125,7 +125,13 @@ maturity thresholds больше не являются start-gates; это не 
 - [x] Noncommercial + CC BY-NC attribution notice is visible; monetization stop-condition recorded.
 - [x] `C1_EXPERIMENTAL_ENABLED=0` rollback verified; existing product paths remain operational.
 - [x] 380px screenshot, ru/en/he locale coverage, SW/version bump, focused smokes and API smoke PASS.
-- [ ] Production preflight, deploy landing, health, fresh asset/config and loopback owner path verified.
+- [x] Production preflight, deploy landing, health, fresh asset/config and loopback owner path verified.
+
+Production evidence, 2026-07-24: v3.11.240 default-on; health 200; fresh CSP/Permissions-Policy/JS;
+both Studio entries visible; denied/no-companion state has no guessed result; permission-granted real
+production-origin → owner-device `127.0.0.1:8766` loaded 25 exercises and scored a non-owner synthetic
+fixture as advisory HTTP 200; request scratch contained zero WAV files afterward. The owner's own
+microphone recording remains a manual usability check, not an engineering or research-verdict gate.
 
 Passing this engineering gate means only that the bounded experimental function is honestly
 implemented. It does not change the C1 research verdict or certify pronunciation quality.

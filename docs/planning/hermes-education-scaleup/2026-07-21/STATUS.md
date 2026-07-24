@@ -4,7 +4,7 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-24 (H2.1–H2.6 + H2.G1 CLOSED; H2.7 IN_PROGRESS; H3 Д6-A PASS; C1 R&D DONE_NO_GO/UNDERPOWERED; C1-X Experimental Local Companion ENGINEERING_COMPLETE/DEPLOY-PENDING; C2–C5 PLANNED/RUNNABLE; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1/H2 monitors ACTIVE).
+Обновлено: 2026-07-24 (H2.1–H2.6 + H2.G1 CLOSED; H2.7 IN_PROGRESS; H3 Д6-A PASS; C1 R&D DONE_NO_GO/UNDERPOWERED; C1-X Experimental Local Companion ENGINEERING_COMPLETE/OWNER-LIVE-MIC-PENDING; C2–C5 PLANNED/RUNNABLE; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1/H2 monitors ACTIVE).
 
 ## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
@@ -53,7 +53,7 @@
 
 ### C1-X Experimental Local Companion
 
-Status: **ENGINEERING_COMPLETE / DEPLOY-PENDING**. The owner separately authorized canon, code, production
+Status: **ENGINEERING_COMPLETE / OWNER-LIVE-MIC-PENDING**. The owner separately authorized canon, code, production
 deploy and enabling after accepting the frozen C1 NO-GO metrics. Contract: production UI + local
 loopback MMS_FA/Phonikud companion; local profile; initial 25 curated words; opt-in/advisory-only;
 limitations always visible; no FSRS/review_log/grades/progress. MMS_FA is permitted while the
@@ -137,3 +137,4 @@ owner-declared product status remains noncommercial. Production rollback:
 | 2026-07-24 | C1-X local engineering complete: production shell + two Studio entry points, exact 25-target loopback companion, owner-local calibration profile, random-token/origin/body/duration/single-flight/temp-delete boundary, explicit 60%/30%/2-of-10 disclosure, ru/en/he and 380px RTL verified. Companion tests 4/4, contract smoke 74/74, browser smoke 27/27, i18n 226/226, API smoke and `C1_EXPERIMENTAL_ENABLED=0` rollback PASS. No frozen benchmark rerun and no learner-state/provider path. C1-X → ENGINEERING_COMPLETE / DEPLOY-PENDING | Codex |
 | 2026-07-24 | Production v3.11.238 landed and passed config/assets/headers/health/mobile/missing-companion checks, but owner-device loopback verification found a real port collision: Hermes Agent already owns 127.0.0.1:8765. C1-X port corrected coherently to free 127.0.0.1:8766; Hermes remains untouched. Corrective v3.11.239 deploy required before owner-live | Codex |
 | 2026-07-24 | Production v3.11.239 exposed a second owner-path gate during real Chromium verification: current Chrome Local Network Access denied public-origin→loopback before CORS. v3.11.240 adds explicit loopback Permissions Policy, `targetAddressSpace`, localized first-use permission copy and typed denied→site-settings recovery; automated owner-path proof must grant the real browser permission. Research benchmark remains untouched | Codex |
+| 2026-07-24 | C1-X production v3.11.240 final verification PASS: default-on config, health 200, exact fresh CSP/Permissions-Policy/JS, both entries visible, honest unavailable state, and permission-granted production-origin→owner-device 127.0.0.1:8766 path loaded 25 exercises and scored a non-owner synthetic fixture HTTP 200 with `advisory_only=true`; request scratch returned to 0 WAV. Owner's own microphone attempt remains a manual usability check only. C1-X → ENGINEERING_COMPLETE / OWNER-LIVE-MIC-PENDING | Codex |

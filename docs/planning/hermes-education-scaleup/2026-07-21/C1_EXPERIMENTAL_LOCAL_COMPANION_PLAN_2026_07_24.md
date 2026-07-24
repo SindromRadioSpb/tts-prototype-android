@@ -1,6 +1,6 @@
 # C1 Experimental Local Companion — approved implementation plan
 
-Date: 2026-07-24. Status: **ENGINEERING_COMPLETE / DEPLOY PENDING**.
+Date: 2026-07-24. Status: **ENGINEERING_COMPLETE / OWNER-LIVE MICROPHONE CHECK PENDING**.
 
 ## 1. Decision and truth boundary
 
