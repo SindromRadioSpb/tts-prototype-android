@@ -4,7 +4,7 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-24 (H2.1–H2.4 + H2.G1 CLOSED; H2.5 PLANNED; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1 monitor ACTIVE).
+Обновлено: 2026-07-24 (H2.1–H2.5 + H2.G1 CLOSED; H2.6 IN_PROGRESS; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1 monitor ACTIVE).
 
 ## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
@@ -24,7 +24,7 @@
 
 **G-H1-PARALLEL-MONITOR: ACTIVE, 2026-07-23—2026-08-05; day-14 follow-up обязателен.**
 
-## Горизонт 2 — статус: IN_PROGRESS (G-H2-START PASS; H2.1–H2.4 + H2.G1 CLOSED; H2.5 PLANNED; Group Song Corpus P0 CLOSED; H1 monitoring параллельно)
+## Горизонт 2 — статус: IN_PROGRESS (G-H2-START PASS; H2.1–H2.5 + H2.G1 CLOSED; H2.6 IN_PROGRESS; Group Song Corpus P0 CLOSED; H1 monitoring параллельно)
 
 | Слайс | Промт | Статус |
 |---|---|---|
@@ -34,7 +34,7 @@
 | H2.G1 restricted group corpus read+coverage | hermes-side/group-corpus/README.md | CLOSED — prod `fee45e4`, 19-scope consent, SDK + fresh ordinary Hermes chat PASS |
 | H2.4 Dicta Nakdan | prompts/H2_04_DICTA_NAKDAN.md | CLOSED — prod `2399c11` / `3.11.237`; engineering/live preview PASS; two failed owner-live inputs documented; final `ap_fe9b4872eefb68afdfa8ce5df9cbad64` exact body+metadata PASS, single-use ticket consumed, CONFIRMED receipt `rows_written:50`; correct multi-row Library + derived machine-niqqud screenshot PASS; owner 5/5 «всё хорошо в этой итерации» |
 | H2.5 ivrit.ai ASR MCP | prompts/H2_05_IVRIT_AI_ASR.md | CLOSED — local stdio tool; smoke 5/5 + corrupt/TOCTOU PASS; CPU benchmark and fresh WebUI discovery PASS; owner real phrase transcribed exactly, hypothesis confirmation preserved, raw deleted; owner readability 5/5 |
-| H2.6 Async voice loop | prompts/H2_06_ASYNC_VOICE_LOOP.md | PLANNED — unblocked by H2.5 CLOSED; canonical start recon pending |
+| H2.6 Async voice loop | prompts/H2_06_ASYNC_VOICE_LOOP.md | ENGINEERING_COMPLETE / IN_PROGRESS — skill-only async protocol; frontend acceptance A–C 3/3 PASS after typed-vs-ASR ledger hardening; H2.5 restored/healthy, inbox empty; owner-live ≥2 real sessions + minutes/correction rate/verdict pending |
 | H2.7 Owner-live+closure | prompts/H2_07_OWNER_LIVE_AND_CLOSURE.md | BLOCKED |
 
 **G-H2-START: PASS — owner `Д5: GO H2`, 2026-07-23; continuation timing override У7 + ACTIVE monitor. G-H2-CLOSURE: не пройден.**
@@ -108,3 +108,5 @@
 | 2026-07-24 | H2.5 ENGINEERING_COMPLETE: isolated Python 3.12 runtime + pinned faster-whisper/FastMCP, one local `transcribe_audio` tool, descriptor-backed inbox/symlink/TOCTOU defense, concurrency 1, delete-after-success, typed failures and content-free logs installed. Unit 7/7; MCP discovery/protocol, clean/noisy/empty/outside/delete 5/5, real corrupt decoder and final hardened real-WAV smoke PASS. CPU RTF: clean 1.635, normal-120s 1.393, noisy 1.637. Host health PASS. Fresh WebUI session `b0d167bc15b5` was blocked before discovery by Gemini `429 RESOURCE_EXHAUSTED`; no immediate retry or cloud fallback. Owner-live real recording pending; H2.5 not CLOSED | Codex |
 | 2026-07-24 | H2.5 fresh ordinary WebUI discovery PASS after provider backoff: initial session `b0d167bc15b5` hit Gemini 429 and was not retried immediately; one later fresh session `41fb9d1103aa` returned exact callable `mcp__ivrit_asr__transcribe_audio`. Owner-live real recording/readability remains the only closure gate | Codex |
 | 2026-07-24 | H2.5 CLOSED. Owner real-recording live returned exact hypothesis `Я расслышал «שלום, מה נשמע מעניינים?» — верно?`; owner confirmed this was exactly the spoken phrase and rated readability 5/5. Hypothesis/confirmation boundary PASS, no pronunciation scoring, post-success `voice-inbox` contained 0 files. H2.6 unblocked → PLANNED | владелец / Codex |
+| 2026-07-24 | H2.6 started after H2.5/H2.3/H1.1 closure preflight. Owner device path is real WAV (`/workspace/voice-inbox/owner-live-he.wav`); H2.5 live evidence includes 2.29s one-segment and 15.61s four-segment local ASR results. Stop-gate requires confirmed-transcript-only analysis, no transcript persistence/context snippet, LOW-derived track caveat, and manual raw deletion before text fallback when ASR fails. H2.6 → IN_PROGRESS | Codex |
+| 2026-07-24 | H2.6 ENGINEERING_COMPLETE, not CLOSED. Installed `linguistpro-voice-session` overlay and ran frontend-equivalent acceptance A–C 3/3. A completed real ASR preview → H1.1 load/profile/due → 8 learner turns → POST_ANALYSIS → 3 RETRY; adversarial replay caught a typed phrase mislabelled as ASR, so the final skill now keeps an explicit ephemeral voice ledger and `TYPED never becomes ASR`; repaired analysis PASS. B user correction fully replaced the hypothesis in analysis. C removed only the ASR mapping and returned honest unavailable/manual-delete text fallback; mapping/config SHA restored, both containers restarted, localhost/Tailscale/ASR health PASS and inbox 0. Synthetic metrics 0.091 min, correction 1/2 are not owner evidence. Closure gate: ≥2 real owner voice sessions + minutes/rate/usefulness verdict | Codex |
