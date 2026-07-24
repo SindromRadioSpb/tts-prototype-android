@@ -1,7 +1,8 @@
 # H2.7 — live Hermes policy, skill and memory audit
 
-Captured read-only on 2026-07-24 from both running containers. No secret values were read or
-printed, and no live Hermes profile file was changed by this audit.
+Captured on 2026-07-24 from both running containers, then updated under explicit owner approval.
+No secret values were read or printed. The three original files remain recoverable under
+`~/.hermes/backups/h2-profile-20260724-043956/` in the shared Hermes volume.
 
 ## Runtime surface
 
@@ -32,6 +33,7 @@ The persistent files are visible as `/home/hermes/.hermes/...` in `hermes-agent`
 | `linguistpro-sefaria-policy` | H1.4 bounded external-source policy | installed |
 | `linguistpro-youtube-transcript-policy` | H1.5 bounded transcript policy | installed |
 | `linguistpro-voice-session` | H2.5/H2.6 local-ASR preview/confirm → H1.1 conversation → analysis/retry | installed; canonical/live SHA from H2.6 evidence matches |
+| `linguistpro-mcp` | Current 25-tool live policy/cheat sheet, content-integrity and fresh-chat verification rules | installed under category `productivity` |
 | `linguistpro-mcp-recovery` | OAuth/tool-selection/live-grant recovery | installed |
 
 The global `SOUL.md` additionally contains mandatory H2.1 morphology, H2.2 coverage, restricted
@@ -40,36 +42,73 @@ first-party on-demand preview/Library service, while exact-body/no-silent-transf
 already lives in the H2.3 proposal policy. H2.5/H2.6 behavior is correctly isolated in the
 triggered `linguistpro-voice-session` skill rather than injected into every text-only turn.
 
-## Freshness verdict
+## Freshness verdict and applied update
 
-### `USER.md`: CURRENT, one optional durable clarification
+### `USER.md`: UPDATED
 
-The durable owner profile is accurate and correctly excludes mutable queue/progress counts. A
-future edit may add only the stable preference that ASR text must be confirmed before analysis and
-ASR differences are never learner errors. It must not store transcripts or session metrics.
+The durable owner profile remains free of mutable queue/progress counts. It now records only the
+stable voice preference: ASR text must be confirmed before analysis, and ASR differences are never
+learner errors. It explicitly forbids storing transcripts, filenames or session metrics there.
 
-### `SOUL.md`: FUNCTIONALLY CURRENT FOR H2
+### `SOUL.md`: UPDATED
 
-It contains the global rules that must apply to every relevant turn and delegates the detailed
-voice state machine to an installed triggered skill. No H3 behavior should be added before a
-specific charter receives Д6-go. An optional hardening edit could add one routing sentence requiring
-`linguistpro-voice-session` for any audio/voice request, but the installed skill already declares
-mandatory triggers for those requests.
+It retains the global H2 rules and now adds a mandatory routing paragraph: every audio/voice request
+must load `linguistpro-voice-session`, use only the real local ASR tool and never bypass it through
+shell/Python/ffmpeg/cloud STT. No H3 behavior was added.
 
-### `MEMORY.md`: STALE; UPDATE REQUIRED
+### `MEMORY.md`: UPDATED
 
 Observed discrepancies:
 
-1. It says separate skills `linguistpro-mcp` and `linguistpro-mcp-recovery` are installed, but the
-   live skill directory contains only `linguistpro-mcp-recovery`; the MCP connection itself is live.
-2. It does not record the current 25-tool / 23-scope LinguistPro surface.
-3. It does not record the separate local `ivrit_asr` tool or the installed H2.6 voice skill.
-4. It does not contain the repeatedly confirmed cache-recovery rule: after OAuth/tool-surface
+1. It does not record the current 25-tool / 23-scope LinguistPro surface.
+2. It does not record the separate local `ivrit_asr` tool or the installed H2.6 voice skill.
+3. It does not contain the repeatedly confirmed cache-recovery rule: after OAuth/tool-surface
    changes restart both `hermes-agent` and `hermes-webui`, then verify in a completely new ordinary
    chat; SDK/CLI discovery alone is insufficient.
-5. It does not summarize the H2 W1, goal-store, morphology, coverage and group-corpus boundaries.
+4. It does not summarize the H2 W1, goal-store, morphology, coverage and group-corpus boundaries.
 
-Because the owner asked whether the files are current rather than explicitly authorizing a live
-profile mutation, this audit records the required patch without silently editing the running
-agent's durable identity/memory. Applying that bounded live-memory patch is a separate explicit
-owner-authorized action and should be followed by a two-container restart plus a fresh-chat check.
+The owner explicitly authorized the bounded live-profile update. The first post-restart manifest
+check corrected an incomplete shallow-directory audit: `linguistpro-mcp` does exist under
+`skills/productivity/linguistpro-mcp/` and is enabled. The final deployed memory preserves both
+`linguistpro-mcp` and `linguistpro-mcp-recovery`, and adds the 25/23 surface, H2 boundaries, local
+ASR/voice protocol and the two-container-restart plus completely-new-chat recovery rule.
+
+Final shared-volume hashes after the correction:
+
+| File | SHA-256 |
+|---|---|
+| `memories/MEMORY.md` | `8dd30476a7504933c6797d46c51ebac34f27963669c081a4c03b67c1fc0eccc0` |
+| `memories/USER.md` | `a9dd7c1ddb71e5e2207d20e56b3af0736a999ddf7e4a5a34682d8f269d5f8ad8` |
+| `SOUL.md` | `09b8073efcda61b10d23f69fa0dcf0abb4e3eed0f8136fb2830737e82d0067c6` |
+
+## Restart, manifest and live acceptance
+
+- Both `hermes-agent` and `hermes-webui` were restarted after the final correction. Final
+  `StartedAt`: `2026-07-24T01:51:57Z` and `2026-07-24T01:51:59Z` respectively.
+- WebUI localhost and Tailscale health passed. The H2.5 health probe found one selected ASR tool,
+  wrapper, runtime, pinned model and inbox ready.
+- `hermes skills list`: 85 enabled total, 16 local; `linguistpro-mcp`, recovery, trainer,
+  conversation and voice skills are enabled.
+- `hermes prompt-size`: updated memory and user-profile blocks loaded; skills index 9,839 bytes;
+  27 tool schemas in the fresh prompt.
+- LinguistPro live discovery returned 25 tools. Read-only live calls passed for morphology, public
+  coverage, all three group-corpus tools and current goal. The three proposal tools were called with
+  deliberately invalid empty input and each returned non-retryable `ARGUMENT_SCHEMA_INVALID` with
+  no `proposal_id`; no new proposal was created.
+- The WebUI-owned ASR stdio server returned exactly one `transcribe_audio` tool. A missing-file call
+  returned a typed tool error and created no raw file.
+- Completely new ordinary WebUI session `69d469542242` called `get_word_morphology` and
+  `get_current_goal`, both `ok:true`, reported 25 tools and reproduced the updated memory rule to
+  restart both services and open a new chat after OAuth/tool-surface changes. It disclosed only
+  `goal_present:true`, not the goal body.
+
+## Incidents during verification
+
+1. A shallow `find -maxdepth 2` missed category-nested `linguistpro-mcp`; the first audit statement
+   was corrected immediately after the authoritative manifest listed the enabled skill.
+2. Running `hermes mcp test` from `hermes-agent` is invalid for WebUI-owned local stdio servers
+   because `/workspace` is deliberately mounted only in `hermes-webui`. The correct WebUI runtime
+   probe passed.
+3. A concurrent CLI MCP test rotated token state while the gateway was live, producing one refresh
+   400 in the first attempted fresh chat. All CLI tests were stopped, both containers were restarted
+   again, and the final new-chat acceptance passed. This reinforces the newly stored recovery rule.

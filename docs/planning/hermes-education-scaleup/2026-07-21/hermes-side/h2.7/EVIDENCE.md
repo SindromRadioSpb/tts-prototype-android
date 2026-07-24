@@ -116,3 +116,21 @@ No H3 charter is authorized or recommended as a bundle.
 4. Recheck production version/health, update this evidence and `STATUS.md`, then request the owner
    verdict for G-H2-CLOSURE. Calendar time is no longer the blocker; until the remaining evidence
    passes, H2.7 remains `IN_PROGRESS` and H2 remains open.
+
+## 9. Hermes profile reload and current-tool check, 2026-07-24
+
+The owner explicitly approved updates to live `MEMORY.md`, `USER.md` and `SOUL.md`, restart of both
+containers, manifest reload verification and new-tool checks. Full hashes, backup location and
+incidents are recorded in `HERMES_RUNTIME_AUDIT.md`.
+
+- Final new WebUI chat `69d469542242`: 25 tools; `get_word_morphology` and `get_current_goal`
+  both `ok:true`; updated restart/new-chat memory rule present in the response.
+- Current live read calls: morphology PASS; public coverage PASS; group search/content/coverage
+  PASS; current goal read PASS.
+- `propose_import_text`, `propose_track_word`, `propose_goal`: visible and callable; validation-only
+  calls returned `ARGUMENT_SCHEMA_INVALID`, retryable false, and created no proposal IDs.
+- WebUI-owned `ivrit_asr`: exactly one `transcribe_audio`; typed missing-file error; zero raw write.
+- No proposal, import, tracked word, goal mutation, transcript retention or raw-audio write occurred.
+
+This advances the consolidated tool check but does not replace the remaining per-scope live
+revoke→typed-denial→regrant ceremony or initial production cost/proposal-ledger snapshot.
