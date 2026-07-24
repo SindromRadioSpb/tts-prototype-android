@@ -10,6 +10,8 @@ production-функция LinguistPro.
 - `prototype/c1_score.py` — локальный Phonikud + MMS_FA scorer;
 - `REPORT.md` — evidence-отчёт и текущий вердикт;
 - `OWNER_RECORDING_RUNBOOK.md` — единственное действие, которое должен выполнить владелец.
+- `C1_OWNER_BENCHMARK_GUIDE_RU.docx` — человекочитаемая русская инструкция владельцу и
+  полная таблица 75 фраз с латинской транскрипцией и точными указаниями для искажений.
 
 Raw owner audio, transcripts, model weights, virtual environments and detailed per-recording
 scores are deliberately excluded from git. Keep them under `.tmp/h3-c1-owner-audio/` and
