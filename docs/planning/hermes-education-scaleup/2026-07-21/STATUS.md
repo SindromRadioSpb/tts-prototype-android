@@ -4,7 +4,7 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-24 (H2.1–H2.6 + H2.G1 CLOSED; H2.7 PLANNED; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1 monitor ACTIVE).
+Обновлено: 2026-07-24 (H2.1–H2.6 + H2.G1 CLOSED; H2.7 IN_PROGRESS; H3 Д6-P PASS и C3 PLANNED; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1/H2 monitors ACTIVE).
 
 ## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
@@ -39,22 +39,24 @@
 
 **G-H2-START: PASS — owner `Д5: GO H2`, 2026-07-23; continuation timing override У7 + ACTIVE monitor. G-H2-CLOSURE: не пройден.**
 
-## Горизонт 3 — статус: R&D-чартеры, каждый ждёт owner go (Д6) после G-H2-CLOSURE
+## Горизонт 3 — статус: Д6-P GO на R&D portfolio; C3 PLANNED параллельно H2.7
 
 | Чартер | Статус |
 |---|---|
-| C1 Pronunciation scoring | NOT_STARTED |
-| C2 Realtime voice | NOT_STARTED |
-| C3 MC-glosses в Зале | NOT_STARTED |
-| C4 S4 агент+②-заметки | NOT_STARTED |
-| C5 Phase-2 exposure weighting | NOT_STARTED |
+| C1 Pronunciation scoring | BLOCKED — 3.421/≥60 подтверждённых owner-speech минут |
+| C2 Realtime voice | BLOCKED — нет ≥4 недель регулярного async-voice evidence |
+| C3 MC-glosses в Зале | PLANNED / RUNNABLE — H2.2 CLOSED, `get_text_coverage` live, relevant H2 stop condition отсутствует |
+| C4 S4 агент+②-заметки | BLOCKED — не накоплен benchmark «агент хуже моей заметки» |
+| C5 Phase-2 exposure weighting | BLOCKED — нет ≥8 недель ledger и ≥200 `agent_exposed` review events |
+
+**G-H3-RND-C3: READY — Д6-P PASS + charter prerequisites PASS. Это research/prototype go, не production delivery.**
 
 ## P11 Платформенный трек — статус: ОТДЕЛЬНАЯ ОПЦИЯ, не запущен (Д3)
 
 ## Открытые owner decisions
 
 См. 00 §2: Д1 (хранение продукции), Д2 (Spotify), Д3 (P11), Д4 (платные ресурсы),
-Д6 (per-charter H3), Д7 (raw audio — default не хранить). Д5 решено: GO H2.
+Д7 (raw audio — default не хранить). Д5 решено: GO H2; Д6-P решено: GO H3 R&D portfolio.
 
 ## Журнал решений
 
@@ -116,3 +118,4 @@
 | 2026-07-24 | H2.7 closure audit started. Schema snapshot PASS (LinguistPro 16→25, nine additions, zero original-schema mutations); goal-store backup restore/export/delete PASS on disposable copy; local H2/Agent Access/i18n/API gates and current production health `3.11.237` PASS. G-H2-CLOSURE is not declared: the canon still requires a two-week H2 metrics window, exact cost/ledger snapshot and consolidated owner-live revoke→typed deny→regrant plus capability/manual-tool verification | Codex |
 | 2026-07-24 | Owner amendment: по аналогии с H1 двухнедельное H2-окно переносится в обязательный parallel monitor `2026-07-24—2026-08-06`. Calendar completion больше не блокирует G-H2-CLOSURE; initial metrics/cost evidence и все consent/rollback/live-tool/export гейты сохраняются. Поправка не является Д6-go на H3 | владелец / Codex |
 | 2026-07-24 | Owner-approved Hermes profile refresh PASS. Live `MEMORY.md`, `USER.md`, `SOUL.md` updated with H2 25-tool/23-scope surface, local ASR/voice confirmation and two-container-restart + new-chat recovery rule; recoverable backup retained. Both containers restarted; health, skills manifest, 25-tool discovery, six read paths, three proposal validation-only calls and one-tool ASR stdio PASS. Fresh ordinary WebUI session `69d469542242` called morphology+current-goal and loaded the new memory rule. No proposal/raw/transcript mutation | владелец / Codex |
+| 2026-07-24 | Owner decision Д6-P: exact quote `необходимость реализации в H3 - утверждаю. Измени какон документов, чтобы снять блокер и продолжить разработку.` H3 R&D portfolio C1–C5 authorized; `G-H2-CLOSURE` removed only as global sequencing prerequisite. H2.7 consent/cost/live-tool gates and both monitors remain binding; production delivery remains a separate decision. Readiness audit: C3 → PLANNED/RUNNABLE; C1/C2/C4/C5 remain prerequisite-blocked | владелец / Codex |

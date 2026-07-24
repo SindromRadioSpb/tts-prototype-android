@@ -1,8 +1,8 @@
 # hermes-education-scaleup — implementation-ready planning package (2026-07-21)
 
-**Статус направления: OWNER-APPROVED DIRECTION / PLANNING.** Ничего не реализовано; ни один слайс
-не является запланированным к реализации, ENGINEERING_COMPLETE или SHIPPED, пока не пройдёт гейты
-(10) и не будет отмечен в STATUS.md. Живой леджер прогресса — **STATUS.md** (единственный).
+**Исходный статус направления: OWNER-APPROVED DIRECTION / PLANNING.** Пакет с тех пор исполняется;
+никакой статус реализации нельзя выводить из этой исторической шапки. Живой леджер прогресса —
+**STATUS.md** (единственный), а слайс получает статус только после соответствующих гейтов (10).
 
 Базис: утверждённое исследование `docs/research/hermes-education-scaleup/2026-07-21/` (463abca).
 Промт-источник пакета: `docs/research/hermes-education-scaleup/promt21072026.md`; принятые
@@ -13,9 +13,11 @@
 
 Замкнуть production-петли (речь, письмо) и SRL-цикл при вечных инвариантах W0 / W1
 propose-then-confirm / «кто учит — не сертифицирует» / провенанс / R16 / R11.
-Секвенирование: **H1 (Hermes-side, без кода LinguistPro) → closure → H2 (новые MCP/W1-инструменты
-LinguistPro + голос) → closure → H3 (только R&D-чартеры)**. P11 (платформенный трек) — отдельная
-опция вне очереди.
+Исходное секвенирование было: **H1 (Hermes-side, без кода LinguistPro) → closure → H2 (новые
+MCP/W1-инструменты LinguistPro + голос) → closure → H3 (только R&D-чартеры)**. Owner amendment
+Д6-P от 2026-07-24 разрешает H3 R&D после фактических per-charter prerequisites параллельно
+незавершённому H2.7; consent/cost/monitoring H2 остаются обязательными и могут остановить
+затронутый H3 path. P11 (платформенный трек) — отдельная опция вне очереди.
 
 ## Порядок чтения
 
@@ -43,12 +45,15 @@ LinguistPro + голос) → closure → H3 (только R&D-чартеры)**
 `prompts/H1_01_TRAINER_POLICY_AND_GUARDRAILS.md`.** Далее H1_02→04 (скиллы, параллелизуемы),
 H1_05→08 (интеграции, параллелизуемы), H1_09 (closure). `H1_00`/`H2_00` — диспетчеры, не задания.
 **Все H2-промты BLOCKED UNTIL H1 CLOSURE + owner go (Д5); H3 — один промт на все чартеры,
-per-чартер owner go (Д6); P11 — вне цепи (Д3).** Нумерация промтов сдвинута на +1 от слайсов
+portfolio research-go Д6-P уже записан, но каждый чартер ждёт собственные prerequisites; C3 —
+текущий runnable; P11 — вне цепи (Д3).** Нумерация промтов сдвинута на +1 от слайсов
 (H1_01 = слайс H1.0).
 
 ## Что разрешено реализовывать сейчас
 
-Только слайсы H1 в порядке зависимостей (H1.0 первый). Всё остальное — BLOCKED (см. STATUS.md).
+Живой источник — `STATUS.md`. После Д6-P разрешён только R&D-слайс C3 через
+`prompts/H3_RND_EVALUATION_PROMPT.md` с `ЧАРТЕР=C3`; это не production delivery. H2.7 consent,
+cost и parallel-monitor evidence продолжаются независимо.
 
 ## Adversarial review пакета (проведён 2026-07-21, до коммита)
 

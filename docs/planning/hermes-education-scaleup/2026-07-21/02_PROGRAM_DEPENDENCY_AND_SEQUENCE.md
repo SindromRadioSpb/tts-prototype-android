@@ -29,7 +29,7 @@ flowchart TB
     H25 --> H26
     H21 & H22 & H23 & H24 & H26 --> H27
   end
-  subgraph H3["Горизонт 3 — R&D-чартеры (каждый — отдельный owner go)"]
+  subgraph H3["Горизонт 3 — R&D-чартеры (Д6-P portfolio go; per-charter prerequisites)"]
     C1[C1 Pronunciation scoring · P1-B]
     C2[C2 Realtime voice · P1-C]
     C3[C3 MC-glosses в Зале · P7]
@@ -38,7 +38,9 @@ flowchart TB
   end
   H18 -->|owner go Д5| H21
   H18 --> H22 & H23 & H24 & H25
-  H27 -->|owner go Д6 per-charter| C1 & C2 & C3 & C4 & C5
+  D6P[owner go Д6-P: H3 R&D portfolio]
+  D6P --> C1 & C2 & C3 & C4 & C5
+  H27 -. parallel safety/consent/cost evidence .-> C1 & C2 & C3 & C4 & C5
   H26 --> C1
   P11[P11 Платформенный трек — ВНЕ цепи,<br/>отдельное owner-решение Д3]
 ```
@@ -53,6 +55,7 @@ flowchart TB
 | H2.1 → (усиливает H1.1/H1.2) | educational | Морфо-grounding убирает главный риск роста роли агента (галлюцинации форм); до него скиллы работают в режиме «честное не уверен» |
 | H2.3 propose_goal → полный SRL | technical | До goal-store цель недели живёт как note (H1.3 деградированный, но рабочий режим) |
 | H2.6 → C1 | evidence+technical | Скоринг произношения строится на ASR-пайплайне и накопленных транскриптах |
+| H2.7 ∥ H3 после Д6-P | governance | Owner amendment 2026-07-24 снимает только глобальную последовательностную блокировку. Незакрытый H2 consent/cost audit остаётся обязательным и его stop condition останавливает затронутый H3 path; prerequisites каждого чартера не ослаблены |
 | consent: Д1 → хранение продукции | consent | Хранение produced-output требует нового scope и церемонии (07 §4) |
 | Все внешние интеграции → R16-конверт | operational | 09: каждый ресурс получает cost/fallback-строку до включения |
 
@@ -77,6 +80,11 @@ flowchart TB
 Все пять чартеров (05): вопрос «возможно ли с приемлемым качеством», а не «сделай фичу».
 Выход чартера — evidence-отчёт + go/no-go рекомендация, НЕ код в проде. Провал чартера — валидный
 результат (особенно C1: готового иврит-скоринга не существует в мире — 03_TECH §1.4).
+
+Owner decision Д6-P от 2026-07-24 разрешает портфель C1–C5 без повторного owner-go на каждый
+research charter. Запуск всё равно per-charter: только после фактической проверки его prerequisites,
+cost/privacy условий и отсутствия релевантного active stop condition из H2 monitoring. На дату
+решения C3 — единственный runnable чартер; C1/C2/C4/C5 остаются evidence-blocked.
 
 ## 6. Почему P11 не блокирует и не блокируется
 

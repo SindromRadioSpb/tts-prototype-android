@@ -67,7 +67,8 @@ rollback = деинсталляция скилла/секции config (03 §О�
   этого окна из блокирующего prerequisite G-H2-CLOSURE в обязательный параллельный monitor:
   H2 может быть закрыт после остальных closure-гейтов и initial metrics snapshot, пока окно
   2026-07-24—2026-08-06 продолжается независимо от Codex-сессий. Поправка не отменяет сбор
-  метрик, cost evidence или stop-условия и не является Д6-go ни на один H3-чартер.
+  метрик, cost evidence или stop-условия. Сама эта поправка не была Д6-go; последующее owner
+  decision Д6-P от 2026-07-24 отдельно разрешило H3 R&D portfolio при сохранении этих условий.
 - Decision record: после каждого owner-live окна — 3 строки в STATUS.md (evidence, вердикт,
   продолжаем/чиним/выключаем). Это и есть «decision record» промта — отдельный файл не плодим.
 
@@ -80,3 +81,8 @@ complete (гейт) → owner-live smoke → вердикт → CLOSED в STATUS
 follow-up обновляет тот же evidence, а H2.7 сводит initial verdicts и запускает отдельный
 H2 parallel monitor. H2 day-14 follow-up обновляет тот же H2.7 evidence и STATUS даже если
 G-H2-CLOSURE уже пройден.
+
+После Д6-P H3 R&D может идти параллельно H2 monitor. Любой unwanted write, consent/scope drift,
+неожиданный metered cost или systematic quality incident немедленно останавливает связанный H3
+path так же, как H2 path; незатронутые локальные/read-only исследования не объявляются
+автоматически проваленными.

@@ -93,17 +93,20 @@ production health check, where DB and migrations were explicitly ready.
 
 ## 7. H3 charter readiness map
 
-Every charter still requires its own explicit owner decision Д6 after G-H2-CLOSURE.
+Owner decision Д6-P on 2026-07-24 authorizes the H3 R&D portfolio before G-H2-CLOSURE. This does
+not change H2.7 verdicts: its consent/cost/live-tool evidence remains mandatory and an active H2
+stop condition pauses any affected H3 path. Per-charter prerequisites remain independent.
 
 | Charter | Prerequisite state | Readiness |
 |---|---|---|
 | C1 Hebrew pronunciation scoring | H2.5/H2.6 closed; only 3.421 of required ≥60 confirmed owner-speech minutes | BLOCKED |
 | C2 Realtime Hebrew voice | H2.6 closed; required ≥4 weeks regular async-voice evidence absent | BLOCKED |
-| C3 MC-glosses | `get_text_coverage` live; H2 closure absent | BLOCKED |
-| C4 Agent sees owner ②-notes | H2 closure absent; required accumulated “agent worse than my note” cases not evidenced | BLOCKED |
+| C3 MC-glosses | H2.2 closed; `get_text_coverage` live; no active H2 stop condition affects coverage/Reading Room | PLANNED / RUNNABLE |
+| C4 Agent sees owner ②-notes | Required accumulated “agent worse than my note” cases not evidenced | BLOCKED |
 | C5 Phase-2 exposure weighting | Required ≥8 weeks ledger and ≥200 `agent_exposed` review events not evidenced | BLOCKED |
 
-No H3 charter is authorized or recommended as a bundle.
+Д6-P authorizes the research portfolio, not a production bundle. Only C3 is currently runnable;
+the other four charters must not start before their evidence prerequisites pass.
 
 ## 8. Exact remaining closure work
 
