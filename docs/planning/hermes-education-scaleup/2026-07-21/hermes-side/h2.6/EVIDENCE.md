@@ -22,7 +22,7 @@ rate 1/2 = 50%; they are explicitly excluded from owner-live metrics.
 
 ## Owner-live closure gate
 
-Status: **OWNER_LIVE 1/2**. H2.6 is not CLOSED.
+Status: **OWNER_LIVE 2/2, final verdict pending**. H2.6 is not CLOSED.
 
 Owner session 1, reported 2026-07-24:
 
@@ -33,17 +33,29 @@ Owner session 1, reported 2026-07-24:
 - transcript content: intentionally not retained here.
 
 This satisfies the first-session metric record. Evidence has not yet been supplied that this
-session reached H1.1 POST_ANALYSIS and RETRY; that gate may be satisfied by session 2.
+session reached H1.1 POST_ANALYSIS and RETRY.
+
+Owner session 2, reported 2026-07-24:
+
+- confirmed previews: 1;
+- corrected previews: 1;
+- speech duration: 189.67 seconds = 3.161 minutes;
+- ASR correction rate: 1 / 1 = 100%;
+- transcript content and source filename: intentionally not retained here.
+
+Aggregate owner-live metrics:
+
+- confirmed previews: 2;
+- corrected previews: 1;
+- speech duration: 205.28 seconds = 3.421 minutes;
+- ASR correction rate: 1 / 2 = 50%.
 
 Required in a fresh ordinary Hermes chat:
 
-1. Complete owner voice session 2 with a separate WAV and mandatory preview/confirmation.
-2. Let session 2 reach H1.1 POST_ANALYSIS and RETRY unless session 1 already did and the owner
-   explicitly confirms that fact.
-3. Report session-2 confirmed/corrected preview counts and speech minutes; aggregate both sessions.
-4. Owner gives a 1–5 usefulness/readability verdict and confirms that ASR differences were not
+1. Confirm that at least one owner session reached H1.1 POST_ANALYSIS and RETRY.
+2. Owner gives a 1–5 usefulness/readability verdict and confirms that ASR differences were not
    presented as learner errors.
-5. Record the final aggregate and verdict here and in STATUS before declaring H2.6 CLOSED.
+3. Record the confirmations and verdict here and in STATUS before declaring H2.6 CLOSED.
 
 No transcript or raw owner audio is to be copied into this evidence. Only counts, minutes, rate,
 verdict and a content-free incident note are durable.
