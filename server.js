@@ -300,7 +300,7 @@ app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", isPronunciationShell
-    ? "camera=(), microphone=(self), geolocation=(), browsing-topics=()"
+    ? "camera=(), microphone=(self), geolocation=(), browsing-topics=(), local-network-access=(self), local-network=(self), loopback-network=(self)"
     : "camera=(), microphone=(), geolocation=(), browsing-topics=()");
   if (CSP_REPORT_ONLY_ENABLED && !isMiniappShell && !isAgentAccessShell && !isPronunciationShell) {
     // Modern Reporting API endpoint (Chrome) + classic report-uri (all browsers).

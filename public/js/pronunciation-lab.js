@@ -35,6 +35,17 @@
     Object.keys(extra || {}).forEach(function (key) { out[key] = extra[key]; });
     return out;
   }
+  async function loopbackPermissionState() {
+    if (!navigator.permissions || typeof navigator.permissions.query !== "function") return "unknown";
+    for (var i = 0; i < 2; i++) {
+      var name = i === 0 ? "loopback-network" : "local-network-access";
+      try {
+        var permission = await navigator.permissions.query({ name: name });
+        if (permission && permission.state) return permission.state;
+      } catch (_) {}
+    }
+    return "unknown";
+  }
   function revealActivated() {
     byId("c1OptIn").hidden = true;
     byId("c1Connect").hidden = false;
@@ -95,12 +106,17 @@
     status("c1ConnectStatus", tr("pronunciation.connecting", "Проверяем локальное подключение…"), "");
     byId("c1ConnectButton").disabled = true;
     try {
-      var healthResponse = await fetch(API + "/v1/health", { headers: headers(), cache: "no-store" });
+      if (await loopbackPermissionState() === "denied") throw new Error("LOCAL_NETWORK_DENIED");
+      var healthResponse = await fetch(API + "/v1/health", {
+        headers: headers(), cache: "no-store", targetAddressSpace: "loopback"
+      });
       var health = await healthResponse.json();
       if (!healthResponse.ok || !health.ok) throw new Error(health.error || "HEALTH_FAILED");
       if (!health.profile_ready) throw new Error("PROFILE_REQUIRED");
       if (!health.phonikud_model_present || !health.mms_fa_checkpoint_present) throw new Error("MODEL_REQUIRED");
-      var exercisesResponse = await fetch(API + "/v1/exercises", { headers: headers(), cache: "no-store" });
+      var exercisesResponse = await fetch(API + "/v1/exercises", {
+        headers: headers(), cache: "no-store", targetAddressSpace: "loopback"
+      });
       var exerciseBody = await exercisesResponse.json();
       if (!exercisesResponse.ok || !exerciseBody.ok || !Array.isArray(exerciseBody.exercises) || exerciseBody.exercises.length !== 25) {
         throw new Error(exerciseBody.error || "EXERCISES_INVALID");
@@ -114,10 +130,15 @@
       state.connected = false;
       byId("c1Lab").hidden = true;
       var code = String(error && error.message || "");
+      if (code !== "LOCAL_NETWORK_DENIED" && await loopbackPermissionState() === "denied") {
+        code = "LOCAL_NETWORK_DENIED";
+      }
       var message = code === "PROFILE_REQUIRED"
         ? tr("pronunciation.errorProfile", "Companion запущен, но локальный профиль ещё не создан.")
         : code === "MODEL_REQUIRED"
           ? tr("pronunciation.errorModel", "Companion не видит одну из локальных моделей.")
+          : code === "LOCAL_NETWORK_DENIED"
+            ? tr("pronunciation.errorNetworkDenied", "Браузеру запрещён доступ к локальной сети. Откройте настройки сайта LinguistPro, разрешите «Доступ к локальной сети» и повторите.")
           : tr("pronunciation.errorConnect", "Не удалось подключиться. Запустите companion и проверьте token.");
       status("c1ConnectStatus", message, "error");
     } finally {
@@ -242,7 +263,8 @@
     byId("c1Record").disabled = true;
     try {
       var response = await fetch(API + "/v1/score?exercise_id=" + encodeURIComponent(exerciseId), {
-        method: "POST", headers: headers({ "Content-Type": "audio/wav" }), body: blob, cache: "no-store"
+        method: "POST", headers: headers({ "Content-Type": "audio/wav" }), body: blob, cache: "no-store",
+        targetAddressSpace: "loopback"
       });
       var body = await response.json();
       if (!response.ok || !body.ok) throw new Error(body.error || "SCORE_FAILED");

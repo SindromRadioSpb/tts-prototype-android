@@ -63,6 +63,9 @@ privacy and avoids an OOM-prone shared service.
 - Origins: exact allowlist for production plus explicit localhost development origins. No wildcard.
 - Private-network CORS: explicit preflight, allowed headers/methods and
   `Access-Control-Allow-Private-Network: true`; no credentials/cookies.
+- Browser Local Network Access: the shell explicitly allows loopback in `Permissions-Policy`,
+  requests declare `targetAddressSpace: loopback`, first use asks the user for browser permission,
+  and a denial produces a typed site-settings recovery instruction rather than a generic failure.
 - `GET /v1/health`: runtime/model/profile state and schema versions, no personal values.
 - `GET /v1/exercises`: the 25 content-safe curated prompts.
 - `POST /v1/score?exercise_id=…`: `audio/wav`, maximum 10 MiB and 12 seconds, one request at a time.
