@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var API = "http://127.0.0.1:8765";
+  var API = "http://127.0.0.1:8766";
   var OPT_IN_KEY = "linguistpro.c1.experimental.optin.v1";
   var TOKEN_KEY = "linguistpro.c1.companion.token.v1";
   var state = {

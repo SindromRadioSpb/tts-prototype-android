@@ -15,7 +15,7 @@ powershell -ExecutionPolicy Bypass -File .\c1_companion\start.ps1
 калибровочный профиль `.tmp/c1-experimental/profile.json`. В консоли появится случайный token —
 его нужно вставить на странице `/pronunciation.html`. Все эти файлы gitignored.
 
-Companion слушает только `127.0.0.1:8765`, принимает запросы только от production LinguistPro и
+Companion слушает только `127.0.0.1:8766`, принимает запросы только от production LinguistPro и
 явных localhost-origin, требует token, ограничивает WAV 10 MiB/12 секундами, обрабатывает по одному
 запросу и удаляет временный WAV в `finally`.
 

@@ -264,7 +264,7 @@ const PRONUNCIATION_CSP = [
   "style-src 'self'",
   "img-src 'self' data:",
   "media-src 'self' blob:",
-  "connect-src 'self' http://127.0.0.1:8765",
+  "connect-src 'self' http://127.0.0.1:8766",
   "form-action 'none'",
 ].join("; ");
 

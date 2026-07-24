@@ -59,7 +59,7 @@ async function inspect(browser, locale) {
     localStorage.setItem("linguistpro.c1.companion.token.v1", "browser-smoke-token");
   }, { locale });
   const companionRequests = [];
-  await context.route("http://127.0.0.1:8765/v1/**", async (route) => {
+  await context.route("http://127.0.0.1:8766/v1/**", async (route) => {
     const request = route.request();
     companionRequests.push({ url: request.url(), token: request.headers()["x-c1-token"] });
     const body = request.url().endsWith("/v1/health")

@@ -32,7 +32,7 @@ from urllib.parse import parse_qs, urlparse
 SCHEMA_VERSION = "c1.companion.1.0.0"
 PROFILE_SCHEMA_VERSION = "c1.calibration.profile.1.0.0"
 RESULT_SCHEMA_VERSION = "c1.pronunciation.advisory.1.0.0"
-DEFAULT_PORT = 8765
+DEFAULT_PORT = 8766
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MIN_DURATION_S = 0.25
 MAX_DURATION_S = 12.0

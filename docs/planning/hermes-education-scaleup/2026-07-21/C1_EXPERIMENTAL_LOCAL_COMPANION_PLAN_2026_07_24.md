@@ -39,7 +39,7 @@ The product surface is **«Лаборатория произношения · э
 production pronunciation.html
   ├─ local opt-in + token (browser localStorage)
   ├─ microphone → mono WAV in memory
-  └─ CORS/token request → http://127.0.0.1:8765
+  └─ CORS/token request → http://127.0.0.1:8766
                            └─ local companion
                               ├─ fixed 25-exercise allowlist
                               ├─ local calibration profile
@@ -56,7 +56,8 @@ privacy and avoids an OOM-prone shared service.
 
 ## 4. Companion contracts
 
-- Bind: `127.0.0.1:8765` only; startup fails if asked to bind a non-loopback address.
+- Bind: `127.0.0.1:8766` only; startup fails if asked to bind a non-loopback address. Port 8765 is
+  deliberately avoided because the owner's Hermes Agent already publishes that loopback port.
 - Auth: random 256-bit token in gitignored local scratch; every API request requires
   `X-C1-Token` with constant-time comparison.
 - Origins: exact allowlist for production plus explicit localhost development origins. No wildcard.
