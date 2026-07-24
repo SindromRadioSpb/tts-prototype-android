@@ -1,6 +1,6 @@
 # C1-P — Hermes pronunciation practice loop
 
-Date: 2026-07-24. Status: **ENGINEERING_COMPLETE / OWNER-LIVE pending**.
+Date: 2026-07-24. Status: **OWNER_LIVE / CLOSED (experimental)**.
 
 This slice integrates the unchanged C1 experimental scorer into ordinary Hermes learning sessions
 used from Hermex iPhone and Hermes WebUI. It adds no LinguistPro API/schema/scope and never writes
@@ -19,7 +19,9 @@ learner state. Canon: `../../C1_HERMES_PRACTICE_LOOP_PLAN_2026_07_24.md`.
 - A separate discard-only tool deletes a current-session voice note that arrived before an exercise
   was selected; it performs no transcription or scoring.
 - `transcribe_reading_attempt` performs local ASR-only comparison for a selected corpus excerpt,
-  allows at most 90 seconds and never invokes the frozen pronunciation scorer.
+  allows at most five minutes and never invokes the frozen pronunciation scorer. For usable
+  confirmation UX the skill prefers 30–120-second excerpts, but this is guidance rather than a
+  rejection threshold.
 - The skill enforces transcript confirmation before it reveals the C1 portion of the tool result.
 - Models and the owner profile stay in gitignored `G:\HERMES_AGENT\models` / `private` paths.
 
@@ -87,7 +89,7 @@ uv pip install --python /home/hermeswebui/.hermes/mcp-runtimes/c1-py312/bin/pyth
 - Owner-live needs one post-bridge Hermex iPhone voice note and one secure-context WebUI raw-audio attempt,
   including transcript confirmation and the post-confirmation advisory response.
 
-Focused expected results: companion 4/4, MCP 13/13, C1 product smoke 78/78 and i18n 226/226.
+Focused expected results: companion 4/4, MCP 14/14, C1 product smoke 78/78 and i18n 226/226.
 
 Read-only training sources are selected through existing LinguistPro tools: public/Ben-Yehuda
 catalog + content, group-song catalog + content, consent-bounded personal texts, or a fragment

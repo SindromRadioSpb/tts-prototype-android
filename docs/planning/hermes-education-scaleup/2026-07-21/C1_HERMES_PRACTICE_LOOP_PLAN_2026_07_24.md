@@ -1,6 +1,6 @@
 # C1-P Hermes practice loop — approved implementation amendment
 
-Date: 2026-07-24. Status: **ENGINEERING_COMPLETE / OWNER-LIVE pending**.
+Date: 2026-07-24. Status: **OWNER_LIVE / CLOSED (experimental)**.
 
 ## 1. Owner authorization and unchanged research truth
 
@@ -105,7 +105,7 @@ deletes the raw attachment and returns `c1.practice_discard.1.0.0` with `raw_del
 ### `transcribe_reading_attempt`
 
 Accepts the same exact current-session attachment and returns local ivrit.ai ASR under schema
-`c1.reading_attempt.1.0.0`. It permits up to 90 seconds, sets
+`c1.reading_attempt.1.0.0`. It permits up to five minutes, sets
 `pronunciation_scored:false`, requires transcript confirmation and deletes the source in `finally`.
 It is used only for reading an arbitrary sentence or short excerpt; it never applies the frozen
 C1 scorer outside the 25 sentence-bound exercises.
@@ -234,9 +234,9 @@ Runtime rollback is additive and independent:
 - A fresh-process run with `HF_HUB_OFFLINE=1`, `TRANSFORMERS_OFFLINE=1` and deliberately dead HTTP
   proxies completed without a network request, proving that ASR, tokenizer, Phonikud and MMS_FA
   execute locally.
-- Remaining gate: the owner must perform one new microphone attempt in native Hermex on iPhone and
-  one through the HTTPS WebUI on PC. C1-P stays `ENGINEERING_COMPLETE / OWNER-LIVE pending` until
-  both surfaces are observed; the research verdict remains `DONE_NO_GO / UNDERPOWERED`.
+- Gate at that engineering checkpoint: the owner still had to perform one new microphone attempt
+  in native Hermex on iPhone and one through WebUI PC. This was later satisfied in the owner-live
+  closure below; the research verdict remains `DONE_NO_GO / UNDERPOWERED`.
 
 ### First owner-live attempt and clarified recovery
 
@@ -292,13 +292,29 @@ until the red recording bar/timer appears, and gives the exact tailnet-only HTTP
 - Fresh read-only source E2Es selected a Ben-Yehuda sentence (`3a9b5bbd86c9`) through
   `search_public_reading_catalog` + `get_reading_content` and a song excerpt (`c3500a3ad0a4`)
   through `search_group_reading_catalog` + `get_group_reading_content`. The new reading tool uses
-  ASR-only comparison, caps one recording at 90 seconds and cannot produce a C1 score. A subsequent
+  ASR-only comparison, caps one recording at five minutes and cannot produce a C1 score. A subsequent
   audio turn in `3a9b5bbd86c9` called `transcribe_reading_attempt`, ignored its false auto-caption,
   reached transcript confirmation and deleted the source attachment.
-- Focused verification is green: companion 4/4, C1 MCP 13/13, C1 product smoke 78/78 and i18n
+- Focused verification at the bridge checkpoint was green: companion 4/4, C1 MCP 13/13, C1 product smoke 78/78 and i18n
   226/226. Two unprocessed iPhone attachments from `61f2cccf5524` and one failed engineering upload
   were deleted by exact verified paths; no other attachment or persistent data was touched.
-- Remaining closure gate: one new real hold-to-record attempt in Hermex must reach the local-ASR
-  confirmation question and then the advisory response after owner confirmation. PC must likewise
-  complete its existing confirmation/advisory step. Until then status remains
-  `ENGINEERING_COMPLETE / OWNER-LIVE pending`.
+- Closure gate recorded at that checkpoint: one new real hold-to-record attempt in Hermex and the
+  PC confirmation path still had to be observed. The owner-live closure below supersedes this
+  checkpoint status.
+
+### Owner-live closure and five-minute reading amendment
+
+- The owner confirmed the final pass on both Hermex iPhone and WebUI PC. Native session
+  `fa8f1ed68a3f` selected a bounded song excerpt, invoked `transcribe_reading_attempt` for real
+  voice notes and reached the transcript-confirmation UI. The session attachment directory is
+  empty after processing.
+- PC session `990091cc87c5` selected Ben-Yehuda content and correctly invoked the ASR-only reading
+  tool. Its 1:53 recording exceeded the original 90-second policy and was rejected with raw
+  deletion; the attachment directory is empty.
+- Owner feedback approved a five-minute ceiling for longer excerpts. The ASR-only limit is now
+  exactly 300 seconds, with 30–120 seconds retained only as UX guidance. The frozen C1
+  pronunciation path remains capped at 12 seconds. The updated boundary suite passes 14/14,
+  including acceptance at exactly 300 seconds and rejection/deletion at 301 seconds.
+- C1-P therefore reaches `OWNER_LIVE / CLOSED` as an experimental product capability. The frozen
+  C1 research verdict remains `DONE_NO_GO / UNDERPOWERED`; closure does not convert the advisory
+  scorer into a grade or authorize learner-state writes.

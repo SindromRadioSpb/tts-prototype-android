@@ -41,6 +41,14 @@ class FakeC1:
         }
 
 
+class SizedWaveform:
+    def __init__(self, sample_count: int):
+        self.sample_count = sample_count
+
+    def __len__(self):
+        return self.sample_count
+
+
 def waveform(_payload: bytes):
     return np.zeros(math.ceil(16000 * 0.5), dtype=np.float32)
 
@@ -201,16 +209,29 @@ class C1PracticeTests(unittest.TestCase):
             self.assertEqual(result["schema_version"], module.READING_SCHEMA_VERSION)
             self.assertEqual(result["asr"]["text"], "שלום")
 
-    def test_reading_attempt_rejects_over_90_seconds_and_deletes_source(self):
+    def test_reading_attempt_rejects_over_5_minutes_and_deletes_source(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             path = self.make_note(root)
-            long_wave = lambda _payload: np.zeros(16000 * 91, dtype=np.float32)
+            long_wave = lambda _payload: SizedWaveform(16000 * 301)
             with self.assertRaises(Exception):
                 module.transcribe_reading_attempt_impl(
                     "abc", str(path), attachment_root=root,
                     decoder=long_wave, asr_model=FakeAsr(),
                 )
+            self.assertFalse(path.exists())
+
+    def test_reading_attempt_accepts_exactly_5_minutes_and_deletes_source(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = self.make_note(root)
+            boundary_wave = lambda _payload: SizedWaveform(16000 * 300)
+            result = module.transcribe_reading_attempt_impl(
+                "abc", str(path), attachment_root=root,
+                decoder=boundary_wave, asr_model=FakeAsr(),
+            )
+            self.assertEqual(result["duration_s"], 300.0)
+            self.assertTrue(result["raw_deleted"])
             self.assertFalse(path.exists())
 
 

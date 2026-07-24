@@ -4,7 +4,7 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-24 (H2.1–H2.6 + H2.G1 CLOSED; H2.7 IN_PROGRESS; H3 Д6-A PASS; C1 R&D DONE_NO_GO/UNDERPOWERED; C1-X Local Companion ENGINEERING_COMPLETE; C1-P Hermes practice loop ENGINEERING_COMPLETE/OWNER-LIVE-PENDING; C2–C5 PLANNED/RUNNABLE; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1/H2 monitors ACTIVE).
+Обновлено: 2026-07-24 (H2.1–H2.6 + H2.G1 CLOSED; H2.7 IN_PROGRESS; H3 Д6-A PASS; C1 R&D DONE_NO_GO/UNDERPOWERED; C1-X Local Companion ENGINEERING_COMPLETE; C1-P Hermes practice loop OWNER_LIVE/CLOSED; C2–C5 PLANNED/RUNNABLE; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1/H2 monitors ACTIVE).
 
 ## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
@@ -39,17 +39,17 @@
 
 **G-H2-START: PASS — owner `Д5: GO H2`, 2026-07-23; continuation timing override У7 + ACTIVE monitor. G-H2-CLOSURE: не пройден.**
 
-## Горизонт 3 — статус: Д6-A GO; C1–C5 PLANNED/RUNNABLE parallel, priority C1→C5
+## Горизонт 3 — статус: C1 research complete / experimental product closed; C2–C5 RUNNABLE
 
 | Чартер | Статус |
 |---|---|
-| C1 Pronunciation scoring | **DONE_NO_GO / UNDERPOWERED** — frozen owner benchmark 75/75: 15/25 correct word+type (60%), 15/50 false positives (30%), vowel 13/15, stress 2/10, target unscorable 0; thresholds failed and result retained; separate C1-X product-risk exception below; `docs/research/hermes-education-scaleup/rnd-c1-2026-07-24/REPORT.md` |
+| C1 Pronunciation scoring | **DONE_NO_GO / UNDERPOWERED** — frozen owner benchmark 75/75: 15/25 correct word+type (60%), 15/50 false positives (30%), vowel 13/15, stress 2/10, target unscorable 0; thresholds failed and result retained; separate experimental C1-P product path is `OWNER_LIVE / CLOSED`; `docs/research/hermes-education-scaleup/rnd-c1-2026-07-24/REPORT.md` |
 | C2 Realtime voice | PLANNED / RUNNABLE #2 — ≥4 недели async baseline recommended parallel target; live cloud call hard-blocked exact cost cap + owner consent |
 | C3 MC-glosses в Зале | PLANNED / RUNNABLE #3 — H2.2 CLOSED, `get_text_coverage` live; no review_log write |
 | C4 S4 агент+②-заметки | PLANNED / RUNNABLE #4 — benchmark cases parallel; first note-read hard-blocked scope/consent/provenance |
 | C5 Phase-2 exposure weighting | PLANNED / RUNNABLE #5 — preliminary offline analysis allowed; ≥8 weeks/≥200 events recommended; FSRS immutable |
 
-**G-H3-RND-C1…C5: READY under Д6-A — separate parallel research/prototype sessions, priority/reporting C1→C5. Recommended maturity runs in parallel; hard action-gates remain. No production delivery go.**
+**C1 research is complete and its separately authorized experimental product path is closed. C2–C5 remain separate runnable research/prototype sessions in priority order; recommended maturity runs in parallel and charter-specific hard action-gates remain. No production delivery go is inherited from C1.**
 
 ### C1-X Experimental Local Companion
 
@@ -63,16 +63,16 @@ owner-declared product status remains noncommercial. Production rollback:
 
 ### C1-P Hermes practice loop
 
-Status: **ENGINEERING_COMPLETE / OWNER-LIVE pending**. Owner-authorized amendment integrates the unchanged experimental scorer
+Status: **OWNER_LIVE / CLOSED (experimental)**. Owner-authorized amendment integrates the unchanged experimental scorer
 into the real educational conversation used through Hermex iPhone and Hermes WebUI PC. Contract:
 private tailnet voice-note transport to the owner-controlled Hermes host; local combined ASR+C1
 evaluation; unconditional raw deletion; mandatory transcript confirmation before advisory C1
 feedback; due-word grounding where the 25-word allowlist permits; no learner-state/memory write.
 Canon: `C1_HERMES_PRACTICE_LOOP_PLAN_2026_07_24.md`.
-Engineering proof includes fresh ordinary-chat tool execution, natural due-grounded target
-selection, the ASR-confirmation barrier, post-confirmation C1 feedback, verified raw deletion and
-tailnet-only HTTPS. Closure still requires one owner microphone attempt in Hermex iPhone and one in
-HTTPS WebUI PC; this does not change the C1 R&D `DONE_NO_GO / UNDERPOWERED` verdict.
+Engineering and owner-live proof includes fresh ordinary-chat tool execution, natural due-grounded
+target selection, the ASR-confirmation barrier, post-confirmation C1 feedback, verified raw
+deletion, tailnet-only HTTPS and real Hermex iPhone/WebUI PC passes. Closure does not change the
+C1 R&D `DONE_NO_GO / UNDERPOWERED` verdict.
 
 2026-07-24 compatibility update: Hermex's voice-note auto-caption is now separated from the raw
 attachment by a pinned WebUI bridge. Exact-envelope E2E `365eb53abbc5` ignored a false caption,
@@ -80,8 +80,12 @@ called C1 on the audio, reached ASR confirmation and deleted raw. ASR-only readi
 selects bounded passages from Ben-Yehuda/public corpus, group songs, consented personal texts or
 pasted text; public (`3a9b5bbd86c9`) and song (`c3500a3ad0a4`) routes passed live, and the public
 session's audio turn called the ASR-only tool, reached confirmation and deleted raw. Engineering is
-green (4/4, 13/13, 78/78, 226/226). A fresh real post-bridge iPhone confirmation/advisory turn and
-completion of the PC confirmation/advisory turn remain the owner-live closure gates.
+green (4/4, 13/13, 78/78, 226/226). Owner then completed the real iPhone and PC pass. Native
+session `fa8f1ed68a3f` reached reading confirmation and deleted raw; PC session `990091cc87c5`
+correctly rejected a 1:53 recording under the former 90-second ceiling and deleted raw. Owner
+feedback raises ASR-only reading to 300 seconds while frozen C1 stays at 12 seconds. Boundary tests
+pass 14/14 at 300-second accept / 301-second reject-and-delete. C1-P is `OWNER_LIVE / CLOSED`;
+research remains `DONE_NO_GO / UNDERPOWERED`.
 
 ## P11 Платформенный трек — статус: ОТДЕЛЬНАЯ ОПЦИЯ, не запущен (Д3)
 

@@ -27,7 +27,7 @@ CONFIDENCE_NOTE = "ASR_HYPOTHESIS_NOT_GROUND_TRUTH"
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MIN_DURATION_S = 0.25
 MAX_DURATION_S = 12.0
-MAX_READING_DURATION_S = 90.0
+MAX_READING_DURATION_S = 300.0
 ALLOWED_SUFFIXES = {".m4a", ".wav", ".webm", ".ogg", ".mp3", ".flac"}
 ALLOWED_NAME_PREFIXES = ("voice-note-", "voice-input-")
 
@@ -493,7 +493,7 @@ def evaluate_pronunciation_attempt(
 @mcp.tool(
     name="transcribe_reading_attempt",
     description=(
-        "Locally transcribe one current-session Hebrew reading voice note up to 90 seconds, "
+        "Locally transcribe one current-session Hebrew reading voice note up to 5 minutes, "
         "delete the raw attachment, and return an ASR hypothesis only. Does not score pronunciation."
     ),
 )
