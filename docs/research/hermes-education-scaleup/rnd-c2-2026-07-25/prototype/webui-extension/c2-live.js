@@ -5,16 +5,21 @@
 
   const MODEL = 'gemini-3.1-flash-live-preview';
   const MAX_MS = 8 * 60 * 1000;
-  const RUNS = {
-    RT1: { surface: 'desktop_web', scenario: 'cafe', title: 'В кафе', hint: 'Закажи еду, задай два вопроса и уточни недопонимание.' },
-    RT2: { surface: 'iphone_web', scenario: 'directions', title: 'Как пройти', hint: 'Уточни маршрут по двум ориентирам и повтори его своими словами.' },
-    RT3: { surface: 'iphone_web', scenario: 'plans', title: 'Планы', hint: 'Договорись о времени встречи и предложи одно изменение.' },
+  const TOPICS = {
+    free: { title: 'Свободный разговор', hint: 'Начните с любой мысли — собеседник подхватит её.', he: 'על מה נדבר היום?', latin: 'al ma nedaber hayom?', instruction: 'Начни с короткого дружелюбного вопроса о том, что ученик хочет обсудить сегодня.' },
+    daily: { title: 'Обычный день', hint: 'Поговорите о сегодняшнем дне, делах и настроении.', he: 'איך עבר היום שלך?', latin: 'eikh avar ha-yom shelkha?', instruction: 'Мягко начни разговор о сегодняшнем дне, повседневных делах и впечатлениях.' },
+    cafe: { title: 'В кафе', hint: 'Закажите что-нибудь и уточните детали.', he: 'אני רוצה להזמין קפה, בבקשה.', latin: 'ani rotse lehazmin kafe, bevakasha.', instruction: 'Начни естественную сцену в кафе: заказ, уточняющие вопросы и небольшое недопонимание.' },
+    city: { title: 'Дорога и город', hint: 'Спросите дорогу и проверьте, правильно ли поняли.', he: 'סליחה, איך מגיעים לתחנה?', latin: "slikha, eikh magi'im la-takhana?", instruction: 'Начни разговор о дороге по городу, ориентирах и уточнении маршрута.' },
+    work: { title: 'Работа и учёба', hint: 'Расскажите, чем занимаетесь и что сейчас изучаете.', he: 'במה אתה עוסק עכשיו?', latin: 'ba-me ata osek akhshav?', instruction: 'Начни разговор о работе, учёбе или текущем проекте без просьб раскрывать личные данные.' },
+    culture: { title: 'Книги и культура', hint: 'Обсудите книгу, песню, фильм или интересную мысль.', he: 'קראתי משהו מעניין לאחרונה.', latin: "karati mashehu me'anyen la-akhrona.", instruction: 'Начни разговор о книге, песне, фильме или культурной теме по выбору ученика.' },
+    plans: { title: 'Планы', hint: 'Договоритесь о встрече или обсудите ближайшие планы.', he: 'מה התוכניות שלך לסוף השבוע?', latin: 'ma ha-tokhniyot shelkha le-sof ha-shavua?', instruction: 'Начни разговор о ближайших планах и при желании предложи небольшое изменение.' },
+    travel: { title: 'Путешествия', hint: 'Выберите место и обсудите, что там хочется увидеть.', he: 'לאן כדאי לנסוע בישראל?', latin: "le-an kedai linsoa be-Yisra'el?", instruction: 'Начни разговор о поездке, месте или маршруте без просьб назвать точное местоположение ученика.' },
   };
 
-  const SYSTEM = `Ты доброжелательный собеседник для взрослого ученика иврита. Веди живой разговор только на простом современном иврите. Говори коротко, задавай один вопрос за раз и давай человеку договорить. Исправляй только то, что мешает понять смысл, без оценок и баллов. Не проси личные данные и не используй личные тексты. Если не расслышал, естественно попроси повторить.`;
+  const BASE_SYSTEM = `Ты доброжелательный собеседник для взрослого ученика иврита. Веди живой разговор только на простом современном иврите. Говори коротко, задавай один вопрос за раз и давай человеку договорить. Исправляй только то, что мешает понять смысл, без оценок и баллов. Не проси личные данные и не используй личные тексты. Если не расслышал, естественно попроси повторить. Выбранная тема — лишь мягкое начало: если ученик естественно меняет тему, следуй за ним и не возвращай его насильно.`;
 
   const state = {
-    run: null, provider: null, stream: null, inputContext: null, inputNode: null,
+    topic: 'free', provider: null, stream: null, inputContext: null, inputNode: null,
     startedAt: 0, timer: null, completedTurns: 0, breakdowns: 0, incidents: 0,
   };
 
@@ -69,7 +74,7 @@
               prefixPaddingMs: 40,
               silenceDurationMs: 650,
             } },
-            systemInstruction: { parts: [{ text: SYSTEM }] },
+            systemInstruction: { parts: [{ text: this.callbacks.systemInstruction }] },
           } }));
         }, { once: true });
         this.ws.addEventListener('message', async (event) => {
@@ -179,29 +184,35 @@
   panel.innerHTML = `<div class="c2-shell">
     <header class="c2-top"><div class="c2-brand">LinguistPro × Hermes</div><button class="c2-close" type="button">Вернуться в чат</button></header>
     <main class="c2-stage">
-      <div class="c2-eyebrow">Эксперимент C2 · Free Tier</div>
-      <h1 class="c2-title" lang="he" dir="rtl">בוא נדבר</h1>
-      <p class="c2-subtitle">Живой разговор без кнопки «отправить». Вы сразу увидите, что услышал Gemini. Аудио и текст разговора не сохраняются.</p>
-      <div class="c2-runs" role="group" aria-label="Сценарий"></div>
+      <div class="c2-eyebrow">Разговорная практика · экспериментально</div>
+      <h1 class="c2-title" lang="he" dir="rtl">על מה נדבר?</h1>
+      <p class="c2-subtitle">Выберите отправную точку или начните без плана. Собеседник говорит простым ивритом и естественно следует за сменой темы.</p>
+      <div class="c2-topics" role="group" aria-label="Тема разговора"></div>
+      <div class="c2-starter" aria-live="polite">
+        <span>Можно начать так</span>
+        <p class="c2-starter-he" lang="he" dir="rtl"></p>
+        <small class="c2-starter-latin"></small>
+      </div>
       <div class="c2-orb" data-state="idle" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#071619" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></svg></div>
       <button class="c2-action" type="button">Начать разговор</button>
-      <div class="c2-status" role="status">Выберите сценарий. На iPhone откройте этот экран по HTTPS.</div>
+      <div class="c2-status" role="status">Микрофон включится только после нажатия. На iPhone используйте HTTPS.</div>
       <div class="c2-transcripts" hidden>
         <article class="c2-transcript"><span>Gemini услышал</span><p class="c2-input" lang="he" dir="rtl">—</p></article>
         <article class="c2-transcript"><span>Собеседник</span><p class="c2-output" lang="he" dir="rtl">—</p></article>
       </div>
       <div class="c2-controls" hidden><button class="c2-missed" type="button">Gemini меня не понял</button><span class="c2-clock">08:00</span></div>
+      <details class="c2-note"><summary>Что важно знать</summary><p>Это экспериментальный собеседник: он может неверно расслышать или ответить не по смыслу. Разговор не ставит оценок и не влияет на повторения или прогресс в LinguistPro.</p></details>
     </main>
-    <footer class="c2-foot"><span>До 8 минут</span><span>3 исследовательских разговора</span><span>$0/week</span></footer>
+    <footer class="c2-foot"><span>До 8 минут</span><span>Аудио и текст не сохраняются</span><span>Gemini Live · Free Tier</span></footer>
   </div>`;
   document.body.appendChild(panel);
 
-  const runs = panel.querySelector('.c2-runs');
-  for (const [id, run] of Object.entries(RUNS)) {
-    const button = el('button', { class: 'c2-run', type: 'button', 'data-run': id, 'aria-pressed': 'false' });
-    button.innerHTML = `<strong>${id} · ${run.title}</strong><small>${run.surface === 'desktop_web' ? 'ПК · Hermes WebUI' : 'iPhone · Hermes WebUI'}</small>`;
-    button.addEventListener('click', () => selectRun(id));
-    runs.appendChild(button);
+  const topics = panel.querySelector('.c2-topics');
+  for (const [id, topic] of Object.entries(TOPICS)) {
+    const button = el('button', { class: 'c2-topic', type: 'button', 'data-topic': id, 'aria-pressed': 'false' });
+    button.textContent = topic.title;
+    button.addEventListener('click', () => selectTopic(id));
+    topics.appendChild(button);
   }
 
   const launch = el('button', { id: 'c2-live-launch', type: 'button', title: 'Живой разговор на иврите' }, '◉ Разговор');
@@ -209,36 +220,22 @@
   const mount = document.querySelector('#composerFooter, .composer-footer, #composer, .composer-actions, .composer') || document.body;
   mount.appendChild(launch);
 
-  function currentSurface() {
-    return /iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'iphone_web' : 'desktop_web';
-  }
-
-  function syncRunsForSurface() {
-    const surface = currentSurface();
-    let firstAvailable = null;
-    panel.querySelectorAll('.c2-run').forEach((button) => {
-      const available = RUNS[button.dataset.run].surface === surface;
-      button.disabled = !available;
-      button.setAttribute('aria-disabled', String(!available));
-      button.title = available ? '' : `Этот сценарий проводится ${surface === 'desktop_web' ? 'на iPhone' : 'на ПК'}.`;
-      if (available && !firstAvailable) firstAvailable = button.dataset.run;
-    });
-    if (!state.run || RUNS[state.run].surface !== surface) selectRun(firstAvailable);
-  }
-
-  function selectRun(id) {
+  function selectTopic(id) {
     if (state.startedAt) return;
-    state.run = id;
-    panel.querySelectorAll('.c2-run').forEach((node) => node.setAttribute('aria-pressed', String(node.dataset.run === id)));
-    setStatus(RUNS[id].hint);
+    state.topic = TOPICS[id] ? id : 'free';
+    const topic = TOPICS[state.topic];
+    panel.querySelectorAll('.c2-topic').forEach((node) => node.setAttribute('aria-pressed', String(node.dataset.topic === state.topic)));
+    panel.querySelector('.c2-starter-he').textContent = topic.he;
+    panel.querySelector('.c2-starter-latin').textContent = topic.latin;
+    setStatus(topic.hint);
   }
-  function openPanel() { syncRunsForSurface(); panel.hidden = false; document.documentElement.style.overflow = 'hidden'; }
+  function openPanel() { selectTopic(state.topic); panel.hidden = false; document.documentElement.style.overflow = 'hidden'; }
   function closePanel() { if (state.startedAt) return; panel.hidden = true; document.documentElement.style.overflow = ''; clearTranscript(); }
   function setStatus(text, error = false) { const node = panel.querySelector('.c2-status'); node.textContent = text; node.classList.toggle('c2-error', error); }
   function clearTranscript() { panel.querySelector('.c2-input').textContent = '—'; panel.querySelector('.c2-output').textContent = '—'; }
 
-  async function requestToken(run) {
-    const response = await fetch(`/api/extensions/c2-live/sidecar/token?run=${encodeURIComponent(run)}`, { credentials: 'same-origin', cache: 'no-store' });
+  async function requestToken() {
+    const response = await fetch('/api/extensions/c2-live/sidecar/token?purpose=practice', { credentials: 'same-origin', cache: 'no-store' });
     const data = await response.json().catch(() => ({}));
     if (response.status === 429) throw new Error('FREE_TIER_QUOTA');
     if (!response.ok || !data.token) {
@@ -251,15 +248,13 @@
   }
 
   async function start() {
-    if (!state.run) { setStatus('Сначала выберите один из трёх сценариев.', true); return; }
-    const expected = RUNS[state.run].surface;
-    if (expected !== currentSurface()) { syncRunsForSurface(); setStatus('Для этого устройства выбран доступный сценарий.', true); return; }
     if (!window.isSecureContext) { setStatus('Микрофон работает только по HTTPS или через localhost.', true); return; }
     const action = panel.querySelector('.c2-action'); action.disabled = true; setStatus('Включаю микрофон…');
     try {
-      const token = await requestToken(state.run);
+      const token = await requestToken();
       state.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 }, video: false });
       state.provider = createRealtimeProvider('gemini-live', token, {
+        systemInstruction: `${BASE_SYSTEM}\n\n${TOPICS[state.topic].instruction}`,
         input: (text) => { panel.querySelector('.c2-input').textContent = text; },
         output: (text) => { panel.querySelector('.c2-output').textContent = text; },
         turn: () => { state.completedTurns += 1; },
@@ -303,19 +298,14 @@
     clearInterval(state.timer); state.timer = null;
     const durationSeconds = state.startedAt ? Math.round((Date.now() - state.startedAt) / 1000) : 0;
     state.provider?.close(); state.provider = null; stopMedia();
-    const result = { schema: 1, id: state.run.toLowerCase(), run: state.run, mode: 'realtime', surface: RUNS[state.run]?.surface,
-      scenario: RUNS[state.run]?.scenario, durationSec: durationSeconds, turns: state.completedTurns, breakdowns: state.breakdowns,
-      transportIncidents: state.incidents, actualCostUsd: null, containsContent: false,
-      status: status === 'completed' || status === 'owner_complete' ? 'COMPLETE' : status.toUpperCase() };
-    const previous = JSON.parse(localStorage.getItem('linguistpro.c2.results') || '[]').filter((item) => item.run !== state.run);
-    previous.push(result); localStorage.setItem('linguistpro.c2.results', JSON.stringify(previous));
-    const params = new URLSearchParams({ run: result.run, durationSec: String(result.durationSec), turns: String(result.turns),
-      breakdowns: String(result.breakdowns), transportIncidents: String(result.transportIncidents), status: result.status });
-    fetch(`/api/extensions/c2-live/sidecar/result?${params}`, { credentials: 'same-origin', cache: 'no-store' }).catch(() => {});
     state.startedAt = 0; panel.querySelector('.c2-orb').dataset.state = 'idle';
     panel.querySelector('.c2-transcripts').hidden = true; panel.querySelector('.c2-controls').hidden = true;
     const action = panel.querySelector('.c2-action'); action.dataset.kind = ''; action.textContent = 'Начать разговор'; action.disabled = false;
-    clearTranscript(); setStatus(message, status === 'quota_fallback' || status === 'transport_closed');
+    clearTranscript();
+    const completed = durationSeconds > 0 && status === 'owner_complete'
+      ? `Разговор завершён: ${state.completedTurns} ответов собеседника. Аудио и текст не сохранены.`
+      : message;
+    setStatus(completed, status === 'quota_fallback' || status === 'transport_closed');
   }
 
   panel.querySelector('.c2-close').addEventListener('click', closePanel);

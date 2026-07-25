@@ -15,6 +15,7 @@ from pathlib import Path
 
 MODEL = "gemini-3.1-flash-live-preview"
 RUN_IDS = frozenset({"RT1", "RT2", "RT3"})
+TOKEN_PURPOSES = frozenset({"practice"})
 TOKEN_URL = "https://generativelanguage.googleapis.com/v1alpha/auth_tokens"
 KEY_NAMES = ("C2_GEMINI_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY")
 ENV_CANDIDATES = (
@@ -123,6 +124,13 @@ def _result_from_query(query: dict) -> dict:
     return result
 
 
+def _token_request_allowed(query: dict) -> bool:
+    """Accept product practice while retaining old benchmark compatibility."""
+    purpose = query.get("purpose", [""])[0]
+    run_id = query.get("run", [""])[0]
+    return purpose in TOKEN_PURPOSES or run_id in RUN_IDS
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "C2TokenSidecar/1"
 
@@ -161,9 +169,9 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path != "/token":
             self._json(404, {"error": "NOT_FOUND"})
             return
-        run_id = urllib.parse.parse_qs(parsed.query).get("run", [""])[0]
-        if run_id not in RUN_IDS:
-            self._json(400, {"error": "C2_RUN_NOT_PREREGISTERED"})
+        query = urllib.parse.parse_qs(parsed.query)
+        if not _token_request_allowed(query):
+            self._json(400, {"error": "C2_TOKEN_PURPOSE_NOT_ALLOWED"})
             return
         api_key = _get_key()
         if not api_key:

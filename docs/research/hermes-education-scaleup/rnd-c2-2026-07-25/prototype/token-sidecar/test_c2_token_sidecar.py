@@ -73,6 +73,12 @@ class TokenSidecarTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "C2_RUN_NOT_PREREGISTERED"):
             sidecar._result_from_query({"run": ["RT4"]})
 
+    def test_product_practice_token_is_allowed(self):
+        self.assertTrue(sidecar._token_request_allowed({"purpose": ["practice"]}))
+
+    def test_unknown_token_purpose_is_rejected(self):
+        self.assertFalse(sidecar._token_request_allowed({"purpose": ["personal-text"]}))
+
 
 if __name__ == "__main__":
     unittest.main()
