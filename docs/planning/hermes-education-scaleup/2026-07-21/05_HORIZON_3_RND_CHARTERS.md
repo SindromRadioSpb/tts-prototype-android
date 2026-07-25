@@ -6,6 +6,9 @@ Owner decisions Д6-P/Д6-A от 2026-07-24 портфельно разреша�
 C1→C5 остаётся priority/reporting order. Недостающая evidence maturity собирается параллельно;
 вывод до целевого порога маркируется `UNDERPOWERED`, но исследование может начинаться. Hard
 action-gates consent/privacy/exact cost cap/no-write и релевантный H2 stop condition не ослабляются.
+Более позднее owner-решение Д6-C3-D от 2026-07-25 выводит C3 из активной очереди в
+`DEFERRED / OWNER-BACKLOG`: это не `NO-GO` и не `CLOSED`, но старт C3 запрещён до нового явного
+owner-решения о возобновлении.
 Выход чартера — evidence-отчёт и рекомендация, не код в проде. Провал — валидный
 результат. Production-планирование любой из тем обычно возможно только ПОСЛЕ закрытия чартера с
 положительным вердиктом и отдельного owner-решения. **Единственное записанное исключение — C1-X:**
@@ -99,17 +102,18 @@ action-gates consent/privacy/exact cost cap/no-write и релевантный H
 
 ## Общее правило запуска
 
-Каждый чартер стартует отдельной чистой сессией через `prompts/H3_RND_EVALUATION_PROMPT.md` с
-подставленным идентификатором. Д6-A даёт research-go всем C1–C5; сессии могут идти параллельно,
-приоритет и сводная отчётность сохраняют порядок C1→C5. Никакой чартер не наследует cost envelope,
+Каждый активный чартер стартует отдельной чистой сессией через `prompts/H3_RND_EVALUATION_PROMPT.md` с
+подставленным идентификатором. Д6-A исторически дал research-go всем C1–C5, но Д6-C3-D позднее
+отложил C3; его нельзя запускать без нового явного owner-решения. Остальные активные сессии могут
+идти параллельно, приоритет и сводная отчётность сохраняют исходный порядок. Никакой чартер не наследует cost envelope,
 privacy ceremony, action-gate или положительный verdict другого.
 
-## Readiness после Д6-A, 2026-07-24
+## Текущая readiness с учётом Д6-A и более поздних owner-решений
 
 | Чартер | Статус | Фактическая причина |
 |---|---|---|
 | C1 | PLANNED / RUNNABLE #1 | Старт на доступных 3.421 мин; ≥60 мин набираются параллельно, ранний вывод `UNDERPOWERED` |
 | C2 | IN_PROGRESS / UNDERPOWERED | Owner fixed USD 0/week + no paid fallback and explicitly consented to three preregistered Gemini Live Free Tier sessions; independent provider adapter + content-free probe PASS; six owner benchmark sessions remain |
-| C3 | PLANNED / RUNNABLE #3 | H2.2 CLOSED; production `get_text_coverage` жив; H2.7 не фиксирует active stop condition |
+| C3 | DEFERRED / OWNER-BACKLOG | Технически runnable, но owner decision Д6-C3-D от 2026-07-25 фиксирует текущий product noise выше ожидаемой пользы; не `NO-GO`/`CLOSED`; нужен явный owner resume |
 | C4 | PLANNED / RUNNABLE #4 | Contract/prototype разрешён; cases набираются параллельно; чтение заметок ждёт scope/consent/provenance |
 | C5 | PLANNED / RUNNABLE #5 | Preliminary offline analysis разрешён; ≥8 недель/≥200 events параллельно; FSRS/review scheduling immutable |

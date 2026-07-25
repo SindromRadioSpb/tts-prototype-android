@@ -32,14 +32,15 @@ flowchart TB
   subgraph H3["Горизонт 3 — R&D-чартеры (Д6-A: parallel start; priority C1→C5)"]
     C1[C1 Pronunciation scoring · P1-B]
     C2[C2 Realtime voice · P1-C]
-    C3[C3 MC-glosses в Зале · P7]
+    C3[C3 MC-glosses в Зале · P7<br/>DEFERRED / OWNER-BACKLOG]
     C4[C4 S4: агент видит ②-заметки]
     C5[C5 Phase-2 agent_exposed weighting]
   end
   H18 -->|owner go Д5| H21
   H18 --> H22 & H23 & H24 & H25
   D6A[owner go Д6-A: all H3 R&D]
-  D6A --> C1 & C2 & C3 & C4 & C5
+  D6A --> C1 & C2 & C4 & C5
+  D6A -. historical go; later deferred Д6-C3-D .-> C3
   H27 -. parallel safety/consent/cost evidence .-> C1 & C2 & C3 & C4 & C5
   H26 --> C1
   P11[P11 Платформенный трек — ВНЕ цепи,<br/>отдельное owner-решение Д3]
@@ -87,6 +88,11 @@ Owner decision Д6-A от 2026-07-24 разблокирует C1–C5 для п�
 `UNDERPOWERED`; они не блокируют старт. Hard action-gates остаются: exact cost cap + cloud-audio
 consent до первого C2 live-call; scope/consent/provenance до первого C4 note-read; no review_log
 write в C3; no FSRS mutation в C5; active H1/H2 stop condition блокирует затронутый path.
+
+Owner decision Д6-C3-D от 2026-07-25 не отменяет историческое research-разрешение Д6-A и не
+фиксирует `NO-GO`: C3 переведён в `DEFERRED / OWNER-BACKLOG`, потому что сейчас ожидаемый UI/учебный
+шум выше продуктовой пользы. Поэтому C3 исключён из active launch queue до нового явного owner
+resume; его зависимости и чартер сохраняются для будущего возврата.
 
 ## 6. Почему P11 не блокирует и не блокируется
 

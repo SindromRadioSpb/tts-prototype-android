@@ -103,12 +103,14 @@ affected H3 path. Hard per-action privacy/consent/cost/no-write gates remain ind
 |---|---|---|
 | C1 Hebrew pronunciation scoring | 3.421 min available; ≥60 min recommended parallel target | PLANNED / RUNNABLE #1; UNDERPOWERED until target |
 | C2 Realtime Hebrew voice | ≥4 weeks baseline recommended; live cloud call still needs exact cap+consent | PLANNED / RUNNABLE #2 |
-| C3 MC-glosses | H2.2 closed; `get_text_coverage` live; no relevant stop | PLANNED / RUNNABLE #3 |
+| C3 MC-glosses | H2.2 closed; technically runnable, but owner deferred it on 2026-07-25 | DEFERRED / OWNER-BACKLOG; explicit owner resume required |
 | C4 Agent sees owner ②-notes | Cases accumulate in parallel; note-read still needs scope/consent/provenance | PLANNED / RUNNABLE #4 |
 | C5 Phase-2 exposure weighting | Preliminary offline analysis allowed; ≥8 weeks/≥200 events recommended | PLANNED / RUNNABLE #5; UNDERPOWERED until target |
 
-Д6-A authorizes all five research charters in parallel, not a production bundle. Priority and
-consolidated reporting remain C1→C5; each charter uses a separate clean session and artifact path.
+Д6-A historically authorized all five research charters in parallel, not a production bundle.
+Later owner decision Д6-C3-D defers C3 without marking it `NO-GO` or `CLOSED`; do not open its
+session until explicit owner resume. Priority and consolidated reporting otherwise retain the
+original order; each active charter uses a separate clean session and artifact path.
 
 ## 8. Exact remaining closure work
 

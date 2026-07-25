@@ -98,6 +98,11 @@ G-H1-CLOSURE или G-H2-START.
 maturity thresholds больше не являются start-gates; это не превращает незакрытые H2-гейты в PASS.
 
 ## 5. G-H3-RND (разрешение отдельного R&D-чартера)
+
+Текущий portfolio-go всегда сверяется с более поздними owner-решениями в `STATUS.md`. C3 по
+Д6-C3-D от 2026-07-25 находится в `DEFERRED / OWNER-BACKLOG`; его G-H3-RND не входит в active gate
+queue и не проверяется до явного owner resume. Это не `NO-GO` и не `CLOSED`.
+
 - [x] Owner research-go Д6-A на параллельный портфель C1–C5 записан в `STATUS.md` (2026-07-24).
 - [ ] Current evidence volume/duration/case-count чартера измерен до старта и отмечен как
       `MATURE` или `UNDERPOWERED`; недостаток maturity не блокирует старт и набирается параллельно.

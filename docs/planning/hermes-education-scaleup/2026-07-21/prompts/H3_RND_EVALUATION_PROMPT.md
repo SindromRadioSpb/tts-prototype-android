@@ -5,9 +5,15 @@
 > productization. C1-X executes only through `H3_C1_EXPERIMENTAL_LOCAL_COMPANION_PROMPT.md`; that
 > exception does not retroactively weaken this prompt or the frozen benchmark.
 
+> **Post-priority note for C3:** owner decision Д6-C3-D от 2026-07-25 переводит C3 в
+> `DEFERRED / OWNER-BACKLOG`, поскольку MC-glosses сейчас создадут больше продуктового шума, чем
+> пользы. Это не `NO-GO` и не `CLOSED`. Не запускай `ЧАРТЕР=C3` без нового явного owner-решения о
+> возобновлении.
+
 > **Owner research-go:** Д6-A на параллельный портфель C1–C5 зафиксирован 2026-07-24.
-> `ЧАРТЕР = C1 | C2 | C3 | C4 | C5`; все пять runnable отдельными чистыми сессиями, исходный
-> priority/reporting order C1→C5. `G-H2-CLOSURE` и longitudinal maturity thresholds не блокируют
+> `ЧАРТЕР = C1 | C2 | C3 | C4 | C5` остаётся полным историческим перечнем; текущий запуск разрешён
+> для активных чартеров согласно `STATUS.md`, а C3 отложен по Д6-C3-D. Исходный priority/reporting
+> order C1→C5 сохраняется. `G-H2-CLOSURE` и longitudinal maturity thresholds не блокируют
 > старт; evidence набирается параллельно, а ранний вывод маркируется `UNDERPOWERED`. H2.7 и оба
 > parallel monitor продолжаются; active stop condition блокирует затронутый charter path.
 

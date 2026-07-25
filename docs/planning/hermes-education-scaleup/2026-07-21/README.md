@@ -19,6 +19,8 @@ MCP/W1-инструменты LinguistPro + голос) → closure → H3 (то
 C1→C5 сохраняется как priority/reporting order; longitudinal maturity targets набираются
 параллельно и не блокируют старт. Consent/privacy/exact-cost/no-write gates и monitoring H2
 остаются обязательными и могут остановить затронутый H3 path. P11 — отдельная опция вне очереди.
+Более позднее owner-решение Д6-C3-D от 2026-07-25 переводит C3 в `DEFERRED / OWNER-BACKLOG`:
+исследование не отвергнуто и не закрыто, но исключено из active queue до явного возобновления.
 
 ## Порядок чтения
 
@@ -46,14 +48,16 @@ C1→C5 сохраняется как priority/reporting order; longitudinal mat
 `prompts/H1_01_TRAINER_POLICY_AND_GUARDRAILS.md`.** Далее H1_02→04 (скиллы, параллелизуемы),
 H1_05→08 (интеграции, параллелизуемы), H1_09 (closure). `H1_00`/`H2_00` — диспетчеры, не задания.
 **Все H2-промты BLOCKED UNTIL H1 CLOSURE + owner go (Д5); H3 — один parametrized prompt,
-portfolio research-go Д6-A записан для C1–C5, все пять runnable параллельно с priority C1→C5;
+portfolio research-go Д6-A исторически записан для C1–C5, но C3 отложен по Д6-C3-D и не runnable
+без явного owner resume; остальные активные чартеры идут с исходным priority C1→C5;
 P11 — вне цепи (Д3).** Нумерация промтов сдвинута на +1 от слайсов
 (H1_01 = слайс H1.0).
 
 ## Что разрешено реализовывать сейчас
 
-Живой источник — `STATUS.md`. После Д6-A разрешены отдельные параллельные R&D-сессии C1–C5 через
-`prompts/H3_RND_EVALUATION_PROMPT.md`; запускать/сводить в порядке C1→C5. H2.7 consent, cost и
+Живой источник — `STATUS.md`. После Д6-A разрешены отдельные параллельные H3 R&D-сессии через
+`prompts/H3_RND_EVALUATION_PROMPT.md`; C3 исключён из active queue по Д6-C3-D до явного owner
+resume, остальные запускать/сводить в исходном порядке. H2.7 consent, cost и
 parallel-monitor evidence продолжаются независимо. После frozen C1 `DONE_NO_GO / UNDERPOWERED`
 владелец отдельно разрешил C1-X Experimental Local Companion; его product-контракт и гейты живут
 в `C1_EXPERIMENTAL_LOCAL_COMPANION_PLAN_2026_07_24.md`, 05 §C1-X, 10 §5.1 и отдельном prompt.
