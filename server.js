@@ -22,6 +22,8 @@ const {
   BACKUPS_DIR,
 } = require("./storage");
 
+const { isPlausibleGeminiKey } = require("./ingest/geminiKey");
+
 // v3.0 foundation: SQLite (Library/Progress source of truth)
 const { initDb, getDbHealth, ensureAudioAssetsDurationMsColumn } = require("./db/sqlite");
 
@@ -6317,9 +6319,9 @@ app.post("/api/translate-table", async (req, res) => {
       });
     }
     const trimmedKey = geminiApiKey.trim();
-    if (!trimmedKey.startsWith("AIza") || trimmedKey.length < 20) {
+    if (!isPlausibleGeminiKey(trimmedKey)) {
       return res.status(400).json({
-        error: "Неверный формат Gemini API Key. Ключ должен начинаться с 'AIza' и иметь корректную длину.",
+        error: "Неверный формат Gemini API Key (ожидается 'AIza…' или 'AQ.…').",
         error_code: "GEMINI_KEY_INVALID",
       });
     }
