@@ -6737,6 +6737,11 @@ Rules:
 }
 
 // --------------------------------------------------------
+// 10b. API: INGEST (W1 — STUDIO_INGEST_W1_IMPLEMENTATION_PLAN_2026_07_25)
+// --------------------------------------------------------
+require("./ingest/routes.js").registerIngestRoutes(app, { makeRateLimiter, geminiCacheDir });
+
+// --------------------------------------------------------
 // 11a. API: DIAGNOSTICS (aggregated system status for the Dashboard panel)
 // --------------------------------------------------------
 // 10c. API: NIQQUD ANNOTATION GATEWAY
