@@ -27,3 +27,46 @@ test("DOCX_EMPTY on zip without text", () => {
   z.addFile("word/document.xml", Buffer.from("<w:document><w:body></w:body></w:document>", "utf8"));
   assert.throws(() => extractDocxText(z.toBuffer()), /DOCX_EMPTY/);
 });
+
+test("tab/br in document order (CRITICAL: must not be dropped)", () => {
+  const AdmZip = require("adm-zip");
+  const z = new AdmZip();
+  const docXml = `<w:document><w:body>
+<w:p>
+<w:r><w:t>Cell1</w:t></w:r>
+<w:r><w:tab/></w:r>
+<w:r><w:t>Cell2</w:t></w:r>
+</w:p>
+<w:p>
+<w:r><w:t>Line1</w:t></w:r>
+<w:r><w:br/></w:r>
+<w:r><w:t>Line2</w:t></w:r>
+</w:p>
+</w:body></w:document>`;
+  z.addFile("word/document.xml", Buffer.from(docXml, "utf8"));
+  const r = extractDocxText(z.toBuffer());
+  assert.match(r.text, /Cell1\tCell2/, "tab must be preserved in first paragraph");
+  assert.match(r.text, /Line1\nLine2/, "br must be preserved in second paragraph");
+});
+
+test("BAD_DOCX on zip without word/document.xml (missing entry branch)", () => {
+  const AdmZip = require("adm-zip");
+  const z = new AdmZip();
+  z.addFile("unrelated.txt", Buffer.from("some content", "utf8"));
+  assert.throws(() => extractDocxText(z.toBuffer()), /BAD_DOCX/);
+});
+
+test("self-closing empty paragraph (robustness)", () => {
+  const AdmZip = require("adm-zip");
+  const z = new AdmZip();
+  const docXml = `<w:document><w:body>
+<w:p><w:r><w:t>First</w:t></w:r></w:p>
+<w:p/>
+<w:p><w:r><w:t>Third</w:t></w:r></w:p>
+</w:body></w:document>`;
+  z.addFile("word/document.xml", Buffer.from(docXml, "utf8"));
+  const r = extractDocxText(z.toBuffer());
+  const lines = r.text.split("\n");
+  assert.equal(lines[0], "First");
+  assert.equal(lines[1], "Third");
+});
