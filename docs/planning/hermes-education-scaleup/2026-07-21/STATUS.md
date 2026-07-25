@@ -4,7 +4,7 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно DEFERRED / BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-25 (H2.1–H2.6 + H2.G1 CLOSED; H2.7 IN_PROGRESS; H3 Д6-A PASS; C1 R&D DONE_NO_GO/UNDERPOWERED; C1-X Local Companion ENGINEERING_COMPLETE; C1-P Hermes practice loop OWNER_LIVE/CLOSED; C2 experimental product DEPLOYED/OWNER-ENABLED, frozen research INCOMPLETE/UNDERPOWERED; C3 DEFERRED/OWNER-BACKLOG; C4–C5 PLANNED/RUNNABLE; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1/H2 monitors ACTIVE).
+Обновлено: 2026-07-25 (H2.1–H2.6 + H2.G1 CLOSED; H2.7 IN_PROGRESS; H3 Д6-A PASS; C1 R&D DONE_NO_GO/UNDERPOWERED; C1-X Local Companion ENGINEERING_COMPLETE; C1-P Hermes practice loop OWNER_LIVE/CLOSED; C2 experimental product DEPLOYED/OWNER-ENABLED, frozen research INCOMPLETE/UNDERPOWERED; C3 DEFERRED/OWNER-BACKLOG; C4 IN_PROGRESS/UNDERPOWERED; C5 PLANNED/RUNNABLE; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1/H2 monitors ACTIVE).
 
 ## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
@@ -39,17 +39,17 @@
 
 **G-H2-START: PASS — owner `Д5: GO H2`, 2026-07-23; continuation timing override У7 + ACTIVE monitor. G-H2-CLOSURE: не пройден.**
 
-## Горизонт 3 — статус: C1 research complete / experimental product closed; C2 product live; C3 DEFERRED; C4–C5 RUNNABLE
+## Горизонт 3 — статус: C1 research complete / experimental product closed; C2 product live; C3 DEFERRED; C4 IN_PROGRESS; C5 RUNNABLE
 
 | Чартер | Статус |
 |---|---|
 | C1 Pronunciation scoring | **DONE_NO_GO / UNDERPOWERED** — frozen owner benchmark 75/75: 15/25 correct word+type (60%), 15/50 false positives (30%), vowel 13/15, stress 2/10, target unscorable 0; thresholds failed and result retained; separate experimental C1-P product path is `OWNER_LIVE / CLOSED`; `docs/research/hermes-education-scaleup/rnd-c1-2026-07-24/REPORT.md` |
 | C2 Realtime voice | **EXPERIMENTAL PRODUCT DEPLOYED / OWNER-ENABLED; RESEARCH INCOMPLETE / UNDERPOWERED** — owner accepted successful RT1 desktop (69s/8 turns) + RT2 iPhone (95s/4 turns) cross-device smoke and authorized productization. Mature WebUI has free conversation + 7 topics on both devices, soft topic following, Hebrew+Latin starter, ephemeral transcript, no product result/localStorage/FSRS/review_log writes, `purpose=practice` one-use tokens and explicit Free Tier fallback. Frozen 3+3 research benchmark remains incomplete; no numerical GO claimed |
 | C3 MC-glosses в Зале | **DEFERRED / OWNER-BACKLOG** — технически runnable, но владелец отложил функцию как создающую сейчас больше шума, чем пользы; не `NO-GO`, не `CLOSED`; без prototype/code/benchmark; возврат только по новому явному owner-решению |
-| C4 S4 агент+②-заметки | PLANNED / RUNNABLE #4 — benchmark cases parallel; first note-read hard-blocked scope/consent/provenance |
+| C4 S4 агент+②-заметки | **IN_PROGRESS / UNDERPOWERED #4** — explicit owner start 2026-07-25; preregistration + research-only fail-closed harness; 0/20 real pairs and 0 note-reads; first note-read hard-blocked temporary scope/consent/provenance |
 | C5 Phase-2 exposure weighting | PLANNED / RUNNABLE #5 — preliminary offline analysis allowed; ≥8 weeks/≥200 events recommended; FSRS immutable |
 
-**C1 research is complete and its separately authorized experimental product path is closed. C2 product is live while its frozen research remains incomplete. C3 is removed from the active launch queue as `DEFERRED / OWNER-BACKLOG`; C4–C5 remain separate runnable research/prototype sessions. Recommended maturity and charter-specific hard action-gates remain. No production delivery go is inherited from C1 or C2.**
+**C1 research is complete and its separately authorized experimental product path is closed. C2 product is live while its frozen research remains incomplete. C3 is removed from the active launch queue as `DEFERRED / OWNER-BACKLOG`; C4 is an active underpowered research-only session and C5 remains runnable. Recommended maturity and charter-specific hard action-gates remain. No production delivery go is inherited from C1 or C2.**
 
 ### C1-X Experimental Local Companion
 
@@ -98,6 +98,7 @@ research remains `DONE_NO_GO / UNDERPOWERED`.
 
 | Дата | Решение | Кто |
 |---|---|---|
+| 2026-07-25 | Owner command `стартуй C4` starts the separate H3 C4 R&D slice. Preflight: Д6-A PASS, no relevant monitor stop, notes-surface prerequisite PASS, evidence 0/20 → `UNDERPOWERED`. Frozen preregistration and a research-only local harness enforce exact-20 allowlist, temporary `personal.notes.read`, dataset-bound consent, content-free hash-chained exposure-before-packet, blind X/Y scoring and ≥14/20 threshold. Synthetic engineering only so far: no personal note read, prod/OAuth/provider call, FSRS/review_log/grade/progress mutation. C4 → IN_PROGRESS | владелец / Codex |
 | 2026-07-25 | C4 notes-surface precondition implemented without starting C4. Recon proved Reading Room `＋ Сохранить` and Studio `word_study` are the same canonical `notes_v2` object linked by `note_occurrences`, not two note systems. Product UX now says `Сохранить слово` → `Дополнить заметку`; compact Room editing persists personal meaning/mnemonic/example into the same record, and Studio shows the personal block plus explicit `Редактировать заметку`. Real OPFS roundtrip and 380/390px browser gates PASS. No `personal.notes.read`, agent access, exposure-ledger extension, FSRS/review_log write, benchmark observation or C4 status transition occurred; C4 remains PLANNED / RUNNABLE | владелец / Codex |
 | 2026-07-25 | Owner decision Д6-C3-D: exact quote `полагаю, что в данный момент эта функция будет излишней и создавать более шум. Предлагаю положить её в копилку не закрытых, не отказных, а отложенных функций.` C3 MC-glosses → **DEFERRED / OWNER-BACKLOG**. Это не `NO-GO`, не `CLOSED` и не отмена исторического research-go Д6-A; prototype/code/benchmark не запускать. Возврат C3 в active queue требует нового явного owner-решения | владелец / Codex |
 | 2026-07-25 | Owner decision: `Исследовательский интерфейс Доведи до зрелого продуктового состояния состояния по причине того, что временный бенчмарк пройден.` Live evidence contains RT1 desktop 69s/8 turns and RT2 iPhone 95s/4 turns, both COMPLETE with 0 breakdowns/incidents. These are accepted as the temporary two-surface product smoke, not misreported as the frozen 3 async + 3 realtime scientific threshold. Productization deployed: free conversation + seven predefined topics on all devices, soft topic changes actually passed to Gemini, Hebrew+Latin starter, no custom/personal-text field, no product localStorage/result/learner-state writes. Final receipt `2026-07-25T11:33:07+03:00`, digest `sha256:daa11bb3bfd32bf5b14a32f890faa06ca86e3145fa280be8c5221042f142c7ad`; token HTTP 200, desktop + 390x844 UI, hidden pre-start transcript, zero console errors and no-mic verification PASS. C2 product → DEPLOYED / OWNER-ENABLED; research → INCOMPLETE / UNDERPOWERED | владелец / Codex |

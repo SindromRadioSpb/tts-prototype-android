@@ -88,14 +88,16 @@ owner-решения о возобновлении.
 | Privacy | Новый scope `personal.notes.read` + отдельная церемония + exposure-леджер РАСШИРЯЕТСЯ на заметки до первого чтения (провенанс прежде доступа — урок S2) |
 | Stop | Ценность <70%; или owner отзывает интерес |
 
-### C4 UI/data precondition — implemented 2026-07-25, charter not started
+### C4 UI/data precondition — implemented before charter start on 2026-07-25
 
 Existing product notes were reconciled before any agent read access. `＋ Сохранить слово` in the
 Reading Room and a `word_study` card in Studio are now explicitly two views of the same canonical
 `notes_v2` record joined to a sentence through `note_occurrences`. The Room exposes a compact
 personal editor (`meaning`, `mnemonic`, `example_sentence`); Studio remains the full editor. This
 improves owner control and benchmark-data quality but does **not** grant `personal.notes.read`,
-extend the exposure ledger, start the 20-pair benchmark, or change C4 from `PLANNED / RUNNABLE`.
+extend the exposure ledger, start the 20-pair benchmark, or change C4 from `PLANNED / RUNNABLE`
+**at that time**. A later explicit owner command on 2026-07-25 started the research-only C4 slice;
+current state is recorded in the readiness table and `STATUS.md`.
 
 ## C5 — Phase-2: взвешивание по agent_exposed меткам
 
@@ -124,5 +126,5 @@ privacy ceremony, action-gate или положительный verdict друг
 | C1 | PLANNED / RUNNABLE #1 | Старт на доступных 3.421 мин; ≥60 мин набираются параллельно, ранний вывод `UNDERPOWERED` |
 | C2 | IN_PROGRESS / UNDERPOWERED | Owner fixed USD 0/week + no paid fallback and explicitly consented to three preregistered Gemini Live Free Tier sessions; independent provider adapter + content-free probe PASS; six owner benchmark sessions remain |
 | C3 | DEFERRED / OWNER-BACKLOG | Технически runnable, но owner decision Д6-C3-D от 2026-07-25 фиксирует текущий product noise выше ожидаемой пользы; не `NO-GO`/`CLOSED`; нужен явный owner resume |
-| C4 | PLANNED / RUNNABLE #4 | Contract/prototype разрешён; cases набираются параллельно; чтение заметок ждёт scope/consent/provenance |
+| C4 | IN_PROGRESS / UNDERPOWERED #4 | Research-only preregistration и fail-closed local harness начаты 2026-07-25; 0/20 реальных пар, 0 note-reads; первое чтение всё ещё ждёт временный scope/consent/provenance |
 | C5 | PLANNED / RUNNABLE #5 | Preliminary offline analysis разрешён; ≥8 недель/≥200 events параллельно; FSRS/review scheduling immutable |

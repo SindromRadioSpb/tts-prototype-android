@@ -33,6 +33,10 @@
 Не добавлены `personal.notes.read`, consent ceremony, note-exposure provenance и агентский
 read-tool. C4 остаётся `PLANNED / RUNNABLE`; его 20-парный benchmark не начат.
 
+Postscript, позже 2026-07-25: владелец отдельно запустил C4 R&D. Это не меняет результат данной
+UI/data-итерации; актуальный статус `IN_PROGRESS / UNDERPOWERED`, а первое реальное note-read всё
+ещё запрещено до временного scope/consent/provenance. См. `STATUS.md`.
+
 ## Проверки
 
 - `npm run smoke:reader-notes`: реальный OPFS roundtrip `meaning` + `mnemonic` +
