@@ -4,14 +4,14 @@
 // Ingest smoke — Studio Ingest W1 (STUDIO_INGEST_W1_IMPLEMENTATION_PLAN_2026_07_25).
 //
 // Deterministic, offline validation matrix for POST /api/ingest/fetch-url
-// (Task 4 — S1, checks 1-7) and POST /api/ingest/extract-file (Task 6 — S2+S8,
-// checks 8-14; 14 added in fix round 1 to cover the cache-hit response shape).
-// Every case uses a literal IP/syntactic reject, the local docx fixture, or a
-// synthetic cache file written directly into the smoke server's geminiCacheDir:
-// no DNS lookup, network call, or LLM call happens anywhere in this file — safe
-// for CI, no flakiness.
-//
-// (Task 7 will add a direction case.)
+// (Task 4 — S1, checks 1-7), POST /api/ingest/extract-file (Task 6 — S2+S8,
+// checks 8-14; 14 added in fix round 1 to cover the cache-hit response shape),
+// and POST /api/translate-table (Task 7 — S3, check 15: direction validation).
+// Every case uses a literal IP/syntactic reject, the local docx fixture, a
+// synthetic cache file written directly into the smoke server's geminiCacheDir,
+// or a request that 400s before any Gemini call is reached: no DNS lookup,
+// network call, or LLM call happens anywhere in this file — safe for CI, no
+// flakiness.
 // ───────────────────────────────────────────────────────────────────────────
 
 const crypto = require("crypto");
@@ -25,6 +25,7 @@ const PORT = Number(process.env.INGEST_SMOKE_PORT || 3108);
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const FETCH_URL = `${BASE_URL}/api/ingest/fetch-url`;
 const EXTRACT_FILE_URL = `${BASE_URL}/api/ingest/extract-file`;
+const TRANSLATE_TABLE_URL = `${BASE_URL}/api/translate-table`;
 const SAMPLE_DOCX_PATH = path.join(REPO_ROOT, "scripts", "premium", "fixtures", "ingest", "sample-he.docx");
 
 function sleep(ms) {
@@ -142,6 +143,32 @@ async function postExtractFile(body) {
 async function expectExtractCase(label, body, expectedStatus, expectedCode) {
   const { status, data, text } = await postExtractFile(body);
   if (status !== expectedStatus || !data || data.ok !== false || data.error_code !== expectedCode) {
+    console.log(`FAIL ${label} -> expected ${expectedStatus} ${expectedCode}, got ${status}: ${text.slice(0, 300)}`);
+    return false;
+  }
+  console.log(`PASS ${label} -> ${expectedStatus} ${expectedCode}`);
+  return true;
+}
+
+// /api/translate-table is a separate route with no rate limiter attached
+// (unlike fetch-url/extract-file, which share the "ingest" bucket) — plain
+// 127.0.0.1 is fine, no X-Forwarded-For isolation needed for check 15.
+async function postTranslateTable(body) {
+  const res = await fetch(TRANSLATE_TABLE_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const { data, text } = await readBody(res);
+  return { status: res.status, data, text };
+}
+
+// Unlike the ingest endpoints, /api/translate-table error responses have no
+// `ok` field — just `error`/`error_code` (see GEMINI_KEY_REQUIRED/
+// GEMINI_KEY_INVALID on this same route) — so this checks error_code only.
+async function expectTranslateTableCase(label, body, expectedStatus, expectedCode) {
+  const { status, data, text } = await postTranslateTable(body);
+  if (status !== expectedStatus || !data || data.error_code !== expectedCode) {
     console.log(`FAIL ${label} -> expected ${expectedStatus} ${expectedCode}, got ${status}: ${text.slice(0, 300)}`);
     return false;
   }
@@ -274,6 +301,18 @@ async function run() {
       const ok = await checkExtractCacheHitShape(
         "14. synthetic cache-hit (pdf) -> 200 fromCache:true, exact 7-key shape, no createdAt leak",
         geminiCacheDir
+      );
+      allPassed = allPassed && ok;
+    }
+
+    {
+      // direction validation runs BEFORE the BYOK key check — must 400
+      // BAD_DIRECTION even though no geminiApiKey is supplied at all.
+      const ok = await expectTranslateTableCase(
+        "15. POST /api/translate-table {text:\"привет\", direction:\"nope\"} -> 400 BAD_DIRECTION (no key required)",
+        { text: "привет", direction: "nope" },
+        400,
+        "BAD_DIRECTION"
       );
       allPassed = allPassed && ok;
     }

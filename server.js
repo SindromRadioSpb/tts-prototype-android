@@ -6240,11 +6240,12 @@ app.post("/api/save-audio", async (req, res) => {
 // --------------------------------------------------------
 // 9. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ GEMINI
 // --------------------------------------------------------
-function buildRowsFromGeminiPayload(parsed) {
+function buildRowsFromGeminiPayload(parsed, options) {
   if (!parsed || typeof parsed !== "object") {
     throw new Error("Пустой ответ от Gemini");
   }
 
+  const direction = (options && options.direction) || "he-ru";
   const rows = Array.isArray(parsed.rows) ? parsed.rows : null;
   const segments = Array.isArray(parsed.segments) ? parsed.segments : null;
 
@@ -6271,30 +6272,55 @@ function buildRowsFromGeminiPayload(parsed) {
     });
   }
 
-  const preparedRows = rows.map((row, idx) => {
-    if (!row || typeof row !== "object") row = {};
-    let segIndex = row.segment_index;
-    if (
-      typeof segIndex !== "number" ||
-      !Number.isFinite(segIndex) ||
-      segIndex <= 0
-    ) {
-      segIndex = idx + 1;
-    }
+  let droppedEmptyHe = 0;
 
-    let heBase = segMap.get(segIndex);
-    if (!heBase) {
-      heBase = (row.he || "").trim();
-    }
+  const preparedRows = rows
+    .map((row, idx) => {
+      if (!row || typeof row !== "object") row = {};
+      let segIndex = row.segment_index;
+      if (
+        typeof segIndex !== "number" ||
+        !Number.isFinite(segIndex) ||
+        segIndex <= 0
+      ) {
+        segIndex = idx + 1;
+      }
 
-    return {
-      segmentId: segIndex,
-      he: heBase || "",
-      he_niqqud: row.he_niqqud || "",
-      translit: row.translit || "",
-      ru: row.ru || "",
-    };
-  });
+      let heBase;
+      if (direction === "any-he") {
+        // R11: in any-he, parsed.segments[].he holds the SOURCE-language
+        // text (kept only for alignment, per ANY_HE_PROMPT), not Hebrew.
+        // Never let it backfill the Hebrew column here — use row.he only;
+        // rows with an empty Hebrew translation are dropped below instead.
+        heBase = (row.he || "").trim();
+      } else {
+        heBase = segMap.get(segIndex);
+        if (!heBase) {
+          heBase = (row.he || "").trim();
+        }
+      }
+
+      return {
+        segmentId: segIndex,
+        he: heBase || "",
+        he_niqqud: row.he_niqqud || "",
+        translit: row.translit || "",
+        ru: row.ru || "",
+      };
+    })
+    .filter((row) => {
+      if (direction === "any-he" && !row.he) {
+        droppedEmptyHe += 1;
+        return false;
+      }
+      return true;
+    });
+
+  if (droppedEmptyHe > 0) {
+    console.warn(
+      `translate-table any-he: dropped ${droppedEmptyHe} row(s) with empty he (no fallback to source-language segments, R11)`
+    );
+  }
 
   return preparedRows;
 }
@@ -6302,57 +6328,9 @@ function buildRowsFromGeminiPayload(parsed) {
 // --------------------------------------------------------
 // 10. API: TRANSLATE (Gemini -> таблица)
 // --------------------------------------------------------
-app.post("/api/translate-table", async (req, res) => {
-  try {
-    const { text, geminiApiKey } = req.body || {};
 
-    if (!text || typeof text !== "string" || !text.trim()) {
-      return res.status(400).json({ error: "Нет текста" });
-    }
-
-    // BYOK-only: per-request Gemini key from user's browser localStorage.
-    // No server-side fallback — server-level GEMINI_API_KEY is intentionally NOT used.
-    if (!geminiApiKey || typeof geminiApiKey !== "string" || !geminiApiKey.trim()) {
-      return res.status(401).json({
-        error: "Gemini API Key required (BYOK)",
-        error_code: "GEMINI_KEY_REQUIRED",
-      });
-    }
-    const trimmedKey = geminiApiKey.trim();
-    if (!isPlausibleGeminiKey(trimmedKey)) {
-      return res.status(400).json({
-        error: "Неверный формат Gemini API Key (ожидается 'AIza…' или 'AQ.…').",
-        error_code: "GEMINI_KEY_INVALID",
-      });
-    }
-    const ai = new GoogleGenerativeAI(trimmedKey);
-
-    const cleanText = text.trim();
-
-    const hashInput = `he-ru-table-v1||${cleanText}`;
-    const hashKey = crypto.createHash("sha256").update(hashInput).digest("hex");
-    const cacheFile = path.join(geminiCacheDir, `${hashKey}.json`);
-
-    if (fs.existsSync(cacheFile)) {
-      try {
-        const rawCache = fs.readFileSync(cacheFile, "utf8");
-        const cached = JSON.parse(rawCache);
-        if (cached && Array.isArray(cached.rows)) {
-          return res.json({
-            rows: cached.rows,
-            fromCache: true,
-            cacheKey: hashKey,
-            cachedAt: cached.createdAt || null,
-          });
-        }
-      } catch (e) {
-        console.error("Ошибка чтения/парсинга кэша Gemini:", e);
-      }
-    }
-
-    const model = ai.getGenerativeModel({ model: "gemini-flash-latest" });
-
-    const prompt = `
+// direction="he-ru" (default): Hebrew source -> Russian table.
+const HE_RU_PROMPT = (cleanText) => `
 You are a strict JSON generator.
 
 Task:
@@ -6391,6 +6369,113 @@ Rules:
 - Always return ALL data inside a single JSON object exactly in the format above.
 `;
 
+// direction="any-he": source text in ANY language (most commonly Russian) -> Hebrew table.
+const ANY_HE_PROMPT = (cleanText) => `
+You are a strict JSON generator.
+
+Task:
+1) The input text may be in ANY language (most commonly Russian).
+2) Split it into logical sentences / segments in the original order.
+3) Translate each segment into natural, correct Modern Hebrew.
+4) Produce JSON with:
+   - "segments": list of ORIGINAL segments (source language), for alignment.
+   - "rows": table rows for the UI, one row per segment.
+
+Input text (any language, may contain newlines):
+
+"""
+${cleanText}
+"""
+
+Strict output format (JSON only, no comments, no markdown):
+{
+  "segments": [
+    { "index": 1, "he": "..." }
+  ],
+  "rows": [
+    {
+      "segment_index": 1,
+      "he": "...",
+      "he_niqqud": "...",
+      "translit": "...",
+      "ru": "..."
+    }
+  ]
+}
+
+Field rules for "rows":
+- "he": the HEBREW TRANSLATION of the segment, without niqqud.
+- "he_niqqud": the same Hebrew translation, fully vocalized with niqqud.
+- "translit": transliteration of the Hebrew translation (Latin letters).
+- "ru": the ORIGINAL segment if it is Russian; otherwise a Russian translation of it.
+- In "segments", the "he" field holds the ORIGINAL segment text (kept for schema compatibility).
+
+Rules:
+- Preserve the original order of segments.
+- Do NOT merge semantically different sentences into a single row.
+- Always return ALL data inside a single JSON object exactly in the format above.
+`;
+
+app.post("/api/translate-table", async (req, res) => {
+  try {
+    const { text, geminiApiKey } = req.body || {};
+    const direction = (req.body && req.body.direction) || "he-ru";
+    if (!["he-ru", "any-he"].includes(direction)) {
+      return res.status(400).json({
+        error: "Неизвестное направление",
+        error_code: "BAD_DIRECTION",
+      });
+    }
+
+    if (!text || typeof text !== "string" || !text.trim()) {
+      return res.status(400).json({ error: "Нет текста" });
+    }
+
+    // BYOK-only: per-request Gemini key from user's browser localStorage.
+    // No server-side fallback — server-level GEMINI_API_KEY is intentionally NOT used.
+    if (!geminiApiKey || typeof geminiApiKey !== "string" || !geminiApiKey.trim()) {
+      return res.status(401).json({
+        error: "Gemini API Key required (BYOK)",
+        error_code: "GEMINI_KEY_REQUIRED",
+      });
+    }
+    const trimmedKey = geminiApiKey.trim();
+    if (!isPlausibleGeminiKey(trimmedKey)) {
+      return res.status(400).json({
+        error: "Неверный формат Gemini API Key (ожидается 'AIza…' или 'AQ.…').",
+        error_code: "GEMINI_KEY_INVALID",
+      });
+    }
+    const ai = new GoogleGenerativeAI(trimmedKey);
+
+    const cleanText = text.trim();
+
+    const promptId = direction === "any-he" ? "any-he-table-v1" : "he-ru-table-v1";
+    const hashInput = `${promptId}||${cleanText}`;
+    const hashKey = crypto.createHash("sha256").update(hashInput).digest("hex");
+    const cacheFile = path.join(geminiCacheDir, `${hashKey}.json`);
+
+    if (fs.existsSync(cacheFile)) {
+      try {
+        const rawCache = fs.readFileSync(cacheFile, "utf8");
+        const cached = JSON.parse(rawCache);
+        if (cached && Array.isArray(cached.rows)) {
+          return res.json({
+            rows: cached.rows,
+            fromCache: true,
+            cacheKey: hashKey,
+            cachedAt: cached.createdAt || null,
+          });
+        }
+      } catch (e) {
+        console.error("Ошибка чтения/парсинга кэша Gemini:", e);
+      }
+    }
+
+    const model = ai.getGenerativeModel({ model: "gemini-flash-latest" });
+
+    const prompt = direction === "any-he" ? ANY_HE_PROMPT(cleanText) : HE_RU_PROMPT(cleanText);
+
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const rawText = response.text();
@@ -6414,7 +6499,7 @@ Rules:
 
     let preparedRows;
     try {
-      preparedRows = buildRowsFromGeminiPayload(parsed);
+      preparedRows = buildRowsFromGeminiPayload(parsed, { direction });
     } catch (e) {
       console.error("Gemini payload error:", e);
       return res.status(500).json({
