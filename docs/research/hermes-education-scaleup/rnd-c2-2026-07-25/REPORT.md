@@ -39,17 +39,26 @@ quality ratings, and requires ephemeral input/output transcription on screen wit
   exact scenario cells per mode, duplicate rejection and the frozen 1.5x threshold.
 - Focused checks after Amendment A: Node scorer 6/6 PASS, token-sidecar 7/7 PASS, browser JS,
   PowerShell and shell syntax PASS on 2026-07-25.
-- One post-preregistration connection-only probe returned `PROBE_READY` for
-  `gemini-3.1-flash-live-preview`. It sent no audio and is not a benchmark session.
+- The first deployed token request was rejected with provider HTTP 400 because the broker used
+  the obsolete `liveConnectConstraints` AuthToken field. The same configured API key minted a
+  one-use token after the request was moved to the current `v1alpha` AuthToken schema with
+  `fieldMask: model` and `bidiGenerateContentSetup.model`; no replacement key is required.
+- A second connection-only defect was found before owner audio: Gemini returned `setupComplete` as
+  a binary WebSocket frame, while the browser adapter only parsed string JSON. The adapter now
+  decodes `Blob`, `ArrayBuffer` and typed-array frames before parsing JSON.
+- Post-repair live verification through the deployed authenticated WebUI proxy returned token HTTP
+  200 and `setupComplete` from the constrained `v1alpha` WebSocket using the full production setup.
+  The probe recorded `audioSent: false`; it is not a benchmark session and consumed none of
+  RT1–RT3.
 - Provider-account billing confirmation for the connection-only probe is not available from the
   API response; the owner must verify the Free Tier project dashboard. No positive cost is assumed.
 - Empty scorer gate: `INCOMPLETE`, 0/6 cells, with all six exact cells listed as missing.
 - No MCP registration or LinguistPro learner-state path is involved. The R&D surface uses the
   administrator-controlled Hermes WebUI extension mechanism.
-- Owner-executed bounded deployment PASS at `2026-07-25T07:07:13+03:00`: only `hermes-webui` was
+- Final bounded repair deployment PASS at `2026-07-25T07:28:28+03:00`: only `hermes-webui` was
   recreated from `linguistpro/hermes-webui-c2:20260725-1`; the retained rollback image is
   `linguistpro/hermes-webui-c1:20260724-1`. Candidate manifest-list digest:
-  `sha256:ae3fe1016f4e205d1ef5c86d3e8c72c5366234b6aa7f524ed49f6ad7e6236680`.
+  `sha256:6d4d4aa7bad710dfda6f68a78261ddfc620e8ac21dddf17e20a0a27fa179eb29`.
 - Post-restart WebUI evidence PASS: extension enabled, explicit sidecar-proxy consent persisted,
   proxy and sidecar health returned HTTP 200, and the sidecar reported `configured: true`.
   Opening the C2 surface produced no C2 console errors and requested neither microphone access nor

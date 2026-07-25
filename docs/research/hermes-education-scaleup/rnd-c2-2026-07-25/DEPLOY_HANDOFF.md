@@ -4,14 +4,27 @@ This is an operator handoff, not an owner benchmark procedure. No C2 audio has b
 
 ## Completed deployment
 
-- Owner ran `deploy-c2-webui.ps1`; receipt status is `PASS` at
-  `2026-07-25T07:07:13.7766684+03:00`.
+- Final repair deployment via `deploy-c2-webui.ps1` has receipt status `PASS` at
+  `2026-07-25T07:28:28.5006086+03:00`.
 - Running image: `linguistpro/hermes-webui-c2:20260725-1`; retained rollback image:
-  `linguistpro/hermes-webui-c1:20260724-1`.
+  `linguistpro/hermes-webui-c1:20260724-1`. Running candidate digest:
+  `sha256:6d4d4aa7bad710dfda6f68a78261ddfc620e8ac21dddf17e20a0a27fa179eb29`.
 - Post-restart checks: WebUI health 200, extension enabled, sidecar proxy explicitly consented,
   sidecar health 200 and `configured: true`.
 - Exact 380 x 844 responsive evidence is retained at `evidence/c2-webui-380x844.png`.
-- No token, microphone, audio or RT1–RT3 observation was consumed by deployment verification.
+- Post-repair verification minted a one-use ephemeral token and completed the full production
+  WebSocket setup. It did not request a microphone or send audio, so no RT1–RT3 observation was
+  consumed.
+
+## Token-service repair
+
+- `GEMINI_TOKEN_SERVICE_REJECTED_REQUEST` did not mean that the owner's API key had to be
+  replaced. Google's HTTP 400 body identified the unsupported `liveConnectConstraints` field.
+- The broker now calls the `v1alpha` AuthToken endpoint with `fieldMask: model` and
+  `bidiGenerateContentSetup.model`. The existing key returned HTTP 200.
+- The browser now uses the matching constrained `v1alpha` WebSocket endpoint and decodes binary
+  response frames. A deployed connection-only probe reached `setupComplete` with
+  `audioSent: false`.
 
 ## Read first
 

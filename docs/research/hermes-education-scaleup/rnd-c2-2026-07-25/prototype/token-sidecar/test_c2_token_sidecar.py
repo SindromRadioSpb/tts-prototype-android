@@ -43,7 +43,10 @@ class TokenSidecarTests(unittest.TestCase):
             token = sidecar._create_token("secret")
         self.assertEqual(token["token"], "auth_tokens/test")
         self.assertEqual(captured["body"]["uses"], 1)
-        self.assertEqual(captured["body"]["liveConnectConstraints"]["model"], f"models/{sidecar.MODEL}")
+        self.assertEqual(captured["body"]["fieldMask"], "model")
+        self.assertEqual(captured["body"]["bidiGenerateContentSetup"]["model"], f"models/{sidecar.MODEL}")
+        self.assertNotIn("liveConnectConstraints", captured["body"])
+        self.assertIn("/v1alpha/auth_tokens", sidecar.TOKEN_URL)
         self.assertEqual(captured["timeout"], 12)
 
     def test_no_raw_content_fields_in_token_request(self):

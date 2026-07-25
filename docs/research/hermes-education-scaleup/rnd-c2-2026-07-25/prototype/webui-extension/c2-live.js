@@ -47,18 +47,21 @@
     }
 
     async connect() {
-      const endpoint = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained';
+      const endpoint = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained';
       this.ws = new WebSocket(`${endpoint}?access_token=${encodeURIComponent(this.token)}`);
       await new Promise((resolve, reject) => {
         const timeout = setTimeout(() => reject(new Error('Gemini не ответил за 15 секунд.')), 15000);
         this.ws.addEventListener('open', () => {
           this.ws.send(JSON.stringify({ setup: {
             model: `models/${MODEL}`,
-            responseModalities: ['AUDIO'],
+            generationConfig: {
+              responseModalities: ['AUDIO'],
+              speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } },
+              thinkingConfig: { thinkingLevel: 'minimal' },
+            },
             inputAudioTranscription: {},
             outputAudioTranscription: {},
-            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } },
-            thinkingConfig: { thinkingLevel: 'minimal' },
+            sessionResumption: {},
             realtimeInputConfig: { automaticActivityDetection: {
               disabled: false,
               startOfSpeechSensitivity: 'START_SENSITIVITY_HIGH',
@@ -69,9 +72,9 @@
             systemInstruction: { parts: [{ text: SYSTEM }] },
           } }));
         }, { once: true });
-        this.ws.addEventListener('message', (event) => {
-          let message;
-          try { message = JSON.parse(event.data); } catch { return; }
+        this.ws.addEventListener('message', async (event) => {
+          const message = await parseWebSocketMessage(event.data);
+          if (!message) return;
           if (message.setupComplete) { clearTimeout(timeout); resolve(); }
           this.handle(message);
         });
@@ -151,6 +154,14 @@
     for (let i = 0; i < binary.length; i += 1) out[i] = binary.charCodeAt(i);
     return out;
   }
+  async function parseWebSocketMessage(data) {
+    let raw = data;
+    if (raw instanceof Blob) raw = await raw.text();
+    else if (raw instanceof ArrayBuffer) raw = new TextDecoder().decode(raw);
+    else if (ArrayBuffer.isView(raw)) raw = new TextDecoder().decode(raw);
+    if (typeof raw !== 'string') return null;
+    try { return JSON.parse(raw); } catch { return null; }
+  }
   function downsampleToPcm16(input, inputRate) {
     const ratio = inputRate / 16000;
     const length = Math.max(1, Math.floor(input.length / ratio));
@@ -215,6 +226,8 @@
     if (response.status === 429) throw new Error('FREE_TIER_QUOTA');
     if (!response.ok || !data.token) {
       if (response.status === 403) throw new Error('В Settings → Extensions разрешите Sidecar proxy для «Разговор на иврите».');
+      if (data.error === 'GEMINI_TOKEN_REQUEST_SCHEMA_REJECTED') throw new Error('Gemini отклонил формат одноразового ключа. Обновите C2-адаптер.');
+      if (data.error === 'GEMINI_KEY_NOT_AUTHORIZED_FOR_LIVE') throw new Error('Текущий Gemini API key не имеет доступа к Live API. Проверьте проект Google AI Studio.');
       throw new Error(data.error || 'Не удалось получить одноразовый ключ Live API.');
     }
     return data.token;
@@ -228,8 +241,8 @@
     if (!window.isSecureContext) { setStatus('Микрофон работает только по HTTPS или через localhost.', true); return; }
     const action = panel.querySelector('.c2-action'); action.disabled = true; setStatus('Включаю микрофон…');
     try {
-      state.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 }, video: false });
       const token = await requestToken(state.run);
+      state.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 }, video: false });
       state.provider = createRealtimeProvider('gemini-live', token, {
         input: (text) => { panel.querySelector('.c2-input').textContent = text; },
         output: (text) => { panel.querySelector('.c2-output').textContent = text; },

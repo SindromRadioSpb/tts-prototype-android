@@ -15,7 +15,7 @@ from pathlib import Path
 
 MODEL = "gemini-3.1-flash-live-preview"
 RUN_IDS = frozenset({"RT1", "RT2", "RT3"})
-TOKEN_URL = "https://generativelanguage.googleapis.com/v1beta/auth_tokens"
+TOKEN_URL = "https://generativelanguage.googleapis.com/v1alpha/auth_tokens"
 KEY_NAMES = ("C2_GEMINI_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY")
 ENV_CANDIDATES = (
     Path("/home/hermeswebui/.hermes/.env"),
@@ -75,10 +75,11 @@ def _create_token(api_key: str) -> dict:
         "uses": 1,
         "expireTime": (now + timedelta(minutes=12)).isoformat().replace("+00:00", "Z"),
         "newSessionExpireTime": (now + timedelta(seconds=55)).isoformat().replace("+00:00", "Z"),
-        "liveConnectConstraints": {
-            "model": f"models/{MODEL}",
-            "config": {"responseModalities": ["AUDIO"]},
-        },
+        # AuthToken now uses BidiGenerateContentSetup plus a field mask. Lock
+        # only the model here; the browser still supplies the remaining Live
+        # setup (transcription, voice, VAD and system instruction).
+        "fieldMask": "model",
+        "bidiGenerateContentSetup": {"model": f"models/{MODEL}"},
     }
     request = urllib.request.Request(
         TOKEN_URL,
@@ -173,8 +174,12 @@ class Handler(BaseHTTPRequestHandler):
         except urllib.error.HTTPError as error:
             if error.code == 429:
                 self._json(429, {"error": "FREE_TIER_QUOTA_EXHAUSTED", "fallback": "H2.6 async"})
+            elif error.code == 400:
+                self._json(502, {"error": "GEMINI_TOKEN_REQUEST_SCHEMA_REJECTED", "providerStatus": 400})
+            elif error.code in {401, 403}:
+                self._json(502, {"error": "GEMINI_KEY_NOT_AUTHORIZED_FOR_LIVE", "providerStatus": error.code})
             else:
-                self._json(502, {"error": "GEMINI_TOKEN_SERVICE_REJECTED_REQUEST"})
+                self._json(502, {"error": "GEMINI_TOKEN_SERVICE_REJECTED_REQUEST", "providerStatus": error.code})
             return
         except (OSError, ValueError, RuntimeError):
             self._json(502, {"error": "GEMINI_TOKEN_SERVICE_UNAVAILABLE"})
