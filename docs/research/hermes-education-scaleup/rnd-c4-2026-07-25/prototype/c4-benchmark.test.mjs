@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -78,4 +79,14 @@ test("C4 browser selector is OPFS-local and exports only the frozen sample", () 
   assert.match(source, /WHERE n\.note_type='word_study'/);
   assert.match(source, /selected\.length !== 20/);
   assert.match(source, /dataset_class: "owner-private"/);
+});
+
+test("C4 browser selector synchronous SHA-256 preserves UTF-8 ordering", () => {
+  const source = fs.readFileSync(path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/(.:)/, "$1")), "export-owner-notes.browser.js"), "utf8");
+  const fragment = source.slice(source.indexOf("  // Synchronous SHA-256"), source.indexOf("  const eligible = [];"));
+  const digest = Function(`${fragment}\nreturn digest;`)();
+  const samples = ["", "abc", "C4-2026-07-25:123", "C4-2026-07-25:מילה", "C4-2026-07-25:uuid-α"];
+  for (const sample of samples) {
+    assert.equal(digest(sample), crypto.createHash("sha256").update(sample, "utf8").digest("hex"));
+  }
 });

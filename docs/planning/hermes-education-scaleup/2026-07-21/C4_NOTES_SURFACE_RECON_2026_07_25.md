@@ -34,8 +34,11 @@
 read-tool. C4 остаётся `PLANNED / RUNNABLE`; его 20-парный benchmark не начат.
 
 Postscript, позже 2026-07-25: владелец отдельно запустил C4 R&D. Это не меняет результат данной
-UI/data-итерации; актуальный статус `IN_PROGRESS / UNDERPOWERED`, а первое реальное note-read всё
-ещё запрещено до временного scope/consent/provenance. См. `STATUS.md`.
+UI/data-итерации; актуальный статус после owner-local selector —
+`IN_PROGRESS / DATASET_BLOCKED / UNDERPOWERED`: найдено `eligible=1` при обязательных 20, dataset
+не экспортирован, agent/Hermes note-read не произошёл. Exact consent-фраза принята, но
+dataset-bound receipt и exposure provenance невозможно создать до валидной выборки; первое
+agent/Hermes note-read всё ещё запрещено. См. `STATUS.md`.
 
 ## Проверки
 
