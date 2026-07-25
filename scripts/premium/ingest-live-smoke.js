@@ -174,7 +174,7 @@ async function runAnyHe() {
     console.log(`rows: ${data.rows.length}`);
     for (const row of data.rows.slice(0, 3)) {
       console.log(
-        `  #${row.segment_index}: he="${row.he}" | he_niqqud="${row.he_niqqud}" | translit="${row.translit}" | ru="${row.ru}"`
+        `  #${row.segmentId}: he="${row.he}" | he_niqqud="${row.he_niqqud}" | translit="${row.translit}" | ru="${row.ru}"`
       );
     }
     return true;
