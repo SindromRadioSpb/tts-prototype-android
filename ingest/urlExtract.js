@@ -36,14 +36,26 @@ function extractArticle(html, url) {
   try {
     const { document } = parseHTML(html);
     const article = new Readability(document, { charThreshold: 200 }).parse();
-    if (article && article.textContent && normalizeText(article.textContent).length >= 200) {
-      return {
-        title: article.title || titleFromHtml(html),
-        byline: article.byline || null,
-        text: normalizeText(article.textContent),
-        method: "readability",
-        warnings: [],
-      };
+    if (article && article.textContent) {
+      const artText = normalizeText(article.textContent);
+      if (artText.length >= 200) {
+        return {
+          title: article.title || titleFromHtml(html),
+          byline: article.byline || null,
+          text: artText,
+          method: "readability",
+          warnings: [],
+        };
+      }
+      if (artText.length >= 80) {
+        return {
+          title: article.title || titleFromHtml(html),
+          byline: article.byline || null,
+          text: artText,
+          method: "readability",
+          warnings: ["EXTRACT_SHORT"],
+        };
+      }
     }
   } catch (e) {
     console.error("Readability failed, falling back to strip:", e && e.message);
