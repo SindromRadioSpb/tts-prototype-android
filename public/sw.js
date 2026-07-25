@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.241";
+const CACHE_VERSION = "v3.11.242";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -118,6 +118,8 @@ const PRECACHE_URLS = [
   // BRR-P1-008d — Studio per-row word-karaoke driver (reuses ReaderMorph.tokenize for
   // offset parity with the server's SSML marks; timing sidecars are lazy, not precached).
   "/js/studio-karaoke.js",
+  // Studio Ingest W1 — import panel (URL/file → text, client-side extraction UI).
+  "/js/studio-import.js",
   // PAS-B — Studio agent UI (per-row 🤖 explain; весь агент-код Студии в этом модуле).
   "/js/studio-agent.js",
   // Wave 2 C3a — browser-owned voice -> editable role-play draft.
