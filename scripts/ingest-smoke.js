@@ -5,13 +5,16 @@
 //
 // Deterministic, offline validation matrix for POST /api/ingest/fetch-url
 // (Task 4 — S1, checks 1-7) and POST /api/ingest/extract-file (Task 6 — S2+S8,
-// checks 8-13). Every case uses a literal IP/syntactic reject or the local
-// docx fixture: no DNS lookup, network call, or LLM call happens anywhere in
-// this file — safe for CI, no flakiness.
+// checks 8-14; 14 added in fix round 1 to cover the cache-hit response shape).
+// Every case uses a literal IP/syntactic reject, the local docx fixture, or a
+// synthetic cache file written directly into the smoke server's geminiCacheDir:
+// no DNS lookup, network call, or LLM call happens anywhere in this file — safe
+// for CI, no flakiness.
 //
 // (Task 7 will add a direction case.)
 // ───────────────────────────────────────────────────────────────────────────
 
+const crypto = require("crypto");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -160,6 +163,49 @@ async function checkExtractDocxSuccess(label) {
   return true;
 }
 
+// Check 14 — cache-hit response shape (fix round 1, Important finding). The route
+// spreads the on-disk cache object into the response on a cache hit; the cache file
+// also carries a `createdAt` bookkeeping field that must NEVER leak into the HTTP
+// response (the brief's response shape is the fixed 7 keys below). This check writes
+// a synthetic cache entry DIRECTLY into the smoke server's geminiCacheDir — derived
+// the SAME way storage.js derives it (GEMINI_CACHE_DIR defaults to DATA_DIR/gemini-cache,
+// and the smoke server only sets DATA_DIR, not GEMINI_CACHE_DIR) — so the whole check
+// stays fully offline: the cache hit short-circuits before any Gemini call.
+async function checkExtractCacheHitShape(label, geminiCacheDir) {
+  const bytes = Buffer.from("smoke-pdf-bytes");
+  const hash = crypto.createHash("sha256").update(bytes).digest("hex");
+  fs.mkdirSync(geminiCacheDir, { recursive: true });
+  const cacheFile = path.join(geminiCacheDir, `ingest-extract-v1-${hash}.json`);
+  fs.writeFileSync(cacheFile, JSON.stringify({
+    text: "cached text",
+    language: "he",
+    warnings: [],
+    createdAt: "2026-01-01T00:00:00.000Z",
+  }));
+
+  const { status, data, text } = await postExtractFile({
+    kind: "pdf",
+    mimeType: "application/pdf",
+    dataBase64: bytes.toString("base64"),
+    geminiApiKey: "AIza" + "x".repeat(30),
+  });
+
+  const expectedKeys = ["ok", "text", "language", "warnings", "method", "model", "fromCache"].sort();
+  const actualKeys = data ? Object.keys(data).sort() : [];
+  const exactShape = actualKeys.length === expectedKeys.length && actualKeys.every((k, i) => k === expectedKeys[i]);
+  const shapeOk = status === 200 && data && data.ok === true && data.fromCache === true
+    && data.text === "cached text"
+    && !Object.prototype.hasOwnProperty.call(data, "createdAt")
+    && exactShape;
+
+  if (!shapeOk) {
+    console.log(`FAIL ${label} -> expected 200 fromCache:true exact 7-key shape (no createdAt), got ${status} keys=[${actualKeys.join(",")}]: ${text.slice(0, 300)}`);
+    return false;
+  }
+  console.log(`PASS ${label} -> 200 fromCache:true, text "cached text", exact 7-key shape, no createdAt leak`);
+  return true;
+}
+
 async function run() {
   const tmpDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "lp-ingestsmoke-"));
   // Hermetic by default: a fresh SQLite file inside the SAME per-run temp dir
@@ -168,6 +214,9 @@ async function run() {
   // initDb -> ensureDirForFile + PRAGMA/migrate), so no template copy is
   // needed. process.env.DB_PATH still wins if explicitly set.
   const dbPath = process.env.DB_PATH || path.join(tmpDataDir, "smoke-app.db");
+  // storage.js: GEMINI_CACHE_DIR = process.env.GEMINI_CACHE_DIR || path.join(DATA_DIR, "gemini-cache").
+  // startServer only sets DATA_DIR (below), so this mirrors the server's own derivation exactly.
+  const geminiCacheDir = process.env.GEMINI_CACHE_DIR || path.join(tmpDataDir, "gemini-cache");
   const { child, logs } = startServer(dbPath, PORT, tmpDataDir);
   let allPassed = true;
 
@@ -217,6 +266,14 @@ async function run() {
         { kind: "docx", dataBase64: Buffer.from("garbage").toString("base64") },
         400,
         "BAD_DOCX"
+      );
+      allPassed = allPassed && ok;
+    }
+
+    {
+      const ok = await checkExtractCacheHitShape(
+        "14. synthetic cache-hit (pdf) -> 200 fromCache:true, exact 7-key shape, no createdAt leak",
+        geminiCacheDir
       );
       allPassed = allPassed && ok;
     }

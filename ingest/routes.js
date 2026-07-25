@@ -108,7 +108,15 @@ function registerIngestRoutes(app, deps) {
       try {
         const cached = JSON.parse(fs.readFileSync(cacheFile, "utf8"));
         if (cached && typeof cached.text === "string") {
-          return res.json({ ok: true, ...cached, method, model: "gemini-flash-latest", fromCache: true });
+          return res.json({
+            ok: true,
+            text: cached.text,
+            language: cached.language ?? null,
+            warnings: Array.isArray(cached.warnings) ? cached.warnings : [],
+            method,
+            model: "gemini-flash-latest",
+            fromCache: true,
+          });
         }
       } catch (e) { console.error("ingest cache read error", e); }
     }
