@@ -59,4 +59,4 @@ clean-context answer branches, complete blind ratings, and record only aggregate
   evidence — gate-consumer sweep from `PLANNED` to `IN_PROGRESS / UNDERPOWERED`.
 
 No production source, migration, OAuth registry, Agent Access handler or Hermes installation was
-changed. Scoped commit hashes are recorded in the final session handoff after commit creation.
+changed. Scoped engineering commit: `9ef81893` (`research(c4): start private notes benchmark`).
