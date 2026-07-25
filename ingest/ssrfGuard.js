@@ -20,8 +20,11 @@ function isPrivateIp(ip) {
   const v = ip.trim().toLowerCase();
   if (net.isIPv6(v)) {
     if (v === "::" || v === "::1") return true;
-    if (v.startsWith("fe80:") || v.startsWith("fc") || v.startsWith("fd")) return true;
     if (v.startsWith("::ffff:")) return isPrivateIp(v.slice(7));
+    if (v.startsWith("::")) return true; // reserved ::/96
+    if (/^fe[89a-f]/.test(v)) return true; // link-local fe80::/10, site-local fec0::/10
+    if (v.startsWith("fc") || v.startsWith("fd")) return true; // unique-local
+    if (v.startsWith("ff")) return true; // multicast
     return false;
   }
   if (net.isIP(v) !== 4) return true; // не IP вовсе — fail closed
@@ -97,7 +100,13 @@ async function safeFetchHtml(rawUrl, opts = {}) {
       if (resp.status >= 300 && resp.status < 400) {
         const loc = resp.headers.get("location");
         if (!loc) throw ingestErr("FETCH_FAILED", "Редирект без Location");
-        current = new URL(loc, u).toString();
+        let nextUrl;
+        try {
+          nextUrl = new URL(loc, u).toString();
+        } catch (e) {
+          throw ingestErr("FETCH_FAILED", "Некорректный редирект");
+        }
+        current = nextUrl;
         continue;
       }
       if (!resp.ok) throw ingestErr("FETCH_FAILED", `HTTP ${resp.status}`);
@@ -105,9 +114,25 @@ async function safeFetchHtml(rawUrl, opts = {}) {
       if (!ct.includes("text/html") && !ct.includes("application/xhtml")) {
         throw ingestErr("NOT_HTML", "Страница не является HTML");
       }
-      const ab = await resp.arrayBuffer();
-      const buf = Buffer.from(ab);
-      if (buf.length > maxBytes) throw ingestErr("TOO_LARGE", "Страница слишком большая");
+      const clStr = resp.headers.get("content-length");
+      if (clStr && Number(clStr) > maxBytes) throw ingestErr("TOO_LARGE", "Страница слишком большая");
+      let buf = Buffer.alloc(0);
+      try {
+        if (resp.body) {
+          for await (const chunk of resp.body) {
+            buf = Buffer.concat([buf, Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)]);
+            if (buf.length > maxBytes) throw ingestErr("TOO_LARGE", "Страница слишком большая");
+          }
+        } else {
+          const ab = await resp.arrayBuffer();
+          buf = Buffer.from(ab);
+          if (buf.length > maxBytes) throw ingestErr("TOO_LARGE", "Страница слишком большая");
+        }
+      } catch (e) {
+        if (e && e.code) throw e; // already an ingestErr
+        if (e && e.name === "AbortError") throw ingestErr("FETCH_TIMEOUT", "Превышено время загрузки страницы");
+        throw ingestErr("FETCH_FAILED", "Не удалось загрузить страницу");
+      }
       return { html: decodeHtmlBuffer(buf, ct), finalUrl: u.toString() };
     } finally {
       clearTimeout(timer);
