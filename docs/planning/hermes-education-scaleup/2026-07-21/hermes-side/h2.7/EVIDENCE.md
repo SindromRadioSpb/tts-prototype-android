@@ -104,7 +104,7 @@ affected H3 path. Hard per-action privacy/consent/cost/no-write gates remain ind
 | C1 Hebrew pronunciation scoring | 3.421 min available; ≥60 min recommended parallel target | PLANNED / RUNNABLE #1; UNDERPOWERED until target |
 | C2 Realtime Hebrew voice | ≥4 weeks baseline recommended; live cloud call still needs exact cap+consent | PLANNED / RUNNABLE #2 |
 | C3 MC-glosses | H2.2 closed; technically runnable, but owner deferred it on 2026-07-25 | DEFERRED / OWNER-BACKLOG; explicit owner resume required |
-| C4 Agent sees owner ②-notes | Exact consent + dataset 20 + exposure ledger 20 + clean-context Hermes pairs 20 PASS; blinded owner ratings pending. Provenance: 1 pre-existing + 19 `owner_approved_agent_draft`, so only smoke-level evidence | IN_PROGRESS / AWAITING_OWNER_RATING / UNDERPOWERED #4 |
+| C4 Agent sees owner ②-notes | 20/20 blind ratings: note-enabled 4, without-note 3, ties 13; 20% vs ≥70% threshold. Consent revoked; integration stopped. Provenance 1 pre-existing + 19 `owner_approved_agent_draft` limits generalization | DONE_NO_GO / CLOSED / SMOKE_LIMITED #4 |
 | C5 Phase-2 exposure weighting | Preliminary offline analysis allowed; ≥8 weeks/≥200 events recommended | PLANNED / RUNNABLE #5; UNDERPOWERED until target |
 
 Д6-A historically authorized all five research charters in parallel, not a production bundle.

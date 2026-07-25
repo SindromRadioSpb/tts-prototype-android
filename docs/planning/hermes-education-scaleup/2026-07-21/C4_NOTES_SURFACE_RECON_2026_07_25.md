@@ -35,11 +35,11 @@ read-tool. C4 остаётся `PLANNED / RUNNABLE`; его 20-парный benc
 
 Postscript, позже 2026-07-25: владелец отдельно запустил C4 R&D. Первый frozen selector честно
 зафиксировал `eligible=1` при обязательных 20. Затем владелец явно запросил и утвердил 19
-агентских черновиков. Текущий статус — `IN_PROGRESS / AWAITING_OWNER_RATING / UNDERPOWERED`:
-dataset 20/20, dataset-bound consent, exposure-before-packet 20/20 и clean-context Hermes
-authoring 20/20 пар PASS; blinded ratings 0/20 pending. Состав 1 pre-existing owner note + 19
-`owner_approved_agent_draft` ограничивает валидность smoke-уровнем. Это не меняет границу данной
-UI/data-итерации и не реализует production `personal.notes.read`; см. `STATUS.md`.
+агентских черновиков. Финальный статус — `DONE_NO_GO / CLOSED / SMOKE_LIMITED`: при 20/20
+blind ratings note-enabled предпочтен 4 раза, без заметки — 3, ничья — 13; frozen threshold 14/20
+не пройден. Temporary consent отозван, product `personal.notes.read` integration остановлена.
+Состав 1 pre-existing owner note + 19 `owner_approved_agent_draft` ограничивает обобщение на зрелый
+исторический корпус. Это не меняет границу данной UI/data-итерации; см. `STATUS.md`.
 
 ## Проверки
 

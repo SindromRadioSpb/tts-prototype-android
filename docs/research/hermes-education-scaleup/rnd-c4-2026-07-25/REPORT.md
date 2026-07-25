@@ -4,8 +4,8 @@
 
 - Charter: C4, started 2026-07-25 by explicit owner command `стартуй C4`.
 - Baseline HEAD: `7116cb9f`.
-- Status: `IN_PROGRESS / AWAITING_OWNER_RATING / UNDERPOWERED`.
-- Authoring evidence: 20/20 blinded response pairs complete; owner ratings: 0/20 pending.
+- Status: `DONE_NO_GO / CLOSED / SMOKE_LIMITED`.
+- Benchmark evidence: 20/20 blinded response pairs and 20/20 owner ratings complete.
 - Personal-note exposures: 20 allowlisted notes, recorded before author packets.
 - Production/OAuth changes: 0.
 - FSRS/`review_log`/grade/progress writes: 0.
@@ -48,13 +48,27 @@ All private notes, prompts, responses, mapping, ratings and consent artifacts re
 
 ## Result vs threshold
 
-Pending owner-blind ratings. The frozen decision rule is unchanged: `DONE_GO` only if the owner
-prefers the note-enabled branch in at least 14 of 20 pairs; ties count against success. No GO/NO-GO
-claim is permitted before `ratings.json` is saved and scored.
+- Note-enabled preferred: **4/20 (20%)**.
+- Without-note preferred: **3/20 (15%)**.
+- Ties: **13/20 (65%)**.
+- Frozen success threshold: **≥14/20 (70%)**, with ties counted against success.
+- Verdict: **`DONE_NO_GO`**.
 
-Even if the numerical threshold passes, the 19/20 owner-approved-agent-draft composition must be
-reported as a validity limitation; a later benchmark on genuinely accumulated high-quality owner
-notes would still be required before production integration.
+The observed personalized layer usually made no owner-visible difference and reached less than one
+third of the frozen success count. C4 product integration therefore stops: this run does not justify
+adding permanent `personal.notes.read`, a production note-read bridge or its associated privacy and
+operational complexity.
+
+The 19/20 `owner_approved_agent_draft` composition is also a material validity limitation. The
+verdict is decisive for this implementation/run, but it is not evidence that genuinely accumulated,
+high-quality historical owner notes can never help. Reopening that separate question would require
+a new explicit owner charter and a non-agent-generated mature-note sample; it is not automatic
+follow-up work.
+
+After scoring, the temporary consent was revoked at `2026-07-25T12:28:22.400Z`, the localhost
+rating server was stopped, 40 failed-request debug dumps from the rejected batch path were removed,
+and scoped `/tmp/c4-*` container artifacts were deleted. Ignored local private benchmark evidence is
+retained for audit. Provider chats may retain already delivered text, as acknowledged in consent.
 
 ## Engineering gates
 

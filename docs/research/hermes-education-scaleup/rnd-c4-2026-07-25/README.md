@@ -1,7 +1,7 @@
 # C4 R&D — доступ Hermes к личным ②-заметкам
 
-Статус: `IN_PROGRESS / AWAITING_OWNER_RATING / UNDERPOWERED`: 20/20 пар созданы и ослеплены,
-0/20 owner ratings пока сохранено.
+Статус: `DONE_NO_GO / CLOSED / SMOKE_LIMITED`: 20/20 пар и 20/20 owner ratings завершены;
+note-enabled предпочтен в 4/20 при frozen threshold 14/20, без заметки — 3/20, ничья — 13/20.
 
 Это стабильная папка исследовательского C4-слайса. Она содержит preregistration,
 research-only прототип и агрегатный отчёт. Реальные заметки, ответы агента, consent receipts,
