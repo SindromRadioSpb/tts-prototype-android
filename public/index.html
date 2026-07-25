@@ -32436,6 +32436,17 @@ try { v3DashCloseViewMenu(); } catch (_) {}
             return;
         }
 
+        // S3 fix round 1: block premium provider + any-he BEFORE any destructive DOM
+        // mutation (skeleton wipe) or loading state — mirrors the isGeminiLocked()
+        // early return above, which likewise precedes setLoading(true).
+        {
+            const provider = getSelectedProvider();
+            if ((provider === "gcp" || provider === "madlad" || provider === "google-free") && getTableDirection() === "any-he") {
+                showError(t("classic.directionPremiumBlocked"));
+                return;
+            }
+        }
+
         setLoading(true);
         setAiButtonDisabled(true);
         document.getElementById("errorMsg").textContent = "";
@@ -32466,12 +32477,6 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
                 ...(provider === "gcp" ? { gcpTranslateApiKey: gcpTranslateKeyGet() } : {}),
               }
             : { text: getText(), geminiApiKey: geminiKeyGet(), direction: getTableDirection() };
-
-        if (usePremium && getTableDirection() === "any-he") {
-            showError(t("classic.directionPremiumBlocked"));
-            setLoading(false); setAiButtonDisabled(false); updateAiButtonState();
-            return;
-        }
 
         try {
             const res = await apiCall(endpoint, payload);
