@@ -25,7 +25,7 @@ Source HEAD before preregistration: `a021080138cd9ac7682e7e0de6f423b2c812b860` (
 
 ```powershell
 node prototype/c2-session.mjs --list-devices
-node prototype/c2-session.mjs --scenario cafe --device "MICROPHONE NAME" --confirm-free-tier YES_I_CONFIRMED_FREE_TIER
+powershell -ExecutionPolicy Bypass -File prototype/start-realtime.ps1 -Scenario cafe -Device "MICROPHONE NAME"
 node prototype/record-async.mjs --scenario cafe --turns 6 --duration-sec 480 --anxiety 3 --quality 4 --actual-cost-usd 0
 node prototype/score-benchmark.mjs
 node --test prototype/test/*.test.mjs

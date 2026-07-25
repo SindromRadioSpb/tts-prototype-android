@@ -42,11 +42,12 @@ node docs/research/hermes-education-scaleup/rnd-c2-2026-07-25/prototype/record-a
 
 ### Realtime
 
-Ключ берётся только из переменной `C2_GEMINI_API_KEY`. Не печатайте его в консоль и не сохраняйте
-в репозиторий. Запуск:
+Ключ безопасно берётся из локального контейнера `hermes-agent` только в память процесса. Скрипт
+его не печатает, не передаёт аргументом командной строки и удаляет переменную после завершения.
+Запуск:
 
 ```powershell
-node docs/research/hermes-education-scaleup/rnd-c2-2026-07-25/prototype/c2-session.mjs --scenario cafe --device "ТОЧНОЕ ИМЯ МИКРОФОНА" --confirm-free-tier YES_I_CONFIRMED_FREE_TIER
+powershell -ExecutionPolicy Bypass -File docs/research/hermes-education-scaleup/rnd-c2-2026-07-25/prototype/start-realtime.ps1 -Scenario cafe -Device "ТОЧНОЕ ИМЯ МИКРОФОНА"
 ```
 
 Сессия завершится автоматически через 8 минут. Можно закончить раньше сочетанием Ctrl+C. После
