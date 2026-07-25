@@ -126,5 +126,5 @@ privacy ceremony, action-gate или положительный verdict друг
 | C1 | PLANNED / RUNNABLE #1 | Старт на доступных 3.421 мин; ≥60 мин набираются параллельно, ранний вывод `UNDERPOWERED` |
 | C2 | IN_PROGRESS / UNDERPOWERED | Owner fixed USD 0/week + no paid fallback and explicitly consented to three preregistered Gemini Live Free Tier sessions; independent provider adapter + content-free probe PASS; six owner benchmark sessions remain |
 | C3 | DEFERRED / OWNER-BACKLOG | Технически runnable, но owner decision Д6-C3-D от 2026-07-25 фиксирует текущий product noise выше ожидаемой пользы; не `NO-GO`/`CLOSED`; нужен явный owner resume |
-| C4 | IN_PROGRESS / UNDERPOWERED #4 | Research-only preregistration и fail-closed local harness начаты 2026-07-25; 0/20 реальных пар, 0 note-reads; первое чтение всё ещё ждёт временный scope/consent/provenance |
+| C4 | IN_PROGRESS / AWAITING_OWNER_RATING / UNDERPOWERED #4 | Exact consent, exact-20 dataset, exposure-before-packet 20/20 и clean-context Hermes authoring 20/20 пар PASS; blinded ratings 0/20 pending. Состав: 1 pre-existing owner note + 19 `owner_approved_agent_draft`, поэтому результат остаётся smoke с ограниченной внешней валидностью |
 | C5 | PLANNED / RUNNABLE #5 | Preliminary offline analysis разрешён; ≥8 недель/≥200 events параллельно; FSRS/review scheduling immutable |

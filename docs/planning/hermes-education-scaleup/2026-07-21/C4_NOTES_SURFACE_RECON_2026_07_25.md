@@ -33,12 +33,13 @@
 Не добавлены `personal.notes.read`, consent ceremony, note-exposure provenance и агентский
 read-tool. C4 остаётся `PLANNED / RUNNABLE`; его 20-парный benchmark не начат.
 
-Postscript, позже 2026-07-25: владелец отдельно запустил C4 R&D. Это не меняет результат данной
-UI/data-итерации; актуальный статус после owner-local selector —
-`IN_PROGRESS / DATASET_BLOCKED / UNDERPOWERED`: найдено `eligible=1` при обязательных 20, dataset
-не экспортирован, agent/Hermes note-read не произошёл. Exact consent-фраза принята, но
-dataset-bound receipt и exposure provenance невозможно создать до валидной выборки; первое
-agent/Hermes note-read всё ещё запрещено. См. `STATUS.md`.
+Postscript, позже 2026-07-25: владелец отдельно запустил C4 R&D. Первый frozen selector честно
+зафиксировал `eligible=1` при обязательных 20. Затем владелец явно запросил и утвердил 19
+агентских черновиков. Текущий статус — `IN_PROGRESS / AWAITING_OWNER_RATING / UNDERPOWERED`:
+dataset 20/20, dataset-bound consent, exposure-before-packet 20/20 и clean-context Hermes
+authoring 20/20 пар PASS; blinded ratings 0/20 pending. Состав 1 pre-existing owner note + 19
+`owner_approved_agent_draft` ограничивает валидность smoke-уровнем. Это не меняет границу данной
+UI/data-итерации и не реализует production `personal.notes.read`; см. `STATUS.md`.
 
 ## Проверки
 

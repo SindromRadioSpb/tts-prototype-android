@@ -4,75 +4,69 @@
 
 - Charter: C4, started 2026-07-25 by explicit owner command `стартуй C4`.
 - Baseline HEAD: `7116cb9f`.
-- Status: `IN_PROGRESS / DATASET_BLOCKED / UNDERPOWERED`.
-- Real benchmark evidence: 0/20 pairs.
-- Agent/Hermes personal-note reads: 0.
+- Status: `IN_PROGRESS / AWAITING_OWNER_RATING / UNDERPOWERED`.
+- Authoring evidence: 20/20 blinded response pairs complete; owner ratings: 0/20 pending.
+- Personal-note exposures: 20 allowlisted notes, recorded before author packets.
 - Production/OAuth changes: 0.
 - FSRS/`review_log`/grade/progress writes: 0.
 
-## Preflight
+## Preflight and provenance
 
-- Д6-A portfolio research-go: PASS.
-- C4 in `STATUS.md`: `PLANNED / RUNNABLE #4` before this session.
-- H1/H2 monitor stop condition affecting C4: none recorded.
-- C4 data/UI prerequisite: PASS (`notes_v2` + `note_occurrences`, v3.11.241 work).
-- Owner gave the exact temporary-consent affirmation on 2026-07-25: PASS.
-- Owner-local selector ran inside the authenticated LinguistPro origin and stopped fail-closed with
-  `C4_NOT_ENOUGH_ELIGIBLE_NOTES eligible=1`; no private dataset was exported or copied.
-- Hard gate before first agent/Hermes note read: NOT YET EXERCISED; dataset-bound receipt and
-  exposure-before-packet provenance remain mandatory.
+- Д6-A portfolio research-go: PASS; no H1/H2 monitor stop condition affected C4.
+- Existing `notes_v2` + `note_occurrences` data/UI prerequisite: PASS.
+- Exact owner affirmation for temporary `personal.notes.read`, including external-chat retention
+  acknowledgement: PASS.
+- The first frozen selector run stopped honestly at `eligible=1`. The owner then explicitly asked
+  for 19 additional drafts and approved them in the local review UI.
+- Final exact-20 selector result: 20 eligible notes: one pre-existing owner note and 19
+  `owner_approved_agent_draft` notes. This provenance is retained and materially limits external
+  validity: the run is an engineering/educational smoke, not an independent test of the mature
+  10K+ historical personal-note corpus.
+- Dataset-bound consent receipt: PASS. Content-free hash-chained exposure ledger: 20 rows, flushed
+  before note-enabled author packets were created. Consent remains revocable; revocation cannot
+  remove text already delivered to an external provider chat.
 
-## Engineering evidence
+## Authoring evidence
 
-The prototype is intentionally research-only. The CLI harness does not call Hermes, a provider,
-LinguistPro APIs or a database. The separate owner-side selector reads only local OPFS inside the
-authenticated LinguistPro origin and contains no network primitive.
+The private author packet was executed through the installed Hermes CLI with its configured native
+`gemini-3.5-flash-lite` provider. Every branch used a separate one-shot process and
+`--ignore-rules -t web`, preventing history, project-rule and memory carry-over between branches.
+This is controlled clean-context Hermes authoring, not a proof of the ordinary WebUI personality or
+future production MCP integration.
 
-Commands run from repository root:
+- 40/40 final responses are non-empty.
+- Six first-pass quota/error strings were detected by a content-free error-pattern gate and rerun
+  sequentially; none entered the final response set.
+- Final set: no duplicate response hashes and no provider/error/quota markers.
+- `blind` produced 20 X/Y pairs and stored the mapping separately; the evaluation payload contains
+  no `with_note` label.
+- A localhost-only rating UI renders answer text with DOM `textContent`, never loads the mapping,
+  and writes exactly 20 validated owner choices to the ignored private directory.
 
-```text
-node --check docs/research/hermes-education-scaleup/rnd-c4-2026-07-25/prototype/export-owner-notes.browser.js
-node --check docs/research/hermes-education-scaleup/rnd-c4-2026-07-25/prototype/c4-benchmark.mjs
-node --test docs/research/hermes-education-scaleup/rnd-c4-2026-07-25/prototype/c4-benchmark.test.mjs
-git check-ignore -v docs/research/hermes-education-scaleup/rnd-c4-2026-07-25/private/owner-notes.json
-git diff --check
-```
-
-Result: syntax PASS; focused tests 7/7 PASS. Covered exact-20 and duplicate rejection, exact
-affirmation, dataset binding, expiry, revoke→typed failure, content-free hash chain, ledger flush
-before packet file, blind threshold 14/20, ties against success, and browser selector no-network +
-exact-sample invariants. Private owner path is matched by the local `.gitignore`.
-
-The first owner-local run exposed a performance defect in the selector's sequential WebCrypto
-ordering. The selector now uses a synchronous UTF-8 SHA-256 implementation; five ASCII/Unicode
-fixtures match Node `crypto` exactly, so the frozen seed and ordering are unchanged. The corrected
-run completed and produced the honest `eligible=1` stop above.
-
-Final consent audit before owner-live strengthened the exact affirmation to include explicit
-external-chat retention acknowledgement; no real data had been read under the earlier wording.
-
-Primary rendering is label-blind: it suppresses explicit «note supplied» metadata, while a separate
-safety gate will test source separation. The owner may still recognize familiar wording; therefore
-the study is label-blind, not guaranteed inference-blind.
+All private notes, prompts, responses, mapping, ratings and consent artifacts remain under ignored
+`private/` paths or the local Hermes host. No note or response content is committed to git.
 
 ## Result vs threshold
 
-Not available. With 0/20 pairs and only 1/20 eligible private notes, no GO/NO-GO claim is permitted.
+Pending owner-blind ratings. The frozen decision rule is unchanged: `DONE_GO` only if the owner
+prefers the note-enabled branch in at least 14 of 20 pairs; ties count against success. No GO/NO-GO
+claim is permitted before `ratings.json` is saved and scored.
 
-## Owner-live remaining
+Even if the numerical threshold passes, the 19/20 owner-approved-agent-draft composition must be
+reported as a validity limitation; a later benchmark on genuinely accumulated high-quality owner
+notes would still be required before production integration.
 
-Add at least 19 more `user_touched=1` word-study notes containing a user-authored meaning,
-mnemonic, explanation or example, then rerun the unchanged selector. Only after it yields exactly
-20 notes may the dataset-bound consent receipt, exposure ledger, clean-context branches and blind
-ratings be created.
+## Engineering gates
 
-## Files created/changed
+Expected checks from repository root:
 
-- `docs/research/hermes-education-scaleup/rnd-c4-2026-07-25/` — preregistration, report, handoff,
-  browser-local selector and fail-closed benchmark harness.
-- `05_HORIZON_3_RND_CHARTERS.md`, `STATUS.md`, `C4_NOTES_SURFACE_RECON_2026_07_25.md` and H2.7
-  evidence — gate-consumer sweep from `PLANNED` to
-  `IN_PROGRESS / DATASET_BLOCKED / UNDERPOWERED`.
+```text
+node --check docs/research/hermes-education-scaleup/rnd-c4-2026-07-25/prototype/c4-draft-review.browser.js
+node --check docs/research/hermes-education-scaleup/rnd-c4-2026-07-25/prototype/c4-rating-server.mjs
+node --test docs/research/hermes-education-scaleup/rnd-c4-2026-07-25/prototype/c4-benchmark.test.mjs
+git check-ignore -v docs/research/hermes-education-scaleup/rnd-c4-2026-07-25/private/evaluation.json
+git diff --check
+```
 
-No production source, migration, OAuth registry, Agent Access handler or Hermes installation was
-changed. Scoped engineering commit: `9ef81893` (`research(c4): start private notes benchmark`).
+The harness remains research-only and performs no production database, FSRS, review-log, grading,
+progress, OAuth-registry or Agent Access mutation.

@@ -90,3 +90,14 @@ test("C4 browser selector synchronous SHA-256 preserves UTF-8 ordering", () => {
     assert.equal(digest(sample), crypto.createHash("sha256").update(sample, "utf8").digest("hex"));
   }
 });
+
+test("C4 draft review is local, explicit and provenance-preserving", () => {
+  const source = fs.readFileSync(path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/(.:)/, "$1")), "c4-draft-review.browser.js"), "utf8");
+  assert.equal(/\bfetch\s*\(|XMLHttpRequest|sendBeacon|WebSocket/.test(source), false);
+  assert.match(source, /const COUNT = 19/);
+  assert.match(source, /LIMIT 2000/);
+  assert.match(source, /data-c4-approve/);
+  assert.match(source, /owner_approved_agent_draft/);
+  assert.match(source, /user_touched: 1/);
+  assert.match(source, /approval rolled back/);
+});

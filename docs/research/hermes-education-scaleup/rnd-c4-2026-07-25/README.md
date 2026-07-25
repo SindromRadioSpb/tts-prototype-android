@@ -1,6 +1,7 @@
 # C4 R&D — доступ Hermes к личным ②-заметкам
 
-Статус: `IN_PROGRESS / UNDERPOWERED`, 0/20 реальных benchmark-пар.
+Статус: `IN_PROGRESS / AWAITING_OWNER_RATING / UNDERPOWERED`: 20/20 пар созданы и ослеплены,
+0/20 owner ratings пока сохранено.
 
 Это стабильная папка исследовательского C4-слайса. Она содержит preregistration,
 research-only прототип и агрегатный отчёт. Реальные заметки, ответы агента, consent receipts,
