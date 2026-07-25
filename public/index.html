@@ -10730,6 +10730,14 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                                         <option value="system">Системный (без загрузки)</option>
                                     </select>
                                 </div>
+
+                                <div class="field-group">
+                                    <label for="tableDirectionSelect" class="input-label" data-i18n="classic.directionLabel">Направление таблицы</label>
+                                    <select id="tableDirectionSelect" class="provider-select">
+                                        <option value="he-ru" data-i18n="classic.directionHeRu">Иврит → Русский</option>
+                                        <option value="any-he" data-i18n="classic.directionAnyHe">Любой язык → Иврит</option>
+                                    </select>
+                                </div>
                             </div>
 
                             <div class="classic-inline-meta">
@@ -12198,9 +12206,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=64"></script>
-<script src="/i18n/locales/en.js?v=64"></script>
-<script src="/i18n/locales/he.js?v=64"></script>
+<script src="/i18n/locales/ru.js?v=65"></script>
+<script src="/i18n/locales/en.js?v=65"></script>
+<script src="/i18n/locales/he.js?v=65"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -32457,7 +32465,13 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
                 translit_profile,
                 ...(provider === "gcp" ? { gcpTranslateApiKey: gcpTranslateKeyGet() } : {}),
               }
-            : { text: getText(), geminiApiKey: geminiKeyGet() };
+            : { text: getText(), geminiApiKey: geminiKeyGet(), direction: getTableDirection() };
+
+        if (usePremium && getTableDirection() === "any-he") {
+            showError(t("classic.directionPremiumBlocked"));
+            setLoading(false); setAiButtonDisabled(false); updateAiButtonState();
+            return;
+        }
 
         try {
             const res = await apiCall(endpoint, payload);
@@ -32484,7 +32498,7 @@ try {
     };
   } else {
     v3LastGeminiMeta = {
-      promptId: "he-ru-table-v1",
+      promptId: getTableDirection() === "any-he" ? "any-he-table-v1" : "he-ru-table-v1",
       model: "gemini-flash-latest",
       cacheKey: res.cacheKey || null,
       fromCache: (res.fromCache === true),
@@ -32567,6 +32581,20 @@ try {
         if (!el) return "gemini";
         return el.value || "gemini";
     }
+
+    // S3: table direction selector (he-ru | any-he) — persisted like the provider selector.
+    const TABLE_DIRECTION_LS_KEY = "v3.tableDirection";
+    function getTableDirection() {
+        const el = document.getElementById("tableDirectionSelect");
+        return (el && el.value === "any-he") ? "any-he" : "he-ru";
+    }
+    // init: восстановить из localStorage + persist на change
+    (function initTableDirection() {
+        const el = document.getElementById("tableDirectionSelect");
+        if (!el) return;
+        try { const saved = localStorage.getItem(TABLE_DIRECTION_LS_KEY); if (saved === "any-he") el.value = saved; } catch (_) {}
+        el.addEventListener("change", () => { try { localStorage.setItem(TABLE_DIRECTION_LS_KEY, el.value); } catch (_) {} });
+    })();
 
     function getSelectedTranslitProfile() {
         const el = document.getElementById("translitProfileSelect");
