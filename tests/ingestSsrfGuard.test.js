@@ -174,4 +174,43 @@ test("safeFetchHtml comprehensive error handling and size limits", async () => {
   try { await safeFetchHtml("https://ok.example/", { resolveAll: fakeOk, fetchImpl: fetchImplPort }); assert.fail("should reject"); }
   catch (err) { e8 = err; }
   assert.equal(e8.code, "BAD_PORT", "redirect to port 8080 should be rejected");
+
+  // Body read throws AbortError (timeout during streaming) → FETCH_TIMEOUT
+  const fetchImplBodyAbort = async (url, init) => {
+    assert(init && init.redirect === "manual");
+    async function* bodyGen() {
+      yield Buffer.from("chunk");
+      const domExc = new DOMException("Aborted", "AbortError");
+      throw domExc;
+    }
+    return {
+      status: 200, ok: true,
+      headers: { get: (k) => k.toLowerCase() === "content-type" ? "text/html" : null },
+      body: bodyGen(),
+    };
+  };
+  let e9;
+  try { await safeFetchHtml("https://ok.example/", { resolveAll: fakeOk, fetchImpl: fetchImplBodyAbort }); assert.fail("should reject"); }
+  catch (err) { e9 = err; }
+  assert.equal(e9.code, "FETCH_TIMEOUT", "AbortError during body read should map to FETCH_TIMEOUT");
+
+  // Body read throws Error with .code = "ECONNRESET" (system error) → FETCH_FAILED
+  const fetchImplBodySystemError = async (url, init) => {
+    assert(init && init.redirect === "manual");
+    async function* bodyGen() {
+      yield Buffer.from("chunk");
+      const err = new Error("Connection reset by peer");
+      err.code = "ECONNRESET";
+      throw err;
+    }
+    return {
+      status: 200, ok: true,
+      headers: { get: (k) => k.toLowerCase() === "content-type" ? "text/html" : null },
+      body: bodyGen(),
+    };
+  };
+  let e10;
+  try { await safeFetchHtml("https://ok.example/", { resolveAll: fakeOk, fetchImpl: fetchImplBodySystemError }); assert.fail("should reject"); }
+  catch (err) { e10 = err; }
+  assert.equal(e10.code, "FETCH_FAILED", "system error during body read should map to FETCH_FAILED");
 });

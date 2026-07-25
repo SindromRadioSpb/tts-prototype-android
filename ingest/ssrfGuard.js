@@ -15,6 +15,12 @@ function ingestErr(code, msgRu) {
   return e;
 }
 
+const INGEST_CODES = new Set([
+  "BAD_URL", "BAD_SCHEME", "BAD_PORT", "PRIVATE_ADDR", "FETCH_FAILED", "NOT_HTML",
+  "TOO_LARGE", "TOO_MANY_REDIRECTS", "FETCH_TIMEOUT",
+  "EXTRACT_EMPTY", "DOCX_EMPTY", "BAD_DOCX" // Task 3/5 extract codes
+]);
+
 function isPrivateIp(ip) {
   if (typeof ip !== "string" || !ip.trim()) return true; // fail closed
   const v = ip.trim().toLowerCase();
@@ -112,26 +118,35 @@ async function safeFetchHtml(rawUrl, opts = {}) {
       if (!resp.ok) throw ingestErr("FETCH_FAILED", `HTTP ${resp.status}`);
       const ct = (resp.headers.get("content-type") || "").toLowerCase();
       if (!ct.includes("text/html") && !ct.includes("application/xhtml")) {
+        ctrl.abort();
         throw ingestErr("NOT_HTML", "Страница не является HTML");
       }
       const clStr = resp.headers.get("content-length");
-      if (clStr && Number(clStr) > maxBytes) throw ingestErr("TOO_LARGE", "Страница слишком большая");
+      if (clStr && Number(clStr) > maxBytes) {
+        ctrl.abort();
+        throw ingestErr("TOO_LARGE", "Страница слишком большая");
+      }
       let buf = Buffer.alloc(0);
       try {
         if (resp.body) {
+          const chunks = [];
+          let totalBytes = 0;
           for await (const chunk of resp.body) {
-            buf = Buffer.concat([buf, Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)]);
-            if (buf.length > maxBytes) throw ingestErr("TOO_LARGE", "Страница слишком большая");
+            const bufChunk = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+            chunks.push(bufChunk);
+            totalBytes += bufChunk.length;
+            if (totalBytes > maxBytes) throw ingestErr("TOO_LARGE", "Страница слишком большая");
           }
+          buf = Buffer.concat(chunks);
         } else {
           const ab = await resp.arrayBuffer();
           buf = Buffer.from(ab);
           if (buf.length > maxBytes) throw ingestErr("TOO_LARGE", "Страница слишком большая");
         }
       } catch (e) {
-        if (e && e.code) throw e; // already an ingestErr
         if (e && e.name === "AbortError") throw ingestErr("FETCH_TIMEOUT", "Превышено время загрузки страницы");
-        throw ingestErr("FETCH_FAILED", "Не удалось загрузить страницу");
+        if (e && typeof e.code === "string" && INGEST_CODES.has(e.code)) throw e;
+        throw ingestErr("FETCH_FAILED", "Не удалось прочитать страницу");
       }
       return { html: decodeHtmlBuffer(buf, ct), finalUrl: u.toString() };
     } finally {
