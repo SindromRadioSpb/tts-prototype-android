@@ -23159,6 +23159,21 @@ v3LibraryOnSearchInput();
 // meta about last AI generation (for tableModelMeta hook)
 let v3LastGeminiMeta = null;
 
+// провенанс импорта (R9 derived≠asserted): текст пришёл из «Импорта»?
+// DRY helper — вызывается из обеих веток translateTable() success-handler.
+function v3AttachImportSource() {
+  try {
+    const im = window.v3LastImportMeta;
+    if (im && im.textSnapshot && v3LastGeminiMeta) {
+      v3LastGeminiMeta.source = {
+        kind: im.kind, source: im.source, method: im.method, model: im.model,
+        warnings: im.warnings || [], at: im.at,
+        edited: getText().trim() !== im.textSnapshot.trim(),
+      };
+    }
+  } catch (_) {}
+}
+
 function v3LibEl(id) { return document.getElementById(id); }
 
 function v3GuessDraftTitleFromTextarea() {
@@ -32501,6 +32516,7 @@ try {
       nikudDegraded: prov.nikud_degraded || false,
       generatedAt: new Date().toISOString()
     };
+    v3AttachImportSource();
   } else {
     v3LastGeminiMeta = {
       promptId: getTableDirection() === "any-he" ? "any-he-table-v1" : "he-ru-table-v1",
@@ -32510,6 +32526,7 @@ try {
       provider: "gemini",
       generatedAt: new Date().toISOString()
     };
+    v3AttachImportSource();
   }
 } catch (_) {}
 
