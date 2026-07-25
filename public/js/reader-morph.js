@@ -1037,7 +1037,7 @@
     ["new", ["room.morph.status.new", "новое"]], ["l1", null], ["l2", null], ["l3", null], ["l4", null],
     ["known", ["room.morph.status.known", "знаю"]], ["ignore", ["room.morph.status.ignore", "игнор"]],
   ];
-  var _activeCard = null, _activeOcc = null, _attachOpts = {};
+  var _activeCard = null, _activeOcc = null, _activeNoteInfo = null, _attachOpts = {};
   // Epic-2 #2 — context needed to RE-resolve the active word with Tier-3 (per-card refine):
   // the stripped surface, its niqqud, and the sentence to send to Dicta. null on root-family
   // chip cards (no sentence) so the refine button never offers an outbound it can't make.
@@ -1089,6 +1089,8 @@
       if (t && t.closest && t.closest("[data-rm-meaning-save]")) { onMeaningSave(); return; }
       if (t && t.closest && t.closest("[data-rm-meaning-cancel]")) { onMeaningEditToggle(false); return; }
       if (t && t.closest && (t.closest("[data-rm-meaning-add]") || t.closest("[data-rm-meaning-edit]"))) { onMeaningEditToggle(true); return; }
+      if (t && t.closest && t.closest("[data-rm-note-save]")) { onNoteEditorSave(); return; }
+      if (t && t.closest && t.closest("[data-rm-note-cancel]")) { onNoteEditorToggle(false); return; }
       if (t && t.closest && t.closest(".rm-save")) { onSaveClick(); return; }
       var pchip = t && t.closest ? t.closest("[data-rm-proc]") : null;
       if (pchip) { onProcliticChip(pchip.getAttribute("data-rm-proc")); return; }
@@ -1545,7 +1547,30 @@
     // prerequisite for status colouring + Anki + i+1). The glue (DB persist) is the
     // caller's opts.saveWord; the button is shown whenever a save handler is wired.
     var saveBtn = _attachOpts.saveWord
-      ? '<button type="button" class="rm-save" data-rm-save>' + escapeHtml(tt("room.morph.save", "＋ Сохранить")) + "</button>"
+      ? '<button type="button" class="rm-save" data-rm-save>' + escapeHtml(tt("room.morph.save", "＋ Сохранить слово")) + "</button>"
+      : "";
+    // One canonical word_study object, two densities: the Reader offers the three personal
+    // fields that matter mid-reading; Studio remains the full editor (morphology/history/links).
+    // The editor stays hidden until lookup confirms that the canonical note exists.
+    var noteEditor = (typeof _attachOpts.loadWordNote === "function" && typeof _attachOpts.saveWordPersonal === "function")
+      ? '<section class="rm-note-editor" data-rm-note-editor hidden dir="' + uiDir() + '">' +
+          '<div class="rm-note-editor-head">' +
+            '<div><strong>' + escapeHtml(tt("room.morph.note.title", "Моя заметка о слове")) + '</strong>' +
+            '<div class="rm-note-editor-hint">' + escapeHtml(tt("room.morph.note.sameObject", "Это та же запись, которая показывается в «Заметках к строке» в Студии.")) + '</div></div>' +
+          '</div>' +
+          '<label class="rm-note-field"><span>' + escapeHtml(tt("room.morph.note.meaning", "Моя формулировка значения")) + '</span>' +
+            '<input type="text" data-rm-note-meaning maxlength="200" dir="auto" placeholder="' + escapeHtml(tt("room.morph.note.meaningPh", "Как я понимаю это слово")) + '" /></label>' +
+          '<div class="rm-note-reference" data-rm-note-reference hidden></div>' +
+          '<label class="rm-note-field"><span>' + escapeHtml(tt("room.morph.note.mnemonic", "Мнемоника")) + '</span>' +
+            '<textarea data-rm-note-mnemonic maxlength="800" rows="2" dir="auto" placeholder="' + escapeHtml(tt("room.morph.note.mnemonicPh", "Что поможет вспомнить")) + '"></textarea></label>' +
+          '<label class="rm-note-field"><span>' + escapeHtml(tt("room.morph.note.example", "Мой пример")) + '</span>' +
+            '<textarea data-rm-note-example maxlength="800" rows="2" dir="auto" placeholder="' + escapeHtml(tt("room.morph.note.examplePh", "Фраза, в которой слово понятно")) + '"></textarea></label>' +
+          '<div class="rm-note-editor-actions">' +
+            '<button type="button" class="rm-note-save" data-rm-note-save>' + escapeHtml(tt("room.morph.note.save", "Сохранить изменения")) + '</button>' +
+            '<button type="button" class="rm-note-cancel" data-rm-note-cancel>' + escapeHtml(tt("room.morph.cancel", "Отмена")) + '</button>' +
+          '</div>' +
+          '<div class="rm-note-status" data-rm-note-status role="status" aria-live="polite"></div>' +
+        '</section>'
       : "";
     // Stage 2 — rich content (progressive disclosure, collapsed by default):
     // «Слова от этого корня» (dict root family) + «Спряжение / Склонение» (Pealim table,
@@ -1605,7 +1630,7 @@
     var backRow = _cardStack.length
       ? '<button type="button" class="rm-back" data-rm-back>‹ ' + escapeHtml(tt("room.morph.back", "Назад")) + "</button>"
       : "";
-    return backRow + head + legendHtml() + niqMark + meaning + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + explainWordHtml() + refineHtml + fam + conj;
+    return backRow + head + legendHtml() + niqMark + meaning + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + noteEditor + explainWordHtml() + refineHtml + fam + conj;
   }
 
   function openCardLoading() {
@@ -1616,7 +1641,7 @@
     try { var x = el.querySelector(".rm-sheet-x"); if (x) x.focus(); } catch (_) {}   // WCAG 2.4.3 — focus into the dialog
   }
   function openCard(card, occ) {
-    _activeCard = card; _activeOcc = occ || null;
+    _activeCard = card; _activeOcc = occ || null; _activeNoteInfo = null;
     var el = ensureSheet();
     el.querySelector(".rm-sheet-body").innerHTML = renderCardHtml(card);
     el.hidden = false; el.classList.add("rm-open");
@@ -1649,6 +1674,7 @@
   // card: a status badge + the save button flips to «✓ В заметках». info = {status} | null.
   function applyLifecycle(info) {
     if (!_sheet) return;
+    _activeNoteInfo = info && info.status ? info : null;
     var lifeEl = _sheet.querySelector("[data-rm-life]");
     var saveBtn = _sheet.querySelector(".rm-save");
     var has = !!(info && info.status);
@@ -1657,8 +1683,15 @@
       else lifeEl.hidden = true;
     }
     if (saveBtn) {
-      if (has) { saveBtn.textContent = tt("room.morph.saved", "✓ В заметках"); saveBtn.classList.add("rm-save-done"); }
-      else { saveBtn.textContent = tt("room.morph.save", "＋ Сохранить"); saveBtn.classList.remove("rm-save-done"); }
+      if (has) {
+        saveBtn.textContent = tt("room.morph.saved", "✎ Дополнить заметку");
+        saveBtn.classList.add("rm-save-done");
+        saveBtn.setAttribute("aria-expanded", "false");
+      } else {
+        saveBtn.textContent = tt("room.morph.save", "＋ Сохранить слово");
+        saveBtn.classList.remove("rm-save-done");
+        saveBtn.removeAttribute("aria-expanded");
+      }
     }
   }
   async function refreshCardMeta(card) {
@@ -1692,11 +1725,77 @@
   async function onSaveClick() {
     if (!_activeCard || !_attachOpts.saveWord) return;
     var saveBtn = _sheet && _sheet.querySelector(".rm-save");
+    if (_activeNoteInfo && _activeNoteInfo.noteId && typeof _attachOpts.loadWordNote === "function") {
+      onNoteEditorToggle(true);
+      return;
+    }
     if (saveBtn) saveBtn.disabled = true;
     try {
       var info = await _attachOpts.saveWord(_activeCard, _activeOcc);
       applyLifecycle(info && info.status ? info : { status: "created" });
     } catch (_) {} finally { if (saveBtn) saveBtn.disabled = false; }
+  }
+  async function onNoteEditorToggle(open) {
+    var box = _sheet && _sheet.querySelector("[data-rm-note-editor]");
+    var btn = _sheet && _sheet.querySelector(".rm-save");
+    if (!box) return;
+    box.hidden = !open;
+    if (btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
+    if (!open) return;
+    var status = box.querySelector("[data-rm-note-status]");
+    var controls = box.querySelectorAll("input, textarea, [data-rm-note-save]");
+    for (var ci = 0; ci < controls.length; ci++) controls[ci].disabled = true;
+    if (status) status.textContent = tt("room.morph.note.loading", "Открываю заметку…");
+    try {
+      var note = await _attachOpts.loadWordNote(_activeCard);
+      if (!note || !note.noteId) throw new Error("NOTE_NOT_FOUND");
+      _activeNoteInfo = Object.assign({}, _activeNoteInfo || {}, note);
+      var meaningEl = box.querySelector("[data-rm-note-meaning]");
+      var mnemonicEl = box.querySelector("[data-rm-note-mnemonic]");
+      var exampleEl = box.querySelector("[data-rm-note-example]");
+      var referenceEl = box.querySelector("[data-rm-note-reference]");
+      if (meaningEl) meaningEl.value = note.meaning || "";
+      if (mnemonicEl) mnemonicEl.value = note.mnemonic || "";
+      if (exampleEl) exampleEl.value = note.example || "";
+      if (referenceEl) {
+        referenceEl.textContent = note.referenceMeaning
+          ? tt("room.morph.note.reference", "Подсказка приложения") + ": " + note.referenceMeaning
+          : "";
+        referenceEl.hidden = !note.referenceMeaning;
+      }
+      if (status) status.textContent = "";
+      for (var cj = 0; cj < controls.length; cj++) controls[cj].disabled = false;
+      try { (meaningEl || mnemonicEl || exampleEl).focus(); } catch (_) {}
+    } catch (_) {
+      if (status) status.textContent = tt("room.morph.note.loadFailed", "Не удалось открыть заметку. Закройте карточку и попробуйте ещё раз.");
+    }
+  }
+  async function onNoteEditorSave() {
+    if (!_activeCard || typeof _attachOpts.saveWordPersonal !== "function") return;
+    var box = _sheet && _sheet.querySelector("[data-rm-note-editor]");
+    if (!box) return;
+    var save = box.querySelector("[data-rm-note-save]");
+    var status = box.querySelector("[data-rm-note-status]");
+    var fields = {
+      meaning: String((box.querySelector("[data-rm-note-meaning]") || {}).value || "").trim(),
+      mnemonic: String((box.querySelector("[data-rm-note-mnemonic]") || {}).value || "").trim(),
+      example: String((box.querySelector("[data-rm-note-example]") || {}).value || "").trim(),
+    };
+    if (save) save.disabled = true;
+    if (status) status.textContent = tt("room.morph.note.saving", "Сохраняю…");
+    try {
+      var info = await _attachOpts.saveWordPersonal(_activeCard, _activeOcc, fields);
+      if (!info || !info.noteId) throw new Error("NOTE_SAVE_FAILED");
+      if (fields.meaning) { _activeCard.meaning = fields.meaning; _activeCard.meaningSource = "user"; }
+      _activeNoteInfo = Object.assign({}, _activeNoteInfo || {}, info);
+      if (status) status.textContent = tt("room.morph.note.saved", "Сохранено. Эта же запись обновлена в Студии.");
+      setTimeout(function () {
+        if (_activeCard) openCard(_activeCard, _activeOcc);
+      }, 650);
+    } catch (_) {
+      if (status) status.textContent = tt("room.morph.note.saveFailed", "Не удалось сохранить изменения.");
+      if (save) save.disabled = false;
+    }
   }
   // T-b — translation editor (out-of-dict words). Toggle reveals an inline input; save persists
   // the learner's own meaning into the canonical word_study note (caller's saveUserMeaning) and

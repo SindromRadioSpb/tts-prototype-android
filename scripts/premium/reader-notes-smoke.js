@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 "use strict";
 // BRR-P1-009 Stage 1 · smoke:reader-notes — the Reading-Room learner-loop:
-// tap a word → rich card → «Сохранить» creates a word_study note → re-tap shows it
-// saved (lifecycle badge) → «Статус слов» colours the text. Real browser, real OPFS.
+// tap a word → «Сохранить слово» creates a word_study note → «Дополнить заметку» edits
+// the SAME canonical object → re-tap restores personal fields → word status colours text.
 //
-// Asserts: card has a Save button; Save → button flips to «✓ В заметках» + lifecycle
-// badge + toast; re-tapping the SAME word shows it already saved (persisted note,
-// idempotent); enabling the status toggle colours at least one word; 0 pageerror.
+// Asserts: Save → edit affordance + lifecycle + toast; compact editor persists meaning,
+// mnemonic and example into the canonical note; enabling status colours a word; 0 pageerror.
 // Writes a 380px RTL screenshot of the rich card.
 //
 // Run:  node scripts/premium/reader-notes-smoke.js
@@ -50,10 +49,23 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     await pg.goto(BASE + "/library.html", { waitUntil: "load" });
     await pg.waitForFunction(() => !!window.ReaderMorph && !!window.NotesAutoGen && !!window.InflectionDict, { timeout: 20000 });
 
-    // open a real baked work
+    // Seed one deterministic local text. The old version depended on the optional baked
+    // Ben-Yehuda bundle, so a clean checkout could fail before reaching the note UI.
+    await pg.evaluate(async () => {
+      if (window.__localDBInitPromise) { try { await window.__localDBInitPromise; } catch (_) {} }
+      const db = await import("/db/local-db.js");
+      await db.initLocalDB();
+      await db.createText({ id: "reader-notes-smoke", text_key: "reader-notes-smoke", title: "בדיקת הערה אישית", source_text: "שלום עולם" });
+      await db.addSentence("reader-notes-smoke", { id: "reader-notes-smoke-s1", order_index: 0, he_plain: "שלום עולם", he_niqqud: "שָׁלוֹם עוֹלָם", ru: "привет, мир" });
+    });
     await pg.click("#tabCorpus");
-    await pg.waitForSelector('.corpus-ready .work-card[role="button"]', { timeout: 20000 });
-    await pg.click('.corpus-ready .work-card[role="button"]');
+    await pg.waitForSelector('.hub-card[data-corpus="mytexts"]', { timeout: 20000 });
+    await pg.click('.hub-card[data-corpus="mytexts"]');
+    await pg.waitForSelector('.mytexts-grid .mytext-card-v', { timeout: 12000 });
+    await pg.evaluate(() => {
+      const card = Array.from(document.querySelectorAll('.mytexts-grid .mytext-card-v')).find((x) => /בדיקת הערה אישית/.test(x.textContent || ""));
+      if (card) card.click();
+    });
     await pg.waitForFunction(() => { const t = document.getElementById("roomReaderTable"); return t && t.querySelectorAll("tr").length > 0; }, { timeout: 20000 });
     await pg.waitForSelector("#roomReaderTable .rm-w", { timeout: 15000 });
 
@@ -85,6 +97,40 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     await pg.waitForSelector(".rm-save.rm-save-done", { timeout: 12000 }).catch(() => {});
     eq(await pg.locator(".rm-save.rm-save-done").count() > 0, "re-tapping a saved word should show it already saved (persisted)");
 
+    // saved state is an ACTION, not a passive badge: open compact editor, add personal data,
+    // persist, then re-open and prove all three fields came from the same canonical note.
+    await pg.click(".rm-save.rm-save-done");
+    await pg.waitForSelector("[data-rm-note-editor]:not([hidden])", { timeout: 8000 });
+    await pg.waitForSelector("[data-rm-note-save]:not([disabled])", { timeout: 8000 });
+    await pg.fill("[data-rm-note-meaning]", "моё значение");
+    await pg.fill("[data-rm-note-mnemonic]", "моя мнемоника");
+    await pg.fill("[data-rm-note-example]", "זה המשפט שלי");
+    await pg.click("[data-rm-note-save]");
+    await pg.waitForFunction(() => {
+      const s = document.querySelector("[data-rm-note-status]");
+      return s && /Сохранено/.test(s.textContent || "");
+    }, { timeout: 10000 });
+    await sleep(900); // compact editor re-renders the card after the saved confirmation
+    await pg.keyboard.press("Escape");
+    await pg.evaluate((surf) => {
+      const spans = document.querySelectorAll('#roomReaderTable .rm-w[data-surface="' + surf + '"]');
+      if (spans[0]) spans[0].click();
+    }, firstSurface);
+    await pg.waitForSelector(".rm-save.rm-save-done", { timeout: 12000 });
+    await pg.click(".rm-save.rm-save-done");
+    await pg.waitForSelector("[data-rm-note-editor]:not([hidden])", { timeout: 8000 });
+    await pg.waitForSelector("[data-rm-note-save]:not([disabled])", { timeout: 8000 });
+    const personal = await pg.evaluate(() => ({
+      meaning: document.querySelector("[data-rm-note-meaning]")?.value || "",
+      mnemonic: document.querySelector("[data-rm-note-mnemonic]")?.value || "",
+      example: document.querySelector("[data-rm-note-example]")?.value || "",
+    }));
+    eq(personal.meaning === "моё значение", "personal meaning should persist in canonical note: " + JSON.stringify(personal));
+    eq(personal.mnemonic === "моя мнемоника", "mnemonic should persist in canonical note: " + JSON.stringify(personal));
+    eq(personal.example === "זה המשפט שלי", "personal example should persist in canonical note: " + JSON.stringify(personal));
+    const reference = await pg.locator("[data-rm-note-reference]").textContent();
+    eq(/Подсказка приложения:.*мир/.test(reference || ""), "machine/reference meaning should remain visible after a personal rewrite: " + JSON.stringify(reference));
+
     await pg.screenshot({ path: SHOT });
     await pg.keyboard.press("Escape");
 
@@ -98,7 +144,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
 
     eq(errs.length === 0, "no pageerror, got: " + errs.slice(0, 3).join(" | "));
 
-    console.log("reader-notes: save→note + lifecycle + toast + persisted re-tap + status colouring (" + coloured + " words)");
+    console.log("reader-notes: save→canonical note + compact personal edit roundtrip + lifecycle + status colouring (" + coloured + " words)");
     console.log("screenshot → " + path.relative(REPO, SHOT));
     if (failures.length) { console.error("\nFAIL (" + failures.length + "):"); for (const f of failures) console.error("  ✗ " + f); await b.close(); await stop(srv.c); process.exit(1); }
     console.log("PASS — reader-notes smoke green");

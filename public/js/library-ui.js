@@ -2505,6 +2505,22 @@ async function roomLookupNote(card) {
   let life = {}; try { life = await localDb.getWordNoteLifecycle([note.id]); } catch (_) {}
   return { noteId: note.id, status: (life && life[note.id] && life[note.id].status) || 'created' };
 }
+async function roomLoadWordNote(card) {
+  const dk = roomDedupKey(card);
+  if (!dk) return null;
+  let note; try { note = await localDb.findNoteByDedupKey(dk); } catch (_) { note = null; }
+  if (!note) return null;
+  let body = {}; try { body = JSON.parse(note.body_json || '{}'); } catch (_) { body = {}; }
+  const meaningIsUser = body.meaning_source === 'user';
+  return {
+    noteId: note.id,
+    meaning: meaningIsUser ? String(body.meaning || '') : '',
+    referenceMeaning: String(body.reference_meaning || (!meaningIsUser ? body.meaning : '') || ''),
+    mnemonic: String(body.mnemonic || ''),
+    example: String(body.example_sentence || ''),
+    userTouched: Number(note.user_touched) === 1,
+  };
+}
 async function roomSaveWord(card, occ) {
   const body = roomNoteBody(card);
   const dk = roomDedupKey(card);
@@ -2572,6 +2588,50 @@ async function roomSaveUserMeaning(card, occ, meaning) {
   try { applyDecorations(); } catch (_) {}
   roomToast(tt('room.morph.meaningSavedToast', 'Перевод сохранён'));
   return { ok: true };
+}
+async function roomSaveWordPersonal(card, occ, fields) {
+  const dk = roomDedupKey(card);
+  if (!dk) return null;
+  let note; try { note = await localDb.findNoteByDedupKey(dk); } catch (_) { note = null; }
+  let body = roomNoteBody(card);
+  if (note) {
+    try { body = Object.assign(body, JSON.parse(note.body_json || '{}')); } catch (_) {}
+  }
+  const f = fields || {};
+  const previousMeaning = String(body.meaning || '').trim();
+  if (previousMeaning && body.meaning_source !== 'user' && !body.reference_meaning) {
+    body.reference_meaning = previousMeaning;
+  }
+  body.meaning = String(f.meaning || '').trim();
+  body.mnemonic = String(f.mnemonic || '').trim();
+  body.example_sentence = String(f.example || '').trim();
+  if (body.meaning) body.meaning_source = 'user';
+  else {
+    delete body.meaning_source;
+    if (body.reference_meaning) body.meaning = String(body.reference_meaning);
+  }
+  if (note) {
+    try { await localDb.updateNote(note.id, { body, user_touched: 1 }); }
+    catch (e) { try { console.warn('[room] update personal note failed', e); } catch (_) {} return null; }
+  } else {
+    try {
+      note = await localDb.createCanonicalNote({
+        gen_dedup_key: dk, body, title: body.word || '', source: 'user',
+        confidence: typeof card.confidence === 'number' ? card.confidence : null,
+        model_version: (window.InflectionDict && window.InflectionDict.MODEL) || null,
+        user_touched: 1,
+      });
+    } catch (e) { try { console.warn('[room] create personal note failed', e); } catch (_) {} return null; }
+  }
+  if (note && occ && (occ.text_id || occ.sentence_id)) {
+    try { await localDb.addNoteOccurrence(note.id, { text_id: occ.text_id, sentence_id: occ.sentence_id, word_offset: occ.word_offset, surface: occ.surface }); } catch (_) {}
+  }
+  readerWordStates = null;
+  try { invalidateReadableSet(); } catch (_) {}
+  try { applyDecorations(); } catch (_) {}
+  roomToast(tt('room.morph.note.savedToast', 'Личная заметка обновлена'));
+  let life = {}; try { life = await localDb.getWordNoteLifecycle([note.id]); } catch (_) {}
+  return { noteId: note.id, status: (life && life[note.id] && life[note.id].status) || 'created' };
 }
 
 let _roomToastEl = null, _roomToastT = null;
@@ -5058,7 +5118,13 @@ function attachReaderMorph(mount) {
   if (!mount || !window.ReaderMorph) return;
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   _ctxCache = new Map();   // fresh per (re)attach
-  const opts = { getRow: (i) => readerRows[i], saveWord: roomSaveWord, lookupNote: roomLookupNote };
+  const opts = {
+    getRow: (i) => readerRows[i],
+    saveWord: roomSaveWord,
+    lookupNote: roomLookupNote,
+    loadWordNote: roomLoadWordNote,
+    saveWordPersonal: roomSaveWordPersonal,
+  };
   opts.contextProvider = makeContextProvider();   // always wired; gates per-tap on consent (auto once granted)
   // Epic-2 #2 — per-card one-off refine: a separate provider that does NOT consult the global
   // consent (the per-card confirm IS the consent), and the gate that decides whether to OFFER it.

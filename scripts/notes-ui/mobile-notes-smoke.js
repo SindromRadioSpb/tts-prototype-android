@@ -116,7 +116,9 @@ async function main() {
   }
   console.log("[mobile-notes-smoke] server up");
 
-  const browser = await playwright.chromium.launch();
+  let browser;
+  try { browser = await playwright.chromium.launch(); }
+  catch (_) { browser = await playwright.chromium.launch({ channel: "chrome" }); }
   const errs = [];
 
   try {

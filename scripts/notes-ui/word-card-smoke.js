@@ -10,8 +10,7 @@
 //   3. Headword is PLAIN consonantal (no niqqud marks); niqqud_variant is a
 //      SEPARATE muted line — the Slice 0 model surfaced in the read view.
 //   4. Root chip (amber brand atom) + POS pill render from body_json.
-//   5. SRS state badge reuses the EXACT LEARN_STYLE palette — a 'weak'
-//      overlay paints the badge #D55E00 (rgb(213,94,0)).
+//   5. Canonical note lifecycle paints the badge with the shared learning palette.
 //   6. Pealim deep-link points at pealim.com (link only, never scrape) and
 //      the Edit button escapes the mobile button{width:100%} trap.
 //   7. Flag OFF → falls back to the generic .v3-notes-row-index-card.
@@ -69,8 +68,8 @@ async function waitForReady(timeoutMs = 15000) {
 
 // Two synthetic word_study rows: one niqqud noun (root, no binyan), one verb.
 const SYNTH_ROWS = [
-  { id: "wc-1", target_kind: "word", note_type: "word_study", updated_at: "2026-05-30T10:00:00Z",
-    body_json: JSON.stringify({ word: "שלום", niqqud_variant: "שָׁלוֹם", root: "שלם", meaning: "мир", part_of_speech: "noun", binyan: "" }) },
+  { id: "wc-1", target_kind: "word", note_type: "word_study", updated_at: "2026-05-30T10:00:00Z", user_touched: 1,
+    body_json: JSON.stringify({ word: "שלום", niqqud_variant: "שָׁלוֹם", root: "שלם", meaning: "мир и целостность", meaning_source: "user", reference_meaning: "мир; привет", mnemonic: "שלם — целый", example_sentence: "שלום עליכם", part_of_speech: "noun", binyan: "" }) },
   { id: "wc-2", target_kind: "word", note_type: "word_study", updated_at: "2026-05-29T09:00:00Z",
     body_json: JSON.stringify({ word: "כתב", niqqud_variant: "כָּתַב", root: "כתב", meaning: "писать", part_of_speech: "verb", binyan: "paal" }) },
 ];
@@ -88,7 +87,9 @@ async function main() {
   }
   console.log("[word-card-smoke] server up");
 
-  const browser = await playwright.chromium.launch();
+  let browser;
+  try { browser = await playwright.chromium.launch(); }
+  catch (_) { browser = await playwright.chromium.launch({ channel: "chrome" }); }
   const errs = [];
   try {
     const ctx = await browser.newContext({ serviceWorkers: "block", viewport: { width: 390, height: 900 } });
@@ -97,7 +98,7 @@ async function main() {
     await pg.goto(BASE + "/index.html", { waitUntil: "load" });
     await sleep(700);
 
-    // Stub the local DB so the SRS overlay is deterministic ('wc-1' weak).
+    // Stub the local DB so the canonical lifecycle overlay is deterministic.
     // Null the init error + settle the init promise so ensureLocalDB() returns
     // the stub (the real OPFS init may error under serviceWorkers:'block').
     await pg.evaluate(async () => {
@@ -109,7 +110,9 @@ async function main() {
       window.__localDBInitPromise = Promise.resolve();
       window.__localDB = {
         isReady: () => true,
-        getLearningStateOverlay: async () => ({ "wc-1": "weak" }),
+        getWordNoteLifecycle: async (ids) => Object.fromEntries(ids.map((id) => [id, {
+          status: id === "wc-1" ? "learning" : "created", needsWork: id === "wc-1",
+        }])),
         listNotesForRow: async () => [],
       };
     });
@@ -133,6 +136,8 @@ async function main() {
       const edit = list.querySelector(".v3-wordcard-edit");
       const editW = edit ? getComputedStyle(edit).width : "";
       const formsLabel = list.querySelector(".v3-wordcard-acc-summary");
+      const personal = list.querySelector('.v3-wordcard[data-note-id="wc-1"] .v3-wordcard-personal');
+      const editText = edit ? edit.textContent.trim() : "";
       return {
         count: cards.length,
         headword: head0 ? head0.textContent : "",
@@ -145,6 +150,8 @@ async function main() {
         editWidth: editW,
         panelWidth: list.clientWidth,
         formsLabel: formsLabel ? formsLabel.textContent.trim() : "",
+        personalText: personal ? personal.textContent.replace(/\s+/g, " ").trim() : "",
+        editText,
       };
     }, SYNTH_ROWS);
 
@@ -159,14 +166,18 @@ async function main() {
          r1.rootText.includes("שלם") && r1.posText.length > 0,
          JSON.stringify({ root: r1.rootText, pos: r1.posText }));
 
-    test("Case 5: state badge reuses LEARN_STYLE 'weak' (#D55E00)",
-         r1.badgeState === "weak" && r1.badgeBg.replace(/\s/g, "") === "rgb(213,94,0)",
+    test("Case 5: lifecycle badge reuses shared 'learning' palette (#56B4E9)",
+         r1.badgeState === "learning" && r1.badgeBg.replace(/\s/g, "") === "rgb(86,180,233)",
          JSON.stringify({ state: r1.badgeState, bg: r1.badgeBg }));
 
     test("Case 6: Pealim deep-link + Edit escapes width:100% trap",
          /pealim\.com/.test(r1.pealimHref) &&
          r1.editWidth && r1.panelWidth && parseFloat(r1.editWidth) < r1.panelWidth * 0.9,
          JSON.stringify({ href: r1.pealimHref, editWidth: r1.editWidth, panel: r1.panelWidth }));
+
+    test("Case 6b: personal fields are visible and edit action is explicit",
+         /целый/.test(r1.personalText) && /שלום עליכם/.test(r1.personalText) && /мир; привет/.test(r1.personalText) && /Редактировать/.test(r1.editText),
+         JSON.stringify({ personal: r1.personalText, edit: r1.editText }));
 
     test("Case 8: 'words from root' label localized (not passthrough)",
          r1.formsLabel.length > 0 && r1.formsLabel !== "notes.card.wordsFromRoot",

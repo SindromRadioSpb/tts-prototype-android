@@ -88,6 +88,15 @@ owner-решения о возобновлении.
 | Privacy | Новый scope `personal.notes.read` + отдельная церемония + exposure-леджер РАСШИРЯЕТСЯ на заметки до первого чтения (провенанс прежде доступа — урок S2) |
 | Stop | Ценность <70%; или owner отзывает интерес |
 
+### C4 UI/data precondition — implemented 2026-07-25, charter not started
+
+Existing product notes were reconciled before any agent read access. `＋ Сохранить слово` in the
+Reading Room and a `word_study` card in Studio are now explicitly two views of the same canonical
+`notes_v2` record joined to a sentence through `note_occurrences`. The Room exposes a compact
+personal editor (`meaning`, `mnemonic`, `example_sentence`); Studio remains the full editor. This
+improves owner control and benchmark-data quality but does **not** grant `personal.notes.read`,
+extend the exposure ledger, start the 20-pair benchmark, or change C4 from `PLANNED / RUNNABLE`.
+
 ## C5 — Phase-2: взвешивание по agent_exposed меткам
 
 | | |

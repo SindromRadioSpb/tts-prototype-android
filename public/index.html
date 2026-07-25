@@ -6439,6 +6439,41 @@ body:not(.theme-light) .v3-notes-row-index-count { color: var(--theme-bg-page); 
   font-size: 13.5px;
   color: var(--theme-text-primary);
 }
+.v3-wordcard-personal-badge {
+  display: inline-flex;
+  margin-inline-start: 5px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.10);
+  color: var(--theme-accent, #2563eb);
+  font-size: 9.5px;
+  font-weight: 700;
+  vertical-align: 1px;
+}
+.v3-wordcard-personal {
+  display: grid;
+  gap: 5px;
+  margin-top: 4px;
+  padding: 9px 10px;
+  border-inline-start: 3px solid var(--theme-accent, #2563eb);
+  border-radius: 0 8px 8px 0;
+  background: color-mix(in srgb, var(--theme-accent, #2563eb) 6%, var(--theme-bg-card, #fff));
+  color: var(--theme-text-secondary, #475569);
+  font-size: 12px;
+  line-height: 1.45;
+}
+[dir="rtl"] .v3-wordcard-personal { border-radius: 8px 0 0 8px; }
+.v3-wordcard-personal-title { color: var(--theme-text-primary); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .035em; }
+.v3-wordcard-personal > div:not(.v3-wordcard-personal-title) > span { color: var(--theme-text-muted); font-weight: 700; }
+.v3-wordcard-personal-empty {
+  margin-top: 4px;
+  padding: 8px 10px;
+  border: 1px dashed var(--theme-border-medium, #cbd5e1);
+  border-radius: 8px;
+  color: var(--theme-text-muted);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
 .v3-wordcard-tags {
   display: flex;
   flex-wrap: wrap;
@@ -41757,7 +41792,7 @@ function v3NotesHelpShow() {
   const html = `<div class="v3-notes-help-popover">
     <h4>${T("notes.help.sectionPurposeTitle", "📝 Цели заметок")}</h4>
     <p>${T("notes.help.sectionPurposeBody",
-      "К одной строке можно сделать несколько заметок разных типов. Каждая хранится отдельно и появляется в панели «Заметки к строке».")}</p>
+      "Заметка о слове, сохранённая в Читальном зале, и карточка в этой панели — одна запись. В Зале доступны быстрые личные поля; здесь — полный редактор. К строке также можно добавить другие типы заметок.")}</p>
 
     <h4>${T("notes.help.sectionTypesTitle", "🏷️ Типы заметок")}</h4>
     <ul>
@@ -43935,6 +43970,10 @@ function v3WordCardRichHtml(row) {
   const niqqud = String(bj.niqqud_variant || "").trim();
   const root = String(bj.root || "").trim();
   const meaning = String(bj.meaning || "").trim();
+  const meaningIsUser = String(bj.meaning_source || "") === "user";
+  const referenceMeaning = String(bj.reference_meaning || "").trim();
+  const mnemonic = String(bj.mnemonic || "").trim();
+  const personalExample = String(bj.example_sentence || "").trim();
   const pos = String(bj.part_of_speech || "").trim();
   const binyan = String(bj.binyan || "").trim();
 
@@ -43950,7 +43989,15 @@ function v3WordCardRichHtml(row) {
   const niqqudHtml = (niqqud && niqqud !== word)
     ? `<div class="v3-wordcard-niqqud" dir="rtl">${v3EscapeHtml(niqqud)}</div>` : "";
   const glossHtml = meaning
-    ? `<div class="v3-wordcard-gloss">${v3EscapeHtml(meaning)}</div>` : "";
+    ? `<div class="v3-wordcard-gloss">${v3EscapeHtml(meaning)}${meaningIsUser ? ` <span class="v3-wordcard-personal-badge">${v3EscapeHtml(v3NotesT("notes.card.yours", "ваша формулировка"))}</span>` : ""}</div>` : "";
+  const personalHtml = (meaningIsUser || mnemonic || personalExample)
+    ? `<div class="v3-wordcard-personal">
+        <div class="v3-wordcard-personal-title">${v3EscapeHtml(v3NotesT("notes.card.personalTitle", "Моя заметка"))}</div>
+        ${referenceMeaning ? `<div><span>${v3EscapeHtml(v3NotesT("notes.card.reference", "Подсказка приложения"))}:</span> ${v3EscapeHtml(referenceMeaning)}</div>` : ""}
+        ${mnemonic ? `<div><span>${v3EscapeHtml(v3NotesT("notes.card.mnemonic", "Мнемоника"))}:</span> ${v3EscapeHtml(mnemonic)}</div>` : ""}
+        ${personalExample ? `<div><span>${v3EscapeHtml(v3NotesT("notes.card.example", "Мой пример"))}:</span> <bdi dir="auto">${v3EscapeHtml(personalExample)}</bdi></div>` : ""}
+      </div>`
+    : `<div class="v3-wordcard-personal-empty">${v3EscapeHtml(v3NotesT("notes.card.personalEmpty", "Личных пояснений пока нет — добавьте свою формулировку, мнемонику или пример."))}</div>`;
 
   const posHtml = posLabel ? `<span class="v3-wordcard-pos">${v3EscapeHtml(posLabel)}</span>` : "";
   // Spine chip. Saved root → solid amber chip (sync). No saved root but a
@@ -44010,6 +44057,7 @@ function v3WordCardRichHtml(row) {
     </div>
     ${niqqudHtml}
     ${glossHtml}
+    ${personalHtml}
     <div class="v3-wordcard-tags" data-pos-filled="${posLabel ? "1" : ""}">${posHtml}${rootHtml}<span class="v3-wordcard-feats" data-feats-for="${v3EscapeHtml(word)}"></span></div>
     ${accHtml}
     ${conjHtml}
@@ -44017,7 +44065,7 @@ function v3WordCardRichHtml(row) {
       <a class="v3-wordcard-pealim" href="${v3EscapeHtml(_bestPealim.url)}" target="_blank" rel="noopener"
          data-pealim-word="${v3EscapeHtml(word)}" data-pealim-pos="${v3EscapeHtml(pos || "")}" data-pealim-lemma="${v3EscapeHtml(String(bj.lemma || ""))}" data-pealim-pid="${v3EscapeHtml(String(bj.pealim_id || ""))}"
          title="${v3EscapeHtml(v3NotesT("notes.card.pealimTitle", "Спряжение на Pealim (внешний словарь)"))}">${v3EscapeHtml(v3WordCardPealimLinkLabel(_bestPealim.direct))} ↗</a>
-      <button type="button" class="v3-wordcard-edit" onclick="v3NotesRowIndexOpenNote('${idEsc}')">${v3EscapeHtml(v3NotesT("notes.card.edit", "Открыть"))}</button>
+      <button type="button" class="v3-wordcard-edit" onclick="v3NotesRowIndexOpenNote('${idEsc}')">${v3EscapeHtml(v3NotesT("notes.card.edit", "Редактировать заметку"))}</button>
       <button type="button" class="v3-wordcard-del" onclick="event.stopPropagation(); v3NotesRowIndexDelete('${idEsc}')"
               aria-label="${v3EscapeHtml(v3NotesT("notes.rowIndex.deleteAria", "Удалить заметку"))}">✕</button>
     </div>
