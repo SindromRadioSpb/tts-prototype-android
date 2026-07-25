@@ -68,7 +68,8 @@ Blind является label-blind, а не гарантированно inferen
 До materialization любого note-enabled prompt обязательны одновременно:
 
 - временный локальный scope ровно `personal.notes.read`;
-- owner affirmation, dataset hash, expiry не более 24 часов и purpose `C4_BLIND_BENCHMARK`;
+- exact owner affirmation, явно включающая риск внешнего chat retention, dataset hash, expiry не
+  более 24 часов и purpose `C4_BLIND_BENCHMARK`;
 - allowlist только frozen 20 note refs;
 - content-free append-only exposure ledger, записанный **до** файла с note-enabled prompt;
 - отсутствие реальных данных в git, отчёте, stdout тестов и model logs вне owner-controlled Hermes.

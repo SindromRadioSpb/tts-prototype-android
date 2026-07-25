@@ -31,7 +31,7 @@ must not inspect the downloaded file before the consent step.
 From the research folder:
 
 ```powershell
-node prototype/c4-benchmark.mjs consent --notes private/notes.json --out private/consent.json --affirmation "I APPROVE TEMPORARY personal.notes.read FOR C4 BENCHMARK"
+node prototype/c4-benchmark.mjs consent --notes private/notes.json --out private/consent.json --affirmation "Я РАЗРЕШАЮ ВРЕМЕННЫЙ personal.notes.read ДЛЯ C4 BENCHMARK И ПОНИМАЮ, ЧТО ВЫБРАННЫЕ ЗАМЕТКИ МОГУТ ОСТАТЬСЯ ВО ВНЕШНЕМ ЧАТЕ"
 node prototype/c4-benchmark.mjs prepare --notes private/notes.json --consent private/consent.json --ledger private/exposure.ledger.jsonl --out private/author-packets.json
 node prototype/c4-benchmark.mjs revoke --consent private/consent.json
 node prototype/c4-benchmark.mjs blind --responses private/responses.json --out private/evaluation.json --mapping private/mapping.json

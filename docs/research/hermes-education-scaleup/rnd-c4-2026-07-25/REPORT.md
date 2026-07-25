@@ -38,6 +38,9 @@ affirmation, dataset binding, expiry, revoke→typed failure, content-free hash 
 before packet file, blind threshold 14/20, ties against success, and browser selector no-network +
 exact-sample invariants. Private owner path is matched by the local `.gitignore`.
 
+Final consent audit before owner-live strengthened the exact affirmation to include explicit
+external-chat retention acknowledgement; no real data had been read under the earlier wording.
+
 Primary rendering is label-blind: it suppresses explicit «note supplied» metadata, while a separate
 safety gate will test source separation. The owner may still recognize familiar wording; therefore
 the study is label-blind, not guaranteed inference-blind.

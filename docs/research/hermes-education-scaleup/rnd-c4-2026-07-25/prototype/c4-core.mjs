@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 export const SCHEMA = "c4.notes.1";
 export const SCOPE = "personal.notes.read";
 export const PURPOSE = "C4_BLIND_BENCHMARK";
-export const AFFIRMATION = "I APPROVE TEMPORARY personal.notes.read FOR C4 BENCHMARK";
+export const AFFIRMATION = "Я РАЗРЕШАЮ ВРЕМЕННЫЙ personal.notes.read ДЛЯ C4 BENCHMARK И ПОНИМАЮ, ЧТО ВЫБРАННЫЕ ЗАМЕТКИ МОГУТ ОСТАТЬСЯ ВО ВНЕШНЕМ ЧАТЕ";
 export const PAIRS = 20;
 
 const plain = (x) => !!x && typeof x === "object" && !Array.isArray(x);
