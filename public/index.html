@@ -13583,6 +13583,9 @@ if (header) {
     } catch (_) {
       v3LastGeminiMeta = null;
     }
+    // R9: entity change (opened a different Library text) invalidates any
+    // stale import-provenance passport — mirrors v3LastGeminiMeta reset above.
+    try { window.v3LastImportMeta = null; } catch (_) {}
     try {
       if (window.v3SetActiveLibraryTextMeta) {
         window.v3SetActiveLibraryTextMeta({
@@ -20747,6 +20750,10 @@ updatePlaylistButtonUI();
         lastAudioBlob = null;
         lastAudioUrl = null;
         lastDocxFilename = null;
+        // R9: cleared text carries no provenance forward — a fresh-typed text
+        // must not inherit a stale import passport (mirrors v3LastGeminiMeta
+        // reset on Library entity-change, see the two open-text loaders above).
+        try { window.v3LastImportMeta = null; } catch (_) {}
 		// сброс состояния Row TTS (кэш строк оставляем — он полезен)
 try {
     if (rowAudioPlayer && !rowAudioPlayer.paused) rowAudioPlayer.pause();
@@ -24792,6 +24799,9 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
     } catch (_) {
       v3LastGeminiMeta = null;
     }
+    // R9: entity change (opened a different Library text) invalidates any
+    // stale import-provenance passport — mirrors v3LastGeminiMeta reset above.
+    try { window.v3LastImportMeta = null; } catch (_) {}
     try {
       if (window.v3SetActiveLibraryTextMeta) {
         window.v3SetActiveLibraryTextMeta({
