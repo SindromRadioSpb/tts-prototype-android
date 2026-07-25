@@ -10572,6 +10572,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
                         <textarea id="inputText" data-i18n-placeholder="classic.inputPlaceholder" placeholder="Введите текст здесь... (Иврит, Английский, Русский)">שלום, זהו אבטיפוס פשוט של המערכת</textarea>
 
+                        <div id="v3ImportEntry" style="margin-top:6px;">
+                            <button type="button" class="btn-secondary" onclick="window.StudioImport && StudioImport.open()">📥 <span data-i18n="studio.import.button">Импорт: ссылка / файл / фото</span></button>
+                        </div>
+
                         <div id="textChangedNotice" data-i18n="classic.textChangedNotice">
                             ⚠ Текст был изменён. Требуется повторная озвучка и пересборка таблицы.
                         </div>
@@ -12267,6 +12271,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      renderTable is untouched (smoke:reader-parity) — wrapping is post-render only. -->
 <script src="/js/reader-morph.js"></script>
 <script src="/js/studio-karaoke.js"></script>
+
+<!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
+<script src="/js/studio-import.js" defer></script>
 
 <!-- PAS-B (слайс B) — агент-UI Студии: ВЕСЬ агент-код в studio-agent.js (чартер §7.7,
      inline здесь только script-теги + host-bridge). .row-agent-btn инжектится
@@ -45808,6 +45815,42 @@ document.addEventListener("i18n:changed", function () {
     <div class="v3-modal-body">
       <div id="v3ReviewQueueMeta" class="rq-meta"></div>
       <div id="v3ReviewQueueList" class="rq-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Import modal (W1 Studio Ingest — URL/file/photo → #inputText) ──── -->
+<div id="v3ImportModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-labelledby="v3ImportTitle">
+  <div class="v3-modal-backdrop" onclick="StudioImport.close()"></div>
+  <div class="v3-modal-panel" style="width:min(560px,calc(100vw - 32px));height:auto;max-height:calc(100vh - 48px);margin:24px auto;">
+    <div class="v3-modal-header">
+      <span class="v3-modal-title" id="v3ImportTitle" data-i18n="studio.import.title">Импорт текста</span>
+      <button class="btn-secondary" onclick="StudioImport.close()" data-i18n="studio.import.cancelBtn">Закрыть</button>
+    </div>
+    <div class="v3-modal-body">
+      <label class="input-label" for="v3ImportUrl" data-i18n="studio.import.urlLabel">Ссылка на статью / страницу</label>
+      <div style="display:flex; gap:6px;">
+        <input id="v3ImportUrl" type="url" inputmode="url" data-i18n-placeholder="studio.import.urlPlaceholder" placeholder="https://…" style="flex:1; min-width:0;">
+        <button type="button" class="btn-secondary" id="v3ImportUrlBtn" onclick="StudioImport.fetchUrl()" data-i18n="studio.import.fetchBtn">Извлечь</button>
+      </div>
+
+      <div style="margin-top:10px;">
+        <label class="input-label" style="display:block; margin-bottom:6px;" data-i18n="studio.import.fileLabel">Или файл: фото / PDF / Word (до 6MB)</label>
+        <input id="v3ImportFile" type="file" accept="image/jpeg,image/png,image/webp,.pdf,application/pdf,.docx" style="display:none" onchange="StudioImport.onFileChosen(event)">
+        <button type="button" class="btn-secondary" onclick="document.getElementById('v3ImportFile').click()" data-i18n="studio.import.fileBtn">Выбрать файл…</button>
+      </div>
+
+      <div id="v3ImportStatus" style="margin-top:10px; font-size:13px; color:#6c757d;" aria-live="polite"></div>
+
+      <div id="v3ImportPreviewWrap" hidden style="margin-top:10px;">
+        <div class="input-label" data-i18n="studio.import.previewLabel">Извлечённый текст (проверьте!)</div>
+        <div id="v3ImportProv" style="font-size:12px; color:#6c757d; margin:4px 0;"></div>
+        <textarea id="v3ImportPreview" dir="auto" style="width:100%; min-height:140px; box-sizing:border-box;"></textarea>
+        <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+          <button type="button" class="btn-primary" onclick="StudioImport.useText()" data-i18n="studio.import.useBtn">→ В поле ввода</button>
+          <button type="button" class="btn-secondary" onclick="StudioImport.close()" data-i18n="studio.import.cancelBtn">Закрыть</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
