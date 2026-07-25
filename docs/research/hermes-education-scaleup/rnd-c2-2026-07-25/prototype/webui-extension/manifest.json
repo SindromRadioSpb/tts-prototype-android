@@ -1,0 +1,20 @@
+{
+  "extensions": [
+    {
+      "id": "c2-live",
+      "name": "Разговор на иврите",
+      "scripts": ["c2-live.js"],
+      "stylesheets": ["c2-live.css"],
+      "permissions": {
+        "network_external": true,
+        "microphone": true,
+        "storage": { "owned": true }
+      },
+      "sidecar": {
+        "type": "loopback",
+        "origin": "http://127.0.0.1:18787",
+        "health_path": "/health"
+      }
+    }
+  ]
+}

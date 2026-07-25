@@ -5,7 +5,7 @@ import { assertProviderShape, RealtimeVoiceProvider } from '../provider-contract
 
 const row = (mode, scenario, turns, extra = {}) => ({
   id: `${mode}-${scenario}`, mode, scenario, turns, durationSec: 480,
-  anxiety: 3, quality: 4, actualCostUsd: 0, status: 'COMPLETE', containsContent: false,
+  breakdowns: 0, transportIncidents: 0, actualCostUsd: 0, status: 'COMPLETE', containsContent: false,
   ...extra,
 });
 
@@ -32,9 +32,9 @@ test('complete benchmark applies the frozen 1.5x threshold', () => {
   assert.equal(result.ratio, 1.5);
 });
 
-test('two broken realtime sessions force no-go', () => {
+test('two realtime sessions with no completed turn force no-go', () => {
   const rows = ['cafe', 'directions', 'plans'].flatMap((scenario, index) => [
-    row('async', scenario, 4), row('realtime', scenario, 8, { quality: index < 2 ? 2 : 4 }),
+    row('async', scenario, 4), row('realtime', scenario, index < 2 ? 0 : 8),
   ]);
   assert.equal(scoreBenchmark(rows).status, 'DONE_NO_GO_UNDERPOWERED');
 });

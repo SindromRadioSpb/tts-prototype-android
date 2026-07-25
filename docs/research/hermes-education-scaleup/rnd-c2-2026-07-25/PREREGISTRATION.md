@@ -2,6 +2,37 @@
 
 Frozen before the first Gemini Live audio call on 2026-07-25.
 
+## Amendment A — product surface corrected before first audio session
+
+This amendment was recorded on 2026-07-25 after the connection-only probe and before any C2
+audio was sent. The owner rejected the terminal launcher because it does not represent the
+actual learning path. The original authorization, provider, privacy boundary, three-session
+limit and zero-dollar stop condition are unchanged.
+
+The benchmark surface is now limited to the Hermes WebUI in a desktop browser and the same
+mobile WebUI reached from iPhone. The installed Hermex build remains an async control because it
+sends completed voice notes; it is not counted as realtime unless a future native build exposes
+a continuous bidirectional audio channel.
+
+The following original measures are superseded before data collection:
+
+- anxiety is not collected because it is non-informative for this owner;
+- a subjective dialogue-quality score is not collected;
+- cost is an account-level Free Tier stop guard, not a question after every session;
+- Gemini input transcription must be visible during the conversation so the owner can see what
+  the provider recognized; neither that text nor assistant transcription is persisted.
+
+The three realtime observations are fixed to the actual surfaces:
+
+| Realtime run | Surface | Scenario |
+|---|---|---|
+| RT1 | Hermes WebUI, desktop browser | cafe |
+| RT2 | Hermes WebUI, iPhone browser | directions |
+| RT3 | Hermes WebUI, iPhone browser | plans |
+
+The terminal prototype remains a provider conformance tool only. It cannot collect benchmark
+observations and must label every invocation `PROBE_ONLY`.
+
 ## Owner authorization and immutable bounds
 
 The owner authorized exactly:
@@ -71,15 +102,17 @@ about learner state. It contains no personal material.
 
 ## Secondary outcomes
 
-Immediately after every session the owner records:
+The product surface records only content-free operational observations:
 
-- anxiety, 1 (calm) to 5 (very tense);
-- dialogue quality, 1 (broken) to 5 (natural/useful);
 - transport incidents count;
-- actual billed cost in USD, verified in the provider project after each realtime session.
+- completed assistant turns;
+- explicit presses of “Gemini меня не понял”;
+- session duration and surface (`desktop_web` or `iphone_web`);
+- provider usage counters when returned;
+- whether the account-level Free Tier guard remains valid after the three-run packet.
 
-Report mean anxiety and quality by mode. These are descriptive at n=3 and cannot override failure
-of the primary threshold or cost/privacy stop conditions.
+Input and output transcriptions are rendered ephemerally for transparency and are erased from the
+page when the session ends. They are never included in benchmark JSON, logs or analytics.
 
 ## Failure and stop conditions
 
@@ -88,7 +121,7 @@ of the primary threshold or cost/privacy stop conditions.
   do not retry immediately and offer H2.6 async;
 - personal text enters a Live payload;
 - raw audio or transcript is written to disk/log;
-- quality <=2/5 in at least two realtime sessions;
+- zero completed assistant turns in at least two realtime sessions;
 - no working prototype within two weeks;
 - any learner-state write or pronunciation-grade claim.
 

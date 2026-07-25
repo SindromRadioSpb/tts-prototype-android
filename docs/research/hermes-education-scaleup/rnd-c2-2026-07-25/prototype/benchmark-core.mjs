@@ -4,13 +4,13 @@ export const MODES = Object.freeze(['async', 'realtime']);
 export function validateSession(row) {
   if (!MODES.includes(row.mode)) throw new Error('INVALID_MODE');
   if (!SCENARIOS.includes(row.scenario)) throw new Error('INVALID_SCENARIO');
-  for (const field of ['turns', 'durationSec', 'anxiety', 'quality']) {
+  for (const field of ['turns', 'durationSec', 'breakdowns', 'transportIncidents']) {
     if (!Number.isFinite(row[field])) throw new Error(`INVALID_${field}`);
   }
   if (!Number.isInteger(row.turns) || row.turns < 0) throw new Error('INVALID_turns');
   if (row.durationSec <= 0 || row.durationSec > 600) throw new Error('INVALID_durationSec');
-  if (!Number.isInteger(row.anxiety) || row.anxiety < 1 || row.anxiety > 5) throw new Error('INVALID_anxiety');
-  if (!Number.isInteger(row.quality) || row.quality < 1 || row.quality > 5) throw new Error('INVALID_quality');
+  if (!Number.isInteger(row.breakdowns) || row.breakdowns < 0) throw new Error('INVALID_breakdowns');
+  if (!Number.isInteger(row.transportIncidents) || row.transportIncidents < 0) throw new Error('INVALID_transportIncidents');
   if (row.actualCostUsd !== 0) throw new Error('ZERO_COST_CAP_VIOLATED');
   if (row.containsContent !== false) throw new Error('CONTENT_RETENTION_FORBIDDEN');
   return { ...row, turnsPerMinute: row.turns / (row.durationSec / 60) };
@@ -32,13 +32,13 @@ export function scoreBenchmark(rows) {
     const mean = (field) => group.reduce((sum, row) => sum + row[field], 0) / group.length;
     return [mode, {
       turnsPerMinute: mean('turnsPerMinute'),
-      anxiety: mean('anxiety'),
-      quality: mean('quality'),
+      breakdowns: mean('breakdowns'),
+      transportIncidents: mean('transportIncidents'),
       sessions: group.length,
     }];
   }));
   const ratio = byMode.realtime.turnsPerMinute / byMode.async.turnsPerMinute;
-  const brokenRealtime = valid.filter((row) => row.mode === 'realtime' && row.quality <= 2).length;
+  const brokenRealtime = valid.filter((row) => row.mode === 'realtime' && row.turns === 0).length;
   return {
     status: ratio >= 1.5 && brokenRealtime < 2 ? 'DONE_GO_UNDERPOWERED' : 'DONE_NO_GO_UNDERPOWERED',
     ratio,

@@ -9,11 +9,10 @@ const row = validateSession({
   scenario: args.scenario,
   turns: number(args.turns, 'turns'),
   durationSec: number(args['duration-sec'], 'duration-sec'),
-  anxiety: number(args.anxiety, 'anxiety'),
-  quality: number(args.quality, 'quality'),
+  breakdowns: number(args.breakdowns ?? 0, 'breakdowns'),
+  transportIncidents: number(args['transport-incidents'] ?? 0, 'transport-incidents'),
   actualCostUsd: number(args['actual-cost-usd'], 'actual-cost-usd'),
   status: 'COMPLETE',
-  incidents: 0,
   containsContent: false,
   createdAt: new Date().toISOString(),
 });
