@@ -16,7 +16,6 @@ const path = require("path");
 const { spawn, spawnSync } = require("child_process");
 
 const REPO_ROOT = path.resolve(__dirname, "..");
-const DB_PATH = process.env.DB_PATH || path.join(REPO_ROOT, "data", "app.db");
 const PORT = Number(process.env.INGEST_SMOKE_PORT || 3108);
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const FETCH_URL = `${BASE_URL}/api/ingest/fetch-url`;
@@ -118,7 +117,13 @@ async function expectCase(label, body, expectedStatus, expectedCode) {
 
 async function run() {
   const tmpDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "lp-ingestsmoke-"));
-  const { child, logs } = startServer(DB_PATH, PORT, tmpDataDir);
+  // Hermetic by default: a fresh SQLite file inside the SAME per-run temp dir
+  // as DATA_DIR. Never fall back to the real project DB (data/app.db) — the
+  // server auto-creates the dir/file and runs migrations on boot (db/sqlite.js
+  // initDb -> ensureDirForFile + PRAGMA/migrate), so no template copy is
+  // needed. process.env.DB_PATH still wins if explicitly set.
+  const dbPath = process.env.DB_PATH || path.join(tmpDataDir, "smoke-app.db");
+  const { child, logs } = startServer(dbPath, PORT, tmpDataDir);
   let allPassed = true;
 
   try {
