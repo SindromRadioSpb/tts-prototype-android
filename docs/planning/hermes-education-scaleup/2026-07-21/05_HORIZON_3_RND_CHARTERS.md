@@ -59,7 +59,7 @@ action-gates consent/privacy/exact cost cap/no-write и релевантный H
 | Success | Реплик/мин ≥×1.5 async при cost/сессию в пределах конверта, заданного владельцем до старта |
 | Failure/Stop | Латентность/качество иврита ломают диалог; стоимость выходит из конверта; 2 недели без рабочего прототипа |
 | Privacy | Аудио уходит в облако Google — ЯВНОЕ owner-согласие до первого теста; никаких личных текстов в системный промпт realtime-сессии |
-| Cost | Metered (AGENT_GEMINI_API_KEY, строгий R16-конверт: лимит $/нед, установленный владельцем заранее) |
+| Cost | Owner-fixed 2026-07-25: Gemini Live Free Tier, **USD 0/week**, no paid fallback; `429`/quota → typed stop + H2.6 async. Provider is behind an independent adapter so later OpenAI/Azure/local evaluation does not rewrite the learning/session contract |
 
 ## C3 — MC-glosses в Читальном зале (P7)
 
@@ -109,7 +109,7 @@ privacy ceremony, action-gate или положительный verdict друг
 | Чартер | Статус | Фактическая причина |
 |---|---|---|
 | C1 | PLANNED / RUNNABLE #1 | Старт на доступных 3.421 мин; ≥60 мин набираются параллельно, ранний вывод `UNDERPOWERED` |
-| C2 | PLANNED / RUNNABLE #2 | Architecture/mock work разрешён; ≥4 недели async baseline параллельно; live cloud call ждёт exact cost cap + consent |
+| C2 | IN_PROGRESS / UNDERPOWERED | Owner fixed USD 0/week + no paid fallback and explicitly consented to three preregistered Gemini Live Free Tier sessions; independent provider adapter + content-free probe PASS; six owner benchmark sessions remain |
 | C3 | PLANNED / RUNNABLE #3 | H2.2 CLOSED; production `get_text_coverage` жив; H2.7 не фиксирует active stop condition |
 | C4 | PLANNED / RUNNABLE #4 | Contract/prototype разрешён; cases набираются параллельно; чтение заметок ждёт scope/consent/provenance |
 | C5 | PLANNED / RUNNABLE #5 | Preliminary offline analysis разрешён; ≥8 недель/≥200 events параллельно; FSRS/review scheduling immutable |

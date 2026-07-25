@@ -4,7 +4,7 @@
 (11_HANDOFF §2.7). Статусы: PLANNED → IN_PROGRESS → ENGINEERING_COMPLETE → OWNER_LIVE → CLOSED;
 отдельно BLOCKED / NO-GO / SKIPPED (с причиной). Вердикт владельца: 1–5 + комментарий.
 
-Обновлено: 2026-07-24 (H2.1–H2.6 + H2.G1 CLOSED; H2.7 IN_PROGRESS; H3 Д6-A PASS; C1 R&D DONE_NO_GO/UNDERPOWERED; C1-X Local Companion ENGINEERING_COMPLETE; C1-P Hermes practice loop OWNER_LIVE/CLOSED; C2–C5 PLANNED/RUNNABLE; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1/H2 monitors ACTIVE).
+Обновлено: 2026-07-25 (H2.1–H2.6 + H2.G1 CLOSED; H2.7 IN_PROGRESS; H3 Д6-A PASS; C1 R&D DONE_NO_GO/UNDERPOWERED; C1-X Local Companion ENGINEERING_COMPLETE; C1-P Hermes practice loop OWNER_LIVE/CLOSED; C2 IN_PROGRESS/UNDERPOWERED; C3–C5 PLANNED/RUNNABLE; Group Song Corpus full 77 CLOSED; P0.1 replaceable karaoke edition ENGINEERING_COMPLETE; H1/H2 monitors ACTIVE).
 
 ## Горизонт 1 — статус: CLOSED (H1.0–H1.8 CLOSED; longitudinal monitoring перенесён параллельно по У7)
 
@@ -44,7 +44,7 @@
 | Чартер | Статус |
 |---|---|
 | C1 Pronunciation scoring | **DONE_NO_GO / UNDERPOWERED** — frozen owner benchmark 75/75: 15/25 correct word+type (60%), 15/50 false positives (30%), vowel 13/15, stress 2/10, target unscorable 0; thresholds failed and result retained; separate experimental C1-P product path is `OWNER_LIVE / CLOSED`; `docs/research/hermes-education-scaleup/rnd-c1-2026-07-24/REPORT.md` |
-| C2 Realtime voice | PLANNED / RUNNABLE #2 — ≥4 недели async baseline recommended parallel target; live cloud call hard-blocked exact cost cap + owner consent |
+| C2 Realtime voice | **IN_PROGRESS / UNDERPOWERED** — owner fixed Gemini Live Free Tier through an independent provider adapter, USD 0/week, no paid fallback, and explicit cloud-audio consent for three preregistered sessions; preregistration + 6/6 focused tests + content-free `PROBE_READY` PASS; 3 matched async + 3 realtime owner sessions pending |
 | C3 MC-glosses в Зале | PLANNED / RUNNABLE #3 — H2.2 CLOSED, `get_text_coverage` live; no review_log write |
 | C4 S4 агент+②-заметки | PLANNED / RUNNABLE #4 — benchmark cases parallel; first note-read hard-blocked scope/consent/provenance |
 | C5 Phase-2 exposure weighting | PLANNED / RUNNABLE #5 — preliminary offline analysis allowed; ≥8 weeks/≥200 events recommended; FSRS immutable |
@@ -98,6 +98,7 @@ research remains `DONE_NO_GO / UNDERPOWERED`.
 
 | Дата | Решение | Кто |
 |---|---|---|
+| 2026-07-25 | Owner authorized C2 R&D with Gemini Live Free Tier through an independent provider adapter: USD 0/week, paid fallback forbidden, explicit cloud-audio consent for exactly three preregistered realtime sessions, no personal texts, `429`/quota → H2.6 async. C2 preregistration froze a matched 3 async + 3 realtime benchmark; maturity is UNDERPOWERED because the recommended four-week baseline is absent. Provider-contract tests 6/6 and a post-freeze content-free `gemini-3.1-flash-live-preview` handshake PASS; no audio was sent by the probe. C2 → IN_PROGRESS; owner six-session benchmark remains | владелец / Codex |
 | 2026-07-21 | Направление утверждено (OWNER-APPROVED DIRECTION/PLANNING); пакет создан | владелец / Claude |
 | 2026-07-22 | H1.0 owner-live: 3 сценария пройдены, verdict 5/5; слайс CLOSED | владелец |
 | 2026-07-22 | H1.1: reproduction PASS, acceptance 1/3; после нескольких skill-text итераций BLOCKED, установленный skill откатан | Codex |
