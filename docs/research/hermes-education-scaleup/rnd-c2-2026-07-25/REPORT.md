@@ -50,15 +50,19 @@ quality ratings, and requires ephemeral input/output transcription on screen wit
   200 and `setupComplete` from the constrained `v1alpha` WebSocket using the full production setup.
   The probe recorded `audioSent: false`; it is not a benchmark session and consumed none of
   RT1–RT3.
+- The run selector now enforces the frozen surface mapping before microphone or token access:
+  desktop auto-selects RT1 and disables RT2/RT3; iPhone auto-selects RT2, disables RT1 and leaves
+  RT3 available. Live desktop DOM verification showed RT1 pressed and RT2/RT3 disabled without
+  starting audio.
 - Provider-account billing confirmation for the connection-only probe is not available from the
   API response; the owner must verify the Free Tier project dashboard. No positive cost is assumed.
 - Empty scorer gate: `INCOMPLETE`, 0/6 cells, with all six exact cells listed as missing.
 - No MCP registration or LinguistPro learner-state path is involved. The R&D surface uses the
   administrator-controlled Hermes WebUI extension mechanism.
-- Final bounded repair deployment PASS at `2026-07-25T07:28:28+03:00`: only `hermes-webui` was
+- Final bounded repair deployment PASS at `2026-07-25T07:35:32+03:00`: only `hermes-webui` was
   recreated from `linguistpro/hermes-webui-c2:20260725-1`; the retained rollback image is
   `linguistpro/hermes-webui-c1:20260724-1`. Candidate manifest-list digest:
-  `sha256:6d4d4aa7bad710dfda6f68a78261ddfc620e8ac21dddf17e20a0a27fa179eb29`.
+  `sha256:94af4bb24591c074c0e095566226c31b2d9d1bdae1305a04a6b5739cfebf246f`.
 - Post-restart WebUI evidence PASS: extension enabled, explicit sidecar-proxy consent persisted,
   proxy and sidecar health returned HTTP 200, and the sidecar reported `configured: true`.
   Opening the C2 surface produced no C2 console errors and requested neither microphone access nor

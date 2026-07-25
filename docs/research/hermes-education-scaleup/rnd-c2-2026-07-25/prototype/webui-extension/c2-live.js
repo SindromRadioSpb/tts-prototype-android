@@ -209,13 +209,30 @@
   const mount = document.querySelector('#composerFooter, .composer-footer, #composer, .composer-actions, .composer') || document.body;
   mount.appendChild(launch);
 
+  function currentSurface() {
+    return /iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'iphone_web' : 'desktop_web';
+  }
+
+  function syncRunsForSurface() {
+    const surface = currentSurface();
+    let firstAvailable = null;
+    panel.querySelectorAll('.c2-run').forEach((button) => {
+      const available = RUNS[button.dataset.run].surface === surface;
+      button.disabled = !available;
+      button.setAttribute('aria-disabled', String(!available));
+      button.title = available ? '' : `Этот сценарий проводится ${surface === 'desktop_web' ? 'на iPhone' : 'на ПК'}.`;
+      if (available && !firstAvailable) firstAvailable = button.dataset.run;
+    });
+    if (!state.run || RUNS[state.run].surface !== surface) selectRun(firstAvailable);
+  }
+
   function selectRun(id) {
     if (state.startedAt) return;
     state.run = id;
     panel.querySelectorAll('.c2-run').forEach((node) => node.setAttribute('aria-pressed', String(node.dataset.run === id)));
     setStatus(RUNS[id].hint);
   }
-  function openPanel() { panel.hidden = false; document.documentElement.style.overflow = 'hidden'; }
+  function openPanel() { syncRunsForSurface(); panel.hidden = false; document.documentElement.style.overflow = 'hidden'; }
   function closePanel() { if (state.startedAt) return; panel.hidden = true; document.documentElement.style.overflow = ''; clearTranscript(); }
   function setStatus(text, error = false) { const node = panel.querySelector('.c2-status'); node.textContent = text; node.classList.toggle('c2-error', error); }
   function clearTranscript() { panel.querySelector('.c2-input').textContent = '—'; panel.querySelector('.c2-output').textContent = '—'; }
@@ -236,8 +253,7 @@
   async function start() {
     if (!state.run) { setStatus('Сначала выберите один из трёх сценариев.', true); return; }
     const expected = RUNS[state.run].surface;
-    const isIphone = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if ((expected === 'iphone_web') !== isIphone) { setStatus(`${state.run} предназначен для ${expected === 'iphone_web' ? 'iPhone' : 'ПК'}.`, true); return; }
+    if (expected !== currentSurface()) { syncRunsForSurface(); setStatus('Для этого устройства выбран доступный сценарий.', true); return; }
     if (!window.isSecureContext) { setStatus('Микрофон работает только по HTTPS или через localhost.', true); return; }
     const action = panel.querySelector('.c2-action'); action.disabled = true; setStatus('Включаю микрофон…');
     try {

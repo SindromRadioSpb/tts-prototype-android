@@ -5,10 +5,10 @@ This is an operator handoff, not an owner benchmark procedure. No C2 audio has b
 ## Completed deployment
 
 - Final repair deployment via `deploy-c2-webui.ps1` has receipt status `PASS` at
-  `2026-07-25T07:28:28.5006086+03:00`.
+  `2026-07-25T07:35:32.0850330+03:00`.
 - Running image: `linguistpro/hermes-webui-c2:20260725-1`; retained rollback image:
   `linguistpro/hermes-webui-c1:20260724-1`. Running candidate digest:
-  `sha256:6d4d4aa7bad710dfda6f68a78261ddfc620e8ac21dddf17e20a0a27fa179eb29`.
+  `sha256:94af4bb24591c074c0e095566226c31b2d9d1bdae1305a04a6b5739cfebf246f`.
 - Post-restart checks: WebUI health 200, extension enabled, sidecar proxy explicitly consented,
   sidecar health 200 and `configured: true`.
 - Exact 380 x 844 responsive evidence is retained at `evidence/c2-webui-380x844.png`.
@@ -25,6 +25,8 @@ This is an operator handoff, not an owner benchmark procedure. No C2 audio has b
 - The browser now uses the matching constrained `v1alpha` WebSocket endpoint and decodes binary
   response frames. A deployed connection-only probe reached `setupComplete` with
   `audioSent: false`.
+- Device/run selection is enforced in the UI before token or microphone access. Desktop exposes
+  RT1 only; iPhone exposes RT2 and RT3 only. The first valid run is selected automatically.
 
 ## Read first
 
