@@ -3040,6 +3040,18 @@ window.I18N_LOCALES.en = {
       errOverloaded: "Gemini is overloaded right now. Please try again in a minute.",
       errExtractBadJson: "Could not parse the model's response. Try another file or a clearer photo.",
       errGeneric: "Import failed — please try again",
+      // W2-S4 — Import → Audio (BYOK Gemini ASR)
+      audioBtn: "Audio (Hebrew) → transcript",
+      audioGo: "Transcribe",
+      audioUploading: "Uploading audio to Google…",
+      audioProcessing: "Google is processing the file…",
+      audioTranscribing: "Transcribing… (up to 2–3 min)",
+      errAudioBadFile: "Could not read the audio file",
+      errAudioTooLong: "Audio longer than 20 min — v1 limit",
+      errUpload: "Upload to Google failed — retry",
+      errNoSpeech: "No speech found in the audio",
+      audioTimingDropped: "Edits changed line count — karaoke disabled",
+      provAudio: "Audio → ASR transcript (Gemini)",
     },
   },
   kmquiz: {

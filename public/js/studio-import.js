@@ -11,6 +11,12 @@
   var MAX_FILE_BYTES = 6 * 1024 * 1024;
   var pending = null; // {kind, source, method, model, warnings, text}
 
+  // W2-S4 — Import → Audio (BYOK Gemini ASR). Канон:
+  // docs/planning/STUDIO_INGEST_W2_S4_AUDIO_KARAOKE_DESIGN_2026_07_26.md.
+  var MAX_AUDIO_SEC = 20 * 60;           // решение S4-CAP: 20 минут hard cap (R16)
+  var MAX_AUDIO_BYTES = 300 * 1024 * 1024; // sanity
+  var pendingAudio = null; // {file, buf, sha256, mime, durationSec, name, parsed, validation}
+
   function $(id) { return document.getElementById(id); }
   function tr(key) { return (typeof window.t === "function") ? window.t(key) : key; }
   function toast(key, type) { if (typeof window.showToast === "function") window.showToast(tr(key), type || "info"); }
@@ -25,12 +31,89 @@
     if (btn) btn.disabled = b;
     var f = $("v3ImportFile");
     if (f) f.disabled = b;
+    var ab = $("v3ImportAudioGo");
+    if (ab) ab.disabled = b;
+  }
+
+  function probeAudioDuration(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file);
+      var a = new Audio();
+      var done = false;
+      var to = setTimeout(function () { if (!done) { done = true; URL.revokeObjectURL(url); reject(new Error("AUDIO_BAD_FILE")); } }, 10000);
+      a.onloadedmetadata = function () {
+        if (done) return; done = true; clearTimeout(to); URL.revokeObjectURL(url);
+        (isFinite(a.duration) && a.duration > 0) ? resolve(a.duration) : reject(new Error("AUDIO_BAD_FILE"));
+      };
+      a.onerror = function () { if (!done) { done = true; clearTimeout(to); URL.revokeObjectURL(url); reject(new Error("AUDIO_BAD_FILE")); } };
+      a.src = url;
+    });
+  }
+
+  async function onAudioChosen(ev) {
+    var file = ev.target.files && ev.target.files[0];
+    ev.target.value = "";
+    if (!file) return;
+    $("v3ImportAudioInfo").hidden = true;
+    pendingAudio = null;
+    if (file.size > MAX_AUDIO_BYTES) { setStatus("studio.import.errTooLarge"); return; }
+    var key = typeof window.geminiKeyGet === "function" ? window.geminiKeyGet() : "";
+    if (!key) { setStatus("studio.import.errNoKey"); return; }
+    var dur;
+    try { dur = await probeAudioDuration(file); }
+    catch (_) { setStatus("studio.import.errAudioBadFile"); return; }
+    if (dur > MAX_AUDIO_SEC + 1) { setStatus("studio.import.errAudioTooLong"); return; }
+    var mime = file.type || "audio/mpeg";
+    pendingAudio = { file: file, buf: null, sha256: null, mime: mime, durationSec: dur, name: file.name, parsed: null, validation: null };
+    var est = window.AsrTranscript.estimateAsrCostUsd(dur);
+    var mm = Math.floor(dur / 60), ss = String(Math.round(dur % 60)).padStart(2, "0");
+    $("v3ImportAudioMeta").textContent = mm + ":" + ss + " · " + (file.size / (1024 * 1024)).toFixed(1) + "MB";
+    $("v3ImportAudioGo").textContent = tr("studio.import.audioGo") + " (≈$" + Math.max(0.01, est).toFixed(2) + ")";
+    $("v3ImportAudioInfo").hidden = false;
+    setStatus(null);
+  }
+
+  async function transcribeAudio() {
+    if (!pendingAudio) return;
+    var key = typeof window.geminiKeyGet === "function" ? window.geminiKeyGet() : "";
+    if (!key) { setStatus("studio.import.errNoKey"); return; }
+    setBusy(true);
+    try {
+      setStatus("studio.import.audioUploading");
+      pendingAudio.buf = await pendingAudio.file.arrayBuffer();
+      pendingAudio.sha256 = await window.MediaStore.sha256Hex(pendingAudio.buf);
+      var up = await window.GeminiFiles.uploadFile(key, pendingAudio.file, pendingAudio.mime);
+      setStatus("studio.import.audioProcessing");
+      if (up.state !== "ACTIVE") await window.GeminiFiles.waitActive(key, up.name);
+      setStatus("studio.import.audioTranscribing");
+      var raw = await window.GeminiFiles.transcribeAudio(key, up.fileUri, pendingAudio.mime);
+      var parsed;
+      try { parsed = window.AsrTranscript.parseAsrResponse(raw); }
+      catch (e1) {
+        if (e1.code !== "ASR_BAD_JSON") throw e1;
+        raw = await window.GeminiFiles.transcribeAudio(key, up.fileUri, pendingAudio.mime); // 1 повтор
+        parsed = window.AsrTranscript.parseAsrResponse(raw);
+      }
+      if (!parsed.segments.length || parsed.warnings.includes("NO_SPEECH")) { setStatus("studio.import.errNoSpeech"); return; }
+      pendingAudio.parsed = parsed;
+      pendingAudio.validation = window.AsrTranscript.validateSegments(parsed.segments, pendingAudio.durationSec);
+      showPreview({
+        kind: "audio", source: pendingAudio.name, method: "gemini-asr",
+        model: window.AsrTranscript.ASR_MODEL,
+        warnings: parsed.warnings.concat(pendingAudio.validation.timingOk ? [] : ["ASR_TIMING_INVALID"]),
+        text: pendingAudio.validation.segments.map(function (s) { return s.text; }).join("\n"),
+      });
+    } catch (e) {
+      var code = e && e.code;
+      if (!code && e && (e.status != null)) code = window.GeminiError.classifyGeminiError(e).error_code;
+      setStatus(errKey(code || "UPLOAD_FAILED"));
+    } finally { setBusy(false); }
   }
 
   function showPreview(p) {
     pending = p;
     $("v3ImportPreview").value = p.text;
-    var provKey = { url: "studio.import.provUrl", image: "studio.import.provOcr", pdf: "studio.import.provPdf", docx: "studio.import.provDocx" }[p.kind];
+    var provKey = { url: "studio.import.provUrl", image: "studio.import.provOcr", pdf: "studio.import.provPdf", docx: "studio.import.provDocx", audio: "studio.import.provAudio" }[p.kind];
     var prov = tr(provKey) + " · " + p.source + (p.model ? " · " + p.model : "");
     if (p.warnings && p.warnings.length) prov += " · ⚠ " + tr("studio.import.warnCheck");
     $("v3ImportProv").textContent = prov;
@@ -61,6 +144,11 @@
     GEMINI_KEY_REJECTED: "studio.import.errKeyRejected",
     GEMINI_QUOTA: "studio.import.errQuota", GEMINI_OVERLOADED: "studio.import.errOverloaded",
     EXTRACT_BAD_JSON: "studio.import.errExtractBadJson",
+    // W2-S4 — audio ASR path
+    AUDIO_BAD_FILE: "studio.import.errAudioBadFile", AUDIO_TOO_LONG: "studio.import.errAudioTooLong",
+    UPLOAD_FAILED: "studio.import.errUpload", FILE_FAILED: "studio.import.errUpload", FILE_TIMEOUT: "studio.import.errUpload",
+    ASR_TIMEOUT: "studio.import.errOverloaded", ASR_BAD_JSON: "studio.import.errExtractBadJson",
+    NO_SPEECH: "studio.import.errNoSpeech",
   };
   function errKey(code) { return ERROR_KEY[code] || "studio.import.errGeneric"; }
 
@@ -69,6 +157,9 @@
     if (m) m.classList.remove("hidden");
     var pw = $("v3ImportPreviewWrap");
     if (pw) pw.hidden = true;
+    var ai = $("v3ImportAudioInfo");
+    if (ai) ai.hidden = true;
+    pendingAudio = null;
     setStatus(null);
   }
   function close() {
@@ -121,21 +212,50 @@
     reader.readAsDataURL(file);
   }
 
-  function useText() {
+  async function useText() {
     if (!pending) return;
     var text = ($("v3ImportPreview").value || "").trim(); // пользователь мог поправить в превью — это ок
     if (!text) { setStatus("studio.import.errEmpty"); return; }
+    var audioMetaForImport = null;
+    if (pending.kind === "audio" && pendingAudio && pendingAudio.validation) {
+      var lines = text.split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
+      var v = pendingAudio.validation;
+      var editedAway = lines.length !== v.segments.length;
+      var segs = editedAway
+        ? lines.map(function (t2, k) { return { i: k, start: null, text: t2 }; })
+        : v.segments.map(function (s, k) { return { i: k, start: s.start, text: lines[k] }; });
+      var dropReason = editedAway ? "PREVIEW_EDITED" : (v.timingOk ? null : v.dropReason);
+      var fileName = window.MediaStore.mediaFileName(pendingAudio.sha256, pendingAudio.mime, pendingAudio.name);
+      // OPFS-запись; недоступна (старый Safari) → session-only blob + честный warning
+      window.v3SessionMediaBlob = null;
+      var saved = window.MediaStore.canWrite()
+        ? await window.MediaStore.saveMedia(pendingAudio.buf, fileName)
+        : { ok: false, reason: "NO_CREATE_WRITABLE" };
+      audioMetaForImport = {
+        v: 1,
+        media: { opfsPath: saved.ok ? fileName : null, sessionOnly: !saved.ok, sha256: pendingAudio.sha256,
+                 mime: pendingAudio.mime, sizeBytes: pendingAudio.file.size,
+                 durationSec: pendingAudio.durationSec, originalName: pendingAudio.name },
+        asr: { method: "gemini-asr", model: window.AsrTranscript.ASR_MODEL, at: new Date().toISOString(),
+               language: pendingAudio.parsed.language, filesApi: true, warnings: pendingAudio.parsed.warnings },
+        segments: segs, timing: null, timingDropReason: dropReason,
+      };
+      if (!saved.ok) window.v3SessionMediaBlob = pendingAudio.file;
+      if (editedAway) toast("studio.import.audioTimingDropped", "warning");
+    }
     var input = $("inputText");
     input.value = text;
     input.dispatchEvent(new Event("input", { bubbles: true })); // пусть существующие слушатели Студии отработают
     window.v3LastImportMeta = {
       kind: pending.kind, source: pending.source, method: pending.method, model: pending.model,
       warnings: pending.warnings, at: new Date().toISOString(), textSnapshot: text,
+      audio: audioMetaForImport || undefined,
     };
     close();
     toast(pending.warnings && pending.warnings.length ? "studio.import.warnCheck" : "studio.import.done",
           pending.warnings && pending.warnings.length ? "warning" : "success");
   }
 
-  window.StudioImport = { open: open, close: close, fetchUrl: fetchUrl, onFileChosen: onFileChosen, useText: useText };
+  window.StudioImport = { open: open, close: close, fetchUrl: fetchUrl, onFileChosen: onFileChosen,
+                           onAudioChosen: onAudioChosen, transcribeAudio: transcribeAudio, useText: useText };
 })();

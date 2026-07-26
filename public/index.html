@@ -2234,6 +2234,8 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
         .v3-modal button.btn-console,
         .v3-modal button.btn-word,
         .v3-modal button.btn-anki { width: auto; }
+        /* W2-S4: Импорт → Аудио — тот же mobile-трап, тот же паттерн исключения */
+        .v3-import-audio button, #v3ImportAudioInfo button { width: auto; }
 
         .export-actions { margin-left: 0; width: 100%; flex-direction: column; }
         .hotkeys-header { flex-direction: column; align-items: flex-start; }
@@ -3518,6 +3520,28 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 }
 .btn-secondary:hover { background: var(--theme-bg-muted); }
 .btn-secondary:active { transform: translateY(1px); }
+
+/* W2-S4: Импорт → Аудио — label wrapping a hidden <input type=file> needs its
+   own button-look (it isn't a <button> so .btn-secondary's tag-qualified mobile
+   rules never apply to it, but it also isn't styled by anything by default). */
+.v3-import-audio { margin-top: 10px; }
+.v3-import-file-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--theme-bg-hover);
+  color: var(--theme-text-primary);
+  border: 1px solid var(--theme-border-medium);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.05s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.v3-import-file-btn:hover { background: var(--theme-bg-muted); }
+.v3-import-file-btn:active { transform: translateY(1px); }
+#v3ImportAudioInfo { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+#v3ImportAudioInfo[hidden] { display: none; } /* [hidden] vs author-display trap — see feedback_hidden_attr_vs_display */
 
 /* P2-1: modal open animation */
 @keyframes v3ModalIn {
@@ -12302,6 +12326,16 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      renderTable is untouched (smoke:reader-parity) — wrapping is post-render only. -->
 <script src="/js/reader-morph.js"></script>
 <script src="/js/studio-karaoke.js"></script>
+
+<!-- W2-S4 Studio Ingest audio deps — LOAD ORDER LOAD-BEARING: gemini-error before
+     asr-transcript before media-store before gemini-files (gemini-files resolves
+     MODEL at IIFE-load from window.AsrTranscript) before studio-media-karaoke,
+     all before studio-import.js which consumes them. -->
+<script src="/js/gemini-error.js"></script>
+<script src="/js/asr-transcript.js"></script>
+<script src="/js/media-store.js"></script>
+<script src="/js/gemini-files.js"></script>
+<script src="/js/studio-media-karaoke.js"></script>
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
 <script src="/js/studio-import.js" defer></script>
@@ -45993,6 +46027,19 @@ document.addEventListener("i18n:changed", function () {
         <label class="input-label" style="display:block; margin-bottom:6px;" data-i18n="studio.import.fileLabel">Или файл: фото / PDF / Word (до 6MB)</label>
         <input id="v3ImportFile" type="file" accept="image/jpeg,image/png,image/webp,.pdf,application/pdf,.docx" style="display:none" onchange="StudioImport.onFileChosen(event)">
         <button type="button" class="btn-secondary" onclick="document.getElementById('v3ImportFile').click()" data-i18n="studio.import.fileBtn">Выбрать файл…</button>
+      </div>
+
+      <div class="v3-import-audio">
+        <label class="v3-import-file-btn">
+          <span data-i18n="studio.import.audioBtn">Аудио (иврит) → транскрипт</span>
+          <input type="file" id="v3ImportAudio" accept="audio/*,.m4a,.oga,.opus" hidden
+                 onchange="StudioImport.onAudioChosen(event)">
+        </label>
+        <div id="v3ImportAudioInfo" hidden>
+          <span id="v3ImportAudioMeta"></span>
+          <button type="button" id="v3ImportAudioGo" class="btn-secondary"
+                  onclick="StudioImport.transcribeAudio()"></button>
+        </div>
       </div>
 
       <div id="v3ImportStatus" style="margin-top:10px; font-size:13px; color:#6c757d;" aria-live="polite"></div>

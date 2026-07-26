@@ -3050,6 +3050,18 @@ window.I18N_LOCALES.he = {
       errOverloaded: "Gemini עמוס כעת. נסו שוב בעוד דקה.",
       errExtractBadJson: "לא ניתן לפענח את תשובת המודל. נסו קובץ אחר או צילום ברור יותר.",
       errGeneric: "הייבוא נכשל — נסו שוב",
+      // W2-S4 — ייבוא ← אודיו (BYOK Gemini ASR)
+      audioBtn: "אודיו (עברית) → תמלול",
+      audioGo: "תמלל",
+      audioUploading: "מעלה אודיו ל-Google…",
+      audioProcessing: "Google מעבד את הקובץ…",
+      audioTranscribing: "מתמלל… (עד 2–3 דק׳)",
+      errAudioBadFile: "לא ניתן לקרוא את קובץ האודיו",
+      errAudioTooLong: "האודיו ארוך מ-20 דקות — מגבלת גרסה זו",
+      errUpload: "ההעלאה ל-Google נכשלה — נסו שוב",
+      errNoSpeech: "לא נמצא דיבור באודיו",
+      audioTimingDropped: "העריכות שינו את מספר השורות — הקריוקי כובה",
+      provAudio: "אודיו → תמלול ASR (Gemini)",
     },
   },
   kmquiz: {

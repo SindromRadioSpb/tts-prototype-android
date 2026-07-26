@@ -3054,6 +3054,18 @@ window.I18N_LOCALES.ru = {
       errOverloaded: "Gemini сейчас перегружен. Попробуйте через минуту.",
       errExtractBadJson: "Не удалось разобрать ответ модели. Попробуйте другой файл или снимок получше.",
       errGeneric: "Ошибка импорта — попробуйте ещё раз",
+      // W2-S4 — Импорт → Аудио (BYOK Gemini ASR)
+      audioBtn: "Аудио (иврит) → транскрипт",
+      audioGo: "Транскрибировать",
+      audioUploading: "Загрузка аудио в Google…",
+      audioProcessing: "Google обрабатывает файл…",
+      audioTranscribing: "Транскрибирование… (до 2–3 мин)",
+      errAudioBadFile: "Не удалось прочитать аудио-файл",
+      errAudioTooLong: "Аудио длиннее 20 минут — лимит v1",
+      errUpload: "Не удалось загрузить аудио в Google — повторите",
+      errNoSpeech: "Речь в аудио не найдена",
+      audioTimingDropped: "Правки изменили число строк — караоке отключено",
+      provAudio: "Аудио → ASR-транскрипт (Gemini)",
     },
   },
   kmquiz: {
