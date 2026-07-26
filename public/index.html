@@ -1813,22 +1813,16 @@ td.col-action-cell {
     }
 }
 
-/* W2-S4 Task 10: media bar («▶ Оригинал») + per-row segment-replay + active-segment
-   highlight. #v3MediaBar button — ID selector always wins the mobile
-   button{width:100%} trap (see CLAUDE.md §CSS-ловушки), no !important needed. */
+/* W2-S4 Task 10: media bar («▶ Оригинал») + per-row segment-replay. #v3MediaBar
+   button — ID selector always wins the mobile button{width:100%} trap (see CLAUDE.md
+   §CSS-ловушки), no !important needed. NOTE: the active-segment row highlight
+   (.smk-row-active) does NOT live here — it's integrated into the single-source-of-truth
+   row-highlight priority block at ~:3080 (Week 6 P0 LOCKED) per code review, since it
+   must be ordered against .row-playing/.row-selected/etc., not applied standalone. */
 #v3MediaBar { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
 #v3MediaBar button { width: auto; }
 #v3MediaBar[hidden] { display: none; }        /* [hidden] vs display-ловушка */
 .v3-media-note { font-size: 12px; color: #6c757d; }
-/* #proTable-qualified + !important: the plain `.smk-row-active td { background: ... }`
-   given in the brief loses to `#proTable tbody tr:nth-child(even) td` (ID-qualified zebra
-   stripe, higher specificity) on every even-indexed row — silently invisible highlight.
-   Matches the existing .row-playing/.row-selected pattern (index.html ~3086-3094) which
-   both qualify with #proTable + !important for the same reason. */
-#proTable tbody tr.smk-row-active td,
-#proTable tbody tr.smk-row-active td.rtl {
-  background: rgba(255, 193, 7, 0.28) !important;
-}
 .smk-row-replay { width: auto; padding: 0 6px; margin-inline-start: 4px; font-size: 12px; }
 
 
@@ -3080,7 +3074,8 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 /* =========================================================
    Week 6 (Row UX) — P0 LOCKED: Row highlight system
    Single source of truth. Do not add other td background rules below.
-   Priority: error > playing > selected > focus-within > hover > active
+   Priority: error > playing > smk-row-active (W2-S4 Task 10: audio-position
+   during media-karaoke playback) > selected > focus-within > hover > active
    ========================================================= */
 
 /* 0) Error — всегда сильнее любых интерактивных подсветок */
@@ -3095,35 +3090,43 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   background-color: var(--row-hl-playing) !important;
 }
 
-/* 2) Selected (last played) */
-#proTable tbody tr.row-selected:not(.row-error) td,
-#proTable tbody tr.row-selected:not(.row-error) td.rtl {
+/* 2) W2-S4 Task 10 — smk-row-active: current segment of media-karaoke playback
+   (studio-media-karaoke.js paintRange()). Outranks selected (a tapped/last-played
+   row must not mask the running audio position) but loses to playing/error. */
+#proTable tbody tr.smk-row-active:not(.row-error):not(.row-playing) td,
+#proTable tbody tr.smk-row-active:not(.row-error):not(.row-playing) td.rtl {
+  background: rgba(255, 193, 7, 0.28) !important;
+}
+
+/* 3) Selected (last played) */
+#proTable tbody tr.row-selected:not(.smk-row-active):not(.row-error) td,
+#proTable tbody tr.row-selected:not(.smk-row-active):not(.row-error) td.rtl {
   background-color: var(--row-hl-selected) !important;
 }
 
-/* 3) Focus within row (keyboard / focus on ▶ button, etc.) */
-#proTable tbody tr:focus-within:not(.row-playing):not(.row-selected):not(.row-error) td,
-#proTable tbody tr:focus-within:not(.row-playing):not(.row-selected):not(.row-error) td.rtl {
+/* 4) Focus within row (keyboard / focus on ▶ button, etc.) */
+#proTable tbody tr:focus-within:not(.smk-row-active):not(.row-playing):not(.row-selected):not(.row-error) td,
+#proTable tbody tr:focus-within:not(.smk-row-active):not(.row-playing):not(.row-selected):not(.row-error) td.rtl {
   background-color: var(--row-hl-focus) !important;
 }
 
-/* 4) Hover (desktop) */
+/* 5) Hover (desktop) */
 @media (hover: hover) and (pointer: fine) {
-  #proTable tbody tr:hover:not(.row-playing):not(.row-selected):not(.row-error) td,
-  #proTable tbody tr:hover:not(.row-playing):not(.row-selected):not(.row-error) td.rtl {
+  #proTable tbody tr:hover:not(.smk-row-active):not(.row-playing):not(.row-selected):not(.row-error) td,
+  #proTable tbody tr:hover:not(.smk-row-active):not(.row-playing):not(.row-selected):not(.row-error) td.rtl {
     background-color: var(--row-hl-hover) !important;
   }
 }
 
-/* 5) Active (touch) */
+/* 6) Active (touch) */
 @media (hover: none), (pointer: coarse) {
-  #proTable tbody tr:active:not(.row-playing):not(.row-selected):not(.row-error) td,
-  #proTable tbody tr:active:not(.row-playing):not(.row-selected):not(.row-error) td.rtl {
+  #proTable tbody tr:active:not(.smk-row-active):not(.row-playing):not(.row-selected):not(.row-error) td,
+  #proTable tbody tr:active:not(.smk-row-active):not(.row-playing):not(.row-selected):not(.row-error) td.rtl {
     background-color: var(--row-hl-active) !important;
   }
 }
 
-/* 6) Убираем “пятна” от внутренних flex-обёрток (кнопку не трогаем) */
+/* 7) Убираем “пятна” от внутренних flex-обёрток (кнопку не трогаем) */
 #proTable tbody td .cell-he-wrap,
 #proTable tbody td .row-tts-text {
   background: transparent !important;
@@ -23414,7 +23417,12 @@ function v3MediaAugmentRows() {
     if (scheduled) return;
     scheduled = true;
     requestAnimationFrame(() => { scheduled = false;
-      if (!document.querySelector("#proTable .smk-row-replay")) v3MediaAugmentRows(); });
+      // Re-augment when audio+timing is active AND any row lacks its replay button —
+      // NOT just "no button anywhere" (that skipped rows added later via edit-mode
+      // "+ Строка" while other rows already had buttons). Augmentation fills every
+      // row so this condition self-extinguishes — no observer loop.
+      var a = window.v3ActiveMediaAudio;
+      if (a && a.timing && document.querySelector('#proTable tbody tr[data-row-idx]:not(:has(.smk-row-replay))')) v3MediaAugmentRows(); });
   }).observe(container, { childList: true, subtree: true });
 })();
 
