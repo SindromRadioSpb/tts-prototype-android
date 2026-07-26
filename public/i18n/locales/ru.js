@@ -607,6 +607,7 @@ window.I18N_LOCALES.ru = {
     provMethodWord: "из документа Word (без ИИ)",
     provMethodOcr: "распознано ИИ с фото",
     provMethodPdf: "извлечено ИИ из PDF",
+    provMethodAsr: "Распознавание речи (Gemini)",
   },
 
   // ── Direction 9 Premium Notes (Phase 9.1.E i18n finalization) ────────

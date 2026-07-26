@@ -31955,6 +31955,7 @@ function v3TextMetaRenderProvenance(source) {
     "docx-xml":    T("textMeta.provMethodWord", "из документа Word (без ИИ)"),
     "gemini-ocr":  T("textMeta.provMethodOcr", "распознано ИИ с фото"),
     "gemini-pdf":  T("textMeta.provMethodPdf", "извлечено ИИ из PDF"),
+    "gemini-asr":  T("textMeta.provMethodAsr", "Распознавание речи (Gemini)"),
   };
   const k = KIND[source.kind] || { icon: "📄", label: esc(source.kind) };
   const isAi = source.method === "gemini-ocr" || source.method === "gemini-pdf" || source.method === "gemini-asr";

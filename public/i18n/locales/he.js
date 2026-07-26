@@ -611,6 +611,7 @@ window.I18N_LOCALES.he = {
     provMethodWord: "ממסמך Word (ללא AI)",
     provMethodOcr: "זוהה ע\"י AI מתמונה",
     provMethodPdf: "חולץ ע\"י AI מ-PDF",
+    provMethodAsr: "זיהוי דיבור (Gemini)",
   },
 
   // ── Direction 9 Premium Notes — Phase 9.1.E i18n (HE)

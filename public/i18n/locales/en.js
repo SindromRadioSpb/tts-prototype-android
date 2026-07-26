@@ -606,6 +606,7 @@ window.I18N_LOCALES.en = {
     provMethodWord: "from Word document (no AI)",
     provMethodOcr: "AI-recognized from photo",
     provMethodPdf: "AI-extracted from PDF",
+    provMethodAsr: "Speech recognition (Gemini)",
   },
 
   // ── Direction 9 Premium Notes — Phase 9.1.E i18n
