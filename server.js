@@ -23,6 +23,7 @@ const {
 } = require("./storage");
 
 const { isPlausibleGeminiKey } = require("./ingest/geminiKey");
+const segTable = require("./ingest/segTable.js");
 
 // v3.0 foundation: SQLite (Library/Progress source of truth)
 const { initDb, getDbHealth, ensureAudioAssetsDurationMsColumn } = require("./db/sqlite");
@@ -6240,7 +6241,8 @@ app.post("/api/save-audio", async (req, res) => {
 // --------------------------------------------------------
 // 9. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ GEMINI
 // --------------------------------------------------------
-function buildRowsFromGeminiPayload(parsed, options) {
+function buildRowsFromGeminiPayload(parsed, options, opts) {
+  opts = opts || {};
   if (!parsed || typeof parsed !== "object") {
     throw new Error("Пустой ответ от Gemini");
   }
@@ -6300,13 +6302,17 @@ function buildRowsFromGeminiPayload(parsed, options) {
         }
       }
 
-      return {
+      const out = {
         segmentId: segIndex,
         he: heBase || "",
         he_niqqud: row.he_niqqud || "",
         translit: row.translit || "",
         ru: row.ru || "",
       };
+      if (opts.keepSegmentIndex && Number.isInteger(row.segment_index)) {
+        out.segment_index = row.segment_index;
+      }
+      return out;
     })
     .filter((row) => {
       if (direction === "any-he" && !row.he) {
@@ -6427,7 +6433,17 @@ app.post("/api/translate-table", async (req, res) => {
       });
     }
 
-    if (!text || typeof text !== "string" || !text.trim()) {
+    // W2-S4: сегмент-режим (пре-сегментированный ASR-транскрипт). Только he-ru.
+    const segMode = req.body && req.body.segments != null;
+    if (segMode) {
+      if (direction !== "he-ru") {
+        return res.status(400).json({ error: "segments допустим только с direction he-ru", error_code: "BAD_SEGMENTS" });
+      }
+      const sv = segTable.validateSegmentsInput(req.body.segments);
+      if (!sv.ok) return res.status(400).json({ error: "Некорректные segments", error_code: sv.error_code });
+    }
+
+    if (!segMode && (!text || typeof text !== "string" || !text.trim())) {
       return res.status(400).json({ error: "Нет текста" });
     }
 
@@ -6448,9 +6464,9 @@ app.post("/api/translate-table", async (req, res) => {
     }
     const ai = new GoogleGenerativeAI(trimmedKey);
 
-    const cleanText = text.trim();
+    const cleanText = segMode ? segTable.buildSegInput(req.body.segments) : text.trim();
 
-    const promptId = direction === "any-he" ? "any-he-table-v1" : "he-ru-table-v1";
+    const promptId = segMode ? "he-ru-table-seg-v1" : (direction === "any-he" ? "any-he-table-v1" : "he-ru-table-v1");
     const hashInput = `${promptId}||${cleanText}`;
     const hashKey = crypto.createHash("sha256").update(hashInput).digest("hex");
     const cacheFile = path.join(geminiCacheDir, `${hashKey}.json`);
@@ -6465,6 +6481,7 @@ app.post("/api/translate-table", async (req, res) => {
             fromCache: true,
             cacheKey: hashKey,
             cachedAt: cached.createdAt || null,
+            warnings: Array.isArray(cached.warnings) ? cached.warnings : [],
           });
         }
       } catch (e) {
@@ -6474,7 +6491,9 @@ app.post("/api/translate-table", async (req, res) => {
 
     const model = ai.getGenerativeModel({ model: "gemini-flash-latest" });
 
-    const prompt = direction === "any-he" ? ANY_HE_PROMPT(cleanText) : HE_RU_PROMPT(cleanText);
+    const prompt = segMode
+      ? segTable.HE_RU_SEG_PROMPT(cleanText)
+      : (direction === "any-he" ? ANY_HE_PROMPT(cleanText) : HE_RU_PROMPT(cleanText));
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
@@ -6499,7 +6518,7 @@ app.post("/api/translate-table", async (req, res) => {
 
     let preparedRows;
     try {
-      preparedRows = buildRowsFromGeminiPayload(parsed, { direction });
+      preparedRows = buildRowsFromGeminiPayload(parsed, { direction }, { keepSegmentIndex: segMode });
     } catch (e) {
       console.error("Gemini payload error:", e);
       return res.status(500).json({
@@ -6509,9 +6528,18 @@ app.post("/api/translate-table", async (req, res) => {
       });
     }
 
+    let warnings = [];
+    if (segMode) {
+      if (!segTable.validateSegMapping(preparedRows, req.body.segments.length)) {
+        preparedRows.forEach((r) => { delete r.segment_index; });
+        warnings.push("SEG_MAPPING_LOST"); // честная деградация: таблица есть, тайминг клиент отбросит
+      }
+    }
+
     const cachePayload = {
       text: cleanText,
       rows: preparedRows,
+      warnings,
       createdAt: new Date().toISOString(),
     };
     try {
@@ -6527,6 +6555,7 @@ app.post("/api/translate-table", async (req, res) => {
       fromCache: false,
       cacheKey: hashKey,
       cachedAt: cachePayload.createdAt,
+      warnings,
     });
   } catch (error) {
     // Sanitize: log only flat scalars, never the raw error object (it can

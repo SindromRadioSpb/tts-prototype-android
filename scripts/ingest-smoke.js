@@ -1,15 +1,19 @@
 "use strict";
 
 // ───────────────────────────────────────────────────────────────────────────
-// Ingest smoke — Studio Ingest W1 (STUDIO_INGEST_W1_IMPLEMENTATION_PLAN_2026_07_25).
+// Ingest smoke — Studio Ingest W1 (STUDIO_INGEST_W1_IMPLEMENTATION_PLAN_2026_07_25)
+// + W2-S4 (STUDIO_INGEST_W2_S4_IMPLEMENTATION_PLAN_2026_07_26, Task 6).
 //
 // Deterministic, offline validation matrix for POST /api/ingest/fetch-url
 // (Task 4 — S1, checks 1-7), POST /api/ingest/extract-file (Task 6 — S2+S8,
 // checks 8-14; 14 added in fix round 1 to cover the cache-hit response shape),
-// and POST /api/translate-table (Task 7 — S3, check 15: direction validation).
+// POST /api/translate-table (Task 7 — S3, check 15: direction validation),
+// and the same route's segments[] mode (W2-S4 Task 6, checks 16-18: BAD_SEGMENTS
+// on non-he-ru direction, BAD_SEGMENTS on malformed segments, and the no-key
+// GEMINI_KEY_REQUIRED path with valid segments).
 // Every case uses a literal IP/syntactic reject, the local docx fixture, a
 // synthetic cache file written directly into the smoke server's geminiCacheDir,
-// or a request that 400s before any Gemini call is reached: no DNS lookup,
+// or a request that 400s/401s before any Gemini call is reached: no DNS lookup,
 // network call, or LLM call happens anywhere in this file — safe for CI, no
 // flakiness.
 // ───────────────────────────────────────────────────────────────────────────
@@ -313,6 +317,39 @@ async function run() {
         { text: "привет", direction: "nope" },
         400,
         "BAD_DIRECTION"
+      );
+      allPassed = allPassed && ok;
+    }
+
+    // W2-S4: segments[] mode (he-ru-table-seg-v1) — deterministic 4xx cases,
+    // no Gemini call reached in any of them (segMode validation runs before
+    // the BYOK key check, except case 18 which is exactly the no-key path).
+    {
+      const ok = await expectTranslateTableCase(
+        "16. POST /api/translate-table {direction:\"any-he\", segments:[...]} -> 400 BAD_SEGMENTS (segments only allowed with he-ru)",
+        { direction: "any-he", segments: [{ i: 0, text: "x" }], geminiApiKey: "AIzaFake123456789012345" },
+        400,
+        "BAD_SEGMENTS"
+      );
+      allPassed = allPassed && ok;
+    }
+
+    {
+      const ok = await expectTranslateTableCase(
+        "17. POST /api/translate-table {direction:\"he-ru\", segments:[{i:5,...}]} -> 400 BAD_SEGMENTS (index != position)",
+        { direction: "he-ru", segments: [{ i: 5, text: "x" }], geminiApiKey: "AIzaFake123456789012345" },
+        400,
+        "BAD_SEGMENTS"
+      );
+      allPassed = allPassed && ok;
+    }
+
+    {
+      const ok = await expectTranslateTableCase(
+        "18. POST /api/translate-table {direction:\"he-ru\", segments:[...]} (no key) -> 401 GEMINI_KEY_REQUIRED",
+        { direction: "he-ru", segments: [{ i: 0, text: "שלום" }] },
+        401,
+        "GEMINI_KEY_REQUIRED"
       );
       allPassed = allPassed && ok;
     }
