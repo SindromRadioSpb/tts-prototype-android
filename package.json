@@ -209,6 +209,7 @@
     "smoke:reader-karaoke": "node scripts/premium/reader-karaoke-smoke.js",
     "smoke:reader-karaoke-words": "node scripts/premium/reader-karaoke-words-smoke.js",
     "smoke:studio-karaoke": "node scripts/premium/studio-karaoke-smoke.js",
+    "smoke:media-karaoke": "node scripts/media-karaoke-smoke.js",
     "smoke:reader-morph": "node scripts/premium/reader-morph-smoke.js",
     "smoke:reader-morph:audit": "node scripts/premium/reader-morph-audit.js",
     "smoke:reader-cloze:audit": "node scripts/premium/reader-cloze-audit.js",
