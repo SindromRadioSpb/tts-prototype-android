@@ -153,3 +153,10 @@ public/data/benyehuda/fts/
 # build-proclitic-overlay.js --bake. The frozen gold overlay-fixture.json IS committed (research).
 public/data/benyehuda/proclitic/
 public/data/benyehuda/context/
+
+# EXCEPTION: W2-S4 ingest-audio live-smoke fixture — a small, committed MP3
+# under a directory literally named `audio/`, which the generic `audio/` and
+# `*.mp3` runtime-data rules above would otherwise silently swallow (same
+# re-include pattern as the Pealim inflection dataset exception above).
+!scripts/premium/fixtures/ingest/audio/
+!scripts/premium/fixtures/ingest/audio/**
