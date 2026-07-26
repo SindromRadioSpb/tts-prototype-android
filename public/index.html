@@ -18671,6 +18671,13 @@ function ensureRowAudioPlayer() {
 // click delegate calling StudioMediaKaraoke.stop() — see initRowUxDelegatesOnce().
 window.v3StopRowAudio = function () {
     try { if (rowAudioPlayer) rowAudioPlayer.pause(); } catch (_) {}
+    // W2-S4 final review: also stop a running playlist (rowPlaylistRunActive) so the
+    // row-playing tint (outranks karaoke highlight) doesn't linger — mirrors the
+    // #btnPlaylistRun stop-toggle path (see click handler above). Fully defensive:
+    // each step typeof/try-catch guarded so a missing helper can never break row playback.
+    try { if (typeof rowPlaylistRunActive !== "undefined") rowPlaylistRunActive = false; } catch (_) {}
+    try { if (typeof clearRowPlayingState === "function") clearRowPlayingState(false); } catch (_) {}
+    try { if (typeof updatePlaylistButtonUI === "function") updatePlaylistButtonUI(); } catch (_) {}
 };
 
 function clearRowPlayingState(alsoClearSelected) {
@@ -23303,7 +23310,11 @@ function v3AttachImportSource() {
 function v3AttachAudioTiming(res) {
   try {
     const src = v3LastGeminiMeta && v3LastGeminiMeta.source;
-    if (!src || !src.audio) { window.v3ActiveMediaAudio = null; return; }
+    if (!src || !src.audio) {
+      window.v3ActiveMediaAudio = null;
+      if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
+      return;
+    }
     const audio = src.audio;
     const rows = (res && res.rows) || [];
     const lost = ((res && res.warnings) || []).includes("SEG_MAPPING_LOST");
