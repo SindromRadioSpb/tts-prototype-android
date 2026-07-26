@@ -154,7 +154,7 @@ BYOK-ключ, исполнитель Claude. Hermes-scaleup (исполните
 5. **S2** — PDF/Word → таблица / в Зал (+ мини-gold-чек извлечения иврита ДО открытия пилотникам).
 
 ### Wave 2 — «медиа-ядро»
-6. **S4** — аудио-файл → транскрипт → таблица + честное сегмент-караоке.
+6. **S4** — аудио-файл → транскрипт → таблица + честное сегмент-караоке. ✅ **SHIPPED v3.11.246 2026-07-26, прод-верифицировано** (owner-приёмка на реальном аудио — pending); дизайн `STUDIO_INGEST_W2_S4_AUDIO_KARAOKE_DESIGN_2026_07_26.md`, план `STUDIO_INGEST_W2_S4_IMPLEMENTATION_PLAN_2026_07_26.md`.
 7. **S5a** — видео с субтитрами → таблица + караоке из VTT.
 8. **S10** — PWA share_target (мобильный инжест во все сценарии).
 9. **S11** — graded-пересказ как опция выхода любого инжеста.
@@ -219,7 +219,7 @@ BYOK-ключ, исполнитель Claude. Hermes-scaleup (исполните
    - ✅ **PDF-gold — качество извлечения OWNER-ACCEPTED 2026-07-26** (владелец прогнал несколько
      реальных иврит-PDF через `scripts/premium/ingest-pdf-gold.js`, качество устроило).
    → **Wave 1 разблокирована для анонса пилотным ученикам; Wave 2 разблокирована для старта.**
-2. ⬜ При старте Wave 2 — дизайн-заметка по Gemini Files API (BYOK, длинные медиа) и share_target.
+2. ✅ **W2-S4 SHIPPED v3.11.246 2026-07-26** (первый слайс Wave 2): аудио ≤20 мин → браузер→Gemini Files API (BYOK, live-spike GO: CORS/`x-goog-upload-url` подтверждён из браузера, AQ.-ключ) → ASR-транскрипт → seg-режим `/api/translate-table` (`he-ru-table-seg-v1`, строки несут `segment_index`) → честное сегмент-караоке (`studio-media-karaoke.js`: «▶ Оригинал», диапазон-подсветка, tap-seek, повтор сегмента у строки) → OPFS `media/<sha256>`, паспорт в `source_meta_json.audio`. 19 коммитов a8c1216e..37256997; 6 fix-раундов по adversarial-ревью (0/1-based heBase-коллизия, stale-timing, CSS-приоритет, KIND/METHOD-лейблы и др.). Fast-follows W2-S4.1: coverage-чек `validateSegMapping`, клиентский guard `MAX_SEG_TEXT`, rAF-pause cleanup, `errTooLarge`-формулировка для аудио, OPFS orphan-GC (R15). ⚠ Открытие для владельца: `AGENT_GEMINI_API_KEY` на проде исчерпал prepay-кредиты (429) — агентские LLM-фичи на проде падают, требуется пополнение. Дизайн-заметка share_target — при следующем слайсе W2 (S5a/S10).
 3. ⬜ Триггер пересмотра B: доказанный спрос на S5b + синхронизация с Hermes-Д2/Д7.
 4. ⬜ **Deploy sign-off follow-up:** подтвердить, что Traefik перезаписывает/нормализует
    `X-Forwarded-For` (per-IP rate-limiter — единственная граница новой серверной fetch-поверхности).
