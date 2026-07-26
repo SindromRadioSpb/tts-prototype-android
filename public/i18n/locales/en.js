@@ -3034,7 +3034,7 @@ window.I18N_LOCALES.en = {
       errTooLarge: "File/page too large (6MB limit)",
       errEmpty: "Could not extract any text",
       errBadFile: "Unsupported or corrupted file",
-      errNoKey: "Photo/PDF requires your Gemini key (settings → Gemini API Key)",
+      errNoKey: "Import requires your Gemini key (settings → Gemini API Key)",
       errKeyRejected: "Google rejected your Gemini key as invalid. Check the key in settings — get a working key at aistudio.google.com.",
       errQuota: "Gemini daily limit reached. Please try later.",
       errOverloaded: "Gemini is overloaded right now. Please try again in a minute.",

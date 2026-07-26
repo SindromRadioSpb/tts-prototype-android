@@ -3048,7 +3048,7 @@ window.I18N_LOCALES.ru = {
       errTooLarge: "Слишком большой файл/страница (лимит 6MB)",
       errEmpty: "Не удалось извлечь текст",
       errBadFile: "Неподдерживаемый или повреждённый файл",
-      errNoKey: "Для фото/PDF нужен ваш Gemini-ключ (настройки → Gemini API Key)",
+      errNoKey: "Для импорта нужен ваш Gemini-ключ (настройки → Gemini API Key)",
       errKeyRejected: "Google отклонил ваш Gemini-ключ как недействительный. Проверьте ключ в настройках — рабочий ключ можно получить на aistudio.google.com.",
       errQuota: "Дневной лимит Gemini исчерпан. Попробуйте позже.",
       errOverloaded: "Gemini сейчас перегружен. Попробуйте через минуту.",

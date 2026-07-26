@@ -3044,7 +3044,7 @@ window.I18N_LOCALES.he = {
       errTooLarge: "קובץ/עמוד גדול מדי (מגבלה 6MB)",
       errEmpty: "לא ניתן לחלץ טקסט",
       errBadFile: "קובץ לא נתמך או פגום",
-      errNoKey: "לתמונה/PDF נדרש מפתח Gemini שלכם (הגדרות ← Gemini API Key)",
+      errNoKey: "לייבוא נדרש מפתח Gemini שלכם (הגדרות ← Gemini API Key)",
       errKeyRejected: "Google דחה את מפתח ה-Gemini שלכם כלא תקין. בדקו את המפתח בהגדרות — מפתח תקין ניתן לקבל ב-aistudio.google.com.",
       errQuota: "מכסת Gemini היומית מוצתה. נסו מאוחר יותר.",
       errOverloaded: "Gemini עמוס כעת. נסו שוב בעוד דקה.",
