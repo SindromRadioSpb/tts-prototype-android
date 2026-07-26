@@ -13644,6 +13644,13 @@ if (header) {
     // stale import-provenance passport — mirrors v3LastGeminiMeta reset above.
     try { window.v3LastImportMeta = null; } catch (_) {}
     try {
+      window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
+      if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
+      if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
+    } catch (_) {}
+    // W2-S4: restore this text's own media passport (if any) from the meta just parsed above.
+    try { v3RestoreMediaFromMeta(v3LastGeminiMeta); } catch (_) {}
+    try {
       if (window.v3SetActiveLibraryTextMeta) {
         window.v3SetActiveLibraryTextMeta({
           textId: String(textId),
@@ -20811,6 +20818,11 @@ updatePlaylistButtonUI();
         // must not inherit a stale import passport (mirrors v3LastGeminiMeta
         // reset on Library entity-change, see the two open-text loaders above).
         try { window.v3LastImportMeta = null; } catch (_) {}
+        try {
+          window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
+          if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
+          if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
+        } catch (_) {}
 		// сброс состояния Row TTS (кэш строк оставляем — он полезен)
 try {
     if (rowAudioPlayer && !rowAudioPlayer.paused) rowAudioPlayer.pause();
@@ -23234,7 +23246,40 @@ function v3AttachImportSource() {
         warnings: im.warnings || [], at: im.at,
         edited: getText().trim() !== im.textSnapshot.trim(),
       };
+      if (im.kind === "audio" && im.audio) v3LastGeminiMeta.source.audio = im.audio;
     }
+  } catch (_) {}
+}
+
+// W2-S4: после ответа translate-table — построить/сохранить row-timing на паспорте аудио
+// (если он есть) и опубликовать активный аудио-паспорт для медиа-бара (Task 10).
+function v3AttachAudioTiming(res) {
+  try {
+    const src = v3LastGeminiMeta && v3LastGeminiMeta.source;
+    if (!src || !src.audio) { window.v3ActiveMediaAudio = null; return; }
+    const audio = src.audio;
+    const rows = (res && res.rows) || [];
+    const lost = ((res && res.warnings) || []).includes("SEG_MAPPING_LOST");
+    const anyIdx = rows.some((r) => Number.isInteger(r.segment_index));
+    if (!audio.timingDropReason && anyIdx && !lost) {
+      audio.timing = window.AsrTranscript.buildRowTiming(
+        audio.segments, rows.map((r) => (Number.isInteger(r.segment_index) ? r.segment_index : null)));
+      if (!audio.timing) audio.timingDropReason = "SEG_MAPPING_LOST";
+    } else if (!audio.timing) {
+      audio.timingDropReason = audio.timingDropReason || (lost ? "SEG_MAPPING_LOST" : audio.timingDropReason);
+    }
+    window.v3ActiveMediaAudio = audio;
+    if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh(); // Task 10
+  } catch (_) {}
+}
+
+// W2-S4: восстановить активный аудио-паспорт при открытии сохранённого текста из библиотеки.
+function v3RestoreMediaFromMeta(meta) {
+  try {
+    const audio = meta && meta.source && meta.source.audio;
+    window.v3ActiveMediaAudio = audio || null;
+    if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
+    if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
   } catch (_) {}
 }
 
@@ -24859,6 +24904,13 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
     // R9: entity change (opened a different Library text) invalidates any
     // stale import-provenance passport — mirrors v3LastGeminiMeta reset above.
     try { window.v3LastImportMeta = null; } catch (_) {}
+    try {
+      window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
+      if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
+      if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
+    } catch (_) {}
+    // W2-S4: restore this text's own media passport (if any) from the meta just parsed above.
+    try { v3RestoreMediaFromMeta(v3LastGeminiMeta); } catch (_) {}
     try {
       if (window.v3SetActiveLibraryTextMeta) {
         window.v3SetActiveLibraryTextMeta({
@@ -32529,6 +32581,20 @@ try { v3DashCloseViewMenu(); } catch (_) {}
     // ----------------------------
     // TRANSLATE TABLE
     // ----------------------------
+    // W2-S4: сегменты для сегмент-режима — только если импорт был аудио, направление he-ru
+    // и текущий текст построчно совпадает по числу строк с ASR-сегментами (иначе честно без тайминга).
+    function v3AudioSegmentsForRequest() {
+        try {
+            const im = window.v3LastImportMeta;
+            if (!im || im.kind !== "audio" || !im.audio || !Array.isArray(im.audio.segments)) return null;
+            if (im.audio.timingDropReason) return null;
+            if (getTableDirection() !== "he-ru") return null;
+            const lines = getText().split("\n").map((s) => s.trim()).filter(Boolean);
+            if (lines.length !== im.audio.segments.length) return null;
+            return lines.map((t2, k) => ({ i: k, text: t2 }));
+        } catch (_) { return null; }
+    }
+
     async function translateTable() {
         if (!validate()) return;
 
@@ -32627,7 +32693,11 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
                 translit_profile,
                 ...(provider === "gcp" ? { gcpTranslateApiKey: gcpTranslateKeyGet() } : {}),
               }
-            : { text: getText(), geminiApiKey: geminiKeyGet(), direction: getTableDirection() };
+            : (() => {
+                const segs = v3AudioSegmentsForRequest();
+                return { text: getText(), geminiApiKey: geminiKeyGet(), direction: getTableDirection(),
+                         ...(segs ? { segments: segs } : {}) };
+              })();
 
         try {
             const res = await apiCall(endpoint, payload);
@@ -32653,6 +32723,7 @@ try {
       generatedAt: new Date().toISOString()
     };
     v3AttachImportSource();
+    v3AttachAudioTiming(res);
   } else {
     v3LastGeminiMeta = {
       promptId: getTableDirection() === "any-he" ? "any-he-table-v1" : "he-ru-table-v1",
@@ -32663,6 +32734,7 @@ try {
       generatedAt: new Date().toISOString()
     };
     v3AttachImportSource();
+    v3AttachAudioTiming(res);
   }
 } catch (_) {}
 
