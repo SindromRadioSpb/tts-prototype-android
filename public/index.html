@@ -10771,7 +10771,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                                 <label class="input-label" style="margin-bottom:6px; display:block;">🔑 <span data-i18n="classic.geminiKeyLabel">Gemini API Key</span> <span style="font-weight:400; color:#6c757d;" data-i18n="classic.geminiKeySubtitle">(ваш личный ключ — Google AI Studio)</span></label>
                                 <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
                                     <input type="password" id="geminiApiKeyInput"
-                                           placeholder="AIzaSy…"
+                                           placeholder="AIzaSy… / AQ.…"
                                            autocomplete="off" spellcheck="false"
                                            style="flex:1; min-width:200px; padding:7px 10px; border:1px solid #ced4da; border-radius:6px; font-size:13px; font-family:monospace; background:#fff;">
                                     <button class="btn-secondary" onclick="geminiKeySave()" style="padding:5px 12px; white-space:nowrap;" title="Save key in this browser (localStorage)">💾 <span data-i18n="classic.geminiKeySave">Сохранить</span></button>
@@ -12206,9 +12206,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=66"></script>
-<script src="/i18n/locales/en.js?v=66"></script>
-<script src="/i18n/locales/he.js?v=66"></script>
+<script src="/i18n/locales/ru.js?v=67"></script>
+<script src="/i18n/locales/en.js?v=67"></script>
+<script src="/i18n/locales/he.js?v=67"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -32672,7 +32672,10 @@ try {
         if (!inp) return;
         const val = inp.value.trim();
         if (!val) { showError(t("classic.geminiKeyErrorEmpty")); return; }
-        if (!val.startsWith("AIza") || val.length < 20) {
+        // Google AI Studio выдаёт ключи двух форматов: классический "AIza…" и новый "AQ.…"
+        // (free tier). Оба валидны для generativelanguage — зеркалит серверный isPlausibleGeminiKey.
+        const okFmt = (val.startsWith("AIza") && val.length >= 20) || (val.startsWith("AQ.") && val.length >= 10);
+        if (!okFmt) {
             showError(t("classic.geminiKeyErrorFormat"));
             return;
         }

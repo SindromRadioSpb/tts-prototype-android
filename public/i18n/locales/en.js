@@ -198,7 +198,7 @@ window.I18N_LOCALES.en = {
     geminiKeySavedToast: "🔑 Gemini key saved",
     geminiKeyClearedToast: "Gemini key removed from browser",
     geminiKeyErrorEmpty: "Enter your Gemini API key",
-    geminiKeyErrorFormat: "Key must start with AIza… and have the standard length (Google AI Studio → API Keys)",
+    geminiKeyErrorFormat: "Key must start with AIza… or AQ.… (new free-tier format) — get it at Google AI Studio → API Keys",
     geminiKeyNotConfiguredError: "Enter your Gemini API key in Translation Settings (section «Gemini API Key»)",
     geminiKeyStorageNote: "Key is stored only in your browser and sent to the server over HTTPS with each translation. Enter the key on each device separately. Get a key:",
     gcpTtsKeyLabel: "GCP TTS API Key",

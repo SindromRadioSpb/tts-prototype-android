@@ -199,7 +199,7 @@ window.I18N_LOCALES.ru = {
     geminiKeySavedToast: "🔑 Ключ Gemini сохранён",
     geminiKeyClearedToast: "Ключ Gemini удалён из браузера",
     geminiKeyErrorEmpty: "Введите ключ Gemini API",
-    geminiKeyErrorFormat: "Ключ должен начинаться с AIza… и иметь стандартную длину (Google AI Studio → API Keys)",
+    geminiKeyErrorFormat: "Ключ должен начинаться с AIza… или AQ.… (новый формат free tier) — получить в Google AI Studio → API Keys",
     geminiKeyNotConfiguredError: "Укажите ключ Gemini API в настройках перевода (раздел «Gemini API Key»)",
     geminiKeyStorageNote: "Ключ хранится только в вашем браузере и передаётся серверу при каждом переводе по HTTPS. Введите ключ на каждом устройстве отдельно. Получить ключ:",
     gcpTtsKeyLabel: "GCP TTS API Key",

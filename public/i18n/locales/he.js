@@ -200,7 +200,7 @@ window.I18N_LOCALES.he = {
     geminiKeySavedToast: "🔑 מפתח Gemini נשמר",
     geminiKeyClearedToast: "מפתח Gemini הוסר מהדפדפן",
     geminiKeyErrorEmpty: "הזן את מפתח Gemini API",
-    geminiKeyErrorFormat: "המפתח חייב להתחיל ב-AIza… ולהיות באורך הסטנדרטי (Google AI Studio → API Keys)",
+    geminiKeyErrorFormat: "המפתח חייב להתחיל ב-AIza… או ב-AQ.… (פורמט חדש, free tier) — ניתן לקבל ב-Google AI Studio → API Keys",
     geminiKeyNotConfiguredError: "הגדר את מפתח Gemini API בהגדרות התרגום (קטע «Gemini API Key»)",
     geminiKeyStorageNote: "המפתח מאוחסן רק בדפדפן שלך ומועבר לשרת בכל תרגום דרך HTTPS. הזן את המפתח בכל מכשיר בנפרד. קבל מפתח:",
     gcpTtsKeyLabel: "GCP TTS API Key",
