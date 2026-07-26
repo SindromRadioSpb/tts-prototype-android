@@ -23265,8 +23265,9 @@ function v3AttachAudioTiming(res) {
       audio.timing = window.AsrTranscript.buildRowTiming(
         audio.segments, rows.map((r) => (Number.isInteger(r.segment_index) ? r.segment_index : null)));
       if (!audio.timing) audio.timingDropReason = "SEG_MAPPING_LOST";
-    } else if (!audio.timing) {
-      audio.timingDropReason = audio.timingDropReason || (lost ? "SEG_MAPPING_LOST" : audio.timingDropReason);
+    } else {
+      audio.timing = null; // R11: никогда не оставлять устаревший тайминг у нового ответа
+      if (!audio.timingDropReason) audio.timingDropReason = lost ? "SEG_MAPPING_LOST" : "NO_SEGMENT_MAPPING";
     }
     window.v3ActiveMediaAudio = audio;
     if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh(); // Task 10
