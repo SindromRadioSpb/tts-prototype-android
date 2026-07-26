@@ -3855,6 +3855,15 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 #v3TextMetaModal .v3-meta-provenance > div {
   margin: 1px 0;
 }
+/* W2-S4 Task 11 — audio sub-panel (Import → Audio provenance) */
+#v3TextMetaModal .v3-meta-provenance .v3-meta-prov-audio {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.12);
+}
+#v3TextMetaModal .v3-meta-provenance .v3-meta-prov-audio > div {
+  margin: 1px 0;
+}
 
 #v3AnkiModal .v3-help,
 #v3AudioPrefetchModal .v3-help {
@@ -31947,7 +31956,7 @@ function v3TextMetaRenderProvenance(source) {
     "gemini-pdf":  T("textMeta.provMethodPdf", "извлечено ИИ из PDF"),
   };
   const k = KIND[source.kind] || { icon: "📄", label: esc(source.kind) };
-  const isAi = source.method === "gemini-ocr" || source.method === "gemini-pdf";
+  const isAi = source.method === "gemini-ocr" || source.method === "gemini-pdf" || source.method === "gemini-asr";
   const rows = [];
   rows.push('<div style="font-weight:600;">' + esc(T("textMeta.provTitle", "Происхождение")) + '</div>');
   rows.push('<div>' + k.icon + ' ' + esc(T("textMeta.provSource", "Источник")) + ': ' + esc(k.label) +
@@ -31970,6 +31979,67 @@ function v3TextMetaRenderProvenance(source) {
   box.innerHTML = rows.join("");
   box.classList.toggle("v3-meta-prov-ai", isAi);
   box.style.display = "";
+
+  // W2-S4 Task 11: audio provenance sub-panel — rendered ONLY when this card
+  // came from Import → Audio (source.audio present). Built via DOM methods
+  // (not innerHTML-concatenation): media.originalName is externally-supplied
+  // (the user's uploaded filename), so it MUST land as textContent, never
+  // string-concatenated into markup (R9/R14 — never trust external strings).
+  const audio = source.audio;
+  if (audio && typeof audio === "object") {
+    const media = audio.media || {};
+    const asr = audio.asr || {};
+    const wrap = document.createElement("div");
+    wrap.className = "v3-meta-prov-audio";
+
+    const durSec = Number(media.durationSec) || 0;
+    const mm = Math.floor(durSec / 60);
+    const ss = String(Math.round(durSec % 60)).padStart(2, "0");
+    const fileRow = document.createElement("div");
+    fileRow.appendChild(document.createTextNode(T("studio.meta.audioFile", "Аудио-источник") + ": "));
+    const nameSpan = document.createElement("span");
+    nameSpan.textContent = String(media.originalName || "");
+    fileRow.appendChild(nameSpan);
+    fileRow.appendChild(document.createTextNode(" (" + mm + ":" + ss + ")"));
+    wrap.appendChild(fileRow);
+
+    // Model + transcription date reuse the generic AI-derived rows above
+    // (source.model === asr.model, source.at ≈ asr.at — both set moments
+    // apart in the same import step) — no separate row to avoid duplicate
+    // "Модель ИИ:"/"Импортировано:" lines with the same value.
+    if (asr.model && !source.model) {
+      const modelRow = document.createElement("div");
+      modelRow.textContent = T("textMeta.provModel", "Модель ИИ") + ": " + asr.model;
+      wrap.appendChild(modelRow);
+    }
+    if (!v3TextMetaFmtProvDate(source.at)) {
+      const asrDt = v3TextMetaFmtProvDate(asr.at);
+      if (asrDt) {
+        const dtRow = document.createElement("div");
+        dtRow.textContent = T("textMeta.provImportedAt", "Импортировано") + ": " + asrDt;
+        wrap.appendChild(dtRow);
+      }
+    }
+
+    const segRow = document.createElement("div");
+    const segCount = Array.isArray(audio.segments) ? audio.segments.length : 0;
+    segRow.textContent = T("studio.meta.audioSegments", "Сегментов") + ": " + segCount;
+    wrap.appendChild(segRow);
+
+    const karRow = document.createElement("div");
+    let karStatus;
+    if (audio.timing) {
+      karStatus = "✓";
+    } else {
+      const unknownLabel = T("studio.meta.timingDrop.UNKNOWN", "недоступно");
+      const reasonLabel = T("studio.meta.timingDrop." + (audio.timingDropReason || "UNKNOWN"), unknownLabel);
+      karStatus = "✗ (" + reasonLabel + ")";
+    }
+    karRow.textContent = T("studio.meta.karaoke", "Караоке") + ": " + karStatus;
+    wrap.appendChild(karRow);
+
+    box.appendChild(wrap);
+  }
 }
 
 async function v3TextMetaOpen(textId) {

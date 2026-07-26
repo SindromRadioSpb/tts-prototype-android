@@ -3074,6 +3074,19 @@ window.I18N_LOCALES.ru = {
       noTiming: "Караоке недоступно для этого импорта",
       fileMissing: "Аудио-файл не найден в этом браузере",
     },
+    // W2-S4 Task 11 — audio provenance sub-panel («Метаданные текста»)
+    meta: {
+      audioFile: "Аудио-источник",
+      audioSegments: "Сегментов",
+      karaoke: "Караоке",
+      timingDrop: {
+        ASR_TIMING_INVALID: "тайминг ASR не прошёл проверку",
+        PREVIEW_EDITED: "правки изменили сегменты",
+        SEG_MAPPING_LOST: "модель не сохранила границы",
+        NO_SEGMENT_MAPPING: "перевод без привязки к сегментам",
+        UNKNOWN: "недоступно",
+      },
+    },
   },
   kmquiz: {
     title: "Тренировка корней",

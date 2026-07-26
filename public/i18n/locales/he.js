@@ -3070,6 +3070,19 @@ window.I18N_LOCALES.he = {
       noTiming: "קריוקי אינו זמין לייבוא זה",
       fileMissing: "קובץ האודיו לא נמצא בדפדפן זה",
     },
+    // W2-S4 Task 11 — פאנל מקור-אמת אודיו (חלון «נתוני-על טקסט»)
+    meta: {
+      audioFile: "מקור אודיו",
+      audioSegments: "קטעים",
+      karaoke: "קריוקי",
+      timingDrop: {
+        ASR_TIMING_INVALID: "תזמון ה-ASR לא עבר אימות",
+        PREVIEW_EDITED: "עריכות שינו את הקטעים",
+        SEG_MAPPING_LOST: "המודל איבד את גבולות הקטעים",
+        NO_SEGMENT_MAPPING: "תורגם ללא קישור לקטעים",
+        UNKNOWN: "לא זמין",
+      },
+    },
   },
   kmquiz: {
     title: "תרגול שורשים",

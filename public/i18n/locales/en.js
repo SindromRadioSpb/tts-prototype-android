@@ -3060,6 +3060,19 @@ window.I18N_LOCALES.en = {
       noTiming: "Karaoke unavailable for this import",
       fileMissing: "Audio file not found in this browser",
     },
+    // W2-S4 Task 11 — audio provenance sub-panel (text-metadata modal)
+    meta: {
+      audioFile: "Audio source",
+      audioSegments: "Segments",
+      karaoke: "Karaoke",
+      timingDrop: {
+        ASR_TIMING_INVALID: "ASR timing failed validation",
+        PREVIEW_EDITED: "edits changed segments",
+        SEG_MAPPING_LOST: "model lost segment bounds",
+        NO_SEGMENT_MAPPING: "translated without segment binding",
+        UNKNOWN: "unavailable",
+      },
+    },
   },
   kmquiz: {
     title: "Root practice",
