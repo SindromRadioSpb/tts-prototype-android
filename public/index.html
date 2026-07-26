@@ -3791,6 +3791,26 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   line-height: 1.35;
 }
 
+/* R9 provenance panel (read-only) in the text-metadata modal */
+#v3TextMetaModal .v3-meta-provenance {
+  font-size: 12.5px;
+  color: #37474f;
+  line-height: 1.5;
+  margin: 4px 0 10px;
+  padding: 8px 10px;
+  background: #f5f8fa;
+  border: 1px solid #e0e6ea;
+  border-left: 3px solid #607d8b;
+  border-radius: 8px;
+}
+#v3TextMetaModal .v3-meta-provenance.v3-meta-prov-ai {
+  background: #fff8f0;
+  border-left-color: #e08a2e;
+}
+#v3TextMetaModal .v3-meta-provenance > div {
+  margin: 1px 0;
+}
+
 #v3AnkiModal .v3-help,
 #v3AudioPrefetchModal .v3-help {
   font-size: 12px;
@@ -11458,6 +11478,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     <div class="v3-modal-body">
       <div id="v3TextMetaStatus" class="v3-help"></div>
 
+      <!-- R9 provenance (read-only): import source passport; shown only for imported cards -->
+      <div id="v3TextMetaProvenance" class="v3-meta-provenance" dir="auto" style="display:none;"></div>
+
       <div class="v3-form-row">
         <label for="v3TextMetaTitle">Title*</label>
         <input id="v3TextMetaTitle" type="text" maxlength="160" placeholder="Например: Песня / статья / урок" />
@@ -12206,9 +12229,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=67"></script>
-<script src="/i18n/locales/en.js?v=67"></script>
-<script src="/i18n/locales/he.js?v=67"></script>
+<script src="/i18n/locales/ru.js?v=68"></script>
+<script src="/i18n/locales/en.js?v=68"></script>
+<script src="/i18n/locales/he.js?v=68"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -31667,6 +31690,59 @@ function v3TextMetaSetSmartTag(tag) {
 }
 window.v3TextMetaSetSmartTag = v3TextMetaSetSmartTag;
 
+// R9 provenance: render the read-only import passport (v3LastGeminiMeta.source) in the
+// text-metadata modal. Shown ONLY for imported cards; hidden for typed/pasted/legacy texts.
+// Distinguishes deterministic extraction (Word/article — "без ИИ") from AI-derived (OCR/PDF).
+function v3TextMetaFmtProvDate(iso) {
+  try { const d = new Date(iso); return isNaN(d.getTime()) ? "" : d.toLocaleString(); } catch (_) { return ""; }
+}
+function v3TextMetaRenderProvenance(source) {
+  const box = document.getElementById("v3TextMetaProvenance");
+  if (!box) return;
+  if (!source || typeof source !== "object" || !source.kind) {
+    box.style.display = "none"; box.innerHTML = ""; box.classList.remove("v3-meta-prov-ai"); return;
+  }
+  const T = (k, f) => { try { const v = window.t && window.t(k); return (v && v !== k) ? v : f; } catch (_) { return f; } };
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
+  const KIND = {
+    url:   { icon: "🌐", label: T("textMeta.provKindUrl", "Статья") },
+    image: { icon: "🖼", label: T("textMeta.provKindImage", "Фото") },
+    pdf:   { icon: "📄", label: T("textMeta.provKindPdf", "PDF") },
+    docx:  { icon: "📝", label: T("textMeta.provKindWord", "Word") },
+  };
+  const METHOD = {
+    "readability": T("textMeta.provMethodArticle", "извлечено из статьи (без ИИ)"),
+    "strip":       T("textMeta.provMethodArticle", "извлечено из статьи (без ИИ)"),
+    "docx-xml":    T("textMeta.provMethodWord", "из документа Word (без ИИ)"),
+    "gemini-ocr":  T("textMeta.provMethodOcr", "распознано ИИ с фото"),
+    "gemini-pdf":  T("textMeta.provMethodPdf", "извлечено ИИ из PDF"),
+  };
+  const k = KIND[source.kind] || { icon: "📄", label: esc(source.kind) };
+  const isAi = source.method === "gemini-ocr" || source.method === "gemini-pdf";
+  const rows = [];
+  rows.push('<div style="font-weight:600;">' + esc(T("textMeta.provTitle", "Происхождение")) + '</div>');
+  rows.push('<div>' + k.icon + ' ' + esc(T("textMeta.provSource", "Источник")) + ': ' + esc(k.label) +
+            (source.source ? ' — ' + esc(source.source) : '') + '</div>');
+  if (source.method && METHOD[source.method]) {
+    rows.push('<div>' + esc(T("textMeta.provMethod", "Способ")) + ': ' + esc(METHOD[source.method]) + '</div>');
+  }
+  if (isAi && source.model) {
+    rows.push('<div>' + esc(T("textMeta.provModel", "Модель ИИ")) + ': ' + esc(source.model) + '</div>');
+  }
+  const dt = v3TextMetaFmtProvDate(source.at);
+  if (dt) rows.push('<div>' + esc(T("textMeta.provImportedAt", "Импортировано")) + ': ' + esc(dt) + '</div>');
+  if (source.edited) rows.push('<div>✏ ' + esc(T("textMeta.provEdited", "Текст правился вручную после извлечения")) + '</div>');
+  if (Array.isArray(source.warnings) && source.warnings.length) {
+    rows.push('<div>⚠ ' + esc(T("textMeta.provWarn", "возможны пропуски/ошибки распознавания")) + '</div>');
+  }
+  if (isAi) {
+    rows.push('<div style="margin-top:4px;opacity:.9;">ℹ ' + esc(T("textMeta.provAiNote", "Производный текст — возможны неточности распознавания")) + '</div>');
+  }
+  box.innerHTML = rows.join("");
+  box.classList.toggle("v3-meta-prov-ai", isAi);
+  box.style.display = "";
+}
+
 async function v3TextMetaOpen(textId) {
   const id = String(textId || "");
   v3TextMetaEditingId = id;
@@ -31688,6 +31764,22 @@ async function v3TextMetaOpen(textId) {
   v3MetaEl("v3TextMetaTags").value = tagsCsv;
   v3MetaEl("v3TextMetaSource").value = source;
   v3MetaEl("v3TextMetaTopic").value = topic;
+
+  // R9 provenance (read-only): show the import source passport when the card has one.
+  // Passport lives in the saved meta JSON (table_model_meta_json / source_meta_json → .source).
+  try {
+    let sm = null;
+    const raw = t.table_model_meta_json || t.tableModelMetaJson || t.source_meta_json || null;
+    if (raw) { try { sm = JSON.parse(raw); } catch (_) {} }
+    if ((!sm || !sm.source) && LOCAL_MODE && !isCorpus) {
+      try {
+        const ldb = await ensureLocalDB();
+        const rows = await ldb.dbQuery("SELECT source_meta_json FROM texts WHERE id = ? LIMIT 1", [id]);
+        if (rows && rows[0] && rows[0].source_meta_json) sm = JSON.parse(rows[0].source_meta_json);
+      } catch (_) {}
+    }
+    v3TextMetaRenderProvenance(sm && sm.source ? sm.source : null);
+  } catch (_) { try { v3TextMetaRenderProvenance(null); } catch (_2) {} }
   try {
     const ttl = v3MetaEl("v3TextMetaTitle"), src = v3MetaEl("v3TextMetaSource");
     ttl.readOnly = isCorpus; src.readOnly = isCorpus;
