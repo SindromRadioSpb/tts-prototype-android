@@ -606,6 +606,7 @@ window.I18N_LOCALES.he = {
     provKindImage: "תמונה",
     provKindPdf: "PDF",
     provKindWord: "Word",
+    provKindAudio: "אודיו",
     provMethodArticle: "חולץ ממאמר (ללא AI)",
     provMethodWord: "ממסמך Word (ללא AI)",
     provMethodOcr: "זוהה ע\"י AI מתמונה",

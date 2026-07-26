@@ -601,6 +601,7 @@ window.I18N_LOCALES.en = {
     provKindImage: "Photo",
     provKindPdf: "PDF",
     provKindWord: "Word",
+    provKindAudio: "Audio",
     provMethodArticle: "extracted from article (no AI)",
     provMethodWord: "from Word document (no AI)",
     provMethodOcr: "AI-recognized from photo",

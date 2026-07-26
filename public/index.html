@@ -31947,6 +31947,7 @@ function v3TextMetaRenderProvenance(source) {
     image: { icon: "🖼", label: T("textMeta.provKindImage", "Фото") },
     pdf:   { icon: "📄", label: T("textMeta.provKindPdf", "PDF") },
     docx:  { icon: "📝", label: T("textMeta.provKindWord", "Word") },
+    audio: { icon: "🎙", label: T("textMeta.provKindAudio", "Аудио") },
   };
   const METHOD = {
     "readability": T("textMeta.provMethodArticle", "извлечено из статьи (без ИИ)"),
@@ -31992,9 +31993,9 @@ function v3TextMetaRenderProvenance(source) {
     const wrap = document.createElement("div");
     wrap.className = "v3-meta-prov-audio";
 
-    const durSec = Number(media.durationSec) || 0;
-    const mm = Math.floor(durSec / 60);
-    const ss = String(Math.round(durSec % 60)).padStart(2, "0");
+    const durSecRounded = Math.round(Number(media.durationSec) || 0);
+    const mm = Math.floor(durSecRounded / 60);
+    const ss = String(durSecRounded % 60).padStart(2, "0");
     const fileRow = document.createElement("div");
     fileRow.appendChild(document.createTextNode(T("studio.meta.audioFile", "Аудио-источник") + ": "));
     const nameSpan = document.createElement("span");

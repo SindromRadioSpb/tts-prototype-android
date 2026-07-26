@@ -602,6 +602,7 @@ window.I18N_LOCALES.ru = {
     provKindImage: "Фото",
     provKindPdf: "PDF",
     provKindWord: "Word",
+    provKindAudio: "Аудио",
     provMethodArticle: "извлечено из статьи (без ИИ)",
     provMethodWord: "из документа Word (без ИИ)",
     provMethodOcr: "распознано ИИ с фото",

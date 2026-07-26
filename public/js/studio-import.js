@@ -66,7 +66,8 @@
     var mime = file.type || "audio/mpeg";
     pendingAudio = { file: file, buf: null, sha256: null, mime: mime, durationSec: dur, name: file.name, parsed: null, validation: null };
     var est = window.AsrTranscript.estimateAsrCostUsd(dur);
-    var mm = Math.floor(dur / 60), ss = String(Math.round(dur % 60)).padStart(2, "0");
+    var durRounded = Math.round(dur);
+    var mm = Math.floor(durRounded / 60), ss = String(durRounded % 60).padStart(2, "0");
     $("v3ImportAudioMeta").textContent = mm + ":" + ss + " · " + (file.size / (1024 * 1024)).toFixed(1) + "MB";
     $("v3ImportAudioGo").textContent = tr("studio.import.audioGo") + " (≈$" + Math.max(0.01, est).toFixed(2) + ")";
     $("v3ImportAudioInfo").hidden = false;
