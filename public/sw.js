@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.245";
+const CACHE_VERSION = "v3.11.246";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -120,6 +120,13 @@ const PRECACHE_URLS = [
   "/js/studio-karaoke.js",
   // Studio Ingest W1 — import panel (URL/file → text, client-side extraction UI).
   "/js/studio-import.js",
+  // Studio Ingest W2-S4 — media ingest (Gemini error taxonomy, ASR transcript,
+  // OPFS media store, Gemini Files upload, media karaoke driver).
+  "/js/gemini-error.js",
+  "/js/asr-transcript.js",
+  "/js/media-store.js",
+  "/js/gemini-files.js",
+  "/js/studio-media-karaoke.js",
   // PAS-B — Studio agent UI (per-row 🤖 explain; весь агент-код Студии в этом модуле).
   "/js/studio-agent.js",
   // Wave 2 C3a — browser-owned voice -> editable role-play draft.
