@@ -58,6 +58,9 @@
     EXTRACT_EMPTY: "studio.import.errEmpty", DOCX_EMPTY: "studio.import.errEmpty", BAD_DOCX: "studio.import.errBadFile",
     BAD_MIME: "studio.import.errBadFile", BAD_KIND: "studio.import.errBadFile",
     GEMINI_KEY_REQUIRED: "studio.import.errNoKey", GEMINI_KEY_INVALID: "studio.import.errNoKey",
+    GEMINI_KEY_REJECTED: "studio.import.errKeyRejected",
+    GEMINI_QUOTA: "studio.import.errQuota", GEMINI_OVERLOADED: "studio.import.errOverloaded",
+    EXTRACT_BAD_JSON: "studio.import.errExtractBadJson",
   };
   function errKey(code) { return ERROR_KEY[code] || "studio.import.errGeneric"; }
 

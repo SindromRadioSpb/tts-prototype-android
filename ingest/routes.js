@@ -12,6 +12,7 @@ const { safeFetchHtml } = require("./ssrfGuard.js");
 const { extractArticle } = require("./urlExtract.js");
 const { extractDocxText } = require("./docxExtract.js");
 const { isPlausibleGeminiKey } = require("./geminiKey.js");
+const { classifyGeminiError } = require("./geminiError.js");
 
 function errStatus(code) {
   return ["FETCH_FAILED", "FETCH_TIMEOUT"].includes(code) ? 502 : 400;
@@ -144,7 +145,8 @@ function registerIngestRoutes(app, deps) {
       return res.json({ ok: true, ...out, method, model: "gemini-flash-latest", fromCache: false });
     } catch (e) {
       console.error("ingest gemini error", e && e.message);
-      return res.status(502).json({ ok: false, error: "Gemini не смог обработать файл", error_code: "GEMINI_FAILED" });
+      const c = classifyGeminiError(e);
+      return res.status(c.status).json({ ok: false, error: c.error, error_code: c.error_code });
     }
   });
 }
