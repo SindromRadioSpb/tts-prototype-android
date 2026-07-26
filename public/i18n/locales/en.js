@@ -3053,6 +3053,13 @@ window.I18N_LOCALES.en = {
       audioTimingDropped: "Edits changed line count — karaoke disabled",
       provAudio: "Audio → ASR transcript (Gemini)",
     },
+    // W2-S4 Task 10 — media bar / segment replay / tap-seek (index.html)
+    media: {
+      playOriginal: "Original",
+      replaySegment: "Replay original segment",
+      noTiming: "Karaoke unavailable for this import",
+      fileMissing: "Audio file not found in this browser",
+    },
   },
   kmquiz: {
     title: "Root practice",

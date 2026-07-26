@@ -3063,6 +3063,13 @@ window.I18N_LOCALES.he = {
       audioTimingDropped: "העריכות שינו את מספר השורות — הקריוקי כובה",
       provAudio: "אודיו → תמלול ASR (Gemini)",
     },
+    // W2-S4 Task 10 — media bar / segment replay / tap-seek (index.html)
+    media: {
+      playOriginal: "מקור",
+      replaySegment: "חזרה על קטע המקור",
+      noTiming: "קריוקי אינו זמין לייבוא זה",
+      fileMissing: "קובץ האודיו לא נמצא בדפדפן זה",
+    },
   },
   kmquiz: {
     title: "תרגול שורשים",

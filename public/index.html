@@ -1813,6 +1813,24 @@ td.col-action-cell {
     }
 }
 
+/* W2-S4 Task 10: media bar («▶ Оригинал») + per-row segment-replay + active-segment
+   highlight. #v3MediaBar button — ID selector always wins the mobile
+   button{width:100%} trap (see CLAUDE.md §CSS-ловушки), no !important needed. */
+#v3MediaBar { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+#v3MediaBar button { width: auto; }
+#v3MediaBar[hidden] { display: none; }        /* [hidden] vs display-ловушка */
+.v3-media-note { font-size: 12px; color: #6c757d; }
+/* #proTable-qualified + !important: the plain `.smk-row-active td { background: ... }`
+   given in the brief loses to `#proTable tbody tr:nth-child(even) td` (ID-qualified zebra
+   stripe, higher specificity) on every even-indexed row — silently invisible highlight.
+   Matches the existing .row-playing/.row-selected pattern (index.html ~3086-3094) which
+   both qualify with #proTable + !important for the same reason. */
+#proTable tbody tr.smk-row-active td,
+#proTable tbody tr.smk-row-active td.rtl {
+  background: rgba(255, 193, 7, 0.28) !important;
+}
+.smk-row-replay { width: auto; padding: 0 6px; margin-inline-start: 4px; font-size: 12px; }
+
 
 
     .table-chk input[type="checkbox"] { transform: translateY(0.5px); }
@@ -10953,6 +10971,14 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                           <button id="tableEditAddBtn" class="tbl-edit-add-btn" type="button" title="Добавить пустую строку в конец" data-i18n="classic.editAddRow">+ Строка</button>
                           <button id="tableEditResetAllBtn" class="tbl-edit-reset-all-btn" type="button" title="Сбросить все ручные правки к оригинальным значениям" data-i18n="classic.editResetAll">↺ Сбросить всё</button>
                         </div>
+                        <!-- W2-S4 Task 10: media bar — «Оригинал» playback for imported audio with row-timing.
+                             Placed above #tableContainer (outside the collapsible table-settings <details>)
+                             so it stays visible without opening settings. Visibility toggled by
+                             v3MediaBarRefresh() based on window.v3ActiveMediaAudio (T8/T9). -->
+                        <div id="v3MediaBar" hidden>
+                          <button type="button" id="v3MediaPlayBtn" onclick="v3MediaPlayOriginal()">▶ <span data-i18n="studio.media.playOriginal">Оригинал</span></button>
+                          <span id="v3MediaBarNote" class="v3-media-note"></span>
+                        </div>
                         <div id="tableContainer"></div>
                         <button id="tableEditFab" type="button" title="Режим редактирования таблицы" aria-label="Режим редактирования таблицы" hidden>✎</button>
                         <button id="classicOrientationFab" type="button" title="Переключить ориентацию" aria-label="Переключить ориентацию" hidden data-i18n="classic.editOrientationLandscape">↔ Альбом</button>
@@ -18626,6 +18652,15 @@ function ensureRowAudioPlayer() {
     return rowAudioPlayer;
 }
 
+// W2-S4 Task 10: mutual exclusion, media-karaoke → row-tts direction.
+// StudioMediaKaraoke.ensureRun() calls window.v3StopRowAudio (if defined) on every
+// FRESH start, so starting "▶ Оригинал"/segment-replay silences per-row TTS audio.
+// The reverse direction (row-tts start silencing media-karaoke) is the row-tts-btn
+// click delegate calling StudioMediaKaraoke.stop() — see initRowUxDelegatesOnce().
+window.v3StopRowAudio = function () {
+    try { if (rowAudioPlayer) rowAudioPlayer.pause(); } catch (_) {}
+};
+
 function clearRowPlayingState(alsoClearSelected) {
     // снять playing подсветку и состояния кнопки
     // PATCH-17.6: Use helper to find correct table in Classic or IDE mode
@@ -23283,6 +23318,105 @@ function v3RestoreMediaFromMeta(meta) {
     if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
   } catch (_) {}
 }
+
+// ============================================================================
+// W2-S4 Task 10 — media bar: «▶ Оригинал» playback + per-row segment replay +
+// tap-seek + player mutual exclusion. Consumes StudioMediaKaraoke (T7),
+// MediaStore.readMedia (T4), window.v3ActiveMediaAudio/v3SessionMediaBlob (T8/T9).
+// ============================================================================
+
+let v3MediaBlobCache = null; // {sha256, blob} — avoid re-reading OPFS/re-touching session blob every refresh
+async function v3MediaResolveBlob(audio) {
+  if (!audio || !audio.media) return null;
+  if (v3MediaBlobCache && v3MediaBlobCache.sha256 === audio.media.sha256) return v3MediaBlobCache.blob;
+  let blob = null;
+  if (audio.media.sessionOnly) blob = window.v3SessionMediaBlob || null;
+  else if (audio.media.opfsPath && typeof MediaStore !== "undefined") blob = await MediaStore.readMedia(audio.media.opfsPath);
+  if (blob) v3MediaBlobCache = { sha256: audio.media.sha256, blob };
+  return blob;
+}
+
+function v3MediaBarRefresh() {
+  const bar = document.getElementById("v3MediaBar");
+  if (!bar) return;
+  const audio = window.v3ActiveMediaAudio;
+  bar.hidden = !audio;
+  if (!audio) { v3MediaBlobCache = null; try { v3MediaAugmentRows(); } catch (_) {} return; }
+  const note = document.getElementById("v3MediaBarNote");
+  if (note) note.textContent = audio.timing ? "" : t("studio.media.noTiming");
+  v3MediaResolveBlob(audio).then((blob) => {
+    const btn = document.getElementById("v3MediaPlayBtn");
+    if (btn) btn.disabled = !blob;
+    if (!blob && note) note.textContent = t("studio.media.fileMissing");
+    v3MediaAugmentRows();
+  });
+}
+
+async function v3MediaPlayOriginal() {
+  const audio = window.v3ActiveMediaAudio;
+  if (!audio) return;
+  const blob = await v3MediaResolveBlob(audio);
+  if (!blob) return;
+  // REFERENCE EQUALITY CONTRACT (Task 7 review): StudioMediaKaraoke.start() decides
+  // resume-vs-fresh via `cur.entries === (opts.entries || null)` — STRICT reference
+  // equality. `audio` here is ALWAYS the SAME window.v3ActiveMediaAudio object for the
+  // lifetime of the active text, so `audio.timing.entries` is the same array instance
+  // across calls — never .map()/.slice()/re-derive this.
+  await StudioMediaKaraoke.start({
+    blob, entries: audio.timing ? audio.timing.entries : null,
+    rowCount: Array.isArray(currentTableData) ? currentTableData.length : 0,
+  });
+}
+
+// S4-ROWPLAY: per-row "▶︎ replay this segment" button, injected POST-render (renderTable
+// itself is untouched — byte-parity gate smoke:reader-parity). Appended to the LAST
+// visible cell of each row (whatever column that is — action-column-only tables included).
+function v3MediaAugmentRows() {
+  try {
+    const audio = window.v3ActiveMediaAudio;
+    const table = document.getElementById("proTable");
+    if (!table) return;
+    // снять старые кнопки (текст сменился / караоке недоступно)
+    table.querySelectorAll(".smk-row-replay").forEach((b) => b.remove());
+    if (!audio || !audio.timing) return;
+    table.querySelectorAll("tbody tr[data-row-idx]").forEach((tr) => {
+      const cell = tr.querySelector("td:last-child") || tr.lastElementChild;
+      if (!cell) return;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "smk-row-replay";
+      btn.textContent = "▶︎";
+      btn.title = t("studio.media.replaySegment");
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const idx = Number(tr.getAttribute("data-row-idx"));
+        const blob = await v3MediaResolveBlob(audio);
+        if (!blob) return;
+        // Same reference-equality contract as v3MediaPlayOriginal() above.
+        if (!StudioMediaKaraoke.getAudioEl()) await StudioMediaKaraoke.start({ blob, entries: audio.timing.entries, rowCount: Array.isArray(currentTableData) ? currentTableData.length : 0 });
+        StudioMediaKaraoke.playSegment(idx);
+      });
+      cell.appendChild(btn);
+    });
+  } catch (_) {}
+}
+
+// Пере-augment при (пере)отрисовке таблицы (без правок renderTable — гейт
+// smoke:reader-parity). renderTable пересобирает #proTable через innerHTML на
+// #tableContainer (сам #proTable/tbody РАЗРУШАЮТСЯ и могут ещё не существовать
+// при первом исполнении этого скрипта) — поэтому наблюдаем СТАБИЛЬНЫЙ
+// #tableContainer (присутствует в разметке статически), а не #proTable/tbody.
+(function v3MediaObserveTable() {
+  const container = document.getElementById("tableContainer");
+  if (!container || !window.MutationObserver) return;
+  let scheduled = false;
+  new MutationObserver(() => {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(() => { scheduled = false;
+      if (!document.querySelector("#proTable .smk-row-replay")) v3MediaAugmentRows(); });
+  }).observe(container, { childList: true, subtree: true });
+})();
 
 function v3LibEl(id) { return document.getElementById(id); }
 
@@ -37623,6 +37757,15 @@ function initRowUxDelegatesOnce() {
         if (!Number.isFinite(rowIdx) || rowIdx < 0) return;
         if (!Array.isArray(currentTableData) || !currentTableData[rowIdx]) return;
 
+        // W2-S4 Task 10 — tap-seek: while media-karaoke is actively playing, tapping a
+        // row seeks the original audio there. Bound here (not a separate listener on
+        // #proTable) because #proTable is recreated wholesale by renderTable via
+        // innerHTML — a listener attached directly to it would not survive a re-render.
+        // .smk-row-replay clicks call e.stopPropagation() and never reach this delegate,
+        // so they can't double-trigger a seek. No preventDefault — row selection below
+        // (existing behaviour) is unaffected.
+        try { if (window.StudioMediaKaraoke && StudioMediaKaraoke.isActive()) StudioMediaKaraoke.seekToRow(rowIdx); } catch (_) {}
+
         setRowSelectedUI(rowIdx);
     });
 
@@ -37630,6 +37773,11 @@ function initRowUxDelegatesOnce() {
     document.addEventListener("click", async function (e) {
         const btn = e.target && e.target.closest ? e.target.closest("button.row-tts-btn") : null;
         if (!btn) return;
+
+        // W2-S4 Task 10: mutual exclusion, row-tts → media-karaoke direction. The
+        // reverse direction is StudioMediaKaraoke calling window.v3StopRowAudio
+        // internally on every fresh start (see ensureRowAudioPlayer, above).
+        try { if (window.StudioMediaKaraoke) StudioMediaKaraoke.stop(); } catch (_) {}
 
         const rowIdx = Number(btn.getAttribute("data-row-idx"));
         if (!Number.isFinite(rowIdx) || rowIdx < 0) return;

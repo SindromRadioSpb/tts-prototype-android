@@ -3067,6 +3067,13 @@ window.I18N_LOCALES.ru = {
       audioTimingDropped: "Правки изменили число строк — караоке отключено",
       provAudio: "Аудио → ASR-транскрипт (Gemini)",
     },
+    // W2-S4 Task 10 — media bar / segment replay / tap-seek (index.html)
+    media: {
+      playOriginal: "Оригинал",
+      replaySegment: "Повторить сегмент оригинала",
+      noTiming: "Караоке недоступно для этого импорта",
+      fileMissing: "Аудио-файл не найден в этом браузере",
+    },
   },
   kmquiz: {
     title: "Тренировка корней",
