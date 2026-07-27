@@ -1,0 +1,3329 @@
+{
+  "wireMagic": "pb3",
+  "pens": [ {
+  
+  } ],
+  "wsWinStyles": [ {
+  
+  }, {
+    "juJustifCode": 1
+  }, {
+    "juJustifCode": 2
+  } ],
+  "wpWinPositions": [ {
+  
+  }, {
+    "apPoint": 1,
+    "ahHorPos": 50,
+    "avVerPos": 0,
+    "rcRows": 2,
+    "ccCols": 32
+  }, {
+    "apPoint": 7,
+    "ahHorPos": 50,
+    "avVerPos": 100,
+    "rcRows": 2,
+    "ccCols": 32
+  }, {
+    "apPoint": 7,
+    "ahHorPos": 50,
+    "avVerPos": 100,
+    "rcRows": 1,
+    "ccCols": 32
+  }, {
+    "apPoint": 7,
+    "ahHorPos": 50,
+    "avVerPos": 100,
+    "rcRows": 3,
+    "ccCols": 32
+  } ],
+  "events": [ {
+    "tStartMs": 0,
+    "dDurationMs": 7000,
+    "segs": [ {
+      "utf8": "תרגום: aknv tso\nעריכה: Assaf Tsafriri"
+    } ],
+    "wpWinPosId": 1,
+    "wsWinStyleId": 1
+  }, {
+    "tStartMs": 5294,
+    "dDurationMs": 3146,
+    "segs": [ {
+      "utf8": "בוקר טוב.\nמה שלומכם?"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 9200,
+    "dDurationMs": 2006,
+    "segs": [ {
+      "utf8": "היה נהדר, נכון?"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 11676,
+    "dDurationMs": 2488,
+    "segs": [ {
+      "utf8": "היה כיף אמיתי."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 14164,
+    "dDurationMs": 1496,
+    "segs": [ {
+      "utf8": "למעשה, אני מסתלק מכאן."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 15660,
+    "dDurationMs": 3596,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 21036,
+    "dDurationMs": 3438,
+    "segs": [ {
+      "utf8": "היו שלושה נושאים\nלכל אורך הכנס,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 24964,
+    "dDurationMs": 2160,
+    "segs": [ {
+      "utf8": "שנוגעים למה שאני רוצה\nלשוחח עליו."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 27124,
+    "dDurationMs": 4800,
+    "segs": [ {
+      "utf8": "הראשון הוא העדות המופלאה\nליצירתיות האנושית"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 31924,
+    "dDurationMs": 3820,
+    "segs": [ {
+      "utf8": "בכל ההרצאות ששמענו\nואצל כל האנשים כאן."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 36154,
+    "dDurationMs": 3053,
+    "segs": [ {
+      "utf8": "- עצם המגוון והמבחר שלהן -"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 39727,
+    "dDurationMs": 1293,
+    "segs": [ {
+      "utf8": "השני הוא העובדה,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 41020,
+    "dDurationMs": 2994,
+    "segs": [ {
+      "utf8": "שזה מעמיד אותנו במצב\nשבו אין לנו מושג מה יקרה,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 44014,
+    "dDurationMs": 2490,
+    "segs": [ {
+      "utf8": "מבחינת העתיד. שום מושג"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 46504,
+    "dDurationMs": 2000,
+    "segs": [ {
+      "utf8": "איך הדברים יתפתחו."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 48504,
+    "dDurationMs": 2150,
+    "segs": [ {
+      "utf8": "יש לי עניין בחינוך--"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 50654,
+    "dDurationMs": 3850,
+    "segs": [ {
+      "utf8": "בעצם, גיליתי שלכל אחד\nיש עניין בחינוך."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 54504,
+    "dDurationMs": 2370,
+    "segs": [ {
+      "utf8": "נכון? בעיני זה מאד מעניין."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 56874,
+    "dDurationMs": 2130,
+    "segs": [ {
+      "utf8": "אם אתה במסיבה,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 59004,
+    "dDurationMs": 2390,
+    "segs": [ {
+      "utf8": "ואתה אומר שאתה עובד בחינוך..."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 61404,
+    "dDurationMs": 2466,
+    "segs": [ {
+      "utf8": "למען האמת,\nאינך משתתף במסיבות רבות..."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 63870,
+    "dDurationMs": 4186,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 68056,
+    "dDurationMs": 2909,
+    "segs": [ {
+      "utf8": "...אם אתה עובד בחינוך.\nלא מזמינים אותך."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 70965,
+    "dDurationMs": 2829,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 73794,
+    "dDurationMs": 3710,
+    "segs": [ {
+      "utf8": "וגם לא תוזמן שוב,\nלמרבה הפליאה..."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 77504,
+    "dDurationMs": 2000,
+    "segs": [ {
+      "utf8": "אך נניח שכן,\nואתה אומר למישהו--"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 79504,
+    "dDurationMs": 2000,
+    "segs": [ {
+      "utf8": "שואלים אותך,\n\"במה אתה עוסק?\""
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 81504,
+    "dDurationMs": 1430,
+    "segs": [ {
+      "utf8": "ואתה אומר\nשאתה עוסק בחינוך,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 82964,
+    "dDurationMs": 3513,
+    "segs": [ {
+      "utf8": "הדם אוזל מפניהם:\n\"אלוהים, למה אני?"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 86477,
+    "dDurationMs": 3073,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 89550,
+    "dDurationMs": 3954,
+    "segs": [ {
+      "utf8": "\"ועוד בערב החופשי היחיד שלי.\"\n[צחוק]"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 93504,
+    "dDurationMs": 1780,
+    "segs": [ {
+      "utf8": "אך אם אתה מביע עניין\nבחינוך שלהם,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 95284,
+    "dDurationMs": 1820,
+    "segs": [ {
+      "utf8": "הם מצמידים אותך לקיר,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 97104,
+    "dDurationMs": 3110,
+    "segs": [ {
+      "utf8": "כי זה משהו מהותי ועמוק\nאצל אנשים, נכון?"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 100214,
+    "dDurationMs": 3890,
+    "segs": [ {
+      "utf8": "כמו דת, כסף\nודברים נוספים."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 105824,
+    "dDurationMs": 2490,
+    "segs": [ {
+      "utf8": "יש לי עניין רב בחינוך,\nוחושבני שלכולנו יש."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 108314,
+    "dDurationMs": 2130,
+    "segs": [ {
+      "utf8": "הוא חשוב לנו מאד;"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 110444,
+    "dDurationMs": 1920,
+    "segs": [ {
+      "utf8": "חלקית, כי החינוך הוא שאמור"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 112364,
+    "dDurationMs": 3140,
+    "segs": [ {
+      "utf8": "לקחתנו אל העתיד הזה,\nשאיננו יכולים להבינו."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 115504,
+    "dDurationMs": 3000,
+    "segs": [ {
+      "utf8": "אם חושבים על זה,\nהילדים שמתחילים השנה בית-ספר"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 118504,
+    "dDurationMs": 3906,
+    "segs": [ {
+      "utf8": "יצאו לגימלאות ב-2065."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 123510,
+    "dDurationMs": 1646,
+    "segs": [ {
+      "utf8": "לאיש אין מושג -"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 125156,
+    "dDurationMs": 3328,
+    "segs": [ {
+      "utf8": "למרות כל המומחיות\nשהופגנה ב-4 הימים האחרונים--"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 128494,
+    "dDurationMs": 2890,
+    "segs": [ {
+      "utf8": "איך ייראה העולם\nאפילו בעוד 5 שנים,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 131414,
+    "dDurationMs": 2260,
+    "segs": [ {
+      "utf8": "ועם זאת אנו אמורים\nלחנך אותם לקראת זה."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 133674,
+    "dDurationMs": 2690,
+    "segs": [ {
+      "utf8": "כך שאי-היכולת לחזות\nהיא לדעתי מדהימה."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 136404,
+    "dDurationMs": 1540,
+    "segs": [ {
+      "utf8": "והחלק השלישי הוא"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 137944,
+    "dDurationMs": 2260,
+    "segs": [ {
+      "utf8": "שבכל מקרה, כולנו מסכימים"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 140204,
+    "dDurationMs": 4870,
+    "segs": [ {
+      "utf8": "לגבי היכולות הממש-מופלאות\nשיש לילדים--"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 145084,
+    "dDurationMs": 4630,
+    "segs": [ {
+      "utf8": "יכולתם לחדש.\nהנה, סרינה היתה נפלאה אמש,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 149714,
+    "dDurationMs": 2190,
+    "segs": [ {
+      "utf8": "נכון? רק לראות\nלמה היא מסוגלת."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 151904,
+    "dDurationMs": 4600,
+    "segs": [ {
+      "utf8": "והיא יוצאת-דופן,\nאך חושבני שבמובן מסוים,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 156504,
+    "dDurationMs": 3690,
+    "segs": [ {
+      "utf8": "היא אינה חריגה כלל כילדה."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 160194,
+    "dDurationMs": 2380,
+    "segs": [ {
+      "utf8": "מה שראיתם הוא אדם\nבעל יכולת התמסרות מדהימה"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 162574,
+    "dDurationMs": 1350,
+    "segs": [ {
+      "utf8": "שגילה בעצמו כשרון."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 163924,
+    "dDurationMs": 2530,
+    "segs": [ {
+      "utf8": "ומסקנתי היא, שלכל הילדים\nיש כשרונות עצומים."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 166454,
+    "dDurationMs": 2980,
+    "segs": [ {
+      "utf8": "ואנו מבזבזים אותם,\nודי באכזריות."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 169444,
+    "dDurationMs": 2060,
+    "segs": [ {
+      "utf8": "אז אני רוצה לדבר על חינוך"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 171504,
+    "dDurationMs": 2660,
+    "segs": [ {
+      "utf8": "ואני רוצה לדבר על יצירתיות.\nטענתי היא,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 174164,
+    "dDurationMs": 4810,
+    "segs": [ {
+      "utf8": "שהיום היצירתיות חשובה בחינוך\nבדיוק כידיעת קרוא וכתוב."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 178974,
+    "dDurationMs": 2950,
+    "segs": [ {
+      "utf8": "ועלינו להעניק לה אותו מעמד."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 181934,
+    "dDurationMs": 1290,
+    "segs": [ {
+      "utf8": "[מחיאות כפיים]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 183224,
+    "dDurationMs": 1544,
+    "segs": [ {
+      "utf8": "תודה."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 184768,
+    "dDurationMs": 4214,
+    "segs": [ {
+      "utf8": "[מחיאות כפיים]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 188982,
+    "dDurationMs": 1964,
+    "segs": [ {
+      "utf8": "זה הכל, אגב.\nתודה רבה לכם."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 190946,
+    "dDurationMs": 2262,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 193208,
+    "dDurationMs": 2285,
+    "segs": [ {
+      "utf8": "ובכן, נותרו 15 דקות..."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 195493,
+    "dDurationMs": 2715,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 198208,
+    "dDurationMs": 1862,
+    "segs": [ {
+      "utf8": "ובכן, נולדתי...\nסתם..."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 200070,
+    "dDurationMs": 3242,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 203312,
+    "dDurationMs": 2482,
+    "segs": [ {
+      "utf8": "שמעתי לאחרונה סיפור נהדר.\nשאני אוהב לספרו,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 205794,
+    "dDurationMs": 2550,
+    "segs": [ {
+      "utf8": "על ילדה קטנה בשיעור ציור."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 208344,
+    "dDurationMs": 1800,
+    "segs": [ {
+      "utf8": "היא בת שש,\nוהיא יושבת מאחור ומציירת,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 210144,
+    "dDurationMs": 2360,
+    "segs": [ {
+      "utf8": "והמורה אומרת שהילדה הקטנה הזו\nכמעט לא מקשיבה,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 212504,
+    "dDurationMs": 2170,
+    "segs": [ {
+      "utf8": "ובאותו שיעור-ציור\nהיא כן הקשיבה."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 215074,
+    "dDurationMs": 2320,
+    "segs": [ {
+      "utf8": "המורה הופתעה כל-כך\nעד שניגשה אליה ושאלה:"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 217414,
+    "dDurationMs": 1840,
+    "segs": [ {
+      "utf8": "\"מה את מציירת?\""
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 219254,
+    "dDurationMs": 2980,
+    "segs": [ {
+      "utf8": "והילדה ענתה,\n\"אני מציירת את אלוהים.\""
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 222844,
+    "dDurationMs": 3030,
+    "segs": [ {
+      "utf8": "אמרה המורה, \"אבל איש\nלא יודע איך נראה אלוהים.\""
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 226524,
+    "dDurationMs": 1830,
+    "segs": [ {
+      "utf8": "והילדה השיבה,\n\"בעוד רגע יידעו.\""
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 228354,
+    "dDurationMs": 8600,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 240114,
+    "dDurationMs": 2420,
+    "segs": [ {
+      "utf8": "כשבני היה בן 4, באנגליה -"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 242804,
+    "dDurationMs": 3950,
+    "segs": [ {
+      "utf8": "בעצם הוא היה בן 4 בכל מקום,\nאם לדבר בכנות... [צחוק]"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 246784,
+    "dDurationMs": 2720,
+    "segs": [ {
+      "utf8": "...אם לדייק. באותה שנה\nהוא היה בן 4 בכל מקום בו היה."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 249504,
+    "dDurationMs": 1780,
+    "segs": [ {
+      "utf8": "הוא השתתף בהצגה\nעל לידת ישו."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 251284,
+    "dDurationMs": 1675,
+    "segs": [ {
+      "utf8": "זוכרים את הסיפור?"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 253949,
+    "dDurationMs": 1961,
+    "segs": [ {
+      "utf8": "לא, זה היה גדול.\nסיפור גדול."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 255910,
+    "dDurationMs": 3618,
+    "segs": [ {
+      "utf8": "מל גיבסון עשה סרט-המשך.\nאולי ראיתם... [צחוק]"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 259528,
+    "dDurationMs": 1088,
+    "segs": [ {
+      "utf8": "\"לידה 2\"."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 260796,
+    "dDurationMs": 4288,
+    "segs": [ {
+      "utf8": "אז ג'יימס שיחק את יוסף,\nואנו נורא התרגשנו."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 265084,
+    "dDurationMs": 2420,
+    "segs": [ {
+      "utf8": "ראינו בזה את אחד\nהתפקידים הראשיים."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 267504,
+    "dDurationMs": 2940,
+    "segs": [ {
+      "utf8": "מילאנו את המקום\nבאוהדים בחולצות טי:"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 270444,
+    "dDurationMs": 2630,
+    "segs": [ {
+      "utf8": "\"ג'יימס רובינסון הוא יוסף!\"\n[צחוק]"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 273074,
+    "dDurationMs": 1640,
+    "segs": [ {
+      "utf8": "הוא לא היה צריך לדבר,\nאבל אתם מכירים את הקטע"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 274714,
+    "dDurationMs": 2790,
+    "segs": [ {
+      "utf8": "שבו 3 המלכים נכנסים.\nהם באים נושאי מתנות,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 277504,
+    "dDurationMs": 1840,
+    "segs": [ {
+      "utf8": "הם מביאים זהב,\nלבונה ומור."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 279344,
+    "dDurationMs": 1960,
+    "segs": [ {
+      "utf8": "זה קרה באמת.\nישבנו שם,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 281304,
+    "dDurationMs": 2200,
+    "segs": [ {
+      "utf8": "ואני חושב\nשהתבלבל להם הסדר,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 283504,
+    "dDurationMs": 2000,
+    "segs": [ {
+      "utf8": "כי שוחחנו אח\"כ\nעם הילד ואמרנו,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 285504,
+    "dDurationMs": 2000,
+    "segs": [ {
+      "utf8": "\"אתה בסדר עם זה?\"\nוהוא ענה, \"בטח. מה, זה לא נכון?\""
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 287504,
+    "dDurationMs": 1370,
+    "segs": [ {
+      "utf8": "הם פשוט שינו את הסדר,\nזה הכל."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 288874,
+    "dDurationMs": 1540,
+    "segs": [ {
+      "utf8": "בכל אופן,\nשלושת הילדים נכנסו,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 290414,
+    "dDurationMs": 2940,
+    "segs": [ {
+      "utf8": "בני 4, עם מגבות על הראשים,\nוהניחו את התיבות,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 293354,
+    "dDurationMs": 2790,
+    "segs": [ {
+      "utf8": "והילד הראשון אמר,\n\"אני מביא זהב.\""
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 296404,
+    "dDurationMs": 2750,
+    "segs": [ {
+      "utf8": "והשני אמר,\n\"אני מביא מור.\""
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 299374,
+    "dDurationMs": 2180,
+    "segs": [ {
+      "utf8": "והשלישי אמר,\n\"לבו-נא לך.\""
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 301554,
+    "dDurationMs": 9240,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 314154,
+    "dDurationMs": 2350,
+    "segs": [ {
+      "utf8": "המכנה המשותף כאן הוא\nשילדים לוקחים סיכון."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 316504,
+    "dDurationMs": 3330,
+    "segs": [ {
+      "utf8": "אם אינם יודעים, הם ינסו."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 320714,
+    "dDurationMs": 2570,
+    "segs": [ {
+      "utf8": "אני צודק?\nהם לא חוששים לטעות."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 324314,
+    "dDurationMs": 3190,
+    "segs": [ {
+      "utf8": "איני אומר שלטעות זהה\nל-להיות יצירתי."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 328364,
+    "dDurationMs": 1000,
+    "segs": [ {
+      "utf8": "מה שאנו כן יודעים הוא,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 329364,
+    "dDurationMs": 2140,
+    "segs": [ {
+      "utf8": "שמי שאינו מוכן לטעות,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 331504,
+    "dDurationMs": 2610,
+    "segs": [ {
+      "utf8": "לעולם לא ימציא\nשום דבר מקורי."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 334114,
+    "dDurationMs": 2056,
+    "segs": [ {
+      "utf8": "אם לא מוכנים לטעות."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 336686,
+    "dDurationMs": 3918,
+    "segs": [ {
+      "utf8": "וכשהם מתבגרים, רוב הילדים\nמאבדים יכולת זו."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 340604,
+    "dDurationMs": 2620,
+    "segs": [ {
+      "utf8": "הם מתחילים לחשוש לטעות."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 343224,
+    "dDurationMs": 1650,
+    "segs": [ {
+      "utf8": "אגב, כך אנו מנהלים\nאת החברות שלנו."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 344874,
+    "dDurationMs": 1850,
+    "segs": [ {
+      "utf8": "אנו מוקיעים בגלל טעויות."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 346724,
+    "dDurationMs": 2240,
+    "segs": [ {
+      "utf8": "וכיום אנו מנהלים\nמערכות חינוך לאומיות,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 348964,
+    "dDurationMs": 3250,
+    "segs": [ {
+      "utf8": "שבהן הדבר הכי גרוע\nהוא לטעות,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 352214,
+    "dDurationMs": 5480,
+    "segs": [ {
+      "utf8": "והתוצאה היא שאנו מחנכים אנשים\nלהתרחק מיכולתם היצירתית."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 357694,
+    "dDurationMs": 1720,
+    "segs": [ {
+      "utf8": "פיקאסו אמר פעם,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 359414,
+    "dDurationMs": 2560,
+    "segs": [ {
+      "utf8": "שכל הילדים נולדים אמנים."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 361994,
+    "dDurationMs": 3190,
+    "segs": [ {
+      "utf8": "הבעיה היא\nלהישאר אמנים כשגדלים."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 365194,
+    "dDurationMs": 1280,
+    "segs": [ {
+      "utf8": "אני מאמין בכך בכל לבי:"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 366474,
+    "dDurationMs": 2030,
+    "segs": [ {
+      "utf8": "איננו גדלים\nונעשים יותר יצירתיים,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 368504,
+    "dDurationMs": 1800,
+    "segs": [ {
+      "utf8": "אלא מתרחקים מכך,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 370304,
+    "dDurationMs": 2520,
+    "segs": [ {
+      "utf8": "יותר נכון, מחנכים אותנו\nלהתרחק מהיצירתיות."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 372824,
+    "dDurationMs": 1850,
+    "segs": [ {
+      "utf8": "מדוע זה כך?"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 375484,
+    "dDurationMs": 2950,
+    "segs": [ {
+      "utf8": "עד לפני 5 שנים\nגרתי בסטרטפורד-און-אבון."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 378434,
+    "dDurationMs": 2200,
+    "segs": [ {
+      "utf8": "למעשה, עברנו מסטרטפורד\nללוס אנג'לס."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 381304,
+    "dDurationMs": 2550,
+    "segs": [ {
+      "utf8": "אתם ודאי מתארים לעצמכם\nאיזה מעבר חלק זה היה."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 383854,
+    "dDurationMs": 1650,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 385504,
+    "dDurationMs": 1780,
+    "segs": [ {
+      "utf8": "למעשה, גרנו במקום בשם סניטרפילד,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 387284,
+    "dDurationMs": 1140,
+    "segs": [ {
+      "utf8": "ממש ליד סטרטפורד,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 388424,
+    "dDurationMs": 2963,
+    "segs": [ {
+      "utf8": "ושם נולד אביו של שייקספיר."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 391397,
+    "dDurationMs": 2533,
+    "segs": [ {
+      "utf8": "עברה לכם בראש מחשבה פתאומית?\nלי כן."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 393930,
+    "dDurationMs": 2574,
+    "segs": [ {
+      "utf8": "לא חשבתם\nשלשייקספיר היה אבא, נכון?"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 396504,
+    "dDurationMs": 1810,
+    "segs": [ {
+      "utf8": "נכון? כי אינכם חושבים"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 398314,
+    "dDurationMs": 2060,
+    "segs": [ {
+      "utf8": "על שייקספיר כעל ילד, נכון?"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 400374,
+    "dDurationMs": 3030,
+    "segs": [ {
+      "utf8": "שייקספיר בן 7?\nמעולם לא חשבתי על זה. כלומר,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 403404,
+    "dDurationMs": 1220,
+    "segs": [ {
+      "utf8": "הוא היה מתישהו בן 7."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 404624,
+    "dDurationMs": 2513,
+    "segs": [ {
+      "utf8": "הוא ודאי למד אנגלית\nאצל מישהו, נכון?"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 407137,
+    "dDurationMs": 5289,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 414156,
+    "dDurationMs": 1759,
+    "segs": [ {
+      "utf8": "מטריד, נכון?"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 415915,
+    "dDurationMs": 4669,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 423144,
+    "dDurationMs": 1880,
+    "segs": [ {
+      "utf8": "\"תשתדל יותר!\""
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 425024,
+    "dDurationMs": 3890,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 428914,
+    "dDurationMs": 1752,
+    "segs": [ {
+      "utf8": "שולחים אותו למיטה\nבלי ארוחת ערב."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 430666,
+    "dDurationMs": 2448,
+    "segs": [ {
+      "utf8": "אבא אומר לו: \"לך עכשיו למיטה!\"\nלוויליאם שייקספיר!"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 433114,
+    "dDurationMs": 1950,
+    "segs": [ {
+      "utf8": "\"תניח מיד את העפרון."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 435064,
+    "dDurationMs": 2185,
+    "segs": [ {
+      "utf8": "\"ותפסיק לדבר ככה!"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 437249,
+    "dDurationMs": 3335,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 440584,
+    "dDurationMs": 1846,
+    "segs": [ {
+      "utf8": "\"זה מאד מבלבל.\""
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 442430,
+    "dDurationMs": 4074,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 447244,
+    "dDurationMs": 5270,
+    "segs": [ {
+      "utf8": "בכל אופן, עברנו מסטרטפורד\nללוס אנג'לס,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 452844,
+    "dDurationMs": 1910,
+    "segs": [ {
+      "utf8": "בעצם, אני רוצה\nלומר מילה על המעבר."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 454754,
+    "dDurationMs": 1750,
+    "segs": [ {
+      "utf8": "בני לא רצה לבוא."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 456504,
+    "dDurationMs": 2710,
+    "segs": [ {
+      "utf8": "יש לי שני ילדים.\nבני היום בן 21 ובתי בת 16."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 459214,
+    "dDurationMs": 2550,
+    "segs": [ {
+      "utf8": "הוא לא רצה לבוא ללוס אנג'לס.\nהיא מצאה חן בעיניו,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 461764,
+    "dDurationMs": 3246,
+    "segs": [ {
+      "utf8": "אך היתה לו חברה באנגליה."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 465010,
+    "dDurationMs": 2986,
+    "segs": [ {
+      "utf8": "אהבת חייו, שרה."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 467996,
+    "dDurationMs": 2948,
+    "segs": [ {
+      "utf8": "הוא הכיר אותה רק חודש.\n[צחוק]"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 470954,
+    "dDurationMs": 2700,
+    "segs": [ {
+      "utf8": "דעו לכם שזה כמו\nארבע שנות נישואין,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 474234,
+    "dDurationMs": 1960,
+    "segs": [ {
+      "utf8": "כי בגיל 16 זה המון זמן."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 476194,
+    "dDurationMs": 1310,
+    "segs": [ {
+      "utf8": "בכל אופן,\nהוא היה עצוב במטוס,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 477504,
+    "dDurationMs": 2460,
+    "segs": [ {
+      "utf8": "ואמר, \"לעולם לא אמצא\nבחורה כמו שרה,\""
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 480254,
+    "dDurationMs": 2136,
+    "segs": [ {
+      "utf8": "ולמען האמת, זה שימח אותנו מאד,\nכי..."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 482390,
+    "dDurationMs": 7456,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 490716,
+    "dDurationMs": 2788,
+    "segs": [ {
+      "utf8": "...מפני שהיא היתה\nהסיבה העיקרית לכך שעזבנו."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 493504,
+    "dDurationMs": 5430,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 499704,
+    "dDurationMs": 1850,
+    "segs": [ {
+      "utf8": "אך אתה קולט משהו,\nכשאתה עובר לאמריקה"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 501554,
+    "dDurationMs": 1260,
+    "segs": [ {
+      "utf8": "ומסתובב בעולם:"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 502814,
+    "dDurationMs": 3760,
+    "segs": [ {
+      "utf8": "בכל מערכת חינוך בעולם\nיש אותה היררכיה של נושאים."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 506574,
+    "dDurationMs": 3140,
+    "segs": [ {
+      "utf8": "בכולן. לא משנה איפה.\nאולי חשבתם שזה אחרת. אך לא."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 509724,
+    "dDurationMs": 2610,
+    "segs": [ {
+      "utf8": "בראש ניצבות המתמטיקה והשפות,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 512334,
+    "dDurationMs": 1940,
+    "segs": [ {
+      "utf8": "אחר כך המקצועות ההומניים,\nובתחתית - האמנויות."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 514274,
+    "dDurationMs": 1670,
+    "segs": [ {
+      "utf8": "בכל מקום עלי-אדמות."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 515944,
+    "dDurationMs": 4930,
+    "segs": [ {
+      "utf8": "וכמעט בכל מערכת יש גם\nהיררכיה במקצועות האמנות."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 520874,
+    "dDurationMs": 2630,
+    "segs": [ {
+      "utf8": "האמנות הפלסטית והמוסיקה\nזוכות בביה\"ס למעמד גבוה יותר"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 523504,
+    "dDurationMs": 1680,
+    "segs": [ {
+      "utf8": "מאשר הדרמה והמחול."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 525184,
+    "dDurationMs": 2020,
+    "segs": [ {
+      "utf8": "אין מערכת חינוך אחת בעולם"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 527204,
+    "dDurationMs": 1850,
+    "segs": [ {
+      "utf8": "שבה המורים רוקדים כל יום\nבפני התלמידים"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 529054,
+    "dDurationMs": 1483,
+    "segs": [ {
+      "utf8": "באותה רצינות\nכפי שהם מלמדים מתמטיקה."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 530537,
+    "dDurationMs": 1353,
+    "segs": [ {
+      "utf8": "מדוע?"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 531890,
+    "dDurationMs": 2574,
+    "segs": [ {
+      "utf8": "מדוע לא?\nלדעתי זה חשוב."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 534464,
+    "dDurationMs": 2350,
+    "segs": [ {
+      "utf8": "לדעתי המתמטיקה חשובה.\nאך כך גם המחול."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 536814,
+    "dDurationMs": 2440,
+    "segs": [ {
+      "utf8": "ילדים ירקדו כל הזמן\nאם יאפשרו להם. כך גם כולנו."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 539254,
+    "dDurationMs": 3400,
+    "segs": [ {
+      "utf8": "לכולנו יש גוף, נכון?\nהחמצתי איזה שיעור?"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 542654,
+    "dDurationMs": 2790,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 546054,
+    "dDurationMs": 1150,
+    "segs": [ {
+      "utf8": "למען האמת, מה שקורה הוא,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 547204,
+    "dDurationMs": 1300,
+    "segs": [ {
+      "utf8": "שכאשר הילדים גדלים\nאנו מתחילים לחנך אותם"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 548504,
+    "dDurationMs": 2110,
+    "segs": [ {
+      "utf8": "בהדרגה מהמתניים כלפי מעלה,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 550614,
+    "dDurationMs": 3690,
+    "segs": [ {
+      "utf8": "ולבסוף מתרכזים בראש,\nמעט יותר בצד מסוים."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 555324,
+    "dDurationMs": 2180,
+    "segs": [ {
+      "utf8": "אם הייתם מבקרים\nבמערכת החינוך כחייזרים,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 557504,
+    "dDurationMs": 3000,
+    "segs": [ {
+      "utf8": "ושואלים,\n\"למה החינוך הציבורי טוב?\""
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 560504,
+    "dDurationMs": 2470,
+    "segs": [ {
+      "utf8": "תיאלצו לקבוע--\nאם תשפטו לפי התוצרת,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 562974,
+    "dDurationMs": 2960,
+    "segs": [ {
+      "utf8": "לפי אלה שמצליחים\nועושים את כל שצריך,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 566084,
+    "dDurationMs": 2950,
+    "segs": [ {
+      "utf8": "הנחמדים שזוכים\nבכל הנקודות, המנצחים--"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 569034,
+    "dDurationMs": 3850,
+    "segs": [ {
+      "utf8": "לדעתי תיאלצו להסיק שכל מטרת\nהחינוך הציבורי בכל העולם"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 572884,
+    "dDurationMs": 4040,
+    "segs": [ {
+      "utf8": "היא לייצר\nפרופסורים באוניברסיטה, נכון?"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 576924,
+    "dDurationMs": 1550,
+    "segs": [ {
+      "utf8": "אלה נחשבים הכי טובים."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 578474,
+    "dDurationMs": 3010,
+    "segs": [ {
+      "utf8": "אני הייתי כזה. הרי לכם."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 581484,
+    "dDurationMs": 2500,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 584614,
+    "dDurationMs": 2490,
+    "segs": [ {
+      "utf8": "אני אוהב פרופסורים של אוניברסיטה,\nאבל אתם יודעים,"
+    } ],
+    "wpWinPosId": 4,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 587104,
+    "dDurationMs": 3950,
+    "segs": [ {
+      "utf8": "איננו צריכים לנופף בהם כמופת\nלכל הישגי האנושות."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 591054,
+    "dDurationMs": 1930,
+    "segs": [ {
+      "utf8": "הם רק צורת חיים מסוימת,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 593504,
+    "dDurationMs": 2390,
+    "segs": [ {
+      "utf8": "רק צורת חיים נוספת.\nאך הם די מוזרים,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 595904,
+    "dDurationMs": 1810,
+    "segs": [ {
+      "utf8": "אני אומר זאת\nמתוך חיבה להם."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 597884,
+    "dDurationMs": 1960,
+    "segs": [ {
+      "utf8": "מנסיוני,\nיש משהו מוזר בפרופסורים -"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 599844,
+    "dDurationMs": 3660,
+    "segs": [ {
+      "utf8": "לא כולם-- אבל באופן טיפוסי\nהם חיים בתוך הראש."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 603504,
+    "dDurationMs": 3130,
+    "segs": [ {
+      "utf8": "הם חיים שם למעלה,\nמעט יותר בצד מסוים."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 606944,
+    "dDurationMs": 2790,
+    "segs": [ {
+      "utf8": "במידה מסוימת הם נטולי-גוף,\nדי פשוטו כמשמעו."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 609734,
+    "dDurationMs": 2020,
+    "segs": [ {
+      "utf8": "הם רואים בגופם"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 611754,
+    "dDurationMs": 2150,
+    "segs": [ {
+      "utf8": "מעין מערכת תובלה\nעבור ראשיהם."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 613904,
+    "dDurationMs": 5030,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 619434,
+    "dDurationMs": 1260,
+    "segs": [ {
+      "utf8": "נכון?"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 620694,
+    "dDurationMs": 2440,
+    "segs": [ {
+      "utf8": "אמצעי להביא את הראש לישיבות."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 623604,
+    "dDurationMs": 3270,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 628474,
+    "dDurationMs": 3650,
+    "segs": [ {
+      "utf8": "אגב, אם אתם באמת מחפשים\nעדות לחוויות חוץ-גופיות,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 632514,
+    "dDurationMs": 3330,
+    "segs": [ {
+      "utf8": "זמנו את עצמכם לועידה\nשל אקדמאים בכירים,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 635844,
+    "dDurationMs": 2660,
+    "segs": [ {
+      "utf8": "ותקפצו לדיסקוטק בערב הסיום."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 638504,
+    "dDurationMs": 4390,
+    "segs": [ {
+      "utf8": "[צחוק] תראו שם\nגברים ונשים מבוגרים"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 642894,
+    "dDurationMs": 4206,
+    "segs": [ {
+      "utf8": "מתעוותים ללא-שליטה מחוץ לקצב,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 649240,
+    "dDurationMs": 1266,
+    "segs": [ {
+      "utf8": "מחכים שזה ייגמר,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 650506,
+    "dDurationMs": 1908,
+    "segs": [ {
+      "utf8": "כדי שיוכלו להסתלק\nולכתוב על זה מאמר."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 654674,
+    "dDurationMs": 3330,
+    "segs": [ {
+      "utf8": "מערכת החינוך שלנו מבוססת\nעל רעיון היכולת האקדמית."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 658374,
+    "dDurationMs": 1130,
+    "segs": [ {
+      "utf8": "ויש לכך סיבה."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 659504,
+    "dDurationMs": 2160,
+    "segs": [ {
+      "utf8": "כל השיטה הומצאה--\nבכל העולם"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 661724,
+    "dDurationMs": 3720,
+    "segs": [ {
+      "utf8": "לא היו באמת מערכות חינוך ציבוריות\nלפני המאה ה-19."
+    } ],
+    "wpWinPosId": 4,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 665484,
+    "dDurationMs": 2990,
+    "segs": [ {
+      "utf8": "כולן נוצרו כדי לענות\nעל דרישות התיעוש."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 668474,
+    "dDurationMs": 2570,
+    "segs": [ {
+      "utf8": "כך שההיררכיה מעוגנת\nבשני רעיונות."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 671044,
+    "dDurationMs": 3460,
+    "segs": [ {
+      "utf8": "אחד, שהנושאים השימושיים ביותר\nלצרכי עבודה"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 674504,
+    "dDurationMs": 2790,
+    "segs": [ {
+      "utf8": "נמצאים בראש הרשימה.\nכך שכנראה היטו אתכם בעדינות,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 677304,
+    "dDurationMs": 2840,
+    "segs": [ {
+      "utf8": "כשהייתם ילדים בבי\"ס,\nהרחק מהדברים שאהבתם"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 680144,
+    "dDurationMs": 3360,
+    "segs": [ {
+      "utf8": "בנימוק שלא תצליחו\nלמצוא בתחום הזה עבודה. נכון?"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 683504,
+    "dDurationMs": 1740,
+    "segs": [ {
+      "utf8": "\"אל תעסוק במוסיקה,\nהרי לא תהיה מוסיקאי;\""
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 685244,
+    "dDurationMs": 2080,
+    "segs": [ {
+      "utf8": "\"אל תתעסק באמנות,\nכי לא תהיה אמן.\""
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 687734,
+    "dDurationMs": 3830,
+    "segs": [ {
+      "utf8": "ייעוץ מעודן,\nאך כיום, מוטעה מיסודו."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 691564,
+    "dDurationMs": 2170,
+    "segs": [ {
+      "utf8": "כל העולם עובר מהפכה."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 693734,
+    "dDurationMs": 2070,
+    "segs": [ {
+      "utf8": "והתחום השני הוא כישורים אקדמיים,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 695804,
+    "dDurationMs": 2050,
+    "segs": [ {
+      "utf8": "שממש השתלט\nעל השקפתנו על האינטליגנציה,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 697854,
+    "dDurationMs": 3290,
+    "segs": [ {
+      "utf8": "כי האוניברסיטאות מעצבות\nאת המערכת בדמותן."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 701274,
+    "dDurationMs": 940,
+    "segs": [ {
+      "utf8": "אם תחשבו על זה,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 702214,
+    "dDurationMs": 1760,
+    "segs": [ {
+      "utf8": "כל מערכת החינוך הציבורי בעולם"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 703974,
+    "dDurationMs": 2770,
+    "segs": [ {
+      "utf8": "היא חלק מהתהליך\nשל כניסה לאוניברסיטה."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 707214,
+    "dDurationMs": 3440,
+    "segs": [ {
+      "utf8": "ועקב כך כשרונות מעולים רבים,\nאנשים מבריקים ויצירתיים,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 710654,
+    "dDurationMs": 1740,
+    "segs": [ {
+      "utf8": "חושבים שהם נטולי-כישורים,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 712404,
+    "dDurationMs": 1730,
+    "segs": [ {
+      "utf8": "כי הדברים בהם היו טובים בביה\"ס"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 714134,
+    "dDurationMs": 2780,
+    "segs": [ {
+      "utf8": "לא זכו להערכה,\nאו אפילו הוקעו."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 716914,
+    "dDurationMs": 2340,
+    "segs": [ {
+      "utf8": "ולדעתי איננו יכולים\nלהרשות לעצמנו להמשיך כך."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 719254,
+    "dDurationMs": 2250,
+    "segs": [ {
+      "utf8": "ב-30 השנה הבאות, לפי 'אונסק\"ו',"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 721504,
+    "dDurationMs": 1530,
+    "segs": [ {
+      "utf8": "יותר אנשים בעולם"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 723034,
+    "dDurationMs": 3860,
+    "segs": [ {
+      "utf8": "יסיימו כבוגרים את מערכת החינוך\nמאשר אי-פעם בהיסטוריה."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 726894,
+    "dDurationMs": 3010,
+    "segs": [ {
+      "utf8": "יותר אנשים, וזהו שילוב\nשל כל מה שדיברנו עליו -"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 729904,
+    "dDurationMs": 2290,
+    "segs": [ {
+      "utf8": "הטכנולוגיה והשפעתה\nעל אופי העבודה,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 732194,
+    "dDurationMs": 3310,
+    "segs": [ {
+      "utf8": "הדמוגרפיה והתפוצצות האוכלוסין העצומה."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 735504,
+    "dDurationMs": 4110,
+    "segs": [ {
+      "utf8": "לפתע התארים\nאינם שווים דבר. נכון?"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 740204,
+    "dDurationMs": 3190,
+    "segs": [ {
+      "utf8": "כשהייתי סטודנט, אם היה לך תואר,\nהיתה לך עבודה."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 743394,
+    "dDurationMs": 2400,
+    "segs": [ {
+      "utf8": "אם לא היתה לך עבודה,\nזה כי לא רצית."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 745794,
+    "dDurationMs": 2710,
+    "segs": [ {
+      "utf8": "והאמת, אני לא רציתי.\n[צחוק]"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 748504,
+    "dDurationMs": 4300,
+    "segs": [ {
+      "utf8": "אך כיום, ילדים עם תארים\nלעתים קרובות"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 752804,
+    "dDurationMs": 2550,
+    "segs": [ {
+      "utf8": "הולכים הביתה לשחק\nמשחקי וידאו,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 755624,
+    "dDurationMs": 2840,
+    "segs": [ {
+      "utf8": "כי אתה צריך אם-איי למשרה\nשדרשה פעם רק בי-איי,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 758464,
+    "dDurationMs": 2040,
+    "segs": [ {
+      "utf8": "ותואר דוקטור לכל השאר."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 760504,
+    "dDurationMs": 2000,
+    "segs": [ {
+      "utf8": "זהו תהליך של\nאינפלציה אקדמית."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 762504,
+    "dDurationMs": 1650,
+    "segs": [ {
+      "utf8": "והוא מורה על כך\nשכל מבנה החינוך"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 764154,
+    "dDurationMs": 1320,
+    "segs": [ {
+      "utf8": "משתנה מתחת לרגלינו."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 765474,
+    "dDurationMs": 2030,
+    "segs": [ {
+      "utf8": "אנו זקוקים לשינוי קיצוני\nבהשקפתנו על האינטליגנציה."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 767794,
+    "dDurationMs": 1750,
+    "segs": [ {
+      "utf8": "אנו יודעים אודות האינטליגנציה\nשלושה דברים:\n."
+    } ],
+    "wpWinPosId": 4,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 769544,
+    "dDurationMs": 3110,
+    "segs": [ {
+      "utf8": "אחד, היא מגוונת.\nאנו חושבים על העולם בכל הדרכים"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 772654,
+    "dDurationMs": 1850,
+    "segs": [ {
+      "utf8": "בהן אנו חווים אותו.\nאנו חושבים ויזואלית,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 774504,
+    "dDurationMs": 2570,
+    "segs": [ {
+      "utf8": "אנו חושבים בצליל,\nבמושגי התמצאות במרחב."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 777074,
+    "dDurationMs": 2500,
+    "segs": [ {
+      "utf8": "אנו חושבים במושגים מופשטים,\nואנו חושבים בתנועה."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 779814,
+    "dDurationMs": 2690,
+    "segs": [ {
+      "utf8": "שנית, האינטליגנציה היא דינמית."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 783124,
+    "dDurationMs": 2270,
+    "segs": [ {
+      "utf8": "אם מתבוננים באינטראקציות\nשמבצע המוח האנושי,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 785394,
+    "dDurationMs": 2750,
+    "segs": [ {
+      "utf8": "כפי ששמענו אתמול\nבמספר הרצאות,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 788144,
+    "dDurationMs": 2570,
+    "segs": [ {
+      "utf8": "האינטליגנציה אינטראקטיבית להפליא."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 790714,
+    "dDurationMs": 2790,
+    "segs": [ {
+      "utf8": "המוח אינו מחולק למדורים."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 793504,
+    "dDurationMs": 2500,
+    "segs": [ {
+      "utf8": "למעשה, היצירתיות--\nשאני מגדיר כתהליך"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 796004,
+    "dDurationMs": 2500,
+    "segs": [ {
+      "utf8": "של העלאת רעיונות מקוריים\nובעלי-ערך,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 798504,
+    "dDurationMs": 3000,
+    "segs": [ {
+      "utf8": "מתרחשת הרבה יותר\nהודות ליחסי הגומלין"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 801504,
+    "dDurationMs": 3000,
+    "segs": [ {
+      "utf8": "שבין דרכים שונות של ראיית דברים."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 805354,
+    "dDurationMs": 2050,
+    "segs": [ {
+      "utf8": "המוח הינו במכוון-- אגב,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 807404,
+    "dDurationMs": 2100,
+    "segs": [ {
+      "utf8": "יש מעבר עצבי בין שני\nחצאי המוח"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 809504,
+    "dDurationMs": 2290,
+    "segs": [ {
+      "utf8": "הקרוי כפיס-המוח.\nהוא עבה יותר אצל נשים"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 812734,
+    "dDurationMs": 2100,
+    "segs": [ {
+      "utf8": "אם לשפוט לפי הלן מאתמול, לדעתי"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 814834,
+    "dDurationMs": 2670,
+    "segs": [ {
+      "utf8": "זו אולי הסיבה מדוע\nנשים טובות יותר בריבוי-משימות"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 817504,
+    "dDurationMs": 2110,
+    "segs": [ {
+      "utf8": "אתן באמת כאלה, לא?"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 819614,
+    "dDurationMs": 3210,
+    "segs": [ {
+      "utf8": "יש מחקרים רבים על כך.\nאך אני יודע מנסיוני האישי,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 822824,
+    "dDurationMs": 2040,
+    "segs": [ {
+      "utf8": "אם אשתי מבשלת בבית ארוחה--"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 824864,
+    "dDurationMs": 1843,
+    "segs": [ {
+      "utf8": "מה שלא קורה הרבה,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 827467,
+    "dDurationMs": 1185,
+    "segs": [ {
+      "utf8": "תודה לאל."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 828652,
+    "dDurationMs": 2555,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 831207,
+    "dDurationMs": 1567,
+    "segs": [ {
+      "utf8": "לא, יש דברים שהיא טובה בהם,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 832794,
+    "dDurationMs": 1340,
+    "segs": [ {
+      "utf8": "אך אם היא מבשלת,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 834134,
+    "dDurationMs": 1370,
+    "segs": [ {
+      "utf8": "היא משוחחת בו-זמנית\nעם אנשים בטלפון,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 835504,
+    "dDurationMs": 2000,
+    "segs": [ {
+      "utf8": "מדברת עם הילדים,\nמסיידת את התקרה,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 837504,
+    "dDurationMs": 1510,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 839014,
+    "dDurationMs": 2490,
+    "segs": [ {
+      "utf8": "מבצעת ניתוח לב פתוח."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 841504,
+    "dDurationMs": 3000,
+    "segs": [ {
+      "utf8": "אם אני מבשל,\nהדלת סגורה, הילדים בחוץ,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 844504,
+    "dDurationMs": 3550,
+    "segs": [ {
+      "utf8": "הטלפון מנותק, ואם היא נכנסת\nזה מפריע לי. אני אומר,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 848064,
+    "dDurationMs": 2803,
+    "segs": [ {
+      "utf8": "\"טרי, בבקשה, אני מנסה\nלטגן ביצה, בחייך!\""
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 850867,
+    "dDurationMs": 5069,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 857736,
+    "dDurationMs": 1709,
+    "segs": [ {
+      "utf8": "\"תעזבי אותי בשקט!\""
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 860545,
+    "dDurationMs": 2699,
+    "segs": [ {
+      "utf8": "למעשה, אתם מכירים\nאת הקטע הפילוסופי ההוא,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 863244,
+    "dDurationMs": 2120,
+    "segs": [ {
+      "utf8": "אם עץ נופל ביער\nואיש אינו שומע,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 865364,
+    "dDurationMs": 2690,
+    "segs": [ {
+      "utf8": "האם זה קרה?\nזוכרים את העץ ההוא?"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 868054,
+    "dDurationMs": 2150,
+    "segs": [ {
+      "utf8": "ראיתי לאחרונה חולצת טי נהדרת\nשעליה כתוב:"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 870704,
+    "dDurationMs": 3720,
+    "segs": [ {
+      "utf8": "\"אם גבר מביע את דעתו ביער\nואין אישה ששומעת אותו,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 874424,
+    "dDurationMs": 2143,
+    "segs": [ {
+      "utf8": "\"האם הוא עדיין טועה?\""
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 876567,
+    "dDurationMs": 5243,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 883560,
+    "dDurationMs": 1994,
+    "segs": [ {
+      "utf8": "והדבר השלישי\nבנוגע לאינטליגנציה הוא,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 885554,
+    "dDurationMs": 1730,
+    "segs": [ {
+      "utf8": "שהיא מובהקת."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 887684,
+    "dDurationMs": 1720,
+    "segs": [ {
+      "utf8": "אני עובד עכשיו על ספר חדש\nבשם \"התגלות\","
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 889404,
+    "dDurationMs": 2540,
+    "segs": [ {
+      "utf8": "שמבוסס על סדרת ראיונות,\nעם אנשים שמספרים"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 891944,
+    "dDurationMs": 1670,
+    "segs": [ {
+      "utf8": "איך גילו את כשרונם."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 893824,
+    "dDurationMs": 2140,
+    "segs": [ {
+      "utf8": "מרתק אותי\nאיך אנשים הגיעו לכך."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 896204,
+    "dDurationMs": 2720,
+    "segs": [ {
+      "utf8": "זה החל בעצם משיחה\nשהיתה לי עם אישה נפלאה,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 898924,
+    "dDurationMs": 1286,
+    "segs": [ {
+      "utf8": "שמרבית האנשים אולי לא שמעו אודותיה,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 900210,
+    "dDurationMs": 2176,
+    "segs": [ {
+      "utf8": "ג'יליאן לין, שמעתם עליה?"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 902696,
+    "dDurationMs": 1628,
+    "segs": [ {
+      "utf8": "כמה שמעו. היא כוריאוגרפית"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 904324,
+    "dDurationMs": 1180,
+    "segs": [ {
+      "utf8": "וכולם מכירים את עבודתה."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 905504,
+    "dDurationMs": 2610,
+    "segs": [ {
+      "utf8": "היא עשתה את \"קאטס\"\nואת \"פנטום האופרה\"."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 908114,
+    "dDurationMs": 3230,
+    "segs": [ {
+      "utf8": "היא נהדרת.\nהייתי בהנהלת הבלט המלכותי באנגליה,"
+    } ],
+    "wpWinPosId": 4,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 911344,
+    "dDurationMs": 2760,
+    "segs": [ {
+      "utf8": "כמו שאתם רואים.\n[צחוק]"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 914434,
+    "dDurationMs": 1370,
+    "segs": [ {
+      "utf8": "סעדנו ביחד יום אחד,\nושאלתי אותה:"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 915804,
+    "dDurationMs": 2000,
+    "segs": [ {
+      "utf8": "\"איך הגעת להיות רקדנית?\"\nוהיא אמרה,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 917804,
+    "dDurationMs": 1540,
+    "segs": [ {
+      "utf8": "וזה מעניין.\nכשהיא היתה בביה\"ס,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 919344,
+    "dDurationMs": 1446,
+    "segs": [ {
+      "utf8": "היא היתה חסרת-תקנה,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 921556,
+    "dDurationMs": 2468,
+    "segs": [ {
+      "utf8": "וביה\"ס, בשנות השלושים,\nכתב להוריה:"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 924024,
+    "dDurationMs": 1943,
+    "segs": [ {
+      "utf8": "\"לדעתנו ג'יליאן סובלת מליקוי-למידה.\""
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 925987,
+    "dDurationMs": 1623,
+    "segs": [ {
+      "utf8": "היא לא יכלה להתרכז,\nהיתה מתנועעת בעצבנות."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 927610,
+    "dDurationMs": 3444,
+    "segs": [ {
+      "utf8": "לדעתי היום היו אומרים\nשיש לה הפרעת-קשב, נכון?"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 931774,
+    "dDurationMs": 4110,
+    "segs": [ {
+      "utf8": "אך אלה היו שנות ה-30,\nועוד לא המציאו את זה."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 935884,
+    "dDurationMs": 2493,
+    "segs": [ {
+      "utf8": "הבעיה הזו לא היתה זמינה."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 938377,
+    "dDurationMs": 2733,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 941110,
+    "dDurationMs": 2298,
+    "segs": [ {
+      "utf8": "אנשים לא ידעו שאפשר\nשיהיה להם את זה."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 943408,
+    "dDurationMs": 2748,
+    "segs": [ {
+      "utf8": "[צחוק]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 946156,
+    "dDurationMs": 3588,
+    "segs": [ {
+      "utf8": "היא הלכה למומחה אחד,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 950194,
+    "dDurationMs": 3100,
+    "segs": [ {
+      "utf8": "בחדר מצופה עץ-אלון.\nוהיא היתה שם עם אימה,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 953294,
+    "dDurationMs": 2640,
+    "segs": [ {
+      "utf8": "הושיבו אותה על כיסא בקצה,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 955934,
+    "dDurationMs": 1500,
+    "segs": [ {
+      "utf8": "והיא ישבה 20 דקות\nעל כפות ידיה,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 957434,
+    "dDurationMs": 1280,
+    "segs": [ {
+      "utf8": "בעוד האיש הזה\nמשוחח עם אימה"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 958714,
+    "dDurationMs": 2283,
+    "segs": [ {
+      "utf8": "על כל הבעיות של ג'יליאן בביה\"ס."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 960997,
+    "dDurationMs": 733,
+    "segs": [ {
+      "utf8": "בסוף --"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 961810,
+    "dDurationMs": 3454,
+    "segs": [ {
+      "utf8": "כי אנשים היו מוטרדים ממצבה,\nהיא איחרה בהכנת שיעורי הבית וכו'"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 965264,
+    "dDurationMs": 1070,
+    "segs": [ {
+      "utf8": "ילדה בת 8--"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 966344,
+    "dDurationMs": 3530,
+    "segs": [ {
+      "utf8": "בסוף, הרופא ניגש,\nישב ליד ג'יליאן ואמר:"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 969874,
+    "dDurationMs": 2146,
+    "segs": [ {
+      "utf8": "\"ג'יליאן, הקשבתי לכל הדברים\nשאימך סיפרה לי,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 972020,
+    "dDurationMs": 2074,
+    "segs": [ {
+      "utf8": "\"ואני צריך לדבר איתה ביחידות.\""
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 974294,
+    "dDurationMs": 3010,
+    "segs": [ {
+      "utf8": "\"חכי כאן, תיכף נחזור.\nזה לא ייקח הרבה זמן.\""
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 977304,
+    "dDurationMs": 2250,
+    "segs": [ {
+      "utf8": "והם יצאו והשאירו אותה לבד."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 979554,
+    "dDurationMs": 1730,
+    "segs": [ {
+      "utf8": "אך בדרך החוצה\nהוא הפעיל את הרדיו"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 981284,
+    "dDurationMs": 1800,
+    "segs": [ {
+      "utf8": "שעמד על שולחנו,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 983634,
+    "dDurationMs": 1890,
+    "segs": [ {
+      "utf8": "וכשהם יצאו מהחדר,\nהוא אמר לאימה:"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 985524,
+    "dDurationMs": 3870,
+    "segs": [ {
+      "utf8": "\"עימדי והתסתכלי בה.\"\nוברגע שהם יצאו,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 989394,
+    "dDurationMs": 3450,
+    "segs": [ {
+      "utf8": "כך סיפרה, היא קפצה על רגליה\nוהתנועעה עם המוסיקה."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 993264,
+    "dDurationMs": 2960,
+    "segs": [ {
+      "utf8": "הם צפו בה כמה דקות,\nוהוא פנה אל אימה ואמר:"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 996224,
+    "dDurationMs": 4530,
+    "segs": [ {
+      "utf8": "\"גברת לין, ג'יליאן אינה חולה.\nהיא רקדנית."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1001364,
+    "dDurationMs": 1640,
+    "segs": [ {
+      "utf8": "\"קחי אותה לבי\"ס למחול.\""
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1003004,
+    "dDurationMs": 1690,
+    "segs": [ {
+      "utf8": "שאלתי, \"ומה קרה אז?\"\nוהיא אמרה:"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1004694,
+    "dDurationMs": 1023,
+    "segs": [ {
+      "utf8": "\"זה מה שהיא עשתה."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1005717,
+    "dDurationMs": 1633,
+    "segs": [ {
+      "utf8": "\"איני יכולה לתאר לך\nכמה נהדר זה היה."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1007350,
+    "dDurationMs": 2484,
+    "segs": [ {
+      "utf8": "\"נכנסנו לחדר מלא באנשים כמוני."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1009854,
+    "dDurationMs": 2650,
+    "segs": [ {
+      "utf8": "\"אנשים שלא יכולים לשבת בשקט."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1012504,
+    "dDurationMs": 2696,
+    "segs": [ {
+      "utf8": "\"שצריכים להתנועע כדי לחשוב.\""
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1015200,
+    "dDurationMs": 1876,
+    "segs": [ {
+      "utf8": "שצריכים להתנועע כדי לחשוב."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1017256,
+    "dDurationMs": 2288,
+    "segs": [ {
+      "utf8": "הם רקדו בלט, 'טאפ', ג'אז,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1019544,
+    "dDurationMs": 1380,
+    "segs": [ {
+      "utf8": "מחול מודרני, מחול עכשווי."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1020924,
+    "dDurationMs": 2230,
+    "segs": [ {
+      "utf8": "לבסוף היא נבחנה\nלביה\"ס לבלט המלכותי,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1023364,
+    "dDurationMs": 2510,
+    "segs": [ {
+      "utf8": "ונעשתה סוליסטית.\nהיתה לה קריירה נפלאה בבלט המלכותי."
+    } ],
+    "wpWinPosId": 4,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1026154,
+    "dDurationMs": 2170,
+    "segs": [ {
+      "utf8": "היא סיימה את\nבי\"ס הבלט המלכותי"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1028324,
+    "dDurationMs": 3180,
+    "segs": [ {
+      "utf8": "וייסדה להקה משלה,\n\"להקת המחול של ג'יליאן לין\","
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1031504,
+    "dDurationMs": 1150,
+    "segs": [ {
+      "utf8": "פגשה את אנדרו לויד וובר."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1032654,
+    "dDurationMs": 1930,
+    "segs": [ {
+      "utf8": "היתה אחראית לכמה\nמהפקות התיאטרון המוסיקליות"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1034584,
+    "dDurationMs": 2616,
+    "segs": [ {
+      "utf8": "המצליחות ביותר בהיסטוריה,\nהסבה עונג למיליונים,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1037200,
+    "dDurationMs": 1688,
+    "segs": [ {
+      "utf8": "והיא מולטי-מיליונרית."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1039104,
+    "dDurationMs": 4000,
+    "segs": [ {
+      "utf8": "מישהו אחר היה אולי\nרושם לה תרופות ואומר לה להירגע."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1043944,
+    "dDurationMs": 1653,
+    "segs": [ {
+      "utf8": "לדעתי..."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1045597,
+    "dDurationMs": 5403,
+    "segs": [ {
+      "utf8": "[מחיאות כפיים]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1051500,
+    "dDurationMs": 3784,
+    "segs": [ {
+      "utf8": "לדעתי, זו תמצית העניין:\nאל גור דיבר באחד הערבים"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1055324,
+    "dDurationMs": 4430,
+    "segs": [ {
+      "utf8": "על אקולוגיה,\nועל המהפכה שהחלה רייצ'ל קרסון."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1060284,
+    "dDurationMs": 2220,
+    "segs": [ {
+      "utf8": "אני מאמין שתקוותנו היחידה לעתיד"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1062504,
+    "dDurationMs": 3880,
+    "segs": [ {
+      "utf8": "היא לאמץ תפיסה חדשה\nלגבי האקולוגיה האנושית,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1066464,
+    "dDurationMs": 2690,
+    "segs": [ {
+      "utf8": "שבה נתחיל לארגן מחדש\nאת האופן בו אנו תופשים"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1069174,
+    "dDurationMs": 2150,
+    "segs": [ {
+      "utf8": "את עושרה של היכולת האנושית."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1071504,
+    "dDurationMs": 3550,
+    "segs": [ {
+      "utf8": "מערכת החינוך שלנו\nחפרה עד כה במוחותינו"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1075054,
+    "dDurationMs": 2116,
+    "segs": [ {
+      "utf8": "כפי שאנו כורים ועושקים את\nכדור הארץ:"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1077170,
+    "dDurationMs": 1666,
+    "segs": [ {
+      "utf8": "כדי להפיק מצרך מסוים."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1078836,
+    "dDurationMs": 2508,
+    "segs": [ {
+      "utf8": "ולטווח הארוך, זה לא לטובתנו."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1081344,
+    "dDurationMs": 1920,
+    "segs": [ {
+      "utf8": "עלינו לשקול מחדש\nאת עקרונות היסוד"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1083264,
+    "dDurationMs": 2240,
+    "segs": [ {
+      "utf8": "עליהם אנו מחנכים את ילדינו."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1085504,
+    "dDurationMs": 2290,
+    "segs": [ {
+      "utf8": "יש ציטוט נהדר\nמאת ג'ונה סאלק, שאמר,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1088284,
+    "dDurationMs": 4220,
+    "segs": [ {
+      "utf8": "\"אם כל החרקים ייכחדו\nמעל פני האדמה,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1092504,
+    "dDurationMs": 3750,
+    "segs": [ {
+      "utf8": "\"ייעלמו תוך 50 שנה\nכל החיים עלי-אדמות."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1096774,
+    "dDurationMs": 3280,
+    "segs": [ {
+      "utf8": "\"אם כל בני האדם\nייכחדו מן העולם,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1100074,
+    "dDurationMs": 3470,
+    "segs": [ {
+      "utf8": "\"תוך 50 שנה\nכל צורות החיים ישגשגו.\""
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1103874,
+    "dDurationMs": 1330,
+    "segs": [ {
+      "utf8": "והוא צודק."
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1105664,
+    "dDurationMs": 4070,
+    "segs": [ {
+      "utf8": "TED מעלה על נס\nאת מתנת הדמיון האנושי."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1109734,
+    "dDurationMs": 4160,
+    "segs": [ {
+      "utf8": "עלינו להקפיד להשתמש\nבמתנה זו בחוכמה"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1113914,
+    "dDurationMs": 3580,
+    "segs": [ {
+      "utf8": "ולהסיט ממסלולם כמה מהתסריטים\nעליהם שוחחנו."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1117494,
+    "dDurationMs": 1590,
+    "segs": [ {
+      "utf8": "והדרך היחידה לכך היא,"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1119084,
+    "dDurationMs": 3950,
+    "segs": [ {
+      "utf8": "לזהות את העושר האמיתי\nשל יכולותינו היצירתיות,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1123044,
+    "dDurationMs": 3130,
+    "segs": [ {
+      "utf8": "ולזהות בילדינו את התקווה\nשהם מגלמים."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1126174,
+    "dDurationMs": 3810,
+    "segs": [ {
+      "utf8": "ומשימתנו היא לחנכם כאדם שלם,\nכך שיוכלו להתמודד עם עתיד זה."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1129984,
+    "dDurationMs": 2670,
+    "segs": [ {
+      "utf8": "אגב, אנו אולי לא נזכה\nלראות עתיד זה,"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1132664,
+    "dDurationMs": 2840,
+    "segs": [ {
+      "utf8": "אך הם כן.\nותפקידנו הוא לסייע להם"
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1135504,
+    "dDurationMs": 2590,
+    "segs": [ {
+      "utf8": "להפיק ממנו משהו.\nתודה רבה לכם."
+    } ],
+    "wpWinPosId": 2,
+    "wsWinStyleId": 2
+  }, {
+    "tStartMs": 1138094,
+    "dDurationMs": 12610,
+    "segs": [ {
+      "utf8": "[מחיאות כפיים]"
+    } ],
+    "wpWinPosId": 3,
+    "wsWinStyleId": 2
+  } ]
+}
