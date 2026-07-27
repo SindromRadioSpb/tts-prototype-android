@@ -163,6 +163,40 @@ test("rolling: word-level timings are DISCARDED, never surfaced (R11)", () => {
   assert.deepEqual(r.segments.map((s) => s.text), ["а б в", "г д", "е ж"]);
 });
 
+test("merge (default, rolling branch): de-rolled fragments actually merge — not just wiring", () => {
+  // Same raw structure as "rolling auto-captions are de-rolled" above, but run WITHOUT
+  // merge:false. This pins that doMerge/maxSec are genuinely threaded into fromRollingCues:
+  // if that wiring were dropped or swapped, cueCount would still be 4 but segments.length
+  // would stay 4 (or some other value), not collapse to exactly 2 with this exact text.
+  const raw = [
+    "WEBVTT", "Kind: captions", "Language: iw", "",
+    "00:00:01.964 --> 00:00:07.630 align:start position:100%",
+    " ", "[музыка]", "",
+    "00:00:07.630 --> 00:00:07.640 align:start position:100%",
+    " ", " ", "",
+    "00:00:07.640 --> 00:00:10.190 align:start position:100%",
+    " ", "кто<00:00:07.919><c> вы</c><00:00:08.120><c> такие?</c>", "",
+    "00:00:10.190 --> 00:00:10.200 align:start position:100%",
+    "кто вы такие?", " ", "",
+    "00:00:10.200 --> 00:00:13.230 align:start position:100%",
+    "кто вы такие?", "и<00:00:10.280><c> зачем</c><00:00:10.400><c> пришли</c>", "",
+    "00:00:13.230 --> 00:00:13.240 align:start position:100%",
+    "и зачем пришли", " ", "",
+    "00:00:13.240 --> 00:00:16.000 align:start position:100%",
+    "и зачем пришли", "третья<00:00:13.500><c> строка</c>", "",
+  ].join("\n");
+  const r = CP.parse(raw); // default merge:true
+  assert.equal(r.rolling, true);
+  assert.equal(r.merged, true);
+  assert.equal(r.cueCount, 4);
+  assert.ok(r.cueCount > r.segments.length, "merging must reduce the count");
+  assert.equal(r.segments.length, 2);
+  assert.deepEqual(r.segments.map((s) => s.text), [
+    "[музыка] кто вы такие?",
+    "и зачем пришли третья строка",
+  ]);
+});
+
 test("non-rolling plain captions keep every cue (no false de-roll)", () => {
   const raw = "WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nодно\n\n00:00:03.000 --> 00:00:04.000\nодно\n";
   // merge:false — эти две "одно"-реплики без точки и с паузой <2с иначе склеились бы (T3B);
@@ -205,6 +239,24 @@ test("panel paste: heading sits BETWEEN cue text and the next timestamp (real RT
   const at44 = r.segments.find((s) => s.start === 44);
   assert.ok(at44 && at44.text.indexOf("מבחינת העתיד") === 0);
   assert.ok(r.segments.every((s) => s.start >= 0 && typeof s.text === "string" && s.text.length));
+});
+
+test("merge (default, panel branch): panel cues actually merge — not just wiring", () => {
+  // Panel-format mirror of "merge: joins cues up to mergeMaxSec, breaks on sentence end" above.
+  // Pins that doMerge/maxSec are genuinely threaded into parsePanel (including its derived
+  // `end` = next cue's start): if that wiring were dropped or swapped, cueCount would still be
+  // 3 but segments.length would stay 3, not collapse to exactly 2 with this exact text.
+  const raw = "0:00\nпервая часть\n0:02\nвторая часть.\n0:04\nновое предложение";
+  const r = CP.parse(raw); // default merge:true
+  assert.equal(r.format, "youtube-panel");
+  assert.equal(r.merged, true);
+  assert.equal(r.cueCount, 3);
+  assert.ok(r.cueCount > r.segments.length, "merging must reduce the count");
+  assert.equal(r.segments.length, 2);
+  assert.deepEqual(r.segments.map((s) => s.text), [
+    "первая часть вторая часть.",
+    "новое предложение",
+  ]);
 });
 
 test("panel paste: english fixture parses with monotonic starts", () => {
@@ -294,6 +346,22 @@ test("merge: segment start equals the start of its FIRST cue (no interpolation)"
   const r = CP.parse(raw);
   assert.equal(r.segments.length, 1);
   assert.equal(r.segments[0].start, 3.5);
+});
+
+// Fixture regression tripwire: the exact merged segment counts on the two real fixtures are
+// pinned HERE and only here. "merge: loses no text" above checks the relationship (< the cap,
+// cueCount matches unmerged length) but deliberately not the concrete numbers, so a legitimate
+// future fixture edit (e.g. re-captured from YouTube) breaks loudly in exactly one place instead
+// of silently drifting or failing several unrelated-looking assertions at once.
+test("merge (real fixtures): exact merged segment counts are pinned", () => {
+  const fs2 = require("node:fs"), path2 = require("node:path");
+  const FIX2 = path2.join(__dirname, "..", "scripts", "premium", "fixtures", "captions");
+  const manual = CP.parse(fs2.readFileSync(path2.join(FIX2, "ted-hebrew-manual.vtt"), "utf8"));
+  assert.equal(manual.cueCount, 411, "ted-hebrew-manual.vtt raw cue count changed");
+  assert.equal(manual.segments.length, 218, "ted-hebrew-manual.vtt merged segment count changed");
+  const rolling = CP.parse(fs2.readFileSync(path2.join(FIX2, "hebrew-auto-rolling.vtt"), "utf8"));
+  assert.equal(rolling.cueCount, 65, "hebrew-auto-rolling.vtt de-rolled cue count changed");
+  assert.equal(rolling.segments.length, 23, "hebrew-auto-rolling.vtt merged segment count changed");
 });
 
 test("merge:false keeps one segment per cue (oracle-parity mode)", () => {
