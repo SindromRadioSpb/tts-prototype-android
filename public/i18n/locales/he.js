@@ -3069,6 +3069,23 @@ window.I18N_LOCALES.he = {
       audioTimingDropped: "העריכות שינו את מספר השורות — הקריוקי כובה",
       warnCoverage: "המודל דילג על חלק מהקטעים — בדקו את שלמות הטבלה",
       provAudio: "אודיו → תמלול ASR (Gemini)",
+      // W2-S5a — ייבוא ← כתוביות (קובץ .vtt/.srt או הדבקת פאנל התמלול של YouTube) + נגן מוטמע
+      captionsLabel: "כתוביות הסרטון",
+      captionsFileBtn: "קובץ כתוביות (.vtt / .srt)",
+      captionsPasteBtn: "פענוח ההדבקה",
+      captionsPastePlaceholder: "הדביקו תמלול עם חותמות זמן…",
+      captionsSourcePaste: "תמלול מודבק",
+      captionsNoPlayer: "בדפדפן זה לא ניתן להפעיל את הסרטון — הטבלה וחותמות הזמן עדיין יהיו זמינות",
+      captionsEmbedDenied: "הבעלים חסם הטמעה של הסרטון — פתחו אותו ב-YouTube",
+      captionsPlayerLoading: "טוען נגן…",
+      captionsTracksManual: "לסרטון יש כתוביות ידניות:",
+      captionsTracksAuto: "לסרטון יש רק כתוביות אוטומטיות:",
+      captionsTracksNone: "לסרטון אין כתוביות — העלו קובץ מדיה לזיהוי דיבור",
+      provCaptions: "כתוביות → קטעים",
+      errCaptionsEmpty: "לא נמצאו שורות בכתוביות",
+      errCaptionsNoTimestamps: "נדרש תמלול עם חותמות זמן, לא טקסט רגיל",
+      errCaptionsUnparseable: "לא ניתן לפענח את הכתוביות",
+      errCaptionsTooMany: "יותר מדי שורות — בחרו קטע קצר יותר",
     },
     // W2-S4 Task 10 — media bar / segment replay / tap-seek (index.html)
     media: {
@@ -3076,6 +3093,7 @@ window.I18N_LOCALES.he = {
       replaySegment: "חזרה על קטע המקור",
       noTiming: "קריוקי אינו זמין לייבוא זה",
       fileMissing: "קובץ האודיו לא נמצא בדפדפן זה",
+      viaYouTube: "ניגון דרך YouTube",
     },
     // W2-S4 Task 11 — פאנל מקור-אמת אודיו (חלון «נתוני-על טקסט»)
     meta: {

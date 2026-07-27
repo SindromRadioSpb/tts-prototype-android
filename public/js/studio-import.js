@@ -17,6 +17,12 @@
   var MAX_AUDIO_BYTES = 300 * 1024 * 1024; // sanity
   var pendingAudio = null; // {file, buf, sha256, mime, durationSec, name, parsed, validation}
 
+  // W2-S5a — Import → Captions (.vtt/.srt file or pasted YouTube transcript panel) + optional
+  // embedded YouTube player for capability preview. Канон:
+  // docs/planning/STUDIO_INGEST_W2_S5A_CAPTIONS_KARAOKE_DESIGN_2026_07_27.md.
+  var pendingCaptions = null; // {parsed, origin, fileName, video}
+  var ytAdapter = null;       // адаптер плеера, если ролик встроен
+
   function $(id) { return document.getElementById(id); }
   function tr(key) { return (typeof window.t === "function") ? window.t(key) : key; }
   function toast(key, type) { if (typeof window.showToast === "function") window.showToast(tr(key), type || "info"); }
@@ -117,7 +123,7 @@
   function showPreview(p) {
     pending = p;
     $("v3ImportPreview").value = p.text;
-    var provKey = { url: "studio.import.provUrl", image: "studio.import.provOcr", pdf: "studio.import.provPdf", docx: "studio.import.provDocx", audio: "studio.import.provAudio" }[p.kind];
+    var provKey = { url: "studio.import.provUrl", image: "studio.import.provOcr", pdf: "studio.import.provPdf", docx: "studio.import.provDocx", audio: "studio.import.provAudio", captions: "studio.import.provCaptions" }[p.kind];
     var prov = tr(provKey) + " · " + p.source + (p.model ? " · " + p.model : "");
     if (p.warnings && p.warnings.length) prov += " · ⚠ " + tr("studio.import.warnCheck");
     $("v3ImportProv").textContent = prov;
@@ -153,6 +159,11 @@
     UPLOAD_FAILED: "studio.import.errUpload", FILE_FAILED: "studio.import.errUpload", FILE_TIMEOUT: "studio.import.errUpload",
     ASR_TIMEOUT: "studio.import.errOverloaded", ASR_BAD_JSON: "studio.import.errExtractBadJson",
     NO_SPEECH: "studio.import.errNoSpeech",
+    // W2-S5a — captions parsing path
+    CAPTIONS_EMPTY: "studio.import.errCaptionsEmpty",
+    CAPTIONS_NO_TIMESTAMPS: "studio.import.errCaptionsNoTimestamps",
+    CAPTIONS_UNPARSEABLE: "studio.import.errCaptionsUnparseable",
+    CAPTIONS_TOO_MANY: "studio.import.errCaptionsTooMany",
   };
   function errKey(code) { return ERROR_KEY[code] || "studio.import.errGeneric"; }
 
@@ -169,6 +180,19 @@
   function close() {
     var m = $("v3ImportModal");
     if (m) m.classList.add("hidden");
+    // W2-S5a: this modal owns ytAdapter's lifetime (it created it in mountVideo()) — every path
+    // that hides the modal (Cancel, backdrop click, post-commit close() at the end of useText())
+    // funnels through here, so this is the single teardown point. Leaving it live would keep a
+    // YouTube iframe (and possibly playing audio) mounted inside a hidden modal indefinitely.
+    if (ytAdapter) {
+      if (window.StudioYtPlayer) window.StudioYtPlayer.destroy(ytAdapter);
+      ytAdapter = null;
+    }
+    var ytm = $("v3ImportYtMount");
+    if (ytm) { ytm.hidden = true; ytm.innerHTML = ""; }
+    var yth = $("v3ImportYtHint");
+    if (yth) yth.textContent = "";
+    pendingCaptions = null;
   }
 
   async function fetchUrl() {
@@ -247,6 +271,28 @@
       if (!saved.ok) window.v3SessionMediaBlob = pendingAudio.file;
       if (editedAway) toast("studio.import.audioTimingDropped", "warning");
     }
+    var captionsMetaForImport = null;
+    if (pending.kind === "captions" && pendingCaptions && pendingCaptions.parsed) {
+      var cl = text.split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
+      var ps = pendingCaptions.parsed.segments;
+      var cEdited = cl.length !== ps.length;
+      captionsMetaForImport = {
+        v: 1,
+        captions: { origin: pendingCaptions.origin, format: pendingCaptions.parsed.format,
+                    kindHint: pendingCaptions.parsed.kindHint,
+                    kindEvidence: pendingCaptions.parsed.rolling ? "vtt-rolling"
+                                : (pendingCaptions.parsed.format === "vtt" || pendingCaptions.parsed.format === "srt" ? "vtt-plain" : "none"),
+                    language: pendingCaptions.parsed.language, fileName: pendingCaptions.fileName,
+                    at: new Date().toISOString(), droppedHeadings: pendingCaptions.parsed.droppedHeadings,
+                    warnings: pending.warnings || [] },
+        video: pendingCaptions.video || undefined,
+        segments: cEdited ? cl.map(function (t2, k) { return { i: k, start: null, text: t2 }; })
+                          : ps.map(function (s, k) { return { i: k, start: s.start, text: cl[k] }; }),
+        timing: null,
+        timingDropReason: cEdited ? "PREVIEW_EDITED" : null,
+      };
+      if (cEdited) toast("studio.import.audioTimingDropped", "warning");
+    }
     var input = $("inputText");
     input.value = text;
     input.dispatchEvent(new Event("input", { bubbles: true })); // пусть существующие слушатели Студии отработают
@@ -254,12 +300,91 @@
       kind: pending.kind, source: pending.source, method: pending.method, model: pending.model,
       warnings: pending.warnings, at: new Date().toISOString(), textSnapshot: text,
       audio: audioMetaForImport || undefined,
+      captions: captionsMetaForImport || undefined,
     };
     close();
     toast(pending.warnings && pending.warnings.length ? "studio.import.warnCheck" : "studio.import.done",
           pending.warnings && pending.warnings.length ? "warning" : "success");
   }
 
-  window.StudioImport = { open: open, close: close, fetchUrl: fetchUrl, onFileChosen: onFileChosen,
-                           onAudioChosen: onAudioChosen, transcribeAudio: transcribeAudio, useText: useText };
+  // W2-S5a — Классификация URL: ссылка на YouTube уходит в ветку S5a, а НЕ в
+  // /api/ingest/fetch-url — тот вернул бы либо EXTRACT_EMPTY, либо мусор из SPA-шелла (разведка
+  // 2026-07-27).
+  async function fetchUrlOrVideo() {
+    var url = ($("v3ImportUrl").value || "").trim();
+    if (!url) { setStatus("studio.import.errBadUrl"); return; }
+    var vid = window.StudioYtPlayer && window.StudioYtPlayer.parseVideoId(url);
+    if (!vid) return fetchUrl();
+    await mountVideo(vid, url);
+  }
+
+  async function mountVideo(videoId, url) {
+    var mount = $("v3ImportYtMount"), hint = $("v3ImportYtHint");
+    pendingCaptions = pendingCaptions || {};
+    pendingCaptions.video = { platform: "youtube", videoId: videoId, url: url };
+    if (ytAdapter) { window.StudioYtPlayer.destroy(ytAdapter); ytAdapter = null; }
+    mount.innerHTML = "";
+    var cap = window.StudioYtPlayer.capability();
+    if (!cap.supported) { mount.hidden = true; hint.textContent = tr("studio.import.captionsNoPlayer"); return; }
+    mount.hidden = false;
+    hint.textContent = tr("studio.import.captionsPlayerLoading");
+    try {
+      ytAdapter = await window.StudioYtPlayer.create(mount, videoId);
+      hint.textContent = describeTracks(ytAdapter.tracklist());
+    } catch (e) {
+      mount.hidden = true;
+      hint.textContent = tr(e && e.code === "YT_EMBED_DENIED"
+        ? "studio.import.captionsEmbedDenied" : "studio.import.captionsNoPlayer");
+    }
+  }
+
+  // R9: сообщаем, ЧТО есть у ролика — это свидетельство о дорожках, а не о принесённом файле.
+  function describeTracks(list) {
+    if (!list || !list.length) return tr("studio.import.captionsTracksNone");
+    var manual = list.filter(function (t) { return t.kind !== "asr"; });
+    var langs = (manual.length ? manual : list).map(function (t) { return t.languageName || t.languageCode; });
+    var uniq = langs.filter(function (v, i) { return langs.indexOf(v) === i; }).slice(0, 4).join(", ");
+    return tr(manual.length ? "studio.import.captionsTracksManual" : "studio.import.captionsTracksAuto") + " " + uniq;
+  }
+
+  function acceptCaptions(parsed, origin, fileName) {
+    if (!parsed.ok) { setStatus(errKey(parsed.error_code)); return; }
+    pendingCaptions = pendingCaptions || {};
+    pendingCaptions.parsed = parsed;
+    pendingCaptions.origin = origin;
+    pendingCaptions.fileName = fileName || null;
+    var warn = [];
+    if (parsed.kindHint === "auto") warn.push("AUTO_CAPTIONS");
+    if (parsed.droppedHeadings > 0) warn.push("HEADINGS_DROPPED");
+    showPreview({
+      kind: "captions", source: fileName || tr("studio.import.captionsSourcePaste"),
+      method: origin === "file" ? "captions-file" : "captions-panel", model: null,
+      warnings: warn,
+      text: parsed.segments.map(function (s) { return s.text; }).join("\n"),
+    });
+  }
+
+  function onCaptionsFileChosen(ev) {
+    var file = ev.target.files && ev.target.files[0];
+    ev.target.value = "";
+    if (!file) return;
+    if (file.size > MAX_FILE_BYTES) { setStatus("studio.import.errTooLarge"); return; }
+    var reader = new FileReader();
+    reader.onerror = function () { setStatus("studio.import.errGeneric"); };
+    reader.onload = function () {
+      acceptCaptions(window.CaptionsParse.parse(String(reader.result || "")), "file", file.name);
+    };
+    reader.readAsText(file, "utf-8");
+  }
+
+  function useCaptionsPaste() {
+    var raw = ($("v3ImportCaptionsPaste").value || "");
+    if (!raw.trim()) { setStatus("studio.import.errCaptionsEmpty"); return; }
+    acceptCaptions(window.CaptionsParse.parse(raw), "paste", null);
+  }
+
+  window.StudioImport = { open: open, close: close, fetchUrl: fetchUrl, fetchUrlOrVideo: fetchUrlOrVideo,
+                           onFileChosen: onFileChosen, onAudioChosen: onAudioChosen, transcribeAudio: transcribeAudio,
+                           onCaptionsFileChosen: onCaptionsFileChosen, useCaptionsPaste: useCaptionsPaste,
+                           useText: useText };
 })();

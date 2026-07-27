@@ -3073,6 +3073,23 @@ window.I18N_LOCALES.ru = {
       audioTimingDropped: "Правки изменили число строк — караоке отключено",
       warnCoverage: "Модель пропустила часть сегментов — проверьте полноту таблицы",
       provAudio: "Аудио → ASR-транскрипт (Gemini)",
+      // W2-S5a — Импорт → Субтитры (файл .vtt/.srt / вставка панели YouTube) + встроенный плеер
+      captionsLabel: "Субтитры видео",
+      captionsFileBtn: "Файл субтитров (.vtt / .srt)",
+      captionsPasteBtn: "Разобрать вставку",
+      captionsPastePlaceholder: "Вставьте расшифровку с таймкодами…",
+      captionsSourcePaste: "вставка расшифровки",
+      captionsNoPlayer: "В этом браузере ролик не воспроизвести — таблица и таймкоды будут доступны",
+      captionsEmbedDenied: "Владелец запретил встраивание ролика — откройте его на YouTube",
+      captionsPlayerLoading: "Загружаю плеер…",
+      captionsTracksManual: "У ролика есть ручные субтитры:",
+      captionsTracksAuto: "У ролика только авто-субтитры:",
+      captionsTracksNone: "У ролика нет субтитров — загрузите медиа-файл для распознавания речи",
+      provCaptions: "Субтитры → сегменты",
+      errCaptionsEmpty: "В субтитрах нет реплик",
+      errCaptionsNoTimestamps: "Нужна расшифровка с таймкодами, а не просто текст",
+      errCaptionsUnparseable: "Не удалось разобрать субтитры",
+      errCaptionsTooMany: "Слишком много реплик — возьмите фрагмент покороче",
     },
     // W2-S4 Task 10 — media bar / segment replay / tap-seek (index.html)
     media: {
@@ -3080,6 +3097,7 @@ window.I18N_LOCALES.ru = {
       replaySegment: "Повторить сегмент оригинала",
       noTiming: "Караоке недоступно для этого импорта",
       fileMissing: "Аудио-файл не найден в этом браузере",
+      viaYouTube: "Воспроизведение через YouTube",
     },
     // W2-S4 Task 11 — audio provenance sub-panel («Метаданные текста»)
     meta: {

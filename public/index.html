@@ -2248,6 +2248,10 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
         .v3-modal button.btn-anki { width: auto; }
         /* W2-S4: Импорт → Аудио — тот же mobile-трап, тот же паттерн исключения */
         .v3-import-audio button, #v3ImportAudioInfo button { width: auto; }
+        /* W2-S5a: Импорт → Субтитры — тот же трап; class-based selector needs !important here
+           (unlike the .v3-import-audio rule above, this one isn't guaranteed to be the LAST
+           equal-specificity rule in cascade order, so specificity alone can't be relied on). */
+        #v3ImportCaptionsBox button, .v3-import-captions button { width: auto !important; }
 
         .export-actions { margin-left: 0; width: 100%; flex-direction: column; }
         .hotkeys-header { flex-direction: column; align-items: flex-start; }
@@ -3563,6 +3567,10 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .v3-import-file-btn:active { transform: translateY(1px); }
 #v3ImportAudioInfo { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 #v3ImportAudioInfo[hidden] { display: none; } /* [hidden] vs author-display trap — see feedback_hidden_attr_vs_display */
+
+/* W2-S5a: Импорт → Субтитры — embedded YouTube preview + file/paste intake. */
+.v3-import-captions { margin-top: 10px; }
+#v3ImportYtMount iframe { width: 100%; max-width: 100%; border: 0; border-radius: 8px; }
 
 /* P2-1: modal open animation */
 @keyframes v3ModalIn {
@@ -10991,6 +10999,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                           <button type="button" id="v3MediaPlayBtn" onclick="v3MediaPlayOriginal()">▶ <span data-i18n="studio.media.playOriginal">Оригинал</span></button>
                           <span id="v3MediaBarNote" class="v3-media-note"></span>
                         </div>
+                        <!-- W2-S5a Task 8: YouTube playback stage for captions-imported video (no
+                             local media blob) — mounted on-demand by v3MediaPlayOriginal(). -->
+                        <div id="v3MediaYtMount" hidden style="margin-top:8px;"></div>
                         <div id="tableContainer"></div>
                         <button id="tableEditFab" type="button" title="Режим редактирования таблицы" aria-label="Режим редактирования таблицы" hidden>✎</button>
                         <button id="classicOrientationFab" type="button" title="Переключить ориентацию" aria-label="Переключить ориентацию" hidden data-i18n="classic.editOrientationLandscape">↔ Альбом</button>
@@ -12375,6 +12386,13 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/gemini-files.js"></script>
 <script src="/js/studio-media-karaoke.js"></script>
 
+<!-- W2-S5a Studio Ingest captions/video deps — pure, no cross-deps between the two, but BOTH
+     must load before studio-import.js (calls CaptionsParse.parse/StudioYtPlayer.*) and before
+     this page's own inline <script> below (v3MediaBarRefresh/v3MediaPlayOriginal call
+     window.StudioYtPlayer directly). -->
+<script src="/js/captions-parse.js"></script>
+<script src="/js/studio-yt-player.js"></script>
+
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
 <script src="/js/studio-import.js" defer></script>
 
@@ -13684,6 +13702,7 @@ if (header) {
     try {
       window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
       if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
+      if (window.v3YtStageAdapter) { window.StudioYtPlayer.destroy(window.v3YtStageAdapter); window.v3YtStageAdapter = null; }
       if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
     } catch (_) {}
     // W2-S4: restore this text's own media passport (if any) from the meta just parsed above.
@@ -20875,6 +20894,7 @@ updatePlaylistButtonUI();
         try {
           window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
           if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
+          if (window.v3YtStageAdapter) { window.StudioYtPlayer.destroy(window.v3YtStageAdapter); window.v3YtStageAdapter = null; }
           if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
         } catch (_) {}
 		// сброс состояния Row TTS (кэш строк оставляем — он полезен)
@@ -23387,8 +23407,14 @@ function v3MediaBarRefresh() {
   if (note) note.textContent = audio.timing ? "" : t("studio.media.noTiming");
   v3MediaResolveBlob(audio).then((blob) => {
     const btn = document.getElementById("v3MediaPlayBtn");
-    if (btn) btn.disabled = !blob;
-    if (!blob && note) note.textContent = t("studio.media.fileMissing");
+    // W2-S5a: no local blob is fine when the passport carries a YouTube video AND this browser
+    // can actually embed it (capability-before-offer, R5) — the "▶ Оригинал" button then drives
+    // v3MediaPlayOriginal()'s external-player branch instead of a local <audio>.
+    const hasVideo = !!(audio.video && audio.video.videoId && window.StudioYtPlayer &&
+                        window.StudioYtPlayer.capability().supported);
+    if (btn) btn.disabled = !blob && !hasVideo;
+    if (!blob && !hasVideo && note) note.textContent = t("studio.media.fileMissing");
+    if (!blob && hasVideo && note) note.textContent = t("studio.media.viaYouTube");
     v3MediaAugmentRows();
   });
 }
@@ -23396,17 +23422,29 @@ function v3MediaBarRefresh() {
 async function v3MediaPlayOriginal() {
   const audio = window.v3ActiveMediaAudio;
   if (!audio) return;
-  const blob = await v3MediaResolveBlob(audio);
-  if (!blob) return;
+  const rowCount = Array.isArray(currentTableData) ? currentTableData.length : 0;
   // REFERENCE EQUALITY CONTRACT (Task 7 review): StudioMediaKaraoke.start() decides
   // resume-vs-fresh via `cur.entries === (opts.entries || null)` — STRICT reference
   // equality. `audio` here is ALWAYS the SAME window.v3ActiveMediaAudio object for the
   // lifetime of the active text, so `audio.timing.entries` is the same array instance
   // across calls — never .map()/.slice()/re-derive this.
-  await StudioMediaKaraoke.start({
-    blob, entries: audio.timing ? audio.timing.entries : null,
-    rowCount: Array.isArray(currentTableData) ? currentTableData.length : 0,
-  });
+  const entries = audio.timing ? audio.timing.entries : null;
+  const blob = await v3MediaResolveBlob(audio);
+  if (blob) { await StudioMediaKaraoke.start({ blob, entries, rowCount }); return; }
+  // W2-S5a: no local blob — fall back to the embedded YouTube player as the time source
+  // (studio-media-karaoke.js T6 accepts any adapter with currentTime/play/pause/addEventListener).
+  // Ownership: THIS function created window.v3YtStageAdapter (via StudioYtPlayer.create() below),
+  // so THIS module is responsible for destroying it — at the media-reset points next to the
+  // existing StudioMediaKaraoke.stop() calls, never inside the karaoke module itself.
+  if (!audio.video || !audio.video.videoId) return;
+  if (!window.v3YtStageAdapter) {
+    const mount = document.getElementById("v3MediaYtMount");
+    if (!mount) return;
+    mount.hidden = false;
+    try { window.v3YtStageAdapter = await window.StudioYtPlayer.create(mount, audio.video.videoId); }
+    catch (_) { mount.hidden = true; return; }
+  }
+  await StudioMediaKaraoke.start({ media: window.v3YtStageAdapter, entries, rowCount });
 }
 
 // S4-ROWPLAY: per-row "▶︎ replay this segment" button, injected POST-render (renderTable
@@ -25088,6 +25126,7 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
     try {
       window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
       if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
+      if (window.v3YtStageAdapter) { window.StudioYtPlayer.destroy(window.v3YtStageAdapter); window.v3YtStageAdapter = null; }
       if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
     } catch (_) {}
     // W2-S4: restore this text's own media passport (if any) from the meta just parsed above.
@@ -32832,8 +32871,9 @@ try { v3DashCloseViewMenu(); } catch (_) {}
     // ----------------------------
     // TRANSLATE TABLE
     // ----------------------------
-    // W2-S4: сегменты для сегмент-режима — только если импорт был аудио, направление he-ru
-    // и текущий текст построчно совпадает по числу строк с ASR-сегментами (иначе честно без тайминга).
+    // W2-S4/S5a: сегменты для сегмент-режима — если импорт был аудио ИЛИ субтитры (captions,
+    // v3MediaPassport(im) резолвит любой из двух), направление he-ru и текущий текст построчно
+    // совпадает по числу строк с сегментами (иначе честно без тайминга).
     // W2-S4.1 FIX B: must match ingest/segTable.js MAX_SEGMENTS/MAX_SEG_TEXT — client-side guard
     // so an oversized request never reaches the server as a cryptic 400; falling back to null
     // here means no `segments` in the payload, so Task 9's attach logic honestly labels the
@@ -46365,7 +46405,7 @@ document.addEventListener("i18n:changed", function () {
       <label class="input-label" for="v3ImportUrl" data-i18n="studio.import.urlLabel">Ссылка на статью / страницу</label>
       <div style="display:flex; gap:6px;">
         <input id="v3ImportUrl" type="url" inputmode="url" data-i18n-placeholder="studio.import.urlPlaceholder" placeholder="https://…" style="flex:1; min-width:0;">
-        <button type="button" class="btn-secondary" id="v3ImportUrlBtn" onclick="StudioImport.fetchUrl()" data-i18n="studio.import.fetchBtn">Извлечь</button>
+        <button type="button" class="btn-secondary" id="v3ImportUrlBtn" onclick="StudioImport.fetchUrlOrVideo()" data-i18n="studio.import.fetchBtn">Извлечь</button>
       </div>
 
       <div style="margin-top:10px;">
@@ -46385,6 +46425,23 @@ document.addEventListener("i18n:changed", function () {
           <button type="button" id="v3ImportAudioGo" class="btn-secondary"
                   onclick="StudioImport.transcribeAudio()"></button>
         </div>
+      </div>
+
+      <div class="v3-import-captions" id="v3ImportCaptionsBox">
+        <div class="input-label" data-i18n="studio.import.captionsLabel">Субтитры видео</div>
+        <div id="v3ImportYtMount" hidden></div>
+        <div id="v3ImportYtHint" style="font-size:12px; color:#6c757d; margin:4px 0;"></div>
+        <label class="v3-import-file-btn">
+          <span data-i18n="studio.import.captionsFileBtn">Файл субтитров (.vtt / .srt)</span>
+          <input type="file" id="v3ImportCaptionsFile" accept=".vtt,.srt,text/vtt" hidden
+                 onchange="StudioImport.onCaptionsFileChosen(event)">
+        </label>
+        <textarea id="v3ImportCaptionsPaste" dir="auto" rows="3"
+                  data-i18n-placeholder="studio.import.captionsPastePlaceholder"
+                  placeholder="Вставьте расшифровку с таймкодами…"
+                  style="width:100%; box-sizing:border-box; margin-top:6px;"></textarea>
+        <button type="button" class="btn-secondary" id="v3ImportCaptionsPasteBtn"
+                onclick="StudioImport.useCaptionsPaste()" data-i18n="studio.import.captionsPasteBtn">Разобрать вставку</button>
       </div>
 
       <div id="v3ImportStatus" style="margin-top:10px; font-size:13px; color:#6c757d;" aria-live="polite"></div>

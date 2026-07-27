@@ -3059,6 +3059,23 @@ window.I18N_LOCALES.en = {
       audioTimingDropped: "Edits changed line count — karaoke disabled",
       warnCoverage: "The model skipped some segments — check the table for completeness",
       provAudio: "Audio → ASR transcript (Gemini)",
+      // W2-S5a — Import → Captions (.vtt/.srt file or pasted YouTube transcript panel) + embedded player
+      captionsLabel: "Video subtitles",
+      captionsFileBtn: "Subtitle file (.vtt / .srt)",
+      captionsPasteBtn: "Parse pasted text",
+      captionsPastePlaceholder: "Paste a transcript with timestamps…",
+      captionsSourcePaste: "pasted transcript",
+      captionsNoPlayer: "This browser can't play the video — the table and timestamps will still be available",
+      captionsEmbedDenied: "The owner disabled embedding for this video — open it on YouTube",
+      captionsPlayerLoading: "Loading player…",
+      captionsTracksManual: "This video has manual subtitles:",
+      captionsTracksAuto: "This video only has auto-generated subtitles:",
+      captionsTracksNone: "This video has no subtitles — upload a media file for speech recognition",
+      provCaptions: "Subtitles → segments",
+      errCaptionsEmpty: "No lines found in the subtitles",
+      errCaptionsNoTimestamps: "A transcript with timestamps is needed, not plain text",
+      errCaptionsUnparseable: "Could not parse the subtitles",
+      errCaptionsTooMany: "Too many lines — use a shorter clip",
     },
     // W2-S4 Task 10 — media bar / segment replay / tap-seek (index.html)
     media: {
@@ -3066,6 +3083,7 @@ window.I18N_LOCALES.en = {
       replaySegment: "Replay original segment",
       noTiming: "Karaoke unavailable for this import",
       fileMissing: "Audio file not found in this browser",
+      viaYouTube: "Playing via YouTube",
     },
     // W2-S4 Task 11 — audio provenance sub-panel (text-metadata modal)
     meta: {
