@@ -111,9 +111,37 @@
                     kindHint: "unknown", segments: segments, droppedHeadings: 0, warnings: [] });
   }
 
-  // Заглушки задач 2 и 3 — заменяются в них целиком.
-  function isRolling() { return false; }
-  function fromRollingCues() { return null; }
+  // Катящиеся авто-субтитры YouTube: каждая реплика приходит трижды — как строка с пословными
+  // тегами (новый текст), как 10-мс «доводочная» кью и как перенос в начале следующей кью.
+  function isRolling(cues) {
+    var tagged = 0;
+    for (var i = 0; i < cues.length; i++) {
+      for (var j = 0; j < cues[i].lines.length; j++) {
+        if (WORD_TAG_RE.test(cues[i].lines[j])) { tagged++; break; }
+      }
+    }
+    return tagged >= 3 && tagged >= cues.length * 0.2;
+  }
+
+  function fromRollingCues(cues, txt) {
+    var segments = [], lastText = "";
+    for (var c = 0; c < cues.length; c++) {
+      if (cues[c].end - cues[c].start < 0.05) continue; // «доводочная» кью — всегда повтор
+      for (var l = 0; l < cues[c].lines.length; l++) {
+        var rawLine = cues[c].lines[l];
+        var text = cleanText(rawLine); // теги (в т.ч. пословные тайминги) срезаются здесь — R11
+        if (!text) continue;
+        var isNew = WORD_TAG_RE.test(rawLine);
+        if (!isNew && text === lastText) continue; // перенос предыдущей реплики
+        segments.push({ i: segments.length, start: cues[c].start, text: text });
+        lastText = text;
+      }
+    }
+    return { format: "vtt", rolling: true, language: languageFromHeader(txt),
+             kindHint: "auto", segments: segments, droppedHeadings: 0, warnings: [] };
+  }
+
+  // Заглушка задачи 3 — заменяется в ней целиком.
   function parsePanel() { return fail("CAPTIONS_UNPARSEABLE"); }
 
   var API = { parse: parse, detectFormat: detectFormat, MAX_SEGMENTS: MAX_SEGMENTS, MAX_SEG_TEXT: MAX_SEG_TEXT };
