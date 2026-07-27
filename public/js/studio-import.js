@@ -56,7 +56,8 @@
     if (!file) return;
     $("v3ImportAudioInfo").hidden = true;
     pendingAudio = null;
-    if (file.size > MAX_AUDIO_BYTES) { setStatus("studio.import.errAudioTooLarge"); return; }
+    var isVideo = String(file.type || "").toLowerCase().startsWith("video/");
+    if (file.size > MAX_AUDIO_BYTES) { setStatus(isVideo ? "studio.import.errVideoTooLarge" : "studio.import.errAudioTooLarge"); return; }
     var key = typeof window.geminiKeyGet === "function" ? window.geminiKeyGet() : "";
     if (!key) { setStatus("studio.import.errNoKey"); return; }
     var dur;
@@ -64,11 +65,13 @@
     catch (_) { setStatus("studio.import.errAudioBadFile"); return; }
     if (dur > MAX_AUDIO_SEC + 1) { setStatus("studio.import.errAudioTooLong"); return; }
     var mime = file.type || "audio/mpeg";
-    pendingAudio = { file: file, buf: null, sha256: null, mime: mime, durationSec: dur, name: file.name, parsed: null, validation: null };
-    var est = window.AsrTranscript.estimateAsrCostUsd(dur);
+    pendingAudio = { file: file, buf: null, sha256: null, mime: mime, durationSec: dur, name: file.name, parsed: null, validation: null, isVideo: isVideo };
+    var est = window.AsrTranscript.estimateAsrCostUsd(dur, { video: isVideo });
     var durRounded = Math.round(dur);
     var mm = Math.floor(durRounded / 60), ss = String(durRounded % 60).padStart(2, "0");
-    $("v3ImportAudioMeta").textContent = mm + ":" + ss + " · " + (file.size / (1024 * 1024)).toFixed(1) + "MB";
+    var metaText = mm + ":" + ss + " · " + (file.size / (1024 * 1024)).toFixed(1) + "MB";
+    if (isVideo) metaText += " · " + tr("studio.import.videoNote");
+    $("v3ImportAudioMeta").textContent = metaText;
     $("v3ImportAudioGo").textContent = tr("studio.import.audioGo") + " (≈$" + Math.max(0.01, est).toFixed(2) + ")";
     $("v3ImportAudioInfo").hidden = false;
     setStatus(null);

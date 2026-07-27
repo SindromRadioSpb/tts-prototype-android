@@ -31976,7 +31976,14 @@ function v3TextMetaRenderProvenance(source) {
     "gemini-pdf":  T("textMeta.provMethodPdf", "извлечено ИИ из PDF"),
     "gemini-asr":  T("textMeta.provMethodAsr", "Распознавание речи (Gemini)"),
   };
-  const k = KIND[source.kind] || { icon: "📄", label: esc(source.kind) };
+  let k = KIND[source.kind] || { icon: "📄", label: esc(source.kind) };
+  // W2-S4-T2: audio imports whose underlying file was a video (only the audio
+  // track is sent to ASR) get a distinct provenance label so the user is not
+  // told "Audio" for what they uploaded as a video file (R9 honesty).
+  if (source.kind === "audio" && source.audio && source.audio.media &&
+      String(source.audio.media.mime || "").toLowerCase().startsWith("video/")) {
+    k = { icon: "🎬", label: T("textMeta.provKindVideo", "Видео (аудио-дорожка)") };
+  }
   const isAi = source.method === "gemini-ocr" || source.method === "gemini-pdf" || source.method === "gemini-asr";
   const rows = [];
   rows.push('<div style="font-weight:600;">' + esc(T("textMeta.provTitle", "Происхождение")) + '</div>');
@@ -46359,7 +46366,7 @@ document.addEventListener("i18n:changed", function () {
       <div class="v3-import-audio">
         <label class="v3-import-file-btn">
           <span data-i18n="studio.import.audioBtn">Аудио (иврит) → транскрипт</span>
-          <input type="file" id="v3ImportAudio" accept="audio/*,.m4a,.oga,.opus" hidden
+          <input type="file" id="v3ImportAudio" accept="audio/*,video/*,.m4a,.oga,.opus" hidden
                  onchange="StudioImport.onAudioChosen(event)">
         </label>
         <div id="v3ImportAudioInfo" hidden>
