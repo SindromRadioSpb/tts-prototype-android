@@ -4,6 +4,8 @@
 // Собственный new Audio() на blob-URL из OPFS: rowAudioPlayer (index.html:18522) НЕ трогаем —
 // его ended-хендлер двигает TTS-плейлист (чужой инвариант). Взаимное исключение: start()
 // зовёт window.v3StopRowAudio (hook в index.html), а row-tts обработчик зовёт наш stop().
+// W2-S5a: время может идти и от внешнего медиа-адаптера (YouTube, studio-yt-player.js) вместо
+// локального блоба — см. комментарий над ensureRun() ниже про утиный тип и владение адаптером.
 (function () {
   "use strict";
 
@@ -60,6 +62,10 @@
         }
       }
     }
+    // url === null for an external media adapter (YouTube) — nothing to revoke, that is normal.
+    // Note what we deliberately do NOT do here: call cur.audioEl.destroy(). An adapter is not ours
+    // to destroy (see ensureRun) — pause() above plus listener removal is the module's whole
+    // teardown contract; destroying the adapter itself is the caller's job.
     if (cur.url) { try { URL.revokeObjectURL(cur.url); } catch (_) {} }
     paintRange(null);
     cur = null;
@@ -73,12 +79,23 @@
     return k;
   }
 
-  function ensureRun(blob, entries, rowCount) {
+  // W2-S5a: источник времени может быть локальным блобом (S4) ИЛИ внешним медиа-адаптером
+  // (YouTube-плеер, studio-yt-player.js). Всё ниже работает с любым из них — нужен лишь
+  // currentTime/play/pause/paused/addEventListener. Object-URL отзываем только свой (url остаётся
+  // null для адаптера — stop() уже отзывает условно). Владение адаптером: модуль его НЕ создаёт и
+  // НЕ destroy()-ит — им владеет вызывающая сторона (Task 8, StudioYtPlayer.create()); pause() в
+  // stop() достаточно, чтобы остановить цикл, а уничтожение чужого ресурса — не наша забота.
+  function ensureRun(source, entries, rowCount) {
     stop();
     if (typeof window.v3StopRowAudio === "function") { try { window.v3StopRowAudio(); } catch (_) {} }
-    var url = URL.createObjectURL(blob);
-    var audioEl = new Audio(url);
-    audioEl.preload = "auto";
+    var url = null, audioEl;
+    if (source && typeof source.addEventListener === "function" && !(source instanceof Blob)) {
+      audioEl = source;                       // внешний адаптер — своего элемента не создаём
+    } else {
+      url = URL.createObjectURL(source);
+      audioEl = new Audio(url);
+      audioEl.preload = "auto";
+    }
     var run = { audioEl: audioEl, url: url, entries: entries || null, rowCount: rowCount, rafId: 0, lastIdx: -2, stopAtT: null, listeners: null };
     // W2-S4.1 FIX C: пауза ≠ teardown (позиция сохраняется), НО rAF-цикл обязан остановиться —
     // иначе уже запланированный кадр перерисует подсветку поверх paintRange(null) (гонка).
@@ -107,7 +124,8 @@
 
   async function start(opts) {
     try {
-      var run = (cur && cur.entries === (opts.entries || null)) ? cur : ensureRun(opts.blob, opts.entries || null, opts.rowCount || 0);
+      var source = opts.media || opts.blob;
+      var run = (cur && cur.entries === (opts.entries || null)) ? cur : ensureRun(source, opts.entries || null, opts.rowCount || 0);
       run.stopAtT = null;
       await run.audioEl.play();
     } catch (_) { /* best-effort: никогда не ломаем Студию */ }
