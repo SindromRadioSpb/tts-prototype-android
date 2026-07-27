@@ -805,7 +805,9 @@ const CASES = [
 
 let failed = 0;
 for (const c of CASES) {
-  const r = CP.parse(fs.readFileSync(path.join(FIX, c.vtt), "utf8"));
+  // Оракул хранит по событию на РЕПЛИКУ, поэтому паритет сверяется до слияния (merge:false).
+  // Инварианты самого слияния проверяются отдельным блоком ниже.
+  const r = CP.parse(fs.readFileSync(path.join(FIX, c.vtt), "utf8"), { merge: false });
   const o = oracle(c.json);
   const problems = [];
   if (!r.ok) problems.push(`parse failed: ${r.error_code}`);
@@ -824,6 +826,30 @@ for (const c of CASES) {
     if (/<[^>]*>|&[a-z]+;/i.test(s.text)) { problems.push(`tag/entity leaked: ${s.text.slice(0, 40)}`); break; }
   }
   console.log(`${problems.length ? "FAIL" : "ok  "} ${c.label}: segments=${r.segments.length} oracle=${o.length} text=${textOk}/${n} start=${startOk}/${n}`);
+  problems.forEach((p) => console.log(`      - ${p}`));
+  failed += problems.length ? 1 : 0;
+}
+
+// Инварианты слияния (§4.5 дизайна): текст не теряется, старты честные, кап достижим.
+for (const c of CASES) {
+  const raw = fs.readFileSync(path.join(FIX, c.vtt), "utf8");
+  const un = CP.parse(raw, { merge: false });
+  const me = CP.parse(raw);
+  const flat = (r) => r.segments.map((s) => s.text).join(" ").replace(/\s+/g, " ").trim();
+  const problems = [];
+  if (!me.ok) problems.push(`merged parse failed: ${me.error_code}`);
+  if (flat(me) !== flat(un)) problems.push("merging changed the text (lost or reordered content)");
+  if (me.cueCount !== un.segments.length) problems.push(`cueCount=${me.cueCount}, cues=${un.segments.length}`);
+  if (!(me.segments.length <= un.segments.length)) problems.push("merging produced MORE segments than cues");
+  if (me.segments.length > CP.MAX_SEGMENTS) problems.push(`merged segments ${me.segments.length} exceed the cap`);
+  const starts = new Set(un.segments.map((s) => s.start));
+  for (const s of me.segments) {
+    if (!starts.has(s.start)) { problems.push(`invented start ${s.start} — not the start of any cue`); break; }
+  }
+  for (let i = 1; i < me.segments.length; i++) {
+    if (me.segments[i].start < me.segments[i - 1].start) { problems.push(`non-monotonic at ${i}`); break; }
+  }
+  console.log(`${problems.length ? "FAIL" : "ok  "} merge/${c.label}: ${un.segments.length} cues -> ${me.segments.length} segments`);
   problems.forEach((p) => console.log(`      - ${p}`));
   failed += problems.length ? 1 : 0;
 }
@@ -859,8 +885,9 @@ console.log("\ncaptions-parse gate OK");
 - [ ] **Step 3: Run the gate**
 
 Run: `npm run smoke:captions-parse`
-Expected: `captions-parse gate OK`, exit 0. Планка: обе VTT-пары — паритет текста и стартов
-**100%**, число сегментов равно оракульному (411 и 65).
+Expected: `captions-parse gate OK`, exit 0. Планка: обе VTT-пары при `merge:false` — паритет текста
+и стартов **100%**, число сегментов равно оракульному (411 и 65); блок слияния — текст не изменился,
+старты не выдуманы, склеенных сегментов не больше реплик и не больше капа.
 
 - [ ] **Step 4: Verify the gate has teeth**
 
