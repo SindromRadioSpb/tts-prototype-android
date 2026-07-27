@@ -19,9 +19,9 @@ function oracle(file) {
 
 const CASES = [
   { label: "manual-hebrew", vtt: "ted-hebrew-manual.vtt", json: "ted-hebrew-manual.json3.json",
-    expectRolling: false, minSegments: 411 },
+    expectRolling: false, minSegments: 411, expectMerged: 218 },
   { label: "rolling-auto-hebrew", vtt: "hebrew-auto-rolling.vtt", json: "hebrew-auto-rolling.json3.json",
-    expectRolling: true, minSegments: 65 },
+    expectRolling: true, minSegments: 65, expectMerged: 23 },
 ];
 
 let failed = 0;
@@ -63,6 +63,12 @@ for (const c of CASES) {
   if (me.cueCount !== un.segments.length) problems.push(`cueCount=${me.cueCount}, cues=${un.segments.length}`);
   if (!(me.segments.length <= un.segments.length)) problems.push("merging produced MORE segments than cues");
   if (me.segments.length > CP.MAX_SEGMENTS) problems.push(`merged segments ${me.segments.length} exceed the cap`);
+  // Инварианты выше (flat text, no invented starts, monotonic, under cap) are satisfied by a
+  // degraded merge heuristic too — e.g. never breaking, or breaking on every cue — so they alone
+  // don't prove merging is doing its job, only that it's safe. Pin the measured count per fixture.
+  if (me.segments.length !== c.expectMerged) {
+    problems.push(`merged segments=${me.segments.length}, expected ${c.expectMerged}`);
+  }
   const starts = new Set(un.segments.map((s) => s.start));
   for (const s of me.segments) {
     if (!starts.has(s.start)) { problems.push(`invented start ${s.start} — not the start of any cue`); break; }
