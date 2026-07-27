@@ -23289,6 +23289,15 @@ v3LibraryOnSearchInput();
 // meta about last AI generation (for tableModelMeta hook)
 let v3LastGeminiMeta = null;
 
+// W2-S5a: паспорт медиа лежит в слоте `audio` (импорт аудио/видео-файла, S4) или `captions`
+// (импорт субтитров, S5a). Внутренняя форма одна и та же — {v, segments, timing,
+// timingDropReason, media?}. ЕДИНСТВЕННАЯ точка доступа: любой новый консьюмер обязан
+// ходить сюда, иначе одна из поверхностей молча потеряет тайминг (урок gate-consumers-sweep).
+function v3MediaPassport(holder) {
+  if (!holder || typeof holder !== "object") return null;
+  return holder.audio || holder.captions || null;
+}
+
 // провенанс импорта (R9 derived≠asserted): текст пришёл из «Импорта»?
 // DRY helper — вызывается из обеих веток translateTable() success-handler.
 function v3AttachImportSource() {
@@ -23300,7 +23309,8 @@ function v3AttachImportSource() {
         warnings: im.warnings || [], at: im.at,
         edited: getText().trim() !== im.textSnapshot.trim(),
       };
-      if (im.kind === "audio" && im.audio) v3LastGeminiMeta.source.audio = im.audio;
+      if (im.audio) v3LastGeminiMeta.source.audio = im.audio;
+      if (im.captions) v3LastGeminiMeta.source.captions = im.captions;
     }
   } catch (_) {}
 }
@@ -23310,12 +23320,12 @@ function v3AttachImportSource() {
 function v3AttachAudioTiming(res) {
   try {
     const src = v3LastGeminiMeta && v3LastGeminiMeta.source;
-    if (!src || !src.audio) {
+    const audio = v3MediaPassport(src);
+    if (!audio) {
       window.v3ActiveMediaAudio = null;
       if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
       return;
     }
-    const audio = src.audio;
     const rows = (res && res.rows) || [];
     const resWarnings = (res && res.warnings) || [];
     const lost = resWarnings.includes("SEG_MAPPING_LOST");
@@ -23343,7 +23353,7 @@ function v3AttachAudioTiming(res) {
 // W2-S4: восстановить активный аудио-паспорт при открытии сохранённого текста из библиотеки.
 function v3RestoreMediaFromMeta(meta) {
   try {
-    const audio = meta && meta.source && meta.source.audio;
+    const audio = v3MediaPassport(meta && meta.source);
     window.v3ActiveMediaAudio = audio || null;
     if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
     if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
@@ -32833,11 +32843,12 @@ try { v3DashCloseViewMenu(); } catch (_) {}
     function v3AudioSegmentsForRequest() {
         try {
             const im = window.v3LastImportMeta;
-            if (!im || im.kind !== "audio" || !im.audio || !Array.isArray(im.audio.segments)) return null;
-            if (im.audio.timingDropReason) return null;
+            const p = v3MediaPassport(im);
+            if (!im || !p || !Array.isArray(p.segments)) return null;
+            if (p.timingDropReason) return null;
             if (getTableDirection() !== "he-ru") return null;
             const lines = getText().split("\n").map((s) => s.trim()).filter(Boolean);
-            if (lines.length !== im.audio.segments.length) return null;
+            if (lines.length !== p.segments.length) return null;
             if (lines.length > V3_SEG_MAX_SEGMENTS || lines.some((s) => s.length > V3_SEG_MAX_TEXT)) return null;
             return lines.map((t2, k) => ({ i: k, text: t2 }));
         } catch (_) { return null; }
