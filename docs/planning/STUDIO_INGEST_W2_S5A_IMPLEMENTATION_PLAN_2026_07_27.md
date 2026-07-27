@@ -598,6 +598,169 @@ git commit -m "feat(ingest): W2-S5a T3 — YouTube transcript-panel paste parser
 
 ---
 
+### Task 3B: слияние реплик в предложения
+
+> Задача добавлена ПО ХОДУ реализации: замер на реальных фикстурах показал ≈21 реплику в минуту,
+> из-за чего двадцатиминутный доклад (411 реплик) не проходит кап 400, а строка таблицы длиной
+> 2,8 секунды — плохая единица для обучения. Решение владельца 2026-07-27, канон — дизайн §4.5.
+
+**Files:**
+- Modify: `public/js/captions-parse.js` (новая функция `mergeSegments` + опции `parse`)
+- Test: `tests/captionsParse.test.js` (дописать)
+
+**Interfaces:**
+- Consumes: сегменты, которые уже строят ветки задач 1-3.
+- Produces: `parse(raw, {merge = true, mergeMaxSec = 15})`; в результате появляются поля
+  `cueCount` (реплик до слияния) и `merged` (булево). При `merge:false` поведение остаётся
+  доreliзным — этим пользуется оракульный гейт задачи 4.
+
+- [ ] **Step 1: Write the failing test**
+
+Дописать в `tests/captionsParse.test.js`:
+
+```js
+test("merge: joins cues up to mergeMaxSec, breaks on sentence end", () => {
+  const raw = [
+    "WEBVTT", "",
+    "00:00:00.000 --> 00:00:02.000", "первая часть", "",
+    "00:00:02.000 --> 00:00:04.000", "вторая часть.", "",
+    "00:00:04.000 --> 00:00:06.000", "новое предложение", "",
+  ].join("\n");
+  const r = CP.parse(raw);
+  assert.equal(r.merged, true);
+  assert.equal(r.cueCount, 3);
+  assert.deepEqual(r.segments, [
+    { i: 0, start: 0, text: "первая часть вторая часть." },
+    { i: 1, start: 4, text: "новое предложение" },
+  ]);
+});
+
+test("merge: never exceeds mergeMaxSec", () => {
+  const cues = [];
+  for (let k = 0; k < 10; k++) {
+    const s = String(k * 4).padStart(2, "0"), e = String(k * 4 + 4).padStart(2, "0");
+    cues.push(`00:00:${s}.000 --> 00:00:${e}.000`, `кусок ${k}`, "");
+  }
+  const r = CP.parse(["WEBVTT", ""].concat(cues).join("\n"), { mergeMaxSec: 15 });
+  for (let k = 1; k < r.segments.length; k++) {
+    assert.ok(r.segments[k].start - r.segments[k - 1].start <= 16,
+      "segment spans at most mergeMaxSec (+1 cue slack)");
+  }
+  assert.ok(r.segments.length >= 3 && r.segments.length < 10);
+});
+
+test("merge: a pause longer than 2s is a boundary (speaker change)", () => {
+  const raw = ["WEBVTT", "",
+    "00:00:00.000 --> 00:00:02.000", "до паузы", "",
+    "00:00:09.000 --> 00:00:11.000", "после паузы", ""].join("\n");
+  const r = CP.parse(raw);
+  assert.equal(r.segments.length, 2);
+});
+
+test("merge: loses no text — concatenation is preserved", () => {
+  const fs2 = require("node:fs"), path2 = require("node:path");
+  const file = path2.join(__dirname, "..", "scripts", "premium", "fixtures", "captions", "ted-hebrew-manual.vtt");
+  const raw = fs2.readFileSync(file, "utf8");
+  const unmerged = CP.parse(raw, { merge: false });
+  const merged = CP.parse(raw);
+  const flat = (r) => r.segments.map((s) => s.text).join(" ").replace(/\s+/g, " ").trim();
+  assert.equal(flat(merged), flat(unmerged), "merging must not drop or reorder a single character");
+  assert.equal(merged.cueCount, unmerged.segments.length);
+  assert.ok(merged.segments.length < unmerged.segments.length);
+  assert.ok(merged.segments.length <= CP.MAX_SEGMENTS, "a 20-min talk must fit the cap after merging");
+});
+
+test("merge: segment start equals the start of its FIRST cue (no interpolation)", () => {
+  const raw = ["WEBVTT", "",
+    "00:00:03.500 --> 00:00:05.000", "раз", "",
+    "00:00:05.000 --> 00:00:06.500", "два", ""].join("\n");
+  const r = CP.parse(raw);
+  assert.equal(r.segments.length, 1);
+  assert.equal(r.segments[0].start, 3.5);
+});
+
+test("merge:false keeps one segment per cue (oracle-parity mode)", () => {
+  const raw = ["WEBVTT", "",
+    "00:00:00.000 --> 00:00:02.000", "а", "",
+    "00:00:02.000 --> 00:00:04.000", "б", ""].join("\n");
+  const r = CP.parse(raw, { merge: false });
+  assert.equal(r.merged, false);
+  assert.equal(r.segments.length, 2);
+  assert.equal(r.cueCount, 2);
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `node --test tests/captionsParse.test.js`
+Expected: FAIL — `merged`/`cueCount` не существуют, слияния нет.
+
+- [ ] **Step 3: Implement merging**
+
+В `public/js/captions-parse.js` добавить рядом с `finish`:
+
+```js
+  // §4.5: реплика субтитров — единица ПОКАЗА (нарезана под ширину экрана), а не единица языка.
+  // Склеиваем соседние реплики до естественной границы предложения либо до mergeMaxSec, чтобы
+  // строка таблицы была фразой, а не обрывком в 2,8 секунды. Старт сегмента = старт ПЕРВОЙ
+  // реплики (никакой интерполяции, R11). Ни один символ не теряется.
+  var SENTENCE_END_RE = /[.!?…:]["'»)\]]?\s*$/;
+  var MERGE_PAUSE_SEC = 2;
+
+  function mergeSegments(cues, maxSec) {
+    var out = [], cur = null;
+    for (var k = 0; k < cues.length; k++) {
+      var c = cues[k];
+      var breaks = !cur ||
+        (c.start - cur.lastEnd) > MERGE_PAUSE_SEC ||         // пауза = смена реплики/мысли
+        (c.end - cur.start) > maxSec ||                       // сегмент не длиннее maxSec
+        SENTENCE_END_RE.test(cur.text);                       // предыдущая фраза закончена
+      if (breaks) {
+        if (cur) out.push({ i: out.length, start: cur.start, text: cur.text });
+        cur = { start: c.start, lastEnd: c.end, text: c.text };
+      } else {
+        cur.text += " " + c.text;
+        cur.lastEnd = c.end;
+      }
+    }
+    if (cur) out.push({ i: out.length, start: cur.start, text: cur.text });
+    return out;
+  }
+```
+
+Ветки разбора должны собирать реплики с `end`, чтобы слияние знало длительность. Изменить обе
+ветки так, чтобы они складывали промежуточный массив `{start, end, text}`, а `finish` получал
+результат `mergeSegments(...)` либо, при `merge:false`, тот же массив без склейки — с полями
+`cueCount` (длина исходного массива) и `merged`.
+
+В `parse` прочитать опции:
+
+```js
+    var doMerge = !(opts && opts.merge === false);
+    var maxSec = (opts && Number(opts.mergeMaxSec)) || 15;
+```
+
+и передать их в обе ветки; `finish` дополнить полями `cueCount` и `merged`.
+
+⚠ Кап 400/2000 проверяется **после** слияния — именно это делает импортируемыми ролики длиннее
+18 минут. Не переносить проверку до склейки.
+
+- [ ] **Step 4: Run the whole suite**
+
+Run: `node --test tests/captionsParse.test.js`
+Expected: PASS, включая все тесты задач 1-3 (проверить, что число прежних тестов не уменьшилось;
+тесты, где вход — 2-3 короткие реплики подряд без точки, могли начать склеиваться — если такой
+тест сломался, чинить ТЕСТ через `{merge:false}`, а не логику слияния, и отметить это в отчёте).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add public/js/captions-parse.js tests/captionsParse.test.js
+git commit -m "feat(ingest): W2-S5a T3B — merge caption cues into sentence-length segments (owner decision)"
+```
+
+---
+
 ### Task 4: `smoke:captions-parse` — оракульный гейт
 
 **Files:**
