@@ -3053,7 +3053,7 @@ window.I18N_LOCALES.en = {
       errAudioTooLong: "Audio longer than 20 min — v1 limit",
       errAudioTooLarge: "Audio file larger than 300MB",
       errVideoTooLarge: "Video larger than 300MB — compress it or extract the audio",
-      videoNote: "video: only the audio track is used (~2.5× audio cost)",
+      videoNote: "video: we transcribe speech only, frames in economy mode — nearly 3× cheaper than regular video processing, but ~2.5× the cost of audio",
       errUpload: "Upload to Google failed — retry",
       errNoSpeech: "No speech found in the audio",
       audioTimingDropped: "Edits changed line count — karaoke disabled",
