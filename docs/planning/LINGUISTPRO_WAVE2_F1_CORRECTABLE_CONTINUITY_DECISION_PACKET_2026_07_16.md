@@ -7,6 +7,7 @@
 **Repository baseline:** `main` / `ad9be2e`; package `3.11.184`; `origin/main` aligned at inspection.
 **Predecessors:** owner-approved S0 B/B/B/B/B, S1 A/A/A/A/A/A/A/A/A, S2 A/A/A/A/A/A/A/A/A, and S3 CP0 `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED` at commits `34a0c2e` and `ad9be2e`.
 **Current routing:** F1 may proceed under a separate execution authority without waiting for S3-O. CP0 remains default-off and no owner-live collection is part of F1.
+**Post-execution routing amendment:** 2026-07-16 — F1 subsequently reached `ENGINEERING_COMPLETE / LIVE_EVIDENCE_DEFERRED` and an owner-only technically verified production path. The next pedagogical slice is a separately decided and approved **sufficient F2 shadow evidence chain**, not an expansion of F1 into skill, misconception or grading authority. AA1 documentation may proceed in parallel; AA2 remains separately gated and scheduled after F2 plus bounded preparation.
 **Decision requested:** select the exact F1 product slice, memory authority/lifecycle, consent defaults, schema, UI, evidence and parallel AA0/AA1 boundaries.
 
 ## 1. Executive recommendation

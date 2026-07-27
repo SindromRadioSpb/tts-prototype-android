@@ -8,6 +8,10 @@
 
 **Execution result:** production `3.11.188`; entry-point commit `6388269`, terminal-history hotfix `1e051dc`, visible-export hotfix `6ac91fa`. All three owner-only stages passed in one session; no longitudinal monitoring claim is made.
 
+**Follow-on integration verification:** one bounded real Gemini BYOK plan was created outside the F1 controller, explicitly saved through `Continue later`, persisted as an active `USER_DECLARED` unfinished thread with an AVAILABLE `AGENT_TASK` source, and selected by the next Mentor Home context query after reload. The BYOK counter increased by exactly one; `review_log` remained 6,146 rows and CP0 remained at zero observations. F1 itself made zero provider calls.
+
+**Next-route owner decision:** documentation closure of F1 → F2 sufficient end-to-end shadow evidence-chain decision packet → separately approved F2 engineering → bounded next-session/weekly preparation → AA2/AA3. AA1 contract documentation may proceed in parallel; AA2 implementation remains separately gated.
+
 **Privacy:** the exact production `users.id` was verified read-only and is stored only in gitignored `.claude/F1_OWNER_LIVE_PRIVATE.md`. It must never enter git, screenshots or public evidence. The production digest secret is generated directly into the secret store and is never printed or committed.
 
 ## 1. Meaning of the evidence window
