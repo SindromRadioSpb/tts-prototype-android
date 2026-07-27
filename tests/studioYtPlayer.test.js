@@ -93,6 +93,16 @@ function freshModule() {
   return require(MODULE_PATH);
 }
 
+// loadApi() returns an already-resolved Promise.resolve() when window.YT.Player is preset, so
+// create()'s iframe/player construction runs inside a deferred .then() callback (a microtask),
+// not synchronously within the create() call itself. Tests that need to reach into the player
+// (fire onError, advance a mocked timer) BEFORE it settles must let that microtask run first —
+// setImmediate (a macrotask) guarantees every pending microtask has drained, regardless of how
+// many .then() hops are involved.
+function flushMicrotasks() {
+  return new Promise(function (resolve) { setImmediate(resolve); });
+}
+
 // Minimal fake YT.Player: resolves onReady asynchronously (process.nextTick), matching the real
 // IFrame API (which never fires onReady synchronously inside the constructor) — required so
 // `adapter` is already assigned by the module before onReady runs.
@@ -163,6 +173,92 @@ test("adapter.paused: BUFFERING reads as NOT paused, matching <audio> semantics 
     player._state = 5; // CUED
     assert.equal(adapter.paused, true);
   } finally {
+    uninstallBrowserMocks();
+  }
+});
+
+// Re-review round: findings 1 (onError leak) and 4 (ready-timeout orphaned player) were
+// deferred as "DOM-dependent, not unit-testable" — disputed on re-review since the DOM shim
+// (and a player with a `_destroyed` flag) built for the two tests above make both cheap to
+// reach directly, no real browser or wall-clock wait required.
+
+// Never calls onReady — simulates a player construction that never becomes ready. Reused by
+// BOTH tests below: it's the realistic shape for finding 1 (onError fires, onReady never does —
+// embed-disabled/region-blocked/deleted-video errors are not preceded by a ready callback in the
+// real IFrame API either) and for finding 4 (the 20s ready-timeout exists exactly to catch a
+// construction that hangs like this). Deliberately does NOT auto-schedule onReady the way
+// FakePlayer (above) does for the paused/BUFFERING test — scheduling it via process.nextTick
+// would race the test's own attempt to intercept the player before it settles, since Node drains
+// the nextTick queue before resuming any later microtask/macrotask continuation.
+function HangingPlayer(iframeOrId, opts) {
+  this._opts = opts;
+  HangingPlayer.instances.push(this);
+}
+HangingPlayer.instances = [];
+HangingPlayer.prototype.getCurrentTime = function () { return 0; };
+HangingPlayer.prototype.seekTo = function () {};
+HangingPlayer.prototype.getPlayerState = function () { return -1; };
+HangingPlayer.prototype.getOption = function () { return []; };
+HangingPlayer.prototype.playVideo = function () {};
+HangingPlayer.prototype.pauseVideo = function () {};
+HangingPlayer.prototype.destroy = function () { this._destroyed = true; };
+
+test("onError before ready: destroys the YT.Player and detaches the iframe (review finding 1 — was leaking on embed-disabled/region-blocked/deleted video)", async () => {
+  installBrowserMocks();
+  HangingPlayer.instances.length = 0;
+  global.window.YT = { Player: HangingPlayer };
+  try {
+    var mod = freshModule();
+    var mountEl = makeFakeEl("div");
+    var createPromise = mod.create(mountEl, "iG9CE55wbtY");
+    await flushMicrotasks(); // let the deferred loadApi().then(...) callback construct the player
+    assert.equal(HangingPlayer.instances.length, 1);
+    var player = HangingPlayer.instances[0];
+    assert.equal(mountEl.children.length, 1, "iframe must already be attached to the mount when onError can fire");
+    var iframe = mountEl.children[0];
+
+    // Reach the onError callback directly, the same way the apiPromise test above reaches
+    // scripts[0].onerror() — no timers involved.
+    player._opts.events.onError({ data: 101 });
+
+    var caught = null;
+    try { await createPromise; } catch (e) { caught = e; }
+    assert.ok(caught, "create() must reject when onError fires before ready");
+    assert.equal(caught.code, "YT_EMBED_DENIED");
+    assert.equal(player._destroyed, true, "the constructed YT.Player must be destroyed on error, not orphaned");
+    assert.equal(iframe.parentNode, null, "the iframe must be detached from the mount on error");
+    assert.equal(mountEl.children.length, 0, "no orphaned iframe left in the mount");
+  } finally {
+    uninstallBrowserMocks();
+  }
+});
+
+test("ready-timeout: destroys the YT.Player and detaches the iframe, rejects YT_NOT_READY (review finding 4 — was orphaning the player)", async (t) => {
+  installBrowserMocks();
+  HangingPlayer.instances.length = 0;
+  global.window.YT = { Player: HangingPlayer };
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  try {
+    var mod = freshModule();
+    var mountEl = makeFakeEl("div");
+    var createPromise = mod.create(mountEl, "iG9CE55wbtY");
+    await flushMicrotasks(); // let the deferred loadApi().then(...) callback construct the player
+    assert.equal(HangingPlayer.instances.length, 1);
+    var player = HangingPlayer.instances[0];
+    assert.equal(mountEl.children.length, 1, "iframe must already be attached to the mount when the ready-timeout can fire");
+    var iframe = mountEl.children[0];
+
+    t.mock.timers.tick(20000); // fire the 20s ready-timeout synchronously — no real wait
+
+    var caught = null;
+    try { await createPromise; } catch (e) { caught = e; }
+    assert.ok(caught, "create() must reject on ready-timeout");
+    assert.equal(caught.code, "YT_NOT_READY");
+    assert.equal(player._destroyed, true, "the constructed YT.Player must be destroyed on ready-timeout, not orphaned");
+    assert.equal(iframe.parentNode, null, "the iframe must be detached from the mount on ready-timeout");
+    assert.equal(mountEl.children.length, 0, "no orphaned iframe left in the mount");
+  } finally {
+    t.mock.timers.reset();
     uninstallBrowserMocks();
   }
 });
