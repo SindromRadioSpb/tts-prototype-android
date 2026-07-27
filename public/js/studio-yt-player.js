@@ -70,11 +70,24 @@
   function makeAdapter(player, iframe) {
     var listeners = { play: [], pause: [], ended: [], error: [] };
     function emit(ev) { (listeners[ev] || []).forEach(function (fn) { try { fn(); } catch (_) {} }); }
+    // W2-S5a Task 10 live-smoke finding (2026-07-27, reproduced 9/9): playVideo()/pauseVideo() are
+    // fire-and-forget postMessage calls — getPlayerState() does NOT reflect the new state until the
+    // async onStateChange postMessage round-trips back (~100ms, measured). A native <audio>
+    // element's `paused` flips synchronously the instant play()/pause() is called; callers that
+    // check `paused`/isActive() right after (tap-to-seek gating at index.html:38006, the live
+    // smoke's isActiveAfterStart/pausedAfterStop) were reading the OPPOSITE of what they just
+    // asked for. `intent` holds the caller's synchronous request until a genuine state signal from
+    // YouTube supersedes it, so an externally-driven change (video ends, user drives YouTube's own
+    // controls, playback fails) always wins over a stale intent. No polling/timer: intent is
+    // retired by the next real event, never by a clock.
+    var intent = null; // null = no pending intent, trust getPlayerState(); true/false = pending play/pause
+    function clearIntent() { intent = null; }
     var adapter = {
       isYouTube: true,
       get currentTime() { try { return player.getCurrentTime() || 0; } catch (_) { return 0; } },
       set currentTime(t) { try { player.seekTo(Number(t) || 0, true); } catch (_) {} },
       get paused() {
+        if (intent !== null) return !intent;
         try {
           var st = player.getPlayerState();
           // YT.PlayerState: -1 unstarted, 0 ended, 1 playing, 2 paused, 3 buffering, 5 cued.
@@ -84,8 +97,8 @@
           return st !== 1 && st !== 3;
         } catch (_) { return true; }
       },
-      play: function () { try { player.playVideo(); } catch (_) {} return Promise.resolve(); },
-      pause: function () { try { player.pauseVideo(); } catch (_) {} },
+      play: function () { intent = true; try { player.playVideo(); } catch (_) {} return Promise.resolve(); },
+      pause: function () { intent = false; try { player.pauseVideo(); } catch (_) {} },
       addEventListener: function (ev, fn) { if (listeners[ev]) listeners[ev].push(fn); },
       removeEventListener: function (ev, fn) {
         if (!listeners[ev]) return;
@@ -107,6 +120,12 @@
         Object.keys(listeners).forEach(function (k) { listeners[k] = []; });
       },
       _emit: emit,
+      // Internal — called only from create()'s onStateChange/onError below, on EVERY real signal
+      // from YouTube (any state value, or an error), not part of the surface studio-media-karaoke.js
+      // consumes. Retiring `intent` here (rather than on a timer) is what keeps trap 1 (embedding
+      // denied / autoplay blocked → adapter must not claim "playing" forever) satisfied: the next
+      // genuine state YouTube reports — even a failed/blocked one — always overrides a stale intent.
+      _clearIntent: clearIntent,
     };
     return adapter;
   }
@@ -153,12 +172,13 @@
             },
             onStateChange: function (e) {
               if (!adapter) return;
+              adapter._clearIntent(); // any real state YouTube reports supersedes a pending play()/pause() intent
               if (e.data === 1) adapter._emit("play");
               else if (e.data === 2) adapter._emit("pause");
               else if (e.data === 0) adapter._emit("ended");
             },
             onError: function (e) {
-              if (adapter) adapter._emit("error");
+              if (adapter) { adapter._clearIntent(); adapter._emit("error"); } // a failure is a real signal too
               if (settled) return;
               settled = true; clearTimeout(to);
               destroyFailedPlayer(player, iframe);

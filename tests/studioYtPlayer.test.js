@@ -203,6 +203,87 @@ HangingPlayer.prototype.playVideo = function () {};
 HangingPlayer.prototype.pauseVideo = function () {};
 HangingPlayer.prototype.destroy = function () { this._destroyed = true; };
 
+// Models the REAL YouTube IFrame API's async gap: playVideo()/pauseVideo() are fire-and-forget
+// postMessage calls that do NOT update getPlayerState() by themselves — only a later
+// onStateChange postMessage (simulated here via _fireState()) does. FakePlayer above updates
+// _state synchronously inside playVideo()/pauseVideo(), which is why it could never have caught
+// the W2-S5a Task 10 live-smoke finding (isActiveAfterStart/pausedAfterStop false, 9/9 browsers):
+// a fake that is more optimistic than the real API hides exactly the bug the live smoke found.
+function LaggyPlayer(iframeOrId, opts) {
+  this._opts = opts;
+  this._state = -1; // UNSTARTED
+  this._time = 0;
+  LaggyPlayer.instances.push(this);
+  process.nextTick(function (self) {
+    if (self._opts && self._opts.events && typeof self._opts.events.onReady === "function") {
+      self._opts.events.onReady();
+    }
+  }, this);
+}
+LaggyPlayer.instances = [];
+LaggyPlayer.prototype.getCurrentTime = function () { return this._time; };
+LaggyPlayer.prototype.seekTo = function (t) { this._time = t; };
+LaggyPlayer.prototype.getPlayerState = function () { return this._state; };
+LaggyPlayer.prototype.getOption = function () { return []; };
+LaggyPlayer.prototype.playVideo = function () { /* real API: no synchronous state change */ };
+LaggyPlayer.prototype.pauseVideo = function () { /* real API: no synchronous state change */ };
+LaggyPlayer.prototype.destroy = function () { this._destroyed = true; };
+// Test-only: simulate the async onStateChange postMessage actually arriving.
+LaggyPlayer.prototype._fireState = function (st) {
+  this._state = st;
+  if (this._opts && this._opts.events && typeof this._opts.events.onStateChange === "function") {
+    this._opts.events.onStateChange({ data: st });
+  }
+};
+
+test("adapter.paused: synchronous intent right after play()/pause(), before YouTube's async onStateChange confirms it (W2-S5a Task 10 live-smoke finding, fixed here)", async () => {
+  installBrowserMocks();
+  LaggyPlayer.instances.length = 0;
+  global.window.YT = { Player: LaggyPlayer };
+  try {
+    var mod = freshModule();
+    var mountEl = makeFakeEl("div");
+    var adapter = await mod.create(mountEl, "iG9CE55wbtY");
+    assert.equal(LaggyPlayer.instances.length, 1);
+    var player = LaggyPlayer.instances[0];
+
+    // No intent yet → falls back to the real (UNSTARTED) state → paused.
+    assert.equal(adapter.paused, true, "starts paused: no intent, UNSTARTED state");
+
+    // play() must flip `paused` to false SYNCHRONOUSLY — before the async onStateChange arrives.
+    adapter.play();
+    assert.equal(player._state, -1, "sanity: the fake's underlying state has NOT moved yet — this is exactly the race the live smoke caught");
+    assert.equal(adapter.paused, false, "paused must read false immediately after play(), before the async state event");
+
+    // The real onStateChange(PLAYING) arrives later and must be consistent with the intent, not fight it.
+    player._fireState(1);
+    assert.equal(adapter.paused, false, "still false once the real PLAYING event confirms it");
+
+    // pause() must flip `paused` to true SYNCHRONOUSLY too, before the async event.
+    adapter.pause();
+    assert.equal(player._state, 1, "sanity: underlying state still shows PLAYING — intent must override it");
+    assert.equal(adapter.paused, true, "paused must read true immediately after pause(), before the async state event");
+
+    player._fireState(2);
+    assert.equal(adapter.paused, true, "still true once the real PAUSED event arrives");
+
+    // Trap: a genuine externally-driven change must supersede a stale intent, not be masked by it —
+    // e.g. the caller asks to play, but the video actually ends before that ever happens.
+    adapter.play();
+    assert.equal(adapter.paused, false, "intent says playing");
+    player._fireState(0); // ENDED, arriving while a stale "play" intent is still pending
+    assert.equal(adapter.paused, true, "a real ENDED event must win over a stale play() intent");
+
+    // BUFFERING mapping is unchanged once intent has been retired by a real event.
+    player._fireState(3);
+    assert.equal(adapter.paused, false, "BUFFERING still reads not-paused after intent has been superseded");
+    player._fireState(2);
+    assert.equal(adapter.paused, true);
+  } finally {
+    uninstallBrowserMocks();
+  }
+});
+
 test("onError before ready: destroys the YT.Player and detaches the iframe (review finding 1 — was leaking on embed-disabled/region-blocked/deleted video)", async () => {
   installBrowserMocks();
   HangingPlayer.instances.length = 0;
