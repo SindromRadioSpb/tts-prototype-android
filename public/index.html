@@ -12388,7 +12388,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
 <!-- W2-S5a Studio Ingest captions/video deps — pure, no cross-deps between the two, but BOTH
      must load before studio-import.js (calls CaptionsParse.parse/StudioYtPlayer.*) and before
-     this page's own inline <script> below (v3MediaBarRefresh/v3MediaPlayOriginal call
+     this page's own inline script block below (v3MediaBarRefresh/v3MediaPlayOriginal call
      window.StudioYtPlayer directly). -->
 <script src="/js/captions-parse.js"></script>
 <script src="/js/studio-yt-player.js"></script>
@@ -13702,7 +13702,7 @@ if (header) {
     try {
       window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
       if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
-      if (window.v3YtStageAdapter) { window.StudioYtPlayer.destroy(window.v3YtStageAdapter); window.v3YtStageAdapter = null; }
+      if (window.v3YtStageAdapter) { window.StudioYtPlayer.destroy(window.v3YtStageAdapter); window.v3YtStageAdapter = null; window.v3YtStageVideoId = null; }
       if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
     } catch (_) {}
     // W2-S4: restore this text's own media passport (if any) from the meta just parsed above.
@@ -20894,7 +20894,7 @@ updatePlaylistButtonUI();
         try {
           window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
           if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
-          if (window.v3YtStageAdapter) { window.StudioYtPlayer.destroy(window.v3YtStageAdapter); window.v3YtStageAdapter = null; }
+          if (window.v3YtStageAdapter) { window.StudioYtPlayer.destroy(window.v3YtStageAdapter); window.v3YtStageAdapter = null; window.v3YtStageVideoId = null; }
           if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
         } catch (_) {}
 		// сброс состояния Row TTS (кэш строк оставляем — он полезен)
@@ -23342,9 +23342,30 @@ function v3AttachAudioTiming(res) {
     const src = v3LastGeminiMeta && v3LastGeminiMeta.source;
     const audio = v3MediaPassport(src);
     if (!audio) {
+      // CRITICAL 1 (review 2026-07-27): a stage adapter bound to a video that no longer has
+      // ANY media passport (import overwritten by a plain-text edit, say) must not survive —
+      // see the videoId-keyed invalidation below for the full rationale.
+      if (window.v3YtStageAdapter) {
+        window.StudioYtPlayer.destroy(window.v3YtStageAdapter);
+        window.v3YtStageAdapter = null; window.v3YtStageVideoId = null;
+      }
       window.v3ActiveMediaAudio = null;
       if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
       return;
+    }
+    // CRITICAL 1 (review 2026-07-27): v3YtStageAdapter is keyed to a SPECIFIC YouTube video
+    // (window.v3YtStageVideoId), not to `audio` object identity — `audio` here is a freshly
+    // rebuilt passport on every translate-table response even when nothing about the media
+    // changed (v3AttachImportSource() reconstructs v3LastGeminiMeta.source each time), so
+    // identity comparison would either never invalidate or ALWAYS invalidate. Only a real
+    // change of WHICH video is active must tear the stage down. Repro this fixes: import video
+    // A → Play (stage adapter bound to A) → re-open Import in the same text → paste video B →
+    // commit → Translate. Without this check, v3ActiveMediaAudio now describes B but the stage
+    // adapter (and #v3MediaYtMount iframe) keeps controlling A while the table is B's.
+    const newVideoId = (audio.video && audio.video.videoId) || null;
+    if (window.v3YtStageAdapter && window.v3YtStageVideoId !== newVideoId) {
+      window.StudioYtPlayer.destroy(window.v3YtStageAdapter);
+      window.v3YtStageAdapter = null; window.v3YtStageVideoId = null;
     }
     const rows = (res && res.rows) || [];
     const resWarnings = (res && res.warnings) || [];
@@ -23419,6 +23440,8 @@ function v3MediaBarRefresh() {
   });
 }
 
+let v3YtStageCreatePromise = null; // CRITICAL 2 (review 2026-07-27) — re-entrancy guard, see below
+
 async function v3MediaPlayOriginal() {
   const audio = window.v3ActiveMediaAudio;
   if (!audio) return;
@@ -23435,14 +23458,45 @@ async function v3MediaPlayOriginal() {
   // (studio-media-karaoke.js T6 accepts any adapter with currentTime/play/pause/addEventListener).
   // Ownership: THIS function created window.v3YtStageAdapter (via StudioYtPlayer.create() below),
   // so THIS module is responsible for destroying it — at the media-reset points next to the
-  // existing StudioMediaKaraoke.stop() calls, never inside the karaoke module itself.
+  // existing StudioMediaKaraoke.stop() calls AND in v3AttachAudioTiming when the active video
+  // identity changes (CRITICAL 1), never inside the karaoke module itself.
   if (!audio.video || !audio.video.videoId) return;
+  // MINOR 4 (review 2026-07-27): self-contained capability check, mirroring mountVideo()'s
+  // explicit pre-check in studio-import.js — don't lean on v3MediaBarRefresh's async
+  // button-disable (a stale race there is exactly what CRITICAL 2 below guards against).
+  if (!window.StudioYtPlayer || !window.StudioYtPlayer.capability().supported) return;
   if (!window.v3YtStageAdapter) {
-    const mount = document.getElementById("v3MediaYtMount");
-    if (!mount) return;
-    mount.hidden = false;
-    try { window.v3YtStageAdapter = await window.StudioYtPlayer.create(mount, audio.video.videoId); }
-    catch (_) { mount.hidden = true; return; }
+    // CRITICAL 2 (review 2026-07-27): re-entrancy guard. Two quick clicks on "▶ Оригинал" must
+    // not both call StudioYtPlayer.create() into the same #v3MediaYtMount — the LOSING call's
+    // adapter would never be assigned to window.v3YtStageAdapter, so no reset point could ever
+    // find and destroy it: a real orphaned, possibly-playing iframe. Fix: a second caller AWAITS
+    // the SAME in-flight promise instead of starting its own create(). The check-and-set below
+    // (`if (!v3YtStageCreatePromise) { ... v3YtStageCreatePromise = ... }`) has no `await`
+    // between the check and the set, so it is atomic under JS's run-to-completion — no
+    // interleaving between two concurrent calls to this function can result in two create()
+    // calls, regardless of which caller's event handler happens to run first.
+    if (!v3YtStageCreatePromise) {
+      const mount = document.getElementById("v3MediaYtMount");
+      if (!mount) return;
+      mount.hidden = false;
+      const wantedVideoId = audio.video.videoId;
+      v3YtStageCreatePromise = window.StudioYtPlayer.create(mount, wantedVideoId)
+        .then((adapter) => {
+          // CRITICAL 1/2 interaction: the active video may have changed WHILE this create()
+          // was in flight (a Translate response landed mid-click and CRITICAL 1's check
+          // fired) — such an adapter is already stale on arrival. Never publish it into the
+          // shared slot; destroy it immediately instead of leaking it.
+          const stillWanted = window.v3ActiveMediaAudio && window.v3ActiveMediaAudio.video &&
+                               window.v3ActiveMediaAudio.video.videoId === wantedVideoId;
+          if (!stillWanted) { window.StudioYtPlayer.destroy(adapter); return null; }
+          window.v3YtStageAdapter = adapter; window.v3YtStageVideoId = wantedVideoId;
+          return adapter;
+        })
+        .catch((e) => { mount.hidden = true; throw e; })
+        .finally(() => { v3YtStageCreatePromise = null; }); // released on the failure path too
+    }
+    try { await v3YtStageCreatePromise; } catch (_) { return; }
+    if (!window.v3YtStageAdapter) return; // resolved but discarded as stale, or create() failed
   }
   await StudioMediaKaraoke.start({ media: window.v3YtStageAdapter, entries, rowCount });
 }
@@ -25126,7 +25180,7 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
     try {
       window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
       if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
-      if (window.v3YtStageAdapter) { window.StudioYtPlayer.destroy(window.v3YtStageAdapter); window.v3YtStageAdapter = null; }
+      if (window.v3YtStageAdapter) { window.StudioYtPlayer.destroy(window.v3YtStageAdapter); window.v3YtStageAdapter = null; window.v3YtStageVideoId = null; }
       if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
     } catch (_) {}
     // W2-S4: restore this text's own media passport (if any) from the meta just parsed above.

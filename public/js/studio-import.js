@@ -315,7 +315,17 @@
     if (!url) { setStatus("studio.import.errBadUrl"); return; }
     var vid = window.StudioYtPlayer && window.StudioYtPlayer.parseVideoId(url);
     if (!vid) return fetchUrl();
-    await mountVideo(vid, url);
+    // IMPORTANT 3 (review 2026-07-27): fetchUrl() already disables #v3ImportUrlBtn for the
+    // duration of its request (setBusy(true)/finally(false)) — mountVideo()'s create() is just
+    // as async (real network + YouTube IFrame API boot) and was missing the same guard. Without
+    // it, a second submit while the first create() is in flight races in: ytAdapter is still
+    // null (mountVideo()'s own `if (ytAdapter)` destroy-guard hasn't been assigned yet), so BOTH
+    // create() calls land in the same #v3ImportYtMount and whichever resolves first is silently
+    // orphaned when the second overwrites `ytAdapter`. Disabling the button prevents the second
+    // click from ever firing in the first place — same mechanism fetchUrl() already relies on.
+    setBusy(true); setStatus(null);
+    try { await mountVideo(vid, url); }
+    finally { setBusy(false); }
   }
 
   async function mountVideo(videoId, url) {
