@@ -1802,6 +1802,61 @@ Expected: `yt-player live smoke OK` для установленных канал
 ⚠ Если локальный сервер отдаёт `index.html` БЕЗ `COEP: require-corp` — смоук честно упадёт на
 первой проверке. Тогда прогнать против прода: `npm run smoke:yt-player -- --url=https://linguistpro.kolosei.com`.
 
+- [ ] **Step 3B: Добавить проверку связки караоке + адаптер**
+
+> Добавлено по ходу: имплементер задачи 6 заметил, что смоук как он был описан проверяет только
+> адаптер и изоляцию, а связку «плеер ведёт подсветку строк» — нет, хотя self-review плана
+> утверждал обратное. Это единственное место, где асинхронность событий YouTube и семантика
+> буферизации проверяются автоматически; иначе они всплывут только на owner-приёмке.
+
+В том же скрипте, после блока `credentialless`, добавить проверку на реальной странице Студии:
+
+```js
+// Караоке ДОЛЖНО ехать от адаптера, а не только от blob: строим adapter, отдаём его
+// StudioMediaKaraoke со синтетическим entries и смотрим, что подсветка идёт за часами плеера.
+const karaoke = await page.evaluate(`(() => new Promise(res => {
+  const out = {};
+  const mount = document.createElement('div'); document.body.appendChild(mount);
+  // таблица-заглушка: караоке красит tr[data-row-idx] внутри #proTable
+  if (!document.getElementById('proTable')) {
+    const t = document.createElement('table'); t.id = 'proTable';
+    const tb = document.createElement('tbody');
+    for (let i = 0; i < 4; i++) { const tr = document.createElement('tr'); tr.setAttribute('data-row-idx', String(i)); tb.appendChild(tr); }
+    t.appendChild(tb); document.body.appendChild(t);
+  }
+  window.StudioYtPlayer.create(mount, '${VIDEO}').then(async (ad) => {
+    out.adapterReady = true;
+    const entries = [{ o: 0, t: 0 }, { o: 2, t: 3 }];   // ССЫЛОЧНОЕ равенство: один и тот же массив
+    await window.StudioMediaKaraoke.start({ media: ad, entries: entries, rowCount: 4 });
+    out.isActiveAfterStart = window.StudioMediaKaraoke.isActive();
+    setTimeout(() => {
+      out.paintedEarly = !!document.querySelector('#proTable tr.smk-row-active');
+      out.tEarly = ad.currentTime;
+      ad.currentTime = 4;                                 // перемотка через сеттер адаптера
+      setTimeout(() => {
+        const hot = [...document.querySelectorAll('#proTable tr.smk-row-active')].map(tr => tr.getAttribute('data-row-idx'));
+        out.hotRowsAfterSeek = hot;
+        window.StudioMediaKaraoke.stop();
+        out.paintedAfterStop = !!document.querySelector('#proTable tr.smk-row-active');
+        out.pausedAfterStop = ad.paused;
+        window.StudioYtPlayer.destroy(ad);
+        res(out);
+      }, 2500);
+    }, 2500);
+  }).catch(e => { out.createError = String(e && e.code || e); res(out); });
+  setTimeout(() => { out.timeout = true; res(out); }, 30000);
+}))()`);
+```
+
+Проверки: `adapterReady` истинно; `isActiveAfterStart` истинно; `paintedEarly` истинно (подсветка
+появилась сама, от часов плеера); после перемотки на 4 с `hotRowsAfterSeek` содержит строки
+второго сегмента (`"2"`, `"3"`), а не первого — это доказывает, что подсветка следует за
+`currentTime` адаптера; `paintedAfterStop` ложно; `pausedAfterStop` истинно. Любое расхождение —
+FAIL с печатью всего объекта.
+
+Именно здесь ловится асинхронность `onStateChange` (пункт 3 хендоффа задачи 5): если события
+приходят слишком поздно, `isActiveAfterStart` или `paintedEarly` окажутся ложными.
+
 - [ ] **Step 4: Commit**
 
 ```bash
