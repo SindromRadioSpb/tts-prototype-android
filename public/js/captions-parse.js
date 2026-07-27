@@ -78,16 +78,56 @@
              segments: [], droppedHeadings: 0, warnings: [], error_code: code };
   }
 
-  function finish(base) {
+  // enforceCaps=false (merge:false, диагностический сырой разбор для оракульного гейта задачи 4)
+  // пропускает MAX_SEGMENTS/MAX_SEG_TEXT — эти капы существуют ради контракта ingest/segTable.js
+  // (что мы ОТПРАВЛЯЕМ на сервер), а сырой разбор ничего не отправляет. Плотный i и CAPTIONS_EMPTY
+  // на нуле реплик — одинаковы в обоих режимах. Продуктовый путь (merge:true) капы получает как
+  // раньше, ПОСЛЕ слияния. Обход капа этим не открывается: клиент (v3AudioSegmentsForRequest) и
+  // сервер проверяют размер независимо.
+  function finish(base, enforceCaps) {
     var segs = base.segments;
     if (!segs.length) return fail("CAPTIONS_EMPTY");
-    if (segs.length > MAX_SEGMENTS) return fail("CAPTIONS_TOO_MANY");
+    if (enforceCaps !== false && segs.length > MAX_SEGMENTS) return fail("CAPTIONS_TOO_MANY");
     for (var k = 0; k < segs.length; k++) {
-      if (segs[k].text.length > MAX_SEG_TEXT) return fail("CAPTIONS_TOO_MANY");
+      if (enforceCaps !== false && segs[k].text.length > MAX_SEG_TEXT) return fail("CAPTIONS_TOO_MANY");
       segs[k].i = k; // плотный 0-based индекс — контракт ingest/segTable.js
     }
     base.ok = true;
     return base;
+  }
+
+  // §4.5: реплика субтитров — единица ПОКАЗА (нарезана под ширину экрана), а не единица языка.
+  // Склеиваем соседние реплики до естественной границы предложения либо до mergeMaxSec, чтобы
+  // строка таблицы была фразой, а не обрывком в 2,8 секунды. Старт сегмента = старт ПЕРВОЙ
+  // реплики (никакой интерполяции, R11). Ни один символ не теряется.
+  var SENTENCE_END_RE = /[.!?…:]["'»)\]]?\s*$/;
+  var MERGE_PAUSE_SEC = 2;
+
+  function mergeSegments(cues, maxSec) {
+    var out = [], cur = null;
+    for (var k = 0; k < cues.length; k++) {
+      var c = cues[k];
+      var breaks = !cur ||
+        (c.start - cur.lastEnd) > MERGE_PAUSE_SEC ||         // пауза = смена реплики/мысли
+        (c.end - cur.start) > maxSec ||                       // сегмент не длиннее maxSec
+        SENTENCE_END_RE.test(cur.text);                       // предыдущая фраза закончена
+      if (breaks) {
+        if (cur) out.push({ i: out.length, start: cur.start, text: cur.text });
+        cur = { start: c.start, lastEnd: c.end, text: c.text };
+      } else {
+        cur.text += " " + c.text;
+        cur.lastEnd = c.end;
+      }
+    }
+    if (cur) out.push({ i: out.length, start: cur.start, text: cur.text });
+    return out;
+  }
+
+  // merge:false (оракульный режим задачи 4) — тот же массив реплик, без склейки.
+  function toSegments(cues) {
+    var out = [];
+    for (var k = 0; k < cues.length; k++) out.push({ i: k, start: cues[k].start, text: cues[k].text });
+    return out;
   }
 
   function parse(raw, opts) {
@@ -97,18 +137,22 @@
     // Похоже на субтитры (есть стрелка кью), но не разобралось — это другой диагноз,
     // чем «вставили просто текст»: пользователю нужны разные подсказки.
     if (!format) return fail(txt.indexOf("-->") >= 0 ? "CAPTIONS_UNPARSEABLE" : "CAPTIONS_NO_TIMESTAMPS");
-    if (format === "youtube-panel") return parsePanel(txt);        // Task 3
+    var doMerge = !(opts && opts.merge === false);
+    var maxSec = (opts && Number(opts.mergeMaxSec)) || 15;
+    if (format === "youtube-panel") return parsePanel(txt, doMerge, maxSec); // Task 3
     var cues = parseCueBlocks(txt);
     if (!cues.length) return fail("CAPTIONS_EMPTY");
-    if (isRolling(cues)) return finish(fromRollingCues(cues, txt)); // Task 2
-    var segments = [];
+    if (isRolling(cues)) return finish(fromRollingCues(cues, txt, doMerge, maxSec), doMerge); // Task 2
+    var rawSegs = [];
     for (var c = 0; c < cues.length; c++) {
       var text = cleanText(cues[c].lines.join(" "));
       if (!text) continue;
-      segments.push({ i: segments.length, start: cues[c].start, text: text });
+      rawSegs.push({ start: cues[c].start, end: cues[c].end, text: text });
     }
+    var segments = doMerge ? mergeSegments(rawSegs, maxSec) : toSegments(rawSegs);
     return finish({ format: format, rolling: false, language: languageFromHeader(txt),
-                    kindHint: "unknown", segments: segments, droppedHeadings: 0, warnings: [] });
+                    kindHint: "unknown", segments: segments, droppedHeadings: 0, warnings: [],
+                    cueCount: rawSegs.length, merged: doMerge }, doMerge);
   }
 
   // Катящиеся авто-субтитры YouTube: каждая реплика приходит трижды — как строка с пословными
@@ -123,8 +167,8 @@
     return tagged >= 3 && tagged >= cues.length * 0.2;
   }
 
-  function fromRollingCues(cues, txt) {
-    var segments = [], lastText = "";
+  function fromRollingCues(cues, txt, doMerge, maxSec) {
+    var rawSegs = [], lastText = "";
     for (var c = 0; c < cues.length; c++) {
       if (cues[c].end - cues[c].start < 0.05) continue; // «доводочная» кью — всегда повтор
       for (var l = 0; l < cues[c].lines.length; l++) {
@@ -133,25 +177,27 @@
         if (!text) continue;
         var isNew = WORD_TAG_RE.test(rawLine);
         if (!isNew && text === lastText) continue; // перенос предыдущей реплики
-        segments.push({ i: segments.length, start: cues[c].start, text: text });
+        rawSegs.push({ start: cues[c].start, end: cues[c].end, text: text });
         lastText = text;
       }
     }
+    var segments = doMerge ? mergeSegments(rawSegs, maxSec) : toSegments(rawSegs);
     return { format: "vtt", rolling: true, language: languageFromHeader(txt),
-             kindHint: "auto", segments: segments, droppedHeadings: 0, warnings: [] };
+             kindHint: "auto", segments: segments, droppedHeadings: 0, warnings: [],
+             cueCount: rawSegs.length, merged: doMerge };
   }
 
   // Копия панели «Расшифровка видео»: [название главы?] таймкод \n одна строка текста.
   // Названия глав идут БЕЗ таймкода и вклиниваются между текстом реплики и следующим таймкодом —
   // поэтому «лишние» строки внутри реплики трактуем как главы и отбрасываем со счётчиком.
-  function parsePanel(txt) {
+  function parsePanel(txt, doMerge, maxSec) {
     var lines = txt.split("\n");
-    var segments = [], dropped = 0, curStart = null, curLines = [];
+    var rawSegs = [], dropped = 0, curStart = null, curLines = [];
     function flush() {
       if (curStart === null) return;
       var text = cleanText(curLines[0] || "");
       dropped += Math.max(0, curLines.length - 1);
-      if (text) segments.push({ i: segments.length, start: curStart, text: text });
+      if (text) rawSegs.push({ start: curStart, text: text });
       curStart = null; curLines = [];
     }
     for (var i = 0; i < lines.length; i++) {
@@ -163,9 +209,19 @@
       curLines.push(line);
     }
     flush();
-    if (!segments.length) return fail("CAPTIONS_NO_TIMESTAMPS");
+    // Сюда попадаем ТОЛЬКО когда detectFormat уже нашёл строку-таймкод — формат распознан,
+    // значит «ноль реплик» здесь CAPTIONS_EMPTY, а не «таймкодов нет» (Task 3 review defect, Step 6).
+    if (!rawSegs.length) return fail("CAPTIONS_EMPTY");
+    // Панель даёт только старты реплик — конец реплики выводим как старт СЛЕДУЮЩЕЙ, а для
+    // последней реплики берём её же старт (нулевая длительность хвоста безвредна — она влияет
+    // только на то, может ли последняя реплика поглотить продолжение, которого нет).
+    for (var s = 0; s < rawSegs.length; s++) {
+      rawSegs[s].end = (s + 1 < rawSegs.length) ? rawSegs[s + 1].start : rawSegs[s].start;
+    }
+    var segments = doMerge ? mergeSegments(rawSegs, maxSec) : toSegments(rawSegs);
     return finish({ format: "youtube-panel", rolling: false, language: null, kindHint: "unknown",
-                    segments: segments, droppedHeadings: dropped, warnings: [] });
+                    segments: segments, droppedHeadings: dropped, warnings: [],
+                    cueCount: rawSegs.length, merged: doMerge }, doMerge);
   }
 
   var API = { parse: parse, detectFormat: detectFormat, MAX_SEGMENTS: MAX_SEGMENTS, MAX_SEG_TEXT: MAX_SEG_TEXT };
