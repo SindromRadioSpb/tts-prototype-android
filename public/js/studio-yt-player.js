@@ -48,7 +48,10 @@
     if (window.YT && window.YT.Player) return Promise.resolve();
     if (apiPromise) return apiPromise;
     apiPromise = new Promise(function (resolve, reject) {
-      var to = setTimeout(function () { reject(new Error("YT_API_TIMEOUT")); }, 15000);
+      // A rejection here (timeout or script error) MUST clear apiPromise — otherwise a single
+      // transient failure permanently disables YouTube playback for the rest of the page
+      // session, since every later create() would re-reject from this same stale promise.
+      var to = setTimeout(function () { apiPromise = null; reject(new Error("YT_API_TIMEOUT")); }, 15000);
       var prev = window.onYouTubeIframeAPIReady;
       window.onYouTubeIframeAPIReady = function () {
         clearTimeout(to);
@@ -57,7 +60,7 @@
       };
       var s = document.createElement("script");
       s.src = "https://www.youtube.com/iframe_api";
-      s.onerror = function () { clearTimeout(to); reject(new Error("YT_API_FAILED")); };
+      s.onerror = function () { clearTimeout(to); apiPromise = null; reject(new Error("YT_API_FAILED")); };
       document.head.appendChild(s);
     });
     return apiPromise;
@@ -71,7 +74,16 @@
       isYouTube: true,
       get currentTime() { try { return player.getCurrentTime() || 0; } catch (_) { return 0; } },
       set currentTime(t) { try { player.seekTo(Number(t) || 0, true); } catch (_) {} },
-      get paused() { try { return player.getPlayerState() !== 1; } catch (_) { return true; } },
+      get paused() {
+        try {
+          var st = player.getPlayerState();
+          // YT.PlayerState: -1 unstarted, 0 ended, 1 playing, 2 paused, 3 buffering, 5 cued.
+          // A native <audio> element stays paused===false through a mid-playback stall, and
+          // studio-media-karaoke.js isActive() reads exactly this getter — so BUFFERING must
+          // report "not paused", not "stopped".
+          return st !== 1 && st !== 3;
+        } catch (_) { return true; }
+      },
       play: function () { try { player.playVideo(); } catch (_) {} return Promise.resolve(); },
       pause: function () { try { player.pauseVideo(); } catch (_) {} },
       addEventListener: function (ev, fn) { if (listeners[ev]) listeners[ev].push(fn); },
@@ -99,6 +111,17 @@
     return adapter;
   }
 
+  // Shared cleanup for a player that never reached onReady (ready-timeout OR onError before
+  // ready) — the caller gets a rejection and no adapter, so nothing else will ever call
+  // adapter.destroy() for this attempt. Must destroy the YT.Player AND detach the iframe, or
+  // both leak: an embed-disabled/region-blocked/deleted video (onError, the common case) used
+  // to leave the <iframe credentialless> attached forever; a hung ready callback (timeout) used
+  // to detach the iframe but never destroy() the already-constructed YT.Player.
+  function destroyFailedPlayer(player, iframe) {
+    try { player.destroy(); } catch (_) {}
+    try { if (iframe && iframe.parentNode) iframe.parentNode.removeChild(iframe); } catch (_) {}
+  }
+
   function create(mountEl, videoId) {
     var cap = capability();
     if (!cap.supported) return Promise.reject(Object.assign(new Error(cap.reason), { code: "YT_UNSUPPORTED" }));
@@ -117,7 +140,7 @@
         var to = setTimeout(function () {
           if (settled) return;
           settled = true;
-          try { iframe.parentNode && iframe.parentNode.removeChild(iframe); } catch (_) {}
+          destroyFailedPlayer(player, iframe);
           reject(Object.assign(new Error("ready timeout"), { code: "YT_NOT_READY" }));
         }, 20000);
         var adapter = null;
@@ -138,6 +161,7 @@
               if (adapter) adapter._emit("error");
               if (settled) return;
               settled = true; clearTimeout(to);
+              destroyFailedPlayer(player, iframe);
               reject(Object.assign(new Error("yt error " + e.data), { code: "YT_EMBED_DENIED" }));
             },
           },
