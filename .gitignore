@@ -160,3 +160,6 @@ public/data/benyehuda/context/
 # re-include pattern as the Pealim inflection dataset exception above).
 !scripts/premium/fixtures/ingest/audio/
 !scripts/premium/fixtures/ingest/audio/**
+
+# superpowers SDD scratch (ledger/briefs/review packages) — never committed
+.superpowers/
