@@ -8,7 +8,7 @@
   var ASR_MODEL = "gemini-flash-latest";
 
   var ASR_PROMPT = [
-    "You are a strict JSON generator performing SPEECH TRANSCRIPTION of the attached audio (Hebrew speech expected).",
+    "You are a strict JSON generator performing SPEECH TRANSCRIPTION of the attached audio or video (Hebrew speech expected; for video use ONLY the audio track).",
     "Rules:",
     "- Split the transcript into natural sentence/phrase segments of at most ~15 seconds each.",
     '- Each segment gets "start" — the timestamp where the segment begins, format "M:SS" or "H:MM:SS" (from audio start).',
@@ -28,10 +28,15 @@
   var USD_PER_MTOK_AUDIO_IN = 1.0;
   var OUT_TOKENS_PER_SEC = 4;
   var USD_PER_MTOK_OUT = 2.5;
+  // Gemini video input at generationConfig.mediaResolution=MEDIA_RESOLUTION_LOW ≈66 tokens/frame
+  // @1fps (default MEDIUM ≈258/frame ≈ ~9× audio — мы всегда шлём LOW для видео, кадры нам не
+  // нужны, API не даёт отключить их совсем). Проверено live-smoke S4.2.
+  var VIDEO_FRAME_TOKENS_PER_SEC_LOW = 66;
 
-  function estimateAsrCostUsd(durationSec) {
+  function estimateAsrCostUsd(durationSec, opts) {
     var d = Math.max(0, Number(durationSec) || 0);
-    return (d * ASR_TOKENS_PER_SEC / 1e6) * USD_PER_MTOK_AUDIO_IN +
+    var inRate = ASR_TOKENS_PER_SEC + ((opts && opts.video) ? VIDEO_FRAME_TOKENS_PER_SEC_LOW : 0);
+    return (d * inRate / 1e6) * USD_PER_MTOK_AUDIO_IN +
            (d * OUT_TOKENS_PER_SEC / 1e6) * USD_PER_MTOK_OUT;
   }
 
@@ -123,6 +128,7 @@
     secondsFromTimestamp: secondsFromTimestamp, parseAsrResponse: parseAsrResponse,
     validateSegments: validateSegments, buildRowTiming: buildRowTiming,
     estimateAsrCostUsd: estimateAsrCostUsd,
+    VIDEO_FRAME_TOKENS_PER_SEC_LOW: VIDEO_FRAME_TOKENS_PER_SEC_LOW,
   };
   if (typeof window !== "undefined") window.AsrTranscript = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;

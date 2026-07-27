@@ -55,3 +55,15 @@ test("estimateAsrCostUsd is positive and roughly linear", () => {
   const one = A.estimateAsrCostUsd(60), twenty = A.estimateAsrCostUsd(1200);
   assert.ok(one > 0 && twenty > one * 15 && twenty < 1); // 20 мин — центы, не доллары
 });
+
+test("estimateAsrCostUsd: backward-compat (no opts) unchanged, video adds frame tokens", () => {
+  const audio = A.estimateAsrCostUsd(600);
+  const video = A.estimateAsrCostUsd(600, { video: true });
+  assert.ok(audio > 0);
+  assert.ok(video > audio);
+  const expectedVideo = (32 + A.VIDEO_FRAME_TOKENS_PER_SEC_LOW) * 600 / 1e6 * 1.0 +
+                         4 * 600 / 1e6 * 2.5;
+  assert.ok(Math.abs(video - expectedVideo) < 1e-9);
+  // opts omitted entirely still works (backward compat call shape)
+  assert.equal(A.estimateAsrCostUsd(600), audio);
+});

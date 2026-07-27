@@ -26,7 +26,9 @@
     };
   }
 
-  function buildAsrRequest(apiKey, fileUri, mimeType, promptText) {
+  function buildAsrRequest(apiKey, fileUri, mimeType, promptText, opts) {
+    var generationConfig = { temperature: 0 };
+    if (opts && opts.mediaResolution) generationConfig.mediaResolution = opts.mediaResolution;
     return {
       url: GL + "/v1beta/models/" + MODEL + ":generateContent",
       init: {
@@ -37,7 +39,7 @@
             { file_data: { file_uri: String(fileUri), mime_type: String(mimeType) } },
             { text: String(promptText) },
           ] }],
-          generationConfig: { temperature: 0 },
+          generationConfig: generationConfig,
         }),
       },
     };
@@ -84,7 +86,9 @@
   async function transcribeAudio(apiKey, fileUri, mimeType) {
     var prompt = (typeof window !== "undefined" && window.AsrTranscript) ? window.AsrTranscript.ASR_PROMPT
                : require("./asr-transcript.js").ASR_PROMPT;
-    var r = buildAsrRequest(apiKey, fileUri, mimeType, prompt);
+    var isVideo = String(mimeType).toLowerCase().startsWith("video/");
+    var opts = isVideo ? { mediaResolution: "MEDIA_RESOLUTION_LOW" } : undefined;
+    var r = buildAsrRequest(apiKey, fileUri, mimeType, prompt, opts);
     var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
     var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 180000) : null;
     var resp;

@@ -23,3 +23,15 @@ test("buildAsrRequest: file_data + prompt + temperature 0", () => {
   assert.equal(body.contents[0].parts[1].text, "PROMPT");
   assert.ok(r.url.endsWith(":generateContent"));
 });
+
+test("buildAsrRequest: opts.mediaResolution added to generationConfig; omitted without opts", () => {
+  const withRes = G.buildAsrRequest("k", "uri", "video/mp4", "p", { mediaResolution: "MEDIA_RESOLUTION_LOW" });
+  const bodyWith = JSON.parse(withRes.init.body);
+  assert.equal(bodyWith.generationConfig.mediaResolution, "MEDIA_RESOLUTION_LOW");
+  assert.equal(bodyWith.generationConfig.temperature, 0);
+
+  const without = G.buildAsrRequest("k", "uri", "audio/mp3", "p");
+  const bodyWithout = JSON.parse(without.init.body);
+  assert.ok(!("mediaResolution" in bodyWithout.generationConfig));
+  assert.equal(bodyWithout.generationConfig.temperature, 0);
+});
