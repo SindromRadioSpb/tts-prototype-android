@@ -157,9 +157,16 @@ test("hours form and non-decreasing starts", () => {
   assert.equal(r.segments[0].start, 3723);
 });
 
+// Семантика кодов (единая на весь модуль, не пересматривать в задачах 2-3):
+//   CAPTIONS_EMPTY        — вход пуст ИЛИ формат распознан, но реплик ноль
+//   CAPTIONS_NO_TIMESTAMPS — таймкодов нет вовсе (пользователь вставил просто текст)
+//   CAPTIONS_UNPARSEABLE  — на субтитры похоже (есть "-->"), но разобрать не вышло
+//   CAPTIONS_TOO_MANY     — реплик > MAX_SEGMENTS ИЛИ реплика длиннее MAX_SEG_TEXT
 test("errors: empty, no timestamps, unparseable, too many", () => {
   assert.equal(CP.parse("").error_code, "CAPTIONS_EMPTY");
-  assert.equal(CP.parse("просто текст").error_code, "CAPTIONS_UNPARSEABLE");
+  assert.equal(CP.parse("   \n  \n").error_code, "CAPTIONS_EMPTY");
+  assert.equal(CP.parse("просто текст").error_code, "CAPTIONS_NO_TIMESTAMPS");
+  assert.equal(CP.parse("00:00:0 --> хх\nтекст").error_code, "CAPTIONS_UNPARSEABLE");
   assert.equal(CP.parse("WEBVTT\n\n\n").error_code, "CAPTIONS_EMPTY");
   const many = ["WEBVTT", ""].concat(
     Array.from({ length: CP.MAX_SEGMENTS + 1 }, (_, k) =>
@@ -286,7 +293,9 @@ Expected: FAIL — `Cannot find module '../public/js/captions-parse.js'`
     var txt = normalise(raw);
     if (!txt.trim()) return fail("CAPTIONS_EMPTY");
     var format = (opts && opts.hint) || detectFormat(txt);
-    if (!format) return fail(/\d/.test(txt) ? "CAPTIONS_UNPARSEABLE" : "CAPTIONS_NO_TIMESTAMPS");
+    // Похоже на субтитры (есть стрелка кью), но не разобралось — это другой диагноз,
+    // чем «вставили просто текст»: пользователю нужны разные подсказки.
+    if (!format) return fail(txt.indexOf("-->") >= 0 ? "CAPTIONS_UNPARSEABLE" : "CAPTIONS_NO_TIMESTAMPS");
     if (format === "youtube-panel") return parsePanel(txt);        // Task 3
     var cues = parseCueBlocks(txt);
     if (!cues.length) return fail("CAPTIONS_EMPTY");
