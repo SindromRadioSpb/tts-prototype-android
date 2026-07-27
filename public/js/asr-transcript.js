@@ -31,6 +31,7 @@
   // Gemini video input at generationConfig.mediaResolution=MEDIA_RESOLUTION_LOW ≈66 tokens/frame
   // @1fps (default MEDIUM ≈258/frame ≈ ~9× audio — мы всегда шлём LOW для видео, кадры нам не
   // нужны, API не даёт отключить их совсем). Проверено live-smoke S4.2.
+  // blended cost ratio vs audio ≈2.57× (see videoNote locale strings — keep in sync)
   var VIDEO_FRAME_TOKENS_PER_SEC_LOW = 66;
 
   function estimateAsrCostUsd(durationSec, opts) {
