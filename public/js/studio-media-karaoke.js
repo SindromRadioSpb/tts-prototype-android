@@ -80,9 +80,23 @@
     var audioEl = new Audio(url);
     audioEl.preload = "auto";
     var run = { audioEl: audioEl, url: url, entries: entries || null, rowCount: rowCount, rafId: 0, lastIdx: -2, stopAtT: null, listeners: null };
-    var onEnd = function () { if (cur === run) { paintRange(null); cur.lastIdx = -2; } }; // пауза ≠ teardown: позиция сохраняется
+    // W2-S4.1 FIX C: пауза ≠ teardown (позиция сохраняется), НО rAF-цикл обязан остановиться —
+    // иначе уже запланированный кадр перерисует подсветку поверх paintRange(null) (гонка).
+    var onPause = function () {
+      if (cur !== run) return;
+      if (run.rafId) { try { window.cancelAnimationFrame(run.rafId); } catch (_) {} }
+      run.rafId = 0;
+      paintRange(null);
+      run.lastIdx = -2;
+    };
+    // play (start()/playSegment() resume) → перезапустить цикл; двойной старт исключён проверкой rafId.
+    var onPlayResume = function () {
+      if (cur !== run) return;
+      if (run.rafId) return;
+      run.rafId = window.requestAnimationFrame(tick);
+    };
     var onGone = function () { if (cur === run) stop(); };
-    run.listeners = { pause: onEnd, ended: onGone, error: onGone };
+    run.listeners = { pause: onPause, play: onPlayResume, ended: onGone, error: onGone };
     for (var ev in run.listeners) {
       if (Object.prototype.hasOwnProperty.call(run.listeners, ev)) audioEl.addEventListener(ev, run.listeners[ev]);
     }

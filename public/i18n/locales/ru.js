@@ -3064,9 +3064,11 @@ window.I18N_LOCALES.ru = {
       audioTranscribing: "Транскрибирование… (до 2–3 мин)",
       errAudioBadFile: "Не удалось прочитать аудио-файл",
       errAudioTooLong: "Аудио длиннее 20 минут — лимит v1",
+      errAudioTooLarge: "Аудио-файл больше 300MB",
       errUpload: "Не удалось загрузить аудио в Google — повторите",
       errNoSpeech: "Речь в аудио не найдена",
       audioTimingDropped: "Правки изменили число строк — караоке отключено",
+      warnCoverage: "Модель пропустила часть сегментов — проверьте полноту таблицы",
       provAudio: "Аудио → ASR-транскрипт (Gemini)",
     },
     // W2-S4 Task 10 — media bar / segment replay / tap-seek (index.html)

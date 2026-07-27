@@ -3050,9 +3050,11 @@ window.I18N_LOCALES.en = {
       audioTranscribing: "Transcribing… (up to 2–3 min)",
       errAudioBadFile: "Could not read the audio file",
       errAudioTooLong: "Audio longer than 20 min — v1 limit",
+      errAudioTooLarge: "Audio file larger than 300MB",
       errUpload: "Upload to Google failed — retry",
       errNoSpeech: "No speech found in the audio",
       audioTimingDropped: "Edits changed line count — karaoke disabled",
+      warnCoverage: "The model skipped some segments — check the table for completeness",
       provAudio: "Audio → ASR transcript (Gemini)",
     },
     // W2-S4 Task 10 — media bar / segment replay / tap-seek (index.html)

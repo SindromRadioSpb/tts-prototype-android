@@ -6444,6 +6444,12 @@ app.post("/api/translate-table", async (req, res) => {
       if (!segTable.validateSegMapping(preparedRows, req.body.segments.length)) {
         preparedRows.forEach((r) => { delete r.segment_index; });
         warnings.push("SEG_MAPPING_LOST"); // честная деградация: таблица есть, тайминг клиент отбросит
+      } else {
+        // W2-S4.1 FIX A: mapping structurally valid but model may still have skipped whole
+        // input segments — flag it WITHOUT stripping segment_index/timing (rows that DID
+        // land keep honest timing; the warning only flags missing CONTENT, not bad timing).
+        const cov = segTable.segCoverage(preparedRows, req.body.segments.length);
+        if (!cov.covered) warnings.push("SEG_COVERAGE_PARTIAL");
       }
     }
 

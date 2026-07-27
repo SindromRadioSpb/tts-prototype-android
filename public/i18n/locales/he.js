@@ -3060,9 +3060,11 @@ window.I18N_LOCALES.he = {
       audioTranscribing: "מתמלל… (עד 2–3 דק׳)",
       errAudioBadFile: "לא ניתן לקרוא את קובץ האודיו",
       errAudioTooLong: "האודיו ארוך מ-20 דקות — מגבלת גרסה זו",
+      errAudioTooLarge: "קובץ האודיו גדול מ-300MB",
       errUpload: "ההעלאה ל-Google נכשלה — נסו שוב",
       errNoSpeech: "לא נמצא דיבור באודיו",
       audioTimingDropped: "העריכות שינו את מספר השורות — הקריוקי כובה",
+      warnCoverage: "המודל דילג על חלק מהקטעים — בדקו את שלמות הטבלה",
       provAudio: "אודיו → תמלול ASR (Gemini)",
     },
     // W2-S4 Task 10 — media bar / segment replay / tap-seek (index.html)

@@ -29,3 +29,23 @@ test("validateSegMapping: in-range non-decreasing ints", () => {
   assert.equal(S.validateSegMapping([{}], 1), false);
   assert.equal(S.validateSegMapping([], 1), false);
 });
+
+test("segCoverage: full coverage", () => {
+  assert.deepEqual(
+    S.segCoverage([{ segment_index: 0 }, { segment_index: 1 }, { segment_index: 1 }, { segment_index: 2 }], 3),
+    { covered: true, missing: [] }
+  );
+});
+
+test("segCoverage: one missing segment", () => {
+  assert.deepEqual(
+    S.segCoverage([{ segment_index: 0 }, { segment_index: 2 }], 3),
+    { covered: false, missing: [1] }
+  );
+});
+
+test("segCoverage: empty rows", () => {
+  assert.deepEqual(S.segCoverage([], 3), { covered: false, missing: [0, 1, 2] });
+  assert.deepEqual(S.segCoverage([], 0), { covered: true, missing: [] });
+  assert.deepEqual(S.segCoverage(null, 2), { covered: false, missing: [0, 1] });
+});

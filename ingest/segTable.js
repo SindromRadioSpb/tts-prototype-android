@@ -55,4 +55,22 @@ function validateSegMapping(rows, segCount) {
   return true;
 }
 
-module.exports = { MAX_SEGMENTS, validateSegmentsInput, buildSegInput, HE_RU_SEG_PROMPT, validateSegMapping };
+// W2-S4.1 FIX A: mapping can be structurally VALID (non-decreasing, in-range) yet still
+// skip whole input segments (model dropped content, not just bounds). Pure — no side effects,
+// caller decides what to do (warn, never strips segment_index/timing — R11 honest degradation).
+function segCoverage(rows, segCount) {
+  const seen = new Set();
+  if (Array.isArray(rows)) {
+    for (const r of rows) {
+      const si = r && r.segment_index;
+      if (Number.isInteger(si)) seen.add(si);
+    }
+  }
+  const missing = [];
+  for (let i = 0; i < segCount; i++) {
+    if (!seen.has(i)) missing.push(i);
+  }
+  return { covered: missing.length === 0, missing };
+}
+
+module.exports = { MAX_SEGMENTS, validateSegmentsInput, buildSegInput, HE_RU_SEG_PROMPT, validateSegMapping, segCoverage };

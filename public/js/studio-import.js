@@ -56,7 +56,7 @@
     if (!file) return;
     $("v3ImportAudioInfo").hidden = true;
     pendingAudio = null;
-    if (file.size > MAX_AUDIO_BYTES) { setStatus("studio.import.errTooLarge"); return; }
+    if (file.size > MAX_AUDIO_BYTES) { setStatus("studio.import.errAudioTooLarge"); return; }
     var key = typeof window.geminiKeyGet === "function" ? window.geminiKeyGet() : "";
     if (!key) { setStatus("studio.import.errNoKey"); return; }
     var dur;

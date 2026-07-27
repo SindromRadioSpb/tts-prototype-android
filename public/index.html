@@ -23317,7 +23317,8 @@ function v3AttachAudioTiming(res) {
     }
     const audio = src.audio;
     const rows = (res && res.rows) || [];
-    const lost = ((res && res.warnings) || []).includes("SEG_MAPPING_LOST");
+    const resWarnings = (res && res.warnings) || [];
+    const lost = resWarnings.includes("SEG_MAPPING_LOST");
     const anyIdx = rows.some((r) => Number.isInteger(r.segment_index));
     if (!audio.timingDropReason && anyIdx && !lost) {
       audio.timing = window.AsrTranscript.buildRowTiming(
@@ -23326,6 +23327,13 @@ function v3AttachAudioTiming(res) {
     } else {
       audio.timing = null; // R11: никогда не оставлять устаревший тайминг у нового ответа
       if (!audio.timingDropReason) audio.timingDropReason = lost ? "SEG_MAPPING_LOST" : "NO_SEGMENT_MAPPING";
+    }
+    // W2-S4.1 FIX A-client: mapping was structurally fine but the model skipped whole input
+    // segments — timing above stays as computed (honest for the rows that DID land); just
+    // surface the gap so the user knows the TABLE (not the timing) may be incomplete.
+    if (resWarnings.includes("SEG_COVERAGE_PARTIAL")) {
+      audio.tableWarnings = resWarnings;
+      if (typeof showToast === "function") showToast(t("studio.import.warnCoverage"), "warning");
     }
     window.v3ActiveMediaAudio = audio;
     if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh(); // Task 10
@@ -32809,6 +32817,12 @@ try { v3DashCloseViewMenu(); } catch (_) {}
     // ----------------------------
     // W2-S4: сегменты для сегмент-режима — только если импорт был аудио, направление he-ru
     // и текущий текст построчно совпадает по числу строк с ASR-сегментами (иначе честно без тайминга).
+    // W2-S4.1 FIX B: must match ingest/segTable.js MAX_SEGMENTS/MAX_SEG_TEXT — client-side guard
+    // so an oversized request never reaches the server as a cryptic 400; falling back to null
+    // here means no `segments` in the payload, so Task 9's attach logic honestly labels the
+    // result NO_SEGMENT_MAPPING instead of surfacing a raw HTTP error.
+    const V3_SEG_MAX_SEGMENTS = 400;
+    const V3_SEG_MAX_TEXT = 2000;
     function v3AudioSegmentsForRequest() {
         try {
             const im = window.v3LastImportMeta;
@@ -32817,6 +32831,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
             if (getTableDirection() !== "he-ru") return null;
             const lines = getText().split("\n").map((s) => s.trim()).filter(Boolean);
             if (lines.length !== im.audio.segments.length) return null;
+            if (lines.length > V3_SEG_MAX_SEGMENTS || lines.some((s) => s.length > V3_SEG_MAX_TEXT)) return null;
             return lines.map((t2, k) => ({ i: k, text: t2 }));
         } catch (_) { return null; }
     }
