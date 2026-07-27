@@ -175,6 +175,11 @@
     var ai = $("v3ImportAudioInfo");
     if (ai) ai.hidden = true;
     pendingAudio = null;
+    // MINOR (whole-branch review 2026-07-28): reopening the dialog after a captions-paste
+    // import showed the PREVIOUS paste sitting in the textarea — clear it, matching the
+    // pendingAudio reset just above.
+    var cp = $("v3ImportCaptionsPaste");
+    if (cp) cp.value = "";
     setStatus(null);
   }
   function close() {
@@ -328,6 +333,19 @@
     finally { setBusy(false); }
   }
 
+  // IMPORTANT 1 (whole-branch review 2026-07-28): YouTube's captions module — the thing
+  // getOption("captions","tracklist") reads — does not load until playback actually starts;
+  // measured live (task-8-report.md): a video with 64 real tracks (incl. manual Hebrew) reads
+  // tracklist().length === 0 at onReady AND immediately after calling play(), then populates
+  // within ~300-500ms of real playback. Querying once at onReady and treating an empty result
+  // as "no captions" is this project's own "тихий 0 ≠ реальный 0" trap — absence of evidence
+  // is not evidence of absence, and the old wording sent users toward paid ASR for videos that
+  // DO have subtitles. Fix: describeTracks() never asserts "none" from an unconfirmed read; the
+  // hint is re-queried on the adapter's own 'play' event (RE_CONFIRM_DELAY_MS after — the
+  // measurement above showed ~300-500ms is already enough, this leaves headroom) and only THEN
+  // may it settle on the genuine "no captions" message.
+  var RE_CONFIRM_DELAY_MS = 800;
+
   async function mountVideo(videoId, url) {
     var mount = $("v3ImportYtMount"), hint = $("v3ImportYtHint");
     pendingCaptions = pendingCaptions || {};
@@ -340,7 +358,16 @@
     hint.textContent = tr("studio.import.captionsPlayerLoading");
     try {
       ytAdapter = await window.StudioYtPlayer.create(mount, videoId);
-      hint.textContent = describeTracks(ytAdapter.tracklist());
+      var thisAdapter = ytAdapter;
+      hint.textContent = describeTracks(thisAdapter.tracklist(), /* confirmed */ false);
+      var onPlay = function () {
+        thisAdapter.removeEventListener("play", onPlay); // one real confirmation is enough
+        setTimeout(function () {
+          if (ytAdapter !== thisAdapter) return; // superseded by a later mountVideo()/destroyed
+          hint.textContent = describeTracks(thisAdapter.tracklist(), /* confirmed */ true);
+        }, RE_CONFIRM_DELAY_MS);
+      };
+      thisAdapter.addEventListener("play", onPlay);
     } catch (e) {
       mount.hidden = true;
       hint.textContent = tr(e && e.code === "YT_EMBED_DENIED"
@@ -349,12 +376,21 @@
   }
 
   // R9: сообщаем, ЧТО есть у ролика — это свидетельство о дорожках, а не о принесённом файле.
-  function describeTracks(list) {
-    if (!list || !list.length) return tr("studio.import.captionsTracksNone");
+  // `confirmed` = true only after a real 'play' event + grace delay (see RE_CONFIRM_DELAY_MS
+  // above) — an EMPTY unconfirmed read means "not reported yet", never "there are none".
+  function describeTracks(list, confirmed) {
+    if (!list || !list.length) {
+      return tr(confirmed ? "studio.import.captionsTracksNone" : "studio.import.captionsTracksPending");
+    }
     var manual = list.filter(function (t) { return t.kind !== "asr"; });
-    var langs = (manual.length ? manual : list).map(function (t) { return t.languageName || t.languageCode; });
+    // MINOR (whole-branch review 2026-07-28): a track with neither languageName nor
+    // languageCode must not render the literal string "undefined" — drop it instead.
+    var langs = (manual.length ? manual : list)
+      .map(function (t) { return t.languageName || t.languageCode; })
+      .filter(Boolean);
     var uniq = langs.filter(function (v, i) { return langs.indexOf(v) === i; }).slice(0, 4).join(", ");
-    return tr(manual.length ? "studio.import.captionsTracksManual" : "studio.import.captionsTracksAuto") + " " + uniq;
+    var label = tr(manual.length ? "studio.import.captionsTracksManual" : "studio.import.captionsTracksAuto");
+    return uniq ? label + " " + uniq : label;
   }
 
   function acceptCaptions(parsed, origin, fileName) {

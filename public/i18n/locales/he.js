@@ -3089,6 +3089,7 @@ window.I18N_LOCALES.he = {
       captionsTracksManual: "לסרטון יש כתוביות ידניות:",
       captionsTracksAuto: "לסרטון יש רק כתוביות אוטומטיות:",
       captionsTracksNone: "לסרטון אין כתוביות — העלו קובץ מדיה לזיהוי דיבור",
+      captionsTracksPending: "הנגן עדיין לא דיווח על כתוביות — ייתכן שיופיעו לאחר תחילת הצפייה",
       provCaptions: "כתוביות → קטעים",
       errCaptionsEmpty: "לא נמצאו שורות בכתוביות",
       errCaptionsNoTimestamps: "נדרש תמלול עם חותמות זמן, לא טקסט רגיל",

@@ -3093,6 +3093,7 @@ window.I18N_LOCALES.ru = {
       captionsTracksManual: "У ролика есть ручные субтитры:",
       captionsTracksAuto: "У ролика только авто-субтитры:",
       captionsTracksNone: "У ролика нет субтитров — загрузите медиа-файл для распознавания речи",
+      captionsTracksPending: "Плеер пока не сообщил о дорожках субтитров — они могут появиться после начала просмотра",
       provCaptions: "Субтитры → сегменты",
       errCaptionsEmpty: "В субтитрах нет реплик",
       errCaptionsNoTimestamps: "Нужна расшифровка с таймкодами, а не просто текст",

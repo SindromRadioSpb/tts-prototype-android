@@ -138,6 +138,22 @@
     try { cur.audioEl.currentTime = Number(cur.entries[k].t) || 0; } catch (_) {}
   }
 
+  // IMPORTANT 3 (whole-branch review 2026-07-28) — TRAP for whoever wires per-row replay to the
+  // YouTube adapter next (it is deliberately NOT wired today — index.html only renders the
+  // "▶︎ replay segment" row button when `audio.media` exists, i.e. never for a captions/video-
+  // URL passport, so `cur.audioEl` here is only ever a native <audio> in practice right now).
+  // On the adapter, `currentTime = X` is `player.seekTo(X, true)` — a fire-and-forget postMessage
+  // call, same mechanism Task 10's live smoke measured at ~100ms round-trip for play/pause state
+  // (studio-yt-player.js:73-82). `getCurrentTime()` lags that same seek by roughly the same
+  // window: it keeps reporting the PRE-seek position until the round-trip lands. Replaying an
+  // EARLIER segment while playback is currently further along would seek backward, immediately
+  // set `stopAtT` to a value BELOW the still-stale (later) `currentTime` tick() reads on the very
+  // next rAF frame, and `tick()`'s `t >= cur.stopAtT` fires instantly — the segment pauses on its
+  // first frame instead of playing. A native <audio> element's `currentTime` updates synchronously
+  // on assignment, so this trap does not exist for the local-file path. Fixing it for real needs
+  // either a short grace window before arming `stopAtT` on an adapter source, or reading the
+  // adapter's own seek-confirmation rather than racing tick()'s next poll — do that BEFORE
+  // wiring this to the adapter, not after.
   async function playSegment(rowIdx) {
     if (!cur || !cur.entries) return;
     var k = segIdxForRow(cur.entries, Number(rowIdx));

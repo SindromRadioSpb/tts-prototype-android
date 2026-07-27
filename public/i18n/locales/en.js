@@ -3079,6 +3079,7 @@ window.I18N_LOCALES.en = {
       captionsTracksManual: "This video has manual subtitles:",
       captionsTracksAuto: "This video only has auto-generated subtitles:",
       captionsTracksNone: "This video has no subtitles — upload a media file for speech recognition",
+      captionsTracksPending: "The player hasn't reported any caption tracks yet — they may appear once playback starts",
       provCaptions: "Subtitles → segments",
       errCaptionsEmpty: "No lines found in the subtitles",
       errCaptionsNoTimestamps: "A transcript with timestamps is needed, not plain text",

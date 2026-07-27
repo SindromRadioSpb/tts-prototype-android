@@ -13702,7 +13702,7 @@ if (header) {
     try {
       window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
       if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
-      if (window.v3YtStageAdapter) { window.StudioYtPlayer.destroy(window.v3YtStageAdapter); window.v3YtStageAdapter = null; window.v3YtStageVideoId = null; }
+      if (window.v3YtStageAdapter) { window.StudioYtPlayer.destroy(window.v3YtStageAdapter); window.v3YtStageAdapter = null; window.v3YtStageVideoId = null; const ytm0 = document.getElementById("v3MediaYtMount"); if (ytm0) ytm0.hidden = true; }
       if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
     } catch (_) {}
     // W2-S4: restore this text's own media passport (if any) from the meta just parsed above.
@@ -20894,7 +20894,7 @@ updatePlaylistButtonUI();
         try {
           window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
           if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
-          if (window.v3YtStageAdapter) { window.StudioYtPlayer.destroy(window.v3YtStageAdapter); window.v3YtStageAdapter = null; window.v3YtStageVideoId = null; }
+          if (window.v3YtStageAdapter) { window.StudioYtPlayer.destroy(window.v3YtStageAdapter); window.v3YtStageAdapter = null; window.v3YtStageVideoId = null; const ytm0 = document.getElementById("v3MediaYtMount"); if (ytm0) ytm0.hidden = true; }
           if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
         } catch (_) {}
 		// сброс состояния Row TTS (кэш строк оставляем — он полезен)
@@ -23346,8 +23346,17 @@ function v3AttachAudioTiming(res) {
       // ANY media passport (import overwritten by a plain-text edit, say) must not survive —
       // see the videoId-keyed invalidation below for the full rationale.
       if (window.v3YtStageAdapter) {
+        // IMPORTANT 4 (whole-branch review 2026-07-28): stop() BEFORE destroy(), same order as
+        // every other reset point. Skipping this left StudioMediaKaraoke's rAF loop polling a
+        // just-destroyed player: destroyed adapter.currentTime swallows the throw and returns 0,
+        // so the loop never stops on its own and can keep painting row 0 as "active" under a
+        // table that no longer has anything to do with it. Repro: play video A, re-import video
+        // B into the same text, Translate — without stop() first, row 0 lit up on B's table
+        // forever.
+        if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
         window.StudioYtPlayer.destroy(window.v3YtStageAdapter);
         window.v3YtStageAdapter = null; window.v3YtStageVideoId = null;
+        const ytm = document.getElementById("v3MediaYtMount"); if (ytm) ytm.hidden = true; // MINOR: don't leave an empty stage div visible
       }
       window.v3ActiveMediaAudio = null;
       if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
@@ -23364,8 +23373,12 @@ function v3AttachAudioTiming(res) {
     // adapter (and #v3MediaYtMount iframe) keeps controlling A while the table is B's.
     const newVideoId = (audio.video && audio.video.videoId) || null;
     if (window.v3YtStageAdapter && window.v3YtStageVideoId !== newVideoId) {
+      // IMPORTANT 4 (whole-branch review 2026-07-28): stop() before destroy() — see the
+      // matching comment on the `!audio` branch above for the full rationale/repro.
+      if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
       window.StudioYtPlayer.destroy(window.v3YtStageAdapter);
       window.v3YtStageAdapter = null; window.v3YtStageVideoId = null;
+      const ytm = document.getElementById("v3MediaYtMount"); if (ytm) ytm.hidden = true; // MINOR: don't leave an empty stage div visible
     }
     const rows = (res && res.rows) || [];
     const resWarnings = (res && res.warnings) || [];
@@ -23488,7 +23501,7 @@ async function v3MediaPlayOriginal() {
           // shared slot; destroy it immediately instead of leaking it.
           const stillWanted = window.v3ActiveMediaAudio && window.v3ActiveMediaAudio.video &&
                                window.v3ActiveMediaAudio.video.videoId === wantedVideoId;
-          if (!stillWanted) { window.StudioYtPlayer.destroy(adapter); return null; }
+          if (!stillWanted) { window.StudioYtPlayer.destroy(adapter); mount.hidden = true; return null; } // MINOR: don't leave an empty stage div visible
           window.v3YtStageAdapter = adapter; window.v3YtStageVideoId = wantedVideoId;
           return adapter;
         })
@@ -23511,7 +23524,14 @@ function v3MediaAugmentRows() {
     if (!table) return;
     // снять старые кнопки (текст сменился / караоке недоступно)
     table.querySelectorAll(".smk-row-replay").forEach((b) => b.remove());
-    if (!audio || !audio.timing) return;
+    // IMPORTANT 2 (whole-branch review 2026-07-28): a captions-only passport has `.timing`
+    // (built from subtitle timestamps) but NEVER `.media` (Task 8 never attaches a local file
+    // to a captions import) — v3MediaResolveBlob() below always resolves null for it, so the
+    // click handler's `if (!blob) return;` made this button a silent dead end for the whole
+    // captions path. v1: only render it when a local blob can actually exist. Wiring it to the
+    // YouTube stage adapter instead is deliberately NOT done yet — see the trap documented at
+    // studio-media-karaoke.js playSegment() (IMPORTANT 3, same review).
+    if (!audio || !audio.timing || !audio.media) return;
     table.querySelectorAll("tbody tr[data-row-idx]").forEach((tr) => {
       const cell = tr.querySelector("td:last-child") || tr.lastElementChild;
       if (!cell) return;
@@ -25180,7 +25200,7 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
     try {
       window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
       if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
-      if (window.v3YtStageAdapter) { window.StudioYtPlayer.destroy(window.v3YtStageAdapter); window.v3YtStageAdapter = null; window.v3YtStageVideoId = null; }
+      if (window.v3YtStageAdapter) { window.StudioYtPlayer.destroy(window.v3YtStageAdapter); window.v3YtStageAdapter = null; window.v3YtStageVideoId = null; const ytm0 = document.getElementById("v3MediaYtMount"); if (ytm0) ytm0.hidden = true; }
       if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
     } catch (_) {}
     // W2-S4: restore this text's own media passport (if any) from the meta just parsed above.
