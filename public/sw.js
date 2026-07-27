@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.249";
+const CACHE_VERSION = "v3.11.250";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -127,6 +127,9 @@ const PRECACHE_URLS = [
   "/js/media-store.js",
   "/js/gemini-files.js",
   "/js/studio-media-karaoke.js",
+  // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
+  "/js/captions-parse.js",
+  "/js/studio-yt-player.js",
   // PAS-B — Studio agent UI (per-row 🤖 explain; весь агент-код Студии в этом модуле).
   "/js/studio-agent.js",
   // Wave 2 C3a — browser-owned voice -> editable role-play draft.
