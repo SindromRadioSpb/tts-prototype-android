@@ -153,3 +153,55 @@ test("non-rolling plain captions keep every cue (no false de-roll)", () => {
   assert.equal(r.rolling, false);
   assert.equal(r.segments.length, 2);
 });
+
+const fs = require("node:fs");
+const path = require("node:path");
+const FIX = path.join(__dirname, "..", "scripts", "premium", "fixtures", "captions");
+
+test("panel paste: timestamp line + one text line; chapter headings dropped", () => {
+  const raw = ["Introduction", "0:27", "Good morning.", "0:29", "(Audience) Good.",
+               "Three themes", "0:43", "There have been three themes,"].join("\n");
+  const r = CP.parse(raw);
+  assert.equal(r.ok, true);
+  assert.equal(r.format, "youtube-panel");
+  assert.equal(r.droppedHeadings, 2); // "Introduction" (до первого таймкода) + "Three themes"
+  assert.deepEqual(r.segments, [
+    { i: 0, start: 27, text: "Good morning." },
+    { i: 1, start: 29, text: "(Audience) Good." },
+    { i: 2, start: 43, text: "There have been three themes," },
+  ]);
+});
+
+test("panel paste: heading sits BETWEEN cue text and the next timestamp (real RTL fixture)", () => {
+  const raw = fs.readFileSync(path.join(FIX, "youtube-panel-he.txt"), "utf8");
+  const r = CP.parse(raw);
+  assert.equal(r.ok, true);
+  assert.equal(r.format, "youtube-panel");
+  assert.ok(r.droppedHeadings >= 2, "Introduction + Three themes dropped");
+  // «Three themes» стоит между текстом реплики 0:41 и таймкодом 0:44 — не должно к ней прилипнуть
+  const at41 = r.segments.find((s) => s.start === 41);
+  assert.ok(at41 && !/Three themes/.test(at41.text), "heading leaked into cue text");
+  const at44 = r.segments.find((s) => s.start === 44);
+  assert.ok(at44 && at44.text.indexOf("מבחינת העתיד") === 0);
+  assert.ok(r.segments.every((s) => s.start >= 0 && typeof s.text === "string" && s.text.length));
+});
+
+test("panel paste: english fixture parses with monotonic starts", () => {
+  const r = CP.parse(fs.readFileSync(path.join(FIX, "youtube-panel-en.txt"), "utf8"));
+  assert.equal(r.ok, true);
+  assert.equal(r.segments[0].start, 27);
+  for (let k = 1; k < r.segments.length; k++) {
+    assert.ok(r.segments[k].start >= r.segments[k - 1].start, "starts must be non-decreasing");
+  }
+});
+
+test("panel paste: H:MM:SS timestamps", () => {
+  const r = CP.parse("1:02:03\nпоздняя реплика\n1:02:10\nследующая");
+  assert.deepEqual(r.segments.map((s) => s.start), [3723, 3730]);
+});
+
+test("paste without timestamps is refused, not silently imported", () => {
+  const r = CP.parse("Просто абзац текста\nещё один абзац");
+  assert.equal(r.ok, false);
+  assert.equal(r.error_code, "CAPTIONS_NO_TIMESTAMPS");
+});

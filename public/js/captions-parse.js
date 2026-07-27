@@ -141,8 +141,32 @@
              kindHint: "auto", segments: segments, droppedHeadings: 0, warnings: [] };
   }
 
-  // Заглушка задачи 3 — заменяется в ней целиком.
-  function parsePanel() { return fail("CAPTIONS_UNPARSEABLE"); }
+  // Копия панели «Расшифровка видео»: [название главы?] таймкод \n одна строка текста.
+  // Названия глав идут БЕЗ таймкода и вклиниваются между текстом реплики и следующим таймкодом —
+  // поэтому «лишние» строки внутри реплики трактуем как главы и отбрасываем со счётчиком.
+  function parsePanel(txt) {
+    var lines = txt.split("\n");
+    var segments = [], dropped = 0, curStart = null, curLines = [];
+    function flush() {
+      if (curStart === null) return;
+      var text = cleanText(curLines[0] || "");
+      dropped += Math.max(0, curLines.length - 1);
+      if (text) segments.push({ i: segments.length, start: curStart, text: text });
+      curStart = null; curLines = [];
+    }
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) continue;
+      var m = PANEL_TS_RE.exec(line);
+      if (m) { flush(); curStart = hmsToSec(m[1], m[2], m[3], 0); continue; }
+      if (curStart === null) { dropped++; continue; } // заголовок до первого таймкода
+      curLines.push(line);
+    }
+    flush();
+    if (!segments.length) return fail("CAPTIONS_NO_TIMESTAMPS");
+    return finish({ format: "youtube-panel", rolling: false, language: null, kindHint: "unknown",
+                    segments: segments, droppedHeadings: dropped, warnings: [] });
+  }
 
   var API = { parse: parse, detectFormat: detectFormat, MAX_SEGMENTS: MAX_SEGMENTS, MAX_SEG_TEXT: MAX_SEG_TEXT };
   if (typeof window !== "undefined") window.CaptionsParse = API;
