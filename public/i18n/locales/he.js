@@ -613,6 +613,14 @@ window.I18N_LOCALES.he = {
     provMethodOcr: "זוהה ע\"י AI מתמונה",
     provMethodPdf: "חולץ ע\"י AI מ-PDF",
     provMethodAsr: "זיהוי דיבור (Gemini)",
+    provKindCaptions: "כתוביות",
+    provMethodCaptionsFile: "כתוביות מקובץ (ללא AI)",
+    provMethodCaptionsPanel: "תמלול שהודבק מיוטיוב (ללא AI)",
+    provCaptionsAuto: "נראה כמו כתוביות אוטומטיות — האיכות אינה מובטחת",
+    provCaptionsFile: "כתוביות מקובץ — המקור לא אומת",
+    provCaptionsUnknown: "תמלול יוטיוב — סוג רצועת הכתוביות לא אומת",
+    provCaptionsHeadings: "כותרות פרקים הושמטו",
+    provCaptionsVideo: "סרטון",
   },
 
   // ── Direction 9 Premium Notes — Phase 9.1.E i18n (HE)

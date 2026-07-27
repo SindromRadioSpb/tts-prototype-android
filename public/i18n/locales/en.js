@@ -608,6 +608,14 @@ window.I18N_LOCALES.en = {
     provMethodOcr: "AI-recognized from photo",
     provMethodPdf: "AI-extracted from PDF",
     provMethodAsr: "Speech recognition (Gemini)",
+    provKindCaptions: "Subtitles",
+    provMethodCaptionsFile: "subtitles from file (no AI)",
+    provMethodCaptionsPanel: "pasted YouTube transcript (no AI)",
+    provCaptionsAuto: "looks like auto-generated captions — quality not guaranteed",
+    provCaptionsFile: "subtitles from file — source unverified",
+    provCaptionsUnknown: "YouTube transcript — track type unverified",
+    provCaptionsHeadings: "Chapter headings dropped",
+    provCaptionsVideo: "Video",
   },
 
   // ── Direction 9 Premium Notes — Phase 9.1.E i18n

@@ -609,6 +609,14 @@ window.I18N_LOCALES.ru = {
     provMethodOcr: "распознано ИИ с фото",
     provMethodPdf: "извлечено ИИ из PDF",
     provMethodAsr: "Распознавание речи (Gemini)",
+    provKindCaptions: "Субтитры",
+    provMethodCaptionsFile: "субтитры из файла (без ИИ)",
+    provMethodCaptionsPanel: "вставленная расшифровка YouTube (без ИИ)",
+    provCaptionsAuto: "похоже на авто-субтитры — качество не гарантировано",
+    provCaptionsFile: "субтитры из файла — источник не проверен",
+    provCaptionsUnknown: "расшифровка YouTube — тип дорожки не проверен",
+    provCaptionsHeadings: "Отброшено названий глав",
+    provCaptionsVideo: "Ролик",
   },
 
   // ── Direction 9 Premium Notes (Phase 9.1.E i18n finalization) ────────

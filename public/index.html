@@ -32070,6 +32070,7 @@ function v3TextMetaRenderProvenance(source) {
     pdf:   { icon: "📄", label: T("textMeta.provKindPdf", "PDF") },
     docx:  { icon: "📝", label: T("textMeta.provKindWord", "Word") },
     audio: { icon: "🎙", label: T("textMeta.provKindAudio", "Аудио") },
+    captions: { icon: "💬", label: T("textMeta.provKindCaptions", "Субтитры") },
   };
   const METHOD = {
     "readability": T("textMeta.provMethodArticle", "извлечено из статьи (без ИИ)"),
@@ -32078,6 +32079,8 @@ function v3TextMetaRenderProvenance(source) {
     "gemini-ocr":  T("textMeta.provMethodOcr", "распознано ИИ с фото"),
     "gemini-pdf":  T("textMeta.provMethodPdf", "извлечено ИИ из PDF"),
     "gemini-asr":  T("textMeta.provMethodAsr", "Распознавание речи (Gemini)"),
+    "captions-file":  T("textMeta.provMethodCaptionsFile", "субтитры из файла (без ИИ)"),
+    "captions-panel": T("textMeta.provMethodCaptionsPanel", "вставленная расшифровка YouTube (без ИИ)"),
   };
   let k = KIND[source.kind] || { icon: "📄", label: esc(source.kind) };
   // W2-S4-T2: audio imports whose underlying file was a video (only the audio
@@ -32106,6 +32109,24 @@ function v3TextMetaRenderProvenance(source) {
   }
   if (isAi) {
     rows.push('<div style="margin-top:4px;opacity:.9;">ℹ ' + esc(T("textMeta.provAiNote", "Производный текст — возможны неточности распознавания")) + '</div>');
+  }
+  // R9: тип дорожки — СВИДЕТЕЛЬСТВО, а не факт. Заявление пользователя свидетельством не является;
+  // панель YouTube предлагает и машинно-переведённые дорожки, отличить их по тексту нельзя.
+  const capMeta = source.captions && source.captions.captions;
+  if (source.kind === "captions" && capMeta) {
+    const EV = {
+      "vtt-rolling": T("textMeta.provCaptionsAuto", "похоже на авто-субтитры — качество не гарантировано"),
+      "vtt-plain":   T("textMeta.provCaptionsFile", "субтитры из файла — источник не проверен"),
+      "none":        T("textMeta.provCaptionsUnknown", "расшифровка YouTube — тип дорожки не проверен"),
+    };
+    rows.push('<div>🏷 ' + esc(EV[capMeta.kindEvidence] || EV.none) + '</div>');
+    if (capMeta.droppedHeadings > 0) {
+      rows.push('<div>' + esc(T("textMeta.provCaptionsHeadings", "Отброшено названий глав")) + ': ' +
+                esc(String(capMeta.droppedHeadings)) + '</div>');
+    }
+    if (source.captions.video && source.captions.video.url) {
+      rows.push('<div>▶ ' + esc(T("textMeta.provCaptionsVideo", "Ролик")) + ': ' + esc(source.captions.video.url) + '</div>');
+    }
   }
   box.innerHTML = rows.join("");
   box.classList.toggle("v3-meta-prov-ai", isAi);
