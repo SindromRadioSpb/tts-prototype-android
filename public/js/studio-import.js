@@ -114,11 +114,16 @@
       try { heal = await oneCall(gap.fromSec, gap.toSec); }
       catch (_) { continue; } // добор best-effort: неудача = дыра остаётся честной
       if (heal.parsed.segments.length) {
-        // плоская пересборка: merged-до-дыры + добор + merged-после (по времени)
-        var flat = [];
-        merged.forEach(function (s) { if (s.start === null || s.start <= gap.fromSec) flat.push(s); });
-        heal.parsed.segments.forEach(function (s) { flat.push(s); });
-        merged.forEach(function (s) { if (s.start !== null && s.start > gap.fromSec) flat.push(s); });
+        // Позиционная (не по значению start) вставка (fix R11-порядка, ревью после T3): граница
+        // дыры — это КОНКРЕТНЫЙ сегмент в merged с start===gap.fromSec (findCoverageGaps берёт
+        // fromSec из реального prev-сегмента). Вставляем добор сразу ПОСЛЕ него по ИНДЕКСУ, а не
+        // фильтром по значению start — фильтр `start === null || start <= gap.fromSec` относил
+        // ВСЕ null-start сегменты (немонотонный стык окон) в «до дыры» независимо от их реальной
+        // структурной позиции, из-за чего null-сегмент, стоящий ПОСЛЕ дыры, молча переезжал перед
+        // heal-вставкой и портил порядок текста.
+        var insertAt = -1;
+        for (var mi = 0; mi < merged.length; mi++) { if (merged[mi].start === gap.fromSec) insertAt = mi; }
+        var flat = merged.slice(0, insertAt + 1).concat(heal.parsed.segments, merged.slice(insertAt + 1));
         merged = A2.mergeWindowSegments([flat]);
         healedGaps.push(gap);
       }

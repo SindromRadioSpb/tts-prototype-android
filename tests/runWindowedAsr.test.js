@@ -123,3 +123,33 @@ test("все окна пустые → NO_SPEECH в warnings, segments []", asyn
   assert.deepEqual(res.segments, []);
   assert.ok(res.warnings.includes("NO_SPEECH"));
 });
+
+// fix1 (ревью после T3, R11-порядок): null-start сегмент возникает у немонотонного стыка окон
+// (mergeWindowSegments честно обнуляет start, когда следующий сегмент раньше предыдущего по
+// времени) — и такой сегмент может структурно стоять ПОСЛЕ дыры, которую добираем. Позиционная
+// (по индексу) вставка добора обязана оставить его там же, а не тянуть перед heal-вставкой
+// только из-за null-значения start. Арифметика дыр здесь проверена прямыми вызовами
+// mergeWindowSegments/findCoverageGaps ДО фиксации фикстуры (см. журнал сессии) — тем же
+// приёмом, что и при перемасштабировании остальных тестов файла.
+test("null-start сегмент ПОСЛЕ дыры не переезжает при доборе (позиционная вставка, не по start)", async () => {
+  const calls = [];
+  const res = await SI.runWindowedAsr({
+    durationSec: 1000, // 2 окна: [0,900) и [900,1000)
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return R({ segments: [seg(10, "a"), seg(890, "b")] }); // окно0: дыра 10→890
+      if (a === 900) return R({ segments: [seg(950, "c"), seg(5, "d")] }); // окно1: 5<950 → "d" немонотонен → start:null после merge
+      return R({ segments: [seg(100, "h1"), seg(400, "h2")] }); // добор дыры (10,890)
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.deepEqual(calls, [[0, 900], [900, 1000], [10, 890]]);
+  // (а) порядок текстов: heal-сегменты встают СРАЗУ ПОСЛЕ границы дыры (10), "d" остаётся на
+  // своей структурной позиции — последним, после "c", а не перед heal-вставкой.
+  assert.deepEqual(res.segments.map((s) => s.text), ["a", "h1", "h2", "b", "c", "d"]);
+  // (б) null-start сегмент физически последний и после heal-сегментов, не между "a" и heal.
+  const dIdx = res.segments.findIndex((s) => s.text === "d");
+  assert.equal(dIdx, res.segments.length - 1);
+  assert.equal(res.segments[dIdx].start, null);
+  assert.deepEqual(res.healedGaps, [{ fromSec: 10, toSec: 890 }]);
+});
