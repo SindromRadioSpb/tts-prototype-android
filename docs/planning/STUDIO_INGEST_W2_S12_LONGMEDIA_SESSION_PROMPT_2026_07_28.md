@@ -1,5 +1,9 @@
 # Промт новой сессии: W2-S12 «длинные медиа» (chunked-таблица)
 
+> **ОТРАБОТАН: слайс SHIPPED v3.11.256 2026-07-28** — итоги в decision packet §4 п.8;
+> дизайн `STUDIO_INGEST_W2_S12_LONGMEDIA_DESIGN_2026_07_28.md`, план `..._IMPLEMENTATION_PLAN_...`,
+> замеры `docs/research/studio-ingest-longmedia/2026-07-28/`. Исторический документ.
+
 > Скопировать целиком как первое сообщение новой сессии.
 
 ---

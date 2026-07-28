@@ -1,5 +1,9 @@
 # W2-S12 «Длинные медиа» — план имплементации
 
+> **Статус: ВЫПОЛНЕН — SHIPPED v3.11.256 2026-07-28** (14 коммитов 06600a20..025c7ed2 + канон 63f851d0;
+> 5 fix-раундов пер-задачных ревью + whole-branch fix-волна; прод-верифицирован 8/8; owner-приёмка
+> pending — см. §7 п.3 decision packet). Исторический документ, не редактировать.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development
 > (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
