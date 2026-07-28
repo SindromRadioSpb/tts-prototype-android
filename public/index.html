@@ -2256,6 +2256,8 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
            ID-selectors here outrank the global button.btn-secondary rule by specificity alone. */
         #v3ImportTabs button { width: auto; }
         #v3ImportPaneVideo button, #v3ImportPaneFile button, #v3ImportPaneUrl button { width: auto; }
+        /* W2-S11: Студия — «Импорт» + «Упростить до моего уровня» sit side by side; same mobile trap. */
+        #v3ImportEntry button { width: auto; }
         /* W2-S5a.1 T3: #v3ImportOpenYt is an <a>, not a <button> — the button-tagged rules above
            and the global button.btn-secondary{width:100%} trap never select it, so it already
            stays auto-width here; its own display:inline-block rule lives with the rest of its
@@ -10698,8 +10700,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
                         <textarea id="inputText" data-i18n-placeholder="classic.inputPlaceholder" placeholder="Введите текст здесь... (Иврит, Английский, Русский)">שלום, זהו אבטיפוס פשוט של המערכת</textarea>
 
-                        <div id="v3ImportEntry" style="margin-top:6px;">
+                        <div id="v3ImportEntry" style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap;">
                             <button type="button" class="btn-secondary" onclick="window.StudioImport && StudioImport.open()">📥 <span data-i18n="studio.import.button">Импорт: ссылка / файл / фото</span></button>
+                            <button type="button" id="v3RetellEntryBtn" class="btn-secondary" onclick="window.StudioRetell && StudioRetell.openFromComposer()">✨ <span data-i18n="studio.retell.button">Упростить до моего уровня</span></button>
                         </div>
 
                         <div id="textChangedNotice" data-i18n="classic.textChangedNotice">
@@ -12439,6 +12442,14 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      window.StudioYtPlayer directly). -->
 <script src="/js/captions-parse.js"></script>
 <script src="/js/studio-yt-player.js"></script>
+
+<!-- W2-S11 graded-retell deps — corpus-vocab.js provides the canon coverage-zone engine
+     (window.CorpusVocab.CFG.KNOWN_STATES/classifyZone) that studio-retell.js's
+     estimateTextCoverage() needs; previously only wired into library.html (Task 4 finding —
+     Studio has no window.CorpusVocab without this tag). Both load before studio-import.js,
+     which calls window.StudioRetell.openFromComposer() via useTextAndRetell(). -->
+<script src="/js/corpus-vocab.js"></script>
+<script src="/js/studio-retell.js"></script>
 
 <!-- W1 Studio Ingest client — Import modal (URL/file/photo → #inputText). -->
 <script src="/js/studio-import.js" defer></script>
@@ -46844,8 +46855,31 @@ document.addEventListener("i18n:changed", function () {
         <textarea id="v3ImportPreview" dir="auto" style="width:100%; min-height:140px; box-sizing:border-box;"></textarea>
         <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
           <button type="button" class="btn-primary" onclick="StudioImport.useText()" data-i18n="studio.import.useBtn">→ В поле ввода</button>
+          <button type="button" class="btn-secondary" onclick="StudioImport.useTextAndRetell()" data-i18n="studio.retell.fromImportBtn">✨ Упростить…</button>
           <button type="button" class="btn-secondary" onclick="StudioImport.close()" data-i18n="studio.import.cancelBtn">Закрыть</button>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Retell modal (W2-S11 graded-пересказ — "Упростить до моего уровня") ──── -->
+<div id="v3RetellModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-labelledby="v3RetellTitle">
+  <div class="v3-modal-backdrop" onclick="window.StudioRetell && StudioRetell.close()"></div>
+  <div class="v3-modal-panel" style="width:min(480px,calc(100vw - 32px));height:auto;max-height:calc(100vh - 48px);margin:24px auto;">
+    <div class="v3-modal-header">
+      <span class="v3-modal-title" id="v3RetellTitle" data-i18n="studio.retell.title">✨ Упростить до моего уровня</span>
+      <button class="btn-secondary" onclick="window.StudioRetell && StudioRetell.close()" data-i18n="studio.retell.cancelBtn">Отмена</button>
+    </div>
+    <div class="v3-modal-body">
+      <div class="input-label" data-i18n="studio.retell.levelLabel">Уровень пересказа</div>
+      <select id="v3RetellLevel" style="width:100%; box-sizing:border-box;"></select>
+      <div id="v3RetellCovNow" style="font-size:12px; color:#6c757d; margin-top:6px;" hidden></div>
+      <div id="v3RetellCost" style="font-size:12px; color:#6c757d; margin-top:4px;"></div>
+      <div id="v3RetellStatus" style="font-size:12px; margin-top:6px;" aria-live="polite"></div>
+      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+        <button type="button" id="v3RetellGo" class="btn-primary" onclick="StudioRetell.run()" data-i18n="studio.retell.goBtn">Упростить</button>
+        <button type="button" class="btn-secondary" onclick="window.StudioRetell && StudioRetell.close()" data-i18n="studio.retell.cancelBtn">Отмена</button>
       </div>
     </div>
   </div>

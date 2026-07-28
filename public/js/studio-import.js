@@ -359,6 +359,24 @@
     var prov = tr(provKey) + " · " + p.source + (p.model ? " · " + p.model : "");
     if (p.warnings && p.warnings.length) prov += " · ⚠ " + tr("studio.import.warnCheck");
     $("v3ImportProv").textContent = prov;
+    // W2-S11 (решение 7): дефолт-провайдер google-free не задействует seg-путь —
+    // мягкая подсказка, БЕЗ автопереключения (дизайн §1.7).
+    // NB: this file's tr(key, params) forwards params straight to window.t() for {placeholder}
+    // interpolation — it is NOT a (key, fallback) helper, unlike studio-retell.js's own tr(k, f).
+    // window.t() returns the KEY ITSELF on a miss (public/i18n/index.js), so tr(key, "русский
+    // текст") would have rendered the literal untranslated key until Task 7 adds this string to
+    // the locales. Miss-checked here instead, matching the T(key, fb) idiom used elsewhere in
+    // this codebase (reader-morph.js tt(), knowledge-map-quiz-loader.js T(), …).
+    try {
+      var provSel = document.getElementById("providerSelect");
+      if ((p.kind === "audio" || p.kind === "captions") && provSel && provSel.value !== "gemini") {
+        var hint = document.createElement("div");
+        hint.style.cssText = "font-size:12px;color:#b8860b;margin-top:4px;";
+        var hintKey = "studio.retell.providerHint", hintVal = tr(hintKey);
+        hint.textContent = (hintVal && hintVal !== hintKey) ? hintVal : "Для караоке и длинных таблиц включите провайдер Gemini";
+        $("v3ImportProv").appendChild(hint);
+      }
+    } catch (_) {}
     $("v3ImportPreviewWrap").hidden = false;
     setStatus(null);
   }
@@ -545,6 +563,14 @@
     close();
     toast(pending.warnings && pending.warnings.length ? "studio.import.warnCheck" : "studio.import.done",
           pending.warnings && pending.warnings.length ? "warning" : "success");
+  }
+
+  // W2-S11: «→ В поле ввода» + сразу открыть модал пересказа (шорткат превью импорта).
+  async function useTextAndRetell() {
+    var t2 = ($("v3ImportPreview").value || "").trim();
+    if (!t2) { setStatus("studio.import.errEmpty"); return; }
+    await useText(); // штатное приземление С паспортом импорта (derivedFrom возьмёт его)
+    if (window.StudioRetell) window.StudioRetell.openFromComposer();
   }
 
   // W2-S5a — Классификация URL: ссылка на YouTube уходит в ветку S5a, а НЕ в
@@ -815,5 +841,6 @@
                            fetchUrl: fetchUrl, fetchUrlOrVideo: fetchUrlOrVideo, mountVideoFromField: mountVideoFromField,
                            onFileChosen: onFileChosen, onAudioChosen: onAudioChosen, transcribeAudio: transcribeAudio,
                            onCaptionsFileChosen: onCaptionsFileChosen, useCaptionsPaste: useCaptionsPaste,
-                           useText: useText, chooseTrackHint: chooseTrackHint, runWindowedAsr: runWindowedAsr };
+                           useText: useText, useTextAndRetell: useTextAndRetell,
+                           chooseTrackHint: chooseTrackHint, runWindowedAsr: runWindowedAsr };
 })();

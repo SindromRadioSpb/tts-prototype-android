@@ -129,6 +129,52 @@
     } catch (_) { return null; }
   }
 
+  // ------- браузерная часть (UI) -------
+  function $(id) { return document.getElementById(id); }
+  function tr(k, f) { try { var v = window.t && window.t(k); return v && v !== k ? v : f; } catch (_) { return f; } }
+  function toast(msg, kind) { if (typeof window.showToast === "function") window.showToast(msg, kind || "info"); }
+  var pendingSource = null; // {text} на время открытого модала
+
+  function fillLevelSelect() {
+    var sel = $("v3RetellLevel");
+    if (!sel || sel.options.length) return;
+    for (var i = 0; i < LEVELS.length; i++) {
+      var o = document.createElement("option");
+      o.value = LEVELS[i];
+      o.textContent = LEVELS[i] + " — " + tr("studio.retell.level" + LEVELS[i], LEVELS[i]);
+      sel.appendChild(o);
+    }
+    var last = null; try { last = localStorage.getItem(RETELL_LEVEL_LS_KEY); } catch (_) {}
+    sel.value = LEVELS.includes(last) ? last : "B1";
+  }
+
+  function openFromComposer() {
+    var text = (($("inputText") || {}).value || "").trim();
+    if (!text) { toast(tr("studio.retell.errEmptyField", "Поле ввода пусто"), "warning"); return; }
+    pendingSource = { text: text };
+    fillLevelSelect();
+    var est = estimateRetellCost(text.length);
+    $("v3RetellCost").textContent = tr("studio.retell.costLine", "Смета") + ": ≈$" + est.usd.toFixed(2) + " · ~" + est.seconds + tr("studio.retell.secShort", " сек");
+    $("v3RetellStatus").textContent = "";
+    var cov = $("v3RetellCovNow"); cov.hidden = true;
+    estimateTextCoverage(text).then(function (c) {
+      if (c && pendingSource) {
+        cov.textContent = tr("studio.retell.covNow", "Знакомо сейчас") + ": ~" + Math.round(c.pct * 100) + "% · " + tr("studio.retell.zone_" + c.zone, c.zone);
+        cov.hidden = false;
+      }
+    });
+    var m = $("v3RetellModal");
+    if (m) m.classList.remove("hidden"); // модал — .v3-modal hidden-CLASS toggle (matches every
+                                          // other modal in index.html: v3ImportModal/v3TextMetaModal/
+                                          // v3SaveMetaModal/v3AudioPrefetchModal all show/hide via
+                                          // classList, NOT the `hidden` attribute/property).
+  }
+  function close() {
+    var m = $("v3RetellModal");
+    if (m) m.classList.add("hidden");
+    pendingSource = null;
+  }
+
   var API = {
     LEVELS: LEVELS, RETELL_LEVEL_LS_KEY: RETELL_LEVEL_LS_KEY,
     estimateRetellCost: estimateRetellCost,
@@ -136,6 +182,8 @@
     aggregateCoverage: aggregateCoverage,
     collectTypeFreq: collectTypeFreq,
     estimateTextCoverage: estimateTextCoverage,
+    openFromComposer: openFromComposer,
+    close: close,
   };
   if (typeof window !== "undefined") window.StudioRetell = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
