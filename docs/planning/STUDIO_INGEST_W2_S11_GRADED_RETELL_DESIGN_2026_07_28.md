@@ -102,7 +102,11 @@ validateRetellInput({text, level}) → {ok}|{error}   // text ≤ 100_000 chars 
 Числа/формулировки промта — из замера (`docs/research/studio-ingest-graded-retell/2026-07-28/`),
 комментарии цитируют README замера, не память сессии (урок S12.1, R9).
 
-### 4.2 `POST /api/retell` (server.js, класс translate-table)
+### 4.2 `POST /api/ingest/retell` (ingest/routes.js, класс translate-table)
+
+> Уточнение при написании плана: эндпоинт живёт в `ingest/routes.js` (не server.js) —
+> там уже есть limiter 10/мин, `isPlausibleGeminiKey`, `classifyGeminiError` и
+> `deps.geminiCacheDir`; серверный рост меньше, контракт тот же.
 - Вход: `{ text, level, geminiApiKey }`. Валидация: ключ (401 `GEMINI_KEY_REQUIRED` /
   400 `GEMINI_KEY_INVALID` — `isPlausibleGeminiKey`), `level ∈ LEVELS` (400 `BAD_LEVEL`),
   `validateRetellInput` (400 `RETELL_TOO_LONG` / `RETELL_EMPTY`).
@@ -130,7 +134,9 @@ buildRetellPassport({originMeta, level, model, retellText, coverage}) → v3Last
 estimateTextCoverage(text) → {pct, zone, tokens, matchedShare} | null
    // tokenize → resolveCore → canonKey → getKnownWordStates → CFG.KNOWN_STATES/classifyZone;
    // null при пустом профиле/нерезолве — цифры честно скрываются
-openRetellModal({source: "composer"|"import-preview"}) / runRetell(...)
+openFromComposer() / run() / close()   // превью импорта зовёт StudioImport.useTextAndRetell():
+                                       // штатный useText() → openFromComposer(); «источник —
+                                       // импорт» определяется совпадением textSnapshot паспорта
 ```
 - Приземление: `#inputText.value = retell` + `dispatchEvent('input')` →
   `window.v3LastImportMeta = passport` (порядок как в studio-import.js:536-544) →
