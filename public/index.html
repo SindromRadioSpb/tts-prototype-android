@@ -12346,9 +12346,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=70"></script>
-<script src="/i18n/locales/en.js?v=70"></script>
-<script src="/i18n/locales/he.js?v=70"></script>
+<script src="/i18n/locales/ru.js?v=71"></script>
+<script src="/i18n/locales/en.js?v=71"></script>
+<script src="/i18n/locales/he.js?v=71"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -33014,11 +33014,13 @@ try { v3DashCloseViewMenu(); } catch (_) {}
     // W2-S4/S5a: сегменты для сегмент-режима — если импорт был аудио ИЛИ субтитры (captions,
     // v3MediaPassport(im) резолвит любой из двух), направление he-ru и текущий текст построчно
     // совпадает по числу строк с сегментами (иначе честно без тайминга).
-    // W2-S4.1 FIX B: must match ingest/segTable.js MAX_SEGMENTS/MAX_SEG_TEXT — client-side guard
-    // so an oversized request never reaches the server as a cryptic 400; falling back to null
+    // W2-S4.1 FIX B: must match ingest/segTable.js MAX_SEG_TEXT — client-side guard so an
+    // oversized single line never reaches the server as a cryptic 400; falling back to null
     // here means no `segments` in the payload, so Task 9's attach logic honestly labels the
     // result NO_SEGMENT_MAPPING instead of surfacing a raw HTTP error.
-    const V3_SEG_MAX_SEGMENTS = 400;
+    // W2-S12: no segment-COUNT cap here anymore — a request over TableChunks.CHUNK_SIZE is
+    // cut into chunks by translateTable()/v3TranslateTableChunked() before it ever reaches
+    // apiCall(); the server still only ever sees ≤CHUNK_SIZE segments per request.
     const V3_SEG_MAX_TEXT = 2000;
     function v3AudioSegmentsForRequest() {
         try {
@@ -33029,7 +33031,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
             if (getTableDirection() !== "he-ru") return null;
             const lines = getText().split("\n").map((s) => s.trim()).filter(Boolean);
             if (lines.length !== p.segments.length) return null;
-            if (lines.length > V3_SEG_MAX_SEGMENTS || lines.some((s) => s.length > V3_SEG_MAX_TEXT)) return null;
+            if (lines.some((s) => s.length > V3_SEG_MAX_TEXT)) return null;
             return lines.map((t2, k) => ({ i: k, text: t2 }));
         } catch (_) { return null; }
     }
@@ -33124,6 +33126,15 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
         const endpoint = usePremium ? "/api/translate-table-v2" : "/api/translate-table";
         const translitProfileEl = document.getElementById("translitProfileSelect");
         const translit_profile = translitProfileEl ? (translitProfileEl.value || "sbl") : "sbl";
+
+        // W2-S12: long table → chunk-cycle. setLoading(true)/skeleton/isGeminiLocked/premium-block
+        // above already ran; v3TranslateTableChunked owns its own finally(setLoading(false)).
+        const segsForChunks = !usePremium ? v3AudioSegmentsForRequest() : null;
+        if (segsForChunks && segsForChunks.length > TableChunks.CHUNK_SIZE) {
+            await v3TranslateTableChunked(segsForChunks);
+            return;
+        }
+
         const payload = usePremium
             ? {
                 text: getText(),
@@ -33237,6 +33248,79 @@ try {
             setLoading(false);
             updateAiButtonState();
         }
+    }
+
+    // W2-S12: чанк-цикл длинной таблицы. Дизайн: docs/planning/STUDIO_INGEST_W2_S12_LONGMEDIA_DESIGN_2026_07_28.md §4.4.
+    // Сервер не менялся: каждый кусок — обычный seg-запрос ≤CHUNK_SIZE; серверный sha256-кэш куска
+    // делает повторный прогон бесплатным (готовые куски возвращаются fromCache мгновенно) —
+    // поэтому «Продолжить» после сбоя = просто нажать «AI Перевод» ещё раз.
+    // NB: setLoading(true)/setAiButtonDisabled(true) уже выполнены translateTable() ДО развилки,
+    // ведущей сюда — здесь их НЕ повторяем; finally ниже симметрично снимает состояние загрузки.
+    async function v3TranslateTableChunked(segs) {
+        const chunks = TableChunks.buildChunks(segs);
+        const accum = [];
+        const chunkMeta = [];
+        const missingPerChunk = [];
+        let anyMappingLost = false;
+        try {
+            for (let k = 0; k < chunks.length; k++) {
+                setResultsMeta("table", t("classic.tableChunkProgress")
+                    .replace("{k}", String(k + 1)).replace("{m}", String(chunks.length)));
+                let res;
+                try {
+                    res = await apiCall("/api/translate-table", {
+                        geminiApiKey: geminiKeyGet(), direction: "he-ru", segments: chunks[k].segs,
+                    });
+                } catch (e) {
+                    // Готовое остаётся на экране; повторный клик докачает по кэшу (см. шапку).
+                    if (e.httpStatus === 429) handleGeminiLimitError(e);
+                    showError(t("classic.tableChunkFailed")
+                        .replace("{k}", String(k + 1)).replace("{m}", String(chunks.length)));
+                    return;
+                }
+                const rows = TableChunks.offsetRows(res.rows || [], chunks[k].base);
+                accum.push(...rows);
+                const resW = res.warnings || [];
+                if (resW.includes("SEG_MAPPING_LOST")) anyMappingLost = true; // строки куска уже без индексов (сервер)
+                missingPerChunk.push({ base: chunks[k].base,
+                    missing: TableChunks.coverageForChunk(res.rows || [], chunks[k].segs.length).missing });
+                chunkMeta.push({ cacheKey: res.cacheKey || null, fromCache: res.fromCache === true,
+                                 rows: (res.rows || []).length });
+                // Прогрессив: renderTable НЕ редактировался — просто перерисовка префиксом.
+                clearRowSelectedUI();
+                currentTableData = accum.slice();
+                renderTable(currentTableData);
+            }
+        } finally {
+            setLoading(false);
+            updateAiButtonState();
+        }
+        // ── все куски готовы: полный success-блок (зеркалит одиночный путь) ──
+        const missingGlobal = TableChunks.aggregateMissing(missingPerChunk);
+        v3LastGeminiMeta = {
+            promptId: "he-ru-table-seg-v1+chunked", model: "gemini-flash-latest",
+            cacheKey: null, fromCache: chunkMeta.every((c) => c.fromCache),
+            provider: "gemini", chunks: chunkMeta, generatedAt: new Date().toISOString(),
+        };
+        v3AttachImportSource();
+        v3AttachAudioTiming({ rows: currentTableData,
+            warnings: missingGlobal.length ? ["SEG_COVERAGE_PARTIAL"] : [] });
+        if (missingGlobal.length && typeof showToast === "function") {
+            showToast(t("studio.import.warnCoverage"), "warning");
+        }
+        clearTableStale();
+        tableIsStale = false;
+        lastDocxFilename = generateDocxFileName();
+        try {
+            localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify({
+                text: getText().trim(), rows: currentTableData,
+                createdAt: new Date().toISOString(), lastDocxFilename: lastDocxFilename,
+            }));
+        } catch (e) { console.error("Table cache save error", e); }
+        setResultsMeta("table", t("classic.tableChunkedDone").replace("{m}", String(chunks.length)));
+        loadStats();
+        clearGeminiLock();
+        try { classicSyncMainPanels({ force: true }); } catch (_) {}
     }
 
     // ----------------------------
