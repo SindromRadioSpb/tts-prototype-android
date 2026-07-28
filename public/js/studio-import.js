@@ -123,6 +123,15 @@
         // heal-вставкой и портил порядок текста.
         var insertAt = -1;
         for (var mi = 0; mi < merged.length; mi++) { if (merged[mi].start === gap.fromSec) insertAt = mi; }
+        // Whole-branch review 2026-07-28 (I1, R11): the gap boundary can vanish from merged
+        // between the search above and now — an EARLIER heal in this same loop may have
+        // overshot past this gap's fromSec, and the re-merge (mergeWindowSegments below) then
+        // nulls out the now-non-monotonic boundary segment's start (see comment above). With
+        // insertAt===-1, `merged.slice(0, 0)` silently prepended the heal as a PREFIX of the
+        // whole transcript — the exact silent reordering this fix closes. The gap stays
+        // honest (best-effort add-on, §4.3); it will surface via coverageGaps/ASR_COVERAGE_GAP
+        // instead of being masked by a misplaced insertion.
+        if (insertAt < 0) continue;
         var flat = merged.slice(0, insertAt + 1).concat(heal.parsed.segments, merged.slice(insertAt + 1));
         merged = A2.mergeWindowSegments([flat]);
         healedGaps.push(gap);

@@ -153,3 +153,39 @@ test("null-start сегмент ПОСЛЕ дыры не переезжает п
   assert.equal(res.segments[dIdx].start, null);
   assert.deepEqual(res.healedGaps, [{ fromSec: 10, toSec: 890 }]);
 });
+
+// I1 (whole-branch review 2026-07-28, R11): ДВЕ дыры в одном окне. Добор ПЕРВОЙ дыры (10,300)
+// перелетает (overshoot) через границу ВТОРОЙ дыры (300) — возвращает сегмент start:350 > 300.
+// Ре-merge внутри цикла честно обнуляет start пограничного сегмента b (300 < 350 →
+// немонотонность), поэтому на втором проходе поиск insertAt (start === gap.fromSec === 300)
+// НИЧЕГО не находит: insertAt=-1. Без guard'а `merged.slice(0, insertAt+1)` = `merged.slice(0, 0)`
+// вставляет добор второй дыры ПРЕФИКСОМ перед "a" — молчаливая перестановка всего транскрипта.
+// Числа проверены прямыми вызовами mergeWindowSegments/findCoverageGaps И полным прогоном
+// runWindowedAsr (методика T3, см. журнал сессии) ДО фиксации фикстуры — включая сам баг
+// (воспроизведён до фикса insertAt<0 continue).
+test("I1: overshoot добора первой дыры стирает границу второй дыры → insertAt<0 не префикс-вставка", async () => {
+  const calls = [];
+  const res = await SI.runWindowedAsr({
+    durationSec: 650, // одно окно [0,650)
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === null) return R({ segments: [seg(10, "a"), seg(300, "b"), seg(600, "c")] }); // дыры 10→300 и 300→600
+      if (a === 10 && b === 300) return R({ segments: [seg(50, "h1"), seg(350, "h2")] }); // overshoot: h2.start=350 > gap2.fromSec(300)
+      if (a === 300 && b === 600) return R({ segments: [seg(400, "h3")] }); // добор дыры 2 — граница (300) уже стёрта
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.deepEqual(calls, [[null, null], [10, 300], [300, 600]]);
+  // (а) порядок НЕ нарушен: первый сегмент результата — исходный первый сегмент "a", а не
+  // h3 (добор второй дыры), который до фикса молча вставлялся ПЕРЕД ним.
+  assert.equal(res.segments[0].text, "a");
+  assert.deepEqual(res.segments.map((s) => s.text), ["a", "h1", "h2", "b", "c"]);
+  // (б) вторая дыра НЕ была обработана вслепую: добор гарантированно не вставлен (текста "h3"
+  // нет в результате), она честно осталась непокрытой и всплывает через coverageGaps/warning —
+  // никакого молчаливого маскирования.
+  assert.ok(!res.segments.some((s) => s.text === "h3"));
+  assert.deepEqual(res.healedGaps, [{ fromSec: 10, toSec: 300 }]); // только первая дыра реально добрана
+  assert.ok(res.coverageGaps.length > 0);
+  assert.ok(res.warnings.includes("ASR_COVERAGE_GAP"));
+});

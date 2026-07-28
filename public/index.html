@@ -12421,9 +12421,11 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/studio-karaoke.js"></script>
 
 <!-- W2-S4 Studio Ingest audio deps — LOAD ORDER LOAD-BEARING: gemini-error before
-     asr-transcript before media-store before gemini-files (gemini-files resolves
-     MODEL at IIFE-load from window.AsrTranscript) before studio-media-karaoke,
-     all before studio-import.js which consumes them. -->
+     asr-transcript before table-chunks (S12 chunked-table pure helper, no cross-deps
+     of its own but grouped here to keep the audio/table chain together) before
+     media-store before gemini-files (gemini-files resolves MODEL at IIFE-load from
+     window.AsrTranscript) before studio-media-karaoke, all before studio-import.js
+     which consumes them. -->
 <script src="/js/gemini-error.js"></script>
 <script src="/js/asr-transcript.js"></script>
 <script src="/js/table-chunks.js"></script>
@@ -33316,7 +33318,6 @@ try {
         const accum = [];
         const chunkMeta = [];
         const missingPerChunk = [];
-        let anyMappingLost = false;
         // Fix2 (re-review): the skeleton is already on screen (translateTable(), before the
         // fork) but currentTableData itself still holds the PREVIOUS generation's rows until
         // the first chunk lands — a catch on chunk 0 must not pin a fresh partial-meta to
@@ -33377,8 +33378,10 @@ try {
                 }
                 const rows = TableChunks.offsetRows(res.rows || [], chunks[k].base);
                 accum.push(...rows);
-                const resW = res.warnings || [];
-                if (resW.includes("SEG_MAPPING_LOST")) anyMappingLost = true; // строки куска уже без индексов (сервер)
+                // SEG_MAPPING_LOST (per-chunk warning): that chunk's rows came back without
+                // segment_index (server-side) — degradation is LOCAL to the chunk, not global.
+                // missingPerChunk/aggregateMissing below is what actually surfaces it to the
+                // user (SEG_COVERAGE_PARTIAL); no separate flag is tracked here.
                 missingPerChunk.push({ base: chunks[k].base,
                     missing: TableChunks.coverageForChunk(res.rows || [], chunks[k].segs.length).missing });
                 chunkMeta.push({ cacheKey: res.cacheKey || null, fromCache: res.fromCache === true,
