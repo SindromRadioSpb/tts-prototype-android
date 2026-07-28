@@ -3030,6 +3030,9 @@ window.I18N_LOCALES.en = {
       tabUrl: "Article",
       tabVideo: "Video",
       tabFile: "File",
+      // MINOR (whole-branch review 2026-07-28): the aria-label was hardcoded Russian — now goes
+      // through data-i18n-aria-label like every other string in this file.
+      tabsAriaLabel: "Import — source type",
       urlLabel: "Article or page link",
       urlPlaceholder: "https://…",
       fetchBtn: "Extract text",
@@ -3110,6 +3113,8 @@ window.I18N_LOCALES.en = {
       captionsNoPlayer: "This browser can't play the video — the table and timestamps will still be available",
       captionsEmbedDenied: "The owner disabled embedding for this video — open it on YouTube",
       captionsPlayerLoading: "Loading player…",
+      // orphaned by T1 (superseded by captionsTracksHeManual/HeAuto/NoHe below — Hebrew is checked
+      // first, these two generic variants are never selected anymore) — kept as-is, not deleted
       captionsTracksManual: "This video has manual subtitles:",
       captionsTracksAuto: "This video only has auto-generated subtitles:",
       captionsTracksNone: "This video has no subtitles — upload a media file for speech recognition",
@@ -3119,7 +3124,13 @@ window.I18N_LOCALES.en = {
       captionsTracksHeManual: "✓ Manual Hebrew subtitles available",
       captionsTracksHeAuto: "Only auto-generated Hebrew subtitles available — quality not guaranteed",
       captionsTracksNoHe: "No Hebrew subtitles. Manual subtitles available in: {langs}",
+      // orphaned by T2-fix (whole-branch review 2026-07-28): n=1 hit the plural ending ("and 1
+      // more languages" — wrong, needs "language") — split into one/many forms below, selected in
+      // JS by pluralCategory(). Key kept as-is, not deleted.
       captionsTracksMore: "and {n} more languages",
+      captionsTracksMoreOne: "and {n} more language",
+      captionsTracksMoreFew: "and {n} more languages",
+      captionsTracksMoreMany: "and {n} more languages",
       provCaptions: "Subtitles → segments",
       errCaptionsEmpty: "No lines found in the subtitles",
       errCaptionsNoTimestamps: "A transcript with timestamps is needed, not plain text",

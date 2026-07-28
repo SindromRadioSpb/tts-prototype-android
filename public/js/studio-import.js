@@ -13,6 +13,18 @@
   // бесполезен: у одного ролика их бывает 64, и нужная тонет. Поэтому иврит проверяется первым.
   // Pure — no DOM — exported below for Node (tests/importTrackHint.test.js) and for the browser
   // via window.StudioImport.chooseTrackHint, following the split used in studio-media-karaoke.js.
+  // `more` means the SAME thing in every branch below: how many additional DISTINCT languages
+  // (never raw track count — one language routinely has both a manual and an auto-generated
+  // track, e.g. English) exist beyond the one(s) already named in the primary message. Whole-
+  // branch review 2026-07-28 found the HeManual/HeAuto branches counting tracks while NoHe counted
+  // unique names — same word, two different promises. Dedup key: languageCode when present
+  // (stable identifier), falling back to languageName only for tracks missing a code.
+  function uniqueLangCount(tracks) {
+    var ids = tracks.map(function (t) { return String((t && (t.languageCode || t.languageName)) || "").toLowerCase(); })
+                     .filter(Boolean);
+    return ids.filter(function (v, i) { return ids.indexOf(v) === i; }).length;
+  }
+
   function chooseTrackHint(list, confirmed) {
     var tracks = Array.isArray(list) ? list : [];
     if (!tracks.length) {
@@ -21,10 +33,11 @@
     var he = tracks.filter(function (t) { return t && HE_RE.test(String(t.languageCode || "")); });
     var heManual = he.filter(function (t) { return t.kind !== "asr"; });
     if (heManual.length) {
-      return { key: "studio.import.captionsTracksHeManual", more: Math.max(0, tracks.length - heManual.length) };
+      // -1: Hebrew itself is already named by the HeManual key, don't recount it as "more".
+      return { key: "studio.import.captionsTracksHeManual", more: Math.max(0, uniqueLangCount(tracks) - 1) };
     }
     if (he.length) {
-      return { key: "studio.import.captionsTracksHeAuto", more: Math.max(0, tracks.length - he.length) };
+      return { key: "studio.import.captionsTracksHeAuto", more: Math.max(0, uniqueLangCount(tracks) - 1) };
     }
     var manual = tracks.filter(function (t) { return t.kind !== "asr"; });
     var pool = manual.length ? manual : tracks;
@@ -34,8 +47,25 @@
              more: Math.max(0, uniq.length - 3) };
   }
 
+  // Russian needs three plural forms (1 язык / 2-4 языка / 0,5+,11-14 языков — standard CLDR "one/
+  // few/many" split); English and Hebrew only distinguish singular (n===1) from everything else.
+  // No ICU/plural machinery exists in this codebase's i18n core (public/i18n/index.js — plain
+  // {param} substitution only), so the category is resolved here and mapped to one of three
+  // locale keys rather than teaching the whole i18n engine CLDR rules for one string.
+  function pluralCategory(n, locale) {
+    if (locale === "ru") {
+      var mod10 = n % 10, mod100 = n % 100;
+      if (mod10 === 1 && mod100 !== 11) return "one";
+      if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "few";
+      return "many";
+    }
+    return n === 1 ? "one" : "many"; // en, he: binary singular/plural
+  }
+
   if (typeof window === "undefined") {
-    if (typeof module !== "undefined" && module.exports) module.exports = { chooseTrackHint: chooseTrackHint };
+    if (typeof module !== "undefined" && module.exports) {
+      module.exports = { chooseTrackHint: chooseTrackHint, pluralCategory: pluralCategory, uniqueLangCount: uniqueLangCount };
+    }
     return;
   }
 
@@ -62,20 +92,46 @@
                                // so #v3ImportOpenYt's href can only ever be built from something
                                // that already looks like a validated YouTube video id.
 
-  // W2-S5a.1 T2 — три явные вкладки вместо плоского стека. Активная вкладка живёт ТОЛЬКО в
-  // модуле (не в localStorage) — open() всегда сбрасывает на "url", чтобы поведение диалога
-  // было предсказуемым при каждом открытии. Канон: task-2-brief.md.
+  // W2-S5a.1 T2 — три явные вкладки вместо плоского стека. open() всегда переключает на "url",
+  // чтобы поведение диалога было предсказуемым при каждом открытии (канон: task-2-brief.md). Нет
+  // отдельного module-level флага активной вкладки (whole-branch review 2026-07-28 — был записан,
+  // нигде не читался): реальное состояние — DOM (pane.hidden / aria-selected на кнопках),
+  // switchTab() читает именно его, а не дублирующую переменную.
   var TAB_PANE_ID = { url: "v3ImportPaneUrl", video: "v3ImportPaneVideo", file: "v3ImportPaneFile" };
   var TAB_BTN_ID = { url: "v3ImportTabUrl", video: "v3ImportTabVideo", file: "v3ImportTabFile" };
-  var activeTab = "url";
 
   function $(id) { return document.getElementById(id); }
   function tr(key, params) { return (typeof window.t === "function") ? window.t(key, params) : key; }
   function toast(key, type) { if (typeof window.showToast === "function") window.showToast(tr(key), type || "info"); }
 
+  // W2-S5a.1 T2-fix (whole-branch review 2026-07-28, IMPORTANT): leaving the Video tab must tear
+  // the player down, or two things break. (1) A provenance lie: mountVideo() sets
+  // pendingCaptions.video, and acceptCaptions() (`pendingCaptions = pendingCaptions || {}`) never
+  // clears it — so mounting video A, switching to Файл, and picking an UNRELATED .vtt stamps that
+  // file's provenance with video A. That is exactly the derived-vs-asserted line R9 exists to hold.
+  // (2) An audio leak: the iframe is only [hidden]'d (display:none), which does not stop iframe
+  // playback in Chrome — audio keeps coming from an invisible player with no reachable control
+  // until the whole dialog is closed. Shared by switchTab() (leaving Video for another tab) and
+  // close() (the pre-existing single teardown point) so there is exactly one place this logic
+  // lives. Safe to call redundantly / when nothing is mounted — every step is null-guarded.
+  function teardownVideo() {
+    mountGen++; // abandon any in-flight mountVideo() still awaiting create()
+    if (ytAdapter) {
+      if (window.StudioYtPlayer) window.StudioYtPlayer.destroy(ytAdapter);
+      ytAdapter = null;
+    }
+    var ytm = $("v3ImportYtMount");
+    if (ytm) { ytm.hidden = true; ytm.innerHTML = ""; }
+    var yth = $("v3ImportYtHint");
+    if (yth) yth.textContent = "";
+    showCaptionsHow(false);
+    if (pendingCaptions) delete pendingCaptions.video;
+  }
+
   function switchTab(name) {
     if (!TAB_PANE_ID[name]) name = "url";
-    activeTab = name;
+    var videoPane = $(TAB_PANE_ID.video);
+    var leavingVideo = !!videoPane && !videoPane.hidden && name !== "video";
     for (var k in TAB_PANE_ID) {
       if (!TAB_PANE_ID.hasOwnProperty(k)) continue;
       var pane = $(TAB_PANE_ID[k]);
@@ -83,6 +139,7 @@
       var btn = $(TAB_BTN_ID[k]);
       if (btn) btn.setAttribute("aria-selected", k === name ? "true" : "false");
     }
+    if (leavingVideo) teardownVideo();
     setStatus(null);
   }
 
@@ -245,30 +302,19 @@
     // previous auto-switch (fetchUrlOrVideo()) must not greet the user on the next open().
     var vu = $("v3ImportVideoUrl");
     if (vu) vu.value = "";
-    // Tab always resets to "url" — kept in-module (not localStorage) precisely so the dialog is
-    // predictable on every open, per task-2-brief.md.
+    // Tab always resets to "url" on open() — not persisted anywhere (not localStorage, not a
+    // module var), so the dialog is predictable on every open, per task-2-brief.md.
     switchTab("url");
   }
   function close() {
     var m = $("v3ImportModal");
     if (m) m.classList.add("hidden");
-    // W2-S5a.1 T3: bump FIRST, before anything else — any mountVideo() still suspended on
-    // `await create()` compares its captured myGen against mountGen the instant it resumes, so
-    // this must happen before we touch ytAdapter/mount/hint below (see mountVideo()'s guard).
-    mountGen++;
     // W2-S5a: this modal owns ytAdapter's lifetime (it created it in mountVideo()) — every path
     // that hides the modal (Cancel, backdrop click, post-commit close() at the end of useText())
-    // funnels through here, so this is the single teardown point. Leaving it live would keep a
-    // YouTube iframe (and possibly playing audio) mounted inside a hidden modal indefinitely.
-    if (ytAdapter) {
-      if (window.StudioYtPlayer) window.StudioYtPlayer.destroy(ytAdapter);
-      ytAdapter = null;
-    }
-    var ytm = $("v3ImportYtMount");
-    if (ytm) { ytm.hidden = true; ytm.innerHTML = ""; }
-    var yth = $("v3ImportYtHint");
-    if (yth) yth.textContent = "";
-    showCaptionsHow(false);
+    // funnels through here. teardownVideo() is the single teardown point, shared with switchTab()
+    // leaving the Video tab (T2-fix) — leaving the player live would keep a YouTube iframe (and
+    // possibly playing audio) mounted indefinitely.
+    teardownVideo();
     pendingCaptions = null;
   }
 
@@ -500,8 +546,18 @@
   // above) — an EMPTY unconfirmed read means "not reported yet", never "there are none".
   function describeTracks(list, confirmed) {
     var r = chooseTrackHint(list, confirmed);
-    var msg = tr(r.key, r.langs ? { langs: r.langs } : null);
-    if (r.more) msg += "\n" + tr("studio.import.captionsTracksMore", { n: r.more });
+    // Bug (whole-branch review 2026-07-28, MINOR): `r.langs ? {...} : null` treated an EMPTY
+    // string the same as "no langs field at all" — t()'s {param} replace() is skipped entirely
+    // when params is null, so an all-nameless track list leaked the literal "{langs}" into the
+    // UI. `.langs` is only ever present (possibly "") on the NoHe branch, so testing `!== undefined`
+    // distinguishes "this key has no {langs} placeholder" from "it does, and it's empty".
+    var msg = tr(r.key, r.langs !== undefined ? { langs: r.langs } : null);
+    if (r.more) {
+      var locale = (typeof window.appGetLocale === "function") ? window.appGetLocale() : "ru";
+      var cat = pluralCategory(r.more, locale); // "one" | "few" | "many" — see pluralCategory()
+      var moreKey = "studio.import.captionsTracksMore" + cat[0].toUpperCase() + cat.slice(1);
+      msg += "\n" + tr(moreKey, { n: r.more });
+    }
     return msg;
   }
 

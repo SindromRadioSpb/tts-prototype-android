@@ -3040,6 +3040,9 @@ window.I18N_LOCALES.he = {
       tabUrl: "מאמר",
       tabVideo: "וידאו",
       tabFile: "קובץ",
+      // MINOR (whole-branch review 2026-07-28): ה-aria-label היה קשיח ברוסית — עובר כעת דרך
+      // data-i18n-aria-label, כמו כל מחרוזת אחרת בקובץ הזה.
+      tabsAriaLabel: "ייבוא — סוג המקור",
       urlLabel: "קישור למאמר או לעמוד",
       urlPlaceholder: "https://…",
       fetchBtn: "חילוץ טקסט",
@@ -3120,6 +3123,8 @@ window.I18N_LOCALES.he = {
       captionsNoPlayer: "בדפדפן זה לא ניתן להפעיל את הסרטון — הטבלה וחותמות הזמן עדיין יהיו זמינות",
       captionsEmbedDenied: "הבעלים חסם הטמעה של הסרטון — פתחו אותו ב-YouTube",
       captionsPlayerLoading: "טוען נגן…",
+      // הפך ליתום ב-T1 (הוחלף ע"י captionsTracksHeManual/HeAuto/NoHe למטה — העברית נבדקת ראשונה,
+      // שני הנוסחים הכלליים האלה כבר לא נבחרים) — נשארו כמות שהם, לא נמחקו
       captionsTracksManual: "לסרטון יש כתוביות ידניות:",
       captionsTracksAuto: "לסרטון יש רק כתוביות אוטומטיות:",
       captionsTracksNone: "לסרטון אין כתוביות — העלו קובץ מדיה לזיהוי דיבור",
@@ -3129,7 +3134,13 @@ window.I18N_LOCALES.he = {
       captionsTracksHeManual: "✓ יש כתוביות ידניות בעברית",
       captionsTracksHeAuto: "יש רק כתוביות אוטומטיות בעברית — האיכות אינה מובטחת",
       captionsTracksNoHe: "אין כתוביות בעברית. יש כתוביות ידניות ב: {langs}",
+      // הפך ליתום ב-T2-fix (סבב ביקורת ענף שלם 2026-07-28): n=1 קיבל את צורת הרבים («ועוד 1
+      // שפות» — שגוי, צריך «שפה») — פוצל לשתי צורות (יחיד/רבים) למטה, נבחר ב-JS ע"י
+      // pluralCategory(). המפתח נשאר כמות שהוא, לא נמחק.
       captionsTracksMore: "ועוד {n} שפות",
+      captionsTracksMoreOne: "ועוד {n} שפה",
+      captionsTracksMoreFew: "ועוד {n} שפות",
+      captionsTracksMoreMany: "ועוד {n} שפות",
       provCaptions: "כתוביות → קטעים",
       errCaptionsEmpty: "לא נמצאו שורות בכתוביות",
       errCaptionsNoTimestamps: "נדרש תמלול עם חותמות זמן, לא טקסט רגיל",

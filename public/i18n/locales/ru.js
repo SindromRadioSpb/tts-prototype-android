@@ -3044,6 +3044,9 @@ window.I18N_LOCALES.ru = {
       tabUrl: "Статья",
       tabVideo: "Видео",
       tabFile: "Файл",
+      // MINOR (whole-branch review 2026-07-28): было захардкожено RU в aria-label — теперь через
+      // data-i18n-aria-label, как везде в файле.
+      tabsAriaLabel: "Импорт — тип источника",
       urlLabel: "Ссылка на статью или страницу",
       urlPlaceholder: "https://…",
       fetchBtn: "Извлечь текст",
@@ -3124,6 +3127,8 @@ window.I18N_LOCALES.ru = {
       captionsNoPlayer: "В этом браузере ролик не воспроизвести — таблица и таймкоды будут доступны",
       captionsEmbedDenied: "Владелец запретил встраивание ролика — откройте его на YouTube",
       captionsPlayerLoading: "Загружаю плеер…",
+      // orphaned by T1 (superseded by captionsTracksHeManual/HeAuto/NoHe below — иврит проверяется
+      // первым, эти два общих варианта больше не выбираются) — оставлены как есть, не удалены
       captionsTracksManual: "У ролика есть ручные субтитры:",
       captionsTracksAuto: "У ролика только авто-субтитры:",
       captionsTracksNone: "У ролика нет субтитров — загрузите медиа-файл для распознавания речи",
@@ -3133,7 +3138,13 @@ window.I18N_LOCALES.ru = {
       captionsTracksHeManual: "✓ Есть ручные субтитры на иврите",
       captionsTracksHeAuto: "Есть только авто-субтитры на иврите — качество не гарантировано",
       captionsTracksNoHe: "Ивритских субтитров нет. Есть ручные на: {langs}",
+      // orphaned by T2-fix (whole-branch review 2026-07-28): "63" hit the "many" ending
+      // («и ещё 63 языков» — wrong, needs «языка») — split into three CLDR plural forms below,
+      // selected in JS by pluralCategory(). Key kept as-is, not deleted.
       captionsTracksMore: "и ещё {n} языков",
+      captionsTracksMoreOne: "и ещё {n} язык",
+      captionsTracksMoreFew: "и ещё {n} языка",
+      captionsTracksMoreMany: "и ещё {n} языков",
       provCaptions: "Субтитры → сегменты",
       errCaptionsEmpty: "В субтитрах нет реплик",
       errCaptionsNoTimestamps: "Нужна расшифровка с таймкодами, а не просто текст",
