@@ -204,6 +204,19 @@ function installRetellRunMocks(opts) {
   const toastCalls = [];
   const confirmCalls = [];
   const sessionSetCalls = [];
+  // fix1-T6 round: deferDb (opt-in) makes ensureLocalDB() return its OWN controllable promise
+  // PER CALL (dbCalls[]), same technique as installRetellRaceMocks() above — needed to pause
+  // run() mid-`await estimateTextCoverage(...)` (AFTER a successful fetch) so a test can call
+  // close() into that exact window (fix-round Important #3).
+  const dbCalls = [];
+  const ensureLocalDBImpl = opts.deferDb
+    ? () => {
+        let resolve;
+        const promise = new Promise((res) => { resolve = res; });
+        dbCalls.push({ promise: promise, resolve: resolve });
+        return promise;
+      }
+    : async () => ({ getKnownWordStates: async () => ({}) });
   global.window = {
     ReaderMorph: {
       stripNiqqud: (s) => s,
@@ -218,13 +231,13 @@ function installRetellRunMocks(opts) {
     },
     // empty profile → aggregateCoverage's anyKnown-guard → null (honest no-number), unless a
     // test explicitly wants a real coverage line (covNow/covAfter tested separately above).
-    ensureLocalDB: async () => ({ getKnownWordStates: async () => ({}) }),
+    ensureLocalDB: ensureLocalDBImpl,
     geminiKeyGet: () => (opts.key !== undefined ? opts.key : "AIzaFAKEKEYFORTEST00000000000000000"),
     confirm: (msg) => { confirmCalls.push(msg); return opts.confirmReturns !== undefined ? opts.confirmReturns : true; },
     showToast: (msg, kind) => { toastCalls.push({ msg: msg, kind: kind }); },
     v3SessionGet: () => (opts.session !== undefined ? opts.session : null),
     v3SessionSet: (patch) => { sessionSetCalls.push(patch); },
-    v3LastImportMeta: null,
+    v3LastImportMeta: opts.priorImportMeta !== undefined ? opts.priorImportMeta : null,
   };
   const fetchCalls = [];
   global.fetch = (url, init) => {
@@ -233,7 +246,7 @@ function installRetellRunMocks(opts) {
     fetchCalls.push({ url: url, init: init, resolve: resolve });
     return promise;
   };
-  return { els, fetchCalls, confirmCalls, toastCalls, sessionSetCalls, classListCalls };
+  return { els, fetchCalls, confirmCalls, toastCalls, sessionSetCalls, classListCalls, dbCalls };
 }
 
 function uninstallRetellRunMocks() {
@@ -241,6 +254,24 @@ function uninstallRetellRunMocks() {
   delete global.document;
   delete global.localStorage;
   delete global.fetch;
+}
+
+// Resolves every not-yet-resolved entry in a deferDb dbCalls[] array, round by round, ticking
+// the event loop between rounds — needed because run()'s covBefore→covAfter chain is
+// SEQUENTIAL: estimateTextCoverage(data.retell) (covAfter) is only CALLED once covBeforeP
+// settles, so its own _ldb() call (and dbCalls entry) doesn't exist until a round AFTER
+// covBeforeP's entry is resolved.
+async function pumpDbCalls(dbCallsArr, rounds) {
+  const resolvedIdx = new Set();
+  for (let r = 0; r < (rounds || 6); r++) {
+    for (let i = 0; i < dbCallsArr.length; i++) {
+      if (!resolvedIdx.has(i)) {
+        resolvedIdx.add(i);
+        dbCallsArr[i].resolve({ getKnownWordStates: async () => ({}) });
+      }
+    }
+    await tick();
+  }
 }
 
 test("run(): no key → honest disabled-status, no fetch/confirm/landing (Step 5 no-key scenario)", async () => {
@@ -348,6 +379,151 @@ test("run(): race-guard — closing the modal (Cancel) while the fetch is in fli
       "stale resolve must not repaint a status line that no longer belongs to it");
     assert.equal(global.window.v3LastImportMeta, null, "no passport must be built from a stale/abandoned run()");
     assert.equal(mocks.sessionSetCalls.length, 0);
+  } finally {
+    uninstallRetellRunMocks();
+  }
+});
+
+// ---- Fix round 1 (coordinator review T6) — 3 R11-sensitive coverage gaps -------------------
+// All three prior run() tests left window.v3LastImportMeta === null and session === null, so
+// fromImport===true (Step 2/design §5's provenance-chain rule) and the confirmReplace (saved-
+// original) wording branch were never exercised; the existing race test only aborts BEFORE the
+// fetch resolves (guard #1), never during the coverage-after awaits (guard #2).
+
+test("run(): fromImport === true — a prior import passport whose textSnapshot MATCHES the composer text propagates into retell.derivedFrom.importKind/importSource (design §5 provenance chain)", async () => {
+  const originalText = "טקסט מהאינטרנט לפני פישוט";
+  const mocks = installRetellRunMocks({
+    session: null,
+    priorImportMeta: { kind: "url", source: "https://ex.am/a", textSnapshot: originalText },
+  });
+  try {
+    const SRfresh = require(STUDIO_RETELL_PATH);
+    mocks.els.inputText.value = originalText;
+    SRfresh.openFromComposer();
+    const p = SRfresh.run();
+    mocks.fetchCalls[0].resolve(fakeResponse(true, {
+      ok: true, retell: "טקסט פשוט", model: "gemini-flash-latest",
+      promptId: "p1", fromCache: true, cacheKey: "c1",
+    }));
+    await p;
+
+    const im = global.window.v3LastImportMeta;
+    assert.equal(im.kind, "retell", "run() must overwrite v3LastImportMeta with the RETELL passport");
+    assert.equal(im.source, "https://ex.am/a", "originLabel must prefer the matching import's source (fromImport branch)");
+    assert.equal(im.retell.derivedFrom.importKind, "url");
+    assert.equal(im.retell.derivedFrom.importSource, "https://ex.am/a");
+  } finally {
+    uninstallRetellRunMocks();
+  }
+});
+
+test("run(): non-matching prior import passport (textSnapshot differs from composer text) must NOT be treated as fromImport — importKind/importSource stay null", async () => {
+  const mocks = installRetellRunMocks({
+    session: null,
+    priorImportMeta: { kind: "url", source: "https://ex.am/a", textSnapshot: "совсем другой текст, не совпадает" },
+  });
+  try {
+    const SRfresh = require(STUDIO_RETELL_PATH);
+    mocks.els.inputText.value = "טקסט שהוקלד ידנית";
+    SRfresh.openFromComposer();
+    const p = SRfresh.run();
+    mocks.fetchCalls[0].resolve(fakeResponse(true, {
+      ok: true, retell: "טקסט פשוט", model: "gemini-flash-latest",
+      promptId: "p1", fromCache: true, cacheKey: "c1",
+    }));
+    await p;
+
+    const im = global.window.v3LastImportMeta;
+    assert.equal(im.retell.derivedFrom.importKind, null, "mismatched textSnapshot must NOT leak a stale import's kind onto this text");
+    assert.equal(im.retell.derivedFrom.importSource, null);
+  } finally {
+    uninstallRetellRunMocks();
+  }
+});
+
+test("run(): saved original (session.textId set) — confirmReplace wording (NOT confirmReplaceUnsaved), derivedFrom.textId carries the saved id", async () => {
+  const mocks = installRetellRunMocks({ session: { textId: "t-1" } });
+  try {
+    const SRfresh = require(STUDIO_RETELL_PATH);
+    mocks.els.inputText.value = "טקסט שמור בספרייה";
+    SRfresh.openFromComposer();
+    const p = SRfresh.run();
+    mocks.fetchCalls[0].resolve(fakeResponse(true, {
+      ok: true, retell: "טקסט פשוט", model: "gemini-flash-latest",
+      promptId: "p1", fromCache: true, cacheKey: "c1",
+    }));
+    await p;
+
+    assert.equal(mocks.confirmCalls.length, 1);
+    assert.match(mocks.confirmCalls[0], /Оригинал сохранён в Библиотеке/, "saved-original wording when session.textId/baseTextId is set");
+    assert.doesNotMatch(mocks.confirmCalls[0], /НЕ сохранён/, "must NOT fall back to the unsaved wording");
+
+    const im = global.window.v3LastImportMeta;
+    assert.equal(im.retell.derivedFrom.textId, "t-1", "derivedFrom.textId must carry the saved original's id");
+  } finally {
+    uninstallRetellRunMocks();
+  }
+});
+
+test("run(): saved original via session.baseTextId (not textId) — same confirmReplace wording, derivedFrom.textId carries baseTextId", async () => {
+  const mocks = installRetellRunMocks({ session: { baseTextId: "base-42", textId: null } });
+  try {
+    const SRfresh = require(STUDIO_RETELL_PATH);
+    mocks.els.inputText.value = "טקסט שמור, נערך";
+    SRfresh.openFromComposer();
+    const p = SRfresh.run();
+    mocks.fetchCalls[0].resolve(fakeResponse(true, {
+      ok: true, retell: "טקסט פשוט", model: "gemini-flash-latest",
+      promptId: "p1", fromCache: true, cacheKey: "c1",
+    }));
+    await p;
+
+    assert.match(mocks.confirmCalls[0], /Оригинал сохранён в Библиотеке/);
+    assert.equal(global.window.v3LastImportMeta.retell.derivedFrom.textId, "base-42");
+  } finally {
+    uninstallRetellRunMocks();
+  }
+});
+
+test("run(): race-guard #2 — closing the modal WHILE run() is suspended inside estimateTextCoverage AFTER a successful fetch must NOT confirm/land/passport/toast", async () => {
+  const mocks = installRetellRunMocks({ deferDb: true });
+  try {
+    const SRfresh = require(STUDIO_RETELL_PATH);
+    mocks.els.inputText.value = "טקסט מקורי";
+    SRfresh.openFromComposer(); // its own cov-now estimate → dbCalls[0], left pending (irrelevant here)
+    const p = SRfresh.run();
+    assert.equal(mocks.fetchCalls.length, 1);
+    assert.equal(mocks.dbCalls.length, 2,
+      "openFromComposer's cov-now (0) + run()'s covBeforeP (1) must both have reached _ldb() BEFORE the fetch even resolves");
+
+    // Fetch succeeds — run() passes the FIRST race-guard (right after fetch/json, already
+    // covered by the race test above) and suspends on `covBefore = await covBeforeP`.
+    mocks.fetchCalls[0].resolve(fakeResponse(true, {
+      ok: true, retell: "STALE — must never land after guard #2", model: "gemini-flash-latest",
+      promptId: "p1", fromCache: true, cacheKey: "c1",
+    }));
+    await tick();
+    assert.equal(mocks.dbCalls.length, 2,
+      "covAfter's estimateTextCoverage must NOT have started yet — covBeforeP hasn't resolved, confirming we're paused exactly inside guard #2's window");
+
+    // User hits Cancel WHILE run() is suspended INSIDE the coverage estimate — the SECOND
+    // race-guard under test here (after both coverage awaits), distinct from the earlier race
+    // test which aborts BEFORE the fetch even resolves (guard #1).
+    SRfresh.close();
+    const statusBeforeStaleResolve = mocks.els.v3RetellStatus.textContent;
+
+    // The abandoned coverage lookups finally resolve AFTER the abort — covBeforeP's resolve
+    // cascades into covAfter's OWN (later) _ldb() call, picked up by pumpDbCalls' next round.
+    await pumpDbCalls(mocks.dbCalls);
+    await p;
+
+    assert.equal(mocks.confirmCalls.length, 0, "stale-after-coverage resolve must never prompt confirm()");
+    assert.equal(mocks.els.inputText.value, "טקסט מקורי", "stale retell must NEVER land in the composer");
+    assert.equal(mocks.els.v3RetellStatus.textContent, statusBeforeStaleResolve,
+      "stale resolve must not repaint a status line that no longer belongs to it");
+    assert.equal(global.window.v3LastImportMeta, null, "no passport must be built from a stale/abandoned run()");
+    assert.equal(mocks.sessionSetCalls.length, 0);
+    assert.equal(mocks.toastCalls.length, 0, "no success toast for a landing that never happened");
   } finally {
     uninstallRetellRunMocks();
   }
