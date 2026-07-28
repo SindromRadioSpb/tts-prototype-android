@@ -3034,11 +3034,20 @@ window.I18N_LOCALES.he = {
     import: {
       button: "ייבוא: קישור / קובץ / תמונה",
       title: "ייבוא טקסט",
-      urlLabel: "קישור למאמר / לעמוד",
+      // W2-S5a.1 T2 — שלוש לשוניות מפורשות (מאמר/וידאו/קובץ) במקום הערימה השטוחה
+      tabUrl: "מאמר / עמוד",
+      tabVideo: "וידאו",
+      tabFile: "קובץ",
+      urlLabel: "קישור למאמר או לעמוד",
       urlPlaceholder: "https://…",
-      fetchBtn: "חילוץ",
+      fetchBtn: "חילוץ טקסט",
+      // הפך ליתום ב-T2 (לשונית «קובץ» משתמשת כעת ב-fileLabelPhoto/fileLabelAv/fileLabelCaptions
+      // ככותרות לשלוש שורות נפרדות) — נשאר כמות שהוא, לא נמחק
       fileLabel: "או קובץ: תמונה / PDF / Word (עד 6MB)",
       fileBtn: "בחירת קובץ…",
+      fileLabelPhoto: "תמונה, PDF או Word (עד 6MB)",
+      fileLabelAv: "קובץ אודיו או וידאו (עברית)",
+      fileLabelCaptions: "קובץ כתוביות (.vtt / .srt)",
       previewLabel: "הטקסט שחולץ (נא לבדוק!)",
       useBtn: "→ לשדה הקלט",
       cancelBtn: "סגירה",
@@ -3077,6 +3086,12 @@ window.I18N_LOCALES.he = {
       audioTimingDropped: "העריכות שינו את מספר השורות — הקריוקי כובה",
       warnCoverage: "המודל דילג על חלק מהקטעים — בדקו את שלמות הטבלה",
       provAudio: "אודיו → תמלול ASR (Gemini)",
+      // W2-S5a.1 T2 — לשונית «וידאו»: שדה קישור וכפתור הטמעה משלה, ושגיאה כנה כשהמחרוזת לא
+      // מזוהה כווידאו; וגם ההסבר למעבר האוטומטי מלשונית «מאמר / עמוד»
+      videoUrlLabel: "קישור לווידאו (YouTube)",
+      videoUrlBtn: "הצגת הווידאו",
+      errNotVideoUrl: "זה לא נראה כמו קישור YouTube",
+      switchedToVideo: "נראה כמו קישור לווידאו — נפתחה הלשונית «וידאו»",
       // W2-S5a — ייבוא ← כתוביות (קובץ .vtt/.srt או הדבקת פאנל התמלול של YouTube) + נגן מוטמע
       captionsLabel: "כתוביות הסרטון",
       captionsFileBtn: "קובץ כתוביות (.vtt / .srt)",

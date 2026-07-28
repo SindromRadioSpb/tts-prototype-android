@@ -3038,11 +3038,20 @@ window.I18N_LOCALES.ru = {
     import: {
       button: "Импорт: ссылка / файл / фото",
       title: "Импорт текста",
-      urlLabel: "Ссылка на статью / страницу",
+      // W2-S5a.1 T2 — три явные вкладки (Статья/Видео/Файл) вместо плоского стека
+      tabUrl: "Статья / страница",
+      tabVideo: "Видео",
+      tabFile: "Файл",
+      urlLabel: "Ссылка на статью или страницу",
       urlPlaceholder: "https://…",
-      fetchBtn: "Извлечь",
+      fetchBtn: "Извлечь текст",
+      // orphaned by T2 (панель «Файл» теперь использует fileLabelPhoto/fileLabelAv/fileLabelCaptions
+      // как заголовки трёх отдельных строк) — оставлен как есть, не удалён
       fileLabel: "Или файл: фото / PDF / Word (до 6MB)",
       fileBtn: "Выбрать файл…",
+      fileLabelPhoto: "Фото, PDF или Word (до 6 МБ)",
+      fileLabelAv: "Аудио или видео-файл (иврит)",
+      fileLabelCaptions: "Файл субтитров (.vtt / .srt)",
       previewLabel: "Извлечённый текст (проверьте!)",
       useBtn: "→ В поле ввода",
       cancelBtn: "Закрыть",
@@ -3081,6 +3090,12 @@ window.I18N_LOCALES.ru = {
       audioTimingDropped: "Правки изменили число строк — караоке отключено",
       warnCoverage: "Модель пропустила часть сегментов — проверьте полноту таблицы",
       provAudio: "Аудио → ASR-транскрипт (Gemini)",
+      // W2-S5a.1 T2 — вкладка «Видео»: своё поле-ссылка + кнопка монтирования, и честная ошибка,
+      // если строка не распознана как видео; плюс объяснение авто-перехода со вкладки «Статья»
+      videoUrlLabel: "Ссылка на видео (YouTube)",
+      videoUrlBtn: "Показать видео",
+      errNotVideoUrl: "Это не похоже на ссылку YouTube",
+      switchedToVideo: "Похоже на видео — открыл вкладку «Видео»",
       // W2-S5a — Импорт → Субтитры (файл .vtt/.srt / вставка панели YouTube) + встроенный плеер
       captionsLabel: "Субтитры видео",
       captionsFileBtn: "Файл субтитров (.vtt / .srt)",

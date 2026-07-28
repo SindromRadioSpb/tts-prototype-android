@@ -3024,11 +3024,20 @@ window.I18N_LOCALES.en = {
     import: {
       button: "Import: link / file / photo",
       title: "Import text",
-      urlLabel: "Article / page link",
+      // W2-S5a.1 T2 — three explicit tabs (Article/Video/File) replacing the flat stack
+      tabUrl: "Article / page",
+      tabVideo: "Video",
+      tabFile: "File",
+      urlLabel: "Article or page link",
       urlPlaceholder: "https://…",
-      fetchBtn: "Extract",
+      fetchBtn: "Extract text",
+      // orphaned by T2 (the "File" tab now uses fileLabelPhoto/fileLabelAv/fileLabelCaptions as
+      // headings for three separate rows) — kept as-is, not deleted
       fileLabel: "Or a file: photo / PDF / Word (up to 6MB)",
       fileBtn: "Choose file…",
+      fileLabelPhoto: "Photo, PDF, or Word (up to 6MB)",
+      fileLabelAv: "Audio or video file (Hebrew)",
+      fileLabelCaptions: "Subtitle file (.vtt / .srt)",
       previewLabel: "Extracted text (please review!)",
       useBtn: "→ To input field",
       cancelBtn: "Close",
@@ -3067,6 +3076,12 @@ window.I18N_LOCALES.en = {
       audioTimingDropped: "Edits changed line count — karaoke disabled",
       warnCoverage: "The model skipped some segments — check the table for completeness",
       provAudio: "Audio → ASR transcript (Gemini)",
+      // W2-S5a.1 T2 — Video tab: its own URL field + mount button, and an honest error when the
+      // string isn't recognized as a video; plus the explanation for the auto-switch from Article
+      videoUrlLabel: "Video link (YouTube)",
+      videoUrlBtn: "Show video",
+      errNotVideoUrl: "This doesn't look like a YouTube link",
+      switchedToVideo: "Looks like a video — opened the “Video” tab",
       // W2-S5a — Import → Captions (.vtt/.srt file or pasted YouTube transcript panel) + embedded player
       captionsLabel: "Video subtitles",
       captionsFileBtn: "Subtitle file (.vtt / .srt)",

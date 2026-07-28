@@ -54,9 +54,29 @@
   var pendingCaptions = null; // {parsed, origin, fileName, video}
   var ytAdapter = null;       // адаптер плеера, если ролик встроен
 
+  // W2-S5a.1 T2 — три явные вкладки вместо плоского стека. Активная вкладка живёт ТОЛЬКО в
+  // модуле (не в localStorage) — open() всегда сбрасывает на "url", чтобы поведение диалога
+  // было предсказуемым при каждом открытии. Канон: task-2-brief.md.
+  var TAB_PANE_ID = { url: "v3ImportPaneUrl", video: "v3ImportPaneVideo", file: "v3ImportPaneFile" };
+  var TAB_BTN_ID = { url: "v3ImportTabUrl", video: "v3ImportTabVideo", file: "v3ImportTabFile" };
+  var activeTab = "url";
+
   function $(id) { return document.getElementById(id); }
   function tr(key, params) { return (typeof window.t === "function") ? window.t(key, params) : key; }
   function toast(key, type) { if (typeof window.showToast === "function") window.showToast(tr(key), type || "info"); }
+
+  function switchTab(name) {
+    if (!TAB_PANE_ID[name]) name = "url";
+    activeTab = name;
+    for (var k in TAB_PANE_ID) {
+      if (!TAB_PANE_ID.hasOwnProperty(k)) continue;
+      var pane = $(TAB_PANE_ID[k]);
+      if (pane) pane.hidden = (k !== name);
+      var btn = $(TAB_BTN_ID[k]);
+      if (btn) btn.setAttribute("aria-selected", k === name ? "true" : "false");
+    }
+    setStatus(null);
+  }
 
   function setStatus(msgKey, extra) {
     var el = $("v3ImportStatus");
@@ -66,6 +86,8 @@
   function setBusy(b) {
     var btn = $("v3ImportUrlBtn");
     if (btn) btn.disabled = b;
+    var vb = $("v3ImportVideoBtn");
+    if (vb) vb.disabled = b;
     var f = $("v3ImportFile");
     if (f) f.disabled = b;
     var ab = $("v3ImportAudioGo");
@@ -211,7 +233,13 @@
     // pendingAudio reset just above.
     var cp = $("v3ImportCaptionsPaste");
     if (cp) cp.value = "";
-    setStatus(null);
+    // W2-S5a.1 T2: same staleness trap for the video-tab URL field — a value left over from a
+    // previous auto-switch (fetchUrlOrVideo()) must not greet the user on the next open().
+    var vu = $("v3ImportVideoUrl");
+    if (vu) vu.value = "";
+    // Tab always resets to "url" — kept in-module (not localStorage) precisely so the dialog is
+    // predictable on every open, per task-2-brief.md.
+    switchTab("url");
   }
   function close() {
     var m = $("v3ImportModal");
@@ -346,11 +374,19 @@
   // W2-S5a — Классификация URL: ссылка на YouTube уходит в ветку S5a, а НЕ в
   // /api/ingest/fetch-url — тот вернул бы либо EXTRACT_EMPTY, либо мусор из SPA-шелла (разведка
   // 2026-07-27).
+  // W2-S5a.1 T2: explicit tabs cost a click (owner-accepted trade-off) — this compensates. A
+  // YouTube link pasted into the ARTICLE field is rescued instead of sent to fetch-url: carry
+  // the value into the Video tab's own field, switch there, explain why in the status line, then
+  // mount exactly as the Video tab's own button (mountVideoFromField()) would.
   async function fetchUrlOrVideo() {
     var url = ($("v3ImportUrl").value || "").trim();
     if (!url) { setStatus("studio.import.errBadUrl"); return; }
     var vid = window.StudioYtPlayer && window.StudioYtPlayer.parseVideoId(url);
     if (!vid) return fetchUrl();
+    var vf = $("v3ImportVideoUrl");
+    if (vf) vf.value = url;
+    switchTab("video");
+    setStatus("studio.import.switchedToVideo");
     // IMPORTANT 3 (review 2026-07-27): fetchUrl() already disables #v3ImportUrlBtn for the
     // duration of its request (setBusy(true)/finally(false)) — mountVideo()'s create() is just
     // as async (real network + YouTube IFrame API boot) and was missing the same guard. Without
@@ -359,6 +395,19 @@
     // create() calls land in the same #v3ImportYtMount and whichever resolves first is silently
     // orphaned when the second overwrites `ytAdapter`. Disabling the button prevents the second
     // click from ever firing in the first place — same mechanism fetchUrl() already relies on.
+    setBusy(true);
+    try { await mountVideo(vid, url); }
+    finally { setBusy(false); }
+  }
+
+  // W2-S5a.1 T2 — the Video tab's own button: mounts directly from #v3ImportVideoUrl, and
+  // refuses a non-YouTube string with an honest error (studio.import.errNotVideoUrl) rather than
+  // silently doing nothing.
+  async function mountVideoFromField() {
+    var url = ($("v3ImportVideoUrl").value || "").trim();
+    if (!url) { setStatus("studio.import.errBadUrl"); return; }
+    var vid = window.StudioYtPlayer && window.StudioYtPlayer.parseVideoId(url);
+    if (!vid) { setStatus("studio.import.errNotVideoUrl"); return; }
     setBusy(true); setStatus(null);
     try { await mountVideo(vid, url); }
     finally { setBusy(false); }
@@ -452,7 +501,8 @@
     acceptCaptions(window.CaptionsParse.parse(raw), "paste", null);
   }
 
-  window.StudioImport = { open: open, close: close, fetchUrl: fetchUrl, fetchUrlOrVideo: fetchUrlOrVideo,
+  window.StudioImport = { open: open, close: close, switchTab: switchTab,
+                           fetchUrl: fetchUrl, fetchUrlOrVideo: fetchUrlOrVideo, mountVideoFromField: mountVideoFromField,
                            onFileChosen: onFileChosen, onAudioChosen: onAudioChosen, transcribeAudio: transcribeAudio,
                            onCaptionsFileChosen: onCaptionsFileChosen, useCaptionsPaste: useCaptionsPaste,
                            useText: useText, chooseTrackHint: chooseTrackHint };

@@ -2252,6 +2252,10 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
            (unlike the .v3-import-audio rule above, this one isn't guaranteed to be the LAST
            equal-specificity rule in cascade order, so specificity alone can't be relied on). */
         #v3ImportCaptionsBox button, .v3-import-captions button { width: auto !important; }
+        /* W2-S5a.1 T2: Импорт — три вкладки (Статья/Видео/Файл), тот же mobile-трап;
+           ID-selectors here outrank the global button.btn-secondary rule by specificity alone. */
+        #v3ImportTabs button { width: auto; }
+        #v3ImportPaneVideo button, #v3ImportPaneFile button, #v3ImportPaneUrl button { width: auto; }
 
         .export-actions { margin-left: 0; width: 100%; flex-direction: column; }
         .hotkeys-header { flex-direction: column; align-items: flex-start; }
@@ -3571,6 +3575,29 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 /* W2-S5a: Импорт → Субтитры — embedded YouTube preview + file/paste intake. */
 .v3-import-captions { margin-top: 10px; }
 #v3ImportYtMount iframe { width: 100%; max-width: 100%; border: 0; border-radius: 8px; }
+
+/* W2-S5a.1 T2: Import dialog — three explicit tabs (Статья / Видео / Файл), replacing the
+   flat stack. Active tab marked by border+background (not text color alone — R4 accessibility). */
+#v3ImportTabs { display: flex; gap: 4px; margin-bottom: 10px; }
+.v3-import-tab {
+  flex: 1;
+  text-align: center;
+  background: transparent;
+  border: 1px solid var(--theme-border-medium);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-weight: 600;
+  color: var(--theme-text-secondary);
+  cursor: pointer;
+}
+.v3-import-tab:hover { background: var(--theme-bg-hover); }
+.v3-import-tab[aria-selected="true"] {
+  background: var(--theme-accent-soft);
+  border-color: var(--theme-accent);
+  color: var(--theme-accent-hover);
+  font-weight: 700;
+}
+.v3-import-pane[hidden] { display: none; } /* [hidden] vs author-display trap — see feedback_hidden_attr_vs_display */
 
 /* P2-1: modal open animation */
 @keyframes v3ModalIn {
@@ -46497,46 +46524,71 @@ document.addEventListener("i18n:changed", function () {
       <button class="btn-secondary" onclick="StudioImport.close()" data-i18n="studio.import.cancelBtn">Закрыть</button>
     </div>
     <div class="v3-modal-body">
-      <label class="input-label" for="v3ImportUrl" data-i18n="studio.import.urlLabel">Ссылка на статью / страницу</label>
-      <div style="display:flex; gap:6px;">
-        <input id="v3ImportUrl" type="url" inputmode="url" data-i18n-placeholder="studio.import.urlPlaceholder" placeholder="https://…" style="flex:1; min-width:0;">
-        <button type="button" class="btn-secondary" id="v3ImportUrlBtn" onclick="StudioImport.fetchUrlOrVideo()" data-i18n="studio.import.fetchBtn">Извлечь</button>
+      <div id="v3ImportTabs" role="tablist" aria-label="Импорт — тип источника">
+        <button type="button" class="v3-import-tab" id="v3ImportTabUrl" role="tab" aria-selected="true" aria-controls="v3ImportPaneUrl" onclick="StudioImport.switchTab('url')" data-i18n="studio.import.tabUrl">Статья / страница</button>
+        <button type="button" class="v3-import-tab" id="v3ImportTabVideo" role="tab" aria-selected="false" aria-controls="v3ImportPaneVideo" onclick="StudioImport.switchTab('video')" data-i18n="studio.import.tabVideo">Видео</button>
+        <button type="button" class="v3-import-tab" id="v3ImportTabFile" role="tab" aria-selected="false" aria-controls="v3ImportPaneFile" onclick="StudioImport.switchTab('file')" data-i18n="studio.import.tabFile">Файл</button>
       </div>
 
-      <div style="margin-top:10px;">
-        <label class="input-label" style="display:block; margin-bottom:6px;" data-i18n="studio.import.fileLabel">Или файл: фото / PDF / Word (до 6MB)</label>
-        <input id="v3ImportFile" type="file" accept="image/jpeg,image/png,image/webp,.pdf,application/pdf,.docx" style="display:none" onchange="StudioImport.onFileChosen(event)">
-        <button type="button" class="btn-secondary" onclick="document.getElementById('v3ImportFile').click()" data-i18n="studio.import.fileBtn">Выбрать файл…</button>
-      </div>
-
-      <div class="v3-import-audio">
-        <label class="v3-import-file-btn">
-          <span data-i18n="studio.import.audioBtn">Аудио (иврит) → транскрипт</span>
-          <input type="file" id="v3ImportAudio" accept="audio/*,video/*,.m4a,.oga,.opus" hidden
-                 onchange="StudioImport.onAudioChosen(event)">
-        </label>
-        <div id="v3ImportAudioInfo" hidden>
-          <span id="v3ImportAudioMeta"></span>
-          <button type="button" id="v3ImportAudioGo" class="btn-secondary"
-                  onclick="StudioImport.transcribeAudio()"></button>
+      <div id="v3ImportPaneUrl" class="v3-import-pane" role="tabpanel" aria-labelledby="v3ImportTabUrl">
+        <label class="input-label" for="v3ImportUrl" data-i18n="studio.import.urlLabel">Ссылка на статью или страницу</label>
+        <div style="display:flex; gap:6px;">
+          <input id="v3ImportUrl" type="url" inputmode="url" data-i18n-placeholder="studio.import.urlPlaceholder" placeholder="https://…" style="flex:1; min-width:0;">
+          <button type="button" class="btn-secondary" id="v3ImportUrlBtn" onclick="StudioImport.fetchUrlOrVideo()" data-i18n="studio.import.fetchBtn">Извлечь текст</button>
         </div>
       </div>
 
-      <div class="v3-import-captions" id="v3ImportCaptionsBox">
-        <div class="input-label" data-i18n="studio.import.captionsLabel">Субтитры видео</div>
-        <div id="v3ImportYtMount" hidden></div>
-        <div id="v3ImportYtHint" style="font-size:12px; color:#6c757d; margin:4px 0;"></div>
-        <label class="v3-import-file-btn">
-          <span data-i18n="studio.import.captionsFileBtn">Файл субтитров (.vtt / .srt)</span>
-          <input type="file" id="v3ImportCaptionsFile" accept=".vtt,.srt,text/vtt" hidden
-                 onchange="StudioImport.onCaptionsFileChosen(event)">
-        </label>
-        <textarea id="v3ImportCaptionsPaste" dir="auto" rows="3"
-                  data-i18n-placeholder="studio.import.captionsPastePlaceholder"
-                  placeholder="Вставьте расшифровку с таймкодами…"
-                  style="width:100%; box-sizing:border-box; margin-top:6px;"></textarea>
-        <button type="button" class="btn-secondary" id="v3ImportCaptionsPasteBtn"
-                onclick="StudioImport.useCaptionsPaste()" data-i18n="studio.import.captionsPasteBtn">Разобрать вставку</button>
+      <div id="v3ImportPaneVideo" class="v3-import-pane" role="tabpanel" aria-labelledby="v3ImportTabVideo" hidden>
+        <label class="input-label" for="v3ImportVideoUrl" data-i18n="studio.import.videoUrlLabel">Ссылка на видео (YouTube)</label>
+        <div style="display:flex; gap:6px;">
+          <input id="v3ImportVideoUrl" type="url" inputmode="url" data-i18n-placeholder="studio.import.urlPlaceholder" placeholder="https://…" style="flex:1; min-width:0;">
+          <button type="button" class="btn-secondary" id="v3ImportVideoBtn" onclick="StudioImport.mountVideoFromField()" data-i18n="studio.import.videoUrlBtn">Показать видео</button>
+        </div>
+
+        <div class="v3-import-captions" id="v3ImportCaptionsBox">
+          <div class="input-label" data-i18n="studio.import.captionsLabel">Субтитры видео</div>
+          <div id="v3ImportYtMount" hidden></div>
+          <div id="v3ImportYtHint" style="font-size:12px; color:#6c757d; margin:4px 0; white-space:pre-wrap;"></div>
+          <!-- Task 3 (W2-S5a.1): guided "how to fetch subtitles" instructions insert here -->
+          <textarea id="v3ImportCaptionsPaste" dir="auto" rows="3"
+                    data-i18n-placeholder="studio.import.captionsPastePlaceholder"
+                    placeholder="Вставьте расшифровку с таймкодами…"
+                    style="width:100%; box-sizing:border-box; margin-top:6px;"></textarea>
+          <button type="button" class="btn-secondary" id="v3ImportCaptionsPasteBtn"
+                  onclick="StudioImport.useCaptionsPaste()" data-i18n="studio.import.captionsPasteBtn">Разобрать вставку</button>
+          <label class="v3-import-file-btn">
+            <span data-i18n="studio.import.captionsFileBtn">Файл субтитров (.vtt / .srt)</span>
+            <input type="file" id="v3ImportCaptionsFile" accept=".vtt,.srt,text/vtt" hidden
+                   onchange="StudioImport.onCaptionsFileChosen(event)">
+          </label>
+        </div>
+      </div>
+
+      <div id="v3ImportPaneFile" class="v3-import-pane" role="tabpanel" aria-labelledby="v3ImportTabFile" hidden>
+        <div>
+          <label class="input-label" style="display:block; margin-bottom:6px;" data-i18n="studio.import.fileLabelPhoto">Фото, PDF или Word (до 6 МБ)</label>
+          <input id="v3ImportFile" type="file" accept="image/jpeg,image/png,image/webp,.pdf,application/pdf,.docx" style="display:none" onchange="StudioImport.onFileChosen(event)">
+          <button type="button" class="btn-secondary" onclick="document.getElementById('v3ImportFile').click()" data-i18n="studio.import.fileBtn">Выбрать файл…</button>
+        </div>
+
+        <div class="v3-import-audio">
+          <label class="input-label" style="display:block; margin-bottom:6px;" data-i18n="studio.import.fileLabelAv">Аудио или видео-файл (иврит)</label>
+          <label class="v3-import-file-btn">
+            <span data-i18n="studio.import.audioBtn">Аудио (иврит) → транскрипт</span>
+            <input type="file" id="v3ImportAudio" accept="audio/*,video/*,.m4a,.oga,.opus" hidden
+                   onchange="StudioImport.onAudioChosen(event)">
+          </label>
+          <div id="v3ImportAudioInfo" hidden>
+            <span id="v3ImportAudioMeta"></span>
+            <button type="button" id="v3ImportAudioGo" class="btn-secondary"
+                    onclick="StudioImport.transcribeAudio()"></button>
+          </div>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label class="input-label" style="display:block; margin-bottom:6px;" data-i18n="studio.import.fileLabelCaptions">Файл субтитров (.vtt / .srt)</label>
+          <button type="button" class="btn-secondary" onclick="document.getElementById('v3ImportCaptionsFile').click()" data-i18n="studio.import.fileBtn">Выбрать файл…</button>
+        </div>
       </div>
 
       <div id="v3ImportStatus" style="margin-top:10px; font-size:13px; color:#6c757d;" aria-live="polite"></div>
