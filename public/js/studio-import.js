@@ -91,6 +91,14 @@
   var VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/; // mirrors StudioYtPlayer's own ID_RE — defense in depth
                                // so #v3ImportOpenYt's href can only ever be built from something
                                // that already looks like a validated YouTube video id.
+  var captionsPollTimers = []; // active setTimeout ids for the CURRENT mount's bounded tracklist
+                               // poll (CAPTIONS_POLL_DELAYS_MS, near mountVideo()) — cleared by
+                               // clearCaptionsPoll() on teardown/re-mount so a superseded schedule
+                               // never outlives the mount it belongs to.
+  function clearCaptionsPoll() {
+    captionsPollTimers.forEach(function (id) { clearTimeout(id); });
+    captionsPollTimers = [];
+  }
 
   // W2-S5a.1 T2 — три явные вкладки вместо плоского стека. open() всегда переключает на "url",
   // чтобы поведение диалога было предсказуемым при каждом открытии (канон: task-2-brief.md). Нет
@@ -116,6 +124,7 @@
   // lives. Safe to call redundantly / when nothing is mounted — every step is null-guarded.
   function teardownVideo() {
     mountGen++; // abandon any in-flight mountVideo() still awaiting create()
+    clearCaptionsPoll(); // W2-S5a.1 T2-fix2: stop the bounded tracklist poll (see mountVideo())
     if (ytAdapter) {
       if (window.StudioYtPlayer) window.StudioYtPlayer.destroy(ytAdapter);
       ytAdapter = null;
@@ -472,18 +481,27 @@
     finally { setBusy(false); }
   }
 
-  // IMPORTANT 1 (whole-branch review 2026-07-28): YouTube's captions module — the thing
-  // getOption("captions","tracklist") reads — does not load until playback actually starts;
-  // measured live (task-8-report.md): a video with 64 real tracks (incl. manual Hebrew) reads
-  // tracklist().length === 0 at onReady AND immediately after calling play(), then populates
-  // within ~300-500ms of real playback. Querying once at onReady and treating an empty result
-  // as "no captions" is this project's own "тихий 0 ≠ реальный 0" trap — absence of evidence
-  // is not evidence of absence, and the old wording sent users toward paid ASR for videos that
-  // DO have subtitles. Fix: describeTracks() never asserts "none" from an unconfirmed read; the
-  // hint is re-queried on the adapter's own 'play' event (RE_CONFIRM_DELAY_MS after — the
-  // measurement above showed ~300-500ms is already enough, this leaves headroom) and only THEN
-  // may it settle on the genuine "no captions" message.
-  var RE_CONFIRM_DELAY_MS = 800;
+  // IMPORTANT 1 (whole-branch review 2026-07-28, REVISED after prod v3.11.251 owner walkthrough):
+  // YouTube's captions module — the thing getOption("captions","tracklist") reads — does not load
+  // on any fixed schedule tied to playback. First measurement (task-8-report.md) found it empty at
+  // onReady and right after calling play(), populating ~300-500ms into REAL playback, so v1 of this
+  // fix gated the one-shot upgrade on the adapter's 'play' event. That was a reasonable reading of
+  // "confirm with a real event" — but the SECOND measurement, on prod, found a video (64 real
+  // tracks, incl. manual Hebrew) sitting in BUFFERING (state 3, currentTime stuck at 0) for the
+  // whole session: it never reached PLAYING, 'play' never fired, the one-shot upgrade never ran —
+  // and the tracklist had all 64 tracks the ENTIRE TIME. We were withholding an answer we already
+  // had. Fix: stop gating on 'play'. Poll tracklist() on a bounded, self-cancelling schedule
+  // (CAPTIONS_POLL_DELAYS_MS) started right after mount, and upgrade the instant it's non-empty —
+  // this is NOT the kind of "settle a synchronous state" polling the owner ruled out elsewhere
+  // (e.g. adapter.paused, which must answer synchronously); it re-reads data that genuinely arrives
+  // asynchronously, on a bounded schedule that stops the moment it succeeds. 'play' stays wired as
+  // ONE MORE trigger (a real play event is a good moment to check sooner than the next tick), never
+  // the only one. If the schedule runs out and the list is still empty, THAT'S when describeTracks()
+  // settles on "no captions" — bounded by time, not by an event that might never fire.
+  var CAPTIONS_POLL_DELAYS_MS = [1000, 3000, 6000, 10000];
+  var RE_CONFIRM_DELAY_MS = 800; // extra nudge after a real 'play' — YouTube's own captions module
+                                  // measured populating ~300-500ms into real playback; this leaves
+                                  // headroom without waiting for the next scheduled poll tick.
 
   // W2-S5a.1 T3 — guided "how to fetch captions" instructions (id="v3ImportCaptionsHow" in the
   // markup, hidden by default). Shown once the embedded player has actually mounted (independent
@@ -506,6 +524,7 @@
     pendingCaptions = pendingCaptions || {};
     pendingCaptions.video = { platform: "youtube", videoId: videoId, url: url };
     if (ytAdapter) { window.StudioYtPlayer.destroy(ytAdapter); ytAdapter = null; }
+    clearCaptionsPoll(); // a fresh mount invalidates any previous video's still-running schedule
     mount.innerHTML = "";
     showCaptionsHow(false); // reset — a fresh mount attempt invalidates any previous video's link
     var cap = window.StudioYtPlayer.capability();
@@ -515,22 +534,44 @@
     // W2-S5a.1 T3 (pre-existing race, flagged by task-2-report.md, fixed here): close() can run
     // while create()'s network + IFrame-API boot is still in flight. Without a guard, that stale
     // continuation would reassign the module-level ytAdapter and repaint #v3ImportYtHint after the
-    // dialog is already gone. Same mechanism as the onPlay guard below (`ytAdapter !== thisAdapter`)
-    // — captured BEFORE the await so it survives suspension across close()'s mountGen++.
+    // dialog is already gone. Same mechanism as the tryUpgrade() guard below (`ytAdapter !==
+    // thisAdapter`) — captured BEFORE the await so it survives suspension across close()'s
+    // mountGen++.
     var myGen = ++mountGen;
     try {
       var created = await window.StudioYtPlayer.create(mount, videoId);
       if (myGen !== mountGen) { window.StudioYtPlayer.destroy(created); return; } // superseded meanwhile
       ytAdapter = created;
       var thisAdapter = ytAdapter;
-      hint.textContent = describeTracks(thisAdapter.tracklist(), /* confirmed */ false);
+      var initialList = thisAdapter.tracklist();
+      hint.textContent = describeTracks(initialList, /* confirmed */ false);
       showCaptionsHow(true, videoId);
+
+      // T2-fix2 (whole-branch review, prod v3.11.251): bounded, self-cancelling poll — see the
+      // IMPORTANT 1 comment above CAPTIONS_POLL_DELAYS_MS for why this replaced the play-gated
+      // one-shot. `upgraded` makes this write AT MOST ONCE per mount; `isFinal` is what lets the
+      // LAST scheduled tick settle on "no captions" if nothing showed up by then, without that
+      // negative conclusion ever being reachable from an early/positive-only trigger like 'play'.
+      var upgraded = initialList.length > 0; // already informative — nothing left to poll for
+      var tryUpgrade = function (isFinal) {
+        if (upgraded || ytAdapter !== thisAdapter) return; // done, or superseded meanwhile
+        var list = thisAdapter.tracklist();
+        if (list.length) {
+          upgraded = true;
+          clearCaptionsPoll();
+          hint.textContent = describeTracks(list, /* confirmed */ true);
+        } else if (isFinal) {
+          upgraded = true;
+          hint.textContent = describeTracks(list, /* confirmed */ true); // → captionsTracksNone
+        }
+      };
+      CAPTIONS_POLL_DELAYS_MS.forEach(function (ms, i) {
+        var isFinal = i === CAPTIONS_POLL_DELAYS_MS.length - 1;
+        captionsPollTimers.push(setTimeout(function () { tryUpgrade(isFinal); }, ms));
+      });
       var onPlay = function () {
-        thisAdapter.removeEventListener("play", onPlay); // one real confirmation is enough
-        setTimeout(function () {
-          if (ytAdapter !== thisAdapter) return; // superseded by a later mountVideo()/destroyed
-          hint.textContent = describeTracks(thisAdapter.tracklist(), /* confirmed */ true);
-        }, RE_CONFIRM_DELAY_MS);
+        thisAdapter.removeEventListener("play", onPlay); // one real confirmation is enough as a trigger
+        setTimeout(function () { tryUpgrade(false); }, RE_CONFIRM_DELAY_MS); // never settles "none" — isFinal stays false
       };
       thisAdapter.addEventListener("play", onPlay);
     } catch (e) {
@@ -542,8 +583,10 @@
   }
 
   // R9: сообщаем, ЧТО есть у ролика — это свидетельство о дорожках, а не о принесённом файле.
-  // `confirmed` = true only after a real 'play' event + grace delay (see RE_CONFIRM_DELAY_MS
-  // above) — an EMPTY unconfirmed read means "not reported yet", never "there are none".
+  // `confirmed` = true once the tracklist has had every reasonable chance to populate: either it's
+  // genuinely non-empty (mountVideo()'s tryUpgrade — `confirmed` is moot there, a non-empty read is
+  // its own confirmation), or the bounded poll schedule (CAPTIONS_POLL_DELAYS_MS) ran out and it's
+  // STILL empty. An EMPTY unconfirmed read means "not reported yet", never "there are none".
   function describeTracks(list, confirmed) {
     var r = chooseTrackHint(list, confirmed);
     // Bug (whole-branch review 2026-07-28, MINOR): `r.langs ? {...} : null` treated an EMPTY

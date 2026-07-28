@@ -3118,7 +3118,10 @@ window.I18N_LOCALES.en = {
       captionsTracksManual: "This video has manual subtitles:",
       captionsTracksAuto: "This video only has auto-generated subtitles:",
       captionsTracksNone: "This video has no subtitles — upload a media file for speech recognition",
-      captionsTracksPending: "The player hasn't reported any caption tracks yet — they may appear once playback starts",
+      // T2-fix2 (whole-branch review, prod v3.11.251): "may appear once playback starts" was
+      // wrong — on prod the tracks were ready on a video that never started playing at all.
+      // Honest wording promises no WHEN, only that we don't know yet and are already checking.
+      captionsTracksPending: "The player hasn't reported any caption tracks yet — checking…",
       // W2-S5a.1 T1 — Hebrew is checked first, the alphabet never decides (owner-defect: 64 tracks,
       // manual Hebrew among them, the hint printed the first 4 alphabetically and never named Hebrew)
       captionsTracksHeManual: "✓ Manual Hebrew subtitles available",
