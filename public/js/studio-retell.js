@@ -152,13 +152,19 @@
     var text = (($("inputText") || {}).value || "").trim();
     if (!text) { toast(tr("studio.retell.errEmptyField", "Поле ввода пусто"), "warning"); return; }
     pendingSource = { text: text };
+    var mySrc = pendingSource; // race-guard token: estimateTextCoverage() is slow (OPFS +
+                                // resolver loop) — capture THIS call's identity now, not just
+                                // pendingSource's later truthiness, so a stale resolve from a
+                                // closed/reopened-with-different-text modal can never paint its
+                                // number onto a DIFFERENT text's coverage line (R11-class bug,
+                                // fix1 code review 2026-07-29).
     fillLevelSelect();
     var est = estimateRetellCost(text.length);
     $("v3RetellCost").textContent = tr("studio.retell.costLine", "Смета") + ": ≈$" + est.usd.toFixed(2) + " · ~" + est.seconds + tr("studio.retell.secShort", " сек");
     $("v3RetellStatus").textContent = "";
     var cov = $("v3RetellCovNow"); cov.hidden = true;
     estimateTextCoverage(text).then(function (c) {
-      if (c && pendingSource) {
+      if (c && pendingSource === mySrc) {
         cov.textContent = tr("studio.retell.covNow", "Знакомо сейчас") + ": ~" + Math.round(c.pct * 100) + "% · " + tr("studio.retell.zone_" + c.zone, c.zone);
         cov.hidden = false;
       }
