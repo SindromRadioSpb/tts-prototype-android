@@ -33342,10 +33342,25 @@ try {
                 setResultsMeta("table", t("classic.tableChunkProgress")
                     .replace("{k}", String(k + 1)).replace("{m}", String(chunks.length)));
                 let res;
+                let retriedThisChunk = false;
                 try {
-                    res = await apiCall("/api/translate-table", {
-                        geminiApiKey: geminiKeyGet(), direction: "he-ru", segments: chunks[k].segs,
-                    });
+                    try {
+                        res = await apiCall("/api/translate-table", {
+                            geminiApiKey: geminiKeyGet(), direction: "he-ru", segments: chunks[k].segs,
+                        });
+                    } catch (e1) {
+                        // 429 = честный лимит, а не недетерминизм — немедленный повтор бессмыслен
+                        // и жжёт квоту; сразу существующий путь баннера с обратным отсчётом.
+                        if (e1.httpStatus === 429) throw e1;
+                        // S12.1 (task-8) живой замер: ~20% кусков ловят JSON-недетерминизм длинного
+                        // вывода модели (сервер отдаёт 500 «Ошибка JSON») либо разовый сетевой сбой;
+                        // ОДНА повторная попытка того же куска закрывает почти все такие случаи —
+                        // прецедент: scripts/premium/ingest-longmedia-live-smoke.js (фаза кусков).
+                        res = await apiCall("/api/translate-table", {
+                            geminiApiKey: geminiKeyGet(), direction: "he-ru", segments: chunks[k].segs,
+                        });
+                        retriedThisChunk = true;
+                    }
                 } catch (e) {
                     // Готовое остаётся на экране; повторный клик докачает по кэшу (см. шапку).
                     if (e.httpStatus === 429) handleGeminiLimitError(e);
@@ -33384,8 +33399,10 @@ try {
                 // user (SEG_COVERAGE_PARTIAL); no separate flag is tracked here.
                 missingPerChunk.push({ base: chunks[k].base,
                     missing: TableChunks.coverageForChunk(res.rows || [], chunks[k].segs.length).missing });
-                chunkMeta.push({ cacheKey: res.cacheKey || null, fromCache: res.fromCache === true,
-                                 rows: (res.rows || []).length });
+                const chunkMetaEntry = { cacheKey: res.cacheKey || null, fromCache: res.fromCache === true,
+                                 rows: (res.rows || []).length };
+                if (retriedThisChunk) chunkMetaEntry.retried = true; // R9-провенанс: кусок прошёл со 2-й попытки (S12.1)
+                chunkMeta.push(chunkMetaEntry);
                 // Прогрессив: renderTable НЕ редактировался — просто перерисовка префиксом.
                 clearRowSelectedUI();
                 currentTableData = accum.slice();

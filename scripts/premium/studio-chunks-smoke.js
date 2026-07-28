@@ -12,10 +12,18 @@
 // Сценарии:
 //   1) success: 300 сегментов → 3 куска [120,120,60], прогрессив-рендер между кусками,
 //      глобальные segment_index, полный v3LastGeminiMeta.
-//   2) сбой куска 2 → баннер ошибки + честная partial-таблица (120 строк); повторный клик
-//      «Перевести» докачивает — кусок 1 приходит из фейкового server-side-подобного кэша
-//      (Map по JSON.stringify(segments), эмулирует реальный sha256-кэш кусков на сервере),
-//      кусок 2 генерируется заново, кусок 3 — впервые. Счётчик см. комментарий у asserts.
+//   2a) S12.1 (task-8) — ОДИНОЧНЫЙ сбой куска 2 (500 «Ошибка JSON»-подобный): авто-ретрай
+//      внутри v3TranslateTableChunked поглощает его МОЛЧА — один лишний fetch-вызов (ретрай
+//      того же куска), итог 300 строк БЕЗ баннера, v3LastGeminiMeta.chunks[1].retried===true,
+//      partial НЕ выставлен.
+//   2b) ДВОЙНОЙ сбой того же куска (и исходная попытка, И авто-ретрай) — авто-ретрай не
+//      спасает, срабатывает существующий путь: баннер ошибки + честная partial-таблица
+//      (120 строк); повторный клик «Перевести» докачивает — кусок 1 приходит из фейкового
+//      server-side-подобного кэша (Map по JSON.stringify(segments), эмулирует реальный
+//      sha256-кэш кусков на сервере), кусок 2 генерируется заново, кусок 3 — впервые.
+//      Счётчик см. комментарий у asserts.
+//   2c) 429 (rate-limit) на куске 2 — НИКОГДА не ретраится авто-ретраем (немедленный повтор
+//      бессмыслен и жжёт квоту): сразу баннер, БЕЗ лишнего fetch-вызова.
 //   3) SEG_MAPPING_LOST локально на куске 2: фейк отдаёт rows БЕЗ segment_index (+ warnings
 //      ["SEG_MAPPING_LOST"], как это делает настоящий сервер — честно смоделировано, не
 //      придумано: ingest/segTable.js эмитит этот warning когда модель не вернула индексы) —
@@ -78,7 +86,11 @@ async function installFakeFetch(ctx) {
     window.__chunkCalls = [];          // segments.length per intercepted call, call order
     window.__callCount = 0;            // 1-indexed, monotonic for the lifetime of THIS page load
     window.__cacheHits = 0;            // calls served from the fake per-chunk cache (not a "real generation")
-    window.__failPlan = null;          // { failAtCall: N } — that call returns HTTP 500 once
+    window.__failPlan = null;          // { failAtCall: N, times: 1|2, status?: 429 } — starting at
+                                        // call N, fails `times` CONSECUTIVE calls (S12.1: attempt +
+                                        // auto-retry are separate calls/ticks), then lets subsequent
+                                        // calls through normally. status defaults to 500 ("boom");
+                                        // 429 returns {error:"Лимит"} (mirrors handleGeminiLimitError).
     window.__mappingLostAtCall = null; // that call's rows omit segment_index (+ SEG_MAPPING_LOST warning)
     window.__fakeCache = new Map();    // JSON.stringify(segments) -> {rows, key, warnings} — emulates
                                         // the server's sha256(cleanText) chunk cache (design doc §4.4):
@@ -110,9 +122,23 @@ async function installFakeFetch(ctx) {
           { status: 200, headers: { "content-type": "application/json" } });
       }
 
-      if (window.__failPlan && window.__failPlan.failAtCall === callNo) {
-        // Failed calls are NEVER cached (mirrors a real 500 — nothing to remember).
-        return new Response(JSON.stringify({ error: "boom" }), { status: 500, headers: { "content-type": "application/json" } });
+      if (window.__failPlan) {
+        // Sticky failure streak: latches on when callNo first reaches failAtCall, then stays
+        // latched across however many calls it takes to exhaust `times` — this is what lets a
+        // single plan cover BOTH the original attempt (call failAtCall) AND the S12.1 auto-retry
+        // (the NEXT call, whatever its callNo happens to be) without knowing that call number
+        // ahead of time. Once `times` is exhausted the plan goes quiet and all further calls
+        // (including a later resume click) succeed normally.
+        const plan = window.__failPlan;
+        if (!plan._active && callNo === plan.failAtCall) plan._active = true;
+        if (plan._active && plan.times > 0) {
+          plan.times -= 1;
+          if (plan.times <= 0) plan._active = false; // exhausted — next call succeeds
+          const status = plan.status === 429 ? 429 : 500;
+          const errBody = status === 429 ? { error: "Лимит" } : { error: "boom" };
+          // Failed calls are NEVER cached (mirrors a real 500/429 — nothing to remember).
+          return new Response(JSON.stringify(errBody), { status, headers: { "content-type": "application/json" } });
+        }
       }
 
       const mappingLost = window.__mappingLostAtCall === callNo;
@@ -256,52 +282,121 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     console.log("scenario1 OK — chunkCalls=" + JSON.stringify(calls1) + " progressiveMax=" + r1.intermediateMax + " final=" + s1.tableLen);
 
     // ══════════════════════════════════════════════════════════════════════════════════════
-    // Scenario 2: chunk-2 failure + resume — partial table survives, retry docks the rest.
+    // Scenario 2a (S12.1): SINGLE chunk-2 failure — the auto-retry inside
+    // v3TranslateTableChunked silently recovers it. No banner, no partial table.
     // ══════════════════════════════════════════════════════════════════════════════════════
     await page.reload({ waitUntil: "load" }); // resets ALL page JS state + fake-fetch counters
     await preparePage(page);
-    await page.evaluate(() => { window.__failPlan = { failAtCall: 2 }; });
+    await page.evaluate(() => { window.__failPlan = { failAtCall: 2, times: 1 }; }); // 1 failure only — auto-retry absorbs it
     await page.evaluate(() => { translateTable(); });
 
-    const r2a = await pollUntil(page, (s) => !!s.err, 30000, 50);
-    must(r2a.ok, "scenario2 attempt1: timed out waiting for error banner");
+    const r2a = await pollUntil(page, (s) => s.chunksLen === 3 || !!s.err, 30000, 50);
+    must(r2a.ok, "scenario2a: timed out waiting for completion; last=" + JSON.stringify(r2a.snap));
+    must(!r2a.snap.err, "scenario2a: unexpected error banner — a single chunk failure must be silently absorbed by the S12.1 auto-retry: " + r2a.snap.err);
+
     const s2a = await page.evaluate(() => ({
       tableLen: currentTableData.length,
+      chunkCalls: window.__chunkCalls.slice(),
+      cacheHits: window.__cacheHits,
+      chunk2Retried: v3LastGeminiMeta.chunks[1] ? v3LastGeminiMeta.chunks[1].retried === true : false,
       partial: !!(v3LastGeminiMeta && v3LastGeminiMeta.partial),
     }));
-    must(s2a.tableLen === CHUNK_SIZE, "scenario2 attempt1: currentTableData.length=" + s2a.tableLen + " expected " + CHUNK_SIZE + " (only chunk1 landed before chunk2 failed)");
-    must(s2a.partial === true, "scenario2 attempt1: v3LastGeminiMeta.partial=" + s2a.partial + " expected true");
+    must(s2a.tableLen === N_SEGS, "scenario2a: currentTableData.length=" + s2a.tableLen + " expected " + N_SEGS);
+    // 4 calls total (1 MORE than scenario1's [120,120,60]): chunk1(#1,120,success) + chunk2
+    // attempt1(#2,120,FAIL — failAtCall=2,times:1) + chunk2 auto-retry(#3,120,SUCCESS — plan
+    // exhausted after 1 failure) + chunk3(#4,60,success). The extra call IS the retry.
+    must(JSON.stringify(s2a.chunkCalls) === JSON.stringify([120, 120, 120, 60]),
+      "scenario2a: __chunkCalls=" + JSON.stringify(s2a.chunkCalls) + " expected [120,120,120,60] (extra call = the auto-retry)");
+    must(s2a.cacheHits === 0, "scenario2a: __cacheHits=" + s2a.cacheHits + " expected 0 (fresh page — nothing was ever cached before the retry ran)");
+    must(s2a.chunk2Retried === true, "scenario2a: v3LastGeminiMeta.chunks[1].retried expected true (chunk2 succeeded on its 2nd attempt)");
+    must(s2a.partial === false, "scenario2a: v3LastGeminiMeta.partial=" + s2a.partial + " expected false/undefined — auto-retry succeeded, this IS a full success");
+
+    console.log("scenario2a OK — chunkCalls=" + JSON.stringify(s2a.chunkCalls) + " chunk2.retried=" + s2a.chunk2Retried + " final=" + s2a.tableLen);
+
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    // Scenario 2b: DOUBLE chunk-2 failure (original attempt AND the auto-retry both fail) —
+    // the auto-retry cannot save it; existing banner + honest partial-table path fires exactly
+    // as before S12.1. Resume docks the rest via the fake per-chunk cache.
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    await page.reload({ waitUntil: "load" });
+    await preparePage(page);
+    await page.evaluate(() => { window.__failPlan = { failAtCall: 2, times: 2 }; }); // both attempts fail
+    await page.evaluate(() => { translateTable(); });
+
+    const r2b1 = await pollUntil(page, (s) => !!s.err, 30000, 50);
+    must(r2b1.ok, "scenario2b attempt1: timed out waiting for error banner");
+    const s2b1 = await page.evaluate(() => ({
+      tableLen: currentTableData.length,
+      partial: !!(v3LastGeminiMeta && v3LastGeminiMeta.partial),
+      chunkCalls: window.__chunkCalls.slice(),
+    }));
+    must(s2b1.tableLen === CHUNK_SIZE, "scenario2b attempt1: currentTableData.length=" + s2b1.tableLen + " expected " + CHUNK_SIZE + " (only chunk1 landed — chunk2 failed twice)");
+    must(s2b1.partial === true, "scenario2b attempt1: v3LastGeminiMeta.partial=" + s2b1.partial + " expected true");
+    // 3 calls: chunk1(#1,120,success) + chunk2 attempt1(#2,120,FAIL) + chunk2 auto-retry(#3,120,
+    // FAIL — plan.times:2 is exhausted on this call too). The retry's OWN failure is what
+    // propagates to the existing catch/banner path (unchanged since before S12.1).
+    must(JSON.stringify(s2b1.chunkCalls) === JSON.stringify([120, 120, 120]),
+      "scenario2b attempt1: __chunkCalls=" + JSON.stringify(s2b1.chunkCalls) + " expected [120,120,120] (original attempt + auto-retry, both failed)");
 
     // Resume: same page (no reload) — the fake per-chunk cache from attempt1 persists,
     // exactly like the server's real sha256 chunk cache would across two HTTP requests.
     await page.evaluate(() => { window.__failPlan = null; });
     await page.evaluate(() => { translateTable(); });
 
-    const r2b = await pollUntil(page, (s) => (s.chunksLen === 3 && !s.partial) || !!s.err, 30000, 50);
-    must(r2b.ok, "scenario2 attempt2: timed out waiting for completion; last=" + JSON.stringify(r2b.snap));
-    must(!r2b.snap.err, "scenario2 attempt2: unexpected error banner on resume: " + r2b.snap.err);
+    const r2b2 = await pollUntil(page, (s) => (s.chunksLen === 3 && !s.partial) || !!s.err, 30000, 50);
+    must(r2b2.ok, "scenario2b attempt2: timed out waiting for completion; last=" + JSON.stringify(r2b2.snap));
+    must(!r2b2.snap.err, "scenario2b attempt2: unexpected error banner on resume: " + r2b2.snap.err);
 
-    const s2b = await page.evaluate(() => ({
+    const s2b2 = await page.evaluate(() => ({
       tableLen: currentTableData.length,
       chunkCalls: window.__chunkCalls.slice(),
       cacheHits: window.__cacheHits,
     }));
-    must(s2b.tableLen === N_SEGS, "scenario2 attempt2: currentTableData.length=" + s2b.tableLen + " expected " + N_SEGS);
+    must(s2b2.tableLen === N_SEGS, "scenario2b attempt2: currentTableData.length=" + s2b2.tableLen + " expected " + N_SEGS);
 
     // ── call-count accounting (asked-for-in-brief: "зафиксируй счёт и обоснуй") ────────────
-    // __chunkCalls logs EVERY call that reaches the fake fetch handler, cache-hit or not — 5
-    // total on this page: attempt1 = chunk1(#1,120,success) + chunk2(#2,120,FAIL,failAtCall=2);
-    // attempt2 = chunk1(#3,120,CACHE HIT — identical segments-JSON already cached from #1's
-    // success) + chunk2(#4,120,retry,real,succeeds now __failPlan=null) + chunk3(#5,60,real,new).
-    must(JSON.stringify(s2b.chunkCalls) === JSON.stringify([120, 120, 120, 120, 60]),
-      "scenario2: __chunkCalls=" + JSON.stringify(s2b.chunkCalls) + " expected [120,120,120,120,60] (2 attempt1 + 3 attempt2)");
-    must(s2b.cacheHits === 1, "scenario2: __cacheHits=" + s2b.cacheHits + " expected 1 (only attempt2's chunk1 was ever previously cached)");
-    // "real generations" = calls NOT served from the fake cache — 4: attempt1's chunk1(success)
-    // + chunk2(fail, not cached because it failed) + attempt2's chunk2(retry,real) + chunk3(real).
-    const realGenerations = s2b.chunkCalls.length - s2b.cacheHits;
-    must(realGenerations === 4, "scenario2: real generations=" + realGenerations + " expected 4 (1 success + 1 failure in attempt1, 2 successes in attempt2)");
+    // __chunkCalls logs EVERY call that reaches the fake fetch handler, cache-hit or not — 6
+    // total on this page: attempt1 = chunk1(#1,120,success) + chunk2 attempt1(#2,120,FAIL) +
+    // chunk2 auto-retry(#3,120,FAIL, plan.times exhausted); attempt2(resume) = chunk1(#4,120,
+    // CACHE HIT — identical segments-JSON already cached from #1's success) + chunk2(#5,120,
+    // real,succeeds now __failPlan=null) + chunk3(#6,60,real,new).
+    must(JSON.stringify(s2b2.chunkCalls) === JSON.stringify([120, 120, 120, 120, 120, 60]),
+      "scenario2b: __chunkCalls=" + JSON.stringify(s2b2.chunkCalls) + " expected [120,120,120,120,120,60] (3 attempt1 + 3 attempt2)");
+    must(s2b2.cacheHits === 1, "scenario2b: __cacheHits=" + s2b2.cacheHits + " expected 1 (only attempt2's chunk1 was ever previously cached)");
+    // "real generations" = calls NOT served from the fake cache — 5: attempt1's chunk1(success) +
+    // chunk2 attempt1(fail, not cached) + chunk2 auto-retry(fail, not cached) + attempt2's chunk2
+    // (real,success) + chunk3(real,success).
+    const realGenerations2b = s2b2.chunkCalls.length - s2b2.cacheHits;
+    must(realGenerations2b === 5, "scenario2b: real generations=" + realGenerations2b + " expected 5 (1 success + 2 failures in attempt1, 2 successes in attempt2)");
 
-    console.log("scenario2 OK — chunkCalls=" + JSON.stringify(s2b.chunkCalls) + " cacheHits=" + s2b.cacheHits + " realGenerations=" + realGenerations + " final=" + s2b.tableLen);
+    console.log("scenario2b OK — chunkCalls=" + JSON.stringify(s2b2.chunkCalls) + " cacheHits=" + s2b2.cacheHits + " realGenerations=" + realGenerations2b + " final=" + s2b2.tableLen);
+
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    // Scenario 2c: 429 (rate-limit) on chunk 2 — NEVER auto-retried (an immediate re-request
+    // would just burn quota for what's supposed to be an honest countdown banner). Immediate
+    // banner, NO extra fetch call. Runs LAST of the 2-family + reloads before/after so a
+    // handleGeminiLimitError() lock from this scenario can never bleed into scenario 3.
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    await page.reload({ waitUntil: "load" });
+    await preparePage(page);
+    await page.evaluate(() => { window.__failPlan = { failAtCall: 2, times: 1, status: 429 }; });
+    await page.evaluate(() => { translateTable(); });
+
+    const r2c = await pollUntil(page, (s) => !!s.err, 30000, 50);
+    must(r2c.ok, "scenario2c: timed out waiting for error banner");
+    const s2c = await page.evaluate(() => ({
+      tableLen: currentTableData.length,
+      partial: !!(v3LastGeminiMeta && v3LastGeminiMeta.partial),
+      chunkCalls: window.__chunkCalls.slice(),
+    }));
+    must(s2c.tableLen === CHUNK_SIZE, "scenario2c: currentTableData.length=" + s2c.tableLen + " expected " + CHUNK_SIZE + " (only chunk1 landed before chunk2's 429)");
+    must(s2c.partial === true, "scenario2c: v3LastGeminiMeta.partial=" + s2c.partial + " expected true");
+    // 2 calls only: chunk1(#1,120,success) + chunk2(#2,120,429). NO retry call — 429 goes
+    // straight to the existing banner path (honest rate-limit countdown, never silently retried).
+    must(JSON.stringify(s2c.chunkCalls) === JSON.stringify([120, 120]),
+      "scenario2c: __chunkCalls=" + JSON.stringify(s2c.chunkCalls) + " expected [120,120] (no retry on 429)");
+
+    console.log("scenario2c OK — chunkCalls=" + JSON.stringify(s2c.chunkCalls) + " (429 not retried)");
 
     // ══════════════════════════════════════════════════════════════════════════════════════
     // Scenario 3: SEG_MAPPING_LOST on chunk 2 — degradation stays local to that chunk.
