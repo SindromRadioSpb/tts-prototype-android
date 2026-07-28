@@ -66,10 +66,17 @@
     return apiPromise;
   }
 
-  // Адаптер выставляет ровно тот минимум, который потребляет studio-media-karaoke.js.
+  // Адаптер выставляет минимум, который потребляет studio-media-karaoke.js (play/pause/ended/
+  // error — DO NOT rename or stop emitting any of these, a second real consumer depends on them
+  // exactly as-is: index.html's v3MediaPlayOriginal()/v3YtStageAdapter feeds this same adapter
+  // shape into StudioMediaKaraoke.start(), which listens for exactly those four). "statechange"
+  // (whole-branch review 2026-07-28, third round) is purely additive: studio-import.js's
+  // mountVideo() needs to know about EVERY YT.PlayerState transition (BUFFERING, CUED, UNSTARTED
+  // — not just PLAYING/PAUSED/ENDED) because YouTube's captions module can finish loading around
+  // any of them, not only around the ones that already had a named event.
   function makeAdapter(player, iframe) {
-    var listeners = { play: [], pause: [], ended: [], error: [] };
-    function emit(ev) { (listeners[ev] || []).forEach(function (fn) { try { fn(); } catch (_) {} }); }
+    var listeners = { play: [], pause: [], ended: [], error: [], statechange: [] };
+    function emit(ev, arg) { (listeners[ev] || []).forEach(function (fn) { try { fn(arg); } catch (_) {} }); }
     // W2-S5a Task 10 live-smoke finding (2026-07-27, reproduced 9/9): playVideo()/pauseVideo() are
     // fire-and-forget postMessage calls — getPlayerState() does NOT reflect the new state until the
     // async onStateChange postMessage round-trips back (~100ms, measured). A native <audio>
@@ -176,6 +183,10 @@
               if (e.data === 1) adapter._emit("play");
               else if (e.data === 2) adapter._emit("pause");
               else if (e.data === 0) adapter._emit("ended");
+              // Additive (whole-branch review 2026-07-28): fires for EVERY transition, including
+              // ones with no named event above (BUFFERING=3, CUED=5, UNSTARTED=-1) — the four
+              // named events above are UNCHANGED, this fires in addition to them, never instead.
+              adapter._emit("statechange", e.data);
             },
             onError: function (e) {
               if (adapter) { adapter._clearIntent(); adapter._emit("error"); } // a failure is a real signal too

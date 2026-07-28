@@ -284,6 +284,91 @@ test("adapter.paused: synchronous intent right after play()/pause(), before YouT
   }
 });
 
+// Whole-branch review 2026-07-28, third round: studio-import.js's caption hint was missing a
+// video that reached BUFFERING and stayed there (no 'play' ever fires from state 3) — the fix
+// needed the adapter to forward EVERY YT.PlayerState transition, not only the three that already
+// had named events. These tests prove "statechange" fires for states with no named event
+// (BUFFERING/CUED/UNSTARTED) AND that the pre-existing named events are completely unaffected —
+// studio-media-karaoke.js depends on play/pause/ended/error exactly as they were.
+test("adapter 'statechange': fires for EVERY YT.PlayerState transition, including ones with no named event (BUFFERING/CUED/UNSTARTED)", async () => {
+  installBrowserMocks();
+  LaggyPlayer.instances.length = 0;
+  global.window.YT = { Player: LaggyPlayer };
+  try {
+    var mod = freshModule();
+    var mountEl = makeFakeEl("div");
+    var adapter = await mod.create(mountEl, "iG9CE55wbtY");
+    var player = LaggyPlayer.instances[0];
+
+    var seen = [];
+    adapter.addEventListener("statechange", function (state) { seen.push(state); });
+
+    player._fireState(3); // BUFFERING — no named event exists for this state
+    player._fireState(5); // CUED — no named event exists for this state either
+    player._fireState(-1); // UNSTARTED
+    player._fireState(1); // PLAYING — also has the named "play" event
+    player._fireState(2); // PAUSED — also has "pause"
+    player._fireState(0); // ENDED — also has "ended"
+
+    assert.deepEqual(seen, [3, 5, -1, 1, 2, 0], "statechange must fire for every transition, carrying the raw state, in order");
+  } finally {
+    uninstallBrowserMocks();
+  }
+});
+
+test("adapter 'statechange' is purely additive: play/pause/ended still fire exactly as before, for the SAME transitions", async () => {
+  installBrowserMocks();
+  LaggyPlayer.instances.length = 0;
+  global.window.YT = { Player: LaggyPlayer };
+  try {
+    var mod = freshModule();
+    var mountEl = makeFakeEl("div");
+    var adapter = await mod.create(mountEl, "iG9CE55wbtY");
+    var player = LaggyPlayer.instances[0];
+
+    var named = [];
+    var stateSeen = [];
+    ["play", "pause", "ended"].forEach(function (ev) {
+      adapter.addEventListener(ev, function () { named.push(ev); });
+    });
+    adapter.addEventListener("statechange", function (s) { stateSeen.push(s); });
+
+    player._fireState(1); // PLAYING
+    player._fireState(3); // BUFFERING — no named event, statechange only
+    player._fireState(2); // PAUSED
+    player._fireState(0); // ENDED
+
+    assert.deepEqual(named, ["play", "pause", "ended"], "named events fire only for their own states, unchanged, in order");
+    assert.deepEqual(stateSeen, [1, 3, 2, 0], "statechange fires alongside every one of them PLUS the state with no named event");
+  } finally {
+    uninstallBrowserMocks();
+  }
+});
+
+test("adapter.destroy() clears 'statechange' listeners too (same generic Object.keys(listeners) sweep as the other four)", async () => {
+  installBrowserMocks();
+  LaggyPlayer.instances.length = 0;
+  global.window.YT = { Player: LaggyPlayer };
+  try {
+    var mod = freshModule();
+    var mountEl = makeFakeEl("div");
+    var adapter = await mod.create(mountEl, "iG9CE55wbtY");
+    var player = LaggyPlayer.instances[0];
+    var calls = 0;
+    adapter.addEventListener("statechange", function () { calls++; });
+    player._fireState(3);
+    assert.equal(calls, 1);
+    adapter.destroy();
+    // Firing after destroy() would normally still reach the (real) player's onStateChange in the
+    // browser, but here we call the adapter's own emit path directly via a fresh state to prove
+    // the listener array was actually cleared, not just that the player stopped emitting.
+    player._fireState(1);
+    assert.equal(calls, 1, "listener must not fire after destroy() — Object.keys(listeners) sweep covers statechange too");
+  } finally {
+    uninstallBrowserMocks();
+  }
+});
+
 test("onError before ready: destroys the YT.Player and detaches the iframe (review finding 1 — was leaking on embed-disabled/region-blocked/deleted video)", async () => {
   installBrowserMocks();
   HangingPlayer.instances.length = 0;

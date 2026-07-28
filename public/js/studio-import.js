@@ -481,10 +481,11 @@
     finally { setBusy(false); }
   }
 
-  // IMPORTANT 1 (whole-branch review 2026-07-28, TWICE revised — see history below): YouTube's
-  // captions module — the thing getOption("captions","tracklist") reads — is reliably known to
-  // load once real playback (PLAYING) begins; that is the only signal we have for "has it had a
-  // real chance to populate yet". Two measurements shaped this function:
+  // IMPORTANT 1 (whole-branch review 2026-07-28, THREE rounds — see history below): YouTube's
+  // captions module — the thing getOption("captions","tracklist") reads — can finish loading
+  // around ANY player state transition, not on a fixed schedule and not only around PLAYING. Only
+  // a genuine PLAYING observation (+ grace window, still empty) licenses concluding absence. Three
+  // measurements shaped this function:
   //   1. task-8-report.md: a video with 64 real tracks read tracklist().length === 0 at onReady
   //      AND right after calling play(), populating ~300-500ms into REAL playback. v1 gated the
   //      one-shot upgrade on 'play' + a grace delay — reasonable, but ONLY handled the positive
@@ -496,16 +497,28 @@
   //      v2 treated that exhaustion as confirmation of absence. That video has 64 tracks including
   //      manual Hebrew. An empty tracklist means NOTHING until playback has actually had the
   //      chance to populate it — exhausting a timer is not that chance. v2 reintroduced the exact
-  //      "тихий 0 ≠ реальный 0" trap this function exists to prevent, through a different door.
-  // v3 (this version) keeps BOTH mechanisms but gives them asymmetric authority:
-  //   - The bounded poll (CAPTIONS_POLL_DELAYS_MS) may ONLY ever UPGRADE the hint (write the
-  //     moment tracklist() is non-empty, at ANY tick) — it can NEVER conclude absence. If the
-  //     video is never played, the hint rests on "not reported yet" for as long as the dialog
-  //     stays open — indefinitely, correctly, honestly.
-  //   - Only a real 'play' event, plus RE_CONFIRM_DELAY_MS grace, may conclude absence — and only
-  //     because "playback genuinely started AND the captions module still reports nothing" is an
-  //     actual observation, not a timeout. This is the ONLY place describeTracks(list, true) may
-  //     be called with an EMPTY list.
+  //      "тихий 0 ≠ реальный 0" trap this function exists to prevent, through a different door. v3
+  //      fixed it by giving the poll and a play-gated check asymmetric authority (poll: upgrade
+  //      only; play+grace: the only path allowed to conclude absence) — this part is unchanged.
+  //   3. Prod v3.11.251 again, immediately after v3 shipped: pressed play, the player went to
+  //      BUFFERING and STAYED there (currentTime stuck at 0) — 'play' fires only for state 1
+  //      (PLAYING), never for state 3, so v3's ONLY upgrade-triggering event besides the bounded
+  //      poll never fired. tracklist() had all 64 tracks while BUFFERING; the poll's four ticks
+  //      had already run out (empty) in the window BEFORE play was pressed. The answer was sitting
+  //      there, unread, because nothing re-checked after the state changed.
+  // v4 (this version) adds one more upgrade trigger: studio-yt-player.js now forwards a
+  // "statechange" event on EVERY YT.PlayerState transition (BUFFERING/CUED/UNSTARTED included, not
+  // only the three that already had named events) — mountVideo() re-checks tracklist() on each one.
+  // The authority split from v3 is otherwise UNCHANGED:
+  //   - The bounded poll AND every "statechange" may ONLY ever UPGRADE the hint (write the moment
+  //     tracklist() is non-empty) — neither can conclude absence. If the video is never played,
+  //     the hint rests on "not reported yet" for as long as the dialog stays open — indefinitely.
+  //   - Only a real 'play' event (PLAYING specifically), plus RE_CONFIRM_DELAY_MS grace, may
+  //     conclude absence — because "playback genuinely started AND the captions module still
+  //     reports nothing" is an actual observation, not a timeout. This is the ONLY place
+  //     describeTracks(list, true) may be called with an EMPTY list.
+  //   - Once upgraded, `upgraded` latches true — no later empty read, from any trigger, may
+  //     downgrade a real tracklist back to pending or absence.
   var CAPTIONS_POLL_DELAYS_MS = [1000, 3000, 6000, 10000]; // upgrade-only — see above
   var RE_CONFIRM_DELAY_MS = 800; // extra nudge after a real 'play' — YouTube's own captions module
                                   // measured populating ~300-500ms into real playback; this leaves
@@ -582,6 +595,17 @@
       CAPTIONS_POLL_DELAYS_MS.forEach(function (ms) {
         captionsPollTimers.push(setTimeout(function () { tryUpgrade(false); }, ms)); // upgrade-only, never
       });
+      // T2-fix4 (whole-branch review — third prod round): a video that reaches BUFFERING and sits
+      // there (currentTime stuck at 0) never fires 'play', yet YouTube's captions module can and
+      // does finish loading around a BUFFERING/CUED transition too — measured live: tracklist had
+      // 64 tracks while the player was in BUFFERING, and the bounded poll's four ticks had already
+      // run out (empty) BEFORE the state changed, so nothing re-checked afterwards. studio-yt-
+      // player.js now forwards a "statechange" event on EVERY YT.PlayerState transition (see its
+      // onStateChange), not only the three that already had named events — re-check on every one
+      // of them. Still upgrade-only (confirmAbsence=false): a state change is one more opportunity
+      // to find data, never grounds to conclude absence on its own.
+      var onStateChange = function () { tryUpgrade(false); };
+      thisAdapter.addEventListener("statechange", onStateChange);
       var onPlay = function () {
         thisAdapter.removeEventListener("play", onPlay); // one real confirmation is enough as a trigger
         setTimeout(function () { tryUpgrade(true); }, RE_CONFIRM_DELAY_MS); // the ONLY confirmAbsence=true call
