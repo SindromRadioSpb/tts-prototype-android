@@ -285,7 +285,8 @@
     "smoke:agent-text-coverage": "node scripts/premium/agent-text-coverage-smoke.js",
     "smoke:agent-group-corpus": "node scripts/premium/agent-group-corpus-smoke.js",
     "smoke:cp0:load": "node scripts/premium/cp0-load-smoke.js",
-    "smoke:ingest": "node scripts/ingest-smoke.js"
+    "smoke:ingest": "node scripts/ingest-smoke.js",
+    "smoke:studio-chunks": "node scripts/premium/studio-chunks-smoke.js"
   },
   "dependencies": {
     "@google-cloud/text-to-speech": "^5.7.0",
