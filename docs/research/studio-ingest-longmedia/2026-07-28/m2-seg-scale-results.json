@@ -1,0 +1,86 @@
+[
+  {
+    "n": 150,
+    "serverValid": true,
+    "promptChars": 10268,
+    "wallMs": 147333,
+    "http": 200,
+    "err": null,
+    "finishReason": "STOP",
+    "usage": {
+      "promptTokenCount": 4961,
+      "candidatesTokenCount": 30749,
+      "totalTokenCount": 41489,
+      "thoughtsTokenCount": 5779
+    },
+    "rawChars": 64408,
+    "jsonOk": true,
+    "rows": 150,
+    "mappingValid": true,
+    "covered": true,
+    "missingCount": 0,
+    "rowsAllFields": 150
+  },
+  {
+    "n": 250,
+    "serverValid": true,
+    "promptChars": 17339,
+    "wallMs": 224235,
+    "http": 200,
+    "err": null,
+    "finishReason": "STOP",
+    "usage": {
+      "promptTokenCount": 8597,
+      "candidatesTokenCount": 55082,
+      "totalTokenCount": 64212,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 8597
+        }
+      ],
+      "thoughtsTokenCount": 533,
+      "serviceTier": "standard"
+    },
+    "rawChars": 113415,
+    "jsonOk": true,
+    "rows": 252,
+    "mappingValid": true,
+    "covered": true,
+    "missingCount": 0,
+    "rowsAllFields": 252
+  },
+  {
+    "n": 400,
+    "serverValid": true,
+    "promptChars": 27142,
+    "wallMs": 270440,
+    "http": 200,
+    "err": null,
+    "finishReason": "MAX_TOKENS",
+    "usage": {
+      "promptTokenCount": 13640,
+      "candidatesTokenCount": 64599,
+      "totalTokenCount": 79172,
+      "cachedContentTokenCount": 8173,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 13640
+        }
+      ],
+      "cacheTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 8173
+        }
+      ],
+      "thoughtsTokenCount": 933,
+      "serviceTier": "standard"
+    },
+    "rawChars": 134919,
+    "jsonOk": false,
+    "parseErr": "Unterminated string in JSON at position 134919 (line 1 column 134920)",
+    "rawTail": "ываем людей так, что они отходят от своих творческих способностей.\"},{\"segment_index\":286,\"he\":\"פיקאסו אמר פעם, שכל הילדים נולדים אמנים.\",\"he_niqqud\":\"פִּיקָאסוֹ אָמַר פַּעַם, שֶׁכָּל הַיְּלָדִים נוֹל"
+  }
+]

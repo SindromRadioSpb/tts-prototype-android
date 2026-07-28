@@ -1,0 +1,90 @@
+[
+  {
+    "label": "single-75min-full-run1",
+    "note": "первый прогон: ASR_BAD_JSON (частично скомпрометирован UTF-8-багом замер-скрипта); повтор ниже",
+    "wallSec": 78,
+    "finishReason": "STOP",
+    "usage": {
+      "promptTokenCount": 71131,
+      "audioTokens": 70882,
+      "candidatesTokenCount": 17189,
+      "thoughtsTokenCount": 700
+    },
+    "jsonOk": false
+  },
+  {
+    "label": "single-75min-full-run2",
+    "note": "RSS врал '46 мин', реальная длительность ~74.8 мин; ДЕФЕКТ: молчаливая дыра покрытия 1906s->3780s (~31 мин), warnings пусты",
+    "wallSec": 139,
+    "finishReason": "STOP",
+    "usage": {
+      "promptTokenCount": 71131,
+      "audioTokens": 70882,
+      "cachedAudioTokens": 63799,
+      "candidatesTokenCount": 20100,
+      "thoughtsTokenCount": 16697
+    },
+    "jsonOk": true,
+    "segments": 360,
+    "validStarts": 360,
+    "timingOk": true,
+    "coverageGapSec": 1874,
+    "uploadSec": 12,
+    "activePollSec": 0,
+    "fileMB": 108.1
+  },
+  {
+    "label": "long-149min-full",
+    "note": "склейка двух эпизодов ~2.4ч; одновызовный ASR НЕВОЗМОЖЕН: thinking делит бюджет вывода с ответом",
+    "wallSec": 287,
+    "finishReason": "MAX_TOKENS",
+    "usage": {
+      "promptTokenCount": 141194,
+      "audioTokens": 140945,
+      "candidatesTokenCount": 29161,
+      "thoughtsTokenCount": 36371
+    },
+    "jsonOk": false,
+    "truncatedAtTimestamp": "1:13:30",
+    "uploadSec": 21,
+    "activePollSec": 0,
+    "fileMB": 214.9
+  },
+  {
+    "label": "range258-32to40",
+    "note": "range-ПРОМТ ('transcribe ONLY 32:00-40:00, timestamps ABSOLUTE') на 75-мин файле: восстановил ровно пропавшее окно; механизм чанк-ASR ПОДТВЕРЖДЁН",
+    "wallSec": 21,
+    "finishReason": "STOP",
+    "usage": {
+      "promptTokenCount": 71211,
+      "audioTokens": 70882,
+      "cachedAudioTokens": 63743,
+      "candidatesTokenCount": 2235,
+      "thoughtsTokenCount": 2506
+    },
+    "jsonOk": true,
+    "segments": 35,
+    "firstStart": 1920,
+    "lastStart": 2386,
+    "validStarts": 35,
+    "timingOk": true
+  },
+  {
+    "label": "clip258-32to40",
+    "note": "video_metadata.start/end_offset на АУДИО игнорируется: транскрибирован весь файл с 0:00; попутно ещё один неполный одновызовный прогон (покрытие до 47:35 из 74:48 при STOP)",
+    "wallSec": 153,
+    "finishReason": "STOP",
+    "usage": {
+      "promptTokenCount": 71131,
+      "audioTokens": 70882,
+      "cachedAudioTokens": 63799,
+      "candidatesTokenCount": 22497,
+      "thoughtsTokenCount": 18715
+    },
+    "jsonOk": true,
+    "segments": 427,
+    "firstStart": 0,
+    "lastStart": 2855,
+    "clipOffsetsRespected": false
+  }
+]
