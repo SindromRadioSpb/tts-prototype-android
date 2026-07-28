@@ -33150,6 +33150,12 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
         if (!usePremium && !segsForChunks && window.TableChunks
             && TableChunks.estimatePlainRows(getText()) > 250) {
             showError(t("classic.textTooLongForSingleTable"));
+            // Fix1 (review): #errorMsg lives inside <details id="classicResultWorkspace">, which
+            // auto-collapses on mobile when there's no current table (classicSyncMainPanels) —
+            // exactly this state. Force it open so the error is actually visible, and duplicate
+            // via toast (visible regardless of any panel's collapsed state).
+            try { const ws = document.getElementById("classicResultWorkspace"); if (ws) ws.open = true; } catch (_) {}
+            try { showToast(t("classic.textTooLongForSingleTable"), "warning"); } catch (_) {}
             document.getElementById("tableContainer").innerHTML = "";
             setLoading(false);
             updateAiButtonState();
@@ -33274,7 +33280,7 @@ try {
     // W2-S12: чанк-цикл длинной таблицы. Дизайн: docs/planning/STUDIO_INGEST_W2_S12_LONGMEDIA_DESIGN_2026_07_28.md §4.4.
     // Сервер не менялся: каждый кусок — обычный seg-запрос ≤CHUNK_SIZE; серверный sha256-кэш куска
     // делает повторный прогон бесплатным (готовые куски возвращаются fromCache мгновенно) —
-    // поэтому «Продолжить» после сбоя = просто нажать «AI Перевод» ещё раз.
+    // поэтому «Продолжить» после сбоя = просто нажать кнопку перевода ещё раз.
     // NB: setLoading(true)/setAiButtonDisabled(true) уже выполнены translateTable() ДО развилки,
     // ведущей сюда — здесь их НЕ повторяем; finally ниже симметрично снимает состояние загрузки.
     async function v3TranslateTableChunked(segs) {
@@ -33291,6 +33297,16 @@ try {
                 .replace("{rows}", String(est.expRows)).replace("{usd}", est.tableUsd.toFixed(2))
                 .replace("{min}", String(Math.ceil(est.chunks * 140 / 60)));
             if (!window.confirm(msg)) {
+                // Fix1 (review): translateTable() already painted v3TableSkeletonHtml() into
+                // #tableContainer BEFORE the fork that led here — a bare return would leave that
+                // skeleton stuck forever (setLoading only toggles the separate #loader overlay).
+                // Put back whatever was on screen before this attempt: the previous table if one
+                // existed (currentTableData is still untouched at this point), else clear.
+                if (Array.isArray(currentTableData) && currentTableData.length) {
+                    renderTable(currentTableData); // вернуть прошлую таблицу на место скелета
+                } else {
+                    document.getElementById("tableContainer").innerHTML = "";
+                }
                 setLoading(false);
                 updateAiButtonState();
                 return;
