@@ -13,6 +13,7 @@ const { extractArticle } = require("./urlExtract.js");
 const { extractDocxText } = require("./docxExtract.js");
 const { isPlausibleGeminiKey } = require("./geminiKey.js");
 const { classifyGeminiError } = require("./geminiError.js");
+const retell = require("./retell.js");
 
 function errStatus(code) {
   return ["FETCH_FAILED", "FETCH_TIMEOUT"].includes(code) ? 502 : 400;
@@ -145,6 +146,52 @@ function registerIngestRoutes(app, deps) {
       return res.json({ ok: true, ...out, method, model: "gemini-flash-latest", fromCache: false });
     } catch (e) {
       console.error("ingest gemini error", e && e.message);
+      const c = classifyGeminiError(e);
+      return res.status(c.status).json({ ok: false, error: c.error, error_code: c.error_code });
+    }
+  });
+
+  // W2-S11: graded-пересказ (дизайн STUDIO_INGEST_W2_S11_GRADED_RETELL_DESIGN_2026_07_28.md §4.2).
+  // Порядок проверок: вход → ключ → кэш → Gemini (валидация входа не тратит ничего).
+  app.post("/api/ingest/retell", limiter, async (req, res) => {
+    const { text, level, geminiApiKey } = req.body || {};
+    const v = retell.validateRetellInput({ text, level });
+    if (!v.ok) return res.status(v.status).json({ ok: false, error: "Некорректный вход", error_code: v.error_code });
+    if (!geminiApiKey || typeof geminiApiKey !== "string" || !geminiApiKey.trim()) {
+      return res.status(401).json({ ok: false, error: "Gemini API Key required (BYOK)", error_code: "GEMINI_KEY_REQUIRED" });
+    }
+    if (!isPlausibleGeminiKey(geminiApiKey)) {
+      return res.status(400).json({ ok: false, error: "Неверный формат Gemini API Key", error_code: "GEMINI_KEY_INVALID" });
+    }
+    const hash = crypto.createHash("sha256").update(retell.cacheKeyInput(text, level)).digest("hex");
+    const cacheFile = path.join(deps.geminiCacheDir, `retell-v1-${hash}.json`);
+    if (fs.existsSync(cacheFile)) {
+      try {
+        const cached = JSON.parse(fs.readFileSync(cacheFile, "utf8"));
+        if (cached && typeof cached.retell === "string" && cached.retell.trim()) {
+          return res.json({ ok: true, retell: cached.retell, promptId: retell.RETELL_PROMPT_ID,
+                            model: "gemini-flash-latest", fromCache: true, cacheKey: hash });
+        }
+      } catch (e) { console.error("retell cache read error", e); }
+    }
+    try {
+      const ai = new GoogleGenerativeAI(geminiApiKey.trim());
+      const model = ai.getGenerativeModel({
+        model: "gemini-flash-latest",
+        // maxOutputTokens 16384: thinking входит в бюджет вывода — 8192 обрезало list-вариант
+        // (замер M1, docs/research/studio-ingest-graded-retell/2026-07-28/README.md)
+        generationConfig: { temperature: 0, maxOutputTokens: 16384 },
+      });
+      const result = await model.generateContent(retell.buildRetellPrompt(text, level));
+      const raw = (await result.response).text();
+      const out = raw.replace(/^```[a-z]*\s*/i, "").replace(/```\s*$/i, "").trim();
+      if (!out) return res.status(502).json({ ok: false, error: "Пустой ответ модели", error_code: "RETELL_EMPTY_OUTPUT" });
+      try { fs.writeFileSync(cacheFile, JSON.stringify({ retell: out, level, createdAt: new Date().toISOString() })); }
+      catch (e) { console.error("retell cache write error", e); }
+      return res.json({ ok: true, retell: out, promptId: retell.RETELL_PROMPT_ID,
+                        model: "gemini-flash-latest", fromCache: false, cacheKey: hash });
+    } catch (e) {
+      console.error("retell gemini error", e && e.message); // только .message — ключ не логируем
       const c = classifyGeminiError(e);
       return res.status(c.status).json({ ok: false, error: c.error, error_code: c.error_code });
     }

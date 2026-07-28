@@ -8,9 +8,11 @@
 // (Task 4 — S1, checks 1-7), POST /api/ingest/extract-file (Task 6 — S2+S8,
 // checks 8-14; 14 added in fix round 1 to cover the cache-hit response shape),
 // POST /api/translate-table (Task 7 — S3, check 15: direction validation),
-// and the same route's segments[] mode (W2-S4 Task 6, checks 16-18: BAD_SEGMENTS
+// the same route's segments[] mode (W2-S4 Task 6, checks 16-18: BAD_SEGMENTS
 // on non-he-ru direction, BAD_SEGMENTS on malformed segments, and the no-key
-// GEMINI_KEY_REQUIRED path with valid segments).
+// GEMINI_KEY_REQUIRED path with valid segments), and POST /api/ingest/retell
+// (W2-S11 Task 2, checks 19-22: no-key GEMINI_KEY_REQUIRED, BAD_LEVEL,
+// RETELL_TOO_LONG, and a synthetic cache-hit).
 // Every case uses a literal IP/syntactic reject, the local docx fixture, a
 // synthetic cache file written directly into the smoke server's geminiCacheDir,
 // or a request that 400s/401s before any Gemini call is reached: no DNS lookup,
@@ -30,6 +32,7 @@ const BASE_URL = `http://127.0.0.1:${PORT}`;
 const FETCH_URL = `${BASE_URL}/api/ingest/fetch-url`;
 const EXTRACT_FILE_URL = `${BASE_URL}/api/ingest/extract-file`;
 const TRANSLATE_TABLE_URL = `${BASE_URL}/api/translate-table`;
+const RETELL_URL = `${BASE_URL}/api/ingest/retell`;
 const SAMPLE_DOCX_PATH = path.join(REPO_ROOT, "scripts", "premium", "fixtures", "ingest", "sample-he.docx");
 
 function sleep(ms) {
@@ -237,6 +240,63 @@ async function checkExtractCacheHitShape(label, geminiCacheDir) {
   return true;
 }
 
+// /api/ingest/retell (S11 Task 2) is registered inside registerIngestRoutes and
+// shares the SAME "ingest" limiter instance (max 10/60s per IP) as fetch-url and
+// extract-file above — checks 1-7 already spend 7/10 of the default-IP budget,
+// so retell gets its own X-Forwarded-For test IP (mirrors the EXTRACT_TEST_IP
+// pattern) to stay independent rather than risking a spurious 429.
+const RETELL_TEST_IP = "198.51.100.60"; // TEST-NET-2 (RFC 5737), non-routable
+async function postRetell(body) {
+  const res = await fetch(RETELL_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Forwarded-For": RETELL_TEST_IP },
+    body: JSON.stringify(body),
+  });
+  const { data, text } = await readBody(res);
+  return { status: res.status, data, text };
+}
+
+async function expectRetellCase(label, body, expectedStatus, expectedCode) {
+  const { status, data, text } = await postRetell(body);
+  if (status !== expectedStatus || !data || data.ok !== false || data.error_code !== expectedCode) {
+    console.log(`FAIL ${label} -> expected ${expectedStatus} ${expectedCode}, got ${status}: ${text.slice(0, 300)}`);
+    return false;
+  }
+  console.log(`PASS ${label} -> ${expectedStatus} ${expectedCode}`);
+  return true;
+}
+
+// Check 22 — retell cache-hit (mirrors check 14's mechanics exactly): derive the
+// SAME sha256 key ingest/retell.js::cacheKeyInput produces (promptId|level||text.trim()),
+// write it directly into the smoke server's geminiCacheDir, and confirm the route
+// answers fromCache:true with NO Gemini call reached (fully offline).
+async function checkRetellCacheHit(label, geminiCacheDir) {
+  const retellMod = require(path.join(REPO_ROOT, "ingest", "retell.js"));
+  const key = crypto.createHash("sha256").update(retellMod.cacheKeyInput("טקסט קטן לבדיקה.", "A2")).digest("hex");
+  fs.mkdirSync(geminiCacheDir, { recursive: true });
+  const cacheFile = path.join(geminiCacheDir, `retell-v1-${key}.json`);
+  fs.writeFileSync(cacheFile, JSON.stringify({
+    retell: "משפט פשוט.",
+    level: "A2",
+    createdAt: "2026-01-01T00:00:00.000Z",
+  }));
+
+  const { status, data, text } = await postRetell({
+    text: "טקסט קטן לבדיקה.",
+    level: "A2",
+    geminiApiKey: "AIza" + "x".repeat(30),
+  });
+
+  const shapeOk = status === 200 && data && data.ok === true && data.fromCache === true
+    && data.retell === "משפט פשוט." && data.promptId === "retell-he-v1" && data.cacheKey === key;
+  if (!shapeOk) {
+    console.log(`FAIL ${label} -> expected 200 fromCache:true retell:"משפט פשוט." promptId:retell-he-v1 cacheKey:${key}, got ${status}: ${text.slice(0, 300)}`);
+    return false;
+  }
+  console.log(`PASS ${label} -> 200 fromCache:true, retell matches cached value, promptId retell-he-v1`);
+  return true;
+}
+
 async function run() {
   const tmpDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "lp-ingestsmoke-"));
   // Hermetic by default: a fresh SQLite file inside the SAME per-run temp dir
@@ -350,6 +410,48 @@ async function run() {
         { direction: "he-ru", segments: [{ i: 0, text: "שלום" }] },
         401,
         "GEMINI_KEY_REQUIRED"
+      );
+      allPassed = allPassed && ok;
+    }
+
+    // S11 Task 2 — POST /api/ingest/retell: validation runs BEFORE any Gemini
+    // call is reached (offline guarantee), same as extract-file above.
+    {
+      const ok = await expectRetellCase(
+        "19. POST /api/ingest/retell {text, level:\"B1\"} (no key) -> 401 GEMINI_KEY_REQUIRED",
+        { text: "שלום עולם.", level: "B1" },
+        401,
+        "GEMINI_KEY_REQUIRED"
+      );
+      allPassed = allPassed && ok;
+    }
+
+    {
+      // Input validation (level) runs BEFORE the BYOK key check — must 400
+      // BAD_LEVEL even though a plausible-shaped geminiApiKey is supplied.
+      const ok = await expectRetellCase(
+        "20. POST /api/ingest/retell {text, level:\"C2\", geminiApiKey} -> 400 BAD_LEVEL",
+        { text: "שלום עולם.", level: "C2", geminiApiKey: "AIzaFakeKeyForSmokeOnly123456789" },
+        400,
+        "BAD_LEVEL"
+      );
+      allPassed = allPassed && ok;
+    }
+
+    {
+      const ok = await expectRetellCase(
+        "21. POST /api/ingest/retell {text: 100001 chars, level:\"B1\", geminiApiKey} -> 400 RETELL_TOO_LONG",
+        { text: "א".repeat(100001), level: "B1", geminiApiKey: "AIzaFakeKeyForSmokeOnly123456789" },
+        400,
+        "RETELL_TOO_LONG"
+      );
+      allPassed = allPassed && ok;
+    }
+
+    {
+      const ok = await checkRetellCacheHit(
+        "22. synthetic cache-hit (retell) -> 200 fromCache:true без сети",
+        geminiCacheDir
       );
       allPassed = allPassed && ok;
     }
