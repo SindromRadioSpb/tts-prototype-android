@@ -70,11 +70,72 @@
     return { pct: pct, zone: cfg.classifyZone(pct), tokens: tokens, knownTok: knownTok };
   }
 
+  // Частоты контент-типов текста (без DOM). functionGate возвращает {isFunc:false} для
+  // контент-слов — проверять .isFunc, НЕ truthy (ловушка найдена на замерах S11).
+  var MAX_COV_TOKENS = 60000, MAX_COV_TYPES = 4000;
+  function collectTypeFreq(text, RM) {
+    var out = new Map(), tokens = 0;
+    var parts = String(text || "").split(/[^֐-׿'"׳״-]+/);
+    for (var i = 0; i < parts.length; i++) {
+      var t = RM.stripNiqqud(parts[i]).replace(/^["'׳״-]+|["'׳״-]+$/g, "");
+      if (t.length < 2 || !/[א-ת]/.test(t)) continue;
+      if (++tokens > MAX_COV_TOKENS) break;
+      var g = RM.functionGate(t);
+      if (g && g.isFunc) continue;               // служебные/числительные/имена — вне меры
+      if (!out.has(t) && out.size >= MAX_COV_TYPES) continue;
+      out.set(t, (out.get(t) || 0) + 1);
+    }
+    return Array.from(out, function (e) { return { surface: e[0], freq: e[1] }; });
+  }
+
+  // Браузер-аксессор к OPFS-инстансу Студии. Студия (index.html) НЕ выставляет window.localDb —
+  // ensureLocalDB() определена инлайн в index.html и (как top-level function declaration
+  // classic-скрипта) становится window.ensureLocalDB; сиблинг-модули (morph-provider.js,
+  // knowledge-map-quiz.js) уже читают БД именно так — mirror того же пути (verify Task 4 §1:
+  // grep "getKnownWordStates" НЕ нашёл window.localDb нигде в живом коде).
+  async function _ldb() {
+    if (typeof window === "undefined") return null;
+    try {
+      if (window.__localDBInitPromise) { try { await window.__localDBInitPromise; } catch (_) {} }
+      if (typeof window.ensureLocalDB === "function") return await window.ensureLocalDB();
+      return window.__localDB || null;
+    } catch (_) { return window.__localDB || null; }
+  }
+
+  // Браузер: «знакомо ~N%» для произвольного текста КАНОН-определением CorpusVocab.CFG
+  // (дизайн §1.1: единственный движок уровня). null = честно нет цифры (пустой профиль,
+  // нет словаря, <30% типов зарезолвилось) — цифра тогда скрывается, не фабрикуется.
+  async function estimateTextCoverage(text) {
+    try {
+      var RM = window.ReaderMorph, CV = window.CorpusVocab;
+      if (!RM || !CV) return null;
+      var db = await _ldb();
+      if (!db || typeof db.getKnownWordStates !== "function") return null;
+      var items = collectTypeFreq(text, RM);
+      if (!items.length) return null;
+      var eng = await RM.ensureEngine();
+      var keyed = [], resolved = 0;
+      for (var i = 0; i < items.length; i++) {
+        var card = null;
+        try { card = await RM.resolveCore(eng, items[i].surface, ""); } catch (_) {}
+        if (!card) continue;
+        resolved++;
+        var key = RM.statusKeyForCard(eng.NA, card, "", items[i].surface);
+        if (key) keyed.push({ key: key, freq: items[i].freq });
+      }
+      if (resolved / items.length < 0.3) return null;  // резолв слаб → цифре нельзя верить
+      var knownMap = await db.getKnownWordStates();
+      return aggregateCoverage(keyed, knownMap, { KNOWN_STATES: CV.CFG.KNOWN_STATES, classifyZone: CV.classifyZone });
+    } catch (_) { return null; }
+  }
+
   var API = {
     LEVELS: LEVELS, RETELL_LEVEL_LS_KEY: RETELL_LEVEL_LS_KEY,
     estimateRetellCost: estimateRetellCost,
     buildRetellPassport: buildRetellPassport,
     aggregateCoverage: aggregateCoverage,
+    collectTypeFreq: collectTypeFreq,
+    estimateTextCoverage: estimateTextCoverage,
   };
   if (typeof window !== "undefined") window.StudioRetell = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;

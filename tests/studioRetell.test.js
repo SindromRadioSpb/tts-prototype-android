@@ -3,6 +3,7 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const SR = require("../public/js/studio-retell.js");
 const IR = require("../ingest/retell.js");
+const RM = require("../public/js/reader-morph.js");
 
 test("LEVELS клиент/сервер совпадают ПО ПОСТРОЕНИЮ (config-string-match)", () => {
   assert.deepEqual(SR.LEVELS, IR.LEVELS);
@@ -46,4 +47,18 @@ test("aggregateCoverage: токен-взвешенная доля знакомо
   assert.equal(r.zone, "in");
   assert.equal(SR.aggregateCoverage([], { "pid:1": "known" }, cfg), null);
   assert.equal(SR.aggregateCoverage(items, {}, cfg), null); // пустой профиль → честно нет цифры
+});
+
+test("collectTypeFreq: иврит-типы без огласовок, функциональные слова отфильтрованы functionGate", () => {
+  const items = SR.collectTypeFreq("הילד אכל תפוח. הילד רץ אל הבית.", RM);
+  const map = Object.fromEntries(items.map((i) => [i.surface, i.freq]));
+  assert.equal(map["הילד"], 2);          // контент-слово, 2 употребления
+  assert.equal(map["תפוח"], 1);
+  assert.equal(map["אל"], undefined);    // предлог — functionGate isFunc → исключён
+  assert.ok(items.every((i) => i.freq >= 1 && /[א-ת]/.test(i.surface)));
+});
+
+test("collectTypeFreq: пустой/неивритский текст → []", () => {
+  assert.deepEqual(SR.collectTypeFreq("", RM), []);
+  assert.deepEqual(SR.collectTypeFreq("hello world 123", RM), []);
 });
