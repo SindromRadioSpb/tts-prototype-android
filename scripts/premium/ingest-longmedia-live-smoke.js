@@ -197,9 +197,13 @@ function mappingEquivalent(rows, segCount) {
   console.log("=== W2-S12 T8 live smoke ===");
   console.log("audio:", audioPath, MIME, "planDurationSec:", planDurationSec, "(" + (planDurationSec / 60).toFixed(1) + " min)");
 
-  await ensureServer();
-
   try {
+    // ensureServer() INSIDE the try: it assigns spawnedServer and can itself throw (healthz
+    // poll timeout after spawn) — if it were called before this try/finally, that throw would
+    // skip stopServerIfSpawned() entirely and leak the spawned `node server.js` child (caught
+    // in review; pattern fixed to match studio-chunks-smoke.js's explicit stop-on-error path).
+    await ensureServer();
+
     // ── Phase 1: upload + waitActive ───────────────────────────────────────────────────────
     console.log("\n--- Phase 1: upload ---");
     const bytes = fs.readFileSync(audioPath);
@@ -326,6 +330,24 @@ function mappingEquivalent(rows, segCount) {
         "rows", rowsLen, "fromCache", !!r.body.fromCache, "warnings", JSON.stringify(r.body.warnings || []));
       if (r.resp.status !== 200) { failures.push("chunk " + ci + " HTTP " + r.resp.status + ": " + JSON.stringify(r.body)); continue; }
       if (!rowsLen) { failures.push("chunk " + ci + " returned 0 rows"); continue; }
+
+      // Independent-oracle (per brief): run the PRODUCTION validateSegMapping on the RAW,
+      // pre-offset, chunk-local rows — not just our own post-merge mappingEquivalent() below
+      // (which only re-checks the already-offset, already-merged result). This calls the actual
+      // prod code path (ingest/segTable.js) against this chunk's raw response, exactly as the
+      // server itself would (chunk.segs.length is the chunk-local segCount, same as the server
+      // saw when it decided whether to strip segment_index). Skipped when the server itself
+      // already reported SEG_MAPPING_LOST — it already stripped every segment_index in that
+      // case, so validateSegMapping would trivially fail on an accepted, honest degradation
+      // (§5.4 design) rather than a real bug; logged instead of asserted.
+      const chunkWarnings = Array.isArray(r.body.warnings) ? r.body.warnings : [];
+      if (chunkWarnings.indexOf("SEG_MAPPING_LOST") > -1) {
+        console.log("  chunk " + (ci + 1) + "/" + chunks.length + ": SEG_MAPPING_LOST — server already stripped segment_index (accepted local degradation); validateSegMapping oracle not applicable");
+      } else {
+        const mapOk = segTable.validateSegMapping(r.body.rows, chunk.segs.length);
+        if (!mapOk) failures.push("chunk " + ci + ": segTable.validateSegMapping (prod oracle, pre-offset, chunk-local) failed on raw rows");
+      }
+
       if (r.body.fromCache) anyFromCache = true;
       allRows.push(...TC.offsetRows(r.body.rows, chunk.base));
     }
