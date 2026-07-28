@@ -124,6 +124,10 @@ const PRECACHE_URLS = [
   // OPFS media store, Gemini Files upload, media karaoke driver).
   "/js/gemini-error.js",
   "/js/asr-transcript.js",
+  // W2-S12 — pure чанк-математика длинной таблицы (buildChunks/offsetRows/coverage), consumed
+  // by translateTable()'s chunk-cycle fork; must precache like its ASR-windowing sibling above,
+  // or an offline session after a CACHE_VERSION bump loses window.TableChunks silently.
+  "/js/table-chunks.js",
   "/js/media-store.js",
   "/js/gemini-files.js",
   "/js/studio-media-karaoke.js",

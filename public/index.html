@@ -33129,8 +33129,12 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
 
         // W2-S12: long table → chunk-cycle. setLoading(true)/skeleton/isGeminiLocked/premium-block
         // above already ran; v3TranslateTableChunked owns its own finally(setLoading(false)).
+        // window.TableChunks guard: if the module failed to load (e.g. offline right after a
+        // CACHE_VERSION bump before it's precached), fall through to the old single-request path
+        // below — it fails honestly via server-side segment-count validation instead of hanging
+        // on a TypeError before setLoading(true)'s spinner is ever cleared.
         const segsForChunks = !usePremium ? v3AudioSegmentsForRequest() : null;
-        if (segsForChunks && segsForChunks.length > TableChunks.CHUNK_SIZE) {
+        if (segsForChunks && window.TableChunks && segsForChunks.length > TableChunks.CHUNK_SIZE) {
             await v3TranslateTableChunked(segsForChunks);
             return;
         }
@@ -33262,6 +33266,11 @@ try {
         const chunkMeta = [];
         const missingPerChunk = [];
         let anyMappingLost = false;
+        // Important 2 (review): strip any timing/passport left over from the PREVIOUS
+        // generation before the multi-minute chunk loop starts — otherwise row-replay buttons
+        // would seek by stale indices while currentTableData already holds new partial rows.
+        // The success/failure branches below rebuild it honestly from what actually landed.
+        v3AttachAudioTiming({ rows: [], warnings: [] });
         try {
             for (let k = 0; k < chunks.length; k++) {
                 setResultsMeta("table", t("classic.tableChunkProgress")
@@ -33276,6 +33285,17 @@ try {
                     if (e.httpStatus === 429) handleGeminiLimitError(e);
                     showError(t("classic.tableChunkFailed")
                         .replace("{k}", String(k + 1)).replace("{m}", String(chunks.length)));
+                    // Important 2 (review): honest provenance/timing for the PARTIAL rows already
+                    // on screen — without this, the stale meta/passport from the previous
+                    // generation would get pinned to Library save + row-replay under new rows.
+                    v3LastGeminiMeta = {
+                        promptId: "he-ru-table-seg-v1+chunked", model: "gemini-flash-latest",
+                        cacheKey: null, fromCache: false,
+                        provider: "gemini", chunks: chunkMeta.slice(), partial: true,
+                        generatedAt: new Date().toISOString(),
+                    };
+                    v3AttachImportSource();
+                    v3AttachAudioTiming({ rows: currentTableData, warnings: ["SEG_COVERAGE_PARTIAL"] });
                     return;
                 }
                 const rows = TableChunks.offsetRows(res.rows || [], chunks[k].base);
