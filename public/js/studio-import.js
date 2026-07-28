@@ -148,7 +148,7 @@
 
   // W2-S4 — Import → Audio (BYOK Gemini ASR). Канон:
   // docs/planning/STUDIO_INGEST_W2_S4_AUDIO_KARAOKE_DESIGN_2026_07_26.md.
-  var MAX_AUDIO_SEC = 20 * 60;           // решение S4-CAP: 20 минут hard cap (R16)
+  var MAX_AUDIO_SEC = 3 * 3600;          // решение S12 2026-07-28: 3 часа; байт-кап 300МБ остаётся предохранителем
   var MAX_AUDIO_BYTES = 300 * 1024 * 1024; // sanity
   var pendingAudio = null; // {file, buf, sha256, mime, durationSec, name, parsed, validation}
 
@@ -272,14 +272,16 @@
     catch (_) { setStatus("studio.import.errAudioBadFile"); return; }
     if (dur > MAX_AUDIO_SEC + 1) { setStatus("studio.import.errAudioTooLong"); return; }
     var mime = file.type || "audio/mpeg";
-    pendingAudio = { file: file, buf: null, sha256: null, mime: mime, durationSec: dur, name: file.name, parsed: null, validation: null, isVideo: isVideo };
-    var est = window.AsrTranscript.estimateAsrCostUsd(dur, { video: isVideo });
+    pendingAudio = { file: file, buf: null, sha256: null, mime: mime, durationSec: dur, name: file.name, parsed: null, validation: null, isVideo: isVideo, windowResults: null };
+    var est = window.AsrTranscript.estimateLongJob(dur, {
+      video: isVideo, chunkSize: window.TableChunks.CHUNK_SIZE });
     var durRounded = Math.round(dur);
     var mm = Math.floor(durRounded / 60), ss = String(durRounded % 60).padStart(2, "0");
     var metaText = mm + ":" + ss + " · " + (file.size / (1024 * 1024)).toFixed(1) + "MB";
     if (isVideo) metaText += " · " + tr("studio.import.videoNote");
     $("v3ImportAudioMeta").textContent = metaText;
-    $("v3ImportAudioGo").textContent = tr("studio.import.audioGo") + " (≈$" + Math.max(0.01, est).toFixed(2) + ")";
+    $("v3ImportAudioGo").textContent = tr("studio.import.audioGo") +
+      " (≈$" + Math.max(0.01, est.totalUsd).toFixed(2) + " · ~" + est.minutes + " " + tr("studio.import.minShort") + ")";
     $("v3ImportAudioInfo").hidden = false;
     setStatus(null);
   }
@@ -295,16 +297,36 @@
       pendingAudio.sha256 = await window.MediaStore.sha256Hex(pendingAudio.buf);
       var up = await window.GeminiFiles.uploadFile(key, pendingAudio.file, pendingAudio.mime);
       setStatus("studio.import.audioProcessing");
-      if (up.state !== "ACTIVE") await window.GeminiFiles.waitActive(key, up.name);
-      setStatus("studio.import.audioTranscribing");
-      var raw = await window.GeminiFiles.transcribeAudio(key, up.fileUri, pendingAudio.mime);
-      var parsed;
-      try { parsed = window.AsrTranscript.parseAsrResponse(raw); }
-      catch (e1) {
-        if (e1.code !== "ASR_BAD_JSON") throw e1;
-        raw = await window.GeminiFiles.transcribeAudio(key, up.fileUri, pendingAudio.mime); // 1 повтор
-        parsed = window.AsrTranscript.parseAsrResponse(raw);
+      if (up.state !== "ACTIVE") {
+        await window.GeminiFiles.waitActive(key, up.name, { timeoutMs: 60000 + Math.ceil(pendingAudio.file.size / 1048576) * 1000 });
       }
+      setStatus("studio.import.audioTranscribing");
+      var A2 = window.AsrTranscript;
+      var resumeFrom = (pendingAudio.windowResults && pendingAudio.windowResults.length) || 0;
+      var result;
+      try {
+        result = await window.StudioImport.runWindowedAsr({
+          durationSec: pendingAudio.durationSec,
+          startWindow: resumeFrom,
+          priorWindows: pendingAudio.windowResults || [],
+          transcribe: function (a, b) {
+            return window.GeminiFiles.transcribeAudio(key, up.fileUri, pendingAudio.mime,
+              a === null ? undefined : { promptText: A2.ASR_RANGE_PROMPT(a, b) });
+          },
+          parse: A2.parseAsrResponse,
+          onProgress: function (k, m) {
+            if (m > 1) setStatus("studio.import.audioWindowProgress", k + "/" + m);
+          },
+        });
+      } catch (e2) {
+        if (e2.windowSegments) pendingAudio.windowResults = e2.windowSegments; // резюм со след. клика
+        throw e2;
+      }
+      pendingAudio.windowResults = null; // успех — резюм-состояние отработано
+      var parsed = { language: result.language, segments: result.segments, warnings: result.warnings };
+      pendingAudio.asrWindows = result.windows;
+      pendingAudio.coverageGaps = result.coverageGaps;
+      pendingAudio.healedGaps = result.healedGaps;
       if (!parsed.segments.length || parsed.warnings.includes("NO_SPEECH")) { setStatus("studio.import.errNoSpeech"); return; }
       pendingAudio.parsed = parsed;
       pendingAudio.validation = window.AsrTranscript.validateSegments(parsed.segments, pendingAudio.durationSec);
@@ -471,7 +493,10 @@
                  mime: pendingAudio.mime, sizeBytes: pendingAudio.file.size,
                  durationSec: pendingAudio.durationSec, originalName: pendingAudio.name },
         asr: { method: "gemini-asr", model: window.AsrTranscript.ASR_MODEL, at: new Date().toISOString(),
-               language: pendingAudio.parsed.language, filesApi: true, warnings: pendingAudio.parsed.warnings },
+               language: pendingAudio.parsed.language, filesApi: true, warnings: pendingAudio.parsed.warnings,
+               windows: pendingAudio.asrWindows || null,
+               coverageGaps: pendingAudio.coverageGaps || [],
+               healedGaps: pendingAudio.healedGaps || [] },
         segments: segs, timing: null, timingDropReason: dropReason,
       };
       if (!saved.ok) window.v3SessionMediaBlob = pendingAudio.file;
