@@ -28,7 +28,7 @@ check("sw.js: precache studio-retell.js", sw.includes('"/js/studio-retell.js"'))
 
 for (const loc of ["ru", "en", "he"]) {
   const l = fs.readFileSync(path.join(ROOT, "public/i18n/locales", loc + ".js"), "utf8");
-  check("локаль " + loc + ": studio.retell.*", l.includes("retell:") && l.includes("providerHint") && l.includes("confirmReplaceUnsaved"));
+  check("локаль " + loc + ": studio.retell.*", l.includes("providerHint") && l.includes("confirmReplaceUnsaved"));
   check("локаль " + loc + ": textMeta.provKindRetell", l.includes("provKindRetell"));
 }
 

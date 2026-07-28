@@ -20,12 +20,19 @@ const SRC = "החתול ישב על החלון והסתכל על הציפורי�
   "בערב חזרה בעלת הבית ופתחה לו את הדלת. ".repeat(8);
 
 (async () => {
-  const resp = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent", {
-    method: "POST",
-    headers: { "x-goog-api-key": KEY, "Content-Type": "application/json" },
-    body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: IR.buildRetellPrompt(SRC, "A2") }] }],
-                           generationConfig: { temperature: 0, maxOutputTokens: 16384 } }),
-  });
+  let resp;
+  try {
+    resp = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent", {
+      method: "POST",
+      headers: { "x-goog-api-key": KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: IR.buildRetellPrompt(SRC, "A2") }] }],
+                             generationConfig: { temperature: 0, maxOutputTokens: 16384 } }),
+      signal: AbortSignal.timeout(30000), // hard cap — undici default has no ceiling and can hang ~5 min
+    });
+  } catch (e) {
+    if (e && (e.name === "AbortError" || e.name === "TimeoutError")) { console.error("FAIL: timeout 30s"); process.exit(1); }
+    throw e;
+  }
   if (resp.status === 429) { console.log("SKIP: 429 (free-tier квота)"); process.exit(0); }
   if (!resp.ok) { console.error("FAIL http", resp.status, (await resp.text()).slice(0, 300)); process.exit(1); }
   const data = await resp.json();
