@@ -170,3 +170,185 @@ test("openFromComposer: stale coverage promise (text A) must NOT overwrite the C
     uninstallRetellRaceMocks();
   }
 });
+
+// ---- Task 6: run() — fetch call, confirm gate, landing, passport, race-guard --------------
+// run() is browser-only (fetch/document/window/localStorage + estimateTextCoverage's OPFS
+// chain), so it is shimmed the same way as the fix1 race test above: a minimal DOM + window,
+// plus fake ReaderMorph/CorpusVocab/ensureLocalDB (coverage resolves immediately here — the
+// scenarios below race the FETCH call, not the coverage estimate, which fix1 already covers).
+function fakeResponse(ok, jsonBody) {
+  return { ok: ok, json: async () => jsonBody };
+}
+
+function installRetellRunMocks(opts) {
+  opts = opts || {};
+  const els = {
+    inputText: makeRetellEl({ value: "", dispatchEvent() {} }),
+    v3RetellCost: makeRetellEl(),
+    v3RetellStatus: makeRetellEl(),
+    v3RetellCovNow: makeRetellEl({ hidden: true }),
+    v3RetellLevel: makeRetellEl({ value: opts.level || "B1", options: [], appendChild(o) { this.options.push(o); } }),
+    v3RetellModal: makeRetellEl(),
+    v3RetellGo: makeRetellEl({ disabled: false }),
+  };
+  const classListCalls = [];
+  els.v3RetellModal.classList = {
+    add: (c) => classListCalls.push(["add", c]),
+    remove: (c) => classListCalls.push(["remove", c]),
+  };
+  global.document = {
+    getElementById: (id) => els[id] || null,
+    createElement: () => makeRetellEl(),
+  };
+  global.localStorage = { getItem: () => null, setItem() {} };
+  const toastCalls = [];
+  const confirmCalls = [];
+  const sessionSetCalls = [];
+  global.window = {
+    ReaderMorph: {
+      stripNiqqud: (s) => s,
+      functionGate: () => ({ isFunc: false }),
+      ensureEngine: async () => ({ NA: {} }),
+      resolveCore: async (eng, surface) => ({ surface }),
+      statusKeyForCard: (NA, card, niqqud, surface) => surface,
+    },
+    CorpusVocab: {
+      CFG: { KNOWN_STATES: { known: true } },
+      classifyZone: (pct) => (pct >= 0.99 ? "easy" : "hard"),
+    },
+    // empty profile → aggregateCoverage's anyKnown-guard → null (honest no-number), unless a
+    // test explicitly wants a real coverage line (covNow/covAfter tested separately above).
+    ensureLocalDB: async () => ({ getKnownWordStates: async () => ({}) }),
+    geminiKeyGet: () => (opts.key !== undefined ? opts.key : "AIzaFAKEKEYFORTEST00000000000000000"),
+    confirm: (msg) => { confirmCalls.push(msg); return opts.confirmReturns !== undefined ? opts.confirmReturns : true; },
+    showToast: (msg, kind) => { toastCalls.push({ msg: msg, kind: kind }); },
+    v3SessionGet: () => (opts.session !== undefined ? opts.session : null),
+    v3SessionSet: (patch) => { sessionSetCalls.push(patch); },
+    v3LastImportMeta: null,
+  };
+  const fetchCalls = [];
+  global.fetch = (url, init) => {
+    let resolve;
+    const promise = new Promise((res) => { resolve = res; });
+    fetchCalls.push({ url: url, init: init, resolve: resolve });
+    return promise;
+  };
+  return { els, fetchCalls, confirmCalls, toastCalls, sessionSetCalls, classListCalls };
+}
+
+function uninstallRetellRunMocks() {
+  delete global.window;
+  delete global.document;
+  delete global.localStorage;
+  delete global.fetch;
+}
+
+test("run(): no key → honest disabled-status, no fetch/confirm/landing (Step 5 no-key scenario)", async () => {
+  const mocks = installRetellRunMocks({ key: "" });
+  try {
+    const SRfresh = require(STUDIO_RETELL_PATH);
+    mocks.els.inputText.value = "טקסט מקורי";
+    SRfresh.openFromComposer();
+    await SRfresh.run();
+    assert.equal(mocks.fetchCalls.length, 0, "no key → must never call the endpoint");
+    assert.equal(mocks.confirmCalls.length, 0);
+    assert.match(mocks.els.v3RetellStatus.textContent, /Gemini|BYOK|ключ/i);
+  } finally {
+    uninstallRetellRunMocks();
+  }
+});
+
+test("run(): happy path — lands retell text, builds retell passport, resets session to a NEW draft, closes modal, toasts coverage", async () => {
+  const mocks = installRetellRunMocks({ session: null }); // unsaved-original scenario
+  try {
+    const SRfresh = require(STUDIO_RETELL_PATH);
+    mocks.els.inputText.value = "טקסט מקורי לפני פישוט";
+    SRfresh.openFromComposer();
+    const p = SRfresh.run();
+    assert.equal(mocks.fetchCalls.length, 1, "run() must call the endpoint synchronously up to the first await");
+    assert.equal(mocks.els.v3RetellGo.disabled, true, "Go must be disabled while working");
+    const body = JSON.parse(mocks.fetchCalls[0].init.body);
+    assert.equal(body.text, "טקסט מקורי לפני פישוט");
+    assert.equal(body.level, "B1");
+    assert.equal(body.geminiApiKey, "AIzaFAKEKEYFORTEST00000000000000000");
+
+    mocks.fetchCalls[0].resolve(fakeResponse(true, {
+      ok: true, retell: "טקסט פשוט אחרי", model: "gemini-flash-latest",
+      promptId: "p1", fromCache: true, cacheKey: "c1",
+    }));
+    await p;
+
+    assert.equal(mocks.confirmCalls.length, 1, "must confirm before replacing the field");
+    assert.match(mocks.confirmCalls[0], /Оригинал НЕ сохранён/, "unsaved-original wording when session has no baseTextId/textId");
+    assert.equal(mocks.els.inputText.value, "טקסט פשוט אחרי", "retell must land in the composer");
+
+    const im = global.window.v3LastImportMeta;
+    assert.equal(im.kind, "retell");
+    assert.equal(im.method, "gemini-retell");
+    assert.equal(im.textSnapshot, "טקסט פשוט אחרי");
+    assert.equal(im.retell.level, "B1");
+    assert.equal(im.retell.derivedFrom.textId, null);
+
+    assert.equal(mocks.sessionSetCalls.length, 1);
+    assert.deepEqual(mocks.sessionSetCalls[0], { textId: null, baseTextId: null, mode: "draft", title: null });
+
+    assert.ok(mocks.classListCalls.some((c) => c[0] === "add" && c[1] === "hidden"), "modal must close on landing");
+    assert.equal(mocks.toastCalls.length, 1);
+    assert.equal(mocks.toastCalls[0].kind, "success");
+    assert.equal(mocks.els.v3RetellGo.disabled, false, "Go re-enabled after landing");
+  } finally {
+    uninstallRetellRunMocks();
+  }
+});
+
+test("run(): server error_code maps through ERROR_KEY to a status message, re-enables Go, never touches the composer", async () => {
+  const mocks = installRetellRunMocks();
+  try {
+    const SRfresh = require(STUDIO_RETELL_PATH);
+    mocks.els.inputText.value = "טקסט";
+    SRfresh.openFromComposer();
+    const p = SRfresh.run();
+    mocks.fetchCalls[0].resolve(fakeResponse(false, { ok: false, error_code: "GEMINI_KEY_REJECTED" }));
+    await p;
+
+    assert.equal(mocks.confirmCalls.length, 0, "must never confirm on a failed call");
+    assert.equal(mocks.els.inputText.value, "טקסט", "composer must be untouched on failure");
+    assert.equal(mocks.els.v3RetellGo.disabled, false, "Go re-enabled after failure");
+    assert.notEqual(mocks.els.v3RetellStatus.textContent, "", "failure must surface a status message, never silent");
+  } finally {
+    uninstallRetellRunMocks();
+  }
+});
+
+test("run(): race-guard — closing the modal (Cancel) while the fetch is in flight must NOT land the stale retell, confirm, or touch status", async () => {
+  const mocks = installRetellRunMocks();
+  try {
+    const SRfresh = require(STUDIO_RETELL_PATH);
+    mocks.els.inputText.value = "טקסט מקורי";
+    SRfresh.openFromComposer();
+    const p = SRfresh.run();
+    assert.equal(mocks.fetchCalls.length, 1);
+
+    // User hits Cancel (or backdrop) WHILE the request is still in flight.
+    SRfresh.close();
+    const statusBeforeStaleResolve = mocks.els.v3RetellStatus.textContent;
+
+    // The (now-abandoned) request finally resolves successfully — this must be a silent no-op:
+    // no confirm(), no composer overwrite, no status/Go-button mutation belonging to a closed
+    // modal instance (same race-guard idiom as openFromComposer's fix1 above, extended to run()).
+    mocks.fetchCalls[0].resolve(fakeResponse(true, {
+      ok: true, retell: "STALE RESULT — must never appear", model: "gemini-flash-latest",
+      promptId: "p1", fromCache: true, cacheKey: "c1",
+    }));
+    await p;
+
+    assert.equal(mocks.confirmCalls.length, 0, "stale resolve must never prompt confirm()");
+    assert.equal(mocks.els.inputText.value, "טקסט מקורי", "stale retell must NEVER land in the composer");
+    assert.equal(mocks.els.v3RetellStatus.textContent, statusBeforeStaleResolve,
+      "stale resolve must not repaint a status line that no longer belongs to it");
+    assert.equal(global.window.v3LastImportMeta, null, "no passport must be built from a stale/abandoned run()");
+    assert.equal(mocks.sessionSetCalls.length, 0);
+  } finally {
+    uninstallRetellRunMocks();
+  }
+});

@@ -1260,6 +1260,20 @@
         window.showToast(tt('studio.agent.draftLoaded', 'Черновик наставника вставлен — собираю таблицу…'), 'info');
       }
     } catch (_) {}
+    // W2-S11: PAS-C draft_retell терял провенанс (p.agent выбрасывался без следа — находка
+    // дизайна STUDIO_INGEST_W2_S11_GRADED_RETELL_DESIGN_2026_07_28.md §4.4). Паспорт
+    // kind:"retell" включает существующую панель «Происхождение»
+    // (index.html v3TextMetaRenderProvenance) бесплатно — payload-поля (p.source_text,
+    // p.agent.scenario/model, p.title) сверены с пишущей стороной handoff'а,
+    // library-ui.js::_draftOpenInStudio (~4176-4196).
+    if (p.agent && p.agent.scenario === 'draft_retell' && window.StudioRetell) {
+      window.v3LastImportMeta = window.StudioRetell.buildRetellPassport({
+        originLabel: p.title || '', importKind: 'corpus', importSource: p.title || null,
+        savedTextId: null, savedTitle: p.title || null,
+        level: null, model: p.agent.model || null, retellText: p.source_text,
+        coverage: null,
+      });
+    }
     // Явный тап «Открыть в Студии»/«В редактор» уже был — сборка штатным путём
     try { if (typeof window.translateTable === 'function') window.translateTable(); } catch (_) {}
     return true;

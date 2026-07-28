@@ -159,6 +159,10 @@
                                 // number onto a DIFFERENT text's coverage line (R11-class bug,
                                 // fix1 code review 2026-07-29).
     fillLevelSelect();
+    // T6 addition: run() disables Go while working; a stale/guarded run() (race-abort — see
+    // run()'s doc-comment) never re-enables a button it no longer owns, so a fresh open must
+    // reset it itself, or a prior aborted run could leave Go permanently disabled.
+    var goBtn = $("v3RetellGo"); if (goBtn) goBtn.disabled = false;
     var est = estimateRetellCost(text.length);
     $("v3RetellCost").textContent = tr("studio.retell.costLine", "Смета") + ": ≈$" + est.usd.toFixed(2) + " · ~" + est.seconds + tr("studio.retell.secShort", " сек");
     $("v3RetellStatus").textContent = "";
@@ -181,6 +185,118 @@
     pendingSource = null;
   }
 
+  // Ошибка сервера (Task 2 error_code) → ключ статус-строки. Коды без записи здесь
+  // (BAD_LEVEL, RETELL_EMPTY, GEMINI_FAILED) намеренно падают в общий "errFailed" —
+  // не пользовательские сценарии (BAD_LEVEL/RETELL_EMPTY — программная ошибка вызова,
+  // не то, что реальный пользователь может спровоцировать из этого UI).
+  var ERROR_KEY = {
+    GEMINI_KEY_REQUIRED: "studio.retell.errNoKey",
+    GEMINI_KEY_INVALID: "studio.retell.errNoKey",
+    GEMINI_KEY_REJECTED: "studio.retell.errKeyRejected",
+    GEMINI_QUOTA: "studio.retell.errQuota",
+    GEMINI_OVERLOADED: "studio.retell.errOverloaded",
+    RETELL_TOO_LONG: "studio.retell.errTooLong",
+    RETELL_EMPTY_OUTPUT: "studio.retell.errFailed",
+  };
+
+  // run() — вызов эндпоинта, coverage до/после, подтверждение замены поля, приземление
+  // ОТДЕЛЬНЫМ (несохранённым) текстом, паспорт, закрытие модала.
+  //
+  // Race-safety (review T5 carried into T6): estimateTextCoverage() (до И после) и fetch()
+  // САМИ по себе медленные (сеть/OPFS+резолвер-цикл) — модал может закрыться (Cancel/backdrop
+  // → close()) или переоткрыться с ДРУГИМ текстом (новый openFromComposer() → новый
+  // pendingSource) прежде, чем один из этих await-ов долетит. Тот же токен-приём, что и в
+  // openFromComposer() fix1: `mySrc` захватывается ОДИН раз в начале, и `pendingSource ===
+  // mySrc` проверяется ПОСЛЕ каждого await, ПЕРЕД любой записью в DOM/использованием
+  // pendingSource — иначе устаревший результат красится поверх состояния ДРУГОГО текста
+  // (R11-класс: «чужому тексту — чужая цифра/чужой пересказ»). window.confirm() — блокирующий
+  // синхронный диалог (никакой другой JS, включая клик Cancel, не может выполниться, пока он
+  // открыт), поэтому доп. проверка сразу после него избыточна и не добавлена.
+  async function run() {
+    if (!pendingSource) return;
+    var mySrc = pendingSource; // race-guard token — идентичность ЭТОГО вызова, не truthiness
+    var text = mySrc.text;
+    var level = $("v3RetellLevel").value;
+    try { localStorage.setItem(RETELL_LEVEL_LS_KEY, level); } catch (_) {}
+    var key = typeof window.geminiKeyGet === "function" ? window.geminiKeyGet() : "";
+    var st = $("v3RetellStatus");
+    if (!key) { st.textContent = tr("studio.retell.errNoKey", "Нужен Gemini API-ключ (BYOK)"); return; }
+    $("v3RetellGo").disabled = true;
+    st.textContent = tr("studio.retell.working", "Готовлю пересказ…");
+    var covBeforeP = estimateTextCoverage(text); // запущен параллельно с fetch, await — после ответа
+
+    var resp, data;
+    try {
+      resp = await fetch("/api/ingest/retell", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: text, level: level, geminiApiKey: key }),
+      });
+      data = await resp.json();
+    } catch (e) {
+      if (pendingSource === mySrc) {
+        st.textContent = tr("studio.retell.errNetwork", "Сеть недоступна");
+        $("v3RetellGo").disabled = false;
+      }
+      return;
+    }
+    if (pendingSource !== mySrc) return; // модал закрыт/переоткрыт, пока ждали сеть — тихий выход
+
+    if (!resp.ok || !data || !data.ok) {
+      var ek = data && data.error_code && ERROR_KEY[data.error_code];
+      st.textContent = tr(ek || "studio.retell.errFailed", "Не удалось построить пересказ");
+      $("v3RetellGo").disabled = false;
+      return;
+    }
+
+    var covBefore = null; try { covBefore = await covBeforeP; } catch (_) {}
+    var covAfter = null; try { covAfter = await estimateTextCoverage(data.retell); } catch (_) {}
+    if (pendingSource !== mySrc) return; // тот же гард — coverage-after тоже медленный (OPFS)
+
+    // подтверждение замены поля; несохранённый оригинал — отдельная формулировка
+    var sess = null; try { sess = window.v3SessionGet ? window.v3SessionGet() : null; } catch (_) {}
+    var savedId = (sess && (sess.baseTextId || sess.textId)) || null;
+    var msg = savedId
+      ? tr("studio.retell.confirmReplace", "Заменить текст в поле пересказом? Оригинал сохранён в Библиотеке.")
+      : tr("studio.retell.confirmReplaceUnsaved", "Заменить текст в поле пересказом? Оригинал НЕ сохранён — он останется только в паспорте пересказа.");
+    if (!window.confirm(msg)) {
+      $("v3RetellGo").disabled = false;
+      st.textContent = "";
+      return;
+    }
+
+    var prevIm = window.v3LastImportMeta || null;
+    var fromImport = prevIm && prevIm.textSnapshot && prevIm.textSnapshot.trim() === text.trim();
+    var input = $("inputText");
+    input.value = data.retell;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    window.v3LastImportMeta = buildRetellPassport({
+      originLabel: fromImport ? prevIm.source : (sess && sess.title) || "",
+      importKind: fromImport ? prevIm.kind : null,
+      importSource: fromImport ? prevIm.source : null,
+      savedTextId: savedId, savedTitle: (sess && sess.title) || null,
+      level: level, model: data.model, retellText: data.retell,
+      coverage: covBefore || covAfter ? {
+        before: covBefore ? Math.round(covBefore.pct * 100) / 100 : null,
+        after: covAfter ? Math.round(covAfter.pct * 100) / 100 : null,
+        zone: covAfter ? covAfter.zone : null,
+      } : null,
+    });
+    // R11-мина обезврежена: «Сохранить» после пересказа обязан создавать НОВУЮ карточку
+    try { window.v3SessionSet && window.v3SessionSet({ textId: null, baseTextId: null, mode: "draft", title: null }); } catch (_) {}
+    close();
+    // W2-S11 T6 verify §1: window.toast (сигнатура текст+тип) в кодовой базе НЕ существует
+    // (grep public/index.html + studio-import.js — только studio-import.js::toast(key,kind), с
+    // i18n-КЛЮЧОМ, несовместимая сигнатура; сам index.html выставляет только window.showToast).
+    // Использован уже определённый в ЭТОМ файле toast(msg, kind) (строка выше, тот же приём,
+    // что и Task 5 code review round1) — он сам не срабатывает, если window.showToast когда-либо
+    // пропадёт, так что деградация всё равно тихая-безопасная, а не сломанный вызов.
+    var covLine = covBefore && covAfter
+      ? " " + Math.round(covBefore.pct * 100) + "% → " + Math.round(covAfter.pct * 100) + "%"
+      : "";
+    toast(tr("studio.retell.done", "Пересказ в поле ввода. Соберите таблицу.") + covLine, "success");
+    $("v3RetellGo").disabled = false;
+  }
+
   var API = {
     LEVELS: LEVELS, RETELL_LEVEL_LS_KEY: RETELL_LEVEL_LS_KEY,
     estimateRetellCost: estimateRetellCost,
@@ -190,6 +306,7 @@
     estimateTextCoverage: estimateTextCoverage,
     openFromComposer: openFromComposer,
     close: close,
+    run: run,
   };
   if (typeof window !== "undefined") window.StudioRetell = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;

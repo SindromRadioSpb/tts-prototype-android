@@ -23389,6 +23389,7 @@ function v3AttachImportSource() {
       };
       if (im.audio) v3LastGeminiMeta.source.audio = im.audio;
       if (im.captions) v3LastGeminiMeta.source.captions = im.captions;
+      if (im.retell) v3LastGeminiMeta.source.retell = im.retell;   // W2-S11: derivedFrom/level/coverage
     }
   } catch (_) {}
 }
@@ -32149,6 +32150,7 @@ function v3TextMetaRenderProvenance(source) {
     docx:  { icon: "📝", label: T("textMeta.provKindWord", "Word") },
     audio: { icon: "🎙", label: T("textMeta.provKindAudio", "Аудио") },
     captions: { icon: "💬", label: T("textMeta.provKindCaptions", "Субтитры") },
+    retell: { icon: "✨", label: T("textMeta.provKindRetell", "Упрощённый пересказ (ИИ)") },
   };
   const METHOD = {
     "readability": T("textMeta.provMethodArticle", "извлечено из статьи (без ИИ)"),
@@ -32159,6 +32161,7 @@ function v3TextMetaRenderProvenance(source) {
     "gemini-asr":  T("textMeta.provMethodAsr", "Распознавание речи (Gemini)"),
     "captions-file":  T("textMeta.provMethodCaptionsFile", "субтитры из файла (без ИИ)"),
     "captions-panel": T("textMeta.provMethodCaptionsPanel", "вставленная расшифровка YouTube (без ИИ)"),
+    "gemini-retell":  T("textMeta.provMethodRetell", "graded-пересказ (Gemini)"),
   };
   let k = KIND[source.kind] || { icon: "📄", label: esc(source.kind) };
   // W2-S4-T2: audio imports whose underlying file was a video (only the audio
@@ -32168,7 +32171,7 @@ function v3TextMetaRenderProvenance(source) {
       String(source.audio.media.mime || "").toLowerCase().startsWith("video/")) {
     k = { icon: "🎬", label: T("textMeta.provKindVideo", "Видео (аудио-дорожка)") };
   }
-  const isAi = source.method === "gemini-ocr" || source.method === "gemini-pdf" || source.method === "gemini-asr";
+  const isAi = source.method === "gemini-ocr" || source.method === "gemini-pdf" || source.method === "gemini-asr" || source.method === "gemini-retell";
   const rows = [];
   rows.push('<div style="font-weight:600;">' + esc(T("textMeta.provTitle", "Происхождение")) + '</div>');
   rows.push('<div>' + k.icon + ' ' + esc(T("textMeta.provSource", "Источник")) + ': ' + esc(k.label) +
@@ -32182,6 +32185,19 @@ function v3TextMetaRenderProvenance(source) {
   const dt = v3TextMetaFmtProvDate(source.at);
   if (dt) rows.push('<div>' + esc(T("textMeta.provImportedAt", "Импортировано")) + ': ' + esc(dt) + '</div>');
   if (source.edited) rows.push('<div>✏ ' + esc(T("textMeta.provEdited", "Текст правился вручную после извлечения")) + '</div>');
+  // W2-S11: retell-паспорт — уровень, источник-оригинал, знакомость (оценка с устройства, R9)
+  if (source.kind === "retell" && source.retell) {
+    const rt = source.retell;
+    if (rt.level) rows.push('<div>🎯 ' + esc(T("textMeta.provRetellLevel", "Уровень")) + ': ' + esc(rt.level) + '</div>');
+    const df = rt.derivedFrom || {};
+    const origin = df.title || df.importSource || null;
+    if (origin) rows.push('<div>↩ ' + esc(T("textMeta.provRetellFrom", "Пересказ текста")) + ': ' + esc(origin) + '</div>');
+    if (rt.coverage && rt.coverage.after != null) {
+      const b = rt.coverage.before != null ? Math.round(rt.coverage.before * 100) + "% → " : "";
+      rows.push('<div>📊 ' + esc(T("textMeta.provRetellCov", "Знакомо (оценка с устройства)")) + ': ' +
+                esc(b + Math.round(rt.coverage.after * 100) + "%") + '</div>');
+    }
+  }
   if (Array.isArray(source.warnings) && source.warnings.length) {
     rows.push('<div>⚠ ' + esc(T("textMeta.provWarn", "возможны пропуски/ошибки распознавания")) + '</div>');
   }
