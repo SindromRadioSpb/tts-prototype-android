@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.257";
+const CACHE_VERSION = "v3.11.258";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -120,6 +120,9 @@ const PRECACHE_URLS = [
   "/js/studio-karaoke.js",
   // Studio Ingest W1 — import panel (URL/file → text, client-side extraction UI).
   "/js/studio-import.js",
+  // W2-S11 — «Упростить до моего уровня» graded-пересказ (cost estimate, coverage,
+  // provenance passport; pure-core is dual-exported for tests/studioRetell.test.js).
+  "/js/studio-retell.js",
   // Studio Ingest W2-S4 — media ingest (Gemini error taxonomy, ASR transcript,
   // OPFS media store, Gemini Files upload, media karaoke driver).
   "/js/gemini-error.js",

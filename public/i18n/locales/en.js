@@ -621,6 +621,12 @@ window.I18N_LOCALES.en = {
     provCaptionsUnknown: "YouTube transcript — track type unverified",
     provCaptionsHeadings: "Chapter headings dropped",
     provCaptionsVideo: "Video",
+    // W2-S11 T7 — graded retelling (studio-retell.js) provenance panel
+    provKindRetell: "Simplified retelling (AI)",
+    provMethodRetell: "graded retelling (Gemini)",
+    provRetellLevel: "Level",
+    provRetellFrom: "Retold from",
+    provRetellCov: "Known (on-device estimate)",
   },
 
   // ── Direction 9 Premium Notes — Phase 9.1.E i18n
@@ -3150,6 +3156,30 @@ window.I18N_LOCALES.en = {
       errCaptionsNoTimestamps: "A transcript with timestamps is needed, not plain text",
       errCaptionsUnparseable: "Could not parse the subtitles",
       errCaptionsTooMany: "Too many lines — use a shorter clip",
+    },
+    // W2-S11 — "Simplify to my level" (graded retelling, studio-retell.js)
+    retell: {
+      title: "✨ Simplify to my level",
+      button: "Simplify to my level",
+      fromImportBtn: "✨ Simplify…",
+      levelLabel: "Retelling level",
+      levelA1: "beginner", levelA2: "elementary", levelB1: "intermediate", levelB2: "upper-intermediate",
+      goBtn: "Simplify", cancelBtn: "Cancel",
+      costLine: "Estimate", secShort: " sec", covNow: "Known now",
+      zone_easy: "easy", zone_in: "growth zone", zone_hard: "hard",
+      working: "Preparing the retelling…",
+      done: "Retelling placed in the input field. Build the table.",
+      confirmReplace: "Replace the text in the field with the retelling? The original is saved in the Library.",
+      confirmReplaceUnsaved: "Replace the text in the field with the retelling? The original is NOT saved — it will remain only in the retelling's provenance.",
+      errEmptyField: "The input field is empty",
+      errNoKey: "A Gemini API key (BYOK) is required — add one in settings",
+      errKeyRejected: "Google rejected your Gemini key — check the key",
+      errQuota: "Gemini quota exhausted — try again later",
+      errOverloaded: "Gemini is overloaded — try again in a minute",
+      errTooLong: "Text is too long to retell (limit ~100,000 characters)",
+      errFailed: "Could not build the retelling",
+      errNetwork: "Network unavailable",
+      providerHint: "For karaoke and long tables, enable the Gemini provider",
     },
     // W2-S4 Task 10 — media bar / segment replay / tap-seek (index.html)
     media: {

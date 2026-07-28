@@ -626,6 +626,12 @@ window.I18N_LOCALES.he = {
     provCaptionsUnknown: "תמלול יוטיוב — סוג רצועת הכתוביות לא אומת",
     provCaptionsHeadings: "כותרות פרקים הושמטו",
     provCaptionsVideo: "סרטון",
+    // W2-S11 T7 — פישוט מדורג (studio-retell.js) — פאנל מקור
+    provKindRetell: "סיפור מפושט (AI)",
+    provMethodRetell: "פישוט מדורג (Gemini)",
+    provRetellLevel: "רמה",
+    provRetellFrom: "פושט מתוך",
+    provRetellCov: "מוכר (הערכה מהמכשיר)",
   },
 
   // ── Direction 9 Premium Notes — Phase 9.1.E i18n (HE)
@@ -3158,6 +3164,30 @@ window.I18N_LOCALES.he = {
       errCaptionsNoTimestamps: "נדרש תמלול עם חותמות זמן, לא טקסט רגיל",
       errCaptionsUnparseable: "לא ניתן לפענח את הכתוביות",
       errCaptionsTooMany: "יותר מדי שורות — בחרו קטע קצר יותר",
+    },
+    // W2-S11 — «פשט לרמה שלי» (פישוט מדורג, studio-retell.js)
+    retell: {
+      title: "✨ פשט לרמה שלי",
+      button: "פשט לרמה שלי",
+      fromImportBtn: "✨ פשט…",
+      levelLabel: "רמת הפישוט",
+      levelA1: "מתחילים", levelA2: "יסודי", levelB1: "בינוני", levelB2: "בינוני-גבוה",
+      goBtn: "פשט", cancelBtn: "ביטול",
+      costLine: "עלות משוערת", secShort: " שניות", covNow: "מוכר כרגע",
+      zone_easy: "קל", zone_in: "אזור הצמיחה", zone_hard: "קשה",
+      working: "מכין את הסיפור המפושט…",
+      done: "הטקסט המפושט הוכנס לשדה הקלט. הרכיבו את הטבלה.",
+      confirmReplace: "להחליף את הטקסט בשדה בגרסה המפושטת? המקור נשמר בספרייה.",
+      confirmReplaceUnsaved: "להחליף את הטקסט בשדה בגרסה המפושטת? המקור לא נשמר — הוא יישאר רק בתיעוד המקור של הגרסה המפושטת.",
+      errEmptyField: "שדה הקלט ריק",
+      errNoKey: "נדרש מפתח Gemini API (BYOK) — הוסיפו בהגדרות",
+      errKeyRejected: "Google דחתה את מפתח ה-Gemini שלכם — בדקו את המפתח",
+      errQuota: "מכסת Gemini נוצלה — נסו שוב מאוחר יותר",
+      errOverloaded: "Gemini עמוס כרגע — נסו שוב בעוד דקה",
+      errTooLong: "הטקסט ארוך מדי לפישוט (מגבלה כ-100,000 תווים)",
+      errFailed: "לא הצלחנו לבנות את הגרסה המפושטת",
+      errNetwork: "אין חיבור לרשת",
+      providerHint: "לקריוקי ולטבלאות ארוכות, הפעילו את ספק Gemini",
     },
     // W2-S4 Task 10 — media bar / segment replay / tap-seek (index.html)
     media: {

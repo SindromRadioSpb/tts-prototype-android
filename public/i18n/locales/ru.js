@@ -622,6 +622,12 @@ window.I18N_LOCALES.ru = {
     provCaptionsUnknown: "расшифровка YouTube — тип дорожки не проверен",
     provCaptionsHeadings: "Отброшено названий глав",
     provCaptionsVideo: "Ролик",
+    // W2-S11 T7 — graded-пересказ (studio-retell.js) provenance-панель
+    provKindRetell: "Упрощённый пересказ (ИИ)",
+    provMethodRetell: "graded-пересказ (Gemini)",
+    provRetellLevel: "Уровень",
+    provRetellFrom: "Пересказ текста",
+    provRetellCov: "Знакомо (оценка с устройства)",
   },
 
   // ── Direction 9 Premium Notes (Phase 9.1.E i18n finalization) ────────
@@ -3164,6 +3170,30 @@ window.I18N_LOCALES.ru = {
       errCaptionsNoTimestamps: "Нужна расшифровка с таймкодами, а не просто текст",
       errCaptionsUnparseable: "Не удалось разобрать субтитры",
       errCaptionsTooMany: "Слишком много реплик — возьмите фрагмент покороче",
+    },
+    // W2-S11 — «Упростить до моего уровня» (graded-пересказ, studio-retell.js)
+    retell: {
+      title: "✨ Упростить до моего уровня",
+      button: "Упростить до моего уровня",
+      fromImportBtn: "✨ Упростить…",
+      levelLabel: "Уровень пересказа",
+      levelA1: "начинающий", levelA2: "элементарный", levelB1: "средний", levelB2: "выше среднего",
+      goBtn: "Упростить", cancelBtn: "Отмена",
+      costLine: "Смета", secShort: " сек", covNow: "Знакомо сейчас",
+      zone_easy: "легко", zone_in: "зона роста", zone_hard: "сложно",
+      working: "Готовлю пересказ…",
+      done: "Пересказ в поле ввода. Соберите таблицу.",
+      confirmReplace: "Заменить текст в поле пересказом? Оригинал сохранён в Библиотеке.",
+      confirmReplaceUnsaved: "Заменить текст в поле пересказом? Оригинал НЕ сохранён — он останется только в паспорте пересказа.",
+      errEmptyField: "Поле ввода пусто",
+      errNoKey: "Нужен Gemini API-ключ (BYOK) — добавьте в настройках",
+      errKeyRejected: "Google отклонил ваш Gemini-ключ — проверьте ключ",
+      errQuota: "Квота Gemini исчерпана — повторите позже",
+      errOverloaded: "Gemini перегружен — попробуйте через минуту",
+      errTooLong: "Текст слишком длинный для пересказа (лимит ~100 000 символов)",
+      errFailed: "Не удалось построить пересказ",
+      errNetwork: "Сеть недоступна",
+      providerHint: "Для караоке и длинных таблиц включите провайдер Gemini",
     },
     // W2-S4 Task 10 — media bar / segment replay / tap-seek (index.html)
     media: {
