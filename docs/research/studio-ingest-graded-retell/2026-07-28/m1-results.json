@@ -1,0 +1,102 @@
+[
+  {
+    "textKey": "ted",
+    "varKey": "cefr",
+    "http": 200,
+    "wallMs": 11928,
+    "promptChars": 13301,
+    "finishReason": "STOP",
+    "usage": {
+      "promptTokenCount": 6207,
+      "candidatesTokenCount": 507,
+      "totalTokenCount": 8827,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 6207
+        }
+      ],
+      "thoughtsTokenCount": 2113,
+      "serviceTier": "standard"
+    },
+    "outChars": 1121
+  },
+  {
+    "textKey": "ted",
+    "varKey": "list",
+    "http": 200,
+    "wallMs": 34318,
+    "promptChars": 19571,
+    "finishReason": "MAX_TOKENS",
+    "usage": {
+      "promptTokenCount": 8914,
+      "candidatesTokenCount": 327,
+      "totalTokenCount": 17102,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 8914
+        }
+      ],
+      "thoughtsTokenCount": 7861,
+      "serviceTier": "standard"
+    },
+    "outChars": 703
+  },
+  {
+    "textKey": "ted",
+    "varKey": "freq",
+    "http": 429,
+    "wallMs": 328,
+    "promptChars": 13401,
+    "body": "{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20,"
+  },
+  {
+    "textKey": "literary",
+    "varKey": "cefr",
+    "http": 429,
+    "wallMs": 243,
+    "promptChars": 9828,
+    "body": "{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20,"
+  },
+  {
+    "textKey": "literary",
+    "varKey": "list",
+    "http": 429,
+    "wallMs": 256,
+    "promptChars": 16098,
+    "body": "{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20,"
+  },
+  {
+    "textKey": "literary",
+    "varKey": "freq",
+    "http": 429,
+    "wallMs": 226,
+    "promptChars": 9928,
+    "body": "{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20,"
+  },
+  {
+    "textKey": "article",
+    "varKey": "cefr",
+    "http": 429,
+    "wallMs": 276,
+    "promptChars": 4381,
+    "body": "{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20,"
+  },
+  {
+    "textKey": "article",
+    "varKey": "list",
+    "http": 429,
+    "wallMs": 236,
+    "promptChars": 10651,
+    "body": "{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20,"
+  },
+  {
+    "textKey": "article",
+    "varKey": "freq",
+    "http": 429,
+    "wallMs": 176,
+    "promptChars": 4481,
+    "body": "{\n  \"error\": {\n    \"code\": 429,\n    \"message\": \"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20,"
+  }
+]
