@@ -3024,8 +3024,10 @@ window.I18N_LOCALES.en = {
     import: {
       button: "Import: link / file / photo",
       title: "Import text",
-      // W2-S5a.1 T2 — three explicit tabs (Article/Video/File) replacing the flat stack
-      tabUrl: "Article / page",
+      // W2-S5a.1 T2 — three explicit tabs (Article/Video/File) replacing the flat stack.
+      // T2-fix (owner visual pass): "Article / page" wrapped to two lines at 380px — shortened to
+      // one word, since the label under the field (urlLabel) already names the page too.
+      tabUrl: "Article",
       tabVideo: "Video",
       tabFile: "File",
       urlLabel: "Article or page link",
@@ -3034,10 +3036,15 @@ window.I18N_LOCALES.en = {
       // orphaned by T2 (the "File" tab now uses fileLabelPhoto/fileLabelAv/fileLabelCaptions as
       // headings for three separate rows) — kept as-is, not deleted
       fileLabel: "Or a file: photo / PDF / Word (up to 6MB)",
+      // orphaned by T2-fix (owner visual pass): both spots that used this key now use
+      // fileBtnPhoto/fileBtnCaptions instead — each button names its own file, not just the
+      // heading above it — kept as-is, not deleted
       fileBtn: "Choose file…",
       fileLabelPhoto: "Photo, PDF, or Word (up to 6MB)",
       fileLabelAv: "Audio or video file (Hebrew)",
       fileLabelCaptions: "Subtitle file (.vtt / .srt)",
+      fileBtnPhoto: "Choose photo, PDF, or Word…",
+      fileBtnCaptions: "Choose subtitle file…",
       previewLabel: "Extracted text (please review!)",
       useBtn: "→ To input field",
       cancelBtn: "Close",
@@ -3083,6 +3090,9 @@ window.I18N_LOCALES.en = {
       errNotVideoUrl: "This doesn't look like a YouTube link",
       switchedToVideo: "Looks like a video — opened the “Video” tab",
       // W2-S5a — Import → Captions (.vtt/.srt file or pasted YouTube transcript panel) + embedded player
+      // orphaned by T2-fix (owner visual pass): the "Video subtitles" heading above the player was
+      // redundant — the tab is already called "Video", and what follows is the player, not
+      // subtitles. Removed from markup, key kept as-is, not deleted.
       captionsLabel: "Video subtitles",
       captionsFileBtn: "Subtitle file (.vtt / .srt)",
       // W2-S5a.1 T3 — guided "how to bring the captions here": shown once the player has mounted

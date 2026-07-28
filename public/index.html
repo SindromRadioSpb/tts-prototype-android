@@ -46542,7 +46542,7 @@ document.addEventListener("i18n:changed", function () {
     </div>
     <div class="v3-modal-body">
       <div id="v3ImportTabs" role="tablist" aria-label="Импорт — тип источника">
-        <button type="button" class="v3-import-tab" id="v3ImportTabUrl" role="tab" aria-selected="true" aria-controls="v3ImportPaneUrl" onclick="StudioImport.switchTab('url')" data-i18n="studio.import.tabUrl">Статья / страница</button>
+        <button type="button" class="v3-import-tab" id="v3ImportTabUrl" role="tab" aria-selected="true" aria-controls="v3ImportPaneUrl" onclick="StudioImport.switchTab('url')" data-i18n="studio.import.tabUrl">Статья</button>
         <button type="button" class="v3-import-tab" id="v3ImportTabVideo" role="tab" aria-selected="false" aria-controls="v3ImportPaneVideo" onclick="StudioImport.switchTab('video')" data-i18n="studio.import.tabVideo">Видео</button>
         <button type="button" class="v3-import-tab" id="v3ImportTabFile" role="tab" aria-selected="false" aria-controls="v3ImportPaneFile" onclick="StudioImport.switchTab('file')" data-i18n="studio.import.tabFile">Файл</button>
       </div>
@@ -46563,7 +46563,6 @@ document.addEventListener("i18n:changed", function () {
         </div>
 
         <div class="v3-import-captions" id="v3ImportCaptionsBox">
-          <div class="input-label" data-i18n="studio.import.captionsLabel">Субтитры видео</div>
           <div id="v3ImportYtMount" hidden></div>
           <div id="v3ImportYtHint" style="font-size:12px; color:#6c757d; margin:4px 0; white-space:pre-wrap;"></div>
           <!-- W2-S5a.1 T3: guided "how to fetch subtitles" instructions — appears once the player
@@ -46602,7 +46601,7 @@ document.addEventListener("i18n:changed", function () {
         <div>
           <label class="input-label" style="display:block; margin-bottom:6px;" data-i18n="studio.import.fileLabelPhoto">Фото, PDF или Word (до 6 МБ)</label>
           <input id="v3ImportFile" type="file" accept="image/jpeg,image/png,image/webp,.pdf,application/pdf,.docx" style="display:none" onchange="StudioImport.onFileChosen(event)">
-          <button type="button" class="btn-secondary" onclick="document.getElementById('v3ImportFile').click()" data-i18n="studio.import.fileBtn">Выбрать файл…</button>
+          <button type="button" class="btn-secondary" onclick="document.getElementById('v3ImportFile').click()" data-i18n="studio.import.fileBtnPhoto">Выбрать фото, PDF или Word…</button>
         </div>
 
         <div class="v3-import-audio">
@@ -46621,7 +46620,7 @@ document.addEventListener("i18n:changed", function () {
 
         <div style="margin-top:10px;">
           <label class="input-label" style="display:block; margin-bottom:6px;" data-i18n="studio.import.fileLabelCaptions">Файл субтитров (.vtt / .srt)</label>
-          <button type="button" class="btn-secondary" onclick="document.getElementById('v3ImportCaptionsFile').click()" data-i18n="studio.import.fileBtn">Выбрать файл…</button>
+          <button type="button" class="btn-secondary" onclick="document.getElementById('v3ImportCaptionsFile').click()" data-i18n="studio.import.fileBtnCaptions">Выбрать файл субтитров…</button>
         </div>
       </div>
 
