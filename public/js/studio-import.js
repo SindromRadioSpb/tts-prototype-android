@@ -481,27 +481,35 @@
     finally { setBusy(false); }
   }
 
-  // IMPORTANT 1 (whole-branch review 2026-07-28, REVISED after prod v3.11.251 owner walkthrough):
-  // YouTube's captions module — the thing getOption("captions","tracklist") reads — does not load
-  // on any fixed schedule tied to playback. First measurement (task-8-report.md) found it empty at
-  // onReady and right after calling play(), populating ~300-500ms into REAL playback, so v1 of this
-  // fix gated the one-shot upgrade on the adapter's 'play' event. That was a reasonable reading of
-  // "confirm with a real event" — but the SECOND measurement, on prod, found a video (64 real
-  // tracks, incl. manual Hebrew) sitting in BUFFERING (state 3, currentTime stuck at 0) for the
-  // whole session: it never reached PLAYING, 'play' never fired, the one-shot upgrade never ran —
-  // and the tracklist had all 64 tracks the ENTIRE TIME. We were withholding an answer we already
-  // had. Fix: stop gating on 'play'. Poll tracklist() on a bounded, self-cancelling schedule
-  // (CAPTIONS_POLL_DELAYS_MS) started right after mount, and upgrade the instant it's non-empty —
-  // this is NOT the kind of "settle a synchronous state" polling the owner ruled out elsewhere
-  // (e.g. adapter.paused, which must answer synchronously); it re-reads data that genuinely arrives
-  // asynchronously, on a bounded schedule that stops the moment it succeeds. 'play' stays wired as
-  // ONE MORE trigger (a real play event is a good moment to check sooner than the next tick), never
-  // the only one. If the schedule runs out and the list is still empty, THAT'S when describeTracks()
-  // settles on "no captions" — bounded by time, not by an event that might never fire.
-  var CAPTIONS_POLL_DELAYS_MS = [1000, 3000, 6000, 10000];
+  // IMPORTANT 1 (whole-branch review 2026-07-28, TWICE revised — see history below): YouTube's
+  // captions module — the thing getOption("captions","tracklist") reads — is reliably known to
+  // load once real playback (PLAYING) begins; that is the only signal we have for "has it had a
+  // real chance to populate yet". Two measurements shaped this function:
+  //   1. task-8-report.md: a video with 64 real tracks read tracklist().length === 0 at onReady
+  //      AND right after calling play(), populating ~300-500ms into REAL playback. v1 gated the
+  //      one-shot upgrade on 'play' + a grace delay — reasonable, but ONLY handled the positive
+  //      case fast; a video that BUFFERS (state 3, never reaching PLAYING) never fires 'play', so
+  //      the upgrade never ran even though the tracklist was already populated. v2 added a bounded
+  //      poll to catch that.
+  //   2. Prod v3.11.251, immediately after v2 shipped: mounting iG9CE55wbtY and leaving it CUED
+  //      (state 5, never pressed play) — the poll's OWN schedule exhausted, found nothing, and
+  //      v2 treated that exhaustion as confirmation of absence. That video has 64 tracks including
+  //      manual Hebrew. An empty tracklist means NOTHING until playback has actually had the
+  //      chance to populate it — exhausting a timer is not that chance. v2 reintroduced the exact
+  //      "тихий 0 ≠ реальный 0" trap this function exists to prevent, through a different door.
+  // v3 (this version) keeps BOTH mechanisms but gives them asymmetric authority:
+  //   - The bounded poll (CAPTIONS_POLL_DELAYS_MS) may ONLY ever UPGRADE the hint (write the
+  //     moment tracklist() is non-empty, at ANY tick) — it can NEVER conclude absence. If the
+  //     video is never played, the hint rests on "not reported yet" for as long as the dialog
+  //     stays open — indefinitely, correctly, honestly.
+  //   - Only a real 'play' event, plus RE_CONFIRM_DELAY_MS grace, may conclude absence — and only
+  //     because "playback genuinely started AND the captions module still reports nothing" is an
+  //     actual observation, not a timeout. This is the ONLY place describeTracks(list, true) may
+  //     be called with an EMPTY list.
+  var CAPTIONS_POLL_DELAYS_MS = [1000, 3000, 6000, 10000]; // upgrade-only — see above
   var RE_CONFIRM_DELAY_MS = 800; // extra nudge after a real 'play' — YouTube's own captions module
                                   // measured populating ~300-500ms into real playback; this leaves
-                                  // headroom without waiting for the next scheduled poll tick.
+                                  // headroom before the ONLY check allowed to conclude absence.
 
   // W2-S5a.1 T3 — guided "how to fetch captions" instructions (id="v3ImportCaptionsHow" in the
   // markup, hidden by default). Shown once the embedded player has actually mounted (independent
@@ -547,31 +555,36 @@
       hint.textContent = describeTracks(initialList, /* confirmed */ false);
       showCaptionsHow(true, videoId);
 
-      // T2-fix2 (whole-branch review, prod v3.11.251): bounded, self-cancelling poll — see the
-      // IMPORTANT 1 comment above CAPTIONS_POLL_DELAYS_MS for why this replaced the play-gated
-      // one-shot. `upgraded` makes this write AT MOST ONCE per mount; `isFinal` is what lets the
-      // LAST scheduled tick settle on "no captions" if nothing showed up by then, without that
-      // negative conclusion ever being reachable from an early/positive-only trigger like 'play'.
+      // T2-fix3 (whole-branch review — prod v3.11.251, gap found AFTER the T2-fix2 poll shipped):
+      // `confirmAbsence` is the ONLY thing that may let this write an EMPTY, confirmed result.
+      // The poll (below) always calls with confirmAbsence=false — it can only ever upgrade to a
+      // POSITIVE result, never conclude absence. Only the 'play'-triggered check (further below)
+      // calls with confirmAbsence=true, and only after real playback + a grace window. `upgraded`
+      // makes this write AT MOST ONCE per mount either way.
       var upgraded = initialList.length > 0; // already informative — nothing left to poll for
-      var tryUpgrade = function (isFinal) {
+      var tryUpgrade = function (confirmAbsence) {
         if (upgraded || ytAdapter !== thisAdapter) return; // done, or superseded meanwhile
         var list = thisAdapter.tracklist();
         if (list.length) {
           upgraded = true;
           clearCaptionsPoll();
           hint.textContent = describeTracks(list, /* confirmed */ true);
-        } else if (isFinal) {
+        } else if (confirmAbsence) {
+          // Real playback started, grace window passed, tracklist is STILL empty — a genuine
+          // observation, not a timeout. This is the only branch allowed to conclude "no captions".
           upgraded = true;
+          clearCaptionsPoll();
           hint.textContent = describeTracks(list, /* confirmed */ true); // → captionsTracksNone
         }
+        // else: empty AND not allowed to conclude absence — do nothing. The hint rests on "not
+        // reported yet" for as long as it takes, even if that's forever (video never played).
       };
-      CAPTIONS_POLL_DELAYS_MS.forEach(function (ms, i) {
-        var isFinal = i === CAPTIONS_POLL_DELAYS_MS.length - 1;
-        captionsPollTimers.push(setTimeout(function () { tryUpgrade(isFinal); }, ms));
+      CAPTIONS_POLL_DELAYS_MS.forEach(function (ms) {
+        captionsPollTimers.push(setTimeout(function () { tryUpgrade(false); }, ms)); // upgrade-only, never
       });
       var onPlay = function () {
         thisAdapter.removeEventListener("play", onPlay); // one real confirmation is enough as a trigger
-        setTimeout(function () { tryUpgrade(false); }, RE_CONFIRM_DELAY_MS); // never settles "none" — isFinal stays false
+        setTimeout(function () { tryUpgrade(true); }, RE_CONFIRM_DELAY_MS); // the ONLY confirmAbsence=true call
       };
       thisAdapter.addEventListener("play", onPlay);
     } catch (e) {
@@ -583,10 +596,12 @@
   }
 
   // R9: сообщаем, ЧТО есть у ролика — это свидетельство о дорожках, а не о принесённом файле.
-  // `confirmed` = true once the tracklist has had every reasonable chance to populate: either it's
-  // genuinely non-empty (mountVideo()'s tryUpgrade — `confirmed` is moot there, a non-empty read is
-  // its own confirmation), or the bounded poll schedule (CAPTIONS_POLL_DELAYS_MS) ran out and it's
-  // STILL empty. An EMPTY unconfirmed read means "not reported yet", never "there are none".
+  // `confirmed` is moot when `list` is non-empty (a real track IS its own confirmation, regardless
+  // of how it was found — poll or play). `confirmed=true` with an EMPTY list is a claim of genuine
+  // absence — mountVideo() must only ever make that specific call from its play-triggered check
+  // (real playback + grace window), NEVER from the bounded poll (which may only upgrade, never
+  // conclude absence — see IMPORTANT 1 above mountVideo()). An empty list with confirmed=false
+  // means "not reported yet", and may rest that way indefinitely if the video is never played.
   function describeTracks(list, confirmed) {
     var r = chooseTrackHint(list, confirmed);
     // Bug (whole-branch review 2026-07-28, MINOR): `r.langs ? {...} : null` treated an EMPTY
