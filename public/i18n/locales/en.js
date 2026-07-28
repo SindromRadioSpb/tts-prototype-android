@@ -85,6 +85,8 @@ window.I18N_LOCALES.en = {
     tableChunkProgress: "Chunk {k} of {m} — the table is filling in as it becomes ready",
     tableChunkFailed: "Chunk {k} of {m} failed. The finished chunks are kept — click \"AI Translate\" again: what's done returns from cache instantly, only the failed part is retried.",
     tableChunkedDone: "Done: assembled from {m} chunks",
+    tableCostConfirm: "Long table: ≈{rows} rows, ≈${usd}, ~{min} min. Rows will appear as they become ready. Continue?",
+    textTooLongForSingleTable: "The text is too long for a single table (>250 rows). Import it via \"Import\" (audio/captions give segments and karaoke) or split it into parts.",
     resultTitle: "Result",
     resultPanelTitle: "Result",
     resultSubtitle: "Status and provenance of the result.",

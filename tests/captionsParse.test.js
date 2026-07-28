@@ -74,11 +74,14 @@ test("errors: empty, no timestamps, unparseable, too many", () => {
   assert.equal(CP.parse("WEBVTT\n\n\n").error_code, "CAPTIONS_EMPTY");
   // Кап применяется ТОЛЬКО на продуктовом пути (merge:true, дефолт) и ПОСЛЕ слияния (T3B) —
   // merge:false теперь сырой диагностический режим без капов. Поэтому кью здесь разнесены на 4с
-  // (пауза 3с > MERGE_PAUSE_SEC=2с) — они гарантированно НЕ склеятся, и 401 кью останутся 401
-  // сегментом, бив кап числом сегментов, а не числом кью-подряд-как-раньше.
+  // (пауза 3с > MERGE_PAUSE_SEC=2с) — они гарантированно НЕ склеятся, и MAX_SEGMENTS+1 кью
+  // останутся MAX_SEGMENTS+1 сегментом, бив кап числом сегментов, а не числом кью-подряд-как-раньше.
+  // W2-S12: MAX_SEGMENTS=2800 pushes k*4 past 3600s (real hours), so fmtHMS must emit a proper
+  // H:MM:SS (not a hardcoded "00:" hour with minutes overflowing past 2 digits, which CUE_RE
+  // can't parse) — was fine at the old cap of 400 (≤26 min), silently wrong once it grows.
   function fmtHMS(totalSec) {
-    const m = Math.floor(totalSec / 60), s = totalSec % 60;
-    return `00:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}.000`;
+    const h = Math.floor(totalSec / 3600), m = Math.floor((totalSec % 3600) / 60), s = totalSec % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}.000`;
   }
   const many = ["WEBVTT", ""].concat(
     Array.from({ length: CP.MAX_SEGMENTS + 1 }, (_, k) =>
@@ -100,12 +103,19 @@ test("i is dense and zero-based (contract of ingest/segTable.js)", () => {
   assert.deepEqual(r.segments.map((s) => s.i), [0, 1]);
 });
 
-test("caps mirror the server contract by construction", () => {
+test("caps: chunk size fits the server per-request cap; per-segment text cap still mirrors", () => {
+  // W2-S12: CP.MAX_SEGMENTS is now a pre-chunk TOTAL-transcript cap (2800), decoupled on purpose
+  // from ingest/segTable.js's per-REQUEST cap (segTable stays untouched — "zero-server-growth",
+  // docs/planning/STUDIO_INGEST_W2_S12_LONGMEDIA_DESIGN_2026_07_28.md §4.5/§Инвентарь). The client
+  // now always sends ≤TableChunks.CHUNK_SIZE segments per request, so the contract worth pinning
+  // (so a regression fails HERE, not as a mysterious 400 from the server) is that the chunk size
+  // never exceeds what one server request accepts. MAX_SEG_TEXT (per-segment length) was never
+  // chunk-related and still mirrors exactly.
   const seg = require("../ingest/segTable.js");
-  // segTable не экспортирует константы — проверяем по исходнику, чтобы расхождение падало здесь,
-  // а не превращалось в загадочный 400 от сервера.
+  const TC = require("../public/js/table-chunks.js");
+  assert.ok(TC.CHUNK_SIZE <= seg.MAX_SEGMENTS,
+    "TableChunks.CHUNK_SIZE must fit within one segTable.js MAX_SEGMENTS request");
   const src = require("node:fs").readFileSync(require.resolve("../ingest/segTable.js"), "utf8");
-  assert.match(src, new RegExp(`MAX_SEGMENTS\\s*=\\s*${CP.MAX_SEGMENTS}\\b`));
   assert.match(src, new RegExp(`MAX_SEG_TEXT\\s*=\\s*${CP.MAX_SEG_TEXT}\\b`));
   assert.ok(seg);
 });

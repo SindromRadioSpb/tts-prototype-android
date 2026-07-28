@@ -12346,9 +12346,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=71"></script>
-<script src="/i18n/locales/en.js?v=71"></script>
-<script src="/i18n/locales/he.js?v=71"></script>
+<script src="/i18n/locales/ru.js?v=72"></script>
+<script src="/i18n/locales/en.js?v=72"></script>
+<script src="/i18n/locales/he.js?v=72"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -33139,6 +33139,23 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
             return;
         }
 
+        // W2-S12 T6 (R11 fix): flat he-ru/any-he text (no import segments) that would render a
+        // huge single table today silently 500s server-side and loses the whole translation.
+        // Brief text says "place BEFORE setLoading(true)" but in the live code the chunk fork
+        // (and segsForChunks/usePremium themselves) only exist AFTER setLoading(true)/skeleton —
+        // so the guard sits here instead, right after the fork, where segsForChunks is in scope.
+        // setLoading(true) + skeleton already ran above; unwind both by hand since we bail before
+        // the try/finally further down owns that cleanup. window.TableChunks guard mirrors the
+        // fork above — if the module failed to load, fall through honestly instead of throwing.
+        if (!usePremium && !segsForChunks && window.TableChunks
+            && TableChunks.estimatePlainRows(getText()) > 250) {
+            showError(t("classic.textTooLongForSingleTable"));
+            document.getElementById("tableContainer").innerHTML = "";
+            setLoading(false);
+            updateAiButtonState();
+            return;
+        }
+
         const payload = usePremium
             ? {
                 text: getText(),
@@ -33261,6 +33278,24 @@ try {
     // NB: setLoading(true)/setAiButtonDisabled(true) уже выполнены translateTable() ДО развилки,
     // ведущей сюда — здесь их НЕ повторяем; finally ниже симметрично снимает состояние загрузки.
     async function v3TranslateTableChunked(segs) {
+        // W2-S12 T6 (R16): смета-подтверждение ДО любой мутации состояния — отказ должен быть
+        // чистым return, ничего не тронув (currentTableData ещё старый, медиа не detach-нуты).
+        // Эта точка ВНЕ try/finally цикла ниже (тот открывается только после detach-блока),
+        // поэтому на отказе setLoading/updateAiButtonState снимаются вручную — иначе спиннер,
+        // включённый вызывающим translateTable() до развилки, останется висеть навсегда.
+        {
+            const est = window.AsrTranscript.estimateLongJob(0, {
+                chunkSize: TableChunks.CHUNK_SIZE, segmentsKnown: segs.length });
+            // durationSec=0: ASR уже оплачен на импорте; здесь только стоимость таблицы.
+            const msg = t("classic.tableCostConfirm")
+                .replace("{rows}", String(est.expRows)).replace("{usd}", est.tableUsd.toFixed(2))
+                .replace("{min}", String(Math.ceil(est.chunks * 140 / 60)));
+            if (!window.confirm(msg)) {
+                setLoading(false);
+                updateAiButtonState();
+                return;
+            }
+        }
         const chunks = TableChunks.buildChunks(segs);
         const accum = [];
         const chunkMeta = [];
