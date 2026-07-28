@@ -67,3 +67,52 @@ test("estimateAsrCostUsd: backward-compat (no opts) unchanged, video adds frame 
   // opts omitted entirely still works (backward compat call shape)
   assert.equal(A.estimateAsrCostUsd(600), audio);
 });
+
+test("asrWindows: нарезка встык, хвост короче окна, нулевая длительность", () => {
+  assert.deepEqual(A.asrWindows(0), [{ startSec: 0, endSec: 0 }]);
+  assert.deepEqual(A.asrWindows(900), [{ startSec: 0, endSec: 900 }]);
+  assert.deepEqual(A.asrWindows(2000), [
+    { startSec: 0, endSec: 900 }, { startSec: 900, endSec: 1800 }, { startSec: 1800, endSec: 2000 },
+  ]);
+});
+
+test("ASR_RANGE_PROMPT: содержит базовый промт, диапазон в M:SS/H:MM:SS и ABSOLUTE", () => {
+  const p = A.ASR_RANGE_PROMPT(1920, 2400);
+  assert.ok(p.startsWith(A.ASR_PROMPT));
+  assert.match(p, /from 32:00 to 40:00/);
+  assert.match(p, /ABSOLUTE/);
+  assert.match(A.ASR_RANGE_PROMPT(3600, 4500), /from 1:00:00 to 1:15:00/);
+});
+
+test("mergeWindowSegments: конкатенация, немонотонный стык → start=null", () => {
+  const m = A.mergeWindowSegments([
+    [{ start: 10, text: "א" }, { start: 890, text: "ב" }],
+    [{ start: 870, text: "ג" }, { start: 910, text: "ד" }], // 870 < 890 — залез в прошлое окно
+  ]);
+  assert.deepEqual(m.map((s) => s.start), [10, 890, null, 910]);
+  assert.equal(m.length, 4); // тексты не теряются
+});
+
+test("findCoverageGaps: дыра середины >90с, хвост >180с; интро НЕ дыра; null-старты прозрачны", () => {
+  const segs = [{ start: 200, text: "а" }, { start: 260, text: "б" }, { start: null, text: "х" },
+                { start: 500, text: "в" }];
+  // интро 0..200 НЕ дыра (LATE_FIRST_SEGMENT уже флагует); 260→500 = 240с > 90 — дыра;
+  // хвост 500..1000 = 500с > 180 — дыра.
+  assert.deepEqual(A.findCoverageGaps(segs, 1000), [
+    { fromSec: 260, toSec: 500 }, { fromSec: 500, toSec: 1000 },
+  ]);
+  assert.deepEqual(A.findCoverageGaps([{ start: 5, text: "а" }, { start: 80, text: "б" }], 200), []);
+  assert.deepEqual(A.findCoverageGaps([], 600), []); // пусто — NO_SPEECH-путь, не дыры
+});
+
+test("estimateLongJob: 2ч подкаст в замеренных рамках; chunkSize обязателен", () => {
+  const e = A.estimateLongJob(7200, { video: false, chunkSize: 120 });
+  assert.ok(e.asrUsd > 0.15 && e.asrUsd < 0.5, "asrUsd=" + e.asrUsd);
+  assert.ok(e.totalUsd > 0.4 && e.totalUsd < 1.5, "totalUsd=" + e.totalUsd);
+  assert.ok(e.minutes >= 10 && e.minutes <= 35, "minutes=" + e.minutes);
+  assert.equal(e.windows, 8);
+  assert.ok(e.chunks >= 5 && e.chunks <= 8);
+  assert.throws(() => A.estimateLongJob(7200, {}), /chunkSize/);
+  const known = A.estimateLongJob(7200, { chunkSize: 120, segmentsKnown: 1700 });
+  assert.equal(known.chunks, Math.ceil(1700 / 120));
+});

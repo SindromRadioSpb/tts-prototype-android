@@ -41,6 +41,100 @@
            (d * OUT_TOKENS_PER_SEC / 1e6) * USD_PER_MTOK_OUT;
   }
 
+  // ── W2-S12: окна ASR + покрытие + смета длинного прогона ──
+  // Все числа — замер 2026-07-28 (docs/research/studio-ingest-longmedia/2026-07-28/):
+  // одновызовный ASR длинных файлов молча теряет куски и упирается в 65,536 ток. вывода
+  // (thinking делит бюджет с ответом); range-промт по одному fileUri работает точно.
+  var ASR_WINDOW_SEC = 900;    // 15 мин — внутри доказанного прод-режима ≤20 мин
+  var ASR_GAP_MAX_SEC = 90;    // дыра покрытия внутри записи, требующая добора
+  var ASR_TAIL_GAP_SEC = 180;  // молчание хвоста, считающееся дырой
+
+  function asrWindows(durationSec) {
+    var d = Math.max(0, Number(durationSec) || 0);
+    var out = [];
+    for (var t = 0; t < d; t += ASR_WINDOW_SEC) {
+      out.push({ startSec: t, endSec: Math.min(d, t + ASR_WINDOW_SEC) });
+    }
+    if (!out.length) out.push({ startSec: 0, endSec: 0 });
+    return out;
+  }
+
+  function fmtClock(sec) { // форматы, которые secondsFromTimestamp умеет парсить
+    var s = Math.max(0, Math.round(sec));
+    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = String(s % 60).padStart(2, "0");
+    return h ? h + ":" + String(m).padStart(2, "0") + ":" + ss : m + ":" + ss;
+  }
+
+  // Дословно проверенная формулировка (research m3, фаза range258): точное окно, абсолютные метки.
+  function ASR_RANGE_PROMPT(startSec, endSec) {
+    var a = fmtClock(startSec), b = fmtClock(endSec);
+    return ASR_PROMPT +
+      "\nIMPORTANT SCOPE: transcribe ONLY the region of the recording from " + a + " to " + b +
+      " (minutes:seconds from the very beginning of the file). Output NOTHING from outside this region." +
+      " Timestamps must remain ABSOLUTE (measured from the very beginning of the file, i.e. within " +
+      a + "-" + b + ").";
+  }
+
+  function mergeWindowSegments(perWindow) {
+    var out = [], lastT = -Infinity;
+    for (var w = 0; w < (perWindow || []).length; w++) {
+      var segs = perWindow[w] || [];
+      for (var k = 0; k < segs.length; k++) {
+        var t = (typeof segs[k].start === "number" && isFinite(segs[k].start)) ? segs[k].start : null;
+        if (t !== null && t < lastT) t = null; // немонотонный стык окон → честный null (R11)
+        if (t !== null) lastT = t;
+        out.push({ start: t, text: segs[k].text });
+      }
+    }
+    return out;
+  }
+
+  // Интро-дыра НЕ считается: поздний первый сегмент легитимен (музыка) и уже флагуется
+  // LATE_FIRST_SEGMENT в validateSegments. null-старты прозрачны (не рвут отрезок).
+  function findCoverageGaps(segments, durationSec) {
+    var dur = Math.max(0, Number(durationSec) || 0);
+    var gaps = [], prev = null;
+    for (var k = 0; k < (segments || []).length; k++) {
+      var t = segments[k] && typeof segments[k].start === "number" ? segments[k].start : null;
+      if (t === null) continue;
+      if (prev !== null && t - prev > ASR_GAP_MAX_SEC) gaps.push({ fromSec: prev, toSec: t });
+      prev = t;
+    }
+    if (prev !== null && dur > 0 && dur - prev > ASR_TAIL_GAP_SEC) gaps.push({ fromSec: prev, toSec: dur });
+    return gaps;
+  }
+
+  // R16: ЕДИНСТВЕННОЕ место цен длинного прогона (вместе с ASR-константами выше).
+  // Замер: строка таблицы ≈205–219 out-ток (берём 220); ASR-выход с thinking ≈8 ток/с;
+  // кусок таблицы 147–224 с (берём 140 с консервативно на 120 сегм); окно ASR 21–139 с (берём 45).
+  var TABLE_OUT_TOKENS_PER_ROW = 220;
+  var TABLE_IN_TOKENS_PER_SEG = 40;
+  var USD_PER_MTOK_TEXT_IN = 0.30;
+  var ASR_OUT_TOKENS_PER_SEC_TOTAL = 8; // candidates+thinking, замер 75-мин прогона
+  var TABLE_SEC_PER_CHUNK = 140;
+  var ASR_SEC_PER_WINDOW = 45;
+  var SEGS_PER_MIN_ASR = 6; // подкаст-монолог 4.8–8/мин
+
+  function estimateLongJob(durationSec, opts) {
+    if (!opts || !Number.isInteger(opts.chunkSize) || opts.chunkSize <= 0) {
+      throw new Error("estimateLongJob: chunkSize обязателен (TableChunks.CHUNK_SIZE)");
+    }
+    var d = Math.max(0, Number(durationSec) || 0);
+    var inRate = ASR_TOKENS_PER_SEC + ((opts.video) ? VIDEO_FRAME_TOKENS_PER_SEC_LOW : 0);
+    var asrUsd = (d * inRate / 1e6) * USD_PER_MTOK_AUDIO_IN +
+                 (d * ASR_OUT_TOKENS_PER_SEC_TOTAL / 1e6) * USD_PER_MTOK_OUT;
+    var segs = Number.isInteger(opts.segmentsKnown) ? opts.segmentsKnown
+             : Math.ceil((d / 60) * SEGS_PER_MIN_ASR);
+    var expRows = Math.ceil(segs * 1.05); // модель может дробить сегмент на строки
+    var chunks = Math.max(1, Math.ceil(segs / opts.chunkSize));
+    var tableUsd = (expRows * TABLE_OUT_TOKENS_PER_ROW / 1e6) * USD_PER_MTOK_OUT +
+                   (segs * TABLE_IN_TOKENS_PER_SEG / 1e6) * USD_PER_MTOK_TEXT_IN;
+    var windows = asrWindows(d).length;
+    var minutes = Math.ceil((windows * ASR_SEC_PER_WINDOW + chunks * TABLE_SEC_PER_CHUNK) / 60) + 1;
+    return { asrUsd: asrUsd, tableUsd: tableUsd, totalUsd: asrUsd + tableUsd,
+             minutes: minutes, expRows: expRows, chunks: chunks, windows: windows };
+  }
+
   function secondsFromTimestamp(s) {
     if (typeof s !== "string") return null;
     var m = /^(\d+):([0-5]?\d)(?:\.(\d+))?$/.exec(s.trim());
@@ -130,6 +224,10 @@
     validateSegments: validateSegments, buildRowTiming: buildRowTiming,
     estimateAsrCostUsd: estimateAsrCostUsd,
     VIDEO_FRAME_TOKENS_PER_SEC_LOW: VIDEO_FRAME_TOKENS_PER_SEC_LOW,
+    ASR_WINDOW_SEC: ASR_WINDOW_SEC, ASR_GAP_MAX_SEC: ASR_GAP_MAX_SEC, ASR_TAIL_GAP_SEC: ASR_TAIL_GAP_SEC,
+    asrWindows: asrWindows, ASR_RANGE_PROMPT: ASR_RANGE_PROMPT,
+    mergeWindowSegments: mergeWindowSegments, findCoverageGaps: findCoverageGaps,
+    estimateLongJob: estimateLongJob,
   };
   if (typeof window !== "undefined") window.AsrTranscript = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
