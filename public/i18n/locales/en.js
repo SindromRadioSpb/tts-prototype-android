@@ -3080,6 +3080,12 @@ window.I18N_LOCALES.en = {
       captionsTracksAuto: "This video only has auto-generated subtitles:",
       captionsTracksNone: "This video has no subtitles — upload a media file for speech recognition",
       captionsTracksPending: "The player hasn't reported any caption tracks yet — they may appear once playback starts",
+      // W2-S5a.1 T1 — Hebrew is checked first, the alphabet never decides (owner-defect: 64 tracks,
+      // manual Hebrew among them, the hint printed the first 4 alphabetically and never named Hebrew)
+      captionsTracksHeManual: "✓ Manual Hebrew subtitles available",
+      captionsTracksHeAuto: "Only auto-generated Hebrew subtitles available — quality not guaranteed",
+      captionsTracksNoHe: "No Hebrew subtitles. Manual subtitles available in: {langs}",
+      captionsTracksMore: "and {n} more languages",
       provCaptions: "Subtitles → segments",
       errCaptionsEmpty: "No lines found in the subtitles",
       errCaptionsNoTimestamps: "A transcript with timestamps is needed, not plain text",

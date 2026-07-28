@@ -6,7 +6,38 @@
 // Зависимости-глобалы Студии: geminiKeyGet(), showToast(), t(), #inputText.
 (function () {
   "use strict";
-  if (typeof window === "undefined") return;
+
+  var HE_RE = /^(iw|he)\b/i;
+
+  // Целевой язык продукта — иврит (seg-режим работает только he-ru). Алфавитный список дорожек
+  // бесполезен: у одного ролика их бывает 64, и нужная тонет. Поэтому иврит проверяется первым.
+  // Pure — no DOM — exported below for Node (tests/importTrackHint.test.js) and for the browser
+  // via window.StudioImport.chooseTrackHint, following the split used in studio-media-karaoke.js.
+  function chooseTrackHint(list, confirmed) {
+    var tracks = Array.isArray(list) ? list : [];
+    if (!tracks.length) {
+      return { key: confirmed ? "studio.import.captionsTracksNone" : "studio.import.captionsTracksPending" };
+    }
+    var he = tracks.filter(function (t) { return t && HE_RE.test(String(t.languageCode || "")); });
+    var heManual = he.filter(function (t) { return t.kind !== "asr"; });
+    if (heManual.length) {
+      return { key: "studio.import.captionsTracksHeManual", more: Math.max(0, tracks.length - heManual.length) };
+    }
+    if (he.length) {
+      return { key: "studio.import.captionsTracksHeAuto", more: Math.max(0, tracks.length - he.length) };
+    }
+    var manual = tracks.filter(function (t) { return t.kind !== "asr"; });
+    var pool = manual.length ? manual : tracks;
+    var names = pool.map(function (t) { return t.languageName || t.languageCode; }).filter(Boolean);
+    var uniq = names.filter(function (v, i) { return names.indexOf(v) === i; });
+    return { key: "studio.import.captionsTracksNoHe", langs: uniq.slice(0, 3).join(", "),
+             more: Math.max(0, uniq.length - 3) };
+  }
+
+  if (typeof window === "undefined") {
+    if (typeof module !== "undefined" && module.exports) module.exports = { chooseTrackHint: chooseTrackHint };
+    return;
+  }
 
   var MAX_FILE_BYTES = 6 * 1024 * 1024;
   var pending = null; // {kind, source, method, model, warnings, text}
@@ -24,7 +55,7 @@
   var ytAdapter = null;       // адаптер плеера, если ролик встроен
 
   function $(id) { return document.getElementById(id); }
-  function tr(key) { return (typeof window.t === "function") ? window.t(key) : key; }
+  function tr(key, params) { return (typeof window.t === "function") ? window.t(key, params) : key; }
   function toast(key, type) { if (typeof window.showToast === "function") window.showToast(tr(key), type || "info"); }
 
   function setStatus(msgKey, extra) {
@@ -379,18 +410,10 @@
   // `confirmed` = true only after a real 'play' event + grace delay (see RE_CONFIRM_DELAY_MS
   // above) — an EMPTY unconfirmed read means "not reported yet", never "there are none".
   function describeTracks(list, confirmed) {
-    if (!list || !list.length) {
-      return tr(confirmed ? "studio.import.captionsTracksNone" : "studio.import.captionsTracksPending");
-    }
-    var manual = list.filter(function (t) { return t.kind !== "asr"; });
-    // MINOR (whole-branch review 2026-07-28): a track with neither languageName nor
-    // languageCode must not render the literal string "undefined" — drop it instead.
-    var langs = (manual.length ? manual : list)
-      .map(function (t) { return t.languageName || t.languageCode; })
-      .filter(Boolean);
-    var uniq = langs.filter(function (v, i) { return langs.indexOf(v) === i; }).slice(0, 4).join(", ");
-    var label = tr(manual.length ? "studio.import.captionsTracksManual" : "studio.import.captionsTracksAuto");
-    return uniq ? label + " " + uniq : label;
+    var r = chooseTrackHint(list, confirmed);
+    var msg = tr(r.key, r.langs ? { langs: r.langs } : null);
+    if (r.more) msg += "\n" + tr("studio.import.captionsTracksMore", { n: r.more });
+    return msg;
   }
 
   function acceptCaptions(parsed, origin, fileName) {
@@ -432,5 +455,5 @@
   window.StudioImport = { open: open, close: close, fetchUrl: fetchUrl, fetchUrlOrVideo: fetchUrlOrVideo,
                            onFileChosen: onFileChosen, onAudioChosen: onAudioChosen, transcribeAudio: transcribeAudio,
                            onCaptionsFileChosen: onCaptionsFileChosen, useCaptionsPaste: useCaptionsPaste,
-                           useText: useText };
+                           useText: useText, chooseTrackHint: chooseTrackHint };
 })();
