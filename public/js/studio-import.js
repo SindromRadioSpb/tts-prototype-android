@@ -62,9 +62,78 @@
     return n === 1 ? "one" : "many"; // en, he: binary singular/plural
   }
 
+  // W2-S12: оркестратор окон ASR. Pure-логика с инъекцией transcribe/parse — тестируется в Node
+  // фейками (tests/runWindowedAsr.test.js); сетевые вызовы даёт Task 4. Дизайн §4.3.
+  // ВАЖНО (R11): добор дыры — ×1 на дыру, максимум maxHeals доборов на прогон; остаток дыр
+  // никогда не маскируется — уходит в coverageGaps + warning ASR_COVERAGE_GAP.
+  async function runWindowedAsr(deps) {
+    var A2 = (typeof window !== "undefined") ? window.AsrTranscript : require("./asr-transcript.js");
+    var wins = A2.asrWindows(deps.durationSec);
+    var single = wins.length === 1;
+    var windowSegments = (deps.priorWindows || []).slice();
+    var windowsMeta = windowSegments.map(function (_, i) {
+      return { startSec: wins[i].startSec, endSec: wins[i].endSec, retries: 0 };
+    });
+    var warnings = [], language = null;
+    var startAt = deps.startWindow || windowSegments.length;
+
+    async function oneCall(startSec, endSec) { // parse c retry ×1 на ASR_BAD_JSON
+      var raw = await deps.transcribe(startSec, endSec);
+      try { return { parsed: deps.parse(raw), retries: 0 }; }
+      catch (e1) {
+        if (e1.code !== "ASR_BAD_JSON") throw e1;
+        raw = await deps.transcribe(startSec, endSec);
+        return { parsed: deps.parse(raw), retries: 1 };
+      }
+    }
+
+    for (var k = startAt; k < wins.length; k++) {
+      deps.onProgress(k + 1, wins.length);
+      var r;
+      try {
+        r = single ? await oneCall(null, null) : await oneCall(wins[k].startSec, wins[k].endSec);
+      } catch (e) {
+        e.windowIndex = k;
+        e.windowSegments = windowSegments;
+        throw e;
+      }
+      windowsMeta.push({ startSec: wins[k].startSec, endSec: wins[k].endSec, retries: r.retries });
+      windowSegments.push(r.parsed.segments);
+      if (!language && r.parsed.language) language = r.parsed.language;
+      (r.parsed.warnings || []).forEach(function (w) {
+        if (w !== "NO_SPEECH" && warnings.indexOf(w) < 0) warnings.push(w);
+      });
+    }
+
+    var merged = A2.mergeWindowSegments(windowSegments);
+    var gaps = A2.findCoverageGaps(merged, deps.durationSec);
+    var healedGaps = [], maxHeals = deps.maxHeals == null ? 3 : deps.maxHeals;
+    for (var g = 0; g < gaps.length && healedGaps.length < maxHeals; g++) {
+      var gap = gaps[g];
+      var heal;
+      try { heal = await oneCall(gap.fromSec, gap.toSec); }
+      catch (_) { continue; } // добор best-effort: неудача = дыра остаётся честной
+      if (heal.parsed.segments.length) {
+        // плоская пересборка: merged-до-дыры + добор + merged-после (по времени)
+        var flat = [];
+        merged.forEach(function (s) { if (s.start === null || s.start <= gap.fromSec) flat.push(s); });
+        heal.parsed.segments.forEach(function (s) { flat.push(s); });
+        merged.forEach(function (s) { if (s.start !== null && s.start > gap.fromSec) flat.push(s); });
+        merged = A2.mergeWindowSegments([flat]);
+        healedGaps.push(gap);
+      }
+    }
+    var remaining = A2.findCoverageGaps(merged, deps.durationSec);
+    if (remaining.length && warnings.indexOf("ASR_COVERAGE_GAP") < 0) warnings.push("ASR_COVERAGE_GAP");
+    if (!merged.length && warnings.indexOf("NO_SPEECH") < 0) warnings.push("NO_SPEECH");
+    return { segments: merged, language: language, warnings: warnings, windows: windowsMeta,
+             coverageGaps: remaining, healedGaps: healedGaps, windowSegments: windowSegments };
+  }
+
   if (typeof window === "undefined") {
     if (typeof module !== "undefined" && module.exports) {
-      module.exports = { chooseTrackHint: chooseTrackHint, pluralCategory: pluralCategory, uniqueLangCount: uniqueLangCount };
+      module.exports = { chooseTrackHint: chooseTrackHint, pluralCategory: pluralCategory, uniqueLangCount: uniqueLangCount,
+                          runWindowedAsr: runWindowedAsr };
     }
     return;
   }
@@ -707,5 +776,5 @@
                            fetchUrl: fetchUrl, fetchUrlOrVideo: fetchUrlOrVideo, mountVideoFromField: mountVideoFromField,
                            onFileChosen: onFileChosen, onAudioChosen: onAudioChosen, transcribeAudio: transcribeAudio,
                            onCaptionsFileChosen: onCaptionsFileChosen, useCaptionsPaste: useCaptionsPaste,
-                           useText: useText, chooseTrackHint: chooseTrackHint };
+                           useText: useText, chooseTrackHint: chooseTrackHint, runWindowedAsr: runWindowedAsr };
 })();

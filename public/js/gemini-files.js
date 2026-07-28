@@ -83,9 +83,10 @@
     }
   }
 
-  async function transcribeAudio(apiKey, fileUri, mimeType) {
-    var prompt = (typeof window !== "undefined" && window.AsrTranscript) ? window.AsrTranscript.ASR_PROMPT
-               : require("./asr-transcript.js").ASR_PROMPT;
+  async function transcribeAudio(apiKey, fileUri, mimeType, opts) {
+    var prompt = (opts && opts.promptText) ||
+                 ((typeof window !== "undefined" && window.AsrTranscript) ? window.AsrTranscript.ASR_PROMPT
+               : require("./asr-transcript.js").ASR_PROMPT);
     var isVideo = String(mimeType).toLowerCase().startsWith("video/");
     var opts = isVideo ? { mediaResolution: "MEDIA_RESOLUTION_LOW" } : undefined;
     var r = buildAsrRequest(apiKey, fileUri, mimeType, prompt, opts);
