@@ -10,11 +10,27 @@
  *   6. appSetLocale() rejects unknown locales and falls back to "ru"
  *   7. appSetLocale() persists selection (localStorage mock)
  *   8. RTL: appSetLocale("he") sets dir="rtl", others set dir="ltr"
+ *   9. Critical/premium/patch key coverage (Suites 6-9)
+ *  10. Locale cache-bust version lock — guards the `?v=` query on the three
+ *      <script src="/i18n/locales/{ru,en,he}.js?v=N"> tags in public/index.html.
+ *      That number is a SEPARATE invalidation channel from CACHE_VERSION in
+ *      public/sw.js. If locale file content changes but `?v=` does not move,
+ *      browsers/the service-worker precache keep serving the stale copy and
+ *      users see raw i18n keys instead of translated text (this happened in
+ *      prod: see docs referenced in the Suite 10 comment below). This suite
+ *      fails the build in that exact situation, using a committed content-hash
+ *      lock file (tests/i18n.locale-version.lock.json) so it works identically
+ *      in CI, a fresh clone, or a local run — no git history needed.
+ *
+ *      Run `node tests/i18n.smoke.js --write-lock` after bumping `?v=` (and
+ *      CACHE_VERSION in public/sw.js) to regenerate the lock file for the new
+ *      baseline.
  */
 
 const assert = require("assert");
 const path = require("path");
 const fs = require("fs");
+const crypto = require("crypto");
 
 // ── Minimal browser globals shim ─────────────────────────────────────────────
 
@@ -580,6 +596,215 @@ for (const key of p11Keys) {
     appSetLocale("ru");
   });
 }
+
+// ── Suite 10: Locale cache-bust version lock ─────────────────────────────────
+//
+// Guards a real production incident: public/index.html loads the three locale
+// files with their own cache-busting query (`?v=N`), a channel entirely
+// separate from CACHE_VERSION in public/sw.js. Six commits edited all three
+// locale files without ever bumping that number; browsers and the
+// service-worker precache kept serving the previous copy, and users saw raw
+// i18n keys (e.g. "studio.import.captionsTracksHeManual") where translated
+// text belonged. Suites 1-9 above check file CONTENT, not what a browser will
+// actually fetch — they passed throughout that incident. This suite closes
+// that gap with a committed content-hash lock, so it needs neither git history
+// nor a live browser to catch the regression.
+
+console.log("\n[Suite 10] Locale cache-bust version lock (public/index.html ?v= vs public/sw.js precache)");
+
+const REPO_ROOT = path.join(__dirname, "..");
+const INDEX_HTML_PATH = path.join(REPO_ROOT, "public/index.html");
+const LOCALE_REL_PATHS = [
+  "public/i18n/locales/ru.js",
+  "public/i18n/locales/en.js",
+  "public/i18n/locales/he.js",
+];
+const LOCK_PATH = path.join(__dirname, "i18n.locale-version.lock.json");
+
+function readIndexHtml() {
+  return fs.readFileSync(INDEX_HTML_PATH, "utf8");
+}
+
+// Extracts the `?v=` number for one locale's <script> tag. Returns null if the
+// tag is missing/reshaped so callers can fail loudly instead of silently
+// skipping the check.
+function extractLocaleVersion(indexHtml, localeCode) {
+  const re = new RegExp(`/i18n/locales/${localeCode}\\.js\\?v=(\\d+)`);
+  const m = indexHtml.match(re);
+  return m ? m[1] : null;
+}
+
+// Stable sha256 over the three locale files' raw bytes. Each file is framed
+// with its relative path + byte length before its content so that e.g.
+// moving a byte from the end of ru.js to the start of en.js can never
+// produce an accidental hash collision.
+function computeLocaleContentHash() {
+  const hash = crypto.createHash("sha256");
+  for (const relPath of LOCALE_REL_PATHS) {
+    const buf = fs.readFileSync(path.join(REPO_ROOT, relPath));
+    hash.update(relPath, "utf8");
+    hash.update("\0", "utf8");
+    hash.update(String(buf.length), "utf8");
+    hash.update("\0", "utf8");
+    hash.update(buf);
+    hash.update("\0", "utf8");
+  }
+  return hash.digest("hex");
+}
+
+function buildLockObject(version, sha256) {
+  return {
+    _purpose:
+      "Cache-bust lock for public/i18n/locales/*.js, checked by Suite 10 in " +
+      "tests/i18n.smoke.js (npm run smoke:i18n). If the content hash below no " +
+      "longer matches the locale files AND `version` was not bumped past this " +
+      "value in public/index.html's locale <script ?v=> tags, the gate fails: " +
+      "browsers/service-worker keep serving the stale locale file and users " +
+      "see raw i18n keys instead of translations. Regenerate with: " +
+      "node tests/i18n.smoke.js --write-lock",
+    version: String(version),
+    sha256,
+    files: LOCALE_REL_PATHS,
+  };
+}
+
+function formatLockFileContent(version, sha256) {
+  return JSON.stringify(buildLockObject(version, sha256), null, 2) + "\n";
+}
+
+function indent(text, prefix) {
+  return text.split("\n").map((l) => (l.length ? prefix + l : l)).join("\n");
+}
+
+// `--write-lock`: regenerate the lock file from the CURRENT index.html
+// version + locale content, then fall through to the normal check (which will
+// now trivially pass against the freshly written baseline). This is the
+// copy-paste-free way to do the "update the lock file" half of the fix after
+// bumping `?v=` — the failure message below also spells out the manual edit.
+if (process.argv.includes("--write-lock")) {
+  const html = readIndexHtml();
+  const v = extractLocaleVersion(html, "ru");
+  if (!v) {
+    console.error("--write-lock: could not read the ru.js ?v= from public/index.html; aborting write.");
+    process.exit(1);
+  }
+  const content = formatLockFileContent(v, computeLocaleContentHash());
+  fs.writeFileSync(LOCK_PATH, content, "utf8");
+  console.log(`  --write-lock: wrote ${LOCK_PATH}`);
+  console.log(indent(content, "    "));
+}
+
+test("locale <script> tags in index.html share one ?v= number", () => {
+  const html = readIndexHtml();
+  const ruV = extractLocaleVersion(html, "ru");
+  const enV = extractLocaleVersion(html, "en");
+  const heV = extractLocaleVersion(html, "he");
+  assert.ok(
+    ruV && enV && heV,
+    `Could not find all three "/i18n/locales/{ru,en,he}.js?v=N" <script> tags in ` +
+    `public/index.html (found ru=${ruV}, en=${enV}, he=${heV}). The tag pattern may ` +
+    `have changed — update extractLocaleVersion() in tests/i18n.smoke.js Suite 10.`
+  );
+  assert.strictEqual(
+    ruV, enV,
+    `BUG: ru.js and en.js locale <script> tags carry DIFFERENT ?v= numbers ` +
+    `(ru=${ruV}, en=${enV}) in public/index.html. All three MUST share one number ` +
+    `— fix this mismatch directly, it is a bug on its own regardless of the lock check.`
+  );
+  assert.strictEqual(
+    ruV, heV,
+    `BUG: ru.js and he.js locale <script> tags carry DIFFERENT ?v= numbers ` +
+    `(ru=${ruV}, he=${heV}) in public/index.html. All three MUST share one number ` +
+    `— fix this mismatch directly, it is a bug on its own regardless of the lock check.`
+  );
+});
+
+test("locale files match the committed cache-bust lock (content changed => ?v= must bump)", () => {
+  const html = readIndexHtml();
+  const currentVersion = extractLocaleVersion(html, "ru");
+  if (!currentVersion) {
+    throw new Error(
+      "Cannot run the cache-bust lock check: no ?v= found on the ru.js <script> tag in " +
+      "public/index.html. See the previous test's failure for details."
+    );
+  }
+
+  let lock;
+  try {
+    lock = JSON.parse(fs.readFileSync(LOCK_PATH, "utf8"));
+  } catch (e) {
+    throw new Error(
+      `Cannot read the locale cache-bust lock file at ${LOCK_PATH}: ${e.message}\n` +
+      `If it is missing, create it with: node tests/i18n.smoke.js --write-lock`
+    );
+  }
+
+  const currentHash = computeLocaleContentHash();
+
+  if (currentHash === lock.sha256) {
+    return; // Content matches the locked baseline. Pass regardless of version bookkeeping.
+  }
+
+  const versionBumped = Number(currentVersion) > Number(lock.version);
+
+  if (versionBumped) {
+    // Content changed AND the developer already moved ?v= past the lock —
+    // this is the correct fix in progress. Pass, but the lock itself is now
+    // stale (still points at the old baseline) and must be refreshed too.
+    const freshLockContent = formatLockFileContent(currentVersion, currentHash);
+    console.log(
+      "    NOTE: locale content changed and ?v= was bumped " +
+      `(${lock.version} -> ${currentVersion}) — correct. The lock file is now stale; ` +
+      "refresh it (node tests/i18n.smoke.js --write-lock), or write this to " +
+      `${path.relative(REPO_ROOT, LOCK_PATH)}:`
+    );
+    console.log(indent(freshLockContent, "      "));
+    return;
+  }
+
+  const suggestedVersion = String(Number(lock.version) + 1);
+  const suggestedLockContent = formatLockFileContent(suggestedVersion, currentHash);
+
+  throw new Error("\n" + [
+    "STALE-CACHE REGRESSION GUARD TRIPPED — this is the exact bug that hit prod.",
+    "",
+    "public/i18n/locales/{ru,en,he}.js changed content, but the `?v=` cache-bust number",
+    "on their <script> tags in public/index.html was NOT increased past the locked",
+    "baseline.",
+    "",
+    "Why this matters: index.html loads each locale file with ITS OWN cache-busting",
+    "query, a channel completely separate from CACHE_VERSION in public/sw.js. If this",
+    "number does not change, browsers AND the service-worker precache keep serving the",
+    "PREVIOUS copy of the locale file — your edits never reach any user. This already",
+    'happened in production: users saw raw i18n keys (e.g. "studio.import.',
+    'captionsTracksHeManual") instead of translated sentences, because six commits',
+    "edited the locale files while ?v= stayed put. The files on the server were correct",
+    "the whole time — the browser was simply executing an older cached copy.",
+    "",
+    `Current ?v= on all three <script> tags: ${currentVersion}`,
+    `Locked (last-known-good) ?v=:            ${lock.version}`,
+    `Current locale file content hash:        ${currentHash}`,
+    `Locked content hash:                     ${lock.sha256}`,
+    "",
+    "Fix — TWO edits are required in the SAME change:",
+    "",
+    "  1) Bump the ?v= number on ALL THREE locale <script> tags in public/index.html",
+    `     (any number greater than ${lock.version} works; keep all three identical):`,
+    "",
+    `       <script src="/i18n/locales/ru.js?v=${suggestedVersion}"></script>`,
+    `       <script src="/i18n/locales/en.js?v=${suggestedVersion}"></script>`,
+    `       <script src="/i18n/locales/he.js?v=${suggestedVersion}"></script>`,
+    "",
+    `  2) Update the lock file at ${path.relative(REPO_ROOT, LOCK_PATH)} — replace its`,
+    "     entire contents with exactly this (or run `node tests/i18n.smoke.js",
+    "     --write-lock` after step 1 to generate it automatically):",
+    "",
+    indent(suggestedLockContent, "     "),
+    "ALSO: bump CACHE_VERSION in public/sw.js in this SAME change. That is the other",
+    "half of cache invalidation (the service-worker precache) — forgetting it produces",
+    "the identical symptom (stale locale served from precache) even after ?v= is fixed.",
+  ].join("\n"));
+});
 
 // ── Summary ───────────────────────────────────────────────────────────────────
 
