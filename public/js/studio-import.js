@@ -481,11 +481,12 @@
     finally { setBusy(false); }
   }
 
-  // IMPORTANT 1 (whole-branch review 2026-07-28, THREE rounds — see history below): YouTube's
+  // IMPORTANT 1 (whole-branch review 2026-07-28, FOUR rounds — see history below): YouTube's
   // captions module — the thing getOption("captions","tracklist") reads — can finish loading
-  // around ANY player state transition, not on a fixed schedule and not only around PLAYING. Only
-  // a genuine PLAYING observation (+ grace window, still empty) licenses concluding absence. Three
-  // measurements shaped this function:
+  // around ANY player state transition, not on a fixed schedule and not only around PLAYING, and
+  // can populate SILENTLY after a transition with no further event marking the moment it happens.
+  // Only a genuine PLAYING observation (+ grace window, still empty) licenses concluding absence.
+  // Four measurements shaped this function:
   //   1. task-8-report.md: a video with 64 real tracks read tracklist().length === 0 at onReady
   //      AND right after calling play(), populating ~300-500ms into REAL playback. v1 gated the
   //      one-shot upgrade on 'play' + a grace delay — reasonable, but ONLY handled the positive
@@ -505,11 +506,19 @@
   //      (PLAYING), never for state 3, so v3's ONLY upgrade-triggering event besides the bounded
   //      poll never fired. tracklist() had all 64 tracks while BUFFERING; the poll's four ticks
   //      had already run out (empty) in the window BEFORE play was pressed. The answer was sitting
-  //      there, unread, because nothing re-checked after the state changed.
-  // v4 (this version) adds one more upgrade trigger: studio-yt-player.js now forwards a
-  // "statechange" event on EVERY YT.PlayerState transition (BUFFERING/CUED/UNSTARTED included, not
-  // only the three that already had named events) — mountVideo() re-checks tracklist() on each one.
-  // The authority split from v3 is otherwise UNCHANGED:
+  //      there, unread, because nothing re-checked after the state changed. v4 added "statechange"
+  //      (studio-yt-player.js forwards EVERY YT.PlayerState transition, not only the three that
+  //      already had named events) and one immediate re-check per transition.
+  //   4. Prod v3.11.251 again, immediately after v4 shipped: mount at t=0 (ladder's four ticks all
+  //      land empty — nothing has played yet), play pressed at t≈12s produces exactly ONE
+  //      statechange (the transition INTO BUFFERING) — tracklist still empty at THAT instant.
+  //      YouTube populated it a couple of seconds later, SILENTLY, no further transition (the
+  //      player just sits in BUFFERING) — so v4's single immediate check at the moment of the
+  //      event had nothing to find yet, and nothing checked again afterwards. tracklist() reached
+  //      64 tracks and stayed unread.
+  // v5 (this version) re-arms the SAME bounded ladder on every "statechange", not just one
+  // immediate look — see armCaptionsPoll() below. The authority split from v3 is otherwise
+  // UNCHANGED:
   //   - The bounded poll AND every "statechange" may ONLY ever UPGRADE the hint (write the moment
   //     tracklist() is non-empty) — neither can conclude absence. If the video is never played,
   //     the hint rests on "not reported yet" for as long as the dialog stays open — indefinitely.
@@ -519,6 +528,9 @@
   //     describeTracks(list, true) may be called with an EMPTY list.
   //   - Once upgraded, `upgraded` latches true — no later empty read, from any trigger, may
   //     downgrade a real tracklist back to pending or absence.
+  //   - Still bounded, never an unconditional background loop: each arm is the same four capped
+  //     ticks (CAPTIONS_POLL_DELAYS_MS), and a fresh arm always cancels any ladder already in
+  //     flight first — two rapid state changes can never leave two ladders running at once.
   var CAPTIONS_POLL_DELAYS_MS = [1000, 3000, 6000, 10000]; // upgrade-only — see above
   var RE_CONFIRM_DELAY_MS = 800; // extra nudge after a real 'play' — YouTube's own captions module
                                   // measured populating ~300-500ms into real playback; this leaves
@@ -592,19 +604,31 @@
         // else: empty AND not allowed to conclude absence — do nothing. The hint rests on "not
         // reported yet" for as long as it takes, even if that's forever (video never played).
       };
-      CAPTIONS_POLL_DELAYS_MS.forEach(function (ms) {
-        captionsPollTimers.push(setTimeout(function () { tryUpgrade(false); }, ms)); // upgrade-only, never
-      });
-      // T2-fix4 (whole-branch review — third prod round): a video that reaches BUFFERING and sits
-      // there (currentTime stuck at 0) never fires 'play', yet YouTube's captions module can and
-      // does finish loading around a BUFFERING/CUED transition too — measured live: tracklist had
-      // 64 tracks while the player was in BUFFERING, and the bounded poll's four ticks had already
-      // run out (empty) BEFORE the state changed, so nothing re-checked afterwards. studio-yt-
-      // player.js now forwards a "statechange" event on EVERY YT.PlayerState transition (see its
-      // onStateChange), not only the three that already had named events — re-check on every one
-      // of them. Still upgrade-only (confirmAbsence=false): a state change is one more opportunity
-      // to find data, never grounds to conclude absence on its own.
-      var onStateChange = function () { tryUpgrade(false); };
+      // T2-fix5 (whole-branch review — fourth prod round): a single check per state change (fix4)
+      // still missed the case measured live: mount at t=0 (ladder's four ticks all land empty —
+      // nothing has played yet), play pressed at t≈12s → exactly ONE statechange (the transition
+      // INTO BUFFERING), tracklist still empty at that instant, then YouTube populates it a couple
+      // of seconds later SILENTLY — the player just sits in BUFFERING, no further transition, no
+      // further event, nothing left to trigger a re-check. Fix: re-arm the SAME bounded ladder on
+      // every statechange, not just take one immediate look. armCaptionsPoll() always cancels any
+      // ladder already in flight (clearCaptionsPoll()) before scheduling a fresh one, so two rapid
+      // triggers can never leave two ladders running — the second call's clear always wins before
+      // either ladder's first tick (1s) could fire. Bounded, not unbounded: each arm is still
+      // exactly the same four capped ticks: it costs nothing when nothing happens, and re-arms
+      // only in response to a real event, never as an unconditional background loop.
+      var armCaptionsPoll = function () {
+        if (upgraded || ytAdapter !== thisAdapter) return; // nothing left to check for
+        clearCaptionsPoll(); // cancel any ladder already in flight — never stack two
+        CAPTIONS_POLL_DELAYS_MS.forEach(function (ms) {
+          captionsPollTimers.push(setTimeout(function () { tryUpgrade(false); }, ms)); // upgrade-only, never
+        });
+      };
+      armCaptionsPoll(); // the initial ladder, right after mount
+      var onStateChange = function () {
+        tryUpgrade(false); // an immediate look — the state change itself might already carry the answer
+        armCaptionsPoll(); // AND re-arm — the answer may also arrive silently a few ticks later,
+                            // with no further event of its own (the exact case above)
+      };
       thisAdapter.addEventListener("statechange", onStateChange);
       var onPlay = function () {
         thisAdapter.removeEventListener("play", onPlay); // one real confirmation is enough as a trigger
