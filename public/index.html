@@ -33266,11 +33266,25 @@ try {
         const chunkMeta = [];
         const missingPerChunk = [];
         let anyMappingLost = false;
-        // Important 2 (review): strip any timing/passport left over from the PREVIOUS
-        // generation before the multi-minute chunk loop starts — otherwise row-replay buttons
-        // would seek by stale indices while currentTableData already holds new partial rows.
-        // The success/failure branches below rebuild it honestly from what actually landed.
-        v3AttachAudioTiming({ rows: [], warnings: [] });
+        // Fix2 (re-review): the skeleton is already on screen (translateTable(), before the
+        // fork) but currentTableData itself still holds the PREVIOUS generation's rows until
+        // the first chunk lands — a catch on chunk 0 must not pin a fresh partial-meta to
+        // someone else's old rows, so start the new generation from a clean slate.
+        currentTableData = [];
+        // Fix2 (re-review): a bare v3AttachAudioTiming({rows:[], warnings:[]}) here would be
+        // wrong — v3MediaPassport() returns a SHARED reference into v3LastImportMeta.audio/
+        // .captions, and audio.timingDropReason is a one-way latch inside v3AttachAudioTiming
+        // (only ever set, never cleared there). Calling it with empty rows would latch
+        // NO_SEGMENT_MAPPING onto that shared object, and the honest final v3AttachAudioTiming
+        // call below would then see the latch already set and skip recomputing forever —
+        // guaranteed to bite on the documented retry ("click AI Translate again"). Instead,
+        // just detach the media UI for the duration of the multi-minute loop, WITHOUT touching
+        // the passport; the success/failure branches below own actually rebuilding it.
+        try {
+            if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
+            window.v3ActiveMediaAudio = null;
+            if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
+        } catch (_) {}
         try {
             for (let k = 0; k < chunks.length; k++) {
                 setResultsMeta("table", t("classic.tableChunkProgress")
@@ -33288,6 +33302,9 @@ try {
                     // Important 2 (review): honest provenance/timing for the PARTIAL rows already
                     // on screen — without this, the stale meta/passport from the previous
                     // generation would get pinned to Library save + row-replay under new rows.
+                    // Fix2 (re-review): currentTableData is set explicitly here (not relied on as
+                    // a side effect of the loop body) — on a chunk-0 failure this is honestly [].
+                    currentTableData = accum.slice();
                     v3LastGeminiMeta = {
                         promptId: "he-ru-table-seg-v1+chunked", model: "gemini-flash-latest",
                         cacheKey: null, fromCache: false,
@@ -33295,6 +33312,15 @@ try {
                         generatedAt: new Date().toISOString(),
                     };
                     v3AttachImportSource();
+                    // Fix2 (re-review): unstick ONLY the derived latches left by a PRIOR
+                    // attach attempt (not asserted import facts like PREVIEW_EDITED/
+                    // ASR_TIMING_INVALID) — the chunk path honestly recomputes timing every time.
+                    {
+                        const pass = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
+                        if (pass && (pass.timingDropReason === "NO_SEGMENT_MAPPING" || pass.timingDropReason === "SEG_MAPPING_LOST")) {
+                            pass.timingDropReason = null;
+                        }
+                    }
                     v3AttachAudioTiming({ rows: currentTableData, warnings: ["SEG_COVERAGE_PARTIAL"] });
                     return;
                 }
@@ -33323,6 +33349,14 @@ try {
             provider: "gemini", chunks: chunkMeta, generatedAt: new Date().toISOString(),
         };
         v3AttachImportSource();
+        // Fix2 (re-review): same latch-unstick as the failure branch above — see that comment
+        // for the full rationale.
+        {
+            const pass = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
+            if (pass && (pass.timingDropReason === "NO_SEGMENT_MAPPING" || pass.timingDropReason === "SEG_MAPPING_LOST")) {
+                pass.timingDropReason = null;
+            }
+        }
         v3AttachAudioTiming({ rows: currentTableData,
             warnings: missingGlobal.length ? ["SEG_COVERAGE_PARTIAL"] : [] });
         if (missingGlobal.length && typeof showToast === "function") {
