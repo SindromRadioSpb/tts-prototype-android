@@ -53,6 +53,14 @@
   // docs/planning/STUDIO_INGEST_W2_S5A_CAPTIONS_KARAOKE_DESIGN_2026_07_27.md.
   var pendingCaptions = null; // {parsed, origin, fileName, video}
   var ytAdapter = null;       // адаптер плеера, если ролик встроен
+  var mountGen = 0;           // W2-S5a.1 T3: bumped by close() (and by a fresh mountVideo()) to
+                               // invalidate an in-flight mountVideo() still awaiting create() —
+                               // guards against a stale async write into #v3ImportYtHint landing
+                               // after the dialog has already closed. Pre-existing race, flagged
+                               // (not introduced) by task-2-report.md; fixed here.
+  var VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/; // mirrors StudioYtPlayer's own ID_RE — defense in depth
+                               // so #v3ImportOpenYt's href can only ever be built from something
+                               // that already looks like a validated YouTube video id.
 
   // W2-S5a.1 T2 — три явные вкладки вместо плоского стека. Активная вкладка живёт ТОЛЬКО в
   // модуле (не в localStorage) — open() всегда сбрасывает на "url", чтобы поведение диалога
@@ -244,6 +252,10 @@
   function close() {
     var m = $("v3ImportModal");
     if (m) m.classList.add("hidden");
+    // W2-S5a.1 T3: bump FIRST, before anything else — any mountVideo() still suspended on
+    // `await create()` compares its captured myGen against mountGen the instant it resumes, so
+    // this must happen before we touch ytAdapter/mount/hint below (see mountVideo()'s guard).
+    mountGen++;
     // W2-S5a: this modal owns ytAdapter's lifetime (it created it in mountVideo()) — every path
     // that hides the modal (Cancel, backdrop click, post-commit close() at the end of useText())
     // funnels through here, so this is the single teardown point. Leaving it live would keep a
@@ -256,6 +268,7 @@
     if (ytm) { ytm.hidden = true; ytm.innerHTML = ""; }
     var yth = $("v3ImportYtHint");
     if (yth) yth.textContent = "";
+    showCaptionsHow(false);
     pendingCaptions = null;
   }
 
@@ -426,20 +439,46 @@
   // may it settle on the genuine "no captions" message.
   var RE_CONFIRM_DELAY_MS = 800;
 
+  // W2-S5a.1 T3 — guided "how to fetch captions" instructions (id="v3ImportCaptionsHow" in the
+  // markup, hidden by default). Shown once the embedded player has actually mounted (independent
+  // of whether it has reported tracks yet — task-3-brief.md Step 2), hidden on close()/re-mount.
+  // href is built ONLY from an id that passes VIDEO_ID_RE (the same shape StudioYtPlayer.
+  // parseVideoId already validated) — never from a raw user-typed string.
+  function showCaptionsHow(show, videoId) {
+    var box = $("v3ImportCaptionsHow");
+    var link = $("v3ImportOpenYt");
+    var valid = !!show && typeof videoId === "string" && VIDEO_ID_RE.test(videoId);
+    if (box) box.hidden = !valid;
+    if (link) {
+      if (valid) link.href = "https://www.youtube.com/watch?v=" + videoId;
+      else link.removeAttribute("href");
+    }
+  }
+
   async function mountVideo(videoId, url) {
     var mount = $("v3ImportYtMount"), hint = $("v3ImportYtHint");
     pendingCaptions = pendingCaptions || {};
     pendingCaptions.video = { platform: "youtube", videoId: videoId, url: url };
     if (ytAdapter) { window.StudioYtPlayer.destroy(ytAdapter); ytAdapter = null; }
     mount.innerHTML = "";
+    showCaptionsHow(false); // reset — a fresh mount attempt invalidates any previous video's link
     var cap = window.StudioYtPlayer.capability();
     if (!cap.supported) { mount.hidden = true; hint.textContent = tr("studio.import.captionsNoPlayer"); return; }
     mount.hidden = false;
     hint.textContent = tr("studio.import.captionsPlayerLoading");
+    // W2-S5a.1 T3 (pre-existing race, flagged by task-2-report.md, fixed here): close() can run
+    // while create()'s network + IFrame-API boot is still in flight. Without a guard, that stale
+    // continuation would reassign the module-level ytAdapter and repaint #v3ImportYtHint after the
+    // dialog is already gone. Same mechanism as the onPlay guard below (`ytAdapter !== thisAdapter`)
+    // — captured BEFORE the await so it survives suspension across close()'s mountGen++.
+    var myGen = ++mountGen;
     try {
-      ytAdapter = await window.StudioYtPlayer.create(mount, videoId);
+      var created = await window.StudioYtPlayer.create(mount, videoId);
+      if (myGen !== mountGen) { window.StudioYtPlayer.destroy(created); return; } // superseded meanwhile
+      ytAdapter = created;
       var thisAdapter = ytAdapter;
       hint.textContent = describeTracks(thisAdapter.tracklist(), /* confirmed */ false);
+      showCaptionsHow(true, videoId);
       var onPlay = function () {
         thisAdapter.removeEventListener("play", onPlay); // one real confirmation is enough
         setTimeout(function () {
@@ -449,6 +488,7 @@
       };
       thisAdapter.addEventListener("play", onPlay);
     } catch (e) {
+      if (myGen !== mountGen) return; // dialog closed / a newer mount started while we awaited
       mount.hidden = true;
       hint.textContent = tr(e && e.code === "YT_EMBED_DENIED"
         ? "studio.import.captionsEmbedDenied" : "studio.import.captionsNoPlayer");

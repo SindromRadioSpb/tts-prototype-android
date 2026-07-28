@@ -2256,6 +2256,10 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
            ID-selectors here outrank the global button.btn-secondary rule by specificity alone. */
         #v3ImportTabs button { width: auto; }
         #v3ImportPaneVideo button, #v3ImportPaneFile button, #v3ImportPaneUrl button { width: auto; }
+        /* W2-S5a.1 T3: #v3ImportOpenYt is an <a>, not a <button> — the button-tagged rules above
+           and the global button.btn-secondary{width:100%} trap never select it, so it already
+           stays auto-width here; its own display:inline-block rule lives with the rest of its
+           styling near .v3-import-captions-how (non-mobile CSS block). */
 
         .export-actions { margin-left: 0; width: 100%; flex-direction: column; }
         .hotkeys-header { flex-direction: column; align-items: flex-start; }
@@ -3575,6 +3579,19 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 /* W2-S5a: Импорт → Субтитры — embedded YouTube preview + file/paste intake. */
 .v3-import-captions { margin-top: 10px; }
 #v3ImportYtMount iframe { width: 100%; max-width: 100%; border: 0; border-radius: 8px; }
+
+/* W2-S5a.1 T3: guided "how to fetch captions" instructions — appears once the player mounts,
+   between the track hint and the paste box (owner-found dead end: Studio announced Hebrew
+   subtitles exist and offered nothing about how to get them). */
+.v3-import-captions-how { margin: 6px 0 10px; font-size: 12.5px; line-height: 1.55; color: var(--theme-text-secondary, #64748b); }
+.v3-import-how-title { font-weight: 600; margin-bottom: 6px; color: var(--theme-text, #1e293b); }
+.v3-import-how-steps { margin: 0 0 8px; padding-inline-start: 18px; display: flex; flex-direction: column; gap: 4px; }
+.v3-import-hint { font-size: 12px; color: var(--theme-text-secondary, #64748b); margin: 4px 0 8px; }
+/* #v3ImportOpenYt is a real <a>, not a <button> — the mobile trap's `button.btn-secondary` rule
+   only selects `button` elements, so this anchor is never forced to width:100%; .btn-secondary is
+   an untagged class so it still gets the same visual look. display:inline-block keeps the box
+   model correct (padding, no full-line stretch). */
+#v3ImportOpenYt { display: inline-block; text-decoration: none; }
 
 /* W2-S5a.1 T2: Import dialog — three explicit tabs (Статья / Видео / Файл), replacing the
    flat stack. Active tab marked by border+background (not text color alone — R4 accessibility). */
@@ -46549,13 +46566,30 @@ document.addEventListener("i18n:changed", function () {
           <div class="input-label" data-i18n="studio.import.captionsLabel">Субтитры видео</div>
           <div id="v3ImportYtMount" hidden></div>
           <div id="v3ImportYtHint" style="font-size:12px; color:#6c757d; margin:4px 0; white-space:pre-wrap;"></div>
-          <!-- Task 3 (W2-S5a.1): guided "how to fetch subtitles" instructions insert here -->
+          <!-- W2-S5a.1 T3: guided "how to fetch subtitles" instructions — appears once the player
+               has actually mounted (StudioImport.showCaptionsHow), hidden by default. Closes the
+               owner-found dead end: Studio used to announce Hebrew subtitles exist and offer
+               nothing about how to get them. -->
+          <div id="v3ImportCaptionsHow" class="v3-import-captions-how" hidden>
+            <div class="v3-import-how-title" data-i18n="studio.import.howTitle">Как перенести их сюда</div>
+            <ol class="v3-import-how-steps">
+              <li data-i18n="studio.import.howStep1">Откройте ролик на YouTube</li>
+              <li data-i18n="studio.import.howStep2">«…» → «Показать текст видео» → выберите Иврит</li>
+              <li data-i18n="studio.import.howStep3">Выделите панель целиком, скопируйте и вернитесь сюда</li>
+            </ol>
+            <!-- href set by StudioImport.showCaptionsHow() from the ALREADY-VALIDATED videoId
+                 (StudioYtPlayer.parseVideoId, ^[A-Za-z0-9_-]{11}$) — never from raw user input. -->
+            <a id="v3ImportOpenYt" class="btn-secondary" target="_blank" rel="noopener noreferrer"
+               data-i18n="studio.import.openYtBtn">Открыть ролик на YouTube ↗</a>
+          </div>
+          <label class="input-label" for="v3ImportCaptionsPaste" data-i18n="studio.import.captionsPasteLabel">Вставьте расшифровку из панели YouTube</label>
           <textarea id="v3ImportCaptionsPaste" dir="auto" rows="3"
                     data-i18n-placeholder="studio.import.captionsPastePlaceholder"
                     placeholder="Вставьте расшифровку с таймкодами…"
                     style="width:100%; box-sizing:border-box; margin-top:6px;"></textarea>
+          <div class="v3-import-hint" data-i18n="studio.import.captionsPasteHint">Копируйте панель целиком: для 20-минутного ролика это ~220 строк таблицы.</div>
           <button type="button" class="btn-secondary" id="v3ImportCaptionsPasteBtn"
-                  onclick="StudioImport.useCaptionsPaste()" data-i18n="studio.import.captionsPasteBtn">Разобрать вставку</button>
+                  onclick="StudioImport.useCaptionsPaste()" data-i18n="studio.import.captionsPasteBtn">Использовать расшифровку</button>
           <label class="v3-import-file-btn">
             <span data-i18n="studio.import.captionsFileBtn">Файл субтитров (.vtt / .srt)</span>
             <input type="file" id="v3ImportCaptionsFile" accept=".vtt,.srt,text/vtt" hidden

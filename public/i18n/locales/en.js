@@ -3085,7 +3085,16 @@ window.I18N_LOCALES.en = {
       // W2-S5a — Import → Captions (.vtt/.srt file or pasted YouTube transcript panel) + embedded player
       captionsLabel: "Video subtitles",
       captionsFileBtn: "Subtitle file (.vtt / .srt)",
-      captionsPasteBtn: "Parse pasted text",
+      // W2-S5a.1 T3 — guided "how to bring the captions here": shown once the player has mounted
+      // (owner-defect: Studio announced manual Hebrew subtitles and never said how to get them)
+      howTitle: "How to bring them here",
+      howStep1: "Open the video on YouTube",
+      howStep2: "“…” → “Show transcript” → choose Hebrew",
+      howStep3: "Select the whole panel, copy it, and come back here",
+      openYtBtn: "Open the video on YouTube ↗",
+      captionsPasteLabel: "Paste the transcript from the YouTube panel",
+      captionsPasteHint: "Copy the whole panel: for a 20-minute video that's roughly 220 table rows.",
+      captionsPasteBtn: "Use the transcript",
       captionsPastePlaceholder: "Paste a transcript with timestamps…",
       captionsSourcePaste: "pasted transcript",
       captionsNoPlayer: "This browser can't play the video — the table and timestamps will still be available",
