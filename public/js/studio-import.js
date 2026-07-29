@@ -87,17 +87,56 @@
       }
     }
 
+    // S12.2 (владелец 2026-07-28, per-item best-effort): окно, дважды подряд давшее ASR_BAD_JSON
+    // (oneCall уже исчерпал свой ретрай), больше НЕ валит весь прогон — полуторачасовой
+    // транскрипт блокировался целиком из-за одного битого окна 2/8. Вместо throw — БИСЕКЦИЯ
+    // окна [a,b] на две половины, каждая — свой oneCall (свой ретрай ×1, до 4 вызовов сверх
+    // исходных двух). Половины конкатенируются по времени. Половина, снова давшая BAD_JSON,
+    // ЧЕСТНО пропускается (skippedRanges в meta) — образовавшуюся дыру дальше ловит УЖЕ
+    // РЕАЛИЗОВАННЫЙ findCoverageGaps→heal-добор ниже по функции; здесь никакой специальной
+    // логики под дыру не добавляется. Любая ДРУГАЯ ошибка половины (429/квота/сеть/HTTP) —
+    // прежняя семантика: throw наверх, не маскируется.
+    async function bisectWindow(a, b) {
+      var mid = (a + b) / 2;
+      var halves = [[a, mid], [mid, b]];
+      var segments = [], warnings2 = [], language2 = null, skippedRanges = [];
+      var calls = 2; // исходные 2 вызова [a,b] (оба ASR_BAD_JSON) — привели к бисекции
+      for (var h = 0; h < halves.length; h++) {
+        var hs = halves[h][0], he = halves[h][1];
+        try {
+          var half = await oneCall(hs, he);
+          calls += half.retries + 1;
+          segments = segments.concat(half.parsed.segments); // половины уже упорядочены по времени
+          if (!language2 && half.parsed.language) language2 = half.parsed.language;
+          (half.parsed.warnings || []).forEach(function (w) { if (warnings2.indexOf(w) < 0) warnings2.push(w); });
+        } catch (e2) {
+          if (e2.code !== "ASR_BAD_JSON") throw e2; // не BAD_JSON — не маскируем, throw наверх
+          calls += 2; // oneCall половины довалил ретрай — оба BAD_JSON
+          skippedRanges.push({ startSec: hs, endSec: he });
+        }
+      }
+      return { parsed: { segments: segments, language: language2, warnings: warnings2 },
+               retries: calls - 1, bisected: true, skippedRanges: skippedRanges };
+    }
+
     for (var k = startAt; k < wins.length; k++) {
       deps.onProgress(k + 1, wins.length);
       var r;
       try {
         r = single ? await oneCall(null, null) : await oneCall(wins[k].startSec, wins[k].endSec);
       } catch (e) {
-        e.windowIndex = k;
-        e.windowSegments = windowSegments;
-        throw e;
+        if (e.code !== "ASR_BAD_JSON") { e.windowIndex = k; e.windowSegments = windowSegments; throw e; }
+        try {
+          // single: явный диапазон [0, durationSec] — первый случай range-промта для короткого
+          // файла (иначе он никогда бы не использовался); честно, не молчаливая деградация.
+          r = single ? await bisectWindow(0, deps.durationSec)
+                     : await bisectWindow(wins[k].startSec, wins[k].endSec);
+        } catch (e2) { e2.windowIndex = k; e2.windowSegments = windowSegments; throw e2; }
       }
-      windowsMeta.push({ startSec: wins[k].startSec, endSec: wins[k].endSec, retries: r.retries });
+      var meta = { startSec: wins[k].startSec, endSec: wins[k].endSec, retries: r.retries };
+      if (r.bisected) meta.bisected = true; // R9 провенанс: окно потребовало бисекции
+      if (r.skippedRanges && r.skippedRanges.length) meta.skippedRanges = r.skippedRanges; // R9: честный пропуск
+      windowsMeta.push(meta);
       windowSegments.push(r.parsed.segments);
       if (!language && r.parsed.language) language = r.parsed.language;
       (r.parsed.warnings || []).forEach(function (w) {
@@ -407,7 +446,12 @@
     // W2-S4 — audio ASR path
     AUDIO_BAD_FILE: "studio.import.errAudioBadFile", AUDIO_TOO_LONG: "studio.import.errAudioTooLong",
     UPLOAD_FAILED: "studio.import.errUpload", FILE_FAILED: "studio.import.errUpload", FILE_TIMEOUT: "studio.import.errUpload",
-    ASR_TIMEOUT: "studio.import.errOverloaded", ASR_BAD_JSON: "studio.import.errExtractBadJson",
+    // S12.2: errExtractBadJson is worded for photo-OCR ("try a clearer photo") — misinforms on the
+    // audio path. By construction (see bisectWindow) runWindowedAsr never lets an ASR_BAD_JSON
+    // error escape any more — it always resolves into either a retry, a bisection, or an honest
+    // skippedRanges — so this mapping now only guards hypothetical future/other ASR_BAD_JSON
+    // callers, but must stay honest regardless.
+    ASR_TIMEOUT: "studio.import.errOverloaded", ASR_BAD_JSON: "studio.import.errAsrUnreliable",
     NO_SPEECH: "studio.import.errNoSpeech",
     // W2-S5a — captions parsing path
     CAPTIONS_EMPTY: "studio.import.errCaptionsEmpty",

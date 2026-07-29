@@ -54,19 +54,165 @@ test("BAD_JSON окна: retry ×1 и успех; счётчик retries в wind
   assert.equal(res.segments.length, 2);
 });
 
-test("BAD_JSON дважды: throw c windowIndex и частичными windowSegments", async () => {
+// S12.2 (владелец 2026-07-28): окно 2/8 четырежды подряд вернуло битый JSON и заблокировало ВЕСЬ
+// полуторачасовой транскрипт — нарушение project-нормы «per-item best-effort». Семантика меняется:
+// ASR_BAD_JSON после retry ×1 больше НЕ throw — вместо этого бисекция окна. Этот тест (бывший
+// «BAD_JSON дважды: throw…») ПЕРЕПИСАН под новую семантику: окно, обе половины которого ТОЖЕ дают
+// BAD_JSON (итого 6 вызовов на окно: [a,b]×2, [a,mid]×2, [mid,b]×2), теряется ЦЕЛИКОМ и честно —
+// bisected:true + skippedRanges на ОБЕ половины — но прогон НЕ падает и доходит до конца. Дыра
+// (window0 last=850 → duration=1100, tail-gap >180с) естественно ловится существующим
+// findCoverageGaps → heal-добор (единственный вызов, [850,1100]), который здесь тоже неудачен →
+// coverageGaps+ASR_COVERAGE_GAP — тот же каскад, что и для дыр из честного ответа модели, без
+// какого-либо специального кода под бисекцию. Числа проверены прямым прогоном runWindowedAsr
+// (методика файла) ДО фиксации фикстуры.
+test("BAD_JSON дважды (обе половины бисекции тоже BAD_JSON): окно теряется целиком, НЕ throw, дыра уходит в coverageGaps через штатный heal-каскад", async () => {
+  const calls = [];
+  const res = await SI.runWindowedAsr({
+    durationSec: 1100, // windows [0,900) [900,1100)
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return R({ segments: [seg(850, "a0")] });
+      if (a === 900 && b === 1100) return "мусор"; // окно1 primary ×2
+      if (a === 900 && b === 1000) return "мусор"; // половина A (900,1000) ×2
+      if (a === 1000 && b === 1100) return "мусор"; // половина B (1000,1100) ×2
+      if (a === 850 && b === 1100) return R({ segments: [], warnings: ["NO_SPEECH"] }); // heal-добор дыры — неудачен
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: (raw) => { if (raw === "мусор") { const e = new Error("bad"); e.code = "ASR_BAD_JSON"; throw e; }
+                      return fakeParse(raw); },
+    onProgress: () => {},
+  });
+  assert.deepEqual(calls, [
+    [0, 900], [900, 1100], [900, 1100], [900, 1000], [900, 1000], [1000, 1100], [1000, 1100], [850, 1100],
+  ]);
+  assert.deepEqual(res.segments.map((s) => s.text), ["a0"]); // окно0 цело, окно1 честно потеряно целиком
+  assert.equal(res.windows[1].bisected, true);
+  assert.deepEqual(res.windows[1].skippedRanges, [{ startSec: 900, endSec: 1000 }, { startSec: 1000, endSec: 1100 }]);
+  assert.deepEqual(res.coverageGaps, [{ fromSec: 850, toSec: 1100 }]);
+  assert.ok(res.warnings.includes("ASR_COVERAGE_GAP"));
+});
+
+// (a) Обе половины бисекции УСПЕШНЫ (на первой же попытке — retry внутри половины не нужен).
+// Проверяет: порядок вызовов ([a,b]×2 для BAD_JSON-провала окна, затем [a,mid], затем [mid,b]),
+// сегменты обеих половин на месте и упорядочены по времени, windows[k].bisected===true,
+// skippedRanges отсутствует (успех — поле отсутствует). Фикстура подобрана БЕЗ дыр (все хопы
+// <90с, хвост <180с) — проверено прямым прогоном, чтобы heal-каскад не добавлял посторонних
+// вызовов в calls и не размывал фокус теста на самой бисекции.
+test("бисекция: обе половины успешны → сегменты на месте, bisected:true, порядок вызовов [a,b]×2→[a,mid]→[mid,b]", async () => {
+  const calls = [];
+  const res = await SI.runWindowedAsr({
+    durationSec: 950, // windows [0,900) [900,950), mid окна1 = 925
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return R({ segments: [seg(880, "a0")] });
+      if (a === 900 && b === 950) return "мусор"; // окно1 primary ×2 → бисекция
+      if (a === 900 && b === 925) return R({ segments: [seg(910, "h1")] }); // половина A — успех с 1-й попытки
+      if (a === 925 && b === 950) return R({ segments: [seg(935, "h2")] }); // половина B — успех с 1-й попытки
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: (raw) => { if (raw === "мусор") { const e = new Error("bad"); e.code = "ASR_BAD_JSON"; throw e; }
+                      return fakeParse(raw); },
+    onProgress: () => {},
+  });
+  assert.deepEqual(calls, [[0, 900], [900, 950], [900, 950], [900, 925], [925, 950]]);
+  assert.deepEqual(res.segments.map((s) => s.text), ["a0", "h1", "h2"]);
+  assert.equal(res.windows[1].bisected, true);
+  assert.equal(res.windows[1].skippedRanges, undefined); // обе половины успешны — пропусков нет
+  assert.deepEqual(res.coverageGaps, []);
+  assert.deepEqual(res.warnings, []);
+});
+
+// (b) Одна половина падает дважды (BAD_JSON×2) → честно пропускается (skippedRanges), вторая
+// половина успешна. Образовавшуюся дыру ЛОВИТ УЖЕ РЕАЛИЗОВАННЫЙ findCoverageGaps→heal-каскад —
+// никакого нового кода под дыру здесь нет. Оба исхода добора: (i) успешен — дыра закрывается
+// полностью, никакого ASR_COVERAGE_GAP; (ii) неудачен — дыра остаётся честной, coverageGaps+warning.
+test("(b-i) половина A пропущена (BAD_JSON×2), половина B успешна → дыра добрана heal-каскадом полностью", async () => {
+  const calls = [];
+  const res = await SI.runWindowedAsr({
+    durationSec: 1000, // windows [0,900) [900,1000), mid окна1 = 950
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return R({ segments: [seg(850, "a0")] });
+      if (a === 900 && b === 1000) return "мусор"; // окно1 primary ×2 → бисекция
+      if (a === 900 && b === 950) return "мусор"; // половина A ×2 → skip
+      if (a === 950 && b === 1000) return R({ segments: [seg(980, "h1")] }); // половина B — успех
+      if (a === 850 && b === 980) return R({ segments: [seg(910, "heal1")] }); // heal-добор дыры — успешен, закрывает целиком
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: (raw) => { if (raw === "мусор") { const e = new Error("bad"); e.code = "ASR_BAD_JSON"; throw e; }
+                      return fakeParse(raw); },
+    onProgress: () => {},
+  });
+  assert.deepEqual(calls, [[0, 900], [900, 1000], [900, 1000], [900, 950], [900, 950], [950, 1000], [850, 980]]);
+  assert.deepEqual(res.windows[1].skippedRanges, [{ startSec: 900, endSec: 950 }]);
+  assert.equal(res.windows[1].bisected, true);
+  assert.deepEqual(res.segments.map((s) => s.text), ["a0", "heal1", "h1"]); // heal-сегмент встал МЕЖДУ границами дыры
+  assert.deepEqual(res.healedGaps, [{ fromSec: 850, toSec: 980 }]);
+  assert.deepEqual(res.coverageGaps, []);
+  assert.ok(!res.warnings.includes("ASR_COVERAGE_GAP"));
+});
+
+test("(b-ii) половина A пропущена, heal-добор дыры тоже неудачен → coverageGaps + ASR_COVERAGE_GAP (дыра честная, не маскируется)", async () => {
+  const res = await SI.runWindowedAsr({
+    durationSec: 1000,
+    transcribe: async (a, b) => {
+      if (a === 0) return R({ segments: [seg(850, "a0")] });
+      if (a === 900 && b === 1000) return "мусор";
+      if (a === 900 && b === 950) return "мусор"; // skip половины A
+      if (a === 950 && b === 1000) return R({ segments: [seg(980, "h1")] });
+      if (a === 850 && b === 980) return R({ segments: [], warnings: ["NO_SPEECH"] }); // heal-добор неудачен
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: (raw) => { if (raw === "мусор") { const e = new Error("bad"); e.code = "ASR_BAD_JSON"; throw e; }
+                      return fakeParse(raw); },
+    onProgress: () => {},
+  });
+  assert.deepEqual(res.windows[1].skippedRanges, [{ startSec: 900, endSec: 950 }]);
+  assert.deepEqual(res.segments.map((s) => s.text), ["a0", "h1"]); // сегменты половины A честно отсутствуют
+  assert.deepEqual(res.healedGaps, []);
+  assert.deepEqual(res.coverageGaps, [{ fromSec: 850, toSec: 980 }]);
+  assert.ok(res.warnings.includes("ASR_COVERAGE_GAP"));
+});
+
+// (c) Единственное окно (короткий файл): обычный путь передаёт transcribe(null,null) — без
+// range-промта. При BAD_JSON×2 бисекция ОБЯЗАНА построить ЯВНЫЕ числовые границы 0/dur/2/dur —
+// это первый случай range-промта для короткого файла (честно, задокументировано в комментарии
+// исходника), а не молчаливая деградация обратно на null.
+test("(c) single-файл: BAD_JSON×2 → бисекция явными диапазонами 0/dur/2/dur (не null)", async () => {
+  const calls = [];
+  const res = await SI.runWindowedAsr({
+    durationSec: 150,
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === null) return "мусор"; // primary ×2 (single всегда шлёт null,null)
+      if (a === 0 && b === 75) return R({ segments: [seg(10, "s1")] });
+      if (a === 75 && b === 150) return R({ segments: [seg(100, "s2")] });
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: (raw) => { if (raw === "мусор") { const e = new Error("bad"); e.code = "ASR_BAD_JSON"; throw e; }
+                      return fakeParse(raw); },
+    onProgress: () => {},
+  });
+  assert.deepEqual(calls, [[null, null], [null, null], [0, 75], [75, 150]]);
+  assert.deepEqual(res.segments.map((s) => s.text), ["s1", "s2"]);
+  assert.equal(res.windows[0].bisected, true);
+  assert.deepEqual(res.coverageGaps, []);
+});
+
+// (d) Семантика резюма НЕ сломана: любая ошибка КРОМЕ ASR_BAD_JSON (429/квота/сеть/HTTP)
+// по-прежнему throw с windowIndex/windowSegments — бисекция срабатывает ТОЛЬКО на ASR_BAD_JSON.
+test("(d) 429/квота — по-прежнему throw c windowIndex, бисекция не запускается", async () => {
   await assert.rejects(
     SI.runWindowedAsr({
       durationSec: 1400,
       transcribe: async (a) => {
-        if (a === 0) return R({ segments: [seg(1, "א"), seg(2, "б")] });
-        return "мусор";
+        if (a === 0) return R({ segments: [seg(1, "a0")] });
+        const e = new Error("rate limited"); e.code = "GEMINI_QUOTA"; e.status = 429; throw e;
       },
-      parse: (raw) => { if (raw === "мусор") { const e = new Error("bad"); e.code = "ASR_BAD_JSON"; throw e; }
-                        return fakeParse(raw); },
-      onProgress: () => {},
+      parse: fakeParse, onProgress: () => {},
     }),
-    (e) => e.code === "ASR_BAD_JSON" && e.windowIndex === 1 && e.windowSegments.length === 1);
+    (e) => e.code === "GEMINI_QUOTA" && e.windowIndex === 1 && e.windowSegments.length === 1 &&
+           e.windowSegments[0][0].text === "a0");
 });
 
 test("резюм: startWindow/priorWindows продолжают без повторного вызова готовых окон", async () => {

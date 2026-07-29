@@ -3096,6 +3096,7 @@ window.I18N_LOCALES.en = {
       videoNote: "video: we transcribe speech only, frames in economy mode — nearly 3× cheaper than regular video processing, but ~2.5× the cost of audio",
       errUpload: "Upload to Google failed — retry",
       errNoSpeech: "No speech found in the audio",
+      errAsrUnreliable: "The model returned an unreadable response for part of the recording. Press “Transcribe” again — recognition will continue from where it stopped.",
       audioTimingDropped: "Edits changed line count — karaoke disabled",
       warnCoverage: "The model skipped some segments — check the table for completeness",
       provAudio: "Audio → ASR transcript (Gemini)",
