@@ -146,42 +146,68 @@
   //   в голове — t0 → cutK=2, cutK1=0. Результат: s0, s1, t0, t1, t2 — якорная речь одна копия
   //   (из окна k+1), s2/s3 (её дубль из окна k) отброшены, ничего сверх зоны перекрытия не потеряно.
   //
+  // ГРАНИЦА СЕГМЕНТА cutK — СЛОВЕСНЫЙ ТРИМ (fix1 I1). Якорь может начинаться НЕ с первого слова
+  // сегмента cutK: слова этого сегмента ДО якоря — реальная речь, и выбрасывать их вместе с
+  // сегментом нельзя. Правило целиком:
+  //   • якорь начинается с ПЕРВОГО слова сегмента cutK1 у соседа (headTokIdx===0) ⇒ сосед не даёт
+  //     НИЧЕГО до якоря ⇒ префикс cutK сохраняется УСЕЧЁННЫМ сегментом (текст обрезается по
+  //     границе последнего до-якорного слова, метка start сохраняется);
+  //   • якорь начинается ПОЗЖЕ первого слова сегмента cutK1 (headTokIdx>0) ⇒ у соседа есть СВОЯ
+  //     редакция тех же до-якорных слов, и она остаётся ⇒ сегмент cutK отбрасывается целиком,
+  //     иначе та же речь попала бы в транскрипт дважды в двух редакциях.
+  // Провенанс усечения — cutSegTrimmedK (число сохранённых слов).
+  //
   // R11: максимум потерь на шов — сегменты ВНУТРИ зоны перекрытия, и только когда та же речь
-  // осталась у соседа. stitchAnchorInZone() — предохранитель: если рез задел бы сегмент с честной
-  // меткой ВНЕ зоны [seam-OVERLAP-TOL, seam+TOL] (ложный якорь на повторяющейся фразе далеко от
-  // шва), якорь отклоняется и шов честно уходит в noAnchor-фолбэк, ничего не теряя.
+  // ДОКАЗАНО осталась у соседа. Три предохранителя:
+  //   1. stitchAnchorInZone() — если рез задел бы сегмент с честной меткой ВНЕ зоны
+  //      [seam-overlap-TOL, seam+TOL] (ложный якорь на повторяющейся фразе далеко от шва), якорь
+  //      отклоняется, шов уходит в noAnchor-фолбэк (anchorOutOfZone в провенансе);
+  //   2. словесный трим выше — граница сегмента не съедает до-якорные слова;
+  //   3. fix1 C1: в noAnchor-фолбэке рез окна k+1 («всё < seam-2») применяется ТОЛЬКО при
+  //      ДОКАЗАТЕЛЬСТВЕ покрытия у окна k — см. stitchKCoversSeamZone().
   var STITCH_TAIL_WORDS = 80;       // сколько слов хвоста/головы вообще участвуют в поиске якоря
   var STITCH_ANCHOR_MIN_WORDS = 5;  // короче — не доказательство, а совпадение частотных слов
   var STITCH_ZONE_TOL_SEC = 15;     // метки модели плавают; фраза может лежать поперёк шва
   var STITCH_SEAM_TOL_SEC = 2;      // фолбэк без якоря = прежний рез по номинальной границе ±2с
 
-  // Только ивритские буквы и пробелы. Огласовки/теамим СНИМАЮТСЯ (не разрывают слово), всё
-  // остальное (пунктуация, латиница, цифры) — разделитель; пробелы схлопываются.
-  function stitchNormalizeWords(text) {
-    return String(text == null ? "" : text)
-      .replace(/[֑-ׇ]/g, "")
-      .replace(/[^א-ת]+/g, " ")
-      .trim().split(/\s+/).filter(Boolean);
+  // Токен = слово + его КОНЕЦ в исходном тексте (граница нужна словесному триму выше).
+  // fix1 C2: слово = буквы/цифры ЛЮБОГО письма (\p{L}\p{N}), не только иврит. Не-ивритское аудио —
+  // поддержанный путь (ASR_PROMPT: транскрибируем и помечаем NOT_HEBREW); при иврит-only
+  // нормализации якорь на таком материале не образовывался НИКОГДА, каждый шов шёл лоссовым
+  // noAnchor-путём, а провенанс при этом «сообщал», что модель не повторяет речь на шве — ложь.
+  // Огласовки/теамим снимаются ВНУТРИ токена (не разрывают слово), регистр — вниз (иврит без
+  // регистра, кириллица/латиница — с ним).
+  function stitchTokens(text) {
+    var s = String(text == null ? "" : text), re = /[\p{L}\p{N}֑-ׇ]+/gu, out = [], m;
+    while ((m = re.exec(s)) !== null) {
+      var w = m[0].replace(/[֑-ׇ]/g, "").toLowerCase();
+      if (w) out.push({ w: w, to: m.index + m[0].length });
+    }
+    return out;
   }
 
-  // words[] + owners[] (индекс сегмента-владельца каждого слова) — так рез по слову превращается
-  // в рез по сегменту. Набираем до ~maxWords, целыми сегментами (сегмент не рвём).
+  function stitchNormalizeWords(text) {
+    return stitchTokens(text).map(function (t) { return t.w; });
+  }
+
+  // words[] + owners[] (индекс сегмента-владельца слова) + tokIdx[] (номер слова ВНУТРИ своего
+  // сегмента — для словесного трима). Набираем до ~maxWords, целыми сегментами (сегмент не рвём).
   function stitchTailWords(segments, maxWords) {
-    var words = [], owners = [];
+    var words = [], owners = [], tokIdx = [];
     for (var i = segments.length - 1; i >= 0 && words.length < maxWords; i--) {
       var w = stitchNormalizeWords(segments[i].text);
-      for (var j = w.length - 1; j >= 0; j--) { words.unshift(w[j]); owners.unshift(i); }
+      for (var j = w.length - 1; j >= 0; j--) { words.unshift(w[j]); owners.unshift(i); tokIdx.unshift(j); }
     }
-    return { words: words, owners: owners };
+    return { words: words, owners: owners, tokIdx: tokIdx };
   }
 
   function stitchHeadWords(segments, maxWords) {
-    var words = [], owners = [];
+    var words = [], owners = [], tokIdx = [];
     for (var i = 0; i < segments.length && words.length < maxWords; i++) {
       var w = stitchNormalizeWords(segments[i].text);
-      for (var j = 0; j < w.length; j++) { words.push(w[j]); owners.push(i); }
+      for (var j = 0; j < w.length; j++) { words.push(w[j]); owners.push(i); tokIdx.push(j); }
     }
-    return { words: words, owners: owners };
+    return { words: words, owners: owners, tokIdx: tokIdx };
   }
 
   // Самая длинная общая ПОДСТРОКА слов (скользящее окно = классический DP по суффиксам).
@@ -207,9 +233,10 @@
 
   // R11-предохранитель (см. блок выше): рез легитимен, только если ВСЁ отбрасываемое лежит в зоне
   // перекрытия ±STITCH_ZONE_TOL_SEC. null-метки не опровергают якорь (нет свидетельства) —
-  // текстовое доказательство остаётся в силе.
-  function stitchAnchorInZone(A, B, cutK, cutK1, seam) {
-    var lo = seam - ASR_WINDOW_OVERLAP_SEC - STITCH_ZONE_TOL_SEC, hi = seam + STITCH_ZONE_TOL_SEC;
+  // текстовое доказательство остаётся в силе. overlapSec — ФАКТИЧЕСКАЯ ширина перекрытия этого
+  // шва (fix1 M4: у половин бисекции она ±15с, а не 30с окон).
+  function stitchAnchorInZone(A, B, cutK, cutK1, seam, overlapSec) {
+    var lo = seam - overlapSec - STITCH_ZONE_TOL_SEC, hi = seam + STITCH_ZONE_TOL_SEC;
     for (var i = cutK; i < A.length; i++) {
       var t = A[i].start;
       if (typeof t === "number" && isFinite(t) && t < lo) return false;
@@ -221,11 +248,34 @@
     return true;
   }
 
+  // fix1 C1 (БЛОКЕР ревью, R11): noAnchor-фолбэк режет у окна k+1 «всё < seam-2», МОЛЧА полагая,
+  // что зону [seam-overlap, seam-2] покрывает окно k. Это ПРЕДПОЛОЖЕНИЕ, а не факт: окно k могло
+  // оборваться раньше (пропущенная половина бисекции, обрезанный ответ модели, тишина в конце
+  // ответа). Тогда рез уничтожал честную речь НАСОВСЕМ — и незаметно: дыра в ≤90с не попадает ни
+  // в coverageGaps, ни в warning, ни в добор. Условие покрытия: у окна k ПОСЛЕ его собственного
+  // реза остался сегмент с ЧИСЛОВОЙ меткой не раньше начала зоны перекрытия (с допуском). Нет
+  // доказательства → рез окна k+1 НЕ применяется вовсе (лучше микро-дубль, чем потеря —
+  // собственная декларация слайса); в провенанс уходит k1CutSkipped.
+  function stitchKCoversSeamZone(A, keepA, seam, overlapSec) {
+    var lo = seam - overlapSec - STITCH_ZONE_TOL_SEC;
+    for (var i = 0; i < A.length; i++) {
+      if (!keepA[i]) continue;
+      var t = A[i].start;
+      if (typeof t === "number" && isFinite(t) && t >= lo) return true;
+    }
+    return false;
+  }
+
   // perWindow = [[{start,text}…]…], seams = номинальные границы (900, 1800…), длиной
-  // perWindow.length-1. Возврат: { segments, seamsMeta } — seamsMeta уходит в провенанс (R9).
-  function stitchWindowSegments(perWindow, seams) {
+  // perWindow.length-1; opts.overlapSec — фактическая ширина перекрытия соседей (по умолчанию
+  // ASR_WINDOW_OVERLAP_SEC; бисекция передаёт свои ±15с). Возврат: { segments, seamsMeta } —
+  // seamsMeta уходит в провенанс (R9).
+  function stitchWindowSegments(perWindow, seams, opts) {
     var wins = (perWindow || []).map(function (s) { return Array.isArray(s) ? s : []; });
     var keep = wins.map(function (s) { return s.map(function () { return true; }); });
+    var repl = wins.map(function (s) { return s.map(function () { return null; }); }); // усечённые сегменты
+    var overlapSec = (opts && typeof opts.overlapSec === "number" && isFinite(opts.overlapSec))
+      ? opts.overlapSec : ASR_WINDOW_OVERLAP_SEC;
     var seamList = Array.isArray(seams) ? seams : [];
     var count = Math.min(seamList.length, Math.max(0, wins.length - 1));
     var meta = [];
@@ -237,12 +287,27 @@
       var anchor = stitchFindAnchor(tail.words, head.words, STITCH_ANCHOR_MIN_WORDS);
       var cutK = anchor ? tail.owners[anchor.tailStart] : -1;
       var cutK1 = anchor ? head.owners[anchor.headStart] : -1;
-      var outOfZone = !!anchor && !stitchAnchorInZone(A, B, cutK, cutK1, seam);
+      var outOfZone = !!anchor && !stitchAnchorInZone(A, B, cutK, cutK1, seam, overlapSec);
       if (anchor && !outOfZone) {
         for (var i = cutK; i < A.length; i++) keep[s][i] = false;
         for (var j = 0; j < cutK1; j++) keep[s + 1][j] = false;
-        meta.push({ seam: seam, anchored: true, anchorWords: anchor.len,
-                    cutSegDroppedK: A.length - cutK, cutSegDroppedK1: cutK1 });
+        // Словесный трим границы (правило целиком — в блоке комментария выше).
+        var prefixWords = tail.tokIdx[anchor.tailStart];       // сколько слов cutK стоит ДО якоря
+        var headTokIdx = head.tokIdx[anchor.headStart];        // с какого слова cutK1 начинается якорь
+        var trimmedWords = 0;
+        if (prefixWords > 0 && headTokIdx === 0) {
+          var toks = stitchTokens(A[cutK].text);
+          var prefixText = String(A[cutK].text).slice(0, toks[prefixWords - 1].to).replace(/\s+$/, "");
+          if (prefixText) {
+            keep[s][cutK] = true;
+            repl[s][cutK] = { start: A[cutK].start, text: prefixText };
+            trimmedWords = prefixWords;
+          }
+        }
+        var m1 = { seam: seam, anchored: true, anchorWords: anchor.len,
+                   cutSegDroppedK: A.length - cutK - (trimmedWords ? 1 : 0), cutSegDroppedK1: cutK1 };
+        if (trimmedWords) m1.cutSegTrimmedK = trimmedWords; // R9: сегмент не отброшен, а усечён
+        meta.push(m1);
         continue;
       }
       // Фолбэк без якоря — прежний честный рез по номинальной границе (тот же ±2с допуск, что и у
@@ -253,17 +318,22 @@
         var ta = A[p].start;
         if (typeof ta === "number" && isFinite(ta) && ta > seam + STITCH_SEAM_TOL_SEC) { keep[s][p] = false; dK++; }
       }
-      for (var q = 0; q < B.length; q++) {
-        var tb = B[q].start;
-        if (typeof tb === "number" && isFinite(tb) && tb < seam - STITCH_SEAM_TOL_SEC) { keep[s + 1][q] = false; dK1++; }
+      // fix1 C1: рез окна k+1 — ТОЛЬКО при доказанном покрытии зоны шва окном k.
+      var kCovers = stitchKCoversSeamZone(A, keep[s], seam, overlapSec);
+      if (kCovers) {
+        for (var q = 0; q < B.length; q++) {
+          var tb = B[q].start;
+          if (typeof tb === "number" && isFinite(tb) && tb < seam - STITCH_SEAM_TOL_SEC) { keep[s + 1][q] = false; dK1++; }
+        }
       }
       var m2 = { seam: seam, anchored: false, noAnchor: true, cutSegDroppedK: dK, cutSegDroppedK1: dK1 };
+      if (!kCovers) m2.k1CutSkipped = true;                     // R9/R11: почему сосед не резался
       if (outOfZone) { m2.anchorOutOfZone = true; m2.anchorWords = anchor.len; } // R9: почему якорь отклонён
       meta.push(m2);
     }
     var out = [];
     for (var w = 0; w < wins.length; w++) {
-      for (var r = 0; r < wins[w].length; r++) if (keep[w][r]) out.push(wins[w][r]);
+      for (var r = 0; r < wins[w].length; r++) if (keep[w][r]) out.push(repl[w][r] || wins[w][r]);
     }
     return { segments: out, seamsMeta: meta };
   }
@@ -300,7 +370,12 @@
     }
     var d = Math.max(0, Number(durationSec) || 0);
     var inRate = ASR_TOKENS_PER_SEC + ((opts.video) ? VIDEO_FRAME_TOKENS_PER_SEC_LOW : 0);
-    var asrUsd = (d * inRate / 1e6) * USD_PER_MTOK_AUDIO_IN +
+    var windows = asrWindows(d).length;
+    // S12.4 fix1 (I3, R16): окна перекрываются, поэтому шовная зона отправляется в модель ДВАЖДЫ —
+    // вход оплачивается за d + OVERLAP*(окон-1), а не за d (2ч → +210с ≈ +3% аудио-входа).
+    // Выход считается по d: шовный дубль снимается stitch и в транскрипт не попадает.
+    var billedInSec = d + ASR_WINDOW_OVERLAP_SEC * Math.max(0, windows - 1);
+    var asrUsd = (billedInSec * inRate / 1e6) * USD_PER_MTOK_AUDIO_IN +
                  (d * ASR_OUT_TOKENS_PER_SEC_TOTAL / 1e6) * USD_PER_MTOK_OUT;
     var segs = Number.isInteger(opts.segmentsKnown) ? opts.segmentsKnown
              : Math.ceil((d / 60) * SEGS_PER_MIN_ASR);
@@ -308,7 +383,6 @@
     var chunks = Math.max(1, Math.ceil(segs / opts.chunkSize));
     var tableUsd = (expRows * TABLE_OUT_TOKENS_PER_ROW / 1e6) * USD_PER_MTOK_OUT +
                    (segs * TABLE_IN_TOKENS_PER_SEG / 1e6) * USD_PER_MTOK_TEXT_IN;
-    var windows = asrWindows(d).length;
     var minutes = Math.ceil((windows * ASR_SEC_PER_WINDOW + chunks * TABLE_SEC_PER_CHUNK) / 60) + 1;
     return { asrUsd: asrUsd, tableUsd: tableUsd, totalUsd: asrUsd + tableUsd,
              minutes: minutes, expRows: expRows, chunks: chunks, windows: windows };

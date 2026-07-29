@@ -155,6 +155,22 @@ async function run() {
     }
     console.log("PASS /api/library/export -> data-recovery export still served");
 
+    // 2b. Version pin (S12.4 fix1 M2): /api/client-config must report EXACTLY the CACHE_VERSION
+    // public/sw.js ships. The About modal and SW update-verification both read it, and it already
+    // drifted 20 releases behind once (package.json source, fixed f48a0af5) — that drift was
+    // invisible until the owner could not tell which build prod actually runs. Cheapest tripwire:
+    // parse sw.js here (same anchored pattern as server.js resolveAppVersion) and compare.
+    const swSrc = fs.readFileSync(path.join(REPO_ROOT, "public", "sw.js"), "utf8");
+    const swVer = (swSrc.match(/\bconst\s+CACHE_VERSION\s*=\s*"v?([^"]+)"/) || [])[1];
+    if (!swVer) throw new Error("public/sw.js: const CACHE_VERSION not found — version pin cannot run");
+    const cfgRes = await fetch(`${BASE_URL}/api/client-config`);
+    const { data: cfgData, text: cfgText } = await readBody(cfgRes);
+    if (!cfgRes.ok || !cfgData) throw new Error(`/api/client-config failed ${cfgRes.status}: ${cfgText.slice(0, 200)}`);
+    if (cfgData.version !== swVer) {
+      throw new Error(`version drift: /api/client-config .version=${JSON.stringify(cfgData.version)} != sw.js CACHE_VERSION ${JSON.stringify(swVer)}`);
+    }
+    console.log(`PASS /api/client-config -> version ${swVer} matches public/sw.js CACHE_VERSION`);
+
     // H2.4: Nakdan is an authenticated first-party mutation surface. Prove that
     // cross-origin and anonymous calls stop before the external provider path.
     const NAKDAN_URL = `${BASE_URL}/api/niqqud/on-demand`;

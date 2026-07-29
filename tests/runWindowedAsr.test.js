@@ -567,6 +567,61 @@ test("(S12.4) шов окон: обе копии реплики ЛЕГАЛЬНЫ
   assert.deepEqual(res.warnings, []);
 });
 
+// fix1 I2(б): новый промт РАЗРЕШАЕТ честную метку ВНЕ запрошенного диапазона (реплика началась
+// чуть раньше `a`). Окно [870,1800] отдаёт шовную копию с меткой 862 — вне своего диапазона, но
+// честной. Ослабленный клип (±60) её сохраняет, якорь срабатывает, копия одна. Мутация «вернуть
+// клип ±2» отбросила бы 862 у источника: clippedCount стал бы 1, anchored — false, а уцелела бы
+// копия окна0 (875) — все три ассерта ниже упали бы.
+test("(S12.4-I2б) честная метка соседа ВНЕ его диапазона доживает до шва и выигрывает якорь", async () => {
+  const calls = [];
+  const win0 = [seg(700, "מאמר על חינוך"), seg(780, "אבא אמא"), seg(860, "ילד ילדה"), seg(875, HE_AN1 + " " + HE_AN2)];
+  const win1 = [seg(862, HE_AN1 + " " + HE_AN2)].concat(heFill(940, 1740, 80, 0));
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800,
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return R({ segments: win0 });
+      if (a === 870) return R({ segments: win1 });
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.deepEqual(calls, [[0, 900], [870, 1800]]);            // ни клип, ни дыры не добавили вызовов
+  assert.equal(res.windows[1].clippedCount, undefined);        // 862 НЕ отброшена клипом окна1
+  assert.equal(res.seams[0].anchored, true);
+  assert.ok(res.segments.some((s) => s.start === 862));        // уцелела честная метка соседа
+  assert.ok(!res.segments.some((s) => s.start === 875));       // копия окна0 срезана швом
+  assert.equal(res.segments.filter((s) => s.text === HE_AN1 + " " + HE_AN2).length, 1);
+  assert.deepEqual(res.coverageGaps, []);
+});
+
+// fix1 C1(б): пропущенная (BAD_JSON×2) половина A бисекции — у половины B зона mid-15..mid-2
+// НЕ имеет соседа-покрытия, и старый безусловный рез уничтожал её в чистую потерю (дыра 55с < 90с
+// не всплывала нигде). Теперь рез шва бисекции требует доказательства покрытия.
+test("(S12.4-C1б) бисекция с пропущенной половиной A: зона mid-15..mid-2 у половины B цела", async () => {
+  const calls = [];
+  const res = await SI.runWindowedAsr({
+    durationSec: 1000, // окна [0,900] [870,1000]; mid окна1 = 935, половины [870,950] и [920,1000]
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return R({ segments: [seg(850, "a0")] });
+      if (a === 870 && b === 1000) return "мусор";
+      if (a === 870 && b === 950) return "мусор";              // половина A пропущена целиком
+      if (a === 920 && b === 1000) return R({ segments: [seg(925, "zone-mid"), seg(980, "h1")] });
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: (raw) => { if (raw === "мусор") { const e = new Error("bad"); e.code = "ASR_BAD_JSON"; throw e; }
+                      return fakeParse(raw); },
+    onProgress: () => {},
+  });
+  assert.deepEqual(calls, [[0, 900], [870, 1000], [870, 1000], [870, 950], [870, 950], [920, 1000]]);
+  // 925 лежит в mid-15..mid-2 (920..933) — ровно та зона, которую резал старый безусловный рез
+  assert.deepEqual(res.segments.map((s) => s.text), ["a0", "zone-mid", "h1"]);
+  assert.equal(res.windows[1].bisectSeams[0].k1CutSkipped, true); // R9: покрытия не было — не резали
+  assert.deepEqual(res.windows[1].skippedRanges, [{ startSec: 870, endSec: 950 }]);
+  assert.deepEqual(res.coverageGaps, []);
+});
+
 test("(S12.4) clipSegmentsToRange: tolSec — ближняя зона остаётся шву, дальний заезд отброшен", () => {
   const input = [seg(880, "near-lo"), seg(910, "in"), seg(1855, "near-hi"), seg(2000, "far")];
   // допуск окна (ASR_STITCH_CLIP_TOL_SEC=60) сохраняет ближнюю зону по обе стороны [870,1800]

@@ -1065,7 +1065,11 @@ function shellIntegrity() {
 function resolveAppVersion() {
   try {
     const swSource = fs.readFileSync(path.join(__dirname, "public", "sw.js"), "utf8");
-    const m = swSource.match(/CACHE_VERSION\s*=\s*"v?([^"]+)"/);
+    // Anchored on `const CACHE_VERSION` (S12.4 fix1 M1): the loose /CACHE_VERSION\s*=…/ also
+    // matched the SUFFIX of other declarations — public/sw.js also ships GRAPH_CACHE_VERSION
+    // ("v3.3.6-1", versioned independently of the shell). It only worked by accident of line
+    // order; reordering the file would have made the server report a foreign version, silently.
+    const m = swSource.match(/\bconst\s+CACHE_VERSION\s*=\s*"v?([^"]+)"/);
     if (m && m[1]) return m[1];
     throw new Error("CACHE_VERSION pattern not found in public/sw.js");
   } catch (err) {

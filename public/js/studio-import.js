@@ -178,7 +178,9 @@
           skippedRanges.push({ startSec: hs, endSec: he });
         }
       }
-      var stitchedHalves = A2.stitchWindowSegments(perHalf, [mid]);
+      // fix1 M4: ширина перекрытия шва бисекции — ov (±15с), а не 30с окон: зона-предохранитель
+      // и доказательство покрытия должны считаться по ФАКТИЧЕСКОЙ зоне этого шва.
+      var stitchedHalves = A2.stitchWindowSegments(perHalf, [mid], { overlapSec: ov });
       return { parsed: { segments: stitchedHalves.segments, language: language2, warnings: warnings2 },
                retries: calls - 1, bisected: true, skippedRanges: skippedRanges, clippedCount: clippedCount,
                seamsMeta: stitchedHalves.seamsMeta };

@@ -35,3 +35,22 @@ test("buildAsrRequest: opts.mediaResolution added to generationConfig; omitted w
   assert.ok(!("mediaResolution" in bodyWithout.generationConfig));
   assert.equal(bodyWithout.generationConfig.temperature, 0);
 });
+
+// S12.4 fix1 (M11): пер-оконный ASR-таймаут — 360с. 180с оказалось МАЛО: реальное 15-мин окно
+// уходило за 180с в пиковые часы, обрывалось по AbortController и всплывало у владельца как
+// «Gemini перегружен» на здоровом прогоне. Пин функциональный: перехватываем setTimeout, которым
+// transcribeAudio вооружает AbortController.
+test("transcribeAudio: пер-оконный таймаут = 360000мс (S12.4)", async () => {
+  const realFetch = globalThis.fetch, realSetTimeout = globalThis.setTimeout;
+  const delays = [];
+  globalThis.setTimeout = (fn, ms) => { delays.push(ms); return realSetTimeout(() => {}, 0); };
+  globalThis.fetch = async () => ({
+    ok: true,
+    json: async () => ({ candidates: [{ content: { parts: [{ text: "{\"segments\":[]}" }] } }] }),
+  });
+  try {
+    const out = await G.transcribeAudio("k", "uri", "audio/mpeg", { promptText: "P" });
+    assert.equal(out, "{\"segments\":[]}");
+  } finally { globalThis.fetch = realFetch; globalThis.setTimeout = realSetTimeout; }
+  assert.deepEqual(delays, [360000]);
+});

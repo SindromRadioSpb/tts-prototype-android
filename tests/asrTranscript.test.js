@@ -131,11 +131,11 @@ const AN1 = "הילד אכל תפוח";        // из tests/segTable.test.js
 const AN2 = "הילד רץ אל הבית";      // из tests/segTable.test.js
 const ANCHOR = AN1 + " " + AN2;      // 7 слов — заведомо ≥ STITCH_ANCHOR_MIN_WORDS
 const sg = (start, text) => ({ start, text });
-// Нормализация теста НЕЗАВИСИМА от нормализации модуля (independent-oracle): считаем шинглы по
-// собственному правилу «ивритские буквы + пробелы».
+// Нормализация теста НЕЗАВИСИМА от нормализации модуля (independent-oracle): своя реализация
+// правила «буквы/цифры любого письма, огласовки сняты, регистр вниз».
 function words(segments) {
-  return segments.flatMap((s) => String(s.text).replace(/[֑-ׇ]/g, "").replace(/[^א-ת]+/g, " ")
-    .trim().split(/\s+/).filter(Boolean));
+  return segments.flatMap((s) => String(s.text).replace(/[֑-ׇ]/g, "").toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u).filter(Boolean));
 }
 function shingleCount(segments, phrase) {
   const hay = words(segments), needle = words([{ text: phrase }]);
@@ -248,6 +248,104 @@ test("(S12.4-R11) якорь вне зоны перекрытия отклоня
   assert.equal(r.seamsMeta[0].anchorOutOfZone, true); // R9: честно записано, ПОЧЕМУ якорь отклонён
 });
 
+// ── fix1 ревью S12.4 ────────────────────────────────────────────────────────────────────────
+
+// C1 (БЛОКЕР ревью, R11): noAnchor-фолбэк резал у окна k+1 «всё < seam-2» БЕЗУСЛОВНО — молча
+// полагая, что зону шва покрывает окно k. Если окно k оборвалось раньше (обрезанный ответ,
+// пропущенная половина бисекции), это была ЧИСТАЯ ПОТЕРЯ речи, невидимая для гейтов: дыра в
+// ≤90с не даёт ни coverageGaps, ни warning, ни добора. Теперь рез требует ДОКАЗАТЕЛЬСТВА
+// покрытия — сохранённого сегмента окна k с числовой меткой в зоне шва.
+test("(S12.4-C1) noAnchor: окно k оборвано до зоны шва → рез соседа НЕ применяется, потерь 0", () => {
+  const r = A.stitchWindowSegments([
+    [sg(700, "מאמר על חינוך"), sg(850, "אבא אמא")],           // обрыв на seam-50: зоны [870,900] нет
+    [sg(872, "ילד ילדה"), sg(886, "שלום עולם"), sg(950, "משפט שני")],
+  ], [900]);
+  assert.deepEqual(r.segments.map((s) => s.start), [700, 850, 872, 886, 950]); // 872/886 УЦЕЛЕЛИ
+  assert.equal(r.seamsMeta[0].k1CutSkipped, true);   // R9: честно записано, почему сосед не резался
+  assert.equal(r.seamsMeta[0].cutSegDroppedK1, 0);
+  // контроль: у окна k покрытие зоны ЕСТЬ (880 ≥ 900-30-15) → рез применяется как прежде
+  const ctl = A.stitchWindowSegments([
+    [sg(700, "מאמר על חינוך"), sg(880, "אבא אמא")],
+    [sg(872, "ילד ילדה"), sg(950, "משפט שני")],
+  ], [900]);
+  assert.deepEqual(ctl.segments.map((s) => s.start), [700, 880, 950]);
+  assert.equal(ctl.seamsMeta[0].cutSegDroppedK1, 1);
+  assert.equal(ctl.seamsMeta[0].k1CutSkipped, undefined);
+});
+
+// C2 (ревью): нормализация «только иврит» делала якорь НЕВОЗМОЖНЫМ на не-ивритском аудио —
+// а это поддержанный путь (ASR_PROMPT: транскрибируем и помечаем NOT_HEBREW). Каждый шов уходил
+// в лоссовый noAnchor-путь, и провенанс при этом «сообщал», что модель не повторяет речь. Теперь
+// слово = буквы/цифры любого письма.
+test("(S12.4-C2) не-ивритское аудио (NOT_HEBREW-путь): якорь работает, копия одна", () => {
+  const RU = "мама мыла раму очень чисто";
+  const r = A.stitchWindowSegments([
+    [sg(700, "первое предложение здесь"), sg(895, RU)],
+    [sg(905, RU), sg(1000, "второе предложение тут")],
+  ], [900]);
+  assert.equal(shingleCount(r.segments, RU), 1);
+  assert.equal(r.seamsMeta[0].anchored, true);
+  assert.equal(r.seamsMeta[0].anchorWords, 5);
+  assert.deepEqual(r.segments.map((s) => s.start), [700, 905, 1000]);
+  // регистр и пунктуация не мешают якорю
+  const mixed = A.stitchWindowSegments([
+    [sg(895, "Мама мыла раму, очень чисто!")], [sg(905, "мама мыла раму очень чисто"), sg(1000, "хвост")],
+  ], [900]);
+  assert.equal(mixed.seamsMeta[0].anchored, true);
+});
+
+// I1 (ревью): слова сегмента cutK ДО первого слова якоря выбрасывались вместе с сегментом —
+// подсегментная потеря речи. Правило (целиком — в коде): если у соседа якорь начинается с ПЕРВОГО
+// слова его сегмента (сосед не даёт ничего до якоря), префикс cutK сохраняется УСЕЧЁННЫМ
+// сегментом; если у соседа есть СВОЯ редакция до-якорных слов — cutK отбрасывается целиком.
+test("(S12.4-I1) словесный трим границы: до-якорные слова не теряются", () => {
+  const r = A.stitchWindowSegments([
+    [sg(700, "מאמר על חינוך"), sg(875, "מילה יחידה " + ANCHOR)],
+    [sg(876, ANCHOR), sg(950, "שלום עולם טוב")],
+  ], [900]);
+  assert.deepEqual(r.segments.map((s) => [s.start, s.text]), [
+    [700, "מאמר על חינוך"], [875, "מילה יחידה"], [876, ANCHOR], [950, "שלום עולם טוב"]]);
+  assert.equal(shingleCount(r.segments, "מילה יחידה"), 1); // сохранено ровно один раз
+  assert.equal(shingleCount(r.segments, ANCHOR), 1);       // якорь по-прежнему один раз
+  assert.equal(r.seamsMeta[0].cutSegTrimmedK, 2);          // R9: сегмент усечён, а не отброшен
+  assert.equal(r.seamsMeta[0].cutSegDroppedK, 0);
+  // контроль: у соседа СВОЯ редакция до-якорных слов → трима нет, обе редакции не плодятся
+  const ctl = A.stitchWindowSegments([
+    [sg(700, "מאמר על חינוך"), sg(875, "מילה יחידה " + ANCHOR)],
+    [sg(876, "אבא אמא " + ANCHOR), sg(950, "שלום עולם טוב")],
+  ], [900]);
+  assert.deepEqual(ctl.segments.map((s) => s.text),
+    ["מאמר על חינוך", "אבא אמא " + ANCHOR, "שלום עולם טוב"]);
+  assert.equal(ctl.seamsMeta[0].cutSegTrimmedK, undefined);
+  assert.equal(ctl.seamsMeta[0].cutSegDroppedK, 1);
+});
+
+// I2(а): порог якоря — не декоративная константа. 4 общих слова доказательством НЕ считаются.
+test("(S12.4-I2а) порог STITCH_ANCHOR_MIN_WORDS: 4 общих слова — не якорь, 5 — якорь", () => {
+  assert.equal(A.STITCH_ANCHOR_MIN_WORDS, 5);
+  const W4 = "אבא אמא ילד ילדה", W5 = W4 + " תפוח";
+  const four = A.stitchWindowSegments([
+    [sg(700, "מאמר על חינוך"), sg(880, W4)], [sg(881, W4), sg(950, "משפט שני")]], [900]);
+  assert.equal(four.seamsMeta[0].anchored, false);
+  const five = A.stitchWindowSegments([
+    [sg(700, "מאמר על חינוך"), sg(880, W5)], [sg(881, W5), sg(950, "משפט שני")]], [900]);
+  assert.equal(five.seamsMeta[0].anchored, true);
+  assert.equal(five.seamsMeta[0].anchorWords, 5);
+});
+
+// M6: при равной длине кандидатов побеждает БЛИЖНИЙ К ШВУ. Если бы побеждал дальний (700с),
+// zone-предохранитель отклонил бы якорь целиком (anchored:false) — ассерт ниже это ловит.
+test("(S12.4-M6) tie-break якоря: из двух равных кандидатов выбран ближний к шву", () => {
+  const W5 = "אבא אמא ילד ילדה תפוח";
+  const r = A.stitchWindowSegments([
+    [sg(700, W5), sg(800, "מאמר על חינוך"), sg(880, W5)],  // W5 встречается ДВАЖДЫ
+    [sg(881, W5), sg(950, "משפט שני")],
+  ], [900]);
+  assert.equal(r.seamsMeta[0].anchored, true);
+  assert.equal(r.seamsMeta[0].cutSegDroppedK, 1);          // срезана только ПОЗДНЯЯ копия
+  assert.deepEqual(r.segments.map((s) => s.start), [700, 800, 881, 950]); // ранняя копия цела
+});
+
 test("findCoverageGaps: дыра середины >90с, хвост >180с; интро НЕ дыра; null-старты прозрачны", () => {
   const segs = [{ start: 200, text: "а" }, { start: 260, text: "б" }, { start: null, text: "х" },
                 { start: 500, text: "в" }];
@@ -262,6 +360,12 @@ test("findCoverageGaps: дыра середины >90с, хвост >180с; ин
 
 test("estimateLongJob: 2ч подкаст в замеренных рамках; chunkSize обязателен", () => {
   const e = A.estimateLongJob(7200, { video: false, chunkSize: 120 });
+  // S12.4 fix1 (I3, R16): вход оплачивается за d + OVERLAP*(окон-1) — шовная зона уходит в модель
+  // дважды. 8 окон → 7 швов → +210с звука. Проверяем по построению, а не «на глаз».
+  const billedIn = (7200 + A.ASR_WINDOW_OVERLAP_SEC * (e.windows - 1)) * 32 / 1e6 * 1.0;
+  assert.ok(Math.abs(e.asrUsd - (billedIn + 7200 * 8 / 1e6 * 2.5)) < 1e-9, "asrUsd=" + e.asrUsd);
+  // и строго больше доперекрытийной формулы (по d) — иначе перекрытие снова не учтено
+  assert.ok(e.asrUsd > 7200 * 32 / 1e6 * 1.0 + 7200 * 8 / 1e6 * 2.5, "asrUsd=" + e.asrUsd);
   assert.ok(e.asrUsd > 0.15 && e.asrUsd < 0.5, "asrUsd=" + e.asrUsd);
   assert.ok(e.totalUsd > 0.4 && e.totalUsd < 1.5, "totalUsd=" + e.totalUsd);
   assert.ok(e.minutes >= 10 && e.minutes <= 35, "minutes=" + e.minutes);
