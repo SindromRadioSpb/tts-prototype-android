@@ -248,22 +248,39 @@
     return true;
   }
 
-  // fix1 C1 (БЛОКЕР ревью, R11): noAnchor-фолбэк режет у окна k+1 «всё < seam-2», МОЛЧА полагая,
-  // что зону [seam-overlap, seam-2] покрывает окно k. Это ПРЕДПОЛОЖЕНИЕ, а не факт: окно k могло
-  // оборваться раньше (пропущенная половина бисекции, обрезанный ответ модели, тишина в конце
-  // ответа). Тогда рез уничтожал честную речь НАСОВСЕМ — и незаметно: дыра в ≤90с не попадает ни
-  // в coverageGaps, ни в warning, ни в добор. Условие покрытия: у окна k ПОСЛЕ его собственного
-  // реза остался сегмент с ЧИСЛОВОЙ меткой не раньше начала зоны перекрытия (с допуском). Нет
-  // доказательства → рез окна k+1 НЕ применяется вовсе (лучше микро-дубль, чем потеря —
-  // собственная декларация слайса); в провенанс уходит k1CutSkipped.
-  function stitchKCoversSeamZone(A, keepA, seam, overlapSec) {
-    var lo = seam - overlapSec - STITCH_ZONE_TOL_SEC;
+  // fix1 C1 + fix2 D1 (БЛОКЕР ревью, R11): noAnchor-фолбэк режет у окна k+1 «всё < seam-2», МОЛЧА
+  // полагая, что зону [seam-overlap, seam-2] покрывает окно k. Это ПРЕДПОЛОЖЕНИЕ, а не факт: окно
+  // k могло оборваться раньше (пропущенная половина бисекции, обрезанный ответ модели, тишина в
+  // конце ответа). Тогда рез уничтожал честную речь НАСОВСЕМ и незаметно: дыра ≤90с не попадает ни
+  // в coverageGaps, ни в warning, ни в добор.
+  //
+  // fix1 давал ОДНО доказательство на весь шов («у k есть метка в зоне») — и этого мало: k=[…,855]
+  // при seam=900 «доказывало» покрытие сегментов k+1 на 870…894, которых окно k никогда не
+  // касалось (≈24с речи исчезали, и флага при этом не было — от легитимного полного реза случай
+  // не отличался). Обрыв окна k ГДЕ УГОДНО в полосе [seam-45, seam-2] давал тихую потерю.
+  //
+  // ПРАВИЛО (fix2, посегментное): сегмент окна k+1 с ЧИСЛОВОЙ меткой t режется ТОЛЬКО если у окна
+  // k ПОСЛЕ его собственного реза осталась числовая метка >= t - STITCH_COVER_TOL_SEC, то есть
+  // окно k доказуемо ГОВОРИЛО непосредственно перед t. Сегменты k+1 без такого свидетеля
+  // ОСТАЮТСЯ (лучше микро-дубль, чем потеря — декларация слайса). null-метки не режутся никогда.
+  // Провенанс: k1CutKept — сколько сегментов оставлено без доказательства; k1CutPartial — рез
+  // применён частично; k1CutSkipped — числовых свидетелей у окна k нет ВООБЩЕ (рез не применялся).
+  //
+  // STITCH_COVER_TOL_SEC = 10с: ASR_PROMPT ограничивает сегмент ~15с, поэтому сегмент окна k,
+  // начавшийся не раньше чем за 10с до t, с запасом ещё звучит в момент t. Брать 15с нельзя — это
+  // значило бы предполагать МАКСИМАЛЬНУЮ длину сегмента в каждом случае; 10с оставляет 5с запаса.
+  var STITCH_COVER_TOL_SEC = 10;
+
+  // Самая поздняя ЧИСЛОВАЯ метка окна k среди СОХРАНЁННЫХ сегментов (null — таких нет).
+  // «Существует сохранённая метка >= t-TOL» ⟺ «kMaxKept >= t-TOL» — поэтому максимума достаточно.
+  function stitchLastKeptMark(A, keepA) {
+    var best = null;
     for (var i = 0; i < A.length; i++) {
       if (!keepA[i]) continue;
       var t = A[i].start;
-      if (typeof t === "number" && isFinite(t) && t >= lo) return true;
+      if (typeof t === "number" && isFinite(t) && (best === null || t > best)) best = t;
     }
-    return false;
+    return best;
   }
 
   // perWindow = [[{start,text}…]…], seams = номинальные границы (900, 1800…), длиной
@@ -289,23 +306,31 @@
       var cutK1 = anchor ? head.owners[anchor.headStart] : -1;
       var outOfZone = !!anchor && !stitchAnchorInZone(A, B, cutK, cutK1, seam, overlapSec);
       if (anchor && !outOfZone) {
-        for (var i = cutK; i < A.length; i++) keep[s][i] = false;
-        for (var j = 0; j < cutK1; j++) keep[s + 1][j] = false;
+        // fix2 D2: состояние cutK ДО реза. Сегмент мог быть уже отброшен ПРЕДЫДУЩИМ швом (окно s —
+        // это k+1 для шва s-1), и тогда трим ниже его ВОСКРЕСИЛ БЫ: в транскрипте появлялась вторая
+        // копия текста, законно снятого прошлым швом. Тримить можно только живой сегмент.
+        var cutKWasKept = keep[s][cutK];
+        // Счётчики честные: считаем ПЕРЕХОДЫ true→false, а не «сколько сегментов правее cutK» —
+        // иначе провенанс приписывал бы этому шву чужие (уже сделанные) резы.
+        var dropK = 0, dropK1 = 0;
+        for (var i = cutK; i < A.length; i++) { if (keep[s][i]) { keep[s][i] = false; dropK++; } }
+        for (var j = 0; j < cutK1; j++) { if (keep[s + 1][j]) { keep[s + 1][j] = false; dropK1++; } }
         // Словесный трим границы (правило целиком — в блоке комментария выше).
         var prefixWords = tail.tokIdx[anchor.tailStart];       // сколько слов cutK стоит ДО якоря
         var headTokIdx = head.tokIdx[anchor.headStart];        // с какого слова cutK1 начинается якорь
         var trimmedWords = 0;
-        if (prefixWords > 0 && headTokIdx === 0) {
+        if (cutKWasKept && prefixWords > 0 && headTokIdx === 0) {
           var toks = stitchTokens(A[cutK].text);
           var prefixText = String(A[cutK].text).slice(0, toks[prefixWords - 1].to).replace(/\s+$/, "");
           if (prefixText) {
             keep[s][cutK] = true;
             repl[s][cutK] = { start: A[cutK].start, text: prefixText };
             trimmedWords = prefixWords;
+            dropK--; // сегмент не отброшен, а усечён
           }
         }
         var m1 = { seam: seam, anchored: true, anchorWords: anchor.len,
-                   cutSegDroppedK: A.length - cutK - (trimmedWords ? 1 : 0), cutSegDroppedK1: cutK1 };
+                   cutSegDroppedK: dropK, cutSegDroppedK1: dropK1 };
         if (trimmedWords) m1.cutSegTrimmedK = trimmedWords; // R9: сегмент не отброшен, а усечён
         meta.push(m1);
         continue;
@@ -313,21 +338,29 @@
       // Фолбэк без якоря — прежний честный рез по номинальной границе (тот же ±2с допуск, что и у
       // клиппинга): окно k до seam+2, окно k+1 от seam-2. null-метки НЕ трогаем (нет свидетельства
       // ни за, ни против — текст сохраняется, R11).
-      var dK = 0, dK1 = 0;
+      var dK = 0, dK1 = 0, k1Left = 0;
       for (var p = 0; p < A.length; p++) {
         var ta = A[p].start;
-        if (typeof ta === "number" && isFinite(ta) && ta > seam + STITCH_SEAM_TOL_SEC) { keep[s][p] = false; dK++; }
-      }
-      // fix1 C1: рез окна k+1 — ТОЛЬКО при доказанном покрытии зоны шва окном k.
-      var kCovers = stitchKCoversSeamZone(A, keep[s], seam, overlapSec);
-      if (kCovers) {
-        for (var q = 0; q < B.length; q++) {
-          var tb = B[q].start;
-          if (typeof tb === "number" && isFinite(tb) && tb < seam - STITCH_SEAM_TOL_SEC) { keep[s + 1][q] = false; dK1++; }
+        if (typeof ta === "number" && isFinite(ta) && ta > seam + STITCH_SEAM_TOL_SEC && keep[s][p]) {
+          keep[s][p] = false; dK++;
         }
       }
+      // fix2 D1: рез каждого сегмента окна k+1 — ТОЛЬКО при ПОСЕГМЕНТНОМ доказательстве покрытия.
+      var kMark = stitchLastKeptMark(A, keep[s]);
+      for (var q = 0; q < B.length; q++) {
+        var tb = B[q].start;
+        if (!(typeof tb === "number" && isFinite(tb))) continue;   // null — свидетельств нет, не режем
+        if (tb >= seam - STITCH_SEAM_TOL_SEC) continue;            // не в шовной полосе — не наш случай
+        if (kMark !== null && tb <= kMark + STITCH_COVER_TOL_SEC) {
+          if (keep[s + 1][q]) { keep[s + 1][q] = false; dK1++; }
+        } else k1Left++;                                           // покрытия не доказано — ОСТАВЛЯЕМ
+      }
       var m2 = { seam: seam, anchored: false, noAnchor: true, cutSegDroppedK: dK, cutSegDroppedK1: dK1 };
-      if (!kCovers) m2.k1CutSkipped = true;                     // R9/R11: почему сосед не резался
+      if (k1Left) {                                               // R9/R11: почему сосед срезан не весь
+        m2.k1CutKept = k1Left;
+        if (kMark === null) m2.k1CutSkipped = true;               // свидетелей нет вообще
+        else m2.k1CutPartial = true;                              // свидетель есть, но не на всю полосу
+      }
       if (outOfZone) { m2.anchorOutOfZone = true; m2.anchorWords = anchor.len; } // R9: почему якорь отклонён
       meta.push(m2);
     }
@@ -481,6 +514,7 @@
     ASR_WINDOW_OVERLAP_SEC: ASR_WINDOW_OVERLAP_SEC, ASR_STITCH_CLIP_TOL_SEC: ASR_STITCH_CLIP_TOL_SEC,
     STITCH_TAIL_WORDS: STITCH_TAIL_WORDS, STITCH_ANCHOR_MIN_WORDS: STITCH_ANCHOR_MIN_WORDS,
     STITCH_ZONE_TOL_SEC: STITCH_ZONE_TOL_SEC, STITCH_SEAM_TOL_SEC: STITCH_SEAM_TOL_SEC,
+    STITCH_COVER_TOL_SEC: STITCH_COVER_TOL_SEC,
     asrWindows: asrWindows, asrSeams: asrSeams, ASR_RANGE_PROMPT: ASR_RANGE_PROMPT,
     mergeWindowSegments: mergeWindowSegments, stitchWindowSegments: stitchWindowSegments,
     findCoverageGaps: findCoverageGaps,

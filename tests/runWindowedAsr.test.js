@@ -622,6 +622,37 @@ test("(S12.4-C1б) бисекция с пропущенной половиной
   assert.deepEqual(res.coverageGaps, []);
 });
 
+// fix2 D3 — пин параметра overlapSec (M4). Шов бисекции узкий (±15с вокруг mid), поэтому его
+// zone-предохранитель обязан считать зону по mid±15, а не по 30с окон. Половина A даёт метку 895
+// = mid-40: при ov=15 (правильно) якорь ОТКЛОНЯЕТСЯ (895 < mid-30 = 905) и уникальный для A
+// сегмент 895 остаётся жив; при мутации «убрать {overlapSec: ov}» зона считалась бы по 30с
+// (lo = mid-45 = 890 ≤ 895) — якорь приняли бы, и сегмент 895 исчез бы, хотя половина B его
+// никогда не транскрибировала (она начинается с 920).
+test("(S12.4-D3) шов бисекции считает зону по СВОЕЙ ширине перекрытия (±15с), а не по 30с окон", async () => {
+  const AN = HE_AN1 + " " + HE_AN2;
+  const calls = [];
+  const res = await SI.runWindowedAsr({
+    durationSec: 1000, // окно1 [870,1000]; mid = 935; половины [870,950] и [920,1000]
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return R({ segments: [seg(860, "a0")] });
+      if (a === 870 && b === 1000) return "мусор";
+      if (a === 870 && b === 950) return R({ segments: [seg(895, AN), seg(940, "אחת שתיים")] });
+      if (a === 920 && b === 1000) return R({ segments: [seg(925, AN), seg(980, "h1")] });
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: (raw) => { if (raw === "мусор") { const e = new Error("bad"); e.code = "ASR_BAD_JSON"; throw e; }
+                      return fakeParse(raw); },
+    onProgress: () => {},
+  });
+  assert.deepEqual(calls, [[0, 900], [870, 1000], [870, 1000], [870, 950], [920, 1000]]);
+  const bs = res.windows[1].bisectSeams[0];
+  assert.equal(bs.seam, 935);
+  assert.equal(bs.anchored, false);         // при мутации стало бы true
+  assert.equal(bs.anchorOutOfZone, true);   // R9: якорь отклонён именно зоной
+  assert.ok(res.segments.some((s) => s.start === 895)); // уникальный для половины A сегмент ЖИВ
+});
+
 test("(S12.4) clipSegmentsToRange: tolSec — ближняя зона остаётся шву, дальний заезд отброшен", () => {
   const input = [seg(880, "near-lo"), seg(910, "in"), seg(1855, "near-hi"), seg(2000, "far")];
   // допуск окна (ASR_STITCH_CLIP_TOL_SEC=60) сохраняет ближнюю зону по обе стороны [870,1800]

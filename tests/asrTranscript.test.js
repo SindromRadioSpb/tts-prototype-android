@@ -261,9 +261,10 @@ test("(S12.4-C1) noAnchor: окно k оборвано до зоны шва → 
     [sg(872, "ילד ילדה"), sg(886, "שלום עולם"), sg(950, "משפט שני")],
   ], [900]);
   assert.deepEqual(r.segments.map((s) => s.start), [700, 850, 872, 886, 950]); // 872/886 УЦЕЛЕЛИ
-  assert.equal(r.seamsMeta[0].k1CutSkipped, true);   // R9: честно записано, почему сосед не резался
+  assert.equal(r.seamsMeta[0].k1CutPartial, true);   // R9: честно записано, почему сосед не резался
+  assert.equal(r.seamsMeta[0].k1CutKept, 2);
   assert.equal(r.seamsMeta[0].cutSegDroppedK1, 0);
-  // контроль: у окна k покрытие зоны ЕСТЬ (880 ≥ 900-30-15) → рез применяется как прежде
+  // контроль: у окна k покрытие ЕСТЬ (880 ≥ 872-10) → рез применяется как прежде, без флагов
   const ctl = A.stitchWindowSegments([
     [sg(700, "מאמר על חינוך"), sg(880, "אבא אמא")],
     [sg(872, "ילד ילדה"), sg(950, "משפט שני")],
@@ -271,6 +272,57 @@ test("(S12.4-C1) noAnchor: окно k оборвано до зоны шва → 
   assert.deepEqual(ctl.segments.map((s) => s.start), [700, 880, 950]);
   assert.equal(ctl.seamsMeta[0].cutSegDroppedK1, 1);
   assert.equal(ctl.seamsMeta[0].k1CutSkipped, undefined);
+  assert.equal(ctl.seamsMeta[0].k1CutPartial, undefined);
+  // у окна k нет НИ ОДНОЙ числовой метки → свидетелей нет вообще → k1CutSkipped (не partial)
+  const noMarks = A.stitchWindowSegments([
+    [sg(null, "מאמר על חינוך")], [sg(872, "ילד ילדה"), sg(950, "משפט שני")]], [900]);
+  assert.deepEqual(noMarks.segments.map((s) => s.start), [null, 872, 950]);
+  assert.equal(noMarks.seamsMeta[0].k1CutSkipped, true);
+  assert.equal(noMarks.seamsMeta[0].k1CutPartial, undefined);
+});
+
+// D1 (fix2, БЛОКЕР раунда 2 — тот же класс, что C1): доказательство ПОСЕГМЕНТНОЕ. Одного
+// «у окна k есть метка в зоне шва» мало: k=[…,855] при seam=900 «доказывало» покрытие сегментов
+// соседа на 870…894 (≈24с речи), которых окно k никогда не касалось, и флага не ставилось — от
+// легитимного полного реза случай было не отличить.
+test("(S12.4-D1а) обрыв k ВНУТРИ зоны шва: сегменты соседа без свидетеля живы, флаг частичного реза", () => {
+  const r = A.stitchWindowSegments([
+    [sg(700, "מאמר על חינוך"), sg(855, "אחת שתיים")],          // окно k молчит после 855
+    [sg(870, "שלום עולם"), sg(878, "טוב מאוד"), sg(886, "משפט אחד"), sg(894, "משפט שני"), sg(950, "מוזיקה")],
+  ], [900]);
+  assert.deepEqual(r.segments.map((s) => s.start), [700, 855, 870, 878, 886, 894, 950]); // потерь 0
+  assert.equal(r.seamsMeta[0].cutSegDroppedK1, 0);
+  assert.equal(r.seamsMeta[0].k1CutPartial, true);  // отличимо от легитимного полного реза
+  assert.equal(r.seamsMeta[0].k1CutKept, 4);
+});
+
+test("(S12.4-D1б) свип границы доказательства: режется ровно то, что покрыто (TOL=10с)", () => {
+  assert.equal(A.STITCH_COVER_TOL_SEC, 10);
+  const r = A.stitchWindowSegments([
+    [sg(700, "מאמר על חינוך"), sg(870, "אחת שתיים")],          // последняя метка k = 870 → покрыто ≤880
+    [sg(872, "שלום עולם"), sg(884, "טוב מאוד"), sg(896, "משפט אחד"), sg(950, "מוזיקה")],
+  ], [900]);
+  assert.deepEqual(r.segments.map((s) => s.start), [700, 870, 884, 896, 950]); // срезан ТОЛЬКО 872
+  assert.equal(r.seamsMeta[0].cutSegDroppedK1, 1);
+  assert.equal(r.seamsMeta[0].k1CutKept, 2);
+  assert.equal(r.seamsMeta[0].k1CutPartial, true);
+});
+
+// D2 (fix2): трим воскрешал сегмент, законно отброшенный ПРЕДЫДУЩИМ швом (окно s — это k+1 для
+// шва s-1) — в транскрипте появлялась вторая копия уже снятого текста, а счётчики шва приписывали
+// себе чужие резы. Фикстура: 3 окна, швы 900/1800, среднее окно вырожденное (метки null).
+test("(S12.4-D2) трим не воскрешает сегмент, снятый предыдущим швом; счётчики честные", () => {
+  const AN_A = "אבא אמא ילד ילדה תפוח";          // якорь шва 900 (5 слов)
+  const win0 = [sg(700, "מאמר על חינוך"), sg(860, "אחת שתיים"), sg(880, AN_A)];
+  const win1 = [sg(null, "אחת שתיים " + ANCHOR), sg(null, AN_A), sg(1790, "שלום עולם טוב")];
+  const win2 = [sg(1801, ANCHOR + " שלום עולם טוב"), sg(1900, "משפט שני")];
+  const r = A.stitchWindowSegments([win0, win1, win2], [900, 1800]);
+  // «אחת שתיים» окна1 снято швом 900 (его копия есть у окна0 на 860) и НЕ возвращается тримом
+  assert.equal(shingleCount(r.segments, "אחת שתיים"), 1);
+  assert.equal(r.seamsMeta[1].cutSegTrimmedK, undefined); // трим не сработал: сегмент уже был снят
+  // счётчик шва 1800 считает ТОЛЬКО свои резы (сегменты 1 и 2), а не «всё правее cutK» (было бы 3)
+  assert.equal(r.seamsMeta[1].cutSegDroppedK, 2);
+  assert.deepEqual(r.segments.map((s) => s.start), [700, 860, 1801, 1900]);
 });
 
 // C2 (ревью): нормализация «только иврит» делала якорь НЕВОЗМОЖНЫМ на не-ивритском аудио —
