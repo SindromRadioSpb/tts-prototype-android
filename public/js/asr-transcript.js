@@ -49,13 +49,35 @@
   var ASR_GAP_MAX_SEC = 90;    // дыра покрытия внутри записи, требующая добора
   var ASR_TAIL_GAP_SEC = 180;  // молчание хвоста, считающееся дырой
 
+  // S12.4: окна СОСЕДЕЙ ПЕРЕКРЫВАЮТСЯ. Шов по МЕТКАМ (S12.3) слеп к «легально врущим» меткам:
+  // модель начинает с начала ФРАЗЫ, а не с секунды a, и, послушная прежнему «within a-b», ставила
+  // захваченному куску метку ВНУТРИ диапазона — обе копии реплики выглядели легальными, дубль
+  // переживал клиппинг. Лечение: сознательно транскрибировать шовную зону ДВАЖДЫ и резать шов по
+  // ТЕКСТУ (stitchWindowSegments) — общая последовательность слов = доказательство, что речь одна.
+  var ASR_WINDOW_OVERLAP_SEC = 30;
+  // Клип ranged-окна ослаблен ровно настолько, чтобы ближняя (шовная) зона дожила до stitch;
+  // «далеко вне» (заезд на минуты, как в живой приёмке) по-прежнему отбрасывается у источника.
+  var ASR_STITCH_CLIP_TOL_SEC = ASR_WINDOW_OVERLAP_SEC + 30;
+
+  // Номинальные границы окон — 0, 900, 1800…; окно k>0 стартует на OVERLAP РАНЬШЕ своей границы,
+  // окно k заканчивается РОВНО на ней. Зона перекрытия соседей = [seam-OVERLAP, seam].
   function asrWindows(durationSec) {
     var d = Math.max(0, Number(durationSec) || 0);
     var out = [];
-    for (var t = 0; t < d; t += ASR_WINDOW_SEC) {
-      out.push({ startSec: t, endSec: Math.min(d, t + ASR_WINDOW_SEC) });
+    for (var k = 0; k * ASR_WINDOW_SEC < d; k++) {
+      var nominal = k * ASR_WINDOW_SEC;
+      out.push({ startSec: k === 0 ? 0 : nominal - ASR_WINDOW_OVERLAP_SEC,
+                 endSec: Math.min(d, nominal + ASR_WINDOW_SEC) });
     }
     if (!out.length) out.push({ startSec: 0, endSec: 0 });
+    return out;
+  }
+
+  // Номинальные швы между окнами (900, 1800…) — то, вокруг чего ищется якорь. wins[k].startSec
+  // окна k>0 = seam-OVERLAP по построению asrWindows, поэтому шов восстанавливается однозначно.
+  function asrSeams(windows) {
+    var out = [];
+    for (var k = 1; k < (windows || []).length; k++) out.push(windows[k].startSec + ASR_WINDOW_OVERLAP_SEC);
     return out;
   }
 
@@ -65,14 +87,26 @@
     return h ? h + ":" + String(m).padStart(2, "0") + ":" + ss : m + ":" + ss;
   }
 
-  // Дословно проверенная формулировка (research m3, фаза range258): точное окно, абсолютные метки.
+  // S12.4 (владелец, живая 117-мин приёмка 2026-07-29 — дубли-блоки пережили клиппинг S12.3).
+  // ПРАВИЛО ПЕРЕПИСАНО ЦЕЛИКОМ, не подправлено. Прежняя формулировка требовала «Timestamps must
+  // remain ABSOLUTE … i.e. within a-b» — два несовместимых требования сразу: модель начинает
+  // транскрипт с начала ФРАЗЫ (а не с секунды a) и доводит фразу за b, и, будучи послушной,
+  // штамповала захваченному куску метку ВНУТРИ диапазона. Клип по меткам такую «легально врущую»
+  // метку не отличает от честной → дубль на каждом шве. Теперь диапазон ограничивает ЗВУК, а метка
+  // обязана быть честной ВСЕГДА — даже когда она выпадает за диапазон; шов режется по тексту
+  // (stitchWindowSegments), а не по меткам, поэтому честная метка вне a-b ничего не ломает.
+  // Базовый ASR_PROMPT не тронут (research m3, фаза range258).
   function ASR_RANGE_PROMPT(startSec, endSec) {
     var a = fmtClock(startSec), b = fmtClock(endSec);
     return ASR_PROMPT +
-      "\nIMPORTANT SCOPE: transcribe ONLY the region of the recording from " + a + " to " + b +
-      " (minutes:seconds from the very beginning of the file). Output NOTHING from outside this region." +
-      " Timestamps must remain ABSOLUTE (measured from the very beginning of the file, i.e. within " +
-      a + "-" + b + ").";
+      "\nIMPORTANT SCOPE: transcribe ONLY the speech of the region from " + a + " to " + b +
+      " (minutes:seconds from the very beginning of the file); transcribe nothing from any other" +
+      " part of the recording." +
+      "\nTIMESTAMPS ARE ABSOLUTE AND HONEST: every \"start\" is measured from the very beginning of" +
+      " the FILE, never from the start of this region. If a phrase you transcribe begins slightly" +
+      " before " + a + ", or ends slightly after " + b + ", report its REAL absolute timestamp," +
+      " EVEN IF that timestamp falls outside " + a + "-" + b + "." +
+      " NEVER shift, round or stretch a timestamp to make it fall inside " + a + "-" + b + ".";
   }
 
   function mergeWindowSegments(perWindow) {
@@ -87,6 +121,151 @@
       }
     }
     return out;
+  }
+
+  // ── S12.4: ШОВ ОКОН ПО ТЕКСТУ (якорь в зоне перекрытия) ─────────────────────────────────────
+  // Окна соседей перекрываются на ASR_WINDOW_OVERLAP_SEC (asrWindows), значит речь шовной зоны
+  // транскрибируется ДВАЖДЫ — намеренно. ЯКОРЬ = самая длинная общая последовательность слов
+  // (≥ STITCH_ANCHOR_MIN_WORDS) между ХВОСТОМ окна k и ГОЛОВОЙ окна k+1. Якорь — это
+  // ДОКАЗАТЕЛЬСТВО, что перед нами одна и та же речь; без него мы НИЧЕГО не выбрасываем сверх
+  // старого клипа по номинальной границе.
+  //
+  // ПРАВИЛО РЕЗА (по СЕГМЕНТАМ, границы определяются вкладом normalized-слов сегмента в якорь):
+  //   cutK  = ПЕРВЫЙ сегмент окна k, чьи слова попадают в якорную зону хвоста → окно k отдаёт
+  //           сегменты [0, cutK) (всё ДО него);
+  //   cutK1 = сегмент окна k+1, СОДЕРЖАЩИЙ первое слово якоря в своей голове → окно k+1 отдаёт
+  //           сегменты [cutK1, …) (начиная С него).
+  // Якорный текст остаётся РОВНО ОДИН раз — из окна k+1: якорь лежит в НАЧАЛЕ его запрошенного
+  // региона (метки честнее), а для окна k — в самом хвосте, куда модель доезжает с накопленным
+  // дрейфом.
+  //
+  // Пример (seam=900, перекрытие 30с):
+  //   окно k  : s0 "מאמר על חינוך" | s1 "אבא אמא ילד ילדה" | s2 "הילד אכל תפוח" | s3 "הילד רץ אל הבית"
+  //   окно k+1: t0 "הילד אכל תפוח" | t1 "הילד רץ אל הבית" | t2 "שלום עולם טוב"
+  //   якорь = «הילד אכל תפוח הילד רץ אל הבית» (7 слов). Его первое слово в хвосте принадлежит s2,
+  //   в голове — t0 → cutK=2, cutK1=0. Результат: s0, s1, t0, t1, t2 — якорная речь одна копия
+  //   (из окна k+1), s2/s3 (её дубль из окна k) отброшены, ничего сверх зоны перекрытия не потеряно.
+  //
+  // R11: максимум потерь на шов — сегменты ВНУТРИ зоны перекрытия, и только когда та же речь
+  // осталась у соседа. stitchAnchorInZone() — предохранитель: если рез задел бы сегмент с честной
+  // меткой ВНЕ зоны [seam-OVERLAP-TOL, seam+TOL] (ложный якорь на повторяющейся фразе далеко от
+  // шва), якорь отклоняется и шов честно уходит в noAnchor-фолбэк, ничего не теряя.
+  var STITCH_TAIL_WORDS = 80;       // сколько слов хвоста/головы вообще участвуют в поиске якоря
+  var STITCH_ANCHOR_MIN_WORDS = 5;  // короче — не доказательство, а совпадение частотных слов
+  var STITCH_ZONE_TOL_SEC = 15;     // метки модели плавают; фраза может лежать поперёк шва
+  var STITCH_SEAM_TOL_SEC = 2;      // фолбэк без якоря = прежний рез по номинальной границе ±2с
+
+  // Только ивритские буквы и пробелы. Огласовки/теамим СНИМАЮТСЯ (не разрывают слово), всё
+  // остальное (пунктуация, латиница, цифры) — разделитель; пробелы схлопываются.
+  function stitchNormalizeWords(text) {
+    return String(text == null ? "" : text)
+      .replace(/[֑-ׇ]/g, "")
+      .replace(/[^א-ת]+/g, " ")
+      .trim().split(/\s+/).filter(Boolean);
+  }
+
+  // words[] + owners[] (индекс сегмента-владельца каждого слова) — так рез по слову превращается
+  // в рез по сегменту. Набираем до ~maxWords, целыми сегментами (сегмент не рвём).
+  function stitchTailWords(segments, maxWords) {
+    var words = [], owners = [];
+    for (var i = segments.length - 1; i >= 0 && words.length < maxWords; i--) {
+      var w = stitchNormalizeWords(segments[i].text);
+      for (var j = w.length - 1; j >= 0; j--) { words.unshift(w[j]); owners.unshift(i); }
+    }
+    return { words: words, owners: owners };
+  }
+
+  function stitchHeadWords(segments, maxWords) {
+    var words = [], owners = [];
+    for (var i = 0; i < segments.length && words.length < maxWords; i++) {
+      var w = stitchNormalizeWords(segments[i].text);
+      for (var j = 0; j < w.length; j++) { words.push(w[j]); owners.push(i); }
+    }
+    return { words: words, owners: owners };
+  }
+
+  // Самая длинная общая ПОДСТРОКА слов (скользящее окно = классический DP по суффиксам).
+  // При равной длине побеждает КАНДИДАТ БЛИЖЕ К ШВУ: хвост окна k упирается в номинальную границу,
+  // поэтому «ближе к шву» = больший индекс в хвосте → сравнение `>=` при возрастающем i.
+  function stitchFindAnchor(tailWords, headWords, minWords) {
+    var n = tailWords.length, m = headWords.length;
+    if (!n || !m) return null;
+    var prev = new Array(m + 1).fill(0), best = null;
+    for (var i = 1; i <= n; i++) {
+      var cur = new Array(m + 1).fill(0);
+      for (var j = 1; j <= m; j++) {
+        if (tailWords[i - 1] !== headWords[j - 1]) continue;
+        cur[j] = prev[j - 1] + 1;
+        if (cur[j] >= minWords && (!best || cur[j] >= best.len)) {
+          best = { len: cur[j], tailStart: i - cur[j], headStart: j - cur[j] };
+        }
+      }
+      prev = cur;
+    }
+    return best;
+  }
+
+  // R11-предохранитель (см. блок выше): рез легитимен, только если ВСЁ отбрасываемое лежит в зоне
+  // перекрытия ±STITCH_ZONE_TOL_SEC. null-метки не опровергают якорь (нет свидетельства) —
+  // текстовое доказательство остаётся в силе.
+  function stitchAnchorInZone(A, B, cutK, cutK1, seam) {
+    var lo = seam - ASR_WINDOW_OVERLAP_SEC - STITCH_ZONE_TOL_SEC, hi = seam + STITCH_ZONE_TOL_SEC;
+    for (var i = cutK; i < A.length; i++) {
+      var t = A[i].start;
+      if (typeof t === "number" && isFinite(t) && t < lo) return false;
+    }
+    for (var j = 0; j < cutK1; j++) {
+      var u = B[j].start;
+      if (typeof u === "number" && isFinite(u) && u > hi) return false;
+    }
+    return true;
+  }
+
+  // perWindow = [[{start,text}…]…], seams = номинальные границы (900, 1800…), длиной
+  // perWindow.length-1. Возврат: { segments, seamsMeta } — seamsMeta уходит в провенанс (R9).
+  function stitchWindowSegments(perWindow, seams) {
+    var wins = (perWindow || []).map(function (s) { return Array.isArray(s) ? s : []; });
+    var keep = wins.map(function (s) { return s.map(function () { return true; }); });
+    var seamList = Array.isArray(seams) ? seams : [];
+    var count = Math.min(seamList.length, Math.max(0, wins.length - 1));
+    var meta = [];
+    for (var s = 0; s < count; s++) {
+      var seam = Number(seamList[s]);
+      var A = wins[s], B = wins[s + 1];
+      var tail = stitchTailWords(A, STITCH_TAIL_WORDS);
+      var head = stitchHeadWords(B, STITCH_TAIL_WORDS);
+      var anchor = stitchFindAnchor(tail.words, head.words, STITCH_ANCHOR_MIN_WORDS);
+      var cutK = anchor ? tail.owners[anchor.tailStart] : -1;
+      var cutK1 = anchor ? head.owners[anchor.headStart] : -1;
+      var outOfZone = !!anchor && !stitchAnchorInZone(A, B, cutK, cutK1, seam);
+      if (anchor && !outOfZone) {
+        for (var i = cutK; i < A.length; i++) keep[s][i] = false;
+        for (var j = 0; j < cutK1; j++) keep[s + 1][j] = false;
+        meta.push({ seam: seam, anchored: true, anchorWords: anchor.len,
+                    cutSegDroppedK: A.length - cutK, cutSegDroppedK1: cutK1 });
+        continue;
+      }
+      // Фолбэк без якоря — прежний честный рез по номинальной границе (тот же ±2с допуск, что и у
+      // клиппинга): окно k до seam+2, окно k+1 от seam-2. null-метки НЕ трогаем (нет свидетельства
+      // ни за, ни против — текст сохраняется, R11).
+      var dK = 0, dK1 = 0;
+      for (var p = 0; p < A.length; p++) {
+        var ta = A[p].start;
+        if (typeof ta === "number" && isFinite(ta) && ta > seam + STITCH_SEAM_TOL_SEC) { keep[s][p] = false; dK++; }
+      }
+      for (var q = 0; q < B.length; q++) {
+        var tb = B[q].start;
+        if (typeof tb === "number" && isFinite(tb) && tb < seam - STITCH_SEAM_TOL_SEC) { keep[s + 1][q] = false; dK1++; }
+      }
+      var m2 = { seam: seam, anchored: false, noAnchor: true, cutSegDroppedK: dK, cutSegDroppedK1: dK1 };
+      if (outOfZone) { m2.anchorOutOfZone = true; m2.anchorWords = anchor.len; } // R9: почему якорь отклонён
+      meta.push(m2);
+    }
+    var out = [];
+    for (var w = 0; w < wins.length; w++) {
+      for (var r = 0; r < wins[w].length; r++) if (keep[w][r]) out.push(wins[w][r]);
+    }
+    return { segments: out, seamsMeta: meta };
   }
 
   // Интро-дыра НЕ считается: поздний первый сегмент легитимен (музыка) и уже флагуется
@@ -225,8 +404,12 @@
     estimateAsrCostUsd: estimateAsrCostUsd,
     VIDEO_FRAME_TOKENS_PER_SEC_LOW: VIDEO_FRAME_TOKENS_PER_SEC_LOW,
     ASR_WINDOW_SEC: ASR_WINDOW_SEC, ASR_GAP_MAX_SEC: ASR_GAP_MAX_SEC, ASR_TAIL_GAP_SEC: ASR_TAIL_GAP_SEC,
-    asrWindows: asrWindows, ASR_RANGE_PROMPT: ASR_RANGE_PROMPT,
-    mergeWindowSegments: mergeWindowSegments, findCoverageGaps: findCoverageGaps,
+    ASR_WINDOW_OVERLAP_SEC: ASR_WINDOW_OVERLAP_SEC, ASR_STITCH_CLIP_TOL_SEC: ASR_STITCH_CLIP_TOL_SEC,
+    STITCH_TAIL_WORDS: STITCH_TAIL_WORDS, STITCH_ANCHOR_MIN_WORDS: STITCH_ANCHOR_MIN_WORDS,
+    STITCH_ZONE_TOL_SEC: STITCH_ZONE_TOL_SEC, STITCH_SEAM_TOL_SEC: STITCH_SEAM_TOL_SEC,
+    asrWindows: asrWindows, asrSeams: asrSeams, ASR_RANGE_PROMPT: ASR_RANGE_PROMPT,
+    mergeWindowSegments: mergeWindowSegments, stitchWindowSegments: stitchWindowSegments,
+    findCoverageGaps: findCoverageGaps,
     estimateLongJob: estimateLongJob,
   };
   if (typeof window !== "undefined") window.AsrTranscript = API;

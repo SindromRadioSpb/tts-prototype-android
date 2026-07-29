@@ -91,7 +91,11 @@
     var opts = isVideo ? { mediaResolution: "MEDIA_RESOLUTION_LOW" } : undefined;
     var r = buildAsrRequest(apiKey, fileUri, mimeType, prompt, opts);
     var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
-    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 180000) : null;
+    // S12.4 (замер 2026-07-29, живая приёмка): 180000 было МАЛО — реальное 15-мин окно уходило за
+    // 180с в пиковые часы, обрывалось по AbortController и всплывало у владельца как «Gemini
+    // перегружен» (ASR_TIMEOUT → errOverloaded) на здоровом прогоне. 360с покрывает замеренный
+    // разброс с запасом; сам ASR_TIMEOUT остаётся честным пределом, а не снят.
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 360000) : null;
     var resp;
     try { resp = await fetch(r.url, Object.assign({}, r.init, ctrl ? { signal: ctrl.signal } : {})); }
     catch (e) {

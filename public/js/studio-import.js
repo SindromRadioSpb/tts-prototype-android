@@ -79,11 +79,19 @@
   //     стороны) числовой сосед — in-range: он структурно привязан к нашему материалу. Голова/хвост
   //     из сплошных null, чей единственный числовой сосед отброшен, — тоже отбрасывается (это,
   //     скорее всего, продолжение чужого заехавшего блока, а не наш текст).
+  // S12.4: у ranged-ОКНА (и половины бисекции) допуск ОСЛАБЛЕН до tolSec = ASR_STITCH_CLIP_TOL_SEC
+  // (перекрытие+30). Причина: после S12.4 промт требует ЧЕСТНЫХ меток, и честная метка реплики,
+  // начавшейся чуть раньше a или кончившейся чуть позже b, ЛЕГИТИМНО выпадает за диапазон — её
+  // нельзя выбрасывать, она нужна шву (stitchWindowSegments ищет по ней якорь). Отбрасывается
+  // только «далеко вне» — заезд на минуты, как в живой 117-мин приёмке. Добор (heal) остаётся на
+  // СТРОГОМ допуске 2с: у доборной зоны нет соседа, шва там нет, и лишний текст оттуда никто не
+  // дедуплицирует.
   var ASR_CLIP_TOLERANCE_SEC = 2; // граница реплики может чуть плавать; большой перехлёст = чужой диапазон
 
-  function clipSegmentsToRange(segments, startSec, endSec) {
+  function clipSegmentsToRange(segments, startSec, endSec, tolSec) {
     var list = Array.isArray(segments) ? segments : [];
-    var lo = startSec - ASR_CLIP_TOLERANCE_SEC, hi = endSec + ASR_CLIP_TOLERANCE_SEC;
+    var tol = (typeof tolSec === "number" && isFinite(tolSec)) ? tolSec : ASR_CLIP_TOLERANCE_SEC;
+    var lo = startSec - tol, hi = endSec + tol;
     // Pass 1: числовые start классифицируются in-range(true)/out-of-range(false); null (модель не
     // дала метку) остаётся неопределённым (null в этом массиве) до pass 2.
     var inRange = list.map(function (s) {
@@ -139,10 +147,17 @@
     // РЕАЛИЗОВАННЫЙ findCoverageGaps→heal-добор ниже по функции; здесь никакой специальной
     // логики под дыру не добавляется. Любая ДРУГАЯ ошибка половины (429/квота/сеть/HTTP) —
     // прежняя семантика: throw наверх, не маскируется.
+    // S12.4: у бисекции свой внутренний шов — mid. Половины тоже получают ПЕРЕКРЫТИЕ (±15с вокруг
+    // mid: первая доезжает до mid+15, вторая стартует с mid-15) и склеиваются ТЕМ ЖЕ stitch по
+    // тексту, а не встык по меткам — иначе внутренний шов воспроизводил бы ровно ту же болезнь
+    // дублей/обрывов, что и шов окон. Перекрытие ограничено четвертью окна, чтобы у короткого
+    // окна половины не выродились.
+    var BISECT_OVERLAP_SEC = 15;
     async function bisectWindow(a, b) {
       var mid = (a + b) / 2;
-      var halves = [[a, mid], [mid, b]];
-      var segments = [], warnings2 = [], language2 = null, skippedRanges = [];
+      var ov = Math.min(BISECT_OVERLAP_SEC, Math.max(0, (b - a) / 4));
+      var halves = [[a, Math.min(b, mid + ov)], [Math.max(a, mid - ov), b]];
+      var perHalf = [[], []], warnings2 = [], language2 = null, skippedRanges = [];
       var calls = 2; // исходные 2 вызова [a,b] (оба ASR_BAD_JSON) — привели к бисекции
       var clippedCount = 0; // S12.3 провенанс: сколько сегментов отброшено клиппингом обеих половин
       for (var h = 0; h < halves.length; h++) {
@@ -150,10 +165,11 @@
         try {
           var half = await oneCall(hs, he);
           calls += half.retries + 1;
-          // S12.3: своя половина — свой диапазон; клипь ДО конкатенации, до merge.
-          var halfClipped = clipSegmentsToRange(half.parsed.segments, hs, he);
+          // S12.3/S12.4: своя половина — свой диапазон; клипь ДО склейки (ослабленный допуск —
+          // половины перекрываются, ближняя к шву зона нужна якорю).
+          var halfClipped = clipSegmentsToRange(half.parsed.segments, hs, he, A2.ASR_STITCH_CLIP_TOL_SEC);
           clippedCount += half.parsed.segments.length - halfClipped.length;
-          segments = segments.concat(halfClipped); // половины уже упорядочены по времени
+          perHalf[h] = halfClipped;
           if (!language2 && half.parsed.language) language2 = half.parsed.language;
           (half.parsed.warnings || []).forEach(function (w) { if (warnings2.indexOf(w) < 0) warnings2.push(w); });
         } catch (e2) {
@@ -162,8 +178,10 @@
           skippedRanges.push({ startSec: hs, endSec: he });
         }
       }
-      return { parsed: { segments: segments, language: language2, warnings: warnings2 },
-               retries: calls - 1, bisected: true, skippedRanges: skippedRanges, clippedCount: clippedCount };
+      var stitchedHalves = A2.stitchWindowSegments(perHalf, [mid]);
+      return { parsed: { segments: stitchedHalves.segments, language: language2, warnings: warnings2 },
+               retries: calls - 1, bisected: true, skippedRanges: skippedRanges, clippedCount: clippedCount,
+               seamsMeta: stitchedHalves.seamsMeta };
     }
 
     for (var k = startAt; k < wins.length; k++) {
@@ -174,7 +192,8 @@
         // S12.3: single отправляет null-диапазон (нет запрошенных числовых границ) — не клипим.
         // Ranged-окно — клипь к СВОЕМУ [startSec,endSec] сразу после parse, до merge/findCoverageGaps.
         if (!single) {
-          var clippedSegs = clipSegmentsToRange(r.parsed.segments, wins[k].startSec, wins[k].endSec);
+          var clippedSegs = clipSegmentsToRange(r.parsed.segments, wins[k].startSec, wins[k].endSec,
+                                                A2.ASR_STITCH_CLIP_TOL_SEC); // S12.4: ближняя зона — шву
           clippedCount = r.parsed.segments.length - clippedSegs.length;
           r.parsed.segments = clippedSegs;
         }
@@ -191,6 +210,7 @@
       var meta = { startSec: wins[k].startSec, endSec: wins[k].endSec, retries: r.retries };
       if (r.bisected) meta.bisected = true; // R9 провенанс: окно потребовало бисекции
       if (r.skippedRanges && r.skippedRanges.length) meta.skippedRanges = r.skippedRanges; // R9: честный пропуск
+      if (r.seamsMeta && r.seamsMeta.length) meta.bisectSeams = r.seamsMeta; // S12.4 R9: как склеен внутренний шов бисекции
       // R9 провенанс (S12.3): пишем ТОЛЬКО когда >0 — единообразно с bisected/skippedRanges выше
       // (те тоже присутствуют в meta только когда true/непусто, отсутствие поля = «ничего особого»).
       if (clippedCount > 0) meta.clippedCount = clippedCount;
@@ -202,7 +222,17 @@
       });
     }
 
-    var merged = A2.mergeWindowSegments(windowSegments);
+    // S12.4: мульти-оконный путь склеивается ПО ТЕКСТУ (якорь в зоне перекрытия), а не встык по
+    // меткам; mergeWindowSegments после stitch остаётся — он честно нулит немонотонные метки
+    // (шов может дать метку соседа на пару секунд раньше), но склейкой больше не занимается.
+    var merged, seamsMeta = [];
+    if (!single && windowSegments.length > 1) {
+      var stitched = A2.stitchWindowSegments(windowSegments, A2.asrSeams(wins.slice(0, windowSegments.length)));
+      seamsMeta = stitched.seamsMeta;
+      merged = A2.mergeWindowSegments([stitched.segments]);
+    } else {
+      merged = A2.mergeWindowSegments(windowSegments);
+    }
     var gaps = A2.findCoverageGaps(merged, deps.durationSec);
     var healedGaps = [], maxHeals = deps.maxHeals == null ? 3 : deps.maxHeals;
     for (var g = 0; g < gaps.length && healedGaps.length < maxHeals; g++) {
@@ -213,6 +243,8 @@
       // S12.3: добор — тоже ranged-вызов со своим диапазоном [gap.fromSec, gap.toSec]; клипь ДО
       // проверки .length — добор, целиком заехавший за дыру, эквивалентен «ничего не нашёл»
       // (дыра честно остаётся открытой, а не молча зарастает чужим материалом).
+      // S12.4: допуск здесь остаётся СТРОГИМ (2с) — у доборной зоны нет соседнего окна, шва нет,
+      // якорю не с чем работать, и лишний заехавший текст никто не дедуплицирует.
       heal.parsed.segments = clipSegmentsToRange(heal.parsed.segments, gap.fromSec, gap.toSec);
       if (heal.parsed.segments.length) {
         // Позиционная (не по значению start) вставка (fix R11-порядка, ревью после T3): граница
@@ -242,6 +274,7 @@
     if (remaining.length && warnings.indexOf("ASR_COVERAGE_GAP") < 0) warnings.push("ASR_COVERAGE_GAP");
     if (!merged.length && warnings.indexOf("NO_SPEECH") < 0) warnings.push("NO_SPEECH");
     return { segments: merged, language: language, warnings: warnings, windows: windowsMeta,
+             seams: seamsMeta, // S12.4 R9: как склеен каждый шов (якорь/фолбэк, сколько сегментов срезано)
              coverageGaps: remaining, healedGaps: healedGaps, windowSegments: windowSegments };
   }
 
@@ -436,6 +469,7 @@
       pendingAudio.windowResults = null; // успех — резюм-состояние отработано
       var parsed = { language: result.language, segments: result.segments, warnings: result.warnings };
       pendingAudio.asrWindows = result.windows;
+      pendingAudio.asrSeams = result.seams || []; // S12.4 R9: провенанс швов (якорь/фолбэк)
       pendingAudio.coverageGaps = result.coverageGaps;
       pendingAudio.healedGaps = result.healedGaps;
       if (!parsed.segments.length || parsed.warnings.includes("NO_SPEECH")) { setStatus("studio.import.errNoSpeech"); return; }
@@ -629,6 +663,7 @@
         asr: { method: "gemini-asr", model: window.AsrTranscript.ASR_MODEL, at: new Date().toISOString(),
                language: pendingAudio.parsed.language, filesApi: true, warnings: pendingAudio.parsed.warnings,
                windows: pendingAudio.asrWindows || null,
+               seams: pendingAudio.asrSeams || [],
                coverageGaps: pendingAudio.coverageGaps || [],
                healedGaps: pendingAudio.healedGaps || [] },
         segments: segs, timing: null, timingDropReason: dropReason,

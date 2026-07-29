@@ -20,6 +20,12 @@ test("короткий файл (одно окно): transcribe вызывает
   assert.deepEqual(res.coverageGaps, []);
 });
 
+// S12.4: окна перекрываются (asrWindows: [0,900], [870,1000]) — второе окно запрашивается с
+// НОМИНАЛЬНОЙ границы минус 30с. Замысел теста прежний (последовательность вызовов, merge,
+// прогресс, агрегация языка/warnings); изменились ТОЛЬКО запрошенные границы окна 2. Тексты
+// фикстуры («א»/«ב»/«ג»/«ד») общего куска не образуют → шов честно уходит в noAnchor-фолбэк, а
+// он на этих метках (все ≤902 у окна 1 и ≥898 у окна 2) ничего не срезает — набор сегментов
+// байт-в-байт прежний. Числа — прямой прогон asrWindows/runWindowedAsr (см. отчёт S12.4).
 test("два окна: последовательность, merge, прогресс, язык/warnings агрегируются", async () => {
   const calls = [], progress = [];
   const res = await SI.runWindowedAsr({
@@ -31,7 +37,7 @@ test("два окна: последовательность, merge, прогре
     },
     parse: fakeParse, onProgress: (k, m) => progress.push([k, m]),
   });
-  assert.deepEqual(calls, [[0, 900], [900, 1000]]);
+  assert.deepEqual(calls, [[0, 900], [870, 1000]]);
   assert.deepEqual(progress, [[1, 2], [2, 2]]);
   assert.deepEqual(res.segments.map((s) => s.start), [820, 890, 905, 975]);
   assert.deepEqual(res.warnings, ["PARTIALLY_UNCLEAR"]);
@@ -65,16 +71,21 @@ test("BAD_JSON окна: retry ×1 и успех; счётчик retries в wind
 // coverageGaps+ASR_COVERAGE_GAP — тот же каскад, что и для дыр из честного ответа модели, без
 // какого-либо специального кода под бисекцию. Числа проверены прямым прогоном runWindowedAsr
 // (методика файла) ДО фиксации фикстуры.
+// S12.4-пересчёт: окна [0,900] и [870,1100] (перекрытие 30с); mid окна1 = (870+1100)/2 = 985,
+// половины получают собственное перекрытие ±15с вокруг mid → [870,1000] и [970,1100]. Замысел
+// теста НЕ изменился: окно, у которого битым оказался и primary, и обе половины, теряется целиком
+// и честно (bisected + skippedRanges на обе половины), прогон НЕ падает, дыра уходит в штатный
+// heal-каскад. Числа проверены прямым прогоном ДО фиксации фикстуры.
 test("BAD_JSON дважды (обе половины бисекции тоже BAD_JSON): окно теряется целиком, НЕ throw, дыра уходит в coverageGaps через штатный heal-каскад", async () => {
   const calls = [];
   const res = await SI.runWindowedAsr({
-    durationSec: 1100, // windows [0,900) [900,1100)
+    durationSec: 1100, // windows [0,900] [870,1100]
     transcribe: async (a, b) => {
       calls.push([a, b]);
       if (a === 0) return R({ segments: [seg(850, "a0")] });
-      if (a === 900 && b === 1100) return "мусор"; // окно1 primary ×2
-      if (a === 900 && b === 1000) return "мусор"; // половина A (900,1000) ×2
-      if (a === 1000 && b === 1100) return "мусор"; // половина B (1000,1100) ×2
+      if (a === 870 && b === 1100) return "мусор"; // окно1 primary ×2
+      if (a === 870 && b === 1000) return "мусор"; // половина A (870,mid+15) ×2
+      if (a === 970 && b === 1100) return "мусор"; // половина B (mid-15,1100) ×2
       if (a === 850 && b === 1100) return R({ segments: [], warnings: ["NO_SPEECH"] }); // heal-добор дыры — неудачен
       throw new Error("unexpected transcribe(" + a + "," + b + ")");
     },
@@ -83,11 +94,11 @@ test("BAD_JSON дважды (обе половины бисекции тоже B
     onProgress: () => {},
   });
   assert.deepEqual(calls, [
-    [0, 900], [900, 1100], [900, 1100], [900, 1000], [900, 1000], [1000, 1100], [1000, 1100], [850, 1100],
+    [0, 900], [870, 1100], [870, 1100], [870, 1000], [870, 1000], [970, 1100], [970, 1100], [850, 1100],
   ]);
   assert.deepEqual(res.segments.map((s) => s.text), ["a0"]); // окно0 цело, окно1 честно потеряно целиком
   assert.equal(res.windows[1].bisected, true);
-  assert.deepEqual(res.windows[1].skippedRanges, [{ startSec: 900, endSec: 1000 }, { startSec: 1000, endSec: 1100 }]);
+  assert.deepEqual(res.windows[1].skippedRanges, [{ startSec: 870, endSec: 1000 }, { startSec: 970, endSec: 1100 }]);
   assert.deepEqual(res.coverageGaps, [{ fromSec: 850, toSec: 1100 }]);
   assert.ok(res.warnings.includes("ASR_COVERAGE_GAP"));
 });
@@ -98,23 +109,25 @@ test("BAD_JSON дважды (обе половины бисекции тоже B
 // skippedRanges отсутствует (успех — поле отсутствует). Фикстура подобрана БЕЗ дыр (все хопы
 // <90с, хвост <180с) — проверено прямым прогоном, чтобы heal-каскад не добавлял посторонних
 // вызовов в calls и не размывал фокус теста на самой бисекции.
-test("бисекция: обе половины успешны → сегменты на месте, bisected:true, порядок вызовов [a,b]×2→[a,mid]→[mid,b]", async () => {
+// S12.4-пересчёт: окна [0,900] и [870,950]; mid окна1 = 910, перекрытие половин ограничено
+// четвертью окна ((950-870)/4 = 20 > 15 → ±15) → половины [870,925] и [895,950]. Замысел прежний.
+test("бисекция: обе половины успешны → сегменты на месте, bisected:true, порядок вызовов [a,b]×2→[a,mid+15]→[mid-15,b]", async () => {
   const calls = [];
   const res = await SI.runWindowedAsr({
-    durationSec: 950, // windows [0,900) [900,950), mid окна1 = 925
+    durationSec: 950, // windows [0,900] [870,950], mid окна1 = 910
     transcribe: async (a, b) => {
       calls.push([a, b]);
       if (a === 0) return R({ segments: [seg(880, "a0")] });
-      if (a === 900 && b === 950) return "мусор"; // окно1 primary ×2 → бисекция
-      if (a === 900 && b === 925) return R({ segments: [seg(910, "h1")] }); // половина A — успех с 1-й попытки
-      if (a === 925 && b === 950) return R({ segments: [seg(935, "h2")] }); // половина B — успех с 1-й попытки
+      if (a === 870 && b === 950) return "мусор"; // окно1 primary ×2 → бисекция
+      if (a === 870 && b === 925) return R({ segments: [seg(910, "h1")] }); // половина A — успех с 1-й попытки
+      if (a === 895 && b === 950) return R({ segments: [seg(935, "h2")] }); // половина B — успех с 1-й попытки
       throw new Error("unexpected transcribe(" + a + "," + b + ")");
     },
     parse: (raw) => { if (raw === "мусор") { const e = new Error("bad"); e.code = "ASR_BAD_JSON"; throw e; }
                       return fakeParse(raw); },
     onProgress: () => {},
   });
-  assert.deepEqual(calls, [[0, 900], [900, 950], [900, 950], [900, 925], [925, 950]]);
+  assert.deepEqual(calls, [[0, 900], [870, 950], [870, 950], [870, 925], [895, 950]]);
   assert.deepEqual(res.segments.map((s) => s.text), ["a0", "h1", "h2"]);
   assert.equal(res.windows[1].bisected, true);
   assert.equal(res.windows[1].skippedRanges, undefined); // обе половины успешны — пропусков нет
@@ -126,16 +139,17 @@ test("бисекция: обе половины успешны → сегмен�
 // половина успешна. Образовавшуюся дыру ЛОВИТ УЖЕ РЕАЛИЗОВАННЫЙ findCoverageGaps→heal-каскад —
 // никакого нового кода под дыру здесь нет. Оба исхода добора: (i) успешен — дыра закрывается
 // полностью, никакого ASR_COVERAGE_GAP; (ii) неудачен — дыра остаётся честной, coverageGaps+warning.
+// S12.4-пересчёт: окна [0,900] и [870,1000]; mid окна1 = 935 → половины [870,950] и [920,1000].
 test("(b-i) половина A пропущена (BAD_JSON×2), половина B успешна → дыра добрана heal-каскадом полностью", async () => {
   const calls = [];
   const res = await SI.runWindowedAsr({
-    durationSec: 1000, // windows [0,900) [900,1000), mid окна1 = 950
+    durationSec: 1000, // windows [0,900] [870,1000], mid окна1 = 935
     transcribe: async (a, b) => {
       calls.push([a, b]);
       if (a === 0) return R({ segments: [seg(850, "a0")] });
-      if (a === 900 && b === 1000) return "мусор"; // окно1 primary ×2 → бисекция
-      if (a === 900 && b === 950) return "мусор"; // половина A ×2 → skip
-      if (a === 950 && b === 1000) return R({ segments: [seg(980, "h1")] }); // половина B — успех
+      if (a === 870 && b === 1000) return "мусор"; // окно1 primary ×2 → бисекция
+      if (a === 870 && b === 950) return "мусор"; // половина A ×2 → skip
+      if (a === 920 && b === 1000) return R({ segments: [seg(980, "h1")] }); // половина B — успех
       if (a === 850 && b === 980) return R({ segments: [seg(910, "heal1")] }); // heal-добор дыры — успешен, закрывает целиком
       throw new Error("unexpected transcribe(" + a + "," + b + ")");
     },
@@ -143,8 +157,8 @@ test("(b-i) половина A пропущена (BAD_JSON×2), половин�
                       return fakeParse(raw); },
     onProgress: () => {},
   });
-  assert.deepEqual(calls, [[0, 900], [900, 1000], [900, 1000], [900, 950], [900, 950], [950, 1000], [850, 980]]);
-  assert.deepEqual(res.windows[1].skippedRanges, [{ startSec: 900, endSec: 950 }]);
+  assert.deepEqual(calls, [[0, 900], [870, 1000], [870, 1000], [870, 950], [870, 950], [920, 1000], [850, 980]]);
+  assert.deepEqual(res.windows[1].skippedRanges, [{ startSec: 870, endSec: 950 }]);
   assert.equal(res.windows[1].bisected, true);
   assert.deepEqual(res.segments.map((s) => s.text), ["a0", "heal1", "h1"]); // heal-сегмент встал МЕЖДУ границами дыры
   assert.deepEqual(res.healedGaps, [{ fromSec: 850, toSec: 980 }]);
@@ -157,9 +171,9 @@ test("(b-ii) половина A пропущена, heal-добор дыры т�
     durationSec: 1000,
     transcribe: async (a, b) => {
       if (a === 0) return R({ segments: [seg(850, "a0")] });
-      if (a === 900 && b === 1000) return "мусор";
-      if (a === 900 && b === 950) return "мусор"; // skip половины A
-      if (a === 950 && b === 1000) return R({ segments: [seg(980, "h1")] });
+      if (a === 870 && b === 1000) return "мусор";
+      if (a === 870 && b === 950) return "мусор"; // skip половины A
+      if (a === 920 && b === 1000) return R({ segments: [seg(980, "h1")] });
       if (a === 850 && b === 980) return R({ segments: [], warnings: ["NO_SPEECH"] }); // heal-добор неудачен
       throw new Error("unexpected transcribe(" + a + "," + b + ")");
     },
@@ -167,7 +181,7 @@ test("(b-ii) половина A пропущена, heal-добор дыры т�
                       return fakeParse(raw); },
     onProgress: () => {},
   });
-  assert.deepEqual(res.windows[1].skippedRanges, [{ startSec: 900, endSec: 950 }]);
+  assert.deepEqual(res.windows[1].skippedRanges, [{ startSec: 870, endSec: 950 }]);
   assert.deepEqual(res.segments.map((s) => s.text), ["a0", "h1"]); // сегменты половины A честно отсутствуют
   assert.deepEqual(res.healedGaps, []);
   assert.deepEqual(res.coverageGaps, [{ fromSec: 850, toSec: 980 }]);
@@ -178,22 +192,24 @@ test("(b-ii) половина A пропущена, heal-добор дыры т�
 // range-промта. При BAD_JSON×2 бисекция ОБЯЗАНА построить ЯВНЫЕ числовые границы 0/dur/2/dur —
 // это первый случай range-промта для короткого файла (честно, задокументировано в комментарии
 // исходника), а не молчаливая деградация обратно на null.
-test("(c) single-файл: BAD_JSON×2 → бисекция явными диапазонами 0/dur/2/dur (не null)", async () => {
+// S12.4-пересчёт: половины по-прежнему строятся вокруг mid=75, но с перекрытием ±15с
+// (min(15, (150-0)/4)=15) → [0,90] и [60,150]. Замысел прежний: явные ЧИСЛОВЫЕ границы, не null.
+test("(c) single-файл: BAD_JSON×2 → бисекция явными диапазонами вокруг dur/2 (не null)", async () => {
   const calls = [];
   const res = await SI.runWindowedAsr({
     durationSec: 150,
     transcribe: async (a, b) => {
       calls.push([a, b]);
       if (a === null) return "мусор"; // primary ×2 (single всегда шлёт null,null)
-      if (a === 0 && b === 75) return R({ segments: [seg(10, "s1")] });
-      if (a === 75 && b === 150) return R({ segments: [seg(100, "s2")] });
+      if (a === 0 && b === 90) return R({ segments: [seg(10, "s1")] });
+      if (a === 60 && b === 150) return R({ segments: [seg(100, "s2")] });
       throw new Error("unexpected transcribe(" + a + "," + b + ")");
     },
     parse: (raw) => { if (raw === "мусор") { const e = new Error("bad"); e.code = "ASR_BAD_JSON"; throw e; }
                       return fakeParse(raw); },
     onProgress: () => {},
   });
-  assert.deepEqual(calls, [[null, null], [null, null], [0, 75], [75, 150]]);
+  assert.deepEqual(calls, [[null, null], [null, null], [0, 90], [60, 150]]);
   assert.deepEqual(res.segments.map((s) => s.text), ["s1", "s2"]);
   assert.equal(res.windows[0].bisected, true);
   assert.deepEqual(res.coverageGaps, []);
@@ -223,7 +239,7 @@ test("(d) 429/квота — по-прежнему throw c windowIndex, бисе
   // retry внутри oneCall — но oneCall ретраит ТОЛЬКО ASR_BAD_JSON, 429 кидает без retry) и НЕ
   // 3-6 (была бы бисекция окна1 — bisectWindow срабатывает ТОЛЬКО когда пойманный e.code ===
   // "ASR_BAD_JSON"; здесь код "GEMINI_QUOTA", условие ложно, bisectWindow не вызывается вообще).
-  assert.deepEqual(calls, [[0, 900], [900, 1400]]);
+  assert.deepEqual(calls, [[0, 900], [870, 1400]]); // S12.4: окно1 стартует на 30с раньше границы
 });
 
 test("резюм: startWindow/priorWindows продолжают без повторного вызова готовых окон", async () => {
@@ -234,7 +250,7 @@ test("резюм: startWindow/priorWindows продолжают без повт�
     transcribe: async (a, b) => { calls.push([a, b]); return R({ segments: [seg(905, "ג")] }); },
     parse: fakeParse, onProgress: () => {},
   });
-  assert.deepEqual(calls, [[900, 1000]]);
+  assert.deepEqual(calls, [[870, 1000]]); // S12.4: перекрытие 30с; готовое окно0 не перевызывается
   assert.deepEqual(res.segments.map((s) => s.text), ["א", "б", "ג"]);
 });
 
@@ -289,25 +305,28 @@ test("все окна пустые → NO_SPEECH в warnings, segments []", asyn
 // mergeWindowSegments/findCoverageGaps ДО фиксации фикстуры (см. журнал сессии) — тем же
 // приёмом, что и при перемасштабировании остальных тестов файла.
 // S12.3 (2026-07-29): "d" был start:5 в оригинальной фикстуре — чисто чтобы триггернуть
-// немонотонность у merge; после клиппинга (T2) числовой start вне [898,1002] окна1 отбрасывался
+// немонотонность у merge; после клиппинга (T2) числовой start вне допуска окна1 отбрасывался
 // БЫ клиппингом ещё ДО merge, и "d" исчезал бы целиком (не оставался null-start), ломая фокус
-// этого теста (позиционная вставка ПРИ heal, а не клиппинг). Значение заменено на 900 — внутри
-// clip-допуска окна1 ([898,1002]), но всё ещё < 950 ("c"), поэтому merge по-прежнему честно
-// нулит его start из-за немонотонности СВОЕГО ЖЕ окна. Клиппинг и merge-null — РАЗНЫЕ механизмы
-// на разных стадиях; это подтверждено отдельным тестом ниже (см. "клиппинг окна…").
+// этого теста (позиционная вставка ПРИ heal, а не клиппинг).
+// S12.4-пересчёт: окно1 теперь [870,1000] (перекрытие 30с), и к клиппингу добавился ещё один
+// механизм — noAnchor-фолбэк шва, который срезает у окна1 всё с меткой < seam-2 = 898. Значение
+// "d" поднято 900 → 905: оно заведомо переживает И ослабленный клип окна1 ([810,1060]), И рез шва
+// (905 ≥ 898), но всё ещё < 950 ("c"), поэтому merge по-прежнему честно нулит его start из-за
+// немонотонности СВОЕГО ЖЕ окна. Клиппинг, рез шва и merge-null — ТРИ разных механизма на разных
+// стадиях; фокус теста остаётся на позиционной вставке добора.
 test("null-start сегмент ПОСЛЕ дыры не переезжает при доборе (позиционная вставка, не по start)", async () => {
   const calls = [];
   const res = await SI.runWindowedAsr({
-    durationSec: 1000, // 2 окна: [0,900) и [900,1000)
+    durationSec: 1000, // 2 окна: [0,900] и [870,1000]
     transcribe: async (a, b) => {
       calls.push([a, b]);
       if (a === 0) return R({ segments: [seg(10, "a"), seg(890, "b")] }); // окно0: дыра 10→890
-      if (a === 900) return R({ segments: [seg(950, "c"), seg(900, "d")] }); // окно1: 900<950(lastT) → "d" немонотонен → start:null после merge (900 внутри clip-допуска окна1, клиппинг его не трогает)
+      if (a === 870) return R({ segments: [seg(950, "c"), seg(905, "d")] }); // окно1: 905<950(lastT) → "d" немонотонен → start:null после merge (905 переживает и клип окна1, и рез шва)
       return R({ segments: [seg(100, "h1"), seg(400, "h2")] }); // добор дыры (10,890)
     },
     parse: fakeParse, onProgress: () => {},
   });
-  assert.deepEqual(calls, [[0, 900], [900, 1000], [10, 890]]);
+  assert.deepEqual(calls, [[0, 900], [870, 1000], [10, 890]]);
   // (а) порядок текстов: heal-сегменты встают СРАЗУ ПОСЛЕ границы дыры (10), "d" остаётся на
   // своей структурной позиции — последним, после "c", а не перед heal-вставкой.
   assert.deepEqual(res.segments.map((s) => s.text), ["a", "h1", "h2", "b", "c", "d"]);
@@ -426,20 +445,26 @@ function denseSegs(fromSec, toSec, stepSec, prefix) {
   for (let t = fromSec; t <= toSec; t += stepSec, i++) out.push(seg(t, prefix + i));
   return out;
 }
+// S12.4-пересчёт: окно2 запрашивается как [870,1800] (перекрытие 30с), клип окна ослаблен до
+// ±60с. Замысел фикстуры прежний и теперь проверяет ОБА рубежа сразу: далёкий заезд (1150/1400)
+// режет КЛИП у источника (допуск окна1 → [-60,960]), а ближний (950, внутри ослабленного клипа —
+// ровно тот случай, ради которого клип ослаблен) режет ШОВ: тексты фикстуры латинские, общей
+// последовательности ивритских слов нет → якорь не строится → честный noAnchor-фолбэк по
+// номинальной границе 900±2 отбрасывает копию окна1 на 950. Числа — прямой прогон.
 function overlapFixture(calls) {
-  // окно1 [0,900): честная плотная часть 10..850 (шаг 70с, все <900+2 допуска) + "заезд" глубоко
-  // за границу (950,1150,1400) — включая OVERLAP_CONTENT на 950, дублирующий то, что окно2
-  // легитимно транскрибирует на 905 (та же реальная реплика, две попытки её транскрибировать).
+  // окно1 [0,900]: честная плотная часть 10..850 (шаг 70с) + "заезд" за границу (950,1150,1400) —
+  // включая OVERLAP_CONTENT на 950, дублирующий то, что окно2 легитимно транскрибирует на 905
+  // (та же реальная реплика, две попытки её транскрибировать).
   const win1 = denseSegs(10, 850, 70, "w1-").concat(
     [seg(950, "OVERLAP_CONTENT"), seg(1150, "w1-over-b"), seg(1400, "w1-over-c")]);
-  // окно2 [900,1800): честная плотная часть, начинающаяся с ЕГО СОБСТВЕННОЙ (легитимной) версии
+  // окно2 [870,1800]: честная плотная часть, начинающаяся с ЕГО СОБСТВЕННОЙ (легитимной) версии
   // той же реплики на 905, затем покрытие до 1793 (≈1795, допуск задачи).
   const win2 = [seg(905, "OVERLAP_CONTENT")].concat(denseSegs(975, 1745, 70, "w2-"))
     .concat([seg(1793, "w2-last")]);
   return async (a, b) => {
     calls.push([a, b]);
     if (a === 0) return R({ segments: win1 });
-    if (a === 900) return R({ segments: win2 });
+    if (a === 870) return R({ segments: win2 });
     throw new Error("unexpected transcribe(" + a + "," + b + ")");
   };
 }
@@ -462,7 +487,7 @@ test("(S12.3-b) перехлёст окна: заехавшие тексты о�
   // ложной дыры нет — плотное честное покрытие обоих окон достаточно.
   assert.deepEqual(res.coverageGaps, []);
   // доборов не было: ровно 2 вызова transcribe (по одному на окно), ложная дыра не появилась.
-  assert.deepEqual(calls, [[0, 900], [900, 1800]]);
+  assert.deepEqual(calls, [[0, 900], [870, 1800]]);
 });
 
 // (c) КОНТРОЛЬ КАСКАДА (регресс-тест бага владельца, R11): БЕЗ клиппинга "OVERLAP_CONTENT" от
@@ -481,9 +506,75 @@ test("(S12.3-c) контроль каскада: 'OVERLAP_CONTENT' встреч�
   assert.equal(occurrences, 1); // БЕЗ фикса было бы 2 (окно1 заезд + окно2 легитимная копия)
   // добор не вызывался вообще — только 2 window-вызова, никакого третьего (heal) вызова.
   assert.equal(calls.length, 2);
-  assert.deepEqual(calls, [[0, 900], [900, 1800]]);
+  assert.deepEqual(calls, [[0, 900], [870, 1800]]);
   assert.deepEqual(res.coverageGaps, []);
   assert.ok(!res.warnings.includes("ASR_COVERAGE_GAP"));
+});
+
+// ══════════════════════════════════════════════════════════════════════════════════════════
+// S12.4 (владелец 2026-07-29, второй прогон живой 117-мин приёмки): дубли-блоки на швах ПЕРЕЖИЛИ
+// клиппинг S12.3, потому что range-промт ТРЕБОВАЛ метки «within a-b» — модель, захватив реплику
+// целиком (она начинает с начала ФРАЗЫ, а не с секунды a), честно ставила ей метку ВНУТРИ своего
+// диапазона. Обе копии «легальны» по меткам → клип по меткам бессилен. Фикс: соседние окна
+// перекрываются на 30с, а шов режется по ТЕКСТУ (stitchWindowSegments). Тесты ниже — тот же
+// сценарий «в бою», через полный runWindowedAsr.
+// ══════════════════════════════════════════════════════════════════════════════════════════
+
+// Ивритские фикстуры из реальных фраз репо (tests/segTable.test.js); нумерация сегментов —
+// ивритскими буквами, чтобы плотное покрытие не порождало ЛОЖНЫХ якорей из повторов filler-текста.
+const HE_AN1 = "הילד אכל תפוח";
+const HE_AN2 = "הילד רץ אל הבית";
+const HE_LETTERS = "אבגדהוזחטיכלמנסעפצקרשת".split("");
+function heFill(fromSec, toSec, stepSec, letterFrom) {
+  const out = [];
+  let i = 0;
+  for (let t = fromSec; t <= toSec; t += stepSec, i++) out.push(seg(t, "משפט " + HE_LETTERS[letterFrom + i]));
+  return out;
+}
+
+test("(S12.4) шов окон: обе копии реплики ЛЕГАЛЬНЫ по меткам — клип их не трогает, дубль снимает якорь", async () => {
+  const calls = [];
+  // окно0 [0,900] отдаёт шовную реплику с метками 875/890 (легальны для [0,900]);
+  // окно1 [870,1800] — ТУ ЖЕ реплику с метками 876/891 (легальны для [870,1800]).
+  const win0 = heFill(20, 820, 80, 0).concat([seg(875, HE_AN1), seg(890, HE_AN2)]);
+  const win1 = [seg(876, HE_AN1), seg(891, HE_AN2)].concat(heFill(960, 1760, 80, 11));
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800,
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return R({ segments: win0 });
+      if (a === 870) return R({ segments: win1 });
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.deepEqual(calls, [[0, 900], [870, 1800]]); // ни доборов, ни бисекций — чистый двухоконный путь
+  // (1) КЛИППИНГ НЕ СРАБОТАЛ ВООБЩЕ: обе копии внутри своих диапазонов (поле clippedCount
+  // появляется только при >0). Именно поэтому S12.3 дубль не ловил.
+  assert.equal(res.windows[0].clippedCount, undefined);
+  assert.equal(res.windows[1].clippedCount, undefined);
+  // (2) дубль снят швом по тексту: якорь = 7 слов (HE_AN1+HE_AN2), срезаны 2 сегмента окна0.
+  assert.deepEqual(res.seams, [{ seam: 900, anchored: true, anchorWords: 7,
+                                 cutSegDroppedK: 2, cutSegDroppedK1: 0 }]);
+  assert.equal(res.segments.filter((s) => s.text === HE_AN1).length, 1);
+  assert.equal(res.segments.filter((s) => s.text === HE_AN2).length, 1);
+  // (3) уцелела копия ОКНА1 (её метки честнее для своего диапазона), метки окна0 ушли с дублем
+  assert.ok(res.segments.some((s) => s.start === 876 && s.text === HE_AN1));
+  assert.ok(!res.segments.some((s) => s.start === 875 || s.start === 890));
+  // (4) R11: ничего вне зоны перекрытия не потеряно — весь filler обоих окон на месте, по разу
+  assert.equal(res.segments.length, win0.length - 2 + win1.length);
+  assert.deepEqual(res.coverageGaps, []);
+  assert.deepEqual(res.warnings, []);
+});
+
+test("(S12.4) clipSegmentsToRange: tolSec — ближняя зона остаётся шву, дальний заезд отброшен", () => {
+  const input = [seg(880, "near-lo"), seg(910, "in"), seg(1855, "near-hi"), seg(2000, "far")];
+  // допуск окна (ASR_STITCH_CLIP_TOL_SEC=60) сохраняет ближнюю зону по обе стороны [870,1800]
+  assert.equal(A.ASR_STITCH_CLIP_TOL_SEC, 60);
+  assert.deepEqual(SI.clipSegmentsToRange(input, 870, 1800, A.ASR_STITCH_CLIP_TOL_SEC).map((s) => s.text),
+                   ["near-lo", "in", "near-hi"]);
+  // строгий допуск добора (по умолчанию, 2с) — как было: ближнюю зону тоже режет
+  assert.deepEqual(SI.clipSegmentsToRange(input, 870, 1800).map((s) => s.text), ["near-lo", "in"]);
 });
 
 // (d) клиппинг добора: heal на [100,200] возвращает сегменты, простирающиеся до 350 (сам добор
