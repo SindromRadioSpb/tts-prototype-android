@@ -1054,6 +1054,35 @@ function shellIntegrity() {
   return shellIntegrityCache;
 }
 
+// App version shown to the client (About modal + footer) — single source of
+// truth is CACHE_VERSION in public/sw.js, the value the Service Worker itself
+// ships. package.json's "version" field is NOT touched at deploy time and
+// systematically drifted behind the real shipped build (2026-07-29:
+// package.json said 3.11.241 while prod was already on 3.11.261) — the
+// About-modal version display silently lied to the owner and blocked SW
+// update-verification. Read sw.js ONCE at server start; fall back to
+// package.json only if that read/parse fails.
+function resolveAppVersion() {
+  try {
+    const swSource = fs.readFileSync(path.join(__dirname, "public", "sw.js"), "utf8");
+    const m = swSource.match(/CACHE_VERSION\s*=\s*"v?([^"]+)"/);
+    if (m && m[1]) return m[1];
+    throw new Error("CACHE_VERSION pattern not found in public/sw.js");
+  } catch (err) {
+    console.warn(
+      "[client-config] could not derive version from public/sw.js CACHE_VERSION, " +
+        "falling back to package.json version:",
+      err && err.message
+    );
+    try {
+      const pkg = require("./package.json");
+      if (pkg && pkg.version) return String(pkg.version);
+    } catch (_) {}
+    return "3.0.0";
+  }
+}
+const RESOLVED_APP_VERSION = resolveAppVersion();
+
 app.get("/api/client-config", (_req, res) => {
   const ttsEnabledRaw = String(process.env.TTS_ENABLED || "true").trim().toLowerCase();
   const debugDiagnosticsRaw = String(process.env.TTS_DEBUG_DIAGNOSTICS || "").trim().toLowerCase();
@@ -1132,13 +1161,10 @@ app.get("/api/client-config", (_req, res) => {
   const developerGithub = String(process.env.DEVELOPER_GITHUB_REPO || "SindromRadioSpb/tts-prototype-android").trim();
   const responseTimeHours = Number(process.env.DEVELOPER_RESPONSE_TIME_HOURS || "4");
 
-  // App version from package.json — surfaced to the client About modal
-  // and footer so the displayed version always matches what's deployed.
-  let appVersion = "3.0.0";
-  try {
-    const pkg = require("./package.json");
-    if (pkg && pkg.version) appVersion = String(pkg.version);
-  } catch (_) {}
+  // App version surfaced to the client About modal and footer. Resolved
+  // once at server start from public/sw.js CACHE_VERSION — see
+  // resolveAppVersion() above for why (package.json drift).
+  const appVersion = RESOLVED_APP_VERSION;
 
   return res.json({
     ok: true,
