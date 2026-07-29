@@ -377,6 +377,127 @@
     return { segments: out, seamsMeta: meta };
   }
 
+  // ── S12.5 T3: АНТИ-РЕПЛЕЙ ТЕКСТ-ГЕЙТ (последняя линия обороны) ───────────────────────────────
+  // Диагноз DIAGNOSIS_S12_LIVE_DEFECT_2026_07_29 §7: `gemini-flash-latest` на глубоких офсетах
+  // одного длинного fileUri возвращает контент ЧУЖОГО диапазона с правдоподобными метками
+  // «внутри своего» — то есть ПОДДЕЛАННЫМИ. Все гейты покрытия конвейера (клип, шов, поиск дыр,
+  // добор) ключуются на этих метках, поэтому подделка проходит их РАЗОМ и маскирует потерю
+  // (живой прогон владельца: потеря 47% таймлайна отчиталась `coverageGaps: []`).
+  //
+  // ПОЧЕМУ ТЕКСТ, А НЕ МЕТКА. Метка — часть ВЫХОДА модели, она подделываема и потому не может
+  // быть оракулом самой себя (independent-oracle). Текст — независимый сигнал: если материал уже
+  // встречался в прогоне, он и есть тот же материал, чем бы его ни пометили. Тот же принцип, что
+  // у шва S12.4 (якорь по словам), но применённый к ТЕЛУ окна/добора, а не к зоне ±30с.
+  // Транспорт sliced-mp3 (T2) убивает класс подделки ПО ПОСТРОЕНИЮ (модель не видит чужого звука);
+  // этот гейт — последняя линия для транспорта ranged-file (видео/не-mp3/не-sliceable mp3, где
+  // range-промт остаётся) и страховка для slice-пути.
+  //
+  // ПОЧЕМУ 40%. Живая речь даёт рефрены («кен, кен», формульные обороты) — на 6-словных шинглах
+  // это 1–3%; шовное перекрытие соседних окон (30с из 900с) добавляет ~3%. Бракованные окна
+  // прогона-образца 2026-07-29 давали 60–95%. Порог 40% лежит с запасом по обе стороны: честное
+  // окно до него не дотягивает даже с рефренами и швом, реплей — перескакивает.
+  //
+  // ПОЧЕМУ K=6. Короче — частотные сочетания служебных слов дают ложные совпадения (по той же
+  // причине STITCH_ANCHOR_MIN_WORDS=5 не берёт 4 слова за доказательство); длиннее — гейт слепнет
+  // к реплею, транскрибированному ВТОРОЙ РАЗ НЕЗАВИСИМО: копии расходятся текстуально после
+  // дословного начала (§2 диагноза), и общими у них остаются короткие куски.
+  //
+  // ПОЧЕМУ null ПРИ КОРОТКОМ ТЕКСТЕ (R11). Меньше REPLAY_MIN_SHINGLES шинглов — это не «окно
+  // честное» и не «окно бракованное», это ОТСУТСТВИЕ ДОКАЗАТЕЛЬСТВ. Обвинять окно, по которому
+  // доказательств нет, значит выбрасывать, возможно, единственную честную транскрипцию тихого
+  // куска. null = «суждение не выносится», вызывающий обязан трактовать его как «принять».
+  //
+  // Нормализация слов — ТА ЖЕ, что у шва (stitchNormalizeWords): unicode-слова любого письма,
+  // огласовки сняты, регистр вниз. Своей нормализации здесь нет НАМЕРЕННО: два разных правила
+  // «что такое слово» разошлись бы, и гейты начали бы спорить друг с другом.
+  var REPLAY_SHINGLE_K = 6;
+  var REPLAY_REJECT_RATIO = 0.4;
+  var REPLAY_MIN_SHINGLES = 20;
+
+  // Шинглы строятся по СКВОЗНОМУ потоку слов всех сегментов (границы сегментов не разрывают
+  // поток): нарезка речи на сегменты — решение модели, у двух копий одной речи она разная, и
+  // сравнение «по сегментам» пропускало бы реплей с иной разбивкой.
+  // skipWords — сколько слов ГОЛОВЫ не участвует в суждении (шовное перекрытие, см.
+  // replaySeamSkipWords); накопитель (collectShingles) вызывает БЕЗ него: в базу прогона материал
+  // окна идёт целиком, иначе шовная речь стала бы невидимой для проверки следующих окон.
+  function replayWords(segments) {
+    var list = Array.isArray(segments) ? segments : [];
+    var words = [];
+    for (var i = 0; i < list.length; i++) {
+      var w = stitchNormalizeWords(list[i] && list[i].text);
+      for (var j = 0; j < w.length; j++) words.push(w[j]);
+    }
+    return words;
+  }
+
+  function replayShingles(segments, skipWords) {
+    var words = replayWords(segments);
+    var from = (typeof skipWords === "number" && isFinite(skipWords) && skipWords > 0) ? Math.floor(skipWords) : 0;
+    var out = [];
+    for (var s = from; s + REPLAY_SHINGLE_K <= words.length; s++) {
+      out.push(words.slice(s, s + REPLAY_SHINGLE_K).join(" "));
+    }
+    return out;
+  }
+
+  // ── ШОВНОЕ ИСКЛЮЧЕНИЕ (whole-branch ревью S12.5, 2026-07-29) ────────────────────────────────
+  // Соседние окна ПЕРЕКРЫВАЮТСЯ на ASR_WINDOW_OVERLAP_SEC (asrWindows) — шовная зона
+  // транскрибируется дважды НАМЕРЕННО (S12.4), то есть часть повторов у честного окна создана
+  // НАМИ, а не моделью. У полного окна (930с) это ≈3% шинглов и порог 40% недосягаем, но есть два
+  // ЖИВЫХ класса, где шов доминирует над содержимым окна и честное окно объявлялось реплеем:
+  //   (1) хвостовое окно короче ~65с — файл длиннее кратного 15 мин на 0–60с (≈каждый 15-й);
+  //   (2) окно, оборвавшее вывод сразу после шовной зоны (класс пробы R10: чанк 3 оборвался на
+  //       rel 727/930) — своей речи почти нет, шовная есть.
+  // Цена ошибки не симметрична обычному ложному срабатыванию: забракованное окно НЕ идёт в добор
+  // (см. overlapsRejected), поэтому ложный брак ещё и ЗАПРЕЩАЛ спасение настоящей дыры.
+  //
+  // Сколько именно слов объяснено швом — МЕРЯЕТСЯ, а не предполагается: это ровно тот якорь, по
+  // которому S12.4 режет шов (самая длинная общая последовательность слов между ХВОСТОМ
+  // предыдущего окна и ГОЛОВОЙ текущего). Ни одной метки: гейт остаётся независимым от подделки.
+  // Возврат — число слов ГОЛОВЫ текущего окна, не подлежащих суждению (0 — якоря нет, шов ничего
+  // не объясняет).
+  //
+  // ГРАНИЦЫ ПОИСКА — РОВНО STITCH_TAIL_WORDS СЛОВ, срез ПОСЛОВНЫЙ (не по целым сегментам, как у
+  // stitchTailWords/stitchHeadWords). Разница принципиальна: сегменты — это решение модели, и
+  // окно, отданное ОДНИМ сегментом на 1300 слов, растянуло бы «хвост» на всё окно, а с ним и
+  // исключение — гейт ослеп бы ровно там, где модель ведёт себя аномально. Пословный срез даёт
+  // ЖЁСТКУЮ верхнюю границу: исключить можно не больше 80 слов, значит у живого окна (822–1331
+  // слово, замер §6) судится минимум «всё минус 80» и реплей ЦЕЛОГО окна ловится по-прежнему.
+  // 80 слов покрывают 30-секундный шов при темпе до ~2.7 сл/с — вдвое выше живого замера
+  // (8903 слова / 7017 с = 1.27 сл/с). Осознанный остаток: у ОЧЕНЬ быстрой речи в коротком
+  // хвостовом окне часть шва останется неисключённой; это ложный брак, а не пропуск реплея.
+  // Окно, где после исключения осталось меньше REPLAY_MIN_SHINGLES, честно уходит в «суждения
+  // нет» (null) — отсутствие доказательств не есть доказательство брака.
+  function replaySeamSkipWords(prevSegments, segments) {
+    var pw = replayWords(prevSegments), cw = replayWords(segments);
+    var tail = pw.slice(Math.max(0, pw.length - STITCH_TAIL_WORDS));
+    var head = cw.slice(0, STITCH_TAIL_WORDS);
+    var anchor = stitchFindAnchor(tail, head, STITCH_ANCHOR_MIN_WORDS);
+    return anchor ? anchor.headStart + anchor.len : 0; // ≤ STITCH_TAIL_WORDS по построению
+  }
+
+  // Мутирует и возвращает переданный Set (накопитель принятого материала прогона).
+  function collectShingles(segments, seenShingles) {
+    var set = (seenShingles && typeof seenShingles.add === "function") ? seenShingles : new Set();
+    var sh = replayShingles(segments);
+    for (var i = 0; i < sh.length; i++) set.add(sh[i]);
+    return set;
+  }
+
+  // Доля шинглов segments, УЖЕ встречавшихся в прогоне (seenShingles). 0..1; null — материала
+  // слишком мало для суждения (см. выше). Знаменатель — ВСЕ шингловые позиции (с повторами):
+  // окно, целиком состоящее из повторов одной фразы, обязано считаться реплеем, а не «одним
+  // уникальным шинглом». skipWords — шовное исключение (replaySeamSkipWords); материала после
+  // исключения может не хватить на суждение — тогда так же честный null.
+  function replayRatio(segments, seenShingles, skipWords) {
+    var sh = replayShingles(segments, skipWords);
+    if (sh.length < REPLAY_MIN_SHINGLES) return null;
+    if (!seenShingles || typeof seenShingles.has !== "function") return 0;
+    var hit = 0;
+    for (var i = 0; i < sh.length; i++) if (seenShingles.has(sh[i])) hit++;
+    return hit / sh.length;
+  }
+
   // Интро-дыра НЕ считается: поздний первый сегмент легитимен (музыка) и уже флагуется
   // LATE_FIRST_SEGMENT в validateSegments. null-старты прозрачны (не рвут отрезок).
   function findCoverageGaps(segments, durationSec) {
@@ -390,6 +511,111 @@
     }
     if (prev !== null && dur > 0 && dur - prev > ASR_TAIL_GAP_SEC) gaps.push({ fromSec: prev, toSec: dur });
     return gaps;
+  }
+
+  // ── S12.5 T4: ЧЕСТНАЯ СВОДКА ПРОГОНА (R11) ───────────────────────────────────────────────────
+  // Живой брак владельца 2026-07-29: прогон, потерявший 47% таймлайна, отчитался
+  // `coverageGaps: []` и выглядел УСПЕХОМ — единственным, что видел владелец, был текст в превью.
+  // Сводка отвечает на вопрос «сколько записи РЕАЛЬНО попало в транскрипт» ДО того, как владелец
+  // нажмёт «→ В поле ввода», и считает его НЕ по тексту модели (подделываем), а по нашим
+  // структурным записям прогона: окна, дыры покрытия, забракованные анти-реплей гейтом диапазоны.
+  //
+  // ПОТЕРЯ = ОБЪЕДИНЕНИЕ, А НЕ СУММА. coverageGaps и rejectedRanges ПЕРЕСЕКАЮТСЯ по построению:
+  // забракованное окно не отдаёт сегментов, поэтому его диапазон немедленно всплывает ЕЩЁ И в
+  // coverageGaps. Наивная сумма длительностей насчитала бы двойную потерю (одно окно из восьми →
+  // «потеряно 25%» вместо 12.5%) — число, которому владелец перестанет верить в первый же раз,
+  // когда пересчитает сам, а недоверие к сводке возвращает нас ровно в исходный дефект. Поэтому
+  // интервалы сначала СЛИВАЮТСЯ, и только потом суммируются.
+  var SUMMARY_WARN_PCT = 5; // потеря сверх этого — «bad» (владелец подтверждает явно, см. useText)
+
+  // Нормализация одного диапазона к {fromSec,toSec} + клип по длительности. Невалидный/пустой/
+  // обратный интервал → null (в сумму не идёт): «не доказательство потери» ≠ «потеря нулевой
+  // длины», а тихо прибавлять к потере мусор нельзя (R11 в обе стороны).
+  function normRange(from, to, durationSec) {
+    // Строгая проверка ТИПА, не Number(): Number(null)===0 и Number("")===0 превратили бы
+    // «поля нет» в честный ноль и породили дыру 0–toSec из ничего.
+    if (typeof from !== "number" || typeof to !== "number") return null;
+    var a = from, b = to;
+    if (!isFinite(a) || !isFinite(b)) return null;
+    if (a < 0) a = 0;
+    if (b < 0) b = 0;
+    if (durationSec > 0) { if (a > durationSec) a = durationSec; if (b > durationSec) b = durationSec; }
+    return b > a ? { fromSec: a, toSec: b } : null;
+  }
+
+  // Слияние пересекающихся И стыкующихся встык интервалов (стык — тоже одна дыра: показывать
+  // владельцу «41:36–44:29, 44:29–47:10» вместо «41:36–47:10» значит врать о числе дыр).
+  function mergeRanges(ranges) {
+    var list = (ranges || []).slice().sort(function (x, y) { return x.fromSec - y.fromSec; });
+    var out = [];
+    for (var i = 0; i < list.length; i++) {
+      var last = out.length ? out[out.length - 1] : null;
+      if (last && list[i].fromSec <= last.toSec) {
+        if (list[i].toSec > last.toSec) last.toSec = list[i].toSec;
+      } else out.push({ fromSec: list[i].fromSec, toSec: list[i].toSec });
+    }
+    return out;
+  }
+
+  // Вход — ровно то, что оркестратор уже кладёт в паспорт (runWindowedAsr → audioMetaForImport.asr).
+  // Выход — то, что рисует превью импорта (studio-import.js renderAsrSummary) и что уходит в
+  // паспорт полем asr.summary.
+  //
+  // windowsOk — окна, отдавшие материал НА ВЕСЬ свой диапазон: без брака анти-реплей гейта
+  // (rejectedReplay) и без честно пропущенной половины бисекции (skippedRanges). Ретрай и сама
+  // бисекция окно «не-ok» НЕ делают: они закончились результатом, потери таймлайна там нет.
+  //
+  // level (R11 — «ok» обязан означать «претензий нет ВООБЩЕ»):
+  //   ok   — нулевая потеря, ни одного забракованного диапазона, все окна целы и конвейер не
+  //          поднял ни ASR_COVERAGE_GAP, ни ASR_WINDOW_REPLAY. Расхождение между нашим счётом
+  //          интервалов и предупреждениями конвейера само по себе снимает «ok»: два независимых
+  //          источника не сошлись — это не повод рисовать зелёное.
+  //   warn  — потеря есть, но ≤ SUMMARY_WARN_PCT (или пострадала целостность окон/предупреждения).
+  //   bad   — потеря > SUMMARY_WARN_PCT ЛИБО есть забракованные диапазоны (реплей-подделка —
+  //          всегда «bad» независимо от длительности: это класс дефекта, а не объём).
+  function summarizeAsrRun(run) {
+    var r = run || {};
+    var dur = Math.max(0, Number(r.durationSec) || 0);
+    var wins = Array.isArray(r.windows) ? r.windows : [];
+    var gapsIn = Array.isArray(r.coverageGaps) ? r.coverageGaps : [];
+    var rejIn = Array.isArray(r.rejectedRanges) ? r.rejectedRanges : [];
+    var warnings = Array.isArray(r.warnings) ? r.warnings : [];
+    var healed = Array.isArray(r.healedGaps) ? r.healedGaps.length : 0;
+
+    var ranges = [], nr, i;
+    for (i = 0; i < gapsIn.length; i++) {
+      nr = normRange(gapsIn[i] && gapsIn[i].fromSec, gapsIn[i] && gapsIn[i].toSec, dur);
+      if (nr) ranges.push(nr);
+    }
+    for (i = 0; i < rejIn.length; i++) { // у забракованных диапазонов свои имена полей (startSec/endSec)
+      nr = normRange(rejIn[i] && rejIn[i].startSec, rejIn[i] && rejIn[i].endSec, dur);
+      if (nr) ranges.push(nr);
+    }
+    var gaps = mergeRanges(ranges);
+    var lostSec = 0;
+    for (i = 0; i < gaps.length; i++) lostSec += gaps[i].toSec - gaps[i].fromSec;
+    if (dur > 0 && lostSec > dur) lostSec = dur;
+    var coveredSec = dur > 0 ? Math.max(0, dur - lostSec) : 0;
+    // Округление ДО расчёта level: показанный процент и цвет блока обязаны согласовываться —
+    // «потеряно 5%» рядом с красным «bad» владелец прочитает как ещё один сбой доверия.
+    var lostPct = dur > 0 ? Math.round((lostSec / dur) * 1000) / 10 : (lostSec > 0 ? 100 : 0);
+
+    var windowsOk = 0;
+    for (i = 0; i < wins.length; i++) {
+      var w = wins[i] || {};
+      var skipped = Array.isArray(w.skippedRanges) && w.skippedRanges.length > 0;
+      if (w.rejectedReplay == null && !skipped) windowsOk++;
+    }
+    var rejected = rejIn.length;
+    var flagged = warnings.indexOf("ASR_COVERAGE_GAP") >= 0 || warnings.indexOf("ASR_WINDOW_REPLAY") >= 0;
+    var level;
+    if (rejected > 0 || lostPct > SUMMARY_WARN_PCT) level = "bad";
+    else if (lostSec > 0 || windowsOk < wins.length || flagged) level = "warn";
+    else level = "ok";
+
+    return { windowsTotal: wins.length, windowsOk: windowsOk,
+             coveredSec: coveredSec, lostSec: lostSec, lostPct: lostPct,
+             gaps: gaps, healed: healed, rejected: rejected, level: level };
   }
 
   // R16: ЕДИНСТВЕННОЕ место цен длинного прогона (вместе с ASR-константами выше).
@@ -521,9 +747,16 @@
     STITCH_TAIL_WORDS: STITCH_TAIL_WORDS, STITCH_ANCHOR_MIN_WORDS: STITCH_ANCHOR_MIN_WORDS,
     STITCH_ZONE_TOL_SEC: STITCH_ZONE_TOL_SEC, STITCH_SEAM_TOL_SEC: STITCH_SEAM_TOL_SEC,
     STITCH_COVER_TOL_SEC: STITCH_COVER_TOL_SEC,
+    REPLAY_SHINGLE_K: REPLAY_SHINGLE_K, REPLAY_REJECT_RATIO: REPLAY_REJECT_RATIO,
+    REPLAY_MIN_SHINGLES: REPLAY_MIN_SHINGLES,
+    replayRatio: replayRatio, collectShingles: collectShingles,
+    replaySeamSkipWords: replaySeamSkipWords, // шовное исключение (whole-branch ревью S12.5)
     asrWindows: asrWindows, asrSeams: asrSeams, ASR_RANGE_PROMPT: ASR_RANGE_PROMPT,
     mergeWindowSegments: mergeWindowSegments, stitchWindowSegments: stitchWindowSegments,
     findCoverageGaps: findCoverageGaps,
+    // S12.5 T4: сводка прогона + её форматтер времени (UI обязан печатать те же мм:сс/ч:мм:сс,
+    // что парсит secondsFromTimestamp — второй формат времени в проекте не заводим).
+    summarizeAsrRun: summarizeAsrRun, fmtClock: fmtClock, SUMMARY_WARN_PCT: SUMMARY_WARN_PCT,
     estimateLongJob: estimateLongJob,
   };
   if (typeof window !== "undefined") window.AsrTranscript = API;

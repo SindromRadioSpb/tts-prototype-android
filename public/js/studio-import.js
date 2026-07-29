@@ -62,6 +62,30 @@
     return n === 1 ? "one" : "many"; // en, he: binary singular/plural
   }
 
+  // ── S12.5 T4: STALE-TAB GUARD (чистое сравнение версий) ──────────────────────────────────────
+  // Диагностическая сессия 2026-07-29 потратила целую гипотезу (H1) на вопрос «а каким кодом
+  // вообще сделан этот прогон?» — вкладка владельца жила 35 минут, за это время прод успел уехать
+  // на две версии вперёд, и доказать свежесть удалось только feature-детекцией в консоли.
+  //
+  // ЧТО С ЧЕМ СРАВНИВАЕТСЯ (разведка §5 дизайн-пакета — наивный вариант НЕ работает):
+  //   pageVersion   = window.APP_VERSION — ЛИТЕРАЛ, зашитый в сам документ index.html. Это
+  //                   единственное, что стареет ВМЕСТЕ со вкладкой.
+  //   serverVersion = j.version из /api/client-config — сервер читает CACHE_VERSION из sw.js.
+  // Использовать window.__v3AppVersion (index.html) для guard-а НЕЛЬЗЯ: он заполняется ОТВЕТОМ
+  // СЕРВЕРА, т.е. это версия сервера в маске версии страницы — старая вкладка спросит сервер,
+  // получит новую версию, запишет её себе и «докажет» собственную свежесть.
+  //
+  // FAIL-OPEN (R11): устаревание — это ФАКТ, который нужно доказать. Нет одной из версий (старый
+  // прод без штампа, сетевая ошибка, урезанный ответ) — доказательства нет, прогон идёт. Выдумать
+  // «страница устарела» на пустом месте значит заблокировать владельцу единственную рабочую
+  // кнопку по подозрению.
+  function isStaleTab(pageVersion, serverVersion) {
+    var p = typeof pageVersion === "string" ? pageVersion.trim().replace(/^v/i, "") : "";
+    var s = typeof serverVersion === "string" ? serverVersion.trim().replace(/^v/i, "") : "";
+    if (!p || !s) return false;
+    return p !== s;
+  }
+
   // S12.3 (владелец 2026-07-28, живая 117-мин/8-окон приёмка): транскрипт содержал КРУПНЫЕ
   // ДУБЛИ-БЛОКИ. Диагноз по паре источник/результат: (1) модель «заезжает» за запрошенный
   // диапазон range-промта (ASR_RANGE_PROMPT «ONLY a..b» нарушается) → следующий вызов честно
@@ -122,19 +146,95 @@
     var wins = A2.asrWindows(deps.durationSec);
     var single = wins.length === 1;
     var windowSegments = (deps.priorWindows || []).slice();
-    var windowsMeta = windowSegments.map(function (_, i) {
-      return { startSec: wins[i].startSec, endSec: wins[i].endSec, retries: 0 };
-    });
+    // Провенанс готовых окон переезжает в резюм ВМЕСТЕ с сегментами (whole-branch ревью S12.5).
+    // Пересборка «с нуля» ({startSec,endSec,retries:0}) стирала всё, что прошлый заход выяснил об
+    // этих окнах: rejectedReplay/skippedRanges/bisected/clippedCount. На стыке задач это давало
+    // ложь ровно там, где слайс обещал честность: сводка T4 считает windowsOk по
+    // w.rejectedReplay/w.skippedRanges и после резюма рапортовала «Чанков 8/8» о прогоне с
+    // подделанным окном, rejectedRanges был пуст («окон забраковано: 0»), а забытый диапазон
+    // снова считался годным для добора — платили за заведомо тот же реплей (R16). Длинный файл
+    // почти всегда доходит до конца с одним-двумя резюмами, так что это не экзотика.
+    // Длина обязана совпасть с числом готовых окон — иначе провенанс не про эти окна, и честнее
+    // пересобрать минимальный (потеря деталей заметна, подмена — нет).
+    var windowsMeta = (Array.isArray(deps.priorWindowsMeta) && deps.priorWindowsMeta.length === windowSegments.length)
+      ? deps.priorWindowsMeta.slice()
+      : windowSegments.map(function (_, i) {
+          return { startSec: wins[i].startSec, endSec: wins[i].endSec, retries: 0 };
+        });
     var warnings = [], language = null;
     var startAt = deps.startWindow || windowSegments.length;
 
+    // S12.5 T3 — АНТИ-РЕПЛЕЙ ГЕЙТ (обоснование порога/шинглов/null — в asr-transcript.js).
+    // seenShingles = накопитель 6-словных шинглов ПРИНЯТОГО материала прогона; каждое следующее
+    // окно/добор проверяется против него. Резюм (priorWindows) заряжает накопитель готовыми
+    // окнами — иначе после возобновления гейт «забывал» всё, что уже в транскрипте, и реплей
+    // ранних минут проходил бы как новый материал.
+    // R11-ИНВАРИАНТ: брак окна = ЧЕСТНАЯ ДЫРА, а не тихая потеря и не маскировка. Забракованное
+    // окно уходит в windowSegments ПУСТЫМ массивом (позиция сохраняется — резюм/швы считают окна
+    // по индексу), его диапазон немедленно всплывает в findCoverageGaps → coverageGaps +
+    // ASR_COVERAGE_GAP, плюс отдельный warning ASR_WINDOW_REPLAY и rejectedRanges в паспорт.
+    // Противоположный выбор (оставить реплей в транскрипте) и есть тот дефект, который убил
+    // живой прогон владельца: чужой текст с in-range метками ЗАКРЫВАЛ дыры и делал потерю 47%
+    // таймлайна похожей на успех.
+    var seenShingles = new Set();
+    for (var pw = 0; pw < windowSegments.length; pw++) A2.collectShingles(windowSegments[pw], seenShingles);
+    var rejectedRanges = [];
+    // Брак, случившийся ДО резюма, восстанавливается из провенанса готовых окон: без этого он
+    // исчезал из паспорта и из сводки, а его диапазон снова уходил в добор (см. windowsMeta выше).
+    for (var pm = 0; pm < windowsMeta.length; pm++) {
+      var pmeta = windowsMeta[pm];
+      if (pmeta && pmeta.rejectedReplay != null) {
+        rejectedRanges.push({ startSec: pmeta.startSec, endSec: pmeta.endSec,
+                              rejectedReplay: pmeta.rejectedReplay });
+        if (warnings.indexOf("ASR_WINDOW_REPLAY") < 0) warnings.push("ASR_WINDOW_REPLAY");
+      }
+    }
+
+    // Диапазон уже забракован как реплей ⇒ повторный запрос ТОГО ЖЕ диапазона тем же промтом
+    // вернёт тот же реплей (доказано диагнозом: подделка воспроизводима, w6–w8 прогона-образца
+    // не дали своего контента НИ РАЗУ). Поэтому дыра, ПЕРЕСЕКАЮЩАЯСЯ с забракованным диапазоном,
+    // в добор не идёт вовсе — она остаётся честной дырой, а мы не платим за заведомый мусор (R16).
+    // Пересечение — строгое (открытые интервалы): стык встык (дыра начинается ровно там, где
+    // кончается забракованное окно) пересечением НЕ считается, такая дыра добирается нормально.
+    function overlapsRejected(fromSec, toSec) {
+      for (var i = 0; i < rejectedRanges.length; i++) {
+        if (fromSec < rejectedRanges[i].endSec && toSec > rejectedRanges[i].startSec) return true;
+      }
+      return false;
+    }
+
+    // S12.5: контракт deps.transcribe расширен — СТРОКА (legacy ranged-file: метки уже
+    // абсолютные, как раньше) ЛИБО {raw, offsetSec} (sliced-mp3: модель получила ОТДЕЛЬНО
+    // вырезанный кусок звука и plain ASR_PROMPT, её метки чанк-относительные 0..chunkDur).
+    // Сдвиг на offsetSec — ЗДЕСЬ и только здесь: oneCall — единственная точка, через которую
+    // проходит КАЖДЫЙ ответ транскрипции (окно, обе половины бисекции, heal-добор), поэтому всё
+    // ниже по оркестратору (клип по абсолютным диапазонам, stitch, findCoverageGaps, heal-цикл)
+    // получает уже абсолютные метки без единой правки. У половин бисекции offsetSec СВОЙ у
+    // каждого вызова — их склейка (stitchWindowSegments по mid) уже работает в абсолютном
+    // времени, наследуя сдвиг автоматически. offsetSec неподделываем: это НАШ детерминированный
+    // офсет (время первого байта чанка из фрейм-карты Mp3Slice), модель на него повлиять не
+    // может — в отличие от меток range-промта, подделку которых закрыл диагноз S12.5.
+    // null-start (модель не дала метку) не сдвигается — остаётся честным null (R11).
+    function parseTranscribed(resp) {
+      var isObj = !!resp && typeof resp === "object" && typeof resp.raw === "string";
+      var parsed = deps.parse(isObj ? resp.raw : resp);
+      var off = isObj ? resp.offsetSec : null;
+      if (typeof off === "number" && isFinite(off)) {
+        parsed.segments = parsed.segments.map(function (s) {
+          return (typeof s.start === "number" && isFinite(s.start))
+            ? { start: s.start + off, text: s.text } : s;
+        });
+      }
+      return parsed;
+    }
+
     async function oneCall(startSec, endSec) { // parse c retry ×1 на ASR_BAD_JSON
-      var raw = await deps.transcribe(startSec, endSec);
-      try { return { parsed: deps.parse(raw), retries: 0 }; }
+      var resp = await deps.transcribe(startSec, endSec);
+      try { return { parsed: parseTranscribed(resp), retries: 0 }; }
       catch (e1) {
         if (e1.code !== "ASR_BAD_JSON") throw e1;
-        raw = await deps.transcribe(startSec, endSec);
-        return { parsed: deps.parse(raw), retries: 1 };
+        resp = await deps.transcribe(startSec, endSec); // ретрай — свой ответ, свой offsetSec
+        return { parsed: parseTranscribed(resp), retries: 1 };
       }
     }
 
@@ -200,14 +300,15 @@
           r.parsed.segments = clippedSegs;
         }
       } catch (e) {
-        if (e.code !== "ASR_BAD_JSON") { e.windowIndex = k; e.windowSegments = windowSegments; throw e; }
+        // windowsMeta уезжает в резюм рядом с сегментами — см. блок про priorWindowsMeta выше.
+        if (e.code !== "ASR_BAD_JSON") { e.windowIndex = k; e.windowSegments = windowSegments; e.windowsMeta = windowsMeta; throw e; }
         try {
           // single: явный диапазон [0, durationSec] — первый случай range-промта для короткого
           // файла (иначе он никогда бы не использовался); честно, не молчаливая деградация.
           r = single ? await bisectWindow(0, deps.durationSec)
                      : await bisectWindow(wins[k].startSec, wins[k].endSec);
           clippedCount = r.clippedCount || 0; // bisectWindow клипит обе половины сам, к своим под-диапазонам
-        } catch (e2) { e2.windowIndex = k; e2.windowSegments = windowSegments; throw e2; }
+        } catch (e2) { e2.windowIndex = k; e2.windowSegments = windowSegments; e2.windowsMeta = windowsMeta; throw e2; }
       }
       var meta = { startSec: wins[k].startSec, endSec: wins[k].endSec, retries: r.retries };
       if (r.bisected) meta.bisected = true; // R9 провенанс: окно потребовало бисекции
@@ -216,8 +317,27 @@
       // R9 провенанс (S12.3): пишем ТОЛЬКО когда >0 — единообразно с bisected/skippedRanges выше
       // (те тоже присутствуют в meta только когда true/непусто, отсутствие поля = «ничего особого»).
       if (clippedCount > 0) meta.clippedCount = clippedCount;
+      // Анти-реплей гейт окна — ПОСЛЕ клипа (судим ровно тот материал, который попал бы в
+      // транскрипт) и ДО push в windowSegments. Забракованное окно не отдаёт НИЧЕГО: ни текста,
+      // ни языка, ни warnings — его warnings описывают ЧУЖОЙ звук, который модель подставила.
+      // Шовное исключение: голова окна, ДОКАЗАННО совпадающая с хвостом предыдущего (якорь
+      // S12.4), — это перекрытие, созданное НАМИ (asrWindows), и уликой против модели быть не
+      // может; см. replaySeamSkipWords. Предыдущее окно — последнее уже принятое (у брака там
+      // пустой массив, якоря не будет, исключать нечего — что и правильно).
+      var seamSkip = A2.replaySeamSkipWords(windowSegments[windowSegments.length - 1], r.parsed.segments);
+      var replay = A2.replayRatio(r.parsed.segments, seenShingles, seamSkip);
+      var rejectedReplay = replay !== null && replay >= A2.REPLAY_REJECT_RATIO;
+      if (rejectedReplay) {
+        meta.rejectedReplay = +replay.toFixed(2); // R9: почему окно пусто
+        rejectedRanges.push({ startSec: wins[k].startSec, endSec: wins[k].endSec,
+                              rejectedReplay: meta.rejectedReplay });
+        if (warnings.indexOf("ASR_WINDOW_REPLAY") < 0) warnings.push("ASR_WINDOW_REPLAY");
+      } else {
+        A2.collectShingles(r.parsed.segments, seenShingles);
+      }
       windowsMeta.push(meta);
-      windowSegments.push(r.parsed.segments);
+      windowSegments.push(rejectedReplay ? [] : r.parsed.segments);
+      if (rejectedReplay) continue;
       if (!language && r.parsed.language) language = r.parsed.language;
       (r.parsed.warnings || []).forEach(function (w) {
         if (w !== "NO_SPEECH" && warnings.indexOf(w) < 0) warnings.push(w);
@@ -239,6 +359,8 @@
     var healedGaps = [], maxHeals = deps.maxHeals == null ? 3 : deps.maxHeals;
     for (var g = 0; g < gaps.length && healedGaps.length < maxHeals; g++) {
       var gap = gaps[g];
+      // (а) дыра внутри уже забракованного диапазона — в добор не идёт (см. overlapsRejected).
+      if (overlapsRejected(gap.fromSec, gap.toSec)) continue;
       var heal;
       try { heal = await oneCall(gap.fromSec, gap.toSec); }
       catch (_) { continue; } // добор best-effort: неудача = дыра остаётся честной
@@ -248,6 +370,18 @@
       // S12.4: допуск здесь остаётся СТРОГИМ (2с) — у доборной зоны нет соседнего окна, шва нет,
       // якорю не с чем работать, и лишний заехавший текст никто не дедуплицирует.
       heal.parsed.segments = clipSegmentsToRange(heal.parsed.segments, gap.fromSec, gap.toSec);
+      // (б) тот же анти-реплей гейт для ДОБОРА — против ВСЕГО уже принятого материала прогона.
+      // Именно этим путём пришёл живой брак владельца: добор дыры 55:53–59:30 вернул речь
+      // 35:39–39:37 со штампами ВНУТРИ дыры, строгий клип ±2с её пропустил (штампы-то в
+      // диапазоне), и дыра «заросла» чужим текстом. Теперь добор-реплей отбрасывается целиком,
+      // дыра остаётся честной (healedGaps её не получает → coverageGaps + ASR_COVERAGE_GAP).
+      var healReplay = A2.replayRatio(heal.parsed.segments, seenShingles);
+      if (healReplay !== null && healReplay >= A2.REPLAY_REJECT_RATIO) {
+        rejectedRanges.push({ startSec: gap.fromSec, endSec: gap.toSec,
+                              healRejectedReplay: +healReplay.toFixed(2) }); // R9: почему дыра не закрыта
+        if (warnings.indexOf("ASR_WINDOW_REPLAY") < 0) warnings.push("ASR_WINDOW_REPLAY");
+        continue;
+      }
       if (heal.parsed.segments.length) {
         // Позиционная (не по значению start) вставка (fix R11-порядка, ревью после T3): граница
         // дыры — это КОНКРЕТНЫЙ сегмент в merged с start===gap.fromSec (findCoverageGaps берёт
@@ -270,6 +404,9 @@
         var flat = merged.slice(0, insertAt + 1).concat(heal.parsed.segments, merged.slice(insertAt + 1));
         merged = A2.mergeWindowSegments([flat]);
         healedGaps.push(gap);
+        // принятый добор — часть транскрипта, значит и часть базы для следующих проверок:
+        // второй добор, дословно повторяющий первый, обязан браковаться.
+        A2.collectShingles(heal.parsed.segments, seenShingles);
       }
     }
     var remaining = A2.findCoverageGaps(merged, deps.durationSec);
@@ -277,14 +414,16 @@
     if (!merged.length && warnings.indexOf("NO_SPEECH") < 0) warnings.push("NO_SPEECH");
     return { segments: merged, language: language, warnings: warnings, windows: windowsMeta,
              seams: seamsMeta, // S12.4 R9: как склеен каждый шов (якорь/фолбэк, сколько сегментов срезано)
-             coverageGaps: remaining, healedGaps: healedGaps, windowSegments: windowSegments };
+             coverageGaps: remaining, healedGaps: healedGaps,
+             rejectedRanges: rejectedRanges, // S12.5 R9: что забраковано анти-реплей гейтом (окно/добор)
+             windowSegments: windowSegments };
   }
 
   if (typeof window === "undefined") {
     if (typeof module !== "undefined" && module.exports) {
       module.exports = { chooseTrackHint: chooseTrackHint, pluralCategory: pluralCategory, uniqueLangCount: uniqueLangCount,
                           runWindowedAsr: runWindowedAsr, clipSegmentsToRange: clipSegmentsToRange,
-                          ASR_CLIP_TOLERANCE_SEC: ASR_CLIP_TOLERANCE_SEC };
+                          ASR_CLIP_TOLERANCE_SEC: ASR_CLIP_TOLERANCE_SEC, isStaleTab: isStaleTab };
     }
     return;
   }
@@ -418,7 +557,9 @@
     catch (_) { setStatus("studio.import.errAudioBadFile"); return; }
     if (dur > MAX_AUDIO_SEC + 1) { setStatus("studio.import.errAudioTooLong"); return; }
     var mime = file.type || "audio/mpeg";
-    pendingAudio = { file: file, buf: null, sha256: null, mime: mime, durationSec: dur, name: file.name, parsed: null, validation: null, isVideo: isVideo, windowResults: null };
+    pendingAudio = { file: file, buf: null, sha256: null, mime: mime, durationSec: dur, name: file.name, parsed: null, validation: null, isVideo: isVideo, windowResults: null,
+                     windowMetaResults: null, // провенанс готовых окон для резюма (ревью S12.5)
+                     asrTransport: null, sliceLog: null }; // S12.5: транспорт + чанк-лог заполняет transcribeAudio
     var est = window.AsrTranscript.estimateLongJob(dur, {
       video: isVideo, chunkSize: window.TableChunks.CHUNK_SIZE });
     var durRounded = Math.round(dur);
@@ -432,22 +573,92 @@
     setStatus(null);
   }
 
+  // S12.5 T4: спрашиваем сервер о его версии ПЕРЕД дорогой операцией. Сеть/формат подвели —
+  // молчим и работаем (fail-open, обоснование у isStaleTab).
+  async function pageIsStale() {
+    try {
+      var res = await fetch("/api/client-config", { cache: "no-store" });
+      if (!res.ok) return false;
+      var j = await res.json();
+      return isStaleTab(window.APP_VERSION, j && j.version);
+    } catch (_) { return false; }
+  }
+
   async function transcribeAudio() {
     if (!pendingAudio) return;
     var key = typeof window.geminiKeyGet === "function" ? window.geminiKeyGet() : "";
     if (!key) { setStatus("studio.import.errNoKey"); return; }
+    // Транскрипция длинного файла — десятки минут и реальные деньги владельца (R16); прогон
+    // СТАРЫМ кодом стоит ровно столько же, а результат приходится выбрасывать. Проверка стоит
+    // один дешёвый GET и делается ДО загрузки байтов.
+    if (await pageIsStale()) { setStatus("studio.import.errStaleTab"); return; }
     setBusy(true);
     try {
       setStatus("studio.import.audioUploading");
       pendingAudio.buf = await pendingAudio.file.arrayBuffer();
       pendingAudio.sha256 = await window.MediaStore.sha256Hex(pendingAudio.buf);
-      var up = await window.GeminiFiles.uploadFile(key, pendingAudio.file, pendingAudio.mime);
-      setStatus("studio.import.audioProcessing");
-      if (up.state !== "ACTIVE") {
-        await window.GeminiFiles.waitActive(key, up.name, { timeoutMs: 60000 + Math.ceil(pendingAudio.file.size / 1048576) * 1000 });
+      var A2 = window.AsrTranscript;
+      var wins = A2.asrWindows(pendingAudio.durationSec);
+      // S12.5 транспорт-развилка (диагноз DIAGNOSIS_S12_LIVE_DEFECT_2026_07_29: модель на глубоких
+      // офсетах одного длинного fileUri возвращает чужой контент с подделанными in-range метками —
+      // все метко-ключёванные гейты слепы). Лечение by construction: mp3 с >1 окном режется по
+      // фрейм-границам (Mp3Slice), КАЖДЫЙ вызов транскрипции получает ОТДЕЛЬНО вырезанный кусок
+      // звука + plain ASR_PROMPT (без range) — модель физически не видит чужой звук, абсолютное
+      // время = чанк-относительная метка + наш офсет из фрейм-карты (см. oneCall в runWindowedAsr).
+      // Фолбэк ranged-file (видео, не-mp3, не-sliceable mp3, single-window) поведенчески НЕ
+      // меняется — его пинуют существующие тесты.
+      var sliceCtx = null;
+      if (!pendingAudio.isVideo && wins.length > 1 && window.Mp3Slice &&
+          (/^audio\/(mpeg|mp3)$/i.test(pendingAudio.mime) || /\.mp3$/i.test(pendingAudio.name || ""))) {
+        var u8 = new Uint8Array(pendingAudio.buf);
+        var map = window.Mp3Slice.buildFrameMap(u8);
+        // не-sliceable (битый/экзотический mp3: мало фреймов или карта расходится с пробой
+        // длительности >5%) → честный фолбэк на ranged-file, а не тихо кривые офсеты чанков (R11)
+        if (window.Mp3Slice.isSliceable(map, pendingAudio.durationSec)) sliceCtx = { u8: u8, map: map };
+      }
+      var transcribeFn;
+      if (sliceCtx) {
+        pendingAudio.asrTransport = "sliced-mp3";
+        // Резюм докладывает в ТОТ ЖЕ лог: готовые окна не перевызываются, их записи уже есть;
+        // свежий выбор файла пересоздаёт pendingAudio → лог начинается заново.
+        pendingAudio.sliceLog = pendingAudio.sliceLog || [];
+        // a===null здесь не бывает: slice-транспорт включается ТОЛЬКО при >1 окна, а null-диапазон
+        // шлёт лишь single-window путь. Полный ASR_PROMPT прилетает дефолтом GF.transcribeAudio
+        // (promptText не передаём) — range-промта в этом транспорте нет вообще.
+        transcribeFn = async function (a, b) {
+          var from = window.Mp3Slice.byteForTime(sliceCtx.map, a);
+          // Хвостовой чанк — до КОНЦА буфера: probe-длительность и фрейм-карта расходятся до
+          // секунды, байты за последним offset-марком не должны потеряться.
+          var to = (b >= sliceCtx.map.totalSec - 1)
+            ? { byte: sliceCtx.u8.length, t: sliceCtx.map.totalSec }
+            : window.Mp3Slice.byteForTime(sliceCtx.map, b);
+          var blob = new Blob([sliceCtx.u8.subarray(from.byte, to.byte)], { type: "audio/mpeg" });
+          var t0 = Date.now();
+          var upc = await window.GeminiFiles.uploadFile(key, blob, "audio/mpeg");
+          if (upc.state !== "ACTIVE") {
+            await window.GeminiFiles.waitActive(key, upc.name,
+              { timeoutMs: 60000 + Math.ceil(blob.size / 1048576) * 1000 });
+          }
+          var t1 = Date.now();
+          var raw = await window.GeminiFiles.transcribeAudio(key, upc.fileUri, "audio/mpeg");
+          pendingAudio.sliceLog.push({ a: a, b: b, byteFrom: from.byte, byteTo: to.byte,
+            offsetSec: from.t, upMs: t1 - t0, asrMs: Date.now() - t1 }); // R9 провенанс чанка
+          return { raw: raw, offsetSec: from.t }; // offsetSec — наш, из фрейм-карты; oneCall сдвинет
+        };
+      } else {
+        pendingAudio.asrTransport = "ranged-file";
+        pendingAudio.sliceLog = null;
+        var up = await window.GeminiFiles.uploadFile(key, pendingAudio.file, pendingAudio.mime);
+        setStatus("studio.import.audioProcessing");
+        if (up.state !== "ACTIVE") {
+          await window.GeminiFiles.waitActive(key, up.name, { timeoutMs: 60000 + Math.ceil(pendingAudio.file.size / 1048576) * 1000 });
+        }
+        transcribeFn = function (a, b) {
+          return window.GeminiFiles.transcribeAudio(key, up.fileUri, pendingAudio.mime,
+            a === null ? undefined : { promptText: A2.ASR_RANGE_PROMPT(a, b) });
+        };
       }
       setStatus("studio.import.audioTranscribing");
-      var A2 = window.AsrTranscript;
       var resumeFrom = (pendingAudio.windowResults && pendingAudio.windowResults.length) || 0;
       var result;
       try {
@@ -455,25 +666,36 @@
           durationSec: pendingAudio.durationSec,
           startWindow: resumeFrom,
           priorWindows: pendingAudio.windowResults || [],
-          transcribe: function (a, b) {
-            return window.GeminiFiles.transcribeAudio(key, up.fileUri, pendingAudio.mime,
-              a === null ? undefined : { promptText: A2.ASR_RANGE_PROMPT(a, b) });
-          },
+          priorWindowsMeta: pendingAudio.windowMetaResults || null, // R9: брак/пропуски прошлого захода
+          transcribe: transcribeFn,
           parse: A2.parseAsrResponse,
           onProgress: function (k, m) {
             if (m > 1) setStatus("studio.import.audioWindowProgress", k + "/" + m);
           },
         });
       } catch (e2) {
-        if (e2.windowSegments) pendingAudio.windowResults = e2.windowSegments; // резюм со след. клика
+        if (e2.windowSegments) { // резюм со след. клика — сегменты И их провенанс (ревью S12.5)
+          pendingAudio.windowResults = e2.windowSegments;
+          pendingAudio.windowMetaResults = e2.windowsMeta || null;
+        }
         throw e2;
       }
       pendingAudio.windowResults = null; // успех — резюм-состояние отработано
+      pendingAudio.windowMetaResults = null;
       var parsed = { language: result.language, segments: result.segments, warnings: result.warnings };
       pendingAudio.asrWindows = result.windows;
       pendingAudio.asrSeams = result.seams || []; // S12.4 R9: провенанс швов (якорь/фолбэк)
       pendingAudio.coverageGaps = result.coverageGaps;
       pendingAudio.healedGaps = result.healedGaps;
+      pendingAudio.rejectedRanges = result.rejectedRanges || []; // S12.5 R9: брак анти-реплей гейта
+      // S12.5 T4 (R11): сводка считается ЗДЕСЬ, из структурных записей прогона, и дальше живёт
+      // одним объектом на три роли — показ в превью, гейт подтверждения в useText, паспорт.
+      // Одна цифра во всех трёх местах по построению: разойтись им нечем.
+      pendingAudio.asrSummary = A2.summarizeAsrRun({
+        durationSec: pendingAudio.durationSec, windows: result.windows,
+        coverageGaps: result.coverageGaps, healedGaps: result.healedGaps,
+        rejectedRanges: result.rejectedRanges, warnings: result.warnings,
+      });
       if (!parsed.segments.length || parsed.warnings.includes("NO_SPEECH")) { setStatus("studio.import.errNoSpeech"); return; }
       pendingAudio.parsed = parsed;
       pendingAudio.validation = window.AsrTranscript.validateSegments(parsed.segments, pendingAudio.durationSec);
@@ -481,6 +703,7 @@
         kind: "audio", source: pendingAudio.name, method: "gemini-asr",
         model: window.AsrTranscript.ASR_MODEL,
         warnings: parsed.warnings.concat(pendingAudio.validation.timingOk ? [] : ["ASR_TIMING_INVALID"]),
+        summary: pendingAudio.asrSummary, // T4: превью рисует ЕЁ, useText гейтит по НЕЙ
         text: pendingAudio.validation.segments.map(function (s) { return s.text; }).join("\n"),
       });
     } catch (e) {
@@ -490,13 +713,87 @@
     } finally { setBusy(false); }
   }
 
+  // ── S12.5 T4: ЧЕСТНАЯ СВОДКА ПРОГОНА В ПРЕВЬЮ ────────────────────────────────────────────────
+  // Владелец видит, СКОЛЬКО записи попало в транскрипт, ДО того как нажмёт «→ В поле ввода».
+  // Вся арифметика — в AsrTranscript.summarizeAsrRun (pure, юниты); здесь только форматирование:
+  // второй источник чисел означал бы, что превью и паспорт могут разойтись.
+  var SUMMARY_GAPS_SHOWN = 6; // на 380px длинный список диапазонов превращает блок в стену текста
+
+  // Диапазон времени в RTL-абзаце БЕЗ bidi-изоляции показывается ивритскому читателю задом
+  // наперёд: «33:00–1:00:00» рисуется как «1:00:00–33:00» (алгоритм bidi переставляет два
+  // LTR-числа по направлению абзаца, тире между ними нейтрально). Проверено скриншотом he-локали
+  // на 380px. Сводка, которая врёт о том, ГДЕ дыра, — тот же класс дефекта, что она чинит.
+  // U+2066/U+2069 (LRI/PDI) держат диапазон LTR в любом контексте и невидимы в ru/en.
+  function ltrRange(a, b) { return "\u2066" + a + "–" + b + "\u2069"; } // U+2066 LRI / U+2069 PDI
+
+  function asrGapList(gaps) {
+    var F = window.AsrTranscript.fmtClock;
+    var shown = gaps.slice(0, SUMMARY_GAPS_SHOWN).map(function (g) { return ltrRange(F(g.fromSec), F(g.toSec)); });
+    var rest = gaps.length - shown.length;
+    return shown.join(", ") + (rest > 0 ? ", " + tr("studio.import.asrSummaryGapsMore", { n: rest }) : "");
+  }
+
+  function asrSummaryText(sum) {
+    var F = window.AsrTranscript.fmtClock;
+    var parts = [tr("studio.import.asrSummaryChunks", { ok: sum.windowsOk, total: sum.windowsTotal })];
+    if (sum.level === "ok") {
+      parts.push(tr("studio.import.asrSummaryCovered", { covered: F(sum.coveredSec) }));
+      parts.push(tr("studio.import.asrSummaryNoGaps"));
+    } else {
+      if (sum.lostSec > 0) parts.push(tr("studio.import.asrSummaryLost", { pct: sum.lostPct }));
+      if (sum.gaps.length) parts.push(tr("studio.import.asrSummaryGaps", { list: asrGapList(sum.gaps) }));
+      if (sum.rejected) parts.push(tr("studio.import.asrSummaryRejected", { n: sum.rejected }));
+      // Блок янтарный, а числовой потери нет — обязаны сказать, ПОЧЕМУ он янтарный (целостность
+      // окон/предупреждения конвейера), иначе владелец видит тревогу без причины.
+      if (!sum.lostSec && !sum.rejected) parts.push(tr("studio.import.asrSummaryFlagged"));
+    }
+    if (sum.healed) parts.push(tr("studio.import.asrSummaryHealed", { n: sum.healed }));
+    return parts.join(" · ");
+  }
+
+  function renderAsrSummary(sum) {
+    var host = $("v3ImportProv");
+    if (!host || !sum) return;
+    var box = document.createElement("div");
+    box.id = "v3ImportAsrSummary";
+    // overflow-wrap:anywhere — список диапазонов на 380px обязан переноситься, а не растягивать
+    // модал горизонтально (общая ловушка мобильной вёрстки этого проекта).
+    var base = "font-size:12px; margin-top:6px; line-height:1.45; overflow-wrap:anywhere;";
+    box.style.cssText = sum.level === "ok"
+      ? base + "color:#6c757d;"
+      : base + "padding:8px; border-radius:6px; " + (sum.level === "bad"
+          ? "background:#fdecea; border:1px solid #f0b3ae; color:#a4231d;"
+          : "background:#fff8e6; border:1px solid #f0d69a; color:#7a5a00;");
+    box.textContent = (sum.level === "ok" ? "" : "⚠ ") + asrSummaryText(sum);
+    host.appendChild(box);
+  }
+
+  // R11-гейт: потеря >5% (или подделка-реплей) НЕ проходит одним кликом. Паттерн подтверждения —
+  // тот же, что у сметы мультичанка (index.html v3TranslateTableChunked): премиум-модал
+  // v3ConfirmModal, с фолбэком на window.confirm (сам v3ConfirmModal падает в него же, если
+  // разметки модала нет).
+  async function confirmLossy(sum) {
+    var title = tr("studio.import.asrSummaryConfirmTitle");
+    var body = tr("studio.import.asrSummaryConfirmBody",
+                  { pct: sum.lostPct, lost: window.AsrTranscript.fmtClock(sum.lostSec) }) +
+               "\n\n" + asrSummaryText(sum);
+    if (typeof window.v3ConfirmModal === "function") {
+      return await window.v3ConfirmModal({ title: title, body: body, danger: true,
+        okText: tr("studio.import.asrSummaryConfirmOk"),
+        cancelText: tr("studio.import.asrSummaryConfirmCancel") });
+    }
+    return window.confirm(title + "\n\n" + body);
+  }
+
   function showPreview(p) {
     pending = p;
     $("v3ImportPreview").value = p.text;
     var provKey = { url: "studio.import.provUrl", image: "studio.import.provOcr", pdf: "studio.import.provPdf", docx: "studio.import.provDocx", audio: "studio.import.provAudio", captions: "studio.import.provCaptions" }[p.kind];
     var prov = tr(provKey) + " · " + p.source + (p.model ? " · " + p.model : "");
     if (p.warnings && p.warnings.length) prov += " · ⚠ " + tr("studio.import.warnCheck");
-    $("v3ImportProv").textContent = prov;
+    $("v3ImportProv").textContent = prov; // сбрасывает и ранее добавленные дочерние блоки (сводка/хинт)
+    if (p.summary) renderAsrSummary(p.summary); // S12.5 T4 — только аудио-путь
+
     // W2-S11 (решение 7): дефолт-провайдер google-free не задействует seg-путь —
     // мягкая подсказка, БЕЗ автопереключения (дизайн §1.7).
     // NB: this file's tr(key, params) forwards params straight to window.t() for {placeholder}
@@ -638,10 +935,19 @@
     reader.readAsDataURL(file);
   }
 
+  // Возвращает true, ТОЛЬКО если текст реально приземлён в поле ввода. Отказ владельца в
+  // R11-подтверждении (потеря >5%) — это НЕ приземление, и вызывающий (useTextAndRetell) обязан
+  // это различать, иначе после отмены открылся бы модал пересказа поверх ничего.
   async function useText() {
-    if (!pending) return;
+    if (!pending) return false;
     var text = ($("v3ImportPreview").value || "").trim(); // пользователь мог поправить в превью — это ок
-    if (!text) { setStatus("studio.import.errEmpty"); return; }
+    if (!text) { setStatus("studio.import.errEmpty"); return false; }
+    // S12.5 T4: гейт судит по ТОЙ ЖЕ сводке, которую владелец видел в превью (pending.summary) —
+    // не по пересчитанной здесь заново.
+    if (pending.kind === "audio" && pending.summary && pending.summary.level === "bad") {
+      var proceed = await confirmLossy(pending.summary);
+      if (!proceed) return false;
+    }
     var audioMetaForImport = null;
     if (pending.kind === "audio" && pendingAudio && pendingAudio.validation) {
       var lines = text.split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
@@ -664,10 +970,21 @@
                  durationSec: pendingAudio.durationSec, originalName: pendingAudio.name },
         asr: { method: "gemini-asr", model: window.AsrTranscript.ASR_MODEL, at: new Date().toISOString(),
                language: pendingAudio.parsed.language, filesApi: true, warnings: pendingAudio.parsed.warnings,
+               transport: pendingAudio.asrTransport || "ranged-file", // S12.5 R9: sliced-mp3 | ranged-file
+               chunks: pendingAudio.sliceLog || [], // S12.5 R9: {a,b,byteFrom,byteTo,offsetSec,upMs,asrMs} на чанк
                windows: pendingAudio.asrWindows || null,
                seams: pendingAudio.asrSeams || [],
                coverageGaps: pendingAudio.coverageGaps || [],
-               healedGaps: pendingAudio.healedGaps || [] },
+               healedGaps: pendingAudio.healedGaps || [],
+               // S12.5 R9: диапазоны, забракованные анти-реплей гейтом (окно/добор) — почему
+               // соответствующие дыры остались открытыми; сводка прогона (T4) читает отсюда.
+               rejectedRanges: pendingAudio.rejectedRanges || [],
+               // S12.5 T4 R9: сводка — ровно та, что была показана владельцу перед подтверждением
+               // (одно вычисление, три потребителя), и штамп КОДА, которым сделан прогон. Отсутствие
+               // штампа стоило диагностической сессии 2026-07-29 целой гипотезы (H1 stale-tab):
+               // «каким кодом это сделано» восстанавливали feature-детекцией в живой вкладке.
+               summary: pendingAudio.asrSummary || null,
+               codeVersion: window.APP_VERSION || null },
         segments: segs, timing: null, timingDropReason: dropReason,
       };
       if (!saved.ok) window.v3SessionMediaBlob = pendingAudio.file;
@@ -707,14 +1024,17 @@
     close();
     toast(pending.warnings && pending.warnings.length ? "studio.import.warnCheck" : "studio.import.done",
           pending.warnings && pending.warnings.length ? "warning" : "success");
+    return true;
   }
 
   // W2-S11: «→ В поле ввода» + сразу открыть модал пересказа (шорткат превью импорта).
   async function useTextAndRetell() {
     var t2 = ($("v3ImportPreview").value || "").trim();
     if (!t2) { setStatus("studio.import.errEmpty"); return; }
-    await useText(); // штатное приземление С паспортом импорта (derivedFrom возьмёт его)
-    if (window.StudioRetell) window.StudioRetell.openFromComposer();
+    var landed = await useText(); // штатное приземление С паспортом импорта (derivedFrom возьмёт его)
+    // S12.5 T4: владелец мог отменить R11-подтверждение потерь — тогда в поле ввода ничего не
+    // легло, и открывать модал пересказа не над чем.
+    if (landed && window.StudioRetell) window.StudioRetell.openFromComposer();
   }
 
   // W2-S5a — Классификация URL: ссылка на YouTube уходит в ветку S5a, а НЕ в

@@ -3099,6 +3099,22 @@ window.I18N_LOCALES.en = {
       errAsrUnreliable: "The model returned an unreadable response for part of the recording. Press “Transcribe” again — recognition will continue from where it stopped.",
       audioTimingDropped: "Edits changed line count — karaoke disabled",
       warnCoverage: "The model skipped some segments — check the table for completeness",
+      // S12.5 T4 — honest ASR run summary in the preview (R11: a run that lost 47% of the
+      // timeline once looked like a success) + explicit confirmation past 5% loss.
+      asrSummaryChunks: "Chunks {ok}/{total}",
+      asrSummaryCovered: "covered {covered}",
+      asrSummaryNoGaps: "no gaps",
+      asrSummaryLost: "{pct}% of the recording lost",
+      asrSummaryGaps: "gaps: {list}",
+      asrSummaryGapsMore: "and {n} more",
+      asrSummaryRejected: "windows rejected: {n}",
+      asrSummaryHealed: "re-asked: {n}",
+      asrSummaryFlagged: "recognition incomplete — please review the text",
+      asrSummaryConfirmTitle: "Part of the recording was not recognized",
+      asrSummaryConfirmBody: "{pct}% of the recording is lost ({lost}). Those minutes never made it into the transcript — they will be missing from the table and from the karaoke.",
+      asrSummaryConfirmOk: "Use with gaps",
+      asrSummaryConfirmCancel: "Cancel",
+      errStaleTab: "This page is out of date — reload the tab (F5) and try again",
       provAudio: "Audio → ASR transcript (Gemini)",
       // W2-S5a.1 T2 — Video tab: its own URL field + mount button, and an honest error when the
       // string isn't recognized as a video; plus the explanation for the auto-switch from Article

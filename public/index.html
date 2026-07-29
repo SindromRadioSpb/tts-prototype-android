@@ -12349,9 +12349,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=75"></script>
-<script src="/i18n/locales/en.js?v=75"></script>
-<script src="/i18n/locales/he.js?v=75"></script>
+<script src="/i18n/locales/ru.js?v=76"></script>
+<script src="/i18n/locales/en.js?v=76"></script>
+<script src="/i18n/locales/he.js?v=76"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12434,6 +12434,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/table-chunks.js"></script>
 <script src="/js/media-store.js"></script>
 <script src="/js/gemini-files.js"></script>
+<!-- S12.5 sliced-mp3 transport — pure mp3 frame-map slicer (window.Mp3Slice), no cross-deps
+     of its own, but must load before studio-import.js which consumes it in transcribeAudio(). -->
+<script src="/js/mp3-slice.js"></script>
 <script src="/js/studio-media-karaoke.js"></script>
 
 <!-- W2-S5a Studio Ingest captions/video deps — pure, no cross-deps between the two, but BOTH
@@ -12476,6 +12479,18 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script>
     // i18n safety shim: if i18n module failed to load, t() returns the key unchanged
     if (typeof t !== 'function') { window.t = function(k) { return k; }; }
+
+    // ── APP_VERSION — версия ЭТОГО документа (S12.5 T4) ───────────────────────
+    // ЛИТЕРАЛ, и это осознанно: единственное свойство, которое здесь нужно, —
+    // стареть ВМЕСТЕ со вкладкой. Всё вычисляемое (window.__v3AppVersion ниже,
+    // /api/client-config) отражает версию СЕРВЕРА: старая вкладка спросила бы
+    // сервер, получила новую версию и «доказала» собственную свежесть — ровно
+    // та слепота, которая стоила диагностической сессии 2026-07-29 гипотезы H1.
+    // Держится равным CACHE_VERSION в public/sw.js — гейт равенства в
+    // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
+    // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
+    // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
+    window.APP_VERSION = "3.11.265";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

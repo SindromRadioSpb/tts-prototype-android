@@ -3109,6 +3109,22 @@ window.I18N_LOCALES.he = {
       errAsrUnreliable: "המודל החזיר תשובה בלתי קריאה עבור חלק מההקלטה. לחצו שוב על «תמלל» — הזיהוי יימשך מהנקודה שבה נעצר.",
       audioTimingDropped: "העריכות שינו את מספר השורות — הקריוקי כובה",
       warnCoverage: "המודל דילג על חלק מהקטעים — בדקו את שלמות הטבלה",
+      // S12.5 T4 — סיכום כן של ריצת ה-ASR בתצוגה המקדימה (R11: ריצה שאיבדה 47% מציר הזמן כבר
+      // נראתה פעם אחת כהצלחה) + אישור מפורש כשאובד יותר מ-5% מההקלטה.
+      asrSummaryChunks: "נתחים {ok}/{total}",
+      asrSummaryCovered: "כיסוי {covered}",
+      asrSummaryNoGaps: "אין חורים",
+      asrSummaryLost: "אבדו {pct}% מההקלטה",
+      asrSummaryGaps: "חורים: {list}",
+      asrSummaryGapsMore: "ועוד {n}",
+      asrSummaryRejected: "חלונות שנפסלו: {n}",
+      asrSummaryHealed: "השלמות: {n}",
+      asrSummaryFlagged: "הזיהוי אינו מלא — בדקו את הטקסט",
+      asrSummaryConfirmTitle: "חלק מההקלטה לא זוהה",
+      asrSummaryConfirmBody: "אבדו {pct}% מההקלטה ({lost}). הדקות האלה לא נכנסו לתמלול — הן לא יופיעו בטבלה ולא בקריוקי.",
+      asrSummaryConfirmOk: "להשתמש למרות החורים",
+      asrSummaryConfirmCancel: "ביטול",
+      errStaleTab: "הדף אינו עדכני — רעננו את הלשונית (F5) ונסו שוב",
       provAudio: "אודיו → תמלול ASR (Gemini)",
       // W2-S5a.1 T2 — לשונית «וידאו»: שדה קישור וכפתור הטמעה משלה, ושגיאה כנה כשהמחרוזת לא
       // מזוהה כווידאו; וגם ההסבר למעבר האוטומטי מלשונית «מאמר / עמוד»

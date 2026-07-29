@@ -682,3 +682,629 @@ test("(S12.3-d) клиппинг добора: heal [100,200] заезжает �
   assert.deepEqual(res.healedGaps, [{ fromSec: 100, toSec: 200 }]);
   assert.deepEqual(res.coverageGaps, []);
 });
+
+// ══════════════════════════════════════════════════════════════════════════════════════════
+// S12.5 (диагноз DIAGNOSIS_S12_LIVE_DEFECT_2026_07_29): range-промт по одному длинному fileUri
+// на глубоких офсетах возвращает ЧУЖОЙ контент с подделанными in-range метками — все
+// метко-ключёванные гейты (клип/швы/дыры/добор) слепы. Транспорт sliced-mp3: КАЖДЫЙ вызов
+// транскрипции получает ОТДЕЛЬНО вырезанный кусок звука + plain ASR_PROMPT; метки
+// чанк-относительные, абсолютное время = метка + наш детерминированный offsetSec (из
+// фрейм-карты Mp3Slice). Контракт deps.transcribe расширен: строка (legacy) ЛИБО
+// {raw, offsetSec}; сдвиг — в ОДНОЙ точке (oneCall), поэтому окна, обе половины бисекции
+// (у каждой СВОЙ offsetSec) и heal-добор наследуют его автоматически. Тесты ниже — фейки
+// slice-транспорта; все числа проверены прямым прогоном runWindowedAsr ДО фиксации фикстур
+// (методика файла).
+// ══════════════════════════════════════════════════════════════════════════════════════════
+
+// Объектная форма ответа slice-транспорта: chunk-relative сегменты + офсет чанка.
+const RS = (segments, offsetSec, extra) => ({ raw: R(Object.assign({ segments }, extra)), offsetSec });
+// Относительный плотный филлер: те же значения, что denseSegs, но семантика — метки ВНУТРИ чанка.
+const denseRel = denseSegs;
+
+// (S12.5-a) oneCall-сдвиг: transcribe возвращает {raw, offsetSec} с чанк-относительными метками
+// → в merged метки АБСОЛЮТНЫЕ (rel + offsetSec); null-метка (модель не проставила) НЕ сдвигается
+// и остаётся честным null на своей структурной позиции.
+test("(S12.5-a) offsetSec сдвигает числовые метки в абсолютные; null-метки не сдвинуты", async () => {
+  const calls = [];
+  // окно1 rel 5..905 шаг 75 (abs 875..1775) + null-сегмент между rel 80 и rel 155
+  const win1rel = denseRel(5, 905, 75, "w2-");
+  win1rel.splice(2, 0, seg(null, "w2-null"));
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800, // окна [0,900] [870,1800]
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return RS(denseSegs(10, 810, 80, "w1-"), 0);
+      if (a === 870) return RS(win1rel, 870);
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.deepEqual(calls, [[0, 900], [870, 1800]]); // дыр нет — доборов нет
+  // числовые метки окна1 абсолютны: rel 5 + 870 = 875, rel 905 + 870 = 1775
+  assert.ok(res.segments.some((s) => s.text === "w2-0" && s.start === 875));
+  assert.ok(res.segments.some((s) => s.text === "w2-12" && s.start === 1775));
+  // окно0 (offsetSec 0) не искажено
+  assert.ok(res.segments.some((s) => s.text === "w1-0" && s.start === 10));
+  // null-метка не сдвинута и стоит на своей структурной позиции (между w2-1 и w2-2)
+  const nulIdx = res.segments.findIndex((s) => s.text === "w2-null");
+  assert.equal(res.segments[nulIdx].start, null);
+  assert.equal(res.segments[nulIdx - 1].text, "w2-1");
+  assert.equal(res.segments[nulIdx + 1].text, "w2-2");
+  assert.deepEqual(res.coverageGaps, []);
+});
+
+// (S12.5-b) Полный slice-сценарий: 3 чанка, offsetSec = фактический старт окна, шовные зоны
+// транскрибированы дважды (перекрытие) → stitch срезает дубль по ТЕКСТУ, покрытие сплошное.
+// Ключевое отличие от range-мира: модель физически не может дать «чужой» материал — каждая
+// метка лежит внутри своего чанка by construction, findCoverageGaps снова доказателен.
+const HE_ANC2 = "הכלב שתה מים קרים מן הכד"; // 6 слов — якорь второго шва, не пересекается с HE_AN*
+test("(S12.5-b) 3 чанка: у каждого свой offsetSec, дубли шовных зон срезаны швом, coverageGaps пуст", async () => {
+  const calls = [];
+  // чанк0 (offset 0): филлер 20..820 + шовная реплика (875/890) — rel == abs
+  const win0rel = heFill(20, 820, 80, 0).concat([seg(875, HE_AN1), seg(890, HE_AN2)]);
+  // чанк1 (offset 870): ТА ЖЕ реплика в своей голове (rel 6/21 → abs 876/891), филлер
+  // rel 90..810 (abs 960..1680), хвост rel 880 (abs 1750) + реплика второго шва rel 905 (abs 1775)
+  const win1rel = [seg(6, HE_AN1), seg(21, HE_AN2)]
+    .concat(heFill(90, 810, 80, 11))
+    .concat([seg(880, "עוד משפט כאן"), seg(905, HE_ANC2)]);
+  // чанк2 (offset 1770): та же реплика второго шва (rel 5 → abs 1775) + хвост до конца
+  const win2rel = [seg(5, HE_ANC2), seg(60, "משפט סיום ראשון"), seg(140, "משפט סיום שני"), seg(220, "משפט סיום שלישי")];
+  const res = await SI.runWindowedAsr({
+    durationSec: 2000, // окна [0,900] [870,1800] [1770,2000]; швы 900, 1800
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return RS(win0rel, 0);
+      if (a === 870) return RS(win1rel, 870);
+      if (a === 1770) return RS(win2rel, 1770);
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.deepEqual(calls, [[0, 900], [870, 1800], [1770, 2000]]); // ни доборов, ни бисекций
+  // оба шва срезаны ЯКОРЕМ (по тексту), дубль каждой шовной реплики — ровно одна копия
+  assert.deepEqual(res.seams, [
+    { seam: 900, anchored: true, anchorWords: 7, cutSegDroppedK: 2, cutSegDroppedK1: 0 },
+    { seam: 1800, anchored: true, anchorWords: 6, cutSegDroppedK: 1, cutSegDroppedK1: 0 },
+  ]);
+  assert.equal(res.segments.filter((s) => s.text === HE_AN1).length, 1);
+  assert.equal(res.segments.filter((s) => s.text === HE_ANC2).length, 1);
+  // уцелели копии СОСЕДА (окно k+1 — его метки честнее в начале своего чанка)
+  assert.ok(res.segments.some((s) => s.text === HE_AN1 && s.start === 876));
+  assert.ok(res.segments.some((s) => s.text === HE_ANC2 && s.start === 1775));
+  assert.ok(!res.segments.some((s) => s.start === 875 || s.start === 890));
+  assert.deepEqual(res.coverageGaps, []);
+  assert.deepEqual(res.warnings, []);
+});
+
+// (S12.5-c) Бисекция в slice-мире: окно падает ASR_BAD_JSON ×2 → бисекция вызывает transcribe с
+// (a, mid+ov) и (mid-ov, b); КАЖДАЯ половина — свой чанк со СВОИМ offsetSec. Склейка половин
+// (stitch по mid) работает в абсолютном времени: сдвиг обеих половин уже сделан в oneCall.
+test("(S12.5-c) бисекция: у половин РАЗНЫЕ offsetSec, склейка в абсолютном времени корректна", async () => {
+  const calls = [];
+  const res = await SI.runWindowedAsr({
+    durationSec: 1000, // окна [0,900] [870,1000]; mid окна1 = 935, половины [870,950] и [920,1000]
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return RS([seg(850, "a0")], 0);
+      if (a === 870 && b === 1000) return { raw: "мусор", offsetSec: 870 }; // primary ×2 → бисекция
+      if (a === 870 && b === 950) return RS([seg(10, "h1")], 870);  // rel 10 → abs 880
+      if (a === 920 && b === 1000) return RS([seg(15, "h2")], 920); // rel 15 → abs 935 (СВОЙ офсет)
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: (raw) => { if (raw === "мусор") { const e = new Error("bad"); e.code = "ASR_BAD_JSON"; throw e; }
+                      return fakeParse(raw); },
+    onProgress: () => {},
+  });
+  assert.deepEqual(calls, [[0, 900], [870, 1000], [870, 1000], [870, 950], [920, 1000]]);
+  // абсолютные метки обеих половин: 870+10=880 < 920+15=935 — порядок правильный, без null-ений
+  assert.deepEqual(res.segments.map((s) => [s.start, s.text]), [[850, "a0"], [880, "h1"], [935, "h2"]]);
+  assert.equal(res.windows[1].bisected, true);
+  assert.deepEqual(res.coverageGaps, []);
+});
+
+// (S12.5-d) Heal в slice-мире: дыра → transcribe(gap.from, gap.to), чанк дыры со своим
+// offsetSec = gap.from; строгий клип добора ±2с работает по АБСОЛЮТНЫМ меткам (после сдвига):
+// заезд rel 885 → abs 895 > gap.to+2 = 892 → отброшен клипом.
+test("(S12.5-d) heal-чанк дыры: offsetSec=gap.from, строгий клип ±2с по абсолютным меткам", async () => {
+  const calls = [];
+  const res = await SI.runWindowedAsr({
+    durationSec: 1000, // окна [0,900] [870,1000]
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return RS([seg(10, "a"), seg(890, "b")], 0); // дыра 10→890
+      if (a === 870) return RS([seg(35, "c")], 870);            // abs 905
+      if (a === 10 && b === 890) // heal-чанк дыры: rel 30..830 (abs 40..840) + заезд rel 885 (abs 895)
+        return RS(denseRel(30, 830, 80, "h").concat([seg(885, "h-over")]), 10);
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.deepEqual(calls, [[0, 900], [870, 1000], [10, 890]]); // добор вызван АБСОЛЮТНЫМИ границами дыры
+  // сдвиг добора — его СВОИМ офсетом (10): rel 110 → abs 120
+  assert.ok(res.segments.some((s) => s.text === "h1" && s.start === 120));
+  // строгий клип добора по абсолютным меткам: abs 895 > 892 → отброшен
+  assert.ok(!res.segments.some((s) => s.text === "h-over"));
+  assert.deepEqual(res.healedGaps, [{ fromSec: 10, toSec: 890 }]);
+  assert.deepEqual(res.coverageGaps, []);
+});
+
+// (S12.5-e) Пин обратной совместимости. ВСЕ существующие тесты этого файла возвращают из
+// transcribe СТРОКУ — они и есть whole-suite пин legacy-транспорта (ranged-file). Здесь сверх
+// того пинится ПО-ВЫЗОВНАЯ независимость форм: строка и {raw, offsetSec} сосуществуют в одном
+// прогоне — legacy-окно не сдвигается, объектное сдвигается своим офсетом.
+test("(S12.5-e) legacy-строка и {raw,offsetSec} в одном прогоне: строка не сдвигается", async () => {
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800,
+    transcribe: async (a, b) => {
+      if (a === 0) return R({ segments: denseSegs(10, 810, 80, "L") });    // строка, метки абсолютные
+      if (a === 870) return RS(denseRel(5, 905, 75, "S"), 870);            // объект, метки rel
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.ok(res.segments.some((s) => s.text === "L0" && s.start === 10));  // не сдвинуто
+  assert.ok(res.segments.some((s) => s.text === "S0" && s.start === 875)); // сдвинуто (5+870)
+  assert.deepEqual(res.coverageGaps, []);
+});
+
+// (S12.5-f) Обрыв вывода чанка — живой класс из пробы R10 (чанк 3 вернул rel 0..727с из 930):
+// в slice-мире метки неподделываемы, поэтому дыра от обрыва ЧЕСТНО видна в coverageGaps
+// (findCoverageGaps снова доказателен), а не маскируется чужим материалом, как в range-мире.
+test("(S12.5-f) чанк оборвал вывод (rel 725 из 930) → дыра ЧЕСТНО в coverageGaps + warning", async () => {
+  const calls = [];
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800, // окна [0,900] [870,1800]; чанк1 длиной 930с
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return RS(denseSegs(10, 810, 80, "w0-"), 0);
+      if (a === 870) return RS(denseRel(5, 725, 80, "w1-"), 870); // обрыв: rel 725 < 930, abs до 1595
+      if (a === 1595 && b === 1800) return RS([], 1595, { warnings: ["NO_SPEECH"] }); // heal неудачен
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.deepEqual(calls, [[0, 900], [870, 1800], [1595, 1800]]); // heal попытался — честно, best-effort
+  assert.deepEqual(res.healedGaps, []);
+  assert.deepEqual(res.coverageGaps, [{ fromSec: 1595, toSec: 1800 }]); // потеря ВИДИМА, не «успех»
+  assert.ok(res.warnings.includes("ASR_COVERAGE_GAP"));
+});
+
+// (S12.5-g) Дыра мутационного ревью T2 (мутант «сдвигать и null-метки»: null+off → off). Тест
+// S12.5-a её НЕ ловит: null В СЕРЕДИНЕ чанка после подделки (start=870) немонотонен относительно
+// соседей → mergeWindowSegments сам re-null-ит его, мутация маскируется нижним honesty-слоем.
+// null в ГОЛОВЕ чанка — единственная позиция, где подделка (start = offsetSec) оказывается
+// МОНОТОННОЙ (все свои метки чанка ≥ offsetSec, метки предыдущего окна < offsetSec) и пережила бы
+// merge как ложно-«честная» метка. Пин: null головы чанка остаётся null (R11).
+test("(S12.5-g) null-метка в ГОЛОВЕ чанка не превращается в offsetSec (мутант null+offset)", async () => {
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800, // окна [0,900] [870,1800]
+    transcribe: async (a, b) => {
+      if (a === 0) return RS(denseSegs(10, 890, 80, "g0-"), 0);
+      if (a === 870) return RS([seg(null, "g-head-null")].concat(denseRel(35, 905, 75, "g1-")), 870);
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  const head = res.segments.find((s) => s.text === "g-head-null");
+  assert.ok(head, "null-головной сегмент должен пережить клип (числовой сосед справа in-range)");
+  assert.equal(head.start, null); // НЕ offsetSec=870 — честный null
+  assert.ok(res.segments.some((s) => s.text === "g1-0" && s.start === 905)); // числовые соседи сдвинуты честно
+  assert.deepEqual(res.coverageGaps, []);
+});
+
+// (S12.5-h) Дыра мутационного ревью T2 (мутант «ретрай использует offsetSec ПЕРВОГО ответа»).
+// Контракт: КАЖДЫЙ ответ transcribe несёт СВОЙ offsetSec, сдвиг делается офсетом того ответа,
+// который парсится (oneCall: «ретрай — свой ответ, свой offsetSec»). В нынешнем транспорте офсет
+// детерминирован диапазоном (a,b) и между попытками не меняется — существующие тесты мутацию не
+// видят; но контракт обязан пережить транспорт, где границы ретрая пересчитываются (напр.,
+// пере-слайс со сдвинутыми frame-границами). Пин: offsetSec бракованного ответа не протекает.
+test("(S12.5-h) ретрай BAD_JSON: сдвиг офсетом ОТВЕТА ретрая, offsetSec первого ответа не протекает", async () => {
+  let attempt = 0;
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800, // окна [0,900] [870,1800]
+    transcribe: async (a, b) => {
+      if (a === 0) return RS(denseSegs(10, 890, 80, "h0-"), 0);
+      if (a === 870) return (++attempt === 1)
+        ? { raw: "мусор", offsetSec: 111 }             // бракованный ответ с ЧУЖИМ offsetSec
+        : RS(denseRel(35, 905, 75, "h1-"), 870);       // ретрай — свой offsetSec
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: (raw) => { if (raw === "мусор") { const e = new Error("bad"); e.code = "ASR_BAD_JSON"; throw e; }
+                      return fakeParse(raw); },
+    onProgress: () => {},
+  });
+  assert.equal(res.windows[1].retries, 1);
+  assert.ok(res.segments.some((s) => s.text === "h1-0" && s.start === 905)); // 35+870, НЕ 35+111
+  assert.deepEqual(res.coverageGaps, []);
+});
+
+// ══════════════════════════════════════════════════════════════════════════════════════════
+// S12.5 T3 — АНТИ-РЕПЛЕЙ ГЕЙТ В ОРКЕСТРАТОРЕ (последняя линия обороны для транспорта
+// ranged-file, где подделка меток по-прежнему возможна; страховка для slice-пути). Живой брак
+// владельца (DIAGNOSIS §1, §6): окна 6–8 не дали своего контента НИ РАЗУ — только реплеи ранних
+// минут с in-range штампами, а heal-добор дыры 55:53–59:30 вернул речь 35:39–39:37 с такими же
+// «легальными» штампами. Клип/шов/findCoverageGaps ключуются на этих метках и пропускают всё
+// разом → потеря 47% таймлайна отчиталась coverageGaps:[]. Гейт судит по ТЕКСТУ (6-словные
+// шинглы против накопителя принятого материала). R11: брак окна = ЧЕСТНАЯ ДЫРА.
+// Все числа фикстур проверены прямым прогоном runWindowedAsr ДО их фиксации (методика файла).
+// ══════════════════════════════════════════════════════════════════════════════════════════
+
+// Плотный «речевой» филлер: count сегментов по 6 УНИКАЛЬНЫХ слов (6*count слов → 6*count-5
+// шинглов). Разные префиксы не пересекаются НИ ОДНИМ шинглом, поэтому совпадение в тесте всегда
+// означает намеренное копирование фикстурой, а не частотность речи.
+function talk(prefix, count, fromSec, stepSec) {
+  const out = [];
+  for (let i = 0; i < count; i++) {
+    const w = [];
+    for (let j = 0; j < 6; j++) w.push("מילה" + prefix + (i * 6 + j));
+    out.push(seg(fromSec + i * stepSec, w.join(" ")));
+  }
+  return out;
+}
+// Те же ТЕКСТЫ с другими (подделанными «внутрь своего диапазона») метками — ровно то, что делала
+// модель в живом прогоне: чужой контент, чьи штампы проходят любой метковый гейт.
+function retime(segments, fromSec, stepSec) {
+  return segments.map((s, i) => seg(fromSec + i * stepSec, s.text));
+}
+
+// (a) Окно-реплей: окно1 = дословная копия окна0 с in-range метками. Метковые гейты (клип, шов)
+// её пропускают — она «легальна». Гейт по тексту бракует окно: в результат уходит ПУСТОЙ массив,
+// диапазон окна становится честной дырой (coverageGaps + ASR_COVERAGE_GAP), провенанс объясняет
+// почему (rejectedReplay / rejectedRanges / ASR_WINDOW_REPLAY).
+test("(S12.5-T3-a) окно-реплей бракуется: пусто в результате, ЧЕСТНАЯ дыра, провенанс полон", async () => {
+  const calls = [];
+  const w0 = talk("א", 21, 10, 40);          // 10..810, 126 слов → 121 шингл
+  const w1 = retime(w0, 880, 40);            // 880..1680 — метки внутри [870,1800], клип слеп
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800, // окна [0,900] [870,1800]
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return R({ segments: w0, language: null });
+      // забракованное окно несёт СВОИ язык и warnings — но они описывают ЧУЖОЙ звук, который
+      // модель подставила вместо запрошенного, и в сводку прогона попадать не имеют права.
+      if (a === 870) return R({ segments: w1, language: "other", warnings: ["PARTIALLY_UNCLEAR"] });
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  // (1) окно забраковано целиком: ни одной метки окна1, каждый текст ровно один раз (из окна0)
+  assert.equal(res.segments.length, w0.length);
+  assert.ok(!res.segments.some((s) => s.start >= 870));
+  w0.forEach((s) => assert.equal(res.segments.filter((x) => x.text === s.text).length, 1));
+  // (2) R9-провенанс: доля реплея у окна, диапазон в rejectedRanges
+  assert.equal(res.windows[1].rejectedReplay, 1);
+  assert.deepEqual(res.rejectedRanges, [{ startSec: 870, endSec: 1800, rejectedReplay: 1 }]);
+  // (3) R11: потеря ВИДИМА — честная дыра + оба кода предупреждений; добор в брак не идёт (R16)
+  assert.deepEqual(res.coverageGaps, [{ fromSec: 810, toSec: 1800 }]);
+  assert.deepEqual(res.warnings, ["ASR_WINDOW_REPLAY", "ASR_COVERAGE_GAP"]); // без PARTIALLY_UNCLEAR
+  assert.equal(res.language, null);                 // язык чужого звука не попадает в паспорт
+  assert.deepEqual(res.healedGaps, []);
+  assert.deepEqual(calls, [[0, 900], [870, 1800]]); // ровно 2 вызова — heal пропущен
+});
+
+// (b) АНТИ-ЛОЖНОПОЛОЖИТЕЛЬНЫЙ ПИН. Легитимное шовное перекрытие (S12.4: соседи НАМЕРЕННО
+// транскрибируют шовную зону дважды) НЕ должно выглядеть реплеем. Здесь повторены 2 шовных
+// сегмента (12 слов) — доля 7/133 ≈ 5.3%; на живом 15-мин окне зона 30с даёт ~3%, то есть в
+// тесте доля ЗАВЫШЕНА, и пин строже реальности. Дубль снимает шов (якорь), а не гейт.
+const SEAM_A = "מילהש0 מילהש1 מילהש2 מילהש3 מילהש4 מילהש5";
+const SEAM_B = "מילהש6 מילהש7 מילהש8 מילהש9 מילהש10 מילהש11";
+test("(S12.5-T3-b) честное шовное перекрытие 30с НЕ бракуется (доля ~5%, порог 40%)", async () => {
+  const calls = [];
+  const w0 = talk("א", 21, 20, 40).concat([seg(860, SEAM_A), seg(880, SEAM_B)]);
+  const w1 = [seg(872, SEAM_A), seg(890, SEAM_B)].concat(talk("ב", 21, 960, 40));
+  // независимый замер доли ДО прогона (тот же публичный API, что использует оркестратор)
+  const ratio = A.replayRatio(w1, A.collectShingles(w0, new Set()));
+  assert.equal(ratio, 7 / 133);
+  assert.ok(ratio > 0 && ratio < A.REPLAY_REJECT_RATIO, "ratio=" + ratio);
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800,
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return R({ segments: w0 });
+      if (a === 870) return R({ segments: w1 });
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.deepEqual(calls, [[0, 900], [870, 1800]]);
+  assert.deepEqual(res.rejectedRanges, []);              // окно принято
+  assert.equal(res.windows[1].rejectedReplay, undefined);
+  assert.deepEqual(res.warnings, []);                    // ни ASR_WINDOW_REPLAY, ни дыр
+  assert.equal(res.seams[0].anchored, true);             // дубль снял ШОВ по тексту (S12.4)
+  assert.equal(res.segments.filter((s) => s.text === SEAM_A).length, 1);
+  assert.equal(res.segments.filter((s) => s.text === SEAM_B).length, 1);
+  assert.ok(res.segments.some((s) => s.text === w1[w1.length - 1].text)); // материал окна1 на месте
+  assert.deepEqual(res.coverageGaps, []);
+});
+
+// (c) Дыра, ПЕРЕСЕКАЮЩАЯСЯ с забракованным диапазоном, не хилится вовсе (тот же промт вернёт тот
+// же реплей — доказано диагнозом), а дыра ВНЕ забракованного диапазона добирается как обычно:
+// гейт не отключает добор целиком, а бьёт точечно. Пин — по СЧЁТЧИКУ вызовов transcribe.
+// Фикстуры окон здесь ПЛОТНЫЕ (180 слов на окно) намеренно. Whole-branch ревью S12.5 ввело
+// шовное исключение (replaySeamSkipWords): голова окна, ДОКАЗАННО совпадающая с хвостом
+// предыдущего, уликой не считается — иначе честное короткое/оборвавшееся окно объявлялось
+// реплеем (тесты S12.5-T3-h/i). Исключение ограничено STITCH_TAIL_WORDS=80 словами, поэтому у
+// окна короче ~85 слов после него не остаётся материала на суждение и гейт честно молчит (null).
+// Прежняя фикстура этого теста (72 слова на 930-секундное окно — в 18 раз реже живого замера
+// §6: 822–1331 слово на чанк) попадала ровно в эту зону «нет доказательств»; предел пинится
+// отдельным юнитом (S12.5-T3-k), а здесь окно приведено к живой плотности.
+test("(S12.5-T3-c) дыра внутри забракованного диапазона не хилится; посторонняя дыра — хилится", async () => {
+  const calls = [];
+  const w0 = talk("א", 20, 10, 14).concat(talk("ג", 10, 700, 12)); // 10..276, дыра, 700..808
+  const w1 = retime(w0, 880, 30);                                  // реплей окна0 → брак
+  const w2 = talk("ד", 22, 1780, 40);                              // 1780..2620, честный хвост
+  const res = await SI.runWindowedAsr({
+    durationSec: 2700, // окна [0,900] [870,1800] [1770,2700]
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return R({ segments: w0 });
+      if (a === 870) return R({ segments: w1 });
+      if (a === 1770) return R({ segments: w2 });
+      if (a === 276 && b === 700) return R({ segments: talk("ה", 12, 300, 32) }); // добор дыры вне брака
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  // добор вызван РОВНО для дыры [276,700]; вызова для дыры [808,1780] нет ВООБЩЕ
+  assert.deepEqual(calls, [[0, 900], [870, 1800], [1770, 2700], [276, 700]]);
+  assert.ok(!calls.some((c) => c[0] === 808));
+  assert.deepEqual(res.healedGaps, [{ fromSec: 276, toSec: 700 }]);
+  assert.deepEqual(res.coverageGaps, [{ fromSec: 808, toSec: 1780 }]); // остаётся ЧЕСТНОЙ
+  assert.deepEqual(res.rejectedRanges, [{ startSec: 870, endSec: 1800, rejectedReplay: 1 }]);
+  assert.ok(res.segments.some((s) => s.text === w2[0].text));  // окно2 не пострадало
+  assert.ok(res.warnings.includes("ASR_WINDOW_REPLAY") && res.warnings.includes("ASR_COVERAGE_GAP"));
+});
+
+// (d) Добор-реплей (ТОТ САМЫЙ живой дефект: heal дыры 55:53–59:30 вернул речь 35:39–39:37 со
+// штампами внутри дыры — строгий клип ±2с бессилен, штампы «легальны»). Добор отбрасывается
+// целиком, дыра остаётся честной, провенанс объясняет почему.
+test("(S12.5-T3-d) добор-реплей отбрасывается: дыра остаётся в coverageGaps, healRejectedReplay в провенансе", async () => {
+  const calls = [];
+  const head = talk("א", 8, 10, 40);                             // 10..290
+  const w0 = head.concat(talk("ג", 3, 700, 40));                 // дыра 290→700, хвост 700..780
+  const res = await SI.runWindowedAsr({
+    durationSec: 800, // одно окно (single-путь, transcribe(null,null))
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === null) return R({ segments: w0 });
+      // добор возвращает УЖЕ ТРАНСКРИБИРОВАННУЮ речь начала записи с метками внутри дыры
+      if (a === 290 && b === 700) return R({ segments: retime(head, 330, 40) });
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.deepEqual(calls, [[null, null], [290, 700]]);
+  assert.deepEqual(res.healedGaps, []);                          // добор НЕ засчитан
+  assert.deepEqual(res.coverageGaps, [{ fromSec: 290, toSec: 700 }]);
+  assert.deepEqual(res.rejectedRanges, [{ startSec: 290, endSec: 700, healRejectedReplay: 1 }]);
+  assert.ok(res.warnings.includes("ASR_WINDOW_REPLAY") && res.warnings.includes("ASR_COVERAGE_GAP"));
+  // ни один текст не удвоился — вставки не было
+  assert.equal(res.segments.length, w0.length);
+  head.forEach((s) => assert.equal(res.segments.filter((x) => x.text === s.text).length, 1));
+});
+
+// (e) Мало текста — суждения нет (R11). Окно из коротких сегментов даёт 17 шинглов (<20), и даже
+// ДОСЛОВНЫЙ повтор не бракуется: обвинять окно, по которому нет доказательств, значит выбрасывать,
+// возможно, единственную честную транскрипцию тихого куска. Дубль в этой зоне — забота шва/клипа,
+// не анти-реплей гейта.
+test("(S12.5-T3-e) короткое окно (<20 шинглов) НЕ бракуется даже при дословном повторе", async () => {
+  const short0 = [];
+  for (let i = 0; i < 11; i++) short0.push(seg(10 + i * 80, "מילהא" + (i * 2) + " מילהא" + (i * 2 + 1)));
+  const short1 = retime(short0, 890, 80); // 890..1690, те же тексты
+  assert.equal(A.replayRatio(short1, A.collectShingles(short0, new Set())), null); // 17 шинглов
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800,
+    transcribe: async (a, b) => {
+      if (a === 0) return R({ segments: short0 });
+      if (a === 870) return R({ segments: short1 });
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.deepEqual(res.rejectedRanges, []);
+  assert.equal(res.windows[1].rejectedReplay, undefined);
+  assert.ok(!res.warnings.includes("ASR_WINDOW_REPLAY"));
+  assert.equal(res.segments.length, short0.length + short1.length); // окно принято целиком
+  assert.deepEqual(res.coverageGaps, []);
+});
+
+// (f) РЕЗЮМ. После сбоя прогон продолжается с priorWindows, и накопитель шинглов ОБЯЗАН быть
+// заряжен уже принятыми окнами: иначе гейт «забывает» весь транскрипт, и реплей ранних минут
+// проходит как новый материал — ровно тот сценарий живого брака, только после возобновления
+// (длинный файл почти всегда доходит до конца с одним-двумя резюмами).
+test("(S12.5-T3-f) резюм: накопитель заряжен priorWindows — реплей готового окна бракуется", async () => {
+  const calls = [];
+  const w0 = talk("א", 21, 10, 40);
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800, startWindow: 1, priorWindows: [w0],
+    transcribe: async (a, b) => { calls.push([a, b]); return R({ segments: retime(w0, 880, 40) }); },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.deepEqual(calls, [[870, 1800]]);               // готовое окно0 не перевызывается
+  assert.equal(res.windows[1].rejectedReplay, 1);       // реплей узнан по МАТЕРИАЛУ РЕЗЮМА
+  assert.deepEqual(res.rejectedRanges, [{ startSec: 870, endSec: 1800, rejectedReplay: 1 }]);
+  assert.equal(res.segments.length, w0.length);         // в транскрипте только честное окно0
+  assert.deepEqual(res.coverageGaps, [{ fromSec: 810, toSec: 1800 }]);
+  assert.ok(res.warnings.includes("ASR_WINDOW_REPLAY"));
+});
+
+// (g) ГРАНИЦА ПРАВИЛА ПРОПУСКА: пересечение дыры с забракованным диапазоном считается по
+// ОТКРЫТЫМ интервалам. Дыра, которая лишь КАСАЕТСЯ брака (начинается ровно там, где забракованное
+// окно кончилось), лежит в ДРУГОМ звуке — про него ничего не доказано, и отказывать ему в доборе
+// значило бы наказывать честный участок за соседа (R11 в обратную сторону: не только «не
+// маскируй потерю», но и «не выдумывай потерю»). Мутация «считать касание пересечением» съела бы
+// добор этой дыры молча.
+test("(S12.5-T3-g) дыра ВСТЫК к забракованному диапазону добирается (пересечение строгое)", async () => {
+  const calls = [];
+  const w0 = talk("א", 21, 10, 40);                                  // 10..810
+  const w1 = retime(w0, 880, 40);                                    // реплей → брак [870,1800]
+  const w2 = talk("ג", 1, 1800, 40).concat(talk("ד", 18, 2000, 40)); // 1800, затем 2000..2680
+  const res = await SI.runWindowedAsr({
+    durationSec: 2700, // окна [0,900] [870,1800] [1770,2700]
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return R({ segments: w0 });
+      if (a === 870) return R({ segments: w1 });
+      if (a === 1770) return R({ segments: w2 });
+      if (a === 1800 && b === 2000) return R({ segments: talk("ה", 10, 1840, 15) });
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  // дыра [810,1800] пересекает брак → пропущена; дыра [1800,2000] лишь касается → добрана
+  assert.deepEqual(calls, [[0, 900], [870, 1800], [1770, 2700], [1800, 2000]]);
+  assert.deepEqual(res.healedGaps, [{ fromSec: 1800, toSec: 2000 }]);
+  assert.deepEqual(res.coverageGaps, [{ fromSec: 810, toSec: 1800 }]);
+  assert.ok(res.segments.some((s) => s.start === 1840));
+});
+
+// ── S12.5 T4: STALE-TAB GUARD (чистое сравнение версий) ───────────────────────────────────────
+// Сравниваются ЛИТЕРАЛ страницы (window.APP_VERSION из index.html) и версия сервера
+// (/api/client-config → CACHE_VERSION из sw.js). Инвариант R11: устаревание — ФАКТ, который надо
+// доказать; отсутствие любой из версий или сетевая ошибка = fail-open (прогон идёт), потому что
+// заблокировать владельцу единственную рабочую кнопку по подозрению дороже, чем прогнать
+// транскрипцию кодом, который, возможно, чуть отстал.
+test("(S12.5-T4) isStaleTab: расхождение версий = стейл, совпадение = нет", () => {
+  assert.equal(SI.isStaleTab("3.11.264", "3.11.265"), true);
+  assert.equal(SI.isStaleTab("3.11.265", "3.11.265"), false);
+  // «v» игнорируется: sw.js хранит "v3.11.265", server.js отдаёт "3.11.265" — расхождение
+  // ФОРМАТА не является расхождением ВЕРСИИ, и путать их значит блокировать свежие вкладки.
+  assert.equal(SI.isStaleTab("v3.11.265", "3.11.265"), false);
+  assert.equal(SI.isStaleTab("3.11.265", "v3.11.265"), false);
+  assert.equal(SI.isStaleTab(" 3.11.265 ", "3.11.265"), false);
+});
+
+test("(S12.5-T4) isStaleTab: нет доказательства → fail-open (R11: не выдумывать устаревание)", () => {
+  for (const [p, s] of [[undefined, "3.11.265"], ["3.11.265", undefined], [null, null],
+                        ["", "3.11.265"], ["3.11.265", ""], ["3.11.265", 3], [{}, "3.11.265"]]) {
+    assert.equal(SI.isStaleTab(p, s), false, `pageVersion=${JSON.stringify(p)} serverVersion=${JSON.stringify(s)}`);
+  }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════════════════
+// WHOLE-BRANCH REVIEW S12.5 (2026-07-29) — СТЫК T3 × asrWindows: ЛОЖНЫЙ БРАК ПО ШВУ.
+// Анти-реплей гейт (T3) судит окно по доле уже-виденного текста, а asrWindows (S12.4) даёт
+// соседям ПЕРЕКРЫТИЕ 30с НАМЕРЕННО — шовная зона транскрибируется дважды по замыслу. У
+// НОРМАЛЬНОГО окна (930с) этот легитимный дубль ≈3% и порога 40% не достигает; но есть два
+// живых класса, где он ДОМИНИРУЕТ над содержимым окна:
+//   (1) ХВОСТОВОЕ окно короче ~65с (длительность файла на 0–60с больше кратного 15 мин —
+//       примерно каждый 15-й файл): 30с шва против 10–30с своей речи;
+//   (2) окно, ОБОРВАВШЕЕ вывод сразу после шовной зоны (живой класс пробы R10 §6: чанк 3
+//       оборвался на rel 727/930) — своей речи почти нет, шовная есть.
+// В обоих случаях честное окно объявлялось реплеем: его речь УНИЧТОЖАЛАСЬ, прогон получал
+// ASR_WINDOW_REPLAY и level=bad (владельцу предлагалось подтвердить несуществующую потерю), а в
+// случае (2) правило «не хилить забракованный диапазон» ЕЩЁ И запрещало добор — и настоящая
+// дыра в 14 минут оставалась незакрытой. Это тот же R11-дефект, против которого сделан слайс,
+// только с обратным знаком: не «замаскировать потерю», а «выдумать её».
+// Лечение: из суждения исключается материал, объяснённый ШВОМ — якорь S12.4 (общая
+// последовательность слов между хвостом предыдущего окна и головой текущего) измеряет его без
+// единой метки; см. replaySeamSkipWords в asr-transcript.js.
+// Числа фикстур ниже проверены прямым прогоном (темп речи 2 слова/с — замер §6 дизайна).
+// ══════════════════════════════════════════════════════════════════════════════════════════
+
+// Шовный блок: 10 сегментов × 6 слов на 871..898 = 60 слов за 30с (2 сл/с — живой темп).
+const SEAM_BLOCK = talk("ש", 10, 871, 3);
+// Тело окна 0: 30 сегментов × 6 слов на 10..822 (шаг 28с < ASR_GAP_MAX_SEC — дыр нет).
+const W0_BODY = talk("א", 30, 10, 28);
+
+test("(S12.5-T3-h) короткое ХВОСТОВОЕ окно не бракуется по шву: его речь остаётся, брака нет", async () => {
+  const w0 = W0_BODY.concat(SEAM_BLOCK);            // окно [0,900]
+  const tailSpeech = talk("ח", 7, 901, 3);          // 42 слова СВОЕЙ речи окна [870,920]
+  const w1 = retime(SEAM_BLOCK, 874, 3).concat(tailSpeech);
+  // Без учёта шва доля «уже виденного» = 55/97 — гейт объявил бы честное окно реплеем.
+  const naive = A.replayRatio(w1, A.collectShingles(w0, new Set()));
+  assert.ok(naive >= A.REPLAY_REJECT_RATIO, "фикстура обязана быть ложноположительной без фикса: " + naive);
+  const res = await SI.runWindowedAsr({
+    durationSec: 920, // окна [0,900] и [870,920] — хвостовое окно 50с при шве 30с
+    transcribe: async (a, b) => {
+      if (a === 0) return R({ segments: w0 });
+      if (a === 870) return R({ segments: w1 });
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.deepEqual(res.rejectedRanges, []);                 // брака нет
+  assert.equal(res.windows[1].rejectedReplay, undefined);
+  assert.ok(!res.warnings.includes("ASR_WINDOW_REPLAY"));
+  // ГЛАВНОЕ: честная речь хвоста дожила до транскрипта (до фикса она исчезала целиком)
+  tailSpeech.forEach((s) => assert.ok(res.segments.some((x) => x.text === s.text), "потеряна: " + s.text));
+  // и сводка не пугает владельца несуществующей потерей
+  const sum = A.summarizeAsrRun({ durationSec: 920, windows: res.windows, coverageGaps: res.coverageGaps,
+    healedGaps: res.healedGaps, rejectedRanges: res.rejectedRanges, warnings: res.warnings });
+  assert.equal(sum.level, "ok");
+  assert.equal(sum.windowsOk, 2);
+});
+
+test("(S12.5-T3-i) окно, оборвавшее вывод после шовной зоны, не бракуется — и его дыра ДОБИРАЕТСЯ", async () => {
+  const w0 = W0_BODY.concat(SEAM_BLOCK);
+  // окно [870,1800] отдало шовную зону + 15с своей речи и оборвалось (живой класс пробы R10)
+  const w1 = retime(SEAM_BLOCK, 874, 3).concat(talk("ח", 5, 905, 3));
+  const w2 = talk("ד", 30, 1775, 28);
+  const calls = [];
+  const res = await SI.runWindowedAsr({
+    durationSec: 2700, // окна [0,900] [870,1800] [1770,2700]
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return R({ segments: w0 });
+      if (a === 870) return R({ segments: w1 });
+      if (a === 1770) return R({ segments: w2 });
+      if (a === 917 && b === 1775) return R({ segments: talk("ה", 25, 950, 32) }); // добор дыры
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.deepEqual(res.rejectedRanges, []);                 // обрыв вывода ≠ реплей
+  assert.ok(!res.warnings.includes("ASR_WINDOW_REPLAY"));
+  // добор ЧЕСТНОЙ дыры не подавлен правилом overlapsRejected — 14 минут записи спасены
+  assert.ok(calls.some((c) => c[0] === 917 && c[1] === 1775), "добор дыры не вызван: " + JSON.stringify(calls));
+  assert.deepEqual(res.healedGaps, [{ fromSec: 917, toSec: 1775 }]);
+  assert.deepEqual(res.coverageGaps, []);
+});
+
+// ── СТЫК T3/T4 × РЕЗЮМ: провенанс брака обязан пережить возобновление ────────────────────────
+// windowsMeta готовых окон пересобиралась «с нуля» ({startSec,endSec,retries:0}), поэтому после
+// резюма исчезали ВСЕ структурные записи прошлого захода: rejectedReplay/skippedRanges/bisected/
+// clippedCount. Последствия ровно на стыке задач: (T4) сводка считает windowsOk по
+// w.rejectedReplay/w.skippedRanges — полей больше нет, и она рапортует «Чанков 8/8» о прогоне,
+// где окно было подделкой; rejectedRanges пуст → «окон забраковано: 0»; (T3) забытый диапазон
+// снова считается годным для добора — платим за заведомо тот же реплей (R16). Длинный файл почти
+// всегда доходит до конца с одним-двумя резюмами, так что это не экзотика.
+test("(S12.5-T3-j) резюм: брак окна и его провенанс переживают возобновление прогона", async () => {
+  const w0 = talk("א", 40, 10, 22);          // 240 слов, 10..868
+  const w1 = retime(w0, 880, 22);            // дословный реплей окна 0 с in-range метками
+  let thrown = null;
+  try {
+    await SI.runWindowedAsr({
+      durationSec: 2700, // окна [0,900] [870,1800] [1770,2700]
+      transcribe: async (a, b) => {
+        if (a === 0) return R({ segments: w0 });
+        if (a === 870) return R({ segments: w1 });
+        const e = new Error("net"); e.code = "NETWORK"; throw e; // падение на окне 2
+      },
+      parse: fakeParse, onProgress: () => {},
+    });
+  } catch (e) { thrown = e; }
+  assert.ok(thrown && thrown.windowSegments, "прогон обязан отдать состояние для резюма");
+  assert.ok(Array.isArray(thrown.windowsMeta) && thrown.windowsMeta.length === 2,
+            "провенанс окон обязан уезжать в резюм вместе с сегментами");
+  assert.equal(thrown.windowsMeta[1].rejectedReplay, 1);
+
+  const calls = [];
+  const res = await SI.runWindowedAsr({
+    durationSec: 2700,
+    startWindow: thrown.windowSegments.length,
+    priorWindows: thrown.windowSegments,
+    priorWindowsMeta: thrown.windowsMeta,
+    transcribe: async (a, b) => { calls.push([a, b]); return R({ segments: talk("ד", 30, 1775, 28) }); },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.equal(res.windows[1].rejectedReplay, 1);                       // R9: почему окно пусто
+  assert.deepEqual(res.rejectedRanges, [{ startSec: 870, endSec: 1800, rejectedReplay: 1 }]);
+  assert.ok(res.warnings.includes("ASR_WINDOW_REPLAY"));
+  assert.deepEqual(calls, [[1770, 2700]]);                              // добор брака не оплачиваем (R16)
+  const sum = A.summarizeAsrRun({ durationSec: 2700, windows: res.windows, coverageGaps: res.coverageGaps,
+    healedGaps: res.healedGaps, rejectedRanges: res.rejectedRanges, warnings: res.warnings });
+  assert.equal(sum.windowsOk, 2);        // 2 из 3 — забракованное окно не «ok» и после резюма
+  assert.equal(sum.rejected, 1);
+  assert.equal(sum.level, "bad");
+});

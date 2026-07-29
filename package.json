@@ -1,6 +1,6 @@
 {
   "name": "tts-translator-dashboard",
-  "version": "3.11.264",
+  "version": "3.11.265",
   "description": "TTS & Translator Dashboard (Google Cloud Text-to-Speech + Gemini, Hebrew-Russian tables)",
   "main": "server.js",
   "scripts": {
@@ -288,7 +288,8 @@
     "smoke:ingest": "node scripts/ingest-smoke.js",
     "smoke:studio-chunks": "node scripts/premium/studio-chunks-smoke.js",
     "smoke:studio-retell": "node scripts/premium/studio-retell-smoke.js",
-    "smoke:retell-live": "node scripts/premium/retell-live-smoke.js"
+    "smoke:retell-live": "node scripts/premium/retell-live-smoke.js",
+    "smoke:ingest-slice-live": "node scripts/premium/ingest-slice-live-smoke.js"
   },
   "dependencies": {
     "@google-cloud/text-to-speech": "^5.7.0",

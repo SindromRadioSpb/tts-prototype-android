@@ -806,6 +806,52 @@ test("locale files match the committed cache-bust lock (content changed => ?v= m
   ].join("\n"));
 });
 
+// ── Suite 10b: page code-version stamp lock (S12.5 T4) ───────────────────────
+//
+// public/index.html carries a LITERAL `window.APP_VERSION = "3.11.N"` — the only
+// version marker that ages together with the loaded tab (everything computed —
+// window.__v3AppVersion, /api/client-config — reports the SERVER's version, so a
+// stale tab would "prove" its own freshness). Two consumers depend on it being
+// the truth: the stale-tab guard in studio-import.js (refuses to start a paid
+// hour-long transcription run on outdated code) and the asr.codeVersion
+// provenance stamp (the 2026-07-29 diagnostic session burned a whole hypothesis,
+// H1, reconstructing "which code produced this run" by feature-detection).
+//
+// A literal only stays true while someone bumps it. This lives in Suite 10
+// because that is already the "cache-bust / version bookkeeping" gate of the
+// repo (`?v=` + CACHE_VERSION); the same edit that bumps CACHE_VERSION must move
+// APP_VERSION with it, so one gate covers both halves of the same bookkeeping.
+
+console.log("\n[Suite 10b] Page version stamp (public/index.html window.APP_VERSION vs public/sw.js CACHE_VERSION)");
+
+const SW_JS_PATH = path.join(REPO_ROOT, "public/sw.js");
+
+test("window.APP_VERSION in index.html matches CACHE_VERSION in sw.js", () => {
+  const html = readIndexHtml();
+  const swSrc = fs.readFileSync(SW_JS_PATH, "utf8");
+  const appM = html.match(/window\.APP_VERSION\s*=\s*"v?([^"]+)"/);
+  assert.ok(
+    appM && appM[1],
+    'Could not find the literal `window.APP_VERSION = "3.11.N"` in public/index.html. ' +
+    "It must stay an inline literal in the document (NOT derived from /api/client-config — " +
+    "that reports the server's version and would make a stale tab look fresh). Consumers: " +
+    "the transcription stale-tab guard in public/js/studio-import.js, the asr.codeVersion " +
+    "provenance stamp, and source_client_version in public/js/cloud-sync.js."
+  );
+  // Same anchored pattern server.js resolveAppVersion() and scripts/api-smoke.js use — a loose
+  // /CACHE_VERSION\s*=/ also matches the SUFFIX of GRAPH_CACHE_VERSION in the same file.
+  const swM = swSrc.match(/\bconst\s+CACHE_VERSION\s*=\s*"v?([^"]+)"/);
+  assert.ok(swM && swM[1], "public/sw.js: `const CACHE_VERSION = \"vX.Y.Z\"` not found — cannot compare versions.");
+  assert.strictEqual(
+    appM[1], swM[1],
+    `VERSION DRIFT: public/index.html window.APP_VERSION = "${appM[1]}" but public/sw.js ` +
+    `CACHE_VERSION = "v${swM[1]}". They MUST be bumped in the same change: /api/client-config ` +
+    "serves the sw.js number, so a mismatch makes every freshly loaded tab report itself as " +
+    "stale — the transcription stale-tab guard would then refuse to run on perfectly current " +
+    "code, and asr.codeVersion would stamp runs with a version that never shipped."
+  );
+});
+
 // ── Summary ───────────────────────────────────────────────────────────────────
 
 console.log(`\nResults: ${passed} passed, ${failed} failed\n`);

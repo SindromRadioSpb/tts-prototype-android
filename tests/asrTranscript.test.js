@@ -427,3 +427,260 @@ test("estimateLongJob: 2ч подкаст в замеренных рамках; 
   const known = A.estimateLongJob(7200, { chunkSize: 120, segmentsKnown: 1700 });
   assert.equal(known.chunks, Math.ceil(1700 / 120));
 });
+
+// ══════════════════════════════════════════════════════════════════════════════════════════
+// S12.5 T3 — АНТИ-РЕПЛЕЙ ТЕКСТ-ГЕЙТ (replayRatio/collectShingles). Диагноз
+// DIAGNOSIS_S12_LIVE_DEFECT_2026_07_29 §7: модель на глубоких офсетах длинного fileUri отдаёт
+// ЧУЖОЙ контент с подделанными in-range метками, поэтому ВСЕ метко-ключёванные гейты слепы.
+// Независимый сигнал — ТЕКСТ: 6-словные нормализованные шинглы против накопителя уже принятого
+// материала прогона. Обоснование порога/K/null — в комментарии исходника.
+// ══════════════════════════════════════════════════════════════════════════════════════════
+
+// Уникальные «слова» (основа+буква-префикс+номер): в таком материале СЛУЧАЙНЫХ совпадений
+// шинглов не бывает вовсе, поэтому любая ненулевая доля в тесте — следствие НАМЕРЕННОГО
+// копирования текста фикстурой, а не частотности живой речи.
+function uw(prefix, from, count) {
+  const out = [];
+  for (let i = 0; i < count; i++) out.push("מילה" + prefix + (from + i));
+  return out;
+}
+const oneSeg = (words) => [{ start: 0, text: words.join(" ") }];
+
+test("(S12.5-T3) константы гейта: K=6, порог 40%, пол суждения 20 шинглов", () => {
+  assert.equal(A.REPLAY_SHINGLE_K, 6);
+  assert.equal(A.REPLAY_REJECT_RATIO, 0.4);
+  assert.equal(A.REPLAY_MIN_SHINGLES, 20);
+});
+
+test("(S12.5-T3) replayRatio: полный повтор принятого материала → 1.0 (разбивка на сегменты не важна)", () => {
+  const w = uw("א", 0, 30); // 30 слов → 25 шинглов ≥ REPLAY_MIN_SHINGLES
+  const seen = A.collectShingles(oneSeg(w), new Set());
+  assert.equal(A.replayRatio(oneSeg(w), seen), 1);
+  // тот же поток слов, но нарезанный на 30 сегментов по слову: нарезка — решение модели, у двух
+  // копий одной речи она разная, поэтому шинглы строятся по СКВОЗНОМУ потоку и доля не меняется.
+  assert.equal(A.replayRatio(w.map((x, i) => ({ start: i, text: x })), seen), 1);
+});
+
+test("(S12.5-T3) replayRatio: ноль пересечения → 0 (и пустой накопитель → 0, не null)", () => {
+  const seen = A.collectShingles(oneSeg(uw("א", 0, 30)), new Set());
+  assert.equal(A.replayRatio(oneSeg(uw("ב", 0, 30)), seen), 0);
+  assert.equal(A.replayRatio(oneSeg(uw("א", 0, 30)), new Set()), 0); // текста хватает, совпадать не с чем
+});
+
+test("(S12.5-T3) replayRatio: частичное пересечение → ТОЧНАЯ доля; 5 общих слов — не совпадение (K=6)", () => {
+  const a = uw("א", 0, 30), b = uw("ב", 0, 30);
+  const seen = A.collectShingles(oneSeg(a), new Set());
+  // 12 слов из принятого + 13 новых = 25 слов → 20 шинглов; целиком внутри повторённых 12 слов
+  // лежат ровно 12-6+1 = 7 шинглов, остальные захватывают новое слово и в накопителе отсутствуют.
+  assert.equal(A.replayRatio(oneSeg(a.slice(0, 12).concat(b.slice(0, 13))), seen), 7 / 20);
+  assert.ok(7 / 20 < A.REPLAY_REJECT_RATIO); // 35% — ещё НЕ брак: порог не декоративен
+  // 5 общих слов подряд шинглом не становятся (K=6) — та же логика, что у STITCH_ANCHOR_MIN_WORDS:
+  // короткое совпадение не доказательство.
+  assert.equal(A.replayRatio(oneSeg(a.slice(0, 5).concat(b.slice(0, 20))), seen), 0);
+});
+
+test("(S12.5-T3) replayRatio: мало текста → null (R11: не обвинять окно без доказательств)", () => {
+  const w = uw("א", 0, 30);
+  const seen = A.collectShingles(oneSeg(w), new Set());
+  // свип границы: 24 слова = 19 шинглов → суждения нет ДАЖЕ при дословном повторе; 25 = ровно 20.
+  assert.equal(A.replayRatio(oneSeg(w.slice(0, 24)), seen), null);
+  assert.equal(A.replayRatio(oneSeg(w.slice(0, 25)), seen), 1);
+  assert.equal(A.replayRatio([], seen), null);
+  assert.equal(A.replayRatio(null, seen), null);
+});
+
+test("(S12.5-T3) collectShingles: мутирует и возвращает ПЕРЕДАННЫЙ Set, накапливает по вызовам", () => {
+  const set = new Set();
+  assert.equal(A.collectShingles(oneSeg(uw("א", 0, 30)), set), set); // тот же объект, не копия
+  assert.equal(set.size, 25);
+  A.collectShingles(oneSeg(uw("ב", 0, 30)), set);
+  assert.equal(set.size, 50);
+  A.collectShingles(oneSeg(uw("א", 0, 30)), set); // повтор того же материала множество не растит
+  assert.equal(set.size, 50);
+  // узнаётся материал ОБОИХ вызовов — накопитель прогона, а не «последнее окно»
+  assert.equal(A.replayRatio(oneSeg(uw("א", 0, 30)), set), 1);
+  assert.equal(A.replayRatio(oneSeg(uw("ב", 0, 30)), set), 1);
+});
+
+test("(S12.5-T3) нормализация — общая со швом: огласовки/пунктуация/регистр не мешают узнаванию", () => {
+  const base = uw("א", 0, 26); // 26 слов → 21 шингл
+  const seen = A.collectShingles(oneSeg(base), new Set());
+  // тот же текст с патахом внутри слова, пунктуацией и иной разбивкой на сегменты
+  const decorated = base.map((w, i) => ({ start: i, text: w.replace("מ", "מַ") + (i % 3 ? "," : "!") }));
+  assert.equal(A.replayRatio(decorated, seen), 1);
+  // письмо С регистром (иврит его не имеет — проверяем на латинице)
+  const lat = Array.from({ length: 26 }, (_, i) => "word" + i);
+  const seenLat = A.collectShingles(oneSeg(lat), new Set());
+  assert.equal(A.replayRatio(oneSeg(lat.map((w) => w.toUpperCase())), seenLat), 1);
+});
+
+// ── S12.5 T4: сводка прогона (R11 — потеря обязана быть видна ДО «→ В поле ввода») ────────────
+// Живой брак 2026-07-29: прогон с потерей 47% таймлайна отчитался coverageGaps:[] и выглядел
+// успехом. Эти юниты пинят ровно те свойства, на которых сводка держится: слияние пересекающихся
+// интервалов (иначе потеря считается ДВАЖДЫ), пороги level и честность «ok».
+
+const win = (startSec, endSec, extra) => Object.assign({ startSec, endSec, retries: 0 }, extra || {});
+
+test("(S12.5-T4) summarizeAsrRun: чистый прогон → level ok, покрытие = вся длительность", () => {
+  const s = A.summarizeAsrRun({
+    durationSec: 7017, windows: [win(0, 900), win(870, 1800), win(1770, 7017)],
+    coverageGaps: [], healedGaps: [], rejectedRanges: [], warnings: ["PARTIALLY_UNCLEAR"],
+  });
+  assert.equal(s.level, "ok");
+  assert.equal(s.windowsTotal, 3);
+  assert.equal(s.windowsOk, 3);
+  assert.equal(s.lostSec, 0);
+  assert.equal(s.lostPct, 0);
+  assert.equal(s.coveredSec, 7017);
+  assert.deepEqual(s.gaps, []);
+  assert.equal(s.rejected, 0);
+  assert.equal(s.healed, 0);
+});
+
+test("(S12.5-T4) БЕЗ ДВОЙНОГО СЧЁТА: дыра и забракованное окно на одном диапазоне = одна потеря", () => {
+  // Так и выглядит реальность гейта T3: забракованное окно не отдаёт сегментов, поэтому его
+  // диапазон появляется И в rejectedRanges, И (сразу же) в coverageGaps. Наивная сумма дала бы
+  // 1800с потери на 900с реального провала — цифру, которой владелец не поверит.
+  const s = A.summarizeAsrRun({
+    durationSec: 3600, windows: [win(0, 900), win(870, 1800, { rejectedReplay: 0.87 }), win(1770, 2700), win(2670, 3600)],
+    coverageGaps: [{ fromSec: 870, toSec: 1800 }],
+    rejectedRanges: [{ startSec: 870, endSec: 1800, rejectedReplay: 0.87 }],
+    healedGaps: [], warnings: ["ASR_WINDOW_REPLAY", "ASR_COVERAGE_GAP"],
+  });
+  assert.equal(s.lostSec, 930);                       // 1800-870, НЕ 1860
+  assert.deepEqual(s.gaps, [{ fromSec: 870, toSec: 1800 }]);
+  assert.equal(s.coveredSec, 3600 - 930);
+  assert.equal(s.lostPct, 25.8);                      // округление до 0.1 — то же число, что в UI
+  assert.equal(s.level, "bad");
+  assert.equal(s.rejected, 1);
+  assert.equal(s.windowsOk, 3);                       // забракованное окно — не «ok»
+});
+
+test("(S12.5-T4) слияние интервалов: пересечение, вложенность, стык, разрыв", () => {
+  const s = A.summarizeAsrRun({
+    durationSec: 1000, windows: [],
+    coverageGaps: [
+      { fromSec: 100, toSec: 200 },   // ┐ пересекаются
+      { fromSec: 150, toSec: 260 },   // ┘ → 100–260
+      { fromSec: 170, toSec: 190 },   // вложен целиком → ничего не добавляет
+      { fromSec: 260, toSec: 300 },   // стык встык → та же дыра 100–300
+      { fromSec: 500, toSec: 560 },   // отдельная дыра
+    ],
+    rejectedRanges: [{ startSec: 280, endSec: 320 }], // хвост первой дыры + продолжение → 100–320
+    healedGaps: [], warnings: [],
+  });
+  assert.deepEqual(s.gaps, [{ fromSec: 100, toSec: 320 }, { fromSec: 500, toSec: 560 }]);
+  assert.equal(s.lostSec, 220 + 60);
+  assert.equal(s.lostPct, 28);
+});
+
+test("(S12.5-T4) уровни: 0% → ok, ≤5% → warn, >5% → bad, любой брак → bad", () => {
+  const base = { durationSec: 1000, windows: [win(0, 1000)], healedGaps: [], rejectedRanges: [], warnings: [] };
+  const lvl = (o) => A.summarizeAsrRun(Object.assign({}, base, o)).level;
+  assert.equal(lvl({ coverageGaps: [] }), "ok");
+  assert.equal(lvl({ coverageGaps: [{ fromSec: 0, toSec: 10 }] }), "warn");   // 1%
+  assert.equal(lvl({ coverageGaps: [{ fromSec: 0, toSec: 50 }] }), "warn");   // ровно 5% — ещё warn
+  assert.equal(lvl({ coverageGaps: [{ fromSec: 0, toSec: 51 }] }), "bad");    // 5.1% — уже bad
+  // забракованный диапазон = класс дефекта (подделка-реплей), а не объём: bad при любой доле
+  assert.equal(lvl({ coverageGaps: [], rejectedRanges: [{ startSec: 0, endSec: 5 }] }), "bad");
+});
+
+test("(S12.5-T4) «ok» не выдаётся авансом: пропуск половины бисекции и warning конвейера снимают его", () => {
+  const skipped = A.summarizeAsrRun({
+    durationSec: 1000, windows: [win(0, 1000, { skippedRanges: [{ startSec: 500, endSec: 750 }] })],
+    coverageGaps: [], healedGaps: [{ fromSec: 500, toSec: 750 }], rejectedRanges: [], warnings: [],
+  });
+  assert.equal(skipped.windowsOk, 0);
+  assert.equal(skipped.level, "warn"); // дыра закрыта добором, но окно целым не было
+  assert.equal(skipped.healed, 1);
+  // Расхождение источников: конвейер поднял ASR_COVERAGE_GAP, а интервалов нам не передали.
+  // Зелёное здесь означало бы «наш счёт важнее предупреждения» — ровно та слепота, что убила прогон.
+  const flagged = A.summarizeAsrRun({
+    durationSec: 1000, windows: [win(0, 1000)],
+    coverageGaps: [], healedGaps: [], rejectedRanges: [], warnings: ["ASR_COVERAGE_GAP"],
+  });
+  assert.equal(flagged.level, "warn");
+  assert.equal(flagged.lostSec, 0);
+});
+
+test("(S12.5-T4) мусор на входе не ломает и не выдумывает потерю; клип по длительности", () => {
+  const s = A.summarizeAsrRun({
+    durationSec: 600, windows: null,
+    coverageGaps: [{ fromSec: 300, toSec: 900 },      // хвост за длительностью → клип до 600
+                   { fromSec: 50, toSec: 50 },        // нулевая длина → не потеря
+                   { fromSec: 90, toSec: 40 },        // обратный → игнор
+                   { fromSec: null, toSec: 10 }],     // без числа → игнор
+    rejectedRanges: [{}], healedGaps: null, warnings: null,
+  });
+  assert.deepEqual(s.gaps, [{ fromSec: 300, toSec: 600 }]);
+  assert.equal(s.lostSec, 300);
+  assert.equal(s.lostPct, 50);
+  assert.equal(s.windowsTotal, 0);
+  assert.equal(s.rejected, 1);       // запись брака СЧИТАЕТСЯ, даже если её диапазон нечитаем
+  assert.equal(s.level, "bad");
+  const empty = A.summarizeAsrRun();  // вызов без аргумента вообще
+  assert.equal(empty.level, "ok");
+  assert.equal(empty.coveredSec, 0);
+});
+
+test("(S12.5-T4) fmtClock экспортирован и печатает мм:сс / ч:мм:сс (формат, который парсит ASR)", () => {
+  assert.equal(A.fmtClock(0), "0:00");
+  assert.equal(A.fmtClock(59.4), "0:59");
+  assert.equal(A.fmtClock(2496), "41:36");
+  assert.equal(A.fmtClock(7018), "1:56:58");
+  assert.equal(A.secondsFromTimestamp(A.fmtClock(7018)), 7018); // round-trip: свой же парсер
+});
+
+// ── Whole-branch ревью S12.5: ШОВНОЕ ИСКЛЮЧЕНИЕ анти-реплей гейта ────────────────────────────
+// asrWindows (S12.4) перекрывает соседей на 30с НАМЕРЕННО, значит часть повторов у честного окна
+// создана НАМИ. Сколько именно — МЕРЯЕТСЯ якорем шва (общая последовательность слов между
+// хвостом предыдущего окна и головой текущего), а не предполагается; меток гейт по-прежнему не
+// касается. Живые последствия отсутствия исключения — в tests/runWindowedAsr.test.js
+// (S12.5-T3-h/i): честная речь уничтожалась, а добор настоящей дыры запрещался.
+
+test("(S12.5-T3-k) replaySeamSkipWords: якорь шва измерен; без якоря — 0; сверху ограничен хвостом", () => {
+  const seam = uw("ש", 0, 12);                          // 12 слов шовной зоны
+  const prev = [{ start: 0, text: uw("א", 0, 40).join(" ") },
+                { start: 10, text: seam.join(" ") }];   // хвост предыдущего окна = шовная зона
+  const cur = [{ start: 12, text: seam.join(" ") },
+               { start: 20, text: uw("ב", 0, 40).join(" ") }];
+  assert.equal(A.replaySeamSkipWords(prev, cur), 12);   // ровно шовный повтор, ни словом больше
+  // общей последовательности нет → шов ничего не объясняет
+  assert.equal(A.replaySeamSkipWords(prev, [{ start: 12, text: uw("ג", 0, 30).join(" ") }]), 0);
+  assert.equal(A.replaySeamSkipWords(null, cur), 0);
+  assert.equal(A.replaySeamSkipWords([], []), 0);
+  // ЖЁСТКАЯ ГРАНИЦА 80 слов, и она держится ДАЖЕ на аномальной сегментации (окно отдано ОДНИМ
+  // сегментом): срез пословный, а не по целым сегментам — иначе «хвост» растянулся бы на всё окно.
+  const long = uw("ד", 0, 320);
+  const prevLong = [{ start: 0, text: long.slice(0, 200).join(" ") }];        // слова 0..199
+  const curShifted = [{ start: 10, text: long.slice(120).join(" ") }];        // слова 120..319
+  assert.equal(A.replaySeamSkipWords(prevLong, curShifted), 80);              // не больше хвоста
+  // Реплей ДЛИННОГО окна исключением не маскируется: голова копии — это НАЧАЛО предыдущего окна,
+  // а сравнивается она с его ХВОСТОМ, общего нет → исключать нечего, доля остаётся 1.
+  const curCopy = [{ start: 10, text: long.slice(0, 200).join(" ") }];
+  assert.equal(A.replaySeamSkipWords(prevLong, curCopy), 0);
+  const seen = A.collectShingles(prevLong, new Set());
+  assert.equal(A.replayRatio(curCopy, seen, A.replaySeamSkipWords(prevLong, curCopy)), 1);
+  // короткое окно, целиком совпавшее с предыдущим: после исключения судить нечем → null
+  const short = uw("ה", 0, 60);
+  const prevShort = [{ start: 0, text: short.join(" ") }];
+  const curShort = [{ start: 10, text: short.join(" ") }];
+  assert.equal(A.replaySeamSkipWords(prevShort, curShort), 60);
+  assert.equal(A.replayRatio(curShort, A.collectShingles(prevShort, new Set()),
+                             A.replaySeamSkipWords(prevShort, curShort)), null);
+});
+
+test("(S12.5-T3-k) replayRatio(skipWords): исключаются слова ГОЛОВЫ, накопитель не худеет", () => {
+  const a = uw("א", 0, 30), b = uw("ב", 0, 30);
+  const seen = A.collectShingles(oneSeg(a), new Set());
+  const cur = oneSeg(a.slice(0, 5).concat(b));          // 5 повторных слов + 30 новых
+  assert.equal(A.replayRatio(cur, seen, 0), A.replayRatio(cur, seen)); // умолчание = 0, обратная совместимость
+  assert.equal(A.replayRatio(oneSeg(a), seen, 5), 1);   // исключение головы: остаток всё ещё узнан
+  // мусорный skipWords не должен превращаться в «исключить всё» или в NaN-арифметику
+  for (const bad of [null, undefined, -3, NaN, "7", {}]) {
+    assert.equal(A.replayRatio(oneSeg(a), seen, bad), 1, "skipWords=" + JSON.stringify(bad));
+  }
+  // collectShingles кладёт в накопитель ВЕСЬ материал окна (шовное исключение — только суждение)
+  const set = A.collectShingles(oneSeg(a), new Set());
+  assert.equal(set.size, 25);
+});
