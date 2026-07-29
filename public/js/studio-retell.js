@@ -254,10 +254,30 @@
 
     // подтверждение замены поля; несохранённый оригинал — отдельная формулировка
     var sess = null; try { sess = window.v3SessionGet ? window.v3SessionGet() : null; } catch (_) {}
-    var savedId = (sess && (sess.baseTextId || sess.textId)) || null;
+    var rawSavedId = (sess && (sess.baseTextId || sess.textId)) || null;
+    // S11 final-review fix (Important 1, design §4.3): a session id alone is NOT proof the
+    // original is saved — after «Импорт → В поле ввода» the session can carry a PRIOR card's
+    // baseTextId (v3SessionMarkDraft), unrelated to the just-imported text. Trusting it as-is
+    // would show a false "Оригинал сохранён" (the just-imported text would be lost silently) AND
+    // write derivedFrom.textId of a STRANGER card into the persisted provenance (R9 violation).
+    // "Saved" requires BOTH a session id AND that the composer text still matches THAT card's
+    // sourceText — same criterion v3RestoreSavedTableIfUnchanged uses (index.html ~21192), reached
+    // through the read-only bridge window.v3RetellSavedTextInfo (index.html, next to
+    // v3SetActiveLibraryTextMeta). If the bridge is missing, fail CONSERVATIVELY (savedId=null) —
+    // never fall back to the old unchecked trust.
+    var savedId = null;
+    if (rawSavedId && typeof window.v3RetellSavedTextInfo === "function") {
+      try {
+        var savedInfo = window.v3RetellSavedTextInfo();
+        if (savedInfo && String(savedInfo.textId) === String(rawSavedId) &&
+            String(savedInfo.sourceText || "").trim() === text.trim()) {
+          savedId = String(rawSavedId);
+        }
+      } catch (_) { savedId = null; }
+    }
     var msg = savedId
       ? tr("studio.retell.confirmReplace", "Заменить текст в поле пересказом? Оригинал сохранён в Библиотеке.")
-      : tr("studio.retell.confirmReplaceUnsaved", "Заменить текст в поле пересказом? Оригинал НЕ сохранён — он останется только в паспорте пересказа.");
+      : tr("studio.retell.confirmReplaceUnsaved", "Заменить текст в поле пересказом? Оригинал НЕ сохранён — в паспорте пересказа останется только ссылка на источник.");
     if (!window.confirm(msg)) {
       $("v3RetellGo").disabled = false;
       st.textContent = "";

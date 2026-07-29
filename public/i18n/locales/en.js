@@ -3170,7 +3170,7 @@ window.I18N_LOCALES.en = {
       working: "Preparing the retelling…",
       done: "Retelling placed in the input field. Build the table.",
       confirmReplace: "Replace the text in the field with the retelling? The original is saved in the Library.",
-      confirmReplaceUnsaved: "Replace the text in the field with the retelling? The original is NOT saved — it will remain only in the retelling's provenance.",
+      confirmReplaceUnsaved: "Replace the text in the field with the retelling? The original is NOT saved — only a link to the source will remain in the retelling's provenance.",
       errEmptyField: "The input field is empty",
       errNoKey: "A Gemini API key (BYOK) is required — add one in settings",
       errKeyRejected: "Google rejected your Gemini key — check the key",

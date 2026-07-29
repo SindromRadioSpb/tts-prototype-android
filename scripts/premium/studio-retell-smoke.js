@@ -22,6 +22,7 @@ check("index.html: кнопка композера v3RetellEntryBtn", idx.includ
 check("index.html: v3AttachImportSource копирует im.retell", /if \(im\.retell\) v3LastGeminiMeta\.source\.retell = im\.retell/.test(idx));
 check("index.html: KIND retell в панели провенанса", idx.includes("provKindRetell"));
 check("index.html: script-тег studio-retell.js", idx.includes('src="/js/studio-retell.js"'));
+check("index.html: script-тег corpus-vocab.js (coverage-движок Студии; без него coverage молча вечный null)", idx.includes('src="/js/corpus-vocab.js"'));
 
 const sw = fs.readFileSync(path.join(ROOT, "public/sw.js"), "utf8");
 check("sw.js: precache studio-retell.js", sw.includes('"/js/studio-retell.js"'));

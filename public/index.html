@@ -12349,9 +12349,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=73"></script>
-<script src="/i18n/locales/en.js?v=73"></script>
-<script src="/i18n/locales/he.js?v=73"></script>
+<script src="/i18n/locales/ru.js?v=74"></script>
+<script src="/i18n/locales/en.js?v=74"></script>
+<script src="/i18n/locales/he.js?v=74"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -22056,6 +22056,26 @@ window.v3ClearActiveTextId = function () {
   }
   v3ActiveTextId = null;
   v3ActiveLibraryTextMeta = null;
+};
+
+// W2-S11 final-review fix (Important 1, design §4.3): studio-retell.js run() must NOT trust a
+// session id alone as proof "the original is saved" — after «Импорт → В поле ввода» the session
+// can carry a PRIOR card's baseTextId (v3SessionMarkDraft), unrelated to the just-imported text.
+// «Сохранён» = session id ЕСТЬ И текст поля совпадает с sourceText ТОЙ карточки — the exact
+// criterion v3RestoreSavedTableIfUnchanged already applies (~line 21192). studio-retell.js is an
+// EXTERNAL module and v3ActiveLibraryTextMeta is a module-scope `let` (not on window), so this is
+// the read-only bridge: {textId, sourceText} of the currently active SAVED card, or null.
+// typeof-guard mirrors the existing defensive pattern at v3LibraryRememberCardProfileForActiveText
+// (~line 37202); if the bridge is ever missing, the CALLER (studio-retell.js) must fail
+// conservatively (treat as unsaved), never fall back to the old unchecked trust.
+window.v3RetellSavedTextInfo = function () {
+  try {
+    const meta = (typeof v3ActiveLibraryTextMeta !== "undefined") ? v3ActiveLibraryTextMeta : null;
+    if (!meta || !meta.textId) return null;
+    return { textId: String(meta.textId), sourceText: String(meta.sourceText || "") };
+  } catch (_) {
+    return null;
+  }
 };
 
 function v3DebouncedSaveProgress(rowIdx) {

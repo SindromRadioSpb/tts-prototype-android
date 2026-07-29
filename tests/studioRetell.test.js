@@ -239,6 +239,15 @@ function installRetellRunMocks(opts) {
     v3SessionSet: (patch) => { sessionSetCalls.push(patch); },
     v3LastImportMeta: opts.priorImportMeta !== undefined ? opts.priorImportMeta : null,
   };
+  // fix2 (final-review Important 1, design §4.3): window.v3RetellSavedTextInfo is the index.html
+  // bridge to {textId, sourceText} of the active SAVED card. Present by default (returning
+  // opts.savedInfo, or null when a test doesn't care) so existing session-id tests must OPT IN
+  // with matching savedInfo to keep getting the "saved" branch — mirrors the real contract: a
+  // session id alone is no longer enough. opts.noSavedInfoBridge omits the property entirely, to
+  // exercise the "bridge missing → fail conservative" path.
+  if (!opts.noSavedInfoBridge) {
+    global.window.v3RetellSavedTextInfo = () => (opts.savedInfo !== undefined ? opts.savedInfo : null);
+  }
   const fetchCalls = [];
   global.fetch = (url, init) => {
     let resolve;
@@ -442,7 +451,13 @@ test("run(): non-matching prior import passport (textSnapshot differs from compo
 });
 
 test("run(): saved original (session.textId set) — confirmReplace wording (NOT confirmReplaceUnsaved), derivedFrom.textId carries the saved id", async () => {
-  const mocks = installRetellRunMocks({ session: { textId: "t-1" } });
+  // fix2: session id alone is no longer sufficient (final-review Important 1) — the bridge must
+  // ALSO confirm textId+sourceText match the composer text, same criterion as
+  // v3RestoreSavedTableIfUnchanged.
+  const mocks = installRetellRunMocks({
+    session: { textId: "t-1" },
+    savedInfo: { textId: "t-1", sourceText: "טקסט שמור בספרייה" },
+  });
   try {
     const SRfresh = require(STUDIO_RETELL_PATH);
     mocks.els.inputText.value = "טקסט שמור בספרייה";
@@ -466,7 +481,11 @@ test("run(): saved original (session.textId set) — confirmReplace wording (NOT
 });
 
 test("run(): saved original via session.baseTextId (not textId) — same confirmReplace wording, derivedFrom.textId carries baseTextId", async () => {
-  const mocks = installRetellRunMocks({ session: { baseTextId: "base-42", textId: null } });
+  // fix2: bridge must confirm textId+sourceText match — same as the session.textId test above.
+  const mocks = installRetellRunMocks({
+    session: { baseTextId: "base-42", textId: null },
+    savedInfo: { textId: "base-42", sourceText: "טקסט שמור, נערך" },
+  });
   try {
     const SRfresh = require(STUDIO_RETELL_PATH);
     mocks.els.inputText.value = "טקסט שמור, נערך";
@@ -480,6 +499,88 @@ test("run(): saved original via session.baseTextId (not textId) — same confirm
 
     assert.match(mocks.confirmCalls[0], /Оригинал сохранён в Библиотеке/);
     assert.equal(global.window.v3LastImportMeta.retell.derivedFrom.textId, "base-42");
+  } finally {
+    uninstallRetellRunMocks();
+  }
+});
+
+// ---- Fix round 2 (final-review Important 1, design §4.3): savedId must NOT trust a session id
+// alone. After "Импорт → В поле ввода" the session can carry a PRIOR card's baseTextId
+// (v3SessionMarkDraft) — unrelated to the just-imported text. "Сохранён" requires BOTH a
+// session id AND that the composer text still matches THAT card's sourceText (same criterion as
+// v3RestoreSavedTableIfUnchanged), reached through window.v3RetellSavedTextInfo.
+
+test("run(): session id present but bridge's sourceText does NOT match the composer text (stale baseTextId from a prior card) — confirmReplaceUnsaved, derivedFrom.textId===null (R9 guard)", async () => {
+  const mocks = installRetellRunMocks({
+    session: { baseTextId: "T1" },
+    savedInfo: { textId: "T1", sourceText: "СОВЕРШЕННО ДРУГОЙ текст, чужой карточки" },
+  });
+  try {
+    const SRfresh = require(STUDIO_RETELL_PATH);
+    mocks.els.inputText.value = "טקסט מיובא, לא שמור";
+    SRfresh.openFromComposer();
+    const p = SRfresh.run();
+    mocks.fetchCalls[0].resolve(fakeResponse(true, {
+      ok: true, retell: "טקסט פשוט", model: "gemini-flash-latest",
+      promptId: "p1", fromCache: true, cacheKey: "c1",
+    }));
+    await p;
+
+    assert.equal(mocks.confirmCalls.length, 1);
+    assert.match(mocks.confirmCalls[0], /Оригинал НЕ сохранён/, "text mismatch must fall back to the unsaved wording, NOT trust the stale session id");
+    assert.doesNotMatch(mocks.confirmCalls[0], /Оригинал сохранён в Библиотеке/);
+
+    const im = global.window.v3LastImportMeta;
+    assert.equal(im.retell.derivedFrom.textId, null, "a mismatched card's textId must NEVER leak into persisted provenance (R9)");
+  } finally {
+    uninstallRetellRunMocks();
+  }
+});
+
+test("run(): session id present AND bridge's sourceText matches the composer text — confirmReplace, derivedFrom.textId carries the id", async () => {
+  const mocks = installRetellRunMocks({
+    session: { baseTextId: "T1" },
+    savedInfo: { textId: "T1", sourceText: "טקסט תואם בדיוק" },
+  });
+  try {
+    const SRfresh = require(STUDIO_RETELL_PATH);
+    mocks.els.inputText.value = "טקסט תואם בדיוק";
+    SRfresh.openFromComposer();
+    const p = SRfresh.run();
+    mocks.fetchCalls[0].resolve(fakeResponse(true, {
+      ok: true, retell: "טקסט פשוט", model: "gemini-flash-latest",
+      promptId: "p1", fromCache: true, cacheKey: "c1",
+    }));
+    await p;
+
+    assert.equal(mocks.confirmCalls.length, 1);
+    assert.match(mocks.confirmCalls[0], /Оригинал сохранён в Библиотеке/);
+    assert.equal(global.window.v3LastImportMeta.retell.derivedFrom.textId, "T1");
+  } finally {
+    uninstallRetellRunMocks();
+  }
+});
+
+test("run(): session id present but window.v3RetellSavedTextInfo bridge does NOT exist — must fail conservatively (unsaved), never fall back to the old unchecked trust", async () => {
+  const mocks = installRetellRunMocks({
+    session: { textId: "t-9" },
+    noSavedInfoBridge: true,
+  });
+  try {
+    assert.equal(typeof global.window.v3RetellSavedTextInfo, "undefined", "test setup sanity: bridge must be genuinely absent");
+    const SRfresh = require(STUDIO_RETELL_PATH);
+    mocks.els.inputText.value = "טקסט כלשהו";
+    SRfresh.openFromComposer();
+    const p = SRfresh.run();
+    mocks.fetchCalls[0].resolve(fakeResponse(true, {
+      ok: true, retell: "טקסט פשוט", model: "gemini-flash-latest",
+      promptId: "p1", fromCache: true, cacheKey: "c1",
+    }));
+    await p;
+
+    assert.equal(mocks.confirmCalls.length, 1);
+    assert.match(mocks.confirmCalls[0], /Оригинал НЕ сохранён/, "missing bridge must be treated conservatively as unsaved");
+    assert.equal(global.window.v3LastImportMeta.retell.derivedFrom.textId, null);
   } finally {
     uninstallRetellRunMocks();
   }
