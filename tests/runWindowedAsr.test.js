@@ -201,11 +201,17 @@ test("(c) single-файл: BAD_JSON×2 → бисекция явными диа�
 
 // (d) Семантика резюма НЕ сломана: любая ошибка КРОМЕ ASR_BAD_JSON (429/квота/сеть/HTTP)
 // по-прежнему throw с windowIndex/windowSegments — бисекция срабатывает ТОЛЬКО на ASR_BAD_JSON.
-test("(d) 429/квота — по-прежнему throw c windowIndex, бисекция не запускается", async () => {
+// Ревью (R16): проверка ТОЛЬКО формы ошибки не ловит мутацию «пустить 429 тоже через
+// bisectWindow» — та мутация всё ещё кидала бы с тем же code/windowIndex/windowSegments, просто
+// после нескольких лишних вызовов transcribe (2-4 сверх нормы = лишние оплаченные Gemini-запросы
+// на КАЖДОЕ 429-окно длинного файла). Счётчик вызовов делает разницу видимой.
+test("(d) 429/квота — по-прежнему throw c windowIndex, бисекция не запускается (счётчик вызовов, R16)", async () => {
+  const calls = [];
   await assert.rejects(
     SI.runWindowedAsr({
       durationSec: 1400,
-      transcribe: async (a) => {
+      transcribe: async (a, b) => {
+        calls.push([a, b]);
         if (a === 0) return R({ segments: [seg(1, "a0")] });
         const e = new Error("rate limited"); e.code = "GEMINI_QUOTA"; e.status = 429; throw e;
       },
@@ -213,6 +219,11 @@ test("(d) 429/квота — по-прежнему throw c windowIndex, бисе
     }),
     (e) => e.code === "GEMINI_QUOTA" && e.windowIndex === 1 && e.windowSegments.length === 1 &&
            e.windowSegments[0][0].text === "a0");
+  // Ровно 2 вызова: окно0 успех (1 вызов) + окно1 429 (1 вызов, немедленный throw). НЕ 3 (был бы
+  // retry внутри oneCall — но oneCall ретраит ТОЛЬКО ASR_BAD_JSON, 429 кидает без retry) и НЕ
+  // 3-6 (была бы бисекция окна1 — bisectWindow срабатывает ТОЛЬКО когда пойманный e.code ===
+  // "ASR_BAD_JSON"; здесь код "GEMINI_QUOTA", условие ложно, bisectWindow не вызывается вообще).
+  assert.deepEqual(calls, [[0, 900], [900, 1400]]);
 });
 
 test("резюм: startWindow/priorWindows продолжают без повторного вызова готовых окон", async () => {
