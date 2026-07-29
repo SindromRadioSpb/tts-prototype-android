@@ -1,6 +1,6 @@
 # W2-S11: «Упростить до моего уровня» — graded-пересказ любого текста — дизайн
 
-**Дата:** 2026-07-28 · **Статус:** ✅ УТВЕРЖДЁН владельцем 2026-07-28 (развилки решены, все — по рекомендации; караоке-формулировки уточнены на owner-ревью)
+**Дата:** 2026-07-28 · **Статус:** ✅ SHIPPED v3.11.259 2026-07-29 (утверждён 2026-07-28; T1–T8 + фикс-вейв финального ревью; owner-приёмка pending — сценарии в decision packet §7 п.5)
 **Канон программы:** `STUDIO_INGEST_MULTIMODAL_DECISION_PACKET_2026_07_25.md` (§2 S11, §5 CLG-доктрина)
 **Замеры (R10, реальный ключ, реальные тексты):**
 `docs/research/studio-ingest-graded-retell/2026-07-28/README.md` — READ FIRST
@@ -107,6 +107,12 @@ validateRetellInput({text, level}) → {ok}|{error}   // text ≤ 100_000 chars 
 > Уточнение при написании плана: эндпоинт живёт в `ingest/routes.js` (не server.js) —
 > там уже есть limiter 10/мин, `isPlausibleGeminiKey`, `classifyGeminiError` и
 > `deps.geminiCacheDir`; серверный рост меньше, контракт тот же.
+>
+> Принятые девиации имплементации (ревью T2 + финал, 2026-07-29): порядок проверок =
+> вход → ключ → кэш → Gemini (валидация не тратит ничего; перечисление ниже — не порядок
+> исполнения); 429 отдаётся таксономией `classifyGeminiError` БЕЗ retryAfterSec/resetAt
+> (v1, как extract-file); смета R16 показывается строкой в модале уровня ДО запуска
+> (та же точка «до траты», что лейбл кнопки в решении 6; cost-confirm-модала нет).
 - Вход: `{ text, level, geminiApiKey }`. Валидация: ключ (401 `GEMINI_KEY_REQUIRED` /
   400 `GEMINI_KEY_INVALID` — `isPlausibleGeminiKey`), `level ∈ LEVELS` (400 `BAD_LEVEL`),
   `validateRetellInput` (400 `RETELL_TOO_LONG` / `RETELL_EMPTY`).
