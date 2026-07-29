@@ -288,6 +288,13 @@ test("все окна пустые → NO_SPEECH в warnings, segments []", asyn
 // только из-за null-значения start. Арифметика дыр здесь проверена прямыми вызовами
 // mergeWindowSegments/findCoverageGaps ДО фиксации фикстуры (см. журнал сессии) — тем же
 // приёмом, что и при перемасштабировании остальных тестов файла.
+// S12.3 (2026-07-29): "d" был start:5 в оригинальной фикстуре — чисто чтобы триггернуть
+// немонотонность у merge; после клиппинга (T2) числовой start вне [898,1002] окна1 отбрасывался
+// БЫ клиппингом ещё ДО merge, и "d" исчезал бы целиком (не оставался null-start), ломая фокус
+// этого теста (позиционная вставка ПРИ heal, а не клиппинг). Значение заменено на 900 — внутри
+// clip-допуска окна1 ([898,1002]), но всё ещё < 950 ("c"), поэтому merge по-прежнему честно
+// нулит его start из-за немонотонности СВОЕГО ЖЕ окна. Клиппинг и merge-null — РАЗНЫЕ механизмы
+// на разных стадиях; это подтверждено отдельным тестом ниже (см. "клиппинг окна…").
 test("null-start сегмент ПОСЛЕ дыры не переезжает при доборе (позиционная вставка, не по start)", async () => {
   const calls = [];
   const res = await SI.runWindowedAsr({
@@ -295,7 +302,7 @@ test("null-start сегмент ПОСЛЕ дыры не переезжает п
     transcribe: async (a, b) => {
       calls.push([a, b]);
       if (a === 0) return R({ segments: [seg(10, "a"), seg(890, "b")] }); // окно0: дыра 10→890
-      if (a === 900) return R({ segments: [seg(950, "c"), seg(5, "d")] }); // окно1: 5<950 → "d" немонотонен → start:null после merge
+      if (a === 900) return R({ segments: [seg(950, "c"), seg(900, "d")] }); // окно1: 900<950(lastT) → "d" немонотонен → start:null после merge (900 внутри clip-допуска окна1, клиппинг его не трогает)
       return R({ segments: [seg(100, "h1"), seg(400, "h2")] }); // добор дыры (10,890)
     },
     parse: fakeParse, onProgress: () => {},
@@ -312,14 +319,21 @@ test("null-start сегмент ПОСЛЕ дыры не переезжает п
 });
 
 // I1 (whole-branch review 2026-07-28, R11): ДВЕ дыры в одном окне. Добор ПЕРВОЙ дыры (10,300)
-// перелетает (overshoot) через границу ВТОРОЙ дыры (300) — возвращает сегмент start:350 > 300.
-// Ре-merge внутри цикла честно обнуляет start пограничного сегмента b (300 < 350 →
+// перелетает (overshoot) через границу ВТОРОЙ дыры (300) — возвращает сегмент start:301 > 300.
+// Ре-merge внутри цикла честно обнуляет start пограничного сегмента b (300 < 301 →
 // немонотонность), поэтому на втором проходе поиск insertAt (start === gap.fromSec === 300)
 // НИЧЕГО не находит: insertAt=-1. Без guard'а `merged.slice(0, insertAt+1)` = `merged.slice(0, 0)`
 // вставляет добор второй дыры ПРЕФИКСОМ перед "a" — молчаливая перестановка всего транскрипта.
 // Числа проверены прямыми вызовами mergeWindowSegments/findCoverageGaps И полным прогоном
 // runWindowedAsr (методика T3, см. журнал сессии) ДО фиксации фикстуры — включая сам баг
 // (воспроизведён до фикса insertAt<0 continue).
+// S12.3 (2026-07-29): h2 был start:350 в оригинальной фикстуре — after T2 клиппинг добора
+// (диапазон [10,300], допуск → [8,302]) отбросил бы 350 целиком, и cascade (insertAt<0) больше
+// НЕ воспроизводился бы этой фикстурой — клиппинг убирает переезд У ИСТОЧНИКА, до того как он
+// успевает испортить merge. Значение заменено на 301 — внутри clip-допуска добора ([8,302]), но
+// всё ещё > 300 (граница b/gap2), поэтому cascade (insertAt<0 guard) по-прежнему воспроизводится
+// и проверяется этим тестом; клиппинг и insertAt<0-guard — независимые, дополняющие друг друга
+// защиты на разных стадиях (проверено отдельно тестом "клиппинг добора…" ниже).
 test("I1: overshoot добора первой дыры стирает границу второй дыры → insertAt<0 не префикс-вставка", async () => {
   const calls = [];
   const res = await SI.runWindowedAsr({
@@ -327,7 +341,7 @@ test("I1: overshoot добора первой дыры стирает грани
     transcribe: async (a, b) => {
       calls.push([a, b]);
       if (a === null) return R({ segments: [seg(10, "a"), seg(300, "b"), seg(600, "c")] }); // дыры 10→300 и 300→600
-      if (a === 10 && b === 300) return R({ segments: [seg(50, "h1"), seg(350, "h2")] }); // overshoot: h2.start=350 > gap2.fromSec(300)
+      if (a === 10 && b === 300) return R({ segments: [seg(50, "h1"), seg(301, "h2")] }); // overshoot: h2.start=301 > gap2.fromSec(300), внутри clip-допуска [8,302]
       if (a === 300 && b === 600) return R({ segments: [seg(400, "h3")] }); // добор дыры 2 — граница (300) уже стёрта
       throw new Error("unexpected transcribe(" + a + "," + b + ")");
     },
@@ -345,4 +359,149 @@ test("I1: overshoot добора первой дыры стирает грани
   assert.deepEqual(res.healedGaps, [{ fromSec: 10, toSec: 300 }]); // только первая дыра реально добрана
   assert.ok(res.coverageGaps.length > 0);
   assert.ok(res.warnings.includes("ASR_COVERAGE_GAP"));
+});
+
+// ══════════════════════════════════════════════════════════════════════════════════════════
+// S12.3 (владелец 2026-07-29, живая 117-мин/8-окон приёмка): транскрипт содержал КРУПНЫЕ
+// ДУБЛИ-БЛОКИ — модель «заезжает» за запрошенный range-диапазон окна/половины/добора; следующий
+// вызов честно транскрибирует тот же звук заново, а немонотонные метки заехавших сегментов
+// каскадом порождают ложную «дыру» → ещё один добор того же участка → ещё одна копия. Фикс:
+// clipSegmentsToRange() — клиппинг результата КАЖДОГО ranged-вызова к его СОБСТВЕННОМУ диапазону
+// сразу после parse, до merge/findCoverageGaps. Тесты ниже: (a) юнит самого хелпера в изоляции,
+// (b)/(c) перехлёст окна «в бою» через полный runWindowedAsr (функциональный + control-регресс),
+// (d) клиппинг добора.
+// ══════════════════════════════════════════════════════════════════════════════════════════
+
+// (a) юнит clipSegmentsToRange — без runWindowedAsr, напрямую.
+test("(S12.3-a) clipSegmentsToRange: in-range сегменты остаются как есть", () => {
+  const input = [seg(10, "a"), seg(50, "b"), seg(90, "c")];
+  assert.deepEqual(SI.clipSegmentsToRange(input, 0, 100), input);
+});
+
+test("(S12.3-a) clipSegmentsToRange: числовой start за пределами допуска — отброшен", () => {
+  // допуск ASR_CLIP_TOLERANCE_SEC=2 → диапазон [0,100] допускает [-2,102]; 103 уже снаружи.
+  assert.equal(SI.ASR_CLIP_TOLERANCE_SEC, 2);
+  const out = SI.clipSegmentsToRange([seg(10, "a"), seg(103, "tooFar")], 0, 100);
+  assert.deepEqual(out.map((s) => s.text), ["a"]);
+});
+
+test("(S12.3-a) clipSegmentsToRange: в допуске ±2с (граница включительно) остаётся", () => {
+  const out = SI.clipSegmentsToRange(
+    [seg(-2, "loEdge"), seg(102, "hiEdge"), seg(-3, "belowLo"), seg(103, "aboveHi")], 0, 100);
+  assert.deepEqual(out.map((s) => s.text), ["loEdge", "hiEdge"]); // ровно на границе — сохранены
+});
+
+test("(S12.3-a) clipSegmentsToRange: null-start МЕЖДУ двумя in-range — сохранён", () => {
+  const out = SI.clipSegmentsToRange([seg(10, "a"), seg(null, "mid"), seg(50, "b")], 0, 100);
+  assert.deepEqual(out.map((s) => s.text), ["a", "mid", "b"]);
+});
+
+test("(S12.3-a) clipSegmentsToRange: голова/хвост из null при отброшенных соседях — отброшены", () => {
+  // голова: оба null упираются только в "faraway" (500, вне допуска) — отбрасываются вместе с ним.
+  const head = SI.clipSegmentsToRange([seg(null, "h1"), seg(null, "h2"), seg(500, "faraway")], 0, 100);
+  assert.deepEqual(head, []);
+  // хвост: симметрично, faraway первым, null-хвост после него.
+  const tail = SI.clipSegmentsToRange([seg(500, "faraway"), seg(null, "t1"), seg(null, "t2")], 0, 100);
+  assert.deepEqual(tail, []);
+  // смешанный случай в одном массиве: голова из null у отброшенного края ушла, null между
+  // in-range остался, in-range остался, хвост из null у отброшенного края ушёл.
+  const mixed = SI.clipSegmentsToRange(
+    [seg(null, "head1"), seg(500, "outHead"), seg(10, "a"), seg(null, "mid"), seg(50, "b"),
+     seg(-500, "outTail"), seg(null, "tail1")], 0, 100);
+  assert.deepEqual(mixed.map((s) => s.text), ["a", "mid", "b"]);
+});
+
+test("(S12.3-a) clipSegmentsToRange: пустой вход → пустой выход", () => {
+  assert.deepEqual(SI.clipSegmentsToRange([], 0, 100), []);
+});
+
+// (b)+(c) окно1 [0,900] «заезжает» вглубь окна2 (до 1400), окно2 [900,1800] честно покрывает
+// свою территорию 900..~1795 целиком — включая ТУ ЖЕ самую реплику ("OVERLAP_CONTENT"), которую
+// окно1 уже успело (неправомерно) продублировать за своей границей. Оба окна плотно покрыты
+// (шаг ≤80с — все зазоры <ASR_GAP_MAX_SEC=90с), чтобы единственная причина возможной "дыры" в
+// этом тесте — сам перехлёст/клиппинг, а не спарситость фикстуры.
+function denseSegs(fromSec, toSec, stepSec, prefix) {
+  const out = [];
+  let i = 0;
+  for (let t = fromSec; t <= toSec; t += stepSec, i++) out.push(seg(t, prefix + i));
+  return out;
+}
+function overlapFixture(calls) {
+  // окно1 [0,900): честная плотная часть 10..850 (шаг 70с, все <900+2 допуска) + "заезд" глубоко
+  // за границу (950,1150,1400) — включая OVERLAP_CONTENT на 950, дублирующий то, что окно2
+  // легитимно транскрибирует на 905 (та же реальная реплика, две попытки её транскрибировать).
+  const win1 = denseSegs(10, 850, 70, "w1-").concat(
+    [seg(950, "OVERLAP_CONTENT"), seg(1150, "w1-over-b"), seg(1400, "w1-over-c")]);
+  // окно2 [900,1800): честная плотная часть, начинающаяся с ЕГО СОБСТВЕННОЙ (легитимной) версии
+  // той же реплики на 905, затем покрытие до 1793 (≈1795, допуск задачи).
+  const win2 = [seg(905, "OVERLAP_CONTENT")].concat(denseSegs(975, 1745, 70, "w2-"))
+    .concat([seg(1793, "w2-last")]);
+  return async (a, b) => {
+    calls.push([a, b]);
+    if (a === 0) return R({ segments: win1 });
+    if (a === 900) return R({ segments: win2 });
+    throw new Error("unexpected transcribe(" + a + "," + b + ")");
+  };
+}
+
+test("(S12.3-b) перехлёст окна: заехавшие тексты окна1 отброшены, окно2 цел, дыр нет, доборов нет", async () => {
+  const calls = [];
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800, // windows [0,900) [900,1800)
+    transcribe: overlapFixture(calls),
+    parse: fakeParse, onProgress: () => {},
+  });
+  // в merged нет НИ ОДНОГО текста окна1 с start>902 (допуск окна1: [-2,902]) — заезд вырезан.
+  assert.ok(!res.segments.some((s) => typeof s.start === "number" && s.start > 902 &&
+                                       String(s.text).indexOf("w1-over") === 0));
+  assert.ok(!res.segments.some((s) => s.text === "w1-over-b" || s.text === "w1-over-c"));
+  // тексты окна2 присутствуют — и ровно один раз каждый (проверяем несколько характерных).
+  ["w2-0", "w2-last"].forEach((txt) => {
+    assert.equal(res.segments.filter((s) => s.text === txt).length, 1);
+  });
+  // ложной дыры нет — плотное честное покрытие обоих окон достаточно.
+  assert.deepEqual(res.coverageGaps, []);
+  // доборов не было: ровно 2 вызова transcribe (по одному на окно), ложная дыра не появилась.
+  assert.deepEqual(calls, [[0, 900], [900, 1800]]);
+});
+
+// (c) КОНТРОЛЬ КАСКАДА (регресс-тест бага владельца, R11): БЕЗ клиппинга "OVERLAP_CONTENT" от
+// окна1 (start:950, заезд) выжила бы в merged РЯДОМ с легитимной копией окна2 (start:905) —
+// видимый дубль реплики в транскрипте (ровно тот баг, о котором сообщил владелец). С клиппингом
+// заехавшая копия отбрасывается У ИСТОЧНИКА, до merge, — характерный текст встречается РОВНО 1 раз,
+// а не 2. Проверяем ТАКЖЕ, что каскад (немонотонность → ложная дыра → лишний добор) не наступает.
+test("(S12.3-c) контроль каскада: 'OVERLAP_CONTENT' встречается РОВНО 1 раз, добор НЕ вызван", async () => {
+  const calls = [];
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800,
+    transcribe: overlapFixture(calls),
+    parse: fakeParse, onProgress: () => {},
+  });
+  const occurrences = res.segments.filter((s) => s.text === "OVERLAP_CONTENT").length;
+  assert.equal(occurrences, 1); // БЕЗ фикса было бы 2 (окно1 заезд + окно2 легитимная копия)
+  // добор не вызывался вообще — только 2 window-вызова, никакого третьего (heal) вызова.
+  assert.equal(calls.length, 2);
+  assert.deepEqual(calls, [[0, 900], [900, 1800]]);
+  assert.deepEqual(res.coverageGaps, []);
+  assert.ok(!res.warnings.includes("ASR_COVERAGE_GAP"));
+});
+
+// (d) клиппинг добора: heal на [100,200] возвращает сегменты, простирающиеся до 350 (сам добор
+// тоже «заезжает» за свой запрошенный диапазон) — в merged из добора должны попасть ТОЛЬКО
+// сегменты ≤202 (допуск gap.toSec+2), 350 отброшен клиппингом до вставки в merged.
+test("(S12.3-d) клиппинг добора: heal [100,200] заезжает до 350 → в merged из добора только ≤202", async () => {
+  const res = await SI.runWindowedAsr({
+    durationSec: 380, // одно окно [0,380) — tail-gap 380-200=180 не >180, чисто
+    transcribe: async (a, b) => {
+      if (a === null) return R({ segments: [seg(100, "a"), seg(200, "b")] }); // дыра ровно 100→200 (>90)
+      if (a === 100 && b === 200) return R({ segments: [seg(120, "h1"), seg(180, "h2"), seg(350, "h3-overshoot")] });
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.deepEqual(res.segments.map((s) => s.text), ["a", "h1", "h2", "b"]); // h3-overshoot отсутствует
+  assert.ok(!res.segments.some((s) => s.text === "h3-overshoot"));
+  res.segments.forEach((s) => { if (typeof s.start === "number") assert.ok(s.start <= 202); });
+  assert.deepEqual(res.healedGaps, [{ fromSec: 100, toSec: 200 }]);
+  assert.deepEqual(res.coverageGaps, []);
 });

@@ -62,6 +62,49 @@
     return n === 1 ? "one" : "many"; // en, he: binary singular/plural
   }
 
+  // S12.3 (владелец 2026-07-28, живая 117-мин/8-окон приёмка): транскрипт содержал КРУПНЫЕ
+  // ДУБЛИ-БЛОКИ. Диагноз по паре источник/результат: (1) модель «заезжает» за запрошенный
+  // диапазон range-промта (ASR_RANGE_PROMPT «ONLY a..b» нарушается) → следующий вызов честно
+  // транскрибирует ТОТ ЖЕ звук заново — дубль. (2) каскад: у заехавших сегментов немонотонные
+  // метки относительно предыдущего сегмента ЭТОГО ЖЕ вызова → mergeWindowSegments честно обнуляет
+  // их start (R11) → findCoverageGaps видит ЛОЖНУЮ «дыру» там, где материал уже покрыт → добор
+  // транскрибирует тот же участок ЕЩЁ раз → ещё одна копия; бисекция (S12.2) добавляет свои
+  // границы с тем же перехлёстом. Фикс: клиппинг результата КАЖДОГО ranged-вызова (окно/половина
+  // бисекции/добор — НЕ single null-диапазон, там нет запрошенного числового диапазона) к его
+  // СОБСТВЕННОМУ диапазону сразу после parse, ДО merge/findCoverageGaps:
+  //   - числовой start вне [startSec-TOL, endSec+TOL] → модель нарушила SCOPE, этот текст не наш —
+  //     его уже честно даёт (или даст) СВОЙ вызов; отбрасываем. (R11-оговорка: «текст всегда
+  //     сохраняется» — про ненадёжный тайминг НАШЕГО материала; чужой диапазон — не наш текст.)
+  //   - null-start (модель не проставила метку) сохраняется, если БЛИЖАЙШИЙ (по позиции, с любой
+  //     стороны) числовой сосед — in-range: он структурно привязан к нашему материалу. Голова/хвост
+  //     из сплошных null, чей единственный числовой сосед отброшен, — тоже отбрасывается (это,
+  //     скорее всего, продолжение чужого заехавшего блока, а не наш текст).
+  var ASR_CLIP_TOLERANCE_SEC = 2; // граница реплики может чуть плавать; большой перехлёст = чужой диапазон
+
+  function clipSegmentsToRange(segments, startSec, endSec) {
+    var list = Array.isArray(segments) ? segments : [];
+    var lo = startSec - ASR_CLIP_TOLERANCE_SEC, hi = endSec + ASR_CLIP_TOLERANCE_SEC;
+    // Pass 1: числовые start классифицируются in-range(true)/out-of-range(false); null (модель не
+    // дала метку) остаётся неопределённым (null в этом массиве) до pass 2.
+    var inRange = list.map(function (s) {
+      if (typeof s.start !== "number" || !isFinite(s.start)) return null;
+      return s.start >= lo && s.start <= hi;
+    });
+    // Pass 2: null-start наследует статус от БЛИЖАЙШЕГО числового соседа с любой стороны (OR —
+    // хватает одной подтверждающей стороны, см. комментарий выше); если оба отсутствуют/отброшены
+    // (голова/хвост подряд идущих null у отброшенного края) — отбрасываем.
+    var out = [];
+    for (var i = 0; i < list.length; i++) {
+      if (inRange[i] !== null) { if (inRange[i]) out.push(list[i]); continue; }
+      var leftOk = false;
+      for (var l = i - 1; l >= 0; l--) { if (inRange[l] !== null) { leftOk = inRange[l]; break; } }
+      var rightOk = false;
+      for (var r = i + 1; r < list.length; r++) { if (inRange[r] !== null) { rightOk = inRange[r]; break; } }
+      if (leftOk || rightOk) out.push(list[i]);
+    }
+    return out;
+  }
+
   // W2-S12: оркестратор окон ASR. Pure-логика с инъекцией transcribe/parse — тестируется в Node
   // фейками (tests/runWindowedAsr.test.js); сетевые вызовы даёт Task 4. Дизайн §4.3.
   // ВАЖНО (R11): добор дыры — ×1 на дыру, максимум maxHeals доборов на прогон; остаток дыр
@@ -101,12 +144,16 @@
       var halves = [[a, mid], [mid, b]];
       var segments = [], warnings2 = [], language2 = null, skippedRanges = [];
       var calls = 2; // исходные 2 вызова [a,b] (оба ASR_BAD_JSON) — привели к бисекции
+      var clippedCount = 0; // S12.3 провенанс: сколько сегментов отброшено клиппингом обеих половин
       for (var h = 0; h < halves.length; h++) {
         var hs = halves[h][0], he = halves[h][1];
         try {
           var half = await oneCall(hs, he);
           calls += half.retries + 1;
-          segments = segments.concat(half.parsed.segments); // половины уже упорядочены по времени
+          // S12.3: своя половина — свой диапазон; клипь ДО конкатенации, до merge.
+          var halfClipped = clipSegmentsToRange(half.parsed.segments, hs, he);
+          clippedCount += half.parsed.segments.length - halfClipped.length;
+          segments = segments.concat(halfClipped); // половины уже упорядочены по времени
           if (!language2 && half.parsed.language) language2 = half.parsed.language;
           (half.parsed.warnings || []).forEach(function (w) { if (warnings2.indexOf(w) < 0) warnings2.push(w); });
         } catch (e2) {
@@ -116,14 +163,21 @@
         }
       }
       return { parsed: { segments: segments, language: language2, warnings: warnings2 },
-               retries: calls - 1, bisected: true, skippedRanges: skippedRanges };
+               retries: calls - 1, bisected: true, skippedRanges: skippedRanges, clippedCount: clippedCount };
     }
 
     for (var k = startAt; k < wins.length; k++) {
       deps.onProgress(k + 1, wins.length);
-      var r;
+      var r, clippedCount = 0;
       try {
         r = single ? await oneCall(null, null) : await oneCall(wins[k].startSec, wins[k].endSec);
+        // S12.3: single отправляет null-диапазон (нет запрошенных числовых границ) — не клипим.
+        // Ranged-окно — клипь к СВОЕМУ [startSec,endSec] сразу после parse, до merge/findCoverageGaps.
+        if (!single) {
+          var clippedSegs = clipSegmentsToRange(r.parsed.segments, wins[k].startSec, wins[k].endSec);
+          clippedCount = r.parsed.segments.length - clippedSegs.length;
+          r.parsed.segments = clippedSegs;
+        }
       } catch (e) {
         if (e.code !== "ASR_BAD_JSON") { e.windowIndex = k; e.windowSegments = windowSegments; throw e; }
         try {
@@ -131,11 +185,15 @@
           // файла (иначе он никогда бы не использовался); честно, не молчаливая деградация.
           r = single ? await bisectWindow(0, deps.durationSec)
                      : await bisectWindow(wins[k].startSec, wins[k].endSec);
+          clippedCount = r.clippedCount || 0; // bisectWindow клипит обе половины сам, к своим под-диапазонам
         } catch (e2) { e2.windowIndex = k; e2.windowSegments = windowSegments; throw e2; }
       }
       var meta = { startSec: wins[k].startSec, endSec: wins[k].endSec, retries: r.retries };
       if (r.bisected) meta.bisected = true; // R9 провенанс: окно потребовало бисекции
       if (r.skippedRanges && r.skippedRanges.length) meta.skippedRanges = r.skippedRanges; // R9: честный пропуск
+      // R9 провенанс (S12.3): пишем ТОЛЬКО когда >0 — единообразно с bisected/skippedRanges выше
+      // (те тоже присутствуют в meta только когда true/непусто, отсутствие поля = «ничего особого»).
+      if (clippedCount > 0) meta.clippedCount = clippedCount;
       windowsMeta.push(meta);
       windowSegments.push(r.parsed.segments);
       if (!language && r.parsed.language) language = r.parsed.language;
@@ -152,6 +210,10 @@
       var heal;
       try { heal = await oneCall(gap.fromSec, gap.toSec); }
       catch (_) { continue; } // добор best-effort: неудача = дыра остаётся честной
+      // S12.3: добор — тоже ranged-вызов со своим диапазоном [gap.fromSec, gap.toSec]; клипь ДО
+      // проверки .length — добор, целиком заехавший за дыру, эквивалентен «ничего не нашёл»
+      // (дыра честно остаётся открытой, а не молча зарастает чужим материалом).
+      heal.parsed.segments = clipSegmentsToRange(heal.parsed.segments, gap.fromSec, gap.toSec);
       if (heal.parsed.segments.length) {
         // Позиционная (не по значению start) вставка (fix R11-порядка, ревью после T3): граница
         // дыры — это КОНКРЕТНЫЙ сегмент в merged с start===gap.fromSec (findCoverageGaps берёт
@@ -186,7 +248,8 @@
   if (typeof window === "undefined") {
     if (typeof module !== "undefined" && module.exports) {
       module.exports = { chooseTrackHint: chooseTrackHint, pluralCategory: pluralCategory, uniqueLangCount: uniqueLangCount,
-                          runWindowedAsr: runWindowedAsr };
+                          runWindowedAsr: runWindowedAsr, clipSegmentsToRange: clipSegmentsToRange,
+                          ASR_CLIP_TOLERANCE_SEC: ASR_CLIP_TOLERANCE_SEC };
     }
     return;
   }
@@ -886,5 +949,6 @@
                            onFileChosen: onFileChosen, onAudioChosen: onAudioChosen, transcribeAudio: transcribeAudio,
                            onCaptionsFileChosen: onCaptionsFileChosen, useCaptionsPaste: useCaptionsPaste,
                            useText: useText, useTextAndRetell: useTextAndRetell,
-                           chooseTrackHint: chooseTrackHint, runWindowedAsr: runWindowedAsr };
+                           chooseTrackHint: chooseTrackHint, runWindowedAsr: runWindowedAsr,
+                           clipSegmentsToRange: clipSegmentsToRange, ASR_CLIP_TOLERANCE_SEC: ASR_CLIP_TOLERANCE_SEC };
 })();
