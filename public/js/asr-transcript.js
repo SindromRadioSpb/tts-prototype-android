@@ -330,7 +330,9 @@
           var prefixText = String(A[cutK].text).slice(0, toks[prefixWords - 1].to).replace(/\s+$/, "");
           if (prefixText) {
             keep[s][cutK] = true;
-            repl[s][cutK] = { start: A[cutK].start, text: prefixText };
+            // Preserve provider-neutral provenance fields (id/end/chunkIndex) when present.
+            // Cloud callers still observe the same {start,text} shape they supplied.
+            repl[s][cutK] = Object.assign({}, A[cutK], { start: A[cutK].start, text: prefixText });
             trimmedWords = prefixWords;
             dropK--; // сегмент не отброшен, а усечён
           }

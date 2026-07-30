@@ -15,7 +15,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from ai_local.asr_jobs import AsrJobManager
+from ai_local.asr_jobs import AsrJobManager, _canonical_sha256
 from ai_local.gpu_scheduler import HeavyGpuScheduler, LeaseCancelled, heavy_gpu_scheduler
 from ai_local.media_slicer import Window, _wait_process, asr_windows, probe_source, slice_window
 from ai_local.telemetry import GpuSample, TelemetryRecorder
@@ -29,6 +29,12 @@ def _wav_bytes(duration_sec: float = 1.0, rate: int = 16_000) -> bytes:
         wav.setframerate(rate)
         wav.writeframes(b"\0\0" * int(duration_sec * rate))
     return buffer.getvalue()
+
+
+def test_canonical_hash_matches_browser_normalizer_contract():
+    assert _canonical_sha256({"z": "שלום", "a": [2, 1]}) == (
+        "bed45b584fee349f5d790ac68bbd636564530e811c6bcce0d4b5ca41346d7523"
+    )
 
 
 async def _stream(payload: bytes):
@@ -283,6 +289,11 @@ async def test_single_job_executor_writes_atomic_checkpoints_and_result(monkeypa
         assert result["selected_provider"] == "local"
         assert result["actual_provider"] == "local-faster-whisper"
         assert len(result["chunks"]) == 1
+        assert result["chunks"][0]["worker_input"]["kind"] == "physical-chunk"
+        assert result["chunks"][0]["worker_input"]["source_handle_exposed"] is False
+        assert result["chunks"][0]["raw_canonical_sha256"] == _canonical_sha256(
+            result["chunks"][0]["raw"]
+        )
         path = manager.job_dir(job_id)
         assert (path / "chunks" / "chunk-0000.wav").is_file()
         assert (path / "raw" / "chunk-0000.json").is_file()

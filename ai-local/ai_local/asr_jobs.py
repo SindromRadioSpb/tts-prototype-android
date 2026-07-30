@@ -5,9 +5,12 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import hashlib
+import importlib.metadata
 import json
 import os
+import platform
 import shutil
+import subprocess
 import time
 import uuid
 from datetime import datetime, timezone
@@ -76,6 +79,52 @@ def _atomic_json(path: Path, payload: dict[str, Any]) -> None:
 
 def _json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _canonical_sha256(payload: Any) -> str:
+    encoded = json.dumps(
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _runtime_provenance(ffmpeg: str) -> dict[str, Any]:
+    packages: dict[str, str | None] = {}
+    for name in ("faster-whisper", "ctranslate2"):
+        try:
+            packages[name] = importlib.metadata.version(name)
+        except importlib.metadata.PackageNotFoundError:
+            packages[name] = None
+    gpu: dict[str, str | None] = {"name": None, "driver_version": None}
+    try:
+        completed = subprocess.run(
+            [
+                "nvidia-smi",
+                "--query-gpu=name,driver_version",
+                "--format=csv,noheader",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        rows = [line.strip() for line in completed.stdout.splitlines() if line.strip()]
+        if len(rows) == 1:
+            name, driver = (part.strip() for part in rows[0].split(",", 1))
+            gpu = {"name": name, "driver_version": driver}
+    except (OSError, subprocess.SubprocessError, ValueError):
+        pass
+    return {
+        "python": platform.python_version(),
+        "platform": platform.platform(),
+        "faster_whisper": packages["faster-whisper"],
+        "ctranslate2": packages["ctranslate2"],
+        "ffmpeg": ffmpeg,
+        "gpu": gpu,
+    }
 
 
 def _public_job(record: dict[str, Any]) -> dict[str, Any]:
@@ -443,6 +492,8 @@ class AsrJobManager:
             record["chunks_total"] = len(windows)
             _atomic_json(manifest_path, record)
             version = await asyncio.to_thread(ffmpeg_version)
+            record["runtime"] = await asyncio.to_thread(_runtime_provenance, version)
+            _atomic_json(manifest_path, record)
             await recorder.start()
 
             self._save_state(path, record, "WAITING_FOR_GPU")
@@ -481,10 +532,10 @@ class AsrJobManager:
 
             self._save_state(path, record, "VALIDATING")
             recorder.require_healthy()
+            record["telemetry"] = recorder.summary()
             result = self._build_result(path, record)
             _atomic_json(path / RESULT_NAME, result)
             record["result_available"] = True
-            record["telemetry"] = recorder.summary()
             self._save_state(path, record, "COMPLETE")
         except MultipleAudioStreams as exc:
             record["available_audio_streams"] = exc.choices
@@ -580,9 +631,20 @@ class AsrJobManager:
             if not entry.get("completed"):
                 continue
             raw = _json(path / "raw" / entry["raw_file"])
-            chunks.append({"manifest": entry, "raw": raw})
+            chunks.append({
+                "manifest": entry,
+                "worker_input": {
+                    "kind": "physical-chunk",
+                    "chunk_sha256": entry["chunk_sha256"],
+                    "source_handle_exposed": False,
+                },
+                "raw_file_sha256": entry["raw_sha256"],
+                "raw_canonical_sha256": _canonical_sha256(raw),
+                "raw": raw,
+            })
         return {
             "schema": "studio-local-asr-result-v1",
+            "sidecar_protocol": "studio-local-asr-l1-v1",
             "job_id": record["job_id"],
             "attempt_id": record["attempt_id"],
             "selected_provider": "local",
@@ -591,6 +653,8 @@ class AsrJobManager:
             "source_bytes": record["source_bytes"],
             "duration_sec": record["duration_sec"],
             "model": record["model"],
+            "runtime": record.get("runtime"),
+            "telemetry": record.get("telemetry"),
             "chunks": chunks,
         }
 
