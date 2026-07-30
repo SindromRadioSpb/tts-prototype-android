@@ -3129,6 +3129,7 @@ window.I18N_LOCALES.he = {
       asrSummaryGapsMore: "ועוד {n}",
       asrSummaryRejected: "חלונות שנפסלו: {n}",
       asrSummaryUnreliable: "תזמון לא אמין: {list} (הטקסט של הדקות האלה קיים, הקריוקי עלול לסטות)",
+      asrSummaryClockCompressed: "התזמון לא שוחזר: {list} (הטקסט קיים, הקריוקי מכובה בדקות האלה)",
       asrSummaryHealed: "השלמות: {n}",
       asrSummaryFlagged: "הזיהוי אינו מלא — בדקו את הטקסט",
       asrSummaryConfirmTitle: "חלק מההקלטה לא זוהה",

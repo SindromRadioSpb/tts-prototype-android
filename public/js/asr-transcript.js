@@ -578,6 +578,69 @@
   // 0.375 против требуемых 0.15.
   var DENSITY_GAP_VOLUME_MARGIN = 0.15;
 
+  // ── S12.7: СЖАТЫЕ ЧАСЫ ЧАНКА ────────────────────────────────────────────────────────────
+  // Живой замер 2026-07-30 (docs/research/studio-karaoke-clock-drift/2026-07-30/FINDINGS.md):
+  // сломанные прогоны кроют метками 0.69–0.71 окна при объёме текста 0.99; здоровые — 0.90–0.99
+  // при том же объёме. Запас 0.15 лежит между ними (ближайший здоровый — 0.094) и заодно
+  // покрывает СИСТЕМАТИЧЕСКОЕ занижение покрытия: markToSec — это НАЧАЛО последнего сегмента,
+  // его собственная длительность (ASR_PROMPT ограничивает её ~15с) в размах не входит. Для
+  // 900-секундного окна это ≈1.7%, для минимально судимого 120-секундного — ≈12%, поэтому ниже
+  // CLOCK_MIN_WINDOW_SEC вердикт не выносится вовсе: там смещение съело бы весь запас.
+  var CLOCK_SPAN_MARGIN = 0.15;
+  // На горстке сегментов размах меток — не статистика: одна длинная реплика в хвосте двигает его
+  // на десятки процентов. Живые чанки дают 34–138 сегментов; 8 — заведомо ниже любого реального.
+  var CLOCK_MIN_SEGMENTS = 8;
+  var CLOCK_MIN_WINDOW_SEC = 120;
+
+  // Сжатые часы ЧАНКА — факт, независимый от разрывов (classifyGap судит НАЙДЕННЫЙ разрыв, а
+  // сжатие на 15% разрыва не даёт вовсе: hop между соседними метками остаётся мелким, хвост —
+  // короче ASR_TAIL_GAP_SEC, и тайминг уезжает на минуты молча). Здесь судится САМ РАЗМАХ
+  // МЕТОК против объёма текста окна.
+  //
+  // Ожидание — не «метки обязаны покрыть всё окно» (окно имеет право честно молчать), а «метки
+  // обязаны покрыть ту долю окна, которую занимает речь». Единственная имеющаяся у нас оценка
+  // этой доли, НЕ зависящая от меток, — объём текста относительно базы прогона (densityRatio).
+  // Обрезка единицей обязательна с обеих сторон честности: покрытие физически не может превысить
+  // 100% окна, поэтому окно РЕЧИСТЕЕ базы (densityRatio 1.25) при полном покрытии иначе давало бы
+  // diff 0.25 и объявлялось сжатым — ложное обвинение здорового окна (тест S12.7-R11).
+  //
+  // Судить окно можно, только если базу образует КТО-ТО КРОМЕ НЕГО: иначе медиана равна его же
+  // плотности, densityRatio выходит ровно 1.0 ПО ПОСТРОЕНИЮ, и оракул судит сам себя (та же
+  // причина, по которой classifyGap не доверяет базе из подсудимого). Условие именно «есть другое
+  // окно В БАЗЕ», а не «в базе ≥2 окна»: сжатый чанк, вдобавок получивший внутренний разрыв,
+  // из базы исключён — и правило «≥2» тогда молча снимало бы с него обвинение (поймано тестом
+  // «дробление улучшило, но не вылечило»: после дробления у окна появляются швы-разрывы).
+  // Осознанный остаток: файл ≤15 мин = одно окно, и сжатие его часов этот детектор не увидит;
+  // его ловит только прежний путь (разрыв ≥ ASR_TAIL_GAP_SEC → classifyGap → marks-unreliable).
+  //
+  // density — результат runSpeechDensity. Возврат — [] либо по записи на сжатый чанк:
+  //   {windowIdx, fromSec, toSec, coverageRatio, expectedRatio, densityRatio, marginRequired}.
+  function classifyClockCompression(density) {
+    var d = density || {};
+    var stats = Array.isArray(d.windows) ? d.windows : [];
+    var out = [];
+    if (!d.usable) return out;
+    for (var i = 0; i < stats.length; i++) {
+      var s = stats[i];
+      if (s.densityRatio === null || s.markFromSec === null || s.markToSec === null) continue;
+      if (s.segments < CLOCK_MIN_SEGMENTS || s.windowSec < CLOCK_MIN_WINDOW_SEC) continue;
+      var independent = false;
+      for (var j = 0; j < stats.length; j++) { if (j !== i && stats[j].inBaseline) { independent = true; break; } }
+      if (!independent) continue;
+      var coverage = (s.markToSec - s.markFromSec) / s.windowSec;
+      var expected = Math.min(1, s.densityRatio);
+      if (expected - coverage < CLOCK_SPAN_MARGIN) continue;
+      out.push({
+        windowIdx: s.windowIdx, fromSec: s.startSec, toSec: s.endSec,
+        coverageRatio: Math.round(coverage * 100) / 100,
+        expectedRatio: Math.round(expected * 100) / 100,
+        densityRatio: Math.round(s.densityRatio * 100) / 100,
+        marginRequired: CLOCK_SPAN_MARGIN,
+      });
+    }
+    return out;
+  }
+
   function densityMedian(nums) {
     var v = nums.slice().sort(function (a, b) { return a - b; });
     if (!v.length) return null;
@@ -629,9 +692,14 @@
     // той же причине. Короткие окна (хвост файла) в базу не идут тоже: у 40-секундного окна
     // «слов/сек» пляшет от одной фразы. Не осталось НИ ОДНОГО подходящего окна ⇒ базы нет ⇒
     // суждение не выносится, все разрывы остаются честными дырами.
-    var pool = stats.filter(function (s) {
-      return s.wordsPerSec !== null && s.words > 0 && !s.internalGap && s.windowSec >= DENSITY_BASELINE_MIN_WINDOW_SEC;
-    });
+    // Принадлежность окна базе — ФАКТ прогона, а не внутренняя деталь: S12.7 обязан знать, что
+    // конкретно ЭТО окно судится не самим собой (см. classifyClockCompression). Восстанавливать
+    // предикат пула снаружи было бы вторым мнением о том, что такое база.
+    for (i = 0; i < stats.length; i++) {
+      stats[i].inBaseline = stats[i].wordsPerSec !== null && stats[i].words > 0 &&
+                            !stats[i].internalGap && stats[i].windowSec >= DENSITY_BASELINE_MIN_WINDOW_SEC;
+    }
+    var pool = stats.filter(function (s) { return s.inBaseline; });
     var base = densityMedian(pool.map(function (s) { return s.wordsPerSec; }));
     for (i = 0; i < stats.length; i++) {
       if (base !== null && base > 0 && stats[i].wordsPerSec !== null) stats[i].densityRatio = stats[i].wordsPerSec / base;
@@ -801,6 +869,12 @@
     var warnings = Array.isArray(r.warnings) ? r.warnings : [];
     var healed = Array.isArray(r.healedGaps) ? r.healedGaps.length : 0;
     var unrelIn = Array.isArray(r.unreliableMarkRanges) ? r.unreliableMarkRanges : [];
+    // S12.7 — ТРЕТИЙ факт, не сливаемый ни с потерей, ни с «ненадёжным таймингом». Разница с
+    // S12.6 не косметическая: там метки ОТСУТСТВУЮТ на куске и караоке «может уезжать», здесь
+    // часы чанка сжаты, переспрос и дробление не помогли, и караоке на этих минутах ВЫКЛЮЧЕНО
+    // (buildRowTiming помечает записи blind). Одна строка на два факта вернула бы ровно ту
+    // неразличимость, которую чинил S12.6.
+    var clockIn = Array.isArray(r.clockCompressedRanges) ? r.clockCompressedRanges : [];
 
     var ranges = [], nr, i;
     for (i = 0; i < gapsIn.length; i++) {
@@ -832,6 +906,15 @@
     var unreliableSec = 0;
     for (i = 0; i < unrelRanges.length; i++) unreliableSec += unrelRanges[i].toSec - unrelRanges[i].fromSec;
 
+    var clockRanges = [];
+    for (i = 0; i < clockIn.length; i++) {
+      nr = normRange(clockIn[i] && clockIn[i].fromSec, clockIn[i] && clockIn[i].toSec, dur);
+      if (nr) clockRanges.push(nr);
+    }
+    clockRanges = mergeRanges(clockRanges);
+    var clockCompressedSec = 0;
+    for (i = 0; i < clockRanges.length; i++) clockCompressedSec += clockRanges[i].toSec - clockRanges[i].fromSec;
+
     var windowsOk = 0;
     for (i = 0; i < wins.length; i++) {
       var w = wins[i] || {};
@@ -842,7 +925,7 @@
     var flagged = warnings.indexOf("ASR_COVERAGE_GAP") >= 0 || warnings.indexOf("ASR_WINDOW_REPLAY") >= 0;
     var level;
     if (rejected > 0 || lostPct > SUMMARY_WARN_PCT) level = "bad";
-    else if (lostSec > 0 || unrelRanges.length || windowsOk < wins.length || flagged) level = "warn";
+    else if (lostSec > 0 || unrelRanges.length || clockRanges.length || windowsOk < wins.length || flagged) level = "warn";
     else level = "ok";
 
     return { windowsTotal: wins.length, windowsOk: windowsOk,
@@ -850,6 +933,9 @@
              gaps: gaps, healed: healed, rejected: rejected,
              // S12.6: «тайминг ненадёжен» — свой счётчик и свой список, НЕ часть потери.
              unreliable: unrelRanges.length, unreliableRanges: unrelRanges, unreliableSec: unreliableSec,
+             // S12.7: чанки, чьи часы не удалось вылечить — караоке на них выключено.
+             clockCompressed: clockRanges.length, clockCompressedRanges: clockRanges,
+             clockCompressedSec: clockCompressedSec,
              level: level };
   }
 
@@ -1238,14 +1324,32 @@
   // segments (после validateSegments) + segment_index каждой строки таблицы → [{o,t}]:
   // o = ПЕРВАЯ строка сегмента, t = его start. <2 записей → null (караоке честно выключено).
   // ⚠ Вызывать ТОЛЬКО после validateRowSegMapping().ok — сама функция осмысленность НЕ проверяет.
-  function buildRowTiming(segments, rowSegIdx) {
+  //
+  // S12.7 blindRanges = [{fromSec,toSec}] (classifyClockCompression): чанки, чьи часы остались
+  // сжатыми после починки. Их записи не выбрасываются (тогда караоке молча держало бы последнюю
+  // честную строку весь чанк — «уверенно показывает не ту строку» другим способом), а помечаются
+  // `blind:true`: StudioMediaKaraoke на них не подсвечивает НИЧЕГО и отказывает в повторе строки.
+  // Честными считаются только записи ВНЕ диапазонов — если их меньше двух, караоке нет вовсе.
+  function buildRowTiming(segments, rowSegIdx, blindRanges) {
     var firstRow = new Map();
     var rows = Array.isArray(rowSegIdx) ? rowSegIdx : [];
     for (var r = 0; r < rows.length; r++) {
       var si = rows[r];
       if (Number.isInteger(si) && !firstRow.has(si)) firstRow.set(si, r);
     }
-    var entries = [], lastT = -Infinity;
+    var blind = [];
+    var rawBlind = Array.isArray(blindRanges) ? blindRanges : [];
+    for (var b = 0; b < rawBlind.length; b++) {
+      var f = rawBlind[b] && rawBlind[b].fromSec, tt = rawBlind[b] && rawBlind[b].toSec;
+      if (typeof f === "number" && isFinite(f) && typeof tt === "number" && isFinite(tt) && tt > f) {
+        blind.push({ fromSec: f, toSec: tt });
+      }
+    }
+    function isBlind(t) {
+      for (var i = 0; i < blind.length; i++) { if (t >= blind[i].fromSec && t <= blind[i].toSec) return true; }
+      return false;
+    }
+    var entries = [], lastT = -Infinity, honest = 0;
     var segs = Array.isArray(segments) ? segments : [];
     for (var k = 0; k < segs.length; k++) {
       var st = segs[k] && segs[k].start;
@@ -1253,10 +1357,15 @@
       var row = firstRow.get(segs[k].i != null ? segs[k].i : k);
       if (row == null) continue;
       if (st < lastT) continue; // страховка (validateSegments уже отфильтровал)
-      entries.push({ o: row, t: st });
+      var e = { o: row, t: st };
+      if (isBlind(st)) e.blind = true; else honest++;
+      entries.push(e);
       lastT = st;
     }
-    return entries.length >= 2 ? { v: 1, unit: "row", entries: entries } : null;
+    if (honest < 2) return null;
+    var out = { v: 1, unit: "row", entries: entries };
+    if (blind.length) out.blindRanges = blind; // R9: почему часть записей слепа
+    return out;
   }
 
   var API = {
@@ -1277,6 +1386,9 @@
     REPLAY_SHINGLE_K: REPLAY_SHINGLE_K, REPLAY_REJECT_RATIO: REPLAY_REJECT_RATIO,
     REPLAY_MIN_SHINGLES: REPLAY_MIN_SHINGLES,
     replayRatio: replayRatio, collectShingles: collectShingles,
+    // Одно правило «что такое слово» на весь проект: им считает объём runSpeechDensity, им же
+    // обязана считать починка S12.7, иначе её порог «текста не стало меньше» мерил бы другое.
+    stitchNormalizeWords: stitchNormalizeWords,
     replaySeamSkipWords: replaySeamSkipWords, // шовное исключение (whole-branch ревью S12.5)
     asrWindows: asrWindows, asrSeams: asrSeams, ASR_RANGE_PROMPT: ASR_RANGE_PROMPT,
     mergeWindowSegments: mergeWindowSegments, stitchWindowSegments: stitchWindowSegments,
@@ -1288,6 +1400,10 @@
     DENSITY_GAP_VOLUME_MARGIN: DENSITY_GAP_VOLUME_MARGIN,
     DENSITY_MIN_BASELINE_WPS: DENSITY_MIN_BASELINE_WPS,
     DENSITY_BASELINE_MIN_WINDOW_SEC: DENSITY_BASELINE_MIN_WINDOW_SEC,
+    // S12.7: сжатые часы чанка — размах меток против объёма текста (разрыв для этого не нужен).
+    classifyClockCompression: classifyClockCompression,
+    CLOCK_SPAN_MARGIN: CLOCK_SPAN_MARGIN, CLOCK_MIN_SEGMENTS: CLOCK_MIN_SEGMENTS,
+    CLOCK_MIN_WINDOW_SEC: CLOCK_MIN_WINDOW_SEC,
     // S12.5 T4: сводка прогона + её форматтер времени (UI обязан печатать те же мм:сс/ч:мм:сс,
     // что парсит secondsFromTimestamp — второй формат времени в проекте не заводим).
     summarizeAsrRun: summarizeAsrRun, fmtClock: fmtClock, SUMMARY_WARN_PCT: SUMMARY_WARN_PCT,

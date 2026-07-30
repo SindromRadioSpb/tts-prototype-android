@@ -12364,9 +12364,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=78"></script>
-<script src="/i18n/locales/en.js?v=78"></script>
-<script src="/i18n/locales/he.js?v=78"></script>
+<script src="/i18n/locales/ru.js?v=79"></script>
+<script src="/i18n/locales/en.js?v=79"></script>
+<script src="/i18n/locales/he.js?v=79"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12508,7 +12508,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.268";
+    window.APP_VERSION = "3.11.270";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -23489,6 +23489,18 @@ function v3AttachImportSource() {
 // «строка ответа принадлежит своей строке текста» делает AsrTranscript.premiumRowLineIdx.
 // Это нужно, потому что google-free — ДЕФОЛТНЫЙ провайдер владельца: после K1 он остался бы
 // без караоке вовсе.
+// S12.7 (docs/research/studio-karaoke-clock-drift/2026-07-30): диапазоны, чьи часы прогон
+// признал сжатыми и НЕ смог вылечить переспросом/дроблением. Единственный источник — паспорт
+// прогона (`asr.clockCompressedRanges`): вердикт выносился по СЫРЫМ окнам, которых здесь уже
+// нет, и пересчитать его по склеенным сегментам нельзя. Отсутствие поля (карточки, снятые до
+// S12.7) = «не судили» — молчим, а не объявляем всё сжатым (R11: не ухудшать).
+function v3ClockBlindRanges(audio) {
+  const raw = audio && audio.asr && audio.asr.clockCompressedRanges;
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((r) => r && typeof r.fromSec === "number" && typeof r.toSec === "number" && r.toSec > r.fromSec)
+            .map((r) => ({ fromSec: r.fromSec, toSec: r.toSec }));
+}
+
 function v3AttachAudioTiming(res, segMode, premiumLines) {
   try {
     const src = v3LastGeminiMeta && v3LastGeminiMeta.source;
@@ -23577,6 +23589,31 @@ function v3AttachAudioTiming(res, segMode, premiumLines) {
       rowSegIdx = pm.idx;
       premiumMapReason = pm.reason;
     }
+    // ── S12.7: ОДИН ПРОЦЕСС НА ВСЕХ ПРОВАЙДЕРОВ ────────────────────────────────────────────
+    // Выше — два РАЗНЫХ поля двух РАЗНЫХ провайдеров, и оба требуют строгой идентичности
+    // «строка = сегмент»: стоит модели слить или разбить реплику, и караоке исчезает у обоих.
+    // Выравнивание по тексту (K3, alignRowsToSegments) не требует от провайдера НИЧЕГО, работает
+    // 1:N и несёт собственный оракул (каждый сегмент покрыт словами своих строк целиком).
+    // Поэтому оно считается ВСЕГДА и, когда сходится, становится основным маппингом:
+    // доказательство сильнее утверждения — тот же довод, по которому K3 замещает сохранённый
+    // тайминг. Индекс провайдера при этом не выбрасывается, а становится ПЕРЕКРЁСТНОЙ ПРОВЕРКОЙ:
+    // расхождение попадает в провенанс (R9), потому что означает, что кто-то из двух неправ,
+    // и следующая живая приёмка обязана это видеть.
+    let mapSource = segMode === true ? "segment_index" : (rowSegIdx.length ? "source_line_index" : "none");
+    let mapDisagreed = 0;
+    if (typeof AT.alignRowsToSegments === "function" && segCount > 0 && rows.length) {
+      const al = AT.alignRowsToSegments(rows.map((r) => String((r && (r.he || r.he_plain || r.hebrew)) || "")),
+                                        audio.segments);
+      if (al.ok) {
+        for (let i = 0; i < al.rowSegIdx.length; i++) {
+          if (rowSegIdx[i] != null && al.rowSegIdx[i] !== rowSegIdx[i]) mapDisagreed++;
+        }
+        mapSource = rowSegIdx.length ? mapSource + "+aligned" : "aligned";
+        rowSegIdx = al.rowSegIdx;
+        premiumMapReason = null; // маппинг доказан текстом — прежняя претензия к полю снята
+      }
+    }
+    audio.timingMap = { source: mapSource, disagreed: mapDisagreed, rows: rows.length, segments: segCount };
     // Фикс 2026-07-30: гейт «есть целые числа» заменён на проверку ОСМЫСЛЕННОСТИ маппинга
     // (диапазон/монотонность/непрерывность/не-вырожденность, AsrTranscript.validateRowSegMapping).
     // Премиум-индексы проходят ТУ ЖЕ проверку — правила K1 не ослабляем: source_line_index уже
@@ -23586,8 +23623,19 @@ function v3AttachAudioTiming(res, segMode, premiumLines) {
     // неверной (R11).
     const mapCheck = AT.validateRowSegMapping(rowSegIdx, segCount);
     if (!audio.timingDropReason && mapCheck.ok && !lost) {
-      audio.timing = AT.buildRowTiming(audio.segments, rowSegIdx);
-      if (!audio.timing) audio.timingDropReason = "SEG_MAPPING_LOST";
+      // S12.7: чанки, чьи часы остались сжатыми после переспроса и дробления, помечают свои
+      // записи `blind` — караоке там не подсвечивает и не проигрывает (R11). Диапазоны едут из
+      // паспорта прогона, а не считаются здесь заново: судил их прогон, у которого были СЫРЫЕ
+      // окна, а здесь остались только склеенные сегменты.
+      const blindRanges = v3ClockBlindRanges(audio);
+      audio.timing = AT.buildRowTiming(audio.segments, rowSegIdx, blindRanges);
+      // Отказ по маппингу и отказ «честных записей не осталось» — РАЗНЫЕ факты, и владелец
+      // обязан видеть, какой именно: первый чинится пересборкой таблицы, второй — только
+      // повторным ASR (переспрос уже не помог).
+      if (!audio.timing) {
+        audio.timingDropReason = "SEG_MAPPING_LOST";
+        if (blindRanges.length) audio.timingDropDetail = "CLOCK_COMPRESSED";
+      }
       // Ревью K1 (R9): диагноз прошлого отказа не должен пережить успешный тайминг — иначе
       // сохранённый в Библиотеку паспорт врал бы «караоке ✓, причина отказа OUT_OF_RANGE».
       else audio.timingDropDetail = null;
@@ -23678,7 +23726,10 @@ function v3AlignSavedTimingOffline(audio, rows) {
     }
     return;
   }
-  const timing = AT.buildRowTiming(segs, al.rowSegIdx);
+  // S12.7: тот же гейт сжатых часов, что и на свежем ответе. Выравнивание доказывает «строка
+  // принадлежит своему сегменту», но НЕ доказывает, что метка сегмента верна: сжатые часы —
+  // факт о самих метках, и доказанный маппинг их не оправдывает.
+  const timing = AT.buildRowTiming(segs, al.rowSegIdx, v3ClockBlindRanges(audio));
   if (!timing) {                                // маппинг доказан, но меток <2 — записывать нечего
     prov.entries = 0;
     audio.timingAlign = prov;

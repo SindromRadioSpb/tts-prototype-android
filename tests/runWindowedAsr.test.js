@@ -1332,16 +1332,25 @@ test("(S12.6-a) сжатые метки: разрыв НЕ хилится (сч�
     transcribe: async (a, b) => {
       calls.push([a, b]);
       if (a === 0) return R({ segments: DENS_W0 });
-      if (a === 870) return R({ segments: w1 });
+      // S12.7: окно 2 теперь переспрашивается (целиком и кусками) — модель фикстуры «сломана
+      // одинаково», поэтому на любой под-диапазон отвечает своей же частью. Улучшения нет ⇒
+      // починка честно сдаётся, и это ровно то, что тест обязан пинить ниже.
+      if (a >= 870) return R({ segments: w1.filter((s) => s.start >= a && s.start <= b) });
       throw new Error("unexpected transcribe(" + a + "," + b + ")");
     },
     parse: fakeParse, onProgress: () => {},
   });
   // (0) фикстура обязана быть ложноположительной для ПРЕЖНЕГО детектора — иначе тест ничего не пинит
   assert.deepEqual(A.findCoverageGaps(res.segments, 1800), [{ fromSec: 1257, toSec: 1450 }]);
-  // (1) ГЛАВНОЕ: добора не было — ровно два вызова, по одному на окно (R16)
-  assert.deepEqual(calls, [[0, 900], [870, 1800]]);
+  // (1) ГЛАВНОЕ (S12.6, R16): ДОБОРА не было — ни одного вызова по диапазону дыры [1257,1450],
+  // потому что добирать нечего: текст на месте. Обновлено S12.7: лишние вызовы по ОКНУ теперь
+  // законны и делают другую работу — переспрашивают сломанные ЧАСЫ, а не потерянный текст.
+  // Различие принципиальное: добор платит за речь, которой нет; переспрос — за метки, которые
+  // есть, но недостоверны, и которые повтор в 2 случаях из 3 чинит (FINDINGS.md §5).
+  assert.ok(!calls.some((c) => c[0] === 1257), "добор дыры не имеет права вызываться: " + JSON.stringify(calls));
   assert.deepEqual(res.healedGaps, []);
+  assert.deepEqual(calls[0], [0, 900]);
+  assert.deepEqual(calls[1], [870, 1800]);
   // (2) это не потеря: coverageGaps пуст, ASR_COVERAGE_GAP не поднят
   assert.deepEqual(res.coverageGaps, []);
   assert.ok(!res.warnings.includes("ASR_COVERAGE_GAP"));
@@ -1414,4 +1423,115 @@ test("(S12.6-c) обрыв вывода чанка с поздним хвост�
   assert.deepEqual(res.unreliableMarkRanges, []);                   // объём НЕ доказал «текст на месте»
   assert.ok(!res.warnings.includes("ASR_MARKS_UNRELIABLE"));
   assert.deepEqual(res.coverageGaps, []);                           // добор закрыл дыру
+});
+
+// ══════════════════════════════════════════════════════════════════════════════════════════
+// S12.7 — ПОЧИНКА СЖАТЫХ ЧАСОВ ЧАНКА. Живая приёмка владельца 2026-07-30
+// (docs/research/studio-karaoke-clock-drift/2026-07-30): чанк выдал полный текст своих 15 минут,
+// но разметил их 660с меток; караоке уехало до 4 мин 17 с на 57% таблицы. Дефект стохастический
+// (тот же звук и промт: 55с медианы ошибки → 0.58с со второго раза), поэтому лечение — ПЕРЕСПРОС.
+// ══════════════════════════════════════════════════════════════════════════════════════════
+
+// Окно фикстуры: `words` уникальных слов на `marks` метках. Уникальность обязательна — иначе
+// анти-реплей гейт увидит в соседних окнах повтор и забракует их.
+function clockWindow(tag, words, from, to, count) {
+  const segs = [];
+  for (let i = 0; i < count; i++) {
+    const t = count === 1 ? from : from + ((to - from) * i) / (count - 1);
+    const n = Math.floor((words * (i + 1)) / count) - Math.floor((words * i) / count);
+    const w = [];
+    for (let j = 0; j < n; j++) w.push("ק" + tag + "ל" + (i * 1000 + j));
+    segs.push(seg(Math.round(t), w.join(" ")));
+  }
+  return segs;
+}
+
+test("(S12.7) сжатый чанк переспрашивается и, если ответ лучше, принимается", async () => {
+  const calls = [];
+  let win1Attempt = 0;
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800,
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return R({ segments: clockWindow("а", 1280, 2, 888, 76) });
+      win1Attempt++;
+      // Первый ответ: тот же объём текста, но метки покрывают 71% окна (живая форма дефекта).
+      // Второй (переспрос): метки на месте.
+      return win1Attempt === 1
+        ? R({ segments: clockWindow("б", 1290, 872, 1529, 138) })
+        : R({ segments: clockWindow("в", 1290, 872, 1790, 138) });
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.equal(win1Attempt, 2, "сжатый чанк обязан быть переспрошен ровно один раз");
+  assert.deepEqual(res.clockCompressedRanges, [], "после починки сжатых диапазонов быть не должно");
+  assert.ok(res.warnings.indexOf("ASR_CLOCK_COMPRESSED") < 0, "вылеченное не предупреждает");
+  const rep = res.windows[1].clockRepair;
+  assert.equal(rep.length, 1);
+  assert.equal(rep[0].accepted, true);
+  assert.ok(rep[0].covAfter > rep[0].covBefore, JSON.stringify(rep[0]));
+});
+
+// R11 «не ухудшать»: переспрос, который вернул МЕНЬШЕ текста, не принимается, даже если его
+// метки покрывают окно лучше. Тайминг не покупается ценой потерянной речи.
+test("(S12.7-R11) переспрос с потерей текста отклоняется, прежний чанк остаётся", async () => {
+  let win1Attempt = 0;
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800,
+    transcribe: async (a) => {
+      if (a === 0) return R({ segments: clockWindow("а", 1280, 2, 888, 76) });
+      win1Attempt++;
+      return win1Attempt === 1
+        ? R({ segments: clockWindow("б", 1290, 872, 1529, 138) })
+        : R({ segments: clockWindow("в", 500, 872, 1790, 60) }); // покрытие лучше, текста втрое меньше
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  const rep = res.windows[1].clockRepair;
+  assert.ok(rep.some((r) => r.accepted === false), JSON.stringify(rep));
+  // текст прежнего чанка обязан уцелеть целиком
+  const words = res.segments.reduce((n, s) => n + A.stitchNormalizeWords(s.text).length, 0);
+  assert.ok(words > 2000, "потеряли текст: " + words);
+});
+
+test("(S12.7) не вылечилось ни переспросом, ни дроблением → честный диапазон + предупреждение", async () => {
+  const calls = [];
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800,
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return R({ segments: clockWindow("а", 1280, 2, 888, 76) });
+      // Любой запрос по второму окну (и целиком, и любым куском) отвечает сжатыми метками:
+      // текст на всю запрошенную длину, метки — на 30% её. Дробление такое сжатие ослабляет
+      // (каждый кусок начинает отсчёт заново), но не лечит — и это ровно тот случай, ради
+      // которого существует честный отказ.
+      const words = Math.round(((b - a) / 930) * 1290);
+      return R({ segments: clockWindow("б" + Math.round(a), words, a + 2, a + (b - a) * 0.3, Math.max(10, Math.round(words / 10))) });
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.equal(res.clockCompressedRanges.length, 1, JSON.stringify(res.clockCompressedRanges));
+  assert.equal(res.clockCompressedRanges[0].fromSec, 870);
+  assert.ok(res.warnings.includes("ASR_CLOCK_COMPRESSED"));
+  // раунд 1 — один вызов на окно, раунд 2 — дробление на куски по CLOCK_SPLIT_SEC
+  const win1Calls = calls.filter((c) => c[0] >= 870 || c[1] > 900).length;
+  assert.ok(win1Calls >= 4, "ожидались переспрос и дробление, было вызовов: " + win1Calls);
+  // Текст при этом НЕ страдает: сжатые часы — факт о метках, а не о речи.
+  assert.ok(res.segments.length > 100, "сегменты обязаны остаться: " + res.segments.length);
+});
+
+test("(S12.7) здоровый прогон не тратит ни одного лишнего вызова", async () => {
+  const calls = [];
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800,
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      return a === 0 ? R({ segments: clockWindow("а", 1280, 2, 888, 76) })
+                     : R({ segments: clockWindow("б", 1290, 872, 1790, 138) });
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.equal(calls.length, 2, JSON.stringify(calls));
+  assert.deepEqual(res.clockCompressedRanges, []);
+  assert.equal(res.windows[1].clockRepair, undefined);
 });

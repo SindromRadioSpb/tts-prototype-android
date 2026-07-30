@@ -1461,3 +1461,127 @@ test("(S12.6-R11) два окна содержат разрыв целиком �
   const d2 = A.runSpeechDensity([w0, rich, densWindow("г", 1190, marks)], wins);
   assert.equal(A.classifyGap({ fromSec: 3900, toSec: 4230 }, d2).verdict, "marks-unreliable");
 });
+
+// ══════════════════════════════════════════════════════════════════════════════════════════
+// S12.7 — СЖАТЫЕ ЧАСЫ ЧАНКА (classifyClockCompression). Живая приёмка владельца 2026-07-30,
+// карточка «Заложница Миа. Интервью» (docs/research/studio-karaoke-clock-drift/2026-07-30):
+// чанк 870–1800 выдал ПОЛНЫЙ текст своих 15 минут, но разметил их 660 секундами меток —
+// модель перестала читать позицию в звуке и начала штамповать почти постоянный шаг. Караоке
+// уехало до 4 мин 17 с на 57% таблицы, при этом timingDropReason был пуст: подсветка уверенно
+// показывала не ту строку.
+//
+// Почему это ОТДЕЛЬНЫЙ детектор, а не ветка S12.6: classifyGap судит НАЙДЕННЫЙ разрыв
+// (hop > 90с либо хвост ≥180с). Сжатие на 15% в 15-минутном окне разрыва не даёт ВОВСЕ —
+// тайминг уезжает на две минуты, и ни один гейт не произносит ни слова. Здесь судится сам
+// РАЗМАХ МЕТОК против объёма текста, поэтому разрыв не нужен.
+//
+// Правило: ожидаемая доля окна, занятая речью, — это его ОБЪЁМ ТЕКСТА (densityRatio, обрезанный
+// единицей: покрытие физически не может превысить 100% окна). Метки, покрывающие ЗАМЕТНО меньше
+// этой доли, — сжатые часы. Замер живого прогона: сломанный чанк 0.71 покрытия при 0.99 объёма;
+// здоровые — 0.90–0.99 при том же объёме (5 живых прогонов, FINDINGS.md §5).
+
+test("(S12.7) константы: запас 0.15, минимум 8 сегментов и 120с окна", () => {
+  assert.equal(A.CLOCK_SPAN_MARGIN, 0.15);
+  assert.equal(A.CLOCK_MIN_SEGMENTS, 8);
+  assert.equal(A.CLOCK_MIN_WINDOW_SEC, 120);
+});
+
+test("(S12.7) живая форма владельца: сжатый чанк найден, здоровый — нет", () => {
+  const wins = [{ startSec: 0, endSec: 900 }, { startSec: 870, endSec: 1800 }];
+  const per = [
+    densWindow("а", 1280, evenMarks(0, 888, 76)),      // метки покрывают всё окно
+    densWindow("б", 1290, evenMarks(869, 1529, 138)),  // тот же объём текста, метки — 71% окна
+  ];
+  const d = A.runSpeechDensity(per, wins);
+  const out = A.classifyClockCompression(d);
+  assert.equal(out.length, 1, JSON.stringify(out));
+  assert.equal(out[0].windowIdx, 1);
+  assert.ok(Math.abs(out[0].coverageRatio - 0.71) < 0.01, "coverage=" + out[0].coverageRatio);
+  assert.ok(out[0].expectedRatio > 0.95, "expected=" + out[0].expectedRatio);
+  // R9: вердикт обязан нести числа, по которым он вынесен, и диапазон, который пострадал
+  // Пострадал ВЕСЬ чанк, а не участок от первой метки: часы сжаты внутри него целиком.
+  assert.equal(out[0].fromSec, 870);
+  assert.equal(out[0].toSec, 1800);
+});
+
+// САМАЯ ОПАСНАЯ СТОРОНА ДЕТЕКТОРА (R11). Окно, которое ЧЕСТНО молчит вторую треть, тоже
+// покрывает метками лишь 71% — и если сравнивать покрытие с единицей, а не с объёмом текста,
+// оно будет оболгано: караоке выключится там, где оно верное. Ровно этот случай и разводит
+// сравнение с densityRatio.
+test("(S12.7-R11) окно с настоящей тишиной в хвосте НЕ объявляется сжатым", () => {
+  const wins = [{ startSec: 0, endSec: 900 }, { startSec: 870, endSec: 1800 }];
+  const per = [
+    densWindow("а", 1280, evenMarks(0, 888, 76)),
+    densWindow("б", 915, evenMarks(869, 1529, 100)),   // объём ×0.71 — речи и правда меньше
+  ];
+  const out = A.classifyClockCompression(A.runSpeechDensity(per, wins));
+  assert.deepEqual(out, [], JSON.stringify(out));
+});
+
+// Зеркальная ловушка: окно РЕЧИСТЕЕ базы (densityRatio > 1) при полном покрытии. Без обрезки
+// ожидания единицей diff = 1.18 − 0.99 = 0.19 ≥ запаса, и здоровое окно объявлялось бы сжатым.
+test("(S12.7-R11) окно речистее базы при полном покрытии НЕ объявляется сжатым", () => {
+  const wins = [{ startSec: 0, endSec: 900 }, { startSec: 870, endSec: 1800 }, { startSec: 1770, endSec: 2700 }];
+  const per = [
+    densWindow("а", 1600, evenMarks(2, 890, 76)),      // ×1.25 к базе, покрытие полное
+    densWindow("б", 1290, evenMarks(869, 1790, 100)),
+    densWindow("в", 1280, evenMarks(1771, 2690, 100)),
+  ];
+  const out = A.classifyClockCompression(A.runSpeechDensity(per, wins));
+  assert.deepEqual(out, [], JSON.stringify(out));
+});
+
+test("(S12.7) без базы прогона вердикт НЕ выносится (молчим, а не обвиняем)", () => {
+  const one = A.runSpeechDensity([densWindow("а", 1280, evenMarks(0, 640, 76))], [{ startSec: 0, endSec: 900 }]);
+  assert.equal(one.usable, true, "база из одного окна формально есть");
+  // …но она равна плотности самого подсудимого ⇒ densityRatio ровно 1.0 ПО ПОСТРОЕНИЮ, и
+  // сравнивать покрытие не с чем: отношение не несёт информации об этом окне.
+  const out = A.classifyClockCompression(one);
+  assert.deepEqual(out, [], "единственное окно судит само себя — вердикта быть не должно");
+});
+
+test("(S12.7) короткий хвост и малочисленные метки вердикта не получают", () => {
+  const wins = [{ startSec: 0, endSec: 900 }, { startSec: 870, endSec: 1800 }, { startSec: 1770, endSec: 1806 }];
+  const per = [
+    densWindow("а", 1280, evenMarks(0, 888, 76)),
+    densWindow("б", 1290, evenMarks(869, 1790, 138)),
+    densWindow("в", 19, evenMarks(1769, 1791, 3)),     // 36с, 3 сегмента: размах ни о чём не говорит
+  ];
+  const out = A.classifyClockCompression(A.runSpeechDensity(per, wins));
+  assert.deepEqual(out, [], JSON.stringify(out));
+});
+
+test("(S12.7) окно без меток вердикта не получает (это другой факт — их отсутствие)", () => {
+  const wins = [{ startSec: 0, endSec: 900 }, { startSec: 870, endSec: 1800 }];
+  const per = [
+    densWindow("а", 1280, evenMarks(0, 888, 76)),
+    densWindow("б", 1290, evenMarks(869, 1529, 138)).map((s) => ({ start: null, text: s.text })),
+  ];
+  const out = A.classifyClockCompression(A.runSpeechDensity(per, wins));
+  assert.deepEqual(out, [], JSON.stringify(out));
+});
+
+// S12.7: диапазон с недоказуемым таймингом обязан быть виден В САМИХ ЗАПИСЯХ, а не только в
+// паспорте. Иначе StudioMediaKaraoke, знающий лишь entries, продолжит уверенно подсвечивать
+// строку по сжатым меткам — ровно то, что чинит слайс (R11).
+test("(S12.7) buildRowTiming помечает записи сжатого диапазона blind", () => {
+  const segs = [{ i: 0, start: 0 }, { i: 1, start: 100 }, { i: 2, start: 900 },
+                { i: 3, start: 1200 }, { i: 4, start: 1810 }];
+  const rowSegIdx = [0, 1, 2, 3, 4];
+  const plain = A.buildRowTiming(segs, rowSegIdx);
+  assert.equal(plain.entries.length, 5);
+  assert.ok(plain.entries.every((e) => !e.blind), "без диапазонов blind не появляется");
+
+  const t = A.buildRowTiming(segs, rowSegIdx, [{ fromSec: 870, toSec: 1800 }]);
+  assert.deepEqual(t.entries.map((e) => !!e.blind), [false, false, true, true, false]);
+  // Граница включительна с обеих сторон: сегмент, начавшийся ровно на границе окна, принадлежит
+  // ему же. Запись ПОСЛЕ диапазона снова честная — тайминг следующего чанка не пострадал.
+  assert.equal(t.entries[4].t, 1810);
+  assert.equal(t.blindRanges.length, 1);
+});
+
+test("(S12.7) весь тайминг внутри сжатого диапазона → караоке нет вовсе", () => {
+  const segs = [{ i: 0, start: 1000 }, { i: 1, start: 1100 }, { i: 2, start: 1200 }];
+  const t = A.buildRowTiming(segs, [0, 1, 2], [{ fromSec: 870, toSec: 1800 }]);
+  assert.equal(t, null, "две честные записи не набрались — это отказ, а не пустое караоке");
+});

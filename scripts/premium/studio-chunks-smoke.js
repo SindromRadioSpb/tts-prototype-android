@@ -527,16 +527,33 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
                tableLen: currentTableData.length,
                hasPassport: !!p, entries: p && p.timing ? p.timing.entries.length : 0,
                drop: p ? p.timingDropReason : null, detail: p ? p.timingDropDetail : null,
+               mapSource: p && p.timingMap ? p.timingMap.source : null,
+               // независимый оракул: при 1:1 «строка = сегмент» запись k обязана указывать на строку k
+               offBy: p && p.timing ? p.timing.entries.filter((e, k) => e.o !== k).length : -1,
                barNote: (document.getElementById("v3MediaBarNote") || {}).textContent || "" };
     });
     must(s4a.premiumCalls === 1, "scenario4a: premium calls=" + s4a.premiumCalls + " expected 1");
     must(s4a.chunkCalls === 0, "scenario4a: /api/translate-table calls=" + s4a.chunkCalls + " expected 0 (premium path must not touch the seg endpoint)");
     must(s4a.tableLen === N_SEGS, "scenario4a: currentTableData.length=" + s4a.tableLen + " expected " + N_SEGS);
     must(s4a.hasPassport, "scenario4a: media passport lost — the rest of the scenario proves nothing");
-    must(s4a.entries === 0, "scenario4a: karaoke timing was built from the PREMIUM response (" + s4a.entries + " entries) — premium rows[].segment_index is a foreign 1-based row ordinal, timing MUST be absent");
-    must(s4a.drop === "NO_SEGMENT_MAPPING", "scenario4a: timingDropReason=" + JSON.stringify(s4a.drop) + " expected NO_SEGMENT_MAPPING (honest 'no mapping at all', R11)");
-    must(s4a.detail === "NO_INDEX", "scenario4a: timingDropDetail=" + JSON.stringify(s4a.detail) + " expected NO_INDEX (R9 provenance of the refusal)");
-    must(s4a.barNote && s4a.barNote.trim().length > 0, "scenario4a: media bar note is empty — the user must SEE that karaoke is off, not just silence");
+    // S12.7 (2026-07-30) ПЕРЕСМОТРЕНО ПО СУЩЕСТВУ. K1 требовал здесь ОТСУТСТВИЯ караоке, потому
+    // что единственным кандидатом в маппинг был чужой 1-based `segment_index`, и не доверять ему
+    // означало не строить тайминг вовсе. Теперь маппинг считается ВЫРАВНИВАНИЕМ ПО ТЕКСТУ
+    // (alignRowsToSegments) — доказательством, ничего не берущим у провайдера. Инвариант K1 при
+    // этом не ослаблен, а УСИЛЕН, и тест обязан пинить именно его:
+    //   • чужое поле не стало источником: timingMap.source === "aligned";
+    //   • полученный тайминг ПРОВЕРЕН независимо (при 1:1 запись k указывает на строку k);
+    //   • там, где выравнивание невозможно (переразбитый текст), караоке по-прежнему честно
+    //     исчезает — это сценарий 7, и он остаётся красным на любой поблажке.
+    // Побочный выигрыш ровно в том месте, где K2 оставил дыру: ответ из старого doc-кэша (без
+    // source_line_index) больше не лишает владельца караоке на его ДЕФОЛТНОМ провайдере.
+    must(s4a.entries === N_SEGS, "scenario4a: karaoke entries=" + s4a.entries + " expected " + N_SEGS +
+      " — text alignment proves the mapping without any provider field");
+    must(s4a.mapSource === "aligned", "scenario4a: timingMap.source=" + JSON.stringify(s4a.mapSource) +
+      ' expected "aligned" — the premium 1-based segment_index MUST NOT be the source of the mapping (K1)');
+    must(s4a.offBy === 0, "scenario4a: " + s4a.offBy + " entries point at a foreign row — the aligned mapping is wrong");
+    must(!s4a.drop, "scenario4a: timingDropReason=" + JSON.stringify(s4a.drop) + " expected cleared (mapping was proven)");
+    must(!s4a.detail, "scenario4a: timingDropDetail=" + JSON.stringify(s4a.detail) + " expected cleared");
 
     // 4b — переключение на Gemini (и сброс локального кэша таблицы: тот же текст иначе
     // короткозамкнётся в translateTable() до всякого запроса).
@@ -567,8 +584,8 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     must(!s4b.detail, "scenario4b: timingDropDetail=" + JSON.stringify(s4b.detail) + " expected cleared — a successful timing must not carry a stale refusal diagnosis (R9)");
     must(s4b.firstO === 0 && s4b.lastO === N_SEGS - 1, "scenario4b: entries span o=" + s4b.firstO + ".." + s4b.lastO + " expected 0.." + (N_SEGS - 1));
 
-    console.log("scenario4 OK — premium: no timing (" + s4a.drop + "/" + s4a.detail +
-                "), Gemini retry: " + s4b.entries + " entries restored");
+    console.log("scenario4 OK — premium: timing via " + s4a.mapSource + " (" + s4a.entries +
+                " entries, 0 off-by, provider field NOT trusted), Gemini retry: " + s4b.entries + " entries");
 
     // ══════════════════════════════════════════════════════════════════════════════════════
     // Scenario 5 (ревью K1): КАРАНТИН уже сохранённого вырожденного тайминга. Фикс защищает
@@ -675,15 +692,21 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
                 s6.tableLen + " rows / " + s6.segCount + " segments, 0 cross-segment entries");
 
     // ══════════════════════════════════════════════════════════════════════════════════════
-    // Scenario 7 (K2): текст переразбит — «строка = ASR-сегмент» больше не выполняется.
-    // source_line_index в ответе всё ещё есть, и все проверки формы он проходит — но означает
-    // уже НЕ то. Единственный честный исход: караоке нет, а верный тайминг прошлого ответа
-    // НЕ остаётся висеть на паспорте (R11: устаревший тайминг = уверенно неверная подсветка).
+    // Scenario 7 (K2, ПЕРЕСМОТРЕН S12.7): в таблицу попал текст, которого НЕ БЫЛО в аудио.
+    // При K2 инвариант формулировался через идентичность «строка = сегмент» (её ломала любая
+    // переразбивка). S12.7 снял это требование: маппинг доказывается ТЕКСТОМ, и переразбивка
+    // 1:N сама по себе больше не повод убивать караоке (сценарий 6 это и показывает). Настоящий
+    // инвариант, который обязан остаться красным на любой поблажке, — ДРУГОЙ: строка, которой в
+    // звуке нет, не может получить время, и весь маппинг тогда недоказуем.
+    // ⚠ Фейк премиума обязан отвечать НА ОТРЕДАКТИРОВАННЫЙ текст (как ответил бы настоящий
+    // провайдер): с зафиксированными __premiumRows сценария 6 ответ не зависел бы от правки
+    // вовсе, и тест проверял бы фикстуру, а не продукт.
     // ══════════════════════════════════════════════════════════════════════════════════════
     await page.evaluate((k) => {
       try { localStorage.removeItem(k); } catch (_) {}
+      window.__premiumRows = null;                      // ответ строится из СЕГОДНЯШНЕГО текста
       const input = document.getElementById("inputText");
-      input.value = input.value + "\nשורה נוספת שלא הייתה בייבוא";   // 301 строка на 300 сегментов
+      input.value = input.value + "\nשורה נוספת שלא הייתה בייבוא";   // строка, которой нет в звуке
       input.dispatchEvent(new Event("input", { bubbles: true }));
     }, TABLE_CACHE_LS_KEY);
     await page.evaluate(() => { translateTable(); });
@@ -1003,6 +1026,55 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     console.log("scenario10 OK — saved card revived offline: " + s10.entries + " entries over " + s10.rows +
                 " rows / " + s10.segs + " segments, 0 cross-segment, " + s10.net + " network calls, " + s10.ms + " ms; " +
                 "tampered row → honest refusal (" + s10.tamperedAlignReason + "), unverifiable saved timing replaced");
+
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    // Scenario 11 (S12.7, 2026-07-30): ЧАНК СО СЖАТЫМИ ЧАСАМИ — караоке там ВЫКЛЮЧЕНО.
+    // Живой дефект владельца (docs/research/studio-karaoke-clock-drift/2026-07-30): чанк выдал
+    // полный текст своих 15 минут, но разметил их 660с меток; строка 89 играла хвост строки 88,
+    // дальше расхождение росло до 4 мин 17 с, а timingDropReason был ПУСТ. Переспрос и дробление
+    // такое чинят в 2 случаях из 3; когда не починили — диапазон обязан ослепнуть, а не
+    // подсвечивать не ту строку (R11). Проверяется ВЕСЬ клиентский путь: паспорт →
+    // v3ClockBlindRanges → buildRowTiming(blind) → StudioMediaKaraoke.
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    const s11 = await page.evaluate(() => {
+      const mkSegs = (m, step) => Array.from({ length: m }, (_, i) => ({ i, start: i * step, text: "s" + i }));
+      const segs = mkSegs(60, 30);                       // 0..1770с
+      const rowSegIdx = segs.map((s) => s.i);
+      const blind = [{ fromSec: 870, toSec: 1800 }];     // второй чанк — сжатые часы
+      const audio = { v: 1, segments: segs, asr: { clockCompressedRanges: blind } };
+      const ranges = v3ClockBlindRanges(audio);
+      const timing = window.AsrTranscript.buildRowTiming(segs, rowSegIdx, ranges);
+      const K = window.StudioMediaKaraoke;
+      const e = timing.entries;
+      return {
+        ranges: ranges.length,
+        total: e.length,
+        blindCount: e.filter((x) => x.blind).length,
+        firstBlindT: (e.find((x) => x.blind) || {}).t,
+        lastHonestT: (e.filter((x) => !x.blind).pop() || {}).t,
+        // до диапазона — подсветка обычная; внутри — НИЧЕГО (в т.ч. не «последняя честная»)
+        beforeRange: K.activeSegmentRange(e, segs.length, 600),
+        insideRange: K.activeSegmentRange(e, segs.length, 1200),
+        // паспорт без поля (карточки до S12.7) — судить не о чем, ведём себя как раньше
+        legacyRanges: v3ClockBlindRanges({ v: 1, segments: segs }).length,
+        legacyBlind: window.AsrTranscript.buildRowTiming(segs, rowSegIdx, []).entries.filter((x) => x.blind).length,
+      };
+    });
+    must(s11.ranges === 1, "scenario11: v3ClockBlindRanges не прочитал паспорт (" + s11.ranges + ")");
+    must(s11.total === 60, "scenario11: entries=" + s11.total + " expected 60 — записи не выбрасываются, а слепнут");
+    must(s11.blindCount === 31, "scenario11: blind entries=" + s11.blindCount + " expected 31 (метки 870..1770)");
+    must(s11.firstBlindT === 870 && s11.lastHonestT === 840,
+      "scenario11: граница диапазона поехала (first blind t=" + s11.firstBlindT + ", last honest t=" + s11.lastHonestT + ")");
+    must(s11.beforeRange && s11.beforeRange.rowStart === 20,
+      "scenario11: до сжатого чанка подсветка обязана работать как прежде: " + JSON.stringify(s11.beforeRange));
+    must(s11.insideRange === null,
+      "scenario11: внутри сжатого чанка подсвечено " + JSON.stringify(s11.insideRange) +
+      " — держать последнюю честную строку значит уверенно показывать не ту (R11)");
+    must(s11.legacyRanges === 0 && s11.legacyBlind === 0,
+      "scenario11: карточка БЕЗ поля clockCompressedRanges (до S12.7) не имеет права ослепнуть — её не судили");
+
+    console.log("scenario11 OK — compressed chunk: " + s11.blindCount + "/" + s11.total +
+                " entries blind, no highlight inside the range, legacy passports untouched");
 
     console.log("SMOKE OK");
   } finally {

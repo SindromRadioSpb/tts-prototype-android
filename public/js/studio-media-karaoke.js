@@ -16,13 +16,19 @@
       if (t >= (Number(entries[i].t) || 0)) k = i; else break;
     }
     if (k < 0) return null;
+    // S12.7: часы чанка остались сжатыми после починки ⇒ внутри него мы НЕ ЗНАЕМ, где идёт
+    // воспроизведение. Не подсвечиваем ничего: удерживать последнюю честную строку — это тот же
+    // запрещённый путь «уверенно показываем не ту строку», только тише (R11).
+    if (entries[k].blind) return null;
     var rowStart = entries[k].o;
     var rowEnd = k + 1 < entries.length ? entries[k + 1].o : Math.max(Number(rowCount) || 0, rowStart + 1);
     return { idx: k, rowStart: rowStart, rowEnd: rowEnd };
   }
 
   if (typeof window === "undefined" || typeof document === "undefined") {
-    if (typeof module !== "undefined" && module.exports) module.exports = { activeSegmentRange: activeSegmentRange };
+    if (typeof module !== "undefined" && module.exports) {
+      module.exports = { activeSegmentRange: activeSegmentRange, _segIdxForRow: segIdxForRow };
+    }
     return;
   }
 
@@ -71,12 +77,14 @@
     cur = null;
   }
 
-  // segIdxForRow: последний entry с o <= rowIdx (строка внутри его диапазона)
+  // segIdxForRow: последний entry с o <= rowIdx (строка внутри его диапазона).
+  // S12.7: попал на слепую запись (сжатые часы чанка) ⇒ -1 — «повторить эту строку» нечем, время
+  // её сегмента недостоверно. Проигрывать по нему значило бы отдать владельцу чужой звук.
   function segIdxForRow(entries, rowIdx) {
     if (!Array.isArray(entries)) return -1;
     var k = -1;
     for (var i = 0; i < entries.length; i++) { if (entries[i].o <= rowIdx) k = i; else break; }
-    return k;
+    return k >= 0 && entries[k].blind ? -1 : k;
   }
 
   // W2-S5a: источник времени может быть локальным блобом (S4) ИЛИ внешним медиа-адаптером

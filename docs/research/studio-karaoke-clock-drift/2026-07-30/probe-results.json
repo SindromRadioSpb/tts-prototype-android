@@ -1,0 +1,1627 @@
+{
+ "A prod window 870-1800 run1#0": {
+  "startSec": 869.015510203579,
+  "endSec": 1805.8187755081838,
+  "sliceSec": 936.8032653046048,
+  "ms": 63636,
+  "honesty": {
+   "r": 0.365,
+   "span": 0.694,
+   "meanDelta": 8.67,
+   "n": 76,
+   "words": 1328
+  },
+  "segs": [
+   {
+    "start": 0,
+    "words": 12,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11"
+   },
+   {
+    "start": 7,
+    "words": 14,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13"
+   },
+   {
+    "start": 13,
+    "words": 10,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9"
+   },
+   {
+    "start": 20,
+    "words": 4,
+    "text": "w0 w1 w2 w3"
+   },
+   {
+    "start": 26,
+    "words": 15,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14"
+   },
+   {
+    "start": 37,
+    "words": 5,
+    "text": "w0 w1 w2 w3 w4"
+   },
+   {
+    "start": 39,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 46,
+    "words": 14,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13"
+   },
+   {
+    "start": 54,
+    "words": 17,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16"
+   },
+   {
+    "start": 63,
+    "words": 11,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10"
+   },
+   {
+    "start": 69,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 77,
+    "words": 20,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19"
+   },
+   {
+    "start": 86,
+    "words": 19,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18"
+   },
+   {
+    "start": 94,
+    "words": 8,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7"
+   },
+   {
+    "start": 101,
+    "words": 10,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9"
+   },
+   {
+    "start": 106,
+    "words": 4,
+    "text": "w0 w1 w2 w3"
+   },
+   {
+    "start": 110,
+    "words": 16,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15"
+   },
+   {
+    "start": 120,
+    "words": 17,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16"
+   },
+   {
+    "start": 124,
+    "words": 25,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24"
+   },
+   {
+    "start": 133,
+    "words": 19,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18"
+   },
+   {
+    "start": 147,
+    "words": 15,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14"
+   },
+   {
+    "start": 159,
+    "words": 14,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13"
+   },
+   {
+    "start": 171,
+    "words": 15,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14"
+   },
+   {
+    "start": 183,
+    "words": 24,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23"
+   },
+   {
+    "start": 200,
+    "words": 23,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22"
+   },
+   {
+    "start": 209,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 215,
+    "words": 16,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15"
+   },
+   {
+    "start": 223,
+    "words": 33,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28 w29 w30 w31 w32"
+   },
+   {
+    "start": 234,
+    "words": 25,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24"
+   },
+   {
+    "start": 244,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 254,
+    "words": 29,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28"
+   },
+   {
+    "start": 267,
+    "words": 21,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20"
+   },
+   {
+    "start": 274,
+    "words": 24,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23"
+   },
+   {
+    "start": 285,
+    "words": 15,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14"
+   },
+   {
+    "start": 294,
+    "words": 25,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24"
+   },
+   {
+    "start": 307,
+    "words": 18,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17"
+   },
+   {
+    "start": 314,
+    "words": 20,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19"
+   },
+   {
+    "start": 322,
+    "words": 26,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25"
+   },
+   {
+    "start": 328,
+    "words": 27,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26"
+   },
+   {
+    "start": 339,
+    "words": 14,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13"
+   },
+   {
+    "start": 347,
+    "words": 19,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18"
+   },
+   {
+    "start": 354,
+    "words": 28,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27"
+   },
+   {
+    "start": 361,
+    "words": 21,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20"
+   },
+   {
+    "start": 373,
+    "words": 28,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27"
+   },
+   {
+    "start": 381,
+    "words": 18,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17"
+   },
+   {
+    "start": 386,
+    "words": 25,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24"
+   },
+   {
+    "start": 393,
+    "words": 21,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20"
+   },
+   {
+    "start": 400,
+    "words": 25,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24"
+   },
+   {
+    "start": 407,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 411,
+    "words": 18,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17"
+   },
+   {
+    "start": 424,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 431,
+    "words": 24,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23"
+   },
+   {
+    "start": 438,
+    "words": 3,
+    "text": "w0 w1 w2"
+   },
+   {
+    "start": 443,
+    "words": 21,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20"
+   },
+   {
+    "start": 451,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 464,
+    "words": 15,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14"
+   },
+   {
+    "start": 474,
+    "words": 13,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12"
+   },
+   {
+    "start": 484,
+    "words": 26,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25"
+   },
+   {
+    "start": 492,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 500,
+    "words": 4,
+    "text": "w0 w1 w2 w3"
+   },
+   {
+    "start": 513,
+    "words": 26,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25"
+   },
+   {
+    "start": 524,
+    "words": 22,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21"
+   },
+   {
+    "start": 534,
+    "words": 16,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15"
+   },
+   {
+    "start": 543,
+    "words": 10,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9"
+   },
+   {
+    "start": 552,
+    "words": 24,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23"
+   },
+   {
+    "start": 561,
+    "words": 10,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9"
+   },
+   {
+    "start": 566,
+    "words": 6,
+    "text": "w0 w1 w2 w3 w4 w5"
+   },
+   {
+    "start": 575,
+    "words": 39,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28 w29 w30 w31 w32 w33 w34 w35 w36 w37 w38"
+   },
+   {
+    "start": 587,
+    "words": 32,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28 w29 w30 w31"
+   },
+   {
+    "start": 595,
+    "words": 33,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28 w29 w30 w31 w32"
+   },
+   {
+    "start": 604,
+    "words": 18,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17"
+   },
+   {
+    "start": 611,
+    "words": 14,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13"
+   },
+   {
+    "start": 618,
+    "words": 26,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25"
+   },
+   {
+    "start": 630,
+    "words": 18,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17"
+   },
+   {
+    "start": 644,
+    "words": 16,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15"
+   },
+   {
+    "start": 650,
+    "words": 23,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22"
+   }
+  ],
+  "textsRedacted": true
+ },
+ "B prod window 870-1800 run2#0": {
+  "startSec": 869.015510203579,
+  "endSec": 1805.8187755081838,
+  "sliceSec": 936.8032653046048,
+  "ms": 43874,
+  "honesty": {
+   "r": 0.573,
+   "span": 0.966,
+   "meanDelta": 10.17,
+   "n": 90,
+   "words": 1294
+  },
+  "segs": [
+   {
+    "start": 0,
+    "words": 12,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11"
+   },
+   {
+    "start": 5,
+    "words": 14,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13"
+   },
+   {
+    "start": 13,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 17,
+    "words": 6,
+    "text": "w0 w1 w2 w3 w4 w5"
+   },
+   {
+    "start": 21,
+    "words": 8,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7"
+   },
+   {
+    "start": 26,
+    "words": 10,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9"
+   },
+   {
+    "start": 33,
+    "words": 4,
+    "text": "w0 w1 w2 w3"
+   },
+   {
+    "start": 42,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 46,
+    "words": 10,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9"
+   },
+   {
+    "start": 49,
+    "words": 22,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21"
+   },
+   {
+    "start": 63,
+    "words": 11,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10"
+   },
+   {
+    "start": 73,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 77,
+    "words": 23,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22"
+   },
+   {
+    "start": 86,
+    "words": 12,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11"
+   },
+   {
+    "start": 91,
+    "words": 15,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14"
+   },
+   {
+    "start": 101,
+    "words": 11,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10"
+   },
+   {
+    "start": 106,
+    "words": 4,
+    "text": "w0 w1 w2 w3"
+   },
+   {
+    "start": 109,
+    "words": 17,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16"
+   },
+   {
+    "start": 124,
+    "words": 17,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16"
+   },
+   {
+    "start": 133,
+    "words": 25,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24"
+   },
+   {
+    "start": 146,
+    "words": 4,
+    "text": "w0 w1 w2 w3"
+   },
+   {
+    "start": 148,
+    "words": 12,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11"
+   },
+   {
+    "start": 157,
+    "words": 10,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9"
+   },
+   {
+    "start": 165,
+    "words": 8,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7"
+   },
+   {
+    "start": 171,
+    "words": 14,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13"
+   },
+   {
+    "start": 183,
+    "words": 26,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25"
+   },
+   {
+    "start": 195,
+    "words": 21,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20"
+   },
+   {
+    "start": 205,
+    "words": 16,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15"
+   },
+   {
+    "start": 212,
+    "words": 23,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22"
+   },
+   {
+    "start": 225,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 234,
+    "words": 17,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16"
+   },
+   {
+    "start": 244,
+    "words": 15,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14"
+   },
+   {
+    "start": 252,
+    "words": 10,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9"
+   },
+   {
+    "start": 267,
+    "words": 31,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28 w29 w30"
+   },
+   {
+    "start": 285,
+    "words": 40,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28 w29 w30 w31 w32 w33 w34 w35 w36 w37 w38 w39"
+   },
+   {
+    "start": 307,
+    "words": 5,
+    "text": "w0 w1 w2 w3 w4"
+   },
+   {
+    "start": 320,
+    "words": 4,
+    "text": "w0 w1 w2 w3"
+   },
+   {
+    "start": 322,
+    "words": 11,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10"
+   },
+   {
+    "start": 330,
+    "words": 12,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11"
+   },
+   {
+    "start": 337,
+    "words": 24,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23"
+   },
+   {
+    "start": 356,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 361,
+    "words": 25,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24"
+   },
+   {
+    "start": 378,
+    "words": 8,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7"
+   },
+   {
+    "start": 385,
+    "words": 19,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18"
+   },
+   {
+    "start": 399,
+    "words": 13,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12"
+   },
+   {
+    "start": 403,
+    "words": 17,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16"
+   },
+   {
+    "start": 415,
+    "words": 24,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23"
+   },
+   {
+    "start": 430,
+    "words": 21,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20"
+   },
+   {
+    "start": 444,
+    "words": 21,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20"
+   },
+   {
+    "start": 455,
+    "words": 38,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28 w29 w30 w31 w32 w33 w34 w35 w36 w37"
+   },
+   {
+    "start": 474,
+    "words": 6,
+    "text": "w0 w1 w2 w3 w4 w5"
+   },
+   {
+    "start": 477,
+    "words": 30,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28 w29"
+   },
+   {
+    "start": 494,
+    "words": 11,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10"
+   },
+   {
+    "start": 498,
+    "words": 13,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12"
+   },
+   {
+    "start": 510,
+    "words": 3,
+    "text": "w0 w1 w2"
+   },
+   {
+    "start": 514,
+    "words": 5,
+    "text": "w0 w1 w2 w3 w4"
+   },
+   {
+    "start": 515,
+    "words": 14,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13"
+   },
+   {
+    "start": 529,
+    "words": 18,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17"
+   },
+   {
+    "start": 543,
+    "words": 2,
+    "text": "w0 w1"
+   },
+   {
+    "start": 545,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 552,
+    "words": 24,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23"
+   },
+   {
+    "start": 567,
+    "words": 3,
+    "text": "w0 w1 w2"
+   },
+   {
+    "start": 572,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 578,
+    "words": 6,
+    "text": "w0 w1 w2 w3 w4 w5"
+   },
+   {
+    "start": 581,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 604,
+    "words": 22,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21"
+   },
+   {
+    "start": 624,
+    "words": 28,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27"
+   },
+   {
+    "start": 636,
+    "words": 11,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10"
+   },
+   {
+    "start": 644,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 671,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 692,
+    "words": 26,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25"
+   },
+   {
+    "start": 704,
+    "words": 22,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21"
+   },
+   {
+    "start": 714,
+    "words": 18,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17"
+   },
+   {
+    "start": 727,
+    "words": 3,
+    "text": "w0 w1 w2"
+   },
+   {
+    "start": 732,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 744,
+    "words": 22,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21"
+   },
+   {
+    "start": 755,
+    "words": 12,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11"
+   },
+   {
+    "start": 770,
+    "words": 6,
+    "text": "w0 w1 w2 w3 w4 w5"
+   },
+   {
+    "start": 776,
+    "words": 21,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20"
+   },
+   {
+    "start": 786,
+    "words": 15,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14"
+   },
+   {
+    "start": 800,
+    "words": 27,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26"
+   },
+   {
+    "start": 815,
+    "words": 30,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28 w29"
+   },
+   {
+    "start": 831,
+    "words": 17,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16"
+   },
+   {
+    "start": 840,
+    "words": 12,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11"
+   },
+   {
+    "start": 850,
+    "words": 20,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19"
+   },
+   {
+    "start": 859,
+    "words": 15,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14"
+   },
+   {
+    "start": 883,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 890,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 897,
+    "words": 13,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12"
+   },
+   {
+    "start": 905,
+    "words": 10,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9"
+   }
+  ],
+  "textsRedacted": true
+ },
+ "C 310s slices of the same region#0": {
+  "startSec": 869.015510203579,
+  "endSec": 1179.010612243893,
+  "sliceSec": 309.9951020403141,
+  "ms": 31043,
+  "honesty": {
+   "r": 0.658,
+   "span": 0.965,
+   "meanDelta": 5.34,
+   "n": 57,
+   "words": 492
+  },
+  "segs": [
+   {
+    "start": 0,
+    "words": 10,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9"
+   },
+   {
+    "start": 3,
+    "words": 1,
+    "text": "w0"
+   },
+   {
+    "start": 7,
+    "words": 5,
+    "text": "w0 w1 w2 w3 w4"
+   },
+   {
+    "start": 12,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 16,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 20,
+    "words": 3,
+    "text": "w0 w1 w2"
+   },
+   {
+    "start": 22,
+    "words": 3,
+    "text": "w0 w1 w2"
+   },
+   {
+    "start": 24,
+    "words": 1,
+    "text": "w0"
+   },
+   {
+    "start": 27,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 34,
+    "words": 8,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7"
+   },
+   {
+    "start": 38,
+    "words": 4,
+    "text": "w0 w1 w2 w3"
+   },
+   {
+    "start": 42,
+    "words": 8,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7"
+   },
+   {
+    "start": 46,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 49,
+    "words": 13,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12"
+   },
+   {
+    "start": 59,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 63,
+    "words": 11,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10"
+   },
+   {
+    "start": 73,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 77,
+    "words": 14,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13"
+   },
+   {
+    "start": 81,
+    "words": 6,
+    "text": "w0 w1 w2 w3 w4 w5"
+   },
+   {
+    "start": 85,
+    "words": 12,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11"
+   },
+   {
+    "start": 90,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 95,
+    "words": 6,
+    "text": "w0 w1 w2 w3 w4 w5"
+   },
+   {
+    "start": 100,
+    "words": 6,
+    "text": "w0 w1 w2 w3 w4 w5"
+   },
+   {
+    "start": 104,
+    "words": 4,
+    "text": "w0 w1 w2 w3"
+   },
+   {
+    "start": 107,
+    "words": 4,
+    "text": "w0 w1 w2 w3"
+   },
+   {
+    "start": 110,
+    "words": 12,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11"
+   },
+   {
+    "start": 117,
+    "words": 4,
+    "text": "w0 w1 w2 w3"
+   },
+   {
+    "start": 124,
+    "words": 17,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16"
+   },
+   {
+    "start": 133,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 137,
+    "words": 18,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17"
+   },
+   {
+    "start": 146,
+    "words": 4,
+    "text": "w0 w1 w2 w3"
+   },
+   {
+    "start": 148,
+    "words": 5,
+    "text": "w0 w1 w2 w3 w4"
+   },
+   {
+    "start": 152,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 156,
+    "words": 3,
+    "text": "w0 w1 w2"
+   },
+   {
+    "start": 159,
+    "words": 6,
+    "text": "w0 w1 w2 w3 w4 w5"
+   },
+   {
+    "start": 165,
+    "words": 8,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7"
+   },
+   {
+    "start": 171,
+    "words": 5,
+    "text": "w0 w1 w2 w3 w4"
+   },
+   {
+    "start": 177,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 183,
+    "words": 16,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15"
+   },
+   {
+    "start": 190,
+    "words": 18,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17"
+   },
+   {
+    "start": 199,
+    "words": 12,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11"
+   },
+   {
+    "start": 205,
+    "words": 8,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7"
+   },
+   {
+    "start": 209,
+    "words": 8,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7"
+   },
+   {
+    "start": 213,
+    "words": 4,
+    "text": "w0 w1 w2 w3"
+   },
+   {
+    "start": 215,
+    "words": 3,
+    "text": "w0 w1 w2"
+   },
+   {
+    "start": 216,
+    "words": 11,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10"
+   },
+   {
+    "start": 221,
+    "words": 5,
+    "text": "w0 w1 w2 w3 w4"
+   },
+   {
+    "start": 224,
+    "words": 5,
+    "text": "w0 w1 w2 w3 w4"
+   },
+   {
+    "start": 231,
+    "words": 15,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14"
+   },
+   {
+    "start": 237,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 244,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 248,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 253,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 266,
+    "words": 18,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17"
+   },
+   {
+    "start": 272,
+    "words": 12,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11"
+   },
+   {
+    "start": 285,
+    "words": 26,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25"
+   },
+   {
+    "start": 299,
+    "words": 18,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17"
+   }
+  ],
+  "textsRedacted": true
+ },
+ "C 310s slices of the same region#1": {
+  "startSec": 1179.010612243893,
+  "endSec": 1489.0057142842072,
+  "sliceSec": 309.9951020403141,
+  "ms": 32373,
+  "honesty": {
+   "r": 0.466,
+   "span": 0.971,
+   "meanDelta": 5.9,
+   "n": 52,
+   "words": 411
+  },
+  "segs": [
+   {
+    "start": 1,
+    "words": 2,
+    "text": "w0 w1"
+   },
+   {
+    "start": 9,
+    "words": 2,
+    "text": "w0 w1"
+   },
+   {
+    "start": 13,
+    "words": 11,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10"
+   },
+   {
+    "start": 20,
+    "words": 12,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11"
+   },
+   {
+    "start": 29,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 35,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 41,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 46,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 51,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 59,
+    "words": 1,
+    "text": "w0"
+   },
+   {
+    "start": 61,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 65,
+    "words": 1,
+    "text": "w0"
+   },
+   {
+    "start": 67,
+    "words": 8,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7"
+   },
+   {
+    "start": 70,
+    "words": 8,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7"
+   },
+   {
+    "start": 75,
+    "words": 17,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16"
+   },
+   {
+    "start": 85,
+    "words": 2,
+    "text": "w0 w1"
+   },
+   {
+    "start": 89,
+    "words": 14,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13"
+   },
+   {
+    "start": 93,
+    "words": 13,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12"
+   },
+   {
+    "start": 104,
+    "words": 10,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9"
+   },
+   {
+    "start": 113,
+    "words": 11,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10"
+   },
+   {
+    "start": 119,
+    "words": 6,
+    "text": "w0 w1 w2 w3 w4 w5"
+   },
+   {
+    "start": 122,
+    "words": 2,
+    "text": "w0 w1"
+   },
+   {
+    "start": 125,
+    "words": 18,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17"
+   },
+   {
+    "start": 132,
+    "words": 18,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17"
+   },
+   {
+    "start": 143,
+    "words": 1,
+    "text": "w0"
+   },
+   {
+    "start": 146,
+    "words": 30,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28 w29"
+   },
+   {
+    "start": 158,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 164,
+    "words": 6,
+    "text": "w0 w1 w2 w3 w4 w5"
+   },
+   {
+    "start": 166,
+    "words": 3,
+    "text": "w0 w1 w2"
+   },
+   {
+    "start": 169,
+    "words": 18,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17"
+   },
+   {
+    "start": 176,
+    "words": 6,
+    "text": "w0 w1 w2 w3 w4 w5"
+   },
+   {
+    "start": 181,
+    "words": 3,
+    "text": "w0 w1 w2"
+   },
+   {
+    "start": 184,
+    "words": 6,
+    "text": "w0 w1 w2 w3 w4 w5"
+   },
+   {
+    "start": 187,
+    "words": 5,
+    "text": "w0 w1 w2 w3 w4"
+   },
+   {
+    "start": 191,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 195,
+    "words": 6,
+    "text": "w0 w1 w2 w3 w4 w5"
+   },
+   {
+    "start": 200,
+    "words": 1,
+    "text": "w0"
+   },
+   {
+    "start": 201,
+    "words": 2,
+    "text": "w0 w1"
+   },
+   {
+    "start": 204,
+    "words": 5,
+    "text": "w0 w1 w2 w3 w4"
+   },
+   {
+    "start": 206,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 210,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 219,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 225,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 234,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 241,
+    "words": 10,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9"
+   },
+   {
+    "start": 246,
+    "words": 14,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13"
+   },
+   {
+    "start": 251,
+    "words": 4,
+    "text": "w0 w1 w2 w3"
+   },
+   {
+    "start": 261,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 268,
+    "words": 6,
+    "text": "w0 w1 w2 w3 w4 w5"
+   },
+   {
+    "start": 272,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 293,
+    "words": 7,
+    "text": "w0 w1 w2 w3 w4 w5 w6"
+   },
+   {
+    "start": 302,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   }
+  ],
+  "textsRedacted": true
+ },
+ "C 310s slices of the same region#2": {
+  "startSec": 1489.0057142842072,
+  "endSec": 1805.8187755081838,
+  "sliceSec": 316.81306122397655,
+  "ms": 25291,
+  "honesty": {
+   "r": 0.329,
+   "span": 0.903,
+   "meanDelta": 8.67,
+   "n": 34,
+   "words": 419
+  },
+  "segs": [
+   {
+    "start": 0,
+    "words": 4,
+    "text": "w0 w1 w2 w3"
+   },
+   {
+    "start": 4,
+    "words": 13,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12"
+   },
+   {
+    "start": 13,
+    "words": 15,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14"
+   },
+   {
+    "start": 19,
+    "words": 11,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10"
+   },
+   {
+    "start": 25,
+    "words": 5,
+    "text": "w0 w1 w2 w3 w4"
+   },
+   {
+    "start": 30,
+    "words": 6,
+    "text": "w0 w1 w2 w3 w4 w5"
+   },
+   {
+    "start": 52,
+    "words": 6,
+    "text": "w0 w1 w2 w3 w4 w5"
+   },
+   {
+    "start": 60,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 72,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 76,
+    "words": 17,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16"
+   },
+   {
+    "start": 83,
+    "words": 22,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21"
+   },
+   {
+    "start": 94,
+    "words": 2,
+    "text": "w0 w1"
+   },
+   {
+    "start": 100,
+    "words": 17,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16"
+   },
+   {
+    "start": 108,
+    "words": 12,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11"
+   },
+   {
+    "start": 120,
+    "words": 22,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21"
+   },
+   {
+    "start": 127,
+    "words": 3,
+    "text": "w0 w1 w2"
+   },
+   {
+    "start": 136,
+    "words": 10,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9"
+   },
+   {
+    "start": 142,
+    "words": 6,
+    "text": "w0 w1 w2 w3 w4 w5"
+   },
+   {
+    "start": 156,
+    "words": 11,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10"
+   },
+   {
+    "start": 161,
+    "words": 5,
+    "text": "w0 w1 w2 w3 w4"
+   },
+   {
+    "start": 163,
+    "words": 9,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8"
+   },
+   {
+    "start": 172,
+    "words": 5,
+    "text": "w0 w1 w2 w3 w4"
+   },
+   {
+    "start": 174,
+    "words": 10,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9"
+   },
+   {
+    "start": 180,
+    "words": 32,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28 w29 w30 w31"
+   },
+   {
+    "start": 195,
+    "words": 15,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14"
+   },
+   {
+    "start": 201,
+    "words": 18,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17"
+   },
+   {
+    "start": 211,
+    "words": 11,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10"
+   },
+   {
+    "start": 214,
+    "words": 24,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23"
+   },
+   {
+    "start": 228,
+    "words": 25,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24"
+   },
+   {
+    "start": 236,
+    "words": 12,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11"
+   },
+   {
+    "start": 246,
+    "words": 14,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13"
+   },
+   {
+    "start": 263,
+    "words": 16,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15"
+   },
+   {
+    "start": 276,
+    "words": 13,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12"
+   },
+   {
+    "start": 286,
+    "words": 10,
+    "text": "w0 w1 w2 w3 w4 w5 w6 w7 w8 w9"
+   }
+  ],
+  "textsRedacted": true
+ }
+}

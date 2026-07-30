@@ -286,6 +286,110 @@
                seamsMeta: stitchedHalves.seamsMeta };
     }
 
+    // ── S12.7: инструменты починки сжатых часов (вердикт выносит AsrTranscript) ──────────────
+    // Длина под-среза раунда 2. Замер FINDINGS.md §5: срезы 310с дали покрытие 0.90–0.97 и
+    // медиану ошибки 0.46–0.71с (3 из 3), при том что 937-секундные ломались в 2 случаях из 3.
+    // Ниже 300с уходить нельзя: DENSITY_BASELINE_MIN_WINDOW_SEC исключил бы срезы из базы
+    // плотности, и судить их стало бы нечем.
+    var CLOCK_SPLIT_SEC = 310;
+    var CLOCK_SPLIT_OVERLAP_SEC = 15;
+    // Потолок трат (R16): дробление — самый дорогой раунд (3 вызова на чанк). Больше четырёх
+    // чанков за прогон не дробим; недолеченные диапазоны НЕ прячутся, а честно уезжают в
+    // clockCompressed и в предупреждение (никаких молчаливых потолков).
+    var CLOCK_SPLIT_MAX_WINDOWS = 4;
+
+    // Шинглы ВСЕГО принятого материала, КРОМЕ одного окна. Повторный запрос того же чанка обязан
+    // повторить сам себя — это не улика; уликой остаётся совпадение с ЧУЖИМИ окнами (ровно то,
+    // что ловит анти-реплей гейт S12.5).
+    function shinglesExcept(skipIdx) {
+      var s = new Set();
+      for (var i = 0; i < windowSegments.length; i++) {
+        if (i !== skipIdx) A2.collectShingles(windowSegments[i], s);
+      }
+      return s;
+    }
+    function windowWords(segs) {
+      var n = 0;
+      for (var i = 0; i < (segs || []).length; i++) n += A2.stitchNormalizeWords(segs[i] && segs[i].text).length;
+      return n;
+    }
+    function markCoverage(segs, winSec) {
+      var marks = [];
+      for (var i = 0; i < (segs || []).length; i++) {
+        var t = segs[i] && segs[i].start;
+        if (typeof t === "number" && isFinite(t)) marks.push(t);
+      }
+      if (marks.length < 2 || !(winSec > 0)) return 0;
+      return (marks[marks.length - 1] - marks[0]) / winSec;
+    }
+    async function callRange(a, b) {
+      var r;
+      try { r = await oneCall(a, b); }
+      catch (e) { if (e.code !== "ASR_BAD_JSON") throw e; r = await bisectWindow(a, b); }
+      return clipSegmentsToRange(r.parsed.segments, a, b, A2.ASR_STITCH_CLIP_TOL_SEC);
+    }
+    // Раунд 2: чанк переспрашивается КУСКАМИ по CLOCK_SPLIT_SEC с перекрытием, куски склеиваются
+    // ТЕМ ЖЕ швом по тексту, что и окна (stitchWindowSegments) — второго правила склейки в
+    // проекте не заводим.
+    async function callSplit(a, b) {
+      var parts = [], seams = [], n = Math.max(2, Math.ceil((b - a) / CLOCK_SPLIT_SEC));
+      var step = (b - a) / n;
+      for (var i = 0; i < n; i++) {
+        var from = i === 0 ? a : a + i * step - CLOCK_SPLIT_OVERLAP_SEC;
+        var to = i === n - 1 ? b : a + (i + 1) * step + CLOCK_SPLIT_OVERLAP_SEC;
+        parts.push(await callRange(from, to));
+        if (i > 0) seams.push(a + i * step);
+      }
+      return A2.stitchWindowSegments(parts, seams, { overlapSec: CLOCK_SPLIT_OVERLAP_SEC }).segments;
+    }
+
+    // Возврат: диапазоны, оставшиеся сжатыми ПОСЛЕ починки (каждый — {fromSec,toSec,…} вердикта).
+    async function repairCompressedClocks() {
+      var splitsSpent = 0;
+      for (var round = 0; round < 2; round++) {
+        var judged = wins.slice(0, windowSegments.length);
+        var bad = A2.classifyClockCompression(A2.runSpeechDensity(windowSegments, judged));
+        if (!bad.length) return [];
+        for (var bi = 0; bi < bad.length; bi++) {
+          var idx = bad[bi].windowIdx, w = judged[idx];
+          if (!w) continue;
+          var meta = windowsMeta[idx] || (windowsMeta[idx] = { startSec: w.startSec, endSec: w.endSec, retries: 0 });
+          var prev = windowSegments[idx], winSec = w.endSec - w.startSec;
+          if (round === 1 && splitsSpent >= CLOCK_SPLIT_MAX_WINDOWS) {
+            meta.clockSplitSkipped = true; // R9: потолок трат виден, а не молчит
+            continue;
+          }
+          var fresh;
+          try { fresh = round === 0 ? await callRange(w.startSec, w.endSec) : await callSplit(w.startSec, w.endSec); }
+          catch (e) {
+            // Починка — best-effort поверх УЖЕ полученного транскрипта: сеть/квота не имеют права
+            // отнять то, что прогон уже добыл. Диапазон останется честно недостоверным.
+            meta.clockRepairError = String((e && e.message) || e).slice(0, 120);
+            continue;
+          }
+          if (round === 1) splitsSpent++;
+          // Принимаем ТОЛЬКО доказанное улучшение (R11 «не ухудшать»): метки обязаны накрыть
+          // больше, и при этом текста не должно стать заметно меньше — тайминг не покупается
+          // ценой потерянной речи. Плюс тот же анти-реплей гейт против ЧУЖИХ окон.
+          var covBefore = markCoverage(prev, winSec), covAfter = markCoverage(fresh, winSec);
+          var wordsBefore = windowWords(prev), wordsAfter = windowWords(fresh);
+          var replay = A2.replayRatio(fresh, shinglesExcept(idx));
+          var accept = covAfter > covBefore &&
+                       wordsAfter >= wordsBefore * A2.DENSITY_TEXT_PRESENT_RATIO &&
+                       !(replay !== null && replay >= A2.REPLAY_REJECT_RATIO);
+          var log = { round: round + 1, covBefore: +covBefore.toFixed(3), covAfter: +covAfter.toFixed(3),
+                      wordsBefore: wordsBefore, wordsAfter: wordsAfter, accepted: accept };
+          if (replay !== null) log.replay = +replay.toFixed(2);
+          meta.clockRepair = (meta.clockRepair || []).concat([log]); // R9: каждая попытка видна
+          if (accept) {
+            windowSegments[idx] = fresh;
+            seenShingles = shinglesExcept(-1); // накопитель прогона пересобирается под новый состав
+          }
+        }
+      }
+      return A2.classifyClockCompression(A2.runSpeechDensity(windowSegments, wins.slice(0, windowSegments.length)));
+    }
+
     for (var k = startAt; k < wins.length; k++) {
       deps.onProgress(k + 1, wins.length);
       var r, clippedCount = 0;
@@ -342,6 +446,27 @@
       (r.parsed.warnings || []).forEach(function (w) {
         if (w !== "NO_SPEECH" && warnings.indexOf(w) < 0) warnings.push(w);
       });
+    }
+
+    // ── S12.7: ПОЧИНКА СЖАТЫХ ЧАСОВ ЧАНКА ───────────────────────────────────────────────────
+    // Живая приёмка владельца 2026-07-30 (docs/research/studio-karaoke-clock-drift/2026-07-30):
+    // чанк выдал ПОЛНЫЙ текст своих 15 минут, но разметил их 660с меток — модель перестала
+    // читать позицию в звуке и начала штамповать почти постоянный шаг. Караоке уехало до 4 мин
+    // 17 с на 57% таблицы. Дефект СТОХАСТИЧЕСКИЙ: тот же звук, тот же промт, повтор вызова —
+    // и медиана ошибки 55с превращается в 0.58с (замер FINDINGS.md §5, 5 живых прогонов).
+    // Поэтому лечение — переспросить, а не выдумывать метки: восстановить их из текста нельзя
+    // (все офлайн-стратегии проиграли, FINDINGS.md §6).
+    //
+    // Раунд 1 — повтор ТОГО ЖЕ чанка (+1 вызов на сжатый чанк). Раунд 2 — тот же чанк, нарезанный
+    // на CLOCK_SPLIT_SEC (замер: 3 из 3 коротких срезов здоровы, медиана 0.46–0.71с). Не помогло
+    // ⇒ диапазон честно объявляется недостоверным по таймингу, и караоке на нём выключается
+    // (R11: отсутствие подсветки лучше уверенно неверной) — текст при этом НЕ страдает.
+    var clockCompressed = [];
+    if (!single && windowSegments.length > 1) {
+      clockCompressed = await repairCompressedClocks();
+      if (clockCompressed.length && warnings.indexOf("ASR_CLOCK_COMPRESSED") < 0) {
+        warnings.push("ASR_CLOCK_COMPRESSED");
+      }
     }
 
     // S12.4: мульти-оконный путь склеивается ПО ТЕКСТУ (якорь в зоне перекрытия), а не встык по
@@ -434,6 +559,9 @@
              coverageGaps: remaining, healedGaps: healedGaps,
              // S12.6 R9: где текст на месте, а метки сжаты (+ плотность прогона, по которой это решено)
              unreliableMarkRanges: finalGaps.unreliableMarkRanges, speechDensity: finalGaps.density,
+             // S12.7: чанки, чьи часы остались сжатыми ПОСЛЕ починки. Текст там на месте, а
+             // тайминг недостоверен — караоке на этих диапазонах обязано быть выключено (R11).
+             clockCompressedRanges: clockCompressed,
              rejectedRanges: rejectedRanges, // S12.5 R9: что забраковано анти-реплей гейтом (окно/добор)
              windowSegments: windowSegments };
   }
@@ -711,6 +839,8 @@
       // плотности, по которому это решено — чтобы следующая живая приёмка судила по числам.
       pendingAudio.unreliableMarkRanges = result.unreliableMarkRanges || [];
       pendingAudio.speechDensity = result.speechDensity || null;
+      // S12.7: чанки, чьи часы остались сжатыми после починки — караоке там будет выключено.
+      pendingAudio.clockCompressedRanges = result.clockCompressedRanges || [];
       // S12.5 T4 (R11): сводка считается ЗДЕСЬ, из структурных записей прогона, и дальше живёт
       // одним объектом на три роли — показ в превью, гейт подтверждения в useText, паспорт.
       // Одна цифра во всех трёх местах по построению: разойтись им нечем.
@@ -719,6 +849,7 @@
         coverageGaps: result.coverageGaps, healedGaps: result.healedGaps,
         rejectedRanges: result.rejectedRanges, warnings: result.warnings,
         unreliableMarkRanges: result.unreliableMarkRanges, // S12.6: отдельный факт, не потеря
+        clockCompressedRanges: result.clockCompressedRanges, // S12.7: караоке там выключено
       });
       if (!parsed.segments.length || parsed.warnings.includes("NO_SPEECH")) { setStatus("studio.import.errNoSpeech"); return; }
       pendingAudio.parsed = parsed;
@@ -774,11 +905,17 @@
       if (sum.unreliable) {
         parts.push(tr("studio.import.asrSummaryUnreliable", { list: asrGapList(sum.unreliableRanges) }));
       }
+      // S12.7: часы чанка сжаты, переспрос и дробление не помогли ⇒ караоке там ВЫКЛЮЧЕНО.
+      // Своя строка, а не «может уезжать»: владелец должен знать, что подсветки не будет вовсе,
+      // а текст при этом полный (см. summarizeAsrRun — почему это третий факт, а не оттенок).
+      if (sum.clockCompressed) {
+        parts.push(tr("studio.import.asrSummaryClockCompressed", { list: asrGapList(sum.clockCompressedRanges) }));
+      }
       // Блок янтарный, а числовой потери нет — обязаны сказать, ПОЧЕМУ он янтарный (целостность
       // окон/предупреждения конвейера), иначе владелец видит тревогу без причины. Ненадёжный
       // тайминг сам себя объясняет строкой выше — второй раз пугать «распознавание неполное»
       // (текст-то полный) значит врать.
-      if (!sum.lostSec && !sum.rejected && !sum.unreliable) parts.push(tr("studio.import.asrSummaryFlagged"));
+      if (!sum.lostSec && !sum.rejected && !sum.unreliable && !sum.clockCompressed) parts.push(tr("studio.import.asrSummaryFlagged"));
     }
     if (sum.healed) parts.push(tr("studio.import.asrSummaryHealed", { n: sum.healed }));
     return parts.join(" · ");
@@ -1013,6 +1150,10 @@
                // замер плотности прогона, которым это доказано.
                unreliableMarkRanges: pendingAudio.unreliableMarkRanges || [],
                speechDensity: pendingAudio.speechDensity || null,
+               // S12.7 R9: чанки, чьи часы остались сжатыми ПОСЛЕ переспроса и дробления. Это
+               // не «предупреждение на будущее», а вход гейта караоке: v3AttachAudioTiming
+               // отказывается строить тайминг, когда такой диапазон есть (R11).
+               clockCompressedRanges: pendingAudio.clockCompressedRanges || [],
                // S12.5 R9: диапазоны, забракованные анти-реплей гейтом (окно/добор) — почему
                // соответствующие дыры остались открытыми; сводка прогона (T4) читает отсюда.
                rejectedRanges: pendingAudio.rejectedRanges || [],
