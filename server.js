@@ -6708,7 +6708,7 @@ app.post("/api/translate-table", async (req, res) => {
         return res.status(503).json({
           error: "Python sidecar (ai-local) не запущен",
           details: e.message,
-          hint: "Запустите ai-local (uvicorn) на 127.0.0.1:8765 или выберите провайдер GCP Translate",
+          hint: "Запустите ai-local (uvicorn) на 127.0.0.1:8799 или выберите провайдер GCP Translate",
         });
       }
       if (e.upstream) {

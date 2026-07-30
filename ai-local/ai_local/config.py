@@ -18,6 +18,13 @@ def _env_int(name: str, default: int) -> int:
 
 HERE = Path(__file__).resolve().parent.parent
 
+
+def _default_state_dir() -> Path:
+    local_app_data = os.environ.get("LOCALAPPDATA")
+    if local_app_data:
+        return Path(local_app_data) / "LinguistPro" / "ai-local"
+    return HERE / ".state"
+
 HOST = os.environ.get("AI_LOCAL_HOST", "127.0.0.1")
 # Default 8799 (NOT 8765 — AnkiConnect's well-known port, which this project uses;
 # a sidecar on 8765 collides with it). Override with AI_LOCAL_PORT.
@@ -25,6 +32,7 @@ PORT = _env_int("AI_LOCAL_PORT", 8799)
 
 MODELS_DIR = Path(os.environ.get("AI_LOCAL_MODELS_DIR", HERE / "models"))
 HF_CACHE_DIR = Path(os.environ.get("AI_LOCAL_HF_CACHE", HERE / "hf-cache"))
+STATE_DIR = Path(os.environ.get("AI_LOCAL_STATE_DIR", _default_state_dir()))
 
 NAKDAN_MODEL_ID = "dicta-il/dictabert-large-char-menaked"
 NAKDAN_DEVICE = os.environ.get("AI_LOCAL_NAKDAN_DEVICE", "cpu")
@@ -56,6 +64,23 @@ WARMUP_TRANSLATOR_INPUT = "שלום"
 WARMUP_TRANSLATOR_TARGET = "ru"
 
 SHUTDOWN_DRAIN_TIMEOUT_SEC = _env_int("AI_LOCAL_SHUTDOWN_DRAIN", 30)
+
+# Studio Ingest L1 local ASR is deliberately default-off until the owner approves
+# permanent integration/provider policy.  The browser-facing /v1 boundary is
+# separate from legacy server-to-sidecar /nakdan and /translate calls.
+ASR_ENABLED = _env_bool("AI_LOCAL_ASR_ENABLED", False)
+ASR_ALLOWED_ORIGINS = tuple(
+    value.strip()
+    for value in os.environ.get(
+        "AI_LOCAL_ALLOWED_ORIGINS",
+        "http://localhost:3000,http://127.0.0.1:3000",
+    ).split(",")
+    if value.strip()
+)
+ASR_PAIRING_TOKEN_FILE = Path(
+    os.environ.get("AI_LOCAL_PAIRING_TOKEN_FILE", STATE_DIR / "pairing-token")
+)
+ASR_JOB_ROOT = Path(os.environ.get("AI_LOCAL_JOB_ROOT", STATE_DIR / "jobs"))
 
 MADLAD_MODEL_VERSION = "madlad-400-10b-ct2-int8f16@v1"
 NAKDAN_MODEL_VERSION = "dictabert-large-char-menaked@2025-03"

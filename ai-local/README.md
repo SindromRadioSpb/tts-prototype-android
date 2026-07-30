@@ -4,9 +4,12 @@ Sidecar Python service for the `tts-prototype-android` Node server. Provides:
 
 - **Nikud** (Hebrew vowel points) via `dicta-il/dictabert-large-char-menaked` on CPU.
 - **Translation** (Hebrew → Russian) via `google/madlad400-10b-mt` through CTranslate2 on GPU.
+- **Studio local ASR** (default-off L1) via the exact pinned
+  `ivrit-ai/whisper-large-v3-turbo-ct2` revision. Full large-v3 is not a default or fallback.
 
-Design and policy live in the plan discussed in chat; see in particular §2.5 (model lifecycle)
-and §8 (cache/persistence). This README covers only setup and running.
+Local-ASR design, boundaries and gates are canonical in
+`docs/planning/STUDIO_INGEST_LOCAL_ASR_L1_DESIGN_DECISION_PACKET_2026_07_30.md`.
+This README covers setup and running.
 
 ## Requirements
 
@@ -47,7 +50,8 @@ pip install torch==2.3.* --index-url https://download.pytorch.org/whl/cpu
 pip install -e ".[runtime,dev]"
 ```
 
-The `runtime` extra pulls `transformers`, `ctranslate2`, `sentencepiece`, `huggingface_hub`.
+The `runtime` extra pulls `transformers`, pinned `faster-whisper`/`ctranslate2`,
+`sentencepiece`, and `huggingface_hub`.
 The `dev` extra adds pytest. Omit `runtime` if you only want to run the test suite against
 mocks (no real models).
 
@@ -66,16 +70,36 @@ The conversion step downloads ~22 GB of original weights into `./hf-cache/`, the
 `./models/madlad400-10b-ct2-int8f16/`. You can delete `hf-cache/` after conversion if disk
 is tight.
 
+### 5. Explicitly activate the approved ASR snapshot (optional, default-off)
+
+Pre-fetch the exact revision outside this command, then activate it into the managed model
+store. Activation verifies every runtime-critical file against the committed pin and is atomic:
+
+```bash
+python scripts/install_asr.py --source <EXACT_PINNED_SNAPSHOT_DIRECTORY>
+```
+
+Enable the browser-facing API only after activation:
+
+```powershell
+$env:AI_LOCAL_ASR_ENABLED = "1"
+python -m uvicorn ai_local.main:app --host 127.0.0.1 --port 8799
+```
+
+The generated pairing token is stored under the user-local `AI_LOCAL_STATE_DIR` unless
+`AI_LOCAL_PAIRING_TOKEN` is supplied explicitly. The service never returns the token through
+an unauthenticated endpoint.
+
 ## Running
 
 ```bash
-python -m uvicorn ai_local.main:app --host 127.0.0.1 --port 8765
+python -m uvicorn ai_local.main:app --host 127.0.0.1 --port 8799
 ```
 
 Verify:
 
 ```bash
-curl http://127.0.0.1:8765/healthz
+curl http://127.0.0.1:8799/healthz
 ```
 
 ## Endpoints
@@ -97,13 +121,17 @@ Request/response schemas are in `ai_local/main.py`.
 | Var | Default | Meaning |
 |---|---|---|
 | `AI_LOCAL_HOST`              | `127.0.0.1` | Bind host |
-| `AI_LOCAL_PORT`              | `8765`      | Bind port |
+| `AI_LOCAL_PORT`              | `8799`      | Bind port (`8765` is reserved for AnkiConnect) |
 | `AI_LOCAL_MODELS_DIR`        | `./models`  | Where CT2 MADLAD lives |
 | `AI_LOCAL_HF_CACHE`          | `./hf-cache`| HuggingFace download cache |
 | `AI_LOCAL_NAKDAN_EAGER`      | `1`         | Eager-load nikud at startup |
 | `AI_LOCAL_TRANSLATOR_IDLE`   | `900`       | MADLAD idle-unload seconds |
 | `AI_LOCAL_TRANSLATOR_DEVICE` | `cuda`      | `cuda` / `cpu` |
 | `AI_LOCAL_VRAM_MIN_MB`       | `768`       | Memory-pressure threshold |
+| `AI_LOCAL_ASR_ENABLED`       | `0`         | Enable the default-off Studio L1 local-ASR API |
+| `AI_LOCAL_ALLOWED_ORIGINS`   | localhost only | Comma-separated browser Origin allowlist |
+| `AI_LOCAL_PAIRING_TOKEN`     | generated   | Optional explicit browser pairing token |
+| `AI_LOCAL_STATE_DIR`         | user-local app data | Pairing/job state root |
 
 ## Tests
 

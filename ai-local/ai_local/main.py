@@ -5,7 +5,7 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
@@ -13,6 +13,10 @@ from . import config
 from .lifecycle import ensure_loaded, eager_load, shutdown_slot, try_unload, use_model
 from .logging_setup import configure_logging
 from .monitor import start_monitor, stop_monitor
+from .asr_constants import ASR_PROTOCOL_VERSION, model_identity
+from .asr_worker import asr_worker
+from .model_store import inspect_model
+from .security import loopback_security_middleware, require_browser_auth
 from .state import ModelSlot, registry
 
 log = logging.getLogger(__name__)
@@ -69,10 +73,14 @@ async def lifespan(app: FastAPI):
             ),
             return_exceptions=True,
         )
+        await asyncio.to_thread(asr_worker.shutdown)
         log.info("ai-local stopped")
 
 
 app = FastAPI(title="ai-local", version="0.1.0", lifespan=lifespan)
+
+
+app.middleware("http")(loopback_security_middleware)
 
 
 @app.middleware("http")
@@ -124,6 +132,46 @@ class WarmupRequest(BaseModel):
 
 
 # ---------- endpoints ----------
+
+
+@app.get("/v1/capabilities")
+async def v1_capabilities():
+    return {
+        "protocol": ASR_PROTOCOL_VERSION,
+        "local_asr": {
+            "enabled": config.ASR_ENABLED,
+            "default": False,
+            "auth_required": True,
+            "model": model_identity(),
+        },
+    }
+
+
+@app.get("/v1/asr/model/status", dependencies=[Depends(require_browser_auth)])
+async def v1_asr_model_status(verify_hash: bool = False):
+    status = await asyncio.to_thread(inspect_model, None, verify_hash=verify_hash)
+    worker = asr_worker.status()
+    return {
+        **status.public_dict(),
+        "worker": {"state": worker.state, "pid": worker.pid},
+    }
+
+
+@app.post("/v1/asr/model/warmup", dependencies=[Depends(require_browser_auth)])
+async def v1_asr_model_warmup():
+    status = await asyncio.to_thread(inspect_model, None, verify_hash=True)
+    if not status.verified:
+        raise HTTPException(status_code=409, detail=status.reason or "model is not verified")
+    result = await asyncio.to_thread(asr_worker.load, status.path)
+    if not result.get("ok"):
+        raise HTTPException(status_code=503, detail=result.get("error") or "worker load failed")
+    return {"ok": True, "state": result.get("state"), "load_sec": result.get("load_sec")}
+
+
+@app.post("/v1/asr/model/unload", dependencies=[Depends(require_browser_auth)])
+async def v1_asr_model_unload():
+    await asyncio.to_thread(asr_worker.hard_cancel)
+    return {"ok": True, "state": "unloaded"}
 
 
 @app.get("/healthz")
