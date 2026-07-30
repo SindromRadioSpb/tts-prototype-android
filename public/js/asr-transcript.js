@@ -513,6 +513,217 @@
     return gaps;
   }
 
+  // ── S12.6: ПЛОТНОСТЬ РЕЧИ ОКНА — НЕЗАВИСИМЫЙ СИГНАЛ ПРОТИВ ЛОЖНОЙ ДЫРЫ ────────────────────────
+  // Живая приёмка владельца 2026-07-29 (117 мин, v3.11.265; тикет
+  // docs/planning/STUDIO_INGEST_S12_6_FALSE_GAP_COMPRESSED_MARKS_2026_07_30.md): окно 5
+  // [3570,4500] выдало ПОЛНЫЙ текст своих 15 минут — 1218 слов при 1093–1354 у соседей, — но
+  // проставило метки только на первые ~9.3 минуты, сжав их вдвое (1218 слов на 561с меток =
+  // 2.17 сл/с против живых 1.3). Внутри окна образовался ровно один разрыв меток 4139→4469
+  // (330с), и findCoverageGaps — который судит ТОЛЬКО по расстоянию между `start` соседних
+  // сегментов — объявил его дырой. Три следствия, все реальные: сводка сообщила «потеряно 4.7%»
+  // и владелец подтверждал НЕСУЩЕСТВУЮЩУЮ потерю; добор был оплачен впустую (R16) и вернул текст,
+  // который уже был в транскрипте (его поймал анти-реплей гейт S12.5 — сработал правильно);
+  // тайминг караоке в этом окне уехал, и НИ ОДНА метрика этого не видела (validateSegments
+  // проверяет монотонность и диапазон, но не ПЛОТНОСТЬ).
+  //
+  // ЭТО ТОТ ЖЕ КОРНЕВОЙ КЛАСС, ЧТО ЧИНИЛ S12.5, С ОБРАТНЫМ ЗНАКОМ: самоотчётная метка модели не
+  // может быть оракулом целостности — раньше она СКРЫВАЛА потерю, теперь ВЫДУМЫВАЕТ её. Оракул
+  // берётся тот же, что у шва (S12.4) и у анти-реплей гейта (S12.5) — ТЕКСТ:
+  //
+  //     ЕСЛИ ОКНО ВЫДАЛО ОЖИДАЕМЫЙ ПО СВОЕЙ ДЛИТЕЛЬНОСТИ ОБЪЁМ ТЕКСТА, РАЗРЫВ МЕТОК ВНУТРИ НЕГО
+  //     НЕ МОЖЕТ БЫТЬ ПОТЕРЕЙ РЕЧИ: речь на месте, недостоверны МЕТКИ.
+  //
+  // Доказательство «текст на месте» на живом прогоне независимо от нас: обратный матчинг эталонных
+  // субтитров дал внутри «дыры» найденность 37.9% против медианы 33.1% по всей записи.
+  //
+  // ОЖИДАЕМЫЙ ОБЪЁМ МЕРЯЕТСЯ, А НЕ ЗАДАЁТСЯ КОНСТАНТОЙ: темп речи у интервью, лекции и подкаста
+  // разный, и зашитая «1.3 сл/с» лгала бы на первом же другом материале. База прогона = МЕДИАНА
+  // слов/сек по окнам без внутренних разрывов (медиана, а не среднее: одно аномальное окно —
+  // ровно тот случай, ради которого всё это пишется, и оно не имеет права двигать базу).
+  //
+  // СЛОВА СЧИТАЕТ stitchNormalizeWords — тот же нормализатор, что у шва и у анти-реплей гейта.
+  // Второго правила «что такое слово» в файле не заводим намеренно: два правила однажды разъедутся,
+  // и гейты начнут спорить друг с другом.
+  //
+  // ОСОЗНАННЫЙ ОСТАТОК: слова считаются по СЫРЫМ сегментам окна (до stitch), поэтому шовная зона
+  // (30с из 900) считается дважды — ≈3% завышения. Оно одинаково у базы и у подсудимого окна и
+  // сокращается в их отношении.
+  var DENSITY_BASELINE_MIN_WINDOW_SEC = 300;
+
+  // Порог «объём на месте». Живой замер: окно 5 дало 1218 слов на 930с = 1.31 сл/с при базе
+  // 1.29 → 1.02 от ожидания; самое бедное ЧЕСТНОЕ окно того же прогона — 1093 слова = 1.18 сл/с →
+  // 0.91. Известный класс реальной потери — обрыв вывода чанка (проба R10: чанк оборвался на
+  // rel 727 из 930 ≈ 0.78 объёма) — обязан остаться потерей. 0.85 лежит между ними с запасом по
+  // обе стороны: ни одно честное окно живого прогона его не задевает, обрыв вывода — не проходит.
+  var DENSITY_TEXT_PRESENT_RATIO = 0.85;
+
+  // Пол доверия к САМОЙ базе (R11: «объём» — доказательство только там, где есть что мерить).
+  // Живой замер темпа — 1.27–1.46 сл/с; даже медленная диктовка даёт около 1 сл/с. База ниже
+  // 0.5 сл/с (30 слов в минуту) означает не «медленную речь», а материал, по которому ожидаемый
+  // объём не определён вовсе (тишина, музыка, единичные реплики, синтетическая фикстура). Там
+  // суждение НЕ выносится, и разрыв остаётся честной дырой — консервативная сторона ошибки.
+  var DENSITY_MIN_BASELINE_WPS = 0.5;
+
+  // Запас над ГИПОТЕЗОЙ ПОТЕРИ (адверсариальный ревью 2026-07-30, R11 — см. classifyGap).
+  // Одного порога «объём на месте» НЕ хватает: окно 930с, реально потерявшее в середине 95–139с
+  // речи, выдаёт объём 0.85–0.90 от базы — ВЫШЕ порога, — и без второго условия его дыра
+  // объявлялась бы «сжатыми метками». Второе условие сравнивает наблюдаемый объём не с нормой, а
+  // с тем, что дала бы САМА ГИПОТЕЗА ПОТЕРИ: (windowSec − gapSec)/windowSec. Запас нужен потому,
+  // что объём честного окна и сам гуляет: на живом прогоне окна легли в 0.91–1.02 от медианы
+  // (максимальное отклонение вверх ≈+0.02, вниз ≈−0.09). Чтобы РЕАЛЬНАЯ потеря g просочилась
+  // сквозь запас m, окно должно быть многословнее медианы в 1 + m/(1−g/W) раз: при m=0.15 и
+  // потере 15% окна это ×1.18 — вдвое дальше наблюдаемого разброса. Плата за запас — честная и
+  // консервативная: ложная дыра короче ≈15% окна (для 930с это ≈140с) остаётся «потерей», её
+  // по-прежнему добирают и показывают; живой дефект владельца (330с из 930) лечится с запасом
+  // 0.375 против требуемых 0.15.
+  var DENSITY_GAP_VOLUME_MARGIN = 0.15;
+
+  function densityMedian(nums) {
+    var v = nums.slice().sort(function (a, b) { return a - b; });
+    if (!v.length) return null;
+    var mid = Math.floor(v.length / 2);
+    return v.length % 2 ? v[mid] : (v[mid - 1] + v[mid]) / 2;
+  }
+
+  // perWindowSegments = [[{start,text}…]…] СЫРЫХ сегментов окон (runWindowedAsr.windowSegments),
+  // windows = [{startSec,endSec}] (asrWindows). Возврат — паспорт плотности прогона:
+  //   { baselineWordsPerSec, baselineWindows, usable, windows: [{windowIdx,startSec,endSec,
+  //     windowSec,words,segments,markFromSec,markToSec,maxMarkHopSec,internalGap,wordsPerSec,
+  //     densityRatio}] }.
+  // Лишние элементы любой из сторон игнорируются (судим ровно по парам «окно ↔ его сегменты»).
+  function runSpeechDensity(perWindowSegments, windows) {
+    var wins = Array.isArray(windows) ? windows : [];
+    var per = Array.isArray(perWindowSegments) ? perWindowSegments : [];
+    var n = Math.min(wins.length, per.length);
+    var stats = [], i, k;
+    for (i = 0; i < n; i++) {
+      var segs = Array.isArray(per[i]) ? per[i] : [];
+      var words = 0, marks = [];
+      for (k = 0; k < segs.length; k++) {
+        words += stitchNormalizeWords(segs[k] && segs[k].text).length;
+        var t = segs[k] && segs[k].start;
+        if (typeof t === "number" && isFinite(t)) marks.push(t);
+      }
+      var a = wins[i] && wins[i].startSec, b = wins[i] && wins[i].endSec;
+      var okRange = typeof a === "number" && isFinite(a) && typeof b === "number" && isFinite(b) && b > a;
+      var windowSec = okRange ? b - a : 0;
+      // Собственный разрыв меток окна — тем же порогом, которым findCoverageGaps судит транскрипт
+      // (второй «что такое разрыв» здесь был бы третьим мнением на ровном месте). Метки берутся в
+      // порядке сегментов: их немонотонность — это и есть брак тайминга, а не повод сортировать.
+      var maxHop = 0;
+      for (k = 1; k < marks.length; k++) { if (marks[k] - marks[k - 1] > maxHop) maxHop = marks[k] - marks[k - 1]; }
+      stats.push({
+        windowIdx: i, startSec: okRange ? a : null, endSec: okRange ? b : null,
+        windowSec: windowSec, words: words, segments: segs.length,
+        markFromSec: marks.length ? marks[0] : null,
+        markToSec: marks.length ? marks[marks.length - 1] : null,
+        maxMarkHopSec: maxHop, internalGap: maxHop > ASR_GAP_MAX_SEC,
+        wordsPerSec: windowSec > 0 ? words / windowSec : null, densityRatio: null,
+      });
+    }
+    // База — ТОЛЬКО по окнам БЕЗ внутренних разрывов (independent-oracle, R11). Это не
+    // косметика, а несущее условие: окно с разрывом — ПОДСУДИМЫЙ, и если пустить его в базу,
+    // то в вырожденном случае (единственное окно прогона) медиана станет равна его же плотности,
+    // отношение выйдет ровно 1.0 ПО ПОСТРОЕНИЮ, и любой разрыв объявился бы «текст на месте» —
+    // оракул, судящий сам себя. Окно, оборвавшее вывод (реальная потеря), из базы исключается по
+    // той же причине. Короткие окна (хвост файла) в базу не идут тоже: у 40-секундного окна
+    // «слов/сек» пляшет от одной фразы. Не осталось НИ ОДНОГО подходящего окна ⇒ базы нет ⇒
+    // суждение не выносится, все разрывы остаются честными дырами.
+    var pool = stats.filter(function (s) {
+      return s.wordsPerSec !== null && s.words > 0 && !s.internalGap && s.windowSec >= DENSITY_BASELINE_MIN_WINDOW_SEC;
+    });
+    var base = densityMedian(pool.map(function (s) { return s.wordsPerSec; }));
+    for (i = 0; i < stats.length; i++) {
+      if (base !== null && base > 0 && stats[i].wordsPerSec !== null) stats[i].densityRatio = stats[i].wordsPerSec / base;
+    }
+    return { baselineWordsPerSec: base, baselineWindows: pool.length,
+             usable: base !== null && base >= DENSITY_MIN_BASELINE_WPS, windows: stats };
+  }
+
+  // Вердикт по ОДНОМУ разрыву (density — результат runSpeechDensity):
+  //   "lost"             — реальная потеря речи (по умолчанию: R11 — вердикт «текст на месте»
+  //                        надо ДОКАЗАТЬ, а не предположить);
+  //   "marks-unreliable" — текст своего окна на месте, недостоверны метки.
+  // Правило — ДВА условия, и оба обязательны:
+  //   (1) разрыв лежит ЦЕЛИКОМ внутри окна, и КАЖДОЕ целиком содержащее его окно выдало
+  //       ≥ DENSITY_TEXT_PRESENT_RATIO ожидаемого объёма (судим по САМОМУ БЕДНОМУ из них);
+  //   (2) наблюдаемый объём ПРЕВОСХОДИТ ГИПОТЕЗУ ПОТЕРИ на DENSITY_GAP_VOLUME_MARGIN.
+  // Разрыв НА ГРАНИЦЕ двух окон не лежит целиком ни в одном — он остаётся потерей: объём окна
+  // говорит про окно ЦЕЛИКОМ, и переносить это утверждение на речь, за которую окно не отвечало,
+  // нельзя (именно так выглядит настоящая потеря на стыке — оборванный хвост одного окна плюс
+  // поздний старт другого).
+  //
+  // ЗАЧЕМ (2) — ОПАСНАЯ СТОРОНА ДЕТЕКТОРА (адверсариальный ревью 2026-07-30, R11). Первая
+  // редакция S12.6 проверяла только (1), и этого НЕ ХВАТАЛО: окно 930с, реально потерявшее в
+  // середине 95–139с речи (модель пропустила кусок и добила концом), выдаёт объём 0.85–0.90 от
+  // базы — ВЫШЕ порога, — и его честная дыра объявлялась «сжатыми метками». Последствия ровно
+  // обратны замыслу слайса: добор не вызывался, потеря не входила ни в lostPct, ни в
+  // подтверждение владельца, а сводка писала «текст на месте». До 15% КАЖДОГО окна (≈2.3 мин из
+  // 15) уходило молча — тот самый класс, ради которого писался S12.5.
+  //
+  // Дыра была в том, что «объём выше порога» сравнивался с НОРМОЙ, а не с КОНКУРИРУЮЩЕЙ
+  // ГИПОТЕЗОЙ. Если бы разрыв был настоящей потерей, окно выдало бы примерно
+  // (windowSec − gapSec)/windowSec ожидаемого объёма — это и есть гипотеза потери. Вердикт
+  // «метки сжаты» имеет право выноситься, только когда факт объясняется ею ЗАМЕТНО ХУЖЕ, чем
+  // «речь на месте»: живой дефект владельца — 1.02 против гипотезы 0.645, разрыв в 0.375;
+  // выдуманный выше «потерял 139с» — 0.85 против гипотезы 0.850, разрыв 0.000.
+  //
+  // gapSec — длина ИМЕННО ЭТОГО разрыва в транскрипте (to − from), и никаких «на всякий случай
+  // возьмём скачок побольше»: гипотеза потери тем ЛЕГЧЕ опровергается объёмом, чем БОЛЬШЕ
+  // предполагаемая потеря (потеряв 330с из 930, окно физически не выдаст полный объём; потеряв
+  // 100с — выдаст 0.89 и будет неотличимо от честного). Завысив gapSec, мы ослабили бы проверку,
+  // а не усилили. По той же причине разрыв, частично закрытый добором, судится по ОСТАТКУ: он и
+  // есть то, что ещё может быть потеряно.
+  function classifyGap(gap, density) {
+    var d = density || {};
+    var stats = Array.isArray(d.windows) ? d.windows : [];
+    var from = gap && gap.fromSec, to = gap && gap.toSec;
+    var out = { verdict: "lost", windowIdx: null, densityRatio: null, requiredRatio: null };
+    if (typeof from !== "number" || typeof to !== "number" || !isFinite(from) || !isFinite(to)) return out;
+    if (!d.usable) return out;
+    var host = null;
+    for (var i = 0; i < stats.length; i++) {
+      var s = stats[i];
+      if (s.startSec === null || s.endSec === null) continue;
+      if (from < s.startSec || to > s.endSec) continue;              // не лежит целиком в этом окне
+      if (host === null || (s.densityRatio || 0) < (host.densityRatio || 0)) host = s;
+    }
+    if (!host) return out;
+    var lossHypothesis = host.windowSec > 0 ? Math.max(0, host.windowSec - (to - from)) / host.windowSec : 1;
+    var required = Math.max(DENSITY_TEXT_PRESENT_RATIO, lossHypothesis + DENSITY_GAP_VOLUME_MARGIN);
+    out.windowIdx = host.windowIdx;
+    out.densityRatio = host.densityRatio === null ? null : Math.round(host.densityRatio * 100) / 100;
+    out.requiredRatio = Math.round(required * 100) / 100;
+    if (host.densityRatio !== null && host.densityRatio >= required) out.verdict = "marks-unreliable";
+    return out;
+  }
+
+  // ОБЁРТКА над findCoverageGaps (её контракт не тронут — она остаётся отдельно экспортированным
+  // «сырым» детектором разрывов и точкой сравнения в юнитах: тест, который считает разрывы тем же
+  // кодом, что и продукт, ничего не доказывает): те же разрывы, разложенные на ДВА РАЗНЫХ ФАКТА.
+  //   gaps                — честный список РЕАЛЬНЫХ потерь (идут в добор и в потерю сводки);
+  //   unreliableMarkRanges— диапазоны, где текст на месте, а тайминг недостоверен (в добор НЕ
+  //                         идут — платить не за что, терять нечего; в потерю НЕ идут — это не
+  //                         потеря; но пользователю показываются отдельно: караоке там уедет).
+  // Списки не пересекаются по построению: у каждого разрыва ровно один вердикт.
+  function classifyCoverageGaps(segments, durationSec, perWindowSegments, windows) {
+    var all = findCoverageGaps(segments, durationSec);
+    var density = runSpeechDensity(perWindowSegments, windows);
+    var gaps = [], unreliable = [];
+    for (var i = 0; i < all.length; i++) {
+      var v = classifyGap(all[i], density);
+      if (v.verdict === "marks-unreliable") {
+        unreliable.push({ fromSec: all[i].fromSec, toSec: all[i].toSec,
+                          // requiredRatio — планка, которую объём окна обязан был взять, чтобы
+                          // вердикт вынесся (R9: следующая живая приёмка судит по числам, а не
+                          // по нашему слову, ПОЧЕМУ этот диапазон признан ненадёжным).
+                          windowIdx: v.windowIdx, densityRatio: v.densityRatio,
+                          requiredRatio: v.requiredRatio });
+      } else gaps.push(all[i]);
+    }
+    return { gaps: gaps, unreliableMarkRanges: unreliable, density: density };
+  }
+
   // ── S12.5 T4: ЧЕСТНАЯ СВОДКА ПРОГОНА (R11) ───────────────────────────────────────────────────
   // Живой брак владельца 2026-07-29: прогон, потерявший 47% таймлайна, отчитался
   // `coverageGaps: []` и выглядел УСПЕХОМ — единственным, что видел владелец, был текст в превью.
@@ -565,12 +776,20 @@
   // (rejectedReplay) и без честно пропущенной половины бисекции (skippedRanges). Ретрай и сама
   // бисекция окно «не-ok» НЕ делают: они закончились результатом, потери таймлайна там нет.
   //
+  // S12.6: «ТЕКСТ ОТСУТСТВУЕТ» И «ТАЙМИНГ НЕНАДЁЖЕН» — ДВА РАЗНЫХ ФАКТА, А НЕ ОДИН ПРОЦЕНТ.
+  // До S12.6 разрыв меток внутри окна, выдавшего полный текст, схлопывался в тот же «потеряно N%»,
+  // и владелец подтверждал несуществующую потерю (живая приёмка 2026-07-29, см. classifyGap).
+  // Теперь unreliableMarkRanges НЕ входят в lostSec/lostPct и сами по себе не делают уровень
+  // «bad» (подтверждение не требуется — терять нечего), но и молчать о них нельзя: караоке в этих
+  // диапазонах уезжает относительно звука. Поэтому они дают «warn» и ОТДЕЛЬНУЮ формулировку в UI.
+  //
   // level (R11 — «ok» обязан означать «претензий нет ВООБЩЕ»):
-  //   ok   — нулевая потеря, ни одного забракованного диапазона, все окна целы и конвейер не
-  //          поднял ни ASR_COVERAGE_GAP, ни ASR_WINDOW_REPLAY. Расхождение между нашим счётом
-  //          интервалов и предупреждениями конвейера само по себе снимает «ok»: два независимых
-  //          источника не сошлись — это не повод рисовать зелёное.
-  //   warn  — потеря есть, но ≤ SUMMARY_WARN_PCT (или пострадала целостность окон/предупреждения).
+  //   ok   — нулевая потеря, ни одного забракованного диапазона, ни одного ненадёжного диапазона,
+  //          все окна целы и конвейер не поднял ни ASR_COVERAGE_GAP, ни ASR_WINDOW_REPLAY.
+  //          Расхождение между нашим счётом интервалов и предупреждениями конвейера само по себе
+  //          снимает «ok»: два независимых источника не сошлись — это не повод рисовать зелёное.
+  //   warn  — потеря есть, но ≤ SUMMARY_WARN_PCT (либо пострадала целостность окон/предупреждения,
+  //          либо тайминг части записи недостоверен — текст при этом на месте).
   //   bad   — потеря > SUMMARY_WARN_PCT ЛИБО есть забракованные диапазоны (реплей-подделка —
   //          всегда «bad» независимо от длительности: это класс дефекта, а не объём).
   function summarizeAsrRun(run) {
@@ -581,6 +800,7 @@
     var rejIn = Array.isArray(r.rejectedRanges) ? r.rejectedRanges : [];
     var warnings = Array.isArray(r.warnings) ? r.warnings : [];
     var healed = Array.isArray(r.healedGaps) ? r.healedGaps.length : 0;
+    var unrelIn = Array.isArray(r.unreliableMarkRanges) ? r.unreliableMarkRanges : [];
 
     var ranges = [], nr, i;
     for (i = 0; i < gapsIn.length; i++) {
@@ -600,6 +820,18 @@
     // «потеряно 5%» рядом с красным «bad» владелец прочитает как ещё один сбой доверия.
     var lostPct = dur > 0 ? Math.round((lostSec / dur) * 1000) / 10 : (lostSec > 0 ? 100 : 0);
 
+    // Ненадёжный тайминг считается ОТДЕЛЬНОЙ суммой и НЕ трогает lostSec: то же слияние
+    // интервалов (два соседних окна со сжатыми метками показать как один диапазон честнее, чем
+    // как два), тот же клип по длительности, но своя строка в сводке.
+    var unrelRanges = [];
+    for (i = 0; i < unrelIn.length; i++) {
+      nr = normRange(unrelIn[i] && unrelIn[i].fromSec, unrelIn[i] && unrelIn[i].toSec, dur);
+      if (nr) unrelRanges.push(nr);
+    }
+    unrelRanges = mergeRanges(unrelRanges);
+    var unreliableSec = 0;
+    for (i = 0; i < unrelRanges.length; i++) unreliableSec += unrelRanges[i].toSec - unrelRanges[i].fromSec;
+
     var windowsOk = 0;
     for (i = 0; i < wins.length; i++) {
       var w = wins[i] || {};
@@ -610,12 +842,15 @@
     var flagged = warnings.indexOf("ASR_COVERAGE_GAP") >= 0 || warnings.indexOf("ASR_WINDOW_REPLAY") >= 0;
     var level;
     if (rejected > 0 || lostPct > SUMMARY_WARN_PCT) level = "bad";
-    else if (lostSec > 0 || windowsOk < wins.length || flagged) level = "warn";
+    else if (lostSec > 0 || unrelRanges.length || windowsOk < wins.length || flagged) level = "warn";
     else level = "ok";
 
     return { windowsTotal: wins.length, windowsOk: windowsOk,
              coveredSec: coveredSec, lostSec: lostSec, lostPct: lostPct,
-             gaps: gaps, healed: healed, rejected: rejected, level: level };
+             gaps: gaps, healed: healed, rejected: rejected,
+             // S12.6: «тайминг ненадёжен» — свой счётчик и свой список, НЕ часть потери.
+             unreliable: unrelRanges.length, unreliableRanges: unrelRanges, unreliableSec: unreliableSec,
+             level: level };
   }
 
   // R16: ЕДИНСТВЕННОЕ место цен длинного прогона (вместе с ASR-константами выше).
@@ -1046,6 +1281,13 @@
     asrWindows: asrWindows, asrSeams: asrSeams, ASR_RANGE_PROMPT: ASR_RANGE_PROMPT,
     mergeWindowSegments: mergeWindowSegments, stitchWindowSegments: stitchWindowSegments,
     findCoverageGaps: findCoverageGaps,
+    // S12.6: плотность речи окна как независимый (от меток) сигнал + вердикт по каждому разрыву.
+    runSpeechDensity: runSpeechDensity, classifyGap: classifyGap,
+    classifyCoverageGaps: classifyCoverageGaps,
+    DENSITY_TEXT_PRESENT_RATIO: DENSITY_TEXT_PRESENT_RATIO,
+    DENSITY_GAP_VOLUME_MARGIN: DENSITY_GAP_VOLUME_MARGIN,
+    DENSITY_MIN_BASELINE_WPS: DENSITY_MIN_BASELINE_WPS,
+    DENSITY_BASELINE_MIN_WINDOW_SEC: DENSITY_BASELINE_MIN_WINDOW_SEC,
     // S12.5 T4: сводка прогона + её форматтер времени (UI обязан печатать те же мм:сс/ч:мм:сс,
     // что парсит secondsFromTimestamp — второй формат времени в проекте не заводим).
     summarizeAsrRun: summarizeAsrRun, fmtClock: fmtClock, SUMMARY_WARN_PCT: SUMMARY_WARN_PCT,

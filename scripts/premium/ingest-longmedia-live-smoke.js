@@ -252,11 +252,26 @@ function mappingEquivalent(rows, segCount) {
 
     // independent-oracle cross-check: recompute gaps from the raw merged segments ourselves
     // (not just trust runWindowedAsr's own internal bookkeeping — feedback_independent_oracle_gate).
-    const gapsRecomputed = A.findCoverageGaps(result.segments, planDurationSec);
-    must(gapsRecomputed.length === result.coverageGaps.length,
-      "independent-oracle mismatch: findCoverageGaps recompute=" + gapsRecomputed.length + " vs runWindowedAsr.coverageGaps=" + result.coverageGaps.length);
+    // S12.6: the recompute must use the SAME two-verdict split the orchestrator uses
+    // (classifyCoverageGaps), otherwise the raw findCoverageGaps count would legitimately exceed
+    // coverageGaps by the number of compressed-marks ranges and this oracle would fire on a
+    // correct run. Both halves are still recomputed FROM RAW INPUT (merged segments + the raw
+    // per-window segments), so the oracle keeps its teeth.
+    const reclass = A.classifyCoverageGaps(result.segments, planDurationSec, result.windowSegments,
+      A.asrWindows(planDurationSec).slice(0, result.windowSegments.length));
+    must(reclass.gaps.length === result.coverageGaps.length,
+      "independent-oracle mismatch: classifyCoverageGaps recompute=" + reclass.gaps.length + " vs runWindowedAsr.coverageGaps=" + result.coverageGaps.length);
+    must(reclass.unreliableMarkRanges.length === (result.unreliableMarkRanges || []).length,
+      "independent-oracle mismatch: unreliable recompute=" + reclass.unreliableMarkRanges.length + " vs runWindowedAsr.unreliableMarkRanges=" + (result.unreliableMarkRanges || []).length);
     const gapsOk = result.coverageGaps.length === 0 || result.warnings.indexOf("ASR_COVERAGE_GAP") > -1;
     if (!gapsOk) failures.push("residual coverage gaps=" + result.coverageGaps.length + " but warnings missing ASR_COVERAGE_GAP: " + JSON.stringify(result.warnings));
+    // Not a gate: compressed marks mean the TEXT is there, karaoke drifts. Printed with the
+    // measured density so a live run tells the owner which minutes to distrust.
+    if ((result.unreliableMarkRanges || []).length) {
+      console.log("unreliable mark ranges (text present, timing compressed):",
+        JSON.stringify(result.unreliableMarkRanges),
+        "baseline=" + (result.speechDensity && result.speechDensity.baselineWordsPerSec || 0).toFixed(2) + " words/s");
+    }
 
     const densityFloor = (planDurationSec / 60) * 3;
     if (!(result.segments.length >= densityFloor)) failures.push("segments=" + result.segments.length + " expected >= durationMin*3=" + densityFloor.toFixed(0));

@@ -429,7 +429,13 @@ function dupShinglePct(text) {
   // Штатный прод-шов: текстовый якорь в зоне перекрытия + монотонное слияние.
   const stitched = A.stitchWindowSegments(perWindow, seams);
   const merged = A.mergeWindowSegments([stitched.segments]);
-  const gaps = A.findCoverageGaps(merged, DUR);
+  // S12.6: разрыв меток внутри чанка, выдавшего ожидаемый ОБЪЁМ текста, — не потеря речи, а
+  // сжатые метки (живая приёмка владельца 2026-07-29: окно 5 отдало полный текст 15 минут,
+  // разметив только первые 9.3). Печатаем ДВА разных факта, а не один список «дыр».
+  const classified = A.classifyCoverageGaps(merged, DUR, perWindow,
+    chunks.map((c) => ({ startSec: c.startSec, endSec: c.endSec })));
+  const gaps = classified.gaps;
+  const unreliable = classified.unreliableMarkRanges;
   const anchored = stitched.seamsMeta.filter((m) => m.anchored).length;
   console.log("\n=== ШОВ ===");
   console.log("якорь на швах: " + anchored + "/" + stitched.seamsMeta.length);
@@ -481,6 +487,11 @@ function dupShinglePct(text) {
   }
   addGate(gaps.length ? "WARN" : "PASS", "coverageGaps (не гейт)",
     gaps.length ? gaps.map((g) => clock(g.fromSec) + "–" + clock(g.toSec)).join(", ") : "нет");
+  addGate(unreliable.length ? "WARN" : "PASS", "сжатые метки (не гейт)",
+    unreliable.length
+      ? unreliable.map((g) => clock(g.fromSec) + "–" + clock(g.toSec) + " (чанк " + (g.windowIdx + 1) + ", объём ×" + g.densityRatio + ")").join(", ") +
+        " · база " + (classified.density.baselineWordsPerSec || 0).toFixed(2) + " сл/с"
+      : "нет");
 
   console.log("\n=== ГЕЙТЫ ===");
   for (const g of gateRows) console.log(" " + g.status.padEnd(5) + " " + g.name.padEnd(24) + " " + g.detail);
@@ -492,6 +503,10 @@ function dupShinglePct(text) {
     segments: merged.length, words: dup.words, dupShingle6Pct: +dup.pct.toFixed(2),
     anchoredSeams: anchored, seams: stitched.seamsMeta.length,
     coverageGaps: gaps.map((g) => ({ from: clock(g.fromSec), to: clock(g.toSec) })),
+    unreliableMarkRanges: unreliable.map((g) => ({ from: clock(g.fromSec), to: clock(g.toSec),
+      chunk: g.windowIdx + 1, densityRatio: g.densityRatio })),
+    speechDensity: { baselineWordsPerSec: classified.density.baselineWordsPerSec,
+      baselineWindows: classified.density.baselineWindows, usable: classified.density.usable },
     subs: cov ? { zeroBins: cov.zeroBins, bins: cov.bins, matchedLines: cov.matchedLines,
                   maxMatchedSec: Math.round(cov.maxMatchedSec), rollbacks: cov.rollbacks } : null,
     chunkStats,

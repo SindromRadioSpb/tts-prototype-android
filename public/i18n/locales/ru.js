@@ -3122,6 +3122,7 @@ window.I18N_LOCALES.ru = {
       asrSummaryGaps: "дыры: {list}",
       asrSummaryGapsMore: "и ещё {n}",
       asrSummaryRejected: "окон забраковано: {n}",
+      asrSummaryUnreliable: "тайминг ненадёжен: {list} (текст этих минут на месте, караоке может уезжать)",
       asrSummaryHealed: "добор: {n}",
       asrSummaryFlagged: "распознавание неполное — проверьте текст",
       asrSummaryConfirmTitle: "Часть записи не распознана",

@@ -1308,3 +1308,110 @@ test("(S12.5-T3-j) резюм: брак окна и его провенанс п
   assert.equal(sum.rejected, 1);
   assert.equal(sum.level, "bad");
 });
+
+// ══════════════════════════════════════════════════════════════════════════════════════════
+// S12.6 — ЛОЖНАЯ ДЫРА ИЗ СЖАТЫХ МЕТОК В ОРКЕСТРАТОРЕ. Живая приёмка владельца 2026-07-29:
+// окно выдало ПОЛНЫЙ текст своих 15 минут, но разметило только первые 9.3 — разрыв меток внутри
+// окна ушёл в coverageGaps, сводка потребовала подтвердить несуществующую потерю, а добор был
+// оплачен впустую (R16) и вернул текст, который уже был. Теперь разрыв внутри окна, выдавшего
+// ожидаемый ОБЪЁМ текста, в добор не идёт и потерей не считается — он уходит в
+// unreliableMarkRanges (караоке там уедет, текст на месте). Реальная дыра хилится как раньше.
+// Плотность фикстур — 1 слово/с (talk: 6 слов на сегмент), выше пола доверия базы 0.5 сл/с.
+// ══════════════════════════════════════════════════════════════════════════════════════════
+
+// Окно 0 обоих тестов: 150 сегментов × 6 слов = 900 слов на 900с ⇒ база прогона ровно 1.0 сл/с.
+const DENS_W0 = talk("א", 150, 2, 6); // метки 2..896, шаг 6с
+
+test("(S12.6-a) сжатые метки: разрыв НЕ хилится (счётчик вызовов), НЕ в coverageGaps, а в unreliableMarkRanges", async () => {
+  const calls = [];
+  // Окно [870,1800] отдаёт СВОЙ ПОЛНЫЙ объём (960 слов ≈ 1.03 от базы), но метки сжаты: 720 слов
+  // размечены на 900..1257 (6 минут вместо 15), затем провал 193с и остаток на 1450..1645.
+  const w1 = talk("ב", 120, 900, 3).concat(talk("ג", 40, 1450, 5));
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800, // окна [0,900] [870,1800]
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return R({ segments: DENS_W0 });
+      if (a === 870) return R({ segments: w1 });
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  // (0) фикстура обязана быть ложноположительной для ПРЕЖНЕГО детектора — иначе тест ничего не пинит
+  assert.deepEqual(A.findCoverageGaps(res.segments, 1800), [{ fromSec: 1257, toSec: 1450 }]);
+  // (1) ГЛАВНОЕ: добора не было — ровно два вызова, по одному на окно (R16)
+  assert.deepEqual(calls, [[0, 900], [870, 1800]]);
+  assert.deepEqual(res.healedGaps, []);
+  // (2) это не потеря: coverageGaps пуст, ASR_COVERAGE_GAP не поднят
+  assert.deepEqual(res.coverageGaps, []);
+  assert.ok(!res.warnings.includes("ASR_COVERAGE_GAP"));
+  // (3) но и не молчание: отдельный факт с провенансом (R9)
+  assert.equal(res.unreliableMarkRanges.length, 1);
+  assert.equal(res.unreliableMarkRanges[0].fromSec, 1257);
+  assert.equal(res.unreliableMarkRanges[0].toSec, 1450);
+  assert.equal(res.unreliableMarkRanges[0].windowIdx, 1);
+  assert.ok(res.unreliableMarkRanges[0].densityRatio >= 0.85, "ratio=" + res.unreliableMarkRanges[0].densityRatio);
+  assert.ok(res.warnings.includes("ASR_MARKS_UNRELIABLE"));
+  assert.equal(res.speechDensity.baselineWindows, 1);          // подсудимое окно в базу не идёт
+  assert.equal(res.speechDensity.baselineWordsPerSec, 1);
+  // (4) текст окна ЦЕЛ — ровно то, что доказывал объём
+  w1.forEach((s) => assert.ok(res.segments.some((x) => x.text === s.text), "потеряно: " + s.text));
+  // (5) сводка: тайминг ненадёжен ≠ потеря — янтарно, но без подтверждения владельца
+  const sum = A.summarizeAsrRun({ durationSec: 1800, windows: res.windows, coverageGaps: res.coverageGaps,
+    healedGaps: res.healedGaps, rejectedRanges: res.rejectedRanges, warnings: res.warnings,
+    unreliableMarkRanges: res.unreliableMarkRanges });
+  assert.equal(sum.lostSec, 0);
+  assert.equal(sum.lostPct, 0);
+  assert.equal(sum.unreliable, 1);
+  assert.equal(sum.unreliableSec, 193);
+  assert.equal(sum.level, "warn");
+});
+
+test("(S12.6-b) окно, оборвавшее вывод (мало текста), даёт ЧЕСТНУЮ дыру: добор вызван, дыра закрыта", async () => {
+  const calls = [];
+  const w1 = talk("ב", 30, 900, 6); // 180 слов на 930с = 0.19 от базы — обрыв вывода, а не сжатие
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800,
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return R({ segments: DENS_W0 });
+      if (a === 870) return R({ segments: w1 });
+      if (a === 1074 && b === 1800) return R({ segments: talk("ג", 30, 1100, 20) }); // добор
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  assert.deepEqual(calls, [[0, 900], [870, 1800], [1074, 1800]]); // добор ВЫЗВАН
+  assert.deepEqual(res.healedGaps, [{ fromSec: 1074, toSec: 1800 }]);
+  assert.deepEqual(res.unreliableMarkRanges, []);                 // объём НЕ доказал «текст на месте»
+  assert.ok(!res.warnings.includes("ASR_MARKS_UNRELIABLE"));
+  assert.deepEqual(res.coverageGaps, []);                         // добор закрыл дыру
+});
+
+// Известный класс РЕАЛЬНОЙ потери (проба R10): чанк оборвал вывод на rel 727 из 930 и добил
+// одним поздним сегментом — разрыв при этом лежит ЦЕЛИКОМ ВНУТРИ окна, то есть проходит первое
+// условие S12.6. Объём (×0.78) обязан оставить его потерей: добор вызван, дыра закрыта.
+// Адверсариальный ревью 2026-07-30: без второго условия (гипотеза потери) эта же форма с
+// потерей поменьше — 95–139с — проходила как «сжатые метки» и молча теряла речь.
+test("(S12.6-c) обрыв вывода чанка с поздним хвостом: разрыв ВНУТРИ окна, но объём ×0.78 → добор", async () => {
+  const calls = [];
+  const w1 = talk("ב", 120, 900, 5).concat(talk("ג", 1, 1790, 1)); // 726 слов на 930с = ×0.78
+  const res = await SI.runWindowedAsr({
+    durationSec: 1800,
+    transcribe: async (a, b) => {
+      calls.push([a, b]);
+      if (a === 0) return R({ segments: DENS_W0 });
+      if (a === 870) return R({ segments: w1 });
+      if (a === 1495 && b === 1790) return R({ segments: talk("ד", 20, 1500, 14) }); // добор
+      throw new Error("unexpected transcribe(" + a + "," + b + ")");
+    },
+    parse: fakeParse, onProgress: () => {},
+  });
+  const d = res.speechDensity.windows[1];
+  assert.ok(d.densityRatio > 0.7 && d.densityRatio < 0.85, "ratio=" + d.densityRatio); // выше 0.5, ниже порога
+  assert.deepEqual(calls, [[0, 900], [870, 1800], [1495, 1790]]);   // добор ВЫЗВАН
+  assert.deepEqual(res.healedGaps, [{ fromSec: 1495, toSec: 1790 }]);
+  assert.deepEqual(res.unreliableMarkRanges, []);                   // объём НЕ доказал «текст на месте»
+  assert.ok(!res.warnings.includes("ASR_MARKS_UNRELIABLE"));
+  assert.deepEqual(res.coverageGaps, []);                           // добор закрыл дыру
+});

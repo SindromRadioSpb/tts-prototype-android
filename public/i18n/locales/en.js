@@ -3108,6 +3108,7 @@ window.I18N_LOCALES.en = {
       asrSummaryGaps: "gaps: {list}",
       asrSummaryGapsMore: "and {n} more",
       asrSummaryRejected: "windows rejected: {n}",
+      asrSummaryUnreliable: "timing unreliable: {list} (the text of these minutes is there, karaoke may drift)",
       asrSummaryHealed: "re-asked: {n}",
       asrSummaryFlagged: "recognition incomplete — please review the text",
       asrSummaryConfirmTitle: "Part of the recording was not recognized",

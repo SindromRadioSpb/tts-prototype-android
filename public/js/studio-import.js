@@ -355,7 +355,17 @@
     } else {
       merged = A2.mergeWindowSegments(windowSegments);
     }
-    var gaps = A2.findCoverageGaps(merged, deps.durationSec);
+    // S12.6: разрывы меток раскладываются на ДВА факта ещё ДО добора (classifyCoverageGaps).
+    // Разрыв внутри окна, выдавшего ожидаемый по своей длительности ОБЪЁМ ТЕКСТА, — это не
+    // потеря речи, а сжатые метки: добирать нечего (R16 — живой прогон владельца оплатил такой
+    // добор впустую, и вернувшийся текст забраковал анти-реплей гейт как уже имеющийся), и в
+    // coverageGaps он попасть не имеет права, иначе сводка снова потребует подтвердить
+    // несуществующую потерю. Он уходит в unreliableMarkRanges — караоке там уедет, и это
+    // показывается ОТДЕЛЬНОЙ формулировкой. Окна и их сегменты берутся СЫРЫМИ (до stitch) — это
+    // и есть «что выдало окно»; heal-сегменты в них не попадают, поэтому плотность прогона
+    // остаётся суждением о МОДЕЛИ, а не о нашем доборе.
+    var densityWins = wins.slice(0, windowSegments.length);
+    var gaps = A2.classifyCoverageGaps(merged, deps.durationSec, windowSegments, densityWins).gaps;
     var healedGaps = [], maxHeals = deps.maxHeals == null ? 3 : deps.maxHeals;
     for (var g = 0; g < gaps.length && healedGaps.length < maxHeals; g++) {
       var gap = gaps[g];
@@ -409,12 +419,21 @@
         A2.collectShingles(heal.parsed.segments, seenShingles);
       }
     }
-    var remaining = A2.findCoverageGaps(merged, deps.durationSec);
+    var finalGaps = A2.classifyCoverageGaps(merged, deps.durationSec, windowSegments, densityWins);
+    var remaining = finalGaps.gaps;
     if (remaining.length && warnings.indexOf("ASR_COVERAGE_GAP") < 0) warnings.push("ASR_COVERAGE_GAP");
+    // Свой код предупреждения: «тайминг части записи недостоверен» — НЕ то же самое, что
+    // ASR_COVERAGE_GAP («текста нет»), и схлопывать их в один код значило бы вернуть ровно ту
+    // неразличимость двух фактов, которую чинит S12.6.
+    if (finalGaps.unreliableMarkRanges.length && warnings.indexOf("ASR_MARKS_UNRELIABLE") < 0) {
+      warnings.push("ASR_MARKS_UNRELIABLE");
+    }
     if (!merged.length && warnings.indexOf("NO_SPEECH") < 0) warnings.push("NO_SPEECH");
     return { segments: merged, language: language, warnings: warnings, windows: windowsMeta,
              seams: seamsMeta, // S12.4 R9: как склеен каждый шов (якорь/фолбэк, сколько сегментов срезано)
              coverageGaps: remaining, healedGaps: healedGaps,
+             // S12.6 R9: где текст на месте, а метки сжаты (+ плотность прогона, по которой это решено)
+             unreliableMarkRanges: finalGaps.unreliableMarkRanges, speechDensity: finalGaps.density,
              rejectedRanges: rejectedRanges, // S12.5 R9: что забраковано анти-реплей гейтом (окно/добор)
              windowSegments: windowSegments };
   }
@@ -688,6 +707,10 @@
       pendingAudio.coverageGaps = result.coverageGaps;
       pendingAudio.healedGaps = result.healedGaps;
       pendingAudio.rejectedRanges = result.rejectedRanges || []; // S12.5 R9: брак анти-реплей гейта
+      // S12.6 R9: диапазоны со сжатыми метками (текст на месте, тайминг недостоверен) + замер
+      // плотности, по которому это решено — чтобы следующая живая приёмка судила по числам.
+      pendingAudio.unreliableMarkRanges = result.unreliableMarkRanges || [];
+      pendingAudio.speechDensity = result.speechDensity || null;
       // S12.5 T4 (R11): сводка считается ЗДЕСЬ, из структурных записей прогона, и дальше живёт
       // одним объектом на три роли — показ в превью, гейт подтверждения в useText, паспорт.
       // Одна цифра во всех трёх местах по построению: разойтись им нечем.
@@ -695,6 +718,7 @@
         durationSec: pendingAudio.durationSec, windows: result.windows,
         coverageGaps: result.coverageGaps, healedGaps: result.healedGaps,
         rejectedRanges: result.rejectedRanges, warnings: result.warnings,
+        unreliableMarkRanges: result.unreliableMarkRanges, // S12.6: отдельный факт, не потеря
       });
       if (!parsed.segments.length || parsed.warnings.includes("NO_SPEECH")) { setStatus("studio.import.errNoSpeech"); return; }
       pendingAudio.parsed = parsed;
@@ -743,9 +767,18 @@
       if (sum.lostSec > 0) parts.push(tr("studio.import.asrSummaryLost", { pct: sum.lostPct }));
       if (sum.gaps.length) parts.push(tr("studio.import.asrSummaryGaps", { list: asrGapList(sum.gaps) }));
       if (sum.rejected) parts.push(tr("studio.import.asrSummaryRejected", { n: sum.rejected }));
+      // S12.6: «тайминг ненадёжен» — ОТДЕЛЬНАЯ формулировка рядом с потерей, а не вместо неё.
+      // Текст этих минут в транскрипте есть (объём окна это доказал), уехать может только
+      // подсветка караоке — и сказать про это надо ровно так, иначе владелец снова прочитает
+      // ненадёжный тайминг как потерю записи.
+      if (sum.unreliable) {
+        parts.push(tr("studio.import.asrSummaryUnreliable", { list: asrGapList(sum.unreliableRanges) }));
+      }
       // Блок янтарный, а числовой потери нет — обязаны сказать, ПОЧЕМУ он янтарный (целостность
-      // окон/предупреждения конвейера), иначе владелец видит тревогу без причины.
-      if (!sum.lostSec && !sum.rejected) parts.push(tr("studio.import.asrSummaryFlagged"));
+      // окон/предупреждения конвейера), иначе владелец видит тревогу без причины. Ненадёжный
+      // тайминг сам себя объясняет строкой выше — второй раз пугать «распознавание неполное»
+      // (текст-то полный) значит врать.
+      if (!sum.lostSec && !sum.rejected && !sum.unreliable) parts.push(tr("studio.import.asrSummaryFlagged"));
     }
     if (sum.healed) parts.push(tr("studio.import.asrSummaryHealed", { n: sum.healed }));
     return parts.join(" · ");
@@ -976,6 +1009,10 @@
                seams: pendingAudio.asrSeams || [],
                coverageGaps: pendingAudio.coverageGaps || [],
                healedGaps: pendingAudio.healedGaps || [],
+               // S12.6 R9: где текст на месте, а метки сжаты (караоке в этих диапазонах уедет) +
+               // замер плотности прогона, которым это доказано.
+               unreliableMarkRanges: pendingAudio.unreliableMarkRanges || [],
+               speechDensity: pendingAudio.speechDensity || null,
                // S12.5 R9: диапазоны, забракованные анти-реплей гейтом (окно/добор) — почему
                // соответствующие дыры остались открытыми; сводка прогона (T4) читает отсюда.
                rejectedRanges: pendingAudio.rejectedRanges || [],
@@ -1307,5 +1344,10 @@
                            onCaptionsFileChosen: onCaptionsFileChosen, useCaptionsPaste: useCaptionsPaste,
                            useText: useText, useTextAndRetell: useTextAndRetell,
                            chooseTrackHint: chooseTrackHint, runWindowedAsr: runWindowedAsr,
-                           clipSegmentsToRange: clipSegmentsToRange, ASR_CLIP_TOLERANCE_SEC: ASR_CLIP_TOLERANCE_SEC };
+                           clipSegmentsToRange: clipSegmentsToRange, ASR_CLIP_TOLERANCE_SEC: ASR_CLIP_TOLERANCE_SEC,
+                           // Рендер сводки прогона — тем же путём, что рисует превью. Экспортируется,
+                           // чтобы обязательная 380px-проверка вёрстки (правило проекта) снимала
+                           // скриншот НАСТОЯЩЕГО блока, а не его копии в тестовом скрипте: копия
+                           // разошлась бы с оригиналом ровно тогда, когда это перестанут замечать.
+                           renderAsrSummary: renderAsrSummary };
 })();

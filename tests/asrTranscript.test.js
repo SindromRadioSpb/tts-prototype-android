@@ -1118,3 +1118,346 @@ test("(S12.5-T3-k) replayRatio(skipWords): исключаются слова Г�
   const set = A.collectShingles(oneSeg(a), new Set());
   assert.equal(set.size, 25);
 });
+
+// ══════════════════════════════════════════════════════════════════════════════════════════
+// S12.6 — ПЛОТНОСТЬ РЕЧИ ОКНА ПРОТИВ ЛОЖНОЙ ДЫРЫ (runSpeechDensity / classifyGap /
+// classifyCoverageGaps). Живая приёмка владельца 2026-07-29 (тикет
+// STUDIO_INGEST_S12_6_FALSE_GAP_COMPRESSED_MARKS_2026_07_30): окно выдало ПОЛНЫЙ текст своих
+// 15 минут, но разметило только первые 9.3 — findCoverageGaps объявил сжатие меток дырой,
+// сводка потребовала подтвердить несуществующую потерю, добор был оплачен впустую (R16).
+// Независимый от меток сигнал — ОБЪЁМ ТЕКСТА окна против базовой плотности прогона.
+// ══════════════════════════════════════════════════════════════════════════════════════════
+
+// Окно фикстуры: wordCount УНИКАЛЬНЫХ слов, разложенных по меткам marks (метка = сегмент).
+// Слово вида «מ<prefix>ד<n>» — только буквы и цифры, поэтому stitchNormalizeWords видит РОВНО
+// один токен (подчёркивание/дефис разорвали бы его на два и сломали всю арифметику объёма).
+function densWindow(prefix, wordCount, marks) {
+  const segs = [];
+  let w = 0;
+  for (let i = 0; i < marks.length; i++) {
+    const n = Math.floor((wordCount * (i + 1)) / marks.length) - w;
+    const words = [];
+    for (let j = 0; j < n; j++) words.push("מ" + prefix + "ד" + (w + j));
+    w += n;
+    segs.push({ start: marks[i], text: words.join(" ") });
+  }
+  return segs;
+}
+function evenMarks(from, to, count) {
+  const out = [];
+  for (let i = 0; i < count; i++) out.push(count === 1 ? from : Math.round(from + ((to - from) * i) / (count - 1)));
+  return out;
+}
+
+test("(S12.6) константы: порог объёма 0.85, пол базы 0.5 сл/с, минимум окна для базы 300с", () => {
+  assert.equal(A.DENSITY_TEXT_PRESENT_RATIO, 0.85);
+  assert.equal(A.DENSITY_MIN_BASELINE_WPS, 0.5);
+  assert.equal(A.DENSITY_BASELINE_MIN_WINDOW_SEC, 300);
+});
+
+// База — МЕДИАНА, а не среднее: одно аномальное окно (ровно тот случай, ради которого пишется
+// детектор) не имеет права двигать норму прогона. Среднее здесь ушло бы в 2.15 сл/с, и тогда все
+// честные окна оказались бы «недодавшими объём» — детектор начал бы врать в другую сторону.
+test("(S12.6) runSpeechDensity: база устойчива к одному аномальному окну (медиана, не среднее)", () => {
+  const wins = [], per = [];
+  const words = [1150, 1160, 1170, 1180, 5000];
+  for (let i = 0; i < words.length; i++) {
+    wins.push({ startSec: i * 900, endSec: (i + 1) * 900 });
+    per.push(densWindow("м" + i, words[i], evenMarks(i * 900 + 5, (i + 1) * 900 - 5, 100)));
+  }
+  const d = A.runSpeechDensity(per, wins);
+  assert.equal(d.baselineWindows, 5);
+  assert.ok(Math.abs(d.baselineWordsPerSec - 1170 / 900) < 1e-9, "base=" + d.baselineWordsPerSec);
+  const mean = words.reduce((a, b) => a + b, 0) / words.length / 900;
+  assert.ok(mean > 2.1 && d.baselineWordsPerSec < 1.4, "среднее ушло бы в " + mean);
+  assert.equal(d.usable, true);
+  assert.equal(d.windows[0].words, 1150);
+  assert.equal(d.windows[4].segments, 100);
+});
+
+// Живая форма владельца целиком: 8 окон 117-минутного файла, окно 5 (индекс 4) — 1218 слов на
+// 51 сегменте с ОДНИМ разрывом меток 4139→4469; соседи 1093–1354 слова. Ожидание: ровно один
+// вердикт «marks-unreliable» и НИ ОДНОЙ потери.
+const OWNER_DUR = 7017;                       // 117 мин
+const OWNER_WORDS = [1152, 1200, 1093, 1250, 1218, 1354, 1200, 950];
+function ownerRun() {
+  const wins = A.asrWindows(OWNER_DUR);
+  const marks = [
+    evenMarks(2, 896, 150),
+    evenMarks(900, 1796, 120),
+    evenMarks(1800, 2696, 120),
+    evenMarks(2700, 3596, 120),
+    evenMarks(3600, 4139, 49).concat([4469, 4497]),   // 51 сегмент: метки сжаты в первые 9 минут
+    evenMarks(4500, 5396, 120),
+    evenMarks(5400, 6296, 120),
+    evenMarks(6300, 7010, 90),
+  ];
+  const per = marks.map((m, i) => densWindow("ו" + i, OWNER_WORDS[i], m));
+  return { wins: wins, per: per, merged: A.mergeWindowSegments(per) };
+}
+
+test("(S12.6) живая форма владельца: 8 окон, окно 5 сжало метки → ровно один marks-unreliable, ноль потерь", () => {
+  const run = ownerRun();
+  assert.equal(run.wins.length, 8);
+  // (1) прежний детектор видит здесь ДЫРУ — это и есть дефект, который чинится
+  assert.deepEqual(A.findCoverageGaps(run.merged, OWNER_DUR), [{ fromSec: 4139, toSec: 4469 }]);
+  // (2) объём окна 5 — норма прогона, а не провал: 1218 слов при базе ≈1.29 сл/с
+  const d = A.runSpeechDensity(run.per, run.wins);
+  assert.deepEqual(d.windows.map((w) => w.words), OWNER_WORDS);
+  assert.equal(d.windows[4].segments, 51);
+  assert.equal(d.baselineWindows, 7);          // окно со сжатыми метками из базы исключено
+  assert.ok(Math.abs(d.baselineWordsPerSec - 1.29) < 0.02, "base=" + d.baselineWordsPerSec);
+  assert.ok(d.windows[4].densityRatio > 0.95 && d.windows[4].densityRatio < 1.1,
+            "ratio=" + d.windows[4].densityRatio);
+  assert.equal(d.windows[4].internalGap, true);
+  // (3) вердикт: текст на месте, недостоверны метки
+  const c = A.classifyCoverageGaps(run.merged, OWNER_DUR, run.per, run.wins);
+  assert.deepEqual(c.gaps, []);
+  assert.equal(c.unreliableMarkRanges.length, 1);
+  assert.equal(c.unreliableMarkRanges[0].fromSec, 4139);
+  assert.equal(c.unreliableMarkRanges[0].toSec, 4469);
+  assert.equal(c.unreliableMarkRanges[0].windowIdx, 4);
+  assert.ok(c.unreliableMarkRanges[0].densityRatio >= 0.95);
+});
+
+test("(S12.6) окно, оборвавшее вывод (мало текста), остаётся ЧЕСТНОЙ потерей", () => {
+  const wins = [{ startSec: 0, endSec: 900 }, { startSec: 870, endSec: 1800 }];
+  const w0 = densWindow("а", 1152, evenMarks(2, 896, 150));
+  const w1 = densWindow("б", 300, evenMarks(900, 1200, 40));   // 0.32 сл/с — треть нормы
+  const merged = A.mergeWindowSegments([w0, w1]);
+  const c = A.classifyCoverageGaps(merged, 1800, [w0, w1], wins);
+  assert.deepEqual(c.gaps, [{ fromSec: 1200, toSec: 1800 }]);  // хвостовая дыра честная
+  assert.deepEqual(c.unreliableMarkRanges, []);
+  const v = A.classifyGap({ fromSec: 1200, toSec: 1800 }, c.density);
+  assert.equal(v.verdict, "lost");
+  assert.equal(v.windowIdx, 1);
+  assert.ok(v.densityRatio < A.DENSITY_TEXT_PRESENT_RATIO, "ratio=" + v.densityRatio);
+});
+
+// Разрыв НА ГРАНИЦЕ двух окон не лежит целиком ни в одном: объём окна — утверждение про окно
+// ЦЕЛИКОМ, и распространять его на речь, за которую окно не отвечало, нельзя. Именно так
+// выглядит НАСТОЯЩАЯ потеря на стыке (оборванный хвост одного окна + поздний старт другого),
+// поэтому вердикт консервативный, даже когда ОБА окна выдали полный объём.
+test("(S12.6) разрыв на границе двух окон → консервативно lost, даже если оба окна полнообъёмны", () => {
+  const wins = [{ startSec: 0, endSec: 900 }, { startSec: 870, endSec: 1800 }];
+  const w0 = densWindow("а", 1152, evenMarks(2, 800, 150));
+  const w1 = densWindow("б", 1200, evenMarks(1000, 1790, 120));
+  const merged = A.mergeWindowSegments([w0, w1]);
+  const c = A.classifyCoverageGaps(merged, 1800, [w0, w1], wins);
+  assert.deepEqual(c.gaps, [{ fromSec: 800, toSec: 1000 }]);   // 200с через шов — потеря
+  assert.deepEqual(c.unreliableMarkRanges, []);
+  const d = c.density;
+  assert.ok(d.windows[0].densityRatio > 0.9 && d.windows[1].densityRatio > 0.9); // оба окна «полны»
+});
+
+// АНТИ-ЦИРКУЛЯРНОСТЬ (independent-oracle, R11) — несущее свойство, а не деталь реализации.
+// Окно с разрывом — ПОДСУДИМЫЙ, и в базу оно не идёт. У единственного окна прогона это значит,
+// что базы нет ВООБЩЕ: пусти его в базу — медиана стала бы равна его собственной плотности,
+// отношение вышло бы 1.0 ПО ПОСТРОЕНИЮ, и ЛЮБОЙ разрыв (включая обрыв вывода на середине файла)
+// объявлялся бы «текст на месте». Мутация «считать базу по всем окнам» валится здесь.
+test("(S12.6) единственное окно не может доказать само себя: базы нет → разрыв остаётся дырой", () => {
+  const wins = [{ startSec: 0, endSec: 900 }];
+  const w0 = densWindow("а", 1150, evenMarks(2, 400, 100).concat([700, 780, 860]));
+  const merged = A.mergeWindowSegments([w0]);
+  assert.deepEqual(A.findCoverageGaps(merged, 900), [{ fromSec: 400, toSec: 700 }]); // 300с
+  const c = A.classifyCoverageGaps(merged, 900, [w0], wins);
+  assert.equal(c.density.baselineWindows, 0);
+  assert.equal(c.density.baselineWordsPerSec, null);
+  assert.equal(c.density.usable, false);
+  assert.deepEqual(c.gaps, [{ fromSec: 400, toSec: 700 }]);
+  assert.deepEqual(c.unreliableMarkRanges, []);
+  // достаточно ОДНОГО независимого окна рядом — и то же самое сжатие меток уже доказуемо
+  const wins2 = wins.concat([{ startSec: 870, endSec: 1800 }]);
+  const w1 = densWindow("б", 1190, evenMarks(900, 1790, 120));
+  const c2 = A.classifyCoverageGaps(A.mergeWindowSegments([w0, w1]), 1800, [w0, w1], wins2);
+  assert.equal(c2.density.baselineWindows, 1);
+  assert.deepEqual(c2.gaps, []);
+  assert.equal(c2.unreliableMarkRanges.length, 1);
+  assert.equal(c2.unreliableMarkRanges[0].windowIdx, 0);
+});
+
+// R11: «объём — доказательство» только там, где есть что мерить. Пустые окна, окна без меток,
+// нулевая длительность и разреженный материал не дают базы — вердикт остаётся «потеря».
+test("(S12.6) граничные: нет слов / нет меток / нет окон / разреженная речь → суждение НЕ выносится", () => {
+  const empty = A.runSpeechDensity([], []);
+  assert.equal(empty.baselineWordsPerSec, null);
+  assert.equal(empty.usable, false);
+  assert.deepEqual(empty.windows, []);
+  assert.equal(A.classifyGap({ fromSec: 10, toSec: 200 }, empty).verdict, "lost");
+
+  // окна есть, слов нет
+  const noWords = A.runSpeechDensity([[], []], [{ startSec: 0, endSec: 900 }, { startSec: 870, endSec: 1800 }]);
+  assert.equal(noWords.baselineWordsPerSec, null);
+  assert.equal(noWords.usable, false);
+  assert.equal(noWords.windows[0].words, 0);
+  assert.equal(noWords.windows[0].markFromSec, null);
+
+  // текст есть, меток нет вовсе — объём считается, разрывов по построению нет
+  const noMarks = A.runSpeechDensity([densWindow("а", 1000, evenMarks(0, 0, 40)).map((s) => ({ start: null, text: s.text }))],
+                                     [{ startSec: 0, endSec: 900 }]);
+  assert.equal(noMarks.windows[0].words, 1000);
+  assert.equal(noMarks.windows[0].maxMarkHopSec, 0);
+  assert.equal(noMarks.usable, true);
+
+  // разреженная речь (0.1 сл/с): база ниже пола доверия → разрыв остаётся честной дырой
+  const sparse = [densWindow("а", 90, evenMarks(5, 300, 30)), densWindow("б", 90, evenMarks(1000, 1700, 30))];
+  const wins = [{ startSec: 0, endSec: 900 }, { startSec: 870, endSec: 1800 }];
+  const c = A.classifyCoverageGaps(A.mergeWindowSegments(sparse), 1800, sparse, wins);
+  assert.equal(c.density.usable, false);
+  assert.equal(c.unreliableMarkRanges.length, 0);
+  assert.ok(c.gaps.length > 0);
+
+  // мусорный разрыв не проходит в «текст на месте» (R11: вердикт надо доказать)
+  const run = ownerRun();
+  const good = A.runSpeechDensity(run.per, run.wins);
+  assert.equal(A.classifyGap(null, good).verdict, "lost");
+  assert.equal(A.classifyGap({ fromSec: "4139", toSec: 4469 }, good).verdict, "lost");
+  assert.equal(A.classifyGap({ fromSec: 0, toSec: 7017 }, good).verdict, "lost"); // шире любого окна
+});
+
+test("(S12.6) findCoverageGaps не тронут: контракт прежний (обёртка — отдельная функция)", () => {
+  const segs = [{ start: 200, text: "а" }, { start: 500, text: "б" }];
+  assert.deepEqual(A.findCoverageGaps(segs, 1000), [{ fromSec: 200, toSec: 500 }, { fromSec: 500, toSec: 1000 }]);
+  assert.equal(typeof A.classifyCoverageGaps, "function");
+  // без данных об окнах обёртка возвращает РОВНО те же дыры (нечем доказывать «текст на месте»)
+  assert.deepEqual(A.classifyCoverageGaps(segs, 1000).gaps, A.findCoverageGaps(segs, 1000));
+});
+
+// СВОДКА: два разных факта — «текста нет» и «тайминг ненадёжен». Один и тот же диапазон в разной
+// роли обязан давать разный вердикт: потеря 11% требует подтверждения владельца (bad), сжатые
+// метки — нет (warn), потому что терять нечего.
+test("(S12.6) summarizeAsrRun: ненадёжный тайминг не поднимает lostPct и не даёт bad; та же дыра как потеря — даёт", () => {
+  const base = { durationSec: 7017, windows: new Array(8).fill({ startSec: 0, endSec: 900, retries: 0 }),
+                 coverageGaps: [], healedGaps: [], rejectedRanges: [], warnings: [] };
+  const range = { fromSec: 3000, toSec: 3800, windowIdx: 3, densityRatio: 1.02 };
+  const unrel = A.summarizeAsrRun(Object.assign({}, base, { unreliableMarkRanges: [range] }));
+  assert.equal(unrel.lostSec, 0);
+  assert.equal(unrel.lostPct, 0);
+  assert.equal(unrel.coveredSec, 7017);            // текст на месте — покрытие полное
+  assert.equal(unrel.unreliable, 1);
+  assert.deepEqual(unrel.unreliableRanges, [{ fromSec: 3000, toSec: 3800 }]);
+  assert.equal(unrel.unreliableSec, 800);
+  assert.equal(unrel.level, "warn");               // видно, но подтверждения НЕ требует
+
+  const lost = A.summarizeAsrRun(Object.assign({}, base, { coverageGaps: [{ fromSec: 3000, toSec: 3800 }] }));
+  assert.equal(lost.lostSec, 800);
+  assert.ok(lost.lostPct > A.SUMMARY_WARN_PCT, "lostPct=" + lost.lostPct);
+  assert.equal(lost.level, "bad");                 // потеря >5% — подтверждение владельца
+  assert.equal(lost.unreliable, 0);
+  assert.deepEqual(lost.unreliableRanges, []);
+
+  // чистый прогон остаётся «ok», а мусорные/пустые диапазоны в счёт не идут
+  const ok = A.summarizeAsrRun(Object.assign({}, base, { unreliableMarkRanges: [] }));
+  assert.equal(ok.level, "ok");
+  assert.equal(ok.unreliable, 0);
+  const junk = A.summarizeAsrRun(Object.assign({}, base, {
+    unreliableMarkRanges: [{ fromSec: 500, toSec: 500 }, { fromSec: null, toSec: 900 }, { fromSec: 900, toSec: 100 }] }));
+  assert.equal(junk.unreliable, 0);
+  assert.equal(junk.level, "ok");
+  // стыкующиеся диапазоны сливаются (показывать два вместо одного значит врать об их числе)
+  const merged = A.summarizeAsrRun(Object.assign({}, base, {
+    unreliableMarkRanges: [{ fromSec: 100, toSec: 400 }, { fromSec: 400, toSec: 900 }] }));
+  assert.deepEqual(merged.unreliableRanges, [{ fromSec: 100, toSec: 900 }]);
+  assert.equal(merged.unreliableSec, 800);
+});
+
+// ══════════════════════════════════════════════════════════════════════════════════════════
+// S12.6 R11 — ОПАСНАЯ СТОРОНА ДЕТЕКТОРА: «текст на месте» НЕ ИМЕЕТ ПРАВА ЗАМАСКИРОВАТЬ
+// РЕАЛЬНУЮ ПОТЕРЮ. Адверсариальный ревью 2026-07-30 (мутационный прогон + сценарии H1):
+// одного порога объёма 0.85 НЕДОСТАТОЧНО. Окно 930с, потерявшее в середине 95–180с речи,
+// выдаёт объём 0.85–0.90 от базы — выше порога, — и прежняя версия classifyGap объявляла эту
+// РЕАЛЬНУЮ дыру «ненадёжными метками»: добор не вызывался, потеря не попадала ни в lostPct,
+// ни в подтверждение владельца, а сводка сообщала «текст на месте». До 15% каждого окна
+// (≈2.3 мин из 15) уходило молча — ровно тот класс, ради которого писался весь S12.5.
+// Лечится вторым условием — ГИПОТЕЗОЙ ПОТЕРИ: если бы разрыв был настоящей потерей, окно
+// выдало бы (windowSec − gapSec)/windowSec ожидаемого объёма. «Метки сжаты» доказано только
+// тогда, когда фактический объём ПРЕВОСХОДИТ эту гипотезу с запасом (DENSITY_GAP_VOLUME_MARGIN).
+// ══════════════════════════════════════════════════════════════════════════════════════════
+
+// Прогон живой формы владельца, где окно 5 (индекс 4, [3570,4500] = 930с) — ПОДСУДИМОЕ, а
+// остальные семь честные и задают базу 1.29 сл/с (метки в неперекрывающихся полосах 900*i).
+const DENS_BASE_WPS = 1.29;
+function suspectRun(suspectSegs) {
+  const wins = A.asrWindows(OWNER_DUR);
+  const per = wins.map((w, i) => (i === 4 ? suspectSegs
+    : densWindow("ч" + i, Math.round(DENS_BASE_WPS * (w.endSec - w.startSec)),
+                 evenMarks(900 * i + 2, Math.min(900 * i + 896, 7010), 120))));
+  return A.classifyCoverageGaps(A.mergeWindowSegments(per), OWNER_DUR, per, wins);
+}
+// Окно, РЕАЛЬНО потерявшее lostSec секунд речи в середине: объём падает пропорционально
+// потере (×natural — естественная многословность окна), метки честно показывают дыру.
+function lostMiddleWindow(lostSec, natural) {
+  const words = Math.round(DENS_BASE_WPS * (930 - lostSec) * (natural || 1));
+  const from = 3600 + Math.round((930 - lostSec) / 2), to = from + lostSec;
+  return densWindow("п", words, evenMarks(3600, from, 60).concat(evenMarks(to, 4497, 60)));
+}
+// Окно с ЗАДАННЫМ объёмом (доля от базы) и разрывом gapSec — для двусторонней проверки порога.
+function volumeWindow(ratio, gapSec) {
+  const words = Math.round(DENS_BASE_WPS * 930 * ratio);
+  const from = 3600 + Math.round((930 - gapSec) / 2), to = from + gapSec;
+  return densWindow("б", words, evenMarks(3600, from, 60).concat(evenMarks(to, 4497, 60)));
+}
+
+test("(S12.6-R11) реальная потеря середины окна НЕ маскируется «ненадёжными метками»", () => {
+  // Объём каждого из этих окон ВЫШЕ порога 0.85 — и всё же речь потеряна: гипотеза потери
+  // объясняет наблюдаемый объём не хуже «сжатых меток», значит доказательства нет.
+  for (const [lostSec, natural] of [[95, 1], [110, 1], [120, 1], [135, 1], [139, 1],
+                                    [139, 1.02], [150, 1.05], [180, 1.12]]) {
+    const c = suspectRun(lostMiddleWindow(lostSec, natural));
+    const ratio = c.density.windows[4].densityRatio;
+    assert.ok(ratio >= A.DENSITY_TEXT_PRESENT_RATIO,
+      "фикстура обязана быть выше порога объёма, иначе тест ничего не пинит: " + ratio);
+    assert.equal(c.unreliableMarkRanges.length, 0,
+      "потеря " + lostSec + "с (объём ×" + ratio.toFixed(3) + ") выдана за сжатые метки");
+    assert.equal(c.gaps.length, 1, "потеря " + lostSec + "с обязана остаться дырой (добор, потеря в сводке)");
+    assert.equal(c.gaps[0].toSec - c.gaps[0].fromSec, lostSec);
+  }
+  // КОНТРОЛЬ той же формы: объём ПОЛНЫЙ (речь на месте), разрыв 330с — это сжатые метки.
+  const ok = suspectRun(densWindow("ж", 1218, evenMarks(3600, 4139, 49).concat([4469, 4497])));
+  assert.deepEqual(ok.gaps, []);
+  assert.equal(ok.unreliableMarkRanges.length, 1);
+});
+
+test("(S12.6-R11) порог объёма 0.85 пинится ПОВЕДЕНИЕМ: 0.88 → метки, 0.82 → потеря", () => {
+  // Один и тот же разрыв 330с; отличается только объём окна. Оба случая проходят гипотезу
+  // потери (0.645 + запас), поэтому решает именно порог «объём на месте».
+  const rich = suspectRun(volumeWindow(0.88, 330));
+  assert.equal(rich.unreliableMarkRanges.length, 1, "объём 0.88 — текст на месте");
+  assert.deepEqual(rich.gaps, []);
+  const poor = suspectRun(volumeWindow(0.82, 330));
+  assert.equal(poor.unreliableMarkRanges.length, 0, "объём 0.82 — окно недодало текст, это потеря");
+  assert.equal(poor.gaps.length, 1);
+});
+
+test("(S12.6-R11) classifyGap отдаёт требуемый порог провенансом (R9): почему решено так", () => {
+  const c = suspectRun(lostMiddleWindow(120, 1));
+  const v = A.classifyGap(c.gaps[0], c.density);
+  assert.equal(v.verdict, "lost");
+  assert.equal(v.windowIdx, 4);
+  // требование = гипотеза потери (930−120)/930 = 0.871 + запас
+  assert.ok(Math.abs(v.requiredRatio - (0.871 + A.DENSITY_GAP_VOLUME_MARGIN)) < 0.01,
+            "requiredRatio=" + v.requiredRatio);
+  assert.ok(v.densityRatio < v.requiredRatio);
+  assert.equal(typeof A.DENSITY_GAP_VOLUME_MARGIN, "number");
+});
+
+// Ветка «судим по САМОМУ БЕДНОМУ из окон, целиком содержащих разрыв» недостижима на боевой
+// геометрии asrWindows (окна перекрываются на 30с, а разрыв по определению длиннее 90с и в
+// перекрытие не влезает) — она защитная, на случай смены нарезки. Пиним её напрямую: сменить
+// «бедное» на «богатое» значит разрешить одному окну оправдать чужую потерю.
+test("(S12.6-R11) два окна содержат разрыв целиком → решает БЕДНОЕ, а не богатое", () => {
+  const wins = [{ startSec: 0, endSec: 900 }, { startSec: 3570, endSec: 4500 }, { startSec: 3570, endSec: 4500 }];
+  const marks = evenMarks(3600, 3900, 30).concat(evenMarks(4230, 4497, 30)); // разрыв 330с
+  const w0 = densWindow("а", 1161, evenMarks(2, 896, 120));                  // база 1.29 сл/с
+  const rich = densWindow("б", 1200, marks);                                 // объём ×1.00
+  const poor = densWindow("в", 720, marks);                                  // объём ×0.60
+  const d = A.runSpeechDensity([w0, rich, poor], wins);
+  assert.equal(d.baselineWindows, 1);
+  assert.ok(Math.abs(d.windows[1].densityRatio - 1) < 0.02 && d.windows[2].densityRatio < 0.65);
+  const v = A.classifyGap({ fromSec: 3900, toSec: 4230 }, d);
+  assert.equal(v.verdict, "lost");
+  assert.equal(v.windowIdx, 2, "судить обязано БЕДНОЕ окно");
+  // контроль: когда полнообъёмны ОБА, тот же разрыв — сжатые метки
+  const d2 = A.runSpeechDensity([w0, rich, densWindow("г", 1190, marks)], wins);
+  assert.equal(A.classifyGap({ fromSec: 3900, toSec: 4230 }, d2).verdict, "marks-unreliable");
+});
