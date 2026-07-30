@@ -23,6 +23,12 @@ try {
 /** @type {import('sqlite3').Database | null} */
 let _db = null;
 
+// Keep a completed WAL checkpoint from leaving a large high-water-mark file on
+// disk forever. SQLite's default is -1 (no size limit), so a one-off large WAL
+// remains fully allocated even after every frame has been checkpointed and is
+// then copied into every volume-level backup.
+const WAL_JOURNAL_SIZE_LIMIT_BYTES = 16 * 1024 * 1024;
+
 const _state = {
   ok: false,
   ready: false,
@@ -97,6 +103,11 @@ async function initDb(dbPath) {
 
     // Enable WAL mode for better crash recovery and concurrent access.
     await exec(_db, "PRAGMA journal_mode = WAL;");
+
+    // Autocheckpoint remains SQLite's default 1000 pages (~4 MiB at 4 KiB per
+    // page). The size limit is deliberately larger to avoid resize churn while
+    // still bounding the persistent WAL file included in hot-volume backups.
+    await exec(_db, `PRAGMA journal_size_limit = ${WAL_JOURNAL_SIZE_LIMIT_BYTES};`);
 
     // A rolling deploy briefly runs two containers against this file; without
     // a busy timeout the second writer's BEGIN IMMEDIATE fails instantly with
@@ -182,5 +193,5 @@ module.exports = {
   _all: all,
   ensureAudioAssetsDurationMsColumn,
   closeDb,
+  WAL_JOURNAL_SIZE_LIMIT_BYTES,
 };
-
