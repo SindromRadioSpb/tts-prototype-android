@@ -33,8 +33,8 @@ def _wav_bytes(duration_sec: float = 1.0, rate: int = 16_000) -> bytes:
 
 
 def test_canonical_hash_matches_browser_normalizer_contract():
-    assert _canonical_sha256({"z": "שלום", "a": [2, 1]}) == (
-        "bed45b584fee349f5d790ac68bbd636564530e811c6bcce0d4b5ca41346d7523"
+    assert _canonical_sha256({"z": "שלום", "a": [2, 1.0, -0.0, 0.7]}) == (
+        "6f6f23947e082437d028916b8379fcf0e0b8737eef8419ca83ffd96316fde7f8"
     )
 
 
@@ -372,6 +372,96 @@ def test_telemetry_failure_is_fail_closed():
     recorder.error = "nvidia-smi unavailable"
     with pytest.raises(RuntimeError, match="TELEMETRY_UNAVAILABLE"):
         recorder.require_healthy()
+
+
+async def test_thermal_abort_fails_job_and_destroys_worker(monkeypatch, tmp_path):
+    import ai_local.asr_jobs as jobs
+
+    root = tmp_path / "jobs"
+    job_id = str(uuid.uuid4())
+    path = root / job_id
+    path.mkdir(parents=True)
+    record = {
+        "job_id": job_id,
+        "state": "QUEUED",
+        "created_at": "2026-07-30T00:00:00+00:00",
+        "updated_at": "2026-07-30T00:00:00+00:00",
+        "event_seq": 0,
+        "events": [],
+    }
+    (path / "job.json").write_text(json.dumps(record), encoding="utf-8")
+    resets: list[str] = []
+    invalidations: list[str] = []
+    monkeypatch.setattr(
+        jobs,
+        "inspect_model",
+        lambda *_a, **_k: SimpleNamespace(verified=True, path=tmp_path / "pinned-model"),
+    )
+    monkeypatch.setattr(
+        jobs,
+        "sample_nvidia",
+        lambda: GpuSample(6000, 90, None, True, 30.0, 10),
+    )
+    monkeypatch.setattr(jobs.asr_worker, "hard_cancel", lambda: resets.append("reset"))
+    monkeypatch.setattr(
+        jobs.heavy_gpu_scheduler, "invalidate", lambda name: invalidations.append(name)
+    )
+
+    await AsrJobManager(lambda: root)._execute(job_id)
+    failed = json.loads((path / "job.json").read_text(encoding="utf-8"))
+    assert failed["state"] == "FAILED"
+    assert failed["error_code"] == "THERMAL_ABORT"
+    assert resets == ["reset"]
+    assert invalidations == ["asr"]
+
+
+async def test_worker_oom_gets_one_clean_same_pin_retry_then_fails(monkeypatch, tmp_path):
+    import ai_local.asr_jobs as jobs
+
+    manager = AsrJobManager(lambda: tmp_path / "jobs")
+    path = tmp_path / "jobs" / str(uuid.uuid4())
+    (path / "raw").mkdir(parents=True)
+    chunk = path / "chunk.wav"
+    chunk.write_bytes(b"physical")
+    record = {
+        "event_seq": 0,
+        "events": [],
+        "chunks_completed": 0,
+        "chunks": [{"index": 0, "raw_attempts": []}],
+    }
+    responses = [
+        {"ok": False, "error_type": "RuntimeError", "error": "CUDA out of memory"},
+        {"ok": False, "error_type": "RuntimeError", "error": "CUDA out of memory"},
+    ]
+    resets: list[str] = []
+    loads: list[Path] = []
+    invalidations: list[str] = []
+
+    async def fake_transcribe(_chunk, _cancel):
+        return responses.pop(0)
+
+    monkeypatch.setattr(manager, "_transcribe_cancellable", fake_transcribe)
+    monkeypatch.setattr(jobs.asr_worker, "hard_cancel", lambda: resets.append("reset"))
+    monkeypatch.setattr(jobs.asr_worker, "load", lambda p: loads.append(p) or {"ok": True})
+    monkeypatch.setattr(
+        jobs.heavy_gpu_scheduler, "invalidate", lambda name: invalidations.append(name)
+    )
+    monkeypatch.setattr(
+        jobs,
+        "inspect_model",
+        lambda *_a, **_k: SimpleNamespace(verified=True, path=tmp_path / "pinned-model"),
+    )
+
+    recorder = TelemetryRecorder()
+    recorder.samples.append(GpuSample(6000, 50, None, False, 30.0, 10))
+    with pytest.raises(RuntimeError, match="WORKER_OOM"):
+        await manager._transcribe_chunk(
+            path, record, 0, 30.0, chunk, asyncio.Event(), recorder
+        )
+    assert resets == ["reset", "reset"]
+    assert loads == [tmp_path / "pinned-model"]
+    assert invalidations == ["asr"]
+    assert len(record["chunks"][0]["raw_attempts"]) == 2
 
 
 async def test_gate_retry_reuses_physical_chunk_and_archives_previous_result(tmp_path):

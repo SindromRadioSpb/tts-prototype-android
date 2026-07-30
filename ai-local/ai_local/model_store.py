@@ -21,6 +21,7 @@ from .asr_constants import (
 )
 
 ACTIVATION_MANIFEST = "linguistpro-model-manifest.json"
+MODEL_ACTIVATION_RESERVE_BYTES = 2 * 1024 * 1024 * 1024
 
 
 def sha256_file(path: Path, chunk_size: int = 8 * 1024 * 1024) -> str:
@@ -123,6 +124,14 @@ def activate_from_directory(source: Path, root: Path | None = None) -> ModelStat
         if status.verified:
             return status
         raise FileExistsError(f"unverified activation already exists: {target}")
+
+    required_free = (2 * ASR_MODEL_BIN_REPOSITORY_BYTES) + MODEL_ACTIVATION_RESERVE_BYTES
+    free_bytes = shutil.disk_usage(target.parent).free
+    if free_bytes < required_free:
+        raise RuntimeError(
+            f"MODEL_DISK_LOW: need {required_free} free bytes for temp+atomic activation, "
+            f"have {free_bytes}"
+        )
 
     with tempfile.TemporaryDirectory(prefix="asr-activate-", dir=target.parent) as temp_name:
         temp = Path(temp_name) / "snapshot"

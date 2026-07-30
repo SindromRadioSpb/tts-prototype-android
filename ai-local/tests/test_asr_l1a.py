@@ -3,7 +3,9 @@ from __future__ import annotations
 import hashlib
 import os
 from pathlib import Path
+from types import SimpleNamespace
 
+import pytest
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 
@@ -138,6 +140,27 @@ def test_model_activation_rejects_wrong_pin(monkeypatch, tmp_path):
         assert "hash" in str(exc)
     else:
         raise AssertionError("wrong model pin was activated")
+
+
+def test_model_activation_fails_before_copy_when_disk_reserve_is_low(monkeypatch, tmp_path):
+    import ai_local.model_store as store
+
+    source = tmp_path / "source"
+    source.mkdir()
+    payload = b"approved"
+    (source / "model.bin").write_bytes(payload)
+    digest = hashlib.sha256(payload).hexdigest()
+    monkeypatch.setattr(store, "ASR_MODEL_BIN_REPOSITORY_BYTES", len(payload))
+    monkeypatch.setattr(store, "ASR_RUNTIME_FILE_SHA256", {"model.bin": digest})
+    monkeypatch.setattr(
+        store.shutil,
+        "disk_usage",
+        lambda _path: SimpleNamespace(free=store.MODEL_ACTIVATION_RESERVE_BYTES),
+    )
+
+    with pytest.raises(RuntimeError, match="MODEL_DISK_LOW"):
+        store.activate_from_directory(source, tmp_path / "models")
+    assert not store.expected_model_dir(tmp_path / "models").exists()
 
 
 def test_worker_control_plane_is_process_isolated_and_hard_cancellable():

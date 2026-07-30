@@ -73,7 +73,8 @@ is tight.
 ### 5. Explicitly activate the approved ASR snapshot (optional, default-off)
 
 Pre-fetch the exact revision outside this command, then activate it into the managed model
-store. Activation verifies every runtime-critical file against the committed pin and is atomic:
+store. Activation verifies every runtime-critical file against the committed pin, requires
+`2 × declared snapshot bytes + 2 GiB` free for temp+atomic activation, and is atomic:
 
 ```bash
 python scripts/install_asr.py --source <EXACT_PINNED_SNAPSHOT_DIRECTORY>
@@ -100,6 +101,8 @@ localStorage.setItem("linguistpro.experimental.localAsr", "1"); location.reload(
 
 Changing the selector back to Gemini after a local attempt requires a separate bytes/model/cost
 consent. The local client never invokes Gemini as an automatic fallback.
+CUDA OOM destroys the isolated worker and allows one clean retry with the same exact pin; a
+second OOM fails the local job without compute-type/model/cloud fallback.
 
 ## Running
 
@@ -124,7 +127,7 @@ curl http://127.0.0.1:8799/healthz
 | POST | `/models/unload-all`      | Unload every idle model |
 | POST | `/nakdan`                 | Add nikud to Hebrew texts |
 | POST | `/translate`              | Translate Hebrew segments → target language |
-| GET  | `/v1/asr/capabilities`    | Authenticated companion/model/job capabilities |
+| GET  | `/v1/capabilities`        | Default-off companion/model capability probe |
 | GET/POST | `/v1/asr/model/*`     | Verify, warm or unload the exact pinned ASR model |
 | POST | `/v1/asr/jobs`            | Stream one media source into the bounded local job queue |
 | GET  | `/v1/asr/jobs/{id}`       | Read job state, progress and failure evidence |

@@ -82,8 +82,20 @@ def _json(path: Path) -> dict[str, Any]:
 
 
 def _canonical_sha256(payload: Any) -> str:
+    def browser_stable(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {key: browser_stable(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [browser_stable(item) for item in value]
+        # JSON.stringify emits integral finite Numbers without a decimal suffix
+        # (including -0). Python's json keeps 1.0/-0.0, which made untouched
+        # real worker output fail the browser's S12.5 hash check.
+        if isinstance(value, float) and value.is_integer():
+            return int(value)
+        return value
+
     encoded = json.dumps(
-        payload,
+        browser_stable(payload),
         ensure_ascii=False,
         sort_keys=True,
         separators=(",", ":"),
@@ -611,6 +623,9 @@ class AsrJobManager:
         except Exception as exc:
             record["error_code"] = self._error_code(exc)
             record["error_detail"] = str(exc)[:500]
+            if record["error_code"] == "THERMAL_ABORT":
+                await asyncio.to_thread(asr_worker.hard_cancel)
+                heavy_gpu_scheduler.invalidate("asr")
             record["telemetry"] = recorder.summary()
             self._save_state(path, record, "FAILED")
         finally:
@@ -664,8 +679,12 @@ class AsrJobManager:
             attempts.append(attempt)
             try:
                 if not response.get("ok"):
+                    worker_error = str(response.get("error") or "")
+                    worker_type = str(response.get("error_type") or "ERROR")
+                    if "out of memory" in worker_error.lower() or "outofmemory" in worker_type.lower():
+                        raise RuntimeError(f"WORKER_OOM: {worker_error}")
                     raise RuntimeError(
-                        f"WORKER_{response.get('error_type', 'ERROR')}: {response.get('error', '')}"
+                        f"WORKER_{worker_type}: {worker_error}"
                     )
                 validate_worker_segments(response, duration_sec)
                 attempt["accepted"] = True
@@ -675,6 +694,9 @@ class AsrJobManager:
                 attempt["error"] = str(exc)[:300]
                 _atomic_json(path / MANIFEST_NAME, record)
                 if transient_used >= 1:
+                    if str(exc).startswith("WORKER_"):
+                        await asyncio.to_thread(asr_worker.hard_cancel)
+                        heavy_gpu_scheduler.invalidate("asr")
                     raise
                 transient_used += 1
                 entry["transient_retries"] = transient_used
