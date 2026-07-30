@@ -48,14 +48,42 @@ checkpoint-порции, поэтому не создаёт постоянный
 Тест: `tests/sqliteWalPolicy.test.js` проверяет WAL mode, autocheckpoint=1000 и
 лимит 16 MiB на реально открытой временной SQLite.
 
-### Отдельный хвост: формат ежедневного бэкапа
+### Формат ежедневного бэкапа — ЗАКРЫТО Online Backup API
 
-`/opt/backup-linguistpro.sh` всё ещё делает `tar` горячего volume целиком. На
-2026-07-30 есть 15 свежих архивов общей массой 9.3 ГБ; последний — 661 МБ.
-Скрипт в этой сессии НЕ менялся. Переход на SQLite Online Backup API (`.backup`)
-или `VACUUM INTO` следует делать отдельным bounded ops-слайсом: записать скрипт →
-`bash -n` → реальный прогон → `integrity_check` восстановленной копии → freshness
-следующего cron-артефакта. До такого доказательства hot-tar нельзя молча заменить.
+2026-07-30 отдельный bounded ops-слайс заменил горячее копирование тройки
+`app.db/-wal/-shm` на SQLite Online Backup API. Канонический исходник:
+`scripts/ops/backup-linguistpro-online.sh`; prod-конфигурация вынесена в root-only
+`/etc/linguistpro-backup.env`, cron `03:00 UTC` и ротация 14 дней сохранены.
+
+Новый двухфазный контракт:
+
+1. `sqlite3 .backup` создаёт transactionally-consistent single-file `app.db`;
+2. snapshot проходит `PRAGMA integrity_check`;
+3. tar сохраняет весь остальной volume, но исключает live root
+   `app.db`, `app.db-wal`, `app.db-shm` и добавляет проверенный snapshot;
+4. `gzip -t`, exact-root-entry gate и SHA-256 извлечённого snapshot проходят ДО
+   атомарного rename временного архива в финальный;
+5. ротация запускается только после успешного backup.
+
+Первый реальный прогон: `app-data-20260730-131107.tar.gz`, 727 468 601 байт.
+Гейты: `integrity_check=ok`, `gzip -t=OK`, в корне ровно один `app.db`, root
+sidecars отсутствуют, archived DB SHA-256 совпал с manifest; временных файлов не
+осталось, health green. Старый prod-скрипт сохранён отдельной rollback-копией.
+
+Размер первого нового архива не стал меньше предыдущего 661-МБ архива, потому что
+после него в самом volume появился намеренно сохранённый incident-backup
+(основа 349 МБ + WAL 250 МБ), а полный volume backup сохраняет и его. Он не удалялся
+и не исключался без отдельного lifecycle-решения. Главное закрытое свойство этого
+слайса — консистентность live SQLite snapshot и отсутствие live WAL ballast.
+
+### VACUUM INTO — измеренный NO-GO сейчас
+
+Prod-замер до решения: `page_size=4096`, `page_count=89142`,
+`freelist_count=1490`. Потенциально освобождаемо лишь 6 103 040 байт — 1.67% базы
+(около 5.8 MiB из 348 MiB). Полное перестроение через `VACUUM INTO` ради такого
+выигрыша не оправдано по I/O/времени/дополнительному месту. Переоценивать только
+после крупного purge/migration или если `freelist_count/page_count` станет
+существенным (ориентир ≥15–20%).
 
 ## Исходная находка и гипотеза (формулировка владельца, 2026-07-30)
 

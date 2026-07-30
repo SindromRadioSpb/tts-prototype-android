@@ -14,6 +14,37 @@ The data protection system provides:
 
 ## Automatic Backups
 
+### Production Volume Backup
+
+Production uses `scripts/ops/backup-linguistpro-online.sh`. Unlike a hot tar of
+the three live SQLite files, it uses SQLite's Online Backup API to create one
+transactionally consistent `app.db` while the application remains running.
+
+The resulting archive contains:
+- the verified Online Backup snapshot as root `app.db`;
+- `app.db.sha256` and `backup-manifest.txt`;
+- all other volume content;
+- no live root `app.db-wal` or `app.db-shm`.
+
+The script refuses publication unless the snapshot passes `PRAGMA
+integrity_check`, the gzip stream is valid, exactly one root `app.db` exists,
+root SQLite sidecars are absent, and the extracted snapshot checksum matches.
+The temporary archive is atomically renamed only after these gates pass;
+retention runs only after success.
+
+Host-specific coordinates are not stored in git. They are supplied through a
+root-owned configuration file (default `/etc/linguistpro-backup.env`):
+
+```bash
+LINGUISTPRO_VOLUME_NAME=<docker-volume-name>
+LINGUISTPRO_BACKUP_DIR=<external-backup-directory>
+LINGUISTPRO_BACKUP_KEEP_DAYS=14
+```
+
+Before replacing the installed script, keep a rollback copy. The mandatory
+installation proof is: `bash -n` → one real run → snapshot integrity → `gzip -t`
+→ archive-entry/checksum verification → freshness, health, and disk checks.
+
 ### Pre-Migration Backups
 
 Every time `npm run db:migrate` runs, a backup is automatically created:
