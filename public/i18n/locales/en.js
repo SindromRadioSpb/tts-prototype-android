@@ -1366,6 +1366,7 @@ window.I18N_LOCALES.en = {
     storageFull: "Browser storage full ({percent}%). Free up space.",
     savedToLibrary: "Saved to Library",
     duplicateInLibrary: "This text already exists in the Library (duplicate key)",
+    duplicateMediaChoose: "This media file is already saved. Choose Update or Save as new for a separate version.",
     saveFailed: "Failed to save (see console).",
     saveFailedWithDetail: "Failed to save: {detail} (see console).",
     noIdToUpdate: "No ID to update (open the text from Library/Dashboard)",

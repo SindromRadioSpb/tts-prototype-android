@@ -1374,6 +1374,7 @@ window.I18N_LOCALES.he = {
     storageFull: "אחסון הדפדפן מלא ({percent}%). פנה מקום.",
     savedToLibrary: "נשמר בספרייה",
     duplicateInLibrary: "הטקסט כבר קיים בספרייה (duplicate key)",
+    duplicateMediaChoose: "קובץ המדיה הזה כבר נשמר. בחרו עדכון או שמירה כחדש כדי ליצור גרסה נפרדת.",
     saveFailed: "כשל בשמירה (ראה קונסול).",
     saveFailedWithDetail: "כשל בשמירה: {detail} (ראה קונסול).",
     noIdToUpdate: "אין מזהה לעדכון (פתח את הטקסט מהספרייה/Dashboard)",

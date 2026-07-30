@@ -342,9 +342,9 @@ test("v1-файл импортируется; паспорта нет — дег
 // импортёра, а чтение его исходника — гейт валится и когда дрейфует адаптер,
 // и когда дрейфует потребитель.
 function shapeARowMappingSource() {
-  const start = LOCAL_DB_SRC.indexOf("sentences: (Array.isArray(item.rows) ? item.rows : []).map((r) => ({");
+  const start = LOCAL_DB_SRC.indexOf("sentences: (Array.isArray(item.rows) ? item.rows : []).map((r) => {");
   assert.notEqual(start, -1, "Shape-A row mapping not found in local-db.js");
-  const end = LOCAL_DB_SRC.indexOf("})),", start);
+  const end = LOCAL_DB_SRC.indexOf("        }),", start);
   assert.notEqual(end, -1);
   return LOCAL_DB_SRC.slice(start, end);
 }
@@ -443,4 +443,22 @@ test("контракт: index.html экспортирует v2 и принима
   const sw = fs.readFileSync(path.join(__dirname, "../public/sw.js"), "utf8");
   assert.ok(sw.includes('"/js/text-card-format.js"'), "модуль не в PRECACHE — офлайн-сессия его потеряет");
   assert.deepEqual(TCF.SUPPORTED_FORMATS, ["linguistpro-text-card-v1", "linguistpro-text-card-v2"]);
+});
+
+test("B+C контракт: ordinary bundle несёт parity-поля, portable identity и text audio key", () => {
+  const exportStart = LOCAL_DB_SRC.indexOf("export async function exportBundle");
+  const exportEnd = LOCAL_DB_SRC.indexOf("async function _buildAdvancedNotesPayload", exportStart);
+  const exportSrc = LOCAL_DB_SRC.slice(exportStart, exportEnd);
+  for (const field of ["translation_provider", "translation_meta", "niqqud_authority",
+                       "niqqud_provenance", "source_segment_id", "source_line_index",
+                       "sentence_index", "text_audio_asset_key"]) {
+    assert.match(exportSrc, new RegExp("\\b" + field + "\\b"), `ordinary export drops ${field}`);
+  }
+  const mapping = shapeARowMappingSource();
+  assert.match(mapping, /_studio_source/);
+  assert.match(mapping, /niqqud_authority[\s\S]*DERIVED/,
+    "ordinary import must keep derived niqqud from becoming asserted");
+  const textMapping = shapeATextMappingSource();
+  assert.match(textMapping, /text_audio_asset_key/);
+  assert.match(textMapping, /_portable/);
 });

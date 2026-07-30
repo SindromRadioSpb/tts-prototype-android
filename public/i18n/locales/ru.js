@@ -1380,6 +1380,7 @@ window.I18N_LOCALES.ru = {
     storageFull: "Хранилище браузера переполнено ({percent}%). Освободите место.",
     savedToLibrary: "Сохранено в библиотеку",
     duplicateInLibrary: "Этот текст уже есть в библиотеке (duplicate key)",
+    duplicateMediaChoose: "Этот медиафайл уже сохранён. Выберите «Обновить» или «Сохранить как новый» для отдельной версии.",
     saveFailed: "Не удалось сохранить (см. консоль).",
     saveFailedWithDetail: "Не удалось сохранить: {detail} (см. консоль).",
     noIdToUpdate: "Нет ID для обновления (откройте текст из Library/Dashboard)",

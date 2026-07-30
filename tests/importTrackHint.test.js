@@ -109,3 +109,50 @@ test("pluralCategory: English and Hebrew are binary (singular only at exactly 1)
     assert.equal(SI.pluralCategory(63, locale), "many");
   }
 });
+
+test("B+C: row identity separates ASR source segment from premium sentence ordinal", () => {
+  const sha = "a".repeat(64);
+  const audio = {
+    media: { sha256: sha },
+    segments: [{ id: "local-seg-0", text: "שלום" }, { text: "עולם" }],
+    timing: { entries: [{ row: 0, seg: 0 }, { row: 1, seg: 1 }] },
+    timingMap: { source: "source_line_index+aligned" },
+  };
+  const raw = SI.rowEditMetaForSave({
+    edit_meta_json: JSON.stringify({ edited: { ru: true } }),
+    source_line_index: 1,
+    segment_index: 7,
+  }, audio, 0);
+  const parsed = JSON.parse(raw);
+  assert.deepEqual(parsed.edited, { ru: true }, "existing edit provenance must survive");
+  assert.deepEqual(parsed._studio_source, {
+    schema: "studio-row-source-v1",
+    source_segment_id: "local-seg-0",
+    source_line_index: 1,
+    sentence_index: 7,
+  });
+  assert.deepEqual(
+    SI.restorePortableRowIdentity({ he: "שלום" }, raw),
+    { he: "שלום", source_segment_id: "local-seg-0", source_line_index: 1, sentence_index: 7 }
+  );
+
+  const derived = JSON.parse(SI.rowEditMetaForSave({}, {
+    media: { sha256: sha }, segments: [{}, {}],
+    timing: { entries: [{ row: 0, seg: 0 }, { row: 1, seg: 1 }] },
+    timingMap: { source: "segment_index+aligned" },
+  }, 1));
+  assert.equal(derived._studio_source.source_segment_id, `asrseg:${sha}:1`);
+  assert.equal(derived._studio_source.source_line_index, 1);
+  assert.equal(derived._studio_source.sentence_index, null,
+    "seg-mode segment_index must not be relabelled as the premium sentence ordinal");
+});
+
+test("B+C: imported media starts a new draft and media SHA is strict", () => {
+  assert.deepEqual(SI.importSessionResetPatch(), {
+    mode: "draft", textId: null, baseTextId: null, resumeSentenceId: null,
+    title: null, openMode: null,
+  });
+  const sha = "B".repeat(64);
+  assert.equal(SI.mediaSourceSha({ audio: { media: { sha256: sha } } }), sha.toLowerCase());
+  assert.equal(SI.mediaSourceSha({ audio: { media: { sha256: "not-a-hash" } } }), null);
+});

@@ -126,6 +126,7 @@ async function main() {
           asr: { model: "gemini-2.5-pro", windows: 2, codeVersion: "3.11.264" },
           segments, timing, timingDropReason: null,
         } }, codeVersion: "3.11.264",
+        _portable: { text_audio_asset_key: "text-audio-main" },
       };
 
       // ── источник: 5 колонок, ASSERTED-никуд, провенанс, заметки ───────────
@@ -138,7 +139,17 @@ async function main() {
         await ldb.addSentence(TID, {
           id: "TCARD_S" + i, he_plain: "שורה מספר " + i, he_niqqud: "שׁוּרָה מִסְפָּר " + i,
           translit: "shura mispar " + i, translit_ru: "шура миспар " + i, ru: "Строка номер " + i,
-          edit_meta_json: (i % 7 === 0) ? JSON.stringify({ edited: { ru: true } }) : null,
+          edit_meta_json: i === 0
+            ? JSON.stringify({
+                edited: { ru: true },
+                _studio_source: {
+                  schema: "studio-row-source-v1",
+                  source_segment_id: "asr-source-0",
+                  source_line_index: 0,
+                  sentence_index: 7,
+                },
+              })
+            : ((i % 7 === 0) ? JSON.stringify({ edited: { ru: true } }) : null),
           translation_provider: "gemini-2.5-pro",
           translation_meta_json: JSON.stringify({ chunk: Math.floor(i / 12) }),
         });
@@ -186,12 +197,44 @@ async function main() {
           [JSON.stringify({ probe: "tmm", n: 42 }), TID]);
         const b2 = await ldb.exportBundle({ textIds: [TID] });
         out.B_bundleCarries = !!b2.library.texts[0].table_model_meta;
+        const bText = b2.library.texts[0];
+        const bRow = bText.rows[0];
+        out.BC_export = {
+          textAudio: bText.text_audio_asset_key || null,
+          translationProvider: bRow.translation_provider || null,
+          translationMetaChunk: bRow.translation_meta && bRow.translation_meta.chunk,
+          editRu: !!(bRow.edit_meta && bRow.edit_meta.edited && bRow.edit_meta.edited.ru),
+          sourceSegmentId: bRow.source_segment_id || null,
+          sourceLineIndex: bRow.source_line_index,
+          sentenceIndex: bRow.sentence_index,
+        };
         b2.library.texts[0].text_key = "TCARD_zip";
         const r2 = await ldb.importBundle(b2, { mode: "skip" });
         const id2 = (r2.importedIds || [])[0];
         out.B_restored = id2
           ? (await ldb.dbQuery("SELECT table_model_meta_json AS m FROM texts WHERE id = ?", [id2]))[0].m
           : null;
+        if (id2) {
+          const restoredText = (await ldb.dbQuery(
+            "SELECT source_meta_json FROM texts WHERE id = ?", [id2]))[0];
+          const restoredRow = (await ldb.dbQuery(
+            "SELECT translation_provider, translation_meta_json, edit_meta_json FROM sentences WHERE text_id = ? ORDER BY order_index LIMIT 1",
+            [id2]))[0];
+          let restoredSource = null, restoredTranslationMeta = null, restoredEditMeta = null;
+          try { restoredSource = JSON.parse(restoredText.source_meta_json || "null"); } catch (_) {}
+          try { restoredTranslationMeta = JSON.parse(restoredRow.translation_meta_json || "null"); } catch (_) {}
+          try { restoredEditMeta = JSON.parse(restoredRow.edit_meta_json || "null"); } catch (_) {}
+          const restoredIdentity = restoredEditMeta && restoredEditMeta._studio_source;
+          out.BC_restored = {
+            textAudio: restoredSource && restoredSource._portable && restoredSource._portable.text_audio_asset_key,
+            translationProvider: restoredRow.translation_provider || null,
+            translationMetaChunk: restoredTranslationMeta && restoredTranslationMeta.chunk,
+            editRu: !!(restoredEditMeta && restoredEditMeta.edited && restoredEditMeta.edited.ru),
+            sourceSegmentId: restoredIdentity && restoredIdentity.source_segment_id,
+            sourceLineIndex: restoredIdentity && restoredIdentity.source_line_index,
+            sentenceIndex: restoredIdentity && restoredIdentity.sentence_index,
+          };
+        }
         if (id2) await ldb.dbRun("DELETE FROM texts WHERE id = ?", [id2]);
       }
 
@@ -268,6 +311,16 @@ async function main() {
     console.log("\n[B] table_model_meta_json переживает обычный exportBundle→importBundle");
     test("exportBundle несёт table_model_meta", R.B_bundleCarries === true, R.B_bundleCarries);
     test("importBundle/createText восстанавливают колонку", R.B_restored === '{"probe":"tmm","n":42}', R.B_restored);
+    test("обычный exportBundle несёт text-level audio key, перевод и раздельную source identity",
+      !!R.BC_export && R.BC_export.textAudio === "text-audio-main" &&
+      R.BC_export.translationProvider === "gemini-2.5-pro" && R.BC_export.translationMetaChunk === 0 &&
+      R.BC_export.editRu === true && R.BC_export.sourceSegmentId === "asr-source-0" &&
+      R.BC_export.sourceLineIndex === 0 && R.BC_export.sentenceIndex === 7, R.BC_export);
+    test("обычный importBundle восстанавливает text-level audio key, перевод и раздельную source identity",
+      !!R.BC_restored && R.BC_restored.textAudio === "text-audio-main" &&
+      R.BC_restored.translationProvider === "gemini-2.5-pro" && R.BC_restored.translationMetaChunk === 0 &&
+      R.BC_restored.editRu === true && R.BC_restored.sourceSegmentId === "asr-source-0" &&
+      R.BC_restored.sourceLineIndex === 0 && R.BC_restored.sentenceIndex === 7, R.BC_restored);
 
     console.log("\n[C] DERIVED-никуд (машинный Nakdan) переживает импорт");
     test("исходник действительно DERIVED", Array.isArray(R.C_srcAuthority) && R.C_srcAuthority.every((a) => a === "DERIVED"), R.C_srcAuthority);

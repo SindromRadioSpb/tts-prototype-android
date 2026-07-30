@@ -62,6 +62,86 @@
     return n === 1 ? "one" : "many"; // en, he: binary singular/plural
   }
 
+  // B+C hardening: portable row/source identity lives in edit_meta_json, not in a new DB
+  // column. This keeps the slice additive while separating three historically-confused facts:
+  // the ASR source segment, the original source-line index, and the premium segmenter's own
+  // sentence ordinal. Provider indices remain cross-checks; the stable id is derived from the
+  // physical media hash when the provider did not supply one.
+  function finiteIndex(value) {
+    var n = Number(value);
+    return Number.isInteger(n) && n >= 0 ? n : null;
+  }
+
+  function parseObject(raw) {
+    if (!raw) return {};
+    if (typeof raw === "object" && !Array.isArray(raw)) return Object.assign({}, raw);
+    try {
+      var parsed = JSON.parse(String(raw));
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    } catch (_) { return {}; }
+  }
+
+  function mediaSourceSha(holder) {
+    var h = holder && holder.source ? holder.source : holder;
+    var audio = h && h.audio ? h.audio : (h && h.captions ? h.captions : h);
+    var sha = audio && audio.media && audio.media.sha256;
+    return typeof sha === "string" && /^[a-f0-9]{64}$/i.test(sha.trim()) ? sha.trim().toLowerCase() : null;
+  }
+
+  function rowEditMetaForSave(row, audio, rowIndex) {
+    var r = row || {};
+    var meta = parseObject(r.edit_meta_json != null ? r.edit_meta_json : r.edit_meta);
+    var timingEntries = audio && audio.timing && Array.isArray(audio.timing.entries)
+      ? audio.timing.entries : [];
+    var entry = timingEntries.find(function (e) {
+      return e && finiteIndex(e.row) === finiteIndex(rowIndex);
+    }) || timingEntries[rowIndex] || null;
+    var segIndex = finiteIndex(entry && entry.seg);
+    var segments = audio && Array.isArray(audio.segments) ? audio.segments : [];
+    var segment = segIndex != null ? segments[segIndex] : null;
+    var sourceLine = finiteIndex(r.source_line_index);
+    if (sourceLine == null) sourceLine = segIndex;
+    var sourceSegmentId = r.source_segment_id || r.sourceSegmentId ||
+      (segment && (segment.source_segment_id || segment.id)) || null;
+    var sha = mediaSourceSha(audio);
+    if (!sourceSegmentId && sha && segIndex != null) sourceSegmentId = "asrseg:" + sha + ":" + segIndex;
+
+    var mapSource = String((audio && audio.timingMap && audio.timingMap.source) || "");
+    var sentenceIndex = finiteIndex(r.sentence_index);
+    // In seg-mode `segment_index` is the source segment; in premium mode it is the
+    // segmenter's sentence ordinal. Persist it as sentence_index only in the latter case.
+    if (sentenceIndex == null && mapSource.indexOf("segment_index") !== 0) {
+      sentenceIndex = finiteIndex(r.segment_index);
+    }
+    if (!sourceSegmentId && sourceLine == null && sentenceIndex == null) {
+      return r.edit_meta_json != null ? r.edit_meta_json : (r.edit_meta != null ? r.edit_meta : null);
+    }
+    meta._studio_source = {
+      schema: "studio-row-source-v1",
+      source_segment_id: sourceSegmentId ? String(sourceSegmentId) : null,
+      source_line_index: sourceLine,
+      sentence_index: sentenceIndex,
+    };
+    return JSON.stringify(meta);
+  }
+
+  function restorePortableRowIdentity(row, rawMeta) {
+    var out = Object.assign({}, row || {});
+    var src = parseObject(rawMeta)._studio_source;
+    if (!src || src.schema !== "studio-row-source-v1") return out;
+    if (src.source_segment_id) out.source_segment_id = String(src.source_segment_id);
+    var line = finiteIndex(src.source_line_index);
+    var sentence = finiteIndex(src.sentence_index);
+    if (line != null) out.source_line_index = line;
+    if (sentence != null) out.sentence_index = sentence;
+    return out;
+  }
+
+  function importSessionResetPatch() {
+    return { mode: "draft", textId: null, baseTextId: null, resumeSentenceId: null,
+             title: null, openMode: null };
+  }
+
   // ── S12.5 T4: STALE-TAB GUARD (чистое сравнение версий) ──────────────────────────────────────
   // Диагностическая сессия 2026-07-29 потратила целую гипотезу (H1) на вопрос «а каким кодом
   // вообще сделан этот прогон?» — вкладка владельца жила 35 минут, за это время прод успел уехать
@@ -570,7 +650,10 @@
     if (typeof module !== "undefined" && module.exports) {
       module.exports = { chooseTrackHint: chooseTrackHint, pluralCategory: pluralCategory, uniqueLangCount: uniqueLangCount,
                           runWindowedAsr: runWindowedAsr, clipSegmentsToRange: clipSegmentsToRange,
-                          ASR_CLIP_TOLERANCE_SEC: ASR_CLIP_TOLERANCE_SEC, isStaleTab: isStaleTab };
+                          ASR_CLIP_TOLERANCE_SEC: ASR_CLIP_TOLERANCE_SEC, isStaleTab: isStaleTab,
+                          mediaSourceSha: mediaSourceSha, rowEditMetaForSave: rowEditMetaForSave,
+                          restorePortableRowIdentity: restorePortableRowIdentity,
+                          importSessionResetPatch: importSessionResetPatch };
     }
     return;
   }
@@ -1424,7 +1507,10 @@
       var editedAway = lines.length !== v.segments.length;
       var segs = editedAway
         ? lines.map(function (t2, k) { return { i: k, start: null, text: t2 }; })
-        : v.segments.map(function (s, k) { return { i: k, start: s.start, text: lines[k] }; });
+        : v.segments.map(function (s, k) {
+            return { i: k, id: s.id || s.source_segment_id || undefined,
+                     start: s.start, end: s.end, text: lines[k] };
+          });
       var dropReason = editedAway ? "PREVIEW_EDITED" : (v.timingOk ? null : v.dropReason);
       var fileName = window.MediaStore.mediaFileName(pendingAudio.sha256, pendingAudio.mime, pendingAudio.name);
       // OPFS-запись; недоступна (старый Safari) → session-only blob + честный warning
@@ -1503,6 +1589,10 @@
     var input = $("inputText");
     input.value = text;
     input.dispatchEvent(new Event("input", { bubbles: true })); // пусть существующие слушатели Студии отработают
+    // B+C: import is a NEW source, never an edit of whichever saved card happened to be
+    // active before the modal opened. The input event marks a draft while preserving the old
+    // baseTextId; clear that pointer immediately so Save cannot UPDATE an unrelated card.
+    try { if (window.v3SessionSet) window.v3SessionSet(importSessionResetPatch()); } catch (_) {}
     window.v3LastImportMeta = {
       kind: pending.kind, source: pending.source, method: pending.method, model: pending.model,
       warnings: pending.warnings, at: new Date().toISOString(), textSnapshot: text,
@@ -1799,6 +1889,9 @@
                            useText: useText, useTextAndRetell: useTextAndRetell,
                            chooseTrackHint: chooseTrackHint, runWindowedAsr: runWindowedAsr,
                            clipSegmentsToRange: clipSegmentsToRange, ASR_CLIP_TOLERANCE_SEC: ASR_CLIP_TOLERANCE_SEC,
+                           mediaSourceSha: mediaSourceSha, rowEditMetaForSave: rowEditMetaForSave,
+                           restorePortableRowIdentity: restorePortableRowIdentity,
+                           importSessionResetPatch: importSessionResetPatch,
                            // Рендер сводки прогона — тем же путём, что рисует превью. Экспортируется,
                            // чтобы обязательная 380px-проверка вёрстки (правило проекта) снимала
                            // скриншот НАСТОЯЩЕГО блока, а не его копии в тестовом скрипте: копия

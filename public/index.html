@@ -12375,9 +12375,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=82"></script>
-<script src="/i18n/locales/en.js?v=82"></script>
-<script src="/i18n/locales/he.js?v=82"></script>
+<script src="/i18n/locales/ru.js?v=83"></script>
+<script src="/i18n/locales/en.js?v=83"></script>
+<script src="/i18n/locales/he.js?v=83"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12523,7 +12523,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.271";
+    window.APP_VERSION = "3.11.272";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -21225,7 +21225,7 @@ updatePlaylistButtonUI();
 
     function v3MapSentenceApiRowToUiRow(r, textId) {
         const sid = r && (r.id ?? r.sentence_id ?? r.sentenceId);
-        return {
+        const mapped = {
             he: String(r.he_plain ?? r.he ?? ""),
             he_niqqud: String(r.he_niqqud ?? r.heNiqqud ?? ""),
             translit: String(r.translit ?? ""),
@@ -21238,6 +21238,13 @@ updatePlaylistButtonUI();
             _v3_textId: textId ? String(textId) : null,
             _v3_orderIndex: r.order_index ?? null,
         };
+        // B+C: source identity is persisted additively in edit_meta_json. Restore it as
+        // distinct fields; never resurrect the ambiguous legacy segment_index alias.
+        try {
+          return window.StudioImport && window.StudioImport.restorePortableRowIdentity
+            ? window.StudioImport.restorePortableRowIdentity(mapped, r.edit_meta_json)
+            : mapped;
+        } catch (_) { return mapped; }
     }
 
     async function v3RestoreSavedTableIfUnchanged(currentText) {
@@ -26002,6 +26009,25 @@ async function v3LibrarySaveCurrentCore(meta) {
     let text;
     if (LOCAL_MODE) {
       const ldb = await ensureLocalDB();
+      const mediaSha = (window.StudioImport && window.StudioImport.mediaSourceSha)
+        ? window.StudioImport.mediaSourceSha(v3LastGeminiMeta && v3LastGeminiMeta.source)
+        : null;
+      if (mediaSha && m.allowDuplicateMedia !== true && typeof ldb.findTextsByMediaSha === "function") {
+        const duplicates = await ldb.findTextsByMediaSha(mediaSha);
+        if (duplicates.length) {
+          // Do not silently mint another random text_key for the same physical media. Bind the
+          // existing card as an explicit update target; the modal then offers Update or Save as
+          // new (the latter passes allowDuplicateMedia=true below).
+          const existing = duplicates[0];
+          try {
+            v3SessionSet({ mode: "draft", textId: null, baseTextId: String(existing.id),
+              resumeSentenceId: null, title: existing.title ? String(existing.title) : null,
+              origin: "library", openMode: null });
+          } catch (_) {}
+          showToast(t("toast.duplicateMediaChoose"), "warning");
+          return null;
+        }
+      }
       const newTextId = crypto.randomUUID();
       const textKey = 'text-' + Date.now();
       await ldb.createText({
@@ -26012,12 +26038,15 @@ async function v3LibrarySaveCurrentCore(meta) {
         tts_profile_json: JSON.stringify(payload.ttsProfile || null),
         source_meta_json: JSON.stringify(payload.tableModelMeta || null),
       });
-      for (const row of currentTableData) {
+      for (const [rowIndex, row] of currentTableData.entries()) {
+        const portableEditMeta = (window.StudioImport && window.StudioImport.rowEditMetaForSave)
+          ? window.StudioImport.rowEditMetaForSave(row, window.v3ActiveMediaAudio || null, rowIndex)
+          : (row.edit_meta_json || null);
         await ldb.addSentence(newTextId, {
           id: crypto.randomUUID(),
           he_plain: row.he || '', he_niqqud: row.he_niqqud || '',
           translit: row.translit || '', translit_ru: row.translit_ru || '',
-          ru: row.ru || '', edit_meta_json: row.edit_meta_json || null,
+          ru: row.ru || '', edit_meta_json: portableEditMeta,
         });
       }
       text = await ldb.getTextById(newTextId);
@@ -26162,12 +26191,15 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
       // Replace all sentences: delete existing, add new ones from currentTableData
       const existing = await ldb.getSentences(textId);
       for (const s of existing) await ldb.deleteSentence(textId, s.id);
-      for (const row of currentTableData) {
+      for (const [rowIndex, row] of currentTableData.entries()) {
+        const portableEditMeta = (window.StudioImport && window.StudioImport.rowEditMetaForSave)
+          ? window.StudioImport.rowEditMetaForSave(row, window.v3ActiveMediaAudio || null, rowIndex)
+          : (row.edit_meta_json || null);
         await ldb.addSentence(textId, {
           id: crypto.randomUUID(),
           he_plain: row.he || '', he_niqqud: row.he_niqqud || '',
           translit: row.translit || '', translit_ru: row.translit_ru || '',
-          ru: row.ru || '', edit_meta_json: row.edit_meta_json || null,
+          ru: row.ru || '', edit_meta_json: portableEditMeta,
         });
       }
       text = await ldb.getTextById(textId);
@@ -32323,7 +32355,9 @@ async function v3SaveMetaSaveAsNew() {
     const source = String(v3SaveMetaEl("v3SaveMetaSource") ? v3SaveMetaEl("v3SaveMetaSource").value : "").trim();
     const topic = String(v3SaveMetaEl("v3SaveMetaTopic") ? v3SaveMetaEl("v3SaveMetaTopic").value : "").trim();
 
-    const meta = { title, level, tags, source, topic };
+    // Explicit secondary action: the user saw the duplicate-media guard and chose a
+    // separate version. Only this path may bypass the content-identity check.
+    const meta = { title, level, tags, source, topic, allowDuplicateMedia: true };
 
     const text = await v3LibrarySaveCurrentCore(meta);
     if (text && text.id) {

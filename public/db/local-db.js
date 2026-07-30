@@ -631,6 +631,24 @@ export async function updateText(id, fields) {
     [...vals, new Date().toISOString(), id]);
 }
 
+// B+C: a repeated local media import must not silently create another random text_key.
+// The media SHA lives in the versioned provenance passport (either save path may own it),
+// so this stays additive and requires no schema migration.
+export async function findTextsByMediaSha(sha256) {
+  const sha = String(sha256 || '').trim().toLowerCase();
+  if (!/^[a-f0-9]{64}$/.test(sha)) return [];
+  return q(
+    `SELECT id, text_key, title, source_text
+       FROM texts
+      WHERE (json_valid(source_meta_json)
+             AND lower(json_extract(source_meta_json, '$.source.audio.media.sha256')) = ?)
+         OR (json_valid(table_model_meta_json)
+             AND lower(json_extract(table_model_meta_json, '$.source.audio.media.sha256')) = ?)
+      ORDER BY updated_at DESC`,
+    [sha, sha]
+  );
+}
+
 export async function deleteText(id) {
   await r('DELETE FROM texts WHERE id = ?', [id]);
 }
@@ -4776,6 +4794,11 @@ export async function exportBundle({ includeArchived = false, textIds = null, sl
 
     const rows = sentences.map((s) => {
       const ak = s.audio_asset_key || null;
+      const editMeta = safeJsonParse(s.edit_meta_json);
+      const rowMeta = safeJsonParse(s.meta_json);
+      const sourceIdentity = editMeta && editMeta._studio_source &&
+        editMeta._studio_source.schema === 'studio-row-source-v1'
+        ? editMeta._studio_source : null;
       // Track audio asset metadata (one entry per unique asset_key).
       if (ak && !audioAssetsMap.has(ak)) {
         const ttsProfile = safeJsonParse(s.audio_tts_profile_json);
@@ -4808,8 +4831,20 @@ export async function exportBundle({ includeArchived = false, textIds = null, sl
         translit: s.translit || '',
         translit_ru: s.translit_ru || '',
         russian: s.ru || '',
-        edit_meta: safeJsonParse(s.edit_meta_json),
+        edit_meta: editMeta,
         audio_asset_key: ak,
+        // B+C parity with text-card-v2: ordinary backup must preserve the same row-level
+        // provenance and derived-niqqud evidence, not only the five display columns.
+        translation_provider: s.translation_provider ?? null,
+        translation_meta: safeJsonParse(s.translation_meta_json),
+        niqqud_authority: s.niqqud_authority ?? null,
+        niqqud_provenance: s.niqqud_provenance ?? null,
+        meta: rowMeta,
+        source_segment_id: sourceIdentity && sourceIdentity.source_segment_id || null,
+        source_line_index: sourceIdentity && sourceIdentity.source_line_index != null
+          ? Number(sourceIdentity.source_line_index) : null,
+        sentence_index: sourceIdentity && sourceIdentity.sentence_index != null
+          ? Number(sourceIdentity.sentence_index) : null,
         // Notes attached to row (Android v2 spec doesn't have a top-level
         // notes array — they live inline on the row).
         note: (noteMap[s.id] && String(noteMap[s.id]).trim()) ? String(noteMap[s.id]) : null,
@@ -4869,7 +4904,8 @@ export async function exportBundle({ includeArchived = false, textIds = null, sl
       corpus: _corpus,
       table_model_meta: safeJsonParse(text.table_model_meta_json),
       rows,
-      text_audio_asset_key: null,
+      text_audio_asset_key: (_srcMeta && _srcMeta._portable && _srcMeta._portable.text_audio_asset_key)
+        ? String(_srcMeta._portable.text_audio_asset_key) : null,
       created_at: text.created_at || _exportTs,
       updated_at: text.updated_at || _exportTs,
       is_archived: !!text.is_archived,
@@ -5318,6 +5354,15 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
         source_meta_json: (() => {
           const _sm = (item.source_meta && typeof item.source_meta === 'object') ? { ...item.source_meta } : {};
           if (item.corpus && typeof item.corpus === 'object') _sm.corpus = item.corpus;
+          // B+C: no text-level audio column exists in the current schema. Preserve the
+          // portable link inside source_meta so export/import/text-card round-trips are
+          // lossless without inventing a migration in this bounded slice.
+          const _textAudioKey = String(item.text_audio_asset_key || item.audio_asset_key || '').trim();
+          if (_textAudioKey) {
+            _sm._portable = (_sm._portable && typeof _sm._portable === 'object')
+              ? { ..._sm._portable } : {};
+            _sm._portable.text_audio_asset_key = _textAudioKey;
+          }
           return Object.keys(_sm).length ? JSON.stringify(_sm) : null;
         })(),
         table_model_meta_json: item.table_model_meta ? JSON.stringify(item.table_model_meta) : null,
@@ -5331,7 +5376,33 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
         bookmarks: Array.isArray(item.bookmarks) ? item.bookmarks : [],
         created_at: item.created_at || null,
         updated_at: item.updated_at || null,
-        sentences: (Array.isArray(item.rows) ? item.rows : []).map((r) => ({
+        sentences: (Array.isArray(item.rows) ? item.rows : []).map((r) => {
+          let _editMeta = null;
+          try {
+            _editMeta = r.edit_meta && typeof r.edit_meta === 'object'
+              ? { ...r.edit_meta }
+              : (r.edit_meta_json ? JSON.parse(r.edit_meta_json) : null);
+          } catch (_) { _editMeta = null; }
+          const _sourceSegmentId = String(r.source_segment_id || '').trim() || null;
+          const _sourceLineIndex = Number.isInteger(Number(r.source_line_index)) && Number(r.source_line_index) >= 0
+            ? Number(r.source_line_index) : null;
+          const _sentenceIndex = Number.isInteger(Number(r.sentence_index)) && Number(r.sentence_index) >= 0
+            ? Number(r.sentence_index) : null;
+          if (_sourceSegmentId || _sourceLineIndex != null || _sentenceIndex != null) {
+            _editMeta = (_editMeta && typeof _editMeta === 'object') ? _editMeta : {};
+            _editMeta._studio_source = {
+              schema: 'studio-row-source-v1', source_segment_id: _sourceSegmentId,
+              source_line_index: _sourceLineIndex, sentence_index: _sentenceIndex,
+            };
+          }
+          let _rowMeta = null;
+          try {
+            _rowMeta = r.meta && typeof r.meta === 'object'
+              ? r.meta : (r.meta_json ? JSON.parse(r.meta_json) : null);
+          } catch (_) { _rowMeta = null; }
+          const _derived = String(r.niqqud_authority || '') === 'DERIVED' &&
+            !!(_rowMeta && _rowMeta.niqqud_derived && String(_rowMeta.niqqud_derived.value || '').trim());
+          return {
           // Phase 9.2 — preserve the export-side sentence id (`row_id` per
           // Android v2 spec) so the main importBundle loop can register
           // oldSid → newSid in oldToNewSentenceId. Without this, sentence-
@@ -5339,22 +5410,24 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
           // remap and get silently dropped during import.
           row_id: r.row_id || r.id || null,
           he_plain: r.hebrew_plain || r.he_plain || '',
-          he_niqqud: r.hebrew_niqqud || r.he_niqqud || '',
+          // R9: a projected derived value from exportBundle must not become asserted on import.
+          he_niqqud: _derived ? '' : (r.hebrew_niqqud || r.he_niqqud || ''),
           translit: r.translit || '',
           translit_ru: r.translit_ru || '',
           ru: r.russian || r.ru || '',
-          edit_meta_json: r.edit_meta ? JSON.stringify(r.edit_meta) : (r.edit_meta_json || null),
+          edit_meta_json: _editMeta ? JSON.stringify(_editMeta) : null,
           audio_asset_key: r.audio_asset_key || r.audioAssetKey || null,
           note: r.note || null,
           order_index: r.order_index ?? null,
-          // E1 — построчный провенанс качества (text-card v2 несёт его явно; обычный
-          // exportBundle пока не эмитит эти поля → undefined → NULL, без изменения
-          // поведения существующих бандлов). meta_json несёт niqqud_derived, без него
+          // E1 — построчный провенанс качества. И text-card v2, и обычный
+          // exportBundle несут эти поля; старые бандлы по-прежнему дают NULL.
+          // meta_json несёт niqqud_derived, без него
           // машинный никуд получателя не отличить от утверждённого (R9).
           translation_provider: r.translation_provider ?? null,
           translation_meta_json: r.translation_meta ? JSON.stringify(r.translation_meta) : (r.translation_meta_json || null),
-          meta_json: r.meta ? JSON.stringify(r.meta) : (r.meta_json || null),
-        })),
+          meta_json: _rowMeta ? JSON.stringify(_rowMeta) : null,
+        };
+        }),
       };
     } else {
       // Shape C: legacy flat — pass through.

@@ -7,6 +7,7 @@ const root = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
 const studio = fs.readFileSync(path.join(root, "public/js/studio-import.js"), "utf8");
 const sw = fs.readFileSync(path.join(root, "public/sw.js"), "utf8");
+const localDb = fs.readFileSync(path.join(root, "public/db/local-db.js"), "utf8");
 
 test("Local provider UI is hidden by default and Gemini remains first/reset default", () => {
   assert.match(html, /id="v3ImportAudioProviderWrap"[^>]*hidden/);
@@ -39,4 +40,13 @@ test("380px pairing layout resets the row flex-basis after switching to column",
     html,
     /@media \(max-width: 420px\)[\s\S]*?\.v3-local-asr-pair-row input \{ flex:0 0 auto; width:100%; \}/
   );
+});
+
+test("B+C import clears stale update authority and duplicate media is an explicit choice", () => {
+  assert.match(studio, /v3SessionSet\(importSessionResetPatch\(\)\)/,
+    "imported media must not inherit a prior card's baseTextId");
+  assert.match(html, /findTextsByMediaSha/);
+  assert.match(html, /allowDuplicateMedia/);
+  assert.match(localDb, /export async function findTextsByMediaSha/);
+  assert.match(localDb, /json_extract\(source_meta_json, '\$\.source\.audio\.media\.sha256'\)/);
 });

@@ -148,7 +148,8 @@
         source_text: str(text.source_text),
         rows: rows,
         tts_profile: parseJson(text.tts_profile_json, null),
-        text_audio_asset_key: text.audio_asset_key || null,
+        text_audio_asset_key: text.audio_asset_key ||
+          (meta.sourceMeta && meta.sourceMeta._portable && meta.sourceMeta._portable.text_audio_asset_key) || null,
         // ── v2: паспорт источника (ПРОИЗВОДНЫЕ данные, R9) ──────────────────
         // Медиа-байты сюда не кладутся: в media остаётся только opfsPath+sha256.
         source_meta: meta.sourceMeta,
@@ -269,6 +270,9 @@
       source_meta: smOut,
       table_model_meta: tableModelMeta,
       rows: rows,
+      // Emit the canonical Shape-A field and the old alias. importBundle folds the
+      // link into source_meta._portable because the current DB has no text-level column.
+      text_audio_asset_key: c.text_audio_asset_key || null,
       audio_asset_key: c.text_audio_asset_key || null,
     };
 
