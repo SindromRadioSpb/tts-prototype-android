@@ -90,6 +90,17 @@ The generated pairing token is stored under the user-local `AI_LOCAL_STATE_DIR` 
 `AI_LOCAL_PAIRING_TOKEN` is supplied explicitly. The service never returns the token through
 an unauthenticated endpoint.
 
+The L1-D Studio adapter remains browser-local and default-off. For a bounded local evaluation,
+explicitly opt in from the Studio origin, reload, choose **Local companion**, and paste the token
+into the password field (the browser keeps it in `sessionStorage`, not durable product state):
+
+```js
+localStorage.setItem("linguistpro.experimental.localAsr", "1"); location.reload();
+```
+
+Changing the selector back to Gemini after a local attempt requires a separate bytes/model/cost
+consent. The local client never invokes Gemini as an automatic fallback.
+
 ## Running
 
 ```bash
@@ -119,6 +130,7 @@ curl http://127.0.0.1:8799/healthz
 | GET  | `/v1/asr/jobs/{id}`       | Read job state, progress and failure evidence |
 | POST | `/v1/asr/jobs/{id}/cancel` | Request bounded cancellation |
 | POST | `/v1/asr/jobs/{id}/resume` | Resume only hash- and pin-matched checkpoints |
+| POST | `/v1/asr/jobs/{id}/retry-chunks` | Retry named gate-failed physical chunks once per S12.6/S12.7 gate |
 | POST | `/v1/asr/jobs/{id}/audio-stream` | Resolve an ambiguous multi-audio source explicitly |
 | GET  | `/v1/asr/jobs/{id}/result` | Read the raw provider result |
 | DELETE | `/v1/asr/jobs/{id}`       | Explicitly delete job artifacts and return a receipt |

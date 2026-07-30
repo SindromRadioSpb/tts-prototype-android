@@ -178,6 +178,11 @@ class AudioStreamRequest(BaseModel):
     stream_index: int = Field(..., ge=0)
 
 
+class RetryChunksRequest(BaseModel):
+    chunk_indexes: list[int] = Field(..., min_length=1, max_length=12)
+    reason: str = Field(..., pattern=r"^s12_[67]$")
+
+
 # ---------- endpoints ----------
 
 
@@ -277,6 +282,22 @@ async def v1_asr_job_cancel(job_id: str):
 async def v1_asr_job_resume(job_id: str):
     try:
         return await asr_job_manager.resume(job_id)
+    except JobNotFound as exc:
+        raise HTTPException(status_code=404, detail="job not found") from exc
+    except JobCapacityError as exc:
+        raise HTTPException(status_code=429, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.post(
+    "/v1/asr/jobs/{job_id}/retry-chunks",
+    status_code=202,
+    dependencies=[Depends(require_browser_auth)],
+)
+async def v1_asr_job_retry_chunks(job_id: str, body: RetryChunksRequest):
+    try:
+        return await asr_job_manager.retry_chunks(job_id, body.chunk_indexes, body.reason)
     except JobNotFound as exc:
         raise HTTPException(status_code=404, detail="job not found") from exc
     except JobCapacityError as exc:

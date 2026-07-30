@@ -16,6 +16,7 @@ from types import SimpleNamespace
 import pytest
 
 from ai_local.asr_jobs import AsrJobManager, _canonical_sha256
+from ai_local.asr_constants import model_identity
 from ai_local.gpu_scheduler import HeavyGpuScheduler, LeaseCancelled, heavy_gpu_scheduler
 from ai_local.media_slicer import Window, _wait_process, asr_windows, probe_source, slice_window
 from ai_local.telemetry import GpuSample, TelemetryRecorder
@@ -250,17 +251,24 @@ async def test_single_job_executor_writes_atomic_checkpoints_and_result(monkeypa
         "inspect_model",
         lambda *_args, **_kwargs: SimpleNamespace(verified=True, path=tmp_path / "model"),
     )
-    monkeypatch.setattr(
-        jobs.asr_worker,
-        "transcribe",
-        lambda _path: {
+    calls = 0
+
+    def transcribe(_path):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            return {"ok": False, "error_type": "RuntimeError", "error": "transient"}
+        return {
             "ok": True,
             "elapsed_sec": 0.01,
             "language": "he",
             "language_probability": 1.0,
             "segments": [{"start": 0.0, "end": 0.8, "text": "שלום"}],
-        },
-    )
+        }
+
+    monkeypatch.setattr(jobs.asr_worker, "transcribe", transcribe)
+    monkeypatch.setattr(jobs.asr_worker, "hard_cancel", lambda: None)
+    monkeypatch.setattr(jobs.asr_worker, "load", lambda _path: {"ok": True})
 
     async def noop():
         return None
@@ -294,9 +302,10 @@ async def test_single_job_executor_writes_atomic_checkpoints_and_result(monkeypa
         assert result["chunks"][0]["raw_canonical_sha256"] == _canonical_sha256(
             result["chunks"][0]["raw"]
         )
+        assert [item["accepted"] for item in result["chunks"][0]["raw_attempts"]] == [False, True]
         path = manager.job_dir(job_id)
         assert (path / "chunks" / "chunk-0000.wav").is_file()
-        assert (path / "raw" / "chunk-0000.json").is_file()
+        assert len(list((path / "raw").glob("chunk-0000-attempt-*.json"))) == 2
         assert not list(path.rglob("*.partial"))
     finally:
         await asyncio.wait_for(manager.shutdown(), timeout=2)
@@ -363,6 +372,46 @@ def test_telemetry_failure_is_fail_closed():
     recorder.error = "nvidia-smi unavailable"
     with pytest.raises(RuntimeError, match="TELEMETRY_UNAVAILABLE"):
         recorder.require_healthy()
+
+
+async def test_gate_retry_reuses_physical_chunk_and_archives_previous_result(tmp_path):
+    root = tmp_path / "jobs"
+    job_id = str(uuid.uuid4())
+    path = root / job_id
+    (path / "chunks").mkdir(parents=True)
+    (path / "raw").mkdir()
+    (path / "chunks" / "chunk-0000.wav").write_bytes(b"physical")
+    (path / "raw" / "chunk-0000-attempt-00.json").write_text("{}", encoding="utf-8")
+    record = {
+        "job_id": job_id,
+        "attempt_id": "attempt-zero",
+        "state": "COMPLETE",
+        "created_at": "2026-07-30T00:00:00+00:00",
+        "updated_at": "2026-07-30T00:00:00+00:00",
+        "event_seq": 0,
+        "events": [],
+        "model": model_identity(),
+        "result_available": True,
+        "chunks_completed": 1,
+        "chunks": [{
+            "index": 0,
+            "completed": True,
+            "file_name": "chunk-0000.wav",
+            "chunk_sha256": "x" * 64,
+            "raw_file": "chunk-0000-attempt-00.json",
+            "raw_sha256": "y" * 64,
+        }],
+    }
+    (path / "job.json").write_text(json.dumps(record), encoding="utf-8")
+    (path / "result.json").write_text('{"old":true}', encoding="utf-8")
+    manager = AsrJobManager(lambda: root)
+    queued = await manager.retry_chunks(job_id, [0], "s12_7")
+    assert queued["state"] == "QUEUED"
+    updated = json.loads((path / "job.json").read_text(encoding="utf-8"))
+    assert updated["chunks"][0]["completed"] is False
+    assert updated["chunks"][0]["gate_retries"] == {"s12_7": 1}
+    assert not (path / "result.json").exists()
+    assert (path / "results" / "result-attempt-zero.json").is_file()
 
 
 async def test_restart_marks_inflight_job_recoverable(tmp_path):

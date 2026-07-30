@@ -3577,6 +3577,17 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .v3-import-file-btn:active { transform: translateY(1px); }
 #v3ImportAudioInfo { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 #v3ImportAudioInfo[hidden] { display: none; } /* [hidden] vs author-display trap — see feedback_hidden_attr_vs_display */
+.v3-local-asr-provider { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:8px; margin:8px 0; }
+.v3-local-asr-provider[hidden], .v3-local-asr-setup[hidden] { display:none; }
+.v3-local-asr-setup { margin:8px 0; padding:9px; border:1px solid var(--theme-border-soft,#d9dee5); border-radius:8px; }
+.v3-local-asr-setup > label { display:block; font-size:12px; margin-bottom:5px; }
+.v3-local-asr-pair-row { display:flex; gap:6px; align-items:center; }
+.v3-local-asr-pair-row input { min-width:0; flex:1 1 180px; }
+@media (max-width: 420px) {
+  .v3-local-asr-provider { grid-template-columns:1fr; }
+  .v3-local-asr-pair-row { align-items:stretch; flex-direction:column; }
+  .v3-local-asr-pair-row input { flex:0 0 auto; width:100%; }
+}
 
 /* W2-S5a: Импорт → Субтитры — embedded YouTube preview + file/paste intake. */
 .v3-import-captions { margin-top: 10px; }
@@ -12364,9 +12375,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=79"></script>
-<script src="/i18n/locales/en.js?v=79"></script>
-<script src="/i18n/locales/he.js?v=79"></script>
+<script src="/i18n/locales/ru.js?v=82"></script>
+<script src="/i18n/locales/en.js?v=82"></script>
+<script src="/i18n/locales/he.js?v=82"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12446,6 +12457,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      which consumes them. -->
 <script src="/js/gemini-error.js"></script>
 <script src="/js/asr-transcript.js"></script>
+<!-- L1-D local companion adapter. Both modules are inert unless the explicit same-browser
+     experimental flag is enabled; Gemini remains the product default and is never fallback. -->
+<script src="/js/local-asr-normalizer.js"></script>
+<script src="/js/local-asr-client.js"></script>
 <script src="/js/table-chunks.js"></script>
 <script src="/js/media-store.js"></script>
 <script src="/js/gemini-files.js"></script>
@@ -12508,7 +12523,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.270";
+    window.APP_VERSION = "3.11.271";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -47221,6 +47236,26 @@ document.addEventListener("i18n:changed", function () {
 
         <div class="v3-import-audio">
           <label class="input-label" style="display:block; margin-bottom:6px;" data-i18n="studio.import.fileLabelAv">Аудио или видео-файл (иврит)</label>
+          <!-- L1-D: hidden unless the same-browser experimental flag is explicitly enabled.
+               Gemini remains the reset/default value; Local never becomes an implicit fallback. -->
+          <div id="v3ImportAudioProviderWrap" class="v3-local-asr-provider" hidden>
+            <label for="v3ImportAudioProvider" data-i18n="studio.import.audioProviderLabel">Распознавание</label>
+            <select id="v3ImportAudioProvider" class="provider-select"
+                    onchange="StudioImport.onAudioProviderChanged()">
+              <option value="gemini" data-i18n="studio.import.audioProviderGemini">Gemini (облако)</option>
+              <option value="local" data-i18n="studio.import.audioProviderLocal">Local companion (эксперимент)</option>
+            </select>
+          </div>
+          <div id="v3ImportLocalAsrSetup" class="v3-local-asr-setup" hidden>
+            <label for="v3ImportLocalAsrToken" data-i18n="studio.import.localAsrTokenLabel">Pairing token локального companion</label>
+            <div class="v3-local-asr-pair-row">
+              <input id="v3ImportLocalAsrToken" type="password" autocomplete="off" spellcheck="false"
+                     data-i18n-placeholder="studio.import.localAsrTokenPlaceholder" placeholder="Вставьте token из ai-local state">
+              <button type="button" id="v3ImportLocalAsrPair" class="btn-secondary"
+                      onclick="StudioImport.pairLocalAsr()" data-i18n="studio.import.localAsrPair">Проверить companion</button>
+            </div>
+            <div class="v3-import-hint" data-i18n="studio.import.localAsrPrivacyHint">Файл идёт только в 127.0.0.1; переход в Gemini возможен лишь отдельным выбором.</div>
+          </div>
           <label class="v3-import-file-btn">
             <span data-i18n="studio.import.audioBtn">Аудио (иврит) → транскрипт</span>
             <input type="file" id="v3ImportAudio" accept="audio/*,video/*,.m4a,.oga,.opus" hidden
@@ -47230,6 +47265,12 @@ document.addEventListener("i18n:changed", function () {
             <span id="v3ImportAudioMeta"></span>
             <button type="button" id="v3ImportAudioGo" class="btn-secondary"
                     onclick="StudioImport.transcribeAudio()"></button>
+            <button type="button" id="v3ImportLocalAsrCancel" class="btn-secondary" hidden
+                    onclick="StudioImport.cancelLocalAsr()" data-i18n="studio.import.localAsrCancel">Отменить local job</button>
+            <button type="button" id="v3ImportLocalAsrRetry" class="btn-secondary" hidden
+                    onclick="StudioImport.retryLocalAsr()" data-i18n="studio.import.localAsrRetry">Повторить проблемные чанки</button>
+            <button type="button" id="v3ImportLocalAsrDelete" class="btn-secondary" hidden
+                    onclick="StudioImport.deleteLocalAsrJob()" data-i18n="studio.import.localAsrDelete">Удалить local job</button>
           </div>
         </div>
 

@@ -378,6 +378,63 @@ class AsrJobManager:
             self.release_reservation(reservation)
             raise
 
+    async def retry_chunks(
+        self, job_id: str, chunk_indexes: list[int], reason: str
+    ) -> dict[str, Any]:
+        if reason not in {"s12_6", "s12_7"}:
+            raise ValueError("retry reason must be s12_6 or s12_7")
+        indexes = sorted(set(chunk_indexes))
+        if not indexes or len(indexes) > 12 or any(index < 0 for index in indexes):
+            raise ValueError("retry requires 1..12 valid chunk indexes")
+        reservation = await self.reserve()
+        path = self.job_dir(job_id)
+        try:
+            record = _json(path / MANIFEST_NAME)
+            if record.get("state") != "COMPLETE":
+                raise ValueError("only a completed job can retry gate-failed chunks")
+            if record.get("model") != model_identity():
+                raise ValueError("job model pin does not match the current L1 contract")
+            by_index = {int(item["index"]): item for item in record.get("chunks", [])}
+            if any(index not in by_index for index in indexes):
+                raise ValueError("retry chunk is unavailable")
+            for index in indexes:
+                entry = by_index[index]
+                gate_retries = entry.setdefault("gate_retries", {})
+                if int(gate_retries.get(reason, 0)) >= 1:
+                    raise ValueError(f"chunk {index} already used its {reason} retry")
+            result_path = path / RESULT_NAME
+            if result_path.is_file():
+                history = path / "results"
+                history.mkdir(parents=True, exist_ok=True)
+                archived = history / f"result-{record['attempt_id']}.json"
+                os.replace(result_path, archived)
+                record.setdefault("result_history", []).append({
+                    "attempt_id": record["attempt_id"],
+                    "file": archived.name,
+                    "sha256": await asyncio.to_thread(sha256_path, archived),
+                })
+            for index in indexes:
+                entry = by_index[index]
+                entry["completed"] = False
+                entry["gate_retries"][reason] = int(entry["gate_retries"].get(reason, 0)) + 1
+                entry["pending_retry_reason"] = reason
+            record["chunks_completed"] = sum(
+                1 for item in record.get("chunks", []) if item.get("completed")
+            )
+            record["result_available"] = False
+            record["attempt_id"] = uuid.uuid4().hex
+            record["state"] = "QUEUED"
+            self._event(record, "GATE_RETRY_QUEUED", reason=reason, chunk_indexes=indexes)
+            _atomic_json(path / MANIFEST_NAME, record)
+            self._reserved.remove(reservation)
+            self._reserved.add(job_id)
+            self._cancel[job_id] = asyncio.Event()
+            await self._queue.put(job_id)
+            return _public_job(record)
+        except Exception:
+            self.release_reservation(reservation)
+            raise
+
     async def select_audio_stream(self, job_id: str, stream_index: int) -> dict[str, Any]:
         reservation = await self.reserve()
         path = self.job_dir(job_id)
@@ -511,23 +568,28 @@ class AsrJobManager:
                     if latest.temperature_c >= latest.pause_at_c:
                         self._save_state(path, record, "COOLING", chunk_index=window.index)
                         await self._wait_for_cooling(cancel, recorder)
-                    self._save_state(path, record, "SLICING", chunk_index=window.index)
-                    chunk_path, chunk_manifest = await slice_window(
-                        source, path / "chunks", record["source_sha256"], probe,
-                        window, cancel, version=version,
+                    existing = next(
+                        (item for item in record.get("chunks", []) if item.get("index") == window.index),
+                        None,
                     )
-                    self._upsert_chunk(record, chunk_manifest)
-                    _atomic_json(manifest_path, record)
+                    if existing is None:
+                        self._save_state(path, record, "SLICING", chunk_index=window.index)
+                        chunk_path, chunk_manifest = await slice_window(
+                            source, path / "chunks", record["source_sha256"], probe,
+                            window, cancel, version=version,
+                        )
+                        self._upsert_chunk(record, chunk_manifest)
+                        _atomic_json(manifest_path, record)
+                    else:
+                        chunk_path = path / "chunks" / existing["file_name"]
+                        if not chunk_path.is_file() or await asyncio.to_thread(
+                            sha256_path, chunk_path
+                        ) != existing.get("chunk_sha256"):
+                            raise RuntimeError("PHYSICAL_CHUNK_HASH_MISMATCH")
                     self._save_state(path, record, "TRANSCRIBING", chunk_index=window.index)
-                    response = await self._transcribe_cancellable(chunk_path, cancel)
-                    recorder.require_healthy()
-                    if not response.get("ok"):
-                        raise RuntimeError(f"WORKER_{response.get('error_type', 'ERROR')}: {response.get('error', '')}")
-                    response["segments"] = validate_worker_segments(response, window.duration_sec)
-                    raw_path = path / "raw" / f"chunk-{window.index:04d}.json"
-                    _atomic_json(raw_path, response)
-                    raw_hash = await asyncio.to_thread(sha256_path, raw_path)
-                    self._complete_chunk(record, window.index, raw_path.name, raw_hash, response)
+                    await self._transcribe_chunk(
+                        path, record, window.index, window.duration_sec, chunk_path, cancel, recorder
+                    )
                     _atomic_json(manifest_path, record)
 
             self._save_state(path, record, "VALIDATING")
@@ -571,6 +633,62 @@ class AsrJobManager:
             await cancellation
         return await call
 
+    async def _transcribe_chunk(
+        self,
+        path: Path,
+        record: dict[str, Any],
+        index: int,
+        duration_sec: float,
+        chunk_path: Path,
+        cancel: asyncio.Event,
+        recorder: TelemetryRecorder,
+    ) -> None:
+        entry = next(item for item in record["chunks"] if item["index"] == index)
+        attempts = entry.setdefault("raw_attempts", [])
+        transient_used = int(entry.get("transient_retries", 0))
+        while True:
+            response = await self._transcribe_cancellable(chunk_path, cancel)
+            recorder.require_healthy()
+            attempt_no = len(attempts)
+            raw_path = path / "raw" / f"chunk-{index:04d}-attempt-{attempt_no:02d}.json"
+            _atomic_json(raw_path, response)
+            raw_hash = await asyncio.to_thread(sha256_path, raw_path)
+            attempt = {
+                "attempt": attempt_no,
+                "file": raw_path.name,
+                "sha256": raw_hash,
+                "canonical_sha256": _canonical_sha256(response),
+                "accepted": False,
+                "retry_reason": entry.pop("pending_retry_reason", None),
+            }
+            attempts.append(attempt)
+            try:
+                if not response.get("ok"):
+                    raise RuntimeError(
+                        f"WORKER_{response.get('error_type', 'ERROR')}: {response.get('error', '')}"
+                    )
+                validate_worker_segments(response, duration_sec)
+                attempt["accepted"] = True
+                self._complete_chunk(record, index, attempt, response)
+                return
+            except RuntimeError as exc:
+                attempt["error"] = str(exc)[:300]
+                _atomic_json(path / MANIFEST_NAME, record)
+                if transient_used >= 1:
+                    raise
+                transient_used += 1
+                entry["transient_retries"] = transient_used
+                if str(exc).startswith("WORKER_"):
+                    await asyncio.to_thread(asr_worker.hard_cancel)
+                    model = await asyncio.to_thread(inspect_model, None, verify_hash=False)
+                    if not model.verified:
+                        raise RuntimeError("MODEL_UNVERIFIED_DURING_RETRY") from exc
+                    loaded = await asyncio.to_thread(asr_worker.load, model.path)
+                    if not loaded.get("ok"):
+                        raise RuntimeError("WORKER_RELOAD_FAILED") from exc
+                self._event(record, "CHUNK_TRANSIENT_RETRY", chunk_index=index)
+                _atomic_json(path / MANIFEST_NAME, record)
+
     async def _wait_for_cooling(self, cancel: asyncio.Event, recorder: TelemetryRecorder) -> None:
         below_since: float | None = None
         while True:
@@ -611,14 +729,15 @@ class AsrJobManager:
         chunks.sort(key=lambda item: item["index"])
 
     def _complete_chunk(
-        self, record: dict[str, Any], index: int, raw_file: str, raw_sha256: str,
+        self, record: dict[str, Any], index: int, attempt: dict[str, Any],
         response: dict[str, Any],
     ) -> None:
         entry = next(item for item in record["chunks"] if item["index"] == index)
         entry.update({
             "completed": True,
-            "raw_file": raw_file,
-            "raw_sha256": raw_sha256,
+            "raw_file": attempt["file"],
+            "raw_sha256": attempt["sha256"],
+            "selected_raw_attempt": attempt["attempt"],
             "elapsed_sec": response.get("elapsed_sec"),
             "segments": len(response.get("segments", [])),
         })
@@ -640,6 +759,7 @@ class AsrJobManager:
                 },
                 "raw_file_sha256": entry["raw_sha256"],
                 "raw_canonical_sha256": _canonical_sha256(raw),
+                "raw_attempts": entry.get("raw_attempts", []),
                 "raw": raw,
             })
         return {

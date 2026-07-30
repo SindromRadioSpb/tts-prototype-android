@@ -574,7 +574,6 @@
     }
     return;
   }
-
   var MAX_FILE_BYTES = 6 * 1024 * 1024;
   var pending = null; // {kind, source, method, model, warnings, text}
 
@@ -583,6 +582,8 @@
   var MAX_AUDIO_SEC = 3 * 3600;          // решение S12 2026-07-28: 3 часа; байт-кап 300МБ остаётся предохранителем
   var MAX_AUDIO_BYTES = 300 * 1024 * 1024; // sanity
   var pendingAudio = null; // {file, buf, sha256, mime, durationSec, name, parsed, validation}
+  var localAsrClient = null;
+  var localAsrRunController = null;
 
   // W2-S5a — Import → Captions (.vtt/.srt file or pasted YouTube transcript panel) + optional
   // embedded YouTube player for capability preview. Канон:
@@ -617,6 +618,80 @@
   function $(id) { return document.getElementById(id); }
   function tr(key, params) { return (typeof window.t === "function") ? window.t(key, params) : key; }
   function toast(key, type) { if (typeof window.showToast === "function") window.showToast(tr(key), type || "info"); }
+
+  function localAsrExperimental() {
+    return !!(window.LocalAsrClient && window.LocalAsrClient.isExperimentalEnabled());
+  }
+
+  function selectedAudioProvider() {
+    var select = $("v3ImportAudioProvider");
+    return localAsrExperimental() && select && select.value === "local" ? "local" : "gemini";
+  }
+
+  function refreshLocalAsrControls() {
+    var enabled = localAsrExperimental();
+    var providerWrap = $("v3ImportAudioProviderWrap");
+    if (providerWrap) providerWrap.hidden = !enabled;
+    var local = enabled && selectedAudioProvider() === "local";
+    var setup = $("v3ImportLocalAsrSetup");
+    if (setup) setup.hidden = !local;
+    if (enabled && local) {
+      var input = $("v3ImportLocalAsrToken");
+      if (input && !input.value) input.value = window.LocalAsrClient.getPairingToken();
+    }
+    if (pendingAudio) updateAudioActionLabel();
+  }
+
+  function onAudioProviderChanged() {
+    var select = $("v3ImportAudioProvider");
+    if (select && select.value === "local" && pendingAudio) delete pendingAudio.cloudFallbackConsent;
+    if (select && select.value === "gemini" && pendingAudio && pendingAudio.localAttempted) {
+      var est = window.AsrTranscript.estimateLongJob(pendingAudio.durationSec, {
+        video: pendingAudio.isVideo, chunkSize: window.TableChunks.CHUNK_SIZE });
+      var consent = window.confirm(tr("studio.import.localAsrCloudConsent", {
+        size: (pendingAudio.file.size / (1024 * 1024)).toFixed(1),
+        model: window.AsrTranscript.ASR_MODEL,
+        cost: Math.max(0.01, est.totalUsd).toFixed(2),
+        reason: pendingAudio.localFallbackReason || "LOCAL_NOT_ACCEPTED",
+      }));
+      if (!consent) select.value = "local";
+      else pendingAudio.cloudFallbackConsent = {
+        version: 1, at: new Date().toISOString(),
+        reason: pendingAudio.localFallbackReason || "LOCAL_NOT_ACCEPTED",
+        bytes: pendingAudio.file.size, provider: "gemini", model: window.AsrTranscript.ASR_MODEL,
+      };
+    }
+    refreshLocalAsrControls();
+    setStatus(null);
+  }
+
+  function updateAudioActionLabel() {
+    var button = $("v3ImportAudioGo");
+    if (!button || !pendingAudio) return;
+    if (selectedAudioProvider() === "local") {
+      button.textContent = tr("studio.import.localAsrGo");
+      return;
+    }
+    var est = window.AsrTranscript.estimateLongJob(pendingAudio.durationSec, {
+      video: pendingAudio.isVideo, chunkSize: window.TableChunks.CHUNK_SIZE });
+    button.textContent = tr("studio.import.audioGo") +
+      " (≈$" + Math.max(0.01, est.totalUsd).toFixed(2) + " · ~" + est.minutes + " " + tr("studio.import.minShort") + ")";
+  }
+
+  async function pairLocalAsr() {
+    try {
+      window.LocalAsrClient.setPairingToken($("v3ImportLocalAsrToken").value);
+      localAsrClient = new window.LocalAsrClient.Client();
+      var capabilities = await localAsrClient.capabilities();
+      var model = await localAsrClient.modelStatus();
+      var key = model && model.verified ? "studio.import.localAsrReady" : "studio.import.localAsrModelMissing";
+      var capModel = capabilities && capabilities.local_asr && capabilities.local_asr.model;
+      setStatus(key, capModel && capModel.revision ? capModel.revision.slice(0, 12) : "");
+    } catch (error) {
+      setStatus(error && error.code === "LOCAL_ASR_PAIRING_REQUIRED"
+        ? "studio.import.localAsrPairingRequired" : "studio.import.localAsrUnavailable");
+    }
+  }
 
   // W2-S5a.1 T2-fix (whole-branch review 2026-07-28, IMPORTANT): leaving the Video tab must tear
   // the player down, or two things break. (1) A provenance lie: mountVideo() sets
@@ -672,6 +747,14 @@
     if (f) f.disabled = b;
     var ab = $("v3ImportAudioGo");
     if (ab) ab.disabled = b;
+    var ap = $("v3ImportAudioProvider");
+    if (ap) ap.disabled = b;
+    var at = $("v3ImportLocalAsrToken");
+    if (at) at.disabled = b;
+    var pair = $("v3ImportLocalAsrPair");
+    if (pair) pair.disabled = b;
+    var cancel = $("v3ImportLocalAsrCancel");
+    if (cancel) cancel.hidden = !b || selectedAudioProvider() !== "local";
   }
 
   function probeAudioDuration(file) {
@@ -697,8 +780,12 @@
     pendingAudio = null;
     var isVideo = String(file.type || "").toLowerCase().startsWith("video/");
     if (file.size > MAX_AUDIO_BYTES) { setStatus(isVideo ? "studio.import.errVideoTooLarge" : "studio.import.errAudioTooLarge"); return; }
-    var key = typeof window.geminiKeyGet === "function" ? window.geminiKeyGet() : "";
-    if (!key) { setStatus("studio.import.errNoKey"); return; }
+    if (selectedAudioProvider() === "gemini") {
+      var key = typeof window.geminiKeyGet === "function" ? window.geminiKeyGet() : "";
+      if (!key) { setStatus("studio.import.errNoKey"); return; }
+    } else if (!window.LocalAsrClient.getPairingToken()) {
+      setStatus("studio.import.localAsrPairingRequired"); return;
+    }
     var dur;
     try { dur = await probeAudioDuration(file); }
     catch (_) { setStatus("studio.import.errAudioBadFile"); return; }
@@ -707,15 +794,12 @@
     pendingAudio = { file: file, buf: null, sha256: null, mime: mime, durationSec: dur, name: file.name, parsed: null, validation: null, isVideo: isVideo, windowResults: null,
                      windowMetaResults: null, // провенанс готовых окон для резюма (ревью S12.5)
                      asrTransport: null, sliceLog: null }; // S12.5: транспорт + чанк-лог заполняет transcribeAudio
-    var est = window.AsrTranscript.estimateLongJob(dur, {
-      video: isVideo, chunkSize: window.TableChunks.CHUNK_SIZE });
     var durRounded = Math.round(dur);
     var mm = Math.floor(durRounded / 60), ss = String(durRounded % 60).padStart(2, "0");
     var metaText = mm + ":" + ss + " · " + (file.size / (1024 * 1024)).toFixed(1) + "MB";
     if (isVideo) metaText += " · " + tr("studio.import.videoNote");
     $("v3ImportAudioMeta").textContent = metaText;
-    $("v3ImportAudioGo").textContent = tr("studio.import.audioGo") +
-      " (≈$" + Math.max(0.01, est.totalUsd).toFixed(2) + " · ~" + est.minutes + " " + tr("studio.import.minShort") + ")";
+    updateAudioActionLabel();
     $("v3ImportAudioInfo").hidden = false;
     setStatus(null);
   }
@@ -731,8 +815,213 @@
     } catch (_) { return false; }
   }
 
+  function localJobStatus(job) {
+    var state = job && job.state;
+    var progress = job && job.chunks_total
+      ? (job.chunks_completed || 0) + "/" + job.chunks_total : "";
+    var key = {
+      QUEUED: "studio.import.localAsrQueued",
+      PREFLIGHT: "studio.import.localAsrPreflight",
+      WAITING_FOR_GPU: "studio.import.localAsrWaitingGpu",
+      SLICING: "studio.import.localAsrSlicing",
+      TRANSCRIBING: "studio.import.localAsrTranscribing",
+      VALIDATING: "studio.import.localAsrValidating",
+      COOLING: "studio.import.localAsrCooling",
+      CANCEL_REQUESTED: "studio.import.localAsrCanceling",
+    }[state];
+    if (key) setStatus(key, progress);
+  }
+
+  function chooseLocalAudioStream(choices) {
+    var rows = (choices || []).map(function (item) {
+      return item.index + " — " + (item.codec_name || "audio") + (item.default ? " *" : "");
+    });
+    var raw = window.prompt(tr("studio.import.localAsrChooseStream") + "\n" + rows.join("\n"),
+                            choices && choices[0] ? String(choices[0].index) : "");
+    if (raw === null || !/^\d+$/.test(raw.trim())) return null;
+    return Number(raw);
+  }
+
+  function localRetryPlan(normalized) {
+    var gates = normalized && normalized.gates;
+    if (!gates || gates.s12_5.verdict !== "PASS") return null;
+    var reason = gates.s12_6.verdict === "FAIL" ? "s12_6"
+               : (gates.s12_7.verdict === "FAIL" ? "s12_7" : null);
+    if (!reason) return null;
+    var indexes = new Set(), evidence = gates[reason].evidence || {};
+    if (reason === "s12_6") {
+      (evidence.replay || []).forEach(function (item) { if (item.rejected) indexes.add(item.windowIdx); });
+      (evidence.significant_zero_text_chunks || []).forEach(function (idx) { indexes.add(idx); });
+      (evidence.coverage_gaps || []).forEach(function (gap) {
+        (pendingAudio.asrWindows || []).forEach(function (win, idx) {
+          if (gap.fromSec < win.endSec && gap.toSec > win.startSec) indexes.add(idx);
+        });
+      });
+    } else {
+      (evidence.clock_compressed_ranges || []).forEach(function (item) { indexes.add(item.windowIdx); });
+    }
+    if (!indexes.size) (pendingAudio.asrWindows || []).forEach(function (_, idx) { indexes.add(idx); });
+    return { reason: reason, chunkIndexes: Array.from(indexes).slice(0, 12) };
+  }
+
+  function localGateScore(normalized, reason) {
+    var gate = normalized.gates[reason], rank = { FAIL: 0, NOT_APPLICABLE: 1, PASS: 2 }[gate.verdict] || 0;
+    var evidence = gate.evidence || {}, penalty = 0;
+    if (reason === "s12_6") {
+      penalty += (evidence.coverage_gaps || []).length;
+      penalty += (evidence.significant_zero_text_chunks || []).length;
+      penalty += (evidence.replay || []).filter(function (item) { return item.rejected; }).length;
+    } else {
+      penalty += (evidence.clock_compressed_ranges || []).length;
+      penalty += (gate.reasons || []).length;
+    }
+    return rank * 1000 - penalty;
+  }
+
+  function localWordCount(normalized) {
+    return (normalized.segments || []).reduce(function (total, segment) {
+      return total + window.AsrTranscript.stitchNormalizeWords(segment.text).length;
+    }, 0);
+  }
+
+  function acceptLocalCompletion(completed) {
+    var normalized = completed.transcript;
+    pendingAudio.localJobId = completed.job.job_id;
+    pendingAudio.localResult = normalized;
+    pendingAudio.asrWindows = completed.raw.chunks.map(function (chunk) {
+      return { startSec: chunk.manifest.start_sec, endSec: chunk.manifest.end_sec };
+    });
+    var del = $("v3ImportLocalAsrDelete");
+    if (del) del.hidden = false;
+    var retry = $("v3ImportLocalAsrRetry");
+    if (retry) retry.hidden = !localRetryPlan(normalized);
+    if (normalized.gates.s12_5.verdict !== "PASS") {
+      pendingAudio.localFallbackReason = "S12_5_FAIL";
+      setStatus("studio.import.localAsrIntegrityFail");
+      return false;
+    }
+    var parsed = { language: "he", segments: normalized.segments, warnings: normalized.warnings.slice() };
+    if (normalized.gates.s12_6.verdict === "FAIL") parsed.warnings.push("ASR_COVERAGE_GAP");
+    if (normalized.gates.s12_6.verdict === "NOT_APPLICABLE") parsed.warnings.push("ASR_COMPLETENESS_UNKNOWN");
+    if (normalized.gates.s12_7.verdict === "FAIL") parsed.warnings.push("ASR_CLOCK_COMPRESSED");
+    pendingAudio.asrMethod = "local-faster-whisper";
+    pendingAudio.asrModel = window.LocalAsrNormalizer.MODEL_ID;
+    pendingAudio.asrTransport = "physical-pcm-windows";
+    pendingAudio.asrSeams = normalized.seams || [];
+    pendingAudio.coverageGaps = normalized.gates.s12_6.evidence.coverage_gaps || [];
+    pendingAudio.healedGaps = [];
+    pendingAudio.rejectedRanges = normalized.gates.s12_6.evidence.replay
+      .filter(function (item) { return item.rejected; })
+      .map(function (item) { return pendingAudio.asrWindows[item.windowIdx]; });
+    pendingAudio.unreliableMarkRanges = normalized.gates.s12_6.evidence.unreliable_mark_ranges || [];
+    pendingAudio.speechDensity = normalized.gates.s12_6.evidence.density || null;
+    pendingAudio.clockCompressedRanges = normalized.blindRanges || [];
+    pendingAudio.asrSummary = normalized.summary;
+    pendingAudio.parsed = parsed;
+    pendingAudio.validation = window.AsrTranscript.validateSegments(parsed.segments, pendingAudio.durationSec);
+    if (normalized.gates.s12_7.verdict !== "PASS") {
+      pendingAudio.validation.timingOk = false;
+      pendingAudio.validation.dropReason = "LOCAL_S12_7_FAIL";
+    }
+    if (!parsed.segments.length) { setStatus("studio.import.errNoSpeech"); return false; }
+    showPreview({
+      kind: "audio", source: pendingAudio.name, method: "local-faster-whisper",
+      model: window.LocalAsrNormalizer.MODEL_ID,
+      warnings: parsed.warnings.concat(pendingAudio.validation.timingOk ? [] : ["ASR_TIMING_INVALID"]),
+      summary: pendingAudio.asrSummary,
+      text: pendingAudio.validation.segments.map(function (segment) { return segment.text; }).join("\n"),
+    });
+    return true;
+  }
+
+  async function transcribeAudioLocal() {
+    if (!pendingAudio) return;
+    if (!window.LocalAsrClient.getPairingToken()) { setStatus("studio.import.localAsrPairingRequired"); return; }
+    if (await pageIsStale()) { setStatus("studio.import.errStaleTab"); return; }
+    setBusy(true);
+    pendingAudio.localAttempted = true;
+    localAsrRunController = new AbortController();
+    try {
+      pendingAudio.buf = await pendingAudio.file.arrayBuffer();
+      pendingAudio.sha256 = await window.MediaStore.sha256Hex(pendingAudio.buf);
+      localAsrClient = localAsrClient || new window.LocalAsrClient.Client();
+      var completed = await localAsrClient.run(pendingAudio.file, {
+        codeVersion: window.APP_VERSION || null,
+        signal: localAsrRunController.signal,
+        onStatus: localJobStatus,
+        chooseAudioStream: chooseLocalAudioStream,
+      });
+      acceptLocalCompletion(completed);
+    } catch (error) {
+      pendingAudio.localFallbackReason = (error && error.code) || "LOCAL_ASR_FAILED";
+      if (error && error.code === "LOCAL_ASR_CANCELED") setStatus("studio.import.localAsrCanceled");
+      else if (error && error.code === "LOCAL_ASR_AUDIO_STREAM_REQUIRED") setStatus("studio.import.localAsrStreamRequired");
+      else setStatus("studio.import.localAsrUnavailable");
+    } finally {
+      localAsrRunController = null;
+      setBusy(false);
+    }
+  }
+
+  function cancelLocalAsr() {
+    if (localAsrRunController) localAsrRunController.abort();
+  }
+
+  async function retryLocalAsr() {
+    if (!pendingAudio || !pendingAudio.localJobId || !pendingAudio.localResult || !localAsrClient) return;
+    var plan = localRetryPlan(pendingAudio.localResult);
+    if (!plan || !plan.chunkIndexes.length) return;
+    var previous = pendingAudio.localResult;
+    setBusy(true);
+    localAsrRunController = new AbortController();
+    try {
+      var queued = await localAsrClient.retryChunks(
+        pendingAudio.localJobId, plan.chunkIndexes, plan.reason
+      );
+      var completed = await localAsrClient.waitForJob(pendingAudio.localJobId, {
+        codeVersion: window.APP_VERSION || null,
+        signal: localAsrRunController.signal,
+        onStatus: localJobStatus,
+        chooseAudioStream: chooseLocalAudioStream,
+      }, queued);
+      var textRatio = localWordCount(previous) > 0
+        ? localWordCount(completed.transcript) / localWordCount(previous) : 1;
+      var improved = localGateScore(completed.transcript, plan.reason) > localGateScore(previous, plan.reason);
+      if (!improved || textRatio < 0.85) {
+        var retryButton = $("v3ImportLocalAsrRetry");
+        if (retryButton) retryButton.hidden = true;
+        setStatus("studio.import.localAsrRetryNotImproved");
+        return;
+      }
+      acceptLocalCompletion(completed);
+      setStatus("studio.import.localAsrRetryAccepted");
+    } catch (error) {
+      setStatus(error && error.code === "LOCAL_ASR_CANCELED"
+        ? "studio.import.localAsrCanceled" : "studio.import.localAsrRetryFailed");
+    } finally {
+      localAsrRunController = null;
+      setBusy(false);
+    }
+  }
+
+  async function deleteLocalAsrJob() {
+    if (!pendingAudio || !pendingAudio.localJobId || !localAsrClient) return;
+    try {
+      await localAsrClient.deleteJob(pendingAudio.localJobId);
+      pendingAudio.localJobId = null;
+      var button = $("v3ImportLocalAsrDelete");
+      if (button) button.hidden = true;
+      var retryButton = $("v3ImportLocalAsrRetry");
+      if (retryButton) retryButton.hidden = true;
+      setStatus("studio.import.localAsrDeleted");
+    } catch (_) { setStatus("studio.import.localAsrDeleteFailed"); }
+  }
+
   async function transcribeAudio() {
     if (!pendingAudio) return;
+    if (selectedAudioProvider() === "local") return transcribeAudioLocal();
+    pendingAudio.asrMethod = "gemini-asr";
+    pendingAudio.asrModel = window.AsrTranscript.ASR_MODEL;
     var key = typeof window.geminiKeyGet === "function" ? window.geminiKeyGet() : "";
     if (!key) { setStatus("studio.import.errNoKey"); return; }
     // Транскрипция длинного файла — десятки минут и реальные деньги владельца (R16); прогон
@@ -958,7 +1247,9 @@
   function showPreview(p) {
     pending = p;
     $("v3ImportPreview").value = p.text;
-    var provKey = { url: "studio.import.provUrl", image: "studio.import.provOcr", pdf: "studio.import.provPdf", docx: "studio.import.provDocx", audio: "studio.import.provAudio", captions: "studio.import.provCaptions" }[p.kind];
+    var provKey = p.kind === "audio" && p.method === "local-faster-whisper"
+      ? "studio.import.provAudioLocal"
+      : { url: "studio.import.provUrl", image: "studio.import.provOcr", pdf: "studio.import.provPdf", docx: "studio.import.provDocx", audio: "studio.import.provAudio", captions: "studio.import.provCaptions" }[p.kind];
     var prov = tr(provKey) + " · " + p.source + (p.model ? " · " + p.model : "");
     if (p.warnings && p.warnings.length) prov += " · ⚠ " + tr("studio.import.warnCheck");
     $("v3ImportProv").textContent = prov; // сбрасывает и ранее добавленные дочерние блоки (сводка/хинт)
@@ -1035,6 +1326,13 @@
     var ai = $("v3ImportAudioInfo");
     if (ai) ai.hidden = true;
     pendingAudio = null;
+    var provider = $("v3ImportAudioProvider");
+    if (provider) provider.value = "gemini"; // experimental Local never changes the product default
+    var deleteButton = $("v3ImportLocalAsrDelete");
+    if (deleteButton) deleteButton.hidden = true;
+    var retryButton = $("v3ImportLocalAsrRetry");
+    if (retryButton) retryButton.hidden = true;
+    refreshLocalAsrControls();
     // MINOR (whole-branch review 2026-07-28): reopening the dialog after a captions-paste
     // import showed the PREVIOUS paste sitting in the textarea — clear it, matching the
     // pendingAudio reset just above.
@@ -1051,6 +1349,7 @@
   function close() {
     var m = $("v3ImportModal");
     if (m) m.classList.add("hidden");
+    cancelLocalAsr();
     // W2-S5a: this modal owns ytAdapter's lifetime (it created it in mountVideo()) — every path
     // that hides the modal (Cancel, backdrop click, post-commit close() at the end of useText())
     // funnels through here. teardownVideo() is the single teardown point, shared with switchTab()
@@ -1138,8 +1437,10 @@
         media: { opfsPath: saved.ok ? fileName : null, sessionOnly: !saved.ok, sha256: pendingAudio.sha256,
                  mime: pendingAudio.mime, sizeBytes: pendingAudio.file.size,
                  durationSec: pendingAudio.durationSec, originalName: pendingAudio.name },
-        asr: { method: "gemini-asr", model: window.AsrTranscript.ASR_MODEL, at: new Date().toISOString(),
-               language: pendingAudio.parsed.language, filesApi: true, warnings: pendingAudio.parsed.warnings,
+        asr: { method: pendingAudio.asrMethod || "gemini-asr",
+               model: pendingAudio.asrModel || window.AsrTranscript.ASR_MODEL, at: new Date().toISOString(),
+               language: pendingAudio.parsed.language, filesApi: pendingAudio.asrMethod !== "local-faster-whisper",
+               warnings: pendingAudio.parsed.warnings,
                transport: pendingAudio.asrTransport || "ranged-file", // S12.5 R9: sliced-mp3 | ranged-file
                chunks: pendingAudio.sliceLog || [], // S12.5 R9: {a,b,byteFrom,byteTo,offsetSec,upMs,asrMs} на чанк
                windows: pendingAudio.asrWindows || null,
@@ -1162,7 +1463,16 @@
                // штампа стоило диагностической сессии 2026-07-29 целой гипотезы (H1 stale-tab):
                // «каким кодом это сделано» восстанавливали feature-детекцией в живой вкладке.
                summary: pendingAudio.asrSummary || null,
-               codeVersion: window.APP_VERSION || null },
+               codeVersion: window.APP_VERSION || null,
+               selectedProvider: pendingAudio.cloudFallbackConsent ? "local"
+                                : (pendingAudio.asrMethod === "local-faster-whisper" ? "local" : "gemini"),
+               actualProvider: pendingAudio.asrMethod === "local-faster-whisper" ? "local-faster-whisper" : "gemini",
+               fallbackReason: pendingAudio.cloudFallbackConsent && pendingAudio.cloudFallbackConsent.reason,
+               fallbackConsent: pendingAudio.cloudFallbackConsent || undefined,
+               localJobId: pendingAudio.localJobId || undefined,
+               normalizationSha256: pendingAudio.asrMethod === "local-faster-whisper" && pendingAudio.localResult && pendingAudio.localResult.normalization_sha256,
+               gates: pendingAudio.asrMethod === "local-faster-whisper" && pendingAudio.localResult && pendingAudio.localResult.gates,
+               runtime: pendingAudio.asrMethod === "local-faster-whisper" && pendingAudio.localResult && pendingAudio.localResult.provenance && pendingAudio.localResult.provenance.runtime },
         segments: segs, timing: null, timingDropReason: dropReason,
       };
       if (!saved.ok) window.v3SessionMediaBlob = pendingAudio.file;
@@ -1482,6 +1792,9 @@
   window.StudioImport = { open: open, close: close, switchTab: switchTab,
                            fetchUrl: fetchUrl, fetchUrlOrVideo: fetchUrlOrVideo, mountVideoFromField: mountVideoFromField,
                            onFileChosen: onFileChosen, onAudioChosen: onAudioChosen, transcribeAudio: transcribeAudio,
+                           onAudioProviderChanged: onAudioProviderChanged, pairLocalAsr: pairLocalAsr,
+                           cancelLocalAsr: cancelLocalAsr, retryLocalAsr: retryLocalAsr,
+                           deleteLocalAsrJob: deleteLocalAsrJob,
                            onCaptionsFileChosen: onCaptionsFileChosen, useCaptionsPaste: useCaptionsPaste,
                            useText: useText, useTextAndRetell: useTextAndRetell,
                            chooseTrackHint: chooseTrackHint, runWindowedAsr: runWindowedAsr,

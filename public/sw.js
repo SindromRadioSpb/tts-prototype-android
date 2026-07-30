@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.270";
+const CACHE_VERSION = "v3.11.271";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -127,6 +127,9 @@ const PRECACHE_URLS = [
   // OPFS media store, Gemini Files upload, media karaoke driver).
   "/js/gemini-error.js",
   "/js/asr-transcript.js",
+  // L1-D default-off local companion adapter; inert without explicit browser-local opt-in.
+  "/js/local-asr-normalizer.js",
+  "/js/local-asr-client.js",
   // W2-S12 — pure чанк-математика длинной таблицы (buildChunks/offsetRows/coverage), consumed
   // by translateTable()'s chunk-cycle fork; must precache like its ASR-windowing sibling above,
   // or an offline session after a CACHE_VERSION bump loses window.TableChunks silently.
