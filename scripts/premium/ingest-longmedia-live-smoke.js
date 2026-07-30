@@ -370,9 +370,23 @@ function mappingEquivalent(rows, segCount) {
     if (missing.length) console.log("missing segment indices (" + missing.length + "):", JSON.stringify(missing));
     if (!(coverageFrac >= 0.90)) failures.push("coverage=" + (coverageFrac * 100).toFixed(1) + "% expected >=90%");
 
-    const timing = A.buildRowTiming(v.segments, allRows.map((r) => r.segment_index));
+    // Фикс 2026-07-30 (STUDIO_KARAOKE_ROW_TIMING_MISMAP): тайминг строится ТОЛЬКО на осмысленном
+    // маппинге — тот же гейт, что стоит в v3AttachAudioTiming. Вырожденный 1:1 (строк заметно
+    // больше сегментов, а индексы идут подряд) обязан валить прогон, а не рисовать караоке.
+    const rowSegIdx = allRows.map((r) => (Number.isInteger(r.segment_index) ? r.segment_index : null));
+    const mapMeaning = A.validateRowSegMapping(rowSegIdx, v.segments.length);
+    if (!mapMeaning.ok) failures.push("validateRowSegMapping failed: " + JSON.stringify(mapMeaning));
+    const timing = A.buildRowTiming(v.segments, rowSegIdx);
     const timingEntries = timing ? timing.entries.length : 0;
     if (!(timingEntries >= 2)) failures.push("buildRowTiming entries=" + timingEntries + " expected >=2 (karaoke alive)");
+    // Независимый оракул (ревью K1): предыдущая проверка судит ВХОД (индексы строк), эта —
+    // ВЫХОД (сами записи тайминга). Отпечаток живого брака — o каждой записи равен индексу её
+    // сегмента при том, что строк больше сегментов; если он проступил на живом прогоне, гейт
+    // обязан упасть, даже если вход почему-то признан осмысленным.
+    if (A.timingLooksDegenerate(timing, v.segments, allRows.length)) {
+      failures.push("timing looks DEGENERATE 1:1 (o === segment index while rows=" + allRows.length +
+        " > segments=" + v.segments.length + ") — karaoke would light the wrong row");
+    }
 
     console.log("final asserts: rows " + (allRows.length >= rowsFloor) + ", mapping " + mapCheck.ok +
       ", coverage " + (coverageFrac >= 0.90) + " (" + (coverageFrac * 100).toFixed(1) + "%)" +

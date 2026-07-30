@@ -51,6 +51,440 @@ test("buildRowTiming: first row per segment, needs >=2 entries", () => {
   assert.equal(A.buildRowTiming([{ i: 0, start: 0, text: "a" }], [0]), null); // 1 entry < 2
 });
 
+// ── validateRowSegMapping (фикс караоке-мисмапа 2026-07-30) ────────────────────────────────
+// Живой дефект: премиум-ответ /api/translate-table-v2 несёт СВОЙ `segment_index` (порядковый
+// номер предложения премиум-сегментатора, 1-based), прежний гейт «есть целые числа» принимал
+// его за индекс ASR-сегмента и строил вырожденный тайминг 1:1.
+test("validateRowSegMapping: honest 1:N mapping (rows > segments) is valid", () => {
+  // 4 сегмента → 7 строк: сегмент дробится на несколько строк — штатное поведение модели.
+  const m = A.validateRowSegMapping([0, 0, 1, 2, 2, 2, 3], 4);
+  assert.equal(m.ok, true);
+  assert.equal(m.reason, null);
+  assert.equal(m.indexed, 7);
+  assert.equal(m.unique, 4);
+});
+
+test("validateRowSegMapping: exact 1:1 is VALID when rows == segments", () => {
+  // Не путать с вырожденным 1:1: модель имеет право не дробить ни одного сегмента.
+  const m = A.validateRowSegMapping([0, 1, 2, 3], 4);
+  assert.equal(m.ok, true);
+  assert.equal(m.reason, null);
+});
+
+test("validateRowSegMapping: degenerate 1:1 rejected when rows > segments", () => {
+  // Строк 6, сегментов 4 ⇒ хотя бы один сегмент раздроблен ⇒ «каждая строка — свой сегмент» ложь.
+  const m = A.validateRowSegMapping([0, 1, 2, 3, null, null], 4);
+  assert.equal(m.ok, false);
+  assert.equal(m.reason, "DEGENERATE_1_TO_1");
+});
+
+test("validateRowSegMapping: live defect fingerprint (premium 1-based row ordinals) rejected", () => {
+  // Ровно то, что пришло бы от /api/translate-table-v2: индексы 1..rows при segCount < rows.
+  const segCount = 5, rows = 8;
+  const rowSegIdx = Array.from({ length: rows }, (_, r) => r + 1);
+  const m = A.validateRowSegMapping(rowSegIdx, segCount);
+  assert.equal(m.ok, false);
+  assert.equal(m.reason, "OUT_OF_RANGE");
+});
+
+test("validateRowSegMapping: out of range / negative / non-integer rejected", () => {
+  assert.equal(A.validateRowSegMapping([0, 1, 4], 4).reason, "OUT_OF_RANGE"); // 4 >= segCount
+  assert.equal(A.validateRowSegMapping([-1, 0, 1], 4).reason, "OUT_OF_RANGE");
+  assert.equal(A.validateRowSegMapping([0, "1", 2], 4).reason, "NOT_INTEGER");
+  assert.equal(A.validateRowSegMapping([0, 1.5, 2], 4).reason, "NOT_INTEGER");
+});
+
+test("validateRowSegMapping: decreasing rejected", () => {
+  const m = A.validateRowSegMapping([0, 1, 1, 0, 2], 4);
+  assert.equal(m.ok, false);
+  assert.equal(m.reason, "DECREASING");
+});
+
+test("validateRowSegMapping: rows of one segment must be contiguous", () => {
+  // Возврат к сегменту 0 ЧЕРЕЗ строки без индекса: границы чанков проходят только по сегментам,
+  // поэтому разрыв блока строк одного сегмента невозможен by construction — значит, маппинг врёт.
+  const m = A.validateRowSegMapping([0, 0, null, 0, 1], 4);
+  assert.equal(m.ok, false);
+  assert.equal(m.reason, "SPLIT_SEGMENT");
+});
+
+test("validateRowSegMapping: partially-indexed table (one lost chunk) stays valid", () => {
+  // Сценарий 3 smoke:studio-chunks: средний кусок вернулся без segment_index (SEG_MAPPING_LOST
+  // локально) — строки с индексом обязаны продолжать работать.
+  const m = A.validateRowSegMapping([0, 0, 1, null, null, 4, 4, 5], 6);
+  assert.equal(m.ok, true);
+  assert.equal(m.indexed, 6);
+  assert.equal(m.unique, 4);
+});
+
+test("validateRowSegMapping: boundaries — no rows, no indices, no segments", () => {
+  assert.equal(A.validateRowSegMapping([], 4).reason, "NO_INDEX");        // 0 строк
+  assert.equal(A.validateRowSegMapping([null, null], 4).reason, "NO_INDEX"); // строки без индексов
+  assert.equal(A.validateRowSegMapping([0], 1).ok, true);                 // 1 сегмент, 1 строка
+  assert.equal(A.validateRowSegMapping([0, 0], 1).ok, true);              // 1 сегмент → 2 строки
+  assert.equal(A.validateRowSegMapping([0], 0).reason, "NO_SEGMENTS");    // сегментов нет вовсе
+  assert.equal(A.validateRowSegMapping([0], null).reason, "NO_SEGMENTS");
+  assert.equal(A.validateRowSegMapping(null, 4).reason, "NO_INDEX");
+});
+
+test("buildRowTiming: 1:N split — every entry points at its OWN segment's first row", () => {
+  // Регресс живого дефекта: строк заметно больше сегментов, проверяем КОНКРЕТНЫЕ o, не их число.
+  const segs = [{ i: 0, start: 0, text: "a" }, { i: 1, start: 10, text: "b" },
+                { i: 2, start: 20, text: "c" }, { i: 3, start: 30, text: "d" }];
+  const rowSegIdx = [0, 0, 1, 2, 2, 2, 3]; // 7 строк на 4 сегмента
+  assert.equal(A.validateRowSegMapping(rowSegIdx, segs.length).ok, true);
+  const t = A.buildRowTiming(segs, rowSegIdx);
+  assert.deepEqual(t.entries, [{ o: 0, t: 0 }, { o: 2, t: 10 }, { o: 3, t: 20 }, { o: 6, t: 30 }]);
+  // независимый оракул: строка, на которую указывает запись, обязана принадлежать своему сегменту
+  t.entries.forEach((e) => {
+    const seg = segs.find((s) => s.start === e.t);
+    assert.equal(rowSegIdx[e.o], seg.i, "entry o=" + e.o + " points at segment " + rowSegIdx[e.o] + ", expected " + seg.i);
+  });
+  // и НЕ вырождается в 1:1 (o != 0,1,2,3 — фингерпринт дефекта)
+  assert.notDeepEqual(t.entries.map((e) => e.o), [0, 1, 2, 3]);
+});
+
+// ── timingLooksDegenerate: карантин уже СОХРАНЁННЫХ паспортов (ревью фикса 2026-07-30) ───────
+// validateRowSegMapping судит только новые ответы; карточки, сохранённые до фикса, несут
+// вырожденный тайминг в table_model_meta_json — включая ту, на которой владелец увидел брак.
+const degSegs = (n, step) => Array.from({ length: n }, (_, i) => ({ i, start: i * (step || 10), text: "s" + i }));
+
+test("timingLooksDegenerate: owner's live passport fingerprint (rows >> segments, o === segment index)", () => {
+  // Паспорт из тикета: 1651 строка, 1074 сегмента, o = 0…1072 с пропусками 259/260/800.
+  const segs = degSegs(1074, 6.5);
+  const skip = new Set([259, 260, 800]);
+  const entries = segs.filter((s) => !skip.has(s.i)).map((s) => ({ o: s.i, t: s.start }));
+  assert.equal(entries.length, 1071);
+  assert.equal(A.timingLooksDegenerate({ v: 1, unit: "row", entries }, segs, 1651), true);
+});
+
+test("timingLooksDegenerate: honest 1:N timing is NEVER quarantined", () => {
+  // 4 сегмента → 7 строк; entries строит сам прод-код, поэтому отпечаток проверяем на нём.
+  const segs = [{ i: 0, start: 0, text: "a" }, { i: 1, start: 10, text: "b" },
+                { i: 2, start: 20, text: "c" }, { i: 3, start: 30, text: "d" }];
+  const t = A.buildRowTiming(segs, [0, 0, 1, 2, 2, 2, 3]);
+  assert.equal(A.timingLooksDegenerate(t, segs, 7), false);
+  // и достаточно ОДНОЙ честной записи, чтобы не трогать тайминг: только первый сегмент раздроблен
+  const t2 = A.buildRowTiming(segs, [0, 0, 1, 2, 3]);
+  assert.equal(A.timingLooksDegenerate(t2, segs, 5), false);
+  // худший случай для отпечатка: дробление ТОЛЬКО в самом конце, поэтому 4 записи из 5 совпадают
+  // с индексом своего сегмента СЛУЧАЙНО. Одна честная запись обязана спасти весь тайминг —
+  // «большинство совпало» никогда не должно становиться приговором.
+  const segs5 = degSegs(5);
+  const t3 = A.buildRowTiming(segs5, [0, 1, 2, 3, 3, 4]);
+  assert.deepEqual(t3.entries.map((e) => e.o), [0, 1, 2, 3, 5]);
+  assert.equal(A.timingLooksDegenerate(t3, segs5, 6), false);
+});
+
+test("timingLooksDegenerate: exact 1:1 (rows == segments) is not degenerate", () => {
+  const segs = degSegs(300);
+  const entries = segs.map((s) => ({ o: s.i, t: s.start }));
+  assert.equal(A.timingLooksDegenerate({ entries }, segs, 300), false); // строк не больше сегментов
+  assert.equal(A.timingLooksDegenerate({ entries }, segs, 299), false);
+});
+
+test("timingLooksDegenerate: boundaries — no timing / <2 entries / no segments / unknown t", () => {
+  const segs = degSegs(10);
+  assert.equal(A.timingLooksDegenerate(null, segs, 100), false);
+  assert.equal(A.timingLooksDegenerate({ entries: [] }, segs, 100), false);
+  assert.equal(A.timingLooksDegenerate({ entries: [{ o: 0, t: 0 }] }, segs, 100), false); // 1 запись
+  assert.equal(A.timingLooksDegenerate({ entries: [{ o: 0, t: 0 }, { o: 1, t: 10 }] }, [], 100), false);
+  assert.equal(A.timingLooksDegenerate({ entries: [{ o: 0, t: 0 }, { o: 1, t: 10 }] }, segs, null), false);
+  // t, которых нет среди сегментов, не судим вовсе — 0 сопоставленных записей ⇒ не вырожден
+  assert.equal(A.timingLooksDegenerate({ entries: [{ o: 0, t: 7.77 }, { o: 1, t: 8.88 }] }, segs, 100), false);
+});
+
+// ── premiumRowLineIdx: ВОЗВРАТ караоке премиум-ветке через source_line_index (K2 2026-07-30) ──
+// K1 отключил караоке на /api/translate-table-v2, но google-free — ДЕФОЛТНЫЙ провайдер владельца.
+// K2 даёт честный мост: premium публикует source_line_index (номер исходной строки), а для
+// импортированного медиа одна строка = один ASR-сегмент. Мост принимается не на слово: каждая
+// строка ответа обязана быть подстрокой ТОЙ строки, на которую ссылается.
+const premRow = (li, he) => ({ source_line_index: li, he: he });
+
+test("premiumRowLineIdx: 1:N (строка → несколько предложений) — индексы строк ASR-сегментов", () => {
+  const lines = ["ראשון. שני!", "שלישי.", "רביעי. חמישי. שישי."];
+  const rows = [premRow(0, "ראשון."), premRow(0, "שני!"), premRow(1, "שלישי."),
+                premRow(2, "רביעי."), premRow(2, "חמישי."), premRow(2, "שישי.")];
+  const m = A.premiumRowLineIdx(rows, lines);
+  assert.equal(m.reason, null);
+  assert.deepEqual(m.idx, [0, 0, 1, 2, 2, 2]);
+  // и этот маппинг обязан проходить ТОТ ЖЕ гейт осмысленности, что seg-режим Gemini
+  assert.equal(A.validateRowSegMapping(m.idx, lines.length).ok, true);
+});
+
+test("premiumRowLineIdx: 1:1 (каждая строка — одно предложение) валиден", () => {
+  const lines = ["שורה 0", "שורה 1", "שורה 2"];
+  const rows = lines.map((t, i) => premRow(i, t));
+  const m = A.premiumRowLineIdx(rows, lines);
+  assert.deepEqual(m.idx, [0, 1, 2]);
+  assert.equal(A.validateRowSegMapping(m.idx, lines.length).ok, true);
+});
+
+test("premiumRowLineIdx: старый премиум-кэш БЕЗ поля → NO_INDEX, караоке честно нет", () => {
+  // Ответ из doc-кэша, записанного до K2: rows несут только чужой segment_index.
+  const lines = ["שורה 0", "שורה 1"];
+  const rows = [{ segment_index: 1, he: "שורה 0" }, { segment_index: 2, he: "שורה 1" }];
+  const m = A.premiumRowLineIdx(rows, lines);
+  assert.equal(m.reason, "NO_INDEX");
+  assert.deepEqual(m.idx, []);
+  assert.equal(A.validateRowSegMapping(m.idx, lines.length).ok, false);
+});
+
+test("premiumRowLineIdx: индекс вне диапазона строк → отказ целиком", () => {
+  const lines = ["א", "ב"];
+  assert.equal(A.premiumRowLineIdx([premRow(0, "א"), premRow(2, "ב")], lines).reason, "LINE_OUT_OF_RANGE");
+  assert.equal(A.premiumRowLineIdx([premRow(-1, "א")], lines).reason, "LINE_OUT_OF_RANGE");
+});
+
+test("premiumRowLineIdx: строка ответа НЕ из своей строки текста → LINE_TEXT_MISMATCH", () => {
+  // Сдвиг на единицу — ровно то, что даёт разъехавшаяся нарезка (и то, чего проверка «поле
+  // целое» никогда не поймает). Текст доказывает принадлежность, самоотчёт — нет.
+  const lines = ["ראשון.", "שני.", "שלישי."];
+  const rows = [premRow(0, "ראשון."), premRow(1, "שלישי."), premRow(2, "שני.")];
+  const m = A.premiumRowLineIdx(rows, lines);
+  assert.equal(m.reason, "LINE_TEXT_MISMATCH");
+  assert.deepEqual(m.idx, [], "ни одной строки не отдаём: маппинг разъехался целиком (R11)");
+});
+
+test("premiumRowLineIdx: NFKC и BIDI-марки не считаются расхождением", () => {
+  // Сервер сегментирует normalizeForDisplay(text) (NFKC + снятие марок в сегментаторе), клиент
+  // передаёт сырые строки поля ввода — сравнение обязано это переживать, иначе караоке
+  // отваливалось бы на ровном месте.
+  const lines = ["\u200Eרגע… בסדר.", " שלום עולם."];
+  const rows = [premRow(0, "רגע... בסדר."), premRow(1, "שלום עולם.")];
+  const m = A.premiumRowLineIdx(rows, lines);
+  assert.equal(m.reason, null);
+  assert.deepEqual(m.idx, [0, 1]);
+});
+
+test("premiumRowLineIdx: нет строк (текст переразбит) → NO_LINES", () => {
+  assert.equal(A.premiumRowLineIdx([premRow(0, "א")], []).reason, "NO_LINES");
+  assert.equal(A.premiumRowLineIdx([premRow(0, "א")], null).reason, "NO_LINES");
+});
+
+test("premiumRowLineIdx: частично проиндексированный ответ сохраняет дыры (не гадает)", () => {
+  const lines = ["א.", "ב.", "ג."];
+  const rows = [premRow(0, "א."), { he: "ב." }, premRow(2, "ג.")];
+  const m = A.premiumRowLineIdx(rows, lines);
+  assert.equal(m.reason, null);
+  assert.deepEqual(m.idx, [0, null, 2]);
+  assert.equal(A.validateRowSegMapping(m.idx, 3).ok, true);
+});
+
+test("premiumRowLineIdx → buildRowTiming: записи указывают на строки СВОЕГО сегмента", () => {
+  // Сквозной оракул премиум-ветки: 3 сегмента (= 3 строки текста), 6 строк таблицы.
+  const lines = ["ראשון. שני!", "שלישי.", "רביעי. חמישי. שישי."];
+  const segs = [{ i: 0, start: 0, text: lines[0] }, { i: 1, start: 12, text: lines[1] },
+                { i: 2, start: 25, text: lines[2] }];
+  const rows = [premRow(0, "ראשון."), premRow(0, "שני!"), premRow(1, "שלישי."),
+                premRow(2, "רביעי."), premRow(2, "חמישי."), premRow(2, "שישי.")];
+  const m = A.premiumRowLineIdx(rows, lines);
+  assert.equal(A.validateRowSegMapping(m.idx, segs.length).ok, true);
+  const t = A.buildRowTiming(segs, m.idx);
+  assert.deepEqual(t.entries, [{ o: 0, t: 0 }, { o: 2, t: 12 }, { o: 3, t: 25 }]);
+  // независимый оракул: строка, на которую указывает запись, принадлежит своему сегменту
+  t.entries.forEach((e) => {
+    const seg = segs.find((s) => s.start === e.t);
+    assert.equal(m.idx[e.o], seg.i);
+  });
+  // и это НЕ вырожденный 1:1 (фингерпринт живого брака)
+  assert.notDeepEqual(t.entries.map((e) => e.o), [0, 1, 2]);
+});
+
+// ── alignRowsToSegments: ОФЛАЙН-ОЖИВЛЕНИЕ караоке у сохранённой карточки (K3 2026-07-30) ──────
+// K1/K2 работают только в сессии импорта; у сохранённой карточки строк с индексами уже нет
+// (segment_index в схеме sentences не хранится вовсе). Связь восстанавливается ПО ТЕКСТУ:
+// строка обязана совпасть со словами своего сегмента начиная ровно с позиции указателя, а
+// оракул требует, чтобы каждый получивший строки сегмент был покрыт ими ЦЕЛИКОМ.
+const alSegs = (texts, step) => texts.map((t, i) => ({ i, start: i * (step || 10), text: t }));
+
+test("alignRowsToSegments: идеальное 1:N (строка сегмента раздроблена на предложения)", () => {
+  const segs = alSegs(["ראשון. שני!", "שלישי.", "רביעי. חמישי. שישי."]);
+  const rows = ["ראשון.", "שני!", "שלישי.", "רביעי.", "חמישי.", "שישי."];
+  const a = A.alignRowsToSegments(rows, segs);
+  assert.equal(a.reason, null);
+  assert.equal(a.ok, true);
+  assert.deepEqual(a.rowSegIdx, [0, 0, 1, 2, 2, 2]);
+  assert.equal(a.alignedSegments, 3);
+  assert.equal(a.alignedRows, 6);
+  // и результат обязан проходить ТОТ ЖЕ гейт, что ответы seg-режима и премиума
+  assert.equal(A.validateRowSegMapping(a.rowSegIdx, segs.length).ok, true);
+  const t = A.buildRowTiming(segs, a.rowSegIdx);
+  assert.deepEqual(t.entries, [{ o: 0, t: 0 }, { o: 2, t: 10 }, { o: 3, t: 20 }]);
+});
+
+test("alignRowsToSegments: ровно 1:1", () => {
+  const segs = alSegs(["שורה אפס.", "שורה אחת.", "שורה שתיים."]);
+  const a = A.alignRowsToSegments(["שורה אפס.", "שורה אחת.", "שורה שתיים."], segs);
+  assert.equal(a.ok, true);
+  assert.deepEqual(a.rowSegIdx, [0, 1, 2]);
+  assert.equal(A.validateRowSegMapping(a.rowSegIdx, 3).ok, true);
+});
+
+test("alignRowsToSegments: другая пунктуация/огласовки/BIDI/NFKC — не расхождение", () => {
+  // Сегмент — сырой текст ASR (без огласовок, «...»), строка таблицы — после normalizeForDisplay
+  // (NFKC) и, возможно, с огласовками из ②-обогащения. Нормализация обеих сторон одна.
+  const segs = alSegs(["רגע... בסדר, שלום עולם", "אבא אמא ילד"]);
+  const rows = ["‎רגע… בסדר,", "שָׁלוֹם עוֹלָם!", "אבא — אמא, ילד."];
+  const a = A.alignRowsToSegments(rows, segs);
+  assert.equal(a.reason, null);
+  assert.deepEqual(a.rowSegIdx, [0, 0, 1]);
+});
+
+test("alignRowsToSegments: строка не принадлежит своему месту → ROW_NOT_IN_SEGMENT", () => {
+  const segs = alSegs(["ראשון. שני!", "שלישי.", "רביעי."]);
+  const a = A.alignRowsToSegments(["ראשון.", "טקסט זר לגמרי", "שלישי.", "רביעי."], segs);
+  assert.equal(a.ok, false);
+  assert.equal(a.reason, "ROW_NOT_IN_SEGMENT");
+  assert.deepEqual(a.rowSegIdx, [], "частичный маппинг наружу не отдаём — на нём построили бы кривой тайминг");
+});
+
+test("alignRowsToSegments: подстрока внутри слова НЕ считается совпадением", () => {
+  // indexOf по склеенному тексту нашёл бы «שלום» внутри «שלומי» и разрешил бы сдвиг границы.
+  // Сравнение пословное — такой «почти совпало» обязан быть отказом.
+  const segs = alSegs(["שלומי הלך הביתה", "מחר יהיה טוב"]);
+  const a = A.alignRowsToSegments(["שלום", "הלך הביתה", "מחר יהיה טוב"], segs);
+  assert.equal(a.ok, false);
+  assert.equal(a.reason, "ROW_NOT_IN_SEGMENT");
+});
+
+test("alignRowsToSegments: сегмент покрыт строками ЧАСТИЧНО → SEGMENT_UNCOVERED (оракул)", () => {
+  // Указатель сам по себе такой рез пропустил бы (строка «שלישי» честно нашлась в сегменте 1);
+  // ловит его именно оракул покрытия: сегмент 0 получил строку, но покрыт ею не целиком.
+  const segs = alSegs(["ראשון. שני!", "שלישי.", "רביעי."]);
+  const a = A.alignRowsToSegments(["ראשון.", "שלישי.", "רביעי."], segs);
+  assert.equal(a.ok, false);
+  assert.equal(a.reason, "SEGMENT_UNCOVERED");
+});
+
+test("alignRowsToSegments: строка, склеившая ДВА сегмента, → отказ", () => {
+  // Модель могла слить речь двух сегментов в одну строку. Такой строке нельзя назначить сегмент:
+  // тайминг получил бы запись, покрывающую чужую метку.
+  const segs = alSegs(["אבא הלך", "הביתה מהר"]);
+  const a = A.alignRowsToSegments(["אבא הלך הביתה מהר"], segs);
+  assert.equal(a.ok, false);
+  assert.equal(a.reason, "ROW_NOT_IN_SEGMENT");
+});
+
+test("alignRowsToSegments: лишние строки в конце → TRAILING_ROWS", () => {
+  const segs = alSegs(["ראשון.", "שני."]);
+  const a = A.alignRowsToSegments(["ראשון.", "שני.", "שורה שנוספה אחר כך"], segs);
+  assert.equal(a.ok, false);
+  assert.equal(a.reason, "TRAILING_ROWS");
+});
+
+test("alignRowsToSegments: сегмент БЕЗ строк не ломает выравнивание, но и записи не получает", () => {
+  // Речь сегмента 1 в таблицу не попала (модель пропустила её при переводе). Соврать этот случай
+  // не может: каждая оставшаяся строка доказана текстом своего сегмента, а сегмент 1 просто не
+  // получает записи — караоке дольше держит предыдущую строку, но НЕ подсвечивает чужую.
+  const segs = alSegs(["ראשון. שני!", "שלישי רביעי חמישי.", "שישי."]);
+  const a = A.alignRowsToSegments(["ראשון.", "שני!", "שישי."], segs);
+  assert.equal(a.ok, true);
+  assert.deepEqual(a.rowSegIdx, [0, 0, 2]);
+  assert.equal(a.alignedSegments, 2, "сегмент 1 не покрыт — он и не судится");
+  const t = A.buildRowTiming(segs, a.rowSegIdx);
+  assert.deepEqual(t.entries, [{ o: 0, t: 0 }, { o: 2, t: 20 }], "у пропущенного сегмента записи нет");
+});
+
+test("alignRowsToSegments: строка без слов между строками ОДНОГО сегмента наследует его индекс", () => {
+  // «[…]» / «—» нормализуются в пусто: доказать принадлежность нечем. Но строка, зажатая между
+  // двумя строками одного сегмента, принадлежит ему ПО ПОРЯДКУ — иначе гейт непрерывности
+  // (SPLIT_SEGMENT) отверг бы честное выравнивание из-за одной строки со скобками.
+  const segs = alSegs(["ראשון שני שלישי", "רביעי."]);
+  const a = A.alignRowsToSegments(["ראשון שני", "[...]", "שלישי", "רביעי."], segs);
+  assert.equal(a.reason, null);
+  assert.deepEqual(a.rowSegIdx, [0, 0, 0, 1]);
+  assert.equal(A.validateRowSegMapping(a.rowSegIdx, 2).ok, true);
+  // а на границе сегментов такая строка индекса НЕ получает (принадлежность недоказуема)
+  const segs3 = alSegs(["ראשון שני שלישי", "רביעי חמישי", "שישי"]);
+  const b = A.alignRowsToSegments(["ראשון שני שלישי", "[...]", "רביעי", "חמישי", "שישי"], segs3);
+  assert.equal(b.reason, null);
+  assert.deepEqual(b.rowSegIdx, [0, null, 1, 1, 2]);
+  assert.equal(A.validateRowSegMapping(b.rowSegIdx, 3).ok, true);
+});
+
+test("alignRowsToSegments: осознанный остаток — пограничная пустая строка может уронить гейт 1:1", () => {
+  // Строк 3, сегментов 2, у каждого сегмента ровно одна ИНДЕКСИРОВАННАЯ строка ⇒
+  // validateRowSegMapping считает такой маппинг вырожденным (его правило «строк больше, чем
+  // сегментов ⇒ кто-то раздроблен» не знает про строки без слов). Выравнивание тут доказано
+  // текстом, но ослаблять гейт K1 ради этого края нельзя — отказ консервативен и честен (R11).
+  const segs = alSegs(["ראשון שני שלישי", "רביעי"]);
+  const a = A.alignRowsToSegments(["ראשון שני שלישי", "[...]", "רביעי"], segs);
+  assert.equal(a.ok, false);
+  assert.equal(a.reason, "DEGENERATE_1_TO_1");
+});
+
+test("alignRowsToSegments: сегменты со start:null выравниваются, но записей не дают", () => {
+  const segs = [{ i: 0, start: 0, text: "ראשון. שני!" }, { i: 1, start: null, text: "שלישי." },
+                { i: 2, start: 30, text: "רביעי." }];
+  const a = A.alignRowsToSegments(["ראשון.", "שני!", "שלישי.", "רביעי."], segs);
+  assert.equal(a.ok, true);
+  assert.deepEqual(a.rowSegIdx, [0, 0, 1, 2]);
+  assert.deepEqual(A.buildRowTiming(segs, a.rowSegIdx).entries, [{ o: 0, t: 0 }, { o: 3, t: 30 }]);
+});
+
+test("alignRowsToSegments: пустые входы → EMPTY_INPUT", () => {
+  const segs = alSegs(["ראשון."]);
+  assert.equal(A.alignRowsToSegments([], segs).reason, "EMPTY_INPUT");
+  assert.equal(A.alignRowsToSegments(["ראשון."], []).reason, "EMPTY_INPUT");
+  assert.equal(A.alignRowsToSegments(null, null).reason, "EMPTY_INPUT");
+  // строки есть, но ни в одной нет слов — маппинга не будет (гадать не по чему)
+  assert.equal(A.alignRowsToSegments(["...", "—"], segs).ok, false);
+});
+
+test("alignRowsToSegments: живая форма владельца 1074 сегмента ↔ 1651 строка", () => {
+  // Пропорция взята с карточки «Шломо Крук. Интервью» (замер 2026-07-30): 577 сегментов модель
+  // раздробила надвое, 497 оставила целыми ⇒ 577*2 + 497 = 1651 строка.
+  const SEGS = 1074, SPLIT = 577;
+  const segs = [], rows = [], expect = [];
+  for (let i = 0; i < SEGS; i++) {
+    const a1 = "מילה" + i + " שתיים" + i, a2 = "שלוש" + i + " ארבע" + i;
+    segs.push({ i, start: i * 6.5, text: a1 + ". " + a2 + "." });
+    if (i < SPLIT) { rows.push(a1 + "."); rows.push(a2 + "."); expect.push(i, i); }
+    else { rows.push(a1 + ". " + a2 + "."); expect.push(i); }
+  }
+  assert.equal(rows.length, 1651);
+  const a = A.alignRowsToSegments(rows, segs);
+  assert.equal(a.reason, null);
+  assert.deepEqual(a.rowSegIdx, expect);
+  assert.equal(a.alignedSegments, SEGS);
+  assert.equal(a.alignedRows, 1651);
+  const t = A.buildRowTiming(segs, a.rowSegIdx);
+  assert.equal(t.entries.length, SEGS);
+  // независимый оракул поверх результата: запись указывает на строку СВОЕГО сегмента,
+  // и это НЕ вырожденный локстеп (o = 0,1,2,… — фингерпринт живого брака)
+  t.entries.forEach((e) => {
+    const seg = segs.find((s) => s.start === e.t);
+    assert.equal(a.rowSegIdx[e.o], seg.i);
+  });
+  assert.deepEqual(t.entries.slice(0, 4).map((e) => e.o), [0, 2, 4, 6]);
+  assert.equal(A.timingLooksDegenerate(t, segs, rows.length), false, "честный тайминг не карантинится");
+});
+
+test("alignRowsToSegments: одна изменённая строка роняет ВСЁ выравнивание (не «почти»)", () => {
+  const segs = alSegs(["ראשון. שני!", "שלישי.", "רביעי."]);
+  const rows = ["ראשון.", "שני!", "שלישי.", "רביעי."];
+  assert.equal(A.alignRowsToSegments(rows, segs).ok, true);
+  const tampered = rows.slice();
+  tampered[2] = "שלישי ועוד מילה";              // владелец (или модель) поправил строку
+  const a = A.alignRowsToSegments(tampered, segs);
+  assert.equal(a.ok, false);
+  assert.ok(a.reason === "ROW_NOT_IN_SEGMENT" || a.reason === "SEGMENT_UNCOVERED", a.reason);
+});
+
+test("timingLooksDegenerate: ЖИВОЙ отпечаток владельца — o === индекс сегмента − 1", () => {
+  // Замер карточки 864f3aa2 (kapture, 2026-07-30): 1651 строка, 1074 сегмента, 1070 записей,
+  // и у ВСЕХ o = segIdx − 1 (премиумный `segment_index` 1-based). Отпечаток «o === segIdx»
+  // такую карточку не ловил — то есть карантин K1 проходил мимо той самой карточки.
+  const segs = degSegs(1074, 6.5);
+  const entries = segs.filter((s) => s.i >= 1).map((s) => ({ o: s.i - 1, t: s.start }));
+  assert.equal(entries.length, 1073);
+  assert.equal(A.timingLooksDegenerate({ v: 1, unit: "row", entries }, segs, 1651), true);
+  // «плавающий» сдвиг локстепом не является — это честная 1:N-таблица
+  const mixed = entries.slice(0, 500).concat(entries.slice(500).map((e) => ({ o: e.o + 3, t: e.t })));
+  assert.equal(A.timingLooksDegenerate({ entries: mixed }, segs, 1651), false);
+});
+
 test("estimateAsrCostUsd is positive and roughly linear", () => {
   const one = A.estimateAsrCostUsd(60), twenty = A.estimateAsrCostUsd(1200);
   assert.ok(one > 0 && twenty > one * 15 && twenty < 1); // 20 мин — центы, не доллары

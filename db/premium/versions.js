@@ -4,7 +4,15 @@
 // any one of them invalidates the affected rows on the next write without
 // deleting existing data (old keys simply become unreachable and are GC'd).
 
-const SEGMENTER_VERSION = "regex-v1";
+// v2 (K2, 2026-07-30): rows now carry `source_line_index` (segmenter line_index).
+// The bump is REQUIRED, not cosmetic: SEGMENTER_VERSION is part of the DOC key only
+// (buildDocKey), so bumping makes every doc-cache entry written before the field
+// unreachable — otherwise a doc-cache hit would keep serving field-less rows and the
+// karaoke fix would never reach anyone whose text is already cached (the owner's
+// 117-min interview among them). The SEGMENT key does NOT include it, so a re-run
+// reassembles from the segment cache: no nikud, no translation, no upstream cost.
+// Sentence boundaries themselves are unchanged (byte-parity corpus check).
+const SEGMENTER_VERSION = "regex-v2-lineidx";
 const NIKUD_VERSION     = "dictabert-large-char-menaked@dicta-il";
 const TRANSLIT_PROFILE  = "sbl-v5-dagesh"; // default; also the cache-key string for profile "sbl"
 

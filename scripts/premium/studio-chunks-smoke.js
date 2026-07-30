@@ -24,6 +24,34 @@
 //      Счётчик см. комментарий у asserts.
 //   2c) 429 (rate-limit) на куске 2 — НИКОГДА не ретраится авто-ретраем (немедленный повтор
 //      бессмыслен и жжёт квоту): сразу баннер, БЕЗ лишнего fetch-вызова.
+//   4) (ревью K1, 2026-07-30) ПРЕМИУМ-перевод медиа-импорта + переключение на Gemini:
+//      4a — /api/translate-table-v2 отдаёт rows[].segment_index-однофамильца (1-based номер
+//      предложения премиум-сегментатора) → караоке обязано ЧЕСТНО отсутствовать
+//      (timingDropReason=NO_SEGMENT_MAPPING, detail=NO_INDEX, заметка в медиа-баре видна), а не
+//      строиться 1:1 по чужому полю; 4b — следующий перевод Gemini восстанавливает seg-режим,
+//      чанкование и полный тайминг (производный вердикт не переживает свой ответ).
+//   5) (ревью K1) КАРАНТИН уже сохранённого вырожденного тайминга при открытии текста
+//      (v3RestoreMediaFromMeta): выключается караоке у карточек, сохранённых ДО фикса, и
+//      НЕ трогается честный 1:N-тайминг.
+//   6) (K2, 2026-07-30) ПРЕМИУМ С `source_line_index` → караоке ЕСТЬ и оно ВЕРНОЕ. Ответ
+//      фейка строится НАСТОЯЩИМ db/premium/segmenter.js (не выдуманной формой), строк таблицы
+//      заметно больше сегментов; независимый оракул проверяет, что каждая запись тайминга
+//      указывает на строку СВОЕГО сегмента, а не на соседнюю.
+//   7) (K2) тот же премиум-ответ, но текст переразбит (строк больше, чем сегментов) —
+//      идентичность «строка = сегмент» больше не выполняется ⇒ караоке честно исчезает,
+//      а прошлый (верный) тайминг не остаётся висеть на паспорте (R11).
+//   8) (ревью K2) seg-режим Gemini НЕ ЗАПУСКАЕТСЯ на переразбитом тексте. v3MediaLineIdentity() —
+//      единственная проверка идентичности «строка = ASR-сегмент», и у неё ДВА потребителя;
+//      премиум-ветку страхует повторная сверка в v3AttachAudioTiming (сценарий 7), seg-режим —
+//      НЕ страхует ничто. Строк МЕНЬШЕ, чем сегментов (худший случай: индексы остаются в
+//      диапазоне и монотонны, validateRowSegMapping такой сдвиг поймать не может).
+//   9) (ревью K2) window.AsrTranscript не загрузился (offline после бампа CACHE_VERSION) —
+//      тайминг ПРОШЛОГО ответа обязан уйти с паспорта, а не остаться подсвечивать новую таблицу.
+//  10) (K3, 2026-07-30) УЖЕ СОХРАНЁННАЯ карточка: строки восстановлены из Библиотеки без запроса,
+//      индексов у них нет (segment_index в sentences не хранится), сохранённый тайминг вырожден
+//      (живой отпечаток владельца o = segIdx − 1). v3RestoreMediaFromMeta обязана восстановить
+//      караоке ОФЛАЙН выравниванием по тексту — 0 сетевых вызовов; независимый оракул проверяет,
+//      что каждая запись указывает на строку СВОЕГО сегмента; подделанная строка → честный отказ.
 //   3) SEG_MAPPING_LOST локально на куске 2: фейк отдаёт rows БЕЗ segment_index (+ warnings
 //      ["SEG_MAPPING_LOST"], как это делает настоящий сервер — честно смоделировано, не
 //      придумано: ingest/segTable.js эмитит этот warning когда модель не вернула индексы) —
@@ -57,6 +85,25 @@ const CHUNK_SIZE = 120; // must mirror public/js/table-chunks.js CHUNK_SIZE
 const LINES = Array.from({ length: N_SEGS }, (_, i) => "שורה " + i);
 const TEXT = LINES.join("\n");
 const IMPORT_SEGMENTS = LINES.map((t, i) => ({ i, start: i * 5, text: t }));
+
+// ── K2 fixture: премиум-ответ, построенный НАСТОЯЩИМ премиум-сегментатором ──────────────────
+// Форму ответа не выдумываем: гоняем db/premium/segmenter.js ровно так, как это делает
+// db/premium/pipeline.js (segment(normalizeForDisplay(text))), и превращаем сегменты в строки
+// ответа теми же двумя полями. Каждая 3-я строка текста содержит ДВА предложения — значит,
+// строк таблицы заметно больше сегментов, и вырожденный 1:1 физически невозможен.
+const premiumSegmenter = require(path.join(REPO, "db", "premium", "segmenter.js"));
+const { normalizeForDisplay } = require(path.join(REPO, "db", "premium", "normalize.js"));
+
+const K2_LINES = Array.from({ length: N_SEGS }, (_, i) =>
+  (i % 3 === 0) ? ("שורה " + i + ". עוד משפט " + i + ".") : ("שורה " + i));
+const K2_TEXT = K2_LINES.join("\n");
+const K2_IMPORT_SEGMENTS = K2_LINES.map((t, i) => ({ i, start: i * 5, text: t }));
+const K2_SEGS = premiumSegmenter.segment(normalizeForDisplay(K2_TEXT));
+const K2_ROWS = K2_SEGS.map((s) => ({
+  segment_index: s.index,            // 1-based порядковый номер строки премиум-таблицы
+  source_line_index: s.line_index,   // 0-based номер ИСХОДНОЙ строки = индекс ASR-сегмента
+  he: s.he, he_niqqud: s.he, translit: "t" + s.index, ru: "r" + s.index,
+}));
 
 const GEMINI_KEY_LS_KEY = "v3.geminiApiKey";       // index.html geminiKeyGet()
 const TABLE_CACHE_LS_KEY = "ttsDashboard_table_cache_v1"; // index.html TABLE_CACHE_KEY
@@ -99,7 +146,27 @@ async function installFakeFetch(ctx) {
 
     window.fetch = async (url, init) => {
       const u = String(url);
-      const isChunkReq = u.indexOf("/api/translate-table") !== -1 && u.indexOf("/api/translate-table-v2") === -1;
+      // Scenario 4 (ревью K1): ПРЕМИУМ-ответ. Форма — как у db/premium/pipeline.js: строки несут
+      // СВОЙ `segment_index` = 1-based порядковый номер предложения премиум-сегментатора. Это
+      // поле-однофамилец, а не индекс ASR/субтитр-сегмента; именно оно давало вырожденное
+      // караоке (STUDIO_KARAOKE_ROW_TIMING_MISMAP_2026_07_30).
+      if (u.indexOf("/api/translate-table-v2") !== -1) {
+        let pBody = {};
+        try { pBody = JSON.parse((init && init.body) || "{}"); } catch (_) {}
+        const pLines = String(pBody.text || "").split("\n").map((s) => s.trim()).filter(Boolean);
+        window.__premiumCalls = (window.__premiumCalls || 0) + 1;
+        window.__premiumSentText = pBody.text || "";
+        // K2 (сценарии 6/7): готовые строки НАСТОЯЩЕГО премиум-сегментатора с source_line_index.
+        // Без override остаётся до-K2-форма (сценарий 4a): только чужой 1-based segment_index.
+        const pRows = Array.isArray(window.__premiumRows)
+          ? window.__premiumRows
+          : pLines.map((t, k) => ({ segment_index: k + 1, he: t, he_niqqud: t, translit: "t" + k, ru: "r" + k }));
+        return new Response(JSON.stringify({ rows: pRows, fromCache: false, cacheKey: "premium-fake",
+          provenance: { provider: "google-free", actual_provider: "google-free", cache_level: "none",
+                        translator_version: "fake-premium", nikud_provider: "fake", nikud_degraded: false } }),
+          { status: 200, headers: { "content-type": "application/json" } });
+      }
+      const isChunkReq = u.indexOf("/api/translate-table") !== -1;
       if (!isChunkReq) return REAL_FETCH(url, init);
 
       let body = {};
@@ -174,7 +241,7 @@ async function waitReady(page) {
 // #inputText with the 300-line fixture, and publishes window.v3LastImportMeta with a
 // captions passport shaped exactly like studio-import.js useText()'s captions branch
 // (public/js/studio-import.js:505-525) — v3MediaPassport() reads holder.audio||holder.captions.
-async function preparePage(page) {
+async function preparePage(page, fixture) {
   await waitReady(page);
   await page.evaluate(({ text, segments }) => {
     const providerEl = document.getElementById("providerSelect");
@@ -197,7 +264,8 @@ async function preparePage(page) {
         segments, timing: null, timingDropReason: null,
       },
     };
-  }, { text: TEXT, segments: IMPORT_SEGMENTS });
+  }, { text: (fixture && fixture.text) || TEXT,
+       segments: (fixture && fixture.segments) || IMPORT_SEGMENTS });
 }
 
 // currentTableData/v3LastGeminiMeta are top-level `let` bindings inside index.html's classic
@@ -430,6 +498,511 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
       "scenario3: rows WITHOUT segment_index = " + s3.withoutIdx.length + " entries, expected chunk2 only (120-239)");
 
     console.log("scenario3 OK — withIdx=" + s3.withIdx.length + " withoutIdx=" + s3.withoutIdx.length + " (chunk2 locally degraded, chunks 1/3 intact)");
+
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    // Scenario 4 (ревью K1, 2026-07-30): ПРЕМИУМ-перевод импортированного медиа, затем
+    // переключение на Gemini. Ровно путь владельца: google-free — ДЕФОЛТНЫЙ провайдер, импорт
+    // его не переключает (только мягкая подсказка «для караоке включите Gemini»).
+    //   4a — премиум-ответ несёт segment_index-однофамилец (1-based номер предложения СВОЕГО
+    //        сегментатора). Караоке обязано честно отсутствовать, а не строиться 1:1 по чужому
+    //        полю (до фикса K1 здесь возникал тайминг со сдвигом — живой брак: медиана 9 мин).
+    //   4b — после подсказки владелец переключается на Gemini и переводит ещё раз: seg-режим и
+    //        чанкование ОБЯЗАНЫ ожить. Производный вердикт премиум-прогона живёт ровно один
+    //        ответ (V3_DERIVED_TIMING_DROPS) — иначе один премиум-перевод навсегда убивал бы
+    //        караоке для этого импорта, а на длинном материале ещё и упирал бы в
+    //        «текст слишком длинный для одной таблицы».
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    await page.reload({ waitUntil: "load" });
+    await preparePage(page);
+    await page.evaluate(() => { document.getElementById("providerSelect").value = "google-free"; });
+    await page.evaluate(() => { translateTable(); });
+
+    const r4a = await pollUntil(page, (s) => s.rows === N_SEGS || !!s.err, 30000, 50);
+    must(r4a.ok, "scenario4a: timed out waiting for the premium table; last=" + JSON.stringify(r4a.snap));
+    must(!r4a.snap.err, "scenario4a: unexpected error banner: " + r4a.snap.err);
+
+    const s4a = await page.evaluate(() => {
+      const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
+      return { premiumCalls: window.__premiumCalls || 0, chunkCalls: window.__chunkCalls.length,
+               tableLen: currentTableData.length,
+               hasPassport: !!p, entries: p && p.timing ? p.timing.entries.length : 0,
+               drop: p ? p.timingDropReason : null, detail: p ? p.timingDropDetail : null,
+               barNote: (document.getElementById("v3MediaBarNote") || {}).textContent || "" };
+    });
+    must(s4a.premiumCalls === 1, "scenario4a: premium calls=" + s4a.premiumCalls + " expected 1");
+    must(s4a.chunkCalls === 0, "scenario4a: /api/translate-table calls=" + s4a.chunkCalls + " expected 0 (premium path must not touch the seg endpoint)");
+    must(s4a.tableLen === N_SEGS, "scenario4a: currentTableData.length=" + s4a.tableLen + " expected " + N_SEGS);
+    must(s4a.hasPassport, "scenario4a: media passport lost — the rest of the scenario proves nothing");
+    must(s4a.entries === 0, "scenario4a: karaoke timing was built from the PREMIUM response (" + s4a.entries + " entries) — premium rows[].segment_index is a foreign 1-based row ordinal, timing MUST be absent");
+    must(s4a.drop === "NO_SEGMENT_MAPPING", "scenario4a: timingDropReason=" + JSON.stringify(s4a.drop) + " expected NO_SEGMENT_MAPPING (honest 'no mapping at all', R11)");
+    must(s4a.detail === "NO_INDEX", "scenario4a: timingDropDetail=" + JSON.stringify(s4a.detail) + " expected NO_INDEX (R9 provenance of the refusal)");
+    must(s4a.barNote && s4a.barNote.trim().length > 0, "scenario4a: media bar note is empty — the user must SEE that karaoke is off, not just silence");
+
+    // 4b — переключение на Gemini (и сброс локального кэша таблицы: тот же текст иначе
+    // короткозамкнётся в translateTable() до всякого запроса).
+    await page.evaluate((k) => { try { localStorage.removeItem(k); } catch (_) {}
+      document.getElementById("providerSelect").value = "gemini"; }, TABLE_CACHE_LS_KEY);
+    await page.evaluate(() => { translateTable(); });
+
+    const r4b = await pollUntil(page, (s) => s.chunksLen === 3 || !!s.err, 30000, 50);
+    must(r4b.ok, "scenario4b: timed out; last=" + JSON.stringify(r4b.snap) +
+      " — a premium translate must NOT permanently disable seg-mode/chunking for this import");
+    must(!r4b.snap.err, "scenario4b: error banner after switching to Gemini: " + r4b.snap.err +
+      " ('текст слишком длинный для одной таблицы' here = seg-mode was latched off by the premium run)");
+
+    const s4b = await page.evaluate(() => {
+      const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
+      return { tableLen: currentTableData.length, chunkCalls: window.__chunkCalls.slice(),
+               entries: p && p.timing ? p.timing.entries.length : 0,
+               drop: p ? p.timingDropReason : null, detail: p ? p.timingDropDetail : null,
+               firstO: p && p.timing ? p.timing.entries[0].o : null,
+               lastO: p && p.timing ? p.timing.entries[p.timing.entries.length - 1].o : null };
+    });
+    must(s4b.tableLen === N_SEGS, "scenario4b: currentTableData.length=" + s4b.tableLen + " expected " + N_SEGS);
+    must(JSON.stringify(s4b.chunkCalls) === JSON.stringify([120, 120, 60]),
+      "scenario4b: __chunkCalls=" + JSON.stringify(s4b.chunkCalls) + " expected [120,120,60]");
+    must(s4b.entries === N_SEGS, "scenario4b: karaoke entries=" + s4b.entries + " expected " + N_SEGS +
+      " — the Gemini retry after a premium translate MUST restore timing (derived drop-reason outlived its response)");
+    must(s4b.drop === null || s4b.drop === undefined, "scenario4b: timingDropReason=" + JSON.stringify(s4b.drop) + " expected cleared");
+    must(!s4b.detail, "scenario4b: timingDropDetail=" + JSON.stringify(s4b.detail) + " expected cleared — a successful timing must not carry a stale refusal diagnosis (R9)");
+    must(s4b.firstO === 0 && s4b.lastO === N_SEGS - 1, "scenario4b: entries span o=" + s4b.firstO + ".." + s4b.lastO + " expected 0.." + (N_SEGS - 1));
+
+    console.log("scenario4 OK — premium: no timing (" + s4a.drop + "/" + s4a.detail +
+                "), Gemini retry: " + s4b.entries + " entries restored");
+
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    // Scenario 5 (ревью K1): КАРАНТИН уже сохранённого вырожденного тайминга. Фикс защищает
+    // только новые ответы, а карточка владельца (та самая, 117 мин) уже лежит в Библиотеке с
+    // вырожденным timing внутри table_model_meta_json — открытие такого текста обязано честно
+    // выключить караоке, а не подсвечивать не ту строку (R11). Гоняем НАСТОЯЩУЮ
+    // v3RestoreMediaFromMeta() живой страницы: currentTableData здесь = 300 строк из sc.4.
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    const s5 = await page.evaluate((n) => {
+      const mkSegs = (m) => Array.from({ length: m }, (_, i) => ({ i, start: i * 6.5, text: "s" + i }));
+      // (a) вырожденный: 200 сегментов на 300 строк, o === индексу своего сегмента
+      const segsA = mkSegs(200);
+      const metaA = { source: { audio: { v: 1, segments: segsA, timingDropReason: null,
+        timing: { v: 1, unit: "row", entries: segsA.map((s) => ({ o: s.i, t: s.start })) } } } };
+      v3RestoreMediaFromMeta(metaA);
+      const a = metaA.source.audio;
+      // (b) честный 1:N на тех же 300 строках: 150 сегментов, по 2 строки на сегмент
+      const segsB = mkSegs(150);
+      const rowSegIdx = [];
+      segsB.forEach((s) => { rowSegIdx.push(s.i, s.i); });
+      const metaB = { source: { audio: { v: 1, segments: segsB, timingDropReason: null,
+        timing: window.AsrTranscript.buildRowTiming(segsB, rowSegIdx) } } };
+      v3RestoreMediaFromMeta(metaB);
+      const b = metaB.source.audio;
+      return { rowCount: currentTableData.length,
+               aTiming: !!a.timing, aDrop: a.timingDropReason, aDetail: a.timingDropDetail,
+               bEntries: b.timing ? b.timing.entries.length : 0, bDrop: b.timingDropReason };
+    }, N_SEGS);
+    must(s5.rowCount === N_SEGS, "scenario5: currentTableData.length=" + s5.rowCount + " expected " + N_SEGS);
+    must(s5.aTiming === false, "scenario5a: a saved DEGENERATE timing survived text open — karaoke would confidently light the wrong row (R11)");
+    must(s5.aDrop === "SEG_MAPPING_LOST", "scenario5a: timingDropReason=" + JSON.stringify(s5.aDrop) + " expected SEG_MAPPING_LOST (localized key exists)");
+    must(s5.aDetail === "DEGENERATE_1_TO_1", "scenario5a: timingDropDetail=" + JSON.stringify(s5.aDetail) + " expected DEGENERATE_1_TO_1");
+    must(s5.bEntries === 150, "scenario5b: an HONEST saved 1:N timing was quarantined (entries=" + s5.bEntries + ") — the quarantine must never eat good data");
+    must(!s5.bDrop, "scenario5b: timingDropReason=" + JSON.stringify(s5.bDrop) + " expected untouched");
+
+    console.log("scenario5 OK — degenerate saved timing quarantined (" + s5.aDrop + "/" + s5.aDetail +
+                "), honest saved timing kept (" + s5.bEntries + " entries)");
+
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    // Scenario 6 (K2, 2026-07-30): ПРЕМИУМ С `source_line_index` — караоке ЕСТЬ и оно ВЕРНОЕ.
+    // Это возврат моат-функции дефолтному провайдеру владельца (google-free) после того, как K1
+    // честно её отключил. Ответ фейка построен НАСТОЯЩИМ db/premium/segmenter.js: 300 исходных
+    // строк, каждая 3-я — из двух предложений, поэтому строк таблицы 400, а сегментов 300, и
+    // вырожденный 1:1 невозможен by construction. Проверяем не «тайминг появился», а КУДА он
+    // показывает (независимый оракул — тот же принцип, что в сценарии 4/5).
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    await page.reload({ waitUntil: "load" });
+    await preparePage(page, { text: K2_TEXT, segments: K2_IMPORT_SEGMENTS });
+    await page.evaluate(({ rows }) => {
+      window.__premiumRows = rows;
+      document.getElementById("providerSelect").value = "google-free";
+    }, { rows: K2_ROWS });
+    await page.evaluate(() => { translateTable(); });
+
+    const r6 = await pollUntil(page, (s) => s.rows === K2_ROWS.length || !!s.err, 30000, 50);
+    must(r6.ok, "scenario6: timed out waiting for the premium table; last=" + JSON.stringify(r6.snap));
+    must(!r6.snap.err, "scenario6: unexpected error banner: " + r6.snap.err);
+
+    const s6 = await page.evaluate(() => {
+      const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
+      const t = p && p.timing ? p.timing : null;
+      // Независимый оракул, считается ЗДЕСЬ по факту отрисованной таблицы и паспорта:
+      // сегмент восстанавливаем по его start (t), строку — по o, и требуем, чтобы строка
+      // ссылалась ИМЕННО на этот сегмент. Ровно это врало в живом браке владельца.
+      const bad = [];
+      if (t) {
+        const segByStart = new Map(p.segments.map((s) => [s.start, s.i]));
+        t.entries.forEach((e) => {
+          const segIdx = segByStart.get(e.t);
+          const row = currentTableData[e.o];
+          if (segIdx === undefined || !row || row.source_line_index !== segIdx) {
+            bad.push({ o: e.o, t: e.t, segIdx: segIdx, rowLine: row ? row.source_line_index : "NO_ROW" });
+          }
+        });
+      }
+      return {
+        premiumCalls: window.__premiumCalls || 0, chunkCalls: window.__chunkCalls.length,
+        tableLen: currentTableData.length, segCount: p ? p.segments.length : 0,
+        entries: t ? t.entries.length : 0, drop: p ? p.timingDropReason : null,
+        detail: p ? p.timingDropDetail : null,
+        firstOs: t ? t.entries.slice(0, 6).map((e) => e.o) : [],
+        lastO: t ? t.entries[t.entries.length - 1].o : null,
+        monotonic: t ? t.entries.every((e, i, a) => i === 0 || (e.o > a[i - 1].o && e.t >= a[i - 1].t)) : false,
+        bad: bad.slice(0, 5), badCount: bad.length,
+      };
+    });
+    must(s6.premiumCalls === 1, "scenario6: premium calls=" + s6.premiumCalls + " expected 1");
+    must(s6.chunkCalls === 0, "scenario6: /api/translate-table calls=" + s6.chunkCalls + " expected 0");
+    must(s6.tableLen === K2_ROWS.length, "scenario6: currentTableData.length=" + s6.tableLen + " expected " + K2_ROWS.length);
+    must(s6.tableLen > s6.segCount, "scenario6: fixture is degenerate-proof only when rows(" + s6.tableLen + ") > segments(" + s6.segCount + ")");
+    must(!s6.drop && !s6.detail, "scenario6: timing refused (" + s6.drop + "/" + s6.detail +
+      ") — premium rows carry source_line_index, karaoke MUST be back on the owner's default provider");
+    must(s6.entries === N_SEGS, "scenario6: karaoke entries=" + s6.entries + " expected " + N_SEGS + " (one per ASR segment)");
+    must(s6.badCount === 0, "scenario6: " + s6.badCount + " timing entries point at a row that belongs to ANOTHER segment — " +
+      JSON.stringify(s6.bad) + " (this is exactly the live defect)");
+    must(s6.monotonic, "scenario6: timing entries are not strictly increasing in o / non-decreasing in t");
+    // фингерпринт брака: o = 0,1,2,3,… подряд. Здесь каждая 3-я строка удваивается, поэтому
+    // честные o = 0,2,3,4,6,7,… — если увидим 0,1,2,3,4,5, значит маппинг снова вырожден.
+    must(JSON.stringify(s6.firstOs) === JSON.stringify([0, 2, 3, 4, 6, 7]),
+      "scenario6: first entries o=" + JSON.stringify(s6.firstOs) + " expected [0,2,3,4,6,7] (degenerate would be [0,1,2,3,4,5])");
+    must(s6.lastO === K2_ROWS.length - 1, "scenario6: last entry o=" + s6.lastO + " expected " + (K2_ROWS.length - 1));
+
+    console.log("scenario6 OK — premium karaoke restored: " + s6.entries + " entries over " +
+                s6.tableLen + " rows / " + s6.segCount + " segments, 0 cross-segment entries");
+
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    // Scenario 7 (K2): текст переразбит — «строка = ASR-сегмент» больше не выполняется.
+    // source_line_index в ответе всё ещё есть, и все проверки формы он проходит — но означает
+    // уже НЕ то. Единственный честный исход: караоке нет, а верный тайминг прошлого ответа
+    // НЕ остаётся висеть на паспорте (R11: устаревший тайминг = уверенно неверная подсветка).
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    await page.evaluate((k) => {
+      try { localStorage.removeItem(k); } catch (_) {}
+      const input = document.getElementById("inputText");
+      input.value = input.value + "\nשורה נוספת שלא הייתה בייבוא";   // 301 строка на 300 сегментов
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    }, TABLE_CACHE_LS_KEY);
+    await page.evaluate(() => { translateTable(); });
+
+    // Число строк здесь НЕ признак завершения (таблица сценария 6 уже отрисована ровно такой
+    // длины) — ждём второй премиум-вызов И снятый тайминг, т.е. факт вынесенного вердикта.
+    try {
+      await page.waitForFunction(() => {
+        const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
+        return (window.__premiumCalls || 0) >= 2 && !!p && !p.timing;
+      }, { timeout: 30000 });
+    } catch (_) {
+      const st = await page.evaluate(() => {
+        const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
+        return { calls: window.__premiumCalls || 0, entries: p && p.timing ? p.timing.entries.length : 0,
+                 drop: p ? p.timingDropReason : null, err: (document.getElementById("errorMsg") || {}).textContent || "" };
+      });
+      throw new SmokeFail("scenario7: timed out waiting for the honest verdict; state=" + JSON.stringify(st) +
+        " — a re-split text must drop karaoke, not keep the previous response's timing (R11)");
+    }
+    const err7 = await page.evaluate(() => (document.getElementById("errorMsg").textContent || "").trim());
+    must(!err7, "scenario7: unexpected error banner: " + err7);
+
+    const s7 = await page.evaluate(() => {
+      const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
+      return { premiumCalls: window.__premiumCalls || 0,
+               entries: p && p.timing ? p.timing.entries.length : 0,
+               drop: p ? p.timingDropReason : null, detail: p ? p.timingDropDetail : null };
+    });
+    must(s7.premiumCalls === 2, "scenario7: premium calls=" + s7.premiumCalls + " expected 2 (the edited text was actually re-translated)");
+    must(s7.entries === 0, "scenario7: karaoke kept " + s7.entries + " entries after the text was re-split — " +
+      "line index no longer means segment index, timing MUST be dropped (R11)");
+    must(s7.drop === "NO_SEGMENT_MAPPING", "scenario7: timingDropReason=" + JSON.stringify(s7.drop) + " expected NO_SEGMENT_MAPPING");
+
+    console.log("scenario7 OK — re-split text: karaoke honestly dropped (" + s7.drop + "/" + s7.detail + ")");
+
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    // Scenario 8 (ревью K2, 2026-07-30): seg-режим Gemini НЕ ЗАПУСКАЕТСЯ на переразбитом тексте.
+    //
+    // v3MediaLineIdentity() — единственное место, где проверяется идентичность «одна строка =
+    // один ASR-сегмент», и у неё ДВА потребителя. Премиум-ветку страхует повторная сверка в
+    // v3AttachAudioTiming (сценарий 7), а seg-режим Gemini — НЕТ, и застраховать её там нечем:
+    // v3AudioSegmentsForRequest() отправляет ТЕКУЩИЕ строки как `segments`, модель возвращает
+    // индексы в ИХ нумерации, а buildRowTiming кладёт их на сегменты ИМПОРТА.
+    //
+    // Строк здесь МЕНЬШЕ, чем сегментов (удалена первая строка) — это худший случай: все индексы
+    // остаются в диапазоне [0,segCount), не убывают и непрерывны, значит validateRowSegMapping
+    // проходит, а тайминг оказывается СДВИНУТ на удалённую строку. Молчаливо неверная подсветка —
+    // ровно живой брак владельца (STUDIO_KARAOKE_ROW_TIMING_MISMAP), только с другого входа.
+    // Мутационная проверка: удаление строки `lines.length !== p.segments.length` из
+    // v3MediaLineIdentity() оставляло ВЕСЬ набор гейтов зелёным — этот сценарий закрывает дыру.
+    //
+    // Фикстура намеренно маленькая (10 строк): на 300 строках сработал бы гейт
+    // «текст слишком длинный для одной таблицы» и путь до отправки просто не дошёл бы.
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    const S8_N = 10;
+    const S8_LINES = Array.from({ length: S8_N }, (_, i) => "משפט מספר " + i + " לבדיקה");
+    const S8_TEXT = S8_LINES.join("\n");
+    const S8_SEGMENTS = S8_LINES.map((t, i) => ({ i, start: i * 7, text: t }));
+
+    await page.reload({ waitUntil: "load" });   // сбрасывает __fakeCache/__chunkCalls этой страницы
+    await preparePage(page, { text: S8_TEXT, segments: S8_SEGMENTS });
+    await page.evaluate(() => { translateTable(); });
+
+    // 8a — базлайн: нетронутый импорт ⇒ seg-режим работает и караоке строится.
+    await page.waitForFunction((n) => {
+      const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
+      return (window.__chunkCalls || []).length >= 1 && !!p && !!p.timing && p.timing.entries.length === n;
+    }, S8_N, { timeout: 30000 }).catch(() => {});
+    const s8a = await page.evaluate(() => {
+      const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
+      return { calls: (window.__chunkCalls || []).slice(), entries: p && p.timing ? p.timing.entries.length : 0,
+               drop: p ? p.timingDropReason : null, err: (document.getElementById("errorMsg").textContent || "").trim() };
+    });
+    must(!s8a.err, "scenario8a: unexpected error banner: " + s8a.err);
+    must(JSON.stringify(s8a.calls) === JSON.stringify([S8_N]),
+      "scenario8a: __chunkCalls=" + JSON.stringify(s8a.calls) + " expected [" + S8_N + "] (seg-режим обязан был отправить сегменты)");
+    must(s8a.entries === S8_N, "scenario8a: karaoke entries=" + s8a.entries + " expected " + S8_N +
+      " — базлайн сценария обязан быть рабочим seg-режимом, иначе 8b ничего не доказывает");
+
+    // 8b — удаляем ПЕРВУЮ строку: строк 9, сегментов 10. Идентичность нарушена.
+    await page.evaluate((k) => {
+      try { localStorage.removeItem(k); } catch (_) {}
+      const input = document.getElementById("inputText");
+      input.value = input.value.split("\n").slice(1).join("\n");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    }, TABLE_CACHE_LS_KEY);
+    await page.evaluate(() => { translateTable(); });
+
+    await page.waitForFunction(() => (window.__chunkCalls || []).length >= 2, { timeout: 30000 }).catch(() => {});
+    // Вердикт выносится в том же тике, что и ответ; дождёмся снятого тайминга ИЛИ таймаута.
+    await page.waitForFunction(() => {
+      const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
+      return (window.__chunkCalls || []).length >= 2 && !!p && !p.timing;
+    }, { timeout: 15000 }).catch(() => {});
+
+    const s8b = await page.evaluate(() => {
+      const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
+      const t = p && p.timing ? p.timing : null;
+      return { calls: (window.__chunkCalls || []).slice(),
+               entries: t ? t.entries.length : 0, firstEntries: t ? t.entries.slice(0, 3) : [],
+               drop: p ? p.timingDropReason : null, detail: p ? p.timingDropDetail : null,
+               rows: (typeof currentTableData !== "undefined" && currentTableData) ? currentTableData.length : 0,
+               err: (document.getElementById("errorMsg").textContent || "").trim() };
+    });
+    must(!s8b.err, "scenario8b: unexpected error banner: " + s8b.err);
+    must(s8b.calls.length === 2, "scenario8b: fetch-вызовов " + s8b.calls.length + ", ожидался 2-й перевод; calls=" + JSON.stringify(s8b.calls));
+    must(s8b.calls[1] === 0, "scenario8b: второй запрос ушёл с " + s8b.calls[1] + " сегментами — текст переразбит " +
+      "(строк 9, сегментов " + S8_N + "), «строка = ASR-сегмент» больше НЕ выполняется, seg-режим слать НЕЛЬЗЯ: " +
+      "индексы придут в нумерации новых строк, а тайминг ляжет на сегменты импорта (сдвиг = молчаливо неверное караоке)");
+    must(s8b.entries === 0, "scenario8b: караоке построено (" + s8b.entries + " записей, первые " +
+      JSON.stringify(s8b.firstEntries) + ") на переразбитом тексте — сдвинутый тайминг хуже его отсутствия (R11)");
+    must(s8b.drop === "NO_SEGMENT_MAPPING" || s8b.drop === "SEG_MAPPING_LOST",
+      "scenario8b: timingDropReason=" + JSON.stringify(s8b.drop) + " — отказ обязан быть виден в паспорте");
+
+    console.log("scenario8 OK — re-split text (lines " + (S8_N - 1) + " < segments " + S8_N + "): " +
+                "seg-mode not sent (" + JSON.stringify(s8b.calls) + "), karaoke honestly absent (" + s8b.drop + "/" + s8b.detail + ")");
+
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    // Scenario 9 (ревью K2): window.AsrTranscript не загрузился ⇒ СТАРЫЙ тайминг обязан УЙТИ.
+    //
+    // «Модуль не подъехал» — не гипотетика: рядом в этом же файле живёт явный guard
+    // `window.TableChunks` с комментарием «offline right after a CACHE_VERSION bump before it's
+    // precached» (а K2 как раз бампит CACHE_VERSION). До фикса v3AttachAudioTiming честно
+    // обнулял тайминг в else-ветке, НЕ трогая AsrTranscript; K1/K2 подняли вызов
+    // validateRowSegMapping() ВЫШЕ развилки, поэтому отсутствие модуля стало бросать ДО
+    // `audio.timing = null`. Внешний try/catch глотает исключение — и на паспорте остаётся
+    // тайминг ПРОШЛОГО ответа, который StudioMediaKaraoke с удовольствием проиграет поверх
+    // новой таблицы. Это ровно запрещённый путь «молчаливо неверная подсветка» (R11).
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    const S9_LINES = Array.from({ length: 8 }, (_, i) => "פסקה " + i + " לבדיקת מודול");
+    const S9_TEXT = S9_LINES.join("\n");
+    const S9_SEGMENTS = S9_LINES.map((t, i) => ({ i, start: i * 4, text: t }));
+
+    await page.reload({ waitUntil: "load" });
+    await preparePage(page, { text: S9_TEXT, segments: S9_SEGMENTS });
+    await page.evaluate(() => { translateTable(); });
+    await page.waitForFunction((n) => {
+      const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
+      return !!p && !!p.timing && p.timing.entries.length === n;
+    }, S9_LINES.length, { timeout: 30000 });
+
+    // Модуль «пропадает» ПОСЛЕ того, как тайминг уже лёг на паспорт.
+    await page.evaluate((k) => {
+      try { localStorage.removeItem(k); } catch (_) {}
+      window.__asrBackup = window.AsrTranscript;
+      try { delete window.AsrTranscript; } catch (_) { window.AsrTranscript = undefined; }
+    }, TABLE_CACHE_LS_KEY);
+    await page.evaluate(() => { translateTable(); });
+    await page.waitForFunction(() => (window.__chunkCalls || []).length >= 2, { timeout: 30000 });
+    await sleep(400); // ответ обработан в этом же тике; даём success-handler'у добежать
+
+    const s9 = await page.evaluate(() => {
+      const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
+      const t = p && p.timing ? p.timing : null;
+      const active = window.v3ActiveMediaAudio;
+      return { entries: t ? t.entries.length : 0, drop: p ? p.timingDropReason : null,
+               activeHasTiming: !!(active && active.timing),
+               calls: (window.__chunkCalls || []).length };
+    });
+    await page.evaluate(() => { if (window.__asrBackup) window.AsrTranscript = window.__asrBackup; });
+
+    must(s9.calls >= 2, "scenario9: второй перевод не состоялся (calls=" + s9.calls + ")");
+    must(s9.entries === 0, "scenario9: на паспорте остался тайминг ПРОШЛОГО ответа (" + s9.entries +
+      " записей) после того, как window.AsrTranscript не загрузился — StudioMediaKaraoke проиграет его " +
+      "поверх новой таблицы. Устаревший тайминг = уверенно неверная подсветка (R11): обнулять ДО " +
+      "любого обращения к модулю, как это делала else-ветка до K1/K2");
+    must(!s9.activeHasTiming, "scenario9: window.v3ActiveMediaAudio всё ещё несёт тайминг — медиа-бар покажет «Караоке ✓»");
+    must(!!s9.drop, "scenario9: отказ не отражён в паспорте (timingDropReason=" + JSON.stringify(s9.drop) + ") — R11: причина обязана быть видна");
+
+    console.log("scenario9 OK — AsrTranscript missing: stale timing dropped honestly (" + s9.drop + ")");
+
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    // Scenario 10 (K3, 2026-07-30): УЖЕ СОХРАНЁННАЯ КАРТОЧКА чинится ОФЛАЙН, без запросов.
+    //
+    // K1/K2 живут только в сессии импорта: у сохранённой карточки строки восстанавливаются из
+    // Библиотеки вообще без запроса, а v3LastImportMeta при открытии текста обнулён. Единственное,
+    // что осталось в карточке, — сегменты в паспорте и строки таблицы; связь между ними
+    // восстанавливается ПО ТЕКСТУ (AsrTranscript.alignRowsToSegments) прямо в v3RestoreMediaFromMeta.
+    //
+    // Гоняем НАСТОЯЩУЮ v3RestoreMediaFromMeta() живой страницы на паспорте формы владельца:
+    // строк заметно больше сегментов (каждая 3-я строка = два предложения — фикстура сценария 6,
+    // построенная НАСТОЯЩИМ db/premium/segmenter.js), сохранённый тайминг вырожден ровно так, как
+    // на живой карточке (o = индекс сегмента − 1, 1-based премиумный segment_index).
+    //   10a — караоке восстановлено, независимый оракул: каждая запись указывает на строку СВОЕГО
+    //         сегмента (сегмент восстанавливаем по метке t, принадлежность — по ТЕКСТУ строки);
+    //   10b — ни одного сетевого вызова за время сценария (офлайн И бесплатно);
+    //   10c — подделана ОДНА строка → честный отказ, караоке нет, карантин остаётся.
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    const s10 = await page.evaluate(({ lines, rows }) => {
+      // Паспорт как в сохранённой карточке: сегменты = строки импорта (одна строка = один
+      // ASR-сегмент), timing — ВЫРОЖДЕННЫЙ (живой отпечаток владельца: o = segIdx − 1).
+      const segs = lines.map((t, i) => ({ i, start: i * 5, text: t }));
+      const degenerate = { v: 1, unit: "row",
+        entries: segs.filter((s) => s.i >= 1).map((s) => ({ o: s.i - 1, t: s.start })) };
+      const mkMeta = () => ({ source: { audio: { v: 1, segments: segs.map((s) => ({ ...s })),
+        timing: { v: 1, unit: "row", entries: degenerate.entries.map((e) => ({ ...e })) },
+        timingDropReason: null } } });
+      const table = rows.map((r) => ({ he: r.he, he_niqqud: r.he_niqqud, translit: r.translit, ru: r.ru }));
+      // строки таблицы БЕЗ каких-либо индексов — ровно то, что лежит в sentences (segment_index
+      // там не хранится вовсе); currentTableData подменяем на них, как это делает открытие текста.
+      currentTableData = table;
+
+      const netBefore = window.__chunkCalls.length + (window.__premiumCalls || 0);
+      const metaA = mkMeta();
+      const t0 = performance.now();
+      v3RestoreMediaFromMeta(metaA, table);
+      const ms = Math.round(performance.now() - t0);
+      const a = metaA.source.audio;
+      const netAfter = window.__chunkCalls.length + (window.__premiumCalls || 0);
+
+      // ── независимый оракул (считается ЗДЕСЬ, из паспорта и отрисованных строк) ──
+      const norm = (s) => String(s == null ? "" : s).normalize("NFKC")
+        .replace(/[^\p{L}\p{N}]+/gu, " ").trim().toLowerCase();
+      const bad = [];
+      if (a.timing) {
+        const byStart = new Map(a.segments.map((s) => [s.start, s.i]));
+        a.timing.entries.forEach((e) => {
+          const segIdx = byStart.get(e.t);
+          const row = table[e.o];
+          const segText = segIdx === undefined ? null : norm(a.segments[segIdx].text);
+          // строка записи обязана быть НАЧАЛОМ текста своего сегмента — иначе запись указывает
+          // на строку чужого сегмента (ровно живой брак владельца)
+          if (!row || segText === null || segText.indexOf(norm(row.he)) !== 0) {
+            bad.push({ o: e.o, t: e.t, segIdx });
+          }
+        });
+      }
+
+      // 10c — подделана одна строка (владелец поправил текст / модель переписала)
+      const tampered = table.map((r, i) => (i === 5 ? { ...r, he: r.he + " מילה נוספת" } : r));
+      const metaB = mkMeta();
+      v3RestoreMediaFromMeta(metaB, tampered);
+      const b = metaB.source.audio;
+      // 10d — тот же отказ, но паспорт БЕЗ прежнего тайминга и без диагноза: тогда причина
+      // отказа выравнивания обязана попасть в timingDropDetail (иначе владелец нем).
+      const metaC = mkMeta();
+      metaC.source.audio.timing = null;
+      v3RestoreMediaFromMeta(metaC, tampered);
+      const c = metaC.source.audio;
+      // 10e — сохранённый тайминг, который карантин K1 НЕ ловит (сдвиг на 3, не локстеп 0/−1), но
+      // проверить его нечем. Доказанный текстом маппинг обязан его ЗАМЕНИТЬ: доказательство
+      // сильнее утверждения (R11 «источник-истины > самоотчёт»).
+      const metaD = mkMeta();
+      metaD.source.audio.timing = { v: 1, unit: "row",
+        entries: segs.filter((s) => s.i >= 3).map((s) => ({ o: s.i + 3, t: s.start })) };
+      const dQuarantined = window.AsrTranscript.timingLooksDegenerate(
+        metaD.source.audio.timing, metaD.source.audio.segments, table.length);
+      v3RestoreMediaFromMeta(metaD, table);
+      const d = metaD.source.audio;
+
+      return {
+        ms, net: netAfter - netBefore,
+        rows: table.length, segs: segs.length,
+        savedEntries: degenerate.entries.length,
+        entries: a.timing ? a.timing.entries.length : 0,
+        firstOs: a.timing ? a.timing.entries.slice(0, 6).map((e) => e.o) : [],
+        lastO: a.timing ? a.timing.entries[a.timing.entries.length - 1].o : null,
+        source: a.timingSource || null, align: a.timingAlign || null,
+        drop: a.timingDropReason, detail: a.timingDropDetail,
+        badCount: bad.length, bad: bad.slice(0, 5),
+        activeHasTiming: !!(window.v3ActiveMediaAudio && window.v3ActiveMediaAudio.timing),
+        tamperedEntries: b.timing ? b.timing.entries.length : 0,
+        tamperedDrop: b.timingDropReason, tamperedDetail: b.timingDropDetail,
+        tamperedAlignOk: b.timingAlign ? b.timingAlign.ok : null,
+        tamperedAlignReason: b.timingAlign ? b.timingAlign.reason : null,
+        noTimingEntries: c.timing ? c.timing.entries.length : 0,
+        noTimingDrop: c.timingDropReason, noTimingDetail: c.timingDropDetail,
+        shiftQuarantined: dQuarantined,
+        shiftEntries: d.timing ? d.timing.entries.length : 0,
+        shiftFirstOs: d.timing ? d.timing.entries.slice(0, 6).map((e) => e.o) : [],
+        shiftSource: d.timingSource || null,
+        shiftReplaced: d.timingAlign ? d.timingAlign.replaced : null,
+      };
+    }, { lines: K2_LINES, rows: K2_ROWS });
+
+    must(s10.rows > s10.segs, "scenario10: фикстура доказательна только при строках(" + s10.rows + ") > сегментов(" + s10.segs + ")");
+    must(s10.net === 0, "scenario10b: за восстановление ушло " + s10.net + " сетевых вызовов — оживление обязано быть ОФЛАЙН и бесплатным (ASR уже оплачен)");
+    must(s10.entries === s10.segs, "scenario10a: записей караоке " + s10.entries + ", ожидалось " + s10.segs +
+      " (по одной на сегмент) — сохранённая карточка обязана получить караоке БЕЗ повторного импорта");
+    must(s10.badCount === 0, "scenario10a: " + s10.badCount + " записей указывают на строку ЧУЖОГО сегмента: " +
+      JSON.stringify(s10.bad) + " — это ровно живой брак владельца, только восстановленный офлайн");
+    must(JSON.stringify(s10.firstOs) === JSON.stringify([0, 2, 3, 4, 6, 7]),
+      "scenario10a: первые o=" + JSON.stringify(s10.firstOs) + " ожидались [0,2,3,4,6,7] (вырожденный локстеп дал бы [0,1,2,3,4,5])");
+    must(s10.lastO === s10.rows - 1, "scenario10a: последняя запись o=" + s10.lastO + " ожидалась " + (s10.rows - 1) +
+      " — сохранённый вырожденный тайминг обрывался на " + s10.savedEntries + " записях, хвост таблицы не подсвечивался вовсе");
+    must(!s10.drop && !s10.detail, "scenario10a: тайминг восстановлен, но паспорт всё ещё несёт отказ (" + s10.drop + "/" + s10.detail + ")");
+    must(s10.source === "aligned-offline", "scenario10a: timingSource=" + JSON.stringify(s10.source) +
+      " — R9: восстановленный тайминг ОБЯЗАН быть помечен как выведенный, а не как присланный переводчиком");
+    must(s10.align && s10.align.ok === true && s10.align.alignedRows === s10.rows &&
+         s10.align.alignedSegments === s10.segs && s10.align.entries === s10.segs,
+      "scenario10a: провенанс выравнивания неполон: " + JSON.stringify(s10.align));
+    must(s10.activeHasTiming, "scenario10a: window.v3ActiveMediaAudio без тайминга — медиа-бар не покажет караоке");
+    must(s10.tamperedEntries === 0, "scenario10c: строка подделана, а караоке построено (" + s10.tamperedEntries +
+      " записей) — маппинг принят на веру вместо доказательства текстом (R11)");
+    must(s10.tamperedAlignOk === false &&
+         (s10.tamperedAlignReason === "ROW_NOT_IN_SEGMENT" || s10.tamperedAlignReason === "SEGMENT_UNCOVERED"),
+      "scenario10c: отказ выравнивания не отражён в провенансе (ok=" + s10.tamperedAlignOk +
+      ", reason=" + JSON.stringify(s10.tamperedAlignReason) + ")");
+    must(s10.tamperedDrop === "SEG_MAPPING_LOST", "scenario10c: timingDropReason=" + JSON.stringify(s10.tamperedDrop) + " ожидался SEG_MAPPING_LOST");
+    must(s10.tamperedDetail === "DEGENERATE_1_TO_1",
+      "scenario10c: диагноз карантина K1 затёрт диагнозом выравнивания (detail=" + JSON.stringify(s10.tamperedDetail) +
+      ") — он первичен: объясняет, почему СОХРАНЁННЫЙ тайминг снят");
+    // 10d — паспорт без прежнего диагноза: причина отказа выравнивания обязана быть видна
+    must(s10.noTimingEntries === 0, "scenario10d: караоке построено на подделанных строках");
+    must(s10.noTimingDrop === "SEG_MAPPING_LOST" && /^ALIGN_/.test(String(s10.noTimingDetail || "")),
+      "scenario10d: отказ немой (" + s10.noTimingDrop + "/" + s10.noTimingDetail + ") — владелец обязан видеть причину");
+    // 10e — непроверяемое утверждение против доказательства
+    must(s10.shiftQuarantined === false,
+      "scenario10e: фикстура бессмысленна — сдвинутый тайминг обязан ПЕРЕЖИТЬ карантин K1, иначе замена не проверяется");
+    must(s10.shiftEntries === s10.segs && JSON.stringify(s10.shiftFirstOs) === JSON.stringify(s10.firstOs),
+      "scenario10e: сохранённый сдвинутый тайминг пережил доказанное выравнивание (entries=" + s10.shiftEntries +
+      ", первые o=" + JSON.stringify(s10.shiftFirstOs) + ") — доказательство обязано побеждать самоотчёт (R11)");
+    must(s10.shiftSource === "aligned-offline" && s10.shiftReplaced === true,
+      "scenario10e: замена не помечена в провенансе (source=" + JSON.stringify(s10.shiftSource) + ", replaced=" + s10.shiftReplaced + ")");
+
+    console.log("scenario10 OK — saved card revived offline: " + s10.entries + " entries over " + s10.rows +
+                " rows / " + s10.segs + " segments, 0 cross-segment, " + s10.net + " network calls, " + s10.ms + " ms; " +
+                "tampered row → honest refusal (" + s10.tamperedAlignReason + "), unverifiable saved timing replaced");
 
     console.log("SMOKE OK");
   } finally {

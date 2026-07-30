@@ -12490,7 +12490,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.265";
+    window.APP_VERSION = "3.11.266";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -13779,7 +13779,10 @@ if (header) {
       if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
     } catch (_) {}
     // W2-S4: restore this text's own media passport (if any) from the meta just parsed above.
-    try { v3RestoreMediaFromMeta(v3LastGeminiMeta); } catch (_) {}
+    // K3: паспорт мог лежать в source_meta_json (см. v3AdoptSavedTableMeta), а строки этого
+    // текста уже в currentTableData (присвоены выше) — передаём их явно.
+    try { v3AdoptSavedTableMeta(t); } catch (_) {}
+    try { v3RestoreMediaFromMeta(v3LastGeminiMeta, rows); } catch (_) {}
     try {
       if (window.v3SetActiveLibraryTextMeta) {
         window.v3SetActiveLibraryTextMeta({
@@ -21225,6 +21228,11 @@ updatePlaylistButtonUI();
             if (!rows.length) return false;
 
             currentTableData = rows.map((r) => v3MapSentenceApiRowToUiRow(r, textId));
+            // K3: «Перевести» на неизменённом сохранённом тексте не делает запроса вовсе — значит,
+            // и v3AttachAudioTiming здесь не сработает. Строки только что перечитаны из Библиотеки,
+            // паспорт — в v3LastGeminiMeta: даём офлайн-выравниванию тот же шанс, что и при
+            // открытии текста (функция идемпотентна: тот же набор строк второй раз не считается).
+            try { v3RestoreMediaFromMeta(v3LastGeminiMeta, currentTableData); } catch (_) {}
             renderTable(currentTableData);
             clearTableStale();
             tableIsStale = false;
@@ -23411,6 +23419,21 @@ function v3MediaPassport(holder) {
   return holder.audio || holder.captions || null;
 }
 
+// timingDropReason: ДВА РАЗНЫХ КЛАССА ПРИЧИН на одном поле (единый список — здесь, ревью K1
+// 2026-07-30). «Утверждённые» причины (PREVIEW_EDITED / ASR_TIMING_INVALID) — факты САМОГО
+// импорта: сегменты уже непригодны, никакой ответ переводчика этого не изменит. «Производные»
+// (ниже) — вывод ОДНОГО ответа translate-table, который v3AttachAudioTiming пересчитывает на
+// каждом ответе заново; жить дольше своего ответа они не имеют права.
+// Зачем: паспорт — ОБЩИЙ объект (v3LastGeminiMeta.source.audio === v3LastImportMeta.audio), а
+// v3AudioSegmentsForRequest() отказывался слать segments при ЛЮБОМ timingDropReason. Пока
+// премиум-ветка строила (ложный) тайминг, производная причина там не выставлялась; после фикса
+// K1 премиум честно её выставляет — и один перевод дефолтным google-free НАВСЕГДА выключал бы
+// seg-режим для этого импорта (а на длинном материале — ещё и чанкование, т.е. упор в
+// «текст слишком длинный для одной таблицы»). Ровно тот путь, который подсказывает сам импорт:
+// «для караоке включите Gemini». Лечится только повторным импортом = повторной оплатой ASR.
+const V3_DERIVED_TIMING_DROPS = ["NO_SEGMENT_MAPPING", "SEG_MAPPING_LOST"];
+function v3IsDerivedTimingDrop(reason) { return V3_DERIVED_TIMING_DROPS.indexOf(reason) !== -1; }
+
 // провенанс импорта (R9 derived≠asserted): текст пришёл из «Импорта»?
 // DRY helper — вызывается из обеих веток translateTable() success-handler.
 function v3AttachImportSource() {
@@ -23431,7 +23454,24 @@ function v3AttachImportSource() {
 
 // W2-S4: после ответа translate-table — построить/сохранить row-timing на паспорте аудио
 // (если он есть) и опубликовать активный аудио-паспорт для медиа-бара (Task 10).
-function v3AttachAudioTiming(res) {
+//
+// segMode (фикс 2026-07-30, STUDIO_KARAOKE_ROW_TIMING_MISMAP): `segment_index` в rows можно
+// трактовать как индекс ASR-сегмента ТОЛЬКО если ЭТОТ ЖЕ вызов отправил `segments` в
+// /api/translate-table (seg-режим, ingest/segTable.js). Премиум-ответ /api/translate-table-v2
+// несёт поле с ТЕМ ЖЕ ИМЕНЕМ, но это порядковый номер предложения собственного сегментатора
+// премиум-конвейера (db/premium/pipeline.js, 1-based) — прежний код принимал его за индекс
+// сегмента и строил вырожденный тайминг 1:1 (живой брак: медиана ошибки 9 мин, максимум 56).
+// Флаг обязателен на каждом вызове; отсутствие трактуется как «не seg-режим» (R11).
+//
+// premiumLines (K2, 2026-07-30) — ВОЗВРАТ караоке премиум-ветке, но по ДРУГОМУ полю. Премиум
+// теперь публикует `source_line_index` (0-based номер ИСХОДНОЙ СТРОКИ, db/premium/segmenter.js
+// line_index), а для импортированного медиа одна строка = один ASR-сегмент. Аргумент — массив
+// строк текста, отправленного ЭТИМ запросом (v3MediaLineIdentity(): null, если строки и
+// сегменты уже не соответствуют друг другу, — тогда караоке честно нет). Проверку
+// «строка ответа принадлежит своей строке текста» делает AsrTranscript.premiumRowLineIdx.
+// Это нужно, потому что google-free — ДЕФОЛТНЫЙ провайдер владельца: после K1 он остался бы
+// без караоке вовсе.
+function v3AttachAudioTiming(res, segMode, premiumLines) {
   try {
     const src = v3LastGeminiMeta && v3LastGeminiMeta.source;
     const audio = v3MediaPassport(src);
@@ -23474,17 +23514,81 @@ function v3AttachAudioTiming(res) {
       window.v3YtStageAdapter = null; window.v3YtStageVideoId = null;
       const ytm = document.getElementById("v3MediaYtMount"); if (ytm) ytm.hidden = true; // MINOR: don't leave an empty stage div visible
     }
+    // Ревью K1: производный вердикт ПРОШЛОГО ответа сбрасываем — этот ответ судим заново
+    // (см. V3_DERIVED_TIMING_DROPS). Утверждённые причины импорта (PREVIEW_EDITED /
+    // ASR_TIMING_INVALID) остаются и по-прежнему запрещают строить тайминг.
+    if (v3IsDerivedTimingDrop(audio.timingDropReason)) {
+      audio.timingDropReason = null;
+      audio.timingDropDetail = null;
+    }
+    // Ревью K2 (R11): AsrTranscript мог не загрузиться — это не гипотетика, рядом в этом же файле
+    // стоит guard `window.TableChunks` ровно с этим обоснованием («offline right after a
+    // CACHE_VERSION bump before it's precached», а K1/K2 CACHE_VERSION как раз бампят).
+    // До K1/K2 отсутствие модуля было БЕЗОПАСНО: тайминг обнуляла else-ветка ниже, и она к
+    // AsrTranscript не обращалась. Теперь проверки маппинга (premiumRowLineIdx /
+    // validateRowSegMapping) стоят ВЫШЕ развилки, поэтому без guard'а TypeError улетает во
+    // внешний catch — и на ОБЩЕМ объекте паспорта остаётся тайминг ПРОШЛОГО ответа, который
+    // StudioMediaKaraoke спокойно проиграет поверх новой таблицы. Это запрещённый путь
+    // «молчаливо неверная подсветка»; честная деградация — караоке нет, причина видна.
+    const AT = window.AsrTranscript;
+    if (!AT || typeof AT.validateRowSegMapping !== "function" ||
+        typeof AT.premiumRowLineIdx !== "function" || typeof AT.buildRowTiming !== "function") {
+      audio.timing = null;
+      if (!audio.timingDropReason) audio.timingDropReason = "NO_SEGMENT_MAPPING";
+      window.v3ActiveMediaAudio = audio;
+      if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
+      return;
+    }
     const rows = (res && res.rows) || [];
     const resWarnings = (res && res.warnings) || [];
     const lost = resWarnings.includes("SEG_MAPPING_LOST");
-    const anyIdx = rows.some((r) => Number.isInteger(r.segment_index));
-    if (!audio.timingDropReason && anyIdx && !lost) {
-      audio.timing = window.AsrTranscript.buildRowTiming(
-        audio.segments, rows.map((r) => (Number.isInteger(r.segment_index) ? r.segment_index : null)));
+    // Два ИСТОЧНИКА маппинга, каждый со своим полем и своим доказательством (см. шапку функции):
+    //   seg-режим Gemini  → rows[].segment_index (мы сами послали segments этим же запросом);
+    //   премиум (K2)      → rows[].source_line_index, сверенный с текстом строк запроса.
+    // Ни один ответ не может дать оба; всё остальное — «маппинга нет» (R11), а не догадка.
+    const segCount = Array.isArray(audio.segments) ? audio.segments.length : 0;
+    let premiumMapReason = null;
+    let rowSegIdx = [];
+    if (segMode === true) {
+      rowSegIdx = rows.map((r) => (Number.isInteger(r.segment_index) ? r.segment_index : null));
+    } else if (Array.isArray(premiumLines) && premiumLines.length === segCount && segCount > 0) {
+      // premiumLines.length === segCount — идентичность «строка ↔ сегмент» на момент запроса
+      // (её и проверяет v3MediaLineIdentity); повторяем здесь, чтобы функция была безопасна
+      // сама по себе, а не только при правильном вызове.
+      const pm = AT.premiumRowLineIdx(rows, premiumLines);
+      rowSegIdx = pm.idx;
+      premiumMapReason = pm.reason;
+    }
+    // Фикс 2026-07-30: гейт «есть целые числа» заменён на проверку ОСМЫСЛЕННОСТИ маппинга
+    // (диапазон/монотонность/непрерывность/не-вырожденность, AsrTranscript.validateRowSegMapping).
+    // Премиум-индексы проходят ТУ ЖЕ проверку — правила K1 не ослабляем: source_line_index уже
+    // 0-based, неубывающий и непрерывный по построению сегментатора, так что честный ответ её
+    // проходит, а любой разъехавшийся — нет.
+    // Не сошлось → честный SEG_MAPPING_LOST и НЕТ караоке: отсутствие подсветки лучше уверенно
+    // неверной (R11).
+    const mapCheck = AT.validateRowSegMapping(rowSegIdx, segCount);
+    if (!audio.timingDropReason && mapCheck.ok && !lost) {
+      audio.timing = AT.buildRowTiming(audio.segments, rowSegIdx);
       if (!audio.timing) audio.timingDropReason = "SEG_MAPPING_LOST";
+      // Ревью K1 (R9): диагноз прошлого отказа не должен пережить успешный тайминг — иначе
+      // сохранённый в Библиотеку паспорт врал бы «караоке ✓, причина отказа OUT_OF_RANGE».
+      else audio.timingDropDetail = null;
     } else {
       audio.timing = null; // R11: никогда не оставлять устаревший тайминг у нового ответа
-      if (!audio.timingDropReason) audio.timingDropReason = lost ? "SEG_MAPPING_LOST" : "NO_SEGMENT_MAPPING";
+      if (!audio.timingDropReason) {
+        // «Индексов не прислали вовсе» (не seg-режим / пустой ответ / премиум-ответ из кэша,
+        // записанного до появления source_line_index) — это НЕ потеря маппинга, а его
+        // отсутствие; различие видно владельцу в паспорте и в медиа-баре. А вот индексы,
+        // которые НЕ СОШЛИСЬ с текстом строк (K2), — именно потеря: они были и оказались негодны.
+        const premiumLost = premiumMapReason === "LINE_TEXT_MISMATCH" || premiumMapReason === "LINE_OUT_OF_RANGE";
+        const noneAtAll = !lost && !premiumLost &&
+          (mapCheck.reason === "NO_INDEX" || mapCheck.reason === "NO_SEGMENTS");
+        audio.timingDropReason = noneAtAll ? "NO_SEGMENT_MAPPING" : "SEG_MAPPING_LOST";
+      }
+      // R9-провенанс: ПОЧЕМУ именно маппинг признан негодным (OUT_OF_RANGE/DEGENERATE_1_TO_1/
+      // LINE_TEXT_MISMATCH/…). Диагноз премиум-моста точнее «NO_INDEX», который вернёт
+      // validateRowSegMapping на пустом после отказа массиве, — поэтому он и приоритетнее.
+      if (!mapCheck.ok && mapCheck.reason) audio.timingDropDetail = premiumMapReason || mapCheck.reason;
     }
     // W2-S4.1 FIX A-client: mapping was structurally fine but the model skipped whole input
     // segments — timing above stays as computed (honest for the rows that DID land); just
@@ -23498,13 +23602,126 @@ function v3AttachAudioTiming(res) {
   } catch (_) {}
 }
 
+// ── K3 (2026-07-30): ОЖИВЛЕНИЕ КАРАОКЕ У УЖЕ СОХРАНЁННОЙ КАРТОЧКИ ────────────────────────────
+// K1 погасил вырожденное караоке, K2 вернул его премиум-ветке — но оба живут только в СЕССИИ
+// ИМПОРТА: у сохранённой карточки строки восстанавливаются из Библиотеки без запроса
+// (v3RestoreSavedTableIfUnchanged), а v3MediaLineIdentity читает window.v3LastImportMeta, который
+// при открытии текста обнуляется (R9 — смена сущности). Для 117-минутной карточки владельца это
+// означало бы повторный импорт = повторную оплату ASR за уже оплаченный транскрипт.
+//
+// Здесь связь «строка → сегмент» ВОССТАНАВЛИВАЕТСЯ ОФЛАЙН по тексту
+// (AsrTranscript.alignRowsToSegments — правило и оракул описаны там): ни одного сетевого запроса,
+// ни цента, ~20 мс на форме владельца (1074 сегмента × 1651 строка, замер в живой вкладке).
+//
+// ПОЧЕМУ ПРОВЕРЕННЫЙ МАППИНГ ЗАМЕЩАЕТ СОХРАНЁННЫЙ ТАЙМИНГ (R11 «источник-истины > самоотчёт»).
+// Тайминг в паспорте — УТВЕРЖДЕНИЕ, сделанное когда-то другим кодом; проверить его сейчас нечем,
+// а живой замер показал, что он бывает уверенно неверным и при этом НЕ ловится карантином K1:
+// на карточке владельца у ВСЕХ 1070 записей o === индекс_сегмента − 1 (1-based `segment_index`
+// премиума сдвинул всё на единицу), а отпечаток K1 искал равенство o === индекс_сегмента.
+// Результат выравнивания — наоборот, ДОКАЗАТЕЛЬСТВО: каждая строка привязана к сегменту, текст
+// которого она покрывает, и оракул это пересчитывает. Доказательство сильнее утверждения, поэтому
+// при успешном выравнивании тайминг перестраивается. Если выравнивание НЕ сошлось — сохранённый
+// тайминг остаётся ровно таким, каким был (мы не узнали ничего нового, R11: не ухудшать).
+// Путь СВЕЖЕГО ответа (v3AttachAudioTiming) сюда не заходит вовсе — там маппинг уже доказан.
+//
+// R9 (derived ≠ asserted): восстановленный тайминг помечается timingSource="aligned-offline" +
+// timingAlign{версия ядра, счётчики, что было до него} — в паспорте видно, что это ВЫВОД, а не
+// то, что прислал переводчик. В БД он НЕ пишется: он детерминированно пересчитывается при каждом
+// открытии за миллисекунды, а persisted-производное поле пришлось бы ещё и инвалидировать при
+// правке строк.
+function v3AlignSavedTimingOffline(audio, rows) {
+  if (!audio) return;
+  // Утверждённые причины импорта (PREVIEW_EDITED / ASR_TIMING_INVALID) — факты о САМИХ метках:
+  // выравнивание строк их не опровергает, поэтому молчим (как и v3MediaLineIdentity).
+  if (audio.timingDropReason && !v3IsDerivedTimingDrop(audio.timingDropReason)) return;
+  const segs = Array.isArray(audio.segments) ? audio.segments : [];
+  const list = Array.isArray(rows) ? rows : [];
+  if (segs.length < 2 || list.length < 2) return;
+  const AT = window.AsrTranscript;
+  if (!AT || typeof AT.alignRowsToSegments !== "function" || typeof AT.buildRowTiming !== "function") return;
+  // Идемпотентность: та же таблица второй раз не пересчитывается — важно не столько ради 20 мс,
+  // сколько ради КОНТРАКТА ССЫЛОЧНОГО РАВЕНСТВА entries (см. v3MediaPlayOriginal): новый массив
+  // на каждом вызове превращал бы resume караоке в перезапуск.
+  if (audio.timingAlign && audio.timingAlign.rows === list.length &&
+      audio.timingAlign.segments === segs.length && audio.timingAlign.v === AT.ALIGN_VERSION) return;
+  const texts = list.map((r) => String((r && (r.he || r.he_plain || r.hebrew)) || ""));
+  const al = AT.alignRowsToSegments(texts, segs);
+  const prov = { v: AT.ALIGN_VERSION, at: new Date().toISOString(), rows: list.length,
+                 segments: segs.length, ok: !!al.ok, reason: al.reason || null,
+                 alignedSegments: al.alignedSegments, alignedRows: al.alignedRows,
+                 codeVersion: window.APP_VERSION || null };
+  if (!al.ok) {
+    audio.timingAlign = prov;                  // R9: вердикт выравнивания виден ВСЕГДА, отдельным полем
+    if (!audio.timing) {                       // тайминга нет — честно объясняем, почему его нет
+      if (!audio.timingDropReason) audio.timingDropReason = "SEG_MAPPING_LOST";
+      // Диагноз, поставленный РАНЬШЕ (карантин K1 → DEGENERATE_1_TO_1), точнее и первичнее: он
+      // объясняет, почему сохранённый тайминг снят. Наш отказ не затирает его, а лежит рядом.
+      if (!audio.timingDropDetail) audio.timingDropDetail = "ALIGN_" + (al.reason || "FAILED");
+    }
+    return;
+  }
+  const timing = AT.buildRowTiming(segs, al.rowSegIdx);
+  if (!timing) {                                // маппинг доказан, но меток <2 — записывать нечего
+    prov.entries = 0;
+    audio.timingAlign = prov;
+    if (!audio.timing && !audio.timingDropReason) {
+      audio.timingDropReason = "SEG_MAPPING_LOST";
+      audio.timingDropDetail = "ALIGN_NO_ENTRIES";
+    }
+    return;
+  }
+  prov.entries = timing.entries.length;
+  prov.replaced = !!audio.timing;               // R9: заменили непроверяемое утверждение
+  audio.timing = timing;
+  audio.timingSource = "aligned-offline";
+  audio.timingAlign = prov;
+  audio.timingDropReason = null;
+  audio.timingDropDetail = null;
+}
+
 // W2-S4: восстановить активный аудио-паспорт при открытии сохранённого текста из библиотеки.
-function v3RestoreMediaFromMeta(meta) {
+// rowsOverride (K3) — строки ЭТОГО текста, когда currentTableData ещё принадлежит прошлому
+// (классический путь Библиотеки маппит строки ПОСЛЕ этого вызова). Без него карантин K1 судил бы
+// по чужому числу строк, а выравниванию не на чем было бы работать.
+function v3RestoreMediaFromMeta(meta, rowsOverride) {
   try {
     const audio = v3MediaPassport(meta && meta.source);
+    const rows = Array.isArray(rowsOverride) ? rowsOverride
+               : (Array.isArray(currentTableData) ? currentTableData : []);
+    // Ревью K1: карантин вырожденного тайминга, сохранённого ДО фикса
+    // (AsrTranscript.timingLooksDegenerate — точный отпечаток, не порог).
+    if (audio && audio.timing && window.AsrTranscript &&
+        typeof window.AsrTranscript.timingLooksDegenerate === "function") {
+      if (window.AsrTranscript.timingLooksDegenerate(audio.timing, audio.segments, rows.length)) {
+        audio.timing = null;
+        audio.timingDropReason = "SEG_MAPPING_LOST";   // локаль уже есть; сырого ключа на экране не будет
+        audio.timingDropDetail = "DEGENERATE_1_TO_1";
+      }
+    }
+    // K3: офлайн-выравнивание строк на сегменты — единственный способ вернуть караоке уже
+    // сохранённой карточке, не заплатив за ASR второй раз.
+    try { v3AlignSavedTimingOffline(audio, rows); } catch (_) {}
     window.v3ActiveMediaAudio = audio || null;
     if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
     if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
+  } catch (_) {}
+}
+
+// K3: паспорт медиа мог быть сохранён в ДРУГУЮ колонку. «Сохранить как новый»
+// (v3LibrarySaveCurrentCore) пишет tableModelMeta в `source_meta_json`, а «Обновить карточку» —
+// в `table_model_meta_json`; открытие текста читает только вторую. У карточки, ни разу не
+// обновлённой через «Обновить», паспорт при открытии терялся ЦЕЛИКОМ — не было ни медиа-бара, ни
+// караоке, независимо от K1/K2/K3 (замер на живой карточке владельца 2026-07-30:
+// table_model_meta_json = NULL, source_meta_json = 130 КБ с полным паспортом).
+// Фолбэк намеренно узкий: чужую source_meta_json (у корпусных текстов там {corpus:…}) берём
+// ТОЛЬКО если в ней есть медиа-паспорт — иначе v3LastGeminiMeta загрязнялся бы чем попало.
+function v3AdoptSavedTableMeta(textRow) {
+  try {
+    if (v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source)) return;
+    const raw = (textRow && (textRow.source_meta_json || textRow.sourceMetaJson)) || "";
+    if (!raw) return;
+    const sm = JSON.parse(String(raw));
+    if (v3MediaPassport(sm && sm.source)) v3LastGeminiMeta = sm;
   } catch (_) {}
 }
 
@@ -25298,7 +25515,18 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
       if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
     } catch (_) {}
     // W2-S4: restore this text's own media passport (if any) from the meta just parsed above.
-    try { v3RestoreMediaFromMeta(v3LastGeminiMeta); } catch (_) {}
+    // K3: (а) паспорт мог лежать в source_meta_json (см. v3AdoptSavedTableMeta); (б) строки
+    // этого текста маппятся в UI-форму НИЖЕ (~«map sentences -> UI rows»), поэтому
+    // currentTableData здесь ещё принадлежит ПРОШЛОМУ тексту — передаём предложения явно, в том
+    // же порядке order_index, в котором они лягут в таблицу (сортировка — литеральный близнец
+    // той, что ниже: две копии одного правила иначе однажды разъедутся).
+    try { v3AdoptSavedTableMeta(text); } catch (_) {}
+    try {
+      const mediaRows = Array.isArray(sentences)
+        ? sentences.slice().sort((a, b) => Number(a.order_index ?? a.orderIndex ?? 0) - Number(b.order_index ?? b.orderIndex ?? 0))
+        : null;
+      v3RestoreMediaFromMeta(v3LastGeminiMeta, mediaRows);
+    } catch (_) {}
     try {
       if (window.v3SetActiveLibraryTextMeta) {
         window.v3SetActiveLibraryTextMeta({
@@ -33086,15 +33314,36 @@ try { v3DashCloseViewMenu(); } catch (_) {}
     // cut into chunks by translateTable()/v3TranslateTableChunked() before it ever reaches
     // apiCall(); the server still only ever sees ≤CHUNK_SIZE segments per request.
     const V3_SEG_MAX_TEXT = 2000;
-    function v3AudioSegmentsForRequest() {
+
+    // K2 (2026-07-30): ОДНО правило «строка текста ↔ ASR-сегмент» — и два потребителя:
+    // seg-режим Gemini (шлём segments) и премиум-караоке (доверяем rows[].source_line_index).
+    // Держим его в одной функции, иначе две копии однажды разъедутся и караоке снова начнёт
+    // уверенно врать (урок config-string-match-by-construction). Правило нарезки — ЛИТЕРАЛЬНЫЙ
+    // близнец импорта (studio-import.js useText) и премиум-сегментатора
+    // (db/premium/segmenter.js splitSourceLines): split("\n") + trim + filter(Boolean).
+    // Возвращает массив строк (идентичность есть) либо null (нет — караоке честно отключается).
+    function v3MediaLineIdentity() {
         try {
             const im = window.v3LastImportMeta;
             const p = v3MediaPassport(im);
-            if (!im || !p || !Array.isArray(p.segments)) return null;
-            if (p.timingDropReason) return null;
+            if (!im || !p || !Array.isArray(p.segments) || !p.segments.length) return null;
+            // Ревью K1: seg-режим запрещают только УТВЕРЖДЁННЫЕ причины импорта; производный
+            // вердикт прошлого ответа (в т.ч. премиум-перевода, который seg-режим и не пробовал)
+            // не имеет права навсегда закрывать путь — см. V3_DERIVED_TIMING_DROPS.
+            if (p.timingDropReason && !v3IsDerivedTimingDrop(p.timingDropReason)) return null;
             if (getTableDirection() !== "he-ru") return null;
             const lines = getText().split("\n").map((s) => s.trim()).filter(Boolean);
+            // Строк стало больше/меньше сегментов ⇒ текст переразбивали ⇒ номер строки больше
+            // НЕ равен номеру сегмента. Единственный честный ответ — «маппинга нет».
             if (lines.length !== p.segments.length) return null;
+            return lines;
+        } catch (_) { return null; }
+    }
+
+    function v3AudioSegmentsForRequest() {
+        try {
+            const lines = v3MediaLineIdentity();
+            if (!lines) return null;
             if (lines.some((s) => s.length > V3_SEG_MAX_TEXT)) return null;
             return lines.map((t2, k) => ({ i: k, text: t2 }));
         } catch (_) { return null; }
@@ -33226,16 +33475,24 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
             return;
         }
 
+        let segModeSent = false;   // выставляется в ветке payload ниже (см. v3AttachAudioTiming)
+        let premiumLines = null;   // K2: строки ЭТОГО запроса, если «строка = ASR-сегмент» ещё верно
         const payload = usePremium
-            ? {
-                text: getText(),
-                provider,
-                target_lang: "ru",
-                translit_profile,
-                ...(provider === "gcp" ? { gcpTranslateApiKey: gcpTranslateKeyGet() } : {}),
-              }
+            ? (() => {
+                // Снимок делаем ДО запроса: правку текста во время ожидания ответа нельзя
+                // задним числом объявить исходной нарезкой (тот же принцип, что у segModeSent).
+                premiumLines = v3MediaLineIdentity();
+                return {
+                  text: getText(),
+                  provider,
+                  target_lang: "ru",
+                  translit_profile,
+                  ...(provider === "gcp" ? { gcpTranslateApiKey: gcpTranslateKeyGet() } : {}),
+                };
+              })()
             : (() => {
                 const segs = v3AudioSegmentsForRequest();
+                segModeSent = !!segs; // тайминг доверяет segment_index ТОЛЬКО когда мы САМИ послали segments
                 return { text: getText(), geminiApiKey: geminiKeyGet(), direction: getTableDirection(),
                          ...(segs ? { segments: segs } : {}) };
               })();
@@ -33264,7 +33521,11 @@ try {
       generatedAt: new Date().toISOString()
     };
     v3AttachImportSource();
-    v3AttachAudioTiming(res);
+    // Премиум-ответ НИКОГДА не seg-режим: его rows[].segment_index — номер предложения
+    // премиум-сегментатора, а не ASR-сегмента (фикс 2026-07-30, см. v3AttachAudioTiming).
+    // K2: зато он несёт source_line_index — честный мост к сегментам, если строки текста
+    // всё ещё соответствуют сегментам импорта (premiumLines !== null).
+    v3AttachAudioTiming(res, false, premiumLines);
   } else {
     v3LastGeminiMeta = {
       promptId: getTableDirection() === "any-he" ? "any-he-table-v1" : "he-ru-table-v1",
@@ -33275,7 +33536,7 @@ try {
       generatedAt: new Date().toISOString()
     };
     v3AttachImportSource();
-    v3AttachAudioTiming(res);
+    v3AttachAudioTiming(res, segModeSent);
   }
 } catch (_) {}
 
@@ -33446,13 +33707,14 @@ try {
                     // Fix2 (re-review): unstick ONLY the derived latches left by a PRIOR
                     // attach attempt (not asserted import facts like PREVIEW_EDITED/
                     // ASR_TIMING_INVALID) — the chunk path honestly recomputes timing every time.
+                    // Ревью K1: список производных причин — один на проект
+                    // (V3_DERIVED_TIMING_DROPS); сам v3AttachAudioTiming теперь снимает их и сам,
+                    // этот блок оставлен как явная декларация намерения ветки.
                     {
                         const pass = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
-                        if (pass && (pass.timingDropReason === "NO_SEGMENT_MAPPING" || pass.timingDropReason === "SEG_MAPPING_LOST")) {
-                            pass.timingDropReason = null;
-                        }
+                        if (pass && v3IsDerivedTimingDrop(pass.timingDropReason)) pass.timingDropReason = null;
                     }
-                    v3AttachAudioTiming({ rows: currentTableData, warnings: ["SEG_COVERAGE_PARTIAL"] });
+                    v3AttachAudioTiming({ rows: currentTableData, warnings: ["SEG_COVERAGE_PARTIAL"] }, true);
                     return;
                 }
                 const rows = TableChunks.offsetRows(res.rows || [], chunks[k].base);
@@ -33488,12 +33750,10 @@ try {
         // for the full rationale.
         {
             const pass = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
-            if (pass && (pass.timingDropReason === "NO_SEGMENT_MAPPING" || pass.timingDropReason === "SEG_MAPPING_LOST")) {
-                pass.timingDropReason = null;
-            }
+            if (pass && v3IsDerivedTimingDrop(pass.timingDropReason)) pass.timingDropReason = null;
         }
         v3AttachAudioTiming({ rows: currentTableData,
-            warnings: missingGlobal.length ? ["SEG_COVERAGE_PARTIAL"] : [] });
+            warnings: missingGlobal.length ? ["SEG_COVERAGE_PARTIAL"] : [] }, true);
         if (missingGlobal.length && typeof showToast === "function") {
             showToast(t("studio.import.warnCoverage"), "warning");
         }

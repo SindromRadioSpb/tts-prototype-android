@@ -2,19 +2,38 @@
 
 // Hebrew-aware sentence segmenter.
 //
-// Pipeline: protect → split → restore.
-//   1. Protect spans that look like sentence enders but aren't: URLs, emails,
+// Pipeline: split into LINES → protect → split into sentences → restore.
+//   1. Cut the source into non-empty lines (splitSourceLines — see the contract
+//      note below; this is the one rule the whole product shares).
+//   2. Protect spans that look like sentence enders but aren't: URLs, emails,
 //      ellipses, decimals, dates, times, single-letter initials, and a
 //      whitelist of Hebrew / English abbreviations.
-//   2. Split on paragraph breaks (\n\n+), then single newlines, then on
-//      sentence-final punctuation followed by whitespace.
-//   3. Restore protected spans into the split output.
+//   3. Split each line on sentence-final punctuation followed by whitespace.
+//   4. Restore protected spans into the split output.
 //
 // Contract:
-//   segment(text) -> Array<{ index: number, he: string }>
-//     - `index` is 1-based, monotonic, dense.
+//   segment(text) -> Array<{ index: number, he: string, line_index: number }>
+//     - `index` is 1-based, monotonic, dense (premium row identity — do NOT
+//       repurpose it, /api/translate-table-v2 ships it as `segment_index`).
+//     - `line_index` is 0-based and points at the SOURCE LINE this sentence came
+//       from; one line yields 1..N sentences, all carrying the same line_index.
+//       Not dense (a line may yield nothing), never decreasing.
 //     - Empty/whitespace-only segments are dropped.
 //     - Input is assumed to already be display-normalized (NFKC, CRLF→LF).
+//
+// Why line_index exists (K2, 2026-07-30 — STUDIO_KARAOKE_ROW_TIMING_MISMAP):
+// for text imported from audio/video/captions, ONE SOURCE LINE IS EXACTLY ONE
+// ASR SEGMENT (studio-import.js useText writes the preview as «one line = one
+// segment»). The segmenter always knew which line a sentence came from and threw
+// that knowledge away, so the premium branch had no honest way to map rows back
+// to media timing and karaoke had to be switched off there. line_index is that
+// knowledge, published: it travels to the client as `source_line_index`.
+//
+// ⚠ line_index is only as true as the line-cutting rule is SHARED. It is not
+// «the same idea» as the client's rule — it must be the same rule by
+// construction (project lesson: config-string-match-by-construction). The single
+// source of truth is splitSourceLines() below; tests/premium/segmenter.test.js
+// pins it against a literal copy of the client expression.
 
 // Control chars unlikely to appear in user text; used as placeholder frames.
 const PROTECT_OPEN = "\u0001";
@@ -177,40 +196,47 @@ function splitLineOnPunctuation(line) {
   return sentences;
 }
 
+// THE line-cutting rule. Literal twin of the client's:
+//   public/js/studio-import.js  useText():      text.split("\n").map(s => s.trim()).filter(Boolean)
+//   public/index.html           v3MediaLineIdentity(): the same expression
+// Blank/whitespace-only lines are dropped and therefore consume NO index — on
+// both sides, which is the whole point: index k here and index k there must name
+// the same line, and for imported media the same ASR segment.
+//
+// Note the ORDER: lines are cut BEFORE BIDI marks are stripped. A line made of
+// nothing but direction marks is non-empty for String.prototype.trim() (they are
+// Cf, not White_Space), so the client counts it as a line; stripping first would
+// make the segmenter skip it and silently shift every following line_index by
+// one. It keeps its index here too — it just yields no sentence.
+function splitSourceLines(text) {
+  if (typeof text !== "string") return [];
+  return text.split("\n").map((s) => s.trim()).filter(Boolean);
+}
+
 function segment(source) {
   if (typeof source !== "string" || !source.trim()) return [];
 
-  // Strip BIDI marks before protect/split — they're invisible and would
-  // otherwise sit between sentence-final punctuation and the next space.
-  const stripped = source.replace(BIDI_RE, "");
-  const { text: protectedText, frames } = protectSpans(stripped);
-
-  // Paragraph → line → sentence.
-  const paragraphs = protectedText
-    .split(/\n{2,}/)
-    .map((p) => p.trim())
-    .filter(Boolean);
-
+  const lines = splitSourceLines(source);
   const out = [];
-  for (const para of paragraphs) {
-    const lines = para
-      .split(/\n/)
-      .map((l) => l.trim())
-      .filter(Boolean);
-    for (const line of lines) {
-      const sentences = splitLineOnPunctuation(line);
-      for (const s of sentences) {
-        const restored = restoreSpans(s, frames).trim();
-        if (restored) out.push(restored);
-      }
+
+  for (let li = 0; li < lines.length; li++) {
+    // Strip BIDI marks before protect/split — they're invisible and would
+    // otherwise sit between sentence-final punctuation and the next space.
+    const stripped = lines[li].replace(BIDI_RE, "").trim();
+    if (!stripped) continue; // direction-marks-only line: keeps its index, yields nothing
+    const { text: protectedText, frames } = protectSpans(stripped);
+    for (const s of splitLineOnPunctuation(protectedText)) {
+      const restored = restoreSpans(s, frames).trim();
+      if (restored) out.push({ he: restored, line_index: li });
     }
   }
 
-  return out.map((he, i) => ({ index: i + 1, he }));
+  return out.map((o, i) => ({ index: i + 1, he: o.he, line_index: o.line_index }));
 }
 
 module.exports = {
   segment,
+  splitSourceLines,
   // Exported for testing only.
   _internals: {
     HEBREW_ABBREVS,

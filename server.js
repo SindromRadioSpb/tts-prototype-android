@@ -6614,6 +6614,19 @@ app.post("/api/translate-table", async (req, res) => {
     console.warn("[premium] failed to check GCP key file at boot:", e.message);
   }
 
+  // Response rows (verbatim from db/premium/pipeline.js — this handler must never
+  // reshape them) carry TWO indexes, and they are not interchangeable:
+  //   segment_index      1-based ordinal of the row in the premium table;
+  //   source_line_index  0-based index of the SOURCE LINE the row came from
+  //                      (K2, 2026-07-30). For text imported from audio/video/
+  //                      captions one source line == one ASR segment, so this is
+  //                      the field the client maps karaoke timing through — see
+  //                      v3AttachAudioTiming() in public/index.html and
+  //                      docs/planning/STUDIO_KARAOKE_ROW_TIMING_MISMAP_2026_07_30.md.
+  // Cache note: doc-cache hits replay whatever rows were stored when the entry was
+  // written. Entries written before source_line_index existed simply lack it, and
+  // the client degrades honestly (no karaoke) instead of guessing — SEGMENTER_VERSION
+  // was bumped so those entries are unreachable by new requests anyway.
   app.post("/api/translate-table-v2", async (req, res) => {
     try {
       const {

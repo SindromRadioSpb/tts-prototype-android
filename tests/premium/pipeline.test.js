@@ -292,6 +292,58 @@ test("BAD_INPUT: unsupported provider rejects before any provider is touched", a
 });
 
 // ---------------------------------------------------------------------------
+// K2 (2026-07-30): source_line_index доезжает до строки ответа.
+// Зачем — docs/planning/STUDIO_KARAOKE_ROW_TIMING_MISMAP_2026_07_30.md: для текста из
+// аудио/видео/субтитров одна ИСХОДНАЯ СТРОКА = один ASR-сегмент, поэтому это поле —
+// единственный честный мост от премиум-строки к таймингу медиа. Провайдер здесь роли не
+// играет (madlad не трогает gcp-квоту и не требует ключа) — проверяется сборка строк.
+// ---------------------------------------------------------------------------
+
+test("K2: rows carry source_line_index — 1:1 текст (строка = строка таблицы)", async () => {
+  const text = "שורה ראשונה\nשורה שנייה\nשורה שלישית";
+  const out = await pipeline.translateTable({ text, provider: "madlad" });
+
+  assert.equal(out.rows.length, 3);
+  assert.deepEqual(out.rows.map((r) => r.source_line_index), [0, 1, 2]);
+  assert.deepEqual(out.rows.map((r) => r.segment_index), [1, 2, 3], "старый контракт не тронут");
+  assert.deepEqual(out.rows.map((r) => r.he), ["שורה ראשונה", "שורה שנייה", "שורה שלישית"]);
+});
+
+test("K2: одна строка → N строк таблицы, у всех ОДИН source_line_index", async () => {
+  // Ровно случай живого брака: строк таблицы больше, чем сегментов ASR.
+  const text = "ראשון. שני! שלישי?\nרביעי.\nחמישי. שישי.";
+  const out = await pipeline.translateTable({ text, provider: "madlad" });
+
+  assert.equal(out.rows.length, 6);
+  assert.deepEqual(out.rows.map((r) => r.source_line_index), [0, 0, 0, 1, 2, 2]);
+  // независимый оракул: строка таблицы обязана быть куском ИМЕННО своей исходной строки
+  const lines = text.split("\n").map((s) => s.trim()).filter(Boolean);
+  for (const r of out.rows) {
+    assert.ok(lines[r.source_line_index].includes(r.he),
+      `«${r.he}» не из строки ${r.source_line_index} («${lines[r.source_line_index]}»)`);
+  }
+});
+
+test("K2: пустые строки не сдвигают source_line_index", async () => {
+  const text = "אחת\n\n   \nשתיים";
+  const out = await pipeline.translateTable({ text, provider: "madlad" });
+  assert.deepEqual(out.rows.map((r) => r.source_line_index), [0, 1]);
+});
+
+test("K2: doc-cache hit тоже отдаёт source_line_index (кэш пишется уже с полем)", async () => {
+  const text = "ראשון. שני!\nשלישי.";
+  const first = await pipeline.translateTable({ text, provider: "madlad" });
+  assert.equal(first.fromCache, false);
+
+  const second = await pipeline.translateTable({ text, provider: "madlad" });
+  assert.equal(second.fromCache, true);
+  assert.equal(second.provenance.cache_level, "doc");
+  assert.deepEqual(second.rows.map((r) => r.source_line_index),
+                   first.rows.map((r) => r.source_line_index));
+  assert.deepEqual(second.rows.map((r) => r.source_line_index), [0, 0, 1]);
+});
+
+// ---------------------------------------------------------------------------
 // 5.4 additions: quota HTTP status propagation + near_limit transition
 // ---------------------------------------------------------------------------
 

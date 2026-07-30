@@ -713,8 +713,296 @@
     };
   }
 
+  // ── ОСМЫСЛЕННОСТЬ МАППИНГА строка→сегмент (фикс 2026-07-30, R11) ─────────────────────────────
+  // Живой брак владельца (117-мин интервью, STUDIO_KARAOKE_ROW_TIMING_MISMAP_2026_07_30):
+  // караоке уверенно подсвечивало не ту строку, медиана ошибки 9 мин. Причина — не арифметика
+  // тайминга, а ДОВЕРИЕ К ЧУЖОМУ ПОЛЮ С ТЕМ ЖЕ ИМЕНЕМ: премиум-ответ /api/translate-table-v2
+  // (db/premium/pipeline.js) тоже несёт `segment_index`, но это ПОРЯДКОВЫЙ НОМЕР предложения
+  // собственного сегментатора премиум-конвейера (1-based, своё пространство имён), а не индекс
+  // ASR-сегмента. Прежний гейт проверял ЛИШЬ «есть целые числа» — и вырожденный 1:1 проезжал.
+  //
+  // Проверяем то, что маппинг ОБЯЗАН выполнять по построению seg-режима
+  // (ingest/segTable.js HE_RU_SEG_PROMPT: «1 входной сегмент → ≥1 строк, порядок сохранён»):
+  //   • каждый индекс — целое в [0, segCount);
+  //   • индексы неубывающие;
+  //   • строки одного сегмента идут ПОДРЯД (индекс, к которому вернулись через строки без
+  //     индекса, — разорванный блок: чанк не может распилить сегмент, границы чанков проходят
+  //     ТОЛЬКО по сегментам, см. TableChunks.buildChunks);
+  //   • строк больше, чем сегментов ⇒ хотя бы один сегмент раздроблен ⇒ ПЕРФЕКТНЫЙ 1:1
+  //     (уникальных индексов ровно столько же, сколько индексированных строк) невозможен.
+  // Осознанный остаток: если индексы несёт единственный чанк, который модель не дробила, а
+  // раздробленные строки пришли из чанков с потерянным маппингом, 1:1-правило отклонит честный,
+  // но покрывающий проценты таблицы маппинг. Цена ошибки несимметрична (R11): подсветка не той
+  // строки хуже её отсутствия, а караоке по <10% строк всё равно выглядит зависшим.
+  // Диагноз возвращается строкой reason (R9-провенанс), решение принимает вызывающий.
+  function validateRowSegMapping(rowSegIdx, segCount) {
+    var rows = Array.isArray(rowSegIdx) ? rowSegIdx : [];
+    var total = rows.length;
+    var S = Number.isInteger(segCount) ? segCount : 0;
+    var res = function (ok, reason, indexed, unique) {
+      return { ok: ok, reason: reason, rows: total, segCount: S,
+               indexed: indexed || 0, unique: unique || 0 };
+    };
+    if (S <= 0) return res(false, "NO_SEGMENTS", 0, 0);
+    var indexed = 0, unique = 0, last = -1, gapSinceLast = false;
+    for (var r = 0; r < total; r++) {
+      var si = rows[r];
+      if (si === null || si === undefined) { gapSinceLast = true; continue; }
+      if (!Number.isInteger(si)) return res(false, "NOT_INTEGER", indexed, unique);
+      if (si < 0 || si >= S) return res(false, "OUT_OF_RANGE", indexed, unique);
+      if (si < last) return res(false, "DECREASING", indexed, unique);
+      if (si === last && gapSinceLast) return res(false, "SPLIT_SEGMENT", indexed, unique);
+      if (si !== last) unique++;
+      last = si; gapSinceLast = false; indexed++;
+    }
+    if (!indexed) return res(false, "NO_INDEX", indexed, unique);
+    if (total > S && unique === indexed) return res(false, "DEGENERATE_1_TO_1", indexed, unique);
+    return res(true, null, indexed, unique);
+  }
+
+  // ── ТОТ ЖЕ ВЕРДИКТ ДЛЯ УЖЕ СОХРАНЁННОГО ТАЙМИНГА (ревью фикса, 2026-07-30) ──────────────────
+  // validateRowSegMapping защищает только НОВЫЕ ответы. Карточки, сохранённые ДО фикса, несут
+  // вырожденный тайминг прямо в table_model_meta_json — включая ту, на которой владелец увидел
+  // брак; пересборка таблицы стоит денег (ASR уже оплачен, но перевод — нет), а подсветка не той
+  // строки хуже её отсутствия (R11). Поэтому паспорт судим и при ОТКРЫТИИ текста.
+  //
+  // Отпечаток берём ТОЧНЫЙ, а не пороговый: entries не хранят индекс сегмента, но хранят его
+  // start (t) — по нему сегмент восстанавливается однозначно. Вырождение = «строка = свой
+  // сегмент»: у КАЖДОЙ записи o равен индексу её собственного сегмента, при том что строк
+  // больше, чем сегментов (значит, минимум один сегмент раздроблен и такое равенство
+  // невозможно). Живой паспорт владельца: 1651 строка, 1074 сегмента, o = 0…1072 (пропуски
+  // 259/260/800 — они отпечаток НЕ ломают, судим только по фактически имеющимся записям).
+  // Честная 1:N-таблица проваливает это условие с первого же раздробленного сегмента, честная
+  // 1:1 (строк == сегментов) — на rowCount > segCount, поэтому ложных срабатываний нет.
+  //
+  // K3-уточнение (замер ЖИВОЙ карточки владельца 2026-07-30 через kapture): равенство o === segIdx
+  // — не тот отпечаток, который там лежит. У ВСЕХ 1070 записей o === segIdx − 1: премиум-строки
+  // несли 1-BASED `segment_index` (о чём K1 и написал выше), поэтому «первой строкой» сегмента k
+  // оказывалась строка k−1, а сегмент 0 не получал записи вовсе. Прежняя формулировка выходила
+  // с false на ПЕРВОЙ же записи — карточка, ради которой карантин писался, под него НЕ ПОПАДАЛА.
+  // Поэтому судим ЛОКСТЕП: разность o − segIdx одинакова у всех сопоставленных записей И равна 0
+  // или −1 (два наблюдаемых способа принять номер строки за номер сегмента: 0-based и 1-based).
+  // Честная 1:N-таблица такой константы не даёт — на каждом раздробленном сегменте разность растёт.
+  function timingLooksDegenerate(timing, segments, rowCount) {
+    var e = timing && Array.isArray(timing.entries) ? timing.entries : null;
+    var segs = Array.isArray(segments) ? segments : [];
+    if (!e || e.length < 2 || !segs.length) return false;
+    if (!Number.isInteger(rowCount) || rowCount <= segs.length) return false; // дробления не было
+    var byStart = new Map();
+    for (var k = 0; k < segs.length; k++) {
+      var st = segs[k] && segs[k].start;
+      var idx = segs[k] && segs[k].i != null ? segs[k].i : k;
+      if (typeof st === "number" && isFinite(st) && !byStart.has(st)) byStart.set(st, idx);
+    }
+    var judged = 0, off = null;
+    for (var j = 0; j < e.length; j++) {
+      var segIdx = byStart.get(e[j] && e[j].t);
+      if (segIdx === undefined) continue;            // запись не сопоставляется — не судим по ней
+      var d = e[j].o - segIdx;
+      if (d !== 0 && d !== -1) return false;          // хоть одна честная запись → маппинг не вырожден
+      if (off === null) off = d;
+      else if (d !== off) return false;               // сдвиг «плавает» — это не локстеп
+      judged++;
+    }
+    return judged >= 2;
+  }
+
+  // ── ПРЕМИУМ-ВЕТКА: rows[].source_line_index → индексы ASR-сегментов (K2, 2026-07-30) ─────────
+  // K1 честно отключил караоке на /api/translate-table-v2, потому что доверять там было нечему.
+  // Теперь премиум-конвейер публикует ЧЕСТНЫЙ мост: `source_line_index` — 0-базовый номер
+  // ИСХОДНОЙ СТРОКИ, из которой получена строка таблицы (db/premium/segmenter.js line_index).
+  // А для импортированного медиа одна исходная строка = один ASR-сегмент (studio-import.js
+  // useText кладёт превью как «одна строка = один сегмент»), поэтому line_index И ЕСТЬ индекс
+  // сегмента — при условии, что текст с момента импорта не переразбивали (это проверяет
+  // вызывающий: v3MediaLineIdentity сверяет число строк с числом сегментов).
+  //
+  // Но «поле называется правильно» — ровно та ошибка, из которой вырос весь баг. Поэтому здесь
+  // маппинг не принимается на слово, а ПРОВЕРЯЕТСЯ ПО ТЕКСТУ (независимый оракул): каждая
+  // строка ответа обязана быть подстрокой ТОЙ СТРОКИ, на которую ссылается. По построению
+  // сегментатора это так всегда (предложение — непрерывный кусок своей строки), а вот при любом
+  // расхождении — разъехавшаяся нормализация, коллизия doc-кэша по ключу, будущая правка
+  // сегментатора — проверка падает и караоке честно выключается (R11), вместо подсветки не той
+  // строки. Стоимость: один indexOf на строку таблицы.
+  //
+  // lines — строки ТЕКУЩЕГО текста по правилу клиента (split("\n")+trim+filter(Boolean)).
+  // Возвращает { idx: [индекс сегмента | null на строку], reason } — reason только при отказе.
+  var CMP_BIDI_RE = /[\u200E\u200F\u202A-\u202E\uFEFF]/g;  // тот же список, что BIDI_RE сегментатора
+  function cmpNorm(s) {
+    // NFKC — потому что сервер сегментирует normalizeForDisplay(text) (db/premium/normalize.js),
+    // а `lines` берутся из сырого поля ввода: без NFKC «…» и « » разошлись бы на ровном месте.
+    return String(s == null ? "" : s).normalize("NFKC").replace(CMP_BIDI_RE, "").trim();
+  }
+  function premiumRowLineIdx(rows, lines) {
+    var R = Array.isArray(rows) ? rows : [];
+    var L = Array.isArray(lines) ? lines : [];
+    if (!L.length) return { idx: [], reason: "NO_LINES" };
+    var idx = [], any = false, normCache = [];
+    for (var r = 0; r < R.length; r++) {
+      var li = R[r] && R[r].source_line_index;
+      if (!Number.isInteger(li)) { idx.push(null); continue; }  // старый кэш/чужой ответ — не гадаем
+      if (li < 0 || li >= L.length) return { idx: [], reason: "LINE_OUT_OF_RANGE" };
+      if (normCache[li] === undefined) normCache[li] = cmpNorm(L[li]);
+      var he = cmpNorm(R[r].he);
+      if (he && normCache[li].indexOf(he) === -1) return { idx: [], reason: "LINE_TEXT_MISMATCH" };
+      idx.push(li); any = true;
+    }
+    if (!any) return { idx: [], reason: "NO_INDEX" };
+    return { idx: idx, reason: null };
+  }
+
+  // ── K3: ОФЛАЙН-ВЫРАВНИВАНИЕ СОХРАНЁННОЙ ТАБЛИЦЫ НА СЕГМЕНТЫ (2026-07-30) ─────────────────────
+  // K1 честно погасил вырожденное караоке, K2 вернул его премиум-ветке — но оба работают ТОЛЬКО
+  // в сессии импорта. У уже сохранённой карточки: строки восстанавливаются из Библиотеки вообще
+  // без запроса (v3RestoreSavedTableIfUnchanged), а v3MediaLineIdentity читает
+  // window.v3LastImportMeta, который при открытии текста из Библиотеки обнуляется (R9 — смена
+  // сущности). Для 117-минутной карточки владельца это означало бы повторный импорт = повторную
+  // оплату ASR за уже оплаченный транскрипт.
+  //
+  // В карточке уже лежит ВСЁ, что нужно: сегменты с метками (паспорт .segments) и строки таблицы
+  // (sentences). Нет только связи «строка → сегмент»: `segment_index` строки НЕ хранится нигде —
+  // такого поля в схеме sentences нет, meta_json пуст. Поэтому связь ВОССТАНАВЛИВАЕТСЯ ПО ТЕКСТУ:
+  // детерминированно, офлайн, без единого сетевого запроса и без трат.
+  //
+  // ПРАВИЛО (никаких «примерно совпало»):
+  //   • обе стороны нормализуются ОДНИМ И ТЕМ ЖЕ правилом — NFKC, затем stitchNormalizeWords
+  //     (слова любого письма, огласовки/теамим сняты ВНУТРИ слова, регистр вниз; BIDI-марки и
+  //     пунктуация словами не являются и отпадают сами). Второго нормализатора не заводим
+  //     намеренно: два правила «что такое слово» однажды разъедутся, и гейты начнут спорить
+  //     друг с другом (тот же довод, что у шва S12.4 и анти-реплей гейта S12.5);
+  //   • строки идут в порядке order_index, сегменты — в порядке i; указатель (номер сегмента si,
+  //     номер слова wi ВНУТРИ него) двигается ТОЛЬКО ВПЕРЁД;
+  //   • очередная строка обязана совпасть со словами текущего сегмента, начиная РОВНО с wi.
+  //     Сравнение ПОСЛОВНОЕ, а не indexOf по склеенной строке: indexOf нашёл бы «שלום» внутри
+  //     «שלומי» и разрешил бы перепрыгнуть непокрытый кусок сегмента — то есть ровно ту тихую
+  //     неточность, ради которой всё это и делается;
+  //   • не совпала — текущий сегмент закрывается, пробуем следующий с wi=0. Сегмент, не получивший
+  //     ни одной строки, просто не даёт записи тайминга (буквально: этой речи в таблице нет);
+  //     соврать он не может, потому что каждая строка привязана к сегменту, который она покрывает;
+  //   • строка без слов (только пунктуация, «[…]») индекса НЕ получает: доказать её принадлежность
+  //     нечем. ЕДИНСТВЕННОЕ исключение — строка, зажатая МЕЖДУ двумя строками ОДНОГО сегмента: её
+  //     принадлежность доказана порядком (строки одного сегмента идут подряд), и без этого
+  //     дозаполнения гейт непрерывности (validateRowSegMapping → SPLIT_SEGMENT) отверг бы честное
+  //     выравнивание из-за одной строки со скобками. Осознанный остаток: строка без слов на СТЫКЕ
+  //     сегментов индекса не получает, и если из-за неё у каждого сегмента остаётся ровно по
+  //     одной индексированной строке при строках > сегментов, гейт K1 назовёт маппинг вырожденным
+  //     (DEGENERATE_1_TO_1). Это отказ, а не ложное караоке, и ослаблять ради него правило K1 мы
+  //     не станем.
+  //
+  // ОРАКУЛ (до возврата ok:true, независим от бухгалтерии указателя — пересчёт из СЫРЫХ входов):
+  //   (а) тот же validateRowSegMapping, что судит ответы seg-режима и премиума (диапазон,
+  //       неубывание, непрерывность блока строк сегмента, невозможность 1:1 при строках>сегментов);
+  //   (б) КАЖДЫЙ сегмент, получивший строки, покрыт ими ЦЕЛИКОМ: конкатенация нормализованных слов
+  //       ЕГО строк === нормализованные слова самого сегмента. Одно сравнение ловит сразу два
+  //       класса брака — «строка попала не в свой сегмент» и «часть сегмента осталась непокрытой»
+  //       (а значит, и любой сдвиг границы, который указатель мог бы допустить).
+  // Любой сбой → ok:false с причиной; караоке остаётся выключенным (R11: лучше отказ, чем догадка).
+  //
+  // Возврат: { ok, rowSegIdx, reason, alignedSegments, alignedRows }. rowSegIdx отдаётся ТОЛЬКО
+  // при ok (частичный маппинг никому не нужен — на нём построили бы кривой тайминг);
+  // alignedSegments/alignedRows при отказе показывают, докуда дошли (диагностика, R9).
+  var ALIGN_VERSION = "align-rows-v1";
+
+  function alignWords(text) {
+    // NFKC — потому что премиум-строки получены из normalizeForDisplay(text) (db/premium/
+    // normalize.js), а сегменты паспорта хранят СЫРОЙ текст ASR: без NFKC презентационные формы
+    // и «…»/«..» разошлись бы на ровном месте. Дальше — общий словесный нормализатор файла.
+    return stitchNormalizeWords(String(text == null ? "" : text).normalize("NFKC"));
+  }
+
+  // Индекс сегмента в пространстве имён, которым оперируют buildRowTiming/validateRowSegMapping:
+  // поле i (его проставляет validateSegments), иначе — позиция в массиве.
+  function alignSegIndex(segments, k) {
+    var v = segments[k] && segments[k].i;
+    return Number.isInteger(v) ? v : k;
+  }
+
+  function alignRowsToSegments(rowTexts, segments) {
+    var R = Array.isArray(rowTexts) ? rowTexts : [];
+    var S = Array.isArray(segments) ? segments : [];
+    var res = function (ok, reason, rowSegIdx, segs, rows) {
+      return { ok: ok, reason: reason, rowSegIdx: ok ? rowSegIdx : [],
+               alignedSegments: segs || 0, alignedRows: rows || 0 };
+    };
+    if (!R.length || !S.length) return res(false, "EMPTY_INPUT", [], 0, 0);
+
+    var segW = [], k;
+    for (k = 0; k < S.length; k++) segW.push(alignWords(S[k] && S[k].text));
+
+    var idx = new Array(R.length).fill(null);
+    var si = 0, wi = 0, placed = 0;
+    for (var r = 0; r < R.length; r++) {
+      var w = alignWords(R[r]);
+      if (!w.length) continue;                       // строка без слов — см. дозаполнение ниже
+      var fromSi = si, fromWi = wi, hit = false;
+      while (si < S.length) {
+        var seg = segW[si];
+        if (wi + w.length <= seg.length) {
+          var same = true;
+          for (var j = 0; j < w.length; j++) { if (seg[wi + j] !== w[j]) { same = false; break; } }
+          if (same) { idx[r] = alignSegIndex(S, si); wi += w.length; placed++; hit = true; break; }
+        }
+        si++; wi = 0;                                // остаток сегмента этой строкой не начинается
+      }
+      if (!hit) {
+        // Осталось ли ВООБЩЕ непокрытое слово там, куда мы смотрели? Нет — строка лишняя (хвост
+        // таблицы за пределами транскрипта); да — она не принадлежит своему месту.
+        var left = fromSi < S.length ? segW[fromSi].length - fromWi : 0;
+        for (k = fromSi + 1; k < S.length; k++) left += segW[k].length;
+        return res(false, left > 0 ? "ROW_NOT_IN_SEGMENT" : "TRAILING_ROWS", [], 0, placed);
+      }
+    }
+
+    // Дозаполнение строк без слов, зажатых между строками ОДНОГО сегмента (доказано порядком —
+    // единственное место, где индекс проставляется не по текстовому совпадению).
+    var a = 0;
+    while (a < idx.length) {
+      if (idx[a] !== null) { a++; continue; }
+      var b = a;
+      while (b < idx.length && idx[b] === null) b++;
+      if (a > 0 && b < idx.length && idx[a - 1] !== null && idx[a - 1] === idx[b]) {
+        for (var m = a; m < b; m++) idx[m] = idx[b];
+      }
+      a = b;
+    }
+
+    // ── ОРАКУЛ ───────────────────────────────────────────────────────────────────────────────
+    var check = validateRowSegMapping(idx, S.length);
+    if (!check.ok) return res(false, check.reason || "MAPPING_INVALID", [], 0, placed);
+
+    var pos = new Map();                             // индекс сегмента → его позиция в массиве
+    for (k = 0; k < S.length; k++) {
+      var key = alignSegIndex(S, k);
+      if (pos.has(key)) return res(false, "SEGMENT_INDEX_DUP", [], 0, placed); // два сегмента с одним i
+      pos.set(key, k);
+    }
+    var acc = new Map(), assigned = 0;               // позиция сегмента → слова ЕГО строк
+    for (var q = 0; q < idx.length; q++) {
+      if (idx[q] === null) continue;
+      assigned++;
+      var p = pos.get(idx[q]);
+      if (p === undefined) return res(false, "UNKNOWN_SEGMENT", [], 0, placed);
+      var bucket = acc.get(p);
+      if (!bucket) { bucket = []; acc.set(p, bucket); }
+      var rw = alignWords(R[q]);                     // пересчёт из СЫРОГО входа, а не из кэша прохода
+      for (var z = 0; z < rw.length; z++) bucket.push(rw[z]);
+    }
+    var covered = 0, bad = null;
+    acc.forEach(function (words, p2) {
+      if (bad) return;
+      var seg2 = alignWords(S[p2] && S[p2].text);    // тоже заново из сырого текста сегмента
+      if (words.length !== seg2.length) { bad = "SEGMENT_UNCOVERED"; return; }
+      for (var z2 = 0; z2 < seg2.length; z2++) {
+        if (words[z2] !== seg2[z2]) { bad = "SEGMENT_UNCOVERED"; return; }
+      }
+      covered++;
+    });
+    if (bad) return res(false, bad, [], 0, placed);
+    return res(true, null, idx, covered, assigned);
+  }
+
   // segments (после validateSegments) + segment_index каждой строки таблицы → [{o,t}]:
   // o = ПЕРВАЯ строка сегмента, t = его start. <2 записей → null (караоке честно выключено).
+  // ⚠ Вызывать ТОЛЬКО после validateRowSegMapping().ok — сама функция осмысленность НЕ проверяет.
   function buildRowTiming(segments, rowSegIdx) {
     var firstRow = new Map();
     var rows = Array.isArray(rowSegIdx) ? rowSegIdx : [];
@@ -740,6 +1028,10 @@
     ASR_MODEL: ASR_MODEL, ASR_PROMPT: ASR_PROMPT,
     secondsFromTimestamp: secondsFromTimestamp, parseAsrResponse: parseAsrResponse,
     validateSegments: validateSegments, buildRowTiming: buildRowTiming,
+    validateRowSegMapping: validateRowSegMapping, timingLooksDegenerate: timingLooksDegenerate,
+    premiumRowLineIdx: premiumRowLineIdx,
+    // K3: офлайн-оживление караоке у уже сохранённой карточки (ни одного запроса, ни цента).
+    alignRowsToSegments: alignRowsToSegments, ALIGN_VERSION: ALIGN_VERSION,
     estimateAsrCostUsd: estimateAsrCostUsd,
     VIDEO_FRAME_TOKENS_PER_SEC_LOW: VIDEO_FRAME_TOKENS_PER_SEC_LOW,
     ASR_WINDOW_SEC: ASR_WINDOW_SEC, ASR_GAP_MAX_SEC: ASR_GAP_MAX_SEC, ASR_TAIL_GAP_SEC: ASR_TAIL_GAP_SEC,

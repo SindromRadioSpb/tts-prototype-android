@@ -205,6 +205,7 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
     const heNormKey = normalizeForKey(s.he);
     return {
       index: s.index,
+      lineIndex: s.line_index,
       heDisplay: s.he,
       heKey: heNormKey,
       heHash: hashString(heNormKey),
@@ -301,10 +302,24 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
   });
 
   // 6) Assemble rows in original order.
+  //
+  // Two indexes, two namespaces — never merge them (K2, 2026-07-30):
+  //   segment_index      — 1-based ordinal of THIS row among the premium rows.
+  //                        Premium's own identity; part of the API contract.
+  //   source_line_index  — 0-based index of the SOURCE LINE the row came from
+  //                        (db/premium/segmenter.js line_index). For text
+  //                        imported from audio/video/captions one source line is
+  //                        one ASR segment, so this is what lets the client map
+  //                        rows back to media timing (karaoke).
+  // The names are deliberately different: the karaoke mis-map bug
+  // (STUDIO_KARAOKE_ROW_TIMING_MISMAP_2026_07_30) was born of exactly one
+  // name — `segment_index` — meaning two different things on two endpoints, and
+  // a client that could not tell which one it held.
   const rows = segMeta.map((m) => {
     const r = resolved.get(m.index);
     return {
       segment_index: m.index,
+      source_line_index: m.lineIndex,
       he: r.he,
       he_niqqud: r.he_niqqud || "",
       translit: r.translit || "",
