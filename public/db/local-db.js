@@ -596,7 +596,8 @@ export async function getTextSourceText(id) {
 }
 
 export async function createText(data) {
-  const { id, text_key, title, source_text, level, tags_json, source, topic, tts_profile_json, source_meta_json } = data;
+  const { id, text_key, title, source_text, level, tags_json, source, topic, tts_profile_json,
+          source_meta_json, table_model_meta_json } = data;
   if (!id) throw new Error('createText: id is required');
   if (!text_key) throw new Error('createText: text_key is required');
   // texts.title and texts.source_text are NOT NULL in the schema; coerce nulls to ''.
@@ -604,12 +605,17 @@ export async function createText(data) {
   const safeSource = source_text == null ? '' : String(source_text);
   const now = new Date().toISOString();
   await r(
+    // E1: table_model_meta_json ДОБАВЛЕН в INSERT. Он молча терялся на КАЖДОМ импорте:
+    // importBundle (Shape A) исправно клал item.table_model_meta в textData, а createText
+    // просто не знал такой колонки — паспорт карточки, сохранённой через «Обновить
+    // карточку», не переживал ни один export/import. Аддитивно: старые вызовы без поля
+    // пишут NULL ровно как раньше.
     `INSERT INTO texts (id, text_key, title, source_text, level, tags_json, source, topic,
-       tts_profile_json, source_meta_json, created_at, updated_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+       tts_profile_json, source_meta_json, table_model_meta_json, created_at, updated_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     [id, text_key, safeTitle, safeSource,
      level ?? null, tags_json ?? '[]', source ?? null, topic ?? null,
-     tts_profile_json ?? null, source_meta_json ?? null, now, now]
+     tts_profile_json ?? null, source_meta_json ?? null, table_model_meta_json ?? null, now, now]
   );
   return getTextById(id);
 }
@@ -1030,7 +1036,8 @@ export async function bulkSaveLemmaInflections(rows, opts) {
 export async function addSentence(textId, data) {
   if (!textId) throw new Error('addSentence: textId is required');
   if (!data || !data.id) throw new Error('addSentence: data.id is required');
-  const { id, he_plain, he_niqqud, translit, translit_ru, ru, meta_json, edit_meta_json } = data;
+  const { id, he_plain, he_niqqud, translit, translit_ru, ru, meta_json, edit_meta_json,
+          translation_provider, translation_meta_json } = data;
   const toStr = (v) => (v == null ? '' : String(v));
   const toJson = (v) => {
     if (v == null) return null;
@@ -1042,13 +1049,19 @@ export async function addSentence(textId, data) {
   const order = (maxRow[0]?.m ?? -1) + 1;
   const now = new Date().toISOString();
   await r(
+    // E1: провенанс перевода (translation_provider/translation_meta_json) — колонки
+    // мигр. 017; до сих пор их писал ТОЛЬКО updateSentence, поэтому импорт всегда
+    // рождал строки без провенанса. Аддитивно: отсутствующие поля → NULL.
+    // he_norm / row_hash сознательно НЕ пишутся — производные от he_plain.
     `INSERT INTO sentences (id, text_id, order_index, he_plain, he_niqqud, translit, translit_ru,
-       ru, meta_json, edit_meta_json, created_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+       ru, meta_json, edit_meta_json, translation_provider, translation_meta_json, created_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     [id, textId, order,
      toStr(he_plain), toStr(he_niqqud), toStr(translit),
      translit_ru == null ? null : String(translit_ru),
-     toStr(ru), toJson(meta_json), toJson(edit_meta_json), now]
+     toStr(ru), toJson(meta_json), toJson(edit_meta_json),
+     translation_provider == null ? null : String(translation_provider),
+     toJson(translation_meta_json), now]
   );
   await clearDerivedNiqqud(textId);
   await _touchTextUpdatedAt(textId);
@@ -5334,6 +5347,13 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
           audio_asset_key: r.audio_asset_key || r.audioAssetKey || null,
           note: r.note || null,
           order_index: r.order_index ?? null,
+          // E1 — построчный провенанс качества (text-card v2 несёт его явно; обычный
+          // exportBundle пока не эмитит эти поля → undefined → NULL, без изменения
+          // поведения существующих бандлов). meta_json несёт niqqud_derived, без него
+          // машинный никуд получателя не отличить от утверждённого (R9).
+          translation_provider: r.translation_provider ?? null,
+          translation_meta_json: r.translation_meta ? JSON.stringify(r.translation_meta) : (r.translation_meta_json || null),
+          meta_json: r.meta ? JSON.stringify(r.meta) : (r.meta_json || null),
         })),
       };
     } else {
@@ -5393,6 +5413,8 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
       // anchor-shaped occurrences (sentence-id регенерируются на каждом импорте).
       const _oiToNewSid = new Map();
       let _sIdx = 0;
+      // E1-ревью — кэш машинного никуда, который addSentence сносит по дороге (см. ниже).
+      const _derivedMetaRestore = [];   // [newSentenceId, meta_json]
       for (const s of sentences) {
         const newSentenceId = crypto.randomUUID();
         const _oldSid = String(s.row_id || s.id || '');
@@ -5401,6 +5423,23 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
         if (Number.isFinite(_oi) && !_oiToNewSid.has(_oi)) _oiToNewSid.set(_oi, newSentenceId);
         _sIdx++;
         await addSentence(newTextId, { ...s, id: newSentenceId });
+        // E1-ревью (R11 do-no-harm) — addSentence завершается clearDerivedNiqqud(textId),
+        // который вырезает $.niqqud_derived у ВСЕГО текста: кэш машинного никуда привязан к
+        // хэшу тела, а тело меняется на каждой вставке. При импорте тело собирается строка за
+        // строкой, поэтому эта чистка сносила ровно тот никуд, который бандл только что привёз
+        // — включая строку, вставленную мгновением раньше. Симптом (замер на живом importBundle):
+        // meta_json приезжал как "{}", he_niqqud пустой ⇒ никуд не «скрыт до пересчёта хэша», а
+        // УНИЧТОЖЕН, и восстановить его нечем, кроме повторного прогона Nakdan.
+        // Чиним НЕ трогая addSentence (его контракт нужен всем остальным писателям): запоминаем
+        // привезённый meta_json и возвращаем его один раз, когда текст собран целиком.
+        if (s.meta_json != null) {
+          try {
+            const _m = (typeof s.meta_json === 'string') ? JSON.parse(s.meta_json) : s.meta_json;
+            if (_m && typeof _m === 'object' && _m.niqqud_derived) {
+              _derivedMetaRestore.push([newSentenceId, JSON.stringify(_m)]);
+            }
+          } catch (_) {}
+        }
         if (s.note && s.note.trim()) {
           const _inlineRow = await upsertNote(newTextId, newSentenceId, s.note);
           if (_inlineRow && _inlineRow.id) {
@@ -5439,6 +5478,16 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
             await linkSentenceAudio(newSentenceId, asset.id, 1);
           }
         }
+      }
+      // E1-ревью — возврат машинного никуда, снесённого clearDerivedNiqqud внутри addSentence
+      // (см. развёрнутый комментарий у места накопления). Делается ПОСЛЕ последней строки:
+      // тело текста уже финально, поэтому source_hash в meta совпадёт с тем, что посчитает
+      // проекция getSentences(), и строка честно прочитается как DERIVED. Если тело у
+      // получателя всё-таки другое (хэш не сойдётся) — никуд не показывается, но и НЕ теряется:
+      // значение остаётся в meta.niqqud_derived. he_niqqud намеренно не трогаем: машинный никуд
+      // не имеет права стать ASSERTED (R9 derived ≠ asserted).
+      for (const [_sid, _mj] of _derivedMetaRestore) {
+        await r('UPDATE sentences SET meta_json = ? WHERE id = ? AND text_id = ?', [_mj, _sid, newTextId]);
       }
       // P0 §6.6 — восстановление закладок (re-anchor по order_index; OR IGNORE по
       // ux_bookmarks_pos). Раньше закладки гибли молча при LWW-replace (CASCADE есть,

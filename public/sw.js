@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.267";
+const CACHE_VERSION = "v3.11.268";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -137,6 +137,9 @@ const PRECACHE_URLS = [
   // consumer studio-import.js: a stale-SW page without window.Mp3Slice silently falls back
   // to the ranged-file transport — the very transport S12.5 exists to retire (T2 review).
   "/js/mp3-slice.js",
+  // E1 — формат «карточки текста» v1/v2 (share/import). Без него inline-код шаринга
+  // молча деградировал бы до v1 (потеря паспорта), а импорт — до generic-бандла.
+  "/js/text-card-format.js",
   "/js/studio-media-karaoke.js",
   // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
   "/js/captions-parse.js",

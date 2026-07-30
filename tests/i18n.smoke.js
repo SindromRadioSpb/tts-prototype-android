@@ -134,6 +134,96 @@ test("he.js has all keys from ru.js", () => {
   assert.strictEqual(missing.length, 0, `Missing in he.js: ${missing.join(", ")}`);
 });
 
+// ── Suite 1b: duplicate keys inside a single locale object ───────────────────
+//
+// Why this cannot ride on Suite 1: a repeated key in an object literal is NOT a
+// JS error. A second `tcs: { … }` block silently REPLACES the first one whole,
+// and symmetry stays perfect (the same block vanishes in ru/en/he alike), so
+// Suite 1 and every "key resolves" suite stay green while real keys are gone.
+// Observed cost: appending a new `tcs`/`tci` block instead of extending the
+// existing one deleted 25 share/import-modal keys in one commit — t() then
+// returns the raw key, applyI18n keeps the hardcoded Russian in index.html, and
+// English/Hebrew users silently get Russian UI with no gate saying a word.
+//
+// Scanner, not regex: tracks string/template/comment state and only counts an
+// identifier or quoted literal as a KEY when the previous significant character
+// was `{` or `,` (so `a ? b : c` and colons inside strings can't masquerade).
+
+function duplicateKeyPaths(src) {
+  const dups = [];
+  const frames = [];                 // {keys:Set, label:string}
+  let prevSig = "";                  // last significant (non-space/comment) char
+  let lastKey = "";                  // key that may open the next `{`
+  let i = 0;
+  const n = src.length;
+
+  const record = (name) => {
+    const f = frames[frames.length - 1];
+    if (!f) return;
+    const full = f.label ? `${f.label}.${name}` : name;
+    if (f.keys.has(name)) dups.push(full);
+    else f.keys.add(name);
+    lastKey = name;
+  };
+
+  while (i < n) {
+    const c = src[i];
+    if (c === "/" && src[i + 1] === "/") { while (i < n && src[i] !== "\n") i++; continue; }
+    if (c === "/" && src[i + 1] === "*") { i += 2; while (i < n && !(src[i] === "*" && src[i + 1] === "/")) i++; i += 2; continue; }
+    if (c === '"' || c === "'" || c === "`") {
+      let j = i + 1;
+      while (j < n) { if (src[j] === "\\") { j += 2; continue; } if (src[j] === c) break; j++; }
+      const raw = src.slice(i + 1, j);
+      let k = j + 1;
+      while (k < n && /\s/.test(src[k])) k++;
+      if (src[k] === ":" && (prevSig === "{" || prevSig === ",")) record(raw);
+      i = j + 1; prevSig = "s";
+      continue;
+    }
+    if (/[A-Za-z_$]/.test(c)) {
+      let j = i;
+      while (j < n && /[\w$]/.test(src[j])) j++;
+      const word = src.slice(i, j);
+      let k = j;
+      while (k < n && /\s/.test(src[k])) k++;
+      if (src[k] === ":" && (prevSig === "{" || prevSig === ",")) record(word);
+      i = j; prevSig = "w";
+      continue;
+    }
+    if (c === "{") {
+      const parent = frames[frames.length - 1];
+      const base = parent ? (parent.label ? `${parent.label}.${lastKey}` : lastKey) : "";
+      frames.push({ keys: new Set(), label: frames.length ? base : "" });
+      lastKey = ""; prevSig = "{"; i++; continue;
+    }
+    if (c === "}") { frames.pop(); prevSig = "}"; i++; continue; }
+    if (/\s/.test(c)) { i++; continue; }
+    prevSig = c; i++;
+  }
+  return dups;
+}
+
+for (const name of ["ru", "en", "he"]) {
+  test(`${name}.js has no duplicate keys inside one object (a dup silently deletes the earlier block)`, () => {
+    const dups = duplicateKeyPaths(fs.readFileSync(path.join(localeDir, `${name}.js`), "utf8"));
+    assert.strictEqual(
+      dups.length, 0,
+      `Duplicate key(s) in ${name}.js: ${dups.join(", ")}. ` +
+      "The LATER literal wins and wipes every key of the earlier one. " +
+      "Extend the existing block instead of appending a second one with the same name."
+    );
+  });
+}
+
+// self-check: the scanner must actually be able to see a duplicate, otherwise the
+// three tests above would pass vacuously forever (independent-oracle discipline).
+test("duplicate-key scanner detects a planted duplicate (guards against a vacuous gate)", () => {
+  const planted = 'window.X = { a: { one: "1" }, b: "2", a: { two: "3" } };';
+  assert.deepStrictEqual(duplicateKeyPaths(planted), ["a"]);
+  assert.deepStrictEqual(duplicateKeyPaths('window.X = { a: { p: "1", p: "2" } };'), ["a.p"]);
+  assert.deepStrictEqual(duplicateKeyPaths('window.X = { a: "x: y", b: "c: d" };'), []);
+});
+
 // ── Suite 2: t() resolution ───────────────────────────────────────────────────
 
 console.log("\n[Suite 2] t() key resolution");

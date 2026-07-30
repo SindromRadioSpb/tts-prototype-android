@@ -6164,6 +6164,19 @@ body:not(.theme-light) .v3-notes-template-banner {
   max-height: 120px;
   overflow-y: auto;
 }
+/* E1 — честная строка «что из медиа реально уедет / чего у получателя не будет».
+   Янтарная, а не синяя: это ограничение, а не подсказка (см. transparency-preview
+   паттерн — предупреждение не должно выглядеть как обещание). */
+.v3-tcs-media-note {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--theme-text-secondary, #64748b);
+  background: rgba(245,158,11,0.08);
+  border-inline-start: 3px solid rgba(245,158,11,0.45);
+  padding: 6px 9px;
+  border-radius: 4px;
+  margin: 4px 0 8px;
+}
 .v3-tcs-info, .v3-tci-info {
   font-size: 12px;
   color: var(--theme-text-secondary, #64748b);
@@ -11307,8 +11320,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
       <div id="v3TcsPreview" class="v3-tcs-preview">
         <!-- card preview rendered by v3TextCardShareOpen -->
       </div>
+      <!-- E1: прежний текст обещал «10–50 KB» — это было верно для v1 (только таблица).
+           v2 везёт ещё и паспорт источника, а он на длинном медиа доходит до сотен КБ. -->
       <div class="v3-tcs-info" data-i18n="tcs.audioInfo">
-        Lightweight-карточка маленькая (10–50 KB) и быстро отправляется. Аудио восстановится у получателя из общего content-addressed кэша при первом воспроизведении. Если получатель будет offline или подключён к другому серверу — выберите «Скачать ZIP с аудио».
+        JSON везёт таблицу и паспорт источника (сегменты, тайминг, провенанс) — от ~10 КБ до нескольких сотен КБ на длинном медиа. Построчное аудио восстановится у получателя из общего content-addressed кэша при первом воспроизведении. Если получатель offline или подключён к другому серверу — выберите «Скачать ZIP с аудио».
       </div>
       <div class="v3-tcs-actions">
         <button id="v3TcsBtnNative"  class="btn-primary"   onclick="v3TextCardShareNative()"  data-i18n="tcs.btnNative">📤 Поделиться</button>
@@ -12349,9 +12364,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=77"></script>
-<script src="/i18n/locales/en.js?v=77"></script>
-<script src="/i18n/locales/he.js?v=77"></script>
+<script src="/i18n/locales/ru.js?v=78"></script>
+<script src="/i18n/locales/en.js?v=78"></script>
+<script src="/i18n/locales/he.js?v=78"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12437,6 +12452,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- S12.5 sliced-mp3 transport — pure mp3 frame-map slicer (window.Mp3Slice), no cross-deps
      of its own, but must load before studio-import.js which consumes it in transcribeAudio(). -->
 <script src="/js/mp3-slice.js"></script>
+<!-- E1 — ядро формата «карточка текста» v1/v2 (build/detect/adapt). Чистые функции,
+     потребляются inline-кодом шаринга/импорта ниже (window.TextCardFormat). -->
+<script src="/js/text-card-format.js"></script>
 <script src="/js/studio-media-karaoke.js"></script>
 
 <!-- W2-S5a Studio Ingest captions/video deps — pure, no cross-deps between the two, but BOTH
@@ -12490,7 +12508,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.267";
+    window.APP_VERSION = "3.11.268";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -23843,9 +23861,26 @@ function v3MediaAugmentRows() {
     // YouTube stage adapter instead is deliberately NOT done yet — see the trap documented at
     // studio-media-karaoke.js playSegment() (IMPORTANT 3, same review).
     if (!audio || !audio.timing || !audio.media) return;
+    // E1 (R11, честная деградация): наличия ПАСПОРТА мало — сам файл может отсутствовать
+    // в OPFS этого браузера. Ровно такой случай теперь массовый: карточка, импортированная
+    // из text-card v2, всегда несёт audio.media (opfsPath+sha256 отправителя), а байтов у
+    // получателя нет. Без этой проверки на каждой строке рисовалась кнопка «▶︎», чей
+    // обработчик молча выходил по `if (!blob) return;` — тупик вместо объяснения (объяснение
+    // даёт медиа-бар: t("studio.media.fileMissing")).
+    v3MediaResolveBlob(audio).then((blob) => {
+      if (!blob) return;
+      if (window.v3ActiveMediaAudio !== audio) return;   // текст сменился, пока резолвили
+      v3MediaRenderRowReplay(table, audio);
+    }).catch(() => {});
+  } catch (_) {}
+}
+
+function v3MediaRenderRowReplay(table, audio) {
+  try {
     table.querySelectorAll("tbody tr[data-row-idx]").forEach((tr) => {
       const cell = tr.querySelector("td:last-child") || tr.lastElementChild;
       if (!cell) return;
+      if (tr.querySelector(".smk-row-replay")) return;   // повторный async-проход не дублирует
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "smk-row-replay";
@@ -40492,7 +40527,10 @@ window.v3TextCardBuilderDownloadZip = v3TextCardBuilderDownloadZip;
 // shape and feeds existing `importBundle` API. Audio resolution is lazy
 // (existing row-TTS pipeline) OR eager via opt-in checkbox.
 
-const V3_TCS_FORMAT = 'linguistpro-text-card-v1';
+// E1 — версии формата (V3_TCS_FORMAT удалён): экспорт пишет v2 (паспорт источника +
+// построчный провенанс), импорт принимает ОБЕ версии (v1 = все ранее скачанные файлы
+// владельца). Единственный источник истины о версиях и о форме payload —
+// public/js/text-card-format.js (window.TextCardFormat.SUPPORTED_FORMATS).
 const V3_TCS_APP_TAG = 'linguist-pro-web/3.2.0';
 
 let v3TcsCurrentTextId = null;
@@ -40509,53 +40547,58 @@ function v3TcsSlugify(s) {
     .slice(0, 64) || 'card';
 }
 
-// Build the `text-card-v1` payload from a library text id (OPFS read).
+// Build the `text-card-v2` payload from a library text id (OPFS read).
+// Вся форма payload — в TextCardFormat.buildCardPayload (чистая, под юнит-тестом);
+// здесь остаётся ТОЛЬКО чтение из OPFS. getSentences() отдаёт уже спроецированные
+// строки (niqqud_authority), getTextById() — обе meta-колонки (SELECT *).
 async function v3TcsBuildCardPayload(textId) {
   if (!LOCAL_MODE) throw new Error('share requires LOCAL_MODE');
+  if (!window.TextCardFormat) throw new Error('TextCardFormat not loaded');
   const ldb = await ensureLocalDB();
   const text = await ldb.getTextById(String(textId));
   if (!text) throw new Error('text not found: ' + textId);
   const sentences = await ldb.getSentences(String(textId));
   if (!sentences || !sentences.length) throw new Error('no sentences for text');
 
-  const parseJson = (raw, fallback) => {
-    if (raw == null) return fallback;
-    if (typeof raw === 'object') return raw;
-    try { return JSON.parse(String(raw)); } catch (_) { return fallback; }
-  };
+  // Заметки строк: в v1 поле `note` было захардкожено в null (реальная потеря).
+  const notesBySentenceId = {};
+  try {
+    const notes = await ldb.listNotes(String(textId));
+    for (const n of (notes || [])) {
+      if (n && n.sentence_id && n.note) notesBySentenceId[String(n.sentence_id)] = n.note;
+    }
+  } catch (_) {}
 
-  const ttsProfile = parseJson(text.tts_profile_json, null);
-  const tagsParsed = parseJson(text.tags_json, []);
+  return window.TextCardFormat.buildCardPayload({
+    text, sentences, notesBySentenceId, appTag: V3_TCS_APP_TAG,
+  });
+}
 
-  const rows = sentences.map((s, i) => ({
-    row_id: String(s.id || ''),
-    order_index: Number.isFinite(s.order_index) ? Number(s.order_index) : i,
-    hebrew_plain:  String(s.he_plain || ''),
-    hebrew_niqqud: String(s.he_niqqud || ''),
-    translit:      String(s.translit || ''),
-    translit_ru:   String(s.translit_ru || ''),
-    russian:       String(s.ru || ''),
-    audio_asset_key: String(s.audio_asset_key || '') || null,
-    edit_meta: null,
-    note: null,
-  }));
-
-  return {
-    format: V3_TCS_FORMAT,
-    exported_at: new Date().toISOString(),
-    exported_by_app: V3_TCS_APP_TAG,
-    card: {
-      title:        text.title || null,
-      level:        text.level || null,
-      tags:         Array.isArray(tagsParsed) ? tagsParsed : [],
-      source_label: text.source || null,
-      topic:        text.topic || null,
-      source_text:  text.source_text || '',
-      rows,
-      tts_profile:  ttsProfile,
-      text_audio_asset_key: text.audio_asset_key || null,
-    },
-  };
+// E1 (R11) — честная строка про паспорт/медиа в обоих превью (шаринг и импорт).
+// Правило: аудио-БАЙТЫ в JSON не едут никогда; едет паспорт (сегменты/тайминг/asr)
+// и ссылка на файл. `forImport` добавляет условие, при котором караоке оживёт у
+// получателя. Пустая строка = паспорта нет, ничего не обещаем.
+function v3TcsMediaNoteHtml(card, forImport) {
+  try {
+    if (!window.TextCardFormat) return '';
+    const m = window.TextCardFormat.cardMediaSummary(card);
+    const esc = (s) => v3EscapeHtml(String(s == null ? '' : s));
+    if (!m) {
+      return '<div class="v3-tcs-media-note">' +
+        esc(v3NotesT('tcs.passportNone', 'Паспорт источника: нет — карточка переносит только таблицу.')) +
+        '</div>';
+    }
+    const parts = [];
+    parts.push('<span>' + esc(v3NotesT('tcs.mediaSegments', 'Сегментов')) + ': <b>' + m.segments + '</b></span>');
+    parts.push('<span>' + esc(v3NotesT('tcs.mediaTiming', 'Тайминг')) + ': <b>' +
+      esc(m.hasTiming ? v3NotesT('tcs.yes', 'есть') : v3NotesT('tcs.no', 'нет')) + '</b></span>');
+    if (m.mediaName) parts.push('<span>' + esc(v3NotesT('tcs.mediaFile', 'Файл')) + ': ' + esc(m.mediaName) + '</span>');
+    const tail = forImport
+      ? v3NotesT('tci.mediaLocalNeeded', 'Караоке включится только если этот аудио-файл уже есть в OPFS этого браузера. Иначе — таблица без аудио.')
+      : v3NotesT('tcs.mediaNotEmbedded', 'Аудио-файл в JSON не вкладывается — едет только паспорт (сегменты, тайминг, провенанс) и ссылка на файл. Для переноса аудио используйте ZIP.');
+    return '<div class="v3-tcs-preview-meta">' + parts.join('') + '</div>' +
+           '<div class="v3-tcs-media-note">' + esc(tail) + '</div>';
+  } catch (_) { return ''; }
 }
 
 async function v3TextCardShareOpen(textId) {
@@ -40581,6 +40624,7 @@ async function v3TextCardShareOpen(textId) {
         '<span>' + esc(v3NotesT('tcs.audioLabel', 'Аудио')) + ': <b>' + audioCount + '</b></span>' +
         (c.level ? '<span>' + esc(v3NotesT('tcs.levelLabel', 'Уровень')) + ': ' + esc(c.level) + '</span>' : '') +
       '</div>' +
+      v3TcsMediaNoteHtml(c, false) +
       (samples ? '<div class="v3-tcs-preview-sample">' + samples + '</div>' : '');
     if (preview) preview.innerHTML = html;
 
@@ -40728,51 +40772,19 @@ window.v3TextCardShareDownloadZip = v3TextCardShareDownloadZip;
 
 // ── Receiver-side: import detection + preview + commit ─────────────────
 
-// Adapter — converts a `text-card-v1` payload into the library-bundle
+// Adapter — converts a `text-card-v1|v2` payload into the library-bundle
 // shape `importBundle()` expects. Single text + audio_assets stub for
 // every referenced asset_key (importBundle uses these as the receiver's
 // audio_cache index; OPFS fetch fills the actual MP3 bytes lazily later).
+//
+// E1: реализация переехала в TextCardFormat.cardToBundle (чистая, под юнит-тестом).
+// Там же исправлены две реальные потери прежнего адаптера: (а) строки отдавались
+// под именем `he`, а importBundle читает `hebrew_plain || he_plain` — ИВРИТ ТЕРЯЛСЯ
+// целиком; (б) `source_meta_json` игнорировался импортом (Shape A читает `source_meta`),
+// т.е. паспорт не восстанавливался никогда.
 function v3TextCardImportAdapter(payload) {
-  const c = payload.card || {};
-  const rows = Array.isArray(c.rows) ? c.rows : [];
-  const audioKeys = new Set();
-  const bundleRows = rows.map((r, i) => {
-    const k = String(r.audio_asset_key || '').trim();
-    if (k) audioKeys.add(k);
-    return {
-      row_id:        r.row_id || (crypto.randomUUID()),
-      order_index:   Number.isFinite(r.order_index) ? r.order_index : i,
-      he:            r.hebrew_plain || '',
-      he_niqqud:     r.hebrew_niqqud || '',
-      translit:      r.translit || '',
-      translit_ru:   r.translit_ru || '',
-      ru:            r.russian || '',
-      audio_asset_key: k || null,
-      edit_meta_json: null,
-    };
-  });
-  const text = {
-    text_key: 'text-card-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
-    title:    c.title || null,
-    level:    c.level || null,
-    tags_json: JSON.stringify(c.tags || []),
-    source:   c.source_label || null,
-    topic:    c.topic || null,
-    source_text: c.source_text || '',
-    tts_profile_json: JSON.stringify(c.tts_profile || null),
-    source_meta_json: JSON.stringify({
-      origin: 'text-card-share',
-      imported_at: new Date().toISOString(),
-      exported_by_app: payload.exported_by_app || null,
-      exported_at: payload.exported_at || null,
-    }),
-    rows: bundleRows,
-    audio_asset_key: c.text_audio_asset_key || null,
-  };
-  const audio_assets = Array.from(audioKeys).map(k => ({ asset_key: k, voice: null, rate: null, pitch: null, language: null, size_bytes: null }));
-  return {
-    library: { texts: [text], audio_assets },
-  };
+  if (!window.TextCardFormat) throw new Error('TextCardFormat not loaded');
+  return window.TextCardFormat.cardToBundle(payload);
 }
 
 function v3TextCardImportClose() {
@@ -40803,6 +40815,7 @@ function v3TextCardImportShowPreview(payload) {
       (c.level ? '<span>' + esc(v3NotesT('tcs.levelLabel', 'Уровень')) + ': ' + esc(c.level) + '</span>' : '') +
       (c.source_label ? '<span>' + esc(v3NotesT('tcs.sourceLabel', 'Источник')) + ': ' + esc(c.source_label) + '</span>' : '') +
     '</div>' +
+    v3TcsMediaNoteHtml(c, true) +
     (samples ? '<div class="v3-tci-preview-sample">' + samples + '</div>' : '');
   preview.innerHTML = html;
   modal.classList.remove('hidden');
@@ -40879,12 +40892,29 @@ async function v3TcsPreloadAudioKeys(keys, statusEl) {
   return done;
 }
 
-// Detect text-card-v1 format on file import; route to preview if matched.
-// Returns true if the file was handled (preview opened); false otherwise.
+// Detect text-card v1/v2 format on file import; route to preview if matched.
+// Returns true if the file was HANDLED (preview opened, or an honest error shown);
+// false only when this isn't a text-card at all.
+//
+// E1 (feedback_silent_empty_vs_real_empty): раньше при незнакомой версии функция
+// возвращала false, файл проваливался в generic-импорт бандла и тот честно находил
+// ноль текстов → пользователь видел «добавлено 0, пропущено 0» вместо «формат новее
+// приложения». Теперь карточка-с-неизвестной-версией — обработанный случай с
+// понятной ошибкой. (Старые СБОРКИ так не умеют — этого не починить задним числом.)
 function v3TextCardImportTryDetect(parsedJson) {
-  if (!parsedJson || typeof parsedJson !== 'object') return false;
-  if (parsedJson.format !== V3_TCS_FORMAT) return false;
-  if (!parsedJson.card || !Array.isArray(parsedJson.card.rows)) return false;
+  const TCF = window.TextCardFormat;
+  if (!TCF) return false;
+  const det = TCF.detectCard(parsedJson);
+  if (!det.isCard) return false;
+  if (!det.supported) {
+    const msg = det.reason === 'CARD_NO_ROWS'
+      ? v3NotesT('tci.cardNoRows', 'Файл карточки повреждён: нет строк таблицы.')
+      : v3NotesT('tci.formatUnsupported', 'Формат карточки ({fmt}) новее этой версии приложения — обновите LinguistPro.')
+          .replace('{fmt}', String(det.format || '?'));
+    try { showToast(msg, 'error'); } catch (_) {}
+    console.warn('[tci] unsupported card format', det);
+    return true;
+  }
   v3TextCardImportShowPreview(parsedJson);
   return true;
 }
