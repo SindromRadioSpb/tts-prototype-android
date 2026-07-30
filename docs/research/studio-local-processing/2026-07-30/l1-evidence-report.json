@@ -1,0 +1,146 @@
+{
+  "schema": "studio-local-asr-l1-evidence-v1",
+  "date": "2026-07-30",
+  "scope": {
+    "model_id": "ivrit-ai/whisper-large-v3-turbo-ct2",
+    "revision": "72ad623a37947395efcc3933132353790e5a12f5",
+    "model_bin_sha256": "db2a2265aa012c16c7db9edda3d699c99f984efdd3f2e22a72a8ce7e9720f3a2",
+    "full_large_v3_default_or_fallback": false,
+    "permanent_integration_authorized": false,
+    "schema_production_or_provider_default_changed": false
+  },
+  "implementation_commits": [
+    "81069b17",
+    "de8c7d61",
+    "e387f16f",
+    "f83b6fe8",
+    "aa8dffa0"
+  ],
+  "automated_gates": {
+    "ai_local_pytest": {"passed": 41, "failed": 0},
+    "local_asr_node": {"passed": 17, "failed": 0},
+    "i18n_smoke": {"passed": 233, "failed": 0},
+    "api_smoke": "PASS",
+    "python_compileall": "PASS",
+    "full_npm_test": {
+      "passed": 629,
+      "failed": 9,
+      "classification": "unrelated baseline failures",
+      "details": [
+        "classicModeRedesign expects btnTableCustomizeToggle, which is absent in pre-L1 HEAD",
+        "eight premium pipeline cases fail the existing GCP BYOK/config preflight"
+      ]
+    }
+  },
+  "browser_smoke": {
+    "browser": "Chrome",
+    "viewport_requested_px": 380,
+    "default_off_provider_controls_hidden": true,
+    "modal_reset_provider": "gemini",
+    "experimental_local_visible_only_after_explicit_flag": true,
+    "local_selection_requires_pairing_token": true,
+    "horizontal_modal_overflow": false,
+    "defect_found_and_fixed": "mobile column layout retained a 180px flex basis on the pairing input",
+    "edge": "NOT_RUN",
+    "firefox": "NOT_RUN"
+  },
+  "live_runs": {
+    "model_lifecycle": {
+      "managed_activation": "PASS",
+      "full_hash_verification": "PASS",
+      "warmup": "ready",
+      "unload": "unloaded",
+      "temporary_store_removed": true
+    },
+    "s12_117min": {
+      "source_sha256": "7ab09806282db3ce4190c92ab56c0924e43f5f7c406d26e875da389fe3c149c4",
+      "duration_sec": 7017.691417,
+      "chunks": 8,
+      "wall_sec": 251.625,
+      "rtf": 0.03585580856269218,
+      "max_temperature_c": 58,
+      "min_free_vram_mib": 3726,
+      "thermal_throttle": false,
+      "duplicate_4gram_ratio": 0.02616571620261657,
+      "zero_text_chunks": 0,
+      "s12_5": "PASS after deterministic result rebuild from immutable raw chunks with the canonical-number fix",
+      "s12_6": "PASS",
+      "s12_7": "PASS",
+      "incident": "the first browser normalization exposed Python 1.0/-0.0 versus JSON.stringify 1/0 canonical hash drift; no raw chunk was changed or re-inferred"
+    },
+    "long_soak": {
+      "source_sha256": "1ebfb9a5b26aa2b4d0bbf347f6b12164ab8b3b3c70d6852f49eb59ae05c03363",
+      "duration_sec": 10799,
+      "chunks": 12,
+      "wall_sec": 383.796,
+      "provider_elapsed_sec": 350.7380822005216,
+      "rtf": 0.03553995740346328,
+      "max_temperature_c": 59,
+      "min_free_vram_mib": 3553,
+      "thermal_throttle": false,
+      "duplicate_4gram_ratio": 0.028815153143471252,
+      "zero_text_chunks": 0,
+      "s12_5": "PASS",
+      "s12_6": "PASS",
+      "s12_7": "PASS"
+    },
+    "over_cap_boundary": {
+      "duration_sec": 11658.762438,
+      "verdict": "PASS",
+      "terminal": "FAILED",
+      "error_code": "LOCAL_MEDIA_UNSUPPORTED",
+      "meaning": "source over the 3h L1 cap was rejected before slicing"
+    },
+    "cancel": {
+      "ack_ms": 101.3,
+      "terminal_ms": 235.2,
+      "terminal": "CANCELED",
+      "chunks_completed": 0,
+      "vram_released": true
+    },
+    "restart_resume": {
+      "restart_state": "RECOVERABLE",
+      "before_restart_chunks": 1,
+      "terminal_chunks": 3,
+      "resume_sec": 49.8,
+      "chunk_0_raw_hash_stable": true,
+      "chunk_0_attempts": 1,
+      "duplicate_accepted_inference": 0,
+      "s12_5": "PASS",
+      "s12_6": "PASS",
+      "s12_7": "PASS"
+    },
+    "deletion": {
+      "receipt_at_utc": "2026-07-30T20:13:29Z",
+      "deleted": true,
+      "job_directory_absent": true,
+      "remaining_job_directories": 0
+    }
+  },
+  "fault_gates": {
+    "checksum_and_partial_activation": "PASS automated",
+    "model_disk_low_preflight": "PASS automated",
+    "cuda_oom_same_pin_one_retry_then_fail": "PASS automated",
+    "telemetry_unavailable_fail_closed": "PASS automated",
+    "thermal_abort_policy": "PASS automated; destructive live heating NOT_RUN",
+    "slicer_and_physical_manifest_mutations": "PASS automated",
+    "sidecar_down_no_implicit_cloud_fallback": "PASS automated",
+    "cancel": "PASS automated and live",
+    "restart_resume": "PASS automated and live"
+  },
+  "open_gates": [
+    "L1 batch-20 was not rerun through the new sidecar path; only the frozen L0 result exists",
+    "human-gold >=60 minutes and >=12 speakers is not available",
+    "paired complete Gemini comparison is still open because the L0 cloud run hit quota",
+    "owner listen/read acceptance is not recorded",
+    "Edge and Firefox loopback/PNA/RTL live matrix is not run",
+    "B+C provenance/schema and UX/data-integrity debts remain open",
+    "thermal and OOM are deterministically injected tests, not destructive live hardware faults"
+  ],
+  "decision": {
+    "bounded_l1_engineering": "PASS_WITH_OPEN_ACCEPTANCE_GATES",
+    "permanent_integration": "NO_GO",
+    "provider_policy_or_default_change": "NO_GO",
+    "next_step_requires_owner_decision": true
+  }
+}

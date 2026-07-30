@@ -1,8 +1,9 @@
 # Студия: импорт, медиа-артефакты и локальная обработка — roadmap
 
 > **Дата:** 2026-07-30
-> **Статус:** 🟢 направление формализовано по директиве владельца 2026-07-30; конкретные
-> модели и реализационные слайсы требуют measure-before-code и отдельного exit-gate.
+> **Статус:** 🟡 L0 завершён; ограниченная default-off L1-A→L1-E реализация выполнена и
+> имеет `PASS_WITH_OPEN_ACCEPTANCE_GATES`. Permanent integration/provider policy — NO-GO до
+> отдельного решения владельца и закрытия human/browser/B+C gates.
 > **Срез кода:** `4a17686d` (S12.7 SHIPPED v3.11.270).
 > **Место в каноне:** специализированный сквозной трек общего roadmap
 > `STUDIO_INGEST_ROADMAP_2026_07_30.md`. Здесь определён local-processing L0–L6;
@@ -44,7 +45,7 @@
 | Local перевод | 🟡 код есть | `ai-local`: MADLAD-400 10B, CT2 int8_float16, ~6.5ГБ; provider существует |
 | Local Hebrew TTS | 🟠 эксперимент | Phonikud/Piper интегрирован, но выключен: качество слишком роботизировано; license-mode ограничен |
 | Browser local TTS | 🟠 каркас | provider/router/WASM есть; Hebrew-модель не staged, текущие local providers выключены политикой |
-| Local ASR | ❌ нет интеграции | главный новый трек L1 |
+| Local ASR | 🟡 default-off L1 code/evidence | pinned turbo CT2; permanent integration и provider defaults не разрешены |
 | Media package/редактор субтитров | ❌ нет | субтитры пока вход, а не переносимый versioned-артефакт |
 | Resume после закрытия вкладки | ❌ нет полного job-ledger | критично для 1–3ч и batch |
 
@@ -200,10 +201,10 @@ baseline: разборчивость, никуд/ударение, имена, �
 | Приоритет | Слайс | Статус | Условие старта/выхода |
 |---|---|---|---|
 | P0 | S12.7 clock-drift | ✅ SHIPPED v3.11.270 | гейт+переспрос+blind-деградация, `4a17686d` |
-| P0 | **L0 local benchmark** | **NEXT** | hardware/license/gold/runner packet |
+| P0 | **L0 local benchmark** | ✅ DONE | pinned turbo CT2 GO; full large-v3 NO-GO как default |
 | P0 | Провенанс/schema B | ⬜ | backup parity + persist segment identity + развод имён |
 | P0 | UX/data C | ⬜ | dedupe + `text_audio_asset_key` round-trip |
-| P0 | **L1 local ivrit.ai ASR** | ⬜ | L0 GO; provider-neutral output; no silent cloud fallback |
+| P0 | **L1 local ivrit.ai ASR** | 🟡 LIMITED DONE | default-off engineering PASS; human/browser/B+C acceptance open; permanent NO-GO |
 | P0/P1 | **L2 resumable jobs + batch** | ⬜ | L1 contract stable; restart/fault tests |
 | P1 | **L3 Media Package/editor** | ⬜ | segment identity closed; round-trip artifact |
 | P1 | **L4 local translation+nikud** | ⬜ | shared scheduler; independent quality gates |
@@ -215,9 +216,10 @@ baseline: разборчивость, никуд/ударение, имена, �
 | Triggered | S10 PWA share_target | parked | proven Android demand |
 | Anti | server yt-dlp, real-time, song alignment | NO-GO | reopen only by explicit owner decision + evidence |
 
-**Рекомендуемая последовательность:** **L0 немедленно**. B+C закрываются до permanent integration
-L1, потому что это короткий долг целостности; основной путь после замера —
-**L1 → L2 → L3**. L4 может идти после стабилизации scheduler; L5/L6 только после измерений.
+**Рекомендуемая последовательность:** принять bounded L1 engineering packet, затем отдельным
+решением закрыть batch/browser/human acceptance и B+C до permanent integration. L2/L3 не
+стартуют автоматически из факта наличия L1-кода. L4 может идти после стабилизации scheduler;
+L5/L6 только после новых измерений и разрешений.
 
 ## 6. Обязательные артефакты каждого local-slice
 

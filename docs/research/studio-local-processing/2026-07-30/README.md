@@ -2,6 +2,11 @@
 
 This directory records the 2026-07-30 measure-before-code benchmark. Outcome: **L0 GO for an L1 design around the pinned ivrit-ai turbo CT2 model; no permanent integration is authorized.** See [GO_NO_GO_DECISION.md](GO_NO_GO_DECISION.md) and `quality-report.json`.
 
+The subsequently approved bounded L1-A→L1-E implementation is recorded in
+[`L1_IMPLEMENTATION_EVIDENCE.md`](L1_IMPLEMENTATION_EVIDENCE.md) and
+[`l1-evidence-report.json`](l1-evidence-report.json). Its engineering verdict is
+`PASS_WITH_OPEN_ACCEPTANCE_GATES`; permanent integration/provider-policy remains `NO-GO`.
+
 ## What is committed
 
 - hardware/runtime/port truth in `hardware.json`;
