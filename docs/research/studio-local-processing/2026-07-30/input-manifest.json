@@ -1,0 +1,13 @@
+{
+  "schema": "studio-local-processing-inputs-v1",
+  "date": "2026-07-30",
+  "policy": "No user media is committed. Paths are resolved locally and stable artifacts retain only hashes, sizes, durations and source classes.",
+  "cases": [
+    {"id": "clean-short", "class": "owner-recorded clean Hebrew", "gold": "manual sentence in tracked C1 benchmark_manifest.tsv"},
+    {"id": "noisy-short", "class": "a separate owner recording plus frozen pink-noise mix", "gold": "manual sentence in tracked C1 benchmark_manifest.tsv; exact benchmark bytes identified by run-manifest SHA-256"},
+    {"id": "conversation-multispeaker", "class": "30-minute Hebrew broadcast interview", "gold": "external YouTube iw-orig subtitle track; text/timing oracle kept local"},
+    {"id": "s12-117min", "class": "117-minute family interview that exposed S12.2-S12.5", "gold": "independent S12.5-S12.7 integrity checks; no full human transcript available"},
+    {"id": "long-boundary-3h", "class": "local concatenation of three distinct sources, duration over 3 hours", "gold": "known physical source/chunk boundaries plus integrity checks"},
+    {"id": "batch-20", "class": "20 owner-recorded short Hebrew files", "gold": "manual sentences in tracked C1 benchmark_manifest.tsv"}
+  ]
+}

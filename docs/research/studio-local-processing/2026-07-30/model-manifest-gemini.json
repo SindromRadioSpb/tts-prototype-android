@@ -1,0 +1,11 @@
+{
+  "schema": "studio-local-processing-model-v1",
+  "requested_alias": "gemini-flash-latest",
+  "actual_model_reported_by_api": "gemini-3.6-flash",
+  "provider": "Google Gemini API",
+  "local_model_bytes": 0,
+  "source_upload": true,
+  "pricing_checked_at": "2026-07-30",
+  "standard_list_price": {"input_usd_per_million_tokens": 1.5, "output_usd_per_million_tokens": 7.5},
+  "pricing_source": "https://ai.google.dev/gemini-api/docs/latest-model"
+}

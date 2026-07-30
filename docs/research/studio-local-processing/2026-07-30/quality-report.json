@@ -1,0 +1,107 @@
+{
+  "schema": "studio-local-processing-quality-report-v1",
+  "date": "2026-07-30",
+  "decision": {
+    "l0": "GO",
+    "l1_candidate": "ivrit-ai/whisper-large-v3-turbo-ct2@72ad623a37947395efcc3933132353790e5a12f5",
+    "full_large_v3": "NO-GO as the L1 default; retain only as an offline comparison candidate",
+    "gemini": "retain as the current cloud baseline, not as the local-processing candidate",
+    "permanent_integration_authorized": false
+  },
+  "inputs": {
+    "identical_across_candidates": true,
+    "physical_chunk_sec": 900,
+    "clean_short_sec": 6.117188,
+    "noisy_short_sec": 6.7325,
+    "conversation_multispeaker_sec": 1805.81875,
+    "s12_sec": 7017.691417,
+    "long_boundary_sec": 11658.762438,
+    "batch_items": 20,
+    "batch_total_sec": 113.60145
+  },
+  "providers": {
+    "gemini_flash_latest": {
+      "requested_model": "gemini-flash-latest",
+      "actual_model": "gemini-3.6-flash",
+      "coverage": "partial: clean, noisy, conversation, S12; long-boundary and batch not run after HTTP 429 quota exhaustion",
+      "short_gold": {
+        "clean": {"wer": 0.25, "cer": 0.13333333333333333, "rtf": 0.9031482275914701},
+        "noisy": {"wer": 0.0, "cer": 0.0, "rtf": 0.8481427107242859}
+      },
+      "conversation_silver_oracle": {
+        "wer": 0.32843326885880075,
+        "cer": 0.20347319815298132,
+        "word_count_ratio": 1.002321083172147,
+        "timestamp_abs_error_p50_sec": 234.961,
+        "timestamp_abs_error_p95_sec": 614.5,
+        "duplicate_4gram_rate": 0.0919629057187017,
+        "clock_expanded_chunks": 2
+      },
+      "s12_integrity": {"rtf": 0.05481295482277371, "zero_text_chunks": 0, "duplicate_4gram_rate": 0.012542261969680444, "clock_expanded_chunks": 7},
+      "upload": {"source_uploaded": true, "bytes_uploaded_completed_cases": 283378732},
+      "tokens_completed_cases": {"input": 221769, "output": 51553},
+      "estimated_standard_list_price_usd_completed_cases": 0.719301,
+      "actual_account_charge": "unknown"
+    },
+    "ivrit_turbo_fp16": {
+      "coverage": "complete",
+      "short_gold": {
+        "clean": {"wer": 0.0, "cer": 0.0, "rtf": 0.0904164462266206},
+        "noisy": {"wer": 0.0, "cer": 0.0, "rtf": 0.05136909024880537}
+      },
+      "conversation_silver_oracle": {
+        "wer": 0.20657640232108318,
+        "cer": 0.1045974703874724,
+        "word_count_ratio": 1.004255319148936,
+        "timestamp_abs_error_p50_sec": 1.7866666666666333,
+        "timestamp_abs_error_p95_sec": 4.236999999999966,
+        "duplicate_4gram_rate": 0.0030852294639413806,
+        "clock_distorted_chunks": 0
+      },
+      "s12_integrity": {"rtf": 0.024801523244351954, "zero_text_chunks": 0, "duplicate_4gram_rate": 0.010626010626010625, "clock_distorted_chunks": 0},
+      "long_boundary_integrity": {"rtf": 0.028855430804845435, "zero_text_chunks": 0, "duplicate_4gram_rate": 0.006740001271698353, "clock_distorted_chunks": 0},
+      "batch_gold": {"wer": 0.025974025974025976, "cer": 0.009259259259259259, "rtf": 0.058602316255859745, "item_wer_p50": 0.0, "item_wer_p95": 0.25},
+      "resources": {"peak_vram_total_mib_short_smoke": 4498, "peak_vram_delta_mib_short_smoke": 2330, "peak_process_ram_mib_short_smoke": 2046.81640625},
+      "timing": {"first_cold_model_load_sec": 7.179363500094041, "cached_process_model_load_sec": 2.0281293001025915},
+      "upload": {"source_uploaded": false, "bytes_uploaded": 0},
+      "api_cost_usd": 0
+    },
+    "ivrit_large_v3_fp16": {
+      "coverage": "complete; batch raw came from the same-model clean preflight and was included in the unified reuse-raw manifest",
+      "short_gold": {
+        "clean": {"wer": 0.0, "cer": 0.0, "rtf": 0.13144881278146364},
+        "noisy": {"wer": 0.0, "cer": 0.0, "rtf": 0.09849601187644685}
+      },
+      "conversation_silver_oracle": {
+        "wer": 0.19148936170212766,
+        "cer": 0.09646657297731379,
+        "word_count_ratio": 0.9918762088974855,
+        "timestamp_abs_error_p50_sec": 1.77699999999993,
+        "timestamp_abs_error_p95_sec": 4.297142857142944,
+        "duplicate_4gram_rate": 0.004685669660288949,
+        "clock_distorted_chunks": 0
+      },
+      "s12_integrity": {"rtf": 0.09117205861316857, "zero_text_chunks": 0, "duplicate_4gram_rate": 0.01031636863823934, "clock_distorted_chunks": 0},
+      "long_boundary_integrity": {"rtf": 0.09586063408044757, "zero_text_chunks": 0, "duplicate_4gram_rate": 0.009005065349258958, "clock_distorted_chunks": 0},
+      "batch_gold": {"wer": 0.06493506493506493, "cer": 0.043209876543209874, "rtf": 0.09612692179819353, "item_wer_p50": 0.0, "item_wer_p95": 0.3333333333333333},
+      "resources": {"peak_vram_total_mib_preflight": 5295, "peak_vram_delta_mib_preflight": 4283, "peak_process_ram_mib_preflight": 3058.6328125},
+      "timing": {"cold_model_load_sec": 3.1169116001110524},
+      "upload": {"source_uploaded": false, "bytes_uploaded": 0},
+      "api_cost_usd": 0
+    }
+  },
+  "independent_s12_checks": {
+    "s12_5_physical_chunking": "15-minute ffmpeg chunks are produced before provider calls; no provider timestamp can define chunk boundaries",
+    "s12_6_completeness": "zero-text significant chunks, word-count ratio where a text oracle exists, and duplicate 4-gram rate are checked",
+    "s12_7_clock": "monotonicity plus output-span/input-span compression or expansion checks are performed per physical chunk",
+    "model_timestamps_are_oracle": false
+  },
+  "limitations": [
+    "Only 24 short manually transcribed items were used (clean/noisy plus batch-20 with overlap of the clean source); estimates are directional, not population-quality claims.",
+    "Conversation WER/CER and timestamps use an independent YouTube iw-orig subtitle track, not a human-verified verbatim transcript. They are silver-oracle comparisons.",
+    "S12 and the 3-hour boundary have no full human transcript, so CER/WER are intentionally absent; completeness is measured with independent integrity checks.",
+    "Gemini did not complete long-boundary or batch because the account returned HTTP 429; missing results are not imputed.",
+    "Long-run resource aggregates were not finalized after orchestration timeouts; peak resource evidence therefore comes from bounded smoke/preflight runs. Provider elapsed times were preserved in per-case raw files.",
+    "The frozen noisy input hash is authoritative for this run; a clean-room regeneration is class-reproducible but not guaranteed byte-identical to this pre-existing mix."
+  ]
+}

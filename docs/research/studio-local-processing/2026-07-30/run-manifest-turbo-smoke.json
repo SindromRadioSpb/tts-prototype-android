@@ -1,0 +1,53 @@
+{
+  "schema": "studio-local-processing-run-v1",
+  "run_id": "turbo-smoke",
+  "started_unix": 1785429641.4671316,
+  "finished_unix": 1785429662.82781,
+  "provider": {
+    "provider": "local-faster-whisper",
+    "model": "ivrit-ai/whisper-large-v3-turbo-ct2",
+    "revision": "72ad623a37947395efcc3933132353790e5a12f5",
+    "compute_type": "float16",
+    "upload": false
+  },
+  "results": [
+    {
+      "case": "clean-short",
+      "kind": "gold",
+      "metrics": {
+        "words": 4,
+        "segments": 1,
+        "duplicate_4gram_rate": 0.0,
+        "timestamp_monotonic": true,
+        "clock_span_ratio": 0.6996678866171843,
+        "zero_text_chunks": 0,
+        "chunks_total": 1,
+        "clock_compressed_chunks": 0,
+        "duration_sec": 6.117188,
+        "elapsed_sec": 2.951684399973601,
+        "rtf": 0.4825230808622526,
+        "input_sha256": "22c37b3b37aaf0beda00f81577b99db2b6c9c6e1024c272a91087ea056cca151",
+        "input_bytes": 809994,
+        "reference_words": 4,
+        "hypothesis_words": 4,
+        "wer": 0.0,
+        "cer": 0.0,
+        "word_count_ratio": 1.0
+      },
+      "wall_sec": 21.231574699981138,
+      "raw_sha256": "800d6b8ec94fe53bed41e2b36607e71b6937693d7e5a2b10ea9f5f466f62cae0",
+      "raw_location": "gitignored-local"
+    }
+  ],
+  "resources": {
+    "vram_baseline_mb": 2168,
+    "vram_peak_total_mb": 4498,
+    "vram_peak_delta_mb": 2330,
+    "ram_peak_process_mb": 2046.81640625
+  },
+  "privacy": {
+    "bytes_uploaded": 0,
+    "source_uploaded": false
+  },
+  "raw_outputs": "gitignored-local; hashes above"
+}

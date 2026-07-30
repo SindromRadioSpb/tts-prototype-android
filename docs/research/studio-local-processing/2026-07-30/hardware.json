@@ -1,0 +1,54 @@
+{
+  "schema": "studio-local-processing-hardware-v1",
+  "captured_at": "2026-07-30T21:12:09+03:00",
+  "machine": {
+    "os": "Microsoft Windows 11 Enterprise",
+    "build": "26200",
+    "cpu": "AMD Ryzen 5 5600G",
+    "physical_cores": 6,
+    "logical_processors": 12,
+    "ram_total_gb": 31.37,
+    "ram_free_at_final_capture_gb": 6.74
+  },
+  "gpu": {
+    "nvidia_smi_truth": "NVIDIA GeForce RTX 3070",
+    "owner_prior_label": "RTX 3080",
+    "owner_label_matches_hardware": false,
+    "vram_total_mib": 8192,
+    "driver": "595.79",
+    "driver_reported_cuda": "13.2",
+    "idle_used_mib_at_final_capture": 1055,
+    "idle_free_mib_at_final_capture": 6964
+  },
+  "runtime": {
+    "nvcc": "13.2 V13.2.51",
+    "python": "3.10.20",
+    "torch": "2.5.1+cu121",
+    "torch_cuda_runtime": "12.1",
+    "cudnn": 90100,
+    "ctranslate2": "4.5.0",
+    "faster_whisper": "1.1.1",
+    "ffmpeg": "8.1",
+    "ctranslate2_cuda_compute_types": ["float16", "float32", "int8", "int8_float16", "int8_float32"]
+  },
+  "disk_free_gb": {"C": 158.57, "E": 1668.00, "F": 7822.55, "G": 6656.45},
+  "ai_local": {
+    "canonical_port": 8799,
+    "canonical_sources": ["docs/CONFIG.md", "ai-local/ai_local/config.py", "scripts/start_all.ps1"],
+    "documentation_drift": {"file": "ai-local/README.md", "stale_port": 8765},
+    "port_8799_listening_during_preflight": false,
+    "port_8765_listening_during_final_capture": true,
+    "port_8765_owner_process": "Docker Desktop backend",
+    "mutation_performed": false
+  },
+  "existing_models": {
+    "ai_local_madlad_ct2_present": true,
+    "huggingface_openai_whisper_large_v3_turbo_cache_present": true,
+    "huggingface_systran_whisper_large_v3_cache_present": true,
+    "benchmark_models_downloaded_to_external_F_cache_only": true
+  },
+  "notes": [
+    "Models were benchmarked only after orphan benchmark processes were removed and idle VRAM was rechecked.",
+    "Free RAM and disk are point-in-time values; they are not capacity guarantees."
+  ]
+}

@@ -1,0 +1,173 @@
+{
+  "schema": "studio-local-processing-run-v1",
+  "run_id": "gemini-flash-latest",
+  "started_unix": 1785435068.1801112,
+  "finished_unix": 1785435117.5006797,
+  "provider": {
+    "provider": "gemini",
+    "model": "gemini-flash-latest",
+    "upload": true,
+    "actual_models": [
+      "gemini-3.6-flash"
+    ]
+  },
+  "results": [
+    {
+      "case": "clean-short",
+      "kind": "gold",
+      "metrics": {
+        "words": 4,
+        "segments": 1,
+        "duplicate_4gram_rate": 0.0,
+        "timestamp_monotonic": true,
+        "clock_span_ratio": 0.8991059290641387,
+        "zero_text_chunks": 0,
+        "chunks_total": 1,
+        "short_tail_chunks": 1,
+        "clock_compressed_chunks": 0,
+        "clock_expanded_chunks": 0,
+        "clock_distorted_chunks": 0,
+        "duration_sec": 6.117188,
+        "elapsed_sec": 5.524727500043809,
+        "rtf": 0.9031482275914701,
+        "input_sha256": "22c37b3b37aaf0beda00f81577b99db2b6c9c6e1024c272a91087ea056cca151",
+        "input_bytes": 809994,
+        "reference_words": 4,
+        "hypothesis_words": 4,
+        "wer": 0.25,
+        "cer": 0.13333333333333333,
+        "word_count_ratio": 1.0,
+        "usage_metadata": {
+          "promptTokenCount": 219,
+          "candidatesTokenCount": 44,
+          "totalTokenCount": 541
+        }
+      },
+      "wall_sec": 0.05347029981203377,
+      "raw_sha256": "c2d957f016a6addacb64324ad6e646e75283d1bb466db2479b31edfd7c7e15af",
+      "raw_location": "gitignored-local"
+    },
+    {
+      "case": "noisy-short",
+      "kind": "gold-noisy",
+      "metrics": {
+        "words": 4,
+        "segments": 1,
+        "duplicate_4gram_rate": 0.0,
+        "timestamp_monotonic": true,
+        "clock_span_ratio": 0.38618640920906055,
+        "zero_text_chunks": 0,
+        "chunks_total": 1,
+        "short_tail_chunks": 1,
+        "clock_compressed_chunks": 0,
+        "clock_expanded_chunks": 0,
+        "clock_distorted_chunks": 0,
+        "duration_sec": 6.7325,
+        "elapsed_sec": 5.710120799951255,
+        "rtf": 0.8481427107242859,
+        "input_sha256": "7c522b86ca8eeed981541715e0019e53d8604d5dbe3d6b8c4919e50a29cca35a",
+        "input_bytes": 215554,
+        "reference_words": 4,
+        "hypothesis_words": 4,
+        "wer": 0.0,
+        "cer": 0.0,
+        "word_count_ratio": 1.0,
+        "usage_metadata": {
+          "promptTokenCount": 235,
+          "candidatesTokenCount": 46,
+          "totalTokenCount": 478
+        }
+      },
+      "wall_sec": 0.05715579981915653,
+      "raw_sha256": "8b03d4a2c2b779939a311ca57bfb482d3c61b8900dc1660e7cff4055c534920f",
+      "raw_location": "gitignored-local"
+    },
+    {
+      "case": "conversation-multispeaker",
+      "kind": "subtitle-oracle",
+      "metrics": {
+        "words": 2591,
+        "segments": 117,
+        "duplicate_4gram_rate": 0.0919629057187017,
+        "timestamp_monotonic": false,
+        "clock_span_ratio": 1.3030100612256905,
+        "zero_text_chunks": 0,
+        "chunks_total": 3,
+        "short_tail_chunks": 1,
+        "clock_compressed_chunks": 0,
+        "clock_expanded_chunks": 2,
+        "clock_distorted_chunks": 2,
+        "duration_sec": 1805.81875,
+        "elapsed_sec": 97.30860770004801,
+        "rtf": 0.053886143169156936,
+        "input_sha256": "094164e9c94ce623df765600bb0bd2f2b1715fb08bd5050ae53de7427eae8b90",
+        "input_bytes": 43339787,
+        "timestamp_oracle": {
+          "matched_words": 1836,
+          "timestamp_abs_error_p50_sec": 234.961,
+          "timestamp_abs_error_p95_sec": 614.5
+        },
+        "oracle_text": {
+          "reference_words": 2585,
+          "hypothesis_words": 2591,
+          "wer": 0.32843326885880075,
+          "cer": 0.20347319815298132,
+          "word_count_ratio": 1.002321083172147
+        },
+        "usage_metadata": {
+          "promptTokenCount": 45344,
+          "candidatesTokenCount": 10435,
+          "totalTokenCount": 64256
+        }
+      },
+      "wall_sec": 48.95940599986352,
+      "raw_sha256": "45fbb2407ed7d91afec62cd5064b01d813a73d74d4f45c6c6e076db1f4403432",
+      "raw_location": "gitignored-local"
+    },
+    {
+      "case": "s12-117min",
+      "kind": "s12-independent",
+      "metrics": {
+        "words": 9172,
+        "segments": 646,
+        "duplicate_4gram_rate": 0.012542261969680444,
+        "timestamp_monotonic": false,
+        "clock_span_ratio": 1.0626001567888548,
+        "zero_text_chunks": 0,
+        "chunks_total": 8,
+        "short_tail_chunks": 0,
+        "clock_compressed_chunks": 0,
+        "clock_expanded_chunks": 7,
+        "clock_distorted_chunks": 7,
+        "duration_sec": 7017.691417,
+        "elapsed_sec": 384.6604026001878,
+        "rtf": 0.05481295482277371,
+        "input_sha256": "7ab09806282db3ce4190c92ab56c0924e43f5f7c406d26e875da389fe3c149c4",
+        "input_bytes": 168424731,
+        "usage_metadata": {
+          "promptTokenCount": 175971,
+          "candidatesTokenCount": 41028,
+          "totalTokenCount": 253736
+        }
+      },
+      "wall_sec": 0.19387419987469912,
+      "raw_sha256": "a90cf37eca7852a507f184f8a184883ac62a73917494572a0ad01df902683d31",
+      "raw_location": "gitignored-local"
+    }
+  ],
+  "resources": {
+    "measurement": "not_remeasured_reuse_raw"
+  },
+  "privacy": {
+    "bytes_uploaded": 283378732,
+    "source_uploaded": true
+  },
+  "cost": {
+    "estimated_list_price_usd": 0.719301,
+    "prompt_tokens": 221769,
+    "output_tokens": 51553,
+    "basis": "Gemini 3.6 Flash standard paid-list price checked 2026-07-30: input $1.50/M tokens; output $7.50/M. Actual free-tier/account charge unavailable.",
+    "local_api_cost_usd": null
+  },
+  "raw_outputs": "gitignored-local; hashes above"
+}

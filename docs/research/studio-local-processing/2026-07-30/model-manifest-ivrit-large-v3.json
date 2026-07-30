@@ -1,0 +1,12 @@
+{
+  "schema": "studio-local-processing-model-v1",
+  "model_id": "ivrit-ai/whisper-large-v3-ct2",
+  "revision": "e9ed4a4a98d761b0f617d668303de2c514236c66",
+  "license": "apache-2.0",
+  "format": "CTranslate2",
+  "compute_type": "float16",
+  "model_bin_repository_bytes": 3087284276,
+  "model_bin_sha256": "765965efd777190f76e8b337520056f00d68e48bb99b2f95d28670b2364a02ce",
+  "storage": "external Hugging Face cache on F; not committed",
+  "source": "https://huggingface.co/ivrit-ai/whisper-large-v3-ct2"
+}

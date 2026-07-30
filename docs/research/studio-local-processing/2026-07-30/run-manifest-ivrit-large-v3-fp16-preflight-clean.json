@@ -1,0 +1,115 @@
+{
+  "schema": "studio-local-processing-run-v1",
+  "run_id": "ivrit-large-v3-fp16-preflight-clean",
+  "started_unix": 1785432841.6618843,
+  "finished_unix": 1785432862.5142121,
+  "provider": {
+    "provider": "local-faster-whisper",
+    "model": "ivrit-ai/whisper-large-v3-ct2",
+    "revision": "e9ed4a4a98d761b0f617d668303de2c514236c66",
+    "compute_type": "float16",
+    "upload": false
+  },
+  "results": [
+    {
+      "case": "clean-short",
+      "kind": "gold",
+      "metrics": {
+        "words": 4,
+        "segments": 1,
+        "duplicate_4gram_rate": 0.0,
+        "timestamp_monotonic": true,
+        "clock_span_ratio": 0.6996678866171843,
+        "zero_text_chunks": 0,
+        "chunks_total": 1,
+        "short_tail_chunks": 1,
+        "clock_compressed_chunks": 0,
+        "clock_expanded_chunks": 0,
+        "clock_distorted_chunks": 0,
+        "duration_sec": 6.117188,
+        "elapsed_sec": 0.9145688998978585,
+        "rtf": 0.14950805826106023,
+        "input_sha256": "22c37b3b37aaf0beda00f81577b99db2b6c9c6e1024c272a91087ea056cca151",
+        "input_bytes": 809994,
+        "reference_words": 4,
+        "hypothesis_words": 4,
+        "wer": 0.0,
+        "cer": 0.0,
+        "word_count_ratio": 1.0,
+        "cold_model_load_sec": 3.927394500002265
+      },
+      "wall_sec": 7.945713700028136,
+      "raw_sha256": "353fdb35857110793b00c4399683779d6f9c3bab8c8fa6919e23bd2d91ef2a25",
+      "raw_location": "gitignored-local"
+    },
+    {
+      "case": "noisy-short",
+      "kind": "gold-noisy",
+      "metrics": {
+        "words": 4,
+        "segments": 1,
+        "duplicate_4gram_rate": 0.0,
+        "timestamp_monotonic": true,
+        "clock_span_ratio": 0.6802822131451912,
+        "zero_text_chunks": 0,
+        "chunks_total": 1,
+        "short_tail_chunks": 1,
+        "clock_compressed_chunks": 0,
+        "clock_expanded_chunks": 0,
+        "clock_distorted_chunks": 0,
+        "duration_sec": 6.7325,
+        "elapsed_sec": 0.633129000198096,
+        "rtf": 0.09404069813562511,
+        "input_sha256": "7c522b86ca8eeed981541715e0019e53d8604d5dbe3d6b8c4919e50a29cca35a",
+        "input_bytes": 215554,
+        "reference_words": 4,
+        "hypothesis_words": 4,
+        "wer": 0.0,
+        "cer": 0.0,
+        "word_count_ratio": 1.0,
+        "cold_model_load_sec": 3.927394500002265
+      },
+      "wall_sec": 0.7518796999938786,
+      "raw_sha256": "69466255b263f4403948bb676ec8bc0c05eb2d824c407a0dffc28376647f5c29",
+      "raw_location": "gitignored-local"
+    },
+    {
+      "case": "batch-20",
+      "kind": "batch-gold",
+      "metrics": {
+        "reference_words": 77,
+        "hypothesis_words": 78,
+        "wer": 0.06493506493506493,
+        "cer": 0.043209876543209874,
+        "word_count_ratio": 1.0129870129870129,
+        "elapsed_sec": 10.920157700311393,
+        "items": 20,
+        "duration_sec": 113.60145,
+        "rtf": 0.09612692179819353,
+        "item_wer_p50": 0.0,
+        "item_wer_p95": 0.3333333333333333
+      },
+      "wall_sec": 12.099802500102669,
+      "raw_sha256": "b18fe99e0cbe7a25b57dc9fca5baec9a6e5116c8db41f16d8e223a586739f523",
+      "raw_location": "gitignored-local"
+    }
+  ],
+  "resources": {
+    "vram_baseline_mb": 1012,
+    "vram_peak_total_mb": 5295,
+    "vram_peak_delta_mb": 4283,
+    "ram_peak_process_mb": 3058.6328125
+  },
+  "privacy": {
+    "bytes_uploaded": 0,
+    "source_uploaded": false
+  },
+  "cost": {
+    "estimated_list_price_usd": null,
+    "prompt_tokens": 0,
+    "output_tokens": 0,
+    "basis": null,
+    "local_api_cost_usd": 0
+  },
+  "raw_outputs": "gitignored-local; hashes above"
+}

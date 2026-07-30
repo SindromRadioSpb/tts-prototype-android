@@ -1,0 +1,202 @@
+{
+  "schema": "studio-local-processing-run-v1",
+  "run_id": "ivrit-turbo-fp16",
+  "started_unix": 1785432611.1741924,
+  "finished_unix": 1785432681.4051704,
+  "provider": {
+    "provider": "local-faster-whisper",
+    "model": "ivrit-ai/whisper-large-v3-turbo-ct2",
+    "revision": "72ad623a37947395efcc3933132353790e5a12f5",
+    "compute_type": "float16",
+    "upload": false
+  },
+  "results": [
+    {
+      "case": "clean-short",
+      "kind": "gold",
+      "metrics": {
+        "words": 4,
+        "segments": 1,
+        "duplicate_4gram_rate": 0.0,
+        "timestamp_monotonic": true,
+        "clock_span_ratio": 0.6996678866171843,
+        "zero_text_chunks": 0,
+        "chunks_total": 1,
+        "short_tail_chunks": 1,
+        "clock_compressed_chunks": 0,
+        "clock_expanded_chunks": 0,
+        "clock_distorted_chunks": 0,
+        "duration_sec": 6.117188,
+        "elapsed_sec": 0.5530943998601288,
+        "rtf": 0.0904164462266206,
+        "input_sha256": "22c37b3b37aaf0beda00f81577b99db2b6c9c6e1024c272a91087ea056cca151",
+        "input_bytes": 809994,
+        "reference_words": 4,
+        "hypothesis_words": 4,
+        "wer": 0.0,
+        "cer": 0.0,
+        "word_count_ratio": 1.0,
+        "cold_model_load_sec": 2.0281293001025915
+      },
+      "wall_sec": 0.21862319996580482,
+      "raw_sha256": "66b9a5dda60cfb4ddd91291b333b37945bb95d603617fc94c00c1103430b45d7",
+      "raw_location": "gitignored-local"
+    },
+    {
+      "case": "noisy-short",
+      "kind": "gold-noisy",
+      "metrics": {
+        "words": 4,
+        "segments": 1,
+        "duplicate_4gram_rate": 0.0,
+        "timestamp_monotonic": true,
+        "clock_span_ratio": 0.6802822131451912,
+        "zero_text_chunks": 0,
+        "chunks_total": 1,
+        "short_tail_chunks": 1,
+        "clock_compressed_chunks": 0,
+        "clock_expanded_chunks": 0,
+        "clock_distorted_chunks": 0,
+        "duration_sec": 6.7325,
+        "elapsed_sec": 0.34584240010008216,
+        "rtf": 0.05136909024880537,
+        "input_sha256": "7c522b86ca8eeed981541715e0019e53d8604d5dbe3d6b8c4919e50a29cca35a",
+        "input_bytes": 215554,
+        "reference_words": 4,
+        "hypothesis_words": 4,
+        "wer": 0.0,
+        "cer": 0.0,
+        "word_count_ratio": 1.0,
+        "cold_model_load_sec": 2.0281293001025915
+      },
+      "wall_sec": 0.0763687000144273,
+      "raw_sha256": "c09ecf6b41e3509190e8572c04f735eb2c54524f55477abed38b40f62160e29b",
+      "raw_location": "gitignored-local"
+    },
+    {
+      "case": "conversation-multispeaker",
+      "kind": "subtitle-oracle",
+      "metrics": {
+        "words": 2596,
+        "segments": 504,
+        "duplicate_4gram_rate": 0.0030852294639413806,
+        "timestamp_monotonic": true,
+        "clock_span_ratio": 0.9886041996185941,
+        "zero_text_chunks": 0,
+        "chunks_total": 3,
+        "short_tail_chunks": 1,
+        "clock_compressed_chunks": 0,
+        "clock_expanded_chunks": 0,
+        "clock_distorted_chunks": 0,
+        "duration_sec": 1805.81875,
+        "elapsed_sec": 58.84720499976538,
+        "rtf": 0.03258754789192735,
+        "input_sha256": "094164e9c94ce623df765600bb0bd2f2b1715fb08bd5050ae53de7427eae8b90",
+        "input_bytes": 43339787,
+        "timestamp_oracle": {
+          "matched_words": 2152,
+          "timestamp_abs_error_p50_sec": 1.7866666666666333,
+          "timestamp_abs_error_p95_sec": 4.236999999999966
+        },
+        "oracle_text": {
+          "reference_words": 2585,
+          "hypothesis_words": 2596,
+          "wer": 0.20657640232108318,
+          "cer": 0.1045974703874724,
+          "word_count_ratio": 1.004255319148936
+        },
+        "cold_model_load_sec": 2.0281293001025915
+      },
+      "wall_sec": 68.65729590016417,
+      "raw_sha256": "6f52889916e0a07d07ea721530585fd4ba42a1ffb87c7871e7e7e4e1162ec940",
+      "raw_location": "gitignored-local"
+    },
+    {
+      "case": "s12-117min",
+      "kind": "s12-independent",
+      "metrics": {
+        "words": 8661,
+        "segments": 1534,
+        "duplicate_4gram_rate": 0.010626010626010625,
+        "timestamp_monotonic": true,
+        "clock_span_ratio": 0.9993827860556098,
+        "zero_text_chunks": 0,
+        "chunks_total": 8,
+        "short_tail_chunks": 0,
+        "clock_compressed_chunks": 0,
+        "clock_expanded_chunks": 0,
+        "clock_distorted_chunks": 0,
+        "duration_sec": 7017.691417,
+        "elapsed_sec": 174.0494368004147,
+        "rtf": 0.024801523244351954,
+        "input_sha256": "7ab09806282db3ce4190c92ab56c0924e43f5f7c406d26e875da389fe3c149c4",
+        "input_bytes": 168424731,
+        "cold_model_load_sec": 2.0281293001025915
+      },
+      "wall_sec": 0.32396769989281893,
+      "raw_sha256": "8bbac3ba7d072c06af0e328d522fb946479f8986cafc86cda6d27669f68eabb3",
+      "raw_location": "gitignored-local"
+    },
+    {
+      "case": "long-boundary-3h",
+      "kind": "boundary",
+      "metrics": {
+        "words": 15730,
+        "segments": 2774,
+        "duplicate_4gram_rate": 0.006740001271698353,
+        "timestamp_monotonic": true,
+        "clock_span_ratio": 0.9995743597979296,
+        "zero_text_chunks": 0,
+        "chunks_total": 13,
+        "short_tail_chunks": 0,
+        "clock_compressed_chunks": 0,
+        "clock_expanded_chunks": 0,
+        "clock_distorted_chunks": 0,
+        "duration_sec": 11658.762438,
+        "elapsed_sec": 336.41861279984005,
+        "rtf": 0.028855430804845435,
+        "input_sha256": "a49ecf9a4259d725e1f037e92c353fed75e0e56dfa3106a18b0086ad58f5e4a0",
+        "input_bytes": 93271242,
+        "cold_model_load_sec": 2.0281293001025915
+      },
+      "wall_sec": 0.75978590012528,
+      "raw_sha256": "33190449834e7603f94c0d8fff214b8bc820e56c239f64e94a03900ad2cdbd99",
+      "raw_location": "gitignored-local"
+    },
+    {
+      "case": "batch-20",
+      "kind": "batch-gold",
+      "metrics": {
+        "reference_words": 77,
+        "hypothesis_words": 77,
+        "wer": 0.025974025974025976,
+        "cer": 0.009259259259259259,
+        "word_count_ratio": 1.0,
+        "elapsed_sec": 6.657308100024238,
+        "items": 20,
+        "duration_sec": 113.60145,
+        "rtf": 0.058602316255859745,
+        "item_wer_p50": 0.0,
+        "item_wer_p95": 0.25
+      },
+      "wall_sec": 0.06804569996893406,
+      "raw_sha256": "3191b45b0ef44189bb22a89f607d1ea2e9f6ae7487af3e9f31cc6053f5c85252",
+      "raw_location": "gitignored-local"
+    }
+  ],
+  "resources": {
+    "measurement": "not_remeasured_reuse_raw"
+  },
+  "privacy": {
+    "bytes_uploaded": 0,
+    "source_uploaded": false
+  },
+  "cost": {
+    "estimated_list_price_usd": null,
+    "prompt_tokens": 0,
+    "output_tokens": 0,
+    "basis": null,
+    "local_api_cost_usd": 0
+  },
+  "raw_outputs": "gitignored-local; hashes above"
+}
