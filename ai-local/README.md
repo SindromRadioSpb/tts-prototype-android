@@ -113,6 +113,15 @@ curl http://127.0.0.1:8799/healthz
 | POST | `/models/unload-all`      | Unload every idle model |
 | POST | `/nakdan`                 | Add nikud to Hebrew texts |
 | POST | `/translate`              | Translate Hebrew segments → target language |
+| GET  | `/v1/asr/capabilities`    | Authenticated companion/model/job capabilities |
+| GET/POST | `/v1/asr/model/*`     | Verify, warm or unload the exact pinned ASR model |
+| POST | `/v1/asr/jobs`            | Stream one media source into the bounded local job queue |
+| GET  | `/v1/asr/jobs/{id}`       | Read job state, progress and failure evidence |
+| POST | `/v1/asr/jobs/{id}/cancel` | Request bounded cancellation |
+| POST | `/v1/asr/jobs/{id}/resume` | Resume only hash- and pin-matched checkpoints |
+| POST | `/v1/asr/jobs/{id}/audio-stream` | Resolve an ambiguous multi-audio source explicitly |
+| GET  | `/v1/asr/jobs/{id}/result` | Read the raw provider result |
+| DELETE | `/v1/asr/jobs/{id}`       | Explicitly delete job artifacts and return a receipt |
 
 Request/response schemas are in `ai_local/main.py`.
 
@@ -132,6 +141,13 @@ Request/response schemas are in `ai_local/main.py`.
 | `AI_LOCAL_ALLOWED_ORIGINS`   | localhost only | Comma-separated browser Origin allowlist |
 | `AI_LOCAL_PAIRING_TOKEN`     | generated   | Optional explicit browser pairing token |
 | `AI_LOCAL_STATE_DIR`         | user-local app data | Pairing/job state root |
+
+The L1 job boundary is one active plus one waiting media job. Inputs are capped at 300 MiB
+and three hours. `ffprobe` selects a sole/unique-default audio stream; ambiguous media pauses
+for an explicit stream choice. `ffmpeg` materializes 16 kHz mono PCM on a 900-second core
+cadence with 30 seconds of left overlap. Checkpoints are hash-bound, restart-resumable, automatically
+expire after 24 hours, and can be explicitly deleted with a receipt. MADLAD and ASR share
+one exclusive heavy-GPU residency slot; the ASR worker is unloaded after five idle minutes.
 
 ## Tests
 

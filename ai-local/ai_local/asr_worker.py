@@ -145,9 +145,11 @@ class AsrWorkerManager:
                 if remaining <= 0:
                     raise TimeoutError(f"ASR worker {action} timed out")
                 try:
-                    response = self._responses.get(timeout=remaining)
-                except queue.Empty as exc:
-                    raise TimeoutError(f"ASR worker {action} timed out") from exc
+                    response = self._responses.get(timeout=min(remaining, 0.2))
+                except queue.Empty:
+                    if self._process is None or not self._process.is_alive():
+                        raise RuntimeError(f"ASR worker stopped during {action}")
+                    continue
                 if response.get("request_id") == request_id:
                     return response
 

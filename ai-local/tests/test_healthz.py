@@ -4,6 +4,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from ai_local.state import ModelSlot, registry
+from ai_local.gpu_scheduler import heavy_gpu_scheduler
+from ai_local.lifecycle import try_unload
 
 from .helpers import MockImpl
 
@@ -35,6 +37,18 @@ def client(monkeypatch):
         )
     )
     registry._accepting = True
+
+    async def prepare_translator():
+        return None
+
+    async def unload_translator():
+        await try_unload(registry.slot("translator"), reason="test_switch")
+
+    heavy_gpu_scheduler.invalidate("translator")
+    heavy_gpu_scheduler.invalidate("asr")
+    heavy_gpu_scheduler.register(
+        "translator", prepare=prepare_translator, unload=unload_translator
+    )
 
     with TestClient(app) as c:
         yield c
