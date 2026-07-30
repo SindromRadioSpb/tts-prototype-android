@@ -3,10 +3,11 @@
 > **Дата:** 2026-07-30
 > **Статус:** 🟢 направление формализовано по директиве владельца 2026-07-30; конкретные
 > модели и реализационные слайсы требуют measure-before-code и отдельного exit-gate.
-> **Срез кода:** `3c23a1db`. Незакоммиченная работа S12.7 в рабочем дереве намеренно не
-> засчитана как SHIPPED.
-> **Канон:** этот документ заменяет разделы «что дальше»/приоритизации импорт-программы;
-> исходные решения, история и доказательства остаются в
+> **Срез кода:** `4a17686d` (S12.7 SHIPPED v3.11.270).
+> **Место в каноне:** специализированный сквозной трек общего roadmap
+> `STUDIO_INGEST_ROADMAP_2026_07_30.md`. Здесь определён local-processing L0–L6;
+> общий capability ledger, форматы, Media Package, образовательные сценарии и единый порядок
+> находятся в master-roadmap. Исходные решения/история — в
 > `STUDIO_INGEST_MULTIMODAL_DECISION_PACKET_2026_07_25.md`.
 
 ## 0. Директива и терминология
@@ -198,7 +199,7 @@ baseline: разборчивость, никуд/ударение, имена, �
 
 | Приоритет | Слайс | Статус | Условие старта/выхода |
 |---|---|---|---|
-| P0 | S12.7 clock-drift | 🟡 WIP вне этого документа | commit+gates+owner long-file verify; до этого не SHIPPED |
+| P0 | S12.7 clock-drift | ✅ SHIPPED v3.11.270 | гейт+переспрос+blind-деградация, `4a17686d` |
 | P0 | **L0 local benchmark** | **NEXT** | hardware/license/gold/runner packet |
 | P0 | Провенанс/schema B | ⬜ | backup parity + persist segment identity + развод имён |
 | P0 | UX/data C | ⬜ | dedupe + `text_audio_asset_key` round-trip |
@@ -214,8 +215,7 @@ baseline: разборчивость, никуд/ударение, имена, �
 | Triggered | S10 PWA share_target | parked | proven Android demand |
 | Anti | server yt-dlp, real-time, song alignment | NO-GO | reopen only by explicit owner decision + evidence |
 
-**Рекомендуемая последовательность:** сначала закончить уже идущий correctness-слайс и
-не смешивать его diff; затем **L0 немедленно**. B+C закрываются до permanent integration
+**Рекомендуемая последовательность:** **L0 немедленно**. B+C закрываются до permanent integration
 L1, потому что это короткий долг целостности; основной путь после замера —
 **L1 → L2 → L3**. L4 может идти после стабилизации scheduler; L5/L6 только после измерений.
 
