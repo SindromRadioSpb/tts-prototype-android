@@ -1,0 +1,708 @@
+{
+  "schema": "studio-local-asr-sidecar-batch20-report-v1",
+  "started_unix": 1785445317.0380838,
+  "finished_unix": 1785445375.3080583,
+  "code_commit": "71e61132e224bfb47ee39046309cd9daf8b58e92",
+  "dirty_worktree_during_run": true,
+  "frozen_inputs_sha256": "2a3e326c186cf26c10f968d89b0397a88c0ee15ec5e0fb87bc6ffae0cd827e08",
+  "sidecar": {
+    "base_url": "http://127.0.0.1:8799",
+    "origin": "http://127.0.0.1:3000",
+    "capabilities": {
+      "protocol": "studio-local-asr-v1",
+      "local_asr": {
+        "enabled": true,
+        "default": false,
+        "auth_required": true,
+        "model": {
+          "model_id": "ivrit-ai/whisper-large-v3-turbo-ct2",
+          "revision": "72ad623a37947395efcc3933132353790e5a12f5",
+          "model_bin_sha256": "db2a2265aa012c16c7db9edda3d699c99f984efdd3f2e22a72a8ce7e9720f3a2",
+          "model_bin_repository_bytes": 1617884968,
+          "runtime_file_sha256": {
+            "model.bin": "db2a2265aa012c16c7db9edda3d699c99f984efdd3f2e22a72a8ce7e9720f3a2",
+            "config.json": "c805eff43fc2a1d00d5cfa315e4b2230895f34994257c185959808a116e7c4f0",
+            "preprocessor_config.json": "654cf18d3e163b948ceaf9766da56ce0b52de265d58673cf61c9376f126bd499",
+            "tokenizer.json": "297b13372ac43916285644fb9687add3cc62ee2a1adb60da3dc25cc94c1871fd",
+            "vocabulary.json": "c69260f2ab26d659b7c398f9a2b2b48ed0df16c3b47d7326782fd9cba71690c1"
+          },
+          "license": "apache-2.0",
+          "format": "CTranslate2",
+          "decode": {
+            "device": "cuda",
+            "compute_type": "float16",
+            "language": "he",
+            "beam_size": 5,
+            "condition_on_previous_text": false,
+            "vad_filter": false,
+            "word_timestamps": false,
+            "num_workers": 1
+          }
+        }
+      }
+    },
+    "model_status": {
+      "installed": true,
+      "verified": true,
+      "reason": null,
+      "model": {
+        "model_id": "ivrit-ai/whisper-large-v3-turbo-ct2",
+        "revision": "72ad623a37947395efcc3933132353790e5a12f5",
+        "model_bin_sha256": "db2a2265aa012c16c7db9edda3d699c99f984efdd3f2e22a72a8ce7e9720f3a2",
+        "model_bin_repository_bytes": 1617884968,
+        "runtime_file_sha256": {
+          "model.bin": "db2a2265aa012c16c7db9edda3d699c99f984efdd3f2e22a72a8ce7e9720f3a2",
+          "config.json": "c805eff43fc2a1d00d5cfa315e4b2230895f34994257c185959808a116e7c4f0",
+          "preprocessor_config.json": "654cf18d3e163b948ceaf9766da56ce0b52de265d58673cf61c9376f126bd499",
+          "tokenizer.json": "297b13372ac43916285644fb9687add3cc62ee2a1adb60da3dc25cc94c1871fd",
+          "vocabulary.json": "c69260f2ab26d659b7c398f9a2b2b48ed0df16c3b47d7326782fd9cba71690c1"
+        },
+        "license": "apache-2.0",
+        "format": "CTranslate2",
+        "decode": {
+          "device": "cuda",
+          "compute_type": "float16",
+          "language": "he",
+          "beam_size": 5,
+          "condition_on_previous_text": false,
+          "vad_filter": false,
+          "word_timestamps": false,
+          "num_workers": 1
+        }
+      },
+      "worker": {
+        "state": "unloaded",
+        "pid": null
+      }
+    }
+  },
+  "aggregate": {
+    "reference_words": 77,
+    "hypothesis_words": 77,
+    "wer": 0.025974025974025976,
+    "cer": 0.009259259259259259,
+    "word_count_ratio": 1.0,
+    "items": 20,
+    "terminal_results": 20,
+    "duration_sec": 113.60145,
+    "inference_elapsed_sec": 12.140329600777477,
+    "wall_sec": 58.26997447013855,
+    "rtf": 0.10686773452959868
+  },
+  "items": [
+    {
+      "id": "N01",
+      "reference_words": 4,
+      "hypothesis_words": 4,
+      "wer": 0.0,
+      "cer": 0.0,
+      "word_count_ratio": 1.0,
+      "duration_sec": 6.117188,
+      "inference_elapsed_sec": 2.3835084999445826,
+      "wall_sec": 11.598990100203082,
+      "source_sha256": "22c37b3b37aaf0beda00f81577b99db2b6c9c6e1024c272a91087ea056cca151",
+      "hypothesis_sha256": "d2403350108088ddbd605c58fdb4fddae881054cbc1aec1524ec85ac4397501e",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 4,
+        "max_temperature_c": 52,
+        "min_free_vram_mib": 3969,
+        "max_power_w": 68.37,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N02",
+      "reference_words": 4,
+      "hypothesis_words": 4,
+      "wer": 0.0,
+      "cer": 0.0,
+      "word_count_ratio": 1.0,
+      "duration_sec": 6.326168,
+      "inference_elapsed_sec": 0.5791603000834584,
+      "wall_sec": 2.8346333999652416,
+      "source_sha256": "69f38eed34aa7fb88ad2f67bf52fe68e1d2931e61f0c3c911078e3e0481920b4",
+      "hypothesis_sha256": "d59e8b270a1db7b0ea8d537fe447e15c8aa42e8c81ec5c574f255863692625e1",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 52,
+        "min_free_vram_mib": 3955,
+        "max_power_w": 68.3,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N03",
+      "reference_words": 3,
+      "hypothesis_words": 3,
+      "wer": 0.3333333333333333,
+      "cer": 0.07692307692307693,
+      "word_count_ratio": 1.0,
+      "duration_sec": 5.490249,
+      "inference_elapsed_sec": 0.596307700034231,
+      "wall_sec": 2.6304738000035286,
+      "source_sha256": "5992cc259a69b46e4eba5a3dbddbc7e7573da81836d7273314c6c2fdcc9f2358",
+      "hypothesis_sha256": "16b23a524184711582ad678b4a5fff4131abe5a4f598dc667c1d9ef2e647452d",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 51,
+        "min_free_vram_mib": 3956,
+        "max_power_w": 69.21,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N04",
+      "reference_words": 4,
+      "hypothesis_words": 4,
+      "wer": 0.0,
+      "cer": 0.0,
+      "word_count_ratio": 1.0,
+      "duration_sec": 6.732517,
+      "inference_elapsed_sec": 0.5152309001423419,
+      "wall_sec": 2.6669164998456836,
+      "source_sha256": "d2e29a771677a46017e3a39267723cbb4e81dcb905f1b2987abbed0f22c40c9f",
+      "hypothesis_sha256": "68f46607f09d4a492324bdd48091af134f1b28646db650a0d54b678ea52d9ec1",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 51,
+        "min_free_vram_mib": 3955,
+        "max_power_w": 69.17,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N05",
+      "reference_words": 5,
+      "hypothesis_words": 5,
+      "wer": 0.0,
+      "cer": 0.0,
+      "word_count_ratio": 1.0,
+      "duration_sec": 5.919819,
+      "inference_elapsed_sec": 0.5641177999787033,
+      "wall_sec": 2.4631727000232786,
+      "source_sha256": "cd1b6a9ab9f4a972bc76710bcd501b9fa2691c1657d8401463ea86f349cbf81d",
+      "hypothesis_sha256": "01f2ac0cf820b1c0cfd448a1007baa7882f674f0d5e30fcf05063ea2f0c2c0df",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 51,
+        "min_free_vram_mib": 3969,
+        "max_power_w": 69.1,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N06",
+      "reference_words": 3,
+      "hypothesis_words": 3,
+      "wer": 0.0,
+      "cer": 0.0,
+      "word_count_ratio": 1.0,
+      "duration_sec": 5.687619,
+      "inference_elapsed_sec": 0.47176540014334023,
+      "wall_sec": 2.4348444000352174,
+      "source_sha256": "96523ba8e8c257910b659524dc01898f1128acdf9a087a955a1661a42f42e57c",
+      "hypothesis_sha256": "552f1cfc1e44f33ae787ee6cdae5652eaa8c80e0804db905b4bc438c77d9a97a",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 51,
+        "min_free_vram_mib": 3971,
+        "max_power_w": 69.0,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N07",
+      "reference_words": 4,
+      "hypothesis_words": 4,
+      "wer": 0.0,
+      "cer": 0.0,
+      "word_count_ratio": 1.0,
+      "duration_sec": 5.467029,
+      "inference_elapsed_sec": 0.4661988001316786,
+      "wall_sec": 2.381725799990818,
+      "source_sha256": "74310f44510909f27222ec4afd02ad87626a2b4cb7fccdb0e3e0b7971140306d",
+      "hypothesis_sha256": "0d0868328524ecfdf99d28280b600ac778cc2c93666ab7816d6f89ed05cf7daa",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 51,
+        "min_free_vram_mib": 3969,
+        "max_power_w": 69.79,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N08",
+      "reference_words": 4,
+      "hypothesis_words": 4,
+      "wer": 0.0,
+      "cer": 0.0,
+      "word_count_ratio": 1.0,
+      "duration_sec": 5.861769,
+      "inference_elapsed_sec": 0.478059200104326,
+      "wall_sec": 2.2317482999060303,
+      "source_sha256": "48de8ed5cc0bdb6d6a75132c215434e7b8d980f590eae22044ca9a7e71a5b2d2",
+      "hypothesis_sha256": "18c92e135356436ac3da2837742888b85910277f7b54d3d2481be561e768273f",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 50,
+        "min_free_vram_mib": 3967,
+        "max_power_w": 69.79,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N09",
+      "reference_words": 4,
+      "hypothesis_words": 4,
+      "wer": 0.0,
+      "cer": 0.0,
+      "word_count_ratio": 1.0,
+      "duration_sec": 4.619501,
+      "inference_elapsed_sec": 0.44728399999439716,
+      "wall_sec": 2.2218442999292165,
+      "source_sha256": "01660d8489a48398e360c6d36294407a290ba888553acaf1e10509554ad6e79e",
+      "hypothesis_sha256": "43e233479b90a3d274f4ba79b6c85584390802905aa5a50b781f8a15748bc7c2",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 50,
+        "min_free_vram_mib": 3967,
+        "max_power_w": 68.67,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N10",
+      "reference_words": 4,
+      "hypothesis_words": 4,
+      "wer": 0.0,
+      "cer": 0.0,
+      "word_count_ratio": 1.0,
+      "duration_sec": 5.536689,
+      "inference_elapsed_sec": 0.45185010018758476,
+      "wall_sec": 2.170256800018251,
+      "source_sha256": "afb0d4f2fce00479aea271cbbd255f530f42e48366d41aa97e84702b6bb223f4",
+      "hypothesis_sha256": "5c9284afaa7c1d89a8e95afc382b874c64fe64cec099b611fa5d382d51a41aba",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 50,
+        "min_free_vram_mib": 3961,
+        "max_power_w": 68.96,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N11",
+      "reference_words": 4,
+      "hypothesis_words": 4,
+      "wer": 0.0,
+      "cer": 0.0,
+      "word_count_ratio": 1.0,
+      "duration_sec": 5.652789,
+      "inference_elapsed_sec": 0.4593619001097977,
+      "wall_sec": 2.2228234000504017,
+      "source_sha256": "8c2322ca1e89bc938210ac58bd25110b92ca37905de64f3f1673ce7c3b027098",
+      "hypothesis_sha256": "7e293c2cb898a2e6bc0ef9436f212e7ff7080a2b804c8601fd0f40c04129db5f",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 50,
+        "min_free_vram_mib": 3961,
+        "max_power_w": 69.06,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N12",
+      "reference_words": 4,
+      "hypothesis_words": 4,
+      "wer": 0.0,
+      "cer": 0.0,
+      "word_count_ratio": 1.0,
+      "duration_sec": 4.99102,
+      "inference_elapsed_sec": 0.4961076998151839,
+      "wall_sec": 2.4181450000032783,
+      "source_sha256": "6a54cc77d86ce55f737d28ddec4cf2b3adabf73601073b5c4b07c70242e06094",
+      "hypothesis_sha256": "59c9568093cf9a7999843a3999da55ad9c1b68ca7b23995a7b42cb2d5de65df7",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 49,
+        "min_free_vram_mib": 3961,
+        "max_power_w": 68.56,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N13",
+      "reference_words": 4,
+      "hypothesis_words": 4,
+      "wer": 0.0,
+      "cer": 0.0,
+      "word_count_ratio": 1.0,
+      "duration_sec": 6.128798,
+      "inference_elapsed_sec": 0.5605734998825938,
+      "wall_sec": 2.396407100139186,
+      "source_sha256": "b4e5b9efcf0715c462f57b34e64a7f0fdb10108188728c8f0fae6505f41b141c",
+      "hypothesis_sha256": "a011d8bc07d6a03eac37c0ffddcb0fabc2e49eeff02df4796a1f984040b5b628",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 49,
+        "min_free_vram_mib": 3961,
+        "max_power_w": 68.21,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N14",
+      "reference_words": 3,
+      "hypothesis_words": 3,
+      "wer": 0.0,
+      "cer": 0.0,
+      "word_count_ratio": 1.0,
+      "duration_sec": 5.14195,
+      "inference_elapsed_sec": 0.5253717000596225,
+      "wall_sec": 2.613634299952537,
+      "source_sha256": "619a61146db554ad0a610e00ee78a3ebf4e24ba6fa73f46cb2306c932323c13e",
+      "hypothesis_sha256": "888bb4950634fb25c85f5333ac31bbf389ff4215f163a66544a568834bcf3399",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 49,
+        "min_free_vram_mib": 3961,
+        "max_power_w": 68.22,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N15",
+      "reference_words": 3,
+      "hypothesis_words": 3,
+      "wer": 0.0,
+      "cer": 0.0,
+      "word_count_ratio": 1.0,
+      "duration_sec": 5.2,
+      "inference_elapsed_sec": 0.5400549999903888,
+      "wall_sec": 2.613316899864003,
+      "source_sha256": "1f7391386c77803a4acda109337619ba3141be7e9aec03a7f004f126a528b570",
+      "hypothesis_sha256": "a606861b986e3aa4afb336348706e8e229a71eca9b462ea09c572c001f3e9fe2",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 48,
+        "min_free_vram_mib": 3961,
+        "max_power_w": 68.33,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N16",
+      "reference_words": 4,
+      "hypothesis_words": 4,
+      "wer": 0.0,
+      "cer": 0.0,
+      "word_count_ratio": 1.0,
+      "duration_sec": 5.757279,
+      "inference_elapsed_sec": 0.5394805001560599,
+      "wall_sec": 2.4126192000694573,
+      "source_sha256": "1bc1e6e194d15d4cb879951fcf66510e15349d347da56ddf49fd4c3ec2473339",
+      "hypothesis_sha256": "27f94203c3e5c6c0e38571eced1d2b291970341fa3ed3d966078cd55c8f89e22",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 49,
+        "min_free_vram_mib": 3960,
+        "max_power_w": 68.41,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N17",
+      "reference_words": 4,
+      "hypothesis_words": 4,
+      "wer": 0.0,
+      "cer": 0.0,
+      "word_count_ratio": 1.0,
+      "duration_sec": 5.966259,
+      "inference_elapsed_sec": 0.5495823000092059,
+      "wall_sec": 2.3629495999775827,
+      "source_sha256": "3bc25e0b44f54033a9970902756ab3acfc62c2b508ddb645fb1d66ea1c0c8458",
+      "hypothesis_sha256": "9c9d5ec6423e6b9de07f1afcf4b43c92fe40ef46a805f508db155d70db30e737",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 48,
+        "min_free_vram_mib": 3960,
+        "max_power_w": 68.56,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N18",
+      "reference_words": 4,
+      "hypothesis_words": 4,
+      "wer": 0.0,
+      "cer": 0.0,
+      "word_count_ratio": 1.0,
+      "duration_sec": 4.689161,
+      "inference_elapsed_sec": 0.49645090010017157,
+      "wall_sec": 2.561863899929449,
+      "source_sha256": "c1e24ca95c4c87b5c816701c85d7aa0b53c29741ab4e7117a1420c19c53f1c27",
+      "hypothesis_sha256": "e9135640075352d93b91455959bc4ee89e45a5ead94a4d35826e1a7e862925c2",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 48,
+        "min_free_vram_mib": 3957,
+        "max_power_w": 69.41,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N19",
+      "reference_words": 4,
+      "hypothesis_words": 4,
+      "wer": 0.0,
+      "cer": 0.0,
+      "word_count_ratio": 1.0,
+      "duration_sec": 6.268118,
+      "inference_elapsed_sec": 0.5085289999842644,
+      "wall_sec": 2.3737162998877466,
+      "source_sha256": "a14edcb81f411e98ab17b18392b3b4fdfb579a3e9b0b945bf90d5e73676b7bca",
+      "hypothesis_sha256": "324c480a920b587e65726c37400100fe172f945119d5ef4646ae0998436feee5",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 48,
+        "min_free_vram_mib": 3958,
+        "max_power_w": 69.71,
+        "thermal_throttle": false,
+        "error": null
+      }
+    },
+    {
+      "id": "N20",
+      "reference_words": 4,
+      "hypothesis_words": 4,
+      "wer": 0.25,
+      "cer": 0.125,
+      "word_count_ratio": 1.0,
+      "duration_sec": 6.047528,
+      "inference_elapsed_sec": 0.5113343999255449,
+      "wall_sec": 2.430437100119889,
+      "source_sha256": "b47d3f25a5820c1279ebb97b80a8f3d1981f45797bc590185d0c516aa59efeb1",
+      "hypothesis_sha256": "1fc4cb204507b7785ed41291fdc1fb50ea4df599623c79a3863a5bc26bdcd4d0",
+      "chunks": 1,
+      "raw_attempts": 1,
+      "state": "COMPLETE",
+      "telemetry": {
+        "samples": 1,
+        "max_temperature_c": 48,
+        "min_free_vram_mib": 3958,
+        "max_power_w": 68.11,
+        "thermal_throttle": false,
+        "error": null
+      }
+    }
+  ],
+  "deletion_receipts": [
+    {
+      "id": "N01",
+      "deleted": true,
+      "job_id": "d56c34bd-0ecb-47ca-bd1f-a460ab19a564",
+      "receipt_at": "2026-07-30T21:02:08.661399+00:00"
+    },
+    {
+      "id": "N02",
+      "deleted": true,
+      "job_id": "3cb9eb49-1ca4-4da0-8a93-f9f36b40c0fc",
+      "receipt_at": "2026-07-30T21:02:11.501848+00:00"
+    },
+    {
+      "id": "N03",
+      "deleted": true,
+      "job_id": "00089f92-b1ca-490e-9693-98ae05ac7f8a",
+      "receipt_at": "2026-07-30T21:02:14.140195+00:00"
+    },
+    {
+      "id": "N04",
+      "deleted": true,
+      "job_id": "ce4fd27c-6ac5-453c-b109-a5b2e7f9828b",
+      "receipt_at": "2026-07-30T21:02:16.812058+00:00"
+    },
+    {
+      "id": "N05",
+      "deleted": true,
+      "job_id": "d16e1231-d16a-4b44-acdd-03e1af5bb11c",
+      "receipt_at": "2026-07-30T21:02:19.293469+00:00"
+    },
+    {
+      "id": "N06",
+      "deleted": true,
+      "job_id": "c1266fa8-04a4-4ec1-a60d-aecf9d722f8f",
+      "receipt_at": "2026-07-30T21:02:21.731672+00:00"
+    },
+    {
+      "id": "N07",
+      "deleted": true,
+      "job_id": "cfc49844-6fce-4d2b-a5da-04668e9936f4",
+      "receipt_at": "2026-07-30T21:02:24.142432+00:00"
+    },
+    {
+      "id": "N08",
+      "deleted": true,
+      "job_id": "cb2c353a-066d-45da-af56-28b176803bd2",
+      "receipt_at": "2026-07-30T21:02:26.379086+00:00"
+    },
+    {
+      "id": "N09",
+      "deleted": true,
+      "job_id": "4c1d27a1-9994-44e8-afd8-e8b80b8e2db8",
+      "receipt_at": "2026-07-30T21:02:28.624977+00:00"
+    },
+    {
+      "id": "N10",
+      "deleted": true,
+      "job_id": "f82eb864-9b24-4678-84f5-fd68bf72a6a8",
+      "receipt_at": "2026-07-30T21:02:30.799740+00:00"
+    },
+    {
+      "id": "N11",
+      "deleted": true,
+      "job_id": "10dda665-9989-44d4-96c7-746ba4127e09",
+      "receipt_at": "2026-07-30T21:02:33.027446+00:00"
+    },
+    {
+      "id": "N12",
+      "deleted": true,
+      "job_id": "df96ffd7-ddee-476e-8b64-58e3ee367fe7",
+      "receipt_at": "2026-07-30T21:02:35.447961+00:00"
+    },
+    {
+      "id": "N13",
+      "deleted": true,
+      "job_id": "b099f3e3-0f0b-42b7-8f30-44a4a2e7125b",
+      "receipt_at": "2026-07-30T21:02:37.847993+00:00"
+    },
+    {
+      "id": "N14",
+      "deleted": true,
+      "job_id": "24475338-0dd4-4613-a537-ea660d8277f2",
+      "receipt_at": "2026-07-30T21:02:40.464724+00:00"
+    },
+    {
+      "id": "N15",
+      "deleted": true,
+      "job_id": "49e9dcb7-adbf-47bf-97d8-a7070b9c3d78",
+      "receipt_at": "2026-07-30T21:02:43.082615+00:00"
+    },
+    {
+      "id": "N16",
+      "deleted": true,
+      "job_id": "60220df6-ec70-49aa-931e-b65f0e769b25",
+      "receipt_at": "2026-07-30T21:02:45.499295+00:00"
+    },
+    {
+      "id": "N17",
+      "deleted": true,
+      "job_id": "9eb34a29-ec9e-4a20-bce7-576fd79fc01c",
+      "receipt_at": "2026-07-30T21:02:47.867077+00:00"
+    },
+    {
+      "id": "N18",
+      "deleted": true,
+      "job_id": "957d1f3c-9a3c-4e7d-b696-54951c5cc88c",
+      "receipt_at": "2026-07-30T21:02:50.434074+00:00"
+    },
+    {
+      "id": "N19",
+      "deleted": true,
+      "job_id": "0133bdfe-536b-4ce3-9c94-b0ee0a7f4fde",
+      "receipt_at": "2026-07-30T21:02:52.832790+00:00"
+    },
+    {
+      "id": "N20",
+      "deleted": true,
+      "job_id": "1669c12b-44ef-4c18-b6a0-628297fdcba3",
+      "receipt_at": "2026-07-30T21:02:55.267944+00:00"
+    }
+  ],
+  "gates": {
+    "terminal_20_of_20": true,
+    "wer_lte_0_05": true,
+    "cer_lte_0_02": true,
+    "no_retry_or_fallback": true,
+    "all_jobs_deleted": true
+  },
+  "privacy": {
+    "bytes_uploaded": 0,
+    "raw_audio_committed": false,
+    "raw_transcripts_committed": false
+  }
+}

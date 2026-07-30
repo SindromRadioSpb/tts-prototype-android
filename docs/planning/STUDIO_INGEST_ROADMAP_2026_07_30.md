@@ -233,9 +233,9 @@ TTS остаётся отдельной quality-gated веткой.
 | Порядок | Слайс | Приоритет | Exit |
 |---|---|---|---|
 | 0 | S12.7 clock compression | ✅ DONE | v3.11.270, `4a17686d` |
-| 1 | local L0 benchmark | **P0 NEXT** | hardware/license/gold/runner packet |
-| 2 | provenance/schema B + UX/data C | P0 | backup parity, ids, names, dedupe, audio round-trip |
-| 3 | local L1 ASR | P0 | ivrit.ai/cloud benchmark, 3ч+batch, no silent fallback |
+| 1 | local L0 benchmark | ✅ DONE | pinned turbo CT2; full large-v3 not default/fallback |
+| 2 | provenance/schema B + UX/data C | ✅ BOUNDED DONE | backup parity, portable ids, explicit dedupe, audio round-trip |
+| 3 | local L1 ASR | 🟡 ENGINEERING PASS | sidecar batch/browser/B+C PASS; owner acceptance and permanent integration open |
 | 4 | resumable import-job + batch | P0/P1 | reload/restart/fault injection, per-file results |
 | 5 | Media Package v1 + subtitle editor | P1 | video+VTT, persistence, export/import/relink |
 | 6 | local translation/nikud + S6 | P1 | shared provider contract, R1/R11 quality gates |
@@ -244,9 +244,9 @@ TTS остаётся отдельной quality-gated веткой.
 | 9 | local TTS/OCR/LLM R&D | P2 | license+quality GO; no downgrade for «free» |
 | 10 | remote media/companion | P2/triggered | demand, lawful source path, privacy/cost decision |
 
-Измерительный L0 можно начать сейчас, не дожидаясь реализации всего schema-пакета.
-Permanent L1 integration идёт после B+C, чтобы не закреплять новые данные
-на известных слабых контрактах.
+L0 и ограниченный default-off L1 engineering/evidence closure выполнены. Permanent L1
+integration требует отдельного owner acceptance; expanded human-gold и paired Gemini cloud
+comparison не запускались и не подразумеваются фактом закрытия B+C.
 
 ## 10. Обязательные процессные артефакты
 

@@ -1,8 +1,9 @@
 # Studio Ingest local ASR L1 implementation evidence
 
 > **Дата:** 2026-07-30
-> **Scope:** ограниченная L1-A→L1-E реализация; никаких production/schema/provider-default
-> изменений и никакой permanent integration.
+> **Scope:** ограниченная L1-A→L1-E реализация плюс owner-approved evidence-closure
+> hardening B+C; никаких production/schema/provider-default изменений и никакой permanent
+> integration.
 > **Модель:** только `ivrit-ai/whisper-large-v3-turbo-ct2@72ad623a37947395efcc3933132353790e5a12f5`.
 > Full large-v3 не загружался и не входит в default/fallback.
 
@@ -10,10 +11,10 @@
 
 ## Итог
 
-Ограниченный engineering slice **работает default-off**, но решение о permanent integration —
-**NO-GO до закрытия acceptance gates**. Это не противоречие: L1 доказал control plane,
-physical slicing, checkpoints, независимые S12 gates и локальный Studio adapter; он не доказал
-population quality, полный browser matrix или owner acceptance.
+Ограниченный engineering/evidence slice **PASS и работает default-off**. Новый sidecar batch-20,
+реальная Chrome/Edge/Firefox matrix и B+C integrity hardening закрыты. Решение о permanent
+integration остаётся **NO-GO до отдельного owner acceptance**: расширенный независимый
+human-gold и paired Gemini comparison не входили в ускоренный slice и не запускались.
 
 ## Что реализовано
 
@@ -25,6 +26,8 @@ population quality, полный browser matrix или owner acceptance.
   consent, no implicit fallback, no schema change.
 - `aa8dffa0`: live-found canonical-number repair, model disk reserve, second-OOM/thermal worker
   destruction and deterministic fault gates.
+- `33ba3f49`: B+C hardening — раздельная portable identity строк, запрет stale update authority,
+  явный media-SHA dedupe и parity обычного backup/text-card round-trip без schema migration.
 
 Последний live прогон нашёл cross-runtime defect: Python canonical JSON сохранял `1.0/-0.0`,
 а `JSON.stringify` выдаёт `1/0`. Поэтому неизменённые raw results ложно падали S12.5. Исправление
@@ -54,25 +57,56 @@ is intentional and recorded, not hidden as a clean rerun.
 ## Automated gates
 
 - `ai-local`: 41/41 pytest;
-- local-ASR Node suites: 17/17;
+- focused local-ASR/B+C Node suites: 46/46;
 - i18n: 233/233;
-- API smoke and Python compileall: PASS;
+- real local DB text-card round-trip: 35/35;
+- API smoke, Node syntax и Python compileall: PASS;
 - full `npm test`: 629/638. Nine failures are outside this slice: one Classic test expects an ID
   already absent in pre-L1 HEAD; eight premium pipeline tests hit the existing GCP BYOK/config
   preflight. Они не исправлялись внутри ASR scope.
 
-Chrome 380px smoke подтвердил default-off, Gemini reset-default, explicit Local selection и
-отсутствие modal horizontal overflow. Он также нашёл и закрыл растянутый pairing input. Edge и
-Firefox не прогонялись.
+## Evidence-closure 2026-07-30
+
+Стабильные артефакты и воспроизводимые runners находятся в
+[`evidence-closure/`](evidence-closure/README.md).
+
+| Gate | Результат |
+|---|---|
+| Frozen sidecar batch-20 | 20/20 terminal; WER 2.597%; CER 0.926%; no retry/fallback |
+| Batch runtime | 113.601 s audio; 12.140 s inference; 58.270 s wall; RTF 0.1069 |
+| Browser matrix | Chrome 150 и Edge 150 system builds PASS; Firefox 146 Mozilla Playwright build PASS |
+| 380×844 / RTL | default-off, explicit enable, pairing, upload/start, queue/progress, cancel/retry/delete PASS |
+| Loopback/PNA | LAN-origin capability handshake проверен; inference проверен с trustworthy loopback app origin |
+| Sidecar-down | во всех трёх браузерах явная local error; cloud requests = 0; implicit Gemini fallback = 0 |
+| Lifecycle | 20/20 jobs удалены; sidecar/web stopped; временная activation/model/job/browser media удалены |
+
+Stock Firefox 153 установлен, но не принимает Playwright Juggler automation. Поэтому это честное
+ограничение provenance: проверен настоящий Mozilla/Firefox engine 146.0.1, а не ручной прогон
+именно установленного stock binary. Firefox также пишет report-only CSP `connect-src` warnings;
+запросы не блокируются. LAN HTTP не является trustworthy origin для browser hashing, поэтому
+PNA handshake снят с LAN origin, а полный upload/inference — с `127.0.0.1`.
+
+## Adversarial review
+
+- **R4/R5:** 380×844 и RTL не имеют horizontal overflow; flow остаётся явно experimental/default-off.
+- **R9:** source segment, source line и sentence ordinal больше не смешиваются; model/source SHA и
+  `DERIVED` provenance переживают оба export/import пути.
+- **R11:** повторный media SHA требует явного выбора, новый import не наследует `baseTextId`, raw
+  media/transcripts не коммитятся.
+- **R14/R15:** 20/20 terminal, no silent retry/fallback, cancel/retry/delete/down-state и cleanup
+  подтверждены machine-readable receipts.
+- **R16:** Gemini/BYOK/quota не использовались; browser cloud request count равен нулю.
+
+Критических findings внутри разрешённого slice нет. Ограничение stock Firefox и независимая
+quality/owner acceptance не маскируются как PASS.
 
 ## Честно открытые gates
 
-1. Нет нового sidecar-path batch-20; есть только L0 20/20.
-2. Нет human-gold ≥60 min / ≥12 speakers и полного paired Gemini set.
-3. Нет owner listen/read acceptance.
-4. Нет Edge/Firefox loopback/PNA/RTL live matrix.
-5. B+C integrity debts не закрыты.
-6. OOM/thermal/disk-low покрыты deterministic fault injection; намеренное аппаратное
+1. Нет отдельного owner listen/read acceptance и утверждённого absolute product-quality threshold.
+2. Расширенный независимый human-gold и полный paired Gemini set не входят в ускоренный slice;
+   cloud spend/media upload не разрешены.
+3. Именно stock Firefox 153 не прошёл ручную/автоматизированную церемонию; Firefox-engine 146 PASS.
+4. OOM/thermal/disk-low покрыты deterministic fault injection; намеренное аппаратное
    перегревание/OOM не выполнялось.
 
 Следовательно, этот packet не разрешает permanent integration, production, schema или выбор

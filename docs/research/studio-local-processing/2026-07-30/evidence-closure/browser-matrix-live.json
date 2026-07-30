@@ -1,0 +1,918 @@
+{
+  "schema": "studio-local-asr-browser-matrix-v1",
+  "mode": "live",
+  "appOrigin": "http://127.0.0.1:3000",
+  "pnaOrigin": "http://192.168.1.228:3000",
+  "viewport": {
+    "width": 380,
+    "height": 844
+  },
+  "generated_at": "2026-07-30T21:27:55.805Z",
+  "engines": {
+    "chrome": {
+      "provenance": "installed-system-browser",
+      "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+      "browserVersion": "150.0.7871.187",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+      "defaultOff": {
+        "experimental": false,
+        "providerHidden": true,
+        "providerValue": "gemini",
+        "width": 380,
+        "clientWidth": 380
+      },
+      "pna": {
+        "origin": "http://192.168.1.228:3000",
+        "status": "Local companion готов; pinned model проверен. 72ad623a3794",
+        "requests": [
+          {
+            "url": "http://127.0.0.1:8799/v1/capabilities",
+            "method": "GET"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/model/status?verify_hash=true",
+            "method": "GET"
+          }
+        ],
+        "secureContext": false,
+        "cryptoSubtle": false,
+        "note": "LAN HTTP can prove the browser Origin/CORS/loopback handshake, but media hashing requires a trustworthy origin; full upload runs from 127.0.0.1."
+      },
+      "live": {
+        "enabledState": {
+          "experimental": true,
+          "providerHidden": false,
+          "setupHidden": false,
+          "providerValue": "local"
+        },
+        "pairedStatus": "Local companion готов; pinned model проверен. 72ad623a3794",
+        "statuses": [
+          "Local job в очереди…",
+          "Проверка local model, media и GPU…",
+          "Проверка local model, media и GPU…",
+          "Проверка local model, media и GPU…",
+          "Проверка local model, media и GPU…",
+          "Local job ждёт освобождения GPU… 0/1",
+          "Local job ждёт освобождения GPU… 0/1",
+          "Local job ждёт освобождения GPU… 0/1",
+          "Local job ждёт освобождения GPU… 0/1",
+          "Local job ждёт освобождения GPU… 0/1",
+          ""
+        ],
+        "completionSignal": {
+          "deleteVisible": true,
+          "previewVisible": true,
+          "previewLength": 19
+        },
+        "retryInitiallyHidden": true,
+        "retryStates": {
+          "seen": [
+            "QUEUED",
+            "PREFLIGHT",
+            "PREFLIGHT",
+            "PREFLIGHT",
+            "PREFLIGHT",
+            "TRANSCRIBING",
+            "COMPLETE"
+          ],
+          "state": "COMPLETE"
+        },
+        "canceled": {
+          "state": "CANCELED",
+          "receipt": {
+            "deleted": true,
+            "job_id": "f09a5b6e-1c29-43de-85a0-aa8a0c976a93",
+            "receipt_at": "2026-07-30T21:28:13.778826+00:00"
+          }
+        },
+        "rtl": {
+          "dir": "rtl",
+          "width": 380,
+          "clientWidth": 380
+        },
+        "requests": [
+          {
+            "url": "http://127.0.0.1:8799/v1/capabilities",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/model/status?verify_hash=true",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs",
+            "method": "POST",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af/result",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af/retry-chunks",
+            "method": "POST",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af/result",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/dfa1b283-2fc5-4e27-b4f0-40460af243af",
+            "method": "DELETE",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs",
+            "method": "POST",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/f09a5b6e-1c29-43de-85a0-aa8a0c976a93",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/f09a5b6e-1c29-43de-85a0-aa8a0c976a93",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/f09a5b6e-1c29-43de-85a0-aa8a0c976a93",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/f09a5b6e-1c29-43de-85a0-aa8a0c976a93/cancel",
+            "method": "POST",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/f09a5b6e-1c29-43de-85a0-aa8a0c976a93",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/f09a5b6e-1c29-43de-85a0-aa8a0c976a93",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/f09a5b6e-1c29-43de-85a0-aa8a0c976a93",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/f09a5b6e-1c29-43de-85a0-aa8a0c976a93",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/f09a5b6e-1c29-43de-85a0-aa8a0c976a93",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/f09a5b6e-1c29-43de-85a0-aa8a0c976a93",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/f09a5b6e-1c29-43de-85a0-aa8a0c976a93",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/f09a5b6e-1c29-43de-85a0-aa8a0c976a93",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/f09a5b6e-1c29-43de-85a0-aa8a0c976a93",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/f09a5b6e-1c29-43de-85a0-aa8a0c976a93",
+            "method": "DELETE",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/f09a5b6e-1c29-43de-85a0-aa8a0c976a93",
+            "method": "GET",
+            "origin": null
+          }
+        ],
+        "cloudRequests": [],
+        "consoleErrors": [
+          "Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        ]
+      },
+      "pass": true
+    },
+    "edge": {
+      "provenance": "installed-system-browser",
+      "executablePath": "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+      "browserVersion": "150.0.4078.105",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0",
+      "defaultOff": {
+        "experimental": false,
+        "providerHidden": true,
+        "providerValue": "gemini",
+        "width": 380,
+        "clientWidth": 380
+      },
+      "pna": {
+        "origin": "http://192.168.1.228:3000",
+        "status": "Local companion готов; pinned model проверен. 72ad623a3794",
+        "requests": [
+          {
+            "url": "http://127.0.0.1:8799/v1/capabilities",
+            "method": "GET"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/model/status?verify_hash=true",
+            "method": "GET"
+          }
+        ],
+        "secureContext": false,
+        "cryptoSubtle": false,
+        "note": "LAN HTTP can prove the browser Origin/CORS/loopback handshake, but media hashing requires a trustworthy origin; full upload runs from 127.0.0.1."
+      },
+      "live": {
+        "enabledState": {
+          "experimental": true,
+          "providerHidden": false,
+          "setupHidden": false,
+          "providerValue": "local"
+        },
+        "pairedStatus": "Local companion готов; pinned model проверен. 72ad623a3794",
+        "statuses": [
+          "Local job в очереди…",
+          "Проверка local model, media и GPU…",
+          "Проверка local model, media и GPU…",
+          "Проверка local model, media и GPU…",
+          "Проверка local model, media и GPU…",
+          "Local job ждёт освобождения GPU… 0/1",
+          "Local job ждёт освобождения GPU… 0/1",
+          "Local job ждёт освобождения GPU… 0/1",
+          "Local job ждёт освобождения GPU… 0/1",
+          "Local job ждёт освобождения GPU… 0/1",
+          ""
+        ],
+        "completionSignal": {
+          "deleteVisible": true,
+          "previewVisible": true,
+          "previewLength": 19
+        },
+        "retryInitiallyHidden": true,
+        "retryStates": {
+          "seen": [
+            "QUEUED",
+            "PREFLIGHT",
+            "PREFLIGHT",
+            "PREFLIGHT",
+            "PREFLIGHT",
+            "COMPLETE"
+          ],
+          "state": "COMPLETE"
+        },
+        "canceled": {
+          "state": "CANCELED",
+          "receipt": {
+            "deleted": true,
+            "job_id": "c61f7b6b-0169-4d50-9656-a0c79461467e",
+            "receipt_at": "2026-07-30T21:28:31.399000+00:00"
+          }
+        },
+        "rtl": {
+          "dir": "rtl",
+          "width": 380,
+          "clientWidth": 380
+        },
+        "requests": [
+          {
+            "url": "http://127.0.0.1:8799/v1/capabilities",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/model/status?verify_hash=true",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs",
+            "method": "POST",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf/result",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf/retry-chunks",
+            "method": "POST",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf/result",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/08146547-3421-442f-bc3e-6454cabfaccf",
+            "method": "DELETE",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs",
+            "method": "POST",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/c61f7b6b-0169-4d50-9656-a0c79461467e",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/c61f7b6b-0169-4d50-9656-a0c79461467e",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/c61f7b6b-0169-4d50-9656-a0c79461467e",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/c61f7b6b-0169-4d50-9656-a0c79461467e/cancel",
+            "method": "POST",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/c61f7b6b-0169-4d50-9656-a0c79461467e",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/c61f7b6b-0169-4d50-9656-a0c79461467e",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/c61f7b6b-0169-4d50-9656-a0c79461467e",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/c61f7b6b-0169-4d50-9656-a0c79461467e",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/c61f7b6b-0169-4d50-9656-a0c79461467e",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/c61f7b6b-0169-4d50-9656-a0c79461467e",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/c61f7b6b-0169-4d50-9656-a0c79461467e",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/c61f7b6b-0169-4d50-9656-a0c79461467e",
+            "method": "GET",
+            "origin": null
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/c61f7b6b-0169-4d50-9656-a0c79461467e",
+            "method": "DELETE",
+            "origin": null
+          }
+        ],
+        "cloudRequests": [],
+        "consoleErrors": [
+          "Failed to load resource: the server responded with a status of 404 (Not Found)",
+          "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        ]
+      },
+      "pass": true
+    },
+    "firefox": {
+      "provenance": "playwright-instrumented-mozilla-build; stock Firefox 153 rejects Juggler automation",
+      "executablePath": "D:\\playwright-browsers\\firefox-1509\\firefox\\firefox.exe",
+      "browserVersion": "146.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0",
+      "defaultOff": {
+        "experimental": false,
+        "providerHidden": true,
+        "providerValue": "gemini",
+        "width": 380,
+        "clientWidth": 380
+      },
+      "pna": {
+        "origin": "http://192.168.1.228:3000",
+        "status": "Local companion готов; pinned model проверен. 72ad623a3794",
+        "requests": [
+          {
+            "url": "http://127.0.0.1:8799/v1/capabilities",
+            "method": "GET"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/model/status?verify_hash=true",
+            "method": "GET"
+          }
+        ],
+        "secureContext": false,
+        "cryptoSubtle": false,
+        "note": "LAN HTTP can prove the browser Origin/CORS/loopback handshake, but media hashing requires a trustworthy origin; full upload runs from 127.0.0.1."
+      },
+      "live": {
+        "enabledState": {
+          "experimental": true,
+          "providerHidden": false,
+          "setupHidden": false,
+          "providerValue": "local"
+        },
+        "pairedStatus": "Local companion готов; pinned model проверен. 72ad623a3794",
+        "statuses": [
+          "Local job в очереди…",
+          "Проверка local model, media и GPU…",
+          "Проверка local model, media и GPU…",
+          "Проверка local model, media и GPU…",
+          "Проверка local model, media и GPU… 0/1",
+          "Local job ждёт освобождения GPU… 0/1",
+          "Local job ждёт освобождения GPU… 0/1",
+          "Local job ждёт освобождения GPU… 0/1",
+          "Local job ждёт освобождения GPU… 0/1",
+          "Физическая нарезка local media… 0/1",
+          "Локальное распознавание… 0/1",
+          ""
+        ],
+        "completionSignal": {
+          "deleteVisible": true,
+          "previewVisible": true,
+          "previewLength": 19
+        },
+        "retryInitiallyHidden": true,
+        "retryStates": {
+          "seen": [
+            "QUEUED",
+            "PREFLIGHT",
+            "PREFLIGHT",
+            "PREFLIGHT",
+            "PREFLIGHT",
+            "COMPLETE"
+          ],
+          "state": "COMPLETE"
+        },
+        "canceled": {
+          "state": "CANCELED",
+          "receipt": {
+            "deleted": true,
+            "job_id": "342664dd-087e-4618-9fb8-2e60288bf16a",
+            "receipt_at": "2026-07-30T21:29:15.409239+00:00"
+          }
+        },
+        "rtl": {
+          "dir": "rtl",
+          "width": 380,
+          "clientWidth": 380
+        },
+        "requests": [
+          {
+            "url": "http://127.0.0.1:8799/v1/capabilities",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/model/status?verify_hash=true",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs",
+            "method": "POST",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a/result",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a/retry-chunks",
+            "method": "POST",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a/result",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a",
+            "method": "DELETE",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs",
+            "method": "POST",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a/cancel",
+            "method": "POST",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a",
+            "method": "GET",
+            "origin": "http://127.0.0.1:3000"
+          },
+          {
+            "url": "http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a",
+            "method": "DELETE",
+            "origin": "http://127.0.0.1:3000"
+          }
+        ],
+        "cloudRequests": [],
+        "consoleErrors": [
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/capabilities because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/capabilities because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/model/status?verify_hash=true because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/model/status?verify_hash=true because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a/result because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a/result because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a/retry-chunks because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a/retry-chunks because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a/result because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a/result because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/9972745e-0918-4bcc-97eb-90a4e4341a9a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a/cancel because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a/cancel because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/js/local-asr-client.js\" line: 64}]",
+          "[JavaScript Error: \"Content-Security-Policy: (Report-Only policy) The page’s settings would block the loading of a resource (connect-src) at http://127.0.0.1:8799/v1/asr/jobs/342664dd-087e-4618-9fb8-2e60288bf16a because it violates the following directive: “connect-src 'self'”\" {file: \"http://127.0.0.1:3000/index.html\" line: 0}]"
+        ]
+      },
+      "pass": true
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "studio-local-asr-cleanup-receipts-v1",
+  "completed_at_utc": "2026-07-30T21:34:58.6981395Z",
+  "code_commit": "33ba3f49129f72e7ce5f5d1eea90c4a674d93407",
+  "receipts": [
+    {"target": "sidecar batch jobs", "count": 20, "deleted": true, "evidence": "sidecar-batch20-report.json#deletion_receipts"},
+    {"target": "ai-local/models/asr/ivrit-ai--whisper-large-v3-turbo-ct2/72ad623a37947395efcc3933132353790e5a12f5", "deleted": true},
+    {"target": ".tmp/studio-local-asr-evidence-closure", "deleted": true},
+    {"target": ".tmp/studio-local-asr-browser-data", "deleted": true},
+    {"target": ".tmp/studio-local-asr-browser-cancel.wav", "deleted": true},
+    {"target": "evidence runner __pycache__ directories", "deleted": true},
+    {"target": "temporary web process PID 45012", "stopped": true},
+    {"target": "127.0.0.1:8799", "listeners_after_cleanup": 0}
+  ],
+  "preserved": [
+    ".tmp/h3-c1-owner-audio",
+    "all unrelated dirty and untracked worktree paths"
+  ]
+}

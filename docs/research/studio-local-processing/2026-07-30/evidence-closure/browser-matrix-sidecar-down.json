@@ -1,0 +1,64 @@
+{
+  "schema": "studio-local-asr-browser-matrix-v1",
+  "mode": "down",
+  "appOrigin": "http://127.0.0.1:3000",
+  "pnaOrigin": "http://192.168.1.228:3000",
+  "viewport": {
+    "width": 380,
+    "height": 844
+  },
+  "generated_at": "2026-07-30T21:29:36.941Z",
+  "engines": {
+    "chrome": {
+      "provenance": "installed-system-browser",
+      "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+      "browserVersion": "150.0.7871.187",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+      "sidecarDown": {
+        "status": "Local companion недоступен или отклонил запрос; автоматического перехода в Gemini нет.",
+        "cloudRequests": [],
+        "localRequests": [
+          {
+            "url": "http://127.0.0.1:8799/v1/capabilities",
+            "method": "GET"
+          }
+        ]
+      },
+      "pass": true
+    },
+    "edge": {
+      "provenance": "installed-system-browser",
+      "executablePath": "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+      "browserVersion": "150.0.4078.105",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0",
+      "sidecarDown": {
+        "status": "Local companion недоступен или отклонил запрос; автоматического перехода в Gemini нет.",
+        "cloudRequests": [],
+        "localRequests": [
+          {
+            "url": "http://127.0.0.1:8799/v1/capabilities",
+            "method": "GET"
+          }
+        ]
+      },
+      "pass": true
+    },
+    "firefox": {
+      "provenance": "playwright-instrumented-mozilla-build; stock Firefox 153 rejects Juggler automation",
+      "executablePath": "D:\\playwright-browsers\\firefox-1509\\firefox\\firefox.exe",
+      "browserVersion": "146.0.1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0",
+      "sidecarDown": {
+        "status": "Local companion недоступен или отклонил запрос; автоматического перехода в Gemini нет.",
+        "cloudRequests": [],
+        "localRequests": [
+          {
+            "url": "http://127.0.0.1:8799/v1/capabilities",
+            "method": "GET"
+          }
+        ]
+      },
+      "pass": true
+    }
+  }
+}

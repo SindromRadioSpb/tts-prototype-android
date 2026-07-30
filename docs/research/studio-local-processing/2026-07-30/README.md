@@ -4,8 +4,10 @@ This directory records the 2026-07-30 measure-before-code benchmark. Outcome: **
 
 The subsequently approved bounded L1-A→L1-E implementation is recorded in
 [`L1_IMPLEMENTATION_EVIDENCE.md`](L1_IMPLEMENTATION_EVIDENCE.md) and
-[`l1-evidence-report.json`](l1-evidence-report.json). Its engineering verdict is
-`PASS_WITH_OPEN_ACCEPTANCE_GATES`; permanent integration/provider-policy remains `NO-GO`.
+[`l1-evidence-report.json`](l1-evidence-report.json). The later accelerated
+[`evidence-closure/`](evidence-closure/README.md) closed sidecar batch-20, real-browser matrix
+and B+C integrity gates. Its bounded engineering/evidence verdict is `PASS`; permanent
+integration/provider-policy remains `NO-GO` pending a separate owner acceptance decision.
 
 ## What is committed
 

@@ -14,13 +14,16 @@
     "de8c7d61",
     "e387f16f",
     "f83b6fe8",
-    "aa8dffa0"
+    "aa8dffa0",
+    "33ba3f49129f72e7ce5f5d1eea90c4a674d93407"
   ],
   "automated_gates": {
     "ai_local_pytest": {"passed": 41, "failed": 0},
-    "local_asr_node": {"passed": 17, "failed": 0},
+    "focused_local_asr_and_bc_node": {"passed": 46, "failed": 0},
     "i18n_smoke": {"passed": 233, "failed": 0},
+    "real_text_card_roundtrip": {"passed": 35, "failed": 0},
     "api_smoke": "PASS",
+    "node_syntax": "PASS",
     "python_compileall": "PASS",
     "full_npm_test": {
       "passed": 629,
@@ -33,16 +36,26 @@
     }
   },
   "browser_smoke": {
-    "browser": "Chrome",
-    "viewport_requested_px": 380,
+    "viewport_px": {"width": 380, "height": 844},
     "default_off_provider_controls_hidden": true,
     "modal_reset_provider": "gemini",
     "experimental_local_visible_only_after_explicit_flag": true,
     "local_selection_requires_pairing_token": true,
     "horizontal_modal_overflow": false,
-    "defect_found_and_fixed": "mobile column layout retained a 180px flex basis on the pairing input",
-    "edge": "NOT_RUN",
-    "firefox": "NOT_RUN"
+    "chrome": {"version": "150.0.7871.187", "provenance": "installed system binary", "result": "PASS"},
+    "edge": {"version": "150.0.4078.105", "provenance": "installed system binary", "result": "PASS"},
+    "firefox": {
+      "version": "146.0.1",
+      "provenance": "Mozilla Playwright-instrumented build",
+      "result": "PASS",
+      "limitation": "installed stock Firefox 153 rejects Juggler automation and was not directly exercised"
+    },
+    "scenarios": [
+      "default-off", "explicit enable", "pairing", "Origin/PNA/CORS", "upload/start",
+      "progress/queue", "cancel", "retry", "delete", "RTL", "sidecar-down"
+    ],
+    "implicit_gemini_fallback_requests": 0,
+    "evidence": "evidence-closure/browser-matrix-live.json and browser-matrix-sidecar-down.json"
   },
   "live_runs": {
     "model_lifecycle": {
@@ -115,6 +128,38 @@
       "deleted": true,
       "job_directory_absent": true,
       "remaining_job_directories": 0
+    },
+    "evidence_closure_batch20": {
+      "frozen_inputs_sha256": "2a3e326c186cf26c10f968d89b0397a88c0ee15ec5e0fb87bc6ffae0cd827e08",
+      "items": 20,
+      "terminal_results": 20,
+      "duration_sec": 113.60145,
+      "inference_elapsed_sec": 12.140329600777477,
+      "wall_sec": 58.26997447013855,
+      "rtf": 0.10686773452959868,
+      "wer": 0.025974025974025976,
+      "cer": 0.009259259259259259,
+      "retry_or_fallback": 0,
+      "deleted_jobs": 20,
+      "result": "PASS",
+      "evidence": "evidence-closure/sidecar-batch20-report.json"
+    },
+    "bc_integrity_hardening": {
+      "source_identity_fields_separated": true,
+      "stable_media_derived_segment_id": true,
+      "new_import_clears_stale_update_authority": true,
+      "duplicate_media_requires_explicit_choice": true,
+      "ordinary_backup_text_card_parity": true,
+      "text_audio_asset_key_roundtrip": true,
+      "schema_migration": false,
+      "result": "PASS"
+    },
+    "evidence_closure_cleanup": {
+      "jobs_deleted": true,
+      "temporary_model_activation_deleted": true,
+      "temporary_media_and_browser_state_deleted": true,
+      "sidecar_listener_after_cleanup": 0,
+      "evidence": "evidence-closure/cleanup-receipts.json"
     }
   },
   "fault_gates": {
@@ -129,16 +174,14 @@
     "restart_resume": "PASS automated and live"
   },
   "open_gates": [
-    "L1 batch-20 was not rerun through the new sidecar path; only the frozen L0 result exists",
-    "human-gold >=60 minutes and >=12 speakers is not available",
-    "paired complete Gemini comparison is still open because the L0 cloud run hit quota",
-    "owner listen/read acceptance is not recorded",
-    "Edge and Firefox loopback/PNA/RTL live matrix is not run",
-    "B+C provenance/schema and UX/data-integrity debts remain open",
+    "owner listen/read acceptance and an owner-selected absolute product-quality threshold are not recorded",
+    "expanded independent human-gold was explicitly excluded from the accelerated slice",
+    "paired complete Gemini comparison remains unrun because cloud spend and media upload were not authorized",
+    "installed stock Firefox 153 was not directly exercised; Mozilla Firefox engine 146.0.1 passed",
     "thermal and OOM are deterministically injected tests, not destructive live hardware faults"
   ],
   "decision": {
-    "bounded_l1_engineering": "PASS_WITH_OPEN_ACCEPTANCE_GATES",
+    "bounded_l1_engineering_and_evidence_closure": "PASS",
     "permanent_integration": "NO_GO",
     "provider_policy_or_default_change": "NO_GO",
     "next_step_requires_owner_decision": true

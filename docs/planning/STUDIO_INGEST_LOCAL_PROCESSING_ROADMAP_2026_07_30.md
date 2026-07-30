@@ -1,9 +1,9 @@
 # Студия: импорт, медиа-артефакты и локальная обработка — roadmap
 
 > **Дата:** 2026-07-30
-> **Статус:** 🟡 L0 завершён; ограниченная default-off L1-A→L1-E реализация выполнена и
-> имеет `PASS_WITH_OPEN_ACCEPTANCE_GATES`. Permanent integration/provider policy — NO-GO до
-> отдельного решения владельца и закрытия human/browser/B+C gates.
+> **Статус:** 🟡 L0 завершён; default-off L1 engineering и ускоренный evidence-closure
+> (sidecar batch-20, browser matrix, B+C integrity) имеют PASS. Permanent integration/provider
+> policy — NO-GO до отдельного owner acceptance; expanded human-gold/Gemini не запускались.
 > **Срез кода:** `4a17686d` (S12.7 SHIPPED v3.11.270).
 > **Место в каноне:** специализированный сквозной трек общего roadmap
 > `STUDIO_INGEST_ROADMAP_2026_07_30.md`. Здесь определён local-processing L0–L6;
@@ -45,7 +45,7 @@
 | Local перевод | 🟡 код есть | `ai-local`: MADLAD-400 10B, CT2 int8_float16, ~6.5ГБ; provider существует |
 | Local Hebrew TTS | 🟠 эксперимент | Phonikud/Piper интегрирован, но выключен: качество слишком роботизировано; license-mode ограничен |
 | Browser local TTS | 🟠 каркас | provider/router/WASM есть; Hebrew-модель не staged, текущие local providers выключены политикой |
-| Local ASR | 🟡 default-off L1 code/evidence | pinned turbo CT2; permanent integration и provider defaults не разрешены |
+| Local ASR | 🟡 bounded engineering PASS | pinned turbo CT2; batch/browser/B+C закрыты, permanent integration не разрешена |
 | Media package/редактор субтитров | ❌ нет | субтитры пока вход, а не переносимый versioned-артефакт |
 | Resume после закрытия вкладки | ❌ нет полного job-ledger | критично для 1–3ч и batch |
 
@@ -202,9 +202,9 @@ baseline: разборчивость, никуд/ударение, имена, �
 |---|---|---|---|
 | P0 | S12.7 clock-drift | ✅ SHIPPED v3.11.270 | гейт+переспрос+blind-деградация, `4a17686d` |
 | P0 | **L0 local benchmark** | ✅ DONE | pinned turbo CT2 GO; full large-v3 NO-GO как default |
-| P0 | Провенанс/schema B | ⬜ | backup parity + persist segment identity + развод имён |
-| P0 | UX/data C | ⬜ | dedupe + `text_audio_asset_key` round-trip |
-| P0 | **L1 local ivrit.ai ASR** | 🟡 LIMITED DONE | default-off engineering PASS; human/browser/B+C acceptance open; permanent NO-GO |
+| P0 | Провенанс/schema B | ✅ BOUNDED DONE | backup parity + portable segment identity; schema migration не потребовалась |
+| P0 | UX/data C | ✅ BOUNDED DONE | explicit SHA dedupe + `text_audio_asset_key` round-trip |
+| P0 | **L1 local ivrit.ai ASR** | 🟡 ENGINEERING PASS | batch/browser/B+C PASS; owner acceptance open; permanent NO-GO |
 | P0/P1 | **L2 resumable jobs + batch** | ⬜ | L1 contract stable; restart/fault tests |
 | P1 | **L3 Media Package/editor** | ⬜ | segment identity closed; round-trip artifact |
 | P1 | **L4 local translation+nikud** | ⬜ | shared scheduler; independent quality gates |
@@ -216,8 +216,9 @@ baseline: разборчивость, никуд/ударение, имена, �
 | Triggered | S10 PWA share_target | parked | proven Android demand |
 | Anti | server yt-dlp, real-time, song alignment | NO-GO | reopen only by explicit owner decision + evidence |
 
-**Рекомендуемая последовательность:** принять bounded L1 engineering packet, затем отдельным
-решением закрыть batch/browser/human acceptance и B+C до permanent integration. L2/L3 не
+**Рекомендуемая последовательность:** принять bounded L1 engineering/evidence closure, затем
+отдельным решением определить достаточный owner/human acceptance и только отдельно разрешать
+paired Gemini cloud spend до permanent integration. L2/L3 не
 стартуют автоматически из факта наличия L1-кода. L4 может идти после стабилизации scheduler;
 L5/L6 только после новых измерений и разрешений.
 
