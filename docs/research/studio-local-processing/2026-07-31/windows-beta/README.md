@@ -113,8 +113,12 @@ Local. In the import dialog, the companion/model result now appears immediately 
 modal-wide footer remains reserved for import/job status. Editing the token or a failed check
 clears the success state. Real-Companion checks passed on both surfaces at 380×844 in RU/LTR and
 HE/RTL without horizontal overflow; the global import status remained empty and Gemini requests
-were zero. Focused Node tests passed `21/21`, i18n `233/233`, API and ingest smoke passed. The
-candidate is not pushed or deployed.
+were zero. Focused Node tests passed `21/21`, i18n `233/233`, API and ingest smoke passed.
+
+The owner then authorized the bounded push/deploy. Production image
+`88977240066cddba8161bd2af10fed298bd8fb56` served `3.11.279`; repeated no-store version probes,
+health/DB/migrations and fresh RU/LTR plus HE/RTL 380×844 browser checks passed. No environment,
+database, provider-default, cleanup, installer-distribution or Gemini-spend mutation was performed.
 
 L2 is recorded as `DEFERRED / DEMAND-TRIGGERED`: single-job browser recovery returns on real
 reload/job-loss friction; batch/queue returns on demonstrated recurring 3–5+ file demand. This is

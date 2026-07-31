@@ -1,8 +1,8 @@
 # Studio Ingest Local ASR — next-session handoff
 
 > **Date:** 2026-07-31
-> **Production:** `381233e04c017246d9dbf106581983ad9f3b618e`, `v3.11.277`
-> **Local UI fix:** `1046686694f76afdb4d53fa0766274d98607ca3a`, `v3.11.279`, not pushed/deployed
+> **Production:** `88977240066cddba8161bd2af10fed298bd8fb56`, `v3.11.279`, deployed and browser-verified 2026-07-31
+> **UI implementation:** `1046686694f76afdb4d53fa0766274d98607ca3a`; deployment closure includes the follow-up docs through `88977240`
 > **Permanent integration:** `NO-GO` until a separate explicit owner decision
 
 ## Durable state
@@ -39,13 +39,12 @@ Preserve all unrelated dirty/untracked work. Live code wins if a dated document 
 
 ## Next decision
 
-There is no automatically authorized engineering slice. The nearest bounded decision is whether
-to push/deploy the already-tested `v3.11.279` Local connection-feedback fix. Before any production action,
-re-read `.claude/PROD_OPS_PRIVATE.md`, report current HEAD/origin/status, served version/health,
-disk and exact mutation allowlist, and obtain exact push/deploy authority in the new session.
+The bounded `v3.11.279` push/deploy decision is closed. Production served `3.11.279` from image
+`88977240066cddba8161bd2af10fed298bd8fb56`; health/DB/migrations were green, and fresh RU/LTR
+and HE/RTL 380×844 browser checks showed the Local-ASR panel without horizontal overflow.
 
-If no production deployment is requested, continue owner dogfood without engineering work and
-return to L2 only when one of its recorded triggers occurs.
+The next separate slice is docs-only: prepare and approve the adversarial L3a Correctable Media
+Package design packet. L2 remains demand-triggered and must not start without its recorded trigger.
 
 ## Paste-ready next-session prompt
 
@@ -57,12 +56,13 @@ docs/planning/STUDIO_INGEST_LOCAL_ASR_NEXT_SESSION_HANDOFF_2026_07_31.md.
 local-processing roadmap и windows-beta evidence README/JSON; затем сними git status, HEAD/origin
 и текущую production version/health/disk только если я разрешаю production preflight.
 
-Подтверждённое состояние: production v3.11.277/381233e0; owner Chrome ceremony PASS; owner-only
+Подтверждённое состояние: production v3.11.279/88977240; owner Chrome ceremony PASS; owner-only
 dogfood IN PROGRESS и не блокирует; Local остаётся explicit/default-off, Gemini default, implicit
 fallback запрещён. Локальный commit 10466866 содержит итоговый v3.11.279 UX-fix: после успешной
 проверки обе поверхности показывают Подключено/Connected/מחובר, а в Import → File статус
 companion/model расположен сразу под строкой о 127.0.0.1 внутри Local-блока; RU/HE 380x844
-real-Companion smoke PASS. Он не pushed/deployed.
+real-Companion smoke PASS. Push/deploy закрыт: served version 3.11.279, health/DB/migrations PASS,
+RU/LTR и HE/RTL production browser 380x844 PASS.
 
 L2 не начинать автоматически: L2a recovery — только при реальной reload/job-loss боли; L2b batch
 — только при устойчивой потребности 3–5+ файлов. Не объявлять L2 закрытым или отменённым.

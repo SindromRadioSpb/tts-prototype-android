@@ -472,7 +472,9 @@ the proximal status visible, the global import status empty, and no horizontal o
 request. Automated closure: focused Local ASR Node `21/21`, i18n `233/233`, API smoke PASS, ingest
 smoke PASS, JavaScript syntax PASS and `git diff --check` PASS.
 
-`3.11.279` is **local-only**. This section does not authorize push, deploy, production cleanup,
-installer publication/distribution expansion, permanent integration, provider-default changes,
-schema/data mutation, Gemini spend, or L2–L6 work. Continuation canon and a paste-ready prompt are
-in `STUDIO_INGEST_LOCAL_ASR_NEXT_SESSION_HANDOFF_2026_07_31.md`.
+The owner separately authorized the bounded `3.11.279` push/deploy. Production deployed image
+`88977240066cddba8161bd2af10fed298bd8fb56` and served `3.11.279`; repeated no-store probes,
+health/DB/migrations and fresh RU/LTR plus HE/RTL 380×844 browser checks passed. No environment,
+database, provider-default, installer-distribution, cleanup, Gemini-spend or L2–L6 mutation was
+performed. Continuation canon is in
+`STUDIO_INGEST_LOCAL_ASR_NEXT_SESSION_HANDOFF_2026_07_31.md`.

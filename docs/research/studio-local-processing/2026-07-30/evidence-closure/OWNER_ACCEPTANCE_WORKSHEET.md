@@ -76,8 +76,9 @@ Local candidate `v3.11.279` then closes the remaining proximal-feedback gap: bot
 Import → File → Local change their action to **Подключено / Connected / מחובר** after a successful
 real-Companion check and reset honestly after token edits/failure. The import companion/model
 result is directly below the `127.0.0.1` privacy hint inside the Local block, rather than in the
-modal-wide footer. RU/LTR and HE/RTL passed at 380×844 without horizontal overflow. This candidate
-is not pushed or deployed.
+modal-wide footer. RU/LTR and HE/RTL passed at 380×844 without horizontal overflow. The owner then
+authorized the bounded push/deploy; production image `88977240066cddba8161bd2af10fed298bd8fb56`
+served `3.11.279` with health/DB/migrations and fresh RU/LTR plus HE/RTL browser checks passing.
 
 Owner-only dogfood is in progress and non-blocking. L2 is explicitly deferred/demand-triggered:
 single-job recovery returns on real reload/job-loss friction, and batch returns on demonstrated
