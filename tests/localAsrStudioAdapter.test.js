@@ -65,6 +65,17 @@ test("380px pairing layout resets the row flex-basis after switching to column",
   );
 });
 
+test("mobile onboarding pairing controls cannot widen the Local ASR dialog", () => {
+  assert.match(
+    html,
+    /@media \(max-width:600px\)[\s\S]*?\.local-asr-inline \{[^}]*min-width:0;[^}]*width:100%;[^}]*\}/
+  );
+  assert.match(
+    html,
+    /@media \(max-width:600px\)[\s\S]*?\.local-asr-inline input \{[^}]*box-sizing:border-box;[^}]*min-width:0;[^}]*max-width:100%;[^}]*width:100%;[^}]*\}/
+  );
+});
+
 test("B+C import clears stale update authority and duplicate media is an explicit choice", () => {
   assert.match(studio, /v3SessionSet\(importSessionResetPatch\(\)\)/,
     "imported media must not inherit a prior card's baseTextId");

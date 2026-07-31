@@ -3616,8 +3616,8 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   .local-asr-beta-modal { padding:0; place-items:end center; }
   .local-asr-beta-panel { max-height:94vh; border-radius:18px 18px 0 0; padding:20px 16px calc(20px + env(safe-area-inset-bottom)); }
   .local-asr-steps > li { grid-template-columns:1fr; }
-  .local-asr-inline { align-items:stretch; flex-direction:column; }
-  .local-asr-inline input { width:100%; }
+  .local-asr-inline { align-items:stretch; flex-direction:column; min-width:0; width:100%; }
+  .local-asr-inline input { box-sizing:border-box; min-width:0; max-width:100%; width:100%; }
   .local-asr-actions { align-items:stretch; }
 }
 @media (max-width: 420px) {
@@ -12562,7 +12562,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.274";
+    window.APP_VERSION = "3.11.275";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
