@@ -925,4 +925,72 @@ export const MIGRATIONS = [
     payload_json TEXT NOT NULL,
     created_at   TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
   );`,
+
+  // 045_studio_media_package_l3a — browser-local Correctable Media Package canon.
+  // Raw normalized tracks and user-corrected tracks are separate logical tracks;
+  // immutable revisions are canonical. Legacy passport/VTT are projections only.
+  // Deliberately browser-only: no server schema, cloud sync or media upload.
+  `CREATE TABLE IF NOT EXISTS studio_media_packages (
+    package_id       TEXT PRIMARY KEY,
+    media_sha256     TEXT,
+    mime             TEXT,
+    duration_ms      INTEGER,
+    original_name    TEXT,
+    opfs_path        TEXT,
+    size_bytes       INTEGER,
+    external_ref_json TEXT,
+    created_at       TEXT NOT NULL,
+    updated_at       TEXT NOT NULL,
+    deleted_at       TEXT
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS ux_studio_packages_media_sha
+    ON studio_media_packages(media_sha256)
+    WHERE media_sha256 IS NOT NULL AND deleted_at IS NULL;
+
+  CREATE TABLE IF NOT EXISTS studio_caption_tracks (
+    track_id               TEXT PRIMARY KEY,
+    package_id             TEXT NOT NULL REFERENCES studio_media_packages(package_id) ON DELETE CASCADE,
+    role                   TEXT NOT NULL CHECK(role IN ('raw_original','user_corrected','translated','simplified')),
+    language               TEXT,
+    parent_track_id        TEXT REFERENCES studio_caption_tracks(track_id),
+    current_revision_id    TEXT,
+    draft_base_revision_id TEXT,
+    draft_json             TEXT,
+    draft_updated_at       TEXT,
+    created_at             TEXT NOT NULL,
+    updated_at             TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS ix_studio_tracks_package_role
+    ON studio_caption_tracks(package_id, role);
+
+  CREATE TABLE IF NOT EXISTS studio_caption_revisions (
+    revision_id      TEXT PRIMARY KEY,
+    track_id         TEXT NOT NULL REFERENCES studio_caption_tracks(track_id) ON DELETE CASCADE,
+    parent_revision_id TEXT,
+    revision_no      INTEGER NOT NULL,
+    segments_json    TEXT NOT NULL,
+    operations_json  TEXT,
+    canonical_sha256 TEXT NOT NULL,
+    author_kind      TEXT NOT NULL CHECK(author_kind IN ('provider','import','user')),
+    provenance_json  TEXT NOT NULL,
+    created_at       TEXT NOT NULL,
+    UNIQUE(track_id, revision_no)
+  );
+  CREATE INDEX IF NOT EXISTS ix_studio_revisions_track_no
+    ON studio_caption_revisions(track_id, revision_no);
+
+  CREATE TABLE IF NOT EXISTS studio_text_media_bindings (
+    text_id         TEXT PRIMARY KEY REFERENCES texts(id) ON DELETE CASCADE,
+    package_id      TEXT NOT NULL REFERENCES studio_media_packages(package_id) ON DELETE CASCADE,
+    track_id        TEXT NOT NULL REFERENCES studio_caption_tracks(track_id),
+    revision_id     TEXT NOT NULL REFERENCES studio_caption_revisions(revision_id),
+    revision_sha256 TEXT NOT NULL,
+    mapping_json    TEXT,
+    created_at      TEXT NOT NULL,
+    updated_at      TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS ix_studio_bindings_package
+    ON studio_text_media_bindings(package_id);
+  CREATE INDEX IF NOT EXISTS ix_studio_bindings_revision
+    ON studio_text_media_bindings(revision_id);`,
 ];

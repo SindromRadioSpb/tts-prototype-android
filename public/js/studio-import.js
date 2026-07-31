@@ -101,8 +101,13 @@
     var segment = segIndex != null ? segments[segIndex] : null;
     var sourceLine = finiteIndex(r.source_line_index);
     if (sourceLine == null) sourceLine = segIndex;
+    var sourceSegmentIds = segment && Array.isArray(segment.source_segment_ids)
+      ? segment.source_segment_ids.map(String).filter(Boolean).filter(function (v, i, a) { return a.indexOf(v) === i; })
+      : [];
+    var captionSegmentId = r.caption_segment_id || r.captionSegmentId ||
+      (segment && segment.caption_segment_id) || null;
     var sourceSegmentId = r.source_segment_id || r.sourceSegmentId ||
-      (segment && (segment.source_segment_id || segment.id)) || null;
+      sourceSegmentIds[0] || (segment && (segment.source_segment_id || segment.id)) || null;
     var sha = mediaSourceSha(audio);
     if (!sourceSegmentId && sha && segIndex != null) sourceSegmentId = "asrseg:" + sha + ":" + segIndex;
 
@@ -116,7 +121,14 @@
     if (!sourceSegmentId && sourceLine == null && sentenceIndex == null) {
       return r.edit_meta_json != null ? r.edit_meta_json : (r.edit_meta != null ? r.edit_meta : null);
     }
-    meta._studio_source = {
+    meta._studio_source = captionSegmentId || sourceSegmentIds.length ? {
+      schema: "studio-row-source-v2",
+      source_segment_id: sourceSegmentId ? String(sourceSegmentId) : null,
+      source_segment_ids: sourceSegmentIds.length ? sourceSegmentIds : (sourceSegmentId ? [String(sourceSegmentId)] : []),
+      caption_segment_id: captionSegmentId ? String(captionSegmentId) : null,
+      source_line_index: sourceLine,
+      sentence_index: sentenceIndex,
+    } : {
       schema: "studio-row-source-v1",
       source_segment_id: sourceSegmentId ? String(sourceSegmentId) : null,
       source_line_index: sourceLine,
@@ -128,8 +140,12 @@
   function restorePortableRowIdentity(row, rawMeta) {
     var out = Object.assign({}, row || {});
     var src = parseObject(rawMeta)._studio_source;
-    if (!src || src.schema !== "studio-row-source-v1") return out;
+    if (!src || (src.schema !== "studio-row-source-v1" && src.schema !== "studio-row-source-v2")) return out;
     if (src.source_segment_id) out.source_segment_id = String(src.source_segment_id);
+    if (src.schema === "studio-row-source-v2") {
+      if (Array.isArray(src.source_segment_ids)) out.source_segment_ids = src.source_segment_ids.map(String).filter(Boolean);
+      if (src.caption_segment_id) out.caption_segment_id = String(src.caption_segment_id);
+    }
     var line = finiteIndex(src.source_line_index);
     var sentence = finiteIndex(src.sentence_index);
     if (line != null) out.source_line_index = line;
@@ -1547,7 +1563,7 @@
   // Возвращает true, ТОЛЬКО если текст реально приземлён в поле ввода. Отказ владельца в
   // R11-подтверждении (потеря >5%) — это НЕ приземление, и вызывающий (useTextAndRetell) обязан
   // это различать, иначе после отмены открылся бы модал пересказа поверх ничего.
-  async function useText() {
+  async function useText(openCorrector) {
     if (!pending) return false;
     var text = ($("v3ImportPreview").value || "").trim(); // пользователь мог поправить в превью — это ок
     if (!text) { setStatus("studio.import.errEmpty"); return false; }
@@ -1641,7 +1657,37 @@
         timing: null,
         timingDropReason: cEdited ? "PREVIEW_EDITED" : null,
       };
+      // L3a: retained only long enough to create the browser-local immutable raw track.
+      // It is removed from the compatibility passport before that passport can enter sync/export.
+      if (pendingCaptions.rawSource) captionsMetaForImport.rawSource = pendingCaptions.rawSource;
       if (cEdited) toast("studio.import.audioTimingDropped", "warning");
+    }
+    var importMeta = {
+      kind: pending.kind, source: pending.source, method: pending.method, model: pending.model,
+      warnings: pending.warnings, at: new Date().toISOString(), textSnapshot: text,
+      audio: audioMetaForImport || undefined,
+      captions: captionsMetaForImport || undefined,
+    };
+    var mediaPackage = null;
+    if ((audioMetaForImport || captionsMetaForImport) && window.StudioMediaPackage) {
+      try {
+        mediaPackage = await window.StudioMediaPackage.createFromImportMeta(importMeta);
+        var projection = window.StudioMediaPackage.buildCompatibilityProjection(mediaPackage.revision, {
+          kind: mediaPackage.input.kind, media: mediaPackage.input.media,
+        });
+        importMeta.media_package_ref = projection.media_package_ref;
+        if (audioMetaForImport) importMeta.audio = Object.assign({}, audioMetaForImport, projection.audio);
+        if (captionsMetaForImport) importMeta.captions = Object.assign({}, captionsMetaForImport, projection.captions);
+        if (importMeta.captions) delete importMeta.captions.rawSource;
+        window.v3LastMediaPackageRef = projection.media_package_ref;
+        // The exact corrected revision, not the old merged preview, becomes table input.
+        text = mediaPackage.revision.segments.map(function (s) { return s.text; }).join("\n");
+        importMeta.textSnapshot = text;
+      } catch (e) {
+        importMeta.media_package_error = { code: (e && e.code) || "MEDIA_PACKAGE_CREATE_FAILED" };
+        if (importMeta.captions) delete importMeta.captions.rawSource;
+        toast("studio.mediaPackage.createFailed", "warning");
+      }
     }
     var input = $("inputText");
     input.value = text;
@@ -1650,17 +1696,17 @@
     // active before the modal opened. The input event marks a draft while preserving the old
     // baseTextId; clear that pointer immediately so Save cannot UPDATE an unrelated card.
     try { if (window.v3SessionSet) window.v3SessionSet(importSessionResetPatch()); } catch (_) {}
-    window.v3LastImportMeta = {
-      kind: pending.kind, source: pending.source, method: pending.method, model: pending.model,
-      warnings: pending.warnings, at: new Date().toISOString(), textSnapshot: text,
-      audio: audioMetaForImport || undefined,
-      captions: captionsMetaForImport || undefined,
-    };
+    window.v3LastImportMeta = importMeta;
     close();
     toast(pending.warnings && pending.warnings.length ? "studio.import.warnCheck" : "studio.import.done",
           pending.warnings && pending.warnings.length ? "warning" : "success");
+    if (openCorrector && mediaPackage && window.StudioMediaEditor) {
+      await window.StudioMediaEditor.open(mediaPackage.package.corrected_track_id);
+    }
     return true;
   }
+
+  async function useTextAndCorrect() { return useText(true); }
 
   // W2-S11: «→ В поле ввода» + сразу открыть модал пересказа (шорткат превью импорта).
   async function useTextAndRetell() {
@@ -1900,12 +1946,13 @@
     return msg;
   }
 
-  function acceptCaptions(parsed, origin, fileName) {
+  function acceptCaptions(parsed, origin, fileName, rawSource) {
     if (!parsed.ok) { setStatus(errKey(parsed.error_code)); return; }
     pendingCaptions = pendingCaptions || {};
     pendingCaptions.parsed = parsed;
     pendingCaptions.origin = origin;
     pendingCaptions.fileName = fileName || null;
+    pendingCaptions.rawSource = rawSource == null ? null : String(rawSource);
     var warn = [];
     if (parsed.kindHint === "auto") warn.push("AUTO_CAPTIONS");
     if (parsed.droppedHeadings > 0) warn.push("HEADINGS_DROPPED");
@@ -1925,7 +1972,8 @@
     var reader = new FileReader();
     reader.onerror = function () { setStatus("studio.import.errGeneric"); };
     reader.onload = function () {
-      acceptCaptions(window.CaptionsParse.parse(String(reader.result || "")), "file", file.name);
+      var raw = String(reader.result || "");
+      acceptCaptions(window.CaptionsParse.parse(raw), "file", file.name, raw);
     };
     reader.readAsText(file, "utf-8");
   }
@@ -1933,7 +1981,7 @@
   function useCaptionsPaste() {
     var raw = ($("v3ImportCaptionsPaste").value || "");
     if (!raw.trim()) { setStatus("studio.import.errCaptionsEmpty"); return; }
-    acceptCaptions(window.CaptionsParse.parse(raw), "paste", null);
+    acceptCaptions(window.CaptionsParse.parse(raw), "paste", null, raw);
   }
 
   window.StudioImport = { open: open, close: close, switchTab: switchTab,
@@ -1945,7 +1993,8 @@
                            deleteLocalAsrJob: deleteLocalAsrJob,
                            refreshLocalAsrControls: refreshLocalAsrControls,
                            onCaptionsFileChosen: onCaptionsFileChosen, useCaptionsPaste: useCaptionsPaste,
-                           useText: useText, useTextAndRetell: useTextAndRetell,
+                           useText: useText, useTextAndCorrect: useTextAndCorrect,
+                           useTextAndRetell: useTextAndRetell,
                            chooseTrackHint: chooseTrackHint, runWindowedAsr: runWindowedAsr,
                            clipSegmentsToRange: clipSegmentsToRange, ASR_CLIP_TOLERANCE_SEC: ASR_CLIP_TOLERANCE_SEC,
                            mediaSourceSha: mediaSourceSha, rowEditMetaForSave: rowEditMetaForSave,

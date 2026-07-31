@@ -3660,6 +3660,50 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 /* W2-S5a.1 T2: Import dialog — three explicit tabs (Статья / Видео / Файл), replacing the
    flat stack. Active tab marked by border+background (not text color alone — R4 accessibility). */
 #v3ImportTabs { display: flex; gap: 4px; margin-bottom: 10px; }
+
+/* L3a Correctable Media Package — focused listening editor, not a spreadsheet. */
+#l3MediaEditorPanel { width:min(760px,calc(100vw - 24px)); max-height:calc(100vh - 24px); overflow:auto; padding:0; background:#f7faf9; }
+.l3-editor-head { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:16px 18px 12px; border-bottom:1px solid #cddbd8; background:#fff; position:sticky; top:0; z-index:3; }
+.l3-editor-title { font-family:"Noto Sans Hebrew","Segoe UI",sans-serif; font-size:19px; font-weight:750; color:#163b3a; }
+.l3-player-dock { position:sticky; top:58px; z-index:2; padding:12px 18px; background:#eef6f4; border-bottom:1px solid #c6d9d5; }
+#l3MediaPlayer { width:100%; max-height:220px; accent-color:#0b7673; }
+.l3-timeline { height:6px; margin-top:8px; background:#c9d8d5; border-radius:99px; overflow:hidden; }
+#l3CueProgress { display:block; width:0; height:100%; background:#0b7673; transition:width 80ms linear; }
+.l3-editor-body { padding:16px 18px 20px; }
+.l3-cue-nav,.l3-editor-actions,.l3-field-row,.l3-offset-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.l3-cue-nav { justify-content:space-between; margin-bottom:12px; }
+#l3CueCounter { font:700 13px ui-monospace,SFMono-Regular,Consolas,monospace; color:#315c59; direction:ltr; unicode-bidi:isolate; }
+#l3MediaEditorPanel button { width:auto; }
+.l3-cue-card { background:#fff; border:1px solid #bdd1cd; border-radius:14px; padding:14px; box-shadow:0 10px 28px rgba(18,59,57,.07); }
+.l3-cue-card label { display:block; margin-top:10px; color:#496966; font-size:12px; font-weight:650; }
+#l3CueText { width:100%; min-height:112px; resize:vertical; box-sizing:border-box; margin-top:5px; font:600 19px/1.55 "Noto Sans Hebrew","Segoe UI",sans-serif; border:1px solid #9bbab5; border-radius:10px; padding:10px 12px; background:#fbfdfc; }
+.l3-field-row label { flex:1 1 150px; }
+.l3-field-row input { width:100%; box-sizing:border-box; margin-top:5px; font:600 13px ui-monospace,SFMono-Regular,Consolas,monospace; }
+.l3-raw-compare { margin:12px 0 0; padding:10px 12px; border-inline-start:3px solid #8aa9a4; background:#f3f7f6; color:#355653; }
+.l3-raw-compare summary { cursor:pointer; font-size:12px; font-weight:700; }
+#l3RawText { white-space:pre-wrap; margin-top:8px; font-size:14px; }
+#l3CueFlags { display:inline-flex; margin-top:10px; padding:3px 8px; border-radius:99px; background:#e8f2ef; color:#315c59; font-size:11px; }
+#l3CueFlags[data-warn="true"] { background:#fff0cf; color:#72520b; }
+.l3-editor-actions { margin-top:12px; }
+.l3-offset-row { margin-top:12px; padding-top:12px; border-top:1px solid #d8e3e1; }
+#l3OffsetMs { width:130px; }
+.l3-savebar { position:sticky; bottom:0; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 18px; background:#fff; border-top:1px solid #cddbd8; z-index:3; }
+#l3SaveState { color:#536d69; font-size:12px; }
+#l3EditorStatus { margin:10px 0 0; padding:8px 10px; border-radius:8px; background:#e8f2ef; color:#214e4b; font-size:12px; }
+#l3EditorStatus[data-kind="error"] { background:#fff0ed; color:#8b2d22; }
+@media (max-width:600px) {
+  #l3MediaEditorPanel { width:100vw; max-height:100dvh; height:100dvh; border-radius:0; }
+  .l3-editor-head { padding:10px 12px; }
+  .l3-player-dock { top:49px; padding:8px 12px; }
+  .l3-editor-body { padding:12px; }
+  .l3-cue-card { border-radius:12px; padding:12px; }
+  #l3CueText { min-height:150px; font-size:20px; }
+  .l3-field-row label { flex:1 1 46%; }
+  .l3-editor-actions { display:grid; grid-template-columns:1fr 1fr; }
+  #l3MediaEditorPanel .l3-editor-actions button { width:100%; }
+  .l3-savebar { padding:10px 12px; }
+  #l3MediaEditorPanel .l3-savebar button { width:auto; }
+}
 .v3-import-tab {
   flex: 1;
   text-align: center;
@@ -12427,9 +12471,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=87"></script>
-<script src="/i18n/locales/en.js?v=87"></script>
-<script src="/i18n/locales/he.js?v=87"></script>
+    <script src="/i18n/locales/ru.js?v=89"></script>
+    <script src="/i18n/locales/en.js?v=89"></script>
+    <script src="/i18n/locales/he.js?v=89"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12516,6 +12560,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-asr-onboarding.js"></script>
 <script src="/js/table-chunks.js"></script>
 <script src="/js/media-store.js"></script>
+<script src="/js/media-package-core.js"></script>
+<script src="/js/media-package-repository.js"></script>
+<script src="/js/studio-media-package.js"></script>
+<script src="/js/studio-media-editor.js"></script>
 <script src="/js/gemini-files.js"></script>
 <!-- S12.5 sliced-mp3 transport — pure mp3 frame-map slicer (window.Mp3Slice), no cross-deps
      of its own, but must load before studio-import.js which consumes it in transcribeAudio(). -->
@@ -12576,7 +12624,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.279";
+    window.APP_VERSION = "3.11.280";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -23893,7 +23941,9 @@ function v3MediaBarRefresh() {
   bar.hidden = !audio;
   if (!audio) { v3MediaBlobCache = null; try { v3MediaAugmentRows(); } catch (_) {} return; }
   const note = document.getElementById("v3MediaBarNote");
-  if (note) note.textContent = audio.timing ? "" : t("studio.media.noTiming");
+  if (note) note.textContent = window.v3MediaPackageStale
+    ? t("studio.mediaPackage.staleTable")
+    : (audio.timing ? "" : t("studio.media.noTiming"));
   v3MediaResolveBlob(audio).then((blob) => {
     const btn = document.getElementById("v3MediaPlayBtn");
     // W2-S5a: no local blob is fine when the passport carries a YouTube video AND this browser
@@ -23902,8 +23952,8 @@ function v3MediaBarRefresh() {
     const hasVideo = !!(audio.video && audio.video.videoId && window.StudioYtPlayer &&
                         window.StudioYtPlayer.capability().supported);
     if (btn) btn.disabled = !blob && !hasVideo;
-    if (!blob && !hasVideo && note) note.textContent = t("studio.media.fileMissing");
-    if (!blob && hasVideo && note) note.textContent = t("studio.media.viaYouTube");
+    if (!window.v3MediaPackageStale && !blob && !hasVideo && note) note.textContent = t("studio.media.fileMissing");
+    if (!window.v3MediaPackageStale && !blob && hasVideo && note) note.textContent = t("studio.media.viaYouTube");
     v3MediaAugmentRows();
   });
 }
@@ -25688,6 +25738,16 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
         : null;
       v3RestoreMediaFromMeta(v3LastGeminiMeta, mediaRows);
     } catch (_) {}
+    // L3a: a saved table remains bound to its exact immutable revision. A newer correction
+    // marks the table stale; it never rewrites sentence ids/notes/history in place.
+    window.v3MediaPackageStale = false;
+    if (LOCAL_MODE && window.StudioMediaPackage) {
+      try {
+        const stale = await window.StudioMediaPackage.browserRepository().isTextBindingStale(String(textId));
+        window.v3MediaPackageStale = !!(stale && stale.stale);
+        if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
+      } catch (_) {}
+    }
     try {
       if (window.v3SetActiveLibraryTextMeta) {
         window.v3SetActiveLibraryTextMeta({
@@ -26083,25 +26143,39 @@ async function v3LibrarySaveCurrentCore(meta) {
       }
       const newTextId = crypto.randomUUID();
       const textKey = 'text-' + Date.now();
-      await ldb.createText({
-        id: newTextId, text_key: textKey,
-        title: title || null, source_text: sourceText,
-        level: level || null, tags_json: JSON.stringify(tags || []),
-        source: source || null, topic: topic || null,
-        tts_profile_json: JSON.stringify(payload.ttsProfile || null),
-        source_meta_json: JSON.stringify(payload.tableModelMeta || null),
-      });
-      for (const [rowIndex, row] of currentTableData.entries()) {
-        const portableEditMeta = (window.StudioImport && window.StudioImport.rowEditMetaForSave)
-          ? window.StudioImport.rowEditMetaForSave(row, window.v3ActiveMediaAudio || null, rowIndex)
-          : (row.edit_meta_json || null);
-        await ldb.addSentence(newTextId, {
-          id: crypto.randomUUID(),
-          he_plain: row.he || '', he_niqqud: row.he_niqqud || '',
-          translit: row.translit || '', translit_ru: row.translit_ru || '',
-          ru: row.ru || '', edit_meta_json: portableEditMeta,
+      await ldb.execRaw('BEGIN;');
+      try {
+        await ldb.createText({
+          id: newTextId, text_key: textKey,
+          title: title || null, source_text: sourceText,
+          level: level || null, tags_json: JSON.stringify(tags || []),
+          source: source || null, topic: topic || null,
+          tts_profile_json: JSON.stringify(payload.ttsProfile || null),
+          source_meta_json: JSON.stringify(payload.tableModelMeta || null),
         });
-      }
+        const l3Rows = [];
+        for (const [rowIndex, row] of currentTableData.entries()) {
+          const portableEditMeta = (window.StudioImport && window.StudioImport.rowEditMetaForSave)
+            ? window.StudioImport.rowEditMetaForSave(row, window.v3ActiveMediaAudio || null, rowIndex)
+            : (row.edit_meta_json || null);
+          await ldb.addSentence(newTextId, {
+            id: crypto.randomUUID(),
+            he_plain: row.he || '', he_niqqud: row.he_niqqud || '',
+            translit: row.translit || '', translit_ru: row.translit_ru || '',
+            ru: row.ru || '', edit_meta_json: portableEditMeta,
+          });
+          try { const em = portableEditMeta ? JSON.parse(portableEditMeta) : null; if (em && em._studio_source) l3Rows.push({ row_index: rowIndex, ...em._studio_source }); } catch (_) {}
+        }
+        const l3ref = window.v3LastMediaPackageRef || (v3LastGeminiMeta && v3LastGeminiMeta.source && v3LastGeminiMeta.source.media_package_ref);
+        if (l3ref && window.StudioMediaPackage) {
+          await window.StudioMediaPackage.browserRepository().bindText({
+            text_id: newTextId, package_id: l3ref.package_id, track_id: l3ref.track_id,
+            revision_id: l3ref.revision_id, revision_sha256: l3ref.revision_sha256 || l3ref.projection_sha256,
+            mapping: { schema: 'studio-row-source-v2', rows: l3Rows },
+          });
+        }
+        await ldb.execRaw('COMMIT;');
+      } catch (e) { try { await ldb.execRaw('ROLLBACK;'); } catch (_) {} throw e; }
       text = await ldb.getTextById(newTextId);
     } else {
       const created = await v3PostJson("/api/library/texts", payload);
@@ -26233,6 +26307,13 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
         try { v3SessionForgetTextIfStale(textId); } catch (_) {}
         showToast(t("toast.cardNotFoundCreatingNew"), "warning");
         return await v3LibrarySaveCurrentCore(meta);
+      }
+      if (window.StudioMediaPackage) {
+        const l3binding = await window.StudioMediaPackage.browserRepository().getTextBinding(String(textId));
+        if (l3binding) {
+          showToast(t("studio.mediaPackage.updateForbidden"), "warning");
+          return null;
+        }
       }
       await ldb.updateText(textId, {
         title: title || null, level: level || null,
@@ -47250,6 +47331,63 @@ document.addEventListener("i18n:changed", function () {
 </div>
 
 <!-- ── Import modal (W1 Studio Ingest — URL/file/photo → #inputText) ──── -->
+<div id="l3MediaEditorModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-labelledby="l3EditorTitle">
+  <div class="v3-modal-backdrop" onclick="StudioMediaEditor.close()"></div>
+  <div id="l3MediaEditorPanel" class="v3-modal-panel">
+    <div class="l3-editor-head">
+      <div><div id="l3EditorTitle" class="l3-editor-title" data-i18n="studio.mediaPackage.title">Исправление транскрипта</div><div id="l3SaveState" aria-live="polite"></div></div>
+      <button type="button" class="btn-secondary" onclick="StudioMediaEditor.close()" data-i18n="studio.mediaPackage.close">Закрыть</button>
+    </div>
+    <div class="l3-player-dock">
+      <audio id="l3MediaPlayer" controls preload="metadata" aria-label="Media source"></audio>
+      <div class="l3-timeline" aria-hidden="true"><span id="l3CueProgress"></span></div>
+    </div>
+    <div class="l3-editor-body">
+      <div class="l3-cue-nav">
+        <button id="l3PrevBtn" type="button" class="btn-secondary" onclick="StudioMediaEditor.move(-1)" data-i18n="studio.mediaPackage.prev">← Предыдущий</button>
+        <span id="l3CueCounter" aria-live="polite"></span>
+        <button id="l3NextBtn" type="button" class="btn-secondary" onclick="StudioMediaEditor.move(1)" data-i18n="studio.mediaPackage.next">Следующий →</button>
+      </div>
+      <section class="l3-cue-card" aria-labelledby="l3CueTextLabel">
+        <label id="l3CueTextLabel" for="l3CueText" data-i18n="studio.mediaPackage.cueText">Текст реплики</label>
+        <textarea id="l3CueText" dir="auto" onblur="StudioMediaEditor.stageFields()"></textarea>
+        <div class="l3-field-row">
+          <label><span data-i18n="studio.mediaPackage.start">Начало</span><input id="l3CueStart" inputmode="decimal" onblur="StudioMediaEditor.stageFields()"></label>
+          <label><span data-i18n="studio.mediaPackage.end">Конец</span><input id="l3CueEnd" inputmode="decimal" onblur="StudioMediaEditor.stageFields()"></label>
+          <label><span data-i18n="studio.mediaPackage.speaker">Говорящий</span><input id="l3CueSpeaker" dir="auto" onblur="StudioMediaEditor.stageFields()"></label>
+        </div>
+        <span id="l3CueFlags"></span>
+        <details class="l3-raw-compare"><summary data-i18n="studio.mediaPackage.compareRaw">Сравнить с неизменяемым оригиналом</summary><div id="l3RawText" dir="auto"></div></details>
+        <div class="l3-editor-actions">
+          <button type="button" class="btn-secondary" onclick="StudioMediaEditor.replay()" data-i18n="studio.mediaPackage.replay">▶ Повторить реплику</button>
+          <button id="l3SplitBtn" type="button" class="btn-secondary" onclick="StudioMediaEditor.split()" data-i18n="studio.mediaPackage.split">Разделить по курсору</button>
+          <button id="l3MergeBtn" type="button" class="btn-secondary" onclick="StudioMediaEditor.mergeNext()" data-i18n="studio.mediaPackage.merge">Объединить со следующей</button>
+          <button id="l3UndoBtn" type="button" class="btn-secondary" onclick="StudioMediaEditor.undo()" data-i18n="studio.mediaPackage.undo">Отменить</button>
+          <button id="l3RedoBtn" type="button" class="btn-secondary" onclick="StudioMediaEditor.redo()" data-i18n="studio.mediaPackage.redo">Повторить</button>
+        </div>
+        <div class="l3-offset-row"><label for="l3OffsetMs" data-i18n="studio.mediaPackage.offset">Смещение всей дорожки, мс</label><input id="l3OffsetMs" type="number" step="10" value="0"><button type="button" class="btn-secondary" onclick="StudioMediaEditor.applyOffset()" data-i18n="studio.mediaPackage.applyOffset">Применить</button></div>
+        <div class="l3-editor-actions" aria-label="Export and relink">
+          <button type="button" class="btn-secondary" onclick="StudioMediaEditor.exportSubtitle('vtt',false)" data-i18n="studio.mediaPackage.exportVtt">Экспорт corrected VTT</button>
+          <button type="button" class="btn-secondary" onclick="StudioMediaEditor.exportSubtitle('srt',false)" data-i18n="studio.mediaPackage.exportSrt">Экспорт corrected SRT</button>
+          <button type="button" class="btn-secondary" onclick="StudioMediaEditor.exportSubtitle('vtt',true)" data-i18n="studio.mediaPackage.exportRawVtt">Экспорт raw VTT</button>
+          <button type="button" class="btn-secondary" onclick="StudioMediaEditor.exportSlim()" data-i18n="studio.mediaPackage.exportSlim">Экспорт slim package</button>
+          <input id="l3RelinkFile" type="file" accept="audio/*,video/*" hidden onchange="StudioMediaEditor.relinkSelected(event)">
+          <button type="button" class="btn-secondary" onclick="document.getElementById('l3RelinkFile').click()" data-i18n="studio.mediaPackage.relink">Relink media</button>
+          <button type="button" class="btn-secondary" onclick="StudioMediaEditor.deletePackage()" data-i18n="studio.mediaPackage.deletePackage">Удалить пакет…</button>
+        </div>
+        <div id="l3EditorStatus" role="status" aria-live="polite" hidden></div>
+      </section>
+    </div>
+    <div class="l3-savebar">
+      <button type="button" class="btn-secondary" onclick="StudioMediaEditor.discardDraft()" data-i18n="studio.mediaPackage.discard">Сбросить черновик</button>
+      <div>
+        <button type="button" class="btn-secondary" onclick="StudioMediaEditor.saveVersion()" data-i18n="studio.mediaPackage.saveVersion">Сохранить версию</button>
+        <button type="button" class="btn-primary" onclick="StudioMediaEditor.continueToTable()" data-i18n="studio.mediaPackage.toTable">Продолжить в таблицу</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="v3ImportModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-labelledby="v3ImportTitle">
   <div class="v3-modal-backdrop" onclick="StudioImport.close()"></div>
   <div class="v3-modal-panel" style="width:min(560px,calc(100vw - 32px));height:auto;max-height:calc(100vh - 48px);margin:24px auto;">
@@ -47366,6 +47504,8 @@ document.addEventListener("i18n:changed", function () {
         <div style="margin-top:10px;">
           <label class="input-label" style="display:block; margin-bottom:6px;" data-i18n="studio.import.fileLabelCaptions">Файл субтитров (.vtt / .srt)</label>
           <button type="button" class="btn-secondary" onclick="document.getElementById('v3ImportCaptionsFile').click()" data-i18n="studio.import.fileBtnCaptions">Выбрать файл субтитров…</button>
+          <input type="file" id="l3ImportPackageFile" accept=".zip,application/zip" hidden onchange="StudioMediaPackage.handleSlimImport(event)">
+          <button type="button" class="btn-secondary" onclick="document.getElementById('l3ImportPackageFile').click()" data-i18n="studio.mediaPackage.importSlim">Импорт slim Media Package…</button>
         </div>
       </div>
 
@@ -47376,7 +47516,8 @@ document.addEventListener("i18n:changed", function () {
         <div id="v3ImportProv" style="font-size:12px; color:#6c757d; margin:4px 0;"></div>
         <textarea id="v3ImportPreview" dir="auto" style="width:100%; min-height:140px; box-sizing:border-box;"></textarea>
         <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
-          <button type="button" class="btn-primary" onclick="StudioImport.useText()" data-i18n="studio.import.useBtn">→ В поле ввода</button>
+          <button type="button" class="btn-primary" onclick="StudioImport.useTextAndCorrect()" data-i18n="studio.mediaPackage.correctBtn">Исправить транскрипт</button>
+          <button type="button" class="btn-secondary" onclick="StudioImport.useText()" data-i18n="studio.mediaPackage.continueDraftBtn">Продолжить с черновиком</button>
           <button type="button" class="btn-secondary" onclick="StudioImport.useTextAndRetell()" data-i18n="studio.retell.fromImportBtn">✨ Упростить…</button>
           <button type="button" class="btn-secondary" onclick="StudioImport.close()" data-i18n="studio.import.cancelBtn">Закрыть</button>
         </div>

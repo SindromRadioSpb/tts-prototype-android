@@ -4753,6 +4753,30 @@ function computeSM2(card, rating) {
 // occurrences/sentence_morph/bookmarks); text-независимое состояние (канонические word-заметки,
 // полки, overrides, Anki-связки, study_day) едет ОДНИМ артефактом exportStateBundle().
 // ZIP/бэкап-путь (без slim) не меняется — полный бандл остаётся полным.
+// L3a privacy fail-closed: per-text Cloud Artifact Sync must not acquire personal raw/corrected
+// caption snapshots through the legacy passport. Kept in local-db (not UI) so a stale/missing
+// optional script cannot disable the boundary. Explicit full backup/text-card/package export is
+// unchanged because this helper is called only for slim=true.
+export function filterMediaPackageMetaForSlim(meta) {
+  if (!meta || typeof meta !== 'object') return meta;
+  const out = JSON.parse(JSON.stringify(meta));
+  const source = out.source && typeof out.source === 'object' ? out.source : out;
+  const ref = source.media_package_ref;
+  if (!ref || !ref.package_id) return out;
+  for (const key of ['audio', 'captions']) {
+    const value = source[key];
+    if (!value || typeof value !== 'object') continue;
+    delete value.segments; delete value.raw; delete value.corrected; delete value.draft;
+    delete value.revisions; delete value.timing; delete value.rawSource;
+  }
+  source.media_package_ref = {
+    package_id: ref.package_id,
+    local_only: true,
+    media_included: false,
+    revision_sha256: ref.revision_sha256 || ref.projection_sha256 || null,
+  };
+  return out;
+}
 export async function exportBundle({ includeArchived = false, textIds = null, slim = false } = {}) {
   let exportList;
   if (Array.isArray(textIds) && textIds.length) {
@@ -4797,7 +4821,7 @@ export async function exportBundle({ includeArchived = false, textIds = null, sl
       const editMeta = safeJsonParse(s.edit_meta_json);
       const rowMeta = safeJsonParse(s.meta_json);
       const sourceIdentity = editMeta && editMeta._studio_source &&
-        editMeta._studio_source.schema === 'studio-row-source-v1'
+        (editMeta._studio_source.schema === 'studio-row-source-v1' || editMeta._studio_source.schema === 'studio-row-source-v2')
         ? editMeta._studio_source : null;
       // Track audio asset metadata (one entry per unique asset_key).
       if (ak && !audioAssetsMap.has(ak)) {
@@ -4841,6 +4865,9 @@ export async function exportBundle({ includeArchived = false, textIds = null, sl
         niqqud_provenance: s.niqqud_provenance ?? null,
         meta: rowMeta,
         source_segment_id: sourceIdentity && sourceIdentity.source_segment_id || null,
+        source_segment_ids: sourceIdentity && Array.isArray(sourceIdentity.source_segment_ids)
+          ? sourceIdentity.source_segment_ids.slice() : null,
+        caption_segment_id: sourceIdentity && sourceIdentity.caption_segment_id || null,
         source_line_index: sourceIdentity && sourceIdentity.source_line_index != null
           ? Number(sourceIdentity.source_line_index) : null,
         sentence_index: sourceIdentity && sourceIdentity.sentence_index != null
@@ -4874,7 +4901,8 @@ export async function exportBundle({ includeArchived = false, textIds = null, sl
     // Canonical home stays source_meta.corpus; this is a robust mirror (the
     // object also remains inside source_meta on export, so even an old importer
     // keeps it inside the blob). Spec: db/premium/corpusMeta.js#liftCorpusToBundle.
-    const _srcMeta = safeJsonParse(text.source_meta_json);
+    const _srcMetaRaw = safeJsonParse(text.source_meta_json);
+    const _srcMeta = slim ? filterMediaPackageMetaForSlim(_srcMetaRaw) : _srcMetaRaw;
     const _corpus = (_srcMeta && typeof _srcMeta === 'object' && _srcMeta.corpus) ? _srcMeta.corpus : null;
 
     // Sync-hardening P0 §6.6 — закладки едут с текстом (additive-поле; раньше гибли молча при
@@ -4902,7 +4930,9 @@ export async function exportBundle({ includeArchived = false, textIds = null, sl
       source_text: text.source_text || '',
       source_meta: _srcMeta,
       corpus: _corpus,
-      table_model_meta: safeJsonParse(text.table_model_meta_json),
+      table_model_meta: slim
+        ? filterMediaPackageMetaForSlim(safeJsonParse(text.table_model_meta_json))
+        : safeJsonParse(text.table_model_meta_json),
       rows,
       text_audio_asset_key: (_srcMeta && _srcMeta._portable && _srcMeta._portable.text_audio_asset_key)
         ? String(_srcMeta._portable.text_audio_asset_key) : null,
@@ -5384,13 +5414,25 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
               : (r.edit_meta_json ? JSON.parse(r.edit_meta_json) : null);
           } catch (_) { _editMeta = null; }
           const _sourceSegmentId = String(r.source_segment_id || '').trim() || null;
+          const _existingSource = _editMeta && _editMeta._studio_source && typeof _editMeta._studio_source === 'object'
+            ? _editMeta._studio_source : null;
+          const _sourceSegmentIds = (Array.isArray(r.source_segment_ids) ? r.source_segment_ids
+            : (_existingSource && Array.isArray(_existingSource.source_segment_ids) ? _existingSource.source_segment_ids : []))
+            .map((v) => String(v || '').trim()).filter(Boolean).filter((v, i, a) => a.indexOf(v) === i);
+          const _captionSegmentId = String(r.caption_segment_id || (_existingSource && _existingSource.caption_segment_id) || '').trim() || null;
           const _sourceLineIndex = Number.isInteger(Number(r.source_line_index)) && Number(r.source_line_index) >= 0
             ? Number(r.source_line_index) : null;
           const _sentenceIndex = Number.isInteger(Number(r.sentence_index)) && Number(r.sentence_index) >= 0
             ? Number(r.sentence_index) : null;
-          if (_sourceSegmentId || _sourceLineIndex != null || _sentenceIndex != null) {
+          if (_sourceSegmentId || _sourceSegmentIds.length || _captionSegmentId || _sourceLineIndex != null || _sentenceIndex != null) {
             _editMeta = (_editMeta && typeof _editMeta === 'object') ? _editMeta : {};
-            _editMeta._studio_source = {
+            _editMeta._studio_source = _captionSegmentId || _sourceSegmentIds.length ? {
+              schema: 'studio-row-source-v2',
+              source_segment_id: _sourceSegmentId || _sourceSegmentIds[0] || null,
+              source_segment_ids: _sourceSegmentIds.length ? _sourceSegmentIds : (_sourceSegmentId ? [_sourceSegmentId] : []),
+              caption_segment_id: _captionSegmentId,
+              source_line_index: _sourceLineIndex, sentence_index: _sentenceIndex,
+            } : {
               schema: 'studio-row-source-v1', source_segment_id: _sourceSegmentId,
               source_line_index: _sourceLineIndex, sentence_index: _sentenceIndex,
             };

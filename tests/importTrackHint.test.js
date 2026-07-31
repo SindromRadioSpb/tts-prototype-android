@@ -156,3 +156,32 @@ test("B+C: imported media starts a new draft and media SHA is strict", () => {
   assert.equal(SI.mediaSourceSha({ audio: { media: { sha256: sha } } }), sha.toLowerCase());
   assert.equal(SI.mediaSourceSha({ audio: { media: { sha256: "not-a-hash" } } }), null);
 });
+
+test("L3a: row-source-v2 keeps corrected id, complete raw lineage and distinct ordinals", () => {
+  const sha = "c".repeat(64);
+  const audio = {
+    media: { sha256: sha },
+    segments: [{
+      caption_segment_id: "cseg:corrected-1",
+      source_segment_id: "srcseg:legacy-first",
+      source_segment_ids: ["srcseg:raw-1", "srcseg:raw-2"],
+      text: "שלום מיה",
+    }],
+    timing: { entries: [{ row: 0, seg: 0 }] },
+    timingMap: { source: "aligned" },
+  };
+  const raw = SI.rowEditMetaForSave({ source_line_index: 4, sentence_index: 9 }, audio, 0);
+  const src = JSON.parse(raw)._studio_source;
+  assert.deepEqual(src, {
+    schema: "studio-row-source-v2",
+    source_segment_id: "srcseg:raw-1",
+    source_segment_ids: ["srcseg:raw-1", "srcseg:raw-2"],
+    caption_segment_id: "cseg:corrected-1",
+    source_line_index: 4,
+    sentence_index: 9,
+  });
+  assert.deepEqual(SI.restorePortableRowIdentity({}, raw), {
+    source_segment_id: "srcseg:raw-1", source_segment_ids: ["srcseg:raw-1", "srcseg:raw-2"],
+    caption_segment_id: "cseg:corrected-1", source_line_index: 4, sentence_index: 9,
+  });
+});

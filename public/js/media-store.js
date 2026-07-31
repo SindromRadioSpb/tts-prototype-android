@@ -60,9 +60,13 @@
     } catch (_) { return null; }
   }
   async function mediaExists(fileName) { return (await readMedia(fileName)) !== null; }
+  async function deleteMedia(fileName) {
+    try { var dir = await dirHandle(false); await dir.removeEntry(baseName(fileName)); return { ok: true, removed: true }; }
+    catch (e) { if (e && e.name === 'NotFoundError') return { ok: true, removed: false }; return { ok: false, removed: false, reason: (e && e.name) || 'DELETE_FAILED' }; }
+  }
 
   var API = { mediaFileName: mediaFileName, sha256Hex: sha256Hex, canWrite: canWrite,
-              saveMedia: saveMedia, readMedia: readMedia, mediaExists: mediaExists };
+              saveMedia: saveMedia, readMedia: readMedia, mediaExists: mediaExists, deleteMedia: deleteMedia };
   if (typeof window !== "undefined") window.MediaStore = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
 })();

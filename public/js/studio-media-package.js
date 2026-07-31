@@ -1,0 +1,301 @@
+// Studio Ingest L3a — provider-neutral promotion/projection layer.
+// Pure helpers are Node-testable; browser methods use injected OPFS SQLite/media adapters only.
+(function () {
+  'use strict';
+
+  function copy(v) { return JSON.parse(JSON.stringify(v)); }
+  function ms(value) {
+    if (value == null || value === '') return null;
+    var n = Number(value); return Number.isFinite(n) ? Math.round(n * 1000) : null;
+  }
+  function finiteIndex(value, fallback) {
+    var n = Number(value); return Number.isInteger(n) && n >= 0 ? n : fallback;
+  }
+  function getCore() {
+    if (typeof window !== 'undefined' && window.MediaPackageCore) return window.MediaPackageCore;
+    return require('./media-package-core.js');
+  }
+
+  function passportToPromotionInput(holder) {
+    holder = holder && holder.source && typeof holder.source === 'object' ? holder.source : (holder || {});
+    var isAudio = !!holder.audio;
+    var passport = isAudio ? holder.audio : holder.captions;
+    if (!passport || !Array.isArray(passport.segments) || !passport.segments.length) {
+      var e = new Error('MEDIA_PASSPORT_SEGMENTS_REQUIRED'); e.code = 'MEDIA_PASSPORT_SEGMENTS_REQUIRED'; throw e;
+    }
+    var mediaSrc = passport.media || {};
+    var asr = passport.asr || {};
+    var captionMeta = passport.captions || {};
+    var durationMs = mediaSrc.durationSec == null ? null : ms(mediaSrc.durationSec);
+    var sourceSegments = passport.segments;
+    if (!isAudio && passport.rawSource) {
+      try { sourceSegments = getCore().parseSubtitles(passport.rawSource, { hint: captionMeta.format }).segments; }
+      catch (_) { sourceSegments = passport.segments; }
+    }
+    var segments = sourceSegments.map(function (segment, index, all) {
+      var start = segment.start_ms == null ? ms(segment.start) : Math.round(Number(segment.start_ms));
+      var end = segment.end_ms == null ? ms(segment.end) : Math.round(Number(segment.end_ms));
+      if (end == null && index + 1 < all.length) end = all[index + 1].start_ms == null ? ms(all[index + 1].start) : Math.round(Number(all[index + 1].start_ms));
+      if (end == null && durationMs != null && durationMs > start) end = durationMs;
+      return {
+        start_ms: start,
+        end_ms: end,
+        text: String(segment.text == null ? '' : segment.text),
+        speaker: segment.speaker == null ? null : String(segment.speaker),
+        source_line_index: finiteIndex(segment.source_line_index, finiteIndex(segment.i, index)),
+        quality_flags: segment.blind ? ['blind'] : (Array.isArray(segment.quality_flags) ? segment.quality_flags.slice() : []),
+      };
+    });
+    return {
+      kind: isAudio ? 'audio' : 'captions',
+      format: isAudio ? 'asr' : String(captionMeta.format || 'vtt').toLowerCase(),
+      language: isAudio ? (asr.language || 'he') : (captionMeta.language || 'he'),
+      provider: isAudio ? (asr.actualProvider || asr.method || holder.method || null) : 'subtitle-import',
+      model: isAudio ? (asr.model || holder.model || null) : null,
+      model_revision: isAudio ? (asr.modelRevision || asr.runtime && asr.runtime.model_revision || null) : null,
+      media: {
+        sha256: mediaSrc.sha256 || null, mime: mediaSrc.mime || null, duration_ms: durationMs,
+        original_name: mediaSrc.originalName || captionMeta.fileName || null,
+        opfs_path: mediaSrc.opfsPath || null, size_bytes: mediaSrc.sizeBytes == null ? null : Number(mediaSrc.sizeBytes),
+        external_ref: passport.video || holder.video || null,
+      },
+      segments: segments,
+      provenance: {
+        source_kind: holder.kind || (isAudio ? 'audio' : 'captions'),
+        method: holder.method || null, model: holder.model || null, imported_at: holder.at || null,
+        asr: isAudio ? copy(asr) : undefined, captions: isAudio ? undefined : copy(captionMeta),
+        source_attachment: !isAudio && passport.rawSource ? {
+          format: String(captionMeta.format || ''), text: String(passport.rawSource), class: 'C', local_only: true,
+        } : undefined,
+        warnings: copy(holder.warnings || []), code_version: asr.codeVersion || null,
+      },
+    };
+  }
+
+  function buildCompatibilityProjection(revision, context) {
+    context = context || {}; var kind = context.kind === 'captions' ? 'captions' : 'audio';
+    var projectionRef = {
+      package_id: revision.package_id, track_id: revision.track_id,
+      revision_id: revision.revision_id, revision_sha256: revision.canonical_sha256,
+      projection_sha256: revision.canonical_sha256, local_only: true,
+    };
+    var segments = (revision.segments || []).map(function (segment, index) {
+      return {
+        i: index, start: segment.start_ms / 1000,
+        end: segment.end_ms == null ? null : segment.end_ms / 1000,
+        text: segment.text, source_segment_id: segment.source_segment_ids && segment.source_segment_ids[0] || null,
+        source_segment_ids: (segment.source_segment_ids || []).slice(),
+        caption_segment_id: segment.caption_segment_id || null,
+        speaker: segment.speaker || null, authority: copy(segment.authority || {}),
+        quality_flags: copy(segment.quality_flags || []), blind: (segment.quality_flags || []).indexOf('blind') >= 0,
+      };
+    });
+    var trackProjection = {
+      v: 2, projection_of_revision_id: revision.revision_id,
+      projection_sha256: revision.canonical_sha256,
+      media: copy(context.media || {}), segments: segments, timing: null, timingDropReason: null,
+    };
+    var out = { media_package_ref: projectionRef };
+    out[kind] = trackProjection;
+    return out;
+  }
+
+  function filterForCloudSlim(sourceMeta) {
+    var out = copy(sourceMeta || {}), source = out && out.source;
+    if (!source || !source.media_package_ref) return out;
+    ['audio', 'captions'].forEach(function (key) {
+      var value = source[key]; if (!value || typeof value !== 'object') return;
+      delete value.segments; delete value.raw; delete value.corrected; delete value.draft;
+      delete value.revisions; delete value.timing;
+    });
+    var ref = source.media_package_ref;
+    source.media_package_ref = {
+      package_id: ref.package_id, local_only: true, media_included: false,
+      revision_sha256: ref.revision_sha256 || ref.projection_sha256 || null,
+    };
+    return out;
+  }
+
+  var repository = null;
+  function browserRepository() {
+    if (repository) return repository;
+    if (typeof window === 'undefined' || !window.__localDB || !window.MediaPackageRepository) throw new Error('MEDIA_PACKAGE_REPOSITORY_UNAVAILABLE');
+    repository = window.MediaPackageRepository.createRepository(window.__localDB, getCore());
+    return repository;
+  }
+
+  function reconcileCorrectedPreview(segments, text) {
+    var Core = getCore(), next = copy(segments || []), operations = [];
+    var lines = String(text == null ? '' : text).replace(/\r\n?/g, '\n').split('\n')
+      .map(function (line) { return line.trim(); }).filter(Boolean);
+    if (!lines.length || next.map(function (s) { return s.text; }).join('\n') === lines.join('\n')) return { segments: next, operations: operations, changed: false };
+    if (lines.length === next.length) {
+      lines.forEach(function (line, index) {
+        if (line === next[index].text) return;
+        var result = Core.applyOperation('user_corrected', next, { type: 'edit_text', caption_segment_id: next[index].caption_segment_id, text: line });
+        next = result.segments; operations.push(result.operation);
+      });
+    } else {
+      var replaced = Core.applyOperation('user_corrected', next, { type: 'replace_text_layout', text: lines.join('\n') });
+      next = replaced.segments; operations.push(replaced.operation);
+    }
+    return { segments: next, operations: operations, changed: operations.length > 0 };
+  }
+
+  async function createFromImportMeta(meta) {
+    var input = passportToPromotionInput(meta), Core = getCore(), repo = browserRepository();
+    var raw = await Core.createRawRevision({
+      media_sha256: input.media.sha256, format: input.format, language: input.language,
+      provider: input.provider, model: input.model, model_revision: input.model_revision,
+      segments: input.segments, provenance: input.provenance,
+    });
+    var created = await repo.createPackage({ media: input.media, language: input.language, raw_revision: raw,
+      raw_author_kind: input.format === 'asr' ? 'provider' : 'import' });
+    var current = await repo.getCurrentRevision(created.corrected_track_id);
+    var preview = reconcileCorrectedPreview(current.segments, meta && meta.textSnapshot);
+    if (preview.changed) {
+      await repo.saveDraft(created.corrected_track_id, current.revision_id, preview.segments, preview.operations);
+      current = await repo.commitDraft(created.corrected_track_id, { author_kind: 'user', provenance: { surface: 'studio-import-preview', preserves_raw: true } });
+    }
+    var ref = {
+      package_id: created.package_id, raw_track_id: created.raw_track_id,
+      track_id: created.corrected_track_id, revision_id: current.revision_id,
+      revision_sha256: current.canonical_sha256, projection_sha256: current.canonical_sha256,
+      local_only: true,
+    };
+    return { ref: ref, package: created, revision: Object.assign({ package_id: created.package_id }, current), input: input };
+  }
+
+  async function promoteLegacy(sourceMeta) {
+    var source = sourceMeta && sourceMeta.source && typeof sourceMeta.source === 'object' ? sourceMeta.source : sourceMeta;
+    if (source && source.media_package_ref && source.media_package_ref.package_id) {
+      var repo = browserRepository(), pkg = await repo.getPackage(source.media_package_ref.package_id);
+      if (pkg) return { already_promoted: true, ref: copy(source.media_package_ref) };
+    }
+    return createFromImportMeta(source || {});
+  }
+
+  function setRepositoryForTests(repo) { repository = repo || null; }
+
+  async function buildSlimPackageFiles(snapshot, options) {
+    options = options || {}; var Core = getCore();
+    var rawJson = JSON.stringify({ schema: 'studio-caption-track-v1', track: snapshot.raw_track, revision: snapshot.raw_revision }, null, 2);
+    var correctedJson = JSON.stringify({ schema: 'studio-caption-track-v1', track: snapshot.corrected_track, revision: snapshot.corrected_revision }, null, 2);
+    var files = {
+      'tracks/raw-original.json': rawJson,
+      'tracks/raw-original.vtt': Core.serializeSubtitles('vtt', snapshot.raw_revision.segments),
+      'tracks/user-corrected.json': correctedJson,
+      'tracks/user-corrected.vtt': Core.serializeSubtitles('vtt', snapshot.corrected_revision.segments),
+      'mapping/text-binding.json': JSON.stringify(snapshot.binding || null, null, 2),
+      'quality/import-run.json': JSON.stringify({ raw: snapshot.raw_revision.provenance || {}, corrected: snapshot.corrected_revision.provenance || {} }, null, 2),
+      'README.txt': 'LinguistPro Correctable Media Package v1\nMedia bytes are not included. Relink the original file; SHA-256 must match exactly.\n',
+    };
+    var hashes = {};
+    for (var path of Object.keys(files)) hashes[path] = await Core.sha256Hex(files[path]);
+    var manifest = {
+      schema: 'linguistpro-media-package-v1', schema_version: 1,
+      package: Object.assign({}, copy(snapshot.package), { opfs_path: null }),
+      selected_revision_id: snapshot.corrected_revision.revision_id,
+      selected_revision_sha256: snapshot.corrected_revision.canonical_sha256,
+      media_included: false, app_version: options.app_version || null,
+      exported_at: options.exported_at || new Date().toISOString(), files: hashes,
+    };
+    files['manifest.json'] = JSON.stringify(manifest, null, 2);
+    return files;
+  }
+
+  async function verifySlimPackageFiles(files) {
+    var Core = getCore(), manifest;
+    try { manifest = JSON.parse(files && files['manifest.json']); } catch (_) { throw new Error('PACKAGE_MANIFEST_INVALID'); }
+    if (!manifest || manifest.schema !== 'linguistpro-media-package-v1' || manifest.schema_version !== 1) throw new Error('PACKAGE_SCHEMA_UNKNOWN');
+    if (manifest.media_included !== false) throw new Error('PACKAGE_MEDIA_POLICY_INVALID');
+    for (var path of Object.keys(manifest.files || {})) {
+      if (typeof files[path] !== 'string') throw new Error('PACKAGE_FILE_MISSING:' + path);
+      if (await Core.sha256Hex(files[path]) !== manifest.files[path]) throw new Error('PACKAGE_CHECKSUM_MISMATCH:' + path);
+    }
+    var raw, corrected, binding;
+    try {
+      raw = JSON.parse(files['tracks/raw-original.json']); corrected = JSON.parse(files['tracks/user-corrected.json']);
+      binding = JSON.parse(files['mapping/text-binding.json']);
+    } catch (_) { throw new Error('PACKAGE_TRACK_INVALID'); }
+    if (!raw || !corrected || raw.schema !== 'studio-caption-track-v1' || corrected.schema !== 'studio-caption-track-v1') throw new Error('PACKAGE_TRACK_INVALID');
+    if (raw.track.role !== 'raw_original' || corrected.track.role !== 'user_corrected') throw new Error('PACKAGE_TRACK_ROLE_INVALID');
+    var rawHash = await Core.revisionHash('raw_original', raw.revision.segments, raw.revision.operations || []);
+    var correctedHash = await Core.revisionHash('user_corrected', corrected.revision.segments, corrected.revision.operations || []);
+    if (rawHash !== raw.revision.canonical_sha256 || correctedHash !== corrected.revision.canonical_sha256 || correctedHash !== manifest.selected_revision_sha256) throw new Error('PACKAGE_REVISION_HASH_MISMATCH');
+    var rawVtt = Core.parseSubtitles(files['tracks/raw-original.vtt'], { hint: 'vtt' });
+    var correctedVtt = Core.parseSubtitles(files['tracks/user-corrected.vtt'], { hint: 'vtt' });
+    if (await Core.semanticHash(rawVtt.segments) !== await Core.semanticHash(raw.revision.segments) || await Core.semanticHash(correctedVtt.segments) !== await Core.semanticHash(corrected.revision.segments)) throw new Error('PACKAGE_VTT_PARITY_MISMATCH');
+    return { manifest: manifest, package: manifest.package, raw_track: raw.track, raw_revision: raw.revision, corrected_track: corrected.track, corrected_revision: corrected.revision, binding: binding };
+  }
+
+  async function verifyRelinkBytes(expectedSha, bytes) {
+    var actual = await getCore().sha256Hex(bytes);
+    if (String(actual).toLowerCase() !== String(expectedSha || '').toLowerCase()) throw new Error('MEDIA_SHA_MISMATCH');
+    return true;
+  }
+
+  async function snapshotForExport(packageId, textId) {
+    var repo = browserRepository(), pkg = await repo.getPackage(packageId), tracks = await repo.listTracks(packageId);
+    var rawTrack = tracks.find(function (v) { return v.role === 'raw_original'; }), correctedTrack = tracks.find(function (v) { return v.role === 'user_corrected'; });
+    if (!pkg || !rawTrack || !correctedTrack) throw new Error('PACKAGE_NOT_FOUND');
+    return { package: pkg, raw_track: rawTrack, raw_revision: await repo.getCurrentRevision(rawTrack.track_id), corrected_track: correctedTrack, corrected_revision: await repo.getCurrentRevision(correctedTrack.track_id), binding: textId ? await repo.getTextBinding(textId) : null };
+  }
+  async function exportSlimZip(packageId, textId) {
+    var JSZipCtor = await window.v3LoadJSZip(), files = await buildSlimPackageFiles(await snapshotForExport(packageId, textId), { app_version: window.APP_VERSION || null });
+    var zip = new JSZipCtor(); Object.keys(files).forEach(function (path) { zip.file(path, files[path]); });
+    return zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+  }
+  async function importSlimZipFile(file) {
+    var JSZipCtor = await window.v3LoadJSZip(), zip = await JSZipCtor.loadAsync(file), files = {};
+    for (var path of Object.keys(zip.files)) if (!zip.files[path].dir) files[path] = await zip.files[path].async('string');
+    var snapshot = await verifySlimPackageFiles(files), result = await browserRepository().importSnapshot(snapshot);
+    result.snapshot = snapshot; return result;
+  }
+  async function relinkFile(packageId, file) {
+    var repo = browserRepository(), pkg = await repo.getPackage(packageId); if (!pkg || !pkg.media_sha256) throw new Error('PACKAGE_MEDIA_SHA_MISSING');
+    var bytes = await file.arrayBuffer(); await verifyRelinkBytes(pkg.media_sha256, bytes);
+    var path = window.MediaStore.mediaFileName(pkg.media_sha256, file.type || pkg.mime, file.name);
+    var saved = await window.MediaStore.saveMedia(bytes, path); if (!saved.ok) throw new Error('MEDIA_RELINK_WRITE_FAILED:' + saved.reason);
+    return repo.relinkMedia(packageId, { sha256: pkg.media_sha256, mime: file.type || pkg.mime, opfs_path: path, size_bytes: file.size, original_name: file.name });
+  }
+  async function handleSlimImport(event) {
+    var file = event && event.target && event.target.files && event.target.files[0];
+    if (event && event.target) event.target.value = '';
+    if (!file) return null;
+    try {
+      var result = await importSlimZipFile(file);
+      if (typeof showToast === 'function') showToast(typeof t === 'function' ? t('studio.mediaPackage.packageImported') : 'Media Package imported', 'success');
+      if (window.StudioMediaEditor) await window.StudioMediaEditor.open(result.corrected_track_id);
+      return result;
+    } catch (e) {
+      if (typeof showToast === 'function') showToast(typeof t === 'function' ? t('studio.mediaPackage.packageImportFailed') : 'Media Package import failed', 'error');
+      throw e;
+    }
+  }
+  async function deletePackageAndGc(packageId, confirmed) {
+    var receipt = await browserRepository().deletePackage(packageId, { confirm: !!confirmed });
+    if (receipt.media_blob_action === 'eligible_for_gc' && receipt.opfs_path && typeof window !== 'undefined' && window.MediaStore && window.MediaStore.deleteMedia) {
+      var removed = await window.MediaStore.deleteMedia(receipt.opfs_path);
+      receipt.media_blob_removed = !!(removed && removed.ok && removed.removed);
+      if (!removed || !removed.ok) receipt.errors.push({ stage: 'media_gc', reason: removed && removed.reason || 'DELETE_FAILED' });
+    }
+    return receipt;
+  }
+
+  var API = {
+    passportToPromotionInput: passportToPromotionInput,
+    reconcileCorrectedPreview: reconcileCorrectedPreview,
+    buildCompatibilityProjection: buildCompatibilityProjection,
+    filterForCloudSlim: filterForCloudSlim,
+    createFromImportMeta: createFromImportMeta, promoteLegacy: promoteLegacy,
+    buildSlimPackageFiles: buildSlimPackageFiles, verifySlimPackageFiles: verifySlimPackageFiles,
+    verifyRelinkBytes: verifyRelinkBytes, snapshotForExport: snapshotForExport,
+    exportSlimZip: exportSlimZip, importSlimZipFile: importSlimZipFile, relinkFile: relinkFile,
+    handleSlimImport: handleSlimImport,
+    deletePackageAndGc: deletePackageAndGc,
+    browserRepository: browserRepository, setRepositoryForTests: setRepositoryForTests,
+  };
+  if (typeof window !== 'undefined') window.StudioMediaPackage = API;
+  if (typeof module !== 'undefined' && module.exports) module.exports = API;
+})();
