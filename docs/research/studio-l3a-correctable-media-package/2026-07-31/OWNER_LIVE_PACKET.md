@@ -8,6 +8,11 @@
 > **Authority:** local/browser verification only. No push, deploy, server/production mutation,
 > cloud Media Package sync, L2/L4/L5/L6 or full-media ZIP.
 
+> **2026-08-01 follow-up:** the original L3a candidate shipped as `v3.11.280`. Owner partial-live
+> testing then exposed a reopen/discoverability defect. The scoped `v3.11.281` correction and its
+> deployment evidence supersede the lifecycle portion of this packet; see §4a onward. The original
+> acceptance record below is retained as historical evidence.
+
 ## 1. What is in the candidate
 
 - additive browser migration v45 with first-class package, track, immutable revision and frozen
@@ -80,8 +85,89 @@ npm run test:api-smoke
 npm run smoke:media-package:mia -- --card="C:\Users\lletp\Downloads\text-card-заложница-миа-интервью.json" --media="C:\Users\lletp\Downloads\Freed Israeli hostage Mia Schem in first interview since her release from Hamas captivity in Gaza.mp3"
 ```
 
-Expected preflight: code commit matches exactly, migration count is `45`, production is not
-touched, and unrelated dirty files remain unstaged.
+Expected original preflight: code commit matches exactly, migration count is `45`, production is
+not touched, and unrelated dirty files remain unstaged.
+
+## 4a. L3a.1 corrected-transcript continuity — 2026-08-01
+
+### Owner evidence and root cause
+
+After a successful real Local ASR run, both **Продолжить с черновиком** and the editor's
+**Продолжить в таблицу** correctly persisted a first-class Media Package, but the composer exposed
+no route back to that corrected track. The only convenient pointer was the in-memory
+`window.v3LastMediaPackageRef`; a reload or ordinary navigation made the artifact undiscoverable
+even though browser SQLite and OPFS still held it. This was a lifecycle/discoverability defect, not
+loss of the canonical track and not a reason to repeat ASR.
+
+### Scoped correction
+
+- **Version:** `v3.11.281`; actual `MIGRATIONS.length=45` — no new migration or schema mutation.
+- **Exact code commit:** `821460c45779d2af8390f0291e8a89a2a59d321c`.
+- The repository now exposes a metadata-only, non-deleted corrected-track workspace catalog and
+  current-workspace lookup; transcript segments are not copied into a second catalog truth.
+- A contextual card under **Исходный текст** exposes
+  `🔒 immutable raw → corrected vN`, draft/saved state, local-only scope, missing-media and stale
+  binding state, plus **Вернуться к правкам**.
+- **Транскрипты** and Import → File expose the same persisted packages after reload. Selecting one
+  reopens the current corrected revision without ASR. Opening a saved table activates its exact
+  Media Package binding; a newer corrected revision is shown as separate/stale and does not rewrite
+  the frozen table.
+- Source clear/entity switch clears only the active UI association. It does not delete the package;
+  the local shelf remains available. Missing media blocks replay only, not text correction.
+- Local/Gemini defaults, model-call policy, raw immutability, cloud filter, server schema/data,
+  L2/L4/L5/L6 and full-media ZIP are unchanged.
+
+### Exact gates
+
+| Gate | Result |
+|---|---|
+| Media Package target suite | `44 passed, 0 failed` |
+| i18n/cache/version | `233 passed, 0 failed` |
+| Browser 380×844 RU/HE continuity | card reopen + shelf reopen + reopen after reload; corrected v2 preserved; no overflow; `0` page errors |
+| 2,800-cue performance | normalize `89.90 ms`; create `298.78 ms`; edit p95 `21.76 ms`; draft `26.36 ms`; commit `102.94 ms`; all under frozen ceilings |
+| Text-card / captions / chunks | `35 passed, 0 failed` / PASS / PASS |
+| Ingest / media karaoke / reader parity | PASS / PASS / PASS |
+| API smoke | PASS; client version `3.11.281` |
+| Full `npm test` | `682 total / 673 pass / 9 fail`; unchanged unrelated baseline: one classic-layout tripwire and eight GCP-translation tests |
+
+New inspected screenshots:
+
+- `screenshots/l3a-reopen-composer-380-ru.png` — SHA-256
+  `27e3437a6df01dbdba73003ae5973d4e33bd5cb26902b654099f00f1eb3223d1`;
+- `screenshots/l3a-reopen-shelf-380-he.png` — SHA-256
+  `2d2016875776471f6a7144c7f8c0d03abfb25c7acd235932cb3e5bfb443e37fa`.
+
+### Adversarial closeout
+
+- **R4:** there is a visible return route in the composer and a reload-stable shelf; no repeat-ASR
+  dead end remains.
+- **R9/R11:** the table binding remains frozen to its exact revision; the editor opens current
+  corrected canon and honestly marks divergence. Raw remains immutable.
+- **R12:** SQLite revisions remain canon; the workspace list contains identity/status metadata only.
+- **R13:** deleted packages are excluded, active UI state is cleared on entity change, and
+  missing-media state degrades to relink/replay without blocking correction.
+- **R15:** all new persistence and UI are browser-local; no cloud/model/server path was added.
+
+## 4b. Owner production test — paste-ready prompt
+
+```text
+Открой production LinguistPro в одном актуальном Chrome-tab и дождись версии 3.11.281.
+Не запускай повторный ASR для уже созданного Media Package.
+
+1. Если текущий транскрипт ещё открыт в «Исходном тексте», нажми «Вернуться к правкам» в карточке
+   сразу под полем. Проверь, что открылась последняя corrected-версия и raw comparison неизменяем.
+2. Закрой/перезагрузи страницу. Нажми «Транскрипты» либо «Импорт → Файл» и открой сохранённый
+   транскрипт с локальной полки. Проверь, что правки сохранились без нового ASR.
+3. Внеси одну заметную правку, сохрани версию, продолжи в таблицу и сохрани текст. Затем вернись
+   в редактор, создай ещё одну версию и снова открой сохранённый текст: UI должен честно показать,
+   что таблица использует предыдущую ревизию, не меняя её строки/заметки автоматически.
+4. Проверь replay. Если локальный media blob отсутствует, текст должен оставаться редактируемым,
+   а UI должен предложить точный SHA-relink вместо повторного ASR.
+
+Сообщи: Chrome version, какой вход использован (карточка или полка), номер opened revision,
+сохранился ли текст после reload, stale-state PASS/FAIL, replay/relink PASS/FAIL и console errors.
+Не присылай сам transcript; достаточно package/track/revision IDs и hashes.
+```
 
 ## 5. Owner-live acceptance sequence
 
