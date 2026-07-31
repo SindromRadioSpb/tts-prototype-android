@@ -99,3 +99,19 @@ test('preview correction retains IDs when cue count matches and preserves text w
   assert.equal(changedCount.segments[0].text, 'אחד\nשתיים\nשלוש');
   assert.deepEqual(changedCount.segments[0].source_segment_ids, ['s1', 's2']);
 });
+
+test('workspace view model exposes honest lifecycle state without copying transcript content', () => {
+  const model = StudioMediaPackage.workspaceViewModel({
+    package_id: 'mpkg:1', corrected_track_id: 'track:1', current_revision_id: 'rev:2',
+    current_revision_sha256: 'b'.repeat(64), revision_no: 2, original_name: 'mia.mp3',
+    duration_ms: 122000, mime: 'audio/mpeg', media_sha256: SHA, media_available: false,
+    has_draft: true, binding_count: 1, updated_at: '2026-08-01T12:00:00.000Z',
+  }, { stale: true, active: true });
+  assert.deepEqual(model, {
+    package_id: 'mpkg:1', track_id: 'track:1', revision_id: 'rev:2', revision_sha256: 'b'.repeat(64),
+    title: 'mia.mp3', duration_ms: 122000, media_kind: 'audio', revision_no: 2,
+    has_draft: true, media_missing: true, binding_count: 1, stale: true, active: true,
+    updated_at: '2026-08-01T12:00:00.000Z', raw_immutable: true,
+  });
+  assert.equal(JSON.stringify(model).includes('segments'), false, 'catalog model must not duplicate transcript content');
+});

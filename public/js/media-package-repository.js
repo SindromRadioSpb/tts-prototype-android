@@ -56,6 +56,49 @@
         created_at: row.created_at, updated_at: row.updated_at,
       };
     }
+    function workspaceRow(row) {
+      if (!row) return null;
+      return {
+        package_id: row.package_id,
+        media_sha256: row.media_sha256 || null,
+        mime: row.mime || null,
+        duration_ms: row.duration_ms == null ? null : Number(row.duration_ms),
+        original_name: row.original_name || null,
+        opfs_path: row.opfs_path || null,
+        size_bytes: row.size_bytes == null ? null : Number(row.size_bytes),
+        corrected_track_id: row.corrected_track_id,
+        current_revision_id: row.current_revision_id,
+        current_revision_sha256: row.current_revision_sha256,
+        revision_no: Number(row.revision_no || 0),
+        has_draft: !!row.draft_json,
+        draft_updated_at: row.draft_updated_at || null,
+        media_available: !!row.opfs_path,
+        binding_count: Number(row.binding_count || 0),
+        created_at: row.created_at,
+        updated_at: row.track_updated_at || row.updated_at,
+      };
+    }
+
+    var WORKSPACE_SELECT = `SELECT p.package_id,p.media_sha256,p.mime,p.duration_ms,p.original_name,
+      p.opfs_path,p.size_bytes,p.created_at,p.updated_at,t.track_id AS corrected_track_id,
+      t.current_revision_id,t.draft_json,t.draft_updated_at,t.updated_at AS track_updated_at,
+      r.canonical_sha256 AS current_revision_sha256,r.revision_no,
+      (SELECT COUNT(*) FROM studio_text_media_bindings b WHERE b.package_id=p.package_id) AS binding_count
+      FROM studio_media_packages p
+      JOIN studio_caption_tracks t ON t.package_id=p.package_id AND t.role='user_corrected'
+      JOIN studio_caption_revisions r ON r.revision_id=t.current_revision_id
+      WHERE p.deleted_at IS NULL`;
+
+    async function getWorkspace(packageId) {
+      return workspaceRow(await one(WORKSPACE_SELECT + ' AND p.package_id=? LIMIT 1', [String(packageId)]));
+    }
+    async function listWorkspaces(options) {
+      options = options || {};
+      var limit = Math.max(1, Math.min(50, Math.round(Number(options.limit) || 8)));
+      var rows = await q(WORKSPACE_SELECT + ` ORDER BY
+        COALESCE(t.draft_updated_at,t.updated_at,p.updated_at,p.created_at) DESC LIMIT ?`, [limit]);
+      return rows.map(workspaceRow);
+    }
 
     async function getTrack(trackId) {
       return trackRow(await one('SELECT * FROM studio_caption_tracks WHERE track_id = ? LIMIT 1', [String(trackId)]));
@@ -241,7 +284,7 @@
       });
     }
 
-    return { createPackage: createPackage, getPackage: getPackage, listTracks: listTracks, getTrack: getTrack, getRevision: getRevision, getCurrentRevision: getCurrentRevision, saveDraft: saveDraft, discardDraft: discardDraft, commitDraft: commitDraft, bindText: bindText, getTextBinding: getTextBinding, isTextBindingStale: isTextBindingStale, deletePackage: deletePackage, relinkMedia: relinkMedia, importSnapshot: importSnapshot };
+    return { createPackage: createPackage, getPackage: getPackage, listTracks: listTracks, getTrack: getTrack, getRevision: getRevision, getCurrentRevision: getCurrentRevision, getWorkspace: getWorkspace, listWorkspaces: listWorkspaces, saveDraft: saveDraft, discardDraft: discardDraft, commitDraft: commitDraft, bindText: bindText, getTextBinding: getTextBinding, isTextBindingStale: isTextBindingStale, deletePackage: deletePackage, relinkMedia: relinkMedia, importSnapshot: importSnapshot };
   }
 
   var API = { createRepository: createRepository };

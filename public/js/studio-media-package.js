@@ -16,6 +16,29 @@
     return require('./media-package-core.js');
   }
 
+  function workspaceViewModel(row, options) {
+    if (!row || !row.package_id || !row.corrected_track_id) return null;
+    options = options || {};
+    var mime = String(row.mime || '');
+    return {
+      package_id: row.package_id,
+      track_id: row.corrected_track_id,
+      revision_id: row.current_revision_id,
+      revision_sha256: row.current_revision_sha256,
+      title: row.original_name || 'Media transcript',
+      duration_ms: row.duration_ms == null ? null : Number(row.duration_ms),
+      media_kind: mime.indexOf('video/') === 0 ? 'video' : (mime.indexOf('audio/') === 0 ? 'audio' : 'captions'),
+      revision_no: Number(row.revision_no || 0),
+      has_draft: !!row.has_draft,
+      media_missing: !!row.media_sha256 && !row.media_available,
+      binding_count: Number(row.binding_count || 0),
+      stale: !!options.stale,
+      active: !!options.active,
+      updated_at: row.updated_at || null,
+      raw_immutable: true,
+    };
+  }
+
   function passportToPromotionInput(holder) {
     holder = holder && holder.source && typeof holder.source === 'object' ? holder.source : (holder || {});
     var isAudio = !!holder.audio;
@@ -116,12 +139,143 @@
     return out;
   }
 
-  var repository = null;
+  var repository = null, activeWorkspaceRef = null, activeWorkspaceOptions = {}, workspaceRefreshSerial = 0;
   function browserRepository() {
     if (repository) return repository;
     if (typeof window === 'undefined' || !window.__localDB || !window.MediaPackageRepository) throw new Error('MEDIA_PACKAGE_REPOSITORY_UNAVAILABLE');
     repository = window.MediaPackageRepository.createRepository(window.__localDB, getCore());
     return repository;
+  }
+
+  function uiText(key, fallback, vars) {
+    var value = key;
+    try { value = typeof t === 'function' ? t(key) : key; } catch (_) {}
+    if (!value || value === key) value = fallback || key;
+    Object.keys(vars || {}).forEach(function (name) { value = String(value).split('{' + name + '}').join(String(vars[name])); });
+    return String(value);
+  }
+  function uiEl(id) { return typeof document === 'undefined' ? null : document.getElementById(id); }
+  function formatDuration(durationMs) {
+    if (durationMs == null || !Number.isFinite(Number(durationMs))) return '';
+    var total = Math.max(0, Math.round(Number(durationMs) / 1000));
+    var hours = Math.floor(total / 3600), minutes = Math.floor((total % 3600) / 60), seconds = total % 60;
+    return hours ? hours + ':' + String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0') : minutes + ':' + String(seconds).padStart(2, '0');
+  }
+  function renderActiveWorkspace(model) {
+    var card = uiEl('l3WorkspaceCard'); if (!card) return;
+    card.hidden = !model;
+    if (!model) return;
+    card.dataset.packageId = model.package_id;
+    card.dataset.stale = model.stale ? 'true' : 'false';
+    var name = uiEl('l3WorkspaceName'); if (name) name.textContent = model.title;
+    var revision = uiEl('l3WorkspaceRevision'); if (revision) revision.textContent = uiText('studio.mediaPackage.workspaceRevision', 'Правки · v{n}', { n: model.revision_no });
+    var state = uiEl('l3WorkspaceState');
+    if (state) {
+      state.textContent = model.has_draft
+        ? uiText('studio.mediaPackage.workspaceDraft', 'Есть восстановленный черновик')
+        : uiText('studio.mediaPackage.workspaceSaved', 'Версия сохранена на этом устройстве');
+      state.dataset.kind = model.has_draft ? 'draft' : 'saved';
+    }
+    var detail = [];
+    var duration = formatDuration(model.duration_ms); if (duration) detail.push(duration);
+    detail.push(uiText('studio.mediaPackage.workspaceLocalOnly', 'Только на этом устройстве'));
+    var meta = uiEl('l3WorkspaceMeta'); if (meta) meta.textContent = detail.join(' · ');
+    var missing = uiEl('l3WorkspaceMediaMissing'); if (missing) missing.hidden = !model.media_missing;
+    var stale = uiEl('l3WorkspaceStale'); if (stale) stale.hidden = !model.stale;
+  }
+  function renderWorkspaceShelf(models) {
+    var root = uiEl('l3WorkspaceShelf'), list = uiEl('l3WorkspaceShelfList'), empty = uiEl('l3WorkspaceShelfEmpty');
+    var entry = uiEl('l3WorkspaceLibraryBtn'), count = uiEl('l3WorkspaceLibraryCount');
+    if (entry) entry.hidden = !models.length;
+    if (count) count.textContent = String(models.length);
+    if (!root || !list || !empty) return;
+    root.hidden = false; empty.hidden = !!models.length; list.replaceChildren();
+    models.forEach(function (model) {
+      var item = document.createElement('article'); item.className = 'l3-workspace-shelf-item';
+      item.dataset.active = model.active ? 'true' : 'false';
+      item.dataset.packageId = model.package_id;
+      var copyBox = document.createElement('div'); copyBox.className = 'l3-workspace-shelf-copy';
+      var title = document.createElement('strong'); title.dir = 'auto'; title.textContent = model.title;
+      var meta = document.createElement('span');
+      var parts = [uiText('studio.mediaPackage.workspaceVersion', 'Версия {n}', { n: model.revision_no })];
+      var duration = formatDuration(model.duration_ms); if (duration) parts.push(duration);
+      if (model.has_draft) parts.push(uiText('studio.mediaPackage.workspaceDraftShort', 'черновик'));
+      if (model.media_missing) parts.push(uiText('studio.mediaPackage.workspaceMediaMissingShort', 'медиа нужно связать'));
+      meta.textContent = parts.join(' · '); copyBox.append(title, meta);
+      var open = document.createElement('button'); open.type = 'button'; open.className = 'btn-secondary';
+      open.textContent = uiText('studio.mediaPackage.workspaceReopen', 'Вернуться к правкам');
+      open.addEventListener('click', function () { openWorkspace(model.package_id); });
+      item.append(copyBox, open); list.appendChild(item);
+    });
+  }
+  async function refreshWorkspaceUi() {
+    if (typeof window === 'undefined') return { active: null, items: [] };
+    var serial = ++workspaceRefreshSerial;
+    try {
+      var repo = browserRepository();
+      var ref = activeWorkspaceRef || window.v3LastMediaPackageRef || null;
+      var activeRow = ref && ref.package_id ? await repo.getWorkspace(ref.package_id) : null;
+      var rows = await repo.listWorkspaces({ limit: 8 });
+      if (serial !== workspaceRefreshSerial) return { superseded: true };
+      if (ref && !activeRow) { activeWorkspaceRef = null; activeWorkspaceOptions = {}; window.v3LastMediaPackageRef = null; }
+      var active = activeRow ? workspaceViewModel(activeRow, Object.assign({}, activeWorkspaceOptions, { active: true })) : null;
+      var items = rows.map(function (row) { return workspaceViewModel(row, { active: !!active && row.package_id === active.package_id }); });
+      renderActiveWorkspace(active); renderWorkspaceShelf(items);
+      return { active: active, items: items };
+    } catch (_) {
+      if (serial === workspaceRefreshSerial) { renderActiveWorkspace(null); renderWorkspaceShelf([]); }
+      return { active: null, items: [], unavailable: true };
+    }
+  }
+  async function setActiveWorkspace(ref, options) {
+    activeWorkspaceRef = ref ? copy(ref) : null; activeWorkspaceOptions = Object.assign({}, options || {});
+    if (typeof window !== 'undefined') window.v3LastMediaPackageRef = activeWorkspaceRef ? copy(activeWorkspaceRef) : null;
+    renderActiveWorkspace(null);
+    return refreshWorkspaceUi();
+  }
+  function clearActiveWorkspace() {
+    activeWorkspaceRef = null; activeWorkspaceOptions = {}; workspaceRefreshSerial++;
+    if (typeof window !== 'undefined') window.v3LastMediaPackageRef = null;
+    renderActiveWorkspace(null);
+    refreshWorkspaceUi();
+  }
+  async function activatePackage(packageId, options) {
+    var workspace = await browserRepository().getWorkspace(packageId);
+    if (!workspace) throw new Error('PACKAGE_NOT_FOUND');
+    await setActiveWorkspace({ package_id: workspace.package_id, track_id: workspace.corrected_track_id,
+      revision_id: workspace.current_revision_id, revision_sha256: workspace.current_revision_sha256,
+      projection_sha256: workspace.current_revision_sha256, local_only: true }, options || {});
+    return workspace;
+  }
+  async function activateTextBinding(textId) {
+    var repo = browserRepository(), binding = await repo.getTextBinding(textId);
+    if (!binding) { clearActiveWorkspace(); return { binding: null, stale: false, workspace: null }; }
+    var stale = await repo.isTextBindingStale(textId), workspace = await activatePackage(binding.package_id, {
+      stale: !!stale.stale, text_id: String(textId), bound_revision_id: binding.revision_id,
+    });
+    return { binding: binding, stale: !!stale.stale, workspace: workspace };
+  }
+  async function openWorkspace(packageId) {
+    var workspace = packageId ? await activatePackage(packageId) : (activeWorkspaceRef && await activatePackage(activeWorkspaceRef.package_id, activeWorkspaceOptions));
+    if (!workspace) throw new Error('PACKAGE_NOT_FOUND');
+    if (typeof window !== 'undefined' && window.StudioImport && typeof window.StudioImport.close === 'function') window.StudioImport.close();
+    if (!window.StudioMediaEditor) throw new Error('MEDIA_EDITOR_UNAVAILABLE');
+    await window.StudioMediaEditor.open(workspace.corrected_track_id);
+    return workspace;
+  }
+  async function openWorkspaceLibrary() {
+    if (typeof window === 'undefined' || !window.StudioImport) return;
+    window.StudioImport.open(); window.StudioImport.switchTab('file'); await refreshWorkspaceUi();
+  }
+  async function notifyRevision(trackId, revision) {
+    if (activeWorkspaceRef && activeWorkspaceRef.track_id === trackId && revision) {
+      activeWorkspaceRef.revision_id = revision.revision_id;
+      activeWorkspaceRef.revision_sha256 = revision.canonical_sha256;
+      activeWorkspaceRef.projection_sha256 = revision.canonical_sha256;
+      if (activeWorkspaceOptions.bound_revision_id && activeWorkspaceOptions.bound_revision_id !== revision.revision_id) activeWorkspaceOptions.stale = true;
+      if (typeof window !== 'undefined') window.v3LastMediaPackageRef = copy(activeWorkspaceRef);
+    }
+    return refreshWorkspaceUi();
   }
 
   function reconcileCorrectedPreview(segments, text) {
@@ -266,6 +420,7 @@
     try {
       var result = await importSlimZipFile(file);
       if (typeof showToast === 'function') showToast(typeof t === 'function' ? t('studio.mediaPackage.packageImported') : 'Media Package imported', 'success');
+      await activatePackage(result.package_id);
       if (window.StudioMediaEditor) await window.StudioMediaEditor.open(result.corrected_track_id);
       return result;
     } catch (e) {
@@ -294,6 +449,11 @@
     exportSlimZip: exportSlimZip, importSlimZipFile: importSlimZipFile, relinkFile: relinkFile,
     handleSlimImport: handleSlimImport,
     deletePackageAndGc: deletePackageAndGc,
+    workspaceViewModel: workspaceViewModel, refreshWorkspaceUi: refreshWorkspaceUi,
+    setActiveWorkspace: setActiveWorkspace, clearActiveWorkspace: clearActiveWorkspace,
+    activatePackage: activatePackage, activateTextBinding: activateTextBinding,
+    openWorkspace: openWorkspace, openActiveWorkspace: openWorkspace, openWorkspaceLibrary: openWorkspaceLibrary,
+    notifyRevision: notifyRevision,
     browserRepository: browserRepository, setRepositoryForTests: setRepositoryForTests,
   };
   if (typeof window !== 'undefined') window.StudioMediaPackage = API;

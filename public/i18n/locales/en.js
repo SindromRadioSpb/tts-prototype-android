@@ -3292,6 +3292,11 @@ window.I18N_LOCALES.en = {
       importSlim: "Import slim Media Package…", packageImported: "Media Package imported locally", packageImportFailed: "Media Package was not imported: the file is corrupt or failed verification",
       relink: "Relink media", relinkDone: "Media relinked by exact SHA-256", relinkMismatch: "This is a different file: SHA-256 does not match", relinkFailed: "Could not relink media",
       deletePackage: "Delete package…", deleteConfirm: "Delete the Media Package, every track, version and draft? Bound table rows will not be rewritten.", deleted: "Media Package deleted", deleteFailed: "Could not delete Media Package",
+      workspaceBadge: "Transcript", workspaceDraft: "Recoverable draft available", workspaceSaved: "Version saved on this device", workspaceLocalOnly: "This device only",
+      workspaceRevision: "Corrections · v{n}", workspaceVersion: "Version {n}", workspaceDraftShort: "draft", workspaceMediaMissingShort: "media needs relinking",
+      workspaceMediaMissing: "Media needs to be relinked", workspaceRaw: "Immutable original", workspaceStale: "The table uses an earlier version. Your newer corrections are saved separately.",
+      workspaceReopen: "Return to corrections", workspaceAll: "All saved transcripts", workspaceLibrary: "Transcripts", workspaceShelfTitle: "Saved transcripts",
+      workspaceShelfLocal: "On device", workspaceShelfHint: "Continue editing without running recognition again.", workspaceShelfEmpty: "No saved transcripts yet.",
     },
     // W2-S4 Task 11 — audio provenance sub-panel (text-metadata modal)
     meta: {

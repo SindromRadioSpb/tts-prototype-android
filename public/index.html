@@ -3662,6 +3662,41 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 #v3ImportTabs { display: flex; gap: 4px; margin-bottom: 10px; }
 
 /* L3a Correctable Media Package — focused listening editor, not a spreadsheet. */
+#l3WorkspaceCard { position:relative; margin-top:10px; padding:14px; overflow:hidden; border:1px solid #b7d1cb; border-radius:13px; background:var(--theme-bg-card,#fff); box-shadow:0 9px 24px rgba(18,59,57,.06); }
+#l3WorkspaceCard[hidden] { display:none; }
+#l3WorkspaceCard::before { content:""; position:absolute; inset-block:0; inset-inline-start:0; width:4px; background:#0b7673; }
+.l3-workspace-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.l3-workspace-copy { min-width:0; }
+.l3-workspace-eyebrow { display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-bottom:4px; color:#496966; font:700 10px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.055em; text-transform:uppercase; }
+.l3-workspace-local { padding:3px 6px; border-radius:99px; background:#e6f3ef; color:#075e5b; }
+#l3WorkspaceState[data-kind="draft"] { color:#8a5d00; }
+#l3WorkspaceName { display:block; overflow:hidden; color:#163b3a; font-size:15px; line-height:1.35; text-overflow:ellipsis; white-space:nowrap; }
+#l3WorkspaceMeta { display:block; margin-top:3px; color:var(--theme-text-secondary,#64748b); font-size:11.5px; }
+#l3WorkspaceMediaMissing { flex:0 0 auto; max-width:170px; padding:4px 7px; border-radius:7px; background:#fff3d6; color:#765309; font-size:11px; font-weight:700; }
+.l3-revision-rail { display:grid; grid-template-columns:auto minmax(24px,1fr) auto; align-items:center; gap:8px; margin:12px 0 10px; color:#3c5f5c; font-size:11.5px; font-weight:700; }
+.l3-revision-node { display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+.l3-revision-line { height:2px; background:#b8cfca; position:relative; }
+.l3-revision-line::after { content:""; position:absolute; inset-block-start:50%; inset-inline-end:-1px; width:7px; height:7px; border-radius:50%; background:#0b7673; transform:translateY(-50%); }
+#l3WorkspaceRevision { color:#075e5b; }
+#l3WorkspaceStale { margin:0 0 10px; padding:8px 9px; border-inline-start:3px solid #c48616; background:#fff7e5; color:#765309; font-size:12px; line-height:1.4; }
+.l3-workspace-actions { display:flex; gap:8px; flex-wrap:wrap; }
+#l3WorkspaceCard button,#l3WorkspaceLibraryBtn,#l3WorkspaceShelf button { width:auto; }
+#l3WorkspaceLibraryCount { display:inline-grid; min-width:18px; height:18px; padding:0 4px; place-items:center; border-radius:99px; background:#e2eeff; color:#245bb3; font:700 10px/1 ui-monospace,Consolas,monospace; }
+.l3-workspace-shelf { margin-bottom:14px; padding:12px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:11px; background:color-mix(in srgb,#0b7673 4%,var(--theme-bg-card,#fff)); }
+.l3-workspace-shelf[hidden] { display:none; }
+.l3-workspace-shelf-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+.l3-workspace-shelf-head strong { color:#163b3a; font-size:13px; }
+.l3-workspace-shelf-head span { color:#0b7673; font:700 10px/1.2 ui-monospace,Consolas,monospace; text-transform:uppercase; }
+.l3-workspace-shelf-hint,.l3-workspace-shelf-empty { margin:4px 0 10px; color:var(--theme-text-secondary,#64748b); font-size:11.5px; line-height:1.4; }
+.l3-workspace-shelf-empty { margin-bottom:0; }
+.l3-workspace-shelf-list { display:grid; gap:7px; }
+.l3-workspace-shelf-item { display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; padding:9px; border:1px solid #cfdfdc; border-radius:9px; background:var(--theme-bg-card,#fff); }
+.l3-workspace-shelf-item[data-active="true"] { border-color:#0b7673; box-shadow:inset 3px 0 #0b7673; }
+[dir="rtl"] .l3-workspace-shelf-item[data-active="true"] { box-shadow:inset -3px 0 #0b7673; }
+.l3-workspace-shelf-copy { min-width:0; }
+.l3-workspace-shelf-copy strong,.l3-workspace-shelf-copy span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.l3-workspace-shelf-copy strong { color:#213f3d; font-size:12.5px; }
+.l3-workspace-shelf-copy span { margin-top:3px; color:var(--theme-text-secondary,#64748b); font-size:10.5px; }
 #l3MediaEditorPanel { width:min(760px,calc(100vw - 24px)); max-height:calc(100vh - 24px); overflow:auto; padding:0; background:#f7faf9; }
 .l3-editor-head { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:16px 18px 12px; border-bottom:1px solid #cddbd8; background:#fff; position:sticky; top:0; z-index:3; }
 .l3-editor-title { font-family:"Noto Sans Hebrew","Segoe UI",sans-serif; font-size:19px; font-weight:750; color:#163b3a; }
@@ -3692,6 +3727,11 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 #l3EditorStatus { margin:10px 0 0; padding:8px 10px; border-radius:8px; background:#e8f2ef; color:#214e4b; font-size:12px; }
 #l3EditorStatus[data-kind="error"] { background:#fff0ed; color:#8b2d22; }
 @media (max-width:600px) {
+  #l3WorkspaceCard { padding:12px; }
+  .l3-workspace-head,.l3-workspace-shelf-item { align-items:stretch; flex-direction:column; }
+  #l3WorkspaceMediaMissing { max-width:none; align-self:flex-start; }
+  .l3-workspace-actions { display:grid; grid-template-columns:1fr; }
+  #l3WorkspaceCard .l3-workspace-actions button,.l3-workspace-shelf-item button { width:100%; }
   #l3MediaEditorPanel { width:100vw; max-height:100dvh; height:100dvh; border-radius:0; }
   .l3-editor-head { padding:10px 12px; }
   .l3-player-dock { top:49px; padding:8px 12px; }
@@ -10820,9 +10860,31 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
                         <textarea id="inputText" data-i18n-placeholder="classic.inputPlaceholder" placeholder="Введите текст здесь... (Иврит, Английский, Русский)">שלום, זהו אבטיפוס פשוט של המערכת</textarea>
 
+                        <section id="l3WorkspaceCard" hidden aria-labelledby="l3WorkspaceName" aria-live="polite">
+                            <div class="l3-workspace-head">
+                                <div class="l3-workspace-copy">
+                                    <div class="l3-workspace-eyebrow"><span class="l3-workspace-local" data-i18n="studio.mediaPackage.workspaceBadge">Транскрипт</span><span id="l3WorkspaceState"></span></div>
+                                    <strong id="l3WorkspaceName" dir="auto"></strong>
+                                    <span id="l3WorkspaceMeta"></span>
+                                </div>
+                                <span id="l3WorkspaceMediaMissing" hidden data-i18n="studio.mediaPackage.workspaceMediaMissing">Медиа нужно связать заново</span>
+                            </div>
+                            <div class="l3-revision-rail" aria-label="Transcript revision lineage">
+                                <span class="l3-revision-node">🔒 <span data-i18n="studio.mediaPackage.workspaceRaw">Неизменяемый оригинал</span></span>
+                                <span class="l3-revision-line" aria-hidden="true"></span>
+                                <span id="l3WorkspaceRevision" class="l3-revision-node"></span>
+                            </div>
+                            <p id="l3WorkspaceStale" hidden data-i18n="studio.mediaPackage.workspaceStale">Таблица использует предыдущую версию. Ваши новые правки сохранены отдельно.</p>
+                            <div class="l3-workspace-actions">
+                                <button type="button" id="l3WorkspaceReopenBtn" class="btn-primary" onclick="StudioMediaPackage.openActiveWorkspace()" data-i18n="studio.mediaPackage.workspaceReopen">Вернуться к правкам</button>
+                                <button type="button" class="btn-secondary" onclick="StudioMediaPackage.openWorkspaceLibrary()" data-i18n="studio.mediaPackage.workspaceAll">Все сохранённые транскрипты</button>
+                            </div>
+                        </section>
+
                         <div id="v3ImportEntry" style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap;">
                             <button type="button" class="btn-secondary" onclick="window.StudioImport && StudioImport.open()">📥 <span data-i18n="studio.import.button">Импорт: ссылка / файл / фото</span></button>
                             <button type="button" id="v3RetellEntryBtn" class="btn-secondary" onclick="window.StudioRetell && StudioRetell.openFromComposer()">✨ <span data-i18n="studio.retell.button">Упростить до моего уровня</span></button>
+                            <button type="button" id="l3WorkspaceLibraryBtn" class="btn-secondary" onclick="StudioMediaPackage.openWorkspaceLibrary()" hidden>✎ <span data-i18n="studio.mediaPackage.workspaceLibrary">Транскрипты</span> <span id="l3WorkspaceLibraryCount">0</span></button>
                         </div>
 
                         <div id="textChangedNotice" data-i18n="classic.textChangedNotice">
@@ -12471,9 +12533,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=89"></script>
-    <script src="/i18n/locales/en.js?v=89"></script>
-    <script src="/i18n/locales/he.js?v=89"></script>
+    <script src="/i18n/locales/ru.js?v=90"></script>
+    <script src="/i18n/locales/en.js?v=90"></script>
+    <script src="/i18n/locales/he.js?v=90"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12624,7 +12686,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.280";
+    window.APP_VERSION = "3.11.281";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -13905,7 +13967,7 @@ if (header) {
     }
     // R9: entity change (opened a different Library text) invalidates any
     // stale import-provenance passport — mirrors v3LastGeminiMeta reset above.
-    try { window.v3LastImportMeta = null; } catch (_) {}
+    try { window.v3LastImportMeta = null; if (window.StudioMediaPackage && window.StudioMediaPackage.clearActiveWorkspace) window.StudioMediaPackage.clearActiveWorkspace(); } catch (_) {}
     try {
       window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
       if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
@@ -13917,6 +13979,14 @@ if (header) {
     // текста уже в currentTableData (присвоены выше) — передаём их явно.
     try { v3AdoptSavedTableMeta(t); } catch (_) {}
     try { v3RestoreMediaFromMeta(v3LastGeminiMeta, rows); } catch (_) {}
+    window.v3MediaPackageStale = false;
+    if (LOCAL_MODE && window.StudioMediaPackage) {
+      try {
+        const activation = await window.StudioMediaPackage.activateTextBinding(String(textId));
+        window.v3MediaPackageStale = !!(activation && activation.stale);
+        if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
+      } catch (_) {}
+    }
     try {
       if (window.v3SetActiveLibraryTextMeta) {
         window.v3SetActiveLibraryTextMeta({
@@ -21100,7 +21170,7 @@ updatePlaylistButtonUI();
         // R9: cleared text carries no provenance forward — a fresh-typed text
         // must not inherit a stale import passport (mirrors v3LastGeminiMeta
         // reset on Library entity-change, see the two open-text loaders above).
-        try { window.v3LastImportMeta = null; } catch (_) {}
+        try { window.v3LastImportMeta = null; if (window.StudioMediaPackage && window.StudioMediaPackage.clearActiveWorkspace) window.StudioMediaPackage.clearActiveWorkspace(); } catch (_) {}
         try {
           window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
           if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
@@ -25718,7 +25788,7 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
     }
     // R9: entity change (opened a different Library text) invalidates any
     // stale import-provenance passport — mirrors v3LastGeminiMeta reset above.
-    try { window.v3LastImportMeta = null; } catch (_) {}
+    try { window.v3LastImportMeta = null; if (window.StudioMediaPackage && window.StudioMediaPackage.clearActiveWorkspace) window.StudioMediaPackage.clearActiveWorkspace(); } catch (_) {}
     try {
       window.v3ActiveMediaAudio = null; window.v3SessionMediaBlob = null;
       if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
@@ -25743,8 +25813,8 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
     window.v3MediaPackageStale = false;
     if (LOCAL_MODE && window.StudioMediaPackage) {
       try {
-        const stale = await window.StudioMediaPackage.browserRepository().isTextBindingStale(String(textId));
-        window.v3MediaPackageStale = !!(stale && stale.stale);
+        const activation = await window.StudioMediaPackage.activateTextBinding(String(textId));
+        window.v3MediaPackageStale = !!(activation && activation.stale);
         if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
       } catch (_) {}
     }
@@ -47093,6 +47163,11 @@ initRowUxDelegatesOnce();
 // NAV-DEEPLINK-RUNTIME-01: boot priority is hash > session (ADR-0001)
 window.addEventListener("load", async () => {
 try { if (typeof v3AudioPrefetchResumeIfNeeded === "function") v3AudioPrefetchResumeIfNeeded({ openModalIfRunning: false }); } catch (_) {}
+try {
+  if (window.StudioMediaPackage && window.StudioMediaPackage.refreshWorkspaceUi) {
+    Promise.resolve(window.__localDBInitPromise).then(() => window.StudioMediaPackage.refreshWorkspaceUi()).catch(() => {});
+  }
+} catch (_) {}
 
   // NAV-DEEPLINK-RUNTIME-01: check hash deeplink FIRST (priority over session restore)
   try {
@@ -47453,6 +47528,12 @@ document.addEventListener("i18n:changed", function () {
       </div>
 
       <div id="v3ImportPaneFile" class="v3-import-pane" role="tabpanel" aria-labelledby="v3ImportTabFile" hidden>
+        <section id="l3WorkspaceShelf" class="l3-workspace-shelf" hidden aria-labelledby="l3WorkspaceShelfTitle">
+          <div class="l3-workspace-shelf-head"><strong id="l3WorkspaceShelfTitle" data-i18n="studio.mediaPackage.workspaceShelfTitle">Сохранённые транскрипты</strong><span data-i18n="studio.mediaPackage.workspaceShelfLocal">На устройстве</span></div>
+          <p class="l3-workspace-shelf-hint" data-i18n="studio.mediaPackage.workspaceShelfHint">Продолжайте редактирование без повторного распознавания.</p>
+          <div id="l3WorkspaceShelfList" class="l3-workspace-shelf-list"></div>
+          <p id="l3WorkspaceShelfEmpty" class="l3-workspace-shelf-empty" data-i18n="studio.mediaPackage.workspaceShelfEmpty">Сохранённых транскриптов пока нет.</p>
+        </section>
         <div>
           <label class="input-label" style="display:block; margin-bottom:6px;" data-i18n="studio.import.fileLabelPhoto">Фото, PDF или Word (до 6 МБ)</label>
           <input id="v3ImportFile" type="file" accept="image/jpeg,image/png,image/webp,.pdf,application/pdf,.docx" style="display:none" onchange="StudioImport.onFileChosen(event)">

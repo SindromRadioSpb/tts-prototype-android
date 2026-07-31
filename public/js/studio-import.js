@@ -1501,6 +1501,7 @@
     // Tab always resets to "url" on open() — not persisted anywhere (not localStorage, not a
     // module var), so the dialog is predictable on every open, per task-2-brief.md.
     switchTab("url");
+    if (window.StudioMediaPackage && window.StudioMediaPackage.refreshWorkspaceUi) window.StudioMediaPackage.refreshWorkspaceUi();
   }
   function close() {
     var m = $("v3ImportModal");
@@ -1679,7 +1680,8 @@
         if (audioMetaForImport) importMeta.audio = Object.assign({}, audioMetaForImport, projection.audio);
         if (captionsMetaForImport) importMeta.captions = Object.assign({}, captionsMetaForImport, projection.captions);
         if (importMeta.captions) delete importMeta.captions.rawSource;
-        window.v3LastMediaPackageRef = projection.media_package_ref;
+        if (window.StudioMediaPackage.setActiveWorkspace) await window.StudioMediaPackage.setActiveWorkspace(projection.media_package_ref);
+        else window.v3LastMediaPackageRef = projection.media_package_ref;
         // The exact corrected revision, not the old merged preview, becomes table input.
         text = mediaPackage.revision.segments.map(function (s) { return s.text; }).join("\n");
         importMeta.textSnapshot = text;

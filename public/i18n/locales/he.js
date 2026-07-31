@@ -3300,6 +3300,11 @@ window.I18N_LOCALES.he = {
       importSlim: "ייבוא Media Package רזה…", packageImported: "Media Package יובא מקומית", packageImportFailed: "Media Package לא יובא: הקובץ פגום או נכשל באימות",
       relink: "קישור מדיה מחדש", relinkDone: "המדיה קושרה לפי SHA-256 מדויק", relinkMismatch: "זהו קובץ אחר: SHA-256 אינו תואם", relinkFailed: "קישור המדיה נכשל",
       deletePackage: "מחיקת החבילה…", deleteConfirm: "למחוק את Media Package, כל המסלולים, הגרסאות והטיוטה? שורות הטבלה המקושרות לא ישוכתבו.", deleted: "Media Package נמחק", deleteFailed: "מחיקת Media Package נכשלה",
+      workspaceBadge: "תמלול", workspaceDraft: "קיימת טיוטה לשחזור", workspaceSaved: "הגרסה נשמרה במכשיר זה", workspaceLocalOnly: "במכשיר זה בלבד",
+      workspaceRevision: "תיקונים · v{n}", workspaceVersion: "גרסה {n}", workspaceDraftShort: "טיוטה", workspaceMediaMissingShort: "נדרש קישור למדיה",
+      workspaceMediaMissing: "יש לקשר מחדש את המדיה", workspaceRaw: "המקור שאינו ניתן לשינוי", workspaceStale: "הטבלה משתמשת בגרסה קודמת. התיקונים החדשים נשמרו בנפרד.",
+      workspaceReopen: "חזרה לעריכה", workspaceAll: "כל התמלולים השמורים", workspaceLibrary: "תמלולים", workspaceShelfTitle: "תמלולים שמורים",
+      workspaceShelfLocal: "במכשיר", workspaceShelfHint: "אפשר להמשיך לערוך ללא זיהוי חוזר.", workspaceShelfEmpty: "אין עדיין תמלולים שמורים.",
     },
     // W2-S4 Task 11 — פאנל מקור-אמת אודיו (חלון «נתוני-על טקסט»)
     meta: {

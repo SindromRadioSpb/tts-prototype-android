@@ -29,12 +29,58 @@ async function harness() {
   return { db, rows, repo: Repository.createRepository(adapter, Core) };
 }
 
-async function rawRevision() {
+async function rawRevision(sha = 'a'.repeat(64), suffix = '') {
   return Core.createRawRevision({
-    media_sha256: 'a'.repeat(64), format: 'asr', provider: 'local-faster-whisper',
-    segments: [{ start_ms: 0, end_ms: 1000, text: 'שלום' }, { start_ms: 1100, end_ms: 2200, text: 'מיה' }],
+    media_sha256: sha, format: 'asr', provider: 'local-faster-whisper',
+    segments: [{ start_ms: 0, end_ms: 1000, text: 'שלום' }, { start_ms: 1100, end_ms: 2200, text: 'מיה' + suffix }],
   });
 }
+
+test('workspace catalog makes persisted corrected tracks reopenable without another ASR run', async () => {
+  const h = await harness();
+  h.db.run("INSERT INTO texts(id,source_meta_json) VALUES ('text-1','{}')");
+  const first = await h.repo.createPackage({
+    media: { sha256: 'a'.repeat(64), mime: 'audio/mpeg', duration_ms: 122000, original_name: 'mia.mp3', opfs_path: 'media/a.mp3' },
+    raw_revision: await rawRevision('a'.repeat(64)),
+  });
+  const revision = await h.repo.getCurrentRevision(first.corrected_track_id);
+  await h.repo.bindText({ text_id: 'text-1', package_id: first.package_id, track_id: first.corrected_track_id, revision_id: revision.revision_id, revision_sha256: revision.canonical_sha256 });
+  const correctedSegments = revision.segments.map((segment, index) => index === 0 ? { ...segment, text: 'שלום מתוקן' } : segment);
+  await h.repo.saveDraft(first.corrected_track_id, revision.revision_id, correctedSegments, [{ op: 'edit', source_segment_id: revision.segments[0].source_segment_id }]);
+
+  const second = await h.repo.createPackage({
+    media: { sha256: 'b'.repeat(64), mime: 'video/mp4', duration_ms: 65000, original_name: 'interview.mp4' },
+    raw_revision: await rawRevision('b'.repeat(64), ' אחרת'),
+  });
+  await h.repo.deletePackage(second.package_id, { confirm: true });
+
+  const workspaces = await h.repo.listWorkspaces({ limit: 8 });
+  assert.equal(workspaces.length, 1, 'deleted packages stay out of the reopen catalog');
+  assert.deepEqual({
+    package_id: workspaces[0].package_id,
+    corrected_track_id: workspaces[0].corrected_track_id,
+    original_name: workspaces[0].original_name,
+    revision_no: workspaces[0].revision_no,
+    has_draft: workspaces[0].has_draft,
+    media_available: workspaces[0].media_available,
+    binding_count: workspaces[0].binding_count,
+  }, {
+    package_id: first.package_id,
+    corrected_track_id: first.corrected_track_id,
+    original_name: 'mia.mp3',
+    revision_no: 1,
+    has_draft: true,
+    media_available: true,
+    binding_count: 1,
+  });
+  assert.equal((await h.repo.getWorkspace(first.package_id)).current_revision_id, revision.revision_id);
+
+  await h.repo.commitDraft(first.corrected_track_id, { author_kind: 'user' });
+  const stale = await h.repo.isTextBindingStale('text-1');
+  const reopened = await h.repo.getWorkspace(first.package_id);
+  assert.equal(stale.stale, true, 'a table bound to the older revision is marked stale');
+  assert.equal(reopened.revision_no, 2, 'reopen targets the current corrected revision, not the frozen table revision');
+});
 
 test('migration v45 is additive and creates the four canonical tables/indexes', async () => {
   const h = await harness();

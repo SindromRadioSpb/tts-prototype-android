@@ -50,6 +50,7 @@
       try {
         await repo().saveDraft(state.trackId, state.baseRevisionId, state.segments, state.operations);
         setStatus('studio.mediaPackage.draftRecovered', 'Черновик сохранён локально');
+        if (window.StudioMediaPackage && window.StudioMediaPackage.refreshWorkspaceUi) window.StudioMediaPackage.refreshWorkspaceUi();
       } catch (e) { setStatus('studio.mediaPackage.draftFailed', 'Черновик не сохранён', 'error'); }
     }, 350);
   }
@@ -129,14 +130,17 @@
     try {
       var revision = await repo().commitDraft(state.trackId, { author_kind: 'user', provenance: { surface: 'studio-media-editor', code_version: window.APP_VERSION || null } });
       state.baseRevisionId = revision.revision_id; state.baseHash = revision.canonical_sha256; state.operations = []; state.dirty = false; state.undo = []; state.redo = [];
-      setStatus('studio.mediaPackage.versionSaved', 'Версия сохранена'); render(); return revision;
+      setStatus('studio.mediaPackage.versionSaved', 'Версия сохранена'); render();
+      if (window.StudioMediaPackage && window.StudioMediaPackage.notifyRevision) await window.StudioMediaPackage.notifyRevision(state.trackId, revision);
+      return revision;
     } catch (e) { setStatus(e.code === 'DRAFT_BASE_STALE' ? 'studio.mediaPackage.staleDraft' : 'studio.mediaPackage.saveFailed', e.code, 'error'); throw e; }
   }
   async function continueToTable() {
     var revision = await saveVersion(); if (!revision) return;
     var input = $('inputText'); if (input) { input.value = revision.segments.map(function (s) { return s.text; }).join('\n'); input.dispatchEvent(new Event('input', { bubbles: true })); }
     var ref = { package_id: state.packageId, track_id: state.trackId, revision_id: revision.revision_id, revision_sha256: revision.canonical_sha256, projection_sha256: revision.canonical_sha256, local_only: true };
-    window.v3LastMediaPackageRef = ref;
+    if (window.StudioMediaPackage && window.StudioMediaPackage.setActiveWorkspace) await window.StudioMediaPackage.setActiveWorkspace(ref);
+    else window.v3LastMediaPackageRef = ref;
     [window.v3LastImportMeta, window.v3LastGeminiMeta && window.v3LastGeminiMeta.source].forEach(function (holder) {
       if (!holder || typeof holder !== 'object') return;
       holder.media_package_ref = clone(ref);
@@ -149,7 +153,7 @@
     });
     close(true);
   }
-  async function discardDraft() { await repo().discardDraft(state.trackId); var revision = await repo().getCurrentRevision(state.trackId); state.segments = clone(revision.segments); state.baseRevisionId = revision.revision_id; state.operations = []; state.dirty = false; state.undo = []; state.redo = []; render(); }
+  async function discardDraft() { await repo().discardDraft(state.trackId); var revision = await repo().getCurrentRevision(state.trackId); state.segments = clone(revision.segments); state.baseRevisionId = revision.revision_id; state.operations = []; state.dirty = false; state.undo = []; state.redo = []; render(); if (window.StudioMediaPackage && window.StudioMediaPackage.refreshWorkspaceUi) await window.StudioMediaPackage.refreshWorkspaceUi(); }
   function downloadBlob(blob, name) {
     var url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
@@ -165,12 +169,12 @@
   async function exportSlim() { await saveVersion(); downloadBlob(await window.StudioMediaPackage.exportSlimZip(state.packageId, null), 'linguistpro-media-package-v1.zip'); }
   async function relinkSelected(event) {
     var file = event && event.target && event.target.files && event.target.files[0]; if (event && event.target) event.target.value = ''; if (!file) return;
-    try { await window.StudioMediaPackage.relinkFile(state.packageId, file); var id = state.trackId; close(true); await open(id); setStatus('studio.mediaPackage.relinkDone', 'Медиа связано по SHA-256'); }
+    try { await window.StudioMediaPackage.relinkFile(state.packageId, file); var id = state.trackId; await window.StudioMediaPackage.activatePackage(state.packageId); close(true); await open(id); setStatus('studio.mediaPackage.relinkDone', 'Медиа связано по SHA-256'); }
     catch (e) { setStatus(e && e.message && e.message.indexOf('MEDIA_SHA_MISMATCH') >= 0 ? 'studio.mediaPackage.relinkMismatch' : 'studio.mediaPackage.relinkFailed', e.code || e.message, 'error'); }
   }
   async function deletePackage() {
     if (!window.confirm(tr('studio.mediaPackage.deleteConfirm', 'Удалить пакет, все дорожки и черновики?'))) return;
-    try { var receipt = await window.StudioMediaPackage.deletePackageAndGc(state.packageId, true); close(true); if (typeof showToast === 'function') showToast(tr('studio.mediaPackage.deleted', 'Media Package удалён') + ' · ' + receipt.revisions_removed, 'success'); }
+    try { var packageId = state.packageId; var receipt = await window.StudioMediaPackage.deletePackageAndGc(packageId, true); close(true); if (window.v3LastMediaPackageRef && window.v3LastMediaPackageRef.package_id === packageId && window.StudioMediaPackage.clearActiveWorkspace) window.StudioMediaPackage.clearActiveWorkspace(); else if (window.StudioMediaPackage.refreshWorkspaceUi) window.StudioMediaPackage.refreshWorkspaceUi(); if (typeof showToast === 'function') showToast(tr('studio.mediaPackage.deleted', 'Media Package удалён') + ' · ' + receipt.revisions_removed, 'success'); }
     catch (e) { setStatus('studio.mediaPackage.deleteFailed', e.code || e.message, 'error'); }
   }
   function close(force) {

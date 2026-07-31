@@ -3306,6 +3306,11 @@ window.I18N_LOCALES.ru = {
       importSlim: "Импорт slim Media Package…", packageImported: "Media Package импортирован локально", packageImportFailed: "Media Package не импортирован: файл повреждён или не прошёл проверку",
       relink: "Relink media", relinkDone: "Медиа связано по точному SHA-256", relinkMismatch: "Выбран другой файл: SHA-256 не совпадает", relinkFailed: "Не удалось связать медиа",
       deletePackage: "Удалить пакет…", deleteConfirm: "Удалить Media Package, все дорожки, версии и черновик? Связанные строки таблицы не будут переписаны.", deleted: "Media Package удалён", deleteFailed: "Не удалось удалить Media Package",
+      workspaceBadge: "Транскрипт", workspaceDraft: "Есть восстановленный черновик", workspaceSaved: "Версия сохранена на этом устройстве", workspaceLocalOnly: "Только на этом устройстве",
+      workspaceRevision: "Правки · v{n}", workspaceVersion: "Версия {n}", workspaceDraftShort: "черновик", workspaceMediaMissingShort: "медиа нужно связать",
+      workspaceMediaMissing: "Медиа нужно связать заново", workspaceRaw: "Неизменяемый оригинал", workspaceStale: "Таблица использует предыдущую версию. Ваши новые правки сохранены отдельно.",
+      workspaceReopen: "Вернуться к правкам", workspaceAll: "Все сохранённые транскрипты", workspaceLibrary: "Транскрипты", workspaceShelfTitle: "Сохранённые транскрипты",
+      workspaceShelfLocal: "На устройстве", workspaceShelfHint: "Продолжайте редактирование без повторного распознавания.", workspaceShelfEmpty: "Сохранённых транскриптов пока нет.",
     },
     // W2-S4 Task 11 — audio provenance sub-panel («Метаданные текста»)
     meta: {
