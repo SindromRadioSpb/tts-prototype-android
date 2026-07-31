@@ -3583,6 +3583,10 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .v3-local-asr-setup > label { display:block; font-size:12px; margin-bottom:5px; }
 .v3-local-asr-pair-row { display:flex; gap:6px; align-items:center; }
 .v3-local-asr-pair-row input { min-width:0; flex:1 1 180px; }
+.v3-local-asr-pair-status { margin-top:5px; color:#075e55; font-size:12px; line-height:1.35; overflow-wrap:anywhere; }
+.v3-local-asr-pair-status[hidden] { display:none; }
+.v3-local-asr-pair-status[data-kind="warn"] { color:#79540a; }
+.v3-local-asr-pair-status[data-kind="error"] { color:#8e2f23; }
 #localAsrConnect[data-connected="true"],#v3ImportLocalAsrPair[data-connected="true"] { border-color:#0b7673; background:#0b7673; color:#fff; }
 #localAsrConnect[data-connected="true"]:hover,#v3ImportLocalAsrPair[data-connected="true"]:hover { border-color:#086561; background:#086561; color:#fff; }
 .local-asr-beta-modal[hidden], #btnLocalAsrSettings[hidden] { display:none !important; }
@@ -12572,7 +12576,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.278";
+    window.APP_VERSION = "3.11.279";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -47339,6 +47343,7 @@ document.addEventListener("i18n:changed", function () {
                       onclick="StudioImport.pairLocalAsr()" data-i18n="studio.import.localAsrPair">Проверить companion</button>
             </div>
             <div class="v3-import-hint" data-i18n="studio.import.localAsrPrivacyHint">Файл идёт только в 127.0.0.1; переход в Gemini возможен лишь отдельным выбором.</div>
+            <div id="v3ImportLocalAsrPairStatus" class="v3-local-asr-pair-status" aria-live="polite" hidden></div>
           </div>
           <label class="v3-import-file-btn">
             <span data-i18n="studio.import.audioBtn">Аудио (иврит) → транскрипт</span>

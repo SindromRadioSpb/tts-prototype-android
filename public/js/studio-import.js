@@ -718,8 +718,17 @@
     renderLocalAsrConnectionState();
   }
 
+  function setLocalAsrPairStatus(msgKey, extra, kind) {
+    var node = $("v3ImportLocalAsrPairStatus");
+    if (!node) return;
+    node.textContent = msgKey ? (tr(msgKey) + (extra ? " " + extra : "")) : "";
+    node.hidden = !msgKey;
+    node.dataset.kind = kind || "ok";
+  }
+
   function onLocalAsrTokenChanged() {
     setLocalAsrConnectionState(false);
+    setLocalAsrPairStatus(null);
   }
 
   function localAsrExperimental() {
@@ -804,6 +813,7 @@
 
   async function pairLocalAsr() {
     setLocalAsrConnectionState(false);
+    setLocalAsrPairStatus(null);
     try {
       window.LocalAsrClient.setPairingToken($("v3ImportLocalAsrToken").value);
       localAsrClient = new window.LocalAsrClient.Client();
@@ -812,11 +822,11 @@
       setLocalAsrConnectionState(true);
       var key = model && model.verified ? "studio.import.localAsrReady" : "studio.import.localAsrModelMissing";
       var capModel = capabilities && capabilities.local_asr && capabilities.local_asr.model;
-      setStatus(key, capModel && capModel.revision ? capModel.revision.slice(0, 12) : "");
+      setLocalAsrPairStatus(key, capModel && capModel.revision ? capModel.revision.slice(0, 12) : "", model && model.verified ? "ok" : "warn");
     } catch (error) {
       setLocalAsrConnectionState(false);
-      setStatus(error && error.code === "LOCAL_ASR_PAIRING_REQUIRED"
-        ? "studio.import.localAsrPairingRequired" : "studio.import.localAsrUnavailable");
+      setLocalAsrPairStatus(error && error.code === "LOCAL_ASR_PAIRING_REQUIRED"
+        ? "studio.import.localAsrPairingRequired" : "studio.import.localAsrUnavailable", "", "error");
     }
   }
 
@@ -1457,6 +1467,7 @@
     var provider = $("v3ImportAudioProvider");
     if (provider) provider.value = "gemini"; // experimental Local never changes the product default
     setLocalAsrConnectionState(false);
+    setLocalAsrPairStatus(null);
     var deleteButton = $("v3ImportLocalAsrDelete");
     if (deleteButton) deleteButton.hidden = true;
     var retryButton = $("v3ImportLocalAsrRetry");

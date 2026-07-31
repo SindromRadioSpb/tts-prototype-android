@@ -76,6 +76,17 @@ test("both Local ASR connection actions expose a proximal connected state and re
   assert.match(html, /#localAsrConnect\[data-connected="true"\],#v3ImportLocalAsrPair\[data-connected="true"\]/);
 });
 
+test("Import keeps companion pairing feedback inside the Local setup block", () => {
+  assert.match(
+    html,
+    /data-i18n="studio\.import\.localAsrPrivacyHint"[\s\S]*?id="v3ImportLocalAsrPairStatus"[^>]*aria-live="polite"/
+  );
+  const pairFlow = studio.match(/async function pairLocalAsr\(\)[\s\S]*?\n  }/)[0];
+  assert.match(pairFlow, /setLocalAsrPairStatus\(key,/);
+  assert.match(pairFlow, /setLocalAsrPairStatus\(error/);
+  assert.doesNotMatch(pairFlow, /setStatus\(/);
+});
+
 test("Local ASR help is allowlisted, localized, and available in the offline shell", () => {
   const server = fs.readFileSync(path.join(root, "server.js"), "utf8");
   for (const filename of [
