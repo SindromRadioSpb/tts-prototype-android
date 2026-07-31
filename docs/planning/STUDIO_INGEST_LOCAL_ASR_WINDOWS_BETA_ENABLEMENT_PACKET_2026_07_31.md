@@ -448,12 +448,16 @@ The next infrastructure slice is explicitly **DEFERRED / DEMAND-TRIGGERED**, not
 - the existing sidecar job/checkpoint/retry contract is preserved and is the substrate for a later
   L2 implementation. No L2 code is started by this decision.
 
-The owner-reported UI hole is fixed in local web candidate `3.11.278`, code commit
-`0bdf4529301d50ff9f7a564466a555e84c8bd394`:
+The owner-reported UI holes are fixed in local web candidate `3.11.279`, latest code commit
+`1046686694f76afdb4d53fa0766274d98607ca3a` (building on `0bdf4529`):
 
 - after a successful check, the onboarding action changes from **Подключить** to
   **Подключено**;
 - Import → File → Local changes **Проверить companion** to **Подключено**;
+- its companion/model result is rendered immediately after the `127.0.0.1` privacy hint inside
+  the Local pairing block, instead of the unrelated modal-wide import/job status footer;
+- pairing failures use the same proximal result region, while the modal-wide footer remains
+  available for file-import/job status;
 - the same immediate state is localized as `Connected` and `מחובר`, exposed through
   `aria-pressed`, and rendered with the existing Local-ASR teal success treatment;
 - editing the token, reopening a fresh import flow, leaving beta, or a failed check clears the
@@ -462,12 +466,13 @@ The owner-reported UI hole is fixed in local web candidate `3.11.278`, code comm
   behavior changed.
 
 Local real-Companion browser verification passed at 380×844 for RU/LTR and HE/RTL on both
-surfaces. The page measured `365 == 365`; the onboarding panel `348 == 348`; the import dialog
-`365 == 365`. The success label and pinned-model status were visible, and no Gemini request was
-made. Automated closure: focused Local ASR Node `20/20`, i18n `233/233`, API smoke PASS, ingest
+surfaces. The earlier full-panel run measured `365 == 365`; the onboarding panel `348 == 348`; the
+import dialog `365 == 365`. The `3.11.279` follow-up also passed RU/LTR and HE/RTL at 380×844 with
+the proximal status visible, the global import status empty, and no horizontal overflow or Gemini
+request. Automated closure: focused Local ASR Node `21/21`, i18n `233/233`, API smoke PASS, ingest
 smoke PASS, JavaScript syntax PASS and `git diff --check` PASS.
 
-`3.11.278` is **local-only**. This section does not authorize push, deploy, production cleanup,
+`3.11.279` is **local-only**. This section does not authorize push, deploy, production cleanup,
 installer publication/distribution expansion, permanent integration, provider-default changes,
 schema/data mutation, Gemini spend, or L2–L6 work. Continuation canon and a paste-ready prompt are
 in `STUDIO_INGEST_LOCAL_ASR_NEXT_SESSION_HANDOFF_2026_07_31.md`.

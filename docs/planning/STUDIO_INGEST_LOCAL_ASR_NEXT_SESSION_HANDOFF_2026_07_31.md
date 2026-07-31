@@ -2,7 +2,7 @@
 
 > **Date:** 2026-07-31
 > **Production:** `381233e04c017246d9dbf106581983ad9f3b618e`, `v3.11.277`
-> **Local UI fix:** `0bdf4529301d50ff9f7a564466a555e84c8bd394`, `v3.11.278`, not pushed/deployed
+> **Local UI fix:** `1046686694f76afdb4d53fa0766274d98607ca3a`, `v3.11.279`, not pushed/deployed
 > **Permanent integration:** `NO-GO` until a separate explicit owner decision
 
 ## Durable state
@@ -17,8 +17,10 @@
   mandatory, and are not claimed PASS.
 - Local ASR output remains a first draft requiring human review; the Mia Gemini comparison is not
   independent human-gold WER.
-- `v3.11.278` shows **Подключено / Connected / מחובר** after successful checks on both onboarding
-  and Import → File. Real-Companion RU/LTR and HE/RTL 380×844 checks passed with no overflow.
+- `v3.11.279` shows **Подключено / Connected / מחובר** after successful checks on both onboarding
+  and Import → File. In Import → File, the companion/model status is now placed directly below
+  the `127.0.0.1` privacy hint inside the Local setup block, rather than in the modal-wide footer.
+  Real-Companion RU/LTR and HE/RTL 380×844 checks passed with no overflow.
 - L2 is `DEFERRED / DEMAND-TRIGGERED`, not done or cancelled:
   - L2a recovery/reattach returns after a real reload/job-loss or stranded-job incident;
   - L2b batch returns after recurring demand for roughly 3–5+ files.
@@ -38,7 +40,7 @@ Preserve all unrelated dirty/untracked work. Live code wins if a dated document 
 ## Next decision
 
 There is no automatically authorized engineering slice. The nearest bounded decision is whether
-to push/deploy the already-tested `v3.11.278` connection-state fix. Before any production action,
+to push/deploy the already-tested `v3.11.279` Local connection-feedback fix. Before any production action,
 re-read `.claude/PROD_OPS_PRIVATE.md`, report current HEAD/origin/status, served version/health,
 disk and exact mutation allowlist, and obtain exact push/deploy authority in the new session.
 
@@ -57,9 +59,10 @@ local-processing roadmap и windows-beta evidence README/JSON; затем сни
 
 Подтверждённое состояние: production v3.11.277/381233e0; owner Chrome ceremony PASS; owner-only
 dogfood IN PROGRESS и не блокирует; Local остаётся explicit/default-off, Gemini default, implicit
-fallback запрещён. Локальный commit 0bdf4529 содержит v3.11.278 UX-fix: после успешной проверки
-обе поверхности показывают Подключено/Connected/מחובר; RU/HE 380x844 real-Companion smoke PASS.
-Он не pushed/deployed.
+fallback запрещён. Локальный commit 10466866 содержит итоговый v3.11.279 UX-fix: после успешной
+проверки обе поверхности показывают Подключено/Connected/מחובר, а в Import → File статус
+companion/model расположен сразу под строкой о 127.0.0.1 внутри Local-блока; RU/HE 380x844
+real-Companion smoke PASS. Он не pushed/deployed.
 
 L2 не начинать автоматически: L2a recovery — только при реальной reload/job-loss боли; L2b batch
 — только при устойчивой потребности 3–5+ файлов. Не объявлять L2 закрытым или отменённым.

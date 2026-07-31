@@ -273,9 +273,10 @@ recommended rather than mandatory. Permanent integration remains `NO-GO` only pe
 owner authorization and release-policy decision, not pending those studies.
 
 The owner subsequently completed the final native Chrome `v3.11.277` ceremony successfully.
-Owner-only dogfood remains in progress and is non-blocking. The local `v3.11.278` follow-up makes
+Owner-only dogfood remains in progress and is non-blocking. The local `v3.11.279` follow-up makes
 successful connection visible as **Connected/Подключено/מחובר** in both onboarding and
-Import → File; it is not pushed or deployed. The approved order parks L2 as demand-triggered:
+Import → File and keeps the Import pairing/model result immediately below its `127.0.0.1` privacy
+hint; it is not pushed or deployed. The approved order parks L2 as demand-triggered:
 single-job recovery returns on real reload/job-loss friction, while multi-file batch returns only
 on demonstrated 3–5+ file demand.
 

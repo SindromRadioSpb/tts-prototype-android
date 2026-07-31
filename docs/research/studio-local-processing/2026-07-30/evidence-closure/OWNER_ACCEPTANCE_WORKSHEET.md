@@ -72,10 +72,12 @@ Companion beta.2 is installed locally with a dedicated **Connect LinguistPro in 
 for browser** action, bundled RU/EN/HE guides, a **Help / Справка** control, and a Start-menu RU help
 shortcut. The matching web explanation and guide link are deployed as `v3.11.277`.
 
-Local candidate `v3.11.278` then closes the remaining proximal-feedback gap: both onboarding and
+Local candidate `v3.11.279` then closes the remaining proximal-feedback gap: both onboarding and
 Import → File → Local change their action to **Подключено / Connected / מחובר** after a successful
-real-Companion check and reset honestly after token edits/failure. RU/LTR and HE/RTL passed at
-380×844 without horizontal overflow. This candidate is not pushed or deployed.
+real-Companion check and reset honestly after token edits/failure. The import companion/model
+result is directly below the `127.0.0.1` privacy hint inside the Local block, rather than in the
+modal-wide footer. RU/LTR and HE/RTL passed at 380×844 without horizontal overflow. This candidate
+is not pushed or deployed.
 
 Owner-only dogfood is in progress and non-blocking. L2 is explicitly deferred/demand-triggered:
 single-job recovery returns on real reload/job-loss friction, and batch returns on demonstrated

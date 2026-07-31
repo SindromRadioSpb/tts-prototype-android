@@ -174,12 +174,16 @@
     }
   },
   "connection_state_followup": {
-    "candidate_version": "3.11.278",
-    "implementation_commit": "0bdf4529301d50ff9f7a564466a555e84c8bd394",
+    "candidate_version": "3.11.279",
+    "implementation_commit": "1046686694f76afdb4d53fa0766274d98607ca3a",
     "pushed": false,
     "deployed": false,
     "onboarding_success_label": "PASS_CONNECTED_VISIBLE",
     "import_file_success_label": "PASS_CONNECTED_VISIBLE",
+    "import_pairing_status_after_privacy_hint": true,
+    "import_pairing_status_inside_local_setup_block": true,
+    "modal_wide_import_status_empty_after_pairing": true,
+    "pairing_errors_use_proximal_status": true,
     "locales": ["ru", "en", "he"],
     "state_resets_on_token_edit_or_failure": true,
     "aria_pressed_state": true,
@@ -187,6 +191,8 @@
       "viewport": "380x844",
       "ru_ltr": "PASS_BOTH_SURFACES",
       "he_rtl": "PASS_BOTH_SURFACES",
+      "ru_ltr_status_placement": "PASS_AFTER_PRIVACY_HINT",
+      "he_rtl_status_placement": "PASS_AFTER_PRIVACY_HINT",
       "page_overflow": false,
       "dialog_overflow": false,
       "implicit_gemini_requests": 0
@@ -288,7 +294,7 @@
   },
   "automated": {
     "ai_local_pytest": { "passed": 52, "failed": 0 },
-    "focused_node_local_asr": { "passed": 20, "failed": 0 },
+    "focused_node_local_asr": { "passed": 21, "failed": 0 },
     "i18n": { "passed": 233, "failed": 0 },
     "api_smoke": "PASS",
     "python_compileall": "PASS",

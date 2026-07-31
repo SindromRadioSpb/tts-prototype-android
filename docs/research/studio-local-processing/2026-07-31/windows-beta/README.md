@@ -99,19 +99,22 @@ human-gold study, and the former 60-minute/12-speaker permanent study recommende
 mandatory. They remain useful evidence and are not claimed PASS. Permanent integration itself
 remains unauthorized pending a separate owner decision.
 
-## Owner Chrome closure and local `v3.11.278` follow-up
+## Owner Chrome closure and local `v3.11.279` follow-up
 
 The owner completed the final native Chrome `v3.11.277` pairing-help ceremony successfully.
 Owner-only dogfood remains in progress and is explicitly non-blocking. Trusted-user expansion is
 optional and demand-driven.
 
-Local candidate `3.11.278` (`0bdf4529301d50ff9f7a564466a555e84c8bd394`) closes the remaining
-connection-feedback gap. Successful checks now change the proximal action to
-**Подключено / Connected / מחובר** in both Experimental Local ASR and Import → File → Local.
-Editing the token or a failed check clears the state. Real-Companion checks passed on both surfaces
-at 380×844 in RU/LTR and HE/RTL without horizontal overflow; Gemini requests were zero. Focused
-Node tests passed `20/20`, i18n `233/233`, API and ingest smoke passed. The candidate is not pushed
-or deployed.
+Local candidate `3.11.279` (`1046686694f76afdb4d53fa0766274d98607ca3a`, building on
+`0bdf4529`) closes the remaining connection-feedback gap. Successful checks change the proximal
+action to **Подключено / Connected / מחובר** in both Experimental Local ASR and Import → File →
+Local. In the import dialog, the companion/model result now appears immediately below the
+`127.0.0.1` privacy hint in the Local setup block; pairing errors use the same region, and the
+modal-wide footer remains reserved for import/job status. Editing the token or a failed check
+clears the success state. Real-Companion checks passed on both surfaces at 380×844 in RU/LTR and
+HE/RTL without horizontal overflow; the global import status remained empty and Gemini requests
+were zero. Focused Node tests passed `21/21`, i18n `233/233`, API and ingest smoke passed. The
+candidate is not pushed or deployed.
 
 L2 is recorded as `DEFERRED / DEMAND-TRIGGERED`: single-job browser recovery returns on real
 reload/job-loss friction; batch/queue returns on demonstrated recurring 3–5+ file demand. This is
