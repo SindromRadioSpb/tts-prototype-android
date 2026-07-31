@@ -205,7 +205,7 @@ baseline: разборчивость, никуд/ударение, имена, �
 | P0 | Провенанс/schema B | ✅ BOUNDED DONE | backup parity + portable segment identity; schema migration не потребовалась |
 | P0 | UX/data C | ✅ BOUNDED DONE | explicit SHA dedupe + `text_audio_asset_key` round-trip |
 | P0 | **L1 local ivrit.ai ASR** | 🟡 ENGINEERING PASS | batch/browser/B+C PASS; owner acceptance open; permanent NO-GO |
-| P0 | **L1 Windows invite beta enablement** | 🟢 CHROME INVITE BETA LIVE | Companion beta.2 with explicit token path/offline help installed locally; production remains `v3.11.276`; install/decode/uninstall PASS; unsigned owner/trusted distribution approved; output is first-draft quality; quality studies recommended; Edge excluded |
+| P0 | **L1 Windows invite beta enablement** | 🟢 CHROME INVITE BETA LIVE | Companion beta.2 plus pairing help deployed as `v3.11.277`; install/decode/uninstall and served RU/HE mobile UI PASS; unsigned owner/trusted distribution approved; output is first-draft quality; quality studies recommended; Edge excluded |
 | P0/P1 | **L2 resumable jobs + batch** | ⬜ | L1 contract stable; restart/fault tests |
 | P1 | **L3 Media Package/editor** | ⬜ | segment identity closed; round-trip artifact |
 | P1 | **L4 local translation+nikud** | ⬜ | shared scheduler; independent quality gates |
@@ -247,7 +247,10 @@ The pairing-discoverability follow-up produced unsigned Companion beta.2 (1,766,
 SHA-256 `32ac13e03417c358dfcc04f10a50132fd9c7ad7f308076b6f75d82661f68c7ba`) with a dedicated
 copy-token path and bundled RU/EN/HE guide. The owner machine passed an in-place beta.1 → beta.2
 update without losing its exact model or two completed jobs. Web onboarding/help `v3.11.277` is
-locally tested but not pushed or deployed because the existing production disk stop remains active.
+deployed from `381233e0`. Bounded cleanup preserved the active image plus two rollbacks and moved
+production disk from 90%/3.7 GB free to 78%/8.0 GB free after the build. Served RU/LTR and HE/RTL
+help passed at 380x844; the final native Chrome confirm remains an owner click because extension
+control timed out on that browser dialog.
 
 Owner decision on 2026-07-31 reclassifies the ten Mia listen/read checkpoints, the 12–15 minute/
 four-speaker beta human-gold study, and the former 60-minute/12-speaker permanent study as

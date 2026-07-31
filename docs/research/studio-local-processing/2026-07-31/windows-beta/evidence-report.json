@@ -17,7 +17,7 @@
     "production_origin_ceremony": "GO_WITHOUT_SERVER_MUTATION",
     "advertised_browser_support": ["Chrome"],
     "edge_first_beta": "EXCLUDED_BY_OWNER",
-    "onboarding_v3_11_274_push_deploy": "AUTHORIZED_AND_SUPERSEDED_BY_VERIFIED_V3_11_276",
+    "onboarding_v3_11_277_push_deploy": "AUTHORIZED_AND_VERIFIED",
     "installer_hosting": "NOT_AUTHORIZED"
   },
   "scope": {
@@ -27,7 +27,7 @@
     "implicit_gemini_fallback": false,
     "permanent_integration_authorized": false,
     "production_mutation": true,
-    "production_mutation_scope": "AUTHORIZED_CODE_DEPLOY_AND_LOCAL_ASR_RUNTIME_FLAG_ONLY",
+    "production_mutation_scope": "AUTHORIZED_CODE_DEPLOY_PLUS_BOUNDED_UNUSED_DOCKER_CACHE_AND_IMAGE_CLEANUP",
     "schema_or_data_mutation": false,
     "quality_recommendations_block_release": false
   },
@@ -101,6 +101,7 @@
     "model_bin_sha256": "db2a2265aa012c16c7db9edda3d699c99f984efdd3f2e22a72a8ce7e9720f3a2",
     "production_origin_api_preflight": "PASS_9_OF_9",
     "production_origin_chrome_ui": "PASS_EXPLICIT_LOCAL_PAIRING_MODEL_READY_AND_V3_11_276_ONBOARDING",
+    "production_origin_onboarding_help_v3_11_277": "PASS_SERVED_UI_MOBILE_LTR_RTL;_NATIVE_CHROME_CONFIRM_REMAINS_OWNER_CLICK",
     "production_origin_media_job": "PASS_OWNER_NATIVE_CHROME_FILE_CHOOSER_LOCAL_JOB_CARD_SAVE_AND_EXPORT",
     "visible_token_field_cleared_after_pairing": true,
     "browser_and_system_clipboards_cleared_after_pairing": true,
@@ -114,16 +115,17 @@
     "unowned_compatible_listener_rejected": true,
     "web_candidate_version": "3.11.277",
     "web_local_tests": "PASS",
-    "web_deployed": false,
-    "production_remains": "3.11.276",
-    "deployment_blocker": "PRODUCTION_DISK_90_PERCENT_PENDING_SEPARATE_CAPACITY_DECISION"
+    "web_deployed": true,
+    "production_version": "3.11.277",
+    "deployment_commit": "381233e04c017246d9dbf106581983ad9f3b618e",
+    "deployment_blocker": null
   },
   "browser": {
     "result": "PASS_LOCAL_ORIGIN",
     "origin": "http://127.0.0.1:3000",
     "production_origin_run": true,
     "production_origin_boundary": "PASS_CHROME_PAIRING_PINNED_MODEL_NATIVE_FILE_JOB_AND_CARD_SAVE",
-    "production_origin_served_version": "3.11.276",
+    "production_origin_served_version": "3.11.277",
     "production_origin_provider_default": "gemini",
     "production_origin_explicit_provider": "local",
     "production_origin_media_job": "PASS_OWNER_NATIVE_CHROME_FILE_CHOOSER_LOCAL_JOB_CARD_SAVE_AND_EXPORT",
@@ -136,12 +138,14 @@
     "model_readiness_rendered": "PASS",
     "explicit_local_selection": "PASS",
     "implicit_gemini_requests": 0,
-    "evidence": "browser-matrix-report.json, four viewport screenshots, and owner-exported card provenance"
+    "pairing_help_served_ui": "PASS_IAB_380X844_RU_HE_NO_OVERFLOW",
+    "native_chrome_v3_11_277_confirm": "PENDING_OWNER_CLICK_AFTER_EXTENSION_DIALOG_CONTROL_TIMEOUT",
+    "evidence": "browser-matrix-report.json, four viewport screenshots, owner-exported card provenance, and live v3.11.277 served-UI measurements"
   },
   "production_onboarding_deployment": {
     "result": "PASS",
-    "commit": "d445c7e89c85dcc889b973f838870bb0d13a3ba4",
-    "version": "3.11.276",
+    "commit": "381233e04c017246d9dbf106581983ad9f3b618e",
+    "version": "3.11.277",
     "runtime_flag": true,
     "supported_browsers": [
       "Chrome"
@@ -150,16 +154,19 @@
     "companion_download_url_present": false,
     "gemini_default_unchanged": true,
     "health": "PASS",
-    "chrome_invite_onboarding": "PASS",
+    "chrome_invite_onboarding": "PASS_THROUGH_V3_11_276;_V3_11_277_NATIVE_CONFIRM_OWNER_CLICK_PENDING",
+    "served_pairing_help": "PASS_RU_HE_GUIDE_LINKS_AND_INLINE_STEPS",
     "mobile_ltr": "PASS_NO_PAGE_OR_DIALOG_HORIZONTAL_OVERFLOW",
     "mobile_rtl": "PASS_NO_PAGE_OR_DIALOG_HORIZONTAL_OVERFLOW",
     "implicit_gemini_fallback": false,
     "production_schema_or_data_mutation": false,
     "production_disk_after_deploy": {
-      "used_percent": 90,
-      "free": "3.7G",
-      "cleanup_performed": false,
-      "status": "STOP_BEFORE_NEXT_BUILD_PENDING_SEPARATE_DISK_DECISION"
+      "used_percent": 78,
+      "free": "8.0G",
+      "cleanup_performed": true,
+      "cleanup_scope": "UNUSED_BUILDER_CACHE_AND_THREE_EXACT_UNREFERENCED_OLD_LINGUISTPRO_IMAGES",
+      "active_and_rollback_images_retained": 3,
+      "status": "PASS_DISK_WARN_EXPECTED_TO_CLEAR_AFTER_HEALTH_CACHE_REFRESH"
     }
   },
   "production_origin_long_run": {
@@ -251,8 +258,8 @@
     "asr_gemini_fallback": false
   },
   "automated": {
-    "ai_local_pytest": { "passed": 51, "failed": 0 },
-    "focused_node_local_asr": { "passed": 22, "failed": 0 },
+    "ai_local_pytest": { "passed": 52, "failed": 0 },
+    "focused_node_local_asr": { "passed": 19, "failed": 0 },
     "i18n": { "passed": 233, "failed": 0 },
     "api_smoke": "PASS",
     "python_compileall": "PASS",
@@ -269,7 +276,7 @@
   "open_gates": [
     "public installer-hosting general-distribution rollback and telemetry authority",
     "separate explicit permanent-integration and provider-default release-policy decision",
-    "production disk remediation or explicit capacity decision before another build or deploy"
+    "owner click-through of the already-open native Chrome v3.11.277 invite confirm and pairing-help ceremony"
   ],
   "recommended_evidence": [
     "owner listen/read review of ten Mia checkpoints",

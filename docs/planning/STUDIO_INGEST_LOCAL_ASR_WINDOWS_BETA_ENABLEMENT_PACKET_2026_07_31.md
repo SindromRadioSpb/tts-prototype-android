@@ -403,6 +403,23 @@ only, and no implicit fallback was added. It is **not deployed**: production rem
 and the recorded 90% disk stop boundary still requires a separate capacity/cleanup decision before
 another production build/deploy.
 
+## 15. Pairing-help production deployment closure
+
+Section 14 records the pre-authorization stop state. The owner subsequently authorized bounded
+cleanup and deployment. Unused Docker builder cache and three exact unreferenced old LinguistPro
+images were removed in two inventory-backed passes; the active image, two recent rollback images,
+all ten running containers and all three active volumes were retained. Host root disk moved from
+90% used / 3.7 GB free before cleanup to 78% / 8.0 GB free after the `v3.11.277` build. No
+production data, schema, migration or provider default changed.
+
+Commit `381233e04c017246d9dbf106581983ad9f3b618e` is served as `v3.11.277`. Cache-busted client
+config, SW, health, DB/migrations, and RU/EN/HE guide routes passed. The runtime flag remains on,
+the advertised browser list remains Chrome only, no installer URL is public, and Gemini remains the
+audio-import default. Production served-UI measurements at 380x844 passed RU/LTR and HE/RTL with
+no page or dialog horizontal overflow; inline token steps and locale-aware guide links were present.
+Native Chrome automation timed out while accepting the browser confirm, so the final v3.11.277
+Chrome click-through is an owner manual ceremony and is not falsely recorded as automated PASS.
+
 Canonical evidence:
 `docs/research/studio-local-processing/2026-07-31/windows-beta/evidence-report.json` and its
 adjacent README/browser/owner artifacts.

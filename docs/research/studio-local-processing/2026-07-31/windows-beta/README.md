@@ -2,8 +2,8 @@
 
 The local engineering slice is `PASS`. The owner has authorized this exact unsigned artifact for
 out-of-band use by the owner and personally trusted beta users. Public hosting/general distribution,
-and permanent integration remain separately gated. The Chrome-only production onboarding is now
-deployed and verified at `v3.11.276`; this does not authorize public installer hosting.
+and permanent integration remain separately gated. The Chrome-only production onboarding and
+pairing help are now deployed at `v3.11.277`; this does not authorize public installer hosting.
 
 The Companion is a per-user Windows installer with a loopback-only supervisor, session pairing,
 explicit exact-pin model installation, GPU/CUDA/runtime/disk/port preflight, model/job deletion
@@ -80,12 +80,19 @@ exposed. Production Chrome rendered the full Companion/pairing/preflight/model/w
 Local flow. Narrow LTR and RTL measurements had no page, dialog, or child horizontal overflow.
 No schema or production-data mutation occurred.
 
-The corresponding web pairing explanation and locale-aware guide link are locally complete as
-`v3.11.277`, with 380 px wrapping and RTL-safe styles, but have not been pushed or deployed.
-Production remains `v3.11.276` because the disk-capacity stop below is still active.
+The corresponding web pairing explanation and locale-aware guide link are deployed from commit
+`381233e04c017246d9dbf106581983ad9f3b618e` as `v3.11.277`. Cache-busted client config, SW,
+RU/EN/HE guide routes, health, DB and migrations passed. Served mobile measurements at 380x844
+showed `365 == 365` page width and `348 == 348` dialog width in RU/LTR and HE/RTL; Gemini remained
+the import provider default. Native Chrome control timed out on its invite confirm dialog, so the
+owner click-through of that already-open Chrome tab remains a manual ceremony rather than a claimed
+automated PASS.
 
-The host reached 90% disk use with 3.7 GB free after the deployment builds. No cleanup was
-performed. Another build/deploy must stop for a separate disk-capacity or cleanup decision first.
+The owner authorized bounded cleanup. Before deploy, unused builder cache plus two exact oldest
+unreferenced LinguistPro images reduced the host from 90%/3.7 GB free to 77%/8.4 GB free while
+retaining the active image and two recent rollbacks. After deploy, another unused-cache prune and
+one exact oldest unreferenced image left the host at 78% with 8.0 GB free. All ten containers and
+all three active volumes were preserved; production data and schema were untouched.
 
 Owner decision on 2026-07-31 makes the ten Mia listen/read checkpoints, the four-speaker beta
 human-gold study, and the former 60-minute/12-speaker permanent study recommended rather than
