@@ -68,6 +68,10 @@ test("380px pairing layout resets the row flex-basis after switching to column",
 test("mobile onboarding pairing controls cannot widen the Local ASR dialog", () => {
   assert.match(
     html,
+    /\.local-asr-beta-panel \{[^}]*box-sizing:border-box;[^}]*max-width:100%;[^}]*\}/
+  );
+  assert.match(
+    html,
     /@media \(max-width:600px\)[\s\S]*?\.local-asr-inline \{[^}]*min-width:0;[^}]*width:100%;[^}]*\}/
   );
   assert.match(
