@@ -112,6 +112,10 @@ def test_model_activation_is_exact_and_atomic(monkeypatch, tmp_path):
         "model.bin": digest,
         "config.json": hashlib.sha256(config_payload).hexdigest(),
     })
+    monkeypatch.setattr(store, "ASR_RUNTIME_FILE_BYTES", {
+        "model.bin": len(payload),
+        "config.json": len(config_payload),
+    })
 
     models = tmp_path / "models"
     status = store.activate_from_directory(source, models)

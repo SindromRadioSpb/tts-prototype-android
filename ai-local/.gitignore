@@ -10,6 +10,8 @@ env/
 *.egg-info/
 build/
 dist/
+/artifacts/
+.companion-build/
 
 # Model weights — never commit (anchored to ai-local/ root; do not match ai_local/models/ source package)
 /models/

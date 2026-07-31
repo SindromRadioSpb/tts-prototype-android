@@ -16,6 +16,7 @@ from .asr_constants import (
     ASR_MODEL_ID,
     ASR_MODEL_LICENSE,
     ASR_MODEL_REVISION,
+    ASR_RUNTIME_FILE_BYTES,
     ASR_RUNTIME_FILE_SHA256,
     model_identity,
 )
@@ -80,10 +81,14 @@ def inspect_model(root: Path | None = None, *, verify_hash: bool = False) -> Mod
     manifest_hashes = manifest.get("runtime_file_sha256")
     if manifest_hashes != ASR_RUNTIME_FILE_SHA256:
         return ModelStatus(True, False, target, "RUNTIME_MANIFEST_MISMATCH")
+    if manifest.get("runtime_file_bytes") != ASR_RUNTIME_FILE_BYTES:
+        return ModelStatus(True, False, target, "RUNTIME_SIZE_MANIFEST_MISMATCH")
     for name, expected_hash in ASR_RUNTIME_FILE_SHA256.items():
         runtime_file = target / name
         if not runtime_file.is_file():
             return ModelStatus(True, False, target, "RUNTIME_FILE_MISSING")
+        if runtime_file.stat().st_size != ASR_RUNTIME_FILE_BYTES[name]:
+            return ModelStatus(True, False, target, "RUNTIME_FILE_SIZE_MISMATCH")
         if verify_hash and sha256_file(runtime_file) != expected_hash:
             return ModelStatus(True, False, target, "RUNTIME_FILE_HASH_MISMATCH")
     return ModelStatus(True, True, target)
@@ -97,6 +102,7 @@ def _manifest_payload() -> dict[str, object]:
         "model_bin_sha256": ASR_MODEL_BIN_SHA256,
         "model_bin_repository_bytes": ASR_MODEL_BIN_REPOSITORY_BYTES,
         "runtime_file_sha256": dict(ASR_RUNTIME_FILE_SHA256),
+        "runtime_file_bytes": dict(ASR_RUNTIME_FILE_BYTES),
         "license": ASR_MODEL_LICENSE,
         "format": "CTranslate2",
     }

@@ -29,10 +29,31 @@ test("Local-to-Gemini switch has explicit consent and no implicit fallback call"
 test("normalizer and client load before Studio and are both precached", () => {
   const normalizer = html.indexOf('/js/local-asr-normalizer.js');
   const client = html.indexOf('/js/local-asr-client.js');
+  const onboarding = html.indexOf('/js/local-asr-onboarding.js');
   const adapter = html.indexOf('/js/studio-import.js');
-  assert.ok(normalizer > 0 && client > normalizer && adapter > client);
+  assert.ok(normalizer > 0 && client > normalizer && onboarding > client && adapter > onboarding);
   assert.match(sw, /"\/js\/local-asr-normalizer\.js"/);
   assert.match(sw, /"\/js\/local-asr-client\.js"/);
+  assert.match(sw, /"\/js\/local-asr-onboarding\.js"/);
+});
+
+test("beta onboarding is runtime-default-off and remains an exposure seam, not schema entitlement", () => {
+  const onboarding = fs.readFileSync(path.join(root, "public/js/local-asr-onboarding.js"), "utf8");
+  const server = fs.readFileSync(path.join(root, "server.js"), "utf8");
+  assert.match(server, /LOCAL_ASR_BETA_ENABLED \|\| "false"/);
+  assert.match(onboarding, /location\.hash === "#local-asr-beta"/);
+  assert.match(onboarding, /LocalAsrClient\.enroll\(\)/);
+  assert.doesNotMatch(onboarding, /\/api\/.*entitle|user_entitlement|migration/i);
+});
+
+test("onboarding states the privacy boundary and never calls Gemini", () => {
+  const onboarding = fs.readFileSync(path.join(root, "public/js/local-asr-onboarding.js"), "utf8");
+  assert.match(onboarding, /THIS COMPUTER/);
+  assert.match(onboarding, /CLOUD OFF/);
+  assert.doesNotMatch(onboarding, /GeminiFiles|generativelanguage\.googleapis\.com|upload\/v1beta/);
+  assert.match(studio, /localAsrOom/);
+  assert.match(studio, /localAsrDiskLow/);
+  assert.match(studio, /localAsrModelIntegrity/);
 });
 
 test("380px pairing layout resets the row flex-basis after switching to column", () => {

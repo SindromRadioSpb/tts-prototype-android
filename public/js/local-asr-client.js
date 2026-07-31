@@ -6,6 +6,8 @@
   var EXPERIMENT_KEY = "linguistpro.experimental.localAsr";
   var TOKEN_KEY = "linguistpro.localAsr.pairingToken";
   var TERMINAL = new Set(["COMPLETE", "FAILED", "CANCELED"]);
+  var runtimeBetaEnabled = false;
+  var companionDownloadUrl = "";
 
   function browserStore(kind) {
     try { return kind === "session" ? window.sessionStorage : window.localStorage; }
@@ -14,8 +16,38 @@
 
   function isExperimentalEnabled(store) {
     var target = store || (typeof window !== "undefined" ? browserStore("local") : null);
-    try { return !!target && target.getItem(EXPERIMENT_KEY) === "1"; }
+    try {
+      var enrolled = !!target && target.getItem(EXPERIMENT_KEY) === "1";
+      // An explicitly supplied store is a pure/unit-test seam. Product calls
+      // omit it and must also pass the default-off runtime gate.
+      return enrolled && (!!store || runtimeBetaEnabled);
+    }
     catch (_) { return false; }
+  }
+
+  function setRuntimeConfig(config) {
+    var value = config || {};
+    runtimeBetaEnabled = value.beta === true;
+    companionDownloadUrl = runtimeBetaEnabled ? String(value.companionDownloadUrl || "") : "";
+    if (!runtimeBetaEnabled) {
+      var session = typeof window !== "undefined" ? browserStore("session") : null;
+      try { if (session) session.removeItem(TOKEN_KEY); } catch (_) {}
+    }
+    return { beta: runtimeBetaEnabled, companionDownloadUrl: companionDownloadUrl };
+  }
+
+  function enroll(store) {
+    if (!runtimeBetaEnabled) throw new Error("LOCAL_ASR_BETA_DISABLED");
+    var target = store || (typeof window !== "undefined" ? browserStore("local") : null);
+    if (!target) throw new Error("LOCAL_ASR_STORAGE_UNAVAILABLE");
+    target.setItem(EXPERIMENT_KEY, "1");
+  }
+
+  function unenroll(store) {
+    var local = store || (typeof window !== "undefined" ? browserStore("local") : null);
+    var session = typeof window !== "undefined" ? browserStore("session") : null;
+    try { if (local) local.removeItem(EXPERIMENT_KEY); } catch (_) {}
+    try { if (session) session.removeItem(TOKEN_KEY); } catch (_) {}
   }
 
   function getPairingToken(store) {
@@ -74,6 +106,27 @@
 
   Client.prototype.capabilities = function () { return this._request("/v1/capabilities"); };
   Client.prototype.modelStatus = function () { return this._request("/v1/asr/model/status?verify_hash=true"); };
+  Client.prototype.preflight = function () { return this._request("/v1/companion/preflight"); };
+  Client.prototype.installStatus = function () { return this._request("/v1/asr/model/install-status"); };
+  Client.prototype.installModel = function (revision) {
+    return this._request("/v1/asr/model/install", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ revision: revision, accepted_license: true }),
+    });
+  };
+  Client.prototype.cancelModelInstall = function () {
+    return this._request("/v1/asr/model/install-cancel", { method: "POST" });
+  };
+  Client.prototype.deleteModel = function () {
+    return this._request("/v1/asr/model", { method: "DELETE" });
+  };
+  Client.prototype.deleteAllJobs = function () {
+    return this._request("/v1/companion/jobs", { method: "DELETE" });
+  };
+  Client.prototype.warmup = function () {
+    return this._request("/v1/asr/model/warmup", { method: "POST" });
+  };
   Client.prototype.createJob = function (file) {
     return this._request("/v1/asr/jobs", {
       method: "POST",
@@ -150,6 +203,10 @@
     EXPERIMENT_KEY: EXPERIMENT_KEY,
     TOKEN_KEY: TOKEN_KEY,
     TERMINAL: TERMINAL,
+    setRuntimeConfig: setRuntimeConfig,
+    enroll: enroll,
+    unenroll: unenroll,
+    runtimeConfig: function () { return { beta: runtimeBetaEnabled, companionDownloadUrl: companionDownloadUrl }; },
     isExperimentalEnabled: isExperimentalEnabled,
     getPairingToken: getPairingToken,
     setPairingToken: setPairingToken,

@@ -3583,6 +3583,43 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .v3-local-asr-setup > label { display:block; font-size:12px; margin-bottom:5px; }
 .v3-local-asr-pair-row { display:flex; gap:6px; align-items:center; }
 .v3-local-asr-pair-row input { min-width:0; flex:1 1 180px; }
+.local-asr-beta-modal[hidden], #btnLocalAsrSettings[hidden] { display:none !important; }
+.local-asr-beta-modal { position:fixed; inset:0; z-index:10080; display:grid; place-items:center; padding:18px; background:rgba(13,25,37,.62); backdrop-filter:blur(5px); }
+.local-asr-beta-panel { position:relative; width:min(720px,100%); max-height:min(88vh,780px); overflow:auto; padding:26px; border:1px solid color-mix(in srgb,var(--theme-border-soft,#d8e0e6) 78%,#0b7c78); border-radius:16px; background:var(--theme-bg-card,#fff); color:var(--theme-text,#17212b); box-shadow:0 28px 80px rgba(4,23,31,.28); }
+.local-asr-beta-panel button { width:auto !important; }
+.local-asr-beta-close { position:absolute; inset-block-start:12px; inset-inline-end:14px; border:0; background:transparent; color:inherit; font:24px/1 system-ui; cursor:pointer; }
+.local-asr-beta-eyebrow { color:#0b7673; font:700 11px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.13em; }
+.local-asr-beta-panel h2 { margin:6px 34px 4px 0; font:650 clamp(23px,4vw,32px)/1.1 system-ui,-apple-system,"Segoe UI",sans-serif; }
+[dir="rtl"] .local-asr-beta-panel h2 { margin:6px 0 4px 34px; }
+.local-asr-beta-intro { margin:0 0 14px; color:var(--theme-text-secondary,#5b6873); line-height:1.45; }
+.local-asr-privacy { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:11px 13px; border-inline-start:4px solid #0b7673; background:color-mix(in srgb,#0b7673 9%,var(--theme-bg-card,#fff)); font:700 11px/1.35 ui-monospace,SFMono-Regular,Consolas,monospace; }
+.local-asr-privacy b { color:#0b7673; }
+.local-asr-privacy code { color:inherit; }
+.local-asr-privacy em { margin-inline-start:auto; color:#8c3d26; font-style:normal; }
+.local-asr-requirements { margin:10px 0 14px; color:var(--theme-text-secondary,#5b6873); font-size:12px; }
+.local-asr-steps { list-style:none; padding:0; margin:0; counter-reset:local-asr-step; border-block-start:1px solid var(--theme-border-soft,#dfe5ea); }
+.local-asr-steps > li { counter-increment:local-asr-step; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:center; padding:13px 0; border-block-end:1px solid var(--theme-border-soft,#dfe5ea); }
+.local-asr-steps > li > div:first-child { position:relative; padding-inline-start:34px; min-width:0; }
+.local-asr-steps > li > div:first-child::before { content:counter(local-asr-step); position:absolute; inset-inline-start:0; inset-block-start:0; display:grid; place-items:center; width:23px; height:23px; border-radius:50%; background:#0b7673; color:white; font:700 11px/1 ui-monospace,Consolas,monospace; }
+.local-asr-steps b,.local-asr-steps span { display:block; }
+.local-asr-steps span { margin-top:3px; color:var(--theme-text-secondary,#64717c); font-size:12px; line-height:1.35; }
+.local-asr-inline,.local-asr-actions { display:flex; gap:7px; align-items:center; flex-wrap:wrap; }
+.local-asr-inline input { width:min(270px,54vw); min-width:160px; }
+.local-asr-steps progress { display:block; width:100%; height:7px; margin-top:8px; accent-color:#0b7673; }
+.local-asr-beta-status { min-height:38px; margin-top:14px; padding:9px 11px; border-radius:8px; background:var(--theme-bg-soft,#f3f6f8); font-size:13px; }
+.local-asr-beta-status[data-kind="ok"] { color:#075e55; background:#e5f5f1; }
+.local-asr-beta-status[data-kind="error"] { color:#8e2f23; background:#faece8; }
+.local-asr-beta-status[data-kind="warn"] { color:#79540a; background:#fff4d7; }
+.local-asr-beta-panel [aria-disabled="true"] { opacity:.52; pointer-events:none; cursor:not-allowed; }
+.local-asr-leave { margin-top:10px; padding:0; border:0; background:transparent; color:var(--theme-text-secondary,#68747d); font-size:12px; text-decoration:underline; cursor:pointer; }
+@media (max-width:600px) {
+  .local-asr-beta-modal { padding:0; place-items:end center; }
+  .local-asr-beta-panel { max-height:94vh; border-radius:18px 18px 0 0; padding:20px 16px calc(20px + env(safe-area-inset-bottom)); }
+  .local-asr-steps > li { grid-template-columns:1fr; }
+  .local-asr-inline { align-items:stretch; flex-direction:column; }
+  .local-asr-inline input { width:100%; }
+  .local-asr-actions { align-items:stretch; }
+}
 @media (max-width: 420px) {
   .v3-local-asr-provider { grid-template-columns:1fr; }
   .v3-local-asr-pair-row { align-items:stretch; flex-direction:column; }
@@ -10687,6 +10724,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                     <button id="btnGraph" class="classic-nav-tool" onclick="window.LinguistProGraph&&window.LinguistProGraph.open()" data-i18n-title="graph.btnTitle" data-i18n-aria-label="graph.btnTitle" title="Карта знаний" aria-label="Карта знаний">🕸</button>
                     <button id="btnKnowledgeMap" class="classic-nav-tool" onclick="window.KnowledgeMap&&window.KnowledgeMap.open()" data-i18n-title="knowledgeMap.btnTitle" data-i18n-aria-label="knowledgeMap.btnTitle" title="Карта корней" aria-label="Карта корней">🌳</button>
                     <button id="btnMorphSettings" class="classic-nav-tool" onclick="window.LinguistProMorphSettings&&window.LinguistProMorphSettings.open()" data-i18n-title="morph.settings.btnTitle" data-i18n-aria-label="morph.settings.btnTitle" title="Морфология" aria-label="Морфология">🔤</button>
+                    <button id="btnLocalAsrSettings" class="classic-nav-tool" onclick="window.LocalAsrOnboarding&&window.LocalAsrOnboarding.open()" data-i18n-title="studio.localAsrBeta.btnTitle" data-i18n-aria-label="studio.localAsrBeta.btnTitle" title="Experimental Local ASR" aria-label="Experimental Local ASR" hidden>◉</button>
                   </div>
                 </div>
             </div>
@@ -12375,9 +12413,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=83"></script>
-<script src="/i18n/locales/en.js?v=83"></script>
-<script src="/i18n/locales/he.js?v=83"></script>
+<script src="/i18n/locales/ru.js?v=84"></script>
+<script src="/i18n/locales/en.js?v=84"></script>
+<script src="/i18n/locales/he.js?v=84"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12461,6 +12499,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      experimental flag is enabled; Gemini remains the product default and is never fallback. -->
 <script src="/js/local-asr-normalizer.js"></script>
 <script src="/js/local-asr-client.js"></script>
+<script src="/js/local-asr-onboarding.js"></script>
 <script src="/js/table-chunks.js"></script>
 <script src="/js/media-store.js"></script>
 <script src="/js/gemini-files.js"></script>
@@ -12523,7 +12562,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.272";
+    window.APP_VERSION = "3.11.273";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

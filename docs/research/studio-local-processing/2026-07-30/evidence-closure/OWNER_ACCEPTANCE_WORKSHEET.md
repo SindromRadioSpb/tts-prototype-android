@@ -25,3 +25,13 @@ Decision: ____________________  Date: __________  Owner: ____________________
 Notes / observed regressions:
 
 ______________________________________________________________________________
+
+## Separate Windows invite-beta acceptance (2026-07-31)
+
+The Windows Companion and onboarding engineering slice is locally complete, but the beta quality
+decision is not. Use
+`docs/research/studio-local-processing/2026-07-31/windows-beta/OWNER_BLINDED_LISTEN_READ_WORKSHEET.md`.
+Its required 12–15 minute/four-speaker independent human-gold source set is not yet frozen.
+
+This smaller beta gate does not cancel, close, or silently revise the permanent
+60-minute/12-speaker paired-Gemini gate. No Gemini comparison is authorized here.

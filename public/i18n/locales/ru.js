@@ -3129,6 +3129,10 @@ window.I18N_LOCALES.ru = {
       localAsrModelMissing: "Local companion доступен, но pinned model не установлен или не прошёл checksum.",
       localAsrPairingRequired: "Введите pairing token и проверьте local companion.",
       localAsrUnavailable: "Local companion недоступен или отклонил запрос; автоматического перехода в Gemini нет.",
+      localAsrOom: "Память NVIDIA GPU закончилась. Local worker сброшен; запросов к Gemini не было.",
+      localAsrDiskLow: "Недостаточно места на локальном диске для Local job или операции с моделью.",
+      localAsrModelIntegrity: "Pinned-модель не прошла проверку revision/SHA-256. Локальная обработка заблокирована.",
+      localAsrPortConflict: "Порт 8799 занят другой программой. Откройте Companion и устраните конфликт.",
       localAsrQueued: "Local job в очереди…",
       localAsrPreflight: "Проверка local model, media и GPU…",
       localAsrWaitingGpu: "Local job ждёт освобождения GPU…",
@@ -3236,6 +3240,22 @@ window.I18N_LOCALES.ru = {
       errCaptionsTooMany: "Слишком много реплик — возьмите фрагмент покороче",
     },
     // W2-S11 — «Упростить до моего уровня» (graded-пересказ, studio-retell.js)
+    localAsrBeta: {
+      btnTitle: "Настройки Experimental Local ASR",
+      title: "Experimental Local ASR",
+      intro: "Расшифровывайте ивритское аудио на этом Windows-компьютере. Gemini остаётся default и не вызывается после Local-ошибки.",
+      requirements: "Windows 11 · NVIDIA/CUDA · минимум 8 GB VRAM · Chrome или Edge · модель около 1,62 GB",
+      downloadTitle: "Скачать Companion", downloadReady: "Используйте installer, предоставленный для этой beta.", downloadInvite: "Installer предоставляется отдельно вместе с приглашением.", download: "Скачать Companion",
+      connectTitle: "Подключить эту браузерную сессию", connectNote: "Откройте Companion, скопируйте pairing token и вставьте сюда. Token хранится только до закрытия вкладки.", tokenPlaceholder: "Pairing token", connect: "Подключить",
+      deviceTitle: "Проверить устройство", check: "Запустить preflight", deviceReady: "Устройство готово", deviceFailed: "Исправьте перечисленные проверки устройства до установки или запуска Local ASR.",
+      modelTitle: "Установить и проверить pinned-модель", install: "Установить модель", cancel: "Отменить", deleteModel: "Удалить модель", modelReady: "Exact revision и runtime SHA-256 проверены", modelMissing: "Не установлена",
+      warmTitle: "Подготовить Local ASR", warm: "Warmup", warming: "Загрузка pinned-модели…", warmReady: "Готово", warmFailed: "Warmup не прошёл",
+      chooseTitle: "Выбрать Local для одного импорта", chooseNote: "Диалог импорта по-прежнему открывается на Gemini. Для каждого Local job выберите Local явно.", choose: "Открыть импорт аудио", leave: "Выйти из beta в этом браузере",
+      enrollConfirm: "Присоединиться к invite-only Local ASR beta в этом браузере? Local остаётся default-off, а Gemini — provider по умолчанию.",
+      installConfirm: "Скачать около 1,62 GB по Apache-2.0 и активировать ровно revision 72ad623a… после проверки SHA-256?", installStarted: "Загрузка pinned-модели началась. Её можно отменить без остаточных partial-файлов.", deleteConfirm: "Удалить managed Local ASR модель из этой учётной записи Windows?", modelDeleted: "Managed-модель удалена; отсутствие проверено.",
+      connected: "Подключено для этой браузерной сессии.", connectFirst: "Сначала подключите Companion.", ready: "Local ASR готов. Медиа остаётся на этом компьютере.",
+      errDisk: "Недостаточно места для проверяемой активации модели.", errPort: "Порт 8799 занят другой программой. Остановите её и перезапустите Companion.", errIntegrity: "Проверка модели не прошла. Удалите partial/model файлы и повторите ту же pinned revision.", errPairing: "Pairing не прошёл. Скопируйте новый token из Companion и попробуйте снова.", errDown: "Companion недоступен. Запустите его на этом компьютере; Gemini не вызывался."
+    },
     retell: {
       title: "✨ Упростить до моего уровня",
       button: "Упростить до моего уровня",

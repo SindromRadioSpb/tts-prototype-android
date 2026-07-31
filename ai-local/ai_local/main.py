@@ -18,6 +18,8 @@ from .asr_jobs import JobCapacityError, JobNotFound, asr_job_manager
 from .asr_worker import asr_worker
 from .gpu_scheduler import heavy_gpu_scheduler
 from .model_store import inspect_model
+from .companion_model import delete_all_jobs, model_install_manager
+from .companion_preflight import preflight_report
 from .security import loopback_security_middleware, require_browser_auth
 from .state import ModelSlot, registry
 from .telemetry import sample_nvidia
@@ -183,6 +185,11 @@ class RetryChunksRequest(BaseModel):
     reason: str = Field(..., pattern=r"^s12_[67]$")
 
 
+class InstallAsrModelRequest(BaseModel):
+    revision: str
+    accepted_license: bool
+
+
 # ---------- endpoints ----------
 
 
@@ -207,6 +214,56 @@ async def v1_asr_model_status(verify_hash: bool = False):
         **status.public_dict(),
         "worker": {"state": worker.state, "pid": worker.pid},
     }
+
+
+@app.get("/v1/companion/preflight", dependencies=[Depends(require_browser_auth)])
+async def v1_companion_preflight():
+    return await asyncio.to_thread(preflight_report)
+
+
+@app.get("/v1/asr/model/install-status", dependencies=[Depends(require_browser_auth)])
+async def v1_asr_model_install_status():
+    return model_install_manager.status()
+
+
+@app.post("/v1/asr/model/install", status_code=202, dependencies=[Depends(require_browser_auth)])
+async def v1_asr_model_install(body: InstallAsrModelRequest):
+    try:
+        return model_install_manager.start(
+            accepted_license=body.accepted_license,
+            revision=body.revision,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.post("/v1/asr/model/install-cancel", dependencies=[Depends(require_browser_auth)])
+async def v1_asr_model_install_cancel():
+    return model_install_manager.cancel()
+
+
+@app.delete("/v1/asr/model", dependencies=[Depends(require_browser_auth)])
+async def v1_asr_model_delete():
+    if asr_job_manager.has_active_jobs() or heavy_gpu_scheduler.status().active == "asr":
+        raise HTTPException(status_code=409, detail="MODEL_DELETE_BLOCKED_BY_ACTIVE_JOB")
+    await asyncio.to_thread(asr_worker.hard_cancel)
+    heavy_gpu_scheduler.invalidate("asr")
+    try:
+        return await asyncio.to_thread(model_install_manager.delete_model)
+    except (ValueError, RuntimeError, OSError) as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.delete("/v1/companion/jobs", dependencies=[Depends(require_browser_auth)])
+async def v1_companion_delete_jobs():
+    if asr_job_manager.has_active_jobs():
+        raise HTTPException(status_code=409, detail="JOB_DELETE_BLOCKED_BY_ACTIVE_JOB")
+    try:
+        return await asyncio.to_thread(delete_all_jobs)
+    except (ValueError, RuntimeError, OSError) as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 @app.post("/v1/asr/model/warmup", dependencies=[Depends(require_browser_auth)])

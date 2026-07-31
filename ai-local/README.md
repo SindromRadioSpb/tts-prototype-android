@@ -19,6 +19,30 @@ This README covers setup and running.
 - ~32 GB free disk for model download + conversion (intermediate MADLAD weights are ~22 GB;
   the final CT2 model is ~6.5 GB).
 
+## Windows Local ASR Companion (invite-only beta)
+
+Beta participants do not create a venv or run Uvicorn. Build the per-user Companion with:
+
+```powershell
+& .\scripts\build_companion.ps1
+```
+
+The build pins the Python/ASR runtime, FFmpeg/ffprobe 8.1, cuDNN 9.10.2.21 and cuBLAS 12.1.3.1,
+runs a frozen start/health/stop smoke, and emits an Inno Setup installer plus a SHA-256 build report
+under ignored `ai-local/artifacts/`. The current local artifact is unsigned and is strictly for
+internal testing. Do not send it to external beta users without code signing and NVIDIA/FFmpeg
+redistribution-license review.
+
+The installed GUI provides start/stop/restart, session pairing, nine-check Windows/GPU/CUDA/
+runtime/disk/port preflight, explicit pinned-model download/cancel/delete, warmup, job cleanup and
+redacted diagnostic export. It binds only `127.0.0.1:8799` and stores model/jobs/state only under
+`%LOCALAPPDATA%\LinguistPro\LocalASR`. Uninstall removes that exact managed tree.
+
+Product enrollment requires both `LOCAL_ASR_BETA_ENABLED=true` on the Node runtime and an explicit
+same-browser invite enrollment. The flag defaults false; an empty
+`LOCAL_ASR_COMPANION_DOWNLOAD_URL` means the installer is supplied separately with the invitation.
+Gemini remains the default and Local failures never trigger it automatically.
+
 ## Setup
 
 ### 1. Create venv
@@ -128,6 +152,9 @@ curl http://127.0.0.1:8799/healthz
 | POST | `/nakdan`                 | Add nikud to Hebrew texts |
 | POST | `/translate`              | Translate Hebrew segments → target language |
 | GET  | `/v1/capabilities`        | Default-off companion/model capability probe |
+| GET  | `/v1/companion/preflight` | Windows/GPU/CUDA/runtime/disk/port readiness |
+| GET/POST/DELETE | `/v1/asr/model/install*` | Explicit pinned download, status, cancel and delete lifecycle |
+| DELETE | `/v1/companion/jobs`     | Delete all inactive managed jobs with a receipt |
 | GET/POST | `/v1/asr/model/*`     | Verify, warm or unload the exact pinned ASR model |
 | POST | `/v1/asr/jobs`            | Stream one media source into the bounded local job queue |
 | GET  | `/v1/asr/jobs/{id}`       | Read job state, progress and failure evidence |

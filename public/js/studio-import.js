@@ -724,6 +724,25 @@
     }
     if (pendingAudio) updateAudioActionLabel();
   }
+  window.addEventListener("local-asr-beta-change", refreshLocalAsrControls);
+
+  function localAsrFailure(error) {
+    var job = error && error.job;
+    var detail = String((job && (job.error_code || job.error_detail)) || (error && error.message) || "");
+    if (/WORKER_OOM|CUDA.*OOM|OUT OF MEMORY/i.test(detail)) {
+      return { reason: "WORKER_OOM", key: "studio.import.localAsrOom" };
+    }
+    if (/MODEL_DISK_LOW|DISK.*LOW|NO SPACE/i.test(detail)) {
+      return { reason: "MODEL_DISK_LOW", key: "studio.import.localAsrDiskLow" };
+    }
+    if (/INTEGRITY|HASH|CHECKSUM|PIN_MISMATCH/i.test(detail)) {
+      return { reason: "MODEL_INTEGRITY_FAILED", key: "studio.import.localAsrModelIntegrity" };
+    }
+    if (/PORT_CONFLICT/i.test(detail)) {
+      return { reason: "PORT_CONFLICT", key: "studio.import.localAsrPortConflict" };
+    }
+    return { reason: (job && job.error_code) || (error && error.code) || "LOCAL_ASR_FAILED", key: "studio.import.localAsrUnavailable" };
+  }
 
   function onAudioProviderChanged() {
     var select = $("v3ImportAudioProvider");
@@ -1036,10 +1055,11 @@
       });
       acceptLocalCompletion(completed);
     } catch (error) {
-      pendingAudio.localFallbackReason = (error && error.code) || "LOCAL_ASR_FAILED";
+      var failure = localAsrFailure(error);
+      pendingAudio.localFallbackReason = failure.reason;
       if (error && error.code === "LOCAL_ASR_CANCELED") setStatus("studio.import.localAsrCanceled");
       else if (error && error.code === "LOCAL_ASR_AUDIO_STREAM_REQUIRED") setStatus("studio.import.localAsrStreamRequired");
-      else setStatus("studio.import.localAsrUnavailable");
+      else setStatus(failure.key);
     } finally {
       localAsrRunController = null;
       setBusy(false);
@@ -1885,6 +1905,7 @@
                            onAudioProviderChanged: onAudioProviderChanged, pairLocalAsr: pairLocalAsr,
                            cancelLocalAsr: cancelLocalAsr, retryLocalAsr: retryLocalAsr,
                            deleteLocalAsrJob: deleteLocalAsrJob,
+                           refreshLocalAsrControls: refreshLocalAsrControls,
                            onCaptionsFileChosen: onCaptionsFileChosen, useCaptionsPaste: useCaptionsPaste,
                            useText: useText, useTextAndRetell: useTextAndRetell,
                            chooseTrackHint: chooseTrackHint, runWindowedAsr: runWindowedAsr,

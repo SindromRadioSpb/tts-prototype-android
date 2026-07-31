@@ -1,0 +1,57 @@
+{
+  "schema": "linguistpro-local-asr-windows-beta-browser-matrix-v1",
+  "generatedAt": "2026-07-31T12:46:55.145Z",
+  "origin": "http://127.0.0.1:3000",
+  "productionOriginRun": false,
+  "engines": [
+    {
+      "engine": "chrome",
+      "provenance": "installed-system-browser",
+      "viewport": "380x844",
+      "ltr": {
+        "enrolled": true,
+        "runtimeBeta": true,
+        "settingsVisible": true,
+        "modalVisible": true,
+        "direction": "ltr",
+        "width": 380,
+        "clientWidth": 380,
+        "privacy": "MEDIA→THIS COMPUTER→127.0.0.1CLOUD OFF",
+        "modelState": "Exact revision и runtime SHA-256 проверены"
+      },
+      "rtl": {
+        "direction": "rtl",
+        "width": 380,
+        "clientWidth": 380
+      },
+      "explicitProvider": "local",
+      "implicitGeminiRequests": 0,
+      "result": "PASS"
+    },
+    {
+      "engine": "edge",
+      "provenance": "installed-system-browser",
+      "viewport": "380x844",
+      "ltr": {
+        "enrolled": true,
+        "runtimeBeta": true,
+        "settingsVisible": true,
+        "modalVisible": true,
+        "direction": "ltr",
+        "width": 380,
+        "clientWidth": 380,
+        "privacy": "MEDIA→THIS COMPUTER→127.0.0.1CLOUD OFF",
+        "modelState": "Exact revision и runtime SHA-256 проверены"
+      },
+      "rtl": {
+        "direction": "rtl",
+        "width": 380,
+        "clientWidth": 380
+      },
+      "explicitProvider": "local",
+      "implicitGeminiRequests": 0,
+      "result": "PASS"
+    }
+  ],
+  "result": "PASS"
+}

@@ -21,6 +21,14 @@ ASR_RUNTIME_FILE_SHA256 = {
     "tokenizer.json": "297b13372ac43916285644fb9687add3cc62ee2a1adb60da3dc25cc94c1871fd",
     "vocabulary.json": "c69260f2ab26d659b7c398f9a2b2b48ed0df16c3b47d7326782fd9cba71690c1",
 }
+ASR_RUNTIME_FILE_BYTES = {
+    "model.bin": 1_617_884_968,
+    "config.json": 1_405,
+    "preprocessor_config.json": 357,
+    "tokenizer.json": 2_710_337,
+    "vocabulary.json": 1_068_114,
+}
+ASR_SNAPSHOT_BYTES = sum(ASR_RUNTIME_FILE_BYTES.values())
 
 ASR_DEVICE = "cuda"
 ASR_COMPUTE_TYPE = "float16"
@@ -71,6 +79,8 @@ def model_identity() -> dict[str, object]:
         "model_bin_sha256": ASR_MODEL_BIN_SHA256,
         "model_bin_repository_bytes": ASR_MODEL_BIN_REPOSITORY_BYTES,
         "runtime_file_sha256": dict(ASR_RUNTIME_FILE_SHA256),
+        "runtime_file_bytes": dict(ASR_RUNTIME_FILE_BYTES),
+        "snapshot_bytes": ASR_SNAPSHOT_BYTES,
         "license": ASR_MODEL_LICENSE,
         "format": "CTranslate2",
         "decode": decode_parameters(),

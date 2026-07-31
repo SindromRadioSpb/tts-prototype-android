@@ -111,3 +111,16 @@ quality/owner acceptance не маскируются как PASS.
 
 Следовательно, этот packet не разрешает permanent integration, production, schema или выбор
 `Auto/Local/Gemini` defaults.
+
+## Windows invite-beta enablement — 2026-07-31
+
+The separate Windows Companion/product-onboarding slice is locally `PASS`; external distribution
+and permanent integration remain `NO-GO`. The unsigned internal installer is 1,766,465,078 bytes,
+SHA-256 `1079fc4e09c038c1704f503228285a097347dfc25ae267f3e287289feca0acbe`.
+It passed install/live-update with owned stop and restart/start/restart, exact-model activation,
+self-contained CUDA decode, cleanup
+and uninstall on Windows 11/RTX 3070. Installed system Chrome/Edge passed local-origin 380×844 LTR
+and RTL onboarding with zero Gemini requests. Production-origin verification was not run because
+push/deploy were not authorized. Signing, NVIDIA/FFmpeg redistribution review, the frozen
+12–15-minute/four-speaker set, and owner threshold remain open. See
+`../2026-07-31/windows-beta/evidence-report.json`.

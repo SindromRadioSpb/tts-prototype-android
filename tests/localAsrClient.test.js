@@ -9,6 +9,7 @@ function store(initial = {}) {
   return {
     getItem: (key) => values.has(key) ? values.get(key) : null,
     setItem: (key, value) => values.set(key, String(value)),
+    removeItem: (key) => values.delete(key),
   };
 }
 
@@ -24,6 +25,37 @@ test("experimental local ASR is strictly default-off and pairing token is sessio
   assert.throws(() => C.setPairingToken("short", session), /TOKEN_INVALID/);
   C.setPairingToken(TOKEN, session);
   assert.equal(C.getPairingToken(session), TOKEN);
+});
+
+test("product runtime gate fails closed and explicit enrollment uses the existing browser-local seam", () => {
+  const local = store();
+  C.setRuntimeConfig({ beta: false, companionDownloadUrl: "https://example.test/companion.exe" });
+  local.setItem(C.EXPERIMENT_KEY, "1");
+  assert.equal(C.runtimeConfig().beta, false);
+  assert.equal(C.runtimeConfig().companionDownloadUrl, "");
+  assert.throws(() => C.enroll(local), /BETA_DISABLED/);
+  C.setRuntimeConfig({ beta: true, companionDownloadUrl: "/downloads/companion.exe" });
+  C.enroll(local);
+  assert.equal(C.runtimeConfig().beta, true);
+  assert.equal(C.isExperimentalEnabled(local), true);
+  C.unenroll(local);
+  assert.equal(C.isExperimentalEnabled(local), false);
+});
+
+test("paired client exposes only loopback companion lifecycle actions", async () => {
+  const calls = [];
+  const client = new C.Client({
+    tokenProvider: () => TOKEN,
+    fetchFn: async (url, options) => { calls.push({ url, options }); return response(200, { ok: true }); },
+  });
+  await client.preflight();
+  await client.installModel("72ad623a37947395efcc3933132353790e5a12f5");
+  await client.cancelModelInstall();
+  await client.deleteModel();
+  await client.deleteAllJobs();
+  assert.ok(calls.every((call) => call.url.startsWith(C.BASE_URL)));
+  assert.ok(calls.some((call) => call.options.method === "DELETE" && call.url.endsWith("/v1/asr/model")));
+  assert.ok(calls.some((call) => call.options.method === "DELETE" && call.url.endsWith("/v1/companion/jobs")));
 });
 
 test("client pins every request to canonical loopback and never sends credentials", async () => {

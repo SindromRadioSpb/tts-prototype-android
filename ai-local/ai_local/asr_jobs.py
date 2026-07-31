@@ -205,6 +205,21 @@ class AsrJobManager:
             raise JobNotFound(job_id)
         return path
 
+    def has_active_jobs(self) -> bool:
+        if not self.root.exists():
+            return False
+        for path in self.root.iterdir():
+            manifest = path / MANIFEST_NAME
+            if not path.is_dir() or not manifest.is_file():
+                continue
+            try:
+                state = _json(manifest).get("state")
+            except (OSError, ValueError):
+                continue
+            if state in ACTIVE_STATES or state in {"CREATED", "QUEUED"}:
+                return True
+        return False
+
     async def start(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         self._stopping = False

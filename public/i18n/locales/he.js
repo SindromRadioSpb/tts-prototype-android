@@ -3125,6 +3125,10 @@ window.I18N_LOCALES.he = {
       localAsrModelMissing: "ה-companion המקומי זמין, אך המודל הנעול חסר או נכשל באימות checksum.",
       localAsrPairingRequired: "הזינו אסימון צימוד ובדקו את ה-companion המקומי.",
       localAsrUnavailable: "ה-companion המקומי אינו זמין או דחה את הבקשה; אין מעבר אוטומטי ל-Gemini.",
+      localAsrOom: "זיכרון ה-NVIDIA GPU אזל. ה-worker המקומי אופס; לא נשלחה בקשה ל-Gemini.",
+      localAsrDiskLow: "אין די מקום בדיסק המקומי למשימה או לפעולת המודל.",
+      localAsrModelIntegrity: "המודל הנעול נכשל בבדיקת revision/SHA-256. העיבוד המקומי נחסם.",
+      localAsrPortConflict: "פורט 8799 בשימוש תוכנה אחרת. פתחו את ה-Companion כדי לפתור את ההתנגשות.",
       localAsrQueued: "המשימה המקומית בתור…",
       localAsrPreflight: "בודק מודל מקומי, מדיה ו-GPU…",
       localAsrWaitingGpu: "המשימה המקומית ממתינה ל-GPU…",
@@ -3230,6 +3234,22 @@ window.I18N_LOCALES.he = {
       errCaptionsTooMany: "יותר מדי שורות — בחרו קטע קצר יותר",
     },
     // W2-S11 — «פשט לרמה שלי» (פישוט מדורג, studio-retell.js)
+    localAsrBeta: {
+      btnTitle: "הגדרות Experimental Local ASR",
+      title: "Experimental Local ASR",
+      intro: "תמלול אודיו בעברית במחשב Windows הזה. Gemini נשאר ברירת המחדל ולעולם אינו מופעל אחרי שגיאה מקומית.",
+      requirements: "Windows 11 · NVIDIA/CUDA · לפחות 8 GB VRAM · Chrome או Edge · הורדת מודל כ-1.62 GB",
+      downloadTitle: "הורדת Companion", downloadReady: "השתמשו במתקין שסופק לבטא.", downloadInvite: "המתקין מסופק בנפרד עם ההזמנה.", download: "הורדת Companion",
+      connectTitle: "חיבור סשן הדפדפן", connectNote: "פתחו את ה-Companion, העתיקו את אסימון הצימוד והדביקו כאן. האסימון נשמר רק עד סגירת הלשונית.", tokenPlaceholder: "אסימון צימוד", connect: "חיבור",
+      deviceTitle: "בדיקת המכשיר", check: "הפעלת preflight", deviceReady: "המכשיר מוכן", deviceFailed: "תקנו את בדיקות המכשיר המפורטות לפני התקנה או הפעלה של Local ASR.",
+      modelTitle: "התקנה ואימות של המודל הנעול", install: "התקנת מודל", cancel: "ביטול", deleteModel: "מחיקת מודל", modelReady: "ה-revision וה-SHA-256 של קובצי הריצה אומתו", modelMissing: "לא מותקן",
+      warmTitle: "הכנת Local ASR", warm: "Warmup", warming: "טוען את המודל הנעול…", warmReady: "מוכן", warmFailed: "ההכנה נכשלה",
+      chooseTitle: "בחירת Local לייבוא אחד", chooseNote: "חלון הייבוא עדיין נפתח עם Gemini. יש לבחור Local במפורש לכל משימה.", choose: "פתיחת ייבוא אודיו", leave: "יציאה מהבטא בדפדפן הזה",
+      enrollConfirm: "להצטרף לבטא המוזמנת של Local ASR בדפדפן הזה? Local נשאר כבוי כברירת מחדל ו-Gemini נשאר ספק ברירת המחדל.",
+      installConfirm: "להוריד כ-1.62 GB ברישיון Apache-2.0 ולהפעיל בדיוק revision 72ad623a… לאחר בדיקת SHA-256?", installStarted: "הורדת המודל הנעול החלה. אפשר לבטל ללא השארת קבצים חלקיים.", deleteConfirm: "למחוק את מודל Local ASR המנוהל מחשבון Windows הזה?", modelDeleted: "המודל המנוהל נמחק והיעדרו אומת.",
+      connected: "מחובר לסשן הדפדפן הזה.", connectFirst: "תחילה חברו את ה-Companion.", ready: "Local ASR מוכן. המדיה נשארת במחשב הזה.",
+      errDisk: "אין די מקום בדיסק להפעלת המודל המאומתת.", errPort: "פורט 8799 בשימוש תוכנה אחרת. עצרו אותה והפעילו מחדש את ה-Companion.", errIntegrity: "אימות המודל נכשל. מחקו את הקבצים החלקיים/המודל ונסו שוב עם אותו revision נעול.", errPairing: "הצימוד נכשל. העתיקו אסימון חדש מה-Companion ונסו שוב.", errDown: "ה-Companion אינו זמין. הפעילו אותו במחשב הזה; Gemini לא הופעל."
+    },
     retell: {
       title: "✨ פשט לרמה שלי",
       button: "פשט לרמה שלי",

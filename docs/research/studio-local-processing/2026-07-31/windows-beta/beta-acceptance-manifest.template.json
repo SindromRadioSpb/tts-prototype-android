@@ -1,0 +1,10 @@
+{
+  "schema": "linguistpro-local-asr-windows-beta-acceptance-v1",
+  "status": "BLOCKED_SOURCE_SET_NOT_FROZEN",
+  "targetDurationMinutes": { "minimum": 12, "maximum": 15 },
+  "minimumIndependentSpeakers": 4,
+  "conditions": ["clean_read", "conversation", "moderate_noise", "names_and_numbers"],
+  "gold": { "humanAuthored": true, "independent": true, "frozenBeforeInference": true },
+  "geminiComparisonAuthorized": false,
+  "tasks": ["Q7M4", "K2R9", "V8C3", "H5T1", "N4P7", "D9L2", "W3F8", "B6J5", "R1X6", "M7A3"]
+}

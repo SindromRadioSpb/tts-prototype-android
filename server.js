@@ -1155,6 +1155,17 @@ app.get("/api/client-config", (_req, res) => {
   const c1ExperimentalEnabled = !(
     c1ExperimentalRaw === "false" || c1ExperimentalRaw === "0" || c1ExperimentalRaw === "off"
   );
+  // Windows Local ASR invite-only beta. Default-off is intentional: this is a
+  // staged exposure seam, not an entitlement or a provider-default switch.
+  const localAsrBetaRaw = String(process.env.LOCAL_ASR_BETA_ENABLED || "false").trim().toLowerCase();
+  const localAsrBetaEnabled = !(
+    localAsrBetaRaw === "false" || localAsrBetaRaw === "0" || localAsrBetaRaw === "off"
+  );
+  const localAsrDownloadRaw = String(process.env.LOCAL_ASR_COMPANION_DOWNLOAD_URL || "").trim();
+  const localAsrCompanionDownloadUrl =
+    (/^https:\/\//i.test(localAsrDownloadRaw) || (/^\/(?!\/)/.test(localAsrDownloadRaw)))
+      ? localAsrDownloadRaw
+      : "";
 
   // Feedback config — phone number for WhatsApp deep-link / QR, plus
   // typical response time used in the WOW card. Both are environment-
@@ -1195,6 +1206,14 @@ app.get("/api/client-config", (_req, res) => {
       killLocalMode,
       c3aVoiceEnabled,
       c1ExperimentalEnabled,
+      localAsrBetaEnabled,
+    },
+    localAsr: {
+      beta: localAsrBetaEnabled,
+      companionDownloadUrl: localAsrBetaEnabled ? localAsrCompanionDownloadUrl : "",
+      supportedBrowsers: ["Chrome", "Edge"],
+      supportedOs: "Windows 11",
+      firefoxSupported: false,
     },
     feedback: {
       whatsappPhone: developerWhatsappPhoneRaw,
