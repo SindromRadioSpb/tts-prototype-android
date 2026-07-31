@@ -3230,7 +3230,7 @@ window.I18N_LOCALES.en = {
       btnTitle: "Experimental Local ASR settings",
       title: "Experimental Local ASR",
       intro: "Transcribe Hebrew audio on this Windows computer. Gemini stays the default and is never called after a Local error.",
-      requirements: "Windows 11 · NVIDIA/CUDA · at least 8 GB VRAM · Chrome or Edge · model download about 1.62 GB",
+      requirements: "Windows 11 · NVIDIA/CUDA · at least 8 GB VRAM · Chrome · model download about 1.62 GB",
       downloadTitle: "Download Companion", downloadReady: "Use the installer supplied for this beta.", downloadInvite: "The installer is supplied separately with your invitation.", download: "Download Companion",
       connectTitle: "Connect this browser session", connectNote: "Open the Companion, copy its pairing token, and paste it here. The token is kept only until this tab closes.", tokenPlaceholder: "Pairing token", connect: "Connect",
       deviceTitle: "Check device", check: "Run preflight", deviceReady: "Device ready", deviceFailed: "Resolve the listed device checks before installing or running Local ASR.",

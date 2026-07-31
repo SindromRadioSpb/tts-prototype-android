@@ -3244,7 +3244,7 @@ window.I18N_LOCALES.ru = {
       btnTitle: "Настройки Experimental Local ASR",
       title: "Experimental Local ASR",
       intro: "Расшифровывайте ивритское аудио на этом Windows-компьютере. Gemini остаётся default и не вызывается после Local-ошибки.",
-      requirements: "Windows 11 · NVIDIA/CUDA · минимум 8 GB VRAM · Chrome или Edge · модель около 1,62 GB",
+      requirements: "Windows 11 · NVIDIA/CUDA · минимум 8 GB VRAM · Chrome · модель около 1,62 GB",
       downloadTitle: "Скачать Companion", downloadReady: "Используйте installer, предоставленный для этой beta.", downloadInvite: "Installer предоставляется отдельно вместе с приглашением.", download: "Скачать Companion",
       connectTitle: "Подключить эту браузерную сессию", connectNote: "Откройте Companion, скопируйте pairing token и вставьте сюда. Token хранится только до закрытия вкладки.", tokenPlaceholder: "Pairing token", connect: "Подключить",
       deviceTitle: "Проверить устройство", check: "Запустить preflight", deviceReady: "Устройство готово", deviceFailed: "Исправьте перечисленные проверки устройства до установки или запуска Local ASR.",

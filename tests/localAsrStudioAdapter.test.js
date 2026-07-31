@@ -41,6 +41,8 @@ test("beta onboarding is runtime-default-off and remains an exposure seam, not s
   const onboarding = fs.readFileSync(path.join(root, "public/js/local-asr-onboarding.js"), "utf8");
   const server = fs.readFileSync(path.join(root, "server.js"), "utf8");
   assert.match(server, /LOCAL_ASR_BETA_ENABLED \|\| "false"/);
+  assert.match(server, /supportedBrowsers: \["Chrome"\]/);
+  assert.doesNotMatch(server, /supportedBrowsers: \[[^\]]*"Edge"/);
   assert.match(onboarding, /location\.hash === "#local-asr-beta"/);
   assert.match(onboarding, /LocalAsrClient\.enroll\(\)/);
   assert.doesNotMatch(onboarding, /\/api\/.*entitle|user_entitlement|migration/i);

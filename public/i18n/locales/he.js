@@ -3238,7 +3238,7 @@ window.I18N_LOCALES.he = {
       btnTitle: "הגדרות Experimental Local ASR",
       title: "Experimental Local ASR",
       intro: "תמלול אודיו בעברית במחשב Windows הזה. Gemini נשאר ברירת המחדל ולעולם אינו מופעל אחרי שגיאה מקומית.",
-      requirements: "Windows 11 · NVIDIA/CUDA · לפחות 8 GB VRAM · Chrome או Edge · הורדת מודל כ-1.62 GB",
+      requirements: "Windows 11 · NVIDIA/CUDA · לפחות 8 GB VRAM · Chrome · הורדת מודל כ-1.62 GB",
       downloadTitle: "הורדת Companion", downloadReady: "השתמשו במתקין שסופק לבטא.", downloadInvite: "המתקין מסופק בנפרד עם ההזמנה.", download: "הורדת Companion",
       connectTitle: "חיבור סשן הדפדפן", connectNote: "פתחו את ה-Companion, העתיקו את אסימון הצימוד והדביקו כאן. האסימון נשמר רק עד סגירת הלשונית.", tokenPlaceholder: "אסימון צימוד", connect: "חיבור",
       deviceTitle: "בדיקת המכשיר", check: "הפעלת preflight", deviceReady: "המכשיר מוכן", deviceFailed: "תקנו את בדיקות המכשיר המפורטות לפני התקנה או הפעלה של Local ASR.",

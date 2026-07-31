@@ -1211,7 +1211,7 @@ app.get("/api/client-config", (_req, res) => {
     localAsr: {
       beta: localAsrBetaEnabled,
       companionDownloadUrl: localAsrBetaEnabled ? localAsrCompanionDownloadUrl : "",
-      supportedBrowsers: ["Chrome", "Edge"],
+      supportedBrowsers: ["Chrome"],
       supportedOs: "Windows 11",
       firefoxSupported: false,
     },

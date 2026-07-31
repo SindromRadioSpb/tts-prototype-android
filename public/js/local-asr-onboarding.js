@@ -53,7 +53,7 @@
   function localize() {
     text("localAsrBetaTitle", T("studio.localAsrBeta.title", "Experimental Local ASR"));
     text("localAsrBetaIntro", T("studio.localAsrBeta.intro", "Transcribe Hebrew audio on this Windows computer. Gemini stays the default and is never called after a Local error."));
-    text("localAsrRequirements", T("studio.localAsrBeta.requirements", "Windows 11 · NVIDIA/CUDA · at least 8 GB VRAM · Chrome or Edge · model download about 1.62 GB"));
+    text("localAsrRequirements", T("studio.localAsrBeta.requirements", "Windows 11 · NVIDIA/CUDA · at least 8 GB VRAM · Chrome · model download about 1.62 GB"));
     text("localAsrDownloadTitle", T("studio.localAsrBeta.downloadTitle", "Download Companion"));
     text("localAsrDownloadNote", config.companionDownloadUrl
       ? T("studio.localAsrBeta.downloadReady", "Use the installer supplied for this beta.")
