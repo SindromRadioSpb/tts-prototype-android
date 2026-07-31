@@ -3,6 +3,7 @@
   "date": "2026-07-31",
   "source_head": "77c48d139fef665b67c941ded731dd7175efca8e",
   "artifact_source_worktree_dirty": true,
+  "implementation_commit": "1d0fc36dfb357ea3b4b89c9abd53253d7bf0f448",
   "scope": {
     "invite_only": true,
     "default_off": true,

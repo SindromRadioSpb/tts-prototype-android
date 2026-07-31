@@ -5,7 +5,8 @@ pushed, deployed, hosted, or distributed.
 
 ## Evidence available
 
-- scoped local commit: fill after commit;
+- scoped local implementation commit:
+  `1d0fc36dfb357ea3b4b89c9abd53253d7bf0f448`;
 - internal unsigned installer SHA-256:
   `1079fc4e09c038c1704f503228285a097347dfc25ae267f3e287289feca0acbe`;
 - exact model/revision/hash unchanged;
