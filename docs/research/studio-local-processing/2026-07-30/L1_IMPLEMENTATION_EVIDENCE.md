@@ -133,3 +133,9 @@ subsequently passed. Signing/license review were owner-accepted for the trusted 
 cohort; quality studies are recommended. Edge is excluded from the first beta and onboarding deploy
 is authorized. See
 `../2026-07-31/windows-beta/evidence-report.json`.
+
+Production update: the Chrome-only invite onboarding is deployed and verified at `v3.11.276`
+(`d445c7e8`) with `LOCAL_ASR_BETA_ENABLED=true`. Gemini remains default, Edge is not advertised,
+and narrow LTR/RTL Chrome checks have no horizontal overflow. No schema or production-data change
+occurred. Host disk reached 90% used (3.7 GB free); no cleanup was performed, so another build or
+deploy requires a separate disk decision.

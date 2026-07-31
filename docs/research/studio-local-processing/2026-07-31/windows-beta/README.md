@@ -2,7 +2,8 @@
 
 The local engineering slice is `PASS`. The owner has authorized this exact unsigned artifact for
 out-of-band use by the owner and personally trusted beta users. Public hosting/general distribution,
-push/deploy, and permanent integration remain separately gated.
+and permanent integration remain separately gated. The Chrome-only production onboarding is now
+deployed and verified at `v3.11.276`; this does not authorize public installer hosting.
 
 The Companion is a per-user Windows installer with a loopback-only supervisor, session pairing,
 explicit exact-pin model installation, GPU/CUDA/runtime/disk/port preflight, model/job deletion
@@ -62,8 +63,18 @@ loopback API with the production Origin header. The owner then completed the nat
 explicitly ran Local, saved the resulting Library card, and exported it. The UI job completed in
 71.987 seconds wall time (`model RTF 0.03446`) and preserved all 503 ASR segments into 552 timed rows.
 See `LONG_RUN_MIA_PRODUCTION_ORIGIN_REPORT.md` and `MIA_LOCAL_VS_GEMINI_COMPARISON.md`. The Edge
-production-origin ceremony is not required because Edge is excluded from the first beta. Deployment
-of the new `v3.11.274` onboarding UI for a non-DevTools user flow was authorized on 2026-07-31.
+production-origin ceremony is not required because Edge is excluded from the first beta.
+
+The normal non-DevTools onboarding is deployed on production as `v3.11.276` from commit
+`d445c7e89c85dcc889b973f838870bb0d13a3ba4`. The runtime gate is on, while enrollment remains an
+explicit per-browser invite action; Gemini remains the default. Cache-busted client config and
+health checks passed, the advertised matrix is Chrome only, and no installer URL is publicly
+exposed. Production Chrome rendered the full Companion/pairing/preflight/model/warmup/explicit-
+Local flow. Narrow LTR and RTL measurements had no page, dialog, or child horizontal overflow.
+No schema or production-data mutation occurred.
+
+The host reached 90% disk use with 3.7 GB free after the deployment builds. No cleanup was
+performed. Another build/deploy must stop for a separate disk-capacity or cleanup decision first.
 
 Owner decision on 2026-07-31 makes the ten Mia listen/read checkpoints, the four-speaker beta
 human-gold study, and the former 60-minute/12-speaker permanent study recommended rather than

@@ -164,8 +164,8 @@
   },
   "windows_beta_enablement_2026_07_31": {
     "local_engineering": "PASS",
-    "external_distribution": "NO_GO",
-    "permanent_integration": "NO_GO",
+    "external_distribution": "GO_OWNER_TRUSTED_COHORT_OUT_OF_BAND_UNSIGNED",
+    "permanent_integration": "NO_GO_PENDING_SEPARATE_OWNER_AUTHORIZATION_NOT_QUALITY_STUDIES",
     "installer": {
       "bytes": 1766465078,
       "sha256": "1079fc4e09c038c1704f503228285a097347dfc25ae267f3e287289feca0acbe",
@@ -175,10 +175,13 @@
     "windows_frozen_lifecycle": "PASS",
     "real_cuda_decode": "PASS",
     "chrome_edge_local_origin_380x844_ltr_rtl": "PASS",
-    "production_origin": "NOT_RUN_NO_DEPLOY_AUTHORITY",
+    "production_origin": "PASS_CHROME_V3_11_276_INVITE_ONBOARDING_RUNTIME_FLAG_TRUE",
+    "production_commit": "d445c7e89c85dcc889b973f838870bb0d13a3ba4",
+    "production_disk_used_percent": 90,
+    "production_cleanup_performed": false,
     "implicit_gemini_requests": 0,
     "post_uninstall_managed_leftovers": 0,
-    "beta_acceptance": "BLOCKED_SOURCE_SET_NOT_FROZEN",
+    "beta_acceptance": "GO_ENGINEERING_FIRST_DRAFT_QUALITY_RECOMMENDATIONS_NON_BLOCKING",
     "evidence": "../2026-07-31/windows-beta/evidence-report.json"
   },
   "fault_gates": {
@@ -193,15 +196,14 @@
     "restart_resume": "PASS automated and live"
   },
   "open_gates": [
-    "owner listen/read acceptance and an owner-selected absolute product-quality threshold are not recorded",
-    "expanded independent human-gold was explicitly excluded from the accelerated slice",
-    "paired complete Gemini comparison remains unrun because cloud spend and media upload were not authorized",
     "installed stock Firefox 153 was not directly exercised; Mozilla Firefox engine 146.0.1 passed",
-    "thermal and OOM are deterministically injected tests, not destructive live hardware faults"
+    "thermal and OOM are deterministically injected tests, not destructive live hardware faults",
+    "production disk reached 90 percent after onboarding deployments; no cleanup was authorized",
+    "public distribution and permanent integration require separate owner decisions"
   ],
   "decision": {
     "bounded_l1_engineering_and_evidence_closure": "PASS",
-    "permanent_integration": "NO_GO",
+    "permanent_integration": "NO_GO_PENDING_SEPARATE_OWNER_AUTHORIZATION_NOT_QUALITY_STUDIES",
     "provider_policy_or_default_change": "NO_GO",
     "next_step_requires_owner_decision": true
   }

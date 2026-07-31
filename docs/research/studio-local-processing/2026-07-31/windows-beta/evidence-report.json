@@ -17,7 +17,7 @@
     "production_origin_ceremony": "GO_WITHOUT_SERVER_MUTATION",
     "advertised_browser_support": ["Chrome"],
     "edge_first_beta": "EXCLUDED_BY_OWNER",
-    "onboarding_v3_11_274_push_deploy": "AUTHORIZED",
+    "onboarding_v3_11_274_push_deploy": "AUTHORIZED_AND_SUPERSEDED_BY_VERIFIED_V3_11_276",
     "installer_hosting": "NOT_AUTHORIZED"
   },
   "scope": {
@@ -26,7 +26,8 @@
     "gemini_remains_default": true,
     "implicit_gemini_fallback": false,
     "permanent_integration_authorized": false,
-    "production_mutation": false,
+    "production_mutation": true,
+    "production_mutation_scope": "AUTHORIZED_CODE_DEPLOY_AND_LOCAL_ASR_RUNTIME_FLAG_ONLY",
     "schema_or_data_mutation": false,
     "quality_recommendations_block_release": false
   },
@@ -91,7 +92,7 @@
     "model_revision": "72ad623a37947395efcc3933132353790e5a12f5",
     "model_bin_sha256": "db2a2265aa012c16c7db9edda3d699c99f984efdd3f2e22a72a8ce7e9720f3a2",
     "production_origin_api_preflight": "PASS_9_OF_9",
-    "production_origin_chrome_ui": "PASS_EXPLICIT_LOCAL_PAIRING_MODEL_READY_SERVED_V3_11_272",
+    "production_origin_chrome_ui": "PASS_EXPLICIT_LOCAL_PAIRING_MODEL_READY_AND_V3_11_276_ONBOARDING",
     "production_origin_media_job": "PASS_OWNER_NATIVE_CHROME_FILE_CHOOSER_LOCAL_JOB_CARD_SAVE_AND_EXPORT",
     "visible_token_field_cleared_after_pairing": true,
     "browser_and_system_clipboards_cleared_after_pairing": true,
@@ -102,7 +103,7 @@
     "origin": "http://127.0.0.1:3000",
     "production_origin_run": true,
     "production_origin_boundary": "PASS_CHROME_PAIRING_PINNED_MODEL_NATIVE_FILE_JOB_AND_CARD_SAVE",
-    "production_origin_served_version": "3.11.272",
+    "production_origin_served_version": "3.11.276",
     "production_origin_provider_default": "gemini",
     "production_origin_explicit_provider": "local",
     "production_origin_media_job": "PASS_OWNER_NATIVE_CHROME_FILE_CHOOSER_LOCAL_JOB_CARD_SAVE_AND_EXPORT",
@@ -116,6 +117,30 @@
     "explicit_local_selection": "PASS",
     "implicit_gemini_requests": 0,
     "evidence": "browser-matrix-report.json, four viewport screenshots, and owner-exported card provenance"
+  },
+  "production_onboarding_deployment": {
+    "result": "PASS",
+    "commit": "d445c7e89c85dcc889b973f838870bb0d13a3ba4",
+    "version": "3.11.276",
+    "runtime_flag": true,
+    "supported_browsers": [
+      "Chrome"
+    ],
+    "edge_advertised": false,
+    "companion_download_url_present": false,
+    "gemini_default_unchanged": true,
+    "health": "PASS",
+    "chrome_invite_onboarding": "PASS",
+    "mobile_ltr": "PASS_NO_PAGE_OR_DIALOG_HORIZONTAL_OVERFLOW",
+    "mobile_rtl": "PASS_NO_PAGE_OR_DIALOG_HORIZONTAL_OVERFLOW",
+    "implicit_gemini_fallback": false,
+    "production_schema_or_data_mutation": false,
+    "production_disk_after_deploy": {
+      "used_percent": 90,
+      "free": "3.7G",
+      "cleanup_performed": false,
+      "status": "STOP_BEFORE_NEXT_BUILD_PENDING_SEPARATE_DISK_DECISION"
+    }
   },
   "production_origin_long_run": {
     "report": "LONG_RUN_MIA_PRODUCTION_ORIGIN_REPORT.md",
@@ -222,9 +247,9 @@
     "all_managed_state_absent_after_uninstall": true
   },
   "open_gates": [
-    "complete and verify the authorized v3.11.274 onboarding deployment",
     "public installer-hosting general-distribution rollback and telemetry authority",
-    "separate explicit permanent-integration and provider-default release-policy decision"
+    "separate explicit permanent-integration and provider-default release-policy decision",
+    "production disk remediation or explicit capacity decision before another build or deploy"
   ],
   "recommended_evidence": [
     "owner listen/read review of ten Mia checkpoints",

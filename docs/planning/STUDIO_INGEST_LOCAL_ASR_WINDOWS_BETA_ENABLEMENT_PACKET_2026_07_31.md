@@ -39,7 +39,7 @@ Owner browser/deployment directive, quoted verbatim on 2026-07-31:
 > «production Edge исключаем из списка. deployment нового onboarding можно стартовать.»
 
 Operational interpretation: the advertised first beta is Chrome-only; Edge production ceremony is
-removed. Scoped push/deployment of the default-off `v3.11.274` onboarding is authorized. This does
+removed. Scoped push/deployment of the default-off onboarding is authorized. This does
 not authorize public installer hosting, general distribution, provider-default changes, schema/data
 mutation, cleanup, or permanent integration.
 
@@ -342,9 +342,13 @@ requests. On the actually served production `v3.11.272`, Chrome then passed the 
 experimental seam, explicit Local selection, session pairing, and pinned-model readiness against
 `127.0.0.1:8799`; Gemini remained the reset/default provider. The visible token field and browser/
 system clipboards were cleared after pairing. The owner subsequently completed the native Chrome
-file chooser, explicit Local run, transfer to the input field, Library card save, and export. The
-Edge is excluded from the first production beta by owner decision. Deployment of the new
-`v3.11.274` onboarding is separately authorized on 2026-07-31 for a normal non-DevTools flow.
+file chooser, explicit Local run, transfer to the input field, Library card save, and export. Edge
+is excluded from the first production beta by owner decision. The normal non-DevTools onboarding
+was deployed and verified as production `v3.11.276` from
+`d445c7e89c85dcc889b973f838870bb0d13a3ba4`: runtime gate on, explicit browser-local enrollment,
+Gemini default unchanged, Chrome-only advertised matrix, no public installer URL, and healthy
+cache-busted client config. Production Chrome narrow LTR and RTL measurements showed no page,
+dialog, or child horizontal overflow. No schema or production-data mutation occurred.
 Firefox remains unsupported for this first beta.
 
 The owner then selected a 30:05.82 MP3 for a long production-origin run. Chrome's native file
@@ -370,6 +374,11 @@ The optional beta acceptance worksheet/key/manifest exist. The source set is sti
 independent human gold. By owner decision this and the ten Mia listen/read checkpoints are
 recommended evidence rather than prerequisites. The former permanent 60-minute/12-speaker paired-
 Gemini gate is also recommended, not mandatory. None is claimed PASS.
+
+Production operational stop: the deployment builds left the host at 90% disk use with 3.7 GB
+free. Cleanup was neither authorized nor performed. Do not start another build/deploy until the
+owner separately authorizes cleanup or another capacity remedy. This is an operational gate, not
+a Local ASR quality or permanent-integration criterion.
 
 Canonical evidence:
 `docs/research/studio-local-processing/2026-07-31/windows-beta/evidence-report.json` and its

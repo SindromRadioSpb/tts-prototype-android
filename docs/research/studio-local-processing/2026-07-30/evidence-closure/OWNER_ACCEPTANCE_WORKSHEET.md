@@ -53,3 +53,15 @@ if the owner elects to gather additional quality evidence.
 The owner also reclassified the former permanent 60-minute/12-speaker paired-Gemini gate as
 recommended rather than mandatory. The owner-provided offline Gemini-card comparison used no new
 cloud request or spend. Permanent integration still requires a separate explicit owner decision.
+
+## Production onboarding closure (2026-07-31)
+
+The owner authorized the Chrome-only onboarding deployment. Production now serves `v3.11.276`
+from `d445c7e89c85dcc889b973f838870bb0d13a3ba4` with the Local ASR beta runtime gate enabled.
+Enrollment remains explicit per browser, Gemini remains default, Edge is not advertised, and no
+installer URL is public. Chrome production-origin LTR and RTL onboarding checks passed without
+horizontal overflow. No schema or production-data mutation occurred.
+
+Operational note: deployment builds raised host disk use to 90% (3.7 GB free). No cleanup was
+authorized or performed. Treat disk remediation/capacity approval as a stop boundary before the
+next build or deploy, not as a Local ASR quality gate.

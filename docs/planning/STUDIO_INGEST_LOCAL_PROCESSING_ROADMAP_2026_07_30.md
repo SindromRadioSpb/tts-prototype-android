@@ -205,7 +205,7 @@ baseline: разборчивость, никуд/ударение, имена, �
 | P0 | Провенанс/schema B | ✅ BOUNDED DONE | backup parity + portable segment identity; schema migration не потребовалась |
 | P0 | UX/data C | ✅ BOUNDED DONE | explicit SHA dedupe + `text_audio_asset_key` round-trip |
 | P0 | **L1 local ivrit.ai ASR** | 🟡 ENGINEERING PASS | batch/browser/B+C PASS; owner acceptance open; permanent NO-GO |
-| P0 | **L1 Windows invite beta enablement** | 🟡 TRUSTED BETA GO | Companion/onboarding/install/decode/uninstall PASS; unsigned owner/trusted distribution approved; Chrome native file → Local job → card save/export PASS; output is first-draft quality; quality studies recommended; Edge excluded; onboarding deploy authorized |
+| P0 | **L1 Windows invite beta enablement** | 🟢 CHROME INVITE BETA LIVE | Companion/onboarding/install/decode/uninstall PASS; unsigned owner/trusted distribution approved; production `v3.11.276` onboarding verified; output is first-draft quality; quality studies recommended; Edge excluded |
 | P0/P1 | **L2 resumable jobs + batch** | ⬜ | L1 contract stable; restart/fault tests |
 | P1 | **L3 Media Package/editor** | ⬜ | segment identity closed; round-trip artifact |
 | P1 | **L4 local translation+nikud** | ⬜ | shared scheduler; independent quality gates |
@@ -236,8 +236,11 @@ using the loopback API plus production Origin header after the Chrome-extension 
 The owner then completed native Chrome file transfer, Local processing, Library save, and export in
 the product UI. The exact export comparison shows `22.98%` token disagreement against Gemini—not
 human-gold WER—and material entity/meaning errors; Local is accepted only as a draft requiring
-human correction. Edge is excluded from the first production beta by owner decision; deployment of
-the new `v3.11.274` onboarding is authorized for the normal non-DevTools beta flow.
+human correction. Edge is excluded from the first production beta by owner decision. The new
+onboarding is live and verified as `v3.11.276` (`d445c7e8`) for the normal non-DevTools Chrome beta
+flow. Runtime exposure is on, enrollment remains explicit and browser-local, Gemini remains
+default, and there is no implicit fallback. Production disk is now 90% used with 3.7 GB free; no
+cleanup was performed, and another build/deploy requires a separate disk decision.
 Firefox remains outside the first beta support matrix.
 
 Owner decision on 2026-07-31 reclassifies the ten Mia listen/read checkpoints, the 12–15 minute/

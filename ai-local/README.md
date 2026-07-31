@@ -39,6 +39,11 @@ runtime/disk/port preflight, explicit pinned-model download/cancel/delete, warmu
 redacted diagnostic export. It binds only `127.0.0.1:8799` and stores model/jobs/state only under
 `%LOCALAPPDATA%\LinguistPro\LocalASR`. Uninstall removes that exact managed tree.
 
+The matching product onboarding is live for the Chrome-only invite beta on production
+`v3.11.276`. The server runtime gate is enabled, but enrollment and Local selection remain explicit;
+Gemini remains default and is never an automatic fallback. Edge and Firefox are not advertised for
+this first beta, and the installer is still distributed only out-of-band to the approved cohort.
+
 Product enrollment requires both `LOCAL_ASR_BETA_ENABLED=true` on the Node runtime and an explicit
 same-browser invite enrollment. The flag defaults false; an empty
 `LOCAL_ASR_COMPANION_DOWNLOAD_URL` means the installer is supplied separately with the invitation.
