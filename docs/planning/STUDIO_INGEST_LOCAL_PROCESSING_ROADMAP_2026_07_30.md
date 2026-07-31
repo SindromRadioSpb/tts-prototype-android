@@ -205,7 +205,7 @@ baseline: разборчивость, никуд/ударение, имена, �
 | P0 | Провенанс/schema B | ✅ BOUNDED DONE | backup parity + portable segment identity; schema migration не потребовалась |
 | P0 | UX/data C | ✅ BOUNDED DONE | explicit SHA dedupe + `text_audio_asset_key` round-trip |
 | P0 | **L1 local ivrit.ai ASR** | 🟡 ENGINEERING PASS | batch/browser/B+C PASS; owner acceptance open; permanent NO-GO |
-| P0 | **L1 Windows invite beta enablement** | 🟡 TRUSTED BETA GO | Companion/onboarding/install/decode/uninstall PASS; unsigned owner/trusted distribution approved; production-origin browser ceremony and post-deploy human-gold remain open |
+| P0 | **L1 Windows invite beta enablement** | 🟡 TRUSTED BETA GO | Companion/onboarding/install/decode/uninstall PASS; unsigned owner/trusted distribution approved; Chrome production pairing + 30-minute Local run PASS; native chooser/Edge, onboarding deploy and post-deploy human-gold remain open |
 | P0/P1 | **L2 resumable jobs + batch** | ⬜ | L1 contract stable; restart/fault tests |
 | P1 | **L3 Media Package/editor** | ⬜ | segment identity closed; round-trip artifact |
 | P1 | **L4 local translation+nikud** | ⬜ | shared scheduler; independent quality gates |
@@ -230,6 +230,10 @@ users, accepted the noncommercial redistribution/license decision for that cohor
 human-gold check to post-deploy beta observation without marking it PASS. Public hosting/general
 distribution and permanent integration remain separate decisions. Chrome/Edge passed on the local
 product origin; the owner authorized a production-origin browser ceremony without server mutation.
+Chrome pairing and exact-model readiness passed on served production `v3.11.272`; a real-audio
+30:05.82 owner-selected Local job also completed with all integrity gates PASS (`RTF 0.03685`),
+using the loopback API plus production Origin header after the Chrome-extension file chooser failed.
+Native browser file transfer, Edge ceremony, and deployment of the new `v3.11.273` onboarding remain open.
 Firefox remains outside the first beta support matrix.
 
 ## 6. Обязательные артефакты каждого local-slice

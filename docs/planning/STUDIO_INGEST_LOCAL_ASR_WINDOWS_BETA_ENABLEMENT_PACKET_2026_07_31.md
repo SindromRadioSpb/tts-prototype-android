@@ -317,8 +317,20 @@ error, preventing stale-package success.
 Installed system Chrome 150 and Edge 150 passed the local product-origin onboarding matrix at
 380×844 in LTR and RTL: runtime flag, explicit enrollment, session pairing, device and exact-model
 readiness, privacy boundary, explicit Local selection, no horizontal overflow, and zero Gemini
-requests. Real production-origin testing is `NOT_RUN`, because deploy authority was excluded.
+requests. On the actually served production `v3.11.272`, Chrome then passed the existing default-off
+experimental seam, explicit Local selection, session pairing, and pinned-model readiness against
+`127.0.0.1:8799`; Gemini remained the reset/default provider. The visible token field and browser/
+system clipboards were cleared after pairing. A native Chrome file-chooser job, production Edge
+ceremony, and deployment of the new `v3.11.273` onboarding remain open; no deploy authority was inferred.
 Firefox remains unsupported for this first beta.
+
+The owner then selected a 30:05.82 MP3 for a long production-origin run. Chrome's native file
+chooser could not be exercised through the extension, so the media job was submitted to the same
+loopback API with `Origin: https://linguistpro.kolosei.com`; it never reached the production server.
+The job completed `3/3` chunks in 66.54 seconds of model time (`RTF 0.03685`), with S12.5/S12.6/
+S12.7 PASS, no gaps/warnings/OOM, maximum 62 C, and minimum 3,636 MiB free VRAM. A bounded comparison
+with the adapted Library card `Заложница Миа. Интервью v2` found all 13 defined story anchors, but
+the card is not verbatim human gold. The raw managed job is retained for owner listen/read review.
 
 The beta acceptance worksheet/key/manifest exist. The source set is still honestly
 `NOT_FROZEN`: no repository set currently proves 12–15 minutes from four independent speakers with

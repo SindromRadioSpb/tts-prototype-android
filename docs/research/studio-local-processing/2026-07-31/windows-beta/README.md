@@ -50,14 +50,22 @@ on 2026-07-31; it remains distinct from push/deploy authorization.
 
 On the owner's trusted Windows machine the exact artifact hash was verified before installation,
 the Companion is currently running on `127.0.0.1:8799`, the exact model revision/hash is activated,
-and the production-origin authenticated API preflight is `PASS 9/9`. The Chrome UI step is waiting
-only for the owner to set the existing browser-local experimental flag in DevTools; no server state,
-provider default, pairing secret, or Gemini request is involved.
+and the production-origin authenticated API preflight is `PASS 9/9`. The Chrome UI step is
+complete on the actually served `v3.11.272`: the owner set the existing browser-local experimental
+flag, Gemini remained the reset/default provider, Local was selected explicitly, and the UI rendered
+`Local companion ready; pinned model verified` for revision `72ad623a3794`. The visible password
+field and both browser/system clipboards were cleared after pairing; no pairing secret was written
+to evidence. A 30:05.82 owner-selected MP3 then completed locally in 66.54 seconds of model time
+(`RTF 0.03685`), `3/3` chunks, with S12.5/S12.6/S12.7 all PASS and no warnings/OOM. The native
+Chrome file chooser was not exercised: after Chrome-extension upload failed, the job used the same
+loopback API with the production Origin header. See `LONG_RUN_MIA_PRODUCTION_ORIGIN_REPORT.md`.
+The Edge production-origin ceremony and deployment of the new `v3.11.273` onboarding UI remain open.
 
 ## Files
 
 - `evidence-report.json` — authoritative machine-readable closure.
 - `browser-matrix-report.json` and four PNGs — system Chrome/Edge LTR/RTL evidence.
+- `LONG_RUN_MIA_PRODUCTION_ORIGIN_REPORT.md` — 30-minute real-media run and bounded card comparison.
 - `run_onboarding_matrix.js` — reproducible local-origin runner.
 - `OWNER_BLINDED_LISTEN_READ_WORKSHEET.md` — owner scoring form.
 - `OWNER_BLINDED_KEY.private-template.md` — separate unfilled mapping template.

@@ -37,5 +37,10 @@ Owner decision on 2026-07-31: the human-gold check will be performed on producti
 trusted-cohort beta. This removes it as a pre-deploy blocker but does not mark it PASS; observations,
 threshold, source provenance, and decision still belong in the blinded worksheet.
 
+The 30:05.82 Mia Schem production-origin Local run is retained for owner listen/read review and
+passed engineering integrity. Its comparison target, `Заложница Миа. Интервью v2`, is an adapted
+learning card rather than an independent verbatim human transcript, so its 13/13 semantic anchor
+coverage must not be reported as WER/CER or human-gold quality PASS.
+
 This smaller beta gate does not cancel, close, or silently revise the permanent
 60-minute/12-speaker paired-Gemini gate. No Gemini comparison is authorized here.
