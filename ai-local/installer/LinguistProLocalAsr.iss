@@ -1,5 +1,5 @@
 #define MyAppName "LinguistPro Local ASR Companion"
-#define MyAppVersion "0.2.0-beta.1"
+#define MyAppVersion "0.2.0-beta.2"
 #define MyAppExeName "LinguistProLocalAsrCompanion.exe"
 
 [Setup]
@@ -13,14 +13,14 @@ PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=..\artifacts
-OutputBaseFilename=LinguistProLocalAsrCompanion-0.2.0-beta.1-unsigned-internal
+OutputBaseFilename=LinguistProLocalAsrCompanion-0.2.0-beta.2-unsigned-internal
 Compression=lzma2/fast
 SolidCompression=yes
 WizardStyle=modern
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\{#MyAppExeName}
 InfoBeforeFile=..\THIRD_PARTY_NOTICES.md
-VersionInfoVersion=0.2.0.1
+VersionInfoVersion=0.2.0.2
 VersionInfoDescription=Unsigned internal Local ASR beta Companion
 RestartApplications=no
 
@@ -33,6 +33,7 @@ Source: "..\THIRD_PARTY_NOTICES.md"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\LinguistPro Local ASR Companion"; Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\Local ASR help (RU)"; Filename: "{sys}\notepad.exe"; Parameters: """{app}\_internal\docs\LOCAL_ASR_COMPANION_GUIDE.md"""
 Name: "{group}\Local ASR third-party notices"; Filename: "{app}\THIRD_PARTY_NOTICES.md"
 Name: "{userstartup}\LinguistPro Local ASR Companion"; Filename: "{app}\{#MyAppExeName}"; Parameters: "--autostart"; Tasks: startup
 

@@ -190,3 +190,16 @@ def test_diagnostics_are_allowlisted_and_redacted(monkeypatch, tmp_path):
     assert "pairing-token" not in encoded
     assert "transcript_text" not in encoded
     assert "Alice" not in encoded
+
+
+def test_protocol_listener_without_owned_pid_is_not_accepted_as_running(monkeypatch):
+    import ai_local.companion as supervisor
+
+    monkeypatch.setattr(supervisor, "_capability", lambda: {"protocol": "studio-local-asr-v1"})
+    monkeypatch.setattr(supervisor, "_owned_pid", lambda: None)
+    monkeypatch.setattr(supervisor, "preflight_report", lambda: {
+        "checks": [{"code": "PORT_8799", "observed": {"state": "companion"}}]
+    })
+    assert supervisor.service_status()["state"] == "UNOWNED_COMPANION"
+    with pytest.raises(RuntimeError, match="UNOWNED_COMPANION_PROCESS"):
+        supervisor.start_service()

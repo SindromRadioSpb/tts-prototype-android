@@ -317,10 +317,11 @@ Status on 2026-07-31:
 - Unsigned invite distribution: **GO — OWNER + TRUSTED COHORT ONLY**, out-of-band.
 - Permanent integration: **NO-GO**, unchanged.
 
-The reproducible build produces
-`LinguistProLocalAsrCompanion-0.2.0-beta.1-unsigned-internal.exe`, 1,766,465,078 bytes,
-SHA-256 `1079fc4e09c038c1704f503228285a097347dfc25ae267f3e287289feca0acbe`, Authenticode
-`NotSigned`. It bundles FFmpeg/ffprobe 8.1 and pinned Windows cuDNN/cuBLAS redistributables, but
+The current reproducible build produces
+`LinguistProLocalAsrCompanion-0.2.0-beta.2-unsigned-internal.exe`, 1,766,474,350 bytes,
+SHA-256 `32ac13e03417c358dfcc04f10a50132fd9c7ad7f308076b6f75d82661f68c7ba`, Authenticode
+`NotSigned`. Beta.1 (`1079fc4e…`) is superseded. Beta.2 bundles FFmpeg/ffprobe 8.1 and pinned
+Windows cuDNN/cuBLAS redistributables, but
 does not bundle the 1,621,665,181-byte model snapshot. NVIDIA proprietary license files and the
 runtime notice ship with the installed tree. For this noncommercial trusted cohort, the owner has
 explicitly accepted unsigned distribution and removed license review as an internal product gate;
@@ -379,6 +380,28 @@ Production operational stop: the deployment builds left the host at 90% disk use
 free. Cleanup was neither authorized nor performed. Do not start another build/deploy until the
 owner separately authorizes cleanup or another capacity remedy. This is an operational gate, not
 a Local ASR quality or permanent-integration criterion.
+
+## 14. Pairing discoverability and durable help follow-up
+
+Owner finding on 2026-07-31: obtaining the pairing token was not self-explanatory and the beta had
+no durable end-user guide. Beta.2 closes the local Companion half of that gap:
+
+- `Copy token for browser` is now a primary action in a dedicated **Connect LinguistPro in Chrome**
+  block with the exact return-to-browser sequence;
+- the Companion opens the bundled Russian guide through **Help / Справка**, and the installer adds
+  a Start-menu help shortcut; EN and HE guides are bundled alongside it;
+- the supervisor no longer accepts a protocol-compatible listener as `RUNNING` unless the PID and
+  executable are owned by its per-user control state;
+- an in-place beta.1 → beta.2 update preserved the exact model and both completed jobs, restarted
+  the owned service as beta.2, and left it healthy on `127.0.0.1:8799`;
+- frozen beta.2 start/health/stop passed and the installer remains `NotSigned`, trusted cohort only.
+
+The matching web follow-up is locally ready as app version `3.11.277`: the pairing step contains an
+inline three-action explanation, a locale-aware RU/EN/HE full-guide link, current-token recovery
+wording, mobile wrapping and RTL-safe styles. Gemini remains default, token storage remains session-
+only, and no implicit fallback was added. It is **not deployed**: production remains `v3.11.276`,
+and the recorded 90% disk stop boundary still requires a separate capacity/cleanup decision before
+another production build/deploy.
 
 Canonical evidence:
 `docs/research/studio-local-processing/2026-07-31/windows-beta/evidence-report.json` and its

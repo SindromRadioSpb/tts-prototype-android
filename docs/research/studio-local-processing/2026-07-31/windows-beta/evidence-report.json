@@ -53,12 +53,18 @@
     "deleted_with_receipt": true
   },
   "installer": {
-    "name": "LinguistProLocalAsrCompanion-0.2.0-beta.1-unsigned-internal.exe",
-    "bytes": 1766465078,
-    "sha256": "1079fc4e09c038c1704f503228285a097347dfc25ae267f3e287289feca0acbe",
+    "name": "LinguistProLocalAsrCompanion-0.2.0-beta.2-unsigned-internal.exe",
+    "version": "0.2.0-beta.2",
+    "bytes": 1766474350,
+    "sha256": "32ac13e03417c358dfcc04f10a50132fd9c7ad7f308076b6f75d82661f68c7ba",
     "authenticode": "NotSigned",
     "distribution_status": "OWNER_APPROVED_UNSIGNED_TRUSTED_COHORT_OUT_OF_BAND",
     "model_bundled": false,
+    "supersedes": {
+      "version": "0.2.0-beta.1",
+      "sha256": "1079fc4e09c038c1704f503228285a097347dfc25ae267f3e287289feca0acbe"
+    },
+    "bundled_guides": ["ru", "en", "he"],
     "runtime": {
       "ffmpeg": "8.1 essentials build",
       "cudnn": "nvidia-cudnn-cu12==9.10.2.21",
@@ -71,6 +77,8 @@
       "same_version_update": "PASS_OWNED_STOP_RESTART_EXIT_0_PID_CHANGED",
       "start_restart_stop": "PASS",
       "frozen_health": "PASS",
+      "beta_2_frozen_start_health_stop": "PASS",
+      "beta_1_to_beta_2_in_place_update": "PASS_MODEL_AND_TWO_COMPLETE_JOBS_PRESERVED",
       "real_cuda_decode": { "result": "PASS", "terminal_state": "COMPLETE", "wall_sec": 7.23 },
       "uninstall": "PASS",
       "program_tree_absent": true,
@@ -97,6 +105,18 @@
     "visible_token_field_cleared_after_pairing": true,
     "browser_and_system_clipboards_cleared_after_pairing": true,
     "pairing_token_recorded_in_evidence": false
+  },
+  "pairing_help_followup": {
+    "companion_version": "0.2.0-beta.2",
+    "dedicated_copy_token_action": true,
+    "bundled_help_languages": ["ru", "en", "he"],
+    "start_menu_help_shortcut": true,
+    "unowned_compatible_listener_rejected": true,
+    "web_candidate_version": "3.11.277",
+    "web_local_tests": "PASS",
+    "web_deployed": false,
+    "production_remains": "3.11.276",
+    "deployment_blocker": "PRODUCTION_DISK_90_PERCENT_PENDING_SEPARATE_CAPACITY_DECISION"
   },
   "browser": {
     "result": "PASS_LOCAL_ORIGIN",

@@ -612,9 +612,9 @@ app.use(express.static(path.join(__dirname, "public"), {
   },
 }));
 
-// P0-3: user-facing docs. The footer links to /docs/PRIVACY.md and
-// /docs/OPFS_USER_GUIDE.md, but express.static only serves public/ — those
-// 404'd raw. Serve a STRICT WHITELIST of the two user docs, rendered as
+// P0-3: user-facing docs. The footer and feature onboarding link to /docs/*,
+// but express.static only serves public/ — those would otherwise 404. Serve
+// a STRICT WHITELIST of user docs, rendered as
 // styled HTML pages with TOC and language switcher. The whitelist is a fixed
 // map (no req.params in the filesystem path) so there is no path-traversal
 // and no other internal docs/* file is ever exposed.
@@ -624,6 +624,9 @@ const DOCS_WHITELIST = {
   "BYOK_SETUP.md": { file: "BYOK_SETUP.md", lang: "ru", group: "BYOK_SETUP" },
   "BYOK_SETUP.en.md": { file: "BYOK_SETUP.en.md", lang: "en", group: "BYOK_SETUP" },
   "BYOK_SETUP.he.md": { file: "BYOK_SETUP.he.md", lang: "he", group: "BYOK_SETUP" },
+  "LOCAL_ASR_COMPANION_GUIDE.md": { file: "LOCAL_ASR_COMPANION_GUIDE.md", lang: "ru", group: "LOCAL_ASR" },
+  "LOCAL_ASR_COMPANION_GUIDE.en.md": { file: "LOCAL_ASR_COMPANION_GUIDE.en.md", lang: "en", group: "LOCAL_ASR" },
+  "LOCAL_ASR_COMPANION_GUIDE.he.md": { file: "LOCAL_ASR_COMPANION_GUIDE.he.md", lang: "he", group: "LOCAL_ASR" },
 };
 
 // Filenames a group exposes per language — used by the language switcher.
@@ -631,6 +634,7 @@ const DOC_GROUP_LANGS = {
   BYOK_SETUP: { ru: "BYOK_SETUP.md", en: "BYOK_SETUP.en.md", he: "BYOK_SETUP.he.md" },
   PRIVACY:    { ru: "PRIVACY.md" },
   OPFS:       { ru: "OPFS_USER_GUIDE.md" },
+  LOCAL_ASR:  { ru: "LOCAL_ASR_COMPANION_GUIDE.md", en: "LOCAL_ASR_COMPANION_GUIDE.en.md", he: "LOCAL_ASR_COMPANION_GUIDE.he.md" },
 };
 
 const _marked = require("marked");

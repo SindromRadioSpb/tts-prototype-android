@@ -8,6 +8,7 @@ const html = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
 const studio = fs.readFileSync(path.join(root, "public/js/studio-import.js"), "utf8");
 const sw = fs.readFileSync(path.join(root, "public/sw.js"), "utf8");
 const localDb = fs.readFileSync(path.join(root, "public/db/local-db.js"), "utf8");
+const onboarding = fs.readFileSync(path.join(root, "public/js/local-asr-onboarding.js"), "utf8");
 
 test("Local provider UI is hidden by default and Gemini remains first/reset default", () => {
   assert.match(html, /id="v3ImportAudioProviderWrap"[^>]*hidden/);
@@ -38,7 +39,6 @@ test("normalizer and client load before Studio and are both precached", () => {
 });
 
 test("beta onboarding is runtime-default-off and remains an exposure seam, not schema entitlement", () => {
-  const onboarding = fs.readFileSync(path.join(root, "public/js/local-asr-onboarding.js"), "utf8");
   const server = fs.readFileSync(path.join(root, "server.js"), "utf8");
   assert.match(server, /LOCAL_ASR_BETA_ENABLED \|\| "false"/);
   assert.match(server, /supportedBrowsers: \["Chrome"\]/);
@@ -49,13 +49,47 @@ test("beta onboarding is runtime-default-off and remains an exposure seam, not s
 });
 
 test("onboarding states the privacy boundary and never calls Gemini", () => {
-  const onboarding = fs.readFileSync(path.join(root, "public/js/local-asr-onboarding.js"), "utf8");
   assert.match(onboarding, /THIS COMPUTER/);
   assert.match(onboarding, /CLOUD OFF/);
   assert.doesNotMatch(onboarding, /GeminiFiles|generativelanguage\.googleapis\.com|upload\/v1beta/);
   assert.match(studio, /localAsrOom/);
   assert.match(studio, /localAsrDiskLow/);
   assert.match(studio, /localAsrModelIntegrity/);
+});
+
+test("pairing help names the exact Companion control and remains session-only", () => {
+  assert.match(onboarding, /localAsrTokenHelpTitle/);
+  assert.match(onboarding, /Copy token for browser/);
+  assert.match(onboarding, /Windows Start/);
+  assert.match(onboarding, /LOCAL_ASR_COMPANION_GUIDE/);
+  const client = fs.readFileSync(path.join(root, "public/js/local-asr-client.js"), "utf8");
+  assert.match(client, /getPairingToken[\s\S]*browserStore\("session"\)/);
+  assert.doesNotMatch(client, /localStorage[^\n]*PAIRING_TOKEN|PAIRING_TOKEN[^\n]*localStorage/i);
+});
+
+test("Local ASR help is allowlisted, localized, and available in the offline shell", () => {
+  const server = fs.readFileSync(path.join(root, "server.js"), "utf8");
+  for (const filename of [
+    "LOCAL_ASR_COMPANION_GUIDE.md",
+    "LOCAL_ASR_COMPANION_GUIDE.en.md",
+    "LOCAL_ASR_COMPANION_GUIDE.he.md",
+  ]) {
+    assert.ok(fs.existsSync(path.join(root, "docs", filename)), filename + " must exist");
+    assert.match(server, new RegExp(filename.replace(/\./g, "\\.")));
+    assert.match(sw, new RegExp("/docs/" + filename.replace(/\./g, "\\.")));
+  }
+});
+
+test("Companion presents pairing as a primary task and bundles the same help canon", () => {
+  const companion = fs.readFileSync(path.join(root, "ai-local/ai_local/companion.py"), "utf8");
+  const build = fs.readFileSync(path.join(root, "ai-local/scripts/build_companion.ps1"), "utf8");
+  const installer = fs.readFileSync(path.join(root, "ai-local/installer/LinguistProLocalAsr.iss"), "utf8");
+  assert.match(companion, /Connect LinguistPro in Chrome/);
+  assert.match(companion, /Copy token for browser/);
+  assert.doesNotMatch(companion, /Chrome\/Edge/);
+  assert.match(companion, /Help \/ Справка/);
+  assert.match(build, /LOCAL_ASR_COMPANION_GUIDE\.md/);
+  assert.match(installer, /Local ASR help \(RU\)/);
 });
 
 test("380px pairing layout resets the row flex-basis after switching to column", () => {

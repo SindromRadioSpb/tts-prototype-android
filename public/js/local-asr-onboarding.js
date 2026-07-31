@@ -15,6 +15,11 @@
   function el(id) { return document.getElementById(id); }
   function text(id, value) { var node = el(id); if (node) node.textContent = value; }
   function show(id, visible) { var node = el(id); if (node) node.hidden = !visible; }
+  function guideUrl() {
+    var locale = typeof window.appGetLocale === "function" ? window.appGetLocale() : "ru";
+    var suffix = locale === "en" ? ".en" : locale === "he" ? ".he" : "";
+    return "/docs/LOCAL_ASR_COMPANION_GUIDE" + suffix + ".md";
+  }
 
   function ensureModal() {
     if (el("localAsrBetaModal")) return;
@@ -35,14 +40,14 @@
       '  <div class="local-asr-requirements" id="localAsrRequirements"></div>',
       '  <ol class="local-asr-steps">',
       '    <li><div><b id="localAsrDownloadTitle"></b><span id="localAsrDownloadNote"></span></div><a id="localAsrDownload" class="btn-secondary" rel="noopener"></a></li>',
-      '    <li><div><b id="localAsrConnectTitle"></b><span id="localAsrConnectNote"></span></div><div class="local-asr-inline"><input id="localAsrToken" type="password" autocomplete="off" spellcheck="false"><button id="localAsrConnect" type="button" class="btn-secondary"></button></div></li>',
+      '    <li><div><b id="localAsrConnectTitle"></b><span id="localAsrConnectNote"></span><details class="local-asr-token-help"><summary id="localAsrTokenHelpTitle"></summary><ol><li id="localAsrTokenStep1"></li><li id="localAsrTokenStep2"></li><li id="localAsrTokenStep3"></li></ol><p id="localAsrTokenSecurity"></p></details></div><div class="local-asr-inline"><input id="localAsrToken" type="password" autocomplete="off" spellcheck="false"><button id="localAsrConnect" type="button" class="btn-secondary"></button></div></li>',
       '    <li><div><b id="localAsrDeviceTitle"></b><span id="localAsrDeviceState"></span></div><button id="localAsrDeviceCheck" type="button" class="btn-secondary"></button></li>',
       '    <li><div><b id="localAsrModelTitle"></b><span id="localAsrModelState"></span><progress id="localAsrModelProgress" max="100" value="0"></progress></div><div class="local-asr-actions"><button id="localAsrInstall" type="button" class="btn-primary"></button><button id="localAsrInstallCancel" type="button" class="btn-secondary"></button><button id="localAsrModelDelete" type="button" class="btn-secondary"></button></div></li>',
       '    <li><div><b id="localAsrWarmTitle"></b><span id="localAsrWarmState"></span></div><button id="localAsrWarm" type="button" class="btn-secondary"></button></li>',
       '    <li><div><b id="localAsrChooseTitle"></b><span id="localAsrChooseNote"></span></div><button id="localAsrChoose" type="button" class="btn-primary"></button></li>',
       '  </ol>',
       '  <div id="localAsrBetaStatus" class="local-asr-beta-status" aria-live="polite"></div>',
-      '  <button id="localAsrLeaveBeta" type="button" class="local-asr-leave"></button>',
+      '  <div class="local-asr-support"><a id="localAsrHelp" target="_blank" rel="noopener"></a><button id="localAsrLeaveBeta" type="button" class="local-asr-leave"></button></div>',
       '</div>',
     ].join("");
     document.body.appendChild(modal);
@@ -60,7 +65,12 @@
       : T("studio.localAsrBeta.downloadInvite", "The installer is supplied separately with your invitation."));
     text("localAsrDownload", T("studio.localAsrBeta.download", "Download Companion"));
     text("localAsrConnectTitle", T("studio.localAsrBeta.connectTitle", "Connect this browser session"));
-    text("localAsrConnectNote", T("studio.localAsrBeta.connectNote", "Open the Companion, copy its pairing token, and paste it here. The token is kept only until this tab closes."));
+    text("localAsrConnectNote", T("studio.localAsrBeta.connectNote", "The Companion creates the token automatically. Copy it from the connection section and paste it here."));
+    text("localAsrTokenHelpTitle", T("studio.localAsrBeta.tokenHelpTitle", "Where do I get the token?"));
+    text("localAsrTokenStep1", T("studio.localAsrBeta.tokenStep1", "Open Windows Start → LinguistPro → LinguistPro Local ASR Companion."));
+    text("localAsrTokenStep2", T("studio.localAsrBeta.tokenStep2", "Wait for RUNNING, then click Copy token for browser in Connect LinguistPro in Chrome."));
+    text("localAsrTokenStep3", T("studio.localAsrBeta.tokenStep3", "Return to this tab, paste the token, and click Connect."));
+    text("localAsrTokenSecurity", T("studio.localAsrBeta.tokenSecurity", "The token stays only in this browser session. Repeat after closing the tab; do not share it."));
     el("localAsrToken").placeholder = T("studio.localAsrBeta.tokenPlaceholder", "Pairing token");
     text("localAsrConnect", T("studio.localAsrBeta.connect", "Connect"));
     text("localAsrDeviceTitle", T("studio.localAsrBeta.deviceTitle", "Check device"));
@@ -74,6 +84,8 @@
     text("localAsrChooseTitle", T("studio.localAsrBeta.chooseTitle", "Choose Local for one import"));
     text("localAsrChooseNote", T("studio.localAsrBeta.chooseNote", "The import dialog still opens on Gemini. Select Local explicitly for each Local job."));
     text("localAsrChoose", T("studio.localAsrBeta.choose", "Open audio import"));
+    text("localAsrHelp", T("studio.localAsrBeta.help", "Open the complete install and usage guide"));
+    el("localAsrHelp").href = guideUrl();
     text("localAsrLeaveBeta", T("studio.localAsrBeta.leave", "Leave this beta on this browser"));
   }
 
@@ -89,6 +101,7 @@
     el("localAsrLeaveBeta").addEventListener("click", leaveBeta);
     el("localAsrBetaModal").addEventListener("click", function (event) { if (event.target === el("localAsrBetaModal")) close(); });
     document.addEventListener("keydown", function (event) { if (event.key === "Escape" && !el("localAsrBetaModal").hidden) close(); });
+    document.addEventListener("i18n:changed", localize);
   }
 
   function setStatus(message, kind) {
@@ -108,7 +121,7 @@
           : /INTEGRITY|HASH|CHECKSUM/i.test(detail)
             ? T("studio.localAsrBeta.errIntegrity", "Model verification failed. Delete the partial/model files and retry the same pinned revision.")
             : /PAIRING|HTTP_401/i.test(detail)
-              ? T("studio.localAsrBeta.errPairing", "Pairing failed. Copy a new token from the Companion and try again.")
+              ? T("studio.localAsrBeta.errPairing", "Pairing failed. Copy the current token from the Companion, replace this field, and try again.")
               : T("studio.localAsrBeta.errDown", "The Companion is unavailable. Start it on this computer; Gemini was not called.");
       setStatus(message, "error");
       throw error;

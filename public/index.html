@@ -3606,12 +3606,20 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .local-asr-inline,.local-asr-actions { display:flex; gap:7px; align-items:center; flex-wrap:wrap; }
 .local-asr-inline input { width:min(270px,54vw); min-width:160px; }
 .local-asr-steps progress { display:block; width:100%; height:7px; margin-top:8px; accent-color:#0b7673; }
+.local-asr-token-help { margin-top:8px; padding:8px 10px; border-inline-start:3px solid #0b7673; background:color-mix(in srgb,#0b7673 7%,var(--theme-bg-card,#fff)); border-radius:0 7px 7px 0; font-size:12px; overflow-wrap:anywhere; }
+[dir="rtl"] .local-asr-token-help { border-radius:7px 0 0 7px; }
+.local-asr-token-help summary { color:#086b68; cursor:pointer; font-weight:700; }
+.local-asr-token-help ol { margin:7px 0 5px; padding-inline-start:20px; }
+.local-asr-token-help li { margin:4px 0; line-height:1.4; }
+.local-asr-token-help p { margin:6px 0 0; color:var(--theme-text-secondary,#64717c); line-height:1.4; }
 .local-asr-beta-status { min-height:38px; margin-top:14px; padding:9px 11px; border-radius:8px; background:var(--theme-bg-soft,#f3f6f8); font-size:13px; }
 .local-asr-beta-status[data-kind="ok"] { color:#075e55; background:#e5f5f1; }
 .local-asr-beta-status[data-kind="error"] { color:#8e2f23; background:#faece8; }
 .local-asr-beta-status[data-kind="warn"] { color:#79540a; background:#fff4d7; }
 .local-asr-beta-panel [aria-disabled="true"] { opacity:.52; pointer-events:none; cursor:not-allowed; }
-.local-asr-leave { margin-top:10px; padding:0; border:0; background:transparent; color:var(--theme-text-secondary,#68747d); font-size:12px; text-decoration:underline; cursor:pointer; }
+.local-asr-support { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:10px; }
+.local-asr-support a,.local-asr-leave { padding:0; border:0; background:transparent; color:#086b68; font-size:12px; text-decoration:underline; cursor:pointer; }
+.local-asr-leave { color:var(--theme-text-secondary,#68747d); }
 @media (max-width:600px) {
   .local-asr-beta-modal { padding:0; place-items:end center; }
   .local-asr-beta-panel { max-height:94vh; border-radius:18px 18px 0 0; padding:20px 16px calc(20px + env(safe-area-inset-bottom)); }
@@ -12413,9 +12421,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=85"></script>
-<script src="/i18n/locales/en.js?v=85"></script>
-<script src="/i18n/locales/he.js?v=85"></script>
+<script src="/i18n/locales/ru.js?v=86"></script>
+<script src="/i18n/locales/en.js?v=86"></script>
+<script src="/i18n/locales/he.js?v=86"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12562,7 +12570,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.276";
+    window.APP_VERSION = "3.11.277";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

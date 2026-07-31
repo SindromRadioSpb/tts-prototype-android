@@ -205,7 +205,7 @@ baseline: разборчивость, никуд/ударение, имена, �
 | P0 | Провенанс/schema B | ✅ BOUNDED DONE | backup parity + portable segment identity; schema migration не потребовалась |
 | P0 | UX/data C | ✅ BOUNDED DONE | explicit SHA dedupe + `text_audio_asset_key` round-trip |
 | P0 | **L1 local ivrit.ai ASR** | 🟡 ENGINEERING PASS | batch/browser/B+C PASS; owner acceptance open; permanent NO-GO |
-| P0 | **L1 Windows invite beta enablement** | 🟢 CHROME INVITE BETA LIVE | Companion/onboarding/install/decode/uninstall PASS; unsigned owner/trusted distribution approved; production `v3.11.276` onboarding verified; output is first-draft quality; quality studies recommended; Edge excluded |
+| P0 | **L1 Windows invite beta enablement** | 🟢 CHROME INVITE BETA LIVE | Companion beta.2 with explicit token path/offline help installed locally; production remains `v3.11.276`; install/decode/uninstall PASS; unsigned owner/trusted distribution approved; output is first-draft quality; quality studies recommended; Edge excluded |
 | P0/P1 | **L2 resumable jobs + batch** | ⬜ | L1 contract stable; restart/fault tests |
 | P1 | **L3 Media Package/editor** | ⬜ | segment identity closed; round-trip artifact |
 | P1 | **L4 local translation+nikud** | ⬜ | shared scheduler; independent quality gates |
@@ -242,6 +242,12 @@ flow. Runtime exposure is on, enrollment remains explicit and browser-local, Gem
 default, and there is no implicit fallback. Production disk is now 90% used with 3.7 GB free; no
 cleanup was performed, and another build/deploy requires a separate disk decision.
 Firefox remains outside the first beta support matrix.
+
+The pairing-discoverability follow-up produced unsigned Companion beta.2 (1,766,474,350 bytes,
+SHA-256 `32ac13e03417c358dfcc04f10a50132fd9c7ad7f308076b6f75d82661f68c7ba`) with a dedicated
+copy-token path and bundled RU/EN/HE guide. The owner machine passed an in-place beta.1 → beta.2
+update without losing its exact model or two completed jobs. Web onboarding/help `v3.11.277` is
+locally tested but not pushed or deployed because the existing production disk stop remains active.
 
 Owner decision on 2026-07-31 reclassifies the ten Mia listen/read checkpoints, the 12–15 minute/
 four-speaker beta human-gold study, and the former 60-minute/12-speaker permanent study as

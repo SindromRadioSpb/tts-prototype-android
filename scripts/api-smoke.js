@@ -171,6 +171,24 @@ async function run() {
     }
     console.log(`PASS /api/client-config -> version ${swVer} matches public/sw.js CACHE_VERSION`);
 
+    // Local ASR beta help is a durable user path, not an internal planning doc.
+    // Prove all allowlisted locales render through the same safe Markdown route.
+    for (const [filename, htmlLang] of [
+      ["LOCAL_ASR_COMPANION_GUIDE.md", "ru"],
+      ["LOCAL_ASR_COMPANION_GUIDE.en.md", "en"],
+      ["LOCAL_ASR_COMPANION_GUIDE.he.md", "he"],
+    ]) {
+      const guideRes = await fetch(`${BASE_URL}/docs/${filename}`);
+      const guideHtml = await guideRes.text();
+      if (!guideRes.ok || !/text\/html/i.test(guideRes.headers.get("content-type") || "")) {
+        throw new Error(`Local ASR guide ${filename} did not render as HTML: ${guideRes.status}`);
+      }
+      if (!new RegExp(`<html[^>]*lang="${htmlLang}"`).test(guideHtml) || !guideHtml.includes("Local ASR Companion")) {
+        throw new Error(`Local ASR guide ${filename} rendered with wrong language/title`);
+      }
+    }
+    console.log("PASS /docs/LOCAL_ASR_COMPANION_GUIDE* -> RU/EN/HE rendered from allowlisted canon");
+
     // H2.4: Nakdan is an authenticated first-party mutation surface. Prove that
     // cross-origin and anonymous calls stop before the external provider path.
     const NAKDAN_URL = `${BASE_URL}/api/niqqud/on-demand`;

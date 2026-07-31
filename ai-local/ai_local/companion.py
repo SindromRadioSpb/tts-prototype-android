@@ -16,8 +16,13 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-APP_VERSION = "0.2.0-beta.1"
+APP_VERSION = "0.2.0-beta.2"
 PRODUCTION_ORIGIN = "https://linguistpro.kolosei.com"
+GUIDE_FILENAMES = {
+    "ru": "LOCAL_ASR_COMPANION_GUIDE.md",
+    "en": "LOCAL_ASR_COMPANION_GUIDE.en.md",
+    "he": "LOCAL_ASR_COMPANION_GUIDE.he.md",
+}
 
 
 def _bootstrap_environment() -> Path:
@@ -64,6 +69,21 @@ CONTROL_TOKEN_FILE = CONTROL_ROOT / "control-token"
 STOP_REQUEST_FILE = CONTROL_ROOT / "stop-request"
 
 
+def bundled_guide_path(language: str = "ru") -> Path:
+    """Resolve an allowlisted guide from source or the frozen Companion bundle."""
+    filename = GUIDE_FILENAMES.get(language, GUIDE_FILENAMES["ru"])
+    roots = (
+        Path(sys.executable).parent,
+        Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent)),
+        Path(__file__).resolve().parents[2],
+    )
+    for root in roots:
+        candidate = root / "docs" / filename
+        if candidate.is_file():
+            return candidate
+    raise FileNotFoundError(f"BUNDLED_GUIDE_MISSING:{filename}")
+
+
 def _atomic_text(path: Path, value: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temp = path.with_suffix(path.suffix + ".tmp")
@@ -108,8 +128,12 @@ def service_status() -> dict[str, Any]:
     capability = _capability()
     pid = _owned_pid()
     port_check = next(item for item in preflight_report()["checks"] if item["code"] == "PORT_8799")
-    if capability:
+    if capability and pid is not None:
         state = "RUNNING"
+    elif capability:
+        # A valid protocol listener is still not ours unless its PID is
+        # authenticated by the per-user control state and executable path.
+        state = "UNOWNED_COMPANION"
     elif port_check["observed"].get("state") == "foreign_listener":
         state = "PORT_CONFLICT"
     elif pid is not None:
@@ -128,6 +152,8 @@ def start_service(timeout_sec: float = 20.0) -> dict[str, Any]:
     current = service_status()
     if current["state"] == "RUNNING":
         return current
+    if current["state"] == "UNOWNED_COMPANION":
+        raise RuntimeError("UNOWNED_COMPANION_PROCESS")
     if current["state"] == "PORT_CONFLICT":
         raise RuntimeError("PORT_CONFLICT")
     CONTROL_ROOT.mkdir(parents=True, exist_ok=True)
@@ -149,6 +175,8 @@ def start_service(timeout_sec: float = 20.0) -> dict[str, Any]:
         status = service_status()
         if status["state"] == "RUNNING":
             return status
+        if status["state"] == "UNOWNED_COMPANION":
+            raise RuntimeError("UNOWNED_COMPANION_PROCESS")
         if status["state"] == "PORT_CONFLICT":
             raise RuntimeError("PORT_CONFLICT")
         time.sleep(0.25)
@@ -257,11 +285,12 @@ class CompanionWindow:
         self.ttk = ttk
         self.root = tk.Tk()
         self.root.title("LinguistPro Local ASR Companion")
-        self.root.geometry("720x560")
-        self.root.minsize(620, 500)
+        self.root.geometry("760x650")
+        self.root.minsize(660, 600)
         self.status_var = tk.StringVar(value="Checking Companion…")
         self.device_var = tk.StringVar(value="Checking Windows/NVIDIA/CUDA…")
         self.model_var = tk.StringVar(value="Checking pinned model…")
+        self.pairing_var = tk.StringVar(value="The token is created automatically. Start the service, then copy it here.")
         self.progress_var = tk.DoubleVar(value=0)
         self._build()
         threading.Thread(target=self._ensure_started, daemon=True).start()
@@ -273,7 +302,7 @@ class CompanionWindow:
         frame = ttk.Frame(self.root, padding=22)
         frame.pack(fill="both", expand=True)
         ttk.Label(frame, text="Local Hebrew transcription", font=("Segoe UI Semibold", 20)).pack(anchor="w")
-        ttk.Label(frame, text="Invite-only beta · Windows 11 · NVIDIA/CUDA · Chrome/Edge").pack(anchor="w", pady=(2, 14))
+        ttk.Label(frame, text="Invite-only beta · Windows 11 · NVIDIA/CUDA · Chrome").pack(anchor="w", pady=(2, 14))
         privacy = ttk.Label(
             frame,
             text="MEDIA  →  THIS COMPUTER  →  127.0.0.1     ☁ cloud upload: off",
@@ -289,9 +318,21 @@ class CompanionWindow:
             ttk.Label(row, textvariable=variable, wraplength=500).pack(side="left", fill="x", expand=True)
         ttk.Progressbar(frame, variable=self.progress_var, maximum=100).pack(fill="x", pady=(10, 16))
 
+        pairing = ttk.LabelFrame(frame, text="Connect LinguistPro in Chrome", padding=12)
+        pairing.pack(fill="x", pady=(5, 8))
+        ttk.Label(
+            pairing,
+            text="1. Wait for Companion: RUNNING   2. Copy the token   3. Paste it in Settings → Experimental Local ASR",
+            wraplength=680,
+        ).pack(anchor="w")
+        pairing_actions = ttk.Frame(pairing)
+        pairing_actions.pack(fill="x", pady=(9, 2))
+        ttk.Button(pairing_actions, text="Copy token for browser", command=self._copy_token).pack(side="left")
+        ttk.Label(pairing_actions, textvariable=self.pairing_var, wraplength=455).pack(side="left", padx=(12, 0), fill="x", expand=True)
+
         service = ttk.LabelFrame(frame, text="Service", padding=10)
         service.pack(fill="x", pady=5)
-        for label, action in (("Start", self._start), ("Stop", self._stop), ("Restart", self._restart), ("Copy pairing token", self._copy_token)):
+        for label, action in (("Start", self._start), ("Stop", self._stop), ("Restart", self._restart)):
             ttk.Button(service, text=label, command=action).pack(side="left", padx=4)
 
         model = ttk.LabelFrame(frame, text="Model and local data", padding=10)
@@ -302,6 +343,7 @@ class CompanionWindow:
         support = ttk.Frame(frame)
         support.pack(fill="x", pady=(12, 0))
         ttk.Button(support, text="Export redacted diagnostics…", command=self._diagnostics).pack(side="left")
+        ttk.Button(support, text="Help / Справка", command=self._open_help).pack(side="left", padx=(8, 0))
         ttk.Label(
             frame,
             text=f"Companion {APP_VERSION} · model revision {ASR_MODEL_REVISION[:12]}… · Apache-2.0 · unsigned internal build",
@@ -341,7 +383,22 @@ class CompanionWindow:
         token = pairing_token()
         self.root.clipboard_clear()
         self.root.clipboard_append(token)
-        self.status_var.set("Pairing token copied; it is not included in diagnostics or product storage.")
+        self.pairing_var.set("Copied. Return to LinguistPro, paste it, and click Connect.")
+        self.status_var.set("RUNNING · pairing token copied for this browser session")
+
+    def _open_help(self) -> None:
+        try:
+            guide = bundled_guide_path("ru")
+            subprocess.Popen(
+                ["notepad.exe", str(guide)],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                close_fds=True,
+            )
+            self.pairing_var.set("Help opened in Notepad. English and Hebrew guides are bundled too.")
+        except Exception as exc:
+            self._error(str(exc))
 
     def _install(self) -> None:
         from tkinter import messagebox

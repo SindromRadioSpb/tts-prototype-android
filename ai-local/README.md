@@ -39,6 +39,13 @@ runtime/disk/port preflight, explicit pinned-model download/cancel/delete, warmu
 redacted diagnostic export. It binds only `127.0.0.1:8799` and stores model/jobs/state only under
 `%LOCALAPPDATA%\LinguistPro\LocalASR`. Uninstall removes that exact managed tree.
 
+Pairing requires no file search or command line: open **Windows Start → LinguistPro → LinguistPro
+Local ASR Companion**, wait for `RUNNING`, then use **Connect LinguistPro in Chrome → Copy token
+for browser**. Paste it into **Settings → Experimental Local ASR → Connect**. The web product keeps
+the token in `sessionStorage`, not durable product state. The complete RU/EN/HE guide is served at
+`/docs/LOCAL_ASR_COMPANION_GUIDE.md` and the same guide files are bundled with the Companion; the
+RU guide is available from both **Help / Справка** and the Start menu.
+
 The matching product onboarding is live for the Chrome-only invite beta on production
 `v3.11.276`. The server runtime gate is enabled, but enrollment and Local selection remain explicit;
 Gemini remains default and is never an automatic fallback. Edge and Firefox are not advertised for

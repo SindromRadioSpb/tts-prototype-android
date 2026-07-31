@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.276";
+const CACHE_VERSION = "v3.11.277";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -131,6 +131,9 @@ const PRECACHE_URLS = [
   "/js/local-asr-normalizer.js",
   "/js/local-asr-client.js",
   "/js/local-asr-onboarding.js",
+  "/docs/LOCAL_ASR_COMPANION_GUIDE.md",
+  "/docs/LOCAL_ASR_COMPANION_GUIDE.en.md",
+  "/docs/LOCAL_ASR_COMPANION_GUIDE.he.md",
   // W2-S12 — pure чанк-математика длинной таблицы (buildChunks/offsetRows/coverage), consumed
   // by translateTable()'s chunk-cycle fork; must precache like its ASR-windowing sibling above,
   // or an offline session after a CACHE_VERSION bump loses window.TableChunks silently.

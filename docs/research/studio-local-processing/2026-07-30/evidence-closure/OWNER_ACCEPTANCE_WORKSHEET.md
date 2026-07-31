@@ -65,3 +65,11 @@ horizontal overflow. No schema or production-data mutation occurred.
 Operational note: deployment builds raised host disk use to 90% (3.7 GB free). No cleanup was
 authorized or performed. Treat disk remediation/capacity approval as a stop boundary before the
 next build or deploy, not as a Local ASR quality gate.
+
+## Pairing-help follow-up (2026-07-31)
+
+Companion beta.2 is installed locally with a dedicated **Connect LinguistPro in Chrome → Copy token
+for browser** action, bundled RU/EN/HE guides, a **Help / Справка** control, and a Start-menu RU help
+shortcut. The web pairing explanation and full-guide link are locally ready as `v3.11.277`, but are
+not production-deployed because the 90% disk stop boundary remains in force. This usability work
+does not change the recommended/non-blocking status of the listen/read and human-gold evidence.

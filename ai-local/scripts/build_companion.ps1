@@ -44,6 +44,9 @@ function Resolve-ExactFfmpegBinary([string]$Name) {
 $Ffmpeg = Resolve-ExactFfmpegBinary "ffmpeg"
 $Ffprobe = Resolve-ExactFfmpegBinary "ffprobe"
 $Notices = Join-Path $AiLocalRoot "THIRD_PARTY_NOTICES.md"
+$GuideRu = Join-Path $RepoRoot "docs\LOCAL_ASR_COMPANION_GUIDE.md"
+$GuideEn = Join-Path $RepoRoot "docs\LOCAL_ASR_COMPANION_GUIDE.en.md"
+$GuideHe = Join-Path $RepoRoot "docs\LOCAL_ASR_COMPANION_GUIDE.he.md"
 $SitePackages = Join-Path $VenvRoot "Lib\site-packages"
 $CudnnBin = Join-Path $SitePackages "nvidia\cudnn\bin"
 $CublasBin = Join-Path $SitePackages "nvidia\cublas\bin"
@@ -53,7 +56,7 @@ Get-ChildItem $CudnnBin,$CublasBin -File -Filter *.dll | ForEach-Object {
 }
 $CudnnLicense = Join-Path $SitePackages "nvidia_cudnn_cu12-9.10.2.21.dist-info\licenses\License.txt"
 $CublasLicense = Join-Path $SitePackages "nvidia_cublas_cu12-12.1.3.1.dist-info\License.txt"
-$InstallerName = "LinguistProLocalAsrCompanion-0.2.0-beta.1-unsigned-internal.exe"
+$InstallerName = "LinguistProLocalAsrCompanion-0.2.0-beta.2-unsigned-internal.exe"
 $PreviousInstaller = Join-Path $ArtifactRoot $InstallerName
 foreach ($PriorArtifact in @($PreviousInstaller, (Join-Path $ArtifactRoot "build-report.json"))) {
   if (Test-Path -LiteralPath $PriorArtifact) {
@@ -83,6 +86,9 @@ foreach ($PriorArtifact in @($PreviousInstaller, (Join-Path $ArtifactRoot "build
   --add-binary "$Ffmpeg;bin" `
   --add-binary "$Ffprobe;bin" `
   --add-data "$Notices;." `
+  --add-data "$GuideRu;docs" `
+  --add-data "$GuideEn;docs" `
+  --add-data "$GuideHe;docs" `
   --add-data "$CudnnLicense;licenses/nvidia-cudnn-cu12" `
   --add-data "$CublasLicense;licenses/nvidia-cublas-cu12" `
   $CudaBinaryArgs `
@@ -155,7 +161,7 @@ $BuildReport = [ordered]@{
   generated_at = [DateTime]::UtcNow.ToString("o")
   source_commit = (git -C $RepoRoot rev-parse HEAD)
   source_worktree_dirty = [bool](@(git -C $RepoRoot status --porcelain --untracked-files=normal).Count)
-  companion_version = "0.2.0-beta.1"
+  companion_version = "0.2.0-beta.2"
   signing_status = $SigningStatus
   frozen_executable = $BuiltExe
   frozen_smoke = [ordered]@{

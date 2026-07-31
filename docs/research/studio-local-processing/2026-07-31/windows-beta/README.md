@@ -13,8 +13,8 @@ can invoke it automatically.
 
 ## Measured result
 
-- Installer: 1,766,465,078 bytes; SHA-256
-  `1079fc4e09c038c1704f503228285a097347dfc25ae267f3e287289feca0acbe`.
+- Current installer beta.2: 1,766,474,350 bytes; SHA-256
+  `32ac13e03417c358dfcc04f10a50132fd9c7ad7f308076b6f75d82661f68c7ba`.
 - Signature: `NotSigned`; owner-approved trusted-cohort beta only, with a visible unsigned warning.
 - Provenance: built from the scoped dirty worktree at HEAD `77c48d139…`; a rebuild from the final
   clean commit remains required for any future signed/public artifact.
@@ -32,6 +32,13 @@ The 1.77 GB installer is a material beta finding. It avoids asking users to inst
 DLLs manually, but makes the total initial transfer roughly 3.39 GB before compression/HTTP
 effects when combined with the separate 1.62 GB model. The owner accepted this tradeoff for the
 bounded noncommercial trusted cohort.
+
+Beta.2 makes pairing discoverable: the Companion has a dedicated **Connect LinguistPro in Chrome**
+section with **Copy token for browser**, plus **Help / Справка** and a Start-menu guide shortcut.
+The same canonical RU/EN/HE Markdown guides are bundled in the installer and allowlisted by the web
+server. An in-place update preserved the pinned model and two completed jobs; beta.2 frozen
+start/health/stop passed. A supervisor-compatible but unowned listener is no longer accepted as an
+owned `RUNNING` service.
 
 ## Reproduce
 
@@ -72,6 +79,10 @@ health checks passed, the advertised matrix is Chrome only, and no installer URL
 exposed. Production Chrome rendered the full Companion/pairing/preflight/model/warmup/explicit-
 Local flow. Narrow LTR and RTL measurements had no page, dialog, or child horizontal overflow.
 No schema or production-data mutation occurred.
+
+The corresponding web pairing explanation and locale-aware guide link are locally complete as
+`v3.11.277`, with 380 px wrapping and RTL-safe styles, but have not been pushed or deployed.
+Production remains `v3.11.276` because the disk-capacity stop below is still active.
 
 The host reached 90% disk use with 3.7 GB free after the deployment builds. No cleanup was
 performed. Another build/deploy must stop for a separate disk-capacity or cleanup decision first.
