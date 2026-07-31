@@ -4,6 +4,11 @@
 > **Code:** `33ba3f49129f72e7ce5f5d1eea90c4a674d93407`
 > **Current decision:** bounded engineering/evidence PASS; permanent integration NO-GO.
 
+> **Superseding owner decision — 2026-07-31:** owner listen/read, four-speaker human-gold, and the
+> former 60-minute/12-speaker study are recommended evidence rather than mandatory blockers.
+> Permanent integration remains `NO-GO` pending a separate explicit owner authorization, not these
+> studies.
+
 ## What changed
 
 The approved accelerated slice closed the three concrete engineering gates left by the limited
@@ -23,7 +28,7 @@ performed.
 | B+C integrity | PASS: portable identity, explicit SHA dedupe, backup/text-card parity |
 | Cloud boundary | PASS: zero Gemini requests/uploads; spend = 0 |
 
-## Still not proved
+## Recommended evidence not yet proved
 
 - owner listen/read acceptance and an owner-chosen absolute product-quality threshold;
 - expanded independent human-gold population coverage;

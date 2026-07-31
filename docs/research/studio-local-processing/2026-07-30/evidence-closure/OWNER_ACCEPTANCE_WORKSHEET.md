@@ -26,16 +26,16 @@ Notes / observed regressions:
 
 ______________________________________________________________________________
 
-## Separate Windows invite-beta acceptance (2026-07-31)
+## Separate Windows invite-beta recommended evidence (2026-07-31)
 
-The Windows Companion and onboarding engineering slice is locally complete, but the beta quality
-decision is not. Use
+The Windows Companion and onboarding engineering slice is locally complete. The worksheet remains
+available as recommended evidence, not a beta blocker. Use
 `docs/research/studio-local-processing/2026-07-31/windows-beta/OWNER_BLINDED_LISTEN_READ_WORKSHEET.md`.
-Its required 12–15 minute/four-speaker independent human-gold source set is not yet frozen.
+Its optional 12–15 minute/four-speaker independent human-gold source set is not yet frozen.
 
-Owner decision on 2026-07-31: the human-gold check will be performed on production during the
-trusted-cohort beta. This removes it as a pre-deploy blocker but does not mark it PASS; observations,
-threshold, source provenance, and decision still belong in the blinded worksheet.
+Owner decision on 2026-07-31: the four-speaker human-gold check and ten Mia listen/read checkpoints
+are recommended, not mandatory. This does not mark either PASS; any later observations, threshold,
+source provenance, and decision still belong in the blinded worksheet.
 
 The 30:05.82 Mia Schem production-origin Local run is retained for owner listen/read review and
 passed engineering integrity. Its comparison target, `Заложница Миа. Интервью v2`, is Gemini ASR
@@ -48,8 +48,8 @@ name/meaning errors, and Local row over-fragmentation. Current evidence therefor
 a fast first draft with mandatory review, not as an automatically publishable transcript. Review
 the ten timestamp checkpoints in
 `docs/research/studio-local-processing/2026-07-31/windows-beta/MIA_LOCAL_VS_GEMINI_COMPARISON.md`
-before setting the owner beta threshold.
+if the owner elects to gather additional quality evidence.
 
-This smaller beta gate does not cancel, close, or silently revise the permanent
-60-minute/12-speaker paired-Gemini gate. The owner-provided offline Gemini-card comparison used no
-new cloud request or spend and does not satisfy that permanent gate.
+The owner also reclassified the former permanent 60-minute/12-speaker paired-Gemini gate as
+recommended rather than mandatory. The owner-provided offline Gemini-card comparison used no new
+cloud request or spend. Permanent integration still requires a separate explicit owner decision.

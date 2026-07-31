@@ -1,6 +1,6 @@
 # Windows Local ASR invite-only beta — blinded owner worksheet
 
-Status: `BLOCKED_SOURCE_SET_NOT_FROZEN`. This worksheet does not close the beta acceptance gate.
+Status: `OPTIONAL_RECOMMENDED_EVIDENCE_NOT_FROZEN`. This worksheet is not a beta blocker.
 
 ## Frozen-set requirements
 
@@ -34,5 +34,6 @@ Status: `BLOCKED_SOURCE_SET_NOT_FROZEN`. This worksheet does not close the beta 
 - Decision: `GO INVITE-ONLY BETA` / `NO-GO` / `REVISE AND REPEAT`
 - Date and owner signature:
 
-This decision applies only to the invite-only Windows beta. It neither closes nor revises the
-permanent 60-minute/12-speaker paired-Gemini gate.
+This decision applies only to the invite-only Windows beta. Owner decision on 2026-07-31 makes this
+worksheet and the former permanent 60-minute/12-speaker study recommended rather than mandatory.
+Neither is claimed PASS, and permanent integration still requires separate explicit authorization.

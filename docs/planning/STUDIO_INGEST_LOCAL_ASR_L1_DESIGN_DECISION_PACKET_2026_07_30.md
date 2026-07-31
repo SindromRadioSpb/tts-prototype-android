@@ -570,9 +570,14 @@ provider/model, privacy/cost, reason и получить отдельное cons
 - model checksum/disk-low/sidecar-down/cancel/OOM/thermal/slicer faults fail honestly;
 - deletion receipt подтверждает отсутствие job artifacts.
 
-### 13.3 Permanent integration exit — отдельное решение после L1-E
+### 13.3 Recommended permanent-quality evidence — owner-reclassified 2026-07-31
 
-- human-gold ≥60 minutes, ≥12 speakers, stratified by speaker/age/register/noise; exact corpus
+The owner reclassified the 60-minute/12-speaker paired-Gemini study from a mandatory permanent-
+integration exit gate to recommended evidence. The criteria below remain the canonical protocol if
+that study is run, but their absence no longer blocks a beta, deploy, or future permanent decision.
+Permanent integration still requires a separate explicit owner authorization.
+
+- recommended human-gold ≥60 minutes, ≥12 speakers, stratified by speaker/age/register/noise; exact corpus
   и consent/rights описаны;
 - на одном и том же полном set local paired WER не хуже Gemini более чем на 2 absolute pp
   overall и более чем на 5 pp в любом заранее объявленном stratum;

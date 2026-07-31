@@ -6,6 +6,11 @@
 > **Evidence:** `docs/research/studio-local-processing/2026-07-30/L1_IMPLEMENTATION_EVIDENCE.md`
 > и `l1-evidence-report.json`.
 
+> **Superseding owner decision — 2026-07-31:** the ten listen/read checkpoints, four-speaker
+> human-gold beta study, and former 60-minute/12-speaker study are recommended rather than
+> mandatory. Historical text below records the decision state on 2026-07-30; permanent integration
+> is still unauthorized until a separate owner decision.
+
 ## Решение, которое предлагается владельцу
 
 1. Принять локальные scoped-коммиты L1 как исследовательскую default-off capability.
@@ -13,8 +18,8 @@
    пользователям.
 3. Отдельно решить, разрешён ли следующий evidence-only closure slice: batch-20 через sidecar,
    Chrome/Edge/Firefox matrix и подготовка blinded human-gold/owner acceptance window.
-4. Permanent integration обсуждать только после human-gold, полного paired Gemini set, B+C и
-   owner live acceptance.
+4. Human-gold and paired Gemini remain useful recommended evidence; permanent integration itself
+   requires a separate explicit owner authorization and release-policy decision.
 
 ## Почему не GO к permanent integration
 

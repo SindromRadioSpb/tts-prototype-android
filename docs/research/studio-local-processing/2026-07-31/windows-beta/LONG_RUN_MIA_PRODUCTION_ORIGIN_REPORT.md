@@ -80,12 +80,14 @@ Observed review candidates, not automatic grading:
   earlier preliminary observation of a mistranslation was not present in the owner-supplied export
   and is withdrawn.
 
-The comparison supports semantic coverage for this one speaker/material, but does not close the
-four-speaker beta human-gold gate or the permanent 60-minute/12-speaker paired-Gemini gate.
+The comparison supports semantic coverage for this one speaker/material. Owner decision on
+2026-07-31 makes the four-speaker and 60-minute/12-speaker studies recommended rather than
+mandatory; this run does not claim either study PASS.
 
 ## Retention and next owner action
 
 The raw result, source copy, physical chunks and manifests remain only in the user-local managed job
 directory under `%LOCALAPPDATA%\LinguistPro\LocalASR\jobs\aaa366ff-a62a-4272-ac40-e081724d94e9`.
-No transcript or media was committed. Keep this job until the owner completes listen/read review;
-afterward use the Companion delete action and retain only the deletion receipt and aggregate metrics.
+No transcript or media was committed. The ten-point listen/read review is optional; keep this job
+only while the owner wants that evidence, then use the Companion delete action and retain only the
+deletion receipt and aggregate metrics.

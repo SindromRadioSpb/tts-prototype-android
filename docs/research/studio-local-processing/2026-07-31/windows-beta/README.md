@@ -62,7 +62,13 @@ loopback API with the production Origin header. The owner then completed the nat
 explicitly ran Local, saved the resulting Library card, and exported it. The UI job completed in
 71.987 seconds wall time (`model RTF 0.03446`) and preserved all 503 ASR segments into 552 timed rows.
 See `LONG_RUN_MIA_PRODUCTION_ORIGIN_REPORT.md` and `MIA_LOCAL_VS_GEMINI_COMPARISON.md`. The Edge
-production-origin ceremony and deployment of the new `v3.11.273` onboarding UI remain open.
+production-origin ceremony is not required because Edge is excluded from the first beta. Deployment
+of the new `v3.11.274` onboarding UI for a non-DevTools user flow was authorized on 2026-07-31.
+
+Owner decision on 2026-07-31 makes the ten Mia listen/read checkpoints, the four-speaker beta
+human-gold study, and the former 60-minute/12-speaker permanent study recommended rather than
+mandatory. They remain useful evidence and are not claimed PASS. Permanent integration itself
+remains unauthorized pending a separate owner decision.
 
 ## Files
 

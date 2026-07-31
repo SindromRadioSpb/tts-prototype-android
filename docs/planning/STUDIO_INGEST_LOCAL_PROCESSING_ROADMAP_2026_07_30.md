@@ -205,7 +205,7 @@ baseline: разборчивость, никуд/ударение, имена, �
 | P0 | Провенанс/schema B | ✅ BOUNDED DONE | backup parity + portable segment identity; schema migration не потребовалась |
 | P0 | UX/data C | ✅ BOUNDED DONE | explicit SHA dedupe + `text_audio_asset_key` round-trip |
 | P0 | **L1 local ivrit.ai ASR** | 🟡 ENGINEERING PASS | batch/browser/B+C PASS; owner acceptance open; permanent NO-GO |
-| P0 | **L1 Windows invite beta enablement** | 🟡 TRUSTED BETA GO | Companion/onboarding/install/decode/uninstall PASS; unsigned owner/trusted distribution approved; Chrome native file → Local job → card save/export PASS; output is first-draft quality; Edge, onboarding deploy and post-deploy human-gold remain open |
+| P0 | **L1 Windows invite beta enablement** | 🟡 TRUSTED BETA GO | Companion/onboarding/install/decode/uninstall PASS; unsigned owner/trusted distribution approved; Chrome native file → Local job → card save/export PASS; output is first-draft quality; quality studies recommended; Edge excluded; onboarding deploy authorized |
 | P0/P1 | **L2 resumable jobs + batch** | ⬜ | L1 contract stable; restart/fault tests |
 | P1 | **L3 Media Package/editor** | ⬜ | segment identity closed; round-trip artifact |
 | P1 | **L4 local translation+nikud** | ⬜ | shared scheduler; independent quality gates |
@@ -236,8 +236,14 @@ using the loopback API plus production Origin header after the Chrome-extension 
 The owner then completed native Chrome file transfer, Local processing, Library save, and export in
 the product UI. The exact export comparison shows `22.98%` token disagreement against Gemini—not
 human-gold WER—and material entity/meaning errors; Local is accepted only as a draft requiring
-human correction. Edge ceremony and deployment of the new `v3.11.273` onboarding remain open.
+human correction. Edge is excluded from the first production beta by owner decision; deployment of
+the new `v3.11.274` onboarding is authorized for the normal non-DevTools beta flow.
 Firefox remains outside the first beta support matrix.
+
+Owner decision on 2026-07-31 reclassifies the ten Mia listen/read checkpoints, the 12–15 minute/
+four-speaker beta human-gold study, and the former 60-minute/12-speaker permanent study as
+recommended rather than mandatory. Permanent integration remains `NO-GO` only pending a separate
+owner authorization and release-policy decision, not pending those studies.
 
 ## 6. Обязательные артефакты каждого local-slice
 

@@ -116,5 +116,6 @@ Review these ten bounded regions against both exports:
 9. `27:25–28:00` — tattoo and `We will dance again` repetition.
 10. `28:35–30:05.82` — physiotherapy, closing message, and final tail.
 
-This single-speaker comparison does not close the independent four-speaker beta human-gold gate or
-the permanent 60-minute/12-speaker paired-Gemini gate.
+Owner decision on 2026-07-31 makes these ten checkpoints, the independent four-speaker beta study,
+and the former permanent 60-minute/12-speaker paired-Gemini study recommended rather than
+mandatory. This comparison does not turn any of them into PASS evidence.

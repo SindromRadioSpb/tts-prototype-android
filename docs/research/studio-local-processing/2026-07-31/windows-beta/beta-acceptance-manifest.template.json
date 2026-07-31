@@ -1,6 +1,7 @@
 {
   "schema": "linguistpro-local-asr-windows-beta-acceptance-v1",
-  "status": "BLOCKED_SOURCE_SET_NOT_FROZEN",
+  "status": "OPTIONAL_RECOMMENDED_EVIDENCE_NOT_FROZEN",
+  "blocking": false,
   "targetDurationMinutes": { "minimum": 12, "maximum": 15 },
   "minimumIndependentSpeakers": 4,
   "conditions": ["clean_read", "conversation", "moderate_noise", "names_and_numbers"],

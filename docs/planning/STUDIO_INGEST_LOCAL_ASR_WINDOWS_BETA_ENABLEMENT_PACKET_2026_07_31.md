@@ -19,17 +19,37 @@ Owner follow-up decision, quoted verbatim on 2026-07-31:
 > проведу по факту на проде. 4. готов Проверить работу с настоящего production-origin»
 
 Operational interpretation: unsigned out-of-band distribution is `GO` only for the owner and
-people the owner personally trusts; human-gold becomes a post-deploy beta observation gate rather
-than a pre-deploy blocker; real production-origin browser verification is authorized. This does
+people the owner personally trusts; real production-origin browser verification is authorized. This does
 not authorize push, deploy, installer hosting, production flags, public distribution, or permanent
 integration. The owner's noncommercial/license decision removes the internal product-policy review
 gate for this cohort; it is recorded as owner risk acceptance, not an independent legal opinion.
+
+Owner quality-gate reclassification, quoted verbatim on 2026-07-31:
+
+> «Утверждаю: из блокеров перемещаем в рекомендованные а не обязательные десять listen/read-
+> фрагментов, четырёхдикторный human-gold beta gate, постоянный gate 60 минут/12 дикторов.»
+
+Operational interpretation: all three are recommended evidence, not blockers for invite beta,
+deploy, or a future permanent-integration decision. They remain uncompleted and must not be called
+PASS. Permanent integration itself remains `NO-GO` until a separate explicit owner authorization;
+the reason is decision authority, not the missing 60-minute/12-speaker study.
+
+Owner browser/deployment directive, quoted verbatim on 2026-07-31:
+
+> «production Edge исключаем из списка. deployment нового onboarding можно стартовать.»
+
+Operational interpretation: the advertised first beta is Chrome-only; Edge production ceremony is
+removed. Scoped push/deployment of the default-off `v3.11.274` onboarding is authorized. This does
+not authorize public installer hosting, general distribution, provider-default changes, schema/data
+mutation, cleanup, or permanent integration.
 
 - Local ASR remains hidden and off by default.
 - Gemini remains the product default.
 - Local is selected only by an explicit user action.
 - A Local failure never uploads media to Gemini and never selects Gemini automatically.
-- The first support matrix is Windows 11 + compatible NVIDIA/CUDA hardware + Chrome/Edge.
+- The first advertised support matrix is Windows 11 + compatible NVIDIA/CUDA hardware + Chrome.
+- Edge was tested on the local product origin but is excluded from the first production beta claim
+  by owner decision on 2026-07-31.
 - Firefox is not advertised for this beta until a separate stock-Firefox ceremony passes.
 - The only allowed ASR candidate is
   `ivrit-ai/whisper-large-v3-turbo-ct2@72ad623a37947395efcc3933132353790e5a12f5`.
@@ -259,23 +279,24 @@ or production/private-ops file is in the allowlist.
 5. Browser: default-off, runtime-off fail-closed, invite enrollment, connect/install/progress/
    cancel/retry/delete, explicit Local selection, sidecar-down/OOM/disk/integrity errors.
 6. No-fallback: zero Gemini/upload requests after every Local failure scenario.
-7. Visual: Chrome and Edge at 380x844 in LTR and RTL; no horizontal overflow.
+7. Visual: Chrome at 380x844 in LTR and RTL; no horizontal overflow. Prior Edge local-origin
+   evidence is retained but is not part of the advertised support matrix.
 8. Cleanup: no raw media/transcript/job/model partials after delete/uninstall.
 
-## 11. Beta acceptance and permanent gates
+## 11. Recommended quality evidence and separate release authority
 
-The beta owner packet targets 12–15 minutes, at least four independent speakers, with clean read
+The optional beta owner packet targets 12–15 minutes, at least four independent speakers, with clean read
 speech, conversation, moderate noise, and names/numbers. Gold must be human-authored independently
 of both evaluated models, frozen before inference, and stored only as hashes/manifests in git.
 
 No suitable 12–15 minute/four-speaker human-gold set is currently proven in the repository. The
-existing batch-20 is only 113.6 seconds of owner-recorded prompts; the 30-minute interview uses an
-external subtitle silver oracle. The implementation may prepare the randomized worksheet,
-manifest schema, and key, but must not fabricate the missing corpus or call this gate closed.
+existing batch-20 is only 113.6 seconds of owner-recorded prompts; the Mia comparison uses Gemini
+ASR rather than independent human gold. The implementation may prepare the randomized worksheet,
+manifest schema, and key, but must not fabricate the missing corpus or call this recommendation PASS.
 
-The existing permanent gate remains unchanged: at least 60 minutes/12 speakers, full paired Gemini
-comparison, owner-set absolute threshold, stock Firefox decision, signed installer, and a separate
-provider/default decision.
+The former permanent 60-minute/12-speaker paired-Gemini gate is now recommended rather than
+mandatory. A future permanent release still requires a separate owner decision on integration,
+provider/default policy, supported browsers, distribution, rollback, and support/privacy claims.
 
 ## 12. Rollback and stop conditions
 
@@ -322,8 +343,8 @@ experimental seam, explicit Local selection, session pairing, and pinned-model r
 `127.0.0.1:8799`; Gemini remained the reset/default provider. The visible token field and browser/
 system clipboards were cleared after pairing. The owner subsequently completed the native Chrome
 file chooser, explicit Local run, transfer to the input field, Library card save, and export. The
-production Edge ceremony and deployment of the new `v3.11.273` onboarding remain open; no deploy
-authority was inferred.
+Edge is excluded from the first production beta by owner decision. Deployment of the new
+`v3.11.274` onboarding is separately authorized on 2026-07-31 for a normal non-DevTools flow.
 Firefox remains unsupported for this first beta.
 
 The owner then selected a 30:05.82 MP3 for a long production-origin run. Chrome's native file
@@ -344,11 +365,11 @@ mandatory human review. Audio ASR remained Local; the saved card separately reco
 `google-free` translation and `dicta-cloud` niqqud, which must not be described as a fully local
 text-enrichment path.
 
-The beta acceptance worksheet/key/manifest exist. The source set is still honestly
+The optional beta acceptance worksheet/key/manifest exist. The source set is still honestly
 `NOT_FROZEN`: no repository set currently proves 12–15 minutes from four independent speakers with
-independent human gold. By owner decision this check will run on production during the bounded beta;
-it is no longer a deployment prerequisite and is not yet a quality PASS. The permanent
-60-minute/12-speaker paired-Gemini gate remains unchanged.
+independent human gold. By owner decision this and the ten Mia listen/read checkpoints are
+recommended evidence rather than prerequisites. The former permanent 60-minute/12-speaker paired-
+Gemini gate is also recommended, not mandatory. None is claimed PASS.
 
 Canonical evidence:
 `docs/research/studio-local-processing/2026-07-31/windows-beta/evidence-report.json` and its

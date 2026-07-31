@@ -16,6 +16,10 @@
 integration остаётся **NO-GO до отдельного owner acceptance**: расширенный независимый
 human-gold и paired Gemini comparison не входили в ускоренный slice и не запускались.
 
+Owner update on 2026-07-31: listen/read, four-speaker human-gold, and the former 60-minute/
+12-speaker study are recommended rather than mandatory. They remain honestly unrun. Permanent
+integration is still unauthorized pending a separate owner decision, not pending those studies.
+
 ## Что реализовано
 
 - `81069b17`: pinned model store, loopback Origin/PNA/pairing boundary, isolated worker;
@@ -100,7 +104,7 @@ PNA handshake снят с LAN origin, а полный upload/inference — с `1
 Критических findings внутри разрешённого slice нет. Ограничение stock Firefox и независимая
 quality/owner acceptance не маскируются как PASS.
 
-## Честно открытые gates
+## Честно открытые evidence items at closure time
 
 1. Нет отдельного owner listen/read acceptance и утверждённого absolute product-quality threshold.
 2. Расширенный независимый human-gold и полный paired Gemini set не входят в ускоренный slice;
@@ -112,15 +116,20 @@ quality/owner acceptance не маскируются как PASS.
 Следовательно, этот packet не разрешает permanent integration, production, schema или выбор
 `Auto/Local/Gemini` defaults.
 
+The 2026-07-31 owner reclassification makes items 1–2 recommended evidence; it does not retroactively
+turn them PASS and does not itself authorize permanent integration.
+
 ## Windows invite-beta enablement — 2026-07-31
 
-The separate Windows Companion/product-onboarding slice is locally `PASS`; external distribution
-and permanent integration remain `NO-GO`. The unsigned internal installer is 1,766,465,078 bytes,
+The separate Windows Companion/product-onboarding slice is locally `PASS`; owner/trusted-user
+unsigned out-of-band distribution is `GO`, while public distribution and permanent integration
+remain unauthorized. The unsigned internal installer is 1,766,465,078 bytes,
 SHA-256 `1079fc4e09c038c1704f503228285a097347dfc25ae267f3e287289feca0acbe`.
 It passed install/live-update with owned stop and restart/start/restart, exact-model activation,
 self-contained CUDA decode, cleanup
 and uninstall on Windows 11/RTX 3070. Installed system Chrome/Edge passed local-origin 380×844 LTR
-and RTL onboarding with zero Gemini requests. Production-origin verification was not run because
-push/deploy were not authorized. Signing, NVIDIA/FFmpeg redistribution review, the frozen
-12–15-minute/four-speaker set, and owner threshold remain open. See
+and RTL onboarding with zero Gemini requests. Chrome production-origin file-to-card verification
+subsequently passed. Signing/license review were owner-accepted for the trusted noncommercial
+cohort; quality studies are recommended. Edge is excluded from the first beta and onboarding deploy
+is authorized. See
 `../2026-07-31/windows-beta/evidence-report.json`.

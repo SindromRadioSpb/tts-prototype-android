@@ -8,9 +8,17 @@
     "date": "2026-07-31",
     "unsigned_trusted_cohort_distribution": "GO_OUT_OF_BAND",
     "noncommercial_license_gate": "OWNER_ACCEPTED_FOR_TRUSTED_COHORT",
-    "human_gold_timing": "POST_DEPLOY_BETA_NOT_YET_PASS",
+    "human_gold_timing": "RECOMMENDED_NOT_BLOCKING_NOT_YET_PASS",
+    "quality_gate_reclassification": {
+      "ten_mia_listen_read_checkpoints": "RECOMMENDED_NOT_MANDATORY",
+      "four_speaker_beta_human_gold": "RECOMMENDED_NOT_MANDATORY",
+      "sixty_minute_twelve_speaker_study": "RECOMMENDED_NOT_MANDATORY"
+    },
     "production_origin_ceremony": "GO_WITHOUT_SERVER_MUTATION",
-    "push_deploy_hosting": "NOT_AUTHORIZED"
+    "advertised_browser_support": ["Chrome"],
+    "edge_first_beta": "EXCLUDED_BY_OWNER",
+    "onboarding_v3_11_274_push_deploy": "AUTHORIZED",
+    "installer_hosting": "NOT_AUTHORIZED"
   },
   "scope": {
     "invite_only": true,
@@ -19,7 +27,8 @@
     "implicit_gemini_fallback": false,
     "permanent_integration_authorized": false,
     "production_mutation": false,
-    "schema_or_data_mutation": false
+    "schema_or_data_mutation": false,
+    "quality_recommendations_block_release": false
   },
   "support_matrix": {
     "os": "Windows 11 build 26200",
@@ -28,7 +37,7 @@
     "reported_cuda": "13.2",
     "browsers": {
       "chrome": { "version": "150.0.7871.187", "result": "PASS_LOCAL_ORIGIN" },
-      "edge": { "version": "150.0.4078.105", "result": "PASS_LOCAL_ORIGIN" },
+      "edge": { "version": "150.0.4078.105", "result": "PASS_LOCAL_ORIGIN_EVIDENCE_ONLY", "advertised": false },
       "firefox": { "result": "NOT_SUPPORTED_FIRST_BETA" }
     }
   },
@@ -213,17 +222,19 @@
     "all_managed_state_absent_after_uninstall": true
   },
   "open_gates": [
-    "freeze and run 12-15 minute four-speaker independent human-gold post-deploy beta set",
-    "owner blinded listen/read threshold and result",
-    "Edge ceremony on the real production origin",
-    "owner listen/read review of ten Mia checkpoints; Gemini card is not independent human gold",
-    "push deploy installer-hosting rollback and telemetry authority",
-    "permanent 60-minute 12-speaker paired-Gemini gate remains unchanged and open"
+    "complete and verify the authorized v3.11.274 onboarding deployment",
+    "public installer-hosting general-distribution rollback and telemetry authority",
+    "separate explicit permanent-integration and provider-default release-policy decision"
+  ],
+  "recommended_evidence": [
+    "owner listen/read review of ten Mia checkpoints",
+    "12-15 minute four-speaker independent human-gold beta study",
+    "60-minute 12-speaker paired-Gemini permanent-quality study"
   ],
   "decision": {
     "local_engineering_slice": "PASS",
     "external_invite_beta_distribution": "GO_OWNER_AND_TRUSTED_USERS_OUT_OF_BAND_UNSIGNED",
     "beta_output_quality": "CONDITIONAL_FIRST_DRAFT_WITH_MANDATORY_HUMAN_REVIEW",
-    "permanent_integration": "NO_GO"
+    "permanent_integration": "NO_GO_PENDING_SEPARATE_OWNER_AUTHORIZATION_NOT_QUALITY_STUDIES"
   }
 }

@@ -1,8 +1,8 @@
 # Owner packet — Windows Local ASR beta push/deploy/distribution
 
-Current decision: `GO UNSIGNED — OWNER + TRUSTED USERS, OUT-OF-BAND ONLY`. Local engineering is
-complete. Public hosting, push/deploy, production flag mutation, and permanent integration remain
-unauthorized.
+Current decision: `GO UNSIGNED — OWNER + TRUSTED USERS, OUT-OF-BAND ONLY`; scoped push/deployment
+of the default-off `v3.11.274` onboarding is authorized. Public installer hosting, general
+distribution, provider-default changes, and permanent integration remain unauthorized.
 
 ## Owner decision — 2026-07-31
 
@@ -15,8 +15,8 @@ Recorded effect:
 - the exact unsigned artifact may be shared manually with the owner and personally trusted users;
 - the owner accepts the noncommercial redistribution/license decision for this cohort while the
   bundled third-party notices remain intact;
-- human-gold is a post-deploy beta validation task, not a pre-deploy blocker and not a completed gate;
-- the real production-origin Chrome/Edge ceremony is authorized without server mutation;
+- human-gold is recommended evidence, not a pre/post-deploy blocker and not a completed gate;
+- the real production-origin Chrome ceremony is complete; Edge is excluded from the first beta;
 - no public installer hosting, push, deploy, production flag, or general distribution authority is
   inferred from this decision.
 
@@ -28,16 +28,20 @@ Recorded effect:
   `1079fc4e09c038c1704f503228285a097347dfc25ae267f3e287289feca0acbe`;
 - exact model/revision/hash unchanged;
 - Windows 11 + RTX 3070 frozen install/update/restart/real-decode/uninstall PASS;
-- system Chrome/Edge local-origin 380×844 LTR/RTL PASS; zero Gemini requests;
+- system Chrome local-origin 380×844 LTR/RTL PASS; historical Edge evidence is retained but not advertised;
 - permanent integration remains `NO-GO`.
 
 ## Gates before push/deploy or hosted distribution
 
-1. Give a separate exact allowlist for push, deployment, installer hosting, invite cohort, rollback,
-   telemetry retention, and production-origin Chrome/Edge verification.
-2. Keep human-gold results labeled post-deploy beta evidence; do not claim population-quality PASS
-   until the owner records a threshold and result.
-3. Keep the permanent 60-minute/12-speaker paired-Gemini gate unchanged.
+1. The owner authorized scoped push/deployment of the `v3.11.274` onboarding on 2026-07-31. Public
+   installer hosting and general distribution remain outside that authority.
+2. Deploy the new onboarding if the cohort must use a normal product flow; otherwise explicitly
+   accept the existing DevTools-only enrollment for that cohort.
+3. Keep the first cohort Chrome-only; do not advertise Edge.
+
+Recommended, non-blocking evidence: ten Mia listen/read checkpoints, a four-speaker human-gold
+beta study, and the former 60-minute/12-speaker paired-Gemini study. Do not call them PASS unless
+actually performed. Permanent integration remains a separate owner decision.
 
 ## Paste-ready next-session instruction
 
@@ -48,10 +52,10 @@ docs/planning/STUDIO_INGEST_LOCAL_ASR_WINDOWS_BETA_ENABLEMENT_PACKET_2026_07_31.
 docs/research/studio-local-processing/2026-07-31/windows-beta/{README.md,evidence-report.json,OWNER_PUSH_DEPLOY_BETA_DISTRIBUTION_PACKET.md}.
 Preflight HEAD/origin/dirty state and preserve unrelated changes. Do not alter model/revision,
 decode/VAD/timestamp policy, provider defaults, schema, or production data. Do not use Gemini.
-Before any external distribution, stop unless a code-signing certificate, redistribution-license
-approval, completed owner beta acceptance, exact installer hosting allowlist, cohort/rollback plan,
-and explicit push/deploy/distribution authorization are all present. If authorized, rebuild from
-clean source, sign, verify Authenticode and hashes, push only the scoped commit, deploy default-off,
-wait for the actually served version/service worker, verify system Chrome and Edge on the real
-production origin, then distribute only to the approved invite cohort. Firefox remains unsupported.
+Manual out-of-band sharing is limited to the owner and personally trusted users and must use the
+recorded unsigned artifact hash; do not host it publicly. Push/deploy/hosting still require separate
+exact authorization. If deploy is authorized, push only scoped commits, deploy default-off, wait
+for the actually served version/service worker and verify system Chrome on the real production origin.
+Do not advertise Edge. The optional quality studies are not release blockers
+and must not be called PASS unless run. Firefox remains unsupported.
 ```
