@@ -1,9 +1,12 @@
 # Studio Ingest L3a — Correctable Media Package: adversarial design packet
 
 > **Дата:** 2026-07-31
-> **Статус:** 🟡 `OWNER DECISION REQUIRED` · design-only · код/схема/production не разрешены
+> **Статус:** 🟢 `OWNER APPROVED / LOCAL ENGINEERING CANDIDATE` · T0–T8 выполнены
+> локально; push/deploy и production mutations не разрешены
 > **Production baseline:** `v3.11.279`, image/commit
 > `88977240066cddba8161bd2af10fed298bd8fb56`, served + RU/LTR/HE/RTL 380×844 verified
+> **Local implementation:** `v3.11.280`, migration count `45`, code commit
+> `097d212dff899642d4e83906caa20c03c9ef8cc9`; production этим не изменён
 > **Канон над документом:**
 > `STUDIO_INGEST_ROADMAP_2026_07_30.md` и
 > `STUDIO_INGEST_LOCAL_PROCESSING_ROADMAP_2026_07_30.md`
@@ -667,7 +670,8 @@ Recommended approval sentence, verbatim:
 
 > **ОДОБРЯЮ L3a Correctable Media Package по рекомендациям D1–D8 из design packet 2026-07-31. Разрешаю отдельную инженерную сессию: additive browser migration v45, first-class OPFS-SQLite track/revision store, editor, VTT/SRT + slim-package round-trip и локальные/браузерные гейты. Не разрешаю push/deploy, server или production schema/data mutations, cloud-sync включение Media Package, L2/L4/L5/L6 или full-media ZIP без отдельного решения.**
 
-Без этой фразы или эквивалентного явного решения пакет остаётся proposal.
+Фраза утверждена владельцем дословно 2026-07-31; разрешённый bounded engineering slice
+завершён локальным кандидатом. Это не даёт authority на push/deploy.
 
 ## 17. Предлагаемое разбиение будущей инженерной сессии
 
@@ -720,3 +724,13 @@ Owner approval scope: [ВСТАВИТЬ ДОСЛОВНО УТВЕРЖДЁННУ�
 Выполни T0→T8 из §17 одним bounded engineering slice с красными-до-фикса тестами.
 Оставь stable owner-live packet, exact gates/results, known failures и следующий paste-ready prompt.
 ```
+
+## 19. Engineering outcome
+
+T0–T8 реализованы отдельным локальным code commit
+`097d212dff899642d4e83906caa20c03c9ef8cc9`. Stable owner-live packet, точные гейты,
+известные остатки и следующий prompt находятся в
+`docs/research/studio-l3a-correctable-media-package/2026-07-31/OWNER_LIVE_PACKET.md`.
+
+Candidate остаётся **не pushed / не deployed**. Production baseline не менялся:
+`v3.11.279 / 88977240`. L2 остаётся demand-triggered и не был начат.

@@ -236,8 +236,8 @@ TTS остаётся отдельной quality-gated веткой.
 | 1 | local L0 benchmark | ✅ DONE | pinned turbo CT2; full large-v3 not default/fallback |
 | 2 | provenance/schema B + UX/data C | ✅ BOUNDED DONE | backup parity, portable ids, explicit dedupe, audio round-trip |
 | 3 | local L1 ASR | 🟡 ENGINEERING PASS | sidecar batch/browser/B+C PASS; owner acceptance and permanent integration open |
-| 4 | resumable import-job + batch | P0/P1 | reload/restart/fault injection, per-file results |
-| 5 | Media Package v1 + subtitle editor | P1 | video+VTT, persistence, export/import/relink |
+| 4 | resumable import-job + batch | ⏸ DEMAND-TRIGGERED | reload/job-loss или регулярные 3–5+ файлов; не начат |
+| 5 | L3a Correctable Media Package | 🟡 LOCAL CANDIDATE | `v3.11.280` / `097d212d`; v45, editor, VTT/SRT/slim package; owner-live open; no deploy |
 | 6 | local translation/nikud + S6 | P1 | shared provider contract, R1/R11 quality gates |
 | 7 | diarization/alignment | P1 | speaker/timing gold, segment default remains honest |
 | 8 | EPUB + TXT/MD/HTML + HEIC | P1 | real fixtures, provenance, mobile acceptance |

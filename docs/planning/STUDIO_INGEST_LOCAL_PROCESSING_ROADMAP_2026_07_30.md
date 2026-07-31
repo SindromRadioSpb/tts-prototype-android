@@ -1,9 +1,9 @@
 # Студия: импорт, медиа-артефакты и локальная обработка — roadmap
 
 > **Дата:** 2026-07-30
-> **Статус:** 🟡 L0 завершён; default-off L1 engineering и ускоренный evidence-closure
-> (sidecar batch-20, browser matrix, B+C integrity) имеют PASS. Permanent integration/provider
-> policy — NO-GO до отдельного owner acceptance; expanded human-gold/Gemini не запускались.
+> **Статус:** 🟢 L0/L1 invite beta завершены; L2 demand-triggered и не начат; L3a
+> Correctable Media Package реализован локальным engineering candidate `v3.11.280`
+> (`097d212d`), без push/deploy. Owner-live acceptance остаётся следующим gate.
 > **Срез кода:** `4a17686d` (S12.7 SHIPPED v3.11.270).
 > **Место в каноне:** специализированный сквозной трек общего roadmap
 > `STUDIO_INGEST_ROADMAP_2026_07_30.md`. Здесь определён local-processing L0–L6;
@@ -222,7 +222,7 @@ baseline: разборчивость, никуд/ударение, имена, �
 | P0 | **L1 local ivrit.ai ASR** | 🟡 ENGINEERING PASS | batch/browser/B+C PASS; quality studies recommended; permanent NO-GO pending separate owner decision |
 | P0 | **L1 Windows invite beta enablement** | 🟢 CHROME INVITE BETA LIVE | Companion beta.2 plus pairing help deployed as `v3.11.277`; install/decode/uninstall and served RU/HE mobile UI PASS; unsigned owner/trusted distribution approved; output is first-draft quality; quality studies recommended; Edge excluded |
 | P0/P1 | **L2a recovery / L2b batch** | ⏸ DEFERRED / DEMAND-TRIGGERED | L2a: реальная reload/job-loss боль; L2b: регулярные 3–5+ файлов |
-| P1 | **L3 Media Package/editor** | ⬜ | segment identity closed; round-trip artifact |
+| P1 | **L3a Correctable Media Package/editor** | 🟡 LOCAL ENGINEERING CANDIDATE | v45 + immutable raw/corrected revisions + editor + VTT/SRT/slim round-trip; owner-live open; no push/deploy |
 | P1 | **L4 local translation+nikud** | ⬜ | shared scheduler; independent quality gates |
 | P1 | **L5 diarization/alignment** | ⬜ | L1 stable; speaker/timing gold |
 | P2/R&D | **L6 TTS/OCR/local LLM** | ⬜ | model+license+quality measurement; no quality downgrade |
@@ -232,9 +232,9 @@ baseline: разборчивость, никуд/ударение, имена, �
 | Triggered | S10 PWA share_target | parked | proven Android demand |
 | Anti | server yt-dlp, real-time, song alignment | NO-GO | reopen only by explicit owner decision + evidence |
 
-Adversarial L3a proposal (design-only, owner decision required):
+Adversarial L3a design одобрен; bounded local implementation завершён:
 `STUDIO_INGEST_L3A_CORRECTABLE_MEDIA_PACKAGE_DESIGN_PACKET_2026_07_31.md`.
-Его наличие не разрешает code/schema/push/deploy.
+Это не разрешает push/deploy, production mutation или расширение scope.
 
 **Рекомендуемая последовательность:** принять bounded L1 engineering/evidence closure, затем
 отдельным решением определить достаточный owner/human acceptance и только отдельно разрешать
