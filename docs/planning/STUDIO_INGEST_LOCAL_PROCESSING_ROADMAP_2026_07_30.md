@@ -147,6 +147,21 @@ progress/cancel/resume; тот же `transcript-v1`; явная ошибка б�
 Без L2 «поддержка 3 часов» остаётся хрупкой: закрытие вкладки может уничтожить дорогой
 прогон, а «много файлов» превращается в ручное повторение одного flow.
 
+**Owner order update, 2026-07-31 — `DEFERRED / DEMAND-TRIGGERED`.** Для текущего owner-only
+dogfood последовательный one-file flow достаточен, поэтому L2 не является оперативным beta-
+блокером и не стартует автоматически. Решение сохраняет два независимо возвращаемых слайса:
+
+- **L2a — single-job recovery/reattach:** browser сохраняет/discovers job ID и возвращается к
+  sidecar job после reload/закрытия вкладки/рестарта. Старт-триггер: реальная потеря видимого job,
+  stranded completed job или обычные прогоны, для которых повтор уже неприемлем;
+- **L2b — batch/queue:** несколько файлов, bounded GPU concurrency=1, отчёт и duplicate policy.
+  Старт-триггер: фактическая потребность владельца/доверенных пользователей регулярно обрабатывать
+  примерно 3–5+ файлов как один набор.
+
+Это не `DONE` и не отмена: архитектурный контракт выше остаётся каноном, а sidecar уже сохраняет
+jobs/checkpoints и имеет resume/retry API. До триггера не строим очередь и новый durable browser
+ledger «на будущее».
+
 ### L3 — Media Package + subtitle editor (P1)
 
 - сильная связь `media_sha256 ↔ caption_track_id`;
@@ -204,9 +219,9 @@ baseline: разборчивость, никуд/ударение, имена, �
 | P0 | **L0 local benchmark** | ✅ DONE | pinned turbo CT2 GO; full large-v3 NO-GO как default |
 | P0 | Провенанс/schema B | ✅ BOUNDED DONE | backup parity + portable segment identity; schema migration не потребовалась |
 | P0 | UX/data C | ✅ BOUNDED DONE | explicit SHA dedupe + `text_audio_asset_key` round-trip |
-| P0 | **L1 local ivrit.ai ASR** | 🟡 ENGINEERING PASS | batch/browser/B+C PASS; owner acceptance open; permanent NO-GO |
+| P0 | **L1 local ivrit.ai ASR** | 🟡 ENGINEERING PASS | batch/browser/B+C PASS; quality studies recommended; permanent NO-GO pending separate owner decision |
 | P0 | **L1 Windows invite beta enablement** | 🟢 CHROME INVITE BETA LIVE | Companion beta.2 plus pairing help deployed as `v3.11.277`; install/decode/uninstall and served RU/HE mobile UI PASS; unsigned owner/trusted distribution approved; output is first-draft quality; quality studies recommended; Edge excluded |
-| P0/P1 | **L2 resumable jobs + batch** | ⬜ | L1 contract stable; restart/fault tests |
+| P0/P1 | **L2a recovery / L2b batch** | ⏸ DEFERRED / DEMAND-TRIGGERED | L2a: реальная reload/job-loss боль; L2b: регулярные 3–5+ файлов |
 | P1 | **L3 Media Package/editor** | ⬜ | segment identity closed; round-trip artifact |
 | P1 | **L4 local translation+nikud** | ⬜ | shared scheduler; independent quality gates |
 | P1 | **L5 diarization/alignment** | ⬜ | L1 stable; speaker/timing gold |
@@ -249,13 +264,20 @@ copy-token path and bundled RU/EN/HE guide. The owner machine passed an in-place
 update without losing its exact model or two completed jobs. Web onboarding/help `v3.11.277` is
 deployed from `381233e0`. Bounded cleanup preserved the active image plus two rollbacks and moved
 production disk from 90%/3.7 GB free to 78%/8.0 GB free after the build. Served RU/LTR and HE/RTL
-help passed at 380x844; the final native Chrome confirm remains an owner click because extension
-control timed out on that browser dialog.
+help passed at 380x844. Extension control timed out on the browser confirm, and the owner later
+completed that exact native Chrome ceremony successfully.
 
 Owner decision on 2026-07-31 reclassifies the ten Mia listen/read checkpoints, the 12–15 minute/
 four-speaker beta human-gold study, and the former 60-minute/12-speaker permanent study as
 recommended rather than mandatory. Permanent integration remains `NO-GO` only pending a separate
 owner authorization and release-policy decision, not pending those studies.
+
+The owner subsequently completed the final native Chrome `v3.11.277` ceremony successfully.
+Owner-only dogfood remains in progress and is non-blocking. The local `v3.11.278` follow-up makes
+successful connection visible as **Connected/Подключено/מחובר** in both onboarding and
+Import → File; it is not pushed or deployed. The approved order parks L2 as demand-triggered:
+single-job recovery returns on real reload/job-loss friction, while multi-file batch returns only
+on demonstrated 3–5+ file demand.
 
 ## 6. Обязательные артефакты каждого local-slice
 

@@ -84,9 +84,9 @@ The corresponding web pairing explanation and locale-aware guide link are deploy
 `381233e04c017246d9dbf106581983ad9f3b618e` as `v3.11.277`. Cache-busted client config, SW,
 RU/EN/HE guide routes, health, DB and migrations passed. Served mobile measurements at 380x844
 showed `365 == 365` page width and `348 == 348` dialog width in RU/LTR and HE/RTL; Gemini remained
-the import provider default. Native Chrome control timed out on its invite confirm dialog, so the
-owner click-through of that already-open Chrome tab remains a manual ceremony rather than a claimed
-automated PASS.
+the import provider default. Native Chrome control timed out on its invite confirm dialog, so this
+was not claimed as an automated PASS. The owner subsequently completed that exact manual ceremony
+successfully; see the closure below.
 
 The owner authorized bounded cleanup. Before deploy, unused builder cache plus two exact oldest
 unreferenced LinguistPro images reduced the host from 90%/3.7 GB free to 77%/8.4 GB free while
@@ -98,6 +98,24 @@ Owner decision on 2026-07-31 makes the ten Mia listen/read checkpoints, the four
 human-gold study, and the former 60-minute/12-speaker permanent study recommended rather than
 mandatory. They remain useful evidence and are not claimed PASS. Permanent integration itself
 remains unauthorized pending a separate owner decision.
+
+## Owner Chrome closure and local `v3.11.278` follow-up
+
+The owner completed the final native Chrome `v3.11.277` pairing-help ceremony successfully.
+Owner-only dogfood remains in progress and is explicitly non-blocking. Trusted-user expansion is
+optional and demand-driven.
+
+Local candidate `3.11.278` (`0bdf4529301d50ff9f7a564466a555e84c8bd394`) closes the remaining
+connection-feedback gap. Successful checks now change the proximal action to
+**Подключено / Connected / מחובר** in both Experimental Local ASR and Import → File → Local.
+Editing the token or a failed check clears the state. Real-Companion checks passed on both surfaces
+at 380×844 in RU/LTR and HE/RTL without horizontal overflow; Gemini requests were zero. Focused
+Node tests passed `20/20`, i18n `233/233`, API and ingest smoke passed. The candidate is not pushed
+or deployed.
+
+L2 is recorded as `DEFERRED / DEMAND-TRIGGERED`: single-job browser recovery returns on real
+reload/job-loss friction; batch/queue returns on demonstrated recurring 3–5+ file demand. This is
+neither a completed nor cancelled slice.
 
 ## Files
 

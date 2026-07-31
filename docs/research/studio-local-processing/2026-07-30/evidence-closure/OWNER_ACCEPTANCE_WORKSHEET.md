@@ -56,20 +56,28 @@ cloud request or spend. Permanent integration still requires a separate explicit
 
 ## Production onboarding closure (2026-07-31)
 
-The owner authorized the Chrome-only onboarding deployment. Production now serves `v3.11.276`
-from `d445c7e89c85dcc889b973f838870bb0d13a3ba4` with the Local ASR beta runtime gate enabled.
-Enrollment remains explicit per browser, Gemini remains default, Edge is not advertised, and no
-installer URL is public. Chrome production-origin LTR and RTL onboarding checks passed without
-horizontal overflow. No schema or production-data mutation occurred.
+Production serves `v3.11.277` from `381233e04c017246d9dbf106581983ad9f3b618e` with the Local ASR
+beta runtime gate enabled and pairing help deployed. Enrollment remains explicit per browser,
+Gemini remains default, Edge is not advertised, and no installer URL is public. RU/LTR and HE/RTL
+served checks passed at 380×844. The owner subsequently completed the final native Chrome ceremony
+successfully. No schema or production-data mutation occurred.
 
-Operational note: deployment builds raised host disk use to 90% (3.7 GB free). No cleanup was
-authorized or performed. Treat disk remediation/capacity approval as a stop boundary before the
-next build or deploy, not as a Local ASR quality gate.
+The owner authorized bounded Docker cleanup before that deploy. Unused builder cache and three
+exact unreferenced old images were removed while the active image, two rollback images, all running
+containers and active volumes were retained. Disk was 78% used with 8.0 GB free after the build.
 
 ## Pairing-help follow-up (2026-07-31)
 
 Companion beta.2 is installed locally with a dedicated **Connect LinguistPro in Chrome → Copy token
 for browser** action, bundled RU/EN/HE guides, a **Help / Справка** control, and a Start-menu RU help
-shortcut. The web pairing explanation and full-guide link are locally ready as `v3.11.277`, but are
-not production-deployed because the 90% disk stop boundary remains in force. This usability work
-does not change the recommended/non-blocking status of the listen/read and human-gold evidence.
+shortcut. The matching web explanation and guide link are deployed as `v3.11.277`.
+
+Local candidate `v3.11.278` then closes the remaining proximal-feedback gap: both onboarding and
+Import → File → Local change their action to **Подключено / Connected / מחובר** after a successful
+real-Companion check and reset honestly after token edits/failure. RU/LTR and HE/RTL passed at
+380×844 without horizontal overflow. This candidate is not pushed or deployed.
+
+Owner-only dogfood is in progress and non-blocking. L2 is explicitly deferred/demand-triggered:
+single-job recovery returns on real reload/job-loss friction, and batch returns on demonstrated
+recurring 3–5+ file demand. This usability work and sequencing decision do not change the
+recommended/non-blocking status of listen/read and human-gold evidence.
