@@ -1,7 +1,24 @@
 # Owner packet — Windows Local ASR beta push/deploy/distribution
 
-Current decision: `NO-GO EXTERNAL DISTRIBUTION`. Local engineering is complete; nothing has been
-pushed, deployed, hosted, or distributed.
+Current decision: `GO UNSIGNED — OWNER + TRUSTED USERS, OUT-OF-BAND ONLY`. Local engineering is
+complete. Public hosting, push/deploy, production flag mutation, and permanent integration remain
+unauthorized.
+
+## Owner decision — 2026-07-31
+
+> «1. Выпускаем установщик без подписи. им будут пользоваться сейчас только я и мои доверенные
+> пользователи. 2. программа некоммерческая. вопрос лицензирования снят. 3. human-gold проверку
+> проведу по факту на проде. 4. готов Проверить работу с настоящего production-origin»
+
+Recorded effect:
+
+- the exact unsigned artifact may be shared manually with the owner and personally trusted users;
+- the owner accepts the noncommercial redistribution/license decision for this cohort while the
+  bundled third-party notices remain intact;
+- human-gold is a post-deploy beta validation task, not a pre-deploy blocker and not a completed gate;
+- the real production-origin Chrome/Edge ceremony is authorized without server mutation;
+- no public installer hosting, push, deploy, production flag, or general distribution authority is
+  inferred from this decision.
 
 ## Evidence available
 
@@ -14,14 +31,13 @@ pushed, deployed, hosted, or distributed.
 - system Chrome/Edge local-origin 380×844 LTR/RTL PASS; zero Gemini requests;
 - permanent integration remains `NO-GO`.
 
-## Gates before an external invite
+## Gates before push/deploy or hosted distribution
 
-1. Provide a code-signing certificate and rebuild/sign/verify both executable layers.
-2. Approve NVIDIA and FFmpeg redistribution-license review and the 1.77 GB Companion size.
-3. Freeze the 12–15 minute, four-speaker independent human-gold beta set.
-4. Complete the blinded worksheet and record the owner beta threshold.
-5. Give a separate exact allowlist for push, deployment, installer hosting, invite cohort, rollback,
+1. Give a separate exact allowlist for push, deployment, installer hosting, invite cohort, rollback,
    telemetry retention, and production-origin Chrome/Edge verification.
+2. Keep human-gold results labeled post-deploy beta evidence; do not claim population-quality PASS
+   until the owner records a threshold and result.
+3. Keep the permanent 60-minute/12-speaker paired-Gemini gate unchanged.
 
 ## Paste-ready next-session instruction
 

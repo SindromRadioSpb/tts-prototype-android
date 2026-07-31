@@ -205,7 +205,7 @@ baseline: разборчивость, никуд/ударение, имена, �
 | P0 | Провенанс/schema B | ✅ BOUNDED DONE | backup parity + portable segment identity; schema migration не потребовалась |
 | P0 | UX/data C | ✅ BOUNDED DONE | explicit SHA dedupe + `text_audio_asset_key` round-trip |
 | P0 | **L1 local ivrit.ai ASR** | 🟡 ENGINEERING PASS | batch/browser/B+C PASS; owner acceptance open; permanent NO-GO |
-| P0 | **L1 Windows invite beta enablement** | 🟡 LOCAL ENGINEERING PASS | Companion/onboarding/install/decode/uninstall PASS; signing, beta owner acceptance, prod-origin deploy and distribution open |
+| P0 | **L1 Windows invite beta enablement** | 🟡 TRUSTED BETA GO | Companion/onboarding/install/decode/uninstall PASS; unsigned owner/trusted distribution approved; production-origin browser ceremony and post-deploy human-gold remain open |
 | P0/P1 | **L2 resumable jobs + batch** | ⬜ | L1 contract stable; restart/fault tests |
 | P1 | **L3 Media Package/editor** | ⬜ | segment identity closed; round-trip artifact |
 | P1 | **L4 local translation+nikud** | ⬜ | shared scheduler; independent quality gates |
@@ -225,9 +225,12 @@ L5/L6 только после новых измерений и разрешен�
 
 Windows beta enablement on 2026-07-31 adds a default-off per-user Companion and product onboarding,
 but does not change that sequence. The current self-contained unsigned internal installer is
-1,766,465,078 bytes and requires signing plus NVIDIA/FFmpeg redistribution review before any
-external invite. Chrome/Edge passed only on the local product origin; production-origin ceremony
-requires separate deploy authority. Firefox remains outside the first beta support matrix.
+1,766,465,078 bytes. The owner approved its out-of-band use by the owner and personally trusted
+users, accepted the noncommercial redistribution/license decision for that cohort, and moved the
+human-gold check to post-deploy beta observation without marking it PASS. Public hosting/general
+distribution and permanent integration remain separate decisions. Chrome/Edge passed on the local
+product origin; the owner authorized a production-origin browser ceremony without server mutation.
+Firefox remains outside the first beta support matrix.
 
 ## 6. Обязательные артефакты каждого local-slice
 

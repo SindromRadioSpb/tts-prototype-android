@@ -1,7 +1,8 @@
 # Windows Local ASR invite-only beta enablement evidence
 
-The local engineering slice is `PASS`; external beta distribution is `NO-GO` until signing,
-license review, owner acceptance, and a separate push/deploy/distribution decision.
+The local engineering slice is `PASS`. The owner has authorized this exact unsigned artifact for
+out-of-band use by the owner and personally trusted beta users. Public hosting/general distribution,
+push/deploy, and permanent integration remain separately gated.
 
 The Companion is a per-user Windows installer with a loopback-only supervisor, session pairing,
 explicit exact-pin model installation, GPU/CUDA/runtime/disk/port preflight, model/job deletion
@@ -13,9 +14,9 @@ can invoke it automatically.
 
 - Installer: 1,766,465,078 bytes; SHA-256
   `1079fc4e09c038c1704f503228285a097347dfc25ae267f3e287289feca0acbe`.
-- Signature: `NotSigned`; internal testing only.
-- Provenance: built from the scoped dirty worktree at HEAD `77c48d139…`; rebuild from the final
-  clean commit is mandatory before any signing or distribution decision.
+- Signature: `NotSigned`; owner-approved trusted-cohort beta only, with a visible unsigned warning.
+- Provenance: built from the scoped dirty worktree at HEAD `77c48d139…`; a rebuild from the final
+  clean commit remains required for any future signed/public artifact.
 - Self-contained runtime: FFmpeg/ffprobe 8.1, pinned cuDNN 9.10.2.21 and cuBLAS 12.1.3.1.
 - Separate model: 1,621,665,181 runtime bytes; exact revision and every runtime hash verified.
 - Frozen install/live-update with owned stop and restart/start/restart/decode/delete/uninstall:
@@ -28,8 +29,8 @@ can invoke it automatically.
 
 The 1.77 GB installer is a material beta finding. It avoids asking users to install CUDA runtime
 DLLs manually, but makes the total initial transfer roughly 3.39 GB before compression/HTTP
-effects when combined with the separate 1.62 GB model. Any distribution decision must accept or
-redesign that tradeoff explicitly.
+effects when combined with the separate 1.62 GB model. The owner accepted this tradeoff for the
+bounded noncommercial trusted cohort.
 
 ## Reproduce
 
@@ -44,8 +45,14 @@ node docs\research\studio-local-processing\2026-07-31\windows-beta\run_onboardin
 ```
 
 The browser runner requires the installed Companion to be running and paired. It starts only a
-local product server and never contacts Gemini. Production-origin browser verification remains
-`NOT_RUN` because push/deploy were explicitly outside this slice.
+local product server and never contacts Gemini. The owner authorized a production-origin ceremony
+on 2026-07-31; it remains distinct from push/deploy authorization.
+
+On the owner's trusted Windows machine the exact artifact hash was verified before installation,
+the Companion is currently running on `127.0.0.1:8799`, the exact model revision/hash is activated,
+and the production-origin authenticated API preflight is `PASS 9/9`. The Chrome UI step is waiting
+only for the owner to set the existing browser-local experimental flag in DevTools; no server state,
+provider default, pairing secret, or Gemini request is involved.
 
 ## Files
 

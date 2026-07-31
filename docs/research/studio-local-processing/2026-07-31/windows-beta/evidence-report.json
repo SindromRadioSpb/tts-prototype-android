@@ -4,6 +4,14 @@
   "source_head": "77c48d139fef665b67c941ded731dd7175efca8e",
   "artifact_source_worktree_dirty": true,
   "implementation_commit": "1d0fc36dfb357ea3b4b89c9abd53253d7bf0f448",
+  "owner_followup_decision": {
+    "date": "2026-07-31",
+    "unsigned_trusted_cohort_distribution": "GO_OUT_OF_BAND",
+    "noncommercial_license_gate": "OWNER_ACCEPTED_FOR_TRUSTED_COHORT",
+    "human_gold_timing": "POST_DEPLOY_BETA_NOT_YET_PASS",
+    "production_origin_ceremony": "GO_WITHOUT_SERVER_MUTATION",
+    "push_deploy_hosting": "NOT_AUTHORIZED"
+  },
   "scope": {
     "invite_only": true,
     "default_off": true,
@@ -39,13 +47,14 @@
     "bytes": 1766465078,
     "sha256": "1079fc4e09c038c1704f503228285a097347dfc25ae267f3e287289feca0acbe",
     "authenticode": "NotSigned",
-    "distribution_status": "INTERNAL_ONLY_NO_EXTERNAL_DISTRIBUTION",
+    "distribution_status": "OWNER_APPROVED_UNSIGNED_TRUSTED_COHORT_OUT_OF_BAND",
     "model_bundled": false,
     "runtime": {
       "ffmpeg": "8.1 essentials build",
       "cudnn": "nvidia-cudnn-cu12==9.10.2.21",
       "cublas": "nvidia-cublas-cu12==12.1.3.1",
-      "license_review_required_before_external_distribution": true
+      "license_review_required_before_trusted_cohort_distribution": false,
+      "owner_noncommercial_risk_acceptance_recorded": true
     },
     "smoke": {
       "fresh_install": "PASS",
@@ -63,10 +72,24 @@
     "result": "PASS",
     "checks": ["WINDOWS_11", "NVIDIA_GPU", "FREE_VRAM", "CUDA_DRIVER", "CUDA_RUNTIME", "FFMPEG", "FFPROBE", "DISK_SPACE", "PORT_8799"]
   },
+  "current_trusted_machine_state": {
+    "installer_sha256_verified_before_install": true,
+    "installed": true,
+    "service": "RUNNING",
+    "bind": "127.0.0.1:8799",
+    "owned_pid_present": true,
+    "model_verified": true,
+    "model_revision": "72ad623a37947395efcc3933132353790e5a12f5",
+    "model_bin_sha256": "db2a2265aa012c16c7db9edda3d699c99f984efdd3f2e22a72a8ce7e9720f3a2",
+    "production_origin_api_preflight": "PASS_9_OF_9",
+    "production_origin_chrome_ui": "AWAITING_OWNER_LOCALSTORAGE_GESTURE",
+    "pairing_token_recorded_in_evidence": false
+  },
   "browser": {
     "result": "PASS_LOCAL_ORIGIN",
     "origin": "http://127.0.0.1:3000",
     "production_origin_run": false,
+    "production_origin_boundary": "PASS_API_PREFLIGHT_UI_PENDING_OWNER_GESTURE",
     "viewport": "380x844",
     "ltr": "PASS",
     "rtl": "PASS",
@@ -95,17 +118,15 @@
     "all_managed_state_absent_after_uninstall": true
   },
   "open_gates": [
-    "code-signing certificate and signed artifact",
-    "NVIDIA and FFmpeg redistribution-license review",
-    "freeze 12-15 minute four-speaker independent human-gold beta set",
-    "owner blinded listen/read threshold and decision",
-    "Chrome and Edge ceremony on the real production origin after separate deploy authority",
-    "installer hosting and invite distribution authority",
+    "freeze and run 12-15 minute four-speaker independent human-gold post-deploy beta set",
+    "owner blinded listen/read threshold and result",
+    "Chrome and Edge ceremony on the real production origin",
+    "push deploy installer-hosting rollback and telemetry authority",
     "permanent 60-minute 12-speaker paired-Gemini gate remains unchanged and open"
   ],
   "decision": {
     "local_engineering_slice": "PASS",
-    "external_invite_beta_distribution": "NO_GO",
+    "external_invite_beta_distribution": "GO_OWNER_AND_TRUSTED_USERS_OUT_OF_BAND_UNSIGNED",
     "permanent_integration": "NO_GO"
   }
 }

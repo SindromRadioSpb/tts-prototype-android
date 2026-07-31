@@ -33,5 +33,9 @@ decision is not. Use
 `docs/research/studio-local-processing/2026-07-31/windows-beta/OWNER_BLINDED_LISTEN_READ_WORKSHEET.md`.
 Its required 12–15 minute/four-speaker independent human-gold source set is not yet frozen.
 
+Owner decision on 2026-07-31: the human-gold check will be performed on production during the
+trusted-cohort beta. This removes it as a pre-deploy blocker but does not mark it PASS; observations,
+threshold, source provenance, and decision still belong in the blinded worksheet.
+
 This smaller beta gate does not cancel, close, or silently revise the permanent
 60-minute/12-speaker paired-Gemini gate. No Gemini comparison is authorized here.

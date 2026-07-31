@@ -30,8 +30,9 @@ Beta participants do not create a venv or run Uvicorn. Build the per-user Compan
 The build pins the Python/ASR runtime, FFmpeg/ffprobe 8.1, cuDNN 9.10.2.21 and cuBLAS 12.1.3.1,
 runs a frozen start/health/stop smoke, and emits an Inno Setup installer plus a SHA-256 build report
 under ignored `ai-local/artifacts/`. The current local artifact is unsigned and is strictly for
-internal testing. Do not send it to external beta users without code signing and NVIDIA/FFmpeg
-redistribution-license review.
+the owner and personally trusted invite-only beta users, by explicit owner decision on 2026-07-31.
+Keep the unsigned warning and bundled third-party notices intact, distribute it only out-of-band,
+and do not publicly host or broadly distribute it without a separate owner decision.
 
 The installed GUI provides start/stop/restart, session pairing, nine-check Windows/GPU/CUDA/
 runtime/disk/port preflight, explicit pinned-model download/cancel/delete, warmup, job cleanup and

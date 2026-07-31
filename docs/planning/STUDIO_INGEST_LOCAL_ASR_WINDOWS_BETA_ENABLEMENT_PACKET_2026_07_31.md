@@ -4,12 +4,26 @@
 > **Source revision:** `77c48d139fef665b67c941ded731dd7175efca8e` (`main == origin/main`)
 > **Decision scope:** Windows Local ASR Companion + product onboarding, local implementation only.
 > **Permanent integration:** `NO-GO`.
-> **Distribution status:** no code-signing certificate is present; external beta distribution is blocked.
+> **Distribution status:** owner-approved unsigned distribution to the owner and a bounded trusted
+> cohort only; public/general distribution remains blocked.
 
 ## 1. Owner decision and non-negotiable policy
 
 The owner authorized a separate **invite-only Windows beta**. This is not a general-availability
 or permanent product-quality claim.
+
+Owner follow-up decision, quoted verbatim on 2026-07-31:
+
+> «1. Выпускаем установщик без подписи. им будут пользоваться сейчас только я и мои доверенные
+> пользователи. 2. программа некоммерческая. вопрос лицензирования снят. 3. human-gold проверку
+> проведу по факту на проде. 4. готов Проверить работу с настоящего production-origin»
+
+Operational interpretation: unsigned out-of-band distribution is `GO` only for the owner and
+people the owner personally trusts; human-gold becomes a post-deploy beta observation gate rather
+than a pre-deploy blocker; real production-origin browser verification is authorized. This does
+not authorize push, deploy, installer hosting, production flags, public distribution, or permanent
+integration. The owner's noncommercial/license decision removes the internal product-policy review
+gate for this cohort; it is recorded as owner risk acceptance, not an independent legal opinion.
 
 - Local ASR remains hidden and off by default.
 - Gemini remains the product default.
@@ -52,9 +66,10 @@ or permanent product-quality claim.
 | Packaging/signing | no PyInstaller, Inno Setup, SignTool, or code-signing certificate found |
 | Disk | user-local `C:` has sufficient space for the declared activation reserve |
 
-The locally produced installer may therefore be used only for internal testing and must be visibly
-marked `UNSIGNED INTERNAL`. It must not be sent to external beta users without a new owner decision
-or a valid signing identity.
+The locally produced installer remains visibly marked `UNSIGNED INTERNAL`. The follow-up owner
+decision permits it to be given out-of-band only to the owner and personally trusted beta users.
+It must not be publicly hosted, broadly advertised, or distributed beyond that cohort without a
+new owner decision.
 
 ## 3. Architecture
 
@@ -186,7 +201,7 @@ changes it.
 | Foreign process on 8799 | report conflict; never terminate an unowned process |
 | Hidden cloud egress | no Gemini call in Companion; browser test asserts zero cloud requests |
 | Diagnostic privacy leak | structured allowlist; no filenames, media, transcript, job payload, token |
-| Unsigned binary social-engineering risk | internal-only label; external distribution blocked |
+| Unsigned binary social-engineering risk | visible warning + owner/trusted cohort only; no public hosting |
 
 ## 8. Adversarial review before code
 
@@ -270,15 +285,15 @@ gain server authority.
 
 Stop and return to the owner if implementation requires a schema/migration, production mutation,
 provider-default change, remote service, LAN bind, weakened pairing/Origin/PNA/body cap, a different
-model/runtime/decode policy, full large-v3, cloud media upload/spend, unsigned external distribution,
-or work in L2–L6.
+model/runtime/decode policy, full large-v3, cloud media upload/spend, distribution beyond the
+  owner-approved trusted cohort, public installer hosting, or work in L2–L6.
 
 ## 13. Local implementation closure
 
 Status on 2026-07-31:
 
 - Companion/onboarding engineering: **PASS**.
-- External invite distribution: **NO-GO** (unsigned, license review and owner acceptance open).
+- Unsigned invite distribution: **GO — OWNER + TRUSTED COHORT ONLY**, out-of-band.
 - Permanent integration: **NO-GO**, unchanged.
 
 The reproducible build produces
@@ -286,8 +301,9 @@ The reproducible build produces
 SHA-256 `1079fc4e09c038c1704f503228285a097347dfc25ae267f3e287289feca0acbe`, Authenticode
 `NotSigned`. It bundles FFmpeg/ffprobe 8.1 and pinned Windows cuDNN/cuBLAS redistributables, but
 does not bundle the 1,621,665,181-byte model snapshot. NVIDIA proprietary license files and the
-runtime notice ship with the installed tree. External distribution requires signing plus explicit
-NVIDIA/FFmpeg license review.
+runtime notice ship with the installed tree. For this noncommercial trusted cohort, the owner has
+explicitly accepted unsigned distribution and removed license review as an internal product gate;
+the notices remain bundled. Public/general distribution remains a separate decision.
 
 Local Windows 11/RTX 3070 ceremonies passed: install, live same-version update with owned stop and
 restart (`exit 0`, changed PID), start, restart, exact
@@ -304,10 +320,11 @@ readiness, privacy boundary, explicit Local selection, no horizontal overflow, a
 requests. Real production-origin testing is `NOT_RUN`, because deploy authority was excluded.
 Firefox remains unsupported for this first beta.
 
-The beta acceptance worksheet/key/manifest exist, but the source set is honestly
-`BLOCKED_SOURCE_SET_NOT_FROZEN`: no repository set currently proves 12–15 minutes from four
-independent speakers with independent human gold. The permanent 60-minute/12-speaker paired-Gemini
-gate remains unchanged.
+The beta acceptance worksheet/key/manifest exist. The source set is still honestly
+`NOT_FROZEN`: no repository set currently proves 12–15 minutes from four independent speakers with
+independent human gold. By owner decision this check will run on production during the bounded beta;
+it is no longer a deployment prerequisite and is not yet a quality PASS. The permanent
+60-minute/12-speaker paired-Gemini gate remains unchanged.
 
 Canonical evidence:
 `docs/research/studio-local-processing/2026-07-31/windows-beta/evidence-report.json` and its
