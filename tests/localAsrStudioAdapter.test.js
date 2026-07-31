@@ -67,6 +67,15 @@ test("pairing help names the exact Companion control and remains session-only", 
   assert.doesNotMatch(client, /localStorage[^\n]*PAIRING_TOKEN|PAIRING_TOKEN[^\n]*localStorage/i);
 });
 
+test("both Local ASR connection actions expose a proximal connected state and reset it honestly", () => {
+  assert.match(onboarding, /setConnectionState\(true\)[\s\S]*studio\.localAsrBeta\.connected/);
+  assert.match(onboarding, /localAsrToken[\s\S]*addEventListener\("input"[\s\S]*setConnectionState\(false\)/);
+  assert.match(studio, /setLocalAsrConnectionState\(true\)[\s\S]*studio\.import\.localAsrReady/);
+  assert.match(studio, /function onLocalAsrTokenChanged\(\)[\s\S]*setLocalAsrConnectionState\(false\)/);
+  assert.match(html, /id="v3ImportLocalAsrToken"[\s\S]*oninput="StudioImport\.onLocalAsrTokenChanged\(\)"/);
+  assert.match(html, /#localAsrConnect\[data-connected="true"\],#v3ImportLocalAsrPair\[data-connected="true"\]/);
+});
+
 test("Local ASR help is allowlisted, localized, and available in the offline shell", () => {
   const server = fs.readFileSync(path.join(root, "server.js"), "utf8");
   for (const filename of [

@@ -3583,6 +3583,8 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .v3-local-asr-setup > label { display:block; font-size:12px; margin-bottom:5px; }
 .v3-local-asr-pair-row { display:flex; gap:6px; align-items:center; }
 .v3-local-asr-pair-row input { min-width:0; flex:1 1 180px; }
+#localAsrConnect[data-connected="true"],#v3ImportLocalAsrPair[data-connected="true"] { border-color:#0b7673; background:#0b7673; color:#fff; }
+#localAsrConnect[data-connected="true"]:hover,#v3ImportLocalAsrPair[data-connected="true"]:hover { border-color:#086561; background:#086561; color:#fff; }
 .local-asr-beta-modal[hidden], #btnLocalAsrSettings[hidden] { display:none !important; }
 .local-asr-beta-modal { position:fixed; inset:0; z-index:10080; display:grid; place-items:center; padding:18px; background:rgba(13,25,37,.62); backdrop-filter:blur(5px); }
 .local-asr-beta-panel { box-sizing:border-box; position:relative; width:min(720px,100%); max-width:100%; max-height:min(88vh,780px); overflow:auto; padding:26px; border:1px solid color-mix(in srgb,var(--theme-border-soft,#d8e0e6) 78%,#0b7c78); border-radius:16px; background:var(--theme-bg-card,#fff); color:var(--theme-text,#17212b); box-shadow:0 28px 80px rgba(4,23,31,.28); }
@@ -12421,9 +12423,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=86"></script>
-<script src="/i18n/locales/en.js?v=86"></script>
-<script src="/i18n/locales/he.js?v=86"></script>
+<script src="/i18n/locales/ru.js?v=87"></script>
+<script src="/i18n/locales/en.js?v=87"></script>
+<script src="/i18n/locales/he.js?v=87"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12570,7 +12572,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.277";
+    window.APP_VERSION = "3.11.278";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -47331,7 +47333,8 @@ document.addEventListener("i18n:changed", function () {
             <label for="v3ImportLocalAsrToken" data-i18n="studio.import.localAsrTokenLabel">Pairing token локального companion</label>
             <div class="v3-local-asr-pair-row">
               <input id="v3ImportLocalAsrToken" type="password" autocomplete="off" spellcheck="false"
-                     data-i18n-placeholder="studio.import.localAsrTokenPlaceholder" placeholder="Вставьте token из ai-local state">
+                     data-i18n-placeholder="studio.import.localAsrTokenPlaceholder" placeholder="Вставьте token из ai-local state"
+                     oninput="StudioImport.onLocalAsrTokenChanged()">
               <button type="button" id="v3ImportLocalAsrPair" class="btn-secondary"
                       onclick="StudioImport.pairLocalAsr()" data-i18n="studio.import.localAsrPair">Проверить companion</button>
             </div>

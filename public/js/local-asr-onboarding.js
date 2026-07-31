@@ -4,6 +4,7 @@
 
   var REVISION = "72ad623a37947395efcc3933132353790e5a12f5";
   var client = null;
+  var connected = false;
   var pollTimer = null;
   var config = { beta: false, companionDownloadUrl: "" };
 
@@ -15,6 +16,19 @@
   function el(id) { return document.getElementById(id); }
   function text(id, value) { var node = el(id); if (node) node.textContent = value; }
   function show(id, visible) { var node = el(id); if (node) node.hidden = !visible; }
+  function renderConnectionState() {
+    var button = el("localAsrConnect");
+    if (!button) return;
+    button.textContent = connected
+      ? T("studio.localAsrBeta.connectedLabel", "Connected")
+      : T("studio.localAsrBeta.connect", "Connect");
+    button.dataset.connected = connected ? "true" : "false";
+    button.setAttribute("aria-pressed", connected ? "true" : "false");
+  }
+  function setConnectionState(value) {
+    connected = value === true;
+    renderConnectionState();
+  }
   function guideUrl() {
     var locale = typeof window.appGetLocale === "function" ? window.appGetLocale() : "ru";
     var suffix = locale === "en" ? ".en" : locale === "he" ? ".he" : "";
@@ -72,7 +86,7 @@
     text("localAsrTokenStep3", T("studio.localAsrBeta.tokenStep3", "Return to this tab, paste the token, and click Connect."));
     text("localAsrTokenSecurity", T("studio.localAsrBeta.tokenSecurity", "The token stays only in this browser session. Repeat after closing the tab; do not share it."));
     el("localAsrToken").placeholder = T("studio.localAsrBeta.tokenPlaceholder", "Pairing token");
-    text("localAsrConnect", T("studio.localAsrBeta.connect", "Connect"));
+    renderConnectionState();
     text("localAsrDeviceTitle", T("studio.localAsrBeta.deviceTitle", "Check device"));
     text("localAsrDeviceCheck", T("studio.localAsrBeta.check", "Run preflight"));
     text("localAsrModelTitle", T("studio.localAsrBeta.modelTitle", "Install and verify the pinned model"));
@@ -92,6 +106,7 @@
   function bind() {
     el("localAsrBetaClose").addEventListener("click", close);
     el("localAsrConnect").addEventListener("click", connect);
+    el("localAsrToken").addEventListener("input", function () { setConnectionState(false); });
     el("localAsrDeviceCheck").addEventListener("click", checkDevice);
     el("localAsrInstall").addEventListener("click", installModel);
     el("localAsrInstallCancel").addEventListener("click", function () { action(function () { return client.cancelModelInstall(); }); });
@@ -129,13 +144,15 @@
   }
 
   async function connect() {
+    setConnectionState(false);
     try {
       window.LocalAsrClient.setPairingToken(el("localAsrToken").value);
       client = new window.LocalAsrClient.Client();
       await action(function () { return client.modelStatus(); });
+      setConnectionState(true);
       setStatus(T("studio.localAsrBeta.connected", "Connected for this browser session."), "ok");
       await refresh();
-    } catch (_) {}
+    } catch (_) { setConnectionState(false); }
   }
 
   async function checkDevice() {
@@ -193,6 +210,8 @@
 
   function leaveBeta() {
     window.LocalAsrClient.unenroll();
+    client = null;
+    setConnectionState(false);
     close();
     revealEntry();
     window.dispatchEvent(new CustomEvent("local-asr-beta-change"));
@@ -211,8 +230,9 @@
       show("localAsrInstallCancel", ["QUEUED", "DOWNLOADING", "VERIFYING"].indexOf(install.state) >= 0);
       show("localAsrInstall", !model.verified && ["QUEUED", "DOWNLOADING", "VERIFYING"].indexOf(install.state) < 0);
       show("localAsrModelDelete", model.installed || model.verified);
+      setConnectionState(true);
       if (["QUEUED", "DOWNLOADING", "VERIFYING"].indexOf(install.state) >= 0) schedulePoll();
-    } catch (_) {}
+    } catch (_) { setConnectionState(false); }
   }
 
   function schedulePoll() {
@@ -239,6 +259,7 @@
     }
     var remembered = window.LocalAsrClient.getPairingToken();
     if (remembered) el("localAsrToken").value = remembered;
+    setConnectionState(false);
     el("localAsrBetaModal").hidden = false;
     el("localAsrBetaClose").focus();
     if (remembered) { client = new window.LocalAsrClient.Client(); refresh(); }

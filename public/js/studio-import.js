@@ -667,6 +667,7 @@
   var pendingAudio = null; // {file, buf, sha256, mime, durationSec, name, parsed, validation}
   var localAsrClient = null;
   var localAsrRunController = null;
+  var localAsrConnected = false;
 
   // W2-S5a — Import → Captions (.vtt/.srt file or pasted YouTube transcript panel) + optional
   // embedded YouTube player for capability preview. Канон:
@@ -702,6 +703,25 @@
   function tr(key, params) { return (typeof window.t === "function") ? window.t(key, params) : key; }
   function toast(key, type) { if (typeof window.showToast === "function") window.showToast(tr(key), type || "info"); }
 
+  function renderLocalAsrConnectionState() {
+    var button = $("v3ImportLocalAsrPair");
+    if (!button) return;
+    button.textContent = tr(localAsrConnected
+      ? "studio.import.localAsrConnected"
+      : "studio.import.localAsrPair");
+    button.dataset.connected = localAsrConnected ? "true" : "false";
+    button.setAttribute("aria-pressed", localAsrConnected ? "true" : "false");
+  }
+
+  function setLocalAsrConnectionState(value) {
+    localAsrConnected = value === true;
+    renderLocalAsrConnectionState();
+  }
+
+  function onLocalAsrTokenChanged() {
+    setLocalAsrConnectionState(false);
+  }
+
   function localAsrExperimental() {
     return !!(window.LocalAsrClient && window.LocalAsrClient.isExperimentalEnabled());
   }
@@ -722,6 +742,8 @@
       var input = $("v3ImportLocalAsrToken");
       if (input && !input.value) input.value = window.LocalAsrClient.getPairingToken();
     }
+    if (!enabled) localAsrConnected = false;
+    renderLocalAsrConnectionState();
     if (pendingAudio) updateAudioActionLabel();
   }
   window.addEventListener("local-asr-beta-change", refreshLocalAsrControls);
@@ -781,15 +803,18 @@
   }
 
   async function pairLocalAsr() {
+    setLocalAsrConnectionState(false);
     try {
       window.LocalAsrClient.setPairingToken($("v3ImportLocalAsrToken").value);
       localAsrClient = new window.LocalAsrClient.Client();
       var capabilities = await localAsrClient.capabilities();
       var model = await localAsrClient.modelStatus();
+      setLocalAsrConnectionState(true);
       var key = model && model.verified ? "studio.import.localAsrReady" : "studio.import.localAsrModelMissing";
       var capModel = capabilities && capabilities.local_asr && capabilities.local_asr.model;
       setStatus(key, capModel && capModel.revision ? capModel.revision.slice(0, 12) : "");
     } catch (error) {
+      setLocalAsrConnectionState(false);
       setStatus(error && error.code === "LOCAL_ASR_PAIRING_REQUIRED"
         ? "studio.import.localAsrPairingRequired" : "studio.import.localAsrUnavailable");
     }
@@ -1431,6 +1456,7 @@
     pendingAudio = null;
     var provider = $("v3ImportAudioProvider");
     if (provider) provider.value = "gemini"; // experimental Local never changes the product default
+    setLocalAsrConnectionState(false);
     var deleteButton = $("v3ImportLocalAsrDelete");
     if (deleteButton) deleteButton.hidden = true;
     var retryButton = $("v3ImportLocalAsrRetry");
@@ -1903,6 +1929,7 @@
                            fetchUrl: fetchUrl, fetchUrlOrVideo: fetchUrlOrVideo, mountVideoFromField: mountVideoFromField,
                            onFileChosen: onFileChosen, onAudioChosen: onAudioChosen, transcribeAudio: transcribeAudio,
                            onAudioProviderChanged: onAudioProviderChanged, pairLocalAsr: pairLocalAsr,
+                           onLocalAsrTokenChanged: onLocalAsrTokenChanged,
                            cancelLocalAsr: cancelLocalAsr, retryLocalAsr: retryLocalAsr,
                            deleteLocalAsrJob: deleteLocalAsrJob,
                            refreshLocalAsrControls: refreshLocalAsrControls,
