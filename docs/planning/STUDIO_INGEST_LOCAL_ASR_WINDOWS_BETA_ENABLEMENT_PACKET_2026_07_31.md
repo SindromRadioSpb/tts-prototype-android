@@ -320,8 +320,10 @@ readiness, privacy boundary, explicit Local selection, no horizontal overflow, a
 requests. On the actually served production `v3.11.272`, Chrome then passed the existing default-off
 experimental seam, explicit Local selection, session pairing, and pinned-model readiness against
 `127.0.0.1:8799`; Gemini remained the reset/default provider. The visible token field and browser/
-system clipboards were cleared after pairing. A native Chrome file-chooser job, production Edge
-ceremony, and deployment of the new `v3.11.273` onboarding remain open; no deploy authority was inferred.
+system clipboards were cleared after pairing. The owner subsequently completed the native Chrome
+file chooser, explicit Local run, transfer to the input field, Library card save, and export. The
+production Edge ceremony and deployment of the new `v3.11.273` onboarding remain open; no deploy
+authority was inferred.
 Firefox remains unsupported for this first beta.
 
 The owner then selected a 30:05.82 MP3 for a long production-origin run. Chrome's native file
@@ -329,8 +331,18 @@ chooser could not be exercised through the extension, so the media job was submi
 loopback API with `Origin: https://linguistpro.kolosei.com`; it never reached the production server.
 The job completed `3/3` chunks in 66.54 seconds of model time (`RTF 0.03685`), with S12.5/S12.6/
 S12.7 PASS, no gaps/warnings/OOM, maximum 62 C, and minimum 3,636 MiB free VRAM. A bounded comparison
-with the adapted Library card `Заложница Миа. Интервью v2` found all 13 defined story anchors, but
-the card is not verbatim human gold. The raw managed job is retained for owner listen/read review.
+with the Library card `Заложница Миа. Интервью v2` found all 13 defined story anchors. The exact
+export later proved that this is Gemini ASR of the same MP3, not independent human gold. The raw
+managed job is retained for owner listen/read review.
+
+The owner-completed UI job independently passed `3/3`, all integrity gates, and no-fallback
+provenance in 71.987 seconds wall time (`model RTF 0.03446`). Offline comparison of the exact Local
+and Gemini card exports found a `22.98%` normalized token disagreement rate. This is not WER: Gemini
+is not independent gold and marks 239.997 seconds unreliable. Nevertheless, repeated entity and
+meaning-changing errors plus 552-row over-fragmentation limit the Local output to a first draft with
+mandatory human review. Audio ASR remained Local; the saved card separately records downstream
+`google-free` translation and `dicta-cloud` niqqud, which must not be described as a fully local
+text-enrichment path.
 
 The beta acceptance worksheet/key/manifest exist. The source set is still honestly
 `NOT_FROZEN`: no repository set currently proves 12–15 minutes from four independent speakers with

@@ -17,6 +17,13 @@ submitted directly to the same loopback API with the mandatory header
 `Origin: https://linguistpro.kolosei.com`. This proves the real media/decode lifecycle and the
 production-origin allowlist together, but is not claimed as a browser file-chooser PASS.
 
+The owner subsequently completed the native Chrome file-chooser flow on the same served product,
+ran Local explicitly, moved the result into the input field, saved the new Library card, and
+exported it. That separate UI job is `5455d295-a86a-4be6-8e50-a1f0deb74386`; its card is
+`Заложница Миа. Интервью — Local ASR 2026-07-31`. The end-to-end Chrome path is therefore an
+owner-executed PASS. See `MIA_LOCAL_VS_GEMINI_COMPARISON.md` for the exact export provenance and
+offline quality analysis.
+
 The media was sent only to `http://127.0.0.1:8799`; no production server upload, Gemini request,
 cloud quota, schema/data mutation, push, or deploy occurred.
 
@@ -47,10 +54,15 @@ cloud quota, schema/data mutation, push, or deploy occurred.
 - Minimum free VRAM: `3,636 MiB`.
 - Peak power: `129.51 W`.
 
+The owner-executed UI job independently completed `3/3` chunks without retry in `71.987 s` wall
+time. Its model time was `62.23183 s` (`RTF 0.03446`, about `29.02x` realtime), with maximum `60 C`,
+minimum `3,581 MiB` free VRAM, no thermal throttle, and S12.5/S12.6/S12.7 PASS.
+
 ## Comparison with `Заложница Миа. Интервью v2`
 
-The Library card is a shortened/adapted learning text, not an independent verbatim human
-transcript. WER/CER against it would therefore be invalid and is not reported as model quality.
+The owner-supplied export proves that the Library card contains Gemini ASR of the same complete
+MP3. It is a useful paired comparator, but it is not an independent human-authored transcript.
+WER/CER against it would therefore be invalid and is not reported as model quality.
 
 A bounded structural comparison found all `13/13` story anchors represented in the Local result:
 reason for the interview; Nova; attack and escape; gunshot/hand injury; captivity in Gaza; surgery;
@@ -59,15 +71,14 @@ hospital rehabilitation; epilepsy; closing message to remain strong.
 
 Observed review candidates, not automatic grading:
 
-- the Local transcript includes natural dialogue, narration, English phrases and detail omitted by
-  the adapted card;
+- the two ASR providers segment dialogue, narration, and English phrases differently;
 - it contains recognizable ASR substitutions around short/noisy phrases, including hand/injury
   wording and a name phrase near the opening narration;
 - the final short chunk contains an out-of-context phrase after the interview closing, which should
   be checked against the audio boundary before owner acceptance;
-- the currently rendered Russian card row for Hebrew `מיה עשתה את עצמה מתה` says that Mia killed
-  herself, while the story and raw interview mean that she pretended to be dead. This is a card
-  translation/content issue, not evidence of Local ASR failure.
+- the exact exported reference card renders the relevant pretend-to-be-dead row correctly. The
+  earlier preliminary observation of a mistranslation was not present in the owner-supplied export
+  and is withdrawn.
 
 The comparison supports semantic coverage for this one speaker/material, but does not close the
 four-speaker beta human-gold gate or the permanent 60-minute/12-speaker paired-Gemini gate.

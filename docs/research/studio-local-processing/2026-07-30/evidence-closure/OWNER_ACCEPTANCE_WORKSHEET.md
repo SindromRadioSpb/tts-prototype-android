@@ -38,9 +38,18 @@ trusted-cohort beta. This removes it as a pre-deploy blocker but does not mark i
 threshold, source provenance, and decision still belong in the blinded worksheet.
 
 The 30:05.82 Mia Schem production-origin Local run is retained for owner listen/read review and
-passed engineering integrity. Its comparison target, `Заложница Миа. Интервью v2`, is an adapted
-learning card rather than an independent verbatim human transcript, so its 13/13 semantic anchor
-coverage must not be reported as WER/CER or human-gold quality PASS.
+passed engineering integrity. Its comparison target, `Заложница Миа. Интервью v2`, is Gemini ASR
+of the same complete MP3 rather than an independent human-authored transcript, so its 13/13 semantic
+anchor coverage and token disagreement must not be reported as WER/CER or human-gold quality PASS.
+
+The owner subsequently completed the native Chrome file-to-card workflow. Exact offline comparison
+of the exported Local and Gemini cards recorded `22.98%` normalized token disagreement, material
+name/meaning errors, and Local row over-fragmentation. Current evidence therefore supports Local as
+a fast first draft with mandatory review, not as an automatically publishable transcript. Review
+the ten timestamp checkpoints in
+`docs/research/studio-local-processing/2026-07-31/windows-beta/MIA_LOCAL_VS_GEMINI_COMPARISON.md`
+before setting the owner beta threshold.
 
 This smaller beta gate does not cancel, close, or silently revise the permanent
-60-minute/12-speaker paired-Gemini gate. No Gemini comparison is authorized here.
+60-minute/12-speaker paired-Gemini gate. The owner-provided offline Gemini-card comparison used no
+new cloud request or spend and does not satisfy that permanent gate.

@@ -57,15 +57,20 @@ flag, Gemini remained the reset/default provider, Local was selected explicitly,
 field and both browser/system clipboards were cleared after pairing; no pairing secret was written
 to evidence. A 30:05.82 owner-selected MP3 then completed locally in 66.54 seconds of model time
 (`RTF 0.03685`), `3/3` chunks, with S12.5/S12.6/S12.7 all PASS and no warnings/OOM. The native
-Chrome file chooser was not exercised: after Chrome-extension upload failed, the job used the same
-loopback API with the production Origin header. See `LONG_RUN_MIA_PRODUCTION_ORIGIN_REPORT.md`.
-The Edge production-origin ceremony and deployment of the new `v3.11.273` onboarding UI remain open.
+Chrome file chooser could not be automated through the extension, so that first job used the same
+loopback API with the production Origin header. The owner then completed the native Chrome flow,
+explicitly ran Local, saved the resulting Library card, and exported it. The UI job completed in
+71.987 seconds wall time (`model RTF 0.03446`) and preserved all 503 ASR segments into 552 timed rows.
+See `LONG_RUN_MIA_PRODUCTION_ORIGIN_REPORT.md` and `MIA_LOCAL_VS_GEMINI_COMPARISON.md`. The Edge
+production-origin ceremony and deployment of the new `v3.11.273` onboarding UI remain open.
 
 ## Files
 
 - `evidence-report.json` — authoritative machine-readable closure.
 - `browser-matrix-report.json` and four PNGs — system Chrome/Edge LTR/RTL evidence.
 - `LONG_RUN_MIA_PRODUCTION_ORIGIN_REPORT.md` — 30-minute real-media run and bounded card comparison.
+- `MIA_LOCAL_VS_GEMINI_COMPARISON.md` — exact UI-export provenance, offline disagreement metrics,
+  quality findings, and owner listen/read checkpoints.
 - `run_onboarding_matrix.js` — reproducible local-origin runner.
 - `OWNER_BLINDED_LISTEN_READ_WORKSHEET.md` — owner scoring form.
 - `OWNER_BLINDED_KEY.private-template.md` — separate unfilled mapping template.

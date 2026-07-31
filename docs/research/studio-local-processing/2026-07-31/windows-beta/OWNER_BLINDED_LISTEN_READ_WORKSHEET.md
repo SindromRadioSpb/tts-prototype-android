@@ -8,7 +8,8 @@ Status: `BLOCKED_SOURCE_SET_NOT_FROZEN`. This worksheet does not close the beta 
 - Clean read speech, conversational speech, moderate noise, and names/numbers.
 - Human-authored gold independent of Local ASR and Gemini, frozen before inference.
 - Ten opaque tasks below; order is fixed only after source hashes and the private key are complete.
-- No Gemini comparison or cloud upload is authorized in this slice.
+- No new Gemini request or cloud upload is authorized in this slice. The owner-provided Mia Gemini
+  export may be compared offline, but it is not human-authored gold and cannot score these tasks.
 
 ## Blinded tasks
 
