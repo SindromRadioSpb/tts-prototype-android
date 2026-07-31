@@ -232,6 +232,10 @@ baseline: разборчивость, никуд/ударение, имена, �
 | Triggered | S10 PWA share_target | parked | proven Android demand |
 | Anti | server yt-dlp, real-time, song alignment | NO-GO | reopen only by explicit owner decision + evidence |
 
+Adversarial L3a proposal (design-only, owner decision required):
+`STUDIO_INGEST_L3A_CORRECTABLE_MEDIA_PACKAGE_DESIGN_PACKET_2026_07_31.md`.
+Его наличие не разрешает code/schema/push/deploy.
+
 **Рекомендуемая последовательность:** принять bounded L1 engineering/evidence closure, затем
 отдельным решением определить достаточный owner/human acceptance и только отдельно разрешать
 paired Gemini cloud spend до permanent integration. L2/L3 не
