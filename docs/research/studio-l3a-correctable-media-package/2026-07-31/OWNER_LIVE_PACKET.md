@@ -13,6 +13,10 @@
 > deployment evidence supersede the lifecycle portion of this packet; see §4a onward. The original
 > acceptance record below is retained as historical evidence.
 
+> **Latest local candidate (2026-08-01):** `v3.11.282`, exact code commit
+> `44b216bca4cc5fdecc5f2fae97ab9291ed8a6fb9`, actual `MIGRATIONS.length=45`.
+> Production remains `v3.11.281`; §4c–4d record the post-owner-test media-review correction.
+
 ## 1. What is in the candidate
 
 - additive browser migration v45 with first-class package, track, immutable revision and frozen
@@ -169,6 +173,97 @@ New inspected screenshots:
 Не присылай сам transcript; достаточно package/track/revision IDs и hashes.
 ```
 
+## 4c. L3a.2 media review console and table source-player — 2026-08-01
+
+### Owner evidence and exact root cause
+
+Owner production testing on a 36:17 local video found two coupled defects:
+
+1. table row replay controls disappeared and the table claimed that media was absent even while
+   the same OPFS video played in the corrected-transcript editor;
+2. the editor separated the high-frequency **Next** and **Replay cue** actions by a scrolling cue
+   card, exposed no direct cue-number jump and did not follow manual media seeking.
+
+The replay regression was a compatibility-shape mismatch, not missing bytes: migration-v45 canon
+stores `opfs_path`, while the legacy table resolver read only `opfsPath`. The editor correctly read
+the canonical package row, so it could play the file; the compatibility table path falsely
+degraded to `fileMissing` and suppressed `.smk-row-replay`.
+
+### Scoped correction
+
+- **Version:** `v3.11.282`; actual `MIGRATIONS.length=45`; no migration/schema/server/data change.
+- **Exact code commit:** `44b216bca4cc5fdecc5f2fae97ab9291ed8a6fb9`.
+- Canonical package media is projected into one normalized legacy camel-case shape; the resolver
+  also accepts already-saved snake-case projections, so existing v3.11.280/281 artifacts recover
+  without ASR, reimport or backfill.
+- The editor is now a review console: player and permanent transport dock contain Previous,
+  direct one-based cue input, Replay and Next; player seek/time selects the matching cue and cue
+  navigation seeks the player. Export/offset/relink/delete are collapsed as infrequent tools.
+- Desktop editor is browser-resizable; mobile remains full-viewport and passed 380×844 RU/LTR and
+  HE/RTL without horizontal overflow. Save actions use a stable two-row mobile hierarchy.
+- The learning table now mounts a visible local `<audio>` or `<video>` from the same OPFS blob.
+  Row selection seeks it even while paused; player time highlights and scrolls the corresponding
+  row; per-row original-fragment controls are restored in the last visible column.
+- Visible-player binding survives `pause` and `ended`, but media `error` still fails closed. Blind
+  S12.7 ranges remain unhighlighted/unreplayable. TTS, Local/Gemini defaults, raw immutability,
+  frozen table revision and local-only package scope are unchanged.
+
+### Exact gates
+
+| Gate | Result |
+|---|---|
+| Media Package target suite | `47 passed, 0 failed` |
+| i18n/cache/version | `233 passed, 0 failed`; locale cache-bust `91` |
+| Browser OPFS-SQLite 380×844 RU/HE | player→cue `2`, direct jump→cue `1`, one transport dock, rare tools closed, no overflow/page errors |
+| Browser table media sync | snake-case OPFS passport resolved; visible `<audio>`; `2/2` replay buttons; row→`0.9s`; media→row highlight |
+| Desktop layout | computed `resize: both` |
+| 2,800-cue performance | normalize `30.33 ms`; create `93.75 ms`; edit p95 `7.93 ms`; draft `12.76 ms`; commit `49.06 ms` |
+| Text-card / captions / chunks | `35 passed, 0 failed` / PASS / PASS |
+| Ingest / media karaoke / reader parity / API | PASS / PASS / PASS / PASS; client `3.11.282` |
+| Full `npm test` | `686 total / 677 pass / 9 fail`; unchanged unrelated baseline in §6 |
+
+Inspected screenshots:
+
+- `screenshots/l3a-380-ru.png` — compact permanent review transport and two-row save hierarchy;
+- `screenshots/l3a-380-he.png` — HE/RTL editor parity;
+- `screenshots/l3a-table-source-sync-380-he.png` — visible OPFS source-player and restored
+  per-row original-fragment controls.
+
+### Adversarial closeout
+
+- **R4:** no repeat-ASR dead end; all 514-cue review operations are reachable without scrolling
+  between Next and Replay, and arbitrary cue navigation is direct.
+- **R9/R11:** raw/corrected and frozen-table identities are untouched; the table only consumes a
+  revision-hashed compatibility projection. Blind timing still refuses false precision.
+- **R12:** SQLite revision/package rows remain canon; passport media is a normalized projection,
+  not a second mutable media record.
+- **R13:** object URLs are revoked on media identity change; visible-player binding persists after
+  ordinary pause/end and tears down on error or source reset.
+- **R15:** all media reads and synchronization remain browser-local; no network/model/server path
+  was added.
+
+## 4d. v3.11.282 owner production test — paste-ready prompt
+
+```text
+После отдельно разрешённого deploy дождись в production версии 3.11.282.
+Используй уже сохранённый 36:17 Media Package; не запускай ASR повторно.
+
+1. Открой «Вернуться к правкам». Проверь, что Previous, номер/514, Replay и Next
+   всегда находятся в одном dock под плеером, без прокрутки карточки.
+2. Введи номер 200 и Enter: должны выбраться реплика 200 и её start time.
+3. Перемотай видео на 18:54: «Текст реплики» должен сам перейти к сегменту
+   этого времени. Next и Replay должны продолжать работать без прокрутки.
+4. Проверь resize окна на desktop; на узком окне не должно быть горизонтального overflow.
+5. Продолжи в таблицу. Над строками должен быть видимый source-video, а в последней
+   колонке — кнопки повтора отрывка оригинала.
+6. Нажми на строку при паузе: video должно seek-нуться к её фрагменту. Перемотай video:
+   соответствующая строка должна подсветиться и попасть в видимую область.
+7. Перезагрузи страницу и повторно открой тот же пакет: правки и media-link должны сохраниться.
+
+Сообщи Chrome version, PASS/FAIL по пунктам 1–7, один package/track/revision ID и console errors.
+Текст транскрипта присылать не нужно.
+```
+
 ## 5. Owner-live acceptance sequence
 
 Use Chrome with Local mode explicitly selected. Keep Gemini/default provider settings unchanged;
@@ -196,7 +291,7 @@ do not make a model call during correction/export.
 
 ## 6. Known failures and unclosed gates
 
-1. `npm test` has 9 unrelated pre-existing failures: one
+1. `npm test` has 9 unrelated pre-existing failures (`686 total / 677 pass`): one
    `classicModeRedesign` markup tripwire (`btnTableCustomizeToggle`) and eight BYOK GCP premium
    pipeline tests that run without a GCP Translate key and report config instead of their mocked
    provider paths. L3a targeted and adjacent gates are green.
@@ -225,17 +320,20 @@ docs/planning/STUDIO_INGEST_LOCAL_PROCESSING_ROADMAP_2026_07_30.md,
 docs/planning/STUDIO_INGEST_L3A_CORRECTABLE_MEDIA_PACKAGE_DESIGN_PACKET_2026_07_31.md,
 docs/research/studio-l3a-correctable-media-package/2026-07-31/OWNER_LIVE_PACKET.md.
 
-Candidate обязан быть exact code commit
-097d212dff899642d4e83906caa20c03c9ef8cc9, v3.11.280, MIGRATIONS.length=45.
-Production baseline остаётся v3.11.279 / 88977240. L2 demand-triggered; не начинать.
+Candidate code commit обязан быть
+44b216bca4cc5fdecc5f2fae97ab9291ed8a6fb9, v3.11.282, MIGRATIONS.length=45.
+Production baseline перед слайсом: v3.11.281. L2 demand-triggered; не начинать.
 
-Выполни только owner-live acceptance §5 с владельцем: реальный Mia Local ASR, 10 corrections,
-split/merge/offset/replay, close/reopen, frozen table + stale, VTT/SRT parity, slim fresh-profile
-import + exact SHA relink, реальный local video, dirty-draft recovery. Сохраняй только hashes/IDs,
-не transcript. Сначала перепроверь автоматические гейты §4 и dirty allowlist.
+Сначала проверь exact HEAD/dirty allowlist, version triplet, actual MIGRATIONS.length=45 и гейты §4c.
+Без отдельной дословной authority не push/deploy. Рекомендованная фраза владельца:
 
-Не разрешены push/deploy, server/production mutation, cloud Media Package sync, model call из
-editor/export, L2/L4/L5/L6 и full-media ZIP. При любом нарушении raw immutability, hash/identity
-parity, sentence/notes preservation или privacy boundary — STOP и зафиксируй точную причину.
-Оставь owner-live evidence packet и отдельный запрос authority; не push/deploy.
+"РАЗРЕШАЮ push allowlisted L3a.2 candidate 44b216bca4cc5fdecc5f2fae97ab9291ed8a6fb9
+и его docs-only owner packet в origin/main, затем deploy v3.11.282 и read-only production
+verification. Не разрешаю server/production schema/data mutations, cloud Media Package sync,
+L2/L4/L5/L6 или full-media ZIP. После deploy дождись actual served 3.11.282 и оставь
+мне owner-live шаги §4d."
+
+Если authority дана: push только два allowlisted L3a.2 commits, дождись webhook/served
+version, проверь `/healthz`, `/api/client-config`, service worker и видимую версию в свежем
+Chrome context. Затем остановись и передай владельцу §4d; не запускай повторный ASR.
 ```
