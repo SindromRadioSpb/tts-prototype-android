@@ -3,7 +3,7 @@
 > **Дата:** 2026-08-01
 > **Статус:** 🟢 `OWNER-APPROVED PLANNING DIRECTION`; implementation не начат
 > **Baseline:** production/origin `v3.11.282`,
-> `5c5239332093bb5a10e10e500c81eb0300a8be4b`, actual `MIGRATIONS.length=45`
+> `95bd37a3ac404bed9ec6faacdca1da15e2f56815`, actual `MIGRATIONS.length=45`
 > **Research canon:**
 > `docs/research/studio-ingest-artifact-continuity/2026-08-01/REPORT.md`
 > **Предок:** L3a Correctable Media Package shipped; L2 остаётся
@@ -29,7 +29,8 @@ Package в долговечный образовательный объект, �
 
 ```text
 P0 L3a owner-live/canon closure
-  → P1 Artifact Graph contract
+  → P1A Artifact Graph + Material Revision contract
+  → P1B Material Revision Workspace + targeted regeneration
   → P2 Portable Learning Package v2
   → P3 real iPhone manual continuity
   → P4 Import Center + educational continuity
@@ -68,8 +69,12 @@ P0–P4 составляют ближайшую продуктовую прог�
 18. Dirty worktree сохраняется; staging только explicit allowlist.
 19. Actual migration number определяется live preflight, не narrative label.
 20. Любой UI слайс проходит RU/LTR+HE/RTL @380px и real desktop/mobile visual QA.
+21. Material Workspace один, но caption source и learning projection остаются разными canon.
+22. Save/edit/replay/compare создают zero provider calls.
+23. Manual learning fields не перезаписываются targeted/full regeneration молча.
+24. Coarse stale развивается в deterministic row/field impact; full rebuild остаётся explicit.
 
-## 2. Owner-approved decisions D1–D10
+## 2. Owner-approved decisions D1–D18
 
 | ID | Решение | Зафиксированный выбор |
 |---|---|---|
@@ -83,9 +88,21 @@ P0–P4 составляют ближайшую продуктовую прог�
 | D8 | Hermes order | Metadata → handoff → bounded corrected content → proposals |
 | D9 | Справка | First-class Import Center, не только FAQ |
 | D10 | Scope boundaries | L2/L4/L5/L6/server/full-media ZIP не включены автоматически |
+| D11 | Editing surface | Единый Material Revision Workspace с двумя distinct layers |
+| D12 | Caption/table relation | Separate immutable revisions + exact binding, не одна mutable форма |
+| D13 | Default save | Zero provider/model calls; impact сохраняется отдельно |
+| D14 | Invalidation | Deterministic affected row/field mask, не global rebuild by default |
+| D15 | Manual authority | Manual field protected; overwrite только по явному выбору |
+| D16 | Regeneration | Explicit affected-only subset with provider/cost preflight |
+| D17 | Full rebuild | Rare advanced action; atomic new revision; old revision preserved |
+| D18 | Sequence | Workspace/table revision contract до Portable Package v2 |
 
 `OWNER-APPROVED PLANNING DIRECTION` означает утверждение этих решений как основы
 design/sequence. Это не implementation authority.
+
+Полный implementation-grade contract D11–D18, UX/state model, proposed v46 schema,
+red-before-fix gates и следующий prompt находятся в
+`docs/planning/STUDIO_INGEST_L3A3_MATERIAL_REVISION_WORKSPACE_IMPLEMENTATION_PACKET_2026_08_01.md`.
 
 ## 3. Target artifact contract
 
@@ -96,7 +113,9 @@ design/sequence. Это не implementation authority.
 | media bytes | content-addressed OPFS / future encrypted blob | SHA-256 identity |
 | raw/corrected captions | `studio_caption_revisions` | immutable revisions |
 | track head/draft | `studio_caption_tracks` | draft mutable, revision immutable |
-| saved learning text/table | `texts` + `sentences` | portable `text_key` required |
+| legacy/unpromoted learning table | `texts` + `sentences` | remains usable; lazy promotion only |
+| promoted bound learning table | immutable table/row revisions | canon introduced by Workspace contract; portable `text_key` required |
+| compatibility table surface | `texts` + `sentences` projection | rebuildable for promoted material; never second truth |
 | exact binding | `studio_text_media_bindings` | device-local FK + portable projection |
 | memory | `review_log` | append-only, отдельно от package |
 | notes/bookmarks | current first-class stores | перенос только по declared policy |
@@ -225,11 +244,13 @@ Package v2 не полагается на local UUID:
 - canon headers no longer claim local candidate;
 - no new feature code required unless live defect found and separately authorized.
 
-## 5. Phase P1 — Artifact Graph adversarial design packet
+## 5. Phase P1A/P1B — Artifact Graph contract и Material Revision Workspace
 
 ### Цель
 
-Заморозить identity, graph, package-v2 и migration/import semantics до кода.
+Сначала заморозить identity, graph, table-revision, impact и package-v2 semantics; затем
+реализовать Material Revision Workspace и targeted regeneration до сериализации Portable
+Learning Package v2. Package не должен закрепить coarse stale/mutable-cell модель.
 
 ### Обязательный recon
 
@@ -242,6 +263,9 @@ Package v2 не полагается на local UUID:
 - i18n/SW consumers;
 - legal/privacy class map;
 - real owner fixtures by hashes only.
+- every direct `texts`/`sentences`/`currentTableData` writer and compatibility consumer;
+- field-level manual provenance currently stored in `edit_meta_json`;
+- actual subset/provider request contracts and request-count observability.
 
 ### Design decisions
 
@@ -255,6 +279,11 @@ Package v2 не полагается на local UUID:
 8. Backup integration.
 9. Receipts/diagnostics.
 10. Rollback/migration.
+11. First-class immutable table revision canon and compatibility projection.
+12. Deterministic caption-change → row/field impact.
+13. Manual field authority/locks and explicit back-propagation.
+14. Targeted provider subset validation/cost preflight/no-fallback.
+15. Desktop/mobile two-layer Workspace and version/compare UX.
 
 ### Red-before-fix pure gates specification
 
@@ -272,6 +301,20 @@ Package v2 не полагается на local UUID:
 
 Отдельный owner-approved design packet с D-schema/D-package/D-import/D-backup решениями,
 exact migration proposal и implementation allowlist.
+
+### P1B implementation dependency
+
+После отдельного implementation approval выполнить T0–T10 из Material Revision Workspace
+packet. Exit P1B:
+
+- one saved-material Workspace CTA;
+- source/learning layers synchronized but authority-separated;
+- zero-call save;
+- affected-only impact/regeneration;
+- manual fields protected;
+- immutable table revisions and rollback;
+- compatibility projection guarded/rebuildable;
+- owner-live on 514 cues and 380 px.
 
 ## 6. Phase P2 — Portable Learning Package v2 implementation
 
@@ -721,17 +764,24 @@ fixtures.
 
 Owner-live evidence + docs closure. No feature code unless a real defect is separately approved.
 
-### Session B — P1 adversarial design packet
+### Session B — P1A adversarial design packet
 
-Docs/recon only. Freeze graph/package/import/backup schema and gates.
+Docs/recon only. Freeze graph/table-revision/impact/package/import/backup schema and gates.
 
-### Session C — P2 pure/package core
+### Session C — P1B Material Revision Workspace foundation
 
-Pure contracts/serializers/verifiers + tests; stop before browser migration if not authorized.
+Pure impact/table-revision core, migration/repository/promotion and zero-call Workspace shell;
+requires exact separate implementation authority.
 
-### Session D — P2 persistence/import/UI
+### Session D — P1B targeted regeneration and closure
 
-Additive browser migration if approved; transactional import/rebind/receipts and 380px gates.
+Learning-row editor, affected-only provider subset, version compare/reconcile, compatibility and
+owner-live packet; stop before push/deploy.
+
+### Session D2 — P2 Portable Learning Package core/UI
+
+Serializers/verifiers, transactional import/rebind/receipts and 380px gates over the frozen
+Material Revision contract.
 
 ### Session E — P3 iPhone owner-live
 
@@ -764,10 +814,11 @@ READ FIRST полностью и в порядке:
 7. docs/research/studio-l3a-correctable-media-package/2026-07-31/OWNER_LIVE_PACKET.md
 8. docs/research/studio-ingest-artifact-continuity/2026-08-01/REPORT.md
 9. docs/planning/STUDIO_INGEST_L3B_ARTIFACT_CONTINUITY_PLAN_2026_08_01.md
-10. docs/planning/LINGUISTPRO_SYNC_HARDENING_P0P2_DESIGN_2026_07_18.md
-11. docs/planning/LINGUISTPRO_AGENT_ACCESS_PERSONAL_CONTENT_BRIDGE_RECON_2026_07_18.md
+10. docs/planning/STUDIO_INGEST_L3A3_MATERIAL_REVISION_WORKSPACE_IMPLEMENTATION_PACKET_2026_08_01.md
+11. docs/planning/LINGUISTPRO_SYNC_HARDENING_P0P2_DESIGN_2026_07_18.md
+12. docs/planning/LINGUISTPRO_AGENT_ACCESS_PERSONAL_CONTENT_BRIDGE_RECON_2026_07_18.md
 
-Baseline at planning time: production/origin v3.11.282 / 5c523933;
+Baseline at planning time: production/origin v3.11.282 / 95bd37a3;
 actual browser MIGRATIONS.length=45. Re-check live state; do not assume it is unchanged.
 L2 remains demand-triggered. L4/L5/L6 are out of scope.
 
@@ -775,6 +826,11 @@ Owner-approved direction: L3b Artifact Continuity = Import Artifact Graph over e
 stores + Portable Learning Package v2 + later real-iPhone manual transfer and Import Center.
 Manual portable path remains mandatory; media bytes local-only by default; automatic package
 sync target is E2EE but is NOT authorized; Hermes work is NOT authorized.
+
+Owner-approved Material Revision decision: before Package v2, introduce one premium Workspace
+with distinct corrected-transcript and learning-projection layers; zero-call save; deterministic
+affected row/field impact; manual-field protection; explicit targeted regeneration; full rebuild
+rare, advanced and versioned. Use the separate Material Revision packet as normative contract.
 
 This session is adversarial DESIGN/RECON ONLY. Do not change product code, migrations, server,
 cloud sync, Hermes config, package/provider defaults or production. Preserve dirty worktree.
@@ -798,8 +854,12 @@ Stop before code/push/deploy until separately authorized.
 
 ## 21. Current planning conclusion
 
-Ближайший practically meaningful chain — P0→P1→P2→P3→P4. Она закрывает нынешний
+Ближайший practically meaningful chain — P0→P1A→P1B→P2→P3→P4. Она закрывает нынешний
 реальный пробел без batch, новых models или автоматической отправки personal media в cloud.
+
+P1B теперь является обязательным maturity bridge: Portable Package v2 не начинается поверх
+coarse global stale и mutable inline-cell workflow. Сначала таблица получает immutable revisions,
+field authority и affected-only update semantics; затем эта модель переносится между devices.
 
 P5/P6 и P7/P8 остаются важными архитектурными направлениями, но начинаются только после
 отдельных owner gates. Это удерживает один активный продуктовый слайс и не превращает

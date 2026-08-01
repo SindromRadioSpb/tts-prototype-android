@@ -817,6 +817,31 @@ packet и exact owner authority.
 L2 recovery/batch остаётся demand-triggered. L4/L5/L6 и remote-media acquisition не входят
 в эту программу автоматически.
 
+### 14.1 Subsequent owner decision: Material Revision Workspace
+
+После production dogfood L3a.2 владелец отдельно утвердил **единый Material Revision
+Workspace с двумя слоями** как premium target. Решение уточняет порядок artifact continuity:
+
+1. corrected transcript и learning projection видны в одном material-centric workflow;
+2. они остаются разными versioned canon, а не одной mutable формой;
+3. обычное сохранение correction/manual field делает zero provider calls;
+4. caption change вычисляет deterministic affected row/field impact;
+5. manual learning fields защищены от silent provider overwrite;
+6. targeted regeneration работает только по явно выбранному affected subset;
+7. full-table rebuild — редкое advanced действие, создающее новую revision;
+8. previous table revision сохраняется при success/failure/rollback;
+9. table-revision/field-provenance contract предшествует Portable Learning Package v2.
+
+Таким образом, coarse `table stale` был правильным L3a safety floor, но не является зрелым
+L3b UX/data contract. Package/device continuity не должна переносить этот временный предел как
+финальную модель.
+
+Normative implementation packet:
+`docs/planning/STUDIO_INGEST_L3A3_MATERIAL_REVISION_WORKSPACE_IMPLEMENTATION_PACKET_2026_08_01.md`.
+
+Утверждение направления не является code/schema/push/deploy authority. Proposed browser v46,
+table-revision canon, targeted provider contract и T0–T10 требуют отдельной точной фразы.
+
 ## 15. Known unknowns, которые должны стать gates, а не предположениями
 
 1. Реальный размер v2 package на 514/2,800 cues и с полной revision history.
@@ -829,5 +854,10 @@ L2 recovery/batch остаётся demand-triggered. L4/L5/L6 и remote-media ac
 8. E2EE recovery-key UX и acceptable loss/recovery model.
 9. Какие поля corrected track действительно нужны Hermes и на какой TTL.
 10. Нужна ли Hermes async работа при закрытых devices, оправдывающая agent-readable projection.
+11. Реальный 0/1/N caption→row distribution на owner materials.
+12. Какие direct sentence writers должны быть routed/guarded для promoted bound material.
+13. Может ли каждый existing provider безопасно принимать affected subset без нового API.
+14. Какой measured punctuation-only policy минимизирует лишний stale без скрытой семантики.
+15. Performance table-revision compare/impact на 514 и 2,800 cues.
 
 Ни один из этих unknown не блокирует первый design packet Artifact Graph + Portable Package v2.

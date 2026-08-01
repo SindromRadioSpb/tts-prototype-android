@@ -740,3 +740,11 @@ Historical candidate впоследствии был pushed/deployed и дове
 production `v3.11.282`; точная хронология и remaining owner-live gates находятся в stable
 owner packet. L2 остаётся demand-triggered и не был начат. Следующий слой — L3b Artifact
 Continuity — пока утверждён как research/planning, но не как implementation.
+
+Subsequent owner dogfood выявил следующий maturity gap: coarse whole-table stale и inline
+single-cell editing безопасны, но вынуждают полную пересборку после малой correction. Владелец
+2026-08-01 утвердил L3a.3 **Material Revision Workspace** с двумя слоями, immutable table
+revisions, deterministic affected row/field impact, manual-field protection и explicit targeted
+regeneration. Full rebuild становится rare advanced action. Normative packet:
+`docs/planning/STUDIO_INGEST_L3A3_MATERIAL_REVISION_WORKSPACE_IMPLEMENTATION_PACKET_2026_08_01.md`.
+Это product/planning approval, не implementation/push/deploy authority.

@@ -11,10 +11,13 @@ production L3a.2 (`v3.11.282`): образовательное закрытие 
   требования, риски и рекомендуемое направление.
 - Каноническое планирование по результатам исследования:
   [`docs/planning/STUDIO_INGEST_L3B_ARTIFACT_CONTINUITY_PLAN_2026_08_01.md`](../../../planning/STUDIO_INGEST_L3B_ARTIFACT_CONTINUITY_PLAN_2026_08_01.md).
+- Subsequent owner-approved local maturity contract перед Portable Package v2:
+  [`docs/planning/STUDIO_INGEST_L3A3_MATERIAL_REVISION_WORKSPACE_IMPLEMENTATION_PACKET_2026_08_01.md`](../../../planning/STUDIO_INGEST_L3A3_MATERIAL_REVISION_WORKSPACE_IMPLEMENTATION_PACKET_2026_08_01.md).
 
 ## Как получен пакет
 
-- Исходный commit: `5c5239332093bb5a10e10e500c81eb0300a8be4b` (`v3.11.282`).
+- Исходный implementation commit: `5c5239332093bb5a10e10e500c81eb0300a8be4b`
+  (`v3.11.282`); docs continuity baseline после публикации: `95bd37a3`.
 - Actual browser schema baseline: `MIGRATIONS.length=45`.
 - Метод: полное чтение Studio Ingest canon и L3a owner packet; read-only recon
   live code (`media-package-*`, `studio-media-*`, `local-db`, `cloud-sync`,
@@ -29,3 +32,5 @@ production L3a.2 (`v3.11.282`): образовательное закрытие 
 транскрипт, media bytes, credentials, OAuth tokens или production-private coordinates.
 Утверждение направления владельцем не является разрешением на implementation,
 push/deploy, server/cloud mutations либо автоматическое включение Agent Access scopes.
+То же относится к owner-approved Material Revision Workspace direction: proposed v46 и
+engineering T0–T10 требуют отдельной точной implementation authority.

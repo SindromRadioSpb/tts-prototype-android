@@ -307,6 +307,13 @@ do not make a model call during correction/export.
    remain open.
 5. Full-media ZIP is intentionally absent; slim package contains no media bytes. Cloud Media
    Package sync is intentionally absent.
+6. Subsequent production dogfood confirmed a product-maturity gap beyond the shipped L3a.2
+   acceptance surface: a late cue correction marks the whole saved table stale, while existing
+   cell editing is too narrow and disconnected from source context. This is not resolved by
+   repeating ASR or silently rebuilding the table. Owner-approved follow-up is L3a.3 Material
+   Revision Workspace with immutable table revisions, field authority and affected-only update;
+   normative packet:
+   `docs/planning/STUDIO_INGEST_L3A3_MATERIAL_REVISION_WORKSPACE_IMPLEMENTATION_PACKET_2026_08_01.md`.
 
 Rollback before any deploy is simply to leave the local commit unpushed. If owner-live rejects the
 candidate, do not mutate production and do not delete unrelated dirty work; create a scoped follow-up
@@ -316,8 +323,9 @@ commit or abandon only the allowlisted L3a commits after explicit owner directio
 
 > **Historical / superseded:** этот prompt сохраняется как audit trail pre-deploy authority.
 > Не использовать его для нового deploy: `v3.11.282` уже production. Текущий следующий
-> docs-only prompt находится в
-> `docs/planning/STUDIO_INGEST_L3B_ARTIFACT_CONTINUITY_PLAN_2026_08_01.md` §20.
+> implementation-planning prompt находится в
+> `docs/planning/STUDIO_INGEST_L3A3_MATERIAL_REVISION_WORKSPACE_IMPLEMENTATION_PACKET_2026_08_01.md`
+> §20; L3b program sequence reconciled in its §5/§19/§21.
 
 ```text
 Работай в E:\projects\tts-prototype-android.

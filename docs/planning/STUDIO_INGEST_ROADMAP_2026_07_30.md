@@ -2,10 +2,11 @@
 
 > **Дата:** 2026-07-30
 > **Статус:** 🟢 канонический общий roadmap по директиве владельца; L3a Correctable
-> Media Package shipped до `v3.11.282`; следующий утверждённый planning direction —
-> L3b Artifact Continuity. Реализация новых слайсов требует обычных
+> Media Package shipped до `v3.11.282`; следующий утверждённый product direction —
+> L3a.3 Material Revision Workspace как maturity bridge к L3b Artifact Continuity.
+> Реализация новых слайсов требует обычных
 > measure-before-code, adversarial design и owner/live gates.
-> **Срез:** production/origin `5c523933` (`v3.11.282`); actual browser migration
+> **Срез:** production/origin `95bd37a3` (`v3.11.282`); actual browser migration
 > count на 2026-08-01 — `45`.
 
 Этот документ долговечно фиксирует результат обсуждения владельца:
@@ -22,6 +23,9 @@
 3. `STUDIO_INGEST_LOCAL_PROCESSING_ROADMAP_2026_07_30.md` — специализированный
    сквозной трек local GPU/CPU processing L0–L6, подчинённый общему roadmap.
 4. Per-slice design/implementation docs — точные контракты и гейты конкретной работы.
+5. `STUDIO_INGEST_L3A3_MATERIAL_REVISION_WORKSPACE_IMPLEMENTATION_PACKET_2026_08_01.md` —
+   owner-approved contract повторной correction учебного материала: two-layer Workspace,
+   immutable table revisions, affected-only regeneration и full rebuild только явно.
 
 ## 1. Что реализовано в последней импорт-волне
 
@@ -247,12 +251,13 @@ TTS остаётся отдельной quality-gated веткой.
 | 3 | local L1 ASR | 🟡 ENGINEERING PASS | sidecar batch/browser/B+C PASS; owner acceptance and permanent integration open |
 | 4 | resumable import-job + batch | ⏸ DEMAND-TRIGGERED | reload/job-loss или регулярные 3–5+ файлов; не начат |
 | 5 | L3a Correctable Media Package | ✅ SHIPPED v3.11.282 | v45, immutable raw/corrected revisions, editor, reopen shelf, player↔cue↔row, VTT/SRT/slim package; remaining owner-live ceremonies tracked separately |
-| 6 | **L3b Artifact Continuity** | 🟢 OWNER-APPROVED PLANNING | Artifact Graph → Portable Learning Package v2 → real iPhone manual continuity → Import Center; implementation not yet authorized |
-| 7 | local translation/nikud + S6 | P1 | shared provider contract, R1/R11 quality gates |
-| 8 | diarization/alignment | P1 | speaker/timing gold, segment default remains honest |
-| 9 | EPUB + TXT/MD/HTML + HEIC | P1 | real fixtures, provenance, mobile acceptance |
-| 10 | local TTS/OCR/LLM R&D | P2 | license+quality GO; no downgrade for «free» |
-| 11 | remote media/companion | P2/triggered | demand, lawful source path, privacy/cost decision |
+| 6 | **L3a.3 Material Revision Workspace** | 🟢 OWNER-APPROVED PRODUCT DIRECTION | two-layer source+learning workspace; immutable table revisions; affected-only impact/regeneration; full rebuild rare; implementation not yet authorized |
+| 7 | **L3b Artifact Continuity** | 🟢 OWNER-APPROVED PLANNING | Artifact Graph → Portable Learning Package v2 → real iPhone manual continuity → Import Center; package follows Workspace contract |
+| 8 | local translation/nikud + S6 | P1 | shared provider contract, R1/R11 quality gates |
+| 9 | diarization/alignment | P1 | speaker/timing gold, segment default remains honest |
+| 10 | EPUB + TXT/MD/HTML + HEIC | P1 | real fixtures, provenance, mobile acceptance |
+| 11 | local TTS/OCR/LLM R&D | P2 | license+quality GO; no downgrade for «free» |
+| 12 | remote media/companion | P2/triggered | demand, lawful source path, privacy/cost decision |
 
 L0 и ограниченный default-off L1 engineering/evidence closure выполнены. Permanent L1
 integration требует отдельного owner acceptance; expanded human-gold и paired Gemini cloud
