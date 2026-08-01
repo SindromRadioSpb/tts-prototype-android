@@ -3312,8 +3312,13 @@ window.I18N_LOCALES.ru = {
       workspaceBadge: "Транскрипт", workspaceDraft: "Есть восстановленный черновик", workspaceSaved: "Версия сохранена на этом устройстве", workspaceLocalOnly: "Только на этом устройстве",
       workspaceRevision: "Правки · v{n}", workspaceVersion: "Версия {n}", workspaceDraftShort: "черновик", workspaceMediaMissingShort: "медиа нужно связать",
       workspaceMediaMissing: "Медиа нужно связать заново", workspaceRaw: "Неизменяемый оригинал", workspaceStale: "Таблица использует предыдущую версию. Ваши новые правки сохранены отдельно.",
-      workspaceReopen: "Вернуться к правкам", workspaceAll: "Все сохранённые транскрипты", workspaceLibrary: "Транскрипты", workspaceShelfTitle: "Сохранённые транскрипты",
+      workspaceReopen: "Редактировать материал", workspaceAll: "Все сохранённые транскрипты", workspaceLibrary: "Транскрипты", workspaceShelfTitle: "Сохранённые транскрипты",
       workspaceShelfLocal: "На устройстве", workspaceShelfHint: "Продолжайте редактирование без повторного распознавания.", workspaceShelfEmpty: "Сохранённых транскриптов пока нет.",
+    },
+    material: {
+      title:"Учебная таблица", workspaceTitle:"Редактирование материала", captionTab:"Транскрипт", tableTab:"Таблица", localBadge:"Локально · immutable revisions", history:"История", addRow:"Добавить строку", saveLocal:"Сохранить без модели", updateAffected:"Обновить затронутые строки", advanced:"Расширенные действия", rebuildAll:"Полная новая версия",
+      authorityImported:"Импортировано", authorityUser:"Исправлено вручную · защищено", authorityProvider:"Провайдер", authoritySource:"Источник", invalidated:"Требует обновления", unmapped:"нет связи", empty:"Таблица ещё не сохранена.", unsaved:"не сохранено", mappingConflict:"Нужно вручную проверить mapping", affected:"Затронуто строк", current:"Таблица актуальна",
+      loading:"Загрузка локальной таблицы…", saveTableFirst:"Сначала соберите и сохраните таблицу: после этого она появится здесь.", savedLocal:"Сохранено локально · 0 вызовов модели", stale:"Другая вкладка уже создала новую версию. Перезагрузите Workspace.", captionSaved:"Транскрипт сохранён отдельно. Выберите действие для таблицы.", timingOnly:"Изменения времени/говорящего не требуют обновления языковых полей.", resolveMapping:"Сначала разрешите mapping-конфликты вручную.", costPreview:"Подтвердите вызов провайдера", regenerating:"Обновление выбранных строк…", regenerated:"Новая версия сохранена; предыдущая доступна в истории.", comparePrevious:"Просмотр immutable v", openFailed:"Не удалось открыть учебную таблицу",
     },
     // W2-S4 Task 11 — audio provenance sub-panel («Метаданные текста»)
     meta: {

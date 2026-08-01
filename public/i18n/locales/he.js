@@ -3306,8 +3306,13 @@ window.I18N_LOCALES.he = {
       workspaceBadge: "תמלול", workspaceDraft: "קיימת טיוטה לשחזור", workspaceSaved: "הגרסה נשמרה במכשיר זה", workspaceLocalOnly: "במכשיר זה בלבד",
       workspaceRevision: "תיקונים · v{n}", workspaceVersion: "גרסה {n}", workspaceDraftShort: "טיוטה", workspaceMediaMissingShort: "נדרש קישור למדיה",
       workspaceMediaMissing: "יש לקשר מחדש את המדיה", workspaceRaw: "המקור שאינו ניתן לשינוי", workspaceStale: "הטבלה משתמשת בגרסה קודמת. התיקונים החדשים נשמרו בנפרד.",
-      workspaceReopen: "חזרה לעריכה", workspaceAll: "כל התמלולים השמורים", workspaceLibrary: "תמלולים", workspaceShelfTitle: "תמלולים שמורים",
+      workspaceReopen: "עריכת חומר", workspaceAll: "כל התמלולים השמורים", workspaceLibrary: "תמלולים", workspaceShelfTitle: "תמלולים שמורים",
       workspaceShelfLocal: "במכשיר", workspaceShelfHint: "אפשר להמשיך לערוך ללא זיהוי חוזר.", workspaceShelfEmpty: "אין עדיין תמלולים שמורים.",
+    },
+    material: {
+      title:"טבלת לימוד", workspaceTitle:"עריכת חומר", captionTab:"תמליל", tableTab:"טבלה", localBadge:"מקומי · גרסאות בלתי־משתנות", history:"היסטוריה", addRow:"הוספת שורה", saveLocal:"שמירה ללא מודל", updateAffected:"עדכון השורות שהושפעו", advanced:"פעולות מתקדמות", rebuildAll:"יצירת גרסה מלאה חדשה",
+      authorityImported:"מיובא", authorityUser:"תוקן ידנית · מוגן", authorityProvider:"ספק", authoritySource:"מקור", invalidated:"נדרש עדכון", unmapped:"ללא מיפוי", empty:"הטבלה עדיין לא נשמרה.", unsaved:"לא נשמר", mappingConflict:"נדרשת בדיקה ידנית של המיפוי", affected:"שורות שהושפעו", current:"הטבלה עדכנית",
+      loading:"טוען את הטבלה המקומית…", saveTableFirst:"יש לבנות ולשמור תחילה את הטבלה; לאחר מכן היא תופיע כאן.", savedLocal:"נשמר מקומית · 0 קריאות למודל", stale:"לשונית אחרת כבר יצרה גרסה חדשה. יש לטעון מחדש את סביבת העבודה.", captionSaved:"התמליל נשמר בנפרד. יש לבחור פעולה עבור הטבלה.", timingOnly:"שינויי תזמון או דובר אינם מבטלים שדות שפה.", resolveMapping:"יש לפתור תחילה את התנגשויות המיפוי ידנית.", costPreview:"אישור קריאה לספק", regenerating:"מעדכן את השורות שנבחרו…", regenerated:"גרסה חדשה נשמרה; הקודמת זמינה בהיסטוריה.", comparePrevious:"תצוגת גרסה בלתי־משתנה v", openFailed:"לא ניתן לפתוח את טבלת הלימוד",
     },
     // W2-S4 Task 11 — פאנל מקור-אמת אודיו (חלון «נתוני-על טקסט»)
     meta: {

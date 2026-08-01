@@ -26,7 +26,7 @@ async function main() {
   const db = new SQL.Database();
   db.run('PRAGMA foreign_keys=ON; CREATE TABLE texts(id TEXT PRIMARY KEY, source_meta_json TEXT);');
   const migrations = await import('../../public/db/migrations.js');
-  if (migrations.MIGRATIONS.length !== 45) throw new Error(`MIGRATION_COUNT:${migrations.MIGRATIONS.length}`);
+  if (migrations.MIGRATIONS.length !== 46) throw new Error(`MIGRATION_COUNT:${migrations.MIGRATIONS.length}`);
   db.run(migrations.MIGRATIONS[44]);
   const query = (sql, params = []) => { const stmt = db.prepare(sql); stmt.bind(params); const rows = []; while (stmt.step()) rows.push(stmt.getAsObject()); stmt.free(); return rows; };
   const repo = Repository.createRepository({

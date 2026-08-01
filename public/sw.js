@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.282";
+const CACHE_VERSION = "v3.11.283";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -141,8 +141,11 @@ const PRECACHE_URLS = [
   "/js/media-store.js",
   "/js/media-package-core.js",
   "/js/media-package-repository.js",
+  "/js/material-revision-core.js",
+  "/js/material-revision-repository.js",
   "/js/studio-media-package.js",
   "/js/studio-media-editor.js",
+  "/js/studio-material-revision.js",
   "/js/gemini-files.js",
   // W2-S12.5 — mp3 frame-map slicer (sliced-mp3 ASR transport). Must precache with its
   // consumer studio-import.js: a stale-SW page without window.Mp3Slice silently falls back

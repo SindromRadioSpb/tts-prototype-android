@@ -9,7 +9,7 @@ test.before(async () => { SQL = await initSqlJs(); });
 
 async function migration45() {
   const migrations = await import('../public/db/migrations.js');
-  assert.equal(migrations.MIGRATIONS.length, 45);
+  assert.equal(migrations.MIGRATIONS.length, 46);
   return migrations.MIGRATIONS[44];
 }
 

@@ -1,0 +1,51 @@
+'use strict';
+const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
+const {spawn,spawnSync}=require('node:child_process');
+const {chromium}=require('playwright');
+const ROOT=path.resolve(__dirname,'..','..'),PORT=3286,BASE=`http://127.0.0.1:${PORT}`;
+const SHOTS=path.join(ROOT,'docs','research','studio-l3a3-material-revision-workspace','2026-08-01','screenshots');
+const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
+async function ready(){for(let i=0;i<240;i++){try{if((await fetch(BASE+'/healthz')).ok)return;}catch(_){}await sleep(250);}throw new Error('SERVER_NOT_READY');}
+async function main(){
+  fs.mkdirSync(SHOTS,{recursive:true});const data=fs.mkdtempSync(path.join(os.tmpdir(),'lp-material-revision-'));
+  const server=spawn(process.execPath,['server.js'],{cwd:ROOT,env:{...process.env,PORT:String(PORT),BIND_HOST:'127.0.0.1',DATA_DIR:data},stdio:['ignore','pipe','pipe']});
+  const browser=await chromium.launch();
+  try{
+    await ready();const context=await browser.newContext({serviceWorkers:'block',viewport:{width:380,height:844},locale:'ru-RU'});const page=await context.newPage();
+    await page.addInitScript(()=>{localStorage.setItem('localMode','1');localStorage.setItem('v3OnboardingSeenV1','1');localStorage.setItem('onboardingSeen_v1','1');localStorage.setItem('v3.byokOnboardingDismissed','1');localStorage.setItem('v3.byokTourCompleted','1');});
+    const pageErrors=[],providerCalls=[];page.on('pageerror',e=>pageErrors.push(String(e)));page.on('request',r=>{if(r.url().includes('/api/translate-table'))providerCalls.push(r.url());});
+    await page.goto(BASE+'/index.html?localMode=1',{waitUntil:'load'});
+    const setup=await page.evaluate(async()=>{
+      if(window.__localDBInitPromise)await window.__localDBInitPromise;const db=await window.ensureLocalDB();
+      const raw=await window.MediaPackageCore.createRawRevision({media_sha256:'c'.repeat(64),format:'captions',provider:'browser-fixture',segments:[{start_ms:0,end_ms:800,text:'שלום'},{start_ms:900,end_ms:1800,text:'מיה'}]});
+      const mediaRepo=window.StudioMediaPackage.browserRepository();const pkg=await mediaRepo.createPackage({media:{sha256:'c'.repeat(64),mime:'audio/wav',duration_ms:2000,original_name:'material-fixture.wav'},raw_revision:raw});
+      const cap=await mediaRepo.getCurrentRevision(pkg.corrected_track_id);const textId=crypto.randomUUID();
+      await db.createText({id:textId,text_key:'material-browser-fixture',title:'Material fixture',source_text:'שלום\nמיה',source_meta_json:JSON.stringify({provider:'gcp',model:'nmt-v1'})});
+      await db.addSentence(textId,{id:'stable-s1',he_plain:'שלום',he_niqqud:'שָׁלוֹם',translit:'shalom',translit_ru:'шалом',ru:'привет',edit_meta_json:JSON.stringify({edited:{ru:true}}),translation_provider:'gcp',translation_meta_json:{model:'nmt-v1'}});
+      await db.addSentence(textId,{id:'stable-s2',he_plain:'מיה',he_niqqud:'',translit:'Mia',translit_ru:'Мия',ru:'Мия',translation_provider:'gcp',translation_meta_json:{model:'nmt-v1'}});
+      await mediaRepo.bindText({text_id:textId,package_id:pkg.package_id,track_id:pkg.corrected_track_id,revision_id:cap.revision_id,revision_sha256:cap.canonical_sha256,mapping:{schema:'studio-row-source-v2',rows:[{row_index:0,corrected_caption_segment_id:cap.segments[0].caption_segment_id,raw_source_segment_ids:cap.segments[0].source_segment_ids},{row_index:1,corrected_caption_segment_id:cap.segments[1].caption_segment_id,raw_source_segment_ids:cap.segments[1].source_segment_ids}]}});
+      await window.StudioMediaEditor.open(pkg.corrected_track_id);return{textId,trackId:pkg.corrected_track_id};
+    });
+    await page.locator('#l3MaterialLayer:not([hidden]) .l3-material-row').first().waitFor({state:'attached'});
+    await page.locator('#l3TableTab').click();
+    const ru=await page.evaluate(()=>({dir:document.getElementById('l3MediaEditorModal').dir,layer:document.querySelector('.l3-editor-body').dataset.layer,captionSelected:document.getElementById('l3CaptionTab').getAttribute('aria-selected'),tableSelected:document.getElementById('l3TableTab').getAttribute('aria-selected'),rows:document.querySelectorAll('.l3-material-row').length,fields:document.querySelectorAll('.l3-material-field').length,protected:Array.from(document.querySelectorAll('.l3-material-field small')).some(x=>x.textContent.includes('защищено')),overflow:document.getElementById('l3MediaEditorPanel').scrollWidth>document.getElementById('l3MediaEditorPanel').clientWidth,history:document.getElementById('l3MaterialHistory').options.length}));
+    await page.screenshot({path:path.join(SHOTS,'material-workspace-380-ru.png'),fullPage:false});
+    const ruInput=page.locator('.l3-material-row').nth(1).locator('textarea[data-field="ru"]');
+    const dirtyDebug=await ruInput.evaluate((el)=>{el.value='Миа — вручную';el.dispatchEvent(new Event('input',{bubbles:true}));return{value:el.value,readonly:el.readOnly,saveDisabled:document.getElementById('l3MaterialSave').disabled};});
+    if(dirtyDebug.saveDisabled)throw new Error('DIRTY_EVENT_GATE:'+JSON.stringify({dirtyDebug,pageErrors}));
+    await page.evaluate(()=>window.MaterialRevisionWorkspace.saveLocal());const saveDebug=await page.evaluate(()=>({status:document.getElementById('l3MaterialStatus').textContent,disabled:document.getElementById('l3MaterialSave').disabled}));if(!saveDebug.status.includes('0 вызовов'))throw new Error('ZERO_CALL_SAVE_GATE:'+JSON.stringify({saveDebug,pageErrors}));
+    const saved=await page.evaluate(async(textId)=>{const m=await window.MaterialRevisionWorkspace.commitInlineCell(textId,'stable-s2','ru','Миа — inline');let guarded='';try{await window.__localDB.updateSentence(textId,'stable-s2',{ru:'bypass'});}catch(e){guarded=e.code||e.message;}const material=await window.MaterialRevisionRepository.createRepository(window.__localDB,window.MaterialRevisionCore).getMaterialByText(textId);const history=await window.MaterialRevisionRepository.createRepository(window.__localDB,window.MaterialRevisionCore).listHistory(material.material_id);const projection=await window.__localDB.dbQuery('SELECT id,ru FROM sentences WHERE text_id=? ORDER BY order_index',[textId]);return{inline:m.sentence.ru,guarded,history:history.length,projection};},setup.textId);
+    await page.evaluate(async(trackId)=>{window.StudioMediaEditor.close(true);window.appSetLocale('he');await window.StudioMediaEditor.open(trackId);},setup.trackId);
+    await page.locator('#l3MaterialLayer:not([hidden]) .l3-material-row').first().waitFor({state:'attached'});
+    await page.locator('#l3TableTab').click();
+    const he=await page.evaluate(()=>({dir:document.getElementById('l3MediaEditorModal').dir,htmlDir:document.documentElement.dir,layer:document.querySelector('.l3-editor-body').dataset.layer,captionSelected:document.getElementById('l3CaptionTab').getAttribute('aria-selected'),tableSelected:document.getElementById('l3TableTab').getAttribute('aria-selected'),overflow:document.getElementById('l3MediaEditorPanel').scrollWidth>document.getElementById('l3MediaEditorPanel').clientWidth,title:document.getElementById('l3MaterialTitle').textContent}));
+    await page.screenshot({path:path.join(SHOTS,'material-workspace-380-he.png'),fullPage:false});
+    await page.evaluate(()=>window.MaterialRevisionWorkspace.showLayer('caption'));await page.locator('#l3CueText').fill('שלום מעודכן');const captionRevision=await page.evaluate(()=>window.StudioMediaEditor.saveVersion());await page.evaluate(()=>window.MaterialRevisionWorkspace.showLayer('table'));
+    const captionPending=await page.evaluate(()=>({saveEnabled:!document.getElementById('l3MaterialSave').disabled,updateEnabled:!document.getElementById('l3MaterialUpdate').disabled,impact:document.getElementById('l3MaterialImpact').textContent,hePlain:document.querySelector('.l3-material-row textarea[data-field="he_plain"]').value,lockedRu:Array.from(document.querySelectorAll('.l3-material-row'))[0].querySelector('textarea[data-field="ru"]').value}));
+    await page.screenshot({path:path.join(SHOTS,'material-workspace-380-he-affected.png'),fullPage:false});await page.evaluate(()=>window.MaterialRevisionWorkspace.saveLocal());
+    const captionSaved=await page.evaluate(async(textId)=>{const r=window.MaterialRevisionRepository.createRepository(window.__localDB,window.MaterialRevisionCore),m=await r.getMaterialByText(textId),cur=await r.getCurrentRevision(m.material_id),history=await r.listHistory(m.material_id);return{history:history.length,bound:cur.bound_caption_revision_id,hePlain:cur.rows[0].he_plain,ru:cur.rows[0].ru,ruStatus:cur.rows[0].field_meta.ru.status,translitStatus:cur.rows[0].field_meta.translit.status};},setup.textId);
+    if(ru.dir!=='ltr'||ru.layer!=='table'||ru.captionSelected!=='false'||ru.tableSelected!=='true'||ru.rows!==2||ru.fields!==10||!ru.protected||ru.overflow||ru.history!==1||saved.inline!=='Миа — inline'||saved.guarded!=='MATERIAL_REVISION_REQUIRED'||saved.history!==3||saved.projection[0].id!=='stable-s1'||saved.projection[1].ru!=='Миа — inline'||he.dir!=='rtl'||he.htmlDir!=='rtl'||he.layer!=='table'||he.captionSelected!=='false'||he.tableSelected!=='true'||he.overflow||!he.title||!captionPending.saveEnabled||!captionPending.updateEnabled||captionPending.hePlain!=='שלום מעודכן'||captionPending.lockedRu!=='привет'||captionSaved.history!==4||captionSaved.bound!==captionRevision.revision_id||captionSaved.hePlain!=='שלום מעודכן'||captionSaved.ru!=='привет'||captionSaved.ruStatus!=='current'||captionSaved.translitStatus!=='invalidated'||providerCalls.length||pageErrors.length)throw new Error('MATERIAL_BROWSER_GATE:'+JSON.stringify({ru,saved,he,captionPending,captionSaved,providerCalls,pageErrors}));
+    console.log(JSON.stringify({gate:'L3A3_MATERIAL_WORKSPACE_380_RU_HE_ZERO_CALL',ru,saved,he,captionPending,captionSaved,providerCalls,pageErrors,screenshots:['material-workspace-380-ru.png','material-workspace-380-he.png','material-workspace-380-he-affected.png']},null,2));
+  }finally{await browser.close();server.kill('SIGTERM');await sleep(800);if(process.platform==='win32'&&!server.killed)spawnSync('taskkill',['/PID',String(server.pid),'/T','/F'],{stdio:'ignore'});fs.rmSync(data,{recursive:true,force:true});}
+}
+main().catch(e=>{console.error(e&&e.stack||e);process.exitCode=1;});

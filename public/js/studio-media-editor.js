@@ -175,12 +175,14 @@
   async function saveVersion() {
     if (!await stageFields()) return null;
     if (!state.dirty) return repo().getCurrentRevision(state.trackId);
+    var committedOperations = clone(state.operations);
     clearTimeout(draftTimer); await repo().saveDraft(state.trackId, state.baseRevisionId, state.segments, state.operations);
     try {
       var revision = await repo().commitDraft(state.trackId, { author_kind: 'user', provenance: { surface: 'studio-media-editor', code_version: window.APP_VERSION || null } });
       state.baseRevisionId = revision.revision_id; state.baseHash = revision.canonical_sha256; state.operations = []; state.dirty = false; state.undo = []; state.redo = [];
       setStatus('studio.mediaPackage.versionSaved', 'Версия сохранена'); render();
       if (window.StudioMediaPackage && window.StudioMediaPackage.notifyRevision) await window.StudioMediaPackage.notifyRevision(state.trackId, revision);
+      if (window.MaterialRevisionWorkspace && window.MaterialRevisionWorkspace.captionRevisionCommitted) await window.MaterialRevisionWorkspace.captionRevisionCommitted(revision, committedOperations);
       return revision;
     } catch (e) { setStatus(e.code === 'DRAFT_BASE_STALE' ? 'studio.mediaPackage.staleDraft' : 'studio.mediaPackage.saveFailed', e.code, 'error'); throw e; }
   }
@@ -232,6 +234,7 @@
     clearTimeout(draftTimer); var modal = $('l3MediaEditorModal'); if (modal) modal.classList.add('hidden');
     var p = player(); if (p) { p.pause(); p.ontimeupdate = null; p.onseeked = null; p.removeAttribute('src'); }
     if (objectUrl) URL.revokeObjectURL(objectUrl); objectUrl = null; state = null; mediaSyncPromise = null;
+    if (window.MaterialRevisionWorkspace && window.MaterialRevisionWorkspace.close) window.MaterialRevisionWorkspace.close();
   }
   async function open(trackId) {
     var repository = repo(), track = await repository.getTrack(trackId); if (!track || track.role !== 'user_corrected') throw new Error('CORRECTED_TRACK_REQUIRED');
@@ -251,6 +254,10 @@
     if (!objectUrl) { p.hidden = true; setStatus('studio.mediaPackage.mediaMissing', 'Медиа отсутствует: relink по SHA-256'); }
     else { p.hidden = false; p.ontimeupdate = onPlayerTimeUpdate; p.onseeked = function () { timeline(); syncCueFromPlayer(); }; setStatus(null); }
     render(); seekPlayerToCurrent();
+    if (window.MaterialRevisionWorkspace && window.MaterialRevisionWorkspace.openForTrack) {
+      try { await window.MaterialRevisionWorkspace.openForTrack(trackId); }
+      catch (e) { setStatus('studio.material.openFailed', e.code || e.message, 'error'); }
+    }
   }
 
   var API = { open: open, close: close, move: move, jumpFromInput: jumpFromInput, stageFields: stageFields, replay: replay, split: split, mergeNext: mergeNext, applyOffset: applyOffset, undo: undo, redo: redo, saveVersion: saveVersion, continueToTable: continueToTable, discardDraft: discardDraft, exportSubtitle: exportSubtitle, exportSlim: exportSlim, relinkSelected: relinkSelected, deletePackage: deletePackage, focusModel: focusModel, cueIndexForTime: cueIndexForTime, cueJumpIndex: cueJumpIndex, canSplitAt: canSplitAt, formatMs: formatMs, parseMs: parseMs };

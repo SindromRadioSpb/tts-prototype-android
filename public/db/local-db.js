@@ -1051,9 +1051,24 @@ export async function bulkSaveLemmaInflections(rows, opts) {
   return written;
 }
 
+async function _assertLegacySentenceWriter(textId) {
+  // L3a.3 do-no-harm guard. A promoted material owns its immutable table canon;
+  // typed sentence CRUD is no longer allowed to mutate the compatibility projection.
+  // The revision repository projects with parameterized raw SQL inside its own transaction.
+  const schema = await q("SELECT name FROM sqlite_master WHERE type='table' AND name='studio_learning_materials'");
+  if (!schema.length) return;
+  const promoted = await q('SELECT material_id FROM studio_learning_materials WHERE text_id=? LIMIT 1', [textId]);
+  if (promoted.length) {
+    const e = new Error('MATERIAL_REVISION_REQUIRED');
+    e.code = 'MATERIAL_REVISION_REQUIRED';
+    throw e;
+  }
+}
+
 export async function addSentence(textId, data) {
   if (!textId) throw new Error('addSentence: textId is required');
   if (!data || !data.id) throw new Error('addSentence: data.id is required');
+  await _assertLegacySentenceWriter(textId);
   const { id, he_plain, he_niqqud, translit, translit_ru, ru, meta_json, edit_meta_json,
           translation_provider, translation_meta_json } = data;
   const toStr = (v) => (v == null ? '' : String(v));
@@ -1095,6 +1110,7 @@ async function _touchTextUpdatedAt(textId) {
 }
 
 export async function updateSentence(textId, sentenceId, fields) {
+  await _assertLegacySentenceWriter(textId);
   const allowed = ['he_plain', 'he_niqqud', 'translit', 'translit_ru', 'ru',
                    'meta_json', 'edit_meta_json', 'translation_provider', 'translation_meta_json'];
   const entries = Object.entries(fields).filter(([k]) => allowed.includes(k));
@@ -1113,12 +1129,14 @@ export async function updateSentence(textId, sentenceId, fields) {
 }
 
 export async function deleteSentence(textId, sentenceId) {
+  await _assertLegacySentenceWriter(textId);
   await r('DELETE FROM sentences WHERE id = ? AND text_id = ?', [sentenceId, textId]);
   await clearDerivedNiqqud(textId);
   await _touchTextUpdatedAt(textId);
 }
 
 export async function resetSentence(textId, sentenceId) {
+  await _assertLegacySentenceWriter(textId);
   // Reset: clear edit_meta_json so original values from meta_json are used
   await r(`UPDATE sentences SET edit_meta_json = NULL WHERE id = ? AND text_id = ?`,
     [sentenceId, textId]);
@@ -1126,6 +1144,7 @@ export async function resetSentence(textId, sentenceId) {
 }
 
 export async function reorderSentences(textId, orderedIds) {
+  await _assertLegacySentenceWriter(textId);
   // sentences has UNIQUE(text_id, order_index) — naive sequential updates
   // cause UNIQUE conflicts mid-loop (e.g. row A→2 collides with row B already at 2).
   // Two-pass solution: first push every row of this text into a non-conflicting

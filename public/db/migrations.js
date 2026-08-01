@@ -993,4 +993,64 @@ export const MIGRATIONS = [
     ON studio_text_media_bindings(package_id);
   CREATE INDEX IF NOT EXISTS ix_studio_bindings_revision
     ON studio_text_media_bindings(revision_id);`,
+
+  // 046_studio_material_revision_workspace — browser-local immutable learning-table canon.
+  // Lazy promotion only: existing texts/sentences remain the compatibility projection and
+  // are never mass-backfilled. No server/cloud schema is implied by these OPFS tables.
+  `CREATE TABLE IF NOT EXISTS studio_learning_materials (
+    material_id               TEXT PRIMARY KEY,
+    package_id                TEXT,
+    text_id                   TEXT NOT NULL UNIQUE REFERENCES texts(id) ON DELETE CASCADE,
+    portable_text_key         TEXT,
+    current_table_revision_id TEXT,
+    created_at                TEXT NOT NULL,
+    updated_at                TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS ix_studio_materials_package ON studio_learning_materials(package_id);
+
+  CREATE TABLE IF NOT EXISTS studio_table_revisions (
+    table_revision_id          TEXT PRIMARY KEY,
+    material_id                TEXT NOT NULL REFERENCES studio_learning_materials(material_id) ON DELETE CASCADE,
+    revision_no                INTEGER NOT NULL,
+    parent_revision_id         TEXT,
+    bound_caption_revision_id  TEXT,
+    bound_caption_revision_sha256 TEXT,
+    content_sha256             TEXT NOT NULL,
+    mapping_sha256             TEXT NOT NULL,
+    provider_context_json      TEXT NOT NULL DEFAULT '{}',
+    impact_json                TEXT NOT NULL DEFAULT '{}',
+    created_at                 TEXT NOT NULL,
+    committed_at               TEXT NOT NULL,
+    UNIQUE(material_id, revision_no)
+  );
+  CREATE INDEX IF NOT EXISTS ix_studio_table_revisions_material_no
+    ON studio_table_revisions(material_id, revision_no);
+
+  CREATE TABLE IF NOT EXISTS studio_learning_row_versions (
+    row_version_id  TEXT PRIMARY KEY,
+    stable_row_id   TEXT NOT NULL,
+    content_sha256  TEXT NOT NULL,
+    he_plain        TEXT NOT NULL DEFAULT '',
+    he_niqqud       TEXT NOT NULL DEFAULT '',
+    translit        TEXT NOT NULL DEFAULT '',
+    translit_ru     TEXT NOT NULL DEFAULT '',
+    ru              TEXT NOT NULL DEFAULT '',
+    field_meta_json TEXT NOT NULL DEFAULT '{}',
+    created_at      TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS ix_studio_row_versions_stable
+    ON studio_learning_row_versions(stable_row_id, created_at);
+
+  CREATE TABLE IF NOT EXISTS studio_table_revision_rows (
+    table_revision_id      TEXT NOT NULL REFERENCES studio_table_revisions(table_revision_id) ON DELETE CASCADE,
+    row_version_id         TEXT NOT NULL REFERENCES studio_learning_row_versions(row_version_id),
+    order_index            INTEGER NOT NULL,
+    caption_segment_id     TEXT,
+    source_segment_ids_json TEXT NOT NULL DEFAULT '[]',
+    mapping_meta_json      TEXT NOT NULL DEFAULT '{}',
+    PRIMARY KEY(table_revision_id, order_index),
+    UNIQUE(table_revision_id, row_version_id)
+  );
+  CREATE INDEX IF NOT EXISTS ix_studio_table_rows_caption
+    ON studio_table_revision_rows(table_revision_id, caption_segment_id);`,
 ];

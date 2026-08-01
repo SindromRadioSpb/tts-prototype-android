@@ -1,13 +1,17 @@
 # Studio Ingest L3a.3 — Material Revision Workspace
 
 > **Дата:** 2026-08-01
-> **Статус:** 🟢 `OWNER-APPROVED PRODUCT DIRECTION`; implementation не начат
-> **Baseline:** production/origin `v3.11.282` / `95bd37a3ac404bed9ec6faacdca1da15e2f56815`;
-> actual browser `MIGRATIONS.length = 45`
+> **Статус:** 🟡 `LOCAL IMPLEMENTATION COMPLETE`; automated gates green, owner-live pending
+> **Baseline:** production/origin остаётся `v3.11.282` / `95bd37a3ac404bed9ec6faacdca1da15e2f56815`;
+> local implementation `v3.11.283`, actual browser `MIGRATIONS.length = 46`
 > **Предки:** L3a Correctable Media Package shipped; L3b Artifact Continuity planning approved
 > **Authority:** этот документ фиксирует утверждённый продуктовый выбор и готовит следующую
 > инженерную сессию. Он не разрешает code/schema changes, push/deploy, server/production
 > mutation, cloud sync, Hermes, L2/L4/L5/L6 либо full-media ZIP без отдельной точной фразы.
+>
+> **Implementation evidence:**
+> `docs/research/studio-l3a3-material-revision-workspace/2026-08-01/OWNER_LIVE_PACKET.md`.
+> Push/deploy и owner-live не выполнялись.
 
 ## 0. Owner decision
 

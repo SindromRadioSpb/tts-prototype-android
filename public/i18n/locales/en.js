@@ -3298,8 +3298,13 @@ window.I18N_LOCALES.en = {
       workspaceBadge: "Transcript", workspaceDraft: "Recoverable draft available", workspaceSaved: "Version saved on this device", workspaceLocalOnly: "This device only",
       workspaceRevision: "Corrections · v{n}", workspaceVersion: "Version {n}", workspaceDraftShort: "draft", workspaceMediaMissingShort: "media needs relinking",
       workspaceMediaMissing: "Media needs to be relinked", workspaceRaw: "Immutable original", workspaceStale: "The table uses an earlier version. Your newer corrections are saved separately.",
-      workspaceReopen: "Return to corrections", workspaceAll: "All saved transcripts", workspaceLibrary: "Transcripts", workspaceShelfTitle: "Saved transcripts",
+      workspaceReopen: "Edit material", workspaceAll: "All saved transcripts", workspaceLibrary: "Transcripts", workspaceShelfTitle: "Saved transcripts",
       workspaceShelfLocal: "On device", workspaceShelfHint: "Continue editing without running recognition again.", workspaceShelfEmpty: "No saved transcripts yet.",
+    },
+    material: {
+      title:"Learning table", workspaceTitle:"Edit material", captionTab:"Transcript", tableTab:"Table", localBadge:"Local · immutable revisions", history:"History", addRow:"Add row", saveLocal:"Save without model", updateAffected:"Update affected rows", advanced:"Advanced actions", rebuildAll:"Create full new version",
+      authorityImported:"Imported", authorityUser:"Manually corrected · protected", authorityProvider:"Provider", authoritySource:"Source", invalidated:"Update required", unmapped:"unmapped", empty:"The table has not been saved yet.", unsaved:"unsaved", mappingConflict:"Mapping review required", affected:"Affected rows", current:"Table is current",
+      loading:"Loading local table…", saveTableFirst:"Build and save the table first; it will then appear here.", savedLocal:"Saved locally · 0 model calls", stale:"Another tab already created a new version. Reload the Workspace.", captionSaved:"The transcript was saved separately. Choose what to do with the table.", timingOnly:"Timing/speaker changes do not invalidate language fields.", resolveMapping:"Resolve mapping conflicts manually first.", costPreview:"Confirm provider call", regenerating:"Updating selected rows…", regenerated:"New version saved; the previous version remains in history.", comparePrevious:"Viewing immutable v", openFailed:"Could not open learning table",
     },
     // W2-S4 Task 11 — audio provenance sub-panel (text-metadata modal)
     meta: {
