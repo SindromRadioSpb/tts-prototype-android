@@ -3,10 +3,10 @@
 > **Дата:** 2026-07-30
 > **Статус:** 🟢 L0/L1 invite beta завершены; L2 demand-triggered и не начат; L3a
 > Correctable Media Package shipped через `v3.11.282` (`5c523933`; core `097d212d`,
-> continuity `821460c4`, media-review UX `44b216bc`). Следующий owner-approved
-> product direction — L3a.3 Material Revision Workspace, затем L3b Artifact Continuity;
-> implementation не начат.
-> **Срез кода:** production/origin `95bd37a3` (`v3.11.282`), browser migrations `45`.
+> continuity `821460c4`, media-review UX `44b216bc`). L3a.3 Material Revision Workspace
+> foundation shipped в `v3.11.283`; Playback Review UX owner-approved для реализации,
+> production rollout и live-test, затем L3b Artifact Continuity.
+> **Срез кода:** production/origin `82a392e6` (`v3.11.283`), browser migrations `46`.
 > **Место в каноне:** специализированный сквозной трек общего roadmap
 > `STUDIO_INGEST_ROADMAP_2026_07_30.md`. Здесь определён local-processing L0–L6;
 > общий capability ledger, форматы, Media Package, образовательные сценарии и единый порядок
@@ -225,7 +225,7 @@ baseline: разборчивость, никуд/ударение, имена, �
 | P0 | **L1 Windows invite beta enablement** | 🟢 CHROME INVITE BETA LIVE | Companion beta.2 plus pairing help deployed as `v3.11.277`; install/decode/uninstall and served RU/HE mobile UI PASS; unsigned owner/trusted distribution approved; output is first-draft quality; quality studies recommended; Edge excluded |
 | P0/P1 | **L2a recovery / L2b batch** | ⏸ DEFERRED / DEMAND-TRIGGERED | L2a: реальная reload/job-loss боль; L2b: регулярные 3–5+ файлов |
 | P1 | **L3a Correctable Media Package/editor** | ✅ SHIPPED v3.11.282 | v45 + immutable raw/corrected revisions + editor/reopen + source-player sync + VTT/SRT/slim round-trip; residual owner-live ceremonies tracked in packet |
-| P1 | **L3a.3 Material Revision Workspace** | 🟢 OWNER-APPROVED PRODUCT DIRECTION | two-layer transcript+learning editor, table revisions, field authority, deterministic affected-only update; full rebuild advanced |
+| P1 | **L3a.3 Material Revision Workspace** | 🟢 FOUNDATION SHIPPED v3.11.283; PLAYBACK REVIEW IMPLEMENTATION APPROVED | two-layer editor, table revisions, authority and deterministic affected-only update shipped; exact cue↔row follow, contextual anchor and field-review modes are the active bounded UX slice |
 | P1 | **L3b Artifact Continuity** | 🟢 OWNER-APPROVED PLANNING | Artifact Graph + Portable Learning Package v2 + real iPhone manual continuity + Import Center over Workspace contract; automatic sync/Hermes separately gated |
 | P1 | **L4 local translation+nikud** | ⬜ | shared scheduler; independent quality gates |
 | P1 | **L5 diarization/alignment** | ⬜ | L1 stable; speaker/timing gold |

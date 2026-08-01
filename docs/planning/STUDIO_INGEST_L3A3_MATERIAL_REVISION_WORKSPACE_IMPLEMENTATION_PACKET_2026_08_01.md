@@ -795,6 +795,21 @@ rollback and a paste-ready push/deploy prompt. Do not claim completion from unit
 ## 21. Planning conclusion
 
 Material Revision Workspace is the required local maturity bridge between shipped L3a and L3b
+
+## 22. Owner-approved Playback Review UX follow-up
+
+The foundation shipped to production as client `3.11.283` at commit `82a392e6`.
+After testing the real 36:17 / 514-row material, the owner approved the synchronized
+Playback Review follow-up: exact cue↔learning-row selection, second-slot contextual
+anchoring, compact context rows with one expanded editor, sequential field-review modes,
+and explicit pause/resume when the owner scrolls or types.
+
+The authoritative bounded implementation/deployment contract is:
+
+`STUDIO_INGEST_L3A3_PLAYBACK_REVIEW_UX_IMPLEMENTATION_PACKET_2026_08_01.md`
+
+It is additive to this packet and does not change immutable revision, authority,
+provider, compatibility projection, migration v46, or stale-base invariants.
 portability. Artifact Graph/Portable Package must serialize this versioned material model rather
 than preserve the current coarse stale flag and mutable cell-edit workflow.
 
