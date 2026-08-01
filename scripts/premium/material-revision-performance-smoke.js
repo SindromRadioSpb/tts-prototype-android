@@ -3,7 +3,7 @@ const {performance}=require('node:perf_hooks');
 const initSqlJs=require('sql.js');
 const Core=require('../../public/js/material-revision-core.js');
 const Repository=require('../../public/js/material-revision-repository.js');
-const CEILINGS={snapshot_514:900,promote_514:4500,commit_514:6500,snapshot_2800:2200,impact_2800:250};
+const CEILINGS={snapshot_514:900,promote_514:4500,commit_514:6500,snapshot_2800:2200,impact_2800:250,mapping_2800:500};
 const ms=(start)=>Number((performance.now()-start).toFixed(2));
 async function main(){
   const SQL=await initSqlJs(),db=new SQL.Database();
@@ -17,6 +17,7 @@ async function main(){
   t=performance.now();const material=await repo.promoteLegacyText('text-514');metrics.promote_514=ms(t);const base=await repo.getCurrentRevision(material.material_id);const next=JSON.parse(JSON.stringify(base.rows));for(let i=0;i<next.length;i+=23){next[i].ru+='!';next[i].field_meta.ru={authority:'user',locked:true};}
   t=performance.now();await repo.commitRevision({material_id:material.material_id,base_table_revision_id:base.table_revision_id,rows:next,impact:{kind:'perf'}});metrics.commit_514=ms(t);
   t=performance.now();await Core.createTableSnapshot({rows:rows2800});metrics.snapshot_2800=ms(t);t=performance.now();const impact=Core.analyzeImpact({rows:rows2800,change:{kind:'provider',fields:['ru','translit']}});metrics.impact_2800=ms(t);
+  const legacy2800=rows2800.map(row=>({...row,caption_segment_id:null,source_segment_ids:[]})),segments2800=rows2800.map((row,i)=>({caption_segment_id:'cap-'+i,source_segment_ids:['src-'+i]}));t=performance.now();const mapped=Core.applyExactAlignedMapping({rows:legacy2800,segments:segments2800,row_segment_indexes:rows2800.map((_,i)=>i),provenance:{authority:'aligned-offline',algorithm_version:'perf',bound_caption_revision_id:'perf-revision',bound_caption_revision_sha256:'f'.repeat(64)}});metrics.mapping_2800=ms(t);if(mapped.mapped_count!==2800)throw new Error('MAPPING_COUNT:'+mapped.mapped_count);
   const failures=Object.entries(CEILINGS).filter(([k,v])=>metrics[k]>v).map(([k,v])=>`${k}:${metrics[k]}>${v}`);console.log(JSON.stringify({gate:'L3A3_MATERIAL_514_2800',ceilings_ms:CEILINGS,measured_ms:metrics,impacted:impact.impacted.length,failures},null,2));if(failures.length)process.exitCode=1;
 }
 main().catch(e=>{console.error(e&&e.stack||e);process.exitCode=1;});

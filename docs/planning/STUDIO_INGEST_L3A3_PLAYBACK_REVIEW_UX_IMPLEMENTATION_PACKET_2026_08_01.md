@@ -226,3 +226,88 @@ row(s) remain visible with previous/current/next context; the owner can review o
 family at a time; manual browsing/editing is never fought by follow; both directions use
 exact caption identity; no navigation causes model/canon mutation; desktop/380 RU/HE and
 prod browser gates pass on the actually served release.
+
+## 13. Owner-approved corrective addendum: Review Stream + legacy mapping repair
+
+### 13.1 Authorization and observed production gap
+
+After reviewing the first production implementation on the real 514-row material, the
+owner approved the corrective recommendations and issued this execution instruction:
+
+> **Утверждаю рекомендации. Стартуй и реализуй. Протестируй. Исправь баги, если обнаружишь. Протестируй после исправления багов, если такое будет. Выкати на прод. Затем я проведу ручной smoke-check**
+
+The screenshots prove two separate defects. Compact context used an 11.5 px font and
+one-line ellipsis, so the visible playback trail hid the learning content. More
+importantly, the same card followed audio in the ordinary Studio table but reported
+`0 · нет связи` in Material Workspace: its legacy promoted table revision did not carry
+`caption_segment_id`, although the existing offline text aligner could prove the exact
+row-to-caption relation.
+
+### 13.2 One mapping authority; no guessed repair
+
+The existing `AsrTranscript.alignRowsToSegments` proof is the only recovery algorithm.
+Both the ordinary Studio timing path and Material Workspace consume its exact
+`rowSegIdx` result. A recovery candidate is valid only when all of the following hold:
+
+- alignment reports `ok` and covers every learning row;
+- row indices are integer, in-range and monotonic;
+- every referenced corrected segment has a stable `caption_segment_id`;
+- any already-persisted caption identity agrees with the proof;
+- the exact bound caption revision id and SHA match the table revision.
+
+Failure is explicit and read-only. There is no positional fallback, timestamp heuristic,
+partial repair or provider call. A valid candidate is shown as a local, zero-model action.
+Only the owner's explicit confirmation creates one new immutable table revision, with
+`aligned-offline`, algorithm version, counts and bound revision provenance. Text and
+field authority are byte-for-byte preserved. Stale-base protection remains mandatory.
+
+Fresh saves persist the same proven `rowSegIdx` into browser-local source metadata before
+creating the text binding, so new cards do not need recovery. Legacy v1 bindings remain
+readable and are promoted idempotently; no migration beyond existing browser v46 is
+introduced.
+
+### 13.3 Playback Review Stream presentation
+
+Default mode is a continuous Review Stream, not a permanent textarea matrix:
+
+- previous/current/next visible rows show every selected field in full; default mode has
+  no ellipsis, one-line clamp or hidden overflow;
+- only the selected row is editable; context rows are selectable, complete read views;
+- the current row keeps the restrained teal playhead rail and second-slot anchor;
+- Hebrew plain uses 18–19 px in the editor and at least 16 px in context; niqqud uses
+  19–20 px with a generous line height; transliterations and Russian use 15–16 px;
+- metadata stays secondary at 11–12 px and provenance can be hidden without changing it;
+- device-local `Вид` controls provide 100/115/130% text scale, Comfortable/Overview
+  density and provenance visibility. They are presentation preferences only.
+
+The field families use restrained, accessible semantic tints rather than arbitrary
+per-cell formatting. Canonical learning content does not acquire font, fill or color
+properties. A future annotation layer, if ever approved, must remain non-canonical.
+
+### 13.4 Honest follow states
+
+Follow has four user-visible states: active, manually paused, unavailable because exact
+mapping is absent, and conflict requiring manual reconciliation. The UI must never show
+`Следование включено` together with `Нет связанной учебной строки` when the entire table
+mapping is absent. A valid legacy repair candidate replaces that contradiction with the
+explicit recovery action and its exact `mapped/total` count.
+
+### 13.5 Corrective gates
+
+1. Red-before-fix pure tests cover 1:N recovery, complete coverage, monotonicity,
+   persisted-identity disagreement and content/authority preservation.
+2. Save-path regression uses the real `{o,t}` timing shape plus proven `rowSegIdx`.
+3. Browser smoke starts from a legacy binding with no caption ids, confirms unavailable
+   follow, performs the explicit repair, observes revision `v1 -> v2`, then follows 1:N.
+4. Default computed styles prove full context text and the approved readable type floor.
+5. Navigation, appearance controls and recovery preview make zero provider calls; only
+   confirmed repair advances the immutable local revision.
+6. Existing split/merge conflict, stale-base, 514/2800 performance, RU/LTR, HE/RTL and
+   380 px no-overflow gates remain green.
+
+### 13.6 Corrective completion criterion
+
+The corrective slice is complete only when a real legacy material can recover its exact
+mapping locally, follow playback row-by-row with a visible previous/current/next trail,
+show the selected field content without truncation at readable sizes, and retain one
+immutable mapping authority across later saves and reopenings.

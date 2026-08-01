@@ -64,3 +64,43 @@ test('provider candidates require exact request ids/cardinality and preserve use
   assert.equal(out[1].ru, 'Миа');
   assert.deepEqual({ authority: out[1].field_meta.ru.authority, status: out[1].field_meta.ru.status }, { authority: 'provider', status: 'current' });
 });
+
+test('offline alignment repair maps complete 1:N rows without changing content or authority', () => {
+  const legacy = rows.map(({ caption_segment_id, source_segment_ids, ...row }) => ({
+    ...row, caption_segment_id: null, source_segment_ids: [],
+  }));
+  const result = Core.applyExactAlignedMapping({
+    rows: legacy,
+    segments: [{ caption_segment_id: 'cap-1', source_segment_ids: ['raw-1', 'raw-2'] }],
+    row_segment_indexes: [0, 0],
+    provenance: {
+      authority: 'aligned-offline', algorithm_version: 'align-rows-v1',
+      bound_caption_revision_id: 'caption-revision-1',
+      bound_caption_revision_sha256: 'a'.repeat(64),
+    },
+  });
+  assert.equal(result.mapped_count, 2);
+  assert.equal(result.caption_count, 1);
+  assert.deepEqual(result.rows.map((row) => row.caption_segment_id), ['cap-1', 'cap-1']);
+  assert.deepEqual(result.rows[0].source_segment_ids, ['raw-1', 'raw-2']);
+  assert.equal(result.rows[0].ru, legacy[0].ru);
+  assert.deepEqual(result.rows[0].field_meta, Core.normalizeRow(legacy[0], 0).field_meta);
+  assert.deepEqual(result.rows[0].mapping_meta, {
+    authority: 'aligned-offline', algorithm_version: 'align-rows-v1',
+    bound_caption_revision_id: 'caption-revision-1',
+    bound_caption_revision_sha256: 'a'.repeat(64), segment_index: 0,
+  });
+});
+
+test('offline alignment repair is fail-closed for partial, non-monotonic or conflicting proof', () => {
+  const segments = [
+    { caption_segment_id: 'cap-1', source_segment_ids: ['raw-1'] },
+    { caption_segment_id: 'cap-2', source_segment_ids: ['raw-2'] },
+  ];
+  const provenance = { authority: 'aligned-offline', algorithm_version: 'align-rows-v1', bound_caption_revision_id: 'caption-revision-1', bound_caption_revision_sha256: 'a'.repeat(64) };
+  const unmapped = rows.map((row) => ({ ...row, caption_segment_id: null, source_segment_ids: [] }));
+  assert.throws(() => Core.applyExactAlignedMapping({ rows, segments, row_segment_indexes: [0], provenance }), /MAPPING_CARDINALITY_MISMATCH/);
+  assert.throws(() => Core.applyExactAlignedMapping({ rows: unmapped, segments, row_segment_indexes: [1, 0], provenance }), /MAPPING_NOT_MONOTONIC/);
+  assert.throws(() => Core.applyExactAlignedMapping({ rows, segments, row_segment_indexes: [0, 0], provenance }), /MAPPING_DISAGREEMENT/);
+  assert.throws(() => Core.applyExactAlignedMapping({ rows, segments: [{}], row_segment_indexes: [0, 0], provenance }), /CAPTION_SEGMENT_ID_REQUIRED/);
+});

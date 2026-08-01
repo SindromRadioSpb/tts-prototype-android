@@ -175,6 +175,52 @@
     });
   }
 
+  function applyExactAlignedMapping(input) {
+    const rows = (input && Array.isArray(input.rows) ? input.rows : []).map(normalizeRow);
+    const segments = input && Array.isArray(input.segments) ? input.segments : [];
+    const indexes = input && Array.isArray(input.row_segment_indexes) ? input.row_segment_indexes : [];
+    const provenance = canonical(input && input.provenance || {});
+    if (indexes.length !== rows.length) throw new Error('MAPPING_CARDINALITY_MISMATCH');
+    if (provenance.authority !== 'aligned-offline') throw new Error('MAPPING_AUTHORITY_REQUIRED');
+    if (!String(provenance.algorithm_version || '').trim()) throw new Error('MAPPING_ALGORITHM_VERSION_REQUIRED');
+    if (!String(provenance.bound_caption_revision_id || '').trim() || !String(provenance.bound_caption_revision_sha256 || '').trim()) {
+      throw new Error('MAPPING_BOUND_REVISION_REQUIRED');
+    }
+    let previous = -1;
+    const captionIds = new Set();
+    const mapped = rows.map((row, rowIndex) => {
+      const segmentIndex = indexes[rowIndex];
+      if (!Number.isInteger(segmentIndex) || segmentIndex < 0 || segmentIndex >= segments.length) {
+        throw new Error('MAPPING_INDEX_OUT_OF_RANGE:' + rowIndex);
+      }
+      if (segmentIndex < previous) throw new Error('MAPPING_NOT_MONOTONIC:' + rowIndex);
+      previous = segmentIndex;
+      const segment = segments[segmentIndex] || {};
+      const captionId = String(segment.caption_segment_id || '').trim();
+      if (!captionId) throw new Error('CAPTION_SEGMENT_ID_REQUIRED:' + segmentIndex);
+      if (row.caption_segment_id && row.caption_segment_id !== captionId) {
+        throw new Error('MAPPING_DISAGREEMENT:' + row.stable_row_id);
+      }
+      const sourceIds = Array.isArray(segment.source_segment_ids)
+        ? segment.source_segment_ids
+        : (segment.source_segment_id || segment.id ? [segment.source_segment_id || segment.id] : []);
+      if (!sourceIds.length) throw new Error('SOURCE_SEGMENT_IDS_REQUIRED:' + segmentIndex);
+      captionIds.add(captionId);
+      return normalizeRow({
+        ...row,
+        caption_segment_id: captionId,
+        source_segment_ids: sourceIds,
+        mapping_meta: {
+          ...provenance,
+          authority: String(provenance.authority || 'aligned-offline'),
+          algorithm_version: String(provenance.algorithm_version || ''),
+          segment_index: segmentIndex,
+        },
+      }, rowIndex);
+    });
+    return { rows: mapped, mapped_count: mapped.length, caption_count: captionIds.size };
+  }
+
   const REVIEW_MODE_FIELDS = Object.freeze({
     all: FIELD_NAMES.slice(),
     he: ['he_plain'],
@@ -235,6 +281,6 @@
   return {
     FIELD_NAMES, REVIEW_MODE_FIELDS, canonical, stableStringify, sha256Hex, normalizeRow,
     createTableSnapshot, analyzeImpact, buildRegenerationPreflight, applyProviderCandidates,
-    fieldsForReviewMode, buildPlaybackFocus, computeContextScrollTop,
+    applyExactAlignedMapping, fieldsForReviewMode, buildPlaybackFocus, computeContextScrollTop,
   };
 });

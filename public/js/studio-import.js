@@ -96,7 +96,10 @@
     var entry = timingEntries.find(function (e) {
       return e && finiteIndex(e.row) === finiteIndex(rowIndex);
     }) || timingEntries[rowIndex] || null;
-    var segIndex = finiteIndex(entry && entry.seg);
+    var provenIndexes = audio && audio.timingMap && Array.isArray(audio.timingMap.row_seg_idx)
+      ? audio.timingMap.row_seg_idx : [];
+    var segIndex = finiteIndex(provenIndexes[rowIndex]);
+    if (segIndex == null) segIndex = finiteIndex(entry && entry.seg);
     var segments = audio && Array.isArray(audio.segments) ? audio.segments : [];
     var segment = segIndex != null ? segments[segIndex] : null;
     var sourceLine = finiteIndex(r.source_line_index);

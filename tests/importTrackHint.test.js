@@ -185,3 +185,20 @@ test("L3a: row-source-v2 keeps corrected id, complete raw lineage and distinct o
     caption_segment_id: "cseg:corrected-1", source_line_index: 4, sentence_index: 9,
   });
 });
+
+test("L3a: save consumes proven row_seg_idx when karaoke entries use the real {o,t} shape", () => {
+  const audio = {
+    media: { sha256: "d".repeat(64) },
+    segments: [
+      { caption_segment_id: "cap-0", source_segment_ids: ["raw-0"], text: "שלום מיה" },
+      { caption_segment_id: "cap-1", source_segment_ids: ["raw-1"], text: "חדש" },
+    ],
+    timing: { entries: [{ o: 0, t: 0 }, { o: 2, t: 1 }] },
+    timingMap: { source: "aligned", row_seg_idx: [0, 0, 1], align_version: "align-rows-v1" },
+  };
+  const src = JSON.parse(SI.rowEditMetaForSave({}, audio, 1))._studio_source;
+  assert.equal(src.schema, "studio-row-source-v2");
+  assert.equal(src.caption_segment_id, "cap-0");
+  assert.deepEqual(src.source_segment_ids, ["raw-0"]);
+  assert.equal(src.source_line_index, 0);
+});
