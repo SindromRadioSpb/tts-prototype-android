@@ -1,9 +1,9 @@
 # Studio Ingest L3a.3 — Playback Review UX
 
 > **Date:** 2026-08-01  
-> **Status:** OWNER-APPROVED IMPLEMENTATION + PUSH/DEPLOY/LIVE-TEST  
+> **Status:** SHIPPED `v3.11.286`; OWNER-OBSERVED REAL-MATERIAL FOLLOW PASS; FIRST-SLOT/COMPACT-HEADER POLISH `v3.11.287`
 > **Parent:** `STUDIO_INGEST_L3A3_MATERIAL_REVISION_WORKSPACE_IMPLEMENTATION_PACKET_2026_08_01.md`  
-> **Shipped baseline:** `82a392e6`, client `3.11.283`, browser migrations `46`  
+> **Shipped baseline:** foundation `82a392e6` / `3.11.283`; mapping/follow correction `3589c0ee` / `3.11.286`; browser migrations `46`
 > **Scope:** browser-local UX and deterministic cue/row navigation; no schema or provider-contract change
 
 ## 0. Owner authorization
@@ -51,7 +51,6 @@ Implement a single **Playback Review** model, not four unrelated patches:
 ```text
 [● Следовать за аудио]  [Все поля ▾]  [263 / 514]
 
-  262  previous row — compact read context
 ╭──────────────────────────────────────────────────────╮
 │ ▶ 263  CURRENT — expanded editor + provenance        │
 ╰──────────────────────────────────────────────────────╯
@@ -99,15 +98,16 @@ layers. Unmapped rows never seek a guessed cue.
 
 ## 4. Context anchor
 
-When follow is active, the current row/group is placed at the second useful viewport
-slot rather than merely made visible.
+When follow is active, the current row/group is placed at the first useful viewport
+slot rather than merely made visible. This is the owner's 2026-08-02 superseding choice:
+the active editor begins the visible stream and all remaining height prepares the next rows.
 
-- Target top is approximately 28–32% of the scroll viewport, adjusted for sticky header
-  and the measured previous compact row.
+- Target top is the top of the learning-row scroll viewport, adjusted only by the browser's
+  normal clamping at the beginning/end of the list.
 - Clamp normally at the beginning/end of the list.
 - Scroll only when cue/range identity changes, never on every media time update.
 - Playback follow uses `behavior:"auto"`; manual row/cue selection may use `smooth`.
-- The main generated table adopts the same anchor policy for `smk-row-active` ranges.
+- The ordinary generated table is not changed by this Workspace-specific owner refinement.
 - If the user manually scrolls the ordinary table, later playback segment changes may
   resume follow because that surface has no editing draft; the Workspace requires the
   explicit resume contract above.
@@ -185,7 +185,7 @@ semantics and stale-base protection remain exactly as defined in the parent pack
 1. Pure focus model: 0/1/N mapping, active group, selected row, field-mode visibility.
 2. DOM gate: only active row has editable controls; compact rows preserve all visible text.
 3. Player gate: cue changes select exact mapped rows; row activation seeks exact cue.
-4. Follow gate: active row is anchored in the second slot; repeated time updates do not scroll.
+4. Follow gate: active row is anchored in the first slot; repeated time updates do not scroll.
 5. Pause gate: wheel/touch/focus pauses positioning; explicit resume reanchors.
 6. Main table gate: current media row has previous and next context when available.
 7. Mutation gate: navigation/mode/follow operations cause zero provider calls and no revision advance.
@@ -199,7 +199,7 @@ semantics and stale-base protection remain exactly as defined in the parent pack
 - **R1:** red pure focus/anchor tests.
 - **R2:** cue identity bridge and cached 0/1/N row index.
 - **R3:** active/context row renderer with focus-safe partial updates.
-- **R4:** follow pause/resume and second-slot anchor.
+- **R4:** follow pause/resume and first-slot anchor (superseding the initial second-slot design).
 - **R5:** review presets plus custom field popover.
 - **R6:** replace ordinary-table nearest follow with shared/testable anchor math.
 - **R7:** RU/HE desktop/380 browser and accessibility checks.
@@ -222,7 +222,7 @@ Stop without workaround if:
 ## 12. Definition of Done
 
 Done means the real-media review loop can play continuously while the correct learning
-row(s) remain visible with previous/current/next context; the owner can review one field
+row(s) remain visible with the current row first and following-row context; the owner can review one field
 family at a time; manual browsing/editing is never fought by follow; both directions use
 exact caption identity; no navigation causes model/canon mutation; desktop/380 RU/HE and
 prod browser gates pass on the actually served release.
@@ -273,7 +273,7 @@ Default mode is a continuous Review Stream, not a permanent textarea matrix:
 - previous/current/next visible rows show every selected field in full; default mode has
   no ellipsis, one-line clamp or hidden overflow;
 - only the selected row is editable; context rows are selectable, complete read views;
-- the current row keeps the restrained teal playhead rail and second-slot anchor;
+- the current row keeps the restrained teal playhead rail and first-slot anchor;
 - Hebrew plain uses 18–19 px in the editor and at least 16 px in context; niqqud uses
   19–20 px with a generous line height; transliterations and Russian use 15–16 px;
 - metadata stays secondary at 11–12 px and provenance can be hidden without changing it;
@@ -308,6 +308,31 @@ explicit recovery action and its exact `mapped/total` count.
 ### 13.6 Corrective completion criterion
 
 The corrective slice is complete only when a real legacy material can recover its exact
-mapping locally, follow playback row-by-row with a visible previous/current/next trail,
+mapping locally, follow playback row-by-row with the current row and upcoming trail visible,
 show the selected field content without truncation at readable sizes, and retain one
 immutable mapping authority across later saves and reopenings.
+
+## 14. Owner-approved first-slot and compact-header polish
+
+On 2026-08-02 the owner verified the repaired real material at revision `v2`: playback
+selects the correct learning row and the Workspace shows the mapped stream. The remaining
+polish is deliberately presentation-only:
+
+1. In Workspace follow mode the selected playback row is the first visible row, not the
+   second. Previous context remains reachable by scrolling; the visible budget is spent on
+   the current editor and upcoming rows.
+2. The table header has one semantic desktop line in this order:
+   `Учебная таблица` → current/affected/conflict status → `История` + revision selector.
+   Revision number remains adjacent to the title; the verbose local/immutable badge is
+   visually suppressed because the history control already communicates the revision model.
+3. At 380 px the same semantic order wraps predictably to two rows; HE/RTL mirrors inline
+   order without changing Latin/Russian field direction.
+4. No schema, revision, mapping, provider, field-authority, dirty-mask or OPFS data contract
+   changes. Playback/header operations remain zero-call and zero-write.
+
+Additional gates:
+
+- pure anchor test proves `anchor_slot:first` ignores previous-row height;
+- desktop browser geometry requires active offset ≤8% and at least one following row visible;
+- header DOM order is title/status/history, vertically center-aligned on desktop;
+- RU/LTR and HE/RTL 380 px screenshots have no horizontal overflow.

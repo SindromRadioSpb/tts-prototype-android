@@ -4,9 +4,11 @@
 > **Статус:** 🟢 L0/L1 invite beta завершены; L2 demand-triggered и не начат; L3a
 > Correctable Media Package shipped через `v3.11.282` (`5c523933`; core `097d212d`,
 > continuity `821460c4`, media-review UX `44b216bc`). L3a.3 Material Revision Workspace
-> foundation shipped в `v3.11.283`; Playback Review UX owner-approved для реализации,
-> production rollout и live-test, затем L3b Artifact Continuity.
-> **Срез кода:** production/origin `82a392e6` (`v3.11.283`), browser migrations `46`.
+> foundation shipped в `v3.11.283`; repaired mapping/follow shipped в `v3.11.286`,
+> first-slot/compact-header polish подготовлен как `v3.11.287`. Следующий gated этап —
+> P2 Portable Learning Package v2, не L2/L4 local-processing.
+> **Срез кода:** production/origin `3589c0ee` (`v3.11.286`), release candidate
+> `v3.11.287`, browser migrations `46`.
 > **Место в каноне:** специализированный сквозной трек общего roadmap
 > `STUDIO_INGEST_ROADMAP_2026_07_30.md`. Здесь определён local-processing L0–L6;
 > общий capability ledger, форматы, Media Package, образовательные сценарии и единый порядок
@@ -225,8 +227,8 @@ baseline: разборчивость, никуд/ударение, имена, �
 | P0 | **L1 Windows invite beta enablement** | 🟢 CHROME INVITE BETA LIVE | Companion beta.2 plus pairing help deployed as `v3.11.277`; install/decode/uninstall and served RU/HE mobile UI PASS; unsigned owner/trusted distribution approved; output is first-draft quality; quality studies recommended; Edge excluded |
 | P0/P1 | **L2a recovery / L2b batch** | ⏸ DEFERRED / DEMAND-TRIGGERED | L2a: реальная reload/job-loss боль; L2b: регулярные 3–5+ файлов |
 | P1 | **L3a Correctable Media Package/editor** | ✅ SHIPPED v3.11.282 | v45 + immutable raw/corrected revisions + editor/reopen + source-player sync + VTT/SRT/slim round-trip; residual owner-live ceremonies tracked in packet |
-| P1 | **L3a.3 Material Revision Workspace** | 🟢 FOUNDATION SHIPPED v3.11.283; PLAYBACK REVIEW IMPLEMENTATION APPROVED | two-layer editor, table revisions, authority and deterministic affected-only update shipped; exact cue↔row follow, contextual anchor and field-review modes are the active bounded UX slice |
-| P1 | **L3b Artifact Continuity** | 🟢 OWNER-APPROVED PLANNING | Artifact Graph + Portable Learning Package v2 + real iPhone manual continuity + Import Center over Workspace contract; automatic sync/Hermes separately gated |
+| P1 | **L3a.3 Material Revision Workspace** | ✅ SHIPPED through v3.11.286; v3.11.287 POLISH | two-layer editor, immutable table revisions, authority, affected-only update, exact repaired cue↔row follow, first-slot anchor and compact responsive header |
+| P1 | **L3b Artifact Continuity / P2 entry** | 🟡 NEXT OWNER-GATED SLICE | P1A material contract/P1B complete; freeze exact Artifact Graph schema/manifest/allowlist, then Package v2, iPhone and Import Center; sync/Hermes separately gated |
 | P1 | **L4 local translation+nikud** | ⬜ | shared scheduler; independent quality gates |
 | P1 | **L5 diarization/alignment** | ⬜ | L1 stable; speaker/timing gold |
 | P2/R&D | **L6 TTS/OCR/local LLM** | ⬜ | model+license+quality measurement; no quality downgrade |
@@ -242,8 +244,14 @@ Adversarial L3a design одобрен; implementation shipped и получил 
 `docs/research/studio-ingest-artifact-continuity/2026-08-01/REPORT.md` и
 `STUDIO_INGEST_L3B_ARTIFACT_CONTINUITY_PLAN_2026_08_01.md`. Утверждённый Workspace contract:
 `STUDIO_INGEST_L3A3_MATERIAL_REVISION_WORKSPACE_IMPLEMENTATION_PACKET_2026_08_01.md`.
-Утверждение planning/product direction не
-разрешает implementation, automatic cloud/media sync, Hermes mutations или production scope.
+Утверждение planning/product direction не разрешает P2 implementation, automatic cloud/media
+sync, Hermes mutations или production scope без отдельной точной owner authority.
+
+Текущая цепочка: `P0 ✅ → P1A material ✅ / graph exact-contract ◐ → P1B ✅ → P2 NEXT → P3 → P4`. L2 остаётся
+demand-triggered, поэтому следующая Studio-сессия не возвращается к batch/recovery и не начинает
+L4/L5/L6. Требования P2: pure Artifact Graph, snapshot/archive package v2, checksums and
+referential integrity, dry-run, transactional OPFS import/rebind, receipts, backup coverage,
+fault/security/performance gates и fresh-profile/380 px browser round-trip без media bytes.
 
 **Рекомендуемая последовательность:** принять bounded L1 engineering/evidence closure, затем
 отдельным решением определить достаточный owner/human acceptance и только отдельно разрешать

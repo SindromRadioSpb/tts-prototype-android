@@ -3717,10 +3717,15 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .l3-editor-body { display:grid; grid-template-columns:minmax(300px,.78fr) minmax(480px,1.22fr); gap:14px; align-items:start; padding:16px 18px 20px; }
 .l3-editor-body > section { min-width:0; }
 .l3-material-layer { --l3-review-scale:1.15; border:1px solid #cbdedb; border-radius:12px; background:var(--theme-bg-card,#fff); overflow:hidden; }
-.l3-material-head { position:sticky; top:0; z-index:3; display:flex; justify-content:space-between; gap:12px; padding:12px; background:color-mix(in srgb,#e6f3ef 88%,var(--theme-bg-card,#fff)); border-bottom:1px solid #cbdedb; }
+.l3-material-head { position:sticky; top:0; z-index:3; display:grid; grid-template-columns:auto minmax(112px,1fr) auto; align-items:center; gap:10px; padding:9px 12px; background:color-mix(in srgb,#e6f3ef 88%,var(--theme-bg-card,#fff)); border-bottom:1px solid #cbdedb; }
+.l3-material-title-group { display:flex; align-items:baseline; gap:8px; min-width:0; white-space:nowrap; }
 .l3-material-title { font-weight:800; color:#163b3a; }
 .l3-material-meta,.l3-material-history { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:4px 12px; font-size:11px; }
-.l3-material-impact { margin:10px 12px 0; padding:8px 10px; border-radius:8px; background:#edf7f4; color:#275b57; font-size:12px; }
+.l3-material-head .l3-material-meta { padding:0; color:#607572; font-size:10px; }
+.l3-material-title-group .l3-material-meta span:last-child { display:none; }
+.l3-material-history { justify-self:end; padding:0; flex-wrap:nowrap; white-space:nowrap; }
+.l3-material-history select { min-width:190px; }
+.l3-material-impact { min-width:0; justify-self:start; margin:0; padding:5px 9px; border-radius:99px; background:#edf7f4; color:#275b57; font-size:11px; line-height:1.25; white-space:nowrap; }
 .l3-material-impact[data-kind="warning"] { background:#fff4df; color:#7a4a00; }
 .l3-material-impact[data-kind="changed"] { background:#eef4ff; color:#244c82; }
 .l3-material-reviewbar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:9px 12px 0; padding:8px 9px; border:1px solid #cbdedb; border-radius:9px; background:#f8fbfa; color:#315c59; font-size:11.5px; }
@@ -3884,9 +3889,11 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   .l3-material-row header code { display:none; }
   #l3MaterialLayer:not([hidden]) { display:flex; flex-direction:column; height:calc(100dvh - 286px); min-height:420px; }
   .l3-material-rows { flex:1 1 auto; max-height:none; overflow:auto; padding:8px; }
-  .l3-material-head { display:grid; grid-template-columns:minmax(0,1fr) minmax(138px,.9fr); align-items:end; gap:8px; padding:9px 10px; }
-  .l3-material-meta { padding:3px 0; }
-  .l3-material-history { display:grid; gap:3px; padding:0; }
+  .l3-material-head { grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:6px 8px; padding:8px 10px; }
+  .l3-material-title-group { min-width:0; gap:6px; overflow:hidden; }
+  .l3-material-title-group .l3-material-meta { overflow:hidden; }
+  .l3-material-impact { justify-self:end; max-width:148px; overflow:hidden; text-overflow:ellipsis; }
+  .l3-material-history { grid-column:1 / -1; display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:6px; padding:0; }
   .l3-material-history select { width:100%; min-width:0; padding:7px 22px 7px 7px; }
   .l3-material-reviewbar { row-gap:5px; padding:6px 7px; }
   .l3-material-follow-state:empty,.l3-material-follow-state[data-state="on"] { display:none; }
@@ -12848,7 +12855,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.286";
+    window.APP_VERSION = "3.11.287";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -47729,11 +47736,11 @@ document.addEventListener("i18n:changed", function () {
       </section>
       <section id="l3MaterialLayer" class="l3-material-layer" aria-labelledby="l3MaterialTitle" hidden>
         <div class="l3-material-head">
-          <div><div id="l3MaterialTitle" class="l3-material-title" data-i18n="studio.material.title">Учебная таблица</div><div class="l3-material-meta"><span id="l3MaterialRevision"></span><span data-i18n="studio.material.localBadge">Локально · immutable revisions</span></div></div>
+          <div class="l3-material-title-group"><div id="l3MaterialTitle" class="l3-material-title" data-i18n="studio.material.title">Учебная таблица</div><div class="l3-material-meta"><span id="l3MaterialRevision"></span><span data-i18n="studio.material.localBadge">Локально · immutable revisions</span></div></div>
+          <div id="l3MaterialImpact" class="l3-material-impact"></div>
           <label class="l3-material-history"><span data-i18n="studio.material.history">История</span><select id="l3MaterialHistory" onchange="MaterialRevisionWorkspace.showHistory()"></select></label>
         </div>
         <div id="l3MaterialCompare" class="l3-material-meta"></div>
-        <div id="l3MaterialImpact" class="l3-material-impact"></div>
         <div class="l3-material-reviewbar" aria-label="Playback review controls">
           <label class="l3-follow-toggle"><input id="l3MaterialFollow" type="checkbox" checked onchange="MaterialRevisionWorkspace.setFollowEnabled(this.checked)"><span data-i18n="studio.material.followAudio">Следовать за аудио</span></label>
           <label class="l3-review-mode"><span data-i18n="studio.material.reviewMode">Проверять</span><select id="l3MaterialReviewMode" onchange="MaterialRevisionWorkspace.setReviewMode(this.value)">

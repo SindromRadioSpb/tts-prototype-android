@@ -169,3 +169,17 @@ test('mixed repair reports the production-shaped 514 missing and 71 conflicting 
   assert.deepEqual(result.rows.map((row) => row.ru), sourceRows.map((row) => row.ru));
   assert.deepEqual(result.rows.map((row) => row.field_meta), sourceRows.map((row, index) => Core.normalizeRow(row, index).field_meta));
 });
+
+test('playback review can anchor the current row in the first visible slot', () => {
+  const target = Core.computeContextScrollTop({
+    scroll_top: 100,
+    container_top: 20,
+    container_height: 1000,
+    row_top: 420,
+    previous_row_height: 96,
+    gap: 10,
+    max_scroll_top: 2000,
+    anchor_slot: 'first',
+  });
+  assert.equal(target, 500);
+});

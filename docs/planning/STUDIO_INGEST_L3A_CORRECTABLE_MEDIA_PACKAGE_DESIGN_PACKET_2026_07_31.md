@@ -747,4 +747,7 @@ single-cell editing безопасны, но вынуждают полную п�
 revisions, deterministic affected row/field impact, manual-field protection и explicit targeted
 regeneration. Full rebuild становится rare advanced action. Normative packet:
 `docs/planning/STUDIO_INGEST_L3A3_MATERIAL_REVISION_WORKSPACE_IMPLEMENTATION_PACKET_2026_08_01.md`.
-Это product/planning approval, не implementation/push/deploy authority.
+Workspace implementation и Playback Review впоследствии shipped через `v3.11.286`; real-material
+mapping repair `v1→v2` и synchronized follow owner-observed. First-slot/compact-header polish —
+`v3.11.287`. Следующий owner-gated slice по L3b — P2 Portable Learning Package v2; P1B больше
+не является implementation backlog.

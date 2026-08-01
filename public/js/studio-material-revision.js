@@ -88,7 +88,7 @@
   function anchorSelected(behavior) {
     if(!state||!state.followEnabled||state.followPaused||!state.selectedRowId)return;var host=$('l3MaterialRows'),card=host&&Array.from(host.querySelectorAll('.l3-material-row')).find(function(value){return value.dataset.rowId===state.selectedRowId;});if(!host||!card)return;
     var previous=card.previousElementSibling,cr=host.getBoundingClientRect(),rr=card.getBoundingClientRect(),previousHeight=previous&&previous.classList.contains('l3-material-row')?previous.getBoundingClientRect().height:0;
-    var target=window.MaterialRevisionCore.computeContextScrollTop({scroll_top:host.scrollTop,container_top:cr.top,container_height:host.clientHeight,row_top:rr.top,previous_row_height:previousHeight,gap:10,max_scroll_top:Math.max(0,host.scrollHeight-host.clientHeight)});
+    var target=window.MaterialRevisionCore.computeContextScrollTop({scroll_top:host.scrollTop,container_top:cr.top,container_height:host.clientHeight,row_top:rr.top,previous_row_height:previousHeight,gap:10,max_scroll_top:Math.max(0,host.scrollHeight-host.clientHeight),anchor_slot:'first'});
     suppressLayoutScroll();host.dataset.followScrolls=String((Number(host.dataset.followScrolls)||0)+1);
     if(typeof host.scrollTo==='function')host.scrollTo({top:target,behavior:behavior==='smooth'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches?'smooth':'auto'});else host.scrollTop=target;
   }

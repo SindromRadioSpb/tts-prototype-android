@@ -1,15 +1,18 @@
 # Studio Ingest L3b — Artifact Continuity, Portable Learning Package, iPhone и Hermes
 
 > **Дата:** 2026-08-01
-> **Статус:** 🟢 `OWNER-APPROVED PLANNING DIRECTION`; implementation не начат
-> **Baseline:** production/origin `v3.11.282`,
-> `95bd37a3ac404bed9ec6faacdca1da15e2f56815`, actual `MIGRATIONS.length=45`
+> **Статус:** 🟡 `P0/P1B COMPLETE`; P1A material contract complete, exact Artifact Graph
+> implementation contract is the P2 entry gate; P2 is the next owner-gated slice
+> **Baseline:** foundation `v3.11.283`; repaired Playback Review `v3.11.286` /
+> `3589c0ee141f7b139ab9e584f9bcca0b8997ca2e`; first-slot/header polish `v3.11.287`;
+> actual `MIGRATIONS.length=46`
 > **Research canon:**
 > `docs/research/studio-ingest-artifact-continuity/2026-08-01/REPORT.md`
 > **Предок:** L3a Correctable Media Package shipped; L2 остаётся
 > `DEFERRED / DEMAND-TRIGGERED`
-> **Authority:** утверждены цель, требования и порядок planning. Не разрешены code/schema,
-> cloud/Hermes mutations, push/deploy или production operations без отдельной точной фразы.
+> **Authority:** P1B implementation/deployment authority исполнена. Для P2 утверждены цель,
+> требования и порядок planning, но P2 code/schema/push/deploy требует отдельной точной фразы;
+> cloud/autosync/Hermes остаются запрещены без собственных gates.
 
 ## 0. Program decision
 
@@ -28,10 +31,10 @@ Package в долговечный образовательный объект, �
 Рекомендуемый executable order:
 
 ```text
-P0 L3a owner-live/canon closure
-  → P1A Artifact Graph + Material Revision contract
-  → P1B Material Revision Workspace + targeted regeneration
-  → P2 Portable Learning Package v2
+P0 L3a owner-live/canon closure ✅
+  → P1A Material Revision contract ✅ / exact Artifact Graph contract ◐
+  → P1B Material Revision Workspace + targeted regeneration ✅
+  → P2 Portable Learning Package v2 ← NEXT / OWNER-GATED
   → P3 real iPhone manual continuity
   → P4 Import Center + educational continuity
   → G-AUTOSYNC owner decision
@@ -246,6 +249,15 @@ Package v2 не полагается на local UUID:
 
 ## 5. Phase P1A/P1B — Artifact Graph contract и Material Revision Workspace
 
+> **Current status 2026-08-02:** P1A Material Revision contract frozen; the Artifact Graph
+> direction/requirements are approved but exact additive schema, migration and package allowlist
+> still require implementation-grade closure at P2 entry. P1B implementation shipped through
+> `v3.11.286` with immutable browser migration v46, exact mapping repair and Playback Review.
+> The owner confirmed real-material repair `v1→v2` and synchronized row selection. Client
+> `v3.11.287` changes only the first-slot anchor and compact responsive header. P1B no longer
+> blocks P2; the broader owner-live checklist remains a regression/acceptance ledger, not a
+> reason to reopen the Workspace data model.
+
 ### Цель
 
 Сначала заморозить identity, graph, table-revision, impact и package-v2 semantics; затем
@@ -315,6 +327,9 @@ packet. Exit P1B:
 - immutable table revisions and rollback;
 - compatibility projection guarded/rebuildable;
 - owner-live on 514 cues and 380 px.
+
+All implementation bullets above are now present. No P2 serializer may bypass the immutable
+table revision or reconstitute a coarse mutable `sentences` canon.
 
 ## 6. Phase P2 — Portable Learning Package v2 implementation
 
@@ -760,25 +775,26 @@ fixtures.
 
 ## 19. Recommended bounded session split
 
-### Session A — P0 acceptance/canon
+### Session A — P0 acceptance/canon ✅
 
 Owner-live evidence + docs closure. No feature code unless a real defect is separately approved.
 
-### Session B — P1A adversarial design packet
+### Session B — P1A adversarial design packet ◐
 
-Docs/recon only. Freeze graph/table-revision/impact/package/import/backup schema and gates.
+Material-revision/impact contract is complete. Exact graph/package/import/backup schema and gates
+remain the first bounded task at P2 entry.
 
-### Session C — P1B Material Revision Workspace foundation
+### Session C — P1B Material Revision Workspace foundation ✅
 
 Pure impact/table-revision core, migration/repository/promotion and zero-call Workspace shell;
 requires exact separate implementation authority.
 
-### Session D — P1B targeted regeneration and closure
+### Session D — P1B targeted regeneration and closure ✅
 
 Learning-row editor, affected-only provider subset, version compare/reconcile, compatibility and
 owner-live packet; stop before push/deploy.
 
-### Session D2 — P2 Portable Learning Package core/UI
+### Session D2 — P2 Portable Learning Package core/UI ← NEXT / OWNER-GATED
 
 Serializers/verifiers, transactional import/rebind/receipts and 380px gates over the frozen
 Material Revision contract.
@@ -799,7 +815,7 @@ Starts only after G-AUTOSYNC owner decision.
 
 Starts only after G-HERMES owner decision; metadata/handoff before content.
 
-## 20. Paste-ready next-session prompt: P1 design packet
+## 20. Paste-ready next-session prompt: P2 implementation packet
 
 ```text
 Работай в E:\projects\tts-prototype-android.
@@ -818,8 +834,9 @@ READ FIRST полностью и в порядке:
 11. docs/planning/LINGUISTPRO_SYNC_HARDENING_P0P2_DESIGN_2026_07_18.md
 12. docs/planning/LINGUISTPRO_AGENT_ACCESS_PERSONAL_CONTENT_BRIDGE_RECON_2026_07_18.md
 
-Baseline at planning time: production/origin v3.11.282 / 95bd37a3;
-actual browser MIGRATIONS.length=45. Re-check live state; do not assume it is unchanged.
+Baseline after P1B: Material Revision Workspace shipped through v3.11.286 / 3589c0ee,
+first-slot/header polish v3.11.287, actual browser MIGRATIONS.length=46. Re-check live state;
+do not assume it is unchanged.
 L2 remains demand-triggered. L4/L5/L6 are out of scope.
 
 Owner-approved direction: L3b Artifact Continuity = Import Artifact Graph over existing canon
@@ -827,39 +844,48 @@ stores + Portable Learning Package v2 + later real-iPhone manual transfer and Im
 Manual portable path remains mandatory; media bytes local-only by default; automatic package
 sync target is E2EE but is NOT authorized; Hermes work is NOT authorized.
 
-Owner-approved Material Revision decision: before Package v2, introduce one premium Workspace
-with distinct corrected-transcript and learning-projection layers; zero-call save; deterministic
-affected row/field impact; manual-field protection; explicit targeted regeneration; full rebuild
-rare, advanced and versioned. Use the separate Material Revision packet as normative contract.
+P0 and P1B are complete; P1A's material contract is complete while exact Artifact Graph schema/
+manifest decisions remain the P2 entry gate. The existing immutable caption/table revisions, field authority,
+exact mapping and compatibility projection are the input canon; do not reopen or bypass them.
 
-This session is adversarial DESIGN/RECON ONLY. Do not change product code, migrations, server,
-cloud sync, Hermes config, package/provider defaults or production. Preserve dirty worktree.
+P2 implementation authority: [ВСТАВИТЬ ТОЧНУЮ OWNER-ФРАЗУ]. If exact P2 authority is absent,
+perform recon and freeze an implementation packet only; do not change code/schema/push/deploy.
+Preserve the dirty worktree and stage only an explicit allowlist.
 
-Prepare a detailed owner decision packet that freezes:
-- derived graph vs additive metadata schema;
-- import_run contract;
-- snapshot/archive package-v2 manifest;
-- portable text/table binding independent of local UUID;
-- full revision-history policy;
-- notes/bookmarks/progress inclusion;
-- transactional import/idempotency/conflicts/receipts;
-- full-backup coverage;
-- size/performance/fault/security gates;
-- exact future implementation allowlist and rollback.
+The P2 bounded slice must implement, in this order:
+1. red-before-fix pure Artifact Graph builder and strict schema/type/relation validator;
+2. snapshot and archive Portable Learning Package v2 writers with canonical checksums;
+3. exact caption/table/material/text portable bindings independent of local UUID;
+4. verifier and user-visible dry-run plan before any OPFS mutation;
+5. transactional OPFS import under SAVEPOINT with insert/reuse/rebind and full rollback;
+6. idempotent re-import, same-ID/different-hash conflict handling and durable receipt;
+7. table/text-card inclusion plus backup coverage report;
+8. fault injection for every write/rebind step, quota/disk, corrupt/missing/future schema,
+   ZIP bomb/file-count/path traversal and Unicode/RTL filenames;
+9. measured 514-row and 2,800-row/20-revision export/verify/import performance;
+10. fresh Chromium profile round-trip, RU/LTR + HE/RTL 380 px, semantic/hash oracle,
+    no dangling graph refs after delete/GC, then an owner-live packet.
 
-Apply R2/R4/R5/R9/R11/R12–R17 adversarially before recommendation. Leave stable research,
-exact file/symbol anchors, D-decisions, known unknowns, and a paste-ready implementation prompt.
-Stop before code/push/deploy until separately authorized.
+Hard exclusions: server/cloud sync, E2EE, Hermes, automatic media transport, media bytes inside
+the package, concurrent device editing, L2/L4/L5/L6, provider-default changes and implicit
+fallback. Manual package transfer and SHA relink remain mandatory.
+
+Apply R2/R4/R5/R9/R11/R12–R17 before code and on the final diff. Stop if package identity
+duplicates content truth, a checksum/ref is unverifiable, import can partially commit, media bytes
+enter the package, or a new server/sync/Hermes boundary appears without authority.
 ```
 
 ## 21. Current planning conclusion
 
-Ближайший practically meaningful chain — P0→P1A→P1B→P2→P3→P4. Она закрывает нынешний
-реальный пробел без batch, новых models или автоматической отправки personal media в cloud.
+Ближайший practically meaningful chain остаётся P0→P1A→P1B→P2→P3→P4. На 2026-08-02
+`P0/P1B` завершены; material half P1A завершён, а exact Artifact Graph contract является
+входным гейтом перед **P2 Portable Learning Package v2**.
+Цепочка закрывает реальный пробел без batch, новых models или автоматической отправки personal
+media в cloud.
 
-P1B теперь является обязательным maturity bridge: Portable Package v2 не начинается поверх
-coarse global stale и mutable inline-cell workflow. Сначала таблица получает immutable revisions,
-field authority и affected-only update semantics; затем эта модель переносится между devices.
+P1B выполнил роль обязательного maturity bridge: таблица уже имеет immutable revisions, field
+authority и affected-only update semantics. P2 обязан переносить именно этот канон между
+профилями и не имеет права снова сделать `texts/sentences` или mutable package cells истиной.
 
 P5/P6 и P7/P8 остаются важными архитектурными направлениями, но начинаются только после
 отдельных owner gates. Это удерживает один активный продуктовый слайс и не превращает

@@ -8,16 +8,18 @@ Implementation baseline: parent `743686ec4c05e89f20d31ceb76a9f43967e0f04a`
 
 Implementation commit: the local commit containing this packet; resolve with `git log -1 --format=%H`
 
-Client version: `3.11.286`
+Client release candidate: `3.11.287` (not production-served until the disk-capacity stop condition is cleared)
 
 Browser migrations: `MIGRATIONS.length=46`; v46 is `MIGRATIONS[45]`
 
 ## Status boundary
 
-Automated implementation and local gates are complete. The owner authorized deployment
-and production verification on 2026-08-01; deployment evidence is recorded separately
-after the actually served client reaches this version. Real-material owner-live is
-**not** claimed by the synthetic browser gate. No production/server schema or data
+Automated implementation and local gates are complete. Mapping/follow correction
+`v3.11.286` reached production. On 2026-08-02 the owner supplied real-material evidence
+showing immutable table revision `v2`, enabled exact follow and the correct synchronized
+learning row. This is a **partial owner-live PASS**, not a claim that every provider/fault/
+two-tab ceremony below has run. Client `v3.11.287` adds only first-slot positioning and the
+compact responsive header. No production/server schema or data
 mutation, new server API, cloud sync, Hermes, L2/L4/L5/L6, or full-media ZIP is in scope.
 
 The local implementation provides:
@@ -34,8 +36,8 @@ The local implementation provides:
 - immutable history selection and prior-version inspection.
 - exact cue-to-row Playback Review follow for honest 0/1/N mappings, without guessed
   positional fallback;
-- a restrained previous/current/next review context with the current row anchored near
-  the second visible slot, plus pause-on-manual-review and explicit resume;
+- a restrained current/next review stream with the current row anchored as the first
+  visible row, plus pause-on-manual-review and explicit resume;
 - review presets for Hebrew, niqqud, Latin transliteration, Russian transliteration,
   translation, all fields, and a non-empty custom field set.
 - adaptive compact rows: 1/2/3/4/5 visible fields use the full available width, with
@@ -44,6 +46,8 @@ The local implementation provides:
   conflicting links, blocks follow and row-to-player seeking until reconciliation,
   and commits one stale-base-protected immutable zero-model revision only after owner
   confirmation.
+- a compact title → current state → history/revision header on desktop, with controlled
+  two-row wrapping at 380 px and mirrored HE/RTL order.
 
 ## Automated evidence
 
@@ -64,11 +68,12 @@ npm run smoke:i18n
 
 Observed results in the implementation slice:
 
-- material core/repository/playback review: 16/16 pass;
+- material core/repository/playback review: 17/17 pass;
 - production-shaped pure mapping gate: 585/585 candidates, exactly 514 missing and
   71 conflicting legacy links, with byte-identical language fields and field authority;
 - desktop + 380 px material browser gate: RU + HE, previous/current/next context,
-  no horizontal overflow, no page errors,
+  first-slot active offset approximately 0.1%, following row visible, compact header
+  center-aligned, no horizontal overflow, no page errors,
   zero `/api/translate-table*` calls during open/manual/caption-zero-call saves;
 - exact 0/1/N mapping, focused-field follow pause, explicit resume, and translation
   preset all preserve the same revision-history length until an explicit save;
@@ -99,8 +104,8 @@ Screenshots:
 Use the owner's real 36:17 / 514-row material. Do not use a synthetic fixture as the
 final verdict.
 
-1. Before opening the app, record `git log -1 --format=%H`, verify version
-   `3.11.286`, and verify actual `MIGRATIONS.length=46`.
+1. After deployment, record `git log -1 --format=%H`, verify the actually served version
+   `3.11.287`, and verify actual `MIGRATIONS.length=46`.
 2. Back up the browser-local library through the existing product backup/export path.
 3. Open the saved media material and choose **Редактирование материала**. Confirm that
    open performs no model/provider request and creates exactly one lazy v1 material
@@ -115,8 +120,8 @@ final verdict.
    once; confirm history advances from v1 to v2 while all five language fields and their
    manual locks remain byte-identical. Reload and confirm the preview no longer appears.
 6. Enable **Следовать за аудио** and play through cues with 1, N and 0 mapped rows.
-   Confirm exact mapped rows are highlighted, the selected/current row sits near the
-   second visible slot with previous and next context visible, and 0 mapping shows an
+   Confirm exact mapped rows are highlighted, the selected/current row is the first
+   visible row with following context visible, and 0 mapping shows an
    explicit add-row action rather than selecting a guessed row.
 7. Focus a field or manually scroll the Learning Table. Confirm automatic follow pauses,
    the field being edited does not jump, and **Вернуться к реплике** resumes exact follow.
@@ -163,7 +168,15 @@ Stop without workaround if any of the following occurs:
 
 ## Completion record
 
-Leave blank until the owner performs the procedure:
+Partial owner evidence already recorded:
+
+- Owner-live date/time: 2026-08-02, screenshot evidence
+- Browser/device: owner production browser; exact build/device string not recorded
+- Revision sequence observed: repaired/current table revision `v2`
+- Mapping/follow result: exact follow enabled; synchronized learning row visible
+- Verdict: `PARTIAL PASS`; full provider/fault/two-tab matrix remains open
+
+Complete the remaining fields when the owner performs the full procedure:
 
 - Owner-live date/time:
 - Browser/device:

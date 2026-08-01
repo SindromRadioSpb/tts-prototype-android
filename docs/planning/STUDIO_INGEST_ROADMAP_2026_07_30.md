@@ -3,12 +3,13 @@
 > **Дата:** 2026-07-30
 > **Статус:** 🟢 канонический общий roadmap по директиве владельца; L3a Correctable
 > Media Package shipped до `v3.11.282`; L3a.3 Material Revision Workspace foundation
-> shipped в `v3.11.283`; Playback Review UX owner-approved для немедленной реализации,
-> production rollout и live-test как maturity bridge к L3b Artifact Continuity.
+> shipped в `v3.11.283`, mapping/follow correction shipped в `v3.11.286`, а
+> first-slot/compact-header polish подготовлен как `v3.11.287`. Следующий gated этап —
+> P2 Portable Learning Package v2 внутри L3b Artifact Continuity.
 > Реализация новых слайсов требует обычных
 > measure-before-code, adversarial design и owner/live gates.
-> **Срез:** production/origin `82a392e6` (`v3.11.283`); actual browser migration
-> count на 2026-08-01 — `46`.
+> **Срез:** production/origin после mapping/follow correction `3589c0ee`
+> (`v3.11.286`); polish release candidate `v3.11.287`; actual browser migration count — `46`.
 
 Этот документ долговечно фиксирует результат обсуждения владельца:
 
@@ -252,8 +253,8 @@ TTS остаётся отдельной quality-gated веткой.
 | 3 | local L1 ASR | 🟡 ENGINEERING PASS | sidecar batch/browser/B+C PASS; owner acceptance and permanent integration open |
 | 4 | resumable import-job + batch | ⏸ DEMAND-TRIGGERED | reload/job-loss или регулярные 3–5+ файлов; не начат |
 | 5 | L3a Correctable Media Package | ✅ SHIPPED v3.11.282 | v45, immutable raw/corrected revisions, editor, reopen shelf, player↔cue↔row, VTT/SRT/slim package; remaining owner-live ceremonies tracked separately |
-| 6 | **L3a.3 Material Revision Workspace** | 🟢 FOUNDATION SHIPPED v3.11.283; PLAYBACK REVIEW IMPLEMENTATION APPROVED | two-layer source+learning workspace, v46 immutable revisions, field authority and targeted regeneration shipped; cue↔row follow, second-slot context and field-review modes frozen in `STUDIO_INGEST_L3A3_PLAYBACK_REVIEW_UX_IMPLEMENTATION_PACKET_2026_08_01.md` |
-| 7 | **L3b Artifact Continuity** | 🟢 OWNER-APPROVED PLANNING | Artifact Graph → Portable Learning Package v2 → real iPhone manual continuity → Import Center; package follows Workspace contract |
+| 6 | **L3a.3 Material Revision Workspace** | ✅ SHIPPED through v3.11.286; v3.11.287 POLISH | two-layer source+learning workspace, v46 immutable revisions, field authority, targeted regeneration, exact repaired cue↔row follow, first-slot upcoming context and compact title→state→history header |
+| 7 | **L3b Artifact Continuity / P2 entry** | 🟡 NEXT OWNER-GATED SLICE | P1A material-revision contract and P1B Workspace are complete; exact Artifact Graph schema/migration/package allowlist must be frozen at P2 entry, then Portable Learning Package v2 → iPhone → Import Center |
 | 8 | local translation/nikud + S6 | P1 | shared provider contract, R1/R11 quality gates |
 | 9 | diarization/alignment | P1 | speaker/timing gold, segment default remains honest |
 | 10 | EPUB + TXT/MD/HTML + HEIC | P1 | real fixtures, provenance, mobile acceptance |
@@ -263,6 +264,24 @@ TTS остаётся отдельной quality-gated веткой.
 L0 и ограниченный default-off L1 engineering/evidence closure выполнены. Permanent L1
 integration требует отдельного owner acceptance; expanded human-gold и paired Gemini cloud
 comparison не запускались и не подразумеваются фактом закрытия B+C.
+
+### Текущая точка и следующий слайс (update 2026-08-02)
+
+```text
+P0 L3a closure ✅
+  → P1A Material Revision contract ✅ / Artifact Graph direction approved, exact contract open
+  → P1B Material Revision Workspace + Playback Review ✅
+  → P2 entry: freeze exact graph/schema/manifest allowlist, then Package v2 ← NEXT
+  → P3 real iPhone manual continuity
+  → P4 Import Center + educational continuity
+```
+
+Следующая сессия не должна переоткрывать Workspace UI или строить cloud sync. Она сначала
+закрывает implementation-grade Artifact Graph/schema/manifest decisions и точный P2
+allowlist/approval, затем реализует pure Artifact Graph
+builder, snapshot/archive package writer, checksum/referential verifier, dry-run plan,
+transactional OPFS import/rebind, receipts, backup coverage и fault/performance/browser gates.
+Media bytes, E2EE/autosync, Hermes, concurrent-device editing и L2/L4/L5/L6 остаются вне P2.
 
 ## 10. Обязательные процессные артефакты
 

@@ -1,17 +1,20 @@
 # Studio Ingest L3a.3 — Material Revision Workspace
 
 > **Дата:** 2026-08-01
-> **Статус:** 🟡 `LOCAL IMPLEMENTATION COMPLETE`; automated gates green, owner-live pending
-> **Baseline:** production/origin остаётся `v3.11.282` / `95bd37a3ac404bed9ec6faacdca1da15e2f56815`;
-> local implementation `v3.11.283`, actual browser `MIGRATIONS.length = 46`
+> **Статус:** 🟢 `SHIPPED`; real-material mapping repair and playback follow owner-observed,
+> first-slot/compact-header polish prepared as client `v3.11.287`
+> **Baseline:** foundation `v3.11.283` / `82a392e6`; mapping/follow correction
+> `v3.11.286` / `3589c0ee141f7b139ab9e584f9bcca0b8997ca2e`; actual browser
+> `MIGRATIONS.length = 46`
 > **Предки:** L3a Correctable Media Package shipped; L3b Artifact Continuity planning approved
-> **Authority:** этот документ фиксирует утверждённый продуктовый выбор и готовит следующую
-> инженерную сессию. Он не разрешает code/schema changes, push/deploy, server/production
-> mutation, cloud sync, Hermes, L2/L4/L5/L6 либо full-media ZIP без отдельной точной фразы.
+> **Authority:** историческая implementation-фраза §19 была исполнена; последующие owner-approved
+> playback/mapping/first-slot corrections зафиксированы в дочернем packet. Новая L3b/P2 работа,
+> server/cloud sync, Hermes, L2/L4/L5/L6 и media-bearing ZIP требуют отдельной точной authority.
 >
 > **Implementation evidence:**
 > `docs/research/studio-l3a3-material-revision-workspace/2026-08-01/OWNER_LIVE_PACKET.md`.
-> Push/deploy и owner-live не выполнялись.
+> Foundation и Playback Review deployed; полный owner-live matrix остаётся шире уже
+> подтверждённых владельцем mapping-repair `v1→v2` и row-follow сценариев.
 
 ## 0. Owner decision
 
@@ -795,23 +798,8 @@ rollback and a paste-ready push/deploy prompt. Do not claim completion from unit
 ## 21. Planning conclusion
 
 Material Revision Workspace is the required local maturity bridge between shipped L3a and L3b
-
-## 22. Owner-approved Playback Review UX follow-up
-
-The foundation shipped to production as client `3.11.283` at commit `82a392e6`.
-After testing the real 36:17 / 514-row material, the owner approved the synchronized
-Playback Review follow-up: exact cue↔learning-row selection, second-slot contextual
-anchoring, compact context rows with one expanded editor, sequential field-review modes,
-and explicit pause/resume when the owner scrolls or types.
-
-The authoritative bounded implementation/deployment contract is:
-
-`STUDIO_INGEST_L3A3_PLAYBACK_REVIEW_UX_IMPLEMENTATION_PACKET_2026_08_01.md`
-
-It is additive to this packet and does not change immutable revision, authority,
-provider, compatibility projection, migration v46, or stale-base invariants.
 portability. Artifact Graph/Portable Package must serialize this versioned material model rather
-than preserve the current coarse stale flag and mutable cell-edit workflow.
+than preserve the coarse stale flag and mutable cell-edit workflow.
 
 The premium behavior is therefore:
 
@@ -828,3 +816,31 @@ full rebuild
 
 This closes the owner-observed dead end without sacrificing raw evidence, provenance, cost
 control, rollback or future cross-device reproducibility.
+
+## 22. Owner-approved Playback Review UX follow-up
+
+The foundation shipped to production as client `3.11.283` at commit `82a392e6`.
+After testing the real 36:17 / 514-row material, the owner approved the synchronized
+Playback Review follow-up: exact cue↔learning-row selection, initially second-slot contextual
+anchoring (superseded by §23), compact context rows with one expanded editor, sequential field-review modes,
+and explicit pause/resume when the owner scrolls or types.
+
+The deterministic mixed-mapping repair, full-width adaptive compact rows and guarded
+follow shipped as client `3.11.286` at commit
+`3589c0ee141f7b139ab9e584f9bcca0b8997ca2e`. The owner then confirmed on the real material
+that repair created immutable table revision `v2` and playback selected the mapped row.
+
+The authoritative bounded implementation/deployment contract is:
+
+`STUDIO_INGEST_L3A3_PLAYBACK_REVIEW_UX_IMPLEMENTATION_PACKET_2026_08_01.md`
+
+It is additive to this packet and does not change immutable revision, authority,
+provider, compatibility projection, migration v46, or stale-base invariants.
+
+## 23. Owner-approved final Workspace polish
+
+On 2026-08-02 the owner superseded the second-slot choice for this Workspace only: the
+current playback row must occupy the first visible row, maximizing the visible upcoming
+trail. The header is compacted into the semantic sequence title → state → history/revision;
+380 px wraps without overflow and HE mirrors the same order in RTL. Client `v3.11.287`
+implements this as presentation-only code with no migration/provider/canon change.

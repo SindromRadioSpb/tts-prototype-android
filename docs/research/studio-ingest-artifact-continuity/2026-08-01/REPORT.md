@@ -6,6 +6,9 @@
 > **Repo baseline:** `v3.11.282`, commit
 > `5c5239332093bb5a10e10e500c81eb0300a8be4b`, `MIGRATIONS.length=45`
 > **Тип работы:** docs/research only; никаких code/schema/data/provider/deploy mutations
+> **Current program update 2026-08-02:** Workspace/Playback Review shipped through
+> `v3.11.286`, browser migrations `46`; P2 entry must freeze the remaining exact Artifact
+> Graph schema/manifest/allowlist before Portable Learning Package implementation.
 > **Planning-выход:**
 > `docs/planning/STUDIO_INGEST_L3B_ARTIFACT_CONTINUITY_PLAN_2026_08_01.md`
 
@@ -799,15 +802,16 @@ Metadata/handoff, затем bounded content/proposals; fresh ordinary-chat owne
 Владелец 2026-08-01 утвердил формализацию исследования и планирование по всем указанным
 направлениям. Исследование рекомендует следующий порядок:
 
-1. закрыть current L3a owner-live/canon;
-2. Artifact Graph contract;
-3. Portable Learning Package v2;
-4. real iPhone manual continuity;
-5. Import Center/reference;
-6. automatic E2EE package sync после отдельного design/authority;
-7. optional encrypted media transport по usage trigger;
-8. Hermes metadata/handoff;
-9. Hermes bounded corrected-content/propose bridge.
+1. закрыть current L3a owner-live/canon — ✅;
+2. Material Revision contract — ✅; Artifact Graph direction approved, exact contract — ◐;
+3. Material Revision Workspace maturity bridge — ✅;
+4. Portable Learning Package v2 — **NEXT / OWNER-GATED**;
+5. real iPhone manual continuity;
+6. Import Center/reference;
+7. automatic E2EE package sync после отдельного design/authority;
+8. optional encrypted media transport по usage trigger;
+9. Hermes metadata/handoff;
+10. Hermes bounded corrected-content/propose bridge.
 
 Это **не** разрешение на implementation, browser migration, server migration/API,
 cloud upload, E2EE key management, Hermes scope/config mutation, push/deploy или production
@@ -839,8 +843,10 @@ L3b UX/data contract. Package/device continuity не должна перенос
 Normative implementation packet:
 `docs/planning/STUDIO_INGEST_L3A3_MATERIAL_REVISION_WORKSPACE_IMPLEMENTATION_PACKET_2026_08_01.md`.
 
-Утверждение направления не является code/schema/push/deploy authority. Proposed browser v46,
-table-revision canon, targeted provider contract и T0–T10 требуют отдельной точной фразы.
+Browser v46, table-revision canon, targeted provider contract и T0–T10 subsequently shipped;
+mapping repair/follow reached production `v3.11.286`, and the owner observed real-material
+revision `v2` with synchronized follow. P2 Portable Learning Package v2 now requires its own
+exact code/schema/push/deploy authority; cloud/E2EE/Hermes authority remains absent.
 
 ## 15. Known unknowns, которые должны стать gates, а не предположениями
 

@@ -309,9 +309,9 @@
     const previousHeight = Math.max(0, Number(input && input.previous_row_height) || 0);
     const gap = Math.max(0, Number(input && input.gap) || 0);
     const maxScrollTop = Math.max(0, Number(input && input.max_scroll_top) || 0);
-    const contextOffset = previousHeight > 0
-      ? Math.min(previousHeight + gap, containerHeight * 0.32)
-      : 0;
+    const contextOffset = input && input.anchor_slot === 'first'
+      ? 0
+      : (previousHeight > 0 ? Math.min(previousHeight + gap, containerHeight * 0.32) : 0);
     const target = scrollTop + (rowTop - containerTop) - contextOffset;
     return Math.max(0, Math.min(maxScrollTop, Math.round(target)));
   }
