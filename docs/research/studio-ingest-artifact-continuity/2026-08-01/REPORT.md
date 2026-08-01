@@ -8,10 +8,12 @@
 > **Тип работы:** docs/research only; никаких code/schema/data/provider/deploy mutations
 > **Current program update 2026-08-02:** Workspace/Playback Review production-closed as
 > `v3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`, browser migrations `46`;
-> P2 entry must freeze the remaining exact Artifact
-> Graph schema/manifest/allowlist before Portable Learning Package implementation.
+> exact derived Artifact Graph/schema-v2 manifest/v47 receipt/import/security/allowlist are now
+> frozen in the P2 implementation packet; code/schema remain owner-gated.
 > **Planning-выход:**
 > `docs/planning/STUDIO_INGEST_L3B_ARTIFACT_CONTINUITY_PLAN_2026_08_01.md`
+> **Implementation packet:**
+> `docs/planning/STUDIO_INGEST_P2_PORTABLE_LEARNING_PACKAGE_V2_IMPLEMENTATION_PACKET_2026_08_02.md`
 
 ## 0. Вопрос и решение в одном экране
 
@@ -804,7 +806,7 @@ Metadata/handoff, затем bounded content/proposals; fresh ordinary-chat owne
 направлениям. Исследование рекомендует следующий порядок:
 
 1. закрыть current L3a owner-live/canon — ✅;
-2. Material Revision contract — ✅; Artifact Graph direction approved, exact contract — ◐;
+2. Material Revision + exact derived Artifact Graph/P2-entry contract — ✅;
 3. Material Revision Workspace maturity bridge — ✅;
 4. Portable Learning Package v2 — **NEXT / OWNER-GATED**;
 5. real iPhone manual continuity;
@@ -869,3 +871,14 @@ exact code/schema/push/deploy authority; cloud/E2EE/Hermes authority remains abs
 15. Performance table-revision compare/impact на 514 и 2,800 cues.
 
 Ни один из этих unknown не блокирует первый design packet Artifact Graph + Portable Package v2.
+
+## 16. P2 entry packet outcome — 2026-08-02
+
+Live code recon froze the implementation contract without code/schema mutation. Artifact Graph
+is pure and derived from v45/v46 canon; no registry/edge metadata tables are added. The only
+necessary additive schema is proposed v47 `studio_portable_import_receipts`, storing hashes,
+counts, rollback pointers and portable↔local maps without copied content. Snapshot/archive,
+canonical serialization, strict ZIP limits, no-write dry-run, one-SAVEPOINT Apply, full rollback,
+idempotent re-import, full-backup coverage, independent oracle, performance ceilings and exact
+allowlist are normative in the packet above. Implementation, push and deploy still require the
+separate exact owner sentence in that packet.

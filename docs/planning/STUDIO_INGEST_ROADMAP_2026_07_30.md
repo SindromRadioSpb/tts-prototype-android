@@ -5,8 +5,10 @@
 > Media Package shipped до `v3.11.282`; L3a.3 Material Revision Workspace foundation
 > shipped в `v3.11.283`, mapping/follow correction shipped в `v3.11.286`, а
 > first-slot/compact-header polish deployed и production-verified как `v3.11.287` / `2e8f4bf3`.
-> Следующий gated этап —
-> P2 Portable Learning Package v2 внутри L3b Artifact Continuity.
+> Следующий gated этап — P2 Portable Learning Package v2 внутри L3b Artifact Continuity;
+> exact implementation contract frozen в
+> `STUDIO_INGEST_P2_PORTABLE_LEARNING_PACKAGE_V2_IMPLEMENTATION_PACKET_2026_08_02.md`,
+> code/schema остаются owner-gated.
 > Реализация новых слайсов требует обычных
 > measure-before-code, adversarial design и owner/live gates.
 > **Срез:** production/origin `2e8f4bf355a2babc0de619bfca817d1fff74b44f`
@@ -271,17 +273,17 @@ comparison не запускались и не подразумеваются ф
 
 ```text
 P0 L3a closure ✅
-  → P1A Material Revision contract ✅ / Artifact Graph direction approved, exact P2 entry contract open
+  → P1A Material Revision contract + exact Artifact Graph/P2 entry packet ✅
   → P1B Material Revision Workspace + Playback Review ✅
-  → P2 entry: freeze exact graph/schema/manifest allowlist, then Package v2 ← NEXT
+  → P2 Portable Learning Package v2 implementation ← NEXT / OWNER-GATED
   → P3 real iPhone manual continuity
   → P4 Import Center + educational continuity
 ```
 
-Следующая сессия не должна переоткрывать Workspace UI или строить cloud sync. Она сначала
-закрывает implementation-grade Artifact Graph/schema/manifest decisions и точный P2
-allowlist/approval, затем реализует pure Artifact Graph
-builder, snapshot/archive package writer, checksum/referential verifier, dry-run plan,
+Следующая сессия не должна переоткрывать Workspace UI или строить cloud sync. Exact
+Artifact Graph/schema/manifest/allowlist уже frozen в P2 packet; после отдельной дословной
+owner-authority она реализует pure Artifact Graph builder, snapshot/archive package writer,
+checksum/referential verifier, dry-run plan,
 transactional OPFS import/rebind, receipts, backup coverage и fault/performance/browser gates.
 Media bytes, E2EE/autosync, Hermes, concurrent-device editing и L2/L4/L5/L6 остаются вне P2.
 

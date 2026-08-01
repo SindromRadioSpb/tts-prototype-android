@@ -1,14 +1,16 @@
 # Studio Ingest L3b — Artifact Continuity, Portable Learning Package, iPhone и Hermes
 
 > **Дата:** 2026-08-01
-> **Статус:** 🟡 `P0/P1B COMPLETE`; P1A material contract complete, exact Artifact Graph
-> implementation contract is the P2 entry gate; P2 is the next owner-gated slice
+> **Статус:** 🟡 `P0/P1A/P1B CONTRACT COMPLETE`; exact Artifact Graph/P2 implementation
+> packet frozen 2026-08-02; P2 code/schema is the next owner-gated slice
 > **Baseline:** foundation `v3.11.283`; repaired Playback Review `v3.11.286` /
 > `3589c0ee141f7b139ab9e584f9bcca0b8997ca2e`; first-slot/header polish deployed and
 > production-verified as `v3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`;
 > actual `MIGRATIONS.length=46`
 > **Research canon:**
 > `docs/research/studio-ingest-artifact-continuity/2026-08-01/REPORT.md`
+> **P2 implementation canon:**
+> `docs/planning/STUDIO_INGEST_P2_PORTABLE_LEARNING_PACKAGE_V2_IMPLEMENTATION_PACKET_2026_08_02.md`
 > **Предок:** L3a Correctable Media Package shipped; L2 остаётся
 > `DEFERRED / DEMAND-TRIGGERED`
 > **Authority:** P1B implementation/deployment authority исполнена. Для P2 утверждены цель,
@@ -33,7 +35,7 @@ Package в долговечный образовательный объект, �
 
 ```text
 P0 L3a owner-live/canon closure ✅
-  → P1A Material Revision contract ✅ / exact Artifact Graph contract ◐
+  → P1A Material Revision + exact Artifact Graph/P2 entry contract ✅
   → P1B Material Revision Workspace + targeted regeneration ✅
   → P2 Portable Learning Package v2 ← NEXT / OWNER-GATED
   → P3 real iPhone manual continuity
@@ -128,8 +130,9 @@ red-before-fix gates и следующий prompt находятся в
 
 ### 3.2 Artifact Graph schema design requirements
 
-P1 design packet должен решить, нужен ли additive browser schema. Если нужен, вероятная
-форма — registry/edges metadata only:
+P2 entry packet 2026-08-02 решил D-schema: graph полностью детерминированно выводится из
+existing v45/v46 stores. Registry/edge/device-state tables не создаются. Рассматривавшаяся,
+но отвергнутая форма была:
 
 ```text
 studio_import_runs
@@ -156,8 +159,9 @@ Edges:
 - provenance/created_at;
 - no free-text identity.
 
-Если graph полностью детерминированно выводим из existing stores, предпочесть pure graph
-builder + только `studio_import_runs`, а не лишние таблицы. Это отдельное D-schema решение P1.
+Выбран pure graph builder и одна exact additive v47 table
+`studio_portable_import_receipts` для committed receipt, portable↔local ID map и rollback
+pointers. Она не содержит caption/table content. Полный DDL и правила находятся в P2 packet.
 
 ### 3.3 Portable Learning Package v2 manifest
 
@@ -250,9 +254,9 @@ Package v2 не полагается на local UUID:
 
 ## 5. Phase P1A/P1B — Artifact Graph contract и Material Revision Workspace
 
-> **Current status 2026-08-02:** P1A Material Revision contract frozen; the Artifact Graph
-> direction/requirements are approved but exact additive schema, migration and package allowlist
-> still require implementation-grade closure at P2 entry. P1B implementation shipped through
+> **Current status 2026-08-02:** P1A Material Revision and exact derived Artifact Graph/P2
+> entry contracts are frozen. The implementation packet selects a single v47 receipt table,
+> strict schema-v2 manifest/import/security contracts and an exact allowlist. P1B shipped through
 > `v3.11.286` with immutable browser migration v46, exact mapping repair and Playback Review.
 > The owner confirmed real-material repair `v1→v2` and synchronized row selection. Client
 > `v3.11.287` changes only the first-slot anchor and compact responsive header. P1B no longer
@@ -780,10 +784,10 @@ fixtures.
 
 Owner-live evidence + docs closure. No feature code unless a real defect is separately approved.
 
-### Session B — P1A adversarial design packet ◐
+### Session B — P1A/P2-entry adversarial design packet ✅
 
-Material-revision/impact contract is complete. Exact graph/package/import/backup schema and gates
-remain the first bounded task at P2 entry.
+Material-revision/impact and exact graph/package/import/backup contracts and gates are complete
+through the P2 implementation packet dated 2026-08-02.
 
 ### Session C — P1B Material Revision Workspace foundation ✅
 
@@ -832,8 +836,9 @@ READ FIRST полностью и в порядке:
 8. docs/research/studio-ingest-artifact-continuity/2026-08-01/REPORT.md
 9. docs/planning/STUDIO_INGEST_L3B_ARTIFACT_CONTINUITY_PLAN_2026_08_01.md
 10. docs/planning/STUDIO_INGEST_L3A3_MATERIAL_REVISION_WORKSPACE_IMPLEMENTATION_PACKET_2026_08_01.md
-11. docs/planning/LINGUISTPRO_SYNC_HARDENING_P0P2_DESIGN_2026_07_18.md
-12. docs/planning/LINGUISTPRO_AGENT_ACCESS_PERSONAL_CONTENT_BRIDGE_RECON_2026_07_18.md
+11. docs/planning/STUDIO_INGEST_P2_PORTABLE_LEARNING_PACKAGE_V2_IMPLEMENTATION_PACKET_2026_08_02.md
+12. docs/planning/LINGUISTPRO_SYNC_HARDENING_P0P2_DESIGN_2026_07_18.md
+13. docs/planning/LINGUISTPRO_AGENT_ACCESS_PERSONAL_CONTENT_BRIDGE_RECON_2026_07_18.md
 
 Baseline after P1B: Material Revision Workspace shipped through v3.11.286 / 3589c0ee,
 first-slot/header polish v3.11.287, actual browser MIGRATIONS.length=46. Re-check live state;
@@ -845,12 +850,13 @@ stores + Portable Learning Package v2 + later real-iPhone manual transfer and Im
 Manual portable path remains mandatory; media bytes local-only by default; automatic package
 sync target is E2EE but is NOT authorized; Hermes work is NOT authorized.
 
-P0 and P1B are complete; P1A's material contract is complete while exact Artifact Graph schema/
-manifest decisions remain the P2 entry gate. The existing immutable caption/table revisions, field authority,
-exact mapping and compatibility projection are the input canon; do not reopen or bypass them.
+P0/P1B production closure and P1A/P2-entry contract closure are complete. Exact derived Artifact
+Graph, v47 receipt-only migration, schema-v2 manifest/import/security rules and the allowlist are
+frozen in the P2 packet. The existing immutable caption/table revisions, field authority, exact
+mapping and compatibility projection are the input canon; do not reopen or bypass them.
 
-P2 implementation authority: [ВСТАВИТЬ ТОЧНУЮ OWNER-ФРАЗУ]. If exact P2 authority is absent,
-perform recon and freeze an implementation packet only; do not change code/schema/push/deploy.
+P2 implementation authority: [ВСТАВИТЬ ДОСЛОВНО ФРАЗУ ИЗ P2 PACKET §27]. If that exact P2
+authority is absent, do not change code/schema/push/deploy.
 Preserve the dirty worktree and stage only an explicit allowlist.
 
 The P2 bounded slice must implement, in this order:
@@ -879,8 +885,9 @@ enter the package, or a new server/sync/Hermes boundary appears without authorit
 ## 21. Current planning conclusion
 
 Ближайший practically meaningful chain остаётся P0→P1A→P1B→P2→P3→P4. На 2026-08-02
-`P0/P1B` production-closed through `v3.11.287`; material half P1A завершён, а exact Artifact Graph contract является
-входным гейтом перед **P2 Portable Learning Package v2**.
+`P0/P1B` production-closed through `v3.11.287`; P1A material contract и exact derived
+Artifact Graph/package/import contract frozen в P2 packet 2026-08-02. Следующим owner-gated
+этапом является **P2 Portable Learning Package v2 implementation**.
 Цепочка закрывает реальный пробел без batch, новых models или автоматической отправки personal
 media в cloud.
 
