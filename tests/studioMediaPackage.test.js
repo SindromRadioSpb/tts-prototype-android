@@ -70,6 +70,23 @@ test('revision projection is hash-labelled and lives at one explicit compatibili
   assert.equal(projection.table_model_meta, undefined);
 });
 
+test('compatibility projection keeps the table player on the canonical OPFS media', async () => {
+  const raw = await Core.createRawRevision({ media_sha256: SHA, format: 'asr', segments: [{ start_ms: 0, end_ms: 1000, text: 'שלום' }] });
+  const corrected = Core.createCorrectedDraft(raw.segments, { id_factory: () => 'cseg:media' });
+  const hash = await Core.revisionHash('user_corrected', corrected, []);
+  const projection = StudioMediaPackage.buildCompatibilityProjection({
+    package_id: 'mpkg:media', track_id: 'track:media', revision_id: 'rev:media', canonical_sha256: hash, segments: corrected,
+  }, { kind: 'audio', media: {
+    sha256: SHA, mime: 'video/mp4', opfs_path: `media/${SHA}.mp4`, duration_ms: 2177000,
+    original_name: 'interview.mp4', size_bytes: 42, session_only: false,
+  } });
+  assert.deepEqual(projection.audio.media, {
+    sha256: SHA, mime: 'video/mp4', opfsPath: `media/${SHA}.mp4`, durationSec: 2177,
+    originalName: 'interview.mp4', sizeBytes: 42, sessionOnly: false,
+  });
+  assert.equal(projection.audio.media.opfs_path, undefined, 'legacy table playback has one normalized media shape');
+});
+
 test('cloud slim filter removes local track snapshots but leaves an honest package stub', () => {
   const sourceMeta = { source: {
     kind: 'audio', media_package_ref: { package_id: 'mpkg:1', track_id: 'track:1', revision_id: 'rev:1', projection_sha256: 'b'.repeat(64) },

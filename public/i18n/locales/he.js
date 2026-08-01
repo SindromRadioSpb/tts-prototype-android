@@ -3282,10 +3282,13 @@ window.I18N_LOCALES.he = {
       noTiming: "קריוקי אינו זמין לייבוא זה",
       fileMissing: "קובץ האודיו לא נמצא בדפדפן זה",
       viaYouTube: "ניגון דרך YouTube",
+      sourcePlayer: "אודיו / וידאו מקורי",
+      sourceSync: "בחירת השורה ומיקום הנגן מסונכרנים",
     },
     mediaPackage: {
       title: "תיקון התמלול", correctBtn: "תיקון התמלול", continueDraftBtn: "המשך עם הטיוטה",
       close: "סגירה", prev: "→ הקודם", next: "הבא ←", cueText: "טקסט הקטע", start: "התחלה", end: "סיום", speaker: "דובר/ת",
+      reviewControls: "פקדי בדיקת קטעים", jumpLabel: "מעבר לקטע", followHint: "הנגן והקטע הנבחר מסונכרנים לשני הכיוונים", advancedTools: "ייצוא וניהול החבילה",
       compareRaw: "השוואה למקור שאינו ניתן לשינוי", replay: "▶ ניגון הקטע", split: "פיצול לפי הסמנים", merge: "מיזוג עם הבא",
       undo: "ביטול", redo: "ביצוע חוזר", offset: "היסט לכל המסלול, מ״ש", applyOffset: "החלה", discard: "מחיקת הטיוטה",
       saveVersion: "שמירת גרסה", toTable: "המשך לטבלה", unsaved: "לא נשמר", saved: "הגרסה נשמרה", versionSaved: "הגרסה נשמרה",

@@ -159,13 +159,35 @@ test("start(): opts.media routes an adapter through the same path opts.blob rout
     await mod.start({ media: adapter, entries: entries, rowCount: 3 });
     assert.equal(mod.getAudioEl(), adapter, "resuming must not swap the media element");
 
+    var adapter2 = makeFakeAdapter();
+    await mod.start({ media: adapter2, entries: entries, rowCount: 3 });
+    assert.equal(mod.getAudioEl(), adapter2, "the same timing array must never retain a different media source");
+
     // A structurally-equal but distinct entries array must NOT resume — a fresh ensureRun() runs,
     // and it must not call destroy() on the adapter it is tearing down away from either.
     var blob = new global.Blob();
     await mod.start({ blob: blob, entries: entries.slice(), rowCount: 3 });
-    assert.notEqual(mod.getAudioEl(), adapter, "a different entries array by identity must restart, not resume onto the old element");
+    assert.notEqual(mod.getAudioEl(), adapter2, "a different entries array by identity must restart, not resume onto the old element");
     assert.equal(adapter._destroyed, undefined, "switching away from an adapter must still never destroy() it");
     mod.stop();
+  } finally {
+    uninstallBrowserMocks();
+  }
+});
+
+test("bind(): a visible local player supports paused row seek and explicit time-to-row sync", () => {
+  installBrowserMocks();
+  try {
+    var mod = freshModule(), adapter = makeFakeAudioEl(), observed = [];
+    var entries = [{ o: 0, t: 0 }, { o: 2, t: 10 }];
+    mod.bind({ media: adapter, entries: entries, rowCount: 4, onRangeChange: function (range) { observed.push(range); } });
+    assert.equal(adapter.paused, true, "binding a visible player must not autoplay");
+    mod.seekToRow(2);
+    assert.equal(adapter.currentTime, 10, "selecting a table row seeks the visible player even while paused");
+    assert.deepEqual(mod.syncCurrent(), { idx: 1, rowStart: 2, rowEnd: 4 });
+    assert.deepEqual(observed.at(-1), { idx: 1, rowStart: 2, rowEnd: 4 });
+    adapter._listeners.ended[0]();
+    assert.equal(mod.getAudioEl(), adapter, "a visible source player stays bound after reaching the end so later row seeks still work");
   } finally {
     uninstallBrowserMocks();
   }

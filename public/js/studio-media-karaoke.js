@@ -33,7 +33,7 @@
   }
 
   var CLS = "smk-row-active";
-  var cur = null; // {audioEl, url, entries, rowCount, rafId, lastIdx, stopAtT, listeners}
+  var cur = null; // {source, audioEl, url, entries, rowCount, rafId, lastIdx, stopAtT, listeners, onRangeChange, persistent}
 
   function paintRange(range) {
     var table = document.getElementById("proTable");
@@ -53,8 +53,19 @@
     if (cur.stopAtT != null && t >= cur.stopAtT) { try { cur.audioEl.pause(); } catch (_) {} cur.stopAtT = null; }
     var range = activeSegmentRange(cur.entries, cur.rowCount, t);
     var idx = range ? range.idx : -1;
-    if (idx !== cur.lastIdx) { paintRange(range); cur.lastIdx = idx; }
+    if (idx !== cur.lastIdx) {
+      paintRange(range); cur.lastIdx = idx;
+      if (typeof cur.onRangeChange === "function") { try { cur.onRangeChange(range); } catch (_) {} }
+    }
     cur.rafId = window.requestAnimationFrame(tick);
+  }
+
+  function syncCurrent() {
+    if (!cur) return null;
+    var range = activeSegmentRange(cur.entries, cur.rowCount, cur.audioEl ? cur.audioEl.currentTime : 0);
+    paintRange(range); cur.lastIdx = range ? range.idx : -1;
+    if (typeof cur.onRangeChange === "function") { try { cur.onRangeChange(range); } catch (_) {} }
+    return range;
   }
 
   function stop() {
@@ -93,7 +104,7 @@
   // null для адаптера — stop() уже отзывает условно). Владение адаптером: модуль его НЕ создаёт и
   // НЕ destroy()-ит — им владеет вызывающая сторона (Task 8, StudioYtPlayer.create()); pause() в
   // stop() достаточно, чтобы остановить цикл, а уничтожение чужого ресурса — не наша забота.
-  function ensureRun(source, entries, rowCount) {
+  function ensureRun(source, entries, rowCount, onRangeChange, persistent) {
     stop();
     if (typeof window.v3StopRowAudio === "function") { try { window.v3StopRowAudio(); } catch (_) {} }
     var url = null, audioEl;
@@ -104,15 +115,14 @@
       audioEl = new Audio(url);
       audioEl.preload = "auto";
     }
-    var run = { audioEl: audioEl, url: url, entries: entries || null, rowCount: rowCount, rafId: 0, lastIdx: -2, stopAtT: null, listeners: null };
+    var run = { source: source, audioEl: audioEl, url: url, entries: entries || null, rowCount: rowCount, rafId: 0, lastIdx: -2, stopAtT: null, listeners: null, onRangeChange: onRangeChange || null, persistent: !!persistent };
     // W2-S4.1 FIX C: пауза ≠ teardown (позиция сохраняется), НО rAF-цикл обязан остановиться —
     // иначе уже запланированный кадр перерисует подсветку поверх paintRange(null) (гонка).
     var onPause = function () {
       if (cur !== run) return;
       if (run.rafId) { try { window.cancelAnimationFrame(run.rafId); } catch (_) {} }
       run.rafId = 0;
-      paintRange(null);
-      run.lastIdx = -2;
+      syncCurrent();
     };
     // play (start()/playSegment() resume) → перезапустить цикл; двойной старт исключён проверкой rafId.
     var onPlayResume = function () {
@@ -120,20 +130,38 @@
       if (run.rafId) return;
       run.rafId = window.requestAnimationFrame(tick);
     };
-    var onGone = function () { if (cur === run) stop(); };
-    run.listeners = { pause: onPause, play: onPlayResume, ended: onGone, error: onGone };
+    var onEnded = function () {
+      if (cur !== run) return;
+      if (!run.persistent) { stop(); return; }
+      if (run.rafId) { try { window.cancelAnimationFrame(run.rafId); } catch (_) {} }
+      run.rafId = 0; run.stopAtT = null; syncCurrent();
+    };
+    var onError = function () { if (cur === run) stop(); };
+    run.listeners = { pause: onPause, play: onPlayResume, ended: onEnded, error: onError };
     for (var ev in run.listeners) {
       if (Object.prototype.hasOwnProperty.call(run.listeners, ev)) audioEl.addEventListener(ev, run.listeners[ev]);
     }
     cur = run;
-    run.rafId = window.requestAnimationFrame(tick);
+    if (!audioEl.paused) run.rafId = window.requestAnimationFrame(tick);
     return run;
+  }
+
+  function bind(opts) {
+    opts = opts || {};
+    var source = opts.media || opts.blob;
+    if (!source) return null;
+    if (cur && cur.source === source && cur.entries === (opts.entries || null)) {
+      cur.rowCount = opts.rowCount || 0; cur.onRangeChange = opts.onRangeChange || null; cur.persistent = true;
+      return cur;
+    }
+    return ensureRun(source, opts.entries || null, opts.rowCount || 0, opts.onRangeChange || null, true);
   }
 
   async function start(opts) {
     try {
       var source = opts.media || opts.blob;
-      var run = (cur && cur.entries === (opts.entries || null)) ? cur : ensureRun(source, opts.entries || null, opts.rowCount || 0);
+      var run = (cur && cur.source === source && cur.entries === (opts.entries || null)) ? cur : ensureRun(source, opts.entries || null, opts.rowCount || 0, opts.onRangeChange || null);
+      if (opts.onRangeChange) run.onRangeChange = opts.onRangeChange;
       run.stopAtT = null;
       await run.audioEl.play();
     } catch (_) { /* best-effort: никогда не ломаем Студию */ }
@@ -143,7 +171,7 @@
     if (!cur || !cur.entries) return;
     var k = segIdxForRow(cur.entries, Number(rowIdx));
     if (k < 0) return;
-    try { cur.audioEl.currentTime = Number(cur.entries[k].t) || 0; } catch (_) {}
+    try { cur.audioEl.currentTime = Number(cur.entries[k].t) || 0; syncCurrent(); } catch (_) {}
   }
 
   // IMPORTANT 3 (whole-branch review 2026-07-28) — TRAP for whoever wires per-row replay to the
@@ -177,8 +205,8 @@
   function isActive() { return !!(cur && cur.audioEl && !cur.audioEl.paused); }
   function getAudioEl() { return cur ? cur.audioEl : null; }
 
-  var API = { activeSegmentRange: activeSegmentRange, start: start, stop: stop, isActive: isActive,
-              seekToRow: seekToRow, playSegment: playSegment, getAudioEl: getAudioEl,
+  var API = { activeSegmentRange: activeSegmentRange, bind: bind, start: start, stop: stop, isActive: isActive,
+              seekToRow: seekToRow, playSegment: playSegment, syncCurrent: syncCurrent, getAudioEl: getAudioEl,
               _ensureRun: ensureRun };
   window.StudioMediaKaraoke = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;

@@ -11,6 +11,20 @@
   function finiteIndex(value, fallback) {
     var n = Number(value); return Number.isInteger(n) && n >= 0 ? n : fallback;
   }
+  function compatibilityMedia(media) {
+    media = media || {};
+    var durationSec = media.durationSec;
+    if (durationSec == null && media.duration_ms != null) durationSec = Number(media.duration_ms) / 1000;
+    return {
+      sha256: media.sha256 || media.media_sha256 || null,
+      mime: media.mime || null,
+      opfsPath: media.opfsPath || media.opfs_path || null,
+      durationSec: durationSec == null ? null : Number(durationSec),
+      originalName: media.originalName || media.original_name || null,
+      sizeBytes: media.sizeBytes == null ? (media.size_bytes == null ? null : Number(media.size_bytes)) : Number(media.sizeBytes),
+      sessionOnly: media.sessionOnly == null ? !!media.session_only : !!media.sessionOnly,
+    };
+  }
   function getCore() {
     if (typeof window !== 'undefined' && window.MediaPackageCore) return window.MediaPackageCore;
     return require('./media-package-core.js');
@@ -80,6 +94,7 @@
         sha256: mediaSrc.sha256 || null, mime: mediaSrc.mime || null, duration_ms: durationMs,
         original_name: mediaSrc.originalName || captionMeta.fileName || null,
         opfs_path: mediaSrc.opfsPath || null, size_bytes: mediaSrc.sizeBytes == null ? null : Number(mediaSrc.sizeBytes),
+        session_only: !!mediaSrc.sessionOnly,
         external_ref: passport.video || holder.video || null,
       },
       segments: segments,
@@ -116,7 +131,7 @@
     var trackProjection = {
       v: 2, projection_of_revision_id: revision.revision_id,
       projection_sha256: revision.canonical_sha256,
-      media: copy(context.media || {}), segments: segments, timing: null, timingDropReason: null,
+      media: compatibilityMedia(context.media), segments: segments, timing: null, timingDropReason: null,
     };
     var out = { media_package_ref: projectionRef };
     out[kind] = trackProjection;

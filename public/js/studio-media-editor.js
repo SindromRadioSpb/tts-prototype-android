@@ -3,7 +3,7 @@
 (function () {
   'use strict';
 
-  var state = null, objectUrl = null, draftTimer = null;
+  var state = null, objectUrl = null, draftTimer = null, mediaSyncPromise = null;
   function $(id) { return typeof document === 'undefined' ? null : document.getElementById(id); }
   function tr(key, fallback) {
     try { var value = typeof t === 'function' ? t(key) : key; return value && value !== key ? value : fallback; }
@@ -16,6 +16,20 @@
   }
   function canSplitAt(segment, cursorMs) {
     return !!segment && Number.isFinite(Number(cursorMs)) && segment.end_ms != null && Number(cursorMs) > segment.start_ms && Number(cursorMs) < segment.end_ms;
+  }
+  function cueIndexForTime(segments, cursorMs) {
+    if (!Array.isArray(segments) || !segments.length || !Number.isFinite(Number(cursorMs))) return -1;
+    var target = Number(cursorMs), lo = 0, hi = segments.length - 1, found = 0;
+    while (lo <= hi) {
+      var mid = Math.floor((lo + hi) / 2), start = Number(segments[mid] && segments[mid].start_ms);
+      if (Number.isFinite(start) && start <= target) { found = mid; lo = mid + 1; }
+      else hi = mid - 1;
+    }
+    return Math.max(0, Math.min(segments.length - 1, found));
+  }
+  function cueJumpIndex(total, value) {
+    var n = Number(value); if (!Number.isFinite(n)) return null;
+    return focusModel(total, Math.round(n) - 1).index;
   }
   function formatMs(value) {
     var n = Math.max(0, Math.round(Number(value) || 0));
@@ -62,9 +76,31 @@
     bar.style.width = pct + '%';
     var split = $('l3SplitBtn'); if (split) split.disabled = !canSplitAt(s, cursor);
   }
-  function render() {
+  async function syncCueFromPlayer() {
+    if (!state || mediaSyncPromise) return mediaSyncPromise;
+    var p = player(), idx = p ? cueIndexForTime(state.segments, p.currentTime * 1000) : -1;
+    if (idx < 0 || idx === state.index) return null;
+    mediaSyncPromise = (async function () {
+      if (!await stageFields({ focusText: false })) return;
+      if (!state) return;
+      state.index = idx; state.replayStopMs = null; render({ focusText: false });
+    })().finally(function () { mediaSyncPromise = null; });
+    return mediaSyncPromise;
+  }
+  function onPlayerTimeUpdate() {
+    if (!state) return;
+    var p = player(), stoppedReplay = false;
+    if (p && state.replayStopMs != null && p.currentTime * 1000 >= state.replayStopMs) {
+      state.replayStopMs = null; stoppedReplay = true; try { p.pause(); } catch (_) {}
+    }
+    timeline(); if (!stoppedReplay) syncCueFromPlayer();
+  }
+  function render(options) {
+    options = options || {};
     if (!state) return; var s = current(), fm = focusModel(state.segments.length, state.index); state.index = fm.index;
     $('l3CueCounter').textContent = fm.number + ' / ' + fm.total;
+    var jump = $('l3CueJump'); if (jump) { jump.value = String(fm.number); jump.max = String(fm.total); }
+    var total = $('l3CueTotal'); if (total) total.textContent = String(fm.total);
     $('l3PrevBtn').disabled = !fm.has_prev; $('l3NextBtn').disabled = !fm.has_next;
     $('l3MergeBtn').disabled = !fm.has_next; $('l3UndoBtn').disabled = !state.undo.length; $('l3RedoBtn').disabled = !state.redo.length;
     $('l3CueText').value = s ? s.text : ''; $('l3CueStart').value = s ? formatMs(s.start_ms) : '';
@@ -77,9 +113,10 @@
     $('l3CueFlags').textContent = flags.length ? flags.join(' · ') : tr('studio.mediaPackage.noWarnings', 'Без предупреждений');
     $('l3CueFlags').dataset.warn = flags.length ? 'true' : 'false';
     $('l3SaveState').textContent = state.dirty ? tr('studio.mediaPackage.unsaved', 'Не сохранено') : tr('studio.mediaPackage.saved', 'Версия сохранена');
-    timeline(); $('l3CueText').focus();
+    timeline(); if (options.focusText !== false) $('l3CueText').focus();
   }
-  async function stageFields() {
+  async function stageFields(options) {
+    options = options || {};
     var s = current(); if (!s) return true;
     var text = $('l3CueText').value.trim(), start = parseMs($('l3CueStart').value), endRaw = $('l3CueEnd').value.trim(), end = endRaw ? parseMs(endRaw) : null;
     if (!text || start == null || (endRaw && end == null)) { setStatus('studio.mediaPackage.invalidCue', 'Проверьте текст и время сегмента', 'error'); return false; }
@@ -90,15 +127,27 @@
       if (speaker !== s.speaker) { var c = window.MediaPackageCore.applyOperation('user_corrected', state.segments, { type: 'edit_speaker', caption_segment_id: s.caption_segment_id, speaker: speaker }); state.segments = c.segments; state.operations.push(c.operation); changed = true; }
     } catch (e) { state.segments = state.undo.pop(); setStatus('studio.mediaPackage.invalidCue', e.code || 'Проверьте сегмент', 'error'); return false; }
     if (!changed) state.undo.pop(); else { markDirty(); scheduleDraft(); }
-    render(); return true;
+    render({ focusText: options.focusText !== false }); return true;
   }
-  async function move(delta) { if (!await stageFields()) return; state.index = focusModel(state.segments.length, state.index + delta).index; render(); }
+  function seekPlayerToCurrent() {
+    var s = current(), p = player(); if (!s || !p || !objectUrl) return;
+    state.replayStopMs = null; try { p.pause(); p.currentTime = s.start_ms / 1000; } catch (_) {}
+  }
+  async function selectCue(index) {
+    if (!state || !await stageFields({ focusText: false })) return;
+    state.index = focusModel(state.segments.length, index).index; seekPlayerToCurrent(); render();
+  }
+  async function move(delta) { if (!state) return; return selectCue(state.index + delta); }
+  async function jumpFromInput() {
+    if (!state) return;
+    var index = cueJumpIndex(state.segments.length, $('l3CueJump') && $('l3CueJump').value);
+    if (index == null) { render({ focusText: false }); return; }
+    return selectCue(index);
+  }
   async function replay() {
     var s = current(), p = player(); if (!s || !p || !objectUrl) { setStatus('studio.mediaPackage.mediaMissing', 'Файл не найден. Выберите Relink media.', 'error'); return; }
+    state.replayStopMs = s.end_ms == null ? null : s.end_ms;
     p.currentTime = s.start_ms / 1000; await p.play();
-    var stopAt = s.end_ms == null ? null : s.end_ms / 1000;
-    var stop = function () { if (stopAt != null && p.currentTime >= stopAt) { p.pause(); p.removeEventListener('timeupdate', stop); } };
-    p.addEventListener('timeupdate', stop);
   }
   async function split() {
     var area = $('l3CueText'), cut = area.selectionStart, p = player();
@@ -181,8 +230,8 @@
     if (!state) return;
     if (!force && state.dirty && !window.confirm(tr('studio.mediaPackage.closeDirty', 'Закрыть? Черновик сохранён локально, но новая версия ещё не создана.'))) return;
     clearTimeout(draftTimer); var modal = $('l3MediaEditorModal'); if (modal) modal.classList.add('hidden');
-    var p = player(); if (p) { p.pause(); p.removeAttribute('src'); }
-    if (objectUrl) URL.revokeObjectURL(objectUrl); objectUrl = null; state = null;
+    var p = player(); if (p) { p.pause(); p.ontimeupdate = null; p.onseeked = null; p.removeAttribute('src'); }
+    if (objectUrl) URL.revokeObjectURL(objectUrl); objectUrl = null; state = null; mediaSyncPromise = null;
   }
   async function open(trackId) {
     var repository = repo(), track = await repository.getTrack(trackId); if (!track || track.role !== 'user_corrected') throw new Error('CORRECTED_TRACK_REQUIRED');
@@ -190,7 +239,8 @@
     var rawTrackRows = await window.__localDB.dbQuery("SELECT track_id FROM studio_caption_tracks WHERE package_id=? AND role='raw_original' LIMIT 1", [track.package_id]);
     var rawRevision = rawTrackRows.length ? await repository.getCurrentRevision(rawTrackRows[0].track_id) : null;
     var draft = track.draft;
-    state = { packageId: track.package_id, trackId: track.track_id, baseRevisionId: draft ? draft.base_revision_id : revision.revision_id, baseHash: revision.canonical_sha256, segments: clone(draft ? draft.segments : revision.segments), operations: clone(draft ? draft.operations || [] : []), rawSegments: clone(rawRevision ? rawRevision.segments : []), index: 0, dirty: !!draft, undo: [], redo: [] };
+    state = { packageId: track.package_id, trackId: track.track_id, baseRevisionId: draft ? draft.base_revision_id : revision.revision_id, baseHash: revision.canonical_sha256, segments: clone(draft ? draft.segments : revision.segments), operations: clone(draft ? draft.operations || [] : []), rawSegments: clone(rawRevision ? rawRevision.segments : []), index: 0, dirty: !!draft, undo: [], redo: [], replayStopMs: null };
+    mediaSyncPromise = null;
     var modal = $('l3MediaEditorModal'); modal.classList.remove('hidden'); modal.dir = typeof appGetLocale === 'function' && appGetLocale() === 'he' ? 'rtl' : 'ltr';
     var p = player(); objectUrl = null;
     var desiredTag = String(pkg && pkg.mime || '').startsWith('video/') ? 'video' : 'audio';
@@ -198,11 +248,12 @@
       var replacement = document.createElement(desiredTag); replacement.id = 'l3MediaPlayer'; replacement.controls = true; replacement.preload = 'metadata'; replacement.setAttribute('aria-label', 'Media source'); p.replaceWith(replacement); p = replacement;
     }
     if (pkg && pkg.opfs_path && window.MediaStore) { var blob = await window.MediaStore.readMedia(pkg.opfs_path); if (blob) { objectUrl = URL.createObjectURL(blob); p.src = objectUrl; p.hidden = false; } }
-    if (!objectUrl) { p.hidden = true; setStatus('studio.mediaPackage.mediaMissing', 'Медиа отсутствует: relink по SHA-256'); } else { p.hidden = false; p.addEventListener('timeupdate', timeline); setStatus(null); }
-    render();
+    if (!objectUrl) { p.hidden = true; setStatus('studio.mediaPackage.mediaMissing', 'Медиа отсутствует: relink по SHA-256'); }
+    else { p.hidden = false; p.ontimeupdate = onPlayerTimeUpdate; p.onseeked = function () { timeline(); syncCueFromPlayer(); }; setStatus(null); }
+    render(); seekPlayerToCurrent();
   }
 
-  var API = { open: open, close: close, move: move, stageFields: stageFields, replay: replay, split: split, mergeNext: mergeNext, applyOffset: applyOffset, undo: undo, redo: redo, saveVersion: saveVersion, continueToTable: continueToTable, discardDraft: discardDraft, exportSubtitle: exportSubtitle, exportSlim: exportSlim, relinkSelected: relinkSelected, deletePackage: deletePackage, focusModel: focusModel, canSplitAt: canSplitAt, formatMs: formatMs, parseMs: parseMs };
+  var API = { open: open, close: close, move: move, jumpFromInput: jumpFromInput, stageFields: stageFields, replay: replay, split: split, mergeNext: mergeNext, applyOffset: applyOffset, undo: undo, redo: redo, saveVersion: saveVersion, continueToTable: continueToTable, discardDraft: discardDraft, exportSubtitle: exportSubtitle, exportSlim: exportSlim, relinkSelected: relinkSelected, deletePackage: deletePackage, focusModel: focusModel, cueIndexForTime: cueIndexForTime, cueJumpIndex: cueJumpIndex, canSplitAt: canSplitAt, formatMs: formatMs, parseMs: parseMs };
   if (typeof window !== 'undefined') window.StudioMediaEditor = API;
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
 })();

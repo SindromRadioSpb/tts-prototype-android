@@ -3274,10 +3274,13 @@ window.I18N_LOCALES.en = {
       noTiming: "Karaoke unavailable for this import",
       fileMissing: "Audio file not found in this browser",
       viaYouTube: "Playing via YouTube",
+      sourcePlayer: "Source audio / video",
+      sourceSync: "Row selection and player position stay synchronized",
     },
     mediaPackage: {
       title: "Correct transcript", correctBtn: "Correct transcript", continueDraftBtn: "Continue with draft",
       close: "Close", prev: "← Previous", next: "Next →", cueText: "Cue text", start: "Start", end: "End", speaker: "Speaker",
+      reviewControls: "Cue review controls", jumpLabel: "Jump to cue", followHint: "The player and selected cue stay synchronized in both directions", advancedTools: "Export and package management",
       compareRaw: "Compare with immutable original", replay: "▶ Replay cue", split: "Split at cursors", merge: "Merge with next",
       undo: "Undo", redo: "Redo", offset: "Whole-track offset, ms", applyOffset: "Apply", discard: "Discard draft",
       saveVersion: "Save version", toTable: "Continue to table", unsaved: "Unsaved", saved: "Version saved", versionSaved: "Version saved",
