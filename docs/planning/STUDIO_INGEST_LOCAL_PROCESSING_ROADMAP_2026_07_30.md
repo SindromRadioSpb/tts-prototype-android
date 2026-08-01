@@ -2,9 +2,10 @@
 
 > **Дата:** 2026-07-30
 > **Статус:** 🟢 L0/L1 invite beta завершены; L2 demand-triggered и не начат; L3a
-> Correctable Media Package реализован локальным engineering candidate `v3.11.280`
-> (`097d212d`), без push/deploy. Owner-live acceptance остаётся следующим gate.
-> **Срез кода:** `4a17686d` (S12.7 SHIPPED v3.11.270).
+> Correctable Media Package shipped через `v3.11.282` (`5c523933`; core `097d212d`,
+> continuity `821460c4`, media-review UX `44b216bc`). Следующий owner-approved
+> planning direction — L3b Artifact Continuity; implementation не начат.
+> **Срез кода:** production/origin `5c523933` (`v3.11.282`), browser migrations `45`.
 > **Место в каноне:** специализированный сквозной трек общего roadmap
 > `STUDIO_INGEST_ROADMAP_2026_07_30.md`. Здесь определён local-processing L0–L6;
 > общий capability ledger, форматы, Media Package, образовательные сценарии и единый порядок
@@ -46,7 +47,7 @@
 | Local Hebrew TTS | 🟠 эксперимент | Phonikud/Piper интегрирован, но выключен: качество слишком роботизировано; license-mode ограничен |
 | Browser local TTS | 🟠 каркас | provider/router/WASM есть; Hebrew-модель не staged, текущие local providers выключены политикой |
 | Local ASR | 🟡 bounded engineering PASS | pinned turbo CT2; batch/browser/B+C закрыты, permanent integration не разрешена |
-| Media package/редактор субтитров | ❌ нет | субтитры пока вход, а не переносимый versioned-артефакт |
+| Media package/редактор субтитров | ✅ SHIPPED L3a | local first-class versioned artifact; composite table/package portability и cross-device относятся к L3b |
 | Resume после закрытия вкладки | ❌ нет полного job-ledger | критично для 1–3ч и batch |
 
 Текущий `ai-local` на каноническом порту `127.0.0.1:8799` при аудите не запущен. Его
@@ -222,7 +223,8 @@ baseline: разборчивость, никуд/ударение, имена, �
 | P0 | **L1 local ivrit.ai ASR** | 🟡 ENGINEERING PASS | batch/browser/B+C PASS; quality studies recommended; permanent NO-GO pending separate owner decision |
 | P0 | **L1 Windows invite beta enablement** | 🟢 CHROME INVITE BETA LIVE | Companion beta.2 plus pairing help deployed as `v3.11.277`; install/decode/uninstall and served RU/HE mobile UI PASS; unsigned owner/trusted distribution approved; output is first-draft quality; quality studies recommended; Edge excluded |
 | P0/P1 | **L2a recovery / L2b batch** | ⏸ DEFERRED / DEMAND-TRIGGERED | L2a: реальная reload/job-loss боль; L2b: регулярные 3–5+ файлов |
-| P1 | **L3a Correctable Media Package/editor** | 🟡 LOCAL ENGINEERING CANDIDATE | v45 + immutable raw/corrected revisions + editor + VTT/SRT/slim round-trip; owner-live open; no push/deploy |
+| P1 | **L3a Correctable Media Package/editor** | ✅ SHIPPED v3.11.282 | v45 + immutable raw/corrected revisions + editor/reopen + source-player sync + VTT/SRT/slim round-trip; residual owner-live ceremonies tracked in packet |
+| P1 | **L3b Artifact Continuity** | 🟢 OWNER-APPROVED PLANNING | Artifact Graph + Portable Learning Package v2 + real iPhone manual continuity + Import Center; automatic sync/Hermes separately gated |
 | P1 | **L4 local translation+nikud** | ⬜ | shared scheduler; independent quality gates |
 | P1 | **L5 diarization/alignment** | ⬜ | L1 stable; speaker/timing gold |
 | P2/R&D | **L6 TTS/OCR/local LLM** | ⬜ | model+license+quality measurement; no quality downgrade |
@@ -232,9 +234,12 @@ baseline: разборчивость, никуд/ударение, имена, �
 | Triggered | S10 PWA share_target | parked | proven Android demand |
 | Anti | server yt-dlp, real-time, song alignment | NO-GO | reopen only by explicit owner decision + evidence |
 
-Adversarial L3a design одобрен; bounded local implementation завершён:
+Adversarial L3a design одобрен; implementation shipped и получил два owner-evidence fixes:
 `STUDIO_INGEST_L3A_CORRECTABLE_MEDIA_PACKAGE_DESIGN_PACKET_2026_07_31.md`.
-Это не разрешает push/deploy, production mutation или расширение scope.
+Следующий канон исследования/порядка:
+`docs/research/studio-ingest-artifact-continuity/2026-08-01/REPORT.md` и
+`STUDIO_INGEST_L3B_ARTIFACT_CONTINUITY_PLAN_2026_08_01.md`. Утверждение planning не
+разрешает implementation, automatic cloud/media sync, Hermes mutations или production scope.
 
 **Рекомендуемая последовательность:** принять bounded L1 engineering/evidence closure, затем
 отдельным решением определить достаточный owner/human acceptance и только отдельно разрешать

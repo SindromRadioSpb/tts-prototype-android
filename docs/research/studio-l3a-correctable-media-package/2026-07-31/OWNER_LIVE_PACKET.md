@@ -1,21 +1,24 @@
 # Studio Ingest L3a — owner-live execution packet
 
 > **Date:** 2026-07-31
-> **Status:** local engineering candidate; owner-live not yet executed
-> **Production unchanged:** `v3.11.279 / 88977240`
-> **Candidate:** `v3.11.280`, actual `MIGRATIONS.length=45`
-> **Exact code commit:** `097d212dff899642d4e83906caa20c03c9ef8cc9`
-> **Authority:** local/browser verification only. No push, deploy, server/production mutation,
-> cloud Media Package sync, L2/L4/L5/L6 or full-media ZIP.
+> **Status:** shipped through production `v3.11.282`; packet retains the original candidate
+> evidence and remains the canonical ledger of owner-live gates/known failures.
+> **Production/origin head after approved deploy:**
+> `5c5239332093bb5a10e10e500c81eb0300a8be4b`; actual `MIGRATIONS.length=45`.
+> **Core/follow-ups:** `097d212d` → `821460c4` → `44b216bc`.
+> **Current scope boundary:** cloud Media Package sync, L2/L4/L5/L6 and full-media ZIP
+> remain absent. The next research/planning layer is L3b Artifact Continuity; see the
+> 2026-08-01 research and planning packets.
 
 > **2026-08-01 follow-up:** the original L3a candidate shipped as `v3.11.280`. Owner partial-live
 > testing then exposed a reopen/discoverability defect. The scoped `v3.11.281` correction and its
 > deployment evidence supersede the lifecycle portion of this packet; see §4a onward. The original
 > acceptance record below is retained as historical evidence.
 
-> **Latest local candidate (2026-08-01):** `v3.11.282`, exact code commit
-> `44b216bca4cc5fdecc5f2fae97ab9291ed8a6fb9`, actual `MIGRATIONS.length=45`.
-> Production remains `v3.11.281`; §4c–4d record the post-owner-test media-review correction.
+> **Historical latest local candidate before deploy (2026-08-01):** `v3.11.282`, exact code
+> commit `44b216bca4cc5fdecc5f2fae97ab9291ed8a6fb9`, actual `MIGRATIONS.length=45`.
+> At that checkpoint production remained `v3.11.281`; §4c–4d record the correction which was
+> subsequently deployed as part of the production/origin state declared above.
 
 ## 1. What is in the candidate
 
@@ -310,6 +313,11 @@ candidate, do not mutate production and do not delete unrelated dirty work; crea
 commit or abandon only the allowlisted L3a commits after explicit owner direction.
 
 ## 7. Paste-ready next-session prompt
+
+> **Historical / superseded:** этот prompt сохраняется как audit trail pre-deploy authority.
+> Не использовать его для нового deploy: `v3.11.282` уже production. Текущий следующий
+> docs-only prompt находится в
+> `docs/planning/STUDIO_INGEST_L3B_ARTIFACT_CONTINUITY_PLAN_2026_08_01.md` §20.
 
 ```text
 Работай в E:\projects\tts-prototype-android.

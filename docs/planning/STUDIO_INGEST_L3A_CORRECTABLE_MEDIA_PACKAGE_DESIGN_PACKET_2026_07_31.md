@@ -1,12 +1,16 @@
 # Studio Ingest L3a — Correctable Media Package: adversarial design packet
 
 > **Дата:** 2026-07-31
-> **Статус:** 🟢 `OWNER APPROVED / LOCAL ENGINEERING CANDIDATE` · T0–T8 выполнены
-> локально; push/deploy и production mutations не разрешены
-> **Production baseline:** `v3.11.279`, image/commit
-> `88977240066cddba8161bd2af10fed298bd8fb56`, served + RU/LTR/HE/RTL 380×844 verified
-> **Local implementation:** `v3.11.280`, migration count `45`, code commit
-> `097d212dff899642d4e83906caa20c03c9ef8cc9`; production этим не изменён
+> **Статус:** 🟢 `SHIPPED / PRODUCTION v3.11.282`; этот документ сохраняет исходный
+> approved design и historical pre-deploy authority. Core `097d212d`, reopen continuity
+> `821460c4`, media-review UX `44b216bc`; production/origin head после deploy
+> `5c523933`; migration count `45`.
+> **Historical production baseline:** `v3.11.279`, image/commit
+> `88977240066cddba8161bd2af10fed298bd8fb56`.
+> **Follow-up evidence:**
+> `docs/research/studio-l3a-correctable-media-package/2026-07-31/OWNER_LIVE_PACKET.md`.
+> **Следующий утверждённый planning layer:**
+> `docs/planning/STUDIO_INGEST_L3B_ARTIFACT_CONTINUITY_PLAN_2026_08_01.md`.
 > **Канон над документом:**
 > `STUDIO_INGEST_ROADMAP_2026_07_30.md` и
 > `STUDIO_INGEST_LOCAL_PROCESSING_ROADMAP_2026_07_30.md`
@@ -732,5 +736,7 @@ T0–T8 реализованы отдельным локальным code commit
 известные остатки и следующий prompt находятся в
 `docs/research/studio-l3a-correctable-media-package/2026-07-31/OWNER_LIVE_PACKET.md`.
 
-Candidate остаётся **не pushed / не deployed**. Production baseline не менялся:
-`v3.11.279 / 88977240`. L2 остаётся demand-triggered и не был начат.
+Historical candidate впоследствии был pushed/deployed и доведён owner-evidence fixes до
+production `v3.11.282`; точная хронология и remaining owner-live gates находятся в stable
+owner packet. L2 остаётся demand-triggered и не был начат. Следующий слой — L3b Artifact
+Continuity — пока утверждён как research/planning, но не как implementation.
