@@ -46,6 +46,14 @@
   function repo() { return window.StudioMediaPackage.browserRepository(); }
   function player() { return $('l3MediaPlayer'); }
   function current() { return state && state.segments[state.index]; }
+  function getCaptionContext() {
+    var segment=current();if(!state||!segment)return null;
+    return {caption_segment_id:String(segment.caption_segment_id||''),text:String(segment.text||''),source_segment_ids:(segment.source_segment_ids||[]).map(String),index:state.index,number:state.index+1,total:state.segments.length,order_ids:state.segments.map(function(value){return String(value.caption_segment_id||'');})};
+  }
+  function publishCaptionSelection() {
+    var context=getCaptionContext();if(!context||state.lastPublishedCaptionId===context.caption_segment_id)return;state.lastPublishedCaptionId=context.caption_segment_id;
+    if(window.MaterialRevisionWorkspace&&window.MaterialRevisionWorkspace.syncToCaptionSegment)window.MaterialRevisionWorkspace.syncToCaptionSegment(context.caption_segment_id,{number:context.number,total:context.total});
+  }
   function setStatus(key, fallback, kind) {
     var el = $('l3EditorStatus'); if (!el) return;
     el.textContent = key ? tr(key, fallback || key) : '';
@@ -113,7 +121,7 @@
     $('l3CueFlags').textContent = flags.length ? flags.join(' · ') : tr('studio.mediaPackage.noWarnings', 'Без предупреждений');
     $('l3CueFlags').dataset.warn = flags.length ? 'true' : 'false';
     $('l3SaveState').textContent = state.dirty ? tr('studio.mediaPackage.unsaved', 'Не сохранено') : tr('studio.mediaPackage.saved', 'Версия сохранена');
-    timeline(); if (options.focusText !== false) $('l3CueText').focus();
+    timeline();publishCaptionSelection(); if (options.focusText !== false) $('l3CueText').focus();
   }
   async function stageFields(options) {
     options = options || {};
@@ -136,6 +144,10 @@
   async function selectCue(index) {
     if (!state || !await stageFields({ focusText: false })) return;
     state.index = focusModel(state.segments.length, index).index; seekPlayerToCurrent(); render();
+  }
+  async function selectCaptionSegment(captionSegmentId) {
+    if(!state)return false;var id=String(captionSegmentId||''),index=state.segments.findIndex(function(segment){return String(segment.caption_segment_id||'')===id;});if(index<0)return false;
+    if(!await stageFields({focusText:false}))return false;state.index=index;state.replayStopMs=null;seekPlayerToCurrent();render({focusText:false});return true;
   }
   async function move(delta) { if (!state) return; return selectCue(state.index + delta); }
   async function jumpFromInput() {
@@ -242,7 +254,7 @@
     var rawTrackRows = await window.__localDB.dbQuery("SELECT track_id FROM studio_caption_tracks WHERE package_id=? AND role='raw_original' LIMIT 1", [track.package_id]);
     var rawRevision = rawTrackRows.length ? await repository.getCurrentRevision(rawTrackRows[0].track_id) : null;
     var draft = track.draft;
-    state = { packageId: track.package_id, trackId: track.track_id, baseRevisionId: draft ? draft.base_revision_id : revision.revision_id, baseHash: revision.canonical_sha256, segments: clone(draft ? draft.segments : revision.segments), operations: clone(draft ? draft.operations || [] : []), rawSegments: clone(rawRevision ? rawRevision.segments : []), index: 0, dirty: !!draft, undo: [], redo: [], replayStopMs: null };
+    state = { packageId: track.package_id, trackId: track.track_id, baseRevisionId: draft ? draft.base_revision_id : revision.revision_id, baseHash: revision.canonical_sha256, segments: clone(draft ? draft.segments : revision.segments), operations: clone(draft ? draft.operations || [] : []), rawSegments: clone(rawRevision ? rawRevision.segments : []), index: 0, dirty: !!draft, undo: [], redo: [], replayStopMs: null, lastPublishedCaptionId:null };
     mediaSyncPromise = null;
     var modal = $('l3MediaEditorModal'); modal.classList.remove('hidden'); modal.dir = typeof appGetLocale === 'function' && appGetLocale() === 'he' ? 'rtl' : 'ltr';
     var p = player(); objectUrl = null;
@@ -260,7 +272,7 @@
     }
   }
 
-  var API = { open: open, close: close, move: move, jumpFromInput: jumpFromInput, stageFields: stageFields, replay: replay, split: split, mergeNext: mergeNext, applyOffset: applyOffset, undo: undo, redo: redo, saveVersion: saveVersion, continueToTable: continueToTable, discardDraft: discardDraft, exportSubtitle: exportSubtitle, exportSlim: exportSlim, relinkSelected: relinkSelected, deletePackage: deletePackage, focusModel: focusModel, cueIndexForTime: cueIndexForTime, cueJumpIndex: cueJumpIndex, canSplitAt: canSplitAt, formatMs: formatMs, parseMs: parseMs };
+  var API = { open: open, close: close, move: move, jumpFromInput: jumpFromInput, stageFields: stageFields, replay: replay, split: split, mergeNext: mergeNext, applyOffset: applyOffset, undo: undo, redo: redo, saveVersion: saveVersion, continueToTable: continueToTable, discardDraft: discardDraft, exportSubtitle: exportSubtitle, exportSlim: exportSlim, relinkSelected: relinkSelected, deletePackage: deletePackage, focusModel: focusModel, cueIndexForTime: cueIndexForTime, cueJumpIndex: cueJumpIndex, canSplitAt: canSplitAt, formatMs: formatMs, parseMs: parseMs, getCaptionContext:getCaptionContext, selectCaptionSegment:selectCaptionSegment };
   if (typeof window !== 'undefined') window.StudioMediaEditor = API;
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
 })();

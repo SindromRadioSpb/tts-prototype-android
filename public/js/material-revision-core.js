@@ -175,5 +175,66 @@
     });
   }
 
-  return { FIELD_NAMES, canonical, stableStringify, sha256Hex, normalizeRow, createTableSnapshot, analyzeImpact, buildRegenerationPreflight, applyProviderCandidates };
+  const REVIEW_MODE_FIELDS = Object.freeze({
+    all: FIELD_NAMES.slice(),
+    he: ['he_plain'],
+    niqqud: ['he_plain', 'he_niqqud'],
+    latin: ['he_niqqud', 'translit'],
+    'ru-translit': ['he_niqqud', 'translit_ru'],
+    translation: ['he_plain', 'he_niqqud', 'ru'],
+  });
+
+  function fieldsForReviewMode(mode, customFields) {
+    const key = String(mode || 'all');
+    if (key !== 'custom') return (REVIEW_MODE_FIELDS[key] || REVIEW_MODE_FIELDS.all).slice();
+    const requested = new Set(Array.isArray(customFields) ? customFields.map(String) : []);
+    const selected = FIELD_NAMES.filter((field) => requested.has(field));
+    return selected.length ? selected : FIELD_NAMES.slice();
+  }
+
+  function buildPlaybackFocus(input) {
+    const sourceRows = input && Array.isArray(input.rows) ? input.rows : [];
+    const captionId = String(input && input.caption_segment_id || '');
+    const preferred = String(input && input.selected_row_id || '');
+    const rowIndexes = [];
+    const rowIds = [];
+    for (let index = 0; index < sourceRows.length; index++) {
+      const row = sourceRows[index] || {};
+      if (!captionId || String(row.caption_segment_id || '') !== captionId) continue;
+      rowIndexes.push(index);
+      rowIds.push(String(row.stable_row_id || ''));
+    }
+    let position = preferred ? rowIds.indexOf(preferred) : -1;
+    if (position < 0 && rowIds.length) position = 0;
+    return {
+      caption_segment_id: captionId,
+      row_indexes: rowIndexes,
+      row_ids: rowIds,
+      selected_index: position < 0 ? -1 : rowIndexes[position],
+      selected_row_id: position < 0 ? null : rowIds[position],
+      selected_position: position < 0 ? 0 : position + 1,
+      mapping_count: rowIndexes.length,
+    };
+  }
+
+  function computeContextScrollTop(input) {
+    const scrollTop = Number(input && input.scroll_top) || 0;
+    const containerTop = Number(input && input.container_top) || 0;
+    const containerHeight = Math.max(0, Number(input && input.container_height) || 0);
+    const rowTop = Number(input && input.row_top) || 0;
+    const previousHeight = Math.max(0, Number(input && input.previous_row_height) || 0);
+    const gap = Math.max(0, Number(input && input.gap) || 0);
+    const maxScrollTop = Math.max(0, Number(input && input.max_scroll_top) || 0);
+    const contextOffset = previousHeight > 0
+      ? Math.min(previousHeight + gap, containerHeight * 0.32)
+      : 0;
+    const target = scrollTop + (rowTop - containerTop) - contextOffset;
+    return Math.max(0, Math.min(maxScrollTop, Math.round(target)));
+  }
+
+  return {
+    FIELD_NAMES, REVIEW_MODE_FIELDS, canonical, stableStringify, sha256Hex, normalizeRow,
+    createTableSnapshot, analyzeImpact, buildRegenerationPreflight, applyProviderCandidates,
+    fieldsForReviewMode, buildPlaybackFocus, computeContextScrollTop,
+  };
 });

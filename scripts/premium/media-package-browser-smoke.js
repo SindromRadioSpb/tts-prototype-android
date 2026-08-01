@@ -174,20 +174,32 @@ async function main() {
       const rowSeek = player.currentTime;
       player.currentTime = 0.95; player.dispatchEvent(new Event('seeked'));
       await new Promise((resolve) => setTimeout(resolve, 40));
+      const followed = document.querySelector('#proTable tr[data-row-idx="1"]').classList.contains('smk-row-active');
+      const replayButtons = document.querySelectorAll('.smk-row-replay').length;
+      const container = document.getElementById('tableContainer');
+      container.style.height = '250px'; container.style.overflow = 'auto';
+      currentTableData = Array.from({ length: 10 }, (_, index) => ({ hebrew: 'row-' + index }));
+      container.innerHTML = '<table id="proTable"><tbody>' + currentTableData.map((_, index) => '<tr data-row-idx="' + index + '" style="height:54px"><td>' + index + '</td><td>context ' + index + '</td></tr>').join('') + '</tbody></table>';
+      v3MediaFollowTableRange({ rowStart: 6, rowEnd: 7 });
+      const anchored = container.querySelector('tr[data-row-idx="6"]'), previous = container.querySelector('tr[data-row-idx="5"]'), next = container.querySelector('tr[data-row-idx="7"]'), cr = container.getBoundingClientRect(), ar = anchored.getBoundingClientRect();
       return {
         stage_visible: !document.getElementById('v3MediaLocalStage').hidden && document.getElementById('v3MediaLocalStage').offsetWidth > 0,
         player_tag: player.tagName,
         has_source: player.src.startsWith('blob:'),
-        replay_buttons: document.querySelectorAll('.smk-row-replay').length,
+        replay_buttons: replayButtons,
         row_seek: rowSeek,
-        media_followed_row: document.querySelector('#proTable tr[data-row-idx="1"]').classList.contains('smk-row-active'),
+        media_followed_row: followed,
+        follow_anchor: document.getElementById('tableContainer').dataset.mediaFollowAnchor,
+        anchor_ratio: (ar.top - cr.top) / cr.height,
+        previous_visible: previous.getBoundingClientRect().bottom > cr.top,
+        next_visible: next.getBoundingClientRect().top < cr.bottom,
       };
     }, setup.package_id);
     await page.locator('#v3MediaLocalStage').scrollIntoViewIfNeeded();
     await page.screenshot({ path: path.join(SHOTS, 'l3a-table-source-sync-380-he.png'), fullPage: false });
     await page.setViewportSize({ width: 1280, height: 900 });
     const desktopResize = await page.evaluate(() => getComputedStyle(document.getElementById('l3MediaEditorPanel')).resize);
-    if (!setup.migration_v45 || editorSync.followed.number !== '2' || editorSync.followed.text !== 'זהו מבחן מקומי' || editorSync.jumped_number !== '1' || Math.abs(editorSync.jumped_time) > 0.05 || !editorSync.transport_together || !editorSync.advanced_closed || ru.dir !== 'ltr' || ru.counter !== '1 / 2' || !ru.player || ru.overflow || !ru.raw_visible || ru.visible_dialogs.join(',') !== 'l3MediaEditorModal' || saved.revision_no !== 2 || saved.author_kind !== 'user' || reopen.name !== 'l3a-browser-fixture.wav' || !reopen.revision.includes('v2') || !reopen.raw || reopen.library_count !== '1' || reopen.overflow || he.dir !== 'rtl' || he.html_dir !== 'rtl' || he.overflow || !he.corrected_text || he.visible_dialogs.join(',') !== 'l3MediaEditorModal' || shelf.items !== 1 || !shelf.title || !shelf.hint || shelf.active !== 'true' || shelf.overflow || !reopenedFromShelf || afterReloadItems !== 1 || !reopenedAfterReload || !tableMedia.stage_visible || tableMedia.player_tag !== 'AUDIO' || !tableMedia.has_source || tableMedia.replay_buttons !== 2 || Math.abs(tableMedia.row_seek - 0.9) > 0.05 || !tableMedia.media_followed_row || desktopResize !== 'both' || pageErrors.length) {
+    if (!setup.migration_v45 || editorSync.followed.number !== '2' || editorSync.followed.text !== 'זהו מבחן מקומי' || editorSync.jumped_number !== '1' || Math.abs(editorSync.jumped_time) > 0.05 || !editorSync.transport_together || !editorSync.advanced_closed || ru.dir !== 'ltr' || ru.counter !== '1 / 2' || !ru.player || ru.overflow || !ru.raw_visible || ru.visible_dialogs.join(',') !== 'l3MediaEditorModal' || saved.revision_no !== 2 || saved.author_kind !== 'user' || reopen.name !== 'l3a-browser-fixture.wav' || !reopen.revision.includes('v2') || !reopen.raw || reopen.library_count !== '1' || reopen.overflow || he.dir !== 'rtl' || he.html_dir !== 'rtl' || he.overflow || !he.corrected_text || he.visible_dialogs.join(',') !== 'l3MediaEditorModal' || shelf.items !== 1 || !shelf.title || !shelf.hint || shelf.active !== 'true' || shelf.overflow || !reopenedFromShelf || afterReloadItems !== 1 || !reopenedAfterReload || !tableMedia.stage_visible || tableMedia.player_tag !== 'AUDIO' || !tableMedia.has_source || tableMedia.replay_buttons !== 2 || Math.abs(tableMedia.row_seek - 0.9) > 0.05 || !tableMedia.media_followed_row || tableMedia.follow_anchor !== 'context' || tableMedia.anchor_ratio < .12 || tableMedia.anchor_ratio > .38 || !tableMedia.previous_visible || !tableMedia.next_visible || desktopResize !== 'both' || pageErrors.length) {
       throw new Error(`BROWSER_GATE:${JSON.stringify({ setup, editorSync, ru, saved, reopen, he, shelf, reopenedFromShelf, afterReloadItems, reopenedAfterReload, tableMedia, desktopResize, pageErrors })}`);
     }
     console.log(JSON.stringify({ gate: 'L3A_BROWSER_380_RU_HE_REOPEN_MEDIA_SYNC', setup, editorSync, ru, saved, reopen, he, shelf, reopenedFromShelf, afterReloadItems, reopenedAfterReload, tableMedia, desktopResize, screenshots: ['l3a-380-ru.png', 'l3a-reopen-composer-380-ru.png', 'l3a-380-he.png', 'l3a-reopen-shelf-380-he.png', 'l3a-table-source-sync-380-he.png'], page_errors: pageErrors }, null, 2));

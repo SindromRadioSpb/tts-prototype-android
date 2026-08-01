@@ -3723,20 +3723,54 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .l3-material-impact { margin:10px 12px 0; padding:8px 10px; border-radius:8px; background:#edf7f4; color:#275b57; font-size:12px; }
 .l3-material-impact[data-kind="warning"] { background:#fff4df; color:#7a4a00; }
 .l3-material-impact[data-kind="changed"] { background:#eef4ff; color:#244c82; }
+.l3-material-reviewbar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:9px 12px 0; padding:8px 9px; border:1px solid #cbdedb; border-radius:9px; background:#f8fbfa; color:#315c59; font-size:11.5px; }
+.l3-follow-toggle,.l3-review-mode { display:inline-flex; align-items:center; gap:6px; font-weight:750; }
+.l3-follow-toggle { padding:5px 8px; border-radius:99px; background:#e6f3ef; color:#075e5b; }
+.l3-follow-toggle input { accent-color:#0b7673; }
+.l3-review-mode select { min-width:126px; padding:6px 26px 6px 8px; border:1px solid #aec8c3; border-radius:7px; background:var(--theme-bg-input,#fff); color:var(--theme-text-primary,#182624); }
+.l3-material-field-picker { position:relative; }
+.l3-material-field-picker > summary { cursor:pointer; padding:6px 9px; border:1px solid #aec8c3; border-radius:7px; background:var(--theme-bg-card,#fff); color:#315c59; font-weight:750; list-style:none; }
+.l3-material-field-picker > summary::-webkit-details-marker { display:none; }
+.l3-material-field-picker > div { position:absolute; z-index:7; inset-block-start:calc(100% + 5px); inset-inline-end:0; display:grid; gap:7px; min-width:180px; padding:10px; border:1px solid #aec8c3; border-radius:9px; background:var(--theme-bg-card,#fff); box-shadow:0 12px 30px rgba(18,59,57,.16); }
+.l3-material-field-picker label { display:flex; align-items:center; gap:7px; white-space:nowrap; }
+.l3-material-mapping-status { margin-inline-start:auto; font:700 10.5px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; }
+.l3-material-mapping-status[data-kind="empty"] { color:#8a5d00; }
+.l3-material-follow-state { color:#647875; }
+#l3MediaEditorPanel #l3MaterialResume { padding:5px 8px; font-size:11px; }
+.l3-material-no-mapping { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:8px 12px 0; padding:9px 10px; border-inline-start:3px solid #c48616; background:#fff7e5; color:#765309; font-size:12px; }
+.l3-material-no-mapping[hidden] { display:none; }
 .l3-material-rows { display:grid; gap:10px; max-height:58vh; overflow:auto; padding:12px; }
-.l3-material-row { border:1px solid #d7e1e0; border-radius:10px; padding:10px; background:var(--theme-bg-card,#fff); }
+.l3-material-row { position:relative; border:1px solid #d7e1e0; border-radius:10px; padding:9px; background:var(--theme-bg-card,#fff); transition:border-color 120ms ease,background-color 120ms ease,box-shadow 120ms ease; }
+.l3-material-row.is-playback { border-color:#74aaa4; background:color-mix(in srgb,#e6f3ef 48%,var(--theme-bg-card,#fff)); }
+.l3-material-row.is-playback-sibling { border-style:dashed; }
+.l3-material-row.is-selected { border-color:#0b7673; box-shadow:0 8px 20px rgba(18,59,57,.08); }
+.l3-material-row.is-selected::before { content:""; position:absolute; inset-block:8px; inset-inline-start:-1px; width:4px; border-radius:0 4px 4px 0; background:#0b7673; }
+[dir="rtl"] .l3-material-row.is-selected::before { border-radius:4px 0 0 4px; }
 .l3-material-row header { display:flex; align-items:center; gap:8px; margin-bottom:9px; min-width:0; }
+.l3-material-row:not(.is-selected) header { margin-bottom:5px; }
 .l3-material-row header code { margin-inline-start:auto; color:#71817f; overflow:hidden; text-overflow:ellipsis; }
 .l3-material-row-actions { display:flex; gap:3px; }
 #l3MediaEditorPanel .l3-material-row-actions button { min-width:28px; padding:3px 6px; }
 .l3-mapping-pill { border-radius:99px; padding:3px 7px; background:#e9f3f1; color:#275b57; font:700 10px/1.2 ui-monospace,Consolas,monospace; }
-.l3-material-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
-.l3-material-field { display:grid; gap:4px; min-width:0; }
-.l3-material-field > span { display:flex; justify-content:space-between; gap:6px; align-items:baseline; }
+.l3-material-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px 8px; }
+.l3-material-field[data-authority="user"] { border-radius:7px; background:color-mix(in srgb,#fff5e8 55%,transparent); }
+.l3-material-fields .l3-material-field:last-child:nth-child(odd) { grid-column:1 / -1; }
+.l3-material-field { display:grid; gap:2px; min-width:0; }
+.l3-material-field > span { display:flex; justify-content:space-between; gap:6px; align-items:baseline; font-size:11.5px; }
 .l3-material-field small { color:#6b7d7a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .l3-material-field[data-authority="user"] small { color:#7b3f00; font-weight:700; }
-.l3-material-field textarea { width:100%; min-height:54px; resize:vertical; box-sizing:border-box; border:1px solid #cbd5d3; border-radius:7px; padding:7px; background:var(--theme-bg-input,#fff); color:var(--theme-text-primary,#182624); }
+.l3-material-field textarea { width:100%; min-height:40px; max-height:104px; height:40px; margin:0; resize:none; overflow:auto; box-sizing:border-box; border:1px solid #cbd5d3; border-radius:7px; padding:5px 7px; background:var(--theme-bg-input,#fff); color:var(--theme-text-primary,#182624); line-height:1.32; }
+.l3-material-context { display:block; width:100%; min-width:0; padding:0; border:0; background:transparent; color:inherit; text-align:start; }
+#l3MediaEditorPanel .l3-material-context { width:100%; }
+.l3-material-context:focus-visible { outline:2px solid #0b7673; outline-offset:4px; border-radius:5px; }
+.l3-material-compact-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:3px 9px; min-width:0; }
+.l3-material-compact-field { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:baseline; gap:5px; min-width:0; font-size:11.5px; }
+.l3-material-compact-field b { color:#47635f; font-size:9.5px; letter-spacing:.025em; text-transform:uppercase; }
+.l3-material-compact-field > span { display:-webkit-box; overflow:hidden; color:var(--theme-text-primary,#182624); line-height:1.35; text-overflow:ellipsis; -webkit-box-orient:vertical; -webkit-line-clamp:1; }
 .l3-material-actions { position:sticky; bottom:0; z-index:3; display:flex; gap:8px; flex-wrap:wrap; padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px)); border-top:1px solid #cbdedb; background:var(--theme-bg-card,#fff); }
+.l3-material-advanced { position:relative; }
+.l3-material-advanced > summary { cursor:pointer; padding:8px 10px; color:#315c59; font-size:12px; font-weight:750; }
+.l3-material-advanced > div { position:absolute; z-index:6; inset-inline-end:0; inset-block-end:calc(100% + 5px); display:grid; gap:6px; min-width:210px; padding:8px; border:1px solid #aec8c3; border-radius:9px; background:var(--theme-bg-card,#fff); box-shadow:0 12px 30px rgba(18,59,57,.16); }
 .l3-material-status { margin:0 12px 10px; padding:8px; font-size:12px; }
 .l3-material-status[data-kind="error"] { color:#9b1c1c; }
 .l3-material-status[data-kind="success"] { color:#086b48; }
@@ -3807,11 +3841,33 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   #l3MediaEditorPanel:has(.l3-editor-body[data-layer="table"]) > .l3-savebar { display:none; }
   .l3-material-layer { margin-top:12px; }
   .l3-material-fields { grid-template-columns:1fr; }
+  .l3-material-fields .l3-material-field:last-child:nth-child(odd) { grid-column:auto; }
+  .l3-material-reviewbar { display:grid; grid-template-columns:minmax(0,1fr) auto; margin:8px 8px 0; }
+  .l3-follow-toggle { min-width:0; }
+  .l3-review-mode { grid-column:1 / -1; display:grid; grid-template-columns:auto minmax(0,1fr); }
+  .l3-review-mode select { width:100%; min-width:0; }
+  .l3-material-field-picker { grid-column:2; grid-row:1; }
+  .l3-material-field-picker > div { position:fixed; inset-inline:12px; inset-block:auto calc(12px + env(safe-area-inset-bottom,0px)); min-width:0; }
+  .l3-material-mapping-status { margin-inline-start:0; }
+  .l3-material-follow-state { text-align:end; }
+  #l3MaterialResume { grid-column:1 / -1; width:100% !important; }
+  .l3-material-no-mapping { align-items:stretch; flex-direction:column; margin-inline:8px; }
+  #l3MediaEditorPanel .l3-material-no-mapping button { width:100%; }
+  .l3-material-compact-grid { grid-template-columns:1fr; }
+  .l3-material-row header code { display:none; }
   #l3MaterialLayer:not([hidden]) { display:flex; flex-direction:column; height:calc(100dvh - 286px); min-height:420px; }
   .l3-material-rows { flex:1 1 auto; max-height:none; overflow:auto; padding:8px; }
-  .l3-material-head { align-items:flex-start; flex-direction:column; }
-  .l3-material-actions { display:grid; grid-template-columns:1fr; }
+  .l3-material-head { display:grid; grid-template-columns:minmax(0,1fr) minmax(138px,.9fr); align-items:end; gap:8px; padding:9px 10px; }
+  .l3-material-meta { padding:3px 0; }
+  .l3-material-history { display:grid; gap:3px; padding:0; }
+  .l3-material-history select { width:100%; min-width:0; padding:7px 22px 7px 7px; }
+  .l3-material-reviewbar { row-gap:5px; padding:6px 7px; }
+  .l3-material-follow-state:empty,.l3-material-follow-state[data-state="on"] { display:none; }
+  .l3-material-actions { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:7px 8px calc(7px + env(safe-area-inset-bottom,0px)); }
   #l3MediaEditorPanel .l3-material-actions button { width:100%; }
+  .l3-material-advanced { grid-column:1 / -1; }
+  .l3-material-advanced > summary { padding:5px 8px; text-align:center; }
+  .l3-material-advanced > div { position:fixed; inset-inline:12px; inset-block:auto calc(12px + env(safe-area-inset-bottom,0px)); min-width:0; grid-template-columns:1fr; }
 }
 .v3-import-tab {
   flex: 1;
@@ -12609,9 +12665,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=96"></script>
-    <script src="/i18n/locales/en.js?v=96"></script>
-    <script src="/i18n/locales/he.js?v=96"></script>
+    <script src="/i18n/locales/ru.js?v=97"></script>
+    <script src="/i18n/locales/en.js?v=97"></script>
+    <script src="/i18n/locales/he.js?v=97"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12765,7 +12821,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.283";
+    window.APP_VERSION = "3.11.284";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -24098,8 +24154,21 @@ async function v3MediaResolveBlob(audio) {
 function v3MediaFollowTableRange(range) {
   if (!range) return;
   const table = document.getElementById("proTable");
+  const container = document.getElementById("tableContainer");
   const row = table && table.querySelector('tbody tr[data-row-idx="' + String(range.rowStart) + '"]');
-  if (row && typeof row.scrollIntoView === "function") row.scrollIntoView({ block: "nearest", inline: "nearest" });
+  if (!row || !container) return;
+  const previous = table.querySelector('tbody tr[data-row-idx="' + String(Math.max(0, range.rowStart - 1)) + '"]');
+  const cRect = container.getBoundingClientRect(), rRect = row.getBoundingClientRect();
+  const target = window.MaterialRevisionCore && window.MaterialRevisionCore.computeContextScrollTop
+    ? window.MaterialRevisionCore.computeContextScrollTop({
+        scroll_top: container.scrollTop, container_top: cRect.top,
+        container_height: container.clientHeight, row_top: rRect.top,
+        previous_row_height: range.rowStart > 0 && previous ? previous.getBoundingClientRect().height : 0,
+        gap: 2, max_scroll_top: Math.max(0, container.scrollHeight - container.clientHeight),
+      })
+    : container.scrollTop;
+  container.dataset.mediaFollowAnchor = "context";
+  container.scrollTop = target;
 }
 
 function v3MediaDestroyLocalStage() {
@@ -47630,13 +47699,35 @@ document.addEventListener("i18n:changed", function () {
         </div>
         <div id="l3MaterialCompare" class="l3-material-meta"></div>
         <div id="l3MaterialImpact" class="l3-material-impact"></div>
+        <div class="l3-material-reviewbar" aria-label="Playback review controls">
+          <label class="l3-follow-toggle"><input id="l3MaterialFollow" type="checkbox" checked onchange="MaterialRevisionWorkspace.setFollowEnabled(this.checked)"><span data-i18n="studio.material.followAudio">Следовать за аудио</span></label>
+          <label class="l3-review-mode"><span data-i18n="studio.material.reviewMode">Проверять</span><select id="l3MaterialReviewMode" onchange="MaterialRevisionWorkspace.setReviewMode(this.value)">
+            <option value="all" data-i18n="studio.material.modeAll">Все поля</option>
+            <option value="he" data-i18n="studio.material.modeHebrew">Иврит</option>
+            <option value="niqqud" data-i18n="studio.material.modeNiqqud">Никуд</option>
+            <option value="latin" data-i18n="studio.material.modeLatin">Latin</option>
+            <option value="ru-translit" data-i18n="studio.material.modeRuTranslit">Рус. транслит</option>
+            <option value="translation" data-i18n="studio.material.modeTranslation">Перевод</option>
+            <option value="custom" data-i18n="studio.material.modeCustom">Свои поля</option>
+          </select></label>
+          <details id="l3MaterialFieldPicker" class="l3-material-field-picker"><summary data-i18n="studio.material.fields">Поля…</summary><div>
+            <label><input type="checkbox" data-material-field="he_plain" checked onchange="MaterialRevisionWorkspace.setCustomField('he_plain',this.checked)"> עברית</label>
+            <label><input type="checkbox" data-material-field="he_niqqud" checked onchange="MaterialRevisionWorkspace.setCustomField('he_niqqud',this.checked)"> ניקוד</label>
+            <label><input type="checkbox" data-material-field="translit" checked onchange="MaterialRevisionWorkspace.setCustomField('translit',this.checked)"> Translit</label>
+            <label><input type="checkbox" data-material-field="translit_ru" checked onchange="MaterialRevisionWorkspace.setCustomField('translit_ru',this.checked)"> Транслит</label>
+            <label><input type="checkbox" data-material-field="ru" checked onchange="MaterialRevisionWorkspace.setCustomField('ru',this.checked)"> Русский</label>
+          </div></details>
+          <span id="l3MaterialMappingStatus" class="l3-material-mapping-status" aria-live="polite"></span>
+          <span id="l3MaterialFollowState" class="l3-material-follow-state" aria-live="polite"></span>
+          <button id="l3MaterialResume" type="button" class="btn-secondary" onclick="MaterialRevisionWorkspace.resumeFollow()" hidden>Вернуться к реплике</button>
+        </div>
+        <div id="l3MaterialNoMapping" class="l3-material-no-mapping" hidden><span data-i18n="studio.material.noMappingForCue">Для этой реплики нет учебной строки.</span><button type="button" class="btn-secondary" onclick="MaterialRevisionWorkspace.addRowForCurrentCaption()" data-i18n="studio.material.addMappedRow">Добавить строку</button></div>
         <div id="l3MaterialRows" class="l3-material-rows"></div>
         <div id="l3MaterialStatus" class="l3-material-status" role="status" aria-live="polite" hidden></div>
         <div class="l3-material-actions">
-          <button type="button" class="btn-secondary" onclick="MaterialRevisionWorkspace.addRow()" data-i18n="studio.material.addRow">Добавить строку</button>
           <button id="l3MaterialSave" type="button" class="btn-secondary" onclick="MaterialRevisionWorkspace.saveLocal()" data-i18n="studio.material.saveLocal">Сохранить без модели</button>
           <button id="l3MaterialUpdate" type="button" class="btn-primary" onclick="MaterialRevisionWorkspace.regenerateAffected()" data-i18n="studio.material.updateAffected">Обновить затронутые строки</button>
-          <details><summary data-i18n="studio.material.advanced">Расширенные действия</summary><button type="button" class="btn-secondary" onclick="MaterialRevisionWorkspace.rebuildAll()" data-i18n="studio.material.rebuildAll">Полная новая версия</button></details>
+          <details class="l3-material-advanced"><summary data-i18n="studio.material.advanced">Расширенные действия</summary><div><button type="button" class="btn-secondary" onclick="MaterialRevisionWorkspace.addRow()" data-i18n="studio.material.addRow">Добавить строку</button><button type="button" class="btn-secondary" onclick="MaterialRevisionWorkspace.rebuildAll()" data-i18n="studio.material.rebuildAll">Полная новая версия</button></div></details>
         </div>
       </section>
     </div>
