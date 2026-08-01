@@ -8,7 +8,7 @@ Implementation baseline: parent `743686ec4c05e89f20d31ceb76a9f43967e0f04a`
 
 Implementation commit: the local commit containing this packet; resolve with `git log -1 --format=%H`
 
-Client version: `3.11.284`
+Client version: `3.11.286`
 
 Browser migrations: `MIGRATIONS.length=46`; v46 is `MIGRATIONS[45]`
 
@@ -38,6 +38,12 @@ The local implementation provides:
   the second visible slot, plus pause-on-manual-review and explicit resume;
 - review presets for Hebrew, niqqud, Latin transliteration, Russian transliteration,
   translation, all fields, and a non-empty custom field set.
+- adaptive compact rows: 1/2/3/4/5 visible fields use the full available width, with
+  the Russian field spanning the remaining two tracks in the five-field desktop view;
+- an explicit mixed legacy-mapping repair preview that distinguishes missing from
+  conflicting links, blocks follow and row-to-player seeking until reconciliation,
+  and commits one stale-base-protected immutable zero-model revision only after owner
+  confirmation.
 
 ## Automated evidence
 
@@ -58,19 +64,25 @@ npm run smoke:i18n
 
 Observed results in the implementation slice:
 
-- material core/repository/playback review: 12/12 pass;
+- material core/repository/playback review: 16/16 pass;
+- production-shaped pure mapping gate: 585/585 candidates, exactly 514 missing and
+  71 conflicting legacy links, with byte-identical language fields and field authority;
 - desktop + 380 px material browser gate: RU + HE, previous/current/next context,
   no horizontal overflow, no page errors,
   zero `/api/translate-table*` calls during open/manual/caption-zero-call saves;
 - exact 0/1/N mapping, focused-field follow pause, explicit resume, and translation
   preset all preserve the same revision-history length until an explicit save;
+- mixed browser fixture shows `1` missing and `2` conflicts, suppresses false playback
+  highlight/seek before confirmation, advances history from v1 to v2 after confirmation,
+  and then restores exact `1:N` follow;
+- two-field desktop review uses approximately 49.1% + 49.1% of the compact row and the
+  five-field Russian cell uses approximately 66.1%, with no unused third-column void;
 - compatibility projection retained `stable-s1/stable-s2`, manual RU survived a
   transcript edit, and affected transliteration became `invalidated`;
-- material performance: 514-row promote ~138 ms, 514-row commit ~122 ms,
-  2,800-row snapshot ~16 ms, 2,800-row impact ~5 ms (all below frozen ceilings);
+- material performance: 514-row snapshot ~11 ms, promote ~84 ms, commit ~90 ms,
+  2,800-row snapshot ~15 ms, impact ~4 ms, mapping ~10 ms (all below frozen ceilings);
 - existing L3a browser/performance, Studio chunks, text-card and captions gates pass;
-- full `npm test`: 698 total, 689 pass, 9 fail — the same known baseline class
-  after adding three green Playback Review pure tests:
+- full `npm test`: 703 total, 694 pass, 9 fail — the same known baseline class:
   one pre-existing `classicModeRedesign` assertion for absent
   `btnTableCustomizeToggle`, plus eight GCP/provider tests requiring their external
   test configuration. No new material-revision test fails.
@@ -88,7 +100,7 @@ Use the owner's real 36:17 / 514-row material. Do not use a synthetic fixture as
 final verdict.
 
 1. Before opening the app, record `git log -1 --format=%H`, verify version
-   `3.11.284`, and verify actual `MIGRATIONS.length=46`.
+   `3.11.286`, and verify actual `MIGRATIONS.length=46`.
 2. Back up the browser-local library through the existing product backup/export path.
 3. Open the saved media material and choose **Редактирование материала**. Confirm that
    open performs no model/provider request and creates exactly one lazy v1 material
@@ -96,37 +108,43 @@ final verdict.
 4. At desktop width confirm Transcript and Learning Table are simultaneous layers with
    the player/navigation kept visible. At 380×844 confirm explicit tabs, sticky table
    actions, no horizontal overflow, and usable row fields in RU and HE locales.
-5. Enable **Следовать за аудио** and play through cues with 1, N and 0 mapped rows.
+5. On the owner's existing real material, first verify the repair preview reports
+   `585/585`, `без связи: 514`, `конфликтов: 71`, `локально · 0 вызовов модели`.
+   Before confirmation, follow must be disabled, no row may be marked as playing, and
+   clicking a legacy-conflicting row must not seek the player. Select **Исправить связи**
+   once; confirm history advances from v1 to v2 while all five language fields and their
+   manual locks remain byte-identical. Reload and confirm the preview no longer appears.
+6. Enable **Следовать за аудио** and play through cues with 1, N and 0 mapped rows.
    Confirm exact mapped rows are highlighted, the selected/current row sits near the
    second visible slot with previous and next context visible, and 0 mapping shows an
    explicit add-row action rather than selecting a guessed row.
-6. Focus a field or manually scroll the Learning Table. Confirm automatic follow pauses,
+7. Focus a field or manually scroll the Learning Table. Confirm automatic follow pauses,
    the field being edited does not jump, and **Вернуться к реплике** resumes exact follow.
    Check every review preset and a custom non-empty field selection.
-7. Change one manual RU value and select **Сохранить без модели**. Confirm the network
+8. Change one manual RU value and select **Сохранить без модели**. Confirm the network
    log has zero provider calls, history advances by one, reload preserves the value,
    and notes/SRS/audio references attached to unchanged sentence IDs remain intact.
-8. Make timing-only and speaker-only transcript edits. Confirm affected-row count is
+9. Make timing-only and speaker-only transcript edits. Confirm affected-row count is
    zero and a zero-call revision can bind the exact new caption revision.
-9. Change text in one mapped caption. Confirm only mapped rows are listed, source-owned
+10. Change text in one mapped caption. Confirm only mapped rows are listed, source-owned
    Hebrew updates, locked manual fields remain unchanged, other affected provider fields
    read **Требует обновления**, and the zero-call save keeps those values without
    pretending they are current.
-10. Select each configured provider contract (`gcp`, `madlad`, `google-free`, `gemini`)
+11. Select each configured provider contract (`gcp`, `madlad`, `google-free`, `gemini`)
    one at a time. Before confirming, record the cost preview, exact row/field count and
    `fallback: OFF`. Confirm only when billing/credentials are intentionally available.
    The response must match every stable request/source index exactly; any cardinality,
    duplicate, missing field or index mismatch must fail without advancing canon.
-11. Exercise split and merge. Confirm Workspace shows `MAPPING_REVIEW_REQUIRED` and does
+12. Exercise split and merge. Confirm Workspace shows `MAPPING_REVIEW_REQUIRED` and does
    not enable targeted regeneration until mapping is resolved. Verify honest 0/1/N
    badges; do not accept guessed mappings.
-12. Open the same promoted material in two tabs. Commit in tab A, then attempt a commit
+13. Open the same promoted material in two tabs. Commit in tab A, then attempt a commit
     from the old base in tab B. Tab B must show stale-base recovery and must not alter
     the head or compatibility projection.
-13. Use **Полная новая версия** only from the advanced disclosure. Confirm explicit cost
+14. Use **Полная новая версия** only from the advanced disclosure. Confirm explicit cost
     preview, no fallback, one new immutable revision, and that all prior revisions remain
     selectable/readable.
-14. Reopen Library/Reader/notes/SRS/Anki/audio surfaces for the material. Confirm no
+15. Reopen Library/Reader/notes/SRS/Anki/audio surfaces for the material. Confirm no
     orphaned sentence references and that the table player still uses the canonical OPFS
     media binding.
 

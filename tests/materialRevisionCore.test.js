@@ -104,3 +104,68 @@ test('offline alignment repair is fail-closed for partial, non-monotonic or conf
   assert.throws(() => Core.applyExactAlignedMapping({ rows, segments, row_segment_indexes: [0, 0], provenance }), /MAPPING_DISAGREEMENT/);
   assert.throws(() => Core.applyExactAlignedMapping({ rows, segments: [{}], row_segment_indexes: [0, 0], provenance }), /CAPTION_SEGMENT_ID_REQUIRED/);
 });
+
+test('mixed legacy mapping repair previews missing and conflicting links without changing learning content', () => {
+  const segments = [
+    { caption_segment_id: 'cap-1', source_segment_ids: ['raw-1'] },
+    { caption_segment_id: 'cap-2', source_segment_ids: ['raw-2'] },
+  ];
+  const mixed = [
+    { ...rows[0], caption_segment_id: null, source_segment_ids: [] },
+    { ...rows[1], caption_segment_id: 'cap-1', source_segment_ids: ['wrong-raw'] },
+  ];
+  const provenance = {
+    authority: 'aligned-offline', algorithm_version: 'align-rows-v1',
+    bound_caption_revision_id: 'caption-revision-1',
+    bound_caption_revision_sha256: 'a'.repeat(64),
+  };
+  const result = Core.planExactAlignedMappingRepair({
+    rows: mixed, segments, row_segment_indexes: [0, 1], provenance,
+  });
+  assert.deepEqual({
+    mapped_count: result.mapped_count,
+    caption_count: result.caption_count,
+    missing_count: result.missing_count,
+    conflict_count: result.conflict_count,
+    unchanged_count: result.unchanged_count,
+    conflict_row_ids: result.conflict_row_ids,
+  }, {
+    mapped_count: 2, caption_count: 2, missing_count: 1,
+    conflict_count: 1, unchanged_count: 0, conflict_row_ids: ['sentence-2'],
+  });
+  assert.deepEqual(result.rows.map((row) => row.caption_segment_id), ['cap-1', 'cap-2']);
+  assert.equal(result.rows[0].ru, mixed[0].ru);
+  assert.equal(result.rows[1].he_niqqud, mixed[1].he_niqqud);
+  assert.deepEqual(result.rows[0].field_meta, Core.normalizeRow(mixed[0], 0).field_meta);
+  assert.deepEqual(result.rows[1].field_meta, Core.normalizeRow(mixed[1], 1).field_meta);
+});
+
+test('mixed repair reports the production-shaped 514 missing and 71 conflicting links exactly', () => {
+  const segments = Array.from({ length: 585 }, (_, index) => ({
+    caption_segment_id: `cap-${index}`,
+    source_segment_ids: [`raw-${index}`],
+  }));
+  const sourceRows = Array.from({ length: 585 }, (_, index) => ({
+    stable_row_id: `sentence-${index}`,
+    caption_segment_id: index < 514 ? null : 'cap-0',
+    source_segment_ids: index < 514 ? [] : ['raw-0'],
+    he_plain: `he-${index}`,
+    ru: `ru-${index}`,
+    field_meta: { ru: { authority: 'user', locked: true, status: 'current' } },
+  }));
+  const result = Core.planExactAlignedMappingRepair({
+    rows: sourceRows,
+    segments,
+    row_segment_indexes: segments.map((_, index) => index),
+    provenance: {
+      authority: 'aligned-offline', algorithm_version: 'align-rows-v1',
+      bound_caption_revision_id: 'caption-revision-1', bound_caption_revision_sha256: 'b'.repeat(64),
+    },
+  });
+  assert.equal(result.missing_count, 514);
+  assert.equal(result.conflict_count, 71);
+  assert.equal(result.unchanged_count, 0);
+  assert.equal(result.mapped_count, 585);
+  assert.deepEqual(result.rows.map((row) => row.ru), sourceRows.map((row) => row.ru));
+  assert.deepEqual(result.rows.map((row) => row.field_meta), sourceRows.map((row, index) => Core.normalizeRow(row, index).field_meta));
+});

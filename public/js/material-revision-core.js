@@ -221,6 +221,44 @@
     return { rows: mapped, mapped_count: mapped.length, caption_count: captionIds.size };
   }
 
+  function planExactAlignedMappingRepair(input) {
+    const rows = (input && Array.isArray(input.rows) ? input.rows : []).map(normalizeRow);
+    const relaxedRows = rows.map((row) => ({ ...row, caption_segment_id: null, source_segment_ids: [] }));
+    const mapped = applyExactAlignedMapping({
+      ...input,
+      rows: relaxedRows,
+    });
+    let missingCount = 0;
+    let conflictCount = 0;
+    let unchangedCount = 0;
+    const conflictRowIds = [];
+    rows.forEach((row, index) => {
+      const candidate = mapped.rows[index];
+      if (!row.caption_segment_id) {
+        missingCount++;
+        return;
+      }
+      const priorSources = (Array.isArray(row.source_segment_ids) ? row.source_segment_ids : []).map(String);
+      const candidateSources = (Array.isArray(candidate.source_segment_ids) ? candidate.source_segment_ids : []).map(String);
+      const agrees = row.caption_segment_id === candidate.caption_segment_id
+        && priorSources.length === candidateSources.length
+        && priorSources.every((value, sourceIndex) => value === candidateSources[sourceIndex]);
+      if (agrees) {
+        unchangedCount++;
+      } else {
+        conflictCount++;
+        conflictRowIds.push(row.stable_row_id);
+      }
+    });
+    return {
+      ...mapped,
+      missing_count: missingCount,
+      conflict_count: conflictCount,
+      unchanged_count: unchangedCount,
+      conflict_row_ids: conflictRowIds,
+    };
+  }
+
   const REVIEW_MODE_FIELDS = Object.freeze({
     all: FIELD_NAMES.slice(),
     he: ['he_plain'],
@@ -281,6 +319,6 @@
   return {
     FIELD_NAMES, REVIEW_MODE_FIELDS, canonical, stableStringify, sha256Hex, normalizeRow,
     createTableSnapshot, analyzeImpact, buildRegenerationPreflight, applyProviderCandidates,
-    applyExactAlignedMapping, fieldsForReviewMode, buildPlaybackFocus, computeContextScrollTop,
+    applyExactAlignedMapping, planExactAlignedMappingRepair, fieldsForReviewMode, buildPlaybackFocus, computeContextScrollTop,
   };
 });

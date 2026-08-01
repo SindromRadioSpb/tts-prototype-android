@@ -3736,12 +3736,14 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .l3-material-view-picker select { min-width:92px; padding:5px 22px 5px 7px; }
 .l3-material-mapping-status { margin-inline-start:auto; font:700 10.5px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; }
 .l3-material-mapping-status[data-kind="empty"] { color:#8a5d00; }
+.l3-material-mapping-status[data-kind="warning"],.l3-material-follow-state[data-state="conflict"] { color:#8a4b00; }
 .l3-material-follow-state { color:#647875; }
 #l3MediaEditorPanel #l3MaterialResume { padding:5px 8px; font-size:11px; }
 .l3-material-no-mapping { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:8px 12px 0; padding:9px 10px; border-inline-start:3px solid #c48616; background:#fff7e5; color:#765309; font-size:12px; }
 .l3-material-no-mapping[hidden] { display:none; }
 .l3-material-mapping-repair { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:8px 12px 0; padding:10px 12px; border-inline-start:4px solid #0b7673; background:#eaf7f3; color:#164f4b; font-size:12px; line-height:1.45; }
 .l3-material-mapping-repair[data-kind="blocked"] { border-inline-start-color:#c48616; background:#fff7e5; color:#765309; }
+.l3-material-mapping-repair[data-kind="conflict"] { border-inline-start-color:#c26b00; background:#fff3dc; color:#713f00; }
 .l3-material-mapping-repair[hidden] { display:none; }
 .l3-material-rows { display:grid; gap:10px; max-height:58vh; overflow:auto; padding:12px 12px 28px; }
 .l3-material-row { position:relative; border:1px solid #d7e1e0; border-radius:10px; padding:9px; background:var(--theme-bg-card,#fff); transition:border-color 120ms ease,background-color 120ms ease,box-shadow 120ms ease; }
@@ -3770,7 +3772,11 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .l3-material-context { display:block; width:100%; min-width:0; padding:0; border:0; background:transparent; color:inherit; text-align:start; }
 #l3MediaEditorPanel .l3-material-context { width:100%; }
 .l3-material-context:focus-visible { outline:2px solid #0b7673; outline-offset:4px; border-radius:5px; }
-.l3-material-compact-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px 10px; min-width:0; }
+.l3-material-compact-grid { display:grid; gap:7px 10px; min-width:0; }
+.l3-material-compact-grid[data-field-count="1"] { grid-template-columns:minmax(0,1fr); }
+.l3-material-compact-grid[data-field-count="2"],.l3-material-compact-grid[data-field-count="4"] { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.l3-material-compact-grid[data-field-count="3"],.l3-material-compact-grid[data-field-count="5"] { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.l3-material-compact-grid[data-field-count="5"] .l3-material-compact-field[data-field="ru"] { grid-column:2 / 4; }
 .l3-material-compact-field { display:grid; align-content:start; gap:2px; min-width:0; padding:5px 7px; border-radius:6px; background:#f7faf9; font-size:calc(14px * var(--l3-review-scale)); }
 .l3-material-compact-field[data-field="he_plain"],.l3-material-compact-field[data-field="he_niqqud"] { background:#eef7f5; }
 .l3-material-compact-field[data-field="translit"],.l3-material-compact-field[data-field="translit_ru"] { background:#f4f3fa; }
@@ -3872,7 +3878,8 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   #l3MaterialResume { grid-column:1 / -1; width:100% !important; }
   .l3-material-no-mapping,.l3-material-mapping-repair { align-items:stretch; flex-direction:column; margin-inline:8px; }
   #l3MediaEditorPanel .l3-material-no-mapping button,#l3MediaEditorPanel .l3-material-mapping-repair button { width:100%; }
-  .l3-material-compact-grid { grid-template-columns:1fr; }
+  .l3-material-compact-grid[data-field-count] { grid-template-columns:1fr; }
+  .l3-material-compact-grid[data-field-count="5"] .l3-material-compact-field[data-field="ru"] { grid-column:1; }
   .l3-material-compact-field[data-field="ru"] { grid-column:1; }
   .l3-material-row header code { display:none; }
   #l3MaterialLayer:not([hidden]) { display:flex; flex-direction:column; height:calc(100dvh - 286px); min-height:420px; }
@@ -12685,9 +12692,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=98"></script>
-    <script src="/i18n/locales/en.js?v=98"></script>
-    <script src="/i18n/locales/he.js?v=98"></script>
+    <script src="/i18n/locales/ru.js?v=99"></script>
+    <script src="/i18n/locales/en.js?v=99"></script>
+    <script src="/i18n/locales/he.js?v=99"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12841,7 +12848,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.285";
+    window.APP_VERSION = "3.11.286";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

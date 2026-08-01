@@ -49,7 +49,9 @@
   function fieldDir(field){return field.indexOf('he_')===0?'rtl':(field==='translit'?'ltr':'auto');}
   function currentCaptionContext(){try{return window.StudioMediaEditor&&window.StudioMediaEditor.getCaptionContext?window.StudioMediaEditor.getCaptionContext():null;}catch(_){return null;}}
 
-  function hasAnyMapping(){return !!(state&&state.rows.some(function(row){return !!row.caption_segment_id;}));}
+  function hasMappingConflict(){return !!(state&&state.mappingRepair&&state.mappingRepair.conflict_count>0);}
+  function playbackRows(){return hasMappingConflict()?[]:(state&&state.rows||[]);}
+  function hasAnyMapping(){return !!(state&&!hasMappingConflict()&&state.rows.some(function(row){return !!row.caption_segment_id;}));}
   function applyReviewPresentation(){
     var layer=$('l3MaterialLayer');if(!layer||!state)return;
     layer.dataset.density=state.density;layer.dataset.showProvenance=state.showProvenance?'true':'false';
@@ -64,23 +66,23 @@
   function suppressLayoutScroll(){if(!state)return;state.positioning=true;state.positioningToken=(state.positioningToken||0)+1;var token=state.positioningToken;requestAnimationFrame(function(){requestAnimationFrame(function(){if(state&&state.positioningToken===token)state.positioning=false;});});}
 
   function renderPlaybackState() {
-    if(!state)return;var focus=state.playbackFocus||{row_ids:[],mapping_count:0,selected_position:0},ids=new Set(focus.row_ids||[]),host=$('l3MaterialRows'),mappingAvailable=hasAnyMapping();
+    if(!state)return;var conflict=hasMappingConflict(),focus=state.playbackFocus||{row_ids:[],mapping_count:0,selected_position:0},ids=new Set(conflict?[]:(focus.row_ids||[])),host=$('l3MaterialRows'),mappingAvailable=hasAnyMapping();
     if(host)host.querySelectorAll('.l3-material-row').forEach(function(card){var rowId=card.dataset.rowId,isPlaying=ids.has(rowId),isSelected=rowId===state.selectedRowId;card.classList.toggle('is-playback',isPlaying);card.classList.toggle('is-selected',isSelected);card.classList.toggle('is-playback-sibling',isPlaying&&!isSelected);if(isPlaying&&isSelected)card.setAttribute('aria-current','true');else card.removeAttribute('aria-current');});
-    var mapping=$('l3MaterialMappingStatus');if(mapping){mapping.textContent=focus.mapping_count>1?tr('studio.material.mappingPosition','Строка')+' '+focus.selected_position+' '+tr('studio.material.mappingOf','из')+' '+focus.mapping_count:(focus.mapping_count===1?tr('studio.material.oneMappedRow','Связана 1 строка'):tr('studio.material.noMappedRows','Нет связанной учебной строки'));mapping.dataset.kind=focus.mapping_count?'mapped':'empty';}
-    var empty=$('l3MaterialNoMapping');if(empty)empty.hidden=!mappingAvailable||focus.mapping_count!==0||!focus.caption_segment_id;
-    var resume=$('l3MaterialResume');if(resume){resume.hidden=!(state.followEnabled&&state.followPaused&&focus.caption_segment_id);resume.textContent=tr('studio.material.resumeFollow','Вернуться к реплике')+(state.playbackNumber?' '+state.playbackNumber:'');}
+    var mapping=$('l3MaterialMappingStatus');if(mapping){mapping.textContent=conflict?tr('studio.material.mappingConflictStatus','Связи требуют исправления'):(focus.mapping_count>1?tr('studio.material.mappingPosition','Строка')+' '+focus.selected_position+' '+tr('studio.material.mappingOf','из')+' '+focus.mapping_count:(focus.mapping_count===1?tr('studio.material.oneMappedRow','Связана 1 строка'):tr('studio.material.noMappedRows','Нет связанной учебной строки')));mapping.dataset.kind=conflict?'warning':(focus.mapping_count?'mapped':'empty');}
+    var empty=$('l3MaterialNoMapping');if(empty)empty.hidden=conflict||!mappingAvailable||focus.mapping_count!==0||!focus.caption_segment_id;
+    var resume=$('l3MaterialResume');if(resume){resume.hidden=conflict||!(state.followEnabled&&state.followPaused&&focus.caption_segment_id);resume.textContent=tr('studio.material.resumeFollow','Вернуться к реплике')+(state.playbackNumber?' '+state.playbackNumber:'');}
     var toggle=$('l3MaterialFollow');if(toggle){toggle.checked=!!state.followEnabled;toggle.disabled=!mappingAvailable;}
-    var followState=$('l3MaterialFollowState');if(followState){followState.dataset.state=!mappingAvailable?'unavailable':(!state.followEnabled?'off':(state.followPaused?'paused':'on'));followState.textContent=!mappingAvailable?tr('studio.material.followUnavailable','Следование недоступно: нет точных связей'):(!state.followEnabled?tr('studio.material.followOff','Следование выключено'):(state.followPaused?tr('studio.material.followPaused','Следование приостановлено'):tr('studio.material.followOn','Следование включено')));}
+    var followState=$('l3MaterialFollowState');if(followState){followState.dataset.state=conflict?'conflict':(!mappingAvailable?'unavailable':(!state.followEnabled?'off':(state.followPaused?'paused':'on')));followState.textContent=conflict?tr('studio.material.followConflict','Следование недоступно: исправьте связи'):(!mappingAvailable?tr('studio.material.followUnavailable','Следование недоступно: нет точных связей'):(!state.followEnabled?tr('studio.material.followOff','Следование выключено'):(state.followPaused?tr('studio.material.followPaused','Следование приостановлено'):tr('studio.material.followOn','Следование включено'))));}
   }
 
   function renderMappingRepair(){
     var banner=$('l3MaterialMappingRepair');if(!banner||!state)return;
     var text=$('l3MaterialMappingRepairText'),button=$('l3MaterialMappingRepairButton'),candidate=state.mappingRepair;
-    banner.hidden=!candidate&&!state.mappingRepairError;banner.dataset.kind=candidate?'ready':'blocked';
+    var conflict=!!(candidate&&candidate.conflict_count);banner.hidden=!candidate&&!state.mappingRepairError;banner.dataset.kind=candidate?(conflict?'conflict':'ready'):'blocked';
     if(text)text.textContent=candidate
-      ? tr('studio.material.mappingRepairReady','Можно безопасно восстановить связи')+': '+candidate.mapped_count+'/'+state.rows.length+' · '+tr('studio.material.localZeroModel','локально · 0 вызовов модели')
+      ? tr('studio.material.mappingRepairReady','Можно безопасно восстановить связи')+': '+candidate.mapped_count+'/'+state.rows.length+' · '+tr('studio.material.mappingMissing','без связи')+': '+candidate.missing_count+' · '+tr('studio.material.mappingConflicts','конфликтов')+': '+candidate.conflict_count+' · '+tr('studio.material.localZeroModel','локально · 0 вызовов модели')
       : tr('studio.material.mappingRepairBlocked','Автоматическое восстановление недоступно')+' · '+String(state.mappingRepairError||'');
-    if(button){button.hidden=!candidate;button.disabled=!!state.dirty;}
+    if(button){button.hidden=!candidate;button.disabled=!!state.dirty;button.textContent=conflict?tr('studio.material.mappingRepairConflictAction','Исправить связи'):tr('studio.material.mappingRepairAction','Восстановить связи');}
   }
 
   function anchorSelected(behavior) {
@@ -119,7 +121,7 @@
       var compact=fields.map(function(field){return renderCompactField(row,field);}).join('');
       var controls = readOnly||!selected ? '' : '<span class="l3-material-row-actions"><button type="button" data-row-action="up" data-index="'+index+'" aria-label="Move up">↑</button><button type="button" data-row-action="down" data-index="'+index+'" aria-label="Move down">↓</button><button type="button" data-row-action="delete" data-index="'+index+'" aria-label="Delete">×</button></span>';
       var classes='l3-material-row'+(selected?' is-selected':'')+(playback?' is-playback':'')+(playback&&!selected?' is-playback-sibling':'');
-      var body=selected?'<div class="l3-material-fields">'+editorFields+'</div>':'<button type="button" class="l3-material-context" data-select-row="'+escapeHtml(row.stable_row_id)+'"><span class="l3-material-compact-grid">'+compact+'</span></button>';
+      var body=selected?'<div class="l3-material-fields">'+editorFields+'</div>':'<button type="button" class="l3-material-context" data-select-row="'+escapeHtml(row.stable_row_id)+'"><span class="l3-material-compact-grid" data-field-count="'+fields.length+'">'+compact+'</span></button>';
       return '<article class="'+classes+'" data-row-id="' + escapeHtml(row.stable_row_id) + '"'+(playback&&selected?' aria-current="true"':'')+'><header><strong>#' + (index+1) + '</strong><span class="l3-mapping-pill">' + mappingLabel(row) + '</span><code>' + escapeHtml(row.stable_row_id) + '</code>'+controls+'</header>'+body+'</article>';
     }).join('');
     if (!readOnly) host.querySelectorAll('textarea[data-field]').forEach(function (input) {
@@ -195,7 +197,7 @@
 
   function syncToCaptionSegment(captionSegmentId,options){
     if(!state)return null;options=options||{};var id=String(captionSegmentId||''),preferred=state.selectedRowId;
-    var focus=window.MaterialRevisionCore.buildPlaybackFocus({rows:state.rows,caption_segment_id:id,selected_row_id:preferred});
+    var focus=window.MaterialRevisionCore.buildPlaybackFocus({rows:playbackRows(),caption_segment_id:id,selected_row_id:preferred});
     var changed=!state.playbackFocus||state.playbackFocus.caption_segment_id!==focus.caption_segment_id||state.playbackFocus.selected_row_id!==focus.selected_row_id||state.playbackFocus.mapping_count!==focus.mapping_count;
     state.playbackFocus=focus;state.playbackNumber=Number(options.number)||0;
     var active=document.activeElement,typing=!!(active&&active.closest&&active.closest('#l3MaterialRows textarea'));
@@ -224,8 +226,8 @@
 
   async function selectLearningRow(rowId){
     if(!state)return;var row=state.rows.find(function(value){return String(value.stable_row_id)===String(rowId);});if(!row)return;state.selectedRowId=String(row.stable_row_id);state.followPaused=false;
-    if(row.caption_segment_id&&window.StudioMediaEditor&&window.StudioMediaEditor.selectCaptionSegment){await window.StudioMediaEditor.selectCaptionSegment(String(row.caption_segment_id));}
-    state.playbackFocus=window.MaterialRevisionCore.buildPlaybackFocus({rows:state.rows,caption_segment_id:String(row.caption_segment_id||''),selected_row_id:state.selectedRowId});renderRows(state.rows,false);renderReviewControls();requestAnimationFrame(function(){anchorSelected('auto');});
+    if(!hasMappingConflict()&&row.caption_segment_id&&window.StudioMediaEditor&&window.StudioMediaEditor.selectCaptionSegment){await window.StudioMediaEditor.selectCaptionSegment(String(row.caption_segment_id));}
+    state.playbackFocus=window.MaterialRevisionCore.buildPlaybackFocus({rows:playbackRows(),caption_segment_id:String(row.caption_segment_id||''),selected_row_id:state.selectedRowId});renderRows(state.rows,false);renderReviewControls();requestAnimationFrame(function(){anchorSelected('auto');});
   }
 
   async function openForTrack(trackId) {
@@ -241,7 +243,7 @@
     var prefs=readReviewPrefs(),context=currentCaptionContext();
     state = { trackId:String(trackId), material:material, base:base, rows:clone(base.rows), dirty:false, impact:{conflicts:[],impacted:[],reason:'CURRENT'},followEnabled:prefs.follow_enabled,followPaused:false,reviewMode:prefs.review_mode,customFields:prefs.custom_fields,textScale:prefs.text_scale,density:prefs.density,showProvenance:prefs.show_provenance,positioning:false,playbackNumber:context&&context.number||0,mappingRepair:null,mappingRepairError:null };
     await prepareMappingRepair();
-    state.playbackFocus=window.MaterialRevisionCore.buildPlaybackFocus({rows:state.rows,caption_segment_id:context&&context.caption_segment_id});state.selectedRowId=state.playbackFocus.selected_row_id||(state.rows[0]&&state.rows[0].stable_row_id)||null;
+    state.playbackFocus=window.MaterialRevisionCore.buildPlaybackFocus({rows:playbackRows(),caption_segment_id:context&&context.caption_segment_id});state.selectedRowId=state.playbackFocus.selected_row_id||(state.rows[0]&&state.rows[0].stable_row_id)||null;
     renderRows(state.rows, false); renderHeader(); renderReviewControls(); await renderHistory(); setStatus(null);requestAnimationFrame(function(){anchorSelected('auto');});
   }
 
@@ -261,8 +263,8 @@
       if(!alignment.ok)throw new Error('ALIGN_'+String(alignment.reason||'FAILED'));
       var inputHash=await window.MaterialRevisionCore.sha256Hex({rows:state.rows.map(function(row){return row.he_plain;}),segments:(revision.segments||[]).map(function(segment){return{caption_segment_id:segment.caption_segment_id,text:segment.text};})});
       var proof={authority:'aligned-offline',algorithm_version:AT.ALIGN_VERSION||'unknown',bound_caption_revision_id:revisionId,bound_caption_revision_sha256:revisionSha,input_sha256:inputHash};
-      var mapped=window.MaterialRevisionCore.applyExactAlignedMapping({rows:state.rows,segments:revision.segments||[],row_segment_indexes:alignment.rowSegIdx,provenance:proof});
-      state.mappingRepair={rows:mapped.rows,mapped_count:mapped.mapped_count,caption_count:mapped.caption_count,proof:proof,alignment:{aligned_rows:alignment.alignedRows,aligned_segments:alignment.alignedSegments}};
+      var mapped=window.MaterialRevisionCore.planExactAlignedMappingRepair({rows:state.rows,segments:revision.segments||[],row_segment_indexes:alignment.rowSegIdx,provenance:proof});
+      if(mapped.missing_count||mapped.conflict_count)state.mappingRepair={rows:mapped.rows,mapped_count:mapped.mapped_count,caption_count:mapped.caption_count,missing_count:mapped.missing_count,conflict_count:mapped.conflict_count,unchanged_count:mapped.unchanged_count,conflict_row_ids:mapped.conflict_row_ids,proof:proof,alignment:{aligned_rows:alignment.alignedRows,aligned_segments:alignment.alignedSegments}};
     }catch(e){state.mappingRepairError=e.code||e.message||String(e);}
   }
 
@@ -270,9 +272,9 @@
     if(!state||!state.mappingRepair)return null;
     if(state.dirty){setStatus(tr('studio.material.mappingRepairSaveFirst','Сначала сохраните текущие ручные правки.'),'error');return null;}
     var candidate=state.mappingRepair;
-    if(!window.confirm(tr('studio.material.mappingRepairConfirm','Создать новую локальную версию с доказанными связями?')+'\n'+candidate.mapped_count+'/'+state.rows.length+' · '+tr('studio.material.localZeroModel','локально · 0 вызовов модели')))return null;
+    if(!window.confirm(tr('studio.material.mappingRepairConfirm','Создать новую локальную версию с доказанными связями?')+'\n'+candidate.mapped_count+'/'+state.rows.length+' · '+tr('studio.material.mappingMissing','без связи')+': '+candidate.missing_count+' · '+tr('studio.material.mappingConflicts','конфликтов')+': '+candidate.conflict_count+'\n'+tr('studio.material.localZeroModel','локально · 0 вызовов модели')))return null;
     try{
-      var committed=await repo().commitRevision({material_id:state.material.material_id,base_table_revision_id:state.base.table_revision_id,rows:candidate.rows,provider_context:state.base.provider_context,bound_caption_revision_id:state.base.bound_caption_revision_id,bound_caption_revision_sha256:state.base.bound_caption_revision_sha256,impact:{kind:'mapping_repair',zero_provider_calls:true,proof:candidate.proof,aligned_rows:candidate.alignment.aligned_rows,aligned_segments:candidate.alignment.aligned_segments}});
+      var committed=await repo().commitRevision({material_id:state.material.material_id,base_table_revision_id:state.base.table_revision_id,rows:candidate.rows,provider_context:state.base.provider_context,bound_caption_revision_id:state.base.bound_caption_revision_id,bound_caption_revision_sha256:state.base.bound_caption_revision_sha256,impact:{kind:'mapping_repair',zero_provider_calls:true,proof:candidate.proof,aligned_rows:candidate.alignment.aligned_rows,aligned_segments:candidate.alignment.aligned_segments,missing_count:candidate.missing_count,conflict_count:candidate.conflict_count,unchanged_count:candidate.unchanged_count}});
       state.base=committed;state.rows=clone(committed.rows);state.mappingRepair=null;state.mappingRepairError=null;state.dirty=false;
       var context=currentCaptionContext();state.playbackFocus=window.MaterialRevisionCore.buildPlaybackFocus({rows:state.rows,caption_segment_id:context&&context.caption_segment_id});state.selectedRowId=state.playbackFocus.selected_row_id||(state.rows[0]&&state.rows[0].stable_row_id)||null;
       renderRows(state.rows,false);renderHeader();renderReviewControls();await renderHistory();setStatus(tr('studio.material.mappingRepairSaved','Связи восстановлены локально · 0 вызовов модели'),'success');requestAnimationFrame(function(){anchorSelected('auto');});return committed;
