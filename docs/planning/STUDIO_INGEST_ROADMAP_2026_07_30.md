@@ -4,12 +4,14 @@
 > **Статус:** 🟢 канонический общий roadmap по директиве владельца; L3a Correctable
 > Media Package shipped до `v3.11.282`; L3a.3 Material Revision Workspace foundation
 > shipped в `v3.11.283`, mapping/follow correction shipped в `v3.11.286`, а
-> first-slot/compact-header polish подготовлен как `v3.11.287`. Следующий gated этап —
+> first-slot/compact-header polish deployed и production-verified как `v3.11.287` / `2e8f4bf3`.
+> Следующий gated этап —
 > P2 Portable Learning Package v2 внутри L3b Artifact Continuity.
 > Реализация новых слайсов требует обычных
 > measure-before-code, adversarial design и owner/live gates.
-> **Срез:** production/origin после mapping/follow correction `3589c0ee`
-> (`v3.11.286`); polish release candidate `v3.11.287`; actual browser migration count — `46`.
+> **Срез:** production/origin `2e8f4bf355a2babc0de619bfca817d1fff74b44f`
+> (`v3.11.287`); actual browser migration count — `46`; production health/DB/migrations PASS,
+> `disk_warn=false` after bounded cleanup.
 
 Этот документ долговечно фиксирует результат обсуждения владельца:
 
@@ -253,7 +255,7 @@ TTS остаётся отдельной quality-gated веткой.
 | 3 | local L1 ASR | 🟡 ENGINEERING PASS | sidecar batch/browser/B+C PASS; owner acceptance and permanent integration open |
 | 4 | resumable import-job + batch | ⏸ DEMAND-TRIGGERED | reload/job-loss или регулярные 3–5+ файлов; не начат |
 | 5 | L3a Correctable Media Package | ✅ SHIPPED v3.11.282 | v45, immutable raw/corrected revisions, editor, reopen shelf, player↔cue↔row, VTT/SRT/slim package; remaining owner-live ceremonies tracked separately |
-| 6 | **L3a.3 Material Revision Workspace** | ✅ SHIPPED through v3.11.286; v3.11.287 POLISH | two-layer source+learning workspace, v46 immutable revisions, field authority, targeted regeneration, exact repaired cue↔row follow, first-slot upcoming context and compact title→state→history header |
+| 6 | **L3a.3 Material Revision Workspace** | ✅ SHIPPED / PROD PASS v3.11.287 | two-layer source+learning workspace, v46 immutable revisions, field authority, targeted regeneration, exact repaired cue↔row follow, first-slot upcoming context and compact title→state→history header |
 | 7 | **L3b Artifact Continuity / P2 entry** | 🟡 NEXT OWNER-GATED SLICE | P1A material-revision contract and P1B Workspace are complete; exact Artifact Graph schema/migration/package allowlist must be frozen at P2 entry, then Portable Learning Package v2 → iPhone → Import Center |
 | 8 | local translation/nikud + S6 | P1 | shared provider contract, R1/R11 quality gates |
 | 9 | diarization/alignment | P1 | speaker/timing gold, segment default remains honest |
@@ -269,7 +271,7 @@ comparison не запускались и не подразумеваются ф
 
 ```text
 P0 L3a closure ✅
-  → P1A Material Revision contract ✅ / Artifact Graph direction approved, exact contract open
+  → P1A Material Revision contract ✅ / Artifact Graph direction approved, exact P2 entry contract open
   → P1B Material Revision Workspace + Playback Review ✅
   → P2 entry: freeze exact graph/schema/manifest allowlist, then Package v2 ← NEXT
   → P3 real iPhone manual continuity

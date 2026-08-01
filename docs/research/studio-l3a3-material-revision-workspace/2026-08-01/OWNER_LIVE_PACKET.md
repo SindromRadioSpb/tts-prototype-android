@@ -8,18 +8,18 @@ Implementation baseline: parent `743686ec4c05e89f20d31ceb76a9f43967e0f04a`
 
 Implementation commit: the local commit containing this packet; resolve with `git log -1 --format=%H`
 
-Client release candidate: `3.11.287` (not production-served until the disk-capacity stop condition is cleared)
+Deployed client: `3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`
 
 Browser migrations: `MIGRATIONS.length=46`; v46 is `MIGRATIONS[45]`
 
 ## Status boundary
 
-Automated implementation and local gates are complete. Mapping/follow correction
-`v3.11.286` reached production. On 2026-08-02 the owner supplied real-material evidence
+Automated implementation, local gates and production verification are complete through
+`v3.11.287`. On 2026-08-02 the owner supplied real-material evidence
 showing immutable table revision `v2`, enabled exact follow and the correct synchronized
 learning row. This is a **partial owner-live PASS**, not a claim that every provider/fault/
 two-tab ceremony below has run. Client `v3.11.287` adds only first-slot positioning and the
-compact responsive header. No production/server schema or data
+compact responsive header and passed the production-base ephemeral browser gate. No production/server schema or data
 mutation, new server API, cloud sync, Hermes, L2/L4/L5/L6, or full-media ZIP is in scope.
 
 The local implementation provides:
@@ -168,13 +168,36 @@ Stop without workaround if any of the following occurs:
 
 ## Completion record
 
+Automated production closure:
+
+- Deployed commit: `2e8f4bf355a2babc0de619bfca817d1fff74b44f`
+- Container start: `2026-08-02 02:19:01 +03:00`
+- Served versions: `APP_VERSION=3.11.287`; `CACHE_VERSION=v3.11.287`
+- Health: HTTP 200; app/database/migrations ready
+- Disk: `97% / 1.16 GiB free` before cleanup; `77% / 8.42 GiB free` after
+  pre-deploy cleanup; `83% / 6.34 GiB free` after deploy; `79% / 7.69 GiB free`
+  after separately approved post-deploy cache cleanup; `disk_warn=false`
+- Cleanup: 43 pre-deploy and 15 post-deploy unused build-cache records removed;
+  Docker reported `7.237 GB + 1.742 GB`; three exact older unreferenced app images
+  removed before deploy. Active and newest prior rollback preserved; containers, volumes,
+  DB, OPFS and user data untouched.
+- Browser/profile: ephemeral Chromium `148.0.7778.96`, Playwright `1.60.0`,
+  service workers blocked, synthetic fixture confined to the temporary profile
+- Desktop RU: PASS; compact single-line header, active offset approximately `0.07%`,
+  following row visible, full context values
+- 380 RU/LTR: PASS; no horizontal overflow, controlled header wrap, usable controls
+- 380 HE/RTL: PASS; mirrored semantic order, field directions preserved, no overflow
+- Sync semantics: exact 0/1/N, manual pause, explicit resume and exact cue seek PASS
+- Provider calls: `0`; page errors: `0`
+- Verdict: `AUTOMATED PROD PASS`; no release defect/fix commit
+
 Partial owner evidence already recorded:
 
 - Owner-live date/time: 2026-08-02, screenshot evidence
 - Browser/device: owner production browser; exact build/device string not recorded
 - Revision sequence observed: repaired/current table revision `v2`
 - Mapping/follow result: exact follow enabled; synchronized learning row visible
-- Verdict: `PARTIAL PASS`; full provider/fault/two-tab matrix remains open
+- Verdict: `PARTIAL OWNER PASS`; full provider/fault/two-tab matrix remains open
 
 Complete the remaining fields when the owner performs the full procedure:
 

@@ -4,7 +4,8 @@
 > **Статус:** 🟡 `P0/P1B COMPLETE`; P1A material contract complete, exact Artifact Graph
 > implementation contract is the P2 entry gate; P2 is the next owner-gated slice
 > **Baseline:** foundation `v3.11.283`; repaired Playback Review `v3.11.286` /
-> `3589c0ee141f7b139ab9e584f9bcca0b8997ca2e`; first-slot/header polish `v3.11.287`;
+> `3589c0ee141f7b139ab9e584f9bcca0b8997ca2e`; first-slot/header polish deployed and
+> production-verified as `v3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`;
 > actual `MIGRATIONS.length=46`
 > **Research canon:**
 > `docs/research/studio-ingest-artifact-continuity/2026-08-01/REPORT.md`
@@ -878,7 +879,7 @@ enter the package, or a new server/sync/Hermes boundary appears without authorit
 ## 21. Current planning conclusion
 
 Ближайший practically meaningful chain остаётся P0→P1A→P1B→P2→P3→P4. На 2026-08-02
-`P0/P1B` завершены; material half P1A завершён, а exact Artifact Graph contract является
+`P0/P1B` production-closed through `v3.11.287`; material half P1A завершён, а exact Artifact Graph contract является
 входным гейтом перед **P2 Portable Learning Package v2**.
 Цепочка закрывает реальный пробел без batch, новых models или автоматической отправки personal
 media в cloud.

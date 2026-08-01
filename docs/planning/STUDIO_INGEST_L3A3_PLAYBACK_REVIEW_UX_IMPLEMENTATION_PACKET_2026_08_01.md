@@ -1,7 +1,8 @@
 # Studio Ingest L3a.3 — Playback Review UX
 
 > **Date:** 2026-08-01  
-> **Status:** SHIPPED `v3.11.286`; OWNER-OBSERVED REAL-MATERIAL FOLLOW PASS; FIRST-SLOT/COMPACT-HEADER POLISH `v3.11.287`
+> **Status:** SHIPPED `v3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`;
+> AUTOMATED PROD PASS; OWNER-OBSERVED REAL-MATERIAL FOLLOW remains PARTIAL OWNER PASS
 > **Parent:** `STUDIO_INGEST_L3A3_MATERIAL_REVISION_WORKSPACE_IMPLEMENTATION_PACKET_2026_08_01.md`  
 > **Shipped baseline:** foundation `82a392e6` / `3.11.283`; mapping/follow correction `3589c0ee` / `3.11.286`; browser migrations `46`
 > **Scope:** browser-local UX and deterministic cue/row navigation; no schema or provider-contract change
@@ -336,3 +337,24 @@ Additional gates:
 - desktop browser geometry requires active offset ≤8% and at least one following row visible;
 - header DOM order is title/status/history, vertically center-aligned on desktop;
 - RU/LTR and HE/RTL 380 px screenshots have no horizontal overflow.
+
+## 15. Production closure — 2026-08-02
+
+- Auto-deploy container start: `2026-08-02 02:19:01 +03:00`.
+- Actually served: HTML `APP_VERSION=3.11.287`, service worker
+  `CACHE_VERSION=v3.11.287`, browser migrations `46`.
+- Three consecutive cache-busted HTTP probes returned byte-identical release
+  `index.html`, `sw.js`, `material-revision-core.js` and
+  `studio-material-revision.js` with correct status/content types.
+- Ephemeral Chromium `148.0.7778.96` / Playwright `1.60.0` ran the production-base
+  browser gate at desktop RU, 380 px RU/LTR and 380 px HE/RTL. First-slot offset was
+  approximately `0.07%`, a following row was visible, header order was
+  title → state → history, horizontal overflow was absent, provider-call count was
+  `0`, and page-error count was `0`.
+- No release defect was found; no fix commit or second release push was required.
+- Production health, database and migrations passed. Final disk after the separately
+  approved pre/post-deploy cleanup was `79%` used with `7.69 GiB` free and
+  `disk_warn=false`.
+- Evidence status is `AUTOMATED PROD PASS`. The owner's earlier real-material repair/follow
+  observation remains `PARTIAL OWNER PASS`; provider/fault/two-tab owner ceremonies were
+  not inferred from automation.

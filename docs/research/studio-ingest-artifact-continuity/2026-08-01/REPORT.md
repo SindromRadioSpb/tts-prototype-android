@@ -3,11 +3,12 @@
 > **Дата:** 2026-08-01
 > **Статус:** 🟢 research завершён; направление и необходимость подробного planning
 > утверждены владельцем 2026-08-01
-> **Repo baseline:** `v3.11.282`, commit
+> **Repo baseline at research start:** `v3.11.282`, commit
 > `5c5239332093bb5a10e10e500c81eb0300a8be4b`, `MIGRATIONS.length=45`
 > **Тип работы:** docs/research only; никаких code/schema/data/provider/deploy mutations
-> **Current program update 2026-08-02:** Workspace/Playback Review shipped through
-> `v3.11.286`, browser migrations `46`; P2 entry must freeze the remaining exact Artifact
+> **Current program update 2026-08-02:** Workspace/Playback Review production-closed as
+> `v3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`, browser migrations `46`;
+> P2 entry must freeze the remaining exact Artifact
 > Graph schema/manifest/allowlist before Portable Learning Package implementation.
 > **Planning-выход:**
 > `docs/planning/STUDIO_INGEST_L3B_ARTIFACT_CONTINUITY_PLAN_2026_08_01.md`
@@ -844,8 +845,9 @@ Normative implementation packet:
 `docs/planning/STUDIO_INGEST_L3A3_MATERIAL_REVISION_WORKSPACE_IMPLEMENTATION_PACKET_2026_08_01.md`.
 
 Browser v46, table-revision canon, targeted provider contract и T0–T10 subsequently shipped;
-mapping repair/follow reached production `v3.11.286`, and the owner observed real-material
-revision `v2` with synchronized follow. P2 Portable Learning Package v2 now requires its own
+mapping repair/follow reached production `v3.11.286`, the owner observed real-material
+revision `v2` with synchronized follow, and first-slot/header polish passed production
+automation as `v3.11.287`. P2 Portable Learning Package v2 now requires its own
 exact code/schema/push/deploy authority; cloud/E2EE/Hermes authority remains absent.
 
 ## 15. Known unknowns, которые должны стать gates, а не предположениями

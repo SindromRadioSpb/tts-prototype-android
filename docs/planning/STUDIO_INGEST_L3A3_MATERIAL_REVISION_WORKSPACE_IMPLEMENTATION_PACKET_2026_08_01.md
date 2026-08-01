@@ -1,8 +1,8 @@
 # Studio Ingest L3a.3 — Material Revision Workspace
 
 > **Дата:** 2026-08-01
-> **Статус:** 🟢 `SHIPPED`; real-material mapping repair and playback follow owner-observed,
-> first-slot/compact-header polish prepared as client `v3.11.287`
+> **Статус:** 🟢 `SHIPPED v3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`;
+> production automated PASS, real-material mapping repair/follow remains partial owner-live PASS
 > **Baseline:** foundation `v3.11.283` / `82a392e6`; mapping/follow correction
 > `v3.11.286` / `3589c0ee141f7b139ab9e584f9bcca0b8997ca2e`; actual browser
 > `MIGRATIONS.length = 46`
@@ -844,3 +844,21 @@ current playback row must occupy the first visible row, maximizing the visible u
 trail. The header is compacted into the semantic sequence title → state → history/revision;
 380 px wraps without overflow and HE mirrors the same order in RTL. Client `v3.11.287`
 implements this as presentation-only code with no migration/provider/canon change.
+
+## 24. Production closure and handoff
+
+Production started the `v3.11.287` container at `2026-08-02 02:19:01 +03:00`.
+Cache-busted HTTP verified exact local/served hashes for the release HTML, service worker
+and both changed JavaScript assets. Ephemeral Chromium `148.0.7778.96` verified desktop RU,
+380 px RU/LTR and HE/RTL, first-slot placement, following context, compact semantic header,
+exact 0/1/N mapping/follow, pause/resume, zero provider calls and zero page errors.
+
+Disk cleanup stayed inside the explicit authority: unused build cache was removed before and
+after deploy, plus three exact older unreferenced app images before deploy. Active and newest
+prior rollback images, all running containers, volumes, database, OPFS and user data were
+preserved. Disk moved from `97% / 1.16 GiB free` before cleanup to
+`79% / 7.69 GiB free` after deploy and post-deploy cleanup; `disk_warn=false`.
+
+No release defect or fix commit was required. P0/P1A/P1B are closed for roadmap sequencing.
+The next slice is P2 Portable Learning Package v2 and remains owner-gated; this closure does
+not authorize P2 code, schema, push or deploy.
