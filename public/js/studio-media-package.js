@@ -399,8 +399,16 @@
   }
 
   async function verifyRelinkBytes(expectedSha, bytes) {
-    var actual = await getCore().sha256Hex(bytes);
-    if (String(actual).toLowerCase() !== String(expectedSha || '').toLowerCase()) throw new Error('MEDIA_SHA_MISMATCH');
+    var input = bytes instanceof Uint8Array ? bytes
+      : (typeof ArrayBuffer !== 'undefined' && bytes instanceof ArrayBuffer) ? new Uint8Array(bytes)
+      : (typeof ArrayBuffer !== 'undefined' && ArrayBuffer.isView && ArrayBuffer.isView(bytes)) ? new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+      : bytes;
+    var actual = await getCore().sha256Hex(input);
+    if (String(actual).toLowerCase() !== String(expectedSha || '').toLowerCase()) {
+      var mismatch = new Error('MEDIA_SHA_MISMATCH');
+      mismatch.code = 'MEDIA_SHA_MISMATCH'; mismatch.expected_sha = String(expectedSha || '').toLowerCase(); mismatch.actual_sha = String(actual || '').toLowerCase();
+      throw mismatch;
+    }
     return true;
   }
 
@@ -423,7 +431,8 @@
   }
   async function relinkFile(packageId, file) {
     var repo = browserRepository(), pkg = await repo.getPackage(packageId); if (!pkg || !pkg.media_sha256) throw new Error('PACKAGE_MEDIA_SHA_MISSING');
-    var bytes = await file.arrayBuffer(); await verifyRelinkBytes(pkg.media_sha256, bytes);
+    var bytes = await file.arrayBuffer();
+    try { await verifyRelinkBytes(pkg.media_sha256, bytes); } catch (error) { error.file_name = file.name || null; error.file_size = file.size == null ? null : Number(file.size); error.expected_name = pkg.original_name || null; error.expected_size = pkg.size_bytes == null ? null : Number(pkg.size_bytes); throw error; }
     var path = window.MediaStore.mediaFileName(pkg.media_sha256, file.type || pkg.mime, file.name);
     var saved = await window.MediaStore.saveMedia(bytes, path); if (!saved.ok) throw new Error('MEDIA_RELINK_WRITE_FAILED:' + saved.reason);
     return repo.relinkMedia(packageId, { sha256: pkg.media_sha256, mime: file.type || pkg.mime, opfs_path: path, size_bytes: file.size, original_name: file.name });

@@ -10,7 +10,7 @@ test('P2 scripts load in dependency order and remain offline/provider-free',()=>
   assert.ok(order.every(n=>n>0));assert.ok(order[0]<order[1]&&order[1]<order[2]);
   assert.equal(/\bfetch\s*\(|XMLHttpRequest|apiCall\s*\(/.test(studio),false,'no server/provider transport');
   for(const item of ['/js/portable-learning-package-core.js','/js/portable-learning-package-repository.js','/js/studio-portable-learning-package.js'])assert.ok(sw.includes(item));
-  assert.match(sw,/CACHE_VERSION = "v3\.11\.292"/,'scoped portability UX release cache version');
+  assert.match(sw,/CACHE_VERSION = "v3\.11\.293"/,'scoped portability UX release cache version');
 });
 
 test('premium modal is mobile/RTL safe and exposes explicit verify-before-apply semantics',()=>{
@@ -64,10 +64,19 @@ test('text-card share links to the same material truth and single-card ZIP cover
 });
 
 test('RU, EN and HE locales carry the complete P2 surface',()=>{
-  for(const locale of ['en','ru','he']){const text=fs.readFileSync(path.join(root,`public/i18n/locales/${locale}.js`),'utf8');for(const key of ['button','privacy','snapshot','archive','verifying','apply','reused','applied','hub','libraryTab','materialTab','importTab','historyTab','undo','helpButton','helpFullMove','helpMaterialHistory','helpSnapshot','helpCompatibility','shareLegacyTitle','shareLegacyHelp'])assert.match(text,new RegExp(`${key}:`),`${locale}.${key}`);}
+  for(const locale of ['en','ru','he']){const text=fs.readFileSync(path.join(root,`public/i18n/locales/${locale}.js`),'utf8');for(const key of ['button','privacy','snapshot','archive','verifying','apply','reused','applied','hub','libraryTab','materialTab','importTab','historyTab','undo','helpButton','helpFullMove','helpMaterialHistory','helpSnapshot','helpCompatibility','shareLegacyTitle','shareLegacyHelp','cues','currentRows','captionVersions','tableVersions','mediaMismatch','mediaExpected','mediaSelected','mediaTelegram','mediaConnected','mediaMissingShort'])assert.match(text,new RegExp(`${key}:`),`${locale}.${key}`);for(const key of ['labelSourceLink','sourceLinkHelp','provKindPortable','provMethodPortable'])assert.match(text,new RegExp(`${key}:`),`${locale}.textMeta.${key}`);}
 });
 
 test('full backup integration cannot silently omit promoted Studio canon',()=>{
   assert.match(html,/await window\.StudioPortableLearningPackage\.augmentFullBackupZip\(zip, payload\)/);
   assert.match(html,/restoreEmbeddedPackages\(portableRestoreZip\)/);
+});
+
+test('portable media recovery stays available after the transient import step',()=>{
+  assert.match(studio,/mediaForText/);
+  assert.match(studio,/data-action="relink-media"/);
+  assert.match(studio,/MEDIA_SHA_MISMATCH/);
+  assert.match(html,/id="v3TextMetaPortableMedia"/);
+  assert.match(html,/v3TextMetaRelinkMedia/);
+  assert.match(html,/v3TextMetaMediaFile/);
 });

@@ -108,6 +108,20 @@ test('the same package can be applied again after explicit Undo and remains idem
   assert.equal(duplicate.duplicate,true);assert.equal(count(h,'texts'),1);assert.equal(count(h,'studio_learning_materials'),1);
 });
 
+test('import reuses an existing exact media SHA under a different local package id',async()=>{
+  const h=await harness(),v=await verified(),sha=v.manifest.media.sha256;
+  h.db.run(`INSERT INTO studio_media_packages(package_id,media_sha256,mime,duration_ms,original_name,opfs_path,size_bytes,external_ref_json,created_at,updated_at,deleted_at)
+    VALUES('original-local-package','${sha}','video/mp4',120000,'original.mp4','media/${sha}.mp4',987654,'{}','t','t',NULL)`);
+  const plan=await h.repo.dryRun(v);
+  assert.equal(plan.media.status,'exact');
+  const result=await h.repo.applyVerified(v,{plan_sha256:plan.plan_sha256});
+  assert.equal(result.receipt.id_map.media_package.local_id,'original-local-package');
+  assert.equal(result.receipt.id_map.media_package.created,false);
+  assert.equal(count(h,'studio_media_packages'),1);
+  assert.equal(count(h,'texts'),1);
+  assert.deepEqual(h.rows('PRAGMA foreign_key_check'),[]);
+});
+
 test('delete/GC plan blocks when imported closure gained an external user reference',async()=>{
   const h=await harness(),v=await verified(),plan=await h.repo.dryRun(v),applied=await h.repo.applyVerified(v,{plan_sha256:plan.plan_sha256});
   h.db.run('CREATE TABLE user_marks(id TEXT PRIMARY KEY,text_id TEXT);');

@@ -132,3 +132,19 @@ test('workspace view model exposes honest lifecycle state without copying transc
   });
   assert.equal(JSON.stringify(model).includes('segments'), false, 'catalog model must not duplicate transcript content');
 });
+
+test('media relink keeps exact SHA security and exposes actionable mismatch evidence', async () => {
+  const expected = await Core.sha256Hex(new Uint8Array([1, 2, 3]));
+  const actual = await Core.sha256Hex(new Uint8Array([1, 2, 4]));
+  await assert.rejects(
+    StudioMediaPackage.verifyRelinkBytes(expected, new Uint8Array([1, 2, 4])),
+    (error) => {
+      assert.equal(error.code, 'MEDIA_SHA_MISMATCH');
+      assert.equal(error.expected_sha, expected);
+      assert.equal(error.actual_sha, actual);
+      assert.match(error.actual_sha, /^[0-9a-f]{64}$/);
+      return true;
+    },
+  );
+  assert.equal(await StudioMediaPackage.verifyRelinkBytes(expected, new Uint8Array([1, 2, 3]).buffer), true, 'File.arrayBuffer() must be hashed as bytes, not as "[object ArrayBuffer]"');
+});

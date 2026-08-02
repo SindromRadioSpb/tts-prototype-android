@@ -72,7 +72,11 @@
       if (previous && previous.status === 'committed') return { imported: false, duplicate: true, receipt: previous };
 
       const p = verified.payload, manifest = verified.manifest, ts = timestamp();
-      const packageId = 'mpkg:portable:' + shortHash(manifest.roots.media_package);
+      const derivedPackageId = 'mpkg:portable:' + shortHash(manifest.roots.media_package);
+      const packageById = await one('SELECT * FROM studio_media_packages WHERE package_id=?', [derivedPackageId]);
+      if (packageById && String(packageById.media_sha256 || '') !== String(manifest.media.sha256 || '')) throw failure('MEDIA_PACKAGE_ID_CONFLICT');
+      const packageBySha = manifest.media.sha256 ? await one('SELECT * FROM studio_media_packages WHERE media_sha256=? AND deleted_at IS NULL', [manifest.media.sha256]) : null;
+      const packageId = packageById ? derivedPackageId : packageBySha ? String(packageBySha.package_id) : derivedPackageId;
       const trackIds = { [p.raw_track.portable_track_id]: 'track:portable:' + shortHash(p.raw_track.portable_track_id), [p.corrected_track.portable_track_id]: 'track:portable:' + shortHash(p.corrected_track.portable_track_id) };
       const revisionIds = {}, tableIds = {}, rowIds = {};
       for (const doc of p.caption_revisions) revisionIds[doc.portable_revision_id] = 'rev:' + shortHash(doc.portable_revision_id);
@@ -139,8 +143,10 @@
         }
         if (!textByKey) {
           const text = p.material.text || {};
-          await r(`INSERT INTO texts(id,text_key,title,source_text,level,tags_json,source,source_meta_json,created_at,updated_at)
-            VALUES(?,?,?,?,?,?,?,?,?,?)`, [textId, p.material.portable_text_key, text.title || '', text.source_text || '', text.level || null, json(text.tags || []), 'portable-learning-package-v2', json({ schema: 'portable-learning-package-v2', portable_material_id: manifest.roots.learning_material }), ts, ts]);
+          const selectedCaption = p.caption_revisions.find((item) => item.portable_revision_id === manifest.roots.caption_revision);
+          const portableSource = { kind: 'portable-package', method: 'verified-package', source: p.media_ref.original_name || text.title || null, at: ts, portable_package_id: manifest.portable_package_id, content_root_sha256: manifest.content_root_sha256, audio: { media: { sha256: manifest.media.sha256 || null, originalName: p.media_ref.original_name || null, durationSec: manifest.media.duration_ms == null ? null : Math.round(Number(manifest.media.duration_ms) / 1000), mime: manifest.media.mime || null, sizeBytes: manifest.media.size_bytes == null ? null : Number(manifest.media.size_bytes) }, segments: selectedCaption ? selectedCaption.revision.segments || [] : [], timing: true } };
+          await r(`INSERT INTO texts(id,text_key,title,source_text,level,tags_json,source,topic,source_meta_json,created_at,updated_at)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?)`, [textId, p.material.portable_text_key, text.title || '', text.source_text || '', text.level || null, json(text.tags || []), text.source || null, text.topic || null, json({ schema: 'portable-learning-package-v2', portable_material_id: manifest.roots.learning_material, portable_import: { portable_package_id: manifest.portable_package_id, content_root_sha256: manifest.content_root_sha256, imported_at: ts }, source: portableSource }), ts, ts]);
           created.text = true;
         }
         const existingMaterial = await one('SELECT * FROM studio_learning_materials WHERE material_id=? OR text_id=?', [materialId, effectiveTextId]);
@@ -277,6 +283,21 @@
         FROM studio_learning_materials m JOIN texts t ON t.id=m.text_id ORDER BY m.updated_at DESC`);
     }
 
+    async function mediaForText(textId) {
+      return one(`SELECT b.text_id,b.package_id,p.media_sha256,p.mime,p.duration_ms,p.original_name,p.opfs_path,p.size_bytes,
+        m.material_id,m.portable_text_key
+        FROM studio_text_media_bindings b
+        JOIN studio_media_packages p ON p.package_id=b.package_id AND p.deleted_at IS NULL
+        LEFT JOIN studio_learning_materials m ON m.text_id=b.text_id
+        WHERE b.text_id=?`, [textId]);
+    }
+
+    async function mediaForReceipt(receiptId) {
+      const receipt = await getReceipt(receiptId), packageId = receipt && receipt.id_map && receipt.id_map.media_package && receipt.id_map.media_package.local_id;
+      return packageId ? one(`SELECT p.package_id,p.media_sha256,p.mime,p.duration_ms,p.original_name,p.opfs_path,p.size_bytes
+        FROM studio_media_packages p WHERE p.package_id=? AND p.deleted_at IS NULL`, [packageId]) : null;
+    }
+
     async function snapshotForMaterial(materialId) {
       const material = await one(`SELECT m.*,t.text_key,t.title,t.source_text,t.level,t.tags_json,t.source,t.topic,
         t.source_meta_json,t.table_model_meta_json,t.tts_profile_json
@@ -321,13 +342,13 @@
         corrected_track: { track_id: correctedTrack.track_id, role: correctedTrack.role, language: correctedTrack.language || null, parent_track_id: correctedTrack.parent_track_id || null, current_revision_id: correctedTrack.current_revision_id }, corrected_revisions: correctedRevisions,
         material: { material_id: material.material_id, text_id: material.text_id, portable_text_key: material.portable_text_key || material.text_key, current_table_revision_id: material.current_table_revision_id, package_id: material.package_id }, table_revisions: tableRevisions,
         selected_caption_revision_id: selected.bound_caption_revision_id, selected_table_revision_id: selected.table_revision_id,
-        text: { id: material.text_id, text_key: material.text_key, title: material.title, source_text: material.source_text, level: material.level, tags_json: material.tags_json }, text_card: textCard,
+        text: { id: material.text_id, text_key: material.text_key, title: material.title, source_text: material.source_text, level: material.level, tags_json: material.tags_json, source: material.source || null, topic: material.topic || null }, text_card: textCard,
         import_run: parse((rawRevisions[0] && rawRevisions[0].provenance) || {}, {}), quality_report: { ok: true, row_count: selected.rows.length, zero_provider_calls: true },
         _portable_receipt: importedReceipt ? {receipt_id:importedReceipt.receipt_id,content_root_sha256:importedReceipt.content_root_sha256,id_map:parse(importedReceipt.id_map_json,{})} : null,
       };
     }
 
-    return { inventory, dryRun, applyVerified, getReceipt, getReceiptByRoot, listReceipts, listMaterials, reverseReferencePlan, undo, snapshotForMaterial };
+    return { inventory, dryRun, applyVerified, getReceipt, getReceiptByRoot, listReceipts, listMaterials, mediaForText, mediaForReceipt, reverseReferencePlan, undo, snapshotForMaterial };
   }
 
   return { createRepository };

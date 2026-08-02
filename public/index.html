@@ -3731,6 +3731,12 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .p2-format-grid b,.p2-format-grid span { display:block; }
 .p2-format-grid span { margin-top:4px; color:var(--theme-text-secondary,#496966); font-size:12px; line-height:1.35; }
 .p2-portable-status { margin-top:14px; min-height:64px; padding:12px; border-radius:11px; background:var(--theme-bg-soft,#f2f6f6); overflow-wrap:anywhere; }
+.p2-portable-status.p2-portable-error,.p2-receipt-result.p2-portable-error { white-space:pre-line; color:#8b2d22; background:color-mix(in srgb,#c34b3e 8%,var(--theme-bg-card,#fff)); border-inline-start:3px solid #b64235; }
+.p2-plan-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0; }
+.p2-plan-grid span { display:flex; flex-direction:column; gap:2px; padding:8px 10px; border:1px solid color-mix(in srgb,#0b7673 16%,var(--theme-border-medium,#cbd5e1)); border-radius:9px; background:var(--theme-bg-card,#fff); color:var(--theme-text-secondary,#496966); font-size:11px; }
+.p2-plan-grid strong { color:var(--theme-text-primary,#172b31); font-size:18px; }
+.p2-media-summary { display:flex; flex-direction:column; gap:3px; margin:8px 0; padding:9px 10px; border-radius:9px; background:color-mix(in srgb,#0b7673 7%,var(--theme-bg-card,#fff)); }
+.p2-media-summary span,.p2-receipt-media { overflow-wrap:anywhere; }
 .p2-portable-dialog footer { position:sticky; bottom:-18px; display:flex; flex-wrap:wrap; gap:8px; margin:18px -18px -18px; padding:12px 18px max(12px,env(safe-area-inset-bottom)); border-top:1px solid var(--theme-border-medium,#cbd5e1); background:color-mix(in srgb,var(--theme-bg-card,#fff) 94%,transparent); backdrop-filter:blur(10px); }
 .p2-portable-dialog footer button,.p2-portable-apply { min-height:44px; padding:9px 14px; border:1px solid #0b7673; border-radius:10px; background:var(--theme-bg-card,#fff); color:#075e5b; font-weight:700; }
 .p2-portable-apply { margin-top:8px; background:#0b7673; color:#fff; }
@@ -3741,6 +3747,8 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .p2-receipt-card div>* { display:block; }
 .p2-receipt-card div span,.p2-receipt-card code { margin-top:3px; color:var(--theme-text-secondary,#496966); font-size:11px; }
 .p2-receipt-card button { min-height:40px; padding:7px 10px; border:1px solid #9b3d32; border-radius:9px; background:var(--theme-bg-card,#fff); color:#8b2d22; font-weight:750; }
+.p2-receipt-card button.p2-media-relink { border-color:#0b7673; color:#075e5b; }
+.p2-receipt-media[data-available="true"] { color:#08785f !important; }
 .p2-receipt-state { padding:4px 7px; border-radius:99px; background:#e6f3ef; color:#075e5b; font-size:11px; font-weight:800; }
 .p2-receipt-state[data-state="rolled_back"] { background:var(--theme-bg-soft,#f2f6f6); color:var(--theme-text-secondary,#496966); }
 .p2-receipt-result { grid-column:1/-1; min-height:0; margin:0; color:var(--theme-text-secondary,#496966); font-size:12px; line-height:1.4; }
@@ -4293,6 +4301,16 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 #v3TextMetaModal .v3-meta-provenance .v3-meta-prov-audio > div {
   margin: 1px 0;
 }
+#v3TextMetaModal .v3-meta-portable-media { margin:10px 0; padding:12px; border:1px solid color-mix(in srgb,#0b7673 28%,#dbe7e7); border-radius:12px; background:color-mix(in srgb,#0b7673 5%,#fff); }
+#v3TextMetaModal .v3-meta-portable-media[hidden] { display:none; }
+#v3TextMetaModal .v3-meta-portable-head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+#v3TextMetaModal .v3-meta-portable-head span { color:#0b7673; font:750 10px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.05em; }
+#v3TextMetaModal .v3-meta-portable-status { margin-top:5px; font-weight:750; }
+#v3TextMetaModal .v3-meta-portable-details { margin:8px 0; color:#496966; font-size:12px; line-height:1.45; overflow-wrap:anywhere; }
+#v3TextMetaModal .v3-meta-portable-actions { display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+#v3TextMetaModal .v3-meta-portable-actions button { min-height:44px; }
+#v3TextMetaModal .v3-meta-portable-message { white-space:pre-line; color:#496966; font-size:12px; line-height:1.4; }
+#v3TextMetaModal .v3-meta-portable-message.v3-error { color:#8b2d22; }
 
 #v3AnkiModal .v3-help,
 #v3AudioPrefetchModal .v3-help {
@@ -12025,6 +12043,16 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
       <!-- R9 provenance (read-only): import source passport; shown only for imported cards -->
       <div id="v3TextMetaProvenance" class="v3-meta-provenance" dir="auto" style="display:none;"></div>
 
+      <section id="v3TextMetaPortableMedia" class="v3-meta-portable-media" hidden>
+        <div class="v3-meta-portable-head"><div><span data-i18n="studio.portable.material">Учебный материал</span><div id="v3TextMetaMediaStatus" class="v3-meta-portable-status"></div></div></div>
+        <div id="v3TextMetaMediaDetails" class="v3-meta-portable-details"></div>
+        <div class="v3-meta-portable-actions">
+          <button type="button" id="v3TextMetaMediaRelinkBtn" class="btn-secondary" onclick="document.getElementById('v3TextMetaMediaFile').click()" data-i18n="studio.portable.relink">Связать точный медиафайл</button>
+          <span id="v3TextMetaMediaMessage" class="v3-meta-portable-message" aria-live="polite"></span>
+        </div>
+        <input id="v3TextMetaMediaFile" type="file" accept="audio/*,video/*" hidden onchange="v3TextMetaRelinkMedia(event)" />
+      </section>
+
       <div class="v3-form-row">
         <label for="v3TextMetaTitle">Title*</label>
         <input id="v3TextMetaTitle" type="text" maxlength="160" placeholder="Например: Песня / статья / урок" />
@@ -12051,8 +12079,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
       </div>
 
       <div class="v3-form-row">
-        <label for="v3TextMetaSource">Source</label>
-        <input id="v3TextMetaSource" type="text" placeholder="youtube / news / book ..." />
+        <label for="v3TextMetaSource" data-i18n="textMeta.labelSourceLink">Ссылка на источник</label>
+        <input id="v3TextMetaSource" type="text" placeholder="YouTube / статья / книга ..." />
+        <div class="v3-help" data-i18n="textMeta.sourceLinkHelp">Здесь хранится ссылка или название исходного материала. Способ импорта и media identity показываются отдельно выше.</div>
       </div>
 
       <div class="v3-form-row">
@@ -12773,9 +12802,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=103"></script>
-    <script src="/i18n/locales/en.js?v=103"></script>
-    <script src="/i18n/locales/he.js?v=103"></script>
+    <script src="/i18n/locales/ru.js?v=104"></script>
+    <script src="/i18n/locales/en.js?v=104"></script>
+    <script src="/i18n/locales/he.js?v=104"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12932,7 +12961,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.292";
+    window.APP_VERSION = "3.11.293";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -33097,6 +33126,7 @@ function v3TextMetaRenderProvenance(source) {
     docx:  { icon: "📝", label: T("textMeta.provKindWord", "Word") },
     audio: { icon: "🎙", label: T("textMeta.provKindAudio", "Аудио") },
     captions: { icon: "💬", label: T("textMeta.provKindCaptions", "Субтитры") },
+    "portable-package": { icon: "↔", label: T("textMeta.provKindPortable", "Переносимый учебный пакет") },
     retell: { icon: "✨", label: T("textMeta.provKindRetell", "Упрощённый пересказ (ИИ)") },
   };
   const METHOD = {
@@ -33109,6 +33139,7 @@ function v3TextMetaRenderProvenance(source) {
     "captions-file":  T("textMeta.provMethodCaptionsFile", "субтитры из файла (без ИИ)"),
     "captions-panel": T("textMeta.provMethodCaptionsPanel", "вставленная расшифровка YouTube (без ИИ)"),
     "gemini-retell":  T("textMeta.provMethodRetell", "graded-пересказ (Gemini)"),
+    "verified-package": T("textMeta.provMethodPortable", "manifest и SHA-256 проверены локально"),
   };
   let k = KIND[source.kind] || { icon: "📄", label: esc(source.kind) };
   // W2-S4-T2: audio imports whose underlying file was a video (only the audio
@@ -33235,6 +33266,61 @@ function v3TextMetaRenderProvenance(source) {
   }
 }
 
+function v3TextMetaFormatBytes(value) {
+  const bytes = Number(value);
+  if (!Number.isFinite(bytes) || bytes < 0) return "—";
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / 1024 / 1024).toFixed(1) + " MB";
+}
+
+async function v3TextMetaRenderPortableMedia(textId) {
+  const panel = document.getElementById("v3TextMetaPortableMedia");
+  if (!panel) return;
+  const status = document.getElementById("v3TextMetaMediaStatus");
+  const details = document.getElementById("v3TextMetaMediaDetails");
+  const message = document.getElementById("v3TextMetaMediaMessage");
+  const input = document.getElementById("v3TextMetaMediaFile");
+  panel.hidden = true; panel.dataset.textId = String(textId || "");
+  if (message) { message.textContent = ""; message.classList.remove("v3-error"); }
+  if (input) input.value = "";
+  try {
+    if (!window.StudioPortableLearningPackage || !window.StudioPortableLearningPackage.mediaForText) return;
+    const media = await window.StudioPortableLearningPackage.mediaForText(textId);
+    if (!media) return;
+    panel.hidden = false;
+    const T = (k, f) => { try { const v = window.t && window.t(k); return (v && v !== k) ? v : f; } catch (_) { return f; } };
+    status.textContent = media.media_available
+      ? T("studio.portable.mediaConnected", "Медиа связано и доступно на этом устройстве")
+      : T("studio.portable.mediaMissingShort", "Медиа отсутствует на этом устройстве");
+    status.dataset.available = media.media_available ? "true" : "false";
+    const sha = String(media.media_sha256 || "");
+    details.textContent = (media.original_name || T("studio.portable.unnamedMedia", "медиафайл")) + " · " +
+      v3TextMetaFormatBytes(media.size_bytes) + " · SHA-256 " + (sha ? sha.slice(0, 12) + "…" + sha.slice(-8) : "—");
+    panel.dataset.packageId = String(media.package_id || "");
+  } catch (_) { panel.hidden = true; }
+}
+
+async function v3TextMetaRelinkMedia(event) {
+  const input = event && event.target, file = input && input.files && input.files[0];
+  const panel = document.getElementById("v3TextMetaPortableMedia"), message = document.getElementById("v3TextMetaMediaMessage");
+  const textId = panel && panel.dataset.textId;
+  if (!file || !textId || !message) return;
+  const T = (k, f) => { try { const v = window.t && window.t(k); return (v && v !== k) ? v : f; } catch (_) { return f; } };
+  message.classList.remove("v3-error"); message.textContent = T("studio.portable.hashingMedia", "Проверяем SHA-256 и сохраняем медиа локально…");
+  try {
+    await window.StudioPortableLearningPackage.relinkTextMedia(textId, file);
+    await v3TextMetaRenderPortableMedia(textId);
+    document.getElementById("v3TextMetaMediaMessage").textContent = T("studio.portable.relinked", "Медиа связано по точному SHA-256.");
+  } catch (error) {
+    message.classList.add("v3-error");
+    message.textContent = window.StudioPortableLearningPackage && window.StudioPortableLearningPackage.formatPortableError
+      ? window.StudioPortableLearningPackage.formatPortableError(error, file)
+      : (error.code || error.message || "MEDIA_RELINK_FAILED");
+  } finally { input.value = ""; }
+}
+window.v3TextMetaRelinkMedia = v3TextMetaRelinkMedia;
+
 async function v3TextMetaOpen(textId) {
   const id = String(textId || "");
   v3TextMetaEditingId = id;
@@ -33248,7 +33334,8 @@ async function v3TextMetaOpen(textId) {
   const title = String(t.title || t.name || "").trim();
   const level = String(t.level || "").trim();
   const tagsCsv = v3TagsToCsv(t.tags_json || t.tagsJson || t.tags || null);
-  const source = String(t.source || "").trim();
+  const rawSource = String(t.source || "").trim();
+  const source = rawSource === "portable-learning-package-v2" ? "" : rawSource;
   const topic = String(t.topic || "").trim();
 
   v3MetaEl("v3TextMetaTitle").value = title;
@@ -33272,6 +33359,7 @@ async function v3TextMetaOpen(textId) {
     }
     v3TextMetaRenderProvenance(sm && sm.source ? sm.source : null);
   } catch (_) { try { v3TextMetaRenderProvenance(null); } catch (_2) {} }
+  await v3TextMetaRenderPortableMedia(id);
   try {
     const ttl = v3MetaEl("v3TextMetaTitle"), src = v3MetaEl("v3TextMetaSource");
     ttl.readOnly = isCorpus; src.readOnly = isCorpus;

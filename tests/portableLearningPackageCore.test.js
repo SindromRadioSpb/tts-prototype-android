@@ -91,6 +91,22 @@ test('no-write dry-run exposes exact reuse/conflict/missing-media plan', async (
   assert.equal(conflict.conflicts[0].code, 'PORTABLE_ID_HASH_CONFLICT');
 });
 
+test('dry-run reports the selected table rows and selected transcript cues, not the sum of history', async () => {
+  const input = fixture();
+  input.table_revisions = [
+    { ...input.table_revisions[0], table_revision_id: 'table-history-1', content_sha256: '1'.repeat(64), mapping_sha256: '2'.repeat(64), rows: [{ ...input.table_revisions[0].rows[0], ru: 'старый перевод', caption_segment_id: null, source_segment_ids: [] }] },
+    { ...input.table_revisions[0], table_revision_id: 'table-history-2', parent_revision_id: 'table-history-1', revision_no: 2, content_sha256: '3'.repeat(64), mapping_sha256: '4'.repeat(64) },
+  ];
+  input.material.current_table_revision_id = 'table-history-2';
+  input.selected_table_revision_id = 'table-history-2';
+  const verified = await Core.verifyPackageFiles(await Core.buildPackageFiles(input, { mode: 'archive' }));
+  const plan = await Core.dryRun(verified, { nodes: {}, texts: {}, media_sha256: [] });
+  assert.equal(plan.estimated.row_count, 1, 'current table only');
+  assert.equal(plan.estimated.cue_count, 1, 'selected corrected transcript only');
+  assert.equal(plan.estimated.history_row_count, 2, 'history is disclosed separately');
+  assert.equal(plan.estimated.table_revision_count, 2);
+});
+
 test('independent oracle accepts re-export semantic equality and rejects drift', async () => {
   const source=await Core.buildPackageFiles(fixture(),{mode:'archive',exported_at:'2026-08-02T00:00:00Z'});
   const target=await Core.buildPackageFiles(fixture(),{mode:'archive',exported_at:'2026-08-02T02:00:00Z'});
