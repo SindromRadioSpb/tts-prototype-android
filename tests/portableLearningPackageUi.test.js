@@ -25,6 +25,15 @@ test('P4 exposes one five-view Import Center and compatibility aliases use expli
   assert.match(html,/StudioPortableLearningPackage\.open\(\{view:'materials',intent:'move-device'/);
 });
 
+test('P4 presence-only action buttons dispatch by attribute presence instead of empty dataset values',()=>{
+  assert.match(studio,/function actionTarget\(event,selector\)[^{]*\{[^}]*closest\(selector\)/s);
+  assert.ok((studio.match(/actionTarget\(event,'\[data-back\]'\)/g)||[]).length>=3,'every guided footer must wire Back through closest()');
+  for(const selector of ['generate','pick','delete-plan','export-diagnostics','persist']){
+    assert.match(studio,new RegExp(`actionTarget\\(event,'\\[data-${selector}\\]'\\)`),`data-${selector} must dispatch by attribute presence`);
+  }
+  assert.doesNotMatch(studio,/event\.target\.dataset\.(?:back|generate|pick|deletePlan|exportDiagnostics|persist)\b/,'empty-string dataset values must not be used as booleans');
+});
+
 test('continuity rail keeps semantic Source to Backup order and catalog DOM is bounded',()=>{
   const order=['source','transcript','table','media','backup'].map(stage=>studio.indexOf(`data-stage="${stage}"`));
   assert.ok(order.every(index=>index>=0));
