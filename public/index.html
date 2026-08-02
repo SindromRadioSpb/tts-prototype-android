@@ -3700,10 +3700,48 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .p2-portable-privacy { margin:14px 0; padding:12px; border-inline-start:3px solid #0b7673; border-radius:8px; background:color-mix(in srgb,#0b7673 6%,transparent); line-height:1.45; }
 .p2-portable-dialog label,.p2-portable-dialog select { display:block; width:100%; }
 .p2-portable-dialog select { min-height:46px; margin-top:7px; padding:8px 10px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:10px; background:var(--theme-bg-card,#fff); color:inherit; }
+.p2-portable-tabs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; margin:0 0 14px; padding:4px; border:1px solid color-mix(in srgb,#0b7673 18%,var(--theme-border-medium,#cbd5e1)); border-radius:12px; background:color-mix(in srgb,#0b7673 4%,var(--theme-bg-card,#fff)); }
+.p2-portable-tabs button { min-height:42px; border:0; border-radius:9px; background:transparent; color:var(--theme-text-secondary,#496966); font-weight:750; }
+.p2-portable-tabs button[aria-current="page"] { background:var(--theme-bg-card,#fff); color:#075e5b; box-shadow:0 3px 12px rgba(18,59,57,.1); }
+.p2-scope-map { display:grid; grid-template-columns:1.2fr .8fr; gap:12px; }
+.p2-scope-card,.p2-receipt-intro { padding:14px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:13px; background:var(--theme-bg-card,#fff); }
+.p2-scope-recommended { border-color:color-mix(in srgb,#0b7673 45%,var(--theme-border-medium,#cbd5e1)); background:linear-gradient(145deg,color-mix(in srgb,#0b7673 7%,var(--theme-bg-card,#fff)),var(--theme-bg-card,#fff) 58%); }
+.p2-scope-eyebrow { display:block; margin-bottom:5px; color:#0b7673; font:800 10px/1.25 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.07em; }
+.p2-scope-card h4,.p2-receipt-intro h4 { margin:0 0 6px; font-size:17px; }
+.p2-scope-card p,.p2-receipt-intro p { margin:0; color:var(--theme-text-secondary,#496966); line-height:1.45; }
+.p2-scope-actions { display:flex; flex-wrap:wrap; gap:7px; margin-top:13px; }
+.p2-scope-actions button { min-height:44px; padding:8px 12px; border:1px solid #0b7673; border-radius:10px; background:var(--theme-bg-card,#fff); color:#075e5b; font-weight:750; }
+.p2-material-scope,.p2-import-scope { background:color-mix(in srgb,#0b7673 3%,var(--theme-bg-card,#fff)); }
+.p2-format-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+.p2-format-grid article { padding:10px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:10px; background:var(--theme-bg-card,#fff); }
+.p2-format-grid b,.p2-format-grid span { display:block; }
+.p2-format-grid span { margin-top:4px; color:var(--theme-text-secondary,#496966); font-size:12px; line-height:1.35; }
 .p2-portable-status { margin-top:14px; min-height:64px; padding:12px; border-radius:11px; background:var(--theme-bg-soft,#f2f6f6); overflow-wrap:anywhere; }
 .p2-portable-dialog footer { position:sticky; bottom:-18px; display:flex; flex-wrap:wrap; gap:8px; margin:18px -18px -18px; padding:12px 18px max(12px,env(safe-area-inset-bottom)); border-top:1px solid var(--theme-border-medium,#cbd5e1); background:color-mix(in srgb,var(--theme-bg-card,#fff) 94%,transparent); backdrop-filter:blur(10px); }
 .p2-portable-dialog footer button,.p2-portable-apply { min-height:44px; padding:9px 14px; border:1px solid #0b7673; border-radius:10px; background:var(--theme-bg-card,#fff); color:#075e5b; font-weight:700; }
 .p2-portable-apply { margin-top:8px; background:#0b7673; color:#fff; }
+.p2-portable-primary { background:#0b7673 !important; color:#fff !important; }
+.p2-receipt-section { display:grid; gap:10px; }
+#p2ReceiptList { display:grid; gap:8px; }
+.p2-receipt-card { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 12px; align-items:start; padding:12px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:11px; background:var(--theme-bg-card,#fff); }
+.p2-receipt-card div>* { display:block; }
+.p2-receipt-card div span,.p2-receipt-card code { margin-top:3px; color:var(--theme-text-secondary,#496966); font-size:11px; }
+.p2-receipt-card button { min-height:40px; padding:7px 10px; border:1px solid #9b3d32; border-radius:9px; background:var(--theme-bg-card,#fff); color:#8b2d22; font-weight:750; }
+.p2-receipt-state { padding:4px 7px; border-radius:99px; background:#e6f3ef; color:#075e5b; font-size:11px; font-weight:800; }
+.p2-receipt-state[data-state="rolled_back"] { background:var(--theme-bg-soft,#f2f6f6); color:var(--theme-text-secondary,#496966); }
+.p2-receipt-result { grid-column:1/-1; min-height:0; margin:0; color:var(--theme-text-secondary,#496966); font-size:12px; line-height:1.4; }
+.v3-tcs-portable { margin-top:12px; padding:12px; border:1px solid color-mix(in srgb,#0b7673 35%,var(--theme-border-medium,#cbd5e1)); border-radius:11px; background:color-mix(in srgb,#0b7673 5%,var(--theme-bg-card,#fff)); }
+.v3-tcs-portable[hidden] { display:none; }
+.v3-tcs-portable h4 { margin:0 0 5px; }
+.v3-tcs-portable p { margin:0 0 9px; color:var(--theme-text-secondary,#496966); font-size:12px; line-height:1.4; }
+.v3-tcs-portable button { min-height:44px; }
+@media (max-width:600px) {
+  .p2-portable-tabs { grid-template-columns:1fr 1fr; }
+  .p2-scope-map,.p2-format-grid { grid-template-columns:1fr; }
+  .p2-scope-actions,.p2-scope-actions button { width:100%; }
+  .p2-receipt-card { grid-template-columns:1fr; }
+  .p2-receipt-result { grid-column:1; }
+}
 #l3WorkspaceCard button,#l3WorkspaceLibraryBtn,#l3WorkspaceShelf button { width:auto; }
 #l3WorkspaceLibraryCount { display:inline-grid; min-width:18px; height:18px; padding:0 4px; place-items:center; border-radius:99px; background:#e2eeff; color:#245bb3; font:700 10px/1 ui-monospace,Consolas,monospace; }
 .l3-workspace-shelf { margin-bottom:14px; padding:12px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:11px; background:color-mix(in srgb,#0b7673 4%,var(--theme-bg-card,#fff)); }
@@ -11051,13 +11089,14 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                             <div class="l3-workspace-actions">
                                 <button type="button" id="l3WorkspaceReopenBtn" class="btn-primary" onclick="StudioMediaPackage.openActiveWorkspace()" data-i18n="studio.mediaPackage.workspaceReopen">Редактировать материал</button>
                                 <button type="button" class="btn-secondary" onclick="StudioMediaPackage.openWorkspaceLibrary()" data-i18n="studio.mediaPackage.workspaceAll">Все сохранённые транскрипты</button>
-                                <button type="button" class="btn-secondary" onclick="StudioPortableLearningPackage.open()" data-i18n="studio.portable.button">Переносимый пакет</button>
+                                <button type="button" class="btn-secondary" onclick="StudioPortableLearningPackage.open({view:'material'})" data-i18n="studio.portable.button">Переносимый пакет</button>
                             </div>
                         </section>
 
                         <div id="v3ImportEntry" style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap;">
                             <button type="button" class="btn-secondary" onclick="window.StudioImport && StudioImport.open()">📥 <span data-i18n="studio.import.button">Импорт: ссылка / файл / фото</span></button>
                             <button type="button" id="v3RetellEntryBtn" class="btn-secondary" onclick="window.StudioRetell && StudioRetell.openFromComposer()">✨ <span data-i18n="studio.retell.button">Упростить до моего уровня</span></button>
+                            <button type="button" id="v3PortableGlobalBtn" class="btn-secondary" onclick="StudioPortableLearningPackage.open({view:'import'})">↔ <span data-i18n="studio.portable.globalEntry">Перенос / восстановление</span></button>
                             <button type="button" id="l3WorkspaceLibraryBtn" class="btn-secondary" onclick="StudioMediaPackage.openWorkspaceLibrary()" hidden>✎ <span data-i18n="studio.mediaPackage.workspaceLibrary">Транскрипты</span> <span id="l3WorkspaceLibraryCount">0</span></button>
                         </div>
 
@@ -11453,10 +11492,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
   <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
     <button class="btn-primary" onclick="v3TextCardBuilderOpen()" data-i18n="library.bulkBuilder" title="Создать text-card pack из нескольких текстов сразу (Direction 10 Mode A)">📦 Новая text-card</button>
     <button class="btn-secondary" onclick="v3FeedbackOpen('cardrequest')" data-i18n="library.cardRequest" data-i18n-title="library.cardRequestTitle" title="Заявка на text-card — Standard branch перенаправит в bulk-builder; Curated отправит запрос на ручную обработку">📥 Заявка на text-card</button>
-    <button class="btn-secondary" onclick="v3LibraryExport()" data-i18n="library.exportJson">Экспорт JSON</button>
-    <button class="btn-secondary" onclick="v3LibraryImport()" data-i18n="library.importJson">Импорт JSON</button>
-    <button class="btn-secondary" onclick="v3LibraryExportBundle()" data-i18n="library.exportZip">Экспорт ZIP (с аудио)</button>
-    <button class="btn-secondary" onclick="v3LibraryImportBundle()" data-i18n="library.importZip">Импорт ZIP (с аудио)</button>
+    <button id="v3PortabilityHubBtn" class="btn-primary" onclick="StudioPortableLearningPackage.open({view:'library'})" data-i18n="studio.portable.hub">Перенос и резервные копии</button>
     <button id="v3LibraryImportFromCloudBtn" class="btn-secondary" onclick="v3LibraryImportFromCloud()" style="display:none;" title="Загрузить вашу библиотеку с Railway-сервера в OPFS — одноразовая операция при переходе на localMode">⬇ Импорт из облака</button>
     <button id="v3LibraryWipeAllBtn" class="btn-secondary" onclick="v3LibraryWipeAllConfirm()" style="display:none; color:#b91c1c; border-color:#fecaca; background:#fef2f2;" title="Удалить ВСЁ из локальной библиотеки. Полный сброс OPFS. Действие необратимо.">⚠ Сбросить локальную библиотеку</button>
     <button class="btn-secondary" onclick="v3LibraryRefresh()" data-i18n="library.refresh">Обновить</button>
@@ -11670,6 +11706,11 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
       <div id="v3TcsPreview" class="v3-tcs-preview">
         <!-- card preview rendered by v3TextCardShareOpen -->
       </div>
+      <section id="v3TcsPortableSection" class="v3-tcs-portable" hidden>
+        <h4 data-i18n="studio.portable.shareMaterialTitle">Материал с полной историей</h4>
+        <p data-i18n="studio.portable.shareMaterialHelp">Для этого текста есть неизменяемые версии транскрипта, таблицы и точные связи. ZIP карточки также включит portable archive.</p>
+        <button type="button" class="btn-secondary" onclick="StudioPortableLearningPackage.openForText(v3TcsCurrentTextId)" data-i18n="studio.portable.openMaterialTransfer">Открыть перенос материала</button>
+      </section>
       <!-- E1: прежний текст обещал «10–50 KB» — это было верно для v1 (только таблица).
            v2 везёт ещё и паспорт источника, а он на длинном медиа доходит до сотен КБ. -->
       <div class="v3-tcs-info" data-i18n="tcs.audioInfo">
@@ -12714,9 +12755,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=100"></script>
-    <script src="/i18n/locales/en.js?v=100"></script>
-    <script src="/i18n/locales/he.js?v=100"></script>
+    <script src="/i18n/locales/ru.js?v=101"></script>
+    <script src="/i18n/locales/en.js?v=101"></script>
+    <script src="/i18n/locales/he.js?v=101"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12873,7 +12914,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.289";
+    window.APP_VERSION = "3.11.290";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -41211,7 +41252,9 @@ async function v3TextCardShareOpen(textId) {
   if (!modal) return;
   const preview = document.getElementById('v3TcsPreview');
   const status = document.getElementById('v3TcsStatus');
+  const portableSection = document.getElementById('v3TcsPortableSection');
   if (status) { status.textContent = ''; status.className = 'v3-tcs-status'; }
+  if (portableSection) portableSection.hidden = true;
   v3TcsCurrentTextId = String(textId || '');
   v3TcsCurrentCard = null;
 
@@ -41233,6 +41276,11 @@ async function v3TextCardShareOpen(textId) {
       (samples ? '<div class="v3-tcs-preview-sample">' + samples + '</div>' : '');
     if (preview) preview.innerHTML = html;
 
+    if (portableSection && window.StudioPortableLearningPackage && typeof window.StudioPortableLearningPackage.materialForText === 'function') {
+      const portableMaterial = await window.StudioPortableLearningPackage.materialForText(textId);
+      portableSection.hidden = !portableMaterial;
+    }
+
     // Hide native share btn on desktop where navigator.share + files isn't supported.
     const nativeBtn = document.getElementById('v3TcsBtnNative');
     const canShareFiles = !!(navigator.share && navigator.canShare);
@@ -41249,6 +41297,8 @@ window.v3TextCardShareOpen = v3TextCardShareOpen;
 function v3TextCardShareClose() {
   const modal = document.getElementById('v3TextCardShareModal');
   if (modal) modal.classList.add('hidden');
+  const portableSection = document.getElementById('v3TcsPortableSection');
+  if (portableSection) portableSection.hidden = true;
   v3TcsCurrentTextId = null;
   v3TcsCurrentCard = null;
 }
@@ -41343,7 +41393,7 @@ async function v3TextCardShareDownloadZip() {
     for (let i = 0; i < Math.min(CONCURRENCY, keys.length); i++) workers.push(worker());
     await Promise.all(workers);
     zip.file('library/library.json', JSON.stringify(bundle.library, null, 2));
-    zip.file('manifest.json', JSON.stringify({
+    const manifest = {
       format: 'linguistpro-bundle',
       schema_version: 1,
       generated_at: new Date().toISOString(),
@@ -41351,7 +41401,11 @@ async function v3TextCardShareDownloadZip() {
       text_count: 1,
       audio_count: keys.length - missing.length,
       missing_audio: missing.length,
-    }, null, 2));
+    };
+    if (window.StudioPortableLearningPackage && typeof window.StudioPortableLearningPackage.augmentTextBackupZip === 'function') {
+      await window.StudioPortableLearningPackage.augmentTextBackupZip(zip, manifest, v3TcsCurrentTextId);
+    }
+    zip.file('manifest.json', JSON.stringify(manifest, null, 2));
     if (missing.length) zip.file('metadata/missing_audio.json', JSON.stringify(missing, null, 2));
 
     const blob = await zip.generateAsync({ type: 'blob' });

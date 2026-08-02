@@ -26,3 +26,34 @@ test('full backup aborts visibly when any promoted material cannot be archived',
   Studio.setRepositoryForTests({listMaterials:async()=>[{material_id:'broken'}],snapshotForMaterial:async()=>{throw new Error('MATERIAL_HEAD_INVALID');}});
   await assert.rejects(()=>Studio.augmentFullBackupZip(new JSZip(),{manifest:{}}),/MATERIAL_HEAD_INVALID/);
 });
+
+test('single text-card ZIP embeds its matching portable material archive only',async()=>{
+  const fake={
+    listMaterials:async()=>[
+      {material_id:'m1',text_id:'text-1',portable_text_key:'backup-key',title:'Backup fixture'},
+      {material_id:'m2',text_id:'text-2',portable_text_key:'other-key',title:'Other fixture'},
+    ],
+    snapshotForMaterial:async materialId=>{
+      assert.equal(materialId,'m1');
+      return source();
+    },
+  };
+  Studio.setRepositoryForTests(fake);
+  const zip=new JSZip(),manifest={};
+  const index=await Studio.augmentTextBackupZip(zip,manifest,'text-1');
+  assert.equal(index.packages.length,1);
+  assert.equal(manifest.portable_learning_packages_count,1);
+  assert.equal(manifest.portable_learning_packages_complete,true);
+  assert.ok(zip.file('learning-packages/index.json'));
+  assert.ok(zip.file(index.packages[0].path));
+});
+
+test('single legacy text-card ZIP declares zero P2 coverage without inventing a material',async()=>{
+  Studio.setRepositoryForTests({listMaterials:async()=>[]});
+  const zip=new JSZip(),manifest={};
+  const index=await Studio.augmentTextBackupZip(zip,manifest,'legacy-text');
+  assert.equal(index.packages.length,0);
+  assert.equal(manifest.portable_learning_packages_count,0);
+  assert.equal(manifest.portable_learning_packages_complete,true);
+  assert.ok(zip.file('learning-packages/index.json'));
+});

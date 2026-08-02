@@ -97,6 +97,17 @@ test('explicit receipt undo removes only created closure and keeps the inert rec
   assert.deepEqual(h.rows('PRAGMA foreign_key_check'),[]);
 });
 
+test('the same package can be applied again after explicit Undo and remains idempotent',async()=>{
+  const h=await harness(),v=await verified(),firstPlan=await h.repo.dryRun(v);
+  const first=await h.repo.applyVerified(v,{plan_sha256:firstPlan.plan_sha256});
+  await h.repo.undo(first.receipt.receipt_id,{confirm:true});
+  const secondPlan=await h.repo.dryRun(v),second=await h.repo.applyVerified(v,{plan_sha256:secondPlan.plan_sha256});
+  assert.equal(second.imported,true);assert.equal(second.receipt.status,'committed');
+  assert.equal(count(h,'studio_portable_import_receipts'),1);
+  const duplicatePlan=await h.repo.dryRun(v),duplicate=await h.repo.applyVerified(v,{plan_sha256:duplicatePlan.plan_sha256});
+  assert.equal(duplicate.duplicate,true);assert.equal(count(h,'texts'),1);assert.equal(count(h,'studio_learning_materials'),1);
+});
+
 test('delete/GC plan blocks when imported closure gained an external user reference',async()=>{
   const h=await harness(),v=await verified(),plan=await h.repo.dryRun(v),applied=await h.repo.applyVerified(v,{plan_sha256:plan.plan_sha256});
   h.db.run('CREATE TABLE user_marks(id TEXT PRIMARY KEY,text_id TEXT);');

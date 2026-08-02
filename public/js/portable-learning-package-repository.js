@@ -200,7 +200,22 @@
         const resultBase = { portable_package_id: manifest.portable_package_id, content_root_sha256: manifest.content_root_sha256, counts, id_map: idMap };
         const resultHash = await Core.hashObject(resultBase), receiptId = 'portable-receipt:' + manifest.content_root_sha256;
         await r(`INSERT INTO studio_portable_import_receipts(receipt_id,portable_package_id,content_root_sha256,manifest_sha256,schema_version,package_mode,status,plan_sha256,result_sha256,counts_json,id_map_json,rollback_json,missing_media_json,created_at,rolled_back_at)
-          VALUES(?,?,?,?,?,?,'committed',?,?,?,?,?,?,?,NULL)`, [receiptId, manifest.portable_package_id, manifest.content_root_sha256, verified.manifest_sha256, 2, manifest.package_mode, currentPlan.plan_sha256, resultHash, json(counts), json(idMap), json(rollback), json(currentPlan.media.status === 'missing' ? [manifest.media.sha256] : []), ts]);
+          VALUES(?,?,?,?,?,?,'committed',?,?,?,?,?,?,?,NULL)
+          ON CONFLICT(receipt_id) DO UPDATE SET
+            portable_package_id=excluded.portable_package_id,
+            content_root_sha256=excluded.content_root_sha256,
+            manifest_sha256=excluded.manifest_sha256,
+            schema_version=excluded.schema_version,
+            package_mode=excluded.package_mode,
+            status='committed',
+            plan_sha256=excluded.plan_sha256,
+            result_sha256=excluded.result_sha256,
+            counts_json=excluded.counts_json,
+            id_map_json=excluded.id_map_json,
+            rollback_json=excluded.rollback_json,
+            missing_media_json=excluded.missing_media_json,
+            created_at=excluded.created_at,
+            rolled_back_at=NULL`, [receiptId, manifest.portable_package_id, manifest.content_root_sha256, verified.manifest_sha256, 2, manifest.package_mode, currentPlan.plan_sha256, resultHash, json(counts), json(idMap), json(rollback), json(currentPlan.media.status === 'missing' ? [manifest.media.sha256] : []), ts]);
         inject(options.fault_inject, 'after_receipt');
         await x('RELEASE p2_portable_import;');
         return { imported: true, duplicate: false, receipt: await getReceiptByRoot(manifest.portable_package_id, manifest.content_root_sha256) };
@@ -247,11 +262,18 @@
     }
 
     async function listReceipts() {
-      return q('SELECT receipt_id,portable_package_id,content_root_sha256,package_mode,status,created_at,rolled_back_at FROM studio_portable_import_receipts ORDER BY created_at DESC');
+      return q(`SELECT r.receipt_id,r.portable_package_id,r.content_root_sha256,r.package_mode,
+        r.status,r.counts_json,r.id_map_json,r.missing_media_json,r.created_at,r.rolled_back_at,
+        json_extract(r.id_map_json,'$.material.local_id') AS material_id,t.title
+        FROM studio_portable_import_receipts r
+        LEFT JOIN studio_learning_materials m
+          ON m.material_id=json_extract(r.id_map_json,'$.material.local_id')
+        LEFT JOIN texts t ON t.id=m.text_id
+        ORDER BY r.created_at DESC`);
     }
 
     async function listMaterials() {
-      return q(`SELECT m.material_id,m.portable_text_key,t.title,m.updated_at
+      return q(`SELECT m.material_id,m.text_id,m.portable_text_key,t.title,m.updated_at
         FROM studio_learning_materials m JOIN texts t ON t.id=m.text_id ORDER BY m.updated_at DESC`);
     }
 
