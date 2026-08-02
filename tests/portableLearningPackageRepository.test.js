@@ -40,6 +40,28 @@ async function harness() {
 async function verified() { return Core.verifyPackageFiles(await Core.buildPackageFiles(fixture(),{mode:'archive'})); }
 function count(h,table){return h.rows(`SELECT COUNT(*) n FROM ${table}`)[0].n;}
 
+function localRevisionId(portableId) {
+  const match = /([a-f0-9]{64})$/.exec(String(portableId));
+  assert.ok(match, `portable revision id must end with a SHA-256: ${portableId}`);
+  return `rev:${match[1]}`;
+}
+
+function seedExactCaptionHistory(h, v) {
+  const payload = v.payload, sha = v.manifest.media.sha256;
+  h.db.run(`INSERT INTO studio_media_packages(package_id,media_sha256,mime,duration_ms,original_name,opfs_path,size_bytes,external_ref_json,created_at,updated_at,deleted_at)
+    VALUES('existing-package',?,'video/mp4',120000,'existing.mp4',?,987654,'{}','t','t',NULL)`, [sha, `media/${sha}.mp4`]);
+  h.db.run("INSERT INTO studio_caption_tracks(track_id,package_id,role,language,created_at,updated_at) VALUES('existing-raw','existing-package','raw_original','he','t','t')");
+  h.db.run("INSERT INTO studio_caption_tracks(track_id,package_id,role,language,parent_track_id,created_at,updated_at) VALUES('existing-corrected','existing-package','user_corrected','he','existing-raw','t','t')");
+  for (const doc of payload.caption_revisions) {
+    const isRaw = doc.portable_revision_id === payload.raw_track.current_revision_id;
+    const trackId = isRaw ? 'existing-raw' : 'existing-corrected';
+    const revision = doc.revision, revisionId = localRevisionId(doc.portable_revision_id);
+    h.db.run(`INSERT INTO studio_caption_revisions(revision_id,track_id,parent_revision_id,revision_no,segments_json,operations_json,canonical_sha256,author_kind,provenance_json,created_at)
+      VALUES(?,?,NULL,?,?,?,?,?,?,?)`, [revisionId, trackId, Number(revision.revision_no), JSON.stringify(revision.segments || []), JSON.stringify(revision.operations || []), revision.canonical_sha256, revision.author_kind || 'user', JSON.stringify(revision.provenance || {}), revision.created_at || 't']);
+    h.db.run('UPDATE studio_caption_tracks SET current_revision_id=? WHERE track_id=?', [revisionId, trackId]);
+  }
+}
+
 test('v47 is receipt-only and dry-run performs no writes', async () => {
   const h=await harness(), names=h.rows("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'studio_portable_%'").map(x=>x.name);
   assert.deepEqual(names,['studio_portable_import_receipts']);
@@ -156,6 +178,37 @@ test('import reuses an existing exact media SHA under a different local package 
   assert.equal(result.receipt.id_map.media_package.created,false);
   assert.equal(count(h,'studio_media_packages'),1);
   assert.equal(count(h,'texts'),1);
+  assert.deepEqual(h.rows('PRAGMA foreign_key_check'),[]);
+});
+
+test('import reuses an existing exact caption history without a cross-track media binding',async()=>{
+  const h=await harness(),v=await verified();seedExactCaptionHistory(h,v);
+  const plan=await h.repo.dryRun(v),result=await h.repo.applyVerified(v,{plan_sha256:plan.plan_sha256});
+  const binding=h.rows('SELECT package_id,track_id,revision_id,revision_sha256 FROM studio_text_media_bindings')[0];
+  assert.equal(binding.package_id,'existing-package');
+  assert.equal(binding.track_id,'existing-corrected');
+  assert.equal(h.rows('SELECT track_id FROM studio_caption_revisions WHERE revision_id=?',[binding.revision_id])[0].track_id,binding.track_id);
+  assert.equal(result.receipt.id_map.nodes[v.payload.corrected_track.portable_track_id].local_id,'existing-corrected');
+  assert.equal(count(h,'studio_caption_tracks'),2,'reuse must not leave empty duplicate portable tracks');
+  assert.deepEqual(h.rows('PRAGMA foreign_key_check'),[]);
+});
+
+test('History can repair a legacy cross-track binding without the Source package',async()=>{
+  const h=await harness(),v=await verified(),plan=await h.repo.dryRun(v),applied=await h.repo.applyVerified(v,{plan_sha256:plan.plan_sha256});
+  const correctedPortable=v.payload.corrected_track.portable_track_id;
+  const binding=h.rows('SELECT * FROM studio_text_media_bindings')[0],actualTrack='existing-corrected';
+  h.db.run("INSERT INTO studio_caption_tracks(track_id,package_id,role,language,created_at,updated_at) VALUES(?,?,'user_corrected','he','t','t')",[actualTrack,binding.package_id]);
+  h.db.run('UPDATE studio_caption_revisions SET track_id=? WHERE revision_id=?',[actualTrack,binding.revision_id]);
+  const before=await h.repo.receiptIntegrity(applied.receipt.receipt_id);
+  assert.equal(before.state,'repairable');
+  assert.deepEqual(before.missing,['text_media_binding_target']);
+  assert.equal(before.requires_source_package,false);
+  const repaired=await h.repo.repairTextMediaBinding(applied.receipt.receipt_id);
+  assert.equal(repaired.repaired,true);
+  assert.equal(h.rows('SELECT track_id FROM studio_text_media_bindings')[0].track_id,actualTrack);
+  assert.equal(repaired.receipt.id_map.nodes[correctedPortable].local_id,actualTrack);
+  assert.equal(count(h,'studio_caption_tracks'),2,'repair removes only the empty obsolete imported track');
+  assert.equal((await h.repo.receiptIntegrity(applied.receipt.receipt_id)).state,'complete');
   assert.deepEqual(h.rows('PRAGMA foreign_key_check'),[]);
 });
 

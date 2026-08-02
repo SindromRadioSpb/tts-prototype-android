@@ -70,6 +70,15 @@
       if (!material) missing.push('material');
       if (!media || media.deleted_at) missing.push('media_package');
       if (!binding) missing.push('text_media_binding');
+      if (binding) {
+        const target = await one(`SELECT r.track_id AS revision_track_id,r.canonical_sha256,t.package_id AS revision_package_id,t.role AS revision_track_role
+          FROM studio_caption_revisions r JOIN studio_caption_tracks t ON t.track_id=r.track_id
+          WHERE r.revision_id=?`, [binding.revision_id]);
+        if (!target) missing.push('caption_revisions');
+        else if (String(target.canonical_sha256 || '') !== String(binding.revision_sha256 || '')) conflicts.push({ code: 'TEXT_MEDIA_BINDING_HASH_CONFLICT', id: textId });
+        else if (String(target.revision_package_id || '') !== String(binding.package_id || '') || target.revision_track_role !== 'user_corrected') conflicts.push({ code: 'TEXT_MEDIA_BINDING_PACKAGE_CONFLICT', id: textId });
+        else if (String(target.revision_track_id) !== String(binding.track_id)) missing.push('text_media_binding_target');
+      }
       if (text && expected && String(text.text_key || '') !== String(expected.material.portable_text_key || '')) conflicts.push({ code: 'TEXT_KEY_CONTENT_CONFLICT', id: textId });
       if (material && (String(material.text_id) !== String(textId) || String(material.portable_text_key || '') !== String(expected ? expected.material.portable_text_key : material.portable_text_key || ''))) conflicts.push({ code: 'LEARNING_MATERIAL_ID_CONFLICT', id: materialId });
       if (media && expected && String(media.media_sha256 || '') !== String(verified.manifest.media.sha256 || '')) conflicts.push({ code: 'MEDIA_PACKAGE_ID_CONFLICT', id: packageId });
@@ -122,7 +131,7 @@
       return {
         state: cleanConflicts.length ? 'conflict' : cleanMissing.length ? 'repairable' : archived ? 'archived' : 'complete',
         missing: cleanMissing, conflicts: cleanConflicts, archived,
-        requires_source_package: cleanMissing.length > 0,
+        requires_source_package: cleanMissing.some((item) => item !== 'text_media_binding_target'),
         receipt_id: receipt.receipt_id,
       };
     }
@@ -183,11 +192,28 @@
       const selectedRevisionId = revisionIds[manifest.roots.caption_revision];
       if (!selectedTableId || !selectedRevisionId) throw failure('PACKAGE_ROOT_LOCAL_MAP_MISSING');
       const selectedTable = p.table_revisions.find((item) => item.portable_table_revision_id === manifest.roots.table_revision);
+      const artifactById = new Map((verified.graph.artifacts || []).map((node) => [node.id, node]));
+      for (const track of [p.raw_track, p.corrected_track]) {
+        const candidates = [];
+        for (const doc of p.caption_revisions) {
+          const artifact = artifactById.get(doc.portable_revision_id), role = artifact && artifact.metadata && artifact.metadata.role;
+          if (role !== track.role) continue;
+          const existingRevision = await one(`SELECT r.track_id,r.canonical_sha256,t.package_id,t.role,t.language
+            FROM studio_caption_revisions r JOIN studio_caption_tracks t ON t.track_id=r.track_id WHERE r.revision_id=?`, [revisionIds[doc.portable_revision_id]]);
+          if (!existingRevision) continue;
+          if (String(existingRevision.canonical_sha256 || '') !== String(doc.revision.canonical_sha256 || '')) throw failure('CAPTION_REVISION_ID_CONFLICT', revisionIds[doc.portable_revision_id]);
+          if (String(existingRevision.package_id || '') !== String(packageId) || existingRevision.role !== track.role || String(existingRevision.language || '') !== String(track.language || '')) throw failure('CAPTION_REVISION_TRACK_CONFLICT', revisionIds[doc.portable_revision_id]);
+          candidates.push(String(existingRevision.track_id));
+        }
+        const reusableTracks = uniqueSorted(candidates);
+        if (reusableTracks.length > 1) throw failure('CAPTION_REVISION_TRACK_CONFLICT', track.portable_track_id);
+        if (reusableTracks.length === 1) trackIds[track.portable_track_id] = reusableTracks[0];
+      }
       const nodeMap = {};
       for (const node of verified.graph.artifacts) nodeMap[node.id] = { canonical_hash: node.canonical_hash, local_id: node.type === 'learning_material' ? materialId : node.type === 'table_revision' ? tableIds[node.id] : node.type === 'learning_row_version' ? rowIds[node.id] : node.type === 'caption_revision' ? revisionIds[node.id] : node.type === 'caption_track' ? trackIds[node.id] : node.type === 'media_package' ? packageId : null };
       const beforeMaterial = await one('SELECT material_id,current_table_revision_id,text_id FROM studio_learning_materials WHERE portable_text_key=?', [p.material.portable_text_key]);
       const beforeBinding = beforeMaterial ? await one('SELECT * FROM studio_text_media_bindings WHERE text_id=?', [beforeMaterial.text_id]) : null;
-      const created = { package: false, tracks: [], caption_revisions: [], text: false, material: false, table_revisions: [], row_versions: [] };
+      const created = { package: false, tracks: [], caption_revisions: [], text: false, material: false, table_revisions: [], row_versions: [] }, removedLegacyTracks = [];
 
       await x('SAVEPOINT p2_portable_import;');
       try {
@@ -214,10 +240,13 @@
         const orderedCaptions = p.caption_revisions.slice().sort((a, b) => Number(a.revision.revision_no) - Number(b.revision.revision_no));
         for (const doc of orderedCaptions) {
           const revision = doc.revision, localId = revisionIds[doc.portable_revision_id];
-          const reused = await assertReusable('studio_caption_revisions', 'revision_id', localId, 'canonical_sha256', revision.canonical_sha256, 'CAPTION_REVISION_ID_CONFLICT');
+          const role = (artifactById.get(doc.portable_revision_id) || { metadata: {} }).metadata.role;
+          const track = role === 'raw_original' ? p.raw_track : p.corrected_track;
+          const existingRevision = await one('SELECT track_id,canonical_sha256 FROM studio_caption_revisions WHERE revision_id=?', [localId]);
+          if (existingRevision && String(existingRevision.canonical_sha256 || '') !== String(revision.canonical_sha256 || '')) throw failure('CAPTION_REVISION_ID_CONFLICT', localId);
+          if (existingRevision && String(existingRevision.track_id) !== String(trackIds[track.portable_track_id])) throw failure('CAPTION_REVISION_TRACK_CONFLICT', localId);
+          const reused = !!existingRevision;
           if (!reused) {
-            const role = (verified.graph.artifacts.find((n) => n.id === doc.portable_revision_id) || { metadata: {} }).metadata.role;
-            const track = role === 'raw_original' ? p.raw_track : p.corrected_track;
             const parentPortable = verified.graph.edges.find((e) => e.from === doc.portable_revision_id && e.relation === 'supersedes');
             await r(`INSERT INTO studio_caption_revisions(revision_id,track_id,parent_revision_id,revision_no,segments_json,operations_json,canonical_sha256,author_kind,provenance_json,created_at)
               VALUES(?,?,?,?,?,?,?,?,?,?)`, [localId, trackIds[track.portable_track_id], parentPortable ? revisionIds[parentPortable.to] || null : null, Number(revision.revision_no), json(revision.segments || []), json(revision.operations || []), revision.canonical_sha256, revision.author_kind || (role === 'raw_original' ? 'import' : 'user'), json(revision.provenance || {}), revision.created_at || ts]);
@@ -293,6 +322,18 @@
         const mapping = { rows: (selectedTable.rows || []).map((row) => ({ row_index: row.order_index, corrected_caption_segment_id: row.caption_segment_id, raw_source_segment_ids: row.source_segment_ids || [], mapping_meta: row.mapping_meta || {} })) };
         await r(`INSERT INTO studio_text_media_bindings(text_id,package_id,track_id,revision_id,revision_sha256,mapping_json,created_at,updated_at)
           VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(text_id) DO UPDATE SET package_id=excluded.package_id,track_id=excluded.track_id,revision_id=excluded.revision_id,revision_sha256=excluded.revision_sha256,mapping_json=excluded.mapping_json,updated_at=excluded.updated_at`, [effectiveTextId, packageId, trackIds[p.corrected_track.portable_track_id], selectedRevisionId, selectedTable.bound_caption_revision_sha256, json(mapping), ts, ts]);
+        const priorCreatedTracks = new Set(previous && previous.rollback && previous.rollback.created && previous.rollback.created.tracks || []), activeTracks = new Set(Object.values(trackIds));
+        for (const track of [p.corrected_track, p.raw_track]) {
+          const oldTrack = previousNodes[track.portable_track_id] && previousNodes[track.portable_track_id].local_id;
+          if (!oldTrack || activeTracks.has(String(oldTrack)) || !priorCreatedTracks.has(String(oldTrack))) continue;
+          const refs = await one(`SELECT
+            (SELECT COUNT(*) FROM studio_caption_revisions WHERE track_id=?) AS revisions,
+            (SELECT COUNT(*) FROM studio_text_media_bindings WHERE track_id=?) AS bindings,
+            (SELECT COUNT(*) FROM studio_caption_tracks WHERE parent_track_id=?) AS children`, [oldTrack, oldTrack, oldTrack]);
+          if (Number(refs.revisions || 0) === 0 && Number(refs.bindings || 0) === 0 && Number(refs.children || 0) === 0) {
+            await r('DELETE FROM studio_caption_tracks WHERE track_id=?', [oldTrack]); removedLegacyTracks.push(String(oldTrack));
+          }
+        }
         await r('UPDATE studio_learning_materials SET package_id=?,current_table_revision_id=?,updated_at=? WHERE material_id=?', [packageId, selectedTableId, ts, materialId]);
         inject(options.fault_inject, 'after_projection');
 
@@ -301,7 +342,7 @@
         const priorRollback = repairing && previous.rollback || {}, priorCreated = priorRollback.created || {};
         const rollbackCreated = {
           package: !!(priorCreated.package || created.package),
-          tracks: uniqueSorted([...(priorCreated.tracks || []), ...created.tracks]),
+          tracks: uniqueSorted([...(priorCreated.tracks || []), ...created.tracks]).filter((id) => !removedLegacyTracks.includes(id)),
           caption_revisions: uniqueSorted([...(priorCreated.caption_revisions || []), ...created.caption_revisions]),
           text: !!(priorCreated.text || created.text), material: !!(priorCreated.material || created.material),
           table_revisions: uniqueSorted([...(priorCreated.table_revisions || []), ...created.table_revisions]),
@@ -403,6 +444,43 @@
       } catch (error) { try { await x('ROLLBACK TO p2_restore_projection;'); } finally { try { await x('RELEASE p2_restore_projection;'); } catch (_) {} } throw error; }
     }
 
+    async function repairTextMediaBinding(receiptId) {
+      const receipt = await getReceipt(receiptId);
+      if (!receipt || receipt.status !== 'committed') throw failure('RECEIPT_NOT_COMMITTED');
+      const map = receipt.id_map || {}, textId = map.text && map.text.local_id, packageId = map.media_package && map.media_package.local_id;
+      if (!textId || !packageId) throw failure('RECEIPT_BINDING_MAP_MISSING');
+      const binding = await one('SELECT text_id,package_id,track_id,revision_id,revision_sha256 FROM studio_text_media_bindings WHERE text_id=?', [textId]);
+      if (!binding) throw failure('TEXT_MEDIA_BINDING_MISSING');
+      const target = await one(`SELECT r.track_id,r.canonical_sha256,t.package_id,t.role
+        FROM studio_caption_revisions r JOIN studio_caption_tracks t ON t.track_id=r.track_id WHERE r.revision_id=?`, [binding.revision_id]);
+      if (!target) throw failure('CAPTION_REVISION_MISSING');
+      if (String(target.canonical_sha256 || '') !== String(binding.revision_sha256 || '')) throw failure('TEXT_MEDIA_BINDING_HASH_CONFLICT');
+      if (String(binding.package_id) !== String(packageId) || String(target.package_id) !== String(packageId) || target.role !== 'user_corrected') throw failure('TEXT_MEDIA_BINDING_PACKAGE_CONFLICT');
+      if (String(target.track_id) === String(binding.track_id)) return { repaired: false, duplicate: true, receipt, integrity: await inspectReceiptClosure(receipt, null) };
+      const oldTrack = String(binding.track_id), nextTrack = String(target.track_id), nextMap = parse(json(map), {}), nextRollback = parse(json(receipt.rollback || {}), {});
+      await x('SAVEPOINT p2_repair_text_media_binding;');
+      try {
+        await r('UPDATE studio_text_media_bindings SET track_id=?,updated_at=? WHERE text_id=? AND revision_id=? AND revision_sha256=?', [nextTrack, timestamp(), textId, binding.revision_id, binding.revision_sha256]);
+        for (const value of Object.values(nextMap.nodes || {})) if (value && String(value.local_id) === oldTrack) value.local_id = nextTrack;
+        const createdTracks = nextRollback.created && Array.isArray(nextRollback.created.tracks) ? nextRollback.created.tracks : [];
+        if (createdTracks.includes(oldTrack)) {
+          const refs = await one(`SELECT
+            (SELECT COUNT(*) FROM studio_caption_revisions WHERE track_id=?) AS revisions,
+            (SELECT COUNT(*) FROM studio_text_media_bindings WHERE track_id=?) AS bindings,
+            (SELECT COUNT(*) FROM studio_caption_tracks WHERE parent_track_id=?) AS children`, [oldTrack, oldTrack, oldTrack]);
+          if (Number(refs.revisions || 0) === 0 && Number(refs.bindings || 0) === 0 && Number(refs.children || 0) === 0) {
+            await r('DELETE FROM studio_caption_tracks WHERE track_id=?', [oldTrack]);
+            nextRollback.created.tracks = createdTracks.filter((id) => String(id) !== oldTrack);
+          }
+        }
+        const resultBase = { portable_package_id: receipt.portable_package_id, content_root_sha256: receipt.content_root_sha256, counts: receipt.counts || {}, id_map: nextMap };
+        await r('UPDATE studio_portable_import_receipts SET id_map_json=?,rollback_json=?,result_sha256=? WHERE receipt_id=?', [json(nextMap), json(nextRollback), await Core.hashObject(resultBase), receiptId]);
+        await x('RELEASE p2_repair_text_media_binding;');
+      } catch (error) { try { await x('ROLLBACK TO p2_repair_text_media_binding;'); } finally { try { await x('RELEASE p2_repair_text_media_binding;'); } catch (_) {} } throw error; }
+      const repairedReceipt = await getReceipt(receiptId);
+      return { repaired: true, duplicate: false, receipt: repairedReceipt, integrity: await inspectReceiptClosure(repairedReceipt, null) };
+    }
+
     async function listMaterials() {
       return q(`SELECT m.material_id,m.text_id,m.portable_text_key,t.title,m.updated_at
         FROM studio_learning_materials m JOIN texts t ON t.id=m.text_id ORDER BY m.updated_at DESC`);
@@ -473,7 +551,7 @@
       };
     }
 
-    return { inventory, dryRun, applyVerified, getReceipt, getReceiptByRoot, receiptIntegrity, restoreLibraryProjection, listReceipts, listMaterials, mediaForText, mediaForReceipt, reverseReferencePlan, undo, snapshotForMaterial };
+    return { inventory, dryRun, applyVerified, getReceipt, getReceiptByRoot, receiptIntegrity, restoreLibraryProjection, repairTextMediaBinding, listReceipts, listMaterials, mediaForText, mediaForReceipt, reverseReferencePlan, undo, snapshotForMaterial };
   }
 
   return { createRepository };
