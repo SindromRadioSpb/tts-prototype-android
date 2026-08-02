@@ -11725,9 +11725,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
         <!-- card preview rendered by v3TextCardShareOpen -->
       </div>
       <section id="v3TcsPortableSection" class="v3-tcs-portable" hidden>
-        <h4 data-i18n="studio.portable.shareMaterialTitle">Материал с полной историей</h4>
-        <p data-i18n="studio.portable.shareMaterialHelp">Для этого текста есть неизменяемые версии транскрипта, таблицы и точные связи. ZIP карточки также включит portable archive.</p>
-        <button type="button" class="btn-secondary" onclick="StudioPortableLearningPackage.openForText(v3TcsCurrentTextId)" data-i18n="studio.portable.openMaterialTransfer">Открыть перенос материала</button>
+        <h4 id="v3TcsPortableTitle">Материал с полной историей</h4>
+        <p id="v3TcsPortableHelp">Для этого текста есть неизменяемые версии транскрипта, таблицы и точные связи. ZIP карточки также включит portable archive.</p>
+        <button type="button" id="v3TcsPortableBtn" class="btn-secondary">Открыть перенос материала</button>
       </section>
       <!-- E1: прежний текст обещал «10–50 KB» — это было верно для v1 (только таблица).
            v2 везёт ещё и паспорт источника, а он на длинном медиа доходит до сотен КБ. -->
@@ -12773,9 +12773,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=102"></script>
-    <script src="/i18n/locales/en.js?v=102"></script>
-    <script src="/i18n/locales/he.js?v=102"></script>
+    <script src="/i18n/locales/ru.js?v=103"></script>
+    <script src="/i18n/locales/en.js?v=103"></script>
+    <script src="/i18n/locales/he.js?v=103"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12932,7 +12932,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.291";
+    window.APP_VERSION = "3.11.292";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -41296,7 +41296,20 @@ async function v3TextCardShareOpen(textId) {
 
     if (portableSection && window.StudioPortableLearningPackage && typeof window.StudioPortableLearningPackage.materialForText === 'function') {
       const portableMaterial = await window.StudioPortableLearningPackage.materialForText(textId);
-      portableSection.hidden = !portableMaterial;
+      const portableTitle = document.getElementById('v3TcsPortableTitle');
+      const portableHelp = document.getElementById('v3TcsPortableHelp');
+      const portableBtn = document.getElementById('v3TcsPortableBtn');
+      const linked = !!portableMaterial;
+      portableSection.hidden = false;
+      portableSection.dataset.state = linked ? 'linked' : 'legacy';
+      if (portableTitle) portableTitle.textContent = linked ? t('studio.portable.shareMaterialTitle') : t('studio.portable.shareLegacyTitle');
+      if (portableHelp) portableHelp.textContent = linked ? t('studio.portable.shareMaterialHelp') : t('studio.portable.shareLegacyHelp');
+      if (portableBtn) {
+        portableBtn.textContent = linked ? t('studio.portable.openMaterialTransfer') : t('studio.portable.openTransferHelp');
+        portableBtn.onclick = () => linked
+          ? StudioPortableLearningPackage.openForText(v3TcsCurrentTextId)
+          : StudioPortableLearningPackage.open({ view: 'material', textId: v3TcsCurrentTextId, help: true });
+      }
     }
 
     // Hide native share btn on desktop where navigator.share + files isn't supported.
