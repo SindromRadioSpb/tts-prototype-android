@@ -10,7 +10,7 @@ test('P2 scripts load in dependency order and remain offline/provider-free',()=>
   assert.ok(order.every(n=>n>0));assert.ok(order[0]<order[1]&&order[1]<order[2]);
   assert.equal(/\bfetch\s*\(|XMLHttpRequest|apiCall\s*\(/.test(studio),false,'no server/provider transport');
   for(const item of ['/js/portable-learning-package-core.js','/js/portable-learning-package-repository.js','/js/studio-portable-learning-package.js'])assert.ok(sw.includes(item));
-  assert.match(sw,/CACHE_VERSION = "v3\.11\.290"/,'scoped portability UX release cache version');
+  assert.match(sw,/CACHE_VERSION = "v3\.11\.291"/,'scoped portability UX release cache version');
 });
 
 test('premium modal is mobile/RTL safe and exposes explicit verify-before-apply semantics',()=>{
@@ -40,6 +40,16 @@ test('one hub names library, material, import and receipt-history scopes explici
   assert.match(studio,/Compatibility JSON/i);
 });
 
+test('format help is one keyboard-accessible decision guide, not hover-only tooltips',()=>{
+  assert.match(studio,/id="p2FormatHelpToggle"/);
+  assert.match(studio,/aria-expanded="false"/);
+  assert.match(studio,/aria-controls="p2FormatHelp"/);
+  assert.match(studio,/id="p2FormatHelp"/);
+  assert.match(studio,/classList\.toggle\('p2-help-open',expanded\)/);
+  for(const choice of ['Full device move','One material with history','Compact current state','Compatibility only'])assert.match(studio,new RegExp(choice,'i'));
+  assert.match(studio,/media bytes/i);
+});
+
 test('text-card share links to the same material truth and single-card ZIP coverage',()=>{
   assert.match(html,/id="v3TcsPortableSection"/);
   assert.match(html,/openForText\(v3TcsCurrentTextId\)/);
@@ -48,7 +58,7 @@ test('text-card share links to the same material truth and single-card ZIP cover
 });
 
 test('RU, EN and HE locales carry the complete P2 surface',()=>{
-  for(const locale of ['en','ru','he']){const text=fs.readFileSync(path.join(root,`public/i18n/locales/${locale}.js`),'utf8');for(const key of ['button','privacy','snapshot','archive','verifying','apply','reused','applied','hub','libraryTab','materialTab','importTab','historyTab','undo'])assert.match(text,new RegExp(`${key}:`),`${locale}.${key}`);}
+  for(const locale of ['en','ru','he']){const text=fs.readFileSync(path.join(root,`public/i18n/locales/${locale}.js`),'utf8');for(const key of ['button','privacy','snapshot','archive','verifying','apply','reused','applied','hub','libraryTab','materialTab','importTab','historyTab','undo','helpButton','helpFullMove','helpMaterialHistory','helpSnapshot','helpCompatibility'])assert.match(text,new RegExp(`${key}:`),`${locale}.${key}`);}
 });
 
 test('full backup integration cannot silently omit promoted Studio canon',()=>{

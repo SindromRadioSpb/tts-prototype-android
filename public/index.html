@@ -3698,6 +3698,20 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .p2-portable-kicker { color:#0b7673; font:750 10px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.06em; }
 .p2-portable-close { min-width:44px; min-height:44px; border:0; border-radius:50%; background:color-mix(in srgb,#0b7673 9%,transparent); font-size:26px; }
 .p2-portable-privacy { margin:14px 0; padding:12px; border-inline-start:3px solid #0b7673; border-radius:8px; background:color-mix(in srgb,#0b7673 6%,transparent); line-height:1.45; }
+.p2-format-help-row { display:flex; align-items:center; gap:10px; margin:-3px 0 13px; }
+.p2-format-help-toggle { display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:8px 12px; border:1px solid color-mix(in srgb,#0b7673 42%,var(--theme-border-medium,#cbd5e1)); border-radius:999px; background:var(--theme-bg-card,#fff); color:#075e5b; font-weight:800; }
+.p2-format-help-toggle::before { content:'?'; display:grid; width:23px; height:23px; place-items:center; border-radius:50%; background:#0b7673; color:#fff; font:800 13px/1 ui-monospace,SFMono-Regular,Consolas,monospace; }
+.p2-format-help-hint { color:var(--theme-text-secondary,#496966); font-size:12px; line-height:1.35; }
+.p2-format-help { margin:0 0 14px; padding:14px; border:1px solid color-mix(in srgb,#0b7673 30%,var(--theme-border-medium,#cbd5e1)); border-radius:13px; background:color-mix(in srgb,#0b7673 4%,var(--theme-bg-card,#fff)); }
+.p2-format-help[hidden] { display:none; }
+.p2-portable-dialog.p2-help-open #p2PortableTabs,.p2-portable-dialog.p2-help-open #p2PortableBody,.p2-portable-dialog.p2-help-open #p2PortableActions { display:none; }
+.p2-format-help h4 { margin:0 0 4px; font-size:17px; }
+.p2-format-help-intro,.p2-format-help-note { margin:0; color:var(--theme-text-secondary,#496966); font-size:12px; line-height:1.45; }
+.p2-format-help-paths { display:grid; gap:7px; margin:12px 0; }
+.p2-format-help-path { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:3px 12px; padding:10px 11px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:10px; background:var(--theme-bg-card,#fff); }
+.p2-format-help-path b { font-size:14px; }
+.p2-format-help-path span { color:var(--theme-text-secondary,#496966); font-size:12px; line-height:1.35; }
+.p2-format-help-path code { grid-row:1/3; grid-column:2; align-self:center; padding:4px 7px; border-radius:7px; background:var(--theme-bg-soft,#f2f6f6); color:#075e5b; font-size:11px; white-space:nowrap; }
 .p2-portable-dialog label,.p2-portable-dialog select { display:block; width:100%; }
 .p2-portable-dialog select { min-height:46px; margin-top:7px; padding:8px 10px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:10px; background:var(--theme-bg-card,#fff); color:inherit; }
 .p2-portable-tabs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; margin:0 0 14px; padding:4px; border:1px solid color-mix(in srgb,#0b7673 18%,var(--theme-border-medium,#cbd5e1)); border-radius:12px; background:color-mix(in srgb,#0b7673 4%,var(--theme-bg-card,#fff)); }
@@ -3736,6 +3750,10 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .v3-tcs-portable p { margin:0 0 9px; color:var(--theme-text-secondary,#496966); font-size:12px; line-height:1.4; }
 .v3-tcs-portable button { min-height:44px; }
 @media (max-width:600px) {
+  .p2-format-help-row { align-items:flex-start; flex-direction:column; }
+  .p2-format-help-toggle { width:100%; justify-content:center; }
+  .p2-format-help-path { grid-template-columns:1fr; }
+  .p2-format-help-path code { grid-row:auto; grid-column:1; justify-self:start; margin-top:3px; }
   .p2-portable-tabs { grid-template-columns:1fr 1fr; }
   .p2-scope-map,.p2-format-grid { grid-template-columns:1fr; }
   .p2-scope-actions,.p2-scope-actions button { width:100%; }
@@ -12755,9 +12773,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=101"></script>
-    <script src="/i18n/locales/en.js?v=101"></script>
-    <script src="/i18n/locales/he.js?v=101"></script>
+    <script src="/i18n/locales/ru.js?v=102"></script>
+    <script src="/i18n/locales/en.js?v=102"></script>
+    <script src="/i18n/locales/he.js?v=102"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12914,7 +12932,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.290";
+    window.APP_VERSION = "3.11.291";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
