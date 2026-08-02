@@ -9,8 +9,9 @@
 > **Current program update 2026-08-02:** Workspace/Playback Review production-closed as
 > `v3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`, browser migrations `46`;
 > exact derived Artifact Graph/schema-v2 manifest/v47 receipt/import/security/allowlist were
-> implemented as `v3.11.288`; the first read-only real owner-material export exposed a bounded
-> decimal-provenance serializer defect, with scoped `v3.11.289` fix gates in progress.
+> production-closed as `v3.11.289` / `da30fdbaf79f6751bee74406f73b093be742e76b`;
+> automated production PASS and read-only real-material PARTIAL OWNER PASS. P3 real iPhone
+> continuity is next and owner-gated.
 > **Planning-выход:**
 > `docs/planning/STUDIO_INGEST_L3B_ARTIFACT_CONTINUITY_PLAN_2026_08_01.md`
 > **Implementation packet:**
@@ -809,8 +810,8 @@ Metadata/handoff, затем bounded content/proposals; fresh ordinary-chat owne
 1. закрыть current L3a owner-live/canon — ✅;
 2. Material Revision + exact derived Artifact Graph/P2-entry contract — ✅;
 3. Material Revision Workspace maturity bridge — ✅;
-4. Portable Learning Package v2 — **AUTOMATED LOCAL PASS / PROD PENDING**;
-5. real iPhone manual continuity;
+4. Portable Learning Package v2 — **SHIPPED v3.11.289 / PARTIAL OWNER PASS**;
+5. real iPhone manual continuity — **NEXT / OWNER-GATED**;
 6. Import Center/reference;
 7. automatic E2EE package sync после отдельного design/authority;
 8. optional encrypted media transport по usage trigger;

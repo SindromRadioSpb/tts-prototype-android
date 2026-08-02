@@ -1,9 +1,10 @@
 # Studio Ingest P2 — Portable Learning Package v2 implementation packet
 
 > **Date:** 2026-08-02
-> **Status:** IMPLEMENTED / v3.11.288 REAL-DATA DEFECT FOUND / v3.11.289 FIX IN GATES
-> **Production baseline:** `v3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`
-> **Browser schema baseline:** `MIGRATIONS.length=46`; proposed additive migration is v47
+> **Status:** SHIPPED `v3.11.289` / `da30fdbaf79f6751bee74406f73b093be742e76b`;
+> AUTOMATED PROD PASS / PARTIAL OWNER PASS
+> **Production baseline before P2:** `v3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`
+> **Browser schema:** `MIGRATIONS.length=47`; v47 is receipt-only and v45/v46 indices are unchanged
 > **Authority:** exact §27 implementation authority, four-file migration-count addendum and a
 > later explicit production-deploy approval were supplied by the owner on 2026-08-02. Owner
 > production data remains read-only unless separately authorized.
@@ -733,17 +734,24 @@ The following sentence is a proposal only. Its presence here is not approval:
 ## 28. Implementation evidence — 2026-08-02
 
 The owner supplied the exact §27 sentence, the four-file migration-count addendum, and later
-approved a scoped production deploy. The bounded implementation is complete at release candidate
-`v3.11.289` after the scoped real-data decimal-provenance fix; the durable evidence ledger is:
+approved the scoped production deploy and bounded post-deploy cache cleanup. The bounded
+implementation is production-closed at `v3.11.289` after the scoped real-data
+decimal-provenance fix; the durable evidence ledger is:
 
 `docs/research/studio-p2-portable-learning-package/2026-08-02/OWNER_LIVE_PACKET.md`.
 
 Current evidence:
 
-- new pure/repository/security/backup/UI suite: 23/23 PASS;
+- new pure/repository/security/backup/UI suite: 24/24 PASS;
 - migration registry: 47; v45/v46 remain at indices 44/45;
 - 514 and 2,800-row/20-revision performance ceilings: PASS;
 - independent oracle and source→cold-reopen→re-export semantic root: PASS;
 - fresh Chromium desktop RU, 380 RU/LTR and 380 HE/RTL: PASS;
-- provider/model calls 0; page errors 0;
-- production delivery and read-only owner-material export remain pending at this pre-push point.
+- actually served APP/CACHE: `3.11.289` / `v3.11.289`; health, DB and migrations ready;
+- real owner Chrome material: 472-row snapshot/archive build, strict verify and no-write dry-run
+  PASS; inventories and receipt count unchanged;
+- provider/model calls 0; app/page errors during the ceremony 0;
+- post-deploy builder cleanup removed 11 unused cache records and reclaimed about 1.35 GiB;
+  disk warning cleared at 79%, with containers, volumes, images and references unchanged;
+- real Apply/relink/undo and iPhone ceremony were not authorized/run, so owner-live remains
+  `PARTIAL OWNER PASS` rather than complete.

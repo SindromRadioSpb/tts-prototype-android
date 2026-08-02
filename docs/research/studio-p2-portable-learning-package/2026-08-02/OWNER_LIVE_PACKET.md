@@ -1,8 +1,9 @@
 # P2 Portable Learning Package v2 — owner-live packet
 
 > Date: 2026-08-02
-> Release candidate: `v3.11.289` scoped real-data serializer fix
-> Status: **v3.11.288 PROD DEFECT FOUND / v3.11.289 FIX GATES IN PROGRESS**
+> Deployed release: `v3.11.289` / `da30fdbaf79f6751bee74406f73b093be742e76b`
+> First consistent served observation: `2026-08-02T07:19:15Z`
+> Status: **AUTOMATED PROD PASS / PARTIAL OWNER PASS**
 > Authority boundary: browser-local P2 only. No server schema/data, cloud sync, provider,
 > media transport, E2EE, Hermes, concurrent editing, L2/L4/L5/L6 or implicit fallback.
 
@@ -23,8 +24,8 @@
 
 ### Pure/repository/security/backup/UI
 
-`npm run smoke:portable-learning-package` — PASS before the production check; the scoped fix adds
-a red-before-green real-ASR decimal-provenance regression test.
+`npm run smoke:portable-learning-package` — PASS, 24/24 tests. The scoped fix includes a
+red-before-green real-ASR decimal-provenance regression test.
 
 Covered evidence includes duplicate JSON/ZIP names, traversal, compression ratio, missing and
 corrupt entries, future schema, same-ID/different-hash, exact compatibility rebind, every Apply
@@ -37,8 +38,8 @@ coverage and independent oracle drift rejection.
 
 | Fixture | snapshot export | archive export | snapshot verify | archive verify | first import | re-import | heap delta |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| 514 rows / 20 revisions | 216 ms | 1,493 ms | 75 ms | 633 ms | 1,325 ms | 6 ms | 93 MiB |
-| 2,800 rows / 20 revisions | 985 ms | 8,079 ms | 344 ms | 3,936 ms | 6,569 ms | 35 ms | 181 MiB |
+| 514 rows / 20 revisions | 214 ms | 1,469 ms | 72 ms | 630 ms | 1,528 ms | 10 ms | 95 MiB |
+| 2,800 rows / 20 revisions | 1,089 ms | 8,653 ms | 389 ms | 4,106 ms | 8,244 ms | 38 ms | 181 MiB |
 
 All frozen packet ceilings pass. The package contains no media bytes.
 
@@ -65,10 +66,15 @@ Screenshots:
 
 | Check | Result |
 |---|---|
-| actually served APP/CACHE version | PENDING deploy |
-| production health/DB/migrations | PENDING deploy |
-| real owner material export, no mutation | PENDING Kapture read-only check |
-| real package strict verify | PENDING |
+| actually served APP/CACHE version | PASS — `3.11.289` / `v3.11.289` |
+| production health/DB/migrations | PASS / ready / ready |
+| post-deploy disk | 83% warning before bounded cleanup; 79%, warning false after |
+| cleanup | 11 unused builder-cache records; about 1.35 GiB reclaimed; no images removed |
+| real owner material export, no mutation | PASS — existing Chrome profile, 472 rows, snapshot + archive |
+| real package strict verify | PASS — 17-entry snapshot, 18-entry archive, exact content roots |
+| real dry-run | PASS — applicable, zero conflicts, exact media, all inventories unchanged |
+| P2 provider/model calls | `0` |
+| app/page errors during ceremony | `0`; only older Kapture-extension runtime errors existed |
 | owner data import/rebind/delete | NOT AUTHORIZED / NOT RUN |
 | real-device owner ceremony | NOT RUN |
 
@@ -92,10 +98,8 @@ No Apply, relink, undo, delete or storage clearing is authorized against the own
    it proves zero external references. Reused canon and media bytes remain untouched.
 4. Any receipt/hash/dangling-reference disagreement stops rollback automation.
 
-## Remaining proof before closure
+## Remaining owner-only proof
 
-1. Push the exact scoped implementation commit without force.
-2. Wait for actual `v3.11.289` APP and SW cache delivery and healthy v47 browser migration.
-3. Run read-only Kapture inspection/export on the already-open real production material.
-4. Keep the status at `AUTOMATED PROD PASS` or `PARTIAL OWNER PASS`; only the owner can complete
-   the real import/relink ceremony on owner data.
+The bounded release is production-closed at `AUTOMATED PROD PASS / PARTIAL OWNER PASS`.
+Only an explicitly authorized real import/relink/undo ceremony and real iPhone continuity run can
+raise the owner-live status. Neither is implied by this read-only export/dry-run proof.

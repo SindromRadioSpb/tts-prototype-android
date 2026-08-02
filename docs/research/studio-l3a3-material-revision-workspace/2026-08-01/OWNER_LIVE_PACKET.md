@@ -12,6 +12,10 @@ Deployed client: `3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`
 
 Browser migrations: `MIGRATIONS.length=46`; v46 is `MIGRATIONS[45]`
 
+Subsequent P2 release: `v3.11.289` / `da30fdbaf79f6751bee74406f73b093be742e76b`,
+browser migrations `47` with receipt-only v47. The L3a.3 owner-live evidence and authority remain
+unchanged; P2 read-only real-material package verification is recorded in its own owner packet.
+
 ## Status boundary
 
 Automated implementation, local gates and production verification are complete through

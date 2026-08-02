@@ -5,15 +5,16 @@
 > Media Package shipped до `v3.11.282`; L3a.3 Material Revision Workspace foundation
 > shipped в `v3.11.283`, mapping/follow correction shipped в `v3.11.286`, а
 > first-slot/compact-header polish deployed и production-verified как `v3.11.287` / `2e8f4bf3`.
-> P2 Portable Learning Package v2 implemented и прошёл automated local gates 2026-08-02;
-> owner-approved production release; `v3.11.289` is the scoped real-data serializer fix candidate. Exact contract и evidence находятся в
+> P2 Portable Learning Package v2 production-closed as `v3.11.289` /
+> `da30fdbaf79f6751bee74406f73b093be742e76b` with automated production PASS and
+> read-only real-material partial owner PASS. Exact contract и evidence находятся в
 > `STUDIO_INGEST_P2_PORTABLE_LEARNING_PACKAGE_V2_IMPLEMENTATION_PACKET_2026_08_02.md`,
-> production delivery/real owner-material read-only check ещё pending на этой точке.
+> P3 real iPhone manual continuity is the next owner-gated phase.
 > Реализация новых слайсов требует обычных
 > measure-before-code, adversarial design и owner/live gates.
-> **Срез:** production/origin `2e8f4bf355a2babc0de619bfca817d1fff74b44f`
-> (`v3.11.287`); actual browser migration count — `46`; production health/DB/migrations PASS,
-> `disk_warn=false` after bounded cleanup.
+> **Срез:** production/origin `da30fdbaf79f6751bee74406f73b093be742e76b`
+> (`v3.11.289`); actual browser migration count — `47`; production health/DB/migrations PASS,
+> disk 79% and `disk_warn=false` after bounded builder-cache cleanup.
 
 Этот документ долговечно фиксирует результат обсуждения владельца:
 
@@ -258,7 +259,7 @@ TTS остаётся отдельной quality-gated веткой.
 | 4 | resumable import-job + batch | ⏸ DEMAND-TRIGGERED | reload/job-loss или регулярные 3–5+ файлов; не начат |
 | 5 | L3a Correctable Media Package | ✅ SHIPPED v3.11.282 | v45, immutable raw/corrected revisions, editor, reopen shelf, player↔cue↔row, VTT/SRT/slim package; remaining owner-live ceremonies tracked separately |
 | 6 | **L3a.3 Material Revision Workspace** | ✅ SHIPPED / PROD PASS v3.11.287 | two-layer source+learning workspace, v46 immutable revisions, field authority, targeted regeneration, exact repaired cue↔row follow, first-slot upcoming context and compact title→state→history header |
-| 7 | **L3b Artifact Continuity / P2 entry** | 🟡 NEXT OWNER-GATED SLICE | P1A material-revision contract and P1B Workspace are complete; exact Artifact Graph schema/migration/package allowlist must be frozen at P2 entry, then Portable Learning Package v2 → iPhone → Import Center |
+| 7 | **L3b Artifact Continuity / P2** | ✅ SHIPPED v3.11.289 | derived Artifact Graph, media-free Package v2, v47 receipts, strict dry-run/SAVEPOINT import and real-material read-only export verified; real Apply/relink remains owner-only |
 | 8 | local translation/nikud + S6 | P1 | shared provider contract, R1/R11 quality gates |
 | 9 | diarization/alignment | P1 | speaker/timing gold, segment default remains honest |
 | 10 | EPUB + TXT/MD/HTML + HEIC | P1 | real fixtures, provenance, mobile acceptance |
@@ -275,8 +276,8 @@ comparison не запускались и не подразумеваются ф
 P0 L3a closure ✅
   → P1A Material Revision contract + exact Artifact Graph/P2 entry packet ✅
   → P1B Material Revision Workspace + Playback Review ✅
-  → P2 Portable Learning Package v2 implementation 🟡 AUTOMATED LOCAL PASS / PROD PENDING
-  → P3 real iPhone manual continuity
+  → P2 Portable Learning Package v2 implementation ✅ SHIPPED v3.11.289 / PARTIAL OWNER PASS
+  → P3 real iPhone manual continuity ← NEXT / OWNER-GATED
   → P4 Import Center + educational continuity
 ```
 

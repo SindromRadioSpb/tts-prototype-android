@@ -6,6 +6,9 @@
 > **Parent:** `STUDIO_INGEST_L3A3_MATERIAL_REVISION_WORKSPACE_IMPLEMENTATION_PACKET_2026_08_01.md`  
 > **Shipped baseline:** foundation `82a392e6` / `3.11.283`; mapping/follow correction `3589c0ee` / `3.11.286`; browser migrations `46`
 > **Scope:** browser-local UX and deterministic cue/row navigation; no schema or provider-contract change
+> **Subsequent program state:** P2 Portable Learning Package v2 shipped independently as
+> `v3.11.289` / `da30fdbaf79f6751bee74406f73b093be742e76b`; this does not alter the
+> L3a.3 truth/authority contract. P3 real iPhone continuity is next and owner-gated.
 
 ## 0. Owner authorization
 

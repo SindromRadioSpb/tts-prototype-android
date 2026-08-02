@@ -15,6 +15,9 @@
 > `docs/research/studio-l3a3-material-revision-workspace/2026-08-01/OWNER_LIVE_PACKET.md`.
 > Foundation и Playback Review deployed; полный owner-live matrix остаётся шире уже
 > подтверждённых владельцем mapping-repair `v1→v2` и row-follow сценариев.
+> **Subsequent program state:** the immutable Workspace canon is now packaged by shipped P2
+> `v3.11.289` / `da30fdbaf79f6751bee74406f73b093be742e76b`; P2 adds no new mutable
+> authority. P3 real iPhone continuity remains separately owner-gated.
 
 ## 0. Owner decision
 

@@ -1,8 +1,8 @@
 # Studio Ingest L3b — Artifact Continuity, Portable Learning Package, iPhone и Hermes
 
 > **Дата:** 2026-08-01
-> **Статус:** 🟡 `P0/P1A/P1B COMPLETE`; P2 implementation and automated local gates complete
-> 2026-08-02; `v3.11.288` real-data export defect found; scoped `v3.11.289` fix in gates
+> **Статус:** 🟢 `P0/P1A/P1B/P2 COMPLETE`; P2 shipped as `v3.11.289` /
+> `da30fdbaf79f6751bee74406f73b093be742e76b`; P3 is NEXT / OWNER-GATED
 > **Baseline:** foundation `v3.11.283`; repaired Playback Review `v3.11.286` /
 > `3589c0ee141f7b139ab9e584f9bcca0b8997ca2e`; first-slot/header polish deployed and
 > production-verified as `v3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`;
@@ -37,8 +37,8 @@ Package в долговечный образовательный объект, �
 P0 L3a owner-live/canon closure ✅
   → P1A Material Revision + exact Artifact Graph/P2 entry contract ✅
   → P1B Material Revision Workspace + targeted regeneration ✅
-  → P2 Portable Learning Package v2 🟡 AUTOMATED LOCAL PASS / PROD PENDING
-  → P3 real iPhone manual continuity
+  → P2 Portable Learning Package v2 ✅ SHIPPED v3.11.289 / PARTIAL OWNER PASS
+  → P3 real iPhone manual continuity ← NEXT / OWNER-GATED
   → P4 Import Center + educational continuity
   → G-AUTOSYNC owner decision
       → P5 E2EE package sync
@@ -799,12 +799,12 @@ requires exact separate implementation authority.
 Learning-row editor, affected-only provider subset, version compare/reconcile, compatibility and
 owner-live packet; stop before push/deploy.
 
-### Session D2 — P2 Portable Learning Package core/UI 🟡 IMPLEMENTED / PROD PENDING
+### Session D2 — P2 Portable Learning Package core/UI ✅ SHIPPED v3.11.289
 
 Serializers/verifiers, transactional import/rebind/receipts and 380px gates over the frozen
 Material Revision contract.
 
-### Session E — P3 iPhone owner-live
+### Session E — P3 iPhone owner-live ← NEXT / OWNER-GATED
 
 Production-like/manual transfer, real device, no automatic cloud sync.
 
