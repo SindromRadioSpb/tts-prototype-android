@@ -10,7 +10,10 @@ test('P2 scripts load in dependency order and remain offline/provider-free',()=>
   assert.ok(order.every(n=>n>0));assert.ok(order[0]<order[1]&&order[1]<order[2]&&order[2]<order[3]);
   assert.equal(/\bfetch\s*\(|XMLHttpRequest|apiCall\s*\(/.test(studio),false,'no server/provider transport');
   for(const item of ['/js/portable-learning-package-core.js','/js/import-center-core.js','/js/portable-learning-package-repository.js','/js/studio-portable-learning-package.js'])assert.ok(sw.includes(item));
-  assert.match(sw,/CACHE_VERSION = "v3\.11\.296"/,'scoped portability UX release cache version');
+  const appVersion=(html.match(/APP_VERSION\s*=\s*"([^"]+)"/)||[])[1];
+  const cacheVersion=(sw.match(/CACHE_VERSION\s*=\s*"v([^"]+)"/)||[])[1];
+  assert.ok(appVersion,'shell exposes APP_VERSION');
+  assert.equal(cacheVersion,appVersion,'portability UX ships in the same coherent app/SW release');
 });
 
 test('P4 exposes one five-view Import Center and compatibility aliases use explicit intents',()=>{
