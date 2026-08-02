@@ -20,7 +20,8 @@ test('P4 exposes one five-view Import Center and compatibility aliases use expli
   for(const view of ['overview','materials','tasks','history','reference']) assert.match(studio,new RegExp(`data-view="${view}"`));
   assert.match(studio,/importCenterCore\(\)\.buildCatalog/);
   for(const intent of ['move-device','restore','relink','recover','backup','inspect'])assert.match(studio,new RegExp(`['"]${intent}['"]`));
-  assert.match(html,/StudioPortableLearningPackage\.open\(\{view:'overview',intent:'restore'\}\)/);
+  assert.match(html,/id="v3PortableGlobalBtn"[^>]+StudioPortableLearningPackage\.open\(\{view:'overview'\}\)/,'global entry must open the primary overview instead of forcing a legacy-shaped restore tab');
+  assert.doesNotMatch(html,/id="v3PortableGlobalBtn"[^>]+intent:/,'global entry must let the user choose the guided task');
   assert.match(html,/StudioPortableLearningPackage\.open\(\{view:'materials',intent:'move-device'/);
 });
 
@@ -65,7 +66,7 @@ test('portability hub is globally discoverable even without an active Workspace'
   const libraryEntry=html.indexOf('id="v3PortabilityHubBtn"');
   assert.ok(globalEntry>workspaceEnd,'Studio entry must live outside the conditional Workspace card');
   assert.ok(libraryEntry>0,'Library must expose the same portability hub');
-  assert.match(html,/StudioPortableLearningPackage\.open\(\{view:'overview',intent:'restore'\}\)/);
+  assert.match(html,/id="v3PortableGlobalBtn"[^>]+StudioPortableLearningPackage\.open\(\{view:'overview'\}\)/);
   assert.match(html,/StudioPortableLearningPackage\.open\(\{view:'overview',intent:'backup'\}\)/);
 });
 

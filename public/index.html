@@ -11184,7 +11184,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                         <div id="v3ImportEntry" style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap;">
                             <button type="button" class="btn-secondary" onclick="window.StudioImport && StudioImport.open()">📥 <span data-i18n="studio.import.button">Импорт: ссылка / файл / фото</span></button>
                             <button type="button" id="v3RetellEntryBtn" class="btn-secondary" onclick="window.StudioRetell && StudioRetell.openFromComposer()">✨ <span data-i18n="studio.retell.button">Упростить до моего уровня</span></button>
-                            <button type="button" id="v3PortableGlobalBtn" class="btn-secondary" onclick="StudioPortableLearningPackage.open({view:'overview',intent:'restore'})">↔ <span data-i18n="studio.importCenter.globalEntry">Импорт / перенос / восстановление</span></button>
+                            <button type="button" id="v3PortableGlobalBtn" class="btn-secondary" onclick="StudioPortableLearningPackage.open({view:'overview'})">↔ <span data-i18n="studio.importCenter.globalEntry">Импорт / перенос / восстановление</span></button>
                             <button type="button" id="l3WorkspaceLibraryBtn" class="btn-secondary" onclick="StudioMediaPackage.openWorkspaceLibrary()" hidden>✎ <span data-i18n="studio.mediaPackage.workspaceLibrary">Транскрипты</span> <span id="l3WorkspaceLibraryCount">0</span></button>
                         </div>
 
@@ -13014,7 +13014,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.297";
+    window.APP_VERSION = "3.11.298";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
