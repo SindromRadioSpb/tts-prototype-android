@@ -6,15 +6,16 @@
 > continuity `821460c4`, media-review UX `44b216bc`). L3a.3 Material Revision Workspace
 > foundation shipped в `v3.11.283`; repaired mapping/follow shipped в `v3.11.286`,
 > first-slot/compact-header polish deployed и production-verified как `v3.11.287` / `2e8f4bf3`.
-> P2 Portable Learning Package v2 production-closed as `v3.11.289` /
-> `da30fdbaf79f6751bee74406f73b093be742e76b`; L2/L4 local-processing не открыт.
+> P2 Portable Learning Package v2 plus option-B Recovery UX production-closed as
+> `v3.11.296` / `ead4a550bfe3f1cff6b5980ddbfd9ce106442504`; P3 real iPhone manual
+> continuity is owner-confirmed COMPLETE; L2/L4 local-processing не открыт.
 > Exact graph/manifest/import/security/receipt contract frozen в
 > `STUDIO_INGEST_P2_PORTABLE_LEARNING_PACKAGE_V2_IMPLEMENTATION_PACKET_2026_08_02.md`;
-> Automated production and read-only real owner-material export/verify are PASS; owner Apply/relink
-> and real iPhone ceremony remain gated.
-> **Срез кода:** production/origin `da30fdbaf79f6751bee74406f73b093be742e76b`
-> (`v3.11.289`), browser migrations `47`; production health/DB/migrations PASS,
-> disk `79% / 7.73 GiB free`, `disk_warn=false` after bounded builder-cache cleanup.
+> Automated production, owner Apply/relink/recovery and the complete manual PC→iPhone→cold-reopen→
+> re-export ceremony are PASS. P4 Import Center is next and separately owner-gated.
+> **Срез кода:** production/origin `ead4a550bfe3f1cff6b5980ddbfd9ce106442504`
+> (`v3.11.296`), browser migrations `47`; production health/DB/migrations PASS,
+> disk `78% / ~8.0 GiB free`, `disk_warn=false` after bounded post-deploy cleanup.
 > **Место в каноне:** специализированный сквозной трек общего roadmap
 > `STUDIO_INGEST_ROADMAP_2026_07_30.md`. Здесь определён local-processing L0–L6;
 > общий capability ledger, форматы, Media Package, образовательные сценарии и единый порядок
@@ -234,7 +235,9 @@ baseline: разборчивость, никуд/ударение, имена, �
 | P0/P1 | **L2a recovery / L2b batch** | ⏸ DEFERRED / DEMAND-TRIGGERED | L2a: реальная reload/job-loss боль; L2b: регулярные 3–5+ файлов |
 | P1 | **L3a Correctable Media Package/editor** | ✅ SHIPPED v3.11.282 | v45 + immutable raw/corrected revisions + editor/reopen + source-player sync + VTT/SRT/slim round-trip; residual owner-live ceremonies tracked in packet |
 | P1 | **L3a.3 Material Revision Workspace** | ✅ SHIPPED / PROD PASS v3.11.287 | two-layer editor, immutable table revisions, authority, affected-only update, exact repaired cue↔row follow, first-slot anchor and compact responsive header |
-| P1 | **L3b Artifact Continuity / P2** | ✅ SHIPPED v3.11.289 / PARTIAL OWNER PASS | derived Artifact Graph, exact v2 manifest, v47 receipt-only migration, strict dry-run/SAVEPOINT import, idempotent receipts, backup, responsive gates and real-material read-only export verified; iPhone/Import Center later; sync/Hermes separately gated |
+| P1 | **L3b Artifact Continuity / P2** | ✅ COMPLETE / OWNER LIVE PASS v3.11.296 | Artifact Graph, exact v2 package, v47 receipts, transactional import, exact relink/recovery, backup and owner round-trip verified |
+| P1 | **P3 real iPhone manual continuity** | ✅ COMPLETE / OWNER-ATTESTED PASS | manual PC→Files/iCloud→iPhone import/relink/playback→cold reopen→re-export semantic parity |
+| P1 | **P4 Import Center** | ← NEXT / OWNER-GATED | one lifecycle catalog, guided device/restore/relink tasks, storage/media diagnostics and contextual education |
 | P1 | **L4 local translation+nikud** | ⬜ | shared scheduler; independent quality gates |
 | P1 | **L5 diarization/alignment** | ⬜ | L1 stable; speaker/timing gold |
 | P2/R&D | **L6 TTS/OCR/local LLM** | ⬜ | model+license+quality measurement; no quality downgrade |
@@ -255,11 +258,11 @@ Exact P2 implementation contract:
 Утверждение planning/product direction не разрешает P2 implementation, automatic cloud/media
 sync, Hermes mutations или production scope без отдельной точной owner authority.
 
-Текущая цепочка: `P0 ✅ → P1A material + graph/P2-entry contract ✅ → P1B ✅ → P2 ✅ SHIPPED v3.11.289 → P3 NEXT / OWNER-GATED → P4`. L2 остаётся
-demand-triggered, поэтому следующая Studio-сессия не возвращается к batch/recovery и не начинает
-L4/L5/L6. Требования P2: pure Artifact Graph, snapshot/archive package v2, checksums and
-referential integrity, dry-run, transactional OPFS import/rebind, receipts, backup coverage,
-fault/security/performance gates и fresh-profile/380 px browser round-trip без media bytes.
+Текущая цепочка: `P0 ✅ → P1A ✅ → P1B ✅ → P2 ✅ OWNER LIVE PASS v3.11.296 → P3 ✅ → P4 NEXT / OWNER-GATED`.
+L2 остаётся demand-triggered, поэтому следующая Studio-сессия не возвращается к batch/recovery и
+не начинает L4/L5/L6. P4 использует существующий P2 canon и не меняет provider/local-processing
+defaults; exact contract находится в
+`STUDIO_INGEST_P4_IMPORT_CENTER_IMPLEMENTATION_PACKET_2026_08_02.md`.
 
 **Рекомендуемая последовательность:** принять bounded L1 engineering/evidence closure, затем
 отдельным решением определить достаточный owner/human acceptance и только отдельно разрешать

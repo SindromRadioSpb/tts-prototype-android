@@ -1,8 +1,9 @@
 # Studio Ingest L3b — Artifact Continuity, Portable Learning Package, iPhone и Hermes
 
 > **Дата:** 2026-08-01
-> **Статус:** 🟢 `P0/P1A/P1B/P2 COMPLETE`; P2 shipped as `v3.11.289` /
-> `da30fdbaf79f6751bee74406f73b093be742e76b`; P3 is NEXT / OWNER-GATED
+> **Статус:** 🟢 `P0/P1A/P1B/P2/P3 COMPLETE`; P2 recovery closure shipped as
+> `v3.11.296` / `ead4a550bfe3f1cff6b5980ddbfd9ce106442504`; P3 real iPhone manual
+> continuity is OWNER-ATTESTED PASS; P4 Import Center is NEXT / OWNER-GATED
 > **Baseline:** foundation `v3.11.283`; repaired Playback Review `v3.11.286` /
 > `3589c0ee141f7b139ab9e584f9bcca0b8997ca2e`; first-slot/header polish deployed and
 > production-verified as `v3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`;
@@ -11,10 +12,14 @@
 > `docs/research/studio-ingest-artifact-continuity/2026-08-01/REPORT.md`
 > **P2 implementation canon:**
 > `docs/planning/STUDIO_INGEST_P2_PORTABLE_LEARNING_PACKAGE_V2_IMPLEMENTATION_PACKET_2026_08_02.md`
+> **P3 owner-live canon:**
+> `docs/research/studio-p3-iphone-continuity/2026-08-02/OWNER_LIVE_PACKET.md`
+> **P4 implementation-entry canon:**
+> `docs/planning/STUDIO_INGEST_P4_IMPORT_CENTER_IMPLEMENTATION_PACKET_2026_08_02.md`
 > **Предок:** L3a Correctable Media Package shipped; L2 остаётся
 > `DEFERRED / DEMAND-TRIGGERED`
-> **Authority:** exact P2 implementation, four-file migration-count addendum and scoped production
-> deploy approved 2026-08-02. Owner production data stays read-only; cloud/autosync/Hermes remain
+> **Authority:** P2 implementation/recovery/deploy and the manual P3 ceremony are closed. No P4
+> code/schema/push/deploy authority is implied by this document; cloud/autosync/Hermes remain
 > forbidden without their own gates.
 
 ## 0. Program decision
@@ -37,9 +42,9 @@ Package в долговечный образовательный объект, �
 P0 L3a owner-live/canon closure ✅
   → P1A Material Revision + exact Artifact Graph/P2 entry contract ✅
   → P1B Material Revision Workspace + targeted regeneration ✅
-  → P2 Portable Learning Package v2 ✅ SHIPPED v3.11.289 / PARTIAL OWNER PASS
-  → P3 real iPhone manual continuity ← NEXT / OWNER-GATED
-  → P4 Import Center + educational continuity
+  → P2 Portable Learning Package v2 + Recovery UX ✅ OWNER LIVE PASS v3.11.296
+  → P3 real iPhone manual continuity ✅ OWNER-ATTESTED PASS
+  → P4 Import Center + educational continuity ← NEXT / OWNER-GATED
   → G-AUTOSYNC owner decision
       → P5 E2EE package sync
       → P6 optional encrypted media transport (triggered)
@@ -408,6 +413,13 @@ Measure before freezing ceilings:
 - owner packet ready; stop before push/deploy without authority.
 
 ## 7. Phase P3 — real iPhone manual continuity
+
+> **Closure update 2026-08-02:** COMPLETE / OWNER-ATTESTED REAL IPHONE PASS on production
+> `v3.11.296`. The owner completed PC export → Files/iCloud → iPhone import → no-write dry-run →
+> exact-SHA media relink → video/cue/row playback → cold reopen → re-export semantic parity.
+> This proves manual continuity only; it does not authorize or imply cloud sync, automatic media
+> transport or concurrent-device editing. Exact device model/iOS, timings and full hashes were not
+> copied into the session record and remain an evidence-metadata gap, not an open functional gate.
 
 ### Цель
 
@@ -799,16 +811,16 @@ requires exact separate implementation authority.
 Learning-row editor, affected-only provider subset, version compare/reconcile, compatibility and
 owner-live packet; stop before push/deploy.
 
-### Session D2 — P2 Portable Learning Package core/UI ✅ SHIPPED v3.11.289
+### Session D2 — P2 Portable Learning Package core/UI + Recovery ✅ OWNER LIVE PASS v3.11.296
 
 Serializers/verifiers, transactional import/rebind/receipts and 380px gates over the frozen
 Material Revision contract.
 
-### Session E — P3 iPhone owner-live ← NEXT / OWNER-GATED
+### Session E — P3 iPhone owner-live ✅ COMPLETE / OWNER-ATTESTED PASS
 
 Production-like/manual transfer, real device, no automatic cloud sync.
 
-### Session F — P4 Import Center/education
+### Session F — P4 Import Center/education ← NEXT / OWNER-GATED
 
 Catalog/status/help/modes; no cloud/Hermes mutation.
 
@@ -820,7 +832,11 @@ Starts only after G-AUTOSYNC owner decision.
 
 Starts only after G-HERMES owner decision; metadata/handoff before content.
 
-## 20. Paste-ready next-session prompt: P2 implementation packet
+## 20. Archived P2 implementation prompt — DO NOT USE FOR THE NEXT SESSION
+
+P2 and P3 are complete. The code block below is retained only as an authority/history record. The
+current P4 prompt is §23 of
+`STUDIO_INGEST_P4_IMPORT_CENTER_IMPLEMENTATION_PACKET_2026_08_02.md`.
 
 ```text
 Работай в E:\projects\tts-prototype-android.
@@ -885,16 +901,16 @@ enter the package, or a new server/sync/Hermes boundary appears without authorit
 
 ## 21. Current planning conclusion
 
-Ближайший practically meaningful chain остаётся P0→P1A→P1B→P2→P3→P4. На 2026-08-02
-`P0/P1B` production-closed through `v3.11.287`; P1A material contract и exact derived
-Artifact Graph/package/import contract frozen в P2 packet 2026-08-02. Следующим owner-gated
-этапом является **P2 Portable Learning Package v2 implementation**.
-Цепочка закрывает реальный пробел без batch, новых models или автоматической отправки personal
-media в cloud.
+Ближайшая цепочка остаётся P0→P1A→P1B→P2→P3→P4. На 2026-08-02 P2 production/owner-live
+closed through `v3.11.296`, а P3 manual real-iPhone continuity подтверждён владельцем полностью.
+Следующим owner-gated этапом является **P4 Import Center**. Его implementation-entry packet
+фиксирует один derived lifecycle catalog, guided tasks, v48 export receipts, storage/media
+diagnostics, exact allowlist and gates. Цепочка не требует batch, новых models или автоматической
+отправки personal media в cloud.
 
-P1B выполнил роль обязательного maturity bridge: таблица уже имеет immutable revisions, field
-authority и affected-only update semantics. P2 обязан переносить именно этот канон между
-профилями и не имеет права снова сделать `texts/sentences` или mutable package cells истиной.
+P1B/P2/P3 сформировали зрелый канон: immutable revisions, field authority, exact mapping,
+transactional portability and owner-proven manual device continuity. P4 обязан только объяснять и
+оркестрировать этот канон; `texts/sentences`, UI status or export receipts не становятся truth.
 
 P5/P6 и P7/P8 остаются важными архитектурными направлениями, но начинаются только после
 отдельных owner gates. Это удерживает один активный продуктовый слайс и не превращает

@@ -8,14 +8,16 @@
 > **Тип работы:** docs/research only; никаких code/schema/data/provider/deploy mutations
 > **Current program update 2026-08-02:** Workspace/Playback Review production-closed as
 > `v3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`, browser migrations `46`;
-> exact derived Artifact Graph/schema-v2 manifest/v47 receipt/import/security/allowlist were
-> production-closed as `v3.11.289` / `da30fdbaf79f6751bee74406f73b093be742e76b`;
-> automated production PASS and read-only real-material PARTIAL OWNER PASS. P3 real iPhone
-> continuity is next and owner-gated.
+> exact derived Artifact Graph/schema-v2 manifest/v47 receipt/import/security/allowlist plus
+> option-B lifecycle recovery were production-closed as `v3.11.296` /
+> `ead4a550bfe3f1cff6b5980ddbfd9ce106442504`; P2 is OWNER LIVE PASS. P3 real iPhone
+> manual continuity is OWNER-ATTESTED COMPLETE. P4 Import Center is next and owner-gated.
 > **Planning-выход:**
 > `docs/planning/STUDIO_INGEST_L3B_ARTIFACT_CONTINUITY_PLAN_2026_08_01.md`
 > **Implementation packet:**
 > `docs/planning/STUDIO_INGEST_P2_PORTABLE_LEARNING_PACKAGE_V2_IMPLEMENTATION_PACKET_2026_08_02.md`
+> **P4 implementation-entry packet:**
+> `docs/planning/STUDIO_INGEST_P4_IMPORT_CENTER_IMPLEMENTATION_PACKET_2026_08_02.md`
 
 ## 0. Вопрос и решение в одном экране
 
@@ -810,9 +812,9 @@ Metadata/handoff, затем bounded content/proposals; fresh ordinary-chat owne
 1. закрыть current L3a owner-live/canon — ✅;
 2. Material Revision + exact derived Artifact Graph/P2-entry contract — ✅;
 3. Material Revision Workspace maturity bridge — ✅;
-4. Portable Learning Package v2 — **SHIPPED v3.11.289 / PARTIAL OWNER PASS**;
-5. real iPhone manual continuity — **NEXT / OWNER-GATED**;
-6. Import Center/reference;
+4. Portable Learning Package v2 + lifecycle recovery — **OWNER LIVE PASS v3.11.296**;
+5. real iPhone manual continuity — **COMPLETE / OWNER-ATTESTED PASS**;
+6. Import Center/reference — **NEXT / OWNER-GATED**;
 7. automatic E2EE package sync после отдельного design/authority;
 8. optional encrypted media transport по usage trigger;
 9. Hermes metadata/handoff;

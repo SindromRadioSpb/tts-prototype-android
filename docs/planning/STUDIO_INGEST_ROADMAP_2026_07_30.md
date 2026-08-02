@@ -5,16 +5,21 @@
 > Media Package shipped до `v3.11.282`; L3a.3 Material Revision Workspace foundation
 > shipped в `v3.11.283`, mapping/follow correction shipped в `v3.11.286`, а
 > first-slot/compact-header polish deployed и production-verified как `v3.11.287` / `2e8f4bf3`.
-> P2 Portable Learning Package v2 production-closed as `v3.11.289` /
-> `da30fdbaf79f6751bee74406f73b093be742e76b` with automated production PASS and
-> read-only real-material partial owner PASS. Exact contract и evidence находятся в
+> P2 Portable Learning Package v2 and its option-B Recovery UX are production-closed as
+> `v3.11.296` / `ead4a550bfe3f1cff6b5980ddbfd9ce106442504` with automated production
+> PASS and owner-live PASS. P3 real iPhone manual continuity is also owner-confirmed COMPLETE:
+> PC export → Files/iCloud → iPhone import/dry-run → exact-SHA relink → video/cue/row playback →
+> cold reopen → re-export semantic parity. Exact contract и evidence находятся в
 > `STUDIO_INGEST_P2_PORTABLE_LEARNING_PACKAGE_V2_IMPLEMENTATION_PACKET_2026_08_02.md`,
-> P3 real iPhone manual continuity is the next owner-gated phase.
+> `docs/research/studio-p2-portable-learning-package/2026-08-02/OWNER_LIVE_PACKET.md` and
+> `docs/research/studio-p3-iphone-continuity/2026-08-02/OWNER_LIVE_PACKET.md`.
+> P4 Import Center is the next owner-gated implementation phase; its exact entry contract is
+> `STUDIO_INGEST_P4_IMPORT_CENTER_IMPLEMENTATION_PACKET_2026_08_02.md`.
 > Реализация новых слайсов требует обычных
 > measure-before-code, adversarial design и owner/live gates.
-> **Срез:** production/origin `da30fdbaf79f6751bee74406f73b093be742e76b`
-> (`v3.11.289`); actual browser migration count — `47`; production health/DB/migrations PASS,
-> disk 79% and `disk_warn=false` after bounded builder-cache cleanup.
+> **Срез:** production/origin `ead4a550bfe3f1cff6b5980ddbfd9ce106442504`
+> (`v3.11.296`); actual browser migration count — `47`; production health/DB/migrations PASS,
+> disk 78% and `disk_warn=false` after bounded post-deploy cache/exact-unused-image cleanup.
 
 Этот документ долговечно фиксирует результат обсуждения владельца:
 
@@ -259,7 +264,9 @@ TTS остаётся отдельной quality-gated веткой.
 | 4 | resumable import-job + batch | ⏸ DEMAND-TRIGGERED | reload/job-loss или регулярные 3–5+ файлов; не начат |
 | 5 | L3a Correctable Media Package | ✅ SHIPPED v3.11.282 | v45, immutable raw/corrected revisions, editor, reopen shelf, player↔cue↔row, VTT/SRT/slim package; remaining owner-live ceremonies tracked separately |
 | 6 | **L3a.3 Material Revision Workspace** | ✅ SHIPPED / PROD PASS v3.11.287 | two-layer source+learning workspace, v46 immutable revisions, field authority, targeted regeneration, exact repaired cue↔row follow, first-slot upcoming context and compact title→state→history header |
-| 7 | **L3b Artifact Continuity / P2** | ✅ SHIPPED v3.11.289 | derived Artifact Graph, media-free Package v2, v47 receipts, strict dry-run/SAVEPOINT import and real-material read-only export verified; real Apply/relink remains owner-only |
+| 7 | **L3b Artifact Continuity / P2** | ✅ COMPLETE / OWNER LIVE PASS v3.11.296 | derived Artifact Graph, media-free Package v2, v47 receipts, strict dry-run/SAVEPOINT import, lifecycle recovery, exact binding repair and real owner export/import/relink/reopen verified |
+| 7a | **P3 real iPhone manual continuity** | ✅ COMPLETE / OWNER-ATTESTED PASS | PC→Files/iCloud→iPhone dry-run/import/SHA relink→video/cue/row→cold reopen→re-export semantic parity |
+| 7b | **P4 Import Center** | ← NEXT / OWNER-GATED | one lifecycle surface, guided PC→iPhone/restore/relink flows, storage/media diagnostics, contextual help and educational continuity |
 | 8 | local translation/nikud + S6 | P1 | shared provider contract, R1/R11 quality gates |
 | 9 | diarization/alignment | P1 | speaker/timing gold, segment default remains honest |
 | 10 | EPUB + TXT/MD/HTML + HEIC | P1 | real fixtures, provenance, mobile acceptance |
@@ -276,17 +283,18 @@ comparison не запускались и не подразумеваются ф
 P0 L3a closure ✅
   → P1A Material Revision contract + exact Artifact Graph/P2 entry packet ✅
   → P1B Material Revision Workspace + Playback Review ✅
-  → P2 Portable Learning Package v2 implementation ✅ SHIPPED v3.11.289 / PARTIAL OWNER PASS
-  → P3 real iPhone manual continuity ← NEXT / OWNER-GATED
-  → P4 Import Center + educational continuity
+  → P2 Portable Learning Package v2 + Recovery UX ✅ OWNER LIVE PASS v3.11.296
+  → P3 real iPhone manual continuity ✅ OWNER-ATTESTED PASS
+  → P4 Import Center + educational continuity ← NEXT / OWNER-GATED
 ```
 
-Следующая сессия не должна переоткрывать Workspace UI или строить cloud sync. Exact
-Artifact Graph/schema/manifest/allowlist уже frozen в P2 packet; после отдельной дословной
-owner-authority она реализует pure Artifact Graph builder, snapshot/archive package writer,
-checksum/referential verifier, dry-run plan,
-transactional OPFS import/rebind, receipts, backup coverage и fault/performance/browser gates.
-Media bytes, E2EE/autosync, Hermes, concurrent-device editing и L2/L4/L5/L6 остаются вне P2.
+Следующая сессия не должна переоткрывать Workspace/P2 canon или строить cloud sync. P4 развивает
+существующий `StudioPortableLearningPackage` в единственный Import Center: derived lifecycle
+catalog, guided tasks, honest storage/media/backup state and education-first next actions. Exact
+scope, additive-v48 decision, allowlist, gates and owner authority находятся в
+`STUDIO_INGEST_P4_IMPORT_CENTER_IMPLEMENTATION_PACKET_2026_08_02.md`. Option C material-owned
+identity, media transport, E2EE/autosync, Hermes, concurrent-device editing и L2/L4/L5/L6 остаются
+вне P4.
 
 ## 10. Обязательные процессные артефакты
 

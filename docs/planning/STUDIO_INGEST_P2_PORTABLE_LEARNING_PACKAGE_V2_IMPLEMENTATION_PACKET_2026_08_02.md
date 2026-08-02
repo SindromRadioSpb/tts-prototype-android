@@ -1,13 +1,14 @@
 # Studio Ingest P2 — Portable Learning Package v2 implementation packet
 
 > **Date:** 2026-08-02
-> **Status:** SHIPPED `v3.11.289` / `da30fdbaf79f6751bee74406f73b093be742e76b`;
-> AUTOMATED PROD PASS / PARTIAL OWNER PASS
+> **Status:** COMPLETE / OWNER LIVE PASS; final recovery release `v3.11.296` /
+> `ead4a550bfe3f1cff6b5980ddbfd9ce106442504`
 > **Production baseline before P2:** `v3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`
 > **Browser schema:** `MIGRATIONS.length=47`; v47 is receipt-only and v45/v46 indices are unchanged
 > **Authority:** exact §27 implementation authority, four-file migration-count addendum and a
-> later explicit production-deploy approval were supplied by the owner on 2026-08-02. Owner
-> production data remains read-only unless separately authorized.
+> later explicit production-deploy/recovery approvals were supplied by the owner on 2026-08-02.
+> The owner subsequently completed P2 recovery smoke and the full P3 iPhone ceremony. This closure
+> grants no P4, cloud, sync, Hermes or further production authority.
 
 This packet closes the exact P2 entry gaps left by the Artifact Continuity plan. It does not
 redefine caption, table or learning truth. It packages the immutable canon that already exists.
@@ -734,27 +735,29 @@ The following sentence is a proposal only. Its presence here is not approval:
 ## 28. Implementation evidence — 2026-08-02
 
 The owner supplied the exact §27 sentence, the four-file migration-count addendum, and later
-approved the scoped production deploy and bounded post-deploy cache cleanup. The bounded
-implementation is production-closed at `v3.11.289` after the scoped real-data
-decimal-provenance fix; the durable evidence ledger is:
+approved the scoped production deploy and bounded post-deploy cleanup. The initial bounded
+implementation shipped at `v3.11.289`; the owner-evidence recovery loop closed at `v3.11.296`
+after the decimal-provenance and lifecycle/exact-binding fixes. The durable evidence ledger is:
 
 `docs/research/studio-p2-portable-learning-package/2026-08-02/OWNER_LIVE_PACKET.md`.
 
-Current evidence:
+Final evidence through the option-B recovery release:
 
-- new pure/repository/security/backup/UI suite: 24/24 PASS;
+- portable pure/repository/security/backup/UI suite: 39/39 PASS;
 - migration registry: 47; v45/v46 remain at indices 44/45;
 - 514 and 2,800-row/20-revision performance ceilings: PASS;
 - independent oracle and source→cold-reopen→re-export semantic root: PASS;
 - fresh Chromium desktop RU, 380 RU/LTR and 380 HE/RTL: PASS;
-- actually served APP/CACHE: `3.11.289` / `v3.11.289`; health, DB and migrations ready;
-- real owner Chrome material: 472-row snapshot/archive build, strict verify and no-write dry-run
-  PASS; inventories and receipt count unchanged;
+- actually served APP/CACHE: `3.11.296` / `v3.11.296`; health, DB and migrations ready;
+- real owner lifecycle fixture: 514 cues, 585 current table rows, four caption revisions and two
+  table revisions; archive import, projection recovery and exact media binding repair PASS;
 - provider/model calls 0; app/page errors during the ceremony 0;
-- post-deploy builder cleanup removed 11 unused cache records and reclaimed about 1.35 GiB;
-  disk warning cleared at 79%, with containers, volumes, images and references unchanged;
-- real Apply/relink/undo and iPhone ceremony were not authorized/run, so owner-live remains
-  `PARTIAL OWNER PASS` rather than complete.
+- release gates: Media Package 52/52, Material Revision 17/17, i18n 233/233; full suite 739/748
+  with the same nine pre-existing classic/GCP-BYOK baseline failures and no new regression;
+- final bounded post-deploy cleanup reclaimed about 1.89 GiB (unused builder cache plus two exact
+  unreferenced older app images), moved disk to 78% / `disk_warn=false`, and preserved active,
+  newest rollback, all 10 running containers and all three volumes;
+- owner confirmed P2 recovery smoke PASS and then the complete P3 manual continuity chain.
 
 ## 29. Post-release recovery decision — option B now, option C later
 
@@ -778,6 +781,22 @@ independent of the mutable/rebuildable `texts` projection, with a material-owned
 and an optional compatibility-card binding. This would remove the structural possibility that a
 text-card lifecycle operation can cascade into material canon and would make multiple projections
 per material natural. It is intentionally not implemented here: it requires a separately approved
-additive migration (likely v48), full-backup/rollback proof, delete/GC policy changes and a deliberate
-compatibility transition. Until then, option B closes the user journey without dual truth or schema
-mutation.
+additive migration after the P4 v48 export-receipt migration (exact future number only after
+preflight), full-backup/rollback proof, delete/GC policy changes and a deliberate compatibility
+transition. Until then, option B closes the user journey without dual truth or schema mutation.
+
+## 30. Final owner closure and P4 handoff
+
+The owner confirmed the production recovery flow successful after `v3.11.296`: the durable receipt
+remained idempotent, the Library projection and exact table were available, the exact local media
+binding was repaired without another provider call, and source video/cue/row replay survived reopen.
+P2 is therefore **COMPLETE / OWNER LIVE PASS**. The final owner action was performed by the owner;
+automation did not mutate the owner's OPFS after its read-only handoff.
+
+P3 then proved manual cross-device continuity through PC export → Files/iCloud → iPhone import and
+dry-run → SHA relink → video/cue/row playback → cold reopen → re-export semantic parity. Its durable
+record is `docs/research/studio-p3-iphone-continuity/2026-08-02/OWNER_LIVE_PACKET.md`.
+
+The next slice is P4 Import Center. It must consume P2/P3 as frozen dependencies rather than fork
+their truth. The implementation-entry packet is
+`docs/planning/STUDIO_INGEST_P4_IMPORT_CENTER_IMPLEMENTATION_PACKET_2026_08_02.md`.

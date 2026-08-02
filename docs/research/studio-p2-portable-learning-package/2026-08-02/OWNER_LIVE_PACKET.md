@@ -1,9 +1,9 @@
 # P2 Portable Learning Package v2 — owner-live packet
 
 > Date: 2026-08-02
-> Deployed release: `v3.11.289` / `da30fdbaf79f6751bee74406f73b093be742e76b`
-> First consistent served observation: `2026-08-02T07:19:15Z`
-> Status: **AUTOMATED PROD PASS / PARTIAL OWNER PASS**
+> Initial P2 release: `v3.11.289` / `da30fdbaf79f6751bee74406f73b093be742e76b`
+> Final recovery release: `v3.11.296` / `ead4a550bfe3f1cff6b5980ddbfd9ce106442504`
+> Status: **COMPLETE / OWNER LIVE PASS**
 > Authority boundary: browser-local P2 only. No server schema/data, cloud sync, provider,
 > media transport, E2EE, Hermes, concurrent editing, L2/L4/L5/L6 or implicit fallback.
 
@@ -75,8 +75,8 @@ Screenshots:
 | real dry-run | PASS — applicable, zero conflicts, exact media, all inventories unchanged |
 | P2 provider/model calls | `0` |
 | app/page errors during ceremony | `0`; only older Kapture-extension runtime errors existed |
-| owner data import/rebind/delete | NOT AUTHORIZED / NOT RUN |
-| real-device owner ceremony | NOT RUN |
+| initial v3.11.289 owner data import/rebind/delete | NOT AUTHORIZED / NOT RUN |
+| initial v3.11.289 real-device owner ceremony | NOT RUN |
 
 The first read-only Kapture export on served `v3.11.288` found
 `CANONICAL_NUMBER_INVALID` before ZIP creation. The real legacy ASR provenance contains finite
@@ -86,7 +86,8 @@ strings; strict canonical numbers remain unchanged. A red test reproduces the fa
 same transform built and strictly verified snapshot/archive from the real material in memory with
 the receipt count unchanged.
 
-Automation is not labelled OWNER LIVE PASS. After deploy the already-open owner Chrome tab may
+At the initial v3.11.289 ceremony, automation was not labelled OWNER LIVE PASS. After that deploy
+the already-open owner Chrome tab could
 be used only to inspect the real material and perform a media-free export/read-only verification.
 No Apply, relink, undo, delete or storage clearing is authorized against the owner's profile.
 
@@ -100,6 +101,49 @@ No Apply, relink, undo, delete or storage clearing is authorized against the own
 
 ## Remaining owner-only proof
 
-The bounded release is production-closed at `AUTOMATED PROD PASS / PARTIAL OWNER PASS`.
-Only an explicitly authorized real import/relink/undo ceremony and real iPhone continuity run can
-raise the owner-live status. Neither is implied by this read-only export/dry-run proof.
+The table above is the immutable ledger for the initial v3.11.289 read-only ceremony. Subsequent
+explicit owner authorities and evidence closed the remaining proof; see the addendum below.
+
+## Final recovery and owner-live addendum — v3.11.296
+
+The owner's real lifecycle smoke found and then closed four related user-facing gaps without loss of
+canonical data:
+
+1. global empty-profile discoverability and one coherent transfer/backup surface;
+2. durable receipt history, Undo/recovery explanations and explicit repair states;
+3. deleted compatibility projection restoration without duplicating the Artifact Graph;
+4. a legacy exact-binding mismatch where the text binding named the correct immutable revision but
+   an obsolete empty imported track, preventing local video and per-row source replay.
+
+The final option-B implementation keeps the material, immutable caption/table revisions, receipt,
+mapping and exact media package authoritative. Archive restores the compatibility card; historical
+deletion can rebuild it from the verified source package; a binding-only mismatch is repaired under
+one SAVEPOINT from the already verified immutable revision and needs neither provider calls nor a
+second media upload. Empty obsolete tracks are deleted only when they were created by the receipt
+and have zero revisions, bindings and child tracks.
+
+Final automated evidence:
+
+- Portable Learning Package: 39/39 PASS;
+- Media Package: 52/52 PASS;
+- Material Revision: 17/17 PASS;
+- i18n: 233/233 PASS;
+- desktop RU, 380 RU/LTR and 380 HE/RTL browser gates PASS;
+- 514-row and 2,800-row/20-revision export/verify/dry-run/import ceilings PASS;
+- full suite 739/748 with the same nine unrelated baseline failures;
+- provider/model calls 0; HTTP/page/console errors 0 in the final read-only production handoff;
+- actually served APP/CACHE `3.11.296` / `v3.11.296`; health, DB and migrations ready;
+- post-deploy disk 83%→78%, warning false after bounded cache plus two exact-unused-image cleanup;
+  active/newest rollback, 10 containers, three volumes, DB and user data remained intact.
+
+Owner result:
+
+- owner completed the one-click exact media binding recovery successfully on production;
+- real receipt/material evidence remained idempotent with 514 cues, 585 current table rows, four
+  caption revisions, two table revisions and zero conflicts;
+- exact local media, player and cue↔row replay were restored and survived the owner's test;
+- owner then completed the full P3 real-iPhone continuity ceremony recorded in
+  `docs/research/studio-p3-iphone-continuity/2026-08-02/OWNER_LIVE_PACKET.md`.
+
+Verdict: **P2 COMPLETE / OWNER LIVE PASS**. This does not close unrelated provider/fault/two-tab
+ceremonies in older L3a packets and does not authorize P4, sync, E2EE, Hermes or server changes.
