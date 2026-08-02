@@ -82,6 +82,28 @@ test('workspace catalog makes persisted corrected tracks reopenable without anot
   assert.equal(reopened.revision_no, 2, 'reopen targets the current corrected revision, not the frozen table revision');
 });
 
+test('workspace lookup selects the exact corrected track when one media SHA is reused by a portable import', async () => {
+  const h = await harness();
+  const created = await h.repo.createPackage({
+    media: { sha256: 'a'.repeat(64), mime: 'video/mp4', duration_ms: 65000, original_name: 'shared.mp4', opfs_path: 'media/shared.mp4' },
+    raw_revision: await rawRevision('a'.repeat(64)),
+  });
+  const portableTrackId = 'track:portable:corrected';
+  const portableRevisionId = 'rev:portable:corrected';
+  h.db.run(`INSERT INTO studio_caption_tracks(track_id,package_id,role,language,parent_track_id,current_revision_id,draft_base_revision_id,draft_json,draft_updated_at,created_at,updated_at)
+    VALUES('${portableTrackId}','${created.package_id}','user_corrected','he',NULL,NULL,NULL,NULL,NULL,'t','t')`);
+  h.db.run(`INSERT INTO studio_caption_revisions(revision_id,track_id,parent_revision_id,revision_no,segments_json,operations_json,canonical_sha256,author_kind,provenance_json,created_at)
+    VALUES('${portableRevisionId}','${portableTrackId}',NULL,7,'[]','[]','${'c'.repeat(64)}','import','{}','t')`);
+  h.db.run(`UPDATE studio_caption_tracks SET current_revision_id='${portableRevisionId}' WHERE track_id='${portableTrackId}'`);
+
+  const workspaces = await h.repo.listWorkspaces({ limit: 8 });
+  assert.equal(workspaces.length, 2, 'both immutable corrected tracks remain independently reopenable');
+  const reopened = await h.repo.getWorkspace(created.package_id, portableTrackId);
+  assert.equal(reopened.corrected_track_id, portableTrackId);
+  assert.equal(reopened.current_revision_id, portableRevisionId);
+  assert.equal(reopened.revision_no, 7);
+});
+
 test('migration v45 is additive and creates the four canonical tables/indexes', async () => {
   const h = await harness();
   const names = h.rows("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'studio_%' ORDER BY name").map((r) => r.name);

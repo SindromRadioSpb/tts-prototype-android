@@ -133,6 +133,33 @@ test('workspace view model exposes honest lifecycle state without copying transc
   assert.equal(JSON.stringify(model).includes('segments'), false, 'catalog model must not duplicate transcript content');
 });
 
+test('workspace reopen preserves the exact corrected track when a media package has multiple histories', async () => {
+  const opened = [], lookups = [];
+  const previousWindow = global.window;
+  global.window = { StudioMediaEditor: { open: async (trackId) => opened.push(trackId) } };
+  StudioMediaPackage.setRepositoryForTests({
+    getWorkspace: async (packageId, trackId) => {
+      lookups.push([packageId, trackId]);
+      return {
+        package_id: packageId, corrected_track_id: trackId, current_revision_id: 'rev:portable',
+        current_revision_sha256: 'c'.repeat(64), revision_no: 7, original_name: 'shared.mp4',
+        duration_ms: 65000, mime: 'video/mp4', media_sha256: SHA, media_available: true,
+      };
+    },
+    listWorkspaces: async () => [],
+  });
+  try {
+    const workspace = await StudioMediaPackage.openWorkspace('mpkg:shared', 'track:portable');
+    assert.equal(workspace.corrected_track_id, 'track:portable');
+    assert.deepEqual(opened, ['track:portable']);
+    assert.ok(lookups.length >= 1);
+    assert.ok(lookups.every((entry) => entry[0] === 'mpkg:shared' && entry[1] === 'track:portable'));
+  } finally {
+    StudioMediaPackage.setRepositoryForTests(null);
+    if (previousWindow === undefined) delete global.window; else global.window = previousWindow;
+  }
+});
+
 test('media relink keeps exact SHA security and exposes actionable mismatch evidence', async () => {
   const expected = await Core.sha256Hex(new Uint8Array([1, 2, 3]));
   const actual = await Core.sha256Hex(new Uint8Array([1, 2, 4]));

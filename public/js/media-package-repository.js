@@ -89,8 +89,11 @@
       JOIN studio_caption_revisions r ON r.revision_id=t.current_revision_id
       WHERE p.deleted_at IS NULL`;
 
-    async function getWorkspace(packageId) {
-      return workspaceRow(await one(WORKSPACE_SELECT + ' AND p.package_id=? LIMIT 1', [String(packageId)]));
+    async function getWorkspace(packageId, correctedTrackId) {
+      var params = [String(packageId)], exactTrack = correctedTrackId == null ? '' : String(correctedTrackId);
+      var sql = WORKSPACE_SELECT + ' AND p.package_id=?';
+      if (exactTrack) { sql += ' AND t.track_id=?'; params.push(exactTrack); }
+      return workspaceRow(await one(sql + ' LIMIT 1', params));
     }
     async function listWorkspaces(options) {
       options = options || {};

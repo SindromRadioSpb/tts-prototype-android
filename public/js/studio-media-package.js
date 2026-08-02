@@ -209,6 +209,7 @@
       var item = document.createElement('article'); item.className = 'l3-workspace-shelf-item';
       item.dataset.active = model.active ? 'true' : 'false';
       item.dataset.packageId = model.package_id;
+      item.dataset.trackId = model.track_id;
       var copyBox = document.createElement('div'); copyBox.className = 'l3-workspace-shelf-copy';
       var title = document.createElement('strong'); title.dir = 'auto'; title.textContent = model.title;
       var meta = document.createElement('span');
@@ -219,7 +220,7 @@
       meta.textContent = parts.join(' · '); copyBox.append(title, meta);
       var open = document.createElement('button'); open.type = 'button'; open.className = 'btn-secondary';
       open.textContent = uiText('studio.mediaPackage.workspaceReopen', 'Вернуться к правкам');
-      open.addEventListener('click', function () { openWorkspace(model.package_id); });
+      open.addEventListener('click', function () { openWorkspace(model.package_id, model.track_id); });
       item.append(copyBox, open); list.appendChild(item);
     });
   }
@@ -229,12 +230,12 @@
     try {
       var repo = browserRepository();
       var ref = activeWorkspaceRef || window.v3LastMediaPackageRef || null;
-      var activeRow = ref && ref.package_id ? await repo.getWorkspace(ref.package_id) : null;
+      var activeRow = ref && ref.package_id ? await repo.getWorkspace(ref.package_id, ref.track_id || null) : null;
       var rows = await repo.listWorkspaces({ limit: 8 });
       if (serial !== workspaceRefreshSerial) return { superseded: true };
       if (ref && !activeRow) { activeWorkspaceRef = null; activeWorkspaceOptions = {}; window.v3LastMediaPackageRef = null; }
       var active = activeRow ? workspaceViewModel(activeRow, Object.assign({}, activeWorkspaceOptions, { active: true })) : null;
-      var items = rows.map(function (row) { return workspaceViewModel(row, { active: !!active && row.package_id === active.package_id }); });
+      var items = rows.map(function (row) { return workspaceViewModel(row, { active: !!active && row.package_id === active.package_id && row.corrected_track_id === active.track_id }); });
       renderActiveWorkspace(active); renderWorkspaceShelf(items);
       return { active: active, items: items };
     } catch (_) {
@@ -255,11 +256,12 @@
     refreshWorkspaceUi();
   }
   async function activatePackage(packageId, options) {
-    var workspace = await browserRepository().getWorkspace(packageId);
+    options = options || {};
+    var workspace = await browserRepository().getWorkspace(packageId, options.track_id || null);
     if (!workspace) throw new Error('PACKAGE_NOT_FOUND');
     await setActiveWorkspace({ package_id: workspace.package_id, track_id: workspace.corrected_track_id,
       revision_id: workspace.current_revision_id, revision_sha256: workspace.current_revision_sha256,
-      projection_sha256: workspace.current_revision_sha256, local_only: true }, options || {});
+      projection_sha256: workspace.current_revision_sha256, local_only: true }, options);
     return workspace;
   }
   async function activateTextBinding(textId) {
@@ -270,8 +272,10 @@
     });
     return { binding: binding, stale: !!stale.stale, workspace: workspace };
   }
-  async function openWorkspace(packageId) {
-    var workspace = packageId ? await activatePackage(packageId) : (activeWorkspaceRef && await activatePackage(activeWorkspaceRef.package_id, activeWorkspaceOptions));
+  async function openWorkspace(packageId, trackId) {
+    var workspace = packageId
+      ? await activatePackage(packageId, trackId ? { track_id: String(trackId) } : {})
+      : (activeWorkspaceRef && await activatePackage(activeWorkspaceRef.package_id, Object.assign({}, activeWorkspaceOptions, { track_id: activeWorkspaceRef.track_id })));
     if (!workspace) throw new Error('PACKAGE_NOT_FOUND');
     if (typeof window !== 'undefined' && window.StudioImport && typeof window.StudioImport.close === 'function') window.StudioImport.close();
     if (!window.StudioMediaEditor) throw new Error('MEDIA_EDITOR_UNAVAILABLE');
