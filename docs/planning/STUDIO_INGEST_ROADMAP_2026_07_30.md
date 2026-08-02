@@ -6,7 +6,7 @@
 > shipped в `v3.11.283`, mapping/follow correction shipped в `v3.11.286`, а
 > first-slot/compact-header polish deployed и production-verified как `v3.11.287` / `2e8f4bf3`.
 > P2 Portable Learning Package v2 implemented и прошёл automated local gates 2026-08-02;
-> owner-approved production release candidate — `v3.11.288`. Exact contract и evidence находятся в
+> owner-approved production release; `v3.11.289` is the scoped real-data serializer fix candidate. Exact contract и evidence находятся в
 > `STUDIO_INGEST_P2_PORTABLE_LEARNING_PACKAGE_V2_IMPLEMENTATION_PACKET_2026_08_02.md`,
 > production delivery/real owner-material read-only check ещё pending на этой точке.
 > Реализация новых слайсов требует обычных

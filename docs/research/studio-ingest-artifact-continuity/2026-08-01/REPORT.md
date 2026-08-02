@@ -9,8 +9,8 @@
 > **Current program update 2026-08-02:** Workspace/Playback Review production-closed as
 > `v3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`, browser migrations `46`;
 > exact derived Artifact Graph/schema-v2 manifest/v47 receipt/import/security/allowlist were
-> implemented and passed automated local gates as `v3.11.288` RC; production delivery and the
-> read-only real owner-material export check remain pending at this point.
+> implemented as `v3.11.288`; the first read-only real owner-material export exposed a bounded
+> decimal-provenance serializer defect, with scoped `v3.11.289` fix gates in progress.
 > **Planning-выход:**
 > `docs/planning/STUDIO_INGEST_L3B_ARTIFACT_CONTINUITY_PLAN_2026_08_01.md`
 > **Implementation packet:**

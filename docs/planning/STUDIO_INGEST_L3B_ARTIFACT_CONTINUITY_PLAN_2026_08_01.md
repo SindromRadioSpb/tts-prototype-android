@@ -2,7 +2,7 @@
 
 > **Дата:** 2026-08-01
 > **Статус:** 🟡 `P0/P1A/P1B COMPLETE`; P2 implementation and automated local gates complete
-> 2026-08-02; owner-approved `v3.11.288` production delivery/read-only owner check pending
+> 2026-08-02; `v3.11.288` real-data export defect found; scoped `v3.11.289` fix in gates
 > **Baseline:** foundation `v3.11.283`; repaired Playback Review `v3.11.286` /
 > `3589c0ee141f7b139ab9e584f9bcca0b8997ca2e`; first-slot/header polish deployed and
 > production-verified as `v3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`;

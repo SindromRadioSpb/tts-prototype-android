@@ -63,6 +63,29 @@
   }
   function canonicalJson(value) { return JSON.stringify(canonicalValue(value, 0)); }
 
+  // Diagnostic provenance may contain measured seconds/ratios from legacy ASR runs.
+  // Package JSON remains integer-only: finite decimals are preserved explicitly as
+  // their shortest decimal strings instead of weakening the canonical number rule.
+  function canonicalDiagnosticValue(value, depth) {
+    if ((depth || 0) > LIMITS.jsonDepth) fail('CANONICAL_DEPTH_EXCEEDED');
+    if (value === null || typeof value === 'boolean' || typeof value === 'string') return canonicalValue(value, depth || 0);
+    if (typeof value === 'number') {
+      if (!Number.isFinite(value)) fail('CANONICAL_NUMBER_INVALID');
+      if (Object.is(value, -0)) return 0;
+      if (Number.isSafeInteger(value)) return value;
+      if (Number.isInteger(value)) fail('CANONICAL_NUMBER_INVALID');
+      return String(value);
+    }
+    if (Array.isArray(value)) return value.map((item) => canonicalDiagnosticValue(item, (depth || 0) + 1));
+    if (!value || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype) fail('CANONICAL_TYPE_INVALID');
+    const out = {};
+    for (const key of Object.keys(value).sort(keyCompare)) {
+      if (!validString(key) || value[key] === undefined) fail(value[key] === undefined ? 'CANONICAL_UNDEFINED' : 'CANONICAL_STRING_INVALID');
+      out[key] = canonicalDiagnosticValue(value[key], (depth || 0) + 1);
+    }
+    return out;
+  }
+
   // A small strict JSON parser is used so duplicate keys cannot be hidden by JSON.parse.
   function parseJsonStrict(source) {
     const text = String(source == null ? '' : source);
@@ -228,7 +251,7 @@
     if (model.mediaId) node(model.mediaId, 'media_asset', model.mediaSha, { mime: model.input.package.mime || null, size_bytes: model.input.package.size_bytes == null ? null : Number(model.input.package.size_bytes), duration_ms: model.input.package.duration_ms == null ? null : Number(model.input.package.duration_ms), codec_hint: model.input.package.codec_hint || null });
     node(model.mediaPackageId, 'media_package', model.packageDescriptorHash, { media_included: false });
     if (model.mediaId) edge(model.mediaPackageId, 'references_media', model.mediaId, model.packageDescriptorHash);
-    const importRunHash = await hashObject(model.input.import_run || {}), importRunId = 'import-run:sha256:' + importRunHash;
+    const importRun = canonicalDiagnosticValue(model.input.import_run || {}), importRunHash = await hashObject(importRun), importRunId = 'import-run:sha256:' + importRunHash;
     node(importRunId, 'import_run', importRunHash, { warnings_count: Array.isArray(model.input.import_run && model.input.import_run.warnings) ? model.input.import_run.warnings.length : 0 });
     const trackHash = new Map([[model.rawTrackId, model.rawTrackId.slice(-64)], [model.correctedTrackId, model.correctedTrackId.slice(-64)]]);
     node(model.rawTrackId, 'caption_track', trackHash.get(model.rawTrackId), { role: 'raw_original', language: model.input.raw_track.language || null });
@@ -277,12 +300,12 @@
     const rawTrack = { schema: 'portable-caption-track-v2', portable_track_id: model.rawTrackId, role: 'raw_original', language: input.raw_track.language || null, current_revision_id: model.captionPortable.get(String(model.raw[model.raw.length - 1].revision_id)) };
     const correctedTrack = { schema: 'portable-caption-track-v2', portable_track_id: model.correctedTrackId, role: 'user_corrected', language: input.corrected_track.language || null, parent_track_id: model.rawTrackId, current_revision_id: model.roots.caption_revision };
     files['source/media-ref.json'] = canonicalJson({ schema: 'portable-media-ref-v2', media_included: false, media_sha256: model.mediaSha, mime: input.package.mime || null, size_bytes: input.package.size_bytes == null ? null : Number(input.package.size_bytes), duration_ms: input.package.duration_ms == null ? null : Number(input.package.duration_ms), codec_hint: input.package.codec_hint || null, original_name: input.package.original_name || null });
-    files['provenance/import-run.json'] = canonicalJson(input.import_run || {});
+    files['provenance/import-run.json'] = canonicalJson(canonicalDiagnosticValue(input.import_run || {}));
     files['provenance/export.json'] = canonicalJson({ app_version: options.app_version || null, exported_at: options.exported_at || new Date().toISOString(), runtime: options.runtime || null });
-    files['quality/report.json'] = canonicalJson(input.quality_report || {});
+    files['quality/report.json'] = canonicalJson(canonicalDiagnosticValue(input.quality_report || {}));
     files['tracks/raw/track.json'] = canonicalJson(rawTrack);
     files['tracks/corrected/track.json'] = canonicalJson(correctedTrack);
-    function portableCaptionRevision(revision,trackRevisions) { const parent=revision.parent_revision_id&&trackRevisions.some((item)=>String(item.revision_id)===String(revision.parent_revision_id))?model.captionPortable.get(String(revision.parent_revision_id))||null:null;return { revision_no:Number(revision.revision_no), parent_revision_id:parent, segments:clone(revision.segments || []), operations:clone(revision.operations || []), canonical_sha256:cleanHex(revision.canonical_sha256), author_kind:revision.author_kind || 'import', provenance:clone(revision.provenance || {}) }; }
+    function portableCaptionRevision(revision,trackRevisions) { const parent=revision.parent_revision_id&&trackRevisions.some((item)=>String(item.revision_id)===String(revision.parent_revision_id))?model.captionPortable.get(String(revision.parent_revision_id))||null:null;return { revision_no:Number(revision.revision_no), parent_revision_id:parent, segments:clone(revision.segments || []), operations:clone(revision.operations || []), canonical_sha256:cleanHex(revision.canonical_sha256), author_kind:revision.author_kind || 'import', provenance:canonicalDiagnosticValue(revision.provenance || {}) }; }
     for (const revision of model.raw) files['tracks/raw/revisions/' + cleanHex(revision.canonical_sha256) + '.json'] = canonicalJson({ schema: 'portable-caption-revision-v2', portable_revision_id: model.captionPortable.get(String(revision.revision_id)), revision:portableCaptionRevision(revision,model.raw) });
     for (const revision of model.corrected) files['tracks/corrected/revisions/' + cleanHex(revision.canonical_sha256) + '.json'] = canonicalJson({ schema: 'portable-caption-revision-v2', portable_revision_id: model.captionPortable.get(String(revision.revision_id)), revision:portableCaptionRevision(revision,model.corrected) });
     const selectedCorrected = selectedById(model.corrected, input.selected_caption_revision_id || input.corrected_track.current_revision_id, 'SELECTED_CAPTION_REVISION_MISSING');

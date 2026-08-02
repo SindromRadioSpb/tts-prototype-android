@@ -64,6 +64,22 @@ test('strict serializer rejects floats, lone surrogates and duplicate JSON keys'
   assert.throws(() => Core.parseJsonStrict('{"a":1,"a":2}'), /JSON_DUPLICATE_KEY/);
 });
 
+test('real ASR diagnostic decimals export as canonical strings without weakening strict numbers', async () => {
+  const input = fixture();
+  input.import_run.asr = {
+    windows: [{ endSec: 1140.062042 }],
+    speechDensity: { baselineWordsPerSec: 2.1633333333333336, windows: [{ markFromSec: 0.5 }] },
+  };
+  input.raw_revisions[0].provenance = { asr: input.import_run.asr };
+  const files = await Core.buildPackageFiles(input, { mode: 'archive' });
+  const importRun = Core.parseJsonStrict(files['provenance/import-run.json']);
+  const raw = Core.parseJsonStrict(files['tracks/raw/revisions/' + 'b'.repeat(64) + '.json']);
+  assert.equal(importRun.asr.windows[0].endSec, '1140.062042');
+  assert.equal(importRun.asr.speechDensity.baselineWordsPerSec, '2.1633333333333336');
+  assert.equal(raw.revision.provenance.asr.speechDensity.windows[0].markFromSec, '0.5');
+  assert.throws(() => Core.canonicalJson({ value: 1.5 }), /CANONICAL_NUMBER_INVALID/);
+});
+
 test('no-write dry-run exposes exact reuse/conflict/missing-media plan', async () => {
   const verified = await Core.verifyPackageFiles(await Core.buildPackageFiles(fixture(), { mode: 'snapshot' }));
   const empty = await Core.dryRun(verified, { nodes: {}, texts: {}, media_sha256: [] });

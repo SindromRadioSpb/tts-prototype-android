@@ -10,7 +10,7 @@ test('P2 scripts load in dependency order and remain offline/provider-free',()=>
   assert.ok(order.every(n=>n>0));assert.ok(order[0]<order[1]&&order[1]<order[2]);
   assert.equal(/\bfetch\s*\(|XMLHttpRequest|apiCall\s*\(/.test(studio),false,'no server/provider transport');
   for(const item of ['/js/portable-learning-package-core.js','/js/portable-learning-package-repository.js','/js/studio-portable-learning-package.js'])assert.ok(sw.includes(item));
-  assert.match(sw,/CACHE_VERSION = "v3\.11\.288"/,'owner-approved P2 release cache version');
+  assert.match(sw,/CACHE_VERSION = "v3\.11\.289"/,'owner-approved P2 release cache version');
 });
 
 test('premium modal is mobile/RTL safe and exposes explicit verify-before-apply semantics',()=>{

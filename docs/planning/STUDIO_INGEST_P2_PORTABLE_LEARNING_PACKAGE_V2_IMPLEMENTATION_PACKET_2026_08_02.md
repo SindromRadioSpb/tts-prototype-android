@@ -1,7 +1,7 @@
 # Studio Ingest P2 — Portable Learning Package v2 implementation packet
 
 > **Date:** 2026-08-02
-> **Status:** IMPLEMENTED / AUTOMATED LOCAL PASS / v3.11.288 DEPLOY APPROVED
+> **Status:** IMPLEMENTED / v3.11.288 REAL-DATA DEFECT FOUND / v3.11.289 FIX IN GATES
 > **Production baseline:** `v3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`
 > **Browser schema baseline:** `MIGRATIONS.length=46`; proposed additive migration is v47
 > **Authority:** exact §27 implementation authority, four-file migration-count addendum and a
@@ -604,7 +604,7 @@ public/sw.js                                                        # precache e
 public/i18n/locales/en.js
 public/i18n/locales/ru.js
 public/i18n/locales/he.js
-package.json                                                        # P2 smoke commands; v3.11.288 under later deploy authority
+package.json                                                        # P2 smoke commands; release version under later deploy authority
 tests/portableLearningPackageCore.test.js                           # new
 tests/portableLearningPackageRepository.test.js                     # new
 tests/portableLearningPackageSecurity.test.js                       # new
@@ -734,7 +734,7 @@ The following sentence is a proposal only. Its presence here is not approval:
 
 The owner supplied the exact §27 sentence, the four-file migration-count addendum, and later
 approved a scoped production deploy. The bounded implementation is complete at release candidate
-`v3.11.288`; the durable evidence ledger is:
+`v3.11.289` after the scoped real-data decimal-provenance fix; the durable evidence ledger is:
 
 `docs/research/studio-p2-portable-learning-package/2026-08-02/OWNER_LIVE_PACKET.md`.
 

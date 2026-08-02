@@ -7,7 +7,7 @@
 > foundation shipped в `v3.11.283`; repaired mapping/follow shipped в `v3.11.286`,
 > first-slot/compact-header polish deployed и production-verified как `v3.11.287` / `2e8f4bf3`.
 > P2 Portable Learning Package v2 implemented и прошёл automated local gates 2026-08-02;
-> owner-approved production release candidate — `v3.11.288`; L2/L4 local-processing не открыт.
+> owner-approved production release; `v3.11.289` is the scoped real-data serializer fix candidate; L2/L4 local-processing не открыт.
 > Exact graph/manifest/import/security/receipt contract frozen в
 > `STUDIO_INGEST_P2_PORTABLE_LEARNING_PACKAGE_V2_IMPLEMENTATION_PACKET_2026_08_02.md`;
 > Production delivery/real owner-material read-only check pending на этой точке.

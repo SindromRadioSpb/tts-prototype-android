@@ -1,8 +1,8 @@
 # P2 Portable Learning Package v2 — owner-live packet
 
 > Date: 2026-08-02
-> Release candidate: `v3.11.288`
-> Status: **AUTOMATED LOCAL PASS / PRODUCTION DEPLOY APPROVED / OWNER DATA READ-ONLY CHECK PENDING**
+> Release candidate: `v3.11.289` scoped real-data serializer fix
+> Status: **v3.11.288 PROD DEFECT FOUND / v3.11.289 FIX GATES IN PROGRESS**
 > Authority boundary: browser-local P2 only. No server schema/data, cloud sync, provider,
 > media transport, E2EE, Hermes, concurrent editing, L2/L4/L5/L6 or implicit fallback.
 
@@ -23,7 +23,8 @@
 
 ### Pure/repository/security/backup/UI
 
-`npm run smoke:portable-learning-package` — PASS, 23/23 tests.
+`npm run smoke:portable-learning-package` — PASS before the production check; the scoped fix adds
+a red-before-green real-ASR decimal-provenance regression test.
 
 Covered evidence includes duplicate JSON/ZIP names, traversal, compression ratio, missing and
 corrupt entries, future schema, same-ID/different-hash, exact compatibility rebind, every Apply
@@ -71,6 +72,14 @@ Screenshots:
 | owner data import/rebind/delete | NOT AUTHORIZED / NOT RUN |
 | real-device owner ceremony | NOT RUN |
 
+The first read-only Kapture export on served `v3.11.288` found
+`CANONICAL_NUMBER_INVALID` before ZIP creation. The real legacy ASR provenance contains finite
+diagnostic decimal seconds/ratios while the package canon intentionally accepts JSON integers
+only. The scoped `v3.11.289` fix serializes only those diagnostic decimals as shortest decimal
+strings; strict canonical numbers remain unchanged. A red test reproduces the failure, and the
+same transform built and strictly verified snapshot/archive from the real material in memory with
+the receipt count unchanged.
+
 Automation is not labelled OWNER LIVE PASS. After deploy the already-open owner Chrome tab may
 be used only to inspect the real material and perform a media-free export/read-only verification.
 No Apply, relink, undo, delete or storage clearing is authorized against the owner's profile.
@@ -86,7 +95,7 @@ No Apply, relink, undo, delete or storage clearing is authorized against the own
 ## Remaining proof before closure
 
 1. Push the exact scoped implementation commit without force.
-2. Wait for actual `v3.11.288` APP and SW cache delivery and healthy v47 browser migration.
+2. Wait for actual `v3.11.289` APP and SW cache delivery and healthy v47 browser migration.
 3. Run read-only Kapture inspection/export on the already-open real production material.
 4. Keep the status at `AUTOMATED PROD PASS` or `PARTIAL OWNER PASS`; only the owner can complete
    the real import/relink ceremony on owner data.
