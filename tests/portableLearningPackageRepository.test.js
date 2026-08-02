@@ -27,7 +27,7 @@ function fixture() {
 async function harness() {
   const db = new SQL.Database();
   db.run(`PRAGMA foreign_keys=ON;
-    CREATE TABLE texts(id TEXT PRIMARY KEY,text_key TEXT NOT NULL UNIQUE,title TEXT NOT NULL,source_text TEXT NOT NULL,level TEXT,tags_json TEXT,source TEXT,topic TEXT,source_meta_json TEXT,table_model_meta_json TEXT,tts_profile_json TEXT,updated_at TEXT,created_at TEXT);
+    CREATE TABLE texts(id TEXT PRIMARY KEY,text_key TEXT NOT NULL UNIQUE,title TEXT NOT NULL,source_text TEXT NOT NULL,level TEXT,tags_json TEXT,source TEXT,topic TEXT,source_meta_json TEXT,table_model_meta_json TEXT,tts_profile_json TEXT,is_archived INTEGER NOT NULL DEFAULT 0,updated_at TEXT,created_at TEXT);
     CREATE TABLE sentences(id TEXT PRIMARY KEY,text_id TEXT NOT NULL REFERENCES texts(id) ON DELETE CASCADE,order_index INTEGER NOT NULL,he_plain TEXT,he_niqqud TEXT,translit TEXT,translit_ru TEXT,ru TEXT,meta_json TEXT,edit_meta_json TEXT,translation_provider TEXT,translation_meta_json TEXT,created_at TEXT,UNIQUE(text_id,order_index));`);
   const { MIGRATIONS } = await import('../public/db/migrations.js');
   assert.equal(MIGRATIONS.length,47);
@@ -58,6 +58,43 @@ test('apply is one SAVEPOINT, durable and idempotent with manual locks intact', 
   assert.equal(second.duplicate,true); assert.equal(count(h,'studio_table_revisions'),1); assert.equal(count(h,'sentences'),1);
   const exported=await Core.verifyPackageFiles(await Core.buildPackageFiles(await h.repo.snapshotForMaterial(first.receipt.id_map.material.local_id),{mode:'archive'}));
   assert.equal(exported.manifest.roots.learning_material,v.manifest.roots.learning_material);
+});
+
+test('committed receipt repairs a deleted compatibility closure without duplicating surviving canon', async () => {
+  const h=await harness(),v=await verified(),firstPlan=await h.repo.dryRun(v);
+  const first=await h.repo.applyVerified(v,{plan_sha256:firstPlan.plan_sha256});
+  const ids=first.receipt.id_map,captionCount=count(h,'studio_caption_revisions'),packageCount=count(h,'studio_media_packages');
+  h.db.run('DELETE FROM texts WHERE id=?',[ids.text.local_id]);
+  assert.equal(count(h,'texts'),0);assert.equal(count(h,'studio_learning_materials'),0);assert.equal(count(h,'studio_table_revisions'),0);assert.equal(count(h,'studio_text_media_bindings'),0);
+  assert.equal(count(h,'studio_caption_revisions'),captionCount);assert.equal(count(h,'studio_media_packages'),packageCount);assert.equal(count(h,'studio_portable_import_receipts'),1);
+
+  const repairPlan=await h.repo.dryRun(v);
+  assert.equal(repairPlan.recovery.state,'repairable');
+  assert.ok(repairPlan.recovery.missing.includes('text'));
+  assert.ok(repairPlan.recovery.missing.includes('material'));
+  assert.ok(repairPlan.recovery.missing.includes('table_revisions'));
+  assert.ok(repairPlan.recovery.missing.includes('text_media_binding'));
+  const repaired=await h.repo.applyVerified(v,{plan_sha256:repairPlan.plan_sha256});
+  assert.equal(repaired.repaired,true);assert.equal(repaired.duplicate,false);assert.equal(repaired.imported,false);
+  assert.equal(repaired.receipt.id_map.text.local_id,ids.text.local_id);
+  assert.equal(repaired.receipt.id_map.material.local_id,ids.material.local_id);
+  assert.deepEqual(repaired.receipt.id_map.rows,ids.rows);
+  assert.equal(count(h,'texts'),1);assert.equal(count(h,'studio_learning_materials'),1);assert.equal(count(h,'studio_table_revisions'),1);assert.equal(count(h,'sentences'),1);assert.equal(count(h,'studio_text_media_bindings'),1);
+  assert.equal(count(h,'studio_caption_revisions'),captionCount);assert.equal(count(h,'studio_media_packages'),packageCount);assert.equal(count(h,'studio_portable_import_receipts'),1);
+  assert.deepEqual(h.rows('PRAGMA foreign_key_check'),[]);
+
+  const duplicatePlan=await h.repo.dryRun(v),duplicate=await h.repo.applyVerified(v,{plan_sha256:duplicatePlan.plan_sha256});
+  assert.equal(duplicatePlan.recovery.state,'complete');assert.equal(duplicate.duplicate,true);assert.equal(duplicate.repaired,false);
+});
+
+test('archived compatibility card is recoverable without rebuilding immutable graph', async () => {
+  const h=await harness(),v=await verified(),plan=await h.repo.dryRun(v),applied=await h.repo.applyVerified(v,{plan_sha256:plan.plan_sha256});
+  h.db.run('UPDATE texts SET is_archived=1 WHERE id=?',[applied.receipt.id_map.text.local_id]);
+  const integrity=await h.repo.receiptIntegrity(applied.receipt.receipt_id);
+  assert.equal(integrity.state,'archived');
+  const restored=await h.repo.restoreLibraryProjection(applied.receipt.receipt_id);
+  assert.equal(restored.restored,true);assert.equal(h.rows('SELECT is_archived FROM texts')[0].is_archived,0);
+  assert.equal(count(h,'studio_table_revisions'),1);assert.equal(count(h,'studio_caption_revisions'),2);
 });
 
 test('faults after every write phase roll back byte-equivalent counts and pointers', async () => {

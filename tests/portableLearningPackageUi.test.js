@@ -10,7 +10,7 @@ test('P2 scripts load in dependency order and remain offline/provider-free',()=>
   assert.ok(order.every(n=>n>0));assert.ok(order[0]<order[1]&&order[1]<order[2]);
   assert.equal(/\bfetch\s*\(|XMLHttpRequest|apiCall\s*\(/.test(studio),false,'no server/provider transport');
   for(const item of ['/js/portable-learning-package-core.js','/js/portable-learning-package-repository.js','/js/studio-portable-learning-package.js'])assert.ok(sw.includes(item));
-  assert.match(sw,/CACHE_VERSION = "v3\.11\.294"/,'scoped portability UX release cache version');
+  assert.match(sw,/CACHE_VERSION = "v3\.11\.295"/,'scoped portability UX release cache version');
 });
 
 test('premium modal is mobile/RTL safe and exposes explicit verify-before-apply semantics',()=>{
@@ -79,4 +79,17 @@ test('portable media recovery stays available after the transient import step',(
   assert.match(html,/id="v3TextMetaPortableMedia"/);
   assert.match(html,/v3TextMetaRelinkMedia/);
   assert.match(html,/v3TextMetaMediaFile/);
+});
+
+test('recovery UX names broken, archived and complete receipt states without treating receipt as content backup',()=>{
+  assert.match(studio,/recovery\.state/);
+  assert.match(studio,/repairable/);
+  assert.match(studio,/restore-library/);
+  assert.match(studio,/choose-repair-package/);
+  assert.match(studio,/Source package/);
+  assert.match(html,/materialForText\(textId\)/);
+  assert.match(html,/archiveText\(textId\)/);
+  assert.match(html,/Studio history/);
+  assert.match(html,/studio-exact-binding/);
+  assert.match(html,/row_caption_segment_ids/);
 });

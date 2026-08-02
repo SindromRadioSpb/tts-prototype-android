@@ -54,7 +54,94 @@
       return { nodes, texts, media_sha256: media };
     }
 
-    async function dryRun(verified) { return Core.dryRun(verified, await inventory()); }
+    function uniqueSorted(values) { return Array.from(new Set(values.filter(Boolean))).sort(); }
+
+    async function inspectReceiptClosure(receipt, verified) {
+      if (!receipt) return { state: 'new', missing: [], conflicts: [], requires_source_package: false, archived: false };
+      if (receipt.status !== 'committed') return { state: 'rolled_back', missing: [], conflicts: [], requires_source_package: false, archived: false, receipt_id: receipt.receipt_id };
+      const map = receipt.id_map || {}, missing = [], conflicts = [], expected = verified && verified.payload;
+      const textId = map.text && map.text.local_id, materialId = map.material && map.material.local_id,
+        packageId = map.media_package && map.media_package.local_id;
+      const text = textId ? await one('SELECT id,text_key,is_archived FROM texts WHERE id=?', [textId]) : null;
+      const material = materialId ? await one('SELECT material_id,text_id,portable_text_key,current_table_revision_id,package_id FROM studio_learning_materials WHERE material_id=?', [materialId]) : null;
+      const media = packageId ? await one('SELECT package_id,media_sha256,deleted_at FROM studio_media_packages WHERE package_id=?', [packageId]) : null;
+      const binding = textId ? await one('SELECT text_id,package_id,track_id,revision_id,revision_sha256 FROM studio_text_media_bindings WHERE text_id=?', [textId]) : null;
+      if (!text) missing.push('text');
+      if (!material) missing.push('material');
+      if (!media || media.deleted_at) missing.push('media_package');
+      if (!binding) missing.push('text_media_binding');
+      if (text && expected && String(text.text_key || '') !== String(expected.material.portable_text_key || '')) conflicts.push({ code: 'TEXT_KEY_CONTENT_CONFLICT', id: textId });
+      if (material && (String(material.text_id) !== String(textId) || String(material.portable_text_key || '') !== String(expected ? expected.material.portable_text_key : material.portable_text_key || ''))) conflicts.push({ code: 'LEARNING_MATERIAL_ID_CONFLICT', id: materialId });
+      if (media && expected && String(media.media_sha256 || '') !== String(verified.manifest.media.sha256 || '')) conflicts.push({ code: 'MEDIA_PACKAGE_ID_CONFLICT', id: packageId });
+
+      if (expected) {
+        const tableIds = map.table_revisions || {}, revisionIds = map.caption_revisions || {}, rowIds = map.rows || {};
+        for (const doc of expected.caption_revisions || []) {
+          const id = revisionIds[doc.portable_revision_id], row = id ? await one('SELECT canonical_sha256 FROM studio_caption_revisions WHERE revision_id=?', [id]) : null;
+          if (!row) missing.push('caption_revisions');
+          else if (String(row.canonical_sha256) !== String(doc.revision.canonical_sha256)) conflicts.push({ code: 'CAPTION_REVISION_ID_CONFLICT', id });
+        }
+        for (const doc of expected.table_revisions || []) {
+          const id = tableIds[doc.portable_table_revision_id], row = id ? await one('SELECT content_sha256 FROM studio_table_revisions WHERE table_revision_id=?', [id]) : null;
+          if (!row) missing.push('table_revisions');
+          else {
+            if (String(row.content_sha256) !== String(doc.content_sha256)) conflicts.push({ code: 'TABLE_REVISION_ID_CONFLICT', id });
+            const linked = await one('SELECT COUNT(*) AS n FROM studio_table_revision_rows WHERE table_revision_id=?', [id]);
+            if (Number(linked && linked.n || 0) !== (doc.rows || []).length) conflicts.push({ code: 'TABLE_REVISION_ROWS_INCOMPLETE', id });
+          }
+        }
+        const selected = expected.table_revisions.find((item) => item.portable_table_revision_id === verified.manifest.roots.table_revision);
+        if (text && selected) {
+          for (const row of selected.rows || []) {
+            const sentenceId = rowIds[row.portable_row_id], local = sentenceId ? await one('SELECT he_plain,he_niqqud,translit,translit_ru,ru FROM sentences WHERE id=? AND text_id=?', [sentenceId, textId]) : null;
+            if (!local) missing.push('projection_rows');
+            else if (String(local.he_plain || '') !== String(row.he_plain || '') || String(local.he_niqqud || '') !== String(row.he_niqqud || '') || String(local.translit || '') !== String(row.translit || '') || String(local.translit_ru || '') !== String(row.translit_ru || '') || String(local.ru || '') !== String(row.ru || '')) conflicts.push({ code: 'TEXT_KEY_CONTENT_CONFLICT', id: sentenceId });
+          }
+        }
+        const expectedTrack = map.nodes && map.nodes[expected.corrected_track.portable_track_id] && map.nodes[expected.corrected_track.portable_track_id].local_id;
+        const expectedRevision = revisionIds[verified.manifest.roots.caption_revision];
+        if (binding && (String(binding.package_id) !== String(packageId) || String(binding.track_id) !== String(expectedTrack) || String(binding.revision_id) !== String(expectedRevision))) conflicts.push({ code: 'TEXT_MEDIA_BINDING_CONFLICT', id: textId });
+      } else {
+        const tableIds = Object.values(map.table_revisions || {}), revisionIds = Object.values(map.caption_revisions || {});
+        if (tableIds.length) {
+          const found = await one(`SELECT COUNT(*) AS n FROM studio_table_revisions WHERE table_revision_id IN (${tableIds.map(() => '?').join(',')})`, tableIds);
+          if (Number(found && found.n || 0) !== tableIds.length) missing.push('table_revisions');
+        }
+        if (revisionIds.length) {
+          const found = await one(`SELECT COUNT(*) AS n FROM studio_caption_revisions WHERE revision_id IN (${revisionIds.map(() => '?').join(',')})`, revisionIds);
+          if (Number(found && found.n || 0) !== revisionIds.length) missing.push('caption_revisions');
+        }
+        const selectedRows = Object.values(map.rows || {});
+        if (text && selectedRows.length) {
+          const found = await one(`SELECT COUNT(*) AS n FROM sentences WHERE text_id=? AND id IN (${selectedRows.map(() => '?').join(',')})`, [textId, ...selectedRows]);
+          if (Number(found && found.n || 0) !== selectedRows.length) missing.push('projection_rows');
+        }
+      }
+      const cleanMissing = uniqueSorted(missing), cleanConflicts = conflicts.sort((a, b) => String(a.code + a.id).localeCompare(String(b.code + b.id)));
+      const archived = !!(text && Number(text.is_archived));
+      return {
+        state: cleanConflicts.length ? 'conflict' : cleanMissing.length ? 'repairable' : archived ? 'archived' : 'complete',
+        missing: cleanMissing, conflicts: cleanConflicts, archived,
+        requires_source_package: cleanMissing.length > 0,
+        receipt_id: receipt.receipt_id,
+      };
+    }
+
+    async function receiptIntegrity(receiptId) {
+      const receipt = typeof receiptId === 'string' ? await getReceipt(receiptId) : receiptId;
+      if (!receipt) throw failure('RECEIPT_NOT_FOUND');
+      return inspectReceiptClosure(receipt, null);
+    }
+
+    async function dryRun(verified) {
+      const base = await Core.dryRun(verified, await inventory());
+      const receipt = await getReceiptByRoot(verified.manifest.portable_package_id, verified.manifest.content_root_sha256);
+      const recovery = await inspectReceiptClosure(receipt, verified);
+      const conflicts = [...base.conflicts, ...recovery.conflicts];
+      const planBase = { ...base, conflicts, recovery, estimated: { ...base.estimated, repair_count: recovery.missing.length } };
+      delete planBase.plan_sha256; delete planBase.can_apply;
+      return { ...planBase, plan_sha256: await Core.hashObject(planBase), can_apply: conflicts.length === 0 };
+    }
 
     async function assertReusable(table, idColumn, id, hashColumn, expectedHash, conflictCode) {
       const row = await one(`SELECT ${hashColumn} AS hash FROM ${table} WHERE ${idColumn}=?`, [id]);
@@ -69,21 +156,29 @@
       if (!options.plan_sha256 || options.plan_sha256 !== currentPlan.plan_sha256) throw failure('IMPORT_PLAN_STALE');
       if (!currentPlan.can_apply) throw failure('IMPORT_PLAN_BLOCKED', currentPlan.conflicts[0] && currentPlan.conflicts[0].code);
       const previous = await getReceiptByRoot(verified.manifest.portable_package_id, verified.manifest.content_root_sha256);
-      if (previous && previous.status === 'committed') return { imported: false, duplicate: true, receipt: previous };
+      const recovery = currentPlan.recovery || { state: previous && previous.status === 'committed' ? 'complete' : 'new' };
+      if (previous && previous.status === 'committed' && recovery.state === 'complete') return { imported: false, repaired: false, duplicate: true, receipt: previous };
+      const repairing = !!(previous && previous.status === 'committed' && ['repairable','archived'].includes(recovery.state));
 
       const p = verified.payload, manifest = verified.manifest, ts = timestamp();
       const derivedPackageId = 'mpkg:portable:' + shortHash(manifest.roots.media_package);
       const packageById = await one('SELECT * FROM studio_media_packages WHERE package_id=?', [derivedPackageId]);
       if (packageById && String(packageById.media_sha256 || '') !== String(manifest.media.sha256 || '')) throw failure('MEDIA_PACKAGE_ID_CONFLICT');
       const packageBySha = manifest.media.sha256 ? await one('SELECT * FROM studio_media_packages WHERE media_sha256=? AND deleted_at IS NULL', [manifest.media.sha256]) : null;
-      const packageId = packageById ? derivedPackageId : packageBySha ? String(packageBySha.package_id) : derivedPackageId;
-      const trackIds = { [p.raw_track.portable_track_id]: 'track:portable:' + shortHash(p.raw_track.portable_track_id), [p.corrected_track.portable_track_id]: 'track:portable:' + shortHash(p.corrected_track.portable_track_id) };
+      const previousMap = previous && previous.id_map || {}, previousPackageId = previousMap.media_package && previousMap.media_package.local_id;
+      const previousPackage = previousPackageId ? await one('SELECT package_id FROM studio_media_packages WHERE package_id=? AND deleted_at IS NULL', [previousPackageId]) : null;
+      const packageId = previousPackage ? String(previousPackage.package_id) : packageById ? derivedPackageId : packageBySha ? String(packageBySha.package_id) : previousPackageId || derivedPackageId;
+      const previousNodes = previousMap.nodes || {};
+      const trackIds = {
+        [p.raw_track.portable_track_id]: previousNodes[p.raw_track.portable_track_id] && previousNodes[p.raw_track.portable_track_id].local_id || 'track:portable:' + shortHash(p.raw_track.portable_track_id),
+        [p.corrected_track.portable_track_id]: previousNodes[p.corrected_track.portable_track_id] && previousNodes[p.corrected_track.portable_track_id].local_id || 'track:portable:' + shortHash(p.corrected_track.portable_track_id),
+      };
       const revisionIds = {}, tableIds = {}, rowIds = {};
-      for (const doc of p.caption_revisions) revisionIds[doc.portable_revision_id] = 'rev:' + shortHash(doc.portable_revision_id);
-      for (const doc of p.table_revisions) tableIds[doc.portable_table_revision_id] = 'table-portable:' + shortHash(doc.portable_table_revision_id);
-      for (const doc of p.table_revisions) for (const row of doc.rows || []) if (!rowIds[row.portable_row_id]) rowIds[row.portable_row_id] = 'sentence-portable:' + shortHash(row.portable_row_id);
-      const materialId = 'material-portable:' + shortHash(manifest.roots.learning_material);
-      const textId = 'text-portable:' + shortHash(manifest.roots.learning_material);
+      for (const doc of p.caption_revisions) revisionIds[doc.portable_revision_id] = previousMap.caption_revisions && previousMap.caption_revisions[doc.portable_revision_id] || 'rev:' + shortHash(doc.portable_revision_id);
+      for (const doc of p.table_revisions) tableIds[doc.portable_table_revision_id] = previousMap.table_revisions && previousMap.table_revisions[doc.portable_table_revision_id] || 'table-portable:' + shortHash(doc.portable_table_revision_id);
+      for (const doc of p.table_revisions) for (const row of doc.rows || []) if (!rowIds[row.portable_row_id]) rowIds[row.portable_row_id] = previousMap.rows && previousMap.rows[row.portable_row_id] || 'sentence-portable:' + shortHash(row.portable_row_id);
+      const materialId = previousMap.material && previousMap.material.local_id || 'material-portable:' + shortHash(manifest.roots.learning_material);
+      const textId = previousMap.text && previousMap.text.local_id || 'text-portable:' + shortHash(manifest.roots.learning_material);
       const selectedTableId = tableIds[manifest.roots.table_revision];
       const selectedRevisionId = revisionIds[manifest.roots.caption_revision];
       if (!selectedTableId || !selectedRevisionId) throw failure('PACKAGE_ROOT_LOCAL_MAP_MISSING');
@@ -194,6 +289,7 @@
             VALUES(?,?,?,?,?,?,?,?,NULL,?,?,NULL,?)`, [sentenceId, effectiveTextId, Number(row.order_index), row.he_plain, row.he_niqqud, row.translit, row.translit_ru, row.ru, json({ edited, _studio_material: { schema: 'material-projection-v1', material_id: materialId, table_revision_id: selectedTableId, field_meta: row.field_meta || {} } }), null, ts]);
         }
         for(const old of priorProjection)if(!wantedIds.has(String(old.id)))await r('DELETE FROM sentences WHERE id=? AND text_id=?',[old.id,effectiveTextId]);
+        await r('UPDATE texts SET is_archived=0,updated_at=? WHERE id=?', [ts, effectiveTextId]);
         const mapping = { rows: (selectedTable.rows || []).map((row) => ({ row_index: row.order_index, corrected_caption_segment_id: row.caption_segment_id, raw_source_segment_ids: row.source_segment_ids || [], mapping_meta: row.mapping_meta || {} })) };
         await r(`INSERT INTO studio_text_media_bindings(text_id,package_id,track_id,revision_id,revision_sha256,mapping_json,created_at,updated_at)
           VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(text_id) DO UPDATE SET package_id=excluded.package_id,track_id=excluded.track_id,revision_id=excluded.revision_id,revision_sha256=excluded.revision_sha256,mapping_json=excluded.mapping_json,updated_at=excluded.updated_at`, [effectiveTextId, packageId, trackIds[p.corrected_track.portable_track_id], selectedRevisionId, selectedTable.bound_caption_revision_sha256, json(mapping), ts, ts]);
@@ -202,7 +298,16 @@
 
         const counts = { caption_revisions: p.caption_revisions.length, table_revisions: p.table_revisions.length, rows: selectedTable.rows.length, created_caption_revisions: created.caption_revisions.length, created_table_revisions: created.table_revisions.length, created_row_versions: created.row_versions.length };
         const idMap = { nodes: nodeMap, media_package: { local_id: packageId, created: created.package }, text: { text_key: p.material.portable_text_key, local_id: effectiveTextId, created: created.text }, material: { local_id: materialId, created: created.material }, selected_caption_portable_id: manifest.roots.caption_revision, selected_table_portable_id: manifest.roots.table_revision, caption_revisions: revisionIds, table_revisions: tableIds, rows: rowIds };
-        const rollback = { created, before_material: beforeMaterial || null, before_binding: beforeBinding || null, binding_created: !beforeBinding, package_id: packageId, text_id: effectiveTextId, material_id: materialId };
+        const priorRollback = repairing && previous.rollback || {}, priorCreated = priorRollback.created || {};
+        const rollbackCreated = {
+          package: !!(priorCreated.package || created.package),
+          tracks: uniqueSorted([...(priorCreated.tracks || []), ...created.tracks]),
+          caption_revisions: uniqueSorted([...(priorCreated.caption_revisions || []), ...created.caption_revisions]),
+          text: !!(priorCreated.text || created.text), material: !!(priorCreated.material || created.material),
+          table_revisions: uniqueSorted([...(priorCreated.table_revisions || []), ...created.table_revisions]),
+          row_versions: uniqueSorted([...(priorCreated.row_versions || []), ...created.row_versions]),
+        };
+        const rollback = { ...priorRollback, created: rollbackCreated, before_material: priorRollback.before_material || beforeMaterial || null, before_binding: priorRollback.before_binding || beforeBinding || null, binding_created: priorRollback.binding_created == null ? !beforeBinding : !!priorRollback.binding_created, package_id: packageId, text_id: effectiveTextId, material_id: materialId };
         const resultBase = { portable_package_id: manifest.portable_package_id, content_root_sha256: manifest.content_root_sha256, counts, id_map: idMap };
         const resultHash = await Core.hashObject(resultBase), receiptId = 'portable-receipt:' + manifest.content_root_sha256;
         await r(`INSERT INTO studio_portable_import_receipts(receipt_id,portable_package_id,content_root_sha256,manifest_sha256,schema_version,package_mode,status,plan_sha256,result_sha256,counts_json,id_map_json,rollback_json,missing_media_json,created_at,rolled_back_at)
@@ -224,7 +329,7 @@
             rolled_back_at=NULL`, [receiptId, manifest.portable_package_id, manifest.content_root_sha256, verified.manifest_sha256, 2, manifest.package_mode, currentPlan.plan_sha256, resultHash, json(counts), json(idMap), json(rollback), json(currentPlan.media.status === 'missing' ? [manifest.media.sha256] : []), ts]);
         inject(options.fault_inject, 'after_receipt');
         await x('RELEASE p2_portable_import;');
-        return { imported: true, duplicate: false, receipt: await getReceiptByRoot(manifest.portable_package_id, manifest.content_root_sha256) };
+        return { imported: !repairing, repaired: repairing, duplicate: false, receipt: await getReceiptByRoot(manifest.portable_package_id, manifest.content_root_sha256) };
       } catch (error) {
         try { await x('ROLLBACK TO p2_portable_import;'); } finally { try { await x('RELEASE p2_portable_import;'); } catch (_) {} }
         throw error;
@@ -268,7 +373,7 @@
     }
 
     async function listReceipts() {
-      return q(`SELECT r.receipt_id,r.portable_package_id,r.content_root_sha256,r.package_mode,
+      const rows = await q(`SELECT r.receipt_id,r.portable_package_id,r.content_root_sha256,r.package_mode,
         r.status,r.counts_json,r.id_map_json,r.missing_media_json,r.created_at,r.rolled_back_at,
         json_extract(r.id_map_json,'$.material.local_id') AS material_id,t.title
         FROM studio_portable_import_receipts r
@@ -276,6 +381,26 @@
           ON m.material_id=json_extract(r.id_map_json,'$.material.local_id')
         LEFT JOIN texts t ON t.id=m.text_id
         ORDER BY r.created_at DESC`);
+      for (const row of rows) {
+        row.counts = parse(row.counts_json, {}); row.id_map = parse(row.id_map_json, {}); row.missing_media = parse(row.missing_media_json, []);
+        row._integrity = await inspectReceiptClosure(row, null);
+      }
+      return rows;
+    }
+
+    async function restoreLibraryProjection(receiptId) {
+      const receipt = await getReceipt(receiptId); if (!receipt || receipt.status !== 'committed') throw failure('RECEIPT_NOT_COMMITTED');
+      const integrity = await inspectReceiptClosure(receipt, null);
+      if (integrity.state === 'complete') return { restored: false, duplicate: true, integrity };
+      if (integrity.state !== 'archived') throw failure('SOURCE_PACKAGE_REQUIRED');
+      const textId = receipt.id_map && receipt.id_map.text && receipt.id_map.text.local_id;
+      await x('SAVEPOINT p2_restore_projection;');
+      try {
+        const result = await r('UPDATE texts SET is_archived=0,updated_at=? WHERE id=? AND is_archived=1', [timestamp(), textId]);
+        if (result && Number(result.changes) === 0) throw failure('RESTORE_PROJECTION_STALE');
+        await x('RELEASE p2_restore_projection;');
+        return { restored: true, duplicate: false, integrity: await inspectReceiptClosure(receipt, null) };
+      } catch (error) { try { await x('ROLLBACK TO p2_restore_projection;'); } finally { try { await x('RELEASE p2_restore_projection;'); } catch (_) {} } throw error; }
     }
 
     async function listMaterials() {
@@ -348,7 +473,7 @@
       };
     }
 
-    return { inventory, dryRun, applyVerified, getReceipt, getReceiptByRoot, listReceipts, listMaterials, mediaForText, mediaForReceipt, reverseReferencePlan, undo, snapshotForMaterial };
+    return { inventory, dryRun, applyVerified, getReceipt, getReceiptByRoot, receiptIntegrity, restoreLibraryProjection, listReceipts, listMaterials, mediaForText, mediaForReceipt, reverseReferencePlan, undo, snapshotForMaterial };
   }
 
   return { createRepository };

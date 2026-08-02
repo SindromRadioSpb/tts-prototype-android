@@ -138,6 +138,45 @@
     return out;
   }
 
+  function buildExactBindingPassport(revision, binding, media) {
+    if (!revision || !binding || !media) throw new Error('EXACT_BINDING_CONTEXT_REQUIRED');
+    if (String(revision.revision_id) !== String(binding.revision_id) || String(revision.track_id) !== String(binding.track_id)) throw new Error('EXACT_BINDING_TARGET_MISMATCH');
+    if (String(revision.canonical_sha256) !== String(binding.revision_sha256)) throw new Error('EXACT_BINDING_HASH_MISMATCH');
+    if (String(media.package_id) !== String(binding.package_id)) throw new Error('EXACT_BINDING_PACKAGE_MISMATCH');
+    var projection = buildCompatibilityProjection({
+      package_id: media.package_id, track_id: revision.track_id, revision_id: revision.revision_id,
+      canonical_sha256: revision.canonical_sha256, segments: revision.segments || [],
+    }, { kind: 'audio', media: media });
+    var passport = projection.audio, byCaption = new Map();
+    (revision.segments || []).forEach(function (segment) { if (segment && segment.caption_segment_id) byCaption.set(String(segment.caption_segment_id), segment); });
+    var mappings = binding.mapping && Array.isArray(binding.mapping.rows) ? binding.mapping.rows.slice() : [];
+    mappings.sort(function (a, b) { return finiteIndex(a && a.row_index, 0) - finiteIndex(b && b.row_index, 0); });
+    var firstRow = new Map(), rowCaptionIds = [], missing = 0;
+    mappings.forEach(function (item) {
+      var rowIndex = finiteIndex(item && item.row_index, rowCaptionIds.length), captionId = item && item.corrected_caption_segment_id ? String(item.corrected_caption_segment_id) : '';
+      rowCaptionIds[rowIndex] = captionId || null;
+      if (!captionId || !byCaption.has(captionId)) { missing++; return; }
+      if (!firstRow.has(captionId)) firstRow.set(captionId, rowIndex);
+    });
+    var entries = [];
+    (revision.segments || []).forEach(function (segment) {
+      var captionId = segment && segment.caption_segment_id && String(segment.caption_segment_id), rowIndex = captionId && firstRow.get(captionId);
+      if (rowIndex == null || !Number.isFinite(Number(segment.start_ms))) return;
+      var entry = { o: rowIndex, t: Number(segment.start_ms) / 1000 };
+      if (Number.isFinite(Number(segment.end_ms)) && Number(segment.end_ms) > Number(segment.start_ms)) entry.end = Number(segment.end_ms) / 1000;
+      entries.push(entry);
+    });
+    passport.timing = entries.length ? { entries: entries } : null;
+    passport.timingSource = entries.length ? 'studio-exact-binding' : null;
+    passport.timingMap = {
+      authority: 'studio-exact-binding', revision_id: revision.revision_id,
+      revision_sha256: revision.canonical_sha256, row_caption_segment_ids: rowCaptionIds,
+      mapped_rows: rowCaptionIds.filter(Boolean).length, missing_rows: missing,
+    };
+    if (!entries.length) passport.timingDropReason = 'NO_EXACT_SEGMENT_MAPPING';
+    return passport;
+  }
+
   function filterForCloudSlim(sourceMeta) {
     var out = copy(sourceMeta || {}), source = out && out.source;
     if (!source || !source.media_package_ref) return out;
@@ -270,7 +309,9 @@
     var stale = await repo.isTextBindingStale(textId), workspace = await activatePackage(binding.package_id, {
       stale: !!stale.stale, text_id: String(textId), bound_revision_id: binding.revision_id,
     });
-    return { binding: binding, stale: !!stale.stale, workspace: workspace };
+    var revision = await repo.getRevision(binding.revision_id), media = await repo.getPackage(binding.package_id);
+    var mediaPassport = revision && media ? buildExactBindingPassport(revision, binding, media) : null;
+    return { binding: binding, stale: !!stale.stale, workspace: workspace, media_passport: mediaPassport };
   }
   async function openWorkspace(packageId, trackId) {
     var workspace = packageId
@@ -470,6 +511,7 @@
     passportToPromotionInput: passportToPromotionInput,
     reconcileCorrectedPreview: reconcileCorrectedPreview,
     buildCompatibilityProjection: buildCompatibilityProjection,
+    buildExactBindingPassport: buildExactBindingPassport,
     filterForCloudSlim: filterForCloudSlim,
     createFromImportMeta: createFromImportMeta, promoteLegacy: promoteLegacy,
     buildSlimPackageFiles: buildSlimPackageFiles, verifySlimPackageFiles: verifySlimPackageFiles,

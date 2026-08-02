@@ -197,7 +197,10 @@
     if (typeof window.v3StopRowAudio === "function") { try { window.v3StopRowAudio(); } catch (_) {} }
     try {
       cur.audioEl.currentTime = Number(cur.entries[k].t) || 0;
-      cur.stopAtT = k + 1 < cur.entries.length ? Number(cur.entries[k + 1].t) : null;
+      var exactEnd = Number(cur.entries[k] && cur.entries[k].end);
+      cur.stopAtT = Number.isFinite(exactEnd) && exactEnd > Number(cur.entries[k].t)
+        ? exactEnd
+        : (k + 1 < cur.entries.length ? Number(cur.entries[k + 1].t) : null);
       await cur.audioEl.play();
     } catch (_) {}
   }

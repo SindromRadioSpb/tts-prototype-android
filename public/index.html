@@ -3737,6 +3737,8 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .p2-plan-grid strong { color:var(--theme-text-primary,#172b31); font-size:18px; }
 .p2-media-summary { display:flex; flex-direction:column; gap:3px; margin:8px 0; padding:9px 10px; border-radius:9px; background:color-mix(in srgb,#0b7673 7%,var(--theme-bg-card,#fff)); }
 .p2-media-summary span,.p2-receipt-media { overflow-wrap:anywhere; }
+.p2-recovery-summary { display:flex; flex-direction:column; gap:4px; margin:10px 0; padding:11px 12px; border-inline-start:4px solid #b36a00; border-radius:8px; background:#fff7e7; color:#663d00; }
+.p2-recovery-summary[data-recovery="archived"] { border-inline-start-color:#0b7673; background:#edf8f5; color:#075e5b; }
 .p2-portable-dialog footer { position:sticky; bottom:-18px; display:flex; flex-wrap:wrap; gap:8px; margin:18px -18px -18px; padding:12px 18px max(12px,env(safe-area-inset-bottom)); border-top:1px solid var(--theme-border-medium,#cbd5e1); background:color-mix(in srgb,var(--theme-bg-card,#fff) 94%,transparent); backdrop-filter:blur(10px); }
 .p2-portable-dialog footer button,.p2-portable-apply { min-height:44px; padding:9px 14px; border:1px solid #0b7673; border-radius:10px; background:var(--theme-bg-card,#fff); color:#075e5b; font-weight:700; }
 .p2-portable-apply { margin-top:8px; background:#0b7673; color:#fff; }
@@ -3748,9 +3750,13 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .p2-receipt-card div span,.p2-receipt-card code { margin-top:3px; color:var(--theme-text-secondary,#496966); font-size:11px; }
 .p2-receipt-card button { min-height:40px; padding:7px 10px; border:1px solid #9b3d32; border-radius:9px; background:var(--theme-bg-card,#fff); color:#8b2d22; font-weight:750; }
 .p2-receipt-card button.p2-media-relink { border-color:#0b7673; color:#075e5b; }
+.p2-receipt-card button.p2-recovery-action { border-color:#0b7673; background:#0b7673; color:#fff; }
 .p2-receipt-media[data-available="true"] { color:#08785f !important; }
+.p2-receipt-health { margin-top:8px !important; padding:8px 9px; border-radius:8px; background:var(--theme-bg-soft,#f2f6f6); color:var(--theme-text-primary,#172b31) !important; font-size:12px !important; line-height:1.4; }
 .p2-receipt-state { padding:4px 7px; border-radius:99px; background:#e6f3ef; color:#075e5b; font-size:11px; font-weight:800; }
 .p2-receipt-state[data-state="rolled_back"] { background:var(--theme-bg-soft,#f2f6f6); color:var(--theme-text-secondary,#496966); }
+.p2-receipt-state[data-state="repairable"],.p2-receipt-state[data-state="conflict"] { background:#fff0e4; color:#8b2d22; }
+.p2-receipt-state[data-state="archived"] { background:#edf2f7; color:#425466; }
 .p2-receipt-result { grid-column:1/-1; min-height:0; margin:0; color:var(--theme-text-secondary,#496966); font-size:12px; line-height:1.4; }
 .v3-tcs-portable { margin-top:12px; padding:12px; border:1px solid color-mix(in srgb,#0b7673 35%,var(--theme-border-medium,#cbd5e1)); border-radius:11px; background:color-mix(in srgb,#0b7673 5%,var(--theme-bg-card,#fff)); }
 .v3-tcs-portable[hidden] { display:none; }
@@ -12802,9 +12808,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=104"></script>
-    <script src="/i18n/locales/en.js?v=104"></script>
-    <script src="/i18n/locales/he.js?v=104"></script>
+    <script src="/i18n/locales/ru.js?v=105"></script>
+    <script src="/i18n/locales/en.js?v=105"></script>
+    <script src="/i18n/locales/he.js?v=105"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12961,7 +12967,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.294";
+    window.APP_VERSION = "3.11.295";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -14259,6 +14265,10 @@ if (header) {
       try {
         const activation = await window.StudioMediaPackage.activateTextBinding(String(textId));
         window.v3MediaPackageStale = !!(activation && activation.stale);
+        if (activation && activation.media_passport) {
+          window.v3ActiveMediaAudio = activation.media_passport;
+          v3MediaBlobCache = null;
+        }
         if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
       } catch (_) {}
     }
@@ -24488,6 +24498,11 @@ function v3MediaRenderRowReplay(table, audio) {
       const cell = tr.querySelector("td:last-child") || tr.lastElementChild;
       if (!cell) return;
       if (tr.querySelector(".smk-row-replay")) return;   // повторный async-проход не дублирует
+      const idx = Number(tr.getAttribute("data-row-idx"));
+      const exactMap = audio.timingMap && audio.timingMap.authority === "studio-exact-binding"
+        ? audio.timingMap.row_caption_segment_ids : null;
+      // Exact Studio bindings never guess a positional fallback for an unmapped row.
+      if (Array.isArray(exactMap) && !exactMap[idx]) return;
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "smk-row-replay";
@@ -24495,7 +24510,6 @@ function v3MediaRenderRowReplay(table, audio) {
       btn.title = t("studio.media.replaySegment");
       btn.addEventListener("click", async (e) => {
         e.stopPropagation();
-        const idx = Number(tr.getAttribute("data-row-idx"));
         const blob = await v3MediaResolveBlob(audio);
         if (!blob) return;
         // Same reference-equality contract as v3MediaPlayOriginal() above.
@@ -26178,6 +26192,10 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
       try {
         const activation = await window.StudioMediaPackage.activateTextBinding(String(textId));
         window.v3MediaPackageStale = !!(activation && activation.stale);
+        if (activation && activation.media_passport) {
+          window.v3ActiveMediaAudio = activation.media_passport;
+          v3MediaBlobCache = null;
+        }
         if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
       } catch (_) {}
     }
@@ -26358,7 +26376,20 @@ async function v3LibraryDeleteText(textId) {
   // styling, dismissable, locale-aware. The B3 undo-toast still gives
   // 7-second escape hatch after the delete.
   const _t = (typeof window.t === "function") ? window.t : function(k){return k;};
-  const ok = await v3ConfirmModal({
+  let studioMaterial = null;
+  try {
+    if (LOCAL_MODE && window.StudioPortableLearningPackage && window.StudioPortableLearningPackage.materialForText) {
+      studioMaterial = await window.StudioPortableLearningPackage.materialForText(textId);
+    }
+  } catch (_) {}
+  const ok = await v3ConfirmModal(studioMaterial ? {
+    title: _t("confirms.archiveStudioMaterialTitle"),
+    // Studio history, immutable tables and exact media stay reachable; complete deletion lives in verified Import History.
+    body: _t("confirms.archiveStudioMaterialBody"),
+    okText: _t("confirms.archiveStudioMaterialOk"),
+    cancelText: _t("confirms.cancelBtn"),
+    danger: false,
+  } : {
     title: _t("confirms.deleteTextTitle"),
     body:  _t("confirms.deleteTextBody"),
     okText: _t("confirms.deleteTextOk"),
@@ -26368,6 +26399,14 @@ async function v3LibraryDeleteText(textId) {
   if (!ok) return;
 
   try {
+    if (studioMaterial && LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      await ldb.archiveText(textId);
+      try { v3SessionForgetTextIfStale(textId); } catch (_) {}
+      showToast(t("toast.materialArchivedSafe"), "success");
+      v3LibraryRefresh();
+      return;
+    }
     let snapshot = null;
     if (LOCAL_MODE) {
       const ldb = await ensureLocalDB();

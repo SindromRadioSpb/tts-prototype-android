@@ -192,3 +192,19 @@ test("bind(): a visible local player supports paused row seek and explicit time-
     uninstallBrowserMocks();
   }
 });
+
+test("playSegment(): a 1:N mapped row replays the exact cue and stops at its explicit end", async () => {
+  installBrowserMocks();
+  try {
+    var mod = freshModule(), adapter = makeFakeAudioEl();
+    var entries = [{ o: 0, t: 0, end: 0.8 }, { o: 1, t: 0.9, end: 1.8 }];
+    var run = mod._ensureRun(adapter, entries, 3);
+
+    await mod.playSegment(2);
+
+    assert.equal(adapter.currentTime, 0.9, "the second row in a 1:N group must seek to the shared exact cue");
+    assert.equal(run.stopAtT, 1.8, "the last mapped group must stop at the cue end, not play to media EOF");
+  } finally {
+    uninstallBrowserMocks();
+  }
+});

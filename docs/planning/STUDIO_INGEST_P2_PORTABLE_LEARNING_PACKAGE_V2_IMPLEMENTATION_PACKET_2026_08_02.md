@@ -755,3 +755,29 @@ Current evidence:
   disk warning cleared at 79%, with containers, volumes, images and references unchanged;
 - real Apply/relink/undo and iPhone ceremony were not authorized/run, so owner-live remains
   `PARTIAL OWNER PASS` rather than complete.
+
+## 29. Post-release recovery decision — option B now, option C later
+
+The 2026-08-02 owner smoke exposed a lifecycle mismatch rather than lost canonical data: deleting
+an imported Library text-card cascaded through the compatibility-owned `text_id` and removed the
+material/table projection, while the durable receipt, caption history and exact media package could
+survive. P2 therefore adopts **option B** for the current bounded recovery slice:
+
+- Library **Delete** on a Studio learning material is a reversible Archive action; it preserves the
+  material, immutable transcript/table revisions, exact binding and media reference;
+- Import History reports `complete`, `archived`, `repairable` or `conflict` integrity explicitly;
+- an archived card is returned without re-import; a historically deleted projection is rebuilt from
+  its exact Source `.lplp.zip` under one SAVEPOINT, reusing the receipt IDs and surviving canon;
+- a committed receipt is proof and an identity map, not a hidden content backup; it never fabricates
+  missing rows or silently substitutes a different package;
+- opening the recovered card or transcript hydrates the exact OPFS media binding and the exact
+  cue-to-row replay map, including 1:N row groups and explicit final cue end times.
+
+**Option C remains a candidate for the stronger long-term architecture:** make a learning material
+independent of the mutable/rebuildable `texts` projection, with a material-owned portable identity
+and an optional compatibility-card binding. This would remove the structural possibility that a
+text-card lifecycle operation can cascade into material canon and would make multiple projections
+per material natural. It is intentionally not implemented here: it requires a separately approved
+additive migration (likely v48), full-backup/rollback proof, delete/GC policy changes and a deliberate
+compatibility transition. Until then, option B closes the user journey without dual truth or schema
+mutation.

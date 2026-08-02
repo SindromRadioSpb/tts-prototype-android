@@ -87,6 +87,32 @@ test('compatibility projection keeps the table player on the canonical OPFS medi
   assert.equal(projection.audio.media.opfs_path, undefined, 'legacy table playback has one normalized media shape');
 });
 
+test('exact text binding hydrates canonical OPFS video and 1:N row replay timing', () => {
+  const passport = StudioMediaPackage.buildExactBindingPassport({
+    revision_id:'rev:bound',track_id:'track:bound',canonical_sha256:'f'.repeat(64),
+    segments:[
+      {caption_segment_id:'cue:1',source_segment_ids:['source:1'],start_ms:0,end_ms:1200,text:'שלום'},
+      {caption_segment_id:'cue:2',source_segment_ids:['source:2'],start_ms:1300,end_ms:2400,text:'עולם'},
+    ],
+  },{
+    package_id:'mpkg:bound',track_id:'track:bound',revision_id:'rev:bound',revision_sha256:'f'.repeat(64),
+    mapping:{rows:[
+      {row_index:0,corrected_caption_segment_id:'cue:1'},
+      {row_index:1,corrected_caption_segment_id:'cue:1'},
+      {row_index:2,corrected_caption_segment_id:'cue:2'},
+    ]},
+  },{
+    package_id:'mpkg:bound',media_sha256:SHA,mime:'video/mp4',duration_ms:2400,
+    original_name:'Бибас.mp4',opfs_path:`media/${SHA}.mp4`,size_bytes:84247081,
+  });
+  assert.equal(passport.media.opfsPath,`media/${SHA}.mp4`);
+  assert.equal(passport.media.originalName,'Бибас.mp4');
+  assert.equal(passport.projection_of_revision_id,'rev:bound');
+  assert.equal(passport.timingSource,'studio-exact-binding');
+  assert.deepEqual(passport.timing.entries,[{o:0,t:0,end:1.2},{o:2,t:1.3,end:2.4}]);
+  assert.deepEqual(passport.timingMap.row_caption_segment_ids,['cue:1','cue:1','cue:2']);
+});
+
 test('cloud slim filter removes local track snapshots but leaves an honest package stub', () => {
   const sourceMeta = { source: {
     kind: 'audio', media_package_ref: { package_id: 'mpkg:1', track_id: 'track:1', revision_id: 'rev:1', projection_sha256: 'b'.repeat(64) },
