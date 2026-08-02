@@ -3690,6 +3690,20 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 #l3WorkspaceRevision { color:#075e5b; }
 #l3WorkspaceStale { margin:0 0 10px; padding:8px 9px; border-inline-start:3px solid #c48616; background:#fff7e5; color:#765309; font-size:12px; line-height:1.4; }
 .l3-workspace-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.p2-portable-backdrop { position:fixed; inset:0; z-index:10040; display:grid; place-items:center; padding:18px; background:rgba(7,22,28,.62); backdrop-filter:blur(8px); }
+.p2-portable-backdrop[hidden] { display:none; }
+.p2-portable-dialog { width:min(680px,100%); max-height:min(86vh,760px); overflow:auto; border:1px solid color-mix(in srgb,#0b7673 35%,var(--theme-border-medium,#cbd5e1)); border-radius:18px; padding:18px; background:var(--theme-bg-card,#fff); box-shadow:0 28px 80px rgba(2,21,26,.28); color:var(--theme-text-primary,#172b31); }
+.p2-portable-dialog header { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
+.p2-portable-dialog h3 { margin:4px 0 0; font-size:clamp(20px,4vw,28px); }
+.p2-portable-kicker { color:#0b7673; font:750 10px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.06em; }
+.p2-portable-close { min-width:44px; min-height:44px; border:0; border-radius:50%; background:color-mix(in srgb,#0b7673 9%,transparent); font-size:26px; }
+.p2-portable-privacy { margin:14px 0; padding:12px; border-inline-start:3px solid #0b7673; border-radius:8px; background:color-mix(in srgb,#0b7673 6%,transparent); line-height:1.45; }
+.p2-portable-dialog label,.p2-portable-dialog select { display:block; width:100%; }
+.p2-portable-dialog select { min-height:46px; margin-top:7px; padding:8px 10px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:10px; background:var(--theme-bg-card,#fff); color:inherit; }
+.p2-portable-status { margin-top:14px; min-height:64px; padding:12px; border-radius:11px; background:var(--theme-bg-soft,#f2f6f6); overflow-wrap:anywhere; }
+.p2-portable-dialog footer { position:sticky; bottom:-18px; display:flex; flex-wrap:wrap; gap:8px; margin:18px -18px -18px; padding:12px 18px max(12px,env(safe-area-inset-bottom)); border-top:1px solid var(--theme-border-medium,#cbd5e1); background:color-mix(in srgb,var(--theme-bg-card,#fff) 94%,transparent); backdrop-filter:blur(10px); }
+.p2-portable-dialog footer button,.p2-portable-apply { min-height:44px; padding:9px 14px; border:1px solid #0b7673; border-radius:10px; background:var(--theme-bg-card,#fff); color:#075e5b; font-weight:700; }
+.p2-portable-apply { margin-top:8px; background:#0b7673; color:#fff; }
 #l3WorkspaceCard button,#l3WorkspaceLibraryBtn,#l3WorkspaceShelf button { width:auto; }
 #l3WorkspaceLibraryCount { display:inline-grid; min-width:18px; height:18px; padding:0 4px; place-items:center; border-radius:99px; background:#e2eeff; color:#245bb3; font:700 10px/1 ui-monospace,Consolas,monospace; }
 .l3-workspace-shelf { margin-bottom:14px; padding:12px; border:1px solid var(--theme-border-medium,#cbd5e1); border-radius:11px; background:color-mix(in srgb,#0b7673 4%,var(--theme-bg-card,#fff)); }
@@ -11037,6 +11051,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                             <div class="l3-workspace-actions">
                                 <button type="button" id="l3WorkspaceReopenBtn" class="btn-primary" onclick="StudioMediaPackage.openActiveWorkspace()" data-i18n="studio.mediaPackage.workspaceReopen">Редактировать материал</button>
                                 <button type="button" class="btn-secondary" onclick="StudioMediaPackage.openWorkspaceLibrary()" data-i18n="studio.mediaPackage.workspaceAll">Все сохранённые транскрипты</button>
+                                <button type="button" class="btn-secondary" onclick="StudioPortableLearningPackage.open()" data-i18n="studio.portable.button">Переносимый пакет</button>
                             </div>
                         </section>
 
@@ -12699,9 +12714,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=99"></script>
-    <script src="/i18n/locales/en.js?v=99"></script>
-    <script src="/i18n/locales/he.js?v=99"></script>
+    <script src="/i18n/locales/ru.js?v=100"></script>
+    <script src="/i18n/locales/en.js?v=100"></script>
+    <script src="/i18n/locales/he.js?v=100"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12792,9 +12807,12 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/media-package-repository.js"></script>
 <script src="/js/material-revision-core.js"></script>
 <script src="/js/material-revision-repository.js"></script>
+<script src="/js/portable-learning-package-core.js"></script>
+<script src="/js/portable-learning-package-repository.js"></script>
 <script src="/js/studio-media-package.js"></script>
 <script src="/js/studio-media-editor.js"></script>
 <script src="/js/studio-material-revision.js"></script>
+<script src="/js/studio-portable-learning-package.js"></script>
 <script src="/js/gemini-files.js"></script>
 <!-- S12.5 sliced-mp3 transport — pure mp3 frame-map slicer (window.Mp3Slice), no cross-deps
      of its own, but must load before studio-import.js which consumes it in transcribeAudio(). -->
@@ -12855,7 +12873,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.287";
+    window.APP_VERSION = "3.11.288";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -29777,6 +29795,12 @@ async function v3ExportRunLocal() {
     payload.manifest.partial_backup = (choice !== "audio") || (missing.length > 0);
     payload.manifest.export_mode = choice; // provenance: audio | meta
 
+    // P2: a file labelled full backup must cover every promoted Studio material.
+    // Each embedded archive is media-free; existing audio coverage remains owned by this ZIP.
+    if (window.StudioPortableLearningPackage) {
+      await window.StudioPortableLearningPackage.augmentFullBackupZip(zip, payload);
+    }
+
     zip.file("manifest.json", JSON.stringify(payload.manifest, null, 2));
     zip.file("library/library.json", JSON.stringify(payload.library, null, 2));
     if (payload.notes_advanced && payload.manifest.notes_advanced_present)
@@ -29901,6 +29925,7 @@ async function v3LibraryOnBundleImportSelected(ev) {
       );
 
       let mp3Entries = [];     // collected up-front, uploaded after importBundle
+      let portableRestoreZip = null;
       let layout = "unified";
       if (looksLikeZip) {
         // Lazy-load JSZip (Phase B). Fails toast if the script can't be
@@ -29910,6 +29935,7 @@ async function v3LibraryOnBundleImportSelected(ev) {
         try { JSZip = await v3LoadJSZip(); }
         catch (e) { showToast(t("toast.jszipNotLoaded"), "error"); return; }
         const zip = await JSZip.loadAsync(file);
+        portableRestoreZip = zip;
 
         // Detect bundle layout. Unified format (Android v2 + web v3 spec):
         //   library/library.json + audio/<key>.mp3
@@ -29967,6 +29993,9 @@ async function v3LibraryOnBundleImportSelected(ev) {
       let r;
       try {
         r = await ldb.importBundle(parsed, { mode: "skip", userRestore: true });   // P2: ZIP-импорт пользователя → undelete-интенты
+        if (portableRestoreZip && window.StudioPortableLearningPackage) {
+          r.portable_learning_packages = await window.StudioPortableLearningPackage.restoreEmbeddedPackages(portableRestoreZip);
+        }
         try { v3OpfsTelemetryPush({
           kind: "import.zip.success", durationMs: Date.now() - _zipImportT0,
           imported: r.imported, skipped: r.skipped, errors: (r.errors || []).length,

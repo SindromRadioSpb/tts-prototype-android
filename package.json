@@ -1,6 +1,6 @@
 {
   "name": "tts-translator-dashboard",
-  "version": "3.11.287",
+  "version": "3.11.288",
   "description": "TTS & Translator Dashboard (Google Cloud Text-to-Speech + Gemini, Hebrew-Russian tables)",
   "main": "server.js",
   "scripts": {
@@ -297,7 +297,10 @@
     "smoke:material-revision:perf": "node scripts/premium/material-revision-performance-smoke.js",
     "smoke:media-package:browser": "node scripts/premium/media-package-browser-smoke.js",
     "smoke:media-package:perf": "node scripts/premium/media-package-performance-smoke.js",
-    "smoke:media-package:mia": "node scripts/premium/media-package-mia-smoke.js"
+    "smoke:media-package:mia": "node scripts/premium/media-package-mia-smoke.js",
+    "smoke:portable-learning-package": "node --test tests/portableLearningPackageCore.test.js tests/portableLearningPackageRepository.test.js tests/portableLearningPackageSecurity.test.js tests/portableLearningPackageBackup.test.js tests/portableLearningPackageUi.test.js",
+    "smoke:portable-learning-package:perf": "node scripts/premium/portable-learning-package-performance-smoke.js",
+    "smoke:portable-learning-package:browser": "node scripts/premium/portable-learning-package-browser-smoke.js"
   },
   "dependencies": {
     "@google-cloud/text-to-speech": "^5.7.0",

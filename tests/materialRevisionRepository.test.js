@@ -9,7 +9,7 @@ test.before(async () => { SQL = await initSqlJs(); });
 
 async function migration46() {
   const migrations = await import('../public/db/migrations.js');
-  assert.equal(migrations.MIGRATIONS.length, 46, 'v46 must be the only additive migration');
+  assert.equal(migrations.MIGRATIONS.length, 47, 'v47 must follow the existing v46 material migration');
   return migrations.MIGRATIONS[45];
 }
 

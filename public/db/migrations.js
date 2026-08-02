@@ -1053,4 +1053,29 @@ export const MIGRATIONS = [
   );
   CREATE INDEX IF NOT EXISTS ix_studio_table_rows_caption
     ON studio_table_revision_rows(table_revision_id, caption_segment_id);`,
+
+  // 047_studio_portable_import_receipts — P2 Portable Learning Package v2.
+  // Derived Artifact Graph remains pure: no registry/edge/content-copy tables. This additive
+  // metadata-only receipt stores hashes, counts, portable↔local IDs and rollback pointers so
+  // verified imports are durable, idempotent and explicitly reversible after a cold reopen.
+  `CREATE TABLE IF NOT EXISTS studio_portable_import_receipts (
+    receipt_id             TEXT PRIMARY KEY,
+    portable_package_id    TEXT NOT NULL,
+    content_root_sha256    TEXT NOT NULL,
+    manifest_sha256        TEXT NOT NULL,
+    schema_version         INTEGER NOT NULL CHECK(schema_version = 2),
+    package_mode           TEXT NOT NULL CHECK(package_mode IN ('snapshot','archive')),
+    status                 TEXT NOT NULL CHECK(status IN ('committed','rolled_back')),
+    plan_sha256            TEXT NOT NULL,
+    result_sha256          TEXT NOT NULL,
+    counts_json            TEXT NOT NULL,
+    id_map_json            TEXT NOT NULL,
+    rollback_json          TEXT NOT NULL,
+    missing_media_json     TEXT NOT NULL DEFAULT '[]',
+    created_at             TEXT NOT NULL,
+    rolled_back_at         TEXT,
+    UNIQUE(portable_package_id, content_root_sha256)
+  );
+  CREATE INDEX IF NOT EXISTS ix_studio_portable_receipts_root
+    ON studio_portable_import_receipts(content_root_sha256, status);`,
 ];

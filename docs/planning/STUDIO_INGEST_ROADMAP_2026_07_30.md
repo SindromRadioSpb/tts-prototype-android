@@ -5,10 +5,10 @@
 > Media Package shipped до `v3.11.282`; L3a.3 Material Revision Workspace foundation
 > shipped в `v3.11.283`, mapping/follow correction shipped в `v3.11.286`, а
 > first-slot/compact-header polish deployed и production-verified как `v3.11.287` / `2e8f4bf3`.
-> Следующий gated этап — P2 Portable Learning Package v2 внутри L3b Artifact Continuity;
-> exact implementation contract frozen в
+> P2 Portable Learning Package v2 implemented и прошёл automated local gates 2026-08-02;
+> owner-approved production release candidate — `v3.11.288`. Exact contract и evidence находятся в
 > `STUDIO_INGEST_P2_PORTABLE_LEARNING_PACKAGE_V2_IMPLEMENTATION_PACKET_2026_08_02.md`,
-> code/schema остаются owner-gated.
+> production delivery/real owner-material read-only check ещё pending на этой точке.
 > Реализация новых слайсов требует обычных
 > measure-before-code, adversarial design и owner/live gates.
 > **Срез:** production/origin `2e8f4bf355a2babc0de619bfca817d1fff74b44f`
@@ -275,7 +275,7 @@ comparison не запускались и не подразумеваются ф
 P0 L3a closure ✅
   → P1A Material Revision contract + exact Artifact Graph/P2 entry packet ✅
   → P1B Material Revision Workspace + Playback Review ✅
-  → P2 Portable Learning Package v2 implementation ← NEXT / OWNER-GATED
+  → P2 Portable Learning Package v2 implementation 🟡 AUTOMATED LOCAL PASS / PROD PENDING
   → P3 real iPhone manual continuity
   → P4 Import Center + educational continuity
 ```

@@ -1,21 +1,21 @@
 # Studio Ingest L3b — Artifact Continuity, Portable Learning Package, iPhone и Hermes
 
 > **Дата:** 2026-08-01
-> **Статус:** 🟡 `P0/P1A/P1B CONTRACT COMPLETE`; exact Artifact Graph/P2 implementation
-> packet frozen 2026-08-02; P2 code/schema is the next owner-gated slice
+> **Статус:** 🟡 `P0/P1A/P1B COMPLETE`; P2 implementation and automated local gates complete
+> 2026-08-02; owner-approved `v3.11.288` production delivery/read-only owner check pending
 > **Baseline:** foundation `v3.11.283`; repaired Playback Review `v3.11.286` /
 > `3589c0ee141f7b139ab9e584f9bcca0b8997ca2e`; first-slot/header polish deployed and
 > production-verified as `v3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`;
-> actual `MIGRATIONS.length=46`
+> release candidate `MIGRATIONS.length=47` (v47 receipt-only; v45/v46 indices unchanged)
 > **Research canon:**
 > `docs/research/studio-ingest-artifact-continuity/2026-08-01/REPORT.md`
 > **P2 implementation canon:**
 > `docs/planning/STUDIO_INGEST_P2_PORTABLE_LEARNING_PACKAGE_V2_IMPLEMENTATION_PACKET_2026_08_02.md`
 > **Предок:** L3a Correctable Media Package shipped; L2 остаётся
 > `DEFERRED / DEMAND-TRIGGERED`
-> **Authority:** P1B implementation/deployment authority исполнена. Для P2 утверждены цель,
-> требования и порядок planning, но P2 code/schema/push/deploy требует отдельной точной фразы;
-> cloud/autosync/Hermes остаются запрещены без собственных gates.
+> **Authority:** exact P2 implementation, four-file migration-count addendum and scoped production
+> deploy approved 2026-08-02. Owner production data stays read-only; cloud/autosync/Hermes remain
+> forbidden without their own gates.
 
 ## 0. Program decision
 
@@ -37,7 +37,7 @@ Package в долговечный образовательный объект, �
 P0 L3a owner-live/canon closure ✅
   → P1A Material Revision + exact Artifact Graph/P2 entry contract ✅
   → P1B Material Revision Workspace + targeted regeneration ✅
-  → P2 Portable Learning Package v2 ← NEXT / OWNER-GATED
+  → P2 Portable Learning Package v2 🟡 AUTOMATED LOCAL PASS / PROD PENDING
   → P3 real iPhone manual continuity
   → P4 Import Center + educational continuity
   → G-AUTOSYNC owner decision
@@ -799,7 +799,7 @@ requires exact separate implementation authority.
 Learning-row editor, affected-only provider subset, version compare/reconcile, compatibility and
 owner-live packet; stop before push/deploy.
 
-### Session D2 — P2 Portable Learning Package core/UI ← NEXT / OWNER-GATED
+### Session D2 — P2 Portable Learning Package core/UI 🟡 IMPLEMENTED / PROD PENDING
 
 Serializers/verifiers, transactional import/rebind/receipts and 380px gates over the frozen
 Material Revision contract.
@@ -855,8 +855,9 @@ Graph, v47 receipt-only migration, schema-v2 manifest/import/security rules and 
 frozen in the P2 packet. The existing immutable caption/table revisions, field authority, exact
 mapping and compatibility projection are the input canon; do not reopen or bypass them.
 
-P2 implementation authority: [ВСТАВИТЬ ДОСЛОВНО ФРАЗУ ИЗ P2 PACKET §27]. If that exact P2
-authority is absent, do not change code/schema/push/deploy.
+P2 implementation authority was supplied verbatim by the owner and is recorded in the P2
+implementation packet §27 together with the migration-count addendum and later production-deploy
+authority. All exclusions outside that bounded implementation/deploy scope remain owner-gated.
 Preserve the dirty worktree and stage only an explicit allowlist.
 
 The P2 bounded slice must implement, in this order:

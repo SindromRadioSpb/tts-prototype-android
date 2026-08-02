@@ -1,11 +1,12 @@
 # Studio Ingest P2 — Portable Learning Package v2 implementation packet
 
 > **Date:** 2026-08-02
-> **Status:** DESIGN FROZEN / IMPLEMENTATION OWNER-GATED
+> **Status:** IMPLEMENTED / AUTOMATED LOCAL PASS / v3.11.288 DEPLOY APPROVED
 > **Production baseline:** `v3.11.287` / `2e8f4bf355a2babc0de619bfca817d1fff74b44f`
 > **Browser schema baseline:** `MIGRATIONS.length=46`; proposed additive migration is v47
-> **Authority:** docs/read-only recon only. This packet does not authorize code, schema, push,
-> deploy, production mutation, cloud sync, E2EE or Hermes.
+> **Authority:** exact §27 implementation authority, four-file migration-count addendum and a
+> later explicit production-deploy approval were supplied by the owner on 2026-08-02. Owner
+> production data remains read-only unless separately authorized.
 
 This packet closes the exact P2 entry gaps left by the Artifact Continuity plan. It does not
 redefine caption, table or learning truth. It packages the immutable canon that already exists.
@@ -603,7 +604,7 @@ public/sw.js                                                        # precache e
 public/i18n/locales/en.js
 public/i18n/locales/ru.js
 public/i18n/locales/he.js
-package.json                                                        # P2 smoke commands only; no release bump
+package.json                                                        # P2 smoke commands; v3.11.288 under later deploy authority
 tests/portableLearningPackageCore.test.js                           # new
 tests/portableLearningPackageRepository.test.js                     # new
 tests/portableLearningPackageSecurity.test.js                       # new
@@ -615,6 +616,10 @@ scripts/premium/portable-learning-package-oracle.js                 # new, indep
 docs/research/studio-p2-portable-learning-package/2026-08-02/OWNER_LIVE_PACKET.md # new
 docs/research/studio-p2-portable-learning-package/2026-08-02/screenshots/*       # new evidence only
 this packet and the four canonical roadmap/continuity docs that link it
+tests/mediaPackageRepository.test.js                                # addendum: count 46→47 only
+tests/materialRevisionRepository.test.js                            # addendum: count 46→47 only
+scripts/premium/media-package-performance-smoke.js                  # addendum: count 46→47 only
+scripts/premium/material-revision-performance-smoke.js              # addendum: count 46→47 only
 ```
 
 Sequence:
@@ -724,3 +729,21 @@ not design gaps.
 The following sentence is a proposal only. Its presence here is not approval:
 
 > **ОДОБРЯЮ реализацию P2 Portable Learning Package v2 строго по implementation packet 2026-08-02. Разрешаю один bounded browser-local engineering slice T0–T9: red-before-fix pure Artifact Graph и independent semantic/hash oracle; exact snapshot/archive canonical serializer и checksum/security verifier; additive browser migration v47 только с таблицей studio_portable_import_receipts после подтверждения MIGRATIONS.length=46; no-write dry-run; transactional OPFS-SQLite import/reuse/rebind под одним SAVEPOINT с полным rollback, durable receipt и idempotent re-import; full-backup coverage; text-card/table compatibility; SHA-only media relink; delete/GC integrity; 514-row и 2,800-row/20-revision performance gates; fresh Chromium desktop, RU/LTR и HE/RTL 380 px owner-live packet. Разрешаю только exact file allowlist из §23 и один локальный scoped implementation commit. Не разрешаю push/deploy, production/server schema или data mutations, cloud sync, E2EE, Hermes, media bytes/automatic media transport, concurrent multi-device editing, L2/L4/L5/L6, provider-default changes или implicit fallback. Остановись перед push/deploy.**
+
+## 28. Implementation evidence — 2026-08-02
+
+The owner supplied the exact §27 sentence, the four-file migration-count addendum, and later
+approved a scoped production deploy. The bounded implementation is complete at release candidate
+`v3.11.288`; the durable evidence ledger is:
+
+`docs/research/studio-p2-portable-learning-package/2026-08-02/OWNER_LIVE_PACKET.md`.
+
+Current evidence:
+
+- new pure/repository/security/backup/UI suite: 23/23 PASS;
+- migration registry: 47; v45/v46 remain at indices 44/45;
+- 514 and 2,800-row/20-revision performance ceilings: PASS;
+- independent oracle and source→cold-reopen→re-export semantic root: PASS;
+- fresh Chromium desktop RU, 380 RU/LTR and 380 HE/RTL: PASS;
+- provider/model calls 0; page errors 0;
+- production delivery and read-only owner-material export remain pending at this pre-push point.
