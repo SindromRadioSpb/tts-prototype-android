@@ -6,11 +6,46 @@ const path=require('node:path');
 const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'public/index.html'),'utf8'),studio=fs.readFileSync(path.join(root,'public/js/studio-portable-learning-package.js'),'utf8'),sw=fs.readFileSync(path.join(root,'public/sw.js'),'utf8');
 
 test('P2 scripts load in dependency order and remain offline/provider-free',()=>{
-  const order=['/js/portable-learning-package-core.js','/js/portable-learning-package-repository.js','/js/studio-portable-learning-package.js'].map(item=>html.indexOf(item));
-  assert.ok(order.every(n=>n>0));assert.ok(order[0]<order[1]&&order[1]<order[2]);
+  const order=['/js/portable-learning-package-core.js','/js/import-center-core.js','/js/portable-learning-package-repository.js','/js/studio-portable-learning-package.js'].map(item=>html.indexOf(item));
+  assert.ok(order.every(n=>n>0));assert.ok(order[0]<order[1]&&order[1]<order[2]&&order[2]<order[3]);
   assert.equal(/\bfetch\s*\(|XMLHttpRequest|apiCall\s*\(/.test(studio),false,'no server/provider transport');
-  for(const item of ['/js/portable-learning-package-core.js','/js/portable-learning-package-repository.js','/js/studio-portable-learning-package.js'])assert.ok(sw.includes(item));
+  for(const item of ['/js/portable-learning-package-core.js','/js/import-center-core.js','/js/portable-learning-package-repository.js','/js/studio-portable-learning-package.js'])assert.ok(sw.includes(item));
   assert.match(sw,/CACHE_VERSION = "v3\.11\.296"/,'scoped portability UX release cache version');
+});
+
+test('P4 exposes one five-view Import Center and compatibility aliases use explicit intents',()=>{
+  for(const view of ['overview','materials','tasks','history','reference']) assert.match(studio,new RegExp(`data-view="${view}"`));
+  assert.match(studio,/importCenterCore\(\)\.buildCatalog/);
+  for(const intent of ['move-device','restore','relink','recover','backup','inspect'])assert.match(studio,new RegExp(`['"]${intent}['"]`));
+  assert.match(html,/StudioPortableLearningPackage\.open\(\{view:'overview',intent:'restore'\}\)/);
+  assert.match(html,/StudioPortableLearningPackage\.open\(\{view:'materials',intent:'move-device'/);
+});
+
+test('continuity rail keeps semantic Source to Backup order and catalog DOM is bounded',()=>{
+  const order=['source','transcript','table','media','backup'].map(stage=>studio.indexOf(`data-stage="${stage}"`));
+  assert.ok(order.every(index=>index>=0));
+  assert.deepEqual(order,order.slice().sort((a,b)=>a-b));
+  assert.match(studio,/aria-label="[^"]*continuity/i);
+  assert.match(studio,/slice\(0,state\.visibleLimit\)/);
+  assert.match(studio,/visibleLimit:30/);
+});
+
+test('backup receipts and diagnostics distinguish generated from saved and stay browser-local',()=>{
+  assert.match(studio,/recordExportGenerated/);
+  assert.match(studio,/confirmExportSaved/);
+  assert.match(studio,/storage&&storage\.estimate/);
+  assert.match(studio,/storage&&storage\.persisted/);
+  assert.match(studio,/content_free/);
+  assert.doesNotMatch(studio,/\/api\/.*import-center/i);
+});
+
+test('Import Center dialog has focus return, Escape, live status and technical details',()=>{
+  assert.match(studio,/lastFocused/);
+  assert.match(studio,/event\.key==='Escape'/);
+  assert.match(studio,/aria-live="polite"/);
+  assert.match(studio,/<details/);
+  assert.match(html,/\.p4-continuity-rail/);
+  assert.match(html,/prefers-reduced-motion/);
 });
 
 test('premium modal is mobile/RTL safe and exposes explicit verify-before-apply semantics',()=>{
@@ -27,12 +62,12 @@ test('portability hub is globally discoverable even without an active Workspace'
   const libraryEntry=html.indexOf('id="v3PortabilityHubBtn"');
   assert.ok(globalEntry>workspaceEnd,'Studio entry must live outside the conditional Workspace card');
   assert.ok(libraryEntry>0,'Library must expose the same portability hub');
-  assert.match(html,/StudioPortableLearningPackage\.open\(\{view:'import'\}\)/);
-  assert.match(html,/StudioPortableLearningPackage\.open\(\{view:'library'\}\)/);
+  assert.match(html,/StudioPortableLearningPackage\.open\(\{view:'overview',intent:'restore'\}\)/);
+  assert.match(html,/StudioPortableLearningPackage\.open\(\{view:'overview',intent:'backup'\}\)/);
 });
 
-test('one hub names library, material, import and receipt-history scopes explicitly',()=>{
-  for(const view of ['library','material','import','history'])assert.match(studio,new RegExp(`data-view="${view}"`));
+test('one hub composes library, material, import and receipt-history scopes explicitly',()=>{
+  for(const view of ['overview','materials','tasks','history','reference'])assert.match(studio,new RegExp(`data-view="${view}"`));
   assert.match(studio,/listReceipts/);
   assert.match(studio,/reverseReferencePlan/);
   assert.match(studio,/undoReceipt/);
@@ -46,7 +81,7 @@ test('format help is one keyboard-accessible decision guide, not hover-only tool
   assert.match(studio,/aria-controls="p2FormatHelp"/);
   assert.match(studio,/id="p2FormatHelp"/);
   assert.match(studio,/classList\.toggle\('p2-help-open',expanded\)/);
-  for(const choice of ['Full device move','One material with history','Compact current state','Compatibility only'])assert.match(studio,new RegExp(choice,'i'));
+  for(const choice of ['Full ZIP','Archive \\.lplp\\.zip','Snapshot \\.lplp\\.zip','Compatibility JSON'])assert.match(studio,new RegExp(choice,'i'));
   assert.match(studio,/media bytes/i);
 });
 

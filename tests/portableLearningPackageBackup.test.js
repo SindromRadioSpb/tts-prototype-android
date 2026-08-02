@@ -19,7 +19,7 @@ test('backup restore verifies and dry-runs every embedded package before apply',
   const files=await Core.buildPackageFiles(source(),{mode:'archive'}),bytes=await Studio.zipFiles(files,'uint8array'),manifest=JSON.parse(files['manifest.json']);
   const outer=new JSZip(),path=`learning-packages/${manifest.content_root_sha256}.lplp.zip`;outer.file(path,bytes);outer.file('learning-packages/index.json',Core.canonicalJson({schema:'linguistpro-learning-packages-backup-index-v1',packages:[{content_root_sha256:manifest.content_root_sha256,path}]}));
   let writes=0;Studio.setRepositoryForTests({dryRun:async verified=>({can_apply:true,plan_sha256:'plan',root:verified.manifest.content_root_sha256}),applyVerified:async()=>{writes++;return{duplicate:false};}});
-  const restored=await Studio.restoreEmbeddedPackages(outer);assert.deepEqual(restored,{present:true,imported:1,reused:0,total:1});assert.equal(writes,1);
+  const restored=await Studio.restoreEmbeddedPackages(outer);assert.deepEqual(restored,{present:true,imported:1,reused:0,total:1,export_receipts:{restored:0,reused:0,total:0}});assert.equal(writes,1);
 });
 
 test('full backup aborts visibly when any promoted material cannot be archived',async()=>{
@@ -56,4 +56,10 @@ test('single legacy text-card ZIP declares zero P2 coverage without inventing a 
   assert.equal(manifest.portable_learning_packages_count,0);
   assert.equal(manifest.portable_learning_packages_complete,true);
   assert.ok(zip.file('learning-packages/index.json'));
+});
+
+test('full backup carries content-free v48 provenance and restores it through the repository boundary',async()=>{
+  const receipts=[{receipt_id:'export-generated:fixture',event_kind:'generated',parent_receipt_id:null,scope_kind:'material',portable_scope_id:'learning-material:fixture',format_kind:'archive_lplp',source_state_sha256:'a'.repeat(64),artifact_sha256:'b'.repeat(64),size_bytes:42,destination_kind:null,app_version:'test',details:{history_complete:true},created_at:'2026-08-02T00:00:00.000Z'}];
+  Studio.setRepositoryForTests({listMaterials:async()=>[],listExportReceipts:async()=>receipts});const zip=new JSZip(),payload={manifest:{}};await Studio.augmentFullBackupZip(zip,payload);assert.equal(payload.manifest.portable_export_receipts_count,1);const saved=JSON.parse(await zip.file('learning-packages/export-receipts.json').async('string'));assert.deepEqual(saved.receipts,receipts);
+  let restored=null;Studio.setRepositoryForTests({dryRun:async()=>({can_apply:true}),applyVerified:async()=>({duplicate:true}),restoreExportReceipts:async rows=>(restored=rows,{restored:1,reused:0,total:rows.length})});const result=await Studio.restoreEmbeddedPackages(zip);assert.deepEqual(restored,receipts);assert.deepEqual(result.export_receipts,{restored:1,reused:0,total:1});
 });

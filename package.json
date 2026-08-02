@@ -300,7 +300,10 @@
     "smoke:media-package:mia": "node scripts/premium/media-package-mia-smoke.js",
     "smoke:portable-learning-package": "node --test tests/portableLearningPackageCore.test.js tests/portableLearningPackageRepository.test.js tests/portableLearningPackageSecurity.test.js tests/portableLearningPackageBackup.test.js tests/portableLearningPackageUi.test.js",
     "smoke:portable-learning-package:perf": "node scripts/premium/portable-learning-package-performance-smoke.js",
-    "smoke:portable-learning-package:browser": "node scripts/premium/portable-learning-package-browser-smoke.js"
+    "smoke:portable-learning-package:browser": "node scripts/premium/portable-learning-package-browser-smoke.js",
+    "smoke:import-center": "node --test tests/importCenterCore.test.js tests/portableLearningPackageRepository.test.js tests/portableLearningPackageBackup.test.js tests/portableLearningPackageUi.test.js",
+    "smoke:import-center:perf": "node scripts/premium/import-center-performance-smoke.js",
+    "smoke:import-center:browser": "node scripts/premium/import-center-browser-smoke.js"
   },
   "dependencies": {
     "@google-cloud/text-to-speech": "^5.7.0",

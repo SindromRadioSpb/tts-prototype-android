@@ -3,7 +3,7 @@
 > **Date opened:** 2026-08-02
 > **Entry baseline:** `v3.11.296` / `ead4a550bfe3f1cff6b5980ddbfd9ce106442504`
 > **Entry browser schema:** `MIGRATIONS.length=47`
-> **Status:** NOT IMPLEMENTED / OWNER-GATED / OWNER-LIVE NOT RUN
+> **Status:** AUTOMATED PASS / OWNER LIVE NOT RUN / PUSH AND DEPLOY NOT AUTHORIZED
 > **Implementation contract:**
 > `docs/planning/STUDIO_INGEST_P4_IMPORT_CENTER_IMPLEMENTATION_PACKET_2026_08_02.md`
 
@@ -12,61 +12,61 @@ from synthetic automation when the row requires a real owner action or real iPho
 
 ## 1. Authority ledger
 
-- [ ] exact P4 implementation sentence received;
-- [ ] exact file allowlist confirmed against dirty worktree;
+- [x] exact P4 implementation sentence received in the 2026-08-02 session;
+- [x] exact file allowlist confirmed against dirty worktree; only §16 files are staged/committed;
 - [ ] separate push/deploy authority received;
 - [ ] any post-deploy cleanup authority recorded separately;
-- [ ] no authority inferred for Option C, cloud sync, E2EE, Hermes, media transport or providers.
+- [x] no authority inferred for Option C, cloud sync, E2EE, Hermes, media transport or providers.
 
 ## 2. Implementation identity
 
 | Field | Evidence |
 |---|---|
-| parent SHA | NOT RECORDED |
-| scoped implementation SHA | NOT RECORDED |
+| parent SHA | `c8d89e403ee14471fc0446608c9d8d7d222096f9` |
+| scoped implementation SHA | this packet's local scoped commit; exact SHA is reported in the session handoff |
 | pushed remote main SHA | NOT RECORDED |
-| APP_VERSION | NOT RECORDED |
-| CACHE_VERSION | NOT RECORDED |
-| browser migration count | expected 48 only after approved v48 |
-| v48 shape | expected export-receipt table only; NOT VERIFIED |
+| APP_VERSION | `3.11.296` (unchanged; no release authority) |
+| CACHE_VERSION | `v3.11.296` (unchanged; no release authority) |
+| browser migration count | `48`, verified from live module and repository harness |
+| v48 shape | only append-only `studio_portable_export_receipts` plus scope/artifact indexes |
 | deploy timestamp | NOT RECORDED |
 
 ## 3. Automated gates
 
 | Gate | Result |
 |---|---|
-| red-before-fix lifecycle truth | NOT RUN |
-| v48 migration shape/index preservation | NOT RUN |
-| Import Center pure/repository/UI suite | NOT RUN |
-| P2 Portable Learning Package regression | NOT RUN |
-| Media Package regression | NOT RUN |
-| Material Revision regression | NOT RUN |
-| full backup/text-card compatibility | NOT RUN |
-| 100/500-material performance | NOT RUN |
-| desktop RU browser | NOT RUN |
-| 380 RU/LTR browser | NOT RUN |
-| 380 HE/RTL browser | NOT RUN |
-| accessibility/focus/text zoom | NOT RUN |
-| provider/model requests | NOT RUN |
-| page/console errors | NOT RUN |
-| full `npm test` composition | NOT RUN |
+| red-before-fix lifecycle truth | PASS; missing core/v48 and missing repository methods failed before implementation |
+| v48 migration shape/index preservation | PASS; total 48, v45/v46/v47 indices unchanged |
+| Import Center pure/repository/UI suite | PASS, 43/43 |
+| P2 Portable Learning Package regression | PASS, 46/46 + fresh Chromium round-trip + 514/2800 performance |
+| Media Package regression | PASS, 52/52 + fresh Chromium |
+| Material Revision regression | PASS, 17/17 + fresh Chromium |
+| full backup/text-card compatibility | PASS; v48 provenance round-trip and text-card 35/35 |
+| 100/500-material performance | PASS: derivation 0.87/2.50 ms; first 30 render projection 0.06/0.01 ms; filter p95 0.12/0.34 ms |
+| desktop RU browser | PASS; bounded 30-card DOM, no overflow |
+| 380 RU/LTR browser | PASS; no overflow |
+| 380 HE/RTL browser | PASS; semantic rail order preserved, no overflow |
+| accessibility/focus/text zoom | PASS; focus trap, Escape, live regions, reduced motion, 200% zoom no overflow |
+| provider/model requests | PASS; 0 in P4, P2, Media and Material browser gates |
+| page/console errors | PASS; 0 in browser gates |
+| full `npm test` composition | 763 total / 754 pass / same 9 known unrelated failures (baseline 748/739/9) |
 
 ## 4. Required browser assertions
 
-- [ ] empty profile has a first-class Import Center entry;
-- [ ] Library, text-card and Workspace aliases open the same material identity;
-- [ ] continuity rail derives Source→Transcript→Table→Media→Backup correctly;
-- [ ] conflict/repair/stale/missing states fail closed and show the next safe action;
-- [ ] “package generated” differs from “owner confirmed saved”;
-- [ ] compatibility JSON never satisfies canonical backup freshness;
-- [ ] current revision changes make a prior confirmed backup visibly stale;
-- [ ] missing media preserves transcript/table and study-without-media;
-- [ ] exact SHA mismatch does not change the binding;
-- [ ] technical error code is available under Details without dominating the UI;
-- [ ] catalog remains usable with 100+ materials and bounded DOM;
-- [ ] no horizontal overflow or covered final action at 380 px;
-- [ ] RTL visual mirroring preserves semantic/assistive-tech order;
-- [ ] no automatic provider/network action occurs.
+- [x] empty profile has a first-class Import Center entry;
+- [x] Library, text-card and Workspace aliases route into the same Import Center/P2 repository;
+- [x] continuity rail derives Source→Transcript→Table→Media→Backup correctly;
+- [x] conflict/repair/stale/missing states fail closed and show the next safe action;
+- [x] “package generated” differs from “owner confirmed saved”;
+- [x] compatibility JSON never satisfies canonical backup freshness;
+- [x] current revision changes make a prior confirmed backup visibly stale;
+- [x] missing media preserves transcript/table and study-without-media;
+- [x] exact SHA mismatch does not change the binding;
+- [x] technical error code is available under Details without dominating the UI;
+- [x] catalog remains usable with 100+ materials and bounded DOM;
+- [x] no horizontal overflow or covered final action at 380 px/200% text;
+- [x] RTL visual mirroring preserves semantic/assistive-tech order;
+- [x] no automatic provider/network action occurs.
 
 ## 5. Guided task evidence
 
@@ -153,7 +153,12 @@ CACHE versions. Do not label owner-live complete from the CI browser alone.
 
 ## 9. Final verdict
 
-Current verdict: **NOT RUN**.
+Current verdict: **AUTOMATED PASS / OWNER LIVE NOT RUN**.
+
+Local synthetic evidence is in `screenshots/p4-desktop-ru.png`, `screenshots/p4-380-ru.png`,
+`screenshots/p4-380-ru-200pct.png` and `screenshots/p4-380-he.png`. It contains no owner content.
+Production and real-iPhone rows intentionally remain empty because push/deploy and owner-live were
+not authorized in this slice.
 
 Allowed final labels:
 

@@ -13,7 +13,7 @@
   function timestamp() { return new Date().toISOString(); }
   function shortHash(id) { const match = /([a-f0-9]{64})$/.exec(String(id || '')); if (!match) throw failure('PORTABLE_ID_INVALID', id); return match[1]; }
 
-  function createRepository(adapter, Core) {
+  function createRepository(adapter, Core, ImportCenterCore) {
     if (!adapter || !adapter.dbQuery || !adapter.dbRun || !adapter.execRaw) throw failure('REPOSITORY_ADAPTER_REQUIRED');
     if (!Core || !Core.dryRun || !Core.hashObject) throw failure('PORTABLE_CORE_REQUIRED');
     const q = (sql, params) => adapter.dbQuery(sql, params || []);
@@ -21,6 +21,7 @@
     const x = (sql) => adapter.execRaw(sql);
     const one = async (sql, params) => (await q(sql, params))[0] || null;
     const inject = (actual, expected) => { if (actual === expected) throw failure('FAULT_INJECT', expected); };
+    const importCore = ImportCenterCore || (typeof globalThis !== 'undefined' && globalThis.ImportCenterCore) || null;
 
     async function getReceiptByRoot(packageId, root) {
       const row = await one(`SELECT * FROM studio_portable_import_receipts
@@ -486,6 +487,132 @@
         FROM studio_learning_materials m JOIN texts t ON t.id=m.text_id ORDER BY m.updated_at DESC`);
     }
 
+    function exportReceipt(row) {
+      return row && { ...row, details: parse(row.details_json, {}) };
+    }
+
+    async function listExportReceipts(scopeKind, portableScopeId) {
+      let sql='SELECT * FROM studio_portable_export_receipts',params=[],where=[];
+      if(scopeKind){where.push('scope_kind=?');params.push(scopeKind);}
+      if(portableScopeId){where.push('portable_scope_id=?');params.push(portableScopeId);}
+      if(where.length)sql+=' WHERE '+where.join(' AND ');
+      sql+=' ORDER BY created_at DESC,receipt_id DESC';
+      return (await q(sql,params)).map(exportReceipt);
+    }
+
+    function cleanExportDetails(value) {
+      const input=value&&typeof value==='object'?value:{},out={};
+      for(const key of ['history_complete','audio_included','material_count','local_material_id','source_kind'])if(input[key]!==undefined)out[key]=input[key];
+      return out;
+    }
+
+    async function recordExportGenerated(event, options) {
+      options=options||{};const createdAt=event&&event.created_at||timestamp(),value={...(event||{}),event_kind:'generated',parent_receipt_id:null,destination_kind:null,created_at:createdAt};
+      if(!importCore||typeof importCore.validateReceiptInput!=='function')throw failure('IMPORT_CENTER_CORE_REQUIRED');
+      importCore.validateReceiptInput(value);
+      const descriptor={event_kind:'generated',scope_kind:value.scope_kind,portable_scope_id:String(value.portable_scope_id),format_kind:value.format_kind,source_state_sha256:value.source_state_sha256,artifact_sha256:value.artifact_sha256,size_bytes:Number(value.size_bytes),created_at:createdAt};
+      const receiptId='export-generated:'+await Core.hashObject(descriptor),details=cleanExportDetails(value.details);
+      await x('SAVEPOINT p4_export_receipt;');
+      try{
+        await r(`INSERT INTO studio_portable_export_receipts(receipt_id,event_kind,parent_receipt_id,scope_kind,portable_scope_id,format_kind,source_state_sha256,artifact_sha256,size_bytes,destination_kind,app_version,details_json,created_at)
+          VALUES(?,'generated',NULL,?,?,?,?,?,?,NULL,?,?,?)`,[receiptId,value.scope_kind,String(value.portable_scope_id),value.format_kind,value.source_state_sha256,value.artifact_sha256,Number(value.size_bytes),String(value.app_version||'unknown'),json(details),createdAt]);
+        inject(options.fault_inject,'after_export_receipt');
+        await x('RELEASE p4_export_receipt;');
+      }catch(error){try{await x('ROLLBACK TO p4_export_receipt;');}finally{try{await x('RELEASE p4_export_receipt;');}catch(_){}}throw error;}
+      return exportReceipt(await one('SELECT * FROM studio_portable_export_receipts WHERE receipt_id=?',[receiptId]));
+    }
+
+    async function confirmExportSaved(generatedReceiptId, destinationKind, options) {
+      options=options||{};
+      if(!['files_icloud','files_local','share_sheet','other'].includes(destinationKind))throw failure('EXPORT_DESTINATION_INVALID');
+      const parent=await one("SELECT * FROM studio_portable_export_receipts WHERE receipt_id=? AND event_kind='generated'",[generatedReceiptId]);
+      if(!parent)throw failure('EXPORT_GENERATED_RECEIPT_NOT_FOUND');
+      const createdAt=options.created_at||timestamp(),descriptor={event_kind:'owner_saved',parent_receipt_id:generatedReceiptId,destination_kind:destinationKind,created_at:createdAt};
+      const receiptId='export-saved:'+await Core.hashObject(descriptor),details=cleanExportDetails(options.details);
+      await x('SAVEPOINT p4_export_saved;');
+      try{
+        await r(`INSERT INTO studio_portable_export_receipts(receipt_id,event_kind,parent_receipt_id,scope_kind,portable_scope_id,format_kind,source_state_sha256,artifact_sha256,size_bytes,destination_kind,app_version,details_json,created_at)
+          VALUES(?,'owner_saved',?,?,?,?,?,?,?,?,?,?,?)`,[receiptId,generatedReceiptId,parent.scope_kind,parent.portable_scope_id,parent.format_kind,parent.source_state_sha256,parent.artifact_sha256,Number(parent.size_bytes),destinationKind,String(parent.app_version||'unknown'),json(details),createdAt]);
+        inject(options.fault_inject,'after_export_saved');
+        await x('RELEASE p4_export_saved;');
+      }catch(error){try{await x('ROLLBACK TO p4_export_saved;');}finally{try{await x('RELEASE p4_export_saved;');}catch(_){}}throw error;}
+      return exportReceipt(await one('SELECT * FROM studio_portable_export_receipts WHERE receipt_id=?',[receiptId]));
+    }
+
+    async function restoreExportReceipts(receipts) {
+      const rows=Array.isArray(receipts)?receipts:[],ordered=rows.slice().sort((a,b)=>(a&&a.event_kind==='generated'?0:1)-(b&&b.event_kind==='generated'?0:1));
+      if(rows.length>10000)throw failure('EXPORT_RECEIPT_RESTORE_LIMIT');
+      const generated=new Set(rows.filter(row=>row&&row.event_kind==='generated').map(row=>String(row.receipt_id)));
+      for(const row of rows){
+        if(!row||typeof row.receipt_id!=='string'||!row.receipt_id.startsWith(row.event_kind==='generated'?'export-generated:':'export-saved:'))throw failure('EXPORT_RECEIPT_RESTORE_INVALID');
+        importCore.validateReceiptInput(row);
+        if(row.event_kind==='owner_saved'&&!generated.has(String(row.parent_receipt_id))&&!await one("SELECT receipt_id FROM studio_portable_export_receipts WHERE receipt_id=? AND event_kind='generated'",[row.parent_receipt_id]))throw failure('EXPORT_RECEIPT_PARENT_MISSING');
+      }
+      await x('SAVEPOINT p4_export_restore;');
+      try{
+        let restored=0,reused=0;
+        for(const row of ordered){
+          const existing=await one('SELECT * FROM studio_portable_export_receipts WHERE receipt_id=?',[row.receipt_id]);
+          if(existing){
+            const same=['event_kind','parent_receipt_id','scope_kind','portable_scope_id','format_kind','source_state_sha256','artifact_sha256','size_bytes','destination_kind','app_version','details_json','created_at'].every(key=>String(existing[key]??'')===String(key==='details_json'?json(cleanExportDetails(row.details)):row[key]??''));
+            if(!same)throw failure('EXPORT_RECEIPT_RESTORE_CONFLICT');
+            reused++;continue;
+          }
+          await r(`INSERT INTO studio_portable_export_receipts(receipt_id,event_kind,parent_receipt_id,scope_kind,portable_scope_id,format_kind,source_state_sha256,artifact_sha256,size_bytes,destination_kind,app_version,details_json,created_at)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)`,[row.receipt_id,row.event_kind,row.parent_receipt_id||null,row.scope_kind,String(row.portable_scope_id),row.format_kind,row.source_state_sha256,row.artifact_sha256,Number(row.size_bytes),row.destination_kind||null,String(row.app_version||'unknown'),json(cleanExportDetails(row.details)),row.created_at]);
+          restored++;
+        }
+        await x('RELEASE p4_export_restore;');return{restored,reused,total:rows.length};
+      }catch(error){try{await x('ROLLBACK TO p4_export_restore;');}finally{try{await x('RELEASE p4_export_restore;');}catch(_){}}throw error;}
+    }
+
+    async function lifecycleInventory() {
+      if(!importCore||typeof importCore.sourceStateHash!=='function')throw failure('IMPORT_CENTER_CORE_REQUIRED');
+      const rows=await q(`SELECT m.material_id,m.text_id,m.portable_text_key,m.current_table_revision_id,m.package_id,m.updated_at,
+        t.title,t.is_archived,tr.bound_caption_revision_id,tr.bound_caption_revision_sha256,tr.content_sha256 AS table_content_sha256,tr.mapping_sha256 AS table_mapping_sha256,
+        b.track_id AS binding_track_id,b.revision_id AS binding_revision_id,b.revision_sha256 AS binding_revision_sha256,
+        ct.current_revision_id AS caption_current_revision_id,ct.draft_json AS caption_draft_json,cr.canonical_sha256 AS caption_current_sha256,
+        br.track_id AS bound_revision_track_id,br.canonical_sha256 AS bound_revision_actual_sha256,
+        p.media_sha256,p.opfs_path,p.mime,p.size_bytes,p.duration_ms,p.original_name,
+        (SELECT rr.canonical_sha256 FROM studio_caption_tracks rt JOIN studio_caption_revisions rr ON rr.revision_id=rt.current_revision_id WHERE rt.package_id=m.package_id AND rt.role='raw_original' ORDER BY rt.updated_at DESC LIMIT 1) AS raw_revision_sha256,
+        (SELECT rt.track_id FROM studio_caption_tracks rt WHERE rt.package_id=m.package_id AND rt.role='raw_original' ORDER BY rt.updated_at DESC LIMIT 1) AS raw_track_id
+        FROM studio_learning_materials m JOIN texts t ON t.id=m.text_id
+        LEFT JOIN studio_table_revisions tr ON tr.table_revision_id=m.current_table_revision_id
+        LEFT JOIN studio_text_media_bindings b ON b.text_id=m.text_id
+        LEFT JOIN studio_caption_tracks ct ON ct.track_id=b.track_id
+        LEFT JOIN studio_caption_revisions cr ON cr.revision_id=ct.current_revision_id
+        LEFT JOIN studio_caption_revisions br ON br.revision_id=tr.bound_caption_revision_id
+        LEFT JOIN studio_media_packages p ON p.package_id=m.package_id AND p.deleted_at IS NULL
+        ORDER BY m.updated_at DESC`);
+      const mappings=new Map((await q(`SELECT tr.table_revision_id,COUNT(*) AS total,SUM(CASE WHEN tr.caption_segment_id IS NOT NULL THEN 1 ELSE 0 END) AS mapped
+        FROM studio_table_revision_rows tr GROUP BY tr.table_revision_id`)).map(row=>[String(row.table_revision_id),row]));
+      const importRows=await q("SELECT receipt_id,status,id_map_json FROM studio_portable_import_receipts ORDER BY created_at DESC"),imports=new Map();
+      for(const receipt of importRows){const map=parse(receipt.id_map_json,{}),local=map.material&&map.material.local_id;if(local&&!imports.has(String(local)))imports.set(String(local),{...receipt,id_map:map});}
+      const result=[];
+      for(const row of rows){
+        const receipt=imports.get(String(row.material_id)),mapping=mappings.get(String(row.current_table_revision_id))||{},nodeEntries=receipt&&receipt.id_map&&receipt.id_map.nodes||{};
+        let portableScope=Object.keys(nodeEntries).find(id=>id.startsWith('learning-material:')&&nodeEntries[id]&&String(nodeEntries[id].local_id)===String(row.material_id));
+        if(!portableScope&&row.raw_revision_sha256){const mediaPackageHash=await Core.hashObject({media_sha256:row.media_sha256||null,raw_revision_sha256:row.raw_revision_sha256,schema:'media-package-portable-v1'});portableScope='learning-material:sha256:'+await Core.hashObject({text_key:String(row.portable_text_key||''),media_package_id:'media-package:sha256:'+mediaPackageHash});}
+        portableScope=portableScope||'local-material:'+String(row.material_id);
+        let integrity=receipt?'complete':'native';
+        const bindingConflict=row.binding_revision_sha256&&row.bound_revision_actual_sha256&&String(row.binding_revision_sha256)!==String(row.bound_revision_actual_sha256);
+        const bindingTargetMismatch=row.binding_track_id&&row.bound_revision_track_id&&String(row.binding_track_id)!==String(row.bound_revision_track_id);
+        if(receipt&&Number(row.is_archived))integrity='archived';else if(receipt&&bindingConflict)integrity='conflict';else if(receipt&&!row.binding_track_id)integrity='repairable-source';else if(receipt&&bindingTargetMismatch)integrity='repairable-binding';
+        const item={
+          material_id:row.material_id,text_id:row.text_id,package_id:row.package_id,binding_track_id:row.binding_track_id,portable_scope_id:portableScope,portable_text_key:row.portable_text_key,title:row.title,updated_at:row.updated_at,
+          projection_present:true,projection_archived:!!Number(row.is_archived),projection_rebuildable:!!receipt,
+          caption_raw_present:!!row.raw_track_id,caption_current_revision_id:row.caption_current_revision_id||row.binding_revision_id||null,caption_current_sha256:row.caption_current_sha256||row.binding_revision_sha256||null,caption_draft_present:!!String(row.caption_draft_json||'').trim(),
+          table_current_revision_id:row.current_table_revision_id||null,table_content_sha256:row.table_content_sha256||null,table_mapping_sha256:row.table_mapping_sha256||null,table_bound_caption_revision_id:row.bound_caption_revision_id||null,table_bound_caption_revision_sha256:row.bound_caption_revision_sha256||null,
+          mapping_total:Number(mapping.total||0),mapping_mapped:Number(mapping.mapped||0),mapping_invalid:!!bindingConflict,
+          media_expected_sha256:row.media_sha256||null,media_actual_sha256:row.media_sha256||null,media_present:!!row.opfs_path,media_codec_supported:null,mime:row.mime||null,size_bytes:row.size_bytes==null?null:Number(row.size_bytes),duration_ms:row.duration_ms==null?null:Number(row.duration_ms),original_name:row.original_name||null,
+          import_integrity_state:integrity,import_receipt_id:receipt&&receipt.receipt_id||null,
+        };
+        item.source_state_sha256=await importCore.sourceStateHash({portable_scope_id:portableScope,caption_sha256:item.caption_current_sha256,table_content_sha256:item.table_content_sha256,table_mapping_sha256:item.table_mapping_sha256,media_sha256:item.media_expected_sha256});
+        result.push(item);
+      }
+      return result;
+    }
+
     async function mediaForText(textId) {
       return one(`SELECT b.text_id,b.package_id,p.media_sha256,p.mime,p.duration_ms,p.original_name,p.opfs_path,p.size_bytes,
         m.material_id,m.portable_text_key
@@ -551,7 +678,7 @@
       };
     }
 
-    return { inventory, dryRun, applyVerified, getReceipt, getReceiptByRoot, receiptIntegrity, restoreLibraryProjection, repairTextMediaBinding, listReceipts, listMaterials, mediaForText, mediaForReceipt, reverseReferencePlan, undo, snapshotForMaterial };
+    return { inventory, dryRun, applyVerified, getReceipt, getReceiptByRoot, receiptIntegrity, restoreLibraryProjection, repairTextMediaBinding, listReceipts, listMaterials, mediaForText, mediaForReceipt, reverseReferencePlan, undo, snapshotForMaterial, listExportReceipts, recordExportGenerated, confirmExportSaved, restoreExportReceipts, lifecycleInventory };
   }
 
   return { createRepository };

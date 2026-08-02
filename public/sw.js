@@ -144,6 +144,7 @@ const PRECACHE_URLS = [
   "/js/material-revision-core.js",
   "/js/material-revision-repository.js",
   "/js/portable-learning-package-core.js",
+  "/js/import-center-core.js",
   "/js/portable-learning-package-repository.js",
   "/js/studio-media-package.js",
   "/js/studio-media-editor.js",
