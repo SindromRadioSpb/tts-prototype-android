@@ -153,7 +153,7 @@
     mappings.sort(function (a, b) { return finiteIndex(a && a.row_index, 0) - finiteIndex(b && b.row_index, 0); });
     var firstRow = new Map(), rowCaptionIds = [], missing = 0;
     mappings.forEach(function (item) {
-      var rowIndex = finiteIndex(item && item.row_index, rowCaptionIds.length), captionId = item && item.corrected_caption_segment_id ? String(item.corrected_caption_segment_id) : '';
+      var rowIndex = finiteIndex(item && item.row_index, rowCaptionIds.length), captionId = item && (item.caption_segment_id || item.corrected_caption_segment_id) ? String(item.caption_segment_id || item.corrected_caption_segment_id) : '';
       rowCaptionIds[rowIndex] = captionId || null;
       if (!captionId || !byCaption.has(captionId)) { missing++; return; }
       if (!firstRow.has(captionId)) firstRow.set(captionId, rowIndex);

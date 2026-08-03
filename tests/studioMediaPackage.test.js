@@ -113,6 +113,27 @@ test('exact text binding hydrates canonical OPFS video and 1:N row replay timing
   assert.deepEqual(passport.timingMap.row_caption_segment_ids,['cue:1','cue:1','cue:2']);
 });
 
+test('exact text binding accepts the canonical caption_segment_id written by new text cards', () => {
+  const passport = StudioMediaPackage.buildExactBindingPassport({
+    revision_id:'rev:canonical',track_id:'track:canonical',canonical_sha256:'e'.repeat(64),
+    segments:[
+      {caption_segment_id:'cue:canonical',source_segment_ids:['source:canonical'],start_ms:500,end_ms:1750,text:'שלום'},
+    ],
+  },{
+    package_id:'mpkg:canonical',track_id:'track:canonical',revision_id:'rev:canonical',revision_sha256:'e'.repeat(64),
+    mapping:{schema:'studio-row-source-v2',rows:[
+      {row_index:0,caption_segment_id:'cue:canonical',source_segment_ids:['source:canonical']},
+    ]},
+  },{
+    package_id:'mpkg:canonical',media_sha256:SHA,mime:'video/mp4',duration_ms:1750,
+    original_name:'canonical.mp4',opfs_path:`media/${SHA}.mp4`,size_bytes:42,
+  });
+  assert.equal(passport.timingSource,'studio-exact-binding');
+  assert.deepEqual(passport.timing.entries,[{o:0,t:0.5,end:1.75}]);
+  assert.deepEqual(passport.timingMap.row_caption_segment_ids,['cue:canonical']);
+  assert.equal(passport.timingDropReason,null);
+});
+
 test('cloud slim filter removes local track snapshots but leaves an honest package stub', () => {
   const sourceMeta = { source: {
     kind: 'audio', media_package_ref: { package_id: 'mpkg:1', track_id: 'track:1', revision_id: 'rev:1', projection_sha256: 'b'.repeat(64) },
