@@ -305,6 +305,13 @@
         var replacement = document.createElement(desiredTag);
         replacement.id = playerId; replacement.controls = true; replacement.preload = "metadata";
         replacement.setAttribute("data-i18n-aria-label", ariaKey);
+        if (desiredTag === "video") {
+          // iOS: без playsinline тап по ▶ разворачивает видео в полный экран — текст перестаёт
+          // быть виден (живой баг владельца, iPhone 2026-08-05). Десктоп атрибут игнорирует.
+          replacement.playsInline = true;
+          replacement.setAttribute("playsinline", "");
+          replacement.setAttribute("webkit-playsinline", "");
+        }
         player.replaceWith(replacement); player = replacement;
       }
       player.setAttribute("aria-label", t(ariaKey));

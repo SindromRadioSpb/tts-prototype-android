@@ -3612,8 +3612,26 @@ function roomMediaStageInst() {
   });
   return roomMediaStage;
 }
-// Скролл-слежение — контракт TTS-караоке Зала (BRR-P1-008): yield ручному скроллу +
-// re-engage, когда играющая строка вернулась в центральную полосу.
+// Sticky-шапка таблицы: reader-core.css даёт th sticky top:0, но Зал скроллит ОКНО, и шапка
+// заезжала под sticky .reader-bar. Отступ = живая высота бара (меняется: перенос строк,
+// cov-chip) → CSS-переменная, обновляемая на открытии/ресайзе/追 следовании.
+let _roomTheadResizeWired = false;
+function roomUpdateTheadTop() {
+  const bar = document.querySelector('#roomReader .reader-bar');
+  const h = bar ? Math.max(0, Math.round(bar.getBoundingClientRect().height)) : 0;
+  try { document.documentElement.style.setProperty('--room-thead-top', h + 'px'); } catch (_) {}
+  if (!_roomTheadResizeWired) {
+    _roomTheadResizeWired = true;
+    window.addEventListener('resize', () => { try { roomUpdateTheadTop(); } catch (_) {} }, { passive: true });
+  }
+  return h;
+}
+
+// Скролл-слежение — yield ручному скроллу + re-engage (контракт TTS-караоке BRR-P1-008), а
+// ПОЗИЦИЯ — как в Студии: активная строка — ВТОРАЯ видимая (над ней уже прошедшая строка,
+// под ней — будущее; человек держит контекст, глядя на видео). Формула ОБЩАЯ —
+// MaterialRevisionCore.computeContextScrollTop, адаптированная к скроллу окна: «верх
+// контейнера» = низ sticky-бара + sticky-шапка таблицы.
 function roomMediaFollowRange(range) {
   if (!range) return;
   recordProgress(range.rowStart);
@@ -3625,7 +3643,26 @@ function roomMediaFollowRange(range) {
     if (!_karaokeLeftBand) return;
     karaokeUserScrolled = false; _karaokeLeftBand = false;
   }
-  try { tr.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) {}
+  const MRC = window.MaterialRevisionCore;
+  if (MRC && typeof MRC.computeContextScrollTop === 'function') {
+    const scroller = document.scrollingElement || document.documentElement;
+    const barH = roomUpdateTheadTop();
+    const thead = mount.querySelector('#proTable thead');
+    const occl = barH + (thead ? thead.getBoundingClientRect().height : 0);
+    const prev = range.rowStart > 0 ? mount.querySelector('tr[data-row-idx="' + String(range.rowStart - 1) + '"]') : null;
+    const target = MRC.computeContextScrollTop({
+      scroll_top: scroller.scrollTop,
+      container_top: occl,
+      container_height: Math.max(0, window.innerHeight - occl),
+      row_top: tr.getBoundingClientRect().top,
+      previous_row_height: prev ? prev.getBoundingClientRect().height : 0,
+      gap: 2,
+      max_scroll_top: Math.max(0, scroller.scrollHeight - window.innerHeight),
+    });
+    try { window.scrollTo({ top: target, behavior: 'smooth' }); } catch (_) { scroller.scrollTop = target; }
+  } else {
+    try { tr.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) {}
+  }
 }
 function roomMediaTeardown() {
   try { if (window.StudioMediaKaraoke) window.StudioMediaKaraoke.stop(); } catch (_) {}
@@ -5373,6 +5410,7 @@ function rerenderReader() {
   attachReaderAudio();
   try { refreshFindAfterRerender(); } catch (_) {}   // BRR-S15 — re-apply find marks after a table rebuild
   try { roomMediaRefresh(); } catch (_) {}   // media player: re-bind стейджа + re-инъекция ▶︎ после пересборки таблицы
+  try { roomUpdateTheadTop(); } catch (_) {}   // sticky-шапка: высота бара могла измениться
 }
 
 function buildAidsPanel() {
@@ -5565,6 +5603,7 @@ async function openReader(textId, title, opts) {
   setReaderReturnRoute(opts && opts.returnToLesson ? 'lesson-builder' : null);
   if (content) content.hidden = true;
   reader.hidden = false;
+  try { document.body.classList.add('room-reading'); } catch (_) {}   // шапка сайта не липнет при чтении (sticky-шапка таблицы)
   try { refreshDueBadge(); } catch (_) {}   // D2 — entering the reader hides the home «🔁 К повторению» CTA
   clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip(); clearFadeGradNudge();   // BRR-P2-002/005 + Epic-5 W1/W4/W5 — never carry a stale banner/jump/end-card/cov-chip/fade-nudge across opens
   try { roomMediaTeardown(); } catch (_) {}   // media player: паспорт/стейдж/YT прошлого текста не переживают открытие
@@ -5617,6 +5656,7 @@ async function openReader(textId, title, opts) {
   if (res && res.ok) {
     attachReaderAudio();
     try { roomMediaSetup(res.text); } catch (_) {}   // media player (spec 2026-08-04): паспорт уже в text.table_model_meta_json
+    try { roomUpdateTheadTop(); setTimeout(() => { try { roomUpdateTheadTop(); } catch (_) {} }, 600); } catch (_) {}   // sticky-шапка: бар мог дорасти (cov-chip)
     if (!readerGroupCorpusId) {
       try { loadProcliticOverlay(readerTextId, res.text); } catch (_) {}   // Phase-3 — this work's Dicta proclitic overlay (best-effort)
       try { loadContextOverlay(readerTextId, res.text); } catch (_) {}     // context-overlay — this work's baked context facts (best-effort)
@@ -5721,6 +5761,7 @@ async function closeReader() {
   const reader = $('roomReader'), content = $('roomContent');
   if (reader) reader.hidden = true;
   if (content) content.hidden = false;
+  try { document.body.classList.remove('room-reading'); } catch (_) {}   // вернуть sticky шапке сайта вне ридера
   setReaderReturnRoute(null);
   try { refreshDueBadge(); } catch (_) {}   // D2 — back on the home → surface the «🔁 К повторению» CTA
   // Surface the just-read text in «Продолжить чтение» (corpus home only; results / other tabs untouched).

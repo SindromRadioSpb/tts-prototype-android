@@ -67,7 +67,9 @@ const SEED = `(async () => {
   // t5 — КОМПОЗИТНЫЙ паспорт (Import Center / portable, кейс «В сокрытии - 1»): media только
   // с sha256 (БЕЗ opfsPath — контракт media-ref, релинк по SHA), сегменты в start_ms/end_ms,
   // timing: true (булева сводка), одна строка правлена (строгий align откажет → позиционный путь).
-  const CUES = ["שלום עולם", "מה קורה היום", "אחת שתיים", "שלוש ארבע", "חמש שש", "שבע שמונה", "תשע עשר", "אחת עשרה"];
+  // 24 реплики: контент ДЛИННЕЕ вьюпорта — иначе контекст-скроллу некуда ехать (max_scroll_top≈0).
+  const HEB = "אבגדהוזחטיכלמנסעפצקרשתםן";
+  const CUES = Array.from({ length: 24 }, (_, k) => "שורה מספר " + HEB[k] + " בטבלה");
   const fh2 = await dir.getFileHandle("rmm-comp.mp3", { create: true });
   const w2 = await fh2.createWritable(); await w2.write(buf); await w2.close();
   const P_COMPOSITE = { source: { audio: { v: 1,
@@ -80,6 +82,16 @@ const SEED = `(async () => {
     const he = i === 6 ? CUES[i] + " בערך" : CUES[i];   // одна правленая строка
     await db.addSentence("rmm-t5", { id: "rmm-t5-s" + i, he_plain: he, ru: "ряд " + i });
   }
+
+  // t6 — video/mp4 mime → стейдж свопается в <video>; iOS-контракт playsinline обязан стоять
+  // (декодируемость байтов не важна: своп и атрибуты — синхронный DOM до загрузки метаданных).
+  const P_VIDEO = { source: { audio: { v: 1,
+    media: { opfsPath: "media/rmm-smoke.mp3", sha256: "rmm-smoke", mime: "video/mp4", originalName: "v.mp4" },
+    segments: [ { i: 0, start: 0, end: 0.4, text: "אחת" }, { i: 1, start: 0.5, end: 1.0, text: "שתיים" } ],
+    timing: { v: 1, unit: "row", entries: [ { o: 0, t: 0 }, { o: 1, t: 0.5 } ] } } } };
+  await db.createText({ id: "rmm-t6", text_key: "rmm-k6", title: "RMM SIX video", source_text: "אחת\\nשתיים", table_model_meta_json: JSON.stringify(P_VIDEO) });
+  await db.addSentence("rmm-t6", { id: "rmm-t6-s1", he_plain: "אחת", ru: "один" });
+  await db.addSentence("rmm-t6", { id: "rmm-t6-s2", he_plain: "שתיים", ru: "два" });
   return true;
 })()`;
 
@@ -217,7 +229,7 @@ async function main() {
         bound: !!(window.StudioMediaKaraoke && window.StudioMediaKaraoke.getAudioEl()),
       }));
       ok(t5.note === "", "t5: no honesty note (composite timing rebuilt), got '" + t5.note + "'");
-      ok(t5.replayButtons === 8, "t5: 8 replay buttons on composite card, got " + t5.replayButtons);
+      ok(t5.replayButtons === 24, "t5: 24 replay buttons on composite card, got " + t5.replayButtons);
       ok(t5.bound, "t5: karaoke bound via SHA-resolved blob");
       const t5seek = await pg.evaluate(() => {
         window.StudioMediaKaraoke.seekToRow(2);
@@ -228,6 +240,51 @@ async function main() {
       });
       ok(Math.abs(t5seek.curTime - 0.5) < 0.3, "t5: seekToRow(2) → ~0.5s (ms→sec conversion), got " + t5seek.curTime);
       ok(t5seek.active2, "t5: positional timing paints row 2");
+
+      // Контекст-скролл: активная строка — ВТОРАЯ видимая (под шапкой остаётся прошедшая строка).
+      // syncCurrent → onRangeChange → follow; smooth-скролл ждём и меряем позицию строки.
+      const ctx = await pg.evaluate(async () => {
+        window.StudioMediaKaraoke.seekToRow(12);
+        window.StudioMediaKaraoke.syncCurrent();
+        await new Promise((r) => setTimeout(r, 900));   // дождаться smooth-скролла
+        const bar = document.querySelector('#roomReader .reader-bar');
+        const barH = bar ? bar.getBoundingClientRect().height : 0;
+        const thead = document.querySelector('#roomReaderTable #proTable thead');
+        const theadH = thead ? thead.getBoundingClientRect().height : 0;
+        const th = document.querySelector('#roomReaderTable #proTable thead th');
+        const cs = th ? getComputedStyle(th) : null;
+        const active = document.querySelector('#roomReaderTable tr.smk-row-active');
+        const prev = document.querySelector('#roomReaderTable tr[data-row-idx="11"]');
+        return {
+          stickyPos: cs ? cs.position : null,
+          stickyTop: cs ? cs.top : null,
+          barH, theadH,
+          activeTop: active ? active.getBoundingClientRect().top : null,
+          prevH: prev ? prev.getBoundingClientRect().height : 0,
+          scrollY: window.scrollY,
+        };
+      });
+      ok(ctx.stickyPos === "sticky", "thead th is sticky, got " + ctx.stickyPos);
+      const hdrStatic = await pg.evaluate(() => getComputedStyle(document.querySelector(".room-header")).position);
+      ok(hdrStatic === "static", "site header is non-sticky while reading (was covering the pinned thead), got " + hdrStatic);
+      ok(parseFloat(ctx.stickyTop) >= ctx.barH - 1, "thead sticky top >= reader-bar height (" + ctx.stickyTop + " vs " + ctx.barH + ")");
+      const expectedTop = ctx.barH + ctx.theadH + ctx.prevH + 2;
+      ok(ctx.activeTop != null && Math.abs(ctx.activeTop - expectedTop) < 24,
+        "active row sits as SECOND visible row (top " + ctx.activeTop + " ≈ " + expectedTop + ")");
+      await backToGrid();
+
+      // ── rmm-t6: video-mime → <video> с playsinline (iOS не разворачивает в полный экран) ──
+      await openCard("RMM SIX");
+      await pg.waitForFunction(() => {
+        const p = document.getElementById("roomMediaLocalPlayer");
+        return p && p.tagName === "VIDEO";
+      }, { timeout: 15000 }).catch(() => failures.push("t6: player did not swap to <video>"));
+      const t6 = await pg.evaluate(() => {
+        const p = document.getElementById("roomMediaLocalPlayer");
+        return p ? { tag: p.tagName, inline: p.hasAttribute("playsinline"), webkit: p.hasAttribute("webkit-playsinline") } : null;
+      });
+      ok(t6 && t6.tag === "VIDEO", "t6: stage swapped to <video>");
+      ok(t6 && t6.inline && t6.webkit, "t6: playsinline + webkit-playsinline present (iOS inline playback)");
     }
     ok(!pageErrors.length, "no pageerror(s)" + (pageErrors.length ? ": " + pageErrors.join(" | ") : ""));
   } finally { await b.close(); await stopServer(srv.child); }

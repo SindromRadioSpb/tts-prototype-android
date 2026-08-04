@@ -87,6 +87,10 @@
       padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
       padding-top: calc(12px + env(safe-area-inset-top, 0px));
     }
+    /* Открытый ридер: шапка сайта НЕ липнет (на 380px она выше .reader-bar и накрывала бы
+       sticky-шапку таблицы + съедала ~100px экрана при чтении с видео). Класс ставит
+       openReader/closeReader (library-ui.js). */
+    body.room-reading .room-header { position: static; }
     .room-header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .room-title { margin: 0; font-size: 19px; font-weight: 700; line-height: 1.2; }
     .room-subtitle { margin: 3px 0 0; font-size: 12.5px; color: var(--text-secondary); line-height: 1.35; }
@@ -657,7 +661,12 @@
       appearance: none; background: var(--bg-card); color: var(--text-primary);
       border: 1px solid var(--border-soft); border-radius: 7px; padding: 5px 8px; font-size: 13px;
     }
-    .reader-table-wrap { padding: 12px; overflow-x: auto; }
+    /* overflow-x: clip (НЕ auto): auto делает враппер скролл-контейнером, и sticky-шапка
+       #proTable thead липла бы к НЕМУ (вертикально он не скроллится → шапка не липнет вовсе,
+       а с top-отступом — просто съезжает вниз, перекрывая первую строку). clip сохраняет запрет
+       на горизонтальный вылет (таблица и так %-ширины), но скролл-контейнер не создаёт —
+       шапка липнет к окну под sticky .reader-bar (top: --room-thead-top). */
+    .reader-table-wrap { padding: 12px; overflow-x: clip; }
     .reader-table-wrap .room-state { margin: 40px auto; }
     /* Epic-2 #3 — machine-provenance note at the foot of an open text (R9). */
     .reader-prov-note { margin: 6px 16px 18px; font-size: 12px; line-height: 1.4; color: var(--text-faint); text-align: center; }
@@ -1023,6 +1032,10 @@
        index.html:3099 Row highlight system). */
     #roomReaderTable tr.smk-row-active:not(.row-playing):not(.row-error) td,
     #roomReaderTable tr.smk-row-active:not(.row-playing):not(.row-error) td.rtl { background: rgba(255, 193, 7, 0.28) !important; }
+    /* Sticky-шапка таблицы (reader-core.css даёт sticky top:0, но Зал скроллит ОКНО и шапка
+       заезжала под sticky .reader-bar): отступ = живая высота бара (--room-thead-top из JS).
+       Два id в селекторе — гарантированная победа над #proTable thead th независимо от порядка. */
+    #roomReader #proTable thead th { top: var(--room-thead-top, 0px); }
     /* Room reader is read-only: hide Studio row affordances (mirrors index.html room-mode). */
     #roomReader .row-note-btn, #roomReader .row-edit-actions { display: none !important; }
 
@@ -2368,6 +2381,9 @@
 <script src="/js/studio-media-karaoke.js"></script>
 <script src="/js/studio-yt-player.js"></script>
 <script src="/js/media-host.js"></script>
+<!-- Контекст-скролл караоке (активная строка — вторая видимая): та же формула, что в Студии
+     (MaterialRevisionCore.computeContextScrollTop) — вторую реализацию не заводим. -->
+<script src="/js/material-revision-core.js"></script>
 <script type="module" src="/js/library-ui.js"></script>
 </body>
 </html>
