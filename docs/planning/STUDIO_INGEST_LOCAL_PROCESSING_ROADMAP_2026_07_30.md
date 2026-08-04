@@ -58,6 +58,7 @@
 | Browser local TTS | 🟠 каркас | provider/router/WASM есть; Hebrew-модель не staged, текущие local providers выключены политикой |
 | Local ASR | 🟢 OWNER-ACCEPTED QUALITY BASELINE / invite beta | pinned ivrit.ai turbo CT2 проверен владельцем на учебных материалах без critical failures; beta/default-off contract сохраняется, новый model race не блокирует roadmap |
 | Media package/редактор субтитров | ✅ SHIPPED L3a | local first-class versioned artifact; composite table/package portability и cross-device относятся к L3b |
+| Медиа-плеер в Читальном зале | ✅ SHIPPED v3.11.305 | общий `media-host.js` (K1/K3/blind одна реализация со Студией); караоке/tap-seek/per-row ▶︎/честные состояния в Зале; спека `docs/superpowers/specs/2026-08-04-room-media-player-design.md`, гейт `smoke:room-media` |
 | Resume после закрытия вкладки | ❌ нет полного job-ledger | критично для 1–3ч и batch |
 
 Текущий `ai-local` на каноническом порту `127.0.0.1:8799` при аудите не запущен. Его
