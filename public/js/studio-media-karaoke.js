@@ -104,9 +104,12 @@
   // null для адаптера — stop() уже отзывает условно). Владение адаптером: модуль его НЕ создаёт и
   // НЕ destroy()-ит — им владеет вызывающая сторона (Task 8, StudioYtPlayer.create()); pause() в
   // stop() достаточно, чтобы остановить цикл, а уничтожение чужого ресурса — не наша забота.
-  function ensureRun(source, entries, rowCount, onRangeChange, persistent) {
+  function ensureRun(source, entries, rowCount, onRangeChange, persistent, stopOtherAudio) {
     stop();
-    if (typeof window.v3StopRowAudio === "function") { try { window.v3StopRowAudio(); } catch (_) {} }
+    // Room media player (spec 2026-08-04): хук взаимоисключения параметризован — у Зала нет
+    // window.v3StopRowAudio; без опции остаётся прежний студийный фолбэк.
+    var stopHook = stopOtherAudio || window.v3StopRowAudio;
+    if (typeof stopHook === "function") { try { stopHook(); } catch (_) {} }
     var url = null, audioEl;
     if (source && typeof source.addEventListener === "function" && !(source instanceof Blob)) {
       audioEl = source;                       // внешний адаптер — своего элемента не создаём
@@ -115,7 +118,7 @@
       audioEl = new Audio(url);
       audioEl.preload = "auto";
     }
-    var run = { source: source, audioEl: audioEl, url: url, entries: entries || null, rowCount: rowCount, rafId: 0, lastIdx: -2, stopAtT: null, listeners: null, onRangeChange: onRangeChange || null, persistent: !!persistent };
+    var run = { source: source, audioEl: audioEl, url: url, entries: entries || null, rowCount: rowCount, rafId: 0, lastIdx: -2, stopAtT: null, listeners: null, onRangeChange: onRangeChange || null, persistent: !!persistent, stopOtherAudio: stopOtherAudio || null };
     // W2-S4.1 FIX C: пауза ≠ teardown (позиция сохраняется), НО rAF-цикл обязан остановиться —
     // иначе уже запланированный кадр перерисует подсветку поверх paintRange(null) (гонка).
     var onPause = function () {
@@ -152,15 +155,16 @@
     if (!source) return null;
     if (cur && cur.source === source && cur.entries === (opts.entries || null)) {
       cur.rowCount = opts.rowCount || 0; cur.onRangeChange = opts.onRangeChange || null; cur.persistent = true;
+      cur.stopOtherAudio = opts.stopOtherAudio || null;
       return cur;
     }
-    return ensureRun(source, opts.entries || null, opts.rowCount || 0, opts.onRangeChange || null, true);
+    return ensureRun(source, opts.entries || null, opts.rowCount || 0, opts.onRangeChange || null, true, opts.stopOtherAudio);
   }
 
   async function start(opts) {
     try {
       var source = opts.media || opts.blob;
-      var run = (cur && cur.source === source && cur.entries === (opts.entries || null)) ? cur : ensureRun(source, opts.entries || null, opts.rowCount || 0, opts.onRangeChange || null);
+      var run = (cur && cur.source === source && cur.entries === (opts.entries || null)) ? cur : ensureRun(source, opts.entries || null, opts.rowCount || 0, opts.onRangeChange || null, false, opts.stopOtherAudio);
       if (opts.onRangeChange) run.onRangeChange = opts.onRangeChange;
       run.stopAtT = null;
       await run.audioEl.play();
@@ -194,7 +198,8 @@
     if (!cur || !cur.entries) return;
     var k = segIdxForRow(cur.entries, Number(rowIdx));
     if (k < 0) return;
-    if (typeof window.v3StopRowAudio === "function") { try { window.v3StopRowAudio(); } catch (_) {} }
+    var stopHook = (cur && cur.stopOtherAudio) || window.v3StopRowAudio;
+    if (typeof stopHook === "function") { try { stopHook(); } catch (_) {} }
     try {
       cur.audioEl.currentTime = Number(cur.entries[k].t) || 0;
       var exactEnd = Number(cur.entries[k] && cur.entries[k].end);

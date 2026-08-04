@@ -208,3 +208,31 @@ test("playSegment(): a 1:N mapped row replays the exact cue and stops at its exp
     uninstallBrowserMocks();
   }
 });
+
+// Room media player (spec 2026-08-04): взаимоисключение параметризовано — Зал не имеет
+// window.v3StopRowAudio, его хук передаётся опцией; Студия без опции работает как раньше.
+test("stopOtherAudio hook: used when provided (fresh bind AND playSegment), window fallback otherwise", async () => {
+  installBrowserMocks();
+  try {
+    var mod = freshModule();
+    var hookCalls = 0, winCalls = 0;
+    global.window.v3StopRowAudio = function () { winCalls++; };
+    var el = makeFakeAudioEl();
+    var entries = [{ o: 0, t: 0 }];
+
+    mod.bind({ media: el, entries: entries, rowCount: 1, stopOtherAudio: function () { hookCalls++; } });
+    assert.equal(hookCalls, 1, "fresh bind with a hook must call the hook");
+    assert.equal(winCalls, 0, "the window fallback must NOT fire when a hook is provided");
+
+    await mod.playSegment(0);
+    assert.equal(hookCalls, 2, "playSegment must use the run's stored hook");
+    assert.equal(winCalls, 0);
+
+    mod.stop();
+    mod.bind({ media: el, entries: entries, rowCount: 1 });
+    assert.equal(winCalls, 1, "without a hook the прежний window.v3StopRowAudio fallback stays");
+    mod.stop();
+  } finally {
+    uninstallBrowserMocks();
+  }
+});
