@@ -269,15 +269,16 @@ TTS остаётся отдельной quality-gated веткой.
 | 7 | **L3b Artifact Continuity / P2** | ✅ COMPLETE / OWNER LIVE PASS v3.11.296 | derived Artifact Graph, media-free Package v2, v47 receipts, strict dry-run/SAVEPOINT import, lifecycle recovery, exact binding repair and real owner export/import/relink/reopen verified |
 | 7a | **P3 real iPhone manual continuity** | ✅ COMPLETE / OWNER-ATTESTED PASS | PC→Files/iCloud→iPhone dry-run/import/SHA relink→video/cue/row→cold reopen→re-export semantic parity |
 | 7b | **P4 Import Center** | ✅ COMPLETE / PROD PASS / OWNER LIVE PASS v3.11.300 | one lifecycle surface, guided PC→iPhone/restore/relink/recovery/delete-export flows, honest storage/media/backup diagnostics and contextual education; v48 receipt-only |
-| 8 | local translation/nikud + S6 | P1 → 🟡 L4.0 STARTED 2026-08-04 | owner GO (D-HNR-1); evidence-фаза L4.0a/b/c по frozen manifest: `HEBREW_NLP_RESOURCES_OWNER_DECISIONS_2026_08_04.md` |
+| 8 | local translation/nikud + S6 | P1 → 🟡 L4-MT PRODUCTIZATION AUTHORIZED | L4.0a DONE; D-HNR-10: MADLAD honesty→Browser→Companion→gates→invite beta→owner-live до L4.0c/L4.0b; packet: `STUDIO_INGEST_L4_MT_MADLAD_IMPLEMENTATION_PACKET_2026_08_04.md` |
 | 9 | diarization/alignment | P1 | speaker/timing gold, segment default remains honest |
 | 10 | EPUB + TXT/MD/HTML + HEIC | P1 | real fixtures, provenance, mobile acceptance |
 | 11 | local TTS/OCR/LLM R&D | P2 | license+quality GO; no downgrade for «free» |
 | 12 | remote media/companion | P2/triggered | demand, lawful source path, privacy/cost decision |
 
-L0 и ограниченный default-off L1 engineering/evidence closure выполнены. Permanent L1
-integration требует отдельного owner acceptance; expanded human-gold и paired Gemini cloud
-comparison не запускались и не подразумеваются фактом закрытия B+C.
+L0 и ограниченный default-off L1 engineering/evidence closure выполнены. D-HNR-11 фиксирует
+owner-acceptance достаточности pinned ivrit.ai ASR на учебных материалах: новый ASR race,
+expanded human-gold и paired Gemini cloud comparison не являются блокерами roadmap. Это не
+меняет default-off/invite-beta режим и не разрешает неявный cloud fallback.
 
 ### Текущая точка и post-P4 decision gate (update 2026-08-04)
 
@@ -308,9 +309,10 @@ P0 L3a closure ✅
 
 **UPDATE 2026-08-04 — post-P4 gate ИСПОЛНЕН: выбрано направление №1 (L4).** Recon проведён
 (программное исследование Hebrew-NLP ресурсов, `docs/research/hebrew-nlp-resources/2026-08-04/`),
-authority = owner-решения D-HNR-1..6. Исполнение — по замороженному манифесту и леджеру
-`HEBREW_NLP_RESOURCES_OWNER_DECISIONS_2026_08_04.md` (L4.0a MT → L4.0c alignment → L4.0b nikud
-→ design packet → Wave Q → gated F1); production-ASR (ivrit.ai pin) инвариантно не меняется;
+authority = owner-решения D-HNR-1..11. Исполнение — по замороженному манифесту и леджеру
+`HEBREW_NLP_RESOURCES_OWNER_DECISIONS_2026_08_04.md` (L4.0a ✅ → D-HNR-10 L4-MT
+productization → L4.0c alignment → L4.0b nikud → общий design packet → Wave Q → gated F1);
+production-ASR (ivrit.ai pin) инвариантно не меняется и не является blocking research track;
 направления 2–6 остаются закрытыми до отдельных решений.
 
 Option C material-owned identity, automatic media transport, concurrent-device editing, provider

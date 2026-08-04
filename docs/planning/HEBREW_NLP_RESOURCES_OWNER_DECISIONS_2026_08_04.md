@@ -14,6 +14,14 @@
 `ivrit-ai/whisper-large-v3-turbo-ct2` (exact pin) остаётся единственной production-ASR
 моделью Companion/сайдкара. Ничто в этом пакете не меняет ASR-путь:
 
+- владелец проверил этот pin на реальных учебных материалах и не обнаружил критических
+  проблем; качество признано **достаточным для текущего продукта**;
+- поиск «ещё лучшей» ASR-модели, повторный provider race и Q2 standing-gold не являются
+  prerequisite/gate для L4-MT, L4.0c, L4.0b или последующей продуктовой разработки;
+- provider selection может быть переоткрыт только из-за воспроизводимой критической
+  регрессии/production incident либо нового явного owner-решения. Само появление нового
+  кандидата или небольшой возможный quality delta таким триггером не является;
+
 - **stable-ts (L4.0c)** работает ПОВЕРХ нашего же ivrit-Whisper — это alignment-режим,
   не замена ASR;
 - **MMS forced aligner / SaT (Q6a)** — только offline gate-side оракулы (проверка
@@ -37,6 +45,8 @@
 | **D-HNR-7** L4.0a Manifest v2 | **GO 2026-08-04** | In-domain `reference_text` создан GPT-5.6 Sol high и принят владельцем как AI-reference/silver, не human gold; билингвальная human-blind оценка недоступна и явно waived; FLORES Stage A = детерминированные 506 shared IDs × 2 направления для всех кандидатов, расширение до полного devtest для Gemini + top-2 local при ΔchrF++ < 2, пересечении bootstrap CI, конфликте ранжирования метрик или critical failure flags |
 | **D-HNR-8** L4.0a Manifest v3 owner override | **GO 2026-08-04** | После срабатывания critical-failure trigger владелец явно отменил обязательное full-devtest расширение на этом этапе: verdict строится на одинаковой Stage A (1012 строк) для всех пяти систем; top-2 local не расширяются. Уже оплаченный Gemini partial 1118/2024 сохраняется только как provenance/cost artifact и не участвует в сравнительных метриках |
 | **D-HNR-9** локальный MT-провайдер + provenance UX | **GO 2026-08-04** | По результатам L4.0a владелец утверждает **MADLAD-400** как локального MT-провайдера. Это не делает его default-on и не разрешает неявный MADLAD↔Gemini fallback. Провайдер сохраняется на уровне строк, read-only показывается в метаданных текста и доступен как фильтр Library; mixed/legacy состояния маркируются честно |
+| **D-HNR-10** ускоренный MADLAD productization | **GO 2026-08-04** | Выделить MADLAD productization в отдельный последовательный L4-MT трек **до L4.0c/L4.0b**: сначала устранить ложный provider-status, затем реализовать Browser→Companion MT без implicit fallback, провести engineering gates, invite beta и owner-live. Это не делает MADLAD default-on/GA и не открывает server-hosted MT |
+| **D-HNR-11** достаточность production-ASR | **OWNER-ACCEPTED 2026-08-04** | `ivrit-ai/whisper-large-v3-turbo-ct2` проверен владельцем на учебных материалах; критических проблем не обнаружено. Модельный race и Q2 не блокируют L4-MT или развитие продукта. Пересмотр — только по воспроизводимой критической регрессии/incident либо новому явному owner-решению |
 
 ## 2. Метрики MT-бенча (уточнение владельца к L4.0a)
 
@@ -70,6 +80,29 @@ chrF++ · spBLEU · **человеческую слепую оценку** · п
   локальность формулируется только про MT-вызов, без ложного утверждения, что ASR/OCR
   или весь import pipeline были локальными.
 
+### 2.2. D-HNR-10 — отдельный L4-MT productization-трек
+
+- **Приоритет:** цифры L4.0a уже достаточны для bounded productization выбранного MADLAD;
+  поэтому этот трек выполняется до исследований alignment L4.0c и nikud L4.0b.
+- **Порядок внутри трека:** honesty-fix ложного provider-status → versioned/authenticated
+  Browser→Companion MT contract → model lifecycle + translation pipeline + provenance UX
+  → engineering gates → invite beta → production preflight/deploy → owner-live.
+- **Архитектурная граница:** текст идёт напрямую из браузера в локальный Companion;
+  production-сервер не проксирует пользовательский текст и не выдаёт наличие локальной
+  модели за server capability. Legacy `/translate` не становится browser API.
+- **Маршрутизация:** явный выбор пользователя, default-off, без неявного MADLAD↔Gemini
+  fallback. Ошибка/отсутствие Companion показывается честно и не запускает cloud-вызов.
+- **Authority:** исполнимый контракт —
+  `STUDIO_INGEST_L4_MT_MADLAD_IMPLEMENTATION_PACKET_2026_08_04.md`; после D-HNR-10 он
+  не ждёт общего L4 design packet для alignment/nikud.
+
+### 2.3. D-HNR-11 — ASR sufficiency closure
+
+Текущий ivrit.ai pin остаётся production baseline, а не временным кандидатом. Q2 standing
+ASR gold полезен как будущий regression harness, но не как повторный selection gate и не
+как условие перехода к MT. L4.0c может улучшать alignment поверх того же ASR, не открывая
+замену модели. VibeVoice/Q6b остаётся отдельно gated и не может задержать L4-MT.
+
 ## 3. Как это ложится на незавершённый STUDIO_INGEST roadmap (вопрос владельца №3)
 
 Канон-цепочка не переоткрывается: Workspace/P2/P3/P4 закрыты
@@ -79,8 +112,8 @@ P3/P4-пакеты — авторитет без изменений). Post-P4 de
 **L4 local translation+nikud+S6**, с точной authority = данный документ.
 
 - Слайс 8 роадмапа («local translation/nikud + S6, shared provider contract, R1/R11
-  quality gates») стартует как **L4.0 evidence-фаза**; L4 design/implementation packet
-  пишется ПОСЛЕ цифр (очередь §5, шаг 7).
+  quality gates») разделён после L4.0a: сначала отдельный **L4-MT MADLAD productization**
+  по D-HNR-10, затем L4.0c → L4.0b и общий пакет оставшегося L4.
 - Слайс 9 (diarization/alignment, L5) НЕ открывается; но L4.0c и Q6a создают его
   будущий фундамент (timing-голд, alignment-инструменты) без отдельного решения.
 - Слайсы 10–12, L2, G-HERMES/G-AUTOSYNC — без изменений (parked/triggered).
@@ -164,10 +197,15 @@ Top-2 local full-run не запускается. Возобновление exp
 | 2 | Заморозить L4.0 manifest до результатов | ✅ DONE v3 (§4; D-HNR-7 + D-HNR-8 owner GO 2026-08-04) | Claude Code + owner | v1/v2 сохранены provenance-базой; v3 фиксирует равную Stage A и owner-deferred expansion |
 | 3 | L4.0a MT-бенч (+ Q4 внутри) | ✅ DONE 2026-08-04 under Manifest v3 — все 5 систем на равной Stage A 506 shared IDs × 2; chrF++/spBLEU + 1000-sample bootstrap CI + CometKiwi + in-domain AI-reference + failure/operational audit. Gemini = cloud ceiling; MADLAD = best local, замена не обоснована. Full expansion deferred по D-HNR-8; итог `LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION` | Codex + owner-approved waivers | `docs/research/studio-l4-mt-benchmark/2026-08-04/RESULTS.md`; `MACHINE_CHECKPOINT.md`; `docs/research/heb-ru-mt-gold/2026-08-04/` |
 | 3a | D-HNR-9: закрепить MADLAD как локальный MT-провайдер и закрыть provider provenance в Library v3 | ✅ DONE 2026-08-04 — sentence authority + save/update persistence + read-only metadata + badge/filter + RU/EN/HE | Codex + owner GO | v3.11.301; `docs/research/studio-l4-mt-provider-provenance/2026-08-04/README.md` |
+| 3b | D-HNR-10/D-HNR-11: заморозить accelerated L4-MT contract и ASR non-blocking boundary | ✅ DONE 2026-08-04 | Codex + owner GO | `STUDIO_INGEST_L4_MT_MADLAD_IMPLEMENTATION_PACKET_2026_08_04.md` |
+| 3c | P0 honesty: устранить ложный MADLAD provider-status до feature exposure | ⬜ **NEXT** | Codex | absent/unpaired Companion никогда не показывается ready; red/green tests |
+| 3d | Реализовать authenticated Browser→Companion MADLAD MT + model lifecycle + provenance | ⬜ | Codex | implementation packet MT-1…MT-4; без implicit fallback |
+| 3e | Engineering gates + invite beta | ⬜ | Codex | frozen gates/evidence; trusted cohort; correctable-draft positioning |
+| 3f | Production preflight/deploy + owner-live | ⬜ GATED | Codex → owner | безопасный диск/health, served revision, реальный локальный перевод, cold reopen/provenance |
 | 4 | L4.0c alignment-бенч (word-level голд отдельно) | ⬜ | Codex | drift-метрики vs эталон |
 | 5 | L4.0b nikud-бенч (human gold ≠ Dicta-silver) | ⬜ | Codex | DEC/CHA/WOR/VOC + CPU-цена |
-| 6 | L4 design packet по результатам | ⬜ | Claude Code (планирование) → owner approve | новый implementation packet |
-| 7 | Q2 standing ASR gold (`smoke:ingest-asr-gold`) | ⬜ | Codex | новый smoke-гейт зелёный |
+| 6 | Общий L4 design packet для оставшихся alignment/nikud/S6-решений | ⬜ | Claude Code (планирование) → owner approve | новый implementation packet |
+| 7 | Q2 standing ASR gold (`smoke:ingest-asr-gold`) | ⬜ OPTIONAL / NON-BLOCKING | Codex | regression harness; не provider-selection и не prerequisite |
 | 8 | Q1 human morphology gold (UD/IAHLT) | ⬜ | Codex | второй оракул в `smoke:reader-morph:audit` |
 | 9 | Q5 shoshan literary audit (constrained lemma) | ⬜ | Codex | R10-отчёт на Ben-Yehuda регистре |
 | 10 | Q3 suffixed-verbs аудит | ⬜ | Codex | honesty-слайс отчёт |
@@ -185,7 +223,8 @@ Top-2 local full-run не запускается. Возобновление exp
 → релевантный канон (`STUDIO_INGEST_LOCAL_PROCESSING_ROADMAP_2026_07_30.md` для L4-контекста).
 
 **Инварианты сессии:**
-1. Production-ASR инвариант §0 — абсолютный.
+1. Production-ASR инвариант §0 и D-HNR-11 — абсолютны: не менять pin и не превращать
+   ASR-исследование/Q2 в блокер продуктового трека.
 2. Manifest §4 заморожен: отклонения = новая версия манифеста с owner-подписью, не тихие правки.
 3. Артефакты — в `docs/research/<topic>/<date>/` (+README: как сгенерировано, команда,
    коммит, raw/annotated) и НИКОГДА только в `.tmp/` (правило CLAUDE.md).
@@ -195,14 +234,16 @@ Top-2 local full-run не запускается. Возобновление exp
 6. Оракульная независимость (R11): вердикты только по human-голду/независимому сигналу;
    Dicta-derived данные не судят Dicta-модели.
 7. Ничего из закрытого канона (Workspace/P2/P3/P4, L1-Companion) не переоткрывать.
-8. Прод не участвует в бенчах; коммит+пуш по завершении шага (docs-only безопасен).
+8. Прод не участвует в бенчах. Push `main`/deploy только после scoped preflight: в этом
+   репозитории push запускает auto-deploy, поэтому docs-only не считается автоматически
+   безопасным для push при нездоровом production state.
 9. Спорная интерпретация манифеста/леджера → остановиться и спросить владельца, не
    импровизировать.
 10. MT provenance — не пользовательский тег: строковый `translation_provider` первичен;
     mixed/unknown нельзя молча переписать в выбранный preferred provider.
 
-**Разделение ролей:** Codex — исполнение шагов 3–5, 7–11 (скрипты бенчей, прогоны,
-отчёты). Claude Code — шаг 6 (design packet), ревизии канона, квартальный re-scan
+**Разделение ролей:** Codex — исполнение шагов 3c–5, 7–11 (productization, скрипты
+бенчей, прогоны, отчёты). Claude Code — шаг 6 (общий design packet), ревизии канона, квартальный re-scan
 (4 источника: каталоги NNLP-IL + HF-срез `?filter=he` + Hebrew LLM Leaderboard +
 AlephBench). Owner — шаги 1, 12, 13 и приёмка.
 
@@ -247,11 +288,12 @@ LLM; использует уникальную FSRS-модель LinguistPro; н
 **D-HNR-5 — академическая линия.** Без изменений: запросить HELEECS можно заранее;
 пользовательский opt-in поток данных — только после отдельного R15-пакета.
 
-**Рекомендуемая очередь исполнения:** Исправить provenance и owner-journal
-несогласованности → Принять D-HNR-1 → Заморозить L4.0 benchmark manifest до
-результатов → Провести L4.0a с Hy-MT2 → Провести L4.0c с отдельным word-level gold →
-Провести L4.0b, разделив human gold и Dicta-derived silver → Написать L4 design packet
-по результатам → Провести Q2 standing ASR gold → Провести Q1 human morphology gold →
+**Актуализированная owner-очередь исполнения:** L4.0a и D-HNR-9 закрыты → по D-HNR-10
+устранить ложный provider-status → реализовать Browser→Companion MADLAD MT без implicit
+fallback → engineering gates → invite beta → production preflight/deploy → owner-live →
+провести L4.0c с отдельным word-level gold → провести L4.0b, разделив human gold и
+Dicta-derived silver → написать общий L4 design packet по оставшимся решениям → при
+практической пользе добавить Q2 только как non-blocking regression harness → провести Q1 human morphology gold →
 Провести Q5 shoshan literary audit → Провести Q3 suffixed-verbs → Провести Q6a
 timing/segmentation gates → Только затем отдельно решить, нужен ли Q6b VibeVoice →
 После evidence-checkpoint начать bounded F1.

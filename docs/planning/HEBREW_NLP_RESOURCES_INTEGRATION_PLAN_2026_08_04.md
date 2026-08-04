@@ -13,10 +13,10 @@ evidence-долг, N=1) остаётся в силе; данный план не
 
 ## 1. Что этот план меняет в картине L4 (текущее выбранное направление)
 
-L4 = «productize local translation + nikud + S6». Исследование подтвердило выбор инструментов
-**условно**: nikud — да; MT — «вероятно, но недоказано» (у MADLAD-10B нет ни одного
-опубликованного he→ru замера, а CPU-конкурент OPUS-MT heb-sla имеет опубликованный chrF 0.503);
-S6-alignment — инструменты готовы (stable-ts/WhisperX), MFA исключён.
+L4 = «productize local translation + nikud + S6». Исходная неопределённость MT закрыта
+нашим L4.0a: MADLAD-400 — best local и выбран владельцем, Gemini остаётся cloud ceiling.
+По D-HNR-10 MADLAD productization выделен в самостоятельный последовательный L4-MT
+трек до alignment/nikud; S6-alignment — отдельная последующая линия.
 
 **Следствие — L4 стартует с бенчмарк-фазы L4.0 (она же выполняет условие «независимые R1/R11
 quality gates» из roadmap):**
@@ -43,10 +43,10 @@ quality gates» из roadmap):**
   сдвиг границ vs субтитры, прогон через существующие drift-гейты. Бонус: known-transcript
   alignment убивает класс подделанных меток by construction.
 
-Выход L4.0 → отдельный L4 design/implementation packet (архитектура продуктизации: Companion
-browser-API для translate/nakdan по образцу L1-D, provenance parity, GPU-слот, консенты).
-Возможный исход бенча — «перевод локально = CPU OPUS-MT» — меняет архитектуру (слот свободен
-для ASR), поэтому дизайн ПОСЛЕ цифр, не до.
+Выход L4.0a уже дал отдельный
+`STUDIO_INGEST_L4_MT_MADLAD_IMPLEMENTATION_PACKET_2026_08_04.md`: authenticated
+Browser→Companion MT, provenance parity, GPU-слот и explicit consent. Общий L4 packet
+для alignment/nikud/S6 пишется после L4.0c→L4.0b и не блокирует MADLAD productization.
 
 ## 2. Wave Q — quick wins качества (внутри существующих эпиков, без новых поверхностей)
 
@@ -56,7 +56,7 @@ browser-API для translate/nakdan по образцу L1-D, provenance parity,
 | ID | Что | Куда встраивается | Ресурс (лицензия) |
 |---|---|---|---|
 | Q1 | Человеческий морфо-голд аудит tap-резолвера (второй, независимый от Dicta оракул) | `smoke:reader-morph:audit` v2 | UD_Hebrew-IAHLTwiki (CC BY-SA 4.0) + IAHLTKnesset (CC BY 4.0); HTB (CC BY-NC-SA) — audit-side |
-| Q2 | Standing ASR-голд гейт `smoke:ingest-asr-gold` (WER+drift vs фикс. эталоны) — снимает зависимость от owner-supplied файлов | Studio S12-гейты | ivrit-ai eval-sets (ivrit.ai license / CC BY 4.0) |
+| Q2 | OPTIONAL/NON-BLOCKING standing ASR regression-гейт `smoke:ingest-asr-gold` (WER+drift vs фикс. эталоны); не provider race и не prerequisite L4-MT | Studio S12-гейты | ivrit-ai eval-sets (ivrit.ai license / CC BY 4.0) |
 | Q3 | Suffixed-verbs аудит-слайс (ראיתיו-класс) честности карточек | Зал honesty-гейты | dicta-il/hebrew_suffix_verbal_forms (CC BY 4.0) |
 | Q4 | he↔ru MT голд-набор (FLORES+ + in-domain) как постоянный актив | предпосылка L4.0a, переиспользуется для всех будущих MT/LLM | FLORES+ (CC BY-SA 4.0) + wmt24pp en→he_IL (Apache-2.0) |
 | Q5 | shoshan как независимый lemma-оракул: R10-аудит нашего lemma-canon кейера на литературном регистре (доп. follow-up) | Retention lemma-canon + Зал | HebArabNlpProject/shoshan (MIT; 0.0% выдуманных лемм by construction) + shoshan-data (CC BY 4.0) |
@@ -109,13 +109,16 @@ browser-API для translate/nakdan по образцу L1-D, provenance parity,
 - **D-HNR-7 (L4.0a Manifest v2):** ✅ **GO 2026-08-04** — 200 переводов GPT-5.6 приняты владельцем как AI-reference/silver, не human gold; билингвальная human-blind оценка недоступна и waived с итоговой маркировкой `LIMITED EVIDENCE`; FLORES Stage A = детерминированные 506 shared IDs × 2 направления для всех кандидатов, затем full devtest для Gemini + top-2 local при любом adaptive-trigger. Точные правила и frozen manifest — в owner-decisions §4.
 - **D-HNR-8 (L4.0a Manifest v3 override):** ✅ **GO 2026-08-04** — после фактического critical-failure trigger владелец явно deferred full expansion: текущий verdict использует равные 1012 Stage A строк на систему; top-2 local full не запускаются, Gemini 1118/2024 partial хранится только как provenance/cost и не входит в ranking.
 - **D-HNR-9 (локальный MT + provenance UX):** ✅ **GO 2026-08-04** — MADLAD-400 утверждён как локальный MT-провайдер по результатам L4.0a. Sentence-level provider сохраняется и показывается read-only в Meta Edit/Library badge; Library v3 фильтрует по провайдеру. Mixed/unknown не угадываются. Default-off и запрет неявного MADLAD↔Gemini fallback неизменны.
+- **D-HNR-10 (ускоренный MADLAD productization):** ✅ **GO 2026-08-04** — отдельный L4-MT трек выполняется до L4.0c/L4.0b: P0 provider-status honesty → authenticated Browser→Companion MT → gates → invite beta → production preflight/deploy → owner-live; без implicit fallback/default-on/server-hosted MT.
+- **D-HNR-11 (production-ASR достаточен):** ✅ **OWNER-ACCEPTED 2026-08-04** — owner-tested `ivrit-ai/whisper-large-v3-turbo-ct2` не показал критических проблем на учебных материалах. Новый model race/Q2 не блокирует MT и продуктовую разработку; пересмотр только по critical regression/incident или новому owner-решению.
 
 **Execution result:** ledger step 3 / L4.0a закрыт 2026-08-04 под Manifest v3 с
 маркировкой `LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION`. Gemini 3.6 Flash —
 измеренный cloud ceiling; MADLAD остаётся best local, оснований для замены нет.
 Канонический отчёт: `docs/research/studio-l4-mt-benchmark/2026-08-04/RESULTS.md`.
-Ограниченный D-HNR-9 provenance-срез реализован в v3.11.301; он не заменяет L4 design
-packet и не меняет следующий research-шаг леджера — L4.0c.
+Ограниченный D-HNR-9 provenance-срез реализован в v3.11.301. D-HNR-10 изменяет
+следующий шаг: теперь это P0 исправление ложного MADLAD provider-status и дальнейший
+L4-MT implementation packet; L4.0c следует только после завершения productization-трека.
 
 ## 6. Лицензионный чек-лист per-resource (обязателен перед использованием)
 

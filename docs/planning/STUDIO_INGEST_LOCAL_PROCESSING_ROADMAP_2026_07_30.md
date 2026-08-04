@@ -53,10 +53,10 @@
 | VTT/SRT/YouTube transcript → караоке | ✅ SHIPPED | пользователь приносит дорожку; серверный caption-fetch NO-GO |
 | «Упростить до моего уровня» | ✅ SHIPPED | Gemini BYOK; A1–B2; отдельный derived-текст |
 | Local niqqud | 🟡 код есть | `ai-local`: DictaBERT-menaked на CPU; не часть нового импорта end-to-end |
-| Local перевод | 🟡 provider OWNER-APPROVED; полный L4 ещё evidence-gated | `ai-local`: MADLAD-400 10B, CT2 int8_float16, ~6.5ГБ; D-HNR-9: sentence provenance + Meta/Library badge/filter в v3.11.301; default-off/no implicit fallback |
+| Local перевод | 🟡 L4-MT PRODUCTIZATION AUTHORIZED | `ai-local`: MADLAD-400 10B, CT2 int8_float16, ~6.5ГБ; D-HNR-10: сначала provider-status honesty, затем authenticated Browser→Companion, gates, invite beta, owner-live; default-off/no implicit fallback |
 | Local Hebrew TTS | 🟠 эксперимент | Phonikud/Piper интегрирован, но выключен: качество слишком роботизировано; license-mode ограничен |
 | Browser local TTS | 🟠 каркас | provider/router/WASM есть; Hebrew-модель не staged, текущие local providers выключены политикой |
-| Local ASR | 🟡 bounded engineering PASS | pinned turbo CT2; batch/browser/B+C закрыты, permanent integration не разрешена |
+| Local ASR | 🟢 OWNER-ACCEPTED QUALITY BASELINE / invite beta | pinned ivrit.ai turbo CT2 проверен владельцем на учебных материалах без critical failures; beta/default-off contract сохраняется, новый model race не блокирует roadmap |
 | Media package/редактор субтитров | ✅ SHIPPED L3a | local first-class versioned artifact; composite table/package portability и cross-device относятся к L3b |
 | Resume после закрытия вкладки | ❌ нет полного job-ledger | критично для 1–3ч и batch |
 
@@ -132,9 +132,10 @@ Fallback никогда не должен менять local → cloud молч�
 
 Стартовая пара кандидатов:
 
-1. `ivrit-ai/whisper-large-v3-turbo-ct2` + `faster-whisper`, `language="he"` — основной
-   speed/quality-кандидат, Apache-2.0, CTranslate2-формат;
-2. `ivrit-ai/whisper-large-v3-ct2` — quality challenger, не default до замера VRAM/RTF.
+1. `ivrit-ai/whisper-large-v3-turbo-ct2` + `faster-whisper`, `language="he"` — exact-pinned
+   production baseline, owner-tested на учебных материалах, Apache-2.0, CTranslate2-формат;
+2. `ivrit-ai/whisper-large-v3-ct2` — только parked challenger. Его замер/замена не
+   является roadmap prerequisite; ветка открывается лишь по D-HNR-11 trigger.
 
 Почему это сильнее текущего cloud-пути для больших файлов: модель физически получает
 локальные аудиочанки, не платит за повтор, не зависит от дневной квоты, допускает batch и
@@ -230,7 +231,7 @@ baseline: разборчивость, никуд/ударение, имена, �
 | P0 | **L0 local benchmark** | ✅ DONE | pinned turbo CT2 GO; full large-v3 NO-GO как default |
 | P0 | Провенанс/schema B | ✅ BOUNDED DONE | backup parity + portable segment identity; schema migration не потребовалась |
 | P0 | UX/data C | ✅ BOUNDED DONE | explicit SHA dedupe + `text_audio_asset_key` round-trip |
-| P0 | **L1 local ivrit.ai ASR** | 🟡 ENGINEERING PASS | batch/browser/B+C PASS; quality studies recommended; permanent NO-GO pending separate owner decision |
+| P0 | **L1 local ivrit.ai ASR** | 🟢 OWNER-ACCEPTED BASELINE | batch/browser/B+C PASS; D-HNR-11: owner learning-material check без critical failures; Q2/model race optional и не блокирует продукт; default-off beta contract неизменен |
 | P0 | **L1 Windows invite beta enablement** | 🟢 CHROME INVITE BETA LIVE | Companion beta.2 plus pairing help deployed as `v3.11.277`; install/decode/uninstall and served RU/HE mobile UI PASS; unsigned owner/trusted distribution approved; output is first-draft quality; quality studies recommended; Edge excluded |
 | P0/P1 | **L2a recovery / L2b batch** | ⏸ DEFERRED / DEMAND-TRIGGERED | L2a: реальная reload/job-loss боль; L2b: регулярные 3–5+ файлов |
 | P1 | **L3a Correctable Media Package/editor** | ✅ SHIPPED v3.11.282 | v45 + immutable raw/corrected revisions + editor/reopen + source-player sync + VTT/SRT/slim round-trip; residual owner-live ceremonies tracked in packet |
@@ -238,7 +239,7 @@ baseline: разборчивость, никуд/ударение, имена, �
 | P1 | **L3b Artifact Continuity / P2** | ✅ COMPLETE / OWNER LIVE PASS v3.11.296 | Artifact Graph, exact v2 package, v47 receipts, transactional import, exact relink/recovery, backup and owner round-trip verified |
 | P1 | **P3 real iPhone manual continuity** | ✅ COMPLETE / OWNER-ATTESTED PASS | manual PC→Files/iCloud→iPhone import/relink/playback→cold reopen→re-export semantic parity |
 | P1 | **P4 Import Center** | ✅ COMPLETE / PROD PASS / OWNER LIVE PASS v3.11.300 | one lifecycle catalog, guided device/restore/relink/recovery/delete-export tasks, storage/media/backup diagnostics and contextual education |
-| P1 | **L4 local translation+nikud** | 🟡 L4.0a DONE; L4.0c NEXT | D-HNR-9 approves MADLAD as local MT provider and v3.11.301 closes provenance UX; full L4 still requires L4.0c→L4.0b→design packet |
+| P1 | **L4 local translation+nikud** | 🟡 L4-MT PRODUCTIZATION AUTHORIZED; P0 HONESTY NEXT | D-HNR-10 moves MADLAD Browser→Companion productization before L4.0c/L4.0b; implementation packet is authoritative; no default-on/implicit fallback |
 | P1 | **L5 diarization/alignment** | ⬜ | L1 stable; speaker/timing gold |
 | P2/R&D | **L6 TTS/OCR/local LLM** | ⬜ | model+license+quality measurement; no quality downgrade |
 | P2 | S7 karaoke export | folded into L3 | VTT/SRT/LRC + media bundle |
@@ -258,27 +259,28 @@ Exact P2 implementation contract:
 Утверждение planning/product direction не разрешает P2 implementation, automatic cloud/media
 sync, Hermes mutations или production scope без отдельной точной owner authority.
 
-Текущая цепочка: `P0 ✅ → P1A ✅ → P1B ✅ → P2 ✅ OWNER LIVE PASS v3.11.296 → P3 ✅ → P4 ✅ PROD / OWNER LIVE PASS v3.11.300 → L4.0 🟡 AUTHORIZED 2026-08-04`.
+Текущая цепочка: `P0 ✅ → P1A ✅ → P1B ✅ → P2 ✅ OWNER LIVE PASS v3.11.296 → P3 ✅ → P4 ✅ PROD / OWNER LIVE PASS v3.11.300 → L4.0a ✅ → L4-MT 🟡 AUTHORIZED 2026-08-04`.
 
 **UPDATE 2026-08-04:** post-P4 выбор сделан — L4 через evidence-фазу L4.0 (owner GO,
 D-HNR-1..6). Канон исполнения: `HEBREW_NLP_RESOURCES_OWNER_DECISIONS_2026_08_04.md`
 (frozen manifest §4 + леджер §5 + контракт Codex-сессий §6). Инвариант: production-ASR
-pin (ivrit.ai turbo-CT2) не меняется; MADLAD может быть заменён только по результатам
-L4.0a-бенча новым owner-решением. **D-HNR-9 (2026-08-04):** владелец утвердил MADLAD
+pin (ivrit.ai turbo-CT2) не меняется и по D-HNR-11 признан владельцем достаточным;
+ASR model race/Q2 не блокирует product roadmap. **D-HNR-9 (2026-08-04):** владелец утвердил MADLAD
 как локальный MT-провайдер; в v3.11.301 провайдер сохраняется на строках и отображается/
 фильтруется в Library. Это bounded provenance-срез, не default-on, не implicit fallback и
-не досрочное закрытие полного L4; следующий шаг леджера — L4.0c.
+не default-on и не implicit fallback. **D-HNR-10:** следующий последовательный трек —
+P0 исправление ложного provider-status → authenticated Browser→Companion MT → gates →
+invite beta → production preflight/deploy → owner-live; только затем L4.0c→L4.0b.
 L2 остаётся demand-triggered. Следующая Studio-сессия должна выбрать отдельный post-P4 slice:
 формальный local-processing порядок ставит L4 translation+nikud перед L5 diarization/alignment и
 L6 R&D; master-roadmap также допускает bounded format-ingest либо отдельные G-HERMES/G-AUTOSYNC
 decision gates. P4 использует существующий P2/P3 canon и не меняет provider/local-processing
 defaults; exact closure находится в P4 implementation и owner-live packets.
 
-**Рекомендуемая последовательность:** принять bounded L1 engineering/evidence closure, затем
-отдельным решением определить достаточный owner/human acceptance и только отдельно разрешать
-paired Gemini cloud spend до permanent integration. L2/L3 не
-стартуют автоматически из факта наличия L1-кода. L4 может идти после стабилизации scheduler;
-L5/L6 только после новых измерений и разрешений.
+**Актуализированная последовательность:** L1 quality sufficiency закрыта D-HNR-11 без
+изменения default-off/invite-beta режима. Исполнить D-HNR-10 L4-MT packet; затем вернуться
+к L4.0c→L4.0b и общему L4 design packet. Q2 остаётся optional regression harness, а не
+provider-selection gate. L2 остаётся demand-triggered; L5/L6 требуют новых решений.
 
 Windows beta enablement on 2026-07-31 adds a default-off per-user Companion and product onboarding,
 but does not change that sequence. The current self-contained unsigned internal installer is
