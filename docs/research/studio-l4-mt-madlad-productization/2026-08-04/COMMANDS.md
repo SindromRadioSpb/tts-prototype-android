@@ -233,6 +233,15 @@ start/health/stop and Inno Setup. Its report contains exactly one beta.4 artifac
 beta.1/beta.2 candidates. The frozen converter reports Torch `2.5.1+cpu`, Accelerate
 `1.13.0` and `ctranslate2.TransformersConverter`.
 
+The final post-commit rebuild reports source commit `ce811de7`, global dirty state only
+because unrelated owner files remain preserved, and `source_input_dirty=false`. Its sole
+artifact is `LinguistProLocalAsrCompanion-0.3.0-beta.4-unsigned-internal.exe`,
+1,867,104,763 bytes, SHA-256
+`ec65f5f4c8adc428abe96f3ed9cdf46a74515f6b1025886c0939a46f1c72550c`.
+After logged Inno exit 0, all 5,304 final dist files matched the installed tree by
+relative path, byte count and SHA-256. Full model rehash and a cold production-Origin
+job passed; final runtime state is unloaded.
+
 The installer upgraded the existing beta.2 in place, preserving the pairing token and
 exact ASR revision. The first real job exposed a red defect: an empty segment reached the
 model and returned a non-empty numeric sequence. The manager now excludes blank and

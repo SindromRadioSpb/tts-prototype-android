@@ -14,7 +14,8 @@
 3. The beta.4 internal installer now builds and passes in-place upgrade,
    delete/reinstall/resume, restart and production-Origin API contention. It is still
    unsigned and not authorized for public hosting, signing, general distribution, GA or
-   default-on. A post-commit final build is required before bounded invite use.
+   default-on. The final internal artifact is tied to commit `ce811de7`, but bounded
+   invite use still requires the deployed-browser data-round-trip gates below.
 4. Cold reopen plus export/import authority preservation is covered by existing repository
    paths and focused unit/smoke gates, but not yet exercised with a real local-MT save.
 5. A predeclared 128-row frozen L4.0a representative release subset passed: macro chrF++

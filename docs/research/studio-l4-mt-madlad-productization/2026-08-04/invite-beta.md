@@ -32,9 +32,7 @@ Completed on the owner machine:
 
 Before this packet may open the bounded invite beta, the following still remain required:
 
-1. create a post-commit final beta.4 build with clean runtime inputs and record its exact
-   artifact SHA-256;
-2. execute deployed-browser direct-loopback and save→reopen→export/import gates;
-3. commit/push/deploy from the now unrestricted session after a fresh production
+1. execute deployed-browser direct-loopback and save→reopen→export/import gates;
+2. commit/push/deploy from the now unrestricted session after a fresh production
    disk/health cleanup has passed;
-4. record engineering, production and owner-live outcomes separately.
+3. record engineering, production and owner-live outcomes separately.

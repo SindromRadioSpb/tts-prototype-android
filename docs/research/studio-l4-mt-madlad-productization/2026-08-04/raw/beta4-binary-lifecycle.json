@@ -3,12 +3,15 @@
   "date": "2026-08-04",
   "artifact": {
     "name": "LinguistProLocalAsrCompanion-0.3.0-beta.4-unsigned-internal.exe",
-    "bytes": 1867104966,
-    "sha256": "02b4e41c1ae9efa78016232b4e9c5587d627045f4a037dc82a33dd32aa5c84d9",
+    "bytes": 1867104763,
+    "sha256": "ec65f5f4c8adc428abe96f3ed9cdf46a74515f6b1025886c0939a46f1c72550c",
     "signing": "UNSIGNED_INTERNAL_ONLY",
-    "source_commit_at_build": "4dde4e8594b133576623e03047194ab8c73d67b2",
+    "source_commit_at_build": "ce811de7fe3eb7a6b9907c4725aa16cf95d174cf",
     "source_worktree_dirty": true,
-    "post_commit_rebuild_required": true
+    "source_input_dirty": false,
+    "post_commit_rebuild_required": false,
+    "installed_tree_files_verified": 5304,
+    "installed_tree_mismatches": 0
   },
   "frozen_runtime": {
     "self_check": "PASS",
@@ -62,6 +65,7 @@
     "restart_owned_service": "PASS",
     "post_restart_full_rehash": "PASS",
     "post_restart_cold_job": "PASS",
+    "final_artifact_cold_job": "PASS",
     "final_runtime_state": "unloaded"
   },
   "claims": {
