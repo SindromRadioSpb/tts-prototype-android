@@ -1036,6 +1036,12 @@
        заезжала под sticky .reader-bar): отступ = живая высота бара (--room-thead-top из JS).
        Два id в селекторе — гарантированная победа над #proTable thead th независимо от порядка. */
     #roomReader #proTable thead th { top: var(--room-thead-top, 0px); }
+    /* МЕДИА-РЕЖИМ (материал с видимым медиа): таблица — в СОБСТВЕННОМ скролл-окне под
+       закреплённым плеером, как #tableContainer Студии. Видео никогда не уходит с экрана,
+       внутренний скролл держит активную строку второй. Высоту ставит JS (roomMediaApplyLayout).
+       В этом режиме шапка липнет к верху КОНТЕЙНЕРА (top:0), а не окна. */
+    #roomReader .reader-table-wrap.room-media-scroll { overflow-y: auto; overscroll-behavior: contain; }
+    #roomReader .room-media-scroll #proTable thead th { top: 0; }
     /* Room reader is read-only: hide Studio row affordances (mirrors index.html room-mode). */
     #roomReader .row-note-btn, #roomReader .row-edit-actions { display: none !important; }
 

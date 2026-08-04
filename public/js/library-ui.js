@@ -3627,11 +3627,31 @@ function roomUpdateTheadTop() {
   return h;
 }
 
+// МЕДИА-РЕЖИМ РАЗМЕТКИ: пока медиа видно (стейдж или YouTube), таблица живёт в собственном
+// скролл-окне под закреплённым плеером — зеркало #tableContainer Студии. Видео не уходит
+// с экрана: скроллится ТАБЛИЦА, а не страница. Без медиа — обычное полностраничное чтение.
+function roomMediaApplyLayout() {
+  const wrap = $('roomReaderTable'); if (!wrap) return;
+  const stage = $('roomMediaLocalStage'), yt = $('roomMediaYtMount');
+  const mediaVisible = (stage && !stage.hidden) || (yt && !yt.hidden);
+  if (mediaVisible) {
+    wrap.classList.add('room-media-scroll');
+    // высота окна таблицы = остаток вьюпорта под плеером (rect.top меряется при странице
+    // вверху — openReader всегда стартует с scrollTo(0,0); отрицательный top клампится)
+    const h = Math.max(220, window.innerHeight - Math.max(0, wrap.getBoundingClientRect().top) - 10);
+    wrap.style.maxHeight = h + 'px';
+  } else {
+    wrap.classList.remove('room-media-scroll');
+    wrap.style.maxHeight = '';
+  }
+}
+
 // Скролл-слежение — yield ручному скроллу + re-engage (контракт TTS-караоке BRR-P1-008), а
 // ПОЗИЦИЯ — как в Студии: активная строка — ВТОРАЯ видимая (над ней уже прошедшая строка,
 // под ней — будущее; человек держит контекст, глядя на видео). Формула ОБЩАЯ —
-// MaterialRevisionCore.computeContextScrollTop, адаптированная к скроллу окна: «верх
-// контейнера» = низ sticky-бара + sticky-шапка таблицы.
+// MaterialRevisionCore.computeContextScrollTop. В медиа-режиме скроллится СОБСТВЕННОЕ окно
+// таблицы (зеркало v3MediaFollowTableRange Студии — та же геометрия контейнера, мгновенный
+// scrollTop); в обычном режиме (нет медиа) — окно страницы.
 function roomMediaFollowRange(range) {
   if (!range) return;
   recordProgress(range.rowStart);
@@ -3644,18 +3664,39 @@ function roomMediaFollowRange(range) {
     karaokeUserScrolled = false; _karaokeLeftBand = false;
   }
   const MRC = window.MaterialRevisionCore;
+  const prev = range.rowStart > 0 ? mount.querySelector('tr[data-row-idx="' + String(range.rowStart - 1) + '"]') : null;
+  const prevH = prev ? prev.getBoundingClientRect().height : 0;
+  if (mount.classList.contains('room-media-scroll')) {
+    // страница могла быть прокручена (плеер выше вьюпорта) — вернуть плеер в кадр
+    const bar = $('roomMediaBar');
+    if (bar && bar.getBoundingClientRect().top < 0) { try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (_) {} }
+    if (MRC && typeof MRC.computeContextScrollTop === 'function') {
+      const cRect = mount.getBoundingClientRect();
+      mount.scrollTop = MRC.computeContextScrollTop({
+        scroll_top: mount.scrollTop,
+        container_top: cRect.top,
+        container_height: mount.clientHeight,
+        row_top: tr.getBoundingClientRect().top,
+        previous_row_height: prevH,
+        gap: 2,
+        max_scroll_top: Math.max(0, mount.scrollHeight - mount.clientHeight),
+      });
+    } else {
+      try { tr.scrollIntoView({ block: 'center' }); } catch (_) {}
+    }
+    return;
+  }
   if (MRC && typeof MRC.computeContextScrollTop === 'function') {
     const scroller = document.scrollingElement || document.documentElement;
     const barH = roomUpdateTheadTop();
     const thead = mount.querySelector('#proTable thead');
     const occl = barH + (thead ? thead.getBoundingClientRect().height : 0);
-    const prev = range.rowStart > 0 ? mount.querySelector('tr[data-row-idx="' + String(range.rowStart - 1) + '"]') : null;
     const target = MRC.computeContextScrollTop({
       scroll_top: scroller.scrollTop,
       container_top: occl,
       container_height: Math.max(0, window.innerHeight - occl),
       row_top: tr.getBoundingClientRect().top,
-      previous_row_height: prev ? prev.getBoundingClientRect().height : 0,
+      previous_row_height: prevH,
       gap: 2,
       max_scroll_top: Math.max(0, scroller.scrollHeight - window.innerHeight),
     });
@@ -3674,6 +3715,7 @@ function roomMediaTeardown() {
   roomMediaAudio = null;
   if (roomMediaResolver) { try { roomMediaResolver.clear(); } catch (_) {} }
   for (const id of ['roomMediaBar', 'roomMediaYtMount', 'roomMediaStudioLink']) { const n = $(id); if (n) n.hidden = true; }
+  try { roomMediaApplyLayout(); } catch (_) {}   // выключить скролл-окно таблицы (медиа скрыто)
 }
 function roomMediaSetup(textRow) {
   roomMediaTeardown();
@@ -3703,6 +3745,7 @@ function roomMediaRefresh() {
     if (blob) { const st = roomMediaStageInst(); if (st) st.ensure(audio, blob); }
     else if (roomMediaStage) roomMediaStage.destroy();
     roomMediaAugment();
+    roomMediaApplyLayout();   // стейдж определился → включить/выключить скролл-окно таблицы
   }).catch(() => {});
 }
 function roomMediaAugment() {
@@ -3756,6 +3799,7 @@ async function roomMediaPlayOriginal() {
     try { await roomMediaYtCreating; } catch (_) { return; }
     if (!roomMediaYtAdapter) return;
   }
+  roomMediaApplyLayout();   // YT-маунт показан → скролл-окно таблицы
   // Per-row replay на адаптер НЕ подключён — ловушка асинхронного seekTo (karaoke.js IMPORTANT 3).
   await window.StudioMediaKaraoke.start({ media: roomMediaYtAdapter, entries, rowCount: readerRows.length, onRangeChange: roomMediaFollowRange, stopOtherAudio: roomMediaStopOthers });
 }
@@ -3778,6 +3822,7 @@ function roomMediaWireOnce() {
     } catch (_) {}
   });
   wireKaraokeScrollPause();   // yield-скролл единый для TTS- и медиа-караоке
+  window.addEventListener('resize', () => { try { roomMediaApplyLayout(); } catch (_) {} }, { passive: true });
 }
 
 // BRR-P2-002 «Продолжить чтение» — record the reading position (debounced) and restore

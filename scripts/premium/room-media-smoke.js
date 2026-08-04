@@ -204,6 +204,16 @@ async function main() {
         stageHidden: (document.getElementById("roomMediaLocalStage") || {}).hidden,
       }));
       ok(t3.linkHidden === false, "t3: «Открыть в Студии» link visible");
+      const t3mode = await pg.evaluate(() => {
+        const wrap = document.getElementById("roomReaderTable");
+        const th = wrap.querySelector("#proTable thead th");
+        const bar = document.querySelector("#roomReader .reader-bar");
+        return { windowed: wrap.classList.contains("room-media-scroll"),
+                 thTop: th ? parseFloat(getComputedStyle(th).top) : null,
+                 barH: bar ? bar.getBoundingClientRect().height : 0 };
+      });
+      ok(t3mode.windowed === false, "t3: no media visible → table stays in the page flow (no scroll window)");
+      ok(t3mode.thTop != null && t3mode.thTop >= t3mode.barH - 1, "t3: window mode thead pins under the reader-bar (" + t3mode.thTop + " vs " + t3mode.barH + ")");
       ok(t3.linkHref.includes("/index.html?room=1#/t/"), "t3: link deep-links to the Studio room-mode reader");
       ok(t3.replayButtons === 0, "t3: no replay buttons without bytes, got " + t3.replayButtons);
       ok(t3.stageHidden === true, "t3: local stage hidden without bytes");
@@ -241,36 +251,41 @@ async function main() {
       ok(Math.abs(t5seek.curTime - 0.5) < 0.3, "t5: seekToRow(2) → ~0.5s (ms→sec conversion), got " + t5seek.curTime);
       ok(t5seek.active2, "t5: positional timing paints row 2");
 
-      // Контекст-скролл: активная строка — ВТОРАЯ видимая (под шапкой остаётся прошедшая строка).
-      // syncCurrent → onRangeChange → follow; smooth-скролл ждём и меряем позицию строки.
+      // МЕДИА-РЕЖИМ (зеркало Студии): таблица — собственное скролл-окно под закреплённым
+      // плеером; шапка липнет к верху КОНТЕЙНЕРА; активная строка — вторая видимая ВНУТРИ окна.
       const ctx = await pg.evaluate(async () => {
         window.StudioMediaKaraoke.seekToRow(12);
         window.StudioMediaKaraoke.syncCurrent();
-        await new Promise((r) => setTimeout(r, 900));   // дождаться smooth-скролла
-        const bar = document.querySelector('#roomReader .reader-bar');
-        const barH = bar ? bar.getBoundingClientRect().height : 0;
-        const thead = document.querySelector('#roomReaderTable #proTable thead');
-        const theadH = thead ? thead.getBoundingClientRect().height : 0;
-        const th = document.querySelector('#roomReaderTable #proTable thead th');
+        await new Promise((r) => setTimeout(r, 400));   // scrollTop мгновенный (как в Студии)
+        const wrap = document.getElementById("roomReaderTable");
+        const th = wrap.querySelector("#proTable thead th");
         const cs = th ? getComputedStyle(th) : null;
-        const active = document.querySelector('#roomReaderTable tr.smk-row-active');
-        const prev = document.querySelector('#roomReaderTable tr[data-row-idx="11"]');
+        const active = wrap.querySelector("tr.smk-row-active");
+        const prev = wrap.querySelector('tr[data-row-idx="11"]');
+        const wrapRect = wrap.getBoundingClientRect();
+        const prevH = prev ? prev.getBoundingClientRect().height : 0;
         return {
+          mediaScroll: wrap.classList.contains("room-media-scroll"),
+          maxHeight: wrap.style.maxHeight,
+          wrapScrollTop: wrap.scrollTop,
           stickyPos: cs ? cs.position : null,
           stickyTop: cs ? cs.top : null,
-          barH, theadH,
+          wrapTop: wrapRect.top,
+          expected: wrapRect.top + Math.min(prevH + 2, wrap.clientHeight * 0.32),
           activeTop: active ? active.getBoundingClientRect().top : null,
-          prevH: prev ? prev.getBoundingClientRect().height : 0,
-          scrollY: window.scrollY,
+          barVisible: (document.getElementById("roomMediaBar") || {}).getBoundingClientRect
+            ? document.getElementById("roomMediaBar").getBoundingClientRect().top >= 0 : null,
         };
       });
-      ok(ctx.stickyPos === "sticky", "thead th is sticky, got " + ctx.stickyPos);
+      ok(ctx.mediaScroll, "media mode: table wrap is its OWN scroll container (room-media-scroll)");
+      ok(/px/.test(ctx.maxHeight), "media mode: wrap has a JS-set max-height, got '" + ctx.maxHeight + "'");
+      ok(ctx.stickyPos === "sticky" && parseFloat(ctx.stickyTop) === 0, "media mode: thead pins to the CONTAINER top (top 0), got " + ctx.stickyTop);
+      ok(ctx.wrapScrollTop > 0, "media mode: follow scrolled the WRAP (scrollTop " + ctx.wrapScrollTop + "), not the page");
+      ok(ctx.activeTop != null && Math.abs(ctx.activeTop - ctx.expected) < 24,
+        "active row is the SECOND visible row inside the wrap (top " + ctx.activeTop + " ≈ " + ctx.expected + ")");
+      ok(ctx.barVisible === true, "media bar (and player above it) stays on screen while following");
       const hdrStatic = await pg.evaluate(() => getComputedStyle(document.querySelector(".room-header")).position);
-      ok(hdrStatic === "static", "site header is non-sticky while reading (was covering the pinned thead), got " + hdrStatic);
-      ok(parseFloat(ctx.stickyTop) >= ctx.barH - 1, "thead sticky top >= reader-bar height (" + ctx.stickyTop + " vs " + ctx.barH + ")");
-      const expectedTop = ctx.barH + ctx.theadH + ctx.prevH + 2;
-      ok(ctx.activeTop != null && Math.abs(ctx.activeTop - expectedTop) < 24,
-        "active row sits as SECOND visible row (top " + ctx.activeTop + " ≈ " + expectedTop + ")");
+      ok(hdrStatic === "static", "site header is non-sticky while reading, got " + hdrStatic);
       await backToGrid();
 
       // ── rmm-t6: video-mime → <video> с playsinline (iOS не разворачивает в полный экран) ──
