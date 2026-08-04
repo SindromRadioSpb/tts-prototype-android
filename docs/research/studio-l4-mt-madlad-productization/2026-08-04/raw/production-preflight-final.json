@@ -1,0 +1,49 @@
+{
+  "schema": "studio-l4-mt-production-preflight-v1",
+  "observed_at": "2026-08-04T20:42:11Z",
+  "origin_main": "47959ce88647d6b38d829c3f1dd3c3bdbe6e9cf0",
+  "served": {
+    "app_version": "3.11.300",
+    "service_worker_version": "v3.11.300",
+    "active_image_commit": "47959ce88647d6b38d829c3f1dd3c3bdbe6e9cf0",
+    "health_ok": true,
+    "db_ready": true,
+    "migrations_ready": true,
+    "disk_pct_health": 77,
+    "disk_pct_df": 76,
+    "disk_free_gb": 8.8,
+    "disk_warn": false,
+    "madlad_false_status_still_present": true
+  },
+  "rollback": {
+    "image_commit": "04d0a2cd5dce1e12339f980672ca4696bb1fcb95",
+    "present": true
+  },
+  "docker": {
+    "containers_running": 10,
+    "containers_total": 10,
+    "images": 9,
+    "image_bytes_reported": "12.02GB",
+    "image_reclaimable_reported": "575.7MB",
+    "volumes_active": 3,
+    "volumes_total": 3,
+    "build_cache_reported": "1.44GB",
+    "build_cache_reclaimable_reported": "43.38MB"
+  },
+  "backup": {
+    "name": "app-data-20260804-030001.tar.gz",
+    "bytes": 732143550,
+    "present": true
+  },
+  "push_stop": {
+    "active": true,
+    "reason": "LOCAL_MAIN_CONTAINS_CONCURRENT_OUT_OF_SCOPE_COMMITS",
+    "out_of_scope_commits": [
+      "d35f4a0cf449bc7524484ad26ff602f1d4bf1a1c",
+      "be91e519d7e8a5e1004490244e4926f9cfc0c077",
+      "2bde4a403f9deffd10f2c64eda7869ea462938d9",
+      "e375fc651d416065dede050f15bd2d46258598b7"
+    ],
+    "production_mutation_performed": false
+  }
+}

@@ -153,6 +153,20 @@ newest rollback images, all 10 running containers, all 3 volumes, backups and da
 No `docker system prune`, volume/container prune, backup deletion or data mutation ran.
 See `raw/production-cleanup.json`.
 
+## Final production preflight and deployment STOP
+
+The refreshed read-only preflight observed served app/SW `3.11.300`, active image
+`47959ce8`, healthy DB/migrations, disk 76–77% with 8.8 GB free and `disk_warn=false`,
+10/10 running containers, 3/3 active volumes, rollback image `04d0a2cd`, and the current
+732,143,550-byte backup. Production still has the old false MADLAD status, as expected
+before deploy.
+
+Push was not run. During this slice, four unrelated Reading Room commits entered local
+`main` and became interleaved with `ce811de7` and `495b4991`. A normal main push would
+therefore deploy an out-of-allowlist packet that was not covered by the D-HNR preflight.
+No history rewrite, force-push, production mutation or destructive cleanup was attempted.
+See `raw/production-preflight-final.json`.
+
 ## Companion beta-3 build attempt
 
 `ai-local/scripts/build_companion.ps1` now selects a temporary loopback port for its frozen

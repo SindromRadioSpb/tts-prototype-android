@@ -4,14 +4,39 @@
 `E:\projects\tts-prototype-android`.
 
 ```text
-Продолжи D-HNR-10 с фактического implementation checkpoint ниже. Не повторяй уже
-закрытые MT-0/MT-1/базовые MT-2…MT-4 работы. Сначала верифицируй commits/evidence и
-сосредоточься на beta.4 installer/build blocker; fresh FP16 conversion, reproducibility,
-release subset и managed v2 activation уже закрыты. Invite beta/production/owner-live
-выполняй только после их точных preflight и stop conditions.
+Продолжи D-HNR-10 с latest checkpoint ниже. Не повторяй уже закрытые
+MT-0…MT-6 local/automated/binary gates. Сначала разреши зафиксированный deployment
+history STOP; не push весь текущий main без точного owner-решения по четырём параллельным
+Reading Room commits. Затем проведи production browser round-trip и owner-live строго
+раздельно.
 
 OWNER AUTHORITY (verbatim):
 «GO D-HNR-10: выделить MADLAD productization в отдельный последовательный L4-MT трек до L4.0c/L4.0b; сначала исправить ложный provider-status, затем подготовить implementation packet, реализовать Browser→Companion MT без implicit fallback, провести invite beta и owner-live.»
+
+LATEST CHECKPOINT (2026-08-04, after beta.4 binary closure):
+- D-HNR commits `ce811de7` и `495b4991` локальны и не pushed. Final internal beta.4
+  artifact: 1,867,104,763 bytes, SHA-256
+  `ec65f5f4c8adc428abe96f3ed9cdf46a74515f6b1025886c0939a46f1c72550c`;
+  source inputs clean at `ce811de7`, unsigned/internal-only.
+- 66 Python, 29 focused Node, 233 i18n, browser provenance и Studio chunk smokes PASS;
+  full npm baseline 783/784 с прежним out-of-slice classicModeRedesign failure.
+- In-place upgrade, exact frozen runtime pins, 5,304-file installed-tree hash compare,
+  delete→absent→remote reinstall→network fail-closed→partial resume→conversion→full
+  rehash, restart/cold job и production-Origin multi-tab PASS. Blank/whitespace real-model
+  hallucination была найдена и устранена deterministic inference bypass; real binary PASS.
+- Production read-only preflight: всё ещё served `3.11.300` / image `47959ce8`, health,
+  DB и migrations green, disk 76–77% / 8.8 GB free / `disk_warn=false`, 10 containers,
+  3 volumes, rollback image `04d0a2cd`, fresh 732,143,550-byte backup сохранены.
+- PUSH STOP: пока шёл D-HNR-10, в локальный main параллельно вошли out-of-scope commits
+  `d35f4a0c`, `be91e519`, `2bde4a40`, `e375fc65`. Наши commits сцеплены с ними;
+  обычный `git push main` задеплоит весь пакет. Нужен exact owner choice: либо явно
+  разрешить совместный deploy после чужих gates, либо разрешить clean D-HNR-only chain
+  и определить, как сохранить/вернуть параллельную ветку. Ничего не rewrite/force-push.
+- PRODUCTION PASS и OWNER-LIVE PASS отсутствуют. После разрешённого deploy обязательны
+  реально served `3.11.304`/SW, fresh production browser direct-loopback,
+  save→Library provider filter→edit→cold reopen→export/import. Synthetic не owner-live.
+
+PRIOR CHECKPOINT (historical; blockers below may already be closed):
 
 CURRENT CHECKPOINT (2026-08-04):
 - MT-0 commit `24cc2b54`; coherent Browser→Companion implementation commit `623b0e3b`;

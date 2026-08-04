@@ -2,7 +2,7 @@
 
 Date: 2026-08-04; authority: D-HNR-10; local web package: `3.11.304`;
 invite Companion source version: `0.3.0-beta.4`.
-Status: **AUTOMATED PASS / LOCAL BINARY PASS / PRODUCTION NOT STARTED / OWNER-LIVE NOT STARTED**
+Status: **AUTOMATED PASS / LOCAL BINARY PASS / DEPLOY HISTORY STOP / PRODUCTION NOT STARTED / OWNER-LIVE NOT STARTED**
 
 ## Outcome
 
@@ -73,6 +73,8 @@ it is not owner-selected material and not an owner-live semantic PASS.
 - `raw/release-regression.json` — v1→v2 metric/cardinality/diagnostic verdict.
 - `raw/gpu-swap.json` — real ASR→MT→ASR residency receipt.
 - `raw/production-cleanup.json` — bounded production cleanup and post-health receipt.
+- `raw/production-preflight-final.json` — refreshed served/health/disk/Docker/rollback/
+  backup snapshot and the concurrent-main deployment stop.
 - `raw/beta4-binary-lifecycle.json` — build, upgrade, blank-row remediation,
   delete/reinstall/resume, multi-tab and restart receipts.
 - `known-limitations.md` — incomplete exits and STOP conditions.

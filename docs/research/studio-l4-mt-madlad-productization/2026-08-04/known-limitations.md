@@ -34,3 +34,7 @@
    This session has not pushed, triggered auto-deploy or verified a new served service worker.
 9. No engineering-partial result in this directory is a production PASS, beta PASS,
    bilingual validation, GA claim or owner-live PASS.
+10. Deployment is stopped even though production health/disk preflight passes. Local
+    `main` gained four concurrent Reading Room commits while this slice was running, and
+    the two D-HNR commits are interleaved with them. A normal push would deploy that
+    unapproved out-of-scope packet; no rewrite, force-push or deploy was performed.
