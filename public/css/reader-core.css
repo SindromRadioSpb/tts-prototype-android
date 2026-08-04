@@ -20,11 +20,17 @@
 
 /* ════════════════════════════════════════════════════════════════════════════
    0. CUSTOM PROPERTIES
-   library.html defines its own --bg-*/--text-*/--accent tokens, but NOT the
-   --table-*/--row-*/--hebrew-font tokens the reader table requires. Define them
-   here (light :root + BOTH dark variants, mirroring index.html). A small set of
-   --theme-* tokens referenced by copied rules (header text colour, note-count
-   badge) is also defined so the table renders with full fidelity standalone.
+   library.html defines its own --bg-* / --text-* / --accent tokens, but NOT the
+   --table-* / --row-* / --hebrew-font tokens the reader table requires. Define
+   them here (light :root + BOTH dark variants, mirroring index.html). A small
+   set of --theme-* tokens referenced by copied rules (header text colour,
+   note-count badge) is also defined so the table renders with full fidelity
+   standalone.
+   ВАЖНО: внутри комментария НЕЛЬЗЯ писать имя вара со звёздочкой, за которой
+   сразу идёт слэш (звёздочка+слэш = конец комментария!). Именно такая пара в
+   этом тексте досрочно закрывала комментарий, парсер съедал ВЕСЬ :root-блок, и
+   в светлой теме Зал два месяца жил без табличной палитры и --hebrew-font
+   (найдено 2026-08-05 при прибивке sticky-шапки: фон th был transparent).
    ════════════════════════════════════════════════════════════════════════════ */
 
 :root {
