@@ -1,74 +1,60 @@
 {
-  "schema": "studio-l4-mt-machine-checkpoint-v1",
-  "status": "IN_PROGRESS_NOT_A_VERDICT",
+  "schema": "studio-l4-mt-machine-checkpoint-v3",
+  "status": "COMPLETE_LIMITED_EVIDENCE_NO_BILINGUAL_HUMAN_VALIDATION",
+  "authority": {
+    "ledger_step": 3,
+    "manifest": "v3",
+    "decisions": ["D-HNR-7", "D-HNR-8"],
+    "equal_comparison_rows_per_system": 1012,
+    "adaptive_expansion": "TRIGGERED_UNDER_V2_BUT_DEFERRED_BY_OWNER_UNDER_V3"
+  },
   "hardware": {
     "gpu": "NVIDIA GeForce RTX 3070",
     "gpu_vram_mib": 8192,
     "cpu": "AMD Ryzen 5 5600G"
   },
-  "input": {
-    "path": "docs/research/heb-ru-mt-gold/2026-08-04/in-domain-owner-gold.tsv",
-    "rows": 200,
-    "sha256": "2ea10c79daab67d0aecc6e423b7d9584135e74e1e0401cb7714e7cff7d539ccb",
-    "references_complete": false
-  },
-  "runs": {
-    "opus-mt-transformer-big-ct2-int8": {
-      "rows": 200,
-      "elapsed_sec": 48.783816,
-      "segments_per_sec": 4.09972,
-      "output_tokens_per_sec": 109.872503,
-      "cpu_process_sec": 177.0,
-      "output_sha256": "1435736bba983c47c472267c9847500b6d7af6a3cd09c7d836b92ec93b02caa4"
+  "inputs": {
+    "flores_full": {
+      "dataset": "openlanguagedata/flores_plus",
+      "version": "4.6",
+      "revision": "5fec6c13f9e5a4db2f745d4ec0d7c9721ddc4f06",
+      "rows": 2024,
+      "sha256": "a610f83603a7b8854f44f443c4ebaa1b577654cbd7581206608b9315907569ac"
     },
-    "nllb-200-distilled-1.3b-ct2-int8": {
-      "rows": 200,
-      "elapsed_sec": 104.234809,
-      "segments_per_sec": 1.918745,
-      "output_tokens_per_sec": 56.324754,
-      "gpu_memory_used_mib_peak": 2871,
-      "source_truncations": 0,
-      "output_sha256": "a2e196bcff3d2167c01e3011974df0b14a25f285a324c16b36562cae5787c69a"
+    "flores_stage_a": {
+      "shared_ids": 506,
+      "directions": 2,
+      "rows": 1012,
+      "sha256": "a9582c11d24a856837e7354268c6767281bfe6935c3832285f05b84721cb3852",
+      "selected_id_set_sha256": "1a3b146095e5a5f34f6062623c1e6b6d13a58bbe2f1782e1c79443dd7f26a798"
     },
-    "hy-mt2-1.8b": {
+    "in_domain": {
+      "path": "docs/research/heb-ru-mt-gold/2026-08-04/in-domain-owner-gold.filled-machine-draft.tsv",
       "rows": 200,
-      "elapsed_sec": 726.324384,
-      "segments_per_sec": 0.275359,
-      "output_tokens_per_sec": 11.123129,
-      "gpu_memory_used_mib_peak": 5619,
-      "output_sha256": "dd83a8ffafe64497de005ede296a59a5d2d0fb038ad03f9254e25b424f925a2f"
-    },
-    "madlad-400-10b-ct2-int8": {
-      "rows": 200,
-      "elapsed_sec": 1086.517985,
-      "segments_per_sec": 0.184074,
-      "output_tokens_per_sec": 6.234595,
-      "gpu_memory_used_mib_peak": 7849,
-      "decoding_cap": 256,
-      "decoding_cap_hits": 0,
-      "output_sha256": "69fd2cc9bcf2a3b8ce9931c9bbf2f536f8e89f31865d25264c3b030ff5175010"
-    },
-    "gemini-3.6-flash": {
-      "status": "PARTIAL_HTTP_429",
-      "rows": 13,
-      "last_completed_id": "ID-ASR-013",
-      "next_id": "ID-ASR-014",
-      "input_tokens": 374,
-      "output_tokens": 98,
-      "recorded_row_elapsed_sec": 117.559,
-      "estimated_list_price_usd": 0.001296,
-      "partial_output_sha256": "12391b4b7dbed1321fefdf7c310a5c852c0bcd10fe9355ab4754901b3d9b5d14",
-      "failure": "HTTP 429 persisted through 10 bounded retries"
+      "sha256": "ecea4af90ff696d548c58a6623502e2f7af2be0e36a04e7fa51797c63fa95814",
+      "reference_authority": "owner-accepted GPT-5.6 Sol high AI-reference/silver; not human gold"
     }
   },
-  "open_gates": [
-    "owner Russian references for 200 in-domain rows",
-    "official gated FLORES+ access and both directions",
-    "official gated CometKiwi access and supplementary score",
-    "Gemini resume after quota availability",
-    "chrF++ and spBLEU",
-    "long-input and niqqud/punctuation robustness",
-    "blind owner evaluation on at least 40 randomized sources",
-    "final table and verdict"
-  ]
+  "evidence": {
+    "results": "docs/research/studio-l4-mt-benchmark/2026-08-04/RESULTS.md",
+    "results_json": "docs/research/studio-l4-mt-benchmark/2026-08-04/stage-a-results.json",
+    "metrics_sha256": "1c2a0e500cd7281eebb2b13c03da465e2994c5d8dcd5a144b54a4698901ac927",
+    "cometkiwi_sha256": "6a37a4eee673e4e4770ac159618eb27dfdd680bb93d53d788e67d24f1691eef0",
+    "flores_diagnostics_sha256": "f2a72ec801d3647f8fea7c280fe1d74c74a3764dc52834257cdb8f58c8bcd80b",
+    "in_domain_diagnostics_sha256": "5e30a2ce3954af556006d9efe925347a89fbb696c8370304ffc398d5a61d1622"
+  },
+  "verdict": {
+    "cloud_ceiling": "gemini-3.6-flash",
+    "best_local": "madlad-400-10b-ct2-int8",
+    "replace_current_local_model": false,
+    "product_positioning": "editable draft only; no automatic provider fallback",
+    "next_ledger_step": "4 / L4.0c alignment benchmark"
+  },
+  "waivers_and_limits": [
+    "bilingual human blind evaluation unavailable and explicitly waived by owner",
+    "in-domain references are AI-reference/silver rather than human gold",
+    "Gemini in-domain output is incomplete and excluded from in-domain comparison",
+    "full FLORES devtest expansion deferred by owner after adaptive triggers fired"
+  ],
+  "production_changes": false
 }

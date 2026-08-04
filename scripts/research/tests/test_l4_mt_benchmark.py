@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import sys
 import tempfile
 import unittest
@@ -99,6 +100,106 @@ class L4MtBenchmarkTest(unittest.TestCase):
             MODULE.write_tsv(output_path, [output], MODULE.OUTPUT_FIELDS)
             with self.assertRaisesRegex(ValueError, "Source drift"):
                 MODULE.attach_references([gold_path], [output_path], root / "joined")
+
+    def test_flores_stage_a_selects_complete_pairs_deterministically(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "flores.tsv"
+            first = root / "first.tsv"
+            second = root / "second.tsv"
+            rows = []
+            for index in range(10):
+                provenance = f"flores#shared-{index:02d}"
+                for source_lang, target_lang in (("he", "ru"), ("ru", "he")):
+                    row = {field: "" for field in MODULE.TSV_FIELDS}
+                    text = f"source-{source_lang}-{index}"
+                    row.update(
+                        {
+                            "id": f"F-{source_lang}-{target_lang}-{index}",
+                            "domain": "flores-plus-v4.6-devtest",
+                            "subdomain": "evaluation",
+                            "source_lang": source_lang,
+                            "target_lang": target_lang,
+                            "source_text": text,
+                            "reference_text": f"reference-{target_lang}-{index}",
+                            "provenance_id": provenance,
+                            "source_sha256": MODULE.sha256_text(text),
+                            "stress_kind": "none",
+                            "parent_id": f"FLORES-shared-{index:04d}",
+                        }
+                    )
+                    rows.append(row)
+            MODULE.write_tsv(source, rows, MODULE.TSV_FIELDS)
+            manifest_first = MODULE.sample_flores_stage_a(source, first, 4, "seed")
+            manifest_second = MODULE.sample_flores_stage_a(source, second, 4, "seed")
+            selected = MODULE.read_tsv(first)
+            self.assertEqual(manifest_first["selected_shared_ids"], 4)
+            self.assertEqual(manifest_first["selected_rows"], 8)
+            self.assertEqual(manifest_first["directions"], {"he-ru": 4, "ru-he": 4})
+            self.assertEqual(first.read_bytes(), second.read_bytes())
+            self.assertEqual(
+                manifest_first["selected_id_set_sha256"],
+                manifest_second["selected_id_set_sha256"],
+            )
+            counts = {}
+            for row in selected:
+                counts[row["parent_id"]] = counts.get(row["parent_id"], 0) + 1
+            self.assertEqual(set(counts.values()), {2})
+
+    def test_adaptive_gate_fires_for_close_top_local_candidates(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            metrics_path = root / "metrics.json"
+            destination = root / "gate.json"
+
+            def groups(chrf_he_ru, chrf_ru_he, bleu_he_ru, bleu_ru_he):
+                values = {}
+                for direction, chrf, bleu in (
+                    ("he-ru", chrf_he_ru, bleu_he_ru),
+                    ("ru-he", chrf_ru_he, bleu_ru_he),
+                ):
+                    values[f"flores-plus-v4.6-devtest/{direction}"] = {
+                        "chrf_plus_plus": chrf,
+                        "spbleu": bleu,
+                        "bootstrap_95": {
+                            "chrf_plus_plus": {"low": chrf - 0.5, "high": chrf + 0.5},
+                            "spbleu": {"low": bleu - 0.5, "high": bleu + 0.5},
+                        },
+                        "empty_hypotheses": 0,
+                        "truncated": 0,
+                    }
+                return values
+
+            payload = {
+                "systems": {
+                    "local-a": {"groups": groups(42.0, 40.0, 25.0, 24.0)},
+                    "local-b": {"groups": groups(41.0, 39.0, 24.0, 23.0)},
+                    "local-c": {"groups": groups(30.0, 29.0, 15.0, 14.0)},
+                }
+            }
+            metrics_path.write_text(json.dumps(payload), encoding="utf-8")
+            report = MODULE.evaluate_adaptive_gates(
+                metrics_path,
+                destination,
+                ["local-a", "local-b", "local-c"],
+                "cloud",
+            )
+            self.assertTrue(report["triggers"]["top_local_delta_chrf_below_2"])
+            self.assertTrue(report["triggers"]["bootstrap_95_overlap"])
+            self.assertTrue(report["expand_to_full_devtest"])
+            self.assertEqual(report["stage_b_systems"], ["cloud", "local-a", "local-b"])
+            self.assertTrue(destination.is_file())
+
+    def test_resume_validation_allows_subset_and_rejects_source_drift(self):
+        source = {"id": "X1", "source_sha256": "abc"}
+        completed = {"id": "X1", "source_sha256": "abc", "system": "candidate"}
+        self.assertEqual(
+            MODULE.validate_resume_rows([source], [completed], "candidate"),
+            {"X1"},
+        )
+        completed["source_sha256"] = "drift"
+        with self.assertRaisesRegex(ValueError, "Resume source drift"):
+            MODULE.validate_resume_rows([source], [completed], "candidate")
 
 
 if __name__ == "__main__":

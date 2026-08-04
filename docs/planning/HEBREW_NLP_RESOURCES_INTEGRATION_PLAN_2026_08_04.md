@@ -100,12 +100,19 @@ browser-API для translate/nakdan по образцу L1-D, provenance parity,
 
 Полная формализация с уточнениями и леджером — `HEBREW_NLP_RESOURCES_OWNER_DECISIONS_2026_08_04.md`.
 
-- **D-HNR-1 (L4.0):** ✅ **GO** — порядок L4.0a→c→b; manifest заморожен v1; Hy-MT2-7B только если не усложняет прогон; CometKiwi — лишь доп. сигнал (не заменяет chrF++/spBLEU/слепую человеческую оценку/чек смыслов/учебную пригодность).
+- **D-HNR-1 (L4.0):** ✅ **GO** — порядок L4.0a→c→b; Hy-MT2-7B только если не усложняет прогон; CometKiwi — лишь доп. сигнал, не самостоятельный oracle.
 - **D-HNR-2 (Wave Q):** ✅ **GO Q1–Q4 по одному**; Q4 создаётся ВНУТРИ L4.0a.
 - **D-HNR-3 (Wave F):** ✅ порядок **F1 → F2 → F3**, остальные parked/watch; F2 усилен follow-up'ом, но F1 первым (детерминизм, без LLM, FSRS-модель, выбор из 26K).
 - **D-HNR-4 (песни):** ✅ подтверждено; snippet-каталог — только после отдельной правовой конкретизации.
 - **D-HNR-5 (кооперация):** ✅ подтверждено; HELEECS-запрос можно заранее; opt-in поток данных — только после отдельного R15-пакета.
 - **D-HNR-6 (follow-up deltas, новое):** ✅ **GO** — Q5 и Q6 как последовательные quality-слайсы после L4.0; **Q6 разделён**: Q6a (MMS/SaT offline gates) / Q6b (VibeVoice feasibility — отдельное решение о запуске).
+- **D-HNR-7 (L4.0a Manifest v2):** ✅ **GO 2026-08-04** — 200 переводов GPT-5.6 приняты владельцем как AI-reference/silver, не human gold; билингвальная human-blind оценка недоступна и waived с итоговой маркировкой `LIMITED EVIDENCE`; FLORES Stage A = детерминированные 506 shared IDs × 2 направления для всех кандидатов, затем full devtest для Gemini + top-2 local при любом adaptive-trigger. Точные правила и frozen manifest — в owner-decisions §4.
+- **D-HNR-8 (L4.0a Manifest v3 override):** ✅ **GO 2026-08-04** — после фактического critical-failure trigger владелец явно deferred full expansion: текущий verdict использует равные 1012 Stage A строк на систему; top-2 local full не запускаются, Gemini 1118/2024 partial хранится только как provenance/cost и не входит в ranking.
+
+**Execution result:** ledger step 3 / L4.0a закрыт 2026-08-04 под Manifest v3 с
+маркировкой `LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION`. Gemini 3.6 Flash —
+измеренный cloud ceiling; MADLAD остаётся best local, оснований для замены нет.
+Канонический отчёт: `docs/research/studio-l4-mt-benchmark/2026-08-04/RESULTS.md`.
 
 ## 6. Лицензионный чек-лист per-resource (обязателен перед использованием)
 

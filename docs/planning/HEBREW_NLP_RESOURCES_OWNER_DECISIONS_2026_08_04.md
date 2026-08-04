@@ -34,6 +34,8 @@
 | **D-HNR-4** песни | **ПОДТВЕРЖДЕНО** | Shironet full-text scrape НЕ хостить; PD-слой разрешён; полный современный текст — только user-import; **snippet-каталог — только после отдельной правовой конкретизации** (юр-гейт) |
 | **D-HNR-5** академическая линия | **ПОДТВЕРЖДЕНО** | Запрос HELEECS можно отправить заранее; пользовательский opt-in поток данных — только после отдельного R15-пакета |
 | **D-HNR-6** follow-up quality deltas (новое) | **GO** | Q5 (constrained lemma audit / shoshan) и Q6 — последовательные quality-слайсы ПОСЛЕ L4.0. **Q6 разделён:** Q6a = MMS/SaT offline gates; Q6b = VibeVoice feasibility + cross-hypothesis benchmark (отдельное решение о запуске — чтобы установка тяжёлой ASR-модели не маскировалась под «маленький smoke») |
+| **D-HNR-7** L4.0a Manifest v2 | **GO 2026-08-04** | In-domain `reference_text` создан GPT-5.6 Sol high и принят владельцем как AI-reference/silver, не human gold; билингвальная human-blind оценка недоступна и явно waived; FLORES Stage A = детерминированные 506 shared IDs × 2 направления для всех кандидатов, расширение до полного devtest для Gemini + top-2 local при ΔchrF++ < 2, пересечении bootstrap CI, конфликте ранжирования метрик или critical failure flags |
+| **D-HNR-8** L4.0a Manifest v3 owner override | **GO 2026-08-04** | После срабатывания critical-failure trigger владелец явно отменил обязательное full-devtest расширение на этом этапе: verdict строится на одинаковой Stage A (1012 строк) для всех пяти систем; top-2 local не расширяются. Уже оплаченный Gemini partial 1118/2024 сохраняется только как provenance/cost artifact и не участвует в сравнительных метриках |
 
 ## 2. Метрики MT-бенча (уточнение владельца к L4.0a)
 
@@ -41,6 +43,13 @@ CometKiwi — **только дополнительный сигнал**. Он �
 chrF++ · spBLEU · **человеческую слепую оценку** · проверку добавленных/утраченных
 смыслов · проверку **учебной пригодности** перевода (глоссируемость, морфологическая
 прозрачность для изучающего).
+
+**Manifest v2 owner-waiver (2026-08-04):** квалифицированный he↔ru human-reviewer
+недоступен; поэтому человеческая слепая оценка не считается пройденной и не
+подменяется CometKiwi/LLM. Она снята владельцем как блокер текущего evidence-слайса
+со статусом `LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION`. До будущего
+билингвального гейта продукт может позиционировать перевод только как исправляемый
+машинный draft; human-validated/default-on/GA-утверждения запрещены.
 
 ## 3. Как это ложится на незавершённый STUDIO_INGEST roadmap (вопрос владельца №3)
 
@@ -61,24 +70,50 @@ P3/P4-пакеты — авторитет без изменений). Post-P4 de
 - L6 TTS-канон не меняется; Chatterbox/VoxCPM2 добавлены только в watch-кандидаты
   frozen listen-set.
 
-## 4. L4.0 Benchmark Manifest v1 — FROZEN 2026-08-04
+## 4. L4.0 Benchmark Manifest v3 — FROZEN 2026-08-04
 
 Изменения манифеста после старта прогонов = новая версия с owner-подписью (не молча).
 Все прогоны — на машине владельца (RTX 3070 8GB / Ryzen 5600G); прод не участвует;
 эксклюзивный GPU-слот сайдкара уважается (бенчи не конкурируют с активными ASR-джобами).
+
+Manifest v2 сохраняет кандидатов и инварианты v1, но заменяет три evidence-гейта
+по прямым owner-решениям этой сессии:
+
+1. in-domain ссылки из
+   `in-domain-owner-gold.filled-machine-draft.tsv` аттестованы владельцем как
+   GPT-5.6 Sol high и принимаются для сравнительных метрик только как
+   **owner-accepted AI-reference/silver**, не human gold;
+2. bilingual human-blind ≥40 — `WAIVED BY OWNER / NOT PERFORMED`; итоговая уверенность
+   принудительно `LIMITED EVIDENCE`;
+3. FLORES+ начинается со Stage A: 506 общих devtest ID, выбранных до результатов
+   SHA-256-ранжированием с фиксированным seed, в обоих направлениях (1012 строк на
+   систему). До полного devtest расширяются Gemini + top-2 local, если хотя бы один
+   триггер срабатывает: `ΔchrF++ < 2` · 95% bootstrap CI пересекаются · chrF++/spBLEU/
+   CometKiwi конфликтуют по ранжированию · найден critical failure flag.
+
+**Manifest v3 owner override (после срабатывания trigger):** правило v2 и факт
+срабатывания critical-failure trigger сохраняются в provenance, но его full-devtest
+ветка явно `DEFERRED BY OWNER` на этом этапе. Сопоставимый verdict использует только
+одинаковую Stage A: 506 shared IDs × 2 направления = 1012 строк для каждой из пяти
+систем. Gemini успел сохранить 1118/2024 строк full-run (106 сверх Stage A; оценочная
+общая стоимость `$8.4957`, из неё расширение около `$0.8104`); этот partial не
+подмешивается в Stage A метрики и не даёт Gemini больше evidence, чем local-кандидатам.
+Top-2 local full-run не запускается. Возобновление expansion потребует нового явного GO.
 
 ### L4.0a — MT he↔ru (первый)
 - **Кандидаты (фикс):** MADLAD-400-10B CT2 int8 (текущий) · OPUS-MT heb-sla +
   sla-heb transformer-big (CT2) · NLLB-200-distilled-1.3B int8 · **Hy-MT2-1.8B** ·
   Gemini (облачный потолок, BYOK). Опционально: Hy-MT2-7B — только если не усложняет
   основной прогон.
-- **Данные:** FLORES+ devtest he→ru и ru→he; ~200 in-domain сегментов (ASR-стиль из
-  наших транскриптов + литературные из корпуса Зала), ru-эталоны — владелец.
+- **Данные:** FLORES+ devtest he→ru и ru→he по адаптивной Stage A/expand схеме v2;
+  ~200 in-domain сегментов (ASR-стиль из наших транскриптов + литературные из корпуса
+  Зала), ru-ссылки — owner-accepted GPT-5.6 AI-silver.
   **Q4-голд создаётся здесь же** и коммитится как переиспользуемый актив
   (`docs/research/heb-ru-mt-gold/…`).
-- **Метрики:** chrF++ и spBLEU (sacrebleu, оба направления) + CometKiwi-DA (доп. сигнал)
-  + слепая человеческая оценка владельца на подвыборке (≥40 сегментов, рандомизация,
-  без меток систем) + чек добавленных/утраченных смыслов + чек учебной пригодности (§2).
+- **Метрики:** chrF++ и spBLEU (sacrebleu, оба направления) с детерминированными 95%
+  bootstrap CI + CometKiwi-DA (доп. сигнал) + model-assisted failure audit
+  добавленных/утраченных смыслов и учебной пригодности. Human-blind не выполнен и
+  явно waived по §2; model-assisted аудит не называется человеческим.
 - **Операционные замеры:** ток/с, VRAM/CPU-профиль, поведение на длинных предложениях
   (NLLB 512-токен лимит), устойчивость к никуду/пунктуации.
 - **Выход:** таблица + вердикт «локальный выбор + честное позиционирование vs Gemini»
@@ -107,8 +142,8 @@ P3/P4-пакеты — авторитет без изменений). Post-P4 de
 |---|---|---|---|---|
 | 0 | Исправить provenance/owner-journal несогласованности (журнал решений в плане → OWNER-APPROVED, этот док создан) | ✅ DONE 2026-08-04 (эта сессия) | Claude Code | этот документ + обновлённый журнал плана |
 | 1 | Принять D-HNR-1 | ✅ DONE (решение владельца) | owner | §1 |
-| 2 | Заморозить L4.0 manifest до результатов | ✅ DONE v1 (§4) | Claude Code | §4; изменения — только новой версией |
-| 3 | L4.0a MT-бенч (+ Q4-голд внутри) | 🟡 IN PROGRESS 2026-08-04 — Q4 source worksheet/harness + 4 полных local in-domain run готовы; Gemini 13/200 → HTTP 429. До DONE обязательны owner ru-gold, gated FLORES+/CometKiwi, оба направления, blind ≥40 и финальный verdict | Codex + owner human gates | `docs/research/studio-l4-mt-benchmark/2026-08-04/MACHINE_CHECKPOINT.md`; `docs/research/heb-ru-mt-gold/2026-08-04/` |
+| 2 | Заморозить L4.0 manifest до результатов | ✅ DONE v3 (§4; D-HNR-7 + D-HNR-8 owner GO 2026-08-04) | Claude Code + owner | v1/v2 сохранены provenance-базой; v3 фиксирует равную Stage A и owner-deferred expansion |
+| 3 | L4.0a MT-бенч (+ Q4 внутри) | ✅ DONE 2026-08-04 under Manifest v3 — все 5 систем на равной Stage A 506 shared IDs × 2; chrF++/spBLEU + 1000-sample bootstrap CI + CometKiwi + in-domain AI-reference + failure/operational audit. Gemini = cloud ceiling; MADLAD = best local, замена не обоснована. Full expansion deferred по D-HNR-8; итог `LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION` | Codex + owner-approved waivers | `docs/research/studio-l4-mt-benchmark/2026-08-04/RESULTS.md`; `MACHINE_CHECKPOINT.md`; `docs/research/heb-ru-mt-gold/2026-08-04/` |
 | 4 | L4.0c alignment-бенч (word-level голд отдельно) | ⬜ | Codex | drift-метрики vs эталон |
 | 5 | L4.0b nikud-бенч (human gold ≠ Dicta-silver) | ⬜ | Codex | DEC/CHA/WOR/VOC + CPU-цена |
 | 6 | L4 design packet по результатам | ⬜ | Claude Code (планирование) → owner approve | новый implementation packet |

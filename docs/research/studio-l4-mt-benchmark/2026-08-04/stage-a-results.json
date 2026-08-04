@@ -1,0 +1,81 @@
+{
+  "schema": "studio-l4-mt-stage-a-results-v3",
+  "status": "COMPLETE_LIMITED_EVIDENCE_NO_BILINGUAL_HUMAN_VALIDATION",
+  "comparison": {
+    "dataset": "FLORES+ v4.6 devtest deterministic Stage A",
+    "shared_ids": 506,
+    "directions": ["he-ru", "ru-he"],
+    "rows_per_system": 1012,
+    "bootstrap_samples": 1000,
+    "metrics_artifact_sha256": "1c2a0e500cd7281eebb2b13c03da465e2994c5d8dcd5a144b54a4698901ac927"
+  },
+  "systems": {
+    "gemini-3.6-flash": {
+      "output_sha256": "7ea825109b7b515a581af27d3bbc579ade2f3146b0f46dea87abd1ae58b089c7",
+      "he_ru": {"chrf_plus_plus": 55.2935, "chrf_ci95": [54.1345, 56.4597], "spbleu": 39.5476, "spbleu_ci95": [38.0327, 41.0019]},
+      "ru_he": {"chrf_plus_plus": 50.7633, "chrf_ci95": [49.5398, 51.9611], "spbleu": 34.7311, "spbleu_ci95": [33.2107, 36.2960]},
+      "macro": {"chrf_plus_plus": 53.0284, "spbleu": 37.1394},
+      "cometkiwi_mean": 0.810223,
+      "provider_failure_rows": 2,
+      "estimated_stage_a_list_price_usd": 7.685232
+    },
+    "madlad-400-10b-ct2-int8": {
+      "output_sha256": "e70329ecbbfb3fe3fa355b9d2b2e3a85bc9265ee15e15bd5af29081c128f5fdf",
+      "he_ru": {"chrf_plus_plus": 50.8068, "chrf_ci95": [49.6362, 51.9640], "spbleu": 34.0877, "spbleu_ci95": [32.6534, 35.6324]},
+      "ru_he": {"chrf_plus_plus": 46.1807, "chrf_ci95": [45.1144, 47.4404], "spbleu": 31.1628, "spbleu_ci95": [29.8824, 32.5870]},
+      "macro": {"chrf_plus_plus": 48.4938, "spbleu": 32.6253},
+      "cometkiwi_mean": 0.799688
+    },
+    "opus-mt-transformer-big-ct2-int8": {
+      "output_sha256": "8d16aa33a271d9d9ff0f8bee14f7b39a2f957916262604e92a7507192ca364ad",
+      "he_ru": {"chrf_plus_plus": 47.3821, "chrf_ci95": [46.2613, 48.5007], "spbleu": 29.2104, "spbleu_ci95": [27.8394, 30.6605]},
+      "ru_he": {"chrf_plus_plus": 46.6216, "chrf_ci95": [45.3939, 47.7110], "spbleu": 30.8211, "spbleu_ci95": [29.2534, 32.3326]},
+      "macro": {"chrf_plus_plus": 47.0019, "spbleu": 30.0158},
+      "cometkiwi_mean": 0.772703
+    },
+    "nllb-200-distilled-1.3b-ct2-int8": {
+      "output_sha256": "5209575ba26b19a02ffb7cfec0d3f52dae5e0802b7fd6d55952a1339ed547dde",
+      "he_ru": {"chrf_plus_plus": 48.2738, "chrf_ci95": [47.0611, 49.4600], "spbleu": 30.5446, "spbleu_ci95": [29.0291, 32.0665]},
+      "ru_he": {"chrf_plus_plus": 45.3226, "chrf_ci95": [44.2076, 46.5335], "spbleu": 29.1370, "spbleu_ci95": [27.6969, 30.6825]},
+      "macro": {"chrf_plus_plus": 46.7982, "spbleu": 29.8408},
+      "cometkiwi_mean": 0.787352
+    },
+    "hy-mt2-1.8b": {
+      "output_sha256": "020c6068f4598b3769e6f1f496a478b3edd003cb9cc5e70e241642a0b5e71131",
+      "he_ru": {"chrf_plus_plus": 46.2042, "chrf_ci95": [45.0454, 47.2913], "spbleu": 27.1944, "spbleu_ci95": [25.7620, 28.5567]},
+      "ru_he": {"chrf_plus_plus": 42.8648, "chrf_ci95": [41.7532, 43.9304], "spbleu": 24.7172, "spbleu_ci95": [23.4593, 26.0383]},
+      "macro": {"chrf_plus_plus": 44.5345, "spbleu": 25.9558},
+      "cometkiwi_mean": 0.791947
+    }
+  },
+  "in_domain_ai_reference": {
+    "rows": 200,
+    "direction": "he-ru",
+    "reference_authority": "owner-accepted GPT-5.6 Sol high AI-reference/silver; not human gold",
+    "scores": {
+      "madlad-400-10b-ct2-int8": {"chrf_plus_plus": 44.0735, "spbleu": 26.5541},
+      "hy-mt2-1.8b": {"chrf_plus_plus": 40.7494, "spbleu": 21.6313},
+      "nllb-200-distilled-1.3b-ct2-int8": {"chrf_plus_plus": 40.6182, "spbleu": 20.7136},
+      "opus-mt-transformer-big-ct2-int8": {"chrf_plus_plus": 38.6030, "spbleu": 20.7049}
+    },
+    "gemini": "13/200 partial excluded"
+  },
+  "adaptive_gate": {
+    "v2_triggers": {
+      "top_local_delta_chrf_below_2": true,
+      "bootstrap_95_overlap": true,
+      "metric_rankings_conflict": true,
+      "critical_failure_flags": true
+    },
+    "v3_execution": "FULL_EXPANSION_DEFERRED_BY_OWNER",
+    "gemini_partial_rows": 1118,
+    "gemini_extra_rows_excluded": 106,
+    "top_two_local_full_runs_started": false
+  },
+  "verdict": {
+    "cloud_ceiling": "gemini-3.6-flash",
+    "best_local": "madlad-400-10b-ct2-int8",
+    "replace_current_local_model": false,
+    "confidence": "LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION"
+  }
+}

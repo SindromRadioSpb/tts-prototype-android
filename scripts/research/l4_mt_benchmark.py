@@ -48,6 +48,8 @@ OUTPUT_FIELDS = TSV_FIELDS + [
     "hypothesis",
     "source_tokens",
     "output_tokens",
+    "thinking_tokens",
+    "provider_failure",
     "truncated",
     "elapsed_sec",
 ]
@@ -69,6 +71,7 @@ BLIND_FIELDS = [
 ]
 
 HEBREW_RE = re.compile(r"[\u0590-\u05ff]")
+CYRILLIC_RE = re.compile(r"[\u0400-\u04ff]")
 NIQQUD_RE = re.compile(r"[\u0591-\u05c7]")
 PUNCT_RE = re.compile(r"[\.,!?;:\-–—…׳״'\"()\[\]{}]")
 SPACE_RE = re.compile(r"\s+")
@@ -98,7 +101,8 @@ def read_tsv(path: Path) -> list[dict[str, str]]:
 
 def write_tsv(path: Path, rows: Iterable[dict[str, Any]], fields: Sequence[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8", newline="") as stream:
+    temporary = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+    with temporary.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(
             stream,
             delimiter="\t",
@@ -109,6 +113,14 @@ def write_tsv(path: Path, rows: Iterable[dict[str, Any]], fields: Sequence[str])
         writer.writeheader()
         for row in rows:
             writer.writerow({field: row.get(field, "") for field in fields})
+    for attempt in range(5):
+        try:
+            os.replace(temporary, path)
+            break
+        except PermissionError:
+            if attempt == 4:
+                raise
+            time.sleep(0.05 * (attempt + 1))
 
 
 def write_json(path: Path, payload: Any) -> None:
@@ -350,7 +362,8 @@ def fetch_flores(revision: str, output_dir: Path, combined_output: Path) -> dict
     for index, (he_record, ru_record) in enumerate(zip(data["heb_Hebr"], data["rus_Cyrl"]), start=1):
         he = extract_flores_text(he_record)
         ru = extract_flores_text(ru_record)
-        shared_id = str(he_record.get("id") or ru_record.get("id") or index)
+        shared_id = f"FLORES-shared-{index:04d}"
+        upstream_ids = f"heb={he_record.get('id', '')};rus={ru_record.get('id', '')}"
         for source_lang, target_lang, source, reference in (
             ("he", "ru", he, ru),
             ("ru", "he", ru, he),
@@ -364,15 +377,18 @@ def fetch_flores(revision: str, output_dir: Path, combined_output: Path) -> dict
                     "target_lang": target_lang,
                     "source_text": source,
                     "reference_text": reference,
-                    "provenance_id": f"openlanguagedata/flores_plus@{revision}#{shared_id}",
+                    "provenance_id": (
+                        f"openlanguagedata/flores_plus@{revision}#devtest-{index:04d};"
+                        f"{upstream_ids}"
+                    ),
                     "source_sha256": sha256_text(source),
                     "stress_kind": "none",
-                    "parent_id": "",
+                    "parent_id": shared_id,
                 }
             )
     write_tsv(combined_output, rows, TSV_FIELDS)
     return {
-        "schema": "l4-mt-flores-plus-local-manifest-v1",
+        "schema": "l4-mt-flores-plus-local-manifest-v2",
         "dataset": "openlanguagedata/flores_plus",
         "version": "4.6",
         "revision": revision,
@@ -390,6 +406,81 @@ def fetch_flores(revision: str, output_dir: Path, combined_output: Path) -> dict
             "sha256": sha256_file(combined_output),
             "bytes": combined_output.stat().st_size,
         },
+    }
+
+
+def sample_flores_stage_a(
+    input_path: Path,
+    output_path: Path,
+    shared_ids: int,
+    seed: str,
+) -> dict[str, Any]:
+    """Select complete bilingual FLORES pairs before any system output is read."""
+    rows = read_tsv(input_path)
+    grouped: dict[str, list[dict[str, str]]] = defaultdict(list)
+    for row in rows:
+        if row.get("domain") != "flores-plus-v4.6-devtest":
+            raise ValueError(f"Unexpected domain in FLORES input: {row.get('domain')}")
+        shared_id = row.get("parent_id", "")
+        if not shared_id:
+            match = re.fullmatch(r"FLORES-(?:he-ru|ru-he)-(\d{4})", row.get("id", ""))
+            if not match:
+                raise ValueError(f"Missing shared parent_id for {row.get('id')}")
+            shared_id = f"FLORES-shared-{match.group(1)}"
+        grouped[shared_id].append(row)
+
+    if not 0 < shared_ids <= len(grouped):
+        raise ValueError(f"shared_ids must be in 1..{len(grouped)}")
+    required_directions = {("he", "ru"), ("ru", "he")}
+    for provenance_id, pair in grouped.items():
+        directions = {(row["source_lang"], row["target_lang"]) for row in pair}
+        if len(pair) != 2 or directions != required_directions:
+            raise ValueError(
+                f"FLORES shared pair {provenance_id} must contain exactly he-ru and ru-he"
+            )
+
+    ranked = sorted(
+        grouped,
+        key=lambda value: (sha256_text(f"{seed}\0{value}"), value),
+    )
+    selected_ids = set(ranked[:shared_ids])
+    selected_rows = []
+    for row in rows:
+        shared_id = row.get("parent_id", "")
+        if not shared_id:
+            match = re.fullmatch(r"FLORES-(?:he-ru|ru-he)-(\d{4})", row.get("id", ""))
+            shared_id = f"FLORES-shared-{match.group(1)}" if match else ""
+        if shared_id in selected_ids:
+            selected_rows.append(row)
+    write_tsv(output_path, selected_rows, TSV_FIELDS)
+    return {
+        "schema": "l4-mt-flores-stage-a-selection-v2",
+        "authority": "owner GO 2026-08-04 / Benchmark Manifest v2",
+        "algorithm": "sort shared devtest parent IDs by sha256(seed + NUL + shared_id), tie-break by ID",
+        "seed": seed,
+        "requested_shared_ids": shared_ids,
+        "selected_shared_ids": len(selected_ids),
+        "selected_rows": len(selected_rows),
+        "directions": {
+            direction: sum(
+                f"{row['source_lang']}-{row['target_lang']}" == direction
+                for row in selected_rows
+            )
+            for direction in ("he-ru", "ru-he")
+        },
+        "input": {
+            "path": input_path.as_posix(),
+            "sha256": sha256_file(input_path),
+            "rows": len(rows),
+            "shared_ids": len(grouped),
+        },
+        "output": {
+            "path": output_path.as_posix(),
+            "sha256": sha256_file(output_path),
+            "bytes": output_path.stat().st_size,
+        },
+        "selected_id_set_sha256": sha256_text("\n".join(sorted(selected_ids)) + "\n"),
+        "redistribution": "selected rows stay gitignored-local; manifest metadata may be committed",
     }
 
 
@@ -425,7 +516,8 @@ def fetch_cometkiwi(repo_id: str, revision: str, output_dir: Path) -> dict[str, 
 
 
 class GpuSampler:
-    def __init__(self) -> None:
+    def __init__(self, enabled: bool = True) -> None:
+        self.enabled = enabled
         self.samples: list[tuple[int, int]] = []
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
@@ -450,6 +542,8 @@ class GpuSampler:
             self._stop.wait(0.25)
 
     def __enter__(self) -> "GpuSampler":
+        if not self.enabled:
+            return self
         self._thread = threading.Thread(target=self._sample, daemon=True)
         self._thread.start()
         return self
@@ -460,9 +554,12 @@ class GpuSampler:
             self._thread.join(timeout=5)
 
     def summary(self) -> dict[str, Any]:
+        if not self.enabled:
+            return {"sampled": False, "reason": "candidate is cloud or CPU-only"}
         if not self.samples:
-            return {"samples": 0, "memory_used_mib_peak": None, "gpu_utilization_pct_peak": None}
+            return {"sampled": True, "samples": 0, "memory_used_mib_peak": None, "gpu_utilization_pct_peak": None}
         return {
+            "sampled": True,
             "samples": len(self.samples),
             "memory_used_mib_start": self.samples[0][0],
             "memory_used_mib_peak": max(sample[0] for sample in self.samples),
@@ -476,6 +573,8 @@ class Translation:
     text: str
     source_tokens: int
     output_tokens: int
+    thinking_tokens: int = 0
+    provider_failure: str = ""
     truncated: bool = False
 
 
@@ -635,9 +734,11 @@ class HyMtAdapter:
 class GeminiAdapter:
     LANGUAGE_NAMES = {"he": "Hebrew", "ru": "Russian"}
 
-    def __init__(self, model: str, api_key: str) -> None:
+    def __init__(self, model: str, api_key: str, thinking_level: str, max_attempts: int) -> None:
         self.model = model
         self.api_key = api_key
+        self.thinking_level = thinking_level
+        self.max_attempts = max_attempts
 
     def translate(self, rows: Sequence[dict[str, str]]) -> list[Translation]:
         translations = []
@@ -651,25 +752,67 @@ class GeminiAdapter:
                 f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
                 f"?key={self.api_key}"
             )
-            payload = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode("utf-8")
+            payload = json.dumps(
+                {
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {
+                        "thinkingConfig": {"thinkingLevel": self.thinking_level}
+                    },
+                }
+            ).encode("utf-8")
             request = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
             last_error: Exception | None = None
-            for attempt in range(10):
+            for attempt in range(self.max_attempts):
                 try:
                     with urllib.request.urlopen(request, timeout=120) as response:
                         body = json.load(response)
-                    text = body["candidates"][0]["content"]["parts"][0]["text"].strip()
                     usage = body.get("usageMetadata", {})
+                    candidates = body.get("candidates") or []
+                    parts = (
+                        candidates[0].get("content", {}).get("parts", [])
+                        if candidates
+                        else []
+                    )
+                    if not candidates or not parts or "text" not in parts[0]:
+                        failure = {
+                            "kind": "no_candidate_or_text",
+                            "prompt_block_reason": body.get("promptFeedback", {}).get("blockReason"),
+                            "finish_reason": candidates[0].get("finishReason") if candidates else None,
+                            "safety_ratings": (
+                                candidates[0].get("safetyRatings")
+                                if candidates
+                                else body.get("promptFeedback", {}).get("safetyRatings")
+                            ),
+                        }
+                        translations.append(
+                            Translation(
+                                text="",
+                                source_tokens=int(usage.get("promptTokenCount", 0)),
+                                output_tokens=int(usage.get("candidatesTokenCount", 0)),
+                                thinking_tokens=int(usage.get("thoughtsTokenCount", 0)),
+                                provider_failure=json.dumps(
+                                    failure, ensure_ascii=False, separators=(",", ":")
+                                ),
+                            )
+                        )
+                        break
+                    text = parts[0]["text"].strip()
                     translations.append(
                         Translation(
                             text=text,
                             source_tokens=int(usage.get("promptTokenCount", 0)),
                             output_tokens=int(usage.get("candidatesTokenCount", 0)),
+                            thinking_tokens=int(usage.get("thoughtsTokenCount", 0)),
                         )
                     )
                     break
                 except urllib.error.HTTPError as error:
                     last_error = error
+                    try:
+                        error_body = json.loads(error.read().decode("utf-8", errors="replace"))
+                        error_detail = normalize_space(error_body.get("error", {}).get("message", ""))
+                    except (json.JSONDecodeError, AttributeError, UnicodeDecodeError):
+                        error_detail = normalize_space(str(error.reason))
                     retry_after = error.headers.get("Retry-After")
                     wait = min(60, 2**attempt)
                     if retry_after:
@@ -677,14 +820,16 @@ class GeminiAdapter:
                             wait = max(wait, min(120, int(retry_after)))
                         except ValueError:
                             pass
-                    if error.code != 429 or attempt == 9:
+                    retryable_codes = {408, 429, 500, 502, 503, 504}
+                    if error.code not in retryable_codes or attempt == self.max_attempts - 1:
                         raise RuntimeError(
                             f"Gemini HTTP {error.code} after {attempt + 1} attempts"
+                            + (f": {error_detail[:300]}" if error_detail else "")
                         ) from error
                     time.sleep(wait)
                 except (urllib.error.URLError, KeyError, IndexError, json.JSONDecodeError) as error:
                     last_error = error
-                    if attempt == 9:
+                    if attempt == self.max_attempts - 1:
                         raise RuntimeError(f"Gemini failed after retries: {error}") from error
                     time.sleep(min(60, 2**attempt))
             if last_error and len(translations) < 1:
@@ -707,8 +852,37 @@ def make_adapter(args: argparse.Namespace) -> Any:
         key = os.environ.get("GEMINI_API_KEY")
         if not key:
             raise RuntimeError("GEMINI_API_KEY is required; it is never written to artifacts")
-        return GeminiAdapter(args.gemini_model, key)
+        return GeminiAdapter(
+            args.gemini_model,
+            key,
+            args.gemini_thinking_level,
+            args.cloud_max_attempts,
+        )
     raise ValueError(f"Unsupported system: {args.system}")
+
+
+def validate_resume_rows(
+    input_rows: Sequence[dict[str, str]],
+    output_rows: Sequence[dict[str, str]],
+    system: str,
+) -> set[str]:
+    input_by_id = {row["id"]: row for row in input_rows}
+    if len(input_by_id) != len(input_rows):
+        raise ValueError("Input contains duplicate ids")
+    completed_ids: set[str] = set()
+    for row in output_rows:
+        row_id = row.get("id", "")
+        if row_id in completed_ids:
+            raise ValueError(f"Resume checkpoint contains duplicate id: {row_id}")
+        source = input_by_id.get(row_id)
+        if source is None:
+            raise ValueError(f"Resume checkpoint id is absent from input: {row_id}")
+        if row.get("source_sha256") != source.get("source_sha256"):
+            raise ValueError(f"Resume source drift for {row_id}")
+        if row.get("system") != system:
+            raise ValueError(f"Resume system mismatch for {row_id}")
+        completed_ids.add(row_id)
+    return completed_ids
 
 
 def run_system(args: argparse.Namespace) -> dict[str, Any]:
@@ -726,14 +900,18 @@ def run_system(args: argparse.Namespace) -> dict[str, Any]:
     completed_ids: set[str] = set()
     if args.resume and partial_path.exists():
         output_rows = read_tsv(partial_path)
-        completed_ids = {row["id"] for row in output_rows}
+        completed_ids = validate_resume_rows(rows, output_rows, args.system)
         rows = [row for row in rows if row["id"] not in completed_ids]
     selected_rows = len(rows) + len(output_rows)
     adapter = make_adapter(args)
     adapters: dict[str, Any] = {}
     start_wall = time.perf_counter()
     start_cpu = time.process_time()
-    with GpuSampler() as gpu:
+    sample_gpu = args.system not in {
+        "opus-mt-transformer-big-ct2-int8",
+        "gemini-3.6-flash",
+    } and args.device == "cuda"
+    with GpuSampler(sample_gpu) as gpu:
         for offset in range(0, len(rows), args.batch_size):
             batch = rows[offset : offset + args.batch_size]
             active = adapter
@@ -764,6 +942,8 @@ def run_system(args: argparse.Namespace) -> dict[str, Any]:
                         "hypothesis": translation.text,
                         "source_tokens": translation.source_tokens,
                         "output_tokens": translation.output_tokens,
+                        "thinking_tokens": translation.thinking_tokens,
+                        "provider_failure": translation.provider_failure,
                         "truncated": str(translation.truncated).lower(),
                         "elapsed_sec": f"{per_row_elapsed:.9f}",
                     }
@@ -771,13 +951,31 @@ def run_system(args: argparse.Namespace) -> dict[str, Any]:
             # Durable checkpoint: cloud quota/network failures must not discard
             # completed and potentially billed translations.
             write_tsv(partial_path, output_rows, OUTPUT_FIELDS)
+            if args.system == "gemini-3.6-flash" and args.cloud_cost_cap_usd is not None:
+                cloud_cost = sum(
+                    int(row.get("source_tokens") or 0) * 1.5 / 1_000_000
+                    + (
+                        int(row.get("output_tokens") or 0)
+                        + int(row.get("thinking_tokens") or 0)
+                    )
+                    * 7.5
+                    / 1_000_000
+                    for row in output_rows
+                )
+                if cloud_cost > args.cloud_cost_cap_usd:
+                    raise RuntimeError(
+                        f"Gemini estimated list cost ${cloud_cost:.6f} exceeded "
+                        f"cap ${args.cloud_cost_cap_usd:.6f}; checkpoint preserved"
+                    )
     elapsed = time.perf_counter() - start_wall
     cpu = time.process_time() - start_cpu
     write_tsv(args.output, output_rows, OUTPUT_FIELDS)
     total_source_tokens = sum(int(row["source_tokens"]) for row in output_rows)
     total_output_tokens = sum(int(row["output_tokens"]) for row in output_rows)
+    total_thinking_tokens = sum(int(row.get("thinking_tokens") or 0) for row in output_rows)
+    recorded_elapsed = sum(float(row["elapsed_sec"]) for row in output_rows)
     manifest = {
-        "schema": "l4-mt-system-run-v1",
+        "schema": "l4-mt-system-run-v2",
         "system": args.system,
         "input": {
             "path": args.input.as_posix(),
@@ -796,18 +994,26 @@ def run_system(args: argparse.Namespace) -> dict[str, Any]:
             "beam_size": args.beam_size,
             "batch_size": args.batch_size,
             "gemini_model": args.gemini_model if args.system.startswith("gemini") else None,
+            "gemini_thinking_level": (
+                args.gemini_thinking_level if args.system.startswith("gemini") else None
+            ),
+            "cloud_max_attempts": (
+                args.cloud_max_attempts if args.system.startswith("gemini") else None
+            ),
         },
         "performance": {
-            "elapsed_sec": round(elapsed, 6),
-            "recorded_row_elapsed_sec_total": round(
-                sum(float(row["elapsed_sec"]) for row in output_rows), 6
-            ),
-            "cpu_process_sec": round(cpu, 6),
-            "segments_per_sec": round(len(rows) / elapsed, 6),
-            "output_tokens_per_sec": round(total_output_tokens / elapsed, 6),
+            "current_session_wall_sec": round(elapsed, 6),
+            "current_session_cpu_process_sec": round(cpu, 6),
+            "recorded_row_elapsed_sec_total": round(recorded_elapsed, 6),
+            "segments_per_recorded_sec": round(len(output_rows) / recorded_elapsed, 6),
+            "output_tokens_per_recorded_sec": round(total_output_tokens / recorded_elapsed, 6),
             "total_source_tokens": total_source_tokens,
             "total_output_tokens": total_output_tokens,
+            "total_thinking_tokens": total_thinking_tokens,
             "truncated_rows": sum(row["truncated"] == "true" for row in output_rows),
+            "provider_failure_rows": sum(
+                bool(normalize_space(row.get("provider_failure", ""))) for row in output_rows
+            ),
             "gpu": gpu.summary(),
         },
         "secrets": "none recorded",
@@ -819,9 +1025,10 @@ def run_system(args: argparse.Namespace) -> dict[str, Any]:
             "pricing_basis_usd_per_million": {"input": 1.5, "output": 7.5},
             "estimated_list_price_usd": round(
                 total_source_tokens * 1.5 / 1_000_000
-                + total_output_tokens * 7.5 / 1_000_000,
+                + (total_output_tokens + total_thinking_tokens) * 7.5 / 1_000_000,
                 6,
             ),
+            "cost_cap_usd": args.cloud_cost_cap_usd,
             "actual_account_charge": "unknown",
         }
     manifest_path = args.output.with_suffix(".manifest.json")
@@ -829,7 +1036,58 @@ def run_system(args: argparse.Namespace) -> dict[str, Any]:
     return manifest
 
 
-def score_outputs(output_paths: Sequence[Path], destination: Path) -> dict[str, Any]:
+def bootstrap_metric_intervals(
+    hypotheses: Sequence[str],
+    references: Sequence[str],
+    chrf: Any,
+    bleu: Any,
+    samples: int,
+    seed: str,
+) -> dict[str, Any]:
+    if samples <= 0:
+        return {"samples": 0, "chrf_plus_plus": None, "spbleu": None}
+    rng = random.Random(seed)
+    size = len(hypotheses)
+    # sacreBLEU's pinned metric implementations expose additive per-segment
+    # sufficient statistics. Extract them once so bootstrap resampling does not
+    # repeat FLORES tokenization for every replicate. Aggregating a resampled
+    # statistics list is mathematically identical to corpus_score on the same
+    # resampled sentences (including duplicate draws).
+    reference_streams = [list(references)]
+    chrf_stats = chrf._extract_corpus_statistics(list(hypotheses), reference_streams)
+    bleu_stats = bleu._extract_corpus_statistics(list(hypotheses), reference_streams)
+    chrf_scores: list[float] = []
+    bleu_scores: list[float] = []
+    for _ in range(samples):
+        indices = [rng.randrange(size) for _ in range(size)]
+        chrf_scores.append(
+            chrf._aggregate_and_compute([chrf_stats[index] for index in indices]).score
+        )
+        bleu_scores.append(
+            bleu._aggregate_and_compute([bleu_stats[index] for index in indices]).score
+        )
+
+    def interval(values: list[float]) -> dict[str, float]:
+        ordered = sorted(values)
+        lower = ordered[max(0, int(samples * 0.025) - 1)]
+        upper = ordered[min(samples - 1, int(samples * 0.975))]
+        return {"low": round(lower, 4), "high": round(upper, 4)}
+
+    return {
+        "samples": samples,
+        "confidence": 0.95,
+        "seed": seed,
+        "chrf_plus_plus": interval(chrf_scores),
+        "spbleu": interval(bleu_scores),
+    }
+
+
+def score_outputs(
+    output_paths: Sequence[Path],
+    destination: Path,
+    bootstrap_samples: int = 1000,
+    bootstrap_seed: str = "l4.0-manifest-v2-bootstrap-2026-08-04",
+) -> dict[str, Any]:
     try:
         from sacrebleu.metrics import BLEU, CHRF
     except ImportError as error:
@@ -837,7 +1095,11 @@ def score_outputs(output_paths: Sequence[Path], destination: Path) -> dict[str, 
 
     chrf = CHRF(word_order=2)
     bleu = BLEU(tokenize="flores200", effective_order=True)
-    report: dict[str, Any] = {"schema": "l4-mt-metrics-v1", "systems": {}}
+    report: dict[str, Any] = {
+        "schema": "l4-mt-metrics-v2",
+        "bootstrap": {"samples": bootstrap_samples, "seed": bootstrap_seed},
+        "systems": {},
+    }
     for path in output_paths:
         rows = read_tsv(path)
         if not rows:
@@ -858,10 +1120,246 @@ def score_outputs(output_paths: Sequence[Path], destination: Path) -> dict[str, 
                 "segments": len(group),
                 "chrf_plus_plus": round(chrf.corpus_score(hypotheses, references).score, 4),
                 "spbleu": round(bleu.corpus_score(hypotheses, references).score, 4),
+                "bootstrap_95": bootstrap_metric_intervals(
+                    hypotheses,
+                    references[0],
+                    chrf,
+                    bleu,
+                    bootstrap_samples,
+                    f"{bootstrap_seed}:{system}:{domain}:{direction}",
+                ),
                 "empty_hypotheses": sum(not normalize_space(value) for value in hypotheses),
                 "truncated": sum(row.get("truncated") == "true" for row in group),
             }
         report["systems"][system] = system_metrics
+    write_json(destination, report)
+    return report
+
+
+def diagnose_outputs(output_paths: Sequence[Path], destination: Path) -> dict[str, Any]:
+    try:
+        from sacrebleu.metrics import BLEU, CHRF
+    except ImportError as error:
+        raise RuntimeError("Install pinned requirements-l4.txt before diagnostics") from error
+
+    chrf = CHRF(word_order=2)
+    bleu = BLEU(tokenize="flores200", effective_order=True)
+    report: dict[str, Any] = {"schema": "l4-mt-diagnostics-v1", "systems": {}}
+    for path in output_paths:
+        rows = read_tsv(path)
+        if not rows:
+            raise ValueError(f"Empty output: {path}")
+        system = rows[0]["system"]
+        word_counts = sorted(len(normalize_space(row["source_text"]).split()) for row in rows)
+        long_threshold = word_counts[max(0, int(len(word_counts) * 0.9) - 1)]
+        strata: dict[str, list[dict[str, str]]] = defaultdict(list)
+        flags: list[dict[str, str]] = []
+        for row in rows:
+            source = normalize_space(row["source_text"])
+            hypothesis = normalize_space(row["hypothesis"])
+            has_niqqud = bool(NIQQUD_RE.search(source))
+            punctuation_count = len(PUNCT_RE.findall(source))
+            source_words = len(source.split())
+            hypothesis_words = re.findall(r"\w+", hypothesis.lower(), flags=re.UNICODE)
+            strata[f"niqqud/{'present' if has_niqqud else 'absent'}"].append(row)
+            strata[f"punctuation/{'heavy_ge_3' if punctuation_count >= 3 else 'light_lt_3'}"].append(row)
+            strata[f"length/{'top_decile' if source_words >= long_threshold else 'lower_90pct'}"].append(row)
+
+            kinds = []
+            if not hypothesis:
+                kinds.append("empty_hypothesis")
+            if source == hypothesis:
+                kinds.append("exact_source_echo")
+            if row["target_lang"] == "ru" and not CYRILLIC_RE.search(hypothesis):
+                kinds.append("target_script_missing")
+            if row["target_lang"] == "he" and not HEBREW_RE.search(hypothesis):
+                kinds.append("target_script_missing")
+            if row.get("truncated") == "true":
+                kinds.append("source_truncated")
+            if normalize_space(row.get("provider_failure", "")):
+                kinds.append("provider_failure")
+            if (
+                len(hypothesis_words) >= 8
+                and len(set(hypothesis_words)) / len(hypothesis_words) <= 0.35
+            ):
+                kinds.append("degenerate_repetition")
+            for kind in kinds:
+                flags.append({"id": row["id"], "kind": kind})
+
+        scored_strata = {}
+        for name, group in sorted(strata.items()):
+            references = [row["reference_text"] for row in group]
+            hypotheses = [row["hypothesis"] for row in group]
+            if len(group) < 10 or any(not normalize_space(value) for value in references):
+                continue
+            scored_strata[name] = {
+                "segments": len(group),
+                "chrf_plus_plus": round(chrf.corpus_score(hypotheses, [references]).score, 4),
+                "spbleu": round(bleu.corpus_score(hypotheses, [references]).score, 4),
+            }
+        source_token_values = sorted(int(row.get("source_tokens") or 0) for row in rows)
+        output_token_values = sorted(int(row.get("output_tokens") or 0) for row in rows)
+        report["systems"][system] = {
+            "artifact": {"path": path.as_posix(), "sha256": sha256_file(path)},
+            "rows": len(rows),
+            "natural_strata": scored_strata,
+            "long_source_word_threshold": long_threshold,
+            "source_tokens": {
+                "maximum": max(source_token_values),
+                "p95": source_token_values[min(len(source_token_values) - 1, int(len(source_token_values) * 0.95))],
+            },
+            "output_tokens": {
+                "maximum": max(output_token_values),
+                "p95": output_token_values[min(len(output_token_values) - 1, int(len(output_token_values) * 0.95))],
+            },
+            "critical_flags": flags,
+        }
+    write_json(destination, report)
+    return report
+
+
+def intervals_overlap(first: dict[str, Any], second: dict[str, Any]) -> bool:
+    return float(first["low"]) <= float(second["high"]) and float(second["low"]) <= float(first["high"])
+
+
+def evaluate_adaptive_gates(
+    metrics_path: Path,
+    destination: Path,
+    local_systems: Sequence[str],
+    cloud_system: str,
+    cometkiwi_path: Path | None = None,
+    diagnostics_paths: Sequence[Path] | None = None,
+) -> dict[str, Any]:
+    """Evaluate Manifest-v2 expansion triggers from reproducible metric reports.
+
+    The primary comparison is the macro-average across the two FLORES
+    directions.  Direction-level deltas and confidence intervals are retained
+    and are deliberately conservative: one close direction or one overlapping
+    interval is enough to trigger Stage B.
+    """
+    with metrics_path.open("r", encoding="utf-8") as stream:
+        metrics = json.load(stream)
+    systems = metrics.get("systems", {})
+    missing = [system for system in local_systems if system not in systems]
+    if missing:
+        raise ValueError(f"Metrics report lacks local systems: {', '.join(missing)}")
+
+    common_groups: set[str] | None = None
+    for system in local_systems:
+        groups = set(systems[system].get("groups", {}))
+        common_groups = groups if common_groups is None else common_groups & groups
+    flores_groups = sorted(group for group in (common_groups or set()) if group.startswith("flores"))
+    if not flores_groups:
+        raise ValueError("No common FLORES metric groups across local systems")
+
+    macro: dict[str, dict[str, float]] = {}
+    for system in local_systems:
+        macro[system] = {
+            metric: statistics.fmean(
+                float(systems[system]["groups"][group][metric]) for group in flores_groups
+            )
+            for metric in ("chrf_plus_plus", "spbleu")
+        }
+    chrf_ranking = sorted(local_systems, key=lambda system: (-macro[system]["chrf_plus_plus"], system))
+    bleu_ranking = sorted(local_systems, key=lambda system: (-macro[system]["spbleu"], system))
+    if len(chrf_ranking) < 2:
+        raise ValueError("Adaptive gate requires at least two local systems")
+    top, runner_up = chrf_ranking[:2]
+
+    macro_delta = macro[top]["chrf_plus_plus"] - macro[runner_up]["chrf_plus_plus"]
+    direction_deltas = {
+        group: float(systems[top]["groups"][group]["chrf_plus_plus"])
+        - float(systems[runner_up]["groups"][group]["chrf_plus_plus"])
+        for group in flores_groups
+    }
+    close_delta = macro_delta < 2.0 or any(delta < 2.0 for delta in direction_deltas.values())
+
+    overlap_groups = []
+    for group in flores_groups:
+        top_interval = systems[top]["groups"][group]["bootstrap_95"]["chrf_plus_plus"]
+        runner_interval = systems[runner_up]["groups"][group]["bootstrap_95"]["chrf_plus_plus"]
+        if intervals_overlap(top_interval, runner_interval):
+            overlap_groups.append(group)
+
+    metric_conflicts: list[str] = []
+    if chrf_ranking != bleu_ranking:
+        metric_conflicts.append("local macro chrF++ and spBLEU rankings differ")
+    comet_ranking: list[str] | None = None
+    if cometkiwi_path is not None:
+        with cometkiwi_path.open("r", encoding="utf-8") as stream:
+            comet = json.load(stream)
+        comet_systems = comet.get("systems", {})
+        missing_comet = [system for system in local_systems if system not in comet_systems]
+        if missing_comet:
+            raise ValueError(f"CometKiwi report lacks local systems: {', '.join(missing_comet)}")
+        comet_ranking = sorted(
+            local_systems,
+            key=lambda system: (-float(comet_systems[system]["mean"]), system),
+        )
+        if comet_ranking != chrf_ranking:
+            metric_conflicts.append("local macro chrF++ and CometKiwi rankings differ")
+
+    critical_flags = []
+    for system in list(local_systems) + ([cloud_system] if cloud_system in systems else []):
+        for group, values in systems[system].get("groups", {}).items():
+            if int(values.get("empty_hypotheses", 0)):
+                critical_flags.append(
+                    {"system": system, "group": group, "kind": "empty_hypothesis", "count": int(values["empty_hypotheses"])}
+                )
+            if int(values.get("truncated", 0)):
+                critical_flags.append(
+                    {"system": system, "group": group, "kind": "truncated", "count": int(values["truncated"])}
+                )
+    for diagnostics_path in diagnostics_paths or []:
+        with diagnostics_path.open("r", encoding="utf-8") as stream:
+            diagnostics = json.load(stream)
+        for system, values in diagnostics.get("systems", {}).items():
+            for flag in values.get("critical_flags", []):
+                critical_flags.append(
+                    {"system": system, "diagnostics": diagnostics_path.as_posix(), **flag}
+                )
+
+    triggers = {
+        "top_local_delta_chrf_below_2": close_delta,
+        "bootstrap_95_overlap": bool(overlap_groups),
+        "metric_rankings_conflict": bool(metric_conflicts),
+        "critical_failure_flags": bool(critical_flags),
+    }
+    expand = any(triggers.values())
+    report = {
+        "schema": "l4-mt-manifest-v2-adaptive-gate-v1",
+        "metrics": {"path": metrics_path.as_posix(), "sha256": sha256_file(metrics_path)},
+        "cometkiwi": None
+        if cometkiwi_path is None
+        else {"path": cometkiwi_path.as_posix(), "sha256": sha256_file(cometkiwi_path)},
+        "diagnostics": [
+            {"path": path.as_posix(), "sha256": sha256_file(path)}
+            for path in diagnostics_paths or []
+        ],
+        "flores_groups": flores_groups,
+        "local_macro_scores": {
+            system: {metric: round(value, 6) for metric, value in values.items()}
+            for system, values in macro.items()
+        },
+        "rankings": {
+            "chrf_plus_plus": chrf_ranking,
+            "spbleu": bleu_ranking,
+            "cometkiwi": comet_ranking,
+        },
+        "top_two_local_by_chrf": [top, runner_up],
+        "chrf_delta": {
+            "macro": round(macro_delta, 6),
+            "by_group": {group: round(delta, 6) for group, delta in direction_deltas.items()},
+            "threshold": 2.0,
+            "rule": "trigger if macro or either direction is below threshold",
+        },
+        "bootstrap_overlap_groups": overlap_groups,
+        "metric_conflicts": metric_conflicts,
+        "critical_flags": critical_flags,
+        "triggers": triggers,
+        "expand_to_full_devtest": expand,
+        "stage_b_systems": [cloud_system, top, runner_up] if expand else [],
+    }
     write_json(destination, report)
     return report
 
@@ -946,6 +1444,9 @@ def score_cometkiwi(
                 for key, values in sorted(grouped.items())
             },
         }
+        # Durable system-level checkpoint: a late GPU/runtime failure must not
+        # discard earlier supplementary scores.
+        write_json(destination, report)
     write_json(destination, report)
     return report
 
@@ -1077,6 +1578,13 @@ def build_parser() -> argparse.ArgumentParser:
     flores.add_argument("--combined-output", type=Path, required=True)
     flores.add_argument("--manifest", type=Path, required=True)
 
+    stage_a = subparsers.add_parser("sample-flores-stage-a")
+    stage_a.add_argument("--input", type=Path, required=True)
+    stage_a.add_argument("--output", type=Path, required=True)
+    stage_a.add_argument("--manifest", type=Path, required=True)
+    stage_a.add_argument("--shared-ids", type=int, default=506)
+    stage_a.add_argument("--seed", default="l4.0-manifest-v2-stage-a-2026-08-04")
+
     comet_fetch = subparsers.add_parser("fetch-cometkiwi")
     comet_fetch.add_argument("--repo-id", default="Unbabel/wmt22-cometkiwi-da")
     comet_fetch.add_argument(
@@ -1107,6 +1615,13 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--beam-size", type=int, default=4)
     run.add_argument("--batch-size", type=int, default=8)
     run.add_argument("--gemini-model", default="gemini-3.6-flash")
+    run.add_argument(
+        "--gemini-thinking-level",
+        choices=["minimal", "low", "medium", "high"],
+        default="medium",
+    )
+    run.add_argument("--cloud-cost-cap-usd", type=float)
+    run.add_argument("--cloud-max-attempts", type=int, choices=range(1, 11), default=10)
     run.add_argument("--direction", choices=["he-ru", "ru-he"])
     run.add_argument("--limit", type=int)
     run.add_argument("--resume", action="store_true")
@@ -1114,6 +1629,22 @@ def build_parser() -> argparse.ArgumentParser:
     score = subparsers.add_parser("score")
     score.add_argument("--outputs", type=Path, nargs="+", required=True)
     score.add_argument("--destination", type=Path, required=True)
+    score.add_argument("--bootstrap-samples", type=int, default=1000)
+    score.add_argument(
+        "--bootstrap-seed", default="l4.0-manifest-v2-bootstrap-2026-08-04"
+    )
+
+    diagnostics = subparsers.add_parser("diagnose")
+    diagnostics.add_argument("--outputs", type=Path, nargs="+", required=True)
+    diagnostics.add_argument("--destination", type=Path, required=True)
+
+    adaptive = subparsers.add_parser("evaluate-adaptive-gates")
+    adaptive.add_argument("--metrics", type=Path, required=True)
+    adaptive.add_argument("--destination", type=Path, required=True)
+    adaptive.add_argument("--local-systems", nargs="+", required=True)
+    adaptive.add_argument("--cloud-system", default="gemini-3.6-flash")
+    adaptive.add_argument("--cometkiwi", type=Path)
+    adaptive.add_argument("--diagnostics", type=Path, nargs="+")
 
     attach = subparsers.add_parser("attach-references")
     attach.add_argument("--gold", type=Path, nargs="+", required=True)
@@ -1158,13 +1689,34 @@ def main(argv: Sequence[str] | None = None) -> int:
         elif args.command == "fetch-flores":
             payload = fetch_flores(args.revision, args.output_dir, args.combined_output)
             write_json(args.manifest, payload)
+        elif args.command == "sample-flores-stage-a":
+            payload = sample_flores_stage_a(
+                args.input, args.output, args.shared_ids, args.seed
+            )
+            write_json(args.manifest, payload)
         elif args.command == "fetch-cometkiwi":
             payload = fetch_cometkiwi(args.repo_id, args.revision, args.output_dir)
             write_json(args.manifest, payload)
         elif args.command == "run":
             payload = run_system(args)
         elif args.command == "score":
-            payload = score_outputs(args.outputs, args.destination)
+            payload = score_outputs(
+                args.outputs,
+                args.destination,
+                args.bootstrap_samples,
+                args.bootstrap_seed,
+            )
+        elif args.command == "diagnose":
+            payload = diagnose_outputs(args.outputs, args.destination)
+        elif args.command == "evaluate-adaptive-gates":
+            payload = evaluate_adaptive_gates(
+                args.metrics,
+                args.destination,
+                args.local_systems,
+                args.cloud_system,
+                args.cometkiwi,
+                args.diagnostics,
+            )
         elif args.command == "attach-references":
             payload = attach_references(args.gold, args.outputs, args.destination)
         elif args.command == "score-cometkiwi":

@@ -1,6 +1,7 @@
 {
-  "schema": "studio-l4-mt-candidates-v1",
-  "frozen_by": "HEBREW_NLP_RESOURCES_OWNER_DECISIONS_2026_08_04.md#4",
+  "schema": "studio-l4-mt-candidates-v3",
+  "frozen_by": "HEBREW_NLP_RESOURCES_OWNER_DECISIONS_2026_08_04.md#4 Manifest v3",
+  "owner_approval": "2026-08-04 explicit GO: deterministic 506 shared IDs x two directions; later explicit override defers adaptive full expansion",
   "candidates": [
     {
       "id": "madlad-400-10b-ct2-int8",
@@ -74,6 +75,7 @@
       "revision": "stable model id gemini-3.6-flash",
       "license": "provider API terms",
       "runtime": "BYOK cloud ceiling; source upload recorded",
+      "thinking_level": "medium (stable cloud-ceiling configuration; thoughtsTokenCount billed and recorded)",
       "secrets": "API key read from environment and never written"
     }
   ],
@@ -85,27 +87,53 @@
       "split": "devtest",
       "languages": ["heb_Hebr", "rus_Cyrl"],
       "license": "CC-BY-SA-4.0",
-      "access": "official gated repository; owner acceptance and HF token required; local evaluation only"
+      "access": "official gated repository; owner accepted and authenticated; local evaluation only",
+      "stage_a": {
+        "shared_ids": 506,
+        "directional_rows": 1012,
+        "manifest": "docs/research/studio-l4-mt-benchmark/2026-08-04/flores-stage-a-manifest.json",
+        "v2_expand_rule": "Gemini + top-2 local if any adaptive trigger fires",
+        "v3_execution": "DEFERRED BY OWNER after trigger; equal Stage A is the comparison set",
+        "gemini_full_partial": {
+          "rows": 1118,
+          "stage_a_rows": 1012,
+          "extra_rows": 106,
+          "sha256": "631f5ddd4a6e9a75e1f1f26fcbd0dfceadfc6c980a183d78426d1904014862d3",
+          "ranking_use": false
+        }
+      }
     },
     {
-      "id": "q4-in-domain-owner-gold",
-      "path": "docs/research/heb-ru-mt-gold/2026-08-04/in-domain-owner-gold.tsv",
+      "id": "q4-in-domain-owner-accepted-ai-reference",
+      "source_selection_path": "docs/research/heb-ru-mt-gold/2026-08-04/in-domain-owner-gold.tsv",
+      "path": "docs/research/heb-ru-mt-gold/2026-08-04/in-domain-owner-gold.filled-machine-draft.tsv",
       "rows": 200,
       "composition": "50 ASR-style + 50 article + 50 prose + 50 poetry",
-      "reference_authority": "owner human gold only"
+      "sha256": "ecea4af90ff696d548c58a6623502e2f7af2be0e36a04e7fa51797c63fa95814",
+      "reference_authority": "GPT-5.6 Sol high per owner attestation; owner-accepted AI-reference/silver; explicitly not human gold"
     }
   ],
   "mandatory_metrics": [
     "chrF++ (sacrebleu CHRF word_order=2)",
     "spBLEU (sacrebleu flores200 tokenizer)",
-    "blind owner evaluation >=40 randomized sources",
-    "missing meaning",
-    "added meaning",
-    "pedagogical suitability",
+    "95% deterministic bootstrap intervals",
+    "model-assisted missing/added meaning failure audit (not human)",
+    "model-assisted pedagogical suitability audit (not human)",
     "tokens/sec",
     "VRAM/CPU profile",
     "long-sentence and NLLB-512 behavior",
     "niqqud/punctuation robustness"
   ],
-  "supplementary_metric": "CometKiwi only; never a winner-deciding oracle by itself"
+  "supplementary_metric": "CometKiwi only; never a winner-deciding oracle by itself",
+  "waivers": [
+    "bilingual human blind evaluation unavailable and WAIVED BY OWNER",
+    "final confidence label forced to LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION"
+  ],
+  "adaptive_expand_triggers": [
+    "top-local delta chrF++ < 2",
+    "95% bootstrap confidence intervals overlap",
+    "chrF++/spBLEU/CometKiwi rankings conflict",
+    "critical failure flag"
+  ],
+  "adaptive_expand_execution": "TRIGGERED_BUT_DEFERRED_BY_OWNER_MANIFEST_V3"
 }

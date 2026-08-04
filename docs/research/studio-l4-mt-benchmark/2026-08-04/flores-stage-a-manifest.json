@@ -1,0 +1,26 @@
+{
+  "algorithm": "sort shared devtest parent IDs by sha256(seed + NUL + shared_id), tie-break by ID",
+  "authority": "owner GO 2026-08-04 / Benchmark Manifest v2",
+  "directions": {
+    "he-ru": 506,
+    "ru-he": 506
+  },
+  "input": {
+    "path": ".tmp/l4-mt/flores/flores-devtest-he-ru.tsv",
+    "rows": 2024,
+    "sha256": "a610f83603a7b8854f44f443c4ebaa1b577654cbd7581206608b9315907569ac",
+    "shared_ids": 1012
+  },
+  "output": {
+    "bytes": 701001,
+    "path": ".tmp/l4-mt/flores/flores-stage-a.tsv",
+    "sha256": "a9582c11d24a856837e7354268c6767281bfe6935c3832285f05b84721cb3852"
+  },
+  "redistribution": "selected rows stay gitignored-local; manifest metadata may be committed",
+  "requested_shared_ids": 506,
+  "schema": "l4-mt-flores-stage-a-selection-v2",
+  "seed": "l4.0-manifest-v2-stage-a-2026-08-04",
+  "selected_id_set_sha256": "1a3b146095e5a5f34f6062623c1e6b6d13a58bbe2f1782e1c79443dd7f26a798",
+  "selected_rows": 1012,
+  "selected_shared_ids": 506
+}

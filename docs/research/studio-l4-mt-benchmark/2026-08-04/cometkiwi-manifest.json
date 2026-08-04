@@ -1,0 +1,48 @@
+{
+  "schema": "l4-mt-cometkiwi-local-manifest-v1",
+  "repo_id": "Unbabel/wmt22-cometkiwi-da",
+  "revision": "1ad785194e391eebc6c53e2d0776cada8f83179a",
+  "license": "CC-BY-NC-SA-4.0",
+  "access": "official gated repository; owner accepted and authenticated; local evaluation only",
+  "checkpoint": {
+    "relative_path": "checkpoints/model.ckpt",
+    "bytes": 2260734705,
+    "sha256": "4f357aa38b0737dcd502f166238c99711ff3419d7b5c8cdf9cde08525a8e7858"
+  },
+  "hparams": {
+    "relative_path": "hparams.yaml",
+    "bytes": 716,
+    "sha256": "eee0f391b4e2baee489117e59d967a9be0b1ad027556152c6cefcd41039c778c"
+  },
+  "encoder_support_files": {
+    "repo_id": "microsoft/infoxlm-large",
+    "revision": "d616d637f0720deda963cebbfc630657d2b7d3ae",
+    "note": "checkpoint contains encoder weights; pinned upstream snapshot supplies config and tokenizer",
+    "files": [
+      {
+        "path": "config.json",
+        "bytes": 513,
+        "sha256": "20ac3ebbf6350969777c658bc18cf0e9d33a155caf6be24dc083c68ada76b7c7"
+      },
+      {
+        "path": "sentencepiece.bpe.model",
+        "bytes": 5069051,
+        "sha256": "cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865"
+      },
+      {
+        "path": "tokenizer.json",
+        "bytes": 9096718,
+        "sha256": "a898ea75433890f6610f4e470b8ebeb0c21dce5c8dd61f892eb09eb5919d2e2c"
+      }
+    ]
+  },
+  "validated_runtime": {
+    "unbabel_comet": "2.2.7",
+    "transformers": "4.49.0",
+    "tokenizers": "0.21.4",
+    "torch": "2.5.1+cu121",
+    "load_smoke": "PASS / comet.models.multitask.unified_metric.UnifiedMetric"
+  },
+  "use": "supplementary research/gate signal only; never a winner-deciding oracle by itself",
+  "production_authorization": false
+}
