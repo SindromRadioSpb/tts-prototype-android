@@ -177,7 +177,7 @@ def _capability_probe() -> dict[str, Any] | None:
     try:
         from .security import pairing_token
         request = urllib.request.Request(
-            "http://127.0.0.1:8799/v1/capabilities",
+            f"http://127.0.0.1:{config.PORT}/v1/capabilities",
             headers={"Authorization": "Bearer " + pairing_token(), "Origin": "http://127.0.0.1:3000"},
         )
         with urllib.request.urlopen(request, timeout=1.0) as response:
@@ -192,15 +192,15 @@ def _capability_probe() -> dict[str, Any] | None:
 def _port_check() -> dict[str, Any]:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
         probe.settimeout(0.5)
-        occupied = probe.connect_ex(("127.0.0.1", 8799)) == 0
+        occupied = probe.connect_ex(("127.0.0.1", config.PORT)) == 0
     if not occupied:
-        return _result("PORT_8799", True, {"state": "free"}, {"bind": "127.0.0.1:8799"})
+        return _result("PORT_8799", True, {"state": "free"}, {"bind": f"127.0.0.1:{config.PORT}"})
     capability = _capability_probe()
     return _result(
         "PORT_8799",
         capability is not None,
         {"state": "companion" if capability else "foreign_listener"},
-        {"bind": "127.0.0.1:8799"},
+        {"bind": f"127.0.0.1:{config.PORT}"},
     )
 
 

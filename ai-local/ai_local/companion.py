@@ -16,7 +16,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-APP_VERSION = "0.3.0-beta.2"
+APP_VERSION = "0.3.0-beta.4"
 PRODUCTION_ORIGIN = "https://linguistpro.kolosei.com"
 GUIDE_FILENAMES = {
     "ru": "LOCAL_ASR_COMPANION_GUIDE.md",
@@ -29,7 +29,10 @@ def _bootstrap_environment() -> Path:
     local = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
     root = local / "LinguistPro" / "LocalASR"
     os.environ["AI_LOCAL_HOST"] = "127.0.0.1"
-    os.environ["AI_LOCAL_PORT"] = "8799"
+    # Keep the private smoke marker in the child environment: --start launches
+    # a second frozen process, which must bind the same isolated build port.
+    build_smoke_port = os.environ.get("AI_LOCAL_BUILD_SMOKE_PORT", "").strip()
+    os.environ["AI_LOCAL_PORT"] = build_smoke_port or "8799"
     os.environ["AI_LOCAL_ASR_ENABLED"] = "1"
     os.environ["AI_LOCAL_MT_ENABLED"] = "1"
     os.environ["AI_LOCAL_MODELS_DIR"] = str(root / "models")
@@ -70,6 +73,32 @@ CONTROL_TOKEN_FILE = CONTROL_ROOT / "control-token"
 STOP_REQUEST_FILE = CONTROL_ROOT / "stop-request"
 
 
+def _loopback_base() -> str:
+    return f"http://127.0.0.1:{config.PORT}"
+
+
+def mt_runtime_report() -> dict[str, Any]:
+    """Fail closed when the frozen build cannot run the pinned MT converter stack."""
+    import accelerate
+    import torch
+    from ctranslate2.converters import TransformersConverter
+
+    torch_version = str(torch.__version__)
+    accelerate_version = str(accelerate.__version__)
+    if torch_version.split("+", 1)[0] != "2.5.1":
+        raise RuntimeError("MT_RUNTIME_TORCH_VERSION_MISMATCH")
+    if accelerate_version != "1.13.0":
+        raise RuntimeError("MT_RUNTIME_ACCELERATE_VERSION_MISMATCH")
+    if not callable(TransformersConverter):
+        raise RuntimeError("MT_RUNTIME_CONVERTER_UNAVAILABLE")
+    return {
+        "status": "ok",
+        "torch": torch_version,
+        "accelerate": accelerate_version,
+        "converter": "ctranslate2.TransformersConverter",
+    }
+
+
 def bundled_guide_path(language: str = "ru") -> Path:
     """Resolve an allowlisted guide from source or the frozen Companion bundle."""
     filename = GUIDE_FILENAMES.get(language, GUIDE_FILENAMES["ru"])
@@ -105,7 +134,7 @@ def _command(*args: str) -> list[str]:
 def _capability() -> dict[str, Any] | None:
     try:
         request = urllib.request.Request(
-            "http://127.0.0.1:8799/v1/capabilities",
+            _loopback_base() + "/v1/capabilities",
             headers={
                 "Authorization": "Bearer " + pairing_token(),
                 "Origin": "http://127.0.0.1:3000",
@@ -242,7 +271,7 @@ def _serve() -> int:
         STOP_REQUEST_FILE.unlink()
     except FileNotFoundError:
         pass
-    server = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=8799, log_level="info", access_log=False))
+    server = uvicorn.Server(uvicorn.Config(app, host=config.HOST, port=config.PORT, log_level="info", access_log=False))
 
     def watch_stop() -> None:
         while not server.should_exit:
@@ -275,7 +304,7 @@ def _api(path: str, method: str = "GET", body: dict[str, Any] | None = None) -> 
     headers = {"Authorization": "Bearer " + pairing_token(), "Origin": "http://127.0.0.1:3000"}
     if body is not None:
         headers["Content-Type"] = "application/json"
-    request = urllib.request.Request("http://127.0.0.1:8799" + path, data=data, headers=headers, method=method)
+    request = urllib.request.Request(_loopback_base() + path, data=data, headers=headers, method=method)
     try:
         with urllib.request.urlopen(request, timeout=10) as response:
             return json.loads(response.read(512 * 1024).decode("utf-8"))
@@ -530,7 +559,11 @@ def main(argv: list[str] | None = None) -> int:
     group.add_argument("--status", action="store_true")
     group.add_argument("--autostart", action="store_true")
     group.add_argument("--convert-mt-worker", nargs=2, metavar=("SOURCE", "OUTPUT"))
+    group.add_argument("--mt-runtime-check", action="store_true")
     args = parser.parse_args(argv)
+    if args.mt_runtime_check:
+        print(json.dumps(mt_runtime_report(), sort_keys=True))
+        return 0
     if args.serve:
         return _serve()
     if args.convert_mt_worker:

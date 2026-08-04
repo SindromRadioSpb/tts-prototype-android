@@ -90,8 +90,10 @@ def test_mt_model_activation_requires_every_exact_hash(monkeypatch, tmp_path):
 class _FakeTranslator:
     def __init__(self, *, short_result: bool = False) -> None:
         self.short_result = short_result
+        self.calls: list[list[str]] = []
 
     def translate_batch(self, texts: list[str], target: str) -> list[str]:
+        self.calls.append(list(texts))
         results = [f"{target}:{text}" for text in texts]
         return results[:-1] if self.short_result else results
 
@@ -122,12 +124,13 @@ async def _wait_terminal(manager: MtJobManager, job_id: str) -> dict:
 async def test_mt_job_preserves_exact_cardinality_order_and_provenance(monkeypatch):
     import ai_local.mt_jobs as jobs
 
-    slot = SimpleNamespace(impl=_FakeTranslator())
+    translator = _FakeTranslator()
+    slot = SimpleNamespace(impl=translator)
     monkeypatch.setattr(jobs, "heavy_gpu_scheduler", _FakeScheduler())
     monkeypatch.setattr(jobs, "registry", SimpleNamespace(slot=lambda _name: slot))
     monkeypatch.setattr(jobs, "use_model", _fake_use_model)
     manager = MtJobManager()
-    segments = [{"index": i, "text": value} for i, value in enumerate(["א", "", "א", "ב"])]
+    segments = [{"index": i, "text": value} for i, value in enumerate(["א", "", " \t", "א", "ב"])]
     checksum = canonical_input_checksum("he", "ru", segments)
     created = await manager.create(
         source_lang="he", target_lang="ru", segments=segments,
@@ -136,8 +139,10 @@ async def test_mt_job_preserves_exact_cardinality_order_and_provenance(monkeypat
     status = await _wait_terminal(manager, created["job_id"])
     assert status["state"] == "COMPLETE"
     result = manager.result(created["job_id"])
-    assert [row["index"] for row in result["results"]] == [0, 1, 2, 3]
+    assert [row["index"] for row in result["results"]] == [0, 1, 2, 3, 4]
     assert len(result["results"]) == len(segments)
+    assert [row["text"] for row in result["results"]] == ["ru:א", "", " \t", "ru:א", "ru:ב"]
+    assert translator.calls == [["א", "א"], ["ב"]]
     assert result["provider"] == "madlad"
     assert result["local_execution"] is True
     assert result["model"]["revision"]
@@ -274,8 +279,60 @@ def test_mt_converter_uses_bounded_memory_and_exact_quantization(monkeypatch, tm
     )
     worker.convert(tmp_path / "source", tmp_path / "output")
     assert captured["init"]["low_cpu_mem_usage"] is True
+    assert captured["init"]["load_as_float16"] is True
     assert captured["convert"]["quantization"] == "int8_float16"
     assert captured["convert"]["force"] is False
+
+
+def test_mt_conversion_ram_gate_matches_fp16_weights_plus_overhead():
+    import ai_local.mt_constants as constants
+
+    assert constants.MT_CONVERSION_MIN_AVAILABLE_RAM_BYTES == 22 * 1024**3
+
+
+def test_companion_build_collects_low_memory_converter_dependency():
+    root = Path(__file__).resolve().parents[1]
+    script = (
+        root / "scripts" / "build_companion.ps1"
+    ).read_text(encoding="utf-8")
+    project = (root / "pyproject.toml").read_text(encoding="utf-8")
+
+    assert '"$AiLocalRoot[runtime]"' in script
+    assert "--collect-all accelerate" in script
+    assert "$VersionExitCode = $LASTEXITCODE" in script
+    assert "AI_LOCAL_BUILD_SMOKE_PORT" in script
+    assert "source_input_dirty" in script
+    assert '"accelerate==1.13.0"' in project
+    assert '"torch==2.5.1"' in project
+
+
+def test_companion_build_runs_frozen_mt_runtime_self_check():
+    root = Path(__file__).resolve().parents[1]
+    script = (root / "scripts" / "build_companion.ps1").read_text(encoding="utf-8")
+    companion = (root / "ai_local" / "companion.py").read_text(encoding="utf-8")
+
+    assert '"--mt-runtime-check"' in companion
+    assert 'os.environ.get("AI_LOCAL_BUILD_SMOKE_PORT"' in companion
+    assert "--mt-runtime-check" in script
+    assert "mt_runtime_check" in script
+    assert 'Where-Object { $_.Name -eq $InstallerName }' in script
+
+
+def test_frozen_conversion_worker_uses_companion_dispatch(monkeypatch, tmp_path):
+    import ai_local.mt_model_install as install
+
+    monkeypatch.setattr(install.sys, "frozen", True, raising=False)
+    monkeypatch.setattr(install.sys, "executable", r"C:\Program Files\LinguistPro\Companion.exe")
+    command = install.MtModelInstallManager._conversion_command(
+        tmp_path / "source", tmp_path / "output"
+    )
+
+    assert command == [
+        r"C:\Program Files\LinguistPro\Companion.exe",
+        "--convert-mt-worker",
+        str(tmp_path / "source"),
+        str(tmp_path / "output"),
+    ]
 
 
 def test_remote_install_fails_before_download_when_conversion_ram_is_low(monkeypatch, tmp_path):

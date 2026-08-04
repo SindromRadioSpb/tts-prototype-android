@@ -11,9 +11,10 @@ def convert(source: Path, output: Path) -> None:
 
     converter = TransformersConverter(
         model_name_or_path=str(source),
-        # MADLAD 10B cannot be materialized as float32 inside the invite
-        # cohort's 32 GB system-memory envelope. Accelerate-backed lazy shard
-        # loading is also the conversion mode used for the benchmark artifact.
+        # The pinned upstream config declares float32 weights (~39.9 GiB).
+        # Explicit FP16 loading halves that representation to ~20 GiB; the
+        # low-memory loader then avoids a second full-size initialization copy.
+        load_as_float16=True,
         low_cpu_mem_usage=True,
         copy_files=[
             "spiece.model",

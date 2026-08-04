@@ -6,8 +6,9 @@
 ```text
 Продолжи D-HNR-10 с фактического implementation checkpoint ниже. Не повторяй уже
 закрытые MT-0/MT-1/базовые MT-2…MT-4 работы. Сначала верифицируй commits/evidence и
-сосредоточься на воспроизводимом fresh-conversion blocker; invite beta/production/
-owner-live выполняй только после их точных preflight и stop conditions.
+сосредоточься на beta.4 installer/build blocker; fresh FP16 conversion, reproducibility,
+release subset и managed v2 activation уже закрыты. Invite beta/production/owner-live
+выполняй только после их точных preflight и stop conditions.
 
 OWNER AUTHORITY (verbatim):
 «GO D-HNR-10: выделить MADLAD productization в отдельный последовательный L4-MT трек до L4.0c/L4.0b; сначала исправить ложный provider-status, затем подготовить implementation packet, реализовать Browser→Companion MT без implicit fallback, провести invite beta и owner-live.»
@@ -16,20 +17,33 @@ CURRENT CHECKPOINT (2026-08-04):
 - MT-0 commit `24cc2b54`; coherent Browser→Companion implementation commit `623b0e3b`;
   conversion-memory/evidence fix `cc785906` (web `3.11.303`, Companion source
   `0.3.0-beta.2`). Ничего из этого не push/deploy.
-- 62 Python tests, 29 focused Node tests и 233 i18n checks PASS; full npm baseline имеет
+- 64 Python tests, 29 focused Node tests и 233 i18n checks PASS; full npm baseline имеет
   одну вне-срезовую classicModeRedesign failure, уже отсутствующую в commit baseline.
 - Exact local runtime adoption, real managed MADLAD translation и real ASR→MT→ASR→unloaded
-  exclusive scheduler PASS; evidence лежит в
+  exclusive scheduler PASS для прежнего v1; managed v2 load/translate/unload PASS. Evidence лежит в
   `docs/research/studio-l4-mt-madlad-productization/2026-08-04/`.
-- Fresh lifecycle: cancel/resume PASS, все 42,854,943,654 source bytes + hashes PASS, но
-  CT2 conversion завершился native Windows access violation `-1073741819` при ~6 GiB
-  available physical RAM; activation не было, source cache сохранён. Новый preflight
-  требует >=24 GiB currently available RAM и fail-closed `MODEL_CONVERSION_MEMORY_LOW`.
-- Invite beta всё ещё NOT READY: нужно освободить/получить >=24 GiB physical RAM,
-  повторить retained-source conversion→activation, затем delete/reinstall, installer,
+- Fresh lifecycle: cancel/resume и все 42,854,943,654 source bytes/hashes PASS. Worker
+  использует одновременно `load_as_float16=True` + `low_cpu_mem_usage=True`; 22 GiB gate
+  сохраняется. Два независимых conversion дали один SHA-256
+  `281b69be...e9e97`; below-gate RAM floors были 0.03/0.11 GiB, поэтому ниже 22 не обещать.
+- До candidate inference зафиксирован `release-regression-contract.json`: 64 shared IDs /
+  128 rows. V2 прошёл все cardinality/diagnostic/metric thresholds; macro chrF++
+  49.3464→49.6445. Identity честно повышена до
+  `madlad-400-10b-ct2-int8f16@v2`, а не переписана под v1.
+- Isolated lifecycle activation и обратимый owner-managed swap PASS; active v2 полный
+  rehash PASS, v1 сохранён как `int8_float16.v1-backup-20260804`. Повтор v2
+  ASR→MT→ASR не стартовал только из-за sandbox `WinError 5` на неизменённом ASR binary.
+- Invite beta всё ещё NOT READY: нужны beta.4 installer, delete/reinstall через binary,
   restart/multi-tab и production-origin save/reopen/export-import gates.
-- Production всё ещё наблюдался на `3.11.300`, disk около 96%/~1.4 GB free — hard STOP.
-  Никакого cleanup/push/deploy без нового read-only preflight и точной authority.
+- Owner-authorized bounded production cleanup PASS: 6 unreferenced app images + unused
+  build cache удалены; root 97%→76%, free 1.4→8.8 GB, `disk_warn=false`; active/newest
+  rollback, 10 containers, 3 volumes, backups/data сохранены. Production всё ещё `3.11.300`.
+- Текущая восстановленная сессия restricted: `.git` read-only, outbound network blocked.
+  Изменения web `3.11.304`/Companion `0.3.0-beta.4` не закоммичены. Build-venv имеет
+  PyInstaller/CUDA deps, но не имеет exact-pinned `accelerate==1.13.0` и
+  `torch==2.5.1`; сеть недоступна. Не
+  собирать неполный binary копированием случайных site-packages и не переиспользовать
+  beta.2 artifacts.
 
 READ FIRST полностью, по порядку:
 1. AGENTS.md

@@ -1,0 +1,74 @@
+{
+  "schema": "studio-l4-mt-beta4-binary-lifecycle-v1",
+  "date": "2026-08-04",
+  "artifact": {
+    "name": "LinguistProLocalAsrCompanion-0.3.0-beta.4-unsigned-internal.exe",
+    "bytes": 1867104966,
+    "sha256": "02b4e41c1ae9efa78016232b4e9c5587d627045f4a037dc82a33dd32aa5c84d9",
+    "signing": "UNSIGNED_INTERNAL_ONLY",
+    "source_commit_at_build": "4dde4e8594b133576623e03047194ab8c73d67b2",
+    "source_worktree_dirty": true,
+    "post_commit_rebuild_required": true
+  },
+  "frozen_runtime": {
+    "self_check": "PASS",
+    "torch": "2.5.1+cpu",
+    "accelerate": "1.13.0",
+    "converter": "ctranslate2.TransformersConverter",
+    "isolated_start_health_stop": "PASS"
+  },
+  "upgrade": {
+    "in_place_beta2_to_beta4": "PASS",
+    "pairing_token_preserved": true,
+    "asr_exact_revision_preserved": true,
+    "registry_version": "0.3.0-beta.4"
+  },
+  "real_mapping_regression": {
+    "observed_before_fix": "blank_segment_reached_model_and_returned_non_blank_output",
+    "remediation": "blank_and_whitespace_segments_bypass_inference_and_preserve_exact_input",
+    "focused_python_after_fix": "25 passed",
+    "real_binary_blank_exact": true,
+    "real_binary_whitespace_exact": true,
+    "real_binary_duplicate_exact": true
+  },
+  "delete_reinstall": {
+    "delete_receipt": {
+      "deleted": true,
+      "cache_deleted": false,
+      "absent_after": true,
+      "revision": "9f2797629c31e69617186dbe5f0ca43bf662f36d"
+    },
+    "source": "remote_exact_revision",
+    "transient_failure": {
+      "public_code": "MODEL_INSTALL_FAILED",
+      "processed_bytes": 41332133110,
+      "retained_partial_bytes": 1652555776
+    },
+    "resume_from_retained_partial": "PASS",
+    "processed_bytes": 53594568780,
+    "total_bytes": 53594568780,
+    "conversion_observed_ram_floor_gib": 0.96,
+    "ready": true,
+    "full_runtime_rehash": true,
+    "model_identity": "madlad-400-10b-ct2-int8f16@v2"
+  },
+  "runtime_gates": {
+    "production_origin_api": "PASS",
+    "concurrent_jobs_started_within_ms": 2,
+    "he_ru_segments": 3,
+    "ru_he_segments": 2,
+    "both_complete": true,
+    "both_local_madlad": true,
+    "restart_owned_service": "PASS",
+    "post_restart_full_rehash": "PASS",
+    "post_restart_cold_job": "PASS",
+    "final_runtime_state": "unloaded"
+  },
+  "claims": {
+    "automated_pass": true,
+    "local_binary_pass": true,
+    "production_pass": false,
+    "owner_live_pass": false,
+    "public_distribution_authorized": false
+  }
+}

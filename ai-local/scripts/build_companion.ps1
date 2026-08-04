@@ -28,13 +28,15 @@ if ($LASTEXITCODE -ne 0) { throw "Failed to install pinned Companion build depen
 
 function Resolve-ExactFfmpegBinary([string]$Name) {
   $Candidates = @(
-    "C:\ProgramData\chocolatey\lib\ffmpeg\tools\ffmpeg\bin\$Name.exe"
-    Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\Gyan.FFmpeg_*\ffmpeg-8.1-*\bin\$Name.exe" -File -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+    "C:\ProgramData\chocolatey\lib\ffmpeg\tools\ffmpeg\bin\$Name.exe";
+    Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\Gyan.FFmpeg_*\ffmpeg-8.1-*\bin\$Name.exe" -File -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName;
     (Get-Command $Name -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -ErrorAction SilentlyContinue)
   ) | Where-Object { $_ -and (Test-Path -LiteralPath $_) }
   foreach ($Candidate in $Candidates) {
-    $VersionLine = & $Candidate -version 2>$null | Select-Object -First 1
-    if ($LASTEXITCODE -eq 0 -and $VersionLine -match "^$Name version 8\.1") {
+    $VersionOutput = @(& $Candidate -version 2>$null)
+    $VersionExitCode = $LASTEXITCODE
+    $VersionLine = $VersionOutput | Select-Object -First 1
+    if ($VersionExitCode -eq 0 -and $VersionLine -match "^$Name version 8\.1") {
       return (Resolve-Path -LiteralPath $Candidate).Path
     }
   }
@@ -43,6 +45,10 @@ function Resolve-ExactFfmpegBinary([string]$Name) {
 
 $Ffmpeg = Resolve-ExactFfmpegBinary "ffmpeg"
 $Ffprobe = Resolve-ExactFfmpegBinary "ffprobe"
+$TorchVersion = & $VenvPython -c "import torch; print(torch.__version__)"
+if ($LASTEXITCODE -ne 0) { throw "Pinned torch runtime is required for MADLAD conversion" }
+$AccelerateVersion = & $VenvPython -c "import accelerate; print(accelerate.__version__)"
+if ($LASTEXITCODE -ne 0) { throw "Pinned accelerate runtime is required for MADLAD conversion" }
 $Notices = Join-Path $AiLocalRoot "THIRD_PARTY_NOTICES.md"
 $GuideRu = Join-Path $RepoRoot "docs\LOCAL_ASR_COMPANION_GUIDE.md"
 $GuideEn = Join-Path $RepoRoot "docs\LOCAL_ASR_COMPANION_GUIDE.en.md"
@@ -56,7 +62,7 @@ Get-ChildItem $CudnnBin,$CublasBin -File -Filter *.dll | ForEach-Object {
 }
 $CudnnLicense = Join-Path $SitePackages "nvidia_cudnn_cu12-9.10.2.21.dist-info\licenses\License.txt"
 $CublasLicense = Join-Path $SitePackages "nvidia_cublas_cu12-12.1.3.1.dist-info\License.txt"
-$InstallerName = "LinguistProLocalAsrCompanion-0.3.0-beta.2-unsigned-internal.exe"
+$InstallerName = "LinguistProLocalAsrCompanion-0.3.0-beta.4-unsigned-internal.exe"
 $PreviousInstaller = Join-Path $ArtifactRoot $InstallerName
 foreach ($PriorArtifact in @($PreviousInstaller, (Join-Path $ArtifactRoot "build-report.json"))) {
   if (Test-Path -LiteralPath $PriorArtifact) {
@@ -77,6 +83,7 @@ foreach ($PriorArtifact in @($PreviousInstaller, (Join-Path $ArtifactRoot "build
   --collect-all faster_whisper `
   --collect-all ctranslate2 `
   --collect-all transformers `
+  --collect-all accelerate `
   --collect-all sentencepiece `
   --collect-all safetensors `
   --collect-all av `
@@ -101,6 +108,16 @@ if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed; no installer may be produc
 
 $BuiltExe = Join-Path $DistRoot "LinguistProLocalAsrCompanion\LinguistProLocalAsrCompanion.exe"
 if (-not (Test-Path -LiteralPath $BuiltExe)) { throw "Frozen Companion executable was not produced" }
+$MtRuntimeCheckJson = & $BuiltExe --mt-runtime-check
+if ($LASTEXITCODE -ne 0) { throw "Frozen Companion MT runtime self-check failed" }
+try {
+  $MtRuntimeCheck = $MtRuntimeCheckJson | ConvertFrom-Json
+} catch {
+  throw "Frozen Companion MT runtime self-check returned invalid JSON"
+}
+if ($MtRuntimeCheck.status -ne "ok" -or $MtRuntimeCheck.torch -notlike "2.5.1*" -or $MtRuntimeCheck.accelerate -ne "1.13.0") {
+  throw "Frozen Companion MT runtime self-check returned unpinned dependencies"
+}
 
 $SignTool = Get-Command signtool -ErrorAction SilentlyContinue
 $CodeSigningCerts = @(Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert -ErrorAction SilentlyContinue)
@@ -114,6 +131,11 @@ if (-not $ResolvedSmokeRoot.StartsWith($ResolvedBuildRoot, [StringComparison]::O
 }
 New-Item -ItemType Directory -Force -Path $SmokeRoot | Out-Null
 $OriginalLocalAppData = $env:LOCALAPPDATA
+$OriginalBuildSmokePort = $env:AI_LOCAL_BUILD_SMOKE_PORT
+$PortProbe = [Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback, 0)
+$PortProbe.Start()
+$SmokePort = ([Net.IPEndPoint]$PortProbe.LocalEndpoint).Port
+$PortProbe.Stop()
 $StartProcess = $null
 $StopProcess = $null
 $StopFailure = $null
@@ -121,6 +143,7 @@ $Health = $null
 $HealthError = $null
 try {
   $env:LOCALAPPDATA = $SmokeRoot
+  $env:AI_LOCAL_BUILD_SMOKE_PORT = [string]$SmokePort
   $StartProcess = Start-Process -FilePath $BuiltExe -ArgumentList "--start" -WindowStyle Hidden -PassThru
   if (-not $StartProcess.WaitForExit(30000)) {
     Stop-Process -Id $StartProcess.Id -Force
@@ -131,7 +154,7 @@ try {
   }
   for ($Attempt = 0; $Attempt -lt 20; $Attempt++) {
     try {
-      $Health = Invoke-RestMethod -Uri "http://127.0.0.1:8799/healthz" -TimeoutSec 2
+      $Health = Invoke-RestMethod -Uri "http://127.0.0.1:$SmokePort/healthz" -TimeoutSec 2
       break
     } catch {
       $HealthError = $_.Exception.Message
@@ -149,6 +172,7 @@ try {
     $StopFailure = "Frozen Companion cleanup failed: $($_.Exception.Message)"
   } finally {
     $env:LOCALAPPDATA = $OriginalLocalAppData
+    $env:AI_LOCAL_BUILD_SMOKE_PORT = $OriginalBuildSmokePort
     if (Test-Path -LiteralPath $SmokeRoot) {
       Remove-Item -LiteralPath $SmokeRoot -Recurse -Force
     }
@@ -165,7 +189,13 @@ $BuildReport = [ordered]@{
   generated_at = [DateTime]::UtcNow.ToString("o")
   source_commit = (git -C $RepoRoot rev-parse HEAD)
   source_worktree_dirty = [bool](@(git -C $RepoRoot status --porcelain --untracked-files=normal).Count)
-  companion_version = "0.3.0-beta.2"
+  source_input_changes = @(
+    git -C $RepoRoot status --porcelain --untracked-files=normal -- `
+      ai-local/ai_local ai-local/pyproject.toml ai-local/installer `
+      ai-local/THIRD_PARTY_NOTICES.md docs/LOCAL_ASR_COMPANION_GUIDE.md `
+      docs/LOCAL_ASR_COMPANION_GUIDE.en.md docs/LOCAL_ASR_COMPANION_GUIDE.he.md
+  )
+  companion_version = "0.3.0-beta.4"
   signing_status = $SigningStatus
   frozen_executable = $BuiltExe
   frozen_smoke = [ordered]@{
@@ -185,8 +215,14 @@ $BuildReport = [ordered]@{
   model_bundled = $false
   mt_model_bundled = $false
   mt_install_source = "exact pinned Hugging Face revision with post-conversion runtime SHA-256 gate"
+  mt_conversion_runtime = [ordered]@{
+    torch = $TorchVersion
+    accelerate = $AccelerateVersion
+  }
+  mt_runtime_check = $MtRuntimeCheck
   external_distribution_authorized = $false
 }
+$BuildReport.source_input_dirty = [bool](@($BuildReport.source_input_changes).Count)
 
 if (-not $SkipInstaller) {
   $IsccCandidates = @(@(
@@ -202,7 +238,7 @@ if (-not $SkipInstaller) {
   if (-not (Test-Path -LiteralPath $PreviousInstaller)) { throw "Inno Setup did not produce the expected installer" }
 }
 
-$ProducedArtifacts = @(Get-ChildItem -LiteralPath $ArtifactRoot -File | Where-Object { $_.Name -ne "build-report.json" } | ForEach-Object {
+$ProducedArtifacts = @(Get-ChildItem -LiteralPath $ArtifactRoot -File | Where-Object { $_.Name -eq $InstallerName } | ForEach-Object {
   [ordered]@{
     name = $_.Name
     bytes = $_.Length

@@ -1,0 +1,75 @@
+{
+  "schema": "studio-l4-mt-fp16-remediation-v1",
+  "date": "2026-08-04",
+  "source_config_torch_dtype": "float32",
+  "source_weight_bytes": 42850436840,
+  "source_weight_gib_approx": 39.9076,
+  "converter_before": {
+    "load_as_float16": false,
+    "low_cpu_mem_usage": true,
+    "ram_gate_gib": 24,
+    "status": "unsafe mismatch: gate was below the float32 weight representation"
+  },
+  "converter_after": {
+    "load_as_float16": true,
+    "low_cpu_mem_usage": true,
+    "fp16_weight_gib_approx": 19.9538,
+    "ram_gate_gib": 22,
+    "overhead_gib_approx": 2.0462
+  },
+  "red_tests": 2,
+  "red_test_failures": [
+    "load_as_float16 missing",
+    "RAM gate remained 24 GiB"
+  ],
+  "green_tests": {
+    "focused_mt": "12 passed",
+    "all_ai_local": "64 passed",
+    "browser_routing": "19 passed",
+    "i18n": "233 passed"
+  },
+  "available_physical_ram_gib_after_owner_cleanup": 17.09,
+  "owner_reported_available_physical_ram_gib_before_retry": 20.6,
+  "measured_available_physical_ram_gib_before_retry": 21.25,
+  "conversion_retry_started": true,
+  "conversion_retry": {
+    "direct_diagnostic_bypass_below_product_gate": true,
+    "elapsed_seconds": 190.0,
+    "exit_code": 0,
+    "memory_samples": 162,
+    "minimum_available_physical_ram_gib": 0.03,
+    "output_file_count": 7,
+    "output_bytes": 10739625126,
+    "source_and_existing_managed_runtime_untouched": true
+  },
+  "fresh_conversion_process_pass": true,
+  "fresh_conversion_integrity_pass": true,
+  "integrity_result": {
+    "status": "FORMER_V1_PIN_MISMATCH_RESOLVED_AS_V2_AFTER_REPRODUCIBILITY_AND_RELEASE_REGRESSION",
+    "fresh_model_bin_sha256": "281b69becdcdd7feda12620319e8e6aa2988d4e83fac7f9ab312a75b663e9e97",
+    "approved_model_bin_sha256": "8edcf2e2437385df83407e5129bf23fb2f939d3dabba50870fdb36610d0a54b3",
+    "same_model_bin_bytes": true,
+    "all_six_non_model_runtime_hashes_match": true
+  },
+  "activation_performed": true,
+  "product_gate_conclusion": "22 GiB remains the minimum exposed gate; do not lower it to the observed 20.6-21.25 GiB because available physical RAM fell to 0.03 GiB",
+  "next_required_gate": "establish reproducibility and rerun the frozen MADLAD quality baseline before changing the approved runtime hash or identity",
+  "resolution": {
+    "status": "PASS_AS_V2",
+    "second_conversion": {
+      "elapsed_seconds": 199.8,
+      "exit_code": 0,
+      "memory_samples": 197,
+      "minimum_available_physical_ram_gib": 0.11,
+      "output_bytes": 10739625126,
+      "model_bin_sha256": "281b69becdcdd7feda12620319e8e6aa2988d4e83fac7f9ab312a75b663e9e97"
+    },
+    "independent_conversion_hash_matches": 2,
+    "release_regression_contract": "../release-regression-contract.json",
+    "release_regression_verdict": "PASS",
+    "new_identity": "madlad-400-10b-ct2-int8f16@v2",
+    "isolated_activation_verified": true,
+    "owner_managed_activation_verified": true,
+    "v1_rollback_backup_retained": true
+  }
+}

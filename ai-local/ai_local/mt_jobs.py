@@ -233,14 +233,24 @@ class MtJobManager:
                         if job.cancel_event.is_set():
                             raise LeaseCancelled("MT_JOB_CANCELED")
                         batch = job.segments[offset : offset + MT_INFERENCE_BATCH_SIZE]
-                        outputs = await asyncio.to_thread(
-                            slot.impl.translate_batch,
-                            [segment["text"] for segment in batch],
-                            job.target_lang,
+                        translatable = [
+                            (position, segment["text"])
+                            for position, segment in enumerate(batch)
+                            if segment["text"].strip()
+                        ]
+                        outputs = (
+                            await asyncio.to_thread(
+                                slot.impl.translate_batch,
+                                [text for _, text in translatable],
+                                job.target_lang,
+                            )
+                            if translatable else []
                         )
-                        if len(outputs) != len(batch):
+                        if len(outputs) != len(translatable):
                             raise RuntimeError("MT_RESULT_CARDINALITY_MISMATCH")
-                        for segment, output in zip(batch, outputs):
+                        translated = dict(zip((position for position, _ in translatable), outputs))
+                        for position, segment in enumerate(batch):
+                            output = translated.get(position, segment["text"])
                             if not isinstance(output, str):
                                 raise RuntimeError("MT_RESULT_SCHEMA_INVALID")
                             job.results.append({"index": segment["index"], "text": output})

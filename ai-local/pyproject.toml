@@ -19,7 +19,10 @@ runtime = [
     # Exact MADLAD CT2 artifact was produced with this converter environment;
     # changing it is a model-identity change because runtime bytes must match.
     "transformers==4.49.0",
-    "accelerate>=0.26,<2.0",
+    # The reproducible @v2 runtime was converted with these exact loader
+    # versions. A dependency drift is a new runtime identity until requalified.
+    "accelerate==1.13.0",
+    "torch==2.5.1",
     "ctranslate2==4.5.0",
     "faster-whisper==1.1.1",
     "sentencepiece>=0.2,<0.3",

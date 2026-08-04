@@ -1,0 +1,47 @@
+{
+  "schema": "studio-l4-mt-release-regression-contract-v1",
+  "date": "2026-08-04",
+  "status": "FROZEN_BEFORE_CANDIDATE_INFERENCE",
+  "authority": "owner approval in chat after FP16 conversion integrity STOP",
+  "source": {
+    "stage_a_input_sha256": "a9582c11d24a856837e7354268c6767281bfe6935c3832285f05b84721cb3852",
+    "selection_algorithm": "sort unique parent_id by sha256(seed + NUL + parent_id), tie-break by parent_id, take first 64",
+    "selection_seed": "l4-mt-productization-release-subset-v1",
+    "selected_parent_ids": 64,
+    "selected_parent_ids_sha256": "e1ea2930dd7b78cbe11ff833d442a5301aa04f4791cbc964db35850ed26e071f",
+    "selected_rows": 128,
+    "he_ru_rows": 64,
+    "ru_he_rows": 64,
+    "subset_input_sha256": "201b16c36f73077dc28f236ab53f6305e4a04fdc388d090d83bcf3ea2e4ba313"
+  },
+  "approved_runtime": {
+    "model_bin_sha256": "8edcf2e2437385df83407e5129bf23fb2f939d3dabba50870fdb36610d0a54b3",
+    "subset_output_sha256": "5ba0e697f9cb809d92084f71c4af8e4df0d195c6203a5c24cfaa210688f5e05d",
+    "he_ru_chrf_plus_plus": 50.7953,
+    "he_ru_spbleu": 33.9499,
+    "ru_he_chrf_plus_plus": 47.8975,
+    "ru_he_spbleu": 34.3215,
+    "macro_chrf_plus_plus": 49.3464,
+    "empty_hypotheses": 0,
+    "truncated": 0,
+    "critical_flags": 0
+  },
+  "candidate_runtime": {
+    "model_bin_sha256": "281b69becdcdd7feda12620319e8e6aa2988d4e83fac7f9ab312a75b663e9e97",
+    "reproduced_independent_conversions": 2
+  },
+  "pass_thresholds": {
+    "exact_row_cardinality": 128,
+    "unique_ids": 128,
+    "mapping_and_order_must_match_input": true,
+    "maximum_empty_hypotheses": 0,
+    "maximum_truncated": 0,
+    "maximum_critical_flags": 0,
+    "minimum_he_ru_chrf_plus_plus": 50.2953,
+    "minimum_ru_he_chrf_plus_plus": 47.3975,
+    "minimum_macro_chrf_plus_plus": 48.8464,
+    "minimum_he_ru_spbleu": 33.1999,
+    "minimum_ru_he_spbleu": 33.5715
+  },
+  "positioning": "REPRESENTATIVE RELEASE SUBSET; NOT FULL STAGE A; LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION"
+}

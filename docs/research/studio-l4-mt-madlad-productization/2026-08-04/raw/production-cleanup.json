@@ -1,0 +1,50 @@
+{
+  "schema": "studio-l4-mt-production-cleanup-v1",
+  "date": "2026-08-04",
+  "authority": "owner-authorized bounded production disk blocker remediation",
+  "before": {
+    "root_used_percent": 97,
+    "root_free_gb": 1.4,
+    "images_total": 15,
+    "images_size_gb": 20.01,
+    "images_reclaimable_gb": 4.421,
+    "build_cache_size_gb": 6.436,
+    "build_cache_reclaimable_gb": 2.738,
+    "containers_total": 10,
+    "containers_running": 10,
+    "volumes_total": 3,
+    "health_ok": true,
+    "disk_warn": true
+  },
+  "mutation": {
+    "unused_app_images_removed": 6,
+    "builder_prune": true,
+    "docker_system_prune": false,
+    "containers_removed": 0,
+    "volumes_removed": 0,
+    "backups_removed": 0,
+    "data_mutated": false
+  },
+  "retained": {
+    "active_app_image": true,
+    "newest_rollback_app_image": true,
+    "containers_running": 10,
+    "volumes_total": 3,
+    "latest_backup_present": true
+  },
+  "after": {
+    "root_used_percent": 76,
+    "root_free_gb": 8.8,
+    "images_total": 9,
+    "images_size_gb": 12.02,
+    "images_reclaimable_gb": 0.576,
+    "build_cache_size_gb": 1.44,
+    "build_cache_reclaimable_gb": 0.043,
+    "health_ok": true,
+    "db_ready": true,
+    "migrations_ready": true,
+    "health_disk_used_percent": 77,
+    "disk_warn": false
+  },
+  "pass": true
+}

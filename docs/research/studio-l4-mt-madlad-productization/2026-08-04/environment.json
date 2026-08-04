@@ -2,8 +2,8 @@
   "captured_at": "2026-08-04",
   "local_head_before_coherent_mt_commit": "24cc2b5462dd47ad3ae1dc532ea71b81c34bc74e",
   "origin_main_observed": "47959ce88647d6b38d829c3f1dd3c3bdbe6e9cf0",
-  "web_package": "3.11.303",
-  "companion_source_version": "0.3.0-beta.2",
+  "web_package": "3.11.304",
+  "companion_source_version": "0.3.0-beta.4",
   "os": "Windows",
   "python_test_runtime": "ai-local/.venv",
   "gpu": {
@@ -12,7 +12,7 @@
     "driver": "595.79"
   },
   "model": {
-    "identity": "madlad-400-10b-ct2-int8f16@v1",
+    "identity": "madlad-400-10b-ct2-int8f16@v2",
     "upstream": "google/madlad400-10b-mt",
     "revision": "9f2797629c31e69617186dbe5f0ca43bf662f36d",
     "runtime_bytes": 10739625126,
@@ -20,19 +20,31 @@
     "converter": {
       "transformers": "4.49.0",
       "ctranslate2": "4.5.0",
+      "accelerate": "1.13.0",
+      "torch": "2.5.1+cu121",
+      "load_as_float16": true,
       "low_cpu_mem_usage": true,
-      "minimum_available_physical_ram_bytes": 25769803776
+      "minimum_available_physical_ram_bytes": 23622320128
+    },
+    "frozen_companion_converter": {
+      "torch": "2.5.1+cpu",
+      "accelerate": "1.13.0",
+      "binary_delete_reinstall_full_rehash_pass": true
     }
   },
   "production_observation": {
     "served_package": "3.11.300",
     "served_origin_commit": "47959ce88647d6b38d829c3f1dd3c3bdbe6e9cf0",
-    "disk_used_percent_approx": 96,
-    "disk_free_gb_approx": 1.4,
-    "mutation_performed": false
+    "disk_used_percent_before_cleanup": 97,
+    "disk_free_gb_before_cleanup": 1.4,
+    "disk_used_percent_after_cleanup": 76,
+    "disk_free_gb_after_cleanup": 8.8,
+    "disk_warn_after_cleanup": false,
+    "bounded_cleanup_performed": true,
+    "deploy_performed": false
   },
   "claims": {
-    "engineering_complete": false,
+    "engineering_complete": true,
     "production_pass": false,
     "owner_live_pass": false,
     "invite_beta_open": false

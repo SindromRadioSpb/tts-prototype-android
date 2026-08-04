@@ -8,7 +8,7 @@ MT_MODEL_REVISION = "9f2797629c31e69617186dbe5f0ca43bf662f36d"
 MT_MODEL_LICENSE = "Apache-2.0"
 MT_MODEL_FORMAT = "CTranslate2"
 MT_MODEL_QUANTIZATION = "int8_float16"
-MT_MODEL_IDENTITY = "madlad-400-10b-ct2-int8f16@v1"
+MT_MODEL_IDENTITY = "madlad-400-10b-ct2-int8f16@v2"
 
 # This is the exact artifact used by the frozen L4.0a benchmark. A different
 # conversion is a different model identity and must not be silently accepted.
@@ -24,7 +24,7 @@ MT_RUNTIME_FILE_BYTES = {
 MT_RUNTIME_FILE_SHA256 = {
     "config.json": "5b74d87fd940afd7074813842dd5ca399fe288381e5a35d73fdef957cb6083b9",
     "generation_config.json": "0849b38987568ccfe4ebefc22bbda1cec4bee01c345e93bfab207d4692b0a1d5",
-    "model.bin": "8edcf2e2437385df83407e5129bf23fb2f939d3dabba50870fdb36610d0a54b3",
+    "model.bin": "281b69becdcdd7feda12620319e8e6aa2988d4e83fac7f9ab312a75b663e9e97",
     "shared_vocabulary.json": "96a87e56790161e612568fd3a9917c3eb05100632dbda0eb0f202dfc1890d91d",
     "special_tokens_map.json": "7f79f1d5063d56c4b980eec0692f3c7429bdef335071d34e566bd00fd4b5e3e0",
     "spiece.model": "ef11ac9a22c7503492f56d48dce53be20e339b63605983e9f27d2cd0e0f3922c",
@@ -79,10 +79,11 @@ MT_MAX_SEGMENTS_PER_JOB = 120
 MT_MAX_SEGMENT_CHARS = 8_000
 MT_MAX_TOTAL_CHARS = 240_000
 MT_INFERENCE_BATCH_SIZE = 4
-# TransformersConverter materializes the 10B model before CT2 quantization.
-# Fail before a 42.85 GB download unless the machine has enough currently
-# available physical RAM; pagefile-only headroom proved crash-prone on Windows.
-MT_CONVERSION_MIN_AVAILABLE_RAM_BYTES = 24 * 1024**3
+# The pinned source is ~39.9 GiB of float32 weights. The converter explicitly
+# loads FP16 (~20 GiB) and needs bounded overhead while building the CT2 spec.
+# Pagefile-only headroom proved crash-prone on Windows, so require 22 GiB of
+# currently available physical RAM instead of promising an unsafe lower gate.
+MT_CONVERSION_MIN_AVAILABLE_RAM_BYTES = 22 * 1024**3
 
 
 def model_identity() -> dict[str, object]:

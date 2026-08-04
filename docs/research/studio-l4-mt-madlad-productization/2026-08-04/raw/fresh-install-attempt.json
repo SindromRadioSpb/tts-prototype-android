@@ -27,9 +27,17 @@
   },
   "remediation": {
     "fail_early_code": "MODEL_CONVERSION_MEMORY_LOW",
-    "minimum_available_physical_ram_bytes": 25769803776,
+    "load_as_float16": true,
+    "low_cpu_mem_usage": true,
+    "minimum_available_physical_ram_bytes": 23622320128,
     "source_cache_retained_for_retry": true,
-    "retry_pass": false
+    "retry_pass": true,
+    "independent_reproductions": 2,
+    "runtime_identity": "madlad-400-10b-ct2-int8f16@v2",
+    "runtime_model_bin_sha256": "281b69becdcdd7feda12620319e8e6aa2988d4e83fac7f9ab312a75b663e9e97",
+    "release_regression_pass": true,
+    "isolated_atomic_activation_pass": true,
+    "owner_managed_activation_pass": true
   },
   "existing_runtime_adoption": {
     "runtime_bytes": 10739625126,
@@ -37,5 +45,17 @@
     "atomic_activation_pass": true,
     "managed_model_state": "READY"
   },
-  "fresh_install_pass": false
+  "beta4_binary_delete_reinstall": {
+    "deleted": true,
+    "absent_after_delete": true,
+    "source": "remote_exact_revision",
+    "network_failure_code": "MODEL_INSTALL_FAILED",
+    "retained_partial_bytes": 1652555776,
+    "resume_pass": true,
+    "processed_bytes": 53594568780,
+    "conversion_ram_floor_gib_observed": 0.96,
+    "full_runtime_rehash_pass": true,
+    "restart_and_cold_job_pass": true
+  },
+  "fresh_install_pass": true
 }

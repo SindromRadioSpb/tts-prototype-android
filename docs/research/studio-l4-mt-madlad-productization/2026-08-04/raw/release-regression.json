@@ -1,0 +1,58 @@
+{
+  "schema": "studio-l4-mt-release-regression-result-v1",
+  "date": "2026-08-04",
+  "contract": "../release-regression-contract.json",
+  "subset": {
+    "selection_seed": "l4-mt-productization-release-subset-v1",
+    "shared_ids": 64,
+    "rows": 128,
+    "he_ru_rows": 64,
+    "ru_he_rows": 64,
+    "input_sha256": "201b16c36f73077dc28f236ab53f6305e4a04fdc388d090d83bcf3ea2e4ba313"
+  },
+  "candidate": {
+    "identity": "madlad-400-10b-ct2-int8f16@v2",
+    "model_bin_sha256": "281b69becdcdd7feda12620319e8e6aa2988d4e83fac7f9ab312a75b663e9e97",
+    "independent_conversion_hash_matches": 2,
+    "output_sha256": "4255400b1fdc01eb58f2da19159ca812e8150eddbc35ffd7a7ce826c8262febc",
+    "rows": 128,
+    "unique_ids": 128,
+    "mapping_and_order_pass": true,
+    "changed_outputs_vs_v1": 51,
+    "exact_output_matches_vs_v1": 77,
+    "provider_failures": 0,
+    "truncated": 0,
+    "critical_flags": 0,
+    "performance": {
+      "segments_per_second": 0.25516,
+      "output_tokens_per_second": 10.918065,
+      "gpu_memory_used_mib_peak": 7803
+    }
+  },
+  "metrics": {
+    "approved_v1": {
+      "he_ru_chrf_plus_plus": 50.7953,
+      "he_ru_spbleu": 33.9499,
+      "ru_he_chrf_plus_plus": 47.8975,
+      "ru_he_spbleu": 34.3215,
+      "macro_chrf_plus_plus": 49.3464
+    },
+    "candidate_v2": {
+      "he_ru_chrf_plus_plus": 51.4397,
+      "he_ru_spbleu": 34.2042,
+      "ru_he_chrf_plus_plus": 47.8492,
+      "ru_he_spbleu": 34.2859,
+      "macro_chrf_plus_plus": 49.6445
+    },
+    "candidate_minus_approved": {
+      "he_ru_chrf_plus_plus": 0.6444,
+      "he_ru_spbleu": 0.2543,
+      "ru_he_chrf_plus_plus": -0.0483,
+      "ru_he_spbleu": -0.0356,
+      "macro_chrf_plus_plus": 0.2981
+    }
+  },
+  "threshold_verdict": "PASS",
+  "scope": "REPRESENTATIVE RELEASE SUBSET; NOT FULL STAGE A",
+  "positioning": "LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION"
+}

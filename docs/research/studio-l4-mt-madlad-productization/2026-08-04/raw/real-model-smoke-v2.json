@@ -1,0 +1,22 @@
+{
+  "schema": "studio-l4-mt-real-model-smoke-v2",
+  "date": "2026-08-04",
+  "model_identity": "madlad-400-10b-ct2-int8f16@v2",
+  "model_bin_sha256": "281b69becdcdd7feda12620319e8e6aa2988d4e83fac7f9ab312a75b663e9e97",
+  "gpu": "NVIDIA GeForce RTX 3070 8GB",
+  "load_seconds": 14.852,
+  "translate_seconds": 5.39,
+  "unload_called": true,
+  "gpu_used_mib_after_process": 497,
+  "oom": false,
+  "cases": [
+    { "source_lang": "he", "target_lang": "ru", "source": "שלום עולם.", "translation": "Мир во всем мире." },
+    { "source_lang": "he", "target_lang": "ru", "source": "זהו מבחן מקומי.", "translation": "Это локальная проверка." },
+    { "source_lang": "ru", "target_lang": "he", "source": "Привет, мир.", "translation": "שלום, עולם." },
+    { "source_lang": "ru", "target_lang": "he", "source": "Это локальный тест.", "translation": "זה מבחן מקומי." }
+  ],
+  "asr_mt_asr_repeat": "BLOCKED_BY_RESTRICTED_SANDBOX_ASR_MODEL_READ_DENIED",
+  "positioning": "LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION",
+  "owner_selected_material": false,
+  "owner_live_pass": false
+}

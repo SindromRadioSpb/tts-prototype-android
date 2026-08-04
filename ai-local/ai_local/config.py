@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+from .mt_constants import MT_MODEL_IDENTITY
+
 
 def _env_bool(name: str, default: bool) -> bool:
     raw = os.environ.get(name)
@@ -95,5 +97,5 @@ ASR_PAIRING_TOKEN_FILE = Path(
 )
 ASR_JOB_ROOT = Path(os.environ.get("AI_LOCAL_JOB_ROOT", STATE_DIR / "jobs"))
 
-MADLAD_MODEL_VERSION = "madlad-400-10b-ct2-int8f16@v1"
+MADLAD_MODEL_VERSION = MT_MODEL_IDENTITY
 NAKDAN_MODEL_VERSION = "dictabert-large-char-menaked@2025-03"

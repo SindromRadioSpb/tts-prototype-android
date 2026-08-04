@@ -23,7 +23,7 @@
       MODEL_RUNTIME_FILE_HASH_MISMATCH: T("studio.localMt.errIntegrity", "The local runtime snapshot failed its exact SHA-256 gate."),
       MODEL_SOURCE_INTEGRITY_FAILED: T("studio.localMt.errIntegrity", "The exact upstream download failed its SHA-256 gate."),
       MODEL_CONVERSION_FAILED: T("studio.localMt.errConversion", "Pinned conversion failed; the model was not activated."),
-      MODEL_CONVERSION_MEMORY_LOW: T("studio.localMt.errMemory", "Close heavy applications: exact conversion requires at least 24 GB of currently available system RAM."),
+      MODEL_CONVERSION_MEMORY_LOW: T("studio.localMt.errMemory", "Close heavy applications: exact FP16 conversion requires at least 22 GB of currently available system RAM."),
       LOCAL_MT_ABSENT: T("studio.localMt.errDown", "Start the Companion. No cloud provider was called."),
       LOCAL_MT_CONSENT_REQUIRED: T("studio.localMt.errConsent", "Accept the license, resource, privacy, and draft-quality statement first."),
     };
@@ -69,7 +69,7 @@
     var values = {
       localMtTitle: ["studio.localMt.title", "MADLAD local translation"],
       localMtIntro: ["studio.localMt.intro", "Translation stays on this computer. A local error never calls Gemini or Google automatically. Results are correctable machine drafts."],
-      localMtRequirements: ["studio.localMt.requirements", "Windows 11 · NVIDIA CUDA · 8 GB VRAM · Chrome · model 10.74 GB · up to 60 GB disk · at least 24 GB currently available RAM for exact conversion"],
+      localMtRequirements: ["studio.localMt.requirements", "Windows 11 · NVIDIA CUDA · 8 GB VRAM · Chrome · model 10.74 GB · up to 60 GB disk · at least 22 GB currently available RAM for exact FP16 conversion"],
       localMtPairTitle: ["studio.localMt.pairTitle", "Pair this browser session"],
       localMtPairNote: ["studio.localMt.pairNote", "Use the same Companion token as Local ASR. It remains in session storage only."],
       localMtModelTitle: ["studio.localMt.modelTitle", "Pinned MADLAD model"],

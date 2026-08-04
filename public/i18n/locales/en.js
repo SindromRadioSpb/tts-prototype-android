@@ -3275,12 +3275,12 @@ window.I18N_LOCALES.en = {
       title: "MADLAD local translation",
       btnTitle: "MADLAD local translation settings", cancelTranslation: "Cancel local translation",
       intro: "Translation stays on this computer. A local error never calls Gemini or Google automatically. Results are correctable machine drafts.",
-      requirements: "Windows 11 · NVIDIA CUDA · 8 GB VRAM · Chrome · model 10.74 GB · up to 60 GB disk · at least 24 GB currently available RAM for exact conversion",
+      requirements: "Windows 11 · NVIDIA CUDA · 8 GB VRAM · Chrome · model 10.74 GB · up to 60 GB disk · at least 22 GB currently available RAM for exact FP16 conversion",
       pairTitle: "Pair this browser session", pairNote: "Use the same Companion token as Local ASR. It remains in session storage only.", tokenPlaceholder: "Pairing token", pair: "Pair and check", paired: "Companion authenticated: ",
       modelTitle: "Pinned MADLAD model", consent: "I accept Apache-2.0, the resource requirements, local text processing, and LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION draft positioning.",
       install: "Verify and activate", cancelInstall: "Cancel", delete: "Delete model", installStarted: "Exact snapshot verification and activation started.",
       runtimeTitle: "GPU residency", runtimeNote: "ASR and MADLAD are serialized; switching unloads the other heavy model.", warmup: "Warm up", unload: "Unload GPU", actionDone: "Action completed.", notInvited: "This browser is not enrolled in the invite beta.",
-      errDisk: "Not enough free disk space for exact download, conversion, and activation.", errIntegrity: "The exact model snapshot failed its SHA-256 gate and was not activated.", errConversion: "Pinned conversion failed; the model was not activated.", errMemory: "Close heavy applications: exact conversion requires at least 24 GB of currently available system RAM.", errDown: "Start the Companion. No cloud provider was called.", errConsent: "Accept the license, resource, privacy, and draft-quality statement first.",
+      errDisk: "Not enough free disk space for exact download, conversion, and activation.", errIntegrity: "The exact model snapshot failed its SHA-256 gate and was not activated.", errConversion: "Pinned conversion failed; the model was not activated.", errMemory: "Close heavy applications: exact FP16 conversion requires at least 22 GB of currently available system RAM.", errDown: "Start the Companion. No cloud provider was called.", errConsent: "Accept the license, resource, privacy, and draft-quality statement first.",
       state: { absent: "Companion unavailable", unpaired: "Pair Companion", model_missing: "Model missing", installing: "Installing and verifying", ready: "Ready", busy: "GPU busy", error: "Local error" }
     },
     retell: {
