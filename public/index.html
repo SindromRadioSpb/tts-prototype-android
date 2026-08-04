@@ -13027,6 +13027,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      потребляются inline-кодом шаринга/импорта ниже (window.TextCardFormat). -->
 <script src="/js/text-card-format.js"></script>
 <script src="/js/studio-media-karaoke.js"></script>
+<!-- Room media player (spec 2026-08-04): общий паспорт-пайплайн + DOM-хелперы плеера
+     (window.MediaHost). Обе поверхности (эта и library.html) обязаны звать его, не форкать. -->
+<script src="/js/media-host.js"></script>
 
 <!-- W2-S5a Studio Ingest captions/video deps — pure, no cross-deps between the two, but BOTH
      must load before studio-import.js (calls CaptionsParse.parse/StudioYtPlayer.*) and before
@@ -14384,7 +14387,7 @@ if (header) {
         window.v3MediaPackageStale = !!(activation && activation.stale);
         if (activation && activation.media_passport) {
           window.v3ActiveMediaAudio = activation.media_passport;
-          v3MediaBlobCache = null;
+          v3MediaResolverClear();
         }
         if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
       } catch (_) {}
@@ -24097,13 +24100,11 @@ v3LibraryOnSearchInput();
 let v3LastGeminiMeta = null;
 
 // W2-S5a: паспорт медиа лежит в слоте `audio` (импорт аудио/видео-файла, S4) или `captions`
-// (импорт субтитров, S5a). Внутренняя форма одна и та же — {v, segments, timing,
-// timingDropReason, media?}. ЕДИНСТВЕННАЯ точка доступа: любой новый консьюмер обязан
-// ходить сюда, иначе одна из поверхностей молча потеряет тайминг (урок gate-consumers-sweep).
-function v3MediaPassport(holder) {
-  if (!holder || typeof holder !== "object") return null;
-  return holder.audio || holder.captions || null;
-}
+// (импорт субтитров, S5a). Реализация ИЗВЛЕЧЕНА в общий /js/media-host.js (Room media player,
+// spec 2026-08-04) — Зал использует те же правила. Обёртки сохраняют имена v3* для всех
+// существующих вызовов; при незагруженном MediaHost (офлайн до precache) медиа-фича честно
+// выключена целиком (бар скрыт) — тот же класс деградации, что guard window.TableChunks.
+function v3MediaPassport(holder) { return window.MediaHost ? MediaHost.passport(holder) : null; }
 
 // timingDropReason: ДВА РАЗНЫХ КЛАССА ПРИЧИН на одном поле (единый список — здесь, ревью K1
 // 2026-07-30). «Утверждённые» причины (PREVIEW_EDITED / ASR_TIMING_INVALID) — факты САМОГО
@@ -24117,8 +24118,8 @@ function v3MediaPassport(holder) {
 // seg-режим для этого импорта (а на длинном материале — ещё и чанкование, т.е. упор в
 // «текст слишком длинный для одной таблицы»). Ровно тот путь, который подсказывает сам импорт:
 // «для караоке включите Gemini». Лечится только повторным импортом = повторной оплатой ASR.
-const V3_DERIVED_TIMING_DROPS = ["NO_SEGMENT_MAPPING", "SEG_MAPPING_LOST"];
-function v3IsDerivedTimingDrop(reason) { return V3_DERIVED_TIMING_DROPS.indexOf(reason) !== -1; }
+// (список причин — MediaHost.DERIVED_TIMING_DROPS, media-host.js)
+function v3IsDerivedTimingDrop(reason) { return !!(window.MediaHost && MediaHost.isDerivedTimingDrop(reason)); }
 
 // провенанс импорта (R9 derived≠asserted): текст пришёл из «Импорта»?
 // DRY helper — вызывается из обеих веток translateTable() success-handler.
@@ -24162,12 +24163,7 @@ function v3AttachImportSource() {
 // прогона (`asr.clockCompressedRanges`): вердикт выносился по СЫРЫМ окнам, которых здесь уже
 // нет, и пересчитать его по склеенным сегментам нельзя. Отсутствие поля (карточки, снятые до
 // S12.7) = «не судили» — молчим, а не объявляем всё сжатым (R11: не ухудшать).
-function v3ClockBlindRanges(audio) {
-  const raw = audio && audio.asr && audio.asr.clockCompressedRanges;
-  if (!Array.isArray(raw)) return [];
-  return raw.filter((r) => r && typeof r.fromSec === "number" && typeof r.toSec === "number" && r.toSec > r.fromSec)
-            .map((r) => ({ fromSec: r.fromSec, toSec: r.toSec }));
-}
+function v3ClockBlindRanges(audio) { return window.MediaHost ? MediaHost.clockBlindRanges(audio) : []; }
 
 function v3AttachAudioTiming(res, segMode, premiumLines) {
   try {
@@ -24339,89 +24335,11 @@ function v3AttachAudioTiming(res, segMode, premiumLines) {
 }
 
 // ── K3 (2026-07-30): ОЖИВЛЕНИЕ КАРАОКЕ У УЖЕ СОХРАНЁННОЙ КАРТОЧКИ ────────────────────────────
-// K1 погасил вырожденное караоке, K2 вернул его премиум-ветке — но оба живут только в СЕССИИ
-// ИМПОРТА: у сохранённой карточки строки восстанавливаются из Библиотеки без запроса
-// (v3RestoreSavedTableIfUnchanged), а v3MediaLineIdentity читает window.v3LastImportMeta, который
-// при открытии текста обнуляется (R9 — смена сущности). Для 117-минутной карточки владельца это
-// означало бы повторный импорт = повторную оплату ASR за уже оплаченный транскрипт.
-//
-// Здесь связь «строка → сегмент» ВОССТАНАВЛИВАЕТСЯ ОФЛАЙН по тексту
-// (AsrTranscript.alignRowsToSegments — правило и оракул описаны там): ни одного сетевого запроса,
-// ни цента, ~20 мс на форме владельца (1074 сегмента × 1651 строка, замер в живой вкладке).
-//
-// ПОЧЕМУ ПРОВЕРЕННЫЙ МАППИНГ ЗАМЕЩАЕТ СОХРАНЁННЫЙ ТАЙМИНГ (R11 «источник-истины > самоотчёт»).
-// Тайминг в паспорте — УТВЕРЖДЕНИЕ, сделанное когда-то другим кодом; проверить его сейчас нечем,
-// а живой замер показал, что он бывает уверенно неверным и при этом НЕ ловится карантином K1:
-// на карточке владельца у ВСЕХ 1070 записей o === индекс_сегмента − 1 (1-based `segment_index`
-// премиума сдвинул всё на единицу), а отпечаток K1 искал равенство o === индекс_сегмента.
-// Результат выравнивания — наоборот, ДОКАЗАТЕЛЬСТВО: каждая строка привязана к сегменту, текст
-// которого она покрывает, и оракул это пересчитывает. Доказательство сильнее утверждения, поэтому
-// при успешном выравнивании тайминг перестраивается. Если выравнивание НЕ сошлось — сохранённый
-// тайминг остаётся ровно таким, каким был (мы не узнали ничего нового, R11: не ухудшать).
-// Путь СВЕЖЕГО ответа (v3AttachAudioTiming) сюда не заходит вовсе — там маппинг уже доказан.
-//
-// R9 (derived ≠ asserted): восстановленный тайминг помечается timingSource="aligned-offline" +
-// timingAlign{версия ядра, счётчики, что было до него} — в паспорте видно, что это ВЫВОД, а не
-// то, что прислал переводчик. В БД он НЕ пишется: он детерминированно пересчитывается при каждом
-// открытии за миллисекунды, а persisted-производное поле пришлось бы ещё и инвалидировать при
-// правке строк.
+// Реализация (и полное обоснование K3/R9/R11/идемпотентность) — MediaHost.alignSavedTimingOffline
+// (/js/media-host.js): извлечена в общий модуль, чтобы Зал открывал те же карточки по тем же
+// правилам. Путь СВЕЖЕГО ответа (v3AttachAudioTiming) сюда не заходит — там маппинг уже доказан.
 function v3AlignSavedTimingOffline(audio, rows) {
-  if (!audio) return;
-  // Утверждённые причины импорта (PREVIEW_EDITED / ASR_TIMING_INVALID) — факты о САМИХ метках:
-  // выравнивание строк их не опровергает, поэтому молчим (как и v3MediaLineIdentity).
-  if (audio.timingDropReason && !v3IsDerivedTimingDrop(audio.timingDropReason)) return;
-  const segs = Array.isArray(audio.segments) ? audio.segments : [];
-  const list = Array.isArray(rows) ? rows : [];
-  if (segs.length < 2 || list.length < 2) return;
-  const AT = window.AsrTranscript;
-  if (!AT || typeof AT.alignRowsToSegments !== "function" || typeof AT.buildRowTiming !== "function") return;
-  // Идемпотентность: та же таблица второй раз не пересчитывается — важно не столько ради 20 мс,
-  // сколько ради КОНТРАКТА ССЫЛОЧНОГО РАВЕНСТВА entries (см. v3MediaPlayOriginal): новый массив
-  // на каждом вызове превращал бы resume караоке в перезапуск.
-  if (audio.timingAlign && audio.timingAlign.rows === list.length &&
-      audio.timingAlign.segments === segs.length && audio.timingAlign.v === AT.ALIGN_VERSION &&
-      audio.timingMap && Array.isArray(audio.timingMap.row_seg_idx) &&
-      audio.timingMap.row_seg_idx.length === list.length) return;
-  const texts = list.map((r) => String((r && (r.he || r.he_plain || r.hebrew)) || ""));
-  const al = AT.alignRowsToSegments(texts, segs);
-  const prov = { v: AT.ALIGN_VERSION, at: new Date().toISOString(), rows: list.length,
-                 segments: segs.length, ok: !!al.ok, reason: al.reason || null,
-                 alignedSegments: al.alignedSegments, alignedRows: al.alignedRows,
-                 codeVersion: window.APP_VERSION || null };
-  if (!al.ok) {
-    audio.timingAlign = prov;                  // R9: вердикт выравнивания виден ВСЕГДА, отдельным полем
-    if (!audio.timing) {                       // тайминга нет — честно объясняем, почему его нет
-      if (!audio.timingDropReason) audio.timingDropReason = "SEG_MAPPING_LOST";
-      // Диагноз, поставленный РАНЬШЕ (карантин K1 → DEGENERATE_1_TO_1), точнее и первичнее: он
-      // объясняет, почему сохранённый тайминг снят. Наш отказ не затирает его, а лежит рядом.
-      if (!audio.timingDropDetail) audio.timingDropDetail = "ALIGN_" + (al.reason || "FAILED");
-    }
-    return;
-  }
-  // S12.7: тот же гейт сжатых часов, что и на свежем ответе. Выравнивание доказывает «строка
-  // принадлежит своему сегменту», но НЕ доказывает, что метка сегмента верна: сжатые часы —
-  // факт о самих метках, и доказанный маппинг их не оправдывает.
-  const timing = AT.buildRowTiming(segs, al.rowSegIdx, v3ClockBlindRanges(audio));
-  if (!timing) {                                // маппинг доказан, но меток <2 — записывать нечего
-    prov.entries = 0;
-    audio.timingAlign = prov;
-    if (!audio.timing && !audio.timingDropReason) {
-      audio.timingDropReason = "SEG_MAPPING_LOST";
-      audio.timingDropDetail = "ALIGN_NO_ENTRIES";
-    }
-    return;
-  }
-  prov.entries = timing.entries.length;
-  prov.replaced = !!audio.timing;               // R9: заменили непроверяемое утверждение
-  audio.timing = timing;
-  audio.timingSource = "aligned-offline";
-  audio.timingAlign = prov;
-  audio.timingMap = Object.assign({}, audio.timingMap || {}, {
-    source: "aligned-offline", rows: list.length, segments: segs.length,
-    row_seg_idx: al.rowSegIdx.slice(), align_version: AT.ALIGN_VERSION,
-  });
-  audio.timingDropReason = null;
-  audio.timingDropDetail = null;
+  if (window.MediaHost) MediaHost.alignSavedTimingOffline(audio, rows);
 }
 
 // W2-S4: восстановить активный аудио-паспорт при открытии сохранённого текста из библиотеки.
@@ -24433,19 +24351,8 @@ function v3RestoreMediaFromMeta(meta, rowsOverride) {
     const audio = v3MediaPassport(meta && meta.source);
     const rows = Array.isArray(rowsOverride) ? rowsOverride
                : (Array.isArray(currentTableData) ? currentTableData : []);
-    // Ревью K1: карантин вырожденного тайминга, сохранённого ДО фикса
-    // (AsrTranscript.timingLooksDegenerate — точный отпечаток, не порог).
-    if (audio && audio.timing && window.AsrTranscript &&
-        typeof window.AsrTranscript.timingLooksDegenerate === "function") {
-      if (window.AsrTranscript.timingLooksDegenerate(audio.timing, audio.segments, rows.length)) {
-        audio.timing = null;
-        audio.timingDropReason = "SEG_MAPPING_LOST";   // локаль уже есть; сырого ключа на экране не будет
-        audio.timingDropDetail = "DEGENERATE_1_TO_1";
-      }
-    }
-    // K3: офлайн-выравнивание строк на сегменты — единственный способ вернуть караоке уже
-    // сохранённой карточке, не заплатив за ASR второй раз.
-    try { v3AlignSavedTimingOffline(audio, rows); } catch (_) {}
+    // K1-карантин + K3-довыравнивание — общий MediaHost.restoreForRows (media-host.js).
+    if (audio && window.MediaHost) { try { MediaHost.restoreForRows(audio, rows); } catch (_) {} }
     window.v3ActiveMediaAudio = audio || null;
     if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
     if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
@@ -24476,27 +24383,17 @@ function v3AdoptSavedTableMeta(textRow) {
 // MediaStore.readMedia (T4), window.v3ActiveMediaAudio/v3SessionMediaBlob (T8/T9).
 // ============================================================================
 
-let v3MediaBlobCache = null; // {identity, blob} — avoid re-reading OPFS/re-touching session blob every refresh
-let v3MediaStageUrl = null;
-let v3MediaStageIdentity = null;
-function v3MediaCompat(media, camel, snake) {
-  if (!media) return null;
-  return media[camel] == null ? media[snake] : media[camel];
+// Резолвер блоба и стейдж плеера — инстансы общего MediaHost (media-host.js); ленивые,
+// чтобы не зависеть от порядка загрузки скриптов. Кэш блоба живёт в инстансе резолвера.
+let v3MediaResolverInst = null, v3MediaStageInst = null;
+function v3MediaResolver() {
+  if (!v3MediaResolverInst && window.MediaHost) v3MediaResolverInst = MediaHost.createBlobResolver({ getSessionBlob: () => window.v3SessionMediaBlob || null });
+  return v3MediaResolverInst;
 }
-function v3MediaIdentity(media) {
-  return String(v3MediaCompat(media, "sha256", "media_sha256") || v3MediaCompat(media, "opfsPath", "opfs_path") || "session-media");
-}
+function v3MediaResolverClear() { if (v3MediaResolverInst) v3MediaResolverInst.clear(); }
 async function v3MediaResolveBlob(audio) {
-  if (!audio || !audio.media) return null;
-  const identity = v3MediaIdentity(audio.media);
-  if (v3MediaBlobCache && v3MediaBlobCache.identity === identity) return v3MediaBlobCache.blob;
-  let blob = null;
-  const sessionOnly = !!v3MediaCompat(audio.media, "sessionOnly", "session_only");
-  const opfsPath = v3MediaCompat(audio.media, "opfsPath", "opfs_path");
-  if (sessionOnly) blob = window.v3SessionMediaBlob || null;
-  else if (opfsPath && typeof MediaStore !== "undefined") blob = await MediaStore.readMedia(opfsPath);
-  if (blob) v3MediaBlobCache = { identity, blob };
-  return blob;
+  const r = v3MediaResolver();
+  return r ? r.resolve(audio) : null;
 }
 
 function v3MediaFollowTableRange(range) {
@@ -24519,44 +24416,19 @@ function v3MediaFollowTableRange(range) {
   container.scrollTop = target;
 }
 
-function v3MediaDestroyLocalStage() {
-  const stage = document.getElementById("v3MediaLocalStage");
-  const player = document.getElementById("v3MediaLocalPlayer");
-  try {
-    if (player && window.StudioMediaKaraoke && StudioMediaKaraoke.getAudioEl() === player) StudioMediaKaraoke.stop();
-  } catch (_) {}
-  if (player) { try { player.pause(); player.removeAttribute("src"); player.load(); } catch (_) {} }
-  if (v3MediaStageUrl) { try { URL.revokeObjectURL(v3MediaStageUrl); } catch (_) {} }
-  v3MediaStageUrl = null; v3MediaStageIdentity = null;
-  if (stage) stage.hidden = true;
+function v3MediaStage() {
+  if (!v3MediaStageInst && window.MediaHost) v3MediaStageInst = MediaHost.createStage({
+    stageId: "v3MediaLocalStage", playerId: "v3MediaLocalPlayer",
+    t: t, ariaKey: "studio.media.sourcePlayer",
+    getRowCount: () => (Array.isArray(currentTableData) ? currentTableData.length : 0),
+    onRangeChange: v3MediaFollowTableRange,
+  });
+  return v3MediaStageInst;
 }
-
+function v3MediaDestroyLocalStage() { if (v3MediaStageInst) v3MediaStageInst.destroy(); }
 function v3MediaEnsureLocalStage(audio, blob) {
-  const stage = document.getElementById("v3MediaLocalStage");
-  let player = document.getElementById("v3MediaLocalPlayer");
-  if (!stage || !player || !audio || !audio.media || !blob) return null;
-  const mime = String(v3MediaCompat(audio.media, "mime", "mime") || blob.type || "");
-  const desiredTag = mime.startsWith("video/") ? "video" : "audio";
-  if (player.tagName.toLowerCase() !== desiredTag) {
-    try { if (window.StudioMediaKaraoke && StudioMediaKaraoke.getAudioEl() === player) StudioMediaKaraoke.stop(); } catch (_) {}
-    const replacement = document.createElement(desiredTag);
-    replacement.id = "v3MediaLocalPlayer"; replacement.controls = true; replacement.preload = "metadata";
-    replacement.setAttribute("data-i18n-aria-label", "studio.media.sourcePlayer");
-    player.replaceWith(replacement); player = replacement;
-  }
-  player.setAttribute("aria-label", t("studio.media.sourcePlayer"));
-  const identity = v3MediaIdentity(audio.media) + ":" + desiredTag;
-  if (v3MediaStageIdentity !== identity || !player.getAttribute("src")) {
-    if (v3MediaStageUrl) { try { URL.revokeObjectURL(v3MediaStageUrl); } catch (_) {} }
-    v3MediaStageUrl = URL.createObjectURL(blob); v3MediaStageIdentity = identity;
-    player.src = v3MediaStageUrl;
-  }
-  stage.hidden = false;
-  const entries = audio.timing ? audio.timing.entries : null;
-  const rowCount = Array.isArray(currentTableData) ? currentTableData.length : 0;
-  StudioMediaKaraoke.bind({ media: player, entries, rowCount, onRangeChange: v3MediaFollowTableRange });
-  player.onseeked = function () { try { StudioMediaKaraoke.syncCurrent(); } catch (_) {} };
-  return player;
+  const st = v3MediaStage();
+  return st ? st.ensure(audio, blob) : null;
 }
 
 function v3MediaBarRefresh() {
@@ -24564,7 +24436,7 @@ function v3MediaBarRefresh() {
   if (!bar) return;
   const audio = window.v3ActiveMediaAudio;
   bar.hidden = !audio;
-  if (!audio) { v3MediaBlobCache = null; v3MediaDestroyLocalStage(); try { v3MediaAugmentRows(); } catch (_) {} return; }
+  if (!audio) { v3MediaResolverClear(); v3MediaDestroyLocalStage(); try { v3MediaAugmentRows(); } catch (_) {} return; }
   const note = document.getElementById("v3MediaBarNote");
   if (note) note.textContent = window.v3MediaPackageStale
     ? t("studio.mediaPackage.staleTable")
@@ -24651,66 +24523,21 @@ async function v3MediaPlayOriginal() {
 }
 
 // S4-ROWPLAY: per-row "▶︎ replay this segment" button, injected POST-render (renderTable
-// itself is untouched — byte-parity gate smoke:reader-parity). Appended to the LAST
-// visible cell of each row (whatever column that is — action-column-only tables included).
+// itself is untouched — byte-parity gate smoke:reader-parity). Инъекция/дедуп/гейты честности
+// (captions-only IMPORTANT 2, E1 fileMissing, exact-map suppression) — общий MediaHost.augmentRows.
 function v3MediaAugmentRows() {
-  try {
-    const audio = window.v3ActiveMediaAudio;
-    const table = document.getElementById("proTable");
-    if (!table) return;
-    // снять старые кнопки (текст сменился / караоке недоступно)
-    table.querySelectorAll(".smk-row-replay").forEach((b) => b.remove());
-    // IMPORTANT 2 (whole-branch review 2026-07-28): a captions-only passport has `.timing`
-    // (built from subtitle timestamps) but NEVER `.media` (Task 8 never attaches a local file
-    // to a captions import) — v3MediaResolveBlob() below always resolves null for it, so the
-    // click handler's `if (!blob) return;` made this button a silent dead end for the whole
-    // captions path. v1: only render it when a local blob can actually exist. Wiring it to the
-    // YouTube stage adapter instead is deliberately NOT done yet — see the trap documented at
-    // studio-media-karaoke.js playSegment() (IMPORTANT 3, same review).
-    if (!audio || !audio.timing || !audio.media) return;
-    // E1 (R11, честная деградация): наличия ПАСПОРТА мало — сам файл может отсутствовать
-    // в OPFS этого браузера. Ровно такой случай теперь массовый: карточка, импортированная
-    // из text-card v2, всегда несёт audio.media (opfsPath+sha256 отправителя), а байтов у
-    // получателя нет. Без этой проверки на каждой строке рисовалась кнопка «▶︎», чей
-    // обработчик молча выходил по `if (!blob) return;` — тупик вместо объяснения (объяснение
-    // даёт медиа-бар: t("studio.media.fileMissing")).
-    v3MediaResolveBlob(audio).then((blob) => {
-      if (!blob) return;
-      if (window.v3ActiveMediaAudio !== audio) return;   // текст сменился, пока резолвили
-      v3MediaRenderRowReplay(table, audio);
-    }).catch(() => {});
-  } catch (_) {}
-}
-
-function v3MediaRenderRowReplay(table, audio) {
-  try {
-    table.querySelectorAll("tbody tr[data-row-idx]").forEach((tr) => {
-      const cell = tr.querySelector("td:last-child") || tr.lastElementChild;
-      if (!cell) return;
-      if (tr.querySelector(".smk-row-replay")) return;   // повторный async-проход не дублирует
-      const idx = Number(tr.getAttribute("data-row-idx"));
-      const exactMap = audio.timingMap && audio.timingMap.authority === "studio-exact-binding"
-        ? audio.timingMap.row_caption_segment_ids : null;
-      // Exact Studio bindings never guess a positional fallback for an unmapped row.
-      if (Array.isArray(exactMap) && !exactMap[idx]) return;
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "smk-row-replay";
-      btn.textContent = "▶︎";
-      btn.title = t("studio.media.replaySegment");
-      btn.addEventListener("click", async (e) => {
-        e.stopPropagation();
-        const blob = await v3MediaResolveBlob(audio);
-        if (!blob) return;
-        // Same reference-equality contract as v3MediaPlayOriginal() above.
-        const player = v3MediaEnsureLocalStage(audio, blob);
-        if (player) StudioMediaKaraoke.bind({ media: player, entries: audio.timing.entries, rowCount: Array.isArray(currentTableData) ? currentTableData.length : 0, onRangeChange: v3MediaFollowTableRange });
-        else if (!StudioMediaKaraoke.getAudioEl()) await StudioMediaKaraoke.start({ blob, entries: audio.timing.entries, rowCount: Array.isArray(currentTableData) ? currentTableData.length : 0, onRangeChange: v3MediaFollowTableRange });
-        StudioMediaKaraoke.playSegment(idx);
-      });
-      cell.appendChild(btn);
-    });
-  } catch (_) {}
+  const table = document.getElementById("proTable");
+  if (!table || !window.MediaHost) return;
+  MediaHost.augmentRows({
+    table, audio: window.v3ActiveMediaAudio, resolveBlob: v3MediaResolveBlob, t: t,
+    stillActive: (a) => window.v3ActiveMediaAudio === a,
+    onReplay: async (idx, audio, blob) => {
+      // Same reference-equality contract as v3MediaPlayOriginal() above.
+      const player = v3MediaEnsureLocalStage(audio, blob);
+      if (!player && !StudioMediaKaraoke.getAudioEl()) await StudioMediaKaraoke.start({ blob, entries: audio.timing.entries, rowCount: Array.isArray(currentTableData) ? currentTableData.length : 0, onRangeChange: v3MediaFollowTableRange });
+      StudioMediaKaraoke.playSegment(idx);
+    },
+  });
 }
 
 // Пере-augment при (пере)отрисовке таблицы (без правок renderTable — гейт
@@ -26518,7 +26345,7 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
         window.v3MediaPackageStale = !!(activation && activation.stale);
         if (activation && activation.media_passport) {
           window.v3ActiveMediaAudio = activation.media_passport;
-          v3MediaBlobCache = null;
+          v3MediaResolverClear();
         }
         if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
       } catch (_) {}

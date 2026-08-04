@@ -165,6 +165,145 @@
     return;
   }
 
-  window.MediaHost = PURE;
-  if (typeof module !== "undefined" && module.exports) module.exports = PURE;
+  // ── БРАУЗЕРНАЯ ЧАСТЬ: DOM-хелперы плеера, общие для Студии и Зала ──────────────────────────
+
+  function mediaCompat(media, camel, snake) {
+    if (!media) return null;
+    return media[camel] == null ? media[snake] : media[camel];
+  }
+  function mediaIdentity(media) {
+    return String(mediaCompat(media, "sha256", "media_sha256") || mediaCompat(media, "opfsPath", "opfs_path") || "session-media");
+  }
+
+  // Резолвер блоба: OPFS (MediaStore) или session-блоб поверхности; кэш по identity —
+  // состояние ИНСТАНСА (у каждой поверхности свой), а не модуля.
+  function createBlobResolver(opts) {
+    var getSessionBlob = (opts && opts.getSessionBlob) || function () { return null; };
+    var cache = null; // {identity, blob}
+    return {
+      resolve: async function (audio) {
+        if (!audio || !audio.media) return null;
+        var identity = mediaIdentity(audio.media);
+        if (cache && cache.identity === identity) return cache.blob;
+        var blob = null;
+        var sessionOnly = !!mediaCompat(audio.media, "sessionOnly", "session_only");
+        var opfsPath = mediaCompat(audio.media, "opfsPath", "opfs_path");
+        if (sessionOnly) blob = getSessionBlob() || null;
+        else if (opfsPath && typeof window.MediaStore !== "undefined") blob = await window.MediaStore.readMedia(opfsPath);
+        if (blob) cache = { identity: identity, blob: blob };
+        return blob;
+      },
+      clear: function () { cache = null; },
+    };
+  }
+
+  // Стейдж локального плеера: audio↔video своп по MIME (id сохраняется), objectURL-менеджмент,
+  // bind караоке. Контейнеры — параметры инстанса, никакой жёсткой привязки к поверхности.
+  function createStage(opts) {
+    var stageId = opts.stageId, playerId = opts.playerId;
+    var t = opts.t || function (k) { return k; };
+    var ariaKey = opts.ariaKey || "studio.media.sourcePlayer";
+    var getRowCount = opts.getRowCount || function () { return 0; };
+    var onRangeChange = opts.onRangeChange || null;
+    var stopOtherAudio = opts.stopOtherAudio || null;
+    var url = null, identity = null;
+    function playerEl() { return document.getElementById(playerId); }
+    function destroy() {
+      var stage = document.getElementById(stageId);
+      var player = playerEl();
+      try {
+        if (player && window.StudioMediaKaraoke && window.StudioMediaKaraoke.getAudioEl() === player) window.StudioMediaKaraoke.stop();
+      } catch (_) {}
+      if (player) { try { player.pause(); player.removeAttribute("src"); player.load(); } catch (_) {} }
+      if (url) { try { URL.revokeObjectURL(url); } catch (_) {} }
+      url = null; identity = null;
+      if (stage) stage.hidden = true;
+    }
+    function ensure(audio, blob) {
+      var stage = document.getElementById(stageId);
+      var player = playerEl();
+      if (!stage || !player || !audio || !audio.media || !blob) return null;
+      var mime = String(mediaCompat(audio.media, "mime", "mime") || blob.type || "");
+      var desiredTag = mime.startsWith("video/") ? "video" : "audio";
+      if (player.tagName.toLowerCase() !== desiredTag) {
+        try { if (window.StudioMediaKaraoke && window.StudioMediaKaraoke.getAudioEl() === player) window.StudioMediaKaraoke.stop(); } catch (_) {}
+        var replacement = document.createElement(desiredTag);
+        replacement.id = playerId; replacement.controls = true; replacement.preload = "metadata";
+        replacement.setAttribute("data-i18n-aria-label", ariaKey);
+        player.replaceWith(replacement); player = replacement;
+      }
+      player.setAttribute("aria-label", t(ariaKey));
+      var id = mediaIdentity(audio.media) + ":" + desiredTag;
+      if (identity !== id || !player.getAttribute("src")) {
+        if (url) { try { URL.revokeObjectURL(url); } catch (_) {} }
+        url = URL.createObjectURL(blob); identity = id;
+        player.src = url;
+      }
+      stage.hidden = false;
+      // REFERENCE EQUALITY CONTRACT: entries — ссылка на audio.timing.entries, не копия.
+      var entries = audio.timing ? audio.timing.entries : null;
+      window.StudioMediaKaraoke.bind({ media: player, entries: entries, rowCount: getRowCount(), onRangeChange: onRangeChange, stopOtherAudio: stopOtherAudio });
+      player.onseeked = function () { try { window.StudioMediaKaraoke.syncCurrent(); } catch (_) {} };
+      return player;
+    }
+    return { ensure: ensure, destroy: destroy, getPlayer: playerEl };
+  }
+
+  // Per-row «▶︎ повторить сегмент», POST-render (parity-locked билдер не тронут).
+  // Гейт честности: паспорт + тайминг + .media (captions-only паспорт кнопок не получает —
+  // IMPORTANT 2) И реально доступный блоб (E1, R11: text-card-получатель без байтов видит
+  // объяснение в баре, а не тупиковую кнопку).
+  function augmentRows(opts) {
+    try {
+      var table = opts.table, audio = opts.audio;
+      var resolveBlob = opts.resolveBlob, t = opts.t || function (k) { return k; };
+      var onReplay = opts.onReplay, stillActive = opts.stillActive || function () { return true; };
+      if (!table) return;
+      table.querySelectorAll(".smk-row-replay").forEach(function (b) { b.remove(); });
+      if (!audio || !audio.timing || !audio.media) return;
+      Promise.resolve(resolveBlob(audio)).then(function (blob) {
+        if (!blob) return;
+        if (!stillActive(audio)) return; // текст сменился, пока резолвили
+        renderRowReplay(table, audio, resolveBlob, t, onReplay);
+      }).catch(function () {});
+    } catch (_) {}
+  }
+
+  function renderRowReplay(table, audio, resolveBlob, t, onReplay) {
+    try {
+      table.querySelectorAll("tbody tr[data-row-idx]").forEach(function (tr) {
+        var cell = tr.querySelector("td:last-child") || tr.lastElementChild;
+        if (!cell) return;
+        if (tr.querySelector(".smk-row-replay")) return; // повторный async-проход не дублирует
+        var idx = Number(tr.getAttribute("data-row-idx"));
+        var exactMap = audio.timingMap && audio.timingMap.authority === "studio-exact-binding"
+          ? audio.timingMap.row_caption_segment_ids : null;
+        // Exact Studio bindings never guess a positional fallback for an unmapped row.
+        if (Array.isArray(exactMap) && !exactMap[idx]) return;
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "smk-row-replay";
+        btn.textContent = "▶︎";
+        btn.title = t("studio.media.replaySegment");
+        btn.addEventListener("click", async function (e) {
+          e.stopPropagation();
+          try {
+            var b = await resolveBlob(audio); // повторный резолв: файл мог исчезнуть между рендером и кликом
+            if (!b) return;
+            if (onReplay) await onReplay(idx, audio, b);
+          } catch (_) {}
+        });
+        cell.appendChild(btn);
+      });
+    } catch (_) {}
+  }
+
+  var API = Object.assign({}, PURE, {
+    mediaIdentity: mediaIdentity,
+    createBlobResolver: createBlobResolver,
+    createStage: createStage,
+    augmentRows: augmentRows,
+  });
+  window.MediaHost = API;
+  if (typeof module !== "undefined" && module.exports) module.exports = API;
 })();

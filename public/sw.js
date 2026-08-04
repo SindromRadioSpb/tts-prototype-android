@@ -162,6 +162,9 @@ const PRECACHE_URLS = [
   // молча деградировал бы до v1 (потеря паспорта), а импорт — до generic-бандла.
   "/js/text-card-format.js",
   "/js/studio-media-karaoke.js",
+  // Room media player (spec 2026-08-04) — общий паспорт-пайплайн/DOM-хелперы (window.MediaHost).
+  // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
+  "/js/media-host.js",
   // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
   "/js/captions-parse.js",
   "/js/studio-yt-player.js",
