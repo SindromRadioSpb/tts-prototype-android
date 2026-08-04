@@ -797,6 +797,9 @@ P3 then proved manual cross-device continuity through PC export → Files/iCloud
 dry-run → SHA relink → video/cue/row playback → cold reopen → re-export semantic parity. Its durable
 record is `docs/research/studio-p3-iphone-continuity/2026-08-02/OWNER_LIVE_PACKET.md`.
 
-The next slice is P4 Import Center. It must consume P2/P3 as frozen dependencies rather than fork
-their truth. The implementation-entry packet is
-`docs/planning/STUDIO_INGEST_P4_IMPORT_CENTER_IMPLEMENTATION_PACKET_2026_08_02.md`.
+P4 Import Center subsequently consumed P2/P3 as frozen dependencies rather than forking their
+truth and closed as COMPLETE / PROD PASS / OWNER LIVE PASS at `v3.11.300` / `fef4d469`. Its
+implementation and closure evidence are
+`docs/planning/STUDIO_INGEST_P4_IMPORT_CENTER_IMPLEMENTATION_PACKET_2026_08_02.md` and
+`docs/research/studio-p4-import-center/2026-08-02/OWNER_LIVE_PACKET.md`. No post-P4 direction is
+authorized by this historical P2 packet.

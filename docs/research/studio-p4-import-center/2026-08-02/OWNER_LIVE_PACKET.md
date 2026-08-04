@@ -1,21 +1,23 @@
-# P4 Import Center — owner-live packet template
+# P4 Import Center — owner-live closure ledger
 
 > **Date opened:** 2026-08-02
 > **Entry baseline:** `v3.11.296` / `ead4a550bfe3f1cff6b5980ddbfd9ce106442504`
 > **Entry browser schema:** `MIGRATIONS.length=47`
-> **Status:** AUTOMATED PASS / OWNER LIVE NOT RUN / PUSH AND DEPLOY NOT AUTHORIZED
+> **Closure date:** 2026-08-04
+> **Status:** **COMPLETE / PROD PASS / OWNER LIVE PASS**
 > **Implementation contract:**
 > `docs/planning/STUDIO_INGEST_P4_IMPORT_CENTER_IMPLEMENTATION_PACKET_2026_08_02.md`
 
-This file is an evidence template. Empty fields and unchecked boxes are not PASS. Do not fill them
-from synthetic automation when the row requires a real owner action or real iPhone evidence.
+This file began as an evidence template and now records the closed result. Owner-only rows are
+filled from the owner's explicit 2026-08-04 attestation; automated or live-read-only observations
+are labelled separately and never substituted for a real owner action.
 
 ## 1. Authority ledger
 
 - [x] exact P4 implementation sentence received in the 2026-08-02 session;
 - [x] exact file allowlist confirmed against dirty worktree; only §16 files are staged/committed;
-- [ ] separate push/deploy authority received;
-- [ ] any post-deploy cleanup authority recorded separately;
+- [x] separate push/deploy authority received and exercised for the bounded P4 releases;
+- [x] bounded Docker/disk cleanup authority was recorded and exercised separately;
 - [x] no authority inferred for Option C, cloud sync, E2EE, Hermes, media transport or providers.
 
 ## 2. Implementation identity
@@ -23,13 +25,13 @@ from synthetic automation when the row requires a real owner action or real iPho
 | Field | Evidence |
 |---|---|
 | parent SHA | `c8d89e403ee14471fc0446608c9d8d7d222096f9` |
-| scoped implementation SHA | this packet's local scoped commit; exact SHA is reported in the session handoff |
-| pushed remote main SHA | NOT RECORDED |
-| APP_VERSION | `3.11.296` (unchanged; no release authority) |
-| CACHE_VERSION | `v3.11.296` (unchanged; no release authority) |
+| scoped implementation SHA | `2d329085e7c800ea25b08349bcdb8d3206c1c63a` |
+| pushed remote main SHA | `fef4d469b69101256b7268168c5f79f2ce82118e` (P4 plus owner-evidence fixes) |
+| APP_VERSION | `3.11.300` |
+| CACHE_VERSION | `v3.11.300` |
 | browser migration count | `48`, verified from live module and repository harness |
 | v48 shape | only append-only `studio_portable_export_receipts` plus scope/artifact indexes |
-| deploy timestamp | NOT RECORDED |
+| deploy window | 2026-08-03; exact platform timestamp was not retained |
 
 ## 3. Automated gates
 
@@ -50,6 +52,8 @@ from synthetic automation when the row requires a real owner action or real iPho
 | provider/model requests | PASS; 0 in P4, P2, Media and Material browser gates |
 | page/console errors | PASS; 0 in browser gates |
 | full `npm test` composition | 763 total / 754 pass / same 9 known unrelated failures (baseline 748/739/9) |
+| owner-evidence action wiring | PASS after `526fc02d`; move-device, relink, diagnostics and Back actions work in production |
+| canonical media row timing regression | PASS after `fef4d469`; 554/554 original-media replay controls, row→video seek and video→row follow verified on the real library |
 
 ## 4. Required browser assertions
 
@@ -72,42 +76,42 @@ from synthetic automation when the row requires a real owner action or real iPho
 
 ### Use on another device
 
-- [ ] scope choice understandable without knowing ZIP taxonomy;
-- [ ] preflight explains whether media bytes travel;
-- [ ] exact artifact hash and generated receipt recorded;
-- [ ] owner-saved assertion requires explicit confirmation;
-- [ ] Files/iCloud instructions lead to receiver import;
-- [ ] receiver verify/dry-run/Apply/relink/playback sequence succeeds.
+- [x] scope choice understandable without knowing ZIP taxonomy;
+- [x] preflight explains whether media bytes travel;
+- [x] exact artifact hash and generated receipt recorded;
+- [x] owner-saved assertion requires explicit confirmation;
+- [x] Files/iCloud instructions lead to receiver import;
+- [x] receiver verify/dry-run/Apply/relink/playback sequence succeeds.
 
 ### Restore
 
-- [ ] Full ZIP and `.lplp.zip` are routed to the correct existing importer;
-- [ ] reuse/restore/repair/conflict are distinct before Apply;
-- [ ] no-write dry-run inventory remains unchanged;
-- [ ] Apply remains one SAVEPOINT with complete rollback.
+- [x] Full ZIP and `.lplp.zip` are routed to the correct existing importer;
+- [x] reuse/restore/repair/conflict are distinct before Apply;
+- [x] no-write dry-run inventory remains unchanged;
+- [x] Apply remains one SAVEPOINT with complete rollback.
 
 ### Relink
 
-- [ ] expected SHA/type guidance shown before picker;
-- [ ] exact local match activates source playback;
-- [ ] mismatch and unsupported codec are different states;
-- [ ] no filename/duration fallback.
+- [x] expected SHA/type guidance shown before picker;
+- [x] exact local match activates source playback;
+- [x] mismatch and unsupported codec are different states;
+- [x] no filename/duration fallback.
 
 ### Recovery
 
-- [ ] archived projection unarchives without re-import;
-- [ ] binding-only mismatch repairs without source ZIP;
-- [ ] missing projection rebuild uses exact verified source package;
-- [ ] missing canonical object/conflict stops without guessed repair;
-- [ ] UI never recommends repeat ASR when immutable history survives.
+- [x] archived projection unarchives without re-import;
+- [x] binding-only mismatch repairs without source ZIP;
+- [x] missing projection rebuild uses exact verified source package;
+- [x] missing canonical object/conflict stops without guessed repair;
+- [x] UI never recommends repeat ASR when immutable history survives.
 
 ### Delete/export
 
-- [ ] export-before-delete shown;
-- [ ] referenced/reused objects preserved;
-- [ ] reverse-reference plan blocks unsafe deletion;
-- [ ] no dangling graph or receipt references;
-- [ ] browser never claims to delete an external Files/iCloud artifact.
+- [x] export-before-delete shown;
+- [x] referenced/reused objects preserved;
+- [x] reverse-reference plan blocks unsafe deletion;
+- [x] no dangling graph or receipt references;
+- [x] browser never claims to delete an external Files/iCloud artifact.
 
 ## 6. Real owner closure
 
@@ -115,50 +119,53 @@ Record without personal content:
 
 | Field | Evidence |
 |---|---|
-| browser/device/surface | NOT RECORDED |
-| real material class | NOT RECORDED |
-| catalog material count | NOT RECORDED |
-| storage estimate/persist state | NOT RECORDED |
-| PC→iPhone wizard | NOT RUN |
-| restore/relink/recovery | NOT RUN |
-| cold reopen | NOT RUN |
-| backup freshness after new revision | NOT RUN |
-| RU/LTR | NOT RUN |
-| HE/RTL | NOT RUN |
-| provider calls | NOT RECORDED |
-| page/console errors | NOT RECORDED |
-| owner verdict | NOT RECORDED |
+| browser/device/surface | production PC browser → real iPhone browser/PWA; exact browser builds were not retained |
+| real material class | private media-backed learning material; no personal content recorded in this packet |
+| catalog/material scale | real owner library; exact catalog count not retained; the inspected learning table had 554 rows |
+| storage estimate/persist state | diagnostic UI reported 504.2 MB used / 10,744.2 MB available / persistence `false` during owner testing |
+| PC→iPhone wizard | PASS — owner-attested 2026-08-04 |
+| restore/relink/recovery | PASS — owner-attested 2026-08-04 |
+| cold reopen | PASS — owner-attested 2026-08-04 |
+| backup freshness / export-before-delete | PASS — owner gate and final ceremony completed successfully |
+| RU/LTR | PASS in production owner flow |
+| HE/RTL | PASS in automated fresh-browser gate; no separate HE owner ceremony claimed |
+| provider calls | 0 for Import Center flows |
+| page/console errors | 0 in the final production verification |
+| owner verdict | **P4 COMPLETE / PROD PASS / OWNER LIVE PASS** |
 
 ## 7. Production evidence
 
 | Field | Evidence |
 |---|---|
-| actually served APP/CACHE | NOT RECORDED |
-| required JS/CSS assets | NOT RECORDED |
-| health | NOT RECORDED |
-| DB/migrations | NOT RECORDED |
-| disk before/after deploy | NOT RECORDED |
-| mixed old/new cache observation | NOT RECORDED |
+| actually served APP/CACHE | `3.11.300` / `v3.11.300`; reconfirmed from public origin on 2026-08-04 |
+| required JS/CSS assets | PASS; P4 core/repository/UI and v48 migration are present in the coherent served shell |
+| health | `/healthz` 200 / `ok=true` on 2026-08-04 |
+| DB/migrations | server DB and server migrations ready; browser schema is exactly 48 with receipt-only v48 |
+| disk after deploy/cleanup | warning false; 79% in final P4 production verification, 74% at documentation closure recon |
+| mixed old/new cache observation | converged; public client config, APP and Service Worker all report `3.11.300` |
 
 Do not label deployment complete until the public origin consistently serves both intended APP and
 CACHE versions. Do not label owner-live complete from the CI browser alone.
 
 ## 8. Rollback evidence
 
-- [ ] pre-P4 code can render the old Transfer & Backups surface over the same canon;
-- [ ] v48 remains inert and is not dropped;
-- [ ] P2 export/import/relink/recovery still works after rollback;
-- [ ] no canonical material mutation was used to repair a derived UI status;
-- [ ] external files were never tracked/deleted by path.
+- [x] pre-P4 code can render the old Transfer & Backups surface over the same canon;
+- [x] v48 remains inert and is not dropped;
+- [x] P2 export/import/relink/recovery still works after rollback;
+- [x] no canonical material mutation was used to repair a derived UI status;
+- [x] external files were never tracked/deleted by path.
 
 ## 9. Final verdict
 
-Current verdict: **AUTOMATED PASS / OWNER LIVE NOT RUN**.
+Current verdict: **P4 COMPLETE / PROD PASS / OWNER LIVE PASS**.
 
 Local synthetic evidence is in `screenshots/p4-desktop-ru.png`, `screenshots/p4-380-ru.png`,
 `screenshots/p4-380-ru-200pct.png` and `screenshots/p4-380-he.png`. It contains no owner content.
-Production and real-iPhone rows intentionally remain empty because push/deploy and owner-live were
-not authorized in this slice.
+The owner subsequently authorized production, found two interaction regressions, and verified their
+fixes in the real library. P4 shipped first as `v3.11.297`; entry routing, task action wiring and the
+canonical media-row timing compatibility fix converged at `v3.11.300` / `fef4d469`. The final
+PC→iPhone, recovery/relink, cold-open and export-before-delete ceremony and owner gate passed on
+2026-08-04. Exact private content and browser build identifiers were intentionally not copied here.
 
 Allowed final labels:
 

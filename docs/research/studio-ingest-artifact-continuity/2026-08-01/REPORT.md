@@ -11,7 +11,8 @@
 > exact derived Artifact Graph/schema-v2 manifest/v47 receipt/import/security/allowlist plus
 > option-B lifecycle recovery were production-closed as `v3.11.296` /
 > `ead4a550bfe3f1cff6b5980ddbfd9ce106442504`; P2 is OWNER LIVE PASS. P3 real iPhone
-> manual continuity is OWNER-ATTESTED COMPLETE. P4 Import Center is next and owner-gated.
+> manual continuity is OWNER-ATTESTED COMPLETE. P4 Import Center subsequently closed as
+> COMPLETE / PROD PASS / OWNER LIVE PASS at `v3.11.300` / `fef4d469`.
 > **Planning-выход:**
 > `docs/planning/STUDIO_INGEST_L3B_ARTIFACT_CONTINUITY_PLAN_2026_08_01.md`
 > **Implementation packet:**
@@ -814,7 +815,7 @@ Metadata/handoff, затем bounded content/proposals; fresh ordinary-chat owne
 3. Material Revision Workspace maturity bridge — ✅;
 4. Portable Learning Package v2 + lifecycle recovery — **OWNER LIVE PASS v3.11.296**;
 5. real iPhone manual continuity — **COMPLETE / OWNER-ATTESTED PASS**;
-6. Import Center/reference — **NEXT / OWNER-GATED**;
+6. Import Center/reference — **COMPLETE / PROD PASS / OWNER LIVE PASS v3.11.300**;
 7. automatic E2EE package sync после отдельного design/authority;
 8. optional encrypted media transport по usage trigger;
 9. Hermes metadata/handoff;

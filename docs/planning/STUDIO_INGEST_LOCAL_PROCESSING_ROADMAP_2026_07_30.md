@@ -12,10 +12,10 @@
 > Exact graph/manifest/import/security/receipt contract frozen в
 > `STUDIO_INGEST_P2_PORTABLE_LEARNING_PACKAGE_V2_IMPLEMENTATION_PACKET_2026_08_02.md`;
 > Automated production, owner Apply/relink/recovery and the complete manual PC→iPhone→cold-reopen→
-> re-export ceremony are PASS. P4 Import Center is next and separately owner-gated.
-> **Срез кода:** production/origin `ead4a550bfe3f1cff6b5980ddbfd9ce106442504`
-> (`v3.11.296`), browser migrations `47`; production health/DB/migrations PASS,
-> disk `78% / ~8.0 GiB free`, `disk_warn=false` after bounded post-deploy cleanup.
+> re-export ceremony are PASS. P4 Import Center is COMPLETE / PROD PASS / OWNER LIVE PASS.
+> **Срез кода:** production/origin `fef4d469b69101256b7268168c5f79f2ce82118e`
+> (`v3.11.300`), browser migrations `48`; production health/DB/migrations PASS,
+> disk `74%`, `disk_warn=false` at closure recon on 2026-08-04.
 > **Место в каноне:** специализированный сквозной трек общего roadmap
 > `STUDIO_INGEST_ROADMAP_2026_07_30.md`. Здесь определён local-processing L0–L6;
 > общий capability ledger, форматы, Media Package, образовательные сценарии и единый порядок
@@ -237,7 +237,7 @@ baseline: разборчивость, никуд/ударение, имена, �
 | P1 | **L3a.3 Material Revision Workspace** | ✅ SHIPPED / PROD PASS v3.11.287 | two-layer editor, immutable table revisions, authority, affected-only update, exact repaired cue↔row follow, first-slot anchor and compact responsive header |
 | P1 | **L3b Artifact Continuity / P2** | ✅ COMPLETE / OWNER LIVE PASS v3.11.296 | Artifact Graph, exact v2 package, v47 receipts, transactional import, exact relink/recovery, backup and owner round-trip verified |
 | P1 | **P3 real iPhone manual continuity** | ✅ COMPLETE / OWNER-ATTESTED PASS | manual PC→Files/iCloud→iPhone import/relink/playback→cold reopen→re-export semantic parity |
-| P1 | **P4 Import Center** | ← NEXT / OWNER-GATED | one lifecycle catalog, guided device/restore/relink tasks, storage/media diagnostics and contextual education |
+| P1 | **P4 Import Center** | ✅ COMPLETE / PROD PASS / OWNER LIVE PASS v3.11.300 | one lifecycle catalog, guided device/restore/relink/recovery/delete-export tasks, storage/media/backup diagnostics and contextual education |
 | P1 | **L4 local translation+nikud** | ⬜ | shared scheduler; independent quality gates |
 | P1 | **L5 diarization/alignment** | ⬜ | L1 stable; speaker/timing gold |
 | P2/R&D | **L6 TTS/OCR/local LLM** | ⬜ | model+license+quality measurement; no quality downgrade |
@@ -258,11 +258,12 @@ Exact P2 implementation contract:
 Утверждение planning/product direction не разрешает P2 implementation, automatic cloud/media
 sync, Hermes mutations или production scope без отдельной точной owner authority.
 
-Текущая цепочка: `P0 ✅ → P1A ✅ → P1B ✅ → P2 ✅ OWNER LIVE PASS v3.11.296 → P3 ✅ → P4 NEXT / OWNER-GATED`.
-L2 остаётся demand-triggered, поэтому следующая Studio-сессия не возвращается к batch/recovery и
-не начинает L4/L5/L6. P4 использует существующий P2 canon и не меняет provider/local-processing
-defaults; exact contract находится в
-`STUDIO_INGEST_P4_IMPORT_CENTER_IMPLEMENTATION_PACKET_2026_08_02.md`.
+Текущая цепочка: `P0 ✅ → P1A ✅ → P1B ✅ → P2 ✅ OWNER LIVE PASS v3.11.296 → P3 ✅ → P4 ✅ PROD / OWNER LIVE PASS v3.11.300`.
+L2 остаётся demand-triggered. Следующая Studio-сессия должна выбрать отдельный post-P4 slice:
+формальный local-processing порядок ставит L4 translation+nikud перед L5 diarization/alignment и
+L6 R&D; master-roadmap также допускает bounded format-ingest либо отдельные G-HERMES/G-AUTOSYNC
+decision gates. P4 использует существующий P2/P3 canon и не меняет provider/local-processing
+defaults; exact closure находится в P4 implementation и owner-live packets.
 
 **Рекомендуемая последовательность:** принять bounded L1 engineering/evidence closure, затем
 отдельным решением определить достаточный owner/human acceptance и только отдельно разрешать

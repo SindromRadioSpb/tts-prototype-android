@@ -1,18 +1,24 @@
 # Studio Ingest P4 — Import Center implementation packet
 
 > **Date:** 2026-08-02
-> **Status:** LOCAL IMPLEMENTATION AUTOMATED PASS / OWNER LIVE NOT RUN / PUSH NOT AUTHORIZED
-> **Production baseline:** `v3.11.296` /
+> **Status:** **COMPLETE / PROD PASS / OWNER LIVE PASS** (closed 2026-08-04)
+> **Entry production baseline:** `v3.11.296` /
 > `ead4a550bfe3f1cff6b5980ddbfd9ce106442504`
 > **Browser schema baseline:** `MIGRATIONS.length=47`
 > **Dependencies:** P2 Portable Learning Package v2 COMPLETE / OWNER LIVE PASS; P3 real iPhone
 > manual continuity COMPLETE / OWNER-ATTESTED PASS
-> **Next candidate:** `v3.11.297` only if preflight confirms no intervening release
+> **First P4 release:** `v3.11.297`; **closure release:** `v3.11.300` /
+> `fef4d469b69101256b7268168c5f79f2ce82118e`; **browser schema:** `MIGRATIONS.length=48`
 > **Scope:** browser-local Import Center UX, derived lifecycle inventory, explicit task wizards,
 > honest storage/media/backup diagnostics and one additive export-receipt migration
 > **Owner-live template:**
 > `docs/research/studio-p4-import-center/2026-08-02/OWNER_LIVE_PACKET.md`
-> **Not authorized by this packet:** implementation, commit, push, deploy or production mutation
+> **Historical authority boundary:** this packet did not itself authorize implementation, commit,
+> push, deploy or production mutation; the owner supplied those authorities separately.
+
+P4 is now closed. The complete automated, production and owner-attested evidence ledger is
+`docs/research/studio-p4-import-center/2026-08-02/OWNER_LIVE_PACKET.md`. Closing P4 does not
+authorize P5/P6 sync, P7/P8 Hermes, L2/L4/L5/L6 or any provider/server change.
 
 ## 0. Decision in one screen
 
@@ -608,39 +614,21 @@ The following sentence is a proposal, not authority merely because it appears he
 
 > **ОДОБРЯЮ реализацию P4 Import Center строго по implementation packet 2026-08-02. Разрешаю один bounded browser-local slice T0–T10: red-before-fix pure ImportCenterCore lifecycle model; один primary Import Center поверх существующих P2/P3 canonical repositories; guided move-device/restore/relink/recovery/delete-export tasks; honest storage/media/backup diagnostics; additive browser migration v48 только с append-only таблицей studio_portable_export_receipts после подтверждения MIGRATIONS.length=47; exact generated-versus-owner-saved receipts and stale-state hash; RU/EN/HE, desktop и 380 px RU/LTR+HE/RTL accessibility; 100/500-material performance, fault/security/full-regression gates; exact allowlist §16 и один локальный scoped implementation commit. Не разрешаю push/deploy, server schema/API/data, Option C material/text decoupling, cloud sync, E2EE, Hermes, media bytes в .lplp.zip, automatic media transport, concurrent-device editing, L2/L4/L5/L6, provider-default changes или implicit fallback. Остановись перед push/deploy и представь commit, gates и owner-live packet.**
 
-## 23. Paste-ready next-session prompt
+## 23. Superseded implementation prompt and post-P4 handoff
 
-```text
-Работай в E:\projects\tts-prototype-android, branch main.
+The former paste-ready prompt in this section was an implementation entry point and is now
+superseded: P4 must not be reimplemented or treated as `NEXT`. A new session starts with read-only
+recon at `v3.11.300` / `fef4d469`, verifies `MIGRATIONS.length=48`, reads this packet together with
+the owner-live closure, and selects exactly one separately authorized post-P4 direction from the
+master roadmap. Candidate gates are:
 
-READ FIRST полностью и по порядку:
-1. AGENTS.md
-2. CLAUDE.md
-3. docs/PROJECT_ROLES.md
-4. docs/planning/STUDIO_INGEST_ROADMAP_2026_07_30.md
-5. docs/planning/STUDIO_INGEST_LOCAL_PROCESSING_ROADMAP_2026_07_30.md
-6. docs/planning/STUDIO_INGEST_L3B_ARTIFACT_CONTINUITY_PLAN_2026_08_01.md
-7. docs/planning/STUDIO_INGEST_P2_PORTABLE_LEARNING_PACKAGE_V2_IMPLEMENTATION_PACKET_2026_08_02.md
-8. docs/research/studio-p2-portable-learning-package/2026-08-02/OWNER_LIVE_PACKET.md
-9. docs/research/studio-p3-iphone-continuity/2026-08-02/OWNER_LIVE_PACKET.md
-10. docs/planning/STUDIO_INGEST_P4_IMPORT_CENTER_IMPLEMENTATION_PACKET_2026_08_02.md
-11. docs/research/studio-ingest-artifact-continuity/2026-08-01/REPORT.md
-12. docs/planning/AGENT_MEMORY_EXPORT_2026_07_15.md
+1. `G-AUTOSYNC` → P5 E2EE package sync; P6 encrypted media transport remains usage-triggered.
+2. `G-HERMES` → P7 metadata/handoff; P8 corrected-content/proposals remains separately bounded.
+3. L4 local translation+nikud/S6 after scheduler and independent R1/R11 quality gates.
+4. L5 diarization/alignment after speaker/timing human-gold acceptance.
+5. EPUB + TXT/MD/HTML + HEIC ingest with real fixtures and mobile provenance gates.
+6. L2 resumable jobs/batch only if reload-loss or regular 3–5+ file demand is demonstrated.
 
-Baseline to verify, not assume:
-- origin/main and local implementation base should be the latest owner-approved main;
-- known P4 entry baseline is v3.11.296 / ead4a550bfe3f1cff6b5980ddbfd9ce106442504;
-- MIGRATIONS.length=47 before v48;
-- P2 and P3 are closed; P4 is NEXT / OWNER-GATED;
-- unrelated dirty/untracked files belong to the owner and must remain untouched.
-
-Before code give a 5–10-line recon, exact dirty-state/allowlist report and adversarial R2/R4/R5/
-R9/R11–R16 review. Implementation authority exists only if the owner pastes the exact §22 sentence
-or an equally precise superseding authority. Otherwise perform read-only recon only.
-
-Implement no file outside §16. Start with red tests for lifecycle truth and generated-versus-saved
-backup semantics. Add only v48 studio_portable_export_receipts. Reuse existing P2 repository,
-dry-run/SAVEPOINT/recovery and all current entry points; do not build a parallel importer or status
-registry. Run §18 gates, create one scoped local commit and stop before push/deploy unless separately
-authorized. Never start Option C, sync, E2EE, Hermes, media transport or provider changes.
-```
+No candidate has implementation authority merely by being listed here. Option C, cloud sync,
+E2EE, Hermes, automatic media transport, concurrent editing and provider-default changes remain
+closed until the owner approves an exact implementation packet.

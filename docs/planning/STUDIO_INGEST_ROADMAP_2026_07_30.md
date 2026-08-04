@@ -13,13 +13,15 @@
 > `STUDIO_INGEST_P2_PORTABLE_LEARNING_PACKAGE_V2_IMPLEMENTATION_PACKET_2026_08_02.md`,
 > `docs/research/studio-p2-portable-learning-package/2026-08-02/OWNER_LIVE_PACKET.md` and
 > `docs/research/studio-p3-iphone-continuity/2026-08-02/OWNER_LIVE_PACKET.md`.
-> P4 Import Center is the next owner-gated implementation phase; its exact entry contract is
-> `STUDIO_INGEST_P4_IMPORT_CENTER_IMPLEMENTATION_PACKET_2026_08_02.md`.
+> P4 Import Center is **COMPLETE / PROD PASS / OWNER LIVE PASS** at `v3.11.300` /
+> `fef4d469b69101256b7268168c5f79f2ce82118e`; its contract and evidence are
+> `STUDIO_INGEST_P4_IMPORT_CENTER_IMPLEMENTATION_PACKET_2026_08_02.md` and
+> `docs/research/studio-p4-import-center/2026-08-02/OWNER_LIVE_PACKET.md`.
 > Реализация новых слайсов требует обычных
 > measure-before-code, adversarial design и owner/live gates.
-> **Срез:** production/origin `ead4a550bfe3f1cff6b5980ddbfd9ce106442504`
-> (`v3.11.296`); actual browser migration count — `47`; production health/DB/migrations PASS,
-> disk 78% and `disk_warn=false` after bounded post-deploy cache/exact-unused-image cleanup.
+> **Срез:** production/origin `fef4d469b69101256b7268168c5f79f2ce82118e`
+> (`v3.11.300`); actual browser migration count — `48`; production health/DB/migrations PASS,
+> disk 74% and `disk_warn=false` at closure recon on 2026-08-04.
 
 Этот документ долговечно фиксирует результат обсуждения владельца:
 
@@ -266,7 +268,7 @@ TTS остаётся отдельной quality-gated веткой.
 | 6 | **L3a.3 Material Revision Workspace** | ✅ SHIPPED / PROD PASS v3.11.287 | two-layer source+learning workspace, v46 immutable revisions, field authority, targeted regeneration, exact repaired cue↔row follow, first-slot upcoming context and compact title→state→history header |
 | 7 | **L3b Artifact Continuity / P2** | ✅ COMPLETE / OWNER LIVE PASS v3.11.296 | derived Artifact Graph, media-free Package v2, v47 receipts, strict dry-run/SAVEPOINT import, lifecycle recovery, exact binding repair and real owner export/import/relink/reopen verified |
 | 7a | **P3 real iPhone manual continuity** | ✅ COMPLETE / OWNER-ATTESTED PASS | PC→Files/iCloud→iPhone dry-run/import/SHA relink→video/cue/row→cold reopen→re-export semantic parity |
-| 7b | **P4 Import Center** | ← NEXT / OWNER-GATED | one lifecycle surface, guided PC→iPhone/restore/relink flows, storage/media diagnostics, contextual help and educational continuity |
+| 7b | **P4 Import Center** | ✅ COMPLETE / PROD PASS / OWNER LIVE PASS v3.11.300 | one lifecycle surface, guided PC→iPhone/restore/relink/recovery/delete-export flows, honest storage/media/backup diagnostics and contextual education; v48 receipt-only |
 | 8 | local translation/nikud + S6 | P1 | shared provider contract, R1/R11 quality gates |
 | 9 | diarization/alignment | P1 | speaker/timing gold, segment default remains honest |
 | 10 | EPUB + TXT/MD/HTML + HEIC | P1 | real fixtures, provenance, mobile acceptance |
@@ -277,7 +279,7 @@ L0 и ограниченный default-off L1 engineering/evidence closure вы�
 integration требует отдельного owner acceptance; expanded human-gold и paired Gemini cloud
 comparison не запускались и не подразумеваются фактом закрытия B+C.
 
-### Текущая точка и следующий слайс (update 2026-08-02)
+### Текущая точка и post-P4 decision gate (update 2026-08-04)
 
 ```text
 P0 L3a closure ✅
@@ -285,16 +287,27 @@ P0 L3a closure ✅
   → P1B Material Revision Workspace + Playback Review ✅
   → P2 Portable Learning Package v2 + Recovery UX ✅ OWNER LIVE PASS v3.11.296
   → P3 real iPhone manual continuity ✅ OWNER-ATTESTED PASS
-  → P4 Import Center + educational continuity ← NEXT / OWNER-GATED
+  → P4 Import Center + educational continuity ✅ PROD / OWNER LIVE PASS v3.11.300
 ```
 
-Следующая сессия не должна переоткрывать Workspace/P2 canon или строить cloud sync. P4 развивает
-существующий `StudioPortableLearningPackage` в единственный Import Center: derived lifecycle
-catalog, guided tasks, honest storage/media/backup state and education-first next actions. Exact
-scope, additive-v48 decision, allowlist, gates and owner authority находятся в
-`STUDIO_INGEST_P4_IMPORT_CENTER_IMPLEMENTATION_PACKET_2026_08_02.md`. Option C material-owned
-identity, media transport, E2EE/autosync, Hermes, concurrent-device editing и L2/L4/L5/L6 остаются
-вне P4.
+Следующая сессия не должна переоткрывать Workspace/P2/P3/P4 canon. Она начинает read-only recon и
+выбирает ровно одно направление с отдельным decision/implementation packet и точной authority:
+
+1. **L4 local translation+nikud + S6** — формальный следующий P1 slice; нужен общий scheduler и
+   независимые R1/R11 quality gates до permanent enablement.
+2. **L5 diarization/alignment** — особенно ценно для интервью/диалогов; сначала speaker/timing gold,
+   затем bounded implementation без ухудшения честного segment timing.
+3. **EPUB + TXT/MD/HTML + HEIC** — расширение ingest breadth с real fixtures, provenance,
+   mobile acceptance и без нового cloud-canon.
+4. **G-HERMES → P7/P8** — metadata/handoff первым, corrected content/proposals отдельно; Hermes
+   не читает OPFS/SQL напрямую и не становится writer/source of truth.
+5. **G-AUTOSYNC → P5/P6** — E2EE package sync только после security/conflict design; encrypted
+   media transport остаётся optional и usage-triggered.
+6. **L2 resumable jobs/batch** — только если подтверждена reload/job-loss боль или регулярный поток
+   3–5+ файлов; наличие local ASR само по себе trigger не создаёт.
+
+Option C material-owned identity, automatic media transport, concurrent-device editing, provider
+defaults and any server mutation remain out of scope until separately approved.
 
 ## 10. Обязательные процессные артефакты
 

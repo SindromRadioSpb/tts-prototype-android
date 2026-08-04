@@ -109,8 +109,12 @@ The exact P4 contract is:
 ```text
 P2 Portable Learning Package v2 + Recovery UX ✅ OWNER LIVE PASS
 P3 real iPhone manual continuity              ✅ OWNER-ATTESTED PASS
-P4 Import Center                              ← NEXT / OWNER-GATED
+P4 Import Center                              ✅ COMPLETE / PROD PASS / OWNER LIVE PASS v3.11.300
 ```
+
+Post-P4 closure is recorded in
+`docs/research/studio-p4-import-center/2026-08-02/OWNER_LIVE_PACKET.md`; it does not grant authority
+for autosync, Hermes or any other subsequent slice.
 
 P3 is closed. Reopening it requires a concrete regression or a new supported-surface decision, not
 routine repetition of the already successful owner ceremony.
