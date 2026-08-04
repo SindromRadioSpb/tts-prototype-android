@@ -6661,6 +6661,16 @@ app.post("/api/translate-table", async (req, res) => {
         gcpTranslateApiKey,
       } = req.body || {};
 
+      // D-HNR-10: user-local MADLAD is a direct Browser→Companion path.
+      // The production server must neither receive/proxy the text nor infer
+      // readiness from a sidecar in its own container/network namespace.
+      if (provider === "madlad") {
+        return res.status(409).json({
+          error: "MADLAD requires a paired local Companion",
+          error_code: "LOCAL_MADLAD_COMPANION_REQUIRED",
+        });
+      }
+
       // BYOK validation for provider=gcp. Other providers ignore the key.
       let gcpApiKey = null;
       if (provider === "gcp") {
@@ -6725,15 +6735,6 @@ app.post("/api/translate-table", async (req, res) => {
           details: e.message,
         });
       }
-      // Python sidecar (ai-local) не запущен. Встречается только при provider=madlad
-      // — для GCP пайплайн мягко обходит недоступность и лишь теряет огласовку/транслит.
-      if (e.kind === "sidecar_down") {
-        return res.status(503).json({
-          error: "Python sidecar (ai-local) не запущен",
-          details: e.message,
-          hint: "Запустите ai-local (uvicorn) на 127.0.0.1:8799 или выберите провайдер GCP Translate",
-        });
-      }
       if (e.upstream) {
         // Sidecar reachable but returned non-2xx, or network/timeout failure.
         const code = e.status === 0 ? 502 : e.status || 502;
@@ -6755,7 +6756,11 @@ app.post("/api/translate-table", async (req, res) => {
     res.json({
       providers: {
         gcp: { configured: premiumGcp.isAvailable(), quota: premiumQuota.getGcpStatus() },
-        madlad: { configured: true /* always available via sidecar */ },
+        madlad: {
+          configured: false,
+          scope: "server",
+          reason: "local_companion_required",
+        },
       },
     });
   });
@@ -7015,7 +7020,10 @@ app.get("/api/diag", async (_req, res) => {
   } catch (_) {}
 
   // ── 2. Premium providers ─────────────────────────────────────────────────
-  let providers = { gcp: { configured: false, quota: null }, madlad: { configured: true } };
+  let providers = {
+    gcp: { configured: false, quota: null },
+    madlad: { configured: false, scope: "server", reason: "local_companion_required" },
+  };
   const premiumV2Enabled = typeof PREMIUM_V2_ENABLED !== "undefined" ? !!PREMIUM_V2_ENABLED : false;
   if (premiumV2Enabled) {
     try {

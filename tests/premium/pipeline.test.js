@@ -1,13 +1,13 @@
 "use strict";
 
-// Pipeline-level tests for provider dispatch, retry, and fallback.
+// Pipeline-level tests for provider dispatch, retry, and explicit no-fallback.
 // These cover the behavior Phase 2.5.4 cares about:
 //   - normal char accounting on gcp success
 //   - quota errors surface with no auto-fallback
-//   - transient errors retry once, then fall back to madlad
+//   - transient errors retry once, then surface without changing provider
 //   - config errors don't retry
 //   - unknown-kind errors don't fall back
-//   - madlad provider bypasses gcp
+//   - server-side madlad is rejected in favor of the browser Companion contract
 //   - doc-cache hit short-circuits before any provider call
 //   - BAD_INPUT short-circuits before any provider call
 //
@@ -34,6 +34,13 @@ const pythonClient  = require("../../db/premium/pythonClient");
 const quota         = require("../../db/premium/quota");
 
 const pipeline = require("../../db/premium/pipeline");
+const TEST_GCP_KEY = "AIza" + "x".repeat(32);
+const rawTranslateTable = pipeline.translateTable;
+pipeline.translateTable = (options = {}) => rawTranslateTable(
+  options.provider === "gcp" && !options.gcpApiKey
+    ? { ...options, gcpApiKey: TEST_GCP_KEY }
+    : options
+);
 
 // Save real recordGcpUsage before beforeEach stubs overwrite it.
 // Tests that need to assert quota file state restore this reference.
@@ -79,7 +86,7 @@ function resetStubs() {
   quotaCalls = [];
 
   gcpProvider.isAvailable = () => true;
-  gcpProvider.translateBatch = async (segs) => {
+  gcpProvider.translateBatchWithApiKey = async (segs) => {
     gcpCalls.push({ segs: segs.map(s => s.he), call_n: gcpCalls.length + 1 });
     return {
       results: segs.map(s => ({ index: s.index, ru: `GCP[${s.he}]` })),
@@ -140,7 +147,7 @@ test("gcp happy path: rows stamped by gcp, chars recorded, no fallback", async (
 });
 
 test("gcp quota error does NOT trigger madlad fallback and records kind=quota", async () => {
-  gcpProvider.translateBatch = async () => {
+  gcpProvider.translateBatchWithApiKey = async () => {
     const e = new Error("gcp quota");
     e.provider = "gcp";
     e.upstream = "translate";
@@ -166,7 +173,7 @@ test("gcp quota error does NOT trigger madlad fallback and records kind=quota", 
 
 test("transient retry succeeds on the second attempt (no madlad, one quota debit)", async () => {
   let n = 0;
-  gcpProvider.translateBatch = async (segs) => {
+  gcpProvider.translateBatchWithApiKey = async (segs) => {
     n++;
     if (n === 1) {
       const e = new Error("gcp 503");
@@ -190,9 +197,9 @@ test("transient retry succeeds on the second attempt (no madlad, one quota debit
   assert.equal(quotaCalls[0].chars, "שלום עולם.".length);
 });
 
-test("transient twice → falls back to madlad with fallback_reason", async () => {
+test("transient twice → surfaces gcp failure without madlad fallback", async () => {
   let n = 0;
-  gcpProvider.translateBatch = async () => {
+  gcpProvider.translateBatchWithApiKey = async () => {
     n++;
     const e = new Error("gcp 503");
     e.provider = "gcp"; e.upstream = "translate";
@@ -200,18 +207,26 @@ test("transient twice → falls back to madlad with fallback_reason", async () =
     throw e;
   };
 
-  const out = await pipeline.translateTable({ text: "שלום עולם.", provider: "gcp" });
+  await assert.rejects(
+    pipeline.translateTable({ text: "שלום עולם.", provider: "gcp" }),
+    (err) => {
+      assert.equal(err.kind, "transient");
+      assert.equal(err.provider, "gcp");
+      return true;
+    }
+  );
   assert.equal(n, 2, "gcp attempted twice before giving up");
-  assert.equal(pyTranslateCalls.length, 1, "madlad called exactly once");
-  assert.equal(out.rows[0].ru, "MADLAD[שלום עולם.]");
-  assert.equal(out.provenance.provider, "gcp", "requested provider preserved");
-  assert.equal(out.provenance.actual_provider, "madlad");
-  assert.equal(out.provenance.fallback_reason, "transient");
+  assert.equal(pyTranslateCalls.length, 0, "madlad is never an implicit fallback");
   assert.equal(quotaCalls.length, 0, "no quota debit when gcp never produces chars");
 });
 
 test("config error (provider not available) throws without retry or fallback", async () => {
-  gcpProvider.isAvailable = () => false;
+  gcpProvider.translateBatchWithApiKey = async () => {
+    const e = new Error("gcp not configured");
+    e.provider = "gcp"; e.upstream = "translate";
+    e.kind = "config"; e.fallbackable = false;
+    throw e;
+  };
 
   await assert.rejects(
     pipeline.translateTable({ text: "שלום עולם.", provider: "gcp" }),
@@ -228,7 +243,7 @@ test("config error (provider not available) throws without retry or fallback", a
 });
 
 test("unknown-kind error does NOT fall back (fallbackable=false)", async () => {
-  gcpProvider.translateBatch = async () => {
+  gcpProvider.translateBatchWithApiKey = async () => {
     const e = new Error("gcp weird");
     e.provider = "gcp"; e.upstream = "translate";
     e.kind = "unknown"; e.fallbackable = false;
@@ -244,14 +259,17 @@ test("unknown-kind error does NOT fall back (fallbackable=false)", async () => {
   assert.equal(quotaCalls.length, 0);
 });
 
-test("provider=madlad bypasses gcp entirely", async () => {
-  const out = await pipeline.translateTable({ text: "שלום עולם.", provider: "madlad" });
-
+test("provider=madlad is not served by the production pipeline", async () => {
+  await assert.rejects(
+    pipeline.translateTable({ text: "שלום עולם.", provider: "madlad" }),
+    (err) => {
+      assert.equal(err.code, "LOCAL_MADLAD_COMPANION_REQUIRED");
+      assert.equal(err.provider, "madlad");
+      return true;
+    }
+  );
   assert.equal(gcpCalls.length, 0);
-  assert.equal(pyTranslateCalls.length, 1);
-  assert.equal(out.rows[0].ru, "MADLAD[שלום עולם.]");
-  assert.equal(out.provenance.provider, "madlad");
-  assert.equal(out.provenance.actual_provider, undefined);
+  assert.equal(pyTranslateCalls.length, 0, "server must not proxy browser text to a local sidecar");
   assert.equal(quotaCalls.length, 0, "madlad never debits the gcp quota");
 });
 
@@ -296,12 +314,12 @@ test("BAD_INPUT: unsupported provider rejects before any provider is touched", a
 // Зачем — docs/planning/STUDIO_KARAOKE_ROW_TIMING_MISMAP_2026_07_30.md: для текста из
 // аудио/видео/субтитров одна ИСХОДНАЯ СТРОКА = один ASR-сегмент, поэтому это поле —
 // единственный честный мост от премиум-строки к таймингу медиа. Провайдер здесь роли не
-// играет (madlad не трогает gcp-квоту и не требует ключа) — проверяется сборка строк.
+// играет — проверяется сборка строк через разрешённый server provider.
 // ---------------------------------------------------------------------------
 
 test("K2: rows carry source_line_index — 1:1 текст (строка = строка таблицы)", async () => {
   const text = "שורה ראשונה\nשורה שנייה\nשורה שלישית";
-  const out = await pipeline.translateTable({ text, provider: "madlad" });
+  const out = await pipeline.translateTable({ text, provider: "gcp" });
 
   assert.equal(out.rows.length, 3);
   assert.deepEqual(out.rows.map((r) => r.source_line_index), [0, 1, 2]);
@@ -312,7 +330,7 @@ test("K2: rows carry source_line_index — 1:1 текст (строка = стр
 test("K2: одна строка → N строк таблицы, у всех ОДИН source_line_index", async () => {
   // Ровно случай живого брака: строк таблицы больше, чем сегментов ASR.
   const text = "ראשון. שני! שלישי?\nרביעי.\nחמישי. שישי.";
-  const out = await pipeline.translateTable({ text, provider: "madlad" });
+  const out = await pipeline.translateTable({ text, provider: "gcp" });
 
   assert.equal(out.rows.length, 6);
   assert.deepEqual(out.rows.map((r) => r.source_line_index), [0, 0, 0, 1, 2, 2]);
@@ -326,16 +344,16 @@ test("K2: одна строка → N строк таблицы, у всех О�
 
 test("K2: пустые строки не сдвигают source_line_index", async () => {
   const text = "אחת\n\n   \nשתיים";
-  const out = await pipeline.translateTable({ text, provider: "madlad" });
+  const out = await pipeline.translateTable({ text, provider: "gcp" });
   assert.deepEqual(out.rows.map((r) => r.source_line_index), [0, 1]);
 });
 
 test("K2: doc-cache hit тоже отдаёт source_line_index (кэш пишется уже с полем)", async () => {
   const text = "ראשון. שני!\nשלישי.";
-  const first = await pipeline.translateTable({ text, provider: "madlad" });
+  const first = await pipeline.translateTable({ text, provider: "gcp" });
   assert.equal(first.fromCache, false);
 
-  const second = await pipeline.translateTable({ text, provider: "madlad" });
+  const second = await pipeline.translateTable({ text, provider: "gcp" });
   assert.equal(second.fromCache, true);
   assert.equal(second.provenance.cache_level, "doc");
   assert.deepEqual(second.rows.map((r) => r.source_line_index),
@@ -352,7 +370,7 @@ test("quota error (HTTP 429): err.status propagated and quota state records kind
   quota._resetForTest();
   quota.recordGcpUsage = _realRecordGcpUsage;
 
-  gcpProvider.translateBatch = async () => {
+  gcpProvider.translateBatchWithApiKey = async () => {
     const e = new Error("GCP quota exceeded (HTTP 429)");
     e.provider = "gcp"; e.upstream = "translate";
     e.status = 429; e.kind = "quota"; e.fallbackable = false;
@@ -385,7 +403,7 @@ test("near_limit: gcp call that crosses 90% threshold flips near_limit in quota 
   assert.equal(quota.getGcpStatus().near_limit, false, "sanity: 89% is below near_limit threshold");
 
   // GCP returns 200 chars → cumulative 9100/10000 = 91%, crosses the 90% threshold.
-  gcpProvider.translateBatch = async (segs) => ({
+  gcpProvider.translateBatchWithApiKey = async (segs) => ({
     results: segs.map(s => ({ index: s.index, ru: `GCP[${s.he}]` })),
     model_version: "gcp-translate-v3-nmt",
     chars: 200,

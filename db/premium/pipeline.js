@@ -28,7 +28,6 @@ const {
 const { segment } = require("./segmenter");
 const { transliterateWithProfile } = require("./translit");
 const niqqudGateway = require("./niqqudGateway");
-const pythonClient = require("./pythonClient");
 const gcpProvider        = require("./providers/gcp");
 const googleFreeProvider = require("./providers/googleFree");
 const quota = require("./quota");
@@ -49,29 +48,6 @@ function nowIso() {
 async function fetchNiqqud(texts) {
   if (!texts.length) return { results: [], model_version: NIKUD_VERSION, provider: "none", degraded: false };
   return niqqudGateway.fetchNiqqud(texts);
-}
-
-async function _madladTranslate(segmentsForApi, target) {
-  const r = await pythonClient.translate(segmentsForApi, target);
-  if (!r.ok) {
-    if (r.status === 0) {
-      const err = new Error(`Python sidecar (ai-local) не запущен на ${pythonClient.BASE} — MADLAD недоступен`);
-      err.provider = "madlad";
-      err.upstream = "translate";
-      err.status = 0;
-      err.kind = "sidecar_down";
-      err.fallbackable = false;
-      throw err;
-    }
-    const err = new Error(`madlad upstream failed: ${r.status} ${r.error || ""}`);
-    err.provider = "madlad";
-    err.upstream = "translate";
-    err.status = r.status;
-    err.kind = (r.status >= 500 && r.status < 600) ? "transient" : "unknown";
-    err.fallbackable = false; // madlad is the fallback target; don't fallback again
-    throw err;
-  }
-  return { ...r.body, chars: 0 }; // chars not metered for local model
 }
 
 async function _gcpTranslate(segmentsForApi, target, apiKey) {
@@ -124,7 +100,8 @@ async function fetchTranslations(segmentsForApi, target, requestedProvider, gcpA
         quota.recordGcpUsage({ chars: 0, error: { kind: "quota", at: nowIso() } });
         throw e;
       }
-      // Transient: try once more, then fall back to madlad.
+      // Transient: try once more, then surface the selected provider's error.
+      // D-HNR-10 forbids changing provider implicitly in either direction.
       if (e.fallbackable) {
         try {
           const out = await _gcpTranslate(segmentsForApi, target, gcpApiKey);
@@ -134,18 +111,19 @@ async function fetchTranslations(segmentsForApi, target, requestedProvider, gcpA
             quota.recordGcpUsage({ chars: 0, error: { kind: "quota", at: nowIso() } });
             throw e2;
           }
-          // Fall through to madlad.
-          const fb = await _madladTranslate(segmentsForApi, target);
-          return { ...fb, actualProvider: "madlad", fallbackReason: e2.kind || "transient" };
+          throw e2;
         }
       }
       throw e;
     }
   }
 
-  // Default: madlad.
-  const out = await _madladTranslate(segmentsForApi, target);
-  return { ...out, actualProvider: "madlad" };
+  const err = new Error("MADLAD runs only in the paired browser Companion");
+  err.code = "LOCAL_MADLAD_COMPANION_REQUIRED";
+  err.provider = "madlad";
+  err.kind = "local_companion_required";
+  err.fallbackable = false;
+  throw err;
 }
 
 async function translateTable({ text, target_lang = "ru", provider = "madlad", text_id = null, note = null, gcpApiKey = null } = {}) {
@@ -157,6 +135,14 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
   if (!SUPPORTED_PROVIDERS.has(provider)) {
     const err = new Error(`unsupported provider: ${provider}`);
     err.code = "BAD_INPUT";
+    throw err;
+  }
+  if (provider === "madlad") {
+    const err = new Error("MADLAD runs only in the paired browser Companion");
+    err.code = "LOCAL_MADLAD_COMPANION_REQUIRED";
+    err.provider = "madlad";
+    err.kind = "local_companion_required";
+    err.fallbackable = false;
     throw err;
   }
 

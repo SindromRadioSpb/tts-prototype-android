@@ -20190,23 +20190,14 @@ updatePlaylistButtonUI();
             gcpOpt.title = "Cloud Translation v2 — введите свой API key в панели ниже";
         }
 
-        if (!status || !status.providers) {
-            // Premium status API down: only madlad (sidecar-backed) is affected.
-            // GCP stays enabled because it doesn't depend on the sidecar.
-            if (madladOpt) {
-                madladOpt.disabled = true;
-                madladOpt.textContent = "MADLAD (offline)";
-                madladOpt.title = "Premium API недоступен";
-            }
-            return;
-        }
-
-        const madlad = status.providers.madlad || { configured: false };
+        // D-HNR-10: production-server status has no authority over a Companion
+        // on this user's machine. Until the authenticated /v1/mt capability
+        // probe succeeds, MADLAD stays visibly unavailable and selected state
+        // is preserved (never silently changed to Gemini).
         if (madladOpt) {
-            madladOpt.disabled = !madlad.configured;
-            madladOpt.textContent = madlad.configured ? "MADLAD (local)" : "MADLAD (offline)";
-            madladOpt.title = madlad.configured ? "Локальный сидекар" : "Сидекар недоступен";
-            if (el.value === "madlad" && madladOpt.disabled) el.value = "gemini";
+            madladOpt.disabled = true;
+            madladOpt.textContent = "MADLAD (Companion unavailable)";
+            madladOpt.title = "Pair and verify the local Companion before translation";
         }
     }
 
