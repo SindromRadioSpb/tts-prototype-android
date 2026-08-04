@@ -9,7 +9,7 @@ $env:PYTHONPATH='ai-local'
 & ai-local/.venv/Scripts/python.exe -m pytest ai-local/tests -q
 ```
 
-Result: `60 passed in 5.14s`.
+Result after the conversion-memory regression tests: `62 passed in 5.92s`.
 
 ```powershell
 node --test tests/localMtClient.test.js tests/localMtTable.test.js tests/localMtStudioAdapter.test.js tests/madladProviderStatus.test.js tests/materialRevisionCore.test.js tests/materialRevisionWorkspace.test.js
@@ -54,6 +54,38 @@ $env:PYTHONPATH='ai-local'
 
 Result: PASS in about 36.9 seconds; total runtime bytes `10,739,625,126`.
 
+## Fresh exact-source installation attempt
+
+The production lifecycle manager was exercised against an absent legacy model path. The
+first request was cancelled after `117,518,238` bytes; it returned `CANCELED` and retained
+the `.part` file. A second request resumed, downloaded all `42,854,943,654` expected bytes,
+and passed the pinned per-file SHA-256 manifest.
+
+The isolated CT2 conversion process then exited `-1073741819` (Windows native access
+violation) while loading model shards with only about 6 GiB physical RAM available. The
+manager returned `MODEL_CONVERSION_FAILED`, performed no activation, and retained the
+verified source cache. Pagefile headroom did not make this safe. The product now fails
+before download with `MODEL_CONVERSION_MEMORY_LOW` unless at least 24 GiB physical RAM is
+currently available. That new preflight is unit-tested; a successful retry above the
+threshold remains required. See `raw/fresh-install-attempt.json`.
+
+The already-present exact CT2 runtime was separately passed through the same hash gate,
+copied into the managed model directory, atomically manifested, and reported `READY`.
+
+## Real heavy-GPU swap
+
+The exact unchanged D-HNR-11 ASR snapshot was installed through its existing lifecycle
+manager, then the repository smoke script exercised both registered scheduler handlers:
+
+```powershell
+$env:PYTHONPATH='ai-local'
+& ai-local/.venv/Scripts/python.exe ai-local/scripts/smoke_mt_gpu_swap.py
+```
+
+Result: `asr → translator → asr → unloaded`, `exclusive_residency_pass=true`. The MT
+stage loaded the managed exact runtime and returned `Это локальная проверка.`; final
+scheduler state was `resident=null`, `active=null`, `waiting=0`. See `raw/gpu-swap.json`.
+
 ## Browser QA
 
 A temporary local server ran with `LOCAL_MT_BETA_ENABLED=true` solely for UI QA. A fresh
@@ -87,3 +119,7 @@ Observed before any mutation:
 
 No Docker cleanup, backup mutation, build, push, deploy, restart or production write was
 performed.
+
+The later conversion-memory UX fix advanced the final undeployed package to `3.11.303`
+and Companion source to `0.3.0-beta.2`; locale cache-bust lock `111` passes all 233 i18n
+checks. No installer was built from that source.

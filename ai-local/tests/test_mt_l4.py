@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 from types import SimpleNamespace
@@ -252,3 +253,41 @@ def test_mt_source_download_cancel_keeps_resumable_partial(monkeypatch, tmp_path
     partial = source / "fixture.bin.part"
     assert partial.exists()
     assert partial.read_bytes() == payload[:5]
+
+
+def test_mt_converter_uses_bounded_memory_and_exact_quantization(monkeypatch, tmp_path):
+    import ai_local.mt_convert_worker as worker
+
+    captured = {}
+
+    class FakeConverter:
+        def __init__(self, **kwargs):
+            captured["init"] = kwargs
+
+        def convert(self, **kwargs):
+            captured["convert"] = kwargs
+
+    monkeypatch.setitem(
+        sys.modules,
+        "ctranslate2.converters",
+        SimpleNamespace(TransformersConverter=FakeConverter),
+    )
+    worker.convert(tmp_path / "source", tmp_path / "output")
+    assert captured["init"]["low_cpu_mem_usage"] is True
+    assert captured["convert"]["quantization"] == "int8_float16"
+    assert captured["convert"]["force"] is False
+
+
+def test_remote_install_fails_before_download_when_conversion_ram_is_low(monkeypatch, tmp_path):
+    import ai_local.mt_model_install as install
+
+    target = tmp_path / "models" / "mt" / "snapshot"
+    monkeypatch.setattr(install, "inspect_mt_model", lambda **_kwargs: SimpleNamespace(verified=False))
+    monkeypatch.setattr(install, "expected_mt_model_dir", lambda: target)
+    monkeypatch.setattr(install.config, "MADLAD_LEGACY_MODEL_DIR", tmp_path / "absent")
+    monkeypatch.setattr(install.psutil, "virtual_memory", lambda: SimpleNamespace(available=1))
+    manager = install.MtModelInstallManager()
+    with pytest.raises(RuntimeError, match="MODEL_CONVERSION_MEMORY_LOW"):
+        manager.start(accepted_license=True, revision=install.MT_MODEL_REVISION)
+    assert not target.exists()
+    assert manager._thread is None

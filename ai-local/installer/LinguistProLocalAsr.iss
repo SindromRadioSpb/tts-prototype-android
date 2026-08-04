@@ -1,5 +1,5 @@
 #define MyAppName "LinguistPro Local AI Companion"
-#define MyAppVersion "0.3.0-beta.1"
+#define MyAppVersion "0.3.0-beta.2"
 #define MyAppExeName "LinguistProLocalAsrCompanion.exe"
 
 [Setup]
@@ -13,7 +13,7 @@ PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=..\artifacts
-OutputBaseFilename=LinguistProLocalAsrCompanion-0.3.0-beta.1-unsigned-internal
+OutputBaseFilename=LinguistProLocalAsrCompanion-0.3.0-beta.2-unsigned-internal
 Compression=lzma2/fast
 SolidCompression=yes
 WizardStyle=modern

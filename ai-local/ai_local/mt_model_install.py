@@ -18,6 +18,8 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+import psutil
+
 from . import config
 from .model_store import ACTIVATION_MANIFEST, MODEL_ACTIVATION_RESERVE_BYTES
 from .mt_constants import (
@@ -25,6 +27,7 @@ from .mt_constants import (
     MT_MODEL_LICENSE,
     MT_MODEL_QUANTIZATION,
     MT_MODEL_REVISION,
+    MT_CONVERSION_MIN_AVAILABLE_RAM_BYTES,
     MT_RUNTIME_FILE_BYTES,
     MT_RUNTIME_FILE_SHA256,
     MT_SOURCE_BYTES,
@@ -138,6 +141,11 @@ class MtModelInstallManager:
             raise RuntimeError("MODEL_REPAIR_REQUIRES_DELETE")
         source = config.MADLAD_LEGACY_MODEL_DIR
         self._source_mode = "verified_local_snapshot" if source.is_dir() else "remote_exact_revision"
+        if (
+            self._source_mode == "remote_exact_revision"
+            and psutil.virtual_memory().available < MT_CONVERSION_MIN_AVAILABLE_RAM_BYTES
+        ):
+            raise RuntimeError("MODEL_CONVERSION_MEMORY_LOW")
         required = (
             (2 * MT_SNAPSHOT_BYTES) + MODEL_ACTIVATION_RESERVE_BYTES
             if self._source_mode == "verified_local_snapshot"

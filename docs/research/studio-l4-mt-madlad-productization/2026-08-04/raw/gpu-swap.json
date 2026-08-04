@@ -1,0 +1,13 @@
+{
+  "schema": "studio-l4-mt-gpu-swap-v1",
+  "date": "2026-08-04",
+  "gpu": "NVIDIA GeForce RTX 3070 8GB",
+  "sequence": ["asr_first", "mt", "asr_second", "unloaded"],
+  "stages": [
+    {"stage": "asr_first", "resident": "asr", "active": "asr", "waiting": 0},
+    {"stage": "mt", "resident": "translator", "active": "translator", "waiting": 0, "translation": "Это локальная проверка."},
+    {"stage": "asr_second", "resident": "asr", "active": "asr", "waiting": 0},
+    {"stage": "unloaded", "resident": null, "active": null, "waiting": 0}
+  ],
+  "exclusive_residency_pass": true
+}

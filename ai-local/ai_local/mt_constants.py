@@ -79,6 +79,10 @@ MT_MAX_SEGMENTS_PER_JOB = 120
 MT_MAX_SEGMENT_CHARS = 8_000
 MT_MAX_TOTAL_CHARS = 240_000
 MT_INFERENCE_BATCH_SIZE = 4
+# TransformersConverter materializes the 10B model before CT2 quantization.
+# Fail before a 42.85 GB download unless the machine has enough currently
+# available physical RAM; pagefile-only headroom proved crash-prone on Windows.
+MT_CONVERSION_MIN_AVAILABLE_RAM_BYTES = 24 * 1024**3
 
 
 def model_identity() -> dict[str, object]:

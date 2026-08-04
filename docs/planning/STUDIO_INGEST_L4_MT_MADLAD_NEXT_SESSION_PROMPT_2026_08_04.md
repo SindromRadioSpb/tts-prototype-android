@@ -4,13 +4,32 @@
 `E:\projects\tts-prototype-android`.
 
 ```text
-Выполни D-HNR-10 как Codex-first implementation session. Не останавливайся после recon
-или документации: последовательно доведи локальную реализацию и engineering gates до
-реального результата; invite beta/production/owner-live выполняй только после их точных
-preflight и stop conditions.
+Продолжи D-HNR-10 с фактического implementation checkpoint ниже. Не повторяй уже
+закрытые MT-0/MT-1/базовые MT-2…MT-4 работы. Сначала верифицируй commits/evidence и
+сосредоточься на воспроизводимом fresh-conversion blocker; invite beta/production/
+owner-live выполняй только после их точных preflight и stop conditions.
 
 OWNER AUTHORITY (verbatim):
 «GO D-HNR-10: выделить MADLAD productization в отдельный последовательный L4-MT трек до L4.0c/L4.0b; сначала исправить ложный provider-status, затем подготовить implementation packet, реализовать Browser→Companion MT без implicit fallback, провести invite beta и owner-live.»
+
+CURRENT CHECKPOINT (2026-08-04):
+- MT-0 commit `24cc2b54`; coherent Browser→Companion implementation commit `623b0e3b`;
+  следующий scoped fix commit проверь через `git log` (web `3.11.303`, Companion source
+  `0.3.0-beta.2`). Ничего из этого не push/deploy.
+- 62 Python tests, 29 focused Node tests и 233 i18n checks PASS; full npm baseline имеет
+  одну вне-срезовую classicModeRedesign failure, уже отсутствующую в commit baseline.
+- Exact local runtime adoption, real managed MADLAD translation и real ASR→MT→ASR→unloaded
+  exclusive scheduler PASS; evidence лежит в
+  `docs/research/studio-l4-mt-madlad-productization/2026-08-04/`.
+- Fresh lifecycle: cancel/resume PASS, все 42,854,943,654 source bytes + hashes PASS, но
+  CT2 conversion завершился native Windows access violation `-1073741819` при ~6 GiB
+  available physical RAM; activation не было, source cache сохранён. Новый preflight
+  требует >=24 GiB currently available RAM и fail-closed `MODEL_CONVERSION_MEMORY_LOW`.
+- Invite beta всё ещё NOT READY: нужно освободить/получить >=24 GiB physical RAM,
+  повторить retained-source conversion→activation, затем delete/reinstall, installer,
+  restart/multi-tab и production-origin save/reopen/export-import gates.
+- Production всё ещё наблюдался на `3.11.300`, disk около 96%/~1.4 GB free — hard STOP.
+  Никакого cleanup/push/deploy без нового read-only preflight и точной authority.
 
 READ FIRST полностью, по порядку:
 1. AGENTS.md
@@ -63,10 +82,10 @@ zero production-server proxy of user text; zero second provider truth; no DB mig
 in git. Preserve every unrelated dirty/untracked owner file. Edit/stage/commit only exact
 allowlist. При спорной границе остановись и спроси владельца.
 
-Известный baseline для проверки, не вечная истина: local HEAD ранее был 473773c8 поверх
-origin/main 47959ce8; production был v3.11.300, real MADLAD POST давал 503, status ложно
-показывал configured=true, disk warning был около 96%. Сначала refresh, не повторяй эти
-факты как текущие без проверки.
+Известный production baseline для проверки, не вечная истина: origin/main был
+`47959ce8`; production был v3.11.300, real MADLAD POST давал 503, status ложно показывал
+configured=true, disk warning был около 96%. Локальный false-status уже исправлен. Сначала
+refresh, не повторяй эти production-факты как текущие без проверки.
 
 Definition of Done: зрелый Browser→Companion MADLAD MT на production-origin, exact
 provenance и cold round-trip, no cloud/server text path, invite-beta evidence и реальный

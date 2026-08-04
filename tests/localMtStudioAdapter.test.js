@@ -73,6 +73,8 @@ test("browser MT calls only authenticated versioned loopback endpoints and share
 test("onboarding exposes local privacy, resource, consent, deletion and draft limitations", () => {
   assert.match(onboarding, /10\.74 GB/);
   assert.match(onboarding, /60 GB/);
+  assert.match(onboarding, /24 GB/);
+  assert.match(onboarding, /MODEL_CONVERSION_MEMORY_LOW/);
   assert.match(onboarding, /LIMITED EVIDENCE \/ NO BILINGUAL HUMAN VALIDATION/);
   assert.match(onboarding, /installModel\(true\)/);
   assert.match(onboarding, /deleteModel/);

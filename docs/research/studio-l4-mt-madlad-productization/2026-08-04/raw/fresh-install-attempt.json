@@ -1,0 +1,41 @@
+{
+  "schema": "studio-l4-mt-fresh-install-attempt-v1",
+  "date": "2026-08-04",
+  "model_id": "google/madlad400-10b-mt",
+  "revision": "9f2797629c31e69617186dbe5f0ca43bf662f36d",
+  "cancel_resume": {
+    "cancelled_after_bytes": 117518238,
+    "state_after_cancel": "CANCELED",
+    "partial_retained": true,
+    "resume_completed": true
+  },
+  "source": {
+    "expected_bytes": 42854943654,
+    "downloaded_bytes": 42854943654,
+    "exact_file_sizes_pass": true,
+    "sha256_manifest_pass": true
+  },
+  "conversion": {
+    "transformers": "4.49.0",
+    "ctranslate2": "4.5.0",
+    "low_cpu_mem_usage": true,
+    "process_exit_code": -1073741819,
+    "windows_failure": "native access violation",
+    "available_physical_ram_gib_approx": 6,
+    "activated": false,
+    "public_error_code": "MODEL_CONVERSION_FAILED"
+  },
+  "remediation": {
+    "fail_early_code": "MODEL_CONVERSION_MEMORY_LOW",
+    "minimum_available_physical_ram_bytes": 25769803776,
+    "source_cache_retained_for_retry": true,
+    "retry_pass": false
+  },
+  "existing_runtime_adoption": {
+    "runtime_bytes": 10739625126,
+    "exact_hash_gate_pass": true,
+    "atomic_activation_pass": true,
+    "managed_model_state": "READY"
+  },
+  "fresh_install_pass": false
+}

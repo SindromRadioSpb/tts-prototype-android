@@ -1,7 +1,7 @@
 # Studio Ingest L4-MT — MADLAD productization evidence
 
-Date: 2026-08-04; authority: D-HNR-10; local web package: `3.11.302`;
-invite Companion source version: `0.3.0-beta.1`.
+Date: 2026-08-04; authority: D-HNR-10; local web package: `3.11.303`;
+invite Companion source version: `0.3.0-beta.2`.
 Status: **ENGINEERING PARTIAL / PRODUCTION NOT STARTED / OWNER-LIVE NOT STARTED**
 
 ## Outcome
@@ -23,10 +23,10 @@ Saved rows continue to use the D-HNR-9 authority fields `translation_provider` a
 | --- | --- | --- |
 | MT-0 | PASS, committed as `24cc2b54` | False server status reproduced and fixed; server MADLAD route fails closed; no provider switch. |
 | MT-1 | Local PASS | Authenticated capabilities/lifecycle/jobs, Origin/PNA/token negatives, anti-replay, exact cardinality and cancel tests are green. Not production-verified. |
-| MT-2 | PARTIAL | Exact existing 10,739,625,126-byte runtime snapshot passed SHA-256 verification; real RTX 3070 load/translate/unload passed. Fresh 42,854,943,654-byte upstream download→conversion was not run; real ASR→MT→ASR swap could not run because the managed ASR model is absent. |
+| MT-2 | PARTIAL / BLOCKED FOR FRESH INSTALL | Cancel/resume, all 42,854,943,654 upstream bytes and exact hashes passed. Conversion failed closed with Windows access violation `-1073741819` under low available physical RAM, so activation never occurred. A 24 GiB available-RAM preflight now prevents that unsafe attempt. Existing exact runtime adoption passed. Real ASR→MT→ASR exclusive residency and final unload passed. |
 | MT-3 | Local implementation PASS / end-to-end PARTIAL | Shared mapping, duplicates, empty lines, he→ru/ru→he, cancel and provenance tests pass. A real save→cold reopen→export/import ceremony against the new Companion build remains unrun. |
 | MT-4 | Local browser PASS for unavailable/onboarding states | Fresh Chrome, desktop and exact 380 CSS px; RU/EN/HE live localization and Hebrew RTL; no horizontal overflow. Ready/install/busy actions still need the built invite Companion. |
-| MT-5 | PARTIAL | Automated gates and synthetic real-model smoke recorded. Frozen benchmark release subset, real production-origin network assertion, multi-tab contention, Companion restart and full swap remain. |
+| MT-5 | PARTIAL | Automated gates, synthetic real-model smoke and real GPU swap are recorded. Frozen benchmark release subset, real production-origin network assertion, multi-tab contention and Companion restart remain. |
 | MT-6 | NOT OPENED | Installer source is versioned but no installer artifact was built or distributed. |
 | MT-7 | BLOCKED / NOT STARTED | Production disk remained about 96% used with about 1.4 GB free. No cleanup authority; therefore no build, push, deploy or owner-live. |
 
@@ -64,6 +64,8 @@ it is not owner-selected material and not an owner-live semantic PASS.
 - `environment.json` — content-safe environment and revision snapshot.
 - `model-manifest.json` — runtime identity, exact sizes and SHA-256 values.
 - `raw/real-model-smoke.json` — normalized synthetic translation output.
+- `raw/fresh-install-attempt.json` — cancel/resume/download/hash/conversion/adoption receipt.
+- `raw/gpu-swap.json` — real ASR→MT→ASR residency receipt.
 - `known-limitations.md` — incomplete exits and STOP conditions.
 - `invite-beta.md` — bounded installer/upgrade state; distribution is not authorized yet.
 - `screenshots/` — fresh desktop and 380px unavailable/onboarding evidence.

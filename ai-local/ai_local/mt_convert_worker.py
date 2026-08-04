@@ -11,6 +11,10 @@ def convert(source: Path, output: Path) -> None:
 
     converter = TransformersConverter(
         model_name_or_path=str(source),
+        # MADLAD 10B cannot be materialized as float32 inside the invite
+        # cohort's 32 GB system-memory envelope. Accelerate-backed lazy shard
+        # loading is also the conversion mode used for the benchmark artifact.
+        low_cpu_mem_usage=True,
         copy_files=[
             "spiece.model",
             "special_tokens_map.json",
