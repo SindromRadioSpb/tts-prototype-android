@@ -14,7 +14,7 @@ OWNER AUTHORITY (verbatim):
 
 CURRENT CHECKPOINT (2026-08-04):
 - MT-0 commit `24cc2b54`; coherent Browser→Companion implementation commit `623b0e3b`;
-  следующий scoped fix commit проверь через `git log` (web `3.11.303`, Companion source
+  conversion-memory/evidence fix `cc785906` (web `3.11.303`, Companion source
   `0.3.0-beta.2`). Ничего из этого не push/deploy.
 - 62 Python tests, 29 focused Node tests и 233 i18n checks PASS; full npm baseline имеет
   одну вне-срезовую classicModeRedesign failure, уже отсутствующую в commit baseline.
