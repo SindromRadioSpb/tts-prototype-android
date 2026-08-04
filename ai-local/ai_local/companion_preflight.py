@@ -175,7 +175,12 @@ def _disk_check() -> dict[str, Any]:
 
 def _capability_probe() -> dict[str, Any] | None:
     try:
-        with urllib.request.urlopen("http://127.0.0.1:8799/v1/capabilities", timeout=1.0) as response:
+        from .security import pairing_token
+        request = urllib.request.Request(
+            "http://127.0.0.1:8799/v1/capabilities",
+            headers={"Authorization": "Bearer " + pairing_token(), "Origin": "http://127.0.0.1:3000"},
+        )
+        with urllib.request.urlopen(request, timeout=1.0) as response:
             payload = json.loads(response.read(64 * 1024).decode("utf-8"))
         if payload.get("protocol") == ASR_PROTOCOL_VERSION:
             return payload

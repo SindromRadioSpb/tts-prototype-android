@@ -18,9 +18,18 @@ from .asr_jobs import JobCapacityError, JobNotFound, asr_job_manager
 from .asr_worker import asr_worker
 from .gpu_scheduler import heavy_gpu_scheduler
 from .model_store import inspect_model
+from .mt_constants import MT_PROTOCOL_VERSION, model_identity as mt_model_identity
+from .mt_jobs import MtJobConflict, MtJobNotFound, mt_job_manager
+from .mt_model_install import mt_model_install_manager
+from .mt_model_store import inspect_mt_model
 from .companion_model import delete_all_jobs, model_install_manager
 from .companion_preflight import preflight_report
-from .security import loopback_security_middleware, require_browser_auth
+from .security import (
+    loopback_security_middleware,
+    require_browser_auth,
+    require_companion_auth,
+    require_mt_browser_auth,
+)
 from .state import ModelSlot, registry
 from .telemetry import sample_nvidia
 
@@ -59,9 +68,12 @@ async def lifespan(app: FastAPI):
     registry.register(_build_translator_slot())
 
     async def prepare_translator() -> None:
-        # use_model() in /translate performs the actual lazy load after the lease
-        # is granted. This hook exists to make the residency transition explicit.
-        return None
+        status = await asyncio.to_thread(inspect_mt_model, None, verify_hash=False)
+        if not status.verified:
+            raise RuntimeError(status.reason or "MT model is not verified")
+        sample = await asyncio.to_thread(sample_nvidia)
+        if not sample.admission_ok():
+            raise RuntimeError("insufficient free VRAM for the pinned MT model")
 
     async def unload_translator() -> None:
         did = await try_unload(registry.slot("translator"), reason="heavy_gpu_switch")
@@ -106,6 +118,8 @@ async def lifespan(app: FastAPI):
         registry.stop_accepting()
         if config.ASR_ENABLED:
             await asr_job_manager.shutdown()
+        if config.MT_ENABLED:
+            await mt_job_manager.shutdown()
         await stop_monitor()
         try:
             await heavy_gpu_scheduler.unload_resident()
@@ -190,10 +204,28 @@ class InstallAsrModelRequest(BaseModel):
     accepted_license: bool
 
 
+class InstallMtModelRequest(BaseModel):
+    revision: str
+    accepted_license: bool
+
+
+class MtSegmentIn(BaseModel):
+    index: int = Field(..., ge=0)
+    text: str = Field(..., max_length=8_000)
+
+
+class MtJobRequest(BaseModel):
+    request_id: str = Field(..., min_length=64, max_length=64)
+    input_checksum: str = Field(..., min_length=64, max_length=64)
+    source_lang: str
+    target_lang: str
+    segments: list[MtSegmentIn] = Field(..., min_length=1, max_length=120)
+
+
 # ---------- endpoints ----------
 
 
-@app.get("/v1/capabilities")
+@app.get("/v1/capabilities", dependencies=[Depends(require_companion_auth)])
 async def v1_capabilities():
     return {
         "protocol": ASR_PROTOCOL_VERSION,
@@ -203,7 +235,158 @@ async def v1_capabilities():
             "auth_required": True,
             "model": model_identity(),
         },
+        "local_mt": {
+            "enabled": config.MT_ENABLED,
+            "default": False,
+            "auth_required": True,
+            "model": mt_model_identity(),
+            "protocol": MT_PROTOCOL_VERSION,
+        },
     }
+
+
+@app.get("/v1/mt/model/status", dependencies=[Depends(require_mt_browser_auth)])
+async def v1_mt_model_status(verify_hash: bool = False):
+    status = await asyncio.to_thread(inspect_mt_model, None, verify_hash=verify_hash)
+    scheduler = heavy_gpu_scheduler.status()
+    return {
+        **status.public_dict(),
+        "runtime_state": registry.slot("translator").reported_state(),
+        "gpu": {
+            "resident": scheduler.resident,
+            "active": scheduler.active,
+            "waiting": scheduler.waiting,
+        },
+    }
+
+
+@app.get("/v1/mt/model/install-status", dependencies=[Depends(require_mt_browser_auth)])
+async def v1_mt_model_install_status():
+    return mt_model_install_manager.status()
+
+
+@app.post("/v1/mt/model/install", status_code=202, dependencies=[Depends(require_mt_browser_auth)])
+async def v1_mt_model_install(body: InstallMtModelRequest):
+    try:
+        return mt_model_install_manager.start(
+            accepted_license=body.accepted_license,
+            revision=body.revision,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.post("/v1/mt/model/install-cancel", dependencies=[Depends(require_mt_browser_auth)])
+async def v1_mt_model_install_cancel():
+    return mt_model_install_manager.cancel()
+
+
+@app.delete("/v1/mt/model", dependencies=[Depends(require_mt_browser_auth)])
+async def v1_mt_model_delete():
+    scheduler = heavy_gpu_scheduler.status()
+    if mt_job_manager.has_active_jobs() or scheduler.active == "translator":
+        raise HTTPException(status_code=409, detail="MODEL_DELETE_BLOCKED_BY_ACTIVE_JOB")
+    if scheduler.resident == "translator":
+        await heavy_gpu_scheduler.unload_resident()
+    heavy_gpu_scheduler.invalidate("translator")
+    try:
+        return await asyncio.to_thread(mt_model_install_manager.delete_model)
+    except (ValueError, RuntimeError, OSError) as exc:
+        detail = str(exc).split(":", 1)[0]
+        if not detail or not detail.replace("_", "").isalnum() or detail.upper() != detail:
+            detail = "MODEL_DELETE_FAILED"
+        raise HTTPException(status_code=409, detail=detail) from exc
+
+
+@app.post("/v1/mt/model/warmup", dependencies=[Depends(require_mt_browser_auth)])
+async def v1_mt_model_warmup():
+    status = await asyncio.to_thread(inspect_mt_model, None, verify_hash=True)
+    if not status.verified:
+        raise HTTPException(status_code=409, detail=status.reason or "model is not verified")
+    try:
+        async with heavy_gpu_scheduler.lease("translator"):
+            slot = registry.slot("translator")
+            async with use_model(slot):
+                assert slot.impl is not None
+                await asyncio.to_thread(slot.impl.warmup)
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="MT_WARMUP_FAILED") from exc
+    return {"ok": True, "state": registry.slot("translator").reported_state()}
+
+
+@app.post("/v1/mt/model/unload", dependencies=[Depends(require_mt_browser_auth)])
+async def v1_mt_model_unload():
+    scheduler = heavy_gpu_scheduler.status()
+    if scheduler.active == "translator" or mt_job_manager.has_active_jobs():
+        raise HTTPException(status_code=409, detail="MT_JOB_ACTIVE")
+    if scheduler.resident == "translator":
+        await heavy_gpu_scheduler.unload_resident()
+    else:
+        await try_unload(registry.slot("translator"), reason="browser_mt_unload")
+    heavy_gpu_scheduler.invalidate("translator")
+    return {"ok": True, "state": "unloaded"}
+
+
+@app.post("/v1/mt/jobs", status_code=202, dependencies=[Depends(require_mt_browser_auth)])
+async def v1_mt_create_job(body: MtJobRequest):
+    try:
+        return await mt_job_manager.create(
+            request_id=body.request_id,
+            input_checksum=body.input_checksum,
+            source_lang=body.source_lang,
+            target_lang=body.target_lang,
+            segments=[segment.model_dump() for segment in body.segments],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except MtJobConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.get("/v1/mt/jobs/{job_id}", dependencies=[Depends(require_mt_browser_auth)])
+async def v1_mt_job_status(job_id: str):
+    try:
+        return mt_job_manager.status(job_id)
+    except MtJobNotFound as exc:
+        raise HTTPException(status_code=404, detail="job not found") from exc
+
+
+@app.get("/v1/mt/jobs/{job_id}/result", dependencies=[Depends(require_mt_browser_auth)])
+async def v1_mt_job_result(job_id: str):
+    try:
+        return mt_job_manager.result(job_id)
+    except MtJobNotFound as exc:
+        raise HTTPException(status_code=404, detail="job result not found") from exc
+
+
+@app.post("/v1/mt/jobs/{job_id}/cancel", dependencies=[Depends(require_mt_browser_auth)])
+async def v1_mt_job_cancel(job_id: str):
+    try:
+        return await mt_job_manager.cancel(job_id)
+    except MtJobNotFound as exc:
+        raise HTTPException(status_code=404, detail="job not found") from exc
+
+
+@app.post("/v1/mt/jobs/{job_id}/retry", status_code=202, dependencies=[Depends(require_mt_browser_auth)])
+async def v1_mt_job_retry(job_id: str):
+    try:
+        return await mt_job_manager.retry(job_id)
+    except MtJobNotFound as exc:
+        raise HTTPException(status_code=404, detail="job not found") from exc
+    except MtJobConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.delete("/v1/mt/jobs/{job_id}", dependencies=[Depends(require_mt_browser_auth)])
+async def v1_mt_job_delete(job_id: str):
+    try:
+        return await mt_job_manager.delete(job_id)
+    except MtJobNotFound as exc:
+        raise HTTPException(status_code=404, detail="job not found") from exc
+    except MtJobConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 @app.get("/v1/asr/model/status", dependencies=[Depends(require_browser_auth)])

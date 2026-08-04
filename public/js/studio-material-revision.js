@@ -332,11 +332,22 @@
     var premium=provider!=='gemini', endpoint=premium?'/api/translate-table-v2':'/api/translate-table';
     var payload=premium?{text:text,provider:provider,target_lang:'ru',translit_profile:profile}:{text:text,geminiApiKey:typeof geminiKeyGet==='function'?geminiKeyGet():'',direction:typeof getTableDirection==='function'?getTableDirection():'he-ru',segments:items.map(function(x,index){return{start:index*2,end:index*2+1,text:x.row.he_plain};})};
     if(provider==='gcp' && typeof gcpTranslateKeyGet==='function') payload.gcpTranslateApiKey=gcpTranslateKeyGet();
-    var response=await apiCall(endpoint,payload), resultRows=Array.isArray(response.rows)?response.rows:[];
+    var response;
+    if(provider==='madlad'){
+      if(!window.LocalMtClient||!window.LocalMtTable)throw new Error('LOCAL_MT_BROWSER_MODULE_UNAVAILABLE');
+      var readiness=await window.refreshLocalMtReadiness();
+      if(!readiness||readiness.state!=='ready')throw new Error('LOCAL_MT_NOT_READY:'+((readiness&&readiness.state)||'error'));
+      var segments=items.map(function(x,index){return{index:index,source_line_index:index,text:x.row.he_plain};});
+      var translated=await window.LocalMtTable.translateSegments({client:new window.LocalMtClient.Client(),segments:segments,sourceLang:'he',targetLang:'ru'});
+      response={rows:translated.rows,provenance:{provider:'madlad',actual_provider:'madlad',translator_version:translated.result&&translated.result.model&&translated.result.model.identity,model_revision:translated.result&&translated.result.model&&translated.result.model.revision,local_execution:true}};
+    }else{
+      response=await apiCall(endpoint,payload);
+    }
+    var resultRows=Array.isArray(response.rows)?response.rows:[];
     if(resultRows.length!==items.length) throw new Error('REGEN_CARDINALITY_MISMATCH');
     var byIndex=new Map(); resultRows.forEach(function(row,index){var explicit=premium?row.source_line_index:row.segment_index,n=Number.isInteger(explicit)?explicit:index;if(byIndex.has(n)||n<0||n>=items.length)throw new Error('REGEN_SOURCE_INDEX_MISMATCH');byIndex.set(n,row);});
     if(byIndex.size!==items.length) throw new Error('REGEN_SOURCE_INDEX_MISMATCH');
-    var candidates=[];for(var index=0;index<items.length;index++){var x=items[index],row=byIndex.get(index),fields={};x.item.fields.forEach(function(field){if(field==='he_plain')fields[field]=x.row.he_plain;else if(field in row)fields[field]=row[field];else if(field==='he_niqqud'&&'he_nikud' in row)fields[field]=row.he_nikud;else throw new Error('REGEN_FIELD_MISSING:'+field);});candidates.push({request_id:'regen:'+x.row.stable_row_id,fields:fields,provenance:{provider:provider,model:String((response.provenance&&response.provenance.translator_version)||response.model||provider),profile:profile,input_sha256:await window.MaterialRevisionCore.sha256Hex(x.row.he_plain)}});}return candidates;
+    var candidates=[];for(var index=0;index<items.length;index++){var x=items[index],row=byIndex.get(index),fields={};x.item.fields.forEach(function(field){if(field==='he_plain')fields[field]=x.row.he_plain;else if(field in row)fields[field]=row[field];else if(field==='he_niqqud'&&'he_nikud' in row)fields[field]=row.he_nikud;else throw new Error('REGEN_FIELD_MISSING:'+field);});candidates.push({request_id:'regen:'+x.row.stable_row_id,fields:fields,provenance:{provider:provider,model:String((response.provenance&&response.provenance.translator_version)||response.model||provider),model_revision:String(response.provenance&&response.provenance.model_revision||''),local_execution:response.provenance&&response.provenance.local_execution===true,quality_positioning:provider==='madlad'?'LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION':'',profile:profile,input_sha256:await window.MaterialRevisionCore.sha256Hex(x.row.he_plain)}});}return candidates;
   }
 
   async function regenerate(whole) {
@@ -344,14 +355,18 @@
     var impact=whole ? window.MaterialRevisionCore.analyzeImpact({rows:state.rows,change:{kind:'provider',fields:window.MaterialRevisionCore.FIELD_NAMES}}) : state.impact;
     if (impact.conflicts && impact.conflicts.length) { setStatus(tr('studio.material.resolveMapping','Сначала разрешите mapping-конфликты вручную.'),'error'); return; }
     var provider=typeof getSelectedProvider==='function'?getSelectedProvider():'', model=provider;
+    // MADLAD is an MT provider, not a niqqud/transliteration authority. Preserve
+    // those invalidated fields honestly and regenerate only the unlocked RU field.
+    if(provider==='madlad')impact={...impact,impacted:impact.impacted.map(function(item){return{...item,fields:item.fields.filter(function(field){return field==='ru';})};}).filter(function(item){return item.fields.length;})};
     var preview=window.MaterialRevisionCore.buildRegenerationPreflight({rows:state.rows,impact:impact,provider:provider,model:model});
     var chars=impact.impacted.reduce(function(n,item){var row=state.rows.find(function(r){return r.stable_row_id===item.stable_row_id;});return n+(row?row.he_plain.length:0);},0);
     if (!window.confirm(tr('studio.material.costPreview','Подтвердите вызов провайдера')+'\n'+preview.row_count+' rows · '+preview.field_count+' fields · '+chars+' chars\n'+provider+' · fallback: OFF')) return;
     try {
       setStatus(tr('studio.material.regenerating','Обновление выбранных строк…'));
       var candidates=await providerRequest(impact);
+      var actualProvenance=candidates[0]&&candidates[0].provenance||{};
       state.rows=window.MaterialRevisionCore.applyProviderCandidates({rows:state.rows,impact:impact,candidates:candidates}); state.dirty=true;
-      var committed=await repo().commitRevision({material_id:state.material.material_id,base_table_revision_id:state.base.table_revision_id,rows:state.rows,provider_context:{provider:provider,model:model},bound_caption_revision_id:state.pendingCaptionRevision&&state.pendingCaptionRevision.revision_id,bound_caption_revision_sha256:state.pendingCaptionRevision&&state.pendingCaptionRevision.canonical_sha256,impact:{kind:whole?'full_rebuild':'targeted',preflight:preview}});
+      var committed=await repo().commitRevision({material_id:state.material.material_id,base_table_revision_id:state.base.table_revision_id,rows:state.rows,provider_context:{provider:provider,model:String(actualProvenance.model||model),model_revision:String(actualProvenance.model_revision||''),local_execution:actualProvenance.local_execution===true,quality_positioning:String(actualProvenance.quality_positioning||'')},bound_caption_revision_id:state.pendingCaptionRevision&&state.pendingCaptionRevision.revision_id,bound_caption_revision_sha256:state.pendingCaptionRevision&&state.pendingCaptionRevision.canonical_sha256,impact:{kind:whole?'full_rebuild':'targeted',preflight:preview}});
       state.base=committed;state.rows=clone(committed.rows);state.dirty=false;state.impact={conflicts:[],impacted:[],reason:'CURRENT'};
       renderRows(state.rows,false);renderHeader();renderReviewControls();await renderHistory();setStatus(tr('studio.material.regenerated','Новая версия сохранена; предыдущая доступна в истории.'),'success');
     } catch(e){setStatus(e.message,'error');throw e;}

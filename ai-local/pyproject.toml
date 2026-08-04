@@ -16,7 +16,9 @@ dependencies = [
 
 [project.optional-dependencies]
 runtime = [
-    "transformers>=4.45,<4.50",
+    # Exact MADLAD CT2 artifact was produced with Transformers 4.35.0; changing
+    # this is a model-identity change because copied/runtime bytes must match.
+    "transformers==4.35.0",
     "ctranslate2==4.5.0",
     "faster-whisper==1.1.1",
     "sentencepiece>=0.2,<0.3",

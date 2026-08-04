@@ -3285,6 +3285,18 @@ window.I18N_LOCALES.ru = {
       connected: "Подключено для этой браузерной сессии.", connectFirst: "Сначала подключите Companion.", ready: "Local ASR готов. Медиа остаётся на этом компьютере.",
       errDisk: "Недостаточно места для проверяемой активации модели.", errPort: "Порт 8799 занят другой программой. Остановите её и перезапустите Companion.", errIntegrity: "Проверка модели не прошла. Удалите partial/model файлы и повторите ту же pinned revision.", errPairing: "Pairing не прошёл. Скопируйте текущий token из Companion, полностью замените значение в поле и попробуйте снова.", errDown: "Companion недоступен. Запустите его на этом компьютере; Gemini не вызывался."
     },
+    localMt: {
+      title: "Локальный перевод MADLAD",
+      btnTitle: "Настройки локального перевода MADLAD", cancelTranslation: "Отменить локальный перевод",
+      intro: "Перевод остаётся на этом компьютере. Локальная ошибка никогда автоматически не вызывает Gemini или Google. Результат — исправляемый машинный черновик.",
+      requirements: "Windows 11 · NVIDIA CUDA · 8 GB VRAM · Chrome · модель 10,74 GB · до 60 GB свободно для загрузки exact revision, конвертации и проверяемой активации",
+      pairTitle: "Подключить эту браузерную сессию", pairNote: "Используется тот же token Companion, что и для Local ASR. Он хранится только в session storage.", tokenPlaceholder: "Pairing token", pair: "Подключить и проверить", paired: "Companion аутентифицирован: ",
+      modelTitle: "Pinned-модель MADLAD", consent: "Я принимаю Apache-2.0, требования к ресурсам, локальную обработку текста и позиционирование черновика LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION.",
+      install: "Проверить и активировать", cancelInstall: "Отменить", delete: "Удалить модель", installStarted: "Запущены проверка и активация точного snapshot.",
+      runtimeTitle: "Резидентность GPU", runtimeNote: "ASR и MADLAD выполняются последовательно; при переключении другая тяжёлая модель выгружается.", warmup: "Подготовить", unload: "Освободить GPU", actionDone: "Действие выполнено.", notInvited: "Этот браузер не включён в invite beta.",
+      errDisk: "Недостаточно свободного места для точной загрузки, конвертации и активации.", errIntegrity: "Exact snapshot модели не прошёл SHA-256 gate и не был активирован.", errConversion: "Pinned-конвертация не прошла; модель не активирована.", errDown: "Запустите Companion. Ни один cloud provider не вызывался.", errConsent: "Сначала подтвердите лицензию, ресурсы, приватность и черновое качество.",
+      state: { absent: "Companion недоступен", unpaired: "Подключите Companion", model_missing: "Модель не установлена", installing: "Установка и проверка", ready: "Готово", busy: "GPU занят", error: "Локальная ошибка" }
+    },
     retell: {
       title: "✨ Упростить до моего уровня",
       button: "Упростить до моего уровня",

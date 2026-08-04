@@ -1170,6 +1170,12 @@ app.get("/api/client-config", (_req, res) => {
     (/^https:\/\//i.test(localAsrDownloadRaw) || (/^\/(?!\/)/.test(localAsrDownloadRaw)))
       ? localAsrDownloadRaw
       : "";
+  // Studio L4 MADLAD invite beta. This exposure gate is independent from
+  // ASR enrollment even though both capabilities share one Companion token.
+  const localMtBetaRaw = String(process.env.LOCAL_MT_BETA_ENABLED || "false").trim().toLowerCase();
+  const localMtBetaEnabled = !(
+    localMtBetaRaw === "false" || localMtBetaRaw === "0" || localMtBetaRaw === "off"
+  );
 
   // Feedback config — phone number for WhatsApp deep-link / QR, plus
   // typical response time used in the WOW card. Both are environment-
@@ -1211,6 +1217,7 @@ app.get("/api/client-config", (_req, res) => {
       c3aVoiceEnabled,
       c1ExperimentalEnabled,
       localAsrBetaEnabled,
+      localMtBetaEnabled,
     },
     localAsr: {
       beta: localAsrBetaEnabled,
@@ -1218,6 +1225,14 @@ app.get("/api/client-config", (_req, res) => {
       supportedBrowsers: ["Chrome"],
       supportedOs: "Windows 11",
       firefoxSupported: false,
+    },
+    localMt: {
+      beta: localMtBetaEnabled,
+      supportedBrowsers: ["Chrome"],
+      supportedOs: "Windows 11",
+      gpu: "NVIDIA CUDA, 8 GB VRAM minimum",
+      runtimeBytes: 10739625126,
+      draftQuality: "LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION",
     },
     feedback: {
       whatsappPhone: developerWhatsappPhoneRaw,

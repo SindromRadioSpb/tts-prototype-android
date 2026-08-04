@@ -39,10 +39,20 @@ NAKDAN_DEVICE = os.environ.get("AI_LOCAL_NAKDAN_DEVICE", "cpu")
 NAKDAN_EAGER = _env_bool("AI_LOCAL_NAKDAN_EAGER", True)
 NAKDAN_IDLE_UNLOAD = _env_bool("AI_LOCAL_NAKDAN_IDLE_UNLOAD", False)
 
+MADLAD_LEGACY_MODEL_DIR = Path(
+    os.environ.get(
+        "AI_LOCAL_MADLAD_LEGACY_DIR",
+        MODELS_DIR / "madlad400-10b-ct2-int8f16",
+    )
+)
 MADLAD_MODEL_DIR = Path(
     os.environ.get(
         "AI_LOCAL_MADLAD_DIR",
-        MODELS_DIR / "madlad400-10b-ct2-int8f16",
+        MODELS_DIR
+        / "mt"
+        / "google--madlad400-10b-mt"
+        / "9f2797629c31e69617186dbe5f0ca43bf662f36d"
+        / "int8_float16",
     )
 )
 MADLAD_DEVICE = os.environ.get("AI_LOCAL_TRANSLATOR_DEVICE", "cuda")
@@ -69,6 +79,9 @@ SHUTDOWN_DRAIN_TIMEOUT_SEC = _env_int("AI_LOCAL_SHUTDOWN_DRAIN", 30)
 # permanent integration/provider policy.  The browser-facing /v1 boundary is
 # separate from legacy server-to-sidecar /nakdan and /translate calls.
 ASR_ENABLED = _env_bool("AI_LOCAL_ASR_ENABLED", False)
+# Studio L4 local MT has an independent, default-off invite-beta gate. Pairing
+# credentials and the Origin allowlist remain shared with ASR.
+MT_ENABLED = _env_bool("AI_LOCAL_MT_ENABLED", False)
 ASR_ALLOWED_ORIGINS = tuple(
     value.strip()
     for value in os.environ.get(

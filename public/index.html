@@ -632,6 +632,7 @@
         display: flex;
         align-items: center;
         gap: 6px;
+        flex-wrap: wrap;
     }
     .classic-lang-compact { flex: 0 0 auto; }
     .classic-lang-compact .lang-select { width: auto; min-width: 70px; }
@@ -11162,6 +11163,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                     <button id="btnKnowledgeMap" class="classic-nav-tool" onclick="window.KnowledgeMap&&window.KnowledgeMap.open()" data-i18n-title="knowledgeMap.btnTitle" data-i18n-aria-label="knowledgeMap.btnTitle" title="Карта корней" aria-label="Карта корней">🌳</button>
                     <button id="btnMorphSettings" class="classic-nav-tool" onclick="window.LinguistProMorphSettings&&window.LinguistProMorphSettings.open()" data-i18n-title="morph.settings.btnTitle" data-i18n-aria-label="morph.settings.btnTitle" title="Морфология" aria-label="Морфология">🔤</button>
                     <button id="btnLocalAsrSettings" class="classic-nav-tool" onclick="window.LocalAsrOnboarding&&window.LocalAsrOnboarding.open()" data-i18n-title="studio.localAsrBeta.btnTitle" data-i18n-aria-label="studio.localAsrBeta.btnTitle" title="Experimental Local ASR" aria-label="Experimental Local ASR" hidden>◉</button>
+                    <button id="btnLocalMtSettings" class="classic-nav-tool" onclick="window.LocalMtOnboarding&&window.LocalMtOnboarding.open()" data-i18n-title="studio.localMt.btnTitle" data-i18n-aria-label="studio.localMt.btnTitle" title="MADLAD local translation" aria-label="MADLAD local translation" hidden>MT</button>
                   </div>
                 </div>
             </div>
@@ -11363,6 +11365,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 			                            <option value="madlad">MADLAD (local)</option>
 			                            <option value="gemini">Gemini (legacy)</option>
 		                            </select>
+                                    <div id="localMtProviderStatus" class="v3-import-hint" aria-live="polite"></div>
+                                    <button id="localMtCancelTranslation" type="button" class="btn-secondary" data-i18n="studio.localMt.cancelTranslation" hidden>Cancel local translation</button>
                                 </div>
 
                                 <div class="field-group">
@@ -12912,9 +12916,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=108"></script>
-    <script src="/i18n/locales/en.js?v=108"></script>
-    <script src="/i18n/locales/he.js?v=108"></script>
+    <script src="/i18n/locales/ru.js?v=110"></script>
+    <script src="/i18n/locales/en.js?v=110"></script>
+    <script src="/i18n/locales/he.js?v=110"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12999,6 +13003,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-asr-normalizer.js"></script>
 <script src="/js/local-asr-client.js"></script>
 <script src="/js/local-asr-onboarding.js"></script>
+<script src="/js/local-mt-client.js"></script>
+<script src="/js/local-mt-table.js"></script>
+<script src="/js/local-mt-onboarding.js"></script>
 <script src="/js/table-chunks.js"></script>
 <script src="/js/media-store.js"></script>
 <script src="/js/media-package-core.js"></script>
@@ -13072,7 +13079,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.301";
+    window.APP_VERSION = "3.11.302";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -13112,6 +13119,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                 try { console.warn('[kill-switch] localMode disabled on next reload — flag is set on the server'); } catch (_) {}
               }
             }
+            if (window.LocalMtOnboarding) {
+              try { window.LocalMtOnboarding.configure(j || { localMt: { beta: false } }); } catch (_) {}
+            }
             // P1-5: single source of truth for the app version. The footer
             // and About modal previously hard-coded "3.0.0" and only updated
             // on About-open. Apply the real version (package.json, via
@@ -13127,7 +13137,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
               } catch (_) {}
             }
           })
-          .catch(() => {});
+          .catch(() => {
+            try { if (window.LocalMtOnboarding) window.LocalMtOnboarding.configure({ localMt: { beta: false } }); } catch (_) {}
+          });
       } catch (_) {}
     })();
 
@@ -20162,11 +20174,13 @@ updatePlaylistButtonUI();
             if (!r.ok) throw new Error("HTTP " + r.status);
             const json = await r.json();
             applyPremiumStatusToUI(json);
+            await window.refreshLocalMtReadiness();
             _premiumStatusBackoffMs = 0;
         } catch (_) {
             // Endpoint absent (PREMIUM_V2 disabled) or offline.
             // Disable premium options so the user cannot pick something the server can't serve.
             applyPremiumStatusToUI(null);
+            try { await window.refreshLocalMtReadiness(); } catch (_) {}
             _premiumStatusBackoffMs = Math.min(
                 _premiumStatusBackoffMs ? _premiumStatusBackoffMs * 2 : 60 * 1000,
                 PREMIUM_STATUS_MAX_BACKOFF_MS
@@ -20200,6 +20214,44 @@ updatePlaylistButtonUI();
             madladOpt.title = "Pair and verify the local Companion before translation";
         }
     }
+
+    var _localMtReadiness = { state: "absent", reason: "not_probed" };
+    window.refreshLocalMtReadiness = async function refreshLocalMtReadiness(known) {
+        const el = document.getElementById("providerSelect");
+        const option = el && el.querySelector('option[value="madlad"]');
+        let readiness = known;
+        if (!readiness) {
+            try {
+                readiness = window.LocalMtClient
+                    ? await (new window.LocalMtClient.Client()).readiness()
+                    : { state: "absent", reason: "client_unavailable" };
+            } catch (_) { readiness = { state: "error", reason: "readiness_failed" }; }
+        }
+        _localMtReadiness = readiness || { state: "error", reason: "readiness_empty" };
+        const state = _localMtReadiness.state || "error";
+        const translatedState = (typeof t === "function" && t("studio.localMt.state." + state) !== "studio.localMt.state." + state)
+            ? t("studio.localMt.state." + state)
+            : state;
+        const labels = {
+            absent: "MADLAD (" + translatedState + ")",
+            unpaired: "MADLAD (" + translatedState + ")",
+            model_missing: "MADLAD (" + translatedState + ")",
+            installing: "MADLAD (" + translatedState + ")",
+            ready: "MADLAD (" + translatedState + ")",
+            busy: "MADLAD (" + translatedState + ")",
+            error: "MADLAD (" + translatedState + ")",
+        };
+        if (option) {
+            option.disabled = state !== "ready";
+            option.textContent = labels[state] || labels.error;
+            option.title = state === "ready"
+                ? "Direct authenticated Browser → Companion translation; no cloud fallback"
+                : "Open MADLAD settings to pair, install, or diagnose the Companion";
+        }
+        const statusEl = document.getElementById("localMtProviderStatus");
+        if (statusEl) statusEl.textContent = labels[state] || labels.error;
+        return _localMtReadiness;
+    };
 
     function startPremiumStatusPolling() {
         if (_premiumStatusTimer) return;
@@ -34497,10 +34549,102 @@ try { v3DashCloseViewMenu(); } catch (_) {}
         } catch (_) { return null; }
     }
 
+    let _activeLocalMtAbort = null;
+    async function v3TranslateTableLocalMt(currentText) {
+        const readiness = await window.refreshLocalMtReadiness();
+        if (!readiness || readiness.state !== "ready") {
+            showError("MADLAD local is not ready: " + ((readiness && readiness.state) || "error"));
+            try { if (window.LocalMtOnboarding) window.LocalMtOnboarding.open(); } catch (_) {}
+            return;
+        }
+        if (!window.LocalMtClient || !window.LocalMtTable) {
+            showError("LOCAL_MT_BROWSER_MODULE_UNAVAILABLE");
+            return;
+        }
+        const sourceLang = getTableDirection() === "any-he" ? "ru" : "he";
+        const targetLang = sourceLang === "he" ? "ru" : "he";
+        const segments = window.LocalMtTable.segmentText(currentText);
+        const controller = new AbortController();
+        _activeLocalMtAbort = controller;
+        const cancelButton = document.getElementById("localMtCancelTranslation");
+        if (cancelButton) {
+            cancelButton.hidden = false;
+            cancelButton.onclick = () => controller.abort();
+        }
+        setLoading(true);
+        setAiButtonDisabled(true);
+        document.getElementById("errorMsg").textContent = "";
+        document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
+        clearResultsMeta("table");
+        try { v3SessionMarkDraft(); } catch (_) {}
+        try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
+        try { if (window.v3ClearActiveTextId) window.v3ClearActiveTextId(); } catch (_) {}
+        try {
+            const client = new window.LocalMtClient.Client();
+            let activeOffset = 0;
+            const translated = await window.LocalMtTable.translateSegments({
+                client, segments, sourceLang, targetLang, signal: controller.signal,
+                onBatch: ({ offset, size, total }) => {
+                    activeOffset = offset;
+                    setResultsMeta("table", "MADLAD local: " + (offset + 1) + "–" + (offset + size) + " / " + total);
+                },
+                onStatus: (job) => setResultsMeta(
+                    "table",
+                    "MADLAD local: " + job.state + " · " + (activeOffset + (job.completed_segments || 0)) + " / " + segments.length
+                ),
+            });
+            const rows = translated.rows;
+            const lastResult = translated.result;
+            currentTableData = rows;
+            clearRowSelectedUI();
+            renderTable(currentTableData);
+            const model = lastResult && lastResult.model || readiness.capability && readiness.capability.model || {};
+            v3LastGeminiMeta = {
+                promptId: "local-mt-table-v1",
+                model: model.identity || model.id || "madlad",
+                modelRevision: model.revision || null,
+                provider: "madlad",
+                localExecution: true,
+                qualityPositioning: "LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION",
+                generatedAt: new Date().toISOString(),
+            };
+            v3AttachImportSource();
+            const premiumLines = v3MediaLineIdentity();
+            v3AttachAudioTiming({ rows: currentTableData, warnings: [] }, false, premiumLines);
+            clearTableStale();
+            tableIsStale = false;
+            lastDocxFilename = generateDocxFileName();
+            localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify({
+                text: currentText,
+                provider: "madlad",
+                rows: currentTableData,
+                createdAt: new Date().toISOString(),
+                lastDocxFilename: lastDocxFilename,
+            }));
+            setResultsMetaWithProvenance({ provenance: {
+                provider: "madlad", actual_provider: "madlad",
+                translator_version: v3LastGeminiMeta.model,
+                local_execution: true,
+            }});
+            loadStats();
+            try { classicSyncMainPanels({ force: true }); } catch (_) {}
+        } catch (error) {
+            const code = error && (error.code || error.message) || "LOCAL_MT_FAILED";
+            showError(code);
+        } finally {
+            _activeLocalMtAbort = null;
+            if (cancelButton) { cancelButton.hidden = true; cancelButton.onclick = null; }
+            setLoading(false);
+            updateAiButtonState();
+            window.refreshLocalMtReadiness().catch(() => {});
+        }
+    }
+
     async function translateTable() {
         if (!validate()) return;
 
         const currentText = getText().trim();
+        const requestedProvider = getSelectedProvider();
 
         // 0) Library source-of-truth: if opened saved text was not changed, never regenerate via Gemini
         if (await v3RestoreSavedTableIfUnchanged(currentText)) {
@@ -34516,6 +34660,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
                     cache &&
                     typeof cache.text === "string" &&
                     cache.text.trim() === currentText &&
+                    cache.provider === requestedProvider &&
                     Array.isArray(cache.rows) &&
                     cache.rows.length > 0
                 ) {
@@ -34544,7 +34689,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
         // so export/audio/anki buttons must stay locked until the user saves.
         try { v3SessionMarkDraft(); } catch (_) {}
 
-        if (isGeminiLocked()) {
+        if (requestedProvider === "gemini" && isGeminiLocked()) {
             if (geminiLockType === "rate") {
                 showLimitBanner("rate", "Лимит скорости Gemini. Подождите окончания обратного отсчёта.");
             } else if (geminiLockType === "daily") {
@@ -34559,11 +34704,16 @@ try { v3DashCloseViewMenu(); } catch (_) {}
         // mutation (skeleton wipe) or loading state — mirrors the isGeminiLocked()
         // early return above, which likewise precedes setLoading(true).
         {
-            const provider = getSelectedProvider();
-            if ((provider === "gcp" || provider === "madlad" || provider === "google-free") && getTableDirection() === "any-he") {
+            const provider = requestedProvider;
+            if ((provider === "gcp" || provider === "google-free") && getTableDirection() === "any-he") {
                 showError(t("classic.directionPremiumBlocked"));
                 return;
             }
+        }
+
+        if (requestedProvider === "madlad") {
+            await v3TranslateTableLocalMt(currentText);
+            return;
         }
 
         setLoading(true);
@@ -34582,8 +34732,8 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
 
         clearResultsMeta("table");
 
-        const provider = getSelectedProvider();
-        const usePremium = provider === "gcp" || provider === "madlad" || provider === "google-free";
+        const provider = requestedProvider;
+        const usePremium = provider === "gcp" || provider === "google-free";
         const endpoint = usePremium ? "/api/translate-table-v2" : "/api/translate-table";
         const translitProfileEl = document.getElementById("translitProfileSelect");
         const translit_profile = translitProfileEl ? (translitProfileEl.value || "sbl") : "sbl";
@@ -34705,6 +34855,7 @@ try {
                 try {
                     const cache = {
                         text: getText().trim(),
+                        provider,
                         rows: currentTableData,
                         createdAt: new Date().toISOString(),
                         lastDocxFilename: lastDocxFilename
@@ -34910,7 +35061,7 @@ try {
         lastDocxFilename = generateDocxFileName();
         try {
             localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify({
-                text: getText().trim(), rows: currentTableData,
+                text: getText().trim(), provider: "gemini", rows: currentTableData,
                 createdAt: new Date().toISOString(), lastDocxFilename: lastDocxFilename,
             }));
         } catch (e) { console.error("Table cache save error", e); }
@@ -35514,6 +35665,9 @@ try {
         } catch (_) {}
         el.addEventListener("change", () => {
             try { localStorage.setItem(PROVIDER_LS_KEY, el.value); } catch (_) {}
+            if (el.value === "madlad" && (!_localMtReadiness || _localMtReadiness.state !== "ready")) {
+                try { if (window.LocalMtOnboarding) window.LocalMtOnboarding.open(); } catch (_) {}
+            }
             syncTranslitSelectEnabled();
             try { geminiKeyGroupSync(); } catch (_) {}
             try { gcpTranslateKeyGroupSync(); } catch (_) {}
@@ -41460,6 +41614,8 @@ async function v3TcbSaveOneToLibrary(sourceText, rows, meta) {
       translit_ru: row.translit_ru || '',
       ru: row.ru || row.russian || '',
       edit_meta_json: row.edit_meta_json || null,
+      translation_provider: row.translation_provider || null,
+      translation_meta_json: row.translation_meta_json || null,
     });
   }
   return newTextId;
@@ -41470,9 +41626,10 @@ async function v3TcbProcessJob(job) {
   job.error = null;
   v3TcbRender();
   try {
-    // Use the same translate endpoint as the main app
+    // Use the same direct local-MT mapper as the main table. Other providers
+    // retain their established server contracts.
     const provider = (typeof getSelectedProvider === 'function') ? getSelectedProvider() : 'gemini';
-    const usePremium = provider === 'gcp' || provider === 'madlad' || provider === 'google-free';
+    const usePremium = provider === 'gcp' || provider === 'google-free';
     const endpoint = usePremium ? '/api/translate-table-v2' : '/api/translate-table';
     const translitEl = document.getElementById('translitProfileSelect');
     const translitProfile = translitEl ? (translitEl.value || 'sbl') : 'sbl';
@@ -41487,7 +41644,18 @@ async function v3TcbProcessJob(job) {
               : {}),
         }
       : { text: job.sourceText, geminiApiKey: (typeof geminiKeyGet === 'function' ? geminiKeyGet() : '') };
-    const res = await apiCall(endpoint, payload);
+    let res;
+    if (provider === 'madlad') {
+      const readiness = await window.refreshLocalMtReadiness();
+      if (!readiness || readiness.state !== 'ready') throw new Error('LOCAL_MT_NOT_READY:' + ((readiness && readiness.state) || 'error'));
+      const segments = window.LocalMtTable.segmentText(job.sourceText);
+      const translated = await window.LocalMtTable.translateSegments({
+        client: new window.LocalMtClient.Client(), segments, sourceLang: 'he', targetLang: 'ru'
+      });
+      res = { rows: translated.rows, provenance: { provider:'madlad', actual_provider:'madlad', translator_version:translated.result && translated.result.model && translated.result.model.identity, model_revision:translated.result && translated.result.model && translated.result.model.revision, local_execution:true } };
+    } else {
+      res = await apiCall(endpoint, payload);
+    }
     const rows = Array.isArray(res && res.rows) ? res.rows : [];
     if (!rows.length) throw new Error('Empty rows from translate API');
     job.rowCount = rows.length;
@@ -41499,7 +41667,14 @@ async function v3TcbProcessJob(job) {
       level: job.level || '',
       source: job.source || '',
       ttsProfile: (typeof v3BuildTtsProfileForSave === 'function') ? v3BuildTtsProfileForSave() : null,
-      tableModelMeta: (typeof v3LastGeminiMeta === 'object' && v3LastGeminiMeta) ? v3LastGeminiMeta : {
+      tableModelMeta: provider === 'madlad' ? {
+        promptId: 'local-mt-table-v1',
+        model: (res.provenance && res.provenance.translator_version) || 'madlad',
+        modelRevision: (res.provenance && res.provenance.model_revision) || null,
+        provider: 'madlad', localExecution: true,
+        qualityPositioning: 'LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION',
+        generatedAt: new Date().toISOString(),
+      } : (typeof v3LastGeminiMeta === 'object' && v3LastGeminiMeta) ? v3LastGeminiMeta : {
         promptId: usePremium ? 'he-ru-table-v2' : 'he-ru-table-v1',
         model: provider,
         cacheKey: (res && res.cacheKey) || null,

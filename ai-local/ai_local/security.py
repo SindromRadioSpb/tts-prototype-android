@@ -70,8 +70,13 @@ def require_asr_enabled() -> None:
         raise HTTPException(status_code=404, detail="local ASR is disabled")
 
 
-def require_browser_auth(request: Request) -> None:
-    require_asr_enabled()
+def require_mt_enabled() -> None:
+    if not config.MT_ENABLED:
+        raise HTTPException(status_code=404, detail="local MT is disabled")
+
+
+def require_companion_auth(request: Request) -> None:
+    """Shared pairing boundary; feature-specific dependencies add their own gate."""
     origin = request.headers.get("origin")
     if not origin_allowed(origin):
         raise HTTPException(status_code=403, detail="origin is not allowed")
@@ -79,6 +84,17 @@ def require_browser_auth(request: Request) -> None:
     actual = _bearer_token(request)
     if not actual or not hmac.compare_digest(actual, expected):
         raise HTTPException(status_code=401, detail="pairing token required")
+
+
+def require_browser_auth(request: Request) -> None:
+    """Backward-compatible ASR dependency used by existing /v1/asr routes."""
+    require_asr_enabled()
+    require_companion_auth(request)
+
+
+def require_mt_browser_auth(request: Request) -> None:
+    require_mt_enabled()
+    require_companion_auth(request)
 
 
 def _cors_headers(origin: str) -> dict[str, str]:

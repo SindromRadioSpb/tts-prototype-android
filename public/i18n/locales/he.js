@@ -3279,6 +3279,18 @@ window.I18N_LOCALES.he = {
       connected: "מחובר לסשן הדפדפן הזה.", connectFirst: "תחילה חברו את ה-Companion.", ready: "Local ASR מוכן. המדיה נשארת במחשב הזה.",
       errDisk: "אין די מקום בדיסק להפעלת המודל המאומתת.", errPort: "פורט 8799 בשימוש תוכנה אחרת. עצרו אותה והפעילו מחדש את ה-Companion.", errIntegrity: "אימות המודל נכשל. מחקו את הקבצים החלקיים/המודל ונסו שוב עם אותו revision נעול.", errPairing: "הצימוד נכשל. העתיקו את האסימון הנוכחי מה-Companion, החליפו את כל תוכן השדה ונסו שוב.", errDown: "ה-Companion אינו זמין. הפעילו אותו במחשב הזה; Gemini לא הופעל."
     },
+    localMt: {
+      title: "תרגום מקומי עם MADLAD",
+      btnTitle: "הגדרות תרגום מקומי עם MADLAD", cancelTranslation: "ביטול התרגום המקומי",
+      intro: "התרגום נשאר במחשב הזה. שגיאה מקומית לעולם לא מפעילה אוטומטית את Gemini או Google. התוצאה היא טיוטת מכונה הניתנת לתיקון.",
+      requirements: "Windows 11 · NVIDIA CUDA · 8 GB VRAM · Chrome · מודל 10.74 GB · עד 60 GB פנויים להורדת revision מדויק, המרה והפעלה מאומתת",
+      pairTitle: "חיבור סשן הדפדפן", pairNote: "נעשה שימוש באותו אסימון Companion של Local ASR. הוא נשמר רק באחסון הסשן.", tokenPlaceholder: "אסימון צימוד", pair: "חיבור ובדיקה", paired: "ה-Companion אומת: ",
+      modelTitle: "מודל MADLAD נעול", consent: "אני מאשר/ת Apache-2.0, דרישות משאבים, עיבוד טקסט מקומי ומיצוב הטיוטה LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION.",
+      install: "אימות והפעלה", cancelInstall: "ביטול", delete: "מחיקת מודל", installStarted: "אימות והפעלת התמונה המדויקת החלו.",
+      runtimeTitle: "שהייה ב-GPU", runtimeNote: "ASR ו-MADLAD רצים בטור; מעבר ביניהם פורק את המודל הכבד האחר.", warmup: "הכנה", unload: "שחרור GPU", actionDone: "הפעולה הושלמה.", notInvited: "דפדפן זה אינו רשום לבטא המוזמנת.",
+      errDisk: "אין די מקום פנוי להורדה, המרה והפעלה מדויקות.", errIntegrity: "תמונת המודל המדויקת נכשלה בבדיקת SHA-256 ולא הופעלה.", errConversion: "ההמרה הנעולה נכשלה; המודל לא הופעל.", errDown: "יש להפעיל את ה-Companion. לא הופעל אף ספק ענן.", errConsent: "תחילה יש לאשר את הרישיון, המשאבים, הפרטיות ואיכות הטיוטה.",
+      state: { absent: "ה-Companion אינו זמין", unpaired: "יש לצמד את ה-Companion", model_missing: "המודל חסר", installing: "מתקין ומאמת", ready: "מוכן", busy: "ה-GPU תפוס", error: "שגיאה מקומית" }
+    },
     retell: {
       title: "✨ פשט לרמה שלי",
       button: "פשט לרמה שלי",

@@ -167,6 +167,9 @@
           authority: 'provider', locked: false, status: 'current',
           provider: String(candidate.provenance && candidate.provenance.provider || ''),
           model: String(candidate.provenance && candidate.provenance.model || ''),
+          ...(candidate.provenance && candidate.provenance.model_revision ? { model_revision: String(candidate.provenance.model_revision) } : {}),
+          ...(candidate.provenance && candidate.provenance.local_execution === true ? { local_execution: true } : {}),
+          ...(candidate.provenance && candidate.provenance.quality_positioning ? { quality_positioning: String(candidate.provenance.quality_positioning) } : {}),
           ...(candidate.provenance && candidate.provenance.profile ? { profile: String(candidate.provenance.profile) } : {}),
           input_sha256: String(candidate.provenance && candidate.provenance.input_sha256 || ''),
         };

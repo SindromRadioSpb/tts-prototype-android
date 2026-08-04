@@ -1,4 +1,4 @@
-"""Per-user Windows supervisor and desktop UI for the Local ASR beta."""
+"""Per-user Windows supervisor and desktop UI for local ASR/MT invite betas."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-APP_VERSION = "0.2.0-beta.2"
+APP_VERSION = "0.3.0-beta.1"
 PRODUCTION_ORIGIN = "https://linguistpro.kolosei.com"
 GUIDE_FILENAMES = {
     "ru": "LOCAL_ASR_COMPANION_GUIDE.md",
@@ -31,6 +31,7 @@ def _bootstrap_environment() -> Path:
     os.environ["AI_LOCAL_HOST"] = "127.0.0.1"
     os.environ["AI_LOCAL_PORT"] = "8799"
     os.environ["AI_LOCAL_ASR_ENABLED"] = "1"
+    os.environ["AI_LOCAL_MT_ENABLED"] = "1"
     os.environ["AI_LOCAL_MODELS_DIR"] = str(root / "models")
     os.environ["AI_LOCAL_STATE_DIR"] = str(root / "state")
     os.environ["AI_LOCAL_JOB_ROOT"] = str(root / "jobs")
@@ -103,7 +104,14 @@ def _command(*args: str) -> list[str]:
 
 def _capability() -> dict[str, Any] | None:
     try:
-        with urllib.request.urlopen("http://127.0.0.1:8799/v1/capabilities", timeout=1.0) as response:
+        request = urllib.request.Request(
+            "http://127.0.0.1:8799/v1/capabilities",
+            headers={
+                "Authorization": "Bearer " + pairing_token(),
+                "Origin": "http://127.0.0.1:3000",
+            },
+        )
+        with urllib.request.urlopen(request, timeout=1.0) as response:
             payload = json.loads(response.read(64 * 1024).decode("utf-8"))
         return payload if payload.get("protocol") == "studio-local-asr-v1" else None
     except (OSError, ValueError, urllib.error.URLError):
@@ -284,14 +292,16 @@ class CompanionWindow:
         self.tk = tk
         self.ttk = ttk
         self.root = tk.Tk()
-        self.root.title("LinguistPro Local ASR Companion")
-        self.root.geometry("760x650")
-        self.root.minsize(660, 600)
+        self.root.title("LinguistPro Local AI Companion")
+        self.root.geometry("760x780")
+        self.root.minsize(660, 680)
         self.status_var = tk.StringVar(value="Checking Companion…")
         self.device_var = tk.StringVar(value="Checking Windows/NVIDIA/CUDA…")
         self.model_var = tk.StringVar(value="Checking pinned model…")
+        self.mt_model_var = tk.StringVar(value="Checking pinned MADLAD model…")
         self.pairing_var = tk.StringVar(value="The token is created automatically. Start the service, then copy it here.")
         self.progress_var = tk.DoubleVar(value=0)
+        self.mt_progress_var = tk.DoubleVar(value=0)
         self._build()
         threading.Thread(target=self._ensure_started, daemon=True).start()
         self.root.after(400, self._poll)
@@ -301,28 +311,29 @@ class CompanionWindow:
 
         frame = ttk.Frame(self.root, padding=22)
         frame.pack(fill="both", expand=True)
-        ttk.Label(frame, text="Local Hebrew transcription", font=("Segoe UI Semibold", 20)).pack(anchor="w")
+        ttk.Label(frame, text="Local Hebrew AI", font=("Segoe UI Semibold", 20)).pack(anchor="w")
         ttk.Label(frame, text="Invite-only beta · Windows 11 · NVIDIA/CUDA · Chrome").pack(anchor="w", pady=(2, 14))
         privacy = ttk.Label(
             frame,
-            text="MEDIA  →  THIS COMPUTER  →  127.0.0.1     ☁ cloud upload: off",
+            text="MEDIA / TEXT  →  THIS COMPUTER  →  127.0.0.1     ☁ cloud fallback: off",
             padding=(12, 10),
             relief="solid",
             font=("Consolas", 10),
         )
         privacy.pack(fill="x", pady=(0, 16))
-        for title, variable in (("Companion", self.status_var), ("Device", self.device_var), ("Pinned model", self.model_var)):
+        for title, variable in (("Companion", self.status_var), ("Device", self.device_var), ("ASR model", self.model_var), ("MADLAD model", self.mt_model_var)):
             row = ttk.Frame(frame)
             row.pack(fill="x", pady=4)
             ttk.Label(row, text=title, width=16, font=("Segoe UI Semibold", 10)).pack(side="left")
             ttk.Label(row, textvariable=variable, wraplength=500).pack(side="left", fill="x", expand=True)
         ttk.Progressbar(frame, variable=self.progress_var, maximum=100).pack(fill="x", pady=(10, 16))
+        ttk.Progressbar(frame, variable=self.mt_progress_var, maximum=100).pack(fill="x", pady=(0, 16))
 
         pairing = ttk.LabelFrame(frame, text="Connect LinguistPro in Chrome", padding=12)
         pairing.pack(fill="x", pady=(5, 8))
         ttk.Label(
             pairing,
-            text="1. Wait for Companion: RUNNING   2. Copy the token   3. Paste it in Settings → Experimental Local ASR",
+            text="1. Wait for Companion: RUNNING   2. Copy the token   3. Paste it in Local ASR or MADLAD settings",
             wraplength=680,
         ).pack(anchor="w")
         pairing_actions = ttk.Frame(pairing)
@@ -339,6 +350,11 @@ class CompanionWindow:
         model.pack(fill="x", pady=5)
         for label, action in (("Install pinned model…", self._install), ("Cancel download", self._cancel_install), ("Delete model…", self._delete_model), ("Delete jobs…", self._delete_jobs)):
             ttk.Button(model, text=label, command=action).pack(side="left", padx=4)
+
+        mt_model = ttk.LabelFrame(frame, text="MADLAD translation model", padding=10)
+        mt_model.pack(fill="x", pady=5)
+        for label, action in (("Install exact MADLAD…", self._install_mt), ("Cancel MT install", self._cancel_mt_install), ("Delete MADLAD…", self._delete_mt_model)):
+            ttk.Button(mt_model, text=label, command=action).pack(side="left", padx=4)
 
         support = ttk.Frame(frame)
         support.pack(fill="x", pady=(12, 0))
@@ -362,7 +378,7 @@ class CompanionWindow:
     def _error(self, text: str) -> None:
         from tkinter import messagebox
 
-        messagebox.showerror("Local ASR Companion", text[:500])
+        messagebox.showerror("Local AI Companion", text[:500])
 
     def _ensure_started(self) -> None:
         try:
@@ -427,6 +443,28 @@ class CompanionWindow:
         if messagebox.askyesno("Delete Local ASR jobs", "Delete all terminal/recoverable local media jobs and outputs?"):
             self._run(lambda: _api("/v1/companion/jobs", "DELETE"))
 
+    def _install_mt(self) -> None:
+        from tkinter import messagebox
+        from ai_local.mt_constants import MT_MODEL_REVISION
+
+        accepted = messagebox.askyesno(
+            "Install pinned MADLAD model",
+            "Download the exact upstream revision and reproduce the 10.74 GB verified CT2 artifact?\n\n"
+            "Up to 60 GB free disk and 8 GB NVIDIA VRAM are required.\n"
+            f"google/madlad400-10b-mt\n{MT_MODEL_REVISION}\nLicense: Apache-2.0\n\n"
+            "Text stays on this computer. Output is a correctable machine draft with LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION.",
+        )
+        if accepted:
+            self._run(lambda: _api("/v1/mt/model/install", "POST", {"revision": MT_MODEL_REVISION, "accepted_license": True}))
+
+    def _cancel_mt_install(self) -> None:
+        self._run(lambda: _api("/v1/mt/model/install-cancel", "POST"))
+
+    def _delete_mt_model(self) -> None:
+        from tkinter import messagebox
+        if messagebox.askyesno("Delete MADLAD model", "Delete the managed MADLAD model and resumable download cache?"):
+            self._run(lambda: _api("/v1/mt/model", "DELETE"))
+
     def _diagnostics(self) -> None:
         from tkinter import filedialog
 
@@ -447,7 +485,9 @@ class CompanionWindow:
             preflight = preflight_report()
             model = _api("/v1/asr/model/status?verify_hash=true") if status["state"] == "RUNNING" else {"verified": False, "reason": "SERVICE_STOPPED"}
             install = _api("/v1/asr/model/install-status") if status["state"] == "RUNNING" else {"state": "IDLE", "downloaded_bytes": 0, "total_bytes": 1}
-            return status, preflight, {"model": model, "install": install}
+            mt_model = _api("/v1/mt/model/status") if status["state"] == "RUNNING" else {"verified": False, "reason": "SERVICE_STOPPED"}
+            mt_install = _api("/v1/mt/model/install-status") if status["state"] == "RUNNING" else {"state": "IDLE", "processed_bytes": 0, "total_bytes": 1}
+            return status, preflight, {"model": model, "install": install, "mt_model": mt_model, "mt_install": mt_install}
 
         def apply(result) -> None:
             try:
@@ -459,6 +499,10 @@ class CompanionWindow:
                 self.model_var.set("Verified and ready" if model.get("verified") else f"{install.get('state')}: {model.get('reason') or install.get('error_code') or 'not installed'}")
                 total = max(1, int(install.get("total_bytes") or 1))
                 self.progress_var.set(min(100, 100 * int(install.get("downloaded_bytes") or 0) / total))
+                mt_model, mt_install = details["mt_model"], details["mt_install"]
+                self.mt_model_var.set("Verified and ready" if mt_model.get("verified") else f"{mt_install.get('state')}: {mt_model.get('reason') or mt_install.get('error_code') or 'not installed'}")
+                mt_total = max(1, int(mt_install.get("total_bytes") or 1))
+                self.mt_progress_var.set(min(100, 100 * int(mt_install.get("processed_bytes") or 0) / mt_total))
             finally:
                 self.root.after(1500, self._poll)
 
@@ -467,7 +511,7 @@ class CompanionWindow:
                 result = gather()
                 self.root.after(0, lambda: apply(result))
             except Exception:
-                self.root.after(0, lambda: apply((service_status(), preflight_report(), {"model": {"reason": "UNAVAILABLE"}, "install": {}})))
+                self.root.after(0, lambda: apply((service_status(), preflight_report(), {"model": {"reason": "UNAVAILABLE"}, "install": {}, "mt_model": {"reason": "UNAVAILABLE"}, "mt_install": {}})))
 
         threading.Thread(target=background, daemon=True).start()
 
@@ -477,7 +521,7 @@ class CompanionWindow:
 
 def main(argv: list[str] | None = None) -> int:
     multiprocessing.freeze_support()
-    parser = argparse.ArgumentParser(description="LinguistPro Local ASR Companion")
+    parser = argparse.ArgumentParser(description="LinguistPro Local AI Companion")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--serve", action="store_true")
     group.add_argument("--start", action="store_true")
@@ -485,9 +529,14 @@ def main(argv: list[str] | None = None) -> int:
     group.add_argument("--restart", action="store_true")
     group.add_argument("--status", action="store_true")
     group.add_argument("--autostart", action="store_true")
+    group.add_argument("--convert-mt-worker", nargs=2, metavar=("SOURCE", "OUTPUT"))
     args = parser.parse_args(argv)
     if args.serve:
         return _serve()
+    if args.convert_mt_worker:
+        from ai_local.mt_convert_worker import convert
+        convert(Path(args.convert_mt_worker[0]), Path(args.convert_mt_worker[1]))
+        return 0
     if args.start or args.autostart:
         print(json.dumps(start_service(), indent=2))
         return 0

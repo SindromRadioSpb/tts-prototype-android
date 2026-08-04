@@ -1,0 +1,19 @@
+{
+  "schema": "studio-l4-mt-real-model-smoke-v1",
+  "date": "2026-08-04",
+  "model_identity": "madlad-400-10b-ct2-int8f16@v1",
+  "gpu": "NVIDIA GeForce RTX 3070 8GB",
+  "load_seconds_approx": 51.018,
+  "unload_pass": true,
+  "oom": false,
+  "cases": [
+    { "source_lang": "he", "target_lang": "ru", "source": "שלום עולם.", "translation": "Мир во всем мире." },
+    { "source_lang": "he", "target_lang": "ru", "source": "זהו מבחן מקומי.", "translation": "Это локальная проверка." },
+    { "source_lang": "ru", "target_lang": "he", "source": "Привет, мир.", "translation": "שלום, עולם." },
+    { "source_lang": "ru", "target_lang": "he", "source": "Это локальный тест.", "translation": "זה מבחן מקומי." }
+  ],
+  "semantic_note": "The first he-ru result is ambiguous and demonstrates material meaning risk.",
+  "positioning": "LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION",
+  "owner_selected_material": false,
+  "owner_live_pass": false
+}

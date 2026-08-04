@@ -56,7 +56,7 @@ Get-ChildItem $CudnnBin,$CublasBin -File -Filter *.dll | ForEach-Object {
 }
 $CudnnLicense = Join-Path $SitePackages "nvidia_cudnn_cu12-9.10.2.21.dist-info\licenses\License.txt"
 $CublasLicense = Join-Path $SitePackages "nvidia_cublas_cu12-12.1.3.1.dist-info\License.txt"
-$InstallerName = "LinguistProLocalAsrCompanion-0.2.0-beta.2-unsigned-internal.exe"
+$InstallerName = "LinguistProLocalAsrCompanion-0.3.0-beta.1-unsigned-internal.exe"
 $PreviousInstaller = Join-Path $ArtifactRoot $InstallerName
 foreach ($PriorArtifact in @($PreviousInstaller, (Join-Path $ArtifactRoot "build-report.json"))) {
   if (Test-Path -LiteralPath $PriorArtifact) {
@@ -76,6 +76,9 @@ foreach ($PriorArtifact in @($PreviousInstaller, (Join-Path $ArtifactRoot "build
   --specpath $BuildRoot `
   --collect-all faster_whisper `
   --collect-all ctranslate2 `
+  --collect-all transformers `
+  --collect-all sentencepiece `
+  --collect-all safetensors `
   --collect-all av `
   --collect-all tokenizers `
   --hidden-import uvicorn.logging `
@@ -83,6 +86,7 @@ foreach ($PriorArtifact in @($PreviousInstaller, (Join-Path $ArtifactRoot "build
   --hidden-import uvicorn.protocols.http.auto `
   --hidden-import uvicorn.protocols.websockets.auto `
   --hidden-import uvicorn.lifespan.on `
+  --hidden-import ai_local.mt_convert_worker `
   --add-binary "$Ffmpeg;bin" `
   --add-binary "$Ffprobe;bin" `
   --add-data "$Notices;." `
@@ -157,11 +161,11 @@ if ($StopProcess.ExitCode -ne 0) {
 if (-not $Health) { throw "Frozen Companion did not reach loopback health: $HealthError" }
 $FfmpegLine = & $Ffmpeg -version | Select-Object -First 1
 $BuildReport = [ordered]@{
-  schema = "linguistpro-local-asr-companion-build-v1"
+  schema = "linguistpro-local-ai-companion-build-v2"
   generated_at = [DateTime]::UtcNow.ToString("o")
   source_commit = (git -C $RepoRoot rev-parse HEAD)
   source_worktree_dirty = [bool](@(git -C $RepoRoot status --porcelain --untracked-files=normal).Count)
-  companion_version = "0.2.0-beta.2"
+  companion_version = "0.3.0-beta.1"
   signing_status = $SigningStatus
   frozen_executable = $BuiltExe
   frozen_smoke = [ordered]@{
@@ -179,6 +183,8 @@ $BuildReport = [ordered]@{
     bundled_dlls = @(Get-ChildItem $CudnnBin,$CublasBin -File -Filter *.dll | Select-Object -ExpandProperty Name)
   }
   model_bundled = $false
+  mt_model_bundled = $false
+  mt_install_source = "exact pinned Hugging Face revision with post-conversion runtime SHA-256 gate"
   external_distribution_authorized = $false
 }
 
