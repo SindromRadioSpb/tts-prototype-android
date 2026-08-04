@@ -97,6 +97,11 @@ export function mapSentenceRowToUiRow(r, textId) {
     translit_ru: String(r.translit_ru ?? ""),
     ru: String(r.ru ?? ""),
     edit_meta_json: r.edit_meta_json ?? null,
+    // MADLAD provenance sync (index.html v3MapSentenceApiRowToUiRow добавил эти поля в
+    // 473773c8 БЕЗ зеркала здесь — parity-гейт был красным; поля аддитивные, null у строк
+    // без локального перевода).
+    translation_provider: r.translation_provider ?? r.translationProvider ?? null,
+    translation_meta_json: r.translation_meta_json ?? r.translationMetaJson ?? null,
     _v3_audioAssetKey: String(r.audio_asset_key ?? r.audioAssetKey ?? ""),
     _v3_audioTtsProfileJson: String(r.audio_tts_profile_json ?? r.audioTtsProfileJson ?? ""),
     _v3_sentenceId: sid ? String(sid) : null,
@@ -107,7 +112,13 @@ export function mapSentenceRowToUiRow(r, textId) {
   // only on the H2.4 derived projection.
   if (r.niqqud_authority != null) out.niqqud_authority = r.niqqud_authority;
   if (r.niqqud_provenance != null) out.niqqud_provenance = r.niqqud_provenance;
-  return out;
+  // B+C: source identity is persisted additively in edit_meta_json (same wrapper as the
+  // Studio twin; window.StudioImport отсутствует в Зале → identity-возврат).
+  try {
+    return typeof window !== "undefined" && window.StudioImport && window.StudioImport.restorePortableRowIdentity
+      ? window.StudioImport.restorePortableRowIdentity(out, r.edit_meta_json)
+      : out;
+  } catch (_) { return out; }
 }
 
 // ── Column geometry ──────────────────────────────────────────────────────────
