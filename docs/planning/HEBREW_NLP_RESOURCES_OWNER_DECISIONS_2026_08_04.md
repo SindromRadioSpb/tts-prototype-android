@@ -36,6 +36,7 @@
 | **D-HNR-6** follow-up quality deltas (новое) | **GO** | Q5 (constrained lemma audit / shoshan) и Q6 — последовательные quality-слайсы ПОСЛЕ L4.0. **Q6 разделён:** Q6a = MMS/SaT offline gates; Q6b = VibeVoice feasibility + cross-hypothesis benchmark (отдельное решение о запуске — чтобы установка тяжёлой ASR-модели не маскировалась под «маленький smoke») |
 | **D-HNR-7** L4.0a Manifest v2 | **GO 2026-08-04** | In-domain `reference_text` создан GPT-5.6 Sol high и принят владельцем как AI-reference/silver, не human gold; билингвальная human-blind оценка недоступна и явно waived; FLORES Stage A = детерминированные 506 shared IDs × 2 направления для всех кандидатов, расширение до полного devtest для Gemini + top-2 local при ΔchrF++ < 2, пересечении bootstrap CI, конфликте ранжирования метрик или critical failure flags |
 | **D-HNR-8** L4.0a Manifest v3 owner override | **GO 2026-08-04** | После срабатывания critical-failure trigger владелец явно отменил обязательное full-devtest расширение на этом этапе: verdict строится на одинаковой Stage A (1012 строк) для всех пяти систем; top-2 local не расширяются. Уже оплаченный Gemini partial 1118/2024 сохраняется только как provenance/cost artifact и не участвует в сравнительных метриках |
+| **D-HNR-9** локальный MT-провайдер + provenance UX | **GO 2026-08-04** | По результатам L4.0a владелец утверждает **MADLAD-400** как локального MT-провайдера. Это не делает его default-on и не разрешает неявный MADLAD↔Gemini fallback. Провайдер сохраняется на уровне строк, read-only показывается в метаданных текста и доступен как фильтр Library; mixed/legacy состояния маркируются честно |
 
 ## 2. Метрики MT-бенча (уточнение владельца к L4.0a)
 
@@ -50,6 +51,24 @@ chrF++ · spBLEU · **человеческую слепую оценку** · п
 со статусом `LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION`. До будущего
 билингвального гейта продукт может позиционировать перевод только как исправляемый
 машинный draft; human-validated/default-on/GA-утверждения запрещены.
+
+### 2.1. D-HNR-9 — authority и UX provenance перевода
+
+- **Выбор:** `madlad` / MADLAD-400 — утверждённый локальный MT-провайдер на основании
+  L4.0a (`docs/research/studio-l4-mt-benchmark/2026-08-04/RESULTS.md`). Gemini остаётся
+  измеренным cloud ceiling/BYOK-провайдером; утверждение MADLAD не означает равенства
+  качеству Gemini.
+- **Маршрутизация:** default-off/explicit enrollment и запрет неявного Local↔Gemini
+  fallback не меняются. D-HNR-9 не является полным L4 design packet и не разрешает
+  permanent integration за пределами существующего provider path.
+- **Authority:** `sentences.translation_provider` — первичный факт. Text/table metadata
+  используется только как fallback для legacy-карточек без строкового provenance.
+  Смешанные карточки показывают всех обнаруженных провайдеров; отсутствие данных
+  показывается как `unknown`, а не угадывается.
+- **Обязательный UX:** read-only блок «Происхождение перевода» в «Метаданных текста»,
+  provider badge на карточке и composable provider filter в Library v3. Для `madlad`
+  локальность формулируется только про MT-вызов, без ложного утверждения, что ASR/OCR
+  или весь import pipeline были локальными.
 
 ## 3. Как это ложится на незавершённый STUDIO_INGEST roadmap (вопрос владельца №3)
 
@@ -144,6 +163,7 @@ Top-2 local full-run не запускается. Возобновление exp
 | 1 | Принять D-HNR-1 | ✅ DONE (решение владельца) | owner | §1 |
 | 2 | Заморозить L4.0 manifest до результатов | ✅ DONE v3 (§4; D-HNR-7 + D-HNR-8 owner GO 2026-08-04) | Claude Code + owner | v1/v2 сохранены provenance-базой; v3 фиксирует равную Stage A и owner-deferred expansion |
 | 3 | L4.0a MT-бенч (+ Q4 внутри) | ✅ DONE 2026-08-04 under Manifest v3 — все 5 систем на равной Stage A 506 shared IDs × 2; chrF++/spBLEU + 1000-sample bootstrap CI + CometKiwi + in-domain AI-reference + failure/operational audit. Gemini = cloud ceiling; MADLAD = best local, замена не обоснована. Full expansion deferred по D-HNR-8; итог `LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION` | Codex + owner-approved waivers | `docs/research/studio-l4-mt-benchmark/2026-08-04/RESULTS.md`; `MACHINE_CHECKPOINT.md`; `docs/research/heb-ru-mt-gold/2026-08-04/` |
+| 3a | D-HNR-9: закрепить MADLAD как локальный MT-провайдер и закрыть provider provenance в Library v3 | ✅ DONE 2026-08-04 — sentence authority + save/update persistence + read-only metadata + badge/filter + RU/EN/HE | Codex + owner GO | v3.11.301; `docs/research/studio-l4-mt-provider-provenance/2026-08-04/README.md` |
 | 4 | L4.0c alignment-бенч (word-level голд отдельно) | ⬜ | Codex | drift-метрики vs эталон |
 | 5 | L4.0b nikud-бенч (human gold ≠ Dicta-silver) | ⬜ | Codex | DEC/CHA/WOR/VOC + CPU-цена |
 | 6 | L4 design packet по результатам | ⬜ | Claude Code (планирование) → owner approve | новый implementation packet |
@@ -178,6 +198,8 @@ Top-2 local full-run не запускается. Возобновление exp
 8. Прод не участвует в бенчах; коммит+пуш по завершении шага (docs-only безопасен).
 9. Спорная интерпретация манифеста/леджера → остановиться и спросить владельца, не
    импровизировать.
+10. MT provenance — не пользовательский тег: строковый `translation_provider` первичен;
+    mixed/unknown нельзя молча переписать в выбранный preferred provider.
 
 **Разделение ролей:** Codex — исполнение шагов 3–5, 7–11 (скрипты бенчей, прогоны,
 отчёты). Claude Code — шаг 6 (design packet), ревизии канона, квартальный re-scan

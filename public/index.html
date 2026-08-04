@@ -4353,6 +4353,31 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 #v3TextMetaModal .v3-meta-provenance .v3-meta-prov-audio > div {
   margin: 1px 0;
 }
+#v3TextMetaModal .v3-meta-translation-provider {
+  margin: 4px 0 10px;
+  padding: 10px 12px;
+  border: 1px solid #c9dfdc;
+  border-inline-start: 3px solid #0b7673;
+  border-radius: 8px;
+  background: #f3fbfa;
+  color: #244542;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+#v3TextMetaModal .v3-meta-translation-provider.v3-provider-mixed {
+  border-color: #fed7aa;
+  border-inline-start-color: #c66b13;
+  background: #fff8ed;
+  color: #704214;
+}
+#v3TextMetaModal .v3-meta-translation-provider.v3-provider-unknown {
+  border-color: #d9dee5;
+  border-inline-start-color: #7b8794;
+  background: #f7f8fa;
+  color: #53606c;
+}
+.v3-meta-provider-title { font-weight: 750; margin-bottom: 4px; }
+.v3-meta-provider-note { margin-top: 5px; color: inherit; opacity: .82; }
 #v3TextMetaModal .v3-meta-portable-media { margin:10px 0; padding:12px; border:1px solid color-mix(in srgb,#0b7673 28%,#dbe7e7); border-radius:12px; background:color-mix(in srgb,#0b7673 5%,#fff); }
 #v3TextMetaModal .v3-meta-portable-media[hidden] { display:none; }
 #v3TextMetaModal .v3-meta-portable-head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
@@ -4940,6 +4965,21 @@ body:not(.theme-light) .v3-meta-smart-tag-btn.active { color: #0f172a; }
   color: var(--theme-success);
   border-color: var(--theme-success);
 }
+.v3-lib-provider-badge {
+  display: inline-block;
+  margin-inline-start: 6px;
+  padding: 1px 7px;
+  border: 1px solid #bfd9d5;
+  border-radius: 999px;
+  background: #f0faf8;
+  color: #0b6764;
+  font-size: 10.5px;
+  font-weight: 700;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.v3-lib-provider-badge.mixed { border-color:#fed7aa; background:#fff7ed; color:#9a4f0b; }
+.v3-lib-provider-badge.unknown { border-color:#d8dee6; background:#f6f7f9; color:#64707c; }
 
 /* Studio↔Room compat Ф1 — corpus pills + canon provenance (ID selector: beats the mobile
    global button{width:100%} trap without !important). */
@@ -11622,6 +11662,21 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
   </select>
 
   <select
+    id="v3LibraryProvider"
+    onchange="v3LibraryOnProviderChange()"
+    data-i18n-title="library.providerFilterTitle"
+    title="Фильтр по провайдеру перевода"
+  >
+    <option value="" data-i18n="library.providerAll">Все провайдеры</option>
+    <option value="madlad" data-i18n="library.providerMadlad">MADLAD (локально)</option>
+    <option value="gemini" data-i18n="library.providerGemini">Gemini</option>
+    <option value="gcp" data-i18n="library.providerGcp">Google Cloud Translation</option>
+    <option value="google-free" data-i18n="library.providerGoogleFree">Google Translate (free)</option>
+    <option value="mixed" data-i18n="library.providerMixed">Несколько провайдеров</option>
+    <option value="unknown" data-i18n="library.providerUnknown">Провайдер неизвестен</option>
+  </select>
+
+  <select
     id="v3TagMatchModeLib"
     onchange="v3OnTagMatchModeChange(this.value)"
     title="Теги: ALL — показывать тексты, где есть ВСЕ выбранные теги. ANY — показывать тексты, где есть хотя бы один тег."
@@ -12094,6 +12149,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
       <!-- R9 provenance (read-only): import source passport; shown only for imported cards -->
       <div id="v3TextMetaProvenance" class="v3-meta-provenance" dir="auto" style="display:none;"></div>
+
+      <!-- R9 translation provenance (read-only): sentence-level provider is authoritative. -->
+      <section id="v3TextMetaTranslationProvider" class="v3-meta-translation-provider" aria-live="polite"></section>
 
       <section id="v3TextMetaPortableMedia" class="v3-meta-portable-media" hidden>
         <div class="v3-meta-portable-head"><div><span data-i18n="studio.portable.material">Учебный материал</span><div id="v3TextMetaMediaStatus" class="v3-meta-portable-status"></div></div></div>
@@ -12854,9 +12912,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=107"></script>
-    <script src="/i18n/locales/en.js?v=107"></script>
-    <script src="/i18n/locales/he.js?v=107"></script>
+    <script src="/i18n/locales/ru.js?v=108"></script>
+    <script src="/i18n/locales/en.js?v=108"></script>
+    <script src="/i18n/locales/he.js?v=108"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13014,7 +13072,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.300";
+    window.APP_VERSION = "3.11.301";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -21735,6 +21793,8 @@ updatePlaylistButtonUI();
             translit_ru: String(r.translit_ru ?? ""),
             ru: String(r.ru ?? ""),
             edit_meta_json: r.edit_meta_json ?? null,
+            translation_provider: r.translation_provider ?? r.translationProvider ?? null,
+            translation_meta_json: r.translation_meta_json ?? r.translationMetaJson ?? null,
             _v3_audioAssetKey: String(r.audio_asset_key ?? r.audioAssetKey ?? ""),
             _v3_audioTtsProfileJson: String(r.audio_tts_profile_json ?? r.audioTtsProfileJson ?? ""),
             _v3_sentenceId: sid ? String(sid) : null,
@@ -22702,6 +22762,7 @@ let v3LibraryLastQuery = "";
 
 const V3_LIB_SEARCH_KEY = "v3_lib_search_v1";
 const V3_LIB_FILTER_LEVEL_KEY = "v3_lib_filter_level_v1";
+const V3_LIB_FILTER_PROVIDER_KEY = "v3_lib_filter_provider_v1";
 const V3_LIB_SORT_KEY = "v3_lib_sort_v1";
 
 // --------------------------------------------------------
@@ -23751,6 +23812,15 @@ function v3LibraryOnLevelChange() {
   v3LibraryApplyFilter();
 }
 
+function v3LibraryOnProviderChange() {
+  try {
+    const provider = String(v3LibEl("v3LibraryProvider")?.value || "");
+    localStorage.setItem(V3_LIB_FILTER_PROVIDER_KEY, provider);
+  } catch (_) {}
+  v3LibraryLastRenderKey = null;
+  v3LibraryApplyFilter();
+}
+
 function v3LibraryOnSortChange() {
   try {
     const sk = String((v3LibEl("v3LibrarySort") && v3LibEl("v3LibrarySort").value) || "opened_desc");
@@ -23762,6 +23832,7 @@ function v3LibraryOnSortChange() {
 }
 
 window.v3LibraryOnLevelChange = v3LibraryOnLevelChange;
+window.v3LibraryOnProviderChange = v3LibraryOnProviderChange;
 window.v3LibraryOnSortChange = v3LibraryOnSortChange;
 
 // ----------------------------
@@ -23770,6 +23841,15 @@ window.v3LibraryOnSortChange = v3LibraryOnSortChange;
 function v3LibraryRenderActiveChips() {
   const qRaw = String(v3LibEl("v3LibrarySearch")?.value || "").trim();
   const chips = v3BuildActiveChipsFromQuery(qRaw);
+  const provider = String(v3LibEl("v3LibraryProvider")?.value || "");
+  if (provider) {
+    const label = provider === "mixed"
+      ? v3TranslationT("library.providerMixed", "Несколько провайдеров")
+      : provider === "unknown"
+        ? v3TranslationT("library.providerUnknown", "Провайдер неизвестен")
+        : v3TranslationProviderLabel(provider);
+    chips.push({ kind: "provider", value: provider, label: v3TranslationT("library.providerChip", "Перевод") + ": " + label });
+  }
   v3RenderActiveChips(v3LibEl("v3LibraryActiveChips"), chips);
   v3LibraryUpdateResetBtn();
 }
@@ -23779,7 +23859,10 @@ function v3LibraryUpdateResetBtn() {
   if (!btn) return;
   const qRaw = String(v3LibEl("v3LibrarySearch")?.value || "").trim();
   const chips = v3BuildActiveChipsFromQuery(qRaw);
-  const total = chips.length + (v3LibrarySmartChip ? 1 : 0);
+  const total = chips.length
+    + (v3LibrarySmartChip ? 1 : 0)
+    + (String(v3LibEl("v3LibraryLevel")?.value || "") ? 1 : 0)
+    + (String(v3LibEl("v3LibraryProvider")?.value || "") ? 1 : 0);
   if (total > 0) {
     btn.textContent = t("library.resetFilters", "↺ Сбросить фильтры") + " (" + total + ")";
     btn.style.display = "inline-block";
@@ -23791,9 +23874,17 @@ function v3LibraryUpdateResetBtn() {
 function v3LibraryResetFilters() {
   const input = v3LibEl("v3LibrarySearch");
   if (input) input.value = "";
+  const level = v3LibEl("v3LibraryLevel");
+  if (level) level.value = "";
+  const provider = v3LibEl("v3LibraryProvider");
+  if (provider) provider.value = "";
 
   // clear persisted query
-  try { localStorage.removeItem(V3_LIB_SEARCH_KEY); } catch (_) {}
+  try {
+    localStorage.removeItem(V3_LIB_SEARCH_KEY);
+    localStorage.removeItem(V3_LIB_FILTER_LEVEL_KEY);
+    localStorage.removeItem(V3_LIB_FILTER_PROVIDER_KEY);
+  } catch (_) {}
 
   // force rerender to avoid memo-key edge cases
   v3LibraryLastRenderKey = null;
@@ -23862,6 +23953,15 @@ function v3LibraryBindFilterUiOnce() {
       const chip = xBtn.closest(".v3-filter-chip");
       const kind = chip?.getAttribute("data-kind") || "";
       const value = chip?.getAttribute("data-value") || "";
+
+      if (kind === "provider") {
+        const provider = v3LibEl("v3LibraryProvider");
+        if (provider) provider.value = "";
+        try { localStorage.removeItem(V3_LIB_FILTER_PROVIDER_KEY); } catch (_) {}
+        v3LibraryLastRenderKey = null;
+        v3LibraryApplyFilter();
+        return;
+      }
 
       const input = v3LibEl("v3LibrarySearch");
       const qRaw = String(input?.value || "").trim();
@@ -25006,9 +25106,14 @@ function v3LibraryOpen() {
     if (s) s.value = String(localStorage.getItem(V3_LIB_SEARCH_KEY) || "");
   } catch (_) {}
   
-    try {
+  try {
     const lv = v3LibEl("v3LibraryLevel");
     if (lv) lv.value = String(localStorage.getItem(V3_LIB_FILTER_LEVEL_KEY) || "");
+  } catch (_) {}
+
+  try {
+    const provider = v3LibEl("v3LibraryProvider");
+    if (provider) provider.value = String(localStorage.getItem(V3_LIB_FILTER_PROVIDER_KEY) || "");
   } catch (_) {}
 
   try {
@@ -25224,6 +25329,118 @@ function v3NormalizeTagsInput(tags) {
   return out;
 }
 
+function v3ParseJsonObject(raw) {
+  if (!raw) return null;
+  if (typeof raw === "object") return raw;
+  try {
+    const parsed = JSON.parse(String(raw));
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch (_) { return null; }
+}
+
+function v3TranslationT(key, fallback) {
+  try {
+    const value = window.t && window.t(key);
+    return value && value !== key ? value : fallback;
+  } catch (_) { return fallback; }
+}
+
+// Canonical grouping is deliberately narrower than model naming. It makes filters
+// stable across model upgrades while the exact model remains visible in provenance.
+function v3NormalizeTranslationProvider(raw) {
+  const value = String(raw || "").trim().toLowerCase();
+  if (!value) return "";
+  if (value === "madlad" || value.startsWith("madlad-")) return "madlad";
+  if (value === "gemini" || value.startsWith("gemini-")) return "gemini";
+  if (["gcp", "google-cloud", "google-cloud-translate", "google-translate-v3"].includes(value)) return "gcp";
+  if (["google", "google-free", "google-translate", "googletrans"].includes(value)) return "google-free";
+  return value;
+}
+
+function v3TranslationProviderLabel(provider) {
+  const p = v3NormalizeTranslationProvider(provider);
+  const labels = {
+    madlad: ["library.providerMadlad", "MADLAD (локально)"],
+    gemini: ["library.providerGemini", "Gemini"],
+    gcp: ["library.providerGcp", "Google Cloud Translation"],
+    "google-free": ["library.providerGoogleFree", "Google Translate (free)"],
+  };
+  const item = labels[p];
+  if (!item) return p || v3TranslationT("library.providerUnknown", "Провайдер неизвестен");
+  return v3TranslationT(item[0], item[1]);
+}
+
+function v3TranslationProvenance(textRow, sentenceRows) {
+  const text = textRow && typeof textRow === "object" ? textRow : {};
+  const rows = Array.isArray(sentenceRows) ? sentenceRows : [];
+  const providers = new Set();
+  let knownRows = 0;
+  let model = "";
+  let generatedAt = "";
+
+  for (const row of rows) {
+    const provider = v3NormalizeTranslationProvider(row && (row.translation_provider ?? row.translationProvider ?? row._translationProvider));
+    if (provider) { providers.add(provider); knownRows += 1; }
+    const rowMeta = v3ParseJsonObject(row && (row.translation_meta_json ?? row.translationMetaJson ?? row._translationMetaJson));
+    if (!model && rowMeta) model = String(rowMeta.model || rowMeta.translator_version || "").trim();
+    if (!generatedAt && rowMeta) generatedAt = String(rowMeta.generatedAt || rowMeta.generated_at || "").trim();
+  }
+
+  // Lightweight Library rows carry a sentence-derived GROUP_CONCAT. This stays
+  // authoritative over table-level metadata and correctly exposes mixed cards.
+  if (!providers.size) {
+    const aggregate = text.translation_providers ?? text.translationProviders ?? "";
+    const values = Array.isArray(aggregate) ? aggregate : String(aggregate || "").split(",");
+    values.forEach((value) => { const p = v3NormalizeTranslationProvider(value); if (p) providers.add(p); });
+  }
+
+  const metas = [
+    v3ParseJsonObject(text.table_model_meta_json ?? text.tableModelMetaJson ?? text.tableModelMeta),
+    v3ParseJsonObject(text.source_meta_json ?? text.sourceMetaJson),
+  ].filter(Boolean);
+  const providerAuthority = providers.size ? (rows.length ? "sentences" : "sentence-summary") : "table-meta-fallback";
+  if (!providers.size) {
+    for (const meta of metas) {
+      const p = v3NormalizeTranslationProvider(meta.provider || meta.actual_provider || meta.translator_provider);
+      if (p) { providers.add(p); break; }
+    }
+  }
+  for (const meta of metas) {
+    if (!model) model = String(meta.model || meta.translator_version || "").trim();
+    if (!generatedAt) generatedAt = String(meta.generatedAt || meta.generated_at || "").trim();
+  }
+
+  const list = Array.from(providers).sort();
+  return {
+    providers: list,
+    kind: list.length > 1 ? "mixed" : (list.length === 1 ? "single" : "unknown"),
+    primary: list.length === 1 ? list[0] : "",
+    model,
+    generatedAt,
+    knownRows,
+    totalRows: rows.length,
+    authority: list.length ? providerAuthority : "unknown",
+  };
+}
+
+function v3TranslationFieldsForSave(row, tableMeta) {
+  const exactMeta = v3ParseJsonObject(row && (row.translation_meta_json ?? row.translationMetaJson ?? row._translationMetaJson));
+  const table = v3ParseJsonObject(tableMeta);
+  const provider = v3NormalizeTranslationProvider(
+    row && (row.translation_provider ?? row.translationProvider ?? row._translationProvider)
+      || (exactMeta && (exactMeta.provider || exactMeta.actual_provider || exactMeta.translator_provider))
+      || (table && (table.provider || table.actual_provider || table.translator_provider))
+  );
+  if (!provider) return { translation_provider: null, translation_meta_json: exactMeta ? JSON.stringify(exactMeta) : null };
+  const compact = exactMeta ? { ...exactMeta, provider } : {
+    provider,
+    model: table && (table.model || table.translator_version) || null,
+    generatedAt: table && (table.generatedAt || table.generated_at) || null,
+    promptId: table && table.promptId || null,
+  };
+  return { translation_provider: provider, translation_meta_json: JSON.stringify(compact) };
+}
+
 function v3NormalizeTextDto(t) {
   if (!t || typeof t !== "object") return t;
 
@@ -25237,7 +25454,8 @@ function v3NormalizeTextDto(t) {
   // UI-side hygiene: enforce same limits as server
   tags = v3NormalizeTagsInput(tags);
 
-  return { ...t, tags };
+  const translation = v3TranslationProvenance(t, null);
+  return { ...t, tags, _translationProvenance: translation, _translationProviders: translation.providers };
 }
 
 function v3SplitQueryTokens(qRaw) {
@@ -25689,6 +25907,7 @@ function v3LibraryStampVisit() {
 function v3LibraryApplyFilter() {
   const qRaw = String((v3LibEl("v3LibrarySearch") && v3LibEl("v3LibrarySearch").value) || "").trim();
   const levelFilter = String((v3LibEl("v3LibraryLevel") && v3LibEl("v3LibraryLevel").value) || "").trim();
+  const providerFilter = String(v3LibEl("v3LibraryProvider")?.value || "").trim();
   const sortKey = String((v3LibEl("v3LibrarySort") && v3LibEl("v3LibrarySort").value) || "opened_desc").trim() || "opened_desc";
 
   // If query hasn't changed and data hasn't changed, v3LibraryRenderList memo will skip rebuild.
@@ -25700,7 +25919,7 @@ function v3LibraryApplyFilter() {
     (qObj.textTokens && qObj.textTokens.length) ||
     (qObj.tagTokens && qObj.tagTokens.length);
 
-  const hasAny = hasQuery || !!levelFilter;
+  const hasAny = hasQuery || !!levelFilter || !!providerFilter;
 
   // Helper: safe date -> ms
   function v3Ms(iso) {
@@ -25779,9 +25998,16 @@ function v3LibraryApplyFilter() {
 
   if (hasAny) {
     const out = [];
-    for (let i = 0; i < v3LibraryTexts.length; i++) {
-      const t = v3LibraryTexts[i];
-      if (v3TextMatchesQuery(t, qObj, levelFilter || null)) out.push(t);
+    // Compose with the corpus dimension already applied above; iterating the
+    // unfiltered master list here used to leak other-corpus cards back in.
+    for (let i = 0; i < filtered.length; i++) {
+      const t = filtered[i];
+      const provenance = t._translationProvenance || v3TranslationProvenance(t, null);
+      const providerMatch = !providerFilter
+        || (providerFilter === "mixed" && provenance.kind === "mixed")
+        || (providerFilter === "unknown" && provenance.kind === "unknown")
+        || provenance.providers.includes(providerFilter);
+      if (providerMatch && v3TextMatchesQuery(t, qObj, levelFilter || null)) out.push(t);
     }
     filtered = out;
   }
@@ -25810,13 +26036,15 @@ function v3LibraryRenderList(texts) {
   // memo-key: query + count + ids + archived flags + last_opened_at
   // (достаточно для P0, чтобы не перерендеривать одинаковое)
   const q = String((v3LibEl("v3LibrarySearch") && v3LibEl("v3LibrarySearch").value) || "").trim().toLowerCase();
+  const providerFilter = String(v3LibEl("v3LibraryProvider")?.value || "");
   const idsKey = (texts || []).map(t =>
     String(t.id || "") + ":" +
     String(t.is_archived || t.isArchived ? "1" : "0") + ":" +
     String(t.last_opened_at || t.lastOpenedAt || "") + ":" +
-    String(t.updated_at || t.updatedAt || "")
+    String(t.updated_at || t.updatedAt || "") + ":" +
+    String((t._translationProviders || []).join(","))
   ).join("|");
-  const renderKey = q + "##" + idsKey;
+  const renderKey = q + "##" + providerFilter + "##" + idsKey;
 
   if (v3LibraryLastRenderKey === renderKey) {
     return; // avoid redundant DOM rebuild
@@ -25911,6 +26139,12 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
     const _corpusBadgeHtml = _isCorpusText
       ? `<span class="v3-lib-corpus-badge" title="${v3EscapeHtml(_ttc("library.corpusBadgeTitle", "Канон Бен-Иегуды: заголовок и текст защищены; личные теги/уровень/тема — редактируемы"))}">🏛 ${v3EscapeHtml(_ttc("library.corpusBadge", "канон"))}</span>`
       : "";
+    const _translation = txt._translationProvenance || v3TranslationProvenance(txt, null);
+    const _providerBadgeHtml = _translation.kind === "single"
+      ? `<span class="v3-lib-provider-badge" title="${v3EscapeHtml(v3TranslationT("library.providerBadgeTitle", "Провайдер перевода"))}">↔ ${v3EscapeHtml(v3TranslationProviderLabel(_translation.primary))}</span>`
+      : _translation.kind === "mixed"
+        ? `<span class="v3-lib-provider-badge mixed" title="${v3EscapeHtml(v3TranslationT("library.providerMixedTitle", "В строках карточки зафиксированы разные провайдеры перевода"))}">↔ ${v3EscapeHtml(v3TranslationT("library.providerMixed", "Несколько провайдеров"))}</span>`
+        : "";
 
     card.innerHTML = `
       <div class="v3-lib-card-top">
@@ -25918,7 +26152,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
           <input type="checkbox" data-act="select" ${isSelected ? "checked" : ""} style="width:20px; height:20px; cursor:pointer;" />
         </label>
         <div style="flex:1; min-width:0;">
-          <div class="v3-lib-card-title">${textDeeplink ? `<a href="${v3EscapeHtml(textDeeplink)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">${v3EscapeHtml(title)}</a>` : v3EscapeHtml(title)}${topicHtml}${_corpusBadgeHtml}${_smartBadgeHtml}<span class="v3-lib-enrich-badge" data-enrich-badge="${v3EscapeHtml(id)}"></span><button type="button" class="v3-title-copy" data-text-id="${v3EscapeHtml(id)}" title="Копировать ссылку на текст" aria-label="${t('library.copyLinkTitle','Копировать ссылку на текст')}">🔗</button></div>
+          <div class="v3-lib-card-title">${textDeeplink ? `<a href="${v3EscapeHtml(textDeeplink)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">${v3EscapeHtml(title)}</a>` : v3EscapeHtml(title)}${topicHtml}${_corpusBadgeHtml}${_providerBadgeHtml}${_smartBadgeHtml}<span class="v3-lib-enrich-badge" data-enrich-badge="${v3EscapeHtml(id)}"></span><button type="button" class="v3-title-copy" data-text-id="${v3EscapeHtml(id)}" title="Копировать ссылку на текст" aria-label="${t('library.copyLinkTitle','Копировать ссылку на текст')}">🔗</button></div>
           <div class="v3-lib-card-meta">
              ${level ? (t("library.level") + ": <b>" + v3EscapeHtml(level) + "</b> · ") : ""}
 				${t("library.progressRow")} <b>${v3EscapeHtml(progressText)}</b><br/>
@@ -26671,17 +26905,21 @@ async function v3LibrarySaveCurrentCore(meta) {
           source: source || null, topic: topic || null,
           tts_profile_json: JSON.stringify(payload.ttsProfile || null),
           source_meta_json: JSON.stringify(payload.tableModelMeta || null),
+          table_model_meta_json: JSON.stringify(payload.tableModelMeta || null),
         });
         const l3Rows = [];
         for (const [rowIndex, row] of currentTableData.entries()) {
           const portableEditMeta = (window.StudioImport && window.StudioImport.rowEditMetaForSave)
             ? window.StudioImport.rowEditMetaForSave(row, window.v3ActiveMediaAudio || null, rowIndex)
             : (row.edit_meta_json || null);
+          const translation = v3TranslationFieldsForSave(row, payload.tableModelMeta);
           await ldb.addSentence(newTextId, {
             id: crypto.randomUUID(),
             he_plain: row.he || '', he_niqqud: row.he_niqqud || '',
             translit: row.translit || '', translit_ru: row.translit_ru || '',
             ru: row.ru || '', edit_meta_json: portableEditMeta,
+            translation_provider: translation.translation_provider,
+            translation_meta_json: translation.translation_meta_json,
           });
           try { const em = portableEditMeta ? JSON.parse(portableEditMeta) : null; if (em && em._studio_source) l3Rows.push({ row_index: rowIndex, ...em._studio_source }); } catch (_) {}
         }
@@ -26848,11 +27086,14 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
         const portableEditMeta = (window.StudioImport && window.StudioImport.rowEditMetaForSave)
           ? window.StudioImport.rowEditMetaForSave(row, window.v3ActiveMediaAudio || null, rowIndex)
           : (row.edit_meta_json || null);
+        const translation = v3TranslationFieldsForSave(row, payload.tableModelMeta);
         await ldb.addSentence(textId, {
           id: crypto.randomUUID(),
           he_plain: row.he || '', he_niqqud: row.he_niqqud || '',
           translit: row.translit || '', translit_ru: row.translit_ru || '',
           ru: row.ru || '', edit_meta_json: portableEditMeta,
+          translation_provider: translation.translation_provider,
+          translation_meta_json: translation.translation_meta_json,
         });
       }
       text = await ldb.getTextById(textId);
@@ -33355,6 +33596,45 @@ function v3TextMetaRenderProvenance(source) {
   }
 }
 
+function v3TextMetaRenderTranslationProvider(textRow, sentenceRows) {
+  const box = document.getElementById("v3TextMetaTranslationProvider");
+  if (!box) return;
+  const provenance = v3TranslationProvenance(textRow, sentenceRows);
+  box.className = "v3-meta-translation-provider" +
+    (provenance.kind === "mixed" ? " v3-provider-mixed" : "") +
+    (provenance.kind === "unknown" ? " v3-provider-unknown" : "");
+  box.replaceChildren();
+
+  const add = (text, className) => {
+    const row = document.createElement("div");
+    if (className) row.className = className;
+    row.textContent = text;
+    box.appendChild(row);
+  };
+  add(v3TranslationT("textMeta.translationProvenanceTitle", "Происхождение перевода"), "v3-meta-provider-title");
+  if (provenance.kind === "single") {
+    add(v3TranslationT("textMeta.translationProvider", "Провайдер") + ": " + v3TranslationProviderLabel(provenance.primary));
+  } else if (provenance.kind === "mixed") {
+    add(v3TranslationT("textMeta.translationProvider", "Провайдер") + ": " + provenance.providers.map(v3TranslationProviderLabel).join(", "));
+  } else {
+    add(v3TranslationT("textMeta.translationProvider", "Провайдер") + ": " + v3TranslationT("library.providerUnknown", "Провайдер неизвестен"));
+  }
+  if (provenance.model) add(v3TranslationT("textMeta.translationModel", "Модель") + ": " + provenance.model);
+  const generated = v3TextMetaFmtProvDate(provenance.generatedAt);
+  if (generated) add(v3TranslationT("textMeta.translationGeneratedAt", "Переведено") + ": " + generated);
+  if (provenance.totalRows > 0 && provenance.knownRows > 0 && provenance.knownRows < provenance.totalRows) {
+    add(v3TranslationT("textMeta.translationCoverage", "Provenance строк") + ": " + provenance.knownRows + "/" + provenance.totalRows, "v3-meta-provider-note");
+  }
+  if (provenance.primary === "madlad") {
+    add("✓ " + v3TranslationT("textMeta.translationLocalNote", "Перевод выполнен локально: текст не отправлялся внешнему MT-провайдеру."), "v3-meta-provider-note");
+  } else if (provenance.kind === "mixed") {
+    add("⚠ " + v3TranslationT("textMeta.translationMixedNote", "В строках карточки зафиксированы разные провайдеры перевода."), "v3-meta-provider-note");
+  } else if (provenance.kind === "unknown") {
+    add("ℹ " + v3TranslationT("textMeta.translationUnknownNote", "Legacy-карточка: достоверный provenance перевода не сохранён."), "v3-meta-provider-note");
+  }
+  return provenance;
+}
+
 function v3TextMetaFormatBytes(value) {
   const bytes = Number(value);
   if (!Number.isFinite(bytes) || bytes < 0) return "—";
@@ -33432,6 +33712,22 @@ async function v3TextMetaOpen(textId) {
   v3MetaEl("v3TextMetaTags").value = tagsCsv;
   v3MetaEl("v3TextMetaSource").value = source;
   v3MetaEl("v3TextMetaTopic").value = topic;
+
+  // Resolve the full local record plus sentence provenance before rendering.
+  // The Library list intentionally omits heavy table_model_meta_json.
+  let provenanceText = t;
+  let provenanceSentences = [];
+  if (LOCAL_MODE) {
+    try {
+      const ldb = await ensureLocalDB();
+      const full = await ldb.getTextById(id);
+      if (full) provenanceText = { ...t, ...full };
+      provenanceSentences = await ldb.getSentences(id);
+    } catch (error) {
+      console.warn("[text-meta] translation provenance lookup failed", error);
+    }
+  }
+  v3TextMetaRenderTranslationProvider(provenanceText, provenanceSentences);
 
   // R9 provenance (read-only): show the import source passport when the card has one.
   // Passport lives in the saved meta JSON (table_model_meta_json / source_meta_json → .source).

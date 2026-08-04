@@ -53,7 +53,7 @@
 | VTT/SRT/YouTube transcript → караоке | ✅ SHIPPED | пользователь приносит дорожку; серверный caption-fetch NO-GO |
 | «Упростить до моего уровня» | ✅ SHIPPED | Gemini BYOK; A1–B2; отдельный derived-текст |
 | Local niqqud | 🟡 код есть | `ai-local`: DictaBERT-menaked на CPU; не часть нового импорта end-to-end |
-| Local перевод | 🟡 код есть | `ai-local`: MADLAD-400 10B, CT2 int8_float16, ~6.5ГБ; provider существует |
+| Local перевод | 🟡 provider OWNER-APPROVED; полный L4 ещё evidence-gated | `ai-local`: MADLAD-400 10B, CT2 int8_float16, ~6.5ГБ; D-HNR-9: sentence provenance + Meta/Library badge/filter в v3.11.301; default-off/no implicit fallback |
 | Local Hebrew TTS | 🟠 эксперимент | Phonikud/Piper интегрирован, но выключен: качество слишком роботизировано; license-mode ограничен |
 | Browser local TTS | 🟠 каркас | provider/router/WASM есть; Hebrew-модель не staged, текущие local providers выключены политикой |
 | Local ASR | 🟡 bounded engineering PASS | pinned turbo CT2; batch/browser/B+C закрыты, permanent integration не разрешена |
@@ -238,7 +238,7 @@ baseline: разборчивость, никуд/ударение, имена, �
 | P1 | **L3b Artifact Continuity / P2** | ✅ COMPLETE / OWNER LIVE PASS v3.11.296 | Artifact Graph, exact v2 package, v47 receipts, transactional import, exact relink/recovery, backup and owner round-trip verified |
 | P1 | **P3 real iPhone manual continuity** | ✅ COMPLETE / OWNER-ATTESTED PASS | manual PC→Files/iCloud→iPhone import/relink/playback→cold reopen→re-export semantic parity |
 | P1 | **P4 Import Center** | ✅ COMPLETE / PROD PASS / OWNER LIVE PASS v3.11.300 | one lifecycle catalog, guided device/restore/relink/recovery/delete-export tasks, storage/media/backup diagnostics and contextual education |
-| P1 | **L4 local translation+nikud** | 🟡 L4.0 BENCH AUTHORIZED 2026-08-04 | owner GO (D-HNR-1); frozen manifest + ledger: `HEBREW_NLP_RESOURCES_OWNER_DECISIONS_2026_08_04.md`; design packet ПОСЛЕ цифр |
+| P1 | **L4 local translation+nikud** | 🟡 L4.0a DONE; L4.0c NEXT | D-HNR-9 approves MADLAD as local MT provider and v3.11.301 closes provenance UX; full L4 still requires L4.0c→L4.0b→design packet |
 | P1 | **L5 diarization/alignment** | ⬜ | L1 stable; speaker/timing gold |
 | P2/R&D | **L6 TTS/OCR/local LLM** | ⬜ | model+license+quality measurement; no quality downgrade |
 | P2 | S7 karaoke export | folded into L3 | VTT/SRT/LRC + media bundle |
@@ -264,7 +264,10 @@ sync, Hermes mutations или production scope без отдельной точ�
 D-HNR-1..6). Канон исполнения: `HEBREW_NLP_RESOURCES_OWNER_DECISIONS_2026_08_04.md`
 (frozen manifest §4 + леджер §5 + контракт Codex-сессий §6). Инвариант: production-ASR
 pin (ivrit.ai turbo-CT2) не меняется; MADLAD может быть заменён только по результатам
-L4.0a-бенча новым owner-решением.
+L4.0a-бенча новым owner-решением. **D-HNR-9 (2026-08-04):** владелец утвердил MADLAD
+как локальный MT-провайдер; в v3.11.301 провайдер сохраняется на строках и отображается/
+фильтруется в Library. Это bounded provenance-срез, не default-on, не implicit fallback и
+не досрочное закрытие полного L4; следующий шаг леджера — L4.0c.
 L2 остаётся demand-triggered. Следующая Studio-сессия должна выбрать отдельный post-P4 slice:
 формальный local-processing порядок ставит L4 translation+nikud перед L5 diarization/alignment и
 L6 R&D; master-roadmap также допускает bounded format-ingest либо отдельные G-HERMES/G-AUTOSYNC

@@ -108,11 +108,14 @@ browser-API для translate/nakdan по образцу L1-D, provenance parity,
 - **D-HNR-6 (follow-up deltas, новое):** ✅ **GO** — Q5 и Q6 как последовательные quality-слайсы после L4.0; **Q6 разделён**: Q6a (MMS/SaT offline gates) / Q6b (VibeVoice feasibility — отдельное решение о запуске).
 - **D-HNR-7 (L4.0a Manifest v2):** ✅ **GO 2026-08-04** — 200 переводов GPT-5.6 приняты владельцем как AI-reference/silver, не human gold; билингвальная human-blind оценка недоступна и waived с итоговой маркировкой `LIMITED EVIDENCE`; FLORES Stage A = детерминированные 506 shared IDs × 2 направления для всех кандидатов, затем full devtest для Gemini + top-2 local при любом adaptive-trigger. Точные правила и frozen manifest — в owner-decisions §4.
 - **D-HNR-8 (L4.0a Manifest v3 override):** ✅ **GO 2026-08-04** — после фактического critical-failure trigger владелец явно deferred full expansion: текущий verdict использует равные 1012 Stage A строк на систему; top-2 local full не запускаются, Gemini 1118/2024 partial хранится только как provenance/cost и не входит в ranking.
+- **D-HNR-9 (локальный MT + provenance UX):** ✅ **GO 2026-08-04** — MADLAD-400 утверждён как локальный MT-провайдер по результатам L4.0a. Sentence-level provider сохраняется и показывается read-only в Meta Edit/Library badge; Library v3 фильтрует по провайдеру. Mixed/unknown не угадываются. Default-off и запрет неявного MADLAD↔Gemini fallback неизменны.
 
 **Execution result:** ledger step 3 / L4.0a закрыт 2026-08-04 под Manifest v3 с
 маркировкой `LIMITED EVIDENCE / NO BILINGUAL HUMAN VALIDATION`. Gemini 3.6 Flash —
 измеренный cloud ceiling; MADLAD остаётся best local, оснований для замены нет.
 Канонический отчёт: `docs/research/studio-l4-mt-benchmark/2026-08-04/RESULTS.md`.
+Ограниченный D-HNR-9 provenance-срез реализован в v3.11.301; он не заменяет L4 design
+packet и не меняет следующий research-шаг леджера — L4.0c.
 
 ## 6. Лицензионный чек-лист per-resource (обязателен перед использованием)
 

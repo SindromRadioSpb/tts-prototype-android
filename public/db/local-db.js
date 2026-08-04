@@ -583,7 +583,10 @@ export async function listTextsLight({ limit = 500, archived = false } = {}) {
   const arch = archived ? 1 : 0;
   const cols = await _textColsList();
   return q(
-    `SELECT ${cols}, tp.last_row_idx AS last_row_idx
+    `SELECT ${cols}, tp.last_row_idx AS last_row_idx,
+            (SELECT GROUP_CONCAT(DISTINCT NULLIF(LOWER(TRIM(s.translation_provider)), ''))
+               FROM sentences s
+              WHERE s.text_id = texts.id) AS translation_providers
      FROM texts LEFT JOIN text_progress tp ON tp.text_id = texts.id
      WHERE texts.is_archived = ?
      ORDER BY texts.is_pinned DESC, texts.pin_order ASC, texts.last_opened_at DESC NULLS LAST, texts.updated_at DESC LIMIT ?`,
