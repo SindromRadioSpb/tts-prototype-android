@@ -30,7 +30,7 @@
       "47959ce88647d6b38d829c3f1dd3c3bdbe6e9cf0",
       "04d0a2cd5dce1e12339f980672ca4696bb1fcb95"
     ],
-    "removed_unused_build_cache_bytes": 5921000000,
+    "removed_unused_build_cache_reported": "5.921GB",
     "preserved_active_revision": "015c0a053c06131a1ffa1fa3ef3a097a1fb1ab31",
     "preserved_rollback_revision": "353d999668a81c5d629998a2322b85817701d70e",
     "preserved_containers": 10,
@@ -70,10 +70,18 @@
     "metadata_provenance": "PASS",
     "edit": "PASS",
     "cold_reopen": "PASS",
-    "text_card_export_ui": "PASS_JSON_DOWNLOADED",
+    "text_card_export_ui": "PASS_UI_REPORTED_JSON_DOWNLOADED_FILE_NOT_INDEPENDENTLY_VERIFIED",
     "text_card_import": "PENDING_OWNER_FILE_PICKER",
     "companion_off_no_fallback": "PASS_FAIL_CLOSED",
     "companion_restart_recovery": "PASS_AFTER_EXPLICIT_SESSION_REPAIR"
+  },
+  "verification_recheck": {
+    "captured_at": "2026-08-05T02:36:35+03:00",
+    "python_ai_local": { "passed": 66, "failed": 0, "test_only_empty_model_root": true },
+    "focused_node": { "passed": 29, "failed": 0 },
+    "text_card_contract": { "passed": 14, "failed": 0, "provider_provenance_round_trip": true },
+    "i18n": { "passed": 233, "failed": 0 },
+    "initial_python_attempt": "EXPECTED_SESSION_WINERROR_5_ON_REAL_MANAGED_MODEL_PATH; RECHECKED_GREEN_WITH_TEST_ONLY_EMPTY_MODEL_ROOT"
   },
   "claims": {
     "automated_pass": true,
