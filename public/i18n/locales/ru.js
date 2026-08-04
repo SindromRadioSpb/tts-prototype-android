@@ -2418,6 +2418,10 @@ window.I18N_LOCALES.ru = {
       smartSrs: "🎯 SRS-noted",
       smartTemplated: "⭐ Templated",
     },
+    // Room media player (spec 2026-08-04); остальные строки бара — общие studio.media.*
+    media: {
+      openInStudio: "Открыть в Студии ↗",
+    },
     nakdan: {
       add: "Добавить никуд",
       loading: "Добавляем никуд…",

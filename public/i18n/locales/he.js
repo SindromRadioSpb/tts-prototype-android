@@ -2414,6 +2414,10 @@ window.I18N_LOCALES.he = {
       smartSrs: "🎯 עם SRS",
       smartTemplated: "⭐ מובנות",
     },
+    // Room media player (spec 2026-08-04)
+    media: {
+      openInStudio: "פתיחה בסטודיו ↗",
+    },
     nakdan: {
       add: "הוספת ניקוד",
       loading: "מוסיפים ניקוד…",

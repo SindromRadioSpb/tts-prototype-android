@@ -2404,6 +2404,10 @@ window.I18N_LOCALES.en = {
       smartSrs: "🎯 SRS-noted",
       smartTemplated: "⭐ Templated",
     },
+    // Room media player (spec 2026-08-04); other bar strings reuse studio.media.*
+    media: {
+      openInStudio: "Open in Studio ↗",
+    },
     nakdan: {
       add: "Add niqqud",
       loading: "Adding niqqud…",
