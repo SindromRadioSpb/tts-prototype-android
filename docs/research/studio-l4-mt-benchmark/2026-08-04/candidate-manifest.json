@@ -1,0 +1,111 @@
+{
+  "schema": "studio-l4-mt-candidates-v1",
+  "frozen_by": "HEBREW_NLP_RESOURCES_OWNER_DECISIONS_2026_08_04.md#4",
+  "candidates": [
+    {
+      "id": "madlad-400-10b-ct2-int8",
+      "upstream": "google/madlad400-10b-mt",
+      "revision": "9f2797629c31e69617186dbe5f0ca43bf662f36d",
+      "license": "Apache-2.0",
+      "runtime": "CTranslate2 4.5.0 / int8_float16 / CUDA",
+      "local_model": "ai-local/models/madlad400-10b-ct2-int8f16",
+      "local_model_bin": {
+        "bytes": 10729462562,
+        "sha256": "8edcf2e2437385df83407e5129bf23fb2f939d3dabba50870fdb36610d0a54b3"
+      },
+      "production_status": "current local translation implementation; benchmark does not alter defaults"
+    },
+    {
+      "id": "opus-mt-transformer-big-ct2-int8",
+      "upstream": "Tatoeba-MT heb-sla + sla-heb transformer-big 2022-09-15",
+      "revision": "immutable dated release archives",
+      "license": "CC-BY-4.0",
+      "runtime": "CTranslate2 4.5.0 / int8 / CPU",
+      "local_model_bins": {
+        "heb-sla": {
+          "bytes": 248469173,
+          "sha256": "ac6906445fbdb292c232d82386b88910a7d239c12cd7631ced3306d532c0b796"
+        },
+        "sla-heb": {
+          "bytes": 248482589,
+          "sha256": "0838e265a0496f9059eb510f8963d594d35088d5c4017e855e53e3b94b314dbd"
+        }
+      },
+      "archives": {
+        "heb-sla": {
+          "url": "https://object.pouta.csc.fi/Tatoeba-MT-models/heb-sla/opusTCv20210807_transformer-big_2022-09-15.zip",
+          "bytes": 885597008,
+          "sha256": "f545dae3cb7c664a2d05c2fd927250d701f0299d594fefe082eaf3ac3ffc60da"
+        },
+        "sla-heb": {
+          "url": "https://object.pouta.csc.fi/Tatoeba-MT-models/sla-heb/opusTCv20210807_transformer-big_2022-09-15.zip",
+          "bytes": 885616680,
+          "sha256": "4e8184d7a3140500b2e2a5b9d25cf31611b952c973a20d62b05f6f7ecfda6b17"
+        }
+      }
+    },
+    {
+      "id": "nllb-200-distilled-1.3b-ct2-int8",
+      "upstream": "facebook/nllb-200-distilled-1.3B",
+      "revision": "7be3e24664b38ce1cac29b8aeed6911aa0cf0576",
+      "license": "CC-BY-NC-4.0",
+      "runtime": "CTranslate2 4.5.0 / int8_float16 / CUDA",
+      "local_model_bin": {
+        "bytes": 1381827201,
+        "sha256": "986142da15185fe0f62bd40c68d0e693ab15110b6b405449576a7ce060f6faad"
+      },
+      "restriction": "research/gate only; no production authorization; 512 source-token cap measured"
+    },
+    {
+      "id": "hy-mt2-1.8b",
+      "upstream": "tencent/Hy-MT2-1.8B",
+      "revision": "9a341cd1b679d3efd23b46e847b01745a71ed792",
+      "license": "Apache-2.0",
+      "runtime": "Transformers 5.6.2 isolated overlay / FP16 / CUDA",
+      "local_weight": {
+        "bytes": 4077072784,
+        "sha256": "29e9117a44c79f81857613601968ff482d8a23c2d6736a1710bba9e5ca4762e5"
+      },
+      "decoding": "deterministic greedy for benchmark reproducibility"
+    },
+    {
+      "id": "gemini-3.6-flash",
+      "upstream": "Google Gemini API",
+      "revision": "stable model id gemini-3.6-flash",
+      "license": "provider API terms",
+      "runtime": "BYOK cloud ceiling; source upload recorded",
+      "secrets": "API key read from environment and never written"
+    }
+  ],
+  "datasets": [
+    {
+      "id": "openlanguagedata/flores_plus",
+      "version": "4.6",
+      "revision": "5fec6c13f9e5a4db2f745d4ec0d7c9721ddc4f06",
+      "split": "devtest",
+      "languages": ["heb_Hebr", "rus_Cyrl"],
+      "license": "CC-BY-SA-4.0",
+      "access": "official gated repository; owner acceptance and HF token required; local evaluation only"
+    },
+    {
+      "id": "q4-in-domain-owner-gold",
+      "path": "docs/research/heb-ru-mt-gold/2026-08-04/in-domain-owner-gold.tsv",
+      "rows": 200,
+      "composition": "50 ASR-style + 50 article + 50 prose + 50 poetry",
+      "reference_authority": "owner human gold only"
+    }
+  ],
+  "mandatory_metrics": [
+    "chrF++ (sacrebleu CHRF word_order=2)",
+    "spBLEU (sacrebleu flores200 tokenizer)",
+    "blind owner evaluation >=40 randomized sources",
+    "missing meaning",
+    "added meaning",
+    "pedagogical suitability",
+    "tokens/sec",
+    "VRAM/CPU profile",
+    "long-sentence and NLLB-512 behavior",
+    "niqqud/punctuation robustness"
+  ],
+  "supplementary_metric": "CometKiwi only; never a winner-deciding oracle by itself"
+}

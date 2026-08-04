@@ -1,0 +1,23 @@
+{
+  "counts": {
+    "asr-style-human-gold": 50,
+    "reading-room-article": 50,
+    "reading-room-poetry": 50,
+    "reading-room-prose": 50
+  },
+  "output": "docs/research/heb-ru-mt-gold/2026-08-04/in-domain-owner-gold.tsv",
+  "output_sha256": "2ea10c79daab67d0aecc6e423b7d9584135e74e1e0401cb7714e7cff7d539ccb",
+  "reference_status": "OWNER_REQUIRED",
+  "rows": 200,
+  "schema": "l4-mt-in-domain-selection-v1",
+  "sources": {
+    "asr_manifest": {
+      "path": "docs/research/hermes-education-scaleup/rnd-c1-2026-07-24/benchmark_manifest.tsv",
+      "sha256": "842318c1a9a601ec04c79423ce2a9a81e4ecda4296832173c7942afd1fe36069"
+    },
+    "reading_room_canon": {
+      "path": "public/data/benyehuda/canon-v4.zip",
+      "sha256": "3a4319ad81cb9512e82b5c62a03d54d18128e4d489f4b08eeb5e2531d203069b"
+    }
+  }
+}

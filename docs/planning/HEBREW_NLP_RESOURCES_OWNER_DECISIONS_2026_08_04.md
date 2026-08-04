@@ -108,7 +108,7 @@ P3/P4-пакеты — авторитет без изменений). Post-P4 de
 | 0 | Исправить provenance/owner-journal несогласованности (журнал решений в плане → OWNER-APPROVED, этот док создан) | ✅ DONE 2026-08-04 (эта сессия) | Claude Code | этот документ + обновлённый журнал плана |
 | 1 | Принять D-HNR-1 | ✅ DONE (решение владельца) | owner | §1 |
 | 2 | Заморозить L4.0 manifest до результатов | ✅ DONE v1 (§4) | Claude Code | §4; изменения — только новой версией |
-| 3 | L4.0a MT-бенч (+ Q4-голд внутри) | ⬜ NEXT | Codex | таблица+вердикт в `docs/research/`, голд-актив закоммичен |
+| 3 | L4.0a MT-бенч (+ Q4-голд внутри) | 🟡 IN PROGRESS 2026-08-04 — Q4 source worksheet/harness + 4 полных local in-domain run готовы; Gemini 13/200 → HTTP 429. До DONE обязательны owner ru-gold, gated FLORES+/CometKiwi, оба направления, blind ≥40 и финальный verdict | Codex + owner human gates | `docs/research/studio-l4-mt-benchmark/2026-08-04/MACHINE_CHECKPOINT.md`; `docs/research/heb-ru-mt-gold/2026-08-04/` |
 | 4 | L4.0c alignment-бенч (word-level голд отдельно) | ⬜ | Codex | drift-метрики vs эталон |
 | 5 | L4.0b nikud-бенч (human gold ≠ Dicta-silver) | ⬜ | Codex | DEC/CHA/WOR/VOC + CPU-цена |
 | 6 | L4 design packet по результатам | ⬜ | Claude Code (планирование) → owner approve | новый implementation packet |

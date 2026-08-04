@@ -1,0 +1,74 @@
+{
+  "schema": "studio-l4-mt-machine-checkpoint-v1",
+  "status": "IN_PROGRESS_NOT_A_VERDICT",
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 3070",
+    "gpu_vram_mib": 8192,
+    "cpu": "AMD Ryzen 5 5600G"
+  },
+  "input": {
+    "path": "docs/research/heb-ru-mt-gold/2026-08-04/in-domain-owner-gold.tsv",
+    "rows": 200,
+    "sha256": "2ea10c79daab67d0aecc6e423b7d9584135e74e1e0401cb7714e7cff7d539ccb",
+    "references_complete": false
+  },
+  "runs": {
+    "opus-mt-transformer-big-ct2-int8": {
+      "rows": 200,
+      "elapsed_sec": 48.783816,
+      "segments_per_sec": 4.09972,
+      "output_tokens_per_sec": 109.872503,
+      "cpu_process_sec": 177.0,
+      "output_sha256": "1435736bba983c47c472267c9847500b6d7af6a3cd09c7d836b92ec93b02caa4"
+    },
+    "nllb-200-distilled-1.3b-ct2-int8": {
+      "rows": 200,
+      "elapsed_sec": 104.234809,
+      "segments_per_sec": 1.918745,
+      "output_tokens_per_sec": 56.324754,
+      "gpu_memory_used_mib_peak": 2871,
+      "source_truncations": 0,
+      "output_sha256": "a2e196bcff3d2167c01e3011974df0b14a25f285a324c16b36562cae5787c69a"
+    },
+    "hy-mt2-1.8b": {
+      "rows": 200,
+      "elapsed_sec": 726.324384,
+      "segments_per_sec": 0.275359,
+      "output_tokens_per_sec": 11.123129,
+      "gpu_memory_used_mib_peak": 5619,
+      "output_sha256": "dd83a8ffafe64497de005ede296a59a5d2d0fb038ad03f9254e25b424f925a2f"
+    },
+    "madlad-400-10b-ct2-int8": {
+      "rows": 200,
+      "elapsed_sec": 1086.517985,
+      "segments_per_sec": 0.184074,
+      "output_tokens_per_sec": 6.234595,
+      "gpu_memory_used_mib_peak": 7849,
+      "decoding_cap": 256,
+      "decoding_cap_hits": 0,
+      "output_sha256": "69fd2cc9bcf2a3b8ce9931c9bbf2f536f8e89f31865d25264c3b030ff5175010"
+    },
+    "gemini-3.6-flash": {
+      "status": "PARTIAL_HTTP_429",
+      "rows": 13,
+      "last_completed_id": "ID-ASR-013",
+      "next_id": "ID-ASR-014",
+      "input_tokens": 374,
+      "output_tokens": 98,
+      "recorded_row_elapsed_sec": 117.559,
+      "estimated_list_price_usd": 0.001296,
+      "partial_output_sha256": "12391b4b7dbed1321fefdf7c310a5c852c0bcd10fe9355ab4754901b3d9b5d14",
+      "failure": "HTTP 429 persisted through 10 bounded retries"
+    }
+  },
+  "open_gates": [
+    "owner Russian references for 200 in-domain rows",
+    "official gated FLORES+ access and both directions",
+    "official gated CometKiwi access and supplementary score",
+    "Gemini resume after quota availability",
+    "chrF++ and spBLEU",
+    "long-input and niqqud/punctuation robustness",
+    "blind owner evaluation on at least 40 randomized sources",
+    "final table and verdict"
+  ]
+}
