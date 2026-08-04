@@ -104,3 +104,78 @@ test("Node export: pure part only (no DOM helpers)", () => {
   assert.equal(typeof MH.createStage, "undefined");
   assert.equal(typeof MH.augmentRows, "undefined");
 });
+
+// ── Композитные паспорта Import Center / portable (живой кейс «В сокрытии - 1», 2026-08-05):
+// timing — булева сводка, сегменты в start_ms/end_ms (+caption_segment_id), opfsPath отсутствует
+// по контракту media-ref. Пайплайн обязан их понимать, не ослабляя правил классического пути.
+
+function compositeAudio(nCues, texts) {
+  return {
+    v: 1,
+    media: { sha256: "comp-sha", mime: "audio/mpeg", originalName: "c.mp3", sizeBytes: 3, durationSec: 60 },
+    segments: Array.from({ length: nCues }, (_, k) => ({
+      authority: "corrected", caption_segment_id: "cue:" + k, quality_flags: [],
+      source_segment_ids: [], speaker: null,
+      start_ms: k * 1000 + 700, end_ms: (k + 1) * 1000 + 600, text: texts[k],
+    })),
+    timing: true, // булева сводка портативного паспорта — НЕ играбельный тайминг
+  };
+}
+const CUE_TEXTS = ["שלום עולם", "מה קורה היום", "אחת שתיים", "שלוש ארבע", "חמש שש",
+                   "שבע שמונה", "תשע עשר", "אחת עשרה", "שתים עשרה", "שלוש עשרה"];
+
+test("composite: boolean timing + ms-segments → K3 align rebuilds real entries", () => {
+  const a = compositeAudio(10, CUE_TEXTS);
+  const rows = CUE_TEXTS.map((t) => ({ he: t }));
+  MH.restoreForRows(a, rows, deps);
+  assert.ok(a.timing && Array.isArray(a.timing.entries), "timing must become a real {entries} object");
+  assert.equal(a.timing.entries.length, 10);
+  assert.equal(a.timing.entries[0].t, 0.7);          // ms → секунды
+  assert.equal(a.timing.entries[1].t, 1.7);
+  assert.equal(a.timingSource, "aligned-offline");   // тексты совпали → доказательство сильнее
+});
+
+test("composite: one edited row → positional identity fallback (asserted by construction)", () => {
+  const texts = CUE_TEXTS.slice();
+  const rows = texts.map((t) => ({ he: t }));
+  rows[7] = { he: "אחת עשרה בערך" };                 // правка владельца: align откажет
+  const a = compositeAudio(10, texts);
+  MH.restoreForRows(a, rows, deps);
+  assert.ok(a.timing && a.timing.entries.length === 10, "positional fallback must build timing");
+  assert.equal(a.timingSource, "composite-positional");
+  assert.equal(a.timingMap.source, "composite-positional");
+  assert.equal(a.timingMap.mismatched, 1);
+  assert.equal(a.timingMap.matched, 9);
+  assert.equal(a.timingAlign.ok, false);             // вердикт align остаётся рядом (R9)
+  assert.equal(a.timingDropReason, null);
+});
+
+test("composite positional: idempotent — entries reference preserved on 2nd call", () => {
+  const texts = CUE_TEXTS.slice();
+  const rows = texts.map((t) => ({ he: t }));
+  rows[3] = { he: "текст правлен" };
+  const a = compositeAudio(10, texts);
+  MH.restoreForRows(a, rows, deps);
+  const ref = a.timing.entries;
+  assert.ok(Array.isArray(ref) && ref.length === 10, "first call must build entries");
+  MH.restoreForRows(a, rows, deps);
+  assert.equal(a.timing.entries, ref);
+});
+
+test("composite positional: refuses when texts diverge beyond threshold (R11)", () => {
+  const texts = CUE_TEXTS.slice();
+  const rows = texts.map(() => ({ he: "אחר לגמרי" }));   // все строки чужие
+  const a = compositeAudio(10, texts);
+  MH.restoreForRows(a, rows, deps);
+  assert.equal(a.timing, null);
+  assert.ok(a.timingDropReason, "honest drop reason must be set");
+});
+
+test("composite positional: refuses when row/cue counts differ", () => {
+  const texts = CUE_TEXTS.slice();
+  const rows = texts.slice(0, 9).map((t) => ({ he: t }));
+  rows[3] = { he: "правка" };                            // и align тоже не сойдётся
+  const a = compositeAudio(10, texts);
+  MH.restoreForRows(a, rows, deps);
+  assert.equal(a.timing, null);
+});

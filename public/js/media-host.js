@@ -61,6 +61,62 @@
     return { AT: AT || null, appVersion: appVersion || null };
   }
 
+  // ── КОМПОЗИТНЫЕ ПАСПОРТА (Import Center / portable-learning-package, живой кейс
+  // «В сокрытии - 1» 2026-08-05): сегменты несут start_ms/end_ms (+caption_segment_id),
+  // а timing — БУЛЕВУ сводку «у реплик есть метки», не играбельный {entries}. Классический
+  // пайплайн (align/buildRowTiming) работает в секундах — даём единый секундный вид.
+  function isCompositeSegments(segs) {
+    return Array.isArray(segs) && segs.length > 0 && !!segs[0] &&
+           segs[0].start == null && segs[0].start_ms != null;
+  }
+  function segmentsForTiming(audio) {
+    var segs = audio && Array.isArray(audio.segments) ? audio.segments : [];
+    if (!isCompositeSegments(segs)) return segs;
+    return segs.map(function (s, k) {
+      return { i: k, start: (Number(s && s.start_ms) || 0) / 1000,
+               end: (Number(s && s.end_ms) || 0) / 1000, text: String((s && s.text) || "") };
+    });
+  }
+
+  // Позиционная идентичность композитного превью: Import Center строит таблицу «одна строка =
+  // одна реплика», т.е. соответствие УТВЕРЖДЕНО построением материала (R9 asserted), а не
+  // выведено. Строгий K3-align отклоняет ВСЁ караоке из-за одного правленого слова (живой
+  // замер: 431/432 строк пословно равны, строка 398 — междометие с лишней буквой). Правило
+  // align НЕ ослабляется; позиционный маппинг применяется ТОЛЬКО когда:
+  //   (а) сегменты композитные (иначе 1:1 — как раз запрещённая догадка K1),
+  //   (б) строк РОВНО столько же, сколько реплик, и их ≥ 8,
+  //   (в) почти все строки ПОСЛОВНО равны своей реплике (несовпадений ≤ max(2, 1%)).
+  // Провенанс R9: timingSource='composite-positional' + счётчики matched/mismatched; вердикт
+  // отказавшего align остаётся рядом в timingAlign.
+  function compositePositionalTiming(audio, rows, deps) {
+    var d = resolveDeps(deps), AT = d.AT;
+    if (!AT || typeof AT.stitchNormalizeWords !== "function" || typeof AT.buildRowTiming !== "function") return false;
+    var raw = Array.isArray(audio.segments) ? audio.segments : [];
+    if (!isCompositeSegments(raw)) return false;
+    var list = Array.isArray(rows) ? rows : [];
+    if (list.length < 8 || list.length !== raw.length) return false;
+    var segs = segmentsForTiming(audio);
+    var matched = 0, mismatched = 0;
+    for (var i = 0; i < list.length; i++) {
+      var rw = AT.stitchNormalizeWords(String((list[i] && (list[i].he || list[i].he_plain || list[i].hebrew)) || "")).join(" ");
+      var sw = AT.stitchNormalizeWords(segs[i].text).join(" ");
+      if (rw && rw === sw) matched++; else mismatched++;
+    }
+    if (mismatched > Math.max(2, Math.ceil(list.length * 0.01))) return false;
+    var rowSegIdx = list.map(function (_, k) { return k; });
+    var timing = AT.buildRowTiming(segs, rowSegIdx, clockBlindRanges(audio));
+    if (!timing) return false;
+    audio.timing = timing;
+    audio.timingSource = "composite-positional";
+    audio.timingMap = Object.assign({}, audio.timingMap || {}, {
+      source: "composite-positional", rows: list.length, segments: segs.length,
+      row_seg_idx: rowSegIdx, matched: matched, mismatched: mismatched,
+    });
+    audio.timingDropReason = null;
+    audio.timingDropDetail = null;
+    return true;
+  }
+
   // ── K3 (2026-07-30): ОЖИВЛЕНИЕ КАРАОКЕ У УЖЕ СОХРАНЁННОЙ КАРТОЧКИ ────────────────────────────
   // Связь «строка → сегмент» ВОССТАНАВЛИВАЕТСЯ ОФЛАЙН по тексту (AsrTranscript.alignRowsToSegments —
   // правило и оракул описаны там): ни одного сетевого запроса, ни цента.
@@ -79,7 +135,7 @@
     // Утверждённые причины импорта (PREVIEW_EDITED / ASR_TIMING_INVALID) — факты о САМИХ метках:
     // выравнивание строк их не опровергает, поэтому молчим.
     if (audio.timingDropReason && !isDerivedTimingDrop(audio.timingDropReason)) return;
-    var segs = Array.isArray(audio.segments) ? audio.segments : [];
+    var segs = segmentsForTiming(audio);   // композитные ms-сегменты → секундный вид
     var list = Array.isArray(rows) ? rows : [];
     if (segs.length < 2 || list.length < 2) return;
     var d = resolveDeps(deps);
@@ -140,14 +196,20 @@
     if (!audio) return;
     var list = Array.isArray(rows) ? rows : [];
     var AT = resolveDeps(deps).AT;
+    // Портативный/композитный паспорт хранит timing БУЛЕВОЙ сводкой («у реплик есть метки»),
+    // а не {entries} — играть по нему нечем: честно считаем «тайминга нет» и строим заново.
+    if (audio.timing && !Array.isArray(audio.timing.entries)) audio.timing = null;
     if (audio.timing && AT && typeof AT.timingLooksDegenerate === "function") {
-      if (AT.timingLooksDegenerate(audio.timing, audio.segments, list.length)) {
+      if (AT.timingLooksDegenerate(audio.timing, segmentsForTiming(audio), list.length)) {
         audio.timing = null;
         audio.timingDropReason = "SEG_MAPPING_LOST";
         audio.timingDropDetail = "DEGENERATE_1_TO_1";
       }
     }
     try { alignSavedTimingOffline(audio, list, deps); } catch (_) {}
+    // Композитное превью «одна строка = одна реплика»: позиционная идентичность утверждена
+    // построением — включается ТОЛЬКО когда align не сошёлся (доказательство сильнее).
+    if (!audio.timing) { try { compositePositionalTiming(audio, list, deps); } catch (_) {} }
   }
 
   var PURE = {
@@ -188,8 +250,21 @@
         var blob = null;
         var sessionOnly = !!mediaCompat(audio.media, "sessionOnly", "session_only");
         var opfsPath = mediaCompat(audio.media, "opfsPath", "opfs_path");
+        var MS = typeof window.MediaStore !== "undefined" ? window.MediaStore : null;
         if (sessionOnly) blob = getSessionBlob() || null;
-        else if (opfsPath && typeof window.MediaStore !== "undefined") blob = await window.MediaStore.readMedia(opfsPath);
+        else if (MS) {
+          if (opfsPath) blob = await MS.readMedia(opfsPath);
+          // Content-addressed фолбэк (2026-08-05, «В сокрытии - 1»): portable/text-card
+          // паспорта несут ТОЛЬКО sha256 — opfsPath отсутствует ПО КОНТРАКТУ media-ref
+          // (media_included:false, релинк по SHA). Файл в OPFS ИМЕНУЕТСЯ своим SHA-256
+          // (MediaStore.mediaFileName), поэтому производный путь корректен by construction.
+          if (!blob && typeof MS.mediaFileName === "function") {
+            var sha = mediaCompat(audio.media, "sha256", "media_sha256");
+            if (sha) blob = await MS.readMedia(MS.mediaFileName(sha,
+              mediaCompat(audio.media, "mime", "mime"),
+              mediaCompat(audio.media, "originalName", "original_name")));
+          }
+        }
         if (blob) cache = { identity: identity, blob: blob };
         return blob;
       },

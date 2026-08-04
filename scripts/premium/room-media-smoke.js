@@ -63,6 +63,23 @@ const SEED = `(async () => {
   await db.addSentence("rmm-t3", { id: "rmm-t3-s2", he_plain: "שתיים", ru: "два" });
   await db.createText({ id: "rmm-t4", text_key: "rmm-k4", title: "RMM FOUR", source_text: "רגיל" });
   await db.addSentence("rmm-t4", { id: "rmm-t4-s1", he_plain: "רגיל", ru: "обычный" });
+
+  // t5 — КОМПОЗИТНЫЙ паспорт (Import Center / portable, кейс «В сокрытии - 1»): media только
+  // с sha256 (БЕЗ opfsPath — контракт media-ref, релинк по SHA), сегменты в start_ms/end_ms,
+  // timing: true (булева сводка), одна строка правлена (строгий align откажет → позиционный путь).
+  const CUES = ["שלום עולם", "מה קורה היום", "אחת שתיים", "שלוש ארבע", "חמש שש", "שבע שמונה", "תשע עשר", "אחת עשרה"];
+  const fh2 = await dir.getFileHandle("rmm-comp.mp3", { create: true });
+  const w2 = await fh2.createWritable(); await w2.write(buf); await w2.close();
+  const P_COMPOSITE = { source: { audio: { v: 1,
+    media: { sha256: "rmm-comp", mime: "audio/mpeg", originalName: "comp.mp3", sizeBytes: 417 * 80, durationSec: 2 },
+    segments: CUES.map((t, k) => ({ authority: "corrected", caption_segment_id: "cue:" + k, quality_flags: [],
+      source_segment_ids: [], speaker: null, start_ms: k * 200 + 100, end_ms: k * 200 + 280, text: t })),
+    timing: true } } };
+  await db.createText({ id: "rmm-t5", text_key: "rmm-k5", title: "RMM FIVE composite", source_text: CUES.join("\\n"), table_model_meta_json: JSON.stringify(P_COMPOSITE) });
+  for (let i = 0; i < CUES.length; i++) {
+    const he = i === 6 ? CUES[i] + " בערך" : CUES[i];   // одна правленая строка
+    await db.addSentence("rmm-t5", { id: "rmm-t5-s" + i, he_plain: he, ru: "ряд " + i });
+  }
   return true;
 })()`;
 
@@ -185,6 +202,32 @@ async function main() {
       await sleep(400);
       const t4 = await pg.evaluate(() => (document.getElementById("roomMediaBar") || {}).hidden);
       ok(t4 === true, "t4: no media bar on a passport-less text");
+      await backToGrid();
+
+      // ── rmm-t5: композитный паспорт — SHA-фолбэк блоба + позиционный тайминг ──
+      await openCard("RMM FIVE");
+      await pg.waitForFunction(() => {
+        const stage = document.getElementById("roomMediaLocalStage");
+        const p = document.getElementById("roomMediaLocalPlayer");
+        return stage && !stage.hidden && p && p.getAttribute("src");
+      }, { timeout: 15000 }).catch(() => failures.push("t5: stage did not appear (SHA-fallback blob resolve broken)"));
+      const t5 = await pg.evaluate(() => ({
+        note: (document.getElementById("roomMediaBarNote") || {}).textContent || "",
+        replayButtons: document.querySelectorAll("#roomReaderTable .smk-row-replay").length,
+        bound: !!(window.StudioMediaKaraoke && window.StudioMediaKaraoke.getAudioEl()),
+      }));
+      ok(t5.note === "", "t5: no honesty note (composite timing rebuilt), got '" + t5.note + "'");
+      ok(t5.replayButtons === 8, "t5: 8 replay buttons on composite card, got " + t5.replayButtons);
+      ok(t5.bound, "t5: karaoke bound via SHA-resolved blob");
+      const t5seek = await pg.evaluate(() => {
+        window.StudioMediaKaraoke.seekToRow(2);
+        const el = window.StudioMediaKaraoke.getAudioEl();
+        window.StudioMediaKaraoke.syncCurrent();
+        return { curTime: el ? el.currentTime : -1,
+                 active2: !!document.querySelector('#roomReaderTable tr[data-row-idx="2"].smk-row-active') };
+      });
+      ok(Math.abs(t5seek.curTime - 0.5) < 0.3, "t5: seekToRow(2) → ~0.5s (ms→sec conversion), got " + t5seek.curTime);
+      ok(t5seek.active2, "t5: positional timing paints row 2");
     }
     ok(!pageErrors.length, "no pageerror(s)" + (pageErrors.length ? ": " + pageErrors.join(" | ") : ""));
   } finally { await b.close(); await stopServer(srv.child); }
