@@ -14,10 +14,11 @@
 3. The beta.4 internal installer now builds and passes in-place upgrade,
    delete/reinstall/resume, restart and production-Origin API contention. It is still
    unsigned and not authorized for public hosting, signing, general distribution, GA or
-   default-on. The final internal artifact is tied to commit `ce811de7`, but bounded
-   invite use still requires the deployed-browser data-round-trip gates below.
-4. Cold reopen plus export/import authority preservation is covered by existing repository
-   paths and focused unit/smoke gates, but not yet exercised with a real local-MT save.
+   default-on. The final internal artifact is tied to commit `ce811de7`.
+4. Real served-origin save, provider filter, metadata provenance, edit and cold reopen now
+   pass. Chrome reported the text-card JSON downloaded, but the controlled browser did not
+   expose the file path/download event; the owner must select the file and confirm the
+   idempotent import preview before `PRODUCTION PASS` can be declared.
 5. A predeclared 128-row frozen L4.0a representative release subset passed: macro chrF++
    improved 49.3464→49.6445, all per-direction chrF++/spBLEU bounds passed, and
    empty/truncated/critical flags remained zero. This is not the full 1012-row Stage A and
@@ -26,15 +27,20 @@
 6. `npm test` retains one baseline failure unrelated to this slice:
    `classic mode keeps table fine-tuning in a secondary advanced area` expects
    `btnTableCustomizeToggle`, which is absent in both current HEAD and this working tree.
-7. The production disk STOP is cleared: bounded owner-authorized cleanup improved root
-   usage from 97%/1.4 GB free to 76%/8.8 GB free and fresh health reports
-   `disk_warn=false`. Six unreferenced app images and unused build cache were removed;
-   active/newest rollback images, containers, volumes, backups and data were preserved.
-8. Production continues to serve `3.11.300`; local source `3.11.304` has not been deployed.
-   This session has not pushed, triggered auto-deploy or verified a new served service worker.
-9. No engineering-partial result in this directory is a production PASS, beta PASS,
-   bilingual validation, GA claim or owner-live PASS.
-10. Deployment is stopped even though production health/disk preflight passes. Local
-    `main` gained four concurrent Reading Room commits while this slice was running, and
-    the two D-HNR commits are interleaved with them. A normal push would deploy that
-    unapproved out-of-scope packet; no rewrite, force-push or deploy was performed.
+7. Production serves commit `015c0a05`, app/service worker `3.11.308`, with
+   `LOCAL_MT_BETA_ENABLED=true`. Before activation a fresh 733,674,124-byte online backup
+   passed SQLite integrity and archive read-back. The refreshed bounded cleanup improved
+   root 92%/3.1 GB free to 76%/9.0 GB free. Active plus newest rollback, 10 containers,
+   3 volumes, backups and data were preserved.
+8. The real smoke exposed expected beta-quality variance: the longer learning sentence was
+   translated coherently, while `שלום עולם` became `Мир во всем мире.` rather than the
+   expected greeting. This is not hidden; machine-draft/correction UX remains mandatory.
+9. A new smoke card inherited the active session's pre-existing media binding during save-as-new.
+   The text-card share correctly reported no transferable source passport, but the synthetic
+   card must be removed after the import receipt. This is outside MADLAD inference and does
+   not authorize changes to the original material.
+10. After a Companion restart the provider path recovered as ready, but the open onboarding
+    model-state label stayed stale until the existing session token was explicitly submitted
+    again. Invite instructions therefore retain explicit per-session pairing.
+11. No result in this directory is yet a complete production PASS, beta PASS, bilingual
+    validation, GA claim or owner-live PASS. File-picker import and real owner-live remain.

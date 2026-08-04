@@ -1,10 +1,10 @@
 # Invite beta packet state
 
-Status: **LOCAL BINARY GATES PASS / DISTRIBUTION NOT OPEN**.
+Status: **PRODUCTION ACTIVATED / BROWSER ROUND-TRIP PARTIAL / OWNER-LIVE PENDING / DISTRIBUTION NOT OPEN**.
 
 Intended bounded cohort: owner/personally trusted Windows 11 + NVIDIA CUDA + Chrome users
-of the existing Companion. Browser exposure remains `LOCAL_MT_BETA_ENABLED=false` by
-default and requires explicit session enrollment, pairing, license/resource/privacy/draft
+of the existing Companion. Production exposure is enabled for the invite flow, while the
+source default remains `LOCAL_MT_BETA_ENABLED=false`; use still requires explicit session enrollment, pairing, license/resource/privacy/draft
 consent, model installation and explicit MADLAD selection.
 
 Installer source coordinates:
@@ -30,9 +30,22 @@ Completed on the owner machine:
 4. real blank/whitespace/duplicate mapping, concurrent production-Origin he→ru and
    ru→he jobs, Companion restart, cold job and final unload.
 
-Before this packet may open the bounded invite beta, the following still remain required:
+Production activation completed on 2026-08-05:
 
-1. execute deployed-browser direct-loopback and save→reopen→export/import gates;
-2. commit/push/deploy from the now unrestricted session after a fresh production
-   disk/health cleanup has passed;
-3. record engineering, production and owner-live outcomes separately.
+1. served app/service worker `3.11.308`, health/DB/migrations green and
+   `disk_warn=false` after a fresh verified backup and bounded cleanup;
+2. real production Chrome pairing, exact `@v2` model readiness and he→ru job PASS;
+3. save→MADLAD provider filter→metadata provenance→edit→cold reopen PASS;
+4. Companion-off remains selected MADLAD, disables the path and preserves the stale
+   local result without invoking another provider; restart plus explicit re-pair returns ready;
+5. text-card export UI reports `JSON downloaded`.
+
+Before the bounded invite beta may be called complete, the following remain required:
+
+1. owner selects the exported JSON in Library import, verifies the text-card preview and
+   completes the idempotent `mode=skip` import receipt;
+2. owner performs the real learning-text ceremony and confirms the semantic draft is
+   usable/correctable; synthetic smoke is not owner-live;
+3. remove the exact synthetic smoke card after receipts are captured;
+4. record `PRODUCTION PASS` and `OWNER-LIVE PASS` separately. Public hosting, signing,
+   general distribution, GA and default-on remain closed.

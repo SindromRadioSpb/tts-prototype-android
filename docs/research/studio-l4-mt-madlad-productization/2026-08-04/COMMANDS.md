@@ -275,3 +275,57 @@ Two authenticated jobs using the production Origin started within 2 ms: he→ru 
 3/3 rows and ru→he completed 2/2 rows, both with `provider=madlad` and
 `local_execution=true`. Graceful restart, post-restart full rehash, cold job and final
 unload passed. See `raw/beta4-binary-lifecycle.json`.
+
+## Production activation and Chrome gate — 2026-08-05
+
+The production mutation used the private runbook coordinates without copying credentials
+into evidence. Immediately before cleanup:
+
+```bash
+sudo -n /opt/backup-linguistpro.sh
+gzip -t /opt/backups/linguistpro/app-data-20260804-230027.tar.gz
+tar -tzf /opt/backups/linguistpro/app-data-20260804-230027.tar.gz >/dev/null
+```
+
+The script itself used SQLite Online Backup API, required `PRAGMA integrity_check=ok`,
+verified the archived snapshot SHA-256 and atomically renamed the archive. Exact result:
+733,674,124-byte archive; 395,358,208-byte SQLite snapshot; snapshot SHA-256
+`142bfb6ef4475faf18145a4332777e4f33879e327c94f8a1f54dee708ee348d8`.
+
+After proving each target was unused and preserving active `015c0a05` plus rollback
+`353d9996`, cleanup was limited to:
+
+```bash
+docker image rm 3fcdd5333c53 1068e8e675b4 5a725ab321b8 de8cd965f759
+docker builder prune -af
+```
+
+Root changed 92%/3.1 GB free → 76%/9.0 GB free. Ten running containers, three volumes,
+backups and data remained. Coolify then received runtime-only
+`LOCAL_MT_BETA_ENABLED=true` followed by **Restart** of the existing image. Verification:
+
+```powershell
+Invoke-RestMethod https://linguistpro.kolosei.com/healthz
+Invoke-RestMethod https://linguistpro.kolosei.com/api/client-config
+(Invoke-WebRequest https://linguistpro.kolosei.com/sw.js).Content
+```
+
+The rolling restart converged from two temporary containers to one active container with
+the new env. Served app/SW stayed `3.11.308`; health/DB/migrations passed and
+`disk_warn=false`.
+
+Real Chrome production-origin gate: explicit pairing → MADLAD consent/selection → two-row
+he→ru job → Save as new → Library provider filter → provenance metadata → topic edit →
+cold deep-link reopen. Exact model shown by metadata:
+`madlad-400-10b-ct2-int8f16@v2`. Companion-off used:
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\LinguistPro Local ASR\LinguistProLocalAsrCompanion.exe" --stop
+& "$env:LOCALAPPDATA\Programs\LinguistPro Local ASR\LinguistProLocalAsrCompanion.exe" --start
+& "$env:LOCALAPPDATA\Programs\LinguistPro Local ASR\LinguistProLocalAsrCompanion.exe" --status
+```
+
+With Companion stopped, provider remained `madlad`, became unavailable, retained the old
+local result as stale and did not switch to a cloud provider. Restart plus explicit
+session re-pair restored `ready`. Text-card JSON export UI passed; re-import is pending the
+owner selecting the downloaded JSON in Chrome. See `raw/production-beta-activation.json`.

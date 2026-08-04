@@ -1,0 +1,95 @@
+{
+  "schema": "linguistpro-d-hnr-10-production-beta-activation-v1",
+  "captured_at": "2026-08-05T02:27:08+03:00",
+  "authority": "owner approved recommended closed-production-beta sequence in goal format",
+  "production": {
+    "revision": "015c0a053c06131a1ffa1fa3ef3a097a1fb1ab31",
+    "app_version": "3.11.308",
+    "service_worker": "v3.11.308",
+    "health": true,
+    "db_ready": true,
+    "migrations_ready": true,
+    "disk_before": { "used_percent": 92, "free_gb": 3.1, "disk_warn": true },
+    "disk_after": { "used_percent": 76, "free_gb": 9.0, "disk_warn": false },
+    "local_mt_beta_enabled": true,
+    "active_container_count": 1
+  },
+  "backup": {
+    "filename": "app-data-20260804-230027.tar.gz",
+    "archive_bytes": 733674124,
+    "sqlite_method": "online_backup_api",
+    "sqlite_integrity_check": "ok",
+    "sqlite_snapshot_bytes": 395358208,
+    "sqlite_snapshot_sha256": "142bfb6ef4475faf18145a4332777e4f33879e327c94f8a1f54dee708ee348d8",
+    "archive_gzip_and_tar_readback": "PASS"
+  },
+  "cleanup": {
+    "removed_unused_app_revisions": [
+      "3140018eafe6fa22297509cf7533883b793f1efd",
+      "50537af0b885488b26c2d0d957e41f096fec141a",
+      "47959ce88647d6b38d829c3f1dd3c3bdbe6e9cf0",
+      "04d0a2cd5dce1e12339f980672ca4696bb1fcb95"
+    ],
+    "removed_unused_build_cache_bytes": 5921000000,
+    "preserved_active_revision": "015c0a053c06131a1ffa1fa3ef3a097a1fb1ab31",
+    "preserved_rollback_revision": "353d999668a81c5d629998a2322b85817701d70e",
+    "preserved_containers": 10,
+    "preserved_volumes": 3,
+    "backups_and_data_preserved": true
+  },
+  "companion": {
+    "version": "0.3.0-beta.4",
+    "model_identity": "madlad-400-10b-ct2-int8f16@v2",
+    "model_revision": "9f2797629c31e69617186dbe5f0ca43bf662f36d",
+    "model_verified": true,
+    "runtime_bytes": 10739625126,
+    "final_state": "RUNNING",
+    "auth_required": true,
+    "default_on": false
+  },
+  "production_browser": {
+    "browser": "Chrome",
+    "pairing": "PASS",
+    "readiness": "ready",
+    "translation": {
+      "source_lang": "he",
+      "target_lang": "ru",
+      "input_rows": 2,
+      "output_rows": 2,
+      "error": null,
+      "provider": "madlad",
+      "local_execution": true,
+      "outputs": [
+        "Мир во всем мире.",
+        "Сегодня мы изучаем иврит, чтобы говорить уверенно."
+      ]
+    },
+    "saved_text_id": "8c9d0df0-47d4-450d-b7bc-e61c948c5326",
+    "saved_title": "D-HNR-10 MADLAD production smoke 2026-08-05",
+    "provider_filter": "PASS",
+    "metadata_provenance": "PASS",
+    "edit": "PASS",
+    "cold_reopen": "PASS",
+    "text_card_export_ui": "PASS_JSON_DOWNLOADED",
+    "text_card_import": "PENDING_OWNER_FILE_PICKER",
+    "companion_off_no_fallback": "PASS_FAIL_CLOSED",
+    "companion_restart_recovery": "PASS_AFTER_EXPLICIT_SESSION_REPAIR"
+  },
+  "claims": {
+    "automated_pass": true,
+    "local_binary_pass": true,
+    "production_activation_pass": true,
+    "production_pass": false,
+    "owner_live_pass": false,
+    "invite_beta_complete": false,
+    "public_distribution_authorized": false,
+    "ga_authorized": false,
+    "default_on_authorized": false
+  },
+  "remaining": [
+    "owner selects the exported text-card JSON and confirms idempotent import preview",
+    "owner performs the real learning-text ceremony",
+    "remove exact synthetic smoke card after receipts",
+    "record production and owner-live outcomes separately"
+  ]
+}
