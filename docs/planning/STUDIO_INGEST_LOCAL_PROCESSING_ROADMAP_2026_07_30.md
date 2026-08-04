@@ -238,7 +238,7 @@ baseline: разборчивость, никуд/ударение, имена, �
 | P1 | **L3b Artifact Continuity / P2** | ✅ COMPLETE / OWNER LIVE PASS v3.11.296 | Artifact Graph, exact v2 package, v47 receipts, transactional import, exact relink/recovery, backup and owner round-trip verified |
 | P1 | **P3 real iPhone manual continuity** | ✅ COMPLETE / OWNER-ATTESTED PASS | manual PC→Files/iCloud→iPhone import/relink/playback→cold reopen→re-export semantic parity |
 | P1 | **P4 Import Center** | ✅ COMPLETE / PROD PASS / OWNER LIVE PASS v3.11.300 | one lifecycle catalog, guided device/restore/relink/recovery/delete-export tasks, storage/media/backup diagnostics and contextual education |
-| P1 | **L4 local translation+nikud** | ⬜ | shared scheduler; independent quality gates |
+| P1 | **L4 local translation+nikud** | 🟡 L4.0 BENCH AUTHORIZED 2026-08-04 | owner GO (D-HNR-1); frozen manifest + ledger: `HEBREW_NLP_RESOURCES_OWNER_DECISIONS_2026_08_04.md`; design packet ПОСЛЕ цифр |
 | P1 | **L5 diarization/alignment** | ⬜ | L1 stable; speaker/timing gold |
 | P2/R&D | **L6 TTS/OCR/local LLM** | ⬜ | model+license+quality measurement; no quality downgrade |
 | P2 | S7 karaoke export | folded into L3 | VTT/SRT/LRC + media bundle |
@@ -258,7 +258,13 @@ Exact P2 implementation contract:
 Утверждение planning/product direction не разрешает P2 implementation, automatic cloud/media
 sync, Hermes mutations или production scope без отдельной точной owner authority.
 
-Текущая цепочка: `P0 ✅ → P1A ✅ → P1B ✅ → P2 ✅ OWNER LIVE PASS v3.11.296 → P3 ✅ → P4 ✅ PROD / OWNER LIVE PASS v3.11.300`.
+Текущая цепочка: `P0 ✅ → P1A ✅ → P1B ✅ → P2 ✅ OWNER LIVE PASS v3.11.296 → P3 ✅ → P4 ✅ PROD / OWNER LIVE PASS v3.11.300 → L4.0 🟡 AUTHORIZED 2026-08-04`.
+
+**UPDATE 2026-08-04:** post-P4 выбор сделан — L4 через evidence-фазу L4.0 (owner GO,
+D-HNR-1..6). Канон исполнения: `HEBREW_NLP_RESOURCES_OWNER_DECISIONS_2026_08_04.md`
+(frozen manifest §4 + леджер §5 + контракт Codex-сессий §6). Инвариант: production-ASR
+pin (ivrit.ai turbo-CT2) не меняется; MADLAD может быть заменён только по результатам
+L4.0a-бенча новым owner-решением.
 L2 остаётся demand-triggered. Следующая Studio-сессия должна выбрать отдельный post-P4 slice:
 формальный local-processing порядок ставит L4 translation+nikud перед L5 diarization/alignment и
 L6 R&D; master-roadmap также допускает bounded format-ingest либо отдельные G-HERMES/G-AUTOSYNC

@@ -269,7 +269,7 @@ TTS остаётся отдельной quality-gated веткой.
 | 7 | **L3b Artifact Continuity / P2** | ✅ COMPLETE / OWNER LIVE PASS v3.11.296 | derived Artifact Graph, media-free Package v2, v47 receipts, strict dry-run/SAVEPOINT import, lifecycle recovery, exact binding repair and real owner export/import/relink/reopen verified |
 | 7a | **P3 real iPhone manual continuity** | ✅ COMPLETE / OWNER-ATTESTED PASS | PC→Files/iCloud→iPhone dry-run/import/SHA relink→video/cue/row→cold reopen→re-export semantic parity |
 | 7b | **P4 Import Center** | ✅ COMPLETE / PROD PASS / OWNER LIVE PASS v3.11.300 | one lifecycle surface, guided PC→iPhone/restore/relink/recovery/delete-export flows, honest storage/media/backup diagnostics and contextual education; v48 receipt-only |
-| 8 | local translation/nikud + S6 | P1 | shared provider contract, R1/R11 quality gates |
+| 8 | local translation/nikud + S6 | P1 → 🟡 L4.0 STARTED 2026-08-04 | owner GO (D-HNR-1); evidence-фаза L4.0a/b/c по frozen manifest: `HEBREW_NLP_RESOURCES_OWNER_DECISIONS_2026_08_04.md` |
 | 9 | diarization/alignment | P1 | speaker/timing gold, segment default remains honest |
 | 10 | EPUB + TXT/MD/HTML + HEIC | P1 | real fixtures, provenance, mobile acceptance |
 | 11 | local TTS/OCR/LLM R&D | P2 | license+quality GO; no downgrade for «free» |
@@ -305,6 +305,13 @@ P0 L3a closure ✅
    media transport остаётся optional и usage-triggered.
 6. **L2 resumable jobs/batch** — только если подтверждена reload/job-loss боль или регулярный поток
    3–5+ файлов; наличие local ASR само по себе trigger не создаёт.
+
+**UPDATE 2026-08-04 — post-P4 gate ИСПОЛНЕН: выбрано направление №1 (L4).** Recon проведён
+(программное исследование Hebrew-NLP ресурсов, `docs/research/hebrew-nlp-resources/2026-08-04/`),
+authority = owner-решения D-HNR-1..6. Исполнение — по замороженному манифесту и леджеру
+`HEBREW_NLP_RESOURCES_OWNER_DECISIONS_2026_08_04.md` (L4.0a MT → L4.0c alignment → L4.0b nikud
+→ design packet → Wave Q → gated F1); production-ASR (ivrit.ai pin) инвариантно не меняется;
+направления 2–6 остаются закрытыми до отдельных решений.
 
 Option C material-owned identity, automatic media transport, concurrent-device editing, provider
 defaults and any server mutation remain out of scope until separately approved.
