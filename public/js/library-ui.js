@@ -3541,6 +3541,9 @@ function _karaokeRowFollowable(tr) {
 }
 function onKaraokeRowChange(idx) {
   if (idx < 0) { karaokeActive = false; setReadAloudBtn(false); return; }   // playback ended → keep last marker
+  // media player: TTS реально заиграл → глушим ИГРАЮЩЕЕ медиа (isActive-guard сохраняет позицию
+  // паузы — остановка bound-но-паузного медиа была бы потерей места без нужды).
+  try { if (window.StudioMediaKaraoke && window.StudioMediaKaraoke.isActive()) window.StudioMediaKaraoke.stop(); } catch (_) {}
   recordProgress(idx);   // BRR-P2-002 — the read-aloud row is a strong progress signal
   // BRR-P2-005.2 — mark the playing row with the jump-highlight: it's MASKED by the blue
   // .row-playing while audio plays (CSS :not(.row-playing)) and stays as the amber «here you
@@ -3570,6 +3573,7 @@ function wireKaraokeScrollPause() {
 function toggleReadAloud() {
   if (!readerAudio) return;
   if (karaokeActive) { try { readerAudio.stop(); } catch (_) {} return; }   // stop() → onRowChange(-1) resets UI
+  try { if (window.StudioMediaKaraoke) window.StudioMediaKaraoke.stop(); } catch (_) {}   // media player: «Читать вслух» глушит медиа
   karaokeActive = true; karaokeUserScrolled = false; _karaokeLeftBand = false;
   wireKaraokeScrollPause();
   setReadAloudBtn(true);
@@ -3578,6 +3582,165 @@ function toggleReadAloud() {
 function stopKaraoke() {
   if (karaokeActive && readerAudio) { try { readerAudio.stop(); } catch (_) {} }
   karaokeActive = false; setReadAloudBtn(false);
+}
+
+// ── Room media player (spec 2026-08-04): оригинал аудио/видео для медиа-материалов ──────────
+// Всё — post-render chrome над parity-locked таблицей; данные и DOM-хелперы — общий MediaHost
+// (media-host.js, тот же, что в Студии). Honesty-состояния (noTiming/fileMissing) обязательны.
+let roomMediaAudio = null;   // активный паспорт; timing.entries — ОДНА ссылка (контракт karaoke)
+let roomMediaStage = null, roomMediaResolver = null;
+let roomMediaYtAdapter = null, roomMediaYtVideoId = null, roomMediaYtCreating = null;
+let _roomMediaWired = false;
+
+function roomMediaStopOthers() {   // media → TTS направление взаимоисключения
+  try { stopKaraoke(); } catch (_) {}
+  try { if (readerAudio) readerAudio.stop(); } catch (_) {}
+}
+function roomMediaResolverInst() {
+  // Session-blob (window.v3SessionMediaBlob) живёт только в документе Студии — Зал честно
+  // видит такой паспорт как fileMissing (спека, ловушка №8).
+  if (!roomMediaResolver && window.MediaHost) roomMediaResolver = window.MediaHost.createBlobResolver({ getSessionBlob: () => null });
+  return roomMediaResolver;
+}
+function roomMediaStageInst() {
+  if (!roomMediaStage && window.MediaHost) roomMediaStage = window.MediaHost.createStage({
+    stageId: 'roomMediaLocalStage', playerId: 'roomMediaLocalPlayer',
+    t: (k) => tt(k, k), ariaKey: 'studio.media.sourcePlayer',
+    getRowCount: () => readerRows.length,
+    onRangeChange: roomMediaFollowRange,
+    stopOtherAudio: roomMediaStopOthers,
+  });
+  return roomMediaStage;
+}
+// Скролл-слежение — контракт TTS-караоке Зала (BRR-P1-008): yield ручному скроллу +
+// re-engage, когда играющая строка вернулась в центральную полосу.
+function roomMediaFollowRange(range) {
+  if (!range) return;
+  recordProgress(range.rowStart);
+  const mount = $('roomReaderTable');
+  const tr = mount && mount.querySelector('tr[data-row-idx="' + String(range.rowStart) + '"]');
+  if (!tr) return;
+  if (karaokeUserScrolled) {
+    if (!_karaokeRowFollowable(tr)) { _karaokeLeftBand = true; return; }
+    if (!_karaokeLeftBand) return;
+    karaokeUserScrolled = false; _karaokeLeftBand = false;
+  }
+  try { tr.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) {}
+}
+function roomMediaTeardown() {
+  try { if (window.StudioMediaKaraoke) window.StudioMediaKaraoke.stop(); } catch (_) {}
+  try { if (roomMediaStage) roomMediaStage.destroy(); } catch (_) {}
+  // YT-адаптер привязан к КОНКРЕТНОМУ videoId (спека, ловушка №9) — при смене текста/закрытии
+  // обязан быть уничтожен, иначе плеер управляет видео A при таблице B.
+  if (roomMediaYtAdapter && window.StudioYtPlayer) { try { window.StudioYtPlayer.destroy(roomMediaYtAdapter); } catch (_) {} }
+  roomMediaYtAdapter = null; roomMediaYtVideoId = null; roomMediaYtCreating = null;
+  roomMediaAudio = null;
+  if (roomMediaResolver) { try { roomMediaResolver.clear(); } catch (_) {} }
+  for (const id of ['roomMediaBar', 'roomMediaYtMount', 'roomMediaStudioLink']) { const n = $(id); if (n) n.hidden = true; }
+}
+function roomMediaSetup(textRow) {
+  roomMediaTeardown();
+  if (!window.MediaHost || !window.StudioMediaKaraoke) return;   // офлайн до precache → фичи честно нет
+  const audio = window.MediaHost.passportFromTextRow(textRow);
+  if (!audio) return;
+  try { window.MediaHost.restoreForRows(audio, readerRows); } catch (_) {}   // K1-карантин + K3-довыравнивание
+  roomMediaAudio = audio;
+  const bar = $('roomMediaBar'); if (!bar) return;
+  bar.hidden = false;
+  roomMediaWireOnce();
+  roomMediaRefresh();
+}
+function roomMediaRefresh() {
+  const audio = roomMediaAudio; if (!audio) return;
+  const note = $('roomMediaBarNote'), btn = $('roomMediaPlayBtn'), link = $('roomMediaStudioLink');
+  if (note) note.textContent = audio.timing ? '' : tt('studio.media.noTiming', 'Караоке недоступно для этого импорта');
+  const res = roomMediaResolverInst();
+  (res ? res.resolve(audio) : Promise.resolve(null)).then((blob) => {
+    if (roomMediaAudio !== audio) return;   // текст сменился, пока резолвили
+    const hasVideo = !!(audio.video && audio.video.videoId && window.StudioYtPlayer && window.StudioYtPlayer.capability().supported);
+    if (btn) { btn.hidden = !!blob; btn.disabled = !blob && !hasVideo; }
+    if (!blob && !hasVideo) {
+      if (note) note.textContent = tt('studio.media.fileMissing', 'Аудио-файл не найден в этом браузере');
+      if (link && readerTextId != null) { link.href = deepLinkForText(readerTextId); link.hidden = false; }
+    } else if (!blob && hasVideo && note) { note.textContent = tt('studio.media.viaYouTube', 'Воспроизведение через YouTube'); }
+    if (blob) { const st = roomMediaStageInst(); if (st) st.ensure(audio, blob); }
+    else if (roomMediaStage) roomMediaStage.destroy();
+    roomMediaAugment();
+  }).catch(() => {});
+}
+function roomMediaAugment() {
+  const mount = $('roomReaderTable');
+  const table = mount && mount.querySelector('#proTable');
+  if (!table || !window.MediaHost) return;
+  const res = roomMediaResolverInst();
+  window.MediaHost.augmentRows({
+    table, audio: roomMediaAudio,
+    resolveBlob: (a) => (res ? res.resolve(a) : Promise.resolve(null)),
+    t: (k) => tt(k, k),
+    stillActive: (a) => roomMediaAudio === a,
+    onReplay: async (rowIdx, audio, blob) => {
+      const st = roomMediaStageInst(); if (!st) return;
+      const player = st.ensure(audio, blob);   // bind внутри дергает stopOtherAudio при fresh-run
+      if (player) window.StudioMediaKaraoke.playSegment(rowIdx);
+    },
+  });
+}
+async function roomMediaPlayOriginal() {
+  const audio = roomMediaAudio; if (!audio || !window.StudioMediaKaraoke) return;
+  const entries = audio.timing ? audio.timing.entries : null;   // ссылка, не копия (контракт resume)
+  const res = roomMediaResolverInst();
+  const blob = res ? await res.resolve(audio) : null;
+  if (roomMediaAudio !== audio) return;
+  if (blob) {
+    const st = roomMediaStageInst(); if (!st) return;
+    const player = st.ensure(audio, blob);
+    await window.StudioMediaKaraoke.start({ media: player || blob, entries, rowCount: readerRows.length, onRangeChange: roomMediaFollowRange, stopOtherAudio: roomMediaStopOthers });
+    return;
+  }
+  if (!audio.video || !audio.video.videoId) return;
+  if (!window.StudioYtPlayer || !window.StudioYtPlayer.capability().supported) return;
+  if (!roomMediaYtAdapter) {
+    // Re-entrancy guard — зеркало CRITICAL 2 Студии (index.html v3MediaPlayOriginal): два быстрых
+    // клика не должны создать два адаптера в один маунт (осиротевший играющий iframe).
+    if (!roomMediaYtCreating) {
+      const mountEl = $('roomMediaYtMount'); if (!mountEl) return;
+      mountEl.hidden = false;
+      const wantedVideoId = audio.video.videoId;
+      roomMediaYtCreating = window.StudioYtPlayer.create(mountEl, wantedVideoId)
+        .then((adapter) => {
+          const stillWanted = roomMediaAudio && roomMediaAudio.video && roomMediaAudio.video.videoId === wantedVideoId;
+          if (!stillWanted) { window.StudioYtPlayer.destroy(adapter); mountEl.hidden = true; return null; }
+          roomMediaYtAdapter = adapter; roomMediaYtVideoId = wantedVideoId;
+          return adapter;
+        })
+        .catch((e) => { mountEl.hidden = true; throw e; })
+        .finally(() => { roomMediaYtCreating = null; });
+    }
+    try { await roomMediaYtCreating; } catch (_) { return; }
+    if (!roomMediaYtAdapter) return;
+  }
+  // Per-row replay на адаптер НЕ подключён — ловушка асинхронного seekTo (karaoke.js IMPORTANT 3).
+  await window.StudioMediaKaraoke.start({ media: roomMediaYtAdapter, entries, rowCount: readerRows.length, onRangeChange: roomMediaFollowRange, stopOtherAudio: roomMediaStopOthers });
+}
+function roomMediaWireOnce() {
+  if (_roomMediaWired) return; _roomMediaWired = true;
+  const btn = $('roomMediaPlayBtn');
+  if (btn) btn.addEventListener('click', () => { roomMediaPlayOriginal(); });
+  // Tap-seek: делегат на СТАБИЛЬНОМ #roomReaderTable (innerHTML пересобирается ВНУТРИ него).
+  // Интерактивные цели Зала (морфология .rm-w, кнопки, ссылки) не перехватываются — тап по
+  // слову остаётся морфологией, тап по «пустому» месту строки во время playback = перемотка.
+  const mount = $('roomReaderTable');
+  if (mount) mount.addEventListener('click', (e) => {
+    try {
+      if (!window.StudioMediaKaraoke || !window.StudioMediaKaraoke.getAudioEl()) return;
+      if (e.target && e.target.closest && e.target.closest('button, a, .rm-w, select, input')) return;
+      const tr = e.target && e.target.closest ? e.target.closest('tr[data-row-idx]') : null;
+      if (!tr) return;
+      const idx = Number(tr.getAttribute('data-row-idx'));
+      if (Number.isFinite(idx) && idx >= 0) window.StudioMediaKaraoke.seekToRow(idx);
+    } catch (_) {}
+  });
+  wireKaraokeScrollPause();   // yield-скролл единый для TTS- и медиа-караоке
 }
 
 // BRR-P2-002 «Продолжить чтение» — record the reading position (debounced) and restore
@@ -5209,6 +5372,7 @@ function rerenderReader() {
   mount.innerHTML = readerCore.buildBilingualTableHtml(readerRows, readerConfig());
   attachReaderAudio();
   try { refreshFindAfterRerender(); } catch (_) {}   // BRR-S15 — re-apply find marks after a table rebuild
+  try { roomMediaRefresh(); } catch (_) {}   // media player: re-bind стейджа + re-инъекция ▶︎ после пересборки таблицы
 }
 
 function buildAidsPanel() {
@@ -5403,6 +5567,7 @@ async function openReader(textId, title, opts) {
   reader.hidden = false;
   try { refreshDueBadge(); } catch (_) {}   // D2 — entering the reader hides the home «🔁 К повторению» CTA
   clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip(); clearFadeGradNudge();   // BRR-P2-002/005 + Epic-5 W1/W4/W5 — never carry a stale banner/jump/end-card/cov-chip/fade-nudge across opens
+  try { roomMediaTeardown(); } catch (_) {}   // media player: паспорт/стейдж/YT прошлого текста не переживают открытие
   try { window.ReaderMorph && window.ReaderMorph.setProcliticOverlay(null); } catch (_) {}   // Phase-3 — drop the previous work's proclitic overlay (never leak across works)
   setContextOverlay(null);              // context-overlay — same never-leak rule
   _sessionMaxRow = -1;                  // BRR-P2-005 — furthest-row tracker resets per open
@@ -5451,6 +5616,7 @@ async function openReader(textId, title, opts) {
   try { setReaderSubtitle(res && res.ok && res.text ? res.text : null); } catch (_) {}   // Epic-6 W1-a — per-work source/context
   if (res && res.ok) {
     attachReaderAudio();
+    try { roomMediaSetup(res.text); } catch (_) {}   // media player (spec 2026-08-04): паспорт уже в text.table_model_meta_json
     if (!readerGroupCorpusId) {
       try { loadProcliticOverlay(readerTextId, res.text); } catch (_) {}   // Phase-3 — this work's Dicta proclitic overlay (best-effort)
       try { loadContextOverlay(readerTextId, res.text); } catch (_) {}     // context-overlay — this work's baked context facts (best-effort)
@@ -5545,6 +5711,7 @@ async function closeReader() {
   if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   karaokeActive = false; setReadAloudBtn(false);   // BRR-P1-008 — reset karaoke on close
+  try { roomMediaTeardown(); } catch (_) {}   // media player: stop + revoke URL + скрыть бар
   clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip(); clearFadeGradNudge(); closeReaderFind(); _sessionMaxRow = -1; readerTextId = null;   // BRR-P2-002/005/S15 + Epic-5 W1/W4/W5 — stop recording + clear find/end-card/cov-chip/fade-nudge after close
   _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null; readerIsOwnText = false;   // BRR-P2-003 — reset bookmark state
   readerCorpusWorkId = null; readerCorpusExplainOk = false; readerGroupCorpusId = null;   // singleton-reset
@@ -6485,6 +6652,17 @@ function renderMyTextCard(item, vertical) {
   const started = item.last_row_idx != null && Number(item.last_row_idx) > 0;
   if (started) meta.appendChild(el('span', { class: 'prov-badge continue-pct', text: tt('room.mytexts.progressRow', 'строка') + ' ' + (Number(item.last_row_idx) + 1) }));
   for (const tg of myTextTags(item).slice(0, 2)) meta.appendChild(el('span', { class: 'prov-badge mytext-tag', text: '#' + tg }));
+  // Медиа-бейдж (spec 2026-08-04). ⚠ Работает только от listTexts: listTextsLight срезает
+  // table_model_meta_json (local-db.js) — при миграции роутинга бейдж молча исчезнет.
+  try {
+    if (window.MediaHost) {
+      const mAudio = window.MediaHost.passportFromTextRow(item);
+      if (mAudio && (mAudio.media || (mAudio.video && mAudio.video.videoId))) {
+        const isVideo = !!(mAudio.video && mAudio.video.videoId) || /^video\//.test(String((mAudio.media && mAudio.media.mime) || ''));
+        meta.appendChild(el('span', { class: 'prov-badge mytext-media', text: isVideo ? '🎬' : '🎧', attrs: { title: tt('studio.media.sourcePlayer', 'Исходное аудио / видео') } }));
+      }
+    }
+  } catch (_) {}
   node.appendChild(meta);
   node.appendChild(el('span', { class: 'work-card-cta', text: started ? tt('room.resume.continue', 'Продолжить') : tt('room.mytexts.read', 'Читать') }));
   const nakdan = el('button', { class: 'mytext-nakdan', attrs: { type: 'button' }, text: 'אְ ' + tt('room.nakdan.add', 'Добавить никуд') });
