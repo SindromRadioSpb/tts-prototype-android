@@ -19,16 +19,23 @@ S6-alignment — инструменты готовы (stable-ts/WhisperX), MFA �
 **Следствие — L4 стартует с бенчмарк-фазы L4.0 (она же выполняет условие «независимые R1/R11
 quality gates» из roadmap):**
 
-- **L4.0a MT-бенч:** FLORES-200 devtest he→ru + ru→he (sacrebleu chrF++/spBLEU) + ~200
-  in-domain сегментов (ASR-стиль из наших транскриптов + литературные из корпуса; ru-эталоны —
-  вручную/владельцем). Кандидаты: MADLAD-10B-int8 (текущий), OPUS-MT heb-sla/sla-heb big
-  (CT2), NLLB-distilled-1.3B-int8, Gemini (облачный потолок). Метрики: качество, ток/с,
-  VRAM/CPU, поведение на длинных предложениях, устойчивость к никуду/пунктуации.
+- **L4.0a MT-бенч:** FLORES+ devtest he→ru + ru→he (sacrebleu chrF++/spBLEU; FLORES+ —
+  поддерживаемый преемник FLORES-200) + ~200 in-domain сегментов (ASR-стиль из наших
+  транскриптов + литературные из корпуса; ru-эталоны — вручную/владельцем). Кандидаты:
+  MADLAD-10B-int8 (текущий), OPUS-MT heb-sla/sla-heb big (CT2), NLLB-distilled-1.3B-int8,
+  **Hy-MT2-1.8B (доп. HF-свип: Apache-2.0, he+ru в официальном списке — первая малая
+  открытая модель с прямым he↔ru; опц. Hy-MT2-7B)**, Gemini (облачный потолок); HPLT
+  he↔en v2.0 — дешёвый CPU-базлайн вне зачёта. Доп. метрика: CometKiwi-DA (reference-free
+  QE с ивритом). Метрики: качество, ток/с, VRAM/CPU, поведение на длинных предложениях,
+  устойчивость к никуду/пунктуации.
   **Гейт:** локальный кандидат ≥ примерно-равен лучшему локальному сопернику И честно
   позиционирован против Gemini-потолка (как ASR: «draft-качество» — допустимый вердикт).
 - **L4.0b Nikud-бенч:** Nakdimon-харнесс (MIT) DEC/CHA/WOR/VOC на срезе наших жанров:
   dictabert-menaked (текущий) vs Dicta Nakdan cloud + CPU ms/1K chars. Цель — превратить
-  vendor-claim «SOTA» в наше число и оценить цену облачного фолбэка.
+  vendor-claim «SOTA» в наше число и оценить цену облачного фолбэка. Доп. (HF-свип):
+  eval-выборка также из TigreGotico/hebrew_diacritized_text (5.3M огласованных
+  предложений, CC BY 4.0); путь деплоя — thewh1teagle/dicta-onnx (MIT, без Python/torch);
+  renikud — watchlist (evals нет).
 - **L4.0c Alignment-проба (S6-фундамент):** 2–3 медиа с эталонными субтитрами (переиспользовать
   `--subs=` активы live-гейта): stable-ts-over-ivrit-whisper vs WhisperX+imvladikon; median/p95
   сдвиг границ vs субтитры, прогон через существующие drift-гейты. Бонус: known-transcript
@@ -49,7 +56,9 @@ browser-API для translate/nakdan по образцу L1-D, provenance parity,
 | Q1 | Человеческий морфо-голд аудит tap-резолвера (второй, независимый от Dicta оракул) | `smoke:reader-morph:audit` v2 | UD_Hebrew-IAHLTwiki (CC BY-SA 4.0) + IAHLTKnesset (CC BY 4.0); HTB (CC BY-NC-SA) — audit-side |
 | Q2 | Standing ASR-голд гейт `smoke:ingest-asr-gold` (WER+drift vs фикс. эталоны) — снимает зависимость от owner-supplied файлов | Studio S12-гейты | ivrit-ai eval-sets (ivrit.ai license / CC BY 4.0) |
 | Q3 | Suffixed-verbs аудит-слайс (ראיתיו-класс) честности карточек | Зал honesty-гейты | dicta-il/hebrew_suffix_verbal_forms (CC BY 4.0) |
-| Q4 | he↔ru MT голд-набор (FLORES + in-domain) как постоянный актив | предпосылка L4.0a, переиспользуется для всех будущих MT/LLM | FLORES-200 (CC BY-SA 4.0) |
+| Q4 | he↔ru MT голд-набор (FLORES+ + in-domain) как постоянный актив | предпосылка L4.0a, переиспользуется для всех будущих MT/LLM | FLORES+ (CC BY-SA 4.0) + wmt24pp en→he_IL (Apache-2.0) |
+| Q5 | shoshan как независимый lemma-оракул: R10-аудит нашего lemma-canon кейера на литературном регистре (доп. follow-up) | Retention lemma-canon + Зал | HebArabNlpProject/shoshan (MIT; 0.0% выдуманных лемм by construction) + shoshan-data (CC BY 4.0) |
+| Q6 | Независимые тайминг/ASR-оракулы для длинных медиа: MMS forced aligner (офлайн-грейд сохранённых караоке-таймлайнов) + VibeVoice-ASR как вторая гипотеза (доп. HF-свип) | Studio S12-гейты | MMS aligner (CC BY-NC — только gate-side) + microsoft/VibeVoice-ASR (MIT) + SaT сегмент-оракул (MIT) |
 
 ## 3. Wave F — фичи-кандидаты (требуют owner-GO + R10-замер до кода)
 
@@ -58,12 +67,12 @@ browser-API для translate/nakdan по образцу L1-D, provenance parity,
 | ID | Направление | Первый bounded-слайс | Ключевой риск/гейт |
 |---|---|---|---|
 | F1 | **Частотная лестница читабельности** (частоты + персональная FSRS-модель знаний → «текст с покрытием 95–98%») | офлайн-скоринг корпуса + рекомендер в Зале; 0 LLM | калибровка газетных частот по нашему корпусу; полосы = provenance-чипы |
-| F2 | **QA-генерация + независимый span-оракул** (dictabert-heq в сайдкаре) | вопросы к импортированному тексту, только фактоидные, listening-грейдер поверх караоке | оракул валидирует только extractive; честная маркировка; R17 |
+| F2 | **QA-генерация + независимый span-оракул** (dictabert-heq в сайдкаре) | вопросы к импортированному тексту, только фактоидные, listening-грейдер поверх караоке | оракул валидирует только extractive; честная маркировка; R17. Доп. follow-up: приёмочные гейты — asmachta + abstractive-qa-llm-eval (grounded-QA со строковой сверкой, без judge-модели) |
 | F3 | **Письменная продукция GEC** (Hspell-слой + таксономия ошибок RU-L1 из HELEECS) | «напиши 1–3 предложения с due-словами» → error-profile | доступ к HELEECS по запросу; R11 do-no-harm гейт корректора |
 | F4 | **NER-карточки имён/мест в Зале** (bake-time NEMO/DictaBERT-ner + KIMA) | NER-прогон в прибейк-конвейере + карточка «имя собственное» | R10-замер precision на литературе XIX века ДО кода |
 | F5 | **Семантические дистракторы квизов** (fastText прунинг → OPFS) | дистрактор-генератор с SimLex-гейтом | размер бандла; similarity≠relatedness |
 | F6 | **Песенный слой** (НЕ Shironet-корпус): тег «песня» для PD-поэзии + snippet-каталог современных песен (цитата + линк) + user-import полного текста | PD-тегирование уже имеющихся работ | юр-рамка сниппетов (§19 «цитата»); полные тексты только user-import; Shironet-скрейп НЕ хостим |
-| F7 | **Произношение/shadowing** (CTC-alignment + GOP) | микрофон → alignment → пофонемная подсветка, без «оценок» на старте | калибровка против несправедливых грейдов; канал D1 в review_log |
+| F7 | **Произношение/shadowing** (CTC-alignment + GOP) | микрофон → alignment → пофонемная подсветка, без «оценок» на старте | калибровка против несправедливых грейдов; канал D1 в review_log. Доп. HF-свип: whisper-heb-ipa (Apache-2.0, иврит→IPA) — готовый строительный блок |
 
 ## 4. Watch / Parked (триггеры, не работа)
 
@@ -73,7 +82,15 @@ browser-API для translate/nakdan по образцу L1-D, provenance parity,
 - **Словесные игры из due-слов:** дешево, но только с channel-aware D1-грейдом с первого дня.
 - **DictaLM-3.0-24B-W4A16** как локальный LLM: сначала VRAM-замер; Hebrew LLM Leaderboard —
   постоянный справочник выбора моделей per-задача.
-- **Локальный TTS:** без изменений (L6-канон, frozen listen-set); Phonikud-TTS — главный кандидат.
+- **Локальный TTS:** L6-канон (frozen listen-set) остаётся, но кандидат-лист обновлён
+  (HF-свип): **Chatterbox Multilingual (MIT, иврит поддержан, есть ONNX)** — первый
+  лицензионно чистый серьёзный кандидат; VoxCPM2 (Apache) вторым; Phonikud-TTS — третья
+  линия; Zonos-Hebrew/kokoro-hebrew — NC. Ивритских MOS нет ни у кого → listen-set обязателен.
+- **Семантический поиск:** измеренный рецепт из MAFAT-конкурса — fine-tuned bge-m3 →
+  bge-reranker two-stage (97% качества ансамбля); реплицировать рецепт, НЕ переиспользовать
+  веса победителей (нет LICENSE).
+- **AlephBench** (CC BY 4.0) — постоянный харнесс переоценки облачной/локальной LLM
+  (текущее подтверждение: gemini-2.5-flash #1 на иврите).
 - **Академическая кооперация** (opt-in поток ошибок RU-L1 → HELEECS-линия; синергия с тезисом
   владельца): отдельное R15-решение о согласии/анонимизации.
 
@@ -98,6 +115,7 @@ browser-API для translate/nakdan по образцу L1-D, provenance parity,
 
 ## 7. Каденция
 
-- Квартальный re-scan обоих каталогов (+ Hebrew LLM Leaderboard) — лёгкая research-сессия,
-  дельта в этот план.
+- Квартальный re-scan четырёх источников: каталоги NNLP-IL + систематический HF-срез
+  (⚠ `?language=he` в HF-API молча игнорируется — использовать `?filter=he`) + Hebrew LLM
+  Leaderboard + AlephBench — лёгкая research-сессия, дельта в этот план.
 - Любая замена модели = новый прогон соответствующего бенча L4.0/Q-гейта (актив уже будет).

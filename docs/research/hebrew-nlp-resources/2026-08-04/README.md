@@ -24,7 +24,10 @@ web-research без загрузки датасетов), синтез с рол
 | `raw/agent-c-shironet.md` | raw: кейс корпуса песен |
 | `raw/agent-d-cross-surface.md` | raw: возможности существующих поверхностей |
 | `raw/agent-e-greenfield.md` | raw: новые направления |
+| `raw/agent-f-hebarabnlp-org.md` | raw (follow-up): аудит HF-организации HebArabNlpProject |
+| `raw/agent-g-hf-sweep.md` | raw (follow-up): систематический live-свип Hugging Face |
 
+Follow-up 2026-08-04 (вопросы владельца): +2 агента, выводы в REPORT §8.
 Raw-файлы — необработанные выходы агентов (провенанс синтеза), не редактировать.
 Владелец читает и правит только `REPORT.md` и планинг-док.
 
