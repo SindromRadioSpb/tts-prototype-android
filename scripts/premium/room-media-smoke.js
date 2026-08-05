@@ -184,12 +184,18 @@ async function main() {
       await openCard("RMM TWO");
       await pg.waitForFunction(() => !(document.getElementById("roomMediaBar") || {}).hidden, { timeout: 10000 }).catch(() => failures.push("t2: media bar did not appear (source_meta_json fallback broken)"));
       await sleep(600); // дать async-резолву блоба завершиться (note не должен смениться)
+      // 2026-08-05: бар называет ПРИЧИНУ (MediaHost.timingDropExplain), а не общую строку —
+      // фикстура несёт timingDropReason='ASR_TIMING_INVALID', значит ждём именно её текст.
+      // Проверка усилена: заодно требуем, чтобы это НЕ была общая noTiming-заглушка (иначе
+      // регресс «диагноз снова спрятан» прошёл бы мимо гейта).
       const t2 = await pg.evaluate(() => ({
         note: (document.getElementById("roomMediaBarNote") || {}).textContent || "",
-        expected: window.t("studio.media.noTiming"),
+        expected: window.t("studio.media.timingWhy.asrInvalid"),
+        generic: window.t("studio.media.noTiming"),
         replayButtons: document.querySelectorAll("#roomReaderTable .smk-row-replay").length,
       }));
-      ok(t2.note === t2.expected, "t2: honest noTiming note, got '" + t2.note + "'");
+      ok(t2.note === t2.expected, "t2: причина отсутствия караоке названа словами, got '" + t2.note + "'");
+      ok(t2.note !== t2.generic, "t2: диагноз не спрятан за общей строкой noTiming");
       ok(t2.replayButtons === 0, "t2: no replay buttons without timing, got " + t2.replayButtons);
       await backToGrid();
 

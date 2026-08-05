@@ -3584,7 +3584,12 @@ function roomMediaSetup(textRow) {
 function roomMediaRefresh() {
   const audio = roomMediaAudio; if (!audio) return;
   const note = $('roomMediaBarNote'), btn = $('roomMediaPlayBtn'), link = $('roomMediaStudioLink');
-  if (note) note.textContent = audio.timing ? '' : tt('studio.media.noTiming', 'Караоке недоступно для этого импорта');
+  // Причина отсутствия караоке словами — та же реализация, что в Студии (MediaHost).
+  if (note) {
+    let why = '';
+    if (!audio.timing) { try { why = window.MediaHost.timingDropExplain(audio, (k) => tt(k, k)); } catch (_) {} }
+    note.textContent = audio.timing ? '' : (why || tt('studio.media.noTiming', 'Караоке недоступно для этого импорта'));
+  }
   const res = roomMediaResolverInst();
   (res ? res.resolve(audio) : Promise.resolve(null)).then((blob) => {
     if (roomMediaAudio !== audio) return;   // текст сменился, пока резолвили

@@ -179,3 +179,105 @@ test("composite positional: refuses when row/cue counts differ", () => {
   MH.restoreForRows(a, rows, deps);
   assert.equal(a.timing, null);
 });
+
+// ── Живой замер владельца 2026-08-05 (карточка «9 сезон | Яир Голан | Кан 11») ───────────────
+// 554 реплики = 554 строки, расходятся 11 строк (2%) и все — варианты РАСПОЗНАВАНИЯ одного
+// слова (ניגשו/היגשו, מרצ/מרץ). Порог 1% отказывал на волосок и гасил караоке целиком.
+// Позиционная идентичность здесь утверждена построением материала (композитный паспорт),
+// текстовая сверка — предохранитель от ЧУЖОГО материала, а не от вариантов ASR.
+function manyCues(n) {
+  return Array.from({ length: n }, (_, k) => "שורה מספר " + k + " בטקסט");
+}
+
+test("composite positional: 3% расхождения (варианты ASR) — принимается", () => {
+  const texts = manyCues(100);
+  const rows = texts.map((t) => ({ he: t }));
+  rows[10] = { he: "שורה מספר 10 בטקסטים" };   // 3 строки из 100 = 3%
+  rows[40] = { he: "שורה מיספר 40 בטקסט" };
+  rows[70] = { he: "שורה מספר 70 בטקסת" };
+  const a = compositeAudio(100, texts);
+  MH.restoreForRows(a, rows, deps);
+  assert.ok(a.timing && a.timing.entries.length === 100, "3% расхождения не должны гасить караоке");
+  assert.equal(a.timingSource, "composite-positional");
+  assert.equal(a.timingMap.mismatched, 3);
+});
+
+test("composite positional: 10% расхождения — по-прежнему отказ (R11, порог не отменён)", () => {
+  const texts = manyCues(100);
+  const rows = texts.map((t) => ({ he: t }));
+  for (let i = 0; i < 10; i++) rows[i * 7] = { he: "טקסט אחר לגמרי מספר " + i };
+  const a = compositeAudio(100, texts);
+  MH.restoreForRows(a, rows, deps);
+  assert.equal(a.timing, null, "чужой материал обязан отказывать");
+  assert.ok(a.timingDropReason);
+});
+
+// ── L3a: точная привязка против выведенного тайминга ──────────────────────────────────────────
+// Живой дефект «g_transl ynet» 2026-08-05: привязка покрывает 8 строк из 236 и, замещая ПОЛНЫЙ
+// офлайн-тайминг (кнопка на каждой строке), оставляет 8 кнопок. Неполная привязка не «точнее» —
+// она беднее. Контроль — «В сокрытии - 1»: привязка 432/432 обязана выигрывать как и раньше.
+function exactPassport(mappedRows, totalRows, entries) {
+  return {
+    v: 1, media: { sha256: "x", mime: "audio/mpeg" }, segments: [],
+    timing: entries ? { entries: Array.from({ length: entries }, (_, k) => ({ o: k, t: k })) } : null,
+    timingSource: entries ? "studio-exact-binding" : null,
+    timingMap: {
+      authority: "studio-exact-binding", revision_id: "rev:1",
+      row_caption_segment_ids: Array.from({ length: totalRows }, (_, k) => (k < mappedRows ? "cue:" + k : null)),
+      mapped_rows: mappedRows, missing_rows: totalRows - mappedRows,
+    },
+  };
+}
+function derivedPassport(entries) {
+  return {
+    v: 1, media: { sha256: "x", mime: "audio/mpeg" }, segments: [],
+    timing: { entries: Array.from({ length: entries }, (_, k) => ({ o: k, t: k })) },
+    timingSource: "aligned-offline", timingMap: { source: "aligned-offline" },
+  };
+}
+
+test("exact binding: полная привязка (432/432) выигрывает у выведенного", () => {
+  const prev = derivedPassport(432), exact = exactPassport(432, 432, 432);
+  assert.equal(MH.pickExactBindingPassport(prev, exact, 432), exact);
+});
+
+test("exact binding: частичная привязка (8/236) НЕ гасит полный выведенный тайминг", () => {
+  const prev = derivedPassport(228), exact = exactPassport(8, 236, 1);
+  const picked = MH.pickExactBindingPassport(prev, exact, 236);
+  assert.equal(picked, prev, "выведенный тайминг покрывает 236 строк против 8 — он и остаётся");
+  assert.ok(picked.exactBindingSkipped, "отказ обязан быть видим в провенансе (R9)");
+  assert.equal(picked.exactBindingSkipped.playableRows, 8);
+  assert.equal(picked.exactBindingSkipped.insteadOf, 236);
+});
+
+test("exact binding: без выведенного тайминга принимается любая непустая привязка", () => {
+  const prev = { v: 1, media: { sha256: "x" }, segments: [], timing: null };
+  const exact = exactPassport(8, 236, 1);
+  assert.equal(MH.pickExactBindingPassport(prev, exact, 236), exact);
+});
+
+test("exact binding: привязки нет — паспорт не трогаем", () => {
+  const prev = derivedPassport(10);
+  assert.equal(MH.pickExactBindingPassport(prev, null, 10), prev);
+});
+
+// ── Честная причина отсутствия караоке (обе поверхности показывали одну общую строку) ─────────
+test("timingDropExplain: молчит, когда тайминг есть", () => {
+  assert.equal(MH.timingDropExplain(derivedPassport(5), (k) => k), "");
+});
+
+test("timingDropExplain: расхождение текста объясняется числами", () => {
+  const a = {
+    timing: null, timingDropReason: "SEG_MAPPING_LOST", timingDropDetail: "ALIGN_ROW_NOT_IN_SEGMENT",
+    timingAlign: { rows: 1118, segments: 1107, alignedRows: 100, ok: false, reason: "ROW_NOT_IN_SEGMENT" },
+  };
+  const out = MH.timingDropExplain(a, (k) => k);
+  assert.match(out, /diverged/, "должен выбрать ключ про расхождение текста");
+  assert.match(out, /100/, "и назвать, сколько строк совпало");
+  assert.match(out, /1118/);
+});
+
+test("timingDropExplain: карантин вырожденных меток — свой ключ", () => {
+  const out = MH.timingDropExplain({ timing: null, timingDropReason: "SEG_MAPPING_LOST", timingDropDetail: "DEGENERATE_1_TO_1" }, (k) => k);
+  assert.match(out, /degenerate/);
+});

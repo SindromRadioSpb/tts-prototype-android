@@ -3329,6 +3329,17 @@ window.I18N_LOCALES.en = {
       noTiming: "Karaoke unavailable for this import",
       fileMissing: "Audio file not found in this browser",
       viaYouTube: "Playing via YouTube",
+      // Honest reason karaoke is off (MediaHost.timingDropExplain, shared by Studio and Room).
+      // Alignment counts "N/M" are appended to the sentence.
+      timingWhy: {
+        diverged: "The table text drifted apart from the transcript — karaoke is off. Re-importing the material archive fixes it",
+        degenerate: "The timestamps stored in this card cannot be verified — karaoke is off",
+        noExactMapping: "The exact transcript binding is empty — karaoke is off",
+        asrInvalid: "Recognition produced no usable timestamps",
+        previewEdited: "The text was edited before the table was built — the marks no longer match the rows",
+        noMapping: "The row-to-transcript link was not recovered — karaoke is off",
+        unknown: "Karaoke unavailable for this import",
+      },
       sourcePlayer: "Source audio / video",
       sourceSync: "Row selection and player position stay synchronized",
     },

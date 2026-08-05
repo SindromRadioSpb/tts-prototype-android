@@ -85,7 +85,14 @@
   // align НЕ ослабляется; позиционный маппинг применяется ТОЛЬКО когда:
   //   (а) сегменты композитные (иначе 1:1 — как раз запрещённая догадка K1),
   //   (б) строк РОВНО столько же, сколько реплик, и их ≥ 8,
-  //   (в) почти все строки ПОСЛОВНО равны своей реплике (несовпадений ≤ max(2, 1%)).
+  //   (в) почти все строки ПОСЛОВНО равны своей реплике (несовпадений ≤ max(2, 5%)).
+  // ДОПУСК 5% (был 1%, поднят 2026-08-05 по живому замеру владельца): карточка «9 сезон | Яир
+  // Голан | Кан 11» — 554 реплики = 554 строки, расходятся 11 строк (2%), и все расхождения —
+  // варианты РАСПОЗНАВАНИЯ одного слова (ניגשו/היגשו, מרצ/מרץ, עונה/קונה). Порог 1% (=5,5 строк)
+  // отказывал на волосок и гасил караоке целиком. Текстовая сверка здесь — предохранитель от
+  // ЧУЖОГО материала (перемешанный/другой файл дал бы околонулевое совпадение), а не от
+  // вариантов ASR; при 95% пословного совпадения и точном равенстве количеств подмена
+  // невозможна. Условия (а) и (б) НЕ ослаблены — именно они держат K1-инвариант.
   // Провенанс R9: timingSource='composite-positional' + счётчики matched/mismatched; вердикт
   // отказавшего align остаётся рядом в timingAlign.
   function compositePositionalTiming(audio, rows, deps) {
@@ -102,7 +109,7 @@
       var sw = AT.stitchNormalizeWords(segs[i].text).join(" ");
       if (rw && rw === sw) matched++; else mismatched++;
     }
-    if (mismatched > Math.max(2, Math.ceil(list.length * 0.01))) return false;
+    if (mismatched > Math.max(2, Math.ceil(list.length * 0.05))) return false;
     var rowSegIdx = list.map(function (_, k) { return k; });
     var timing = AT.buildRowTiming(segs, rowSegIdx, clockBlindRanges(audio));
     if (!timing) return false;
@@ -212,6 +219,71 @@
     if (!audio.timing) { try { compositePositionalTiming(audio, list, deps); } catch (_) {} }
   }
 
+  // ── L3a: ТОЧНАЯ ПРИВЯЗКА против ВЫВЕДЕННОГО ТАЙМИНГА ─────────────────────────────────────────
+  // Живой дефект владельца 2026-08-05 («g_transl ynet»): привязка покрывает 8 строк из 236 и,
+  // замещая ПОЛНЫЙ офлайн-тайминг (кнопка на каждой строке), оставляет 8 кнопок из 236.
+  // Точная привязка сильнее ПО ПРИРОДЕ (утверждённые caption-id против выведенного выравнивания)
+  // — но только ТАМ, ГДЕ ОНА ЕСТЬ. Неполная привязка не «точнее», она беднее, и менять на неё
+  // полный тайминг — ровно то ухудшение, которое запрещает R11 (do-no-harm).
+  //
+  // Мера сравнения — ИГРАБЕЛЬНЫЕ СТРОКИ, т.е. сколько строк реально получит кнопку ▶︎:
+  // у точной привязки это строки с caption-id (renderRowReplay режет остальные), у выведенного
+  // тайминга — все строки таблицы. Ничья решается в пользу привязки (утверждение > вывод).
+  function playableRows(p, rowCount) {
+    if (!p || !p.timing || !Array.isArray(p.timing.entries) || !p.timing.entries.length) return 0;
+    var map = p.timingMap;
+    if (map && map.authority === "studio-exact-binding" && Array.isArray(map.row_caption_segment_ids)) {
+      return map.row_caption_segment_ids.filter(Boolean).length;
+    }
+    var n = Number(rowCount);
+    return n > 0 ? n : p.timing.entries.length;
+  }
+  function pickExactBindingPassport(prev, exact, rowCount) {
+    if (!exact) return prev || null;
+    var e = playableRows(exact, rowCount);
+    var p = playableRows(prev, rowCount);
+    if (e >= p) return exact;
+    // R9: отказ виден в провенансе — бар/мета честно объясняют, что привязка неполная.
+    try {
+      prev.exactBindingSkipped = {
+        playableRows: e, insteadOf: p,
+        revisionId: (exact.timingMap && exact.timingMap.revision_id) || null,
+        at: new Date().toISOString(),
+      };
+    } catch (_) {}
+    return prev;
+  }
+
+  // ── ЧЕСТНАЯ ПРИЧИНА ОТСУТСТВИЯ КАРАОКЕ (одна реализация на обе поверхности) ──────────────────
+  // До 2026-08-05 и Студия, и Зал показывали одну общую строку «Караоке недоступно для этого
+  // импорта», пряча настоящий диагноз (владелец не мог понять, что именно сломалось, и решил,
+  // что карточки надо пересобирать). Код причины у нас есть всегда — показываем его словами,
+  // с числами выравнивания: по ним видно, разошёлся текст (пересобрать/переимпортировать) или
+  // метки не проверяемы. Ключи общие для обеих поверхностей.
+  var TIMING_WHY_KEY = "studio.media.timingWhy.";   // рядом с studio.media.noTiming/fileMissing
+  function timingDropExplain(audio, t) {
+    if (!audio) return "";
+    if (audio.timing && Array.isArray(audio.timing.entries) && audio.timing.entries.length) return "";
+    var tr = typeof t === "function" ? t : function (k) { return k; };
+    var reason = String(audio.timingDropReason || "");
+    var detail = String(audio.timingDropDetail || "");
+    var key;
+    if (detail === "DEGENERATE_1_TO_1") key = "degenerate";
+    else if (detail.indexOf("ALIGN_") === 0) key = "diverged";
+    else if (reason === "NO_EXACT_SEGMENT_MAPPING") key = "noExactMapping";
+    else if (reason === "ASR_TIMING_INVALID") key = "asrInvalid";
+    else if (reason === "PREVIEW_EDITED") key = "previewEdited";
+    else if (reason === "NO_SEGMENT_MAPPING" || reason === "SEG_MAPPING_LOST") key = "noMapping";
+    else if (reason) key = "unknown";
+    else return "";
+    var out = String(tr(TIMING_WHY_KEY + key) || "");
+    // Числа приписываются ОТДЕЛЬНО от перевода: они обязаны дойти до владельца при любой локали
+    // (и при неподгруженном i18n), а не зависеть от того, есть ли в строке {плейсхолдер}.
+    var al = audio.timingAlign;
+    if (al && Number(al.rows) > 0 && al.alignedRows != null) out += " · " + Number(al.alignedRows) + "/" + Number(al.rows);
+    return out;
+  }
+
   var PURE = {
     passport: passport,
     DERIVED_TIMING_DROPS: DERIVED_TIMING_DROPS,
@@ -220,6 +292,9 @@
     passportFromTextRow: passportFromTextRow,
     alignSavedTimingOffline: alignSavedTimingOffline,
     restoreForRows: restoreForRows,
+    playableRows: playableRows,
+    pickExactBindingPassport: pickExactBindingPassport,
+    timingDropExplain: timingDropExplain,
   };
 
   if (typeof window === "undefined" || typeof document === "undefined") {

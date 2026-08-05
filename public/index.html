@@ -12803,9 +12803,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=115"></script>
-    <script src="/i18n/locales/en.js?v=115"></script>
-    <script src="/i18n/locales/he.js?v=115"></script>
+    <script src="/i18n/locales/ru.js?v=116"></script>
+    <script src="/i18n/locales/en.js?v=116"></script>
+    <script src="/i18n/locales/he.js?v=116"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12975,7 +12975,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.312";
+    window.APP_VERSION = "3.11.313";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -14279,8 +14279,17 @@ if (header) {
         const activation = await window.StudioMediaPackage.activateTextBinding(String(textId));
         window.v3MediaPackageStale = !!(activation && activation.stale);
         if (activation && activation.media_passport) {
-          window.v3ActiveMediaAudio = activation.media_passport;
-          v3MediaResolverClear();
+          // Точная привязка замещает восстановленный тайминг ТОЛЬКО если играбельных строк
+          // станет не меньше: живой дефект 2026-08-05 — привязка 8 строк из 236 гасила полный
+          // офлайн-тайминг и оставляла 8 кнопок ▶︎ (решение и мера — MediaHost, одна реализация).
+          const rowsForPick = Array.isArray(currentTableData) ? currentTableData.length : 0;
+          const picked = window.MediaHost
+            ? window.MediaHost.pickExactBindingPassport(window.v3ActiveMediaAudio, activation.media_passport, rowsForPick)
+            : activation.media_passport;
+          if (picked !== window.v3ActiveMediaAudio) {
+            window.v3ActiveMediaAudio = picked;
+            v3MediaResolverClear();
+          }
         }
         if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
       } catch (_) {}
@@ -24344,9 +24353,17 @@ function v3MediaBarRefresh() {
   bar.hidden = !audio;
   if (!audio) { v3MediaResolverClear(); v3MediaDestroyLocalStage(); try { v3MediaAugmentRows(); } catch (_) {} return; }
   const note = document.getElementById("v3MediaBarNote");
+  // Причина отсутствия караоке называется словами (MediaHost.timingDropExplain — общая
+  // реализация с Залом): общая строка «Караоке недоступно» скрывала диагноз, и владелец не мог
+  // отличить «текст разошёлся с транскриптом» от «метки не проверяемы» (живой разбор 2026-08-05).
+  const noTimingNote = () => {
+    let why = "";
+    try { why = window.MediaHost ? window.MediaHost.timingDropExplain(audio, t) : ""; } catch (_) {}
+    return why || t("studio.media.noTiming");
+  };
   if (note) note.textContent = window.v3MediaPackageStale
     ? t("studio.mediaPackage.staleTable")
-    : (audio.timing ? "" : t("studio.media.noTiming"));
+    : (audio.timing ? "" : noTimingNote());
   v3MediaResolveBlob(audio).then((blob) => {
     if (window.v3ActiveMediaAudio !== audio) return;
     const btn = document.getElementById("v3MediaPlayBtn");
@@ -26250,8 +26267,17 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
         const activation = await window.StudioMediaPackage.activateTextBinding(String(textId));
         window.v3MediaPackageStale = !!(activation && activation.stale);
         if (activation && activation.media_passport) {
-          window.v3ActiveMediaAudio = activation.media_passport;
-          v3MediaResolverClear();
+          // Точная привязка замещает восстановленный тайминг ТОЛЬКО если играбельных строк
+          // станет не меньше: живой дефект 2026-08-05 — привязка 8 строк из 236 гасила полный
+          // офлайн-тайминг и оставляла 8 кнопок ▶︎ (решение и мера — MediaHost, одна реализация).
+          const rowsForPick = Array.isArray(currentTableData) ? currentTableData.length : 0;
+          const picked = window.MediaHost
+            ? window.MediaHost.pickExactBindingPassport(window.v3ActiveMediaAudio, activation.media_passport, rowsForPick)
+            : activation.media_passport;
+          if (picked !== window.v3ActiveMediaAudio) {
+            window.v3ActiveMediaAudio = picked;
+            v3MediaResolverClear();
+          }
         }
         if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
       } catch (_) {}
