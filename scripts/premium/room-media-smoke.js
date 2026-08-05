@@ -107,7 +107,10 @@ async function main() {
     const pg = await ctx.newPage();
     const pageErrors = []; pg.on("pageerror", (e) => pageErrors.push(String(e)));
     await pg.goto(BASE + "/library.html", { waitUntil: "load" });
-    await pg.waitForFunction(() => { const t = document.getElementById("tabCorpus"); return t && !t.hidden; }, { timeout: 20000 });
+    // NB: сигнатура waitForFunction(fn, arg, options) — без null во втором аргументе объект
+    // опций уходит в arg, а таймаут молча остаётся дефолтным (30с). Первичный импорт канона
+    // в пустой OPFS замерен в ~32с (2026-08-05), то есть гейт держался на удаче.
+    await pg.waitForFunction(() => { const t = document.getElementById("tabCorpus"); return t && !t.hidden; }, null, { timeout: 90000 });
 
     const seeded = await pg.evaluate(SEED).catch((e) => { failures.push("seed failed: " + e.message); return false; });
     if (seeded) {

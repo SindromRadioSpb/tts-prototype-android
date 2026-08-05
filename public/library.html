@@ -1054,6 +1054,20 @@
     #roomReader #proTable .col-resizer::after { background: var(--table-border); opacity: .55; }
     #roomReader #proTable th:hover .col-resizer::after { opacity: 1; }
 
+    /* Блок учебного режима — первый в панели «Аа» (спека 2026-08-05). */
+    .reader-study-block { border-bottom: 1px solid var(--border-soft); padding-bottom: 10px; margin-bottom: 10px; }
+    .reader-study-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; font-size: 13px; }
+    .reader-study-seg { display: inline-flex; border: 1px solid var(--border-soft); border-radius: 8px; overflow: hidden; }
+    .reader-study-seg button {
+      width: auto; appearance: none; border: 0; background: transparent; color: var(--text-secondary);
+      font: inherit; padding: 6px 10px; cursor: pointer;
+    }
+    .reader-study-seg button[aria-checked="true"] { background: var(--accent); color: var(--accent-contrast); font-weight: 700; }
+    #roomWidthsReset {
+      width: auto; appearance: none; border: 1px solid var(--border-soft); background: transparent;
+      color: var(--text-secondary); border-radius: 7px; padding: 5px 10px; font: inherit; cursor: pointer;
+    }
+
     /* ── morphology-on-tap (BRR-P1-011) ──────────────────────────────────────── */
     /* Tappable Hebrew word spans (post-render wrap; no size change → no layout shift). */
     .rm-w { cursor: pointer; border-radius: 3px; transition: background .12s ease; }
@@ -2342,9 +2356,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=67"></script>
-<script src="/i18n/locales/en.js?v=67"></script>
-<script src="/i18n/locales/he.js?v=67"></script>
+<script src="/i18n/locales/ru.js?v=68"></script>
+<script src="/i18n/locales/en.js?v=68"></script>
+<script src="/i18n/locales/he.js?v=68"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->

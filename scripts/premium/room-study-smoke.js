@@ -41,8 +41,15 @@ async function main() {
     const pg = await ctx.newPage();
     pg.on("pageerror", (e) => pageErrors.push(String(e)));
     await pg.goto(BASE + "/library.html", { waitUntil: "load" });
-    // #tabCorpus проявляется только когда БД поднялась — это и есть сигнал готовности к сиду.
-    await pg.waitForFunction(() => { const t = document.getElementById("tabCorpus"); return t && !t.hidden; }, { timeout: 25000 });
+    // Сид ждёт ВИДИМОСТИ #tabCorpus, а не просто «БД отвечает»: замер 2026-08-05 в свежем
+    // профиле — БД отзывается уже на ~1с, но первичный импорт канона идёт до ~32с и по ходу
+    // пересоздаёт соединение, поэтому ранний сид падает с «reading 'statements'». Видимая
+    // вкладка = импорт закончен = БД стабильна. Таймаут с запасом на медленную машину.
+    // NB: сигнатура waitForFunction(fn, arg, options) — без null во втором аргументе
+    // объект опций уходит в arg, а таймаут молча остаётся дефолтным (30с).
+    const waitCorpusReady = () => pg.waitForFunction(
+      () => { const t = document.getElementById("tabCorpus"); return t && !t.hidden; }, null, { timeout: 90000 });
+    await waitCorpusReady();
 
     // ── Секция 1: чистая математика связанного ресайза ──────────────────────
     console.log("[1] resize math");
@@ -110,7 +117,7 @@ async function main() {
     // Путь тот же, что в room-media-smoke — карточки «Моих текстов» живут в .mytexts-grid.
     const openStudyText = async () => {
       await pg.goto(BASE + "/library.html", { waitUntil: "load" });
-      await pg.waitForFunction(() => { const t = document.getElementById("tabCorpus"); return t && !t.hidden; }, { timeout: 25000 });
+      await waitCorpusReady();
       await pg.click("#tabCorpus");
       await pg.waitForSelector(".hub-cards", { timeout: 20000 });
       await pg.click('.hub-card[data-corpus="mytexts"]');
@@ -120,8 +127,33 @@ async function main() {
         const c = cards.find((x) => (x.textContent || "").includes("RST STUDY"));
         if (c) c.click();
       });
-      await pg.waitForFunction(() => { const r = document.getElementById("roomReader"); return r && !r.hidden; }, { timeout: 20000 });
+      await pg.waitForFunction(() => { const r = document.getElementById("roomReader"); return r && !r.hidden; }, null, { timeout: 20000 });
       await pg.waitForSelector("#proTable tbody tr", { timeout: 25000 });
+      await waitLayoutSettled();
+    };
+    // Раскладка ридера доезжает асинхронно: чип покрытия дорисовывается В .reader-bar,
+    // бар растёт, --room-thead-top пересчитывается и таблица уезжает. Мерить нужно по
+    // САМОЙ таблице: у sticky-шапки top по определению не меняется, и как пробник
+    // стабильности она бесполезна (первая версия этого гейта на ней и обманулась).
+    const waitLayoutSettled = async () => {
+      await pg.waitForFunction(() => {
+        const t = document.getElementById("proTable");
+        if (!t) return false;
+        const top = Math.round(t.getBoundingClientRect().top);
+        const prev = window.__rstTableTop;
+        window.__rstTableTop = top;
+        return prev === top;      // два последовательных замера совпали ⇒ раскладка встала
+      }, null, { timeout: 20000, polling: 400 });
+    };
+    // Свежие координаты грипа НЕПОСРЕДСТВЕННО перед действием мыши.
+    const gripPoint = async () => {
+      await waitLayoutSettled();
+      return pg.evaluate(() => {
+        const g = [...document.querySelectorAll("#proTable thead .col-resizer")].find((x) => !x.classList.contains("hidden"));
+        if (!g) return null;
+        const r = g.getBoundingClientRect();
+        return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2), w: Math.round(r.width) };
+      });
     };
     await openStudyText();
 
@@ -129,14 +161,16 @@ async function main() {
     console.log("[2] column resize");
     const before = await pg.evaluate(() =>
       [...document.querySelectorAll("#proTable colgroup col")].map((c) => c.style.width).join("|"));
-    const grip = await pg.evaluate(() => {
-      const g = [...document.querySelectorAll("#proTable thead .col-resizer")].find((x) => !x.classList.contains("hidden"));
-      if (!g) return null;
-      const r = g.getBoundingClientRect();
-      return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2), w: Math.round(r.width) };
-    });
+    const grip = await gripPoint();
     ok(!!grip, "грип ресайза найден в шапке таблицы Зала");
     if (grip) {
+      // Кто реально лежит под курсором: настоящая мышь проходит hit-test, а синтетический
+      // PointerEvent — нет, поэтому расхождение этих двух путей надо видеть в отчёте.
+      const hitEl = await pg.evaluate((p) => {
+        const e = document.elementFromPoint(p.x, p.y);
+        return e ? (e.tagName + "." + (e.className || "") + "#" + (e.id || "")) : "(null)";
+      }, grip);
+      ok(/col-resizer/.test(hitEl), "под курсором именно грип, а не перекрывающий слой: " + hitEl);
       await pg.mouse.move(grip.x, grip.y);
       await pg.mouse.down();
       await pg.mouse.move(grip.x + 40, grip.y, { steps: 8 });
@@ -153,11 +187,7 @@ async function main() {
       // палец: тот же путь через Pointer Events (pointerType=touch)
       const before2 = await pg.evaluate(() =>
         [...document.querySelectorAll("#proTable colgroup col")].map((c) => c.style.width).join("|"));
-      const g2 = await pg.evaluate(() => {
-        const g = [...document.querySelectorAll("#proTable thead .col-resizer")].find((x) => !x.classList.contains("hidden"));
-        const r = g.getBoundingClientRect();
-        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-      });
+      const g2 = await gripPoint();
       await pg.evaluate((p) => {
         const g = [...document.querySelectorAll("#proTable thead .col-resizer")].find((x) => !x.classList.contains("hidden"));
         const mk = (type, x) => new PointerEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: p.y, pointerId: 7, pointerType: "touch", isPrimary: true });
@@ -175,6 +205,41 @@ async function main() {
       });
       ok(hit.touchAction === "none", "грип не отдаёт жест прокрутке (touch-action: none), получено " + hit.touchAction);
     }
+    // ── Секция 3: панель «Аа» несёт контролы режима ─────────────────────────
+    console.log("[3] aids panel");
+    await pg.click("#readerAidsToggle");
+    await pg.waitForSelector("#readerAids:not([hidden])", { timeout: 8000 });
+    const panel = await pg.evaluate(() => {
+      const p = document.getElementById("readerAids");
+      return {
+        hasToggle: !!p.querySelector("#roomStudyToggle"),
+        hasSeg: !!p.querySelector("#roomActionColSeg"),
+        segButtons: [...p.querySelectorAll("#roomActionColSeg button")].map((b) => b.getAttribute("data-mode")),
+        hasReset: !!p.querySelector("#roomWidthsReset"),
+        firstBlockIsStudy: !!(p.firstElementChild && p.firstElementChild.id === "roomStudyBlock"),
+        rawKeys: /room\.study\./.test(p.textContent || ""),
+        // Набор управляющих кнопок бара сверяем ПОИМЕННО: #readerCovChip — это чип
+        // покрытия, который инжектится в тот же .reader-bar, поэтому счётчик врал бы.
+        barIds: [...document.querySelectorAll("#roomReader .reader-bar button")].map((b) => b.id).sort().join(","),
+      };
+    });
+    ok(panel.hasToggle, "панель: переключатель учебного режима присутствует");
+    ok(panel.hasSeg && panel.segButtons.join(",") === "full,rail,hidden",
+      "панель: сегмент служебной колонки full/rail/hidden, получено " + panel.segButtons.join(","));
+    ok(panel.hasReset, "панель: кнопка сброса ширин присутствует");
+    ok(panel.firstBlockIsStudy, "панель: блок учебного режима идёт ПЕРВЫМ");
+    ok(!panel.rawKeys, "панель: нет непереведённых ключей room.study.* в тексте");
+    ok(panel.barIds === "readerAidsToggle,readerBack,readerCovChip,readerFindToggle,roomReadAloud",
+      "в .reader-bar тот же набор кнопок — новых не добавили (решение D2), получено " + panel.barIds);
+
+    // дефолт служебной колонки при первом включении режима — «Рельс» (решение D4)
+    await pg.evaluate(() => { localStorage.removeItem("room.actionColMode"); localStorage.removeItem("room.studyMode"); });
+    await pg.click("#roomStudyToggle");
+    await pg.waitForTimeout(300);
+    const defMode = await pg.evaluate(() => localStorage.getItem("room.actionColMode"));
+    ok(defMode === "rail", "первое включение режима ставит служебную колонку в «Рельс», получено " + defMode);
+    const persistedMode = await pg.evaluate(() => localStorage.getItem("room.studyMode"));
+    ok(persistedMode === "1", "состояние режима сохраняется (room.studyMode=1), получено " + persistedMode);
   } finally { await b.close(); await stopServer(srv.child); }
 
   if (failures.length) { console.error("FAIL — " + failures.length + " assertion(s)"); process.exit(1); }

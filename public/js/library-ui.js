@@ -474,6 +474,38 @@ function roomResetColWidths() {
   roomPaintColWidths();
 }
 
+// ── Учебный режим (спека 2026-08-05) ─────────────────────────────────────────
+// Включается ТОЛЬКО вручную из панели «Аа» (решение владельца D5) — никакого
+// автовключения для медиа-материалов. Класс body.room-study живёт лишь пока открыт
+// ридер: он прячет шапку и футер, а на домашнем экране это было бы тупиком.
+const STUDY_MODE_KEY = 'room.studyMode';
+const ACTION_COL_KEY = 'room.actionColMode';
+const ACTION_COL_MODES = ['full', 'rail', 'hidden'];
+function studyModeOn() { try { return localStorage.getItem(STUDY_MODE_KEY) === '1'; } catch (_) { return false; } }
+function actionColMode() {
+  try {
+    const v = localStorage.getItem(ACTION_COL_KEY);
+    return ACTION_COL_MODES.indexOf(v) >= 0 ? v : 'rail';   // D4 — дефолт «Рельс»
+  } catch (_) { return 'rail'; }
+}
+function actionColModeSet(mode) {
+  const m = ACTION_COL_MODES.indexOf(mode) >= 0 ? mode : 'rail';
+  try { localStorage.setItem(ACTION_COL_KEY, m); } catch (_) {}
+  applyStudyModeClass();
+  rerenderReader();          // 'hidden' меняет НАБОР колонок → нужна пересборка таблицы
+}
+function studyModeSet(on) {
+  try { localStorage.setItem(STUDY_MODE_KEY, on ? '1' : '0'); } catch (_) {}
+  // первое включение фиксирует дефолтный «Рельс», чтобы состояние было явным
+  try { if (on && !localStorage.getItem(ACTION_COL_KEY)) localStorage.setItem(ACTION_COL_KEY, 'rail'); } catch (_) {}
+  applyStudyModeClass();
+  rerenderReader();
+}
+function applyStudyModeClass() {
+  const readerOpen = !!($('roomReader') && !$('roomReader').hidden);
+  document.body.classList.toggle('room-study', readerOpen && studyModeOn());
+}
+
 function aidsHinted() { try { return localStorage.getItem('room.aidsHinted') === '1'; } catch (_) { return true; } }
 function aidsHintedSet() { try { localStorage.setItem('room.aidsHinted', '1'); } catch (_) {} }
 // Epic 8a — first-open discoverability tip strip (one-time, localStorage flag).
@@ -5527,6 +5559,43 @@ function buildAidsPanel() {
   const panel = $('readerAids');
   if (!panel) return;
   panel.innerHTML = '';
+  // ── Блок учебного режима — ПЕРВЫМ в панели (решение D2: новых кнопок в баре нет) ──
+  const studyBlock = el('div', { class: 'reader-study-block', attrs: { id: 'roomStudyBlock' } });
+  const studyLab = el('label', { class: 'reader-aids-status' });
+  const studyCb = el('input', { attrs: { type: 'checkbox', id: 'roomStudyToggle' } });
+  studyCb.checked = studyModeOn();
+  studyCb.addEventListener('change', () => studyModeSet(studyCb.checked));
+  studyLab.appendChild(studyCb);
+  studyLab.appendChild(el('span', { i18n: 'room.study.toggle', text: tt('room.study.toggle', '🎬 Учебный режим') }));
+  studyBlock.appendChild(studyLab);
+  studyBlock.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.study.hint', text: tt('room.study.hint', 'Экран отдаётся видео и таблице') }));
+
+  // Служебная колонка: Полная / Рельс / Скрыта. Видимость СОДЕРЖАТЕЛЬНЫХ колонок уже
+  // управляется элементами ниже — не дублируем; без переключателя была только эта.
+  const segRow = el('div', { class: 'reader-study-row' });
+  segRow.appendChild(el('span', { i18n: 'room.study.actionCol', text: tt('room.study.actionCol', 'Служебная колонка') }));
+  const seg = el('div', { class: 'reader-study-seg', attrs: { id: 'roomActionColSeg', role: 'radiogroup', 'aria-label': tt('room.study.actionCol', 'Служебная колонка') } });
+  [['full', 'room.study.actionFull', 'Полная'], ['rail', 'room.study.actionRail', 'Рельс'], ['hidden', 'room.study.actionHidden', 'Скрыта']]
+    .forEach(([mode, key, fb]) => {
+      const b = el('button', { i18n: key, text: tt(key, fb), attrs: { type: 'button', 'data-mode': mode, role: 'radio' } });
+      b.setAttribute('aria-checked', String(actionColMode() === mode));
+      b.addEventListener('click', () => {
+        actionColModeSet(mode);
+        seg.querySelectorAll('button').forEach((x) => x.setAttribute('aria-checked', String(x.getAttribute('data-mode') === mode)));
+      });
+      seg.appendChild(b);
+    });
+  segRow.appendChild(seg);
+  studyBlock.appendChild(segRow);
+
+  const wRow = el('div', { class: 'reader-study-row' });
+  wRow.appendChild(el('span', { i18n: 'room.study.widths', text: tt('room.study.widths', 'Ширины колонок') }));
+  const wReset = el('button', { i18n: 'room.study.widthsReset', text: tt('room.study.widthsReset', '↺ Сброс'), attrs: { type: 'button', id: 'roomWidthsReset' } });
+  wReset.addEventListener('click', roomResetColWidths);
+  wRow.appendChild(wReset);
+  studyBlock.appendChild(wRow);
+  studyBlock.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.study.widthsHint', text: tt('room.study.widthsHint', 'Тяните ‖ между заголовками; двойной тап — сброс пары') }));
+  panel.appendChild(studyBlock);
   // labeled <select> helper — opts = [[value, i18nKey, fallback]]; onChange(value). Mode changes
   // persist (saveReaderCfg) and rerender the table (column visibility + fresh fade/reveal).
   const addSelect = (labelKey, labelFallback, opts, current, onChange) => {

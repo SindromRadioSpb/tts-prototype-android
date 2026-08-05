@@ -2492,6 +2492,18 @@ window.I18N_LOCALES.en = {
       open: "Source ↗",
       note: "Translation and vocalization are machine-made, not proofread.",
     },
+    // Study mode for a text card (spec 2026-08-05): the screen goes to video + table.
+    study: {
+      toggle: "🎬 Study mode",
+      hint: "The screen goes to the video and the table",
+      actionCol: "Service column",
+      actionFull: "Full",
+      actionRail: "Rail",
+      actionHidden: "Hidden",
+      widths: "Column widths",
+      widthsHint: "Drag ‖ between headers; double-tap resets the pair",
+      widthsReset: "↺ Reset",
+    },
     reader: {
       back: "← Shelves",
       aids: "Reading settings",
