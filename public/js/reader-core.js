@@ -231,6 +231,34 @@ export function normalizeVisibleBaseWidthsTo100(visibleColumns, baseWidths) {
   enforceMinWidthsWithLocalAdjust(visibleColumns, baseWidths);
 }
 
+// Верхний предел ширины одной колонки — защита от «почти всё в одну» (значение Студии,
+// index.html RESIZE_MAX_COL_PERCENT). Пара min/max задаёт коридор drag'а.
+export const RESIZE_MAX_COL_PERCENT = 90;
+
+// Связанный ресайз пары соседних колонок: сумма пары сохраняется, поэтому таблица не
+// «дышит» целиком, а перераспределяет ширину между двумя соседями. Портирован из
+// index.html applyLinkedResize БЕЗ изменения поведения (Студия остаётся на своей копии
+// до Stage 2). Мутирует baseWidths на месте — контракт остальных функций этого модуля.
+export function applyLinkedResize(visibleColumns, baseWidths, leftKey, rightKey, startLeft, startRight, deltaPercent) {
+  let newLeft = startLeft + deltaPercent;
+  let newRight = startRight - deltaPercent;
+  const min = RESIZE_MIN_COL_PERCENT;
+  const max = RESIZE_MAX_COL_PERCENT;
+  const total = startLeft + startRight;
+  if (newLeft < min) { newLeft = min; newRight = total - newLeft; }
+  if (newLeft > max) { newLeft = max; newRight = total - newLeft; }
+  if (newRight < min) { newRight = min; newLeft = total - newRight; }
+  if (newRight > max) { newRight = max; newLeft = total - newRight; }
+  newLeft = Math.max(min, Math.min(max, newLeft));
+  newRight = Math.max(min, Math.min(max, newRight));
+  const li = TABLE_COL_ORDER.indexOf(leftKey);
+  const ri = TABLE_COL_ORDER.indexOf(rightKey);
+  if (li >= 0) baseWidths[li] = newLeft;
+  if (ri >= 0) baseWidths[ri] = newRight;
+  normalizeVisibleBaseWidthsTo100(visibleColumns, baseWidths);
+  return baseWidths;
+}
+
 // ── Bilingual reader-table builder ───────────────────────────────────────────
 // Pure HTML-string builder reproducing index.html renderTable's table markup
 // (l.32796-32960), parameterised by an explicit config — no Studio globals, no DOM

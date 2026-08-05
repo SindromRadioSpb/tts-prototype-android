@@ -205,6 +205,7 @@
     "smoke:room": "node scripts/premium/room-smoke.js",
     "smoke:room-mode": "node scripts/premium/room-mode-smoke.js",
     "smoke:room-media": "node scripts/premium/room-media-smoke.js",
+    "smoke:room-study": "node scripts/premium/room-study-smoke.js",
     "smoke:reader-parity": "node scripts/premium/reader-parity-smoke.js",
     "smoke:reader-scaffold": "node scripts/premium/reader-scaffold-smoke.js",
     "smoke:reader-karaoke": "node scripts/premium/reader-karaoke-smoke.js",
