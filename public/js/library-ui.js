@@ -447,6 +447,33 @@ function saveReaderCfg() {
     localStorage.setItem('room.ruMode', readerCfg.ruMode);
   } catch (_) {}
 }
+// ── Учебный режим: ширины колонок Зала (спека 2026-08-05) ────────────────────
+// Хранятся ОТДЕЛЬНО от Студии (её ключ ttsDashboard_table_settings_v1 не трогаем):
+// поверхности разные, и учебная раскладка не должна утаскивать за собой Студию.
+// Массив позиционно выровнен к TABLE_COL_ORDER = [action, he, niqqud, translit, ru].
+const ROOM_WIDTHS_KEY = 'room.table.widths.v1';
+const ROOM_WIDTHS_DEFAULT = [15, 20, 20, 21, 24];
+let roomTableWidths = ROOM_WIDTHS_DEFAULT.slice();
+function loadRoomTableWidths() {
+  try {
+    const raw = localStorage.getItem(ROOM_WIDTHS_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.baseWidths) || parsed.baseWidths.length !== 5) return;
+    const nums = parsed.baseWidths.map((n) => Number(n));
+    if (nums.some((n) => !Number.isFinite(n) || n <= 0)) return;
+    roomTableWidths = nums;
+  } catch (_) {}
+}
+function saveRoomTableWidths() {
+  try { localStorage.setItem(ROOM_WIDTHS_KEY, JSON.stringify({ baseWidths: roomTableWidths })); } catch (_) {}
+}
+function roomResetColWidths() {
+  roomTableWidths = ROOM_WIDTHS_DEFAULT.slice();
+  saveRoomTableWidths();
+  roomPaintColWidths();
+}
+
 function aidsHinted() { try { return localStorage.getItem('room.aidsHinted') === '1'; } catch (_) { return true; } }
 function aidsHintedSet() { try { localStorage.setItem('room.aidsHinted', '1'); } catch (_) {} }
 // Epic 8a — first-open discoverability tip strip (one-time, localStorage flag).
@@ -3476,7 +3503,9 @@ function readerConfig() {
       translit: !!readerCfg.translitOn,
       ru: readerCfg.ruMode !== 'off',
     },
-    baseWidths: [15, 20, 20, 21, 24],
+    // ЖИВОЙ массив, а не литерал: билдер нормализует его на месте (контракт
+    // normalizeVisibleBaseWidthsTo100), и результат drag'а переживает пересборку таблицы.
+    baseWidths: roomTableWidths,
     translitProfile: readerCfg.translitProfile,
     ideMode: false,
     actionTitle: '▶', // Room hides note/edit → no "📝" in the action header
@@ -3513,6 +3542,8 @@ function attachReaderAudio() {
   applyReveal(mount);
   attachBookmarks(mount);   // BRR-P2-003 — POST-render ☆/★ per row (Room-only, parity-safe)
   attachExplainButtons(mount);   // CLG-P6.2 — POST-render 🤖 per row (только свои тексты)
+  attachRoomColResize();   // ресайз колонок переживает пересборку таблицы
+  roomPaintColWidths();    // ширины из persisted-состояния
   karaokeActive = false; setReadAloudBtn(false);   // a fresh (re)attach resets karaoke state
 }
 
@@ -5446,6 +5477,40 @@ function readerSkeleton() {
     box.appendChild(row);
   }
   mount.appendChild(box);
+}
+
+// Перекрасить <col> без пересборки таблицы. ВАЖНО: билдер пишет ширины ИНЛАЙНОМ
+// (style="width:…%"), поэтому CSS-правилом их не задать — проверено, `!important`
+// проигрывает инлайну при table-layout: fixed. Значит ширины всегда назначаются
+// здесь, в JS, после рендера.
+function roomPaintColWidths() {
+  const mount = $('roomReaderTable');
+  const table = mount && mount.querySelector('#proTable');
+  if (!table) return;
+  const eff = readerCore.computeEffectiveWidths(readerConfig().visibleColumns, roomTableWidths);
+  table.querySelectorAll('colgroup col[data-col]').forEach((c) => {
+    const k = c.getAttribute('data-col');
+    c.style.width = Number(eff[k] || 0).toFixed(6) + '%';
+  });
+}
+let roomColResize = null;
+function attachRoomColResize() {
+  const mount = $('roomReaderTable');
+  if (!mount) return;
+  if (roomColResize) { try { roomColResize.detach(); } catch (_) {} roomColResize = null; }
+  roomColResize = readerCore.attachColumnResize(mount, {
+    getState: () => ({ visibleColumns: readerConfig().visibleColumns, baseWidths: roomTableWidths }),
+    onLiveUpdate: () => roomPaintColWidths(),
+    onCommit: () => saveRoomTableWidths(),
+    onResetPair: (leftKey, rightKey) => {
+      const order = readerCore.TABLE_COL_ORDER;
+      roomTableWidths[order.indexOf(leftKey)] = ROOM_WIDTHS_DEFAULT[order.indexOf(leftKey)];
+      roomTableWidths[order.indexOf(rightKey)] = ROOM_WIDTHS_DEFAULT[order.indexOf(rightKey)];
+      readerCore.normalizeVisibleBaseWidthsTo100(readerConfig().visibleColumns, roomTableWidths);
+      saveRoomTableWidths();
+      roomPaintColWidths();
+    },
+  });
 }
 
 function rerenderReader() {
@@ -9089,6 +9154,7 @@ function wireChrome() {
 
 async function boot() {
   loadReaderCfg();   // BRR-P1-006 — restore persisted scaffolding modes before any reader render
+  loadRoomTableWidths();   // ширины колонок Зала — до первого рендера таблицы
   wireChrome();
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   registerRoomServiceWorker();   // PWA update toast «Обновить» (works even if opened directly)

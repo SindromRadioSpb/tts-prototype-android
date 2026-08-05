@@ -259,6 +259,107 @@ export function applyLinkedResize(visibleColumns, baseWidths, leftKey, rightKey,
   return baseWidths;
 }
 
+// Тонкий pointer-биндер связанного ресайза. Один и тот же путь обслуживает мышь на
+// десктопе и палец на телефоне — Pointer Events их не различают, а `.col-resizer` уже
+// несёт touch-action: none, поэтому прокрутка жест не перехватывает.
+//   opts = {
+//     getState,      // () => ({ visibleColumns, baseWidths }) — живое состояние вызывающего
+//     onLiveUpdate,  // (baseWidths) => void — перекрасить <col> без пересборки таблицы
+//     onCommit,      // (baseWidths) => void — персист по отпусканию
+//     onResetPair,   // optional (leftKey, rightKey) => void — двойной тап по грипу
+//   }
+export function attachColumnResize(mount, opts) {
+  opts = opts || {};
+  if (!mount) return { detach() {} };
+  const getState = typeof opts.getState === "function" ? opts.getState : () => null;
+  const live = typeof opts.onLiveUpdate === "function" ? opts.onLiveUpdate : () => {};
+  const commit = typeof opts.onCommit === "function" ? opts.onCommit : () => {};
+  let drag = null;
+
+  const gripAt = (target) => (target && target.closest ? target.closest(".col-resizer[data-resize='1']") : null);
+
+  const onMove = (e) => {
+    if (!drag || drag.pointerId !== e.pointerId) return;
+    const st = getState();
+    if (!st || !st.baseWidths) return;
+    const delta = ((e.clientX - drag.startX) / drag.widthPx) * 100;
+    applyLinkedResize(st.visibleColumns, st.baseWidths, drag.leftKey, drag.rightKey, drag.startLeft, drag.startRight, delta);
+    live(st.baseWidths);
+    e.preventDefault();
+  };
+
+  const onUp = (e) => {
+    if (!drag || drag.pointerId !== e.pointerId) return;
+    drag = null;
+    try { document.body.classList.remove("resizing-cols"); } catch (_) {}
+    window.removeEventListener("pointermove", onMove, { passive: false });
+    window.removeEventListener("pointerup", onUp, { passive: false });
+    window.removeEventListener("pointercancel", onUp, { passive: false });
+    const st = getState();
+    if (st && st.baseWidths) {
+      normalizeVisibleBaseWidthsTo100(st.visibleColumns, st.baseWidths);
+      live(st.baseWidths);
+      commit(st.baseWidths);
+    }
+    e.preventDefault();
+  };
+
+  const onDown = (e) => {
+    const grip = gripAt(e.target);
+    if (!grip || grip.classList.contains("hidden")) return;
+    const th = grip.closest("th"), table = grip.closest("table");
+    if (!th || !table) return;
+    const leftKey = th.getAttribute("data-col");
+    if (!leftKey) return;
+    const cols = (table.getAttribute("data-cols") || "").split(",").map((s) => s.trim()).filter(Boolean);
+    const li = cols.indexOf(leftKey);
+    if (li < 0 || li + 1 >= cols.length) return;        // у последней колонки пары нет
+    const rightKey = cols[li + 1];
+    const widthPx = table.getBoundingClientRect().width;
+    if (!widthPx || widthPx < 20) return;
+    const st = getState();
+    if (!st || !st.baseWidths) return;
+    drag = {
+      pointerId: e.pointerId, startX: e.clientX, widthPx, leftKey, rightKey,
+      startLeft: Number(st.baseWidths[TABLE_COL_ORDER.indexOf(leftKey)]) || 0,
+      startRight: Number(st.baseWidths[TABLE_COL_ORDER.indexOf(rightKey)]) || 0,
+    };
+    try { grip.setPointerCapture(e.pointerId); } catch (_) {}
+    try { document.body.classList.add("resizing-cols"); } catch (_) {}
+    window.addEventListener("pointermove", onMove, { passive: false });
+    window.addEventListener("pointerup", onUp, { passive: false });
+    window.addEventListener("pointercancel", onUp, { passive: false });
+    e.preventDefault();
+    e.stopPropagation();                                 // tap-seek Зала не должен видеть drag
+  };
+
+  const onDbl = (e) => {
+    const grip = gripAt(e.target);
+    if (!grip || typeof opts.onResetPair !== "function") return;
+    const th = grip.closest("th"), table = grip.closest("table");
+    if (!th || !table) return;
+    const leftKey = th.getAttribute("data-col");
+    const cols = (table.getAttribute("data-cols") || "").split(",").map((s) => s.trim()).filter(Boolean);
+    const li = cols.indexOf(leftKey);
+    if (li < 0 || li + 1 >= cols.length) return;
+    opts.onResetPair(leftKey, cols[li + 1]);
+    e.preventDefault();
+  };
+
+  mount.addEventListener("pointerdown", onDown);
+  mount.addEventListener("dblclick", onDbl);
+  return {
+    detach() {
+      mount.removeEventListener("pointerdown", onDown);
+      mount.removeEventListener("dblclick", onDbl);
+      window.removeEventListener("pointermove", onMove, { passive: false });
+      window.removeEventListener("pointerup", onUp, { passive: false });
+      window.removeEventListener("pointercancel", onUp, { passive: false });
+      drag = null;
+    },
+  };
+}
+
 // ── Bilingual reader-table builder ───────────────────────────────────────────
 // Pure HTML-string builder reproducing index.html renderTable's table markup
 // (l.32796-32960), parameterised by an explicit config — no Studio globals, no DOM

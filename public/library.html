@@ -1045,6 +1045,15 @@
     /* Room reader is read-only: hide Studio row affordances (mirrors index.html room-mode). */
     #roomReader .row-note-btn, #roomReader .row-edit-actions { display: none !important; }
 
+    /* Ресайз колонок в Зале: волосяная линия 10px недостижима пальцем (замер 2026-08-05 —
+       4 грипа 10x79px, попасть невозможно). На тач-устройствах широкая невидимая зона
+       захвата; линия-подсказка видна всегда, иначе аффорданс не читается. */
+    @media (pointer: coarse) {
+      #roomReader #proTable .col-resizer { width: 24px; right: -12px; }
+    }
+    #roomReader #proTable .col-resizer::after { background: var(--table-border); opacity: .55; }
+    #roomReader #proTable th:hover .col-resizer::after { opacity: 1; }
+
     /* ── morphology-on-tap (BRR-P1-011) ──────────────────────────────────────── */
     /* Tappable Hebrew word spans (post-render wrap; no size change → no layout shift). */
     .rm-w { cursor: pointer; border-radius: 3px; transition: background .12s ease; }

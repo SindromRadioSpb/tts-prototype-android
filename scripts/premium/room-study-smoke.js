@@ -34,9 +34,15 @@ async function main() {
   if (!await ready()) { console.error("[room-study-smoke] server did not start"); await stopServer(srv.child); process.exit(1); }
   const { chromium } = require("playwright");
   const b = await chromium.launch();
+  const pageErrors = [];
   try {
-    const pg = await b.newPage({ viewport: { width: 380, height: 845 } });
-    await pg.goto(BASE + "/library.html", { waitUntil: "domcontentloaded" });
+    // serviceWorkers: "block" — иначе SW отдаёт закешированный шелл и правки не видны.
+    const ctx = await b.newContext({ serviceWorkers: "block", viewport: { width: 380, height: 845 } });
+    const pg = await ctx.newPage();
+    pg.on("pageerror", (e) => pageErrors.push(String(e)));
+    await pg.goto(BASE + "/library.html", { waitUntil: "load" });
+    // #tabCorpus проявляется только когда БД поднялась — это и есть сигнал готовности к сиду.
+    await pg.waitForFunction(() => { const t = document.getElementById("tabCorpus"); return t && !t.hidden; }, { timeout: 25000 });
 
     // ── Секция 1: чистая математика связанного ресайза ──────────────────────
     console.log("[1] resize math");
@@ -86,6 +92,88 @@ async function main() {
       ok(math.d.he <= math.d.max + 1e-6, "resize: максимум держится (" + math.d.he + " <= " + math.d.max + ")");
       ok(Math.abs(math.e.visibleTotal - 100) < 1e-6,
         "resize: при частичном наборе сумма ВИДИМЫХ = 100, получено " + math.e.visibleTotal);
+    }
+    // ── сид OPFS: один текст с 12 строками (контента должно хватить на скролл) ──
+    await pg.evaluate(async () => {
+      const db = await import("/db/local-db.js");
+      try { await db.dbRun("DELETE FROM sentences WHERE text_id LIKE 'rst-%'"); } catch (_) {}
+      try { await db.dbRun("DELETE FROM texts WHERE id LIKE 'rst-%'"); } catch (_) {}
+      await db.createText({ id: "rst-t1", text_key: "rst-k1", title: "RST STUDY", source_text: "טקסט" });
+      for (let i = 0; i < 12; i++) {
+        await db.addSentence("rst-t1", {
+          id: "rst-t1-s" + i, he_plain: "שורה מספר " + i, he_niqqud: "שׁוּרָה מִסְפָּר " + i,
+          translit: "shura mispar " + i, ru: "строка номер " + i,
+        });
+      }
+    });
+    // Открыть засеянный материал: Корпус → «Мои тексты» → карточка RST STUDY.
+    // Путь тот же, что в room-media-smoke — карточки «Моих текстов» живут в .mytexts-grid.
+    const openStudyText = async () => {
+      await pg.goto(BASE + "/library.html", { waitUntil: "load" });
+      await pg.waitForFunction(() => { const t = document.getElementById("tabCorpus"); return t && !t.hidden; }, { timeout: 25000 });
+      await pg.click("#tabCorpus");
+      await pg.waitForSelector(".hub-cards", { timeout: 20000 });
+      await pg.click('.hub-card[data-corpus="mytexts"]');
+      await pg.waitForSelector(".mytexts-corpus .mytexts-grid", { timeout: 20000 });
+      await pg.evaluate(() => {
+        const cards = [...document.querySelectorAll(".mytexts-grid .mytext-card-v")];
+        const c = cards.find((x) => (x.textContent || "").includes("RST STUDY"));
+        if (c) c.click();
+      });
+      await pg.waitForFunction(() => { const r = document.getElementById("roomReader"); return r && !r.hidden; }, { timeout: 20000 });
+      await pg.waitForSelector("#proTable tbody tr", { timeout: 25000 });
+    };
+    await openStudyText();
+
+    // ── Секция 2: грипы ресайза ОЖИВЛЕНЫ (мышь и палец — один Pointer-путь) ──
+    console.log("[2] column resize");
+    const before = await pg.evaluate(() =>
+      [...document.querySelectorAll("#proTable colgroup col")].map((c) => c.style.width).join("|"));
+    const grip = await pg.evaluate(() => {
+      const g = [...document.querySelectorAll("#proTable thead .col-resizer")].find((x) => !x.classList.contains("hidden"));
+      if (!g) return null;
+      const r = g.getBoundingClientRect();
+      return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2), w: Math.round(r.width) };
+    });
+    ok(!!grip, "грип ресайза найден в шапке таблицы Зала");
+    if (grip) {
+      await pg.mouse.move(grip.x, grip.y);
+      await pg.mouse.down();
+      await pg.mouse.move(grip.x + 40, grip.y, { steps: 8 });
+      await pg.mouse.up();
+      const after = await pg.evaluate(() =>
+        [...document.querySelectorAll("#proTable colgroup col")].map((c) => c.style.width).join("|"));
+      ok(before !== after, "drag мышью МЕНЯЕТ ширины (было " + before + ", стало " + after + ")");
+      const persisted = await pg.evaluate(() => localStorage.getItem("room.table.widths.v1"));
+      ok(!!persisted && /baseWidths/.test(persisted), "ширины сохранены в room.table.widths.v1");
+      const sum = await pg.evaluate(() =>
+        [...document.querySelectorAll("#proTable colgroup col")].reduce((a, c) => a + parseFloat(c.style.width || 0), 0));
+      ok(Math.abs(sum - 100) < 0.01, "сумма ширин видимых колонок = 100%, получено " + sum);
+
+      // палец: тот же путь через Pointer Events (pointerType=touch)
+      const before2 = await pg.evaluate(() =>
+        [...document.querySelectorAll("#proTable colgroup col")].map((c) => c.style.width).join("|"));
+      const g2 = await pg.evaluate(() => {
+        const g = [...document.querySelectorAll("#proTable thead .col-resizer")].find((x) => !x.classList.contains("hidden"));
+        const r = g.getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      });
+      await pg.evaluate((p) => {
+        const g = [...document.querySelectorAll("#proTable thead .col-resizer")].find((x) => !x.classList.contains("hidden"));
+        const mk = (type, x) => new PointerEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: p.y, pointerId: 7, pointerType: "touch", isPrimary: true });
+        g.dispatchEvent(mk("pointerdown", p.x));
+        window.dispatchEvent(mk("pointermove", p.x - 30));
+        window.dispatchEvent(mk("pointerup", p.x - 30));
+      }, g2);
+      const after2 = await pg.evaluate(() =>
+        [...document.querySelectorAll("#proTable colgroup col")].map((c) => c.style.width).join("|"));
+      ok(before2 !== after2, "drag ПАЛЬЦЕМ (pointerType=touch) меняет ширины");
+
+      const hit = await pg.evaluate(() => {
+        const g = [...document.querySelectorAll("#proTable thead .col-resizer")].find((x) => !x.classList.contains("hidden"));
+        return { w: g.getBoundingClientRect().width, touchAction: getComputedStyle(g).touchAction };
+      });
+      ok(hit.touchAction === "none", "грип не отдаёт жест прокрутке (touch-action: none), получено " + hit.touchAction);
     }
   } finally { await b.close(); await stopServer(srv.child); }
 
