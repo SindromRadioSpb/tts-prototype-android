@@ -9117,121 +9117,7 @@ body.v3-ide-mode .v3-mode-toggle {
   background: linear-gradient(135deg, #64748b 0%, #475569 100%);
 }
 
-.classic-row-sheet-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.42);
-  z-index: 210;
-}
-
-.classic-row-sheet {
-  position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  z-index: 220;
-  max-height: min(72vh, 720px);
-  overflow: auto;
-  padding: 12px 14px calc(16px + env(safe-area-inset-bottom, 0px));
-  border-radius: 28px;
-  background: rgba(255,255,255,0.985);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 28px 72px rgba(15, 23, 42, 0.24);
-  backdrop-filter: blur(12px);
-}
-
-.classic-row-sheet-handle {
-  width: 56px;
-  height: 5px;
-  margin: 0 auto 12px;
-  border-radius: 999px;
-  background: rgba(100, 116, 139, 0.4);
-}
-
-.classic-row-sheet-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.classic-row-sheet-title {
-  font-size: 18px;
-  font-weight: 800;
-  color: #0f172a;
-}
-
-.classic-row-sheet-meta {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #64748b;
-}
-
-.classic-row-sheet-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.classic-row-sheet-cell {
-  padding: 14px 14px 15px;
-  border-radius: 18px;
-  border: 1px solid #e2e8f0;
-  background: #fbfcfe;
-}
-
-.classic-row-sheet-label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #64748b;
-}
-
-.classic-row-sheet-value {
-  font-size: 17px;
-  line-height: 1.65;
-  color: #0f172a;
-  overflow-wrap: anywhere;
-}
-
-.classic-row-sheet-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.classic-row-sheet-actions > button {
-  flex: 1 1 0;
-  min-height: 52px;
-}
-
-.classic-row-sheet-head .btn-secondary {
-  width: auto !important;
-  min-height: 40px;
-  padding: 10px 14px;
-  border-radius: 14px;
-  box-shadow: none;
-}
-
-.classic-row-sheet-actions .btn-primary {
-  box-shadow: 0 14px 26px rgba(37, 99, 235, 0.22);
-}
-
-.classic-row-sheet-actions .btn-secondary {
-  background: #eef2f7;
-  border-color: #dbe4ee;
-}
-
-@media (min-width: 769px) {
-  .classic-row-sheet,
-  .classic-row-sheet-backdrop {
-    display: none !important;
-  }
-}
+/* .classic-row-sheet-* удалены (спека 2026-08-05): шит «Строка таблицы» заменён морф-карточкой. */
 
 /* --- Loading spinner for IDE panels --- */
 .v3-ide-loading {
@@ -11548,6 +11434,18 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                                     <label class="table-chk"><input type="checkbox" data-col="ru"> <span data-i18n="classic.tableColRu">Перевод</span></label>
                                 </div>
 
+                                <!-- «Статус слов» (спека 2026-08-05): раскраска слов таблицы по учебному
+                                     статусу из глобального профиля + due-кольца. Легенду строит JS
+                                     (initStudioWordStatusToggle) — те же i18n-ключи, что в Зале. -->
+                                <div class="table-settings-row table-settings-sub studio-morph-row" aria-label="Статус слов">
+                                    <label class="table-chk">
+                                        <input type="checkbox" id="studioWordStatusToggle">
+                                        <span data-i18n="room.morph.statusToggle">🎨 Статус слов</span>
+                                    </label>
+                                    <span id="studioWordStatusLegend" class="reader-status-legend"></span>
+                                    <span class="table-settings-note" data-i18n="room.morph.statusNote">Цвет — у уверенно распознанных учебных слов; служебные и не найденные в словаре остаются без цвета.</span>
+                                </div>
+
                                 <div class="table-settings-row table-settings-sub">
                                     <button type="button" id="btnTableReset" class="btn-mini-secondary" title="Сбросить видимость и базовые ширины к значениям по умолчанию" data-i18n="classic.tableResetSettings">Сбросить настройки</button>
                                     <span class="table-settings-note" data-i18n="classic.tableSettingsSaved">Настройки таблицы сохраняются на этом устройстве.</span>
@@ -11601,22 +11499,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     <!-- Контейнер для тостов -->
     <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
-    <div id="classicRowSheetBackdrop" class="classic-row-sheet-backdrop" hidden></div>
-    <div id="classicRowSheet" class="classic-row-sheet" role="dialog" aria-modal="true" aria-label="Детали строки" hidden>
-        <div class="classic-row-sheet-handle" aria-hidden="true"></div>
-        <div class="classic-row-sheet-head">
-            <div>
-                <div class="classic-row-sheet-title">Строка таблицы</div>
-                <div id="classicRowSheetMeta" class="classic-row-sheet-meta"></div>
-            </div>
-            <button id="classicRowSheetClose" class="btn-secondary btn-mini-secondary" type="button">Закрыть</button>
-        </div>
-        <div id="classicRowSheetBody" class="classic-row-sheet-body"></div>
-        <div class="classic-row-sheet-actions">
-            <button id="classicRowSheetPlay" class="btn-primary" type="button">▶ Озвучить строку</button>
-            <button id="classicRowSheetNote" class="btn-secondary" type="button">📝 Заметка</button>
-        </div>
-    </div>
+    <!-- Шит «Строка таблицы» удалён (спека 2026-08-05): тап по слову → морф-карточка (studio-morph.js). -->
 
     <!-- V3: Library Modal (P0) -->
 <div id="v3LibraryModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="Библиотека текстов">
@@ -12992,6 +12875,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      driver (lazy per-row span wrap + rAF highlight). reader-morph MUST load first.
      renderTable is untouched (smoke:reader-parity) — wrapping is post-render only. -->
 <script src="/js/reader-morph.js"></script>
+<!-- Tier-3 «точный режим» карточки (Dicta, consent-gated) — тот же модуль, что в Зале. -->
+<script src="/js/reader-dicta.js"></script>
 <script src="/js/studio-karaoke.js"></script>
 
 <!-- W2-S4 Studio Ingest audio deps — LOAD ORDER LOAD-BEARING: gemini-error before
@@ -13034,6 +12919,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- Room media player (spec 2026-08-04): общий паспорт-пайплайн + DOM-хелперы плеера
      (window.MediaHost). Обе поверхности (эта и library.html) обязаны звать его, не форкать. -->
 <script src="/js/media-host.js"></script>
+<!-- «Статус слов» + морф-карточка на тапе (спека 2026-08-05): общий хост памяти слова
+     (одна реализация с Залом, форк запрещён) + студийный адаптер. -->
+<script src="/js/morph-host.js"></script>
+<script src="/js/studio-morph.js"></script>
 
 <!-- W2-S5a Studio Ingest captions/video deps — pure, no cross-deps between the two, but BOTH
      must load before studio-import.js (calls CaptionsParse.parse/StudioYtPlayer.*) and before
@@ -17039,13 +16928,27 @@ function v3NotesRefreshAllButtons() {
     const btnTableCustomizeToggleEl = document.getElementById("btnTableCustomizeToggle");
     const classicTtsCardEl = document.getElementById("classicTtsCard");
     const classicTranslationCardEl = document.getElementById("classicTranslationCard");
-    const classicRowSheetEl = document.getElementById("classicRowSheet");
-    const classicRowSheetBackdropEl = document.getElementById("classicRowSheetBackdrop");
-    const classicRowSheetBodyEl = document.getElementById("classicRowSheetBody");
-    const classicRowSheetMetaEl = document.getElementById("classicRowSheetMeta");
-    const classicRowSheetCloseEl = document.getElementById("classicRowSheetClose");
-    const classicRowSheetPlayEl = document.getElementById("classicRowSheetPlay");
-    const classicRowSheetNoteEl = document.getElementById("classicRowSheetNote");
+    // «Статус слов» (спека 2026-08-05) — тумблер + легенда точек (та же палитра/порядок, что Аа-панель Зала).
+    (function initStudioWordStatusToggle() {
+        const cb = document.getElementById("studioWordStatusToggle");
+        const lg = document.getElementById("studioWordStatusLegend");
+        if (!cb || !window.StudioMorph) return;
+        cb.checked = window.StudioMorph.wordStatusEnabled();
+        cb.addEventListener("change", function () {
+            window.StudioMorph.wordStatusSet(cb.checked);
+            window.StudioMorph.refresh();
+        });
+        if (lg && !lg.childNodes.length) {
+            const _lt = (k, fb) => { try { if (typeof window.t === "function") { const v = window.t(k); if (v && v !== k) return v; } } catch (_) {} return fb; };
+            [["new", _lt("room.morph.status.new", "новое")], ["l1", "1"], ["l2", "2"], ["l3", "3"], ["l4", "4"],
+             ["known", _lt("room.morph.status.known", "знаю")], ["ignore", _lt("room.morph.status.ignore", "игнор")]].forEach(function (p) {
+                const sw = document.createElement("span"); sw.className = "reader-status-sw";
+                const dot = document.createElement("span"); dot.className = "reader-status-dot sw-" + p[0];
+                const tx = document.createElement("span"); tx.textContent = p[1];
+                sw.appendChild(dot); sw.appendChild(tx); lg.appendChild(sw);
+            });
+        }
+    })();
 	
 	const autoNextToggleEl = document.getElementById("autoNextToggle");
 
@@ -20821,7 +20724,6 @@ updatePlaylistButtonUI();
         try { classicSyncServiceStripState(); } catch (_) {}
         try { classicSyncMainPanels(); } catch (_) {}
         try {
-            if (!classicIsMobileViewport()) classicCloseRowSheet();
         } catch (_) {}
     });
 
@@ -36203,78 +36105,11 @@ try {
 try { classicSyncStateUi(); } catch (_) {}
     }
 
-    function classicCloseRowSheet() {
-        if (classicRowSheetEl) classicRowSheetEl.hidden = true;
-        if (classicRowSheetBackdropEl) classicRowSheetBackdropEl.hidden = true;
-        if (classicRowSheetBodyEl) classicRowSheetBodyEl.innerHTML = "";
-        if (classicRowSheetPlayEl) classicRowSheetPlayEl.dataset.rowIdx = "";
-        if (classicRowSheetNoteEl) classicRowSheetNoteEl.dataset.rowIdx = "";
-        try { tableEditFabUpdate(); } catch (_) {}
-    }
+    // Шит «Строка таблицы» УДАЛЁН (спека 2026-08-05): тап по слову открывает морф-карточку
+    // (studio-morph.js), «Озвучить строку»/«Заметка» живут в служебной колонке. Но-оп стаб
+    // остаётся: classicCloseRowSheet() зовёт БАЙТ-ЗАМОРОЖЕННЫЙ renderTable (parity-гейт).
+    function classicCloseRowSheet() {}
 
-    function classicOpenRowSheet(rowIdx) {
-        if (!classicIsMobileViewport()) return;
-        if (!Array.isArray(currentTableData)) return;
-        const idx = Number(rowIdx);
-        if (!Number.isFinite(idx) || idx < 0 || idx >= currentTableData.length) return;
-        const row = currentTableData[idx] || {};
-        if (!classicRowSheetEl || !classicRowSheetBodyEl) return;
-
-        const parts = [];
-        const pushCell = function(label, value, rtl) {
-            const text = String(value || "").trim();
-            if (!text) return;
-            parts.push(
-                '<div class="classic-row-sheet-cell">' +
-                    '<span class="classic-row-sheet-label">' + escapeHtml(label) + '</span>' +
-                    '<div class="classic-row-sheet-value"' + (rtl ? ' dir="rtl"' : ' dir="auto"') + '>' + escapeHtml(text) + '</div>' +
-                '</div>'
-            );
-        };
-
-        pushCell("Иврит", row.he, true);
-        pushCell("Огласовки", row.he_niqqud, true);
-        pushCell("Транслит", row.translit_ru || row.translit, false);
-        pushCell("Перевод", row.ru, false);
-
-        classicRowSheetBodyEl.innerHTML = parts.join("");
-        if (classicRowSheetMetaEl) classicRowSheetMetaEl.textContent = "Строка " + (idx + 1);
-        if (classicRowSheetPlayEl) classicRowSheetPlayEl.dataset.rowIdx = String(idx);
-        if (classicRowSheetNoteEl) {
-            classicRowSheetNoteEl.dataset.rowIdx = String(idx);
-            classicRowSheetNoteEl.hidden = !(row && row._v3_sentenceId);
-        }
-
-        if (classicRowSheetBackdropEl) classicRowSheetBackdropEl.hidden = false;
-        classicRowSheetEl.hidden = false;
-        try { tableEditFabUpdate(); } catch (_) {}
-    }
-
-    if (classicRowSheetBackdropEl) {
-        classicRowSheetBackdropEl.addEventListener("click", classicCloseRowSheet);
-    }
-    if (classicRowSheetCloseEl) {
-        classicRowSheetCloseEl.addEventListener("click", classicCloseRowSheet);
-    }
-    if (classicRowSheetPlayEl) {
-        classicRowSheetPlayEl.addEventListener("click", function() {
-            const idx = String(classicRowSheetPlayEl.dataset.rowIdx || "");
-            const btn = document.querySelector('.row-tts-btn[data-row-idx="' + idx + '"]');
-            if (btn) btn.click();
-        });
-    }
-    if (classicRowSheetNoteEl) {
-        classicRowSheetNoteEl.addEventListener("click", function() {
-            const idx = String(classicRowSheetNoteEl.dataset.rowIdx || "");
-            const btn = document.querySelector('.row-note-btn[data-row-idx="' + idx + '"]');
-            if (btn) btn.click();
-        });
-    }
-    document.addEventListener("keydown", function(ev) {
-        if (!classicRowSheetEl || classicRowSheetEl.hidden) return;
-        if (ev.key !== "Escape") return;
-        classicCloseRowSheet();
-    });
     window.addEventListener("resize", function() {
         try { tableEditFabUpdate(); } catch (_) {}
         try { orientationFabUpdate(); } catch (_) {}
@@ -36291,22 +36126,6 @@ try { classicSyncStateUi(); } catch (_) {}
             try { orientationFabClick(); } catch (_) {}
         });
     })();
-    document.addEventListener("click", function(ev) {
-        try {
-            if (!classicIsMobileViewport()) return;
-            if (classicRowSheetEl && !classicRowSheetEl.hidden) return;
-            const target = ev && ev.target;
-            if (!target || !target.closest) return;
-            if (target.closest(".row-tts-btn, .row-note-btn, .row-edit-btn, a, button, input, select, textarea")) return;
-            const td = target.closest('#proTable tbody td[data-col]');
-            if (!td || td.getAttribute("data-col") === "action") return;
-            const tr = td.closest("tr[data-row-idx]");
-            const table = document.getElementById("proTable");
-            if (!tr || (table && table.classList.contains("tbl-edit-mode"))) return;
-            classicOpenRowSheet(tr.getAttribute("data-row-idx"));
-        } catch (_) {}
-    }, true);
-
     // ----------------------------
 // TABLE EDIT MODE
 // ----------------------------
@@ -36335,8 +36154,7 @@ function tableEditFabUpdate() {
     if (!fab) return;
     const isMobile = classicIsMobileViewport();
     const toolbarVisible = !!(toolbar && toolbar.classList.contains("visible"));
-    const rowSheetOpen = !!(classicRowSheetEl && !classicRowSheetEl.hidden);
-    const shouldShow = isMobile && toolbarVisible && !rowSheetOpen;
+    const shouldShow = isMobile && toolbarVisible;
 
     fab.classList.toggle("fab-visible", shouldShow);
     fab.classList.toggle("active", tableEditActive);
@@ -36352,8 +36170,7 @@ function orientationFabUpdate() {
     const isMobile = classicIsMobileViewport();
     const libraryModal = document.getElementById("v3LibraryModal");
     const libraryOpen = !!(libraryModal && !libraryModal.classList.contains("hidden"));
-    const rowSheetOpen = !!(classicRowSheetEl && !classicRowSheetEl.hidden);
-    const shouldShow = isMobile && !libraryOpen && !rowSheetOpen;
+    const shouldShow = isMobile && !libraryOpen;
 
     fab.classList.toggle("fab-visible", shouldShow);
     fab.hidden = !shouldShow;
@@ -36503,6 +36320,9 @@ function tableEditModeExit(silent) {
     }
     tableEditUpdateStatus();
     tableEditFabUpdate();
+    // Морф-слой был подавлен в режиме правки; правки ячеек затёрли спаны —
+    // самолечащий refresh перевернёт заново и перекрасит (studio-morph.js).
+    try { window.StudioMorph && window.StudioMorph.refresh(); } catch (_) {}
 }
 
 function tableEditApplyEditedMarkers() {

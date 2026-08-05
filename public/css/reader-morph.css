@@ -9,7 +9,7 @@
  * (.rm-sheet/.rm-statpop/.room-consent-overlay/.reader-status-legend) и на #tableContainer
  * (студийная таблица — .rm-w ховер/актив). Значения = копия темы Зала, включая оба
  * dark-скоупа (prefers-color-scheme + body.theme-dark) — механизм темы у страниц общий.
- * Палитра --ws-*/--prov-* уникальна по именам → безопасно на :root.
+ * Палитра статусов (токены ws- и prov-) уникальна по именам → безопасно на :root.
  *
  * НЕ здесь (Room-специфика, остаётся в library.html): .rm-find-*, .rm-row-jump,
  * #roomReaderTable .rm-w-speaking (у Студии свой дубль на #proTable), karaoke-on, .reader-aids-*.

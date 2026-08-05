@@ -70,7 +70,11 @@
   function wrapCell(td) {
     var RM = window.ReaderMorph;
     if (!td || !RM || typeof RM.tokenize !== "function") return false;
-    if (td.getAttribute(WRAP_FLAG)) return true; // already wrapped this run
+    // Морф-слой (studio-morph) уже обернул ячейку: те же .rm-w[data-w-offset] (общий
+    // токенизатор) — переиспользуем и НЕ рестор-им на stop(), иначе затрём раскраску
+    // статусов и tap-атрибуты (data-surface/data-niqqud). Возврат "reuse" ≠ "own".
+    if (td.getAttribute("data-rm-wrapped")) return td.querySelector(".rm-w") ? "reuse" : false;
+    if (td.getAttribute(WRAP_FLAG)) return "own"; // already wrapped this run
     var text = td.textContent || "";
     if (!text.trim()) return false;
     var toks = RM.tokenize(text);
@@ -94,7 +98,7 @@
     td.textContent = "";
     td.appendChild(frag);
     td.setAttribute(WRAP_FLAG, "1");
-    return true;
+    return "own";
   }
 
   function rowHebrewCells(rowIdx) {
@@ -179,8 +183,15 @@
         if (!words) { updateDebug(); return; } // graceful: sentence-level row highlight only
         run.words = words;
         var cells = rowHebrewCells(run.rowIdx);
-        for (var i = 0; i < cells.length; i++) { if (wrapCell(cells[i])) run.wrappedCells.push(cells[i]); }
-        if (!run.wrappedCells.length) { updateDebug(); return; } // nothing to paint on
+        // "own" — наша обёртка (рестор на stop); "reuse" — спаны морф-слоя (не трогаем,
+        // но красить по ним можно). Гейт «есть на чём рисовать» считает ОБА вида.
+        var paintable = 0;
+        for (var i = 0; i < cells.length; i++) {
+          var w = wrapCell(cells[i]);
+          if (w === "own") run.wrappedCells.push(cells[i]);
+          if (w) paintable++;
+        }
+        if (!paintable) { updateDebug(); return; } // nothing to paint on
         // Self-managed stop: when this clip ends/pauses/errors, tear down.
         var onEnd = function () { if (cur === run) stop(); };
         run.listeners = { ended: onEnd, pause: onEnd, error: onEnd };
