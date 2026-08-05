@@ -1,0 +1,71 @@
+{
+ "rate": {
+  "in_he": 2.2965914121292608,
+  "out_niqqud": 6.245683930942895,
+  "out_translit": 4.662682602921647,
+  "out_ru": 2.0597609561752988,
+  "out_jsonFull": 23.205400619743248,
+  "out_slim": 12.941124391323594
+ },
+ "WORDS": 1660224,
+ "SONGS": 14543,
+ "DEDUP": 0.218,
+ "RETRY": 1.12,
+ "table": [
+  {
+   "id": "A",
+   "name": "as-is legacy prompt (segments[] + he + niqqud + translit + ru)",
+   "inTok": 8505320.522284197,
+   "outTok": 43149302.60313413,
+   "lite": 18.110253093482072,
+   "flash": 110.42485266452059,
+   "pro": 442.1246766841965,
+   "flashBatch": 55.21242633226029,
+   "proBatch": 221.06233834209826
+  },
+  {
+   "id": "B",
+   "name": "slim format (niqqud|translit|ru, no echo, no JSON keys)",
+   "inTok": 4799800.522284197,
+   "outTok": 24063385.13763612,
+   "lite": 10.10533410728287,
+   "flash": 61.59840300077556,
+   "pro": 246.63360202921646,
+   "flashBatch": 30.79920150038778,
+   "proBatch": 123.31680101460823
+  },
+  {
+   "id": "B+",
+   "name": "slim + line-level dedup cache",
+   "inTok": 3868853.5572262425,
+   "outTok": 18817567.177631453,
+   "lite": 7.913912226775206,
+   "flash": 48.2045740112465,
+   "pro": 193.01173872284733,
+   "flashBatch": 24.10228700562325,
+   "proBatch": 96.50586936142366
+  },
+  {
+   "id": "C",
+   "name": "RU only (niqqud=Dicta, translit=local, both free)",
+   "inTok": 4799800.522284197,
+   "outTok": 3830024.322549801,
+   "lite": 2.01198978124834,
+   "flash": 11.01500096305976,
+   "pro": 44.299993878353256,
+   "flashBatch": 5.50750048152988,
+   "proBatch": 22.149996939176628
+  },
+  {
+   "id": "C+",
+   "name": "RU only + dedup cache",
+   "inTok": 3868853.5572262425,
+   "outTok": 2995079.0202339445,
+   "lite": 1.5849169638162022,
+   "flash": 8.648353617752734,
+   "pro": 34.786857148872244,
+   "flashBatch": 4.324176808876367,
+   "proBatch": 17.393428574436122
+  }
+ ]
+}

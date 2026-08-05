@@ -1,0 +1,20 @@
+{
+ "model": "gemini-flash-latest",
+ "n": 12,
+ "agg": {
+  "he": 5188,
+  "niqqud": 14109,
+  "translit": 10533,
+  "ru": 4653,
+  "rows": 458,
+  "jsonFull": 52421,
+  "jsonSlim": 29234,
+  "jsonRuOnly": 4653,
+  "chars": {
+   "he": 10804,
+   "niqqud": 17410,
+   "translit": 14018,
+   "ru": 15013
+  }
+ }
+}
