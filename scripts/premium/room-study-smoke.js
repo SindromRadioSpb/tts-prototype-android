@@ -112,21 +112,39 @@ async function main() {
           translit: "shura mispar " + i, ru: "строка номер " + i,
         });
       }
+      // rst-t2 — материал С МЕДИА: только на нём вне учебного режима вообще считается
+      // высота окна таблицы, поэтому проверять её пересчёт можно лишь здесь.
+      // ~2с валидного mp3: 80 кадров MPEG1 Layer3 128kbps/44.1kHz (приём room-media-smoke).
+      const frame = new Uint8Array(417); frame[0] = 0xFF; frame[1] = 0xFB; frame[2] = 0x90; frame[3] = 0x00;
+      const buf = new Uint8Array(417 * 80); for (let i = 0; i < 80; i++) buf.set(frame, i * 417);
+      const root = await navigator.storage.getDirectory();
+      const dir = await root.getDirectoryHandle("media", { create: true });
+      const fh = await dir.getFileHandle("rst-smoke.mp3", { create: true });
+      const w = await fh.createWritable(); await w.write(buf); await w.close();
+      const MEDIA = { opfsPath: "media/rst-smoke.mp3", sha256: "rst-smoke", mime: "audio/mpeg", sizeBytes: 417 * 80, durationSec: 2, originalName: "rst.mp3" };
+      const passport = { source: { audio: { v: 1, media: MEDIA,
+        segments: [{ i: 0, start: 0, end: 0.4, text: "שורה מספר 0" }, { i: 1, start: 0.5, end: 1.0, text: "שורה מספר 1" }],
+        timing: { v: 1, unit: "row", entries: [{ o: 0, t: 0, end: 0.4 }, { o: 1, t: 0.5, end: 1.0 }] } } } };
+      await db.createText({ id: "rst-t2", text_key: "rst-k2", title: "RST MEDIA", source_text: "שורה מספר 0\\nשורה מספר 1",
+        table_model_meta_json: JSON.stringify(passport) });
+      for (let i = 0; i < 12; i++) {
+        await db.addSentence("rst-t2", { id: "rst-t2-s" + i, he_plain: "שורה מספר " + i, ru: "строка номер " + i });
+      }
     });
     // Открыть засеянный материал: Корпус → «Мои тексты» → карточка RST STUDY.
     // Путь тот же, что в room-media-smoke — карточки «Моих текстов» живут в .mytexts-grid.
-    const openStudyText = async () => {
+    const openStudyText = async (marker = "RST STUDY") => {
       await pg.goto(BASE + "/library.html", { waitUntil: "load" });
       await waitCorpusReady();
       await pg.click("#tabCorpus");
       await pg.waitForSelector(".hub-cards", { timeout: 20000 });
       await pg.click('.hub-card[data-corpus="mytexts"]');
       await pg.waitForSelector(".mytexts-corpus .mytexts-grid", { timeout: 20000 });
-      await pg.evaluate(() => {
+      await pg.evaluate((m) => {
         const cards = [...document.querySelectorAll(".mytexts-grid .mytext-card-v")];
-        const c = cards.find((x) => (x.textContent || "").includes("RST STUDY"));
+        const c = cards.find((x) => (x.textContent || "").includes(m));
         if (c) c.click();
-      });
+      }, marker);
       await pg.waitForFunction(() => { const r = document.getElementById("roomReader"); return r && !r.hidden; }, null, { timeout: 20000 });
       await pg.waitForSelector("#proTable tbody tr", { timeout: 25000 });
       await waitLayoutSettled();
@@ -392,6 +410,66 @@ async function main() {
       return !o || o.hidden;
     });
     ok(overlayGone, "в режиме «Рельс» оверлея нет — управление не дублируется");
+    // ── Секция 7: дисклеймер и честная высота вне режима ────────────────────
+    console.log("[7] prov-note + honest height");
+    await pg.evaluate(() => { localStorage.setItem("room.studyMode", "1"); localStorage.setItem("room.actionColMode", "rail"); });
+    await openStudyText();
+    const prov = await pg.evaluate(() => {
+      const p = document.getElementById("readerProvNote");
+      const wrap = document.getElementById("roomReaderTable");
+      const t = document.getElementById("proTable");
+      if (!p || !wrap || !t) return null;
+      return {
+        insideWrap: wrap.contains(p),
+        afterTable: !!(t.compareDocumentPosition(p) & Node.DOCUMENT_POSITION_FOLLOWING),
+        visibleAtTop: p.getBoundingClientRect().top < wrap.getBoundingClientRect().bottom,
+      };
+    });
+    ok(prov && prov.insideWrap, "дисклеймер живёт ВНУТРИ окна таблицы");
+    ok(prov && prov.afterTable, "дисклеймер идёт ПОСЛЕ таблицы (в конце материала)");
+    ok(prov && !prov.visibleAtTop, "дисклеймер не виден, пока не доскроллили до конца");
+
+    // переживает пересборку таблицы
+    await pg.evaluate(() => { const p = document.getElementById("readerAids"); if (p && p.hidden) document.getElementById("readerAidsToggle").click(); });
+    await pg.waitForSelector("#readerAids:not([hidden])", { timeout: 8000 });
+    await pg.evaluate(() => {
+      const cb = [...document.querySelectorAll("#readerAids label input[type=checkbox]")].filter((x) => x.id !== "roomStudyToggle")[0];
+      if (cb) cb.click();
+    });
+    await pg.waitForTimeout(500);
+    const provAfter = await pg.evaluate(() => {
+      const p = document.getElementById("readerProvNote"), wrap = document.getElementById("roomReaderTable");
+      return !!(p && wrap && wrap.contains(p));
+    });
+    ok(provAfter, "дисклеймер переживает rerenderReader");
+
+    // ВНЕ режима высота окна таблицы считается только у материала С МЕДИА — на нём и
+    // проверяем, что она отслеживает вьюпорт, а не замирает на значении при открытии.
+    await pg.evaluate(() => { localStorage.setItem("room.studyMode", "0"); });
+    await openStudyText("RST MEDIA");
+    await pg.waitForFunction(() => {
+      const w = document.getElementById("roomReaderTable");
+      return !!(w && w.classList.contains("room-media-scroll") && /px/.test(w.style.maxHeight || ""));
+    }, null, { timeout: 20000 });
+    const h1 = await pg.evaluate(() => parseFloat(document.getElementById("roomReaderTable").style.maxHeight) || 0);
+    await pg.setViewportSize({ width: 380, height: 640 });
+    await pg.waitForTimeout(800);
+    const h2 = await pg.evaluate(() => parseFloat(document.getElementById("roomReaderTable").style.maxHeight) || 0);
+    ok(h1 > 0 && h2 > 0 && h2 < h1,
+      "вне режима высота окна пересчитывается при уменьшении вьюпорта (" + Math.round(h1) + "px -> " + Math.round(h2) + "px)");
+    await pg.setViewportSize({ width: 380, height: 845 });
+    await pg.waitForTimeout(800);
+    const h3 = await pg.evaluate(() => parseFloat(document.getElementById("roomReaderTable").style.maxHeight) || 0);
+    ok(Math.abs(h3 - h1) < 30, "и возвращается назад при восстановлении вьюпорта (" + Math.round(h3) + "px ~ " + Math.round(h1) + "px)");
+
+    // ГЛАВНЫЙ дефект вертикали: высота считалась при scrollY=0, когда шапка Зала (176px)
+    // ещё в потоке. Прокрутив её прочь, пользователь эти пиксели таблице не возвращал.
+    await pg.evaluate(() => window.scrollTo(0, 400));
+    await pg.waitForTimeout(800);
+    const hScrolled = await pg.evaluate(() => parseFloat(document.getElementById("roomReaderTable").style.maxHeight) || 0);
+    ok(hScrolled > h3 + 20,
+      "прокрутка шапки прочь ВОЗВРАЩАЕТ место таблице (" + Math.round(h3) + "px -> " + Math.round(hScrolled) + "px)");
+    ok(!pageErrors.length, "нет ошибок страницы" + (pageErrors.length ? ": " + pageErrors.join(" | ") : ""));
   } finally { await b.close(); await stopServer(srv.child); }
 
   if (failures.length) { console.error("FAIL — " + failures.length + " assertion(s)"); process.exit(1); }

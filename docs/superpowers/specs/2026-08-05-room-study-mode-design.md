@@ -1,7 +1,7 @@
 # Читальный зал — «Учебный режим» карточки текста (дизайн)
 
 **Дата:** 2026-08-05 · **Поверхность:** Читальный зал (`public/library.html`, `public/js/library-ui.js`)
-**Статус:** OWNER-APPROVED (решения D1–D5 ниже) · **Замеры:** `docs/research/room-study-mode-ux/2026-08-05/`
+**Статус:** РЕАЛИЗОВАНО (план `docs/superpowers/plans/2026-08-05-room-study-mode.md`, гейт `npm run smoke:room-study`) · решения владельца D1–D5 ниже · **Замеры:** `docs/research/room-study-mode-ux/2026-08-05/`
 **Роли-линзы:** R4 (премиум-UX mobile-first @380px, без тупиков), R2 (методика: удержание внимания),
 R8 (graded reading), R11 (do-no-harm к parity-залоченному билдеру), R5 (планка продукта).
 

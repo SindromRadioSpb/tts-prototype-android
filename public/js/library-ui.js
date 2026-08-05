@@ -3584,6 +3584,7 @@ function attachReaderAudio() {
   attachRoomColResize();   // ресайз колонок переживает пересборку таблицы
   roomPaintColWidths();    // ширины из persisted-состояния
   try { applyStudyModeClass(); } catch (_) {}   // режим + скролл-окно после каждого рендера
+  try { roomPlaceProvNote(); } catch (_) {}       // дисклеймер — последним в окне таблицы
   try { roomSyncActionOverlay(); } catch (_) {}   // пересборка таблицы уносит оверлей
   karaokeActive = false; setReadAloudBtn(false);   // a fresh (re)attach resets karaoke state
 }
@@ -3911,7 +3912,17 @@ function roomMediaWireOnce() {
     } catch (_) {}
   });
   wireKaraokeScrollPause();   // yield-скролл единый для TTS- и медиа-караоке
-  window.addEventListener('resize', () => { try { roomMediaApplyLayout(); } catch (_) {} }, { passive: true });
+  // Высота окна таблицы считалась ОДНАЖДЫ при scrollY=0, когда 176px шапки Зала ещё в
+  // потоке — прокрутив шапку прочь, пользователь эти пиксели таблице не возвращал.
+  // Пересчёт на скролле/повороте (через rAF, чтобы не дёргать layout на каждом кадре).
+  let _layoutRaf = null;
+  const relayout = () => {
+    if (_layoutRaf != null) return;
+    _layoutRaf = requestAnimationFrame(() => { _layoutRaf = null; try { roomMediaApplyLayout(); } catch (_) {} });
+  };
+  window.addEventListener('resize', relayout, { passive: true });
+  window.addEventListener('orientationchange', relayout, { passive: true });
+  window.addEventListener('scroll', relayout, { passive: true });
 }
 
 // BRR-P2-002 «Продолжить чтение» — record the reading position (debounced) and restore
@@ -5625,6 +5636,30 @@ function roomSyncActionOverlay() {
   box.style.left = (rr.left - mr.left) + 'px';
 }
 window.roomSyncActionOverlay = roomSyncActionOverlay;   // гейт дергает синхронизацию явно
+
+// Дисклеймер «Перевод и огласовка — машинные» переезжает в КОНЕЦ окна таблицы: он честен
+// и обязан остаться (R9), но 17px постоянной служебной строки посреди учебного экрана —
+// плата ни за что. В конце материала он виден ровно тогда, когда дочитали.
+// ВАЖНО: rerenderReader делает mount.innerHTML = …, поэтому перенос повторяется после
+// каждого рендера — тем же паттерном, что медиа-бар и закладки.
+// ⚠ Узел живёт ВНУТРИ mount, а rerenderReader делает mount.innerHTML = … — то есть
+// уничтожает его насовсем. Поэтому функция самовосстанавливающаяся: нет узла — создаём
+// заново с тем же id и data-i18n (перенос «сохрани ссылку и верни обратно» здесь не
+// работает, ссылка указывает на уже удалённый элемент).
+function roomPlaceProvNote() {
+  const wrap = $('roomReaderTable');
+  if (!wrap) return;
+  let note = $('readerProvNote');
+  if (!note) {
+    note = el('p', {
+      class: 'reader-prov-note',
+      i18n: 'room.prov.note',
+      text: tt('room.prov.note', 'Перевод и огласовка — машинные, не вычитаны.'),
+      attrs: { id: 'readerProvNote', dir: 'auto' },
+    });
+  }
+  if (note.parentElement !== wrap || note.nextElementSibling) wrap.appendChild(note);
+}
 
 let roomColResize = null;
 function attachRoomColResize() {
