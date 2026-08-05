@@ -1,0 +1,463 @@
+/* public/css/reader-morph.css — ОБЩИЕ стили морф-карточки ReaderMorph + палитры статусов.
+ *
+ * Источник: инлайн-<style> public/library.html (v3.11.310), вынесено 2026-08-05 для Студии
+ * (index.html) — одна реализация на обе поверхности, форк запрещён (прецедент media-host).
+ * ПРАВИТЬ ЗДЕСЬ; library.html и index.html подключают этот файл <link>-ом.
+ *
+ * Скоуп-токены: Зал определяет --bg-card/--text-primary/… глобально; Студия — нет. Чтобы
+ * карточка выглядела одинаково, generic-токены объявлены НА ПОВЕРХНОСТЯХ КАРТОЧКИ
+ * (.rm-sheet/.rm-statpop/.room-consent-overlay/.reader-status-legend) и на #tableContainer
+ * (студийная таблица — .rm-w ховер/актив). Значения = копия темы Зала, включая оба
+ * dark-скоупа (prefers-color-scheme + body.theme-dark) — механизм темы у страниц общий.
+ * Палитра --ws-*/--prov-* уникальна по именам → безопасно на :root.
+ *
+ * НЕ здесь (Room-специфика, остаётся в library.html): .rm-find-*, .rm-row-jump,
+ * #roomReaderTable .rm-w-speaking (у Студии свой дубль на #proTable), karaoke-on, .reader-aids-*.
+ */
+
+/* ── Палитра статусов (Epic 4, SINGLE SOURCE OF TRUTH) ─────────────────────────
+   Anki-style DISTINCT SOLIDS для чипов/поповера/легенды (белый текст); мягкие
+   same-hue FILLS для слов в тексте. new=violet · 1=red · 2=orange · 3=green ·
+   4=blue (Anki) · known=teal · ignore=slate. */
+:root {
+  --ws-new: #7c3aed;   --ws-l1: #cf4b43;    --ws-l2: #d3801f;   --ws-l3: #43a047;
+  --ws-l4: #4373e0;    --ws-known: #0d9488; --ws-ignore: #64748b;
+  --ws-new-fill: rgba(124,58,237,.26);  --ws-l1-fill: rgba(207,75,67,.30);   --ws-l2-fill: rgba(211,128,31,.30);
+  --ws-l3-fill: rgba(67,160,71,.30);    --ws-l4-fill: rgba(67,115,224,.28);  --ws-known-fill: rgba(13,148,136,.28);
+  --ws-ignore-fill: rgba(100,116,139,.22);
+  /* Retention P5 — due-кольцо (оттенок ВНЕ статусной шкалы) */
+  --ws-due: #db2777;
+  /* Epic 8d — confidence-pill text: на светлой теме темнее ради ≥4.5:1 на .16-филлах */
+  --prov-exact: #15803d; --prov-likely: #1d4ed8; --prov-amber: #92660f; --prov-context: #6d28d9;
+}
+@media (prefers-color-scheme: dark) {
+  body:not(.theme-light) {
+    --ws-new-fill: rgba(139,92,246,.34);  --ws-l1-fill: rgba(224,99,92,.34);   --ws-l2-fill: rgba(230,150,55,.34);
+    --ws-l3-fill: rgba(80,190,95,.32);    --ws-l4-fill: rgba(96,140,240,.32);  --ws-known-fill: rgba(20,184,166,.32);
+    --ws-ignore-fill: rgba(140,150,165,.26);
+    --ws-due: #f472b6;
+    --prov-exact: #3fb950; --prov-likely: #5a9bff; --prov-amber: #d29922; --prov-context: #a371f7;
+  }
+}
+body.theme-dark {
+  --ws-new-fill: rgba(139,92,246,.34);  --ws-l1-fill: rgba(224,99,92,.34);   --ws-l2-fill: rgba(230,150,55,.34);
+  --ws-l3-fill: rgba(80,190,95,.32);    --ws-l4-fill: rgba(96,140,240,.32);  --ws-known-fill: rgba(20,184,166,.32);
+  --ws-ignore-fill: rgba(140,150,165,.26);
+  --ws-due: #f472b6;
+  --prov-exact: #3fb950; --prov-likely: #5a9bff; --prov-amber: #d29922; --prov-context: #a371f7;
+}
+
+/* ── Generic-токены темы на поверхностях карточки (копия темы Зала) ──────────── */
+.rm-sheet, .rm-statpop, .room-consent-overlay, .reader-status-legend, #tableContainer {
+  --bg-page: #f4f6f9;
+  --bg-card: #ffffff;
+  --bg-muted: #eef2f7;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-faint: #94a3b8;
+  --border-soft: #e2e8f0;
+  --accent: #2563eb;
+  --accent-contrast: #ffffff;
+  --shadow: 0 1px 3px rgba(15, 23, 42, .08), 0 1px 2px rgba(15, 23, 42, .04);
+}
+@media (prefers-color-scheme: dark) {
+  body:not(.theme-light) .rm-sheet, body:not(.theme-light) .rm-statpop,
+  body:not(.theme-light) .room-consent-overlay, body:not(.theme-light) .reader-status-legend,
+  body:not(.theme-light) #tableContainer {
+    --bg-page: #0f172a;
+    --bg-card: #1e293b;
+    --bg-muted: #243349;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-faint: #7c8ba3;
+    --border-soft: #334155;
+    --accent: #60a5fa;
+    --accent-contrast: #0b1220;
+    --shadow: 0 1px 3px rgba(0, 0, 0, .4);
+  }
+}
+body.theme-dark .rm-sheet, body.theme-dark .rm-statpop,
+body.theme-dark .room-consent-overlay, body.theme-dark .reader-status-legend,
+body.theme-dark #tableContainer {
+  --bg-page: #0f172a;
+  --bg-card: #1e293b;
+  --bg-muted: #243349;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-faint: #7c8ba3;
+  --border-soft: #334155;
+  --accent: #60a5fa;
+  --accent-contrast: #0b1220;
+  --shadow: 0 1px 3px rgba(0, 0, 0, .4);
+}
+
+/* ── Тапабельные слова (базовый вид) ─────────────────────────────────────────── */
+.rm-w { cursor: pointer; border-radius: 3px; transition: background .12s ease; }
+.rm-w:hover { background: var(--bg-muted); }
+.rm-w:focus { outline: none; background: var(--bg-muted); }
+.rm-w:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
+.rm-w-active { background: var(--accent); color: var(--accent-contrast); }
+
+/* ── Light bottom-sheet card ─────────────────────────────────────────────────── */
+.rm-sheet { position: fixed; inset: 0; z-index: 1000; }
+.rm-sheet[hidden] { display: none; }
+.rm-sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.45); }
+.rm-sheet-card {
+  position: absolute; left: 0; right: 0; bottom: 0; max-width: 560px; margin: 0 auto;
+  background: var(--bg-card); color: var(--text-primary);
+  border-top-left-radius: 16px; border-top-right-radius: 16px; border-top: 1px solid var(--border-soft);
+  padding: 18px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  max-height: 72vh; overflow-y: auto; box-shadow: 0 -8px 30px rgba(0,0,0,.32);
+  transform: translateY(100%); transition: transform .22s ease;
+}
+.rm-sheet.rm-open .rm-sheet-card { transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) { .rm-sheet-card { transition: none; } }
+.rm-sheet-x {
+  position: absolute; top: 12px; left: 12px; appearance: none; cursor: pointer;
+  background: var(--bg-muted); border: 1px solid var(--border-soft); color: var(--text-secondary);
+  border-radius: 8px; width: 30px; height: 30px; font-size: 14px; line-height: 1;
+}
+/* root-family drill «‹ Назад» (above the headword; ✕ stays top-left absolute, no collision). */
+.rm-back { appearance: none; cursor: pointer; display: inline-flex; align-items: center; gap: 2px;
+  background: none; border: none; color: var(--accent); font-size: 13.5px; font-weight: 600; padding: 0; margin: 0 0 8px; }
+.rm-back:hover { text-decoration: underline; }
+.rm-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; padding-inline-end: 36px; }
+.rm-word { font-size: 27px; font-weight: 700; line-height: 1.2; }
+.rm-prov { flex: none; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.rm-prov-exact { background: rgba(46,160,67,.16); color: var(--prov-exact); }
+.rm-prov-likely { background: rgba(56,139,253,.16); color: var(--prov-likely); }
+.rm-prov-guessed, .rm-prov-unknown { background: rgba(210,153,34,.16); color: var(--prov-amber); }
+.rm-prov-function { background: var(--bg-muted); color: var(--text-secondary); }
+.rm-prov-context { background: rgba(163,113,247,.18); color: var(--prov-context); }
+/* Epic-2 #1 — «?» badge-helper + collapsed confidence-taxonomy legend. */
+.rm-prov-line { display: inline-flex; align-items: center; gap: 6px; }
+.rm-prov-help {
+  appearance: none; cursor: pointer; width: 19px; height: 19px; padding: 0; line-height: 1; flex: none;
+  border-radius: 999px; border: 1px solid var(--border-soft); background: var(--bg-muted);
+  color: var(--text-secondary); font-size: 11px; font-weight: 700;
+}
+.rm-prov-help:hover { color: var(--text-primary); border-color: var(--accent); }
+.rm-prov-help[aria-expanded="true"] { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
+.rm-legend { list-style: none; margin: 0 0 12px; padding: 10px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-muted); display: flex; flex-direction: column; gap: 7px; }
+.rm-legend[hidden] { display: none; }
+.rm-legend-row { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; line-height: 1.35; }
+.rm-legend-row .rm-prov { flex: none; }
+.rm-legend-altk { flex: none; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--bg-card); color: var(--text-secondary); white-space: nowrap; }
+.rm-legend-desc { color: var(--text-secondary); }
+/* Epic-2 #3 — machine-niqqud provenance caption under the headword (R9). */
+.rm-niqqud-prov { font-size: 11.5px; color: var(--text-faint); margin: -2px 0 12px; display: flex; align-items: center; gap: 5px; }
+.rm-niqqud-prov-ic { font-size: 12px; opacity: .8; }
+/* PAS-A4 — «🤖 Объяснить (наставник)»: сплошная кнопка (платный вызов) + аккордеон-ответ */
+.rm-explain { margin-top: 12px; }
+.rm-explain-btn {
+  appearance: none; cursor: pointer; width: 100%; text-align: center; padding: 10px 12px;
+  border-radius: 8px; border: 1px solid var(--accent); background: transparent; color: var(--accent);
+  font-size: 13px; font-weight: 600;
+}
+.rm-explain-btn:hover { background: rgba(56,139,253,.10); }
+.rm-explain-btn[disabled] { opacity: .6; cursor: default; }
+.rm-explain-out { margin-top: 8px; padding: 11px 12px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-muted); font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
+.rm-explain-out[hidden] { display: none; }
+.rm-explain-meta { margin-top: 8px; font-size: 11px; color: var(--text-secondary); }
+
+/* ── per-card Tier-3 refine / gloss / recall / mark / editors ────────────────── */
+.rm-refine { margin-top: 12px; }
+.rm-refine-btn {
+  appearance: none; cursor: pointer; width: 100%; text-align: center; padding: 10px 12px;
+  border-radius: 8px; border: 1px dashed var(--accent); background: transparent; color: var(--accent);
+  font-size: 13px; font-weight: 600;
+}
+.rm-refine-btn:hover { background: rgba(56,139,253,.10); }
+.rm-refine-confirm { margin-top: 8px; padding: 11px 12px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-muted); }
+.rm-refine-confirm[hidden] { display: none; }
+.rm-refine-note { font-size: 12px; line-height: 1.4; color: var(--text-secondary); margin-bottom: 10px; }
+.rm-refine-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.rm-refine-go { appearance: none; cursor: pointer; padding: 8px 13px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-contrast); font-size: 13px; font-weight: 700; }
+.rm-refine-all { appearance: none; cursor: pointer; padding: 8px 13px; border-radius: 8px; border: 1px solid var(--border-soft); background: var(--bg-card); color: var(--text-secondary); font-size: 12px; font-weight: 600; }
+.rm-refine-busy, .rm-refine-miss { font-size: 12px; color: var(--text-secondary); padding: 4px 2px; }
+.rm-meaning { font-size: 16px; line-height: 1.4; color: var(--text-primary); margin-bottom: 12px; }
+.rm-meaning-empty { color: var(--text-faint); font-style: italic; }
+/* Retention P5 — reveal-then-grade recall strip («вспомни» mode). */
+.rm-recall {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 10px 0 12px;
+  padding: 10px 12px; border: 1.5px dashed var(--ws-due); border-radius: 10px;
+}
+.rm-recall-k { flex: 1 1 100%; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+.rm-recall-grade .rm-recall-k { flex: 1 1 100%; }
+.rm-recall button { width: auto; appearance: none; cursor: pointer; border-radius: 8px; font: inherit; font-size: 14px; font-weight: 700; padding: 9px 14px; }
+.rm-recall-reveal { flex: 1 1 auto; background: var(--accent); color: var(--accent-contrast); border: 1px solid var(--accent); }
+.rm-recall-yes { flex: 1 1 auto; background: var(--ws-l3-fill); border: 1px solid var(--ws-l3); color: var(--text-primary); }
+.rm-recall-no { flex: 1 1 auto; background: var(--ws-l1-fill); border: 1px solid var(--ws-l1); color: var(--text-primary); }
+.rm-recall-done { border-style: solid; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+/* P5.6 R-3 — quiet schedule-provenance line («Повтор: …» / «не в расписании») */
+.rm-srs-line { margin: 2px 0 10px; font-size: 12px; font-weight: 600; color: var(--ws-due); }
+.rm-srs-line.rm-srs-none { color: var(--text-faint); font-weight: 500; }
+/* P5.7 Т1 — in-card closure after a level mark. */
+.rm-markok {
+  margin: 6px 0 12px; padding: 8px 10px; border-radius: 8px;
+  background: color-mix(in srgb, var(--ws-l3) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ws-l3) 40%, transparent);
+}
+.rm-markok-head { font-size: 13px; font-weight: 700; color: var(--prov-exact); }
+.rm-markok-explain { margin-top: 4px; font-size: 12px; line-height: 1.4; color: var(--text-secondary); }
+/* P5.7 Т1 — brief pulse on the just-marked word (rm-w-pulse НЕ в _RM_W_CLASSES). */
+@keyframes rmWPulse { 0% { box-shadow: 0 0 0 0 rgba(219,39,119,.55); } 100% { box-shadow: 0 0 0 9px rgba(219,39,119,0); } }
+.rm-w.rm-w-pulse { animation: rmWPulse .9s ease-out 1; border-radius: 4px; }
+@media (prefers-reduced-motion: reduce) { .rm-w.rm-w-pulse { animation: none; outline: 2px solid var(--ws-due); outline-offset: 1px; } }
+/* T-b — learner's own translation: «ваш» provenance + inline editor. */
+.rm-meaning-mine { font-size: 11px; font-weight: 700; font-style: normal; vertical-align: 2px;
+  color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-radius: 6px; padding: 1px 6px; margin-inline-start: 6px; }
+.rm-meaning-add, .rm-meaning-edit {
+  font-family: inherit; cursor: pointer; border: 1px solid var(--border-soft);
+  background: var(--bg-muted); color: var(--accent); border-radius: 8px; }
+.rm-meaning-add { font-size: 13px; font-style: normal; font-weight: 600; padding: 3px 10px; margin-inline-start: 6px; }
+.rm-meaning-edit { font-size: 12px; padding: 1px 6px; margin-inline-start: 6px; line-height: 1.4; }
+.rm-meaning-editor { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: -4px 0 12px; }
+.rm-meaning-editor[hidden] { display: none; }   /* author display:flex would otherwise beat UA [hidden] */
+.rm-meaning-input { flex: 1 1 140px; min-width: 0; font: inherit; font-size: 15px;
+  padding: 7px 10px; border: 1px solid var(--accent); border-radius: 8px;
+  background: var(--bg-card); color: var(--text-primary); }
+.rm-meaning-input:focus { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+.rm-meaning-save, .rm-meaning-cancel { font: inherit; font-size: 13px; font-weight: 600;
+  cursor: pointer; border-radius: 8px; padding: 7px 12px; width: auto; }
+.rm-meaning-save { background: var(--accent); color: #fff; border: 1px solid var(--accent); }
+.rm-meaning-save:disabled { opacity: .6; cursor: default; }
+.rm-meaning-cancel { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-soft); }
+/* F4 — rival readings of an ambiguous (homograph) cell. */
+.rm-alts { font-size: 13px; line-height: 1.35; color: var(--text-secondary); margin: -6px 0 12px; }
+.rm-alts-k { color: var(--text-faint); }
+/* Epic-3b — curated «Употребление» (function-word usage) section. */
+.rm-usage { margin: 4px 0 14px; padding: 10px 12px; border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg-muted));
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border-soft)); }
+.rm-usage-title { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 6px; }
+.rm-usage-role { font-size: 14px; line-height: 1.45; color: var(--text-primary); margin-bottom: 8px; }
+.rm-usage-row { font-size: 13px; line-height: 1.4; margin: 4px 0; color: var(--text-secondary); }
+.rm-usage-k { color: var(--text-faint); font-weight: 600; }
+.rm-usage-v { color: var(--text-primary); }
+.rm-usage-chips { font-size: 13px; margin: 7px 0; color: var(--text-faint); }
+.rm-u-chip { display: inline-flex; gap: 5px; align-items: baseline; margin: 3px 4px 0 0;
+  padding: 3px 8px; border-radius: 7px; background: var(--bg-muted); border: 1px solid var(--border-soft);
+  color: var(--text-primary); }
+.rm-u-chip b { font-size: 16px; font-weight: 600; }
+.rm-u-chip span { color: var(--text-secondary); }
+.rm-usage-pit { font-size: 13px; line-height: 1.4; margin: 8px 0 4px; padding: 7px 9px; border-radius: 8px;
+  color: var(--text-secondary);
+  background: color-mix(in srgb, #d29922 12%, transparent);
+  border: 1px solid color-mix(in srgb, #d29922 30%, transparent); }
+.rm-usage-reg { font-size: 12px; color: var(--text-faint); font-style: italic; margin-top: 6px; }
+.rm-usage-ex { margin-top: 8px; font-size: 13px; }
+.rm-usage-ex > summary { cursor: pointer; font-weight: 600; color: var(--text-secondary); }
+.rm-usage-exrow { display: flex; flex-direction: column; gap: 2px; margin: 7px 0; padding-inline-start: 8px;
+  border-inline-start: 2px solid var(--border-soft); }
+.rm-u-he { font-size: 16px; color: var(--text-primary); }
+.rm-u-ru { font-size: 13px; color: var(--text-secondary); }
+/* Phase-3 — «Приставки» chip-row. */
+.rm-proclitics { margin: 10px 0 4px; padding: 9px 11px; border-radius: 10px;
+  background: var(--bg-muted); border: 1px solid var(--border-soft); }
+.rm-proc-trivial { opacity: .7; padding: 6px 10px; }
+.rm-proc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 7px; }
+.rm-proc-title { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--text-faint); }
+.rm-proc-count { color: var(--text-faint); font-weight: 600; }
+.rm-proc-prov { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 6px; white-space: nowrap; }
+.rm-proc-conf { color: #1f883d; background: color-mix(in srgb, #1f883d 12%, transparent);
+  border: 1px solid color-mix(in srgb, #1f883d 30%, transparent); }
+.rm-proc-hedge { color: #d29922; background: color-mix(in srgb, #d29922 12%, transparent);
+  border: 1px solid color-mix(in srgb, #d29922 28%, transparent); }
+.rm-proc-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.rm-proc-chip { appearance: none; width: auto; text-align: start; cursor: default; font: inherit;
+  display: inline-flex; align-items: baseline; gap: 6px; padding: 5px 9px; border-radius: 8px;
+  background: var(--bg); color: var(--text-primary); border: 1px solid var(--border-soft); }
+button.rm-proc-chip { cursor: pointer; }
+button.rm-proc-chip:hover { border-color: var(--accent); }
+.rm-proc-fused { border-style: dashed; }
+.rm-proc-he { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.rm-proc-role { font-size: 12px; color: var(--text-secondary); }
+.rm-proc-flag { font-size: 10px; color: var(--text-faint); font-style: italic; }
+/* F5 — table shown under a non-«точно» reading is a possible paradigm, flagged amber. */
+.rm-acc-uncertain > .rm-acc-sum { color: #d29922; }
+.rm-rows { display: flex; flex-direction: column; gap: 6px; }
+.rm-row { display: flex; gap: 10px; font-size: 14px; }
+.rm-k { flex: none; min-width: 88px; color: var(--text-secondary); }
+.rm-v { color: var(--text-primary); font-weight: 600; }
+.rm-v[lang="he"] { font-size: 18px; }
+.rm-actions { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+.rm-link {
+  display: inline-block; padding: 9px 13px; border-radius: 8px; text-decoration: none;
+  background: var(--bg-muted); color: var(--text-primary); border: 1px solid var(--border-soft);
+  font-size: 13px; font-weight: 600;
+}
+.rm-link:hover { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
+.rm-loading, .rm-card-empty { color: var(--text-secondary); font-size: 14px; padding: 14px 2px; }
+/* lifecycle + save (BRR-P1-009 note-capture) */
+.rm-badges { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 5px; flex: none; }
+.rm-life { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; background: var(--bg-muted); color: var(--text-secondary); }
+.rm-life[hidden] { display: none; }
+.rm-life-known { background: rgba(46,160,67,.16); color: #3fb950; }
+.rm-life-learning { background: rgba(56,139,253,.16); color: #5a9bff; }
+.rm-life-in_anki { background: rgba(163,113,247,.16); color: #a371f7; }
+.rm-life-suspended { background: var(--bg-muted); color: var(--text-faint); }
+.rm-save {
+  appearance: none; cursor: pointer; border: 1px solid var(--accent); border-radius: 8px;
+  background: var(--accent); color: var(--accent-contrast); font-size: 13px; font-weight: 700; padding: 9px 14px;
+}
+.rm-save:disabled { opacity: .6; cursor: default; }
+.rm-save-done { background: transparent; color: var(--accent); border-color: var(--accent); }
+.rm-note-editor { width: 100%; box-sizing: border-box; margin-top: 12px; padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--border-soft)); border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--bg)); text-align: start; }
+.rm-note-editor[hidden] { display: none; }
+.rm-note-editor-head { margin-bottom: 12px; color: var(--text-primary); }
+.rm-note-editor-hint { margin-top: 3px; color: var(--text-secondary); font-size: 12px; line-height: 1.45; }
+.rm-note-field { display: grid; gap: 5px; margin-top: 10px; color: var(--text-secondary); font-size: 12px; font-weight: 650; }
+.rm-note-field input, .rm-note-field textarea { width: 100%; box-sizing: border-box; border: 1px solid var(--border-soft);
+  border-radius: 8px; background: var(--bg); color: var(--text-primary); font: inherit; font-weight: 400; font-size: 14px;
+  line-height: 1.45; padding: 9px 10px; resize: vertical; }
+.rm-note-field input:focus, .rm-note-field textarea:focus { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; border-color: var(--accent); }
+.rm-note-reference { margin-top: 6px; color: var(--text-secondary); font-size: 11.5px; line-height: 1.4; }
+.rm-note-reference[hidden] { display: none; }
+.rm-note-editor-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.rm-note-save, .rm-note-cancel { appearance: none; cursor: pointer; border-radius: 8px; padding: 9px 13px; font: inherit; font-size: 13px; font-weight: 700; }
+.rm-note-save { border: 1px solid var(--accent); background: var(--accent); color: var(--accent-contrast); }
+.rm-note-cancel { border: 1px solid var(--border-soft); background: var(--bg-muted); color: var(--text-primary); }
+.rm-note-save:disabled { opacity: .6; cursor: default; }
+.rm-note-status { min-height: 18px; margin-top: 8px; color: var(--text-secondary); font-size: 12px; }
+
+/* ── word-status раскраска в тексте (Epic 4; honest gate — см. легенду) ──────── */
+.rm-w-new { background: var(--ws-new-fill); border-radius: 3px; }
+.rm-w-l1 { background: var(--ws-l1-fill); border-radius: 3px; }
+.rm-w-l2 { background: var(--ws-l2-fill); border-radius: 3px; }
+.rm-w-l3 { background: var(--ws-l3-fill); border-radius: 3px; }
+.rm-w-l4 { background: var(--ws-l4-fill); border-radius: 3px; }
+.rm-w-known { background: var(--ws-known-fill); border-radius: 3px; }
+.rm-w-ignore { background: var(--ws-ignore-fill); border-radius: 3px; }
+.rm-w-learning { background: var(--ws-l2-fill); border-radius: 3px; }   /* SRS-derived (Anki) → orange */
+/* Retention P5 — quiet due-review ring (фон = ось статуса; кольцо = due). */
+.rm-w-due::after {
+  content: ""; display: inline-block; width: 5px; height: 5px; margin: 0 2px;
+  border: 1.5px solid var(--ws-due); border-radius: 50%; vertical-align: super; opacity: .9;
+}
+.rm-w.rm-w-active { background: var(--accent); color: var(--accent-contrast); }   /* tapped word wins over fill */
+
+/* ── Tier-3 one-time consent (R5) ────────────────────────────────────────────── */
+.room-consent-overlay {
+  position: fixed; inset: 0; z-index: 1400; background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.room-consent {
+  background: var(--bg-card); color: var(--text-primary); border-radius: 14px; max-width: 380px;
+  width: 100%; padding: 20px; box-shadow: 0 12px 40px rgba(0,0,0,.35);
+}
+.room-consent-title { font-size: 17px; font-weight: 800; margin-bottom: 10px; }
+.room-consent-body { font-size: 13.5px; line-height: 1.5; color: var(--text-secondary); margin-bottom: 18px; }
+.room-consent-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.room-consent-actions button { width: auto; padding: 9px 16px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; border: 1px solid var(--border-soft); }
+.room-consent-no { background: transparent; color: var(--text-secondary); }
+.room-consent-yes { background: var(--accent, #2563eb); color: #fff; border-color: transparent; }
+
+/* ── Stage 2 — rich card: collapsible root-family + status selector ──────────── */
+.rm-acc { margin-top: 12px; border-top: 1px solid var(--border-soft); padding-top: 8px; }
+.rm-acc-sum { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--text-secondary); list-style: none; padding: 4px 0; }
+.rm-acc-sum::-webkit-details-marker { display: none; }
+.rm-acc-sum::before { content: "▸ "; opacity: .6; }
+.rm-acc[open] > .rm-acc-sum::before { content: "▾ "; }
+/* Epic-3a — root-family chips. */
+.rm-rootfam { display: flex; flex-wrap: wrap; gap: 7px; padding: 6px 0 2px; }
+.rm-rootfam-chip {
+  appearance: none; cursor: pointer; width: auto; text-align: start;
+  display: flex; flex-direction: column; gap: 2px; min-width: 70px;
+  background: var(--bg-muted); color: var(--text-primary); border: 1px solid var(--border-soft);
+  border-radius: 9px; padding: 6px 10px;
+}
+.rm-rootfam-chip:hover { border-color: var(--accent); }
+.rm-fam-he { font-size: 17px; font-weight: 700; line-height: 1.15; }
+.rm-fam-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 7px; }
+.rm-fam-pos { font-size: 10.5px; color: var(--text-faint); }
+.rm-fam-gloss { font-size: 12px; color: var(--text-secondary); }
+/* status tint — family chips carry the SAME --ws-* palette (colour ≠ only cue, WCAG). */
+.rm-rootfam-chip.rm-fam-new { border-inline-start-color: var(--ws-new); border-inline-start-width: 3px; }
+.rm-rootfam-chip.rm-fam-l1 { border-inline-start-color: var(--ws-l1); border-inline-start-width: 3px; }
+.rm-rootfam-chip.rm-fam-l2 { border-inline-start-color: var(--ws-l2); border-inline-start-width: 3px; }
+.rm-rootfam-chip.rm-fam-l3 { border-inline-start-color: var(--ws-l3); border-inline-start-width: 3px; }
+.rm-rootfam-chip.rm-fam-l4 { border-inline-start-color: var(--ws-l4); border-inline-start-width: 3px; }
+.rm-rootfam-chip.rm-fam-known { border-inline-start-color: var(--ws-known); border-inline-start-width: 3px; }
+.rm-rootfam-chip.rm-fam-learning { border-inline-start-color: var(--ws-l2); border-inline-start-width: 3px; }
+.rm-rootfam-chip.rm-fam-ignore { border-inline-start-color: var(--ws-ignore); border-inline-start-width: 3px; opacity: .7; }
+/* Epic 4 — one-tap manual status selector (Anki-style SOLID chips). */
+.rm-status { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 14px; }
+.rm-status-k { font-size: 12px; color: var(--text-secondary); margin-inline-end: 2px; }
+.rm-status-btn {
+  appearance: none; cursor: pointer; min-width: 32px; padding: 6px 11px; border-radius: 8px;
+  border: 1px solid transparent; background: var(--bg-muted); color: #fff;
+  font-size: 12.5px; font-weight: 700; line-height: 1;
+}
+.rm-status-btn.rm-status-new    { background: var(--ws-new); }
+.rm-status-btn.rm-status-l1     { background: var(--ws-l1); }
+.rm-status-btn.rm-status-l2     { background: var(--ws-l2); }
+.rm-status-btn.rm-status-l3     { background: var(--ws-l3); }
+.rm-status-btn.rm-status-l4     { background: var(--ws-l4); }
+.rm-status-btn.rm-status-known  { background: var(--ws-known); }
+.rm-status-btn.rm-status-ignore { background: var(--ws-ignore); }
+.rm-status-btn:hover { filter: brightness(1.08); }
+.rm-status-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.rm-status-btn.rm-status-active { box-shadow: inset 0 0 0 2px rgba(255,255,255,.85), 0 0 0 2px var(--text-primary); font-weight: 800; }
+/* Epic 4 — visible status-colour legend (solid dots = chip colours). */
+.reader-status-legend { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 6px 0 2px; }
+.reader-status-sw { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--text-secondary); }
+.reader-status-dot { width: 13px; height: 13px; border-radius: 4px; flex: none; }
+.reader-status-dot.sw-new { background: var(--ws-new); }
+.reader-status-dot.sw-l1 { background: var(--ws-l1); }
+.reader-status-dot.sw-l2 { background: var(--ws-l2); }
+.reader-status-dot.sw-l3 { background: var(--ws-l3); }
+.reader-status-dot.sw-l4 { background: var(--ws-l4); }
+.reader-status-dot.sw-known { background: var(--ws-known); }
+.reader-status-dot.sw-ignore { background: var(--ws-ignore); }
+/* Epic 4.2 — in-text quick-status popover (long-press). */
+.rm-statpop { position: fixed; z-index: 1300; }
+.rm-statpop[hidden] { display: none; }
+.rm-statpop-inner {
+  display: flex; flex-wrap: wrap; gap: 5px; max-width: 300px; padding: 8px;
+  background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.30);
+}
+
+/* ── Epic-3a — pronounce-headword button ─────────────────────────────────────── */
+.rm-word-wrap { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.rm-speak {
+  appearance: none; cursor: pointer; flex: none; width: 32px; height: 32px; padding: 0; line-height: 1;
+  border-radius: 8px; border: 1px solid var(--border-soft); background: var(--bg-muted); font-size: 15px;
+}
+.rm-speak:hover { border-color: var(--accent); background: var(--accent); }
+.rm-speak:active { transform: scale(.94); }
+
+/* ── ported .v3-conj-* (Pealim table) внутри карточки ────────────────────────── */
+.rm-conj-body { margin-top: 6px; }
+.rm-conj-body .v3-conj-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 6px; }
+.rm-conj-body .v3-conj-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 7px; background: #0F766E; color: #fff; white-space: nowrap; }
+.rm-conj-body .v3-conj-recheck { font-size: 11.5px; font-weight: 600; color: var(--accent); text-decoration: none; }
+.rm-conj-body .v3-conj-recheck:hover { text-decoration: underline; }
+.rm-conj-body .v3-conj-rootlabel { font-size: 11px; color: var(--text-secondary); font-weight: 600; }
+.rm-conj-body .v3-conj-gizra { font-size: 11px; color: var(--text-faint); }
+.rm-conj-body .v3-conj-besteffort { font-size: 11px; color: #d29922; background: rgba(210,153,34,.12); border: 1px dashed #d29922; border-radius: 7px; padding: 3px 8px; margin-bottom: 6px; }
+.rm-conj-body .v3-conj-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+.rm-conj-body .v3-conj-cell {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 1px; min-width: 62px; width: auto;
+  padding: 3px 8px; border-radius: 8px; cursor: pointer; background: var(--bg-muted);
+  border: 1px solid var(--border-soft); font-family: inherit;
+}
+.rm-conj-body .v3-conj-cell:hover { border-color: var(--accent); }
+.rm-conj-body .v3-conj-cell-hl { background: rgba(240,136,62,.18); border-color: #f0883e; box-shadow: inset 0 0 0 1px #f0883e; }
+.rm-conj-body .v3-conj-cell-hl .v3-conj-he { color: #f0883e; }
+.rm-conj-body .v3-conj-he { font-size: 16px; font-weight: 600; color: var(--text-primary); direction: rtl; }
+.rm-conj-body .v3-conj-lab { font-size: 9px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; }
+.rm-conj-body .v3-conj-tr { font-size: 9.5px; color: var(--text-faint); font-style: italic; }
+.rm-conj-body .v3-conj-tr .v3-conj-stress { color: #f0883e; font-weight: 700; font-style: normal; }
+.rm-conj-body .v3-conj-group { margin-top: 8px; }
+.rm-conj-body .v3-conj-group-h { font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .03em; margin-bottom: 4px; }
+.rm-conj-body .v3-conj-voice-h { font-size: 12px; font-weight: 800; color: var(--text-primary); margin: 12px 0 4px; padding-bottom: 3px; border-bottom: 1px solid var(--border-soft); }
+.rm-conj-body .v3-conj-note, .rm-conj-body .v3-conj-empty { font-size: 11px; color: var(--text-faint); margin-top: 6px; }
+.rm-conj-body .v3-conj-invariant { margin-top: 2px; }
+.rm-conj-body .v3-conj-cell-lg { min-width: 96px; padding: 8px 14px; }
+.rm-conj-body .v3-conj-cell-lg .v3-conj-he { font-size: 22px; }
