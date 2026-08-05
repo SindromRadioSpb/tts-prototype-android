@@ -584,42 +584,40 @@ function setReaderReturnRoute(route) {
 // Empty is fine: audio falls back to keyless browser SpeechSynthesis.
 function gcpTtsKey() { try { return localStorage.getItem('v3.gcpTtsApiKey') || ''; } catch (_) { return ''; } }
 
+// ── MorphHost — ОБЩИЙ хост памяти слова (Зал+Студия, одна реализация, форк запрещён) ──
+// Канон метки/оценки/заметок/consent/кэша статусов переехал в /js/morph-host.js;
+// здесь остаются тонкие делегаты с прежними именами. env-замыкания читают
+// поверхностные зависимости ЛЕНИВО (на вызове), поэтому объявление сверху безопасно.
+const morphHost = window.MorphHost.createHost({
+  ldb: async () => localDb,
+  getTextKey: async () => readerTextKey || null,
+  toast: (m) => roomToast(m),
+  onProfileChanged: () => {
+    // объединённый хук поверхности: исходные пути имели подмножества этих действий
+    // (save: invalidateReadableSet+applyDecorations; grade: _asdCache+applyDecorations+
+    // refreshDueBadge; mark-обёртка добавляла своё) — объединение корректно, лишние
+    // инвалидации только к ленивым пересчётам
+    _asdCache = null;
+    try { invalidateReadableSet(); } catch (_) {}
+    try { applyDecorations(); } catch (_) {}
+    try { refreshDueBadge(); } catch (_) {}
+  },
+  getTtsKey: () => gcpTtsKey(),
+  dayStr: () => _localDayStr(),
+  getDueNowCount: () => (_dueCounts && _dueCounts.dueNow) || 0,
+  getContextOverlay: () => _ctxOverlay,
+  applyI18n: () => { try { window.applyI18n && window.applyI18n(); } catch (_) {} },
+});
+
 // Epic-3a — pronounce a single Hebrew word (card headword). BYOK GCP TTS (WaveNet quality) when
 // a key is set, else keyless browser SpeechSynthesis. Self-contained (no row timing/caching),
 // offline-safe (any GCP failure falls back to browser — no dead-end). Same /api/tts contract as rows.
-let _wordAudio = null;
-function browserSpeakWord(he) {
-  try {
-    if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') return;
-    const u = new SpeechSynthesisUtterance(he);
-    u.lang = 'he-IL'; u.rate = 0.9;
-    try { const v = (window.speechSynthesis.getVoices() || []).find((x) => /^(he|iw)/i.test(x.lang || '')); if (v) u.voice = v; } catch (_) {}
-    window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
-  } catch (_) {}
-}
-async function speakWord(text) {
-  const he = String(text || '').trim();
-  if (!he) return;
-  const key = gcpTtsKey();
-  if (!key) { browserSpeakWord(he); return; }                 // keyless → browser
-  try {
-    const r = await fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: he, language: 'he-IL', voiceId: '', speakingRate: 0.95, pitch: 0.0, gcpTtsApiKey: key, withTimepoints: false }) });
-    if (!r.ok) throw new Error('tts ' + r.status);
-    const res = await r.json();
-    let src = '';
-    if (res && res.assetKey) src = '/api/audio/' + encodeURIComponent(String(res.assetKey).trim());
-    else if (res && res.audioContent) { const bytes = Uint8Array.from(atob(res.audioContent), (c) => c.charCodeAt(0)); src = URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' })); }
-    if (!src) throw new Error('no audio');
-    if (!_wordAudio) _wordAudio = new Audio();
-    try { _wordAudio.pause(); } catch (_) {}
-    _wordAudio.src = src; await _wordAudio.play();
-  } catch (_) { browserSpeakWord(he); }                       // GCP miss/offline → browser, never a dead-end
-}
+// Тело переехало в morph-host.js (аудио-синглтон живёт там же — один <audio> на поверхность).
+async function speakWord(text) { return morphHost.speakWord(text); }
 // D6/D2 — play a cloze SENTENCE's audio for the «🎧 Аудио» channel from the built item (source-agnostic:
 // open-text rows AND cross-text due items both carry built.audioAssetKey). tier-1 baked/cached asset
 // (keyless /api/audio/<assetKey>, the always-available canon path) → else speakWord the sentence text
-// (BYOK GCP → browser voice). Reuses the single _wordAudio element; reader-core (parity-locked) untouched.
+// (BYOK GCP → browser voice). Reuses the morph-host audio singleton; reader-core (parity-locked) untouched.
 async function _playSentenceAudio(built) {
   if (!built) return;
   const ak = String(built.audioAssetKey || '').trim();
@@ -627,9 +625,7 @@ async function _playSentenceAudio(built) {
     try {
       const h = await fetch('/api/audio/' + encodeURIComponent(ak), { method: 'HEAD' });
       if (h && h.ok) {
-        if (!_wordAudio) _wordAudio = new Audio();
-        try { _wordAudio.pause(); } catch (_) {}
-        _wordAudio.src = '/api/audio/' + encodeURIComponent(ak); await _wordAudio.play(); return;
+        await morphHost.playUrl('/api/audio/' + encodeURIComponent(ak)); return;
       }
     } catch (_) {}
   }
@@ -637,10 +633,7 @@ async function _playSentenceAudio(built) {
   try { speakWord(String(built.sentence || '')); } catch (_) {}
 }
 // D6 — stop any in-flight word/row audio (so switching channel or advancing never overlaps playback).
-function _stopTrainAudio() {
-  try { if (_wordAudio) _wordAudio.pause(); } catch (_) {}
-  try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (_) {}
-}
+function _stopTrainAudio() { morphHost.stopAudio(); }
 // D6 — training extraction CHANNEL (device-local view pref, like the streak off-switch). 'read' default.
 function trainChannel() { try { return localStorage.getItem('room.trainChannel') || 'read'; } catch (_) { return 'read'; } }
 function trainChannelSet(c) { try { localStorage.setItem('room.trainChannel', c); } catch (_) {} }
@@ -665,120 +658,24 @@ function _trainAudioCaps(items) {
 // keyless he-voice probe is reliable by the time training opens. Best-effort; a BYOK key is the sure path.
 try { if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.getVoices(); } catch (_) {}
 
-// BRR-P1-009 — word-status colouring (opt-in). The lemmaKey→state map is built once
-// per reader session from the user's OPFS notes; enabling the toggle warms the morph
-// engine (3.3 MB dict) + paints, so the DEFAULT reader-open stays light + offline-cheap.
-let readerWordStates = null; // cached {lemmaKey: state}
-let readerWordStatesLoading = null; // single-flight guard (S3: 796 cards call ensureWordStates at once)
+// BRR-P1-009 — word-status colouring (opt-in). Кэш statuses живёт в morphHost
+// (single-flight, референс-стабильный) — здесь только делегаты с прежними именами.
 function wordStatusEnabled() { try { return localStorage.getItem('room.wordStatus') === '1'; } catch (_) { return false; } }
 function wordStatusSet(v) { try { localStorage.setItem('room.wordStatus', v ? '1' : '0'); } catch (_) {} }
-// Tier-3 «точный режим» (context disambiguation). Owner choice: AUTO on every tap once the
-// user gives a one-time consent (the outbound to Dicta is privacy-sensitive — R5). The
-// provider is ALWAYS wired; it gates per-tap on the consent state ('granted'|'declined'|'').
-// On the first tap while undecided it resolves OFFLINE and raises a one-time consent prompt.
-// Per-sentence promise cache so multiple taps in one row = one Dicta call; cleared on (re)attach.
-function contextConsent() {
-  try {
-    const c = localStorage.getItem('room.contextConsent');
-    if (c === 'granted' || c === 'declined') return c;
-    if (localStorage.getItem('room.contextMode') === '1') return 'granted';   // migrate legacy opt-in
-    return '';
-  } catch (_) { return ''; }
-}
-function contextConsentSet(v) {
-  try { localStorage.setItem('room.contextConsent', v); localStorage.setItem('room.contextMode', v === 'granted' ? '1' : '0'); } catch (_) {}
-}
-let _ctxCache = new Map();
-let _ctxConsentAsked = false;          // session debounce for the prompt
+// Tier-3 «точный режим» — consent-состояние/диалог/провайдеры в morphHost (ОБЩИЕ
+// localStorage-ключи room.contextConsent/room.contextMode на обеих поверхностях).
+const contextConsent = () => morphHost.contextConsent();
+const contextConsentSet = (v) => morphHost.contextConsentSet(v);
 // Context-overlay (strategic #1, recon §3.3/§10): the open work's BAKED context sidecar.
 // Set on work open (loadContextOverlay), reset on every open — never leaks across works.
 let _ctxOverlay = null;
 function setContextOverlay(ov) { _ctxOverlay = (ov && typeof ov === 'object') ? ov : null; }
-function makeContextProvider() {
-  return async function (sentence, surface) {
-    const consent = contextConsent();
-    // declined = the user opted OUT of context readings as such, not merely of the network —
-    // honored for the baked path too (recon §10 R11-F8).
-    if (consent === 'declined') return null;
-    // 1) BAKED overlay first: offline, deterministic, zero outbound → no consent needed (D6).
-    //    An authoritative miss means the bake fully evaluated this sentence and found no
-    //    applicable improvement — the offline card stands, live is NOT consulted.
-    if (_ctxOverlay && window.ReaderMorph && window.ReaderMorph.overlayContext) {
-      const r = window.ReaderMorph.overlayContext(_ctxOverlay, String(sentence || ''), surface);
-      if (r && r.ctx) return r.ctx;
-      if (r && r.authoritative) return null;
-      // unknown sentence / stale resolver → fall through to the live path (un-baked semantics)
-    }
-    // 2) LIVE Dicta (un-baked/imported works, unknown sentences) — consent-gated as before.
-    if (consent !== 'granted') { promptContextConsent(); return null; }   // undecided → ask once, offline this tap
-    const key = String(sentence || '');
-    if (!key || !window.ReaderDicta) return null;
-    let p = _ctxCache.get(key);
-    if (!p) { p = window.ReaderDicta.analyzeSentence(key).catch(() => null); _ctxCache.set(key, p); }
-    const res = await p;
-    if (!res || !res.ok || res.degraded || !Array.isArray(res.tokens)) return null;
-    const tok = window.ReaderDicta.tokenForSurface(res.tokens, surface);
-    // st = Dicta's stem segmentation — the promotion guard's input (identical to the baked path)
-    return (tok && tok.niqqud) ? { niqqud: tok.niqqud, posDicta: tok.posDicta, lemma: tok.lemma, st: tok.stem || '', source: 'live' } : null;
-  };
-}
-// One-time consent prompt (R5): explains the outbound, then auto-fires on every tap if granted.
-function promptContextConsent() {
-  if (_ctxConsentAsked || contextConsent()) return;
-  _ctxConsentAsked = true;
-  const overlay = el('div', { class: 'room-consent-overlay' });
-  const box = el('div', { class: 'room-consent', attrs: { role: 'dialog', 'aria-modal': 'true' } });
-  box.appendChild(el('div', { class: 'room-consent-title', i18n: 'room.morph.consentTitle', text: tt('room.morph.consentTitle', 'Уточнять значения по контексту?') }));
-  box.appendChild(el('div', { class: 'room-consent-body', i18n: 'room.morph.consentBody', text: tt('room.morph.consentBody', 'Точный режим отправляет предложение в облако Dicta при каждом тапе по слову, чтобы выбрать значение по контексту (гомографы). Машинный разбор, не носитель. Можно отключить в «Подсказках чтения».') }));
-  const actions = el('div', { class: 'room-consent-actions' });
-  const no = el('button', { class: 'room-consent-no', i18n: 'room.morph.consentNo', text: tt('room.morph.consentNo', 'Не сейчас') });
-  const yes = el('button', { class: 'room-consent-yes', i18n: 'room.morph.consentYes', text: tt('room.morph.consentYes', 'Включить') });
-  const finish = (v) => { contextConsentSet(v); try { overlay.remove(); } catch (_) {} };
-  no.addEventListener('click', () => finish('declined'));
-  yes.addEventListener('click', () => { finish('granted'); roomToast(tt('room.morph.consentOn', 'Точный режим включён')); });
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) { try { overlay.remove(); } catch (_) {} } });   // dismiss = undecided (asks again next session)
-  actions.appendChild(no); actions.appendChild(yes); box.appendChild(actions); overlay.appendChild(box);
-  document.body.appendChild(overlay);
-  try { window.applyI18n && window.applyI18n(); } catch (_) {}
-}
-// Epic-2 #2 — per-card refine. canRefine() decides whether the card OFFERS the «уточнить»
-// button: only when ONLINE and the global auto-mode is OFF (granted users already auto-refine
-// every tap, so the button would be redundant). Offline → false → the card hides it (R5: no
-// outbound affordance when we couldn't reach Dicta anyway). makeRefineProvider does the ONE-OFF
-// Dicta call WITHOUT consulting consent — the explicit per-card confirm is the consent.
-function canRefine() { try { return !!navigator.onLine && contextConsent() !== 'granted'; } catch (_) { return false; } }
-function makeRefineProvider() {
-  return async function (sentence, surface) {
-    if (typeof navigator !== 'undefined' && navigator.onLine === false) return null;   // never reach out offline
-    const key = String(sentence || '');
-    if (!key || !window.ReaderDicta) return null;
-    let p = _ctxCache.get(key);
-    if (!p) { p = window.ReaderDicta.analyzeSentence(key).catch(() => null); _ctxCache.set(key, p); }
-    const res = await p;
-    if (!res || !res.ok || res.degraded || !Array.isArray(res.tokens)) return null;
-    const tok = window.ReaderDicta.tokenForSurface(res.tokens, surface);
-    return (tok && tok.niqqud) ? { niqqud: tok.niqqud, posDicta: tok.posDicta, lemma: tok.lemma, st: tok.stem || '', source: 'live' } : null;
-  };
-}
-async function ensureWordStates() {
-  if (readerWordStates) return readerWordStates;
-  // SINGLE-FLIGHT (critical): S3's per-card coverage badge calls this for EVERY corpus card
-  // (the ready rail alone is ~796). Without the guard, 796 concurrent getKnownWordStates()
-  // queries flood the OPFS SQLite worker queue and block openCorpusWork's importBundle write
-  // → texts won't open (worse with a large note profile, where each query is slow). The guard
-  // collapses them to ONE query that every caller awaits.
-  if (readerWordStatesLoading) return readerWordStatesLoading;
-  readerWordStatesLoading = (async () => {
-    // CRITICAL: a transient FIRST getKnownWordStates() failure right after boot (heavy on a 10K-note
-    // profile) used to be cached as {} — and `if (readerWordStates)` treats the empty object as
-    // "loaded", so it NEVER retried. The reader's whole profile (i+1 rail, coverage badges,
-    // word-status) then silently saw an empty profile. Fix: on error leave the cache NULL so the
-    // next call retries; only a successful load (even genuinely empty) is cached.
-    try { readerWordStates = await localDb.getKnownWordStates(); return readerWordStates; }
-    catch (_) { readerWordStates = null; return {}; }
-  })();
-  try { return await readerWordStatesLoading; } finally { readerWordStatesLoading = null; }
-}
+// Провайдеры Tier-3 / refine / consent-диалог / single-flight кэш статусов — morphHost.
+const makeContextProvider = () => morphHost.makeContextProvider();
+const promptContextConsent = () => morphHost.promptContextConsent();
+const canRefine = () => morphHost.canRefine();
+const makeRefineProvider = () => morphHost.makeRefineProvider();
+const ensureWordStates = () => morphHost.ensureWordStates();
 // BRR-P1-006/009 — apply BOTH word-status colouring and adaptive niqqud fade in ONE pass
 // (reader-morph resolves each word once). States are only fetched when a decoration needs them
 // (colour on, or niqqud 'adaptive'); otherwise a cheap clear restores plain/neutral.
@@ -1183,7 +1080,7 @@ async function _allSurfaceStudyDays() {
 }
 async function refreshDueBadge() {
   if (!window.ReaderMorph || typeof window.ReaderMorph.dueCounts !== 'function') return;
-  let states = readerWordStates, schedule = {};
+  let states = morphHost.peekWordStates(), schedule = {};
   try { if (!states) states = (await ensureWordStates()) || {}; } catch (_) { states = states || {}; }
   try { schedule = (await localDb.getSrsSchedule()) || {}; } catch (_) { schedule = {}; }
   _dueCounts = window.ReaderMorph.dueCounts(states || {}, schedule, Date.now());
@@ -1455,7 +1352,7 @@ async function onStudyStatusSet(btn) {
   row.dataset.cur = st;
   const w = _studyAll.find((x) => x.lemmaKey === lk); if (w) w._status = st;   // keep the row visible w/ new highlight (gentle; re-collect on re-open)
   row.querySelectorAll('.rm-status-btn').forEach((b) => b.classList.toggle('rm-status-active', b.getAttribute('data-study-status') === st));
-  readerWordStates = null;
+  morphHost.invalidateWordStates();
   try { invalidateReadableSet(); } catch (_) {}
   try { applyDecorations(); } catch (_) {}   // repaint the text — the wall recolours immediately
   try { refreshDueBadge(); } catch (_) {}    // D3 — «В работе» reflects the new level immediately
@@ -1483,7 +1380,7 @@ async function onStudyBulk(status) {
   const targets = filtered.slice(0, shown);
   if (!targets.length) return;
   for (const w of targets) { try { await markWordStatus(w.lemmaKey, status); } catch (_) {} w._status = status; }   // P5.6 R-2(a)
-  readerWordStates = null;
+  morphHost.invalidateWordStates();
   try { invalidateReadableSet(); } catch (_) {}
   try { applyDecorations(); } catch (_) {}
   try { refreshDueBadge(); } catch (_) {}   // D3 — bulk mark updates «В работе»
@@ -2364,7 +2261,7 @@ async function checkTrainAnswer(correct, skipped, mode) {
   // so the session-summary's fresh ledger read can't race a step behind this write.
   if (!skipped) { try { await localDb.recordRecall(_localDayStr(), s.dueAvail || 0); } catch (_) {} }
   _asdCache = null;   // R3.3 — the merged streak fold must see THIS answer immediately
-  readerWordStates = null;
+  morphHost.invalidateWordStates();
   try { invalidateReadableSet(); } catch (_) {}
   try { applyDecorations(); } catch (_) {}   // repaint the reader behind
   try { refreshDueBadge(); } catch (_) {}    // D3/D7 — schedule + ledger changed → badge + streak stay fresh for the summary
@@ -2413,7 +2310,7 @@ async function onTrainLeechIgnore(box) {
   const item = s.items[s.idx]; if (!item) return;
   try { await localDb.setWordStatus(item.lemmaKey, 'ignore'); } catch (_) {}
   item.status = 'ignore';
-  readerWordStates = null;
+  morphHost.invalidateWordStates();
   try { invalidateReadableSet(); } catch (_) {}
   try { applyDecorations(); } catch (_) {}
   try { refreshDueBadge(); } catch (_) {}
@@ -2548,155 +2445,20 @@ async function openStudyHeatmap() {
 // Reuses the Studio pipeline (NotesAutoGen.dedupKey + localDb canonical-note API). The
 // card (reader-morph) calls lookupNote on open + saveWord on «Сохранить». Idempotent
 // (one canonical note per lemma; re-save just adds an occurrence).
-function roomNoteBody(card) {
-  const body = {
-    word: card.word || '', niqqud_variant: card.niqqud || '',
-    root: card.root || '', lemma: card.lemma || '',
-    pos: card.pos || '', part_of_speech: card.pos || '',
-    binyan: card.binyan || '', meaning: card.meaning || '',
-  };
-  if (card.pealim_id) body.pealim_id = String(card.pealim_id);
-  return body;
-}
-function roomDedupKey(card) {
-  try { return window.NotesAutoGen ? window.NotesAutoGen.dedupKey(roomNoteBody(card)) : ''; } catch (_) { return ''; }
-}
-async function roomLookupNote(card) {
-  const dk = roomDedupKey(card);
-  if (!dk) return null;
-  let note; try { note = await localDb.findNoteByDedupKey(dk); } catch (_) { note = null; }
-  if (!note) return null;
-  let life = {}; try { life = await localDb.getWordNoteLifecycle([note.id]); } catch (_) {}
-  return { noteId: note.id, status: (life && life[note.id] && life[note.id].status) || 'created' };
-}
-async function roomLoadWordNote(card) {
-  const dk = roomDedupKey(card);
-  if (!dk) return null;
-  let note; try { note = await localDb.findNoteByDedupKey(dk); } catch (_) { note = null; }
-  if (!note) return null;
-  let body = {}; try { body = JSON.parse(note.body_json || '{}'); } catch (_) { body = {}; }
-  const meaningIsUser = body.meaning_source === 'user';
-  return {
-    noteId: note.id,
-    meaning: meaningIsUser ? String(body.meaning || '') : '',
-    referenceMeaning: String(body.reference_meaning || (!meaningIsUser ? body.meaning : '') || ''),
-    mnemonic: String(body.mnemonic || ''),
-    example: String(body.example_sentence || ''),
-    userTouched: Number(note.user_touched) === 1,
-  };
-}
-async function roomSaveWord(card, occ) {
-  const body = roomNoteBody(card);
-  const dk = roomDedupKey(card);
-  if (!dk) return null;
-  let note; try { note = await localDb.findNoteByDedupKey(dk); } catch (_) { note = null; }
-  if (!note) {
-    try {
-      note = await localDb.createCanonicalNote({
-        gen_dedup_key: dk, body, title: body.word || '', source: 'curated',
-        confidence: typeof card.confidence === 'number' ? card.confidence : null,
-        model_version: (window.InflectionDict && window.InflectionDict.MODEL) || null,
-        user_touched: 0,
-      });
-    } catch (e) { try { console.warn('[room] save note failed', e); } catch (_) {} return null; }
-  }
-  if (note && occ && (occ.text_id || occ.sentence_id)) {
-    try { await localDb.addNoteOccurrence(note.id, { text_id: occ.text_id, sentence_id: occ.sentence_id, word_offset: occ.word_offset, surface: occ.surface }); } catch (_) {}
-  }
-  readerWordStates = null; // saved a note → status map is stale; re-decorate (colour + adaptive fade)
-  try { invalidateReadableSet(); } catch (_) {}   // S7 — profile changed → recompute «Читаемые для меня»
-  try { applyDecorations(); } catch (_) {}
-  roomToast(tt('room.morph.savedToast', 'Слово сохранено в заметки'));
-  if (!note) return { status: 'created' };
-  let life = {}; try { life = await localDb.getWordNoteLifecycle([note.id]); } catch (_) {}
-  return { noteId: note.id, status: (life && life[note.id] && life[note.id].status) || 'created' };
-}
+// Тела заметочного глю переехали в morph-host.js (одна реализация на обе поверхности).
+const roomNoteBody = (card) => morphHost.noteBody(card);
+const roomDedupKey = (card) => morphHost.dedupKey(card);
+const roomLookupNote = (card) => morphHost.lookupNote(card);
+const roomLoadWordNote = (card) => morphHost.loadWordNote(card);
+const roomSaveWord = (card, occ) => morphHost.saveWord(card, occ);
 // T-b — manual translation for out-of-dict / unknown words. The card surfaces an editor
 // when the resolver has no offline gloss; the user's own meaning lands in the SAME canonical
 // word_study note (so it syncs to Anki + counts toward i+1), tagged meaning_source='user' so
 // the card can mark it «ваш» (R9 provenance ≠ machine) and the resolver re-surfaces it on
 // re-open. The dedup key is meaning-independent (pid:/lemma#pos), so lookup stays stable.
-async function roomLookupUserMeaning(card) {
-  const dk = roomDedupKey(card);
-  if (!dk) return '';
-  let note; try { note = await localDb.findNoteByDedupKey(dk); } catch (_) { note = null; }
-  if (!note) return '';
-  let body = {}; try { body = JSON.parse(note.body_json || '{}'); } catch (_) { body = {}; }
-  return (body && body.meaning_source === 'user' && body.meaning) ? String(body.meaning) : '';
-}
-async function roomSaveUserMeaning(card, occ, meaning) {
-  const m = String(meaning || '').trim();
-  const dk = roomDedupKey(card);
-  if (!dk || !m) return null;
-  const body = roomNoteBody(card);
-  body.meaning = m;
-  body.meaning_source = 'user';   // R9 provenance — user-asserted, never machine
-  let note; try { note = await localDb.findNoteByDedupKey(dk); } catch (_) { note = null; }
-  if (note) {
-    try { await localDb.updateNote(note.id, { body, user_touched: 1 }); } catch (e) { try { console.warn('[room] update meaning failed', e); } catch (_) {} return null; }
-  } else {
-    try {
-      note = await localDb.createCanonicalNote({
-        gen_dedup_key: dk, body, title: body.word || '', source: 'curated',
-        confidence: typeof card.confidence === 'number' ? card.confidence : null,
-        model_version: (window.InflectionDict && window.InflectionDict.MODEL) || null,
-        user_touched: 1,
-      });
-    } catch (e) { try { console.warn('[room] save meaning failed', e); } catch (_) {} return null; }
-  }
-  if (note && occ && (occ.text_id || occ.sentence_id)) {
-    try { await localDb.addNoteOccurrence(note.id, { text_id: occ.text_id, sentence_id: occ.sentence_id, word_offset: occ.word_offset, surface: occ.surface }); } catch (_) {}
-  }
-  readerWordStates = null;
-  try { invalidateReadableSet(); } catch (_) {}
-  try { applyDecorations(); } catch (_) {}
-  roomToast(tt('room.morph.meaningSavedToast', 'Перевод сохранён'));
-  return { ok: true };
-}
-async function roomSaveWordPersonal(card, occ, fields) {
-  const dk = roomDedupKey(card);
-  if (!dk) return null;
-  let note; try { note = await localDb.findNoteByDedupKey(dk); } catch (_) { note = null; }
-  let body = roomNoteBody(card);
-  if (note) {
-    try { body = Object.assign(body, JSON.parse(note.body_json || '{}')); } catch (_) {}
-  }
-  const f = fields || {};
-  const previousMeaning = String(body.meaning || '').trim();
-  if (previousMeaning && body.meaning_source !== 'user' && !body.reference_meaning) {
-    body.reference_meaning = previousMeaning;
-  }
-  body.meaning = String(f.meaning || '').trim();
-  body.mnemonic = String(f.mnemonic || '').trim();
-  body.example_sentence = String(f.example || '').trim();
-  if (body.meaning) body.meaning_source = 'user';
-  else {
-    delete body.meaning_source;
-    if (body.reference_meaning) body.meaning = String(body.reference_meaning);
-  }
-  if (note) {
-    try { await localDb.updateNote(note.id, { body, user_touched: 1 }); }
-    catch (e) { try { console.warn('[room] update personal note failed', e); } catch (_) {} return null; }
-  } else {
-    try {
-      note = await localDb.createCanonicalNote({
-        gen_dedup_key: dk, body, title: body.word || '', source: 'user',
-        confidence: typeof card.confidence === 'number' ? card.confidence : null,
-        model_version: (window.InflectionDict && window.InflectionDict.MODEL) || null,
-        user_touched: 1,
-      });
-    } catch (e) { try { console.warn('[room] create personal note failed', e); } catch (_) {} return null; }
-  }
-  if (note && occ && (occ.text_id || occ.sentence_id)) {
-    try { await localDb.addNoteOccurrence(note.id, { text_id: occ.text_id, sentence_id: occ.sentence_id, word_offset: occ.word_offset, surface: occ.surface }); } catch (_) {}
-  }
-  readerWordStates = null;
-  try { invalidateReadableSet(); } catch (_) {}
-  try { applyDecorations(); } catch (_) {}
-  roomToast(tt('room.morph.note.savedToast', 'Личная заметка обновлена'));
-  let life = {}; try { life = await localDb.getWordNoteLifecycle([note.id]); } catch (_) {}
-  return { noteId: note.id, status: (life && life[note.id] && life[note.id].status) || 'created' };
-}
+const roomLookupUserMeaning = (card) => morphHost.lookupUserMeaning(card);
+const roomSaveUserMeaning = (card, occ, meaning) => morphHost.saveUserMeaning(card, occ, meaning);
+const roomSaveWordPersonal = (card, occ, fields) => morphHost.saveWordPersonal(card, occ, fields);
 
 let _roomToastEl = null, _roomToastT = null;
 // roomToast(msg) — plain transient toast. roomToast(msg, actionLabel, actionFn) — FB-4: an
@@ -5230,54 +4992,9 @@ function applyReveal(mount) {
 // surface} from a tap occurrence, VERIFIED resolvable (getSentenceForReview) before it is ever
 // written: corpus works have no OPFS sentences (R4 re-anchors them later) → an unresolvable occ
 // writes NOTHING, so «sourced» keeps meaning «servable» (no new §1 contradiction class).
-async function occToVerifiedSource(occ) {
-  if (!occ || !occ.surface) return null;
-  const sid = occ.sentence_id != null ? String(occ.sentence_id) : null;
-  const oix = occ.order_index != null ? Number(occ.order_index) : null;
-  const tk = readerTextKey || null;
-  if (!sid && !(tk && oix != null)) return null;
-  try { if (!(await localDb.getSentenceForReview(sid, tk, oix))) return null; } catch (_) { return null; }
-  return { textKey: tk, sentenceId: sid, orderIndex: oix, surface: String(occ.surface) };
-}
-async function markWordStatus(lemmaKey, status, source) {
-  try { await localDb.setWordStatus(lemmaKey, status); } catch (_) {}
-  const isLevel = /^l[1-4]$/.test(String(status || ''));
-  try {
-    const R = window.ReaderMorph, FC = window.FsrsCore, LC = window.LemmaCanon;
-    if (isLevel && lemmaKey && R && R.manualMarkSeed && FC && LC) {
-      const sched = (await localDb.getSrsSchedule()) || {};
-      if (!sched[lemmaKey]) {   // not yet scheduled → seed it (never move a stored due)
-        if (await localDb.hasSeedRow(lemmaKey)) {
-          // Historic seed without a schedule (word was cleared, or the row arrived via down-sync):
-          // the truth already lives in the log — RESTORE the projection from replay instead of
-          // minting a second seed (oracle-clean; D3 replaces the old 'seed:<key>' PK guard with
-          // this explicit existence check, since content-hashed ids no longer collide).
-          try { await localDb.recomputeSrsFromLog([lemmaKey]); } catch (_) {}
-        } else {
-          const now = Date.now();
-          const seed = R.manualMarkSeed(FC, status, now);
-          if (seed) {
-            const seedMeta = { ...seed.seedMeta, keyer_version: LC.KEYER_VERSION };
-            const res = await localDb.appendReviewLog({
-              id: LC.seedId ? LC.seedId(lemmaKey, seedMeta) : ('seed:' + lemmaKey),
-              item_key: lemmaKey, kind: 'seed',
-              reviewed_at: new Date(now).toISOString(), grade: null, source: 'seed-manual',
-              meta: seedMeta,
-            });
-            if (res && res.accepted === 1) await localDb.setWordStatus(lemmaKey, status, seed.sched, source || null);   // R1 — the seed write carries the mark's source
-          }
-        }
-      }
-    }
-  } catch (_) {}
-  // R1 — backfill the source on a word that was ALREADY scheduled (or restored from the log) but
-  // never sourced: fillOnly so a mark never churns a proven source (R11 do-no-harm); the fresh-seed
-  // path above already carried it (fillOnly no-ops there); no schedule → the guarded UPDATE no-ops.
-  if (isLevel && source) { try { await localDb.updateSrsSource(lemmaKey, { ...source, fillOnly: true }); } catch (_) {} }
-  if (!isLevel) return null;
-  try { const s = (await localDb.getSrsSchedule()) || {}; return s[lemmaKey] ? { dueMs: s[lemmaKey].due } : null; }
-  catch (_) { return null; }
-}
+// Тела канона (source-at-mark + метка с FSRS-посевом) — в morph-host.js.
+const occToVerifiedSource = (occ) => morphHost.occToVerifiedSource(occ);
+const markWordStatus = (lemmaKey, status, source) => morphHost.markWordStatus(lemmaKey, status, source);
 // R3.1 (ROOM_DUE_CONTINUITY, live-диагноз 2026-07-11) — зомби-класс: слова, размеченные l1–l4 ДО
 // P5.6 (метка тогда НЕ сеяла расписание) — в логе только mark-строки, srs_due NULL: «В работе» по
 // ярлыку, но невидимы ЛЮБОЙ очереди на ЛЮБОЙ поверхности, навсегда (live-замер owner: 60+ из 229).
@@ -5378,13 +5095,7 @@ function _dueWhenText(dueMs) {
 // reading-tap enters the P6 calibration/weight-fit ONLY when abandonment (shown−graded)/shown is
 // below the precommitted threshold. Device-local diagnostics (like the marker tally) — counters,
 // not reviews; the review truth stays in review_log.
-function bumpTapStat(kind) {
-  try {
-    const s = JSON.parse(localStorage.getItem('room.readingTap.stats') || '{}');
-    s[kind] = (Number(s[kind]) || 0) + 1;
-    localStorage.setItem('room.readingTap.stats', JSON.stringify(s));
-  } catch (_) {}
-}
+const bumpTapStat = (kind) => morphHost.bumpTapStat(kind);
 // Retention P5 — THE write step of a reading-tap grade. Mirrors checkTrainAnswer's sequence
 // exactly (seed-row@now−1ms → review-row → setWordStatus(sched)) with two deliberate deltas:
 //   • D8(a): the manual level is NOT moved — nextLevel is NOT called; a self-report must not
@@ -5396,64 +5107,8 @@ function bumpTapStat(kind) {
 //     excluded from weight fitting until the abandonment gate passes; demotion threshold 15 п.п.
 //     precommitted). study_day: a post-reveal grade IS a genuine retrieval attempt → recordRecall
 //     (a tap without reveal+grade never reaches here — the streak can't be tapped for free).
-async function gradeReadingTap(card, occ, correct, prev) {
-  if (!card || !card.lemmaKey) return null;
-  const now = Date.now();
-  const fs = window.ReaderMorph.fsrsStep ? window.ReaderMorph.fsrsStep(window.FsrsCore, prev || null, correct, now) : null;
-  const sched = fs ? fs.sched : window.ReaderMorph.nextSrs(prev || null, correct, now);
-  // R1 source-at-mark — a graded reading-tap IS a retrieval on THIS occurrence: persist it as the
-  // word's source (latest-occurrence-wins, same as the recall canon), verified-resolvable only.
-  let src = null;
-  try { src = await occToVerifiedSource(occ); } catch (_) {}
-  let cur = card.manualStatus || '';
-  if (!cur) { try { cur = (await localDb.getWordStatus(card.lemmaKey)) || ''; } catch (_) {} }
-  if (cur && cur !== 'ignore') { try { await localDb.setWordStatus(card.lemmaKey, cur, sched, src); } catch (_) {} }
-  // P4.1 — no manual status (srs-carrier row from the Anki merge, or a never-tracked word): persist
-  // the schedule srs-ONLY so replay(log)==stored still holds, WITHOUT asserting a manual level
-  // (setWordStatus with '' would DELETE the row; asserting 'new' would demote via manual-wins).
-  else if (!cur) {
-    try { await localDb.updateSrsState(card.lemmaKey, sched); } catch (_) {}
-    if (src) { try { await localDb.updateSrsSource(card.lemmaKey, src); } catch (_) {} }   // R1 — srs-carrier rows get the source too
-  }
-  try {
-    const LC = window.LemmaCanon;
-    if (LC) {
-      // D3 (CLG-P3): content-hashed seed id + explicit seed-once (see checkTrainAnswer)
-      if (fs && fs.seeded && !(await localDb.hasSeedRow(card.lemmaKey))) {
-        const seedMeta = { ...fs.seedMeta, keyer_version: LC.KEYER_VERSION };
-        await localDb.appendReviewLog({
-          id: LC.seedId ? LC.seedId(card.lemmaKey, seedMeta) : ('seed:' + card.lemmaKey),
-          item_key: card.lemmaKey, kind: 'seed',
-          reviewed_at: new Date(now - 1).toISOString(), grade: null, source: 'seed-sm2',
-          meta: seedMeta,
-        });
-      }
-      const row = {
-        item_key: card.lemmaKey, kind: 'review',
-        reviewed_at: new Date(now).toISOString(), grade: correct ? 3 : 1,
-        source: 'reading-tap', channel: 'reading:tap',
-        meta: {
-          surface: card.word || undefined,
-          pos: card.pos || undefined,
-          text_key: readerTextKey || undefined,
-          confidence: card.label || undefined,
-          keyer_version: LC.KEYER_VERSION,
-          scheduler: fs
-            ? { scheme: 'fsrs', engine_version: window.FsrsCore.ENGINE_VERSION, request_retention: window.FsrsCore.REQUEST_RETENTION }
-            : { scheme: 'sm2-lite' },
-        },
-      };
-      row.id = LC.reviewId(row);
-      await localDb.appendReviewLog(row);
-    }
-  } catch (_) {}
-  bumpTapStat('graded');
-  try { await localDb.recordRecall(_localDayStr(), (_dueCounts && _dueCounts.dueNow) || 0); } catch (_) {}
-  _asdCache = null;   // R3.3 — merged streak fold sees the tap-grade immediately
-  try { await applyDecorations(); } catch (_) {}   // the ring leaves this word now (due moved to the future)
-  try { refreshDueBadge(); } catch (_) {}          // D3/D7 — badge + streak reflect the write
-  return sched;
-}
+// Тело write-step'а — в morph-host.js (канал reading:tap, D8a/P4.1 без изменений).
+const gradeReadingTap = (card, occ, correct, prev) => morphHost.gradeReadingTap(card, occ, correct, prev);
 
 // Attach the light morphology-on-tap layer (reader-morph.js): wraps he/niqqud words
 // into tappable spans (post-render, parity-safe — the reader-core builder is untouched)
@@ -5462,7 +5117,7 @@ async function gradeReadingTap(card, occ, correct, prev) {
 function attachReaderMorph(mount) {
   if (!mount || !window.ReaderMorph) return;
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
-  _ctxCache = new Map();   // fresh per (re)attach
+  morphHost.clearCtxCache();   // fresh per (re)attach
   const opts = {
     getRow: (i) => readerRows[i],
     saveWord: roomSaveWord,
@@ -5475,7 +5130,7 @@ function attachReaderMorph(mount) {
   // consent (the per-card confirm IS the consent), and the gate that decides whether to OFFER it.
   opts.refineContext = makeRefineProvider();
   opts.canRefine = canRefine;
-  opts.grantContextConsent = () => { contextConsentSet('granted'); roomToast(tt('room.morph.consentOn', 'Точный режим включён')); };
+  opts.grantContextConsent = () => morphHost.grantContextConsent();
   // Epic-3a — pronounce the headword (GCP→browser) + word-status map for the root-family chips
   // (reuses the single-flight ensureWordStates cache; chips colour known/learning/new).
   opts.speakWord = speakWord;
@@ -5490,7 +5145,7 @@ function attachReaderMorph(mount) {
     let source = null;
     try { source = await occToVerifiedSource(occ); } catch (_) {}
     try { res = await markWordStatus(lk, st, source); } catch (_) {}   // P5.6 R-2(a): l1–l4 mark seeds the schedule
-    readerWordStates = null;
+    morphHost.invalidateWordStates();
     try { applyDecorations(); } catch (_) {}
     try { refreshDueBadge(); } catch (_) {}   // seeding may change the future-due horizon
     // P5.7 Т1 — closure for the LONG-PRESS popover path (no card open to show the in-card confirm):
@@ -6626,7 +6281,7 @@ async function roomVocabCoverageFor(id) {
 if (typeof window !== 'undefined') {
   // refresh() drops the cached profile snapshots (word-states + readable-set) so the next coverage/
   // readability read re-queries the live profile — for when it changed outside the reader's save path.
-  window.CorpusVocabRoom = { ensure: loadCorpusVocab, coverageFor: roomVocabCoverageFor, refresh: () => { readerWordStates = null; try { invalidateReadableSet(); } catch (_) {} } };
+  window.CorpusVocabRoom = { ensure: loadCorpusVocab, coverageFor: roomVocabCoverageFor, refresh: () => { morphHost.invalidateWordStates(); try { invalidateReadableSet(); } catch (_) {} } };
 }
 
 // BRR-S7 — «Читаемые для меня»: the set of work ids the reader can read NOW (i+1 zone in/easy against
@@ -7363,7 +7018,7 @@ async function runRealProfileValidation() {
       if (states && Object.keys(states).length) break;
       await new Promise((r) => setTimeout(r, 300));
     }
-    if (states && Object.keys(states).length) readerWordStates = states;
+    if (states && Object.keys(states).length) morphHost.primeWordStates(states);
     // SRS-state distribution — the likely reason engaged=0: saved words sit in 'new' state, and the
     // current CV.CFG.KNOWN_STATES = {known,learning} EXCLUDES 'new', so saved vocab isn't counted.
     const stDist = {}; for (const k in states) stDist[states[k]] = (stDist[states[k]] || 0) + 1;
@@ -8459,7 +8114,7 @@ async function saveSnippetToNotes(btn, q, he, ru, card) {
       const md = String(he || '') + (ru ? '\n' + ru : '') + (card && card.title ? '\n\n— ' + card.title : '');
       await localDb.createNote({ target_kind: 'free', target_id: null, text_id: null, note_type: 'free', title: String(q || '').trim().slice(0, 80), body: md });
     }
-    readerWordStates = null; try { invalidateReadableSet(); } catch (_) {}   // S7 — profile grew → recompute coverage
+    morphHost.invalidateWordStates(); try { invalidateReadableSet(); } catch (_) {}   // S7 — profile grew → recompute coverage
     btn.textContent = '✓ ' + tt('room.corpus.search.savedToNotes', 'Сохранено');
     btn.disabled = true;
     roomToast(tt('room.corpus.search.savedToNotes', 'Сохранено в заметки'));
