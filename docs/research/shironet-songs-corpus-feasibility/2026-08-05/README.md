@@ -19,7 +19,7 @@
 | Токены на слово по колонкам таблицы | **живой `countTokens`** модели `gemini-flash-latest` на реальных таблицах владельца | `node scripts/token-measure.js` |
 | Статистика реального песенного корпуса владельца (77 песен / 3 106 строк) | `library/library.json` из `library-bundle-20260723-092730.zip` | `node scripts/song-stats.js` |
 | Итоговые $ по сценариям | комбинация двух предыдущих + прайс-лист | `node scripts/cost-model.js` |
-| Покрытие песенной лексики нашим словарём (78.4% токенов) | `public/measurements/inflection/pealim-infl-v12.json.gz` | см. §5 REPORT.md |
+| Покрытие песенной лексики нашим словарём (78.4% токенов) | `public/data/inflection/pealim-infl-v12.json.gz` | см. §5 REPORT.md |
 
 Цены Gemini взяты с https://ai.google.dev/gemini-api/docs/pricing (проверено 2026-08-05).
 
