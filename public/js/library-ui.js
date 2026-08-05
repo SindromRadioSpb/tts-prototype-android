@@ -3584,6 +3584,7 @@ function attachReaderAudio() {
   attachRoomColResize();   // ресайз колонок переживает пересборку таблицы
   roomPaintColWidths();    // ширины из persisted-состояния
   try { applyStudyModeClass(); } catch (_) {}   // режим + скролл-окно после каждого рендера
+  try { roomSyncActionOverlay(); } catch (_) {}   // пересборка таблицы уносит оверлей
   karaokeActive = false; setReadAloudBtn(false);   // a fresh (re)attach resets karaoke state
 }
 
@@ -3641,6 +3642,7 @@ function onKaraokeRowChange(idx) {
     karaokeUserScrolled = false; _karaokeLeftBand = false;                         // left then returned to band → resume centering
   }
   if (tr && tr.scrollIntoView) { try { tr.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) {} }
+  try { roomSyncActionOverlay(); } catch (_) {}   // активная строка сменилась → оверлей за ней
 }
 function wireKaraokeScrollPause() {
   if (_karaokeScrollWired) return; _karaokeScrollWired = true;
@@ -3741,6 +3743,7 @@ function roomMediaApplyLayout() {
 function roomMediaFollowRange(range) {
   if (!range) return;
   recordProgress(range.rowStart);
+  try { roomSyncActionOverlay(); } catch (_) {}   // медиа-караоке ведёт активную строку
   const mount = $('roomReaderTable');
   const tr = mount && mount.querySelector('tr[data-row-idx="' + String(range.rowStart) + '"]');
   if (!tr) return;
@@ -5574,6 +5577,55 @@ function roomPaintColWidths() {
     c.style.width = Number(eff[k] || 0).toFixed(6) + '%';
   });
 }
+// «Скрыта»: служебной колонки нет, поэтому кнопки строки всплывают на АКТИВНОЙ строке —
+// той, что уже подсвечена воспроизведением или караоке. Новых жестов не вводим: тап по
+// строке и так перематывает медиа, а значит делает её активной.
+// ⚠ Проксировать клик на «настоящие» кнопки строки НЕЛЬЗЯ: ☆ и 🤖 инжектятся в
+// .col-action-cell, которой в этом режиме не существует. Поэтому оверлей зовёт те же
+// обработчики напрямую — одна логика, без второй копии поведения.
+let _overlayRowIdx = -1;
+function roomSyncActionOverlay() {
+  const mount = $('roomReaderTable');
+  if (!mount) return;
+  let box = $('roomRowActions');
+  if (actionColMode() !== 'hidden' || !studyModeOn()) { if (box) box.hidden = true; return; }
+  const tr = mount.querySelector('#proTable tbody tr.row-playing, #proTable tbody tr.smk-row-active');
+  if (!tr) { if (box) box.hidden = true; return; }
+  _overlayRowIdx = Number(tr.getAttribute('data-row-idx'));
+  if (!box) {
+    box = el('div', { class: 'room-row-actions', attrs: { id: 'roomRowActions', role: 'toolbar', 'aria-label': tt('room.study.actionCol', 'Служебная колонка') } });
+    const mk = (act, label, title, onClick) => {
+      const b = el('button', { text: label, attrs: { type: 'button', 'data-act': act, title: title, 'aria-label': title } });
+      b.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); if (_overlayRowIdx >= 0) onClick(_overlayRowIdx, b); });
+      box.appendChild(b);
+      return b;
+    };
+    mk('tts', '▶', tt('room.reader.readAloud', 'Озвучить строку'),
+      (i) => { try { if (readerAudio && readerAudio.play) readerAudio.play(i); } catch (_) {} });
+    mk('bookmark', '☆', tt('room.bookmark.add', 'Закладка'), (i, b) => toggleBookmark(i, b));
+    mk('explain', '🤖', tt('room.explain.btn', 'Объяснить предложение (наставник)'), (i) => explainRow(i));
+    mount.appendChild(box);
+  }
+  // 🤖 доступна по тем же правилам, что и в колонке: свои тексты сразу, корпус — после probe.
+  const explainOk = readerIsOwnText || (!!readerCorpusWorkId && readerCorpusExplainOk);
+  const explainBtn = box.querySelector('button[data-act="explain"]');
+  if (explainBtn) explainBtn.hidden = !explainOk;
+  // ☆ отражает реальное состояние закладки этой строки (иначе оверлей врал бы).
+  const bmBtn = box.querySelector('button[data-act="bookmark"]');
+  const row = readerRows[_overlayRowIdx];
+  if (bmBtn && row) {
+    const on = !!(_bookmarkSet && row._v3_sentenceId && _bookmarkSet.has(String(row._v3_sentenceId)));
+    bmBtn.classList.toggle('bookmarked', on);
+    bmBtn.textContent = on ? '★' : '☆';
+    bmBtn.setAttribute('aria-pressed', String(on));
+  }
+  const rr = tr.getBoundingClientRect(), mr = mount.getBoundingClientRect();
+  box.hidden = false;
+  box.style.top = (rr.top - mr.top + mount.scrollTop) + 'px';
+  box.style.left = (rr.left - mr.left) + 'px';
+}
+window.roomSyncActionOverlay = roomSyncActionOverlay;   // гейт дергает синхронизацию явно
+
 let roomColResize = null;
 function attachRoomColResize() {
   const mount = $('roomReaderTable');

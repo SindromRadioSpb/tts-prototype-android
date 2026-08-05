@@ -1084,6 +1084,20 @@
     body.room-study.study-rail #proTable .row-bookmark-btn { font-size: 13px; line-height: 1.15; padding: 0; }
     body.room-study.study-rail #proTable .row-audio-ind { display: none; }
 
+    /* «Скрыта»: плавающая группа действий у левого края активной строки — там же, где
+       стояла служебная колонка (порядок колонок LTR независимо от RTL-текста ячеек). */
+    body.room-study #roomReaderTable { position: relative; }   /* якорь для оверлея */
+    .room-row-actions {
+      position: absolute; z-index: 4; display: flex; flex-direction: column; gap: 2px;
+      padding: 2px; border-radius: 8px; background: var(--bg-card); box-shadow: 0 2px 8px rgba(0,0,0,.28);
+    }
+    .room-row-actions[hidden] { display: none; }
+    .room-row-actions button {
+      width: 26px; height: 24px; appearance: none; border: 0; background: transparent;
+      color: var(--text-primary); font-size: 13px; line-height: 1; padding: 0; cursor: pointer;
+    }
+    .room-row-actions button[hidden] { display: none; }
+
     /* Ресайз колонок в Зале: волосяная линия 10px недостижима пальцем (замер 2026-08-05 —
        4 грипа 10x79px, попасть невозможно). На тач-устройствах широкая невидимая зона
        захвата; линия-подсказка видна всегда, иначе аффорданс не читается. */

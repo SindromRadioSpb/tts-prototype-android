@@ -798,6 +798,10 @@ export function attachRowAudio(mount, opts) {
   return {
     detach() { mount.removeEventListener("click", onClick); continuous = false; stopWordTick(); stopAll(); revoke(); playingIdx = null; mode = null; },
     debug: wkDebug,   // BRR-P1-008b on-device diagnostic (?wkdebug=1)
+    // Учебный режим «Скрыта» (спека 2026-08-05): служебной колонки нет, значит нет и
+    // .row-tts-btn, на которую можно кликнуть. Оверлей активной строки зовёт ЭТОТ метод —
+    // тот же путь воспроизведения, что у кнопки, без второй копии логики.
+    play(idx) { const i = Number(idx); if (Number.isFinite(i) && i >= 0) play(i); },
     // BRR-P1-008 — start continuous karaoke from the first speakable row at/after startIdx.
     playAll(startIdx) {
       const n = rowCountOf();

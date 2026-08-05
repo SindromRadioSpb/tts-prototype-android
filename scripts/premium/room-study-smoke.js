@@ -342,6 +342,56 @@ async function main() {
     await pg.waitForTimeout(500);
     const hiddenCols = await pg.evaluate(() => document.getElementById("proTable").getAttribute("data-cols"));
     ok(!/action/.test(hiddenCols || ""), "«Скрыта»: колонки action нет в data-cols, получено " + hiddenCols);
+    // ── Секция 6: «Скрыта» — действия живут на активной строке ──────────────
+    console.log("[6] hidden-mode overlay");
+    await pg.evaluate(() => {
+      localStorage.setItem("room.studyMode", "1");
+      localStorage.setItem("room.actionColMode", "hidden");
+    });
+    await openStudyText();
+    const noOverlayYet = await pg.evaluate(() => {
+      const o = document.getElementById("roomRowActions");
+      return !o || o.hidden;
+    });
+    ok(noOverlayYet, "«Скрыта»: без активной строки оверлея нет (не мозолит глаза)");
+
+    // активная строка появляется штатным путём — подсветкой воспроизведения
+    await pg.evaluate(() => {
+      const tr = document.querySelector('#proTable tbody tr[data-row-idx="2"]');
+      if (tr) tr.classList.add("row-playing");
+      if (window.roomSyncActionOverlay) window.roomSyncActionOverlay();
+    });
+    await pg.waitForTimeout(300);
+    const overlay = await pg.evaluate(() => {
+      const o = document.getElementById("roomRowActions");
+      if (!o || o.hidden) return null;
+      const r = o.getBoundingClientRect();
+      const tr = document.querySelector('#proTable tbody tr[data-row-idx="2"]');
+      const rr = tr.getBoundingClientRect();
+      return {
+        buttons: [...o.querySelectorAll("button")].map((x) => x.getAttribute("data-act")),
+        alignedToRow: Math.abs(r.top - rr.top) < 24,
+        atLeadingEdge: Math.abs(r.left - rr.left) < 24,
+      };
+    });
+    ok(!!overlay, "«Скрыта»: оверлей появился на активной строке");
+    if (overlay) {
+      ok(overlay.buttons.join(",") === "tts,bookmark,explain",
+        "«Скрыта»: оверлей несёт кнопки строки, получено " + overlay.buttons.join(","));
+      ok(overlay.alignedToRow && overlay.atLeadingEdge,
+        "«Скрыта»: оверлей у левого края активной строки (там, где была колонка)");
+    }
+    // в режимах с колонкой оверлея быть не должно — иначе дубль управления.
+    // Панель строится лениво: без её открытия кнопок сегмента в DOM ещё нет.
+    await pg.evaluate(() => { const p = document.getElementById("readerAids"); if (p && p.hidden) document.getElementById("readerAidsToggle").click(); });
+    await pg.waitForSelector("#readerAids:not([hidden])", { timeout: 8000 });
+    await pg.evaluate(() => { const b3 = document.querySelector('#roomActionColSeg button[data-mode="rail"]'); if (b3) b3.click(); });
+    await pg.waitForTimeout(400);
+    const overlayGone = await pg.evaluate(() => {
+      const o = document.getElementById("roomRowActions");
+      return !o || o.hidden;
+    });
+    ok(overlayGone, "в режиме «Рельс» оверлея нет — управление не дублируется");
   } finally { await b.close(); await stopServer(srv.child); }
 
   if (failures.length) { console.error("FAIL — " + failures.length + " assertion(s)"); process.exit(1); }
