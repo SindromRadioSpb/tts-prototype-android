@@ -1074,6 +1074,16 @@
        над первой строкой (воспроизведено в прототипе 2026-08-05). */
     body.room-study #roomReader #proTable thead th { top: 0 !important; }
 
+    /* Рельс: колонка сжата до 34px — иконки центрируются и теряют лишние отступы.
+       Ничего не прячем: ▶ (и сегодня видимый только на активной строке), 🤖 и ☆
+       остаются на месте, сжимается пустота. */
+    body.room-study.study-rail #proTable td[data-col="action"] { padding: 2px 0; }
+    body.room-study.study-rail #proTable .col-action-row { justify-content: center; gap: 0; }
+    body.room-study.study-rail #proTable .row-tts-btn { width: 26px; height: 26px; min-width: 0; padding: 0; font-size: 12px; }
+    body.room-study.study-rail #proTable .row-explain-btn,
+    body.room-study.study-rail #proTable .row-bookmark-btn { font-size: 13px; line-height: 1.15; padding: 0; }
+    body.room-study.study-rail #proTable .row-audio-ind { display: none; }
+
     /* Ресайз колонок в Зале: волосяная линия 10px недостижима пальцем (замер 2026-08-05 —
        4 грипа 10x79px, попасть невозможно). На тач-устройствах широкая невидимая зона
        захвата; линия-подсказка видна всегда, иначе аффорданс не читается. */

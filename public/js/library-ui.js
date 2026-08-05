@@ -503,7 +503,9 @@ function studyModeSet(on) {
 }
 function applyStudyModeClass() {
   const readerOpen = !!($('roomReader') && !$('roomReader').hidden);
-  document.body.classList.toggle('room-study', readerOpen && studyModeOn());
+  const on = readerOpen && studyModeOn();
+  document.body.classList.toggle('room-study', on);
+  document.body.classList.toggle('study-rail', on && actionColMode() === 'rail');
   // Окно таблицы становится собственным скроллером и БЕЗ медиа (обычное чтение тоже
   // должно занимать экран), поэтому раскладку пересобираем на каждое переключение.
   try { roomMediaApplyLayout(); } catch (_) {}
@@ -3532,7 +3534,9 @@ function readerConfig() {
   return {
     // visibleColumns derived from the scaffolding modes (niqqud/ru 'off' ⇒ column hidden).
     visibleColumns: {
-      action: true,
+      // «Скрыта» убирает колонку из НАБОРА — это легальный вход parity-залоченного
+      // билдера (Студия делает так же), а не косметика поверх готовой таблицы.
+      action: actionColMode() !== 'hidden',
       he: !!readerCfg.heOn,
       niqqud: readerCfg.niqqudMode !== 'off',
       translit: !!readerCfg.translitOn,
@@ -5534,12 +5538,38 @@ function readerSkeleton() {
 // (style="width:…%"), поэтому CSS-правилом их не задать — проверено, `!important`
 // проигрывает инлайну при table-layout: fixed. Значит ширины всегда назначаются
 // здесь, в JS, после рендера.
+// Ширина рельса. Замер живого DOM 2026-08-05: содержимое action-ячейки занимает 57px
+// при колонке 85px, а ▶ и сегодня показывается только на активной строке — колонка была
+// широкой не из-за иконок, а из-за доли. 34px хватает на ▶ 26x26 плюс рамки.
+const ROOM_RAIL_PX = 34;
 function roomPaintColWidths() {
   const mount = $('roomReaderTable');
   const table = mount && mount.querySelector('#proTable');
   if (!table) return;
-  const eff = readerCore.computeEffectiveWidths(readerConfig().visibleColumns, roomTableWidths);
-  table.querySelectorAll('colgroup col[data-col]').forEach((c) => {
+  const visible = readerConfig().visibleColumns;
+  const eff = readerCore.computeEffectiveWidths(visible, roomTableWidths);
+  const cols = [...table.querySelectorAll('colgroup col[data-col]')];
+  if (!cols.length) return;
+  const total = table.getBoundingClientRect().width;
+  const railOn = studyModeOn() && actionColMode() === 'rail' && visible.action && total > 0
+    && cols.some((c) => c.getAttribute('data-col') === 'action');
+  if (railOn) {
+    // Пересчёт ПОСЛЕ нормализации: доля action фиксируется в пикселях, остальное делится
+    // между содержательными колонками пропорционально их базам. Иначе доля action снова
+    // уплывёт при смене набора колонок — корень исходной жалобы (15% → 25.4%).
+    const railPct = Math.min(40, (ROOM_RAIL_PX / total) * 100);
+    const rest = 100 - railPct;
+    let sum = 0;
+    cols.forEach((c) => { const k = c.getAttribute('data-col'); if (k !== 'action') sum += Number(eff[k] || 0); });
+    if (sum <= 0) sum = 1;
+    cols.forEach((c) => {
+      const k = c.getAttribute('data-col');
+      const pct = k === 'action' ? railPct : (Number(eff[k] || 0) / sum) * rest;
+      c.style.width = pct.toFixed(6) + '%';
+    });
+    return;
+  }
+  cols.forEach((c) => {
     const k = c.getAttribute('data-col');
     c.style.width = Number(eff[k] || 0).toFixed(6) + '%';
   });

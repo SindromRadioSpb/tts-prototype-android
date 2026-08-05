@@ -288,6 +288,60 @@ async function main() {
     ok(!afterClose.cls, "выход из ридера снимает body.room-study");
     ok(afterClose.headerVisible, "шапка Зала возвращается на домашнем экране");
     ok(afterClose.pref === "1", "предпочтение режима переживает закрытие ридера");
+    // ── Секция 5: рельс + анти-регресс главного дефекта ─────────────────────
+    console.log("[5] rail");
+    await pg.evaluate(() => {
+      localStorage.setItem("room.studyMode", "1");
+      localStorage.setItem("room.actionColMode", "rail");
+      localStorage.setItem("room.heOn", "0");        // учебная конфигурация владельца:
+      localStorage.setItem("room.translitOn", "0");  // видимы только Огласовки + Перевод
+      localStorage.removeItem("room.table.widths.v1");
+    });
+    await openStudyText();
+    const rail = await pg.evaluate(() => {
+      const t = document.getElementById("proTable");
+      const w = t.getBoundingClientRect().width;
+      const px = (k) => { const th = t.querySelector('thead th[data-col="' + k + '"]'); return th ? th.getBoundingClientRect().width : 0; };
+      const sum = [...t.querySelectorAll("colgroup col")].reduce((a, c) => a + parseFloat(c.style.width || 0), 0);
+      const cell = t.querySelector('tbody td[data-col="action"]');
+      return {
+        tableWidth: w, action: px("action"), niqqud: px("niqqud"), ru: px("ru"),
+        actionPct: (px("action") / w) * 100, sum,
+        hasTts: !!(cell && cell.querySelector(".row-tts-btn")),
+        hasExplain: !!(cell && cell.querySelector(".row-explain-btn")),
+        hasBookmark: !!(cell && cell.querySelector(".row-bookmark-btn")),
+      };
+    });
+    ok(Math.abs(rail.action - 34) <= 2, "рельс: служебная колонка ~34px, получено " + Math.round(rail.action));
+    ok(rail.actionPct < 15,
+      "АНТИ-РЕГРЕСС: доля служебной колонки не раздувается при двух содержательных колонках " +
+      "(было 25.4%), получено " + rail.actionPct.toFixed(1) + "%");
+    ok(Math.abs(rail.sum - 100) < 0.01, "рельс: сумма долей = 100%, получено " + rail.sum);
+    ok(rail.niqqud > 130 && rail.ru > 155,
+      "рельс: содержательные колонки выросли (было 114/137), получено " + Math.round(rail.niqqud) + "/" + Math.round(rail.ru));
+    ok(rail.hasTts && rail.hasExplain && rail.hasBookmark,
+      "рельс: кнопки строки ОСТАЛИСЬ в ячейке (tts/explain/bookmark: " +
+      rail.hasTts + "/" + rail.hasExplain + "/" + rail.hasBookmark + ") — тупиков нет");
+
+    // рельс переживает пересборку таблицы (смена настроек чтения)
+    await pg.evaluate(() => { const p = document.getElementById("readerAids"); if (p && p.hidden) document.getElementById("readerAidsToggle").click(); });
+    await pg.waitForSelector("#readerAids:not([hidden])", { timeout: 8000 });
+    await pg.evaluate(() => {
+      const cb = [...document.querySelectorAll("#readerAids label input[type=checkbox]")].filter((x) => x.id !== "roomStudyToggle")[0];
+      if (cb) cb.click();     // «Иврит» вкл → rerenderReader
+    });
+    await pg.waitForTimeout(500);
+    const afterRerender = await pg.evaluate(() => {
+      const th = document.querySelector('#proTable thead th[data-col="action"]');
+      return th ? th.getBoundingClientRect().width : 0;
+    });
+    ok(Math.abs(afterRerender - 34) <= 2, "рельс переживает rerenderReader, получено " + Math.round(afterRerender));
+
+    // «Скрыта» убирает колонку из НАБОРА (вход билдера, не CSS)
+    await pg.evaluate(() => { const b2 = document.querySelector('#roomActionColSeg button[data-mode="hidden"]'); if (b2) b2.click(); });
+    await pg.waitForTimeout(500);
+    const hiddenCols = await pg.evaluate(() => document.getElementById("proTable").getAttribute("data-cols"));
+    ok(!/action/.test(hiddenCols || ""), "«Скрыта»: колонки action нет в data-cols, получено " + hiddenCols);
   } finally { await b.close(); await stopServer(srv.child); }
 
   if (failures.length) { console.error("FAIL — " + failures.length + " assertion(s)"); process.exit(1); }
