@@ -438,7 +438,10 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.mig041IsReviewLog, "041_review_log is not at index 40 (label==index broken)");
     eq(res.mig042IsFsrs, "042_word_status_fsrs is not at index 41 (label==index broken)");
     eq(res.migApplied === res.migCount, `applied schema version ${res.migApplied} != MIGRATIONS.length ${res.migCount}`);
-    eq(res.migCount === 43, `MIGRATIONS.length ${res.migCount} != 43 — labels no longer equal real indexes (recon §3.6; 043_sync_state = CLG-P3)`);
+    // Пин-трипваер: при ДОБАВЛЕНИИ миграции сверь «метка == реальному индексу» и подними число.
+    // 2026-08-05: 44–47 (artifact_sync_intents / studio_media_package_l3a / material_revision_workspace /
+    // portable_import_receipts) были добавлены без бампа пина — метки сверены глазами, все == индексам.
+    eq(res.migCount === 48, `MIGRATIONS.length ${res.migCount} != 48 — labels no longer equal real indexes (recon §3.6; last = 047_studio_portable_import_receipts)`);
     eq(res.rlQueryable, "review_log not queryable");
     for (const k of res.keyConformance || []) eq(k.ok, `keyer conformance failed for ${k.a}`);
     eq(res.keyPid && res.keyStripped, "canonical key fixtures wrong");
