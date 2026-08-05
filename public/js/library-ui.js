@@ -504,6 +504,9 @@ function studyModeSet(on) {
 function applyStudyModeClass() {
   const readerOpen = !!($('roomReader') && !$('roomReader').hidden);
   document.body.classList.toggle('room-study', readerOpen && studyModeOn());
+  // Окно таблицы становится собственным скроллером и БЕЗ медиа (обычное чтение тоже
+  // должно занимать экран), поэтому раскладку пересобираем на каждое переключение.
+  try { roomMediaApplyLayout(); } catch (_) {}
 }
 
 function aidsHinted() { try { return localStorage.getItem('room.aidsHinted') === '1'; } catch (_) { return true; } }
@@ -3576,6 +3579,7 @@ function attachReaderAudio() {
   attachExplainButtons(mount);   // CLG-P6.2 — POST-render 🤖 per row (только свои тексты)
   attachRoomColResize();   // ресайз колонок переживает пересборку таблицы
   roomPaintColWidths();    // ширины из persisted-состояния
+  try { applyStudyModeClass(); } catch (_) {}   // режим + скролл-окно после каждого рендера
   karaokeActive = false; setReadAloudBtn(false);   // a fresh (re)attach resets karaoke state
 }
 
@@ -3596,10 +3600,17 @@ function setReadAloudBtn(active) {
 function _karaokeRowFollowable(tr) {
   try {
     const r = tr.getBoundingClientRect();
-    const vh = window.innerHeight || document.documentElement.clientHeight || 0;
-    if (!vh) return false;
+    // В учебном/медиа-режиме прокручивается ОКНО ТАБЛИЦЫ, а не страница: полосу «человек
+    // следит за воспроизведением» надо мерить от того же скроллера, иначе «уступи ручному
+    // скроллу / вернись» срабатывает не там, куда смотрит человек.
+    const mount = $('roomReaderTable');
+    const inWindow = mount && mount.classList.contains('room-media-scroll');
+    const box = inWindow ? mount.getBoundingClientRect() : null;
+    const top = box ? box.top : 0;
+    const height = box ? box.height : (window.innerHeight || document.documentElement.clientHeight || 0);
+    if (!height) return false;
     const center = (r.top + r.bottom) / 2;
-    return center > vh * 0.15 && center < vh * 0.85;
+    return center > top + height * 0.15 && center < top + height * 0.85;
   } catch (_) { return false; }
 }
 function onKaraokeRowChange(idx) {
@@ -3697,6 +3708,14 @@ function roomMediaApplyLayout() {
   const wrap = $('roomReaderTable'); if (!wrap) return;
   const stage = $('roomMediaLocalStage'), yt = $('roomMediaYtMount');
   const mediaVisible = (stage && !stage.hidden) || (yt && !yt.hidden);
+  // Учебный режим: окно таблицы — flex-остаток, считать нечего. Но КЛАСС обязан
+  // остаться: по нему roomMediaFollowRange решает, какой скроллер двигать, и без него
+  // слежение караоке ушло бы в ветку страничного скролла (спека 2026-08-05, ловушка).
+  if (document.body.classList.contains('room-study')) {
+    wrap.classList.add('room-media-scroll');
+    wrap.style.maxHeight = '';
+    return;
+  }
   if (mediaVisible) {
     wrap.classList.add('room-media-scroll');
     // высота окна таблицы = остаток вьюпорта под плеером (rect.top меряется при странице
@@ -5783,6 +5802,7 @@ async function openReader(textId, title, opts) {
   if (content) content.hidden = true;
   reader.hidden = false;
   try { document.body.classList.add('room-reading'); } catch (_) {}   // шапка сайта не липнет при чтении (sticky-шапка таблицы)
+  try { applyStudyModeClass(); } catch (_) {}   // учебный режим живёт только внутри ридера
   try { refreshDueBadge(); } catch (_) {}   // D2 — entering the reader hides the home «🔁 К повторению» CTA
   clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip(); clearFadeGradNudge();   // BRR-P2-002/005 + Epic-5 W1/W4/W5 — never carry a stale banner/jump/end-card/cov-chip/fade-nudge across opens
   try { roomMediaTeardown(); } catch (_) {}   // media player: паспорт/стейдж/YT прошлого текста не переживают открытие
@@ -5941,6 +5961,7 @@ async function closeReader() {
   if (reader) reader.hidden = true;
   if (content) content.hidden = false;
   try { document.body.classList.remove('room-reading'); } catch (_) {}   // вернуть sticky шапке сайта вне ридера
+  try { document.body.classList.remove('room-study'); } catch (_) {}     // домашний экран без шапки был бы тупиком
   setReaderReturnRoute(null);
   try { refreshDueBadge(); } catch (_) {}   // D2 — back on the home → surface the «🔁 К повторению» CTA
   // Surface the just-read text in «Продолжить чтение» (corpus home only; results / other tabs untouched).

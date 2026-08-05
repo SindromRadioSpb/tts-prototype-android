@@ -1045,6 +1045,35 @@
     /* Room reader is read-only: hide Studio row affordances (mirrors index.html room-mode). */
     #roomReader .row-note-btn, #roomReader .row-edit-actions { display: none !important; }
 
+    /* ── УЧЕБНЫЙ РЕЖИМ (спека 2026-08-05) ────────────────────────────────────
+       Замер @380x845 до фикса: из 845px экрана таблице доставалось 220px (26%,
+       одна видимая строка) — 779px съедали шапка, бар, подсказка, видео,
+       дисклеймер и футер. Режим отдаёт остаток экрана таблице и убирает
+       арифметику высоты: раскладка — flex-колонка, а не вычисленный max-height. */
+    body.room-study header.room-header,
+    body.room-study #readerTip,
+    body.room-study #readerCovChip,
+    body.room-study #roomFooter { display: none !important; }
+    body.room-study #roomReader {
+      position: fixed; inset: 0; z-index: 5;
+      display: flex; flex-direction: column;
+      max-width: none; margin: 0;
+      background: var(--bg-page);
+    }
+    body.room-study #roomReader .reader-bar,
+    body.room-study #roomMediaBar,
+    body.room-study #readerAids,
+    body.room-study #readerFind,
+    body.room-study #readerSubtitle { flex: 0 0 auto; }
+    body.room-study #readerAids { max-height: 60vh; overflow-y: auto; }
+    body.room-study #roomReaderTable {
+      flex: 1 1 auto; min-height: 0; overflow-y: auto; max-height: none !important; padding: 0 8px 8px;
+    }
+    /* Таблица скроллится в СВОЁМ окне ⇒ шапка липнет к верху контейнера, а не окна
+       браузера. Без этого правила она уезжает на высоту бара и оставляет пустую полосу
+       над первой строкой (воспроизведено в прототипе 2026-08-05). */
+    body.room-study #roomReader #proTable thead th { top: 0 !important; }
+
     /* Ресайз колонок в Зале: волосяная линия 10px недостижима пальцем (замер 2026-08-05 —
        4 грипа 10x79px, попасть невозможно). На тач-устройствах широкая невидимая зона
        захвата; линия-подсказка видна всегда, иначе аффорданс не читается. */

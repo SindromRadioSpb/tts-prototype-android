@@ -240,6 +240,54 @@ async function main() {
     ok(defMode === "rail", "первое включение режима ставит служебную колонку в «Рельс», получено " + defMode);
     const persistedMode = await pg.evaluate(() => localStorage.getItem("room.studyMode"));
     ok(persistedMode === "1", "состояние режима сохраняется (room.studyMode=1), получено " + persistedMode);
+    // ── Секция 4: раскладка режима ──────────────────────────────────────────
+    console.log("[4] study layout");
+    await pg.evaluate(() => { localStorage.setItem("room.studyMode", "1"); localStorage.setItem("room.actionColMode", "rail"); });
+    await openStudyText();
+    const layout = await pg.evaluate(() => {
+      const wrap = document.getElementById("roomReaderTable");
+      const r = wrap.getBoundingClientRect();
+      const hidden = (sel) => { const n = document.querySelector(sel); return !n || getComputedStyle(n).display === "none"; };
+      const thead = document.querySelector("#proTable thead th");
+      return {
+        bodyHasClass: document.body.classList.contains("room-study"),
+        readerPos: getComputedStyle(document.getElementById("roomReader")).position,
+        headerHidden: hidden("header.room-header"),
+        footerHidden: hidden("#roomFooter"),
+        tipHidden: hidden("#readerTip"),
+        chipHidden: hidden("#readerCovChip"),
+        wrapOverflow: getComputedStyle(wrap).overflowY,
+        wrapIsScroller: wrap.classList.contains("room-media-scroll"),
+        wrapPctOfViewport: Math.round((r.height / window.innerHeight) * 100),
+        theadTop: thead ? getComputedStyle(thead).top : null,
+        maxH: wrap.style.maxHeight || "",
+        vw: window.innerWidth,
+      };
+    });
+    ok(layout.vw === 380, "вьюпорт ровно 380 CSS px, получено " + layout.vw);
+    ok(layout.bodyHasClass, "body.room-study выставлен при открытом ридере");
+    ok(layout.readerPos === "fixed", "#roomReader — fixed-колонка, получено " + layout.readerPos);
+    ok(layout.headerHidden && layout.footerHidden && layout.tipHidden && layout.chipHidden,
+      "шапка Зала, футер, подсказка и чип покрытия скрыты");
+    ok(layout.wrapOverflow === "auto", "окно таблицы прокручивается само, получено " + layout.wrapOverflow);
+    ok(layout.wrapIsScroller,
+      "класс room-media-scroll ОСТАЁТСЯ — по нему караоке решает, какой скроллер двигать");
+    ok(layout.wrapPctOfViewport >= 45,
+      "таблице отдано >= 45% экрана (замер до фикса: 26%), получено " + layout.wrapPctOfViewport + "%");
+    ok(parseFloat(layout.theadTop) === 0, "шапка таблицы липнет к верху ОКНА (top 0), получено " + layout.theadTop);
+    ok(layout.maxH === "", 'в режиме JS не ставит max-height (высоту даёт flex), получено "' + layout.maxH + '"');
+
+    // закрытие ридера снимает класс — иначе домашний экран остался бы без шапки
+    await pg.click("#readerBack");
+    await pg.waitForSelector("#roomContent:not([hidden])", { timeout: 15000 });
+    const afterClose = await pg.evaluate(() => ({
+      cls: document.body.classList.contains("room-study"),
+      headerVisible: getComputedStyle(document.querySelector("header.room-header")).display !== "none",
+      pref: localStorage.getItem("room.studyMode"),
+    }));
+    ok(!afterClose.cls, "выход из ридера снимает body.room-study");
+    ok(afterClose.headerVisible, "шапка Зала возвращается на домашнем экране");
+    ok(afterClose.pref === "1", "предпочтение режима переживает закрытие ридера");
   } finally { await b.close(); await stopServer(srv.child); }
 
   if (failures.length) { console.error("FAIL — " + failures.length + " assertion(s)"); process.exit(1); }
