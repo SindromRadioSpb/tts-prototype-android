@@ -89,7 +89,25 @@
     return { rows: rows, result: lastResult };
   }
 
-  var API = { segmentText: segmentText, buildRows: buildRows, translateSegments: translateSegments };
+  function persistTableCache(storage, key, payload) {
+    try {
+      storage.setItem(String(key), JSON.stringify(payload));
+      return { stored: true, error_code: null };
+    } catch (error) {
+      var name = String(error && error.name || "").trim();
+      var code = name && name !== "Error"
+        ? name
+        : String(error && error.code || "LOCAL_MT_TABLE_CACHE_WRITE_FAILED");
+      return { stored: false, error_code: code };
+    }
+  }
+
+  var API = {
+    segmentText: segmentText,
+    buildRows: buildRows,
+    translateSegments: translateSegments,
+    persistTableCache: persistTableCache,
+  };
   if (typeof window !== "undefined") window.LocalMtTable = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
 })();

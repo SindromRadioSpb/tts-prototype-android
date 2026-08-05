@@ -48,3 +48,15 @@ test("shared mapper batches without losing global order, duplicates or empty row
   assert.deepEqual(mapped.rows.map((row) => row.source_line_index), [0, 1, 2]);
   assert.deepEqual(mapped.rows.map((row) => row.ru), ["x", "", "x"]);
 });
+
+test("table-cache quota exhaustion is non-fatal and reported without losing translated rows", () => {
+  const payload = { provider: "madlad", rows: [{ he: "שלום", ru: "привет" }] };
+  const stored = T.persistTableCache({ setItem() {} }, "cache-key", payload);
+  assert.deepEqual(stored, { stored: true, error_code: null });
+
+  const quota = new Error("storage quota exhausted");
+  quota.name = "QuotaExceededError";
+  quota.code = 22;
+  const skipped = T.persistTableCache({ setItem() { throw quota; } }, "cache-key", payload);
+  assert.deepEqual(skipped, { stored: false, error_code: "QuotaExceededError" });
+});
