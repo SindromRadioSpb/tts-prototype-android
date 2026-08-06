@@ -1,8 +1,10 @@
 # Studio — media binding provenance gate + material visibility: decision packet
 
 > **Date:** 2026-08-06
-> **Status:** **PROPOSAL — awaiting owner approval.** This document carries no implementation,
-> commit, push, deploy or data-mutation authority.
+> **Status:** **OWNER-APPROVED · F1–F3 + D4 SHIPPED · owner data repair in progress.**
+> F1/F2/F3 shipped in `v3.11.315`, D4 in `v3.11.316`, a shelf regression fix in `v3.11.317`.
+> The owner approved implementation, push and deploy, and the §4 repair after a full backup.
+> RP0 is complete and independently verified; RP1 onward is under way.
 > **Production baseline at diagnosis:** `v3.11.314`, browser schema `MIGRATIONS.length=48`
 > **Evidence:** `docs/research/studio-media-binding-provenance/2026-08-06/README.md`
 > **Trigger:** owner could not transfer one media card to iPhone; investigation found the card was
@@ -94,6 +96,26 @@ so it cannot be exported, transferred or backed up, with no explanation offered 
 
 This is the exact pattern already recorded as "silent empty ≠ real empty" and "singleton reset on
 entity change": a reusable surface keeping another entity's state on entity change.
+
+### D4 — one dead reference cancels the entire library backup *(found during execution, owner-approved fix)*
+
+`studio_learning_materials.package_id` has no foreign key, so `deletePackage`
+(`media-package-repository.js:246`) hard-deletes a package — cascading its tracks, revisions and
+bindings — and leaves the material pointing at nothing. `snapshotForMaterial`
+(`portable-learning-package-repository.js:668`) then raises `MEDIA_PACKAGE_NOT_FOUND`, and
+`appendMaterialArchives` propagated it, killing the whole full-library export.
+
+Measured on the owner's profile: the export died **after** collecting 8 935 audio assets and ~12
+minutes of work, naming neither the material nor a remedy, and `augmentFullBackupZip` runs for the
+metadata-only mode too — so no working backup path existed at all.
+
+Failing closed rather than shipping a silently incomplete archive was the original, correct intent
+and is preserved: any unexplained error still aborts. Exactly one structural condition — the
+material's media package is gone — becomes a **declared gap**: the material is skipped, listed in
+`learning-packages/index.json` and `metadata/skipped_learning_packages.json`, and the manifest
+records `portable_learning_packages_complete=false` plus `_skipped=N`. Its text and table remain in
+`library.json`. `materialArchiveGaps()` counts the gaps at preflight, so the user learns before the
+long build, not after it.
 
 ### Non-defect, worth naming
 
