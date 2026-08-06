@@ -230,15 +230,28 @@
     state.playbackFocus=window.MaterialRevisionCore.buildPlaybackFocus({rows:playbackRows(),caption_segment_id:String(row.caption_segment_id||''),selected_row_id:state.selectedRowId});renderRows(state.rows,false);renderReviewControls();requestAnimationFrame(function(){anchorSelected('auto');});
   }
 
-  async function openForTrack(trackId) {
+  // F2 (packet 2026-08-06): трек может обслуживать НЕСКОЛЬКО карточек. Прежний 'LIMIT 1' по
+  // updated_at делал вторую карточку непромоутиваемой навсегда — а значит невидимой для
+  // Import Center и непереносимой. Контекст берём из воркспейса (кем он открыт), не из
+  // «текущего текста студии»; без контекста и при двух кандидатах — спрашиваем, а не гадаем.
+  async function openForTrack(trackId, textId) {
     var panel = $('l3MaterialLayer'); if (!panel) return;
     panel.hidden = false; setStatus(tr('studio.material.loading','Загрузка локальной таблицы…'));
-    var bindings = await window.__localDB.dbQuery('SELECT text_id FROM studio_text_media_bindings WHERE track_id=? ORDER BY updated_at DESC LIMIT 1',[trackId]);
+    var bindings = await window.__localDB.dbQuery('SELECT text_id FROM studio_text_media_bindings WHERE track_id=? ORDER BY updated_at DESC',[trackId]);
     if (!bindings.length) {
       state = null; renderRows([], true); setStatus(tr('studio.material.saveTableFirst','Сначала соберите и сохраните таблицу: после этого она появится здесь.'));
       return;
     }
-    var material = await repo().promoteLegacyText(String(bindings[0].text_id));
+    var context = textId != null ? textId
+      : (window.StudioMediaPackage && typeof window.StudioMediaPackage.activeWorkspaceTextId === 'function'
+        ? window.StudioMediaPackage.activeWorkspaceTextId() : null);
+    var picked = window.MaterialRevisionCore.pickTextForTrack(bindings, context);
+    if (!picked.text_id) {
+      state = null; renderRows([], true);
+      setStatus(tr('studio.material.trackSharedByCards','Этот транскрипт используют несколько карточек. Откройте нужную карточку — её таблица подтянется сюда.'));
+      return;
+    }
+    var material = await repo().promoteLegacyText(picked.text_id);
     var base = await repo().getCurrentRevision(material.material_id);
     var prefs=readReviewPrefs(),context=currentCaptionContext();
     state = { trackId:String(trackId), material:material, base:base, rows:clone(base.rows), dirty:false, impact:{conflicts:[],impacted:[],reason:'CURRENT'},followEnabled:prefs.follow_enabled,followPaused:false,reviewMode:prefs.review_mode,customFields:prefs.custom_fields,textScale:prefs.text_scale,density:prefs.density,showProvenance:prefs.show_provenance,positioning:false,playbackNumber:context&&context.number||0,mappingRepair:null,mappingRepairError:null };

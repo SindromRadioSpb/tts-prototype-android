@@ -46,6 +46,9 @@
   }
 
   function projectionState(item) {
+    // F2: «материала ещё нет» — не то же самое, что «материал пропал». Первое — обычное состояние
+    // карточки, которую ни разу не готовили к переносу; второе — повреждение.
+    if (item.import_integrity_state === 'not-promoted') return item.projection_present ? 'present' : 'conflict';
     if (!item.material_id && item.projection_present) return 'conflict';
     if (item.import_integrity_state === 'conflict') return 'conflict';
     if (item.projection_archived) return 'archived';
@@ -85,6 +88,7 @@
 
   function importState(item) {
     const value = String(item.import_integrity_state || 'native');
+    if (value === 'not-promoted') return 'not-promoted';
     if (value === 'complete') return 'imported-complete';
     if (value === 'repairable-binding' || value === 'repairable-source') return 'repairable';
     if (value === 'archived') return 'archived';
@@ -106,6 +110,9 @@
 
   function route(item, states) {
     const integrity = String(item.import_integrity_state || 'native');
+    // Единственное действие, которое здесь честно: подготовить карточку к переносу. Ни backup, ни
+    // recovery для неё не определены — переносить пока нечего.
+    if (integrity === 'not-promoted') return ['not-prepared', 'prepare-transfer'];
     if (states.projection_state === 'conflict' || states.table_state === 'conflict' || states.mapping_state === 'invalid' ||
         states.media_state === 'sha-mismatch' || states.import_state === 'conflict') return ['blocked', 'inspect-recovery'];
     if (integrity === 'archived') return ['needs-recovery', 'unarchive'];
@@ -134,6 +141,9 @@
       return {
         ...item,
         ...states,
+        // Стабильный адрес карточки в каталоге. Непромоутнутая адресуется по тексту — выдумывать
+        // ей material_id значило бы протащить фальшивый идентификатор в пути экспорта.
+        catalog_key: item.material_id ? String(item.material_id) : 'text:' + String(item.text_id || ''),
         continuity_state,
         next_action,
         study_without_media: states.media_state === 'missing' && states.table_state !== 'missing',

@@ -141,6 +141,36 @@
     };
   }
 
+  // Провенанс строки — единственное, что знает, ИЗ КАКОГО медиа она получена. Идентификаторы
+  // сегментов несут sha медиа прямо в себе: 'asrseg:<sha>:<n>' (studio-import) и
+  // 'srcseg:<sha>:<fp16>:<n>' (createRawRevision выше). Форма 'srcseg:unbound:<fp>:…' медиа НЕ
+  // называет, 'cseg:…' — тоже: обе честно дают пустой ответ, а не догадку.
+  var MEDIA_SHA256 = /^[0-9a-f]{64}$/;
+  function mediaShaFromSegmentId(value) {
+    var parts = String(value == null ? '' : value).split(':');
+    if (parts.length < 3 || (parts[0] !== 'asrseg' && parts[0] !== 'srcseg')) return null;
+    var candidate = String(parts[1]).toLowerCase();
+    return MEDIA_SHA256.test(candidate) ? candidate : null;
+  }
+  // Отсортированное множество медиа, на которые ссылаются строки маппинга. Пустой массив = «строки
+  // ничего не утверждают» и НЕ равен «строки утверждают другое»: различать эти два случая обязан
+  // вызывающий (R9 derived ≠ asserted).
+  function mediaShaSetFromMapping(mapping) {
+    var rows = mapping && Array.isArray(mapping.rows) ? mapping.rows : [];
+    var found = {};
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i] || {};
+      var ids = [row.source_segment_id]
+        .concat(Array.isArray(row.source_segment_ids) ? row.source_segment_ids : [])
+        .concat(Array.isArray(row.raw_source_segment_ids) ? row.raw_source_segment_ids : []);
+      for (var k = 0; k < ids.length; k++) {
+        var sha = mediaShaFromSegmentId(ids[k]);
+        if (sha) found[sha] = true;
+      }
+    }
+    return Object.keys(found).sort();
+  }
+
   function defaultId() {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return 'cseg:' + crypto.randomUUID();
     return 'cseg:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2);
@@ -333,6 +363,7 @@
     createRawRevision: createRawRevision, createCorrectedDraft: createCorrectedDraft,
     applyOperation: applyOperation, serializeSubtitles: serializeSubtitles,
     parseSubtitles: parseSubtitles, detectSubtitleFormat: detectSubtitleFormat,
+    mediaShaFromSegmentId: mediaShaFromSegmentId, mediaShaSetFromMapping: mediaShaSetFromMapping,
   };
   if (typeof window !== 'undefined') window.MediaPackageCore = API;
   if (typeof module !== 'undefined' && module.exports) module.exports = API;

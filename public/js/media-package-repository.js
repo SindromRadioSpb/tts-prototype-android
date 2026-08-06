@@ -219,14 +219,39 @@
       var revision = await getRevision(binding.revision_id), track = await getTrack(binding.track_id);
       if (!revision || !track || revision.track_id !== track.track_id || track.package_id !== binding.package_id) throw createError('BINDING_TARGET_MISMATCH');
       if (revision.canonical_sha256 !== binding.revision_sha256) throw createError('BINDING_HASH_MISMATCH');
+      // F1 (packet 2026-08-06): тройка package↔track↔revision выше может быть безупречно
+      // согласованной И ПРИ ЭТОМ описывать ЧУЖОЕ медиа — живой инцидент: 561 строка с провенансом
+      // одного видео была привязана к пакету другого, потому что package_id приходил из ambient
+      // window.v3LastMediaPackageRef. Строки несут независимый сигнал в той же транзакции; здесь он
+      // и становится решающим (R11: источник-истины > самоотчёт вызывающего).
+      var mapping = binding.mapping || null;
+      if (mapping) {
+        var declared = typeof Core.mediaShaSetFromMapping === 'function' ? Core.mediaShaSetFromMapping(mapping) : [];
+        var pkg = await getPackage(binding.package_id);
+        var actual = pkg && pkg.media_sha256 ? String(pkg.media_sha256).toLowerCase() : null;
+        // Пустое множество — «строки ничего не утверждают» (legacy/caption-only): не судим, но и не
+        // выдаём за проверенное. Непустое и несовпавшее — отказ без единой записи.
+        if (declared.length && (declared.length > 1 || !actual || declared[0] !== actual)) {
+          throw createError('BINDING_PROVENANCE_MISMATCH', declared.join(',') + ' vs ' + (actual || 'none'));
+        }
+        mapping = Object.assign({}, mapping, { provenance_checked: declared.length > 0 });
+      }
       var ts = now();
       await r(`INSERT INTO studio_text_media_bindings
         (text_id,package_id,track_id,revision_id,revision_sha256,mapping_json,created_at,updated_at)
         VALUES (?,?,?,?,?,?,?,?)
         ON CONFLICT(text_id) DO UPDATE SET package_id=excluded.package_id,track_id=excluded.track_id,
           revision_id=excluded.revision_id,revision_sha256=excluded.revision_sha256,mapping_json=excluded.mapping_json,updated_at=excluded.updated_at`,
-        [String(binding.text_id), binding.package_id, binding.track_id, binding.revision_id, binding.revision_sha256, json(binding.mapping || null), ts, ts]);
+        [String(binding.text_id), binding.package_id, binding.track_id, binding.revision_id, binding.revision_sha256, json(mapping), ts, ts]);
       return getTextBinding(binding.text_id);
+    }
+    // F1: пакет по идентичности медиа. Нужен, потому что package_id НЕ всегда 'mpkg:'+sha —
+    // портированные пакеты приходят как 'mpkg:portable:<root>', и вывести sha из имени нельзя.
+    async function findPackageByMediaSha(sha) {
+      var clean = String(sha || '').trim().toLowerCase();
+      if (!/^[a-f0-9]{64}$/.test(clean)) return null;
+      var row = await one('SELECT package_id FROM studio_media_packages WHERE media_sha256=? AND deleted_at IS NULL ORDER BY created_at LIMIT 1', [clean]);
+      return row ? getPackage(row.package_id) : null;
     }
     async function getTextBinding(textId) {
       var row = await one('SELECT * FROM studio_text_media_bindings WHERE text_id = ? LIMIT 1', [String(textId)]);
@@ -287,7 +312,7 @@
       });
     }
 
-    return { createPackage: createPackage, getPackage: getPackage, listTracks: listTracks, getTrack: getTrack, getRevision: getRevision, getCurrentRevision: getCurrentRevision, getWorkspace: getWorkspace, listWorkspaces: listWorkspaces, saveDraft: saveDraft, discardDraft: discardDraft, commitDraft: commitDraft, bindText: bindText, getTextBinding: getTextBinding, isTextBindingStale: isTextBindingStale, deletePackage: deletePackage, relinkMedia: relinkMedia, importSnapshot: importSnapshot };
+    return { createPackage: createPackage, getPackage: getPackage, listTracks: listTracks, getTrack: getTrack, getRevision: getRevision, getCurrentRevision: getCurrentRevision, getWorkspace: getWorkspace, listWorkspaces: listWorkspaces, saveDraft: saveDraft, discardDraft: discardDraft, commitDraft: commitDraft, bindText: bindText, getTextBinding: getTextBinding, findPackageByMediaSha: findPackageByMediaSha, isTextBindingStale: isTextBindingStale, deletePackage: deletePackage, relinkMedia: relinkMedia, importSnapshot: importSnapshot };
   }
 
   var API = { createRepository: createRepository };

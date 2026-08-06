@@ -319,8 +319,27 @@
     return Math.max(0, Math.min(maxScrollTop, Math.round(target)));
   }
 
+  // F2 (packet 2026-08-06): какой карточке принадлежит открытый трек. Один медиа-пакет законно
+  // обслуживает несколько карточек (вторая таблица по тому же видео), поэтому «самая свежая
+  // привязка» — не ответ, а угадывание: именно оно оставляло вторую карточку без учебного
+  // материала и вне Import Center. Без явного контекста возвращаем ambiguous и спрашиваем.
+  function pickTextForTrack(rows, preferredTextId) {
+    const candidates = (Array.isArray(rows) ? rows : [])
+      .map((row) => String((row && row.text_id) || '')).filter(Boolean);
+    const preferred = preferredTextId == null ? '' : String(preferredTextId);
+    if (!candidates.length) return { text_id: null, ambiguous: false, candidates };
+    if (preferred) {
+      return candidates.includes(preferred)
+        ? { text_id: preferred, ambiguous: false, candidates }
+        : { text_id: null, ambiguous: candidates.length > 1, candidates };
+    }
+    return candidates.length === 1
+      ? { text_id: candidates[0], ambiguous: false, candidates }
+      : { text_id: null, ambiguous: true, candidates };
+  }
+
   return {
-    FIELD_NAMES, REVIEW_MODE_FIELDS, canonical, stableStringify, sha256Hex, normalizeRow,
+    FIELD_NAMES, REVIEW_MODE_FIELDS, canonical, stableStringify, sha256Hex, normalizeRow, pickTextForTrack,
     createTableSnapshot, analyzeImpact, buildRegenerationPreflight, applyProviderCandidates,
     applyExactAlignedMapping, planExactAlignedMappingRepair, fieldsForReviewMode, buildPlaybackFocus, computeContextScrollTop,
   };

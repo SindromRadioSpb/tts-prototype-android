@@ -201,3 +201,55 @@ test('verified slim snapshot imports transactionally and duplicate import is ide
   assert.equal(duplicate.duplicate, true);
   assert.equal(target.rows('SELECT COUNT(*) AS n FROM studio_caption_revisions')[0].n, 2);
 });
+
+// ── F1 (packet 2026-08-06): провенанс строк — источник истины о том, какому медиа принадлежит
+// карточка. Живой инцидент: 561 строка с провенансом медиа B была привязана к пакету медиа A,
+// потому что package_id брался из ambient window.v3LastMediaPackageRef и ни с чем не сверялся.
+const SHA_A = 'a'.repeat(64), SHA_B = 'b'.repeat(64);
+const rowsFor = (sha, n = 2) => ({
+  schema: 'studio-row-source-v2',
+  rows: Array.from({ length: n }, (_, i) => ({ row_index: i, source_segment_id: 'asrseg:' + sha + ':' + i })),
+});
+
+test('mediaShaSetFromMapping reads media identity out of both known row-source id shapes', () => {
+  const set = (mapping) => Core.mediaShaSetFromMapping(mapping);
+  assert.deepEqual(set(rowsFor(SHA_A)), [SHA_A], 'asrseg:<sha>:<n>');
+  assert.deepEqual(set({ rows: [{ source_segment_id: 'srcseg:' + SHA_B + ':' + 'f'.repeat(16) + ':0' }] }), [SHA_B], 'srcseg:<sha>:<fp>:<n>');
+  assert.deepEqual(set({ rows: [{ source_segment_ids: ['asrseg:' + SHA_A + ':0'], raw_source_segment_ids: ['srcseg:' + SHA_B + ':' + 'f'.repeat(16) + ':1'] }] }).sort(), [SHA_A, SHA_B], 'every id-bearing field is read');
+  assert.deepEqual(set({ rows: [{ source_segment_id: 'cseg:abc:0' }] }), [], 'caption ids carry no media identity');
+  assert.deepEqual(set({ rows: [{ source_segment_id: 'srcseg:unbound:' + 'c'.repeat(64) + ':0' }] }), [], 'unbound tracks are not a media identity');
+  assert.deepEqual(set({ rows: [{ source_segment_id: 'asrseg:NOTAHASH:0' }, { source_segment_id: '' }, {}] }), [], 'malformed ids are ignored, never guessed');
+  assert.deepEqual(set(null), [], 'no mapping is not a claim');
+  assert.deepEqual(set({ rows: [] }), [], 'empty mapping is not a claim');
+});
+
+test('bindText refuses a mapping whose row provenance names another media, and writes nothing', async () => {
+  const h = await harness();
+  h.db.run("INSERT INTO texts(id,source_meta_json) VALUES ('text-1','{}')");
+  const pkg = await h.repo.createPackage({ media: { sha256: SHA_A, mime: 'audio/mpeg', opfs_path: 'media/a.mp3' }, raw_revision: await rawRevision(SHA_A) });
+  const revision = await h.repo.getCurrentRevision(pkg.corrected_track_id);
+  const binding = { text_id: 'text-1', package_id: pkg.package_id, track_id: pkg.corrected_track_id, revision_id: revision.revision_id, revision_sha256: revision.canonical_sha256 };
+
+  await assert.rejects(() => h.repo.bindText({ ...binding, mapping: rowsFor(SHA_B) }), /BINDING_PROVENANCE_MISMATCH/);
+  assert.equal(h.rows('SELECT COUNT(*) AS n FROM studio_text_media_bindings')[0].n, 0, 'nothing is written on a refused bind');
+
+  await h.repo.bindText({ ...binding, mapping: rowsFor(SHA_A) });
+  assert.equal((await h.repo.getTextBinding('text-1')).package_id, pkg.package_id, 'agreeing provenance binds');
+  await assert.rejects(() => h.repo.bindText({ ...binding, mapping: rowsFor(SHA_B) }), /BINDING_PROVENANCE_MISMATCH/);
+  assert.equal((await h.repo.getTextBinding('text-1')).package_id, pkg.package_id, 'an existing good binding survives a refused overwrite');
+});
+
+test('bindText does not judge rows it cannot read, and records that it did not', async () => {
+  const h = await harness();
+  h.db.run("INSERT INTO texts(id,source_meta_json) VALUES ('text-1','{}')");
+  const pkg = await h.repo.createPackage({ media: { sha256: SHA_A, mime: 'audio/mpeg', opfs_path: 'media/a.mp3' }, raw_revision: await rawRevision(SHA_A) });
+  const revision = await h.repo.getCurrentRevision(pkg.corrected_track_id);
+  const bind = (mapping) => h.repo.bindText({ text_id: 'text-1', package_id: pkg.package_id, track_id: pkg.corrected_track_id, revision_id: revision.revision_id, revision_sha256: revision.canonical_sha256, mapping });
+
+  await bind({ schema: 'studio-row-source-v2', rows: [{ row_index: 0, caption_segment_id: 'cseg:x:0' }] });
+  assert.equal((await h.repo.getTextBinding('text-1')).mapping.provenance_checked, false, 'legacy rows pass but are marked unchecked');
+  await bind(rowsFor(SHA_A));
+  assert.equal((await h.repo.getTextBinding('text-1')).mapping.provenance_checked, true, 'verified rows are marked checked');
+  await bind(null);
+  assert.equal((await h.repo.getTextBinding('text-1')).mapping, null, 'a bind with no mapping stays exactly as before');
+});

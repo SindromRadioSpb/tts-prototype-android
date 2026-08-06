@@ -610,6 +610,36 @@
         item.source_state_sha256=await importCore.sourceStateHash({portable_scope_id:portableScope,caption_sha256:item.caption_current_sha256,table_content_sha256:item.table_content_sha256,table_mapping_sha256:item.table_mapping_sha256,media_sha256:item.media_expected_sha256});
         result.push(item);
       }
+      // F2 (packet 2026-08-06): карточки с медиа, которые ещё не стали учебным материалом. Раньше
+      // их здесь не было вовсе — каталог строился только по studio_learning_materials, и владелец
+      // не мог ни перенести такую карточку, ни понять, почему её нет в списке. Промоушен ленивый по
+      // замыслу; невидимость — нет.
+      const unpromoted=await q(`SELECT t.id AS text_id,t.text_key AS portable_text_key,t.title,t.is_archived,t.created_at,
+        b.package_id,b.track_id AS binding_track_id,b.revision_id AS binding_revision_id,b.revision_sha256 AS binding_revision_sha256,
+        ct.current_revision_id AS caption_current_revision_id,ct.draft_json AS caption_draft_json,cr.canonical_sha256 AS caption_current_sha256,
+        p.media_sha256,p.opfs_path,p.mime,p.size_bytes,p.duration_ms,p.original_name,
+        (SELECT rt.track_id FROM studio_caption_tracks rt WHERE rt.package_id=b.package_id AND rt.role='raw_original' ORDER BY rt.updated_at DESC LIMIT 1) AS raw_track_id
+        FROM studio_text_media_bindings b
+        JOIN texts t ON t.id=b.text_id
+        LEFT JOIN studio_learning_materials m ON m.text_id=b.text_id
+        LEFT JOIN studio_caption_tracks ct ON ct.track_id=b.track_id
+        LEFT JOIN studio_caption_revisions cr ON cr.revision_id=ct.current_revision_id
+        LEFT JOIN studio_media_packages p ON p.package_id=b.package_id AND p.deleted_at IS NULL
+        WHERE m.material_id IS NULL ORDER BY t.created_at DESC`);
+      for(const row of unpromoted){
+        const scope='local-text:'+String(row.text_id);
+        const item={
+          material_id:null,text_id:row.text_id,package_id:row.package_id,binding_track_id:row.binding_track_id,portable_scope_id:scope,portable_text_key:row.portable_text_key,title:row.title,updated_at:row.created_at,
+          projection_present:true,projection_archived:!!Number(row.is_archived),projection_rebuildable:false,
+          caption_raw_present:!!row.raw_track_id,caption_current_revision_id:row.caption_current_revision_id||row.binding_revision_id||null,caption_current_sha256:row.caption_current_sha256||row.binding_revision_sha256||null,caption_draft_present:!!String(row.caption_draft_json||'').trim(),
+          table_current_revision_id:null,table_content_sha256:null,table_mapping_sha256:null,table_bound_caption_revision_id:null,table_bound_caption_revision_sha256:null,
+          mapping_total:0,mapping_mapped:0,mapping_invalid:false,
+          media_expected_sha256:row.media_sha256||null,media_actual_sha256:row.media_sha256||null,media_present:!!row.opfs_path,media_codec_supported:null,mime:row.mime||null,size_bytes:row.size_bytes==null?null:Number(row.size_bytes),duration_ms:row.duration_ms==null?null:Number(row.duration_ms),original_name:row.original_name||null,
+          import_integrity_state:'not-promoted',import_receipt_id:null,
+        };
+        item.source_state_sha256=await importCore.sourceStateHash({portable_scope_id:scope,caption_sha256:item.caption_current_sha256,table_content_sha256:null,table_mapping_sha256:null,media_sha256:item.media_expected_sha256});
+        result.push(item);
+      }
       return result;
     }
 

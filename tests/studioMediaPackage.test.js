@@ -222,3 +222,51 @@ test('media relink keeps exact SHA security and exposes actionable mismatch evid
   );
   assert.equal(await StudioMediaPackage.verifyRelinkBytes(expected, new Uint8Array([1, 2, 3]).buffer), true, 'File.arrayBuffer() must be hashed as bytes, not as "[object ArrayBuffer]"');
 });
+
+// ── F1 (packet 2026-08-06): цель привязки выводится из провенанса строк, а не из ambient
+// «последнего активного воркспейса». Живой инцидент: строки одного видео уехали в пакет другого.
+const SHA_X = 'a'.repeat(64), SHA_Y = 'b'.repeat(64);
+const refFor = (pkg) => ({ package_id: pkg, track_id: pkg + ':track', revision_id: pkg + ':rev', revision_sha256: pkg + ':sha' });
+const mapFor = (sha) => ({ schema: 'studio-row-source-v2', rows: [{ row_index: 0, source_segment_id: 'asrseg:' + sha + ':0' }] });
+
+function fakeRepo(packages) {
+  return {
+    findPackageByMediaSha: async (sha) => packages.find((p) => p.media_sha256 === sha) || null,
+    getWorkspace: async (packageId) => {
+      const p = packages.find((x) => x.package_id === packageId);
+      return p ? { package_id: p.package_id, corrected_track_id: p.package_id + ':live-track', current_revision_id: p.package_id + ':live-rev', current_revision_sha256: p.package_id + ':live-sha' } : null;
+    },
+  };
+}
+
+test('resolveBindTarget keeps the exact ambient revision when the rows agree with it', async () => {
+  StudioMediaPackage.setRepositoryForTests(fakeRepo([{ package_id: 'mpkg:X', media_sha256: SHA_X }]));
+  const target = await StudioMediaPackage.resolveBindTarget(refFor('mpkg:X'), mapFor(SHA_X));
+  assert.deepEqual(target, { ...refFor('mpkg:X'), source: 'ambient-verified' }, 'the revision the table was actually built against is preserved, not silently advanced');
+});
+
+test('resolveBindTarget follows the rows to their real package when ambient state is wrong', async () => {
+  StudioMediaPackage.setRepositoryForTests(fakeRepo([
+    { package_id: 'mpkg:X', media_sha256: SHA_X }, { package_id: 'mpkg:Y', media_sha256: SHA_Y },
+  ]));
+  const target = await StudioMediaPackage.resolveBindTarget(refFor('mpkg:X'), mapFor(SHA_Y));
+  assert.deepEqual(target, {
+    package_id: 'mpkg:Y', track_id: 'mpkg:Y:live-track',
+    revision_id: 'mpkg:Y:live-rev', revision_sha256: 'mpkg:Y:live-sha', source: 'provenance-healed',
+  });
+});
+
+test('resolveBindTarget binds nothing rather than something plausible', async () => {
+  StudioMediaPackage.setRepositoryForTests(fakeRepo([{ package_id: 'mpkg:X', media_sha256: SHA_X }]));
+  assert.equal(await StudioMediaPackage.resolveBindTarget(refFor('mpkg:X'), mapFor(SHA_Y)), null, 'rows name a media this device does not have');
+  const mixed = { rows: [{ source_segment_id: 'asrseg:' + SHA_X + ':0' }, { source_segment_id: 'asrseg:' + SHA_Y + ':1' }] };
+  assert.equal(await StudioMediaPackage.resolveBindTarget(refFor('mpkg:X'), mixed), null, 'rows from two media are never resolved by majority');
+  assert.equal(await StudioMediaPackage.resolveBindTarget(null, mapFor(SHA_X)), null, 'no ambient ref and no reason to invent one');
+});
+
+test('resolveBindTarget does not judge rows that make no claim', async () => {
+  StudioMediaPackage.setRepositoryForTests(fakeRepo([{ package_id: 'mpkg:X', media_sha256: SHA_X }]));
+  const legacy = { schema: 'studio-row-source-v2', rows: [{ row_index: 0, caption_segment_id: 'cseg:x:0' }] };
+  assert.deepEqual(await StudioMediaPackage.resolveBindTarget(refFor('mpkg:X'), legacy), { ...refFor('mpkg:X'), source: 'ambient-unverified' });
+  assert.deepEqual(await StudioMediaPackage.resolveBindTarget(refFor('mpkg:X'), null), { ...refFor('mpkg:X'), source: 'ambient-unverified' });
+});

@@ -131,3 +131,40 @@ test('source-state descriptor excludes mutable display text and is stable across
   const b = await Core.sourceStateHash({ title: 'two', media_sha256: H('d'), table_mapping_sha256: H('c'), table_content_sha256: H('b'), caption_sha256: H('a'), portable_scope_id: 'scope' });
   assert.equal(a, b);
 });
+
+// ── F2 (packet 2026-08-06): карточка с медиа, но без учебного материала, ДОЛЖНА быть видна.
+// Живой инцидент: она отсутствовала в каталоге целиком, поэтому её нельзя было ни экспортировать,
+// ни перенести, ни даже узнать, почему её нет.
+function unpromoted(overrides = {}) {
+  return {
+    material_id: null, text_id: 'text-9', package_id: 'mpkg:x',
+    portable_scope_id: 'local-text:text-9', portable_text_key: 'lesson-9', title: 'Карточка без материала',
+    projection_present: true, projection_archived: false, projection_rebuildable: false,
+    caption_raw_present: true, caption_current_revision_id: 'caption-9', caption_current_sha256: H('b'),
+    caption_draft_present: false,
+    table_current_revision_id: null, table_content_sha256: null, table_mapping_sha256: null,
+    mapping_total: 0, mapping_mapped: 0,
+    media_expected_sha256: H('e'), media_actual_sha256: H('e'), media_present: true,
+    import_integrity_state: 'not-promoted', source_state_sha256: H('f'),
+    ...overrides,
+  };
+}
+
+test('a media card without a learning material is listed, not hidden and not called broken', () => {
+  const [item] = Core.buildCatalog([unpromoted()], [], {}, null);
+  assert.equal(item.import_state, 'not-promoted');
+  assert.equal(item.projection_state, 'present', 'the text projection is really there — this is not a conflict');
+  assert.equal(item.continuity_state, 'not-prepared');
+  assert.equal(item.next_action, 'prepare-transfer');
+  assert.equal(item.catalog_key, 'text:text-9', 'addressable without inventing a material id');
+});
+
+test('catalog_key of a real material stays its material id', () => {
+  const [item] = Core.buildCatalog([material()], [], {}, null);
+  assert.equal(item.catalog_key, 'material-1');
+});
+
+test('a missing material id is still a conflict when the material was supposed to exist', () => {
+  const [item] = Core.buildCatalog([{ ...material(), material_id: null, import_integrity_state: 'complete' }], [], {}, null);
+  assert.equal(item.projection_state, 'conflict', 'not-promoted must not become a blanket excuse for a missing material');
+});

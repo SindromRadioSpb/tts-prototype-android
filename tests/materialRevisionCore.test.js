@@ -183,3 +183,18 @@ test('playback review can anchor the current row in the first visible slot', () 
   });
   assert.equal(target, 500);
 });
+
+// ── F2 (packet 2026-08-06): один медиа-трек может обслуживать НЕСКОЛЬКО карточек (вторая таблица
+// по тому же медиа — законный поток). Прежний резолвер брал 'ORDER BY updated_at DESC LIMIT 1',
+// поэтому вторая карточка не могла быть промоутнута никогда и исчезала из Import Center.
+test('pickTextForTrack never guesses which card a shared track belongs to', () => {
+  const pick = Core.pickTextForTrack;
+  const two = [{ text_id: 'text-new' }, { text_id: 'text-old' }];
+
+  assert.deepEqual(pick([], 'text-new'), { text_id: null, ambiguous: false, candidates: [] }, 'nothing bound');
+  assert.deepEqual(pick([{ text_id: 'only' }], null), { text_id: 'only', ambiguous: false, candidates: ['only'] }, 'one binding needs no context');
+  assert.deepEqual(pick(two, 'text-old'), { text_id: 'text-old', ambiguous: false, candidates: ['text-new', 'text-old'] }, 'explicit context wins over recency');
+  assert.deepEqual(pick(two, null), { text_id: null, ambiguous: true, candidates: ['text-new', 'text-old'] }, 'shared track without context is ambiguous, not "the newest"');
+  assert.deepEqual(pick(two, 'text-elsewhere'), { text_id: null, ambiguous: true, candidates: ['text-new', 'text-old'] }, 'a context that is not bound here is not honoured');
+  assert.deepEqual(pick([{ text_id: 'only' }], 'text-elsewhere'), { text_id: null, ambiguous: false, candidates: ['only'] }, 'wrong context does not silently fall back to the single binding');
+});

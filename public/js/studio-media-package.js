@@ -45,6 +45,8 @@
       revision_no: Number(row.revision_no || 0),
       has_draft: !!row.has_draft,
       media_missing: !!row.media_sha256 && !row.media_available,
+      // F3b: полка «Транскрипты» перечисляет МЕДИА, а не карточки. Когда один транскрипт
+      // обслуживает несколько карточек, их число — единственный видимый признак этого.
       binding_count: Number(row.binding_count || 0),
       stale: !!options.stale,
       active: !!options.active,
@@ -256,6 +258,7 @@
       var duration = formatDuration(model.duration_ms); if (duration) parts.push(duration);
       if (model.has_draft) parts.push(uiText('studio.mediaPackage.workspaceDraftShort', 'черновик'));
       if (model.media_missing) parts.push(uiText('studio.mediaPackage.workspaceMediaMissingShort', 'медиа нужно связать'));
+      if (model.binding_count > 1) parts.push(uiText('studio.mediaPackage.workspaceCards', 'карточек: {n}', { n: model.card_count }));
       meta.textContent = parts.join(' · '); copyBox.append(title, meta);
       var open = document.createElement('button'); open.type = 'button'; open.className = 'btn-secondary';
       open.textContent = uiText('studio.mediaPackage.workspaceReopen', 'Вернуться к правкам');
@@ -288,6 +291,11 @@
     renderActiveWorkspace(null);
     return refreshWorkspaceUi();
   }
+  // F2: какая карточка открыта в этом воркспейсе. Ставится только activateTextBinding(textId) —
+  // это НЕ «текущий текст студии», а именно текст, из которого воркспейс был открыт.
+  function activeWorkspaceTextId() {
+    return activeWorkspaceOptions && activeWorkspaceOptions.text_id ? String(activeWorkspaceOptions.text_id) : null;
+  }
   function clearActiveWorkspace() {
     activeWorkspaceRef = null; activeWorkspaceOptions = {}; workspaceRefreshSerial++;
     if (typeof window !== 'undefined') window.v3LastMediaPackageRef = null;
@@ -313,6 +321,31 @@
     var mediaPassport = revision && media ? buildExactBindingPassport(revision, binding, media) : null;
     return { binding: binding, stale: !!stale.stale, workspace: workspace, media_passport: mediaPassport };
   }
+  // ── F1 (packet 2026-08-06): КАКОМУ МЕДИА ПРИНАДЛЕЖИТ НОВАЯ КАРТОЧКА ────────────────────────────
+  // Решает провенанс её собственных строк, а не window.v3LastMediaPackageRef. Ambient-ссылка живёт
+  // дольше, чем сущность, которую описывает: живой инцидент — 561 строка одного видео уехала в
+  // пакет другого, и все нижележащие гейты честно отработали поверх ложного факта.
+  // Ambient-ссылка сохраняет ТОЧНУЮ ревизию, против которой собиралась таблица, поэтому при
+  // согласии она и остаётся целью — переводить карточку на текущую ревизию значило бы менять
+  // stale/current у неё за спиной.
+  async function resolveBindTarget(ref, mapping) {
+    if (!ref || !ref.package_id) return null;               // медиа-контекста не было — не выдумываем
+    var exact = { package_id: ref.package_id, track_id: ref.track_id,
+                  revision_id: ref.revision_id, revision_sha256: ref.revision_sha256 || ref.projection_sha256 };
+    var declared = getCore().mediaShaSetFromMapping(mapping);
+    if (!declared.length) return Object.assign(exact, { source: 'ambient-unverified' });  // строки молчат — не судим
+    if (declared.length > 1) return null;                   // два медиа в одной таблице большинством не решаются
+    var repo = browserRepository();
+    var pkg = await repo.findPackageByMediaSha(declared[0]);
+    if (!pkg) return null;                                  // истинного медиа на устройстве нет — привязки не будет
+    if (String(pkg.package_id) === String(ref.package_id)) return Object.assign(exact, { source: 'ambient-verified' });
+    var ws = await repo.getWorkspace(pkg.package_id, null);
+    if (!ws || !ws.corrected_track_id || !ws.current_revision_id) return null;
+    return { package_id: ws.package_id, track_id: ws.corrected_track_id,
+             revision_id: ws.current_revision_id, revision_sha256: ws.current_revision_sha256,
+             source: 'provenance-healed' };
+  }
+
   async function openWorkspace(packageId, trackId) {
     var workspace = packageId
       ? await activatePackage(packageId, trackId ? { track_id: String(trackId) } : {})
@@ -522,6 +555,7 @@
     workspaceViewModel: workspaceViewModel, refreshWorkspaceUi: refreshWorkspaceUi,
     setActiveWorkspace: setActiveWorkspace, clearActiveWorkspace: clearActiveWorkspace,
     activatePackage: activatePackage, activateTextBinding: activateTextBinding,
+    resolveBindTarget: resolveBindTarget, activeWorkspaceTextId: activeWorkspaceTextId,
     openWorkspace: openWorkspace, openActiveWorkspace: openWorkspace, openWorkspaceLibrary: openWorkspaceLibrary,
     notifyRevision: notifyRevision,
     browserRepository: browserRepository, setRepositoryForTests: setRepositoryForTests,

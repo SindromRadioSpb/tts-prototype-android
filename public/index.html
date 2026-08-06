@@ -11116,7 +11116,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                         <div id="v3ImportEntry" style="margin-top:6px; display:flex; gap:8px; flex-wrap:wrap;">
                             <button type="button" class="btn-secondary" onclick="window.StudioImport && StudioImport.open()">📥 <span data-i18n="studio.import.button">Импорт: ссылка / файл / фото</span></button>
                             <button type="button" id="v3RetellEntryBtn" class="btn-secondary" onclick="window.StudioRetell && StudioRetell.openFromComposer()">✨ <span data-i18n="studio.retell.button">Упростить до моего уровня</span></button>
-                            <button type="button" id="v3PortableGlobalBtn" class="btn-secondary" onclick="StudioPortableLearningPackage.open({view:'overview'})">↔ <span data-i18n="studio.importCenter.globalEntry">Импорт / перенос / восстановление</span></button>
+                            <button type="button" id="v3PortableGlobalBtn" class="btn-secondary" onclick="StudioPortableLearningPackage.open({view:'overview',textId:(window.v3ActiveTextId||null)})">↔ <span data-i18n="studio.importCenter.globalEntry">Импорт / перенос / восстановление</span></button>
                             <button type="button" id="l3WorkspaceLibraryBtn" class="btn-secondary" onclick="StudioMediaPackage.openWorkspaceLibrary()" hidden>✎ <span data-i18n="studio.mediaPackage.workspaceLibrary">Транскрипты</span> <span id="l3WorkspaceLibraryCount">0</span></button>
                         </div>
 
@@ -12803,9 +12803,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=116"></script>
-    <script src="/i18n/locales/en.js?v=116"></script>
-    <script src="/i18n/locales/he.js?v=116"></script>
+    <script src="/i18n/locales/ru.js?v=117"></script>
+    <script src="/i18n/locales/en.js?v=117"></script>
+    <script src="/i18n/locales/he.js?v=117"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12975,7 +12975,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.314";
+    window.APP_VERSION = "3.11.315";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -26703,6 +26703,7 @@ async function v3LibrarySaveCurrentCore(meta) {
       }
       const newTextId = crypto.randomUUID();
       const textKey = 'text-' + Date.now();
+      let v3MediaBindRefused = false;
       await ldb.execRaw('BEGIN;');
       try {
         await ldb.createText({
@@ -26732,15 +26733,25 @@ async function v3LibrarySaveCurrentCore(meta) {
         }
         const l3ref = window.v3LastMediaPackageRef || (v3LastGeminiMeta && v3LastGeminiMeta.source && v3LastGeminiMeta.source.media_package_ref);
         if (l3ref && window.StudioMediaPackage) {
-          await window.StudioMediaPackage.browserRepository().bindText({
-            text_id: newTextId, package_id: l3ref.package_id, track_id: l3ref.track_id,
-            revision_id: l3ref.revision_id, revision_sha256: l3ref.revision_sha256 || l3ref.projection_sha256,
-            mapping: { schema: 'studio-row-source-v2', rows: l3Rows },
-          });
+          // F1 (packet 2026-08-06): какому медиа принадлежит карточка, решает провенанс её строк,
+          // а не ambient v3LastMediaPackageRef — тот переживает сущность, которую описывает.
+          const l3mapping = { schema: 'studio-row-source-v2', rows: l3Rows };
+          const l3target = await window.StudioMediaPackage.resolveBindTarget(l3ref, l3mapping);
+          if (l3target) {
+            await window.StudioMediaPackage.browserRepository().bindText({
+              text_id: newTextId, package_id: l3target.package_id, track_id: l3target.track_id,
+              revision_id: l3target.revision_id, revision_sha256: l3target.revision_sha256,
+              mapping: l3mapping,
+            });
+          } else {
+            // Текст и таблица сохраняются полностью; молча привязать чужое медиа — нельзя.
+            v3MediaBindRefused = true;
+          }
         }
         await ldb.execRaw('COMMIT;');
       } catch (e) { try { await ldb.execRaw('ROLLBACK;'); } catch (_) {} throw e; }
       text = await ldb.getTextById(newTextId);
+      if (v3MediaBindRefused) { try { showToast(t("toast.mediaBindRefused"), "warning"); } catch (_) {} }
     } else {
       const created = await v3PostJson("/api/library/texts", payload);
       text = created && created.text ? created.text : null;
