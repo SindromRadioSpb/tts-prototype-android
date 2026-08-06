@@ -356,6 +356,24 @@ test('W1 contract: media context resolves before the premium/non-premium fork', 
     'content-addressed resolver must run before provider fork so premium Gemini cannot bypass it');
 });
 
+test('W1/W3 cold-open retries the canonical resolver after lazy source hydration', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  const hydrateStart = html.indexOf('const _st = await _ldb.getTextSourceText(textId)');
+  const composerHydrated = html.indexOf('v3SetSourceTextFromLibrary(String(_st))', hydrateStart);
+  const retry = html.indexOf('await v3RestoreUnboundMediaAfterSourceHydration(textId, rows)', hydrateStart);
+  assert.ok(hydrateStart >= 0 && composerHydrated > hydrateStart, 'lazy Library source hydration exists');
+  assert.ok(retry > composerHydrated,
+    'an unbound legacy card must retry W1 only after its own composer text and rows are available');
+
+  const helper = html.indexOf('async function v3RestoreUnboundMediaAfterSourceHydration');
+  const helperEnd = html.indexOf('\n    }\n\n    function v3AudioSegmentsForRequest', helper);
+  const body = html.slice(helper, helperEnd);
+  assert.match(body, /await v3ResolveMediaContext\(\)/,
+    'cold-open recovery delegates to the one content-addressed resolver');
+  assert.match(body, /v3RestoreMediaFromMeta\(\{ source: context\.restored \}, rows\)/,
+    'the proven canonical context must enter W3 offline partial alignment without being saved to canon');
+});
+
 test('W6 keeps the >250 safety gate and names every permitted next route in RU/HE/EN', () => {
   const root = path.join(__dirname, '..');
   const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
