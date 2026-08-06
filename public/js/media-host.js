@@ -161,11 +161,15 @@
         audio.timingMap.row_seg_idx.length === list.length) return;
     var texts = list.map(function (r) { return String((r && (r.he || r.he_plain || r.hebrew)) || ""); });
     var al = AT.alignRowsToSegments(texts, segs);
+    var hasBlindSegments = segs.some(function (segment) {
+      return !!(segment && (segment.blind || (Array.isArray(segment.quality_flags) &&
+        segment.quality_flags.indexOf("blind") >= 0)));
+    });
     var prov = { v: AT.ALIGN_VERSION, at: new Date().toISOString(), rows: list.length,
                  segments: segs.length, ok: !!al.ok, reason: al.reason || null,
                  alignedSegments: al.alignedSegments, alignedRows: al.alignedRows,
                  codeVersion: d.appVersion };
-    if (!al.ok) {
+    if (!al.ok || hasBlindSegments) {
       // W3: the strict verdict remains recorded, then an explicitly named per-row proof gets
       // its own chance. Sparse timing uses canonical segment ends as blind gap boundaries;
       // a row without proof is never painted as part of its neighbour's range.
@@ -184,7 +188,7 @@
         if (built.timing) {
           prov = { v: AT.ALIGN_PARTIAL_VERSION, at: prov.at, rows: list.length,
             segments: segs.length, ok: true, mode: "partial-proven",
-            strictReason: al.reason || null, reason: null,
+            strictReason: al.reason || (hasBlindSegments ? "BLIND_CANON_SEGMENT" : null), reason: null,
             alignedSegments: null, alignedRows: coverage.mapped_rows,
             coverage: coverage, codeVersion: d.appVersion,
             entries: built.timing.entries.length, replaced: !!audio.timing };

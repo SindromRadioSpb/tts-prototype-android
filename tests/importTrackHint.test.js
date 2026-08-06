@@ -157,6 +157,39 @@ test("B+C: imported media starts a new draft and media SHA is strict", () => {
   assert.equal(SI.mediaSourceSha({ audio: { media: { sha256: "not-a-hash" } } }), null);
 });
 
+test("ASR draft promotion keeps asserted seam timing but marks the rejected segment blind", async () => {
+  const source = [
+    { id: "lasr-left", start: 874.82, end: 878.6, text: "שורה לפני השוליים" },
+    { id: "lasr-seam", start: 870, end: 890.52, text: "שורת חפיפה מהחלון הבא" },
+    { id: "lasr-right", start: 893.4, end: 894.52, text: "שורה אחרי השוליים" },
+  ];
+  const validated = [
+    { i: 0, start: 874.82, text: source[0].text },
+    { i: 1, start: null, text: source[1].text },
+    { i: 2, start: 893.4, text: source[2].text },
+  ];
+
+  const promoted = SI.mediaSegmentsForPromotion(source, validated);
+  assert.equal(promoted.length, 3, "a rejected timestamp must never drop its transcript line");
+  assert.equal(promoted[1].start, 870, "the provider-asserted timestamp survives; no interpolation is invented");
+  assert.equal(promoted[1].end, 890.52);
+  assert.equal(promoted[1].blind, true, "the locally rejected seam remains visibly untrusted");
+  assert.ok(promoted[1].quality_flags.includes("blind"));
+  assert.equal(promoted[0].blind, false);
+});
+
+test("media-package creation failure cannot land a flat media transcript in the composer", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const source = fs.readFileSync(path.join(__dirname, "..", "public", "js", "studio-import.js"), "utf8");
+  const create = source.indexOf("mediaPackage = await window.StudioMediaPackage.createFromImportMeta(importMeta)");
+  const failure = source.indexOf('setStatus("studio.mediaPackage.createBlocked"', create);
+  const stop = source.indexOf("return false", failure);
+  const composerWrite = source.indexOf('var input = $("inputText")', create);
+  assert.ok(create >= 0 && failure > create && stop > failure && composerWrite > stop,
+    "a failed canonical promotion must remain retryable in Import instead of creating a media-less >250-row draft");
+});
+
 test("L3a: row-source-v2 keeps corrected id, complete raw lineage and distinct ordinals", () => {
   const sha = "c".repeat(64);
   const audio = {

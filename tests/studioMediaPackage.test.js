@@ -6,6 +6,7 @@ const Core = require('../public/js/media-package-core.js');
 const StudioMediaPackage = require('../public/js/studio-media-package.js');
 
 const SHA = '094164e9c94ce623df765600bb0bd2f2b1715fb08bd5050ae53de7427eae8b90';
+const INDEX_HTML = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
 
 test('legacy audio passport promotes seconds to bounded millisecond raw cues without confusing ordinals', () => {
   const input = StudioMediaPackage.passportToPromotionInput({
@@ -375,4 +376,23 @@ test('W4 deletion requires a consequence preview and cancellation performs no wr
     translate: (key, vars) => key + ':' + JSON.stringify(vars),
   }), (error) => error.cancelled === true && error.preview === preview);
   assert.deepEqual(calls, [['preview', 'mpkg:X']], 'delete is impossible before accepting the preview');
+});
+
+test('mobile Studio has one onboarding overlay and one state authority', () => {
+  assert.equal(
+    (INDEX_HTML.match(/id="v3OnboardingModal"/g) || []).length,
+    1,
+    'duplicate fullscreen onboarding overlays can make the Studio surface untappable',
+  );
+  assert.equal(
+    (INDEX_HTML.match(/function v3OnboardingShouldShow\s*\(/g) || []).length,
+    1,
+    'onboarding visibility must not be decided by competing functions',
+  );
+  assert.doesNotMatch(INDEX_HTML, /v3OnboardingMaybeShow|V3_ONBOARDING_SEEN_KEY/);
+});
+
+test('canonical onboarding honours the legacy dismissal without another blocking layer', () => {
+  assert.match(INDEX_HTML, /localStorage\.getItem\("v3OnboardingSeenV1"\)/);
+  assert.match(INDEX_HTML, /localStorage\.removeItem\("v3OnboardingSeenV1"\)/);
 });

@@ -161,6 +161,31 @@
              title: null, openMode: null };
   }
 
+  // A validated ASR preview deliberately nulls a non-monotonic mark instead of pretending that
+  // it is playable. The immutable raw track, however, must retain the provider's actual mark:
+  // replacing it with a guessed neighbour/interpolation would turn a local verdict into canon,
+  // while persisting null violates the caption-track contract and used to abort the whole Media
+  // Package. Keep the asserted mark, label that one segment blind, and let karaoke omit it.
+  function mediaSegmentsForPromotion(sourceSegments, validatedSegments) {
+    var source = Array.isArray(sourceSegments) ? sourceSegments : [];
+    var validated = Array.isArray(validatedSegments) ? validatedSegments : [];
+    return source.map(function (segment, index) {
+      var raw = segment || {}, checked = validated[index] || null;
+      var start = typeof raw.start === "number" && isFinite(raw.start) ? raw.start : null;
+      var end = typeof raw.end === "number" && isFinite(raw.end) && start !== null && raw.end > start
+        ? raw.end : null;
+      var flags = Array.isArray(raw.quality_flags) ? raw.quality_flags.map(String).filter(Boolean) : [];
+      var blind = !!raw.blind || !checked || checked.start === null;
+      if (blind && flags.indexOf("blind") < 0) flags.push("blind");
+      return {
+        i: index, id: raw.id || raw.source_segment_id || undefined,
+        start: start, end: end, text: String(raw.text == null ? "" : raw.text),
+        speaker: raw.speaker == null ? null : String(raw.speaker),
+        quality_flags: flags, blind: blind,
+      };
+    });
+  }
+
   // ── S12.5 T4: STALE-TAB GUARD (чистое сравнение версий) ──────────────────────────────────────
   // Диагностическая сессия 2026-07-29 потратила целую гипотезу (H1) на вопрос «а каким кодом
   // вообще сделан этот прогон?» — вкладка владельца жила 35 минут, за это время прод успел уехать
@@ -672,7 +697,8 @@
                           ASR_CLIP_TOLERANCE_SEC: ASR_CLIP_TOLERANCE_SEC, isStaleTab: isStaleTab,
                           mediaSourceSha: mediaSourceSha, rowEditMetaForSave: rowEditMetaForSave,
                           restorePortableRowIdentity: restorePortableRowIdentity,
-                          importSessionResetPatch: importSessionResetPatch };
+                          importSessionResetPatch: importSessionResetPatch,
+                          mediaSegmentsForPromotion: mediaSegmentsForPromotion };
     }
     return;
   }
@@ -1582,12 +1608,11 @@
       var lines = text.split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
       var v = pendingAudio.validation;
       var editedAway = lines.length !== v.segments.length;
-      var segs = editedAway
-        ? lines.map(function (t2, k) { return { i: k, start: null, text: t2 }; })
-        : v.segments.map(function (s, k) {
-            return { i: k, id: s.id || s.source_segment_id || undefined,
-                     start: s.start, end: s.end, text: lines[k] };
-          });
+      // The raw track is provider evidence, not the edited preview. In particular, validated
+      // seam marks may be null even though the provider supplied a finite (overlapping) mark;
+      // mediaSegmentsForPromotion retains that assertion and marks only that segment blind.
+      // Preview edits are applied later as an explicit corrected-track revision.
+      var segs = mediaSegmentsForPromotion(pendingAudio.parsed.segments, v.segments);
       var dropReason = editedAway ? "PREVIEW_EDITED" : (v.timingOk ? null : v.dropReason);
       var fileName = window.MediaStore.mediaFileName(pendingAudio.sha256, pendingAudio.mime, pendingAudio.name);
       // OPFS-запись; недоступна (старый Safari) → session-only blob + честный warning
@@ -1691,7 +1716,12 @@
       } catch (e) {
         importMeta.media_package_error = { code: (e && e.code) || "MEDIA_PACKAGE_CREATE_FAILED" };
         if (importMeta.captions) delete importMeta.captions.rawSource;
-        toast("studio.mediaPackage.createFailed", "warning");
+        // Fail closed while the paid/local ASR result and file are still retained by this modal.
+        // Landing a flat transcript here merely defers the failure to the >250 guard and silently
+        // severs the only path back to the media. The owner can retry without rerunning ASR.
+        setStatus("studio.mediaPackage.createBlocked", "(" + importMeta.media_package_error.code + ")");
+        toast("studio.mediaPackage.createFailed", "error");
+        return false;
       }
     }
     var input = $("inputText");
@@ -2005,6 +2035,7 @@
                            mediaSourceSha: mediaSourceSha, rowEditMetaForSave: rowEditMetaForSave,
                            restorePortableRowIdentity: restorePortableRowIdentity,
                            importSessionResetPatch: importSessionResetPatch,
+                           mediaSegmentsForPromotion: mediaSegmentsForPromotion,
                            // Рендер сводки прогона — тем же путём, что рисует превью. Экспортируется,
                            // чтобы обязательная 380px-проверка вёрстки (правило проекта) снимала
                            // скриншот НАСТОЯЩЕГО блока, а не его копии в тестовом скрипте: копия

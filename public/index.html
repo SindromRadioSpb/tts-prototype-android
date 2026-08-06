@@ -12978,7 +12978,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.328";
+    window.APP_VERSION = "3.11.329";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -27795,72 +27795,7 @@ window.v3TabCoordPeers = function() {
 document.addEventListener("DOMContentLoaded", () => {
   // Slight delay to let LOCAL_MODE check settle.
   setTimeout(v3TabCoordInit, 200);
-  // P2-4: first-run onboarding — show after tab ownership resolved
-  setTimeout(v3OnboardingMaybeShow, 1200);
 });
-
-// ── P2-4: First-run onboarding ─────────────────────────────────────────────
-const V3_ONBOARDING_SEEN_KEY = "v3OnboardingSeenV1";
-
-// Short Hebrew text about learning languages (appropriate for demo)
-const V3_ONBOARDING_DEMO_TEXT =
-  "שִׁירוּ לַיהוָה שִׁיר חָדָשׁ, כִּי נִפְלָאוֹת עָשָׂה. הוֹשִׁיעָה-לּוֹ יְמִינוֹ, וּזְרוֹעַ קָדְשׁוֹ.";
-
-function v3OnboardingShouldShow() {
-  // BRR-P0-002a — skip the onboarding tour in room-mode (no seen-flag set, so the
-  // full app still shows it on a later non-room visit).
-  if (document.body.classList.contains("room-mode")) return false;
-  if (localStorage.getItem(V3_ONBOARDING_SEEN_KEY)) return false;
-  if (sessionStorage.getItem(V3_ONBOARDING_SEEN_KEY)) return false;
-  if (window.__localDBFollower) return false;
-  return true;
-}
-
-function v3OnboardingMaybeShow() {
-  if (!v3OnboardingShouldShow()) return;
-  const modal = document.getElementById("v3OnboardingModal");
-  if (!modal) return;
-  try { if (typeof applyI18n === "function") applyI18n(); } catch (_) {}
-  modal.classList.remove("hidden");
-}
-
-function v3OnboardingDismiss() {
-  const modal = document.getElementById("v3OnboardingModal");
-  if (modal) modal.classList.add("hidden");
-  const cb = document.getElementById("v3OnboardingDontShow");
-  if (cb && cb.checked) {
-    localStorage.setItem(V3_ONBOARDING_SEEN_KEY, "1");
-  } else {
-    // Always mark seen so it doesn't re-show this session; only the checkbox
-    // persists across sessions.
-    sessionStorage.setItem(V3_ONBOARDING_SEEN_KEY, "1");
-  }
-}
-
-function v3OnboardingTryDemo() {
-  const modal = document.getElementById("v3OnboardingModal");
-  if (modal) modal.classList.add("hidden");
-  localStorage.setItem(V3_ONBOARDING_SEEN_KEY, "1");
-  // Load demo text into the main Hebrew input
-  try {
-    const ta = document.getElementById("inputText");
-    if (ta) {
-      ta.value = V3_ONBOARDING_DEMO_TEXT;
-      ta.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-    if (typeof showToast === "function") {
-      showToast(t("onboarding.demoLoaded", "Демо-текст загружен — попробуйте «Собрать таблицу»!"), "info");
-    }
-  } catch (_) {}
-}
-
-function v3OnboardingReset() {
-  localStorage.removeItem(V3_ONBOARDING_SEEN_KEY);
-  sessionStorage.removeItem(V3_ONBOARDING_SEEN_KEY);
-  if (typeof showToast === "function") {
-    showToast(t("onboarding.resetOnboarding", "Onboarding сброшен — перезагрузите страницу"), "info");
-  }
-}
 
 // ── B1: Storage quota monitoring ───────────────────────────────────────────
 // OPFS shares the browser's per-origin quota (typically a few % of free
@@ -48295,37 +48230,6 @@ document.addEventListener("i18n:changed", function () {
   </div>
 </footer>
 
-<!-- ── P2-4: First-run onboarding modal ───────────────────────────────── -->
-<div id="v3OnboardingModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-labelledby="v3OnboardingTitle">
-  <div class="v3-modal-backdrop" onclick="v3OnboardingDismiss()"></div>
-  <div class="v3-modal-panel" style="width:min(560px,calc(100vw - 32px));height:auto;max-height:calc(100vh - 48px);margin:24px auto;">
-    <div class="v3-modal-header">
-      <span class="v3-modal-title" id="v3OnboardingTitle" data-i18n="onboarding.title">Добро пожаловать в LinguistPro</span>
-      <button class="btn-secondary" style="padding:2px 8px;font-size:18px;line-height:1;" onclick="v3OnboardingDismiss()" aria-label="Закрыть">×</button>
-    </div>
-    <div class="v3-modal-body" style="padding:18px 20px;overflow:auto;">
-      <p style="margin:0 0 6px 0;font-size:13px;color:var(--theme-text-secondary,#94a3b8);" data-i18n="onboarding.tagline">IDE для изучения иврита с offline-first архитектурой</p>
-      <p style="margin:0 0 14px 0;font-size:13.5px;line-height:1.55;" data-i18n="onboarding.intro">Ваши тексты и прогресс хранятся локально на этом устройстве.</p>
-      <p style="margin:0 0 8px 0;font-weight:600;font-size:13px;" data-i18n="onboarding.whatsHere">Что вы можете сделать:</p>
-      <ul style="margin:0 0 18px 18px;font-size:13px;line-height:1.7;padding:0;">
-        <li data-i18n="onboarding.feature1">📝 Вставить текст → таблица с переводом, транслитом, огласовками</li>
-        <li data-i18n="onboarding.feature2">🔊 Озвучить через TTS — кэш экономит квоту</li>
-        <li data-i18n="onboarding.feature3">📚 Библиотека текстов + ZIP-бэкап</li>
-        <li data-i18n="onboarding.feature4">🎯 SRS Trainer — интервальные повторения</li>
-        <li data-i18n="onboarding.feature5">🕸 Заметки + [[ссылки]] → Карта знаний</li>
-      </ul>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="btn-primary" onclick="v3OnboardingTryDemo()" data-i18n="onboarding.tryDemo">🚀 Попробовать на демо-тексте</button>
-        <button class="btn-secondary" onclick="v3OnboardingDismiss()" data-i18n="onboarding.startFresh">Начать с моего текста</button>
-      </div>
-      <label style="display:block;margin-top:14px;font-size:12px;color:var(--theme-text-muted,#94a3b8);cursor:pointer;">
-        <input type="checkbox" id="v3OnboardingDontShow" style="margin-right:5px;">
-        <span data-i18n="onboarding.dontShowAgain">Больше не показывать</span>
-      </label>
-    </div>
-  </div>
-</div>
-
 <!-- ── Stage 2: «✨ Построить знания» review queue (Concept C) ──────────── -->
 <style>
 #v3ReviewQueueModal .rq-meta{font-size:12px;opacity:.8;padding:4px 0 10px;}
@@ -48820,6 +48724,11 @@ document.addEventListener("i18n:changed", function () {
       // on a later non-room visit (no onboarding loss).
       if (document.body.classList.contains("room-mode")) return false;
       if (localStorage.getItem(V3_ONB_KEY)) return false;
+      // P2-4 briefly shipped with a second fullscreen onboarding and a
+      // different dismissal key. Respect that decision after consolidating
+      // to one modal, otherwise the returned layer captures every Studio tap.
+      if (localStorage.getItem("v3OnboardingSeenV1")) return false;
+      if (window.__localDBFollower) return false;
       // Don't pop onboarding on the typo-test page or other side-pages.
       if (location.pathname && location.pathname !== "/" && location.pathname !== "/index.html") return false;
       return true;
@@ -48874,6 +48783,7 @@ document.addEventListener("i18n:changed", function () {
   // Public: lets users re-trigger onboarding from About modal.
   function v3OnboardingReset() {
     try { localStorage.removeItem(V3_ONB_KEY); } catch (_) {}
+    try { localStorage.removeItem("v3OnboardingSeenV1"); } catch (_) {}
     v3OnboardingShow();
   }
   window.v3OnboardingShow = v3OnboardingShow;

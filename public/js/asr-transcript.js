@@ -1369,9 +1369,18 @@
     var pos = new Map();
     for (var s = 0; s < S.length; s++) pos.set(alignSegIndex(S, s), s);
     var groups = [];
+    function segmentIsBlind(value) {
+      if (!Number.isInteger(value)) return false;
+      var segmentPosition = pos.get(value), segment = segmentPosition == null ? null : S[segmentPosition];
+      return !!(segment && (segment.blind || (Array.isArray(segment.quality_flags) &&
+        segment.quality_flags.indexOf("blind") >= 0)));
+    }
+    function safeValue(value) {
+      return Number.isInteger(value) && !segmentIsBlind(value) ? value : null;
+    }
     for (var i = 0; i < rows.length;) {
-      var value = Number.isInteger(rows[i]) ? rows[i] : null, endRow = i + 1;
-      while (endRow < rows.length && (Number.isInteger(rows[endRow]) ? rows[endRow] : null) === value) endRow++;
+      var value = safeValue(rows[i]), endRow = i + 1;
+      while (endRow < rows.length && safeValue(rows[endRow]) === value) endRow++;
       groups.push({ value: value, from: i, to: endRow }); i = endRow;
     }
     // A hole after any playable group needs an authoritative stop timestamp. Without

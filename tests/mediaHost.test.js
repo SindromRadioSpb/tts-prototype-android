@@ -423,3 +423,20 @@ test('W3 offline restore keeps proven rows, leaves holes blind, and surfaces cov
     key === 'studio.media.partialCoverage' ? `${vars.mapped}/${vars.total} rows with audio` : key),
   '2/3 rows with audio');
 });
+
+test('W3 never exposes karaoke timing for a canon segment marked blind at ASR promotion', () => {
+  const audio = {
+    segments: [
+      { i: 0, start: 874.82, end: 878.6, text: 'שורה לפני השוליים' },
+      { i: 1, start: 870, end: 890.52, text: 'שורת חפיפה מהחלון הבא', blind: true, quality_flags: ['blind'] },
+      { i: 2, start: 893.4, end: 894.52, text: 'שורה אחרי השוליים' },
+    ],
+    timing: null,
+  };
+  MH.alignSavedTimingOffline(audio, audio.segments.map((segment) => ({ he: segment.text })),
+    { AT, appVersion: 'test' });
+  assert.deepEqual(audio.timing.entries.map((entry) => !!entry.blind), [false, true, false],
+    'the rejected seam is retained for text identity but must stay non-playable');
+  assert.equal(audio.timingMap.coverage.mapped_rows, 2);
+  assert.equal(audio.timingMap.coverage.unmapped_rows, 1);
+});
