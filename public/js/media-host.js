@@ -284,12 +284,33 @@
     return out;
   }
 
+  // D5 (2026-08-06): паспорт сегментов существует ТОЛЬКО в памяти вкладки. Переоткрыл сохранённый
+  // транскрипт или перезагрузил страницу — v3LastImportMeta исчез, хотя ревизия с сегментами лежит
+  // на устройстве. Текст в поле при этом построчно тождественен ей, но приложение считает его
+  // «плоским»: чанк-путь не включается, и длинный транскрипт упирается в guard >250 строк без
+  // выхода. Здесь — гейт честности для восстановления identity: тождество ПОЛНОЕ и построчное.
+  // Одна расходящаяся строка означает, что текст переразбивали, и номер строки больше НЕ равен
+  // номеру сегмента — тот же инвариант, что держит v3MediaLineIdentity.
+  function revisionMatchesLines(segments, lines, deps) {
+    var AT = resolveDeps(deps).AT;
+    if (!AT || typeof AT.stitchNormalizeWords !== "function") return false;
+    if (!Array.isArray(segments) || !Array.isArray(lines)) return false;
+    if (!segments.length || segments.length !== lines.length) return false;
+    for (var i = 0; i < segments.length; i++) {
+      var a = AT.stitchNormalizeWords(String(lines[i] == null ? "" : lines[i])).join(" ");
+      var b = AT.stitchNormalizeWords(String((segments[i] && segments[i].text) || "")).join(" ");
+      if (!a || a !== b) return false;
+    }
+    return true;
+  }
+
   var PURE = {
     passport: passport,
     DERIVED_TIMING_DROPS: DERIVED_TIMING_DROPS,
     isDerivedTimingDrop: isDerivedTimingDrop,
     clockBlindRanges: clockBlindRanges,
     passportFromTextRow: passportFromTextRow,
+    revisionMatchesLines: revisionMatchesLines,
     alignSavedTimingOffline: alignSavedTimingOffline,
     restoreForRows: restoreForRows,
     playableRows: playableRows,

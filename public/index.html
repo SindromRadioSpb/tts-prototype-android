@@ -12975,7 +12975,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.317";
+    window.APP_VERSION = "3.11.318";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -34330,6 +34330,35 @@ try { v3DashCloseViewMenu(); } catch (_) {}
         } catch (_) { return null; }
     }
 
+    // D5 (2026-08-06): паспорт сегментов живёт ТОЛЬКО в памяти вкладки. Переоткрыл сохранённый
+    // транскрипт («Редактировать материал») или перезагрузил страницу — v3LastImportMeta исчез,
+    // хотя ревизия с сегментами лежит на устройстве и текст в поле построчно ей тождественен.
+    // Без паспорта чанк-путь не включается, и длинный транскрипт упирается в honest-guard
+    // «>250 строк» БЕЗ ВЫХОДА: собрать таблицу из своего же импорта становится невозможно.
+    // Восстанавливаем паспорт из привязанной ревизии, но только при ПОЛНОМ построчном тождестве
+    // (MediaHost.revisionMatchesLines) — иначе номер строки уже не равен номеру сегмента.
+    async function v3RestoreImportPassportFromWorkspace() {
+        try {
+            if (v3MediaPassport(window.v3LastImportMeta)) return false;   // паспорт цел — не трогаем
+            const ref = window.v3LastMediaPackageRef;
+            if (!ref || !ref.package_id || !ref.revision_id) return false;
+            const SMP = window.StudioMediaPackage;
+            if (!SMP || !SMP.browserRepository || !SMP.buildCompatibilityProjection || !window.MediaHost) return false;
+            const repo = SMP.browserRepository();
+            const revision = await repo.getRevision(ref.revision_id), media = await repo.getPackage(ref.package_id);
+            if (!revision || !media || !Array.isArray(revision.segments)) return false;
+            const lines = getText().split("\n").map((s) => s.trim()).filter(Boolean);
+            if (!window.MediaHost.revisionMatchesLines(revision.segments, lines)) return false;
+            const kind = String(media.mime || "").startsWith("audio/") || String(media.mime || "").startsWith("video/") ? "audio" : "captions";
+            const projection = SMP.buildCompatibilityProjection(revision, { kind, media });
+            const restored = { kind, source: "workspace-revision", method: null, at: new Date().toISOString(),
+                               media_package_ref: projection.media_package_ref };
+            restored[kind] = projection[kind];
+            window.v3LastImportMeta = restored;
+            return true;
+        } catch (_) { return false; }
+    }
+
     function v3AudioSegmentsForRequest() {
         try {
             const lines = v3MediaLineIdentity();
@@ -34537,6 +34566,9 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
         // CACHE_VERSION bump before it's precached), fall through to the old single-request path
         // below — it fails honestly via server-side segment-count validation instead of hanging
         // on a TypeError before setLoading(true)'s spinner is ever cleared.
+        // D5: перед решением «сегментный или плоский» дать паспорту шанс восстановиться из
+        // привязанной ревизии — иначе переоткрытый транскрипт навсегда считается плоским текстом.
+        if (!usePremium && !v3MediaPassport(window.v3LastImportMeta)) await v3RestoreImportPassportFromWorkspace();
         const segsForChunks = !usePremium ? v3AudioSegmentsForRequest() : null;
         if (segsForChunks && window.TableChunks && segsForChunks.length > TableChunks.CHUNK_SIZE) {
             await v3TranslateTableChunked(segsForChunks);

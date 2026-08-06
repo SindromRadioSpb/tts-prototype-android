@@ -281,3 +281,24 @@ test("timingDropExplain: карантин вырожденных меток — 
   const out = MH.timingDropExplain({ timing: null, timingDropReason: "SEG_MAPPING_LOST", timingDropDetail: "DEGENERATE_1_TO_1" }, (k) => k);
   assert.match(out, /degenerate/);
 });
+
+// ── D5 (2026-08-06): паспорт сегментов живёт ТОЛЬКО в памяти. Открыл сохранённый транскрипт заново
+// или перезагрузил вкладку → v3LastImportMeta исчез, хотя ревизия с сегментами лежит на устройстве.
+// Текст в поле построчно тождественен ей, но приложение считает его «плоским» и упирает владельца
+// в guard >250 строк без выхода: собрать таблицу из длинного транскрипта становится невозможно.
+test('revisionMatchesLines admits an exact line-for-line transcript and nothing looser', () => {
+  const segs = [{ text: 'שלום מיה' }, { text: 'מה קשור' }, { text: 'תודה רבה' }];
+  const ok = MH.revisionMatchesLines(segs, ['שלום מיה', 'מה קשור', 'תודה רבה'], deps);
+  assert.equal(ok, true, 'identical lines restore segment identity');
+
+  assert.equal(MH.revisionMatchesLines(segs, ['שלום  מיה', 'מה קשור', 'תודה רבה'], deps), true,
+    'whitespace differences are not content differences');
+  assert.equal(MH.revisionMatchesLines(segs, ['שלום מיה', 'מה קשור'], deps), false,
+    'fewer lines than segments means the text was re-split');
+  assert.equal(MH.revisionMatchesLines(segs, ['שלום מיה', 'מה קשור', 'תודה רבה', 'עוד'], deps), false,
+    'more lines than segments means the text was re-split');
+  assert.equal(MH.revisionMatchesLines(segs, ['שלום מיה', 'מה קשור אחר', 'תודה רבה'], deps), false,
+    'one edited line forfeits identity — row index is no longer segment index');
+  assert.equal(MH.revisionMatchesLines([], [], deps), false, 'nothing to restore from');
+  assert.equal(MH.revisionMatchesLines(null, ['a'], deps), false, 'no segments, no claim');
+});
