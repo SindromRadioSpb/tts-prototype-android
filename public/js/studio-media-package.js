@@ -258,7 +258,9 @@
       var duration = formatDuration(model.duration_ms); if (duration) parts.push(duration);
       if (model.has_draft) parts.push(uiText('studio.mediaPackage.workspaceDraftShort', 'черновик'));
       if (model.media_missing) parts.push(uiText('studio.mediaPackage.workspaceMediaMissingShort', 'медиа нужно связать'));
-      if (model.binding_count > 1) parts.push(uiText('studio.mediaPackage.workspaceCards', 'карточек: {n}', { n: model.card_count }));
+      // Одна переменная и для условия, и для подстановки: разойтись они не могут by construction.
+      var cardsOnThisTranscript = Number(model.binding_count || 0);
+      if (cardsOnThisTranscript > 1) parts.push(uiText('studio.mediaPackage.workspaceCards', 'карточек: {n}', { n: cardsOnThisTranscript }));
       meta.textContent = parts.join(' · '); copyBox.append(title, meta);
       var open = document.createElement('button'); open.type = 'button'; open.className = 'btn-secondary';
       open.textContent = uiText('studio.mediaPackage.workspaceReopen', 'Вернуться к правкам');
