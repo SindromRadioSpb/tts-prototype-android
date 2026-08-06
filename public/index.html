@@ -12978,7 +12978,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.333";
+    window.APP_VERSION = "3.11.334";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -35102,6 +35102,72 @@ try {
             warnings: ["CLIENT_JSON_QUOTE_REPAIRED"], recoveredJsonRepairs: repaired.repairs };
     }
 
+    function v3IsGeminiChunkJsonError(error) {
+        const payload = error && error.raw;
+        return !!(error && error.httpStatus === 500 && payload
+            && payload.error === "Ошибка JSON" && typeof payload.raw === "string");
+    }
+
+    async function v3RequestGeminiChunk(chunkSegs, allowSubdivision) {
+        const request = () => apiCall("/api/translate-table", {
+            geminiApiKey: geminiKeyGet(), direction: "he-ru", segments: chunkSegs,
+        });
+        let lastError = null;
+        for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+                const result = await request();
+                result.clientRetried = attempt > 0;
+                return result;
+            } catch (error) {
+                if (error.httpStatus === 429) throw error;
+                const recovered = v3RecoverGeminiChunkJsonError(error, chunkSegs.length);
+                if (recovered) {
+                    recovered.clientRetried = attempt > 0;
+                    recovered.clientRecoveredJson = true;
+                    return recovered;
+                }
+                lastError = error;
+            }
+        }
+
+        // Owner-live 2026-08-07: a complete 120-row Gemini answer can be syntactically damaged
+        // in a way that the strict quote repair cannot prove safe. After the existing one retry,
+        // split ONLY this JSON-failed parent and ONLY once. Each child gets fresh local indexes;
+        // its returned indexes are offset back into the parent before the normal global offset.
+        if (allowSubdivision && chunkSegs.length > 1 && v3IsGeminiChunkJsonError(lastError)) {
+            const middle = Math.ceil(chunkSegs.length / 2);
+            const childDefs = [chunkSegs.slice(0, middle), chunkSegs.slice(middle)]
+                .filter((part) => part.length)
+                .map((part, partIndex) => ({
+                    base: partIndex === 0 ? 0 : middle,
+                    segs: part.map((segment, i) => ({ i, text: segment.text })),
+                }));
+            const combinedRows = [];
+            const combinedWarnings = [];
+            const parts = [];
+            let allFromCache = true;
+            let anyRecoveredJson = false;
+            for (const child of childDefs) {
+                const childResult = await v3RequestGeminiChunk(child.segs, false);
+                combinedRows.push(...TableChunks.offsetRows(childResult.rows || [], child.base));
+                (childResult.warnings || []).forEach((warning) => {
+                    if (!combinedWarnings.includes(warning)) combinedWarnings.push(warning);
+                });
+                allFromCache = allFromCache && childResult.fromCache === true;
+                anyRecoveredJson = anyRecoveredJson || childResult.clientRecoveredJson === true;
+                parts.push({ base: child.base, segments: child.segs.length,
+                    rows: (childResult.rows || []).length, fromCache: childResult.fromCache === true,
+                    retried: childResult.clientRetried === true,
+                    recoveredJson: childResult.clientRecoveredJson === true });
+            }
+            return { rows: combinedRows, fromCache: allFromCache, cacheKey: null,
+                warnings: combinedWarnings, clientRetried: true,
+                clientRecoveredJson: anyRecoveredJson, clientSubdivided: true,
+                clientSubdivisionParts: parts };
+        }
+        throw lastError;
+    }
+
     async function v3TranslateTableChunked(segs) {
         // W2-S12 T6 (R16): смета-подтверждение ДО любой мутации состояния — отказ должен быть
         // чистым return, ничего не тронув (currentTableData ещё старый, медиа не detach-нуты).
@@ -35162,35 +35228,12 @@ try {
                 let retriedThisChunk = false;
                 let recoveredJsonThisChunk = false;
                 try {
-                    try {
-                        res = await apiCall("/api/translate-table", {
-                            geminiApiKey: geminiKeyGet(), direction: "he-ru", segments: chunks[k].segs,
-                        });
-                    } catch (e1) {
-                        // 429 = честный лимит, а не недетерминизм — немедленный повтор бессмыслен
-                        // и жжёт квоту; сразу существующий путь баннера с обратным отсчётом.
-                        if (e1.httpStatus === 429) throw e1;
-                        const recovered = v3RecoverGeminiChunkJsonError(e1, chunks[k].segs.length);
-                        if (recovered) {
-                            // The provider already produced the complete translation. Preserve it
-                            // after strict local syntax + mapping validation instead of paying for
-                            // an identical retry. No repaired content is timing authority: the
-                            // normal per-row W3 proof below still decides karaoke coverage.
-                            res = recovered;
-                            recoveredJsonThisChunk = true;
-                        } else {
-                        // S12.1 (решение владельца 2026-07-28): авто-retry x1 куска. Источник: живой прогон S12
-                        // (75-мин подкаст) — 1 из 5 кусков упал 500 «Ошибка JSON» (недетерминизм длинного JSON-вывода
-                        // модели; тот же режим отказа, что MAX_TOKENS-обрыв в замерах M2) — см.
-                        // STUDIO_INGEST_MULTIMODAL_DECISION_PACKET §4 п.8 и docs/research/studio-ingest-longmedia/
-                        // 2026-07-28/README.md. Один повтор закрывает такие сбои; 429 НЕ ретраим (лимит — честный
-                        // баннер с обратным отсчётом, немедленный повтор жёг бы квоту).
-                        res = await apiCall("/api/translate-table", {
-                            geminiApiKey: geminiKeyGet(), direction: "he-ru", segments: chunks[k].segs,
-                        });
-                        retriedThisChunk = true;
-                        }
-                    }
+                    // Includes the historical one retry, strict complete-JSON recovery, and a
+                    // single bounded 120→60+60 fallback for unrecoverable Gemini JSON damage.
+                    // 429 still exits immediately; ordinary 500 still gets one retry then fails.
+                    res = await v3RequestGeminiChunk(chunks[k].segs, true);
+                    retriedThisChunk = res.clientRetried === true;
+                    recoveredJsonThisChunk = res.clientRecoveredJson === true;
                 } catch (e) {
                     // Готовое остаётся на экране; повторный клик докачает по кэшу (см. шапку).
                     if (e.httpStatus === 429) handleGeminiLimitError(e);
@@ -35234,6 +35277,10 @@ try {
                                  rows: (res.rows || []).length };
                 if (retriedThisChunk) chunkMetaEntry.retried = true; // R9-провенанс: кусок прошёл со 2-й попытки (S12.1)
                 if (recoveredJsonThisChunk) chunkMetaEntry.recoveredJson = true;
+                if (res.clientSubdivided === true) {
+                    chunkMetaEntry.subdivided = true;
+                    chunkMetaEntry.parts = res.clientSubdivisionParts || [];
+                }
                 chunkMeta.push(chunkMetaEntry);
                 // Прогрессив: renderTable НЕ редактировался — просто перерисовка префиксом.
                 clearRowSelectedUI();

@@ -237,6 +237,12 @@ async function installFakeFetch(ctx) {
             // literally inside a JSON string instead of as \". The rest of the payload is valid.
             errBody = { error: "Ошибка JSON", raw: validRaw.replace('רמב\\"ם', 'רמב"ם') };
           }
+          if (status === 500 && plan.unrecoverableJson) {
+            // Complete-looking but structurally invalid JSON that the quote-only repair must
+            // reject. This mirrors a second owner-live Gemini failure class and proves that the
+            // client falls back to bounded subdivision instead of accepting guessed content.
+            errBody = { error: "Ошибка JSON", raw: '{"rows":[{"segment_index":0,,"he":"x","he_niqqud":"x","translit":"x","ru":"x"}]}' };
+          }
           // Failed calls are NEVER cached (mirrors a real 500/429 — nothing to remember).
           return new Response(JSON.stringify(errBody), { status, headers: { "content-type": "application/json" } });
         }
@@ -525,6 +531,28 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     must(s2d.recovered && s2d.repairedValue === 'רמב"ם',
       "scenario2d: repaired value/provenance missing: " + JSON.stringify(s2d));
     console.log("scenario2d OK — malformed inner quote recovered locally, validated, no retry");
+
+    // Scenario 2e (owner-live 2026-08-07): if a complete 120-segment response is still invalid
+    // after the strict quote repair on BOTH the original request and its one retry, subdivide
+    // only that failed parent once into 60+60. Child indexes must be local on the wire and then
+    // offset back into the parent before the normal global chunk offset is applied.
+    await page.reload({ waitUntil: "load" });
+    await preparePage(page);
+    await page.evaluate(() => { window.__failPlan = { failAtCall: 2, times: 2, unrecoverableJson: true }; });
+    await page.evaluate(() => { translateTable(); });
+    const r2e = await pollUntil(page, (s) => s.chunksLen === 3 || !!s.err, 30000, 50);
+    must(r2e.ok && !r2e.snap.err, "scenario2e: bounded subdivision did not recover JSON failure: " + JSON.stringify(r2e.snap));
+    const s2e = await page.evaluate(() => ({
+      rows: currentTableData.length,
+      chunkCalls: window.__chunkCalls.slice(),
+      subdivided: !!(v3LastGeminiMeta.chunks[1] && v3LastGeminiMeta.chunks[1].subdivided),
+      segmentIndexes: [119, 120, 179, 180, 239, 240].map((i) => currentTableData[i] && currentTableData[i].segment_index),
+    }));
+    must(s2e.rows === N_SEGS && JSON.stringify(s2e.chunkCalls) === JSON.stringify([120, 120, 120, 60, 60, 60]),
+      "scenario2e: subdivision call shape/row count mismatch: " + JSON.stringify(s2e));
+    must(s2e.subdivided && JSON.stringify(s2e.segmentIndexes) === JSON.stringify([119, 120, 179, 180, 239, 240]),
+      "scenario2e: subdivision provenance or index offsets are wrong: " + JSON.stringify(s2e));
+    console.log("scenario2e OK — failed 120 split once into 60+60 with exact index offsets");
 
     // ══════════════════════════════════════════════════════════════════════════════════════
     // Scenario 2c: 429 (rate-limit) on chunk 2 — NEVER auto-retried (an immediate re-request
