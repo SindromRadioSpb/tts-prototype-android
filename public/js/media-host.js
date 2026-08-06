@@ -191,7 +191,13 @@
           audio.timing = built.timing;
           audio.timingSource = "aligned-partial-proven";
           audio.timingAlign = prov;
-          audio.timingMap = Object.assign({}, audio.timingMap || {}, {
+          var partialMap = Object.assign({}, audio.timingMap || {});
+          // This timing is derived from per-row proof, not from the persisted exact map.
+          // Keeping the old authority (especially with an empty exact-id array) makes the
+          // replay renderer veto every otherwise proven partial row.
+          delete partialMap.authority;
+          delete partialMap.row_caption_segment_ids;
+          audio.timingMap = Object.assign(partialMap, {
             source: "aligned-partial-proven", rows: list.length, segments: segs.length,
             row_seg_idx: built.rowSegIdx.slice(), align_version: AT.ALIGN_PARTIAL_VERSION,
             coverage: coverage,

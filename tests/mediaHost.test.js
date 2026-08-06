@@ -400,6 +400,7 @@ test('W3 offline restore keeps proven rows, leaves holes blind, and surfaces cov
       { i: 2, start: 8, end: 10, text: 'מיה באה' },
     ],
     timing: null,
+    timingMap: { authority: 'studio-exact-binding', row_caption_segment_ids: [] },
   };
   MH.alignSavedTimingOffline(audio, [
     { he: 'שלום עולם' }, { he: 'לא נמצא' }, { he: 'מיה באה' },
@@ -413,6 +414,10 @@ test('W3 offline restore keeps proven rows, leaves holes blind, and surfaces cov
     mapped_rows: 2, total_rows: 3, unmapped_rows: 1,
     ratio: 2 / 3, label: '2/3', complete: false,
   });
+  assert.equal(audio.timingMap.authority, undefined,
+    'derived partial timing must not inherit exact-binding authority');
+  assert.equal(audio.timingMap.row_caption_segment_ids, undefined,
+    'an empty exact map must not veto proven partial replay rows');
   assert.equal(audio.timingAlign.mode, 'partial-proven');
   assert.equal(MH.timingCoverageExplain(audio, (key, vars) =>
     key === 'studio.media.partialCoverage' ? `${vars.mapped}/${vars.total} rows with audio` : key),
