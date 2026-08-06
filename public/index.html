@@ -12978,7 +12978,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.326";
+    window.APP_VERSION = "3.11.327";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -34545,7 +34545,9 @@ try { v3DashCloseViewMenu(); } catch (_) {}
         const active = (typeof v3ActiveLibraryTextMeta !== "undefined" && v3ActiveLibraryTextMeta)
             ? String(v3ActiveLibraryTextMeta.textId || "") : "";
         if (!expected || active !== expected || !Array.isArray(rows) || !rows.length) return false;
-        if (window.v3ActiveMediaAudio || v3MediaPassport(window.v3LastImportMeta)) return false;
+        const ambient = v3MediaPassport(window.v3LastImportMeta);
+        if ((window.v3ActiveMediaAudio && window.v3ActiveMediaAudio.timing) ||
+            (ambient && ambient.timing)) return false;
         const context = await v3ResolveMediaContext();
         const stillActive = (typeof v3ActiveLibraryTextMeta !== "undefined" && v3ActiveLibraryTextMeta)
             ? String(v3ActiveLibraryTextMeta.textId || "") : "";

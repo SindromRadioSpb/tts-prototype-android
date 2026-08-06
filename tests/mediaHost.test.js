@@ -372,6 +372,10 @@ test('W1/W3 cold-open retries the canonical resolver after lazy source hydration
     'cold-open recovery delegates to the one content-addressed resolver');
   assert.match(body, /v3RestoreMediaFromMeta\(\{ source: context\.restored \}, rows\)/,
     'the proven canonical context must enter W3 offline partial alignment without being saved to canon');
+  assert.match(body, /window\.v3ActiveMediaAudio && window\.v3ActiveMediaAudio\.timing/,
+    'an exact binding with empty row mapping is not restored yet and must still enter W3');
+  assert.doesNotMatch(body, /if \(window\.v3ActiveMediaAudio \|\|/,
+    'the mere presence of a media passport must not suppress partial-proven recovery');
 });
 
 test('W6 keeps the >250 safety gate and names every permitted next route in RU/HE/EN', () => {
