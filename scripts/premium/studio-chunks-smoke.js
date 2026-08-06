@@ -228,7 +228,15 @@ async function installFakeFetch(ctx) {
           plan.times -= 1;
           if (plan.times <= 0) plan._active = false; // exhausted — next call succeeds
           const status = plan.status === 429 ? 429 : 500;
-          const errBody = status === 429 ? { error: "Лимит" } : { error: "boom" };
+          let errBody = status === 429 ? { error: "Лимит" } : { error: "boom" };
+          if (status === 500 && plan.malformedJson) {
+            const malformedRows = segments.map((s) => ({ segment_index: s.i, he: s.text,
+              he_niqqud: s.i === 0 ? 'רמב"ם' : s.text, translit: "t" + s.i, ru: "r" + s.i }));
+            const validRaw = JSON.stringify({ segments: segments.map((s) => ({ index: s.i, he: s.text })), rows: malformedRows });
+            // Mirror the owner-live Gemini defect: a Hebrew abbreviation's inner quote is emitted
+            // literally inside a JSON string instead of as \". The rest of the payload is valid.
+            errBody = { error: "Ошибка JSON", raw: validRaw.replace('רמב\\"ם', 'רמב"ם') };
+          }
           // Failed calls are NEVER cached (mirrors a real 500/429 — nothing to remember).
           return new Response(JSON.stringify(errBody), { status, headers: { "content-type": "application/json" } });
         }
@@ -495,6 +503,28 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     must(realGenerations2b === 5, "scenario2b: real generations=" + realGenerations2b + " expected 5 (1 success + 2 failures in attempt1, 2 successes in attempt2)");
 
     console.log("scenario2b OK — chunkCalls=" + JSON.stringify(s2b2.chunkCalls) + " cacheHits=" + s2b2.cacheHits + " realGenerations=" + realGenerations2b + " final=" + s2b2.tableLen);
+
+    // Scenario 2d (owner-live 2026-08-07): Gemini translated the chunk but emitted an unescaped
+    // quote inside רמב"ם, so the server returned 500 {error:"Ошибка JSON", raw:"..."}. The
+    // client must recover that exact syntactic defect, validate every row/index, and continue
+    // without spending a second provider call on an already-complete translation.
+    await page.reload({ waitUntil: "load" });
+    await preparePage(page);
+    await page.evaluate(() => { window.__failPlan = { failAtCall: 2, times: 1, malformedJson: true }; });
+    await page.evaluate(() => { translateTable(); });
+    const r2d = await pollUntil(page, (s) => s.chunksLen === 3 || !!s.err, 30000, 50);
+    must(r2d.ok && !r2d.snap.err, "scenario2d: quote-damaged Gemini JSON was not recovered: " + JSON.stringify(r2d.snap));
+    const s2d = await page.evaluate(() => ({
+      rows: currentTableData.length,
+      chunkCalls: window.__chunkCalls.slice(),
+      recovered: !!(v3LastGeminiMeta.chunks[1] && v3LastGeminiMeta.chunks[1].recoveredJson),
+      repairedValue: currentTableData[TableChunks.CHUNK_SIZE] && currentTableData[TableChunks.CHUNK_SIZE].he_niqqud,
+    }));
+    must(s2d.rows === N_SEGS && JSON.stringify(s2d.chunkCalls) === JSON.stringify([120, 120, 60]),
+      "scenario2d: recovery retried or lost rows: " + JSON.stringify(s2d));
+    must(s2d.recovered && s2d.repairedValue === 'רמב"ם',
+      "scenario2d: repaired value/provenance missing: " + JSON.stringify(s2d));
+    console.log("scenario2d OK — malformed inner quote recovered locally, validated, no retry");
 
     // ══════════════════════════════════════════════════════════════════════════════════════
     // Scenario 2c: 429 (rate-limit) on chunk 2 — NEVER auto-retried (an immediate re-request

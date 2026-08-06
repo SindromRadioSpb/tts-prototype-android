@@ -12978,7 +12978,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.332";
+    window.APP_VERSION = "3.11.333";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -35022,6 +35022,86 @@ try {
     // поэтому «Продолжить» после сбоя = просто нажать кнопку перевода ещё раз.
     // NB: setLoading(true)/setAiButtonDisabled(true) уже выполнены translateTable() ДО развилки,
     // ведущей сюда — здесь их НЕ повторяем; finally ниже симметрично снимает состояние загрузки.
+    function v3RepairGeminiJsonInnerQuotes(rawText) {
+        const cleaned = String(rawText || "")
+            .replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
+        if (!cleaned) return null;
+        try { return { parsed: JSON.parse(cleaned), repairs: 0 }; } catch (_) {}
+
+        // Gemini occasionally writes a Hebrew abbreviation such as רמב"ם with a literal ASCII
+        // quote inside a JSON string. Repair only quotes that cannot legally close the current
+        // string (the next non-space character is not JSON punctuation), then require a fully
+        // strict JSON.parse below. Any other damage fails closed and follows the existing retry.
+        let out = "";
+        let inString = false;
+        let escaped = false;
+        let repairs = 0;
+        for (let i = 0; i < cleaned.length; i++) {
+            const ch = cleaned[i];
+            if (!inString) {
+                out += ch;
+                if (ch === '"') inString = true;
+                continue;
+            }
+            if (escaped) {
+                out += ch;
+                escaped = false;
+                continue;
+            }
+            if (ch === "\\") {
+                out += ch;
+                escaped = true;
+                continue;
+            }
+            if (ch !== '"') {
+                out += ch;
+                continue;
+            }
+            let j = i + 1;
+            while (j < cleaned.length && /\s/.test(cleaned[j])) j++;
+            const next = cleaned[j];
+            const closesString = j >= cleaned.length || next === "," || next === "}" || next === "]" || next === ":";
+            if (closesString) {
+                out += ch;
+                inString = false;
+            } else {
+                out += '\\"';
+                repairs += 1;
+                if (repairs > 64) return null;
+            }
+        }
+        if (inString || repairs < 1) return null;
+        try { return { parsed: JSON.parse(out), repairs }; } catch (_) { return null; }
+    }
+
+    function v3RecoverGeminiChunkJsonError(error, segmentCount) {
+        const payload = error && error.raw;
+        if (!error || error.httpStatus !== 500 || !payload || payload.error !== "Ошибка JSON" || typeof payload.raw !== "string") {
+            return null;
+        }
+        const repaired = v3RepairGeminiJsonInnerQuotes(payload.raw);
+        const parsed = repaired && repaired.parsed;
+        const rows = parsed && Array.isArray(parsed.rows) ? parsed.rows : null;
+        const count = Number(segmentCount);
+        if (!rows || !rows.length || !Number.isInteger(count) || count < 1 || rows.length > count * 8) return null;
+
+        let last = -1;
+        const prepared = [];
+        for (const row of rows) {
+            if (!row || typeof row !== "object" || Array.isArray(row)) return null;
+            const si = row.segment_index;
+            if (!Number.isInteger(si) || si < 0 || si >= count || si < last) return null;
+            if (["he", "he_niqqud", "translit", "ru"].some((key) => typeof row[key] !== "string")) return null;
+            const he = row.he.trim();
+            if (!he) return null;
+            prepared.push({ segmentId: si, segment_index: si, he,
+                he_niqqud: row.he_niqqud, translit: row.translit, ru: row.ru });
+            last = si;
+        }
+        return { rows: prepared, fromCache: false, cacheKey: null,
+            warnings: ["CLIENT_JSON_QUOTE_REPAIRED"], recoveredJsonRepairs: repaired.repairs };
+    }
+
     async function v3TranslateTableChunked(segs) {
         // W2-S12 T6 (R16): смета-подтверждение ДО любой мутации состояния — отказ должен быть
         // чистым return, ничего не тронув (currentTableData ещё старый, медиа не detach-нуты).
@@ -35080,6 +35160,7 @@ try {
                     .replace("{k}", String(k + 1)).replace("{m}", String(chunks.length)));
                 let res;
                 let retriedThisChunk = false;
+                let recoveredJsonThisChunk = false;
                 try {
                     try {
                         res = await apiCall("/api/translate-table", {
@@ -35089,6 +35170,15 @@ try {
                         // 429 = честный лимит, а не недетерминизм — немедленный повтор бессмыслен
                         // и жжёт квоту; сразу существующий путь баннера с обратным отсчётом.
                         if (e1.httpStatus === 429) throw e1;
+                        const recovered = v3RecoverGeminiChunkJsonError(e1, chunks[k].segs.length);
+                        if (recovered) {
+                            // The provider already produced the complete translation. Preserve it
+                            // after strict local syntax + mapping validation instead of paying for
+                            // an identical retry. No repaired content is timing authority: the
+                            // normal per-row W3 proof below still decides karaoke coverage.
+                            res = recovered;
+                            recoveredJsonThisChunk = true;
+                        } else {
                         // S12.1 (решение владельца 2026-07-28): авто-retry x1 куска. Источник: живой прогон S12
                         // (75-мин подкаст) — 1 из 5 кусков упал 500 «Ошибка JSON» (недетерминизм длинного JSON-вывода
                         // модели; тот же режим отказа, что MAX_TOKENS-обрыв в замерах M2) — см.
@@ -35099,6 +35189,7 @@ try {
                             geminiApiKey: geminiKeyGet(), direction: "he-ru", segments: chunks[k].segs,
                         });
                         retriedThisChunk = true;
+                        }
                     }
                 } catch (e) {
                     // Готовое остаётся на экране; повторный клик докачает по кэшу (см. шапку).
@@ -35142,6 +35233,7 @@ try {
                 const chunkMetaEntry = { cacheKey: res.cacheKey || null, fromCache: res.fromCache === true,
                                  rows: (res.rows || []).length };
                 if (retriedThisChunk) chunkMetaEntry.retried = true; // R9-провенанс: кусок прошёл со 2-й попытки (S12.1)
+                if (recoveredJsonThisChunk) chunkMetaEntry.recoveredJson = true;
                 chunkMeta.push(chunkMetaEntry);
                 // Прогрессив: renderTable НЕ редактировался — просто перерисовка префиксом.
                 clearRowSelectedUI();
