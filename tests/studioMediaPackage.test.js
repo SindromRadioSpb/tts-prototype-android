@@ -396,3 +396,26 @@ test('canonical onboarding honours the legacy dismissal without another blocking
   assert.match(INDEX_HTML, /localStorage\.getItem\("v3OnboardingSeenV1"\)/);
   assert.match(INDEX_HTML, /localStorage\.removeItem\("v3OnboardingSeenV1"\)/);
 });
+
+test('premium rebuild chunks proven media lines instead of sending more than 250 rows once', () => {
+  assert.match(
+    INDEX_HTML,
+    /async function v3TranslateTablePremiumChunked\s*\(/,
+    'premium long-media needs its own bounded client loop',
+  );
+  assert.match(
+    INDEX_HTML,
+    /if \(usePremium && segsForChunks[^]*v3TranslateTablePremiumChunked/,
+    'premium must enter the bounded loop from the same canonical segment decision',
+  );
+  assert.match(
+    INDEX_HTML,
+    /source_line_index\s*=\s*r\.source_line_index\s*\+\s*base/,
+    'chunk-local premium provenance must be restored to the full transcript line index',
+  );
+  assert.match(
+    INDEX_HTML,
+    /apiCall\("\/api\/translate-table-v2"[^]*text:\s*chunkText/,
+    'each premium request must contain only the current bounded text chunk',
+  );
+});

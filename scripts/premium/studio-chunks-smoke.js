@@ -169,7 +169,16 @@ async function installFakeFetch(ctx) {
         // K2 (сценарии 6/7): готовые строки НАСТОЯЩЕГО премиум-сегментатора с source_line_index.
         // Без override остаётся до-K2-форма (сценарий 4a): только чужой 1-based segment_index.
         const pRows = Array.isArray(window.__premiumRows)
-          ? window.__premiumRows
+          ? (() => {
+              // Long premium media is intentionally sent in bounded line chunks. Test fixtures
+              // are stored with full-transcript source_line_index values, while the endpoint
+              // returns indexes local to each request; mirror that wire contract here.
+              const base = ((window.__premiumCalls || 1) - 1) * 120;
+              return window.__premiumRows
+                .filter((r) => Number.isInteger(r.source_line_index)
+                  && r.source_line_index >= base && r.source_line_index < base + pLines.length)
+                .map((r) => Object.assign({}, r, { source_line_index: r.source_line_index - base }));
+            })()
           : pLines.map((t, k) => ({ segment_index: k + 1, he: t, he_niqqud: t, translit: "t" + k, ru: "r" + k }));
         return new Response(JSON.stringify({ rows: pRows, fromCache: false, cacheKey: "premium-fake",
           provenance: { provider: "google-free", actual_provider: "google-free", cache_level: "none",
@@ -322,6 +331,8 @@ async function snapshot(page) {
       rows, err,
       chunksLen: (meta && Array.isArray(meta.chunks)) ? meta.chunks.length : 0,
       partial: !!(meta && meta.partial),
+      premiumCalls: window.__premiumCalls || 0,
+      chunkCalls: Array.isArray(window.__chunkCalls) ? window.__chunkCalls.length : 0,
     };
   });
 }
@@ -570,7 +581,8 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
                offBy: p && p.timing ? p.timing.entries.filter((e, k) => e.o !== k).length : -1,
                barNote: (document.getElementById("v3MediaBarNote") || {}).textContent || "" };
     });
-    must(s4a.premiumCalls === 1, "scenario4a: premium calls=" + s4a.premiumCalls + " expected 1");
+    must(s4a.premiumCalls === Math.ceil(N_SEGS / 120), "scenario4a: premium calls=" + s4a.premiumCalls +
+      " expected " + Math.ceil(N_SEGS / 120) + " bounded calls");
     must(s4a.chunkCalls === 0, "scenario4a: /api/translate-table calls=" + s4a.chunkCalls + " expected 0 (premium path must not touch the seg endpoint)");
     must(s4a.tableLen === N_SEGS, "scenario4a: currentTableData.length=" + s4a.tableLen + " expected " + N_SEGS);
     must(s4a.hasPassport, "scenario4a: media passport lost — the rest of the scenario proves nothing");
@@ -599,7 +611,7 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
       document.getElementById("providerSelect").value = "gemini"; }, TABLE_CACHE_LS_KEY);
     await page.evaluate(() => { translateTable(); });
 
-    const r4b = await pollUntil(page, (s) => s.chunksLen === 3 || !!s.err, 30000, 50);
+    const r4b = await pollUntil(page, (s) => (s.chunkCalls === 3 && s.rows === N_SEGS) || !!s.err, 30000, 50);
     must(r4b.ok, "scenario4b: timed out; last=" + JSON.stringify(r4b.snap) +
       " — a premium translate must NOT permanently disable seg-mode/chunking for this import");
     must(!r4b.snap.err, "scenario4b: error banner after switching to Gemini: " + r4b.snap.err +
@@ -717,7 +729,8 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
         bad: bad.slice(0, 5), badCount: bad.length,
       };
     });
-    must(s6.premiumCalls === 1, "scenario6: premium calls=" + s6.premiumCalls + " expected 1");
+    must(s6.premiumCalls === Math.ceil(N_SEGS / 120), "scenario6: premium calls=" + s6.premiumCalls +
+      " expected " + Math.ceil(N_SEGS / 120) + " bounded calls");
     must(s6.chunkCalls === 0, "scenario6: /api/translate-table calls=" + s6.chunkCalls + " expected 0");
     must(s6.tableLen === K2_ROWS.length, "scenario6: currentTableData.length=" + s6.tableLen + " expected " + K2_ROWS.length);
     must(s6.tableLen > s6.segCount, "scenario6: fixture is degenerate-proof only when rows(" + s6.tableLen + ") > segments(" + s6.segCount + ")");
@@ -743,9 +756,8 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     // 1:N сама по себе больше не повод убивать караоке (сценарий 6 это и показывает). Настоящий
     // инвариант, который обязан остаться красным на любой поблажке, — ДРУГОЙ: строка, которой в
     // звуке нет, не может получить время, и весь маппинг тогда недоказуем.
-    // ⚠ Фейк премиума обязан отвечать НА ОТРЕДАКТИРОВАННЫЙ текст (как ответил бы настоящий
-    // провайдер): с зафиксированными __premiumRows сценария 6 ответ не зависел бы от правки
-    // вовсе, и тест проверял бы фикстуру, а не продукт.
+    // После добавления безопасного premium chunk loop такой плоский текст >250 строк не должен
+    // вызывать провайдера вообще: guard обязан отказать с маршрутом восстановления идентичности.
     // ══════════════════════════════════════════════════════════════════════════════════════
     await page.evaluate((k) => {
       try { localStorage.removeItem(k); } catch (_) {}
@@ -757,13 +769,14 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     await page.evaluate(() => { translateTable(); });
 
     // Число строк здесь НЕ признак завершения (таблица сценария 6 уже отрисована ровно такой
-    // длины) — ждём второй премиум-вызов И снятый тайминг, т.е. факт вынесенного вердикта.
+    // длины) — ждём честный >250 refusal и снятый паспорт прежней таблицы. Провайдер не зовём.
     try {
       await page.waitForFunction(() => {
         const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
         const refused = window.v3LastMediaContextResolution &&
           window.v3LastMediaContextResolution.reason === "NO_EXACT_REVISION";
-        return (window.__premiumCalls || 0) >= 2 && ((!p && refused) || (!!p && !p.timing));
+        const err = (document.getElementById("errorMsg") || {}).textContent || "";
+        return err.includes("250") && !p && refused;
       }, { timeout: 30000 });
     } catch (_) {
       const st = await page.evaluate(() => {
@@ -775,7 +788,8 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
         " — a re-split text must drop karaoke, not keep the previous response's timing (R11)");
     }
     const err7 = await page.evaluate(() => (document.getElementById("errorMsg").textContent || "").trim());
-    must(!err7, "scenario7: unexpected error banner: " + err7);
+    must(err7.includes("250") && /Следующее действие|Next action|הפעולה הבאה/.test(err7),
+      "scenario7: refusal must name the next action: " + err7);
 
     const s7 = await page.evaluate(() => {
       const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
@@ -784,14 +798,15 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
                drop: p ? p.timingDropReason : null, detail: p ? p.timingDropDetail : null,
                contextReason: window.v3LastMediaContextResolution && window.v3LastMediaContextResolution.reason };
     });
-    must(s7.premiumCalls === 2, "scenario7: premium calls=" + s7.premiumCalls + " expected 2 (the edited text was actually re-translated)");
+    must(s7.premiumCalls === Math.ceil(N_SEGS / 120), "scenario7: premium calls=" + s7.premiumCalls +
+      " expected no provider call after the edited text lost canonical identity");
     must(s7.entries === 0, "scenario7: karaoke kept " + s7.entries + " entries after the text was re-split — " +
       "line index no longer means segment index, timing MUST be dropped (R11)");
     must(s7.drop === "NO_SEGMENT_MAPPING" || s7.contextReason === "NO_EXACT_REVISION",
       "scenario7: expected an explicit refusal, got timingDropReason=" + JSON.stringify(s7.drop) +
       " contextReason=" + JSON.stringify(s7.contextReason));
 
-    console.log("scenario7 OK — re-split text: karaoke honestly dropped (" +
+    console.log("scenario7 OK — re-split long text: provider not called, karaoke dropped, next action named (" +
       (s7.drop || s7.contextReason) + "/" + s7.detail + ")");
 
     // ══════════════════════════════════════════════════════════════════════════════════════

@@ -12978,7 +12978,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.329";
+    window.APP_VERSION = "3.11.330";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -34705,8 +34705,14 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
         // D5: перед решением «сегментный или плоский» дать паспорту шанс восстановиться из
         // привязанной ревизии — иначе переоткрытый транскрипт навсегда считается плоским текстом.
         if (!v3ResolvedMediaContext && !v3MediaPassport(window.v3LastImportMeta)) await v3RestoreImportPassportFromWorkspace();
-        const segsForChunks = !usePremium ? v3AudioSegmentsForRequest() : null;
-        if (segsForChunks && window.TableChunks && segsForChunks.length > TableChunks.CHUNK_SIZE) {
+        const segsForChunks = v3AudioSegmentsForRequest();
+        if (usePremium && segsForChunks && window.TableChunks
+            && segsForChunks.length > TableChunks.CHUNK_SIZE) {
+            await v3TranslateTablePremiumChunked(segsForChunks, provider, translit_profile);
+            return;
+        }
+        if (!usePremium && segsForChunks && window.TableChunks
+            && segsForChunks.length > TableChunks.CHUNK_SIZE) {
             await v3TranslateTableChunked(segsForChunks);
             return;
         }
@@ -34719,9 +34725,20 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
         // setLoading(true) + skeleton already ran above; unwind both by hand since we bail before
         // the try/finally further down owns that cleanup. window.TableChunks guard mirrors the
         // fork above — if the module failed to load, fall through honestly instead of throwing.
-        if (!usePremium && !segsForChunks && window.TableChunks
+        if (!segsForChunks && window.TableChunks
             && TableChunks.estimatePlainRows(getText()) > 250) {
             showError(t("classic.textTooLongForSingleTable"));
+            // The composer no longer matches any canonical revision. Do not leave the previous
+            // table's derived karaoke passport active behind this refusal: it would visually bind
+            // edited text to foreign rows even though the resolver has just rejected that identity.
+            try {
+                if (v3LastGeminiMeta && typeof v3LastGeminiMeta === "object") {
+                    v3LastGeminiMeta = Object.assign({}, v3LastGeminiMeta, { source: null });
+                }
+                if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
+                window.v3ActiveMediaAudio = null;
+                if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
+            } catch (_) {}
             // Fix1 (review): #errorMsg lives inside <details id="classicResultWorkspace">, which
             // auto-collapses on mobile when there's no current table (classicSyncMainPanels) —
             // exactly this state. Force it open so the error is actually visible, and duplicate
@@ -34860,6 +34877,125 @@ try {
             setLoading(false);
             updateAiButtonState();
         }
+    }
+
+    // W1/W2: the premium endpoint also has a hard single-call ceiling. When the canonical
+    // resolver proves one composer line per media segment, preserve that identity while sending
+    // bounded text chunks. source_line_index is chunk-local on the wire and is restored to the
+    // full transcript index before any timing/provenance code sees the rows.
+    async function v3TranslateTablePremiumChunked(segs, provider, translit_profile) {
+        {
+            const est = window.AsrTranscript.estimateLongJob(0, {
+                chunkSize: TableChunks.CHUNK_SIZE, segmentsKnown: segs.length });
+            const msg = t("classic.tableCostConfirm")
+                .replace("{rows}", String(est.expRows)).replace("{usd}", est.tableUsd.toFixed(2))
+                .replace("{min}", String(Math.ceil(est.chunks * 140 / 60)));
+            if (!window.confirm(msg)) {
+                if (Array.isArray(currentTableData) && currentTableData.length) renderTable(currentTableData);
+                else document.getElementById("tableContainer").innerHTML = "";
+                setLoading(false);
+                updateAiButtonState();
+                return;
+            }
+        }
+
+        const chunks = TableChunks.buildChunks(segs);
+        const accum = [];
+        const chunkMeta = [];
+        const premiumLines = v3MediaLineIdentity();
+        let anyNiqqudDegraded = false;
+        currentTableData = [];
+        try {
+            if (typeof StudioMediaKaraoke !== "undefined") StudioMediaKaraoke.stop();
+            window.v3ActiveMediaAudio = null;
+            if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
+        } catch (_) {}
+
+        try {
+            for (let k = 0; k < chunks.length; k++) {
+                const chunk = chunks[k];
+                const base = chunk.base;
+                const chunkText = chunk.segs.map((s) => s.text).join("\n");
+                setResultsMeta("table", t("classic.tableChunkProgress")
+                    .replace("{k}", String(k + 1)).replace("{m}", String(chunks.length)));
+                let res;
+                try {
+                    res = await apiCall("/api/translate-table-v2", {
+                        text: chunkText,
+                        provider,
+                        target_lang: "ru",
+                        translit_profile,
+                        ...(provider === "gcp" ? { gcpTranslateApiKey: gcpTranslateKeyGet() } : {}),
+                    });
+                } catch (e) {
+                    currentTableData = accum.slice();
+                    v3LastGeminiMeta = {
+                        promptId: "he-ru-table-v2+chunked", model: provider,
+                        cacheKey: null, fromCache: false, provider,
+                        chunks: chunkMeta.slice(), partial: true, generatedAt: new Date().toISOString(),
+                    };
+                    v3AttachImportSource();
+                    v3AttachAudioTiming({ rows: currentTableData, warnings: ["SEG_COVERAGE_PARTIAL"] },
+                        false, premiumLines);
+                    showError(t("classic.tableChunkFailed")
+                        .replace("{k}", String(k + 1)).replace("{m}", String(chunks.length)));
+                    return;
+                }
+
+                const rows = (res.rows || []).map(function (r) {
+                    if (!r || !Number.isInteger(r.source_line_index)) return r;
+                    const c = Object.assign({}, r);
+                    c.source_line_index = r.source_line_index + base;
+                    return c;
+                });
+                accum.push(...rows);
+                const prov = res.provenance || {};
+                anyNiqqudDegraded = anyNiqqudDegraded || !!prov.nikud_degraded;
+                chunkMeta.push({
+                    cacheKey: res.cacheKey || null,
+                    fromCache: res.fromCache === true,
+                    rows: rows.length,
+                    provider: prov.actual_provider || prov.provider || provider,
+                    translator_version: prov.translator_version || null,
+                    nikud_provider: prov.nikud_provider || null,
+                    nikud_degraded: !!prov.nikud_degraded,
+                });
+                clearRowSelectedUI();
+                currentTableData = accum.slice();
+                renderTable(currentTableData);
+            }
+        } finally {
+            setLoading(false);
+            updateAiButtonState();
+        }
+
+        v3LastGeminiMeta = {
+            promptId: "he-ru-table-v2+chunked",
+            model: chunkMeta.map((c) => c.translator_version).find(Boolean) || provider,
+            cacheKey: null,
+            fromCache: chunkMeta.every((c) => c.fromCache),
+            provider: chunkMeta.map((c) => c.provider).find(Boolean) || provider,
+            nikudProvider: chunkMeta.map((c) => c.nikud_provider).find(Boolean) || null,
+            nikudDegraded: anyNiqqudDegraded,
+            chunks: chunkMeta,
+            generatedAt: new Date().toISOString(),
+        };
+        v3AttachImportSource();
+        v3AttachAudioTiming({ rows: currentTableData, warnings: [] }, false, premiumLines);
+        if (anyNiqqudDegraded) showToast(t("toast.niqqudUnavailable"), "warning");
+        clearTableStale();
+        tableIsStale = false;
+        lastDocxFilename = generateDocxFileName();
+        try {
+            localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify({
+                text: getText().trim(), provider, rows: currentTableData,
+                createdAt: new Date().toISOString(), lastDocxFilename,
+            }));
+        } catch (e) { console.error("Table cache save error", e); }
+        setResultsMeta("table", t("classic.tableChunkedDone").replace("{m}", String(chunks.length)));
+        loadStats();
+        schedulePremiumStatusRefresh();
+        try { classicSyncMainPanels({ force: true }); } catch (_) {}
     }
 
     // W2-S12: чанк-цикл длинной таблицы. Дизайн: docs/planning/STUDIO_INGEST_W2_S12_LONGMEDIA_DESIGN_2026_07_28.md §4.4.
