@@ -12803,9 +12803,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=117"></script>
-    <script src="/i18n/locales/en.js?v=117"></script>
-    <script src="/i18n/locales/he.js?v=117"></script>
+    <script src="/i18n/locales/ru.js?v=118"></script>
+    <script src="/i18n/locales/en.js?v=118"></script>
+    <script src="/i18n/locales/he.js?v=118"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12975,7 +12975,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.315";
+    window.APP_VERSION = "3.11.316";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -29927,6 +29927,9 @@ function v3ExportPreflight(info) {
       +     v3ExpT("exp.pfSummary", "<b>{texts}</b> текстов · <b>{audio}</b> аудио<br>≈ <b>{mb}</b> МБ · ~{time}", { texts: info.texts, audio: info.audio, mb: v3ExpFmtMB(info.sizeEst), time: v3ExpFmtTime(info.etaSec) })
       +   '</div>'
       +   (warn ? ('<div class="v3-exp-pf-warn">' + v3ExpT("exp.pfWarn", "Большой архив — это займёт время. Можно выбрать «Только метаданные» (быстро): аудио восстановится на приёмнике при первом воспроизведении.") + '</div>') : "")
+      // D4: пробел покрытия называется ДО сборки. Раньше материал с удалённым медиа-пакетом ронял
+      // весь экспорт на последнем шаге — после тысяч аудио, без указания, какой именно материал.
+      +   ((info.gaps && info.gaps.length) ? ('<div class="v3-exp-pf-warn">' + v3ExpT("exp.pfGaps", "Материалов без медиа-пакета: {n}. Они будут пропущены и перечислены в архиве; их текст и таблица сохранятся. Чтобы вернуть материал целиком — переимпортируйте исходный медиафайл.", { n: info.gaps.length }) + '</div>') : "")
       +   '<div class="v3-exp-pf-actions">'
       +     '<button type="button" class="v3-exp-pf-btn primary" id="v3ExpPfAudio">' + v3ExpT("exp.pfAudio", "Экспорт с аудио") + '</button>'
       +     '<button type="button" class="v3-exp-pf-btn secondary" id="v3ExpPfMeta">' + v3ExpT("exp.pfMeta", "Только метаданные") + '<span class="sub">' + v3ExpT("exp.pfMetaSub", "быстро · без аудиофайлов") + '</span></button>'
@@ -29968,7 +29971,9 @@ async function v3ExportRunLocal() {
     // Preflight: counts exact, size ≈ count × ~42KB calibration, ETA ≈ count / ~12·s⁻¹.
     const sizeEst = keys.length * 42 * 1024;
     const etaEst = keys.length ? Math.round(keys.length / 12) : 0;
-    const choice = await v3ExportPreflight({ texts: state.textCount, audio: keys.length, sizeEst: sizeEst, etaSec: etaEst });
+    let coverageGaps = [];
+    try { if (window.StudioPortableLearningPackage && typeof window.StudioPortableLearningPackage.backupCoverageGaps === "function") coverageGaps = await window.StudioPortableLearningPackage.backupCoverageGaps(); } catch (_) {}
+    const choice = await v3ExportPreflight({ texts: state.textCount, audio: keys.length, sizeEst: sizeEst, etaSec: etaEst, gaps: coverageGaps });
     if (!choice || state.cancelled) return v3ExportFinishCancelled(state, btn);
     state.mode = choice;
 
@@ -30030,8 +30035,10 @@ async function v3ExportRunLocal() {
 
     // P2: a file labelled full backup must cover every promoted Studio material.
     // Each embedded archive is media-free; existing audio coverage remains owned by this ZIP.
+    let skippedPackages = [];
     if (window.StudioPortableLearningPackage) {
-      await window.StudioPortableLearningPackage.augmentFullBackupZip(zip, payload);
+      const packageIndex = await window.StudioPortableLearningPackage.augmentFullBackupZip(zip, payload);
+      skippedPackages = (packageIndex && packageIndex.skipped) || [];
     }
 
     zip.file("manifest.json", JSON.stringify(payload.manifest, null, 2));
@@ -30042,6 +30049,14 @@ async function v3ExportRunLocal() {
       zip.file("metadata/missing_audio.json", JSON.stringify({
         missing_audio: missing, count: missing.length,
         help: "Эти ассеты ссылаются предложениями, но audio-cache их не отдал (таймаут или сервер передеплоен). Чтобы восстановить — переTTS-ните соответствующие строки.",
+      }, null, 2));
+
+    // D4: пробел в покрытии называется вслух и внутри архива, как и пропущенное аудио. Молчаливо
+    // неполная резервная копия опаснее отказа — а этот файл её владелец увидит только при восстановлении.
+    if (skippedPackages.length)
+      zip.file("metadata/skipped_learning_packages.json", JSON.stringify({
+        skipped_learning_packages: skippedPackages, count: skippedPackages.length,
+        help: "Эти учебные материалы не попали в архив: их медиа-пакет удалён с устройства, поэтому переносимый пакет собрать не из чего. Текст и таблица остаются в library.json. Чтобы вернуть материал целиком — переимпортируйте исходный медиафайл (идентичность пакета восстановится по SHA-256) и соберите бэкап заново.",
       }, null, 2));
 
     v3ExportPhase(state, "pack");

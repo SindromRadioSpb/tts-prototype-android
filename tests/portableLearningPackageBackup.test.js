@@ -63,3 +63,48 @@ test('full backup carries content-free v48 provenance and restores it through th
   Studio.setRepositoryForTests({listMaterials:async()=>[],listExportReceipts:async()=>receipts});const zip=new JSZip(),payload={manifest:{}};await Studio.augmentFullBackupZip(zip,payload);assert.equal(payload.manifest.portable_export_receipts_count,1);const saved=JSON.parse(await zip.file('learning-packages/export-receipts.json').async('string'));assert.deepEqual(saved.receipts,receipts);
   let restored=null;Studio.setRepositoryForTests({dryRun:async()=>({can_apply:true}),applyVerified:async()=>({duplicate:true}),restoreExportReceipts:async rows=>(restored=rows,{restored:1,reused:0,total:rows.length})});const result=await Studio.restoreEmbeddedPackages(zip);assert.deepEqual(restored,receipts);assert.deepEqual(result.export_receipts,{restored:1,reused:0,total:1});
 });
+
+// ── D4 (2026-08-06): у владельца полный бэкап перестал собираться совсем — один архивный материал
+// ссылался на медиа-пакет, удалённый через deletePackage (каскад снёс дорожки и ревизии, а
+// studio_learning_materials.package_id остался висеть). Падение случалось ПОСЛЕ сборки 8935 аудио.
+// Отказ вместо молчаливо неполного архива — правильный по замыслу, но «бэкап невозможен в
+// принципе» хуже, чем «бэкап с явно названным пробелом».
+test('full backup declares a dead media package as a named gap instead of losing the whole backup',async()=>{
+  const materials=[
+    {material_id:'m1',portable_text_key:'backup-key',title:'Backup fixture'},
+    {material_id:'dead',portable_text_key:'dead-key',title:'Archived card whose media was deleted'},
+  ];
+  Studio.setRepositoryForTests({
+    listMaterials:async()=>materials,
+    snapshotForMaterial:async id=>{if(id==='dead'){const e=new Error('MEDIA_PACKAGE_NOT_FOUND');e.code='MEDIA_PACKAGE_NOT_FOUND';throw e;}return source();},
+  });
+  const zip=new JSZip(),payload={manifest:{}};
+  const index=await Studio.augmentFullBackupZip(zip,payload);
+  assert.equal(index.packages.length,1,'the healthy material is still archived');
+  assert.ok(zip.file(index.packages[0].path));
+  assert.deepEqual(index.skipped,[{material_id:'dead',text_key:'dead-key',title:'Archived card whose media was deleted',reason:'MEDIA_PACKAGE_NOT_FOUND'}]);
+  assert.equal(payload.manifest.portable_learning_packages_complete,false,'coverage must never be claimed complete over a gap');
+  assert.equal(payload.manifest.portable_learning_packages_skipped,1);
+  assert.equal(payload.manifest.portable_learning_packages_count,1);
+});
+
+test('a gap that is not a dead media package still aborts the backup',async()=>{
+  Studio.setRepositoryForTests({listMaterials:async()=>[{material_id:'broken'}],snapshotForMaterial:async()=>{const e=new Error('MATERIAL_HEAD_MISSING');e.code='MATERIAL_HEAD_MISSING';throw e;}});
+  await assert.rejects(()=>Studio.augmentFullBackupZip(new JSZip(),{manifest:{}}),/MATERIAL_HEAD_MISSING/,'an unexplained failure must not be downgraded to a gap');
+});
+
+test('a complete backup still says so',async()=>{
+  Studio.setRepositoryForTests({listMaterials:async()=>[{material_id:'m1',portable_text_key:'backup-key',title:'Backup fixture'}],snapshotForMaterial:async()=>source()});
+  const payload={manifest:{}};const index=await Studio.augmentFullBackupZip(new JSZip(),payload);
+  assert.deepEqual(index.skipped,[]);
+  assert.equal(payload.manifest.portable_learning_packages_complete,true);
+  assert.equal(payload.manifest.portable_learning_packages_skipped,0);
+});
+
+test('archivable-gap preflight names dead materials before any long build starts',async()=>{
+  Studio.setRepositoryForTests({
+    listMaterials:async()=>[{material_id:'m1',portable_text_key:'ok'},{material_id:'dead',portable_text_key:'dead-key',title:'Dead'}],
+    materialArchiveGaps:async()=>[{material_id:'dead',text_key:'dead-key',title:'Dead',reason:'MEDIA_PACKAGE_NOT_FOUND'}],
+  });
+  assert.deepEqual(await Studio.backupCoverageGaps(),[{material_id:'dead',text_key:'dead-key',title:'Dead',reason:'MEDIA_PACKAGE_NOT_FOUND'}]);
+});

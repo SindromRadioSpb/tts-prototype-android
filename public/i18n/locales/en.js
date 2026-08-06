@@ -1286,6 +1286,7 @@ window.I18N_LOCALES.en = {
     pfTitle: "Library export",
     pfSummary: "<b>{texts}</b> texts · <b>{audio}</b> audio<br>≈ <b>{mb}</b> MB · ~{time}",
     pfWarn: "Large archive — this will take a while. You can choose “Metadata only” (fast): audio restores on the receiving device on first playback.",
+    pfGaps: "Learning materials without a media package: {n}. They will be skipped and listed inside the archive; their text and table are kept. To restore a material in full, re-import its original media file.",
     pfAudio: "Export with audio",
     pfMeta: "Metadata only",
     pfMetaSub: "fast · no audio files",

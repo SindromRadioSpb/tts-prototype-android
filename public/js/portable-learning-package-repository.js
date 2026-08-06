@@ -643,6 +643,17 @@
       return result;
     }
 
+    // D4: материалы, чей медиа-пакет (а с ним дорожки и ревизии) удалён. Считается ДО долгой
+    // сборки, чтобы владелец узнал о пробеле на префлайте, а не через 12 минут работы.
+    async function materialArchiveGaps() {
+      return (await q(`SELECT m.material_id,m.portable_text_key AS text_key,t.title
+        FROM studio_learning_materials m JOIN texts t ON t.id=m.text_id
+        LEFT JOIN studio_media_packages p ON p.package_id=m.package_id AND p.deleted_at IS NULL
+        WHERE m.package_id IS NOT NULL AND p.package_id IS NULL
+        ORDER BY m.updated_at DESC`))
+        .map((row) => ({ material_id: String(row.material_id), text_key: row.text_key || null, title: row.title || null, reason: 'MEDIA_PACKAGE_NOT_FOUND' }));
+    }
+
     async function mediaForText(textId) {
       return one(`SELECT b.text_id,b.package_id,p.media_sha256,p.mime,p.duration_ms,p.original_name,p.opfs_path,p.size_bytes,
         m.material_id,m.portable_text_key
@@ -708,7 +719,7 @@
       };
     }
 
-    return { inventory, dryRun, applyVerified, getReceipt, getReceiptByRoot, receiptIntegrity, restoreLibraryProjection, repairTextMediaBinding, listReceipts, listMaterials, mediaForText, mediaForReceipt, reverseReferencePlan, undo, snapshotForMaterial, listExportReceipts, recordExportGenerated, confirmExportSaved, restoreExportReceipts, lifecycleInventory };
+    return { inventory, dryRun, applyVerified, getReceipt, getReceiptByRoot, receiptIntegrity, restoreLibraryProjection, repairTextMediaBinding, listReceipts, listMaterials, mediaForText, mediaForReceipt, reverseReferencePlan, undo, snapshotForMaterial, listExportReceipts, recordExportGenerated, confirmExportSaved, restoreExportReceipts, lifecycleInventory, materialArchiveGaps };
   }
 
   return { createRepository };

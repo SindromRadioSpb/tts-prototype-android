@@ -294,10 +294,29 @@
   }
   async function openForText(textId){return open({view:'materials',textId,intent:'move-device'});}
 
+  // D4 (2026-08-06): материал, чей медиа-пакет удалён (deletePackage каскадит дорожки и ревизии,
+  // а studio_learning_materials.package_id остаётся висеть), валил ВЕСЬ полный бэкап — и валил его
+  // на последнем шаге, после сборки тысяч аудио. Отказ вместо молчаливо неполного архива задуман
+  // верно, но «резервную копию сделать нельзя вообще» — худший исход, чем «копия с названным
+  // пробелом». Поэтому пропускается РОВНО это структурное состояние, вслух; любая другая ошибка
+  // по-прежнему валит бэкап, потому что мы её не понимаем.
+  const ARCHIVE_GAP_CODES=new Set(['MEDIA_PACKAGE_NOT_FOUND','CAPTION_TRACKS_INCOMPLETE']);
+  function archiveGapCode(error){const code=String(error&&(error.code||error.message)||'');return ARCHIVE_GAP_CODES.has(code)?code:null;}
+  async function backupCoverageGaps(){const repo=await readyRepository();return typeof repo.materialArchiveGaps==='function'?repo.materialArchiveGaps():[];}
   async function appendMaterialArchives(zip,manifest,materials){
-    const index={schema:'linguistpro-learning-packages-backup-index-v1',packages:[]};
-    for(const material of materials){const built=await exportMaterial(material.material_id,'archive',{no_download:true}),bytes=await zipFiles(built.files,'uint8array'),path=`learning-packages/${built.manifest.content_root_sha256}.lplp.zip`;zip.file(path,bytes);index.packages.push({portable_material_id:built.manifest.roots.learning_material,text_key:material.portable_text_key,content_root_sha256:built.manifest.content_root_sha256,path,coverage_status:'COMPLETE'});}
-    zip.file('learning-packages/index.json',core().canonicalJson(index));const repo=await readyRepository(),exportReceipts=typeof repo.listExportReceipts==='function'?await repo.listExportReceipts():[];zip.file('learning-packages/export-receipts.json',core().canonicalJson({schema:'linguistpro-portable-export-receipts-v1',receipts:exportReceipts}));if(manifest){manifest.portable_learning_packages_count=index.packages.length;manifest.portable_learning_packages_complete=true;manifest.portable_export_receipts_count=exportReceipts.length;}return index;
+    const index={schema:'linguistpro-learning-packages-backup-index-v1',packages:[],skipped:[]};
+    for(const material of materials){
+      let built;
+      try{built=await exportMaterial(material.material_id,'archive',{no_download:true});}
+      catch(error){
+        const gap=archiveGapCode(error);
+        if(!gap)throw error;
+        index.skipped.push({material_id:String(material.material_id),text_key:material.portable_text_key||null,title:material.title||null,reason:gap});
+        continue;
+      }
+      const bytes=await zipFiles(built.files,'uint8array'),path=`learning-packages/${built.manifest.content_root_sha256}.lplp.zip`;zip.file(path,bytes);index.packages.push({portable_material_id:built.manifest.roots.learning_material,text_key:material.portable_text_key,content_root_sha256:built.manifest.content_root_sha256,path,coverage_status:'COMPLETE'});
+    }
+    zip.file('learning-packages/index.json',core().canonicalJson(index));const repo=await readyRepository(),exportReceipts=typeof repo.listExportReceipts==='function'?await repo.listExportReceipts():[];zip.file('learning-packages/export-receipts.json',core().canonicalJson({schema:'linguistpro-portable-export-receipts-v1',receipts:exportReceipts}));if(manifest){manifest.portable_learning_packages_count=index.packages.length;manifest.portable_learning_packages_complete=index.skipped.length===0;manifest.portable_learning_packages_skipped=index.skipped.length;manifest.portable_export_receipts_count=exportReceipts.length;}return index;
   }
   async function augmentFullBackupZip(zip,payload){
     return appendMaterialArchives(zip,payload&&payload.manifest,await listMaterials());
@@ -313,5 +332,5 @@
     return {present:true,imported,reused,total:(index.packages||[]).length,export_receipts};
   }
 
-  return { inspectZipCentralDirectory, zipFiles, readZip, verifyZip, buildMaterialFiles, exportMaterial, dryRunFile, applyPending, relinkReceiptMedia, relinkTextMedia, mediaForText, mediaForReceipt, formatPortableError, listMaterials, listReceipts, materialForText, restoreLibraryProjection, repairTextMediaBinding, undoReceipt, augmentFullBackupZip, augmentTextBackupZip, restoreEmbeddedPackages, getCatalog, storageDiagnostics, recordBackupGenerated, confirmExportSaved, open, openForText, setRepositoryForTests(value){repositoryOverride=value;}, getPendingForTests(){return pending;} };
+  return { inspectZipCentralDirectory, zipFiles, readZip, verifyZip, buildMaterialFiles, exportMaterial, dryRunFile, applyPending, relinkReceiptMedia, relinkTextMedia, mediaForText, mediaForReceipt, formatPortableError, listMaterials, listReceipts, materialForText, restoreLibraryProjection, repairTextMediaBinding, undoReceipt, augmentFullBackupZip, augmentTextBackupZip, backupCoverageGaps, restoreEmbeddedPackages, getCatalog, storageDiagnostics, recordBackupGenerated, confirmExportSaved, open, openForText, setRepositoryForTests(value){repositoryOverride=value;}, getPendingForTests(){return pending;} };
 });
