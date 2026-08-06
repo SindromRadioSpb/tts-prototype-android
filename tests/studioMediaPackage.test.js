@@ -419,3 +419,17 @@ test('premium rebuild chunks proven media lines instead of sending more than 250
     'each premium request must contain only the current bounded text chunk',
   );
 });
+
+test('google-free long-table confirmation never quotes Gemini price or duration', () => {
+  const start = INDEX_HTML.indexOf('async function v3TranslateTablePremiumChunked');
+  const end = INDEX_HTML.indexOf('// W2-S12: чанк-цикл', start);
+  const premiumChunker = INDEX_HTML.slice(start, end);
+  assert.match(premiumChunker, /provider === "google-free"/);
+  assert.match(premiumChunker, /classic\.tableGoogleFreeCostConfirm/);
+  assert.match(premiumChunker, /classic\.tableGcpCostConfirm/);
+  assert.doesNotMatch(
+    premiumChunker,
+    /t\("classic\.tableCostConfirm"\)/,
+    'Gemini token-price estimate must remain exclusive to the Gemini chunk path',
+  );
+});

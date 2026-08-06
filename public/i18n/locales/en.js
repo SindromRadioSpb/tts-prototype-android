@@ -86,6 +86,8 @@ window.I18N_LOCALES.en = {
     tableChunkFailed: "Chunk {k} of {m} failed. The finished chunks are kept — click \"AI Translate\" again: what's done returns from cache instantly, only the failed part is retried.",
     tableChunkedDone: "Done: assembled from {m} chunks",
     tableCostConfirm: "Long table: ≈{rows} rows, ≈${usd}, ~{min} min. Rows will appear as they become ready. Continue?",
+    tableGoogleFreeCostConfirm: "Long table: {rows} source rows in {chunks} chunks via Google Translate (free). Estimated translation cost in the app: $0.00; paid Gemini is not called. Rows will appear as they become ready. Continue?",
+    tableGcpCostConfirm: "Long table: {rows} source rows in {chunks} chunks via GCP Cloud Translation. Charges go to your GCP BYOK project and are not estimated here. Rows will appear as they become ready. Continue?",
     textTooLongForSingleTable: "The text is too long for a single table (>250 rows). Next action: restore segment identity by opening the saved transcript; import the source as media/captions; or split the text into parts under 250 rows.",
     resultTitle: "Result",
     resultPanelTitle: "Result",

@@ -137,7 +137,11 @@ async function installFakeFetch(ctx) {
     // Task 6: v3TranslateTableChunked() opens with window.confirm(smeta) BEFORE any state
     // mutation. Playwright auto-dismisses (confirm=false) unless stubbed — the brief's
     // documented gotcha. Stub true unconditionally; message content is irrelevant here.
-    window.confirm = () => true;
+    window.__confirmMessages = [];
+    window.confirm = (message) => {
+      window.__confirmMessages.push(String(message || ""));
+      return true;
+    };
 
     const REAL_FETCH = window.fetch.bind(window);
     window.__chunkCalls = [];          // segments.length per intercepted call, call order
@@ -574,6 +578,7 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
       const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
       return { premiumCalls: window.__premiumCalls || 0, chunkCalls: window.__chunkCalls.length,
                tableLen: currentTableData.length,
+               confirmMessage: (window.__confirmMessages || []).slice(-1)[0] || "",
                hasPassport: !!p, entries: p && p.timing ? p.timing.entries.length : 0,
                drop: p ? p.timingDropReason : null, detail: p ? p.timingDropDetail : null,
                mapSource: p && p.timingMap ? p.timingMap.source : null,
@@ -583,6 +588,10 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     });
     must(s4a.premiumCalls === Math.ceil(N_SEGS / 120), "scenario4a: premium calls=" + s4a.premiumCalls +
       " expected " + Math.ceil(N_SEGS / 120) + " bounded calls");
+    must(/Google Translate/.test(s4a.confirmMessage) && /\$0\.00/.test(s4a.confirmMessage),
+      "scenario4a: google-free confirmation must name the free provider and $0.00: " + s4a.confirmMessage);
+    must(!/\$0\.40|14 мин/.test(s4a.confirmMessage),
+      "scenario4a: google-free confirmation leaked the Gemini estimate: " + s4a.confirmMessage);
     must(s4a.chunkCalls === 0, "scenario4a: /api/translate-table calls=" + s4a.chunkCalls + " expected 0 (premium path must not touch the seg endpoint)");
     must(s4a.tableLen === N_SEGS, "scenario4a: currentTableData.length=" + s4a.tableLen + " expected " + N_SEGS);
     must(s4a.hasPassport, "scenario4a: media passport lost — the rest of the scenario proves nothing");
