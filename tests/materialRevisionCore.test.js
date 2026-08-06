@@ -198,3 +198,14 @@ test('pickTextForTrack never guesses which card a shared track belongs to', () =
   assert.deepEqual(pick(two, 'text-elsewhere'), { text_id: null, ambiguous: true, candidates: ['text-new', 'text-old'] }, 'a context that is not bound here is not honoured');
   assert.deepEqual(pick([{ text_id: 'only' }], 'text-elsewhere'), { text_id: null, ambiguous: false, candidates: ['only'] }, 'wrong context does not silently fall back to the single binding');
 });
+
+test('W3 coverage reports proven rows as a fraction, never a binary karaoke verdict', () => {
+  assert.deepEqual(Core.summarizeProvenAlignment([0, null, 2, 2, null], 5), {
+    mapped_rows: 3, total_rows: 5, unmapped_rows: 2,
+    ratio: 0.6, label: '3/5', complete: false,
+  });
+  assert.deepEqual(Core.summarizeProvenAlignment([], 0), {
+    mapped_rows: 0, total_rows: 0, unmapped_rows: 0,
+    ratio: 0, label: '0/0', complete: false,
+  });
+});

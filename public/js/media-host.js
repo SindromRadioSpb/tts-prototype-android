@@ -56,9 +56,12 @@
   function resolveDeps(deps) {
     var AT = deps && deps.AT;
     if (!AT && typeof window !== "undefined") AT = window.AsrTranscript;
+    var MR = deps && deps.MR;
+    if (!MR && typeof window !== "undefined") MR = window.MaterialRevisionCore;
+    if (!MR && typeof require === "function") { try { MR = require('./material-revision-core.js'); } catch (_) {} }
     var appVersion = deps && deps.appVersion;
     if (appVersion == null && typeof window !== "undefined") appVersion = window.APP_VERSION || null;
-    return { AT: AT || null, appVersion: appVersion || null };
+    return { AT: AT || null, MR: MR || null, appVersion: appVersion || null };
   }
 
   // ── КОМПОЗИТНЫЕ ПАСПОРТА (Import Center / portable-learning-package, живой кейс
@@ -152,7 +155,8 @@
     // сколько ради КОНТРАКТА ССЫЛОЧНОГО РАВЕНСТВА entries (StudioMediaKaraoke.start/bind решают
     // resume-vs-restart строгим ===): новый массив на каждом вызове превращал бы resume в перезапуск.
     if (audio.timingAlign && audio.timingAlign.rows === list.length &&
-        audio.timingAlign.segments === segs.length && audio.timingAlign.v === AT.ALIGN_VERSION &&
+        audio.timingAlign.segments === segs.length &&
+        (audio.timingAlign.v === AT.ALIGN_VERSION || audio.timingAlign.v === AT.ALIGN_PARTIAL_VERSION) &&
         audio.timingMap && Array.isArray(audio.timingMap.row_seg_idx) &&
         audio.timingMap.row_seg_idx.length === list.length) return;
     var texts = list.map(function (r) { return String((r && (r.he || r.he_plain || r.hebrew)) || ""); });
@@ -162,6 +166,43 @@
                  alignedSegments: al.alignedSegments, alignedRows: al.alignedRows,
                  codeVersion: d.appVersion };
     if (!al.ok) {
+      // W3: the strict verdict remains recorded, then an explicitly named per-row proof gets
+      // its own chance. Sparse timing uses canonical segment ends as blind gap boundaries;
+      // a row without proof is never painted as part of its neighbour's range.
+      if (!isCompositeSegments(audio.segments) &&
+          typeof AT.alignRowsToSegmentsPartialProven === "function" &&
+          typeof AT.buildPartialProvenTiming === "function") {
+        var partial = AT.alignRowsToSegmentsPartialProven(texts, segs);
+        var built = AT.buildPartialProvenTiming(segs, partial.rowSegIdx, clockBlindRanges(audio));
+        var coverage = d.MR && typeof d.MR.summarizeProvenAlignment === "function"
+          ? d.MR.summarizeProvenAlignment(built.rowSegIdx, list.length)
+          : { mapped_rows: built.mappedRows, total_rows: list.length,
+              unmapped_rows: list.length - built.mappedRows,
+              ratio: list.length ? built.mappedRows / list.length : 0,
+              label: built.mappedRows + "/" + list.length,
+              complete: list.length > 0 && built.mappedRows === list.length };
+        if (built.timing) {
+          prov = { v: AT.ALIGN_PARTIAL_VERSION, at: prov.at, rows: list.length,
+            segments: segs.length, ok: true, mode: "partial-proven",
+            strictReason: al.reason || null, reason: null,
+            alignedSegments: null, alignedRows: coverage.mapped_rows,
+            coverage: coverage, codeVersion: d.appVersion,
+            entries: built.timing.entries.length, replaced: !!audio.timing };
+          audio.timing = built.timing;
+          audio.timingSource = "aligned-partial-proven";
+          audio.timingAlign = prov;
+          audio.timingMap = Object.assign({}, audio.timingMap || {}, {
+            source: "aligned-partial-proven", rows: list.length, segments: segs.length,
+            row_seg_idx: built.rowSegIdx.slice(), align_version: AT.ALIGN_PARTIAL_VERSION,
+            coverage: coverage,
+          });
+          audio.timingDropReason = null; audio.timingDropDetail = null;
+          return;
+        }
+        prov.partial = { mode: "partial-proven", version: AT.ALIGN_PARTIAL_VERSION,
+          mappedRows: coverage.mapped_rows, totalRows: coverage.total_rows,
+          coverage: coverage, reason: "NOT_ENOUGH_SAFE_TIMING_ENTRIES" };
+      }
       audio.timingAlign = prov;                  // R9: вердикт выравнивания виден ВСЕГДА, отдельным полем
       if (!audio.timing) {                       // тайминга нет — честно объясняем, почему его нет
         if (!audio.timingDropReason) audio.timingDropReason = "SEG_MAPPING_LOST";
@@ -235,6 +276,9 @@
     if (map && map.authority === "studio-exact-binding" && Array.isArray(map.row_caption_segment_ids)) {
       return map.row_caption_segment_ids.filter(Boolean).length;
     }
+    if (map && map.source === "aligned-partial-proven" && Array.isArray(map.row_seg_idx)) {
+      return map.row_seg_idx.filter(Number.isInteger).length;
+    }
     var n = Number(rowCount);
     return n > 0 ? n : p.timing.entries.length;
   }
@@ -284,6 +328,15 @@
     return out;
   }
 
+  function timingCoverageExplain(audio, t) {
+    var coverage = audio && audio.timingMap && audio.timingMap.coverage;
+    if (!coverage || coverage.complete || !(Number(coverage.mapped_rows) > 0) || !(Number(coverage.total_rows) > 0)) return "";
+    var tr = typeof t === "function" ? t : function (key) { return key; };
+    return String(tr("studio.media.partialCoverage", {
+      mapped: Number(coverage.mapped_rows), total: Number(coverage.total_rows),
+    }) || "");
+  }
+
   // D5 (2026-08-06): паспорт сегментов существует ТОЛЬКО в памяти вкладки. Переоткрыл сохранённый
   // транскрипт или перезагрузил страницу — v3LastImportMeta исчез, хотя ревизия с сегментами лежит
   // на устройстве. Текст в поле при этом построчно тождественен ей, но приложение считает его
@@ -304,6 +357,35 @@
     return true;
   }
 
+  // W1 (honest import -> card, 2026-08-06): pure authority gate for the browser
+  // resolver. Ambient refs and the workspace catalog may both lead to the same
+  // revision, so dedupe by revision identity first. Two DIFFERENT exact revisions
+  // are an ambiguity, never a licence to pick the newest/first one.
+  function resolveUniqueRevisionContext(candidates, lines, deps) {
+    var input = Array.isArray(candidates) ? candidates : [];
+    var unique = new Map();
+    for (var i = 0; i < input.length; i++) {
+      var candidate = input[i];
+      var revision = candidate && candidate.revision;
+      var pkg = candidate && candidate.package;
+      var track = candidate && candidate.track;
+      if (!revision || !pkg || !track) continue;
+      if (!revisionMatchesLines(revision.segments, lines, deps)) continue;
+      var key = String(revision.revision_id || "") || [
+        String(pkg.package_id || ""), String(track.track_id || ""),
+        String(revision.canonical_sha256 || ""),
+      ].join("|");
+      if (!key || unique.has(key)) continue;
+      unique.set(key, candidate);
+    }
+    var matches = Array.from(unique.values());
+    if (!matches.length) return { context: null, reason: "NO_EXACT_REVISION", match_count: 0 };
+    if (matches.length > 1) {
+      return { context: null, reason: "AMBIGUOUS_EXACT_REVISIONS", match_count: matches.length };
+    }
+    return { context: matches[0], reason: null, match_count: 1 };
+  }
+
   var PURE = {
     passport: passport,
     DERIVED_TIMING_DROPS: DERIVED_TIMING_DROPS,
@@ -311,11 +393,13 @@
     clockBlindRanges: clockBlindRanges,
     passportFromTextRow: passportFromTextRow,
     revisionMatchesLines: revisionMatchesLines,
+    resolveUniqueRevisionContext: resolveUniqueRevisionContext,
     alignSavedTimingOffline: alignSavedTimingOffline,
     restoreForRows: restoreForRows,
     playableRows: playableRows,
     pickExactBindingPassport: pickExactBindingPassport,
     timingDropExplain: timingDropExplain,
+    timingCoverageExplain: timingCoverageExplain,
   };
 
   if (typeof window === "undefined" || typeof document === "undefined") {
@@ -458,6 +542,9 @@
           ? audio.timingMap.row_caption_segment_ids : null;
         // Exact Studio bindings never guess a positional fallback for an unmapped row.
         if (Array.isArray(exactMap) && !exactMap[idx]) return;
+        var partialMap = audio.timingMap && audio.timingMap.source === "aligned-partial-proven"
+          ? audio.timingMap.row_seg_idx : null;
+        if (Array.isArray(partialMap) && !Number.isInteger(partialMap[idx])) return;
         var btn = document.createElement("button");
         btn.type = "button";
         btn.className = "smk-row-replay";

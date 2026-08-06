@@ -88,7 +88,7 @@ window.I18N_LOCALES.he = {
     tableChunkFailed: "מקטע {k} מתוך {m} נכשל. המקטעים המוכנים נשמרו — לחצו שוב על «תרגום AI»: מה שכבר מוכן יוחזר מיידית מהמטמון, רק החלק שנכשל יטופל מחדש.",
     tableChunkedDone: "הושלם: הורכב מ-{m} מקטעים",
     tableCostConfirm: "טבלה ארוכה: כ-{rows} שורות, כ-{usd}$, כ-{min} דקות. השורות יופיעו בהדרגה ככל שיהיו מוכנות. להמשיך?",
-    textTooLongForSingleTable: "הטקסט ארוך מדי לטבלה אחת (מעל 250 שורות). ייבאו אותו דרך «ייבוא» (אודיו/כתוביות מספקים מקטעים וקריוקי) או פצלו אותו לחלקים.",
+    textTooLongForSingleTable: "הטקסט ארוך מדי לטבלה אחת (מעל 250 שורות). הפעולה הבאה: שחזרו את זהות המקטעים בפתיחת התמלול השמור; ייבאו את המקור כמדיה/כתוביות; או פצלו את הטקסט לחלקים של פחות מ-250 שורות.",
     resultTitle: "תוצאה",
     resultPanelTitle: "תוצאה",
     resultSubtitle: "מצב ומקור התוצאה.",
@@ -620,6 +620,8 @@ window.I18N_LOCALES.he = {
     translationLocalNote: "התרגום בוצע מקומית: הטקסט לא נשלח לספק תרגום חיצוני.",
     translationMixedNote: "בשורות הכרטיס מתועדים ספקי תרגום שונים.",
     translationUnknownNote: "כרטיס ישן: מקור תרגום מהימן לא נשמר.",
+    mediaBindingUnverified: "המדיה קושרה, אך לא ניתן לאמת את מקור שורות הכרטיס הישן. הפעולה הבאה: אמתו או קשרו מחדש את קובץ המקור דרך «תמלולים».",
+    mediaBindingMissing: "המדיה לא קושרה. הפעולה הבאה: ייבאו מדיה או קשרו את קובץ המקור הנכון דרך «תמלולים».",
     provTitle: "מקור",
     provSource: "מקור",
     provMethod: "שיטה",
@@ -1398,6 +1400,7 @@ window.I18N_LOCALES.he = {
     noTableToSaveShort: "אין טבלה לשמירה (בנה את הטבלה תחילה)",
     storageFull: "אחסון הדפדפן מלא ({percent}%). פנה מקום.",
     savedToLibrary: "נשמר בספרייה",
+    learningMaterialPromotionFailed: "הכרטיס נשמר, אך חומר הלימוד עדיין לא הוכן. הפעולה הבאה: פתחו את מרכז הייבוא ובחרו „הכנה להעברה“.",
     duplicateInLibrary: "הטקסט כבר קיים בספרייה (duplicate key)",
     duplicateMediaChoose: "קובץ המדיה הזה כבר נשמר. בחרו עדכון או שמירה כחדש כדי ליצור גרסה נפרדת.",
     mediaBindRefused: "הטקסט והטבלה נשמרו. המדיה לא קושרה: השורות מגיעות מקובץ אחר מזה שפתוח כעת — קשרו את המקור הנכון דרך «תמלולים».",
@@ -3337,6 +3340,7 @@ window.I18N_LOCALES.he = {
       playOriginal: "מקור",
       replaySegment: "חזרה על קטע המקור",
       noTiming: "קריוקי אינו זמין לייבוא זה",
+      partialCoverage: "{mapped}/{total} שורות עם שמע",
       fileMissing: "קובץ האודיו לא נמצא בדפדפן זה",
       viaYouTube: "ניגון דרך YouTube",
       // סיבה כנה לכיבוי הקריוקי (MediaHost.timingDropExplain — מימוש אחד לסטודיו ולאולם).
@@ -3371,6 +3375,12 @@ window.I18N_LOCALES.he = {
       importSlim: "ייבוא Media Package רזה…", packageImported: "Media Package יובא מקומית", packageImportFailed: "Media Package לא יובא: הקובץ פגום או נכשל באימות",
       relink: "קישור מדיה מחדש", relinkDone: "המדיה קושרה לפי SHA-256 מדויק", relinkMismatch: "זהו קובץ אחר: SHA-256 אינו תואם", relinkFailed: "קישור המדיה נכשל",
       deletePackage: "מחיקת החבילה…", deleteConfirm: "למחוק את Media Package, כל המסלולים, הגרסאות והטיוטה? שורות הטבלה המקושרות לא ישוכתבו.", deleted: "Media Package נמחק", deleteFailed: "מחיקת Media Package נכשלה",
+      deletePreviewTitle: "למחוק את החבילה „{name}“?",
+      deletePreviewMaterials: "{count} חומרי לימוד יאבדו את המקור שלהם: {materials}.",
+      deletePreviewTiming: "{count} גרסאות כתוביות הן העותק היחיד של התזמון; הן יימחקו.",
+      deletePreviewSha: "ייבוא חוזר של אותו קובץ ישחזר את זהות החבילה לפי SHA-256: {sha}.",
+      deletePreviewNext: "הפעולה הבאה: תחילה ייצאו את החבילה או בטלו את המחיקה.",
+      deletePreviewCancelled: "המחיקה בוטלה ושום דבר לא השתנה. הפעולה הבאה: ייצאו את החבילה או התחילו שוב את המחיקה.",
       workspaceBadge: "תמלול", workspaceDraft: "קיימת טיוטה לשחזור", workspaceSaved: "הגרסה נשמרה במכשיר זה", workspaceLocalOnly: "במכשיר זה בלבד",
       workspaceRevision: "תיקונים · v{n}", workspaceVersion: "גרסה {n}", workspaceDraftShort: "טיוטה", workspaceMediaMissingShort: "נדרש קישור למדיה",
       workspaceCards: "כרטיסים: {n}",
@@ -3586,3 +3596,9 @@ window.I18N_LOCALES.he.pronunciation = {
   privacyTitle:"מה נשאר מקומי",privacyAudio:"ההקלטה נמחקת מיד לאחר הניתוח.",privacyProfile:"פרופיל הכיול נשמר רק אצל ה-companion המקומי.",privacyNoWrite:"הניסיון אינו נשמר בהיסטוריית הלמידה.",license:"ניתוח מקומי: Phonikud + TorchAudio MMS_FA (CC BY-NC 4.0), עבור LinguistPro לא-מסחרי בלבד.",
   errorToken:"הזינו את ה-token שמוצג ב-companion.",errorProfile:"ה-companion פועל, אך עדיין אין פרופיל מקומי.",errorModel:"ה-companion אינו מוצא אחד מהמודלים המקומיים.",errorNetworkDenied:"הגישה לרשת המקומית חסומה. פתחו את הגדרות האתר של LinguistPro, אשרו גישה לרשת המקומית ונסו שוב.",errorConnect:"החיבור נכשל. הפעילו את ה-companion ובדקו את ה-token.",errorMic:"המיקרופון אינו זמין. אשרו גישה בהגדרות הדפדפן.",errorShort:"ההקלטה קצרה מדי. נסו שוב.",errorBusy:"ה-companion מעבד הקלטה אחרת. המתינו ונסו שוב.",errorScore:"הניתוח לא בוצע. הפעילו את ה-companion ובדקו את החיבור."
 };
+Object.assign(window.I18N_LOCALES.he.studio.importCenter, {
+  archiveIntegrity: "תקינות ארכיוני החומרים",
+  archiveIntegrityOk: "0 פערים: כל חומר לימוד מחובר לחבילת המדיה ולהיסטוריית הכתוביות שלו.",
+  archiveIntegrityGap: "לא ניתן לארכב במלואם {count} חומרים: {materials}.",
+  archiveIntegrityNext: "הפעולה הבאה: ייבאו שוב את אותה Media Package או שחזרו את חבילת המקור, ואז הפעילו שוב את האבחון."
+});

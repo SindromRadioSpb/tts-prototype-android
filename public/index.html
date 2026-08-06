@@ -12041,6 +12041,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
       <!-- R9 provenance (read-only): import source passport; shown only for imported cards -->
       <div id="v3TextMetaProvenance" class="v3-meta-provenance" dir="auto" style="display:none;"></div>
 
+      <!-- W2: durable media-save outcome. Verified is intentionally quiet. -->
+      <div id="v3TextMetaMediaBindingOutcome" class="v3-meta-provenance" dir="auto" style="display:none;" aria-live="polite"></div>
+
       <!-- R9 translation provenance (read-only): sentence-level provider is authoritative. -->
       <section id="v3TextMetaTranslationProvider" class="v3-meta-translation-provider" aria-live="polite"></section>
 
@@ -12803,9 +12806,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=118"></script>
-    <script src="/i18n/locales/en.js?v=118"></script>
-    <script src="/i18n/locales/he.js?v=118"></script>
+    <script src="/i18n/locales/ru.js?v=124"></script>
+    <script src="/i18n/locales/en.js?v=124"></script>
+    <script src="/i18n/locales/he.js?v=124"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12975,7 +12978,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.319";
+    window.APP_VERSION = "3.11.325";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -24182,6 +24185,8 @@ function v3AttachAudioTiming(res, segMode, premiumLines) {
     // и следующая живая приёмка обязана это видеть.
     let mapSource = segMode === true ? "segment_index" : (rowSegIdx.length ? "source_line_index" : "none");
     let mapDisagreed = 0;
+    let partialTiming = null;
+    let partialCoverage = null;
     if (typeof AT.alignRowsToSegments === "function" && segCount > 0 && rows.length) {
       const al = AT.alignRowsToSegments(rows.map((r) => String((r && (r.he || r.he_plain || r.hebrew)) || "")),
                                         audio.segments);
@@ -24192,9 +24197,32 @@ function v3AttachAudioTiming(res, segMode, premiumLines) {
         mapSource = rowSegIdx.length ? mapSource + "+aligned" : "aligned";
         rowSegIdx = al.rowSegIdx;
         premiumMapReason = null; // маппинг доказан текстом — прежняя претензия к полю снята
+      } else if (typeof AT.alignRowsToSegmentsPartialProven === "function" &&
+                 typeof AT.buildPartialProvenTiming === "function") {
+        const partial = AT.alignRowsToSegmentsPartialProven(
+          rows.map((r) => String((r && (r.he || r.he_plain || r.hebrew)) || "")), audio.segments);
+        const built = AT.buildPartialProvenTiming(audio.segments, partial.rowSegIdx, v3ClockBlindRanges(audio));
+        if (built.timing) {
+          rowSegIdx = built.rowSegIdx;
+          partialTiming = built.timing;
+          partialCoverage = window.MaterialRevisionCore && MaterialRevisionCore.summarizeProvenAlignment
+            ? MaterialRevisionCore.summarizeProvenAlignment(rowSegIdx, rows.length)
+            : { mapped_rows: built.mappedRows, total_rows: rows.length,
+                unmapped_rows: rows.length - built.mappedRows,
+                ratio: rows.length ? built.mappedRows / rows.length : 0,
+                label: built.mappedRows + "/" + rows.length, complete: built.mappedRows === rows.length };
+          mapSource = "aligned-partial-proven";
+          premiumMapReason = null;
+          audio.timingAlign = {
+            v: AT.ALIGN_PARTIAL_VERSION, mode: "partial-proven", ok: true,
+            strictReason: al.reason || null, rows: rows.length, segments: segCount,
+            alignedRows: partialCoverage.mapped_rows, coverage: partialCoverage,
+          };
+        }
       }
     }
     audio.timingMap = { source: mapSource, disagreed: mapDisagreed, rows: rows.length, segments: segCount };
+    if (partialCoverage) audio.timingMap.coverage = partialCoverage;
     // Фикс 2026-07-30: гейт «есть целые числа» заменён на проверку ОСМЫСЛЕННОСТИ маппинга
     // (диапазон/монотонность/непрерывность/не-вырожденность, AsrTranscript.validateRowSegMapping).
     // Премиум-индексы проходят ТУ ЖЕ проверку — правила K1 не ослабляем: source_line_index уже
@@ -24202,16 +24230,17 @@ function v3AttachAudioTiming(res, segMode, premiumLines) {
     // проходит, а любой разъехавшийся — нет.
     // Не сошлось → честный SEG_MAPPING_LOST и НЕТ караоке: отсутствие подсветки лучше уверенно
     // неверной (R11).
-    const mapCheck = AT.validateRowSegMapping(rowSegIdx, segCount);
+    const mapCheck = partialTiming ? { ok: true, reason: null } : AT.validateRowSegMapping(rowSegIdx, segCount);
     if (!audio.timingDropReason && mapCheck.ok && !lost) {
       audio.timingMap.row_seg_idx = rowSegIdx.slice();
-      audio.timingMap.align_version = AT.ALIGN_VERSION || null;
+      audio.timingMap.align_version = partialTiming ? (AT.ALIGN_PARTIAL_VERSION || null) : (AT.ALIGN_VERSION || null);
       // S12.7: чанки, чьи часы остались сжатыми после переспроса и дробления, помечают свои
       // записи `blind` — караоке там не подсвечивает и не проигрывает (R11). Диапазоны едут из
       // паспорта прогона, а не считаются здесь заново: судил их прогон, у которого были СЫРЫЕ
       // окна, а здесь остались только склеенные сегменты.
       const blindRanges = v3ClockBlindRanges(audio);
-      audio.timing = AT.buildRowTiming(audio.segments, rowSegIdx, blindRanges);
+      audio.timing = partialTiming || AT.buildRowTiming(audio.segments, rowSegIdx, blindRanges);
+      if (partialTiming) audio.timingSource = "aligned-partial-proven";
       // Отказ по маппингу и отказ «честных записей не осталось» — РАЗНЫЕ факты, и владелец
       // обязан видеть, какой именно: первый чинится пересборкой таблицы, второй — только
       // повторным ASR (переспрос уже не помог).
@@ -24363,9 +24392,12 @@ function v3MediaBarRefresh() {
     try { why = window.MediaHost ? window.MediaHost.timingDropExplain(audio, t) : ""; } catch (_) {}
     return why || t("studio.media.noTiming");
   };
+  const coverageNote = () => {
+    try { return window.MediaHost ? window.MediaHost.timingCoverageExplain(audio, t) : ""; } catch (_) { return ""; }
+  };
   if (note) note.textContent = window.v3MediaPackageStale
     ? t("studio.mediaPackage.staleTable")
-    : (audio.timing ? "" : noTimingNote());
+    : (audio.timing ? coverageNote() : noTimingNote());
   v3MediaResolveBlob(audio).then((blob) => {
     if (window.v3ActiveMediaAudio !== audio) return;
     const btn = document.getElementById("v3MediaPlayBtn");
@@ -26682,8 +26714,21 @@ async function v3LibrarySaveCurrentCore(meta) {
     let text;
     if (LOCAL_MODE) {
       const ldb = await ensureLocalDB();
-      const mediaSha = (window.StudioImport && window.StudioImport.mediaSourceSha)
-        ? window.StudioImport.mediaSourceSha(v3LastGeminiMeta && v3LastGeminiMeta.source)
+      // W2: saving performs its own W1 proof. A stale ambient ref is never enough to bind,
+      // and a reload between table-build and save cannot turn media loss into silence.
+      const saveMediaContext = await v3ResolveMediaContext();
+      const saveMediaResolution = window.v3LastMediaContextResolution || null;
+      const saveMediaIntended = !!saveMediaContext || !!(saveMediaResolution && saveMediaResolution.media_intended) ||
+        !!v3MediaPassport(payload.tableModelMeta && payload.tableModelMeta.source);
+      // W3 timing is an open-time derivation. Keep it live for row provenance below, but never
+      // serialize the partial result into the card's canonical passport.
+      if (window.StudioMediaPackage && window.StudioMediaPackage.withoutDerivedMediaTiming) {
+        payload.tableModelMeta = window.StudioMediaPackage.withoutDerivedMediaTiming(payload.tableModelMeta);
+      }
+      const mediaSha = saveMediaContext && saveMediaContext.package && saveMediaContext.package.media_sha256
+        ? String(saveMediaContext.package.media_sha256).toLowerCase()
+        : (window.StudioImport && window.StudioImport.mediaSourceSha)
+        ? window.StudioImport.mediaSourceSha(payload.tableModelMeta && payload.tableModelMeta.source)
         : null;
       if (mediaSha && m.allowDuplicateMedia !== true && typeof ldb.findTextsByMediaSha === "function") {
         const duplicates = await ldb.findTextsByMediaSha(mediaSha);
@@ -26703,7 +26748,7 @@ async function v3LibrarySaveCurrentCore(meta) {
       }
       const newTextId = crypto.randomUUID();
       const textKey = 'text-' + Date.now();
-      let v3MediaBindRefused = false;
+      let mediaBindingOutcome = null;
       await ldb.execRaw('BEGIN;');
       try {
         await ldb.createText({
@@ -26718,7 +26763,7 @@ async function v3LibrarySaveCurrentCore(meta) {
         const l3Rows = [];
         for (const [rowIndex, row] of currentTableData.entries()) {
           const portableEditMeta = (window.StudioImport && window.StudioImport.rowEditMetaForSave)
-            ? window.StudioImport.rowEditMetaForSave(row, window.v3ActiveMediaAudio || null, rowIndex)
+            ? window.StudioImport.rowEditMetaForSave(row, saveMediaContext && saveMediaContext.passport || null, rowIndex)
             : (row.edit_meta_json || null);
           const translation = v3TranslationFieldsForSave(row, payload.tableModelMeta);
           await ldb.addSentence(newTextId, {
@@ -26731,27 +26776,66 @@ async function v3LibrarySaveCurrentCore(meta) {
           });
           try { const em = portableEditMeta ? JSON.parse(portableEditMeta) : null; if (em && em._studio_source) l3Rows.push({ row_index: rowIndex, ...em._studio_source }); } catch (_) {}
         }
-        const l3ref = window.v3LastMediaPackageRef || (v3LastGeminiMeta && v3LastGeminiMeta.source && v3LastGeminiMeta.source.media_package_ref);
-        if (l3ref && window.StudioMediaPackage) {
+        const l3ref = saveMediaContext && saveMediaContext.ref || null;
+        if (saveMediaIntended && window.StudioMediaPackage) {
           // F1 (packet 2026-08-06): какому медиа принадлежит карточка, решает провенанс её строк,
           // а не ambient v3LastMediaPackageRef — тот переживает сущность, которую описывает.
           const l3mapping = { schema: 'studio-row-source-v2', rows: l3Rows };
-          const l3target = await window.StudioMediaPackage.resolveBindTarget(l3ref, l3mapping);
+          const l3target = l3ref ? await window.StudioMediaPackage.resolveBindTarget(l3ref, l3mapping) : null;
           if (l3target) {
-            await window.StudioMediaPackage.browserRepository().bindText({
-              text_id: newTextId, package_id: l3target.package_id, track_id: l3target.track_id,
-              revision_id: l3target.revision_id, revision_sha256: l3target.revision_sha256,
-              mapping: l3mapping,
-            });
+            try {
+              const binding = await window.StudioMediaPackage.browserRepository().bindText({
+                text_id: newTextId, package_id: l3target.package_id, track_id: l3target.track_id,
+                revision_id: l3target.revision_id, revision_sha256: l3target.revision_sha256,
+                mapping: l3mapping,
+              });
+              mediaBindingOutcome = window.StudioMediaPackage.buildMediaSaveOutcome({ binding, target: l3target });
+            } catch (bindError) {
+              if (!bindError || bindError.code !== 'BINDING_PROVENANCE_MISMATCH') throw bindError;
+              // The card itself remains valid. Only the disputed binding is refused.
+              mediaBindingOutcome = window.StudioMediaPackage.buildMediaSaveOutcome({ reason: bindError.code });
+            }
           } else {
             // Текст и таблица сохраняются полностью; молча привязать чужое медиа — нельзя.
-            v3MediaBindRefused = true;
+            mediaBindingOutcome = window.StudioMediaPackage.buildMediaSaveOutcome({
+              reason: l3ref ? 'PROVENANCE_DISAGREES' : null, resolution: saveMediaResolution,
+            });
           }
+          const recordedOutcome = Object.assign({}, mediaBindingOutcome, { recorded_at: new Date().toISOString() });
+          payload.tableModelMeta = window.StudioMediaPackage.attachMediaSaveOutcome(payload.tableModelMeta, recordedOutcome);
+          await ldb.updateText(newTextId, {
+            source_meta_json: JSON.stringify(payload.tableModelMeta),
+            table_model_meta_json: JSON.stringify(payload.tableModelMeta),
+          });
         }
         await ldb.execRaw('COMMIT;');
       } catch (e) { try { await ldb.execRaw('ROLLBACK;'); } catch (_) {} throw e; }
+      // §5 acceptance: a newly saved media card is immediately a first-class learning
+      // material, not an Import Center `not-prepared` compatibility projection. This is
+      // lazy promotion of this one card only — never a bulk rewrite or schema migration.
+      if (saveMediaIntended && window.MaterialRevisionRepository && window.MaterialRevisionCore) {
+        try {
+          const materialRepo = window.MaterialRevisionRepository.createRepository(ldb, window.MaterialRevisionCore);
+          await materialRepo.promoteLegacyText(newTextId);
+        } catch (promotionError) {
+          const promotionOutcome = {
+            schema: 'studio-learning-material-save-outcome-v1', status: 'not_promoted',
+            reason: String((promotionError && (promotionError.code || promotionError.message)) || 'PROMOTION_FAILED'),
+            next_action: 'OPEN_IMPORT_CENTER_PREPARE_TRANSFER', recorded_at: new Date().toISOString(),
+          };
+          payload.tableModelMeta = Object.assign({}, payload.tableModelMeta || {}, { learning_material_outcome: promotionOutcome });
+          await ldb.updateText(newTextId, {
+            source_meta_json: JSON.stringify(payload.tableModelMeta),
+            table_model_meta_json: JSON.stringify(payload.tableModelMeta),
+          });
+          try { showToast(t('toast.learningMaterialPromotionFailed'), 'warning'); } catch (_) {}
+        }
+      }
       text = await ldb.getTextById(newTextId);
-      if (v3MediaBindRefused) { try { showToast(t("toast.mediaBindRefused"), "warning"); } catch (_) {} }
+      // Outside the optional binding branch by design: "no ref" is an outcome, not silence.
+      if (mediaBindingOutcome && mediaBindingOutcome.status === "not_bound") {
+        try { showToast(t("toast.mediaBindRefused"), "warning"); } catch (_) {}
+      }
     } else {
       const created = await v3PostJson("/api/library/texts", payload);
       text = created && created.text ? created.text : null;
@@ -33429,6 +33513,21 @@ function v3TextMetaRenderProvenance(source) {
   }
 }
 
+function v3TextMetaRenderMediaBindingOutcome(meta) {
+  const box = document.getElementById("v3TextMetaMediaBindingOutcome");
+  if (!box) return;
+  const outcome = meta && meta.media_binding_outcome;
+  if (!outcome || outcome.schema !== "studio-media-binding-outcome-v1" || outcome.status === "bound_verified") {
+    box.style.display = "none"; box.textContent = ""; delete box.dataset.status; return;
+  }
+  const T = (k, f) => { try { const v = window.t && window.t(k); return (v && v !== k) ? v : f; } catch (_) { return f; } };
+  box.dataset.status = String(outcome.status || "unknown");
+  box.textContent = outcome.status === "bound_unverified"
+    ? T("textMeta.mediaBindingUnverified", "Медиа связано, но происхождение строк старой карточки не удалось проверить. Следующее действие: проверьте или заново свяжите оригинал в «Транскрипты».")
+    : T("textMeta.mediaBindingMissing", "Медиа не связано. Следующее действие: импортируйте медиа или свяжите правильный оригинал в «Транскрипты».");
+  box.style.display = "block";
+}
+
 function v3TextMetaRenderTranslationProvider(textRow, sentenceRows) {
   const box = document.getElementById("v3TextMetaTranslationProvider");
   if (!box) return;
@@ -33566,7 +33665,7 @@ async function v3TextMetaOpen(textId) {
   // Passport lives in the saved meta JSON (table_model_meta_json / source_meta_json → .source).
   try {
     let sm = null;
-    const raw = t.table_model_meta_json || t.tableModelMetaJson || t.source_meta_json || null;
+    const raw = provenanceText.table_model_meta_json || provenanceText.tableModelMetaJson || provenanceText.source_meta_json || null;
     if (raw) { try { sm = JSON.parse(raw); } catch (_) {} }
     if ((!sm || !sm.source) && LOCAL_MODE && !isCorpus) {
       try {
@@ -33576,7 +33675,8 @@ async function v3TextMetaOpen(textId) {
       } catch (_) {}
     }
     v3TextMetaRenderProvenance(sm && sm.source ? sm.source : null);
-  } catch (_) { try { v3TextMetaRenderProvenance(null); } catch (_2) {} }
+    v3TextMetaRenderMediaBindingOutcome(sm);
+  } catch (_) { try { v3TextMetaRenderProvenance(null); v3TextMetaRenderMediaBindingOutcome(null); } catch (_2) {} }
   await v3TextMetaRenderPortableMedia(id);
   try {
     const ttl = v3MetaEl("v3TextMetaTitle"), src = v3MetaEl("v3TextMetaSource");
@@ -34330,48 +34430,108 @@ try { v3DashCloseViewMenu(); } catch (_) {}
         } catch (_) { return null; }
     }
 
-    // D5 (2026-08-06): паспорт сегментов живёт ТОЛЬКО в памяти вкладки. Переоткрыл сохранённый
-    // транскрипт («Редактировать материал») или перезагрузил страницу — v3LastImportMeta исчез,
-    // хотя ревизия с сегментами лежит на устройстве и текст в поле построчно ей тождественен.
-    // Без паспорта чанк-путь не включается, и длинный транскрипт упирается в honest-guard
-    // «>250 строк» БЕЗ ВЫХОДА: собрать таблицу из своего же импорта становится невозможно.
-    // Восстанавливаем паспорт из привязанной ревизии, но только при ПОЛНОМ построчном тождестве
-    // (MediaHost.revisionMatchesLines) — иначе номер строки уже не равен номеру сегмента.
-    async function v3RestoreImportPassportFromWorkspace() {
+    // W1 (2026-08-06): ЕДИНЫЙ content-addressed media-context resolver. Три прежних
+    // ambient-глобала остаются совместимыми проекциями для старых потребителей, но больше
+    // не являются тремя независимыми источниками истины. Авторитет — полный построчный match
+    // текста композера к канонической caption revision; два совпадения означают отказ.
+    async function v3ResolveMediaContext() {
+        const SMP = window.StudioMediaPackage;
+        const MH = window.MediaHost;
         try {
-            if (v3MediaPassport(window.v3LastImportMeta)) return false;   // паспорт цел — не трогаем
-            const SMP = window.StudioMediaPackage;
-            if (!SMP || !SMP.browserRepository || !SMP.buildCompatibilityProjection || !window.MediaHost) return false;
-            const repo = SMP.browserRepository();
+            if (!SMP || !SMP.browserRepository || !SMP.buildCompatibilityProjection ||
+                !MH || typeof MH.resolveUniqueRevisionContext !== "function") return null;
             const lines = getText().split("\n").map((s) => s.trim()).filter(Boolean);
-            if (lines.length < 2) return false;
-            const ref = window.v3LastMediaPackageRef;
-            let revision = null, media = null;
-            if (ref && ref.package_id && ref.revision_id) {
-                revision = await repo.getRevision(ref.revision_id); media = await repo.getPackage(ref.package_id);
-                if (!revision || !media || !window.MediaHost.revisionMatchesLines(revision.segments, lines)) { revision = null; media = null; }
+            if (!lines.length) return null;
+            // Cold reload is the regression target. StudioMediaPackage can be loaded before the
+            // wa-sqlite worker has finished opening; querying it then yields an empty/error-shaped
+            // catalog and would falsely erase a valid context.
+            if (typeof ensureLocalDB === "function") await ensureLocalDB();
+            const repo = SMP.browserRepository();
+            const candidates = [];
+            const seenRefs = new Set();
+            async function addRef(ref) {
+                if (!ref || !ref.package_id || !ref.revision_id) return;
+                const key = String(ref.package_id) + "|" + String(ref.revision_id);
+                if (seenRefs.has(key)) return;
+                seenRefs.add(key);
+                const revision = await repo.getRevision(ref.revision_id);
+                const media = await repo.getPackage(ref.package_id);
+                const track = revision && await repo.getTrack(revision.track_id);
+                if (!revision || !media || !track || String(track.package_id) !== String(media.package_id)) return;
+                candidates.push({ package: media, track, revision, fast_path: true });
             }
-            if (!revision) {
-                // Ссылка на воркспейс живёт только в памяти и НЕ переживает перезагрузку, а текст в
-                // поле переживает — опора на неё оставляла бы тот же тупик после reload. Ищем
-                // ревизию по САМОМУ тексту: он и есть content-addressed ключ. Два совпадения —
-                // отказ, а не выбор наугад.
-                for (const row of await repo.listWorkspaces({ limit: 50 })) {
-                    const candidate = await repo.getRevision(row.current_revision_id);
-                    if (!candidate || !window.MediaHost.revisionMatchesLines(candidate.segments, lines)) continue;
-                    if (revision) return false;
-                    revision = candidate; media = await repo.getPackage(row.package_id);
-                }
-                if (!revision || !media) return false;
+            await addRef(window.v3LastMediaPackageRef);
+            await addRef(v3LastGeminiMeta && v3LastGeminiMeta.source && v3LastGeminiMeta.source.media_package_ref);
+            await addRef(window.v3LastImportMeta && window.v3LastImportMeta.media_package_ref);
+            const mediaIntended = seenRefs.size > 0 || !!v3MediaPassport(window.v3LastImportMeta) ||
+                !!v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
+            for (const row of await repo.listWorkspaces({ limit: 50 })) {
+                await addRef({ package_id: row.package_id, revision_id: row.current_revision_id });
             }
-            const kind = String(media.mime || "").startsWith("audio/") || String(media.mime || "").startsWith("video/") ? "audio" : "captions";
-            const projection = SMP.buildCompatibilityProjection(revision, { kind, media });
-            const restored = { kind, source: "workspace-revision", method: null, at: new Date().toISOString(),
-                               media_package_ref: projection.media_package_ref };
+            const resolved = MH.resolveUniqueRevisionContext(candidates, lines);
+            window.v3LastMediaContextResolution = {
+                reason: resolved.reason, match_count: resolved.match_count,
+                media_intended: mediaIntended, at: new Date().toISOString(), line_count: lines.length,
+            };
+            if (!resolved.context) {
+                window.v3LastImportMeta = null;
+                window.v3ActiveMediaAudio = null;
+                window.v3LastMediaPackageRef = null;
+                return null;
+            }
+            const context = resolved.context;
+            const media = context.package, revision = context.revision, track = context.track;
+            const kind = String(media.mime || "").startsWith("audio/") ||
+                         String(media.mime || "").startsWith("video/") ? "audio" : "captions";
+            const previousAudio = window.v3ActiveMediaAudio;
+            const projection = SMP.buildCompatibilityProjection(Object.assign({}, revision, {
+                package_id: media.package_id, track_id: track.track_id,
+            }), { kind, media });
+            const restored = {
+                kind, source: "workspace-revision", method: null, at: new Date().toISOString(),
+                media_package_ref: projection.media_package_ref,
+                // v3AttachImportSource gates on textSnapshot before copying the passport into
+                // v3LastGeminiMeta. Omitting it would let chunk selection see segments while the
+                // completed premium/Gemini table silently lost the same context again.
+                textSnapshot: lines.join("\n"),
+            };
             restored[kind] = projection[kind];
+            const passport = projection[kind];
+            // Row timing is derived, never canonical. Reuse it for this live save only when it
+            // names the exact revision the resolver just proved; otherwise the fresh projection
+            // intentionally stays timing-free.
+            if (previousAudio && String(previousAudio.projection_of_revision_id || "") === String(revision.revision_id || "")) {
+                if (previousAudio.timing) passport.timing = JSON.parse(JSON.stringify(previousAudio.timing));
+                if (previousAudio.timingMap) passport.timingMap = JSON.parse(JSON.stringify(previousAudio.timingMap));
+                if (previousAudio.timingSource) passport.timingSource = previousAudio.timingSource;
+            }
+            const ref = projection.media_package_ref;
             window.v3LastImportMeta = restored;
-            return true;
-        } catch (_) { return false; }
+            window.v3ActiveMediaAudio = passport;
+            window.v3LastMediaPackageRef = Object.assign({}, ref);
+            return {
+                package: media, track, revision, segments: passport.segments,
+                rows_provenance: {
+                    schema: "studio-row-source-v2", media_sha256: media.media_sha256 || null,
+                    source_line_segment_ids: passport.segments.map((s) => s.source_segment_id || null),
+                },
+                passport, ref, restored,
+            };
+        } catch (error) {
+            window.v3LastMediaContextResolution = {
+                reason: "RESOLVER_ERROR", match_count: 0, at: new Date().toISOString(),
+                detail: String((error && (error.code || error.message)) || error).slice(0, 120),
+            };
+            return null;
+        }
+    }
+
+    // Backward-compatible D5 entry point: old callers only need to know whether a missing
+    // passport was restored. The work itself is delegated to the one W1 resolver above.
+    async function v3RestoreImportPassportFromWorkspace() {
+        const had = !!v3MediaPassport(window.v3LastImportMeta);
+        const context = await v3ResolveMediaContext();
+        return !!context && !had;
     }
 
     function v3AudioSegmentsForRequest() {
@@ -34483,6 +34643,10 @@ try { v3DashCloseViewMenu(); } catch (_) {}
         const currentText = getText().trim();
         const requestedProvider = getSelectedProvider();
 
+        // W1: resolve once from OPFS canon BEFORE any provider branch. Premium Gemini used to
+        // bypass segments by construction; now all providers consume the same proven context.
+        const v3ResolvedMediaContext = await v3ResolveMediaContext();
+
         // 0) Library source-of-truth: if opened saved text was not changed, never regenerate via Gemini
         if (await v3RestoreSavedTableIfUnchanged(currentText)) {
             return;
@@ -34583,7 +34747,7 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
         // on a TypeError before setLoading(true)'s spinner is ever cleared.
         // D5: перед решением «сегментный или плоский» дать паспорту шанс восстановиться из
         // привязанной ревизии — иначе переоткрытый транскрипт навсегда считается плоским текстом.
-        if (!usePremium && !v3MediaPassport(window.v3LastImportMeta)) await v3RestoreImportPassportFromWorkspace();
+        if (!v3ResolvedMediaContext && !v3MediaPassport(window.v3LastImportMeta)) await v3RestoreImportPassportFromWorkspace();
         const segsForChunks = !usePremium ? v3AudioSegmentsForRequest() : null;
         if (segsForChunks && window.TableChunks && segsForChunks.length > TableChunks.CHUNK_SIZE) {
             await v3TranslateTableChunked(segsForChunks);

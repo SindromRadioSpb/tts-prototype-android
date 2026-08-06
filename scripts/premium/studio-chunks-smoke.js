@@ -104,6 +104,15 @@ const K2_ROWS = K2_SEGS.map((s) => ({
   source_line_index: s.line_index,   // 0-based номер ИСХОДНОЙ строки = индекс ASR-сегмента
   he: s.he, he_niqqud: s.he, translit: "t" + s.index, ru: "r" + s.index,
 }));
+const A12_SHA = "7".repeat(64);
+const A12_LINES = Array.from({ length: 30 }, (_, i) =>
+  (i % 3 === 0) ? ("קבלה " + i + ". עוד משפט " + i + ".") : ("קבלה " + i));
+const A12_TEXT = A12_LINES.join("\n");
+const A12_IMPORT_SEGMENTS = A12_LINES.map((t, i) => ({ i, start: i * 2, end: (i + 1) * 2, text: t }));
+const A12_ROWS = premiumSegmenter.segment(normalizeForDisplay(A12_TEXT)).map((s) => ({
+  segment_index: s.index, source_line_index: s.line_index,
+  he: s.he, he_niqqud: s.he, translit: "a" + s.index, ru: "accept " + s.index,
+}));
 
 const GEMINI_KEY_LS_KEY = "v3.geminiApiKey";       // index.html geminiKeyGet()
 const TABLE_CACHE_LS_KEY = "ttsDashboard_table_cache_v1"; // index.html TABLE_CACHE_KEY
@@ -113,6 +122,7 @@ const PROVIDER_LS_KEY = "v3.translateProvider";     // index.html PROVIDER_LS_KE
                                                      // never triggers (usePremium short-circuits it).
 const BYOK_TOUR_LS_KEY = "v3.byokTourCompleted";
 const FAKE_GEMINI_KEY = "AIzaFAKEKEYFORSTUDIOCHUNKSMOKE7";
+const canonicalRefsByText = new Map();
 
 function range(a, b) { const out = []; for (let i = a; i < b; i++) out.push(i); return out; }
 
@@ -243,7 +253,12 @@ async function waitReady(page) {
 // (public/js/studio-import.js:505-525) — v3MediaPassport() reads holder.audio||holder.captions.
 async function preparePage(page, fixture) {
   await waitReady(page);
-  await page.evaluate(({ text, segments }) => {
+  const text = (fixture && fixture.text) || TEXT;
+  const segments = (fixture && fixture.segments) || IMPORT_SEGMENTS;
+  const media = fixture && fixture.media || null;
+  const cachedRef = canonicalRefsByText.get(text) || null;
+  const promotedRef = await page.evaluate(async ({ text, segments, media, cachedRef }) => {
+    await ensureLocalDB();
     const providerEl = document.getElementById("providerSelect");
     if (providerEl) providerEl.value = "gemini";
     const dirEl = document.getElementById("tableDirectionSelect");
@@ -254,7 +269,14 @@ async function preparePage(page, fixture) {
     input.dispatchEvent(new Event("input", { bubbles: true }));
 
     const now = new Date().toISOString();
-    window.v3LastImportMeta = {
+    window.v3LastImportMeta = media ? {
+      kind: "audio", source: media.originalName, method: "browser-fixture", model: "fixture-asr",
+      warnings: [], at: now, textSnapshot: text,
+      audio: { v: 1, media: { sha256: media.sha256, mime: media.mime, opfsPath: media.opfsPath,
+        durationSec: media.durationSec, originalName: media.originalName, sizeBytes: 4 },
+        asr: { method: "browser-fixture", model: "fixture-asr", language: "he" },
+        segments, timing: null, timingDropReason: null },
+    } : {
       kind: "captions", source: "smoke.vtt", method: "paste", model: null,
       warnings: [], at: now, textSnapshot: text,
       captions: {
@@ -264,8 +286,24 @@ async function preparePage(page, fixture) {
         segments, timing: null, timingDropReason: null,
       },
     };
-  }, { text: (fixture && fixture.text) || TEXT,
-       segments: (fixture && fixture.segments) || IMPORT_SEGMENTS });
+    if (media && window.MediaStore) {
+      const saved = await window.MediaStore.saveMedia(new Uint8Array([82, 73, 70, 70]).buffer, media.opfsPath);
+      if (!saved || !saved.ok) throw new Error("ACCEPTANCE_MEDIA_SAVE_FAILED:" + (saved && saved.reason));
+    }
+
+    // W1 (2026-08-06): ambient-only fixtures would now be dishonest — production resolves
+    // media context from OPFS canon before every provider fork. Persist the exact revision and
+    // activate its ref so reload scenarios exercise the same content-addressed path instead of
+    // relying on a test-only v3LastImportMeta shortcut.
+    const promoted = cachedRef ? { ref: cachedRef }
+      : await window.StudioMediaPackage.createFromImportMeta(window.v3LastImportMeta);
+    // Do not refresh the shelf here: this smoke reloads rapidly and a background shelf query can
+    // race wa-sqlite teardown. The resolver only needs the canonical ref; production UI obtains
+    // the same projection through setActiveWorkspace().
+    window.v3LastMediaPackageRef = promoted.ref;
+    return promoted.ref;
+  }, { text, segments, media, cachedRef });
+  if (promotedRef) canonicalRefsByText.set(text, promotedRef);
 }
 
 // currentTableData/v3LastGeminiMeta are top-level `let` bindings inside index.html's classic
@@ -634,10 +672,17 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     // ══════════════════════════════════════════════════════════════════════════════════════
     await page.reload({ waitUntil: "load" });
     await preparePage(page, { text: K2_TEXT, segments: K2_IMPORT_SEGMENTS });
-    await page.evaluate(({ rows }) => {
+    // §5 acceptance: the import tab's JS memory is gone before premium translation.
+    // Only the canonical package/revision in OPFS may restore the context.
+    await page.reload({ waitUntil: "load" });
+    await waitReady(page);
+    await page.evaluate(({ rows, text }) => {
+      const input = document.getElementById("inputText");
+      input.value = text; input.dispatchEvent(new Event("input", { bubbles: true }));
       window.__premiumRows = rows;
       document.getElementById("providerSelect").value = "google-free";
-    }, { rows: K2_ROWS });
+      document.getElementById("tableDirectionSelect").value = "he-ru";
+    }, { rows: K2_ROWS, text: K2_TEXT });
     await page.evaluate(() => { translateTable(); });
 
     const r6 = await pollUntil(page, (s) => s.rows === K2_ROWS.length || !!s.err, 30000, 50);
@@ -716,7 +761,9 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     try {
       await page.waitForFunction(() => {
         const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
-        return (window.__premiumCalls || 0) >= 2 && !!p && !p.timing;
+        const refused = window.v3LastMediaContextResolution &&
+          window.v3LastMediaContextResolution.reason === "NO_EXACT_REVISION";
+        return (window.__premiumCalls || 0) >= 2 && ((!p && refused) || (!!p && !p.timing));
       }, { timeout: 30000 });
     } catch (_) {
       const st = await page.evaluate(() => {
@@ -734,14 +781,18 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
       const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
       return { premiumCalls: window.__premiumCalls || 0,
                entries: p && p.timing ? p.timing.entries.length : 0,
-               drop: p ? p.timingDropReason : null, detail: p ? p.timingDropDetail : null };
+               drop: p ? p.timingDropReason : null, detail: p ? p.timingDropDetail : null,
+               contextReason: window.v3LastMediaContextResolution && window.v3LastMediaContextResolution.reason };
     });
     must(s7.premiumCalls === 2, "scenario7: premium calls=" + s7.premiumCalls + " expected 2 (the edited text was actually re-translated)");
     must(s7.entries === 0, "scenario7: karaoke kept " + s7.entries + " entries after the text was re-split — " +
       "line index no longer means segment index, timing MUST be dropped (R11)");
-    must(s7.drop === "NO_SEGMENT_MAPPING", "scenario7: timingDropReason=" + JSON.stringify(s7.drop) + " expected NO_SEGMENT_MAPPING");
+    must(s7.drop === "NO_SEGMENT_MAPPING" || s7.contextReason === "NO_EXACT_REVISION",
+      "scenario7: expected an explicit refusal, got timingDropReason=" + JSON.stringify(s7.drop) +
+      " contextReason=" + JSON.stringify(s7.contextReason));
 
-    console.log("scenario7 OK — re-split text: karaoke honestly dropped (" + s7.drop + "/" + s7.detail + ")");
+    console.log("scenario7 OK — re-split text: karaoke honestly dropped (" +
+      (s7.drop || s7.contextReason) + "/" + s7.detail + ")");
 
     // ══════════════════════════════════════════════════════════════════════════════════════
     // Scenario 8 (ревью K2, 2026-07-30): seg-режим Gemini НЕ ЗАПУСКАЕТСЯ на переразбитом тексте.
@@ -800,7 +851,9 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     // Вердикт выносится в том же тике, что и ответ; дождёмся снятого тайминга ИЛИ таймаута.
     await page.waitForFunction(() => {
       const p = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
-      return (window.__chunkCalls || []).length >= 2 && !!p && !p.timing;
+      const refused = window.v3LastMediaContextResolution &&
+        window.v3LastMediaContextResolution.reason === "NO_EXACT_REVISION";
+      return (window.__chunkCalls || []).length >= 2 && ((!p && refused) || (!!p && !p.timing));
     }, { timeout: 15000 }).catch(() => {});
 
     const s8b = await page.evaluate(() => {
@@ -809,6 +862,7 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
       return { calls: (window.__chunkCalls || []).slice(),
                entries: t ? t.entries.length : 0, firstEntries: t ? t.entries.slice(0, 3) : [],
                drop: p ? p.timingDropReason : null, detail: p ? p.timingDropDetail : null,
+               contextReason: window.v3LastMediaContextResolution && window.v3LastMediaContextResolution.reason,
                rows: (typeof currentTableData !== "undefined" && currentTableData) ? currentTableData.length : 0,
                err: (document.getElementById("errorMsg").textContent || "").trim() };
     });
@@ -819,11 +873,14 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
       "индексы придут в нумерации новых строк, а тайминг ляжет на сегменты импорта (сдвиг = молчаливо неверное караоке)");
     must(s8b.entries === 0, "scenario8b: караоке построено (" + s8b.entries + " записей, первые " +
       JSON.stringify(s8b.firstEntries) + ") на переразбитом тексте — сдвинутый тайминг хуже его отсутствия (R11)");
-    must(s8b.drop === "NO_SEGMENT_MAPPING" || s8b.drop === "SEG_MAPPING_LOST",
-      "scenario8b: timingDropReason=" + JSON.stringify(s8b.drop) + " — отказ обязан быть виден в паспорте");
+    must(s8b.drop === "NO_SEGMENT_MAPPING" || s8b.drop === "SEG_MAPPING_LOST" ||
+         s8b.contextReason === "NO_EXACT_REVISION",
+      "scenario8b: refusal missing; timingDropReason=" + JSON.stringify(s8b.drop) +
+      " contextReason=" + JSON.stringify(s8b.contextReason));
 
     console.log("scenario8 OK — re-split text (lines " + (S8_N - 1) + " < segments " + S8_N + "): " +
-                "seg-mode not sent (" + JSON.stringify(s8b.calls) + "), karaoke honestly absent (" + s8b.drop + "/" + s8b.detail + ")");
+                "seg-mode not sent (" + JSON.stringify(s8b.calls) + "), karaoke honestly absent (" +
+                (s8b.drop || s8b.contextReason) + "/" + s8b.detail + ")");
 
     // ══════════════════════════════════════════════════════════════════════════════════════
     // Scenario 9 (ревью K2): window.AsrTranscript не загрузился ⇒ СТАРЫЙ тайминг обязан УЙТИ.
@@ -864,6 +921,7 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
       const t = p && p.timing ? p.timing : null;
       const active = window.v3ActiveMediaAudio;
       return { entries: t ? t.entries.length : 0, drop: p ? p.timingDropReason : null,
+               contextReason: window.v3LastMediaContextResolution && window.v3LastMediaContextResolution.reason,
                activeHasTiming: !!(active && active.timing),
                calls: (window.__chunkCalls || []).length };
     });
@@ -875,9 +933,11 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
       "поверх новой таблицы. Устаревший тайминг = уверенно неверная подсветка (R11): обнулять ДО " +
       "любого обращения к модулю, как это делала else-ветка до K1/K2");
     must(!s9.activeHasTiming, "scenario9: window.v3ActiveMediaAudio всё ещё несёт тайминг — медиа-бар покажет «Караоке ✓»");
-    must(!!s9.drop, "scenario9: отказ не отражён в паспорте (timingDropReason=" + JSON.stringify(s9.drop) + ") — R11: причина обязана быть видна");
+    must(!!s9.drop || !!s9.contextReason,
+      "scenario9: отказ не отражён ни в паспорте, ни в media-context resolution — R11: причина обязана быть видна");
 
-    console.log("scenario9 OK — AsrTranscript missing: stale timing dropped honestly (" + s9.drop + ")");
+    console.log("scenario9 OK — AsrTranscript missing: stale timing dropped honestly (" +
+      (s9.drop || s9.contextReason) + ")");
 
     // ══════════════════════════════════════════════════════════════════════════════════════
     // Scenario 10 (K3, 2026-07-30): УЖЕ СОХРАНЁННАЯ КАРТОЧКА чинится ОФЛАЙН, без запросов.
@@ -894,12 +954,12 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     //   10a — караоке восстановлено, независимый оракул: каждая запись указывает на строку СВОЕГО
     //         сегмента (сегмент восстанавливаем по метке t, принадлежность — по ТЕКСТУ строки);
     //   10b — ни одного сетевого вызова за время сценария (офлайн И бесплатно);
-    //   10c — подделана ОДНА строка → честный отказ, караоке нет, карантин остаётся.
+    //   10c — подделана ОДНА строка → только она без тайминга, дыра закрыта каноническим end.
     // ══════════════════════════════════════════════════════════════════════════════════════
     const s10 = await page.evaluate(({ lines, rows }) => {
       // Паспорт как в сохранённой карточке: сегменты = строки импорта (одна строка = один
       // ASR-сегмент), timing — ВЫРОЖДЕННЫЙ (живой отпечаток владельца: o = segIdx − 1).
-      const segs = lines.map((t, i) => ({ i, start: i * 5, text: t }));
+      const segs = lines.map((t, i) => ({ i, start: i * 5, end: (i + 1) * 5, text: t }));
       const degenerate = { v: 1, unit: "row",
         entries: segs.filter((s) => s.i >= 1).map((s) => ({ o: s.i - 1, t: s.start })) };
       const mkMeta = () => ({ source: { audio: { v: 1, segments: segs.map((s) => ({ ...s })),
@@ -970,10 +1030,18 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
         badCount: bad.length, bad: bad.slice(0, 5),
         activeHasTiming: !!(window.v3ActiveMediaAudio && window.v3ActiveMediaAudio.timing),
         tamperedEntries: b.timing ? b.timing.entries.length : 0,
+        tamperedSource: b.timingSource || null,
+        tamperedCoverage: b.timingMap ? b.timingMap.coverage : null,
+        tamperedRow5: b.timingMap && Array.isArray(b.timingMap.row_seg_idx) ? b.timingMap.row_seg_idx[5] : undefined,
+        tamperedBlind: b.timing ? b.timing.entries.filter((e) => e.blind === true).length : 0,
+        tamperedMode: b.timingAlign ? b.timingAlign.mode : null,
+        tamperedStrictReason: b.timingAlign ? b.timingAlign.strictReason : null,
         tamperedDrop: b.timingDropReason, tamperedDetail: b.timingDropDetail,
         tamperedAlignOk: b.timingAlign ? b.timingAlign.ok : null,
         tamperedAlignReason: b.timingAlign ? b.timingAlign.reason : null,
         noTimingEntries: c.timing ? c.timing.entries.length : 0,
+        noTimingSource: c.timingSource || null,
+        noTimingCoverage: c.timingMap ? c.timingMap.coverage : null,
         noTimingDrop: c.timingDropReason, noTimingDetail: c.timingDropDetail,
         shiftQuarantined: dQuarantined,
         shiftEntries: d.timing ? d.timing.entries.length : 0,
@@ -1000,20 +1068,24 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
          s10.align.alignedSegments === s10.segs && s10.align.entries === s10.segs,
       "scenario10a: провенанс выравнивания неполон: " + JSON.stringify(s10.align));
     must(s10.activeHasTiming, "scenario10a: window.v3ActiveMediaAudio без тайминга — медиа-бар не покажет караоке");
-    must(s10.tamperedEntries === 0, "scenario10c: строка подделана, а караоке построено (" + s10.tamperedEntries +
-      " записей) — маппинг принят на веру вместо доказательства текстом (R11)");
-    must(s10.tamperedAlignOk === false &&
-         (s10.tamperedAlignReason === "ROW_NOT_IN_SEGMENT" || s10.tamperedAlignReason === "SEGMENT_UNCOVERED"),
-      "scenario10c: отказ выравнивания не отражён в провенансе (ok=" + s10.tamperedAlignOk +
-      ", reason=" + JSON.stringify(s10.tamperedAlignReason) + ")");
-    must(s10.tamperedDrop === "SEG_MAPPING_LOST", "scenario10c: timingDropReason=" + JSON.stringify(s10.tamperedDrop) + " ожидался SEG_MAPPING_LOST");
-    must(s10.tamperedDetail === "DEGENERATE_1_TO_1",
-      "scenario10c: диагноз карантина K1 затёрт диагнозом выравнивания (detail=" + JSON.stringify(s10.tamperedDetail) +
-      ") — он первичен: объясняет, почему СОХРАНЁННЫЙ тайминг снят");
-    // 10d — паспорт без прежнего диагноза: причина отказа выравнивания обязана быть видна
-    must(s10.noTimingEntries === 0, "scenario10d: караоке построено на подделанных строках");
-    must(s10.noTimingDrop === "SEG_MAPPING_LOST" && /^ALIGN_/.test(String(s10.noTimingDetail || "")),
-      "scenario10d: отказ немой (" + s10.noTimingDrop + "/" + s10.noTimingDetail + ") — владелец обязан видеть причину");
+    must(s10.tamperedEntries > 0 && s10.tamperedSource === "aligned-partial-proven" &&
+         s10.tamperedMode === "partial-proven",
+      "scenario10c: доказанное частичное выравнивание не включилось: " + JSON.stringify(s10));
+    must(s10.tamperedCoverage && s10.tamperedCoverage.total_rows === s10.rows &&
+         s10.tamperedCoverage.mapped_rows === s10.rows - 1 && s10.tamperedRow5 === null,
+      "scenario10c: покрытие обязано быть ровно " + (s10.rows - 1) + "/" + s10.rows +
+      ", строка 5 — без тайминга: " + JSON.stringify(s10.tamperedCoverage));
+    must(s10.tamperedBlind >= 1,
+      "scenario10c: недоказанная строка не закрыта blind-границей из канонического segment.end");
+    must((s10.tamperedStrictReason === "ROW_NOT_IN_SEGMENT" || s10.tamperedStrictReason === "SEGMENT_UNCOVERED") &&
+         !s10.tamperedDrop && !s10.tamperedDetail,
+      "scenario10c: строгий отказ не сохранён как причина частичного режима или старый карантин не снят: " +
+      JSON.stringify({ strict: s10.tamperedStrictReason, drop: s10.tamperedDrop, detail: s10.tamperedDetail }));
+    // 10d — тот же доказанный результат не зависит от наличия прежнего тайминга.
+    must(s10.noTimingEntries === s10.tamperedEntries && s10.noTimingSource === "aligned-partial-proven" &&
+         s10.noTimingCoverage && s10.noTimingCoverage.mapped_rows === s10.rows - 1 &&
+         !s10.noTimingDrop && !s10.noTimingDetail,
+      "scenario10d: паспорт без старого тайминга дал другой/немой исход: " + JSON.stringify(s10));
     // 10e — непроверяемое утверждение против доказательства
     must(s10.shiftQuarantined === false,
       "scenario10e: фикстура бессмысленна — сдвинутый тайминг обязан ПЕРЕЖИТЬ карантин K1, иначе замена не проверяется");
@@ -1025,7 +1097,7 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
 
     console.log("scenario10 OK — saved card revived offline: " + s10.entries + " entries over " + s10.rows +
                 " rows / " + s10.segs + " segments, 0 cross-segment, " + s10.net + " network calls, " + s10.ms + " ms; " +
-                "tampered row → honest refusal (" + s10.tamperedAlignReason + "), unverifiable saved timing replaced");
+                "tampered row → " + s10.tamperedCoverage.label + " partial-proven with blind boundary, unverifiable saved timing replaced");
 
     // ══════════════════════════════════════════════════════════════════════════════════════
     // Scenario 11 (S12.7, 2026-07-30): ЧАНК СО СЖАТЫМИ ЧАСАМИ — караоке там ВЫКЛЮЧЕНО.
@@ -1075,6 +1147,72 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
 
     console.log("scenario11 OK — compressed chunk: " + s11.blindCount + "/" + s11.total +
                 " entries blind, no highlight inside the range, legacy passports untouched");
+
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    // Scenario 12 (§5, honest import -> card): canonical import already exists, then a cold
+    // reload erases every ambient global. Premium translation, save, another cold reload,
+    // Library open and Import Center must all follow the exact same revision.
+    // ══════════════════════════════════════════════════════════════════════════════════════
+    await page.reload({ waitUntil: "load" });
+    await preparePage(page, { text: A12_TEXT, segments: A12_IMPORT_SEGMENTS,
+      media: { sha256: A12_SHA, mime: "audio/wav", opfsPath: "media/" + A12_SHA + ".wav",
+        durationSec: 60, originalName: "honest-acceptance.wav" } });
+    await page.reload({ waitUntil: "load" });
+    await waitReady(page);
+    await page.evaluate(({ rows, text }) => {
+      const input = document.getElementById("inputText");
+      input.value = text; input.dispatchEvent(new Event("input", { bubbles: true }));
+      window.__premiumRows = rows;
+      document.getElementById("providerSelect").value = "google-free";
+      document.getElementById("tableDirectionSelect").value = "he-ru";
+      translateTable();
+    }, { rows: A12_ROWS, text: A12_TEXT });
+    const r12 = await pollUntil(page, (s) => s.rows === A12_ROWS.length || !!s.err, 30000, 50);
+    must(r12.ok && !r12.snap.err, "scenario12: premium table after cold reload failed: " + JSON.stringify(r12.snap));
+    const saved12 = await page.evaluate(async () => {
+      const text = await v3LibrarySaveCurrentCore({ title: "§5 honest import to card" });
+      if (!text || !text.id) return { saved: false };
+      const ldb = await ensureLocalDB();
+      const stored = await ldb.getTextById(String(text.id));
+      const meta = JSON.parse(stored.table_model_meta_json || stored.source_meta_json || "{}");
+      const binding = await window.StudioMediaPackage.browserRepository().getTextBinding(String(text.id));
+      const materials = await ldb.dbQuery("SELECT material_id FROM studio_learning_materials WHERE text_id=?", [String(text.id)]);
+      const sentenceRows = await ldb.getSentences(String(text.id));
+      const mapping = { rows: sentenceRows.map(row => { try { return JSON.parse(row.edit_meta_json || "{}")._studio_source || {}; } catch (_) { return {}; } }) };
+      return { saved: true, textId: String(text.id), outcome: meta.media_binding_outcome || null,
+        binding: binding && { package_id: binding.package_id, revision_id: binding.revision_id },
+        declared: window.MediaPackageCore.mediaShaSetFromMapping(mapping),
+        resolution: window.v3LastMediaContextResolution,
+        ref: window.v3LastMediaPackageRef, materials: materials.length };
+    });
+    must(saved12.saved, "scenario12: Library save returned no card");
+    must(saved12.outcome && saved12.outcome.status === "bound_verified",
+      "scenario12: save outcome is not bound_verified: " + JSON.stringify(saved12));
+    must(saved12.binding && saved12.binding.revision_id,
+      "scenario12: card has no exact canonical binding after premium save");
+
+    await page.reload({ waitUntil: "load" });
+    await waitReady(page);
+    const opened12 = await page.evaluate(async (textId) => {
+      await window.v3LibraryOpenText(textId);
+      const audio = window.v3ActiveMediaAudio;
+      await window.StudioPortableLearningPackage.open({ view: "materials", textId });
+      const card = document.querySelector(`[data-material-card="text:${CSS.escape(textId)}"]`) ||
+        document.querySelector(".p4-material-card");
+      const ldb = await ensureLocalDB();
+      const materials = await ldb.dbQuery("SELECT material_id FROM studio_learning_materials WHERE text_id=?", [textId]);
+      return { rows: document.querySelectorAll("#proTable tbody tr").length,
+        revision_id: window.v3LastMediaPackageRef && window.v3LastMediaPackageRef.revision_id,
+        timing_entries: audio && audio.timing && audio.timing.entries ? audio.timing.entries.length : 0,
+        import_center_listed: !!card, continuity: card && card.dataset.continuity,
+        materials: materials.length };
+    }, saved12.textId);
+    must(opened12.rows === A12_ROWS.length && opened12.revision_id === saved12.binding.revision_id && opened12.timing_entries > 0,
+      "scenario12: cold-open card lost its own revision/karaoke: " + JSON.stringify(opened12));
+    must(opened12.import_center_listed && opened12.materials === 1,
+      "scenario12: saved media card is not a learning material in Import Center: " + JSON.stringify(opened12));
+    console.log("scenario12 OK — reload → premium → save " + saved12.outcome.status +
+      " → reload → own revision + karaoke + Import Center learning material");
 
     console.log("SMOKE OK");
   } finally {

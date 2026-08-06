@@ -180,6 +180,35 @@ test('text binding freezes exact revision and deletion receipt preserves referen
   assert.equal(h.rows('SELECT COUNT(*) AS n FROM studio_media_packages')[0].n, 0);
 });
 
+test('delete preview names orphaned materials, sole timing copy and SHA identity recovery before any write', async () => {
+  const h = await harness();
+  h.db.run(`CREATE TABLE studio_learning_materials(
+    material_id TEXT PRIMARY KEY, package_id TEXT, text_id TEXT NOT NULL,
+    portable_text_key TEXT, current_table_revision_id TEXT, created_at TEXT, updated_at TEXT
+  )`);
+  const pkg = await h.repo.createPackage({
+    media: { sha256: 'd'.repeat(64), mime: 'video/mp4', original_name: 'owner-interview.mp4' },
+    raw_revision: await rawRevision('d'.repeat(64)),
+  });
+  h.db.run(`INSERT INTO studio_learning_materials VALUES
+    ('material:one',?,'text-one','owner-interview',NULL,'t','t'),
+    ('material:two',?,'text-two',NULL,NULL,'t','t')`, [pkg.package_id, pkg.package_id]);
+
+  const before = h.rows('SELECT COUNT(*) AS n FROM studio_media_packages')[0].n;
+  const preview = await h.repo.previewDeletePackage(pkg.package_id);
+  assert.equal(h.rows('SELECT COUNT(*) AS n FROM studio_media_packages')[0].n, before, 'preview is read-only');
+  assert.deepEqual(preview.materials_losing_source, [
+    { material_id: 'material:one', text_id: 'text-one', name: 'owner-interview' },
+    { material_id: 'material:two', text_id: 'text-two', name: 'text-two' },
+  ]);
+  assert.equal(preview.materials_losing_source_count, 2);
+  assert.equal(preview.caption_revisions_are_only_timing_copy, true);
+  assert.equal(preview.caption_revisions_destroyed, 2);
+  assert.equal(preview.reimport_same_sha_restores_identity, true);
+  assert.equal(preview.media_sha256, 'd'.repeat(64));
+  assert.equal(preview.package_name, 'owner-interview.mp4');
+});
+
 test('verified slim snapshot imports transactionally and duplicate import is idempotent', async () => {
   const source = await harness(), target = await harness(), raw = await rawRevision();
   const created = await source.repo.createPackage({ media: { sha256: 'a'.repeat(64), mime: 'audio/mpeg', duration_ms: 2200, original_name: 'mia.mp3' }, raw_revision: raw });

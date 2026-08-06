@@ -87,7 +87,7 @@ window.I18N_LOCALES.ru = {
     tableChunkFailed: "Кусок {k} из {m} не получился. Готовые куски сохранены — нажмите «AI Перевод» ещё раз: готовое вернётся из кэша мгновенно, докачается только упавшее.",
     tableChunkedDone: "Готово: собрано из {m} кусков",
     tableCostConfirm: "Длинная таблица: ≈{rows} строк, ≈${usd}, ~{min} мин. Строки будут появляться по мере готовности. Продолжить?",
-    textTooLongForSingleTable: "Текст слишком длинный для одной таблицы (>250 строк). Импортируйте его через «Импорт» (аудио/субтитры дают сегменты и караоке) или разбейте на части.",
+    textTooLongForSingleTable: "Текст слишком длинный для одной таблицы (>250 строк). Следующее действие: восстановите идентичность сегментов, открыв сохранённый транскрипт; либо импортируйте исходник через «Импорт» как аудио/субтитры; либо разбейте текст на части меньше 250 строк.",
     resultTitle: "Результат",
     resultPanelTitle: "Результат",
     resultSubtitle: "Статус и происхождение результата.",
@@ -616,6 +616,8 @@ window.I18N_LOCALES.ru = {
     translationLocalNote: "Перевод выполнен локально: текст не отправлялся внешнему MT-провайдеру.",
     translationMixedNote: "В строках карточки зафиксированы разные провайдеры перевода.",
     translationUnknownNote: "Legacy-карточка: достоверный provenance перевода не сохранён.",
+    mediaBindingUnverified: "Медиа связано, но происхождение строк старой карточки не удалось проверить. Следующее действие: проверьте или заново свяжите оригинал в «Транскрипты».",
+    mediaBindingMissing: "Медиа не связано. Следующее действие: импортируйте медиа или свяжите правильный оригинал в «Транскрипты».",
     provTitle: "Происхождение",
     provSource: "Источник",
     provMethod: "Способ",
@@ -1404,6 +1406,7 @@ window.I18N_LOCALES.ru = {
     noTableToSaveShort: "Нет таблицы для сохранения (сначала соберите таблицу)",
     storageFull: "Хранилище браузера переполнено ({percent}%). Освободите место.",
     savedToLibrary: "Сохранено в библиотеку",
+    learningMaterialPromotionFailed: "Карточка сохранена, но учебный материал ещё не подготовлен. Следующее действие: откройте Импорт-центр и нажмите «Подготовить к переносу».",
     duplicateInLibrary: "Этот текст уже есть в библиотеке (duplicate key)",
     duplicateMediaChoose: "Этот медиафайл уже сохранён. Выберите «Обновить» или «Сохранить как новый» для отдельной версии.",
     mediaBindRefused: "Текст и таблица сохранены. Медиа не привязано: строки получены из другого файла, чем открытый сейчас — привяжите нужный оригинал в «Транскрипты».",
@@ -3343,6 +3346,7 @@ window.I18N_LOCALES.ru = {
       playOriginal: "Оригинал",
       replaySegment: "Повторить сегмент оригинала",
       noTiming: "Караоке недоступно для этого импорта",
+      partialCoverage: "{mapped}/{total} строк со звуком",
       fileMissing: "Аудио-файл не найден в этом браузере",
       viaYouTube: "Воспроизведение через YouTube",
       // Честная причина отсутствия караоке (MediaHost.timingDropExplain, общая для Студии и Зала):
@@ -3377,6 +3381,12 @@ window.I18N_LOCALES.ru = {
       importSlim: "Импорт slim Media Package…", packageImported: "Media Package импортирован локально", packageImportFailed: "Media Package не импортирован: файл повреждён или не прошёл проверку",
       relink: "Relink media", relinkDone: "Медиа связано по точному SHA-256", relinkMismatch: "Выбран другой файл: SHA-256 не совпадает", relinkFailed: "Не удалось связать медиа",
       deletePackage: "Удалить пакет…", deleteConfirm: "Удалить Media Package, все дорожки, версии и черновик? Связанные строки таблицы не будут переписаны.", deleted: "Media Package удалён", deleteFailed: "Не удалось удалить Media Package",
+      deletePreviewTitle: "Удалить пакет «{name}»?",
+      deletePreviewMaterials: "{count} материалов потеряют источник: {materials}.",
+      deletePreviewTiming: "{count} ревизий субтитров — единственная копия тайминга; они будут удалены.",
+      deletePreviewSha: "Повторный импорт того же файла восстановит идентичность пакета по SHA-256: {sha}.",
+      deletePreviewNext: "Следующее действие: сначала экспортируйте пакет или отмените удаление.",
+      deletePreviewCancelled: "Удаление отменено, ничего не изменилось. Следующее действие: экспортируйте пакет или запустите удаление снова.",
       workspaceBadge: "Транскрипт", workspaceDraft: "Есть восстановленный черновик", workspaceSaved: "Версия сохранена на этом устройстве", workspaceLocalOnly: "Только на этом устройстве",
       workspaceRevision: "Правки · v{n}", workspaceVersion: "Версия {n}", workspaceDraftShort: "черновик", workspaceMediaMissingShort: "медиа нужно связать",
       workspaceCards: "карточек: {n}",
@@ -3592,3 +3602,9 @@ window.I18N_LOCALES.ru.pronunciation = {
   privacyTitle:"Что остаётся локально",privacyAudio:"Запись удаляется сразу после анализа.",privacyProfile:"Калибровочный профиль хранится только у local companion.",privacyNoWrite:"Попытка не сохраняется в истории обучения.",license:"Локальный анализ: Phonikud + TorchAudio MMS_FA (CC BY-NC 4.0), только для некоммерческого LinguistPro.",
   errorToken:"Введите token из окна companion.",errorProfile:"Companion запущен, но локальный профиль ещё не создан.",errorModel:"Companion не видит одну из локальных моделей.",errorNetworkDenied:"Браузеру запрещён доступ к локальной сети. Откройте настройки сайта LinguistPro, разрешите «Доступ к локальной сети» и повторите.",errorConnect:"Не удалось подключиться. Запустите companion и проверьте token.",errorMic:"Микрофон недоступен. Разрешите доступ в настройках браузера.",errorShort:"Запись слишком короткая. Попробуйте ещё раз.",errorBusy:"Companion занят другой записью. Подождите и повторите.",errorScore:"Анализ не выполнен. Запустите companion и проверьте подключение."
 };
+Object.assign(window.I18N_LOCALES.ru.studio.importCenter, {
+  archiveIntegrity: "Целостность архивов материалов",
+  archiveIntegrityOk: "0 разрывов: каждый учебный материал связан со своим медиа-пакетом и историей субтитров.",
+  archiveIntegrityGap: "{count} материалов нельзя полностью архивировать: {materials}.",
+  archiveIntegrityNext: "Следующее действие: повторно импортируйте тот же Media Package или восстановите исходный пакет, затем снова запустите диагностику."
+});

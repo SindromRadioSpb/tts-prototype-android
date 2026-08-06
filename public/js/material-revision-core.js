@@ -338,8 +338,20 @@
       : { text_id: null, ambiguous: true, candidates };
   }
 
+  function summarizeProvenAlignment(rowSegmentIndexes, totalRows) {
+    const indexes = Array.isArray(rowSegmentIndexes) ? rowSegmentIndexes : [];
+    const total = Math.max(0, Number.isInteger(Number(totalRows)) ? Number(totalRows) : indexes.length);
+    const mapped = indexes.slice(0, total).filter(Number.isInteger).length;
+    return {
+      mapped_rows: mapped, total_rows: total, unmapped_rows: Math.max(0, total - mapped),
+      ratio: total ? mapped / total : 0, label: `${mapped}/${total}`,
+      complete: total > 0 && mapped === total,
+    };
+  }
+
   return {
     FIELD_NAMES, REVIEW_MODE_FIELDS, canonical, stableStringify, sha256Hex, normalizeRow, pickTextForTrack,
+    summarizeProvenAlignment,
     createTableSnapshot, analyzeImpact, buildRegenerationPreflight, applyProviderCandidates,
     applyExactAlignedMapping, planExactAlignedMappingRepair, fieldsForReviewMode, buildPlaybackFocus, computeContextScrollTop,
   };

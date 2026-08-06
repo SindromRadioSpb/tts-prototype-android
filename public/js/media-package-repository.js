@@ -268,16 +268,42 @@
       return { bound: true, stale: row.bound_revision_id !== row.current_revision_id || row.revision_sha256 !== row.current_sha256, bound_revision_id: row.bound_revision_id, current_revision_id: row.current_revision_id };
     }
 
-    async function deletePackage(packageId, options) {
-      options = options || {}; if (!options.confirm) throw createError('DELETE_CONFIRM_REQUIRED');
+    async function previewDeletePackage(packageId) {
       var pkg = await getPackage(packageId); if (!pkg) throw createError('PACKAGE_NOT_FOUND');
       var counts = await one(`SELECT
         (SELECT COUNT(*) FROM studio_caption_tracks WHERE package_id=?) AS tracks,
         (SELECT COUNT(*) FROM studio_caption_revisions r JOIN studio_caption_tracks t ON t.track_id=r.track_id WHERE t.package_id=?) AS revisions,
         (SELECT COUNT(*) FROM studio_text_media_bindings WHERE package_id=?) AS bindings`, [packageId, packageId, packageId]);
+      var materialTable = await one("SELECT name FROM sqlite_master WHERE type='table' AND name='studio_learning_materials' LIMIT 1");
+      var materialRows = materialTable ? await q(`SELECT material_id,text_id,portable_text_key
+        FROM studio_learning_materials WHERE package_id=? ORDER BY material_id`, [packageId]) : [];
+      var materials = materialRows.map(function (row) {
+        return { material_id: row.material_id, text_id: row.text_id,
+          name: row.portable_text_key || row.text_id || row.material_id };
+      });
+      return {
+        package_id: String(packageId), package_name: pkg.original_name || pkg.package_id,
+        media_sha256: pkg.media_sha256 || null, opfs_path: pkg.opfs_path || null,
+        tracks_destroyed: Number(counts.tracks || 0),
+        caption_revisions_destroyed: Number(counts.revisions || 0),
+        bindings_destroyed: Number(counts.bindings || 0),
+        materials_losing_source_count: materials.length, materials_losing_source: materials,
+        caption_revisions_are_only_timing_copy: true,
+        reimport_same_sha_restores_identity: !!pkg.media_sha256,
+      };
+    }
+
+    async function deletePackage(packageId, options) {
+      options = options || {}; if (!options.confirm) throw createError('DELETE_CONFIRM_REQUIRED');
+      var preview = await previewDeletePackage(packageId);
       await transaction(async function () { await r('DELETE FROM studio_media_packages WHERE package_id=?', [packageId]); });
-      var remaining = pkg.media_sha256 ? await one('SELECT COUNT(*) AS n FROM studio_media_packages WHERE media_sha256=? AND deleted_at IS NULL', [pkg.media_sha256]) : { n: 0 };
-      return { package_id: packageId, packages_removed: 1, tracks_removed: Number(counts.tracks), revisions_removed: Number(counts.revisions), bindings_removed: Number(counts.bindings), media_sha256: pkg.media_sha256 || null, opfs_path: pkg.opfs_path || null, remaining_media_references: Number(remaining.n || 0), media_blob_action: Number(remaining.n || 0) ? 'retained' : 'eligible_for_gc', errors: [] };
+      var remaining = preview.media_sha256 ? await one('SELECT COUNT(*) AS n FROM studio_media_packages WHERE media_sha256=? AND deleted_at IS NULL', [preview.media_sha256]) : { n: 0 };
+      return { package_id: packageId, packages_removed: 1, tracks_removed: preview.tracks_destroyed,
+        revisions_removed: preview.caption_revisions_destroyed, bindings_removed: preview.bindings_destroyed,
+        materials_orphaned: preview.materials_losing_source_count, media_sha256: preview.media_sha256,
+        opfs_path: preview.opfs_path, remaining_media_references: Number(remaining.n || 0),
+        media_blob_action: Number(remaining.n || 0) ? 'retained' : 'eligible_for_gc',
+        preview: preview, errors: [] };
     }
 
     async function relinkMedia(packageId, media) {
@@ -312,7 +338,7 @@
       });
     }
 
-    return { createPackage: createPackage, getPackage: getPackage, listTracks: listTracks, getTrack: getTrack, getRevision: getRevision, getCurrentRevision: getCurrentRevision, getWorkspace: getWorkspace, listWorkspaces: listWorkspaces, saveDraft: saveDraft, discardDraft: discardDraft, commitDraft: commitDraft, bindText: bindText, getTextBinding: getTextBinding, findPackageByMediaSha: findPackageByMediaSha, isTextBindingStale: isTextBindingStale, deletePackage: deletePackage, relinkMedia: relinkMedia, importSnapshot: importSnapshot };
+    return { createPackage: createPackage, getPackage: getPackage, listTracks: listTracks, getTrack: getTrack, getRevision: getRevision, getCurrentRevision: getCurrentRevision, getWorkspace: getWorkspace, listWorkspaces: listWorkspaces, saveDraft: saveDraft, discardDraft: discardDraft, commitDraft: commitDraft, bindText: bindText, getTextBinding: getTextBinding, findPackageByMediaSha: findPackageByMediaSha, isTextBindingStale: isTextBindingStale, previewDeletePackage: previewDeletePackage, deletePackage: deletePackage, relinkMedia: relinkMedia, importSnapshot: importSnapshot };
   }
 
   var API = { createRepository: createRepository };

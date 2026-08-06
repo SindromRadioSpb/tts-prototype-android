@@ -472,6 +472,70 @@ test("alignRowsToSegments: одна изменённая строка роняе
   assert.ok(a.reason === "ROW_NOT_IN_SEGMENT" || a.reason === "SEGMENT_UNCOVERED", a.reason);
 });
 
+// W3 (honest import -> card, 2026-08-06): strict alignment remains binary for its
+// existing callers. The additive mode proves each row independently and leaves a
+// literal null wherever uniqueness cannot be established.
+test("alignRowsToSegmentsPartialProven accepts only rows contained in exactly one segment", () => {
+  const segs = [
+    { i: 0, start: 0, end: 2, text: "שלום עולם" },
+    { i: 1, start: 4, end: 6, text: "כן תשובה" },
+    { i: 2, start: 8, end: 10, text: "מיה באה" },
+    { i: 3, start: 12, end: 14, text: "כן בהחלט" },
+  ];
+  const rows = ["שלום עולם", "שורה שלא קיימת", "מיה באה", "כן"];
+  assert.equal(A.alignRowsToSegments(rows, segs).ok, false, "the old all-or-nothing verdict is unchanged");
+
+  const partial = A.alignRowsToSegmentsPartialProven(rows, segs);
+  assert.equal(partial.mode, "partial-proven");
+  assert.deepEqual(partial.rowSegIdx, [0, null, 2, null]);
+  assert.equal(partial.mappedRows, 2);
+  assert.equal(partial.totalRows, 4);
+  assert.equal(partial.coverage, 0.5);
+  assert.deepEqual(partial.absentRows, [1]);
+  assert.deepEqual(partial.ambiguousRows, [3], "a row present in two segments gets no timing");
+  assert.deepEqual(partial.orderConflictRows, []);
+});
+
+test("partial-proven mode never uses substrings, neighbours, voting or reordered matches", () => {
+  const segs = [
+    { i: 0, start: 0, end: 1, text: "שלומי הגיע" },
+    { i: 1, start: 2, end: 3, text: "מיה באה" },
+    { i: 2, start: 4, end: 5, text: "דני הלך" },
+  ];
+  const partial = A.alignRowsToSegmentsPartialProven(
+    ["שלום", "דני הלך", "מיה באה", "מילה קרובה"], segs,
+  );
+  assert.deepEqual(partial.rowSegIdx, [null, 2, null, null]);
+  assert.deepEqual(partial.absentRows, [0, 3], "inside-word and nearest-neighbour guesses are absent");
+  assert.deepEqual(partial.orderConflictRows, [2], "a unique but decreasing match is not playable");
+});
+
+test("buildPartialProvenTiming brackets an unproven row with a canonical blind boundary", () => {
+  const segs = [
+    { i: 0, start: 0, end: 2, text: "שלום עולם" },
+    { i: 1, start: 4, end: 6, text: "חסר" },
+    { i: 2, start: 8, end: 10, text: "מיה באה" },
+  ];
+  const built = A.buildPartialProvenTiming(segs, [0, null, 2]);
+  assert.deepEqual(built.rowSegIdx, [0, null, 2]);
+  assert.deepEqual(built.timing.entries, [
+    { o: 0, t: 0 }, { o: 1, t: 2, blind: true }, { o: 2, t: 8 },
+  ]);
+  assert.equal(built.mappedRows, 2);
+});
+
+test("buildPartialProvenTiming refuses a gap when its canonical end boundary is absent", () => {
+  const segs = [
+    { i: 0, start: 0, text: "שלום עולם" },
+    { i: 1, start: 4, text: "חסר" },
+    { i: 2, start: 8, text: "מיה באה" },
+  ];
+  const built = A.buildPartialProvenTiming(segs, [0, null, 2]);
+  assert.equal(built.timing, null, "without segment.end there is no honest boundary for the hole");
+  assert.deepEqual(built.rowSegIdx, [null, null, null]);
+  assert.equal(built.mappedRows, 0);
+});
+
 test("timingLooksDegenerate: ЖИВОЙ отпечаток владельца — o === индекс сегмента − 1", () => {
   // Замер карточки 864f3aa2 (kapture, 2026-07-30): 1651 строка, 1074 сегмента, 1070 записей,
   // и у ВСЕХ o = segIdx − 1 (премиумный `segment_index` 1-based). Отпечаток «o === segIdx»

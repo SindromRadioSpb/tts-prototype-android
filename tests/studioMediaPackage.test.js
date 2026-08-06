@@ -1,5 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const Core = require('../public/js/media-package-core.js');
 const StudioMediaPackage = require('../public/js/studio-media-package.js');
 
@@ -269,4 +271,108 @@ test('resolveBindTarget does not judge rows that make no claim', async () => {
   const legacy = { schema: 'studio-row-source-v2', rows: [{ row_index: 0, caption_segment_id: 'cseg:x:0' }] };
   assert.deepEqual(await StudioMediaPackage.resolveBindTarget(refFor('mpkg:X'), legacy), { ...refFor('mpkg:X'), source: 'ambient-unverified' });
   assert.deepEqual(await StudioMediaPackage.resolveBindTarget(refFor('mpkg:X'), null), { ...refFor('mpkg:X'), source: 'ambient-unverified' });
+});
+
+// W2 (honest import -> card, 2026-08-06): saving a table has exactly one named,
+// persistent media outcome. Only the verified case is quiet; every exceptional
+// case carries a durable next action for the card UI.
+test('buildMediaSaveOutcome records the three honest save states', () => {
+  const ref = refFor('mpkg:X');
+  const verified = StudioMediaPackage.buildMediaSaveOutcome({
+    binding: { mapping: { provenance_checked: true } }, target: ref,
+  });
+  assert.deepEqual(verified, {
+    schema: 'studio-media-binding-outcome-v1', status: 'bound_verified',
+    provenance_checked: true, reason: null, package_id: 'mpkg:X',
+    next_action: null,
+  });
+
+  const legacy = StudioMediaPackage.buildMediaSaveOutcome({
+    binding: { mapping: { provenance_checked: false } }, target: ref,
+  });
+  assert.equal(legacy.status, 'bound_unverified');
+  assert.equal(legacy.provenance_checked, false);
+  assert.equal(legacy.reason, 'ROW_PROVENANCE_UNVERIFIABLE');
+  assert.equal(legacy.next_action, 'VERIFY_OR_RELINK_FROM_TRANSCRIPTS');
+
+  const absent = StudioMediaPackage.buildMediaSaveOutcome({
+    reason: 'NO_EXACT_REVISION', resolution: { reason: 'NO_EXACT_REVISION' },
+  });
+  assert.equal(absent.status, 'not_bound');
+  assert.equal(absent.provenance_checked, null);
+  assert.equal(absent.package_id, null);
+  assert.equal(absent.reason, 'NO_EXACT_REVISION');
+  assert.equal(absent.next_action, 'IMPORT_MEDIA_OR_RELINK_FROM_TRANSCRIPTS');
+
+  const disagreement = StudioMediaPackage.buildMediaSaveOutcome({ reason: 'PROVENANCE_DISAGREES' });
+  assert.equal(disagreement.status, 'not_bound');
+  assert.equal(disagreement.next_action, 'RELINK_CORRECT_ORIGINAL_FROM_TRANSCRIPTS');
+});
+
+test('attachMediaSaveOutcome preserves the source passport and replaces only the outcome', () => {
+  const meta = { source: { kind: 'audio', audio: { media: { sha256: SHA } } }, provider: 'gemini' };
+  const outcome = { schema: 'studio-media-binding-outcome-v1', status: 'not_bound', next_action: 'IMPORT_MEDIA_OR_RELINK_FROM_TRANSCRIPTS' };
+  const attached = StudioMediaPackage.attachMediaSaveOutcome(meta, outcome);
+  assert.notEqual(attached, meta);
+  assert.deepEqual(attached.source.audio, meta.source.audio);
+  assert.deepEqual(attached.media_binding_outcome, outcome);
+  assert.equal(meta.media_binding_outcome, undefined, 'caller metadata is not mutated');
+});
+
+test('W2 contract: local save resolves canon and persists an outcome outside the optional bind branch', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  const start = html.indexOf('async function v3LibrarySaveCurrentCore(meta)');
+  const end = html.indexOf('async function v3LibraryUpdateCurrentCore', start);
+  const save = html.slice(start, end);
+  assert.match(save, /await v3ResolveMediaContext\(\)/, 'save must resolve canonical context itself');
+  assert.match(save, /attachMediaSaveOutcome/, 'named outcome must be written into card metadata');
+  assert.match(save, /await ldb\.updateText\(newTextId/, 'outcome must be persisted before commit');
+  assert.match(save, /mediaBindingOutcome\.status === ["']not_bound["']/, 'toast decision lives after the binding attempt, including no-ref saves');
+  assert.match(save, /promoteLegacyText\(newTextId\)/, 'a saved media card becomes a first-class learning material');
+  assert.match(save, /OPEN_IMPORT_CENTER_PREPARE_TRANSFER/, 'promotion refusal records its next action');
+});
+
+test('W3 derived partial timing is never written into the card canon', () => {
+  const meta = { source: { kind: 'audio', audio: {
+    segments: [{ text: 'שלום', start: 0, end: 1 }],
+    timing: { entries: [{ o: 0, t: 0 }, { o: 2, t: 2 }] },
+    timingSource: 'aligned-partial-proven', timingMap: { row_seg_idx: [0, null, 2] },
+    timingAlign: { mode: 'partial-proven', coverage: { mapped_rows: 2, total_rows: 3 } },
+  } } };
+  const clean = StudioMediaPackage.withoutDerivedMediaTiming(meta);
+  assert.equal(clean.source.audio.timing, null);
+  assert.equal(clean.source.audio.timingSource, undefined);
+  assert.equal(clean.source.audio.timingMap, undefined);
+  assert.equal(clean.source.audio.timingAlign, undefined);
+  assert.deepEqual(clean.source.audio.segments, meta.source.audio.segments, 'canonical segments remain intact');
+  assert.ok(meta.source.audio.timing, 'input is not mutated');
+});
+
+test('W4 deletion requires a consequence preview and cancellation performs no write', async () => {
+  const preview = {
+    package_id: 'mpkg:X', package_name: 'owner.mp4', media_sha256: SHA,
+    materials_losing_source_count: 2,
+    materials_losing_source: [
+      { material_id: 'material:1', text_id: 'text:1', name: 'Lesson one' },
+      { material_id: 'material:2', text_id: 'text:2', name: 'Lesson two' },
+    ],
+    caption_revisions_destroyed: 4, caption_revisions_are_only_timing_copy: true,
+    reimport_same_sha_restores_identity: true,
+  };
+  const calls = [];
+  StudioMediaPackage.setRepositoryForTests({
+    previewDeletePackage: async (id) => { calls.push(['preview', id]); return preview; },
+    deletePackage: async (id) => { calls.push(['delete', id]); return { errors: [] }; },
+  });
+  const message = StudioMediaPackage.formatDeletePreview(preview, (key, vars) => key + ':' + JSON.stringify(vars));
+  assert.match(message, /Lesson one/);
+  assert.match(message, /Lesson two/);
+  assert.match(message, /4/);
+  assert.match(message, new RegExp(SHA));
+
+  await assert.rejects(() => StudioMediaPackage.deletePackageAndGc('mpkg:X', true, {
+    confirm_preview: async (text) => { assert.equal(text, message); return false; },
+    translate: (key, vars) => key + ':' + JSON.stringify(vars),
+  }), (error) => error.cancelled === true && error.preview === preview);
+  assert.deepEqual(calls, [['preview', 'mpkg:X']], 'delete is impossible before accepting the preview');
 });

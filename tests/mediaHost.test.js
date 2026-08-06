@@ -3,6 +3,8 @@
 "use strict";
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 const MH = require("../public/js/media-host.js");
 const AT = require("../public/js/asr-transcript.js");
 
@@ -301,4 +303,96 @@ test('revisionMatchesLines admits an exact line-for-line transcript and nothing 
     'one edited line forfeits identity — row index is no longer segment index');
   assert.equal(MH.revisionMatchesLines([], [], deps), false, 'nothing to restore from');
   assert.equal(MH.revisionMatchesLines(null, ['a'], deps), false, 'no segments, no claim');
+});
+
+// W1 (honest import -> card, 2026-08-06): all three former ambient globals must be
+// projections of one content-addressed decision. The decision is unique-or-null: two
+// exact revisions are not permission to pick the most recent one.
+test('resolveUniqueRevisionContext returns the single exact revision and refuses ambiguity', () => {
+  const lines = ['שלום מיה', 'מה קשור'];
+  const exact = {
+    package: { package_id: 'mpkg:a', media_sha256: 'a'.repeat(64) },
+    track: { track_id: 'track:a' },
+    revision: { revision_id: 'rev:a', segments: [{ text: lines[0] }, { text: lines[1] }] },
+  };
+  const stale = {
+    package: { package_id: 'mpkg:b', media_sha256: 'b'.repeat(64) },
+    track: { track_id: 'track:b' },
+    revision: { revision_id: 'rev:b', segments: [{ text: lines[0] }, { text: 'שורה אחרת' }] },
+  };
+
+  const one = MH.resolveUniqueRevisionContext([stale, exact], lines, deps);
+  assert.equal(one.reason, null);
+  assert.equal(one.context, exact);
+  assert.equal(one.match_count, 1);
+
+  const duplicateObject = { ...exact };
+  const deduped = MH.resolveUniqueRevisionContext([exact, duplicateObject], lines, deps);
+  assert.equal(deduped.context, exact, 'the same revision reached through ambient + catalog is one candidate');
+  assert.equal(deduped.match_count, 1);
+
+  const secondExact = {
+    package: { package_id: 'mpkg:c', media_sha256: 'c'.repeat(64) },
+    track: { track_id: 'track:c' },
+    revision: { revision_id: 'rev:c', segments: [{ text: lines[0] }, { text: lines[1] }] },
+  };
+  const ambiguous = MH.resolveUniqueRevisionContext([exact, secondExact], lines, deps);
+  assert.equal(ambiguous.context, null);
+  assert.equal(ambiguous.reason, 'AMBIGUOUS_EXACT_REVISIONS');
+  assert.equal(ambiguous.match_count, 2);
+
+  const absent = MH.resolveUniqueRevisionContext([stale], lines, deps);
+  assert.equal(absent.context, null);
+  assert.equal(absent.reason, 'NO_EXACT_REVISION');
+});
+
+test('W1 contract: media context resolves before the premium/non-premium fork', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  const translateStart = html.indexOf('async function translateTable()');
+  const providerFork = html.indexOf('const usePremium = provider === "gcp" || provider === "google-free"', translateStart);
+  const resolverCall = html.indexOf('await v3ResolveMediaContext()', translateStart);
+  assert.ok(translateStart >= 0 && providerFork > translateStart, 'translateTable provider fork exists');
+  assert.ok(resolverCall > translateStart && resolverCall < providerFork,
+    'content-addressed resolver must run before provider fork so premium Gemini cannot bypass it');
+});
+
+test('W6 keeps the >250 safety gate and names every permitted next route in RU/HE/EN', () => {
+  const root = path.join(__dirname, '..');
+  const html = fs.readFileSync(path.join(root, 'public', 'index.html'), 'utf8');
+  assert.match(html, /estimatePlainRows\(getText\(\)\) > 250/, 'the historical server-500 guard is load-bearing');
+  const texts = {
+    ru: fs.readFileSync(path.join(root, 'public', 'i18n', 'locales', 'ru.js'), 'utf8'),
+    en: fs.readFileSync(path.join(root, 'public', 'i18n', 'locales', 'en.js'), 'utf8'),
+    he: fs.readFileSync(path.join(root, 'public', 'i18n', 'locales', 'he.js'), 'utf8'),
+  };
+  assert.match(texts.ru, /textTooLongForSingleTable[^\n]+восстанов[^\n]+сегмент[^\n]+Импорт[^\n]+разбей/i);
+  assert.match(texts.en, /textTooLongForSingleTable[^\n]+restore[^\n]+segment identity[^\n]+import[^\n]+media[^\n]+split/i);
+  assert.match(texts.he, /textTooLongForSingleTable[^\n]+זהות המקטעים[^\n]+ייבאו[^\n]+מדיה[^\n]+פצלו/i);
+});
+
+test('W3 offline restore keeps proven rows, leaves holes blind, and surfaces coverage', () => {
+  const audio = {
+    segments: [
+      { i: 0, start: 0, end: 2, text: 'שלום עולם' },
+      { i: 1, start: 4, end: 6, text: 'שורה אחרת' },
+      { i: 2, start: 8, end: 10, text: 'מיה באה' },
+    ],
+    timing: null,
+  };
+  MH.alignSavedTimingOffline(audio, [
+    { he: 'שלום עולם' }, { he: 'לא נמצא' }, { he: 'מיה באה' },
+  ], { AT, appVersion: 'test' });
+  assert.equal(audio.timingSource, 'aligned-partial-proven');
+  assert.deepEqual(audio.timing.entries, [
+    { o: 0, t: 0 }, { o: 1, t: 2, blind: true }, { o: 2, t: 8 },
+  ]);
+  assert.deepEqual(audio.timingMap.row_seg_idx, [0, null, 2]);
+  assert.deepEqual(audio.timingMap.coverage, {
+    mapped_rows: 2, total_rows: 3, unmapped_rows: 1,
+    ratio: 2 / 3, label: '2/3', complete: false,
+  });
+  assert.equal(audio.timingAlign.mode, 'partial-proven');
+  assert.equal(MH.timingCoverageExplain(audio, (key, vars) =>
+    key === 'studio.media.partialCoverage' ? `${vars.mapped}/${vars.total} rows with audio` : key),
+  '2/3 rows with audio');
 });

@@ -86,7 +86,7 @@ window.I18N_LOCALES.en = {
     tableChunkFailed: "Chunk {k} of {m} failed. The finished chunks are kept — click \"AI Translate\" again: what's done returns from cache instantly, only the failed part is retried.",
     tableChunkedDone: "Done: assembled from {m} chunks",
     tableCostConfirm: "Long table: ≈{rows} rows, ≈${usd}, ~{min} min. Rows will appear as they become ready. Continue?",
-    textTooLongForSingleTable: "The text is too long for a single table (>250 rows). Import it via \"Import\" (audio/captions give segments and karaoke) or split it into parts.",
+    textTooLongForSingleTable: "The text is too long for a single table (>250 rows). Next action: restore segment identity by opening the saved transcript; import the source as media/captions; or split the text into parts under 250 rows.",
     resultTitle: "Result",
     resultPanelTitle: "Result",
     resultSubtitle: "Status and provenance of the result.",
@@ -615,6 +615,8 @@ window.I18N_LOCALES.en = {
     translationLocalNote: "Translation ran locally: the text was not sent to an external MT provider.",
     translationMixedNote: "Different translation providers are recorded across this card's rows.",
     translationUnknownNote: "Legacy card: reliable translation provenance was not saved.",
+    mediaBindingUnverified: "Media is linked, but the legacy card's row provenance could not be verified. Next action: verify or relink the original from Transcripts.",
+    mediaBindingMissing: "Media is not linked. Next action: import the media or link the correct original from Transcripts.",
     provTitle: "Provenance",
     provSource: "Source",
     provMethod: "Method",
@@ -1390,6 +1392,7 @@ window.I18N_LOCALES.en = {
     noTableToSaveShort: "No table to save (build the table first)",
     storageFull: "Browser storage full ({percent}%). Free up space.",
     savedToLibrary: "Saved to Library",
+    learningMaterialPromotionFailed: "The card was saved, but its learning material is not prepared yet. Next action: open Import Center and choose “Prepare for transfer”.",
     duplicateInLibrary: "This text already exists in the Library (duplicate key)",
     duplicateMediaChoose: "This media file is already saved. Choose Update or Save as new for a separate version.",
     mediaBindRefused: "Text and table are saved. Media was not linked: these rows come from a different file than the one open now — link the right original from Transcripts.",
@@ -3329,6 +3332,7 @@ window.I18N_LOCALES.en = {
       playOriginal: "Original",
       replaySegment: "Replay original segment",
       noTiming: "Karaoke unavailable for this import",
+      partialCoverage: "{mapped}/{total} rows with audio",
       fileMissing: "Audio file not found in this browser",
       viaYouTube: "Playing via YouTube",
       // Honest reason karaoke is off (MediaHost.timingDropExplain, shared by Studio and Room).
@@ -3363,6 +3367,12 @@ window.I18N_LOCALES.en = {
       importSlim: "Import slim Media Package…", packageImported: "Media Package imported locally", packageImportFailed: "Media Package was not imported: the file is corrupt or failed verification",
       relink: "Relink media", relinkDone: "Media relinked by exact SHA-256", relinkMismatch: "This is a different file: SHA-256 does not match", relinkFailed: "Could not relink media",
       deletePackage: "Delete package…", deleteConfirm: "Delete the Media Package, every track, version and draft? Bound table rows will not be rewritten.", deleted: "Media Package deleted", deleteFailed: "Could not delete Media Package",
+      deletePreviewTitle: "Delete package “{name}”?",
+      deletePreviewMaterials: "{count} materials will lose their source: {materials}.",
+      deletePreviewTiming: "{count} caption revisions are the only timing copy; they will be deleted.",
+      deletePreviewSha: "Re-importing the identical file restores package identity by SHA-256: {sha}.",
+      deletePreviewNext: "Next action: export the package first or cancel deletion.",
+      deletePreviewCancelled: "Deletion cancelled; nothing changed. Next action: export the package or start deletion again.",
       workspaceBadge: "Transcript", workspaceDraft: "Recoverable draft available", workspaceSaved: "Version saved on this device", workspaceLocalOnly: "This device only",
       workspaceRevision: "Corrections · v{n}", workspaceVersion: "Version {n}", workspaceDraftShort: "draft", workspaceMediaMissingShort: "media needs relinking",
       workspaceCards: "cards: {n}",
@@ -3577,3 +3587,9 @@ window.I18N_LOCALES.en.pronunciation = {
   privacyTitle:"What stays local",privacyAudio:"The recording is deleted immediately after analysis.",privacyProfile:"The calibration profile stays only with the local companion.",privacyNoWrite:"The attempt is not stored in learning history.",license:"Local analysis: Phonikud + TorchAudio MMS_FA (CC BY-NC 4.0), for noncommercial LinguistPro only.",
   errorToken:"Enter the token shown by the companion.",errorProfile:"The companion is running, but no local profile exists yet.",errorModel:"The companion cannot find one of the local models.",errorNetworkDenied:"Local network access is blocked. Open the LinguistPro site settings, allow Local network access, and try again.",errorConnect:"Could not connect. Start the companion and check the token.",errorMic:"The microphone is unavailable. Allow access in browser settings.",errorShort:"The recording is too short. Try again.",errorBusy:"The companion is processing another recording. Wait and retry.",errorScore:"Analysis did not run. Start the companion and check the connection."
 };
+Object.assign(window.I18N_LOCALES.en.studio.importCenter, {
+  archiveIntegrity: "Material archive integrity",
+  archiveIntegrityOk: "0 gaps: every learning material reaches its media package and caption history.",
+  archiveIntegrityGap: "{count} materials cannot be fully archived: {materials}.",
+  archiveIntegrityNext: "Next action: re-import the same Media Package or restore the Source package, then run diagnostics again."
+});

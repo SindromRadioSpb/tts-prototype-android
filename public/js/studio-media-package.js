@@ -195,6 +195,50 @@
     return out;
   }
 
+  // W2 (honest import -> card, 2026-08-06): one durable, schema-free record in the
+  // card passport. This is deliberately a closed three-state vocabulary so a save
+  // cannot fall through to an unnamed fourth state.
+  function buildMediaSaveOutcome(input) {
+    input = input || {};
+    var binding = input.binding || null, target = input.target || null;
+    var checked = binding && binding.mapping && binding.mapping.provenance_checked;
+    if (binding && checked === true) {
+      return { schema: 'studio-media-binding-outcome-v1', status: 'bound_verified',
+        provenance_checked: true, reason: null,
+        package_id: target && target.package_id || binding.package_id || null, next_action: null };
+    }
+    if (binding && checked === false) {
+      return { schema: 'studio-media-binding-outcome-v1', status: 'bound_unverified',
+        provenance_checked: false, reason: 'ROW_PROVENANCE_UNVERIFIABLE',
+        package_id: target && target.package_id || binding.package_id || null,
+        next_action: 'VERIFY_OR_RELINK_FROM_TRANSCRIPTS' };
+    }
+    var reason = String(input.reason || input.resolution && input.resolution.reason || 'NO_MEDIA_CONTEXT');
+    var nextAction = reason === 'PROVENANCE_DISAGREES' || reason === 'BINDING_PROVENANCE_MISMATCH'
+      ? 'RELINK_CORRECT_ORIGINAL_FROM_TRANSCRIPTS'
+      : 'IMPORT_MEDIA_OR_RELINK_FROM_TRANSCRIPTS';
+    return { schema: 'studio-media-binding-outcome-v1', status: 'not_bound',
+      provenance_checked: null, reason: reason, package_id: null, next_action: nextAction };
+  }
+
+  function attachMediaSaveOutcome(meta, outcome) {
+    var out = meta && typeof meta === 'object' && !Array.isArray(meta) ? copy(meta) : {};
+    out.media_binding_outcome = copy(outcome);
+    return out;
+  }
+
+  function withoutDerivedMediaTiming(meta) {
+    var out = meta && typeof meta === 'object' && !Array.isArray(meta) ? copy(meta) : {};
+    var source = out && out.source;
+    ['audio', 'captions'].forEach(function (key) {
+      var media = source && source[key];
+      if (!media || media.timingSource !== 'aligned-partial-proven') return;
+      media.timing = null;
+      delete media.timingSource; delete media.timingMap; delete media.timingAlign;
+    });
+    return out;
+  }
+
   var repository = null, activeWorkspaceRef = null, activeWorkspaceOptions = {}, workspaceRefreshSerial = 0;
   function browserRepository() {
     if (repository) return repository;
@@ -532,8 +576,37 @@
       throw e;
     }
   }
-  async function deletePackageAndGc(packageId, confirmed) {
-    var receipt = await browserRepository().deletePackage(packageId, { confirm: !!confirmed });
+  function formatDeletePreview(preview, translate) {
+    preview = preview || {};
+    var tr = typeof translate === 'function' ? translate : function (key, vars) {
+      return key + (vars ? ' ' + JSON.stringify(vars) : '');
+    };
+    var materials = Array.isArray(preview.materials_losing_source) ? preview.materials_losing_source : [];
+    var names = materials.map(function (item) { return item.name || item.text_id || item.material_id; }).join(', ');
+    return [
+      tr('studio.mediaPackage.deletePreviewTitle', { name: preview.package_name || preview.package_id }),
+      tr('studio.mediaPackage.deletePreviewMaterials', { count: Number(preview.materials_losing_source_count || 0), materials: names || '—' }),
+      tr('studio.mediaPackage.deletePreviewTiming', { count: Number(preview.caption_revisions_destroyed || 0) }),
+      tr('studio.mediaPackage.deletePreviewSha', { sha: preview.media_sha256 || '—' }),
+      tr('studio.mediaPackage.deletePreviewNext'),
+    ].join('\n\n');
+  }
+
+  async function deletePackageAndGc(packageId, confirmed, options) {
+    options = options || {};
+    if (!confirmed) { var denied = new Error('DELETE_CONFIRM_REQUIRED'); denied.code = 'DELETE_CONFIRM_REQUIRED'; throw denied; }
+    var repo = browserRepository();
+    var preview = await repo.previewDeletePackage(packageId);
+    var translate = options.translate || (typeof t === 'function' ? t : null);
+    var message = formatDeletePreview(preview, translate);
+    var confirmPreview = options.confirm_preview || (typeof window !== 'undefined' && typeof window.confirm === 'function'
+      ? function (text) { return window.confirm(text); } : null);
+    var accepted = confirmPreview ? await confirmPreview(message, preview) : false;
+    if (!accepted) {
+      var cancelled = new Error(translate ? translate('studio.mediaPackage.deletePreviewCancelled') : 'Deletion cancelled; nothing changed.');
+      cancelled.cancelled = true; cancelled.preview = preview; throw cancelled;
+    }
+    var receipt = await repo.deletePackage(packageId, { confirm: true });
     if (receipt.media_blob_action === 'eligible_for_gc' && receipt.opfs_path && typeof window !== 'undefined' && window.MediaStore && window.MediaStore.deleteMedia) {
       var removed = await window.MediaStore.deleteMedia(receipt.opfs_path);
       receipt.media_blob_removed = !!(removed && removed.ok && removed.removed);
@@ -548,12 +621,14 @@
     buildCompatibilityProjection: buildCompatibilityProjection,
     buildExactBindingPassport: buildExactBindingPassport,
     filterForCloudSlim: filterForCloudSlim,
+    buildMediaSaveOutcome: buildMediaSaveOutcome, attachMediaSaveOutcome: attachMediaSaveOutcome,
+    withoutDerivedMediaTiming: withoutDerivedMediaTiming,
     createFromImportMeta: createFromImportMeta, promoteLegacy: promoteLegacy,
     buildSlimPackageFiles: buildSlimPackageFiles, verifySlimPackageFiles: verifySlimPackageFiles,
     verifyRelinkBytes: verifyRelinkBytes, snapshotForExport: snapshotForExport,
     exportSlimZip: exportSlimZip, importSlimZipFile: importSlimZipFile, relinkFile: relinkFile,
     handleSlimImport: handleSlimImport,
-    deletePackageAndGc: deletePackageAndGc,
+    formatDeletePreview: formatDeletePreview, deletePackageAndGc: deletePackageAndGc,
     workspaceViewModel: workspaceViewModel, refreshWorkspaceUi: refreshWorkspaceUi,
     setActiveWorkspace: setActiveWorkspace, clearActiveWorkspace: clearActiveWorkspace,
     activatePackage: activatePackage, activateTextBinding: activateTextBinding,

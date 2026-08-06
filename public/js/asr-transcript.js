@@ -1323,6 +1323,101 @@
     return res(true, null, idx, covered, assigned);
   }
 
+  // W3 (honest import -> card, 2026-08-06): additive per-row proof. This does
+  // NOT weaken alignRowsToSegments above. A row is accepted only when its full
+  // normalized word sequence occurs contiguously inside exactly one segment.
+  // There is no proximity, majority, neighbour inheritance or interpolation.
+  var ALIGN_PARTIAL_VERSION = "align-rows-partial-proven-v1";
+  function alignRowsToSegmentsPartialProven(rowTexts, segments) {
+    var R = Array.isArray(rowTexts) ? rowTexts : [];
+    var S = Array.isArray(segments) ? segments : [];
+    var segWords = S.map(function (segment) { return alignWords(segment && segment.text); });
+    var idx = new Array(R.length).fill(null);
+    var absent = [], ambiguous = [], conflicts = [], lastPosition = -1, mapped = 0;
+    function containsWords(haystack, needle) {
+      if (!needle.length || needle.length > haystack.length) return false;
+      outer: for (var from = 0; from + needle.length <= haystack.length; from++) {
+        for (var n = 0; n < needle.length; n++) if (haystack[from + n] !== needle[n]) continue outer;
+        return true;
+      }
+      return false;
+    }
+    for (var r = 0; r < R.length; r++) {
+      var words = alignWords(R[r]);
+      if (!words.length) { absent.push(r); continue; }
+      var matches = [];
+      for (var s = 0; s < S.length; s++) if (containsWords(segWords[s], words)) matches.push(s);
+      if (!matches.length) { absent.push(r); continue; }
+      if (matches.length !== 1) { ambiguous.push(r); continue; }
+      var position = matches[0];
+      if (position < lastPosition) { conflicts.push(r); continue; }
+      idx[r] = alignSegIndex(S, position); lastPosition = position; mapped++;
+    }
+    return {
+      mode: "partial-proven", version: ALIGN_PARTIAL_VERSION, rowSegIdx: idx,
+      mappedRows: mapped, totalRows: R.length, coverage: R.length ? mapped / R.length : 0,
+      absentRows: absent, ambiguousRows: ambiguous, orderConflictRows: conflicts,
+    };
+  }
+
+  // Convert the sparse proof into karaoke entries without letting a proven range
+  // paint an unproven row. A gap is closed only by the preceding segment's canonical
+  // end mark; when that mark is absent the preceding group is omitted as unsafe.
+  function buildPartialProvenTiming(segments, rowSegIdx, blindRanges) {
+    var S = Array.isArray(segments) ? segments : [];
+    var rows = Array.isArray(rowSegIdx) ? rowSegIdx : [];
+    var pos = new Map();
+    for (var s = 0; s < S.length; s++) pos.set(alignSegIndex(S, s), s);
+    var groups = [];
+    for (var i = 0; i < rows.length;) {
+      var value = Number.isInteger(rows[i]) ? rows[i] : null, endRow = i + 1;
+      while (endRow < rows.length && (Number.isInteger(rows[endRow]) ? rows[endRow] : null) === value) endRow++;
+      groups.push({ value: value, from: i, to: endRow }); i = endRow;
+    }
+    // A hole after any playable group needs an authoritative stop timestamp. Without
+    // it, even omitting that immediately preceding group would let an older cue paint
+    // through the hole. Refuse the whole derived timing instead of inventing a bound.
+    for (var boundary = 1; boundary < groups.length; boundary++) {
+      if (groups[boundary].value !== null || groups[boundary - 1].value === null) continue;
+      var beforePos = pos.get(groups[boundary - 1].value);
+      var before = beforePos == null ? null : S[beforePos];
+      if (!(before && typeof before.end === "number" && isFinite(before.end) &&
+            typeof before.start === "number" && isFinite(before.start) && before.end > before.start)) {
+        return { timing: null, rowSegIdx: new Array(rows.length).fill(null), mappedRows: 0, totalRows: rows.length };
+      }
+    }
+    var blind = Array.isArray(blindRanges) ? blindRanges : [];
+    function inBlind(t) {
+      return blind.some(function (range) {
+        return range && typeof range.fromSec === "number" && typeof range.toSec === "number" &&
+          range.toSec > range.fromSec && t >= range.fromSec && t <= range.toSec;
+      });
+    }
+    var safe = new Array(rows.length).fill(null), entries = [], lastT = -Infinity, honest = 0;
+    for (var g = 0; g < groups.length; g++) {
+      var group = groups[g]; if (group.value === null) continue;
+      var segmentPosition = pos.get(group.value), segment = segmentPosition == null ? null : S[segmentPosition];
+      var start = segment && segment.start, next = groups[g + 1] || null;
+      var needsGapBoundary = !!next && next.value === null;
+      var end = segment && segment.end;
+      if (typeof start !== "number" || !isFinite(start) || start < lastT) continue;
+      if (needsGapBoundary && (!(typeof end === "number" && isFinite(end)) || end <= start)) continue;
+      var entry = { o: group.from, t: start };
+      if (inBlind(start)) entry.blind = true; else honest++;
+      entries.push(entry); lastT = start;
+      for (var row = group.from; row < group.to; row++) safe[row] = group.value;
+      if (needsGapBoundary) {
+        if (end < lastT) continue;
+        entries.push({ o: next.from, t: end, blind: true }); lastT = end;
+      }
+    }
+    var mappedRows = safe.filter(Number.isInteger).length;
+    return {
+      timing: honest >= 2 ? { v: 1, unit: "row", entries: entries } : null,
+      rowSegIdx: safe, mappedRows: mappedRows, totalRows: rows.length,
+    };
+  }
+
   // segments (после validateSegments) + segment_index каждой строки таблицы → [{o,t}]:
   // o = ПЕРВАЯ строка сегмента, t = его start. <2 записей → null (караоке честно выключено).
   // ⚠ Вызывать ТОЛЬКО после validateRowSegMapping().ok — сама функция осмысленность НЕ проверяет.
@@ -1374,10 +1469,13 @@
     ASR_MODEL: ASR_MODEL, ASR_PROMPT: ASR_PROMPT,
     secondsFromTimestamp: secondsFromTimestamp, parseAsrResponse: parseAsrResponse,
     validateSegments: validateSegments, buildRowTiming: buildRowTiming,
+    buildPartialProvenTiming: buildPartialProvenTiming,
     validateRowSegMapping: validateRowSegMapping, timingLooksDegenerate: timingLooksDegenerate,
     premiumRowLineIdx: premiumRowLineIdx,
     // K3: офлайн-оживление караоке у уже сохранённой карточки (ни одного запроса, ни цента).
     alignRowsToSegments: alignRowsToSegments, ALIGN_VERSION: ALIGN_VERSION,
+    alignRowsToSegmentsPartialProven: alignRowsToSegmentsPartialProven,
+    ALIGN_PARTIAL_VERSION: ALIGN_PARTIAL_VERSION,
     estimateAsrCostUsd: estimateAsrCostUsd,
     VIDEO_FRAME_TOKENS_PER_SEC_LOW: VIDEO_FRAME_TOKENS_PER_SEC_LOW,
     ASR_WINDOW_SEC: ASR_WINDOW_SEC, ASR_GAP_MAX_SEC: ASR_GAP_MAX_SEC, ASR_TAIL_GAP_SEC: ASR_TAIL_GAP_SEC,
