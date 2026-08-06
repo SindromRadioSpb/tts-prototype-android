@@ -12975,7 +12975,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.318";
+    window.APP_VERSION = "3.11.319";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -34340,15 +34340,30 @@ try { v3DashCloseViewMenu(); } catch (_) {}
     async function v3RestoreImportPassportFromWorkspace() {
         try {
             if (v3MediaPassport(window.v3LastImportMeta)) return false;   // паспорт цел — не трогаем
-            const ref = window.v3LastMediaPackageRef;
-            if (!ref || !ref.package_id || !ref.revision_id) return false;
             const SMP = window.StudioMediaPackage;
             if (!SMP || !SMP.browserRepository || !SMP.buildCompatibilityProjection || !window.MediaHost) return false;
             const repo = SMP.browserRepository();
-            const revision = await repo.getRevision(ref.revision_id), media = await repo.getPackage(ref.package_id);
-            if (!revision || !media || !Array.isArray(revision.segments)) return false;
             const lines = getText().split("\n").map((s) => s.trim()).filter(Boolean);
-            if (!window.MediaHost.revisionMatchesLines(revision.segments, lines)) return false;
+            if (lines.length < 2) return false;
+            const ref = window.v3LastMediaPackageRef;
+            let revision = null, media = null;
+            if (ref && ref.package_id && ref.revision_id) {
+                revision = await repo.getRevision(ref.revision_id); media = await repo.getPackage(ref.package_id);
+                if (!revision || !media || !window.MediaHost.revisionMatchesLines(revision.segments, lines)) { revision = null; media = null; }
+            }
+            if (!revision) {
+                // Ссылка на воркспейс живёт только в памяти и НЕ переживает перезагрузку, а текст в
+                // поле переживает — опора на неё оставляла бы тот же тупик после reload. Ищем
+                // ревизию по САМОМУ тексту: он и есть content-addressed ключ. Два совпадения —
+                // отказ, а не выбор наугад.
+                for (const row of await repo.listWorkspaces({ limit: 50 })) {
+                    const candidate = await repo.getRevision(row.current_revision_id);
+                    if (!candidate || !window.MediaHost.revisionMatchesLines(candidate.segments, lines)) continue;
+                    if (revision) return false;
+                    revision = candidate; media = await repo.getPackage(row.package_id);
+                }
+                if (!revision || !media) return false;
+            }
             const kind = String(media.mime || "").startsWith("audio/") || String(media.mime || "").startsWith("video/") ? "audio" : "captions";
             const projection = SMP.buildCompatibilityProjection(revision, { kind, media });
             const restored = { kind, source: "workspace-revision", method: null, at: new Date().toISOString(),
