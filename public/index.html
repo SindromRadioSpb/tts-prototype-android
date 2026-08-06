@@ -12978,7 +12978,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.331";
+    window.APP_VERSION = "3.11.332";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -21776,7 +21776,7 @@ updatePlaylistButtonUI();
         } catch (_) { return mapped; }
     }
 
-    async function v3RestoreSavedTableIfUnchanged(currentText) {
+    async function v3RestoreSavedTableIfUnchanged(currentText, requestedProvider) {
         try {
             const textId = (typeof v3SessionGetUpdateTextId === "function") ? v3SessionGetUpdateTextId() : null;
             const meta = v3ActiveLibraryTextMeta;
@@ -21796,6 +21796,21 @@ updatePlaylistButtonUI();
             }
             if (!rows.length) return false;
 
+            // An unchanged source text proves that these rows belong to the opened card; it
+            // does NOT prove that they satisfy a deliberate provider switch. Sentence-level
+            // provenance is authoritative, with table metadata only as its existing fallback.
+            // Unknown legacy provenance keeps the historical no-charge restore behaviour.
+            const savedProvenance = v3TranslationProvenance({
+                table_model_meta_json: JSON.stringify(v3LastGeminiMeta || null)
+            }, rows);
+            const normalizedRequestedProvider = v3NormalizeTranslationProvider(requestedProvider);
+            const savedProvider = savedProvenance && savedProvenance.kind === "single"
+                ? v3NormalizeTranslationProvider(savedProvenance.primary)
+                : "";
+            if (savedProvider && normalizedRequestedProvider && savedProvider !== normalizedRequestedProvider) {
+                return false;
+            }
+
             currentTableData = rows.map((r) => v3MapSentenceApiRowToUiRow(r, textId));
             // K3: «Перевести» на неизменённом сохранённом тексте не делает запроса вовсе — значит,
             // и v3AttachAudioTiming здесь не сработает. Строки только что перечитаны из Библиотеки,
@@ -21812,6 +21827,7 @@ updatePlaylistButtonUI();
             try {
                 const cache = {
                     text: String(currentText || "").trim(),
+                    provider: savedProvider || normalizedRequestedProvider || null,
                     rows: currentTableData,
                     createdAt: new Date().toISOString(),
                     lastDocxFilename: lastDocxFilename || generateDocxFileName()
@@ -34605,7 +34621,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
         const v3ResolvedMediaContext = await v3ResolveMediaContext();
 
         // 0) Library source-of-truth: if opened saved text was not changed, never regenerate via Gemini
-        if (await v3RestoreSavedTableIfUnchanged(currentText)) {
+        if (await v3RestoreSavedTableIfUnchanged(currentText, requestedProvider)) {
             return;
         }
 

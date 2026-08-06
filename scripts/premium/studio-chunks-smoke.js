@@ -52,6 +52,9 @@
 //      (живой отпечаток владельца o = segIdx − 1). v3RestoreMediaFromMeta обязана восстановить
 //      караоке ОФЛАЙН выравниванием по тексту — 0 сетевых вызовов; независимый оракул проверяет,
 //      что каждая запись указывает на строку СВОЕГО сегмента; подделанная строка → честный отказ.
+//  13) сохранённая google-free карточка + явное переключение на Gemini: восстановление Library
+//      не имеет права перехватить пользовательский выбор. Должен состояться новый Gemini-запрос;
+//      исходная карточка при этом остаётся неизменной и позже открывается со своими строками.
 //   3) SEG_MAPPING_LOST локально на куске 2: фейк отдаёт rows БЕЗ segment_index (+ warnings
 //      ["SEG_MAPPING_LOST"], как это делает настоящий сервер — честно смоделировано, не
 //      придумано: ingest/segTable.js эмитит этот warning когда модель не вернула индексы) —
@@ -334,6 +337,7 @@ async function snapshot(page) {
     return {
       rows, err,
       chunksLen: (meta && Array.isArray(meta.chunks)) ? meta.chunks.length : 0,
+      provider: meta && meta.provider || "",
       partial: !!(meta && meta.partial),
       premiumCalls: window.__premiumCalls || 0,
       chunkCalls: Array.isArray(window.__chunkCalls) ? window.__chunkCalls.length : 0,
@@ -1214,6 +1218,37 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
       "scenario12: save outcome is not bound_verified: " + JSON.stringify(saved12));
     must(saved12.binding && saved12.binding.revision_id,
       "scenario12: card has no exact canonical binding after premium save");
+
+    // Scenario 13: the Library restore guard is valid only for the provider that produced the
+    // saved table. A deliberate provider switch means "build a different version", not "show
+    // me the old rows again". This is the exact owner-live google-free -> Gemini path.
+    const switched13 = await page.evaluate((cacheKey) => {
+      try { localStorage.removeItem(cacheKey); } catch (_) {}
+      window.__chunkCalls = [];
+      document.getElementById("providerSelect").value = "gemini";
+      translateTable();
+      return true;
+    }, TABLE_CACHE_LS_KEY);
+    must(switched13, "scenario13: failed to start the provider-switch translation");
+    const r13 = await pollUntil(page, (s) =>
+      (s.chunkCalls === 1 && s.provider === "gemini" && s.rows === A12_IMPORT_SEGMENTS.length) || !!s.err,
+      30000, 50);
+    must(r13.ok && !r13.snap.err,
+      "scenario13: saved google-free table intercepted the explicit Gemini rebuild: " + JSON.stringify(r13.snap));
+    const rebuilt13 = await page.evaluate(() => {
+      const passport = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
+      return {
+        provider: v3LastGeminiMeta && v3LastGeminiMeta.provider,
+        chunkCalls: window.__chunkCalls.slice(),
+        rows: currentTableData.length,
+        mediaSha: passport && passport.media && passport.media.sha256,
+      };
+    });
+    must(rebuilt13.provider === "gemini" && JSON.stringify(rebuilt13.chunkCalls) === JSON.stringify([A12_IMPORT_SEGMENTS.length]),
+      "scenario13: explicit Gemini rebuild did not use Gemini exactly once: " + JSON.stringify(rebuilt13));
+    must(rebuilt13.rows === A12_IMPORT_SEGMENTS.length && rebuilt13.mediaSha === A12_SHA,
+      "scenario13: Gemini rebuild lost rows or exact media binding: " + JSON.stringify(rebuilt13));
+    console.log("scenario13 OK — saved google-free card -> explicit Gemini rebuild, exact media retained");
 
     await page.reload({ waitUntil: "load" });
     await waitReady(page);
