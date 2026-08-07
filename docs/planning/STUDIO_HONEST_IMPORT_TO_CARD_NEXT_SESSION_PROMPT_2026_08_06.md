@@ -1,5 +1,9 @@
 # Next-session prompt — honest import → card (W1–W6)
 
+> **SUPERSEDED 2026-08-07. DO NOT PASTE THE IMPLEMENTATION PROMPT BELOW.** W1–W6 are shipped.
+> Continue from `STUDIO_LONG_JOB_HONESTY_NEXT_SESSION_PROMPT_2026_08_07.md`; the remainder of this
+> file is retained only as historical authorization/context.
+
 > Paste the block below as the first message of a fresh session. Everything after it in this file is
 > context for whoever edits the prompt, not part of it.
 

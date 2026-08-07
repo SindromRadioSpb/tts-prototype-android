@@ -1,8 +1,9 @@
 # Studio — honest import → card: decision packet
 
 > **Date:** 2026-08-06
-> **Status:** **PROPOSAL — awaiting owner approval.** No implementation, commit, push, deploy or
-> data-mutation authority.
+> **Status:** **SHIPPED / PRODUCTION VERIFIED.** Owner approval was received 2026-08-06; W1–W6
+> shipped in `b04a7a8c` (`v3.11.325`). Downstream long-job/save hardening and owner-live evidence
+> continue in `STUDIO_LONG_JOB_HONESTY_REAL_SERIES_ACCEPTANCE_PACKET_2026_08_07.md`.
 > **Production baseline:** `v3.11.319`, browser schema `MIGRATIONS.length=48`
 > **Predecessor (shipped today):** `STUDIO_MEDIA_BINDING_PROVENANCE_DECISION_PACKET_2026_08_06.md`
 > — F1/F2/F3 in `v3.11.315`, D4 in `v3.11.316`, shelf regression in `v3.11.317`,
@@ -224,3 +225,20 @@ The following is a proposal and carries no authority merely by appearing here:
 > следующее действие. Red-before-fix тесты, гейты §6 с перезагрузкой между шагами, allowlist §7,
 > 380 px RU/HE. Не разрешаю: интерполированный тайминг, массовую перезапись привязок,
 > автоматический ASR/перевод, запись производного тайминга в канон, серверные изменения.**
+
+## 10. Closure evidence
+
+- W1: all three former ambient consumers resolve one content-addressed media context, including
+  the premium branch.
+- W2: save records exactly one named outcome — `bound_verified`, `bound_unverified` or
+  `not_bound` — and never converts an optional cache failure into a failed canonical card.
+- W3: `aligned-partial-proven` grants timing only to rows proved inside exactly one segment; blind
+  rows remain without timing. No interpolation, voting or nearest-neighbour rule was added.
+- W4/W5/W6: deletion preview, Import Center integrity diagnostics and named next actions shipped.
+- Primary implementation: `b04a7a8c`; subsequent acceptance hardening: `bfe7016e`, `e0a45643`,
+  `0db64fd6`, `8df50a18`, `c36536bf`, `5913b044`.
+- Final observed production shell: `v3.11.340`; browser schema remains
+  `MIGRATIONS.length=48`; full suite **868 total / 864 pass / 4 unchanged baseline failures**.
+- No mass binding rewrite, automatic ASR/translation, interpolated timing, derived timing canon,
+  schema migration or provider-default change was performed. The old incorrectly bound
+  `В сокрытии - 2` remains an explicit owner decision and was not touched.

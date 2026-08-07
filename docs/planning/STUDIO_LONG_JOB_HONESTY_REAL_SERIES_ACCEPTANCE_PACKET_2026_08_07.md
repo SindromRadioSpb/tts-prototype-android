@@ -1,7 +1,8 @@
 # Studio: честная длинная задача и реальная приёмка сериями 5–9
 
 Дата: 2026-08-07  
-Статус: **APPROVED / IN PROGRESS** — владелец подтвердил порядок 2026-08-07.  
+Статус: **IMPLEMENTATION SHIPPED / OWNER DECISIONS OPEN** — P0–P3 на production; реальный набор
+серий 5–9 сохранён, но смешанные провайдеры и дубль серии 6 требуют решения владельца.
 Предшественники: `STUDIO_HONEST_IMPORT_TO_CARD_DECISION_PACKET_2026_08_06.md`,
 `STUDIO_INGEST_LOCAL_ASR_WINDOWS_BETA_ENABLEMENT_PACKET_2026_07_31.md`,
 `STUDIO_INGEST_W2_S12_LONGMEDIA_DESIGN_2026_07_28.md`.
@@ -226,5 +227,30 @@ Cold reload `3.11.339` сохранил read-back карточки, но обн�
 После boot-restore исправления: `studioSaveProgress` — **13/13 PASS**, полный suite —
 **868 total / 864 pass / те же 4 baseline fail**, новых падений нет.
 
-Финальный release/cache target: **3.11.340**. После deploy обязателен повторный cold reload и
-read-back той же карточки; повторное сохранение или создание дубля для проверки запрещено.
+### Final production read-back (`3.11.340`)
+
+- Served shell после cold reload: `3.11.340`, commit `5913b044`; browser schema — 48 миграций.
+- `В сокрытии - 8` переоткрылась из `mode=saved` через канонический Library path: в редакторе
+  `566` строк, `tableStale=false`, кнопка disabled `✓ Сохранено`, console errors — 0.
+- Read-back сохранил единственную карточку `bf9ca39a-eb14-46cc-ad02-73f400fb1fd6`, provider
+  `google-free`, `bound_verified`, package `mpkg:681642ec…77c1`, revision `rev:3bfbb66a…e15`.
+- Финальный локальный gate: **868 total / 864 pass / те же 4 baseline fail**; новых падений нет.
+
+### Фактический owner-live набор 5–9
+
+| Карточка | ID | Провайдер | Строки | Медиа |
+|---|---|---:|---:|---|
+| `В сокрытии - 5` | `6ef735e8-f04a-424a-a0b0-354333b57d2a` | Gemini | 469 | `bound_verified`, `mpkg:1cc8090c…f554` |
+| `В сокрытии - 6` | `af96921b-3ddc-4d3c-97cf-a29d575105eb` | Gemini | 503 | `bound_verified`, `mpkg:0b91006a…508d` |
+| `В сокрытии - 6` | `d271b2bf-b71f-459c-9bb0-1d01b0d73504` | Gemini | 503 | тот же exact package; вероятный дубль |
+| `В сокрытии - 7` | `f28cb766-3e6c-4969-baed-1b92344f40c2` | Google Free | 555 | `bound_verified`, `mpkg:fd67047f…bc44` |
+| `В сокрытии - 8` | `bf9ca39a-eb14-46cc-ad02-73f400fb1fd6` | Google Free | 566 | `bound_verified`, `mpkg:681642ec…77c1` |
+| `В сокрытии - 9` | `670dd59b-5383-420c-b642-6e0ab1daf1bc` | Google Free | 567 | `bound_verified`, `mpkg:76c4da5f…1dbc` |
+
+Не закрывать пакет как полную первоначальную Gemini-приёмку без двух решений владельца:
+
+1. какую из двух карточек `В сокрытии - 6` оставить (до решения не архивировать и не удалять);
+2. принять ли Google Free для 7–9 как финальный результат либо отдельно создать Gemini-версии.
+
+Отдельно остаётся owner-iPhone interaction PASS для Студии. Автоматические и 380 px RU/HE gates
+его не заменяют.
