@@ -1,9 +1,9 @@
 # Studio: честная длинная задача и реальная приёмка сериями 5–9
 
 Дата: 2026-08-07  
-Статус: **IMPLEMENTATION SHIPPED / MIXED-PROVIDER OWNER DECISIONS RESOLVED /
-OWNER-IPHONE PASS OPEN** — P0–P3 на production; владелец принял Google Free для серий 7–9 как
-финальный результат и подтвердил active/archived состояние двух материалов серии 6 без удаления.
+Статус: **IMPLEMENTATION SHIPPED / OWNER-LIVE ACCEPTED / CLOSED** — P0–P3 на production;
+владелец принял Google Free для серий 7–9 как финальный результат, подтвердил active/archived
+состояние двух материалов серии 6 без удаления и успешно завершил owner-iPhone Studio PASS.
 Предшественники: `STUDIO_HONEST_IMPORT_TO_CARD_DECISION_PACKET_2026_08_06.md`,
 `STUDIO_INGEST_LOCAL_ASR_WINDOWS_BETA_ENABLEMENT_PACKET_2026_07_31.md`,
 `STUDIO_INGEST_W2_S12_LONGMEDIA_DESIGN_2026_07_28.md`.
@@ -268,5 +268,12 @@ Cold reload `3.11.339` сохранил read-back карточки, но обн�
 all-Gemini серия. Это явное owner-решение не меняет провайдеры, строки, exact bindings или media
 packages и не разрешает новых мутаций данных.
 
-Отдельно остаётся owner-iPhone interaction PASS для Студии. Автоматические и 380 px RU/HE gates
-его не заменяют.
+### Owner-iPhone Studio acceptance (`2026-08-07`)
+
+Результат владельца, дословно:
+
+> owner‑iPhone Studio PASS тестирование успешно.
+
+Этот PASS является отдельным реальным owner-device evidence и не выводится из автоматических или
+380 px RU/HE gates. Последний открытый acceptance-гейт закрыт; пакет завершён без дополнительных
+save, мутаций карточек, смены провайдера или расхода Gemini.

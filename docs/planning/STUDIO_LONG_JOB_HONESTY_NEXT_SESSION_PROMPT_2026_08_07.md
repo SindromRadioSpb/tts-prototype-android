@@ -1,4 +1,4 @@
-# Next-session prompt — Studio honest long jobs / owner-live continuation
+# Next-session prompt — Studio honest long jobs / accepted closure
 
 > Paste the block below as the first message of the next session. Everything after the block is
 > durable context, not additional authority.
@@ -8,8 +8,8 @@
 ## Paste-ready prompt
 
 ```text
-Продолжи Studio honest import / long-job работу из текущего состояния, не переоткрывая уже
-реализованные W1–W6 и P0–P3.
+Studio honest import / long-job acceptance завершена. Не переоткрывай уже реализованные W1–W6 и
+P0–P3 и не создавай продолжение этой программы без новой отдельной задачи владельца.
 
 READ FIRST целиком и по порядку:
 1. CLAUDE.md
@@ -34,10 +34,11 @@ Owner decisions от 2026-08-07 уже приняты и не требуют п�
 `d271b2bf-b71f-459c-9bb0-1d01b0d73504` остаётся архивной без удаления. Не создавай отдельные
 Gemini-версии и не меняй это состояние без нового явного решения владельца.
 
-Следующий незакрытый acceptance-гейт — отдельный owner-iPhone Studio interaction PASS; 380 px
-Playwright не заменяет его. Новый технический/UX шаг сейчас не обоснован. После любого отдельно
-разрешённого save: terminal receipt -> duplicate-title audit -> cold reload -> card rows/provider
--> exact binding -> disabled `✓ Сохранено`.
+Owner-iPhone Studio interaction PASS успешно завершён владельцем 2026-08-07 и не подменён 380 px
+Playwright. Открытых acceptance-гейтов и обоснованного следующего технического/UX шага в этом
+пакете нет. После любого будущего отдельно разрешённого save всё равно обязательны: terminal
+receipt -> duplicate-title audit -> cold reload -> card rows/provider -> exact binding -> disabled
+`✓ Сохранено`.
 
 Не разрешено без нового явного согласия: автоматический ASR/перевод, расход Gemini, удаление или
 архивация карточек, массовая перезапись bindings, интерполированный/neighbor/voted timing,
@@ -57,5 +58,6 @@ cleanup. Каждый отказ обязан назвать следующее 
 - `В сокрытии - 9`: `670dd59b-5383-420c-b642-6e0ab1daf1bc`, Google Free, 567 rows.
 
 All six observed cards are `bound_verified`. Owner accepted Google Free 7–9 as final and confirmed
-the active/archived state for the two series-6 records on 2026-08-07. This snapshot must still be
-re-verified before any future mutation.
+the active/archived state for the two series-6 records on 2026-08-07. Owner-iPhone Studio
+interaction testing also passed successfully on 2026-08-07, closing the final acceptance gate.
+This snapshot must still be re-verified before any future mutation.
