@@ -280,17 +280,48 @@
   // Мера сравнения — ИГРАБЕЛЬНЫЕ СТРОКИ, т.е. сколько строк реально получит кнопку ▶︎:
   // у точной привязки это строки с caption-id (renderRowReplay режет остальные), у выведенного
   // тайминга — все строки таблицы. Ничья решается в пользу привязки (утверждение > вывод).
-  function playableRows(p, rowCount) {
-    if (!p || !p.timing || !Array.isArray(p.timing.entries) || !p.timing.entries.length) return 0;
+  function rowReplayAllowed(p, rowIndex) {
+    if (!p || !p.timing || !Array.isArray(p.timing.entries) || !p.timing.entries.length) return false;
+    var idx = Number(rowIndex);
+    if (!Number.isInteger(idx) || idx < 0) return false;
     var map = p.timingMap;
     if (map && map.authority === "studio-exact-binding" && Array.isArray(map.row_caption_segment_ids)) {
-      return map.row_caption_segment_ids.filter(Boolean).length;
+      return !!map.row_caption_segment_ids[idx];
     }
     if (map && map.source === "aligned-partial-proven" && Array.isArray(map.row_seg_idx)) {
-      return map.row_seg_idx.filter(Number.isInteger).length;
+      return Number.isInteger(map.row_seg_idx[idx]);
     }
-    var n = Number(rowCount);
-    return n > 0 ? n : p.timing.entries.length;
+    // Derived timing entries are sparse boundary markers, not one entry per row. With no
+    // restrictive exact/partial map, the established renderer contract makes every table row
+    // replayable against those boundaries (rowCount is supplied by replayCoverage/caller).
+    return true;
+  }
+
+  // One measure for the provenance note, exact-vs-derived choice and the rendered buttons.
+  // `timing.entries.length` cannot be used for partial timing: blind placeholders deliberately
+  // preserve row boundaries, but must not become playable rows.
+  function replayCoverage(p, rowCount) {
+    var n = Math.max(0, Number(rowCount) || 0);
+    if (!n && p && p.timing && Array.isArray(p.timing.entries)) n = p.timing.entries.length;
+    var playable = 0;
+    for (var i = 0; i < n; i++) if (rowReplayAllowed(p, i)) playable++;
+    return { playable_rows: playable, total_rows: n, blind_rows: Math.max(0, n - playable),
+      ratio: n ? playable / n : 0, label: playable + "/" + n,
+      complete: n > 0 && playable === n };
+  }
+
+  function rowsNeedReplayAugment(p, rowCount, renderedIndexes) {
+    var n = Math.max(0, Number(rowCount) || 0);
+    var rendered = new Set((Array.isArray(renderedIndexes) ? renderedIndexes : [])
+      .map(Number).filter(Number.isInteger));
+    for (var i = 0; i < n; i++) {
+      if (rowReplayAllowed(p, i) !== rendered.has(i)) return true;
+    }
+    return false;
+  }
+
+  function playableRows(p, rowCount) {
+    return replayCoverage(p, rowCount).playable_rows;
   }
   function pickExactBindingPassport(prev, exact, rowCount) {
     if (!exact) return prev || null;
@@ -339,11 +370,15 @@
   }
 
   function timingCoverageExplain(audio, t) {
-    var coverage = audio && audio.timingMap && audio.timingMap.coverage;
-    if (!coverage || coverage.complete || !(Number(coverage.mapped_rows) > 0) || !(Number(coverage.total_rows) > 0)) return "";
+    var map = audio && audio.timingMap;
+    var asserted = map && map.coverage;
+    var total = Number((asserted && asserted.total_rows) || (map && map.rows) ||
+      (audio && audio.timingAlign && audio.timingAlign.rows) || 0);
+    var coverage = replayCoverage(audio, total);
+    if (coverage.complete || !(coverage.playable_rows > 0) || !(coverage.total_rows > 0)) return "";
     var tr = typeof t === "function" ? t : function (key) { return key; };
     return String(tr("studio.media.partialCoverage", {
-      mapped: Number(coverage.mapped_rows), total: Number(coverage.total_rows),
+      mapped: coverage.playable_rows, total: coverage.total_rows,
     }) || "");
   }
 
@@ -406,6 +441,9 @@
     resolveUniqueRevisionContext: resolveUniqueRevisionContext,
     alignSavedTimingOffline: alignSavedTimingOffline,
     restoreForRows: restoreForRows,
+    rowReplayAllowed: rowReplayAllowed,
+    replayCoverage: replayCoverage,
+    rowsNeedReplayAugment: rowsNeedReplayAugment,
     playableRows: playableRows,
     pickExactBindingPassport: pickExactBindingPassport,
     timingDropExplain: timingDropExplain,
@@ -548,13 +586,9 @@
         if (!cell) return;
         if (tr.querySelector(".smk-row-replay")) return; // повторный async-проход не дублирует
         var idx = Number(tr.getAttribute("data-row-idx"));
-        var exactMap = audio.timingMap && audio.timingMap.authority === "studio-exact-binding"
-          ? audio.timingMap.row_caption_segment_ids : null;
-        // Exact Studio bindings never guess a positional fallback for an unmapped row.
-        if (Array.isArray(exactMap) && !exactMap[idx]) return;
-        var partialMap = audio.timingMap && audio.timingMap.source === "aligned-partial-proven"
-          ? audio.timingMap.row_seg_idx : null;
-        if (Array.isArray(partialMap) && !Number.isInteger(partialMap[idx])) return;
+        // Exact/partial holes are intentional. This is the same predicate used by coverage and
+        // the MutationObserver, so a blind row cannot become either a button or an endless retry.
+        if (!rowReplayAllowed(audio, idx)) return;
         var btn = document.createElement("button");
         btn.type = "button";
         btn.className = "smk-row-replay";

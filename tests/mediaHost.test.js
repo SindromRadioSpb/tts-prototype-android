@@ -440,3 +440,35 @@ test('W3 never exposes karaoke timing for a canon segment marked blind at ASR pr
   assert.equal(audio.timingMap.coverage.mapped_rows, 2);
   assert.equal(audio.timingMap.coverage.unmapped_rows, 1);
 });
+
+test('P0 replay coverage is one invariant and intentional partial holes do not retrigger augment', () => {
+  assert.equal(typeof MH.rowReplayAllowed, 'function');
+  assert.equal(typeof MH.replayCoverage, 'function');
+  assert.equal(typeof MH.rowsNeedReplayAugment, 'function');
+
+  const partial = {
+    timing: { entries: [{ o: 0, t: 0 }, { o: 1, t: 2, blind: true }, { o: 2, t: 8 }] },
+    timingMap: { source: 'aligned-partial-proven', row_seg_idx: [0, null, 2] },
+  };
+  assert.equal(MH.rowReplayAllowed(partial, 0), true);
+  assert.equal(MH.rowReplayAllowed(partial, 1), false);
+  assert.equal(MH.rowReplayAllowed(partial, 2), true);
+  assert.deepEqual(MH.replayCoverage(partial, 3), {
+    playable_rows: 2, total_rows: 3, blind_rows: 1, ratio: 2 / 3,
+    label: '2/3', complete: false,
+  });
+  assert.equal(MH.rowsNeedReplayAugment(partial, 3, [0]), true,
+    'one missing proven button requires augment');
+  assert.equal(MH.rowsNeedReplayAugment(partial, 3, [0, 2]), false,
+    'the intentionally blind middle row is complete, not an endless augment trigger');
+
+  const exact = {
+    timing: { entries: [{ o: 0, t: 0 }, { o: 1, t: 2 }, { o: 2, t: 8 }] },
+    timingMap: { authority: 'studio-exact-binding', row_caption_segment_ids: ['c0', null, 'c2'] },
+  };
+  assert.deepEqual(MH.replayCoverage(exact, 3), {
+    playable_rows: 2, total_rows: 3, blind_rows: 1, ratio: 2 / 3,
+    label: '2/3', complete: false,
+  });
+  assert.equal(MH.rowsNeedReplayAugment(exact, 3, [0, 2]), false);
+});

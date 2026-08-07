@@ -4324,6 +4324,7 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   color: #7f8c8d;
   margin-top: 6px;
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 /* R9 provenance panel (read-only) in the text-metadata modal */
@@ -12123,7 +12124,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
   <div class="v3-modal-panel">
     <div class="v3-modal-header">
       <div class="v3-modal-title" data-i18n="saveMeta.title">Сохранить в библиотеку</div>
-      <button class="btn-secondary" onclick="v3SaveMetaClose()" data-i18n="saveMeta.close">Закрыть</button>
+      <button id="v3SaveMetaCloseBtn" class="btn-secondary" onclick="v3SaveMetaClose()" data-i18n="saveMeta.close">Закрыть</button>
     </div>
 
     <div class="v3-modal-body">
@@ -12157,7 +12158,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
       </div>
 
       <div class="v3-modal-actions">
-  <button class="btn-secondary" onclick="v3SaveMetaClose()" data-i18n="saveMeta.cancel">Отмена</button>
+  <button id="v3SaveMetaCancelBtn" class="btn-secondary" onclick="v3SaveMetaClose()" data-i18n="saveMeta.cancel">Отмена</button>
 
   <button id="v3SaveMetaSaveAsNewBtn"
           class="btn-secondary"
@@ -12806,9 +12807,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=125"></script>
-    <script src="/i18n/locales/en.js?v=125"></script>
-    <script src="/i18n/locales/he.js?v=125"></script>
+    <script src="/i18n/locales/ru.js?v=126"></script>
+    <script src="/i18n/locales/en.js?v=126"></script>
+    <script src="/i18n/locales/he.js?v=126"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12978,7 +12979,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.334";
+    window.APP_VERSION = "3.11.335";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -24526,12 +24527,17 @@ function v3MediaAugmentRows() {
     if (scheduled) return;
     scheduled = true;
     requestAnimationFrame(() => { scheduled = false;
-      // Re-augment when audio+timing is active AND any row lacks its replay button —
-      // NOT just "no button anywhere" (that skipped rows added later via edit-mode
-      // "+ Строка" while other rows already had buttons). Augmentation fills every
-      // row so this condition self-extinguishes — no observer loop.
+      // Re-augment only when the rendered button SET differs from the proven playable set.
+      // Partial-proven/exact maps intentionally contain holes; treating those rows as missing
+      // created a perpetual remove/re-add loop and could starve interactions on mobile Safari.
       var a = window.v3ActiveMediaAudio;
-      if (a && a.timing && document.querySelector('#proTable tbody tr[data-row-idx]:not(:has(.smk-row-replay))')) v3MediaAugmentRows(); });
+      var table = document.getElementById('proTable');
+      if (a && a.timing && table && window.MediaHost && window.MediaHost.rowsNeedReplayAugment) {
+        var rowCount = table.querySelectorAll('tbody tr[data-row-idx]').length;
+        var rendered = Array.from(table.querySelectorAll('tbody tr[data-row-idx] .smk-row-replay'))
+          .map(function (button) { var row = button.closest('tr[data-row-idx]'); return row ? Number(row.dataset.rowIdx) : -1; });
+        if (window.MediaHost.rowsNeedReplayAugment(a, rowCount, rendered)) v3MediaAugmentRows();
+      } });
   }).observe(container, { childList: true, subtree: true });
 })();
 
@@ -26783,12 +26789,13 @@ async function v3LibrarySaveCurrentCore(meta) {
           table_model_meta_json: JSON.stringify(payload.tableModelMeta || null),
         });
         const l3Rows = [];
+        const sentenceRows = [];
         for (const [rowIndex, row] of currentTableData.entries()) {
           const portableEditMeta = (window.StudioImport && window.StudioImport.rowEditMetaForSave)
             ? window.StudioImport.rowEditMetaForSave(row, saveMediaContext && saveMediaContext.passport || null, rowIndex)
             : (row.edit_meta_json || null);
           const translation = v3TranslationFieldsForSave(row, payload.tableModelMeta);
-          await ldb.addSentence(newTextId, {
+          sentenceRows.push({
             id: crypto.randomUUID(),
             he_plain: row.he || '', he_niqqud: row.he_niqqud || '',
             translit: row.translit || '', translit_ru: row.translit_ru || '',
@@ -26798,8 +26805,14 @@ async function v3LibrarySaveCurrentCore(meta) {
           });
           try { const em = portableEditMeta ? JSON.parse(portableEditMeta) : null; if (em && em._studio_source) l3Rows.push({ row_index: rowIndex, ...em._studio_source }); } catch (_) {}
         }
+        v3SaveMetaSetStatus(t("saveMeta.progressRows", { written: 0, total: sentenceRows.length }), false);
+        await ldb.addSentences(newTextId, sentenceRows, {
+          onProgress: (written, total) => v3SaveMetaSetStatus(
+            t("saveMeta.progressRows", { written, total }), false),
+        });
         const l3ref = saveMediaContext && saveMediaContext.ref || null;
         if (saveMediaIntended && window.StudioMediaPackage) {
+          v3SaveMetaSetStatus(t("saveMeta.progressMedia"), false);
           // F1 (packet 2026-08-06): какому медиа принадлежит карточка, решает провенанс её строк,
           // а не ambient v3LastMediaPackageRef — тот переживает сущность, которую описывает.
           const l3mapping = { schema: 'studio-row-source-v2', rows: l3Rows };
@@ -26830,6 +26843,7 @@ async function v3LibrarySaveCurrentCore(meta) {
             table_model_meta_json: JSON.stringify(payload.tableModelMeta),
           });
         }
+        v3SaveMetaSetStatus(t("saveMeta.progressCommit"), false);
         await ldb.execRaw('COMMIT;');
       } catch (e) { try { await ldb.execRaw('ROLLBACK;'); } catch (_) {} throw e; }
       // §5 acceptance: a newly saved media card is immediately a first-class learning
@@ -32913,6 +32927,16 @@ function v3GuessTitleFromSourceText(sourceText) {
 
 function v3SaveMetaEl(id) { return document.getElementById(id); }
 
+let v3SaveMetaSaving = false;
+
+function v3SaveMetaSetBusy(busy) {
+  v3SaveMetaSaving = !!busy;
+  const modal = v3SaveMetaEl("v3SaveMetaModal");
+  if (modal) modal.setAttribute("aria-busy", v3SaveMetaSaving ? "true" : "false");
+  ["v3SaveMetaSaveBtn", "v3SaveMetaSaveAsNewBtn", "v3SaveMetaCloseBtn", "v3SaveMetaCancelBtn"]
+    .forEach(id => { const el = v3SaveMetaEl(id); if (el) el.disabled = v3SaveMetaSaving; });
+}
+
 function v3SaveMetaSyncMode() {
   const st = v3SessionGet() || {};
   const updateId = v3SessionGetUpdateTextId();
@@ -32938,8 +32962,8 @@ function v3SaveMetaSyncMode() {
   const stale = !!(typeof tableIsStale !== "undefined" && tableIsStale);
   const canSave = !stale && Array.isArray(currentTableData) && currentTableData.length > 0;
 
-  if (btnSave) btnSave.disabled = !canSave;
-  if (btnAsNew) btnAsNew.disabled = !canSave;
+  if (btnSave) btnSave.disabled = v3SaveMetaSaving || !canSave;
+  if (btnAsNew) btnAsNew.disabled = v3SaveMetaSaving || !canSave;
 }
 
 // Premium UX: drop session pointers to a no-longer-existing text. Called
@@ -33036,13 +33060,13 @@ try { v3UiSyncSaveButtons(); } catch (_) {}
 }
 
 function v3SaveMetaClose() {
+  if (v3SaveMetaSaving) return;
   v3SaveMetaSetStatus("", false);
   v3SaveMetaShow(false);
 }
 
 async function v3SaveMetaSave() {
-  const btn = v3SaveMetaEl("v3SaveMetaSaveBtn");
-  if (btn) btn.disabled = true;
+  v3SaveMetaSetBusy(true);
 
   try {
     const sourceText = String(getText() || "").trim();
@@ -33116,14 +33140,13 @@ async function v3SaveMetaSave() {
     console.error("[v3SaveMetaSave] error:", e);
     v3SaveMetaSetStatus("Ошибка сохранения (см. console).", true);
   } finally {
-    if (btn) btn.disabled = false;
+    v3SaveMetaSetBusy(false);
     try { v3SaveMetaSyncMode(); } catch (_) {}
   }
 }
 
 async function v3SaveMetaSaveAsNew() {
-  const btn = v3SaveMetaEl("v3SaveMetaSaveAsNewBtn");
-  if (btn) btn.disabled = true;
+  v3SaveMetaSetBusy(true);
 
   try {
     if (typeof tableIsStale !== "undefined" && tableIsStale) {
@@ -33161,7 +33184,7 @@ async function v3SaveMetaSaveAsNew() {
       try { v3UiSyncSaveButtons(); } catch (_) {}
     }
   } finally {
-    if (btn) btn.disabled = false;
+    v3SaveMetaSetBusy(false);
     try { v3SaveMetaSyncMode(); } catch (_) {}
   }
 }

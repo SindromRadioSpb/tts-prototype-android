@@ -14,6 +14,7 @@
 //   touchOpened()   — POST /api/library/texts/:id/opened
 //   getSentences()  — GET /api/library/texts/:id/sentences
 //   addSentence()   — POST /api/library/texts/:id/sentences
+//   addSentences()  — guarded batch writer for an already-open transaction
 //   updateSentence() — PATCH /api/library/texts/:id/sentences/:sid
 //   deleteSentence() — DELETE /api/library/texts/:id/sentences/:sid
 //   resetSentence()  — POST /api/library/texts/:id/sentences/:sid/reset
@@ -1101,6 +1102,53 @@ export async function addSentence(textId, data) {
   );
   await clearDerivedNiqqud(textId);
   await _touchTextUpdatedAt(textId);
+}
+
+// Studio large-card save: the caller owns BEGIN/COMMIT so text + rows + media binding remain
+// one atomic local operation. Unlike calling addSentence N times, this performs the promoted-
+// material guard, MAX(order_index), derived-niqqud clear and text touch once per logical batch.
+export async function addSentences(textId, rows, opts) {
+  if (!textId) throw new Error('addSentences: textId is required');
+  const list = Array.isArray(rows) ? rows : [];
+  await _assertLegacySentenceWriter(textId);
+  const maxRow = await q(
+    'SELECT COALESCE(MAX(order_index), -1) AS m FROM sentences WHERE text_id = ?', [textId]);
+  const startOrder = (maxRow[0]?.m ?? -1) + 1;
+  const now = new Date().toISOString();
+  const onProgress = opts && typeof opts.onProgress === 'function' ? opts.onProgress : null;
+  const toStr = (v) => (v == null ? '' : String(v));
+  const toJson = (v) => {
+    if (v == null) return null;
+    if (typeof v === 'string') return v;
+    try { return JSON.stringify(v); } catch (_) { return null; }
+  };
+  let written = 0;
+  for (let i = 0; i < list.length; i++) {
+    const data = list[i];
+    if (!data || !data.id) throw new Error(`addSentences: rows[${i}].id is required`);
+    const { id, he_plain, he_niqqud, translit, translit_ru, ru, meta_json, edit_meta_json,
+            translation_provider, translation_meta_json } = data;
+    await r(
+      `INSERT INTO sentences (id, text_id, order_index, he_plain, he_niqqud, translit, translit_ru,
+         ru, meta_json, edit_meta_json, translation_provider, translation_meta_json, created_at)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [id, textId, startOrder + i,
+       toStr(he_plain), toStr(he_niqqud), toStr(translit),
+       translit_ru == null ? null : String(translit_ru),
+       toStr(ru), toJson(meta_json), toJson(edit_meta_json),
+       translation_provider == null ? null : String(translation_provider),
+       toJson(translation_meta_json), now]
+    );
+    written++;
+    if (onProgress && (written === list.length || written % 10 === 0)) {
+      try { onProgress(written, list.length); } catch (_) {}
+    }
+  }
+  if (written) {
+    await clearDerivedNiqqud(textId);
+    await _touchTextUpdatedAt(textId);
+  }
+  return written;
 }
 
 // PAS-B0.5 (критика wf_7f300c39): мутация рядов ОБЯЗАНА бампать texts.updated_at —

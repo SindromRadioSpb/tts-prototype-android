@@ -511,6 +511,9 @@ window.I18N_LOCALES.en = {
     cancel: "Cancel",
     saveAsNew: "Save as new",
     save: "Save",
+    progressRows: "Saving rows: {written} / {total}",
+    progressMedia: "Checking and saving the exact media binding…",
+    progressCommit: "Committing the card as one atomic operation…",
     help: "Title is required. If left empty, the first non-empty line of the source text will be used. Enter tags separated by commas.",
   },
   anki: {
