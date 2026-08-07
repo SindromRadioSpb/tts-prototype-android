@@ -1,8 +1,9 @@
 # Studio: честная длинная задача и реальная приёмка сериями 5–9
 
 Дата: 2026-08-07  
-Статус: **IMPLEMENTATION SHIPPED / OWNER DECISIONS OPEN** — P0–P3 на production; реальный набор
-серий 5–9 сохранён, но смешанные провайдеры и дубль серии 6 требуют решения владельца.
+Статус: **IMPLEMENTATION SHIPPED / MIXED-PROVIDER OWNER DECISIONS RESOLVED /
+OWNER-IPHONE PASS OPEN** — P0–P3 на production; владелец принял Google Free для серий 7–9 как
+финальный результат и подтвердил active/archived состояние двух материалов серии 6 без удаления.
 Предшественники: `STUDIO_HONEST_IMPORT_TO_CARD_DECISION_PACKET_2026_08_06.md`,
 `STUDIO_INGEST_LOCAL_ASR_WINDOWS_BETA_ENABLEMENT_PACKET_2026_07_31.md`,
 `STUDIO_INGEST_W2_S12_LONGMEDIA_DESIGN_2026_07_28.md`.
@@ -241,16 +242,31 @@ Cold reload `3.11.339` сохранил read-back карточки, но обн�
 | Карточка | ID | Провайдер | Строки | Медиа |
 |---|---|---:|---:|---|
 | `В сокрытии - 5` | `6ef735e8-f04a-424a-a0b0-354333b57d2a` | Gemini | 469 | `bound_verified`, `mpkg:1cc8090c…f554` |
-| `В сокрытии - 6` | `af96921b-3ddc-4d3c-97cf-a29d575105eb` | Gemini | 503 | `bound_verified`, `mpkg:0b91006a…508d` |
-| `В сокрытии - 6` | `d271b2bf-b71f-459c-9bb0-1d01b0d73504` | Gemini | 503 | тот же exact package; вероятный дубль |
+| `В сокрытии - 6` (активная) | `af96921b-3ddc-4d3c-97cf-a29d575105eb` | Gemini | 503 | `bound_verified`, `mpkg:0b91006a…508d` |
+| `В сокрытии - 6` (архивная) | `d271b2bf-b71f-459c-9bb0-1d01b0d73504` | Gemini | 503 | тот же exact package; owner-confirmed archived, без удаления |
 | `В сокрытии - 7` | `f28cb766-3e6c-4969-baed-1b92344f40c2` | Google Free | 555 | `bound_verified`, `mpkg:fd67047f…bc44` |
 | `В сокрытии - 8` | `bf9ca39a-eb14-46cc-ad02-73f400fb1fd6` | Google Free | 566 | `bound_verified`, `mpkg:681642ec…77c1` |
 | `В сокрытии - 9` | `670dd59b-5383-420c-b642-6e0ab1daf1bc` | Google Free | 567 | `bound_verified`, `mpkg:76c4da5f…1dbc` |
 
-Не закрывать пакет как полную первоначальную Gemini-приёмку без двух решений владельца:
+### Owner decisions (`2026-08-07`)
 
-1. какую из двух карточек `В сокрытии - 6` оставить (до решения не архивировать и не удалять);
-2. принять ли Google Free для 7–9 как финальный результат либо отдельно создать Gemini-версии.
+Решения владельца, дословно:
+
+> Считать Google Free карточки 7–9 финальными .
+>
+> Подтверждаю  текущее состояние серии 6: оставить af96921b… активной, а d271b2bf… архивной, без удаления.
+
+Следовательно:
+
+1. `af96921b-3ddc-4d3c-97cf-a29d575105eb` остаётся активной карточкой серии 6;
+2. `d271b2bf-b71f-459c-9bb0-1d01b0d73504` остаётся архивной; не удалять, не восстанавливать и
+   не перепривязывать без нового отдельного решения владельца;
+3. карточки 7–9 с provider `Google Free` являются финальными; отдельные Gemini-версии и расход
+   Gemini не требуются.
+
+Пакет принят как честная mixed-provider серия 5–9, а не как первоначально предполагавшаяся
+all-Gemini серия. Это явное owner-решение не меняет провайдеры, строки, exact bindings или media
+packages и не разрешает новых мутаций данных.
 
 Отдельно остаётся owner-iPhone interaction PASS для Студии. Автоматические и 380 px RU/HE gates
 его не заменяют.
