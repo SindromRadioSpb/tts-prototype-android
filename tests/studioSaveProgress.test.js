@@ -43,3 +43,11 @@ test('save modal exposes monotonic row progress and named commit/binding phases'
     assert.match(source, /progressMedia:/, `${locale}: media phase copy`);
   }
 });
+
+test('save modal localizes its accessible dialog name in RU/EN/HE', () => {
+  assert.match(
+    html,
+    /id="v3SaveMetaModal"[^>]+data-i18n-aria-label="saveMeta\.title"/,
+    'the dialog accessibility name must follow the selected locale',
+  );
+});

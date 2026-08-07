@@ -12118,7 +12118,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <!-- -----------------------------------------
      Week9 P1: Save Meta mini-modal (on Save current table)
 ------------------------------------------ -->
-<div id="v3SaveMetaModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="Сохранить в библиотеку">
+<div id="v3SaveMetaModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="Сохранить в библиотеку" data-i18n-aria-label="saveMeta.title">
   <div class="v3-modal-backdrop" onclick="v3SaveMetaClose()" aria-hidden="true"></div>
 
   <div class="v3-modal-panel">
@@ -12979,7 +12979,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.335";
+    window.APP_VERSION = "3.11.336";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
