@@ -25,6 +25,7 @@ const {
 const { isPlausibleGeminiKey } = require("./ingest/geminiKey");
 const segTable = require("./ingest/segTable.js");
 const { buildRowsFromGeminiPayload } = require("./ingest/tableRows.js");
+const { buildGeminiTableResponseSchema } = require("./ingest/geminiTableSchema.js");
 
 // v3.0 foundation: SQLite (Library/Progress source of truth)
 const { initDb, getDbHealth, ensureAudioAssetsDurationMsColumn } = require("./db/sqlite");
@@ -34,7 +35,7 @@ const { startupCheck } = require("./db/integrity");
 const { createBackup, cleanupBackups, DEFAULT_MAX_BACKUPS } = require("./db/backup");
 
 const textToSpeech = require("@google-cloud/text-to-speech");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
 const hebrewTtsClient = require("./db/premium/hebrewTtsClient");
 const {
   Document,
@@ -1225,6 +1226,11 @@ app.get("/api/client-config", (_req, res) => {
       supportedBrowsers: ["Chrome"],
       supportedOs: "Windows 11",
       firefoxSupported: false,
+    },
+    gemini: {
+      model: "gemini-flash-latest",
+      structuredOutput: true,
+      semanticValidation: true,
     },
     localMt: {
       beta: localMtBetaEnabled,
@@ -6468,7 +6474,13 @@ app.post("/api/translate-table", async (req, res) => {
       }
     }
 
-    const model = ai.getGenerativeModel({ model: "gemini-flash-latest" });
+    const model = ai.getGenerativeModel({
+      model: "gemini-flash-latest",
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: buildGeminiTableResponseSchema(SchemaType),
+      },
+    });
 
     const prompt = segMode
       ? segTable.HE_RU_SEG_PROMPT(cleanText)

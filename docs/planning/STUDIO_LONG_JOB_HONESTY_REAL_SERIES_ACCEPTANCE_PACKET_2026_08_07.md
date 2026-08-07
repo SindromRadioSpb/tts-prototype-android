@@ -110,12 +110,15 @@
 - cache key/provider default/model default не меняются без отдельного решения;
 - без миграций и без записи производного timing в канон.
 
-### Предварительный allowlist P2
+### Точный allowlist P2 (зафиксирован после P1 gates)
 
 - `server.js`
-- один узкий pure schema/validation module при необходимости
-- `tests/*gemini*` и API smoke
-- `public/index.html` только для телеметрии статуса, уже разрешённой P1
+- `ingest/geminiTableSchema.js` — один узкий pure schema module
+- `tests/geminiStructuredOutput.test.js`
+- этот packet
+
+Клиент, cache key, модель и provider default на P2 не меняются. `/api/client-config` получает
+только проверяемые флаги `structuredOutput=true`, `semanticValidation=true` для prod-гейта.
 
 ## 7. Реальные материалы
 
