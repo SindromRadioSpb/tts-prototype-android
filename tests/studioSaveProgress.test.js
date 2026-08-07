@@ -98,6 +98,14 @@ test('an unchanged saved card cannot be saved twice', () => {
   }
 });
 
+test('cold reload reopens a just-saved card instead of exposing a false second save', () => {
+  const start = html.indexOf('// Restore last opened Library/Dashboard text after reload (F5).');
+  const end = html.indexOf('// ──────────────────────────────────────────────', start);
+  const boot = html.slice(start, end);
+  assert.match(boot, /st\.mode !== "library"\s*&&\s*st\.mode !== "saved"/);
+  assert.match(boot, /v3LibraryOpenText\(String\(st\.textId\)/);
+});
+
 test('a provider-specific table restored from local cache becomes a saveable draft', () => {
   const translateStart = html.indexOf('async function translateTable()');
   const cacheStart = html.indexOf('// 1) local table cache first', translateStart);

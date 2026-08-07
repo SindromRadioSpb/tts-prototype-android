@@ -217,5 +217,14 @@ Release/cache target: **3.11.338**. Production и owner-live evidence допис
   `studioSaveProgress` — **12/12 PASS**, `smoke:i18n` — **233/233 PASS**, полный suite —
   **867 total / 863 pass / те же 4 baseline fail**, новых падений нет.
 
-Финальный release/cache target: **3.11.339**. После deploy обязателен повторный cold reload и
+Cold reload `3.11.339` сохранил read-back карточки, но обнаружил второй UX-дефект: boot-restore
+принимал только `mode=library`, а только что сохранённая карточка имела `mode=saved`. Поэтому
+данные оставались в БД, но редактор был пуст, а несинхронизированная кнопка снова выглядела как
+`Сохранить`. Отдельный red-контракт фиксирует, что оба канонических режима обязаны переоткрыть
+карточку через `v3LibraryOpenText`.
+
+После boot-restore исправления: `studioSaveProgress` — **13/13 PASS**, полный suite —
+**868 total / 864 pass / те же 4 baseline fail**, новых падений нет.
+
+Финальный release/cache target: **3.11.340**. После deploy обязателен повторный cold reload и
 read-back той же карточки; повторное сохранение или создание дубля для проверки запрещено.

@@ -13062,7 +13062,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.339";
+    window.APP_VERSION = "3.11.340";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -48819,7 +48819,9 @@ try {
 
   try {
     const st = v3SessionGet();
-    if (!st || st.mode !== "library" || !st.textId) return;
+    // A card saved in this same session is as canonical as one opened from Library.
+    // Reopen both states so F5 cannot expose an empty editor with a false Save action.
+    if (!st || (st.mode !== "library" && st.mode !== "saved") || !st.textId) return;
 
     if (window.__v3_restoreOnLoadRan) return;
     window.__v3_restoreOnLoadRan = true;
