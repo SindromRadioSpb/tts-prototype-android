@@ -135,6 +135,23 @@ test('optional table cache failure is named and does not impersonate card-save f
   );
 });
 
+test('a saved-card receipt never tells the user to save the card again', () => {
+  const start = html.indexOf('async function v3SaveMetaBuildReceipt(text)');
+  const end = html.indexOf('\nfunction v3SaveMetaShowReceipt(receipt)', start);
+  const receipt = html.slice(start, end);
+  assert.match(receipt, /saveMeta\.cacheUnavailableAfterSaveNext/);
+  assert.doesNotMatch(
+    receipt,
+    /nextActions\.push\(t\("saveMeta\.cacheUnavailableNext"\)\)/,
+    'the pre-save recovery action contradicts a terminal successful receipt',
+  );
+
+  for (const locale of ['ru', 'en', 'he']) {
+    const source = fs.readFileSync(path.join(root, 'public', 'i18n', 'locales', `${locale}.js`), 'utf8');
+    assert.match(source, /cacheUnavailableAfterSaveNext:/, `${locale}: post-save cache next action`);
+  }
+});
+
 test('save-as-new failure stays in the modal and names the retry action', () => {
   const start = html.indexOf('async function v3SaveMetaSaveAsNew()');
   const end = html.indexOf('\n// expose globally', start);

@@ -12889,9 +12889,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=128"></script>
-    <script src="/i18n/locales/en.js?v=128"></script>
-    <script src="/i18n/locales/he.js?v=128"></script>
+    <script src="/i18n/locales/ru.js?v=129"></script>
+    <script src="/i18n/locales/en.js?v=129"></script>
+    <script src="/i18n/locales/he.js?v=129"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13062,7 +13062,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.338";
+    window.APP_VERSION = "3.11.339";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -33191,7 +33191,7 @@ async function v3SaveMetaBuildReceipt(text) {
   if (v3TableCacheWriteOutcome.status === "stored") cacheText = t("saveMeta.cacheStored");
   if (v3TableCacheWriteOutcome.status === "failed") {
     cacheText = t("saveMeta.cacheUnavailable");
-    nextActions.push(t("saveMeta.cacheUnavailableNext"));
+    nextActions.push(t("saveMeta.cacheUnavailableAfterSaveNext"));
   }
   const provider = modelMeta && modelMeta.provider || v3LastGeminiMeta && v3LastGeminiMeta.provider || "unknown";
   return {

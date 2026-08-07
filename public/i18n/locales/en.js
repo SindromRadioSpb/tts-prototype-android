@@ -551,6 +551,7 @@ window.I18N_LOCALES.en = {
     mediaNotBoundNext: "Next action: import the source media or relink the exact file through Transcripts.",
     cacheStored: "Available for restoring this session",
     cacheUnavailable: "Unavailable; the canonical card is saved",
+    cacheUnavailableAfterSaveNext: "Draft recovery cache is unavailable. Next action: nothing is required now—the card and its table are saved.",
     cacheNotRecorded: "Not required or not checked",
     cacheUnavailableNext: "The table is ready, but its recovery cache is unavailable. Next action: save the card now.",
     help: "Title is required. If left empty, the first non-empty line of the source text will be used. Enter tags separated by commas.",

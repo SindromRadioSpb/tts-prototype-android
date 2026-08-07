@@ -199,3 +199,23 @@ ASR/перевода; нет derived timing в каноне; нет schema migra
 
 Release/cache target: **3.11.338**. Production и owner-live evidence дописываются только после
 фактически отданной этой версии и cold reload; push/webhook сами по себе не являются PASS.
+
+### Production / owner-live evidence
+
+- `3.11.338` реально отдан production после cold reload; `MIGRATIONS.length === 48`.
+- На реальном материале `В сокрытии - 8.mp4` Local ASR сохранил content identity
+  `681642eca00f799c8919834aff11c0308af408d7af308a890316fcfee0fb77c1`; Google Free собрал
+  `566` строк из `527` ASR-сегментов без смены выбранного провайдера.
+- Карточка `В сокрытии - 8` сохранена один раз: id
+  `bf9ca39a-eb14-46cc-ad02-73f400fb1fd6`, provider `google-free`, media outcome
+  `bound_verified`, package `mpkg:681642ec…77c1`, revision `rev:3bfbb66a…e15`.
+- Реальный receipt доказал терминальный success-state, но выявил противоречие: при отказе
+  необязательного draft-cache он одновременно показывал `Повторно сохранять не нужно` и старое
+  pre-save действие `сохраните карточку сейчас`. Новый red-контракт воспроизвёл дефект до кода.
+- В `3.11.339` post-save cache copy отделён от pre-save recovery copy: receipt честно сообщает,
+  что карточка и таблица уже сохранены и сейчас ничего делать не требуется. Targeted
+  `studioSaveProgress` — **12/12 PASS**, `smoke:i18n` — **233/233 PASS**, полный suite —
+  **867 total / 863 pass / те же 4 baseline fail**, новых падений нет.
+
+Финальный release/cache target: **3.11.339**. После deploy обязателен повторный cold reload и
+read-back той же карточки; повторное сохранение или создание дубля для проверки запрещено.
