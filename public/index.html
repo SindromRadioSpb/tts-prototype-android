@@ -1826,6 +1826,13 @@ td.col-action-cell {
 #v3MediaPlayBtn[hidden] { display:none; }
 .v3-media-note { font-size: 12px; color: #6c757d; }
 .smk-row-replay { width: auto; padding: 0 6px; margin-inline-start: 4px; font-size: 12px; }
+.v3-table-job-hud { margin-top:10px; padding:10px 12px; border:1px solid var(--theme-border-soft); border-inline-start:4px solid var(--theme-accent); border-radius:8px; background:var(--theme-bg-muted); font-size:12px; line-height:1.45; overflow-wrap:anywhere; }
+.v3-table-job-hud[hidden] { display:none; }
+.v3-table-job-head,.v3-table-job-facts { display:flex; flex-wrap:wrap; gap:6px 12px; align-items:center; }
+.v3-table-job-state { font-weight:700; color:var(--theme-text-primary); }
+.v3-table-job-media { margin-inline-start:auto; max-width:100%; font-family:ui-monospace,Consolas,monospace; color:var(--theme-text-secondary); }
+.v3-table-job-next { margin-top:5px; color:var(--theme-text-secondary); }
+@media (max-width: 420px) { .v3-table-job-media { margin-inline-start:0; flex-basis:100%; } }
 .v3-media-local-stage { flex:1 0 100%; border:1px solid #c9dcda; border-radius:12px; padding:10px; background:#f3f8f7; }
 .v3-media-local-stage[hidden] { display:none; }
 .v3-media-local-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:7px; }
@@ -11366,6 +11373,11 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                         </div>
 
                         <div id="classicResultSummary" class="classic-result-summary" data-i18n="classic.buildFirst">Сначала соберите таблицу. После этого появятся provenance, экспорт и работа по строкам.</div>
+                        <div id="v3TableJobHud" class="v3-table-job-hud" role="status" aria-live="polite" hidden>
+                          <div class="v3-table-job-head"><span id="v3TableJobState" class="v3-table-job-state"></span><span id="v3TableJobMedia" class="v3-table-job-media"></span></div>
+                          <div class="v3-table-job-facts"><span id="v3TableJobChunk"></span><span id="v3TableJobAttempt"></span><span id="v3TableJobRows"></span><span id="v3TableJobElapsed"></span></div>
+                          <div id="v3TableJobNext" class="v3-table-job-next"></div>
+                        </div>
                     </section>
                     </details>
 
@@ -12807,9 +12819,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=126"></script>
-    <script src="/i18n/locales/en.js?v=126"></script>
-    <script src="/i18n/locales/he.js?v=126"></script>
+    <script src="/i18n/locales/ru.js?v=127"></script>
+    <script src="/i18n/locales/en.js?v=127"></script>
+    <script src="/i18n/locales/he.js?v=127"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12900,6 +12912,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/local-mt-table.js"></script>
 <script src="/js/local-mt-onboarding.js"></script>
 <script src="/js/table-chunks.js"></script>
+<script src="/js/table-job.js"></script>
 <script src="/js/media-store.js"></script>
 <script src="/js/media-package-core.js"></script>
 <script src="/js/media-package-repository.js"></script>
@@ -12979,7 +12992,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.336";
+    window.APP_VERSION = "3.11.337";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -34752,7 +34765,7 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
         }
         if (!usePremium && segsForChunks && window.TableChunks
             && segsForChunks.length > TableChunks.CHUNK_SIZE) {
-            await v3TranslateTableChunked(segsForChunks);
+            await v3TranslateTableChunked(segsForChunks, v3ResolvedMediaContext);
             return;
         }
 
@@ -35045,6 +35058,76 @@ try {
     // поэтому «Продолжить» после сбоя = просто нажать кнопку перевода ещё раз.
     // NB: setLoading(true)/setAiButtonDisabled(true) уже выполнены translateTable() ДО развилки,
     // ведущей сюда — здесь их НЕ повторяем; finally ниже симметрично снимает состояние загрузки.
+    const V3_TABLE_JOB_STATE_KEYS = {
+        cache: "tableJob.state.cache", generate: "tableJob.state.generate",
+        retry: "tableJob.state.retry", repair: "tableJob.state.repair",
+        split: "tableJob.state.split", done: "tableJob.state.done", stopped: "tableJob.state.stopped",
+    };
+    let v3TableJobStartedAt = 0;
+    let v3TableJobLastTelemetry = null;
+    let v3TableJobTimer = null;
+
+    function v3TableJobMediaSha(context) {
+        const raw = context && context.package && context.package.media_sha256;
+        return /^[a-f0-9]{64}$/i.test(String(raw || "")) ? String(raw).toLowerCase() : null;
+    }
+    function v3TableJobHudUpdate(state, fields) {
+        if (!window.TableJob) return;
+        const f = fields || {};
+        if (!v3TableJobStartedAt) v3TableJobStartedAt = Number(f.startedAt) || Date.now();
+        const snap = TableJob.telemetry({ state, chunk: f.chunk, chunks: f.chunks,
+            attempt: f.attempt, attempts: f.attempts, readyRows: f.readyRows,
+            totalRows: f.totalRows, startedAt: v3TableJobStartedAt, now: Date.now(),
+            nextAction: f.nextAction || "" });
+        v3TableJobLastTelemetry = Object.assign({}, snap, { mediaSha: f.mediaSha || null, mediaIntended: !!f.mediaIntended });
+        const el = (id) => document.getElementById(id), hud = el("v3TableJobHud");
+        if (!hud) return;
+        hud.hidden = false;
+        el("v3TableJobState").textContent = t(V3_TABLE_JOB_STATE_KEYS[state]);
+        el("v3TableJobChunk").textContent = t("tableJob.chunk", snap);
+        el("v3TableJobAttempt").textContent = t("tableJob.attempt", snap);
+        el("v3TableJobRows").textContent = t("tableJob.rows", { ready: snap.readyRows, total: snap.totalRows });
+        el("v3TableJobElapsed").textContent = t("tableJob.elapsed", { seconds: snap.elapsedSec });
+        el("v3TableJobNext").textContent = t("tableJob.nextAction", { action: snap.nextAction });
+        el("v3TableJobMedia").textContent = f.mediaSha
+            ? t("tableJob.mediaExact", { sha: String(f.mediaSha).slice(0, 12) + "…" })
+            : t(f.mediaIntended ? "tableJob.mediaIntended" : "tableJob.mediaNone");
+        if (!v3TableJobTimer && state !== "done" && state !== "stopped") {
+            v3TableJobTimer = setInterval(() => {
+                if (v3TableJobLastTelemetry) v3TableJobHudUpdate(v3TableJobLastTelemetry.state, v3TableJobLastTelemetry);
+            }, 1000);
+        }
+        if ((state === "done" || state === "stopped") && v3TableJobTimer) {
+            clearInterval(v3TableJobTimer); v3TableJobTimer = null;
+        }
+    }
+    function v3TableJobRestoreLocalOnly(input) {
+        if (!window.TableJob || !input || !Array.isArray(input.segments)) return null;
+        const restored = TableJob.resume(TableJob.load(), input);
+        if (!restored || !restored.rows.length) return restored;
+        if (!Array.isArray(currentTableData) || !currentTableData.length) {
+            currentTableData = restored.rows.slice();
+            renderTable(currentTableData);
+        }
+        return restored;
+    }
+    function v3TableJobTryBootRestore() {
+        try {
+            if (!window.TableJob || !window.TableChunks) return;
+            const segments = v3AudioSegmentsForRequest();
+            if (!segments || segments.length <= TableChunks.CHUNK_SIZE) return;
+            const restored = v3TableJobRestoreLocalOnly({ text: getText().trim(), provider: getSelectedProvider(),
+                segments, chunkSize: TableChunks.CHUNK_SIZE });
+            if (!restored || !restored.rows.length) return;
+            v3TableJobStartedAt = Number(restored.journal.startedAt) || Date.now();
+            v3TableJobHudUpdate("stopped", { chunk: restored.nextChunk, chunks: restored.journal.plan.length,
+                attempt: 0, attempts: 2, readyRows: restored.rows.length, totalRows: segments.length,
+                nextAction: t("tableJob.actionRetry"), mediaSha: restored.mediaSha,
+                mediaIntended: !!restored.journal.mediaIntended });
+        } catch (_) {}
+    }
+    window.addEventListener("load", () => setTimeout(v3TableJobTryBootRestore, 1200));
+
     function v3RepairGeminiJsonInnerQuotes(rawText) {
         const cleaned = String(rawText || "")
             .replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
@@ -35131,18 +35214,21 @@ try {
             && payload.error === "Ошибка JSON" && typeof payload.raw === "string");
     }
 
-    async function v3RequestGeminiChunk(chunkSegs, allowSubdivision) {
+    async function v3RequestGeminiChunk(chunkSegs, allowSubdivision, onState) {
         const request = () => apiCall("/api/translate-table", {
             geminiApiKey: geminiKeyGet(), direction: "he-ru", segments: chunkSegs,
         });
         let lastError = null;
         for (let attempt = 0; attempt < 2; attempt++) {
             try {
+                if (onState) onState(attempt ? "retry" : "generate", { attempt: attempt + 1, attempts: 2 });
                 const result = await request();
                 result.clientRetried = attempt > 0;
+                if (onState && result.fromCache === true) onState("cache", { attempt: attempt + 1, attempts: 2 });
                 return result;
             } catch (error) {
                 if (error.httpStatus === 429) throw error;
+                if (onState && v3IsGeminiChunkJsonError(error)) onState("repair", { attempt: attempt + 1, attempts: 2 });
                 const recovered = v3RecoverGeminiChunkJsonError(error, chunkSegs.length);
                 if (recovered) {
                     recovered.clientRetried = attempt > 0;
@@ -35158,6 +35244,7 @@ try {
         // split ONLY this JSON-failed parent and ONLY once. Each child gets fresh local indexes;
         // its returned indexes are offset back into the parent before the normal global offset.
         if (allowSubdivision && chunkSegs.length > 1 && v3IsGeminiChunkJsonError(lastError)) {
+            if (onState) onState("split", { attempt: 2, attempts: 2 });
             const middle = Math.ceil(chunkSegs.length / 2);
             const childDefs = [chunkSegs.slice(0, middle), chunkSegs.slice(middle)]
                 .filter((part) => part.length)
@@ -35171,7 +35258,7 @@ try {
             let allFromCache = true;
             let anyRecoveredJson = false;
             for (const child of childDefs) {
-                const childResult = await v3RequestGeminiChunk(child.segs, false);
+                const childResult = await v3RequestGeminiChunk(child.segs, false, onState);
                 combinedRows.push(...TableChunks.offsetRows(childResult.rows || [], child.base));
                 (childResult.warnings || []).forEach((warning) => {
                     if (!combinedWarnings.includes(warning)) combinedWarnings.push(warning);
@@ -35191,7 +35278,7 @@ try {
         throw lastError;
     }
 
-    async function v3TranslateTableChunked(segs) {
+    async function v3TranslateTableChunked(segs, mediaContext) {
         // W2-S12 T6 (R16): смета-подтверждение ДО любой мутации состояния — отказ должен быть
         // чистым return, ничего не тронув (currentTableData ещё старый, медиа не detach-нуты).
         // Эта точка ВНЕ try/finally цикла ниже (тот открывается только после detach-блока),
@@ -35224,11 +35311,42 @@ try {
         const accum = [];
         const chunkMeta = [];
         const missingPerChunk = [];
+        const jobEstimate = window.AsrTranscript.estimateLongJob(0, {
+            chunkSize: TableChunks.CHUNK_SIZE, segmentsKnown: segs.length });
+        const jobTotalRows = Number(jobEstimate.expRows) || segs.length;
+        const jobMediaSha = v3TableJobMediaSha(mediaContext);
+        const jobMediaIntended = !!(jobMediaSha || (window.v3LastMediaContextResolution && window.v3LastMediaContextResolution.media_intended));
+        const jobInput = { text: getText().trim(), provider: "gemini", segments: segs,
+            chunkSize: TableChunks.CHUNK_SIZE, mediaSha: jobMediaSha };
+        let jobJournal = window.TableJob ? TableJob.create(Object.assign({}, jobInput, { now: Date.now() })) : null;
+        if (jobJournal) jobJournal.mediaIntended = jobMediaIntended;
+        const restoredJob = window.TableJob ? v3TableJobRestoreLocalOnly(jobInput) : null;
+        let startChunk = 0;
+        if (restoredJob && restoredJob.journal) {
+            jobJournal = restoredJob.journal;
+            accum.push(...restoredJob.rows);
+            (jobJournal.completed || []).forEach((entry) => {
+                const meta = entry.meta || {};
+                chunkMeta.push(meta);
+                missingPerChunk.push({ base: chunks[entry.index].base, missing: meta.missing || [] });
+            });
+            startChunk = restoredJob.nextChunk;
+            currentTableData = accum.slice();
+            renderTable(currentTableData);
+            v3TableJobStartedAt = Number(jobJournal.startedAt) || Date.now();
+            v3TableJobHudUpdate("cache", { chunk: startChunk, chunks: chunks.length, attempt: 0, attempts: 2,
+                readyRows: accum.length, totalRows: jobTotalRows, nextAction: t("tableJob.actionWait"),
+                mediaSha: jobMediaSha || restoredJob.mediaSha, mediaIntended: jobMediaIntended });
+        } else {
+            v3TableJobStartedAt = Date.now();
+            if (jobJournal) TableJob.store(jobJournal);
+        }
         // Fix2 (re-review): the skeleton is already on screen (translateTable(), before the
         // fork) but currentTableData itself still holds the PREVIOUS generation's rows until
         // the first chunk lands — a catch on chunk 0 must not pin a fresh partial-meta to
-        // someone else's old rows, so start the new generation from a clean slate.
-        currentTableData = [];
+        // someone else's old rows, so start the new generation from a clean slate; a proven
+        // local journal prefix is the only permitted exception.
+        currentTableData = accum.slice();
         // Fix2 (re-review): a bare v3AttachAudioTiming({rows:[], warnings:[]}) here would be
         // wrong — v3MediaPassport() returns a SHARED reference into v3LastImportMeta.audio/
         // .captions, and audio.timingDropReason is a one-way latch inside v3AttachAudioTiming
@@ -35244,7 +35362,7 @@ try {
             if (typeof v3MediaBarRefresh === "function") v3MediaBarRefresh();
         } catch (_) {}
         try {
-            for (let k = 0; k < chunks.length; k++) {
+            for (let k = startChunk; k < chunks.length; k++) {
                 setResultsMeta("table", t("classic.tableChunkProgress")
                     .replace("{k}", String(k + 1)).replace("{m}", String(chunks.length)));
                 let res;
@@ -35254,7 +35372,13 @@ try {
                     // Includes the historical one retry, strict complete-JSON recovery, and a
                     // single bounded 120→60+60 fallback for unrecoverable Gemini JSON damage.
                     // 429 still exits immediately; ordinary 500 still gets one retry then fails.
-                    res = await v3RequestGeminiChunk(chunks[k].segs, true);
+                    res = await v3RequestGeminiChunk(chunks[k].segs, true, (state, attemptInfo) => {
+                        v3TableJobHudUpdate(state, { chunk: k + 1, chunks: chunks.length,
+                            attempt: attemptInfo.attempt, attempts: attemptInfo.attempts,
+                            readyRows: accum.length, totalRows: jobTotalRows,
+                            nextAction: t("tableJob.actionWait"), mediaSha: jobMediaSha,
+                            mediaIntended: jobMediaIntended });
+                    });
                     retriedThisChunk = res.clientRetried === true;
                     recoveredJsonThisChunk = res.clientRecoveredJson === true;
                 } catch (e) {
@@ -35286,6 +35410,10 @@ try {
                         if (pass && v3IsDerivedTimingDrop(pass.timingDropReason)) pass.timingDropReason = null;
                     }
                     v3AttachAudioTiming({ rows: currentTableData, warnings: ["SEG_COVERAGE_PARTIAL"] }, true);
+                    v3TableJobHudUpdate("stopped", { chunk: k + 1, chunks: chunks.length,
+                        attempt: 2, attempts: 2, readyRows: accum.length, totalRows: jobTotalRows,
+                        nextAction: t("tableJob.actionRetry"), mediaSha: jobMediaSha,
+                        mediaIntended: jobMediaIntended });
                     return;
                 }
                 const rows = TableChunks.offsetRows(res.rows || [], chunks[k].base);
@@ -35294,10 +35422,10 @@ try {
                 // segment_index (server-side) — degradation is LOCAL to the chunk, not global.
                 // missingPerChunk/aggregateMissing below is what actually surfaces it to the
                 // user (SEG_COVERAGE_PARTIAL); no separate flag is tracked here.
-                missingPerChunk.push({ base: chunks[k].base,
-                    missing: TableChunks.coverageForChunk(res.rows || [], chunks[k].segs.length).missing });
+                const chunkMissing = TableChunks.coverageForChunk(res.rows || [], chunks[k].segs.length).missing;
+                missingPerChunk.push({ base: chunks[k].base, missing: chunkMissing });
                 const chunkMetaEntry = { cacheKey: res.cacheKey || null, fromCache: res.fromCache === true,
-                                 rows: (res.rows || []).length };
+                                 rows: (res.rows || []).length, missing: chunkMissing };
                 if (retriedThisChunk) chunkMetaEntry.retried = true; // R9-провенанс: кусок прошёл со 2-й попытки (S12.1)
                 if (recoveredJsonThisChunk) chunkMetaEntry.recoveredJson = true;
                 if (res.clientSubdivided === true) {
@@ -35305,6 +35433,13 @@ try {
                     chunkMetaEntry.parts = res.clientSubdivisionParts || [];
                 }
                 chunkMeta.push(chunkMetaEntry);
+                if (jobJournal && window.TableJob) {
+                    try {
+                        jobJournal = TableJob.acceptChunk(jobJournal, { index: k, rows: rows,
+                            meta: chunkMetaEntry, now: Date.now() });
+                        TableJob.store(jobJournal);
+                    } catch (_) {}
+                }
                 // Прогрессив: renderTable НЕ редактировался — просто перерисовка префиксом.
                 clearRowSelectedUI();
                 currentTableData = accum.slice();
@@ -35343,6 +35478,10 @@ try {
             }));
         } catch (e) { console.error("Table cache save error", e); }
         setResultsMeta("table", t("classic.tableChunkedDone").replace("{m}", String(chunks.length)));
+        v3TableJobHudUpdate("done", { chunk: chunks.length, chunks: chunks.length, attempt: 1, attempts: 2,
+            readyRows: currentTableData.length, totalRows: Math.max(jobTotalRows, currentTableData.length),
+            nextAction: t("tableJob.actionReview"), mediaSha: jobMediaSha, mediaIntended: jobMediaIntended });
+        if (window.TableJob) TableJob.clear();
         loadStats();
         clearGeminiLock();
         try { classicSyncMainPanels({ force: true }); } catch (_) {}

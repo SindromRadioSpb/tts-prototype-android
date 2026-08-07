@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.336";
+const CACHE_VERSION = "v3.11.337";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -144,6 +144,7 @@ const PRECACHE_URLS = [
   // by translateTable()'s chunk-cycle fork; must precache like its ASR-windowing sibling above,
   // or an offline session after a CACHE_VERSION bump loses window.TableChunks silently.
   "/js/table-chunks.js",
+  "/js/table-job.js",
   "/js/media-store.js",
   "/js/media-package-core.js",
   "/js/media-package-repository.js",

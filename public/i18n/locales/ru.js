@@ -497,6 +497,11 @@ window.I18N_LOCALES.ru = {
     removeLocal: "Убрать с устройства",
     removeLocalTitle: "Удаляет локальную копию; работа снова откроется из Зала",
   },
+  tableJob: {
+    state: { cache: "Кэш", generate: "Генерация", retry: "Повтор запроса", repair: "Проверка/ремонт JSON", split: "Безопасное разбиение", done: "Готово", stopped: "Остановлено" },
+    chunk: "Кусок {chunk}/{chunks}", attempt: "Попытка {attempt}/{attempts}", rows: "Готово строк: {ready}/{total}", elapsed: "Прошло: {seconds} с", nextAction: "Следующее действие: {action}",
+    actionWait: "дождитесь ответа", actionRetry: "нажмите «AI Перевод» ещё раз — готовые куски восстановятся локально", actionReview: "проверьте результат и сохраните карточку", mediaExact: "Медиа SHA: {sha}", mediaIntended: "Медиа задумано, но точная привязка ещё не доказана", mediaNone: "Медиа не заявлено"
+  },
   saveMeta: {
     title: "Сохранить в библиотеку",
     close: "Закрыть",

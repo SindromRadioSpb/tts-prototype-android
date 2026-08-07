@@ -501,6 +501,11 @@ window.I18N_LOCALES.he = {
     removeLocal: "הסר מהמכשיר",
     removeLocalTitle: "מוחק את העותק המקומי; היצירה תיפתח שוב מחדר הקריאה",
   },
+  tableJob: {
+    state: { cache: "מטמון", generate: "יצירה", retry: "ניסיון חוזר", repair: "בדיקה/תיקון JSON", split: "פיצול בטוח", done: "הושלם", stopped: "נעצר" },
+    chunk: "מקטע {chunk}/{chunks}", attempt: "ניסיון {attempt}/{attempts}", rows: "שורות מוכנות: {ready}/{total}", elapsed: "זמן שחלף: {seconds} שנ׳", nextAction: "הפעולה הבאה: {action}",
+    actionWait: "להמתין לתשובה", actionRetry: "ללחוץ שוב על AI Translate; המקטעים שהושלמו ישוחזרו מקומית", actionReview: "לבדוק את התוצאה ולשמור את הכרטיס", mediaExact: "SHA של המדיה: {sha}", mediaIntended: "מדיה מיועדת, אך קישור מדויק טרם הוכח", mediaNone: "לא הוצהרה מדיה"
+  },
   saveMeta: {
     title: "שמור לספרייה",
     close: "סגור",

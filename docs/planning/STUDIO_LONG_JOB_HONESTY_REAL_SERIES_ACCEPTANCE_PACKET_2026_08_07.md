@@ -90,14 +90,15 @@
 - чип media continuity до запуска и после сборки показывает exact SHA / intended-but-unbound;
 - реальная 380 px RU/HE проверка плюс owner iPhone Studio interactions.
 
-### Предварительный allowlist P1
+### Точный allowlist P1 (зафиксирован после P0 gates)
 
 - `public/index.html`
-- `public/js/table-chunks.js` и/или один новый узкий pure job-journal module
+- `public/js/table-job.js` — один новый узкий pure job-journal module
 - `public/i18n/locales/{ru,en,he}.js`
-- соответствующие `tests/*` и один Chromium smoke
+- `public/sw.js`, `tests/i18n.locale-version.lock.json` — только precache/release lock
+- `tests/tableJob.test.js`, `tests/studioTableJobUi.test.js`
 
-Точный список фиксируется после P0 gates; любое расширение за него — стоп.
+`public/js/table-chunks.js` не потребовал изменения. Любое расширение за этот список — стоп.
 
 ## 6. P2 — Gemini structured-output reliability
 
