@@ -144,3 +144,58 @@ Gemini chunks -> save-as-new -> cold reload -> media source `studio-exact-bindin
 ASR/перевода; нет derived timing в каноне; нет schema migrations; нет изменения provider defaults;
 нет параллельных ASR/Gemini jobs; нет реализации общей L2b batch queue в этом слайсе. Запрос из
 пяти файлов документирует demand-trigger для отдельного L2b решения, но не расширяет этот пакет.
+
+## 9. P3 — терминальное сохранение без двусмысленного второго клика
+
+Владелец утвердил реализацию после живого наблюдения сохранения `В сокрытии - 7`.
+До исправления атомарная запись завершалась успешно, но success-path вызывал закрытие, пока
+`v3SaveMetaSaving === true`; busy-guard отклонял закрытие и оставлял форму с устаревшими
+действиями `Отмена / Сохранить как новый / Обновить`. Пользователь не мог отличить завершённое
+сохранение от незавершённого и был вынужден решать, нажимать ли повторно.
+
+### Контракт P3
+
+- успешная запись заканчивается устойчивым receipt в той же модалке: название, число строк,
+  фактический провайдер, именованный media-binding outcome, состояние необязательного кэша и
+  время сохранения;
+- receipt прямо говорит, что повторно сохранять не нужно, и предлагает только терминальные
+  действия `Открыть в библиотеке / Экспорт / перенос / Готово`;
+- неизменённая уже сохранённая карточка имеет disabled-состояние `Сохранено`, поэтому повторный
+  клик не создаёт дубль;
+- восстановление результата другого провайдера из локального table cache переводит сессию в
+  `draft`, поэтому новую версию можно сохранить, а не застрять на кнопке `Сохранено`;
+- если карточка уже связана с immutable media material, UI предлагает явную новую версию и не
+  показывает заведомо запрещённое destructive update;
+- отказ обычного save и save-as-new остаётся в модалке и называет повторное действие; rejection
+  не утекает как невидимая ошибка;
+- отказ необязательного `TABLE_CACHE_KEY` отделён от результата канонической записи: карточка не
+  объявляется потерянной, но пользователь получает named next action;
+- несвязанная TTS-команда называется `Сохранить ключ`, а не вторым общим `Сохранить`;
+- 380 px RU/HE: нет горизонтального overflow, terminal actions имеют 48 px, receipt получает
+  фокус и доступен через `role=status` + `aria-live=polite`.
+
+### Allowlist P3
+
+- `public/index.html`
+- `public/i18n/locales/{ru,en,he}.js`
+- `public/sw.js`
+- `tests/i18n.locale-version.lock.json`
+- `tests/studioSaveProgress.test.js`
+- этот packet
+
+### Доказательства до production deploy
+
+- red-before-fix: шесть исходных P3-контрактов упали до реализации; отдельный save-as-new
+  rejection-контракт также доказан красным до catch-path;
+- targeted: `tests/studioSaveProgress.test.js` — **11/11 PASS**;
+- 380 px Playwright RU/HE — `scrollWidth=380`, settled action height `48px`, focus на receipt,
+  HE panel bottom `838 <= 844`;
+- `smoke:i18n` — **233/233 PASS**;
+- media-package **72/72 PASS**, material-revision **19/19 PASS**, оба browser-smoke PASS;
+- Import Center browser, room-media, media-karaoke и text-card round-trip PASS;
+- полный suite после P3: **866 total / 862 pass / 4 fail** — прежний набор из четырёх baseline
+  failures, новых падений нет. `smoke:studio-chunks` (двойной retry count) и portability
+  `studio-exact-binding` отдельно воспроизведены на чистом `HEAD 0db64fd6` и не относятся к P3.
+
+Release/cache target: **3.11.338**. Production и owner-live evidence дописываются только после
+фактически отданной этой версии и cold reload; push/webhook сами по себе не являются PASS.

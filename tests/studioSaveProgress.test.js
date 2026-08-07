@@ -51,3 +51,109 @@ test('save modal localizes its accessible dialog name in RU/EN/HE', () => {
     'the dialog accessibility name must follow the selected locale',
   );
 });
+
+test('successful save ends in a persistent receipt instead of the update form', () => {
+  assert.match(
+    html,
+    /id="v3SaveMetaReceipt"[^>]+role="status"[^>]+aria-live="polite"/,
+    'success must have a persistent, screen-reader-visible receipt',
+  );
+  assert.match(html, /function v3SaveMetaShowReceipt\(receipt\)/);
+  assert.match(html, /async function v3SaveMetaBuildReceipt\(text\)/);
+
+  const saveStart = html.indexOf('async function v3SaveMetaSave()');
+  const saveEnd = html.indexOf('\nasync function v3SaveMetaSaveAsNew()', saveStart);
+  const save = html.slice(saveStart, saveEnd);
+  assert.match(save, /v3SaveMetaBuildReceipt\(text\)/);
+  assert.match(save, /v3SaveMetaShowReceipt\(receipt\)/);
+  assert.doesNotMatch(
+    save,
+    /v3SaveMetaClose\(\);/,
+    'the success path must not be swallowed by the busy close guard',
+  );
+
+  for (const locale of ['ru', 'en', 'he']) {
+    const source = fs.readFileSync(path.join(root, 'public', 'i18n', 'locales', `${locale}.js`), 'utf8');
+    for (const key of [
+      'completeTitle', 'completeSummary', 'rowsLabel', 'providerLabel', 'mediaLabel',
+      'cacheLabel', 'savedAtLabel', 'done', 'openLibrary', 'openTransfer',
+    ]) {
+      assert.match(source, new RegExp(`${key}:`), `${locale}: ${key} receipt copy`);
+    }
+  }
+});
+
+test('an unchanged saved card cannot be saved twice', () => {
+  const syncStart = html.indexOf('function v3UiSyncSaveButtons()');
+  const syncEnd = html.indexOf('\nfunction ', syncStart + 20);
+  const sync = html.slice(syncStart, syncEnd);
+  assert.match(sync, /unchangedSaved/);
+  assert.match(sync, /saveMeta\.savedButton/);
+  assert.match(sync, /disabled\s*=\s*[^;]*unchangedSaved/);
+
+  for (const locale of ['ru', 'en', 'he']) {
+    const source = fs.readFileSync(path.join(root, 'public', 'i18n', 'locales', `${locale}.js`), 'utf8');
+    assert.match(source, /savedButton:/, `${locale}: persistent saved button label`);
+    assert.match(source, /savedButtonTitle:/, `${locale}: saved button next action`);
+  }
+});
+
+test('a provider-specific table restored from local cache becomes a saveable draft', () => {
+  const translateStart = html.indexOf('async function translateTable()');
+  const cacheStart = html.indexOf('// 1) local table cache first', translateStart);
+  const cacheEnd = html.indexOf('// Mark draft:', cacheStart);
+  const cacheBranch = html.slice(cacheStart, cacheEnd);
+  assert.match(cacheBranch, /cache\.provider === requestedProvider/);
+  assert.match(
+    cacheBranch,
+    /v3SessionMarkDraft\(\)/,
+    'restoring a different provider result must not leave the previous saved card terminal',
+  );
+});
+
+test('media-bound drafts offer a new version, never an update that will be refused', () => {
+  assert.match(html, /let v3SaveMetaBoundUpdate = false;/);
+  assert.match(html, /async function v3SaveMetaResolveMode\(updateId\)/);
+  assert.match(html, /v3SaveMetaBoundUpdate\s*=\s*!!binding/);
+  assert.match(html, /saveMeta\.saveBoundVersion/);
+
+  const saveStart = html.indexOf('async function v3SaveMetaSave()');
+  const saveEnd = html.indexOf('\nasync function v3SaveMetaSaveAsNew()', saveStart);
+  const save = html.slice(saveStart, saveEnd);
+  assert.match(save, /v3SaveMetaBoundUpdate/);
+  assert.match(save, /allowDuplicateMedia:\s*true/);
+});
+
+test('optional table cache failure is named and does not impersonate card-save failure', () => {
+  assert.match(html, /function v3StoreTableCache\(payload\)/);
+  assert.match(html, /v3TableCacheWriteOutcome\s*=\s*\{\s*status:\s*"failed"/);
+  assert.match(html, /saveMeta\.cacheUnavailableNext/);
+  assert.equal(
+    (html.match(/localStorage\.setItem\(TABLE_CACHE_KEY/g) || []).length,
+    1,
+    'all table-cache writes must flow through the named outcome helper',
+  );
+});
+
+test('save-as-new failure stays in the modal and names the retry action', () => {
+  const start = html.indexOf('async function v3SaveMetaSaveAsNew()');
+  const end = html.indexOf('\n// expose globally', start);
+  const saveAsNew = html.slice(start, end);
+  assert.match(saveAsNew, /catch\s*\(e\)/, 'save-as-new must not leak an unhandled rejection');
+  assert.match(saveAsNew, /v3SaveMetaShowFailure\("saveMeta\.failed",\s*"saveMeta\.failedNext"\)/);
+});
+
+test('save receipt is a 380px-safe terminal action surface', () => {
+  assert.match(html, /#v3SaveMetaReceipt[\s\S]*overflow-wrap:\s*anywhere/);
+  assert.match(html, /#v3SaveMetaCompleteActions[\s\S]*min-height:\s*(?:4[4-9]|[5-9]\d)px/);
+  assert.match(html, /@media\s*\(max-width:\s*600px\)[\s\S]*#v3SaveMetaCompleteActions/);
+});
+
+test('the unrelated TTS credential action is not another generic Save button', () => {
+  for (const locale of ['ru', 'en', 'he']) {
+    const source = fs.readFileSync(path.join(root, 'public', 'i18n', 'locales', `${locale}.js`), 'utf8');
+    const match = source.match(/gcpTtsKeySave:\s*"([^"]+)"/);
+    assert.ok(match, `${locale}: gcpTtsKeySave exists`);
+    assert.notEqual(match[1], { ru: 'Сохранить', en: 'Save', he: 'שמור' }[locale], `${locale}: action names the key`);
+  }
+});

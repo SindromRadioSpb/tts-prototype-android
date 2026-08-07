@@ -4334,6 +4334,55 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   overflow-wrap: anywhere;
 }
 
+#v3SaveMetaReceipt {
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--theme-success) 32%, var(--theme-border-soft));
+  border-inline-start: 4px solid var(--theme-success);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--theme-success) 8%, var(--theme-bg-card));
+  color: var(--theme-text-primary);
+  overflow-wrap: anywhere;
+}
+#v3SaveMetaReceipt[hidden],
+#v3SaveMetaCompleteActions[hidden],
+#v3SaveMetaForm[hidden] { display: none !important; }
+#v3SaveMetaReceiptSummary { margin: 0 0 12px; color: var(--theme-text-secondary); }
+#v3SaveMetaReceipt dl {
+  display: grid;
+  grid-template-columns: minmax(110px, .45fr) minmax(0, 1fr);
+  gap: 7px 12px;
+  margin: 0;
+}
+#v3SaveMetaReceipt dt { color: var(--theme-text-muted); font-weight: 650; }
+#v3SaveMetaReceipt dd { margin: 0; font-weight: 650; min-width: 0; unicode-bidi: plaintext; }
+#v3SaveMetaReceiptNext {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--theme-border-soft);
+  color: var(--theme-text-secondary);
+}
+#v3SaveMetaCompleteActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+#v3SaveMetaCompleteActions button { min-height: 48px; width: auto; }
+
+@media (max-width: 600px) {
+  #v3SaveMetaModal .v3-modal-panel {
+    width: min(100vw - 16px, 640px);
+    max-height: calc(100dvh - 16px);
+    margin: 8px auto;
+  }
+  #v3SaveMetaReceipt { padding: 12px; }
+  #v3SaveMetaReceipt dl { grid-template-columns: 1fr; gap: 2px; }
+  #v3SaveMetaReceipt dd { margin-bottom: 7px; }
+  #v3SaveMetaCompleteActions { display: grid; grid-template-columns: 1fr; }
+  #v3SaveMetaCompleteActions button { width: 100% !important; min-height: 48px; }
+}
+
 /* R9 provenance panel (read-only) in the text-metadata modal */
 #v3TextMetaModal .v3-meta-provenance {
   font-size: 12.5px;
@@ -11404,7 +11453,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
                         <div id="audioContainer" style="margin-bottom: 4px;"></div>
 
-                        <div id="v3ActiveTextHeader" class="v3-active-header" style="display:none;">
+                        <div id="v3ActiveTextHeader" class="v3-active-header" tabindex="-1" style="display:none;">
                           <div class="v3-active-header-row">
                             <div id="v3ActiveTextTitle" class="v3-active-title">—</div>
                             <div class="v3-active-badges">
@@ -12140,8 +12189,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     </div>
 
     <div class="v3-modal-body">
-      <div id="v3SaveMetaStatus" class="v3-help"></div>
+      <div id="v3SaveMetaStatus" class="v3-help" role="status" aria-live="polite" aria-atomic="true"></div>
 
+      <div id="v3SaveMetaForm">
       <div class="v3-form-row">
         <label for="v3SaveMetaTitle" data-i18n="saveMeta.labelTitle">Название*</label>
         <input id="v3SaveMetaTitle" type="text" maxlength="160" data-i18n-placeholder="saveMeta.placeholderTitle" placeholder="Например: Песня / статья / урок" />
@@ -12185,6 +12235,26 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
       <div class="v3-help" data-i18n="saveMeta.help">
         Название обязательно. Если оставить пустым — подставим автоматически (первая непустая строка исходного текста). Теги вводите через запятую.
+      </div>
+      </div>
+
+      <section id="v3SaveMetaReceipt" role="status" aria-live="polite" aria-atomic="true" tabindex="-1" hidden>
+        <p id="v3SaveMetaReceiptSummary" data-i18n="saveMeta.completeSummary">Повторно сохранять не нужно.</p>
+        <dl>
+          <dt data-i18n="saveMeta.titleLabel">Название</dt><dd id="v3SaveMetaReceiptCardTitle" dir="auto">—</dd>
+          <dt data-i18n="saveMeta.rowsLabel">Строки</dt><dd id="v3SaveMetaReceiptRows" dir="auto">—</dd>
+          <dt data-i18n="saveMeta.providerLabel">Провайдер</dt><dd id="v3SaveMetaReceiptProvider" dir="auto">—</dd>
+          <dt data-i18n="saveMeta.mediaLabel">Медиа</dt><dd id="v3SaveMetaReceiptMedia" dir="auto">—</dd>
+          <dt data-i18n="saveMeta.cacheLabel">Кэш таблицы</dt><dd id="v3SaveMetaReceiptCache" dir="auto">—</dd>
+          <dt data-i18n="saveMeta.savedAtLabel">Сохранено</dt><dd id="v3SaveMetaReceiptSavedAt" dir="auto">—</dd>
+        </dl>
+        <p id="v3SaveMetaReceiptNext"></p>
+      </section>
+
+      <div id="v3SaveMetaCompleteActions" hidden>
+        <button type="button" class="btn-secondary" onclick="v3SaveMetaOpenLibrary()" data-i18n="saveMeta.openLibrary">Открыть в библиотеке</button>
+        <button type="button" class="btn-secondary" onclick="v3SaveMetaOpenTransfer()" data-i18n="saveMeta.openTransfer">Экспорт / перенос</button>
+        <button type="button" class="btn-primary" onclick="v3SaveMetaDone()" data-i18n="saveMeta.done">Готово</button>
       </div>
     </div>
   </div>
@@ -12819,9 +12889,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=127"></script>
-    <script src="/i18n/locales/en.js?v=127"></script>
-    <script src="/i18n/locales/he.js?v=127"></script>
+    <script src="/i18n/locales/ru.js?v=128"></script>
+    <script src="/i18n/locales/en.js?v=128"></script>
+    <script src="/i18n/locales/he.js?v=128"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12992,7 +13062,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.337";
+    window.APP_VERSION = "3.11.338";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -17010,6 +17080,28 @@ function v3NotesRefreshAllButtons() {
 
     const STORAGE_KEY = "ttsDashboard_text_v1";
     const TABLE_CACHE_KEY = "ttsDashboard_table_cache_v1";
+    let v3TableCacheWriteOutcome = { status: "unknown", error_code: null, recorded_at: null };
+
+    function v3StoreTableCache(payload) {
+        try {
+            localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify(payload));
+            v3TableCacheWriteOutcome = {
+                status: "stored", error_code: null, recorded_at: new Date().toISOString()
+            };
+        } catch (error) {
+            const errorCode = String((error && (error.name || error.code)) || "TABLE_CACHE_WRITE_FAILED");
+            v3TableCacheWriteOutcome = {
+                status: "failed", error_code: errorCode, recorded_at: new Date().toISOString()
+            };
+            console.error("Table cache save error", error);
+        }
+        return Object.assign({}, v3TableCacheWriteOutcome);
+    }
+
+    function v3NotifyTableCacheOutcome(outcome) {
+        if (!outcome || outcome.status !== "failed") return;
+        try { showToast(t("saveMeta.cacheUnavailableNext"), "warning"); } catch (_) {}
+    }
     
 
 // Session state (restore last opened Library/Dashboard text after reload)
@@ -21846,7 +21938,7 @@ updatePlaylistButtonUI();
                     createdAt: new Date().toISOString(),
                     lastDocxFilename: lastDocxFilename || generateDocxFileName()
                 };
-                localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify(cache));
+                v3StoreTableCache(cache);
             } catch (_) {}
 
             loadStats();
@@ -24670,16 +24762,22 @@ function v3UiSyncSaveButtons() {
     const hasBase = !!st.baseTextId;
     const hasUpdate = !!updateId;
 
-    // disable если таблицы нет или она устарела
-    const disabled = stale || !hasTable;
+    // A persisted card is a terminal state, not an invitation to repeat the same write.
+    // Any source/table rebuild calls v3SessionMarkDraft(), which re-enables the version flow.
+    const unchangedSaved = st.mode === "saved" || st.mode === "library";
+    const disabled = stale || !hasTable || unchangedSaved;
     btnSaveToLibrary.disabled = disabled;
 
     // Label + tooltip
-    btnSaveToLibrary.textContent = hasUpdate ? "💾 Обновить" : "💾 Сохранить";
+    btnSaveToLibrary.textContent = unchangedSaved
+      ? "✓ " + t("saveMeta.savedButton")
+      : (hasUpdate ? "💾 " + t("saveMeta.saveChangesButton") : "💾 " + t("saveMeta.saveCardButton"));
     if (stale) {
       btnSaveToLibrary.title = "Сначала «Собрать таблицу»: таблица устарела и не соответствует текущему тексту.";
     } else if (!hasTable) {
       btnSaveToLibrary.title = "Сначала сформируйте таблицу (нажмите «Собрать таблицу»).";
+    } else if (unchangedSaved) {
+      btnSaveToLibrary.title = t("saveMeta.savedButtonTitle");
     } else {
       btnSaveToLibrary.title = hasBase
         ? "Обновить исходную карточку (в модалке есть также «Сохранить как новый»)"
@@ -32941,6 +33039,9 @@ function v3GuessTitleFromSourceText(sourceText) {
 function v3SaveMetaEl(id) { return document.getElementById(id); }
 
 let v3SaveMetaSaving = false;
+let v3SaveMetaBoundUpdate = false;
+let v3SaveMetaComplete = false;
+let v3SaveMetaLastReceipt = null;
 
 function v3SaveMetaSetBusy(busy) {
   v3SaveMetaSaving = !!busy;
@@ -32950,7 +33051,33 @@ function v3SaveMetaSetBusy(busy) {
     .forEach(id => { const el = v3SaveMetaEl(id); if (el) el.disabled = v3SaveMetaSaving; });
 }
 
+function v3SaveMetaSetView(view) {
+  const complete = view === "complete";
+  v3SaveMetaComplete = complete;
+  const form = v3SaveMetaEl("v3SaveMetaForm");
+  const receipt = v3SaveMetaEl("v3SaveMetaReceipt");
+  const actions = v3SaveMetaEl("v3SaveMetaCompleteActions");
+  const heading = document.querySelector("#v3SaveMetaModal .v3-modal-title");
+  if (form) form.hidden = complete;
+  if (receipt) receipt.hidden = !complete;
+  if (actions) actions.hidden = !complete;
+  if (heading) heading.textContent = t(complete ? "saveMeta.completeTitle" : "saveMeta.title");
+}
+
+async function v3SaveMetaResolveMode(updateId) {
+  v3SaveMetaBoundUpdate = false;
+  if (!LOCAL_MODE || !updateId || !window.StudioMediaPackage) return false;
+  try {
+    const binding = await window.StudioMediaPackage.browserRepository().getTextBinding(String(updateId));
+    v3SaveMetaBoundUpdate = !!binding;
+  } catch (_) {
+    v3SaveMetaBoundUpdate = false;
+  }
+  return v3SaveMetaBoundUpdate;
+}
+
 function v3SaveMetaSyncMode() {
+  if (v3SaveMetaComplete) return;
   const st = v3SessionGet() || {};
   const updateId = v3SessionGetUpdateTextId();
   const hasUpdate = !!updateId;
@@ -32959,7 +33086,9 @@ function v3SaveMetaSyncMode() {
   const btnAsNew = v3SaveMetaEl("v3SaveMetaSaveAsNewBtn");
 
   if (btnSave) {
-    btnSave.textContent = hasUpdate ? "Обновить" : "Сохранить";
+    btnSave.textContent = v3SaveMetaBoundUpdate
+      ? t("saveMeta.saveBoundVersion")
+      : (hasUpdate ? t("saveMeta.update") : t("saveMeta.save"));
     // When there's no update target, the primary "Save" button IS the
     // create flow — hide the secondary "Save as new" to avoid two buttons
     // doing the same thing.
@@ -32970,7 +33099,7 @@ function v3SaveMetaSyncMode() {
   // overwriting the original. (Premium UX: keep one as canonical, edit
   // the fork.) When there's no update target, the primary Save button
   // already creates a new card — no need to duplicate.
-  if (btnAsNew) btnAsNew.style.display = hasUpdate ? "" : "none";
+  if (btnAsNew) btnAsNew.style.display = hasUpdate && !v3SaveMetaBoundUpdate ? "" : "none";
 
   const stale = !!(typeof tableIsStale !== "undefined" && tableIsStale);
   const canSave = !stale && Array.isArray(currentTableData) && currentTableData.length > 0;
@@ -33017,6 +33146,94 @@ function v3SaveMetaSetStatus(msg, isError) {
   el.className = "v3-help" + (isError ? " v3-error" : "");
 }
 
+function v3SaveMetaReadJson(value) {
+  if (!value) return null;
+  if (typeof value === "object") return value;
+  try { return JSON.parse(String(value)); } catch (_) { return null; }
+}
+
+function v3SaveMetaProviderName(provider) {
+  const key = String(provider || "unknown").toLowerCase();
+  const names = {
+    "google-free": "Google Translate (free)",
+    gcp: "GCP Cloud Translation v3",
+    gemini: "Google Gemini",
+    madlad: "MADLAD-400 (local)",
+  };
+  return names[key] || key;
+}
+
+async function v3SaveMetaBuildReceipt(text) {
+  const modelMeta = v3SaveMetaReadJson(text && (text.table_model_meta_json || text.tableModelMetaJson))
+    || v3LastGeminiMeta || {};
+  const outcome = modelMeta && modelMeta.media_binding_outcome || null;
+  let context = null;
+  try { if (typeof v3ResolveMediaContext === "function") context = await v3ResolveMediaContext(); } catch (_) {}
+  const media = context && context.package || null;
+  const mediaName = String(media && (media.original_name || media.filename) || "").trim();
+  const mediaSha = String(media && media.media_sha256 || outcome && outcome.package_id || "").replace(/^mpkg:/, "");
+  const shortSha = /^[a-f0-9]{64}$/i.test(mediaSha) ? mediaSha.slice(0, 12) + "…" : "";
+  let mediaText = t("saveMeta.mediaNone");
+  const nextActions = [];
+  if (outcome && outcome.status === "bound_verified") {
+    mediaText = t("saveMeta.mediaBoundVerified", { name: mediaName || t("saveMeta.mediaFile"), sha: shortSha || "—" });
+  } else if (outcome && outcome.status === "bound_unverified") {
+    mediaText = t("saveMeta.mediaBoundUnverified", { name: mediaName || t("saveMeta.mediaFile"), sha: shortSha || "—" });
+    nextActions.push(t("saveMeta.mediaVerifyNext"));
+  } else if (outcome && outcome.status === "not_bound") {
+    mediaText = t("saveMeta.mediaNotBound");
+    nextActions.push(t("saveMeta.mediaNotBoundNext"));
+  } else if (media) {
+    mediaText = t("saveMeta.mediaBoundVerified", { name: mediaName || t("saveMeta.mediaFile"), sha: shortSha || "—" });
+  }
+
+  let cacheText = t("saveMeta.cacheNotRecorded");
+  if (v3TableCacheWriteOutcome.status === "stored") cacheText = t("saveMeta.cacheStored");
+  if (v3TableCacheWriteOutcome.status === "failed") {
+    cacheText = t("saveMeta.cacheUnavailable");
+    nextActions.push(t("saveMeta.cacheUnavailableNext"));
+  }
+  const provider = modelMeta && modelMeta.provider || v3LastGeminiMeta && v3LastGeminiMeta.provider || "unknown";
+  return {
+    textId: text && text.id ? String(text.id) : null,
+    title: String(text && text.title || v3SaveMetaEl("v3SaveMetaTitle") && v3SaveMetaEl("v3SaveMetaTitle").value || "—"),
+    rows: Array.isArray(currentTableData) ? currentTableData.length : 0,
+    provider: v3SaveMetaProviderName(provider),
+    media: mediaText,
+    cache: cacheText,
+    savedAt: new Date().toLocaleString(document.documentElement.lang || undefined),
+    next: nextActions.join(" "),
+  };
+}
+
+function v3SaveMetaShowReceipt(receipt) {
+  if (!receipt) return;
+  v3SaveMetaLastReceipt = receipt;
+  const values = {
+    v3SaveMetaReceiptCardTitle: receipt.title,
+    v3SaveMetaReceiptRows: String(receipt.rows),
+    v3SaveMetaReceiptProvider: receipt.provider,
+    v3SaveMetaReceiptMedia: receipt.media,
+    v3SaveMetaReceiptCache: receipt.cache,
+    v3SaveMetaReceiptSavedAt: receipt.savedAt,
+    v3SaveMetaReceiptNext: receipt.next || t("saveMeta.completeNext"),
+  };
+  Object.keys(values).forEach((id) => {
+    const el = v3SaveMetaEl(id);
+    if (el) el.textContent = values[id] || "—";
+  });
+  v3SaveMetaSetStatus(t("saveMeta.completeSummary"), false);
+  v3SaveMetaSetView("complete");
+  try { v3SaveMetaEl("v3SaveMetaReceipt").focus(); } catch (_) {}
+  try { v3UiSyncSaveButtons(); } catch (_) {}
+}
+
+function v3SaveMetaShowFailure(messageKey, nextKey) {
+  const message = t(messageKey || "saveMeta.failed");
+  const next = t(nextKey || "saveMeta.failedNext");
+  v3SaveMetaSetStatus(message + " " + next, true);
+}
+
 function v3SaveMetaShow(open) {
   const m = v3SaveMetaEl("v3SaveMetaModal");
   if (!m) return;
@@ -33026,7 +33243,7 @@ function v3SaveMetaShow(open) {
   if (open) { try { v3SaveMetaSyncMode(); } catch (_) {} }
 }
 
-function v3SaveMetaOpen() {
+async function v3SaveMetaOpen() {
   const sourceText = String(getText() || "").trim();
   if (!sourceText) {
     showToast(t("toast.noSourceTextToSave"), "error");
@@ -33050,6 +33267,14 @@ try { v3UiSyncSaveButtons(); } catch (_) {}
   // гарантируем единый enum уровней (и для новой модалки тоже)
   try { v3InitLevelEnumUi(); } catch (_) {}
 
+  v3SaveMetaSetView("edit");
+  v3SaveMetaLastReceipt = null;
+  const updateId = v3SessionGetUpdateTextId();
+  await v3SaveMetaResolveMode(updateId);
+  let existing = null;
+  if (LOCAL_MODE && updateId) {
+    try { existing = await (await ensureLocalDB()).getTextById(String(updateId)); } catch (_) {}
+  }
   const def = v3LoadSaveMetaDefaults();
   const titleGuess = v3GuessTitleFromSourceText(sourceText);
 
@@ -33059,13 +33284,16 @@ try { v3UiSyncSaveButtons(); } catch (_) {}
   const sourceEl = v3SaveMetaEl("v3SaveMetaSource");
   const topicEl = v3SaveMetaEl("v3SaveMetaTopic");
 
-  if (titleEl) titleEl.value = titleGuess;
-  if (levelEl) levelEl.value = String(def.level || "");
-  if (tagsEl) tagsEl.value = "";
-  if (sourceEl) sourceEl.value = String(def.source || "");
-  if (topicEl) topicEl.value = String(def.topic || "");
+  if (titleEl) titleEl.value = String(existing && existing.title || titleGuess || "");
+  if (levelEl) levelEl.value = String(existing && existing.level || def.level || "");
+  if (tagsEl) {
+    const existingTags = v3SaveMetaReadJson(existing && existing.tags_json);
+    tagsEl.value = Array.isArray(existingTags) ? existingTags.join(", ") : "";
+  }
+  if (sourceEl) sourceEl.value = String(existing && existing.source || def.source || "");
+  if (topicEl) topicEl.value = String(existing && existing.topic || def.topic || "");
 
-  v3SaveMetaSetStatus("", false);
+  v3SaveMetaSetStatus(v3SaveMetaBoundUpdate ? t("saveMeta.boundVersionNote") : "", false);
   v3SaveMetaShow(true);
   try { v3SaveMetaSyncMode(); } catch (_) {}
 
@@ -33075,11 +33303,36 @@ try { v3UiSyncSaveButtons(); } catch (_) {}
 function v3SaveMetaClose() {
   if (v3SaveMetaSaving) return;
   v3SaveMetaSetStatus("", false);
+  v3SaveMetaSetView("edit");
+  v3SaveMetaBoundUpdate = false;
   v3SaveMetaShow(false);
+}
+
+function v3SaveMetaDone() {
+  v3SaveMetaClose();
+  try { document.getElementById("v3ActiveTextHeader").focus(); } catch (_) {}
+}
+
+function v3SaveMetaOpenLibrary() {
+  v3SaveMetaClose();
+  try { v3LibraryOpen(); } catch (_) {}
+}
+
+function v3SaveMetaOpenTransfer() {
+  const textId = v3SaveMetaLastReceipt && v3SaveMetaLastReceipt.textId;
+  v3SaveMetaClose();
+  try {
+    if (window.StudioPortableLearningPackage && typeof window.StudioPortableLearningPackage.openForText === "function" && textId) {
+      window.StudioPortableLearningPackage.openForText(textId);
+    } else if (window.StudioPortableLearningPackage) {
+      window.StudioPortableLearningPackage.open({ view: "overview", textId: textId || null });
+    }
+  } catch (_) {}
 }
 
 async function v3SaveMetaSave() {
   v3SaveMetaSetBusy(true);
+  let receipt = null;
 
   try {
     const sourceText = String(getText() || "").trim();
@@ -33103,13 +33356,13 @@ async function v3SaveMetaSave() {
         title = guessed;
         if (titleEl) titleEl.value = title;
       } else {
-        v3SaveMetaSetStatus("Title обязателен.", true);
+        v3SaveMetaSetStatus(t("saveMeta.titleRequired"), true);
         try { if (titleEl) titleEl.focus(); } catch (_) {}
         return;
       }
     }
 
-    v3SaveMetaSetStatus("Сохранение...", false);
+    v3SaveMetaSetStatus(t("saveMeta.saving"), false);
 
     const meta = {
       title,
@@ -33125,7 +33378,11 @@ async function v3SaveMetaSave() {
 
     let text = null;
 
-    if (updateId && hasBase) {
+    if (v3SaveMetaBoundUpdate) {
+      // Media-bound cards are immutable material history. A changed draft becomes an
+      // explicit new version; the forbidden destructive update is never offered.
+      text = await v3LibrarySaveCurrentCore(Object.assign({}, meta, { allowDuplicateMedia: true }));
+    } else if (updateId && hasBase) {
       // Direction 6: native confirm → v3ConfirmModal (premium UX).
       const _smt = (typeof window.t === "function") ? window.t : function(k){return k;};
       const ok = await v3ConfirmModal({
@@ -33143,23 +33400,25 @@ async function v3SaveMetaSave() {
     }
 
     if (!text) {
-      v3SaveMetaSetStatus("Не удалось сохранить (см. toast/console).", true);
+      v3SaveMetaShowFailure("saveMeta.failed", "saveMeta.failedNext");
       return;
     }
 
     v3StoreSaveMetaDefaults({ level, source, topic });
-    v3SaveMetaClose();
+    receipt = await v3SaveMetaBuildReceipt(text);
   } catch (e) {
     console.error("[v3SaveMetaSave] error:", e);
-    v3SaveMetaSetStatus("Ошибка сохранения (см. console).", true);
+    v3SaveMetaShowFailure("saveMeta.failed", "saveMeta.failedNext");
   } finally {
     v3SaveMetaSetBusy(false);
-    try { v3SaveMetaSyncMode(); } catch (_) {}
+    if (receipt) v3SaveMetaShowReceipt(receipt);
+    else try { v3SaveMetaSyncMode(); } catch (_) {}
   }
 }
 
 async function v3SaveMetaSaveAsNew() {
   v3SaveMetaSetBusy(true);
+  let receipt = null;
 
   try {
     if (typeof tableIsStale !== "undefined" && tableIsStale) {
@@ -33192,13 +33451,19 @@ async function v3SaveMetaSaveAsNew() {
       } catch (_) {}
 
       showToast(t("toast.savedAsNew"), "success");
-      v3SaveMetaClose();
+      receipt = await v3SaveMetaBuildReceipt(text);
       try { v3UiUpdateActiveHeader(); } catch (_) {}
       try { v3UiSyncSaveButtons(); } catch (_) {}
+    } else {
+      v3SaveMetaShowFailure("saveMeta.failed", "saveMeta.failedNext");
     }
+  } catch (e) {
+    console.error("[v3SaveMetaSaveAsNew] error:", e);
+    v3SaveMetaShowFailure("saveMeta.failed", "saveMeta.failedNext");
   } finally {
     v3SaveMetaSetBusy(false);
-    try { v3SaveMetaSyncMode(); } catch (_) {}
+    if (receipt) v3SaveMetaShowReceipt(receipt);
+    else try { v3SaveMetaSyncMode(); } catch (_) {}
   }
 }
 
@@ -33207,6 +33472,9 @@ window.v3SaveMetaOpen = v3SaveMetaOpen;
 window.v3SaveMetaClose = v3SaveMetaClose;
 window.v3SaveMetaSave = v3SaveMetaSave;
 window.v3SaveMetaSaveAsNew = v3SaveMetaSaveAsNew;
+window.v3SaveMetaDone = v3SaveMetaDone;
+window.v3SaveMetaOpenLibrary = v3SaveMetaOpenLibrary;
+window.v3SaveMetaOpenTransfer = v3SaveMetaOpenTransfer;
 
 // init once (script is after DOM)
 try { v3InitLevelEnumUi(); } catch (_) {}
@@ -34624,8 +34892,12 @@ try { v3DashCloseViewMenu(); } catch (_) {}
                 createdAt: new Date().toISOString(),
                 lastDocxFilename: lastDocxFilename,
             });
+            v3TableCacheWriteOutcome = cacheWrite.stored
+                ? { status: "stored", error_code: null, recorded_at: new Date().toISOString() }
+                : { status: "failed", error_code: cacheWrite.error_code || "TABLE_CACHE_WRITE_FAILED", recorded_at: new Date().toISOString() };
             if (!cacheWrite.stored) {
                 console.warn("[local-mt] optional table cache write skipped:", cacheWrite.error_code);
+                try { showToast(t("saveMeta.cacheUnavailableNext"), "warning"); } catch (_) {}
             }
             setResultsMetaWithProvenance({ provenance: {
                 provider: "madlad", actual_provider: "madlad",
@@ -34674,6 +34946,12 @@ try { v3DashCloseViewMenu(); } catch (_) {}
                     Array.isArray(cache.rows) &&
                     cache.rows.length > 0
                 ) {
+                    // A provider-specific cache hit is still a new table result. Do not leave
+                    // the previously opened card in terminal "Saved" state or the new version
+                    // becomes impossible to save.
+                    try { v3SessionMarkDraft(); } catch (_) {}
+                    try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
+                    try { if (window.v3ClearActiveTextId) window.v3ClearActiveTextId(); } catch (_) {}
                     currentTableData = cache.rows;
                     lastDocxFilename = cache.lastDocxFilename || generateDocxFileName();
 
@@ -34890,7 +35168,7 @@ try {
                         createdAt: new Date().toISOString(),
                         lastDocxFilename: lastDocxFilename
                     };
-                    localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify(cache));
+                    v3NotifyTableCacheOutcome(v3StoreTableCache(cache));
                 } catch (e) {
                     console.error("Table cache save error", e);
                 }
@@ -35040,12 +35318,10 @@ try {
         clearTableStale();
         tableIsStale = false;
         lastDocxFilename = generateDocxFileName();
-        try {
-            localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify({
-                text: getText().trim(), provider, rows: currentTableData,
-                createdAt: new Date().toISOString(), lastDocxFilename,
-            }));
-        } catch (e) { console.error("Table cache save error", e); }
+        v3NotifyTableCacheOutcome(v3StoreTableCache({
+            text: getText().trim(), provider, rows: currentTableData,
+            createdAt: new Date().toISOString(), lastDocxFilename,
+        }));
         setResultsMeta("table", t("classic.tableChunkedDone").replace("{m}", String(chunks.length)));
         loadStats();
         schedulePremiumStatusRefresh();
@@ -35471,12 +35747,10 @@ try {
         clearTableStale();
         tableIsStale = false;
         lastDocxFilename = generateDocxFileName();
-        try {
-            localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify({
-                text: getText().trim(), provider: "gemini", rows: currentTableData,
-                createdAt: new Date().toISOString(), lastDocxFilename: lastDocxFilename,
-            }));
-        } catch (e) { console.error("Table cache save error", e); }
+        v3NotifyTableCacheOutcome(v3StoreTableCache({
+            text: getText().trim(), provider: "gemini", rows: currentTableData,
+            createdAt: new Date().toISOString(), lastDocxFilename: lastDocxFilename,
+        }));
         setResultsMeta("table", t("classic.tableChunkedDone").replace("{m}", String(chunks.length)));
         v3TableJobHudUpdate("done", { chunk: chunks.length, chunks: chunks.length, attempt: 1, attempts: 2,
             readyRows: currentTableData.length, totalRows: Math.max(jobTotalRows, currentTableData.length),
