@@ -97,7 +97,9 @@
         original_name: mediaSrc.originalName || captionMeta.fileName || null,
         opfs_path: mediaSrc.opfsPath || null, size_bytes: mediaSrc.sizeBytes == null ? null : Number(mediaSrc.sizeBytes),
         session_only: !!mediaSrc.sessionOnly,
-        external_ref: passport.video || holder.video || null,
+        external_ref: mediaSrc.compatibility
+          ? { compatibility: copy(mediaSrc.compatibility), source: passport.video || holder.video || null }
+          : (passport.video || holder.video || null),
       },
       segments: segments,
       provenance: {

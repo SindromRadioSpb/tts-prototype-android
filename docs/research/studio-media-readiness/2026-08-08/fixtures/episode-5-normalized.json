@@ -1,0 +1,25 @@
+{
+  "schema": "media-readiness-fixture-v1",
+  "target_contract": "linguistpro-mobile-v1",
+  "cases": [
+    {
+      "name": "episode-5-original",
+      "expected": "LOSSLESS_REPAIR",
+      "container": "mp4",
+      "faststart": false,
+      "video": { "codec": "h264", "profile": "Main", "level": 62, "pixel_format": "yuv420p", "width": 1280, "height": 720, "fps": 50 },
+      "audio": { "codec": "aac", "profile": "HE-AAC", "sample_rate": 44100, "channels": 2 },
+      "bounded_decode": true,
+      "expected_plan": { "mode": "lossless_repair", "video_encoder": null, "audio_encoder": null }
+    },
+    {
+      "name": "episode-5-level-3.2-copy",
+      "expected": "READY",
+      "container": "mp4",
+      "faststart": true,
+      "video": { "codec": "h264", "profile": "Main", "level": 32, "pixel_format": "yuv420p", "width": 1280, "height": 720, "fps": 50 },
+      "audio": { "codec": "aac", "profile": "HE-AAC", "sample_rate": 44100, "channels": 2 },
+      "bounded_decode": true
+    }
+  ]
+}

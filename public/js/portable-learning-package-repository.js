@@ -223,7 +223,7 @@
         if (existingPackage && String(existingPackage.media_sha256 || '') !== String(manifest.media.sha256 || '')) throw failure('MEDIA_PACKAGE_ID_CONFLICT');
         if (!existingPackage) {
           await r(`INSERT INTO studio_media_packages(package_id,media_sha256,mime,duration_ms,original_name,opfs_path,size_bytes,external_ref_json,created_at,updated_at,deleted_at)
-            VALUES(?,?,?,?,?,NULL,?,?,?, ?,NULL)`, [packageId, manifest.media.sha256 || null, manifest.media.mime || null, manifest.media.duration_ms == null ? null : manifest.media.duration_ms, p.media_ref.original_name || null, manifest.media.size_bytes == null ? null : manifest.media.size_bytes, json({ schema: 'portable-media-ref-v2', missing_media: !!manifest.media.sha256 }), ts, ts]);
+            VALUES(?,?,?,?,?,NULL,?,?,?, ?,NULL)`, [packageId, manifest.media.sha256 || null, manifest.media.mime || null, manifest.media.duration_ms == null ? null : manifest.media.duration_ms, p.media_ref.original_name || null, manifest.media.size_bytes == null ? null : manifest.media.size_bytes, json({ schema: 'portable-media-ref-v2', missing_media: !!manifest.media.sha256, compatibility: manifest.media.compatibility || null }), ts, ts]);
           created.package = true;
         }
         inject(options.fault_inject, 'after_package');
@@ -602,7 +602,7 @@
         b.track_id AS binding_track_id,b.revision_id AS binding_revision_id,b.revision_sha256 AS binding_revision_sha256,
         ct.current_revision_id AS caption_current_revision_id,ct.draft_json AS caption_draft_json,cr.canonical_sha256 AS caption_current_sha256,
         br.track_id AS bound_revision_track_id,br.canonical_sha256 AS bound_revision_actual_sha256,
-        p.media_sha256,p.opfs_path,p.mime,p.size_bytes,p.duration_ms,p.original_name,
+        p.media_sha256,p.opfs_path,p.mime,p.size_bytes,p.duration_ms,p.original_name,p.external_ref_json,
         (SELECT rr.canonical_sha256 FROM studio_caption_tracks rt JOIN studio_caption_revisions rr ON rr.revision_id=rt.current_revision_id WHERE rt.package_id=m.package_id AND rt.role='raw_original' ORDER BY rt.updated_at DESC LIMIT 1) AS raw_revision_sha256,
         (SELECT rt.track_id FROM studio_caption_tracks rt WHERE rt.package_id=m.package_id AND rt.role='raw_original' ORDER BY rt.updated_at DESC LIMIT 1) AS raw_track_id
         FROM studio_learning_materials m JOIN texts t ON t.id=m.text_id
@@ -633,7 +633,7 @@
           caption_raw_present:!!row.raw_track_id,caption_current_revision_id:row.caption_current_revision_id||row.binding_revision_id||null,caption_current_sha256:row.caption_current_sha256||row.binding_revision_sha256||null,caption_draft_present:!!String(row.caption_draft_json||'').trim(),
           table_current_revision_id:row.current_table_revision_id||null,table_content_sha256:row.table_content_sha256||null,table_mapping_sha256:row.table_mapping_sha256||null,table_bound_caption_revision_id:row.bound_caption_revision_id||null,table_bound_caption_revision_sha256:row.bound_caption_revision_sha256||null,
           mapping_total:Number(mapping.total||0),mapping_mapped:Number(mapping.mapped||0),mapping_invalid:!!bindingConflict,
-          media_expected_sha256:row.media_sha256||null,media_actual_sha256:row.media_sha256||null,media_present:!!row.opfs_path,media_codec_supported:null,mime:row.mime||null,size_bytes:row.size_bytes==null?null:Number(row.size_bytes),duration_ms:row.duration_ms==null?null:Number(row.duration_ms),original_name:row.original_name||null,
+          media_expected_sha256:row.media_sha256||null,media_actual_sha256:row.media_sha256||null,media_present:!!row.opfs_path,media_codec_supported:(()=>{const x=parse(row.external_ref_json,null),c=x&&x.compatibility;return c&&c.outcome==='READY'?true:c&&c.outcome?false:null;})(),mime:row.mime||null,size_bytes:row.size_bytes==null?null:Number(row.size_bytes),duration_ms:row.duration_ms==null?null:Number(row.duration_ms),original_name:row.original_name||null,
           import_integrity_state:integrity,import_receipt_id:receipt&&receipt.receipt_id||null,
         };
         item.source_state_sha256=await importCore.sourceStateHash({portable_scope_id:portableScope,caption_sha256:item.caption_current_sha256,table_content_sha256:item.table_content_sha256,table_mapping_sha256:item.table_mapping_sha256,media_sha256:item.media_expected_sha256});
@@ -646,7 +646,7 @@
       const unpromoted=await q(`SELECT t.id AS text_id,t.text_key AS portable_text_key,t.title,t.is_archived,t.created_at,
         b.package_id,b.track_id AS binding_track_id,b.revision_id AS binding_revision_id,b.revision_sha256 AS binding_revision_sha256,
         ct.current_revision_id AS caption_current_revision_id,ct.draft_json AS caption_draft_json,cr.canonical_sha256 AS caption_current_sha256,
-        p.media_sha256,p.opfs_path,p.mime,p.size_bytes,p.duration_ms,p.original_name,
+        p.media_sha256,p.opfs_path,p.mime,p.size_bytes,p.duration_ms,p.original_name,p.external_ref_json,
         (SELECT rt.track_id FROM studio_caption_tracks rt WHERE rt.package_id=b.package_id AND rt.role='raw_original' ORDER BY rt.updated_at DESC LIMIT 1) AS raw_track_id
         FROM studio_text_media_bindings b
         JOIN texts t ON t.id=b.text_id
@@ -663,7 +663,7 @@
           caption_raw_present:!!row.raw_track_id,caption_current_revision_id:row.caption_current_revision_id||row.binding_revision_id||null,caption_current_sha256:row.caption_current_sha256||row.binding_revision_sha256||null,caption_draft_present:!!String(row.caption_draft_json||'').trim(),
           table_current_revision_id:null,table_content_sha256:null,table_mapping_sha256:null,table_bound_caption_revision_id:null,table_bound_caption_revision_sha256:null,
           mapping_total:0,mapping_mapped:0,mapping_invalid:false,
-          media_expected_sha256:row.media_sha256||null,media_actual_sha256:row.media_sha256||null,media_present:!!row.opfs_path,media_codec_supported:null,mime:row.mime||null,size_bytes:row.size_bytes==null?null:Number(row.size_bytes),duration_ms:row.duration_ms==null?null:Number(row.duration_ms),original_name:row.original_name||null,
+          media_expected_sha256:row.media_sha256||null,media_actual_sha256:row.media_sha256||null,media_present:!!row.opfs_path,media_codec_supported:(()=>{const x=parse(row.external_ref_json,null),c=x&&x.compatibility;return c&&c.outcome==='READY'?true:c&&c.outcome?false:null;})(),mime:row.mime||null,size_bytes:row.size_bytes==null?null:Number(row.size_bytes),duration_ms:row.duration_ms==null?null:Number(row.duration_ms),original_name:row.original_name||null,
           import_integrity_state:'not-promoted',import_receipt_id:null,
         };
         item.source_state_sha256=await importCore.sourceStateHash({portable_scope_id:scope,caption_sha256:item.caption_current_sha256,table_content_sha256:null,table_mapping_sha256:null,media_sha256:item.media_expected_sha256});
@@ -737,7 +737,7 @@
         tts_profile: null, text_audio_asset_key: null, source_meta: null, table_model_meta: null, passport_in: null,
       } };
       return {
-        package: { package_id: pkg.package_id, media_sha256: pkg.media_sha256 || null, mime: pkg.mime || null, duration_ms: pkg.duration_ms == null ? null : Number(pkg.duration_ms), original_name: pkg.original_name || null, size_bytes: pkg.size_bytes == null ? null : Number(pkg.size_bytes) },
+        package: { package_id: pkg.package_id, media_sha256: pkg.media_sha256 || null, mime: pkg.mime || null, duration_ms: pkg.duration_ms == null ? null : Number(pkg.duration_ms), original_name: pkg.original_name || null, size_bytes: pkg.size_bytes == null ? null : Number(pkg.size_bytes), codec_hint: ((parse(pkg.external_ref_json, null) || {}).compatibility || {}).codec_hint || null, compatibility: (parse(pkg.external_ref_json, null) || {}).compatibility || null },
         raw_track: { track_id: rawTrack.track_id, role: rawTrack.role, language: rawTrack.language || null, current_revision_id: rawTrack.current_revision_id }, raw_revisions: rawRevisions,
         corrected_track: { track_id: correctedTrack.track_id, role: correctedTrack.role, language: correctedTrack.language || null, parent_track_id: correctedTrack.parent_track_id || null, current_revision_id: correctedTrack.current_revision_id }, corrected_revisions: correctedRevisions,
         material: { material_id: material.material_id, text_id: material.text_id, portable_text_key: material.portable_text_key || material.text_key, current_table_revision_id: material.current_table_revision_id, package_id: material.package_id }, table_revisions: tableRevisions,

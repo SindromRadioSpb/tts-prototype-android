@@ -104,6 +104,22 @@
     return data;
   };
 
+  Client.prototype._rawRequest = async function (path, options) {
+    var token = String(this.tokenProvider() || "");
+    if (token.length < 32) throw LocalAsrError("LOCAL_ASR_PAIRING_REQUIRED", "Pairing token required");
+    var opts = Object.assign({ method: "GET", cache: "no-store", credentials: "omit", redirect: "error" }, options || {});
+    opts.headers = Object.assign({}, opts.headers || {}, { authorization: "Bearer " + token });
+    var response;
+    try { response = await this.fetchFn(BASE_URL + path, opts); }
+    catch (error) { throw LocalAsrError("LOCAL_ASR_UNAVAILABLE", error && error.message); }
+    if (!response.ok) {
+      var detail = null;
+      try { detail = await response.json(); } catch (_) {}
+      throw LocalAsrError("LOCAL_ASR_HTTP_" + response.status, String(detail && (detail.detail || detail.error) || "Local media request failed"), response.status, detail);
+    }
+    return response;
+  };
+
   Client.prototype.capabilities = function () { return this._request("/v1/capabilities"); };
   Client.prototype.modelStatus = function () { return this._request("/v1/asr/model/status?verify_hash=true"); };
   Client.prototype.preflight = function () { return this._request("/v1/companion/preflight"); };
@@ -158,6 +174,48 @@
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ chunk_indexes: chunkIndexes, reason: reason }),
     });
+  };
+
+  Client.prototype.createMediaJob = function (file) {
+    return this._request("/v1/media/jobs?filename=" + encodeURIComponent(file && file.name || "media"), {
+      method: "POST",
+      headers: { "content-type": file && file.type || "application/octet-stream" },
+      body: file,
+    });
+  };
+  Client.prototype.getMediaJob = function (id) { return this._request("/v1/media/jobs/" + encodeURIComponent(id)); };
+  Client.prototype.prepareMediaJob = function (id, mode, planSha256) {
+    return this._request("/v1/media/jobs/" + encodeURIComponent(id) + "/prepare", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ mode: mode, plan_sha256: planSha256 }),
+    });
+  };
+  Client.prototype.cancelMediaJob = function (id) {
+    return this._request("/v1/media/jobs/" + encodeURIComponent(id) + "/cancel", { method: "POST" });
+  };
+  Client.prototype.deleteMediaJob = function (id) {
+    return this._request("/v1/media/jobs/" + encodeURIComponent(id), { method: "DELETE" });
+  };
+  Client.prototype.mediaReport = function (id) { return this._request("/v1/media/jobs/" + encodeURIComponent(id) + "/report"); };
+  Client.prototype.mediaFile = async function (id) {
+    var response = await this._rawRequest("/v1/media/jobs/" + encodeURIComponent(id) + "/file");
+    return response.blob();
+  };
+  Client.prototype.waitForMediaJob = async function (id, options, initial) {
+    var opts = options || {}, onStatus = typeof opts.onStatus === "function" ? opts.onStatus : function () {};
+    var cancelSent = false;
+    if (initial) onStatus(initial);
+    while (true) {
+      if (opts.signal && opts.signal.aborted && !cancelSent) {
+        cancelSent = true;
+        onStatus(await this.cancelMediaJob(id));
+      }
+      var job = await this.getMediaJob(id);
+      onStatus(job);
+      if (["COMPLETE", "WAITING_FOR_DECISION", "BLOCKED"].indexOf(job.state) >= 0) return job;
+      if (["FAILED", "CANCELED"].indexOf(job.state) >= 0) throw LocalAsrError("MEDIA_JOB_" + job.state, job.error || job.state, null, job);
+      await this.wait(500);
+    }
   };
 
   Client.prototype.waitForJob = async function (id, options, initial) {

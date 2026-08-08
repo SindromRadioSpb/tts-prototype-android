@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.341";
+const CACHE_VERSION = "v3.11.342";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -133,6 +133,7 @@ const PRECACHE_URLS = [
   // L1-D default-off local companion adapter; inert without explicit browser-local opt-in.
   "/js/local-asr-normalizer.js",
   "/js/local-asr-client.js",
+  "/js/media-readiness.js",
   "/js/local-asr-onboarding.js",
   "/js/local-mt-client.js",
   "/js/local-mt-table.js",

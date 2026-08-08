@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from typing import Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
 from . import config
@@ -24,6 +24,7 @@ from .mt_model_install import mt_model_install_manager
 from .mt_model_store import inspect_mt_model
 from .companion_model import delete_all_jobs, model_install_manager
 from .companion_preflight import preflight_report
+from .media_jobs import MediaJobConflict, MediaJobManager, MediaJobNotFound
 from .security import (
     loopback_security_middleware,
     require_browser_auth,
@@ -34,6 +35,7 @@ from .state import ModelSlot, registry
 from .telemetry import sample_nvidia
 
 log = logging.getLogger(__name__)
+media_job_manager = MediaJobManager(config.STATE_DIR / "media-jobs")
 
 
 def _build_nakdan_slot() -> ModelSlot:
@@ -222,6 +224,11 @@ class MtJobRequest(BaseModel):
     segments: list[MtSegmentIn] = Field(..., min_length=1, max_length=120)
 
 
+class MediaPrepareRequest(BaseModel):
+    mode: str = Field(..., pattern=r"^(lossless_repair|transcode)$")
+    plan_sha256: str = Field(..., pattern=r"^[a-f0-9]{64}$")
+
+
 # ---------- endpoints ----------
 
 
@@ -242,7 +249,98 @@ async def v1_capabilities():
             "model": mt_model_identity(),
             "protocol": MT_PROTOCOL_VERSION,
         },
+        "media_readiness": {
+            "enabled": True,
+            "default": False,
+            "auth_required": True,
+            "target_contract": "linguistpro-mobile-v1",
+            "max_bytes": media_job_manager.MAX_BYTES,
+            "automatic_prepare": False,
+        },
     }
+
+
+@app.post("/v1/media/jobs", status_code=202, dependencies=[Depends(require_companion_auth)])
+async def v1_media_create_job(request: Request, filename: str = "media"):
+    raw_length = request.headers.get("content-length")
+    try:
+        content_length = int(raw_length) if raw_length is not None else None
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="invalid Content-Length") from exc
+    if content_length is not None and content_length > media_job_manager.MAX_BYTES:
+        raise HTTPException(status_code=413, detail="media exceeds 300 MiB")
+    try:
+        return await media_job_manager.create(
+            request.stream(), filename=filename,
+            content_type=request.headers.get("content-type") or "application/octet-stream",
+        )
+    except MediaJobConflict as exc:
+        status = 413 if "300 MiB" in str(exc) else 429
+        raise HTTPException(status_code=status, detail=str(exc)) from exc
+
+
+@app.get("/v1/media/jobs/{job_id}", dependencies=[Depends(require_companion_auth)])
+async def v1_media_job_status(job_id: str):
+    try:
+        return media_job_manager.get(job_id)
+    except MediaJobNotFound as exc:
+        raise HTTPException(status_code=404, detail="media job not found") from exc
+
+
+@app.post("/v1/media/jobs/{job_id}/prepare", status_code=202, dependencies=[Depends(require_companion_auth)])
+async def v1_media_job_prepare(job_id: str, body: MediaPrepareRequest):
+    try:
+        return await media_job_manager.prepare(job_id, mode=body.mode, plan_sha256=body.plan_sha256)
+    except MediaJobNotFound as exc:
+        raise HTTPException(status_code=404, detail="media job not found") from exc
+    except MediaJobConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.post("/v1/media/jobs/{job_id}/cancel", dependencies=[Depends(require_companion_auth)])
+async def v1_media_job_cancel(job_id: str):
+    try:
+        return await media_job_manager.cancel(job_id)
+    except MediaJobNotFound as exc:
+        raise HTTPException(status_code=404, detail="media job not found") from exc
+
+
+@app.get("/v1/media/jobs/{job_id}/file", dependencies=[Depends(require_companion_auth)])
+async def v1_media_job_file(job_id: str):
+    try:
+        path = media_job_manager.file_path(job_id)
+        manifest = media_job_manager.get(job_id)
+        return FileResponse(path, media_type="video/mp4", filename=manifest.get("output_name") or "mobile-ready.mp4")
+    except MediaJobNotFound as exc:
+        raise HTTPException(status_code=404, detail="media job not found") from exc
+    except MediaJobConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.get("/v1/media/jobs/{job_id}/report", dependencies=[Depends(require_companion_auth)])
+async def v1_media_job_report(job_id: str):
+    try:
+        manifest = media_job_manager.get(job_id)
+        return {
+            "job_id": job_id,
+            "state": manifest.get("state"),
+            "source_sha256": manifest.get("source_sha256"),
+            "output_sha256": manifest.get("output_sha256"),
+            "report": manifest.get("report"),
+            "verification": manifest.get("verification"),
+        }
+    except MediaJobNotFound as exc:
+        raise HTTPException(status_code=404, detail="media job not found") from exc
+
+
+@app.delete("/v1/media/jobs/{job_id}", dependencies=[Depends(require_companion_auth)])
+async def v1_media_job_delete(job_id: str):
+    try:
+        return await media_job_manager.delete(job_id)
+    except MediaJobNotFound as exc:
+        raise HTTPException(status_code=404, detail="media job not found") from exc
+    except MediaJobConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 @app.get("/v1/mt/model/status", dependencies=[Depends(require_mt_browser_auth)])

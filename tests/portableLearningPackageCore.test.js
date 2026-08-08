@@ -47,6 +47,18 @@ test('snapshot is canonical, media-free and independent from local text/sentence
   assert.ok(verified.graph.edges.some((edge) => edge.relation === 'bound_to_revision'));
 });
 
+test('verified codec state is metadata-only and media bytes remain absent', async () => {
+  const input = fixture();
+  input.package.codec_hint = 'avc1.4D0020,mp4a.40.5';
+  input.package.compatibility = { contract: 'linguistpro-mobile-v1', outcome: 'READY', canonical_sha256: input.package.media_sha256, codec_hint: input.package.codec_hint, codec_summary: { video_codec: 'h264', declared_level: 32 } };
+  const files = await Core.buildPackageFiles(input, { mode: 'snapshot' });
+  const verified = await Core.verifyPackageFiles(files);
+  assert.deepEqual(verified.manifest.media.codec_hint, input.package.codec_hint);
+  assert.deepEqual(verified.payload.media_ref.codec_hint, input.package.codec_hint);
+  assert.deepEqual(verified.manifest.media.compatibility, input.package.compatibility);
+  assert.equal(Object.keys(files).some((name) => /^source\/media\//.test(name)), false);
+});
+
 test('archive is history-complete and preserves immutable field authority/mapping', async () => {
   const input = fixture();
   const files = await Core.buildPackageFiles(input, { mode: 'archive' });

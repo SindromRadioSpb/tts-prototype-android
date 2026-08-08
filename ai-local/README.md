@@ -177,6 +177,13 @@ curl http://127.0.0.1:8799/healthz
 | POST | `/v1/asr/jobs/{id}/audio-stream` | Resolve an ambiguous multi-audio source explicitly |
 | GET  | `/v1/asr/jobs/{id}/result` | Read the raw provider result |
 | DELETE | `/v1/asr/jobs/{id}`       | Explicitly delete job artifacts and return a receipt |
+| POST | `/v1/media/jobs` | Stream one video into read-only compatibility preflight |
+| GET | `/v1/media/jobs/{id}` | Read deterministic verdict, plan, progress and disk estimate |
+| POST | `/v1/media/jobs/{id}/prepare` | Explicitly approve the exact hash-bound lossless repair or transcode plan |
+| POST | `/v1/media/jobs/{id}/cancel` | Cancel the bounded local media operation |
+| GET | `/v1/media/jobs/{id}/file` | Download only the verified prepared MP4 copy |
+| GET | `/v1/media/jobs/{id}/report` | Read metadata-only `media-compat-report-v1` evidence |
+| DELETE | `/v1/media/jobs/{id}` | Delete the local source/output/temp job closure |
 
 Request/response schemas are in `ai_local/main.py`.
 
@@ -203,6 +210,13 @@ for an explicit stream choice. `ffmpeg` materializes 16 kHz mono PCM on a 900-se
 cadence with 30 seconds of left overlap. Checkpoints are hash-bound, restart-resumable, automatically
 expire after 24 hours, and can be explicitly deleted with a receipt. MADLAD and ASR share
 one exclusive heavy-GPU residency slot; the ASR worker is unloaded after five idle minutes.
+
+Media Readiness uses the same bearer token, allowed Origin and loopback-only boundary, but it does
+not require ASR to be enabled and never calls a provider. Probe begins only after the browser sends
+the selected file to `127.0.0.1`; repair/transcode requires a second request containing the exact
+immutable `plan_sha256`. The original is retained, output is written to a partial path and exposed
+only after post-probe/decode verification. Media jobs expire after 24 hours. There is one active
+slot and at most one queued/waiting job; this is not a batch queue.
 
 ## Tests
 

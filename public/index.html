@@ -3595,6 +3595,18 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .v3-import-file-btn:active { transform: translateY(1px); }
 #v3ImportAudioInfo { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 #v3ImportAudioInfo[hidden] { display: none; } /* [hidden] vs author-display trap — see feedback_hidden_attr_vs_display */
+.v3-media-readiness { flex:1 0 100%; box-sizing:border-box; padding:12px; border:1px solid var(--theme-border-soft,#d9dee5); border-radius:10px; background:var(--theme-bg-hover); }
+.v3-media-readiness[hidden], .v3-media-readiness [hidden] { display:none; }
+.v3-media-readiness-head { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.v3-media-readiness-badge { font-weight:800; color:#79540a; }
+.v3-media-readiness-badge[data-outcome="READY"] { color:#075e55; }
+.v3-media-readiness-badge[data-outcome="BLOCKED"] { color:#8e2f23; }
+.v3-media-readiness-contract { font:700 10px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace; color:var(--theme-text-secondary,#5b6873); }
+.v3-media-readiness-detail,.v3-media-readiness-estimate,.v3-media-device-result { margin-top:6px; font-size:12px; line-height:1.4; overflow-wrap:anywhere; }
+.v3-media-readiness progress { width:100%; margin-top:8px; }
+.v3-media-readiness-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.v3-media-device-result[data-pass="true"] { color:#075e55; }
+.v3-media-device-result[data-pass="false"] { color:#8e2f23; }
 .v3-local-asr-provider { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:8px; margin:8px 0; }
 .v3-local-asr-provider[hidden], .v3-local-asr-setup[hidden] { display:none; }
 .v3-local-asr-setup { margin:8px 0; padding:9px; border:1px solid var(--theme-border-soft,#d9dee5); border-radius:8px; }
@@ -12889,9 +12901,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=130"></script>
-    <script src="/i18n/locales/en.js?v=130"></script>
-    <script src="/i18n/locales/he.js?v=130"></script>
+    <script src="/i18n/locales/ru.js?v=134"></script>
+    <script src="/i18n/locales/en.js?v=134"></script>
+    <script src="/i18n/locales/he.js?v=134"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -12977,6 +12989,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      experimental flag is enabled; Gemini remains the product default and is never fallback. -->
 <script src="/js/local-asr-normalizer.js"></script>
 <script src="/js/local-asr-client.js"></script>
+<script src="/js/media-readiness.js"></script>
 <script src="/js/local-asr-onboarding.js"></script>
 <script src="/js/local-mt-client.js"></script>
 <script src="/js/local-mt-table.js"></script>
@@ -13062,7 +13075,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.341";
+    window.APP_VERSION = "3.11.342";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -49230,6 +49243,26 @@ document.addEventListener("i18n:changed", function () {
           </label>
           <div id="v3ImportAudioInfo" hidden>
             <span id="v3ImportAudioMeta"></span>
+            <section id="v3ImportMediaReadiness" class="v3-media-readiness" hidden aria-live="polite">
+              <div class="v3-media-readiness-head">
+                <span id="v3ImportMediaBadge" class="v3-media-readiness-badge"></span>
+                <span class="v3-media-readiness-contract" data-i18n="studio.import.mediaContract">LinguistPro iPhone + Android target v1</span>
+              </div>
+              <div id="v3ImportMediaDetail" class="v3-media-readiness-detail"></div>
+              <div id="v3ImportMediaEstimate" class="v3-media-readiness-estimate" hidden></div>
+              <details>
+                <summary data-i18n="studio.import.mediaTechnicalSummary">Технические детали</summary>
+                <pre id="v3ImportMediaTechnical" class="v3-media-readiness-detail" style="white-space:pre-wrap;margin-bottom:0"></pre>
+              </details>
+              <progress id="v3ImportMediaProgress" max="100" value="0" hidden></progress>
+              <div class="v3-media-readiness-actions">
+                <button type="button" id="v3ImportMediaPrepare" class="btn-secondary" hidden onclick="StudioImport.prepareMedia()"></button>
+                <button type="button" id="v3ImportMediaCancel" class="btn-secondary" hidden onclick="StudioImport.cancelMediaJob()" data-i18n="studio.import.mediaCancelBtn">Отменить media job</button>
+                <button type="button" id="v3ImportMediaDeviceGate" class="btn-secondary" hidden onclick="StudioImport.runMediaDeviceGate()" data-i18n="studio.import.mediaDeviceGateBtn">Проверить play/seek этого файла</button>
+                <button type="button" id="v3ImportMediaTranscriptOnly" class="btn-secondary" hidden onclick="StudioImport.chooseTranscriptOnly()" data-i18n="studio.import.mediaTranscriptOnlyBtn">Только расшифровать, без готового видео</button>
+              </div>
+              <div id="v3ImportMediaDeviceResult" class="v3-media-device-result" hidden></div>
+            </section>
             <button type="button" id="v3ImportAudioGo" class="btn-secondary"
                     onclick="StudioImport.transcribeAudio()"></button>
             <button type="button" id="v3ImportLocalAsrCancel" class="btn-secondary" hidden

@@ -713,6 +713,7 @@
   var localAsrClient = null;
   var localAsrRunController = null;
   var localAsrConnected = false;
+  var mediaJobController = null;
 
   // W2-S5a — Import → Captions (.vtt/.srt file or pasted YouTube transcript panel) + optional
   // embedded YouTube player for capability preview. Канон:
@@ -787,16 +788,17 @@
 
   function refreshLocalAsrControls() {
     var enabled = localAsrExperimental();
+    var needsMedia = !!(pendingAudio && pendingAudio.isVideo);
     var providerWrap = $("v3ImportAudioProviderWrap");
     if (providerWrap) providerWrap.hidden = !enabled;
     var local = enabled && selectedAudioProvider() === "local";
     var setup = $("v3ImportLocalAsrSetup");
-    if (setup) setup.hidden = !local;
-    if (enabled && local) {
+    if (setup) setup.hidden = !(local || needsMedia);
+    if ((enabled && local) || needsMedia) {
       var input = $("v3ImportLocalAsrToken");
       if (input && !input.value) input.value = window.LocalAsrClient.getPairingToken();
     }
-    if (!enabled) localAsrConnected = false;
+    if (!enabled && !needsMedia) localAsrConnected = false;
     renderLocalAsrConnectionState();
     if (pendingAudio) updateAudioActionLabel();
   }
@@ -846,6 +848,7 @@
   function updateAudioActionLabel() {
     var button = $("v3ImportAudioGo");
     if (!button || !pendingAudio) return;
+    button.disabled = !!pendingAudio.isVideo && !window.MediaReadiness.canStartAsr(pendingAudio.mediaReadiness);
     if (selectedAudioProvider() === "local") {
       button.textContent = tr("studio.import.localAsrGo");
       return;
@@ -863,6 +866,15 @@
       window.LocalAsrClient.setPairingToken($("v3ImportLocalAsrToken").value);
       localAsrClient = new window.LocalAsrClient.Client();
       var capabilities = await localAsrClient.capabilities();
+      if (pendingAudio && pendingAudio.isVideo) {
+        if (!capabilities || !capabilities.media_readiness || !capabilities.media_readiness.enabled) {
+          throw new Error("MEDIA_READINESS_UNAVAILABLE");
+        }
+        setLocalAsrConnectionState(true);
+        setLocalAsrPairStatus("studio.import.mediaCompanionReady", "", "ok");
+        if (!pendingAudio.mediaJobId) await startMediaPreflight();
+        return;
+      }
       var model = await localAsrClient.modelStatus();
       setLocalAsrConnectionState(true);
       var key = model && model.verified ? "studio.import.localAsrReady" : "studio.import.localAsrModelMissing";
@@ -937,6 +949,208 @@
     if (pair) pair.disabled = b;
     var cancel = $("v3ImportLocalAsrCancel");
     if (cancel) cancel.hidden = !b || selectedAudioProvider() !== "local";
+    var mediaCancel = $("v3ImportMediaCancel");
+    if (mediaCancel) mediaCancel.hidden = !b || !(pendingAudio && pendingAudio.mediaJobId);
+  }
+
+  function renderMediaReadiness() {
+    var panel = $("v3ImportMediaReadiness");
+    if (!panel) return;
+    var isVideo = !!(pendingAudio && pendingAudio.isVideo), state = isVideo && pendingAudio.mediaReadiness;
+    panel.hidden = !isVideo;
+    if (!isVideo || !state) return;
+    var badge = $("v3ImportMediaBadge"), detail = $("v3ImportMediaDetail"), progress = $("v3ImportMediaProgress");
+    var outcomeKey = {
+      PROBING: "studio.import.mediaProbing", READY: "studio.import.mediaReady",
+      LOSSLESS_REPAIR: "studio.import.mediaLosslessRepair", TRANSCODE_REQUIRED: "studio.import.mediaTranscodeRequired",
+      BLOCKED: "studio.import.mediaBlocked", TRANSCRIPT_ONLY: "studio.import.mediaTranscriptOnly",
+    }[state.outcome] || "studio.import.mediaBlocked";
+    if (badge) { badge.textContent = tr(outcomeKey); badge.dataset.outcome = state.outcome || "BLOCKED"; }
+    var codec = state.codec_summary || {};
+    var parts = [codec.video_codec, codec.profile, codec.declared_level ? "L" + (codec.declared_level / 10).toFixed(1) : null,
+                 codec.width && codec.height ? codec.width + "×" + codec.height : null,
+                 codec.fps ? codec.fps + " fps" : null].filter(Boolean);
+    if (detail) detail.textContent = parts.join(" · ") + (state.next_action ? " — " + tr("studio.import.mediaNextAction") + ": " + state.next_action : "");
+    if (progress) {
+      progress.hidden = !(state.state && !["COMPLETE", "WAITING_FOR_DECISION", "BLOCKED"].includes(state.state));
+      progress.value = Math.round((state.progress || 0) * 100);
+    }
+    var prepare = $("v3ImportMediaPrepare");
+    if (prepare) {
+      prepare.hidden = !["LOSSLESS_REPAIR", "TRANSCODE_REQUIRED"].includes(state.outcome);
+      prepare.disabled = !state.disk_sufficient;
+      prepare.textContent = state.outcome === "LOSSLESS_REPAIR" ? tr("studio.import.mediaRepairBtn") : tr("studio.import.mediaConvertBtn");
+    }
+    var estimate = $("v3ImportMediaEstimate");
+    if (estimate) {
+      estimate.hidden = !state.estimated_output_bytes;
+      estimate.textContent = state.estimated_output_bytes
+        ? tr("studio.import.mediaDiskEstimate") + ": " + window.MediaReadiness.humanBytes(state.estimated_output_bytes)
+          + (state.disk_free_bytes ? " · " + tr("studio.import.mediaDiskFree") + ": " + window.MediaReadiness.humanBytes(state.disk_free_bytes) : "")
+          + (state.estimated_time_seconds ? " · ~" + Math.ceil(state.estimated_time_seconds / 60) + " " + tr("studio.import.minShort") : "") : "";
+      estimate.dataset.sufficient = state.disk_sufficient ? "true" : "false";
+    }
+    var technical = $("v3ImportMediaTechnical");
+    if (technical) {
+      var plan = state.plan || {}, operations = plan.operations || [];
+      technical.textContent = parts.join(" · ")
+        + (plan.quality_impact ? "\n" + tr("studio.import.mediaQualityImpact") + ": " + plan.quality_impact : "")
+        + (operations.length ? "\n" + operations.join(" → ") : "");
+    }
+    var device = $("v3ImportMediaDeviceGate");
+    if (device) device.hidden = state.outcome !== "READY";
+    var cancelMedia = $("v3ImportMediaCancel");
+    if (cancelMedia) cancelMedia.hidden = !(pendingAudio.mediaJobId && state.state && !["COMPLETE", "BLOCKED", "FAILED", "CANCELED"].includes(state.state));
+    var transcriptOnly = $("v3ImportMediaTranscriptOnly");
+    if (transcriptOnly) transcriptOnly.hidden = !["LOSSLESS_REPAIR", "TRANSCODE_REQUIRED", "BLOCKED"].includes(state.outcome);
+    updateAudioActionLabel();
+  }
+
+  function mediaJobStatus(job) {
+    if (!pendingAudio) return;
+    var previous = pendingAudio.mediaReadiness || {};
+    pendingAudio.mediaJobId = job.job_id || pendingAudio.mediaJobId;
+    pendingAudio.mediaReadiness = Object.assign({}, previous, window.MediaReadiness.acceptReport(job));
+    renderMediaReadiness();
+  }
+
+  async function cleanupCompletedMediaJob(state, jobId) {
+    try {
+      state.cleanup_receipt = await localAsrClient.deleteMediaJob(jobId);
+      if (pendingAudio && pendingAudio.mediaJobId === jobId) pendingAudio.mediaJobId = null;
+      return true;
+    } catch (_) {
+      state.cleanup_pending = true;
+      setStatus("studio.import.mediaCleanupFailed");
+      return false;
+    }
+  }
+
+  async function startMediaPreflight() {
+    if (!pendingAudio || !pendingAudio.isVideo) return;
+    if (!window.LocalAsrClient.getPairingToken()) {
+      pendingAudio.mediaReadiness = { outcome: "BLOCKED", reason: "pairing_required", next_action: "pair-local-companion" };
+      renderMediaReadiness();
+      setStatus("studio.import.localAsrPairingRequired");
+      return;
+    }
+    setBusy(true);
+    mediaJobController = new AbortController();
+    try {
+      localAsrClient = localAsrClient || new window.LocalAsrClient.Client();
+      var created = await localAsrClient.createMediaJob(pendingAudio.file);
+      pendingAudio.mediaJobId = created.job_id;
+      var job = await localAsrClient.waitForMediaJob(created.job_id, { signal: mediaJobController.signal, onStatus: mediaJobStatus }, created);
+      mediaJobStatus(job);
+      var report = job.report || {};
+      if (report.duration_seconds) pendingAudio.durationSec = report.duration_seconds;
+      if (job.state === "COMPLETE") {
+        pendingAudio.mediaReadiness = window.MediaReadiness.acceptPrepared(job);
+        pendingAudio.sha256 = job.output_sha256;
+        await cleanupCompletedMediaJob(pendingAudio.mediaReadiness, created.job_id);
+      }
+      renderAudioMeta();
+      renderMediaReadiness();
+    } catch (error) {
+      if (pendingAudio) {
+        if (error && error.code === "MEDIA_JOB_CANCELED" && pendingAudio.mediaJobId) {
+          await cleanupCompletedMediaJob(pendingAudio.mediaReadiness || {}, pendingAudio.mediaJobId);
+        }
+        pendingAudio.mediaReadiness = { outcome: "BLOCKED", reason: error && error.code || "preflight_failed", next_action: "check-local-companion" };
+        renderMediaReadiness();
+      }
+      setStatus(error && error.code === "MEDIA_JOB_CANCELED" ? "studio.import.mediaCancelled" : "studio.import.mediaPreflightFailed");
+    } finally {
+      mediaJobController = null;
+      setBusy(false);
+      renderMediaReadiness();
+    }
+  }
+
+  async function prepareMedia() {
+    if (!pendingAudio || !pendingAudio.mediaJobId) return;
+    var state = pendingAudio.mediaReadiness || {}, mode = state.plan && state.plan.mode;
+    if (!mode || !state.plan_sha256) return;
+    mediaJobController = new AbortController();
+    setBusy(true);
+    try {
+      var queued = await localAsrClient.prepareMediaJob(pendingAudio.mediaJobId, mode, state.plan_sha256);
+      var job = await localAsrClient.waitForMediaJob(pendingAudio.mediaJobId, { signal: mediaJobController.signal, onStatus: mediaJobStatus }, queued);
+      var blob = await localAsrClient.mediaFile(pendingAudio.mediaJobId);
+      var ready = window.MediaReadiness.acceptPrepared(job);
+      var preparedFile = new File([blob], ready.canonical_name || "mobile-ready.mp4", { type: "video/mp4", lastModified: Date.now() });
+      pendingAudio.originalFile = pendingAudio.originalFile || pendingAudio.file;
+      pendingAudio.file = preparedFile;
+      pendingAudio.name = preparedFile.name;
+      pendingAudio.mime = "video/mp4";
+      pendingAudio.buf = null;
+      pendingAudio.sha256 = ready.canonical_sha256;
+      pendingAudio.mediaReadiness = ready;
+      pendingAudio.durationSec = job.report && job.report.duration_seconds || pendingAudio.durationSec;
+      await cleanupCompletedMediaJob(pendingAudio.mediaReadiness, pendingAudio.mediaJobId);
+      renderAudioMeta();
+      renderMediaReadiness();
+      setStatus("studio.import.mediaPrepared");
+    } catch (error) {
+      if (error && error.code === "MEDIA_JOB_CANCELED" && pendingAudio && pendingAudio.mediaJobId) {
+        await cleanupCompletedMediaJob(pendingAudio.mediaReadiness || {}, pendingAudio.mediaJobId);
+        pendingAudio.mediaReadiness = { outcome: "BLOCKED", reason: "MEDIA_JOB_CANCELED", next_action: "repeat-media-preflight" };
+      }
+      setStatus(error && error.code === "MEDIA_JOB_CANCELED" ? "studio.import.mediaCancelled" : "studio.import.mediaPrepareFailed");
+    } finally {
+      mediaJobController = null;
+      setBusy(false);
+      renderMediaReadiness();
+    }
+  }
+
+  async function cancelMediaJob() {
+    if (mediaJobController) mediaJobController.abort();
+    else if (pendingAudio && pendingAudio.mediaJobId && localAsrClient) {
+      var jobId = pendingAudio.mediaJobId;
+      var canceled = await localAsrClient.cancelMediaJob(jobId);
+      mediaJobStatus(canceled);
+      if (canceled.state === "CANCELED") {
+        await cleanupCompletedMediaJob(pendingAudio.mediaReadiness, jobId);
+        pendingAudio.mediaReadiness = { outcome: "BLOCKED", state: "CANCELED", reason: "MEDIA_JOB_CANCELED", next_action: "choose-or-probe-media", cleanup_receipt: pendingAudio.mediaReadiness.cleanup_receipt || null };
+        renderMediaReadiness();
+        setStatus("studio.import.mediaCancelled");
+      }
+    }
+  }
+
+  async function runMediaDeviceGate() {
+    if (!pendingAudio || !window.MediaReadiness.canStartAsr(pendingAudio.mediaReadiness)) return;
+    var result = $("v3ImportMediaDeviceResult");
+    try {
+      if (!await lockCanonicalMediaIdentity()) return;
+      var receipt = await window.MediaReadiness.actualFilePlaySeek(pendingAudio.file);
+      if (result) { result.hidden = false; result.textContent = tr("studio.import.mediaDevicePass") + " · " + receipt.device_family + " · " + receipt.browser_family + " / " + receipt.os_family + " · 25%/75% · " + receipt.tested_at; result.dataset.pass = "true"; }
+      pendingAudio.mediaReadiness.device_session_receipt = receipt;
+    } catch (error) {
+      if (result) { result.hidden = false; result.textContent = tr("studio.import.mediaDeviceFail") + " — " + (error && error.message || ""); result.dataset.pass = "false"; }
+    }
+  }
+
+  async function chooseTranscriptOnly() {
+    if (!pendingAudio || !pendingAudio.isVideo) return;
+    if (!pendingAudio.durationSec) {
+      try { pendingAudio.durationSec = await probeAudioDuration(pendingAudio.file); }
+      catch (_) { setStatus("studio.import.errAudioBadFile"); return; }
+    }
+    pendingAudio.mediaReadiness = window.MediaReadiness.transcriptOnly();
+    renderAudioMeta();
+    renderMediaReadiness();
+    setStatus("studio.import.mediaTranscriptOnlySelected");
+  }
+
+  function renderAudioMeta() {
+    if (!pendingAudio) return;
+    var dur = Number(pendingAudio.durationSec || 0), rounded = Math.round(dur);
+    var mm = Math.floor(rounded / 60), ss = String(rounded % 60).padStart(2, "0");
+    var metaText = (dur ? mm + ":" + ss : tr("studio.import.mediaProbing")) + " · " + (pendingAudio.file.size / (1024 * 1024)).toFixed(1) + "MB";
+    if (pendingAudio.isVideo) metaText += " · " + tr("studio.import.videoNote");
+    $("v3ImportAudioMeta").textContent = metaText;
   }
 
   function probeAudioDuration(file) {
@@ -960,30 +1174,32 @@
     if (!file) return;
     $("v3ImportAudioInfo").hidden = true;
     pendingAudio = null;
-    var isVideo = String(file.type || "").toLowerCase().startsWith("video/");
+    var isVideo = window.MediaReadiness.isVideo(file);
     if (file.size > MAX_AUDIO_BYTES) { setStatus(isVideo ? "studio.import.errVideoTooLarge" : "studio.import.errAudioTooLarge"); return; }
-    if (selectedAudioProvider() === "gemini") {
+    if (!isVideo && selectedAudioProvider() === "gemini") {
       var key = typeof window.geminiKeyGet === "function" ? window.geminiKeyGet() : "";
       if (!key) { setStatus("studio.import.errNoKey"); return; }
-    } else if (!window.LocalAsrClient.getPairingToken()) {
+    } else if (!isVideo && !window.LocalAsrClient.getPairingToken()) {
       setStatus("studio.import.localAsrPairingRequired"); return;
     }
-    var dur;
-    try { dur = await probeAudioDuration(file); }
-    catch (_) { setStatus("studio.import.errAudioBadFile"); return; }
-    if (dur > MAX_AUDIO_SEC + 1) { setStatus("studio.import.errAudioTooLong"); return; }
-    var mime = file.type || "audio/mpeg";
-    pendingAudio = { file: file, buf: null, sha256: null, mime: mime, durationSec: dur, name: file.name, parsed: null, validation: null, isVideo: isVideo, windowResults: null,
+    var dur = null;
+    if (!isVideo) {
+      try { dur = await probeAudioDuration(file); }
+      catch (_) { setStatus("studio.import.errAudioBadFile"); return; }
+      if (dur > MAX_AUDIO_SEC + 1) { setStatus("studio.import.errAudioTooLong"); return; }
+    }
+    var mime = file.type || (isVideo ? "video/mp4" : "audio/mpeg");
+    pendingAudio = { file: file, originalFile: file, buf: null, sha256: null, mime: mime, durationSec: dur, name: file.name, parsed: null, validation: null, isVideo: isVideo,
+                     mediaReadiness: window.MediaReadiness.initialForFile(file), mediaJobId: null, windowResults: null,
                      windowMetaResults: null, // провенанс готовых окон для резюма (ревью S12.5)
                      asrTransport: null, sliceLog: null }; // S12.5: транспорт + чанк-лог заполняет transcribeAudio
-    var durRounded = Math.round(dur);
-    var mm = Math.floor(durRounded / 60), ss = String(durRounded % 60).padStart(2, "0");
-    var metaText = mm + ":" + ss + " · " + (file.size / (1024 * 1024)).toFixed(1) + "MB";
-    if (isVideo) metaText += " · " + tr("studio.import.videoNote");
-    $("v3ImportAudioMeta").textContent = metaText;
+    renderAudioMeta();
     updateAudioActionLabel();
     $("v3ImportAudioInfo").hidden = false;
+    refreshLocalAsrControls();
+    renderMediaReadiness();
     setStatus(null);
+    if (isVideo) await startMediaPreflight();
   }
 
   // S12.5 T4: спрашиваем сервер о его версии ПЕРЕД дорогой операцией. Сеть/формат подвели —
@@ -1116,16 +1332,38 @@
     return true;
   }
 
+  async function lockCanonicalMediaIdentity() {
+    if (!pendingAudio) return false;
+    if (pendingAudio.isVideo && !window.MediaReadiness.canStartAsr(pendingAudio.mediaReadiness)) {
+      setStatus("studio.import.mediaBlocksAsr");
+      return false;
+    }
+    var buf = await pendingAudio.file.arrayBuffer();
+    var actualSha = await window.MediaStore.sha256Hex(buf);
+    var expectedSha = pendingAudio.mediaReadiness && pendingAudio.mediaReadiness.canonical_sha256;
+    if (pendingAudio.isVideo && expectedSha && actualSha !== expectedSha) {
+      pendingAudio.mediaReadiness = { outcome: "BLOCKED", reason: "canonical_sha_mismatch", next_action: "repeat-media-preflight" };
+      pendingAudio.buf = null;
+      pendingAudio.sha256 = null;
+      renderMediaReadiness();
+      setStatus("studio.import.mediaShaMismatch");
+      return false;
+    }
+    pendingAudio.buf = buf;
+    pendingAudio.sha256 = actualSha;
+    return true;
+  }
+
   async function transcribeAudioLocal() {
     if (!pendingAudio) return;
+    if (pendingAudio.isVideo && !window.MediaReadiness.canStartAsr(pendingAudio.mediaReadiness)) { setStatus("studio.import.mediaBlocksAsr"); return; }
     if (!window.LocalAsrClient.getPairingToken()) { setStatus("studio.import.localAsrPairingRequired"); return; }
     if (await pageIsStale()) { setStatus("studio.import.errStaleTab"); return; }
     setBusy(true);
     pendingAudio.localAttempted = true;
     localAsrRunController = new AbortController();
     try {
-      pendingAudio.buf = await pendingAudio.file.arrayBuffer();
-      pendingAudio.sha256 = await window.MediaStore.sha256Hex(pendingAudio.buf);
+      if (!await lockCanonicalMediaIdentity()) return;
       localAsrClient = localAsrClient || new window.LocalAsrClient.Client();
       var completed = await localAsrClient.run(pendingAudio.file, {
         codeVersion: window.APP_VERSION || null,
@@ -1202,6 +1440,7 @@
 
   async function transcribeAudio() {
     if (!pendingAudio) return;
+    if (pendingAudio.isVideo && !window.MediaReadiness.canStartAsr(pendingAudio.mediaReadiness)) { setStatus("studio.import.mediaBlocksAsr"); return; }
     if (selectedAudioProvider() === "local") return transcribeAudioLocal();
     pendingAudio.asrMethod = "gemini-asr";
     pendingAudio.asrModel = window.AsrTranscript.ASR_MODEL;
@@ -1214,8 +1453,7 @@
     setBusy(true);
     try {
       setStatus("studio.import.audioUploading");
-      pendingAudio.buf = await pendingAudio.file.arrayBuffer();
-      pendingAudio.sha256 = await window.MediaStore.sha256Hex(pendingAudio.buf);
+      if (!await lockCanonicalMediaIdentity()) return;
       var A2 = window.AsrTranscript;
       var wins = A2.asrWindows(pendingAudio.durationSec);
       // S12.5 транспорт-развилка (диагноз DIAGNOSIS_S12_LIVE_DEFECT_2026_07_29: модель на глубоких
@@ -1536,6 +1774,7 @@
     var m = $("v3ImportModal");
     if (m) m.classList.add("hidden");
     cancelLocalAsr();
+    if (mediaJobController) mediaJobController.abort();
     // W2-S5a: this modal owns ytAdapter's lifetime (it created it in mountVideo()) — every path
     // that hides the modal (Cancel, backdrop click, post-commit close() at the end of useText())
     // funnels through here. teardownVideo() is the single teardown point, shared with switchTab()
@@ -1614,17 +1853,21 @@
       // Preview edits are applied later as an explicit corrected-track revision.
       var segs = mediaSegmentsForPromotion(pendingAudio.parsed.segments, v.segments);
       var dropReason = editedAway ? "PREVIEW_EDITED" : (v.timingOk ? null : v.dropReason);
-      var fileName = window.MediaStore.mediaFileName(pendingAudio.sha256, pendingAudio.mime, pendingAudio.name);
+      var transcriptOnly = pendingAudio.mediaReadiness && pendingAudio.mediaReadiness.outcome === "TRANSCRIPT_ONLY";
+      var fileName = transcriptOnly ? null : window.MediaStore.mediaFileName(pendingAudio.sha256, pendingAudio.mime, pendingAudio.name);
       // OPFS-запись; недоступна (старый Safari) → session-only blob + честный warning
       window.v3SessionMediaBlob = null;
-      var saved = window.MediaStore.canWrite()
+      var saved = !transcriptOnly && window.MediaStore.canWrite()
         ? await window.MediaStore.saveMedia(pendingAudio.buf, fileName)
-        : { ok: false, reason: "NO_CREATE_WRITABLE" };
+        : { ok: false, reason: transcriptOnly ? "TRANSCRIPT_ONLY" : "NO_CREATE_WRITABLE" };
       audioMetaForImport = {
         v: 1,
-        media: { opfsPath: saved.ok ? fileName : null, sessionOnly: !saved.ok, sha256: pendingAudio.sha256,
-                 mime: pendingAudio.mime, sizeBytes: pendingAudio.file.size,
-                 durationSec: pendingAudio.durationSec, originalName: pendingAudio.name },
+        media: { opfsPath: saved.ok ? fileName : null, sessionOnly: !saved.ok && !transcriptOnly, sha256: transcriptOnly ? null : pendingAudio.sha256,
+                 mime: transcriptOnly ? null : pendingAudio.mime, sizeBytes: transcriptOnly ? null : pendingAudio.file.size,
+                 durationSec: pendingAudio.durationSec, originalName: pendingAudio.name,
+                 compatibility: transcriptOnly
+                   ? { outcome: "TRANSCRIPT_ONLY", bind_outcome: "not_bound", playback: "not_prepared" }
+                   : window.MediaReadiness.compatibilityEvidence(pendingAudio.mediaReadiness) || undefined },
         asr: { method: pendingAudio.asrMethod || "gemini-asr",
                model: pendingAudio.asrModel || window.AsrTranscript.ASR_MODEL, at: new Date().toISOString(),
                language: pendingAudio.parsed.language, filesApi: pendingAudio.asrMethod !== "local-faster-whisper",
@@ -1663,7 +1906,7 @@
                runtime: pendingAudio.asrMethod === "local-faster-whisper" && pendingAudio.localResult && pendingAudio.localResult.provenance && pendingAudio.localResult.provenance.runtime },
         segments: segs, timing: null, timingDropReason: dropReason,
       };
-      if (!saved.ok) window.v3SessionMediaBlob = pendingAudio.file;
+      if (!saved.ok && !transcriptOnly) window.v3SessionMediaBlob = pendingAudio.file;
       if (editedAway) toast("studio.import.audioTimingDropped", "warning");
     }
     var captionsMetaForImport = null;
@@ -2026,6 +2269,9 @@
                            onLocalAsrTokenChanged: onLocalAsrTokenChanged,
                            cancelLocalAsr: cancelLocalAsr, retryLocalAsr: retryLocalAsr,
                            deleteLocalAsrJob: deleteLocalAsrJob,
+                           startMediaPreflight: startMediaPreflight, prepareMedia: prepareMedia,
+                           cancelMediaJob: cancelMediaJob, runMediaDeviceGate: runMediaDeviceGate,
+                           chooseTranscriptOnly: chooseTranscriptOnly,
                            refreshLocalAsrControls: refreshLocalAsrControls,
                            onCaptionsFileChosen: onCaptionsFileChosen, useCaptionsPaste: useCaptionsPaste,
                            useText: useText, useTextAndCorrect: useTextAndCorrect,

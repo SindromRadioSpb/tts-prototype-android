@@ -1,7 +1,7 @@
 # Studio Media Readiness Gate — decision packet
 
 > **Date:** 2026-08-08
-> **Status:** **OWNER DIRECTION APPROVED / IMPLEMENTATION AUTHORITY PENDING**
+> **Status:** **OWNER APPROVED / LOCAL IMPLEMENTATION COMPLETE / ACTUAL-DEVICE ACCEPTANCE PENDING**
 > **Owner direction:** `Утверждаю. Стартуй.` — authorises this docs-only contract slice. It does
 > not yet authorise the implementation allowlist in §15, a push, deployment, schema change or data
 > mutation. The exact implementation sentence is in §19.
@@ -529,9 +529,36 @@ This sentence is proposed and is **not** granted merely because it appears in th
 
 ## 20. Decision after this packet
 
-Recommended next action: owner grants §19 verbatim or changes its scope. Only then begin red tests
-and implementation. Until then this packet is durable design canon; no code, data or production
-state is authorised to change.
+The owner granted §19. The bounded implementation is complete locally at client version
+`3.11.342`; it has not been pushed, deployed or published as a Companion installer.
+
+Implemented gates:
+
+- authenticated loopback probe/job/prepare/cancel/file/report/delete contract;
+- one active plus one waiting job, 300 MiB/three-hour limits, 24-hour TTL and terminal delete receipt;
+- immutable `plan_sha256`, partial output, original preservation, disk/time/quality preview;
+- real FFmpeg lossless and transcode verification, bounded decode, target post-probe and lossless
+  audio-packet/frame/timeline equality;
+- browser pre-ASR blocking, explicit transcript-only, canonical SHA recheck immediately before
+  ASR, metadata-only compatibility summary/RFC-6381-style hint and real Import Center codec state;
+- current-device actual-file loaded/play/25% seek/75% seek gate both before ASR and after exact-SHA
+  relink in Import Center; the post-relink gate uses only the selected browser file, requires a
+  separate click, repeats SHA verification before playback, fails closed when audio presence is
+  not exposed, reports browser/OS family and stores no device fingerprint; separate real owner
+  iPhone and Android execution is still required.
+
+Two actual-file facts refine the general matrix without hiding evidence:
+
+1. Episodes 1–5 report `HE-AAC`, not AAC-LC. The specific §16 oracle requires episode 5 to remain
+   stream-copy only and its repaired copy already passed owner iPhone playback. The classifier
+   admits that proven profile and reports `HE-AAC` verbatim; it never relabels it LC.
+2. Episodes 1–4 have `moov` after `mdat`, while §16 explicitly requires `READY`. `faststart:false`
+   remains visible but does not alone force repair. Every generated output still uses fast-start.
+
+Current automated evidence: Companion pytest 75/75; focused Node and fresh 380 px browser gates
+PASS, including the Import Center exact-file handoff with zero provider calls and no persisted
+device receipt; full Node 881 total / 877 pass / the same four pre-existing baseline failures. No
+existing card, package, binding or production data was mutated.
 
 ## 21. Standards and tool references
 

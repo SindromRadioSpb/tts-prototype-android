@@ -108,6 +108,18 @@ test('apply is one SAVEPOINT, durable and idempotent with manual locks intact', 
   assert.equal(exported.manifest.roots.learning_material,v.manifest.roots.learning_material);
 });
 
+test('Import Center reads verified codec state from existing JSON metadata without a migration', async () => {
+  const h=await harness(),input=fixture();
+  input.package.codec_hint='avc1.4D0020,mp4a.40.5';
+  input.package.compatibility={contract:'linguistpro-mobile-v1',outcome:'READY',canonical_sha256:input.package.media_sha256,codec_hint:input.package.codec_hint,codec_summary:{video_codec:'h264',declared_level:32}};
+  const v=await Core.verifyPackageFiles(await Core.buildPackageFiles(input,{mode:'archive'}));
+  const plan=await h.repo.dryRun(v);
+  await h.repo.applyVerified(v,{plan_sha256:plan.plan_sha256});
+  const [item]=await h.repo.lifecycleInventory();
+  assert.equal(item.media_codec_supported,true);
+  assert.equal(h.rows('SELECT json_extract(external_ref_json,\'$.compatibility.outcome\') AS outcome FROM studio_media_packages')[0].outcome,'READY');
+});
+
 test('committed receipt repairs a deleted compatibility closure without duplicating surviving canon', async () => {
   const h=await harness(),v=await verified(),firstPlan=await h.repo.dryRun(v);
   const first=await h.repo.applyVerified(v,{plan_sha256:firstPlan.plan_sha256});
