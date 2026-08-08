@@ -1,5 +1,5 @@
 #define MyAppName "LinguistPro Local AI Companion"
-#define MyAppVersion "0.3.0-beta.4"
+#define MyAppVersion "0.3.0-beta.5"
 #define MyAppExeName "LinguistProLocalAsrCompanion.exe"
 
 [Setup]
@@ -13,15 +13,15 @@ PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=..\artifacts
-OutputBaseFilename=LinguistProLocalAsrCompanion-0.3.0-beta.4-unsigned-internal
+OutputBaseFilename=LinguistProLocalAsrCompanion-0.3.0-beta.5-unsigned-internal
 Compression=lzma2/fast
 SolidCompression=yes
 WizardStyle=modern
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\{#MyAppExeName}
 InfoBeforeFile=..\THIRD_PARTY_NOTICES.md
-VersionInfoVersion=0.3.0.1
-VersionInfoDescription=Unsigned internal Local ASR and MADLAD beta Companion
+VersionInfoVersion=0.3.0.2
+VersionInfoDescription=Unsigned internal Local ASR, MADLAD and Media Readiness beta Companion
 RestartApplications=no
 
 [Tasks]

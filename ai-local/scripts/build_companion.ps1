@@ -62,7 +62,7 @@ Get-ChildItem $CudnnBin,$CublasBin -File -Filter *.dll | ForEach-Object {
 }
 $CudnnLicense = Join-Path $SitePackages "nvidia_cudnn_cu12-9.10.2.21.dist-info\licenses\License.txt"
 $CublasLicense = Join-Path $SitePackages "nvidia_cublas_cu12-12.1.3.1.dist-info\License.txt"
-$InstallerName = "LinguistProLocalAsrCompanion-0.3.0-beta.4-unsigned-internal.exe"
+$InstallerName = "LinguistProLocalAsrCompanion-0.3.0-beta.5-unsigned-internal.exe"
 $PreviousInstaller = Join-Path $ArtifactRoot $InstallerName
 foreach ($PriorArtifact in @($PreviousInstaller, (Join-Path $ArtifactRoot "build-report.json"))) {
   if (Test-Path -LiteralPath $PriorArtifact) {
@@ -132,6 +132,8 @@ if (-not $ResolvedSmokeRoot.StartsWith($ResolvedBuildRoot, [StringComparison]::O
 New-Item -ItemType Directory -Force -Path $SmokeRoot | Out-Null
 $OriginalLocalAppData = $env:LOCALAPPDATA
 $OriginalBuildSmokePort = $env:AI_LOCAL_BUILD_SMOKE_PORT
+$OriginalPairingToken = $env:AI_LOCAL_PAIRING_TOKEN
+$SmokePairingToken = [Guid]::NewGuid().ToString("N") + [Guid]::NewGuid().ToString("N")
 $PortProbe = [Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback, 0)
 $PortProbe.Start()
 $SmokePort = ([Net.IPEndPoint]$PortProbe.LocalEndpoint).Port
@@ -141,9 +143,13 @@ $StopProcess = $null
 $StopFailure = $null
 $Health = $null
 $HealthError = $null
+$MediaStatus = $null
+$MediaReport = $null
+$MediaDelete = $null
 try {
   $env:LOCALAPPDATA = $SmokeRoot
   $env:AI_LOCAL_BUILD_SMOKE_PORT = [string]$SmokePort
+  $env:AI_LOCAL_PAIRING_TOKEN = $SmokePairingToken
   $StartProcess = Start-Process -FilePath $BuiltExe -ArgumentList "--start" -WindowStyle Hidden -PassThru
   if (-not $StartProcess.WaitForExit(30000)) {
     Stop-Process -Id $StartProcess.Id -Force
@@ -161,6 +167,39 @@ try {
       Start-Sleep -Milliseconds 500
     }
   }
+  if (-not $Health) { throw "Frozen Companion did not reach loopback health: $HealthError" }
+
+  $Fixture = Join-Path $SmokeRoot "frozen-ready-fixture.mp4"
+  & $Ffmpeg -hide_banner -loglevel error -f lavfi -i "testsrc2=size=320x240:rate=25" `
+    -f lavfi -i "sine=frequency=1000:sample_rate=48000" -t 2 `
+    -c:v libx264 -profile:v main -level:v 3.1 -pix_fmt yuv420p `
+    -c:a aac -profile:a aac_low -movflags +faststart -shortest -y $Fixture
+  if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $Fixture)) {
+    throw "Failed to create the frozen Media Readiness fixture"
+  }
+  $MediaHeaders = @{ Authorization = "Bearer $SmokePairingToken"; Origin = "http://127.0.0.1:3000" }
+  $MediaPath = "/v1/media/jobs?filename=frozen-ready-fixture.mp4"
+  $MediaCreate = Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:$SmokePort$MediaPath" `
+    -Headers $MediaHeaders -ContentType "video/mp4" -InFile $Fixture -TimeoutSec 30
+  for ($Attempt = 0; $Attempt -lt 60; $Attempt++) {
+    $MediaStatus = Invoke-RestMethod -Uri "http://127.0.0.1:$SmokePort/v1/media/jobs/$($MediaCreate.job_id)" `
+      -Headers $MediaHeaders -TimeoutSec 5
+    if (@("COMPLETE", "FAILED", "BLOCKED", "CANCELED", "WAITING_FOR_DECISION") -contains $MediaStatus.state) { break }
+    Start-Sleep -Milliseconds 250
+  }
+  if ($MediaStatus.state -ne "COMPLETE" -or $MediaStatus.report.outcome -ne "READY") {
+    throw "Frozen Companion Media Readiness job did not reach READY"
+  }
+  $MediaReport = Invoke-RestMethod -Uri "http://127.0.0.1:$SmokePort/v1/media/jobs/$($MediaCreate.job_id)/report" `
+    -Headers $MediaHeaders -TimeoutSec 5
+  if ($MediaReport.output_sha256 -ne $MediaReport.source_sha256 -or -not $MediaReport.verification.original_bytes) {
+    throw "Frozen Companion READY identity proof failed"
+  }
+  $MediaDelete = Invoke-RestMethod -Method Delete -Uri "http://127.0.0.1:$SmokePort/v1/media/jobs/$($MediaCreate.job_id)" `
+    -Headers $MediaHeaders -TimeoutSec 5
+  if ($MediaDelete.schema -ne "media-job-delete-receipt-v1" -or -not $MediaDelete.deleted_source -or -not $MediaDelete.deleted_output) {
+    throw "Frozen Companion media delete receipt failed"
+  }
 } finally {
   try {
     $StopProcess = Start-Process -FilePath $BuiltExe -ArgumentList "--stop" -WindowStyle Hidden -PassThru
@@ -173,6 +212,7 @@ try {
   } finally {
     $env:LOCALAPPDATA = $OriginalLocalAppData
     $env:AI_LOCAL_BUILD_SMOKE_PORT = $OriginalBuildSmokePort
+    $env:AI_LOCAL_PAIRING_TOKEN = $OriginalPairingToken
     if (Test-Path -LiteralPath $SmokeRoot) {
       Remove-Item -LiteralPath $SmokeRoot -Recurse -Force
     }
@@ -182,7 +222,6 @@ if ($StopFailure) { throw $StopFailure }
 if ($StopProcess.ExitCode -ne 0) {
   throw "Frozen Companion --stop launcher failed with exit $($StopProcess.ExitCode)"
 }
-if (-not $Health) { throw "Frozen Companion did not reach loopback health: $HealthError" }
 $FfmpegLine = & $Ffmpeg -version | Select-Object -First 1
 $BuildReport = [ordered]@{
   schema = "linguistpro-local-ai-companion-build-v2"
@@ -191,11 +230,11 @@ $BuildReport = [ordered]@{
   source_worktree_dirty = [bool](@(git -C $RepoRoot status --porcelain --untracked-files=normal).Count)
   source_input_changes = @(
     git -C $RepoRoot status --porcelain --untracked-files=normal -- `
-      ai-local/ai_local ai-local/pyproject.toml ai-local/installer `
+      ai-local/ai_local ai-local/pyproject.toml ai-local/installer ai-local/scripts/build_companion.ps1 `
       ai-local/THIRD_PARTY_NOTICES.md docs/LOCAL_ASR_COMPANION_GUIDE.md `
       docs/LOCAL_ASR_COMPANION_GUIDE.en.md docs/LOCAL_ASR_COMPANION_GUIDE.he.md
   )
-  companion_version = "0.3.0-beta.4"
+  companion_version = "0.3.0-beta.5"
   signing_status = $SigningStatus
   frozen_executable = $BuiltExe
   frozen_smoke = [ordered]@{
@@ -203,6 +242,17 @@ $BuildReport = [ordered]@{
     health_status = $Health.status
     health_models = @($Health.models.psobject.Properties.Name)
     stop_exit_code = $StopProcess.ExitCode
+  }
+  frozen_media_readiness = [ordered]@{
+    state = $MediaStatus.state
+    outcome = $MediaReport.report.outcome
+    target_contract = $MediaReport.report.target_contract
+    source_sha256 = $MediaReport.source_sha256
+    output_sha256 = $MediaReport.output_sha256
+    original_bytes = $MediaReport.verification.original_bytes
+    delete_schema = $MediaDelete.schema
+    deleted_source = $MediaDelete.deleted_source
+    deleted_output = $MediaDelete.deleted_output
   }
   ffmpeg = $FfmpegLine
   ffmpeg_binary = $Ffmpeg
@@ -220,7 +270,9 @@ $BuildReport = [ordered]@{
     accelerate = $AccelerateVersion
   }
   mt_runtime_check = $MtRuntimeCheck
-  external_distribution_authorized = $false
+  external_distribution_authorized = $true
+  distribution_scope = "OWNER_AND_TRUSTED_USERS_OUT_OF_BAND"
+  public_hosting_authorized = $false
 }
 $BuildReport.source_input_dirty = [bool](@($BuildReport.source_input_changes).Count)
 

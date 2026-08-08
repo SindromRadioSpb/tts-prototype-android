@@ -318,6 +318,28 @@ def test_companion_build_runs_frozen_mt_runtime_self_check():
     assert 'Where-Object { $_.Name -eq $InstallerName }' in script
 
 
+def test_companion_beta5_version_is_consistent_across_binary_and_installer():
+    root = Path(__file__).resolve().parents[1]
+    script = (root / "scripts" / "build_companion.ps1").read_text(encoding="utf-8")
+    companion = (root / "ai_local" / "companion.py").read_text(encoding="utf-8")
+    installer = (root / "installer" / "LinguistProLocalAsr.iss").read_text(encoding="utf-8-sig")
+
+    for source in (script, companion, installer):
+        assert "0.3.0-beta.5" in source
+    assert "0.3.0-beta.4-unsigned-internal.exe" not in script
+    assert "0.3.0-beta.4-unsigned-internal" not in installer
+
+
+def test_companion_builder_proves_frozen_media_readiness_contract():
+    root = Path(__file__).resolve().parents[1]
+    script = (root / "scripts" / "build_companion.ps1").read_text(encoding="utf-8")
+
+    assert '"/v1/media/jobs?filename=frozen-ready-fixture.mp4"' in script
+    assert 'report.outcome -ne "READY"' in script
+    assert 'schema -ne "media-job-delete-receipt-v1"' in script
+    assert "frozen_media_readiness" in script
+
+
 def test_frozen_conversion_worker_uses_companion_dispatch(monkeypatch, tmp_path):
     import ai_local.mt_model_install as install
 
