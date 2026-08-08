@@ -12,6 +12,7 @@
   function json(value) { return JSON.stringify(value == null ? null : value); }
   function timestamp() { return new Date().toISOString(); }
   function shortHash(id) { const match = /([a-f0-9]{64})$/.exec(String(id || '')); if (!match) throw failure('PORTABLE_ID_INVALID', id); return match[1]; }
+  function quoteIdentifier(value) { return '"' + String(value).replace(/"/g, '""') + '"'; }
 
   function createRepository(adapter, Core, ImportCenterCore) {
     if (!adapter || !adapter.dbQuery || !adapter.dbRun || !adapter.execRaw) throw failure('REPOSITORY_ADAPTER_REQUIRED');
@@ -380,12 +381,33 @@
 
     async function reverseReferencePlan(receiptId) {
       const receipt=await getReceipt(receiptId);if(!receipt||receipt.status!=='committed')throw failure('RECEIPT_NOT_COMMITTED');
-      const rollback=receipt.rollback||{},created=rollback.created||{},blockers=[];
-      const tables=(await q("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")).map(row=>row.name);
-      async function external(column,value,allow){if(!value)return;for(const table of tables){const columns=(await q(`PRAGMA table_info(${table})`)).map(row=>row.name);if(!columns.includes(column)||allow.includes(table))continue;const hit=await one(`SELECT COUNT(*) AS n FROM ${table} WHERE ${column}=?`,[value]);if(Number(hit&&hit.n||0)>0)blockers.push({table,column,value,count:Number(hit.n)});}}
-      if(created.text){await external('text_id',rollback.text_id,['sentences','studio_learning_materials','studio_text_media_bindings']);for(const sentenceId of Object.values(receipt.id_map.rows||{}))await external('sentence_id',sentenceId,[]);}
-      if(created.package)await external('package_id',rollback.package_id,['studio_media_packages','studio_caption_tracks','studio_text_media_bindings','studio_learning_materials']);
-      return{receipt_id:receiptId,can_delete:blockers.length===0,blockers,created,media_blob_action:'retained'};
+      const rollback=receipt.rollback||{},created=rollback.created||{},blockers=[],cascadeRefs=[],explicitDeleteRefs=[];
+      const explicitDeleteColumns={events:new Set(['text_id','sentence_id']),note_occurrences:new Set(['text_id','sentence_id'])};
+      const tables=[];
+      for(const row of await q("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")){
+        const quoted=quoteIdentifier(row.name);
+        tables.push({name:row.name,quoted,columns:new Set((await q(`PRAGMA table_info(${quoted})`)).map(item=>item.name)),foreign_keys:await q(`PRAGMA foreign_key_list(${quoted})`)});
+      }
+      async function external(column,inputValues,allow,cascadeTarget){
+        const values=uniqueSorted(Array.isArray(inputValues)?inputValues:[inputValues]);if(!values.length)return;
+        for(const meta of tables){
+          const table=meta.name,quotedTable=meta.quoted;
+          const columns=meta.columns;
+          if(!columns.has(column)||allow.includes(table))continue;
+          let count=0;
+          for(let offset=0;offset<values.length;offset+=400){const batch=values.slice(offset,offset+400),hit=await one(`SELECT COUNT(*) AS n FROM ${quotedTable} WHERE ${quoteIdentifier(column)} IN (${batch.map(()=>'?').join(',')})`,batch);count+=Number(hit&&hit.n||0);}
+          if(!count)continue;
+          const provenCascade=!!cascadeTarget&&meta.foreign_keys.some(key=>String(key.from)===column&&String(key.table)===cascadeTarget&&String(key.to||'id')==='id'&&String(key.on_delete||'').toUpperCase()==='CASCADE');
+          if(provenCascade)cascadeRefs.push({table,column,values,count,on_delete:'CASCADE'});
+          else if(explicitDeleteColumns[table]&&explicitDeleteColumns[table].has(column))explicitDeleteRefs.push({table,column,values,count,delete_kind:'explicit_dependent'});
+          else blockers.push({table,column,values,count});
+        }
+      }
+      if(!created.text)blockers.push({table:'texts',column:'id',values:rollback.text_id?[rollback.text_id]:[],count:rollback.text_id?1:0,code:'REUSED_TEXT_CANON'});
+      if(created.text){await external('text_id',rollback.text_id,['sentences','studio_learning_materials','studio_text_media_bindings'],'texts');await external('sentence_id',Object.values(receipt.id_map.rows||{}),[],'sentences');}
+      if(created.package)await external('package_id',rollback.package_id,['studio_media_packages','studio_caption_tracks','studio_text_media_bindings','studio_learning_materials'],null);
+      const byLocation=(a,b)=>String(a.table+'\0'+a.column).localeCompare(String(b.table+'\0'+b.column));
+      return{receipt_id:receiptId,can_delete:blockers.length===0,blockers:blockers.sort(byLocation),cascade_refs:cascadeRefs.sort(byLocation),explicit_delete_refs:explicitDeleteRefs.sort(byLocation),created,media_blob_action:'retained'};
     }
 
     async function undo(receiptId, options) {
@@ -396,6 +418,12 @@
       const rollback = parse(receipt.rollback_json, {}), created = rollback.created || {};
       await x('SAVEPOINT p2_portable_undo;');
       try {
+        for(const ref of referencePlan.explicit_delete_refs||[]){
+          const allowed=(ref.table==='events'||ref.table==='note_occurrences')&&(ref.column==='text_id'||ref.column==='sentence_id');
+          if(!allowed)throw failure('UNDO_DELETE_PLAN_INVALID');
+          const values=uniqueSorted(ref.values||[]);
+          for(let offset=0;offset<values.length;offset+=400){const batch=values.slice(offset,offset+400);await r(`DELETE FROM ${quoteIdentifier(ref.table)} WHERE ${quoteIdentifier(ref.column)} IN (${batch.map(()=>'?').join(',')})`,batch);}
+        }
         if (rollback.before_material) await r('UPDATE studio_learning_materials SET current_table_revision_id=?,updated_at=? WHERE material_id=?', [rollback.before_material.current_table_revision_id, timestamp(), rollback.before_material.material_id]);
         if(rollback.binding_created)await r('DELETE FROM studio_text_media_bindings WHERE text_id=?',[rollback.text_id]);
         else if(rollback.before_binding)await r(`UPDATE studio_text_media_bindings SET package_id=?,track_id=?,revision_id=?,revision_sha256=?,mapping_json=?,updated_at=? WHERE text_id=?`,[rollback.before_binding.package_id,rollback.before_binding.track_id,rollback.before_binding.revision_id,rollback.before_binding.revision_sha256,rollback.before_binding.mapping_json,timestamp(),rollback.text_id]);
@@ -406,6 +434,7 @@
         for (const id of (created.caption_revisions || []).slice().reverse()) await r('DELETE FROM studio_caption_revisions WHERE revision_id=? AND NOT EXISTS(SELECT 1 FROM studio_caption_tracks WHERE current_revision_id=?)', [id, id]);
         for (const id of (created.tracks || []).slice().reverse()) await r('DELETE FROM studio_caption_tracks WHERE track_id=?', [id]);
         if (created.package) await r('DELETE FROM studio_media_packages WHERE package_id=?', [rollback.package_id]);
+        const residualPlan=await reverseReferencePlan(receiptId);if(!residualPlan.can_delete)throw failure('UNDO_EXTERNAL_REFERENCE_CONFLICT');
         inject(options.fault_inject, 'before_receipt_update');
         await r("UPDATE studio_portable_import_receipts SET status='rolled_back',rolled_back_at=? WHERE receipt_id=?", [timestamp(), receiptId]);
         const fk = await q('PRAGMA foreign_key_check'); if (fk.length) throw failure('FOREIGN_KEY_CHECK_FAILED');

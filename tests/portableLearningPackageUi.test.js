@@ -145,3 +145,14 @@ test('recovery UX names broken, archived and complete receipt states without tre
   assert.match(html,/studio-exact-binding/);
   assert.match(html,/row_caption_segment_ids/);
 });
+
+test('repairable import history still exposes verified complete deletion with blocker details',()=>{
+  assert.match(studio,/item\.status==='committed'\?`<button[^`]+data-action="inspect-undo"/s);
+  assert.doesNotMatch(studio,/lifecycle!==['"]repairable['"]\?`<button[^`]+data-action="inspect-undo"/s);
+  assert.match(studio,/cascade_refs/);
+  assert.match(studio,/plan\.blockers/);
+  for(const locale of ['en','ru','he']){
+    const text=fs.readFileSync(path.join(root,`public/i18n/locales/${locale}.js`),'utf8');
+    for(const key of ['undoCascadeSummary','undoBlockerDetails','externalFilesRemain'])assert.match(text,new RegExp(`${key}:`),`${locale}.${key}`);
+  }
+});

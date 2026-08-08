@@ -171,6 +171,17 @@ test('full-backup restore rebinds an exact compatibility text without changing s
   assert.equal(h.rows('SELECT id FROM sentences')[0].id,'library-row');assert.equal(count(h,'studio_learning_materials'),1);
 });
 
+test('complete deletion blocks when the import reused pre-existing text canon',async()=>{
+  const h=await harness();h.db.run("INSERT INTO texts(id,text_key,title,source_text,created_at,updated_at) VALUES('library-text','owner-lesson-1','שיעור Мия','שלום','t','t')");
+  h.db.run("INSERT INTO sentences(id,text_id,order_index,he_plain,he_niqqud,translit,translit_ru,ru,created_at) VALUES('library-row','library-text',0,'שלום','שָׁלוֹם','shalom','шалом','привет','t')");
+  const v=await verified(),plan=await h.repo.dryRun(v),applied=await h.repo.applyVerified(v,{plan_sha256:plan.plan_sha256});
+  const reverse=await h.repo.reverseReferencePlan(applied.receipt.receipt_id);
+  assert.equal(reverse.can_delete,false);assert.equal(reverse.blockers.some(item=>item.code==='REUSED_TEXT_CANON'),true);
+  await assert.rejects(()=>h.repo.undo(applied.receipt.receipt_id,{confirm:true}),/UNDO_EXTERNAL_REFERENCE_CONFLICT/);
+  assert.equal(count(h,'texts'),1);assert.equal(count(h,'studio_learning_materials'),1);
+  assert.equal(h.rows('SELECT status FROM studio_portable_import_receipts')[0].status,'committed');
+});
+
 test('explicit receipt undo removes only created closure and keeps the inert receipt', async () => {
   const h=await harness(),v=await verified(),plan=await h.repo.dryRun(v);
   const applied=await h.repo.applyVerified(v,{plan_sha256:plan.plan_sha256});
@@ -178,6 +189,49 @@ test('explicit receipt undo removes only created closure and keeps the inert rec
   assert.equal(result.undone,true); assert.equal(count(h,'texts'),0); assert.equal(count(h,'studio_learning_materials'),0);
   assert.equal(count(h,'studio_media_packages'),0); assert.equal(count(h,'studio_caption_tracks'),0);
   assert.equal(count(h,'studio_portable_import_receipts'),1);
+  assert.equal(h.rows('SELECT status FROM studio_portable_import_receipts')[0].status,'rolled_back');
+  assert.deepEqual(h.rows('PRAGMA foreign_key_check'),[]);
+});
+
+test('complete deletion stays available after media-package deletion and accepts proven text cascades',async()=>{
+  const h=await harness(),v=await verified(),plan=await h.repo.dryRun(v);
+  const applied=await h.repo.applyVerified(v,{plan_sha256:plan.plan_sha256}),textId=applied.receipt.id_map.text.local_id;
+  h.db.run(`CREATE TABLE text_progress(
+    text_id TEXT PRIMARY KEY REFERENCES texts(id) ON DELETE CASCADE,
+    last_row_idx INTEGER
+  )`);
+  h.db.run(`CREATE TABLE sentence_note(
+    id TEXT PRIMARY KEY,
+    sentence_id TEXT NOT NULL REFERENCES sentences(id) ON DELETE CASCADE,
+    note TEXT
+  )`);
+  h.db.run('CREATE TABLE events(id TEXT PRIMARY KEY,text_id TEXT,sentence_id TEXT)');
+  h.db.run('CREATE TABLE note_occurrences(id INTEGER PRIMARY KEY,text_id TEXT,sentence_id TEXT)');
+  const sentenceId=Object.values(applied.receipt.id_map.rows)[0];
+  h.db.run('INSERT INTO text_progress(text_id,last_row_idx) VALUES(?,?)',[textId,17]);
+  h.db.run('INSERT INTO sentence_note(id,sentence_id,note) VALUES(?,?,?)',['note-1',sentenceId,'owner note']);
+  h.db.run('INSERT INTO events(id,text_id,sentence_id) VALUES(?,?,?)',['event-1',textId,sentenceId]);
+  h.db.run('INSERT INTO note_occurrences(id,text_id,sentence_id) VALUES(?,?,?)',[1,textId,sentenceId]);
+  h.db.run('DELETE FROM studio_media_packages WHERE package_id=?',[applied.receipt.id_map.media_package.local_id]);
+  assert.equal((await h.repo.receiptIntegrity(applied.receipt.receipt_id)).state,'repairable');
+
+  const reverse=await h.repo.reverseReferencePlan(applied.receipt.receipt_id);
+  assert.equal(reverse.can_delete,true);
+  assert.deepEqual(reverse.blockers,[]);
+  assert.deepEqual(reverse.cascade_refs.map(ref=>[ref.table,ref.column,ref.count]),[['sentence_note','sentence_id',1],['text_progress','text_id',1]]);
+  assert.deepEqual(reverse.explicit_delete_refs.map(ref=>[ref.table,ref.column,ref.count]),[
+    ['events','sentence_id',1],['events','text_id',1],['note_occurrences','sentence_id',1],['note_occurrences','text_id',1],
+  ]);
+
+  await assert.rejects(()=>h.repo.undo(applied.receipt.receipt_id,{confirm:true,fault_inject:'before_receipt_update'}),/FAULT_INJECT/);
+  assert.equal(count(h,'texts'),1);assert.equal(count(h,'events'),1);assert.equal(count(h,'note_occurrences'),1);
+  assert.equal(h.rows('SELECT status FROM studio_portable_import_receipts')[0].status,'committed');
+
+  const result=await h.repo.undo(applied.receipt.receipt_id,{confirm:true});
+  assert.equal(result.undone,true);
+  assert.equal(count(h,'texts'),0);assert.equal(count(h,'text_progress'),0);assert.equal(count(h,'sentence_note'),0);
+  assert.equal(count(h,'events'),0);assert.equal(count(h,'note_occurrences'),0);
+  assert.equal(count(h,'studio_learning_materials'),0);assert.equal(count(h,'studio_portable_import_receipts'),1);
   assert.equal(h.rows('SELECT status FROM studio_portable_import_receipts')[0].status,'rolled_back');
   assert.deepEqual(h.rows('PRAGMA foreign_key_check'),[]);
 });
