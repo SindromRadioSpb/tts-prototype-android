@@ -529,8 +529,11 @@ This sentence is proposed and is **not** granted merely because it appears in th
 
 ## 20. Decision after this packet
 
-The owner granted §19. The bounded implementation is complete locally at client version
-`3.11.342`; it has not been pushed, deployed or published as a Companion installer.
+The owner granted §19, then separately authorised web push/deploy and publication of the updated
+Companion installer. The web client `3.11.342` from commit
+`9824938e75186288eb60904b34689b9991933618` is deployed. Companion `0.3.0-beta.5` was built from
+exact source commit `cd6d15e49cc98dcdcc736d016d9ed0eabe16ede5` and published only through the
+approved owner/trusted-user out-of-band channel. It remains unsigned and is not publicly hosted.
 
 Implemented gates:
 
@@ -555,10 +558,14 @@ Two actual-file facts refine the general matrix without hiding evidence:
 2. Episodes 1–4 have `moov` after `mdat`, while §16 explicitly requires `READY`. `faststart:false`
    remains visible but does not alone force repair. Every generated output still uses fast-start.
 
-Current automated evidence: Companion pytest 75/75; focused Node and fresh 380 px browser gates
-PASS, including the Import Center exact-file handoff with zero provider calls and no persisted
-device receipt; full Node 881 total / 877 pass / the same four pre-existing baseline failures. No
-existing card, package, binding or production data was mutated.
+Current automated evidence: Companion pytest 77/77; frozen and installed authenticated
+media-readiness jobs PASS, including source/output identity and terminal deletion receipt; in-place
+beta.4 -> beta.5 upgrade PASS with pairing and model preservation; installed tree 5304/5304 files
+verified. Focused Node and fresh 380 px browser gates PASS, including the Import Center exact-file
+handoff with zero provider calls and no persisted device receipt; full Node 881 total / 877 pass /
+the same four pre-existing baseline failures. No existing card, package, binding or production data
+was mutated. Actual owner iPhone and supported Android exact-file play/seek gates remain separate
+release acceptance and are not inferred from these automated checks.
 
 ## 21. Standards and tool references
 

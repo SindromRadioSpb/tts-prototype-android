@@ -1,0 +1,32 @@
+{
+  "schema": "studio-media-readiness-installer-release-evidence-v1",
+  "released_at": "2026-08-08",
+  "channel": "OWNER_AND_TRUSTED_USERS_OUT_OF_BAND",
+  "public_hosting": false,
+  "companion": {
+    "version": "0.3.0-beta.5",
+    "source_commit": "cd6d15e49cc98dcdcc736d016d9ed0eabe16ede5",
+    "artifact": {
+      "name": "LinguistProLocalAsrCompanion-0.3.0-beta.5-unsigned-internal.exe",
+      "bytes": 1867132293,
+      "sha256": "811391ece49acfb0fd47755b394b10fc91500674c342e66c209196c3ad5ceae0",
+      "authenticode": "NotSigned"
+    }
+  },
+  "web": {
+    "version": "3.11.342",
+    "source_commit": "9824938e75186288eb60904b34689b9991933618",
+    "browser_schema": 48
+  },
+  "gates": {
+    "ai_local_pytest": "77/77 PASS",
+    "frozen_media_readiness": "PASS",
+    "in_place_upgrade_beta4_to_beta5": "PASS",
+    "pairing_token_preserved": true,
+    "mt_model_root_preserved": true,
+    "installed_media_readiness": "PASS",
+    "installed_tree_sha256": "5304/5304 PASS",
+    "owner_iphone_actual_file_play_seek": "PENDING",
+    "owner_android_actual_file_play_seek": "PENDING"
+  }
+}

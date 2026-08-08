@@ -1,7 +1,23 @@
-# Studio Media Readiness — implementation evidence (2026-08-08)
+# Studio Media Readiness — implementation and release evidence (2026-08-08)
 
-Scope: local-only implementation of the approved decision packet. No production upload, deployment,
-schema migration, card/package/binding rewrite, automatic conversion, or media bytes in `.lplp`.
+Scope: the approved bounded implementation plus its separately authorised web deployment and
+Companion beta.5 owner/trusted-user out-of-band release. No media upload to production, schema
+migration, card/package/binding rewrite, automatic conversion, public installer hosting, or media
+bytes in `.lplp`.
+
+Release evidence:
+
+- web client `3.11.342`, source commit `9824938e75186288eb60904b34689b9991933618`, deployed with
+  production health PASS and browser schema 48;
+- Companion `0.3.0-beta.5`, source commit `cd6d15e49cc98dcdcc736d016d9ed0eabe16ede5`;
+- installer `LinguistProLocalAsrCompanion-0.3.0-beta.5-unsigned-internal.exe`, 1,867,132,293 bytes,
+  SHA-256 `811391ece49acfb0fd47755b394b10fc91500674c342e66c209196c3ad5ceae0`;
+- Authenticode `NotSigned`; release scope `OWNER_AND_TRUSTED_USERS_OUT_OF_BAND`;
+  `public_hosting=false`;
+- Companion pytest 77/77, frozen media-readiness job PASS, in-place beta.4 -> beta.5 upgrade PASS,
+  installed authenticated media-readiness job PASS, installed tree 5304/5304 files verified;
+- release manifest and checksum are recorded in `installer-beta5-release.json`; the distributable
+  folder contains the installer, `SHA256SUMS.txt`, `README.txt`, and `release-manifest.json` only.
 
 Actual-file read-only evidence:
 
