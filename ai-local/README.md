@@ -36,6 +36,16 @@ and do not publicly host or broadly distribute it without a separate owner decis
 authorized the `0.3.0-beta.5` Media Readiness rebuild for the same out-of-band owner/trusted-user
 cohort on 2026-08-08; this does not authorize public hosting or general distribution.
 
+For `0.3.0-beta.5`, the single canonical local binary is the repository-worktree artifact
+`ai-local/artifacts/LinguistProLocalAsrCompanion-0.3.0-beta.5-unsigned-internal.exe` (1,867,132,293
+bytes; SHA-256 `811391ece49acfb0fd47755b394b10fc91500674c342e66c209196c3ad5ceae0`). The copy in the
+owner Downloads release folder is a derived distribution copy, not a second source of truth.
+`ai-local/artifacts/` remains intentionally Git-ignored because the unsigned installer is 1.87 GB
+and public remote hosting is not authorised. Reproduce it from exact source commit
+`cd6d15e49cc98dcdcc736d016d9ed0eabe16ede5` with `scripts/build_companion.ps1`, then require the
+recorded byte count and SHA-256 before replacing the canonical local artifact or making a new
+distribution copy.
+
 The installed GUI provides start/stop/restart, session pairing, nine-check Windows/GPU/CUDA/
 runtime/disk/port preflight, explicit pinned-model download/cancel/delete, warmup, job cleanup and
 redacted diagnostic export. It binds only `127.0.0.1:8799` and stores model/jobs/state only under

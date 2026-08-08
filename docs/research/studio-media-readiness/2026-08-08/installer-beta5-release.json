@@ -8,6 +8,9 @@
     "source_commit": "cd6d15e49cc98dcdcc736d016d9ed0eabe16ede5",
     "artifact": {
       "name": "LinguistProLocalAsrCompanion-0.3.0-beta.5-unsigned-internal.exe",
+      "canonical_repo_relative_path": "ai-local/artifacts/LinguistProLocalAsrCompanion-0.3.0-beta.5-unsigned-internal.exe",
+      "git_tracking": "ignored_binary",
+      "distribution_copy_role": "derived",
       "bytes": 1867132293,
       "sha256": "811391ece49acfb0fd47755b394b10fc91500674c342e66c209196c3ad5ceae0",
       "authenticode": "NotSigned"

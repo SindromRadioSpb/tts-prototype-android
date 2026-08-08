@@ -12,6 +12,10 @@ Release evidence:
 - Companion `0.3.0-beta.5`, source commit `cd6d15e49cc98dcdcc736d016d9ed0eabe16ede5`;
 - installer `LinguistProLocalAsrCompanion-0.3.0-beta.5-unsigned-internal.exe`, 1,867,132,293 bytes,
   SHA-256 `811391ece49acfb0fd47755b394b10fc91500674c342e66c209196c3ad5ceae0`;
+- canonical local binary: repository-relative
+  `ai-local/artifacts/LinguistProLocalAsrCompanion-0.3.0-beta.5-unsigned-internal.exe`; this ignored
+  worktree artifact is the single local source of truth, while the Downloads bundle is a derived
+  distribution copy;
 - Authenticode `NotSigned`; release scope `OWNER_AND_TRUSTED_USERS_OUT_OF_BAND`;
   `public_hosting=false`;
 - Companion pytest 77/77, frozen media-readiness job PASS, in-place beta.4 -> beta.5 upgrade PASS,
