@@ -3151,14 +3151,14 @@ window.I18N_LOCALES.ru = {
     },
     // W1 Studio Ingest — Import modal (studio-import.js). Каждый ключ ОБЯЗАН жить в ×3 локалях.
     import: {
-      button: "Импорт: ссылка / файл / фото",
-      title: "Импорт текста",
+      button: "Добавить материал",
+      title: "Добавить материал",
       // W2-S5a.1 T2 — три явные вкладки (Статья/Видео/Файл) вместо плоского стека.
       // T2-fix (owner visual pass): «Статья / страница» переносилось на две строки при 380px —
       // укорочено до одного слова, т.к. подпись под полем (urlLabel) и так называет страницу.
       tabUrl: "Статья",
       tabVideo: "Видео",
-      tabFile: "Файл",
+      tabFile: "С устройства",
       // MINOR (whole-branch review 2026-07-28): было захардкожено RU в aria-label — теперь через
       // data-i18n-aria-label, как везде в файле.
       tabsAriaLabel: "Импорт — тип источника",
@@ -3173,7 +3173,7 @@ window.I18N_LOCALES.ru = {
       // заголовок над ней — оставлен как есть, не удалён
       fileBtn: "Выбрать файл…",
       fileLabelPhoto: "Фото, PDF или Word (до 6 МБ)",
-      fileLabelAv: "Аудио или видео-файл (иврит)",
+      fileLabelAv: "Медиа на иврите",
       fileLabelCaptions: "Файл субтитров (.vtt / .srt)",
       fileBtnPhoto: "Выбрать фото, PDF или Word…",
       fileBtnCaptions: "Выбрать файл субтитров…",
@@ -3200,7 +3200,7 @@ window.I18N_LOCALES.ru = {
       errExtractBadJson: "Не удалось разобрать ответ модели. Попробуйте другой файл или снимок получше.",
       errGeneric: "Ошибка импорта — попробуйте ещё раз",
       // W2-S4 — Импорт → Аудио (BYOK Gemini ASR)
-      audioBtn: "Аудио (иврит) → транскрипт",
+      audioBtn: "Медиа на иврите → транскрипт",
       audioGo: "Транскрибировать",
       audioUploading: "Загрузка аудио в Google…",
       audioProcessing: "Google обрабатывает файл…",
@@ -3436,6 +3436,25 @@ window.I18N_LOCALES.ru = {
       sourcePlayer: "Исходное аудио / видео",
       sourceSync: "Выбор строки и позиция плеера синхронизированы",
     },
+    remoteMedia: {
+      resolve: "Проверить ссылку", resolved: "Источник проверен", preview: "Предпросмотр", more: "Другие варианты",
+      rights: "У меня есть разрешение правообладателя", cancel: "Отменить", saveCopy: "Сохранить копию на устройство", continue: "Перейти к расшифровке",
+      railSource: "Источник", railPrepare: "Подготовка", railDevice: "На устройство", railVerify: "Проверка", railReady: "Готово",
+      sizeUnknown: "размер уточнится при загрузке", videoSound: "видео со звуком", audioOnly: "только аудио", hebrewCaptions: "субтитры на иврите",
+      captionsManual: "авторские", captionsAuto: "автоматические", recommended: "Рекомендуется для Студии", complete: "совместимая копия целиком", separateChoice: "отдельный вариант импорта",
+      addCaptions: "Добавить субтитры в Студию", addSelected: "Добавить в Студию · {choice}", resolving: "Проверяем доступные варианты…",
+      resolveFailed: "Не удалось подготовить эту ссылку. Проверьте доступ и повторите.", rightsRequired: "Подтвердите разрешение правообладателя.",
+      preparing: "Готовим выбранный вариант…", writingDevice: "Записываем на это устройство", added: "Добавлено в Студию на этом устройстве", addedCleanupPending: "Добавлено в Студию. Worker повторит очистку временной копии автоматически.",
+      savedNotAttached: "Проверенный файл сохранён на этом устройстве, но Студия не смогла его подключить. Отдельную копию всё ещё можно сохранить.",
+      failed: "Загрузка остановлена. Непроверенный файл не был добавлен. Проверьте сеть и свободное место, затем повторите.", cancelled: "Загрузка отменена; неполные данные удалены.", copySaved: "Открыто сохранение отдельной копии.", copyFailed: "Не удалось открыть сохранение на устройство.",
+      phase: { queued: "В очереди", preparing: "Подготовка", downloading: "Получение источника", merging: "Сборка видео со звуком", verifying: "Проверка", ready: "Готово", cancel_requested: "Отменяем" },
+      error: {
+        media_acquisition_disabled: "Получение медиа пока не настроено на сервере.", unauthenticated: "Сессия истекла — войдите снова.", bad_csrf: "Защитный токен устарел — обновите страницу.",
+        capability_origin: "Этот запрос открыт не с разрешённого адреса.", queue_full: "Worker занят. Повторите через несколько минут.", rate_limit: "Слишком много проверок подряд. Подождите минуту и повторите.", stream_retry_limit: "Лимит повторных передач исчерпан. Запустите получение заново.", login_required: "Источник требует входа и не поддерживается.",
+        live_unsupported: "Прямые эфиры пока не поддерживаются.", duration_limit: "Видео длиннее разрешённых трёх часов.", no_compatible_format: "Для этого видео нет совместимого варианта в пределах лимита.",
+        opfs_quota_low: "На устройстве недостаточно свободного места для безопасной записи.", stream_aborted: "Передача прервалась; неполный файл удалён.", hash_mismatch: "Проверка файла не сошлась; файл удалён.", size_limit: "Файл превышает лимит 300 МБ."
+      },
+    },
     mediaPackage: {
       title: "Исправление транскрипта", correctBtn: "Исправить транскрипт", continueDraftBtn: "Продолжить с черновиком",
       close: "Закрыть", prev: "← Предыдущий", next: "Следующий →", cueText: "Текст реплики", start: "Начало", end: "Конец", speaker: "Говорящий",
@@ -3465,7 +3484,7 @@ window.I18N_LOCALES.ru = {
       workspaceRevision: "Правки · v{n}", workspaceVersion: "Версия {n}", workspaceDraftShort: "черновик", workspaceMediaMissingShort: "медиа нужно связать",
       workspaceCards: "карточек: {n}",
       workspaceMediaMissing: "Медиа нужно связать заново", workspaceRaw: "Неизменяемый оригинал", workspaceStale: "Таблица использует предыдущую версию. Ваши новые правки сохранены отдельно.",
-      workspaceReopen: "Редактировать материал", workspaceAll: "Все сохранённые транскрипты", workspaceLibrary: "Транскрипты", workspaceShelfTitle: "Сохранённые транскрипты",
+      workspaceReopen: "Открыть", workspaceAll: "Все материалы", workspaceLibrary: "Материалы", workspaceShelfTitle: "Продолжить работу",
       workspaceShelfLocal: "На устройстве", workspaceShelfHint: "Продолжайте редактирование без повторного распознавания.", workspaceShelfEmpty: "Сохранённых транскриптов пока нет.",
     },
     material: {

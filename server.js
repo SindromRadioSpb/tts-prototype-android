@@ -613,6 +613,16 @@ app.use(express.static(path.join(__dirname, "public"), {
   },
 }));
 
+// RMA-2: audited incremental SHA-256 runtime. The exact package/integrity lives in
+// package-lock.json; exposing one allowlisted file avoids a CDN/network dependency on mobile.
+app.get("/vendor/hash-wasm/sha256.umd.min.js", (_req, res) => {
+  res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+  res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  res.type("application/javascript").sendFile(
+    path.join(__dirname, "node_modules", "hash-wasm", "dist", "sha256.umd.min.js")
+  );
+});
+
 // P0-3: user-facing docs. The footer and feature onboarding link to /docs/*,
 // but express.static only serves public/ — those would otherwise 404. Serve
 // a STRICT WHITELIST of user docs, rendered as
@@ -1661,6 +1671,61 @@ function requireCsrf(req, res, auth) {
   }
   return true;
 }
+
+// RMA-1/RMA-2 — the Node application mints only a short-lived capability. It never
+// resolves upstream media, receives a signed CDN URL, downloads bytes or proxies a stream.
+const rlMediaAcquisitionCapability = makeRateLimiter({
+  windowMs: 60_000,
+  max: 20,
+  name: "media-acquisition-capability",
+});
+function mediaAcquisitionOrigin(req) {
+  return `${req.protocol || "https"}://${String(req.headers.host || "").trim()}`;
+}
+function mediaAcquisitionToken(secret, payload) {
+  const body = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
+  const signature = crypto.createHmac("sha256", secret).update(body, "ascii").digest("base64url");
+  return `${body}.${signature}`;
+}
+function mediaAcquisitionPublicUrl() {
+  const value = String(process.env.MEDIA_ACQUISITION_PUBLIC_URL || "").trim().replace(/\/$/, "");
+  if (!value) return "";
+  try {
+    const parsed = new URL(value);
+    const local = parsed.protocol === "http:" && ["127.0.0.1", "localhost"].includes(parsed.hostname);
+    return parsed.protocol === "https:" || (process.env.NODE_ENV !== "production" && local) ? parsed.origin : "";
+  } catch (_) { return ""; }
+}
+app.post("/api/media-acquisition/capability", rlMediaAcquisitionCapability, requireStrictSameOriginJson, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  const roles = new Set(String(process.env.MEDIA_ACQUISITION_ALLOWED_ROLES || "owner")
+    .split(",").map((value) => value.trim().toLowerCase()).filter(Boolean));
+  if (!roles.has(String(auth.user.role || "").toLowerCase())) {
+    return res.status(403).json({ ok: false, error: "MEDIA_ACQUISITION_ROLE_FORBIDDEN" });
+  }
+  const secret = String(process.env.MEDIA_ACQUISITION_SHARED_SECRET || "");
+  const workerUrl = mediaAcquisitionPublicUrl();
+  if (secret.length < 32 || !workerUrl) {
+    return res.status(503).json({ ok: false, error: "MEDIA_ACQUISITION_DISABLED" });
+  }
+  const now = Math.floor(Date.now() / 1000), expiresAt = now + 300;
+  const origin = mediaAcquisitionOrigin(req);
+  const token = mediaAcquisitionToken(secret, {
+    typ: "lp_media_capability_v1",
+    sub: String(auth.user.id),
+    origin,
+    scopes: ["prepare", "resolve", "stream"],
+    iat: now,
+    exp: expiresAt,
+    nonce: crypto.randomBytes(18).toString("base64url"),
+  });
+  identityRepo.audit("media_acquisition_capability_minted", auth.user.id,
+    { expires_at: expiresAt, scopes: ["prepare", "resolve", "stream"] }, req.ip);
+  res.set("Cache-Control", "no-store");
+  return res.json({ ok: true, schema_version: "lp_media_capability.1.0.0",
+    worker_url: workerUrl, capability: token, expires_at: expiresAt });
+});
 
 // AA2-B2 — first-party consent/revoke controller. No route stages a trusted
 // authorization request in B2; the unmounted B3 AS bridge will be the only

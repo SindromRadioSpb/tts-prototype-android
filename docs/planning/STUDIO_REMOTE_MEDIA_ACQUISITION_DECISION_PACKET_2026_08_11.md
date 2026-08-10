@@ -1,7 +1,7 @@
 # Studio Remote Media Acquisition — decision packet
 
 > **Date:** 2026-08-11
-> **Status:** **OWNER DIRECTION RECORDED / MOBILE-FIRST ARCHITECTURE PROPOSED / IMPLEMENTATION AUTHORITY REQUIRED**
+> **Status:** **OWNER AUTHORITY RECORDED / RMA-0–RMA-3 LOCAL CODE IMPLEMENTED / PROVISIONING + RMA-4 PENDING**
 > **Scope:** URL -> local media acquisition, import-dialog information architecture, saved-material
 > surfacing and mobile boundary
 > **Research:**
@@ -9,13 +9,14 @@
 > **Prerequisite canon:**
 > `docs/planning/STUDIO_MEDIA_READINESS_GATE_DECISION_PACKET_2026_08_08.md` and
 > `docs/planning/STUDIO_INGEST_P4_IMPORT_CENTER_IMPLEMENTATION_PACKET_2026_08_02.md`
-> **Current baseline:** local `main` at `75d0e446`, `origin/main` at `65e43715`, web client
-> `3.11.342`, Companion `0.3.0-beta.5`; re-verify before implementation
+> **Implementation baseline:** local `main` at `9f813d84`, `origin/main` at `65e43715`; local web
+> client bumped to `3.11.343`, Companion remains `0.3.0-beta.5`
 > **Owner direction recorded 2026-08-11:** rights-holder permission exists; YouTube Terms risk is
 > accepted; direct iPhone/Android acquisition is P0; format/quality choice is required; the complete
 > saved-transcript shelf moves to Import Center.
-> **Authority:** these product decisions authorise this planning update, not implementation,
-> infrastructure mutation, push, deploy, installer build, media download or owner-data mutation.
+> **Authority recorded 2026-08-11:** scoped local RMA-0–RMA-3 implementation and commits are
+> authorised. Infrastructure mutation, push/deploy, production enablement, installer build,
+> actual-byte owner-device acceptance and owner-data mutation remain forbidden in this slice.
 
 ## 0. Decision in one screen
 
@@ -241,16 +242,17 @@ alone.
 Reuse the existing job semantics and receipt vocabulary, but keep acquisition jobs in the isolated
 worker's ephemeral registry rather than the Companion or durable product database.
 
-Proposed endpoints:
+Implemented worker endpoints (the Node app exposes only the capability mint):
 
 ```text
-POST   /v1/media/jobs/remote/resolve       {url} -> metadata-only job + plan
-GET    /v1/media/jobs/{id}                 existing status surface
-POST   /v1/media/jobs/{id}/acquire         {mode, plan_sha256, rights_confirmed:true}
-POST   /v1/media/jobs/{id}/cancel          existing cancellation
-GET    /v1/media/jobs/{id}/file            bounded first-party streaming handoff
-GET    /v1/media/jobs/{id}/report          extended content-free report
-DELETE /v1/media/jobs/{id}                 existing terminal delete receipt
+POST   /api/media-acquisition/capability   Node: session+CSRF -> 5-minute worker capability
+POST   /v1/resolve                         worker: {url} -> metadata + signed immutable plan
+POST   /v1/jobs                            worker: plan choice + exact rights basis
+GET    /v1/jobs/{id}                       worker: bounded status/progress
+GET    /v1/jobs/{id}/stream                worker: verified first-party byte stream
+POST   /v1/jobs/{id}/device-receipt        worker: matching device SHA/size + delete receipt
+DELETE /v1/jobs/{id}                       worker: cancel/delete
+GET    /v1/runtime                         authenticated content-free runtime report
 ```
 
 States:
@@ -527,6 +529,26 @@ fallback, not the primary experience or a mobile PASS.
 - copy corrections, recent-draft compaction, Import Center route;
 - RU/EN/HE 380 px browser evidence.
 
+### Local implementation evidence — 2026-08-11
+
+- separate standard-library Python worker package, ephemeral in-memory jobs and fixed yt-dlp API
+  adapter; Node only mints a five-minute origin/user/scope capability;
+- exact Python dependency/hash lock (`yt-dlp 2026.7.4`, `yt-dlp-ejs 0.8.0`) and exact npm lock for
+  `hash-wasm 4.12.0`; Deno 2.7.5 / FFmpeg 8.1 are development evidence only until the later
+  production-image digest gate;
+- live metadata-only resolve of `wJgtBgZvQnU`: 37:40; complete 360/480/720/1080 MP4, M4A and
+  Hebrew auto captions; no signed upstream URL in the returned plan;
+- 15 worker boundary/planner/job/receipt tests and 8 browser/controller tests PASS;
+- RU + HE real-shell Playwright evidence at 380x844: 16/16 PASS, no horizontal overflow, complete
+  MP4 primary choices and 44 px minimum visible targets;
+- Chrome DevTools live-shell read-back: app/SW `3.11.343`, 380 px exact width, accessible dialog,
+  expected 720p/360p primary rows and loaded incremental SHA runtime;
+- existing ingest, Media Package, Import Center and API smoke gates PASS;
+- screenshots: `docs/research/studio-remote-media-acquisition/2026-08-11/screenshots/`.
+
+This is local engineering evidence, not production, owner-live iPhone/Android or GA evidence. No
+media bytes were downloaded in this implementation verification.
+
 ### RMA-4 — release evidence
 
 - frozen worker image/SBOM tests and deployed-image read-back;
@@ -540,6 +562,7 @@ The exact allowlist must be re-verified at implementation freeze. Proposed maxim
 
 ```text
 media-acquisition/pyproject.toml                   # new exact-pinned worker package
+media-acquisition/requirements.lock                # generated exact versions + package hashes
 media-acquisition/THIRD_PARTY_NOTICES.md           # new
 media-acquisition/acquisition_service/main.py      # new API/auth boundary
 media-acquisition/acquisition_service/planner.py   # new pure resolver/format planner
@@ -603,7 +626,7 @@ mutation.
 - **R16:** worker CPU/network/temp-disk and device quota are estimated before acquisition;
   subtitles/audio/compact video are explicit cheaper choices; one-active-plus-one-waiting caps cost.
 
-## 15. Owner decisions recorded and remaining before code
+## 15. Owner decisions recorded and remaining release gates
 
 Recorded as approved on 2026-08-11:
 
@@ -614,7 +637,7 @@ Recorded as approved on 2026-08-11:
 5. the complete saved-transcript shelf moves to Import Center, with one recent shortcut in Add
    Material.
 
-Remaining implementation decisions:
+The four implementation decisions below were approved by the owner's 2026-08-11 start command:
 
 1. **Runtime boundary:** approve the recommended isolated first-party acquisition worker, including
    transient server-side source/merged bytes for at most 30 minutes, while forbidding media in the
@@ -625,6 +648,11 @@ Remaining implementation decisions:
    устройство` (Files/Downloads, secondary) as separate actions and receipts.
 4. **Execution authority:** approve RMA-0 through RMA-3 as scoped local implementation; keep worker
    provisioning, push/deploy and RMA-4 owner-device window behind a later explicit gate.
+
+Remaining release gates are operational rather than product ambiguity: freeze production image
+digests and exact Deno/FFmpeg binary hashes, enumerate worker CPU/RAM/temp-disk/DNS/TLS/rollback,
+provision without routing public traffic, then obtain a separate owner decision for deploy and the
+real Safari/iPhone + Chrome/Android RMA-4 window.
 
 ## 16. Paste-ready implementation authority
 

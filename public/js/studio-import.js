@@ -1338,6 +1338,16 @@
       setStatus("studio.import.mediaBlocksAsr");
       return false;
     }
+    // RMA-2: these bytes were hashed incrementally while streaming into this exact
+    // content-addressed OPFS file and matched the worker SHA before promotion. Reading a
+    // 100–300 MiB file into one ArrayBuffer here would undo the mobile-safe handoff.
+    if (pendingAudio.acquiredOpfsPath && pendingAudio.remoteAcquisition && pendingAudio.sha256) {
+      var exists = await window.MediaStore.mediaExists(pendingAudio.acquiredOpfsPath);
+      var expectedRemoteSha = pendingAudio.mediaReadiness && pendingAudio.mediaReadiness.canonical_sha256;
+      if (exists && pendingAudio.sha256 === expectedRemoteSha) { pendingAudio.buf = null; return true; }
+      pendingAudio.mediaReadiness = { outcome: "BLOCKED", reason: "acquired_opfs_identity_mismatch", next_action: "repeat-remote-acquisition" };
+      renderMediaReadiness(); setStatus("studio.import.mediaShaMismatch"); return false;
+    }
     var buf = await pendingAudio.file.arrayBuffer();
     var actualSha = await window.MediaStore.sha256Hex(buf);
     var expectedSha = pendingAudio.mediaReadiness && pendingAudio.mediaReadiness.canonical_sha256;
@@ -1768,6 +1778,7 @@
     // Tab always resets to "url" on open() — not persisted anywhere (not localStorage, not a
     // module var), so the dialog is predictable on every open, per task-2-brief.md.
     switchTab("url");
+    if (window.RemoteMediaAcquisition && window.RemoteMediaAcquisition.reset) window.RemoteMediaAcquisition.reset();
     if (window.StudioMediaPackage && window.StudioMediaPackage.refreshWorkspaceUi) window.StudioMediaPackage.refreshWorkspaceUi();
   }
   function close() {
@@ -1854,17 +1865,20 @@
       var segs = mediaSegmentsForPromotion(pendingAudio.parsed.segments, v.segments);
       var dropReason = editedAway ? "PREVIEW_EDITED" : (v.timingOk ? null : v.dropReason);
       var transcriptOnly = pendingAudio.mediaReadiness && pendingAudio.mediaReadiness.outcome === "TRANSCRIPT_ONLY";
-      var fileName = transcriptOnly ? null : window.MediaStore.mediaFileName(pendingAudio.sha256, pendingAudio.mime, pendingAudio.name);
+      var fileName = transcriptOnly ? null : (pendingAudio.acquiredOpfsPath || window.MediaStore.mediaFileName(pendingAudio.sha256, pendingAudio.mime, pendingAudio.name));
       // OPFS-запись; недоступна (старый Safari) → session-only blob + честный warning
       window.v3SessionMediaBlob = null;
-      var saved = !transcriptOnly && window.MediaStore.canWrite()
-        ? await window.MediaStore.saveMedia(pendingAudio.buf, fileName)
-        : { ok: false, reason: transcriptOnly ? "TRANSCRIPT_ONLY" : "NO_CREATE_WRITABLE" };
+      var acquiredAlreadyStored = !transcriptOnly && pendingAudio.acquiredOpfsPath && await window.MediaStore.mediaExists(pendingAudio.acquiredOpfsPath);
+      var saved = acquiredAlreadyStored ? { ok: true, alreadyStored: true }
+        : (!transcriptOnly && window.MediaStore.canWrite()
+          ? await window.MediaStore.saveMedia(pendingAudio.buf, fileName)
+          : { ok: false, reason: transcriptOnly ? "TRANSCRIPT_ONLY" : "NO_CREATE_WRITABLE" });
       audioMetaForImport = {
         v: 1,
         media: { opfsPath: saved.ok ? fileName : null, sessionOnly: !saved.ok && !transcriptOnly, sha256: transcriptOnly ? null : pendingAudio.sha256,
                  mime: transcriptOnly ? null : pendingAudio.mime, sizeBytes: transcriptOnly ? null : pendingAudio.file.size,
                  durationSec: pendingAudio.durationSec, originalName: pendingAudio.name,
+                 acquisition: pendingAudio.remoteAcquisition || undefined,
                  compatibility: transcriptOnly
                    ? { outcome: "TRANSCRIPT_ONLY", bind_outcome: "not_bound", playback: "not_prepared" }
                    : window.MediaReadiness.compatibilityEvidence(pendingAudio.mediaReadiness) || undefined },
@@ -1922,7 +1936,7 @@
                                 : (pendingCaptions.parsed.format === "vtt" || pendingCaptions.parsed.format === "srt" ? "vtt-plain" : "none"),
                     language: pendingCaptions.parsed.language, fileName: pendingCaptions.fileName,
                     at: new Date().toISOString(), droppedHeadings: pendingCaptions.parsed.droppedHeadings,
-                    warnings: pending.warnings || [] },
+                    warnings: pending.warnings || [], acquisition: pendingCaptions.acquisition || undefined },
         video: pendingCaptions.video || undefined,
         segments: cEdited ? cl.map(function (t2, k) { return { i: k, start: null, text: t2 }; })
                           : ps.map(function (s, k) { return { i: k, start: s.start, text: cl[k] }; }),
@@ -2242,6 +2256,73 @@
     });
   }
 
+  function remoteAcquisitionPassport(acquired) {
+    var source = acquired.source || {}, option = acquired.option || {}, receipt = acquired.receipt || {};
+    return {
+      v: 1,
+      provider: "youtube",
+      source: { video_id: source.video_id || null, canonical_url: source.canonical_url || null,
+                title: source.title || null, duration_seconds: source.duration_seconds || null },
+      selection: { id: option.id || null, kind: option.kind || null, quality: option.quality || null,
+                   container: option.container || null, has_audio: option.has_audio === true,
+                   format_ids: (option.format_ids || []).slice() },
+      rights_basis: { kind: "rights_holder_permission" },
+      output_sha256: receipt.output_sha256 || (acquired.stored && acquired.stored.sha256) || null,
+      output_size_bytes: receipt.output_size_bytes || (acquired.stored && acquired.stored.sizeBytes) || null,
+      worker_runtime: receipt.worker_runtime || null,
+      device_receipt: { stored_in_studio_opfs: receipt.stored_in_studio_opfs === true,
+                        owner_saved_copy: receipt.owner_saved_copy === true,
+                        deletion_receipt: receipt.deletion_receipt || null },
+    };
+  }
+
+  async function acceptRemoteAcquisition(acquired) {
+    if (!acquired || !acquired.stored || !acquired.receipt || !acquired.option) throw new Error("REMOTE_ACQUISITION_INVALID");
+    var path = acquired.stored.opfsPath, file = await window.MediaStore.readMedia(path);
+    if (!file) throw new Error("REMOTE_ACQUISITION_FILE_MISSING");
+    var sha = String(acquired.receipt.output_sha256 || "").toLowerCase();
+    if (!/^[a-f0-9]{64}$/.test(sha) || sha !== String(acquired.stored.sha256 || "").toLowerCase()) throw new Error("REMOTE_ACQUISITION_SHA_MISMATCH");
+    if (Number(file.size) !== Number(acquired.receipt.output_size_bytes)) throw new Error("REMOTE_ACQUISITION_SIZE_MISMATCH");
+    var option = acquired.option, isVideo = option.kind === "video", mime = acquired.stored.mimeType || (isVideo ? "video/mp4" : "audio/mp4");
+    var readiness = isVideo ? {
+      outcome: "READY", state: "COMPLETE", canonical_sha256: sha, canonical_name: acquired.downloadName,
+      bind_outcome: "bound_pending_import", target_contract: "linguistpro-mobile-v1",
+      codec_summary: { container: "mp4", faststart: true, video_codec: "h264", audio_codec: "aac",
+                       height: option.quality || null, sdr: true },
+      disk_sufficient: true, cleanup_receipt: acquired.receipt.deletion_receipt || null,
+    } : { outcome: "AUDIO_READY", state: "COMPLETE", canonical_sha256: sha,
+          canonical_name: acquired.downloadName, bind_outcome: "bound_pending_import" };
+    pendingAudio = { file: file, originalFile: file, buf: null, sha256: sha, mime: mime,
+      durationSec: acquired.source && acquired.source.duration_seconds || null,
+      name: acquired.downloadName || file.name, parsed: null, validation: null, isVideo: isVideo,
+      mediaReadiness: readiness, mediaJobId: null, windowResults: null, windowMetaResults: null,
+      asrTransport: null, sliceLog: null, acquiredOpfsPath: path,
+      remoteAcquisition: remoteAcquisitionPassport(acquired) };
+    renderAudioMeta(); updateAudioActionLabel();
+    var info = $("v3ImportAudioInfo"); if (info) info.hidden = false;
+    refreshLocalAsrControls(); renderMediaReadiness();
+    return { ok: true, opfsPath: path, sha256: sha };
+  }
+
+  async function acceptRemoteCaptions(acquired) {
+    var file = await window.MediaStore.readMedia(acquired && acquired.stored && acquired.stored.opfsPath);
+    if (!file || file.size > MAX_FILE_BYTES) throw new Error("REMOTE_CAPTIONS_INVALID");
+    var raw = await file.text(), parsed = window.CaptionsParse.parse(raw);
+    if (acquired.option && acquired.option.source_kind === "auto" && parsed.ok) parsed.kindHint = "auto";
+    pendingCaptions = pendingCaptions || {};
+    pendingCaptions.video = { platform: "youtube", videoId: acquired.source.video_id, url: acquired.source.canonical_url };
+    pendingCaptions.acquisition = remoteAcquisitionPassport(acquired);
+    acceptCaptions(parsed, "remote-worker", acquired.downloadName || file.name, raw);
+    return { ok: !!parsed.ok };
+  }
+
+  function recordRemoteSavedCopy(receipt) {
+    if (!pendingAudio || !pendingAudio.remoteAcquisition) return false;
+    pendingAudio.remoteAcquisition.device_receipt.owner_saved_copy = true;
+    pendingAudio.remoteAcquisition.device_receipt.owner_saved_copy_receipt = receipt || null;
+    return true;
+  }
+
   function onCaptionsFileChosen(ev) {
     var file = ev.target.files && ev.target.files[0];
     ev.target.value = "";
@@ -2274,6 +2355,8 @@
                            chooseTranscriptOnly: chooseTranscriptOnly,
                            refreshLocalAsrControls: refreshLocalAsrControls,
                            onCaptionsFileChosen: onCaptionsFileChosen, useCaptionsPaste: useCaptionsPaste,
+                           acceptRemoteAcquisition: acceptRemoteAcquisition, acceptRemoteCaptions: acceptRemoteCaptions,
+                           recordRemoteSavedCopy: recordRemoteSavedCopy,
                            useText: useText, useTextAndCorrect: useTextAndCorrect,
                            useTextAndRetell: useTextAndRetell,
                            chooseTrackHint: chooseTrackHint, runWindowedAsr: runWindowedAsr,

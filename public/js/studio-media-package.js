@@ -291,8 +291,10 @@
     if (entry) entry.hidden = !models.length;
     if (count) count.textContent = String(models.length);
     if (!root || !list || !empty) return;
-    root.hidden = false; empty.hidden = !!models.length; list.replaceChildren();
-    models.forEach(function (model) {
+    // RMA-3 owner decision: the complete lifecycle list belongs to Import Center.
+    // Add Material keeps exactly one recent continuation shortcut and no empty shelf.
+    root.hidden = !models.length; empty.hidden = true; list.replaceChildren();
+    models.slice(0, 1).forEach(function (model) {
       var item = document.createElement('article'); item.className = 'l3-workspace-shelf-item';
       item.dataset.active = model.active ? 'true' : 'false';
       item.dataset.packageId = model.package_id;
@@ -309,7 +311,7 @@
       if (cardsOnThisTranscript > 1) parts.push(uiText('studio.mediaPackage.workspaceCards', 'карточек: {n}', { n: cardsOnThisTranscript }));
       meta.textContent = parts.join(' · '); copyBox.append(title, meta);
       var open = document.createElement('button'); open.type = 'button'; open.className = 'btn-secondary';
-      open.textContent = uiText('studio.mediaPackage.workspaceReopen', 'Вернуться к правкам');
+      open.textContent = uiText('studio.mediaPackage.workspaceReopen', 'Открыть');
       open.addEventListener('click', function () { openWorkspace(model.package_id, model.track_id); });
       item.append(copyBox, open); list.appendChild(item);
     });
@@ -405,8 +407,8 @@
     return workspace;
   }
   async function openWorkspaceLibrary() {
-    if (typeof window === 'undefined' || !window.StudioImport) return;
-    window.StudioImport.open(); window.StudioImport.switchTab('file'); await refreshWorkspaceUi();
+    if (typeof window === 'undefined' || !window.StudioPortableLearningPackage) return;
+    return window.StudioPortableLearningPackage.open({ view: 'materials' });
   }
   async function notifyRevision(trackId, revision) {
     if (activeWorkspaceRef && activeWorkspaceRef.track_id === trackId && revision) {

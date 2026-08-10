@@ -3147,14 +3147,14 @@ window.I18N_LOCALES.he = {
     },
     // W1 Studio Ingest — מודל ייבוא (studio-import.js). כל מפתח חייב להתקיים בכל שלוש השפות.
     import: {
-      button: "ייבוא: קישור / קובץ / תמונה",
-      title: "ייבוא טקסט",
+      button: "הוספת חומר",
+      title: "הוספת חומר",
       // W2-S5a.1 T2 — שלוש לשוניות מפורשות (מאמר/וידאו/קובץ) במקום הערימה השטוחה.
       // T2-fix (סבב חזותי של הבעלים): «מאמר / עמוד» נשבר לשתי שורות ב-380px — קוצר למילה אחת,
       // כי התווית מתחת לשדה (urlLabel) כבר מציינת גם עמוד.
       tabUrl: "מאמר",
       tabVideo: "וידאו",
-      tabFile: "קובץ",
+      tabFile: "מהמכשיר",
       // MINOR (whole-branch review 2026-07-28): ה-aria-label היה קשיח ברוסית — עובר כעת דרך
       // data-i18n-aria-label, כמו כל מחרוזת אחרת בקובץ הזה.
       tabsAriaLabel: "ייבוא — סוג המקור",
@@ -3169,7 +3169,7 @@ window.I18N_LOCALES.he = {
       // הכותרת מעליו — נשאר כמות שהוא, לא נמחק
       fileBtn: "בחירת קובץ…",
       fileLabelPhoto: "תמונה, PDF או Word (עד 6MB)",
-      fileLabelAv: "קובץ אודיו או וידאו (עברית)",
+      fileLabelAv: "מדיה בעברית",
       fileLabelCaptions: "קובץ כתוביות (.vtt / .srt)",
       fileBtnPhoto: "בחירת תמונה, PDF או Word…",
       fileBtnCaptions: "בחירת קובץ כתוביות…",
@@ -3196,7 +3196,7 @@ window.I18N_LOCALES.he = {
       errExtractBadJson: "לא ניתן לפענח את תשובת המודל. נסו קובץ אחר או צילום ברור יותר.",
       errGeneric: "הייבוא נכשל — נסו שוב",
       // W2-S4 — ייבוא ← אודיו (BYOK Gemini ASR)
-      audioBtn: "אודיו (עברית) → תמלול",
+      audioBtn: "מדיה בעברית לתמלול",
       audioGo: "תמלל",
       audioUploading: "מעלה אודיו ל-Google…",
       audioProcessing: "Google מעבד את הקובץ…",
@@ -3430,6 +3430,25 @@ window.I18N_LOCALES.he = {
       sourcePlayer: "אודיו / וידאו מקורי",
       sourceSync: "בחירת השורה ומיקום הנגן מסונכרנים",
     },
+    remoteMedia: {
+      resolve: "בדיקת הקישור", resolved: "המקור נבדק", preview: "תצוגה מקדימה", more: "אפשרויות נוספות",
+      rights: "יש לי אישור מבעל הזכויות", cancel: "ביטול", saveCopy: "שמירת עותק במכשיר", continue: "המשך לתמלול",
+      railSource: "מקור", railPrepare: "הכנה", railDevice: "למכשיר", railVerify: "אימות", railReady: "מוכן",
+      sizeUnknown: "הגודל ייבדק בהעברה", videoSound: "וידאו עם קול", audioOnly: "אודיו בלבד", hebrewCaptions: "כתוביות בעברית",
+      captionsManual: "מאת היוצר", captionsAuto: "אוטומטיות", recommended: "מומלץ לסטודיו", complete: "עותק תואם ומלא", separateChoice: "אפשרות ייבוא נפרדת",
+      addCaptions: "הוספת כתוביות לסטודיו", addSelected: "הוספה לסטודיו · {choice}", resolving: "בודקים אפשרויות זמינות…",
+      resolveFailed: "לא ניתן להכין את הקישור. בדקו את הגישה ונסו שוב.", rightsRequired: "יש לאשר שקיים אישור מבעל הזכויות.",
+      preparing: "מכינים את האפשרות שנבחרה…", writingDevice: "כותבים למכשיר הזה", added: "נוסף לסטודיו במכשיר הזה", addedCleanupPending: "נוסף לסטודיו. העובד ינסה שוב לנקות את הקובץ הזמני אוטומטית.",
+      savedNotAttached: "הקובץ המאומת נמצא במכשיר, אך הסטודיו לא הצליח לקשר אותו. עדיין אפשר לשמור עותק נפרד.",
+      failed: "ההעברה נעצרה. לא נוסף קובץ שלא אומת. בדקו את החיבור ואת המקום הפנוי ונסו שוב.", cancelled: "ההעברה בוטלה; הנתונים החלקיים נמחקו.", copySaved: "נפתחה שמירת עותק נפרד.", copyFailed: "לא ניתן לפתוח את פעולת השמירה במכשיר.",
+      phase: { queued: "בתור", preparing: "בהכנה", downloading: "קבלת המקור", merging: "שילוב וידאו וקול", verifying: "באימות", ready: "מוכן", cancel_requested: "מבטלים" },
+      error: {
+        media_acquisition_disabled: "קבלת מדיה עדיין לא הוגדרה בשרת.", unauthenticated: "ההתחברות פגה — יש להתחבר מחדש.", bad_csrf: "אסימון האבטחה התיישן — יש לרענן את הדף.",
+        capability_origin: "הבקשה לא נשלחה מכתובת מורשית.", queue_full: "העובד תפוס. נסו שוב בעוד כמה דקות.", rate_limit: "בוצעו יותר מדי בדיקות ברצף. המתינו דקה ונסו שוב.", stream_retry_limit: "מגבלת ניסיונות ההעברה הושגה. יש להתחיל מחדש.", login_required: "המקור דורש התחברות ואינו נתמך.",
+        live_unsupported: "שידורים חיים עדיין אינם נתמכים.", duration_limit: "הווידאו חורג ממגבלת שלוש השעות.", no_compatible_format: "אין אפשרות תואמת במסגרת המגבלה.",
+        opfs_quota_low: "אין במכשיר מספיק מקום לכתיבה בטוחה.", stream_aborted: "ההעברה נקטעה; הנתונים החלקיים נמחקו.", hash_mismatch: "אימות הקובץ נכשל; הקובץ נמחק.", size_limit: "הקובץ חורג ממגבלת 300 MB."
+      },
+    },
     mediaPackage: {
       title: "תיקון התמלול", correctBtn: "תיקון התמלול", continueDraftBtn: "המשך עם הטיוטה",
       close: "סגירה", prev: "→ הקודם", next: "הבא ←", cueText: "טקסט הקטע", start: "התחלה", end: "סיום", speaker: "דובר/ת",
@@ -3459,7 +3478,7 @@ window.I18N_LOCALES.he = {
       workspaceRevision: "תיקונים · v{n}", workspaceVersion: "גרסה {n}", workspaceDraftShort: "טיוטה", workspaceMediaMissingShort: "נדרש קישור למדיה",
       workspaceCards: "כרטיסים: {n}",
       workspaceMediaMissing: "יש לקשר מחדש את המדיה", workspaceRaw: "המקור שאינו ניתן לשינוי", workspaceStale: "הטבלה משתמשת בגרסה קודמת. התיקונים החדשים נשמרו בנפרד.",
-      workspaceReopen: "עריכת חומר", workspaceAll: "כל התמלולים השמורים", workspaceLibrary: "תמלולים", workspaceShelfTitle: "תמלולים שמורים",
+      workspaceReopen: "פתיחה", workspaceAll: "כל החומרים", workspaceLibrary: "חומרים", workspaceShelfTitle: "המשך עבודה",
       workspaceShelfLocal: "במכשיר", workspaceShelfHint: "אפשר להמשיך לערוך ללא זיהוי חוזר.", workspaceShelfEmpty: "אין עדיין תמלולים שמורים.",
     },
     material: {

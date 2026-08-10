@@ -3137,14 +3137,14 @@ window.I18N_LOCALES.en = {
     },
     // W1 Studio Ingest — Import modal (studio-import.js). Every key MUST exist in all 3 locales.
     import: {
-      button: "Import: link / file / photo",
-      title: "Import text",
+      button: "Add material",
+      title: "Add material",
       // W2-S5a.1 T2 — three explicit tabs (Article/Video/File) replacing the flat stack.
       // T2-fix (owner visual pass): "Article / page" wrapped to two lines at 380px — shortened to
       // one word, since the label under the field (urlLabel) already names the page too.
       tabUrl: "Article",
       tabVideo: "Video",
-      tabFile: "File",
+      tabFile: "From device",
       // MINOR (whole-branch review 2026-07-28): the aria-label was hardcoded Russian — now goes
       // through data-i18n-aria-label like every other string in this file.
       tabsAriaLabel: "Import — source type",
@@ -3159,7 +3159,7 @@ window.I18N_LOCALES.en = {
       // heading above it — kept as-is, not deleted
       fileBtn: "Choose file…",
       fileLabelPhoto: "Photo, PDF, or Word (up to 6MB)",
-      fileLabelAv: "Audio or video file (Hebrew)",
+      fileLabelAv: "Hebrew media",
       fileLabelCaptions: "Subtitle file (.vtt / .srt)",
       fileBtnPhoto: "Choose photo, PDF, or Word…",
       fileBtnCaptions: "Choose subtitle file…",
@@ -3186,7 +3186,7 @@ window.I18N_LOCALES.en = {
       errExtractBadJson: "Could not parse the model's response. Try another file or a clearer photo.",
       errGeneric: "Import failed — please try again",
       // W2-S4 — Import → Audio (BYOK Gemini ASR)
-      audioBtn: "Audio (Hebrew) → transcript",
+      audioBtn: "Hebrew media → transcript",
       audioGo: "Transcribe",
       audioUploading: "Uploading audio to Google…",
       audioProcessing: "Google is processing the file…",
@@ -3422,6 +3422,25 @@ window.I18N_LOCALES.en = {
       sourcePlayer: "Source audio / video",
       sourceSync: "Row selection and player position stay synchronized",
     },
+    remoteMedia: {
+      resolve: "Check link", resolved: "Source checked", preview: "Preview", more: "Other options",
+      rights: "I have the rights holder's permission", cancel: "Cancel", saveCopy: "Save a copy to this device", continue: "Continue to transcript",
+      railSource: "Source", railPrepare: "Prepare", railDevice: "To device", railVerify: "Verify", railReady: "Ready",
+      sizeUnknown: "size checked during transfer", videoSound: "video + sound", audioOnly: "audio only", hebrewCaptions: "Hebrew captions",
+      captionsManual: "creator-provided", captionsAuto: "automatic", recommended: "Recommended for Studio", complete: "complete compatible copy", separateChoice: "separate import choice",
+      addCaptions: "Add captions to Studio", addSelected: "Add to Studio · {choice}", resolving: "Checking available options…",
+      resolveFailed: "Could not prepare this link. Check access and try again.", rightsRequired: "Confirm the rights holder's permission.",
+      preparing: "Preparing the selected option…", writingDevice: "Writing to this device", added: "Added to Studio on this device", addedCleanupPending: "Added to Studio. The worker will retry temporary-file cleanup automatically.",
+      savedNotAttached: "The verified file is on this device, but Studio could not attach it. You can still save a separate copy.",
+      failed: "Transfer stopped. No unverified file was added. Check the connection and free space, then try again.", cancelled: "Transfer cancelled; partial data removed.", copySaved: "A separate device save was opened.", copyFailed: "Could not open the device save action.",
+      phase: { queued: "Queued", preparing: "Preparing", downloading: "Getting source", merging: "Combining video and sound", verifying: "Verifying", ready: "Ready", cancel_requested: "Cancelling" },
+      error: {
+        media_acquisition_disabled: "Media acquisition is not configured on the server yet.", unauthenticated: "Your session expired — sign in again.", bad_csrf: "The security token is stale — reload the page.",
+        capability_origin: "This request did not come from an allowed address.", queue_full: "The worker is busy. Try again in a few minutes.", rate_limit: "Too many checks in a row. Wait a minute and try again.", stream_retry_limit: "The transfer retry limit was reached. Start the acquisition again.", login_required: "This source requires sign-in and is not supported.",
+        live_unsupported: "Live streams are not supported yet.", duration_limit: "The video exceeds the three-hour limit.", no_compatible_format: "No compatible option fits the current limit.",
+        opfs_quota_low: "This device lacks enough free space for a safe write.", stream_aborted: "The transfer stopped; partial data was removed.", hash_mismatch: "File verification failed; the file was removed.", size_limit: "The file exceeds the 300 MB limit."
+      },
+    },
     mediaPackage: {
       title: "Correct transcript", correctBtn: "Correct transcript", continueDraftBtn: "Continue with draft",
       close: "Close", prev: "← Previous", next: "Next →", cueText: "Cue text", start: "Start", end: "End", speaker: "Speaker",
@@ -3451,7 +3470,7 @@ window.I18N_LOCALES.en = {
       workspaceRevision: "Corrections · v{n}", workspaceVersion: "Version {n}", workspaceDraftShort: "draft", workspaceMediaMissingShort: "media needs relinking",
       workspaceCards: "cards: {n}",
       workspaceMediaMissing: "Media needs to be relinked", workspaceRaw: "Immutable original", workspaceStale: "The table uses an earlier version. Your newer corrections are saved separately.",
-      workspaceReopen: "Edit material", workspaceAll: "All saved transcripts", workspaceLibrary: "Transcripts", workspaceShelfTitle: "Saved transcripts",
+      workspaceReopen: "Open", workspaceAll: "All materials", workspaceLibrary: "Materials", workspaceShelfTitle: "Continue working",
       workspaceShelfLocal: "On device", workspaceShelfHint: "Continue editing without running recognition again.", workspaceShelfEmpty: "No saved transcripts yet.",
     },
     material: {

@@ -1,8 +1,8 @@
 # Studio remote media acquisition — GitHub and feasibility research
 
 > **Date:** 2026-08-11
-> **Status:** research complete; owner mobile-first direction recorded; no production code changed;
-> no media bytes downloaded
+> **Status:** research complete; owner mobile-first direction recorded; RMA-0–RMA-3 local code and
+> browser evidence added; no production deployment and no media bytes downloaded
 > **Decision output:**
 > `docs/planning/STUDIO_REMOTE_MEDIA_ACQUISITION_DECISION_PACKET_2026_08_11.md`
 
@@ -208,3 +208,26 @@ Primary references:
 - <https://ru.savefrom.net/247hU/>
 - <https://yt-terms.static.usercontent.goog/pdf/terms/20231215/en_us_20231215.pdf>
 - <https://support.google.com/youtube/answer/56100>
+
+## Local implementation read-back — 2026-08-11
+
+The approved local slice now uses an isolated Python worker (`media-acquisition/`) and an exact
+hashed dependency lock. A fresh metadata-only execution through `yt-dlp 2026.7.4` resolved the
+second owner fixture as:
+
+```json
+{"id":"wJgtBgZvQnU","duration":2260,"options":[["video-360",59730365],["video-480",71717839],["video-720",89268628],["video-1080",262494249],["audio-m4a",36568492],["captions-he-auto",null]],"signed_url_leaked":false}
+```
+
+Browser evidence uses the real Studio shell and fixture-only worker responses, so it validates UI
+composition without pretending that a mobile media transfer occurred:
+
+- `screenshots/rma3-380-ru.png` — RU/LTR, resolved complete-format matrix;
+- `screenshots/rma3-380-he.png` — HE/RTL, mirrored rail and controls;
+- 16/16 automated viewport/tap-target/localization/hash-runtime checks PASS;
+- Chrome DevTools read-back confirms `window.APP_VERSION=3.11.343`, `scrollWidth=innerWidth=380`,
+  the accessible dialog/checkbox/radio names and a loaded `hashwasm.createSHA256` runtime.
+
+Production container/image digests, deployed routing and actual-byte iPhone/Android gates remain
+separate. Deno 2.7.5 and FFmpeg 8.1 are development-machine observations only, not frozen image
+claims.
