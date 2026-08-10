@@ -40,6 +40,7 @@ test('Node app exposes only a signed capability mint and contains no media proxy
   assert.match(server, /\/api\/media-acquisition\/capability/);
   assert.match(server, /requireUser/);
   assert.match(server, /requireCsrf/);
+  assert.match(server, /parsed\.origin \+ \(pathname === "\/" \? "" : pathname\)/);
   assert.doesNotMatch(server, /media-acquisition\/.*(?:pipe|createReadStream)/);
 });
 

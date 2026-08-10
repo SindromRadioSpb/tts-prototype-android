@@ -43,10 +43,13 @@ class HttpBoundaryTests(unittest.TestCase):
         self.thread.join(timeout=2)
         self.temp.cleanup()
 
-    def request(self, path, *, origin=None, token=None, body=None, method=None):
+    def request(self, path, *, origin=None, token=None, body=None, method=None, forwarded=None):
         headers = {}
         if origin:
             headers["Origin"] = origin
+        if forwarded:
+            headers["X-Forwarded-Proto"] = forwarded[0]
+            headers["X-Forwarded-Host"] = forwarded[1]
         if token:
             headers["Authorization"] = "Bearer " + token
         data = None
@@ -76,6 +79,16 @@ class HttpBoundaryTests(unittest.TestCase):
 
         status, _, body = self.request("/v1/resolve", origin="https://evil.example", token=token,
                                         body={"url": "https://www.youtube.com/watch?v=wJgtBgZvQnU"})
+        self.assertEqual(status, 403)
+        self.assertEqual(body["error_code"], "CAPABILITY_ORIGIN")
+
+        status, _, body = self.request("/v1/runtime", token=token,
+                                       forwarded=("https", "linguistpro.example"))
+        self.assertEqual(status, 200)
+        self.assertIn("worker_runtime", body)
+
+        status, _, body = self.request("/v1/runtime", origin="https://evil.example", token=token,
+                                       forwarded=("https", "linguistpro.example"))
         self.assertEqual(status, 403)
         self.assertEqual(body["error_code"], "CAPABILITY_ORIGIN")
 

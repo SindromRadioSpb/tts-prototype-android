@@ -61,7 +61,16 @@ class WorkerApplication:
         self._rate_events: dict[str, list[float]] = {}
 
     def authenticate(self, headers: Any, *, scope: str) -> dict[str, Any]:
-        origin = str(headers.get("Origin") or "")
+        origin = str(headers.get("Origin") or "").rstrip("/")
+        # Same-origin path routing does not consistently send Origin on GET/HEAD.
+        # Only when it is absent, reconstruct the origin from the trusted reverse
+        # proxy headers. An explicit hostile Origin is never replaced.
+        if not origin:
+            forwarded_proto = str(headers.get("X-Forwarded-Proto") or "").split(",", 1)[0].strip().lower()
+            forwarded_host = str(headers.get("X-Forwarded-Host") or "").split(",", 1)[0].strip().lower()
+            if forwarded_proto in {"http", "https"} and forwarded_host and not any(
+                    char in forwarded_host for char in "/\\@#?"):
+                origin = f"{forwarded_proto}://{forwarded_host}"
         if origin not in self.allowed_origins:
             raise TokenError("CAPABILITY_ORIGIN")
         authorization = str(headers.get("Authorization") or "")

@@ -1693,7 +1693,10 @@ function mediaAcquisitionPublicUrl() {
   try {
     const parsed = new URL(value);
     const local = parsed.protocol === "http:" && ["127.0.0.1", "localhost"].includes(parsed.hostname);
-    return parsed.protocol === "https:" || (process.env.NODE_ENV !== "production" && local) ? parsed.origin : "";
+    if (!(parsed.protocol === "https:" || (process.env.NODE_ENV !== "production" && local))) return "";
+    if (parsed.username || parsed.password || parsed.search || parsed.hash) return "";
+    const pathname = parsed.pathname.replace(/\/$/, "");
+    return parsed.origin + (pathname === "/" ? "" : pathname);
   } catch (_) { return ""; }
 }
 app.post("/api/media-acquisition/capability", rlMediaAcquisitionCapability, requireStrictSameOriginJson, async (req, res) => {

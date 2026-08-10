@@ -1,0 +1,57 @@
+# syntax=docker/dockerfile:1.7
+FROM python@sha256:adafcc17694d715c905b4c7bebd96907a1fd5cf183395f0ebc4d3428bd22d92d AS toolchain
+
+ARG DENO_VERSION=2.7.5
+ARG DENO_SHA256=fd0a9e6cf085acb861b67577a13bfd0b1829e1c6d6a6dcfd35bcb8f05c973a47
+ARG FFMPEG_VERSION=8.1.2
+ARG FFMPEG_SHA256=464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends build-essential ca-certificates curl nasm pkg-config unzip xz-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl --fail --location --proto '=https' --tlsv1.2 \
+      "https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-x86_64-unknown-linux-gnu.zip" \
+      --output /tmp/deno.zip \
+    && echo "${DENO_SHA256}  /tmp/deno.zip" | sha256sum --check --strict \
+    && unzip -q /tmp/deno.zip -d /opt/deno \
+    && /opt/deno/deno --version
+
+RUN curl --fail --location --proto '=https' --tlsv1.2 \
+      "https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.xz" \
+      --output /tmp/ffmpeg.tar.xz \
+    && echo "${FFMPEG_SHA256}  /tmp/ffmpeg.tar.xz" | sha256sum --check --strict \
+    && mkdir /tmp/ffmpeg-src \
+    && tar --extract --xz --file /tmp/ffmpeg.tar.xz --directory /tmp/ffmpeg-src --strip-components=1 \
+    && cd /tmp/ffmpeg-src \
+    && ./configure --prefix=/opt/ffmpeg --disable-doc --disable-debug --disable-network \
+         --disable-autodetect --enable-small \
+    && make -j"$(nproc)" \
+    && make install \
+    && /opt/ffmpeg/bin/ffmpeg -version \
+    && /opt/ffmpeg/bin/ffprobe -version
+
+FROM python@sha256:adafcc17694d715c905b4c7bebd96907a1fd5cf183395f0ebc4d3428bd22d92d
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/media-acquisition \
+    PATH=/opt/deno:/opt/ffmpeg/bin:${PATH} \
+    LP_MEDIA_WORKER_HOST=0.0.0.0 \
+    LP_MEDIA_WORKER_PORT=8097 \
+    LP_MEDIA_WORKER_TEMP=/tmp/linguistpro-media-acquisition
+
+COPY --from=toolchain /opt/deno/deno /opt/deno/deno
+COPY --from=toolchain /opt/ffmpeg /opt/ffmpeg
+COPY media-acquisition/requirements.lock /app/media-acquisition/requirements.lock
+RUN pip install --no-cache-dir --require-hashes -r /app/media-acquisition/requirements.lock \
+    && useradd --create-home --uid 10001 --shell /usr/sbin/nologin acquisition
+
+COPY --chown=10001:10001 media-acquisition/acquisition_service /app/media-acquisition/acquisition_service
+
+USER 10001:10001
+EXPOSE 8097
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD ["python", "-c", "import json,urllib.request; assert json.load(urllib.request.urlopen('http://127.0.0.1:8097/healthz', timeout=3))['ok']"]
+
+CMD ["python", "-m", "acquisition_service.main"]
