@@ -1,7 +1,8 @@
 # Studio remote media acquisition — GitHub and feasibility research
 
 > **Date:** 2026-08-11
-> **Status:** research complete; no production code changed; no media bytes downloaded
+> **Status:** research complete; owner mobile-first direction recorded; no production code changed;
+> no media bytes downloaded
 > **Decision output:**
 > `docs/planning/STUDIO_REMOTE_MEDIA_ACQUISITION_DECISION_PACKET_2026_08_11.md`
 
@@ -40,7 +41,7 @@ guarantees.
 
 | Candidate | Licence / state | What it proves | Decision |
 |---|---|---|---|
-| [yt-dlp/yt-dlp](https://github.com/yt-dlp/yt-dlp) | source/PyPI wheel: Unlicense; active; latest inspected release `2026.07.04` | mature extraction core, structured metadata, format selection, subtitles, progress and cancellation substrate | **Adopt as pinned core** inside Companion |
+| [yt-dlp/yt-dlp](https://github.com/yt-dlp/yt-dlp) | source/PyPI wheel: Unlicense; active; latest inspected release `2026.07.04` | mature extraction core, structured metadata, format selection, subtitles, progress and cancellation substrate | **Adopt as pinned core** inside the isolated acquisition worker |
 | [yt-dlp/ejs](https://github.com/yt-dlp/ejs) | Unlicense; active; inspected `0.8.0` | current YouTube extraction requires external JS challenge solving | **Adopt pinned with yt-dlp**; versions move together |
 | [denoland/deno](https://github.com/denoland/deno) | MIT; active | upstream-recommended JS runtime; solver code runs with restricted permissions | **Bundle a pinned runtime** after licence/build review |
 | [NickvisionApps/Parabolic](https://github.com/NickvisionApps/Parabolic) | MIT; active desktop frontend | restrained URL -> preview -> format -> progress interaction | UX/lifecycle reference only |
@@ -55,9 +56,54 @@ guarantees.
 Important licensing nuance: the yt-dlp repository and PyPI wheel contain Unlicense code, while the
 upstream PyInstaller standalone executables include other components and upstream describes the
 combined executable as GPLv3+. LinguistPro should therefore freeze the source/PyPI package in its
-existing Companion build, not copy the upstream `yt-dlp.exe`. Every transitive component and the
+own worker build, not copy the upstream `yt-dlp.exe`. Every transitive component and the
 exact FFmpeg build still require the existing third-party inventory gate. The LinguistPro root
 currently has no root `LICENSE`, so any wider distribution model is a separate owner decision.
+
+## Live reference-service audit: SSYouTube and SaveFrom
+
+The owner supplied two reference flows and authorised a read-only Kapture audit on 2026-08-11.
+The audit resolved metadata but did not click a media-download link and did not download media
+bytes.
+
+### What is worth adopting
+
+Both products validate a useful interaction model:
+
+1. paste a URL;
+2. resolve title, thumbnail and duration;
+3. show only formats actually available for that item;
+4. let the user choose video quality or audio;
+5. keep the download action beside the selected variant.
+
+This is materially better than making the user understand yt-dlp format IDs. LinguistPro should
+adopt the interaction grammar, not either site's branding, ads or implementation.
+
+### What Kapture observed
+
+- SSYouTube sends the pasted URL to a separate `POST /api/convert` service. The JSON response
+  contains source metadata, Hebrew subtitle availability, individual video/audio streams, byte
+  sizes and opaque server conversion jobs. Its CORS response allows its own web origin, not
+  LinguistPro.
+- SSYouTube labels 1080p variants without audio as such. Combined MP4 qualities are represented as
+  conversion jobs over separate video and audio streams.
+- SaveFrom submits through its own same-origin form/iframe, then renders short-lived signed media
+  URLs. Its 360p MP4 is a progressive file with audio; higher-resolution entries may be video-only,
+  while OPUS/M4A are separate audio tracks.
+- SaveFrom sends `X-Frame-Options: sameorigin`. Even where a third-party page can technically be
+  framed, cross-origin isolation prevents LinguistPro from receiving its selected bytes directly
+  into Studio OPFS.
+- Both surfaces include promotions, third-party scripts and/or external helper installation. That
+  conflicts with the requested first-party, no-ad, continuous Studio pipeline.
+
+### Integration verdict
+
+Do not call, scrape or iframe either service from LinguistPro. There is no inspected stable public
+API contract, SSYouTube's browser API is origin-bound, SaveFrom's result path is same-origin and
+short-lived, and neither can produce a trustworthy Studio SHA/OPFS receipt. A proxy around either
+site would merely turn an undocumented third-party frontend into a hidden critical dependency.
+
+Use their five-step UX pattern over LinguistPro's own bounded yt-dlp acquisition worker.
 
 ## Exact metadata-only probe
 
@@ -98,16 +144,33 @@ It selected format IDs `136+140`: H.264/AVC 1280x720 + AAC-LC in MP4, approximat
 v1. It is not yet an actual-file playback proof because no bytes were downloaded and no target
 device was tested.
 
+A second metadata-only probe used the owner's SSYouTube/SaveFrom example
+`wJgtBgZvQnU` (37:40). It demonstrated why a resolved format matrix is better than a fixed quality:
+
+| User-visible result | Source tracks | Approximate bytes before MP4 container overhead |
+|---|---|---:|
+| Compact MP4 with sound, 360p | progressive format `18` | 96.98 MiB |
+| MP4 with sound, 480p | AVC `135` + M4A `140` | 68.39 MiB |
+| MP4 with sound, 720p | AVC `136` + M4A `140` | 85.13 MiB |
+| MP4 with sound, 1080p | AVC `137` + M4A `140` | 250.33 MiB |
+| Original audio, M4A medium | format `140` | 34.87 MiB |
+| Compact audio, M4A low | format `139` | 13.14 MiB |
+
+For this item, the compatible merged 720p result is smaller than the old progressive 360p file.
+Therefore quality, codec, sound presence and predicted size must all be resolved per item; neither
+resolution alone nor upstream `best` is an adequate product rule.
+
 ## Technical findings
 
 1. A browser-only extractor is not a dependable architecture. YouTube extraction currently needs
    external JavaScript challenge solving; media requests may also require extractor-specific
    headers, cookies, IP continuity or protocols the browser cannot reproduce.
-2. The production server remains the wrong boundary. It would reintroduce the already rejected
-   server egress, anti-bot, storage, copyright, privacy and 1536 MB container risks.
-3. The existing Windows Companion is the smallest correct boundary: authenticated loopback,
-   pinned Python, FFmpeg/ffprobe, bounded jobs, progress/cancel, TTL and delete receipts already
-   exist.
+2. The existing 1536 MB application container remains the wrong boundary. Acquisition must not
+   share its process, disk budget, queue or failure domain.
+3. The Windows Companion remains the smallest desktop boundary, but it cannot satisfy the owner's
+   new P0 requirement for direct iPhone/Android acquisition. The coherent cross-device boundary is
+   a separate authenticated, ephemeral acquisition worker that streams a first-party result into
+   Studio OPFS and optionally exposes the same prepared file as an explicit device download.
 4. `best` is an invalid product default. Format selection must be deterministic and feed the
    existing iPhone+Android Media Readiness contract before ASR.
 5. Captions are a first-class acquisition output. When an exact Hebrew VTT is available, the user
@@ -116,7 +179,7 @@ device was tested.
    warns that account-backed extraction can cause account restrictions; cookie support would need
    a separate secret-lifecycle and owner-risk decision.
 7. A pinned extractor will eventually age. Silent self-update is incompatible with reproducible
-   Companion releases. V1 should fail as `EXTRACTOR_UPDATE_REQUIRED`; verified component update and
+   worker releases. V1 should fail as `EXTRACTOR_UPDATE_REQUIRED`; verified component update and
    rollback are a later bounded release mechanism.
 
 ## Terms and distribution boundary
@@ -127,11 +190,11 @@ permission exists. Official YouTube Help allows creators to download their own u
 offline viewing through YouTube/Premium, but those encrypted offline copies are not transferable
 media files for LinguistPro.
 
-Therefore the technical recommendation is not a public `YouTube downloader`. If the owner chooses
-to proceed, it should remain a default-off, owner/trusted-user, local Companion capability with an
-explicit rights acknowledgement, no cookies, one item at a time, no playlists/channels and no
-marketing claim that public visibility equals permission. This is a product-risk control, not a
-legal determination; owner/legal review remains required.
+The owner has confirmed rights-holder permission for the intended material and accepted the
+bounded Terms risk. The technical recommendation remains an authenticated owner/trusted-user
+acquisition worker, not a public `YouTube downloader`: explicit recorded rights basis, no cookies,
+one item at a time, no playlists/channels and no marketing claim that public visibility equals
+permission. This is a product-risk control, not a general legal determination.
 
 Primary references:
 
@@ -139,5 +202,9 @@ Primary references:
 - <https://github.com/yt-dlp/yt-dlp/wiki/EJS>
 - <https://github.com/yt-dlp/yt-dlp/wiki/FAQ>
 - <https://github.com/yt-dlp/yt-dlp/wiki/Extractors>
+- <https://github.com/Daninet/hash-wasm>
+- <https://webkit.org/blog/12257/the-file-system-access-api-with-origin-private-file-system/>
+- <https://ru.ssyoutube.com/>
+- <https://ru.savefrom.net/247hU/>
 - <https://yt-terms.static.usercontent.goog/pdf/terms/20231215/en_us_20231215.pdf>
 - <https://support.google.com/youtube/answer/56100>
