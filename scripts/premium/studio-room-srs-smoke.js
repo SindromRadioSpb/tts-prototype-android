@@ -1,0 +1,220 @@
+#!/usr/bin/env node
+"use strict";
+
+// STUDIO-SRS-TRAINER-REPLACEMENT: bounded cross-surface + three-source gate.
+// Runs only in an isolated Playwright profile backed by its own OPFS database.
+
+const fs = require("fs");
+const path = require("path");
+const { spawn, spawnSync } = require("child_process");
+const { chromium } = require("playwright");
+
+const ROOT = path.resolve(__dirname, "..", "..");
+const PORT = 3312;
+const BASE = `http://127.0.0.1:${PORT}`;
+const SHOTS = path.join(ROOT, "docs", "research", "studio-room-srs-unification", "2026-08-11", "screenshots");
+const failures = [];
+let checks = 0;
+const check = (value, message) => { checks++; if (!value) { failures.push(message); console.error("  x " + message); } else console.log("  + " + message); };
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function startServer() {
+  const child = spawn(process.execPath, ["server.js"], { cwd: ROOT, env: { ...process.env, PORT: String(PORT) }, stdio: ["ignore", "pipe", "pipe"] });
+  const logs = [];
+  child.stdout.on("data", (x) => logs.push(String(x)));
+  child.stderr.on("data", (x) => logs.push(String(x)));
+  return { child, logs };
+}
+async function stopServer(child) {
+  if (!child || child.killed) return;
+  child.kill("SIGTERM");
+  const done = await new Promise((resolve) => { const timer = setTimeout(() => resolve(false), 5000); child.once("exit", () => { clearTimeout(timer); resolve(true); }); });
+  if (!done && process.platform === "win32") spawnSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], { stdio: "ignore" });
+}
+async function ready() {
+  for (let i = 0; i < 100; i++) { try { if ((await fetch(BASE + "/healthz")).ok) return true; } catch (_) {} await sleep(200); }
+  return false;
+}
+
+function staticContracts() {
+  const studio = fs.readFileSync(path.join(ROOT, "public", "index.html"), "utf8");
+  const room = fs.readFileSync(path.join(ROOT, "public", "js", "library-ui.js"), "utf8");
+  const db = fs.readFileSync(path.join(ROOT, "public", "db", "local-db.js"), "utf8");
+  const morph = fs.readFileSync(path.join(ROOT, "public", "js", "reader-morph.js"), "utf8");
+  const locales = ["ru", "en", "he"].map((x) => fs.readFileSync(path.join(ROOT, "public", "i18n", "locales", x + ".js"), "utf8"));
+
+  check(/id="btnSrsTrainer"[^>]*onclick="v3OpenRoomReview\(\)"/.test(studio), "Studio primary review CTA routes to Room, not the legacy modal");
+  check(/function v3OpenRoomReview\(\)/.test(studio) && /library\.html\?review=due&from=studio/.test(studio), "Studio handoff contains identifiers only");
+  check(/function consumeDueReviewHandoff\(\)/.test(room) && /searchParams\.delete\(['"]review['"]\)/.test(room), "Room consumes and normalizes the due deep-link");
+  check(/data-studio-due/.test(studio) && /ReaderMorph\.dueCounts/.test(studio), "Studio count uses the canonical Room due predicate");
+  check(/id="studioReviewAnkiExport"/.test(studio) && /v3SrsDownloadApkg/.test(studio), "Anki .apkg export remains independently reachable");
+  check(!/function v3SrsTrainerOpen\(\)[\s\S]{0,260}classList\.remove\(["']hidden["']\)/.test(studio), "legacy Studio trainer modal is absent from the user route");
+  check(/ORDER BY srs_lapses DESC, srs_due ASC/.test(db) && !/getDueWithSource[\s\S]{0,900}(group_corpus|corpus_id|source_meta)/.test(db), "due query keeps pedagogical ranking and has no source quota/filter");
+  check(/evidence_scope:\s*item\._wordOnly\s*\?\s*['"]lexeme['"]/.test(room), "word-only fallback preserves lexeme evidence scope");
+  check(/function rankByWeakness/.test(morph) && /b\.lp\s*-\s*a\.lp/.test(morph), "weakness/lapses priority remains canonical");
+  for (const locale of locales) check(/studioReview:\s*\{[\s\S]*title:[\s\S]*start:[\s\S]*allDone:[\s\S]*noSchedule:/.test(locale), "review surface locale is complete");
+}
+
+async function browserContracts() {
+  fs.mkdirSync(SHOTS, { recursive: true });
+  const browser = await chromium.launch({ headless: true });
+  const ctx = await browser.newContext({ serviceWorkers: "block", viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage();
+  await page.addInitScript(() => {
+    localStorage.setItem("localMode", "1");
+    localStorage.setItem("phase6FirstOpenSeen", "smoke");
+    localStorage.setItem("onboardingSeen_v1", JSON.stringify({ action: "smoke" }));
+    localStorage.setItem("v3.byokOnboardingDismissed", "1");
+  });
+  const pageErrors = [];
+  page.on("pageerror", (e) => pageErrors.push(String(e)));
+  try {
+    await page.goto(BASE + "/library.html?canon=skip", { waitUntil: "load" });
+    await page.waitForFunction(() => { const tab = document.getElementById("tabCorpus"); return tab && !tab.hidden; }, null, { timeout: 30000 });
+    const fixture = await page.evaluate(async () => {
+      const db = await import("/db/local-db.js");
+      const now = Date.now();
+      const defs = [
+        { kind: "ben-yehuda", id: "sru-by", key: "sru:by:work:1", title: "Fixture Ben-Yehuda", surface: "בית", niqqud: "בַּיִת", ru: "Это большой дом.", he: "זֶה בַּיִת גָּדוֹל.", meta: { origin: "benyehuda-ingest", corpus: { schema: 1, byehuda_id: "fixture-by-1" } }, lapses: 3 },
+        { kind: "study-song", id: "sru-song", key: "sru:song:study-songs-pilot:1", title: "Fixture Study Song", surface: "שיר", niqqud: "שִׁיר", ru: "Это красивая песня.", he: "זֶה שִׁיר יָפֶה.", meta: { group_corpus: { schema: 1, corpus_id: "study-songs-pilot", work_id: "fixture-song-1", visibility: "GROUP_RESTRICTED" } }, lapses: 2 },
+        { kind: "my-text", id: "sru-mine", key: "sru:mine:1", title: "Fixture My Text", surface: "ספר", niqqud: "סֵפֶר", ru: "Это хорошая книга.", he: "זֶה סֵפֶר טוֹב.", meta: { origin: "studio", material_kind: "user_text" }, lapses: 1 },
+      ];
+      const rows = [];
+      for (let i = 0; i < defs.length; i++) {
+        const d = defs[i];
+        await db.createText({ id: d.id, text_key: d.key, title: d.title, source_text: d.he, source_meta_json: JSON.stringify(d.meta) });
+        await db.addSentence(d.id, { id: d.id + "-s0", he_plain: window.ReaderMorph.stripNiqqud(d.he), he_niqqud: d.he, ru: d.ru });
+        const card = await window.ReaderMorph.resolveWordLight(d.surface, d.niqqud);
+        if (!card || !card.lemmaKey) { rows.push({ kind: d.kind, error: "unresolved" }); continue; }
+        const at = now - (i + 2) * 86400000;
+        const seedMeta = { interval: 0, reps: 0, lapses: d.lapses, keyer_version: window.LemmaCanon.KEYER_VERSION };
+        const state = window.FsrsCore.seedFromSm2(seedMeta, at);
+        const seed = { item_key: card.lemmaKey, kind: "seed", reviewed_at: new Date(at).toISOString(), grade: null, source: "seed-sm2", meta: seedMeta };
+        seed.id = window.LemmaCanon.seedId(card.lemmaKey, seedMeta);
+        await db.appendReviewLog(seed);
+        await db.setWordStatus(card.lemmaKey, "l1", { due: window.FsrsCore.dueAt(state), interval: window.FsrsCore.intervalFor(state), reps: state.reps, lapses: state.lapses, stability: state.stability, difficulty: state.difficulty, reviewedAt: state.lastReviewedAt, scheme: "fsrs" }, { textKey: d.key, sentenceId: d.id + "-s0", orderIndex: 0, surface: d.surface });
+        rows.push({ kind: d.kind, lemmaKey: card.lemmaKey, textKey: d.key });
+      }
+      const due = await db.getDueWithSource(now);
+      const resolved = [];
+      for (const item of due.filter((x) => rows.some((r) => r.lemmaKey === x.lemmaKey))) {
+        const sentence = await db.getSentenceForReview(item.source.sentenceId, item.source.textKey, item.source.orderIndex);
+        const text = (await db.dbQuery("SELECT title, source_meta_json FROM texts WHERE text_key=?", [item.source.textKey]))[0];
+        resolved.push({ lemmaKey: item.lemmaKey, textKey: item.source.textKey, surface: item.source.surface, sentence: !!sentence, title: text && text.title, meta: text && JSON.parse(text.source_meta_json || "{}"), lapses: item.srs.lapses });
+      }
+      const log = await db.getReviewLog();
+      return { rows, resolved, beforeLog: log.length, beforeGradeEvents: log.filter((x) => x.kind === "review" || x.kind === "skip").length };
+    });
+    check(fixture.rows.length === 3 && fixture.rows.every((x) => x.lemmaKey), "three fixture words resolve to canonical lemma keys");
+    check(fixture.resolved.length === 3, "getDueWithSource(now) returns Ben-Yehuda, Study Song and My Text");
+    check(fixture.resolved.every((x) => x.sentence && x.textKey), "all three source anchors resolve through getSentenceForReview");
+    check(fixture.resolved[0] && fixture.resolved[0].lapses >= fixture.resolved[1].lapses && fixture.resolved[1].lapses >= fixture.resolved[2].lapses, "mixed queue remains lapses-first without source quotas");
+    check(fixture.resolved.some((x) => x.meta.corpus && x.meta.corpus.byehuda_id === "fixture-by-1"), "Ben-Yehuda metadata remains attached to its source text");
+    check(fixture.resolved.some((x) => x.meta.group_corpus && x.meta.group_corpus.corpus_id === "study-songs-pilot"), "Study Song metadata uses group_corpus identity, not title matching");
+    check(fixture.resolved.some((x) => x.meta.material_kind === "user_text"), "My Text metadata remains attached to its source text");
+
+    await page.reload({ waitUntil: "load" });
+    await page.waitForSelector("#roomDueCta:not([hidden])", { timeout: 20000 });
+    const roomDueBefore = Number(((await page.locator("#roomDueCta").textContent()) || "").match(/\d+/)?.[0] || 0);
+    await page.click("#roomDueCta");
+    await page.waitForSelector(".room-study:not([hidden]) .room-train-progress", { timeout: 30000 });
+    const progress = (await page.locator(".room-train-progress").textContent() || "").trim();
+    check(progress === "1 / 3", "mixed three-source Room session contains all three items (" + progress + ")");
+    const afterOpen = await page.evaluate(async () => (await import("/db/local-db.js")).countReviewLog());
+    check(afterOpen === fixture.beforeLog, "opening the training session appends zero review_log rows");
+    await page.click('.room-study-x');
+    const afterClose = await page.evaluate(async () => (await import("/db/local-db.js")).countReviewLog());
+    check(afterClose === fixture.beforeLog, "closing without an answer appends zero review_log rows");
+
+    await page.click("#roomDueCta");
+    await page.waitForSelector(".room-train-progress", { timeout: 30000 });
+    await page.locator('.room-train-opt[data-correct="1"]').click();
+    await page.waitForSelector(".room-train-reveal", { timeout: 10000 });
+    const graded = await page.evaluate(async () => {
+      const db = await import("/db/local-db.js");
+      const allLog = await db.getReviewLog();
+      const count = allLog.length;
+      const gradeEvents = allLog.filter((x) => x.kind === "review" || x.kind === "skip").length;
+      const due = await db.getDueWithSource(Date.now());
+      const key = (await db.getReviewLog()).filter((x) => x.kind === "review").slice(-1)[0].item_key;
+      const stored = (await db.getSrsSchedule())[key];
+      const replayed = window.FsrsCore.replay(await db.getReviewLog(key));
+      return { count, gradeEvents, key, due: due.length, stored, replayed };
+    });
+    check(graded.gradeEvents === fixture.beforeGradeEvents + 1, "one completed grade appends exactly one canonical review event");
+    check(Math.abs(graded.stored.stability - graded.replayed.stability) < 1e-9 && Math.abs(graded.stored.difficulty - graded.replayed.difficulty) < 1e-9 && graded.stored.due === graded.replayed.dueMs, "replay(review_log) equals stored FSRS projection: " + JSON.stringify({ stored: graded.stored, replayed: graded.replayed }));
+    await page.locator('.room-train-opt[data-correct="1"]').click({ force: true }).catch(() => {});
+    const afterDuplicate = await page.evaluate(async () => (await (await import("/db/local-db.js")).getReviewLog()).filter((x) => x.kind === "review" || x.kind === "skip").length);
+    check(afterDuplicate === graded.gradeEvents, "repeat click cannot duplicate the review event");
+    await page.click('.room-study-x');
+
+    await page.evaluate(async () => { const db = await import("/db/local-db.js"); await db.closeLocalDB(); });
+    await page.goto(BASE + "/", { waitUntil: "load" });
+    await page.waitForFunction(() => window.__localDBInitPromise, null, { timeout: 15000 });
+    await page.evaluate(() => window.__localDBInitPromise);
+    await page.waitForSelector("[data-studio-due]", { timeout: 10000 }).catch(() => {});
+    const studioDue = await page.locator("[data-studio-due]").first().textContent().catch(() => "");
+    check(Number(studioDue) === graded.due && graded.due === roomDueBefore - 1, "Studio and Room read the same due count after one grade");
+    check(await page.locator("#studioReviewAnkiExport").count() === 1, "Anki export remains visible outside the retired modal");
+
+    const primary = page.locator("#btnSrsTrainer");
+    await primary.focus();
+    const primaryA11y = await primary.evaluate((el) => {
+      const box = el.getBoundingClientRect();
+      return { active: document.activeElement === el, height: box.height, label: (el.getAttribute("aria-label") || el.textContent || "").trim() };
+    });
+    check(primaryA11y.active && primaryA11y.height >= 44 && primaryA11y.label.length > 0, "Studio CTA is keyboard-focusable, named and at least 44px high");
+    await page.evaluate(() => window.v3ThemeSet && window.v3ThemeSet("dark"));
+    const darkState = await primary.evaluate((el) => ({ dark: document.body.classList.contains("theme-dark"), visible: el.getBoundingClientRect().height > 0, overflow: document.documentElement.scrollWidth > window.innerWidth }));
+    check(darkState.dark && darkState.visible && !darkState.overflow, "review surface remains visible without overflow in dark theme");
+    await page.evaluate(() => window.v3ThemeSet && window.v3ThemeSet("light"));
+
+    await primary.click();
+    await page.waitForURL(/\/library\.html/);
+    await page.waitForSelector(".room-study:not([hidden]) .room-train-progress", { timeout: 30000 });
+    await page.click('.room-study-x');
+    await page.goBack({ waitUntil: "load" });
+    check(new URL(page.url()).pathname === "/", "Back from Room returns to Studio after the handoff");
+    await page.waitForSelector("#btnSrsTrainer", { timeout: 15000 });
+    await page.waitForFunction(() => /^\d+$/.test((document.querySelector("[data-studio-due]")?.textContent || "").trim()), null, { timeout: 20000 });
+
+    await page.screenshot({ path: path.join(SHOTS, "studio-review-desktop-ru.png"), fullPage: true });
+    await page.setViewportSize({ width: 380, height: 844 });
+    await page.screenshot({ path: path.join(SHOTS, "studio-review-380-ru.png"), fullPage: true });
+    const ruOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+    check(!ruOverflow, "380px RU has no horizontal overflow");
+    await page.evaluate(() => window.appSetLocale && window.appSetLocale("he"));
+    await sleep(150);
+    await page.screenshot({ path: path.join(SHOTS, "studio-review-380-he-rtl.png"), fullPage: true });
+    const heLayout = await page.evaluate(() => ({ overflow: document.documentElement.scrollWidth > window.innerWidth, dir: document.documentElement.dir }));
+    check(!heLayout.overflow && heLayout.dir === "rtl", "380px HE/RTL has no horizontal overflow");
+
+    await page.evaluate(async () => { if (window.__localDB) await window.__localDB.closeLocalDB(); });
+    await page.goto(BASE + "/library.html?canon=skip&review=due&from=studio", { waitUntil: "load" });
+    await page.waitForTimeout(1200);
+    const handoff = { url: page.url(), open: await page.locator(".room-study:not([hidden])").count() };
+    check(handoff.open === 1 && !/[?&](review|from)=/.test(handoff.url), "deep-link auto-opens once and normalizes the URL");
+    if (handoff.open) await page.click('.room-study-x');
+    await page.reload({ waitUntil: "load" });
+    await page.waitForTimeout(800);
+    check(await page.locator(".room-study:not([hidden])").count() === 0, "refresh after manual close does not auto-open again");
+    check(pageErrors.length === 0, "browser run has no page errors: " + pageErrors.join(" | "));
+  } finally {
+    await ctx.close();
+    await browser.close();
+  }
+}
+
+(async () => {
+  staticContracts();
+  const server = startServer();
+  try {
+    if (!await ready()) throw new Error("server did not become ready\n" + server.logs.join(""));
+    await browserContracts();
+  } finally { await stopServer(server.child); }
+  if (failures.length) {
+    console.error(`studio-room-srs-smoke: FAIL ${failures.length}/${checks}`);
+    process.exit(1);
+  }
+  console.log(`studio-room-srs-smoke: PASS ${checks}/${checks}`);
+})().catch((error) => { console.error(error && error.stack || error); process.exit(1); });

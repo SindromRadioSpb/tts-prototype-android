@@ -1,6 +1,13 @@
 // Locale: Hebrew (RTL)
 window.I18N_LOCALES = window.I18N_LOCALES || {};
 window.I18N_LOCALES.he = {
+  studioReview: {
+    title: "חזרה", due: "לחזרה", inProgress: "בתהליך",
+    start: "התחלת אימון", allDone: "סיימת להיום · פתיחת חדר הקריאה",
+    noSchedule: "סמנו מילה בזמן הקריאה", loading: "טוען…",
+    openRoom: "פתיחת חדר הקריאה", openTitle: "פתיחת החזרה המאוחדת",
+    anki: "📦 Anki", ankiTitle: "הורדת אוצר מילים ל-Anki",
+  },
   // translate-review: HE drafted by Claude — pending native/ulpan-teacher review.
   multitab: {
     title: "LinguistPro כבר פתוח בכרטיסייה אחרת",

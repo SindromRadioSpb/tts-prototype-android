@@ -1,6 +1,13 @@
 // Locale: Russian (default)
 window.I18N_LOCALES = window.I18N_LOCALES || {};
 window.I18N_LOCALES.ru = {
+  studioReview: {
+    title: "Повторение", due: "К повторению", inProgress: "В работе",
+    start: "Начать тренировку", allDone: "На сегодня всё · открыть Зал",
+    noSchedule: "Отметьте слово в тексте", loading: "Загрузка…",
+    openRoom: "Открыть Читальный зал", openTitle: "Открыть единое повторение",
+    anki: "📦 Anki", ankiTitle: "Скачать словарь для Anki",
+  },
   // P0-1 / P1-1: multi-tab + DB-error + recovery strings.
   multitab: {
     title: "LinguistPro уже открыт в другой вкладке",

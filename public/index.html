@@ -650,6 +650,23 @@
         text-overflow: ellipsis;
         max-width: 100%;
     }
+    .classic-review-card {
+        min-height: 88px;
+        border-color: color-mix(in srgb, var(--theme-accent, #2563eb) 38%, var(--theme-border-soft));
+        background: color-mix(in srgb, var(--theme-accent, #2563eb) 7%, var(--theme-bg-muted));
+    }
+    .studio-review-counts {
+        display: flex; flex-wrap: wrap; justify-content: center; gap: 3px 9px;
+        color: var(--theme-text-primary); font-size: 12px; font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+    .studio-review-action { color: var(--theme-accent, #2563eb); font-size: 11px; font-weight: 750; }
+    .studio-review-anki { min-height: 44px; padding-inline: 12px; }
+    .studio-review-badge {
+        display: inline-flex; min-width: 1.65em; min-height: 1.65em; align-items: center;
+        justify-content: center; border-radius: 999px; background: var(--theme-bg-muted);
+        font-variant-numeric: tabular-nums; font-size: 11px; font-weight: 800;
+    }
 
     /* Row 2 — utility strip */
     .classic-nav-utility {
@@ -10766,8 +10783,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     <button id="v3IdeDashBtn" class="btn-ide" onclick="v3DashboardOpen()" data-i18n="ide.dashboard" data-i18n-title="ide.openDashboardTitle" title="Open Dashboard">
       📊 Dashboard
     </button>
-    <button id="v3IdeSrsTrainerBtn" class="btn-ide" onclick="v3SrsTrainerOpen()" data-i18n="ide.train" data-i18n-title="ide.openTrainerTitle" title="Open SRS Trainer">
-      🎯 Train
+    <button id="v3IdeSrsTrainerBtn" class="btn-ide" onclick="v3OpenRoomReview()" data-i18n-title="studioReview.openTitle" title="Открыть единое повторение">
+      🎯 <span data-i18n="studioReview.title">Повторение</span> <span class="studio-review-badge" data-studio-due aria-hidden="true">—</span>
     </button>
     <button id="v3IdeRoomBtn" class="btn-ide" onclick="v3NavAwayWithDbClose('/library.html')" data-i18n="ide.readingRoom" data-i18n-title="ide.readingRoomTitle" title="Открыть Читальный зал">
       📖 Зал
@@ -10806,9 +10823,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     <span class="v3-tbi-icon">📊</span>
     <span class="v3-tbi-label">Dashboard</span>
   </button>
-  <button class="v3-ide-tab-item" id="v3TabBarTrain" role="tab" onclick="v3SrsTrainerOpen()" aria-label="Train">
+  <button class="v3-ide-tab-item" id="v3TabBarTrain" role="tab" onclick="v3OpenRoomReview()" data-i18n-aria-label="studioReview.openTitle" aria-label="Открыть единое повторение">
     <span class="v3-tbi-icon">🎯</span>
-    <span class="v3-tbi-label">Train</span>
+    <span class="v3-tbi-label"><span data-i18n="studioReview.title">Повторение</span> <span data-studio-due>—</span></span>
   </button>
   <button class="v3-ide-tab-item" id="v3TabBarRoom" role="tab" onclick="v3NavAwayWithDbClose('/library.html')" aria-label="Читальный зал">
     <span class="v3-tbi-icon">📖</span>
@@ -11234,9 +11251,14 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                       <span class="classic-nav-icon">📈</span>
                       <span class="classic-nav-label" data-i18n="classic.navDashboard">Дашборд</span>
                     </button>
-                    <button id="btnSrsTrainer" class="classic-nav-card" onclick="v3SrsTrainerOpen()" data-i18n-aria-label="classic.navTrainer" aria-label="SRS Trainer">
+                    <button id="btnSrsTrainer" class="classic-nav-card classic-review-card" onclick="v3OpenRoomReview()" data-i18n-aria-label="studioReview.openTitle" aria-label="Открыть единое повторение" aria-describedby="studioReviewState">
                       <span class="classic-nav-icon">🎯</span>
-                      <span class="classic-nav-label" data-i18n="classic.navTrainer">SRS Trainer</span>
+                      <span class="classic-nav-label" data-i18n="studioReview.title">Повторение</span>
+                      <span class="studio-review-counts">
+                        <span><span data-i18n="studioReview.due">К повторению</span>: <strong data-studio-due>—</strong></span>
+                        <span><span data-i18n="studioReview.inProgress">В работе</span>: <strong data-studio-progress>—</strong></span>
+                      </span>
+                      <span id="studioReviewState" class="studio-review-action" data-i18n="studioReview.loading">Загрузка…</span>
                     </button>
                     <!-- Кросс-навигация Студия → Читальный зал (нет тупиков и в PWA-режиме) -->
                     <button id="btnReadingRoom" class="classic-nav-card" onclick="v3NavAwayWithDbClose('/library.html')" data-i18n-aria-label="classic.navRoom" aria-label="Читальный зал">
@@ -11265,6 +11287,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                     <button id="btnMorphSettings" class="classic-nav-tool" onclick="window.LinguistProMorphSettings&&window.LinguistProMorphSettings.open()" data-i18n-title="morph.settings.btnTitle" data-i18n-aria-label="morph.settings.btnTitle" title="Морфология" aria-label="Морфология">🔤</button>
                     <button id="btnLocalAsrSettings" class="classic-nav-tool" onclick="window.LocalAsrOnboarding&&window.LocalAsrOnboarding.open()" data-i18n-title="studio.localAsrBeta.btnTitle" data-i18n-aria-label="studio.localAsrBeta.btnTitle" title="Experimental Local ASR" aria-label="Experimental Local ASR" hidden>◉</button>
                     <button id="btnLocalMtSettings" class="classic-nav-tool" onclick="window.LocalMtOnboarding&&window.LocalMtOnboarding.open()" data-i18n-title="studio.localMt.btnTitle" data-i18n-aria-label="studio.localMt.btnTitle" title="MADLAD local translation" aria-label="MADLAD local translation" hidden>MT</button>
+                    <button id="studioReviewAnkiExport" class="classic-nav-tool studio-review-anki" onclick="v3SrsDownloadApkg(event)" data-i18n="studioReview.anki" data-i18n-title="studioReview.ankiTitle" title="Скачать словарь для Anki">📦 Anki</button>
                   </div>
                 </div>
                 </details>
@@ -13052,9 +13075,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=143"></script>
-    <script src="/i18n/locales/en.js?v=143"></script>
-    <script src="/i18n/locales/he.js?v=143"></script>
+    <script src="/i18n/locales/ru.js?v=144"></script>
+    <script src="/i18n/locales/en.js?v=144"></script>
+    <script src="/i18n/locales/he.js?v=144"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13226,7 +13249,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.352";
+    window.APP_VERSION = "3.11.353";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -31669,45 +31692,55 @@ function v3SrsTrainerOpenAnkiExport() {
 }
 window.v3SrsTrainerOpenAnkiExport = v3SrsTrainerOpenAnkiExport;
 
-async function v3SrsTrainerOpen() {
-  const modal = v3SrsTrainerEl("v3SrsTrainerModal");
-  if (!modal) return;
-  if (modal.parentElement !== document.body) {
-    document.body.appendChild(modal);
-  }
-  modal.classList.remove("hidden");
-
-  // R2.2 — sweep orphaned note-cards (template_id no longer matches the
-  // linked note's note_type, e.g. after a pre-R2.2 convert). Such cards
-  // rendered as "No prompt available" because the body shape doesn't fit
-  // the template schema. Idempotent; cheap (single JOIN query).
+let v3StudioReviewCounts = { dueNow: 0, inProgress: 0, scheduled: 0 };
+async function refreshStudioReviewStatus() {
   try {
-    if (LOCAL_MODE) {
-      const ldb = await ensureLocalDB();
-      if (ldb.srs && typeof ldb.srs.cleanupOrphanedNoteCards === "function") {
-        await ldb.srs.cleanupOrphanedNoteCards();
-      }
+    if (window.__localDBInitPromise) await window.__localDBInitPromise;
+    const ldb = await ensureLocalDB();
+    const states = (await ldb.getAllWordStatuses()) || {};
+    const schedule = (await ldb.getSrsSchedule()) || {};
+    const counts = (window.ReaderMorph && window.ReaderMorph.dueCounts)
+      ? window.ReaderMorph.dueCounts(states, schedule, Date.now())
+      : { dueNow: 0, inProgress: 0, nextDue: null };
+    v3StudioReviewCounts = {
+      dueNow: Number(counts.dueNow) || 0,
+      inProgress: Number(counts.inProgress) || 0,
+      scheduled: Object.keys(schedule).length,
+    };
+    document.querySelectorAll('[data-studio-due]').forEach((node) => { node.textContent = String(v3StudioReviewCounts.dueNow); });
+    document.querySelectorAll('[data-studio-progress]').forEach((node) => { node.textContent = String(v3StudioReviewCounts.inProgress); });
+    const state = document.getElementById('studioReviewState');
+    if (state) {
+      state.textContent = v3StudioReviewCounts.dueNow > 0
+        ? v3NotesT('studioReview.start', 'Начать тренировку')
+        : (v3StudioReviewCounts.scheduled > 0
+          ? v3NotesT('studioReview.allDone', 'На сегодня всё · открыть Зал')
+          : v3NotesT('studioReview.noSchedule', 'Отметьте слово в тексте'));
     }
-  } catch (_) {}
-
-  // Phase 11.0: emit srs_session_started. session_id is generated
-  // client-side and pinned for the duration of the modal — paired with
-  // srs_session_finished on close so duration_ms + cards_reviewed delta
-  // can be computed via the v3CurrentSrsSessionReviewCount counter that
-  // is incremented at each srs_review emit point (see v3EmitSrsReview).
-  try {
-    v3CurrentSrsSessionId = (typeof crypto !== "undefined" && crypto.randomUUID)
-      ? crypto.randomUUID()
-      : `sess-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-    v3CurrentSrsSessionStartedAt = Date.now();
-    v3CurrentSrsSessionReviewCount = 0;
-    v3Emit("srs_session_started", {
-      session_id: v3CurrentSrsSessionId,
-    });
-  } catch (_) {}
-
-  await v3SrsTrainerRefresh();
+    const primary = document.getElementById('btnSrsTrainer');
+    if (primary) primary.dataset.due = String(v3StudioReviewCounts.dueNow);
+  } catch (_) {
+    const state = document.getElementById('studioReviewState');
+    if (state) state.textContent = v3NotesT('studioReview.openRoom', 'Открыть Читальный зал');
+  }
 }
+
+async function v3OpenRoomReview() {
+  await refreshStudioReviewStatus();
+  const url = v3StudioReviewCounts.dueNow > 0
+    ? '/library.html?review=due&from=studio'
+    : '/library.html';
+  return window.v3NavAwayWithDbClose(url);
+}
+
+// Consumer-compatible alias: historical callers now hand off to the one canonical trainer.
+async function v3SrsTrainerOpen() { return v3OpenRoomReview(); }
+window.v3OpenRoomReview = v3OpenRoomReview;
+window.refreshStudioReviewStatus = refreshStudioReviewStatus;
+document.addEventListener('DOMContentLoaded', () => refreshStudioReviewStatus());
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshStudioReviewStatus(); });
+document.addEventListener('i18n:changed', () => refreshStudioReviewStatus());
+window.addEventListener('pageshow', () => refreshStudioReviewStatus());
 
 function v3SrsTrainerClose() {
   const modal = v3SrsTrainerEl("v3SrsTrainerModal");

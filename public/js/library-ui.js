@@ -9035,6 +9035,21 @@ function wireChrome() {
   });
 }
 
+// STUDIO-SRS-TRAINER-REPLACEMENT — consume an identifier-only Studio command once.
+// replaceState preserves the Studio→Room history entry while removing the command before
+// opening the sheet, so close→refresh cannot auto-open or append a review.
+function consumeDueReviewHandoff() {
+  try {
+    const url = new URL(location.href);
+    if (url.searchParams.get('review') !== 'due' || url.searchParams.get('from') !== 'studio') return false;
+    url.searchParams.delete('review');
+    url.searchParams.delete('from');
+    const next = url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash;
+    history.replaceState(history.state, '', next);
+    return true;
+  } catch (_) { return false; }
+}
+
 async function boot() {
   loadReaderCfg();   // BRR-P1-006 — restore persisted scaffolding modes before any reader render
   loadRoomTableWidths();   // ширины колонок Зала — до первого рендера таблицы
@@ -9072,6 +9087,7 @@ async function boot() {
       activeTrack = 'literary';
     }
     setActiveTrack(activeTrack);
+    const dueReviewHandoff = consumeDueReviewHandoff();
     // Protected group-corpus deep link. The URL carries identifiers only; both
     // catalog and bundle requests still require a live session + ACTIVE group
     // membership. Unknown/inaccessible ids deliberately collapse to one generic
@@ -9094,6 +9110,7 @@ async function boot() {
       }
     } catch (_) {}
     try { refreshDueBadge(); } catch (_) {}   // D2 — surface the «🔁 К повторению» home CTA on first load
+    if (dueReviewHandoff) await startDueReview();
     refreshAgentProposalsChip();   // AA4-4b — pending agent proposals (quiet-fail without a session)
     backfillZombieMarkSeeds().then(() => r4HealDrain());   // R3.1 seeds → R4a heals (fire-and-forget chain)
     roomCloudAutoSync();   // CLG-P3.2 — fire-and-forget; no-op (single 401) without a live session

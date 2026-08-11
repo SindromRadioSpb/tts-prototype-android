@@ -1,6 +1,13 @@
 // Locale: English
 window.I18N_LOCALES = window.I18N_LOCALES || {};
 window.I18N_LOCALES.en = {
+  studioReview: {
+    title: "Review", due: "Due", inProgress: "In progress",
+    start: "Start training", allDone: "All done today · open Room",
+    noSchedule: "Mark a word while reading", loading: "Loading…",
+    openRoom: "Open Reading Room", openTitle: "Open unified review",
+    anki: "📦 Anki", ankiTitle: "Download vocabulary for Anki",
+  },
   multitab: {
     title: "LinguistPro is already open in another tab",
     body: "The local database is used by one tab at a time so your data stays safe. This tab will switch to view-only mode.",
