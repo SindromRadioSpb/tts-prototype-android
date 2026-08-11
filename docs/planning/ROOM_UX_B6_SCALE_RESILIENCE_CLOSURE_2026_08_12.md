@@ -2,7 +2,7 @@
 
 Дата: 2026-08-12
 
-Статус: **ENGINEERING/BETA COMPLETE · GA NO-GO UNTIL D6**
+Статус: **CLOSED · OWNER ACCEPTED · D6 PASS · GA GO**
 
 Owner decision: `B6-R D1–D6`, утверждён до кода.
 
@@ -11,6 +11,17 @@ Implementation: `main@485ba466`
 Release version: `3.11.360`
 
 Production read-back: **VERIFIED 2026-08-12 00:28 IDT**.
+
+## Owner acceptance
+
+После успешного выполнения опубликованного краткого D6 smoke-check владелец
+явно сообщил:
+
+> Протестировано успешно. Актуализируй документацию.
+
+Эта строка закрывает physical/assistive gate и B6 целиком. Она подтверждает
+PASS перечисленных сценариев, но не добавляет отсутствующие device/build или
+artifact metadata.
 
 ## Реализованный контракт
 
@@ -21,7 +32,7 @@ Production read-back: **VERIFIED 2026-08-12 00:28 IDT**.
 | D3 waiting safe point | SW waiting by default, explicit activation, Room progress flush/read-back, Studio dirty/edit/media guards, no unconditional controller reload |
 | D4 local-only now | bounded local diagnostic ring + explicit JSON export; no beacon, endpoint or learner-ingest reuse |
 | D5 packet budgets | 1k/5k automated budgets and memory/DOM/latency gates committed and green |
-| D6 full physical matrix | execution packet prepared; physical/assistive rows remain unexecuted and block GA claim |
+| D6 full physical matrix | owner сообщил PASS полного краткого smoke-check; physical/assistive gate принят, точные build/artifact metadata не переданы |
 
 ## Evidence ledger
 
@@ -34,6 +45,7 @@ Production read-back: **VERIFIED 2026-08-12 00:28 IDT**.
 - i18n/canon/memory: `233/233`, `18/18`, `79/79`.
 - RU/HE-RTL × light/dark 380px and desktop 200% evidence inspected.
 - `review_log` synthetic guard unchanged; owner profile was not mutated.
+- D6 physical/assistive smoke: owner-reported PASS; explicit acceptance quoted above.
 
 Raw evidence:
 [`docs/research/room-ux-b6-scale-resilience/2026-08-12/`](../research/room-ux-b6-scale-resilience/2026-08-12/README.md).
@@ -52,9 +64,9 @@ SHA-256 exactly matches the local release bytes for `library.html`,
 Clean Chromium profiles at 380px passed RU/LTR/light and HE/RTL/dark with
 `0` page errors, `0` HTTP 5xx and `0` horizontal overflow.
 
-Engineering and beta are complete after this served-byte verification.
-B6 must not be labelled GA, owner-live closed or physical-device accepted until
-every mandatory D6 row has evidence and the owner records the final verdict in
-the physical packet.
+Engineering, production and owner D6 acceptance are complete. B6 is closed and
+may be labelled `GA GO` within the recorded evidence precision. Exact device/OS/
+browser/AT builds and test recordings were not supplied, so narrower claims
+about particular builds remain prohibited.
 
 B7–B9 and visual finishing are outside this closure.

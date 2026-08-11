@@ -2,7 +2,7 @@
 
 Дата: 2026-08-12
 
-Статус: **ENGINEERING/BETA COMPLETE · AUTOMATION PASS · D6 PHYSICAL PENDING**
+Статус: **B6 CLOSED · AUTOMATION PASS · D6 OWNER PASS · GA GO**
 
 Decision packet: [`ROOM_UX_B6_SCALE_RESILIENCE_DECISION_PACKET_2026_08_11.md`](../../../planning/ROOM_UX_B6_SCALE_RESILIENCE_DECISION_PACKET_2026_08_11.md)
 
@@ -53,10 +53,13 @@ Auxiliary B5 continuity harness в текущей загруженной Win11-�
 [`CONTINUITY_HARNESS_VARIANCE.json`](./CONTINUITY_HARNESS_VARIANCE.json); порог
 не ослаблен и результат не назван PASS.
 
-## Что не доказано
+## D6 owner acceptance и граница доказательства
 
-Automation не доказывает iPhone/Android PWA, NVDA, VoiceOver, TalkBack или
-owner-profile acceptance. Эти обязательства остаются в
+Владелец 2026-08-12 сообщил успешное выполнение краткого D6 smoke-check,
+охватывавшего owner-read-only flow, iPhone/Android PWA и
+NVDA/VoiceOver/TalkBack. B6 закрыт с `GA GO`; verdict записан в
 [`ROOM_UX_B6_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md`](../../../planning/ROOM_UX_B6_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md).
-До заполнения матрицы допустим только engineering/beta claim, не GA/owner-live
-closure.
+
+Это owner-reported physical/assistive acceptance, а не новый automation artifact.
+Точные device/OS/browser/AT builds, checksum value и записи теста не переданы и
+не приписываются evidence.

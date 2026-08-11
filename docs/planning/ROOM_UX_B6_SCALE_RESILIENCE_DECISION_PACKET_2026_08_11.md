@@ -1,7 +1,7 @@
 # Reading Room B6 — Scale & Resilience Decision Packet
 
 **Дата:** 2026-08-11
-**Статус:** `APPROVED 2026-08-11 / IMPLEMENTED ENGINEERING 2026-08-12 / D6 PHYSICAL PENDING`
+**Статус:** `APPROVED / IMPLEMENTED / D6 OWNER PASS / CLOSED 2026-08-12`
 **Программа:** Reading Room B6 из B6–B9 handoff
 **Canonical handoff:** [`ROOM_UX_B6_B9_VISUAL_FINISHING_HANDOFF_2026_08_11.md`](./ROOM_UX_B6_B9_VISUAL_FINISHING_HANDOFF_2026_08_11.md)
 **Research baseline:** `36ff3ecec07efd779fa589fed6ac03ef41b8d44a`
@@ -10,7 +10,7 @@
 
 **Owner approval:** `D1=cursor+exact-total; D2=history+session; D3=waiting-safe-point; D4=local-only-now+opt-in-RUM-later; D5=packet-budgets; D6=full-physical-matrix`.
 
-**Implementation:** `485ba466`; engineering closure and the remaining D6 gate are recorded in
+**Implementation:** `485ba466`; engineering closure and accepted D6 verdict are recorded in
 [`ROOM_UX_B6_SCALE_RESILIENCE_CLOSURE_2026_08_12.md`](./ROOM_UX_B6_SCALE_RESILIENCE_CLOSURE_2026_08_12.md).
 
 ---
@@ -26,8 +26,9 @@ local-only, а production ingestion — только отдельным default-
 контуром после изменения privacy policy. B0–B5 не переоткрываются: текущий
 48-row DOM bound остаётся обязательным инвариантом.
 
-Owner approval получен до кода. Реализация сохраняет D6 как обязательный
-physical/assistive gate: automation не превращается в GA или owner-live claim.
+Owner approval получен до кода. После реализации владелец сообщил успешное
+выполнение D6 smoke-check; physical/assistive gate принят 2026-08-12. Точные
+device/build metadata не были переданы и не выводятся из automation.
 
 ---
 
@@ -456,8 +457,9 @@ D3=waiting-safe-point; D4=local-only-now+opt-in-RUM-later;
 D5=packet-budgets; D6=full-physical-matrix.
 ```
 
-Решение зафиксировано без изменений. D4 не разрешает production ingestion, а
-D6 не считается выполненным до физической матрицы из отдельного execution packet.
+Решение зафиксировано без изменений. D4 не разрешает production ingestion.
+D6 завершён явным owner-reported PASS smoke-check; границы точности evidence
+зафиксированы в physical packet.
 
 ---
 

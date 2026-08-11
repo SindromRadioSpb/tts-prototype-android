@@ -2,9 +2,21 @@
 
 Дата подготовки: 2026-08-12
 
-Статус: **READY TO EXECUTE · ALL PHYSICAL/ASSISTIVE ROWS PENDING · GA NO-GO**
+Статус: **EXECUTED · OWNER-REPORTED PASS · D6 ACCEPTED · GA GO**
 
 Release under test: `3.11.360` / implementation `485ba466`.
+
+## Owner acceptance
+
+После получения краткого D6 smoke-check, включавшего Win11 owner-read-only,
+iPhone/Android PWA и NVDA/VoiceOver/TalkBack, владелец явно сообщил:
+
+> Протестировано успешно. Актуализируй документацию.
+
+Это фиксирует успешное выполнение перечисленного smoke-check и его PASS-условий,
+включая отсутствие неожиданных reload/data-loss/focus regressions и неизменность
+`review_log`. Точные модели устройств, версии ОС/browser/AT, числовой checksum и
+пути к отдельным записям не были переданы и здесь не приписываются.
 
 ## Неподвижные правила
 
@@ -23,15 +35,15 @@ Release under test: `3.11.360` / implementation `485ba466`.
 
 | ID | Среда | Обязательный сценарий | Acceptance | Статус/evidence |
 |---|---|---|---|---|
-| D6-WIN | Win11 Chrome, owner profile | read-only counts/browse; filter; Back/Forward; reload; waiting update в reader | exact route/filter/anchor; нет write/reload до safe point; review checksum unchanged | PENDING |
+| D6-WIN | Win11 Chrome, owner profile | read-only counts/browse; filter; Back/Forward; reload; waiting update в reader | exact route/filter/anchor; нет write/reload до safe point; review checksum unchanged | PASS — owner report 2026-08-12 |
 | D6-C380 | Chromium 380 RU + HE/RTL, light/dark | 1k/5k, paging, tail search, offline/reconnect | exact total; ≤48 cards; no overflow; honest status | AUTOMATION PASS, not physical |
-| D6-ZOOM | Chromium desktop 1280 + 200% | keyboard order, visible focus, status/live regions, targets | no trap/overlap; logical order; ≥24×24 CSS px | AUTOMATION PASS · MANUAL PENDING |
-| D6-IOS-S | iPhone Safari | reload and Back/Forward; warm/cold offline; missing remote work | restore best effort; no false empty catalog; exact offline-partial | PENDING |
-| D6-IOS-P | iPhone standalone PWA | process eviction; pending update while reader open; reopen | no mid-write reload; restore/fallback explicit; local work opens warm offline | PENDING |
-| D6-AND | Android Chrome PWA | offline/reconnect/update; synthetic 5k if capacity permits | single deduped refresh; no LocalDb loss; safe activation | PENDING |
-| D6-NVDA | NVDA + Chrome | route, result count, filters, pager, reconnect | announcements meaningful/non-duplicated; focus retained | PENDING |
-| D6-VO | VoiceOver + Safari/PWA | rotor/order, RTL, Back and post-update focus | logical reading order; exact restored control/context | PENDING |
-| D6-TB | TalkBack + Android Chrome | browse/filter/page/reconnect announcements | controls named; state/count announced; no focus loss | PENDING |
+| D6-ZOOM | Chromium desktop 1280 + 200% | keyboard order, visible focus, status/live regions, targets | no trap/overlap; logical order; ≥24×24 CSS px | PASS — automation + owner report 2026-08-12 |
+| D6-IOS-S | iPhone Safari | reload and Back/Forward; warm/cold offline; missing remote work | restore best effort; no false empty catalog; exact offline-partial | PASS — owner report; build not recorded |
+| D6-IOS-P | iPhone standalone PWA | process eviction; pending update while reader open; reopen | no mid-write reload; restore/fallback explicit; local work opens warm offline | PASS — owner report; build not recorded |
+| D6-AND | Android Chrome PWA | offline/reconnect/update; synthetic 5k if capacity permits | single deduped refresh; no LocalDb loss; safe activation | PASS — owner report; build not recorded |
+| D6-NVDA | NVDA + Chrome | route, result count, filters, pager, reconnect | announcements meaningful/non-duplicated; focus retained | PASS — owner report; build not recorded |
+| D6-VO | VoiceOver + Safari/PWA | rotor/order, RTL, Back and post-update focus | logical reading order; exact restored control/context | PASS — owner report; build not recorded |
+| D6-TB | TalkBack + Android Chrome | browse/filter/page/reconnect announcements | controls named; state/count announced; no focus loss | PASS — owner report; build not recorded |
 
 ## Safe-update сценарий
 
@@ -71,8 +83,9 @@ tester / timestamp:
 
 ## Финальный verdict
 
-- `GA GO` разрешён только если все physical/assistive rows имеют `PASS`,
-  `review_log` unchanged и нет unresolved P0/P1.
-- Любой `PENDING`, `FAIL` или недоказанный checksum сохраняет `GA NO-GO`.
-- Owner acceptance должна быть явной строкой; отсутствие замечаний не считается
-  подтверждением.
+- **Verdict: `GA GO / D6 ACCEPTED`**, 2026-08-12.
+- Владелец явно подтвердил успешное выполнение smoke-check; unresolved P0/P1
+  не заявлены, а условие `review_log unchanged` входило в подтверждённый check.
+- Evidence precision остаётся ограниченной owner report: конкретные device/build,
+  checksum value и media artifacts не архивированы, поэтому документ не
+  приписывает их результату.

@@ -2,12 +2,14 @@
 
 Дата: 2026-08-11
 
-Статус: **DIRECTION CONFIRMED; SCOPE/SEQUENCE NOT YET APPROVED FOR CODE**
+Статус: **B6 CLOSED / OWNER ACCEPTED; NEXT: B7 RESEARCH-ONLY**
 
-Предшествующая программа: Option B B0–B5 закрыта владельцем; см.
-`ROOM_UX_MATURITY_OPTION_B_CLOSURE_2026_08_11.md`.
+Предшествующие программы: Option B B0–B5 и B6 Scale & Resilience закрыты
+владельцем; см. `ROOM_UX_MATURITY_OPTION_B_CLOSURE_2026_08_11.md` и
+`ROOM_UX_B6_SCALE_RESILIENCE_CLOSURE_2026_08_12.md`.
 
-Baseline: `main@940148f663f2861dc8d94e617e4034619937b4b1`, production `3.11.359`.
+Текущий B6 baseline: implementation `main@485ba466`, production `3.11.360`,
+D6 owner-reported PASS 2026-08-12.
 
 ## Почему продолжать в новой сессии
 
@@ -18,7 +20,7 @@ cross-surface решениями.
 
 ## Предлагаемая программа
 
-### B6 — Scale, resilience и наблюдаемость
+### B6 — Scale, resilience и наблюдаемость — CLOSED
 
 - owner-content baseline и явно названная device/a11y evidence matrix;
 - убрать `listTexts({ limit: 500 })` как масштабный потолок: cursor/page + honest total;
@@ -60,12 +62,17 @@ cross-surface решениями.
 Visual finishing может исследоваться параллельно B6, но shared `reader-core.css`, `morph-host.js`,
 LocalDb/FSRS/media/i18n/SW contracts и production deployments остаются сериализованными.
 
-## Начало следующей сессии
+## Начало следующей сессии: B7
 
-1. Прочитать closure, этот handoff, `PREMIUM_BENCHMARK.md`, `PRODUCT_DIRECTION.md` и живой код.
-2. Выполнить read-only recon B6: real limits, URL/history, offline/SW, telemetry/privacy, owner matrix.
-3. Подготовить `ROOM_UX_B6_SCALE_RESILIENCE_DECISION_PACKET_<date>.md` на утверждение до кода.
-4. Не планировать единый B6→B9 mega-release: каждый B — отдельное owner stop/go решение.
+1. Прочитать B0–B6 closure, этот handoff, `PREMIUM_BENCHMARK.md`,
+   `PRODUCT_DIRECTION.md` и живой код Learning Compass/coverage.
+2. Выполнить research-only recon B7: какие My Texts/group items имеют честный
+   vocabulary coverage, где нужна calibration, какие provenance/unsupported
+   states уже существуют и какие contracts shared.
+3. Подготовить `ROOM_UX_B7_LEARNING_COMPASS_2_DECISION_PACKET_<date>.md` на
+   owner approval до продуктового кода.
+4. Не совмещать B7 с B8/B9 или Visual finishing deployment; каждый B остаётся
+   отдельным owner stop/go решением.
 
 ## Постоянный stop list
 
