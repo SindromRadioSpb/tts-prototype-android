@@ -153,6 +153,48 @@
     });
   }
 
+  function lifecycleGroup(item) {
+    if (item && (item.entity_kind === 'workspace-draft' || item.continuity_state === 'draft')) return 'draft';
+    return item && item.continuity_state === 'ready' ? 'ready' : 'attention';
+  }
+
+  // B3: one read-only projection over the two existing authorities. A workspace already owned by
+  // a learning material is represented by that material only. An unmatched workspace is exposed
+  // as a draft address, but no material id, revision or promotion is invented during the read.
+  function mergeLifecycleCatalog(materialCatalog, workspaces, now) {
+    const canonical = (materialCatalog || []).map((item) => ({
+      ...item,
+      entity_kind: item.entity_kind || 'learning-material',
+      lifecycle_group: lifecycleGroup(item),
+    }));
+    const representedPackages = new Set(canonical.map((item) => String(item.package_id || '')).filter(Boolean));
+    const drafts = [];
+    for (const row of (workspaces || [])) {
+      const packageId = String(row && row.package_id || '');
+      const trackId = String(row && (row.track_id || row.corrected_track_id) || '');
+      if (!packageId || !trackId || representedPackages.has(packageId)) continue;
+      representedPackages.add(packageId);
+      drafts.push({
+        entity_kind: 'workspace-draft', lifecycle_group: 'draft', material_id: null,
+        catalog_key: `workspace:${packageId}:${trackId}`, package_id: packageId,
+        binding_track_id: trackId, track_id: trackId,
+        title: row.title || row.original_name || null, original_name: row.original_name || row.title || null,
+        mime: row.mime || row.media_kind || null, updated_at: row.updated_at || null,
+        projection_state: 'present', caption_state: row.has_draft ? 'draft' : 'corrected-current',
+        table_state: 'missing', mapping_state: 'not-applicable',
+        media_state: row.media_missing ? 'missing' : 'present', backup_state: 'none', import_state: 'native',
+        continuity_state: 'draft', next_action: 'continue-correction', study_without_media: false,
+        capabilities: {}, derived_at: now || null,
+      });
+    }
+    return canonical.concat(drafts);
+  }
+
+  function filterLifecycleCatalog(catalog, filter) {
+    if (!filter || filter === 'all') return (catalog || []).slice();
+    return (catalog || []).filter((item) => lifecycleGroup(item) === filter);
+  }
+
   function buildDeletePlan(input) {
     const value = input || {}, referenced = Math.max(0, Number(value.referenced_count || 0));
     const reused = Math.max(0, Number(value.reused_count || 0)), created = Math.max(0, Number(value.created_count || 0));
@@ -175,5 +217,6 @@
     return true;
   }
 
-  return { CANONICAL_BACKUP_FORMATS, canonicalJson, sha256, sourceStateDescriptor, sourceStateHash, buildCatalog, buildDeletePlan, validateReceiptInput };
+  return { CANONICAL_BACKUP_FORMATS, canonicalJson, sha256, sourceStateDescriptor, sourceStateHash,
+    buildCatalog, mergeLifecycleCatalog, filterLifecycleCatalog, buildDeletePlan, validateReceiptInput };
 });

@@ -8,6 +8,45 @@
   "use strict";
 
   var HE_RE = /^(iw|he)\b/i;
+  // Mirrors StudioYtPlayer's ID_RE so every generated YouTube href is built from a validated id.
+  var VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
+  var DOWNR_INTENT_KEY = "studio.downr-handoff.v1";
+  var DOWNR_INTENT_TTL_MS = 24 * 60 * 60 * 1000;
+
+  // B2: this is an intent to continue, never a download receipt. It deliberately contains no
+  // media bytes, credentials or success assertion and expires after one day.
+  function discardDownrIntent(storage) {
+    try { if (storage && typeof storage.removeItem === "function") storage.removeItem(DOWNR_INTENT_KEY); } catch (_) {}
+  }
+
+  function readDownrIntent(storage, nowMs) {
+    var raw = null;
+    try { raw = storage && typeof storage.getItem === "function" ? storage.getItem(DOWNR_INTENT_KEY) : null; } catch (_) { return null; }
+    if (!raw) return null;
+    var value = null;
+    try { value = JSON.parse(raw); } catch (_) { discardDownrIntent(storage); return null; }
+    var allowed = ["video_id", "created_at_ms", "expires_at_ms", "next_action"];
+    var keys = value && typeof value === "object" && !Array.isArray(value) ? Object.keys(value) : [];
+    var now = Number.isFinite(Number(nowMs)) ? Number(nowMs) : Date.now();
+    var valid = keys.length === allowed.length && keys.every(function (key) { return allowed.indexOf(key) >= 0; })
+      && VIDEO_ID_RE.test(String(value.video_id || ""))
+      && Number.isSafeInteger(value.created_at_ms) && Number.isSafeInteger(value.expires_at_ms)
+      && value.expires_at_ms === value.created_at_ms + DOWNR_INTENT_TTL_MS
+      && value.next_action === "choose-downloaded-media" && value.expires_at_ms > now;
+    if (!valid) { discardDownrIntent(storage); return null; }
+    return value;
+  }
+
+  function writeDownrIntent(storage, videoId, nowMs) {
+    var id = String(videoId || "");
+    if (!VIDEO_ID_RE.test(id)) return null;
+    var created = Number.isFinite(Number(nowMs)) ? Math.round(Number(nowMs)) : Date.now();
+    var value = { video_id: id, created_at_ms: created, expires_at_ms: created + DOWNR_INTENT_TTL_MS,
+                  next_action: "choose-downloaded-media" };
+    try { if (!storage || typeof storage.setItem !== "function") return null; storage.setItem(DOWNR_INTENT_KEY, JSON.stringify(value)); }
+    catch (_) { return null; }
+    return value;
+  }
 
   // Целевой язык продукта — иврит (seg-режим работает только he-ru). Алфавитный список дорожек
   // бесполезен: у одного ролика их бывает 64, и нужная тонет. Поэтому иврит проверяется первым.
@@ -698,6 +737,8 @@
                           mediaSourceSha: mediaSourceSha, rowEditMetaForSave: rowEditMetaForSave,
                           restorePortableRowIdentity: restorePortableRowIdentity,
                           importSessionResetPatch: importSessionResetPatch,
+                          writeDownrIntent: writeDownrIntent, readDownrIntent: readDownrIntent,
+                          discardDownrIntent: discardDownrIntent,
                           mediaSegmentsForPromotion: mediaSegmentsForPromotion };
     }
     return;
@@ -727,9 +768,6 @@
                                // guards against a stale async write into #v3ImportYtHint landing
                                // after the dialog has already closed. Pre-existing race, flagged
                                // (not introduced) by task-2-report.md; fixed here.
-  var VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/; // mirrors StudioYtPlayer's own ID_RE — defense in depth
-                               // so #v3ImportOpenYt's href can only ever be built from something
-                               // that already looks like a validated YouTube video id.
   var captionsPollTimers = []; // active setTimeout ids for the CURRENT mount's bounded tracklist
                                // poll (CAPTIONS_POLL_DELAYS_MS, near mountVideo()) — cleared by
                                // clearCaptionsPoll() on teardown/re-mount so a superseded schedule
@@ -808,6 +846,20 @@
       if (input && !input.value) input.value = window.LocalAsrClient.getPairingToken();
     }
     if (!enabled && !needsCompanionMedia) localAsrConnected = false;
+    var truth = $("v3ImportAudioProviderTruth");
+    if (truth) {
+      if (local) {
+        truth.textContent = tr("studio.import.providerTruthLocal");
+      } else if (pendingAudio) {
+        var estimate = window.AsrTranscript.estimateLongJob(pendingAudio.durationSec, {
+          video: pendingAudio.isVideo, chunkSize: window.TableChunks.CHUNK_SIZE });
+        truth.textContent = tr("studio.import.providerTruthCloudReady", {
+          cost: Math.max(0.01, estimate.totalUsd).toFixed(2), minutes: estimate.minutes });
+      } else {
+        truth.textContent = tr("studio.import.providerTruthCloud");
+      }
+      truth.dataset.detail = pendingAudio ? "ready" : "summary";
+    }
     renderLocalAsrConnectionState();
     if (pendingAudio) updateAudioActionLabel();
   }
@@ -973,10 +1025,33 @@
 
   function resetDownrHandoff() {
     downrHandoffStarted = false;
-    var choose = $("v3DownrChoose"), fallback = $("v3DownrFallback");
+    var choose = $("v3DownrChoose"), discard = $("v3DownrDiscard"), fallback = $("v3DownrFallback");
     if (choose) choose.hidden = true;
+    if (discard) discard.hidden = true;
     if (fallback) fallback.hidden = true;
     setDownrStatus(null);
+  }
+
+  function restoreDownrHandoff() {
+    var intent = readDownrIntent(window.localStorage, Date.now());
+    if (!intent) return false;
+    var url = $("v3ImportVideoUrl");
+    if (url) url.value = "https://www.youtube.com/watch?v=" + intent.video_id;
+    switchTab("video");
+    downrHandoffStarted = true;
+    var choose = $("v3DownrChoose"), discard = $("v3DownrDiscard"), fallback = $("v3DownrFallback");
+    if (choose) choose.hidden = false;
+    if (discard) discard.hidden = false;
+    if (fallback) fallback.hidden = true;
+    setDownrStatus("studio.remoteMedia.returnRemembered", false);
+    return true;
+  }
+
+  function discardDownrHandoff() {
+    discardDownrIntent(window.localStorage);
+    resetDownrHandoff();
+    var url = $("v3ImportVideoUrl");
+    if (url) { url.value = ""; try { url.focus({ preventScroll: true }); } catch (_) { url.focus(); } }
   }
 
   // Synchronous fallback matters on iOS: both copying and opening the new tab still happen inside
@@ -1011,6 +1086,9 @@
     }
     setStatus(null);
     var canonicalUrl = "https://www.youtube.com/watch?v=" + videoId;
+    // Store before opening the external tab: popup blocking, Safari tab eviction and a full
+    // Studio reload must all preserve the same honest next action.
+    writeDownrIntent(window.localStorage, videoId, Date.now());
     var legacyCopied = copyTextLegacy(canonicalUrl);
     var clipboardWrite = null;
     if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
@@ -1027,8 +1105,9 @@
     } catch (_) { externalWindow = null; }
 
     downrHandoffStarted = true;
-    var choose = $("v3DownrChoose"), fallback = $("v3DownrFallback");
+    var choose = $("v3DownrChoose"), discard = $("v3DownrDiscard"), fallback = $("v3DownrFallback");
     if (choose) choose.hidden = false;
+    if (discard) discard.hidden = false;
     if (fallback) fallback.hidden = !!externalWindow;
     if (!externalWindow) setDownrStatus("studio.remoteMedia.popupBlocked", true);
     else setDownrStatus(legacyCopied ? "studio.remoteMedia.copiedAndOpened" : "studio.remoteMedia.openedCopyPending", false);
@@ -1317,6 +1396,10 @@
     refreshLocalAsrControls();
     renderMediaReadiness();
     setStatus(null);
+    // The actual selected File is now the authority; the external-service return hint has done
+    // its job. Picker cancellation and rejected files return earlier and keep the hint.
+    discardDownrIntent(window.localStorage);
+    downrHandoffStarted = false;
     if (isVideo) {
       var policy = window.MediaReadiness.deviceAsrPolicy(navigator.userAgent, localAsrExperimental());
       if (!policy.mobile) await startMediaPreflight();
@@ -1948,11 +2031,13 @@
     // W2-S5a.1 T2: same staleness trap for the video-tab URL field — a value left over from a
     // previous auto-switch (fetchUrlOrVideo()) must not greet the user on the next open().
     var vu = $("v3ImportVideoUrl");
-    if (vu) vu.value = "";
-    // Tab always resets to "url" on open() — not persisted anywhere (not localStorage, not a
-    // module var), so the dialog is predictable on every open, per task-2-brief.md.
-    switchTab("url");
+    // B2 is the single bounded exception to the old reset-on-open rule. A fresh/expired flow
+    // still opens on Article; a valid Downr return restores Video and an explicit file choice.
     resetDownrHandoff();
+    if (!restoreDownrHandoff()) {
+      if (vu) vu.value = "";
+      switchTab("url");
+    }
     if (window.StudioMediaPackage && window.StudioMediaPackage.refreshWorkspaceUi) window.StudioMediaPackage.refreshWorkspaceUi();
     window.setTimeout(function () {
       var selectedTab = m && m.querySelector("[role='tab'][aria-selected='true']");
@@ -2534,6 +2619,7 @@
   window.StudioImport = { open: open, close: close, switchTab: switchTab,
                            fetchUrl: fetchUrl, fetchUrlOrVideo: fetchUrlOrVideo, mountVideoFromField: mountVideoFromField,
                            openDownrFromField: openDownrFromField, chooseDownloadedMedia: chooseDownloadedMedia,
+                           discardDownrHandoff: discardDownrHandoff,
                            onFileChosen: onFileChosen, onAudioChosen: onAudioChosen, transcribeAudio: transcribeAudio,
                            onAudioProviderChanged: onAudioProviderChanged, pairLocalAsr: pairLocalAsr,
                            onLocalAsrTokenChanged: onLocalAsrTokenChanged,

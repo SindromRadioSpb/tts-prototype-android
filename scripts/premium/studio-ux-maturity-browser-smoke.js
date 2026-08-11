@@ -108,6 +108,9 @@ async function inspect(browser, locale, viewport, dark, label) {
       overflow: document.documentElement.scrollWidth - innerWidth,
       mainCount: visibleMains.length,
       navContrast: contrast(style.color, background),
+      secondaryNavOpen: document.getElementById("classicSecondaryNav").open,
+      secondaryNavSummaryHeight: document.querySelector(".classic-secondary-nav-summary").getBoundingClientRect().height,
+      nextStepBottom: document.getElementById("classicNextStep").getBoundingClientRect().bottom,
     };
   });
   check(shell.dir === (locale === "he" ? "rtl" : "ltr") && shell.lang === locale, `${prefix}: locale direction`);
@@ -116,6 +119,15 @@ async function inspect(browser, locale, viewport, dark, label) {
   check(shell.overflow <= 0, `${prefix}: no page horizontal overflow (${shell.overflow}px)`);
   check(shell.mainCount === 1, `${prefix}: exactly one visible main landmark`);
   check(shell.navContrast >= 4.5, `${prefix}: navigation contrast ${shell.navContrast.toFixed(2)} >= 4.5`);
+  if (label === "380") {
+    check(!shell.secondaryNavOpen && shell.secondaryNavSummaryHeight >= 44, `${prefix}: secondary navigation is compact with a 44px target`);
+    check(shell.nextStepBottom <= viewport.height, `${prefix}: phase and next action are above the fold (${shell.nextStepBottom}px)`);
+    await page.locator(".classic-secondary-nav-summary").click();
+    check(await page.locator("#btnReadingRoom").isVisible(), `${prefix}: Reading Room remains reachable after expanding navigation`);
+    await page.locator(".classic-secondary-nav-summary").click();
+  } else {
+    check(shell.secondaryNavOpen, `${prefix}: desktop navigation remains expanded`);
+  }
 
   await page.focus("#classicNextActionBtn");
   await page.keyboard.press("Enter");
@@ -160,10 +172,12 @@ async function inspect(browser, locale, viewport, dark, label) {
         value: select.value,
         localDisabled: local.disabled && local.hidden,
         companionHidden: document.getElementById("v3ImportLocalAsrSetup").hidden,
+        truth: document.getElementById("v3ImportAudioProviderTruth").textContent.trim(),
       };
     });
     check(provider.wrapVisible && provider.value === "gemini", `${prefix}: iPhone visibly offers Gemini ASR`);
     check(provider.localDisabled && provider.companionHidden, `${prefix}: iPhone never exposes loopback Companion`);
+    check(provider.truth && !/studio\.import|\{cost\}|\{minutes\}/.test(provider.truth), `${prefix}: cloud/privacy truth is localized before file selection`);
   }
   await page.focus("#v3ImportAudioPicker");
   await page.keyboard.press("Enter");
@@ -178,6 +192,31 @@ async function inspect(browser, locale, viewport, dark, label) {
   check(audioPickerHeight >= 44 && pickerResult.captionsKeyboard >= 44, `${prefix}: file-picker targets >=44px (${audioPickerHeight}, ${pickerResult.captionsKeyboard})`);
   check(pickerResult.clicks.audio === 1 && pickerResult.clicks.captions === 1, `${prefix}: Enter activates native file inputs`);
   await page.evaluate(() => StudioImport.close());
+
+  if (label === "380") {
+    const downr = await page.evaluate(() => {
+      StudioImport.open();
+      StudioImport.switchTab("video");
+      document.getElementById("v3ImportVideoUrl").value = "https://youtu.be/dQw4w9WgXcQ";
+      window.open = () => null;
+      StudioImport.openDownrFromField();
+      StudioImport.close();
+      StudioImport.open();
+      const restored = {
+        selected: document.getElementById("v3ImportTabVideo").getAttribute("aria-selected"),
+        url: document.getElementById("v3ImportVideoUrl").value,
+        chooseVisible: !document.getElementById("v3DownrChoose").hidden,
+        status: document.getElementById("v3DownrStatus").textContent.trim(),
+      };
+      StudioImport.discardDownrHandoff();
+      restored.discarded = !localStorage.getItem("studio.downr-handoff.v1") && !document.getElementById("v3ImportVideoUrl").value;
+      StudioImport.close();
+      return restored;
+    });
+    check(downr.selected === "true" && downr.url.endsWith("dQw4w9WgXcQ") && downr.chooseVisible, `${prefix}: Downr return survives close/reopen with explicit file choice`);
+    check(downr.status && !/(download (?:is )?(?:done|complete)|скачивание завершено|ההורדה הושלמה)/i.test(downr.status), `${prefix}: Downr return never claims download success`);
+    check(downr.discarded, `${prefix}: Downr return can be explicitly discarded`);
+  }
 
   const sourceState = await page.evaluate(() => {
     const input = document.getElementById("inputText");
@@ -200,6 +239,23 @@ async function inspect(browser, locale, viewport, dark, label) {
   check(sourceState.phase === "table", `${prefix}: text state recommends table creation`);
   check(!/classic\.source|\{count\}/.test(sourceState.exact + sourceState.changed + sourceState.meta), `${prefix}: dynamic strings are localized`);
   if (locale === "he") check(!/[А-Яа-яЁё]/.test(sourceState.meta), `${prefix}: composed metadata has no Russian leakage`);
+  const savedState = await page.evaluate(() => {
+    currentTableData = [{ he: "שלום", ru: "привет" }];
+    tableIsStale = false;
+    v3SessionSet({ mode: "saved", textId: "11111111-1111-4111-8111-111111111111", title: "Saved" });
+    v3UiUpdateActiveHeader();
+    window.__b5RoomTarget = null;
+    window.v3NavAwayWithDbClose = (url) => { window.__b5RoomTarget = url; };
+    classicRunNextAction();
+    return {
+      action: document.getElementById("classicNextActionBtn").dataset.action,
+      label: document.getElementById("classicNextActionBtn").textContent.trim(),
+      phase: document.getElementById("classicPhaseLabel").textContent.trim(),
+      roomTarget: window.__b5RoomTarget,
+    };
+  });
+  check(savedState.action === "learn" && savedState.label && savedState.phase, `${prefix}: save completion recommends continuing in Reading Room`);
+  check(/^\/index\.html\?room=1#\/t\//.test(savedState.roomTarget || ""), `${prefix}: saved material CTA targets its direct Room deep link`);
   check(pageErrors.length === 0, `${prefix}: no uncaught page errors (${pageErrors.join(" | ")})`);
   await context.close();
 }

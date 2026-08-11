@@ -168,3 +168,32 @@ test('a missing material id is still a conflict when the material was supposed t
   const [item] = Core.buildCatalog([{ ...material(), material_id: null, import_integrity_state: 'complete' }], [], {}, null);
   assert.equal(item.projection_state, 'conflict', 'not-promoted must not become a blanket excuse for a missing material');
 });
+
+test('B3 derives one lifecycle catalog from material canon and unmatched workspaces without promotion', () => {
+  const canonical = Core.buildCatalog([material({ package_id: 'mpkg:bound' })], [], {}, '2026-08-11T08:00:00.000Z');
+  const workspaces = [
+    { package_id: 'mpkg:bound', track_id: 'track-bound', title: 'Already represented', has_draft: true, media_missing: false },
+    { package_id: 'mpkg:draft', track_id: 'track-draft', title: 'Unfinished interview', has_draft: true, media_missing: false, media_kind: 'video', updated_at: '2026-08-11T07:00:00.000Z' },
+  ];
+  const merged = Core.mergeLifecycleCatalog(canonical, workspaces, '2026-08-11T08:00:00.000Z');
+  assert.equal(merged.length, 2, 'the represented workspace is not duplicated');
+  const draft = merged.find((item) => item.entity_kind === 'workspace-draft');
+  assert.equal(draft.catalog_key, 'workspace:mpkg:draft:track-draft');
+  assert.equal(draft.continuity_state, 'draft');
+  assert.equal(draft.lifecycle_group, 'draft');
+  assert.equal(draft.next_action, 'continue-correction');
+  assert.equal(draft.material_id, null, 'a read never invents or promotes a learning material');
+  assert.equal(canonical[0].entity_kind, undefined, 'the canonical input is not mutated');
+});
+
+test('B3 lifecycle filters keep drafts, ready materials and attention states distinct', () => {
+  const rows = [
+    { lifecycle_group: 'draft', continuity_state: 'draft' },
+    { lifecycle_group: 'ready', continuity_state: 'ready' },
+    { lifecycle_group: 'attention', continuity_state: 'needs-media' },
+  ];
+  assert.deepEqual(Core.filterLifecycleCatalog(rows, 'draft'), [rows[0]]);
+  assert.deepEqual(Core.filterLifecycleCatalog(rows, 'ready'), [rows[1]]);
+  assert.deepEqual(Core.filterLifecycleCatalog(rows, 'attention'), [rows[2]]);
+  assert.deepEqual(Core.filterLifecycleCatalog(rows, null), rows);
+});

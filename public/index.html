@@ -578,6 +578,30 @@
         box-shadow: var(--theme-shadow-sm);
     }
 
+    .classic-secondary-nav {
+        flex: 1 1 300px;
+        min-width: 0;
+    }
+    .classic-secondary-nav-summary {
+        display: none;
+        min-height: 44px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 12px;
+        border: 1px solid var(--theme-border-soft);
+        border-radius: 14px;
+        color: var(--theme-text-primary);
+        background: var(--theme-bg-card);
+        font-size: 14px;
+        font-weight: 750;
+        cursor: pointer;
+        list-style: none;
+    }
+    .classic-secondary-nav-summary::-webkit-details-marker { display: none; }
+    .classic-secondary-nav-summary::after { content: "⌄"; transition: transform .16s ease; }
+    .classic-secondary-nav[open] .classic-secondary-nav-summary::after { transform: rotate(180deg); }
+
     /* Row 1 — primary nav cards */
     .classic-nav-primary {
         display: grid;
@@ -833,6 +857,13 @@
     #classicNextActionBtn:hover { background: #0d47a1; }
 
     @media (max-width: 600px) {
+        .classic-shell-copy { flex-basis: 100%; }
+        .classic-screen-title { font-size: 24px; }
+        .classic-screen-subtitle { display: none; }
+        .classic-secondary-nav { flex-basis: 100%; width: 100%; }
+        .classic-secondary-nav-summary { display: flex; }
+        .classic-secondary-nav:not([open]) .classic-utility-bar { display: none; }
+        .classic-secondary-nav[open] .classic-utility-bar { margin-top: 8px; }
         .classic-next-step {
             align-items: stretch;
             flex-direction: column;
@@ -11184,6 +11215,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                     <h2 class="classic-screen-title" data-i18n="classic.title">Текст для озвучки и перевода</h2>
                     <p class="classic-screen-subtitle" data-i18n="classic.subtitle">Сценарий: исходный текст → обработка → результат → экспорт и работа по строкам.</p>
                 </div>
+                <details id="classicSecondaryNav" class="classic-secondary-nav" open>
+                  <summary class="classic-secondary-nav-summary" data-i18n="classic.secondaryNav">Разделы и настройки</summary>
                 <div class="classic-utility-bar" role="navigation" data-i18n-aria-label="classic.navLabel" aria-label="Навигация и режимы">
                   <!-- Row 1: Primary navigation cards -->
                   <div class="classic-nav-primary">
@@ -11228,6 +11261,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                     <button id="btnLocalMtSettings" class="classic-nav-tool" onclick="window.LocalMtOnboarding&&window.LocalMtOnboarding.open()" data-i18n-title="studio.localMt.btnTitle" data-i18n-aria-label="studio.localMt.btnTitle" title="MADLAD local translation" aria-label="MADLAD local translation" hidden>MT</button>
                   </div>
                 </div>
+                </details>
             </div>
 
             <!-- AA4-4b — pending agent-proposal chip (count only; agent TEXT renders solely on
@@ -11236,7 +11270,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
             <section id="classicNextStep" class="classic-next-step" aria-labelledby="classicNextStepLabel" aria-live="polite">
                 <div class="classic-next-step-copy">
-                    <span id="classicNextStepLabel" class="classic-next-step-label" data-i18n="classic.nextStepLabel">Следующий шаг</span>
+                    <span id="classicNextStepLabel" class="classic-next-step-label"><span data-i18n="classic.nextStepLabel">Следующий шаг</span><span aria-hidden="true"> · </span><span id="classicPhaseLabel" data-i18n="classic.phase.add">Этап 1 из 4</span></span>
                     <span id="classicNextStepStatus" class="classic-next-step-status" data-i18n="classic.nextStepStatusEmpty">Добавьте материал или введите текст.</span>
                 </div>
                 <button id="classicNextActionBtn" type="button" class="btn-primary" data-studio-primary="true" data-action="add" onclick="classicRunNextAction()" data-i18n="classic.nextAction.add">Добавить материал</button>
@@ -13012,9 +13046,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=141"></script>
-    <script src="/i18n/locales/en.js?v=141"></script>
-    <script src="/i18n/locales/he.js?v=141"></script>
+    <script src="/i18n/locales/ru.js?v=142"></script>
+    <script src="/i18n/locales/en.js?v=142"></script>
+    <script src="/i18n/locales/he.js?v=142"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13186,7 +13220,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.346";
+    window.APP_VERSION = "3.11.347";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -17140,6 +17174,7 @@ function v3NotesRefreshAllButtons() {
     const classicResultPanelMetaEl = document.getElementById("classicResultPanelMeta");
     const classicPrimaryHintEl = document.getElementById("classicPrimaryHint");
     const classicNextStepEl = document.getElementById("classicNextStep");
+    const classicPhaseLabelEl = document.getElementById("classicPhaseLabel");
     const classicNextStepStatusEl = document.getElementById("classicNextStepStatus");
     const classicNextActionBtnEl = document.getElementById("classicNextActionBtn");
     const classicResultFreshChipEl = document.getElementById("classicResultFreshChip");
@@ -17153,6 +17188,12 @@ function v3NotesRefreshAllButtons() {
     const btnTableCustomizeToggleEl = document.getElementById("btnTableCustomizeToggle");
     const classicTtsCardEl = document.getElementById("classicTtsCard");
     const classicTranslationCardEl = document.getElementById("classicTranslationCard");
+    (function initCompactSecondaryNavigation() {
+        const nav = document.getElementById("classicSecondaryNav");
+        if (!nav) return;
+        try { if (window.matchMedia("(max-width: 600px)").matches) nav.removeAttribute("open"); }
+        catch (_) {}
+    })();
     // «Статус слов» (спека 2026-08-05) — тумблер + легенда точек (та же палитра/порядок, что Аа-панель Зала).
     (function initStudioWordStatusToggle() {
         const cb = document.getElementById("studioWordStatusToggle");
@@ -20594,7 +20635,14 @@ updatePlaylistButtonUI();
             const save = document.getElementById("btnSaveToLibrary");
             if (save && !save.disabled) return save.click();
         }
-        if (action === "library" && typeof v3LibraryOpen === "function") return v3LibraryOpen();
+        if (action === "learn") {
+            const st = typeof v3SessionGet === "function" ? (v3SessionGet() || {}) : {};
+            if (st.textId && typeof v3DeeplinkBase64urlEncode === "function") {
+                const target = v3DeeplinkBase64urlEncode(JSON.stringify({ v: 1, type: "text", id: String(st.textId) }));
+                if (target && typeof v3NavAwayWithDbClose === "function") return v3NavAwayWithDbClose("/index.html?room=1#/t/" + target);
+            }
+            if (typeof v3LibraryOpen === "function") return v3LibraryOpen();
+        }
     }
     window.classicRunNextAction = classicRunNextAction;
 
@@ -20891,12 +20939,13 @@ updatePlaylistButtonUI();
                 action = "save";
                 statusKey = "classic.nextStepStatusSave";
             } else if (hasTable && !tableIsStale && isSaved) {
-                action = "library";
+                action = "learn";
                 statusKey = "classic.nextStepStatusLibrary";
             }
             classicNextActionBtnEl.dataset.action = action;
             classicNextActionBtnEl.textContent = t("classic.nextAction." + action);
             classicNextStepStatusEl.textContent = t(statusKey);
+            if (classicPhaseLabelEl) classicPhaseLabelEl.textContent = t("classic.phase." + action);
             if (classicNextStepEl) classicNextStepEl.dataset.phase = action;
         }
 
@@ -49377,6 +49426,7 @@ document.addEventListener("i18n:changed", function () {
           <div class="v3-downr-actions">
             <button type="button" id="v3DownrOpen" class="btn-primary" onclick="StudioImport.openDownrFromField()" data-i18n="studio.remoteMedia.openDownr">Скачать через Downr ↗</button>
             <button type="button" id="v3DownrChoose" class="btn-secondary" onclick="StudioImport.chooseDownloadedMedia()" hidden data-i18n="studio.remoteMedia.chooseDownloaded">Я скачал — выбрать файл</button>
+            <button type="button" id="v3DownrDiscard" class="btn-secondary" onclick="StudioImport.discardDownrHandoff()" hidden data-i18n="studio.remoteMedia.discardReturn">Начать с другой ссылки</button>
             <a id="v3DownrFallback" class="v3-downr-fallback" href="https://downr.org/" target="_blank" rel="noopener noreferrer" hidden data-i18n="studio.remoteMedia.openFallback">Открыть Downr вручную ↗</a>
           </div>
           <p id="v3DownrStatus" class="v3-downr-status" role="status" aria-live="polite" hidden></p>
@@ -49443,6 +49493,7 @@ document.addEventListener("i18n:changed", function () {
               <option value="local" data-i18n="studio.import.audioProviderLocal">Local companion (эксперимент)</option>
             </select>
           </div>
+          <p id="v3ImportAudioProviderTruth" class="v3-import-hint" aria-live="polite" data-i18n="studio.import.providerTruthCloud">Gemini работает в облаке; файл отправляется только после отдельного запуска распознавания.</p>
           <div id="v3ImportLocalAsrSetup" class="v3-local-asr-setup" hidden>
             <label for="v3ImportLocalAsrToken" data-i18n="studio.import.localAsrTokenLabel">Pairing token локального companion</label>
             <div class="v3-local-asr-pair-row">
