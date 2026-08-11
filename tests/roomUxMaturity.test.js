@@ -129,19 +129,34 @@ test("B1 uses semantic rows with sibling title and secondary controls", () => {
   assert.match(corpusRow, /el\('button', \{ class: 'corpus-work-author corpus-work-author-link'/);
   assert.doesNotMatch(corpusRow, /role: 'button'/);
   assert.match(myTextCard, /el\('article',[\s\S]*el\('a', \{ class: 'room-text-title-link mytext-open'/);
+  assert.match(myTextCard, /el\('details', \{ class: 'mytext-secondary'/,
+    "per-text enrichment belongs to a secondary disclosure");
   assert.match(myTextCard, /el\('button', \{ class: 'mytext-nakdan'/);
   assert.doesNotMatch(myTextCard, /role: 'button'/);
 });
 
-test("B1 adds Room metadata while the dynamic switcher remains an explicit B3 gate", () => {
+test("B3 puts every authorized corpus in one switcher without changing the static registry", () => {
   const switcher = libraryUi.slice(libraryUi.indexOf("function corpusSwitcherBar"), libraryUi.indexOf("async function getLearningHomeContinue"));
-  assert.match(switcher, /for \(const c of CORPORA\)/);
-  assert.doesNotMatch(switcher, /groupCorpora/,
-    "B3 contract changed: dynamic authorized group corpora now participate in the switcher");
+  const options = libraryUi.slice(libraryUi.indexOf("function authorizedCorpusOptions"), libraryUi.indexOf("function corpusBadgesRow"));
+  assert.match(options, /for \(const group of groupCorpora\)/,
+    "membership-filtered group corpora must participate in the presentation options");
+  assert.match(switcher, /for \(const c of authorizedCorpusOptions\(\)\)/);
+  assert.doesNotMatch(corpusRegistry, /groupCorpora/,
+    "dynamic entitlements must not become a second registry truth");
   assert.match(libraryHtml, /<meta\s+name=["']description["']/i,
     "the Room shell must carry a product description");
   assert.match(corpusRegistry, /normalize the learning grammar|UNIFORM RETRIEVAL CONTRACT/i,
     "registry must retain the one-grammar/no-second-truth intent");
+});
+
+test("B3 normalizes identity, browse and management as shared shell zones", () => {
+  assert.match(libraryUi, /function corpusShellHeader\(/);
+  assert.match(libraryUi, /function corpusNextAction\(/);
+  assert.match(libraryUi, /function corpusFilterChrome\(/);
+  assert.match(libraryUi, /function corpusSecondaryDisclosure\(/);
+  assert.match(libraryHtml, /\.corpus-filter-summary/);
+  assert.match(libraryHtml, /\.corpus-management/);
+  assert.match(libraryHtml, /@media \(max-width: 760px\)[\s\S]*\.corpus-filter-disclosure/);
 });
 
 test("B2 turns the corpus hub into a learning-first home without creating learner truth", () => {

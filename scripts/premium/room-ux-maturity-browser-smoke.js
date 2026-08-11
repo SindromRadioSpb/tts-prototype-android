@@ -111,6 +111,8 @@ async function auditSurface(page, surface) {
     const interactiveSelector = "a[href],button,input,select,textarea,summary,[role='button'],[role='link'],[tabindex]:not([tabindex='-1'])";
     const root = document.querySelector(".corpus-nav") || document.getElementById("roomContent") || document.body;
     const isVisible = (node) => {
+      const closed = node.closest && node.closest("details:not([open])");
+      if (closed && node !== closed && node !== closed.querySelector(":scope > summary") && !node.closest("summary")) return false;
       const style = getComputedStyle(node);
       const rect = node.getBoundingClientRect();
       return style.visibility !== "hidden" && style.display !== "none" && Number(style.opacity) !== 0 && rect.width > 0 && rect.height > 0;
@@ -206,6 +208,7 @@ async function auditSurface(page, surface) {
         learningHeight: Math.round((node.querySelector(".work-card-difficulty,.group-work-progress") || node).getBoundingClientRect().height),
       })),
       firstUsefulTop: first ? Math.round(first.getBoundingClientRect().top) : null,
+      firstLearningTop: Math.min(...[first ? Math.round(first.getBoundingClientRect().top) : null, rectTop(".corpus-next-action")].filter((value) => value != null)),
       nestedInteractive: nested.length,
       nestedExamples: nested.slice(0, 5).map((node) => node.className || node.tagName),
       visibleTargets: visibleTargets.length,
@@ -220,6 +223,23 @@ async function auditSurface(page, surface) {
       overflowPx: Math.max(0, document.documentElement.scrollWidth - innerWidth),
       metaDescription: !!document.querySelector("meta[name='description']"),
       groupInSwitcher: !!Array.from(document.querySelectorAll(".corpus-switch-item")).find((node) => /Учебные песни|לימוד/.test(node.textContent || "")),
+      shellHeaders: document.querySelectorAll(".corpus-shell-head").length,
+      nextActions: document.querySelectorAll(".corpus-next-action").length,
+      browseTools: document.querySelectorAll(".corpus-browse-tools").length,
+      filterDisclosures: document.querySelectorAll(".corpus-filter-disclosure").length,
+      filterOpen: !!document.querySelector(".corpus-filter-disclosure[open]"),
+      filterPanelVisible: !!Array.from(document.querySelectorAll(".corpus-filter-panel")).find(isVisible),
+      filterSummaryVisible: !!Array.from(document.querySelectorAll(".corpus-filter-summary")).find(isVisible),
+      managementDisclosures: document.querySelectorAll(".corpus-management").length,
+      visibleManagementActions: Array.from(document.querySelectorAll(".group-admin-action,.corpus-management-actions a")).filter(isVisible).length,
+      myTextSecondary: document.querySelectorAll(".mytexts-grid .mytext-secondary").length,
+      directNakdan: document.querySelectorAll(".mytexts-grid .mytext-card-v > .mytext-nakdan").length,
+      corpusTops: {
+        shell: rectTop(".corpus-shell-head"),
+        next: rectTop(".corpus-next-action"),
+        browse: rectTop(".corpus-browse-tools"),
+        management: rectTop(".corpus-management"),
+      },
       featureCount: document.querySelectorAll(".learning-home-feature").length,
       featureKind: document.querySelector(".learning-home-feature")?.getAttribute("data-feature-kind") || null,
       todayActions: document.querySelectorAll(".learning-home-actions .learning-home-action:not([hidden])").length,
@@ -273,6 +293,26 @@ async function captureMatrix(browser, locale, viewport, theme, label, myTextCoun
     await selectCorpus(page, id);
     results.push(await auditSurface(page, name));
     await page.screenshot({ path: path.join(OUT, `${label}-${name}.png`), fullPage: false });
+    if (viewport.width === 380) {
+      await page.locator(".corpus-filter-disclosure > summary").click();
+      const opened = await page.locator(".corpus-filter-disclosure").evaluate((node) => node.open);
+      check(opened, `${label}/${name}: mobile filter drawer opens explicitly`);
+      if (name === "benyehuda") await page.locator(".corpus-filterbar .corpus-facet-chip").first().click();
+      else if (name === "mytexts") await page.locator(".mytexts-facets .corpus-sort-btn").first().click();
+      else await page.locator("#roomGroupStatus").selectOption("reading");
+      await page.waitForTimeout(120);
+      const activeState = await page.evaluate(() => ({
+        summary: (document.querySelector(".corpus-filter-summary") || {}).textContent || "",
+        chips: document.querySelectorAll(".corpus-active-filters .corpus-active-chip").length,
+      }));
+      check(/\d/.test(activeState.summary) && activeState.chips >= 1,
+        `${label}/${name}: active filter count and summary stay visible (${JSON.stringify(activeState)})`);
+      await page.screenshot({ path: path.join(OUT, `${label}-${name}-filters.png`), fullPage: false });
+      if (name === "benyehuda") await page.locator(".corpus-filterbar .corpus-facet-chip").first().click();
+      else if (name === "mytexts") await page.locator(".mytexts-facets .corpus-sort-btn").first().click();
+      else await page.locator("#roomGroupStatus").selectOption("all");
+      await page.locator(".corpus-filter-disclosure > summary").click();
+    }
     const rowSelector = name === "benyehuda" ? ".corpus-ready .room-text-row"
       : name === "mytexts" ? ".mytexts-grid .mytext-card-v" : ".group-corpus-grid .group-work-card";
     await page.locator(rowSelector).first().scrollIntoViewIfNeeded();
@@ -346,10 +386,29 @@ function evaluateGreen(matrix) {
     for (const entry of homes.filter((item) => item.lang === "he")) check(["start", "recommended"].includes(entry.featureKind), `${stage}/he/${entry.viewport.width}: empty profile gets an honest start (${entry.featureKind})`);
   }
   if (["B3", "B4", "B5"].includes(stage)) {
-    for (const entry of matrix.filter((item) => item.surface !== "learning-home" && item.viewport.width === 380)) {
-      check(entry.firstUsefulTop != null && entry.firstUsefulTop <= 844, `${stage}/${entry.surface}/${entry.lang}: useful content in first viewport (${entry.firstUsefulTop})`);
+    for (const entry of matrix.filter((item) => item.surface !== "learning-home")) {
+      check(entry.groupInSwitcher, `${stage}/${entry.surface}/${entry.lang}: authorized group appears in switcher`);
+      check(entry.shellHeaders === 1, `${stage}/${entry.surface}/${entry.lang}: one identity header (${entry.shellHeaders})`);
+      check(entry.nextActions === 1, `${stage}/${entry.surface}/${entry.lang}: one next learning action (${entry.nextActions})`);
+      check(entry.browseTools === 1 && entry.filterDisclosures === 1, `${stage}/${entry.surface}/${entry.lang}: one shared browse/filter shell`);
+      check(entry.managementDisclosures === 1, `${stage}/${entry.surface}/${entry.lang}: one secondary management disclosure (${entry.managementDisclosures})`);
+      check(entry.corpusTops.shell != null && entry.corpusTops.next > entry.corpusTops.shell && entry.corpusTops.browse > entry.corpusTops.next,
+        `${stage}/${entry.surface}/${entry.lang}: identity → next action → browse order (${JSON.stringify(entry.corpusTops)})`);
+      check(entry.corpusTops.management == null || entry.corpusTops.management > entry.firstUsefulTop,
+        `${stage}/${entry.surface}/${entry.lang}: management follows learning content`);
+      if (entry.surface === "mytexts") {
+        check(entry.directNakdan === 0, `${stage}/${entry.lang}: Nakdan is not a direct row action (${entry.directNakdan})`);
+        check(entry.myTextSecondary === entry.listItems, `${stage}/${entry.lang}: every own text keeps secondary actions (${entry.myTextSecondary}/${entry.listItems})`);
+      }
+      if (entry.viewport.width === 380) {
+        check(entry.firstLearningTop != null && entry.firstLearningTop <= 844, `${stage}/${entry.surface}/${entry.lang}: useful learning action in first viewport (${entry.firstLearningTop})`);
+        check(entry.filterSummaryVisible && !entry.filterOpen && !entry.filterPanelVisible,
+          `${stage}/${entry.surface}/${entry.lang}: mobile filters start compact`);
+        check(entry.visibleManagementActions === 0, `${stage}/${entry.surface}/${entry.lang}: management does not precede study (${entry.visibleManagementActions})`);
+      } else {
+        check(entry.filterOpen && entry.filterPanelVisible, `${stage}/${entry.surface}/${entry.lang}: desktop filter bar is expanded`);
+      }
     }
-    for (const entry of matrix) check(entry.groupInSwitcher, `${stage}/${entry.surface}/${entry.lang}: authorized group appears in switcher`);
   }
 }
 

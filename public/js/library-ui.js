@@ -199,6 +199,7 @@ let corpusAuthorSort = 'graduated'; // L2 author order: 'graduated' (ready-first
 let corpusWorkSort = 'graded';      // BRR-P2-004 L3 work order: 'graded'(id) | 'alpha' | 'length'
 let corpusWorkGenre = '';           // BRR-P2-004 L3 genre filter within the author ('' = all)
 let corpusL1Sort = 'ready';         // FB-9 L1 results order: 'ready'(ready-first+alpha) | 'alpha' | 'length'
+let corpusFilterChromeRefresh = null; // B3: keeps the compact filter summary honest without rebuilding search
 
 const CORPUS_NIQQUD_RE = /[֑-ׇ]/g; // same range as notes-autogen stripNiqqud (single normalizer)
 function corpusNrm(s) { return String(s == null ? '' : s).replace(CORPUS_NIQQUD_RE, '').toLowerCase().trim(); }
@@ -6860,9 +6861,14 @@ function renderMyTextCard(item, vertical) {
   col.appendChild(openLink);
   if (meta.children.length) col.appendChild(meta);
   node.appendChild(col);
+  // B3: enrichment is useful, but it is not the reading action. Keep it in a per-row
+  // disclosure so a scan remains title/progress-first and the consent boundary is unchanged.
+  const secondary = el('details', { class: 'mytext-secondary' });
+  secondary.appendChild(el('summary', { class: 'room-row-more', attrs: { 'aria-label': tt('room.shell.moreActions', 'Другие действия') }, text: '•••' }));
+  const secondaryPanel = el('div', { class: 'mytext-secondary-panel' });
   const nakdan = el('button', { class: 'mytext-nakdan', attrs: { type: 'button' }, text: 'אְ ' + tt('room.nakdan.add', 'Добавить никуд') });
   nakdan.addEventListener('click', () => addMachineNiqqud(item, nakdan));
-  node.appendChild(nakdan);
+  secondaryPanel.appendChild(nakdan); secondary.appendChild(secondaryPanel); node.appendChild(secondary);
   const open = () => openReader(item.id, item.title, { resume: started });
   if (EMBED) openLink.addEventListener('click', (event) => { event.preventDefault(); open(); });
   // Compatibility for callers that programmatically click the row in legacy smokes. The article
@@ -7430,6 +7436,9 @@ function corpusNavToCorpus(id) {
   corpusNav = { corpus: id, level: 'home', era: null, author: null };
   corpusReveal = 0;
   renderCorpus();
+  // A corpus entry is often activated after the Learning Home has scrolled it into view.
+  // The new surface is a new place, not a continuation of that old scroll coordinate.
+  try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch (_) { try { window.scrollTo(0, 0); } catch (_) {} }
 }
 
 // ↑ breadcrumb. parts = [{label, onClick?}, …]; the leaf is plain text, ancestors are
@@ -7486,15 +7495,25 @@ async function renderGroupCorpus(corpusId, token) {
   if (token !== corpusRenderToken) return;
   main.innerHTML = '';
   const wrap = el('div', { class: 'corpus-nav group-corpus' });
-  wrap.appendChild(corpusCrumb([
-    { label: tt('room.hub.crumb', 'Библиотека'), onClick: () => corpusNavToCorpus('hub') },
-    { label: (catalog.corpus && catalog.corpus.title) || 'Учебные песни' },
-  ]));
-  const head = el('div', { class: 'hub-corpus-header group-corpus-head' });
-  head.appendChild(el('h2', { class: 'hub-corpus-title', text: '🎵 ' + ((catalog.corpus && catalog.corpus.title) || 'Учебные песни') }));
-  head.appendChild(el('p', { class: 'hub-card-desc', text: tt('room.groupCorpus.privateDesc', 'Закрытый учебный корпус вашей группы · доступ только участникам') }));
-  head.appendChild(el('div', { class: 'group-corpus-count', text: catalog.works.length + ' ' + tt('room.hub.textsN', 'текст(ов)') }));
-  wrap.appendChild(head);
+  const descriptor = authorizedCorpusById('group:' + corpusId) || {
+    id: 'group:' + corpusId, icon: '♪', title: { key: '', fb: (catalog.corpus && catalog.corpus.title) || 'Учебные песни' },
+    desc: { key: 'room.groupCorpus.hubDesc', fb: 'Закрытый учебный корпус вашей группы' },
+  };
+  wrap.appendChild(corpusSwitcherBar('group:' + corpusId));
+  const groupRole = catalog.corpus && catalog.corpus.role === 'OWNER'
+    ? tt('room.groupCorpus.owner', 'владелец') : tt('room.groupCorpus.member', 'участник');
+  wrap.appendChild(corpusShellHeader(descriptor, {
+    countText: catalog.works.length + ' ' + tt('room.hub.textsN', 'текст(ов)'),
+    description: tt('room.groupCorpus.privateDesc', 'Закрытый учебный корпус вашей группы · доступ только участникам'),
+    authority: '🔒 ' + tt('room.shell.membersOnly', 'Только участникам') + ' · ' + groupRole,
+    capabilityText: tt('room.shell.groupCapabilities', 'Тексты и общее аудио группы · личный прогресс и заметки остаются вашими'),
+  }));
+  const management = corpusSecondaryDisclosure(
+    catalog.corpus && catalog.corpus.role === 'OWNER' ? tt('room.shell.manageCorpus', 'Управление корпусом') : tt('room.groupAccess.open', 'Доступ к учебной группе'),
+    catalog.corpus && catalog.corpus.role === 'OWNER'
+      ? tt('room.shell.manageGroupNote', 'Участники, приглашения и резервные копии — отдельно от учебной полки.')
+      : tt('room.shell.memberPrivacy', 'Ваш прогресс, память слов и личные заметки не видны другим участникам.'),
+  );
   if (catalog.corpus && catalog.corpus.role === 'OWNER') {
     const admin=el('div',{class:'group-corpus-admin',attrs:{'aria-label':tt('room.groupCorpus.backupTools','Резервная копия корпуса')}});
     const download=(kind)=>{const a=document.createElement('a');a.href='/api/group-corpora/'+encodeURIComponent(corpusId)+'/export/'+kind;a.download='';document.body.appendChild(a);a.click();a.remove();};
@@ -7513,11 +7532,11 @@ async function renderGroupCorpus(corpusId, token) {
         const res=await fetch('/api/group-corpora/'+encodeURIComponent(corpusId)+'/import/'+kind,{method:'POST',headers,body});const j=await res.json().catch(()=>({}));if(!res.ok)throw new Error(j.error||('HTTP '+res.status));
         groupCatalogs.delete(corpusId);roomToast(tt('room.groupCorpus.importDone','Импорт завершён и проверен'));renderCorpus();
       }catch(e){roomToast(tt('room.groupCorpus.importFailed','Импорт не выполнен')+': '+String(e&&e.message||e));}});
-    admin.appendChild(fileInput); wrap.appendChild(admin);
+    admin.appendChild(fileInput); management.__panel.appendChild(admin);
   } else {
     const access=el('div',{class:'group-corpus-admin'});
     access.appendChild(groupAccessActionButton('ⓘ '+tt('room.groupAccess.open','Доступ к учебной группе'),()=>openGroupAccess(corpusId)));
-    wrap.appendChild(access);
+    management.__panel.appendChild(access);
   }
   let state = groupCorpusStates.get(corpusId);
   if (!state) { state = { q:'', status:'all', audio:'all', sort:'position', tags:[], smart:'' }; groupCorpusStates.set(corpusId, state); }
@@ -7530,19 +7549,35 @@ async function renderGroupCorpus(corpusId, token) {
   let personal=null; try { personal=await ensurePersonalSets(); } catch (_) {}
   if (token !== corpusRenderToken) return;
   const byKey = new Map((local || []).filter((r) => r && r.text_key).map((r) => [String(r.text_key), r]));
+  const workStatus=(p)=>p && p.finished_at ? 'finished' : (p && Number(p.last_row_idx)>0 ? 'reading' : 'new');
+  const workAudio=(w)=>Number(w.audio_count)<=0?'none':(Number(w.audio_count)>=Number(w.rows_count)&&Number(w.rows_count)>0?'full':'partial');
+  const progressPct=(w,p)=>p&&Number(p.last_row_idx)>0&&Number(w.rows_count)>0?Math.min(100,Math.round((Number(p.last_row_idx)+1)*100/Number(w.rows_count))):0;
+  const nextWork = catalog.works.find((work) => workStatus(byKey.get(String(work.text_key))) === 'reading') || catalog.works[0];
+  if (nextWork) {
+    const nextProgress = byKey.get(String(nextWork.text_key));
+    const nextStatus = workStatus(nextProgress);
+    wrap.appendChild(corpusNextAction({
+      kind: nextStatus === 'reading' ? 'continue' : 'start', title: nextWork.title,
+      kicker: nextStatus === 'reading' ? tt('room.home.continueKicker', 'Продолжить') : tt('room.home.startKicker', 'С чего начать'),
+      meta: (nextWork.artist ? nextWork.artist + ' · ' : '') + (nextStatus === 'reading' ? progressPct(nextWork, nextProgress) + '%' : (nextWork.rows_count || 0) + ' ' + tt('room.groupCorpus.rows', 'строк')),
+      label: nextStatus === 'reading' ? tt('room.resume.continue', 'Продолжить') : tt('room.home.startAction', 'Начать читать'),
+      onOpen: () => openGroupCorpusWork(corpusId, nextWork, { resume: nextStatus === 'reading' }),
+    }));
+  }
   const controls = el('div', { class: 'group-corpus-controls' });
   const searchField = el('label', { class: 'room-field room-field-wide group-corpus-search-field', attrs: { for: 'roomGroupCorpusSearch' } });
   searchField.appendChild(el('span', { class: 'room-field-label', text: tt('room.corpus.search.placeholder', 'Поиск') }));
   const search = el('input', { class: 'corpus-search-input group-corpus-search', attrs: { id:'roomGroupCorpusSearch', name:'room-group-corpus-search', type:'search',
     placeholder:tt('room.groupCorpus.search','Поиск: название, исполнитель или тег'),
     'aria-label':tt('room.groupCorpus.search','Поиск: название, исполнитель или тег') } });
-  search.value = state.q; searchField.appendChild(search); controls.appendChild(searchField);
+  search.value = state.q; searchField.appendChild(search);
+  let filterChrome = null;
   const mkSelect = (id, items, value, label, onChange) => {
     const field=el('label',{class:'room-field',attrs:{for:id}});
     field.appendChild(el('span',{class:'room-field-label',text:label}));
     const s = el('select', { class:'mytexts-select', attrs:{ id, name:id, 'aria-label':label } });
     for (const [v, txt] of items) { const o=document.createElement('option'); o.value=v; o.textContent=txt; s.appendChild(o); }
-    s.value=value; s.addEventListener('change',()=>onChange(s.value)); field.appendChild(s); return field;
+    s.value=value; s.addEventListener('change',()=>{onChange(s.value);if(filterChrome)filterChrome.refresh();}); field.appendChild(s); return field;
   };
   controls.appendChild(mkSelect('roomGroupStatus',[
     ['all',tt('room.groupCorpus.statusAll','Все статусы')],['new',tt('room.groupCorpus.statusNew','Не начаты')],
@@ -7552,11 +7587,10 @@ async function renderGroupCorpus(corpusId, token) {
     ['all',tt('room.groupCorpus.audioAll','Любое аудио')],['full',tt('room.groupCorpus.audioFull','Озвучено полностью')],
     ['partial',tt('room.groupCorpus.audioPartial','Озвучено частично')],['none',tt('room.groupCorpus.audioNone','Без аудио')],
   ],state.audio,tt('room.groupCorpus.audioLabel','Аудио'),(v)=>{state.audio=v;paint();}));
-  controls.appendChild(mkSelect('roomGroupSort',[
+  const sortField = mkSelect('roomGroupSort',[
     ['position',tt('room.groupCorpus.sortPosition','Порядок библиотеки')],['recent',tt('room.groupCorpus.sortRecent','Последние открытые')],
     ['progress',tt('room.groupCorpus.sortProgress','По прогрессу')],['title',tt('room.groupCorpus.sortTitle','Название А–Я')],
-  ],state.sort,tt('room.corpus.sort.label','Сортировка'),(v)=>{state.sort=v;paint();}));
-  wrap.appendChild(controls);
+  ],state.sort,tt('room.corpus.sort.label','Сортировка'),(v)=>{state.sort=v;paint();});
   const smartRail=el('div',{class:'corpus-sort mytexts-smart group-corpus-smart',attrs:{title:tt('room.corpus.personalHint','Фильтры по вашей активности — работы, открытые на этом устройстве')}});
   const SMART=[
     ['recent','room.mytexts.smartRecent','⏱ Недавние'],['struggling','room.mytexts.smartStruggling','🔥 Сложные'],
@@ -7564,24 +7598,29 @@ async function renderGroupCorpus(corpusId, token) {
     ['with-note','room.mytexts.smartWithNote','📝 С заметкой'],['audio-noted','room.mytexts.smartAudio','📍 Audio-noted'],
     ['srs-noted','room.mytexts.smartSrs','🎯 SRS-noted'],['templated','room.mytexts.smartTemplated','⭐ Templated'],
   ];
-  const renderSmart=()=>{smartRail.textContent='';for(const [key,i18nKey,fb] of SMART){const active=state.smart===key,b=el('button',{class:'corpus-sort-btn'+(active?' on':''),attrs:{type:'button','aria-pressed':String(active),'data-smart':key},text:tt(i18nKey,fb)});b.addEventListener('click',()=>{state.smart=active?'':key;renderSmart();paint();});smartRail.appendChild(b);}};
-  renderSmart(); wrap.appendChild(smartRail);
+  const renderSmart=()=>{smartRail.textContent='';for(const [key,i18nKey,fb] of SMART){const active=state.smart===key,b=el('button',{class:'corpus-sort-btn'+(active?' on':''),attrs:{type:'button','aria-pressed':String(active),'data-smart':key},text:tt(i18nKey,fb)});b.addEventListener('click',()=>{state.smart=active?'':key;renderSmart();paint();if(filterChrome)filterChrome.refresh();});smartRail.appendChild(b);}};
+  renderSmart(); controls.appendChild(smartRail);
   const tagCounts = new Map();
   for (const w of catalog.works) for (const tag of (w.tags || [])) tagCounts.set(String(tag),(tagCounts.get(String(tag))||0)+1);
   const tagRail = el('div',{class:'corpus-sort group-corpus-tags'});
   for (const [tag,count] of Array.from(tagCounts.entries()).sort((a,b)=>b[1]-a[1]).slice(0,12)) {
     const active=state.tags.includes(tag); const b=el('button',{class:'corpus-sort-btn'+(active?' on':''),attrs:{type:'button','aria-pressed':String(active)}});
-    b.textContent='#'+tag+' · '+count; b.addEventListener('click',()=>{state.tags=active?state.tags.filter((x)=>x!==tag):state.tags.concat(tag);renderTags();paint();}); tagRail.appendChild(b);
+    b.textContent='#'+tag+' · '+count; b.addEventListener('click',()=>{state.tags=active?state.tags.filter((x)=>x!==tag):state.tags.concat(tag);renderTags();paint();if(filterChrome)filterChrome.refresh();}); tagRail.appendChild(b);
   }
-  const renderTags=()=>{ const fresh=tagRail.cloneNode(false); for (const [tag,count] of Array.from(tagCounts.entries()).sort((a,b)=>b[1]-a[1]).slice(0,12)) { const active=state.tags.includes(tag); const b=el('button',{class:'corpus-sort-btn'+(active?' on':''),attrs:{type:'button','aria-pressed':String(active)}}); b.textContent='#'+tag+' · '+count; b.addEventListener('click',()=>{state.tags=active?state.tags.filter((x)=>x!==tag):state.tags.concat(tag);renderTags();paint();}); fresh.appendChild(b); } tagRail.replaceChildren(...fresh.childNodes); };
-  if (tagCounts.size) wrap.appendChild(tagRail);
+  const renderTags=()=>{ const fresh=tagRail.cloneNode(false); for (const [tag,count] of Array.from(tagCounts.entries()).sort((a,b)=>b[1]-a[1]).slice(0,12)) { const active=state.tags.includes(tag); const b=el('button',{class:'corpus-sort-btn'+(active?' on':''),attrs:{type:'button','aria-pressed':String(active)}}); b.textContent='#'+tag+' · '+count; b.addEventListener('click',()=>{state.tags=active?state.tags.filter((x)=>x!==tag):state.tags.concat(tag);renderTags();paint();if(filterChrome)filterChrome.refresh();}); fresh.appendChild(b); } tagRail.replaceChildren(...fresh.childNodes); };
+  if (tagCounts.size) controls.appendChild(tagRail);
+  filterChrome = corpusFilterChrome('roomGroupCorpus', searchField, controls, sortField, () => {
+    const selectedText=(id)=>{const select=controls.querySelector('#'+id);return select&&select.selectedOptions&&select.selectedOptions[0]?select.selectedOptions[0].textContent:'';};
+    const labels=[]; if(state.status!=='all')labels.push(selectedText('roomGroupStatus')||state.status);
+    if(state.audio!=='all')labels.push(selectedText('roomGroupAudio')||state.audio);
+    if(state.smart)labels.push((SMART.find((item)=>item[0]===state.smart)||[])[2]||state.smart);
+    for(const tag of state.tags)labels.push('#'+tag);
+    return {count:(state.status!=='all'?1:0)+(state.audio!=='all'?1:0)+(state.smart?1:0)+state.tags.length,labels};
+  });
+  wrap.appendChild(filterChrome.node);
   const resultLine=el('div',{class:'group-corpus-results room-browse-summary'}); wrap.appendChild(resultLine);
   const grid = el('div', { class: 'group-corpus-grid corpus-work-list' }); wrap.appendChild(grid);
-  const moreWrap=el('div',{class:'corpus-more group-corpus-more'});wrap.appendChild(moreWrap);main.appendChild(wrap);
-
-  const workStatus=(p)=>p && p.finished_at ? 'finished' : (p && Number(p.last_row_idx)>0 ? 'reading' : 'new');
-  const workAudio=(w)=>Number(w.audio_count)<=0?'none':(Number(w.audio_count)>=Number(w.rows_count)&&Number(w.rows_count)>0?'full':'partial');
-  const progressPct=(w,p)=>p&&Number(p.last_row_idx)>0&&Number(w.rows_count)>0?Math.min(100,Math.round((Number(p.last_row_idx)+1)*100/Number(w.rows_count))):0;
+  const moreWrap=el('div',{class:'corpus-more group-corpus-more'});wrap.appendChild(moreWrap);wrap.appendChild(management);main.appendChild(wrap);
   function shareWork(work) {
     const u=new URL(location.href); u.search=''; u.hash=''; u.searchParams.set('group_corpus',corpusId); u.searchParams.set('group_work',work.work_id);
     const data={title:work.title||'',text:tt('room.groupCorpus.shareText','Текст из закрытого учебного корпуса'),url:u.toString()};
@@ -7632,14 +7671,103 @@ async function renderGroupCorpus(corpusId, token) {
 
 // ── Multi-corpus surface (owner-approved B+C: hub-витрина + switcher-линза) ─────────────────
 function corpusTitleOf(c) { return tt(c.title.key, c.title.fb); }
-function corpusBadgesRow(c) {
-  const row = el('div', { class: 'hub-badges' });
-  for (const cap of c.capabilities || []) {
-    const b = CAPABILITY_BADGES[cap];
-    if (!b) continue;
-    row.appendChild(el('span', { class: 'hub-badge', text: b.icon + ' ' + tt(b.key, b.fb) }));
+function authorizedCorpusOptions() {
+  const options = CORPORA.slice();
+  for (const group of groupCorpora) {
+    if (!group || group.corpus_id == null) continue;
+    options.push({
+      id: 'group:' + String(group.corpus_id), icon: '♪', kind: 'group-restricted',
+      title: { key: '', fb: String(group.title || tt('room.home.groupAction', 'Учебный корпус')) },
+      desc: { key: 'room.groupCorpus.hubDesc', fb: 'Закрытый учебный корпус вашей группы' },
+      role: group.role || 'MEMBER',
+    });
   }
-  return row;
+  return options;
+}
+function authorizedCorpusById(id) {
+  return authorizedCorpusOptions().find((corpus) => corpus.id === id) || null;
+}
+function corpusShellHeader(corpus, options) {
+  const opts = options || {};
+  const head = el('header', { class: 'corpus-shell-head' });
+  const identity = el('div', { class: 'corpus-shell-identity' });
+  const title = el('h2', { class: 'corpus-shell-title' });
+  title.appendChild(el('span', { class: 'corpus-shell-icon', text: corpus.icon || '◇', attrs: { 'aria-hidden': 'true' } }));
+  title.appendChild(el('span', { text: corpusTitleOf(corpus) }));
+  identity.appendChild(title);
+  if (opts.countText) identity.appendChild(el('span', { class: 'corpus-shell-count', text: opts.countText }));
+  head.appendChild(identity);
+  const description = opts.description || (corpus.desc && tt(corpus.desc.key, corpus.desc.fb));
+  if (description) head.appendChild(el('p', { class: 'corpus-shell-description', text: description }));
+  const trust = el('div', { class: 'corpus-shell-trust' });
+  if (opts.authority) trust.appendChild(el('span', { class: 'corpus-shell-authority', text: opts.authority }));
+  const capabilityText = opts.capabilityText || (corpus.capabilities || []).map((key) => {
+    const badge = CAPABILITY_BADGES[key];
+    return badge ? badge.icon + ' ' + tt(badge.key, badge.fb) : '';
+  }).filter(Boolean).join(' · ');
+  if (capabilityText) {
+    const disclosure = el('details', { class: 'corpus-capability-disclosure' });
+    disclosure.appendChild(el('summary', { text: tt('room.shell.capabilities', 'Что доступно здесь') }));
+    disclosure.appendChild(el('p', { text: capabilityText }));
+    trust.appendChild(disclosure);
+  }
+  if (trust.children.length) head.appendChild(trust);
+  return head;
+}
+function corpusSecondaryDisclosure(label, description) {
+  const details = el('details', { class: 'corpus-management' });
+  details.appendChild(el('summary', { text: label }));
+  const panel = el('div', { class: 'corpus-management-panel' });
+  if (description) panel.appendChild(el('p', { class: 'corpus-management-note', text: description }));
+  details.appendChild(panel);
+  details.__panel = panel;
+  return details;
+}
+function corpusNextAction(options) {
+  const opts = options || {};
+  const feature = el('section', { class: 'corpus-next-action', attrs: { 'data-next-kind': opts.kind || 'start' } });
+  const copy = el('div', { class: 'corpus-next-copy' });
+  copy.appendChild(el('span', { class: 'corpus-next-kicker', text: opts.kicker || tt('room.shell.next', 'Следующий шаг') }));
+  const title = el('h3', { class: 'corpus-next-title', text: opts.title || tt('room.home.untitled', 'Текст без названия') });
+  if (HEBREW_RE.test(opts.title || '')) title.setAttribute('dir', 'rtl');
+  copy.appendChild(title);
+  if (opts.meta) copy.appendChild(el('p', { class: 'corpus-next-meta', text: opts.meta }));
+  feature.appendChild(copy);
+  const action = el(opts.href ? 'a' : 'button', { class: 'corpus-next-cta', attrs: opts.href ? { href: opts.href } : { type: 'button' }, text: opts.label || tt('room.home.startAction', 'Начать читать') });
+  if (opts.onOpen) action.addEventListener('click', (event) => {
+    if (opts.href && (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) return;
+    if (opts.href) event.preventDefault();
+    opts.onOpen();
+  });
+  feature.appendChild(action);
+  return feature;
+}
+function corpusFilterChrome(id, searchField, filterPanel, sortField, stateReader) {
+  const shell = el('section', { class: 'corpus-browse-tools', attrs: { 'aria-label': tt('room.shell.browse', 'Поиск и фильтры') } });
+  const primary = el('div', { class: 'corpus-browse-primary' });
+  primary.appendChild(searchField);
+  const disclosure = el('details', { class: 'corpus-filter-disclosure', attrs: { id: id + 'Filters' } });
+  disclosure.open = window.innerWidth > 760;
+  const summary = el('summary', { class: 'corpus-filter-summary' });
+  const panel = el('div', { class: 'corpus-filter-panel' });
+  panel.appendChild(filterPanel);
+  disclosure.appendChild(summary); disclosure.appendChild(panel);
+  primary.appendChild(disclosure);
+  if (sortField) primary.appendChild(sortField);
+  shell.appendChild(primary);
+  const active = el('div', { class: 'corpus-active-filters', attrs: { 'aria-live': 'polite' } });
+  shell.appendChild(active);
+  const refresh = () => {
+    const state = (stateReader && stateReader()) || { count: 0, labels: [] };
+    const count = Number(state.count) || 0;
+    summary.textContent = tt('room.shell.filters', 'Фильтры') + (count ? ' · ' + count : '');
+    summary.setAttribute('aria-label', tt('room.shell.filters', 'Фильтры') + (count ? ', ' + tt('room.corpus.facets.activeCount', 'активно') + ': ' + count : ''));
+    active.textContent = '';
+    for (const label of (state.labels || [])) active.appendChild(el('span', { class: 'corpus-active-chip', text: label }));
+    active.hidden = !active.children.length;
+  };
+  refresh();
+  return { node: shell, refresh, disclosure };
 }
 // Breadcrumb with the corpus switcher pill: «← | Библиотека ▸ ⟨🏛 Бен-Иегуда ▾⟩». The pill is
 // the LEAF (the current corpus) and opens a lateral menu — no climb back to L0 needed (the C
@@ -7656,13 +7784,13 @@ function corpusSwitcherBar(currentId) {
   lib.addEventListener('click', () => corpusNavToCorpus('hub'));
   trail.appendChild(lib);
   trail.appendChild(el('span', { class: 'corpus-crumb-sep', text: '▸' }));
-  const cur = corpusById(currentId);
+  const cur = authorizedCorpusById(currentId);
   const wrap = el('span', { class: 'corpus-switch' });
   const pill = el('button', { class: 'corpus-switch-pill', attrs: { type: 'button', 'aria-haspopup': 'menu', 'aria-expanded': 'false' } });
   pill.textContent = (cur ? cur.icon + ' ' + corpusTitleOf(cur) : currentId) + ' ▾';
   const menu = el('div', { class: 'corpus-switch-menu', attrs: { role: 'menu' } });
   menu.hidden = true;
-  for (const c of CORPORA) {
+  for (const c of authorizedCorpusOptions()) {
     const item = el('button', { class: 'corpus-switch-item' + (c.id === currentId ? ' on' : ''), attrs: { type: 'button', role: 'menuitem' } });
     item.textContent = c.icon + ' ' + corpusTitleOf(c) + (c.id === currentId ? ' ✓' : '');
     item.addEventListener('click', () => { if (c.id !== currentId) corpusNavToCorpus(c.id); });
@@ -7969,21 +8097,41 @@ async function renderMyTextsCorpus(token) {
   const c = corpusById('mytexts');
   const wrap = el('div', { class: 'corpus-nav mytexts-corpus' });
   wrap.appendChild(corpusSwitcherBar('mytexts'));
-  const head = el('div', { class: 'hub-corpus-header' });
-  head.appendChild(el('h2', { class: 'hub-corpus-title', text: c.icon + ' ' + corpusTitleOf(c) + ' · ' + mine.length }));
-  head.appendChild(el('p', { class: 'hub-card-desc', text: tt(c.desc.key, c.desc.fb) }));
-  head.appendChild(corpusBadgesRow(c));
-  const manage = el('div', { class: 'mytexts-controls' });
+  wrap.appendChild(corpusShellHeader(c, {
+    countText: mine.length + ' ' + tt('room.hub.textsN', 'текст(ов)'),
+    authority: '◉ ' + tt('room.shell.onDevice', 'На этом устройстве'),
+    capabilityText: tt('room.shell.myTextsCapabilities', 'Морфология и чтение офлайн · ваши переводы и медиа · никуд по отдельному согласию'),
+  }));
+  const management = corpusSecondaryDisclosure(
+    tt('room.shell.manageTexts', 'Добавление и управление текстами'),
+    tt('room.shell.manageTextsNote', 'Импорт, редактирование и удаление остаются в Студии; Читальный зал сохраняет фокус на чтении.'),
+  );
+  const manage = el('div', { class: 'mytexts-controls corpus-management-actions' });
   manage.appendChild(el('a', { class: 'hub-cta', attrs: { href: '/' }, text: tt('room.hub.addText', '+ Добавить текст') }));
   manage.appendChild(el('a', { class: 'mytexts-manage', attrs: { href: '/' }, text: tt('room.mytexts.manage', 'Управлять — в Студии') }));
-  head.appendChild(manage);
-  wrap.appendChild(head);
+  management.__panel.appendChild(manage);
   if (!mine.length) {
+    wrap.appendChild(corpusNextAction({
+      kind: 'add', title: tt('room.shell.firstOwnText', 'Добавьте первый учебный текст'),
+      kicker: tt('room.home.startKicker', 'С чего начать'),
+      meta: tt('room.mytexts.corpusEmpty', 'Здесь появятся ваши тексты из Студии — создайте или импортируйте первый.'),
+      label: tt('room.hub.addText', '+ Добавить текст'), href: '/',
+    }));
     wrap.appendChild(el('div', { class: 'mytexts-empty', text: tt('room.mytexts.corpusEmpty', 'Здесь появятся ваши тексты из Студии — создайте или импортируйте первый.') }));
+    wrap.appendChild(management);
     main.appendChild(wrap);
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
     return;
   }
+  const nextMine = mine.find((item) => item.last_row_idx != null && Number(item.last_row_idx) > 0) || mine[0];
+  const nextMineStarted = nextMine.last_row_idx != null && Number(nextMine.last_row_idx) > 0;
+  wrap.appendChild(corpusNextAction({
+    kind: nextMineStarted ? 'continue' : 'start', title: nextMine.title,
+    kicker: nextMineStarted ? tt('room.home.continueKicker', 'Продолжить') : tt('room.home.startKicker', 'С чего начать'),
+    meta: nextMineStarted ? tt('room.mytexts.progressRow', 'строка') + ' ' + (Number(nextMine.last_row_idx) + 1) : tt('room.shell.ownText', 'Ваш текст'),
+    label: nextMineStarted ? tt('room.resume.continue', 'Продолжить') : tt('room.home.startAction', 'Начать читать'),
+    href: deepLinkForText(nextMine.id), onOpen: () => openReader(nextMine.id, nextMine.title, { resume: nextMineStarted }),
+  }));
   // PRO retrieval — feature-parity with the Studio «Библиотека (v3)» search (the in-house
   // benchmark; feedback_feature_parity_inventory): #tag / tag: query syntax, tags ALL/ANY,
   // search SCOPE (texts metadata / +rows+notes / rows only / notes only — the same localDb
@@ -8018,39 +8166,36 @@ async function renderMyTextsCorpus(token) {
     return { textTokens, tagTokens };
   };
   // controls: PRO search line + scope/sort selects
-  const controls = el('div', { class: 'mytexts-controls' });
+  const controls = el('div', { class: 'mytexts-controls mytexts-filter-controls' });
   const searchField = el('label', { class: 'room-field room-field-wide', attrs: { for: 'roomMyTextsSearch' } });
   searchField.appendChild(el('span', { class: 'room-field-label', text: tt('room.corpus.search.placeholder', 'Поиск') }));
   const inp = el('input', { class: 'corpus-search-input mytexts-search', attrs: { id: 'roomMyTextsSearch', name: 'room-mytexts-search', type: 'search', placeholder: tt('room.mytexts.searchPro', 'Поиск (PRO): название / тема / уровень / #тег'), 'aria-label': tt('room.mytexts.searchPro', 'Поиск (PRO): название / тема / уровень / #тег') } });
   inp.value = myCorpusState.q;
   searchField.appendChild(inp);
-  controls.appendChild(searchField);
-  wrap.appendChild(controls);
-  const selects = el('div', { class: 'mytexts-controls' });
+  let myFilterChrome = null;
   const mkSelect = (id, opts, value, aria, onChange) => {
     const field = el('label', { class: 'room-field', attrs: { for: id } });
     field.appendChild(el('span', { class: 'room-field-label', text: aria }));
     const s = el('select', { class: 'mytexts-select', attrs: { id, name: id, 'aria-label': aria } });
     for (const [v, key, fb] of opts) { const o = document.createElement('option'); o.value = v; o.textContent = tt(key, fb); s.appendChild(o); }
     s.value = value;
-    s.addEventListener('change', () => onChange(s.value));
+    s.addEventListener('change', () => { onChange(s.value); if (myFilterChrome) myFilterChrome.refresh(); });
     field.appendChild(s);
     return field;
   };
-  selects.appendChild(mkSelect('roomMyTextsScope', [
+  controls.appendChild(mkSelect('roomMyTextsScope', [
     ['texts', 'room.mytexts.scopeTexts', 'Поиск: тексты'],
     ['both', 'room.mytexts.scopeBoth', 'Поиск: тексты+строки+заметки'],
     ['rows', 'room.mytexts.scopeRows', 'Поиск: только строки'],
     ['notes', 'room.mytexts.scopeNotes', 'Поиск: только заметки'],
   ], myCorpusState.scope, tt('room.mytexts.scopeLabel', 'Область поиска'), (v) => { myCorpusState.scope = v; schedulePaint(); }));
-  selects.appendChild(mkSelect('roomMyTextsSort', [
+  const sortField = mkSelect('roomMyTextsSort', [
     ['opened_desc', 'room.mytexts.sortOpened', 'Последние открытые'],
     ['updated_desc', 'room.mytexts.sortUpdated', 'Последние изменённые'],
     ['title_asc', 'room.mytexts.sortAZ', 'А–Я'],
     ['title_desc', 'room.mytexts.sortZA', 'Я–А'],
     ['topic_asc', 'room.mytexts.sortTopic', 'Тема А–Я'],
-  ], myCorpusState.sort, tt('room.corpus.sort.label', 'Сортировка'), (v) => { myCorpusState.sort = v; paint(); }));
-  wrap.appendChild(selects);
+  ], myCorpusState.sort, tt('room.corpus.sort.label', 'Сортировка'), (v) => { myCorpusState.sort = v; paint(); });
   // smart-chips rail (single-select toggle, counts = intersection with OWN texts — honest)
   const SMART = [
     ['recent', 'room.mytexts.smartRecent', '⏱ Недавние', false],
@@ -8070,11 +8215,11 @@ async function renderMyTextsCorpus(token) {
       const b = el('button', { class: 'corpus-sort-btn' + (on ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(on), 'data-smart': key } });
       b.textContent = tt(i18nKey, fb);
       if (badge) { const n = smartCount(key); if (n) { const bd = el('span', { class: 'mytexts-smart-badge', text: String(n) }); b.appendChild(bd); } }
-      b.addEventListener('click', () => { myCorpusState.smart = on ? '' : key; buildSmart(); paint(); });
+      b.addEventListener('click', () => { myCorpusState.smart = on ? '' : key; buildSmart(); paint(); if (myFilterChrome) myFilterChrome.refresh(); });
       smartRail.appendChild(b);
     }
   };
-  wrap.appendChild(smartRail);
+  controls.appendChild(smartRail);
   // facets: level (single) + tags (MULTI + ALL/ANY mode, v3 parity)
   const levels = Array.from(new Set(mine.map((r) => String(r.level || '')).filter(Boolean))).sort();
   const tagCount = new Map();
@@ -8091,27 +8236,36 @@ async function renderMyTextsCorpus(token) {
     facets.textContent = '';
     if (levels.length) {
       const lw = el('div', { class: 'corpus-sort' });
-      for (const lv of levels) lw.appendChild(chip(lv, myCorpusState.level === lv, () => { myCorpusState.level = myCorpusState.level === lv ? '' : lv; buildFacets(); paint(); }));
+      for (const lv of levels) lw.appendChild(chip(lv, myCorpusState.level === lv, () => { myCorpusState.level = myCorpusState.level === lv ? '' : lv; buildFacets(); paint(); if (myFilterChrome) myFilterChrome.refresh(); }));
       facets.appendChild(lw);
     }
     if (tags.length) {
       const tw = el('div', { class: 'corpus-sort' });
       if (myCorpusState.tags.length >= 2) {
-        tw.appendChild(chip(tt('room.mytexts.tagsAll', 'Теги: ALL'), myCorpusState.tagMode === 'all', () => { myCorpusState.tagMode = 'all'; buildFacets(); paint(); }));
-        tw.appendChild(chip(tt('room.mytexts.tagsAny', 'Теги: ANY'), myCorpusState.tagMode === 'any', () => { myCorpusState.tagMode = 'any'; buildFacets(); paint(); }));
+        tw.appendChild(chip(tt('room.mytexts.tagsAll', 'Теги: ALL'), myCorpusState.tagMode === 'all', () => { myCorpusState.tagMode = 'all'; buildFacets(); paint(); if (myFilterChrome) myFilterChrome.refresh(); }));
+        tw.appendChild(chip(tt('room.mytexts.tagsAny', 'Теги: ANY'), myCorpusState.tagMode === 'any', () => { myCorpusState.tagMode = 'any'; buildFacets(); paint(); if (myFilterChrome) myFilterChrome.refresh(); }));
       }
       for (const tg of tags) {
         const on = myCorpusState.tags.indexOf(tg) !== -1;
         tw.appendChild(chip('#' + tg, on, () => {
           if (on) myCorpusState.tags = myCorpusState.tags.filter((x) => x !== tg);
           else myCorpusState.tags = myCorpusState.tags.concat([tg]);
-          buildFacets(); paint();
+          buildFacets(); paint(); if (myFilterChrome) myFilterChrome.refresh();
         }));
       }
       facets.appendChild(tw);
     }
   };
-  wrap.appendChild(facets);
+  controls.appendChild(facets);
+  myFilterChrome = corpusFilterChrome('roomMyTexts', searchField, controls, sortField, () => {
+    const labels=[];
+    if(myCorpusState.scope!=='texts'){const scope=controls.querySelector('#roomMyTextsScope');labels.push(scope&&scope.selectedOptions&&scope.selectedOptions[0]?scope.selectedOptions[0].textContent:tt('room.mytexts.scopeLabel','Область поиска'));}
+    if(myCorpusState.level)labels.push(myCorpusState.level);
+    if(myCorpusState.smart)labels.push((SMART.find((item)=>item[0]===myCorpusState.smart)||[])[2]||myCorpusState.smart);
+    for(const tag of myCorpusState.tags)labels.push('#'+tag);
+    return {count:(myCorpusState.scope!=='texts'?1:0)+(myCorpusState.level?1:0)+(myCorpusState.smart?1:0)+myCorpusState.tags.length,labels};
+  });
+  wrap.appendChild(myFilterChrome.node);
   const resultLine = el('div', { class: 'room-browse-summary mytexts-results' });
   const grid = el('div', { class: 'mytexts-grid corpus-work-list' });
   const moreWrap = el('div', { class: 'corpus-more mytexts-more' });
@@ -8187,10 +8341,12 @@ async function renderMyTextsCorpus(token) {
   inp.addEventListener('input', () => { myCorpusState.q = inp.value || ''; schedulePaint(); });
   buildSmart();
   buildFacets();
+  myFilterChrome.refresh();
   paint();
   wrap.appendChild(resultLine);
   wrap.appendChild(grid);
   wrap.appendChild(moreWrap);
+  wrap.appendChild(management);
   main.appendChild(wrap);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
@@ -8233,18 +8389,58 @@ function paintCorpusSmartRail() {
   _corpusSmartRailEl.replaceWith(fresh);
   _corpusSmartRailEl = fresh;
 }
+async function paintBenCorpusNext(host, token) {
+  if (!host || token !== corpusRenderToken) return;
+  const ready = (corpusIndex && corpusIndex.ready) || [];
+  const fallback = ready[0];
+  if (fallback) host.replaceChildren(corpusNextAction({
+    kind: 'start', title: fallback.title,
+    kicker: tt('room.home.startKicker', 'С чего начать'),
+    meta: [fallback.author, fallback.segments ? fallback.segments + ' ' + tt('room.home.rows', 'строк') : ''].filter(Boolean).join(' · '),
+    label: tt('room.home.startAction', 'Начать читать'), href: deepLinkForCorpusWork(fallback.id),
+    onOpen: () => openCorpusWork(fallback),
+  }));
+  try {
+    const rows = await localDb.getContinueReading(50);
+    const current = (rows || []).find((row) => isCorpusTextRow(row));
+    if (!current || token !== corpusRenderToken || !host.isConnected) return;
+    const pct = window.ReaderProgress ? window.ReaderProgress.continuePercent(current.last_row_idx, current.n_rows) : 0;
+    host.replaceChildren(corpusNextAction({
+      kind: 'continue', title: current.title,
+      kicker: tt('room.home.continueKicker', 'Продолжить'),
+      meta: pct + '% · ' + tt('room.resume.read', 'прочитано'),
+      label: tt('room.resume.continue', 'Продолжить'), href: deepLinkForText(current.id),
+      onOpen: () => openReader(current.id, current.title, { resume: true }),
+    }));
+  } catch (_) {}
+}
 function renderCorpusHome(token) {
   const main = $('roomContent');
   if (!main || token !== corpusRenderToken) return;
   main.innerHTML = '';
   const wrap = el('div', { class: 'corpus-nav' });
   wrap.appendChild(corpusSwitcherBar('benyehuda'));   // «Библиотека ▸ ⟨🏛 … ▾⟩» (B+C hybrid)
-  wrap.appendChild(buildCorpusFilterBar());
+  const corpus = corpusById('benyehuda');
+  const total = Number(corpusRoot && corpusRoot.counts && corpusRoot.counts.works) || 0;
+  wrap.appendChild(corpusShellHeader(corpus, {
+    countText: total ? total.toLocaleString() + ' ' + tt('room.corpus.worksN', 'работ') : '',
+    authority: '◇ ' + tt('room.shell.publicCatalog', 'Публичный каталог'),
+  }));
+  const nextHost = el('div', { class: 'corpus-next-host' }); wrap.appendChild(nextHost);
+  paintBenCorpusNext(nextHost, token);
+  const filterChrome = buildCorpusFilterBar();
   _corpusSmartRailEl = buildCorpusSmartRail();
-  wrap.appendChild(_corpusSmartRailEl);
+  const filterPanel = filterChrome.querySelector('.corpus-filterbar');
+  if (filterPanel) filterPanel.appendChild(_corpusSmartRailEl);
+  wrap.appendChild(filterChrome);
   const body = el('div', { class: 'corpus-l1-body' });
   corpusL1Body = body;
   wrap.appendChild(body);
+  const about = corpusSecondaryDisclosure(
+    tt('room.shell.aboutCorpus', 'О корпусе и данных'),
+    tt('room.shell.benProvenance', 'Каталог проекта Бен‑Иегуды. Переводы, огласовка, аудио и оценки сложности показываются только там, где соответствующие данные действительно доступны.'),
+  );
+  wrap.appendChild(about);
   main.appendChild(wrap);
   corpusRefreshL1Body();
 }
@@ -8254,6 +8450,7 @@ function renderCorpusHome(token) {
 function corpusRefreshL1Body() {
   const body = corpusL1Body;
   if (!body) return;
+  if (corpusFilterChromeRefresh) corpusFilterChromeRefresh();
   // keep the clear chip in sync without rebuilding the bar (preserves input focus)
   if (corpusClearChip) corpusClearChip.hidden = !corpusFilterActive();
   // S12 — recents/suggestions are a home-only affordance; repaint (history may have grown) + toggle.
@@ -8314,21 +8511,6 @@ function corpusL1Comparator(mode, readyMap) {
   }
   return (a, b) => (b.r - a.r) || String(a.t || '').localeCompare(String(b.t || ''));   // 'ready' (default)
 }
-// FB-9 — the L1 results sort control (segmented, reuses the L2 .corpus-sort pattern). Re-renders L1.
-function buildL1SortControl() {
-  const bar = el('div', { class: 'corpus-list-head corpus-l1-controls' });
-  const sortWrap = el('div', { class: 'corpus-sort', attrs: { role: 'group', 'aria-label': tt('room.corpus.sort.label', 'Сортировка') } });
-  [['ready', 'room.corpus.sort.readyFirst', 'Сначала готовые'], ['opened', 'room.mytexts.sortOpened', 'Последние открытые'], ['length', 'room.corpus.sort.length', 'По длине'], ['alpha', 'room.corpus.sort.alpha', 'По алфавиту']]
-    .forEach(([mode, key, fb]) => {
-      const b = el('button', { class: 'corpus-sort-btn' + (corpusL1Sort === mode ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusL1Sort === mode) } });
-      b.textContent = tt(key, fb);
-      b.addEventListener('click', () => { if (corpusL1Sort === mode) return; corpusL1Sort = mode; if (mode === 'opened') { ensurePersonalSets().then(() => corpusRefreshL1Body()).catch(() => corpusRefreshL1Body()); } else corpusRefreshL1Body(); });
-      sortWrap.appendChild(b);
-    });
-  bar.appendChild(sortWrap);
-  return bar;
-}
-
 // Global results (search ∪ facets) over the lazy index. Ready hits open via served-on-open
 // (joined to the sidecar's full card); unprocessed hits are display-only rows (honest, never
 // openable). Async: shows a loading state on first index fetch.
@@ -8366,7 +8548,7 @@ async function renderResultsInto(body) {
   body.appendChild(summary);
   // FB-9 — a real sort control for browse (filter-only) views; a query keeps relevance/ready order and
   // its own FTS «в тексте» group, so the control would mis-imply it reorders those — show it only here.
-  if (!hasQuery && hits.length > 1) body.appendChild(buildL1SortControl());
+  // B3: sorting lives in the persistent shared browse toolbar, not in a second results-only row.
   // BRR-S8 — concordance entry (only for a Hebrew query, where the FTS index applies).
   if (hasQuery) {
     let heQ = false; try { heQ = !!(window.CorpusFTS && window.CorpusFTS.tokenizeText(corpusFilter.q).length); } catch (_) {}
@@ -8939,7 +9121,7 @@ function buildCorpusFilterBar() {
   clearX.addEventListener('click', (e) => { e.preventDefault(); doClear(); });
   inputWrap.appendChild(input); inputWrap.appendChild(clearX);
   searchField.appendChild(inputWrap);
-  bar.appendChild(searchField);
+  // B3 keeps search permanently visible; facets move behind one mobile disclosure.
   // FB-6 — search history sits directly under the input (the universal position), ABOVE the filter facets,
   // so a row of recent-QUERY chips is never read as filter/sort tabs (the owner's «блок сортировки» misread).
   corpusRecentsEl = el('div', { class: 'corpus-recents' });
@@ -9049,7 +9231,31 @@ function buildCorpusFilterBar() {
   chips.appendChild(clear);
   bar.appendChild(chips);
   bar.appendChild(advWrap);
-  return bar;
+  const sortField = el('label', { class: 'room-field corpus-browse-sort', attrs: { for: 'roomCorpusSort' } });
+  sortField.appendChild(el('span', { class: 'room-field-label', text: tt('room.corpus.sort.label', 'Сортировка') }));
+  const sortSelect = el('select', { class: 'mytexts-select', attrs: { id: 'roomCorpusSort', name: 'room-corpus-sort', 'aria-label': tt('room.corpus.sort.label', 'Сортировка') } });
+  for (const [mode,key,fb] of [['ready','room.corpus.sort.readyFirst','Сначала готовые'],['opened','room.mytexts.sortOpened','Последние открытые'],['alpha','room.corpus.sort.alpha','По алфавиту'],['length','room.corpus.sort.length','По длине']]) {
+    sortSelect.appendChild(el('option', { text: tt(key,fb), attrs: { value: mode } }));
+  }
+  sortSelect.value=corpusL1Sort;
+  sortSelect.addEventListener('change',()=>{corpusL1Sort=sortSelect.value;if(corpusL1Sort==='opened')ensurePersonalSets().then(()=>corpusRefreshL1Body()).catch(()=>corpusRefreshL1Body());else corpusRefreshL1Body();});
+  sortField.appendChild(sortSelect);
+  const chrome = corpusFilterChrome('roomBenYehuda', searchField, bar, sortField, () => {
+    const labels=[];
+    if(corpusFilter.readyOnly)labels.push(tt('room.corpus.facets.ready','Готовые'));
+    if(corpusFilter.readableOnly)labels.push(tt('room.corpus.facets.readableShort','Читаемые'));
+    if(corpusFilter.exactForm)labels.push(tt('room.corpus.search.exactForm','Точная форма'));
+    if(corpusFilter.hasAudio)labels.push(tt('room.corpus.facets.hasAudio','С аудио'));
+    if(corpusFilter.reviewed)labels.push(tt('room.corpus.facets.reviewed','Проверено'));
+    if(corpusFilter.genre)labels.push(corpusGenreLabel(corpusFilter.genre)||corpusFilter.genre);
+    if(corpusFilter.lang)labels.push(corpusLangLabel(corpusFilter.lang)||corpusFilter.lang);
+    if(corpusFilter.smart){const smart=CORPUS_SMART_CHIPS.find((item)=>item[0]===corpusFilter.smart);labels.push(smart?tt(smart[1],smart[2]):corpusFilter.smart);}
+    if(corpusFilter.scopeAuthor)labels.push(tt('room.corpus.scope.inAuthor','в авторе')+': '+corpusFilter.scopeAuthor);
+    else if(corpusFilter.scopeEra)labels.push(tt('room.corpus.scope.inEra','в периоде')+': '+corpusEraTitle(corpusFilter.scopeEra));
+    return {count:labels.length,labels};
+  });
+  corpusFilterChromeRefresh=chrome.refresh;
+  return chrome.node;
 }
 
 // A facet <select> (native = compact + accessible on mobile); options are the histogram keys

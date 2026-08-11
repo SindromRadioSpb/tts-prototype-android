@@ -2451,6 +2451,17 @@ window.I18N_LOCALES.en = {
       backupTools: "Corpus backup", exportJson: "Export JSON", exportZip: "Export ZIP (with audio)", importJson: "Import JSON", importZip: "Import ZIP (with audio)",
       importConfirm: "Import this backup into the server corpus? Members' personal progress will not change.", importDone: "Import completed and verified", importFailed: "Import failed",
     },
+    shell: {
+      capabilities: "What's available here", next: "Next step", browse: "Search and filters", filters: "Filters", moreActions: "More actions",
+      membersOnly: "Members only", onDevice: "On this device", publicCatalog: "Public catalogue", ownText: "Your text",
+      groupCapabilities: "Group texts and shared audio · your progress and notes stay private",
+      myTextsCapabilities: "Offline morphology and reading · your translations and media · niqqud with separate consent",
+      manageCorpus: "Manage corpus", manageGroupNote: "Members, invitations and backups are kept separate from the learning shelf.",
+      memberPrivacy: "Other members cannot see your progress, word memory or personal notes.",
+      manageTexts: "Add and manage texts", manageTextsNote: "Import, editing and deletion stay in Studio; the Reading Room stays focused on reading.",
+      firstOwnText: "Add your first study text", aboutCorpus: "About this corpus and its data",
+      benProvenance: "Project Ben‑Yehuda catalogue. Translations, vocalization, audio and difficulty estimates appear only where the corresponding data is genuinely available.",
+    },
     groupAccess: {
       title: "Study group access", open: "Study group access", manage: "Members and invitations", helpTitle: "How sign-in and access work", helpGuest: "The owner signs in with the secret below. A member opens the one-time link sent by the owner. Open it on your own device or in a separate browser profile.",
       ownerRole: "Signed in as owner", memberRole: "Signed in as member", owner: "owner", memberBadge: "member", newMemberEyebrow: "New person", ownerIntro: "This link creates a separate member and separate learning progress.",

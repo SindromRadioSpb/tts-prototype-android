@@ -174,6 +174,7 @@ async function main() {
     // genre facet narrows the set. FB filter-bar redesign — genre/lang selects now live behind the
     // «Ещё фильтры» (⚙) advanced toggle, so expand it before reaching the (otherwise hidden) select.
     const beforeGenre = SR.count;
+    if (!await pg.locator(".corpus-filter-disclosure").evaluate((node) => node.open)) await pg.locator(".corpus-filter-disclosure > summary").click();
     if (await pg.evaluate(() => { const a = document.querySelector(".corpus-facets-advanced"); return !!a && a.hidden; })) await pg.click(".corpus-facets-gear");
     await pg.waitForSelector(".corpus-facets-advanced .corpus-facet-select select", { state: "visible", timeout: 8000 });
     await pg.selectOption(".corpus-facet-select select >> nth=0", { index: 1 });
@@ -187,6 +188,7 @@ async function main() {
     test("clear resets the filter → home (period grid)", await pg.evaluate(() => !!document.querySelector(".corpus-period-grid") && !document.querySelector(".corpus-results-summary")));
 
     // «✓ Готовые» facet alone → the ready set, every row openable
+    if (!await pg.locator(".corpus-filter-disclosure").evaluate((node) => node.open)) await pg.locator(".corpus-filter-disclosure > summary").click();
     await pg.click(".corpus-facet-chip"); // ready toggle (first chip)
     await pg.waitForSelector(".corpus-work-row", { timeout: 10000 }).catch(() => {});
     await sleep(200);

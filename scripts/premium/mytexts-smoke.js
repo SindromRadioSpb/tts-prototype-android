@@ -111,16 +111,23 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         return {
           cards: cards.length,
           buttons: buttons.filter(Boolean).length,
+          disclosures: cards.filter((card) => card.querySelector(".mytext-secondary")).length,
+          direct: cards.filter((card) => card.querySelector(":scope > .mytext-nakdan")).length,
+          visible: buttons.filter((button) => button && !button.closest("details:not([open])") && button.getClientRects().length).length,
           fit: buttons.every((button, i) => {
             if (!button) return false;
-            const b = button.getBoundingClientRect(), c = cards[i].getBoundingClientRect();
-            return b.left >= c.left && b.right <= c.right && b.right <= document.documentElement.clientWidth;
+            return !!button.closest("details:not([open])") || !button.getClientRects().length;
           }),
         };
       });
-      ok(nakdanUi.buttons === nakdanUi.cards && nakdanUi.cards === 2,
-        "each own-text card must expose one Nakdan button; got " + JSON.stringify(nakdanUi));
-      ok(nakdanUi.fit, "Nakdan button overflowed its card or the 380px viewport");
+      ok(nakdanUi.buttons === nakdanUi.cards && nakdanUi.disclosures === nakdanUi.cards && nakdanUi.cards === 2,
+        "each own-text row must retain Nakdan in one secondary disclosure; got " + JSON.stringify(nakdanUi));
+      ok(nakdanUi.direct === 0 && nakdanUi.visible === 0 && nakdanUi.fit,
+        "Nakdan must not compete with the primary reading scan");
+      await pg.locator(".mytexts-grid .mytext-secondary summary").first().click();
+      ok(await pg.locator(".mytexts-grid .mytext-secondary[open] .mytext-nakdan").first().isVisible(),
+        "Nakdan action must remain available after explicit disclosure");
+      await pg.locator(".mytexts-grid .mytext-secondary summary").first().click();
       // search narrows
       await pg.fill(".mytexts-search", "Второй");
       await sleep(450);   // > the 200ms input debounce
@@ -128,6 +135,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       ok(gridCount === 1, "search 'Второй' expected exactly 1 card, got " + gridCount);
       await pg.fill(".mytexts-search", "");
       await sleep(450);
+      await pg.locator(".corpus-filter-disclosure summary").click();
       // level facet filters
       await pg.evaluate(() => { const chips = Array.from(document.querySelectorAll(".mytexts-facets .corpus-sort-btn")); const alef = chips.find((c) => c.textContent.trim() === "alef"); if (alef) alef.click(); });
       await sleep(150);

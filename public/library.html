@@ -1997,6 +1997,102 @@
       .learning-home-primary:hover, .learning-corpus-entry:hover { transform: none; }
     }
 
+    /* ── Option B / B3: one corpus shell + progressive disclosure ────────── */
+    .corpus-nav:not(.learning-home) { padding: 12px 16px 34px; }
+    .corpus-switchbar { margin: 0 0 8px; padding-inline: 0; }
+    .corpus-switch-pill { min-height: 44px; }
+    .corpus-switch-menu { max-height: min(60vh, 420px); overflow-y: auto; }
+    .corpus-shell-head { margin: 0 0 10px; padding: 3px 2px 8px; border-bottom: 1px solid var(--border-soft); }
+    .corpus-shell-identity { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .corpus-shell-title { min-width: 0; margin: 0; display: flex; align-items: center; gap: 9px; color: var(--text-primary); font: 760 25px/1.18 Georgia, "Times New Roman", serif; letter-spacing: -.014em; }
+    .corpus-shell-icon { flex: none; font: 20px/1 sans-serif; }
+    .corpus-shell-count { flex: none; color: var(--text-secondary); font-size: 12px; font-weight: 750; font-variant-numeric: tabular-nums; }
+    .corpus-shell-description { max-width: 72ch; margin: 5px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 1.45; }
+    .corpus-shell-trust { margin-top: 7px; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; color: var(--text-secondary); font-size: 11px; font-weight: 700; }
+    .corpus-shell-authority { color: var(--text-secondary); }
+    .corpus-capability-disclosure { position: relative; }
+    .corpus-capability-disclosure summary { min-height: 28px; display: inline-flex; align-items: center; color: var(--accent); cursor: pointer; }
+    .corpus-capability-disclosure p { max-width: 70ch; margin: 5px 0 0; color: var(--text-secondary); font-weight: 500; line-height: 1.45; }
+    .corpus-next-host:empty { display: none; }
+    .corpus-next-action {
+      min-height: 118px; box-sizing: border-box; margin: 10px 0 12px; padding: 15px 16px;
+      display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 14px;
+      border: 1px solid color-mix(in srgb, #b7793e 48%, var(--border-soft)); border-inline-start: 4px solid #a7632b;
+      border-radius: 13px; background: linear-gradient(120deg, color-mix(in srgb, #fff2df 70%, var(--bg-card)), var(--bg-card));
+    }
+    .corpus-next-kicker { display: block; margin-bottom: 3px; color: #7a4319; font-size: 11px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+    .corpus-next-title { margin: 0; color: var(--text-primary); font: 750 21px/1.22 Georgia, "Times New Roman", serif; }
+    .corpus-next-title[dir="rtl"] { text-align: start; }
+    .corpus-next-meta { margin: 5px 0 0; color: var(--text-secondary); font-size: 12px; line-height: 1.35; }
+    .corpus-next-cta { width: auto; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 10px 15px; border: 1px solid #7a4319; border-radius: 9px; background: #7a4319; color: #fff; font: 750 13px/1.2 inherit; text-decoration: none; cursor: pointer; white-space: nowrap; }
+    .corpus-next-cta:hover, .corpus-next-cta:focus-visible { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, #a7632b 34%, transparent); }
+    .corpus-browse-tools { margin: 10px 0 8px; padding: 10px; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--bg-muted); }
+    .corpus-browse-primary { display: grid; grid-template-columns: minmax(220px,1fr) minmax(360px,1.45fr) minmax(170px,.65fr); align-items: start; gap: 8px; }
+    .corpus-filter-disclosure { min-width: 0; }
+    .corpus-filter-summary { display: none; min-height: 44px; box-sizing: border-box; align-items: center; padding: 9px 12px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-card); color: var(--text-primary); font-size: 13px; font-weight: 750; cursor: pointer; list-style: none; }
+    .corpus-filter-summary::-webkit-details-marker { display: none; }
+    .corpus-filter-summary::after { content: '⌄'; margin-inline-start: auto; color: var(--text-secondary); }
+    .corpus-filter-disclosure[open] .corpus-filter-summary::after { content: '⌃'; }
+    .corpus-filter-panel { min-width: 0; }
+    .corpus-filterbar { padding: 0; gap: 6px; }
+    .corpus-filterbar .corpus-recents { margin: 0; }
+    .corpus-filterbar .corpus-facets, .corpus-filterbar .corpus-facets-advanced { gap: 6px; }
+    .corpus-filterbar .corpus-facet-chip, .corpus-filterbar .corpus-facet-select { min-height: 44px; }
+    .corpus-browse-sort { min-width: 0; }
+    .corpus-active-filters { min-height: 24px; margin-top: 7px; display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+    .corpus-active-filters[hidden] { display: none; }
+    .corpus-active-chip { min-height: 24px; display: inline-flex; align-items: center; padding: 2px 8px; border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--border-soft)); border-radius: 999px; background: var(--bg-card); color: var(--accent); font-size: 11px; font-weight: 700; }
+    .group-corpus-controls { margin: 0; display: grid; grid-template-columns: repeat(2,minmax(150px,1fr)); gap: 8px; }
+    .group-corpus-controls .group-corpus-smart, .group-corpus-controls .group-corpus-tags { grid-column: 1 / -1; margin: 2px 0 0; }
+    .mytexts-filter-controls { margin: 0; align-items: end; }
+    .mytexts-filter-controls .mytexts-smart, .mytexts-filter-controls .mytexts-facets { flex: 1 1 100%; }
+    .mytext-secondary { position: relative; flex: none; }
+    .room-row-more { width: 44px; height: 44px; box-sizing: border-box; display: grid; place-items: center; border: 1px solid var(--border-soft); border-radius: 9px; background: var(--bg-card); color: var(--text-secondary); cursor: pointer; list-style: none; font-weight: 800; letter-spacing: 1px; }
+    .room-row-more::-webkit-details-marker { display: none; }
+    .room-row-more:hover, .room-row-more:focus-visible { outline: none; border-color: var(--accent); color: var(--accent); }
+    .mytext-secondary-panel { position: absolute; z-index: 12; inset-block-start: calc(100% + 5px); inset-inline-end: 0; width: max-content; padding: 6px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-card); box-shadow: 0 10px 28px rgba(15,23,42,.16); }
+    .mytext-secondary-panel .mytext-nakdan { white-space: nowrap; }
+    .corpus-management { margin: 18px 0 0; border-top: 1px solid var(--border-soft); }
+    .corpus-management > summary { min-height: 44px; display: flex; align-items: center; color: var(--text-secondary); font-size: 13px; font-weight: 750; cursor: pointer; }
+    .corpus-management-panel { padding: 2px 0 10px; }
+    .corpus-management-note { max-width: 72ch; margin: 0 0 9px; color: var(--text-secondary); font-size: 12px; line-height: 1.45; }
+    .corpus-management .group-corpus-admin { margin: 0; }
+    .corpus-management-actions { margin: 0; }
+    @media (prefers-color-scheme: dark) {
+      body:not(.theme-light) .corpus-next-action { background: linear-gradient(120deg, #30271f, var(--bg-card)); border-inline-start-color: #d69a60; }
+      body:not(.theme-light) .corpus-next-kicker { color: #edbd8b; }
+      body:not(.theme-light) .corpus-next-cta { background: #d69a60; border-color: #d69a60; color: #21150d; }
+    }
+    body.theme-dark .corpus-next-action { background: linear-gradient(120deg, #30271f, var(--bg-card)); border-inline-start-color: #d69a60; }
+    body.theme-dark .corpus-next-kicker { color: #edbd8b; }
+    body.theme-dark .corpus-next-cta { background: #d69a60; border-color: #d69a60; color: #21150d; }
+    @media (max-width: 760px) {
+      .corpus-nav:not(.learning-home) { padding: 8px 12px 28px; }
+      .corpus-shell-title { font-size: 21px; }
+      .corpus-shell-description { font-size: 12px; }
+      .corpus-next-action { min-height: 126px; grid-template-columns: minmax(0,1fr); gap: 10px; padding: 13px 14px; }
+      .corpus-next-title { font-size: 20px; }
+      .corpus-next-cta { justify-self: start; }
+      .corpus-browse-tools { padding: 8px; }
+      .corpus-browse-primary { position: relative; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px; }
+      .corpus-browse-primary > .room-field-wide { grid-column: 1 / -1; grid-row: 1; }
+      .corpus-filter-disclosure { grid-column: 1; grid-row: 2; }
+      .corpus-filter-disclosure[open] { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0,1fr); gap: 8px; }
+      .corpus-filter-summary { display: flex; grid-column: 1; }
+      .corpus-filter-disclosure[open] > .corpus-filter-summary { grid-row: 1; }
+      .corpus-filter-panel { grid-column: 1 / -1; margin-top: 2px; padding-top: 8px; border-top: 1px solid var(--border-soft); }
+      .corpus-filter-disclosure[open] > .corpus-filter-panel { grid-row: 2; }
+      .corpus-browse-sort { grid-column: 2; grid-row: 2; position: relative; z-index: 2; }
+      .corpus-filter-disclosure[open] + .corpus-browse-sort { grid-column: 1 / -1; grid-row: 3; align-self: start; }
+      .corpus-filterbar .corpus-recents { max-height: 102px; overflow: auto; }
+      .group-corpus-controls { grid-template-columns: 1fr; }
+      .group-corpus-controls .group-corpus-smart, .group-corpus-controls .group-corpus-tags { grid-column: auto; }
+      .mytexts-filter-controls { flex-direction: column; align-items: stretch; }
+      .mytexts-filter-controls > .room-field { flex: none; }
+      .mytexts-smart, .mytexts-facets, .group-corpus-smart, .group-corpus-tags { max-height: 118px; overflow-y: auto; }
+      .corpus-management { margin-top: 14px; }
+    }
+
     /* ── desktop layout layer (Epic 7, R4) ───────────────────────────────────
        Additive @media(min-width) ONLY — the @380px mobile cascade is untouched.
        Centers the Room into a column on wide screens (no stretched-mobile look) and
@@ -2315,9 +2411,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=72"></script>
-<script src="/i18n/locales/en.js?v=72"></script>
-<script src="/i18n/locales/he.js?v=72"></script>
+<script src="/i18n/locales/ru.js?v=73"></script>
+<script src="/i18n/locales/en.js?v=73"></script>
+<script src="/i18n/locales/he.js?v=73"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
