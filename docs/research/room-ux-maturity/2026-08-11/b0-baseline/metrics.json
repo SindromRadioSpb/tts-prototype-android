@@ -1,0 +1,894 @@
+{
+  "capturedAt": "2026-08-11T14:30:27.527Z",
+  "mode": "expect-red",
+  "stage": "B0",
+  "matrix": [
+    {
+      "surface": "benyehuda",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 6197,
+      "readyItems": 796,
+      "listItems": 796,
+      "itemHeights": [
+        219,
+        219,
+        219,
+        219,
+        219,
+        219,
+        219,
+        219,
+        219,
+        219,
+        219,
+        219
+      ],
+      "firstUsefulTop": 1075,
+      "nestedInteractive": 820,
+      "nestedExamples": [
+        "work-card mytext-card",
+        "work-card mytext-card",
+        "work-card mytext-card",
+        "work-card mytext-card",
+        "work-card mytext-card"
+      ],
+      "visibleTargets": 1669,
+      "smallTargets": 810,
+      "smallTargetExamples": [
+        {
+          "selector": "corpus-crumb-part",
+          "width": 77,
+          "height": 19
+        },
+        {
+          "selector": "mytexts-toggle",
+          "width": 131,
+          "height": 19
+        },
+        {
+          "selector": "work-card-author corpus-work-author-link",
+          "width": 106,
+          "height": 15
+        },
+        {
+          "selector": "work-card-author corpus-work-author-link",
+          "width": 106,
+          "height": 15
+        },
+        {
+          "selector": "work-card-author corpus-work-author-link",
+          "width": 106,
+          "height": 15
+        }
+      ],
+      "unlabeledControls": 1,
+      "contrastFailures": 60,
+      "contrastExamples": [
+        {
+          "selector": "corpus-crumb-sep",
+          "ratio": 2.37,
+          "text": "▸"
+        },
+        {
+          "selector": "corpus-recents-label",
+          "ratio": 2.37,
+          "text": "Популярные запросы"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 2.56,
+          "text": "#ульпан"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 2.56,
+          "text": "#дом"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 2.56,
+          "text": "#ульпан"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 2.56,
+          "text": "#дом"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 2.56,
+          "text": "#ульпан"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 2.56,
+          "text": "#дом"
+        }
+      ],
+      "overflowPx": 435,
+      "metaDescription": false,
+      "groupInSwitcher": false
+    },
+    {
+      "surface": "mytexts",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 754,
+      "readyItems": 0,
+      "listItems": 65,
+      "itemHeights": [
+        172,
+        172,
+        172,
+        172,
+        172,
+        172,
+        172,
+        172,
+        172,
+        172,
+        172,
+        172
+      ],
+      "firstUsefulTop": 602,
+      "nestedInteractive": 65,
+      "nestedExamples": [
+        "work-card mytext-card mytext-card-v",
+        "work-card mytext-card mytext-card-v",
+        "work-card mytext-card mytext-card-v",
+        "work-card mytext-card mytext-card-v",
+        "work-card mytext-card mytext-card-v"
+      ],
+      "visibleTargets": 150,
+      "smallTargets": 3,
+      "smallTargetExamples": [
+        {
+          "selector": "corpus-crumb-part",
+          "width": 77,
+          "height": 19
+        },
+        {
+          "selector": "hub-cta",
+          "width": 106,
+          "height": 17
+        },
+        {
+          "selector": "mytexts-manage",
+          "width": 134,
+          "height": 17
+        }
+      ],
+      "unlabeledControls": 3,
+      "contrastFailures": 72,
+      "contrastExamples": [
+        {
+          "selector": "corpus-crumb-sep",
+          "ratio": 2.37,
+          "text": "▸"
+        },
+        {
+          "selector": "hub-card-desc",
+          "ratio": 2.37,
+          "text": "Ваши тексты из Студии: уровни, теги, сво"
+        },
+        {
+          "selector": "hub-badge",
+          "ratio": 2.37,
+          "text": "⚡ морфология офлайн"
+        },
+        {
+          "selector": "hub-badge",
+          "ratio": 2.37,
+          "text": "✓ перевод свой"
+        },
+        {
+          "selector": "hub-badge",
+          "ratio": 2.37,
+          "text": "♪ своё аудио"
+        },
+        {
+          "selector": "hub-badge",
+          "ratio": 2.37,
+          "text": "🎯 контекст live"
+        },
+        {
+          "selector": "mytexts-manage",
+          "ratio": 2.37,
+          "text": "Управлять — в Студии"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 2.56,
+          "text": "#ульпан"
+        }
+      ],
+      "overflowPx": 435,
+      "metaDescription": false,
+      "groupInSwitcher": false
+    },
+    {
+      "surface": "study-songs",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 1753,
+      "readyItems": 0,
+      "listItems": 81,
+      "itemHeights": [
+        181,
+        181,
+        181,
+        181,
+        181,
+        181,
+        181,
+        181,
+        181,
+        181,
+        181,
+        181
+      ],
+      "firstUsefulTop": 807,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 183,
+      "smallTargets": 1,
+      "smallTargetExamples": [
+        {
+          "selector": "corpus-crumb-part",
+          "width": 77,
+          "height": 19
+        }
+      ],
+      "unlabeledControls": 4,
+      "contrastFailures": 164,
+      "contrastExamples": [
+        {
+          "selector": "corpus-crumb-sep",
+          "ratio": 2.37,
+          "text": "▸"
+        },
+        {
+          "selector": "hub-card-desc",
+          "ratio": 2.37,
+          "text": "Закрытый учебный корпус вашей группы · д"
+        },
+        {
+          "selector": "group-meta-chip tag",
+          "ratio": 4.04,
+          "text": "#קצב"
+        },
+        {
+          "selector": "group-progress-label",
+          "ratio": 2.56,
+          "text": "не начато"
+        },
+        {
+          "selector": "group-meta-chip tag",
+          "ratio": 4.04,
+          "text": "#אוצר-מילים"
+        },
+        {
+          "selector": "group-progress-label",
+          "ratio": 2.56,
+          "text": "не начато"
+        },
+        {
+          "selector": "group-meta-chip tag",
+          "ratio": 4.04,
+          "text": "#קצב"
+        },
+        {
+          "selector": "group-progress-label",
+          "ratio": 2.56,
+          "text": "не начато"
+        }
+      ],
+      "overflowPx": 0,
+      "metaDescription": false,
+      "groupInSwitcher": false
+    },
+    {
+      "surface": "benyehuda",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 6169,
+      "readyItems": 796,
+      "listItems": 796,
+      "itemHeights": [
+        241,
+        241,
+        241,
+        241,
+        241,
+        241,
+        241,
+        241,
+        241,
+        241,
+        241,
+        241
+      ],
+      "firstUsefulTop": 1083,
+      "nestedInteractive": 816,
+      "nestedExamples": [
+        "work-card mytext-card",
+        "work-card mytext-card",
+        "work-card mytext-card",
+        "work-card mytext-card",
+        "work-card mytext-card"
+      ],
+      "visibleTargets": 1661,
+      "smallTargets": 810,
+      "smallTargetExamples": [
+        {
+          "selector": "corpus-crumb-part",
+          "width": 44,
+          "height": 23
+        },
+        {
+          "selector": "mytexts-toggle",
+          "width": 97,
+          "height": 19
+        },
+        {
+          "selector": "work-card-author corpus-work-author-link",
+          "width": 106,
+          "height": 15
+        },
+        {
+          "selector": "work-card-author corpus-work-author-link",
+          "width": 106,
+          "height": 15
+        },
+        {
+          "selector": "work-card-author corpus-work-author-link",
+          "width": 106,
+          "height": 15
+        }
+      ],
+      "unlabeledControls": 1,
+      "contrastFailures": 59,
+      "contrastExamples": [
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 4.23,
+          "text": "#дом"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 4.23,
+          "text": "#ульпан"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 4.23,
+          "text": "#дом"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 4.23,
+          "text": "#ульпан"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 4.23,
+          "text": "#дом"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 4.23,
+          "text": "#ульпан"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 4.23,
+          "text": "#дом"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 4.23,
+          "text": "#ульпан"
+        }
+      ],
+      "overflowPx": 289,
+      "metaDescription": false,
+      "groupInSwitcher": false
+    },
+    {
+      "surface": "mytexts",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 355,
+      "readyItems": 0,
+      "listItems": 8,
+      "itemHeights": [
+        176,
+        176,
+        176,
+        176,
+        176,
+        176,
+        176,
+        176
+      ],
+      "firstUsefulTop": 629,
+      "nestedInteractive": 8,
+      "nestedExamples": [
+        "work-card mytext-card mytext-card-v",
+        "work-card mytext-card mytext-card-v",
+        "work-card mytext-card mytext-card-v",
+        "work-card mytext-card mytext-card-v",
+        "work-card mytext-card mytext-card-v"
+      ],
+      "visibleTargets": 36,
+      "smallTargets": 3,
+      "smallTargetExamples": [
+        {
+          "selector": "corpus-crumb-part",
+          "width": 44,
+          "height": 23
+        },
+        {
+          "selector": "hub-cta",
+          "width": 82,
+          "height": 21
+        },
+        {
+          "selector": "mytexts-manage",
+          "width": 90,
+          "height": 21
+        }
+      ],
+      "unlabeledControls": 3,
+      "contrastFailures": 8,
+      "contrastExamples": [
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 4.23,
+          "text": "#дом"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 4.23,
+          "text": "#ульпан"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 4.23,
+          "text": "#дом"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 4.23,
+          "text": "#ульпан"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 4.23,
+          "text": "#дом"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 4.23,
+          "text": "#ульпан"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 4.23,
+          "text": "#дом"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 4.23,
+          "text": "#ульпан"
+        }
+      ],
+      "overflowPx": 289,
+      "metaDescription": false,
+      "groupInSwitcher": false
+    },
+    {
+      "surface": "study-songs",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 1753,
+      "readyItems": 0,
+      "listItems": 81,
+      "itemHeights": [
+        191,
+        191,
+        191,
+        191,
+        191,
+        191,
+        191,
+        191,
+        191,
+        191,
+        191,
+        191
+      ],
+      "firstUsefulTop": 807,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 183,
+      "smallTargets": 1,
+      "smallTargetExamples": [
+        {
+          "selector": "corpus-crumb-part",
+          "width": 44,
+          "height": 23
+        }
+      ],
+      "unlabeledControls": 4,
+      "contrastFailures": 81,
+      "contrastExamples": [
+        {
+          "selector": "group-progress-label",
+          "ratio": 4.23,
+          "text": "טרם התחיל"
+        },
+        {
+          "selector": "group-progress-label",
+          "ratio": 4.23,
+          "text": "טרם התחיל"
+        },
+        {
+          "selector": "group-progress-label",
+          "ratio": 4.23,
+          "text": "טרם התחיל"
+        },
+        {
+          "selector": "group-progress-label",
+          "ratio": 4.23,
+          "text": "טרם התחיל"
+        },
+        {
+          "selector": "group-progress-label",
+          "ratio": 4.23,
+          "text": "טרם התחיל"
+        },
+        {
+          "selector": "group-progress-label",
+          "ratio": 4.23,
+          "text": "טרם התחיל"
+        },
+        {
+          "selector": "group-progress-label",
+          "ratio": 4.23,
+          "text": "טרם התחיל"
+        },
+        {
+          "selector": "group-progress-label",
+          "ratio": 4.23,
+          "text": "טרם התחיל"
+        }
+      ],
+      "overflowPx": 0,
+      "metaDescription": false,
+      "groupInSwitcher": false
+    },
+    {
+      "surface": "benyehuda",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "domElements": 6207,
+      "readyItems": 796,
+      "listItems": 796,
+      "itemHeights": [
+        219,
+        219,
+        219,
+        219,
+        219,
+        219,
+        219,
+        219,
+        219,
+        219,
+        219,
+        219
+      ],
+      "firstUsefulTop": 952,
+      "nestedInteractive": 820,
+      "nestedExamples": [
+        "work-card mytext-card",
+        "work-card mytext-card",
+        "work-card mytext-card",
+        "work-card mytext-card",
+        "work-card mytext-card"
+      ],
+      "visibleTargets": 1669,
+      "smallTargets": 810,
+      "smallTargetExamples": [
+        {
+          "selector": "corpus-crumb-part",
+          "width": 77,
+          "height": 19
+        },
+        {
+          "selector": "mytexts-toggle",
+          "width": 131,
+          "height": 19
+        },
+        {
+          "selector": "work-card-author corpus-work-author-link",
+          "width": 106,
+          "height": 15
+        },
+        {
+          "selector": "work-card-author corpus-work-author-link",
+          "width": 106,
+          "height": 15
+        },
+        {
+          "selector": "work-card-author corpus-work-author-link",
+          "width": 106,
+          "height": 15
+        }
+      ],
+      "unlabeledControls": 1,
+      "contrastFailures": 60,
+      "contrastExamples": [
+        {
+          "selector": "corpus-crumb-sep",
+          "ratio": 2.37,
+          "text": "▸"
+        },
+        {
+          "selector": "corpus-recents-label",
+          "ratio": 2.37,
+          "text": "Популярные запросы"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 2.56,
+          "text": "#ульпан"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 2.56,
+          "text": "#дом"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 2.56,
+          "text": "#ульпан"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 2.56,
+          "text": "#дом"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 2.56,
+          "text": "#ульпан"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 2.56,
+          "text": "#дом"
+        }
+      ],
+      "overflowPx": 0,
+      "metaDescription": false,
+      "groupInSwitcher": false
+    },
+    {
+      "surface": "mytexts",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "domElements": 754,
+      "readyItems": 0,
+      "listItems": 65,
+      "itemHeights": [
+        172,
+        172,
+        172,
+        172,
+        172,
+        172,
+        172,
+        172,
+        172,
+        172,
+        172,
+        172
+      ],
+      "firstUsefulTop": 532,
+      "nestedInteractive": 65,
+      "nestedExamples": [
+        "work-card mytext-card mytext-card-v",
+        "work-card mytext-card mytext-card-v",
+        "work-card mytext-card mytext-card-v",
+        "work-card mytext-card mytext-card-v",
+        "work-card mytext-card mytext-card-v"
+      ],
+      "visibleTargets": 150,
+      "smallTargets": 3,
+      "smallTargetExamples": [
+        {
+          "selector": "corpus-crumb-part",
+          "width": 77,
+          "height": 19
+        },
+        {
+          "selector": "hub-cta",
+          "width": 106,
+          "height": 17
+        },
+        {
+          "selector": "mytexts-manage",
+          "width": 134,
+          "height": 17
+        }
+      ],
+      "unlabeledControls": 3,
+      "contrastFailures": 72,
+      "contrastExamples": [
+        {
+          "selector": "corpus-crumb-sep",
+          "ratio": 2.37,
+          "text": "▸"
+        },
+        {
+          "selector": "hub-card-desc",
+          "ratio": 2.37,
+          "text": "Ваши тексты из Студии: уровни, теги, сво"
+        },
+        {
+          "selector": "hub-badge",
+          "ratio": 2.37,
+          "text": "⚡ морфология офлайн"
+        },
+        {
+          "selector": "hub-badge",
+          "ratio": 2.37,
+          "text": "✓ перевод свой"
+        },
+        {
+          "selector": "hub-badge",
+          "ratio": 2.37,
+          "text": "♪ своё аудио"
+        },
+        {
+          "selector": "hub-badge",
+          "ratio": 2.37,
+          "text": "🎯 контекст live"
+        },
+        {
+          "selector": "mytexts-manage",
+          "ratio": 2.37,
+          "text": "Управлять — в Студии"
+        },
+        {
+          "selector": "prov-badge mytext-tag",
+          "ratio": 2.56,
+          "text": "#ульпан"
+        }
+      ],
+      "overflowPx": 0,
+      "metaDescription": false,
+      "groupInSwitcher": false
+    },
+    {
+      "surface": "study-songs",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "domElements": 1753,
+      "readyItems": 0,
+      "listItems": 81,
+      "itemHeights": [
+        178,
+        178,
+        178,
+        178,
+        178,
+        178,
+        178,
+        178,
+        178,
+        178,
+        178,
+        178
+      ],
+      "firstUsefulTop": 522,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 183,
+      "smallTargets": 1,
+      "smallTargetExamples": [
+        {
+          "selector": "corpus-crumb-part",
+          "width": 77,
+          "height": 19
+        }
+      ],
+      "unlabeledControls": 4,
+      "contrastFailures": 164,
+      "contrastExamples": [
+        {
+          "selector": "corpus-crumb-sep",
+          "ratio": 2.37,
+          "text": "▸"
+        },
+        {
+          "selector": "hub-card-desc",
+          "ratio": 2.37,
+          "text": "Закрытый учебный корпус вашей группы · д"
+        },
+        {
+          "selector": "group-meta-chip tag",
+          "ratio": 4.04,
+          "text": "#קצב"
+        },
+        {
+          "selector": "group-progress-label",
+          "ratio": 2.56,
+          "text": "не начато"
+        },
+        {
+          "selector": "group-meta-chip tag",
+          "ratio": 4.04,
+          "text": "#אוצר-מילים"
+        },
+        {
+          "selector": "group-progress-label",
+          "ratio": 2.56,
+          "text": "не начато"
+        },
+        {
+          "selector": "group-meta-chip tag",
+          "ratio": 4.04,
+          "text": "#קצב"
+        },
+        {
+          "selector": "group-progress-label",
+          "ratio": 2.56,
+          "text": "не начато"
+        }
+      ],
+      "overflowPx": 0,
+      "metaDescription": false,
+      "groupInSwitcher": false
+    }
+  ]
+}
