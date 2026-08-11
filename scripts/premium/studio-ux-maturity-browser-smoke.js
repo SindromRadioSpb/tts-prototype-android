@@ -247,15 +247,20 @@ async function inspect(browser, locale, viewport, dark, label) {
     window.__b5RoomTarget = null;
     window.v3NavAwayWithDbClose = (url) => { window.__b5RoomTarget = url; };
     classicRunNextAction();
+    document.body.classList.add("room-mode");
+    const roomNextStepDisplay = getComputedStyle(document.getElementById("classicNextStep")).display;
+    document.body.classList.remove("room-mode");
     return {
       action: document.getElementById("classicNextActionBtn").dataset.action,
       label: document.getElementById("classicNextActionBtn").textContent.trim(),
       phase: document.getElementById("classicPhaseLabel").textContent.trim(),
       roomTarget: window.__b5RoomTarget,
+      roomNextStepDisplay,
     };
   });
   check(savedState.action === "learn" && savedState.label && savedState.phase, `${prefix}: save completion recommends continuing in Reading Room`);
   check(/^\/index\.html\?room=1#\/t\//.test(savedState.roomTarget || ""), `${prefix}: saved material CTA targets its direct Room deep link`);
+  check(savedState.roomNextStepDisplay === "none", `${prefix}: Room hides the already-completed Studio next-step CTA`);
   check(pageErrors.length === 0, `${prefix}: no uncaught page errors (${pageErrors.join(" | ")})`);
   await context.close();
 }

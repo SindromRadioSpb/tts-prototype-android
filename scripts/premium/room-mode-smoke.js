@@ -7,7 +7,7 @@
 //   room-mode (?room=1):
 //     • body.room-mode present (set pre-paint)
 //     • Studio chrome hidden: .classic-shell-head, #classicStatusStrip,
-//       #classicComposerPanel, #classicTtsCard, .row-note-btn (offsetParent===null)
+//       #classicNextStep, #classicComposerPanel, #classicTtsCard, .row-note-btn
 //     • reading kept visible: #tableContainer (with rows), .row-tts-btn (▶ audio),
 //       #tableSettings (column toggles = reading-aid)
 //     • #roomReturnBar visible, link → /library.html (R4: non-dead-end)
@@ -83,6 +83,7 @@ async function main() {
     await waitForReader();
     test("body.room-mode is set (pre-paint from ?room=1)", await pg.evaluate(() => document.body.classList.contains("room-mode")));
     test("Studio: .classic-shell-head hidden", await hidden(".classic-shell-head"));
+    test("Studio: completed #classicNextStep hidden", await hidden("#classicNextStep"));
     test("Studio: #classicStatusStrip (billing) hidden", await hidden("#classicStatusStrip"));
     test("Studio: #classicComposerPanel (source) hidden", await hidden("#classicComposerPanel"));
     test("Studio: #classicTtsCard (synth-config) hidden", await hidden("#classicTtsCard"));
@@ -114,6 +115,7 @@ async function main() {
     await waitForReader();
     test("contra: body.room-mode ABSENT (no leak)", await pg.evaluate(() => !document.body.classList.contains("room-mode")));
     test("contra: .classic-shell-head VISIBLE", await vis(".classic-shell-head"));
+    test("contra: #classicNextStep VISIBLE", await vis("#classicNextStep"));
 
     test("no pageerror", errs.length === 0, errs[0]);
 

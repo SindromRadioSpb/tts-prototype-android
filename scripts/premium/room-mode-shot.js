@@ -71,6 +71,10 @@ async function main() {
     await pg.evaluate(() => window.appSetLocale && window.appSetLocale("he")); await sleep(500);
     await shot("room-mode-he.png");
 
+    // Same terminal Room state in RU: the Studio completion CTA must stay absent.
+    await pg.evaluate(() => window.appSetLocale && window.appSetLocale("ru")); await sleep(500);
+    await shot("room-mode-ru.png");
+
     // contra (no room=1), HE — full Studio chrome; dismiss first-run modals for a clean shot
     await pg.goto(BASE + deepLink(TID, false), { waitUntil: "load" });
     await waitReader();

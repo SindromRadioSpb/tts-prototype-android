@@ -10473,6 +10473,7 @@ body.theme-dark .app-footer .privacy-badge { background: #052e16; border-color: 
    обязателен: IDE-панели несут inline display:none и блок стоит поздно в каскаде
    (см. CSS-ловушки CLAUDE.md). НИКАКИХ изменений данных/морфологии/честности (R1). */
 body.room-mode .classic-shell-head { display: none !important; }              /* верхний nav/utility/title/mode-toggle */
+body.room-mode #classicNextStep { display: none !important; }                 /* B5 завершён: не предлагать переход в уже открытый Зал */
 body.room-mode .classic-workflow-column { display: none !important; }         /* композер + TTS-синтез + перевод/транслит-конфиг (translit-профиль → P1-006) */
 body.room-mode #classicStatusStrip { display: none !important; }              /* биллинг/квоты */
 body.room-mode #classicResultPanel { display: none !important; }              /* «Результат»: save/download/trust-chips/provenance */
@@ -13220,7 +13221,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.349";
+    window.APP_VERSION = "3.11.350";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

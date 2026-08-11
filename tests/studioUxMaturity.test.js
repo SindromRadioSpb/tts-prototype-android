@@ -112,6 +112,8 @@ test("B2-B5 UI exposes return recovery, compact mobile navigation and Room conti
   assert.match(html, /id="classicPhaseLabel"/);
   assert.match(html, /action = "learn"/);
   assert.match(html, /room=1#\/t\//);
+  assert.match(html, /body\.room-mode #classicNextStep\s*\{\s*display:\s*none !important;\s*\}/,
+    "the Studio completion CTA must not leak into an already-open Reading Room");
   assert.match(html, /id="v3ImportAudioProviderTruth"/);
   assert.match(portableUi, /mergeLifecycleCatalog\(materials,workspaces,now\)/);
   assert.match(portableUi, /data-filter="draft"/);
