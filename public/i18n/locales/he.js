@@ -2472,6 +2472,17 @@ window.I18N_LOCALES.he = {
       firstOwnText: "הוספת הטקסט הלימודי הראשון", aboutCorpus: "על הקורפוס והנתונים",
       benProvenance: "קטלוג פרויקט בן־יהודה. תרגום, ניקוד, שמע והערכת קושי מוצגים רק כאשר הנתונים המתאימים זמינים באמת.",
     },
+    compass: {
+      label: "מצפן הקריאה", details: "למה זה מתאים ומה מקור הנתונים", assigned: "הוקצה לקבוצה",
+      continuePercent: "המשך · {value}%", continueRow: "המשך · שורה {value}",
+      studioLevelReason: "הרמה צוינה בסטודיו", groupLevelReason: "הרמה נקבעה בידי בעל הקורפוס",
+      familiarityReason: "מתאים לפי המילים המוכרות בפרופיל שלך", intrinsicReason: "הערכת קושי משוערת לפי שכיחות אוצר המילים",
+      assignedReason: "הוקצה לקבוצת הלימוד שלך", partialAudio: "השמע זמין חלקית",
+      personalProvenance: "הטקסט שלך · הרמה צוינה בסטודיו",
+      benProvenance: "הקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל",
+      groupProvenance: "קבוצת לימוד · TTS · מהדורת שמע {value}",
+      audioPresent: "שמע", audioFull: "שמע מלא", audioPartial: "שמע חלקי", audioNone: "ללא שמע", video: "וידאו",
+    },
     groupAccess: {
       title: "גישה לקבוצת הלימוד", open: "גישה לקבוצת הלימוד", manage: "חברים והזמנות", helpTitle: "איך הכניסה והגישה פועלות", helpGuest: "הבעלים נכנס באמצעות הסוד שלמטה. חבר פותח קישור חד-פעמי שקיבל מהבעלים. יש לפתוח אותו במכשיר האישי או בפרופיל דפדפן נפרד.",
       ownerRole: "מחובר כבעלים", memberRole: "מחובר כחבר", owner: "בעלים", memberBadge: "חבר", newMemberEyebrow: "אדם חדש", ownerIntro: "קישור זה ייצור חבר נפרד והתקדמות לימודית נפרדת.",

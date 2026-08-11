@@ -8,7 +8,7 @@
 //   • ▶︎-кнопки переживают rerenderReader (смена aids)
 //   • паспорт в source_meta_json + timingDropReason → фолбэк колонок + честный noTiming
 //   • паспорт без байтов → честный fileMissing + ссылка «Открыть в Студии», без ▶︎
-//   • текст без паспорта → бара нет; закрытие ридера прячет бар; 🎧-бейдж в «Мои тексты»
+//   • текст без паспорта → бара нет; закрытие ридера прячет бар; типизированный медиа-сигнал в «Мои тексты»
 //   • no pageerror
 
 const path = require("path");
@@ -146,15 +146,16 @@ async function main() {
       await pg.click('.learning-corpus-entry[data-corpus="mytexts"]');
       await pg.waitForSelector(".mytexts-corpus .mytexts-grid", { timeout: 10000 });
 
-      // 🎧-бейдж на карточке материала с медиа
+      // B4: единый типизированный медиа-сигнал на карточке материала с паспортом.
       const badge = await pg.evaluate(() => {
         const cards = Array.from(document.querySelectorAll(".mytexts-grid .mytext-card-v"));
         const one = cards.find((c) => c.textContent.includes("RMM ONE"));
         const four = cards.find((c) => c.textContent.includes("RMM FOUR"));
-        return { one: one ? !!one.querySelector(".mytext-media") : null, four: four ? !!four.querySelector(".mytext-media") : null };
+        const media = one && one.querySelector(".learning-media");
+        return { one: media ? String(media.textContent || "") : null, four: four ? !!four.querySelector(".learning-media") : null };
       });
-      ok(badge.one === true, "media badge 🎧 present on the media-imported card");
-      ok(badge.four === false, "no media badge on a plain own text");
+      ok(/Аудио|Audio|שמע|♪/.test(badge.one || "") && !/Без аудио|No audio|ללא שמע/.test(badge.one || ""), "typed audio signal present on the media-imported card: " + badge.one);
+      ok(badge.four === false, "no media signal on a plain own text");
 
       const openCard = async (marker) => {
         await pg.evaluate((m) => { const cards = Array.from(document.querySelectorAll(".mytexts-grid .mytext-card-v")); const c = cards.find((x) => x.textContent.includes(m)); if (c) c.click(); }, marker);

@@ -12,6 +12,7 @@
 import * as localDb from '/db/local-db.js';
 import * as readerCore from '/js/reader-core.js';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
+import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, learningSignals } from '/js/corpus-item-presenter.js';
 
 // Studio exposes the same adapter for repository-backed media bindings. Room
 // reuses it read-only so exact timing survives a cold open without duplicating
@@ -242,6 +243,91 @@ function el(tag, opts) {
     if (opts.attrs) for (const k in opts.attrs) e.setAttribute(k, opts.attrs[k]);
   }
   return e;
+}
+
+// B4 Learning Compass: localized copy enters the pure adapters as data. The adapters
+// never reach into i18n, LocalDb or the DOM, so they remain a projection rather than a
+// second readiness/progress authority.
+function corpusItemCopy() {
+  const replace = (key, fallback, token, value) => tt(key, fallback).replace(token, String(value));
+  return {
+    untitled: tt('room.work.untitled', 'Без названия'),
+    ownText: tt('room.shell.ownText', 'Ваш текст'),
+    assigned: tt('room.compass.assigned', 'назначено группе'),
+    finished: tt('room.groupCorpus.finished', 'Прочитано'),
+    continuePercent: (value) => replace('room.compass.continuePercent', 'Продолжить · {value}%', '{value}', value),
+    continueRow: (value) => replace('room.compass.continueRow', 'Продолжить · строка {value}', '{value}', value),
+    studioLevelReason: tt('room.compass.studioLevelReason', 'Уровень указан в Студии'),
+    groupLevelReason: tt('room.compass.groupLevelReason', 'Уровень указан владельцем корпуса'),
+    familiarityReason: tt('room.compass.familiarityReason', 'Подходит по знакомым словам из вашего профиля'),
+    intrinsicReason: tt('room.compass.intrinsicReason', 'Приблизительная сложность по частотности лексики'),
+    assignedReason: tt('room.compass.assignedReason', 'Назначено вашей учебной группе'),
+    partialAudio: tt('room.compass.partialAudio', 'Аудио доступно частично'),
+    personalProvenance: tt('room.compass.personalProvenance', 'Ваш текст · уровень указан в Студии'),
+    benProvenance: tt('room.compass.benProvenance', 'Сложность — по частотности; знакомые слова — только по реальному профилю'),
+    groupProvenance: (revision) => replace('room.compass.groupProvenance', 'Учебная группа · TTS · редакция аудио {value}', '{value}', revision),
+  };
+}
+
+function learningMediaLabel(media) {
+  if (!media || !media.kind) return '';
+  if (media.kind === 'video') return '🎬 ' + tt('room.compass.video', 'Видео');
+  if (media.kind !== 'audio') return '';
+  const key = media.coverage === 'full' ? 'room.compass.audioFull'
+    : media.coverage === 'partial' ? 'room.compass.audioPartial'
+      : media.coverage === 'none' ? 'room.compass.audioNone' : 'room.compass.audioPresent';
+  const fallback = media.coverage === 'full' ? 'Аудио полностью'
+    : media.coverage === 'partial' ? 'Аудио частично'
+      : media.coverage === 'none' ? 'Без аудио' : 'Аудио';
+  return '♪ ' + tt(key, fallback) + (media.countLabel ? ' · ' + media.countLabel : '');
+}
+
+function renderLearningCompass(item, options) {
+  const row = el('div', { class: 'learning-compass work-card-difficulty' });
+  paintLearningCompass(row, item, options);
+  return row;
+}
+
+function paintLearningCompass(target, item, options) {
+  if (!target || !item) return;
+  const opts = options || {};
+  const readiness = item.readiness || {};
+  const state = item.learnerState || {};
+  target.textContent = '';
+  target.classList.add('learning-compass', 'work-card-difficulty');
+  target.setAttribute('data-confidence', readiness.confidence || 'derived-soft');
+  target.setAttribute('aria-label', tt('room.compass.label', 'Ориентир для чтения'));
+  if (target.closest('.room-text-row')) target.closest('.room-text-row').setAttribute('data-state', state.state || 'new');
+  for (const signal of learningSignals(item)) {
+    if (signal.kind === 'level') {
+      const band = readiness.band || '';
+      const node = el('span', { class: 'learning-signal learning-level diff-band' + (band ? ' diff-' + band : ''), text: signal.label });
+      if (signal.reason) node.title = signal.reason;
+      target.appendChild(node);
+    } else if (signal.kind === 'familiarity') {
+      const node = el('span', { class: 'learning-signal learning-familiar coverage-badge' + (signal.zone ? ' coverage-' + signal.zone : ''), text: '≈' + signal.value + '% ' + tt('room.corpus.cov.familiar', 'знакомо') });
+      if (signal.reason) node.title = signal.reason;
+      target.appendChild(node);
+    }
+  }
+  if (state.state === 'reading' && state.resumeLabel) target.appendChild(el('span', { class: 'learner-state-chip is-reading', text: state.resumeLabel }));
+  else if (state.state === 'finished') target.appendChild(el('span', { class: 'learner-state-chip is-finished', text: state.resumeLabel || tt('room.groupCorpus.finished', 'Прочитано') }));
+  if (opts.showMedia) {
+    const mediaLabel = learningMediaLabel(item.media);
+    if (mediaLabel) target.appendChild(el('span', { class: 'learning-media media-' + ((item.media && item.media.coverage) || 'present'), text: mediaLabel }));
+  }
+  if (opts.showTags) for (const tag of (item.tags || []).slice(0, 1)) target.appendChild(el('span', { class: 'learning-tag', text: '#' + tag }));
+  for (const caveat of (readiness.caveats || []).slice(0, 1)) target.appendChild(el('span', { class: 'learning-caveat diff-archaica', text: caveat }));
+  const detailLines = [readiness.reason].concat(readiness.caveats || [], item.provenanceSummary || []).filter(Boolean);
+  if (opts.showDetails !== false && detailLines.length) {
+    const details = el('details', { class: 'learning-compass-details' });
+    details.appendChild(el('summary', { attrs: { 'aria-label': tt('room.compass.details', 'Почему подходит и откуда данные') }, text: 'ⓘ' }));
+    const panel = el('div', { class: 'learning-compass-panel' });
+    const seen = new Set();
+    for (const line of detailLines) if (!seen.has(String(line))) { seen.add(String(line)); panel.appendChild(el('p', { text: String(line) })); }
+    details.appendChild(panel); target.appendChild(details);
+  }
+  target.hidden = !target.children.length;
 }
 
 function showState(i18nKey, icon) {
@@ -5898,6 +5984,7 @@ async function closeReader() {
     const idx = window.ReaderProgress ? window.ReaderProgress.mergeProgress(_sessionMaxRow, top == null ? -1 : top) : Math.max(_sessionMaxRow, top == null ? -1 : top);
     if (idx > 0) { try { await localDb.setProgress(tid, { last_row_idx: idx }); } catch (_) {} }
   }
+  invalidateCorpusPresentationProgress();
   if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   karaokeActive = false; setReadAloudBtn(false);   // BRR-P1-008 — reset karaoke on close
@@ -6493,6 +6580,26 @@ function invalidateReadableSet() { _readableSet = null; }
 // NON-ready work (no translation → absent from the ready index) simply won't resolve → no badge (honest;
 // never a wrong-id badge). Single-flight cache; invalidated whenever finished state changes.
 let _finishedSet = null;
+let _corpusPresentationProgress = null;
+let _corpusPresentationProgressLoading = null;
+function invalidateCorpusPresentationProgress() { _corpusPresentationProgress = null; _corpusPresentationProgressLoading = null; }
+async function ensureCorpusPresentationProgress() {
+  if (_corpusPresentationProgress) return _corpusPresentationProgress;
+  if (_corpusPresentationProgressLoading) return _corpusPresentationProgressLoading;
+  _corpusPresentationProgressLoading = (async () => {
+    const map = new Map();
+    try {
+      const rows = await localDb.dbQuery(`SELECT t.text_key,t.last_opened_at,tp.last_row_idx,tp.finished_at,
+        (SELECT COUNT(*) FROM sentences s WHERE s.text_id=t.id) AS n_rows
+        FROM texts t LEFT JOIN text_progress tp ON tp.text_id=t.id WHERE t.is_archived=0`);
+      for (const row of (rows || [])) if (row && row.text_key) map.set(String(row.text_key), row);
+    } catch (_) {}
+    _corpusPresentationProgress = map;
+    return map;
+  })();
+  try { return await _corpusPresentationProgressLoading; }
+  finally { _corpusPresentationProgressLoading = null; }
+}
 async function ensureFinishedSet() {
   if (_finishedSet) return _finishedSet;
   const set = new Set();
@@ -6557,8 +6664,8 @@ function observeCardCoverage(node, card) {
 // visual order band→coverage→archaica regardless of async append order. Surface-aware placement.
 function _cardLearnRow(node) {
   let row = node.querySelector('.work-card-difficulty');
-  if (row) return row;
-  row = el('div', { class: 'work-card-difficulty' });
+  if (row) { row.classList.add('learning-compass'); return row; }
+  row = el('div', { class: 'work-card-difficulty learning-compass' });
   const col = node.querySelector('.corpus-work-col');   // S7 result row → stack inside the text column
   const cta = node.querySelector('.work-card-cta');     // rail/grid card → before the «Открыть» CTA
   if (col) col.appendChild(row);
@@ -6566,49 +6673,35 @@ function _cardLearnRow(node) {
   else node.appendChild(row);
   return row;
 }
-function enhanceCardWithCoverage(node, card) {
+async function enhanceCardWithCoverage(node, card) {
   if (!node || !card || card.id == null || !window.CorpusVocabRoom) return;
-  appendDifficultyRow(node, card);   // W3 — profile-FREE difficulty band + «много имён/архаики» (learning row)
-  roomVocabCoverageFor(card.id).then((cov) => {
-    if (!cov || cov.knownDistinct === 0) return;        // no real overlap → no % (honest, not a «0%» lie)
-    if (!node.isConnected || node.querySelector('.coverage-badge')) return;
-    const row = _cardLearnRow(node); if (!row) return;
-    const pct = Math.round(cov.matchedDrillCov * 100);
-    // PC-3 — VISIBLE «знакомо» label (the i18n key already shipped, but went UNUSED): on touch the title
-    // tooltip never appears, so a bare «≈34%» had no referent. Now self-explanatory, in the learning cluster.
-    const b = el('span', { class: 'prov-badge coverage-badge coverage-' + cov.zone, text: '≈' + pct + '% ' + tt('room.corpus.cov.familiar', 'знакомо') });
-    b.title = tt('room.corpus.cov.estimate', 'Оценка знакомых слов по твоим заметкам');
-    row.appendChild(b);
-  }).catch(() => {});
+  let vocab = null, coverage = null, progress = null;
+  try { vocab = await loadCorpusVocab(); } catch (_) {}
+  const work = vocab && vocab.works && vocab.works[String(card.id)];
+  try { coverage = await roomVocabCoverageFor(card.id); } catch (_) {}
+  try { progress = (await ensureCorpusPresentationProgress()).get(String(card.text_key)) || null; } catch (_) {}
+  if (!node.isConnected) return;
+  const band = work && window.CorpusVocab && window.CorpusVocab.difficultyBand ? window.CorpusVocab.difficultyBand(work.ez) : null;
+  const bandLabel = band ? tt('room.corpus.diff.' + band, band === 'easy' ? 'легче' : band === 'mid' ? 'средне' : 'сложнее') : null;
+  const caveats = work && window.CorpusVocab && window.CorpusVocab.loadFlagFor && window.CorpusVocab.loadFlagFor(work)
+    ? [tt('room.corpus.cov.load', 'много имён/архаики')] : [];
+  const view = adaptBenYehudaItem(card, {
+    copy: corpusItemCopy(), difficultyBand: band, difficultyLabel: bandLabel,
+    familiarityPct: coverage && coverage.knownDistinct > 0 ? Math.round(coverage.matchedDrillCov * 100) : null,
+    familiarityZone: coverage && coverage.knownDistinct > 0 ? coverage.zone : null,
+    caveats, progress, savedState: isInAnyList(card.id) ? 'reading-list' : null,
+  });
+  const learnRow = _cardLearnRow(node); if (!learnRow) return;
+  paintLearningCompass(learnRow, view, { showMedia: false, showDetails: !node.classList.contains('work-card') });
+  const primary = node.querySelector('.room-text-primary');
+  if (primary) primary.textContent = view.primaryAction === 'continue' ? tt('room.resume.continue', 'Продолжить') : tt('room.mytexts.read', 'Читать');
 }
 
 // W3 (Epic 5 difficulty-signal) — profile-FREE intrinsic ez band («легче/средне/сложнее») + «много имён/
 // архаики» load tag, into the shared LEARNING row. Outline-styled (PC-1) so it never reads as a filled
 // provenance pill. Lazy, idempotent (guard on the band chip), fire-and-forget. Unbaked → no band (R1/R9).
 async function appendDifficultyRow(node, card) {
-  if (!node || !card || card.id == null || !window.CorpusVocab || !window.CorpusVocab.difficultyBand) return;
-  if (node.querySelector('.diff-band')) return;
-  let v = null;
-  try { v = await loadCorpusVocab(); } catch (_) {}
-  if (!v || !v.works) return;
-  const w = v.works[String(card.id)];
-  if (!w) return;                                            // unbaked → no band
-  const band = window.CorpusVocab.difficultyBand(w.ez);
-  if (!band) return;
-  if (!node.isConnected || node.querySelector('.diff-band')) return;   // re-check after the await
-  const row = _cardLearnRow(node); if (!row) return;
-  // PC-10 (owner 2026-06-29) — poetry stays WITHIN the легче/средне/сложнее scale like prose: it's 53% of the
-  // corpus, so dropping the graded signal there gutted it (and «поэзия» on half the cards = the same noise PC-2
-  // removed). ez is a rougher proxy for poetry (R7), but a rough signal beats none — kept honest by the
-  // «по частотности» label (not a CEFR verdict). So: the same intrinsic band for every baked work.
-  const bandKey = 'room.corpus.diff.' + band;
-  const bandFb = band === 'easy' ? 'легче' : band === 'mid' ? 'средне' : 'сложнее';
-  const chip = el('span', { class: 'diff-band diff-' + band, i18n: bandKey, text: tt(bandKey, bandFb) });
-  chip.title = tt('room.corpus.diff.prov', 'прибл. — по частотности лексики');
-  row.appendChild(chip);
-  if (window.CorpusVocab.loadFlagFor(w) && !row.querySelector('.diff-archaica')) {
-    row.appendChild(el('span', { class: 'diff-archaica', i18n: 'room.corpus.cov.load', text: tt('room.corpus.cov.load', 'много имён/архаики') }));
-  }
+  return enhanceCardWithCoverage(node, card);
 }
 
 // Build a corpus shelf section (reused by the personal rail + the cold-start rail).
@@ -6835,41 +6928,39 @@ async function addMachineNiqqud(item, button) {
 function renderMyTextCard(item, vertical) {
   const node = el('article', { class: 'corpus-work-row room-text-row mytext-card' + (vertical ? ' mytext-card-v' : '') });
   const col = el('div', { class: 'corpus-work-col' });
-  const title = item.title || tt('room.work.untitled', 'Без названия');
-  const openLink = el('a', { class: 'room-text-title-link mytext-open', attrs: { href: deepLinkForText(item.id) } });
-  const titleEl = el('span', { class: 'work-card-title', text: title });
-  if (HEBREW_RE.test(title)) titleEl.setAttribute('dir', 'rtl');
-  openLink.appendChild(titleEl);
-  const meta = el('div', { class: 'work-card-meta' });
-  if (item.level) meta.appendChild(el('span', { class: 'prov-badge mytext-level', text: String(item.level) }));
-  // progress = «строка N» (honest raw position; texts carry no row count → no fabricated %)
-  const started = item.last_row_idx != null && Number(item.last_row_idx) > 0;
-  if (started) meta.appendChild(el('span', { class: 'prov-badge continue-pct', text: tt('room.mytexts.progressRow', 'строка') + ' ' + (Number(item.last_row_idx) + 1) }));
-  for (const tg of myTextTags(item).slice(0, 2)) meta.appendChild(el('span', { class: 'prov-badge mytext-tag', text: '#' + tg }));
-  // Медиа-бейдж (spec 2026-08-04). ⚠ Работает только от listTexts: listTextsLight срезает
-  // table_model_meta_json (local-db.js) — при миграции роутинга бейдж молча исчезнет.
+  let media = { kind: null, coverage: null, humanOrTts: null };
   try {
     if (window.MediaHost) {
-      const mAudio = window.MediaHost.passportFromTextRow(item);
-      if (mAudio && (mAudio.media || (mAudio.video && mAudio.video.videoId))) {
-        const isVideo = !!(mAudio.video && mAudio.video.videoId) || /^video\//.test(String((mAudio.media && mAudio.media.mime) || ''));
-        meta.appendChild(el('span', { class: 'prov-badge mytext-media', text: isVideo ? '🎬' : '🎧', attrs: { title: tt('studio.media.sourcePlayer', 'Исходное аудио / видео') } }));
+      const passport = window.MediaHost.passportFromTextRow(item);
+      if (passport && (passport.media || (passport.video && passport.video.videoId))) {
+        const video = !!(passport.video && passport.video.videoId) || /^video\//.test(String((passport.media && passport.media.mime) || ''));
+        media = { kind: video ? 'video' : 'audio', coverage: null, humanOrTts: 'human' };
       }
     }
   } catch (_) {}
-  openLink.appendChild(el('span', { class: 'room-text-primary', text: started ? tt('room.resume.continue', 'Продолжить') : tt('room.mytexts.read', 'Читать') }));
+  const view = adaptMyTextItem(item, { copy: corpusItemCopy(), media });
+  const title = view.title;
+  const openLink = el('a', { class: 'room-text-title-link mytext-open', attrs: { href: deepLinkForText(item.id) } });
+  const titleCopy = el('span', { class: 'room-item-title-copy' });
+  const titleEl = el('span', { class: 'work-card-title', text: title });
+  if (HEBREW_RE.test(title)) titleEl.setAttribute('dir', 'rtl');
+  titleCopy.appendChild(titleEl);
+  if (view.secondaryIdentity) titleCopy.appendChild(el('span', { class: 'item-secondary-identity', text: view.secondaryIdentity }));
+  openLink.appendChild(titleCopy);
+  openLink.appendChild(el('span', { class: 'room-text-primary', text: view.primaryAction === 'continue' ? tt('room.resume.continue', 'Продолжить') : tt('room.mytexts.read', 'Читать') }));
   col.appendChild(openLink);
-  if (meta.children.length) col.appendChild(meta);
+  col.appendChild(renderLearningCompass(view, { showMedia: true, showTags: true, showDetails: false }));
   node.appendChild(col);
   // B3: enrichment is useful, but it is not the reading action. Keep it in a per-row
   // disclosure so a scan remains title/progress-first and the consent boundary is unchanged.
   const secondary = el('details', { class: 'mytext-secondary' });
   secondary.appendChild(el('summary', { class: 'room-row-more', attrs: { 'aria-label': tt('room.shell.moreActions', 'Другие действия') }, text: '•••' }));
   const secondaryPanel = el('div', { class: 'mytext-secondary-panel' });
+  if (view.provenanceSummary) secondaryPanel.appendChild(el('p', { class: 'room-item-provenance', text: view.provenanceSummary }));
   const nakdan = el('button', { class: 'mytext-nakdan', attrs: { type: 'button' }, text: 'אְ ' + tt('room.nakdan.add', 'Добавить никуд') });
   nakdan.addEventListener('click', () => addMachineNiqqud(item, nakdan));
   secondaryPanel.appendChild(nakdan); secondary.appendChild(secondaryPanel); node.appendChild(secondary);
-  const open = () => openReader(item.id, item.title, { resume: started });
+  const open = () => openReader(item.id, item.title, { resume: view.learnerState.state !== 'new' });
   if (EMBED) openLink.addEventListener('click', (event) => { event.preventDefault(); open(); });
   // Compatibility for callers that programmatically click the row in legacy smokes. The article
   // itself is not focusable/announced as a control; user-facing activation belongs to the link.
@@ -7555,13 +7646,13 @@ async function renderGroupCorpus(corpusId, token) {
   const nextWork = catalog.works.find((work) => workStatus(byKey.get(String(work.text_key))) === 'reading') || catalog.works[0];
   if (nextWork) {
     const nextProgress = byKey.get(String(nextWork.text_key));
-    const nextStatus = workStatus(nextProgress);
+    const nextView = adaptGroupCorpusItem(nextWork, { corpusId, progress: nextProgress, copy: corpusItemCopy() });
     wrap.appendChild(corpusNextAction({
-      kind: nextStatus === 'reading' ? 'continue' : 'start', title: nextWork.title,
-      kicker: nextStatus === 'reading' ? tt('room.home.continueKicker', 'Продолжить') : tt('room.home.startKicker', 'С чего начать'),
-      meta: (nextWork.artist ? nextWork.artist + ' · ' : '') + (nextStatus === 'reading' ? progressPct(nextWork, nextProgress) + '%' : (nextWork.rows_count || 0) + ' ' + tt('room.groupCorpus.rows', 'строк')),
-      label: nextStatus === 'reading' ? tt('room.resume.continue', 'Продолжить') : tt('room.home.startAction', 'Начать читать'),
-      onOpen: () => openGroupCorpusWork(corpusId, nextWork, { resume: nextStatus === 'reading' }),
+      kind: nextView.primaryAction, title: nextView.title,
+      kicker: nextView.primaryAction === 'continue' ? tt('room.home.continueKicker', 'Продолжить') : tt('room.home.startKicker', 'С чего начать'),
+      meta: [nextView.creator, nextView.learnerState.resumeLabel || nextView.readiness.reason].filter(Boolean).join(' · '),
+      label: nextView.primaryAction === 'continue' ? tt('room.resume.continue', 'Продолжить') : tt('room.home.startAction', 'Начать читать'),
+      onOpen: () => openGroupCorpusWork(corpusId, nextWork, { resume: nextView.learnerState.state === 'reading' }),
     }));
   }
   const controls = el('div', { class: 'group-corpus-controls' });
@@ -7629,24 +7720,22 @@ async function renderGroupCorpus(corpusId, token) {
     else roomToast(data.url);
   }
   function renderCard(work) {
-    const p=byKey.get(String(work.text_key)); const status=workStatus(p); const pct=progressPct(work,p);
-    const card=el('article',{class:'group-work-card room-text-row',attrs:{'data-status':status}});
-    const pos=el('span',{class:'group-work-position',text:work.position_no==null?'—':String(work.position_no)}); card.appendChild(pos);
+    const p=byKey.get(String(work.text_key));
+    const view=adaptGroupCorpusItem(work,{corpusId,progress:p,copy:corpusItemCopy()});
+    const card=el('article',{class:'group-work-card room-text-row',attrs:{'data-status':view.learnerState.state,'data-state':view.learnerState.state}});
+    const pos=el('span',{class:'group-work-position',text:work.position_no==null?'—':String(work.position_no),attrs:{title:view.secondaryIdentity||''}}); card.appendChild(pos);
     const identity=el('div',{class:'group-work-identity corpus-work-col'});
     const href='/library.html?group_corpus='+encodeURIComponent(corpusId)+'&group_work='+encodeURIComponent(work.work_id);
-    const open=el('a',{class:'room-text-title-link group-action'+(status==='reading'?' primary':''),attrs:{href}});
-    const title=el('span',{class:'group-work-title',text:work.title||''});
-    if(HEBREW_RE.test(work.title||''))title.setAttribute('dir','rtl');open.appendChild(title);
-    open.appendChild(el('span',{class:'room-text-primary',text:status==='reading'?tt('room.resume.continue','Продолжить'):tt('room.mytexts.read','Читать')}));
-    open.addEventListener('click',(event)=>{event.preventDefault();openGroupCorpusWork(corpusId,work,{resume:status==='reading'});});
+    const open=el('a',{class:'room-text-title-link group-action'+(view.primaryAction==='continue'?' primary':''),attrs:{href}});
+    const titleCopy=el('span',{class:'room-item-title-copy'});
+    const title=el('span',{class:'group-work-title',text:view.title});
+    if(HEBREW_RE.test(view.title))title.setAttribute('dir','rtl');titleCopy.appendChild(title);
+    if(view.creator&&!String(view.title).startsWith(view.creator)){const artist=el('span',{class:'group-work-artist item-secondary-identity',text:view.creator});if(HEBREW_RE.test(view.creator))artist.setAttribute('dir','rtl');titleCopy.appendChild(artist);}
+    open.appendChild(titleCopy);
+    open.appendChild(el('span',{class:'room-text-primary',text:view.primaryAction==='continue'?tt('room.resume.continue','Продолжить'):tt('room.mytexts.read','Читать')}));
+    open.addEventListener('click',(event)=>{event.preventDefault();openGroupCorpusWork(corpusId,work,{resume:view.learnerState.state==='reading'});});
     identity.appendChild(open);
-    const meta=el('div',{class:'group-work-meta'});
-    if(work.artist&&!String(work.title||'').startsWith(String(work.artist))){const artist=el('span',{class:'group-work-artist',text:work.artist});if(HEBREW_RE.test(work.artist))artist.setAttribute('dir','rtl');meta.appendChild(artist);}
-    meta.appendChild(el('span',{class:'group-meta-chip',text:(work.rows_count||0)+' '+tt('room.groupCorpus.rows','строк')}));
-    meta.appendChild(el('span',{class:'group-meta-chip '+(workAudio(work)==='full'?'ok':workAudio(work)==='partial'?'warn':''),text:'♪ '+(work.audio_count||0)+'/'+(work.rows_count||0)}));
-    if(work.level)meta.appendChild(el('span',{class:'group-meta-chip tag',text:String(work.level)}));identity.appendChild(meta);
-    const progress=el('div',{class:'group-work-progress'}); const track=el('div',{class:'group-progress-track'}); track.appendChild(el('span',{class:'group-progress-fill',attrs:{style:'width:'+pct+'%'}})); progress.appendChild(track);
-    progress.appendChild(el('span',{class:'group-progress-label',text:status==='finished'?tt('room.groupCorpus.finished','Прочитано'):status==='reading'?pct+'% · '+tt('room.groupCorpus.inProgress','в процессе'):tt('room.groupCorpus.notStarted','не начато')}));identity.appendChild(progress);card.appendChild(identity);
+    identity.appendChild(renderLearningCompass(view,{showMedia:true,showDetails:true}));card.appendChild(identity);
     const share=el('button',{class:'group-action quiet room-text-secondary',attrs:{type:'button','aria-label':tt('room.groupCorpus.share','Поделиться'),title:tt('room.groupCorpus.share','Поделиться')},text:'🔗'});share.addEventListener('click',()=>shareWork(work));card.appendChild(share);return card;
   }
   let groupBrowseLimit=ROOM_BROWSE_PAGE;
@@ -9594,7 +9683,7 @@ function renderCorpusWorkRow(card, openable, opts) {
   const cta = el('span', { class: 'corpus-work-cta', text: openable ? '›' : '⏳', attrs: { 'aria-hidden': 'true' } });
   row.appendChild(cta);
   if (openable) {
-    const open = () => openCorpusWork(card, opts && opts.openOpts);   // BRR-P2-005 — FTS: open at matched row
+    const open = () => openCorpusWork(card, (opts && opts.openOpts) || (row.getAttribute('data-state') === 'reading' ? { resume: true } : undefined));   // BRR-P2-005 — FTS: open at matched row
     openLink.addEventListener('click', (event) => { event.preventDefault(); open(); });
   } else {
     row.setAttribute('aria-disabled', 'true');
@@ -9603,7 +9692,7 @@ function renderCorpusWorkRow(card, openable, opts) {
   if (openable && ftsQ && card.file) observeRowSnippet(row, card, ftsQ);
   // BRR-S7 — «≈N% тебе по силам» readability badge on ready result rows (lazy; honest — absent when
   // the reader has no profile overlap). Result rows are the showAuthor=true (cross-author) context.
-  if (openable && opts && opts.showAuthor && card.id != null) observeCardCoverage(row, card);
+  if (openable && card.id != null) observeCardCoverage(row, card);
   return row;
 }
 

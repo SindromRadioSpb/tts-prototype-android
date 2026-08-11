@@ -4,12 +4,14 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const { pathToFileURL } = require("node:url");
 
 const ROOT = path.resolve(__dirname, "..");
 const read = (relative) => fs.readFileSync(path.join(ROOT, relative), "utf8");
 const libraryHtml = read("public/library.html");
 const libraryUi = read("public/js/library-ui.js");
 const corpusRegistry = read("public/js/corpus-registry.js");
+const presenterPath = path.join(ROOT, "public", "js", "corpus-item-presenter.js");
 
 const TARGETS = Object.freeze({
   readyPreviewMax: 12,
@@ -205,6 +207,68 @@ test("B2 keeps recommendation reasons and daily actions evidence-bound", () => {
     "protected study material may appear only from authorized catalogs");
   assert.match(learningHome, /'data-focus-key': 'room-due-review'/,
     "the inline review trigger needs a stable focus identity across live locale rerenders");
+});
+
+test("B4 adapters normalize each corpus without inventing readiness", async () => {
+  assert.ok(fs.existsSync(presenterPath), "B4 needs one pure presentation adapter module");
+  const presenter = await import(pathToFileURL(presenterPath).href);
+  const copy = {
+    untitled: "Без названия", ownText: "Ваш текст", assigned: "назначено группе",
+    finished: "Прочитано", continuePercent: (pct) => `Продолжить · ${pct}%`,
+    continueRow: (row) => `Продолжить · строка ${row}`,
+    studioLevelReason: "уровень указан в Студии", groupLevelReason: "уровень указан в корпусе",
+    familiarityReason: "подходит по знакомым словам", intrinsicReason: "приблизительно по частотности",
+    assignedReason: "назначено вашей группе", personalProvenance: "ваш текст · уровень указан в Студии",
+    benProvenance: "сложность по частотности · знакомые слова по профилю",
+    groupProvenance: (revision) => `учебная группа · TTS r${revision}`,
+  };
+  const ben = presenter.adaptBenYehudaItem({
+    id: "25450", text_key: "corpus:25450", title: "הַבְּרֵכָה", author: "חיים נחמן ביאליק",
+    era: "revival", segments: 24, audio_status: "tts", review_status: "machine",
+  }, {
+    copy, difficultyBand: "mid", difficultyLabel: "средне", familiarityPct: 84,
+    familiarityZone: "in", caveats: ["классический регистр"],
+    progress: { last_row_idx: 8, n_rows: 24 }, savedState: "reading-list",
+  });
+  assert.deepEqual({ corpusId: ben.corpusId, state: ben.learnerState.state, progress: ben.learnerState.progressValue,
+    level: ben.readiness.levelLabel, familiar: ben.readiness.familiarityPct, confidence: ben.readiness.confidence,
+    media: ben.media.humanOrTts, saved: ben.savedState },
+  { corpusId: "benyehuda", state: "reading", progress: 38, level: "средне", familiar: 84,
+    confidence: "derived-high", media: "tts", saved: "reading-list" });
+
+  const mine = presenter.adaptMyTextItem({
+    id: "mine-1", text_key: "mine-1", title: "השיעור שלי", level: "ב", last_row_idx: 16,
+    familiarity_pct: 0, tags_json: '["ульпан"]', topic: "Урок",
+  }, { copy, media: { kind: "video", coverage: null, humanOrTts: "human" } });
+  assert.equal(mine.readiness.familiarityPct, null, "personal text must ignore unsupported raw familiarity");
+  assert.equal(mine.learnerState.progressValue, null, "row position must not become a percentage without a denominator");
+  assert.equal(mine.learnerState.resumeLabel, "Продолжить · строка 17");
+  assert.equal(mine.readiness.confidence, "asserted");
+
+  const group = presenter.adaptGroupCorpusItem({
+    work_id: "song-2", text_key: "song-key-2", title: "אהבת השם", artist: "בן צור",
+    position_no: 2, rows_count: 34, audio_count: 20, audio_revision: 3, level: "ב",
+    familiarity_pct: 91, tags: ["שירים"],
+  }, { copy, corpusId: "study-songs", progress: null });
+  assert.equal(group.readiness.familiarityPct, null, "group item must ignore unsupported raw familiarity");
+  assert.equal(group.media.coverage, "partial");
+  assert.equal(group.media.humanOrTts, "tts");
+  assert.equal(group.learnerState.state, "new");
+  assert.equal(group.learnerState.progressValue, 0);
+  assert.match(group.provenanceSummary, /TTS r3/);
+  assert.ok(presenter.learningSignals(group).length <= 2, "scan line may expose at most two readiness signals");
+});
+
+test("B4 shared presenter is pure and all corpus rows consume its view models", () => {
+  assert.ok(fs.existsSync(presenterPath), "B4 presenter module is missing");
+  const presenterSource = fs.readFileSync(presenterPath, "utf8");
+  assert.doesNotMatch(presenterSource, /localDb|indexedDB|fetch\(|localStorage|INSERT|UPDATE|CREATE TABLE/,
+    "the presentation adapter must not become learner truth or perform I/O");
+  assert.match(libraryUi, /adaptBenYehudaItem/);
+  assert.match(libraryUi, /adaptMyTextItem/);
+  assert.match(libraryUi, /adaptGroupCorpusItem/);
+  assert.match(libraryUi, /function paintLearningCompass\(/);
+  assert.match(libraryUi, /data-confidence/);
 });
 
 module.exports = { TARGETS, VIEW_MODEL_FIXTURES };

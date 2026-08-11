@@ -1740,6 +1740,10 @@
       height: 26px; min-height: 0; margin: 0; justify-content: flex-end; align-items: center; flex-wrap: nowrap;
       max-width: 100%; overflow-x: auto; scrollbar-width: none;
     }
+    /* The compact ready preview has room for the primary fit signal plus its
+       explanation affordance. Caveats remain available in that explanation;
+       repeating them as a third scan chip clips the level on narrow rows. */
+    .room-preview-list .learning-caveat { display: none; }
     .room-preview-list .work-card-difficulty::-webkit-scrollbar { display: none; }
     .room-text-row:hover { border-color: color-mix(in srgb, var(--accent) 48%, var(--border-soft)); background: color-mix(in srgb, var(--accent) 3%, var(--bg-card)); }
     .room-text-row:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 24%, transparent); }
@@ -2093,6 +2097,78 @@
       .corpus-management { margin-top: 14px; }
     }
 
+    /* ── Option B / B4: Learning Compass and honest corpus adapters ──────
+       One scan grammar consumes pure corpus item view models. A missing fit
+       signal stays missing; asserted and derived signals remain distinguishable. */
+    .learning-compass {
+      position: relative; min-width: 0; min-height: 24px; margin-top: 3px;
+      display: flex; align-items: center; gap: 5px; flex-wrap: nowrap;
+      overflow-x: auto; overflow-y: visible; scrollbar-width: none;
+    }
+    .learning-compass[hidden] { display: none; }
+    .learning-compass::-webkit-scrollbar { display: none; }
+    .learning-signal, .learner-state-chip, .learning-media, .learning-tag, .learning-caveat {
+      flex: none; min-height: 24px; box-sizing: border-box; display: inline-flex; align-items: center;
+      padding: 2px 7px; border: 1px solid var(--border-soft); border-radius: 999px;
+      background: var(--bg-muted); color: var(--text-secondary); font-size: 11px; font-weight: 720;
+      line-height: 1.2; white-space: nowrap;
+    }
+    .learning-signal { color: var(--text-primary); background: transparent; }
+    .learning-compass[data-confidence="derived-soft"] .learning-signal { border-style: dashed; }
+    .learning-familiar.coverage-in, .learning-familiar.coverage-easy { color: #17613a; border-color: color-mix(in srgb, #2f855a 52%, var(--border-soft)); background: color-mix(in srgb, #dcfce7 72%, var(--bg-card)); }
+    .learning-familiar.coverage-hard { color: #8a3c22; border-color: color-mix(in srgb, #c05b37 52%, var(--border-soft)); background: color-mix(in srgb, #fff1e8 74%, var(--bg-card)); }
+    .learner-state-chip.is-reading { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 48%, var(--border-soft)); background: color-mix(in srgb, var(--accent) 8%, var(--bg-card)); }
+    .learner-state-chip.is-finished { color: #17613a; border-color: color-mix(in srgb, #2f855a 45%, var(--border-soft)); }
+    .learning-media.media-full { color: #17613a; }
+    .learning-media.media-partial, .learning-caveat { color: #8a5520; }
+    .learning-tag { font-weight: 650; }
+    .learning-compass-details { position: relative; flex: none; }
+    .learning-compass-details > summary {
+      width: 24px; height: 24px; box-sizing: border-box; display: grid; place-items: center;
+      border: 1px solid transparent; border-radius: 50%; color: var(--text-secondary); cursor: pointer; list-style: none;
+    }
+    .learning-compass-details > summary::-webkit-details-marker { display: none; }
+    .learning-compass-details > summary:hover, .learning-compass-details > summary:focus-visible { outline: none; color: var(--accent); border-color: var(--accent); }
+    .learning-compass-panel {
+      position: absolute; z-index: 14; inset-block-start: calc(100% + 5px); inset-inline-start: 0;
+      width: min(310px, calc(100vw - 48px)); padding: 9px 11px; border: 1px solid var(--border-soft);
+      border-radius: 10px; background: var(--bg-card); color: var(--text-secondary);
+      box-shadow: 0 12px 32px rgba(15,23,42,.18); white-space: normal;
+    }
+    .learning-compass-panel p { margin: 0; font-size: 12px; line-height: 1.42; }
+    .learning-compass-panel p + p { margin-top: 5px; padding-top: 5px; border-top: 1px solid var(--border-soft); }
+    .room-item-title-copy { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+    .item-secondary-identity { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); font-size: 11px; font-weight: 620; }
+    .room-item-provenance { max-width: 260px; margin: 2px 5px 7px; color: var(--text-secondary); font-size: 11px; line-height: 1.4; white-space: normal; }
+    .room-text-row[data-state="reading"] { border-inline-start-color: #b46d2d; }
+    .room-text-row[data-state="finished"] { border-inline-start-color: #2f855a; }
+    .group-work-card .learning-compass { margin-top: 3px; }
+    .mytext-card .learning-compass { max-width: 100%; }
+    .work-card .learning-compass-details { display: none; }
+    @media (prefers-color-scheme: dark) {
+      body:not(.theme-light) .learning-familiar.coverage-in,
+      body:not(.theme-light) .learning-familiar.coverage-easy { color: #a7e6c1; background: #173629; }
+      body:not(.theme-light) .learning-familiar.coverage-hard { color: #ffc3a7; background: #44261f; }
+      body:not(.theme-light) .learning-media.media-full,
+      body:not(.theme-light) .learner-state-chip.is-finished { color: #a7e6c1; }
+      body:not(.theme-light) .learning-media.media-partial,
+      body:not(.theme-light) .learning-caveat { color: #f5c078; }
+    }
+    body.theme-dark .learning-familiar.coverage-in, body.theme-dark .learning-familiar.coverage-easy { color: #a7e6c1; background: #173629; }
+    body.theme-dark .learning-familiar.coverage-hard { color: #ffc3a7; background: #44261f; }
+    body.theme-dark .learning-media.media-full, body.theme-dark .learner-state-chip.is-finished { color: #a7e6c1; }
+    body.theme-dark .learning-media.media-partial, body.theme-dark .learning-caveat { color: #f5c078; }
+    @media (min-width: 761px) {
+      .mytext-card.room-text-row { padding-block: 5px; }
+    }
+    @media (max-width: 480px) {
+      .learning-compass { margin-inline-end: -2px; }
+      .learning-compass-panel { position: fixed; z-index: 40; inset-inline: 16px; inset-block-start: auto; inset-block-end: 16px; width: auto; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .learning-compass, .learning-compass-panel { scroll-behavior: auto; }
+    }
+
     /* ── desktop layout layer (Epic 7, R4) ───────────────────────────────────
        Additive @media(min-width) ONLY — the @380px mobile cascade is untouched.
        Centers the Room into a column on wide screens (no stretched-mobile look) and
@@ -2411,9 +2487,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=73"></script>
-<script src="/i18n/locales/en.js?v=73"></script>
-<script src="/i18n/locales/he.js?v=73"></script>
+<script src="/i18n/locales/ru.js?v=74"></script>
+<script src="/i18n/locales/en.js?v=74"></script>
+<script src="/i18n/locales/he.js?v=74"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->

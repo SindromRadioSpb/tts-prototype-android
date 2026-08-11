@@ -2462,6 +2462,17 @@ window.I18N_LOCALES.en = {
       firstOwnText: "Add your first study text", aboutCorpus: "About this corpus and its data",
       benProvenance: "Project Ben‑Yehuda catalogue. Translations, vocalization, audio and difficulty estimates appear only where the corresponding data is genuinely available.",
     },
+    compass: {
+      label: "Reading guide", details: "Why it fits and where the data comes from", assigned: "assigned to group",
+      continuePercent: "Continue · {value}%", continueRow: "Continue · line {value}",
+      studioLevelReason: "Level set in Studio", groupLevelReason: "Level set by the corpus owner",
+      familiarityReason: "Fits the familiar words in your profile", intrinsicReason: "Approximate difficulty from lexical frequency",
+      assignedReason: "Assigned to your study group", partialAudio: "Audio is partially available",
+      personalProvenance: "Your text · level set in Studio",
+      benProvenance: "Difficulty uses lexical frequency; familiar words appear only with real profile overlap",
+      groupProvenance: "Study group · TTS · audio revision {value}",
+      audioPresent: "Audio", audioFull: "Full audio", audioPartial: "Partial audio", audioNone: "No audio", video: "Video",
+    },
     groupAccess: {
       title: "Study group access", open: "Study group access", manage: "Members and invitations", helpTitle: "How sign-in and access work", helpGuest: "The owner signs in with the secret below. A member opens the one-time link sent by the owner. Open it on your own device or in a separate browser profile.",
       ownerRole: "Signed in as owner", memberRole: "Signed in as member", owner: "owner", memberBadge: "member", newMemberEyebrow: "New person", ownerIntro: "This link creates a separate member and separate learning progress.",

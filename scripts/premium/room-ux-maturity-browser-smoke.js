@@ -190,6 +190,19 @@ async function auditSurface(page, surface) {
       : surfaceName === "mytexts" ? ".mytexts-grid .mytext-card-v" : ".group-corpus-grid .group-work-card";
     const items = Array.from(document.querySelectorAll(itemSelector));
     const first = items[0];
+    const itemCompasses = items.map((node) => node.querySelector('.learning-compass')).filter(Boolean);
+    const readinessSignals = items.flatMap((node) => Array.from(node.querySelectorAll('.learning-signal')));
+    const visibleReadinessSignals = readinessSignals.filter((node) => {
+      if (!isVisible(node)) return false;
+      const signal = node.getBoundingClientRect();
+      const compass = node.closest('.learning-compass');
+      if (!compass) return false;
+      const viewport = compass.getBoundingClientRect();
+      const visibleWidth = Math.max(0, Math.min(signal.right, viewport.right) - Math.max(signal.left, viewport.left));
+      const visibleHeight = Math.max(0, Math.min(signal.bottom, viewport.bottom) - Math.max(signal.top, viewport.top));
+      return visibleWidth >= Math.min(12, signal.width * .5) && visibleHeight >= Math.min(12, signal.height * .5);
+    });
+    const confidenceValues = itemCompasses.map((node) => node.getAttribute('data-confidence')).filter(Boolean);
     const rectTop = (selector) => { const node = document.querySelector(selector); return node ? Math.round(node.getBoundingClientRect().top) : null; };
     return {
       surface: surfaceName,
@@ -206,7 +219,18 @@ async function auditSurface(page, surface) {
         titleHeight: Math.round((node.querySelector(".corpus-work-title,.work-card-title,.group-work-title") || node).getBoundingClientRect().height),
         authorHeight: Math.round((node.querySelector(".corpus-work-author-link,.group-work-artist") || node).getBoundingClientRect().height),
         learningHeight: Math.round((node.querySelector(".work-card-difficulty,.group-work-progress") || node).getBoundingClientRect().height),
+        learningText: String((node.querySelector('.learning-compass') || {}).textContent || '').trim().slice(0, 120),
       })),
+      learningCompasses: itemCompasses.length,
+      maxReadinessSignals: itemCompasses.length ? Math.max(...itemCompasses.map((node) => node.querySelectorAll('.learning-signal').length)) : 0,
+      visibleReadinessSignals: visibleReadinessSignals.length,
+      assertedCompasses: confidenceValues.filter((value) => value === 'asserted').length,
+      derivedCompasses: confidenceValues.filter((value) => value === 'derived-high' || value === 'derived-soft').length,
+      familiaritySignals: items.reduce((n, node) => n + node.querySelectorAll('.learning-familiar').length, 0),
+      cosmeticZeroFamiliarity: items.filter((node) => /(?:≈\s*)?0%/.test((node.querySelector('.learning-familiar') || {}).textContent || '')).length,
+      exactAudioCoverage: items.filter((node) => /\d+\s*\/\s*\d+/.test((node.querySelector('.learning-media') || {}).textContent || '')).length,
+      ttsProvenanceDetails: items.filter((node) => /TTS/.test((node.querySelector('.learning-compass-panel') || {}).textContent || '')).length,
+      readingStateLabels: items.filter((node) => node.querySelector('.learner-state-chip.is-reading')).length,
       firstUsefulTop: first ? Math.round(first.getBoundingClientRect().top) : null,
       firstLearningTop: Math.min(...[first ? Math.round(first.getBoundingClientRect().top) : null, rectTop(".corpus-next-action")].filter((value) => value != null)),
       nestedInteractive: nested.length,
@@ -268,6 +292,13 @@ async function selectCorpus(page, id) {
   if (id === "benyehuda") await page.waitForSelector(".corpus-ready .room-text-row", { timeout: 30000 });
   else if (id === "mytexts") await page.waitForSelector(".mytexts-grid .mytext-card-v", { timeout: 30000 });
   else await page.waitForSelector(".group-corpus-grid .group-work-card", { timeout: 30000 });
+  if (id === "benyehuda") {
+    // B4 readiness is intentionally IntersectionObserver-lazy. Exercise one real
+    // visible row, then restore the corpus top before geometry is audited.
+    await page.locator(".corpus-ready .room-text-row").first().scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => !!document.querySelector(".corpus-ready .room-text-row .learning-compass[data-confidence]"), null, { timeout: 30000 });
+    await page.evaluate(() => scrollTo(0, 0));
+  }
   await page.waitForTimeout(250);
 }
 
@@ -315,7 +346,15 @@ async function captureMatrix(browser, locale, viewport, theme, label, myTextCoun
     }
     const rowSelector = name === "benyehuda" ? ".corpus-ready .room-text-row"
       : name === "mytexts" ? ".mytexts-grid .mytext-card-v" : ".group-corpus-grid .group-work-card";
-    await page.locator(rowSelector).first().scrollIntoViewIfNeeded();
+    await page.locator(rowSelector).first().evaluate((node) => node.scrollIntoView({ block: "center", inline: "nearest" }));
+    await page.waitForTimeout(180);
+    const rowCapture = await page.locator(rowSelector).first().evaluate((node) => {
+      const rect = node.getBoundingClientRect();
+      const style = getComputedStyle(node);
+      return { top: rect.top, bottom: rect.bottom, width: rect.width, opacity: style.opacity, visibility: style.visibility };
+    });
+    check(rowCapture.bottom > 0 && rowCapture.top < viewport.height && rowCapture.width > 40 && rowCapture.opacity !== "0" && rowCapture.visibility !== "hidden",
+      `${label}/${name}: row evidence capture contains a visible item (${JSON.stringify(rowCapture)})`);
     await page.screenshot({ path: path.join(OUT, `${label}-${name}-rows.png`), fullPage: false });
     await page.evaluate(() => scrollTo(0, 0));
   }
@@ -407,6 +446,40 @@ function evaluateGreen(matrix) {
         check(entry.visibleManagementActions === 0, `${stage}/${entry.surface}/${entry.lang}: management does not precede study (${entry.visibleManagementActions})`);
       } else {
         check(entry.filterOpen && entry.filterPanelVisible, `${stage}/${entry.surface}/${entry.lang}: desktop filter bar is expanded`);
+      }
+    }
+  }
+  if (["B4", "B5"].includes(stage)) {
+    for (const entry of matrix.filter((item) => item.surface !== "learning-home")) {
+      check(entry.maxReadinessSignals <= 2,
+        `${stage}/${entry.surface}/${entry.lang}: at most two readiness signals (${entry.maxReadinessSignals})`);
+      check(entry.cosmeticZeroFamiliarity === 0,
+        `${stage}/${entry.surface}/${entry.lang}: missing familiarity never becomes 0% (${entry.cosmeticZeroFamiliarity})`);
+      if (entry.surface === "benyehuda") {
+        check(entry.learningCompasses >= 1 && entry.derivedCompasses >= 1,
+          `${stage}/${entry.lang}: Ben-Yehuda maps derived readiness (${entry.derivedCompasses}/${entry.learningCompasses})`);
+        check(entry.visibleReadinessSignals >= 1,
+          `${stage}/${entry.lang}: Ben-Yehuda readiness is visibly scannable (${entry.visibleReadinessSignals})`);
+      } else if (entry.surface === "mytexts") {
+        check(entry.learningCompasses === entry.listItems && entry.assertedCompasses === entry.listItems,
+          `${stage}/${entry.lang}: every My Text row uses asserted adapter (${entry.assertedCompasses}/${entry.listItems})`);
+        check(entry.visibleReadinessSignals >= 1,
+          `${stage}/${entry.lang}: My Text readiness is visibly scannable (${entry.visibleReadinessSignals})`);
+        check(entry.familiaritySignals === 0,
+          `${stage}/${entry.lang}: My Texts shows no unsupported familiarity (${entry.familiaritySignals})`);
+        if (entry.lang === "ru") check(entry.readingStateLabels >= 1,
+          `${stage}/${entry.viewport.width}: My Texts preserves honest row-position Continue (${entry.readingStateLabels})`);
+      } else if (entry.surface === "study-songs") {
+        check(entry.learningCompasses === entry.listItems && entry.assertedCompasses === entry.listItems,
+          `${stage}/${entry.lang}: every group row uses asserted adapter (${entry.assertedCompasses}/${entry.listItems})`);
+        check(entry.visibleReadinessSignals >= 1,
+          `${stage}/${entry.lang}: group readiness is visibly scannable (${entry.visibleReadinessSignals})`);
+        check(entry.familiaritySignals === 0,
+          `${stage}/${entry.lang}: group corpus shows no unsupported familiarity (${entry.familiaritySignals})`);
+        check(entry.exactAudioCoverage === entry.listItems,
+          `${stage}/${entry.lang}: group audio coverage remains exact N/N (${entry.exactAudioCoverage}/${entry.listItems})`);
+        check(entry.ttsProvenanceDetails === entry.listItems,
+          `${stage}/${entry.lang}: TTS revision stays in provenance detail (${entry.ttsProvenanceDetails}/${entry.listItems})`);
       }
     }
   }
