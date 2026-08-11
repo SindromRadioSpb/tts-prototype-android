@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-12
 
-**Mode:** `RESEARCH-ONLY / READ-ONLY / NO PRODUCT CODE`
+**Mode:** `RESEARCH PHASE COMPLETE / HISTORICAL READ-ONLY EVIDENCE`
 
 **Repository baseline:** `main@6a2e80a1`
 
@@ -10,6 +10,12 @@
 
 **Decision packet:**
 [`ROOM_UX_B7_LEARNING_COMPASS_2_DECISION_PACKET_2026_08_12.md`](../../../planning/ROOM_UX_B7_LEARNING_COMPASS_2_DECISION_PACKET_2026_08_12.md)
+
+The owner subsequently authorized implementation. Engineering implementation
+is `main@845ddc71`; durable automation artifacts are in
+[`automation/`](./automation/) and the current status is recorded in
+[`ROOM_UX_B7_LEARNING_COMPASS_2_IMPLEMENTATION_2026_08_12.md`](../../../planning/ROOM_UX_B7_LEARNING_COMPASS_2_IMPLEMENTATION_2026_08_12.md).
+This research record remains unchanged as the pre-code evidence boundary.
 
 ## 1. Scope and evidence boundary
 

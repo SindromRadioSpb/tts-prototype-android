@@ -2,7 +2,7 @@
 
 Дата: 2026-08-11
 
-Статус: **B6 CLOSED / OWNER ACCEPTED; NEXT: B7 RESEARCH-ONLY**
+Статус: **B6 CLOSED; B7 ENGINEERING PASS / PHYSICAL-AT PENDING**
 
 Предшествующие программы: Option B B0–B5 и B6 Scale & Resilience закрыты
 владельцем; см. `ROOM_UX_MATURITY_OPTION_B_CLOSURE_2026_08_11.md` и
@@ -30,6 +30,18 @@ cross-surface решениями.
 - privacy-safe production RUM для LCP/INP/open/return/error, без learner content.
 
 ### B7 — Learning Compass 2.0
+
+Implementation `main@845ddc71`, release candidate `3.11.361`:
+
+- один local-first `recorded-familiarity-v2` core для Room и Agent Access;
+- versioned derived cache + bounded Worker для My Texts/current materialized
+  group editions, без card-paint body reads;
+- exact buckets/lower bound и честные typed states вместо fabricated `0%`;
+- local-only `5×3×2500` calibration range с disable/reset;
+- typed per-field provenance и deterministic reason ladder без LLM/threshold
+  promise;
+- engineering gates PASS; production deploy/read-back и physical/AT matrix не
+  выполнялись, B7 не закрыт.
 
 - честная familiar-word coverage для поддерживаемых My Texts/group items;
 - индивидуальное время чтения только после калибровки по реальному поведению;
@@ -62,17 +74,17 @@ cross-surface решениями.
 Visual finishing может исследоваться параллельно B6, но shared `reader-core.css`, `morph-host.js`,
 LocalDb/FSRS/media/i18n/SW contracts и production deployments остаются сериализованными.
 
-## Начало следующей сессии: B7
+## Текущая следующая граница: B7.5 physical/AT acceptance
 
-1. Прочитать B0–B6 closure, этот handoff, `PREMIUM_BENCHMARK.md`,
-   `PRODUCT_DIRECTION.md` и живой код Learning Compass/coverage.
-2. Выполнить research-only recon B7: какие My Texts/group items имеют честный
-   vocabulary coverage, где нужна calibration, какие provenance/unsupported
-   states уже существуют и какие contracts shared.
-3. Подготовить `ROOM_UX_B7_LEARNING_COMPASS_2_DECISION_PACKET_<date>.md` на
-   owner approval до продуктового кода.
-4. Не совмещать B7 с B8/B9 или Visual finishing deployment; каждый B остаётся
-   отдельным owner stop/go решением.
+1. Использовать
+   `ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md` на exact candidate
+   `3.11.361`; не подменять physical/AT automation-скриншотами.
+2. На owner profile выполнять только read-only navigation/calibration controls;
+   не grade/review и доказать неизменность `review_log`.
+3. После owner-reported physical PASS отдельно выполнить production
+   preflight/deploy/served-byte read-back, если владелец явно авторизует deploy.
+4. Только после B7 closure начать новый research-only goal B8 Reading Journey.
+   B8/B9/Visual finishing не piggyback на B7 release.
 
 ## Постоянный stop list
 

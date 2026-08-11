@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-12
 
-**Статус:** `AWAITING OWNER DECISION / RESEARCH-ONLY / NO CODE`
+**Статус:** `OWNER GO / IMPLEMENTED / ENGINEERING PASS / PHYSICAL-AT PENDING`
 
 **Программа:** Reading Room B7 из B6–B9 handoff
 
@@ -15,6 +15,10 @@
 [`ROOM_UX_B6_SCALE_RESILIENCE_CLOSURE_2026_08_12.md`](./ROOM_UX_B6_SCALE_RESILIENCE_CLOSURE_2026_08_12.md)
 
 **Research baseline:** `main@6a2e80a1`
+
+**Implementation:** `main@845ddc71`
+
+**Release candidate:** `3.11.361` (local engineering evidence; production not deployed)
 
 **Production snapshot inherited from B6:** `3.11.360`
 
@@ -599,4 +603,9 @@ D5=deterministic-reasons+no-threshold-promise;
 D6=packet-budgets+full-physical-matrix.
 ```
 
-Until that approval, B7 remains `RESEARCH-ONLY / NO CODE`.
+Владелец 2026-08-12 дал явный переход к реализации рекомендованного packet.
+D1–D6 реализованы в `main@845ddc71`; engineering automation прошла. D6
+physical/assistive matrix остаётся отдельным незаполненным gate, поэтому B7
+ещё не закрыт и не имеет production/GA verdict. Реализованный контракт и
+точная граница доказательства записаны в
+[`ROOM_UX_B7_LEARNING_COMPASS_2_IMPLEMENTATION_2026_08_12.md`](./ROOM_UX_B7_LEARNING_COMPASS_2_IMPLEMENTATION_2026_08_12.md).

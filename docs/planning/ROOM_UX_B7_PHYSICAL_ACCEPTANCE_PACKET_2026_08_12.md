@@ -1,0 +1,80 @@
+# Reading Room B7 — physical and assistive acceptance packet
+
+Дата подготовки: 2026-08-12
+
+Статус: **READY TO EXECUTE · AUTOMATION PASS · PHYSICAL/AT NOT RUN**
+
+Release under test: `3.11.361` / implementation `845ddc71`.
+
+Production deploy не является prerequisite для локального candidate smoke и
+не авторизован этим packet. Проверять нужно exact served/installed version и
+записать её в каждую строку.
+
+## Неподвижные правила
+
+1. На owner profile только read-only Room navigation и B7 details/reset/
+   disable. Не grade/review, не менять word status и не завершать review.
+2. До/после фиксировать aggregate+checksum `review_log`; значения обязаны
+   совпасть. По возможности также фиксировать `word_status` и progress
+   checksum.
+3. Reset/disable удаляет только local calibration ledger. Familiarity,
+   progress, vocabulary, notes, bookmarks и cache ingredients не меняются.
+4. Automation artifact не заполняет physical/AT row.
+5. FAIL любого P0/P1 останавливает closure/deploy; записать exact repro,
+   version, locale/theme/source/status и artifact path.
+
+## Краткий общий smoke
+
+Для каждой среды:
+
+1. Открыть Room → My Texts и Ben-Yehuda; проверить карточки `available`,
+   `limited`, `needs profile/not prepared`, `stale/unsupported` где доступны.
+2. Открыть «Почему/Подробнее»: имя кнопки, logical reading order, exact buckets,
+   provenance и caveat доступны без hover.
+3. Закрыть details клавиатурой/AT и проверить возврат фокуса на исходную
+   карточку.
+4. Проверить pending→available/failure: карточка остаётся читаемой, нет
+   announcement storm, fabricated `0%` или обещания понимания.
+5. При готовой калибровке проверить диапазон; выполнить disable, затем enable
+   и reset. Familiarity остаётся, время исчезает, canonical checksums неизменны.
+6. Warm offline: prepared local signal остаётся; unprepared group честно
+   говорит `not prepared/offline`. После reconnect нет duplicate refresh.
+7. HE/RTL и 200%/large text: без horizontal scroll, clipping, overlap или
+   инверсии semantic order.
+
+## Матрица исполнения
+
+| ID | Среда | Дополнительный фокус | Acceptance | Статус/evidence |
+|---|---|---|---|---|
+| B7-IOS-S | iPhone Safari | details, pending, offline, large text, HE/RTL | focus returns; statuses/provenance readable; no overflow/fake zero | NOT RUN |
+| B7-IOS-P | iPhone standalone PWA | eviction/reopen, warm offline, update waiting | no mid-flow reload/data loss; prepared cache survives | NOT RUN |
+| B7-IOS-VO | iPhone Safari/PWA + VoiceOver | rotor/order, details, status, reset/disable | controls named; no duplicate announcements; logical RTL | NOT RUN |
+| B7-AND | Android Chrome/PWA | Worker failure/quota/reconnect, text scaling | usable cards; honest failure; one refresh | NOT RUN |
+| B7-TB | Android Chrome/PWA + TalkBack | browse/details/status/reset | named controls, focus retained, no announcement storm | NOT RUN |
+| B7-NVDA | Windows 11 Chrome + NVDA | reason/buckets/provenance order and focus return | exact facts announced; no tooltip-only data | NOT RUN |
+| B7-MAC-VO | macOS Safari + VoiceOver | WebKit details/status semantics and HE/RTL | logical order/focus; no clipped facts | NOT RUN |
+| B7-KBD-200 | physical keyboard, desktop 200% | full browse/details/disable/reset without pointer | visible focus, no trap/overlap, all actions reachable | NOT RUN |
+| B7-AUTO | isolated Chromium matrix | 320–1280/status/privacy/budgets | `92/92`; not physical/AT | PASS — automation |
+
+## Evidence record
+
+```text
+ID:
+hardware / OS / browser or PWA build / AT build:
+served or installed app version:
+locale / direction / theme / zoom or text size:
+source and B7 statuses exercised:
+steps actually executed:
+expected / observed:
+review_log aggregate+checksum before / after:
+word_status/progress checksum before / after (if captured):
+artifact paths:
+verdict: PASS | FAIL | BLOCKED
+tester / timestamp:
+```
+
+## Closure rule
+
+B7 остаётся `ENGINEERING PASS / PHYSICAL-AT PENDING`, пока обязательные строки
+не имеют owner evidence или явного documented exception. Только после owner
+acceptance можно подготовить closure и отдельно решать production deploy.
