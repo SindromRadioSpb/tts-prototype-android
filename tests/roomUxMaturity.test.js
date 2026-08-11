@@ -204,8 +204,10 @@ test("B2 keeps recommendation reasons and daily actions evidence-bound", () => {
     libraryUi.indexOf("function learningHomeFeature"),
     libraryUi.indexOf("async function renderMyTextsCorpus"),
   );
-  assert.match(learningHome, /Number\.isFinite\(Number\(pick\.cov\)\)/,
-    "familiarity may render only when the recommender returned a numeric estimate");
+  assert.match(learningHome, /Number\.isFinite\(Number\(pick\.familiar\)\)[\s\S]*Number\(pick\.denominator\) > 0/,
+    "B7 familiarity may render only with an exact numerator and non-zero denominator");
+  assert.doesNotMatch(learningHome, /≈|pick\.cov\) \* 100/,
+    "B7 must not revive a soft estimate or universal percentage promise");
   assert.match(learningHome, /Number\.isFinite\(Number\(card\.segments\)\)/,
     "the short-text action needs a real row count");
   assert.match(learningHome, /_dueCounts && _dueCounts\.dueNow/,
@@ -256,7 +258,8 @@ test("B4 adapters normalize each corpus without inventing readiness", async () =
     work_id: "song-2", text_key: "song-key-2", title: "אהבת השם", artist: "בן צור",
     position_no: 2, rows_count: 34, audio_count: 20, audio_revision: 3, level: "ב",
     familiarity_pct: 91, tags: ["שירים"],
-  }, { copy, corpusId: "study-songs", progress: null });
+  }, { copy, corpusId: "study-songs", progress: null, humanOrTts: "tts",
+    audioProvenance: { type: "asserted", source: "group-corpus", revision: "3" } });
   assert.equal(group.readiness.familiarityPct, null, "group item must ignore unsupported raw familiarity");
   assert.equal(group.media.coverage, "partial");
   assert.equal(group.media.humanOrTts, "tts");

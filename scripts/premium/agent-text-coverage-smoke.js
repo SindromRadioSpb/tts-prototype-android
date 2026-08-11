@@ -85,16 +85,16 @@ async function main() {
   // Canonical acceptance 1/5: a complete baked Ben-Yehuda work is a supported source.
   const corpus = await call(service({ learnerProjection: projection({ "pid:1": "known" }) }), "req-corpus", { target: { work_id: "10" } });
   ok(corpus.ok, JSON.stringify(corpus));
-  eq(corpus.result.status, "OK");
-  eq(corpus.result.token_known_pct, 100);
-  eq(corpus.result.content_word_known_pct, 100);
-  eq(corpus.result.schema_version, "aa.text_coverage.1.0.0");
+  eq(corpus.result.status, "AVAILABLE");
+  eq(corpus.result.recorded_familiar_pct_lower_bound, 100);
+  eq(corpus.result.counts.familiar, corpus.result.counts.eligible_denominator);
+  eq(corpus.result.schema_version, "aa.text_coverage.2.0.0");
 
   // 2/5: a complete synced personal text is equally supported when its live grant exists.
   const personal = await call(service({ learnerProjection: projection({ "pid:1": "known" }) }), "req-personal", { target: { text_key: "owner-text-1" } });
   ok(personal.ok, JSON.stringify(personal));
-  eq(personal.result.status, "OK");
-  eq(personal.result.buckets.known, 1);
+  eq(personal.result.status, "AVAILABLE");
+  eq(personal.result.counts.familiar, 1);
 
   // 3/5: personal coverage fails closed without the same per-connection grant as S2 content.
   const denied = await call(service({ grant: false }), "req-no-grant", { target: { text_key: "owner-text-1" } });
@@ -104,18 +104,17 @@ async function main() {
   // 4/5: a specific body with no Hebrew tokens returns honest unavailability, not fake zeroes.
   const unavailable = await call(service({ corpusRows: [{ he: "123 !!!", he_niqqud: "" }] }), "req-no-hebrew", { target: { work_id: "10" } });
   ok(unavailable.ok, JSON.stringify(unavailable));
-  eq(unavailable.result.status, "COVERAGE_UNAVAILABLE");
-  eq(unavailable.result.unavailable_reason, "NO_HEBREW_TOKENS");
-  ok(!Object.prototype.hasOwnProperty.call(unavailable.result, "token_known_pct"), "unavailable result fabricated a percentage");
+  eq(unavailable.result.status, "UNSUPPORTED");
+  eq(unavailable.result.reason_code, "NO_HEBREW_TOKENS");
+  eq(unavailable.result.recorded_familiar_pct_lower_bound, null);
 
-  // 5/5: with an empty learner projection, resolvable content is unknown and frustrating.
+  // 5/5: an empty learner projection asks for a profile; it is not a fabricated 0%.
   const empty = await call(service(), "req-empty-projection", { target: { work_id: "10" }, top_unknown_limit: 5 });
   ok(empty.ok, JSON.stringify(empty));
-  eq(empty.result.status, "OK");
-  eq(empty.result.buckets.known, 0);
-  eq(empty.result.buckets.unknown, 1);
-  eq(empty.result.content_word_known_pct, 0);
-  eq(empty.result.recommendation_band, "FRUSTRATION_BELOW_90");
+  eq(empty.result.status, "NEEDS_PROFILE");
+  eq(empty.result.counts, null);
+  eq(empty.result.recorded_familiar_pct_lower_bound, null);
+  ok(!Object.prototype.hasOwnProperty.call(empty.result, "recommendation_band"), "threshold band leaked into v2");
 
   // Closed input: neither or both source identifiers are typed invalid input.
   for (const target of [{}, { work_id: "10", text_key: "owner-text-1" }]) {

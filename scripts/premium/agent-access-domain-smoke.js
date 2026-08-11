@@ -112,12 +112,12 @@ const fixtures = Object.freeze({
     resolver_version: "word-morphology-resolver-v1", dataset_version: "pealim-infl-v12", generated_at: GENERATED,
   }),
   get_text_coverage: Object.freeze({
-    schema_version: "aa.text_coverage.1.0.0", status: "OK", token_total: 10, token_known_pct: 90,
-    lemma_total: 5, lemma_known_pct: 80, content_word_known_pct: 90,
-    buckets: Object.freeze({ known: 2, learning: 1, due_now: 1, unknown: 1, unresolved: 0, proper_names: 0 }),
+    schema_version: "aa.text_coverage.2.0.0", status: "AVAILABLE", reason_code: "RECORDED_FAMILIARITY_READY",
+    counts: Object.freeze({ lexical_total: 10, eligible_denominator: 10, familiar: 9, explicit_new: 0, untracked: 1, unresolved: 0, ignored_excluded: 0, proper_names_excluded: 0 }),
+    recorded_familiar_pct_lower_bound: 90, unresolved_uncertainty_pp: 0, rank_eligible: true,
     top_unknown: Object.freeze([Object.freeze({ lemma: "מילה", freq_in_text: 1, gloss_ru: "слово" })]),
-    recommendation_band: "STRETCH_90_95", learner_projection_version: "fixture-projection-v1",
-    tokenizer_version: "reader-morph-tokenizer-v1", resolver_version: "text-coverage-resolver-v1",
+    learner_projection_version: "fixture-projection-v1",
+    tokenizer_version: "reader-morph-tokenizer-v1", resolver_version: "recorded-familiarity-v2+fixture",
     generated_at: GENERATED,
   }),
   search_group_reading_catalog: Object.freeze({
@@ -127,7 +127,7 @@ const fixtures = Object.freeze({
     schema_version:"aa.group_reading_content.1.0.0",corpus:Object.freeze({corpus_id:"fixture-corpus",title:"Учебные песни",version:1,access:"GROUP_RESTRICTED"}),work:Object.freeze({work_id:"song-pos-001",title:"כולם גנבים",artist:"אושר כהן",source_url:null,rights_status:"REVIEW_REQUIRED"}),anchor:Object.freeze({corpus_id:"fixture-corpus",work_id:"song-pos-001",start_order_index:0,row_count:1}),rows:Object.freeze([Object.freeze({order_index:0,he:"לִכְתּוֹב",ru:"писать"})]),rows_total:42,has_more:true,authority:"GROUP_CORPUS_SERVER_CANONICAL",generated_at:GENERATED,
   }),
   get_group_text_coverage: Object.freeze({
-    schema_version:"aa.group_text_coverage.1.0.0",target:Object.freeze({corpus_id:"fixture-corpus",work_id:"song-pos-001",title:"כולם גנבים"}),status:"OK",token_total:10,token_known_pct:90,lemma_total:5,lemma_known_pct:80,content_word_known_pct:90,buckets:Object.freeze({known:2,learning:1,due_now:1,unknown:1,unresolved:0,proper_names:0}),top_unknown:Object.freeze([Object.freeze({lemma:"מילה",freq_in_text:1,gloss_ru:"слово"})]),recommendation_band:"STRETCH_90_95",learner_projection_version:"fixture-projection-v1",tokenizer_version:"reader-morph-tokenizer-v1",resolver_version:"text-coverage-resolver-v1",generated_at:GENERATED,
+    schema_version:"aa.group_text_coverage.2.0.0",target:Object.freeze({corpus_id:"fixture-corpus",work_id:"song-pos-001",title:"כולם גנבים"}),status:"AVAILABLE",reason_code:"RECORDED_FAMILIARITY_READY",counts:Object.freeze({lexical_total:10,eligible_denominator:10,familiar:9,explicit_new:0,untracked:1,unresolved:0,ignored_excluded:0,proper_names_excluded:0}),recorded_familiar_pct_lower_bound:90,unresolved_uncertainty_pp:0,rank_eligible:true,top_unknown:Object.freeze([Object.freeze({lemma:"מילה",freq_in_text:1,gloss_ru:"слово"})]),learner_projection_version:"fixture-projection-v1",tokenizer_version:"reader-morph-tokenizer-v1",resolver_version:"recorded-familiarity-v2+fixture",generated_at:GENERATED,
   }),
   propose_import_text: Object.freeze({schema_version:"aa.propose_import_text.1.0.0",proposal_id:"ap_0123456789abcdef0123456789abcdef",status:"PENDING",generated_at:GENERATED}),
   propose_track_word: Object.freeze({schema_version:"aa.propose_track_word.1.0.0",proposal_id:"ap_0123456789abcdef0123456789abcdef",status:"PENDING",per_item:Object.freeze([Object.freeze({surface:"מילה",resolution:"RESOLVED"})]),generated_at:GENERATED}),

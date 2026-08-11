@@ -2834,6 +2834,138 @@ export async function getKnownWordStates() {
   return out;
 }
 
+// B7 Learning Compass 2.0 — one logical, content-free learner projection shared by a whole
+// card page. It composes the existing canonical manual/SRS truths; it does not introduce a
+// second learner model. Callers cache this object only in memory for the current render pass.
+export async function getLearningCompassProjection() {
+  const [states, schedule, versionRows] = await Promise.all([
+    getKnownWordStates(),
+    getSrsSchedule(),
+    q(`SELECT COUNT(*) AS row_count, MAX(COALESCE(updated_at, '')) AS max_updated
+         FROM word_status`, []),
+  ]);
+  const stateByKey = states && typeof states === 'object' ? states : {};
+  const scheduledKeys = Object.keys(schedule && typeof schedule === 'object' ? schedule : {}).sort();
+  const tracked = new Set([...Object.keys(stateByKey), ...scheduledKeys]);
+  const versionRow = versionRows && versionRows[0] || {};
+  return {
+    schema_version: 'room.learner_projection.2.0.0',
+    version: ['room-profile-v2', Number(versionRow.row_count || 0), String(versionRow.max_updated || '')].join(':'),
+    generated_at: new Date().toISOString(),
+    state_by_key: stateByKey,
+    scheduled_keys: scheduledKeys,
+    tracked_lexeme_count: tracked.size,
+  };
+}
+
+const _COMPASS_BATCH_MAX_ITEMS = 48;
+const _COMPASS_BATCH_MAX_BYTES = 256 * 1024;
+const _COMPASS_CACHE_MAX_ITEMS = 1000;
+const _COMPASS_CACHE_MAX_BYTES = 64 * 1024 * 1024;
+
+function _compassByteLength(value) {
+  const text = typeof value === 'string' ? value : JSON.stringify(value);
+  return typeof TextEncoder !== 'undefined' ? new TextEncoder().encode(text).byteLength : text.length;
+}
+
+function _compassRequestMatches(row, request) {
+  return row && request
+    && String(row.content_revision || '') === String(request.content_revision || '')
+    && (!request.content_sha256 || String(row.content_sha256 || '') === String(request.content_sha256))
+    && String(row.entitlement_revision || '') === String(request.entitlement_revision || '')
+    && String(row.resolver_version || '') === String(request.resolver_version || '');
+}
+
+// One SQL read for a page of at most 48 cards. The 256 KiB response cap is enforced before
+// returning data to the renderer; oversize/mismatched rows remain honestly NOT_PREPARED/STALE.
+export async function getLearningCompassIngredientsBatch(requests) {
+  const wanted = (Array.isArray(requests) ? requests : []).slice(0, _COMPASS_BATCH_MAX_ITEMS)
+    .filter((request) => request && request.cache_key)
+    .map((request) => ({ ...request, cache_key: String(request.cache_key) }));
+  if (!wanted.length) return { entries: {}, stale_keys: [], invalid_keys: [], size_bytes: 0 };
+  const rows = await q(
+    `SELECT cache_key, content_revision, content_sha256, entitlement_revision,
+            resolver_version, ingredients_json, size_bytes
+       FROM room_learning_compass_cache
+      WHERE cache_key IN (SELECT CAST(value AS TEXT) FROM json_each(?))`,
+    [JSON.stringify(wanted.map((request) => request.cache_key))],
+  );
+  const byKey = new Map(wanted.map((request) => [request.cache_key, request]));
+  const out = {};
+  const stale = [], invalid = [];
+  let bytes = 0;
+  for (const row of (rows || [])) {
+    const request = byKey.get(String(row.cache_key));
+    if (!_compassRequestMatches(row, request)) { stale.push(String(row.cache_key)); continue; }
+    const size = Number(row.size_bytes) || _compassByteLength(row.ingredients_json || '');
+    if (size < 0 || bytes + size > _COMPASS_BATCH_MAX_BYTES) { invalid.push(String(row.cache_key)); continue; }
+    try {
+      const value = JSON.parse(row.ingredients_json);
+      out[String(row.cache_key)] = value;
+      bytes += size;
+    } catch (_) { invalid.push(String(row.cache_key)); }
+  }
+  const touched = Object.keys(out);
+  if (touched.length) {
+    await r(`UPDATE room_learning_compass_cache SET last_used_at=strftime('%Y-%m-%dT%H:%M:%fZ','now')
+              WHERE cache_key IN (SELECT CAST(value AS TEXT) FROM json_each(?))`, [JSON.stringify(touched)]);
+  }
+  return { entries: out, stale_keys: stale, invalid_keys: invalid, size_bytes: bytes };
+}
+
+export async function putLearningCompassIngredients(entry) {
+  if (!entry || !entry.cache_key || !entry.ingredients) throw new Error('Learning Compass cache entry is required');
+  const allowedIngredientKeys = new Set(['schema_version','source_class','source_key','content_revision','content_sha256',
+    'entitlement_revision','resolver_version','lexical_resolver_version','dataset_version','key_frequencies',
+    'unresolved_token_count','proper_name_token_count','total_token_count','built_at']);
+  if (Object.keys(entry.ingredients).some((key) => !allowedIngredientKeys.has(key))) throw new Error('Learning Compass ingredients contain a forbidden field');
+  if (!Array.isArray(entry.ingredients.key_frequencies) || entry.ingredients.key_frequencies.length > 50000) throw new Error('Learning Compass ingredients have invalid frequencies');
+  const payload = JSON.stringify(entry.ingredients);
+  const size = _compassByteLength(payload);
+  if (size > _COMPASS_BATCH_MAX_BYTES) throw new Error('Learning Compass cache item exceeds packet budget');
+  const sourceClass = String(entry.source_class || '');
+  if (sourceClass !== 'mytext' && sourceClass !== 'group') throw new Error('Invalid Learning Compass source class');
+  const now = new Date().toISOString();
+  await r(
+    `INSERT INTO room_learning_compass_cache
+       (cache_key, source_class, source_key, content_revision, content_sha256,
+        entitlement_revision, resolver_version, ingredients_json, size_bytes, built_at, last_used_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?)
+     ON CONFLICT(cache_key) DO UPDATE SET
+       source_class=excluded.source_class, source_key=excluded.source_key,
+       content_revision=excluded.content_revision, content_sha256=excluded.content_sha256,
+       entitlement_revision=excluded.entitlement_revision, resolver_version=excluded.resolver_version,
+       ingredients_json=excluded.ingredients_json, size_bytes=excluded.size_bytes,
+       built_at=excluded.built_at, last_used_at=excluded.last_used_at`,
+    [String(entry.cache_key), sourceClass, String(entry.source_key || ''), String(entry.content_revision || ''),
+      String(entry.content_sha256 || ''), entry.entitlement_revision == null ? null : String(entry.entitlement_revision),
+      String(entry.resolver_version || ''), payload, size, now, now],
+  );
+  // Windowed LRU pruning is one bounded write and needs no body/profile/session reads.
+  await r(
+    `DELETE FROM room_learning_compass_cache WHERE cache_key IN (
+       SELECT cache_key FROM (
+         SELECT cache_key,
+                ROW_NUMBER() OVER (ORDER BY last_used_at DESC, built_at DESC, cache_key) AS ordinal,
+                SUM(size_bytes) OVER (ORDER BY last_used_at DESC, built_at DESC, cache_key) AS cumulative_bytes
+           FROM room_learning_compass_cache
+       ) WHERE ordinal > ? OR cumulative_bytes > ?
+     )`,
+    [_COMPASS_CACHE_MAX_ITEMS, _COMPASS_CACHE_MAX_BYTES],
+  );
+  return { ok: true, size_bytes: size };
+}
+
+export async function deleteLearningCompassIngredients(cacheKey) {
+  await r(`DELETE FROM room_learning_compass_cache WHERE cache_key = ?`, [String(cacheKey || '')]);
+}
+
+export async function deleteLearningCompassGroupCorpus(corpusId) {
+  const prefix = 'group:' + String(corpusId || '') + ':';
+  await r(`DELETE FROM room_learning_compass_cache
+            WHERE source_class='group' AND substr(cache_key,1,length(?))=?`, [prefix, prefix]);
+}
+
 // Epic 4 keystone — MANUAL reader-knowledge status store (word_status table, migration 057),
 // SEPARATE from notes/srs/anki so marking «known» never spawns a flashcard. lemma_key = canonical
 // NotesAutoGen.lemmaKey. status ∈ new|l1|l2|l3|l4|known|ignore; '' / null clears the row.

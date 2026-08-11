@@ -1,6 +1,6 @@
 {
   "name": "tts-translator-dashboard",
-  "version": "3.11.304",
+  "version": "3.11.361",
   "description": "TTS & Translator Dashboard (Google Cloud Text-to-Speech + Gemini, Hebrew-Russian tables)",
   "main": "server.js",
   "scripts": {
@@ -23,6 +23,7 @@
     "smoke:room-ux-maturity:red": "node --test tests/roomUxMaturity.test.js && node scripts/premium/room-ux-maturity-browser-smoke.js --expect-red",
     "smoke:room-ux-maturity": "node --test tests/roomUxMaturity.test.js && node scripts/premium/room-ux-maturity-browser-smoke.js --stage=B5",
     "smoke:room-b6": "node --test tests/roomB6ScaleResilience.test.js tests/roomUxMaturity.test.js && node scripts/premium/room-b6-scale-resilience-smoke.js",
+    "smoke:room-b7": "node --test tests/learningCompass.test.js tests/roomB6ScaleResilience.test.js tests/roomUxMaturity.test.js && node scripts/premium/room-b7-learning-compass-smoke.js",
     "smoke:studio-room-srs": "node scripts/premium/studio-room-srs-smoke.js",
     "smoke:room-training-premium": "node scripts/premium/room-training-premium-smoke.js",
     "smoke:studio-table-resume": "node --test tests/tableChunks.test.js tests/tableJob.test.js tests/studioTableJobUi.test.js && node scripts/premium/studio-table-resume-browser-smoke.js",

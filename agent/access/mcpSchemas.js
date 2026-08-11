@@ -12,6 +12,7 @@ const closedObject = (properties, required = Object.keys(properties)) => Object.
 });
 const string = (options = {}) => Object.freeze({ type: "string", ...options });
 const integer = (minimum, maximum) => Object.freeze({ type: "integer", minimum, maximum });
+const number = (minimum, maximum) => Object.freeze({ type: "number", minimum, maximum });
 
 const INPUT_SCHEMAS = Object.freeze({
   get_learning_brief: closedObject({}, []),
@@ -324,27 +325,25 @@ const OUTPUT_SCHEMAS = Object.freeze({
     generated_at: timestamp,
   }, ["schema_version", "resolution", "entries", "resolver_version", "dataset_version", "generated_at"]),
   get_text_coverage: closedObject({
-    schema_version: string({ const: "aa.text_coverage.1.0.0" }),
-    status: string({ enum: Object.freeze(["OK", "COVERAGE_UNAVAILABLE"]) }),
-    unavailable_reason: string({ enum: Object.freeze(["NO_HEBREW_TOKENS", "TEXT_TOKEN_LIMIT_EXCEEDED", "TEXT_TYPE_LIMIT_EXCEEDED", "LEARNER_PROJECTION_UNAVAILABLE", "TEXT_RESOLVER_UNAVAILABLE"]) }),
-    token_total: integer(0, 1000000),
-    token_known_pct: integer(0, 100),
-    lemma_total: integer(0, 100000),
-    lemma_known_pct: integer(0, 100),
-    content_word_known_pct: integer(0, 100),
-    buckets: closedObject({
-      known: integer(0, 100000), learning: integer(0, 100000), due_now: integer(0, 100000),
-      unknown: integer(0, 100000), unresolved: integer(0, 100000), proper_names: integer(0, 100000),
-    }),
+    schema_version: string({ const: "aa.text_coverage.2.0.0" }),
+    status: string({ enum: Object.freeze(["AVAILABLE", "AVAILABLE_LIMITED", "NEEDS_PROFILE", "NOT_PREPARED", "PENDING", "STALE", "UNSUPPORTED", "UNAVAILABLE"]) }),
+    reason_code: string({ maxLength: 80 }),
+    counts: Object.freeze({ anyOf: Object.freeze([closedObject({
+      lexical_total: integer(0, 1000000), eligible_denominator: integer(0, 1000000), familiar: integer(0, 1000000),
+      explicit_new: integer(0, 1000000), untracked: integer(0, 1000000), unresolved: integer(0, 1000000),
+      ignored_excluded: integer(0, 1000000), proper_names_excluded: integer(0, 1000000),
+    }), Object.freeze({ type: "null" })]) }),
+    recorded_familiar_pct_lower_bound: Object.freeze({ anyOf: Object.freeze([number(0, 100), Object.freeze({ type: "null" })]) }),
+    unresolved_uncertainty_pp: Object.freeze({ anyOf: Object.freeze([number(0, 100), Object.freeze({ type: "null" })]) }),
+    rank_eligible: Object.freeze({ type: "boolean" }),
     top_unknown: Object.freeze({ type: "array", maxItems: 20, items: closedObject({
       lemma: string({ maxLength: 80 }), freq_in_text: integer(1, 1000000), gloss_ru: string({ maxLength: 400 }),
     }, ["lemma", "freq_in_text"]) }),
-    recommendation_band: string({ enum: Object.freeze(["COMFORT_95_98", "STRETCH_90_95", "FRUSTRATION_BELOW_90", "TRIVIAL_ABOVE_98"]) }),
     learner_projection_version: string({ maxLength: 120 }),
     tokenizer_version: string({ maxLength: 80 }),
-    resolver_version: string({ maxLength: 120 }),
+    resolver_version: string({ maxLength: 160 }),
     generated_at: timestamp,
-  }, ["schema_version", "status", "learner_projection_version", "tokenizer_version", "resolver_version", "generated_at"]),
+  }),
   search_group_reading_catalog: closedObject({
     schema_version: string({ const: "aa.group_reading_search.1.0.0" }),
     results: Object.freeze({ type: "array", maxItems: 20, items: closedObject({
@@ -376,17 +375,21 @@ const OUTPUT_SCHEMAS = Object.freeze({
     authority: string({ const: "GROUP_CORPUS_SERVER_CANONICAL" }), generated_at: timestamp,
   }),
   get_group_text_coverage: closedObject({
-    schema_version: string({ const: "aa.group_text_coverage.1.0.0" }),
+    schema_version: string({ const: "aa.group_text_coverage.2.0.0" }),
     target: closedObject({ corpus_id: id, work_id: id, title: string({ maxLength: 500 }) }),
-    status: string({ enum: Object.freeze(["OK", "COVERAGE_UNAVAILABLE"]) }),
-    unavailable_reason: string({ enum: Object.freeze(["NO_HEBREW_TOKENS", "TEXT_TOKEN_LIMIT_EXCEEDED", "TEXT_TYPE_LIMIT_EXCEEDED", "LEARNER_PROJECTION_UNAVAILABLE", "TEXT_RESOLVER_UNAVAILABLE"]) }),
-    token_total: integer(0, 1000000), token_known_pct: integer(0, 100),
-    lemma_total: integer(0, 100000), lemma_known_pct: integer(0, 100), content_word_known_pct: integer(0, 100),
-    buckets: closedObject({ known: integer(0, 100000), learning: integer(0, 100000), due_now: integer(0, 100000), unknown: integer(0, 100000), unresolved: integer(0, 100000), proper_names: integer(0, 100000) }),
+    status: string({ enum: Object.freeze(["AVAILABLE", "AVAILABLE_LIMITED", "NEEDS_PROFILE", "NOT_PREPARED", "PENDING", "STALE", "UNSUPPORTED", "UNAVAILABLE"]) }),
+    reason_code: string({ maxLength: 80 }),
+    counts: Object.freeze({ anyOf: Object.freeze([closedObject({
+      lexical_total: integer(0, 1000000), eligible_denominator: integer(0, 1000000), familiar: integer(0, 1000000),
+      explicit_new: integer(0, 1000000), untracked: integer(0, 1000000), unresolved: integer(0, 1000000),
+      ignored_excluded: integer(0, 1000000), proper_names_excluded: integer(0, 1000000),
+    }), Object.freeze({ type: "null" })]) }),
+    recorded_familiar_pct_lower_bound: Object.freeze({ anyOf: Object.freeze([number(0, 100), Object.freeze({ type: "null" })]) }),
+    unresolved_uncertainty_pp: Object.freeze({ anyOf: Object.freeze([number(0, 100), Object.freeze({ type: "null" })]) }),
+    rank_eligible: Object.freeze({ type: "boolean" }),
     top_unknown: Object.freeze({ type: "array", maxItems: 20, items: closedObject({ lemma: string({ maxLength: 80 }), freq_in_text: integer(1, 1000000), gloss_ru: string({ maxLength: 400 }) }, ["lemma", "freq_in_text"]) }),
-    recommendation_band: string({ enum: Object.freeze(["COMFORT_95_98", "STRETCH_90_95", "FRUSTRATION_BELOW_90", "TRIVIAL_ABOVE_98"]) }),
-    learner_projection_version: string({ maxLength: 120 }), tokenizer_version: string({ maxLength: 80 }), resolver_version: string({ maxLength: 120 }), generated_at: timestamp,
-  }, ["schema_version", "target", "status", "learner_projection_version", "tokenizer_version", "resolver_version", "generated_at"]),
+    learner_projection_version: string({ maxLength: 120 }), tokenizer_version: string({ maxLength: 80 }), resolver_version: string({ maxLength: 160 }), generated_at: timestamp,
+  }),
 });
 
 const DESCRIPTIONS = Object.freeze({
@@ -407,10 +410,10 @@ const DESCRIPTIONS = Object.freeze({
   list_personal_texts: "List the owner's own synced personal texts (title, size, freshness) from the server replica — a CATALOG only, never text bodies, notes, grades or SRS state. The replica is Last-Write-Wins from the owner's devices (authority OWNER_DEVICE_CANONICAL): it can lag the device and may contain fewer texts than exist locally. Page with limit (1-100) + cursor. Typed refusals (do not retry): AA_PERSONAL_TEXTS_CONSENT_REQUIRED — the owner has not enabled text sync; AA_PERSONAL_TEXTS_RECONSENT_REQUIRED — the owner must re-confirm the updated sync consent card in the Reading Room; AA_PERSONAL_TEXTS_NOT_SYNCED — sync is on but no texts have reached the server yet (or all were deleted).",
   get_personal_text_content: "Read a bounded window (rows 1-20, from = start order_index) of ONE of the owner's own texts by text_key (from list_personal_texts): Hebrew + Russian lines and the title. Requires, beyond the scope, a LIVE owner-issued text grant from the agent-access panel — typed refusals (do not retry): AA_TEXT_ACCESS_NOT_GRANTED / AA_TEXT_ACCESS_EXPIRED — ask the owner to (re)issue the grant in /agent-access.html; AA_PERSONAL_TEXT_NOT_FOUND — no such text in the replica; AA_ARTIFACT_UNREADABLE — the stored copy is malformed (owner should re-sync); consent refusals as in list_personal_texts. Long rows are byte-trimmed and the window may shrink to fit the byte cap — follow has_more with a new `from`. Never returns notes, grades or SRS state; reads are logged as bounded window metadata (30-day exposure ledger, no content) so challenges on sentences the agent actually read are provenance-marked agent-exposed (grading stays first-party).",
   get_word_morphology: "Ground a Hebrew morphology claim in the shipped offline Pealim v12 dataset. Call this BEFORE asserting a lemma, root, binyan, inflected form, gender, number, person, or tense. EXACT is returned only for a decisive unique dataset match; AMBIGUOUS returns the available homograph analyses (up to the contract cap) and must not be collapsed by the agent; UNRESOLVED means the dataset has no answer and the agent must say so rather than generate a paradigm. Optional context_sentence can only disambiguate when it carries a matching vocalized form. No LLM, Dicta request, network call, learner data, or synthesized form is used.",
-  get_text_coverage: "Deterministically calculate how readable a complete text is for the owner. BOTH source classes are supported by contract: target.work_id reads the baked public-domain Ben-Yehuda corpus; target.text_key reads one owner-synced personal text and requires the same live per-connection text grant as get_personal_text_content. Provide exactly one identifier. Returns token/lemma/content-word percentages, separate known/learning/due/unknown/unresolved/proper-name buckets, frequent unknown lemmas and a 95-98 recommendation band. Ambiguous or unresolvable morphology stays unresolved; no LLM, network call, source-body output, grade, or raw FSRS field is used. COVERAGE_UNAVAILABLE is an honest per-text result, never a blanket refusal of either supported source class.",
+  get_text_coverage: "Return an auditable lower bound for recorded familiar Hebrew tokens in one complete text. BOTH source classes are supported: target.work_id is baked public-domain Ben-Yehuda; target.text_key is one owner-synced personal text and requires its live per-connection grant. Counts expose the exact familiar/new/untracked/unresolved denominator; ignore and safely identified proper names are excluded. This is observed learner-record coverage, not a promise of comprehension, CEFR level, or a 95-98 readiness band. Ambiguity remains unresolved; no LLM, source-body output, grade, or raw FSRS field is used.",
   search_group_reading_catalog: "Search metadata of server-hosted GROUP_RESTRICTED corpora that the current LinguistPro account can access through ACTIVE group membership. Search title, artist, topic, tags, level or Position; optionally restrict corpus_id. Returns metadata and protected first-party anchors only, never text bodies, audio, learner state or another group's existence. AA_NOT_FOUND means the corpus is absent or membership is inactive; do not infer which.",
   get_group_reading_content: "Read a bounded 1-20 row Hebrew/Russian window from a GROUP_RESTRICTED work returned by search_group_reading_catalog. ACTIVE membership is rechecked on every call, so revocation closes access immediately. The server corpus is authoritative for shared content; personal progress, notes, grades, FSRS and audio bytes are never returned. Do not reproduce or aggregate the complete restricted corpus outside the owner's explicit learning request.",
-  get_group_text_coverage: "Deterministically calculate readability of one GROUP_RESTRICTED work returned by search_group_reading_catalog against the current owner's learner projection. ACTIVE membership is rechecked on every call. Returns percentages, buckets, frequent unknown lemmas and the 95-98 recommendation band, but never the source body, grades or raw FSRS fields. Call before recommending a group work by difficulty; COVERAGE_UNAVAILABLE is an honest per-work result.",
+  get_group_text_coverage: "Return the same auditable recorded-familiarity lower bound for one GROUP_RESTRICTED work. ACTIVE membership is rechecked on every call. Exact counts and unresolved uncertainty may support relative ordering only when rank_eligible=true; they do not promise comprehension or a fixed readiness threshold. Never returns the source body, grades, or raw FSRS fields.",
   propose_import_text: "Create a 14-day PENDING proposal to import one Hebrew text into the owner's personal device library. The agent never imports. The owner sees the complete body, source URL, niqqud and transformation disclosure; after confirmation the first-party browser executes through OPFS and the server confirms only after a receipt. External origins require URL. Identical content returns DUPLICATE with the same proposal_id.",
   propose_track_word: "Create a 14-day PENDING proposal for 1-10 Hebrew words. Each item records whether the user produced, saw or asked about it and any ASR/morphology caveat. The owner confirms words one by one; only dictionary-resolved canonical item keys execute in the first-party browser. No grades, mastery or FSRS state is written by the agent.",
   propose_goal: "Create a 14-day PENDING weekly-goal proposal. The owner reviews statement, PROCESS/OUTCOME type, optional anchor and 7-14 day period. Only owner confirmation writes the server goal store; the agent never marks completion.",

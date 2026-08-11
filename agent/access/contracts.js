@@ -69,9 +69,7 @@ const MORPH_GENDER = new Set(["MASCULINE", "FEMININE"]);
 const MORPH_NUMBER = new Set(["SINGULAR", "PLURAL"]);
 const MORPH_PERSON = new Set(["1", "2", "3"]);
 const MORPH_TENSE = new Set(["PAST", "PRESENT", "FUTURE", "IMPERATIVE", "INFINITIVE"]);
-const COVERAGE_STATUS = new Set(["OK", "COVERAGE_UNAVAILABLE"]);
-const COVERAGE_UNAVAILABLE = new Set(["NO_HEBREW_TOKENS", "TEXT_TOKEN_LIMIT_EXCEEDED", "TEXT_TYPE_LIMIT_EXCEEDED", "LEARNER_PROJECTION_UNAVAILABLE", "TEXT_RESOLVER_UNAVAILABLE"]);
-const COVERAGE_BAND = new Set(["COMFORT_95_98", "STRETCH_90_95", "FRUSTRATION_BELOW_90", "TRIVIAL_ABOVE_98"]);
+const COVERAGE_STATUS = new Set(["AVAILABLE", "AVAILABLE_LIMITED", "NEEDS_PROFILE", "NOT_PREPARED", "PENDING", "STALE", "UNSUPPORTED", "UNAVAILABLE"]);
 const IMPORT_ORIGINS = new Set(["LRCLIB", "YOUTUBE_TRANSCRIPT", "SEFARIA", "AGENT_COMPOSED", "OWNER_SUPPLIED", "OTHER"]);
 const NIQQUD_STATES = new Set(["NONE", "PARTIAL", "FULL", "MACHINE_ADDED"]);
 const TRACK_EVIDENCE = new Set(["USER_PRODUCED_SPEECH", "USER_PRODUCED_TEXT", "AGENT_SHOWN_ONLY", "USER_ASKED_ABOUT"]);
@@ -115,6 +113,10 @@ function id(value, code = "SCHEMA_INVALID") {
 }
 function integer(value, min, max, code = "SCHEMA_INVALID") {
   if (!Number.isInteger(value) || value < min || value > max) fail(code);
+  return value;
+}
+function decimal(value, min, max, code = "SCHEMA_INVALID") {
+  if (!Number.isFinite(value) || value < min || value > max) fail(code);
   return value;
 }
 function bool(value, code = "SCHEMA_INVALID") { if (typeof value !== "boolean") fail(code); return value; }
@@ -435,27 +437,27 @@ function validateGroupCoverageInput(value) {
 }
 
 function textCoverage(value) {
-  const metricKeys = ["token_total", "token_known_pct", "lemma_total", "lemma_known_pct", "content_word_known_pct", "buckets", "top_unknown", "recommendation_band"];
-  const keys = ["schema_version", "status", "unavailable_reason", ...metricKeys,
+  const metricKeys = ["counts", "recorded_familiar_pct_lower_bound", "unresolved_uncertainty_pp", "rank_eligible", "top_unknown"];
+  const keys = ["schema_version", "status", "reason_code", ...metricKeys,
     "learner_projection_version", "tokenizer_version", "resolver_version", "generated_at"];
-  const base = ["schema_version", "status", "learner_projection_version", "tokenizer_version", "resolver_version", "generated_at"];
+  const base = ["schema_version", "status", "reason_code", ...metricKeys,
+    "learner_projection_version", "tokenizer_version", "resolver_version", "generated_at"];
   const x = closed(value, keys, base, "OUTPUT_SCHEMA_INVALID"); bytes(x, 8192, "OUTPUT_TOO_LARGE");
-  if (x.schema_version !== "aa.text_coverage.1.0.0") fail("OUTPUT_SCHEMA_INVALID");
+  if (x.schema_version !== "aa.text_coverage.2.0.0") fail("OUTPUT_SCHEMA_INVALID");
   oneOf(x.status, COVERAGE_STATUS); string(x.learner_projection_version, 120);
-  string(x.tokenizer_version, 80); string(x.resolver_version, 120); timestamp(x.generated_at);
-  if (x.status === "COVERAGE_UNAVAILABLE") {
-    oneOf(x.unavailable_reason, COVERAGE_UNAVAILABLE);
-    if (metricKeys.some((key) => Object.prototype.hasOwnProperty.call(x, key))) fail("OUTPUT_SCHEMA_INVALID");
-    return Object.freeze({ ...x });
-  }
-  if (x.unavailable_reason != null || metricKeys.some((key) => !Object.prototype.hasOwnProperty.call(x, key))) fail("OUTPUT_SCHEMA_INVALID");
-  integer(x.token_total, 1, 1000000); integer(x.token_known_pct, 0, 100);
-  integer(x.lemma_total, 1, 100000); integer(x.lemma_known_pct, 0, 100);
-  integer(x.content_word_known_pct, 0, 100); oneOf(x.recommendation_band, COVERAGE_BAND);
-  const b = closed(x.buckets, ["known", "learning", "due_now", "unknown", "unresolved", "proper_names"],
-    ["known", "learning", "due_now", "unknown", "unresolved", "proper_names"], "OUTPUT_SCHEMA_INVALID");
-  for (const key of Object.keys(b)) integer(b[key], 0, 100000, "OUTPUT_SCHEMA_INVALID");
-  if (Object.values(b).reduce((sum, n) => sum + n, 0) !== x.lemma_total) fail("OUTPUT_SCHEMA_INVALID");
+  string(x.reason_code, 80); string(x.tokenizer_version, 80); string(x.resolver_version, 160); timestamp(x.generated_at);
+  bool(x.rank_eligible);
+  const available = x.status === "AVAILABLE" || x.status === "AVAILABLE_LIMITED";
+  let counts = null;
+  if (available) {
+    counts = closed(x.counts, ["lexical_total", "eligible_denominator", "familiar", "explicit_new", "untracked", "unresolved", "ignored_excluded", "proper_names_excluded"],
+      ["lexical_total", "eligible_denominator", "familiar", "explicit_new", "untracked", "unresolved", "ignored_excluded", "proper_names_excluded"], "OUTPUT_SCHEMA_INVALID");
+    for (const key of Object.keys(counts)) integer(counts[key], 0, 1000000, "OUTPUT_SCHEMA_INVALID");
+    if (counts.familiar + counts.explicit_new + counts.untracked + counts.unresolved !== counts.eligible_denominator) fail("OUTPUT_SCHEMA_INVALID");
+    if (counts.eligible_denominator + counts.ignored_excluded + counts.proper_names_excluded !== counts.lexical_total) fail("OUTPUT_SCHEMA_INVALID");
+    decimal(x.recorded_familiar_pct_lower_bound, 0, 100, "OUTPUT_SCHEMA_INVALID");
+    decimal(x.unresolved_uncertainty_pp, 0, 100, "OUTPUT_SCHEMA_INVALID");
+  } else if (x.counts !== null || x.recorded_familiar_pct_lower_bound !== null || x.unresolved_uncertainty_pp !== null || x.rank_eligible) fail("OUTPUT_SCHEMA_INVALID");
   if (!Array.isArray(x.top_unknown) || x.top_unknown.length > 20) fail("OUTPUT_SCHEMA_INVALID");
   const top = x.top_unknown.map((row) => {
     const r = closed(row, ["lemma", "freq_in_text", "gloss_ru"], ["lemma", "freq_in_text"], "OUTPUT_SCHEMA_INVALID");
@@ -463,7 +465,7 @@ function textCoverage(value) {
     if (r.gloss_ru != null) string(r.gloss_ru, 800);
     return Object.freeze({ ...r });
   });
-  return Object.freeze({ ...x, buckets: Object.freeze({ ...b }), top_unknown: Object.freeze(top) });
+  return Object.freeze({ ...x, counts: counts ? Object.freeze({ ...counts }) : null, top_unknown: Object.freeze(top) });
 }
 
 function groupSearch(value) {
@@ -511,9 +513,9 @@ function groupTextCoverage(value) {
   bytes(value, 8192, "OUTPUT_TOO_LARGE");
   const target = closed(value.target, ["corpus_id", "work_id", "title"], ["corpus_id", "work_id", "title"], "OUTPUT_SCHEMA_INVALID");
   groupId(target.corpus_id, "OUTPUT_SCHEMA_INVALID"); groupId(target.work_id, "OUTPUT_SCHEMA_INVALID"); string(target.title, 500);
-  const core = { ...value }; delete core.target; core.schema_version = "aa.text_coverage.1.0.0";
+  const core = { ...value }; delete core.target; core.schema_version = "aa.text_coverage.2.0.0";
   const validated = textCoverage(core);
-  if (value.schema_version !== "aa.group_text_coverage.1.0.0") fail("OUTPUT_SCHEMA_INVALID");
+  if (value.schema_version !== "aa.group_text_coverage.2.0.0") fail("OUTPUT_SCHEMA_INVALID");
   return Object.freeze({ ...validated, schema_version: value.schema_version, target: Object.freeze({ ...target }) });
 }
 function personalTextContent(value) {

@@ -4,13 +4,14 @@
 // view model. They deliberately have no storage, network, DOM, or mutation authority:
 // callers supply already-authorized catalog rows and canonical progress snapshots.
 
-const CONFIDENCE = new Set(["asserted", "derived-high", "derived-soft"]);
+const CONFIDENCE = new Set(["asserted", "derived-high", "derived-soft", "unknown"]);
 
 const finite = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
 const text = (value) => value == null || String(value).trim() === "" ? null : String(value).trim();
 const pct = (value) => {
+  if (value == null || String(value).trim() === "") return null;
   const n = finite(value);
-  return n != null && n > 0 && n <= 100 ? Math.round(n) : null;
+  return n != null && n >= 0 && n <= 100 ? Math.round(n) : null;
 };
 const clampProgress = (value) => Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
 const copyValue = (copy, key, fallback, value) => {
@@ -66,7 +67,7 @@ function learnerState(progress, options = {}) {
 
 function baseItem(value) {
   const readiness = value.readiness || {};
-  const confidence = CONFIDENCE.has(readiness.confidence) ? readiness.confidence : "derived-soft";
+  const confidence = CONFIDENCE.has(readiness.confidence) ? readiness.confidence : "unknown";
   return {
     corpusId: String(value.corpusId || ""), itemId: String(value.itemId || ""),
     textKey: value.textKey == null ? null : String(value.textKey),
@@ -84,13 +85,48 @@ function baseItem(value) {
     primaryAction: value.primaryAction || "start",
     secondaryActions: Array.isArray(value.secondaryActions) ? value.secondaryActions.slice() : [],
     provenanceSummary: text(value.provenanceSummary),
+    signals: Array.isArray(value.signals) ? value.signals.slice() : [],
+    primaryReason: text(value.primaryReason),
   };
+}
+
+function typedSignal(kind, value, type, source, revision, caveats) {
+  return {
+    kind, value,
+    provenance: { type: type || "unknown", source: text(source), revision: text(revision) },
+    caveats: Array.isArray(caveats) ? caveats.filter(Boolean).map(String) : [],
+  };
+}
+
+function compassSignals(context, levelSignal, audioSignal) {
+  const signals = [];
+  const fit = context && context.compass;
+  if (fit) signals.push(typedSignal("familiarity", {
+    status: fit.status || "UNAVAILABLE",
+    lower_bound_pct: finite(fit.recorded_familiar_pct_lower_bound),
+    uncertainty_pp: finite(fit.unresolved_uncertainty_pp),
+    counts: fit.counts || null,
+    rank_eligible: !!fit.rank_eligible,
+    reason_code: fit.reason_code || null,
+  }, "derived", "recorded-familiarity-v2", fit.learner_projection_version || fit.resolver_version,
+  fit.status === "AVAILABLE_LIMITED" ? ["unresolved-above-rank-limit"] : []));
+  const readingTime = context && context.readingTime;
+  if (readingTime) signals.push(typedSignal("reading-time", {
+    status: readingTime.status || "UNAVAILABLE",
+    min_minutes: finite(readingTime.min_minutes), max_minutes: finite(readingTime.max_minutes),
+    observation_count: finite(readingTime.observation_count),
+  }, readingTime.status === "AVAILABLE" ? "derived" : "unknown", "local-completed-readings-v2", null, []));
+  if (levelSignal) signals.push(levelSignal);
+  if (audioSignal) signals.push(audioSignal);
+  return signals;
 }
 
 export function adaptBenYehudaItem(card, context = {}) {
   const source = card || {};
   const copy = context.copy || {};
-  const familiarityPct = pct(context.familiarityPct);
+  const fitPct = context.compass && (context.compass.status === "AVAILABLE" || context.compass.status === "AVAILABLE_LIMITED")
+    ? context.compass.recorded_familiar_pct_lower_bound : context.familiarityPct;
+  const familiarityPct = pct(fitPct);
   const levelLabel = text(context.difficultyLabel);
   const state = learnerState(context.progress, { copy, totalRows: source.segments, allowPercentage: true, newProgressZero: true });
   const audio = text(source.audio_status) || text(source.coverage && source.coverage.audio) || "none";
@@ -98,6 +134,8 @@ export function adaptBenYehudaItem(card, context = {}) {
   const reason = familiarityPct != null
     ? copyValue(copy, "familiarityReason", "Fits your familiar-word profile")
     : levelLabel ? copyValue(copy, "intrinsicReason", "Approximate lexical-frequency estimate") : null;
+  const levelSignal = levelLabel ? typedSignal("level", levelLabel, "derived", "benyehuda-vocab-v7", context.catalogRevision || null, context.caveats) : null;
+  const audioSignal = humanOrTts ? typedSignal("audio", { coverage: "full", kind: humanOrTts }, "asserted", "benyehuda-catalog", context.catalogRevision || null, []) : null;
   return baseItem({
     corpusId: "benyehuda", itemId: source.id, textKey: source.text_key,
     title: source.title || copyValue(copy, "untitled", "Untitled"), creator: source.author,
@@ -112,6 +150,8 @@ export function adaptBenYehudaItem(card, context = {}) {
     primaryAction: state.state === "reading" ? "continue" : state.state === "finished" ? "reread" : "start",
     secondaryActions: ["author", "reading-list", "details"],
     provenanceSummary: copyValue(copy, "benProvenance", "Difficulty by lexical frequency · familiar words by your profile"),
+    signals: compassSignals(context, levelSignal, audioSignal),
+    primaryReason: context.primaryReason,
   });
 }
 
@@ -121,6 +161,10 @@ export function adaptMyTextItem(item, context = {}) {
   const state = learnerState(source, { copy, allowPercentage: false, newProgressZero: false });
   const level = text(source.level);
   const media = context.media || { kind: null, coverage: null, humanOrTts: null };
+  const levelSignal = level ? typedSignal("level", level, "asserted", "studio", source.updated_at || null, []) : null;
+  const audioSignal = media && media.kind ? typedSignal("audio", { coverage: media.coverage, kind: media.humanOrTts },
+    context.mediaProvenance && context.mediaProvenance.type, context.mediaProvenance && context.mediaProvenance.source,
+    context.mediaProvenance && context.mediaProvenance.revision, []) : null;
   return baseItem({
     corpusId: "mytexts", itemId: source.id, textKey: source.text_key || source.id,
     title: source.title || copyValue(copy, "untitled", "Untitled"), creator: null,
@@ -134,7 +178,11 @@ export function adaptMyTextItem(item, context = {}) {
     media, savedState: null, tags: normalizedTags(source.tags_json || source.tags),
     primaryAction: state.state === "reading" ? "continue" : state.state === "finished" ? "reread" : "start",
     secondaryActions: ["niqqud", "studio", "details"],
-    provenanceSummary: copyValue(copy, "personalProvenance", "Your text · level set in Studio"),
+    provenanceSummary: level
+      ? copyValue(copy, "personalProvenance", "Your text · level set in Studio")
+      : copyValue(copy, "personalProvenanceUnknown", "Your text · level not asserted"),
+    signals: compassSignals(context, levelSignal, audioSignal),
+    primaryReason: context.primaryReason,
   });
 }
 
@@ -144,10 +192,15 @@ export function adaptGroupCorpusItem(work, context = {}) {
   const rows = Math.max(0, finite(source.rows_count) || 0);
   const audioRows = Math.max(0, finite(source.audio_count) || 0);
   const coverage = audioRows <= 0 ? "none" : rows > 0 && audioRows >= rows ? "full" : "partial";
-  const revision = Math.max(1, finite(source.audio_revision) || 1);
+  const revision = finite(source.audio_revision) != null && finite(source.audio_revision) >= 1 ? Math.floor(finite(source.audio_revision)) : null;
   const state = learnerState(context.progress, { copy, totalRows: rows, allowPercentage: true, newProgressZero: true });
   const level = text(source.level);
   const position = source.position_no == null ? null : String(source.position_no);
+  const assertedAudioKind = audioRows > 0 && (context.humanOrTts === "tts" || context.humanOrTts === "human") ? context.humanOrTts : null;
+  const levelSignal = level ? typedSignal("level", level, "asserted", "group-corpus-owner", context.catalogRevision || null, []) : null;
+  const audioSignal = audioRows > 0 ? typedSignal("audio", { coverage, kind: assertedAudioKind },
+    context.audioProvenance && context.audioProvenance.type, context.audioProvenance && context.audioProvenance.source,
+    context.audioProvenance && context.audioProvenance.revision || revision, coverage === "partial" ? ["partial"] : []) : null;
   return baseItem({
     corpusId: `group:${String(context.corpusId || "")}`, itemId: source.work_id, textKey: source.text_key,
     title: source.title || copyValue(copy, "untitled", "Untitled"), creator: source.artist,
@@ -160,17 +213,25 @@ export function adaptGroupCorpusItem(work, context = {}) {
       reason: level ? copyValue(copy, "groupLevelReason", "Level set by the corpus owner") : copyValue(copy, "assignedReason", "Assigned to your group"),
     },
     media: {
-      kind: "audio", coverage, humanOrTts: audioRows > 0 ? (context.humanOrTts || "tts") : null,
+      kind: audioRows > 0 ? "audio" : null, coverage, humanOrTts: assertedAudioKind,
       countLabel: `${audioRows}/${rows}`, revision,
     },
     savedState: null, tags: normalizedTags(source.tags),
     primaryAction: state.state === "reading" ? "continue" : state.state === "finished" ? "reread" : "start",
     secondaryActions: ["share", "details"],
-    provenanceSummary: copyValue(copy, "groupProvenance", `Study group · TTS r${revision}`, revision),
+    provenanceSummary: assertedAudioKind && revision
+      ? copyValue(copy, "groupProvenance", `Study group · ${assertedAudioKind.toUpperCase()} r${revision}`, revision)
+      : copyValue(copy, "groupProvenanceUnknown", "Study group · audio source/revision not asserted"),
+    signals: compassSignals(context, levelSignal, audioSignal),
+    primaryReason: context.primaryReason,
   });
 }
 
 export function learningSignals(item) {
+  if (item && Array.isArray(item.signals) && item.signals.length) {
+    const priority = { familiarity: 1, "reading-time": 2, level: 3, audio: 4 };
+    return item.signals.slice().sort((a, b) => (priority[a.kind] || 9) - (priority[b.kind] || 9)).slice(0, 2);
+  }
   const readiness = item && item.readiness || {};
   const signals = [];
   if (text(readiness.levelLabel)) signals.push({

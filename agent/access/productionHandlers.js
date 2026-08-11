@@ -598,14 +598,16 @@ function createProductionHandlers(options = {}) {
     try {
       calculated = await coverageResolver.calculate(source.rows, projection, { topUnknownLimit: args.top_unknown_limit || 10 });
     } catch (_) {
-      calculated = { status: "COVERAGE_UNAVAILABLE", unavailable_reason: "TEXT_RESOLVER_UNAVAILABLE" };
+      calculated = { status: "UNAVAILABLE", reason_code: "TEXT_RESOLVER_UNAVAILABLE", counts: null,
+        recorded_familiar_pct_lower_bound: null, unresolved_uncertainty_pp: null, rank_eligible: false, top_unknown: [] };
     }
-    if (!calculated || !["OK", "COVERAGE_UNAVAILABLE"].includes(calculated.status)) {
-      calculated = { status: "COVERAGE_UNAVAILABLE", unavailable_reason: "TEXT_RESOLVER_UNAVAILABLE" };
+    if (!calculated || !["AVAILABLE", "AVAILABLE_LIMITED", "NEEDS_PROFILE", "NOT_PREPARED", "PENDING", "STALE", "UNSUPPORTED", "UNAVAILABLE"].includes(calculated.status)) {
+      calculated = { status: "UNAVAILABLE", reason_code: "TEXT_RESOLVER_UNAVAILABLE", counts: null,
+        recorded_familiar_pct_lower_bound: null, unresolved_uncertainty_pp: null, rank_eligible: false, top_unknown: [] };
     }
     return Object.freeze({
-      schema_version: "aa.text_coverage.1.0.0",
       ...calculated,
+      schema_version: "aa.text_coverage.2.0.0",
       learner_projection_version: projection && projection.version ? String(projection.version) : "learner-projection-unavailable-v1",
       tokenizer_version: coverageResolver.TOKENIZER_VERSION,
       resolver_version: coverageResolver.RESOLVER_VERSION,
@@ -697,12 +699,14 @@ function createProductionHandlers(options = {}) {
     try { projection = await learnerRepo.getCoverageProjection(context.user_id, { nowMs: clock.ms }); } catch (_) { projection = null; }
     let calculated;
     try { calculated = await coverageResolver.calculate(source.rows, projection, { topUnknownLimit: args.top_unknown_limit || 10 }); }
-    catch (_) { calculated = { status: "COVERAGE_UNAVAILABLE", unavailable_reason: "TEXT_RESOLVER_UNAVAILABLE" }; }
-    if (!calculated || !["OK", "COVERAGE_UNAVAILABLE"].includes(calculated.status)) calculated = { status: "COVERAGE_UNAVAILABLE", unavailable_reason: "TEXT_RESOLVER_UNAVAILABLE" };
+    catch (_) { calculated = { status: "UNAVAILABLE", reason_code: "TEXT_RESOLVER_UNAVAILABLE", counts: null,
+      recorded_familiar_pct_lower_bound: null, unresolved_uncertainty_pp: null, rank_eligible: false, top_unknown: [] }; }
+    if (!calculated || !["AVAILABLE", "AVAILABLE_LIMITED", "NEEDS_PROFILE", "NOT_PREPARED", "PENDING", "STALE", "UNSUPPORTED", "UNAVAILABLE"].includes(calculated.status)) calculated = { status: "UNAVAILABLE", reason_code: "TEXT_RESOLVER_UNAVAILABLE", counts: null,
+      recorded_familiar_pct_lower_bound: null, unresolved_uncertainty_pp: null, rank_eligible: false, top_unknown: [] };
     return Object.freeze({
-      schema_version: "aa.group_text_coverage.1.0.0",
       target: Object.freeze({ corpus_id: String(source.corpus.corpus_id), work_id: String(source.work.work_id), title: byteSlice(source.work.title, 500) }),
       ...calculated,
+      schema_version: "aa.group_text_coverage.2.0.0",
       learner_projection_version: projection && projection.version ? String(projection.version) : "learner-projection-unavailable-v1",
       tokenizer_version: coverageResolver.TOKENIZER_VERSION, resolver_version: coverageResolver.RESOLVER_VERSION, generated_at: clock.iso,
     });

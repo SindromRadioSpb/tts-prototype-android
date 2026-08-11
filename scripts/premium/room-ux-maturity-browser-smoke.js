@@ -208,6 +208,7 @@ async function auditSurface(page, surface) {
       surface: surfaceName,
       lang: document.documentElement.lang,
       dir: document.documentElement.dir,
+      learningCompassV2: !!(window.LearningCompassCore && window.LearningCompassCore.COVERAGE_SCHEMA === 'room.recorded_familiarity.2.0.0'),
       viewport: { width: innerWidth, height: innerHeight },
       domElements: document.querySelectorAll("*").length,
       readyItems: document.querySelectorAll(".corpus-ready .room-text-row").length,
@@ -465,8 +466,10 @@ function evaluateGreen(matrix) {
           `${stage}/${entry.lang}: every My Text row uses asserted adapter (${entry.assertedCompasses}/${entry.listItems})`);
         check(entry.visibleReadinessSignals >= 1,
           `${stage}/${entry.lang}: My Text readiness is visibly scannable (${entry.visibleReadinessSignals})`);
-        check(entry.familiaritySignals === 0,
-          `${stage}/${entry.lang}: My Texts shows no unsupported familiarity (${entry.familiaritySignals})`);
+        check(entry.learningCompassV2
+          ? entry.familiaritySignals === entry.listItems
+          : entry.familiaritySignals === 0,
+          `${stage}/${entry.lang}: My Texts familiarity follows the active shared contract (${entry.familiaritySignals}/${entry.listItems})`);
         if (entry.lang === "ru") check(entry.readingStateLabels >= 1,
           `${stage}/${entry.viewport.width}: My Texts preserves honest row-position Continue (${entry.readingStateLabels})`);
       } else if (entry.surface === "study-songs") {
@@ -474,12 +477,18 @@ function evaluateGreen(matrix) {
           `${stage}/${entry.lang}: every group row uses asserted adapter (${entry.assertedCompasses}/${entry.listItems})`);
         check(entry.visibleReadinessSignals >= 1,
           `${stage}/${entry.lang}: group readiness is visibly scannable (${entry.visibleReadinessSignals})`);
-        check(entry.familiaritySignals === 0,
-          `${stage}/${entry.lang}: group corpus shows no unsupported familiarity (${entry.familiaritySignals})`);
-        check(entry.exactAudioCoverage === entry.listItems,
-          `${stage}/${entry.lang}: group audio coverage remains exact N/N (${entry.exactAudioCoverage}/${entry.listItems})`);
-        check(entry.ttsProvenanceDetails === entry.listItems,
-          `${stage}/${entry.lang}: TTS revision stays in provenance detail (${entry.ttsProvenanceDetails}/${entry.listItems})`);
+        check(entry.learningCompassV2
+          ? entry.familiaritySignals === entry.listItems
+          : entry.familiaritySignals === 0,
+          `${stage}/${entry.lang}: group familiarity follows the active shared contract (${entry.familiaritySignals}/${entry.listItems})`);
+        check(entry.learningCompassV2
+          ? entry.exactAudioCoverage < entry.listItems
+          : entry.exactAudioCoverage === entry.listItems,
+          `${stage}/${entry.lang}: absent group audio remains visibly absent (${entry.exactAudioCoverage}/${entry.listItems})`);
+        check(entry.learningCompassV2
+          ? entry.ttsProvenanceDetails === 0
+          : entry.ttsProvenanceDetails === entry.listItems,
+          `${stage}/${entry.lang}: group cards do not invent TTS provenance (${entry.ttsProvenanceDetails}/${entry.listItems})`);
       }
     }
   }

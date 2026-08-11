@@ -56,7 +56,7 @@ async function main() {
   const content = await service.execute(principal("content",["reading.group_corpus.read"]),"get_group_reading_content",{corpus_id:"study-songs-pilot",work_id:"song-pos-001",rows:5});
   ok(content.ok,JSON.stringify(content)); eq(content.result.rows[0].he,"לִכְתּוֹב"); eq(content.result.authority,"GROUP_CORPUS_SERVER_CANONICAL"); ok(!JSON.stringify(content.result).includes("review_log"),"learner state leaked");
   const coverage = await service.execute(principal("coverage",["learner.group_coverage.read"]),"get_group_text_coverage",{corpus_id:"study-songs-pilot",work_id:"song-pos-001",top_unknown_limit:5});
-  ok(coverage.ok,JSON.stringify(coverage)); eq(coverage.result.schema_version,"aa.group_text_coverage.1.0.0"); eq(coverage.result.token_known_pct,100); ok(!Object.prototype.hasOwnProperty.call(coverage.result,"rows"),"source body leaked through coverage");
+  ok(coverage.ok,JSON.stringify(coverage)); eq(coverage.result.schema_version,"aa.group_text_coverage.2.0.0"); eq(coverage.result.recorded_familiar_pct_lower_bound,100); eq(coverage.result.counts.familiar,1); ok(!Object.prototype.hasOwnProperty.call(coverage.result,"rows"),"source body leaked through coverage");
   const wrongScope = await service.execute(principal("scope",["reading.group_corpus.read"]),"get_group_text_coverage",{corpus_id:"study-songs-pilot",work_id:"song-pos-001"});
   eq(wrongScope.ok,false); eq(wrongScope.error.code,"INSUFFICIENT_SCOPE");
   state.active=false;
@@ -73,8 +73,11 @@ async function main() {
   const oldInput={},oldOutput={};
   const laterH23=new Set(["propose_import_text","propose_track_word","propose_goal","get_current_goal"]);
   for(const name of Object.keys(INPUT_SCHEMAS))if(!ADDED.has(name)&&!laterH23.has(name))oldInput[name]=INPUT_SCHEMAS[name];
-  for(const name of Object.keys(OUTPUT_SCHEMAS))if(!ADDED.has(name)&&!laterH23.has(name))oldOutput[name]=OUTPUT_SCHEMAS[name];
-  eq(Object.keys(oldInput).length,before.tool_count); eq(sha(oldInput),before.input_map_sha256,"existing input schemas mutated"); eq(sha(oldOutput),before.output_map_sha256,"existing output schemas mutated");
+  // B7 deliberately versions get_text_coverage v1→v2 so Room and Agent Access share one
+  // recorded-familiarity contract. All other pre-group output schemas remain byte-frozen.
+  for(const name of Object.keys(OUTPUT_SCHEMAS))if(!ADDED.has(name)&&!laterH23.has(name)&&name!=="get_text_coverage")oldOutput[name]=OUTPUT_SCHEMAS[name];
+  eq(Object.keys(oldInput).length,before.tool_count); eq(sha(oldInput),before.input_map_sha256,"existing input schemas mutated");
+  eq(Object.keys(oldOutput).length,before.tool_count-1); eq(sha(oldOutput),"dfd9a4bd9776ebf49d81b26733be0e379657951816beece08539130c9dd2c47b","non-B7 output schemas mutated");
   const migration=fs.readFileSync(path.join(ROOT,"migrations/060_agent_access_group_corpus_scopes.sql"),"utf8");
   ok(migration.includes("'reading.group_corpus.read'")&&migration.includes("'learner.group_coverage.read'"),"migration scopes missing"); ok(!/^\s*(BEGIN|COMMIT)\b/im.test(migration),"migration owns transaction");
   const ui=fs.readFileSync(path.join(ROOT,"public/js/agent-access.js"),"utf8"); ok(/"reading\.group_corpus\.read":\{ru:"[^"]+",en:"[^"]+",he:"[^"]+"\}/.test(ui),"group read i18n missing"); ok(/"learner\.group_coverage\.read":\{ru:"[^"]+",en:"[^"]+",he:"[^"]+"\}/.test(ui),"group coverage i18n missing");

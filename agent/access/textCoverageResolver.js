@@ -9,12 +9,13 @@ const fs = require("fs");
 const path = require("path");
 const ReaderMorph = require("../../public/js/reader-morph");
 const LemmaCanon = require("../../public/js/lemma-canon");
+const LearningCompass = require("../../public/js/learning-compass-core");
 const morphology = require("./wordMorphologyResolver");
 
 const TOKENIZER_VERSION = "reader-morph-tokenizer-v1";
-const RESOLVER_VERSION = `text-coverage-resolver-v1+${morphology.RESOLVER_VERSION}`;
-const MAX_TOKENS = 250000;
-const MAX_TOKEN_TYPES = 50000;
+const RESOLVER_VERSION = `${LearningCompass.RESOLVER_VERSION}+${morphology.RESOLVER_VERSION}`;
+const MAX_TOKENS = LearningCompass.MAX_TOKENS;
+const MAX_TOKEN_TYPES = LearningCompass.MAX_TYPES;
 const CONTENT_POS = new Set(["noun", "verb", "adjective"]);
 const LEARNING_STATES = new Set(["l1", "l2", "l3", "l4", "learning", "weak", "stale"]);
 
@@ -27,13 +28,6 @@ function links() {
   return functionLinks;
 }
 
-function pct(n, d) { return d > 0 ? Math.max(0, Math.min(100, Math.round(100 * n / d))) : 100; }
-function band(value) {
-  if (value > 98) return "TRIVIAL_ABOVE_98";
-  if (value >= 95) return "COMFORT_95_98";
-  if (value >= 90) return "STRETCH_90_95";
-  return "FRUSTRATION_BELOW_90";
-}
 function tokenTypeKey(surface, vocalized) {
   const v = String(vocalized || "").normalize("NFC").trim();
   return v || String(surface || "").normalize("NFC").trim();
@@ -64,15 +58,6 @@ function collectTokenTypes(rows) {
   return { ok: true, tokenTotal, types };
 }
 
-function learnerState(itemKey, projection, scheduled) {
-  const manual = String((projection.manual && projection.manual[itemKey]) || "");
-  const sched = scheduled.get(itemKey);
-  if (sched && sched.due_ms != null && sched.due_ms <= projection.generated_at_ms) return "due_now";
-  if (manual === "known") return "known";
-  if (LEARNING_STATES.has(manual) || sched) return "learning";
-  return "unknown"; // includes explicit new/ignore: neither is evidence of knowledge
-}
-
 function functionItem(surface, gate) {
   const hit = links()[surface];
   const itemKey = hit && hit.id
@@ -89,12 +74,16 @@ function functionItem(surface, gate) {
 
 async function calculate(rows, projection, { topUnknownLimit = 10 } = {}) {
   const collected = collectTokenTypes(rows);
-  if (!collected.ok) return Object.freeze({ status: "COVERAGE_UNAVAILABLE", unavailable_reason: collected.reason });
+  if (!collected.ok) return Object.freeze({
+    status: collected.reason === "NO_HEBREW_TOKENS" ? "UNSUPPORTED" : "UNAVAILABLE",
+    reason_code: collected.reason, counts: null, recorded_familiar_pct_lower_bound: null,
+    unresolved_uncertainty_pp: null, rank_eligible: false, top_unknown: Object.freeze([]),
+  });
   if (!projection || typeof projection !== "object" || !projection.version || !Array.isArray(projection.scheduled)) {
-    return Object.freeze({ status: "COVERAGE_UNAVAILABLE", unavailable_reason: "LEARNER_PROJECTION_UNAVAILABLE" });
+    return Object.freeze({ status: "UNAVAILABLE", reason_code: "LEARNER_PROJECTION_UNAVAILABLE", counts: null,
+      recorded_familiar_pct_lower_bound: null, unresolved_uncertainty_pp: null, rank_eligible: false, top_unknown: Object.freeze([]) });
   }
 
-  const scheduled = new Map(projection.scheduled.map((row) => [String(row.item_key), row]));
   const resolved = new Map();
   const unresolved = new Map();
   const properNames = new Map();
@@ -125,39 +114,37 @@ async function calculate(rows, projection, { topUnknownLimit = 10 } = {}) {
     else resolved.set(item.item_key, { ...item, freq: token.freq });
   }
 
-  const buckets = { known: 0, learning: 0, due_now: 0, unknown: 0,
-    unresolved: unresolved.size, proper_names: properNames.size };
-  let familiarTokens = 0, familiarLemmas = 0, contentFamiliar = 0, contentTotal = unresolvedTokens;
-  const topUnknown = [];
-  for (const item of resolved.values()) {
-    const state = learnerState(item.item_key, projection, scheduled);
-    buckets[state] += 1;
-    if (state !== "unknown") { familiarTokens += item.freq; familiarLemmas += 1; }
-    if (item.content) {
-      contentTotal += item.freq;
-      if (state !== "unknown") contentFamiliar += item.freq;
-    }
-    if (state === "unknown") topUnknown.push({ lemma: item.lemma, freq_in_text: item.freq,
-      ...(item.gloss_ru ? { gloss_ru: String(item.gloss_ru).slice(0, 400) } : {}) });
-  }
-  topUnknown.sort((a, b) => b.freq_in_text - a.freq_in_text || a.lemma.localeCompare(b.lemma, "he"));
-
-  const lemmaTotal = resolved.size + unresolved.size + properNames.size;
-  const assessableLemmaTotal = Math.max(0, lemmaTotal - properNames.size);
-  const tokenDenominator = Math.max(0, collected.tokenTotal - properNameTokens);
-  const contentPct = pct(contentFamiliar, contentTotal);
+  const metadata = new Map();
+  for (const item of resolved.values()) metadata.set(item.item_key, item);
+  const learnerProjection = {
+    schema_version: LearningCompass.PROJECTION_SCHEMA,
+    version: String(projection.version), generated_at: new Date(Number(projection.generated_at_ms) || Date.now()).toISOString(),
+    state_by_key: projection.manual && typeof projection.manual === "object" ? projection.manual : {},
+    scheduled_keys: projection.scheduled.map((row) => String(row.item_key)),
+    tracked_lexeme_count: new Set(Object.keys(projection.manual || {}).concat(projection.scheduled.map((row) => String(row.item_key)))).size,
+  };
+  const ingredients = {
+    schema_version: LearningCompass.INGREDIENTS_SCHEMA,
+    source_class: "agent-access", source_key: "bounded-complete-text", content_revision: "request",
+    content_sha256: null, entitlement_revision: null, resolver_version: LearningCompass.RESOLVER_VERSION,
+    key_frequencies: Array.from(resolved.values()).map((item) => ({ key: item.item_key, token_count: item.freq })),
+    unresolved_token_count: unresolvedTokens, proper_name_token_count: properNameTokens,
+    total_token_count: collected.tokenTotal,
+  };
+  const fit = LearningCompass.evaluateRecordedFamiliarityV2({ ingredients, learner_projection: learnerProjection,
+    now: learnerProjection.generated_at });
+  const topUnknown = (fit.top_unknown || []).map((row) => {
+    const item = metadata.get(row.key);
+    return item ? { lemma: item.lemma, freq_in_text: row.token_count,
+      ...(item.gloss_ru ? { gloss_ru: String(item.gloss_ru).slice(0, 400) } : {}) } : null;
+  }).filter(Boolean).slice(0, topUnknownLimit);
   return Object.freeze({
-    status: "OK",
-    token_total: collected.tokenTotal,
-    token_known_pct: pct(familiarTokens, tokenDenominator),
-    lemma_total: lemmaTotal,
-    lemma_known_pct: pct(familiarLemmas, assessableLemmaTotal),
-    content_word_known_pct: contentPct,
-    buckets: Object.freeze(buckets),
-    top_unknown: Object.freeze(topUnknown.slice(0, topUnknownLimit).map((x) => Object.freeze(x))),
-    recommendation_band: band(contentPct),
+    status: fit.status, reason_code: fit.reason_code, counts: fit.counts && Object.freeze({ ...fit.counts }),
+    recorded_familiar_pct_lower_bound: fit.recorded_familiar_pct_lower_bound,
+    unresolved_uncertainty_pp: fit.unresolved_uncertainty_pp, rank_eligible: !!fit.rank_eligible,
+    top_unknown: Object.freeze(topUnknown.map((row) => Object.freeze(row))),
   });
 }
 
 module.exports = { TOKENIZER_VERSION, RESOLVER_VERSION, MAX_TOKENS, MAX_TOKEN_TYPES,
-  calculate, collectTokenTypes, band };
+  calculate, collectTokenTypes };

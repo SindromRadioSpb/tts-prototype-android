@@ -1109,4 +1109,25 @@ export const MIGRATIONS = [
     ON studio_portable_export_receipts(scope_kind, portable_scope_id, created_at);
   CREATE INDEX IF NOT EXISTS ix_studio_portable_export_artifact
     ON studio_portable_export_receipts(artifact_sha256, event_kind);`,
+
+  // 049_room_learning_compass_cache — B7 Learning Compass 2.0.
+  // Local-only DERIVED lexical ingredients. Never stores a title, body, learner state or
+  // reading session; every row is invalidated by exact content/entitlement/resolver revisions.
+  `CREATE TABLE IF NOT EXISTS room_learning_compass_cache (
+    cache_key            TEXT PRIMARY KEY,
+    source_class         TEXT NOT NULL CHECK(source_class IN ('mytext','group')),
+    source_key           TEXT NOT NULL,
+    content_revision     TEXT NOT NULL,
+    content_sha256       TEXT NOT NULL,
+    entitlement_revision TEXT,
+    resolver_version     TEXT NOT NULL,
+    ingredients_json     TEXT NOT NULL CHECK(json_valid(ingredients_json)),
+    size_bytes           INTEGER NOT NULL CHECK(size_bytes >= 0),
+    built_at             TEXT NOT NULL,
+    last_used_at         TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS ix_room_compass_cache_source
+    ON room_learning_compass_cache(source_class, source_key);
+  CREATE INDEX IF NOT EXISTS ix_room_compass_cache_lru
+    ON room_learning_compass_cache(last_used_at, built_at);`,
 ];

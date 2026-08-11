@@ -61,6 +61,325 @@ const CORPUS_PAGE = 60;         // native Ben-Yehuda author/result page size
 const ROOM_PREVIEW = 12;        // hard shelf/ready-preview DOM bound (Option B)
 const ROOM_BROWSE_PAGE = roomB6.ROOM_B6_LIMITS.pageSize; // B0 DOM ceiling stays fixed in B6
 
+// B7 Learning Compass 2.0 — one shared ruleset, one existing learner truth, local aggregates only.
+const learningCompass = window.LearningCompassCore;
+const LEARNING_CALIBRATION_KEY = 'room.learningCompass.calibration.v2';
+const LEARNING_CALIBRATION_DISABLED_KEY = 'room.learningCompass.calibrationDisabled.v2';
+const _compassPage = new Map();
+let _compassProjection = null;
+let _compassProjectionLoading = null;
+let _compassJobSeq = 0;
+const _compassWorkerSlots = [];
+const _compassWorkerQueue = [];
+let _readingCalibrationSession = null;
+let _readingAudioActive = 0;
+
+function readCalibrationLedger() {
+  if (!learningCompass) return null;
+  try {
+    const parsed = JSON.parse(localStorage.getItem(LEARNING_CALIBRATION_KEY) || 'null');
+    return parsed && parsed.schema_version === learningCompass.CALIBRATION_SCHEMA ? parsed : learningCompass.emptyCalibrationLedger();
+  } catch (_) { return learningCompass.emptyCalibrationLedger(); }
+}
+
+function writeCalibrationLedger(ledger) {
+  if (!learningCompass) return;
+  try {
+    const encoded = JSON.stringify(ledger);
+    if (new TextEncoder().encode(encoded).byteLength <= learningCompass.CALIBRATION_MAX_BYTES) localStorage.setItem(LEARNING_CALIBRATION_KEY, encoded);
+  } catch (_) {}
+}
+
+function readingCalibrationDisabled() {
+  try { return localStorage.getItem(LEARNING_CALIBRATION_DISABLED_KEY) === '1'; } catch (_) { return false; }
+}
+
+function repaintCalibrationState(status) {
+  for (const [key, context] of _compassPage.entries()) {
+    _compassPage.set(key, { ...context, readingTime: { status, min_minutes: null, max_minutes: null } });
+    repaintPreparedCompass(key);
+  }
+  try { refreshCovChip(); } catch (_) {}
+}
+
+function resetLearningCalibration() {
+  if (!learningCompass) return;
+  writeCalibrationLedger(learningCompass.resetCalibrationLedger());
+  repaintCalibrationState(readingCalibrationDisabled() ? 'DISABLED' : 'NEEDS_CALIBRATION');
+  roomToast(tt('room.compass.calibrationReset', 'Локальная калибровка времени чтения сброшена'));
+}
+
+function toggleLearningCalibration() {
+  const disable = !readingCalibrationDisabled();
+  try {
+    if (disable) localStorage.setItem(LEARNING_CALIBRATION_DISABLED_KEY, '1');
+    else localStorage.removeItem(LEARNING_CALIBRATION_DISABLED_KEY);
+  } catch (_) {}
+  if (disable) writeCalibrationLedger(learningCompass.resetCalibrationLedger());
+  repaintCalibrationState(disable ? 'DISABLED' : 'NEEDS_CALIBRATION');
+  roomToast(disable
+    ? tt('room.compass.calibrationDisabledToast', 'Учёт времени чтения отключён на этом устройстве')
+    : tt('room.compass.calibrationEnabledToast', 'Учёт времени чтения включён на этом устройстве'));
+  return disable;
+}
+
+function learningCalibrationToggle() {
+  const disabled = readingCalibrationDisabled();
+  const button = el('button', { class: 'learning-calibration-toggle', attrs: { type: 'button' },
+    text: disabled ? tt('room.compass.enableCalibration', 'Включить учёт времени чтения') : tt('room.compass.disableCalibration', 'Не учитывать время чтения') });
+  button.addEventListener('click', (event) => {
+    event.preventDefault();
+    const nowDisabled = toggleLearningCalibration();
+    button.textContent = nowDisabled ? tt('room.compass.enableCalibration', 'Включить учёт времени чтения') : tt('room.compass.disableCalibration', 'Не учитывать время чтения');
+  });
+  return button;
+}
+
+async function ensureLearningCompassProjection(force) {
+  if (!learningCompass) return null;
+  if (force) { _compassProjection = null; _compassProjectionLoading = null; }
+  if (_compassProjection) return _compassProjection;
+  if (_compassProjectionLoading) return _compassProjectionLoading;
+  _compassProjectionLoading = localDb.getLearningCompassProjection().then((value) => (_compassProjection = value));
+  try { return await _compassProjectionLoading; }
+  catch (_) { return null; }
+  finally { _compassProjectionLoading = null; }
+}
+
+function compassWorkerLimit() {
+  try { return matchMedia('(max-width: 700px)').matches ? 1 : 2; } catch (_) { return 1; }
+}
+
+function pumpCompassWorkers() {
+  if (typeof Worker === 'undefined') {
+    while (_compassWorkerQueue.length) _compassWorkerQueue.shift().reject(new Error('WORKER_UNAVAILABLE'));
+    return;
+  }
+  while (_compassWorkerSlots.length < compassWorkerLimit()) {
+    let worker;
+    try { worker = new Worker('/js/learning-compass-worker.js'); }
+    catch (_) {
+      while (_compassWorkerQueue.length) _compassWorkerQueue.shift().reject(new Error('WORKER_UNAVAILABLE'));
+      return;
+    }
+    const slot = { worker, job: null };
+    worker.onmessage = ({ data }) => {
+      const job = slot.job; if (!job || !data || data.id !== job.id) return;
+      slot.job = null;
+      if (data.ok) job.resolve(data.ingredients); else job.reject(new Error(data.error || 'ANALYSIS_FAILED'));
+      pumpCompassWorkers();
+    };
+    worker.onerror = () => {
+      const job = slot.job; slot.job = null;
+      if (job) job.reject(new Error('ANALYSIS_WORKER_FAILED'));
+      try { worker.terminate(); } catch (_) {}
+      const index = _compassWorkerSlots.indexOf(slot); if (index >= 0) _compassWorkerSlots.splice(index, 1);
+      pumpCompassWorkers();
+    };
+    _compassWorkerSlots.push(slot);
+  }
+  for (const slot of _compassWorkerSlots) {
+    if (slot.job || !_compassWorkerQueue.length) continue;
+    const job = _compassWorkerQueue.shift(); slot.job = job;
+    slot.worker.postMessage({ id: job.id, type: 'analyze', ...job.payload });
+  }
+}
+
+function analyzeLearningRows(payload, options) {
+  return new Promise((resolve, reject) => {
+    const job = { id: 'lc-' + (++_compassJobSeq), payload, resolve, reject };
+    if (options && options.foreground) _compassWorkerQueue.unshift(job);
+    else _compassWorkerQueue.push(job);
+    pumpCompassWorkers();
+  });
+}
+
+function compassStatusContext(status, reasonCode) {
+  const compass = {
+    schema_version: learningCompass && learningCompass.COVERAGE_SCHEMA,
+    status, reason_code: reasonCode, counts: null,
+    recorded_familiar_pct_lower_bound: null, unresolved_uncertainty_pp: null,
+    rank_eligible: false, learner_projection_version: _compassProjection && _compassProjection.version || null,
+    resolver_version: learningCompass && learningCompass.RESOLVER_VERSION,
+  };
+  return { compass, readingTime: null, primaryReason: 'NEUTRAL' };
+}
+
+function compassFailureContext(error) {
+  const code = String(error && error.message || error || 'ANALYSIS_FAILED');
+  const unsupported = /TOKEN_LIMIT|TYPE_LIMIT|PACKET_LIMIT|NO_HEBREW_TOKENS/.test(code);
+  return compassStatusContext(unsupported ? 'UNSUPPORTED' : 'UNAVAILABLE', code.slice(0, 80));
+}
+
+function myCompassDescriptor(item) {
+  if (!item || item.id == null) return null;
+  return {
+    cache_key: 'mytext:' + String(item.id), source_class: 'mytext', source_key: String(item.text_key || item.id),
+    local_id: String(item.id), content_revision: String(item.updated_at || 'unknown'), content_sha256: '',
+    entitlement_revision: null, resolver_version: learningCompass && learningCompass.RESOLVER_VERSION,
+  };
+}
+
+function groupCompassDescriptor(corpusId, work, localRow) {
+  if (!work || !localRow || !work.bundle_sha256) return null;
+  let edition = '';
+  try { edition = localStorage.getItem('room.groupCorpus.edition.' + corpusId + '.' + work.work_id) || ''; } catch (_) {}
+  if (edition !== String(work.bundle_sha256)) return null;
+  return {
+    cache_key: 'group:' + String(corpusId) + ':' + String(work.work_id), source_class: 'group',
+    source_key: String(work.text_key || work.work_id), local_id: String(localRow.id),
+    content_revision: String(work.bundle_sha256), content_sha256: '',
+    entitlement_revision: String(work.bundle_sha256), resolver_version: learningCompass && learningCompass.RESOLVER_VERSION,
+  };
+}
+
+function contextFromIngredients(ingredients, projection, primaryFlags) {
+  if (!learningCompass) return { compass: null, readingTime: null, primaryReason: 'NEUTRAL' };
+  // A missing projection is an availability failure, not an empty profile and not an
+  // unprepared text. A tiny synthetic ingredient exists only to let the shared ruleset
+  // express that status; it is never cached, rendered as content, or scored.
+  const evaluatedIngredients = !projection && !ingredients ? {
+    schema_version: learningCompass.INGREDIENTS_SCHEMA,
+    resolver_version: learningCompass.RESOLVER_VERSION,
+    key_frequencies: [{ key: '__projection_probe__', token_count: 1 }],
+    unresolved_token_count: 0, proper_name_token_count: 0, total_token_count: 1,
+  } : ingredients;
+  const compass = learningCompass.evaluateRecordedFamiliarityV2({ ingredients: evaluatedIngredients, learner_projection: projection });
+  const readingTime = ingredients && compass.status !== 'UNSUPPORTED'
+    ? readingCalibrationDisabled() ? { status: 'DISABLED', min_minutes: null, max_minutes: null }
+      : learningCompass.estimateReadingRange(ingredients.total_token_count, readCalibrationLedger()) : null;
+  return {
+    compass, readingTime,
+    primaryReason: learningCompass.choosePrimaryReason({ ...(primaryFlags || {}), recorded_familiarity: compass }),
+  };
+}
+
+function learningCompassContext(cacheKey, primaryFlags) {
+  const found = cacheKey && _compassPage.get(String(cacheKey));
+  if (found) return { ...found, primaryReason: learningCompass.choosePrimaryReason({ ...(primaryFlags || {}), recorded_familiarity: found.compass }) };
+  return contextFromIngredients(null, _compassProjection, primaryFlags);
+}
+
+function repaintPreparedCompass(cacheKey) {
+  try {
+    document.querySelectorAll('[data-compass-key="' + CSS.escape(String(cacheKey)) + '"]').forEach((node) => {
+      if (typeof node.__compassRepaint === 'function') node.__compassRepaint();
+    });
+  } catch (_) {}
+}
+
+async function buildAndCacheCompassDescriptor(descriptor, rows) {
+  if (!descriptor || !learningCompass) return null;
+  const ingredients = await analyzeLearningRows({
+    rows, source_class: descriptor.source_class, source_key: descriptor.source_key,
+    content_revision: descriptor.content_revision, entitlement_revision: descriptor.entitlement_revision,
+  });
+  await localDb.putLearningCompassIngredients({ ...descriptor, ingredients, content_sha256: ingredients.content_sha256 });
+  const projection = await ensureLearningCompassProjection();
+  const context = contextFromIngredients(ingredients, projection);
+  _compassPage.set(descriptor.cache_key, context);
+  repaintPreparedCompass(descriptor.cache_key);
+  return ingredients;
+}
+
+function scheduleCompassIdleBuild(descriptors) {
+  const queue = (descriptors || []).filter((item) => item && item.local_id).slice(0, 8);
+  if (!queue.length) return;
+  const run = async () => {
+    const descriptor = queue.shift();
+    _compassPage.set(descriptor.cache_key, compassStatusContext('PENDING', 'LOCAL_ANALYSIS_PENDING'));
+    repaintPreparedCompass(descriptor.cache_key);
+    try { const rows = await localDb.getSentences(descriptor.local_id); await buildAndCacheCompassDescriptor(descriptor, rows); }
+    catch (error) { _compassPage.set(descriptor.cache_key, compassFailureContext(error)); repaintPreparedCompass(descriptor.cache_key); }
+    if (queue.length) {
+      if (typeof requestIdleCallback === 'function') requestIdleCallback(run, { timeout: 2500 });
+      else setTimeout(run, 300);
+    }
+  };
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(run, { timeout: 2500 });
+  else setTimeout(run, 300);
+}
+
+async function prepareLearningCompassPage(descriptors) {
+  if (!learningCompass) return;
+  const list = (descriptors || []).filter(Boolean).slice(0, ROOM_BROWSE_PAGE);
+  const projection = await ensureLearningCompassProjection();
+  let batch = { entries: {}, stale_keys: [], invalid_keys: [] };
+  try { batch = await localDb.getLearningCompassIngredientsBatch(list); } catch (_) {}
+  const cached = batch && batch.entries || {};
+  const stale = new Set(batch && batch.stale_keys || []), invalid = new Set(batch && batch.invalid_keys || []);
+  const missing = [];
+  for (const descriptor of list) {
+    const ingredients = cached[descriptor.cache_key] || null;
+    const context = ingredients ? contextFromIngredients(ingredients, projection)
+      : stale.has(descriptor.cache_key) ? compassStatusContext('STALE', 'INGREDIENTS_REVISION_MISMATCH')
+        : invalid.has(descriptor.cache_key) ? compassStatusContext('UNAVAILABLE', 'INGREDIENT_CACHE_INVALID')
+          : contextFromIngredients(null, projection);
+    _compassPage.set(descriptor.cache_key, context);
+    if (!ingredients) missing.push(descriptor);
+  }
+  scheduleCompassIdleBuild(missing);
+}
+
+function calibrationEligibilityActive() {
+  return !readingCalibrationDisabled() && document.visibilityState === 'visible' && _readingAudioActive <= 0;
+}
+
+function tickReadingCalibration() {
+  const session = _readingCalibrationSession;
+  if (!session) return;
+  const now = performance.now();
+  if (session.active_since != null) session.foreground_ms += Math.max(0, now - session.active_since);
+  session.active_since = calibrationEligibilityActive() ? now : null;
+}
+
+function beginReadingCalibration(meta, rows) {
+  tickReadingCalibration();
+  const descriptor = {
+    source_class: meta.source_class, source_key: meta.source_key,
+    content_revision: meta.content_revision, entitlement_revision: meta.entitlement_revision || null,
+  };
+  let ingredientsPromise = analyzeLearningRows({ rows, ...descriptor }, { foreground: true });
+  if (meta.cache_descriptor) {
+    ingredientsPromise = ingredientsPromise.then(async (ingredients) => {
+      try {
+        await localDb.putLearningCompassIngredients({ ...meta.cache_descriptor, ingredients, content_sha256: ingredients.content_sha256 });
+        const projection = await ensureLearningCompassProjection();
+        _compassPage.set(meta.cache_descriptor.cache_key, contextFromIngredients(ingredients, projection));
+      } catch (_) {}
+      return ingredients;
+    });
+  }
+  _readingCalibrationSession = {
+    text_id: String(meta.text_id || ''), descriptor, foreground_ms: 0,
+    active_since: calibrationEligibilityActive() ? performance.now() : null,
+    ingredients_promise: ingredientsPromise,
+  };
+}
+
+async function completeReadingCalibration(tid) {
+  const session = _readingCalibrationSession;
+  if (!session || String(session.text_id) !== String(tid) || !learningCompass || readingCalibrationDisabled()) return;
+  tickReadingCalibration();
+  try {
+    const ingredients = await session.ingredients_promise;
+    const qualified = learningCompass.qualifyReadingSample({
+      content_revision: ingredients.content_revision, content_sha256: ingredients.content_sha256,
+      resolver_version: ingredients.resolver_version, token_count: ingredients.total_token_count,
+      elapsed_foreground_ms: Math.round(session.foreground_ms), completed_explicitly: true,
+    });
+    if (qualified.accepted) {
+      const ledger = learningCompass.appendCalibrationSample(readCalibrationLedger(), qualified.sample);
+      writeCalibrationLedger(ledger);
+    }
+  } catch (_) {}
+}
+
+document.addEventListener('visibilitychange', tickReadingCalibration);
+document.addEventListener('play', () => { _readingAudioActive += 1; tickReadingCalibration(); }, true);
+document.addEventListener('pause', () => { _readingAudioActive = Math.max(0, _readingAudioActive - 1); tickReadingCalibration(); }, true);
+document.addEventListener('ended', () => { _readingAudioActive = Math.max(0, _readingAudioActive - 1); tickReadingCalibration(); }, true);
+
 // B6.2/B6.4 browser adapters. The pure module owns allowlists and bounds; this
 // file only bridges them to same-tab history/session and localStorage. None of
 // these paths writes progress, grades, review events or a network endpoint.
@@ -219,7 +538,7 @@ const TRANSLIT_DATA_REV = 1;     // BRR-S18 — bump when build-translit-index o
 let corpusFtsSeq = 0;            // BRR-P2-006a — monotonic render token: a superseded FTS query's late results never paint
 let corpusReadyById = null;      // Map(id -> full ready card) for opening result rows
 let corpusReadyByKey = null;     // Map(text_key -> full ready card) — W4: resolve the OPEN work's sidecar coverage
-let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeAuthorQid: '', scopeEra: '', smart: '' }; // active global filter (readableOnly = S7 i+1 zone; exactForm = S9 literal-form mode; hasAudio/reviewed = S16 provenance; scopeAuthor/scopeEra = S11 scoped search; smart = uniform personal smart-chip)
+let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeAuthorQid: '', scopeEra: '', smart: '' }; // active global filter (readableOnly = B7 valid exact profile count; exactForm = S9 literal-form mode; hasAudio/reviewed = S16 provenance; scopeAuthor/scopeEra = S11 scoped search; smart = uniform personal smart-chip)
 // ── Uniform retrieval contract (BRR_MULTI_CORPUS_DESIGN §5): PERSONAL dimensions for the
 // Ben-Yehuda corpus — the same smart-chips / #tag semantics as «Мои тексты», driven by the SAME
 // localDb sets, applied to works MATERIALIZED on this device (an un-opened catalog work has no
@@ -401,14 +720,38 @@ function corpusItemCopy() {
     continueRow: (value) => replace('room.compass.continueRow', 'Продолжить · строка {value}', '{value}', value),
     studioLevelReason: tt('room.compass.studioLevelReason', 'Уровень указан в Студии'),
     groupLevelReason: tt('room.compass.groupLevelReason', 'Уровень указан владельцем корпуса'),
-    familiarityReason: tt('room.compass.familiarityReason', 'Подходит по знакомым словам из вашего профиля'),
+    familiarityReason: tt('room.compass.familiarityReason', 'Зафиксированное совпадение с вашим профилем слов'),
     intrinsicReason: tt('room.compass.intrinsicReason', 'Приблизительная сложность по частотности лексики'),
     assignedReason: tt('room.compass.assignedReason', 'Назначено вашей учебной группе'),
     partialAudio: tt('room.compass.partialAudio', 'Аудио доступно частично'),
     personalProvenance: tt('room.compass.personalProvenance', 'Ваш текст · уровень указан в Студии'),
+    personalProvenanceUnknown: tt('room.compass.personalProvenanceUnknown', 'Ваш текст · уровень не указан'),
     benProvenance: tt('room.compass.benProvenance', 'Сложность — по частотности; знакомые слова — только по реальному профилю'),
     groupProvenance: (revision) => replace('room.compass.groupProvenance', 'Учебная группа · TTS · редакция аудио {value}', '{value}', revision),
+    groupProvenanceUnknown: tt('room.compass.groupProvenanceUnknown', 'Учебная группа · источник и редакция аудио не подтверждены'),
   };
+}
+
+function learningSignalKindLabel(kind) {
+  const map = {
+    familiarity: ['room.compass.kindFamiliarity', 'Знакомые слова'],
+    'reading-time': ['room.compass.kindReadingTime', 'Время чтения'],
+    level: ['room.compass.kindLevel', 'Уровень'],
+    audio: ['room.compass.kindAudio', 'Аудио'],
+  };
+  const entry = map[String(kind)] || ['room.compass.kindUnknown', 'Сигнал'];
+  return tt(entry[0], entry[1]);
+}
+
+function learningProvenanceTypeLabel(type) {
+  const map = {
+    curated: ['room.compass.provCurated', 'проверено'],
+    asserted: ['room.compass.provAsserted', 'указано владельцем'],
+    derived: ['room.compass.provDerived', 'вычислено'],
+    unknown: ['room.compass.provUnknown', 'не подтверждено'],
+  };
+  const entry = map[String(type)] || map.unknown;
+  return tt(entry[0], entry[1]);
 }
 
 function learningMediaLabel(media) {
@@ -437,19 +780,36 @@ function paintLearningCompass(target, item, options) {
   const state = item.learnerState || {};
   target.textContent = '';
   target.classList.add('learning-compass', 'work-card-difficulty');
-  target.setAttribute('data-confidence', readiness.confidence || 'derived-soft');
+  target.setAttribute('data-confidence', readiness.confidence || 'unknown');
   target.setAttribute('aria-label', tt('room.compass.label', 'Ориентир для чтения'));
   if (target.closest('.room-text-row')) target.closest('.room-text-row').setAttribute('data-state', state.state || 'new');
   for (const signal of learningSignals(item)) {
     if (signal.kind === 'level') {
       const band = readiness.band || '';
-      const node = el('span', { class: 'learning-signal learning-level diff-band' + (band ? ' diff-' + band : ''), text: signal.label });
-      if (signal.reason) node.title = signal.reason;
+      const node = el('span', { class: 'learning-signal learning-level diff-band' + (band ? ' diff-' + band : ''), text: signal.label || signal.value });
       target.appendChild(node);
     } else if (signal.kind === 'familiarity') {
-      const node = el('span', { class: 'learning-signal learning-familiar coverage-badge' + (signal.zone ? ' coverage-' + signal.zone : ''), text: '≈' + signal.value + '% ' + tt('room.corpus.cov.familiar', 'знакомо') });
-      if (signal.reason) node.title = signal.reason;
+      const value = signal.value && typeof signal.value === 'object' ? signal.value : { status: 'AVAILABLE', lower_bound_pct: signal.value };
+      let copy = '';
+      if ((value.status === 'AVAILABLE' || value.status === 'AVAILABLE_LIMITED') && Number.isFinite(Number(value.lower_bound_pct))) {
+        copy = Number(value.uncertainty_pp) > 0
+          ? tt('room.compass.recordedFamiliarLowerBound', 'Не менее {value}% зафиксировано знакомыми').replace('{value}', String(Math.round(Number(value.lower_bound_pct))))
+          : Math.round(Number(value.lower_bound_pct)) + '% ' + tt('room.compass.recordedFamiliar', 'зафиксировано знакомыми');
+      } else if (value.status === 'NEEDS_PROFILE') copy = tt('room.compass.needsProfile', 'Нужен профиль слов');
+      else if (value.status === 'NOT_PREPARED') copy = tt('room.compass.notPrepared', 'Анализ ещё не подготовлен');
+      else if (value.status === 'PENDING') copy = tt('room.compass.preparing', 'Анализ готовится');
+      else if (value.status === 'STALE') copy = tt('room.compass.stale', 'Нужно обновить анализ');
+      else if (value.status === 'UNSUPPORTED') copy = tt('room.compass.unsupported', 'Локальный анализ не поддерживается');
+      else copy = tt('room.compass.unavailable', 'Оценка недоступна');
+      const node = el('span', { class: 'learning-signal learning-familiar coverage-badge coverage-' + String(value.status || 'unavailable').toLowerCase(), text: copy });
       target.appendChild(node);
+    } else if (signal.kind === 'reading-time') {
+      const value = signal.value || {};
+      const copy = value.status === 'AVAILABLE' && Number.isFinite(Number(value.min_minutes)) && Number.isFinite(Number(value.max_minutes))
+        ? tt('room.compass.readingRange', '{min}–{max} мин').replace('{min}', String(value.min_minutes)).replace('{max}', String(value.max_minutes))
+        : value.status === 'DISABLED' ? tt('room.compass.timeDisabled', 'Учёт времени отключён')
+          : tt('room.compass.timeNeedsCalibration', 'Время — после 5 завершённых чтений');
+      target.appendChild(el('span', { class: 'learning-signal learning-reading-time', text: copy }));
     }
   }
   if (state.state === 'reading' && state.resumeLabel) target.appendChild(el('span', { class: 'learner-state-chip is-reading', text: state.resumeLabel }));
@@ -461,12 +821,31 @@ function paintLearningCompass(target, item, options) {
   if (opts.showTags) for (const tag of (item.tags || []).slice(0, 1)) target.appendChild(el('span', { class: 'learning-tag', text: '#' + tag }));
   for (const caveat of (readiness.caveats || []).slice(0, 1)) target.appendChild(el('span', { class: 'learning-caveat diff-archaica', text: caveat }));
   const detailLines = [readiness.reason].concat(readiness.caveats || [], item.provenanceSummary || []).filter(Boolean);
+  for (const signal of (item.signals || [])) {
+    const provenance = signal.provenance || { type: 'unknown' };
+    if (signal.kind === 'familiarity' && signal.value && signal.value.counts) {
+      const c = signal.value.counts;
+      detailLines.push(tt('room.compass.auditCounts', 'Знакомые {f} / знаменатель {d}; новые {n}; без профиля {u}; неоднозначные {x}')
+        .replace('{f}', String(c.familiar)).replace('{d}', String(c.eligible_denominator))
+        .replace('{n}', String(c.explicit_new)).replace('{u}', String(c.untracked)).replace('{x}', String(c.unresolved)));
+    }
+    detailLines.push(tt('room.compass.provenanceLine', '{kind}: {type} · {source}')
+      .replace('{kind}', learningSignalKindLabel(signal.kind)).replace('{type}', learningProvenanceTypeLabel(provenance.type))
+      .replace('{source}', String(provenance.source || tt('room.compass.sourceUnknown', 'источник не указан'))));
+  }
   if (opts.showDetails !== false && detailLines.length) {
     const details = el('details', { class: 'learning-compass-details' });
     details.appendChild(el('summary', { attrs: { 'aria-label': tt('room.compass.details', 'Почему подходит и откуда данные') }, text: 'ⓘ' }));
     const panel = el('div', { class: 'learning-compass-panel' });
     const seen = new Set();
     for (const line of detailLines) if (!seen.has(String(line))) { seen.add(String(line)); panel.appendChild(el('p', { text: String(line) })); }
+    const ledger = readCalibrationLedger();
+    if (ledger && Array.isArray(ledger.samples) && ledger.samples.length) {
+      const reset = el('button', { class: 'learning-calibration-reset', attrs: { type: 'button' }, text: tt('room.compass.resetCalibration', 'Сбросить моё время чтения') });
+      reset.addEventListener('click', (event) => { event.preventDefault(); resetLearningCalibration(); });
+      panel.appendChild(reset);
+    }
+    panel.appendChild(learningCalibrationToggle());
     details.appendChild(panel); target.appendChild(details);
   }
   target.hidden = !target.children.length;
@@ -950,6 +1329,7 @@ const morphHost = window.MorphHost.createHost({
     // refreshDueBadge; mark-обёртка добавляла своё) — объединение корректно, лишние
     // инвалидации только к ленивым пересчётам
     _asdCache = null;
+    _compassProjection = null; _compassProjectionLoading = null; _compassPage.clear();
     try { invalidateReadableSet(); } catch (_) {}
     try { applyDecorations(); } catch (_) {}
     try { refreshDueBadge(); } catch (_) {}
@@ -1062,13 +1442,9 @@ async function applyDecorations() {
   try { refreshCovChip(); } catch (_) {}   // W4 — keep the in-reader coverage chip in sync on open / status / config change
 }
 
-// ── BRR Epic 5 W4 — in-reader coverage chip («≈X% знакомо · N новых») ─────────────────────────
-// Always-visible during reading (a full-width second row of the sticky reader-bar) so the card's i+1
-// verdict persists into the session. CORPUS work → reuse the card's SIDECAR coverage (roomVocabCoverageFor,
-// ZERO scan, byte-identical % to the card badge — R11 cross-surface); USER text (no sidecar) → ONE
-// collectReviewItems pass (the same chunked scan «Учить» uses), folded over CFG.KNOWN_STATES so «знакомо»
-// means the same everywhere. Empty profile → show only «N новых» (no misleading «≈0% знакомо» — mirrors the
-// card's badge-hide on knownDistinct===0). Tap → «📚 Учить» so «N новых» is one tap from learning them.
+// B7 — in-reader Learning Compass chip. The already-running local Worker supplies content-free
+// ingredients for every source; the same shared core used on cards and by Agent Access supplies
+// exact counts. No comprehension band, fixed WPM, or empty-profile zero is inferred here.
 function _covChipMount() {
   const reader = $('roomReader'); if (!reader) return null;
   const bar = reader.querySelector('.reader-bar'); if (!bar) return null;
@@ -1076,62 +1452,48 @@ function _covChipMount() {
   if (!chip) {
     chip = el('button', { class: 'reader-cov-chip', attrs: { type: 'button' } });
     chip.id = 'readerCovChip'; chip.hidden = true;
-    chip.title = tt('room.corpus.cov.chipAria', 'Покрытие словаря — открыть «Учить»');
+    chip.title = tt('room.corpus.cov.chipAria', 'Зафиксированные знакомые слова — открыть «Учить»');
     chip.addEventListener('click', () => { try { roomOpenStudyList(); } catch (_) {} });
     bar.appendChild(chip);   // last child → wraps to its own full-width row (flex-basis:100%)
   }
   return chip;
 }
 function clearCovChip() { const c = $('readerCovChip'); if (c) c.hidden = true; }
-let _covChipBusy = false, _covChipDirty = false, _covChipCache = null;   // cache: {tid, statesRef, pct, newCount, zone, hasKnown}
+let _covChipBusy = false, _covChipDirty = false, _covChipCache = null;
 async function refreshCovChip() {
   const tid = readerTextId; if (tid == null) return;
   if (_covChipBusy) { _covChipDirty = true; return; }   // coalesce: re-run once after the in-flight pass (no missed refresh)
   _covChipBusy = true;
   try {
-    let pct = null, newCount = 0, zone = '', hasKnown = false;
-    // CORPUS work → sidecar coverage (0 scan, % byte-identical to the card badge). Resolve the ready card by
-    // text_key (the open work's key; corpusReadyMap is keyed by the small catalog id, NOT the key) → its id → sidecar.
-    let covCard = null;
-    if (readerTextKey) { try { covCard = corpusReadyKeyMap().get(String(readerTextKey)) || null; } catch (_) {} }
-    if (covCard && covCard.id != null && window.CorpusVocabRoom) {
-      const cov = await roomVocabCoverageFor(covCard.id);
-      if (readerTextId !== tid) return;
-      if (cov && cov.matchedDistinct > 0) { pct = Math.round(cov.matchedDrillCov * 100); newCount = cov.frontierCount || 0; zone = cov.zone || ''; hasKnown = cov.knownDistinct > 0; }
-    }
-    // USER text (no sidecar) → ONE live scan, MEMOIZED by (textId, profile-ref): a config toggle (niqqud/colour)
-    // that doesn't change the profile reuses the fold instead of re-scanning (the S3 cost guard). ensureWordStates
-    // returns a reference-stable cache that is nulled on any word-status change → cache miss → re-scan.
-    if (pct == null) {
-      const mount = $('roomReaderTable'), R = window.ReaderMorph, CV = window.CorpusVocab;
-      if (mount && R && R.collectReviewItems && CV) {
-        const states = (await ensureWordStates()) || {};
-        if (readerTextId !== tid) return;
-        if (_covChipCache && _covChipCache.tid === tid && _covChipCache.statesRef === states) {
-          ({ pct, newCount, zone, hasKnown } = _covChipCache);
-        } else {
-          const items = await R.collectReviewItems(mount, states, {});
-          if (readerTextId !== tid) return;
-          const KS = (CV.CFG && CV.CFG.KNOWN_STATES) || {};
-          let knownTok = 0, allTok = 0, nc = 0;
-          for (const it of items) { const f = it.freq || 1; allTok += f; if (KS[it.status]) knownTok += f; else nc++; }
-          if (allTok > 0) { pct = Math.round(knownTok / allTok * 100); newCount = nc; zone = CV.classifyZone ? CV.classifyZone(knownTok / allTok) : ''; hasKnown = knownTok > 0; }
-          _covChipCache = { tid: tid, statesRef: states, pct: pct, newCount: newCount, zone: zone, hasKnown: hasKnown };
-        }
-      }
-    }
+    const session = _readingCalibrationSession;
+    if (!session || String(session.text_id) !== String(tid) || !learningCompass) return;
+    const [ingredients, projection] = await Promise.all([session.ingredients_promise, ensureLearningCompassProjection()]);
     if (readerTextId !== tid) return;
+    const fit = learningCompass.evaluateRecordedFamiliarityV2({ ingredients, learner_projection: projection });
+    _covChipCache = { tid, fit };
     const chip = _covChipMount(); if (!chip) return;
-    if (pct == null || (!hasKnown && newCount === 0)) { chip.hidden = true; return; }   // nothing confident to show
-    if (!hasKnown) zone = '';   // 0% known on an empty profile is not «hard» — don't colour it (R6/R11 honesty)
-    chip.className = 'reader-cov-chip' + (zone ? ' cov-' + zone : '');
+    chip.className = 'reader-cov-chip cov-' + String(fit.status || 'unavailable').toLowerCase();
     chip.textContent = '';
     const lead = el('span', { class: 'cov-chip-pct' });
-    lead.textContent = hasKnown ? ('📖 ≈' + pct + '% ' + tt('room.corpus.cov.familiar', 'знакомо')) : '📖';
+    if (fit.status === 'AVAILABLE' || fit.status === 'AVAILABLE_LIMITED') {
+      lead.textContent = '📖 ' + (Number(fit.unresolved_uncertainty_pp) > 0
+        ? tt('room.compass.recordedFamiliarLowerBound', 'Не менее {value}% зафиксировано знакомыми').replace('{value}', String(Math.round(Number(fit.recorded_familiar_pct_lower_bound))))
+        : Math.round(Number(fit.recorded_familiar_pct_lower_bound)) + '% ' + tt('room.compass.recordedFamiliar', 'зафиксировано знакомыми'));
+    } else if (fit.status === 'NEEDS_PROFILE') lead.textContent = '📖 ' + tt('room.compass.needsProfile', 'Нужен профиль слов');
+    else lead.textContent = '📖 ' + tt('room.compass.unavailable', 'Оценка недоступна');
     chip.appendChild(lead);
-    if (newCount > 0) chip.appendChild(el('span', { class: 'cov-chip-new', text: (hasKnown ? ' · ' : ' ') + newCount + ' ' + tt('room.corpus.cov.newShort', 'новых') }));
+    if (fit.counts) chip.appendChild(el('span', { class: 'cov-chip-new', text: ' · ' + fit.counts.familiar + '/' + fit.counts.eligible_denominator }));
     chip.hidden = false;
-  } catch (_) { } finally {
+  } catch (_) {
+    if (readerTextId === tid) {
+      const chip = _covChipMount();
+      if (chip) {
+        chip.className = 'reader-cov-chip cov-unavailable';
+        chip.textContent = '📖 ' + tt('room.compass.unavailable', 'Оценка недоступна');
+        chip.hidden = false;
+      }
+    }
+  } finally {
     _covChipBusy = false;
     if (_covChipDirty) { _covChipDirty = false; try { refreshCovChip(); } catch (_) {} }   // run the coalesced request
   }
@@ -1159,21 +1521,14 @@ async function maybeOfferScaffoldAdvice() {
       if (readerTextId !== tid) return;                              // navigated away while loading
       fadeReady = !!window.ReaderMorph.fadeGraduationReady(states);
     }
-    // входы правила R: coverage ТЕКУЩЕГО текста (только corpus-работы; личные тексты честно вне)
-    let coverage = null;
-    if (readerCfg.ruMode === 'show' && localStorage.getItem('room.ruRevealOffered') !== '1') {
-      try {
-        const card = readerTextKey && typeof corpusReadyKeyMap === 'function' ? corpusReadyKeyMap().get(String(readerTextKey)) : null;
-        if (card && card.id != null) coverage = await roomVocabCoverageFor(card.id);
-        if (readerTextId !== tid) return;
-      } catch (_) { coverage = null; }
-    }
     const advice = window.ScaffoldAdvisor.advise({
       niqqudMode: readerCfg.niqqudMode, ruMode: readerCfg.ruMode,
       fadeReady,
       fadeGradOffered: localStorage.getItem('room.fadeGradOffered') === '1',
-      ruRevealOffered: localStorage.getItem('room.ruRevealOffered') === '1',
-      coverage: coverage ? { zone: coverage.zone, loadFlag: !!coverage.loadFlag } : null,
+      // B7: recorded familiarity is not a promise of comprehension, so it cannot auto-qualify
+      // the translation-removal recommendation. The niqqud rule keeps its independent evidence.
+      ruRevealOffered: true,
+      coverage: null,
     });
     if (advice) showScaffoldAdviceBar(advice.rule);
   } catch (_) {}
@@ -3416,7 +3771,10 @@ function roomCloudInit() {
   });
   if (els.logoutBtn) els.logoutBtn.addEventListener('click', async () => {
     const CS = window.CloudSync; if (!CS) return;
+    const protectedIds = groupCorpora.map((item) => String(item && item.corpus_id || '')).filter(Boolean);
     try { await CS.logout(); } catch (_) {}
+    groupCorpora = []; groupCatalogs.clear();
+    for (const id of protectedIds) { try { await localDb.deleteLearningCompassGroupCorpus(id); } catch (_) {} }
     await _cloudRender();
   });
   if (els.groupAccess) els.groupAccess.addEventListener('click', () => {
@@ -4437,6 +4795,7 @@ async function renderEndOfTextCard(tid) {
     mark.addEventListener('click', async () => {
       mark.disabled = true;
       try { await localDb.setTextFinished(tid); } catch (_) {}
+      try { completeReadingCalibration(tid).catch(() => {}); } catch (_) {}
       invalidateFinishedSet();
       try { roomToast(tt('room.resume.markedRead', 'Отмечено: прочитано')); } catch (_) {}
       renderEndOfTextCard(tid);   // flip to the finished state (offers «снять отметку»)
@@ -4460,40 +4819,23 @@ async function renderEndOfTextCard(tid) {
   if (provNote && provNote.parentNode === reader) reader.insertBefore(card, provNote);
   else reader.appendChild(card);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
-  // W2 — «🎯 Следующий для тебя»: append the i+1 next-text fan async (reuses the home-rail engine;
+  // B7: append the relative recorded-familiarity fan async (reuses the home-rail engine;
   // cached single-flight states → fast). Fire-and-forget so the mark/review row shows immediately.
   appendHandoffPicks(card, tid);
 }
 
-// ── BRR Epic 5 W2 — end-of-text-handoff: «что дальше» (next i+1 texts + review-words) ──────────
-// Score the 796 ready corpus works against the LIVE profile (SAME engine as the home rail —
-// CorpusVocab.pickPersonalRail, gentlest-first), excluding the just-read text, and surface the top 3
-// inline at the end-card (R8 «всегда что дальше», no dead-end into the grid). Empty/too-new profile →
-// ez cold-start fallback (never a fabricated «для тебя» list). Reuses ensureWordStates' single-flight
-// snapshot (no per-card DB fan-out — the S3 stampede lesson). Returns { kind, cards } or null.
+// ── B7 end-of-text handoff: relative recorded familiarity + review words ──────────
+// Order ready works with the same shared comparator as the home rail, excluding the just-read text.
+// Empty/unavailable profiles use the profile-free intrinsic cold start; no readiness threshold is inferred.
 async function buildHandoffPicks(excludeTextKey) {
   try {
     const ready = (corpusIndex && corpusIndex.ready) || [];
     if (!ready.length || !window.CorpusVocab) return null;
     const v = await loadCorpusVocab();
     if (!v || !v.works) return null;
-    const states = (await ensureWordStates()) || {};
-    const cardById = new Map();
-    const scored = [];
-    for (const c of ready) {
-      if (excludeTextKey && c.text_key === excludeTextKey) continue;   // never recommend the just-read text
-      const w = v.works[String(c.id)];
-      if (!w) continue;
-      const cov = window.CorpusVocab.coverageForWork(w, v.dict, states);
-      if (!cov) continue;
-      cardById.set(String(c.id), c);
-      scored.push({ id: String(c.id), author: c.author, cov: cov });
-    }
-    const decision = window.CorpusVocab.pickPersonalRail(scored);
-    if (decision && decision.kind) {
-      const cards = decision.ids.map((id) => cardById.get(String(id))).filter(Boolean).slice(0, 3);
-      if (cards.length) return { kind: decision.kind, cards: cards };
-    }
+    const scored = await scoreReadyByRecordedFamiliarity(ready, v, excludeTextKey);
+    const cards = scored.slice(0, 3).map((item) => item.card).filter(Boolean);
+    if (cards.length) return { kind: 'recorded', cards };
     // cold-start fallback (profile-free intrinsic easiness ez), author-capped, top 3 — R8 no dead-end.
     const cold = ready
       .filter((c) => !(excludeTextKey && c.text_key === excludeTextKey))
@@ -4509,10 +4851,10 @@ async function buildHandoffPicks(excludeTextKey) {
 // PAS-D1 — пики «что читать дальше» для дома наставника: ТОТ ЖЕ движок и тот же снапшот
 // профиля, что рельса 🎯/🔥/🌱 и handoff (R11: согласованность рекомендаций между
 // поверхностями — по построению; зеркало buildHandoffPicks). Возврат:
-//   { kind:'next'|'challenge', picks:[{work_id, card, title, author, cov, load_flag,
-//     frontier_pids, frontier_count}] }  — cov-канал живой;
+//   { kind:'recorded', picks:[{work_id, card, title, author, familiar, denominator, load_flag,
+//     frontier_pids, frontier_count}] } — exact content-free counts;
 //   { kind:'coldstart', picks:[{work_id, card, title, author}] } — profile-free ez, БЕЗ
-//     cov-полей (бейдж «≈0%» был бы сфабрикован — критика wf_dd4bc294);
+//     familiarity-полей (empty profile never becomes a fabricated zero);
 //   { error:'data' } — каталог/сайдкар НЕ загрузились (НЕ путать с пустым профилем —
 //     «тихий 0 ≠ реальный 0»); null — и coldstart пуст.
 async function buildNextTextPicks() {
@@ -4525,37 +4867,28 @@ async function buildNextTextPicks() {
     v = await loadCorpusVocab();
     if (!ready.length || !v || !v.works) return { error: 'data' };
   } catch (_) { return { error: 'data' }; }
-  // мёртвый localDb (OPFS недоступен) вешает ensureWordStates навсегда → таймаут в
-  // error-ветку (R4 без тупиков; «профиль пуст» здесь был бы ложью — критика L2-3)
-  const statesRaced = await Promise.race([
-    ensureWordStates().catch(() => null),
+  // A dead LocalDb is data-unavailable, never an empty learner profile.
+  const projectionRaced = await Promise.race([
+    ensureLearningCompassProjection().catch(() => null),
     new Promise((r) => setTimeout(() => r('__timeout__'), 8000)),
   ]);
-  if (statesRaced === '__timeout__') return { error: 'data' };
-  const states = statesRaced || {};
-  const covById = new Map(), cardById = new Map(), scored = [];
-  for (const c of ready) {
-    const w = v.works[String(c.id)];
-    if (!w) continue;
-    const cov = window.CorpusVocab.coverageForWork(w, v.dict, states);
-    if (!cov) continue;
-    cardById.set(String(c.id), c);
-    covById.set(String(c.id), cov);
-    scored.push({ id: String(c.id), author: c.author, cov: cov });
-  }
-  const decision = window.CorpusVocab.pickPersonalRail(scored);
-  if (decision && decision.kind) {
-    const picks = decision.ids.slice(0, 3).map((id) => {
-      const c = cardById.get(String(id)), cov = covById.get(String(id));
-      if (!c || !cov) return null;
+  if (projectionRaced === '__timeout__' || !projectionRaced) return { error: 'data' };
+  const scored = await scoreReadyByRecordedFamiliarity(ready, v);
+  if (scored.length) {
+    const picks = scored.slice(0, 3).map((item) => {
+      const c = item.card, fit = item.recorded_familiarity;
       return {
         work_id: String(c.id), card: c, title: c.title, author: c.author,
-        cov: cov.matchedDrillCov, load_flag: !!cov.loadFlag,
-        frontier_pids: cov.frontier.slice(0, 8).map((f) => Number(f.pid)).filter((n) => Number.isInteger(n) && n > 0),
-        frontier_count: cov.frontierCount,
+        cov: Number(fit.recorded_familiar_pct_lower_bound) / 100,
+        familiar: Number(fit.counts && fit.counts.familiar) || 0,
+        denominator: Number(fit.counts && fit.counts.eligible_denominator) || 0,
+        unresolved: Number(fit.counts && fit.counts.unresolved) || 0,
+        load_flag: !!(window.CorpusVocab && window.CorpusVocab.loadFlagFor && window.CorpusVocab.loadFlagFor(item.work)),
+        frontier_pids: (fit.top_unknown || []).slice(0, 8).map((row) => Number(String(row.key || '').replace(/^pid:/, ''))).filter((n) => Number.isInteger(n) && n > 0),
+        frontier_count: (fit.top_unknown || []).length,
       };
-    }).filter(Boolean);
-    if (picks.length) return { kind: decision.kind, picks };
+    });
+    return { kind: 'recorded', picks };
   }
   // cold-start: profile-free ez (зеркало buildHandoffPicks) — без cov-полей
   const cold = ready
@@ -6227,6 +6560,23 @@ async function openReader(textId, title, opts) {
   } catch (_) { readerIsOwnText = !!readerTextKey; }
   try { setReaderSubtitle(res && res.ok && res.text ? res.text : null); } catch (_) {}   // Epic-6 W1-a — per-work source/context
   if (res && res.ok) {
+    let calibrationSource = null;
+    if (readerIsOwnText) {
+      const cacheDescriptor = myCompassDescriptor({ ...res.text, id: textId });
+      calibrationSource = { text_id: textId, source_class: 'mytext', source_key: String(readerTextKey || textId),
+        content_revision: String((res.text && res.text.updated_at) || 'unknown'), cache_descriptor: cacheDescriptor };
+    } else if (readerGroupCorpusId) {
+      const groupCatalog = groupCatalogs.get(String(readerGroupCorpusId));
+      const groupWork = groupCatalog && groupCatalog.works && groupCatalog.works.find((work) => String(work.text_key) === String(readerTextKey));
+      const cacheDescriptor = groupWork ? groupCompassDescriptor(readerGroupCorpusId, groupWork, { id: textId }) : null;
+      calibrationSource = { text_id: textId, source_class: 'group', source_key: String(readerTextKey || textId),
+        content_revision: String(groupWork && groupWork.bundle_sha256 || 'unknown'), entitlement_revision: groupWork && groupWork.bundle_sha256 || null,
+        cache_descriptor: cacheDescriptor };
+    } else {
+      calibrationSource = { text_id: textId, source_class: 'benyehuda', source_key: String(readerTextKey || readerCorpusWorkId || textId),
+        content_revision: 'catalog-v' + CORPUS_CATALOG_VERSION };
+    }
+    try { beginReadingCalibration(calibrationSource, readerRows); refreshCovChip(); } catch (_) {}
     attachReaderAudio();
     Promise.resolve(roomMediaSetup(res.text, textId)).catch(() => {});   // saved passport + canonical exact Studio binding
     try { roomUpdateTheadTop(); setTimeout(() => { try { roomUpdateTheadTop(); } catch (_) {} }, 600); } catch (_) {}   // sticky-шапка: бар мог дорасти (cov-chip)
@@ -6312,6 +6662,7 @@ async function closeReader(options) {
   // may not have fired if Back is tapped quickly). Read the top-visible row while the table is
   // still laid out, persist it, then stop recording.
   const tid = readerTextId;
+  tickReadingCalibration(); _readingCalibrationSession = null;
   const presentationRestore = !!(options && options.presentationRestore);
   const returnStartedAt = performance.now();
   readerOpenEpoch++;   // pending served-on-open import / ReaderCore completion loses UI authority
@@ -6518,17 +6869,26 @@ async function openCorpusWork(card, openOpts) {
 // authenticated and never static. The source marker prevents cloud artifact
 // sync and switches row audio to the protected endpoint.
 async function loadGroupCorpora(options = {}) {
+  const previousIds = new Set(groupCorpora.map((item) => String(item && item.corpus_id || '')).filter(Boolean));
   groupCorpora = [];
   try {
     const res = await fetch('/api/group-corpora', { cache: 'no-store' });
     if (!res.ok) {
       // Signed-out is a valid empty projection, not a connectivity failure.
-      if (res.status === 401 || res.status === 403) return { ok: true, signedOut: true };
+      if (res.status === 401 || res.status === 403) {
+        for (const id of previousIds) { groupCatalogs.delete(id); try { await localDb.deleteLearningCompassGroupCorpus(id); } catch (_) {} }
+        return { ok: true, signedOut: true };
+      }
       if (options.strictNetwork) throw new Error('GROUP_CORPORA_HTTP_' + res.status);
       return { ok: false };
     }
     const j = await res.json();
     groupCorpora = j && Array.isArray(j.corpora) ? j.corpora : [];
+    const currentIds = new Set(groupCorpora.map((item) => String(item && item.corpus_id || '')).filter(Boolean));
+    for (const id of previousIds) if (!currentIds.has(id)) {
+      groupCatalogs.delete(id);
+      try { await localDb.deleteLearningCompassGroupCorpus(id); } catch (_) {}
+    }
     return { ok: true, signedOut: false };
   } catch (error) {
     groupCorpora = [];
@@ -6895,7 +7255,8 @@ async function loadCorpusSearch() {
   try { return await corpusSearchLoading; } finally { corpusSearchLoading = null; }
 }
 
-// BRR-P1-007 S2 — lazy per-work vocab sidecar (single-flight). Loaded on FIRST i+1 need
+// BRR-P1-007 S2 / B7 — lazy per-work vocab sidecar (single-flight). Loaded on the first
+// recorded-familiarity need
 // (NOT precached) — same budget discipline as corpus-search. The engine (window.CorpusVocab)
 // computes coverage CLIENT-SIDE against the live profile; the sidecar ships ingredients,
 // never a frozen %. CORPUS_VOCAB_DATA_REV busts force-cache when the sidecar CONTENT changes
@@ -6913,14 +7274,37 @@ async function loadCorpusVocab() {
   try { return await corpusVocabLoading; } catch (_) { return null; } finally { corpusVocabLoading = null; }
 }
 
-// Two-channel i+1 coverage for a work id against the LIVE reader profile, or null when the
-// sidecar lacks the work (unbaked / not-yet-profiled) or the engine is absent. Honest empty,
-// never a fabricated number. Consumed by S3/S4 badges+rails (exposed on window for those + verify).
+function recordedFitForBen(work, vocab, projection, workId) {
+  if (!learningCompass || !work || !vocab || !projection) return null;
+  const ingredients = learningCompass.ingredientsFromBenV7(work, vocab.dict, {
+    source_key: 'benyehuda:' + String(workId), content_revision: 'catalog-v' + CORPUS_CATALOG_VERSION,
+    content_sha256: '',
+  });
+  return learningCompass.evaluateRecordedFamiliarityV2({ ingredients, learner_projection: projection });
+}
+
+async function scoreReadyByRecordedFamiliarity(ready, vocab, excludeTextKey) {
+  if (!learningCompass || !vocab || !vocab.works) return [];
+  const projection = await ensureLearningCompassProjection();
+  if (!projection) return [];
+  const scored = [];
+  for (const card of (ready || [])) {
+    if (excludeTextKey && String(card.text_key) === String(excludeTextKey)) continue;
+    const work = vocab.works[String(card.id)]; if (!work) continue;
+    const fit = recordedFitForBen(work, vocab, projection, card.id);
+    if (!fit || fit.status !== 'AVAILABLE' || !fit.rank_eligible) continue;
+    scored.push({ id: String(card.id), card, work, recorded_familiarity: fit });
+  }
+  return learningCompass.pickByRecordedFamiliarity(scored, scored.length || 12);
+}
+
+// B7 compatibility surface for older callers: return the shared exact recorded-familiarity
+// contract, not the retired i+1 band. No work/profile overlap is fabricated.
 async function roomVocabCoverageFor(id) {
   const v = await loadCorpusVocab();
   if (!v || !v.works || !v.works[String(id)]) return null;
-  const states = await ensureWordStates();
-  return window.CorpusVocab.coverageForWork(v.works[String(id)], v.dict, states || {});
+  const projection = await ensureLearningCompassProjection();
+  return recordedFitForBen(v.works[String(id)], v, projection, id);
 }
 if (typeof window !== 'undefined') {
   // refresh() drops the cached profile snapshots (word-states + readable-set) so the next coverage/
@@ -6928,11 +7312,9 @@ if (typeof window !== 'undefined') {
   window.CorpusVocabRoom = { ensure: loadCorpusVocab, coverageFor: roomVocabCoverageFor, refresh: () => { morphHost.invalidateWordStates(); try { invalidateReadableSet(); } catch (_) {} } };
 }
 
-// BRR-S7 — «Читаемые для меня»: the set of work ids the reader can read NOW (i+1 zone in/easy against
-// the LIVE profile). Computed ONCE from the vocab sidecar + a SINGLE ensureWordStates snapshot (the
-// anti-stampede discipline — never a per-row DB query [[feedback-test-with-nonempty-profile]]), cached
-// until the profile changes (invalidated on word-save). Honest: only works the reader has real overlap
-// with (knownDistinct>0) count; an empty profile → empty set (the filter then shows nothing, not a lie).
+// B7 compatibility name, new semantics: works whose exact recorded-familiarity result is rank-eligible.
+// This is a relative-profile filter, never a claim that a text is comprehensible or ready to read.
+// It is computed from one projection snapshot and cached until learner truth changes.
 let _readableSet = null;
 async function ensureReadableSet() {
   if (_readableSet) return _readableSet;
@@ -6940,10 +7322,10 @@ async function ensureReadableSet() {
   try {
     const v = await loadCorpusVocab();
     if (v && v.works && window.CorpusVocab) {
-      const states = (await ensureWordStates()) || {};
+      const projection = await ensureLearningCompassProjection();
       for (const id in v.works) {
-        const cov = window.CorpusVocab.coverageForWork(v.works[id], v.dict, states);
-        if (cov && cov.knownDistinct > 0 && (cov.zone === 'in' || cov.zone === 'easy')) set.add(String(id));
+        const fit = recordedFitForBen(v.works[id], v, projection, id);
+        if (fit && fit.status === 'AVAILABLE' && fit.rank_eligible) set.add(String(id));
       }
     }
   } catch (_) {}
@@ -7008,13 +7390,9 @@ function decorateFinishedBadges(container) {
   container.querySelectorAll('.work-card[data-work-id], .corpus-work-row[data-work-id]').forEach(_finishedBadgeNode);
 }
 
-// S3 — progressive coverage badge on a rendered corpus card. Fire-and-forget (does not
-// block render). HONEST: shows a % ONLY when the reader has a real profile overlap with
-// this work (knownDistinct>0) — a 0% against an empty known-set is a lie, so absent ⇒ no
-// badge (matches DESIGN D3/R4). The % is a SOFT estimate («≈ по твоим словам»), zone-coloured
-// (in 80–95% = sweet spot · easy ≥95% · hard <80%); the load flag «много имён/архаики» fires
-// when proper-noun/archaic share is high (the two-channel honesty, DESIGN D2). Ready cards only
-// (unbaked works are absent from the sidecar → coverageFor returns null → no badge).
+// B7 — progressive Learning Compass on a rendered corpus card. Fire-and-forget: Ben-Yehuda's
+// aggregate sidecar and one learner projection produce exact numerator/denominator/unresolved
+// counts. No comprehension threshold or colour-coded readiness zone is rendered.
 // Compute coverage badges LAZILY — only when a card scrolls near the viewport. A corpus rail
 // holds up to ~796 cards but shows ~4 at once; computing all eagerly fanned getKnownWordStates
 // out across every card (the S3 regression that jammed text-open). The observer keeps it to the
@@ -7036,10 +7414,8 @@ function observeCardCoverage(node, card) {
   node.__covCard = card;
   obs.observe(node);
 }
-// Premium-polish PC-1/PC-3 — find-or-create the card's LEARNING row (.work-card-difficulty): the cluster
-// holding the intrinsic difficulty band + the personal «≈N% знакомо» coverage + the «много имён/архаики»
-// caveat — kept SEPARATE from the provenance meta row (one signal-family per zone). CSS `order` pins the
-// visual order band→coverage→archaica regardless of async append order. Surface-aware placement.
+// Find-or-create the card's LEARNING row: intrinsic lexical load plus recorded familiarity,
+// separate from source/media provenance. Surface-aware placement keeps scanning compact.
 function _cardLearnRow(node) {
   let row = node.querySelector('.work-card-difficulty');
   if (row) { row.classList.add('learning-compass'); return row; }
@@ -7053,20 +7429,26 @@ function _cardLearnRow(node) {
 }
 async function enhanceCardWithCoverage(node, card) {
   if (!node || !card || card.id == null || !window.CorpusVocabRoom) return;
-  let vocab = null, coverage = null, progress = null;
+  let vocab = null, progress = null, projection = null;
   try { vocab = await loadCorpusVocab(); } catch (_) {}
   const work = vocab && vocab.works && vocab.works[String(card.id)];
-  try { coverage = await roomVocabCoverageFor(card.id); } catch (_) {}
+  try { projection = await ensureLearningCompassProjection(); } catch (_) {}
   try { progress = (await ensureCorpusPresentationProgress()).get(String(card.text_key)) || null; } catch (_) {}
   if (!node.isConnected) return;
   const band = work && window.CorpusVocab && window.CorpusVocab.difficultyBand ? window.CorpusVocab.difficultyBand(work.ez) : null;
   const bandLabel = band ? tt('room.corpus.diff.' + band, band === 'easy' ? 'легче' : band === 'mid' ? 'средне' : 'сложнее') : null;
   const caveats = work && window.CorpusVocab && window.CorpusVocab.loadFlagFor && window.CorpusVocab.loadFlagFor(work)
     ? [tt('room.corpus.cov.load', 'много имён/архаики')] : [];
+  const ingredients = work && learningCompass ? learningCompass.ingredientsFromBenV7(work, vocab.dict, {
+    source_key: 'benyehuda:' + String(card.id), content_revision: 'catalog-v' + CORPUS_CATALOG_VERSION,
+    content_sha256: String(card.bundle_sha256 || ''),
+  }) : null;
+  const compassContext = contextFromIngredients(ingredients, projection, {
+    continue_reading: !!(progress && Number(progress.last_row_idx) > 0), derived_lexical_load: caveats.length > 0,
+  });
   const view = adaptBenYehudaItem(card, {
     copy: corpusItemCopy(), difficultyBand: band, difficultyLabel: bandLabel,
-    familiarityPct: coverage && coverage.knownDistinct > 0 ? Math.round(coverage.matchedDrillCov * 100) : null,
-    familiarityZone: coverage && coverage.knownDistinct > 0 ? coverage.zone : null,
+    ...compassContext, catalogRevision: 'catalog-v' + CORPUS_CATALOG_VERSION,
     caveats, progress, savedState: isInAnyList(card.id) ? 'reading-list' : null,
   });
   const learnRow = _cardLearnRow(node); if (!learnRow) return;
@@ -7119,15 +7501,8 @@ function buildColdStartSection(v) {
   }, pick);
 }
 
-// S4 — corpus L1 rail coordinator: ONE rail at the top, chosen by the reader's profile.
-// Loads the vocab sidecar + the profile states ONCE (single-flight — NOT a per-card query;
-// the S3 stampede lesson [[feedback-test-with-nonempty-profile]]), scores every ready work
-// SYNCHRONOUSLY (coverageForWork is pure), and lets the pure engine pickPersonalRail decide:
-//   • «🎯 Следующий для тебя» — works in your 80–95% i+1 zone (≥MIN, gentlest first); OR
-//   • «🔥 Следующий вызов» — you've outgrown the zone → the closest tractable stretch; OR
-//   • neither (too-new) → «🌱 С чего начать» cold-start owns L1.
-// When a personal rail shows, the cold-start rail RECEDES (DESIGN D3: Rail-2 fades as Rail-1
-// fills). Re-render-guarded; fully try/caught (a rail failure never breaks L1).
+// B7 corpus L1 coordinator: a valid profile may order candidates only relative to one another.
+// If the projection or exact ingredients are unavailable, the profile-free curated start rail owns L1.
 // BRR-P2-002 — a «Продолжить чтение» card: an already-imported text the reader left mid-way.
 // Tapping resumes straight to the saved row (explicit intent → jump, not the passive banner).
 function renderContinueCard(item) {
@@ -7309,16 +7684,21 @@ function renderMyTextCard(item, vertical) {
   let media = { kind: null, coverage: null, humanOrTts: null };
   try {
     if (item && (item.media_kind === 'audio' || item.media_kind === 'video')) {
-      media = { kind: item.media_kind, coverage: null, humanOrTts: 'human' };
+      media = { kind: item.media_kind, coverage: null, humanOrTts: null };
     } else if (window.MediaHost) {
       const passport = window.MediaHost.passportFromTextRow(item);
       if (passport && (passport.media || (passport.video && passport.video.videoId))) {
         const video = !!(passport.video && passport.video.videoId) || /^video\//.test(String((passport.media && passport.media.mime) || ''));
-        media = { kind: video ? 'video' : 'audio', coverage: null, humanOrTts: 'human' };
+        media = { kind: video ? 'video' : 'audio', coverage: null, humanOrTts: null };
       }
     }
   } catch (_) {}
-  const view = adaptMyTextItem(item, { copy: corpusItemCopy(), media });
+  const descriptor = myCompassDescriptor(item);
+  const makeView = () => adaptMyTextItem(item, {
+    copy: corpusItemCopy(), media, mediaProvenance: { type: media.kind ? 'derived' : 'unknown', source: media.kind ? 'local-media-passport' : null, revision: item.updated_at || null },
+    ...learningCompassContext(descriptor && descriptor.cache_key, { continue_reading: Number(item.last_row_idx) > 0, asserted_level: !!item.level }),
+  });
+  let view = makeView();
   const title = view.title;
   const openLink = el('a', { class: 'room-text-title-link mytext-open', attrs: { href: deepLinkForText(item.id), 'data-continuity-action': 'open' } });
   const titleCopy = el('span', { class: 'room-item-title-copy' });
@@ -7329,7 +7709,12 @@ function renderMyTextCard(item, vertical) {
   openLink.appendChild(titleCopy);
   openLink.appendChild(el('span', { class: 'room-text-primary', text: view.primaryAction === 'continue' ? tt('room.resume.continue', 'Продолжить') : tt('room.mytexts.read', 'Читать') }));
   col.appendChild(openLink);
-  col.appendChild(renderLearningCompass(view, { showMedia: true, showTags: true, showDetails: false }));
+  const compassRow = renderLearningCompass(view, { showMedia: true, showTags: false, showDetails: false });
+  if (descriptor) {
+    compassRow.setAttribute('data-compass-key', descriptor.cache_key);
+    compassRow.__compassRepaint = () => { view = makeView(); paintLearningCompass(compassRow, view, { showMedia: true, showTags: false, showDetails: false }); };
+  }
+  col.appendChild(compassRow);
   node.appendChild(col);
   // B3: enrichment is useful, but it is not the reading action. Keep it in a per-row
   // disclosure so a scan remains title/progress-first and the consent boundary is unchanged.
@@ -7337,6 +7722,13 @@ function renderMyTextCard(item, vertical) {
   secondary.appendChild(el('summary', { class: 'room-row-more', attrs: { 'aria-label': tt('room.shell.moreActions', 'Другие действия') }, text: '•••' }));
   const secondaryPanel = el('div', { class: 'mytext-secondary-panel' });
   if (view.provenanceSummary) secondaryPanel.appendChild(el('p', { class: 'room-item-provenance', text: view.provenanceSummary }));
+  const calibration = readCalibrationLedger();
+  if (calibration && Array.isArray(calibration.samples) && calibration.samples.length) {
+    const reset = el('button', { class: 'learning-calibration-reset', attrs: { type: 'button' }, text: tt('room.compass.resetCalibration', 'Сбросить моё время чтения') });
+    reset.addEventListener('click', (event) => { event.preventDefault(); resetLearningCalibration(); secondary.removeAttribute('open'); });
+    secondaryPanel.appendChild(reset);
+  }
+  secondaryPanel.appendChild(learningCalibrationToggle());
   const nakdan = el('button', { class: 'mytext-nakdan', attrs: { type: 'button' }, text: 'אְ ' + tt('room.nakdan.add', 'Добавить никуд') });
   nakdan.addEventListener('click', () => addMachineNiqqud(item, nakdan));
   secondaryPanel.appendChild(nakdan); secondary.appendChild(secondaryPanel); node.appendChild(secondary);
@@ -7355,6 +7747,8 @@ async function injectMyTexts(body) {
     try { page = await localDb.listPersonalTextsPage({ limit: ROOM_PREVIEW, sort: 'opened_desc' }); } catch (_) {}
     const mine = page.items || [];
     if (!mine.length || corpusL1Body !== body || corpusFilterActive()) return;   // self-hides: corpus-only users see no dead shelf
+    await prepareLearningCompassPage(mine.map(myCompassDescriptor));
+    if (corpusL1Body !== body || corpusFilterActive()) return;
     const sec = el('section', { class: 'shelf corpus-continue mytexts-shelf' });
     const head = el('div', { class: 'shelf-head' });
     head.appendChild(el('h2', { class: 'shelf-title', text: '📖 ' + tt('room.mytexts.shelfTitle', 'Мои тексты') }));
@@ -7625,26 +8019,14 @@ async function injectCorpusRails(body) {
     if (!ready.length || !window.CorpusVocab) return;
     const v = await loadCorpusVocab();
     if (!v || !v.works) return;
-    const states = (await ensureWordStates()) || {};   // ONE shared query (single-flight)
-    const cardById = new Map();
-    const scored = [];
-    for (const c of ready) {
-      const w = v.works[String(c.id)];
-      if (!w) continue;
-      const cov = window.CorpusVocab.coverageForWork(w, v.dict, states);   // pure, no DB query
-      if (!cov) continue;
-      cardById.set(String(c.id), c);
-      scored.push({ id: String(c.id), author: c.author, cov: cov });
-    }
-    const decision = window.CorpusVocab.pickPersonalRail(scored);
+    const scored = await scoreReadyByRecordedFamiliarity(ready, v);
     body.querySelectorAll('.corpus-coldstart, .corpus-nextforyou').forEach((e) => e.remove());
     let sec = null;
-    if (decision && decision.kind) {
-      const cards = decision.ids.map((id) => cardById.get(String(id))).filter(Boolean);
-      const meta = decision.kind === 'challenge'
-        ? { emoji: '🔥', titleKey: 'room.corpus.challengeTitle', titleFallback: 'Следующий вызов', introKey: 'room.corpus.challengeIntro', introFallback: 'Ты перерос лёгкое — вот посильный вызов чуть выше твоего уровня.' }
-        : { emoji: '🎯', titleKey: 'room.corpus.nextTitle', titleFallback: 'Следующий для тебя', introKey: 'room.corpus.nextIntro', introFallback: 'Тексты, где ты уже знаешь ~80–95% слов — идеальны для роста.' };
-      sec = buildRailSection('corpus-nextforyou', meta, cards);
+    if (scored.length) {
+      sec = buildRailSection('corpus-nextforyou', {
+        emoji: '🎯', titleKey: 'room.corpus.nextTitle', titleFallback: 'Следующий для тебя',
+        introKey: 'room.corpus.nextIntro', introFallback: 'Выше среди текстов с валидным подсчётом зафиксированно знакомых слов.',
+      }, scored.slice(0, 12).map((item) => item.card));
     } else {
       sec = buildColdStartSection(v);   // too-new → cold-start on-ramp
     }
@@ -7654,83 +8036,47 @@ async function injectCorpusRails(body) {
     }
   } catch (_) {}
 }
-// BRR-P1-007 §7 — on-device real-profile validation, triggered by ?validate=1 so the owner can
-// run it on the PHONE (where the profile lives) WITHOUT a console. Privacy-preserving: it reuses
-// CorpusVocabRoom.coverageFor (which scores each work against the LIVE getKnownWordStates profile)
-// and aggregates ONLY anonymous counts — the known-words never leave the device. Sequential (no
-// query stampede). Output goes to a copyable overlay. Turns the 80–95% i+1 band from a
-// validate-in-prod hypothesis into a measured fact (matched-only vs all-token vs type denominators,
-// distribution + candidate bands for recalibrating CV.CFG, per-era fallback load).
+// B7 owner diagnostic, triggered by ?validate=1 on the device that holds the profile.
+// It reports only aggregate contract states and exact counts; no learner keys, content,
+// threshold bands, or comprehension claims leave the device.
 async function runRealProfileValidation() {
   let R = '';
   try {
-    const CV = window.CorpusVocab, Room = window.CorpusVocabRoom;
-    if (!CV || !Room) { showValidationOverlay('Движок не готов — открой ещё раз library.html?validate=1'); return; }
+    const Room = window.CorpusVocabRoom;
+    if (!learningCompass || !Room) { showValidationOverlay('Learning Compass не готов — открой ещё раз library.html?validate=1'); return; }
     const vocab = await Room.ensure();
     if (!vocab || !vocab.works) { showValidationOverlay('vocab-сайдкар не загрузился'); return; }
-    let eraById = {};
-    try { const s = await (await fetch('/data/benyehuda/corpus-search-v' + CORPUS_CATALOG_VERSION + '.json?v=' + CORPUS_CATALOG_VERSION, { cache: 'force-cache' })).json(); for (const r of s) eraById[String(r.id)] = r.e || 'unknown'; } catch (_) {}
-    // FRESH profile with a small retry (the first getKnownWordStates after boot can come back empty
-    // transiently on a 10K-note DB). Heal the app cache too.
-    let states = {};
-    for (let attempt = 0; attempt < 5; attempt++) {
-      try { states = await localDb.getKnownWordStates(); } catch (_) { states = {}; }
-      if (states && Object.keys(states).length) break;
-      await new Promise((r) => setTimeout(r, 300));
-    }
-    if (states && Object.keys(states).length) morphHost.primeWordStates(states);
-    // SRS-state distribution — the likely reason engaged=0: saved words sit in 'new' state, and the
-    // current CV.CFG.KNOWN_STATES = {known,learning} EXCLUDES 'new', so saved vocab isn't counted.
-    const stDist = {}; for (const k in states) stDist[states[k]] = (stDist[states[k]] || 0) + 1;
-    // Recompute under BOTH interpretations: current (known+learning) AND saved-as-known (any state).
-    const SAVED_CFG = Object.assign({}, CV.CFG, { KNOWN_STATES: { known: 1, learning: 1, new: 1, weak: 1, stale: 1 } });
-    const rows = [], rowsSaved = [];
+    const projection = await ensureLearningCompassProjection(true);
+    if (!projection) { showValidationOverlay('Профиль недоступен: это UNAVAILABLE, а не 0%.'); return; }
+    const statuses = {}, totals = { works: 0, familiar: 0, denominator: 0, unresolved: 0, rankEligible: 0 };
     for (const id of Object.keys(vocab.works)) {
       const w = vocab.works[id]; if (!w) continue;
-      const c = window.CorpusVocab.coverageForWork(w, vocab.dict, states);
-      if (!c || c.matchedDistinct < 20) continue;
-      const cs = window.CorpusVocab.coverageForWork(w, vocab.dict, states, SAVED_CFG);
-      rows.push({ mt: c.matchedDrillCov, at: c.totalCov, ty: c.matchedDistinct ? c.knownDistinct / c.matchedDistinct : 0, known: c.knownDistinct, era: eraById[id] || 'unknown' });
-      rowsSaved.push({ mt: cs.matchedDrillCov, fb: cs.fallbackShare, known: cs.knownDistinct, era: eraById[id] || 'unknown' });
+      const fit = recordedFitForBen(w, vocab, projection, id);
+      if (!fit) continue;
+      statuses[fit.status] = (statuses[fit.status] || 0) + 1;
+      totals.works += 1;
+      if (fit.rank_eligible) totals.rankEligible += 1;
+      if (fit.counts) {
+        totals.familiar += Number(fit.counts.familiar) || 0;
+        totals.denominator += Number(fit.counts.eligible_denominator) || 0;
+        totals.unresolved += Number(fit.counts.unresolved) || 0;
+      }
     }
-    const N = rows.length;
-    const LO = CV.CFG.ZONE_LO, HI = CV.CFG.ZONE_HI;
-    const inB = (arr, k, lo, hi) => arr.filter((r) => r[k] >= lo && r[k] < hi).length;
-    const pc = (arr, k) => { const a = arr.map((r) => r[k]).sort((x, y) => x - y); return a.length ? [10, 25, 50, 75, 90].map((p) => a[Math.min(a.length - 1, Math.floor(a.length * p / 100))].toFixed(2)).join('/') : '—'; };
-    const bands = [[.80, .95], [.75, .95], [.75, .90], [.70, .90], [.70, .85], [.65, .85]];
-    const eras = {}; for (const r of rowsSaved) { const e = eras[r.era] = eras[r.era] || { n: 0, fb: 0, in: 0 }; e.n++; e.fb += r.fb; if (r.mt >= LO && r.mt < HI) e.in++; }
-    R += '=== BRR-P1-007 §7 real-profile validation ===\n';
-    R += 'scored=' + N + ' · profile states: ' + (Object.keys(stDist).map((s) => s + '=' + stDist[s]).join(' ') || '(empty)') + '\n';
-    R += '[known+learning]  engaged=' + rows.filter((r) => r.known > 0).length + ' · in-zone(mt ' + LO + '–' + HI + ')=' + inB(rows, 'mt', LO, HI) + '\n';
-    R += '[saved=known]     engaged=' + rowsSaved.filter((r) => r.known > 0).length + ' · in-zone(mt ' + LO + '–' + HI + ')=' + inB(rowsSaved, 'mt', LO, HI) + '\n';
-    R += '[saved] mt pct p10/25/50/75/90: ' + pc(rowsSaved, 'mt') + '\n';
-    R += '[saved] in-zone @ bands: ' + bands.map(([l, h]) => '[' + l + '-' + h + ']=' + inB(rowsSaved, 'mt', l, h)).join('  ') + '\n';
-    R += '[saved] per-era (fb%·in): ' + Object.keys(eras).sort((a, b) => eras[b].n - eras[a].n).map((e) => e + ' n=' + eras[e].n + ' fb=' + (100 * eras[e].fb / eras[e].n).toFixed(0) + '% in=' + eras[e].in).join(' | ') + '\n';
-    // PROFILE DIAGNOSTIC — pinpoints why engaged might be 0 (note counts/types + pid presence + corpus join)
-    let diag = '--- profile diagnostic ---\n';
-    try {
-      const tot = await localDb.dbQuery("SELECT COUNT(*) c FROM notes_v2", []);
-      const ws = await localDb.dbQuery("SELECT COUNT(*) c FROM notes_v2 WHERE note_type='word_study'", []);
-      const wsPid = await localDb.dbQuery("SELECT COUNT(*) c FROM notes_v2 WHERE note_type='word_study' AND COALESCE(json_extract(body_json,'$.pealim_id'),'')!=''", []);
-      const types = await localDb.dbQuery("SELECT note_type, COUNT(*) c FROM notes_v2 GROUP BY note_type", []);
-      diag += 'notes_v2 total=' + ((tot[0] || {}).c) + ' · word_study=' + ((ws[0] || {}).c) + ' (с pealim_id=' + ((wsPid[0] || {}).c) + ')\n';
-      diag += 'note_type: ' + (types || []).map((r) => r.note_type + '=' + r.c).join(' ') + '\n';
-    } catch (e) { diag += 'diag-query ERR: ' + (e && e.message || e) + '\n'; }
-    try {
-      const prof = await localDb.getKnownWordStates();
-      const pk = Object.keys(prof || {});
-      const pid = pk.filter((k) => k.indexOf('pid:') === 0);
-      const dictSet = new Set((vocab.dict || []).map((p) => 'pid:' + p));
-      diag += 'getKnownWordStates keys=' + pk.length + ' (pid:' + pid.length + ' · norm#pos:' + (pk.length - pid.length) + ') · pid∩corpus=' + pid.filter((k) => dictSet.has(k)).length + '\n';
-      diag += 'sample pid: ' + pid.slice(0, 8).join(',') + '\n';
-    } catch (e) { diag += 'kws ERR: ' + (e && e.message || e) + '\n'; }
-    showValidationOverlay(diag + '\n' + R);
+    const calibration = learningCompass.calibrationState(readCalibrationLedger());
+    R += '=== B7 Learning Compass 2.0 local aggregate ===\n';
+    R += 'schema=' + learningCompass.COVERAGE_SCHEMA + ' · resolver=' + learningCompass.RESOLVER_VERSION + '\n';
+    R += 'profile version=' + String(projection.version || 'unknown') + ' · tracked lexemes=' + Number(projection.tracked_lexeme_count || 0) + '\n';
+    R += 'works=' + totals.works + ' · statuses=' + (Object.keys(statuses).sort().map((s) => s + '=' + statuses[s]).join(' ') || 'none') + '\n';
+    R += 'rank eligible=' + totals.rankEligible + ' · aggregate familiar/denominator=' + totals.familiar + '/' + totals.denominator + ' · unresolved=' + totals.unresolved + '\n';
+    R += 'reading calibration=' + calibration.status + ' · observations=' + calibration.observation_count + ' · revisions=' + calibration.revision_count + ' · tokens=' + calibration.token_count + '\n';
+    R += 'No comprehension/readiness threshold is inferred from these counts.\n';
+    showValidationOverlay(R);
   } catch (e) { showValidationOverlay('ошибка валидации: ' + (e && e.message || e) + '\n' + R); }
 }
 function showValidationOverlay(text) {
   const ov = el('div', { attrs: { style: 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;' } });
   const box = el('div', { attrs: { style: 'background:var(--bg-card,#fff);color:var(--text-primary,#111);max-width:560px;width:100%;border-radius:12px;padding:16px;box-shadow:0 8px 32px rgba(0,0,0,.3);' } });
-  box.appendChild(el('div', { attrs: { style: 'font-weight:700;margin-bottom:8px;' }, text: '§7 валидация — пришли мне этот текст' }));
+  box.appendChild(el('div', { attrs: { style: 'font-weight:700;margin-bottom:8px;' }, text: 'B7 · локальная агрегатная проверка' }));
   const ta = el('textarea', { attrs: { readonly: 'true', style: 'width:100%;height:230px;font:12px/1.4 monospace;white-space:pre;border:1px solid var(--border-soft,#ccc);border-radius:8px;padding:8px;box-sizing:border-box;background:var(--bg-muted,#f6f6f6);color:inherit;' } });
   ta.value = text;
   box.appendChild(ta);
@@ -7781,7 +8127,7 @@ function corpusScopeAuthorPass(sr, f) {
   return true;
 }
 // BRR-S16 — provenance filters (audio / human-reviewed) are properties of the READY card (corpus-search
-// rows don't carry them), so they imply readable works: a non-ready row has no card → excluded honestly.
+// rows don't carry them), so they imply materialized works: a non-ready row has no card → excluded honestly.
 function corpusAdvOk(row, readyMap) {
   const f = corpusFilter;
   if (!f.hasAudio && !f.reviewed) return true;
@@ -7801,7 +8147,7 @@ function corpusApplyFilter() {
   const keyOf = (row) => { const c = readyMap.get(String(row.id)); return c ? String(c.text_key || '') : ''; };
   return rows.filter((row) => {
     if (f.readyOnly && !row.r) return false;
-    if (f.readableOnly && _readableSet && !_readableSet.has(String(row.id))) return false;   // S7 — i+1 zone only
+    if (f.readableOnly && _readableSet && !_readableSet.has(String(row.id))) return false;   // B7 — valid exact profile count only
     if (!corpusScopeAuthorPass(row, f)) return false;                                        // S11 — scoped to one author (by QID when available)
     if (f.scopeEra && row.e !== f.scopeEra) return false;                                    // S11 — scoped to one period
     if (f.genre && row.g !== f.genre) return false;
@@ -7842,7 +8188,7 @@ function corpusFilterSummary() {
   if (f.genre) parts.push(corpusGenreLabel(f.genre));
   if (f.lang) parts.push(corpusLangLabel(f.lang));
   if (f.readyOnly) parts.push(tt('room.corpus.facets.ready', 'Готовые'));
-  if (f.readableOnly) parts.push(tt('room.corpus.facets.readable', 'Читаемые для меня'));
+  if (f.readableOnly) parts.push(tt('room.corpus.facets.readable', 'С валидным профилем слов'));
   if (f.hasAudio) parts.push(tt('room.corpus.facets.hasAudio', 'С аудио'));
   if (f.reviewed) parts.push(tt('room.corpus.facets.reviewed', 'Проверено'));
   if (f.smart) { const c = CORPUS_SMART_CHIPS.find((x) => x[0] === f.smart); if (c) parts.push(tt(c[1], c[2])); }
@@ -8122,7 +8468,15 @@ async function renderGroupCorpus(corpusId, token) {
   }
   function renderCard(work) {
     const p=byKey.get(String(work.text_key));
-    const view=adaptGroupCorpusItem(work,{corpusId,progress:p,copy:corpusItemCopy()});
+    const descriptor=groupCompassDescriptor(corpusId,work,p);
+    const assertedAudioKind = work.audio_kind === 'tts' || work.audio_kind === 'human' ? work.audio_kind : null;
+    const makeView=()=>adaptGroupCorpusItem(work,{
+      corpusId,progress:p,copy:corpusItemCopy(),humanOrTts:assertedAudioKind,
+      audioProvenance: assertedAudioKind ? {type:'asserted',source:'group-corpus-catalog',revision:work.audio_revision||null} : {type:'unknown'},
+      catalogRevision:work.bundle_sha256||null,
+      ...learningCompassContext(descriptor&&descriptor.cache_key,{continue_reading:p&&Number(p.last_row_idx)>0,group_assignment:true,asserted_level:!!work.level,audio_or_length:Number(work.audio_count)>0}),
+    });
+    let view=makeView();
     const card=el('article',{class:'group-work-card room-text-row',attrs:{'data-status':view.learnerState.state,'data-state':view.learnerState.state,'data-continuity-key':continuityKey('group:' + corpusId,work.work_id)}});
     const pos=el('span',{class:'group-work-position',text:work.position_no==null?'—':String(work.position_no),attrs:{title:view.secondaryIdentity||''}}); card.appendChild(pos);
     const identity=el('div',{class:'group-work-identity corpus-work-col'});
@@ -8136,11 +8490,14 @@ async function renderGroupCorpus(corpusId, token) {
     open.appendChild(el('span',{class:'room-text-primary',text:view.primaryAction==='continue'?tt('room.resume.continue','Продолжить'):tt('room.mytexts.read','Читать')}));
     open.addEventListener('click',(event)=>{event.preventDefault();openGroupCorpusWork(corpusId,work,{resume:view.learnerState.state==='reading'});});
     identity.appendChild(open);
-    identity.appendChild(renderLearningCompass(view,{showMedia:true,showDetails:true}));card.appendChild(identity);
+    const compassRow=renderLearningCompass(view,{showMedia:true,showDetails:true});
+    if(descriptor){compassRow.setAttribute('data-compass-key',descriptor.cache_key);compassRow.__compassRepaint=()=>{view=makeView();paintLearningCompass(compassRow,view,{showMedia:true,showDetails:true});};}
+    identity.appendChild(compassRow);card.appendChild(identity);
     const share=el('button',{class:'group-action quiet room-text-secondary',attrs:{type:'button','aria-label':tt('room.groupCorpus.share','Поделиться'),title:tt('room.groupCorpus.share','Поделиться')},text:'🔗'});share.addEventListener('click',()=>shareWork(work));card.appendChild(share);return card;
   }
-  let groupBrowseLimit=ROOM_BROWSE_PAGE;
-  function paint(resetLimit=true){
+  let groupBrowseLimit=ROOM_BROWSE_PAGE,groupPaintSequence=0;
+  async function paint(resetLimit=true){
+    const sequence=++groupPaintSequence;
     if(resetLimit)groupBrowseLimit=ROOM_BROWSE_PAGE;
     const q=String(state.q||'').trim().toLocaleLowerCase(); let found=catalog.works.filter((w)=>{
       const p=byKey.get(String(w.text_key)); if(state.status!=='all'&&workStatus(p)!==state.status)return false;
@@ -8151,7 +8508,10 @@ async function renderGroupCorpus(corpusId, token) {
     });
     const opened=(w)=>{const p=byKey.get(String(w.text_key));return Date.parse(p&&p.last_opened_at||'')||0;};
     found=found.slice().sort(state.sort==='recent'?(a,b)=>opened(b)-opened(a):state.sort==='progress'?(a,b)=>progressPct(b,byKey.get(String(b.text_key)))-progressPct(a,byKey.get(String(a.text_key))):state.sort==='title'?(a,b)=>String(a.title||'').localeCompare(String(b.title||''),'he'):(a,b)=>(Number(a.position_no)||9999)-(Number(b.position_no)||9999));
-    const shown=found.slice(0,groupBrowseLimit);grid.textContent='';for(const work of shown)grid.appendChild(renderCard(work));if(!found.length)grid.appendChild(el('div',{class:'mytexts-empty',text:tt('room.mytexts.empty','Ничего не найдено')}));
+    const shown=found.slice(0,groupBrowseLimit);
+    await prepareLearningCompassPage(shown.map((work)=>groupCompassDescriptor(corpusId,work,byKey.get(String(work.text_key)))));
+    if(sequence!==groupPaintSequence||token!==corpusRenderToken)return;
+    grid.textContent='';for(const work of shown)grid.appendChild(renderCard(work));if(!found.length)grid.appendChild(el('div',{class:'mytexts-empty',text:tt('room.mytexts.empty','Ничего не найдено')}));
     resultLine.textContent=tt('room.groupCorpus.found','Найдено')+': '+shown.length+' / '+found.length;
     moreWrap.textContent='';if(shown.length<found.length){const more=el('button',{class:'corpus-more-btn',attrs:{type:'button'}});more.textContent=tt('room.corpus.showMore','Показать ещё')+' ('+(found.length-shown.length)+')';more.addEventListener('click',()=>{groupBrowseLimit+=ROOM_BROWSE_PAGE;paint(false);});moreWrap.appendChild(more);}
   }
@@ -8394,8 +8754,8 @@ function learningHomeFeature(continueRow, nextPicks) {
       const author = String(pick.author || pick.card.author);
       feature.appendChild(el('p', { class: 'learning-home-feature-author', text: author, dir: HEBREW_RE.test(author) ? 'rtl' : 'ltr' }));
     }
-    const reason = Number.isFinite(Number(pick.cov))
-      ? '≈' + Math.round(Number(pick.cov) * 100) + '% ' + tt('room.home.familiarWords', 'знакомых слов')
+    const reason = Number.isFinite(Number(pick.familiar)) && Number(pick.denominator) > 0
+      ? String(pick.familiar) + '/' + String(pick.denominator) + ' ' + tt('room.home.recordedFamiliarWords', 'зафиксировано знакомыми')
       : tt('room.home.coldReason', 'Хороший первый текст · частотная лексика');
     feature.appendChild(el('p', { class: 'learning-home-feature-meta', text: reason }));
     const open = el('a', { class: 'learning-home-primary', attrs: { href: deepLinkForCorpusWork(pick.card.id), 'data-focus-key': 'learning-home-feature-open' }, text: tt('room.home.startAction', 'Начать читать') + ' ' + learningHomeForwardArrow() });
@@ -8777,6 +9137,8 @@ async function renderMyTextsCorpus(token) {
       return;
     }
     if (sequence !== paintSequence || token !== corpusRenderToken) return;
+    await prepareLearningCompassPage(page.items.map(myCompassDescriptor));
+    if (sequence !== paintSequence || token !== corpusRenderToken) return;
     if (lastSnapshot && page.snapshot !== lastSnapshot && !options.reset) {
       roomToast(tt('room.mytexts.changedRestart', 'Библиотека изменилась — список обновлён с первой страницы'));
       return paint({ reset: true });
@@ -9047,8 +9409,8 @@ async function renderResultsInto(body) {
   ensureFinishedSet().then(() => { if (corpusL1Body === body) decorateFinishedBadges(body); }).catch(() => {});
   // Empty state ONLY once this render is still current AND nothing was found (never mid-load).
   if (corpusL1Body === body && mySeq === corpusFtsSeq && !hits.length && !body.querySelector('.corpus-fts-group')) {
-    // FB-13 — «Читаемые для меня» on an empty/tiny vocab profile yields 0 readable works (knownDistinct=0
-    // gate → empty set). Teach, don't dead-end with a bare «ничего не найдено».
+    // B7 — an empty profile yields no rank-eligible works. Explain the boundary instead of
+    // presenting missing learner truth as a real zero.
     if (corpusFilter.readableOnly && _readableSet && _readableSet.size === 0) {
       body.appendChild(stateBoxNode('room.corpus.search.emptyReadable', '🌱'));
     } else {
@@ -9612,12 +9974,10 @@ function buildCorpusFilterBar() {
   ready.textContent = '✓ ' + tt('room.corpus.facets.ready', 'Готовые');
   ready.addEventListener('click', () => { corpusFilter.readyOnly = !corpusFilter.readyOnly; ready.classList.toggle('on', corpusFilter.readyOnly); ready.setAttribute('aria-pressed', String(corpusFilter.readyOnly)); corpusRefreshL1Body(); });
   chips.appendChild(ready);
-  // BRR-S7 — «Читаемые для меня»: i+1 readability filter (zone in/easy vs the live profile). Loads the
-  // readable-set once (anti-stampede) before refreshing; an empty profile honestly yields no readable hits.
-  // FB-15 — short visible label «📖 Читаемые» keeps the lean main row on ONE line @380px; the full
-  // «Читаемые для меня» rides title/aria-label (FB-13 honest hint: this is the i+1 personal filter).
-  const readable = el('button', { class: 'corpus-facet-chip' + (corpusFilter.readableOnly ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.readableOnly), 'aria-label': tt('room.corpus.facets.readable', 'Читаемые для меня'), title: tt('room.corpus.facets.readableHint', 'По вашему словарю (i+1) — посильные тексты') } });
-  readable.textContent = '📖 ' + tt('room.corpus.facets.readableShort', 'Читаемые');
+  // B7 — valid exact-count filter. One projection snapshot prevents per-card DB fan-out;
+  // compact copy preserves the one-line 380px filter row without claiming comprehension.
+  const readable = el('button', { class: 'corpus-facet-chip' + (corpusFilter.readableOnly ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.readableOnly), 'aria-label': tt('room.corpus.facets.readable', 'С валидным профилем слов'), title: tt('room.corpus.facets.readableHint', 'Тексты с валидным точным подсчётом; это не оценка понимания') } });
+  readable.textContent = '📖 ' + tt('room.corpus.facets.readableShort', 'По профилю слов');
   readable.addEventListener('click', async () => {
     corpusFilter.readableOnly = !corpusFilter.readableOnly;
     readable.classList.toggle('on', corpusFilter.readableOnly);
@@ -9626,7 +9986,7 @@ function buildCorpusFilterBar() {
     corpusRefreshL1Body();
   });
   chips.appendChild(readable);
-  // BRR-P3 — «⚙» progressive disclosure: keep the primary chips (Готовые/Читаемые) in the lean main row,
+  // BRR-P3/B7 — keep the primary chips (Готовые/По профилю слов) in the lean main row,
   // collapse the advanced filters (точная форма · аудио · проверено · жанр · язык) into a second row that
   // the gear toggles. Persisted; AUTO-expands when any advanced filter is active (active filters stay
   // visible); the gear shows «•» when advanced filters are on. Tames the @380px chip density (R4).
@@ -9704,7 +10064,7 @@ function buildCorpusFilterBar() {
   const chrome = corpusFilterChrome('roomBenYehuda', searchField, bar, sortField, () => {
     const labels=[];
     if(corpusFilter.readyOnly)labels.push(tt('room.corpus.facets.ready','Готовые'));
-    if(corpusFilter.readableOnly)labels.push(tt('room.corpus.facets.readableShort','Читаемые'));
+    if(corpusFilter.readableOnly)labels.push(tt('room.corpus.facets.readableShort','По профилю слов'));
     if(corpusFilter.exactForm)labels.push(tt('room.corpus.search.exactForm','Точная форма'));
     if(corpusFilter.hasAudio)labels.push(tt('room.corpus.facets.hasAudio','С аудио'));
     if(corpusFilter.reviewed)labels.push(tt('room.corpus.facets.reviewed','Проверено'));
@@ -10066,8 +10426,8 @@ function renderCorpusWorkRow(card, openable, opts) {
   }
   // BRR-S1 — lazy bilingual snippet of the matched line (ready hits in a search context only).
   if (openable && ftsQ && card.file) observeRowSnippet(row, card, ftsQ);
-  // BRR-S7 — «≈N% тебе по силам» readability badge on ready result rows (lazy; honest — absent when
-  // the reader has no profile overlap). Result rows are the showAuthor=true (cross-author) context.
+  // B7 — exact recorded-familiarity signal on ready result rows. Result rows are the
+  // showAuthor=true (cross-author) context.
   if (openable && card.id != null) observeCardCoverage(row, card);
   return row;
 }

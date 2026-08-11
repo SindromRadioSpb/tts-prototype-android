@@ -56,6 +56,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       out.mig042IsFsrs = /srs_stability/.test(String(mig.MIGRATIONS[41] || ""));
       out.migApplied = Number((await one("SELECT MAX(version) v FROM schema_migrations")).v) || 0;
       out.rlQueryable = !!(await ldb.dbQuery("SELECT COUNT(*) c FROM review_log"));
+      out.compassCacheQueryable = !!(await ldb.dbQuery("SELECT COUNT(*) c FROM room_learning_compass_cache"));
 
       // ── B) keyer conformance (recon B1) ───────────────────────────────────────────────
       const bodies = [
@@ -439,10 +440,10 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.mig042IsFsrs, "042_word_status_fsrs is not at index 41 (label==index broken)");
     eq(res.migApplied === res.migCount, `applied schema version ${res.migApplied} != MIGRATIONS.length ${res.migCount}`);
     // Пин-трипваер: при ДОБАВЛЕНИИ миграции сверь «метка == реальному индексу» и подними число.
-    // 2026-08-05: 44–47 (artifact_sync_intents / studio_media_package_l3a / material_revision_workspace /
-    // portable_import_receipts) были добавлены без бампа пина — метки сверены глазами, все == индексам.
-    eq(res.migCount === 48, `MIGRATIONS.length ${res.migCount} != 48 — labels no longer equal real indexes (recon §3.6; last = 047_studio_portable_import_receipts)`);
+    // 2026-08-12: version 49 is the isolated, discardable B7 derived ingredient cache.
+    eq(res.migCount === 49, `MIGRATIONS.length ${res.migCount} != 49 — labels no longer equal real indexes (recon §3.6; last = 049_room_learning_compass_cache)`);
     eq(res.rlQueryable, "review_log not queryable");
+    eq(res.compassCacheQueryable, "room_learning_compass_cache not queryable");
     for (const k of res.keyConformance || []) eq(k.ok, `keyer conformance failed for ${k.a}`);
     eq(res.keyPid && res.keyStripped, "canonical key fixtures wrong");
     for (const s of res.skDelegate || []) eq(s.ok, `statusKeyForCard delegate != fallback for key ${s.k}`);

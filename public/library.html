@@ -207,32 +207,18 @@
     body.theme-dark .prov-badge.audio-tts { background: rgba(14,165,233,.2); color: #bae6fd; border-color: rgba(14,165,233,.4); }
     body.theme-dark .prov-badge.audio-human { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
 
-    /* ── BRR-P1-007 S3 — i+1 coverage badge (soft estimate) + reading-load flag ── */
-    /* green = i+1 sweet spot (80–95%) · sky = mastered (≥95%) · slate = many unknowns (<80%) */
-    .prov-badge.coverage-in { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
-    .prov-badge.coverage-easy { background: #e0f2fe; color: #075985; border-color: #bae6fd; }
-    .prov-badge.coverage-hard { background: var(--bg-muted); color: var(--text-secondary); border-color: var(--border-soft); }
+    /* Legacy lexical-load caveat remains a property of the text, not learner readiness. */
     .prov-badge.coverage-load { background: #faf5ff; color: #6b21a8; border-color: #e9d5ff; }
     @media (prefers-color-scheme: dark) {
-      body:not(.theme-light) .prov-badge.coverage-in { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
-      body:not(.theme-light) .prov-badge.coverage-easy { background: rgba(14,165,233,.2); color: #bae6fd; border-color: rgba(14,165,233,.4); }
-      body:not(.theme-light) .prov-badge.coverage-hard { background: var(--bg-muted); color: var(--text-secondary); border-color: var(--border-soft); }
       body:not(.theme-light) .prov-badge.coverage-load { background: rgba(168,85,247,.18); color: #e9d5ff; border-color: rgba(168,85,247,.4); }
     }
-    body.theme-dark .prov-badge.coverage-in { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
-    body.theme-dark .prov-badge.coverage-easy { background: rgba(14,165,233,.2); color: #bae6fd; border-color: rgba(14,165,233,.4); }
-    body.theme-dark .prov-badge.coverage-hard { background: var(--bg-muted); color: var(--text-secondary); border-color: var(--border-soft); }
     body.theme-dark .prov-badge.coverage-load { background: rgba(168,85,247,.18); color: #e9d5ff; border-color: rgba(168,85,247,.4); }
 
     /* ── W3 (Epic 5) — profile-FREE intrinsic difficulty row (ez band + archaica), its OWN row so it
        never crowds the provenance/coverage meta badges (@380px); archaica = property of the TEXT (R7). ── */
     .work-card-difficulty { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 4px; min-height: 21px; }
-    /* PC-1 — signal-family separation. AXIS→TREATMENT map (one family per zone): PROVENANCE = filled pill
-       (amber/indigo/green, .prov-badge.rs-*/audio-*, above) — shown only for non-default values (PC-2);
-       the LEARNING cluster (.work-card-difficulty) = intrinsic DIFFICULTY as an OUTLINE pill (transparent
-       fill, never a filled provenance chip; the WORD легче/средне/сложнее is the non-colour channel, WCAG
-       1.4.1) + personal COVERAGE «≈N% знакомо» (filled .coverage-*) + ARCHAICA caveat (filled purple).
-       `order` pins the visual order band→coverage→archaica regardless of async append order. */
+    /* Signal-family separation: provenance uses its own filled badges; the learning row keeps
+       intrinsic lexical load, exact recorded familiarity and caveats visibly distinct. */
     .diff-band, .diff-archaica { font-size: 11px; padding: 2px 8px; border-radius: 8px; border: 1px solid transparent; font-weight: 600; white-space: nowrap; }
     .diff-band { background: transparent; }
     .diff-band.diff-easy { color: #166534; border-color: #86efac; }
@@ -2121,9 +2107,9 @@
       .corpus-management { margin-top: 14px; }
     }
 
-    /* ── Option B / B4: Learning Compass and honest corpus adapters ──────
-       One scan grammar consumes pure corpus item view models. A missing fit
-       signal stays missing; asserted and derived signals remain distinguishable. */
+    /* ── B7: Learning Compass 2.0 ────────────────────────────────────────
+       One quiet audit grammar: exact recorded familiarity, calibrated local time,
+       typed provenance. No colour or percentage is a comprehension band. */
     .learning-compass {
       position: relative; min-width: 0; min-height: 24px; margin-top: 3px;
       display: flex; align-items: center; gap: 5px; flex-wrap: nowrap;
@@ -2139,8 +2125,18 @@
     }
     .learning-signal { color: var(--text-primary); background: transparent; }
     .learning-compass[data-confidence="derived-soft"] .learning-signal { border-style: dashed; }
-    .learning-familiar.coverage-in, .learning-familiar.coverage-easy { color: #17613a; border-color: color-mix(in srgb, #2f855a 52%, var(--border-soft)); background: color-mix(in srgb, #dcfce7 72%, var(--bg-card)); }
-    .learning-familiar.coverage-hard { color: #8a3c22; border-color: color-mix(in srgb, #c05b37 52%, var(--border-soft)); background: color-mix(in srgb, #fff1e8 74%, var(--bg-card)); }
+    .learning-familiar.coverage-available {
+      color: var(--text-primary); border-color: color-mix(in srgb, var(--accent) 45%, var(--border-soft));
+      background: color-mix(in srgb, var(--accent) 7%, var(--bg-card)); font-variant-numeric: tabular-nums;
+    }
+    .learning-familiar.coverage-available_limited { color: #8a5520; border-color: color-mix(in srgb, #b7791f 48%, var(--border-soft)); background: transparent; }
+    .learning-familiar.coverage-needs_profile,
+    .learning-familiar.coverage-not_prepared,
+    .learning-familiar.coverage-pending,
+    .learning-familiar.coverage-stale,
+    .learning-familiar.coverage-unsupported,
+    .learning-familiar.coverage-unavailable { color: var(--text-secondary); border-style: dashed; background: transparent; }
+    .learning-reading-time { font-variant-numeric: tabular-nums; }
     .learner-state-chip.is-reading { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 48%, var(--border-soft)); background: color-mix(in srgb, var(--accent) 8%, var(--bg-card)); }
     .learner-state-chip.is-finished { color: #17613a; border-color: color-mix(in srgb, #2f855a 45%, var(--border-soft)); }
     .learning-media.media-full { color: #17613a; }
@@ -2161,6 +2157,12 @@
     }
     .learning-compass-panel p { margin: 0; font-size: 12px; line-height: 1.42; }
     .learning-compass-panel p + p { margin-top: 5px; padding-top: 5px; border-top: 1px solid var(--border-soft); }
+    .learning-calibration-reset, .learning-calibration-toggle {
+      width: auto; min-height: 38px; margin-top: 8px; padding: 7px 9px; border: 1px solid var(--border-soft);
+      border-radius: 8px; background: transparent; color: var(--accent); font: 700 12px/1.2 inherit; text-align: start; cursor: pointer;
+    }
+    .learning-calibration-reset:hover, .learning-calibration-reset:focus-visible,
+    .learning-calibration-toggle:hover, .learning-calibration-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .room-item-title-copy { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
     .item-secondary-identity { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); font-size: 11px; font-weight: 620; }
     .room-item-provenance { max-width: 260px; margin: 2px 5px 7px; color: var(--text-secondary); font-size: 11px; line-height: 1.4; white-space: normal; }
@@ -2170,16 +2172,15 @@
     .mytext-card .learning-compass { max-width: 100%; }
     .work-card .learning-compass-details { display: none; }
     @media (prefers-color-scheme: dark) {
-      body:not(.theme-light) .learning-familiar.coverage-in,
-      body:not(.theme-light) .learning-familiar.coverage-easy { color: #a7e6c1; background: #173629; }
-      body:not(.theme-light) .learning-familiar.coverage-hard { color: #ffc3a7; background: #44261f; }
+      body:not(.theme-light) .learning-familiar.coverage-available { color: var(--text-primary); background: color-mix(in srgb, var(--accent) 12%, var(--bg-card)); }
+      body:not(.theme-light) .learning-familiar.coverage-available_limited { color: #f5c078; }
       body:not(.theme-light) .learning-media.media-full,
       body:not(.theme-light) .learner-state-chip.is-finished { color: #a7e6c1; }
       body:not(.theme-light) .learning-media.media-partial,
       body:not(.theme-light) .learning-caveat { color: #f5c078; }
     }
-    body.theme-dark .learning-familiar.coverage-in, body.theme-dark .learning-familiar.coverage-easy { color: #a7e6c1; background: #173629; }
-    body.theme-dark .learning-familiar.coverage-hard { color: #ffc3a7; background: #44261f; }
+    body.theme-dark .learning-familiar.coverage-available { color: var(--text-primary); background: color-mix(in srgb, var(--accent) 12%, var(--bg-card)); }
+    body.theme-dark .learning-familiar.coverage-available_limited { color: #f5c078; }
     body.theme-dark .learning-media.media-full, body.theme-dark .learner-state-chip.is-finished { color: #a7e6c1; }
     body.theme-dark .learning-media.media-partial, body.theme-dark .learning-caveat { color: #f5c078; }
     @media (min-width: 761px) {
@@ -2334,7 +2335,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.360</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.361</span>
   </div>
 </footer>
 
@@ -2517,9 +2518,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=76"></script>
-<script src="/i18n/locales/en.js?v=76"></script>
-<script src="/i18n/locales/he.js?v=76"></script>
+<script src="/i18n/locales/ru.js?v=78"></script>
+<script src="/i18n/locales/en.js?v=78"></script>
+<script src="/i18n/locales/he.js?v=78"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -2554,7 +2555,9 @@
 <script src="/js/reader-morph.js"></script>
 <!-- Tier-3 «точный режим»: client-side Dicta context morphology (opt-in; no outbound until toggled on). -->
 <script src="/js/reader-dicta.js"></script>
-<!-- BRR-P1-007 S2 «Следующий для тебя» (i+1): pure client coverage engine over the lazy vocab sidecar. -->
+<!-- B7 Learning Compass 2.0: shared exact-count contract used by Room and Agent Access. -->
+<script src="/js/learning-compass-core.js"></script>
+<!-- Legacy corpus-vocab loading/difficulty adapter; product fit decisions now delegate to B7. -->
 <script src="/js/corpus-vocab.js"></script>
 <script src="/js/scaffold-advisor.js"></script>
 <!-- BRR-P2-002 «Продолжить чтение»: pure resume helpers (window.ReaderProgress; shared with Node gate). -->
