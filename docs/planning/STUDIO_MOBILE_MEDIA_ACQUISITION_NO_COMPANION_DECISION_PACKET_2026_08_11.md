@@ -13,6 +13,26 @@
 > **M0 start evidence:**
 > `docs/research/studio-mobile-media-acquisition-no-companion/2026-08-11/M0_START_EVIDENCE.md`
 
+## Owner revision — external device-download handoff (2026-08-11)
+
+The owner rejected the blocked worker path as the current product happy path and approved an
+immediate Downr handoff. This revision supersedes the Video-tab interaction described below while
+preserving the worker code as isolated R&D only:
+
+- `Показать видео` again calls the proven embedded-player path directly; preview, manual YouTube
+  transcript paste and VTT/SRT import never depend on worker resolve;
+- `Скачать через Downr` is an explicit external handoff, not an API integration: Studio validates
+  and copies the canonical YouTube URL, opens `https://downr.org/`, then offers the device media
+  picker when the user returns;
+- Studio does not call Downr's private endpoint, embed it, proxy its expiring media URLs, share
+  cookies or claim availability/format guarantees;
+- the selected file re-enters the existing `С устройства` / Media Readiness / ASR path, so Import
+  Center and device MediaPackage remain the only product canon;
+- the first-party worker remains disabled outside research until a separately approved route can
+  pass its evidence gates. A worker failure must not replace or disable the player again.
+
+Implementation/browser evidence: `docs/research/studio-downr-handoff/2026-08-11/README.md`.
+
 ## 0. Decision in one screen
 
 **Yes, the user can have a one-surface iPhone/Android flow without Companion.** The PWA cannot

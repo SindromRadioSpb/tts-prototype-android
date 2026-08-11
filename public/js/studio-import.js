@@ -732,6 +732,8 @@
                                // poll (CAPTIONS_POLL_DELAYS_MS, near mountVideo()) — cleared by
                                // clearCaptionsPoll() on teardown/re-mount so a superseded schedule
                                // never outlives the mount it belongs to.
+  var DOWNR_URL = "https://downr.org/";
+  var downrHandoffStarted = false;
   function clearCaptionsPoll() {
     captionsPollTimers.forEach(function (id) { clearTimeout(id); });
     captionsPollTimers = [];
@@ -951,6 +953,94 @@
     if (cancel) cancel.hidden = !b || selectedAudioProvider() !== "local";
     var mediaCancel = $("v3ImportMediaCancel");
     if (mediaCancel) mediaCancel.hidden = !b || !(pendingAudio && pendingAudio.mediaJobId);
+  }
+
+  function setDownrStatus(msgKey, danger) {
+    var status = $("v3DownrStatus");
+    if (!status) return;
+    status.hidden = !msgKey;
+    status.textContent = msgKey ? tr(msgKey) : "";
+    if (danger) status.dataset.danger = "true";
+    else delete status.dataset.danger;
+  }
+
+  function resetDownrHandoff() {
+    downrHandoffStarted = false;
+    var choose = $("v3DownrChoose"), fallback = $("v3DownrFallback");
+    if (choose) choose.hidden = true;
+    if (fallback) fallback.hidden = true;
+    setDownrStatus(null);
+  }
+
+  // Synchronous fallback matters on iOS: both copying and opening the new tab still happen inside
+  // the original tap. Clipboard API remains the preferred confirmation when Safari allows it.
+  function copyTextLegacy(value) {
+    if (!document.body || typeof document.execCommand !== "function") return false;
+    var active = document.activeElement;
+    var area = document.createElement("textarea");
+    area.value = value;
+    area.readOnly = true;
+    area.setAttribute("aria-hidden", "true");
+    area.style.cssText = "position:fixed;inset-inline-start:-9999px;top:0;opacity:0";
+    document.body.appendChild(area);
+    area.select();
+    area.setSelectionRange(0, value.length);
+    var copied = false;
+    try { copied = document.execCommand("copy"); } catch (_) { copied = false; }
+    area.remove();
+    if (active && typeof active.focus === "function") {
+      try { active.focus({ preventScroll: true }); } catch (_) { active.focus(); }
+    }
+    return copied;
+  }
+
+  function openDownrFromField() {
+    var raw = ($("v3ImportVideoUrl").value || "").trim();
+    var videoId = window.StudioYtPlayer && window.StudioYtPlayer.parseVideoId(raw);
+    if (!videoId || !VIDEO_ID_RE.test(videoId)) {
+      setStatus("studio.import.errNotVideoUrl");
+      setDownrStatus("studio.remoteMedia.invalidLink", true);
+      return false;
+    }
+    setStatus(null);
+    var canonicalUrl = "https://www.youtube.com/watch?v=" + videoId;
+    var legacyCopied = copyTextLegacy(canonicalUrl);
+    var clipboardWrite = null;
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+      try { clipboardWrite = navigator.clipboard.writeText(canonicalUrl); } catch (_) { clipboardWrite = null; }
+    }
+
+    var externalWindow = null;
+    try {
+      externalWindow = window.open("about:blank", "_blank");
+      if (externalWindow) {
+        externalWindow.opener = null;
+        externalWindow.location.replace(DOWNR_URL);
+      }
+    } catch (_) { externalWindow = null; }
+
+    downrHandoffStarted = true;
+    var choose = $("v3DownrChoose"), fallback = $("v3DownrFallback");
+    if (choose) choose.hidden = false;
+    if (fallback) fallback.hidden = !!externalWindow;
+    if (!externalWindow) setDownrStatus("studio.remoteMedia.popupBlocked", true);
+    else setDownrStatus(legacyCopied ? "studio.remoteMedia.copiedAndOpened" : "studio.remoteMedia.openedCopyPending", false);
+
+    if (clipboardWrite && typeof clipboardWrite.then === "function") {
+      clipboardWrite.then(function () {
+        if (downrHandoffStarted && externalWindow) setDownrStatus("studio.remoteMedia.copiedAndOpened", false);
+      }).catch(function () {
+        if (downrHandoffStarted && externalWindow && !legacyCopied) setDownrStatus("studio.remoteMedia.copyFailedOpened", true);
+      });
+    }
+    return true;
+  }
+
+  function chooseDownloadedMedia() {
+    switchTab("file");
+    setStatus("studio.remoteMedia.chooseHint");
+    var input = $("v3ImportAudio");
+    if (input) input.click();
   }
 
   function renderMediaReadiness() {
@@ -1778,7 +1868,7 @@
     // Tab always resets to "url" on open() — not persisted anywhere (not localStorage, not a
     // module var), so the dialog is predictable on every open, per task-2-brief.md.
     switchTab("url");
-    if (window.RemoteMediaAcquisition && window.RemoteMediaAcquisition.reset) window.RemoteMediaAcquisition.reset();
+    resetDownrHandoff();
     if (window.StudioMediaPackage && window.StudioMediaPackage.refreshWorkspaceUi) window.StudioMediaPackage.refreshWorkspaceUi();
   }
   function close() {
@@ -2345,6 +2435,7 @@
 
   window.StudioImport = { open: open, close: close, switchTab: switchTab,
                            fetchUrl: fetchUrl, fetchUrlOrVideo: fetchUrlOrVideo, mountVideoFromField: mountVideoFromField,
+                           openDownrFromField: openDownrFromField, chooseDownloadedMedia: chooseDownloadedMedia,
                            onFileChosen: onFileChosen, onAudioChosen: onAudioChosen, transcribeAudio: transcribeAudio,
                            onAudioProviderChanged: onAudioProviderChanged, pairLocalAsr: pairLocalAsr,
                            onLocalAsrTokenChanged: onLocalAsrTokenChanged,

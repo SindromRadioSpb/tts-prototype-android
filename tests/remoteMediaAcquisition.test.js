@@ -50,3 +50,20 @@ test('Add Material keeps one recent shortcut and routes the complete list to Imp
   assert.match(shelf, /StudioPortableLearningPackage\.open\(\{\s*view:\s*'materials'\s*\}\)/);
   assert.doesNotMatch(shelf, /StudioImport\.open\(\{\s*tab:\s*['"]file['"]/);
 });
+
+test('Video preview is independent from the failed worker and Downr is an explicit external handoff', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  const studio = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'studio-import.js'), 'utf8');
+  const videoButton = html.match(/<button[^>]+id="v3ImportVideoBtn"[^>]*>/)?.[0] || '';
+
+  assert.match(videoButton, /onclick="StudioImport\.mountVideoFromField\(\)"/);
+  assert.match(videoButton, /data-i18n="studio\.import\.videoUrlBtn"/);
+  assert.doesNotMatch(videoButton, /RemoteMediaAcquisition/);
+  assert.doesNotMatch(html, /<script[^>]+remote-media-acquisition\.js/);
+  assert.match(html, /id="v3DownrOpen"[^>]+onclick="StudioImport\.openDownrFromField\(\)"/);
+  assert.match(html, /href="https:\/\/downr\.org\/"[^>]+rel="noopener noreferrer"/);
+  assert.match(studio, /var canonicalUrl = "https:\/\/www\.youtube\.com\/watch\?v=" \+ videoId/);
+  assert.match(studio, /externalWindow\.opener = null/);
+  assert.match(studio, /externalWindow\.location\.replace\(DOWNR_URL\)/);
+  assert.match(studio, /function chooseDownloadedMedia\(\) \{[\s\S]*?switchTab\("file"\);[\s\S]*?v3ImportAudio/);
+});

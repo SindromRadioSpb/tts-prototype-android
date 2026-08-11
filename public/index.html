@@ -3691,59 +3691,36 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
    flat stack. Active tab marked by border+background (not text color alone — R4 accessibility). */
 #v3ImportTabs { display: flex; gap: 4px; margin-bottom: 10px; }
 
-/* RMA-3: remote-media source handoff. One information surface, no downloader-style card wall. */
-.v3-rma-card { margin-top:12px; padding:14px; border:1px solid #b8d2cd; border-radius:14px; background:var(--theme-bg-card,#fff); box-shadow:0 12px 30px rgba(18,59,57,.07); }
-.v3-rma-card[hidden],.v3-rma-status[hidden] { display:none; }
-.v3-rma-source { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding-bottom:11px; border-bottom:1px solid #d8e5e2; }
-.v3-rma-source > div { min-width:0; }
-.v3-rma-preview { min-height:44px; }
-.v3-rma-kicker { display:block; margin-bottom:3px; color:#08736f; font:750 10px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.055em; text-transform:uppercase; }
-#v3RemoteMediaTitle { display:block; overflow:hidden; color:#173f3c; font-size:15px; line-height:1.35; text-overflow:ellipsis; white-space:nowrap; }
-#v3RemoteMediaMeta { display:block; margin-top:3px; color:var(--theme-text-secondary,#64748b); font-size:11.5px; }
-.v3-rma-options { display:grid; gap:7px; margin-top:11px; }
-.v3-rma-option { display:grid; grid-template-columns:20px minmax(0,1fr); align-items:center; gap:9px; min-height:48px; padding:8px 10px; border:1px solid #cbdad7; border-radius:10px; background:color-mix(in srgb,#0b7673 2%,var(--theme-bg-card,#fff)); cursor:pointer; }
-.v3-rma-option:has(input:checked) { border-color:#0b7673; background:color-mix(in srgb,#0b7673 8%,var(--theme-bg-card,#fff)); box-shadow:inset 3px 0 #0b7673; }
-[dir="rtl"] .v3-rma-option:has(input:checked) { box-shadow:inset -3px 0 #0b7673; }
-.v3-rma-option input { width:18px; height:18px; margin:0; accent-color:#0b7673; }
-.v3-rma-option strong,.v3-rma-option small { display:block; overflow-wrap:anywhere; }
-.v3-rma-option strong { color:#193f3c; font-size:12.5px; line-height:1.35; }
-.v3-rma-option small { margin-top:2px; color:var(--theme-text-secondary,#64748b); font-size:10.5px; line-height:1.3; }
-.v3-rma-option[data-recommended="true"] small { color:#08736f; font-weight:700; }
-.v3-rma-more { margin-top:8px; }
-.v3-rma-more[hidden] { display:none; }
-.v3-rma-more > summary { color:#245c59; font-size:12px; font-weight:700; cursor:pointer; }
-.v3-rma-rights { display:flex; align-items:center; gap:8px; min-height:44px; margin:6px 0 5px; color:#304f4d; font-size:12px; line-height:1.4; cursor:pointer; }
-.v3-rma-rights input { flex:0 0 auto; width:18px; height:18px; margin:0; accent-color:#0b7673; }
-#v3RemoteMediaAdd { width:100%; min-height:48px; }
-.v3-rma-rail { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:0; margin:14px 0 7px; padding:0; list-style:none; }
-.v3-rma-rail li { position:relative; display:grid; justify-items:center; gap:4px; min-width:0; color:#879693; font-size:9px; text-align:center; }
-.v3-rma-rail li::before { content:""; position:absolute; z-index:0; top:5px; inset-inline-start:0; width:100%; height:2px; background:#d5e0de; }
-.v3-rma-rail li:first-child::before { inset-inline-start:50%; width:50%; }
-.v3-rma-rail li:last-child::before { width:50%; }
-.v3-rma-rail li > span { position:relative; z-index:1; width:12px; height:12px; border:2px solid #bccbc8; border-radius:50%; background:var(--theme-bg-card,#fff); }
-.v3-rma-rail li b { min-width:0; font-weight:650; line-height:1.2; }
-.v3-rma-rail li[data-state="done"],.v3-rma-rail li[data-state="current"] { color:#086b68; }
-.v3-rma-rail li[data-state="done"]::before,.v3-rma-rail li[data-state="current"]::before { background:#65a7a2; }
-.v3-rma-rail li[data-state="done"] > span { border-color:#0b7673; background:#0b7673; }
-.v3-rma-rail li[data-state="current"] > span { border-color:#0b7673; box-shadow:0 0 0 4px rgba(11,118,115,.13); }
-#v3RemoteMediaProgress { display:block; width:100%; height:7px; accent-color:#0b7673; }
-#v3RemoteMediaProgress[hidden] { display:none; }
-.v3-rma-progress-text { min-height:17px; margin-top:4px; color:var(--theme-text-secondary,#64748b); font-size:11px; text-align:center; }
-.v3-rma-actions { display:flex; gap:7px; align-items:center; flex-wrap:wrap; margin-top:8px; }
-.v3-rma-status { margin-top:9px; padding:8px 10px; border-inline-start:3px solid #0b7673; border-radius:7px; background:#edf7f4; color:#185c57; font-size:12px; line-height:1.4; }
-.v3-rma-status[data-danger="true"] { border-inline-start-color:#b64637; background:#faece8; color:#862f24; }
-.v3-rma-option:focus-within,.v3-rma-more > summary:focus-visible,.v3-rma-card button:focus-visible { outline:2px solid var(--theme-accent,#0b7673); outline-offset:2px; }
+/* External file handoff: the original preview/transcript path remains primary and independent. */
+.v3-downr-handoff { margin-top:12px; padding:13px 14px; border:1px solid #bed5d0; border-inline-start:4px solid #0b7673; border-radius:12px; background:color-mix(in srgb,#0b7673 4%,var(--theme-bg-card,#fff)); }
+.v3-downr-head { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:12px; }
+.v3-downr-kicker { display:block; margin-bottom:3px; color:#08736f; font:750 10px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.055em; text-transform:uppercase; }
+.v3-downr-title { display:block; color:#173f3c; font-size:15px; line-height:1.35; }
+.v3-downr-copy { margin:3px 0 0; color:var(--theme-text-secondary,#64748b); font-size:12px; line-height:1.45; }
+.v3-downr-mark { display:grid; width:32px; height:32px; place-items:center; border-radius:9px; background:#dcefeb; color:#086b68; font-size:18px; font-weight:800; }
+.v3-downr-steps { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0 0; padding:0; list-style:none; }
+.v3-downr-steps li { display:grid; grid-template-columns:26px minmax(0,1fr); gap:8px; align-items:start; min-width:0; }
+.v3-downr-steps li > span { display:grid; width:26px; height:26px; place-items:center; border:1px solid #8ebcb5; border-radius:50%; background:var(--theme-bg-card,#fff); color:#075e5b; font-size:11px; font-weight:800; }
+.v3-downr-steps b,.v3-downr-steps small { display:block; }
+.v3-downr-steps b { color:#244b48; font-size:12px; line-height:1.3; }
+.v3-downr-steps small { margin-top:2px; color:var(--theme-text-secondary,#64748b); font-size:10.5px; line-height:1.35; }
+.v3-downr-actions { display:flex; align-items:center; flex-wrap:wrap; gap:7px; margin-top:12px; }
+.v3-downr-actions button,.v3-downr-fallback { min-height:44px; }
+.v3-downr-fallback { display:inline-flex; align-items:center; color:#075e5b; font-size:12px; font-weight:700; }
+.v3-downr-fallback[hidden],.v3-downr-status[hidden] { display:none; }
+.v3-downr-status { margin:9px 0 0; padding:8px 10px; border-inline-start:3px solid #0b7673; border-radius:7px; background:#edf7f4; color:#185c57; font-size:12px; line-height:1.4; }
+.v3-downr-status[data-danger="true"] { border-inline-start-color:#b64637; background:#faece8; color:#862f24; }
+.v3-downr-disclosure { margin:9px 0 0; color:var(--theme-text-secondary,#64748b); font-size:10.5px; line-height:1.4; }
+.v3-downr-handoff button:focus-visible,.v3-downr-fallback:focus-visible { outline:2px solid var(--theme-accent,#0b7673); outline-offset:2px; }
 @media (max-width:420px) {
-  .v3-rma-card { padding:12px; }
   .v3-import-url-row { flex-direction:column; }
   .v3-import-url-row > input,.v3-import-url-row > button { width:100% !important; min-height:44px; box-sizing:border-box; }
-  .v3-rma-source { align-items:stretch; flex-direction:column; }
-  .v3-rma-preview { align-self:flex-start; }
-  .v3-rma-rail li b { font-size:8.5px; }
-  .v3-rma-actions { align-items:stretch; flex-direction:column; }
-  .v3-rma-actions button { width:100% !important; min-height:44px; }
+  .v3-downr-handoff { padding:12px; }
+  .v3-downr-steps { grid-template-columns:1fr; }
+  .v3-downr-actions { align-items:stretch; flex-direction:column; }
+  .v3-downr-actions button,.v3-downr-fallback { width:100% !important; justify-content:center; }
 }
-@media (prefers-reduced-motion:reduce) { .v3-rma-card * { transition:none !important; animation:none !important; } }
+@media (prefers-reduced-motion:reduce) { .v3-downr-handoff * { transition:none !important; animation:none !important; } }
 
 /* L3a Correctable Media Package — focused listening editor, not a spreadsheet. */
 #l3WorkspaceCard { position:relative; margin-top:10px; padding:14px; overflow:hidden; border:1px solid #b7d1cb; border-radius:13px; background:var(--theme-bg-card,#fff); box-shadow:0 9px 24px rgba(18,59,57,.06); }
@@ -12955,9 +12932,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=138"></script>
-    <script src="/i18n/locales/en.js?v=138"></script>
-    <script src="/i18n/locales/he.js?v=138"></script>
+    <script src="/i18n/locales/ru.js?v=139"></script>
+    <script src="/i18n/locales/en.js?v=139"></script>
+    <script src="/i18n/locales/he.js?v=139"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13051,12 +13028,6 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/table-chunks.js"></script>
 <script src="/js/table-job.js"></script>
 <script src="/js/media-store.js"></script>
-<!-- RMA-2 — incremental SHA-256 + response-stream → OPFS. The worker's
-     expiring URLs never become canonical media identity; only the verified
-     content-addressed OPFS file crosses into StudioImport. -->
-<script src="/vendor/hash-wasm/sha256.umd.min.js"></script>
-<script src="/js/media-stream-store.js"></script>
-<script src="/js/remote-media-acquisition.js"></script>
 <script src="/js/media-package-core.js"></script>
 <script src="/js/media-package-repository.js"></script>
 <script src="/js/material-revision-core.js"></script>
@@ -13135,7 +13106,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.343";
+    window.APP_VERSION = "3.11.344";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -49221,34 +49192,30 @@ document.addEventListener("i18n:changed", function () {
         <label class="input-label" for="v3ImportVideoUrl" data-i18n="studio.import.videoUrlLabel">Ссылка на видео (YouTube)</label>
         <div class="v3-import-url-row" style="display:flex; gap:6px;">
           <input id="v3ImportVideoUrl" type="url" inputmode="url" data-i18n-placeholder="studio.import.urlPlaceholder" placeholder="https://…" style="flex:1; min-width:0;">
-          <button type="button" class="btn-secondary" id="v3ImportVideoBtn" onclick="RemoteMediaAcquisition.resolveFromField()" data-i18n="studio.remoteMedia.resolve">Проверить ссылку</button>
+          <button type="button" class="btn-secondary" id="v3ImportVideoBtn" onclick="StudioImport.mountVideoFromField()" data-i18n="studio.import.videoUrlBtn">Показать видео</button>
         </div>
 
-        <section id="v3RemoteMediaCard" class="v3-rma-card" hidden aria-labelledby="v3RemoteMediaTitle">
-          <header class="v3-rma-source">
-            <div><span class="v3-rma-kicker" data-i18n="studio.remoteMedia.resolved">Источник проверен</span><strong id="v3RemoteMediaTitle" dir="auto"></strong><span id="v3RemoteMediaMeta"></span></div>
-            <button type="button" class="btn-secondary v3-rma-preview" onclick="StudioImport.mountVideoFromField()" data-i18n="studio.remoteMedia.preview">Предпросмотр</button>
-          </header>
-          <div id="v3RemoteMediaPrimary" class="v3-rma-options"></div>
-          <details id="v3RemoteMediaMore" class="v3-rma-more"><summary data-i18n="studio.remoteMedia.more">Другие варианты</summary><div id="v3RemoteMediaMoreOptions" class="v3-rma-options"></div></details>
-          <label class="v3-rma-rights"><input id="v3RemoteMediaRights" type="checkbox"><span data-i18n="studio.remoteMedia.rights">У меня есть разрешение правообладателя</span></label>
-          <button type="button" id="v3RemoteMediaAdd" class="btn-primary v3-rma-primary" onclick="RemoteMediaAcquisition.addSelected()"></button>
-          <ol id="v3RemoteMediaRail" class="v3-rma-rail" aria-label="Acquisition progress">
-            <li data-rma-phase="source"><span></span><b data-i18n="studio.remoteMedia.railSource">Источник</b></li>
-            <li data-rma-phase="prepare"><span></span><b data-i18n="studio.remoteMedia.railPrepare">Подготовка</b></li>
-            <li data-rma-phase="device"><span></span><b data-i18n="studio.remoteMedia.railDevice">На устройство</b></li>
-            <li data-rma-phase="verify"><span></span><b data-i18n="studio.remoteMedia.railVerify">Проверка</b></li>
-            <li data-rma-phase="ready"><span></span><b data-i18n="studio.remoteMedia.railReady">Готово</b></li>
-          </ol>
-          <progress id="v3RemoteMediaProgress" max="1" value="0" hidden></progress>
-          <div id="v3RemoteMediaProgressText" class="v3-rma-progress-text" aria-live="polite"></div>
-          <div class="v3-rma-actions">
-            <button type="button" id="v3RemoteMediaCancel" class="btn-secondary" onclick="RemoteMediaAcquisition.cancel()" hidden data-i18n="studio.remoteMedia.cancel">Отменить</button>
-            <button type="button" id="v3RemoteMediaSaveCopy" class="btn-secondary" onclick="RemoteMediaAcquisition.saveCopy()" hidden data-i18n="studio.remoteMedia.saveCopy">Сохранить копию на устройство</button>
-            <button type="button" id="v3RemoteMediaContinue" class="btn-primary" onclick="RemoteMediaAcquisition.continueToTranscript()" hidden data-i18n="studio.remoteMedia.continue">Перейти к расшифровке</button>
+        <aside id="v3DownrHandoff" class="v3-downr-handoff" aria-labelledby="v3DownrTitle">
+          <div class="v3-downr-head">
+            <div>
+              <span class="v3-downr-kicker" data-i18n="studio.remoteMedia.downloadKicker">Файл на устройстве</span>
+              <strong id="v3DownrTitle" class="v3-downr-title" data-i18n="studio.remoteMedia.downloadTitle">Скачать через Downr</strong>
+              <p class="v3-downr-copy" data-i18n="studio.remoteMedia.externalHint">Откроем Downr в новой вкладке и скопируем туда ссылку.</p>
+            </div>
+            <span class="v3-downr-mark" aria-hidden="true">↗</span>
           </div>
-        </section>
-        <div id="v3RemoteMediaStatus" class="v3-rma-status" role="status" aria-live="polite" hidden></div>
+          <ol class="v3-downr-steps">
+            <li><span>1</span><div><b data-i18n="studio.remoteMedia.stepDownload">Скачайте файл</b><small data-i18n="studio.remoteMedia.stepDownloadHint">M4A — для расшифровки; MP4 со звуком — для видео.</small></div></li>
+            <li><span>2</span><div><b data-i18n="studio.remoteMedia.stepReturn">Вернитесь в Студию</b><small data-i18n="studio.remoteMedia.stepReturnHint">Выберите файл из папки «Загрузки».</small></div></li>
+          </ol>
+          <div class="v3-downr-actions">
+            <button type="button" id="v3DownrOpen" class="btn-primary" onclick="StudioImport.openDownrFromField()" data-i18n="studio.remoteMedia.openDownr">Скачать через Downr ↗</button>
+            <button type="button" id="v3DownrChoose" class="btn-secondary" onclick="StudioImport.chooseDownloadedMedia()" hidden data-i18n="studio.remoteMedia.chooseDownloaded">Я скачал — выбрать файл</button>
+            <a id="v3DownrFallback" class="v3-downr-fallback" href="https://downr.org/" target="_blank" rel="noopener noreferrer" hidden data-i18n="studio.remoteMedia.openFallback">Открыть Downr вручную ↗</a>
+          </div>
+          <p id="v3DownrStatus" class="v3-downr-status" role="status" aria-live="polite" hidden></p>
+          <p class="v3-downr-disclosure" data-i18n="studio.remoteMedia.externalDisclosure">Downr — внешний сервис. Скачивание и его условия происходят на стороне Downr.</p>
+        </aside>
 
         <div class="v3-import-captions" id="v3ImportCaptionsBox">
           <div id="v3ImportYtMount" hidden></div>
