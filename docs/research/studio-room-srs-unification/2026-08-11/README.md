@@ -10,6 +10,8 @@ Baseline production: revision `9fe9be24`, `APP_VERSION=3.11.352`, `CACHE_VERSION
 
 Target version: `APP_VERSION=3.11.353`, `CACHE_VERSION=v3.11.353`
 
+Deployed production revision: `669152eeb7d6d1084c180fffdbfff300cd0ef469` (`3.11.353`)
+
 ## Scope
 
 The approved change removes the historical Studio trainer from the user route. Studio now reads the same local FSRS projection as Reading Room and hands a due session to the canonical Room trainer through `library.html?review=due&from=studio`. No scheduler, queue, review journal, schema, corpus data, lemma canon, cloud API, or owner data was added or migrated.
@@ -31,6 +33,7 @@ The isolated fixture never uses the owner's production data. Production owner-pr
 - A missing source may honestly fall back to word-only evidence; it is not removed from memory.
 - A completed grade creates exactly one canonical `review`/`skip` event. The pre-existing independent manual-status LWW axis may append a separate `mark` event when the user changes a manual mark; that is not a second grade and was not rewritten in this slice.
 - iPhone automation is not owner-live evidence. The remaining owner-live checks are listed in the implementation packet.
+- Production owner-profile verification deliberately did not export or inspect private `review_log` rows. The due count remained `220` before/after open, close, refresh, and Back; exact log deltas are established by the isolated fixture.
 
 ## Evidence index
 

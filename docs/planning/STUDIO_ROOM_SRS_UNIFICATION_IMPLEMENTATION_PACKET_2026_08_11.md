@@ -117,7 +117,20 @@ Revert the single allowlisted implementation commit and redeploy its predecessor
 
 ## Production evidence
 
-Pre-deploy baseline was revision `9fe9be24`, app/cache `3.11.352`, health ready, and the owner profile showed the canonical Room due CTA and a `1/12` session. Final deployed revision, endpoint version, read-only open/close delta, console/network check, and 380 px RU/HE smoke will be recorded here after the production gate.
+Pre-deploy baseline was revision `9fe9be24`, app/cache `3.11.352`, health ready, and the owner profile showed the canonical Room due CTA and a `1/12` session.
+
+Deployed production revision: `669152eeb7d6d1084c180fffdbfff300cd0ef469`.
+
+- `/api/client-config`, served `APP_VERSION`, and controlled service-worker cache all agree on `3.11.353` / `v3.11.353`.
+- `/healthz` reports DB ready and migrations ready.
+- Owner profile, read-only: Studio showed `К повторению: 220`, `В работе: 287`; the same Room queue opened at `1 / 12`.
+- Room consumed and removed `review=due&from=studio`; close and refresh did not reopen the sheet; Back returned to Studio.
+- No grade or manual-status control was used. Due remained `220` before and after the open/close/refresh/Back sequence. The browser boundary intentionally did not export private `review_log`; exact open/close delta `0`, grade delta `1`, duplicate delta `0`, and replay equality are fixture evidence.
+- Anki remained visible in Studio.
+- Owner-profile diagnostics contained no error-level messages attributable to the release; existing `MATERIAL_REVISION_REQUIRED` lazy-transliteration messages were debug-level and outside this slice.
+- Fresh production 380 px RU and HE/RTL profiles rendered the truthful no-schedule state, localized correctly, had no horizontal overflow, and exposed a named CTA above the 44 px minimum. The controlled second page was served by `/sw.js` with only `v3.11.353` app caches.
+- One mobile probe during the rollout window observed transient static-asset 502 responses. Two consecutive HE/RTL rechecks were clean with zero unexpected HTTP or page errors.
+- Production disk was 94% used and health reported `disk_warn=true`. No cleanup was performed because this release completed successfully and cleanup was outside the bounded scope.
 
 ## Remaining owner-live iPhone checks
 
