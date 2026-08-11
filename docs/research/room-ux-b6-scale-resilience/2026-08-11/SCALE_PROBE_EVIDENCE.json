@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "captured_date": "2026-08-11",
+  "mode": "research-only-single-run",
+  "source_commit": "36ff3ecec07efd779fa589fed6ac03ef41b8d44a",
+  "production_version_read_only": "3.11.359",
+  "owner_profile_visible_aggregate": {
+    "personal_texts": 115,
+    "group_texts": 77,
+    "ben_yehuda_ready": 796,
+    "ben_yehuda_total": 26455,
+    "due": 209,
+    "mutations": 0
+  },
+  "fixture": {
+    "personal_only": true,
+    "source_text_bytes_approx": 4096,
+    "table_model_meta_json_bytes_approx": 4096,
+    "viewport_css_px": {
+      "width": 380,
+      "height": 844
+    },
+    "service_workers": "blocked-for-scale-cases"
+  },
+  "scale_cases": [
+    {
+      "count": 1000,
+      "seed_ms_not_a_product_kpi": 1965.2,
+      "open_my_texts_ms": 2395,
+      "ui_result": "Найдено: 48 / 500",
+      "rendered_cards": 48,
+      "dom_nodes": 1048,
+      "exact_sql_total": 1000,
+      "current_heavy_list": {
+        "limit": 500,
+        "rows": 500,
+        "duration_ms": 1886.5,
+        "serialized_bytes": 8415085
+      },
+      "current_light_list_all": {
+        "limit": 5000,
+        "rows": 1000,
+        "duration_ms": 940.1,
+        "serialized_bytes": 411168
+      },
+      "tail_search": {
+        "query": "B6 target 01000",
+        "result": "Найдено: 0 / 0",
+        "rendered_cards": 0
+      },
+      "head_search": {
+        "query": "B6 target 00001",
+        "result": "Найдено: 1 / 1",
+        "rendered_cards": 1
+      },
+      "history_before_reload": {
+        "url_changed": false,
+        "history_state": null
+      },
+      "after_reload": {
+        "surface": "hub",
+        "search_restored": false
+      },
+      "page_errors": []
+    },
+    {
+      "count": 5000,
+      "seed_ms_not_a_product_kpi": 10990.1,
+      "open_my_texts_ms": 5945,
+      "ui_result": "Найдено: 48 / 500",
+      "rendered_cards": 48,
+      "dom_nodes": 1048,
+      "exact_sql_total": 5000,
+      "current_heavy_list": {
+        "limit": 500,
+        "rows": 500,
+        "duration_ms": 5472.6,
+        "serialized_bytes": 8415085
+      },
+      "current_light_list_all": {
+        "limit": 5000,
+        "rows": 5000,
+        "duration_ms": 4418.6,
+        "serialized_bytes": 2055835
+      },
+      "tail_search": {
+        "query": "B6 target 05000",
+        "result": "Найдено: 0 / 0",
+        "rendered_cards": 0
+      },
+      "head_search": {
+        "query": "B6 target 00001",
+        "result": "Найдено: 1 / 1",
+        "rendered_cards": 1
+      },
+      "history_before_reload": {
+        "url_changed": false,
+        "history_state": null
+      },
+      "after_reload": {
+        "surface": "hub",
+        "search_restored": false
+      },
+      "page_errors": []
+    }
+  ],
+  "service_worker_recon": {
+    "preinstalled_controlled_worker": {
+      "warm_online_home_rendered": true,
+      "warm_offline_reload_home_rendered": true,
+      "explicit_room_connection_state_found_in_code": false
+    },
+    "fresh_install_headless": {
+      "repeat_count": 2,
+      "result": "harness-uncertain",
+      "observed": "controllerchange reload followed by OPFS AccessHandle/VFS collision and persistent loading skeleton",
+      "may_be_reported_as_owner_device_failure": false
+    },
+    "group_reconnect_without_reload": "not-proven"
+  },
+  "limitations": [
+    "single run per scale size; not p50 or p95",
+    "usedJSHeapSize snapshots were not comparable across contexts and are excluded",
+    "headless Chromium is not physical iPhone Safari or Android Chrome",
+    "offline group-corpus reconnect behavior was not proven",
+    "production owner profile was read only and no text or review flow was opened"
+  ]
+}
