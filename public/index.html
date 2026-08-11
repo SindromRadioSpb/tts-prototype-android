@@ -824,6 +824,11 @@
         background: linear-gradient(135deg, var(--theme-accent-soft), var(--theme-bg-card));
     }
 
+    .classic-next-step.is-state-pending,
+    .classic-next-step.is-complete-quiet {
+        display: none !important;
+    }
+
     .classic-next-step-copy {
         min-width: 0;
         display: grid;
@@ -11269,7 +11274,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                  the enforced-CSP agent-access page). Quiet-fail hidden without session/at zero. -->
             <a id="v3ClassicAgentProposals" class="classic-agent-cta" href="/agent-access.html" hidden></a>
 
-            <section id="classicNextStep" class="classic-next-step" aria-labelledby="classicNextStepLabel" aria-live="polite">
+            <section id="classicNextStep" class="classic-next-step is-state-pending" aria-labelledby="classicNextStepLabel" aria-live="polite">
                 <div class="classic-next-step-copy">
                     <span id="classicNextStepLabel" class="classic-next-step-label"><span data-i18n="classic.nextStepLabel">Следующий шаг</span><span aria-hidden="true"> · </span><span id="classicPhaseLabel" data-i18n="classic.phase.add">Этап 1 из 4</span></span>
                     <span id="classicNextStepStatus" class="classic-next-step-status" data-i18n="classic.nextStepStatusEmpty">Добавьте материал или введите текст.</span>
@@ -13221,7 +13226,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.350";
+    window.APP_VERSION = "3.11.351";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -17276,6 +17281,41 @@ function v3NotesRefreshAllButtons() {
 // Session state (restore last opened Library/Dashboard text after reload)
 // This MUST NOT rely on textarea "input" events (those mark results as stale).
 const V3_SESSION_STATE_KEY = "ttsDashboard_session_state_v1";
+const CLASSIC_LEARNING_HANDOFF_KEY = "classic.learning_handoff_v1";
+
+function classicLearningHandoffTextId() {
+  try {
+    const raw = localStorage.getItem(CLASSIC_LEARNING_HANDOFF_KEY);
+    if (!raw) return null;
+    const value = JSON.parse(raw);
+    const textId = value && typeof value === "object" ? value.textId : value;
+    return textId ? String(textId) : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function classicMarkLearningHandoff(textId) {
+  try {
+    const normalized = String(textId || "").trim();
+    if (!normalized) return;
+    localStorage.setItem(CLASSIC_LEARNING_HANDOFF_KEY, JSON.stringify({
+      textId: normalized,
+      acknowledgedAt: new Date().toISOString()
+    }));
+  } catch (_) {
+    // UI acknowledgement is optional; canonical material state stays untouched.
+  }
+}
+
+function classicClearLearningHandoff(textId) {
+  try {
+    const normalized = String(textId || "").trim();
+    if (!normalized || classicLearningHandoffTextId() === normalized) {
+      localStorage.removeItem(CLASSIC_LEARNING_HANDOFF_KEY);
+    }
+  } catch (_) {}
+}
 
 // --------------------------------------------------------
 // V3 Library offline cache (restore last opened Library text on F5 even when Offline)
@@ -17690,6 +17730,8 @@ function v3SessionMarkDraft() {
   try {
     const st = v3SessionGet() || {};
     const baseTextId = st.baseTextId || st.textId || null;
+
+    classicClearLearningHandoff(baseTextId);
 
     v3SessionSet({
       mode: "draft",
@@ -20640,9 +20682,15 @@ updatePlaylistButtonUI();
             const st = typeof v3SessionGet === "function" ? (v3SessionGet() || {}) : {};
             if (st.textId && typeof v3DeeplinkBase64urlEncode === "function") {
                 const target = v3DeeplinkBase64urlEncode(JSON.stringify({ v: 1, type: "text", id: String(st.textId) }));
-                if (target && typeof v3NavAwayWithDbClose === "function") return v3NavAwayWithDbClose("/index.html?room=1#/t/" + target);
+                if (target && typeof v3NavAwayWithDbClose === "function") {
+                    classicMarkLearningHandoff(st.textId);
+                    return v3NavAwayWithDbClose("/index.html?room=1#/t/" + target);
+                }
             }
-            if (typeof v3LibraryOpen === "function") return v3LibraryOpen();
+            if (typeof v3LibraryOpen === "function") {
+                classicMarkLearningHandoff(st.textId);
+                return v3LibraryOpen();
+            }
         }
     }
     window.classicRunNextAction = classicRunNextAction;
@@ -20947,7 +20995,12 @@ updatePlaylistButtonUI();
             classicNextActionBtnEl.textContent = t("classic.nextAction." + action);
             classicNextStepStatusEl.textContent = t(statusKey);
             if (classicPhaseLabelEl) classicPhaseLabelEl.textContent = t("classic.phase." + action);
-            if (classicNextStepEl) classicNextStepEl.dataset.phase = action;
+            if (classicNextStepEl) {
+                const completedHandoff = isSaved && !!st.textId && classicLearningHandoffTextId() === String(st.textId);
+                classicNextStepEl.dataset.phase = action;
+                classicNextStepEl.classList.toggle("is-complete-quiet", completedHandoff);
+                classicNextStepEl.classList.remove("is-state-pending");
+            }
         }
 
         if (classicPrimaryHintEl) {

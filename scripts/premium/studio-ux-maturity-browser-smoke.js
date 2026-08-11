@@ -247,20 +247,32 @@ async function inspect(browser, locale, viewport, dark, label) {
     window.__b5RoomTarget = null;
     window.v3NavAwayWithDbClose = (url) => { window.__b5RoomTarget = url; };
     classicRunNextAction();
+    const initialAction = document.getElementById("classicNextActionBtn").dataset.action;
+    const initialLabel = document.getElementById("classicNextActionBtn").textContent.trim();
+    const initialPhase = document.getElementById("classicPhaseLabel").textContent.trim();
     document.body.classList.add("room-mode");
     const roomNextStepDisplay = getComputedStyle(document.getElementById("classicNextStep")).display;
     document.body.classList.remove("room-mode");
+    classicSyncStateUi();
+    const studioReturnNextStepDisplay = getComputedStyle(document.getElementById("classicNextStep")).display;
+    v3SessionMarkDraft();
+    classicSyncStateUi();
+    const editedDraftNextStepDisplay = getComputedStyle(document.getElementById("classicNextStep")).display;
     return {
-      action: document.getElementById("classicNextActionBtn").dataset.action,
-      label: document.getElementById("classicNextActionBtn").textContent.trim(),
-      phase: document.getElementById("classicPhaseLabel").textContent.trim(),
+      action: initialAction,
+      label: initialLabel,
+      phase: initialPhase,
       roomTarget: window.__b5RoomTarget,
       roomNextStepDisplay,
+      studioReturnNextStepDisplay,
+      editedDraftNextStepDisplay,
     };
   });
   check(savedState.action === "learn" && savedState.label && savedState.phase, `${prefix}: save completion recommends continuing in Reading Room`);
   check(/^\/index\.html\?room=1#\/t\//.test(savedState.roomTarget || ""), `${prefix}: saved material CTA targets its direct Room deep link`);
   check(savedState.roomNextStepDisplay === "none", `${prefix}: Room hides the already-completed Studio next-step CTA`);
+  check(savedState.studioReturnNextStepDisplay === "none", `${prefix}: Studio return keeps an acknowledged saved material quiet`);
+  check(savedState.editedDraftNextStepDisplay !== "none", `${prefix}: editing restores the next-step guidance`);
   check(pageErrors.length === 0, `${prefix}: no uncaught page errors (${pageErrors.join(" | ")})`);
   await context.close();
 }
