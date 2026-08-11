@@ -19,7 +19,31 @@
   function canStartAsr(state) {
     if (!state) return false;
     if (state.outcome === "AUDIO_READY" || state.outcome === "TRANSCRIPT_ONLY") return true;
-    return state.outcome === "READY" && /^[a-f0-9]{64}$/i.test(String(state.canonical_sha256 || ""));
+    return (state.outcome === "READY" || state.outcome === "DEVICE_READY")
+      && /^[a-f0-9]{64}$/i.test(String(state.canonical_sha256 || ""));
+  }
+
+  function deviceAsrPolicy(userAgent, localEnabled) {
+    var ua = String(userAgent || "");
+    // iPadOS can request the desktop site and identify as Macintosh, but keeps
+    // the Mobile token. A loopback Companion on another machine is not a valid
+    // mobile provider: the browser's 127.0.0.1 is the phone/tablet itself.
+    var mobile = /iPhone|iPad|iPod|Android/i.test(ua) || /Macintosh/i.test(ua) && /Mobile/i.test(ua);
+    if (mobile) return { mobile: true, provider: "gemini", show_provider: true,
+      allow_local: false, show_local_setup: false, requires_device_gate: true };
+    return { mobile: false, provider: "gemini", show_provider: !!localEnabled,
+      allow_local: !!localEnabled, show_local_setup: false, requires_device_gate: false };
+  }
+
+  function acceptDeviceReady(input) {
+    input = input || {};
+    var sha = String(input.sha256 || "").toLowerCase(), receipt = input.receipt;
+    if (!/^[a-f0-9]{64}$/.test(sha)) throw new Error("MEDIA_DEVICE_READY_SHA_INVALID");
+    if (!receipt || receipt.pass !== true) throw new Error("MEDIA_DEVICE_READY_RECEIPT_REQUIRED");
+    return { outcome: "DEVICE_READY", canonical_sha256: sha,
+      canonical_name: input.file && input.file.name || null, bind_outcome: "bound_pending_import",
+      target_contract: "verified-on-selected-device", codec_summary: null,
+      device_session_receipt: receipt };
   }
 
   function acceptReport(job) {
@@ -65,7 +89,12 @@
   }
 
   function compatibilityEvidence(state) {
-    if (!state || state.outcome !== "READY") return null;
+    if (!state || (state.outcome !== "READY" && state.outcome !== "DEVICE_READY")) return null;
+    if (state.outcome === "DEVICE_READY") {
+      return { contract: "verified-on-selected-device", outcome: "DEVICE_READY",
+        canonical_sha256: state.canonical_sha256, codec_summary: null, codec_hint: null,
+        device_session_receipt: state.device_session_receipt || null };
+    }
     var codec = state.codec_summary || {}, level = Number(codec.declared_level || codec.required_level || 0);
     var levelHex = level > 0 ? Math.round(level).toString(16).toUpperCase().padStart(2, "0") : null;
     var profile = String(codec.profile || "").toLowerCase(), avcProfile = profile.indexOf("main") === 0 ? "4D" : profile.indexOf("high") === 0 ? "64" : "42";
@@ -209,6 +238,8 @@
     isVideo: isVideo,
     initialForFile: initialForFile,
     canStartAsr: canStartAsr,
+    deviceAsrPolicy: deviceAsrPolicy,
+    acceptDeviceReady: acceptDeviceReady,
     acceptReport: acceptReport,
     acceptPrepared: acceptPrepared,
     transcriptOnly: transcriptOnly,

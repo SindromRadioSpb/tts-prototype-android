@@ -7,6 +7,8 @@ const root = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "public", "index.html"), "utf8");
 const studioImport = fs.readFileSync(path.join(root, "public", "js", "studio-import.js"), "utf8");
 const mediaPackage = fs.readFileSync(path.join(root, "public", "js", "studio-media-package.js"), "utf8");
+const libraryHtml = fs.readFileSync(path.join(root, "public", "library.html"), "utf8");
+const libraryUi = fs.readFileSync(path.join(root, "public", "js", "library-ui.js"), "utf8");
 const locales = Object.fromEntries(["ru", "en", "he"].map((locale) => [
   locale,
   fs.readFileSync(path.join(root, "public", "i18n", "locales", `${locale}.js`), "utf8"),
@@ -70,4 +72,12 @@ test("B1 carries landmark, contrast, target-size and accessible-name contracts",
     assert.match(source, /voiceAuto:/);
     assert.match(source, /translitSbl:/);
   }
+});
+
+test("Reading Room restores the canonical exact media binding before deriving row timing", () => {
+  assert.match(libraryHtml, /<script src="\/js\/media-package-core\.js"><\/script>/);
+  assert.match(libraryHtml, /<script src="\/js\/media-package-repository\.js"><\/script>/);
+  assert.match(libraryHtml, /<script src="\/js\/studio-media-package\.js"><\/script>/);
+  assert.match(libraryUi, /StudioMediaPackage\.activateTextBinding\(String\(textId\)\)/);
+  assert.match(libraryUi, /MediaHost\.pickExactBindingPassport\(/);
 });

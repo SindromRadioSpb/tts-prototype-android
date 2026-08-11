@@ -11,6 +11,30 @@ test('video selection is unresolved and blocks ASR until exact media is ready', 
   assert.equal(MediaReadiness.canStartAsr({ outcome: 'READY', canonical_sha256: H('a') }), true);
 });
 
+test('mobile media uses Gemini only and can prove the selected bytes on the device', () => {
+  const ios = MediaReadiness.deviceAsrPolicy(
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 Version/18.6 Mobile/15E148 Safari/604.1',
+    true,
+  );
+  assert.deepEqual(ios, {
+    mobile: true,
+    provider: 'gemini',
+    show_provider: true,
+    allow_local: false,
+    show_local_setup: false,
+    requires_device_gate: true,
+  });
+  const ready = MediaReadiness.acceptDeviceReady({
+    file: { name: 'clip.mp4' },
+    sha256: H('d'),
+    receipt: { pass: true, device_family: 'iPhone/iPad' },
+  });
+  assert.equal(MediaReadiness.canStartAsr(ready), true);
+  assert.equal(ready.outcome, 'DEVICE_READY');
+  assert.equal(ready.canonical_sha256, H('d'));
+  assert.equal(MediaReadiness.compatibilityEvidence(ready).contract, 'verified-on-selected-device');
+});
+
 test('repair, transcode and blocked reports never silently start ASR', () => {
   for (const outcome of ['LOSSLESS_REPAIR', 'TRANSCODE_REQUIRED', 'BLOCKED']) {
     assert.equal(MediaReadiness.canStartAsr({ outcome, canonical_sha256: H('a') }), false);

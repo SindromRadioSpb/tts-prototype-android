@@ -92,6 +92,32 @@ const SEED = `(async () => {
   await db.createText({ id: "rmm-t6", text_key: "rmm-k6", title: "RMM SIX video", source_text: "אחת\\nשתיים", table_model_meta_json: JSON.stringify(P_VIDEO) });
   await db.addSentence("rmm-t6", { id: "rmm-t6-s1", he_plain: "אחת", ru: "один" });
   await db.addSentence("rmm-t6", { id: "rmm-t6-s2", he_plain: "שתיים", ru: "два" });
+
+  // t7 — exact Studio binding wins when the saved composite passport cannot
+  // derive timing (3 source cues vs 2 learning rows). This is the imported
+  // portable-package shape that regressed on iPhone while Studio still worked.
+  const EXACT_SHA = "e".repeat(64);
+  const EXACT_CUES = ["פתיח מיותר", "שורה מדויקת אחת", "שורה מדויקת שתיים"];
+  const P_EXACT = { source: { audio: { v: 1,
+    media: { opfsPath: "media/rmm-comp.mp3", sha256: EXACT_SHA, mime: "audio/mpeg", originalName: "exact.mp3", sizeBytes: 417 * 80, durationSec: 2 },
+    segments: EXACT_CUES.map((t, k) => ({ caption_segment_id: "saved:" + k, start_ms: k * 500, end_ms: k * 500 + 400, text: t })),
+    timing: true } } };
+  await db.createText({ id: "rmm-t7", text_key: "rmm-k7", title: "RMM SEVEN exact binding", source_text: EXACT_CUES.slice(1).join("\\n"), table_model_meta_json: JSON.stringify(P_EXACT) });
+  await db.addSentence("rmm-t7", { id: "rmm-t7-s1", he_plain: EXACT_CUES[1], ru: "точная строка один" });
+  await db.addSentence("rmm-t7", { id: "rmm-t7-s2", he_plain: EXACT_CUES[2], ru: "точная строка два" });
+  const repo = window.MediaPackageRepository.createRepository(db, window.MediaPackageCore);
+  const created = await repo.createPackage({ media: { sha256: EXACT_SHA, mime: "audio/mpeg", duration_ms: 2000,
+      original_name: "exact.mp3", opfs_path: "media/rmm-comp.mp3", size_bytes: 417 * 80 },
+    raw_revision: { role: "raw_original", track_fingerprint: "rmm-exact-binding", canonical_sha256: "d".repeat(64),
+      segments: EXACT_CUES.map((t, k) => ({ source_segment_id: "source:" + k, start_ms: k * 500, end_ms: k * 500 + 400,
+        text: t, speaker: null, quality_flags: [] })), provenance: { provider: "smoke" } } });
+  const exactRevision = await repo.getRevision(created.corrected_revision_id);
+  await repo.bindText({ text_id: "rmm-t7", package_id: created.package_id, track_id: created.corrected_track_id,
+    revision_id: exactRevision.revision_id, revision_sha256: exactRevision.canonical_sha256,
+    mapping: { schema: "studio-row-source-v2", rows: [
+      { row_index: 0, caption_segment_id: exactRevision.segments[1].caption_segment_id },
+      { row_index: 1, caption_segment_id: exactRevision.segments[2].caption_segment_id },
+    ] } });
   return true;
 })()`;
 
@@ -309,11 +335,23 @@ async function main() {
       });
       ok(t6 && t6.tag === "VIDEO", "t6: stage swapped to <video>");
       ok(t6 && t6.inline && t6.webkit, "t6: playsinline + webkit-playsinline present (iOS inline playback)");
+      await backToGrid();
+
+      // ── rmm-t7: off-by-one composite refuses inference; exact binding restores it ──
+      await openCard("RMM SEVEN");
+      await pg.waitForFunction(() => document.querySelectorAll("#roomReaderTable .smk-row-replay").length === 2,
+        { timeout: 15000 }).catch(() => failures.push("t7: exact binding did not restore 2 replay buttons"));
+      const t7 = await pg.evaluate(() => ({
+        buttons: document.querySelectorAll("#roomReaderTable .smk-row-replay").length,
+        source: window.StudioMediaKaraoke && window.StudioMediaKaraoke.getAudioPassport
+          ? (window.StudioMediaKaraoke.getAudioPassport() || {}).timingSource : null,
+      }));
+      ok(t7.buttons === 2, "t7: exact binding restores 2/2 replay buttons despite 3/2 cue mismatch");
     }
     ok(!pageErrors.length, "no pageerror(s)" + (pageErrors.length ? ": " + pageErrors.join(" | ") : ""));
   } finally { await b.close(); await stopServer(srv.child); }
 
-  if (failures.length) { console.error("FAIL — " + failures.length + " assertion(s)"); process.exit(1); }
+  if (failures.length) { console.error("FAIL — " + failures.length + " assertion(s): " + failures.join(" | ")); process.exit(1); }
   console.log("[room-media-smoke] PASS");
 }
 

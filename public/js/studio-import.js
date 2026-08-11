@@ -787,22 +787,27 @@
 
   function selectedAudioProvider() {
     var select = $("v3ImportAudioProvider");
-    return localAsrExperimental() && select && select.value === "local" ? "local" : "gemini";
+    var policy = window.MediaReadiness.deviceAsrPolicy(navigator.userAgent, localAsrExperimental());
+    return policy.allow_local && select && select.value === "local" ? "local" : "gemini";
   }
 
   function refreshLocalAsrControls() {
     var enabled = localAsrExperimental();
-    var needsMedia = !!(pendingAudio && pendingAudio.isVideo);
+    var policy = window.MediaReadiness.deviceAsrPolicy(navigator.userAgent, enabled);
+    var needsCompanionMedia = !!(pendingAudio && pendingAudio.isVideo && !policy.mobile);
     var providerWrap = $("v3ImportAudioProviderWrap");
-    if (providerWrap) providerWrap.hidden = !enabled;
-    var local = enabled && selectedAudioProvider() === "local";
+    if (providerWrap) providerWrap.hidden = !policy.show_provider;
+    var select = $("v3ImportAudioProvider"), localOption = select && select.querySelector('option[value="local"]');
+    if (localOption) { localOption.disabled = !policy.allow_local; localOption.hidden = !policy.allow_local; }
+    if (select && !policy.allow_local) select.value = "gemini";
+    var local = policy.allow_local && selectedAudioProvider() === "local";
     var setup = $("v3ImportLocalAsrSetup");
-    if (setup) setup.hidden = !(local || needsMedia);
-    if ((enabled && local) || needsMedia) {
+    if (setup) setup.hidden = !(local || needsCompanionMedia);
+    if ((enabled && local) || needsCompanionMedia) {
       var input = $("v3ImportLocalAsrToken");
       if (input && !input.value) input.value = window.LocalAsrClient.getPairingToken();
     }
-    if (!enabled && !needsMedia) localAsrConnected = false;
+    if (!enabled && !needsCompanionMedia) localAsrConnected = false;
     renderLocalAsrConnectionState();
     if (pendingAudio) updateAudioActionLabel();
   }
@@ -1053,7 +1058,7 @@
     if (!isVideo || !state) return;
     var badge = $("v3ImportMediaBadge"), detail = $("v3ImportMediaDetail"), progress = $("v3ImportMediaProgress");
     var outcomeKey = {
-      PROBING: "studio.import.mediaProbing", READY: "studio.import.mediaReady",
+      PROBING: "studio.import.mediaProbing", READY: "studio.import.mediaReady", DEVICE_READY: "studio.import.mediaDeviceReady",
       LOSSLESS_REPAIR: "studio.import.mediaLosslessRepair", TRANSCODE_REQUIRED: "studio.import.mediaTranscodeRequired",
       BLOCKED: "studio.import.mediaBlocked", TRANSCRIPT_ONLY: "studio.import.mediaTranscriptOnly",
     }[state.outcome] || "studio.import.mediaBlocked";
@@ -1090,7 +1095,12 @@
         + (operations.length ? "\n" + operations.join(" → ") : "");
     }
     var device = $("v3ImportMediaDeviceGate");
-    if (device) device.hidden = state.outcome !== "READY";
+    if (device) {
+      var mobilePolicy = window.MediaReadiness.deviceAsrPolicy(navigator.userAgent, localAsrExperimental());
+      device.hidden = mobilePolicy.mobile
+        ? state.outcome === "DEVICE_READY"
+        : state.outcome !== "READY";
+    }
     var cancelMedia = $("v3ImportMediaCancel");
     if (cancelMedia) cancelMedia.hidden = !(pendingAudio.mediaJobId && state.state && !["COMPLETE", "BLOCKED", "FAILED", "CANCELED"].includes(state.state));
     var transcriptOnly = $("v3ImportMediaTranscriptOnly");
@@ -1212,15 +1222,31 @@
   }
 
   async function runMediaDeviceGate() {
-    if (!pendingAudio || !window.MediaReadiness.canStartAsr(pendingAudio.mediaReadiness)) return;
+    if (!pendingAudio || !pendingAudio.isVideo) return;
+    var policy = window.MediaReadiness.deviceAsrPolicy(navigator.userAgent, localAsrExperimental());
+    if (!policy.mobile && !window.MediaReadiness.canStartAsr(pendingAudio.mediaReadiness)) return;
     var result = $("v3ImportMediaDeviceResult");
+    setBusy(true);
     try {
-      if (!await lockCanonicalMediaIdentity()) return;
-      var receipt = await window.MediaReadiness.actualFilePlaySeek(pendingAudio.file);
+      if (policy.mobile) {
+        var bytes = await pendingAudio.file.arrayBuffer();
+        pendingAudio.sha256 = await window.MediaStore.sha256Hex(bytes);
+        pendingAudio.buf = bytes;
+      } else if (!await lockCanonicalMediaIdentity()) return;
+      // WebKit does not expose audioTracks/decoded-byte counters. The receipt
+      // proves actual selected-byte play + two seeks, without inventing an
+      // audio-track claim that Safari cannot report.
+      var receipt = await window.MediaReadiness.actualFilePlaySeek(pendingAudio.file, { expectAudio: !policy.mobile });
       if (result) { result.hidden = false; result.textContent = tr("studio.import.mediaDevicePass") + " · " + receipt.device_family + " · " + receipt.browser_family + " / " + receipt.os_family + " · 25%/75% · " + receipt.tested_at; result.dataset.pass = "true"; }
-      pendingAudio.mediaReadiness.device_session_receipt = receipt;
+      pendingAudio.mediaReadiness = policy.mobile
+        ? window.MediaReadiness.acceptDeviceReady({ file: pendingAudio.file, sha256: pendingAudio.sha256, receipt: receipt })
+        : Object.assign({}, pendingAudio.mediaReadiness, { device_session_receipt: receipt });
+      renderMediaReadiness();
+      setStatus("studio.import.mediaDeviceReady");
     } catch (error) {
       if (result) { result.hidden = false; result.textContent = tr("studio.import.mediaDeviceFail") + " — " + (error && error.message || ""); result.dataset.pass = "false"; }
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -1291,7 +1317,10 @@
     refreshLocalAsrControls();
     renderMediaReadiness();
     setStatus(null);
-    if (isVideo) await startMediaPreflight();
+    if (isVideo) {
+      var policy = window.MediaReadiness.deviceAsrPolicy(navigator.userAgent, localAsrExperimental());
+      if (!policy.mobile) await startMediaPreflight();
+    }
   }
 
   // S12.5 T4: спрашиваем сервер о его версии ПЕРЕД дорогой операцией. Сеть/формат подвели —

@@ -3259,6 +3259,7 @@ window.I18N_LOCALES.ru = {
       mediaContract: "LinguistPro iPhone + Android target v1",
       mediaProbing: "Проверяем совместимость…",
       mediaReady: "Совместимо по контракту iPhone + Android",
+      mediaDeviceReady: "Проверено на этом устройстве",
       mediaLosslessRepair: "Нужна lossless-починка метаданных/контейнера",
       mediaTranscodeRequired: "Нужна конвертация в совместимый MP4",
       mediaBlocked: "Видео заблокировано",

@@ -3245,6 +3245,7 @@ window.I18N_LOCALES.en = {
       mediaContract: "LinguistPro iPhone + Android target v1",
       mediaProbing: "Checking compatibility…",
       mediaReady: "Compatible under the iPhone + Android contract",
+      mediaDeviceReady: "Verified on this device",
       mediaLosslessRepair: "Lossless metadata/container repair required",
       mediaTranscodeRequired: "Conversion to a compatible MP4 is required",
       mediaBlocked: "Video is blocked",

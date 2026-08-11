@@ -67,7 +67,13 @@ async function prepare(page, locale, dark) {
 }
 
 async function inspect(browser, locale, viewport, dark, label) {
-  const context = await browser.newContext({ viewport, serviceWorkers: "block" });
+  const context = await browser.newContext({
+    viewport,
+    serviceWorkers: "block",
+    userAgent: label === "380"
+      ? "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1"
+      : undefined,
+  });
   const page = await context.newPage();
   const pageErrors = await prepare(page, locale, dark);
   const prefix = `${label}/${locale}/${dark ? "dark" : "light"}`;
@@ -144,6 +150,21 @@ async function inspect(browser, locale, viewport, dark, label) {
     return { selected: document.getElementById("v3ImportTabFile").getAttribute("aria-selected") };
   });
   check(picker.selected === "true", `${prefix}: Drafts opens existing continuation shelf`);
+  if (label === "380") {
+    const provider = await page.evaluate(() => {
+      StudioImport.refreshLocalAsrControls();
+      const select = document.getElementById("v3ImportAudioProvider");
+      const local = select.querySelector('option[value="local"]');
+      return {
+        wrapVisible: !document.getElementById("v3ImportAudioProviderWrap").hidden,
+        value: select.value,
+        localDisabled: local.disabled && local.hidden,
+        companionHidden: document.getElementById("v3ImportLocalAsrSetup").hidden,
+      };
+    });
+    check(provider.wrapVisible && provider.value === "gemini", `${prefix}: iPhone visibly offers Gemini ASR`);
+    check(provider.localDisabled && provider.companionHidden, `${prefix}: iPhone never exposes loopback Companion`);
+  }
   await page.focus("#v3ImportAudioPicker");
   await page.keyboard.press("Enter");
   const audioPickerHeight = await page.locator("#v3ImportAudioPicker").evaluate((node) => node.getBoundingClientRect().height);

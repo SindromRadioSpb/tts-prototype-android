@@ -13,6 +13,11 @@ import * as localDb from '/db/local-db.js';
 import * as readerCore from '/js/reader-core.js';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 
+// Studio exposes the same adapter for repository-backed media bindings. Room
+// reuses it read-only so exact timing survives a cold open without duplicating
+// any canonical tables or package state.
+window.__localDB = localDb;
+
 // BRR-P0-002b — the same-document embedded reader (warm-worker open) is the DEFAULT
 // Room open: parity-proven (smoke:reader-parity) + prod-verified, warm-open ~24-100ms
 // vs ~1s cold deep-link. ?embed=0 forces the legacy cross-document deep-link (escape
@@ -3434,6 +3439,7 @@ let roomMediaAudio = null;   // активный паспорт; timing.entries 
 let roomMediaStage = null, roomMediaResolver = null;
 let roomMediaYtAdapter = null, roomMediaYtVideoId = null, roomMediaYtCreating = null;
 let _roomMediaWired = false;
+let roomMediaSetupSerial = 0;
 
 function roomMediaStopOthers() {   // media → TTS направление взаимоисключения
   try { stopKaraoke(); } catch (_) {}
@@ -3558,6 +3564,7 @@ function roomMediaFollowRange(range) {
   }
 }
 function roomMediaTeardown() {
+  roomMediaSetupSerial++;
   try { if (window.StudioMediaKaraoke) window.StudioMediaKaraoke.stop(); } catch (_) {}
   try { if (roomMediaStage) roomMediaStage.destroy(); } catch (_) {}
   // YT-адаптер привязан к КОНКРЕТНОМУ videoId (спека, ловушка №9) — при смене текста/закрытии
@@ -3569,12 +3576,21 @@ function roomMediaTeardown() {
   for (const id of ['roomMediaBar', 'roomMediaYtMount', 'roomMediaStudioLink']) { const n = $(id); if (n) n.hidden = true; }
   try { roomMediaApplyLayout(); } catch (_) {}   // выключить скролл-окно таблицы (медиа скрыто)
 }
-function roomMediaSetup(textRow) {
+async function roomMediaSetup(textRow, textId) {
   roomMediaTeardown();
   if (!window.MediaHost || !window.StudioMediaKaraoke) return;   // офлайн до precache → фичи честно нет
-  const audio = window.MediaHost.passportFromTextRow(textRow);
-  if (!audio) return;
-  try { window.MediaHost.restoreForRows(audio, readerRows); } catch (_) {}   // K1-карантин + K3-довыравнивание
+  const serial = ++roomMediaSetupSerial;
+  let audio = window.MediaHost.passportFromTextRow(textRow);
+  if (audio) try { window.MediaHost.restoreForRows(audio, readerRows); } catch (_) {}   // K1-карантин + K3-довыравнивание
+  if (window.StudioMediaPackage && typeof window.StudioMediaPackage.activateTextBinding === 'function' && textId != null) {
+    try {
+      const activation = await window.StudioMediaPackage.activateTextBinding(String(textId));
+      if (serial !== roomMediaSetupSerial || String(readerTextId) !== String(textId)) return;
+      audio = window.MediaHost.pickExactBindingPassport(audio, activation && activation.media_passport, readerRows.length);
+    } catch (_) { /* legacy/non-package cards keep their saved passport */ }
+  }
+  if (!audio || serial !== roomMediaSetupSerial) return;
+  try { window.MediaHost.restoreForRows(audio, readerRows); } catch (_) {}
   roomMediaAudio = audio;
   const bar = $('roomMediaBar'); if (!bar) return;
   bar.hidden = false;
@@ -5631,7 +5647,7 @@ async function openReader(textId, title, opts) {
   try { setReaderSubtitle(res && res.ok && res.text ? res.text : null); } catch (_) {}   // Epic-6 W1-a — per-work source/context
   if (res && res.ok) {
     attachReaderAudio();
-    try { roomMediaSetup(res.text); } catch (_) {}   // media player (spec 2026-08-04): паспорт уже в text.table_model_meta_json
+    Promise.resolve(roomMediaSetup(res.text, textId)).catch(() => {});   // saved passport + canonical exact Studio binding
     try { roomUpdateTheadTop(); setTimeout(() => { try { roomUpdateTheadTop(); } catch (_) {} }, 600); } catch (_) {}   // sticky-шапка: бар мог дорасти (cov-chip)
     if (!readerGroupCorpusId) {
       try { loadProcliticOverlay(readerTextId, res.text); } catch (_) {}   // Phase-3 — this work's Dicta proclitic overlay (best-effort)

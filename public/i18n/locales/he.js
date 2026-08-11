@@ -3255,6 +3255,7 @@ window.I18N_LOCALES.he = {
       mediaContract: "LinguistPro iPhone + Android target v1",
       mediaProbing: "בודקים תאימות…",
       mediaReady: "תואם לפי חוזה iPhone + Android",
+      mediaDeviceReady: "אומת במכשיר הזה",
       mediaLosslessRepair: "נדרש תיקון lossless למטא-נתונים/מכולה",
       mediaTranscodeRequired: "נדרשת המרה ל-MP4 תואם",
       mediaBlocked: "הווידאו חסום",
