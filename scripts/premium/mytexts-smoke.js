@@ -3,9 +3,9 @@
 // smoke:reader-mytexts — multi-corpus surface (B+C «витрина + линза») + «Мои тексты» corpus.
 // Design: docs/planning/BRR_MULTI_CORPUS_DESIGN_2026_07_02.md. In a real browser @380px, OPFS
 // seeded in-session (headless OPFS does not survive reloads; small writes are safe):
-//   1) the «Библиотека» tab lands on the L0 HUB: corpus cards (Бен-Иегуда + Мои тексты) + teaser;
-//   2) the Мои-тексты hub card counts OWN texts only (corpus-meta text excluded);
-//   3) tapping the card opens the «Мои тексты» CORPUS: header + facets + search;
+//   1) the «Библиотека» tab lands on B2 Learning Home: one feature + bounded ready shelf;
+//   2) compact corpus entries keep Бен-Иегуда + Мои тексты one action away, while the teaser stays outside;
+//   3) the Мои-тексты entry counts OWN texts only (corpus-meta text excluded), and opens the full corpus;
 //      search narrows; the level facet filters; corpus-meta text never appears;
 //   4) the switcher pill lists corpora and swaps to Ben-Yehuda IN PLACE (the C half);
 //      the Ben-Yehuda home carries the switchbar + the «Мои тексты» mini-rail;
@@ -76,30 +76,32 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       ok(seeded.projected === "DERIVED", "real OPFS read did not project derived niqqud");
       ok(seeded.invalidated === "NONE", "body edit did not invalidate real OPFS derived cache");
       ok(seeded.protectedCode === "NIQQUD_ASSERTED_PROTECTED", "real OPFS asserted niqqud was not protected");
-      // 1) the tab lands on the L0 hub
+      // 1) the tab lands on the learning-first L0 home
       await pg.click("#tabCorpus");
-      await pg.waitForSelector(".hub-cards", { timeout: 15000 }).catch(() => failures.push("L0 hub did not render"));
+      await pg.waitForSelector(".learning-home", { timeout: 15000 }).catch(() => failures.push("Learning Home did not render"));
       const hub = await pg.evaluate(() => {
-        const cards = Array.from(document.querySelectorAll(".hub-card"));
-        const my = cards.find((c) => c.dataset.corpus === "mytexts");
+        const entries = Array.from(document.querySelectorAll(".learning-corpus-entry"));
+        const my = entries.find((c) => c.dataset.corpus === "mytexts");
         return {
-          n: cards.filter((c) => c.dataset.corpus).length,
-          teaser: !!document.querySelector(".hub-teaser"),
-          myCounts: my ? (my.querySelector(".hub-card-counts") || {}).textContent || "" : "",
-          myBadges: my ? my.querySelectorAll(".hub-badge").length : 0,
-          myCta: my ? !!my.querySelector(".hub-cta") : false,
+          n: entries.length,
+          feature: document.querySelectorAll(".learning-home-feature").length,
+          ready: document.querySelectorAll(".learning-home-ready-list .room-text-row").length,
+          teaser: !!document.querySelector(".learning-home > .learning-home-teaser"),
+          teaserInside: !!document.querySelector(".learning-corpus-list .learning-home-teaser"),
+          myCounts: my ? (my.querySelector(".learning-corpus-count") || {}).textContent || "" : "",
         };
       });
-      ok(hub.n === 2, "hub expected 2 corpus cards, got " + hub.n);
-      ok(hub.teaser, "hub roadmap teaser missing");
-      ok(/^2\b/.test(hub.myCounts.trim()), "mytexts hub count must be 2 (own only), got '" + hub.myCounts + "'");
-      ok(hub.myBadges >= 3, "mytexts capability badges missing");
-      ok(hub.myCta, "mytexts «+ Добавить текст» CTA missing");
+      ok(hub.n === 2, "Learning Home expected 2 real corpus entries, got " + hub.n);
+      ok(hub.feature === 1, "Learning Home must expose exactly one featured next action");
+      ok(hub.ready >= 2 && hub.ready <= 4, "Learning Home ready shelf must stay bounded, got " + hub.ready);
+      ok(hub.teaser && !hub.teaserInside, "roadmap teaser must exist outside the real corpus list");
+      ok(/^2\b/.test(hub.myCounts.trim()), "mytexts entry count must be 2 (own only), got '" + hub.myCounts + "'");
       await pg.screenshot({ path: SHOT_HUB });
 
       // 2) open the «Мои тексты» corpus
-      await pg.click('.hub-card[data-corpus="mytexts"]');
+      await pg.click('.learning-corpus-entry[data-corpus="mytexts"]');
       await pg.waitForSelector(".mytexts-corpus .mytexts-grid", { timeout: 10000 }).catch(() => failures.push("mytexts corpus home did not render"));
+      ok(await pg.locator(".mytexts-controls .hub-cta").count() === 1, "mytexts «+ Добавить текст» action missing from its corpus shell");
       const corpusText = await pg.evaluate(() => (document.querySelector(".mytexts-corpus") || {}).textContent || "");
       ok(corpusText.includes("Второй свой текст"), "own text B missing from the corpus");
       ok(!corpusText.includes("CORPUS-META TEXT"), "corpus-meta text LEAKED into «Мои тексты» (discriminator broken)");

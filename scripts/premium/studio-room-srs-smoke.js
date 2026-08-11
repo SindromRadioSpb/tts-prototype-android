@@ -60,6 +60,8 @@ async function browserContracts() {
   const browser = await chromium.launch({ headless: true });
   const ctx = await browser.newContext({ serviceWorkers: "block", viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
+  const dueTriggerSelector = '#roomDueCta:not([hidden]), .learning-home-action[data-learning-due]:not([hidden])';
+  const dueTrigger = () => page.locator(dueTriggerSelector).first();
   await page.addInitScript(() => {
     localStorage.setItem("localMode", "1");
     localStorage.setItem("phase6FirstOpenSeen", "smoke");
@@ -114,9 +116,9 @@ async function browserContracts() {
     check(fixture.resolved.some((x) => x.meta.material_kind === "user_text"), "My Text metadata remains attached to its source text");
 
     await page.reload({ waitUntil: "load" });
-    await page.waitForSelector("#roomDueCta:not([hidden])", { timeout: 20000 });
-    const roomDueBefore = Number(((await page.locator("#roomDueCta").textContent()) || "").match(/\d+/)?.[0] || 0);
-    await page.click("#roomDueCta");
+    await page.waitForSelector(dueTriggerSelector, { timeout: 20000 });
+    const roomDueBefore = Number(((await dueTrigger().textContent()) || "").match(/\d+/)?.[0] || 0);
+    await dueTrigger().click();
     await page.waitForSelector(".room-study:not([hidden]) .room-train-progress", { timeout: 30000 });
     const progress = (await page.locator(".room-train-progress").textContent() || "").trim();
     check(progress === "1 / 3", "mixed three-source Room session contains all three items (" + progress + ")");
@@ -161,9 +163,18 @@ async function browserContracts() {
     await page.click('.room-study-x');
     const afterClose = await page.evaluate(async () => (await import("/db/local-db.js")).countReviewLog());
     check(afterClose === fixture.beforeLog, "closing without an answer appends zero review_log rows");
-    check(await page.locator('#roomDueCta').evaluate((el) => document.activeElement === el), "closing Room review returns focus to its trigger");
+    const returnFocus = await page.evaluate((selector) => {
+      const active = document.activeElement;
+      const visible = Array.from(document.querySelectorAll(selector)).filter((node) => node.getClientRects().length && !node.hidden);
+      return {
+        ok: visible.includes(active),
+        active: active ? { id: active.id || '', cls: active.className || '', text: String(active.textContent || '').trim().slice(0, 60) } : null,
+        visible: visible.map((node) => ({ id: node.id || '', cls: node.className || '', text: String(node.textContent || '').trim().slice(0, 60) })),
+      };
+    }, dueTriggerSelector);
+    check(returnFocus.ok, "closing Room review returns focus to its visible trigger: " + JSON.stringify(returnFocus));
 
-    await page.click("#roomDueCta");
+    await dueTrigger().click();
     await page.waitForSelector(".room-train-progress", { timeout: 30000 });
     await page.locator('.room-train-opt[data-correct="1"]').click();
     await page.waitForSelector(".room-train-reveal", { timeout: 10000 });
@@ -264,7 +275,8 @@ async function browserContracts() {
 
     // The two remaining fixture words exercise one bounded same-session reinforcement pass:
     // miss word A, finish word B, retry A once, then finish without an infinite loop.
-    await page.click('#roomDueCta');
+    await page.waitForSelector(dueTriggerSelector, { timeout: 20000 });
+    await dueTrigger().click();
     await page.waitForSelector('.room-train-progress[data-reinforcement="0"]', { timeout: 30000 });
     await page.locator('.room-train-opt[data-correct="0"]').first().click();
     await page.waitForSelector('.room-train-reveal');

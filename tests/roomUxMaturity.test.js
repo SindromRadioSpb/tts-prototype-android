@@ -134,7 +134,7 @@ test("B1 uses semantic rows with sibling title and secondary controls", () => {
 });
 
 test("B1 adds Room metadata while the dynamic switcher remains an explicit B3 gate", () => {
-  const switcher = libraryUi.slice(libraryUi.indexOf("function corpusSwitcherBar"), libraryUi.indexOf("async function renderCorpusHub"));
+  const switcher = libraryUi.slice(libraryUi.indexOf("function corpusSwitcherBar"), libraryUi.indexOf("async function getLearningHomeContinue"));
   assert.match(switcher, /for \(const c of CORPORA\)/);
   assert.doesNotMatch(switcher, /groupCorpora/,
     "B3 contract changed: dynamic authorized group corpora now participate in the switcher");
@@ -142,6 +142,54 @@ test("B1 adds Room metadata while the dynamic switcher remains an explicit B3 ga
     "the Room shell must carry a product description");
   assert.match(corpusRegistry, /normalize the learning grammar|UNIFORM RETRIEVAL CONTRACT/i,
     "registry must retain the one-grammar/no-second-truth intent");
+});
+
+test("B2 turns the corpus hub into a learning-first home without creating learner truth", () => {
+  const learningHome = libraryUi.slice(
+    libraryUi.indexOf("async function getLearningHomeContinue"),
+    libraryUi.indexOf("async function renderMyTextsCorpus"),
+  );
+  assert.match(learningHome, /class: 'corpus-nav learning-home'/,
+    "the L0 surface must be the Learning Home, not a storage-first card wall");
+  assert.match(learningHome, /class: 'learning-home-feature'/,
+    "Learning Home must reserve exactly one featured next action");
+  assert.match(learningHome, /class: 'learning-home-today'/,
+    "honest daily actions need a dedicated, bounded zone");
+  assert.match(learningHome, /class: 'learning-home-ready'/,
+    "a short ready shelf must precede corpus inventory");
+  assert.match(learningHome, /class: 'learning-home-corpora'/,
+    "all authorized corpora must stay one action away");
+  assert.match(learningHome, /class: 'learning-home-teaser'/,
+    "roadmap material must remain outside the real corpus grammar");
+  assert.doesNotMatch(learningHome, /class: 'hub-card'/,
+    "the former oversized hub-card wall must not survive B2");
+  assert.match(learningHome, /localDb\.dbQuery\([\s\S]*text_progress[\s\S]*finished_at IS NULL/,
+    "Continue must derive from the canonical LocalDb progress ledger");
+  assert.match(learningHome, /protectedId[\s\S]*groupCorpora\.some/,
+    "a locally retained protected work must still pass the current membership catalog");
+  assert.match(learningHome, /SELECT COUNT\(\*\) AS n FROM texts/,
+    "My Texts needs an exact lightweight count, not a browse-limit approximation");
+  assert.match(learningHome, /buildNextTextPicks\(\)/,
+    "Start must reuse the existing honest recommendation engine");
+  assert.doesNotMatch(learningHome, /INSERT|UPDATE|CREATE TABLE/,
+    "Learning Home is a projection, never a second learner-state writer");
+});
+
+test("B2 keeps recommendation reasons and daily actions evidence-bound", () => {
+  const learningHome = libraryUi.slice(
+    libraryUi.indexOf("function learningHomeFeature"),
+    libraryUi.indexOf("async function renderMyTextsCorpus"),
+  );
+  assert.match(learningHome, /Number\.isFinite\(Number\(pick\.cov\)\)/,
+    "familiarity may render only when the recommender returned a numeric estimate");
+  assert.match(learningHome, /Number\.isFinite\(Number\(card\.segments\)\)/,
+    "the short-text action needs a real row count");
+  assert.match(learningHome, /_dueCounts && _dueCounts\.dueNow/,
+    "review joins Today only from the shared due-count truth");
+  assert.match(learningHome, /groupCorpora\.length/,
+    "protected study material may appear only from authorized catalogs");
+  assert.match(learningHome, /'data-focus-key': 'room-due-review'/,
+    "the inline review trigger needs a stable focus identity across live locale rerenders");
 });
 
 module.exports = { TARGETS, VIEW_MODEL_FIXTURES };

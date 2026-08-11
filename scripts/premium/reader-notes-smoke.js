@@ -59,8 +59,8 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       await db.addSentence("reader-notes-smoke", { id: "reader-notes-smoke-s1", order_index: 0, he_plain: "שלום עולם", he_niqqud: "שָׁלוֹם עוֹלָם", ru: "привет, мир" });
     });
     await pg.click("#tabCorpus");
-    await pg.waitForSelector('.hub-card[data-corpus="mytexts"]', { timeout: 20000 });
-    await pg.click('.hub-card[data-corpus="mytexts"]');
+    await pg.waitForSelector('.learning-corpus-entry[data-corpus="mytexts"]', { timeout: 20000 });
+    await pg.click('.learning-corpus-entry[data-corpus="mytexts"]');
     await pg.waitForSelector('.mytexts-grid .mytext-card-v', { timeout: 12000 });
     await pg.evaluate(() => {
       const card = Array.from(document.querySelectorAll('.mytexts-grid .mytext-card-v')).find((x) => /בדיקת הערה אישית/.test(x.textContent || ""));
@@ -136,10 +136,23 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
 
     // enable «Статус слов» → at least one word coloured
     await pg.click("#readerAidsToggle");
-    await pg.waitForSelector("#readerAids .reader-aids-status input", { timeout: 8000 });
-    await pg.check("#readerAids .reader-aids-status input");
+    await pg.waitForSelector("#readerWordStatusToggle", { timeout: 8000 });
+    await pg.check("#readerWordStatusToggle");
     await pg.waitForFunction(() => document.querySelectorAll("#roomReaderTable .rm-w-known, #roomReaderTable .rm-w-learning, #roomReaderTable .rm-w-new").length > 0, { timeout: 30000 }).catch(() => {});
     const coloured = await pg.evaluate(() => document.querySelectorAll("#roomReaderTable .rm-w-known, #roomReaderTable .rm-w-learning, #roomReaderTable .rm-w-new").length);
+    if (!coloured) {
+      const diagnostic = await pg.evaluate(async () => {
+        const db = await import("/db/local-db.js");
+        return {
+          enabled: localStorage.getItem("room.wordStatus"),
+          states: await db.getKnownWordStates(),
+          words: Array.from(document.querySelectorAll("#roomReaderTable .rm-w")).map((node) => ({
+            surface: node.getAttribute("data-surface"), key: node.getAttribute("data-lemma-key"), classes: node.className,
+          })),
+        };
+      });
+      console.error("reader-notes colouring diagnostic:", JSON.stringify(diagnostic));
+    }
     eq(coloured > 0, "word-status colouring should colour at least one word, got " + coloured);
 
     eq(errs.length === 0, "no pageerror, got: " + errs.slice(0, 3).join(" | "));

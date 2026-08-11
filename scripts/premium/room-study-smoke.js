@@ -137,8 +137,8 @@ async function main() {
       await pg.goto(BASE + "/library.html", { waitUntil: "load" });
       await waitCorpusReady();
       await pg.click("#tabCorpus");
-      await pg.waitForSelector(".hub-cards", { timeout: 20000 });
-      await pg.click('.hub-card[data-corpus="mytexts"]');
+      await pg.waitForSelector(".learning-home", { timeout: 20000 });
+      await pg.click('.learning-corpus-entry[data-corpus="mytexts"]');
       await pg.waitForSelector(".mytexts-corpus .mytexts-grid", { timeout: 20000 });
       await pg.evaluate((m) => {
         const cards = [...document.querySelectorAll(".mytexts-grid .mytext-card-v")];

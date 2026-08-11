@@ -87,8 +87,8 @@ async function installRoutes(page) {
   });
 }
 
-async function seedMyTexts(page, count) {
-  await page.evaluate(async (n) => {
+async function seedMyTexts(page, count, withContinue) {
+  await page.evaluate(async ({ n, continueReading }) => {
     const db = await import("/db/local-db.js");
     for (let index = 1; index <= n; index++) {
       const suffix = String(index).padStart(3, "0");
@@ -99,7 +99,11 @@ async function seedMyTexts(page, count) {
         tags_json: JSON.stringify([index % 2 ? "ульпан" : "дом"]),
       });
     }
-  }, count);
+    if (continueReading && n > 0) {
+      await db.setProgress("room-ux-mine-001", { last_row_idx: 1, last_step_id: null });
+      await db.touchOpened("room-ux-mine-001");
+    }
+  }, { n: count, continueReading: !!withContinue });
 }
 
 async function auditSurface(page, surface) {
@@ -179,10 +183,12 @@ async function auditSurface(page, surface) {
       const large = size >= 24 || (size >= 18.66 && weight >= 700);
       if (ratio + 0.01 < (large ? 3 : 4.5)) contrastFailures.push({ selector: node.className || node.tagName, ratio: Number(ratio.toFixed(2)), text: String(node.textContent).trim().slice(0, 40) });
     }
-    const itemSelector = surfaceName === "benyehuda" ? ".corpus-ready .room-text-row"
+    const itemSelector = surfaceName === "learning-home" ? ".learning-home-ready-list .room-text-row"
+      : surfaceName === "benyehuda" ? ".corpus-ready .room-text-row"
       : surfaceName === "mytexts" ? ".mytexts-grid .mytext-card-v" : ".group-corpus-grid .group-work-card";
     const items = Array.from(document.querySelectorAll(itemSelector));
     const first = items[0];
+    const rectTop = (selector) => { const node = document.querySelector(selector); return node ? Math.round(node.getBoundingClientRect().top) : null; };
     return {
       surface: surfaceName,
       lang: document.documentElement.lang,
@@ -214,18 +220,31 @@ async function auditSurface(page, surface) {
       overflowPx: Math.max(0, document.documentElement.scrollWidth - innerWidth),
       metaDescription: !!document.querySelector("meta[name='description']"),
       groupInSwitcher: !!Array.from(document.querySelectorAll(".corpus-switch-item")).find((node) => /Учебные песни|לימוד/.test(node.textContent || "")),
+      featureCount: document.querySelectorAll(".learning-home-feature").length,
+      featureKind: document.querySelector(".learning-home-feature")?.getAttribute("data-feature-kind") || null,
+      todayActions: document.querySelectorAll(".learning-home-actions .learning-home-action:not([hidden])").length,
+      homeReadyItems: document.querySelectorAll(".learning-home-ready-list .room-text-row").length,
+      corpusEntries: document.querySelectorAll(".learning-corpus-list .learning-corpus-entry").length,
+      legacyHubCards: document.querySelectorAll(".hub-card").length,
+      teaserInsideCorpusList: !!document.querySelector(".learning-corpus-list .learning-home-teaser"),
+      homeTops: {
+        feature: rectTop(".learning-home-feature"),
+        today: rectTop(".learning-home-today"),
+        ready: rectTop(".learning-home-ready"),
+        corpora: rectTop(".learning-home-corpora"),
+      },
     };
   }, surface);
 }
 
 async function selectCorpus(page, id) {
-  const hubCard = `.hub-card[data-corpus="${id}"]`;
-  if (!await page.locator(hubCard).count()) {
+  const corpusEntry = `.learning-corpus-entry[data-corpus="${id}"]`;
+  if (!await page.locator(corpusEntry).count()) {
     const back = page.locator(".corpus-back").first();
     if (await back.count()) await back.click();
-    await page.waitForSelector(".corpus-hub");
+    await page.waitForSelector(".learning-home");
   }
-  await page.locator(hubCard).click();
+  await page.locator(corpusEntry).click();
   if (id === "benyehuda") await page.waitForSelector(".corpus-ready .room-text-row", { timeout: 30000 });
   else if (id === "mytexts") await page.waitForSelector(".mytexts-grid .mytext-card-v", { timeout: 30000 });
   else await page.waitForSelector(".group-corpus-grid .group-work-card", { timeout: 30000 });
@@ -244,12 +263,12 @@ async function captureMatrix(browser, locale, viewport, theme, label, myTextCoun
   }, { localeName: locale, themeName: theme });
   await page.goto(BASE + "/library.html?canon=skip&roomUxMaturity=1", { waitUntil: "load", timeout: 60000 });
   await page.waitForFunction(() => { const tab = document.getElementById("tabCorpus"); return tab && !tab.hidden; }, null, { timeout: 30000 });
-  await seedMyTexts(page, myTextCount);
+  await seedMyTexts(page, myTextCount, locale === "ru");
   await page.click("#tabCorpus");
-  await page.waitForSelector(".corpus-hub");
+  await page.waitForSelector(".learning-home");
   await page.screenshot({ path: path.join(OUT, `${label}-hub.png`), fullPage: false });
 
-  const results = [];
+  const results = [await auditSurface(page, "learning-home")];
   for (const [id, name] of [["benyehuda", "benyehuda"], ["mytexts", "mytexts"], [`group:${corpus.corpus_id}`, "study-songs"]]) {
     await selectCorpus(page, id);
     results.push(await auditSurface(page, name));
@@ -304,11 +323,32 @@ function evaluateGreen(matrix) {
     }
   }
   if (["B2", "B3", "B4", "B5"].includes(stage)) {
-    for (const entry of matrix.filter((item) => item.viewport.width === 380)) {
-      check(entry.firstUsefulTop != null && entry.firstUsefulTop <= 844, `${stage}/${entry.surface}/${entry.lang}: useful content in first viewport (${entry.firstUsefulTop})`);
+    const homes = all("learning-home");
+    for (const entry of homes) {
+      check(entry.featureCount === 1, `${stage}/${entry.lang}/${entry.viewport.width}: exactly one featured action (${entry.featureCount})`);
+      check(entry.todayActions >= 1 && entry.todayActions <= 3, `${stage}/${entry.lang}/${entry.viewport.width}: Today has 1..3 honest actions (${entry.todayActions})`);
+      check(entry.homeReadyItems >= 2 && entry.homeReadyItems <= 4, `${stage}/${entry.lang}/${entry.viewport.width}: ready shelf has 2..4 rows (${entry.homeReadyItems})`);
+      check(entry.corpusEntries === 3, `${stage}/${entry.lang}/${entry.viewport.width}: two built-in plus authorized group corpus (${entry.corpusEntries})`);
+      check(entry.legacyHubCards === 0, `${stage}/${entry.lang}/${entry.viewport.width}: old hub-card wall removed (${entry.legacyHubCards})`);
+      check(!entry.teaserInsideCorpusList, `${stage}/${entry.lang}/${entry.viewport.width}: teaser is outside real corpus list`);
+      check(entry.homeTops.feature != null && entry.homeTops.today != null && entry.homeTops.ready != null && entry.homeTops.corpora != null,
+        `${stage}/${entry.lang}/${entry.viewport.width}: all Learning Home zones render`);
+      check(entry.homeTops.ready > entry.homeTops.feature && entry.homeTops.ready > entry.homeTops.today,
+        `${stage}/${entry.lang}/${entry.viewport.width}: feature/Today precede ready shelf`);
+      check(entry.homeTops.corpora > entry.homeTops.ready,
+        `${stage}/${entry.lang}/${entry.viewport.width}: corpus inventory follows ready shelf`);
     }
+    for (const entry of homes.filter((item) => item.viewport.width === 380)) {
+      check(entry.homeTops.feature != null && entry.homeTops.feature <= 844, `${stage}/${entry.lang}: featured action begins in first viewport (${entry.homeTops.feature})`);
+      check(entry.homeTops.ready != null && entry.homeTops.ready <= 844, `${stage}/${entry.lang}: ready shelf begins in first viewport (${entry.homeTops.ready})`);
+    }
+    for (const entry of homes.filter((item) => item.lang === "ru")) check(entry.featureKind === "continue", `${stage}/ru/${entry.viewport.width}: real progress wins the feature (${entry.featureKind})`);
+    for (const entry of homes.filter((item) => item.lang === "he")) check(["start", "recommended"].includes(entry.featureKind), `${stage}/he/${entry.viewport.width}: empty profile gets an honest start (${entry.featureKind})`);
   }
   if (["B3", "B4", "B5"].includes(stage)) {
+    for (const entry of matrix.filter((item) => item.surface !== "learning-home" && item.viewport.width === 380)) {
+      check(entry.firstUsefulTop != null && entry.firstUsefulTop <= 844, `${stage}/${entry.surface}/${entry.lang}: useful content in first viewport (${entry.firstUsefulTop})`);
+    }
     for (const entry of matrix) check(entry.groupInSwitcher, `${stage}/${entry.surface}/${entry.lang}: authorized group appears in switcher`);
   }
 }

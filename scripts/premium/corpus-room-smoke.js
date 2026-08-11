@@ -84,8 +84,8 @@ async function main() {
 
     // open the Корпус track → ready rail (lazy sidecar)
     await pg.click("#tabCorpus");
-    await pg.waitForSelector('.hub-card[data-corpus="benyehuda"]', { timeout: 15000 }).catch(() => {});
-    await pg.click('.hub-card[data-corpus="benyehuda"]');
+    await pg.waitForSelector('.learning-corpus-entry[data-corpus="benyehuda"]', { timeout: 15000 }).catch(() => {});
+    await pg.click('.learning-corpus-entry[data-corpus="benyehuda"]');
     await pg.waitForSelector(".corpus-ready .room-text-row", { timeout: 15000 }).catch(() => {});
     const C = await pg.evaluate(() => {
       const c = document.getElementById("roomContent");

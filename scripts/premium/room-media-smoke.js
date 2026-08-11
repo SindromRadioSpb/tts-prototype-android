@@ -142,8 +142,8 @@ async function main() {
     if (seeded) {
       // «Мои тексты» corpus grid
       await pg.click("#tabCorpus");
-      await pg.waitForSelector(".hub-cards", { timeout: 15000 });
-      await pg.click('.hub-card[data-corpus="mytexts"]');
+      await pg.waitForSelector(".learning-home", { timeout: 15000 });
+      await pg.click('.learning-corpus-entry[data-corpus="mytexts"]');
       await pg.waitForSelector(".mytexts-corpus .mytexts-grid", { timeout: 10000 });
 
       // 🎧-бейдж на карточке материала с медиа

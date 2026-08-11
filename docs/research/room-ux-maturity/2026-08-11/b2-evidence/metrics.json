@@ -1,0 +1,1427 @@
+{
+  "capturedAt": "2026-08-11T15:41:48.316Z",
+  "mode": "gate",
+  "stage": "B2",
+  "matrix": [
+    {
+      "surface": "learning-home",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 344,
+      "readyItems": 0,
+      "listItems": 4,
+      "itemHeights": [
+        77,
+        77,
+        77,
+        76
+      ],
+      "itemSamples": [
+        {
+          "height": 77,
+          "title": "מִי יִתֵּן",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24
+        },
+        {
+          "height": 77,
+          "title": "במיצרי הצער",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24
+        },
+        {
+          "height": 77,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24
+        },
+        {
+          "height": 76,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24
+        }
+      ],
+      "firstUsefulTop": 704,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 15,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "featureCount": 1,
+      "featureKind": "continue",
+      "todayActions": 2,
+      "homeReadyItems": 4,
+      "corpusEntries": 3,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": 265,
+        "today": 473,
+        "ready": 650,
+        "corpora": 1028
+      }
+    },
+    {
+      "surface": "benyehuda",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 747,
+      "readyItems": 12,
+      "listItems": 12,
+      "itemHeights": [
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        84
+      ],
+      "itemSamples": [
+        {
+          "height": 87,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "קִינָה לְתִשְׁעָה בְּאָב",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "מתנובות שדי",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "לידידי הרב החכם רב־הפעלים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "איש שעיר ואיש חלק",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "רוֹפְאִים וּרְפָאִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "בְּצֵאתִי מִטֶּלְז",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "הַשָּׂב וּשְׁלֹשֶת הַנְּעָרִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "לאיס\"י [הבבלי]",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "קרית ספר",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 84,
+          "title": "השיר הראשון",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 84
+        }
+      ],
+      "firstUsefulTop": 246,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 114,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "mytexts",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 742,
+      "readyItems": 0,
+      "listItems": 48,
+      "itemHeights": [
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84
+      ],
+      "itemSamples": [
+        {
+          "height": 84,
+          "title": "הטקסט שלי 001",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 065",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 064",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 063",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 062",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 061",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 060",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 059",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 058",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 057",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 056",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 055",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        }
+      ],
+      "firstUsefulTop": 723,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 117,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "study-songs",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 1074,
+      "readyItems": 0,
+      "listItems": 48,
+      "itemHeights": [
+        96,
+        96,
+        96,
+        96,
+        96,
+        96,
+        96,
+        96,
+        96,
+        96,
+        96,
+        96
+      ],
+      "itemSamples": [
+        {
+          "height": 96,
+          "title": "שיר לימוד 01",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 96,
+          "title": "שיר לימוד 02",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 96,
+          "title": "שיר לימוד 03",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 96,
+          "title": "שיר לימוד 04",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 96,
+          "title": "שיר לימוד 05",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 96,
+          "title": "שיר לימוד 06",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 96,
+          "title": "שיר לימוד 07",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 96,
+          "title": "שיר לימוד 08",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 96,
+          "title": "שיר לימוד 09",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 96,
+          "title": "שיר לימוד 10",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 96,
+          "title": "שיר לימוד 11",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 96,
+          "title": "שיר לימוד 12",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        }
+      ],
+      "firstUsefulTop": 944,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 118,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "learning-home",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 345,
+      "readyItems": 0,
+      "listItems": 4,
+      "itemHeights": [
+        77,
+        77,
+        77,
+        76
+      ],
+      "itemSamples": [
+        {
+          "height": 77,
+          "title": "מִי יִתֵּן",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24
+        },
+        {
+          "height": 77,
+          "title": "במיצרי הצער",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24
+        },
+        {
+          "height": 77,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24
+        },
+        {
+          "height": 76,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24
+        }
+      ],
+      "firstUsefulTop": 724,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 15,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "featureCount": 1,
+      "featureKind": "start",
+      "todayActions": 2,
+      "homeReadyItems": 4,
+      "corpusEntries": 3,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": 268,
+        "today": 476,
+        "ready": 670,
+        "corpora": 1048
+      }
+    },
+    {
+      "surface": "benyehuda",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 712,
+      "readyItems": 12,
+      "listItems": 12,
+      "itemHeights": [
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        86
+      ],
+      "itemSamples": [
+        {
+          "height": 87,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "קִינָה לְתִשְׁעָה בְּאָב",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "מתנובות שדי",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "לידידי הרב החכם רב־הפעלים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "איש שעיר ואיש חלק",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "רוֹפְאִים וּרְפָאִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "בְּצֵאתִי מִטֶּלְז",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "הַשָּׂב וּשְׁלֹשֶת הַנְּעָרִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "לאיס\"י [הבבלי]",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "קרית ספר",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 86,
+          "title": "השיר הראשון",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        }
+      ],
+      "firstUsefulTop": 212,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 106,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "mytexts",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 380,
+      "readyItems": 0,
+      "listItems": 8,
+      "itemHeights": [
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84
+      ],
+      "itemSamples": [
+        {
+          "height": 84,
+          "title": "הטקסט שלי 008",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 007",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 006",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 005",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 004",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 003",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 002",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 001",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        }
+      ],
+      "firstUsefulTop": 745,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 36,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "study-songs",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 1074,
+      "readyItems": 0,
+      "listItems": 48,
+      "itemHeights": [
+        101,
+        101,
+        101,
+        101,
+        101,
+        101,
+        101,
+        101,
+        101,
+        101,
+        101,
+        101
+      ],
+      "itemSamples": [
+        {
+          "height": 101,
+          "title": "שיר לימוד 01",
+          "titleHeight": 21,
+          "authorHeight": 20,
+          "learningHeight": 18
+        },
+        {
+          "height": 101,
+          "title": "שיר לימוד 02",
+          "titleHeight": 21,
+          "authorHeight": 20,
+          "learningHeight": 18
+        },
+        {
+          "height": 101,
+          "title": "שיר לימוד 03",
+          "titleHeight": 21,
+          "authorHeight": 20,
+          "learningHeight": 18
+        },
+        {
+          "height": 101,
+          "title": "שיר לימוד 04",
+          "titleHeight": 21,
+          "authorHeight": 20,
+          "learningHeight": 18
+        },
+        {
+          "height": 101,
+          "title": "שיר לימוד 05",
+          "titleHeight": 21,
+          "authorHeight": 20,
+          "learningHeight": 18
+        },
+        {
+          "height": 101,
+          "title": "שיר לימוד 06",
+          "titleHeight": 21,
+          "authorHeight": 20,
+          "learningHeight": 18
+        },
+        {
+          "height": 101,
+          "title": "שיר לימוד 07",
+          "titleHeight": 21,
+          "authorHeight": 20,
+          "learningHeight": 18
+        },
+        {
+          "height": 101,
+          "title": "שיר לימוד 08",
+          "titleHeight": 21,
+          "authorHeight": 20,
+          "learningHeight": 18
+        },
+        {
+          "height": 101,
+          "title": "שיר לימוד 09",
+          "titleHeight": 21,
+          "authorHeight": 20,
+          "learningHeight": 18
+        },
+        {
+          "height": 101,
+          "title": "שיר לימוד 10",
+          "titleHeight": 21,
+          "authorHeight": 20,
+          "learningHeight": 18
+        },
+        {
+          "height": 101,
+          "title": "שיר לימוד 11",
+          "titleHeight": 21,
+          "authorHeight": 20,
+          "learningHeight": 18
+        },
+        {
+          "height": 101,
+          "title": "שיר לימוד 12",
+          "titleHeight": 21,
+          "authorHeight": 20,
+          "learningHeight": 18
+        }
+      ],
+      "firstUsefulTop": 940,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 118,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "learning-home",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "domElements": 344,
+      "readyItems": 0,
+      "listItems": 4,
+      "itemHeights": [
+        77,
+        77,
+        77,
+        76
+      ],
+      "itemSamples": [
+        {
+          "height": 77,
+          "title": "מִי יִתֵּן",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24
+        },
+        {
+          "height": 77,
+          "title": "במיצרי הצער",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24
+        },
+        {
+          "height": 77,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24
+        },
+        {
+          "height": 76,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24
+        }
+      ],
+      "firstUsefulTop": 561,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 15,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "featureCount": 1,
+      "featureKind": "continue",
+      "todayActions": 2,
+      "homeReadyItems": 4,
+      "corpusEntries": 3,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": 246,
+        "today": 246,
+        "ready": 507,
+        "corpora": 888
+      }
+    },
+    {
+      "surface": "benyehuda",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "domElements": 750,
+      "readyItems": 12,
+      "listItems": 12,
+      "itemHeights": [
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        85,
+        84
+      ],
+      "itemSamples": [
+        {
+          "height": 87,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "קִינָה לְתִשְׁעָה בְּאָב",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "מתנובות שדי",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "לידידי הרב החכם רב־הפעלים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "איש שעיר ואיש חלק",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "רוֹפְאִים וּרְפָאִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "בְּצֵאתִי מִטֶּלְז",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "הַשָּׂב וּשְׁלֹשֶת הַנְּעָרִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 87,
+          "title": "לאיס\"י [הבבלי]",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26
+        },
+        {
+          "height": 85,
+          "title": "קרית ספר",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 85
+        },
+        {
+          "height": 84,
+          "title": "השיר הראשון",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 84
+        }
+      ],
+      "firstUsefulTop": 362,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 114,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "mytexts",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "domElements": 742,
+      "readyItems": 0,
+      "listItems": 48,
+      "itemHeights": [
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84
+      ],
+      "itemSamples": [
+        {
+          "height": 84,
+          "title": "הטקסט שלי 001",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 065",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 064",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 063",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 062",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 061",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 060",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 059",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 058",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 057",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 056",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        },
+        {
+          "height": 84,
+          "title": "הטקסט שלי 055",
+          "titleHeight": 23,
+          "authorHeight": 84,
+          "learningHeight": 84
+        }
+      ],
+      "firstUsefulTop": 653,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 117,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "study-songs",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "domElements": 1074,
+      "readyItems": 0,
+      "listItems": 48,
+      "itemHeights": [
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "itemSamples": [
+        {
+          "height": 88,
+          "title": "שיר לימוד 01",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 02",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 03",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 04",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 05",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 06",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 07",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 08",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 09",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 10",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 11",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 12",
+          "titleHeight": 21,
+          "authorHeight": 16,
+          "learningHeight": 15
+        }
+      ],
+      "firstUsefulTop": 556,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 118,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    }
+  ]
+}

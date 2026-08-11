@@ -57,8 +57,8 @@ async function main() {
     await pg.goto(BASE + "/library.html?canon=skip", { waitUntil: "load" });
     await pg.waitForFunction(() => { const t = document.getElementById("tabCorpus"); return t && !t.hidden; }, { timeout: 15000 }).catch(() => {});
     await pg.click("#tabCorpus");
-    await pg.waitForSelector('.hub-card[data-corpus="benyehuda"]', { timeout: 15000 }).catch(() => {});
-    await pg.click('.hub-card[data-corpus="benyehuda"]');
+    await pg.waitForSelector('.learning-corpus-entry[data-corpus="benyehuda"]', { timeout: 15000 }).catch(() => {});
+    await pg.click('.learning-corpus-entry[data-corpus="benyehuda"]');
 
     // ── L1 period grid ──────────────────────────────────────────────────────
     await pg.waitForSelector(".corpus-period-grid .period-card", { timeout: 15000 }).catch(() => {});

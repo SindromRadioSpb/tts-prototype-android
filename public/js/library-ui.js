@@ -561,16 +561,29 @@ function tagReaderTableLang(mount) {
 // Epic 8b — minimal focus management (WCAG 2.4.3): move focus INTO an opened sheet (its close
 // button) and RESTORE it to the trigger on close. The study sheet additionally owns a bounded
 // focus trap while open; the morphology card manages its own lifecycle (reader-morph).
-let _roomFocusReturn = null;
+let _roomFocusReturn = null, _roomFocusReturnId = '', _roomFocusReturnKey = '';
 function roomFocusInto(container) {
-  try { _roomFocusReturn = document.activeElement; } catch (_) { _roomFocusReturn = null; }
+  try {
+    _roomFocusReturn = document.activeElement;
+    _roomFocusReturnId = (_roomFocusReturn && _roomFocusReturn.id) || '';
+    _roomFocusReturnKey = (_roomFocusReturn && _roomFocusReturn.getAttribute && _roomFocusReturn.getAttribute('data-focus-key')) || '';
+  } catch (_) { _roomFocusReturn = null; _roomFocusReturnId = ''; _roomFocusReturnKey = ''; }
   if (!container) return;
   const f = container.querySelector('button, [tabindex="0"], input, select, a[href]') || container;
   try { if (f && f.focus) f.focus(); } catch (_) {}
 }
 function roomFocusRestore() {
-  try { if (_roomFocusReturn && _roomFocusReturn.focus) _roomFocusReturn.focus(); } catch (_) {}
-  _roomFocusReturn = null;
+  let target = _roomFocusReturn;
+  // B2 Learning Home can be rebuilt by a live locale switch while the modal is open.
+  // Restore to the equivalent fresh trigger, not to a detached button (which drops focus to body).
+  try {
+    if (!target || !target.isConnected) {
+      if (_roomFocusReturnKey) target = document.querySelector('[data-focus-key="' + _roomFocusReturnKey + '"]');
+      if ((!target || !target.isConnected) && _roomFocusReturnId) target = document.getElementById(_roomFocusReturnId);
+    }
+    if (target && target.focus) target.focus();
+  } catch (_) {}
+  _roomFocusReturn = null; _roomFocusReturnId = ''; _roomFocusReturnKey = '';
 }
 function roomFocusTrap(e, container) {
   if (!e || e.key !== 'Tab' || !container) return;
@@ -1128,7 +1141,15 @@ function _paintDueCTA() {
   // honest-residue guarantee moved to click-time: a due word that still can't be assembled gets
   // the R2 «нельзя собрать на этом устройстве» empty-state, never a silent dead end.
   const n = (_dueCounts && _dueCounts.dueNow) || 0;
-  const show = n > 0 && !!(reader && reader.hidden) && !(mentor && !mentor.hidden) && !(lesson && !lesson.hidden);   // home only — not while reading/working
+  // B2 — the same canonical count is projected inside Learning Home's «Сегодня» zone.
+  // It is never copied into a second store and disappears when the shared schedule reaches zero.
+  document.querySelectorAll('[data-learning-due]').forEach((action) => {
+    action.hidden = !(n > 0);
+    const count = action.querySelector('[data-learning-due-count]');
+    if (count) count.textContent = String(n);
+  });
+  const learningHomeOpen = activeTrack === 'corpus' && corpusNav.corpus === 'hub';
+  const show = n > 0 && !learningHomeOpen && !!(reader && reader.hidden) && !(mentor && !mentor.hidden) && !(lesson && !lesson.hidden);   // home only — not while reading/working
   cta.hidden = !show;
   if (show) cta.textContent = '🔁 ' + tt('room.morph.study.due', 'К повторению') + ': ' + n + ' →';
 }
@@ -5509,7 +5530,7 @@ function buildAidsPanel() {
   panel.innerHTML = '';
   // ── Блок учебного режима — ПЕРВЫМ в панели (решение D2: новых кнопок в баре нет) ──
   const studyBlock = el('div', { class: 'reader-study-block', attrs: { id: 'roomStudyBlock' } });
-  const studyLab = el('label', { class: 'reader-aids-status' });
+  const studyLab = el('label', { class: 'reader-study-toggle' });
   const studyCb = el('input', { attrs: { type: 'checkbox', id: 'roomStudyToggle' } });
   studyCb.checked = studyModeOn();
   studyCb.addEventListener('change', () => studyModeSet(studyCb.checked));
@@ -5598,7 +5619,7 @@ function buildAidsPanel() {
   // BRR-P1-009 — word-status colouring toggle (opt-in; warms the morph engine on enable).
   const statusHint = tt('room.morph.statusHint', 'Подсвечивает слова по твоему статусу: зелёный — знаешь, оранжевый — учишь, синий — новое. Только уверенно распознанные слова.');
   const wsLab = el('label', { class: 'reader-aids-status', attrs: { title: statusHint } });
-  const wsCb = el('input', { attrs: { type: 'checkbox' } });
+  const wsCb = el('input', { attrs: { type: 'checkbox', id: 'readerWordStatusToggle' } });
   wsCb.checked = wordStatusEnabled();
   wsCb.addEventListener('change', () => { wordStatusSet(wsCb.checked); applyDecorations(); });
   wsLab.appendChild(wsCb);
@@ -7659,59 +7680,279 @@ function corpusSwitcherBar(currentId) {
   bar.appendChild(trail);
   return bar;
 }
-// The L0 hub — corpus витрина: identity cards (icon, description, honest counts + capability
-// badges, the import-funnel CTA for own texts) above nothing but the CROSS-corpus continue rail
-// (reading follows the learner across corpora; the per-corpus rails live inside each corpus).
+// B2 — Learning Home is a read-only projection over the existing LocalDb progress ledger.
+// Unlike getContinueReading (the canon-only shelf), L0 follows the learner across every locally
+// materialized source: own, Ben-Yehuda and an authorized group work. No new store or writer.
+async function getLearningHomeContinue() {
+  try {
+    const rows = await localDb.dbQuery(
+      `SELECT t.id, t.text_key, t.title, t.source_meta_json, t.last_opened_at,
+              tp.last_row_idx, tp.updated_at,
+              (SELECT COUNT(*) FROM sentences s WHERE s.text_id = t.id) AS n_rows
+         FROM text_progress tp JOIN texts t ON t.id = tp.text_id
+        WHERE COALESCE(t.is_archived, 0) = 0
+          AND tp.last_row_idx > 0 AND tp.finished_at IS NULL
+        ORDER BY COALESCE(t.last_opened_at, tp.updated_at) DESC, tp.updated_at DESC
+        LIMIT 20`, []);
+    for (const row of (rows || [])) {
+      let source = null; try { source = row.source_meta_json ? JSON.parse(row.source_meta_json) : null; } catch (_) { source = null; }
+      const protectedId = source && source.group_corpus && source.group_corpus.corpus_id;
+      // A previously materialized protected work is not a current entitlement. Surface it only
+      // while the membership-filtered server catalog still authorizes that corpus.
+      if (protectedId && !groupCorpora.some((item) => String(item.corpus_id || '') === String(protectedId))) continue;
+      return row;
+    }
+    return null;
+  } catch (_) { return null; }
+}
+
+async function getLearningHomeOwnCount() {
+  try {
+    const rows = await localDb.dbQuery(
+      `SELECT COUNT(*) AS n FROM texts
+        WHERE COALESCE(is_archived, 0) = 0
+          AND json_extract(source_meta_json, '$.corpus') IS NULL
+          AND json_extract(source_meta_json, '$.group_corpus') IS NULL`, []);
+    return rows && rows[0] ? Math.max(0, Number(rows[0].n) || 0) : null;
+  } catch (_) { return null; }
+}
+
+function learningHomeSource(row) {
+  let source = null;
+  try { source = row && row.source_meta_json ? JSON.parse(row.source_meta_json) : null; } catch (_) { source = null; }
+  if (source && source.group_corpus) {
+    const id = String(source.group_corpus.corpus_id || '');
+    const group = groupCorpora.find((item) => String(item.corpus_id || '') === id);
+    return (group && group.title) || tt('room.home.groupSource', 'Учебный корпус');
+  }
+  if (source && source.corpus) return corpusTitleOf(corpusById('benyehuda'));
+  return corpusTitleOf(corpusById('mytexts'));
+}
+
+function learningHomePlainClick(event, action) {
+  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  action();
+}
+
+function learningHomeForwardArrow() { return document.documentElement.dir === 'rtl' ? '←' : '→'; }
+
+function learningHomeFeature(continueRow, nextPicks) {
+  const feature = el('article', { class: 'learning-home-feature' });
+  if (continueRow) {
+    feature.setAttribute('data-feature-kind', 'continue');
+    feature.appendChild(el('div', { class: 'learning-home-kicker', text: tt('room.home.continueKicker', 'Продолжить') }));
+    const title = String(continueRow.title || tt('room.home.untitled', 'Текст без названия'));
+    const heading = el('h2', { class: 'learning-home-feature-title', text: title });
+    if (HEBREW_RE.test(title)) heading.setAttribute('dir', 'rtl');
+    feature.appendChild(heading);
+    const total = Math.max(0, Number(continueRow.n_rows) || 0);
+    const row = Math.max(0, Number(continueRow.last_row_idx) || 0);
+    const pct = total > 0 ? Math.min(99, Math.max(1, Math.round((row + 1) / total * 100))) : null;
+    const meta = el('p', { class: 'learning-home-feature-meta' });
+    meta.textContent = learningHomeSource(continueRow) + ' · ' + (pct == null
+      ? tt('room.resume.fromRow', 'Вы остановились на строке') + ' ' + (row + 1)
+      : pct + '% ' + tt('room.resume.read', 'прочитано'));
+    feature.appendChild(meta);
+    if (pct != null) {
+      feature.appendChild(el('div', { class: 'learning-home-progress', attrs: { role: 'progressbar', 'aria-label': tt('room.home.readingProgress', 'Прогресс чтения'), 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(pct) } }));
+      feature.lastChild.style.setProperty('--learning-progress', pct + '%');
+    }
+    const open = el('a', { class: 'learning-home-primary', attrs: { href: deepLinkForText(continueRow.id) }, text: tt('room.home.continueAction', 'Продолжить чтение') + ' ' + learningHomeForwardArrow() });
+    if (EMBED) open.addEventListener('click', (event) => learningHomePlainClick(event, () => openReader(continueRow.id, title, { resume: true })));
+    feature.appendChild(open);
+    return feature;
+  }
+
+  const pick = nextPicks && Array.isArray(nextPicks.picks) ? nextPicks.picks[0] : null;
+  if (pick && pick.card) {
+    feature.setAttribute('data-feature-kind', nextPicks.kind === 'coldstart' ? 'start' : 'recommended');
+    const kicker = nextPicks.kind === 'challenge'
+      ? tt('room.home.challengeKicker', 'Следующий вызов')
+      : nextPicks.kind === 'coldstart'
+        ? tt('room.home.startKicker', 'С чего начать')
+        : tt('room.home.fitKicker', 'Подходит сейчас');
+    feature.appendChild(el('div', { class: 'learning-home-kicker', text: kicker }));
+    const title = String(pick.title || pick.card.title || tt('room.home.untitled', 'Текст без названия'));
+    const heading = el('h2', { class: 'learning-home-feature-title', text: title });
+    if (HEBREW_RE.test(title)) heading.setAttribute('dir', 'rtl');
+    feature.appendChild(heading);
+    if (pick.author || pick.card.author) {
+      const author = String(pick.author || pick.card.author);
+      feature.appendChild(el('p', { class: 'learning-home-feature-author', text: author, dir: HEBREW_RE.test(author) ? 'rtl' : 'ltr' }));
+    }
+    const reason = Number.isFinite(Number(pick.cov))
+      ? '≈' + Math.round(Number(pick.cov) * 100) + '% ' + tt('room.home.familiarWords', 'знакомых слов')
+      : tt('room.home.coldReason', 'Хороший первый текст · частотная лексика');
+    feature.appendChild(el('p', { class: 'learning-home-feature-meta', text: reason }));
+    const open = el('a', { class: 'learning-home-primary', attrs: { href: deepLinkForCorpusWork(pick.card.id) }, text: tt('room.home.startAction', 'Начать читать') + ' ' + learningHomeForwardArrow() });
+    open.addEventListener('click', (event) => learningHomePlainClick(event, () => openCorpusWork(pick.card)));
+    feature.appendChild(open);
+    return feature;
+  }
+
+  // Data can be temporarily unavailable. The feature remains useful but explicitly stops
+  // claiming personalization; it routes to the real catalog instead of inventing a fit score.
+  feature.setAttribute('data-feature-kind', 'browse');
+  feature.appendChild(el('div', { class: 'learning-home-kicker', text: tt('room.home.libraryKicker', 'Библиотека') }));
+  feature.appendChild(el('h2', { class: 'learning-home-feature-title', text: tt('room.home.browseTitle', 'Выберите следующий текст') }));
+  feature.appendChild(el('p', { class: 'learning-home-feature-meta', text: tt('room.home.browseReason', 'Каталог доступен; персональная оценка сейчас не рассчитана.') }));
+  const browse = el('button', { class: 'learning-home-primary', attrs: { type: 'button' }, text: tt('room.home.browseAction', 'Открыть каталог') + ' ' + learningHomeForwardArrow() });
+  browse.addEventListener('click', () => corpusNavToCorpus('benyehuda'));
+  feature.appendChild(browse);
+  return feature;
+}
+
+function learningHomeToday(readyCards) {
+  const section = el('section', { class: 'learning-home-today', attrs: { 'aria-labelledby': 'learningHomeTodayTitle' } });
+  const head = el('div', { class: 'learning-home-section-head' });
+  const title = el('h2', { class: 'learning-home-section-title', text: tt('room.home.todayTitle', 'Сегодня') });
+  title.id = 'learningHomeTodayTitle'; head.appendChild(title);
+  head.appendChild(el('p', { class: 'learning-home-section-note', text: tt('room.home.todayNote', 'Небольшой следующий шаг') }));
+  section.appendChild(head);
+  const actions = el('div', { class: 'learning-home-actions' });
+  const dueNow = (_dueCounts && _dueCounts.dueNow) || 0;
+  if (dueNow > 0) {
+    const due = el('button', { class: 'learning-home-action', attrs: { type: 'button', 'data-learning-due': '', 'data-focus-key': 'room-due-review' } });
+    due.appendChild(el('span', { class: 'learning-home-action-icon', text: '↻', attrs: { 'aria-hidden': 'true' } }));
+    const copy = el('span', { class: 'learning-home-action-copy' });
+    copy.appendChild(el('span', { class: 'learning-home-action-title', text: tt('room.home.reviewAction', 'Повторить слова') }));
+    const meta = el('span', { class: 'learning-home-action-meta' });
+    meta.appendChild(el('span', { attrs: { 'data-learning-due-count': '' }, text: String(dueNow) }));
+    meta.appendChild(document.createTextNode(' ' + tt('room.home.dueNow', 'готово к повторению')));
+    copy.appendChild(meta); due.appendChild(copy);
+    due.addEventListener('click', () => startDueReview());
+    actions.appendChild(due);
+  }
+  const shortCard = (readyCards || []).filter((card) => Number.isFinite(Number(card.segments)) && Number(card.segments) > 0)
+    .sort((a, b) => Number(a.segments) - Number(b.segments))[0];
+  if (shortCard) {
+    const short = el('a', { class: 'learning-home-action', attrs: { href: deepLinkForCorpusWork(shortCard.id) } });
+    short.appendChild(el('span', { class: 'learning-home-action-icon', text: 'א', attrs: { 'aria-hidden': 'true' } }));
+    const copy = el('span', { class: 'learning-home-action-copy' });
+    copy.appendChild(el('span', { class: 'learning-home-action-title', text: tt('room.home.shortAction', 'Короткий текст') }));
+    copy.appendChild(el('span', { class: 'learning-home-action-meta', text: Number(shortCard.segments) + ' ' + tt('room.home.rows', 'строк') }));
+    short.appendChild(copy);
+    short.addEventListener('click', (event) => learningHomePlainClick(event, () => openCorpusWork(shortCard)));
+    actions.appendChild(short);
+  }
+  if (groupCorpora.length) {
+    const group = groupCorpora[0];
+    const assigned = el('button', { class: 'learning-home-action', attrs: { type: 'button' } });
+    assigned.appendChild(el('span', { class: 'learning-home-action-icon', text: '♪', attrs: { 'aria-hidden': 'true' } }));
+    const copy = el('span', { class: 'learning-home-action-copy' });
+    copy.appendChild(el('span', { class: 'learning-home-action-title', text: String(group.title || tt('room.home.groupAction', 'Учебный корпус')) }));
+    if (group.works_count != null && Number.isFinite(Number(group.works_count))) {
+      copy.appendChild(el('span', { class: 'learning-home-action-meta', text: Number(group.works_count) + ' ' + tt('room.hub.textsN', 'текст(ов)') }));
+    }
+    assigned.appendChild(copy);
+    assigned.addEventListener('click', () => corpusNavToCorpus('group:' + group.corpus_id));
+    actions.appendChild(assigned);
+  }
+  section.appendChild(actions);
+  return section;
+}
+
+function learningHomeCorpusEntry(corpus, countText) {
+  const entry = el('button', { class: 'learning-corpus-entry', attrs: { type: 'button', 'data-corpus': corpus.id } });
+  entry.appendChild(el('span', { class: 'learning-corpus-edge', attrs: { 'aria-hidden': 'true' } }));
+  entry.appendChild(el('span', { class: 'learning-corpus-icon', text: corpus.icon, attrs: { 'aria-hidden': 'true' } }));
+  const copy = el('span', { class: 'learning-corpus-copy' });
+  const title = corpus.title && corpus.title.key ? corpusTitleOf(corpus) : String(corpus.title && corpus.title.fb || '');
+  const desc = corpus.desc && corpus.desc.key ? tt(corpus.desc.key, corpus.desc.fb) : String(corpus.desc && corpus.desc.fb || '');
+  copy.appendChild(el('span', { class: 'learning-corpus-title', text: title }));
+  copy.appendChild(el('span', { class: 'learning-corpus-desc', text: desc }));
+  entry.appendChild(copy);
+  if (countText) entry.appendChild(el('span', { class: 'learning-corpus-count', text: countText }));
+  entry.appendChild(el('span', { class: 'learning-corpus-arrow', text: '›', attrs: { 'aria-hidden': 'true' } }));
+  entry.addEventListener('click', () => corpusNavToCorpus(corpus.id));
+  return entry;
+}
+
+// The L0 hub is now the Learning Home: one featured next action, bounded Today actions,
+// a short ready shelf, then compact corpus doors. Corpus storage remains visible but no
+// longer dictates the first-screen hierarchy.
 async function renderCorpusHub(token) {
   const main = $('roomContent');
   if (!main || token !== corpusRenderToken) return;
   main.innerHTML = '';
-  const wrap = el('div', { class: 'corpus-nav corpus-hub' });
-  const cont = await buildContinueRailSection(12);
+  const loading = el('div', { class: 'learning-home-loading', attrs: { role: 'status' }, text: tt('room.home.loading', 'Собираем следующий шаг…') });
+  main.appendChild(loading);
+  const [continueRow, nextPicks, ownCount] = await Promise.all([
+    getLearningHomeContinue(),
+    buildNextTextPicks(),
+    getLearningHomeOwnCount(),
+    refreshDueBadge().catch(() => null),
+  ]);
   if (token !== corpusRenderToken) return;
-  if (cont) wrap.appendChild(cont);
-  const cards = el('div', { class: 'hub-cards' });
-  for (const c of CORPORA) {
-    const card = el('div', { class: 'hub-card', attrs: { role: 'button', tabindex: '0', 'data-corpus': c.id } });
-    card.appendChild(el('div', { class: 'hub-card-title', text: c.icon + ' ' + corpusTitleOf(c) }));
-    card.appendChild(el('p', { class: 'hub-card-desc', text: tt(c.desc.key, c.desc.fb) }));
-    const counts = el('div', { class: 'hub-card-counts' });
-    if (c.id === 'benyehuda') {
-      const ready = ((corpusIndex && corpusIndex.ready) || []).length;
-      const total = (corpusRoot && corpusRoot.counts && corpusRoot.counts.works) || 0;
-      counts.textContent = (ready ? ready + ' ' + tt('room.hub.ready', 'готово') + ' · ' : '') + (total ? total.toLocaleString('ru-RU') + ' ' + tt('room.hub.total', 'всего') : '');
-    } else if (c.id === 'mytexts') {
-      let n = 0;
-      try { const rows = await localDb.listTexts({ limit: 500 }); n = (rows || []).filter((r) => r && !isCorpusTextRow(r)).length; } catch (_) {}
-      if (token !== corpusRenderToken) return;
-      counts.textContent = n + ' ' + tt('room.hub.textsN', 'текст(ов)');
-    }
-    card.appendChild(counts);
-    card.appendChild(corpusBadgesRow(c));
-    if (c.cta === 'add') {
-      const cta = el('a', { class: 'hub-cta', attrs: { href: '/' }, text: tt('room.hub.addText', '+ Добавить текст') });
-      cta.addEventListener('click', (e) => e.stopPropagation());
-      card.appendChild(cta);
-    }
-    const open = () => corpusNavToCorpus(c.id);
-    card.addEventListener('click', open);
-    card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
-    cards.appendChild(card);
+  const ready = ((corpusIndex && corpusIndex.ready) || []).slice();
+  const featuredId = nextPicks && nextPicks.picks && nextPicks.picks[0] && nextPicks.picks[0].card
+    ? String(nextPicks.picks[0].card.id) : '';
+  const ordered = [], seen = new Set();
+  for (const pick of ((nextPicks && nextPicks.picks) || [])) {
+    if (!pick || !pick.card || String(pick.card.id) === featuredId) continue;
+    const id = String(pick.card.id); if (!seen.has(id)) { seen.add(id); ordered.push(pick.card); }
   }
-  for (const gc of groupCorpora) {
-    const card = el('div', { class: 'hub-card', attrs: { role: 'button', tabindex: '0', 'data-corpus': 'group:' + gc.corpus_id } });
-    card.appendChild(el('div', { class: 'hub-card-title', text: '🎵 ' + (gc.title || 'Учебные песни') }));
-    card.appendChild(el('p', { class: 'hub-card-desc', text: tt('room.groupCorpus.hubDesc', 'Закрытый учебный корпус вашей группы') }));
-    card.appendChild(el('div', { class: 'hub-card-counts', text: (gc.works_count || 0) + ' ' + tt('room.hub.textsN', 'текст(ов)') + ' · ' + (gc.role === 'OWNER' ? tt('room.groupCorpus.owner','владелец') : tt('room.groupCorpus.member','участник')) }));
-    const open = () => corpusNavToCorpus('group:' + gc.corpus_id);
-    card.addEventListener('click', open);
-    card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
-    cards.appendChild(card);
+  for (const card of ready) {
+    const id = String(card.id); if (id === featuredId || seen.has(id)) continue;
+    seen.add(id); ordered.push(card);
   }
-  // roadmap teaser — honest «скоро», never a fake corpus (R9)
-  cards.appendChild(el('div', { class: 'hub-card hub-teaser', text: '🔬 ' + tt('room.hub.soon', 'Скоро: тематические корпуса') }));
-  wrap.appendChild(cards);
+  const readyCards = ordered.slice(0, 4);
+  const wrap = el('div', { class: 'corpus-nav learning-home' });
+  const intro = el('header', { class: 'learning-home-intro' });
+  intro.appendChild(el('p', { class: 'learning-home-overline', text: tt('room.home.overline', 'Ваше чтение') }));
+  intro.appendChild(el('h1', { class: 'learning-home-title', text: tt('room.home.title', 'Продолжим с нужного места') }));
+  intro.appendChild(el('p', { class: 'learning-home-subtitle', text: tt('room.home.subtitle', 'Один следующий шаг — и вся библиотека рядом.') }));
+  wrap.appendChild(intro);
+  const lead = el('div', { class: 'learning-home-lead' });
+  lead.appendChild(learningHomeFeature(continueRow, nextPicks));
+  lead.appendChild(learningHomeToday(ready));
+  wrap.appendChild(lead);
+
+  if (readyCards.length) {
+    const shelf = el('section', { class: 'learning-home-ready', attrs: { 'aria-labelledby': 'learningHomeReadyTitle' } });
+    const head = el('div', { class: 'learning-home-section-head' });
+    const title = el('h2', { class: 'learning-home-section-title', text: tt('room.home.readyTitle', 'Готово к чтению') });
+    title.id = 'learningHomeReadyTitle'; head.appendChild(title);
+    const all = el('button', { class: 'learning-home-all', attrs: { type: 'button' }, text: tt('room.home.allReady', 'Все готовые') + ' ' + learningHomeForwardArrow() });
+    all.addEventListener('click', () => { corpusFilter.readyOnly = true; corpusL1Sort = 'ready'; corpusNavToCorpus('benyehuda'); });
+    head.appendChild(all); shelf.appendChild(head);
+    const list = el('div', { class: 'learning-home-ready-list' });
+    for (const card of readyCards) list.appendChild(renderCorpusWorkRow(card, true, { compact: true, showAuthor: true }));
+    shelf.appendChild(list); wrap.appendChild(shelf);
+  }
+
+  const corpora = el('section', { class: 'learning-home-corpora', attrs: { 'aria-labelledby': 'learningHomeCorporaTitle' } });
+  const corporaHead = el('div', { class: 'learning-home-section-head' });
+  const corporaTitle = el('h2', { class: 'learning-home-section-title', text: tt('room.home.corporaTitle', 'Все библиотеки') });
+  corporaTitle.id = 'learningHomeCorporaTitle'; corporaHead.appendChild(corporaTitle); corpora.appendChild(corporaHead);
+  const list = el('div', { class: 'learning-corpus-list' });
+  for (const corpus of CORPORA) {
+    let count = '';
+    if (corpus.id === 'benyehuda') {
+      const total = Number(corpusRoot && corpusRoot.counts && corpusRoot.counts.works) || 0;
+      count = ready.length + ' ' + tt('room.hub.ready', 'готово') + (total ? ' · ' + total.toLocaleString() + ' ' + tt('room.hub.total', 'всего') : '');
+    } else if (corpus.id === 'mytexts' && ownCount != null) count = ownCount + ' ' + tt('room.hub.textsN', 'текст(ов)');
+    list.appendChild(learningHomeCorpusEntry(corpus, count));
+  }
+  for (const group of groupCorpora) {
+    const corpus = {
+      id: 'group:' + group.corpus_id, icon: '♪',
+      title: { key: '', fb: String(group.title || tt('room.home.groupAction', 'Учебный корпус')) },
+      desc: { key: 'room.groupCorpus.hubDesc', fb: 'Закрытый учебный корпус вашей группы' },
+    };
+    const role = group.role === 'OWNER' ? tt('room.groupCorpus.owner', 'владелец') : tt('room.groupCorpus.member', 'участник');
+    const count = group.works_count != null && Number.isFinite(Number(group.works_count))
+      ? Number(group.works_count) + ' ' + tt('room.hub.textsN', 'текст(ов)') + ' · ' + role
+      : role;
+    list.appendChild(learningHomeCorpusEntry(corpus, count));
+  }
+  corpora.appendChild(list); wrap.appendChild(corpora);
+  // Roadmap promise is an aside, visually and semantically outside the authorized corpus list.
+  wrap.appendChild(el('aside', { class: 'learning-home-teaser', text: '🔬 ' + tt('room.hub.soon', 'Скоро: тематические корпуса') }));
+  main.innerHTML = '';
   main.appendChild(wrap);
+  _paintDueCTA();
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 // «Мои тексты» as a FULL corpus (LocalDb-backed): identity header + native facets (level / tags /
