@@ -2,7 +2,7 @@
 
 Date: 2026-08-11
 
-Status: APPROVED / IMPLEMENTATION ACTIVE
+Status: DEPLOYED / PRODUCTION VERIFIED / OWNER IPHONE PENDING
 Owner decision: keep one canonical Reading Room trainer; harden it to release-grade quality.
 
 ## 1. Product decision
@@ -156,4 +156,26 @@ The one transient `DbUnavailableError` seen during verification was caused by tw
 
 ## 9. Production and owner-live evidence
 
-Pending the exact allowlisted release commit and production deployment. This section is completed after the served revision and `3.11.354` are independently verified. Owner-profile production checks remain read-only; no grade is submitted for the owner.
+Runtime release commit and image: `f47de45c9c0516c273e51507e0d3b063cb289e5c`.
+
+Verified after the exact container cutover:
+
+- `/api/client-config`, `window.APP_VERSION` in the served index, and `CACHE_VERSION` in the served service worker all report `3.11.354`;
+- production hashes for `library-ui.js` and all three locale files equal the committed Git bytes;
+- `/healthz` reports application, DB, and migrations ready;
+- Studio shows `К повторению: 208`, `В работе: 290`, one primary training action, and the independent Anki export;
+- Studio → Room opens `Повторение` at `1 / 12`; the full Russian translation and sentence-audio control remain visible before answer;
+- closing without grading keeps due at `208`; refresh does not reopen the sheet; Back returns to Studio with due still `208`;
+- no grade, status change, or test review event was submitted on the owner profile;
+- browser log summary contains zero error-level and zero warning-level entries attributable to the release;
+- exact served runtime bytes are the bytes exercised locally at 1280 RU, 380 RU, and 380 HE/RTL. The 380 checks are browser emulation evidence, not owner-live iPhone evidence.
+
+Operational note: the host remained healthy after the build, but the root filesystem was at 97% usage. No Docker cleanup was performed because deployment succeeded and the private runbook did not authorize speculative cleanup in this slice. Capacity remediation remains a separate ops task.
+
+Owner-live iPhone remains intentionally pending:
+
+1. confirm the same due count in Studio and Room;
+2. open training, close it, refresh, and use Back;
+3. encounter/mark one word each in a Study Song, My Text, and Ben-Yehuda, then confirm all can return in the shared queue when due;
+4. submit one real answer and confirm normal cross-device sync;
+5. confirm no horizontal overflow or RTL defect on the physical device.

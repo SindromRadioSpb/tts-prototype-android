@@ -2,7 +2,7 @@
 
 Date: 2026-08-11
 
-Release version: `3.11.354`. Exact release commit and production revision are recorded in the implementation packet after deployment.
+Release version: `3.11.354`. Runtime release commit/image: `f47de45c9c0516c273e51507e0d3b063cb289e5c`; production evidence and owner-live boundary are recorded in the implementation packet.
 
 ## Scope
 
