@@ -65,6 +65,10 @@
       try { return await _statesLoading; } finally { _statesLoading = null; }
     }
     function invalidateWordStates() { _states = null; }
+    // peek/prime — для потребителей Зала: тренировка подглядывает кэш без форс-загрузки (1186),
+    // а bulk-импорт праймит его готовым снапшотом (7366) — сохраняем оба контракта.
+    function peekWordStates() { return _states; }
+    function primeWordStates(states) { if (states && typeof states === "object") _states = states; }
 
     // ── Аудио-синглтон (Epic-3a speakWord; один <audio> на поверхность) ────────
     var _audio = null;
@@ -447,6 +451,8 @@
     return {
       ensureWordStates: ensureWordStates,
       invalidateWordStates: invalidateWordStates,
+      peekWordStates: peekWordStates,
+      primeWordStates: primeWordStates,
       speakWord: speakWord,
       playUrl: playUrl,
       stopAudio: stopAudio,
