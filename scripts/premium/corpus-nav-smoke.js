@@ -8,8 +8,8 @@
 //     0-ready eras carry «перевод позже» (graduated default, honest)
 //   • L2: drilling a populous era (Тхия) renders the LEAN AUTHOR LIST in graduated order
 //     (the first author has ready works), with RTL Hebrew names
-//   • L3: drilling an author renders WORK ROWS split into «Готовы к чтению» (role=button,
-//     openable) and «В каталоге · перевод позже» (.is-later, aria-disabled — NOT openable:
+//   • L3: drilling an author renders WORK ROWS split into «Готовы к чтению» (semantic
+//     title link, openable) and «В каталоге · перевод позже» (.is-later, aria-disabled — NOT openable:
 //     no dead-end, never posing as readable)
 //   • lazy-load budget (D1/R4): drilling ONE author fetches only that author's block(s)
 //     (≤2 manifest files), NOT the whole era / all 18 manifests
@@ -57,6 +57,8 @@ async function main() {
     await pg.goto(BASE + "/library.html?canon=skip", { waitUntil: "load" });
     await pg.waitForFunction(() => { const t = document.getElementById("tabCorpus"); return t && !t.hidden; }, { timeout: 15000 }).catch(() => {});
     await pg.click("#tabCorpus");
+    await pg.waitForSelector('.hub-card[data-corpus="benyehuda"]', { timeout: 15000 }).catch(() => {});
+    await pg.click('.hub-card[data-corpus="benyehuda"]');
 
     // ── L1 period grid ──────────────────────────────────────────────────────
     await pg.waitForSelector(".corpus-period-grid .period-card", { timeout: 15000 }).catch(() => {});
@@ -95,7 +97,7 @@ async function main() {
       };
     });
     test("L2 author list renders rows", L2.rows > 0, "rows=" + L2.rows);
-    test("L2 breadcrumb shows Корпус ▸ Тхия", /Корпус/.test(L2.crumb) && /Тхия/.test(L2.crumb), JSON.stringify(L2.crumb));
+    test("L2 breadcrumb shows Библиотека ▸ Тхия", /Библиотека/.test(L2.crumb) && /Тхия/.test(L2.crumb), JSON.stringify(L2.crumb));
     test("L2 graduated: first author has ready works (✓)", L2.firstReady);
     test("L2 Hebrew author name is RTL-isolated", L2.firstNameRtl);
     test("L2 still loaded NO manifests (author index from sidecar)", manifestFetches.size === 0, "manifests=" + manifestFetches.size);
@@ -106,9 +108,9 @@ async function main() {
     await sleep(200);
     const L3 = await pg.evaluate(() => {
       const sections = Array.from(document.querySelectorAll(".corpus-work-section"));
-      const readyRows = document.querySelectorAll('.corpus-work-row[role="button"]');
+      const readyRows = Array.from(document.querySelectorAll('.corpus-work-row:not(.is-later)')).filter((row) => row.querySelector('.corpus-work-open'));
       const laterRows = document.querySelectorAll(".corpus-work-row.is-later");
-      const laterOpenable = document.querySelectorAll('.corpus-work-row.is-later[role="button"]');
+      const laterOpenable = document.querySelectorAll('.corpus-work-row.is-later .corpus-work-open');
       const firstReady = readyRows[0];
       return {
         sections: sections.length,
@@ -123,7 +125,7 @@ async function main() {
       };
     });
     test("L3 splits works into sections (Готовы / В каталоге)", L3.sections >= 1, "sections=" + L3.sections);
-    test("L3 ready rows are role=button (openable)", L3.readyRows > 0, "ready=" + L3.readyRows);
+    test("L3 ready rows expose semantic title links (openable)", L3.readyRows > 0, "ready=" + L3.readyRows);
     test("L3 ready row shows a length gauge + machine badge", L3.firstReadyHasLen && L3.firstReadyHasRsBadge);
     test("L3 unprocessed rows present + NOT openable (honest, no dead-end)", L3.laterRows > 0 && L3.laterOpenable === 0 && L3.laterDisabled > 0, JSON.stringify({ later: L3.laterRows, openable: L3.laterOpenable, disabled: L3.laterDisabled }));
     test("L3 unprocessed row carries «перевод позже»", L3.laterHasLaterBadge);
@@ -159,7 +161,7 @@ async function main() {
     const SR = await pg.evaluate(() => ({
       count: Number((((document.querySelector(".corpus-results-count") || {}).textContent || "").match(/\d+/) || [0])[0]),
       hasAuthor: !!document.querySelector(".corpus-work-author"),
-      ready: document.querySelectorAll('.corpus-work-row[role="button"]').length,
+      ready: document.querySelectorAll('.corpus-work-row .corpus-work-open').length,
       later: document.querySelectorAll(".corpus-work-row.is-later").length,
       focused: document.activeElement === document.querySelector(".corpus-search-input"),
     }));
@@ -167,7 +169,7 @@ async function main() {
     test("results are cross-author (author rendered on rows)", SR.hasAuthor);
     test("results mix ready (openable) + catalog (later) hits across eras", SR.ready > 0 && SR.later > 0, JSON.stringify(SR));
     test("typing keeps the search input focused (in-place body refresh)", SR.focused);
-    test("catalog (unprocessed) result rows are NOT openable", await pg.evaluate(() => document.querySelectorAll('.corpus-work-row.is-later[role="button"]').length) === 0);
+    test("catalog (unprocessed) result rows are NOT openable", await pg.evaluate(() => document.querySelectorAll('.corpus-work-row.is-later .corpus-work-open').length) === 0);
 
     // genre facet narrows the set. FB filter-bar redesign — genre/lang selects now live behind the
     // «Ещё фильтры» (⚙) advanced toggle, so expand it before reaching the (otherwise hidden) select.
@@ -190,7 +192,7 @@ async function main() {
     await sleep(200);
     const RO = await pg.evaluate(() => ({
       count: Number((((document.querySelector(".corpus-results-count") || {}).textContent || "").match(/\d+/) || [0])[0]),
-      allOpenable: Array.from(document.querySelectorAll(".corpus-work-row")).every((r) => r.getAttribute("role") === "button"),
+      allOpenable: Array.from(document.querySelectorAll(".corpus-work-row")).every((r) => !!r.querySelector(".corpus-work-open")),
     }));
     test("«Готовые» facet → ready set, every row openable", RO.count > 0 && RO.allOpenable, "count=" + RO.count);
     await pg.click(".corpus-facet-chip.clear");

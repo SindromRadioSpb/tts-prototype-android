@@ -7,8 +7,7 @@
 // network beyond localhost:
 //   • the "Корпус" tab appears once the thin root loads (hidden until then)
 //   • opening the Корпус track lazily loads the sidecar + renders the "✓ Готовы к чтению"
-//     rail of openable corpus cards (role=button — NOT <a>: no no-JS deep-link to a
-//     not-yet-imported work)
+//     preview of openable semantic work rows (real title links with warm served-on-open handling)
 //   • a ready card carries honest provenance badges (review_status=machine / audio=none)
 //   • opening a ready card materialises the work into OPFS (served-on-open import) and the
 //     warm reader paints its bilingual rows
@@ -66,7 +65,12 @@ async function main() {
     const ctx = await browser.newContext({ serviceWorkers: "block", viewport: { width: 380, height: 844 } });
     const pg = await ctx.newPage();
     const errs = []; pg.on("pageerror", (e) => errs.push(String(e)));
-    const workFetches = []; pg.on("request", (r) => { if (/\/data\/benyehuda\/works\//.test(r.url())) workFetches.push(r.url()); });
+    const workFetches = [], workProbes = [];
+    pg.on("request", (r) => {
+      if (!/\/data\/benyehuda\/works\//.test(r.url())) return;
+      if (r.method() === "GET") workFetches.push(r.url());
+      if (r.method() === "HEAD") workProbes.push(r.url());
+    });
 
     // canon skipped → corpus path only
     await pg.goto(BASE + "/library.html?canon=skip", { waitUntil: "load" });
@@ -80,17 +84,19 @@ async function main() {
 
     // open the Корпус track → ready rail (lazy sidecar)
     await pg.click("#tabCorpus");
-    await pg.waitForSelector(".corpus-ready .work-card", { timeout: 15000 }).catch(() => {});
+    await pg.waitForSelector('.hub-card[data-corpus="benyehuda"]', { timeout: 15000 }).catch(() => {});
+    await pg.click('.hub-card[data-corpus="benyehuda"]');
+    await pg.waitForSelector(".corpus-ready .room-text-row", { timeout: 15000 }).catch(() => {});
     const C = await pg.evaluate(() => {
       const c = document.getElementById("roomContent");
-      const cards = c.querySelectorAll(".corpus-ready .work-card");
+      const cards = c.querySelectorAll(".corpus-ready .room-text-row");
       const first = cards[0];
       return {
         readyRail: !!c.querySelector(".corpus-ready"),
         periodGrid: !!c.querySelector(".corpus-period-grid"),
         cards: cards.length,
-        anchors: c.querySelectorAll("a.work-card").length,
-        buttons: c.querySelectorAll('.corpus-ready .work-card[role="button"]').length,
+        anchors: c.querySelectorAll(".corpus-ready a.corpus-work-open").length,
+        nestedControls: c.querySelectorAll('.corpus-ready [role="button"] [role="button"], .corpus-ready a button, .corpus-ready button a').length,
         firstRsBadge: first ? !!first.querySelector(".prov-badge.rs-machine") : false,
         firstAudioBadge: first ? !!first.querySelector(".prov-badge.audio-none") : false,
         corpusSel: document.getElementById("tabCorpus").getAttribute("aria-selected"),
@@ -99,7 +105,7 @@ async function main() {
     test("Корпус tab selected after click", C.corpusSel === "true");
     test("L1 renders the «✓ Готовы к чтению» rail", C.readyRail && C.cards > 0, "cards=" + C.cards);
     test("L1 renders the period grid (browse-all axis)", C.periodGrid);
-    test("ready cards are role=button (served-on-open, no no-JS deep-link)", C.buttons > 0 && C.anchors === 0, "buttons=" + C.buttons + " anchors=" + C.anchors);
+    test("ready rows expose real title links without nested controls", C.anchors === C.cards && C.nestedControls === 0, "cards=" + C.cards + " anchors=" + C.anchors + " nested=" + C.nestedControls);
     // PC-2 de-noise (shipped v3.11.48–50): the whole ready rail is review_status=machine + audio=none, so
     // a per-card «Машинный перевод»/«Без озвучки» pill is constant noise — the machine provenance is stated
     // ONCE in the rail intro (PC-6). The rs pill shows only when it DIFFERS from machine; the audio pill only
@@ -108,7 +114,7 @@ async function main() {
     test("PC-2 · none-audio ready card omits the constant audio-none badge", !C.firstAudioBadge);
 
     // open a ready work — served-on-open: fetch works/<id>.json → importBundle → warm reader
-    await pg.click('.corpus-ready .work-card[role="button"]');
+    await pg.click('.corpus-ready .corpus-work-open');
     await pg.waitForFunction(() => {
       const reader = document.getElementById("roomReader");
       const tbl = document.getElementById("roomReaderTable");
@@ -128,11 +134,12 @@ async function main() {
     test("served-on-open painted bilingual rows (proves OPFS materialisation)", R.rows > 0 && !R.errorBox, "rows=" + R.rows);
     test("reader shows Hebrew content", R.hasHe);
     const fetchesAfterFirst = workFetches.length;
-    test("served-on-open fetched the work payload exactly once", fetchesAfterFirst === 1, "fetches=" + fetchesAfterFirst);
+    test("served-on-open fetched the work payload exactly once", fetchesAfterFirst === 1, "fetches=" + fetchesAfterFirst + " urls=" + workFetches.join(" | "));
+    test("reader publication probe remains a separate bounded HEAD request", workProbes.length <= 1, "probes=" + workProbes.length);
 
     // re-open the SAME work → resolved from OPFS, NO second network fetch
     await pg.click("#readerBack"); await sleep(150);
-    await pg.click('.corpus-ready .work-card[role="button"]');
+    await pg.click('.corpus-ready .corpus-work-open');
     await pg.waitForFunction(() => { const t = document.getElementById("roomReaderTable"); return t && t.querySelectorAll("tr").length > 0; }, { timeout: 15000 }).catch(() => {});
     await sleep(200);
     test("re-opening resolves from OPFS (no second work fetch — idempotent)", workFetches.length === fetchesAfterFirst, "fetches=" + workFetches.length);

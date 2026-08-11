@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Читальный зал LinguistPro — библиотека и учебное пространство для чтения на иврите с прогрессом, аудио и морфологией.">
   <title>LinguistPro — Читальный зал</title>
   <!-- Own manifest: установка PWA ИЗ Зала открывает Зал (start_url=/library.html), не Студию -->
 <link rel="manifest" href="/manifest-room.json">
@@ -22,7 +23,7 @@
       --bg-muted: #eef2f7;
       --text-primary: #0f172a;
       --text-secondary: #475569;
-      --text-faint: #94a3b8;
+      --text-faint: #64748b;
       --border-soft: #e2e8f0;
       --accent: #2563eb;
       --accent-contrast: #ffffff;
@@ -36,7 +37,7 @@
         --bg-muted: #243349;
         --text-primary: #f1f5f9;
         --text-secondary: #cbd5e1;
-        --text-faint: #7c8ba3;
+        --text-faint: #a8b4c7;
         --border-soft: #334155;
         --accent: #60a5fa;
         --accent-contrast: #0b1220;
@@ -45,7 +46,7 @@
     }
     body.theme-dark {
       --bg-page: #0f172a; --bg-card: #1e293b; --bg-muted: #243349;
-      --text-primary: #f1f5f9; --text-secondary: #cbd5e1; --text-faint: #7c8ba3;
+      --text-primary: #f1f5f9; --text-secondary: #cbd5e1; --text-faint: #a8b4c7;
       --border-soft: #334155; --accent: #60a5fa; --accent-contrast: #0b1220;
       --shadow: 0 1px 3px rgba(0, 0, 0, .4);
     }
@@ -149,6 +150,8 @@
        so «Читать» reads as a quiet caption of a tappable card, not a competing link. ≥44px card target. */
     .work-card:hover { border-color: var(--accent); }
     .work-card:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent); }
+    .work-card-open { min-height: 44px; display: flex; flex-direction: column; color: inherit; text-decoration: none; border-radius: 7px; }
+    .work-card-open:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .work-card-cta::after { content: " ›"; font-weight: 700; }
     html[dir="rtl"] .work-card-cta::after { content: " ‹"; }   /* RTL (he) — chevron points the reading direction */
     .work-card[disabled] .work-card-cta::after, .work-card[aria-disabled="true"] .work-card-cta::after { content: ""; }   /* no «go» chevron on a non-openable card */
@@ -1709,6 +1712,119 @@
     }
     .room-train-summary .room-train-actions { margin-top: 20px; }
     /* rm-speak + rm-conj -> /css/reader-morph.css */
+
+    /* ── Option B / B1: compact semantic inventory ────────────────────────
+       One expressive learning surface is reserved for B2. Browse is a calm
+       editorial ledger: real links, sibling controls, bounded pages, no card wall. */
+    .corpus-nav { max-width: 1120px; margin-inline: auto; overflow-x: clip; }
+    .room-field { display: flex; flex: 1 1 180px; min-width: 0; flex-direction: column; gap: 5px; }
+    .room-field-wide { flex: 1 1 100%; }
+    .room-field-label { color: var(--text-secondary); font-size: 12px; font-weight: 700; line-height: 1.2; }
+    .room-field .corpus-search-wrap, .room-field .corpus-search-input, .room-field .mytexts-select { width: 100%; min-width: 0; }
+    .room-field .corpus-search-input { flex: none; height: 44px; }
+    .mytexts-select { flex: none; height: 44px; min-height: 44px; border: 1px solid var(--border-soft); border-radius: 10px; padding: 8px 11px; background: var(--bg-card); color: var(--text-primary); font: inherit; }
+    .corpus-search-input { min-height: 44px; }
+    .corpus-crumb-part:not(.leaf), .mytexts-toggle, .hub-cta, .mytexts-manage {
+      min-height: 44px; display: inline-flex; align-items: center; padding-block: 8px;
+    }
+    .corpus-crumb-sep { color: var(--text-secondary); }
+    .corpus-ready .shelf-head { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 4px 12px; padding-top: 10px; }
+    .corpus-ready .shelf-intro { grid-column: 1 / -1; }
+    .room-ready-all { width: auto; min-height: 44px; border: 0; background: transparent; color: var(--accent); font: 700 13px/1.2 inherit; cursor: pointer; }
+    .room-preview-list { margin: 10px 16px 4px; border: 1px solid var(--border-soft); border-radius: 12px; overflow: clip; background: var(--bg-card); }
+    .room-text-row {
+      position: relative; min-height: 72px; box-sizing: border-box; background: var(--bg-card);
+      border: 1px solid var(--border-soft); border-inline-start: 3px solid color-mix(in srgb, var(--accent) 72%, var(--border-soft));
+      border-radius: 10px; padding: 8px 10px; display: grid; grid-template-columns: minmax(0,1fr) auto;
+      align-items: center; gap: 8px; transition: border-color .15s ease, background .15s ease, transform .15s ease;
+    }
+    .room-preview-list .room-text-row { border-width: 0 0 1px 3px; border-radius: 0; }
+    .room-preview-list .corpus-work-row.room-text-row { padding: 7px 10px; }
+    .room-preview-list .room-text-row:last-child { border-bottom-width: 0; }
+    .room-preview-list .corpus-work-col { display: grid; grid-template-columns: minmax(0,auto) minmax(0,1fr); align-items: center; gap: 2px 8px; }
+    .room-preview-list .room-text-title-link { grid-column: 1 / -1; }
+    .room-preview-list .corpus-work-title { -webkit-line-clamp: 1; }
+    .room-preview-list .corpus-work-author-link { min-height: 24px; padding-block: 2px; }
+    .room-preview-list .work-card-difficulty {
+      height: 26px; min-height: 0; margin: 0; justify-content: flex-end; align-items: center; flex-wrap: nowrap;
+      max-width: 100%; overflow-x: auto; scrollbar-width: none;
+    }
+    .room-preview-list .work-card-difficulty::-webkit-scrollbar { display: none; }
+    .room-text-row:hover { border-color: color-mix(in srgb, var(--accent) 48%, var(--border-soft)); background: color-mix(in srgb, var(--accent) 3%, var(--bg-card)); }
+    .room-text-row:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 24%, transparent); }
+    .room-text-title-link {
+      min-width: 0; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      color: var(--text-primary); text-decoration: none; border-radius: 7px;
+    }
+    .room-text-title-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .room-text-title-link .work-card-title { min-height: 0; font-size: 17px; line-height: 1.35; }
+    .room-text-primary { flex: none; color: var(--accent); font-size: 12px; font-weight: 750; white-space: nowrap; }
+    .corpus-work-row.room-text-row { grid-template-columns: minmax(0,1fr) auto auto; padding: 8px 10px; border-bottom: 1px solid var(--border-soft); }
+    .corpus-work-col { gap: 2px; }
+    .corpus-work-title { font-size: 16px; line-height: 1.35; }
+    .corpus-work-meta, .work-card-meta { gap: 5px; }
+    .corpus-work-len, .work-card-len, .mytext-card .mytext-tag { color: var(--text-secondary); font-size: 12px; }
+    .corpus-work-author-link {
+      width: fit-content; min-height: 28px; appearance: none; border: 0; background: transparent;
+      padding: 4px 6px 4px 0; color: var(--accent); font: 650 13px/1.2 inherit; text-align: start;
+    }
+    html[dir="rtl"] .corpus-work-author-link { padding: 4px 0 4px 6px; }
+    .corpus-work-listbtn { min-width: 44px; min-height: 44px; padding: 8px; }
+    .corpus-work-cta { font-size: 20px; color: var(--accent); }
+    .mytexts-grid, .group-corpus-grid { gap: 6px; }
+    .mytexts-grid .mytext-card-v, .mytexts-shelf .mytext-card { width: 100%; }
+    .mytexts-shelf .shelf-rail { flex-direction: column; overflow: visible; scroll-snap-type: none; }
+    .mytext-card .mytext-level { background: var(--bg-muted); border-color: var(--border-soft); }
+    .mytext-card .mytext-nakdan {
+      min-width: 44px; min-height: 44px; margin: 0; padding: 7px 10px;
+      background: var(--bg-card); color: var(--accent); border-color: var(--border-soft);
+    }
+    .mytext-card .mytext-nakdan:hover { background: var(--bg-muted); }
+    .room-browse-summary { color: var(--text-secondary); font-size: 12px; font-weight: 650; margin: 8px 2px; }
+    .group-corpus-controls { align-items: end; }
+    .group-corpus-controls .group-corpus-search-field { grid-column: auto; }
+    .group-work-card.room-text-row {
+      grid-template-columns: auto minmax(0,1fr) auto; min-height: 88px; padding: 8px 10px;
+      border-inline-start-color: #8b5c7c; box-shadow: none;
+    }
+    .group-work-card .room-text-title-link.group-action,
+    .group-work-card .room-text-title-link.group-action.primary {
+      width: 100%; min-height: 32px; padding: 0; border: 0; border-radius: 6px;
+      background: transparent; color: var(--text-primary); text-decoration: none; filter: none; box-shadow: none;
+    }
+    .group-work-card .room-text-title-link.group-action:hover,
+    .group-work-card .room-text-title-link.group-action:focus-visible { color: var(--text-primary); border: 0; filter: none; }
+    .group-work-title { font-size: 16px; line-height: 1.3; }
+    .group-work-artist { margin-top: 0; font-size: 12px; }
+    .group-work-meta { margin: 2px 0 0; gap: 4px; }
+    html[dir="rtl"] .group-work-meta { margin: 2px 0 0; }
+    .group-meta-chip { min-height: 22px; padding: 2px 7px; font-size: 11px; }
+    .group-meta-chip.tag { color: #1e3a8a; background: #eff6ff; }
+    .group-work-progress { grid-template-columns: minmax(72px,1fr) auto; gap: 8px; margin: 3px 0 0; }
+    html[dir="rtl"] .group-work-progress { margin: 3px 0 0; }
+    .room-text-secondary { min-width: 44px; min-height: 44px; padding: 8px; }
+    .group-action { text-decoration: none; }
+    .hub-card-desc, .hub-badge, .mytexts-manage { color: var(--text-secondary); }
+    .corpus-recents-label, .prov-badge.audio-none, .period-chip.later { color: var(--text-secondary); }
+    @media (prefers-color-scheme: dark) {
+      body:not(.theme-light) .group-meta-chip.tag { color: #bfdbfe; background: #172554; }
+    }
+    body.theme-dark .group-meta-chip.tag { color: #bfdbfe; background: #172554; }
+    @media (min-width: 761px) {
+      .group-work-card.room-text-row { min-height: 88px; padding-block: 4px; }
+    }
+    @media (max-width: 760px) {
+      .group-corpus-controls .group-corpus-search-field { grid-column: 1 / -1; }
+    }
+    @media (max-width: 480px) {
+      .room-text-row { min-height: 76px; }
+      .room-text-primary { font-size: 11.5px; }
+      .group-work-card.room-text-row { grid-template-columns: auto minmax(0,1fr) auto; padding: 8px; }
+      .group-corpus-controls .group-corpus-search-field { grid-column: auto; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .room-text-row { transition: none; }
+    }
 
     /* ── desktop layout layer (Epic 7, R4) ───────────────────────────────────
        Additive @media(min-width) ONLY — the @380px mobile cascade is untouched.

@@ -102,34 +102,44 @@ test("B0 normalized fixtures preserve asserted, derived and missing truth", () =
   assert.equal(group.media.coverage, "partial");
 });
 
-test("B0 RED ledger proves Ben-Yehuda still mounts the full ready rail", () => {
-  assert.match(libraryUi, /for \(const c of ready\) rail\.appendChild\(renderCorpusCard\(c\)\)/,
-    "B0 baseline changed: switch this assertion to the green <=12 preview contract");
+test("B1 bounds the Ben-Yehuda ready preview and exposes the full result set", () => {
+  assert.match(libraryUi, /const ROOM_PREVIEW = 12/);
+  assert.match(libraryUi, /ready\.slice\(0, ROOM_PREVIEW\)/,
+    "the home preview must never mount the full ready corpus");
+  assert.match(libraryUi, /room-ready-all[\s\S]*corpusFilter\.readyOnly = true[\s\S]*corpusL1Sort = 'ready'/,
+    "the bounded preview needs an explicit route to the complete ready inventory");
 });
 
-test("B0 RED ledger proves My Texts and group browse are still unbounded", () => {
-  assert.match(libraryUi, /for \(const it of found\) grid\.appendChild\(renderMyTextCard\(it, true\)\)/,
-    "B0 baseline changed: My Texts should have an explicit page/window bound");
-  assert.match(libraryUi, /for\(const work of found\)grid\.appendChild\(renderCard\(work\)\)/,
-    "B0 baseline changed: group browse should have an explicit page/window bound");
+test("B1 bounds My Texts and protected-corpus browse without hiding the total", () => {
+  assert.match(libraryUi, /const ROOM_BROWSE_PAGE = 48/);
+  assert.match(libraryUi, /found\.slice\(0, myBrowseLimit\)/);
+  assert.match(libraryUi, /myBrowseLimit \+= ROOM_BROWSE_PAGE; paint\(false\)/);
+  assert.match(libraryUi, /found\.slice\(0,groupBrowseLimit\)/);
+  assert.match(libraryUi, /groupBrowseLimit\+=ROOM_BROWSE_PAGE;paint\(false\)/);
 });
 
-test("B0 RED ledger proves nested interactive card patterns still exist", () => {
+test("B1 uses semantic rows with sibling title and secondary controls", () => {
   const corpusCard = libraryUi.slice(libraryUi.indexOf("function renderCorpusCard"), libraryUi.indexOf("function renderTrack"));
+  const corpusRow = libraryUi.slice(libraryUi.indexOf("function renderCorpusWorkRow"), libraryUi.indexOf("function wireChrome"));
   const myTextCard = libraryUi.slice(libraryUi.indexOf("function renderMyTextCard"), libraryUi.indexOf("async function injectMyTexts"));
-  assert.match(corpusCard, /role: 'button'[\s\S]*corpus-work-author-link'[\s\S]*role: 'button'/,
-    "B0 baseline changed: corpus title and author should be sibling controls");
-  assert.match(myTextCard, /role: 'button'[\s\S]*el\('button', \{ class: 'mytext-nakdan'/,
-    "B0 baseline changed: My Text title and niqqud action should be sibling controls");
+  assert.match(corpusCard, /el\('article',[\s\S]*el\('a', \{ class: 'work-card-open'/);
+  assert.match(corpusCard, /el\('button', \{ class: 'work-card-author corpus-work-author-link'/);
+  assert.doesNotMatch(corpusCard, /role: 'button'/);
+  assert.match(corpusRow, /el\('article',[\s\S]*el\('a', \{ class: 'room-text-title-link corpus-work-open'/);
+  assert.match(corpusRow, /el\('button', \{ class: 'corpus-work-author corpus-work-author-link'/);
+  assert.doesNotMatch(corpusRow, /role: 'button'/);
+  assert.match(myTextCard, /el\('article',[\s\S]*el\('a', \{ class: 'room-text-title-link mytext-open'/);
+  assert.match(myTextCard, /el\('button', \{ class: 'mytext-nakdan'/);
+  assert.doesNotMatch(myTextCard, /role: 'button'/);
 });
 
-test("B0 RED ledger proves the static switcher and metadata contract are incomplete", () => {
+test("B1 adds Room metadata while the dynamic switcher remains an explicit B3 gate", () => {
   const switcher = libraryUi.slice(libraryUi.indexOf("function corpusSwitcherBar"), libraryUi.indexOf("async function renderCorpusHub"));
   assert.match(switcher, /for \(const c of CORPORA\)/);
   assert.doesNotMatch(switcher, /groupCorpora/,
-    "B0 baseline changed: dynamic authorized group corpora now participate in the switcher");
-  assert.doesNotMatch(libraryHtml, /<meta\s+name=["']description["']/i,
-    "B0 baseline changed: Room now carries a product description");
+    "B3 contract changed: dynamic authorized group corpora now participate in the switcher");
+  assert.match(libraryHtml, /<meta\s+name=["']description["']/i,
+    "the Room shell must carry a product description");
   assert.match(corpusRegistry, /normalize the learning grammar|UNIFORM RETRIEVAL CONTRACT/i,
     "registry must retain the one-grammar/no-second-truth intent");
 });

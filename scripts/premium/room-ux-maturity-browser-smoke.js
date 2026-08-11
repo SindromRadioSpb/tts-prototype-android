@@ -112,18 +112,34 @@ async function auditSurface(page, surface) {
       return style.visibility !== "hidden" && style.display !== "none" && Number(style.opacity) !== 0 && rect.width > 0 && rect.height > 0;
     };
     const rgba = (raw) => {
-      const values = String(raw || "").match(/[\d.]+/g);
+      const value = String(raw || "").trim();
+      const values = value.match(/[\d.]+/g);
       if (!values || values.length < 3) return null;
-      return { r: Number(values[0]), g: Number(values[1]), b: Number(values[2]), a: values[3] == null ? 1 : Number(values[3]) };
+      const srgb = value.startsWith("color(srgb");
+      return {
+        r: Number(values[0]) * (srgb ? 255 : 1),
+        g: Number(values[1]) * (srgb ? 255 : 1),
+        b: Number(values[2]) * (srgb ? 255 : 1),
+        a: values[3] == null ? 1 : Number(values[3]),
+      };
     };
+    const composite = (front, back) => ({
+      r: front.r * front.a + back.r * (1 - front.a),
+      g: front.g * front.a + back.g * (1 - front.a),
+      b: front.b * front.a + back.b * (1 - front.a),
+      a: 1,
+    });
     const backgroundFor = (node) => {
+      const layers = [];
       let current = node;
       while (current) {
         const color = rgba(getComputedStyle(current).backgroundColor);
-        if (color && color.a > 0.01) return color;
+        if (color && color.a > 0.001) layers.unshift(color);
         current = current.parentElement;
       }
-      return { r: 255, g: 255, b: 255, a: 1 };
+      let result = { r: 255, g: 255, b: 255, a: 1 };
+      for (const layer of layers) result = composite(layer, result);
+      return result;
     };
     const luminance = ({ r, g, b }) => {
       const channel = (value) => {
@@ -156,13 +172,14 @@ async function auditSurface(page, surface) {
     for (const node of textNodes) {
       const style = getComputedStyle(node);
       const front = rgba(style.color); if (!front) continue;
-      const ratio = contrast(front, backgroundFor(node));
+      const back = backgroundFor(node);
+      const ratio = contrast(front.a < 1 ? composite(front, back) : front, back);
       const size = parseFloat(style.fontSize) || 16;
       const weight = parseInt(style.fontWeight, 10) || 400;
       const large = size >= 24 || (size >= 18.66 && weight >= 700);
       if (ratio + 0.01 < (large ? 3 : 4.5)) contrastFailures.push({ selector: node.className || node.tagName, ratio: Number(ratio.toFixed(2)), text: String(node.textContent).trim().slice(0, 40) });
     }
-    const itemSelector = surfaceName === "benyehuda" ? ".corpus-ready .work-card"
+    const itemSelector = surfaceName === "benyehuda" ? ".corpus-ready .room-text-row"
       : surfaceName === "mytexts" ? ".mytexts-grid .mytext-card-v" : ".group-corpus-grid .group-work-card";
     const items = Array.from(document.querySelectorAll(itemSelector));
     const first = items[0];
@@ -172,9 +189,16 @@ async function auditSurface(page, surface) {
       dir: document.documentElement.dir,
       viewport: { width: innerWidth, height: innerHeight },
       domElements: document.querySelectorAll("*").length,
-      readyItems: document.querySelectorAll(".corpus-ready .work-card").length,
+      readyItems: document.querySelectorAll(".corpus-ready .room-text-row").length,
       listItems: items.length,
       itemHeights: items.slice(0, 12).map((node) => Math.round(node.getBoundingClientRect().height)),
+      itemSamples: items.slice(0, 12).map((node) => ({
+        height: Math.round(node.getBoundingClientRect().height),
+        title: String((node.querySelector(".corpus-work-title,.work-card-title,.group-work-title") || {}).textContent || "").trim().slice(0, 80),
+        titleHeight: Math.round((node.querySelector(".corpus-work-title,.work-card-title,.group-work-title") || node).getBoundingClientRect().height),
+        authorHeight: Math.round((node.querySelector(".corpus-work-author-link,.group-work-artist") || node).getBoundingClientRect().height),
+        learningHeight: Math.round((node.querySelector(".work-card-difficulty,.group-work-progress") || node).getBoundingClientRect().height),
+      })),
       firstUsefulTop: first ? Math.round(first.getBoundingClientRect().top) : null,
       nestedInteractive: nested.length,
       nestedExamples: nested.slice(0, 5).map((node) => node.className || node.tagName),
@@ -202,7 +226,7 @@ async function selectCorpus(page, id) {
     await page.waitForSelector(".corpus-hub");
   }
   await page.locator(hubCard).click();
-  if (id === "benyehuda") await page.waitForSelector(".corpus-ready .work-card", { timeout: 30000 });
+  if (id === "benyehuda") await page.waitForSelector(".corpus-ready .room-text-row", { timeout: 30000 });
   else if (id === "mytexts") await page.waitForSelector(".mytexts-grid .mytext-card-v", { timeout: 30000 });
   else await page.waitForSelector(".group-corpus-grid .group-work-card", { timeout: 30000 });
   await page.waitForTimeout(250);
@@ -230,6 +254,11 @@ async function captureMatrix(browser, locale, viewport, theme, label, myTextCoun
     await selectCorpus(page, id);
     results.push(await auditSurface(page, name));
     await page.screenshot({ path: path.join(OUT, `${label}-${name}.png`), fullPage: false });
+    const rowSelector = name === "benyehuda" ? ".corpus-ready .room-text-row"
+      : name === "mytexts" ? ".mytexts-grid .mytext-card-v" : ".group-corpus-grid .group-work-card";
+    await page.locator(rowSelector).first().scrollIntoViewIfNeeded();
+    await page.screenshot({ path: path.join(OUT, `${label}-${name}-rows.png`), fullPage: false });
+    await page.evaluate(() => scrollTo(0, 0));
   }
   check(pageErrors.length === 0, `${label}: no page errors (${pageErrors.join(" | ")})`);
   await context.close();
@@ -267,6 +296,11 @@ function evaluateGreen(matrix) {
       check(entry.contrastFailures === 0, `${stage}/${entry.surface}/${entry.lang}/${entry.viewport.width}: contrast AA (${entry.contrastFailures})`);
       check(entry.overflowPx === 0, `${stage}/${entry.surface}/${entry.lang}/${entry.viewport.width}: no overflow (${entry.overflowPx}px)`);
       check(entry.metaDescription, `${stage}/${entry.surface}: meta description present`);
+      const minRow = entry.itemHeights.length ? Math.min(...entry.itemHeights) : null;
+      const maxRow = entry.itemHeights.length ? Math.max(...entry.itemHeights) : null;
+      const maxAllowed = entry.viewport.width <= 480 ? 104 : 88;
+      check(minRow != null && minRow >= 72, `${stage}/${entry.surface}/${entry.lang}/${entry.viewport.width}: row >=72px (${minRow})`);
+      check(maxRow != null && maxRow <= maxAllowed, `${stage}/${entry.surface}/${entry.lang}/${entry.viewport.width}: compact row <=${maxAllowed}px (${maxRow})`);
     }
   }
   if (["B2", "B3", "B4", "B5"].includes(stage)) {

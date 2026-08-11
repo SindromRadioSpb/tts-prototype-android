@@ -56,7 +56,9 @@ let groupCorpora = [];          // membership-filtered server catalogs (401 => a
 const groupCatalogs = new Map();// corpus_id -> {corpus,works}
 const groupCorpusStates = new Map(); // per-corpus view state; never learner truth
 let readerGroupCorpusId = null; // selects protected audio transport for the open work
-const CORPUS_PAGE = 60;         // "показать ещё" page size for author/work lists
+const CORPUS_PAGE = 60;         // native Ben-Yehuda author/result page size
+const ROOM_PREVIEW = 12;        // hard shelf/ready-preview DOM bound (Option B)
+const ROOM_BROWSE_PAGE = 48;    // compact My Texts / protected-corpus page bound
 
 // A3 Slice 2 — global search + facets, backed by ONE lazy flat index (corpus-search-v3.json,
 // ~370KB br, fetched on the FIRST search/facet use only, NOT precached). It powers both the
@@ -225,6 +227,10 @@ function deepLinkForText(textId) {
   return '/index.html?room=1#/t/' + b64url(JSON.stringify({ v: 1, type: 'text', id: String(textId) }));
 }
 
+function deepLinkForCorpusWork(workId) {
+  return '/library.html?corpus_work=' + encodeURIComponent(String(workId));
+}
+
 function el(tag, opts) {
   const e = document.createElement(tag);
   if (opts) {
@@ -348,26 +354,27 @@ function renderCorpusCard(card) {
     dead.appendChild(el('span', { class: 'work-card-cta', i18n: 'room.work.unavailable', text: tt('room.work.unavailable') }));
     return dead;
   }
-  const node = el('div', { class: 'work-card', attrs: { role: 'button', tabindex: '0', 'data-work-id': String(card.id == null ? '' : card.id) } });
+  const node = el('article', { class: 'work-card', attrs: { 'data-work-id': String(card.id == null ? '' : card.id) } });
+  const openLink = el('a', { class: 'work-card-open', attrs: { href: deepLinkForCorpusWork(card.id) } });
   const parts = corpusTitleParts(card.title);
   const titleEl = el('span', { class: 'work-card-title', text: parts.title });
   if (card.title) titleEl.title = card.title;   // PC-4 — full original (incl. the variant note) on hover/long-press
   if (HEBREW_RE.test(parts.title)) titleEl.setAttribute('dir', 'rtl');
-  node.appendChild(titleEl);
+  openLink.appendChild(titleEl);
   if (parts.note) {   // PC-4 — the «[נוסח …]» editorial variant note → muted sub-line (preserved, не выброшено)
     const n = el('span', { class: 'work-card-note', text: parts.note });
     if (HEBREW_RE.test(parts.note)) n.setAttribute('dir', 'rtl');
-    node.appendChild(n);
+    openLink.appendChild(n);
   }
+  node.appendChild(openLink);
   if (card.author) {
     // PC-9 — tappable author drill «ещё у автора» (mirrors the search-row pattern); stopPropagation so it
     // never opens the work; keyboard-operable. Consistent rail-card ↔ search-row behaviour.
-    const a = el('span', { class: 'work-card-author corpus-work-author-link', attrs: { role: 'button', tabindex: '0', title: tt('room.corpus.search.moreByAuthor', 'Ещё у автора') } });
+    const a = el('button', { class: 'work-card-author corpus-work-author-link', attrs: { type: 'button', title: tt('room.corpus.search.moreByAuthor', 'Ещё у автора') } });
     a.textContent = card.author;
     if (HEBREW_RE.test(card.author)) a.setAttribute('dir', 'rtl');
-    const goAuthor = (ev) => { ev.preventDefault(); ev.stopPropagation(); corpusNavToAuthor(card.era, card.author); };
+    const goAuthor = (ev) => { ev.preventDefault(); corpusNavToAuthor(card.era, card.author); };
     a.addEventListener('click', goAuthor);
-    a.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') goAuthor(ev); });
     node.appendChild(a);
   }
   const RS_KNOWN = { machine: 1, machine_assisted: 1, human_proofread: 1 };
@@ -395,8 +402,9 @@ function renderCorpusCard(card) {
   node.appendChild(el('div', { class: 'work-card-difficulty' }));
   node.appendChild(el('span', { class: 'work-card-cta', i18n: 'room.work.open', text: tt('room.work.open') }));
   const open = () => openCorpusWork(card);
-  node.addEventListener('click', open);
-  node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  openLink.addEventListener('click', (event) => { event.preventDefault(); open(); });
+  // Compatibility for legacy programmatic row clicks; the user-facing control is the real link.
+  node.addEventListener('click', (event) => { if (event.target === node) open(); });
   observeCardCoverage(node, card);   // S3: lazy coverage badge (visible cards only — profile-gated, soft estimate)
   return node;
 }
@@ -6803,11 +6811,13 @@ async function addMachineNiqqud(item, button) {
   }
 }
 function renderMyTextCard(item, vertical) {
-  const node = el('div', { class: 'work-card mytext-card' + (vertical ? ' mytext-card-v' : ''), attrs: { role: 'button', tabindex: '0' } });
+  const node = el('article', { class: 'corpus-work-row room-text-row mytext-card' + (vertical ? ' mytext-card-v' : '') });
+  const col = el('div', { class: 'corpus-work-col' });
   const title = item.title || tt('room.work.untitled', 'Без названия');
+  const openLink = el('a', { class: 'room-text-title-link mytext-open', attrs: { href: deepLinkForText(item.id) } });
   const titleEl = el('span', { class: 'work-card-title', text: title });
   if (HEBREW_RE.test(title)) titleEl.setAttribute('dir', 'rtl');
-  node.appendChild(titleEl);
+  openLink.appendChild(titleEl);
   const meta = el('div', { class: 'work-card-meta' });
   if (item.level) meta.appendChild(el('span', { class: 'prov-badge mytext-level', text: String(item.level) }));
   // progress = «строка N» (honest raw position; texts carry no row count → no fabricated %)
@@ -6825,15 +6835,18 @@ function renderMyTextCard(item, vertical) {
       }
     }
   } catch (_) {}
-  node.appendChild(meta);
-  node.appendChild(el('span', { class: 'work-card-cta', text: started ? tt('room.resume.continue', 'Продолжить') : tt('room.mytexts.read', 'Читать') }));
+  openLink.appendChild(el('span', { class: 'room-text-primary', text: started ? tt('room.resume.continue', 'Продолжить') : tt('room.mytexts.read', 'Читать') }));
+  col.appendChild(openLink);
+  if (meta.children.length) col.appendChild(meta);
+  node.appendChild(col);
   const nakdan = el('button', { class: 'mytext-nakdan', attrs: { type: 'button' }, text: 'אְ ' + tt('room.nakdan.add', 'Добавить никуд') });
-  nakdan.addEventListener('click', (event) => { event.stopPropagation(); event.preventDefault(); addMachineNiqqud(item, nakdan); });
-  nakdan.addEventListener('keydown', (event) => event.stopPropagation());
+  nakdan.addEventListener('click', () => addMachineNiqqud(item, nakdan));
   node.appendChild(nakdan);
   const open = () => openReader(item.id, item.title, { resume: started });
-  node.addEventListener('click', open);
-  node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  if (EMBED) openLink.addEventListener('click', (event) => { event.preventDefault(); open(); });
+  // Compatibility for callers that programmatically click the row in legacy smokes. The article
+  // itself is not focusable/announced as a control; user-facing activation belongs to the link.
+  node.addEventListener('click', (event) => { if (event.target === node) open(); });
   return node;
 }
 // Mini-rail on the Ben-Yehuda home (quick access; the FULL surface is the «Мои тексты» CORPUS —
@@ -7497,24 +7510,28 @@ async function renderGroupCorpus(corpusId, token) {
   if (token !== corpusRenderToken) return;
   const byKey = new Map((local || []).filter((r) => r && r.text_key).map((r) => [String(r.text_key), r]));
   const controls = el('div', { class: 'group-corpus-controls' });
-  const search = el('input', { class: 'corpus-search-input group-corpus-search', attrs: { type:'search',
+  const searchField = el('label', { class: 'room-field room-field-wide group-corpus-search-field', attrs: { for: 'roomGroupCorpusSearch' } });
+  searchField.appendChild(el('span', { class: 'room-field-label', text: tt('room.corpus.search.placeholder', 'Поиск') }));
+  const search = el('input', { class: 'corpus-search-input group-corpus-search', attrs: { id:'roomGroupCorpusSearch', name:'room-group-corpus-search', type:'search',
     placeholder:tt('room.groupCorpus.search','Поиск: название, исполнитель или тег'),
     'aria-label':tt('room.groupCorpus.search','Поиск: название, исполнитель или тег') } });
-  search.value = state.q; controls.appendChild(search);
-  const mkSelect = (items, value, label, onChange) => {
-    const s = el('select', { class:'mytexts-select', attrs:{ 'aria-label':label } });
+  search.value = state.q; searchField.appendChild(search); controls.appendChild(searchField);
+  const mkSelect = (id, items, value, label, onChange) => {
+    const field=el('label',{class:'room-field',attrs:{for:id}});
+    field.appendChild(el('span',{class:'room-field-label',text:label}));
+    const s = el('select', { class:'mytexts-select', attrs:{ id, name:id, 'aria-label':label } });
     for (const [v, txt] of items) { const o=document.createElement('option'); o.value=v; o.textContent=txt; s.appendChild(o); }
-    s.value=value; s.addEventListener('change',()=>onChange(s.value)); return s;
+    s.value=value; s.addEventListener('change',()=>onChange(s.value)); field.appendChild(s); return field;
   };
-  controls.appendChild(mkSelect([
+  controls.appendChild(mkSelect('roomGroupStatus',[
     ['all',tt('room.groupCorpus.statusAll','Все статусы')],['new',tt('room.groupCorpus.statusNew','Не начаты')],
     ['reading',tt('room.groupCorpus.statusReading','Читаю')],['finished',tt('room.groupCorpus.statusFinished','Прочитаны')],
   ],state.status,tt('room.groupCorpus.statusLabel','Статус'),(v)=>{state.status=v;paint();}));
-  controls.appendChild(mkSelect([
+  controls.appendChild(mkSelect('roomGroupAudio',[
     ['all',tt('room.groupCorpus.audioAll','Любое аудио')],['full',tt('room.groupCorpus.audioFull','Озвучено полностью')],
     ['partial',tt('room.groupCorpus.audioPartial','Озвучено частично')],['none',tt('room.groupCorpus.audioNone','Без аудио')],
   ],state.audio,tt('room.groupCorpus.audioLabel','Аудио'),(v)=>{state.audio=v;paint();}));
-  controls.appendChild(mkSelect([
+  controls.appendChild(mkSelect('roomGroupSort',[
     ['position',tt('room.groupCorpus.sortPosition','Порядок библиотеки')],['recent',tt('room.groupCorpus.sortRecent','Последние открытые')],
     ['progress',tt('room.groupCorpus.sortProgress','По прогрессу')],['title',tt('room.groupCorpus.sortTitle','Название А–Я')],
   ],state.sort,tt('room.corpus.sort.label','Сортировка'),(v)=>{state.sort=v;paint();}));
@@ -7537,8 +7554,9 @@ async function renderGroupCorpus(corpusId, token) {
   }
   const renderTags=()=>{ const fresh=tagRail.cloneNode(false); for (const [tag,count] of Array.from(tagCounts.entries()).sort((a,b)=>b[1]-a[1]).slice(0,12)) { const active=state.tags.includes(tag); const b=el('button',{class:'corpus-sort-btn'+(active?' on':''),attrs:{type:'button','aria-pressed':String(active)}}); b.textContent='#'+tag+' · '+count; b.addEventListener('click',()=>{state.tags=active?state.tags.filter((x)=>x!==tag):state.tags.concat(tag);renderTags();paint();}); fresh.appendChild(b); } tagRail.replaceChildren(...fresh.childNodes); };
   if (tagCounts.size) wrap.appendChild(tagRail);
-  const resultLine=el('div',{class:'group-corpus-results'}); wrap.appendChild(resultLine);
-  const grid = el('div', { class: 'group-corpus-grid' }); wrap.appendChild(grid); main.appendChild(wrap);
+  const resultLine=el('div',{class:'group-corpus-results room-browse-summary'}); wrap.appendChild(resultLine);
+  const grid = el('div', { class: 'group-corpus-grid corpus-work-list' }); wrap.appendChild(grid);
+  const moreWrap=el('div',{class:'corpus-more group-corpus-more'});wrap.appendChild(moreWrap);main.appendChild(wrap);
 
   const workStatus=(p)=>p && p.finished_at ? 'finished' : (p && Number(p.last_row_idx)>0 ? 'reading' : 'new');
   const workAudio=(w)=>Number(w.audio_count)<=0?'none':(Number(w.audio_count)>=Number(w.rows_count)&&Number(w.rows_count)>0?'full':'partial');
@@ -7552,25 +7570,28 @@ async function renderGroupCorpus(corpusId, token) {
   }
   function renderCard(work) {
     const p=byKey.get(String(work.text_key)); const status=workStatus(p); const pct=progressPct(work,p);
-    const card=el('article',{class:'group-work-card',attrs:{'data-status':status}});
-    const top=el('div',{class:'group-work-main'});
-    const pos=el('span',{class:'group-work-position',text:work.position_no==null?'—':String(work.position_no)}); top.appendChild(pos);
-    const identity=el('div',{class:'group-work-identity'}); const title=el('h3',{class:'group-work-title',text:work.title||''});
-    if(HEBREW_RE.test(work.title||''))title.setAttribute('dir','rtl'); identity.appendChild(title);
-    if(work.artist&&!String(work.title||'').startsWith(String(work.artist))){const artist=el('div',{class:'group-work-artist',text:work.artist});if(HEBREW_RE.test(work.artist))artist.setAttribute('dir','rtl');identity.appendChild(artist);} top.appendChild(identity); card.appendChild(top);
+    const card=el('article',{class:'group-work-card room-text-row',attrs:{'data-status':status}});
+    const pos=el('span',{class:'group-work-position',text:work.position_no==null?'—':String(work.position_no)}); card.appendChild(pos);
+    const identity=el('div',{class:'group-work-identity corpus-work-col'});
+    const href='/library.html?group_corpus='+encodeURIComponent(corpusId)+'&group_work='+encodeURIComponent(work.work_id);
+    const open=el('a',{class:'room-text-title-link group-action'+(status==='reading'?' primary':''),attrs:{href}});
+    const title=el('span',{class:'group-work-title',text:work.title||''});
+    if(HEBREW_RE.test(work.title||''))title.setAttribute('dir','rtl');open.appendChild(title);
+    open.appendChild(el('span',{class:'room-text-primary',text:status==='reading'?tt('room.resume.continue','Продолжить'):tt('room.mytexts.read','Читать')}));
+    open.addEventListener('click',(event)=>{event.preventDefault();openGroupCorpusWork(corpusId,work,{resume:status==='reading'});});
+    identity.appendChild(open);
     const meta=el('div',{class:'group-work-meta'});
+    if(work.artist&&!String(work.title||'').startsWith(String(work.artist))){const artist=el('span',{class:'group-work-artist',text:work.artist});if(HEBREW_RE.test(work.artist))artist.setAttribute('dir','rtl');meta.appendChild(artist);}
     meta.appendChild(el('span',{class:'group-meta-chip',text:(work.rows_count||0)+' '+tt('room.groupCorpus.rows','строк')}));
     meta.appendChild(el('span',{class:'group-meta-chip '+(workAudio(work)==='full'?'ok':workAudio(work)==='partial'?'warn':''),text:'♪ '+(work.audio_count||0)+'/'+(work.rows_count||0)}));
-    meta.appendChild(el('span',{class:'group-meta-chip',text:'TTS r'+(work.audio_revision||1)}));
-    for(const tag of (work.tags||[]).slice(0,3))meta.appendChild(el('span',{class:'group-meta-chip tag',text:'#'+tag})); card.appendChild(meta);
+    if(work.level)meta.appendChild(el('span',{class:'group-meta-chip tag',text:String(work.level)}));identity.appendChild(meta);
     const progress=el('div',{class:'group-work-progress'}); const track=el('div',{class:'group-progress-track'}); track.appendChild(el('span',{class:'group-progress-fill',attrs:{style:'width:'+pct+'%'}})); progress.appendChild(track);
-    progress.appendChild(el('span',{class:'group-progress-label',text:status==='finished'?tt('room.groupCorpus.finished','Прочитано'):status==='reading'?pct+'% · '+tt('room.groupCorpus.inProgress','в процессе'):tt('room.groupCorpus.notStarted','не начато')})); card.appendChild(progress);
-    const actions=el('div',{class:'group-work-actions'});
-    if(status==='reading'){const cont=el('button',{class:'group-action primary',attrs:{type:'button'},text:tt('room.resume.continue','Продолжить')});cont.addEventListener('click',()=>openGroupCorpusWork(corpusId,work,{resume:true}));actions.appendChild(cont);}
-    const open=el('button',{class:'group-action',attrs:{type:'button'},text:tt('room.groupCorpus.open','Открыть')});open.addEventListener('click',()=>openGroupCorpusWork(corpusId,work,{resume:false}));actions.appendChild(open);
-    const share=el('button',{class:'group-action quiet',attrs:{type:'button'},text:'🔗 '+tt('room.groupCorpus.share','Поделиться')});share.addEventListener('click',()=>shareWork(work));actions.appendChild(share); card.appendChild(actions); return card;
+    progress.appendChild(el('span',{class:'group-progress-label',text:status==='finished'?tt('room.groupCorpus.finished','Прочитано'):status==='reading'?pct+'% · '+tt('room.groupCorpus.inProgress','в процессе'):tt('room.groupCorpus.notStarted','не начато')}));identity.appendChild(progress);card.appendChild(identity);
+    const share=el('button',{class:'group-action quiet room-text-secondary',attrs:{type:'button','aria-label':tt('room.groupCorpus.share','Поделиться'),title:tt('room.groupCorpus.share','Поделиться')},text:'🔗'});share.addEventListener('click',()=>shareWork(work));card.appendChild(share);return card;
   }
-  function paint(){
+  let groupBrowseLimit=ROOM_BROWSE_PAGE;
+  function paint(resetLimit=true){
+    if(resetLimit)groupBrowseLimit=ROOM_BROWSE_PAGE;
     const q=String(state.q||'').trim().toLocaleLowerCase(); let found=catalog.works.filter((w)=>{
       const p=byKey.get(String(w.text_key)); if(state.status!=='all'&&workStatus(p)!==state.status)return false;
       if(state.audio!=='all'&&workAudio(w)!==state.audio)return false;
@@ -7580,8 +7601,9 @@ async function renderGroupCorpus(corpusId, token) {
     });
     const opened=(w)=>{const p=byKey.get(String(w.text_key));return Date.parse(p&&p.last_opened_at||'')||0;};
     found=found.slice().sort(state.sort==='recent'?(a,b)=>opened(b)-opened(a):state.sort==='progress'?(a,b)=>progressPct(b,byKey.get(String(b.text_key)))-progressPct(a,byKey.get(String(a.text_key))):state.sort==='title'?(a,b)=>String(a.title||'').localeCompare(String(b.title||''),'he'):(a,b)=>(Number(a.position_no)||9999)-(Number(b.position_no)||9999));
-    grid.textContent=''; for(const work of found)grid.appendChild(renderCard(work)); if(!found.length)grid.appendChild(el('div',{class:'mytexts-empty',text:tt('room.mytexts.empty','Ничего не найдено')}));
-    resultLine.textContent=tt('room.groupCorpus.found','Найдено')+': '+found.length+' / '+catalog.works.length;
+    const shown=found.slice(0,groupBrowseLimit);grid.textContent='';for(const work of shown)grid.appendChild(renderCard(work));if(!found.length)grid.appendChild(el('div',{class:'mytexts-empty',text:tt('room.mytexts.empty','Ничего не найдено')}));
+    resultLine.textContent=tt('room.groupCorpus.found','Найдено')+': '+shown.length+' / '+found.length;
+    moreWrap.textContent='';if(shown.length<found.length){const more=el('button',{class:'corpus-more-btn',attrs:{type:'button'}});more.textContent=tt('room.corpus.showMore','Показать ещё')+' ('+(found.length-shown.length)+')';more.addEventListener('click',()=>{groupBrowseLimit+=ROOM_BROWSE_PAGE;paint(false);});moreWrap.appendChild(more);}
   }
   let timer=null; search.addEventListener('input',()=>{state.q=search.value||'';if(timer)clearTimeout(timer);timer=setTimeout(paint,120);}); paint();
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
@@ -7756,25 +7778,31 @@ async function renderMyTextsCorpus(token) {
   };
   // controls: PRO search line + scope/sort selects
   const controls = el('div', { class: 'mytexts-controls' });
-  const inp = el('input', { class: 'corpus-search-input mytexts-search', attrs: { type: 'search', placeholder: tt('room.mytexts.searchPro', 'Поиск (PRO): название / тема / уровень / #тег'), 'aria-label': tt('room.mytexts.searchPro', 'Поиск (PRO): название / тема / уровень / #тег') } });
+  const searchField = el('label', { class: 'room-field room-field-wide', attrs: { for: 'roomMyTextsSearch' } });
+  searchField.appendChild(el('span', { class: 'room-field-label', text: tt('room.corpus.search.placeholder', 'Поиск') }));
+  const inp = el('input', { class: 'corpus-search-input mytexts-search', attrs: { id: 'roomMyTextsSearch', name: 'room-mytexts-search', type: 'search', placeholder: tt('room.mytexts.searchPro', 'Поиск (PRO): название / тема / уровень / #тег'), 'aria-label': tt('room.mytexts.searchPro', 'Поиск (PRO): название / тема / уровень / #тег') } });
   inp.value = myCorpusState.q;
-  controls.appendChild(inp);
+  searchField.appendChild(inp);
+  controls.appendChild(searchField);
   wrap.appendChild(controls);
   const selects = el('div', { class: 'mytexts-controls' });
-  const mkSelect = (opts, value, aria, onChange) => {
-    const s = el('select', { class: 'mytexts-select', attrs: { 'aria-label': aria } });
+  const mkSelect = (id, opts, value, aria, onChange) => {
+    const field = el('label', { class: 'room-field', attrs: { for: id } });
+    field.appendChild(el('span', { class: 'room-field-label', text: aria }));
+    const s = el('select', { class: 'mytexts-select', attrs: { id, name: id, 'aria-label': aria } });
     for (const [v, key, fb] of opts) { const o = document.createElement('option'); o.value = v; o.textContent = tt(key, fb); s.appendChild(o); }
     s.value = value;
     s.addEventListener('change', () => onChange(s.value));
-    return s;
+    field.appendChild(s);
+    return field;
   };
-  selects.appendChild(mkSelect([
+  selects.appendChild(mkSelect('roomMyTextsScope', [
     ['texts', 'room.mytexts.scopeTexts', 'Поиск: тексты'],
     ['both', 'room.mytexts.scopeBoth', 'Поиск: тексты+строки+заметки'],
     ['rows', 'room.mytexts.scopeRows', 'Поиск: только строки'],
     ['notes', 'room.mytexts.scopeNotes', 'Поиск: только заметки'],
   ], myCorpusState.scope, tt('room.mytexts.scopeLabel', 'Область поиска'), (v) => { myCorpusState.scope = v; schedulePaint(); }));
-  selects.appendChild(mkSelect([
+  selects.appendChild(mkSelect('roomMyTextsSort', [
     ['opened_desc', 'room.mytexts.sortOpened', 'Последние открытые'],
     ['updated_desc', 'room.mytexts.sortUpdated', 'Последние изменённые'],
     ['title_asc', 'room.mytexts.sortAZ', 'А–Я'],
@@ -7843,7 +7871,9 @@ async function renderMyTextsCorpus(token) {
     }
   };
   wrap.appendChild(facets);
-  const grid = el('div', { class: 'mytexts-grid' });
+  const resultLine = el('div', { class: 'room-browse-summary mytexts-results' });
+  const grid = el('div', { class: 'mytexts-grid corpus-work-list' });
+  const moreWrap = el('div', { class: 'corpus-more mytexts-more' });
   // scope search (rows/notes) — async over localDb, cached per (scope,q); metadata stays sync
   let scopeCache = { key: '', ids: null };
   async function scopeIdsFor(scope, q) {
@@ -7861,7 +7891,9 @@ async function renderMyTextsCorpus(token) {
     return ids;
   }
   let paintSeq = 0;
-  async function paint() {
+  let myBrowseLimit = ROOM_BROWSE_PAGE;
+  async function paint(resetLimit = true) {
+    if (resetLimit) myBrowseLimit = ROOM_BROWSE_PAGE;
     const seq = ++paintSeq;
     const { textTokens, tagTokens } = splitQuery(myCorpusState.q);
     const qJoined = textTokens.join(' ').toLowerCase();
@@ -7896,9 +7928,18 @@ async function renderMyTextsCorpus(token) {
       topic_asc: (a, b) => String(a.topic || '').localeCompare(String(b.topic || ''), 'ru') || String(a.title || '').localeCompare(String(b.title || ''), 'ru'),
     };
     found = found.slice().sort(bySort[myCorpusState.sort] || bySort.opened_desc);
+    const shown = found.slice(0, myBrowseLimit);
+    resultLine.textContent = tt('room.groupCorpus.found', 'Найдено') + ': ' + shown.length + ' / ' + found.length;
     grid.textContent = '';
-    for (const it of found) grid.appendChild(renderMyTextCard(it, true));
+    for (const it of shown) grid.appendChild(renderMyTextCard(it, true));
     if (!found.length) grid.appendChild(el('div', { class: 'mytexts-empty', text: tt('room.mytexts.empty', 'Ничего не найдено') }));
+    moreWrap.textContent = '';
+    if (shown.length < found.length) {
+      const more = el('button', { class: 'corpus-more-btn', attrs: { type: 'button' } });
+      more.textContent = tt('room.corpus.showMore', 'Показать ещё') + ' (' + (found.length - shown.length) + ')';
+      more.addEventListener('click', () => { myBrowseLimit += ROOM_BROWSE_PAGE; paint(false); });
+      moreWrap.appendChild(more);
+    }
   }
   let paintTimer = null;
   const schedulePaint = () => { if (paintTimer) clearTimeout(paintTimer); paintTimer = setTimeout(paint, 200); };
@@ -7906,7 +7947,9 @@ async function renderMyTextsCorpus(token) {
   buildSmart();
   buildFacets();
   paint();
+  wrap.appendChild(resultLine);
   wrap.appendChild(grid);
+  wrap.appendChild(moreWrap);
   main.appendChild(wrap);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
@@ -7987,10 +8030,18 @@ function renderHomeInto(body) {
     const h = el('h2', { class: 'shelf-title' });
     h.textContent = '✓ ' + tt('room.corpus.readyTitle', 'Готовы к чтению') + ' — ' + ready.length + ' ' + tt('room.corpus.worksN', 'работ');   // PC-12 — framed count, not a bare «(796)»
     head.appendChild(h);
+    const all = el('button', { class: 'shelf-showall room-ready-all', attrs: { type: 'button' } });
+    all.textContent = tt('room.resume.showAll', 'Показать все') + ' ' + ready.length + ' →';
+    all.addEventListener('click', () => {
+      corpusFilter.readyOnly = true;
+      corpusL1Sort = 'ready';
+      corpusRefreshL1Body();
+    });
+    head.appendChild(all);
     head.appendChild(el('p', { class: 'shelf-intro', i18n: 'room.corpus.readyIntro', text: tt('room.corpus.readyIntro') }));
     sec.appendChild(head);
-    const rail = el('div', { class: 'shelf-rail' });
-    for (const c of ready) rail.appendChild(renderCorpusCard(c));
+    const rail = el('div', { class: 'corpus-work-list room-preview-list' });
+    for (const c of ready.slice(0, ROOM_PREVIEW)) rail.appendChild(renderCorpusWorkRow(c, true, { showAuthor: true, showListBtn: true, compact: true }));
     sec.appendChild(rail);
     body.appendChild(sec);
   }
@@ -8619,8 +8670,10 @@ async function fillConcordanceLines(node, card, q) {
 // body, so the input focus + select values survive.
 function buildCorpusFilterBar() {
   const bar = el('div', { class: 'corpus-filterbar' });
+  const searchField = el('label', { class: 'room-field room-field-wide', attrs: { for: 'roomCorpusSearch' } });
+  searchField.appendChild(el('span', { class: 'room-field-label', text: tt('room.corpus.search.placeholder', 'Поиск') }));
   const inputWrap = el('div', { class: 'corpus-search-wrap' });
-  const input = el('input', { class: 'corpus-search-input', attrs: { type: 'search', enterkeyhint: 'search', placeholder: tt('room.corpus.search.placeholder', 'Поиск по корпусу…'), 'aria-label': tt('room.corpus.search.placeholder', 'Поиск') } });
+  const input = el('input', { class: 'corpus-search-input', attrs: { id: 'roomCorpusSearch', name: 'room-corpus-search', type: 'search', enterkeyhint: 'search', placeholder: tt('room.corpus.search.placeholder', 'Поиск по корпусу…'), 'aria-label': tt('room.corpus.search.placeholder', 'Поиск') } });
   input.value = corpusFilter.q || '';
   corpusSearchInputEl = input;   // S12 — recents/suggestion chips set the query through this ref
   // BRR-S4 — inline ✕ clear (tabindex -1: it's a mouse/touch affordance; Escape clears via keyboard).
@@ -8644,7 +8697,8 @@ function buildCorpusFilterBar() {
   });
   clearX.addEventListener('click', (e) => { e.preventDefault(); doClear(); });
   inputWrap.appendChild(input); inputWrap.appendChild(clearX);
-  bar.appendChild(inputWrap);
+  searchField.appendChild(inputWrap);
+  bar.appendChild(searchField);
   // FB-6 — search history sits directly under the input (the universal position), ABOVE the filter facets,
   // so a row of recent-QUERY chips is never read as filter/sort tabs (the owner's «блок сортировки» misread).
   corpusRecentsEl = el('div', { class: 'corpus-recents' });
@@ -9034,7 +9088,7 @@ function corpusWorkSection(titleKey, icon, works, openable) {
 // Baked → ▶ openable (served-on-open). Unprocessed → ⏳ disabled, honest «перевод позже»
 // (R8 — visible in the catalog, never dead-ended, never posing as readable).
 function renderCorpusWorkRow(card, openable, opts) {
-  const row = el('div', { class: 'corpus-work-row' + (openable ? '' : ' is-later'), attrs: { 'data-work-id': String(card && card.id != null ? card.id : '') } });
+  const row = el('article', { class: 'corpus-work-row room-text-row' + (openable ? '' : ' is-later'), attrs: { 'data-work-id': String(card && card.id != null ? card.id : '') } });
   const col = el('div', { class: 'corpus-work-col' });
   // BRR-S2 — in a search context (opts.openOpts.ftsQuery — the same query threaded to the open handler)
   // the matched tokens are <mark>-highlighted in the title + author (niqqud-insensitive, word-level via
@@ -9046,30 +9100,39 @@ function renderCorpusWorkRow(card, openable, opts) {
   if (qToks && qToks.length) appendMarkedHebrew(title, _tp.title, qToks); else title.textContent = _tp.title;
   if (card.title) title.title = card.title;
   if (HEBREW_RE.test(_tp.title)) title.setAttribute('dir', 'rtl');
-  col.appendChild(title);
+  let openLink = null;
+  if (openable) {
+    openLink = el('a', { class: 'room-text-title-link corpus-work-open', attrs: { href: deepLinkForCorpusWork(card.id) } });
+    openLink.appendChild(title);
+    openLink.appendChild(el('span', { class: 'room-text-primary', text: tt('room.work.open', 'Читать') }));
+    col.appendChild(openLink);
+  } else {
+    col.appendChild(title);
+  }
   if (_tp.note) { const _n = el('span', { class: 'corpus-work-note', text: _tp.note }); if (HEBREW_RE.test(_tp.note)) _n.setAttribute('dir', 'rtl'); col.appendChild(_n); }
   // In cross-author contexts (global results) show the author under the title. BRR-S14 — the author is a
   // tappable «ещё у автора» link → the author's full works drill (stopPropagation so it never opens the work).
   if (opts && opts.showAuthor && card.author) {
-    const a = el('span', { class: 'corpus-work-author corpus-work-author-link', attrs: { role: 'button', tabindex: '0', title: tt('room.corpus.search.moreByAuthor', 'Ещё у автора') } });
+    const a = el('button', { class: 'corpus-work-author corpus-work-author-link', attrs: { type: 'button', title: tt('room.corpus.search.moreByAuthor', 'Ещё у автора') } });
     if (qToks && qToks.length) appendMarkedHebrew(a, card.author, qToks); else a.textContent = card.author;
     if (HEBREW_RE.test(card.author)) a.setAttribute('dir', 'rtl');
-    const goAuthor = (ev) => { ev.preventDefault(); ev.stopPropagation(); corpusNavToAuthor(card.era, card.author); };
+    const goAuthor = (ev) => { ev.preventDefault(); corpusNavToAuthor(card.era, card.author); };
     a.addEventListener('click', goAuthor);
-    a.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') goAuthor(ev); });
     col.appendChild(a);
   }
   const meta = el('div', { class: 'corpus-work-meta' });
   const len = corpusLengthLabel(card);
-  if (len) meta.appendChild(el('span', { class: 'corpus-work-len', text: len }));
-  if (card.genre) meta.appendChild(el('span', { class: 'corpus-work-genre', text: corpusGenreLabel(card.genre) }));
-  if (openable) {
+  if (!opts || !opts.compact) {
+    if (len) meta.appendChild(el('span', { class: 'corpus-work-len', text: len }));
+    if (card.genre) meta.appendChild(el('span', { class: 'corpus-work-genre', text: corpusGenreLabel(card.genre) }));
+  }
+  if (openable && (!opts || !opts.compact)) {
     meta.appendChild(corpusProvBadge('rs', card.review_status));
     meta.appendChild(corpusProvBadge('audio', card.audio_status));
   } else {
-    meta.appendChild(el('span', { class: 'prov-badge later', i18n: 'room.corpus.later', text: tt('room.corpus.later') }));
+    if (!openable) meta.appendChild(el('span', { class: 'prov-badge later', i18n: 'room.corpus.later', text: tt('room.corpus.later') }));
   }
-  col.appendChild(meta);
+  if (meta.children.length) col.appendChild(meta);
   row.appendChild(col);
   // BRR — «➕ В список» on the work row (search results + author drill). Offered for non-ready works too:
   // the reading list honestly stores them as r:false (← openable) and auto-upgrades them once they ship.
@@ -9081,13 +9144,11 @@ function renderCorpusWorkRow(card, openable, opts) {
     listBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); openListPicker(card, listBtn, openable); });
     row.appendChild(listBtn);
   }
-  const cta = el('span', { class: 'corpus-work-cta', text: openable ? '▶' : '⏳' });
+  const cta = el('span', { class: 'corpus-work-cta', text: openable ? '›' : '⏳', attrs: { 'aria-hidden': 'true' } });
   row.appendChild(cta);
   if (openable) {
-    row.setAttribute('role', 'button'); row.setAttribute('tabindex', '0');
     const open = () => openCorpusWork(card, opts && opts.openOpts);   // BRR-P2-005 — FTS: open at matched row
-    row.addEventListener('click', open);
-    row.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); open(); } });
+    openLink.addEventListener('click', (event) => { event.preventDefault(); open(); });
   } else {
     row.setAttribute('aria-disabled', 'true');
   }
@@ -9235,6 +9296,17 @@ async function boot() {
           if (groupWork) await openGroupCorpusWork(groupCorpusId, groupWork, { resume:true });
           else roomToast(tt('room.groupCorpus.linkUnavailable', 'Ссылка недоступна: войдите как участник учебной группы'));
         }
+      }
+    } catch (_) {}
+    // Semantic title links for baked works remain useful in a new tab/no warm Room: resolve the
+    // stable catalog id only after the catalog and LocalDb are ready, then use the canonical
+    // served-on-open path. No alternate progress or import truth is introduced.
+    try {
+      const bakedWorkId = new URLSearchParams(location.search).get('corpus_work');
+      if (bakedWorkId) {
+        const target = ((corpusIndex && corpusIndex.ready) || []).find((card) => String(card.id) === String(bakedWorkId));
+        if (target) await openCorpusWork(target, { resume: true });
+        else roomToast(tt('room.work.unavailable', 'Текст пока недоступен'));
       }
     } catch (_) {}
     try { refreshDueBadge(); } catch (_) {}   // D2 — surface the «🔁 К повторению» home CTA on first load
