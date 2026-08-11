@@ -605,7 +605,7 @@
         padding: 10px 6px;
         border: 1px solid var(--theme-border-soft);
         border-radius: 12px;
-        background: var(--theme-bg-input, rgba(0,0,0,0.03));
+        background: var(--theme-bg-muted);
         cursor: pointer;
         min-height: 56px;
         transition: background 0.15s, transform 0.1s;
@@ -619,8 +619,8 @@
     .classic-nav-label {
         font-size: 11px;
         font-weight: 500;
-        color: var(--theme-text, #1a202c);
-        opacity: 0.8;
+        color: var(--theme-text-secondary, #475569);
+        opacity: 1;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -644,15 +644,15 @@
         padding: 8px 10px;
         font-size: 16px;
         cursor: pointer;
-        min-height: 40px;
-        min-width: 40px;
+        min-height: 44px;
+        min-width: 44px;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
         transition: background 0.15s;
         -webkit-tap-highlight-color: transparent;
-        color: var(--theme-text, #1a202c);
+        color: var(--theme-text-primary, #0f172a);
     }
     .classic-nav-tool:hover { background: var(--theme-bg-hover, rgba(0,0,0,0.06)); }
 
@@ -786,6 +786,72 @@
         border-radius: 18px;
         border: 1px solid rgba(148, 163, 184, 0.18);
         background: linear-gradient(135deg, rgba(246, 249, 252, 0.98), rgba(251, 252, 254, 1));
+    }
+
+    .classic-next-step {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin: 0 0 18px;
+        padding: 14px 16px;
+        border: 1px solid color-mix(in srgb, var(--theme-accent) 24%, var(--theme-border-soft));
+        border-radius: 18px;
+        background: linear-gradient(135deg, var(--theme-accent-soft), var(--theme-bg-card));
+    }
+
+    .classic-next-step-copy {
+        min-width: 0;
+        display: grid;
+        gap: 3px;
+    }
+
+    .classic-next-step-label {
+        color: var(--theme-text-muted);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    .classic-next-step-status {
+        color: var(--theme-text-primary);
+        font-size: 14px;
+        font-weight: 750;
+        line-height: 1.35;
+    }
+
+    #classicNextActionBtn {
+        flex: 0 0 auto;
+        min-height: 48px;
+        padding-inline: 20px;
+        white-space: nowrap;
+        background: #1565c0;
+        color: #ffffff;
+        font-weight: 700;
+    }
+    #classicNextActionBtn:hover { background: #0d47a1; }
+
+    @media (max-width: 600px) {
+        .classic-next-step {
+            align-items: stretch;
+            flex-direction: column;
+            gap: 12px;
+        }
+        #classicNextActionBtn { width: 100%; }
+    }
+
+    /* The workflow keeps expert actions, but the phase CTA above is the sole
+       primary-looking recommendation. */
+    .classic-primary-actions #btnAiTranslate,
+    .classic-primary-actions #btnMainTts,
+    .classic-main-card .l3-workspace-actions .btn-primary {
+        background: var(--theme-bg-card) !important;
+        border: 1px solid var(--theme-border-medium) !important;
+        color: var(--theme-text-primary) !important;
+        box-shadow: none !important;
+        filter: none !important;
+        transform: none !important;
     }
 
     .classic-primary-actions {
@@ -3587,6 +3653,7 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   border: 1px solid var(--theme-border-medium);
   border-radius: 8px;
   padding: 10px 14px;
+  min-height: 48px;
   font-weight: 700;
   cursor: pointer;
   transition: transform 0.05s ease, box-shadow 0.15s ease, background 0.15s ease;
@@ -10262,6 +10329,11 @@ body:not(.theme-light) .v3-heatmap-cell {
   color: #475569; text-decoration: none; transition: color 0.15s;
 }
 .app-footer a:hover { color: #0f172a; text-decoration: underline; }
+body.theme-dark .app-footer { border-color: var(--theme-border-soft); color: var(--theme-text-muted); }
+body.theme-dark .app-footer a { color: var(--theme-text-secondary); }
+body.theme-dark .app-footer a:hover { color: var(--theme-text-primary); }
+body.theme-dark .app-footer .privacy-badge { background: #052e16; border-color: #166534; color: #86efac; }
+#byokOnboardingGuideLink.btn-primary { background: #0b3d75 !important; color: #ffffff !important; font-weight: 700; }
 .app-footer-version {
   font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
   font-size: 11px; color: #94a3b8; cursor: pointer; user-select: none;
@@ -11101,13 +11173,13 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     </div>
     </details>
 
-    <div class="main-card classic-main-card">
+    <div class="main-card classic-main-card" role="main">
         <div class="classic-shell">
             <div class="classic-shell-head">
                 <div class="classic-shell-copy">
                     <div class="classic-header-top">
                         <div class="classic-eyebrow" data-i18n="classic.eyebrow">Classic Mode</div>
-                        <button id="v3ModeToggle" class="v3-mode-toggle" onclick="v3IdeModeToggle()" title="Переключить режим интерфейса" data-i18n="classic.ideMode">🖥️ IDE режим</button>
+                        <button id="v3ModeToggle" class="v3-mode-toggle" onclick="v3IdeModeToggle()" data-i18n-title="classic.ideModeTitle" title="Переключить режим интерфейса" data-i18n="classic.ideMode">🖥️ IDE режим</button>
                     </div>
                     <h2 class="classic-screen-title" data-i18n="classic.title">Текст для озвучки и перевода</h2>
                     <p class="classic-screen-subtitle" data-i18n="classic.subtitle">Сценарий: исходный текст → обработка → результат → экспорт и работа по строкам.</p>
@@ -11140,7 +11212,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                   <!-- Row 2: Utilities -->
                   <div class="classic-nav-utility">
                     <div class="lang-select-wrap classic-lang-wrap classic-lang-compact">
-                      <select id="appLangSelect" class="lang-select" onchange="appSetLocale(this.value)" aria-label="Язык интерфейса" title="Язык интерфейса">
+                      <select id="appLangSelect" class="lang-select" onchange="appSetLocale(this.value)" data-i18n-aria-label="classic.interfaceLanguage" data-i18n-title="classic.interfaceLanguage" aria-label="Язык интерфейса" title="Язык интерфейса">
                         <option value="ru">Рус</option>
                         <option value="en">Eng</option>
                         <option value="he">עב</option>
@@ -11161,6 +11233,14 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
             <!-- AA4-4b — pending agent-proposal chip (count only; agent TEXT renders solely on
                  the enforced-CSP agent-access page). Quiet-fail hidden without session/at zero. -->
             <a id="v3ClassicAgentProposals" class="classic-agent-cta" href="/agent-access.html" hidden></a>
+
+            <section id="classicNextStep" class="classic-next-step" aria-labelledby="classicNextStepLabel" aria-live="polite">
+                <div class="classic-next-step-copy">
+                    <span id="classicNextStepLabel" class="classic-next-step-label" data-i18n="classic.nextStepLabel">Следующий шаг</span>
+                    <span id="classicNextStepStatus" class="classic-next-step-status" data-i18n="classic.nextStepStatusEmpty">Добавьте материал или введите текст.</span>
+                </div>
+                <button id="classicNextActionBtn" type="button" class="btn-primary" data-studio-primary="true" data-action="add" onclick="classicRunNextAction()" data-i18n="classic.nextAction.add">Добавить материал</button>
+            </section>
 
             <div class="classic-workspace-grid">
                 <div class="classic-workflow-column">
@@ -11208,7 +11288,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                             <p id="l3WorkspaceStale" hidden data-i18n="studio.mediaPackage.workspaceStale">Таблица использует предыдущую версию. Ваши новые правки сохранены отдельно.</p>
                             <div class="l3-workspace-actions">
                                 <button type="button" id="l3WorkspaceReopenBtn" class="btn-primary" onclick="StudioMediaPackage.openActiveWorkspace()" data-i18n="studio.mediaPackage.workspaceReopen">Открыть</button>
-                                <button type="button" class="btn-secondary" onclick="StudioMediaPackage.openWorkspaceLibrary()" data-i18n="studio.mediaPackage.workspaceAll">Все материалы</button>
+                                <button type="button" class="btn-secondary" onclick="StudioMediaPackage.openWorkspaceLibrary()" data-i18n="studio.mediaPackage.workspaceLibrary">Черновики</button>
                                 <button type="button" class="btn-secondary" onclick="StudioPortableLearningPackage.open({view:'materials',intent:'move-device'})" data-i18n="studio.importCenter.button">Импорт-центр</button>
                             </div>
                         </section>
@@ -11217,7 +11297,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                             <button type="button" class="btn-secondary" onclick="window.StudioImport && StudioImport.open()">📥 <span data-i18n="studio.import.button">Добавить материал</span></button>
                             <button type="button" id="v3RetellEntryBtn" class="btn-secondary" onclick="window.StudioRetell && StudioRetell.openFromComposer()">✨ <span data-i18n="studio.retell.button">Упростить до моего уровня</span></button>
                             <button type="button" id="v3PortableGlobalBtn" class="btn-secondary" onclick="StudioPortableLearningPackage.open({view:'overview',textId:(window.v3ActiveTextId||null)})">↔ <span data-i18n="studio.importCenter.globalEntry">Импорт / перенос / восстановление</span></button>
-                            <button type="button" id="l3WorkspaceLibraryBtn" class="btn-secondary" onclick="StudioMediaPackage.openWorkspaceLibrary()" hidden>✎ <span data-i18n="studio.mediaPackage.workspaceLibrary">Материалы</span> <span id="l3WorkspaceLibraryCount">0</span></button>
+                            <button type="button" id="l3WorkspaceLibraryBtn" class="btn-secondary" onclick="StudioMediaPackage.openWorkspaceLibrary()" hidden>✎ <span data-i18n="studio.mediaPackage.workspaceLibrary">Черновики</span> <span id="l3WorkspaceLibraryCount">0</span></button>
                         </div>
 
                         <div id="textChangedNotice" data-i18n="classic.textChangedNotice">
@@ -12932,9 +13012,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=139"></script>
-    <script src="/i18n/locales/en.js?v=139"></script>
-    <script src="/i18n/locales/he.js?v=139"></script>
+    <script src="/i18n/locales/ru.js?v=140"></script>
+    <script src="/i18n/locales/en.js?v=140"></script>
+    <script src="/i18n/locales/he.js?v=140"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13106,7 +13186,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.344";
+    window.APP_VERSION = "3.11.345";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -17059,6 +17139,9 @@ function v3NotesRefreshAllButtons() {
     const classicComposerPanelMetaEl = document.getElementById("classicComposerPanelMeta");
     const classicResultPanelMetaEl = document.getElementById("classicResultPanelMeta");
     const classicPrimaryHintEl = document.getElementById("classicPrimaryHint");
+    const classicNextStepEl = document.getElementById("classicNextStep");
+    const classicNextStepStatusEl = document.getElementById("classicNextStepStatus");
+    const classicNextActionBtnEl = document.getElementById("classicNextActionBtn");
     const classicResultFreshChipEl = document.getElementById("classicResultFreshChip");
     const classicResultSaveChipEl = document.getElementById("classicResultSaveChip");
     const classicResultExportChipEl = document.getElementById("classicResultExportChip");
@@ -20472,6 +20555,68 @@ updatePlaylistButtonUI();
         return n + " " + many;
     }
 
+    function classicCurrentImportMeta(text) {
+        const meta = window.v3LastImportMeta;
+        if (!meta || String(meta.textSnapshot || "").trim() !== text) return null;
+        return meta;
+    }
+
+    function classicSourceDescriptor(text, isSaved, sourceMeta) {
+        if (isSaved) return { text: t("classic.sourceLibrary"), tone: "success" };
+        const meta = classicCurrentImportMeta(text);
+        if (meta) {
+            if (meta.kind === "captions") {
+                const fromYoutube = meta.method === "captions-panel" ||
+                    !!(meta.captions && meta.captions.captions && meta.captions.captions.origin === "paste");
+                return { text: t(fromYoutube ? "classic.source.youtubeCaptions" : "classic.source.captions"), tone: "success" };
+            }
+            if (meta.kind === "audio") return { text: t("classic.source.media"), tone: "success" };
+            if (meta.kind === "url") return { text: t("classic.source.article"), tone: "success" };
+            if (["file", "docx", "pdf", "image"].includes(meta.kind)) return { text: t("classic.source.file"), tone: "success" };
+        }
+        const normalizedSource = String(sourceMeta || "").toLowerCase();
+        if (normalizedSource.includes("кэш") || normalizedSource.includes("cache")) {
+            return { text: t("classic.sourceCache"), tone: "info" };
+        }
+        return { text: t("classic.sourceLocal"), tone: "info" };
+    }
+
+    function classicRunNextAction() {
+        if (!classicNextActionBtnEl) return;
+        const action = classicNextActionBtnEl.dataset.action;
+        if (action === "add" && window.StudioImport) return window.StudioImport.open();
+        if (action === "correct") {
+            const reopen = document.getElementById("l3WorkspaceReopenBtn");
+            if (reopen) return reopen.click();
+        }
+        if (action === "table" && btnAiTranslateEl) return btnAiTranslateEl.click();
+        if (action === "save") {
+            const save = document.getElementById("btnSaveToLibrary");
+            if (save && !save.disabled) return save.click();
+        }
+        if (action === "library" && typeof v3LibraryOpen === "function") return v3LibraryOpen();
+    }
+    window.classicRunNextAction = classicRunNextAction;
+
+    let classicSourceRefreshSerial = 0;
+    async function classicRefreshSourceContext() {
+        const serial = ++classicSourceRefreshSerial;
+        const before = typeof getText === "function" ? String(getText() || "").trim() : "";
+        if (!before || typeof v3ResolveMediaContext !== "function") return classicSyncStateUi();
+        // A still-exact import passport (including a non-media article/file) is already the
+        // strongest source fact. The media resolver must not erase it merely because the
+        // Add Material shelf refreshed in the background.
+        if (classicCurrentImportMeta(before)) return classicSyncStateUi();
+        try { await v3ResolveMediaContext(); } catch (_) {}
+        const after = typeof getText === "function" ? String(getText() || "").trim() : "";
+        if (serial === classicSourceRefreshSerial && before === after) classicSyncStateUi();
+    }
+
+    document.addEventListener("studio:source-context-changed", function (event) {
+        if (event && event.detail && event.detail.resolve === false) classicSyncStateUi();
+        else classicRefreshSourceContext();
+    });
+
     function classicRememberMobileDisclosureChoice(panel) {
         if (!panel || panel.dataset.choiceBound === "1") return;
         panel.dataset.choiceBound = "1";
@@ -20645,14 +20790,14 @@ updatePlaylistButtonUI();
             !!(btnAudioPrefetchEl && btnAudioPrefetchEl.disabled);
         const exportReady = hasTable && !tableIsStale && !allDisabled;
         const workspaceHint = !hasTable
-            ? "Сначала соберите таблицу"
+            ? t("classic.workspaceHintNoTable")
             : tableIsStale
-                ? (classicFormatCount(rowCount, "строка", "строки", "строк") + " • требуется пересборка")
+                ? t("classic.workspaceHintRebuild", { count: rowCount })
                 : exportReady
-                    ? (classicFormatCount(rowCount, "строка", "строки", "строк") + " • экспорт готов")
+                    ? t("classic.workspaceHintExport", { count: rowCount })
                     : isSaved
-                        ? (classicFormatCount(rowCount, "строка", "строки", "строк") + " • Library")
-                        : (classicFormatCount(rowCount, "строка", "строки", "строк") + " • черновик");
+                        ? t("classic.workspaceHintLibrary", { count: rowCount })
+                        : t("classic.workspaceHintDraft", { count: rowCount });
 
         let inputText = t("classic.chipInputEmpty");
         let inputTone = "info";
@@ -20669,13 +20814,13 @@ updatePlaylistButtonUI();
 
         if (classicComposerPanelMetaEl) {
             if (!text) {
-                classicComposerPanelMetaEl.textContent = "Пусто";
+                classicComposerPanelMetaEl.textContent = t("classic.composerMetaEmpty");
             } else if (tableIsStale || audioIsStale) {
-                classicComposerPanelMetaEl.textContent = classicFormatCount(textCount, "символ", "символа", "символов") + " • требует обновления";
+                classicComposerPanelMetaEl.textContent = t("classic.composerMetaNeedsUpdate", { count: textCount });
             } else if (hasTable) {
-                classicComposerPanelMetaEl.textContent = classicFormatCount(textCount, "символ", "символа", "символов") + " • готов";
+                classicComposerPanelMetaEl.textContent = t("classic.composerMetaReady", { count: textCount });
             } else {
-                classicComposerPanelMetaEl.textContent = classicFormatCount(textCount, "символ", "символа", "символов");
+                classicComposerPanelMetaEl.textContent = t("classic.composerMetaChars", { count: textCount });
             }
         }
 
@@ -20700,28 +20845,20 @@ updatePlaylistButtonUI();
 
         if (classicResultPanelMetaEl) {
             if (!hasTable) {
-                classicResultPanelMetaEl.textContent = "Пока нет таблицы";
+                classicResultPanelMetaEl.textContent = t("classic.resultMetaEmpty");
             } else if (tableIsStale) {
-                classicResultPanelMetaEl.textContent = classicFormatCount(rowCount, "строка", "строки", "строк") + " • устарела";
+                classicResultPanelMetaEl.textContent = t("classic.resultMetaStale", { count: rowCount });
             } else if (isSaved) {
-                classicResultPanelMetaEl.textContent = classicFormatCount(rowCount, "строка", "строки", "строк") + " • сохранено";
+                classicResultPanelMetaEl.textContent = t("classic.resultMetaSaved", { count: rowCount });
             } else {
-                classicResultPanelMetaEl.textContent = classicFormatCount(rowCount, "строка", "строки", "строк") + " • актуально";
+                classicResultPanelMetaEl.textContent = t("classic.resultMetaCurrent", { count: rowCount });
             }
         }
 
-        let sourceText = t("classic.sourceLocal");
-        let sourceTone = "info";
-        if (isSaved) {
-            sourceText = t("classic.sourceLibrary");
-            sourceTone = "success";
-        } else if (sourceMeta.indexOf("кэш") >= 0 || sourceMeta.indexOf("cache") >= 0) {
-            sourceText = t("classic.sourceCache");
-            sourceTone = "info";
-        }
-        classicSetChip(classicSourceStateChipEl, sourceText, sourceTone);
+        const source = classicSourceDescriptor(text, isSaved, sourceMeta);
+        classicSetChip(classicSourceStateChipEl, source.text, source.tone);
 
-        let primaryPriority = "table";
+        let primaryPriority = "secondary";
         if (btnAiTranslateEl) {
             if (!text) btnAiTranslateEl.textContent = t("classic.buildTable");
             else if (tableIsStale) btnAiTranslateEl.textContent = t("classic.rebuildTable");
@@ -20736,12 +20873,31 @@ updatePlaylistButtonUI();
             else btnMainTtsEl.textContent = t("classic.speak");
         }
 
-        if (text && hasTable && !tableIsStale && !hasAudio) {
-            primaryPriority = "tts";
-        }
-
         if (classicPrimaryBarEl) {
             classicPrimaryBarEl.setAttribute("data-priority", primaryPriority);
+        }
+
+        if (classicNextActionBtnEl && classicNextStepStatusEl) {
+            const activeWorkspace = document.getElementById("l3WorkspaceCard");
+            let action = "add";
+            let statusKey = "classic.nextStepStatusEmpty";
+            if (text && !hasTable && activeWorkspace && !activeWorkspace.hidden) {
+                action = "correct";
+                statusKey = "classic.nextStepStatusCorrect";
+            } else if (text && (!hasTable || tableIsStale)) {
+                action = "table";
+                statusKey = tableIsStale ? "classic.nextStepStatusRebuild" : "classic.nextStepStatusTable";
+            } else if (hasTable && !tableIsStale && !isSaved) {
+                action = "save";
+                statusKey = "classic.nextStepStatusSave";
+            } else if (hasTable && !tableIsStale && isSaved) {
+                action = "library";
+                statusKey = "classic.nextStepStatusLibrary";
+            }
+            classicNextActionBtnEl.dataset.action = action;
+            classicNextActionBtnEl.textContent = t("classic.nextAction." + action);
+            classicNextStepStatusEl.textContent = t(statusKey);
+            if (classicNextStepEl) classicNextStepEl.dataset.phase = action;
         }
 
         if (classicPrimaryHintEl) {
@@ -32957,6 +33113,10 @@ function v3UpdateTtsCardStatus() {
   const voice    = document.getElementById("voiceSelect");
   const rate     = document.getElementById("rateRange");
   const parts = [];
+  if (voice && voice.options) {
+    const auto = [...voice.options].find((option) => option.value === "");
+    if (auto) auto.textContent = t("classic.voiceAuto");
+  }
   // Provider — ALWAYS shown (user needs to see "what's powering this"
   // without expanding). Was previously hidden on default — revised after
   // dogfooding showed the live state felt incomplete without it.
@@ -32981,6 +33141,12 @@ function v3UpdateTranslationCardStatus() {
   const translit = document.getElementById("translitProfileSelect");
   const font     = document.getElementById("hebrewFontSelect");
   const parts = [];
+  if (translit && translit.options) {
+    const sbl = [...translit.options].find((option) => option.value === "sbl");
+    const ruPhonetic = [...translit.options].find((option) => option.value === "ru-phonetic");
+    if (sbl) sbl.textContent = t("classic.translitSbl");
+    if (ruPhonetic) ruPhonetic.textContent = t("classic.translitRuPhonetic");
+  }
   // Provider — always shown.
   const provTxt = _v3OptText(provider);
   if (provTxt) parts.push(provTxt);
@@ -49244,11 +49410,11 @@ document.addEventListener("i18n:changed", function () {
           <div class="v3-import-hint" data-i18n="studio.import.captionsPasteHint">Копируйте панель целиком: для 20-минутного ролика это ~220 строк таблицы.</div>
           <button type="button" class="btn-secondary" id="v3ImportCaptionsPasteBtn"
                   onclick="StudioImport.useCaptionsPaste()" data-i18n="studio.import.captionsPasteBtn">Использовать расшифровку</button>
-          <label class="v3-import-file-btn">
-            <span data-i18n="studio.import.captionsFileBtn">Файл субтитров (.vtt / .srt)</span>
-            <input type="file" id="v3ImportCaptionsFile" accept=".vtt,.srt,text/vtt" hidden
-                   onchange="StudioImport.onCaptionsFileChosen(event)">
-          </label>
+          <button type="button" class="v3-import-file-btn" id="v3ImportCaptionsPicker"
+                  onclick="document.getElementById('v3ImportCaptionsFile').click()"
+                  data-i18n="studio.import.captionsFileBtn">Файл субтитров (.vtt / .srt)</button>
+          <input type="file" id="v3ImportCaptionsFile" accept=".vtt,.srt,text/vtt" hidden
+                 onchange="StudioImport.onCaptionsFileChosen(event)">
         </div>
       </div>
 
@@ -49257,7 +49423,7 @@ document.addEventListener("i18n:changed", function () {
           <div class="l3-workspace-shelf-head"><strong id="l3WorkspaceShelfTitle" data-i18n="studio.mediaPackage.workspaceShelfTitle">Продолжить работу</strong><span data-i18n="studio.mediaPackage.workspaceShelfLocal">На устройстве</span></div>
           <div id="l3WorkspaceShelfList" class="l3-workspace-shelf-list"></div>
           <p id="l3WorkspaceShelfEmpty" class="l3-workspace-shelf-empty" hidden></p>
-          <button type="button" class="l3-workspace-all btn-secondary" onclick="StudioPortableLearningPackage.open({view:'materials'})" data-i18n="studio.mediaPackage.workspaceAll">Все материалы</button>
+          <button type="button" class="l3-workspace-all btn-secondary" onclick="StudioPortableLearningPackage.open({view:'materials'})" data-i18n="studio.mediaPackage.workspaceImportCenter">Импорт-центр</button>
         </section>
         <div>
           <label class="input-label" style="display:block; margin-bottom:6px;" data-i18n="studio.import.fileLabelPhoto">Фото, PDF или Word (до 6 МБ)</label>
@@ -49289,11 +49455,11 @@ document.addEventListener("i18n:changed", function () {
             <div class="v3-import-hint" data-i18n="studio.import.localAsrPrivacyHint">Файл идёт только в 127.0.0.1; переход в Gemini возможен лишь отдельным выбором.</div>
             <div id="v3ImportLocalAsrPairStatus" class="v3-local-asr-pair-status" aria-live="polite" hidden></div>
           </div>
-          <label class="v3-import-file-btn">
-            <span data-i18n="studio.import.audioBtn">Медиа на иврите → транскрипт</span>
-            <input type="file" id="v3ImportAudio" accept="audio/*,video/*,.m4a,.oga,.opus" hidden
-                   onchange="StudioImport.onAudioChosen(event)">
-          </label>
+          <button type="button" class="v3-import-file-btn" id="v3ImportAudioPicker"
+                  onclick="document.getElementById('v3ImportAudio').click()"
+                  data-i18n="studio.import.audioBtn">Медиа на иврите → транскрипт</button>
+          <input type="file" id="v3ImportAudio" accept="audio/*,video/*,.m4a,.oga,.opus" hidden
+                 onchange="StudioImport.onAudioChosen(event)">
           <div id="v3ImportAudioInfo" hidden>
             <span id="v3ImportAudioMeta"></span>
             <section id="v3ImportMediaReadiness" class="v3-media-readiness" hidden aria-live="polite">

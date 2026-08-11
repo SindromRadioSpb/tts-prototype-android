@@ -719,6 +719,8 @@
   // embedded YouTube player for capability preview. Канон:
   // docs/planning/STUDIO_INGEST_W2_S5A_CAPTIONS_KARAOKE_DESIGN_2026_07_27.md.
   var pendingCaptions = null; // {parsed, origin, fileName, video}
+  var previouslyFocusedElement = null;
+  var importInertedElements = [];
   var ytAdapter = null;       // адаптер плеера, если ролик встроен
   var mountGen = 0;           // W2-S5a.1 T3: bumped by close() (and by a fresh mountVideo()) to
                                // invalidate an in-flight mountVideo() still awaiting create() —
@@ -1839,9 +1841,62 @@
   };
   function errKey(code) { return ERROR_KEY[code] || "studio.import.errGeneric"; }
 
+  function importFocusable(modal) {
+    if (!modal) return [];
+    return Array.from(modal.querySelectorAll(
+      "button:not([disabled]), a[href], input:not([disabled]):not([type='hidden']), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])"
+    )).filter(function (element) {
+      return !element.hidden && element.offsetParent !== null && !element.closest("[hidden]");
+    });
+  }
+
+  function setImportBackgroundInert(modal) {
+    importInertedElements = [];
+    Array.from(document.body.children).forEach(function (element) {
+      if (element === modal || element.contains(modal) || element.tagName === "SCRIPT" || element.inert) return;
+      element.inert = true;
+      importInertedElements.push(element);
+    });
+  }
+
+  function restoreImportBackground() {
+    importInertedElements.forEach(function (element) { element.inert = false; });
+    importInertedElements = [];
+  }
+
+  function onImportModalKeydown(event) {
+    var modal = $("v3ImportModal");
+    if (!modal || modal.classList.contains("hidden")) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      close();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    var focusable = importFocusable(modal);
+    if (!focusable.length) return;
+    var first = focusable[0], last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
   function open() {
     var m = $("v3ImportModal");
-    if (m) m.classList.remove("hidden");
+    if (m) {
+      var wasHidden = m.classList.contains("hidden");
+      if (wasHidden) previouslyFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      m.classList.remove("hidden");
+      if (wasHidden) setImportBackgroundInert(m);
+      if (m.dataset.focusContractBound !== "1") {
+        m.dataset.focusContractBound = "1";
+        m.addEventListener("keydown", onImportModalKeydown);
+      }
+    }
     var pw = $("v3ImportPreviewWrap");
     if (pw) pw.hidden = true;
     var ai = $("v3ImportAudioInfo");
@@ -1870,9 +1925,14 @@
     switchTab("url");
     resetDownrHandoff();
     if (window.StudioMediaPackage && window.StudioMediaPackage.refreshWorkspaceUi) window.StudioMediaPackage.refreshWorkspaceUi();
+    window.setTimeout(function () {
+      var selectedTab = m && m.querySelector("[role='tab'][aria-selected='true']");
+      if (selectedTab) selectedTab.focus({ preventScroll: true });
+    }, 0);
   }
   function close() {
     var m = $("v3ImportModal");
+    var wasOpen = !!(m && !m.classList.contains("hidden"));
     if (m) m.classList.add("hidden");
     cancelLocalAsr();
     if (mediaJobController) mediaJobController.abort();
@@ -1883,6 +1943,14 @@
     // possibly playing audio) mounted indefinitely.
     teardownVideo();
     pendingCaptions = null;
+    if (wasOpen) {
+      restoreImportBackground();
+      var returnTo = previouslyFocusedElement;
+      previouslyFocusedElement = null;
+      if (returnTo && returnTo.isConnected && typeof returnTo.focus === "function") {
+        window.setTimeout(function () { returnTo.focus({ preventScroll: true }); }, 0);
+      }
+    }
   }
 
   async function fetchUrl() {
@@ -2079,6 +2147,7 @@
     // baseTextId; clear that pointer immediately so Save cannot UPDATE an unrelated card.
     try { if (window.v3SessionSet) window.v3SessionSet(importSessionResetPatch()); } catch (_) {}
     window.v3LastImportMeta = importMeta;
+    document.dispatchEvent(new CustomEvent("studio:source-context-changed", { detail: { resolve: false } }));
     close();
     toast(pending.warnings && pending.warnings.length ? "studio.import.warnCheck" : "studio.import.done",
           pending.warnings && pending.warnings.length ? "warning" : "success");

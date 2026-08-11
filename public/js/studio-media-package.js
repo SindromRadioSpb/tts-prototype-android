@@ -329,6 +329,12 @@
       var active = activeRow ? workspaceViewModel(activeRow, Object.assign({}, activeWorkspaceOptions, { active: true })) : null;
       var items = rows.map(function (row) { return workspaceViewModel(row, { active: !!active && row.package_id === active.package_id && row.corrected_track_id === active.track_id }); });
       renderActiveWorkspace(active); renderWorkspaceShelf(items);
+      // Let an in-flight import finish landing its exact text passport before the read-only
+      // resolver runs. Dispatching synchronously here could inspect the previous composer text
+      // while setActiveWorkspace() is still inside useText().
+      window.setTimeout(function () {
+        document.dispatchEvent(new CustomEvent('studio:source-context-changed', { detail: { resolve: true } }));
+      }, 0);
       return { active: active, items: items };
     } catch (_) {
       if (serial === workspaceRefreshSerial) { renderActiveWorkspace(null); renderWorkspaceShelf([]); }
@@ -407,8 +413,9 @@
     return workspace;
   }
   async function openWorkspaceLibrary() {
-    if (typeof window === 'undefined' || !window.StudioPortableLearningPackage) return;
-    return window.StudioPortableLearningPackage.open({ view: 'materials' });
+    if (typeof window === 'undefined' || !window.StudioImport) return;
+    window.StudioImport.open();
+    return window.StudioImport.switchTab("file");
   }
   async function notifyRevision(trackId, revision) {
     if (activeWorkspaceRef && activeWorkspaceRef.track_id === trackId && revision) {
