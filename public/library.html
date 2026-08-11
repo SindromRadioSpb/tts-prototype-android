@@ -1517,7 +1517,7 @@
     .db-streak-cal { opacity: .55; }
     .db-streak[role="button"]:hover .db-streak-cal, .db-streak[role="button"]:focus-visible .db-streak-cal { opacity: 1; }
     .room-study-cal {
-      width: auto !important; flex: none; appearance: none; cursor: pointer; line-height: 1;
+      width: 44px !important; min-width: 44px; height: 44px; flex: none; appearance: none; cursor: pointer; line-height: 1;
       background: var(--bg-muted); border: 1px solid var(--border-soft); border-radius: 8px;
       padding: 4px 8px; font-size: 15px; margin-inline-start: 8px;
     }
@@ -1526,7 +1526,7 @@
        Pill buttons are auto-width (escape the global button{width:100%} trap); break only between pills. */
     .room-train-channels { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 0 0 12px; }
     .room-train-chseg {
-      width: auto !important; flex: 0 0 auto; display: inline-block; padding: 5px 11px;
+      width: auto !important; min-height: 44px; flex: 0 0 auto; display: inline-block; padding: 9px 12px;
       border-radius: 999px; font-size: 12.5px; cursor: pointer; white-space: nowrap;
       background: var(--bg-card); border: 1px solid var(--border-soft); color: var(--text-secondary);
     }
@@ -1593,11 +1593,11 @@
     .room-study.room-study-open .room-study-card { transform: translateY(0); }
     @media (prefers-reduced-motion: reduce) { .room-study-card { transition: none; } }
     .room-study-x {
-      position: absolute; top: 12px; left: 12px; appearance: none; cursor: pointer;
+      position: absolute; top: 8px; left: 8px; appearance: none; cursor: pointer;
       background: var(--bg-muted); border: 1px solid var(--border-soft); color: var(--text-secondary);
-      border-radius: 8px; width: 30px; height: 30px; font-size: 14px; line-height: 1;
+      border-radius: 10px; width: 44px; min-width: 44px; height: 44px; min-height: 44px; font-size: 15px; line-height: 1;
     }
-    .room-study-head { margin-bottom: 10px; padding-inline-end: 38px; }
+    .room-study-head { margin-bottom: 10px; padding-inline: 48px; }
     .room-study-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
     .room-study-title { font-size: 18px; font-weight: 800; }
     .room-study-total { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
@@ -1606,7 +1606,7 @@
     /* A+B+C+D controls */
     .room-study-controls { display: flex; flex-direction: column; gap: 9px; margin: 10px 0 8px; }
     .room-study-segrow { display: inline-flex; gap: 0; border: 1px solid var(--border-soft); border-radius: 9px; overflow: hidden; align-self: flex-start; }
-    .room-study-seg { appearance: none; cursor: pointer; padding: 7px 13px; border: none; background: var(--bg-muted); color: var(--text-secondary); font-size: 12.5px; font-weight: 600; }
+    .room-study-seg { appearance: none; cursor: pointer; min-height: 44px; padding: 9px 13px; border: none; background: var(--bg-muted); color: var(--text-secondary); font-size: 12.5px; font-weight: 600; }
     .room-study-seg.on { background: var(--accent); color: var(--accent-contrast); }
     .room-study-selrow { display: flex; flex-wrap: wrap; gap: 10px 16px; }
     .room-study-sel-lab { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
@@ -1622,7 +1622,7 @@
     .room-study-lead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 9px; }
     .room-study-hewrap { display: inline-flex; align-items: center; gap: 8px; flex: none; flex-wrap: wrap; cursor: pointer; }
     .room-study-he { font-size: 23px; font-weight: 700; line-height: 1.2; }
-    .room-study-speak { appearance: none; cursor: pointer; flex: none; width: 30px; height: 30px; padding: 0; line-height: 1;
+    .room-study-speak { appearance: none; cursor: pointer; flex: none; width: 44px; min-width: 44px; height: 44px; min-height: 44px; padding: 0; line-height: 1;
       border-radius: 8px; border: 1px solid var(--border-soft); background: var(--bg-muted); font-size: 14px; }
     .room-study-speak:hover { border-color: var(--accent); background: var(--accent); }
     .room-study-speak:active { transform: scale(.94); }
@@ -1638,6 +1638,7 @@
     /* 4.3b — «Список / Тренировка» toggle + cloze training screen */
     .room-study-modetoggle { display: inline-flex; gap: 0; border: 1px solid var(--border-soft); border-radius: 9px; overflow: hidden; margin: 4px 0 10px; }
     .room-train-progress { font-size: 11.5px; color: var(--text-faint); margin: 2px 0 12px; }
+    .room-train-saveerror { margin: 0 0 12px; padding: 10px 12px; border: 1px solid rgba(248,81,73,.55); border-radius: 10px; background: rgba(248,81,73,.10); color: var(--text-primary); font-size: 13px; line-height: 1.45; }
     .room-train-clozewrap { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
     .room-train-cloze { flex: 1 1 auto; min-width: 0; font-size: 22px; font-weight: 600; line-height: 1.5; }
     .room-train-rowspeak { flex: none; margin-top: 3px; }
@@ -1656,7 +1657,7 @@
       background: var(--bg-card); color: var(--text-primary); }
     .room-train-input.room-train-ok { border-color: #3fb950; }
     .room-train-input.room-train-bad { border-color: #f85149; }
-    .room-train-submit { appearance: none; cursor: pointer; flex: none; padding: 0 16px; border-radius: 10px; border: 1px solid var(--accent);
+    .room-train-submit { appearance: none; cursor: pointer; flex: none; min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--accent);
       background: var(--accent); color: var(--accent-contrast); font-size: 14px; font-weight: 700; }
     /* C1 — tap-letters production tier */
     .room-train-assemblehint { font-size: 12px; color: var(--text-faint); margin: 2px 0 8px; }
@@ -1667,11 +1668,11 @@
     .room-train-builtch { cursor: pointer; font-size: 22px; font-weight: 700; line-height: 1; padding: 4px 8px; border-radius: 7px;
       background: var(--bg-card); border: 1px solid var(--border-soft); }
     .room-train-tiles { display: flex; flex-wrap: wrap; gap: 8px; }
-    .room-train-tile { appearance: none; cursor: pointer; min-width: 42px; padding: 10px 12px; border-radius: 10px;
+    .room-train-tile { appearance: none; cursor: pointer; min-width: 44px; min-height: 44px; padding: 10px 12px; border-radius: 10px;
       border: 1px solid var(--border-soft); background: var(--bg-muted); color: var(--text-primary); font-size: 22px; font-weight: 700; line-height: 1; }
     .room-train-tile:hover:not(:disabled) { border-color: var(--accent); }
     .room-train-tile.used, .room-train-tile:disabled { opacity: .28; cursor: default; }
-    .room-train-skip { appearance: none; cursor: pointer; display: block; margin: 12px auto 0; padding: 7px 14px; border-radius: 9px;
+    .room-train-skip { appearance: none; cursor: pointer; display: block; min-height: 44px; margin: 12px auto 0; padding: 9px 16px; border-radius: 10px;
       border: 1px solid var(--border-soft); background: transparent; color: var(--text-secondary); font-size: 12.5px; font-weight: 600; }
     .room-train-skip:hover { border-color: var(--accent); color: var(--text-primary); }
     .room-train-reveal { margin-top: 16px; padding: 14px; border-radius: 12px; border: 1px solid var(--border-soft); background: var(--bg-muted); }
@@ -1687,14 +1688,25 @@
     .room-train-ansgloss { font-size: 14px; color: var(--text-secondary); margin-top: 3px; }
     .room-train-moved { font-size: 12.5px; font-weight: 700; color: var(--accent); margin-top: 6px; }
     .room-train-ctx { font-size: 12.5px; color: var(--text-faint); margin-top: 8px; font-style: italic; }
+    .room-train-source { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+      margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-soft); }
+    .room-train-source-label { min-width: 0; flex: 1 1 170px; color: var(--text-secondary); font-size: 12.5px; overflow-wrap: anywhere; }
+    .room-train-source-open { appearance: none; cursor: pointer; flex: 0 0 auto; min-height: 44px; padding: 9px 13px;
+      border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-card); color: var(--text-primary); font-size: 12.5px; font-weight: 700; }
     .room-train-actions { display: flex; gap: 8px; margin-top: 14px; }
-    .room-train-next { appearance: none; cursor: pointer; flex: 1 1 auto; padding: 11px; border-radius: 10px; border: 1px solid var(--accent);
+    .room-train-next { appearance: none; cursor: pointer; flex: 1 1 auto; min-height: 44px; padding: 11px; border-radius: 10px; border: 1px solid var(--accent);
       background: var(--accent); color: var(--accent-contrast); font-size: 14px; font-weight: 700; }
-    .room-train-card { appearance: none; cursor: pointer; flex: none; padding: 11px 14px; border-radius: 10px; border: 1px solid var(--border-soft);
+    .room-train-card { appearance: none; cursor: pointer; flex: none; min-height: 44px; padding: 11px 14px; border-radius: 10px; border: 1px solid var(--border-soft);
       background: var(--bg-card); color: var(--text-primary); font-size: 13px; font-weight: 600; }
     .room-train-summary { text-align: center; padding: 26px 8px; }
     .room-train-score { font-size: 22px; font-weight: 800; }
     .room-train-levelups { font-size: 14px; color: var(--accent); font-weight: 700; margin-top: 6px; }
+    .room-study-x:focus-visible, .room-study-cal:focus-visible, .room-study-seg:focus-visible,
+    .room-study-speak:focus-visible, .room-train-chseg:focus-visible, .room-train-opt:focus-visible,
+    .room-train-submit:focus-visible, .room-train-tile:focus-visible, .room-train-skip:focus-visible,
+    .room-train-next:focus-visible, .room-train-card:focus-visible, .room-train-source-open:focus-visible {
+      outline: 2px solid var(--accent); outline-offset: 2px;
+    }
     .room-train-summary .room-train-actions { margin-top: 20px; }
     /* rm-speak + rm-conj -> /css/reader-morph.css */
 
@@ -2016,9 +2028,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=70"></script>
-<script src="/i18n/locales/en.js?v=70"></script>
-<script src="/i18n/locales/he.js?v=70"></script>
+<script src="/i18n/locales/ru.js?v=71"></script>
+<script src="/i18n/locales/en.js?v=71"></script>
+<script src="/i18n/locales/he.js?v=71"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->

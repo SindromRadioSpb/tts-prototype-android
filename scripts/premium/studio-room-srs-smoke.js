@@ -12,7 +12,7 @@ const { chromium } = require("playwright");
 const ROOT = path.resolve(__dirname, "..", "..");
 const PORT = 3312;
 const BASE = `http://127.0.0.1:${PORT}`;
-const SHOTS = path.join(ROOT, "docs", "research", "studio-room-srs-unification", "2026-08-11", "screenshots");
+const SHOTS = path.join(ROOT, "docs", "research", "room-training-premium-release", "2026-08-11", "screenshots");
 const failures = [];
 let checks = 0;
 const check = (value, message) => { checks++; if (!value) { failures.push(message); console.error("  x " + message); } else console.log("  + " + message); };
@@ -49,8 +49,8 @@ function staticContracts() {
   check(/data-studio-due/.test(studio) && /ReaderMorph\.dueCounts/.test(studio), "Studio count uses the canonical Room due predicate");
   check(/id="studioReviewAnkiExport"/.test(studio) && /v3SrsDownloadApkg/.test(studio), "Anki .apkg export remains independently reachable");
   check(!/function v3SrsTrainerOpen\(\)[\s\S]{0,260}classList\.remove\(["']hidden["']\)/.test(studio), "legacy Studio trainer modal is absent from the user route");
-  check(/ORDER BY srs_lapses DESC, srs_due ASC/.test(db) && !/getDueWithSource[\s\S]{0,900}(group_corpus|corpus_id|source_meta)/.test(db), "due query keeps pedagogical ranking and has no source quota/filter");
-  check(/evidence_scope:\s*item\._wordOnly\s*\?\s*['"]lexeme['"]/.test(room), "word-only fallback preserves lexeme evidence scope");
+  check(/ORDER BY (?:w\.)?srs_lapses DESC, (?:w\.)?srs_due ASC/.test(db) && !/getDueWithSource[\s\S]{0,1200}(group_corpus|corpus_id|source_meta)/.test(db), "due query keeps pedagogical ranking and has no source quota/filter");
+  check(/(?:const|let) evidenceScope\s*=\s*item\._wordOnly\s*\?\s*['"]lexeme['"]/.test(room) && /evidence_scope:\s*evidenceScope/.test(room), "word-only fallback preserves lexeme evidence scope");
   check(/function rankByWeakness/.test(morph) && /b\.lp\s*-\s*a\.lp/.test(morph), "weakness/lapses priority remains canonical");
   for (const locale of locales) check(/studioReview:\s*\{[\s\S]*title:[\s\S]*start:[\s\S]*allDone:[\s\S]*noSchedule:/.test(locale), "review surface locale is complete");
 }
@@ -120,11 +120,48 @@ async function browserContracts() {
     await page.waitForSelector(".room-study:not([hidden]) .room-train-progress", { timeout: 30000 });
     const progress = (await page.locator(".room-train-progress").textContent() || "").trim();
     check(progress === "1 / 3", "mixed three-source Room session contains all three items (" + progress + ")");
+    const trainerA11y = await page.evaluate(() => {
+      const sheet = document.querySelector('.room-study:not([hidden])');
+      const card = sheet && sheet.querySelector('.room-study-card');
+      const progressEl = sheet && sheet.querySelector('.room-train-progress');
+      const sizes = ['.room-study-x', '.room-train-chseg:not([disabled])', '.room-study-speak', '.room-train-skip']
+        .map((selector) => { const node = sheet && sheet.querySelector(selector); const box = node && node.getBoundingClientRect(); return { selector, width: box && box.width, height: box && box.height }; });
+      return {
+        label: sheet && sheet.getAttribute('aria-label'),
+        focusInside: !!(card && card.contains(document.activeElement)),
+        progressRole: progressEl && progressEl.getAttribute('role'),
+        progressNow: progressEl && progressEl.getAttribute('aria-valuenow'),
+        sizes,
+      };
+    });
+    check(trainerA11y.label === "Повторение" && trainerA11y.focusInside && trainerA11y.progressRole === "progressbar" && trainerA11y.progressNow === "1",
+      "Room review has a truthful accessible title, enters focus and announces progress");
+    check(trainerA11y.sizes.every((x) => x.height >= 44 && (x.selector === '.room-train-chseg:not([disabled])' || x.width >= 44)),
+      "Room review primary controls meet the 44px target: " + JSON.stringify(trainerA11y.sizes));
+    await page.locator('.room-train-skip').focus();
+    await page.keyboard.press('Tab');
+    check(await page.locator('.room-study-x').evaluate((el) => document.activeElement === el), "Room review traps forward Tab focus inside the dialog");
+    await page.screenshot({ path: path.join(SHOTS, "room-training-desktop-ru.png"), fullPage: true });
+    await page.setViewportSize({ width: 380, height: 844 });
+    await page.screenshot({ path: path.join(SHOTS, "room-training-380-ru.png"), fullPage: true });
+    check(!await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth), "Room review 380px RU has no horizontal overflow");
+    await page.evaluate(() => { document.body.classList.remove('theme-light'); document.body.classList.add('theme-dark'); });
+    const roomDark = await page.evaluate(() => ({ dark: document.body.classList.contains('theme-dark'), overflow: document.documentElement.scrollWidth > window.innerWidth }));
+    check(roomDark.dark && !roomDark.overflow, "Room review remains usable without overflow in dark theme");
+    await page.evaluate(() => { document.body.classList.remove('theme-dark'); document.body.classList.add('theme-light'); });
+    await page.evaluate(() => window.appSetLocale && window.appSetLocale("he"));
+    await sleep(150);
+    await page.screenshot({ path: path.join(SHOTS, "room-training-380-he-rtl.png"), fullPage: true });
+    const roomHe = await page.evaluate(() => ({ dir: document.documentElement.dir, overflow: document.documentElement.scrollWidth > window.innerWidth }));
+    check(roomHe.dir === "rtl" && !roomHe.overflow, "Room review 380px HE/RTL has no horizontal overflow");
+    await page.evaluate(() => window.appSetLocale && window.appSetLocale("ru"));
+    await page.setViewportSize({ width: 1280, height: 900 });
     const afterOpen = await page.evaluate(async () => (await import("/db/local-db.js")).countReviewLog());
     check(afterOpen === fixture.beforeLog, "opening the training session appends zero review_log rows");
     await page.click('.room-study-x');
     const afterClose = await page.evaluate(async () => (await import("/db/local-db.js")).countReviewLog());
     check(afterClose === fixture.beforeLog, "closing without an answer appends zero review_log rows");
+    check(await page.locator('#roomDueCta').evaluate((el) => document.activeElement === el), "closing Room review returns focus to its trigger");
 
     await page.click("#roomDueCta");
     await page.waitForSelector(".room-train-progress", { timeout: 30000 });
@@ -138,15 +175,44 @@ async function browserContracts() {
       const due = await db.getDueWithSource(Date.now());
       const key = (await db.getReviewLog()).filter((x) => x.kind === "review").slice(-1)[0].item_key;
       const stored = (await db.getSrsSchedule())[key];
+      const status = await db.getWordStatus(key);
+      const lastReview = (await db.getReviewLog(key)).filter((x) => x.kind === "review").slice(-1)[0];
+      let meta = {}; try { meta = JSON.parse(lastReview.meta_json || "{}"); } catch (_) {}
       const replayed = window.FsrsCore.replay(await db.getReviewLog(key));
-      return { count, gradeEvents, key, due: due.length, stored, replayed };
+      return { count, gradeEvents, key, due: due.length, stored, replayed, status, evidenceScope: meta.evidence_scope, trainingStage: meta.training_stage };
     });
     check(graded.gradeEvents === fixture.beforeGradeEvents + 1, "one completed grade appends exactly one canonical review event");
+    check(graded.count === fixture.beforeLog + 1, "one due grade appends one total review_log row (no automatic manual mark)");
+    check(graded.status === "l1", "training grade preserves the asserted manual status axis");
+    check(graded.evidenceScope === "recognition", "MC answer records recognition evidence instead of unsupported production");
+    check(graded.trainingStage === "l2", "verified answer advances the replayable exercise stage without mutating manual status");
     check(Math.abs(graded.stored.stability - graded.replayed.stability) < 1e-9 && Math.abs(graded.stored.difficulty - graded.replayed.difficulty) < 1e-9 && graded.stored.due === graded.replayed.dueMs, "replay(review_log) equals stored FSRS projection: " + JSON.stringify({ stored: graded.stored, replayed: graded.replayed }));
     await page.locator('.room-train-opt[data-correct="1"]').click({ force: true }).catch(() => {});
     const afterDuplicate = await page.evaluate(async () => (await (await import("/db/local-db.js")).getReviewLog()).filter((x) => x.kind === "review" || x.kind === "skip").length);
     check(afterDuplicate === graded.gradeEvents, "repeat click cannot duplicate the review event");
     await page.click('.room-study-x');
+
+    const atomic = await page.evaluate(async () => {
+      const db = await import("/db/local-db.js");
+      const key = "atomic-fault#noun", id = "atomic-fault-review";
+      await db.dbRun(`INSERT INTO word_status (lemma_key,status,updated_at,srs_due,srs_interval,srs_reps,srs_lapses,srs_stability,srs_difficulty,srs_reviewed_at,srs_scheme)
+                      VALUES (?, 'l2', strftime('%Y-%m-%dT%H:%M:%fZ','now'), ?, 2, 1, 0, 2, 5, ?, 'fsrs')`,
+        [key, new Date(Date.now() + 86400000).toISOString(), new Date(Date.now() - 86400000).toISOString()]);
+      const before = (await db.getSrsSchedule())[key];
+      await db.execRaw(`CREATE TRIGGER room_training_atomic_fault BEFORE UPDATE ON word_status
+                        WHEN NEW.lemma_key = 'atomic-fault#noun'
+                        BEGIN SELECT RAISE(ABORT, 'ROOM_TRAINING_FAULT'); END;`);
+      const result = await db.commitReviewAttempt({
+        row: { id, item_key: key, kind: "review", reviewed_at: new Date().toISOString(), grade: 3, source: "room-due-queue", channel: "read:mc", meta: { evidence_scope: "recognition" } },
+        sched: { due: Date.now() + 86400000, interval: 3, reps: 2, lapses: 0, stability: 3, difficulty: 5, reviewedAt: Date.now(), scheme: "fsrs" },
+      });
+      await db.execRaw(`DROP TRIGGER IF EXISTS room_training_atomic_fault;`);
+      const after = (await db.getSrsSchedule())[key];
+      const log = await db.dbQuery(`SELECT id FROM review_log WHERE id=?`, [id]);
+      return { result, logCount: log.length, sameDue: before.due === after.due, status: await db.getWordStatus(key) };
+    });
+    check(atomic.result && atomic.result.committed === false && atomic.logCount === 0 && atomic.sameDue && atomic.status === "l2",
+      "fault after log insert rolls back event and projection while preserving manual status");
 
     await page.evaluate(async () => { const db = await import("/db/local-db.js"); await db.closeLocalDB(); });
     await page.goto(BASE + "/", { waitUntil: "load" });
@@ -178,14 +244,11 @@ async function browserContracts() {
     await page.waitForSelector("#btnSrsTrainer", { timeout: 15000 });
     await page.waitForFunction(() => /^\d+$/.test((document.querySelector("[data-studio-due]")?.textContent || "").trim()), null, { timeout: 20000 });
 
-    await page.screenshot({ path: path.join(SHOTS, "studio-review-desktop-ru.png"), fullPage: true });
     await page.setViewportSize({ width: 380, height: 844 });
-    await page.screenshot({ path: path.join(SHOTS, "studio-review-380-ru.png"), fullPage: true });
     const ruOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
     check(!ruOverflow, "380px RU has no horizontal overflow");
     await page.evaluate(() => window.appSetLocale && window.appSetLocale("he"));
     await sleep(150);
-    await page.screenshot({ path: path.join(SHOTS, "studio-review-380-he-rtl.png"), fullPage: true });
     const heLayout = await page.evaluate(() => ({ overflow: document.documentElement.scrollWidth > window.innerWidth, dir: document.documentElement.dir }));
     check(!heLayout.overflow && heLayout.dir === "rtl", "380px HE/RTL has no horizontal overflow");
 
@@ -198,6 +261,26 @@ async function browserContracts() {
     await page.reload({ waitUntil: "load" });
     await page.waitForTimeout(800);
     check(await page.locator(".room-study:not([hidden])").count() === 0, "refresh after manual close does not auto-open again");
+
+    // The two remaining fixture words exercise one bounded same-session reinforcement pass:
+    // miss word A, finish word B, retry A once, then finish without an infinite loop.
+    await page.click('#roomDueCta');
+    await page.waitForSelector('.room-train-progress[data-reinforcement="0"]', { timeout: 30000 });
+    await page.locator('.room-train-opt[data-correct="0"]').first().click();
+    await page.waitForSelector('.room-train-reveal');
+    await page.click('[data-train-next]');
+    await page.locator('.room-train-opt[data-correct="1"]').click();
+    await page.waitForSelector('.room-train-reveal');
+    await page.click('[data-train-next]');
+    await page.waitForSelector('.room-train-progress[data-reinforcement="1"]');
+    const retryBefore = await page.evaluate(async () => (await (await import('/db/local-db.js')).getReviewLog()).filter((x) => x.kind === 'review' || x.kind === 'skip').length);
+    await page.locator('.room-train-opt[data-correct="1"]').click();
+    await page.waitForSelector('.room-train-reveal');
+    const retryAfter = await page.evaluate(async () => (await (await import('/db/local-db.js')).getReviewLog()).filter((x) => x.kind === 'review' || x.kind === 'skip').length);
+    check(retryAfter === retryBefore + 1, "same-session reinforcement is a real second attempt with exactly one event");
+    await page.click('[data-train-next]');
+    check(await page.locator('.room-train-summary').count() === 1 && await page.locator('.room-train-progress').count() === 0,
+      "reinforcement is bounded to one pass and reaches the session summary");
     check(pageErrors.length === 0, "browser run has no page errors: " + pageErrors.join(" | "));
   } finally {
     await ctx.close();

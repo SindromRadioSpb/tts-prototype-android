@@ -43,7 +43,13 @@
   // reviewer'ом в момент record (hint_used_at на challenge-строке — один дом факта). МОДУЛЬ
   // КЛИЕНТ-ШАРЕННЫЙ: изменение требует SW CACHE_VERSION bump (stale-клиент латчил бы
   // hasProvenProduction на down-synced hinted-строках — version-skew окно до refresh).
-  var CONTEXT_SUPPORTED_SCOPES = { lexeme: 1, cloze: 1, context_supported: 1 };
+  var CONTEXT_SUPPORTED_SCOPES = {
+    lexeme: 1,
+    cloze: 1,
+    context_supported: 1,
+    recognition: 1,
+    assisted_production: 1,
+  };
 
   function channelPrefix(channel) {
     var s = String(channel == null ? "" : channel);
@@ -55,6 +61,21 @@
   }
   function channelFamily(channel) {
     return isProductionChannel(channel) ? "production" : "receptive";
+  }
+
+  // Room premium-release contract: the visible sentence translation and sentence audio are
+  // intentional low-threshold scaffolds. Evidence strength therefore follows the task the learner
+  // actually completed, not the channel tab's marketing label. This classifier is pure and shared
+  // by the UI writer and all Node gates; it changes no FSRS mathematics or grade values.
+  function evidenceScopeFor(channel, mode) {
+    var fam = channelPrefix(channel);
+    var m = String(mode || "").toLowerCase();
+    if (m === "type") m = "typed";
+    if (m === "mc") return "recognition";
+    if (m === "tiles") return "assisted_production";
+    if (fam === "dictate" && m === "typed") return "unsupported_production";
+    if (fam === "read" || fam === "listen" || fam === "reverse" || fam === "cloze") return "context_supported";
+    return isProductionChannel(fam) ? "unsupported_production" : "recognition";
   }
 
   // Память существует? Принимает ОБЕ формы состояния: клиентскую sched-строку
@@ -127,7 +148,10 @@
     var skipped = !!(input && input.skipped);
     var channel = input ? input.channel : null;
     if (correct) return { grade: 3, applied: false, reason: "correct" };
-    var isProd = isProductionChannel(channel);
+    var scope = input && input.evidenceScope ? String(input.evidenceScope) : null;
+    // A reverse-labelled MC is still recognition. Assisted/context-supported production remains a
+    // production attempt for D1 failure-softening, but can never latch unsupported competence.
+    var isProd = isProductionChannel(channel) && scope !== "recognition";
     var rows = (input && input.rows) || [];
     // D-4: latch проверяется В СЕМЬЕ провалившегося канала (dictate-успех не снимает reverse-мягкость)
     var receptiveStrong = hasMemoryState(input && input.prevState) && hasReceptiveEvidence(rows) && !hasProvenProduction(rows, channel);
@@ -154,6 +178,7 @@
     POLICY_VERSION: POLICY_VERSION,
     channelPrefix: channelPrefix,
     channelFamily: channelFamily,
+    evidenceScopeFor: evidenceScopeFor,
     isProductionChannel: isProductionChannel,
     hasMemoryState: hasMemoryState,
     hasReceptiveEvidence: hasReceptiveEvidence,

@@ -32,6 +32,15 @@ const dictOk = { id: "r3", kind: "review", reviewed_at: T(4), grade: 3, source: 
 const dictFail = { id: "r4", kind: "review", reviewed_at: T(5), grade: 1, source: "room-recall", channel: "dictate:tiles" };
 const strong = { scheme: "fsrs", stability: 12.5, difficulty: 5, reps: 4, lapses: 0 };
 
+// Room premium release — the actual task mode, not the channel label alone, defines the
+// strength of evidence. Sentence translation/audio remain intentional scaffolds.
+const scopeFor = typeof GP.evidenceScopeFor === "function" ? GP.evidenceScopeFor : () => null;
+eq(scopeFor("reverse", "mc") === "recognition", "reverse:mc must be recognition, not unsupported production");
+eq(scopeFor("dictate", "tiles") === "assisted_production", "dictate:tiles must be assisted production");
+eq(scopeFor("read", "typed") === "context_supported", "typed cloze with sentence scaffold must be context-supported");
+eq(scopeFor("reverse", "typed") === "context_supported", "RU→HE with sentence translation must be context-supported");
+eq(scopeFor("dictate", "typed") === "unsupported_production", "typed dictation remains unsupported production");
+
 // ── 1. классификация каналов ────────────────────────────────────────────────
 eq(GP.isProductionChannel("dictate") && GP.isProductionChannel("dictate:typed") && GP.isProductionChannel("reverse:tiles"),
   "dictate/reverse (с режимом и без) must be production");
@@ -67,6 +76,9 @@ eq(r.grade === 2 && r.applied === true && r.reason === "production-fail-receptiv
   "D1 CORE: production fail on receptive-strong → Hard(2)");
 r = d({ correct: false, channel: "reverse:tiles", prevState: strong, rows: [tapOk] });
 eq(r.grade === 2 && r.applied, "reverse fail + reading-tap success evidence → Hard(2)");
+r = d({ correct: false, channel: "reverse:mc", evidenceScope: "recognition", prevState: strong, rows: [seedRow, readOk] });
+eq(r.grade === 1 && !r.applied && r.reason === "receptive-fail",
+  "recognition failure on a reverse-labelled MC must remain receptive Again(1)");
 r = d({ correct: false, channel: "dictate:typed", prevState: strong, rows: [seedRow] });
 eq(r.grade === 2 && r.applied, "seed row (imported memory) counts as receptive evidence → Hard(2)");
 r = d({ correct: false, channel: "dictate:typed", prevState: null, rows: [readOk] });
@@ -92,6 +104,10 @@ const m1 = GP.policyMeta({ grade: 2, applied: true, reason: "production-fail-rec
 eq(m1.raw_grade === 1 && m1.grade_policy === GP.POLICY_VERSION && m1.grader === "deterministic",
   "applied policy must stamp raw_grade/grade_policy/grader");
 eq(Object.keys(GP.policyMeta({ grade: 1, applied: false })).length === 0, "non-applied policy must stamp nothing");
+const assistedOk = { id: "as1", kind: "review", reviewed_at: T(6), grade: 3, source: "room-due-queue", channel: "reverse:tiles", meta_json: JSON.stringify({ evidence_scope: "assisted_production" }) };
+const recognitionOk = { id: "rc1", kind: "review", reviewed_at: T(7), grade: 3, source: "room-due-queue", channel: "reverse:mc", meta_json: JSON.stringify({ evidence_scope: "recognition" }) };
+eq(!GP.hasProvenProduction([assistedOk], "reverse:typed"), "assisted production must not latch unsupported reverse competence");
+eq(!GP.hasProvenProduction([recognitionOk], "reverse:typed"), "recognition must not latch unsupported reverse competence");
 
 // ── 5. channelStats (learnerProjectionRepo, pure) ───────────────────────────
 const cs = PR.channelStats([seedRow, readOk, tapOk, dictOk, dictFail,
@@ -126,7 +142,7 @@ eq(hard.sched.lapses === prevFsrs.lapses && again.sched.lapses === prevFsrs.laps
 eq(hard.sched.due > NOW && again.sched.due === NOW,
   "product contract: Again→due now, Hard→due in the future");
 
-const TOTAL = 28;
+const TOTAL = 36;
 if (failures.length) {
   console.error(`smoke:grade-policy FAIL (${TOTAL - failures.length}/${TOTAL})`);
   for (const f of failures) console.error("  ✗ " + f);

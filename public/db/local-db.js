@@ -2670,11 +2670,14 @@ export async function getSrsSchedule() {
 export async function getDueWithSource(nowMs) {
   const now = Number(nowMs) || 0;
   try {
-    const rows = await q(`SELECT lemma_key, status, srs_due, srs_interval, srs_reps, srs_lapses,
-                                 srs_text_key, srs_sentence_id, srs_order_index, srs_surface,
-                                 srs_stability, srs_difficulty, srs_reviewed_at, srs_scheme
-                            FROM word_status WHERE srs_due IS NOT NULL AND status != 'ignore'
-                           ORDER BY srs_lapses DESC, srs_due ASC`, []);
+    const rows = await q(`SELECT w.lemma_key, w.status, w.srs_due, w.srs_interval, w.srs_reps, w.srs_lapses,
+                                 w.srs_text_key, w.srs_sentence_id, w.srs_order_index, w.srs_surface,
+                                 w.srs_stability, w.srs_difficulty, w.srs_reviewed_at, w.srs_scheme,
+                                 t.title AS srs_text_title
+                            FROM word_status w
+                       LEFT JOIN texts t ON t.text_key = w.srs_text_key
+                           WHERE w.srs_due IS NOT NULL AND w.srs_due <= ? AND w.status != 'ignore'
+                           ORDER BY w.srs_lapses DESC, w.srs_due ASC`, [new Date(now).toISOString()]);
     const out = [];
     for (const w of (rows || [])) {
       if (!w.lemma_key) continue;
@@ -2688,7 +2691,8 @@ export async function getDueWithSource(nowMs) {
           reviewedAt: w.srs_reviewed_at ? Date.parse(w.srs_reviewed_at) : null,
           scheme: w.srs_scheme || null },
         source: { textKey: w.srs_text_key || null, sentenceId: w.srs_sentence_id || null,
-          orderIndex: (w.srs_order_index == null ? null : Number(w.srs_order_index)), surface: w.srs_surface || null },
+          orderIndex: (w.srs_order_index == null ? null : Number(w.srs_order_index)), surface: w.srs_surface || null,
+          title: w.srs_text_title || null },
       });
     }
     return out;
@@ -2721,7 +2725,7 @@ export async function findSentencesForWords(skeletons, totalLimit) {
   try {
     return (await q(
       `SELECT s.id, s.text_id, s.order_index, s.he_plain, s.he_niqqud, s.ru,
-              t.text_key, aa.asset_key AS audio_asset_key
+              t.text_key, t.title AS text_title, aa.asset_key AS audio_asset_key
          FROM sentences s
          JOIN texts t ON t.id = s.text_id AND t.is_archived = 0
     LEFT JOIN sentence_audio sa ON sa.sentence_id = s.id AND sa.is_default = 1
@@ -2849,6 +2853,95 @@ export async function appendReviewLog(rows) {
   }
   return { accepted, refused };
 }
+
+// Room Training premium release — one atomic grade commit. `review_log` is the event truth and
+// `word_status.srs_*` is only its projection; an answer must never leave one without the other.
+// The asserted manual `status` column is preserved byte-for-byte (a review is not a manual mark).
+// No schema change: the transaction uses the existing review_log + word_status contracts.
+export async function commitReviewAttempt(input) {
+  const row = input && input.row;
+  const seedRow = input && input.seedRow;
+  const sched = input && input.sched;
+  const source = input && input.source && typeof input.source === "object" ? input.source : {};
+  const id = row && row.id != null ? String(row.id).trim() : "";
+  const itemKey = row && row.item_key != null ? String(row.item_key).trim() : "";
+  const kind = row && row.kind != null ? String(row.kind) : "review";
+  const reviewedAt = row && row.reviewed_at != null ? String(row.reviewed_at).trim() : "";
+  const eventSource = row && row.source != null ? String(row.source).trim() : "";
+  const grade = row && row.grade != null ? Number(row.grade) : 0;
+  if (!id || !itemKey || !reviewedAt || !eventSource || (kind !== "review" && kind !== "skip") || !(grade >= 1 && grade <= 4) || !sched || typeof sched !== "object") {
+    return { committed: false, duplicate: false, error: "REVIEW_COMMIT_INVALID" };
+  }
+  const due = sched.due != null ? new Date(sched.due).toISOString() : null;
+  const reviewedProjectionAt = sched.reviewedAt != null ? new Date(sched.reviewedAt).toISOString() : null;
+  const reviewMeta = typeof row.meta_json === "string" ? row.meta_json : JSON.stringify(row.meta || {});
+  const textKey = source.textKey != null ? String(source.textKey) : null;
+  const sentenceId = source.sentenceId != null ? String(source.sentenceId) : null;
+  const orderIndex = source.orderIndex != null ? Number(source.orderIndex) : null;
+  const surface = source.surface != null ? String(source.surface) : null;
+  let txOpen = false;
+  try {
+    await x('BEGIN IMMEDIATE;'); txOpen = true;
+    const duplicate = await q(`SELECT item_key, kind, grade FROM review_log WHERE id = ? LIMIT 1`, [id]);
+    if (duplicate && duplicate.length) {
+      const prev = duplicate[0];
+      if (String(prev.item_key) !== itemKey || String(prev.kind) !== kind || Number(prev.grade) !== grade) throw new Error("REVIEW_ID_COLLISION");
+      await x('ROLLBACK;'); txOpen = false;
+      return { committed: false, duplicate: true, eventId: id };
+    }
+    if (seedRow) {
+      const seedId = seedRow.id != null ? String(seedRow.id).trim() : "";
+      const seedKey = seedRow.item_key != null ? String(seedRow.item_key).trim() : "";
+      const seedAt = seedRow.reviewed_at != null ? String(seedRow.reviewed_at).trim() : "";
+      const seedSource = seedRow.source != null ? String(seedRow.source).trim() : "";
+      if (!seedId || seedKey !== itemKey || !seedAt || !seedSource || String(seedRow.kind) !== "seed") throw new Error("REVIEW_SEED_INVALID");
+      const alreadySeeded = await q(`SELECT 1 x FROM review_log WHERE item_key = ? AND kind = 'seed' LIMIT 1`, [itemKey]);
+      if (!alreadySeeded || !alreadySeeded.length) {
+        const seedMeta = typeof seedRow.meta_json === "string" ? seedRow.meta_json : JSON.stringify(seedRow.meta || {});
+        await r(`INSERT INTO review_log (id, item_key, kind, reviewed_at, grade, source, channel, latency_ms, meta_json)
+                 VALUES (?,?,?,?,NULL,?,?,?,?)`,
+          [seedId, itemKey, 'seed', seedAt, seedSource, seedRow.channel != null ? String(seedRow.channel) : null,
+           seedRow.latency_ms != null ? (Number(seedRow.latency_ms) || 0) : null, seedMeta]);
+      }
+    }
+    await r(`INSERT INTO review_log (id, item_key, kind, reviewed_at, grade, source, channel, latency_ms, meta_json)
+             VALUES (?,?,?,?,?,?,?,?,?)`,
+      [id, itemKey, kind, reviewedAt, grade, eventSource, row.channel != null ? String(row.channel) : null,
+       row.latency_ms != null ? (Number(row.latency_ms) || 0) : null, reviewMeta]);
+    await r(
+      `INSERT INTO word_status (lemma_key, status, updated_at, srs_due, srs_interval, srs_reps, srs_lapses,
+                                srs_text_key, srs_sentence_id, srs_order_index, srs_surface,
+                                srs_stability, srs_difficulty, srs_reviewed_at, srs_scheme)
+       VALUES (?, '', strftime('%Y-%m-%dT%H:%M:%fZ','now'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(lemma_key) DO UPDATE SET updated_at=excluded.updated_at,
+         srs_due=excluded.srs_due, srs_interval=excluded.srs_interval, srs_reps=excluded.srs_reps, srs_lapses=excluded.srs_lapses,
+         srs_text_key=COALESCE(excluded.srs_text_key, srs_text_key), srs_sentence_id=COALESCE(excluded.srs_sentence_id, srs_sentence_id),
+         srs_order_index=COALESCE(excluded.srs_order_index, srs_order_index), srs_surface=COALESCE(excluded.srs_surface, srs_surface),
+         srs_stability=excluded.srs_stability, srs_difficulty=excluded.srs_difficulty,
+         srs_reviewed_at=excluded.srs_reviewed_at, srs_scheme=excluded.srs_scheme`,
+      [itemKey, due, Number(sched.interval) || 0, Number(sched.reps) || 0, Number(sched.lapses) || 0,
+       textKey, sentenceId, orderIndex, surface,
+       sched.stability != null ? Number(sched.stability) : null,
+       sched.difficulty != null ? Number(sched.difficulty) : null,
+       reviewedProjectionAt, sched.scheme != null ? String(sched.scheme) : "fsrs"]);
+    const verify = await q(`SELECT r.id, w.srs_due, w.srs_reps, w.srs_lapses, w.srs_stability, w.srs_difficulty, w.srs_scheme
+                              FROM review_log r JOIN word_status w ON w.lemma_key = r.item_key
+                             WHERE r.id = ? AND r.item_key = ? LIMIT 1`, [id, itemKey]);
+    if (!verify || !verify.length) throw new Error("REVIEW_COMMIT_READBACK_FAILED");
+    const stored = verify[0];
+    const sameNumber = (a, b) => (a == null && b == null) || Math.abs(Number(a) - Number(b)) < 1e-9;
+    if (String(stored.srs_due || "") !== String(due || "") || Number(stored.srs_reps) !== (Number(sched.reps) || 0) ||
+        Number(stored.srs_lapses) !== (Number(sched.lapses) || 0) || !sameNumber(stored.srs_stability, sched.stability) ||
+        !sameNumber(stored.srs_difficulty, sched.difficulty) || String(stored.srs_scheme || "") !== String(sched.scheme || "fsrs")) {
+      throw new Error("REVIEW_COMMIT_PROJECTION_MISMATCH");
+    }
+    await x('COMMIT;'); txOpen = false;
+    return { committed: true, duplicate: false, eventId: id };
+  } catch (error) {
+    if (txOpen) { try { await x('ROLLBACK;'); } catch (_) {} }
+    return { committed: false, duplicate: false, error: "REVIEW_COMMIT_FAILED" };
+  }
+}
 // Read-back for gates, replay (P2) and the retention report (P6). Ordered by reviewed_at then id
 // (the deterministic replay tie-break, recon §4.1). Graceful [] pre-migration.
 export async function getReviewLog(itemKey, limit) {
@@ -2858,6 +2951,18 @@ export async function getReviewLog(itemKey, limit) {
       ? await q(`SELECT * FROM review_log WHERE item_key = ? ORDER BY reviewed_at ASC, id ASC LIMIT ?`, [String(itemKey), lim])
       : await q(`SELECT * FROM review_log ORDER BY reviewed_at ASC, id ASC LIMIT ?`, [lim]);
     return rows || [];
+  } catch (_) { return []; }
+}
+// Bounded reader for the Room exercise-stage fold. Fetch only the words in the active session
+// (normally <=12), rather than scanning a user's entire append-only history on every launch.
+export async function getTrainingStageRows(itemKeys) {
+  const keys = Array.from(new Set((itemKeys || []).map((x) => String(x || "").trim()).filter(Boolean))).slice(0, 32);
+  if (!keys.length) return [];
+  try {
+    return (await q(`SELECT item_key, kind, reviewed_at, id, meta_json FROM review_log
+                      WHERE item_key IN (${keys.map(() => "?").join(",")})
+                        AND kind IN ('mark','review','skip')
+                      ORDER BY reviewed_at ASC, id ASC`, keys)) || [];
   } catch (_) { return []; }
 }
 export async function countReviewLog() {

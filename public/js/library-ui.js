@@ -551,8 +551,8 @@ function tagReaderTableLang(mount) {
   mount.querySelectorAll('#proTable tbody td[data-col="translit"]').forEach((td) => td.setAttribute('lang', 'he-Latn'));
 }
 // Epic 8b — minimal focus management (WCAG 2.4.3): move focus INTO an opened sheet (its close
-// button) and RESTORE it to the trigger on close. Shared by the room sheets (study/consent);
-// the morphology card manages its own (reader-morph). Soft (no full trap — v2 backlog).
+// button) and RESTORE it to the trigger on close. The study sheet additionally owns a bounded
+// focus trap while open; the morphology card manages its own lifecycle (reader-morph).
 let _roomFocusReturn = null;
 function roomFocusInto(container) {
   try { _roomFocusReturn = document.activeElement; } catch (_) { _roomFocusReturn = null; }
@@ -563,6 +563,15 @@ function roomFocusInto(container) {
 function roomFocusRestore() {
   try { if (_roomFocusReturn && _roomFocusReturn.focus) _roomFocusReturn.focus(); } catch (_) {}
   _roomFocusReturn = null;
+}
+function roomFocusTrap(e, container) {
+  if (!e || e.key !== 'Tab' || !container) return;
+  const nodes = Array.from(container.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), a[href], [tabindex="0"]'))
+    .filter((n) => !n.hidden && n.getAttribute('aria-hidden') !== 'true' && n.getClientRects().length);
+  if (!nodes.length) { e.preventDefault(); try { container.focus(); } catch (_) {} return; }
+  const first = nodes[0], last = nodes[nodes.length - 1], active = document.activeElement;
+  if (e.shiftKey && (active === first || !container.contains(active))) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
 }
 let readerRows = [];
 let readerAudio = null; // attachRowAudio detach handle
@@ -1193,7 +1202,7 @@ function ensureStudySheet() {
     if (t.closest('[data-train-skip]')) { onTrainSkip(); return; }
     const tile = t.closest('[data-train-tile]'); if (tile) { onTrainTile(tile); return; }
     const unb = t.closest('[data-train-unbuild]'); if (unb) { onTrainUnbuild(+unb.getAttribute('data-train-unbuild')); return; }
-    if (t.closest('[data-train-again]')) { startTraining(); return; }
+    if (t.closest('[data-train-again]')) { restartTraining(); return; }
     if (t.closest('[data-streak-toggle]')) { streakHiddenSet(!streakHidden()); try { refreshDueBadge(); } catch (_) {} renderTrainSummary(); return; }   // D7 — premium off-switch
     if (t.closest('[data-heatmap-toggle]')) { openStudyHeatmap(); return; }   // D7.1 — tap the streak → activity heatmap sheet
     const chSeg = t.closest('[data-train-channel]'); if (chSeg) { onTrainChannel(chSeg.getAttribute('data-train-channel')); return; }   // D6 — channel
@@ -1202,11 +1211,22 @@ function ensureStudySheet() {
     const tsp = t.closest('[data-train-speak]'); if (tsp) { try { speakWord(tsp.getAttribute('data-he') || ''); } catch (_) {} return; }
     if (t.closest('[data-train-rowspeak]')) { try { speakWord((_trainSession && _trainSession._built && _trainSession._built.sentence) || ''); } catch (_) {} return; }
     if (t.closest('[data-train-card]')) { onTrainCard(); return; }
+    if (t.closest('[data-train-source]')) { onTrainSource(); return; }
   });
   document.addEventListener('keydown', (e) => {
     if (!_studySheet || _studySheet.hidden) return;
     // a layered sheet (heatmap / list-picker) on top owns Escape first — don't also close the study sheet under it
     if (e.key === 'Escape') { if (document.querySelector('.list-picker-ov')) return; closeStudySheet(); return; }
+    if (e.key === 'Tab') { roomFocusTrap(e, _studySheet.querySelector('.room-study-card')); return; }
+    const channelTab = e.target && e.target.closest && e.target.closest('[data-train-channel]');
+    if (channelTab && (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Home' || e.key === 'End')) {
+      const tabs = Array.from(_studySheet.querySelectorAll('[data-train-channel]:not([disabled])'));
+      const at = tabs.indexOf(channelTab); if (at < 0 || !tabs.length) return;
+      e.preventDefault();
+      const nextAt = e.key === 'Home' ? 0 : (e.key === 'End' ? tabs.length - 1 : (at + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length);
+      tabs[nextAt].focus(); tabs[nextAt].click();
+      return;
+    }
     if (e.key === 'Enter' && e.target && e.target.closest && e.target.closest('[data-train-input]')) { e.preventDefault(); onTrainSubmit(); return; }
     // D7.1 — keyboard-activate the streak/heatmap toggle (div[role=button] doesn't synthesize click on Enter/Space)
     const hk = e.target && e.target.closest && e.target.closest('[data-heatmap-toggle]');
@@ -1214,6 +1234,14 @@ function ensureStudySheet() {
   });
   _studySheet = sheet;
   return sheet;
+}
+function _studySetTitle(key, fallback) {
+  if (!_studySheet) return;
+  const value = tt(key, fallback);
+  _studySheet.setAttribute('data-i18n-aria-label', key);
+  _studySheet.setAttribute('aria-label', value);
+  const title = _studySheet.querySelector('.room-study-title');
+  if (title) { title.setAttribute('data-i18n', key); title.textContent = value; }
 }
 function closeStudySheet() { if (_studySheet) { _studySheet.hidden = true; _studySheet.classList.remove('room-study-open'); } _trainSession = null; roomFocusRestore(); try { refreshDueBadge(); } catch (_) {} }
 // Show/hide the list-only chrome (controls/bulk/count/more) — hidden in «🎯 Тренировка».
@@ -1227,8 +1255,8 @@ function setStudyMode(mode) {
   _studyMode = mode === 'train' ? 'train' : 'list';
   if (_studySheet) _studySheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === _studyMode));
   _studyListChrome(_studyMode === 'list');
-  if (_studyMode === 'list') renderStudyBody();
-  else startTraining();
+  if (_studyMode === 'list') { _studySetTitle('room.morph.study.title', '📚 Учить новые слова'); renderStudyBody(); }
+  else { _studySetTitle('room.morph.study.trainTitle', 'Тренировка'); startTraining(); }
 }
 
 // View = filter (C: band + hide-names) then sort (D: freq[default, already freq-desc+stable] | alpha).
@@ -1419,6 +1447,7 @@ async function roomOpenStudyList() {
   const sheet = ensureStudySheet();
   _studyView = { scope: 'all', sort: 'freq', band: 'all', hideNames: false, shown: STUDY_CHUNK };
   _studyMode = 'list'; _trainSession = null;
+  _studySetTitle('room.morph.study.title', '📚 Учить новые слова');
   sheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === 'list'));
   _studyListChrome(true);
   sheet.hidden = false; sheet.classList.add('room-study-open');
@@ -1509,21 +1538,42 @@ async function startTraining() {
   // cross-text «due today» queue can re-cloze this word later WITHOUT opening its text. Data already in hand.
   items.forEach((it) => {
     const r = it._built && readerRows[it._built.rowIdx];
-    it._source = r ? { textKey: readerTextKey, sentenceId: r._v3_sentenceId, orderIndex: r._v3_orderIndex, surface: it.surface } : null;
+    it._source = r ? { textKey: readerTextKey, sentenceId: r._v3_sentenceId, orderIndex: r._v3_orderIndex, surface: it.surface, title: readerTextTitle || null } : null;
   });
   await _launchTrainSession(items, { pool: all });
+}
+function restartTraining() {
+  const s = _trainSession;
+  return s && s.cross ? startDueReview() : startTraining();
 }
 // Shared session launch (open-text AND cross-text D2): D1 MC pre-compute → audio caps/channels → session →
 // D7 ledger → render. `items` already carry _built (cloze) + _source. opts.pool = distractor pool (B1);
 // opts.cross = D2 cross-text session (no open reader behind).
 async function _launchTrainSession(items, opts) {
   opts = opts || {};
+  // Replay the exercise ladder from the append-only log. Older sessions materialized their stage
+  // as a `mark`; premium sessions put `training_stage` on the grade row. Because rows are already
+  // ordered by (reviewed_at,id), any later manual mark is an explicit override.
+  try {
+    let rows = await localDb.getTrainingStageRows(items.map((item) => item.lemmaKey));
+    if (window.FsrsCore && window.FsrsCore.withoutAnnulled) rows = window.FsrsCore.withoutAnnulled(rows);
+    const stages = Object.create(null), valid = { new: 1, l1: 1, l2: 1, l3: 1, l4: 1, known: 1, ignore: 1 };
+    for (const row of (rows || [])) {
+      const key = row && row.item_key ? String(row.item_key) : '';
+      if (!key) continue;
+      let meta = {}; try { meta = JSON.parse(row.meta_json || '{}'); } catch (_) {}
+      const candidate = row.kind === 'mark' ? meta.status
+        : ((row.kind === 'review' || row.kind === 'skip') ? meta.training_stage : null);
+      if (candidate && valid[candidate]) stages[key] = candidate;
+    }
+    items.forEach((item) => { item._trainingStage = stages[item.lemmaKey] || item.status || 'new'; });
+  } catch (_) { items.forEach((item) => { item._trainingStage = item.status || 'new'; }); }
   // D1 — pre-compute slot-inflected MC options for MC-eligible items (R10 moat): resolve the answer to its
   // paradigm → buildMcSlotOptions (proclitic-aware slot + dict bank + L4 semantic). null → render falls back
   // to the B1 distractors (R11 no-regress). Async, ≤N items, offline.
   if (typeof window.ReaderMorph.buildMcSlotOptions === 'function') {
     for (const it of items) {
-      if (!window.ReaderMorph.isMcLevel(it.status)) continue;
+      if (!window.ReaderMorph.isMcLevel(it._trainingStage || it.status)) continue;
       if (it._wordOnly) continue;   // R2: slot-MC bank is gloss-collision-prone without a sentence — render uses B1+veto
       try {
         const ans = it._card || await window.ReaderMorph.resolveWordLight(it.surface, it.niqqud);   // D2 reuses its resolved card
@@ -1539,7 +1589,12 @@ async function _launchTrainSession(items, opts) {
   const caps = _trainAudioCaps(items);
   const channels = (window.ReaderMorph.availableChannels ? window.ReaderMorph.availableChannels(caps) : { read: true, reverse: true, listen: false, dictate: false });
   let channel = trainChannel(); if (!channels[channel]) channel = 'read';
-  _trainSession = { items, pool: opts.pool || items, idx: 0, total: items.length, dueAvail: dueAvail, channel: channel, channels: channels, correct: 0, levelUps: 0, answered: false, cross: !!opts.cross };
+  _trainSession = {
+    items, pool: opts.pool || items, idx: 0, total: items.length, plannedTotal: items.length,
+    retryQueue: [], retryPhase: false, retryStart: -1,
+    dueAvail: dueAvail, channel: channel, channels: channels, correct: 0,
+    answered: false, cross: !!opts.cross,
+  };
   try { localDb.noteAvailable(_localDayStr(), dueAvail); } catch (_) {}   // dueAvail==0 → honest rest-credit
   try { refreshDueBadge(); } catch (_) {}   // reflect today's goal denominator before the first question
   renderTrainItem();
@@ -1552,6 +1607,8 @@ async function startDueReview() {
   ensureStudySheet();
   _studySheet.hidden = false; _studySheet.classList.add('room-study-open');
   _studyMode = 'train'; _trainSession = null;
+  _studySetTitle('room.morph.study.reviewTitle', 'Повторение');
+  roomFocusInto(_studySheet.querySelector('.room-study-card'));
   try { _studySheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === 'train')); } catch (_) {}
   try { _studyListChrome(false); } catch (_) {}
   const body = _studySheet.querySelector('.room-study-body');
@@ -1729,6 +1786,12 @@ async function _buildDueSourcedItems(due, opts) {
     if (!cz) { if (ladder) laddered.push(d); continue; }   // re-anchor mismatch → R2 ladder (re-heal)
     let card = null;
     try { card = await R.resolveWordLight(R.stripNiqqud(d.source.surface), cz.answer); } catch (_) {}
+    // R11: a stored anchor is not exempt from the canonical identity gate. A stale anchor or
+    // homograph must enter the same verified recovery ladder as a missing anchor.
+    if (!card || card.lemmaKey !== d.lemmaKey || (!_HEB_VOWELED_RE.test(cz.answer || '') && card.label !== 'exact')) {
+      if (ladder) laddered.push(d);
+      continue;
+    }
     items.push({
       lemmaKey: d.lemmaKey, surface: d.source.surface, niqqud: (card && card.niqqud) || cz.answer || '',
       gloss: (card && (card.meaning || card.gloss)) || '', root: (card && card.root) || '', pos: (card && card.pos) || '',
@@ -1782,7 +1845,7 @@ async function _buildDueSourcedItems(due, opts) {
           lemmaKey: d.lemmaKey, surface: hit.tskel, niqqud: hit.card.niqqud || hit.cz.answer || '',
           gloss: (hit.card.meaning || hit.card.gloss) || '', root: hit.card.root || '', pos: hit.card.pos || '',
           status: d.status, _srs: d.srs, _card: hit.card,
-          _source: { textKey: src.textKey, sentenceId: src.sentenceId, orderIndex: src.orderIndex, surface: hit.tskel },
+          _source: { textKey: src.textKey, sentenceId: src.sentenceId, orderIndex: src.orderIndex, surface: hit.tskel, title: hit.row.text_title || null },
           _built: { cz: hit.cz, ru: hit.row.ru || '', sentence: hit.heN, audioAssetKey: String(hit.row.audio_asset_key || ''), rowIdx: null },
         };
       } else { _r2MissMark(miss, d.lemmaKey); }   // v3: per-WORD miss (the needle set is derived)
@@ -1831,6 +1894,8 @@ async function startPlanSectionTraining(itemKeys, channel) {
   ensureStudySheet();
   _studySheet.hidden = false; _studySheet.classList.add('room-study-open');
   _studyMode = 'train'; _trainSession = null;
+  _studySetTitle('room.morph.study.trainTitle', 'Тренировка');
+  roomFocusInto(_studySheet.querySelector('.room-study-card'));
   try { _studySheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === 'train')); } catch (_) {}
   try { _studyListChrome(false); } catch (_) {}
   const body = _studySheet.querySelector('.room-study-body');
@@ -1894,6 +1959,16 @@ function _trainBuildCloze(item) {
   const reps = (item._srs && Number(item._srs.reps)) || 0;
   return cands[reps % cands.length];   // { cz:{answer,segments,count}, ru, sentence, rowIdx, audioAssetKey } | null
 }
+function _trainProgressEl(s) {
+  const retry = !!(s && s.retryPhase && s.idx >= s.retryStart);
+  const current = retry ? (s.idx - s.retryStart + 1) : (s.idx + 1);
+  const total = retry ? Math.max(1, s.total - s.retryStart) : Math.max(1, s.plannedTotal || s.total);
+  const label = retry ? (tt('room.morph.study.reinforce', 'Закрепление') + ': ' + current + ' / ' + total) : (current + ' / ' + total);
+  return el('div', { class: 'room-train-progress', text: label, attrs: {
+    role: 'progressbar', 'aria-live': 'polite', 'aria-valuemin': '1', 'aria-valuemax': String(total),
+    'aria-valuenow': String(current), 'aria-label': label, 'data-reinforcement': retry ? '1' : '0', dir: retry ? uiDirRoom() : 'ltr',
+  } });
+}
 // D5 — light first-encounter teach panel. Writes NOTHING (not counted as recall); just seeds the word
 // before its first scored test. Word + gloss + 🔊 + the word in its sentence (target VISIBLE) +
 // «Подробнее» (reuses openWordCard) + «Понятно, проверь меня» (→ onTrainTeachDone → the scored test).
@@ -1902,7 +1977,7 @@ function renderTrainTeach(item) {
   if (!s || !body) return;
   const built = s._built;
   body.innerHTML = '';
-  body.appendChild(el('div', { class: 'room-train-progress', text: (s.idx + 1) + ' / ' + s.total }));
+  body.appendChild(_trainProgressEl(s));
   const box = el('div', { class: 'room-train-teach' });
   box.appendChild(el('div', { class: 'room-train-teach-tag', i18n: 'room.morph.study.teachNew', text: tt('room.morph.study.teachNew', '✦ Новое слово') }));
   const wordRow = el('div', { class: 'room-train-teach-wordrow' });
@@ -1947,7 +2022,8 @@ function _trainChannelBar() {
   _TRAIN_CHANNELS.forEach((c) => {
     const avail = !s.channels || s.channels[c.ch];
     const b = el('button', { class: 'room-train-chseg' + (s.channel === c.ch ? ' on' : '') + (avail ? '' : ' disabled'),
-      i18n: c.key, text: tt(c.key, c.fb), attrs: { type: 'button', 'data-train-channel': c.ch, role: 'tab', 'aria-selected': String(s.channel === c.ch) } });
+      i18n: c.key, text: tt(c.key, c.fb), attrs: { type: 'button', 'data-train-channel': c.ch, role: 'tab',
+        'aria-selected': String(s.channel === c.ch), tabindex: s.channel === c.ch ? '0' : '-1' } });
     if (!avail) { b.disabled = true; b.title = tt('room.morph.study.chNoAudio', 'Нужен голос иврита или ключ TTS'); }
     bar.appendChild(b);
   });
@@ -1957,6 +2033,10 @@ function onTrainChannel(c) {
   const s = _trainSession; if (!s) return;
   if (s.channels && !s.channels[c]) return;   // disabled channel — ignore
   if (s.channel === c) return;
+  // Switching the task while the same answer is still live exposes a second prompt modality.
+  // Preserve that provenance so a later typed dictation cannot be recorded as unsupported
+  // production after the learner has already seen the written/context-supported prompt.
+  if (!s.answered) s._crossChannelExposure = true;
   s.channel = c; trainChannelSet(c);
   _stopTrainAudio();   // don't let the previous channel's audio keep playing
   // Re-pose the CURRENT word in the new channel ONLY if it hasn't been answered yet — re-rendering an
@@ -1971,6 +2051,10 @@ function renderTrainItem() {
   _stopTrainAudio();   // D6 — a new question must not overlap the previous item's audio
   s.answered = false;
   const item = s.items[s.idx];
+  if (s._exposureItemIdx !== s.idx) {
+    s._exposureItemIdx = s.idx;
+    s._crossChannelExposure = false;
+  }
   const built = item._built || _trainBuildCloze(item);
   if (!built) { s.idx++; return renderTrainItem(); }   // safety (items were pre-filtered to buildable)
   s._built = built;
@@ -1991,7 +2075,8 @@ function renderTrainItem() {
   // Escalation ladder: MC (recognition) for new/l1/l2 · tap-letters (assisted production, mobile-OK)
   // for l3/l4 · free typing (top production tier) only for known. A5 — too few honest distractors →
   // fall back to tap-letters (not free typing — keyboard-free on mobile).
-  let mode = window.ReaderMorph.isMcLevel(item.status) ? 'mc' : (item.status === 'known' ? 'type' : 'tiles');
+  const trainingStage = item._trainingStage || item.status || 'new';
+  let mode = window.ReaderMorph.isMcLevel(trainingStage) ? 'mc' : (trainingStage === 'known' ? 'type' : 'tiles');
   // R2 word-only: free typing rejects valid paradigm forms the gloss-only prompt licenses (an
   // infinitive answer to a verb gloss — critique r17-4) → tiles steer to the target's own letters.
   // A bare (unvocalized) answer among vocalized MC options is a visual tell → tiles (critique r4-5).
@@ -2011,15 +2096,21 @@ function renderTrainItem() {
   // (hear → write) is inherently production → never MC (drop to tap-letters even for a fresh word).
   if (channel === 'dictate' && mode === 'mc') mode = 'tiles';
   s._mode = mode;
+  s._questionShownAt = Date.now();
   body.innerHTML = '';
   body.appendChild(_trainChannelBar());   // D6 — read/listen/reverse/dictate selector (availability-gated)
+  if (s._saveError) {
+    body.appendChild(el('div', { class: 'room-train-saveerror', attrs: { role: 'alert' },
+      i18n: 'room.morph.study.saveError', text: tt('room.morph.study.saveError', 'Не удалось сохранить ответ. Проверь соединение с локальной памятью и попробуй ещё раз.') }));
+    s._saveError = false;
+  }
   // R2 word-only: the bar may show 📖/🎧 while this item poses as RU→HE — say WHY per-item, so a
   // silent modality flip never reads as «audio is broken» (critique r4-4).
   if (wordOnly) {
     body.appendChild(el('div', { class: 'room-train-wordonly-note', attrs: { dir: uiDirRoom() }, i18n: 'room.morph.study.wordOnlyNote',
       text: tt('room.morph.study.wordOnlyNote', '🔤 Без контекста: у этого слова пока нет предложения на этом устройстве — оно появится после чтения его текста.') }));
   }
-  body.appendChild(el('div', { class: 'room-train-progress', text: (s.idx + 1) + ' / ' + s.total }));
+  body.appendChild(_trainProgressEl(s));
   // ── per-channel PROMPT ────────────────────────────────────────────────────────────────────────────
   if (channel === 'listen') {
     // hear the sentence (baked audio when present, else TTS), NO written Hebrew → map sound to form.
@@ -2177,7 +2268,6 @@ async function checkTrainAnswer(correct, skipped, mode) {
   s.answered = true;
   const item = s.items[s.idx];
   const now = Date.now();   // ONE timestamp for schedule + log — the log row must describe exactly this step
-  const next = window.ReaderMorph.nextLevel(item.status, correct);
   // D1 (CLG-P6 prep, AI_MENTOR_RECON §14): channel-aware грейд — production-провал
   // (dictate/reverse) на рецептивно-сильном слове = Hard(2), не Again(1). Решение ДО шага
   // планировщика; schedule И log-строка используют ОДИН policy-грейд (иначе оракул
@@ -2186,15 +2276,22 @@ async function checkTrainAnswer(correct, skipped, mode) {
   // ответа/timeout остаётся MNAR и сюда не попадает (owner G0-D1, 2026-07-15).
   // R2: the EFFECTIVE channel (word-only items degrade read/listen→reverse at render) — the log
   // row and the D1 policy must describe the modality that actually posed the question (R17).
-  const trainChannel = String(s._effChannel || s.channel || 'read') + (mode ? ':' + mode : '');
-  let d1 = null;
-  if (window.GradePolicy && !correct) {
-    let logRows = []; try { logRows = await localDb.getReviewLog(item.lemmaKey); } catch (_) {}
+  const actualMode = String(mode || s._mode || 'unknown');
+  const effectiveChannel = String(s._effChannel || s.channel || 'read');
+  const trainChannel = effectiveChannel + ':' + actualMode;
+  let evidenceScope = item._wordOnly ? 'lexeme'
+    : (window.GradePolicy && window.GradePolicy.evidenceScopeFor
+      ? window.GradePolicy.evidenceScopeFor(effectiveChannel, actualMode)
+      : 'context_supported');
+  if (s._crossChannelExposure && evidenceScope === 'unsupported_production') evidenceScope = 'context_supported';
+  let d1 = null, logRows = [];
+  if (window.GradePolicy) {
+    try { logRows = await localDb.getReviewLog(item.lemmaKey); } catch (_) {}
     // P7.0a: аннулированные строки — не свидетельство для D1 (иначе отменённый
     // production-успех навсегда отключал бы Hard-смягчение, а write-time порча
     // ложилась бы в append-only лог неисправимо — критика wf_1bf34023).
     try { if (window.FsrsCore && window.FsrsCore.withoutAnnulled) logRows = window.FsrsCore.withoutAnnulled(logRows); } catch (_) {}
-    d1 = window.GradePolicy.decideGrade({ correct, skipped, channel: trainChannel, prevState: item._srs, rows: logRows });
+    d1 = window.GradePolicy.decideGrade({ correct, skipped, channel: trainChannel, evidenceScope, prevState: item._srs, rows: logRows });
   }
   // Retention P2 — FSRS is the scheduler (owner go after the P1.5 shadow-diff): the ONE handover
   // step resumes an fsrs-owned word or lazy-seeds a legacy SM2 row (seed materialized in the log
@@ -2203,62 +2300,64 @@ async function checkTrainAnswer(correct, skipped, mode) {
   const fs = window.ReaderMorph.fsrsStep ? window.ReaderMorph.fsrsStep(window.FsrsCore, item._srs, d1 ? d1.grade : correct, now) : null;
   const grade = (fs && d1) ? d1.grade : (correct ? 3 : 1);
   const sched = fs ? fs.sched : window.ReaderMorph.nextSrs(item._srs, correct, now);
-  // D2 — persist status + schedule + the SOURCE sentence (so the cross-text «due today» queue can re-cloze
-  // this word later without opening its text). item._source set at session build (open-text or D2 itself).
-  try { await localDb.setWordStatus(item.lemmaKey, next, sched, item._source || null); } catch (_) {}
-  // Retention P0/P2 — append this attempt to review_log, the EVENT-TRUTH of word memory (recon §3.2).
-  // Grade = policy-грейд D1 (3 | 1 | 2-Hard на production-провале рецептивно-сильного слова, с
-  // провенансом raw_grade/grade_policy/grader в meta); a skip is kind='skip' (folded like Again, excluded from metrics). The id is
-  // content-deterministic (LemmaCanon.reviewId) so re-appends/bundle merges dedupe by PK. postTeach marks
-  // the immediate post-teach test (excluded from weight fitting/Brier — recall from working memory).
-  // A lazy-seed writes its 'seed:<key>' row at now−1ms so replay's watermark orders it strictly
-  // before this review (id 'seed:…' is the PK — a word can only ever seed once).
-  try {
-    const LC = window.LemmaCanon;
-    if (LC && item.lemmaKey) {
-      // D3 (CLG-P3): content-hashed seed id + explicit seed-once (hasSeedRow replaces the old
-      // 'seed:<key>' PK backstop) — cross-device unions keep both devices' first-seeds.
-      if (fs && fs.seeded && !(await localDb.hasSeedRow(item.lemmaKey))) {
-        const seedMeta = { ...fs.seedMeta, keyer_version: LC.KEYER_VERSION };
-        await localDb.appendReviewLog({
-          id: LC.seedId ? LC.seedId(item.lemmaKey, seedMeta) : ('seed:' + item.lemmaKey),
-          item_key: item.lemmaKey, kind: 'seed',
-          reviewed_at: new Date(now - 1).toISOString(), grade: null, source: 'seed-sm2',
-          meta: seedMeta,
-        });
-      }
-      const row = {
-        item_key: item.lemmaKey,
-        kind: skipped ? 'skip' : 'review',
-        reviewed_at: new Date(now).toISOString(),
-        grade: grade,
-        source: s.cross ? 'room-due-queue' : 'room-recall',
-        channel: trainChannel,
-        meta: {
-          surface: item.surface || undefined,
-          pos: item.pos || undefined,
-          keyer_version: LC.KEYER_VERSION,
-          scheduler: fs
-            ? { scheme: 'fsrs', engine_version: window.FsrsCore.ENGINE_VERSION, request_retention: window.FsrsCore.REQUEST_RETENTION }
-            : { scheme: 'sm2-lite' },
-          postTeach: item._taught ? 1 : undefined,
-          // R2 word-only: gloss-cued recognition without a sentence is LEXEME-scoped evidence —
-          // CONTEXT_SUPPORTED_SCOPES demotes it, so a lucky 4-option pick can never latch
-          // hasProvenProduction / poison the P7.2d selector (BLOCKER r17-2). word_only = provenance.
-          word_only: item._wordOnly ? 1 : undefined,
-          evidence_scope: item._wordOnly ? 'lexeme' : undefined,
-          ...((fs && d1 && d1.applied) ? window.GradePolicy.policyMeta(d1) : {}),
-        },
+  // The exercise ladder is replayable evidence state, not a hidden mutation of the user's manual
+  // word mark. Legacy training emitted a following `mark` row; new training records its stage on
+  // the grade event itself. A later manual mark wins in the ordered fold at session load.
+  const trainingStage = window.ReaderMorph.nextLevel(item._trainingStage || item.status || 'new', !!correct);
+  // R12 premium-release write: event + projection + source are one local transaction. The asserted
+  // manual status is deliberately untouched; a training answer is not a user-authored mark.
+  const LC = window.LemmaCanon;
+  let commitResult = { committed: false, error: 'REVIEW_COMMIT_UNAVAILABLE' };
+  if (LC && item.lemmaKey && localDb.commitReviewAttempt) {
+    const row = {
+      item_key: item.lemmaKey,
+      kind: skipped ? 'skip' : 'review',
+      reviewed_at: new Date(now).toISOString(),
+      grade,
+      source: s.cross ? 'room-due-queue' : 'room-recall',
+      channel: trainChannel,
+      latency_ms: Math.max(0, now - (Number(s._questionShownAt) || now)),
+      meta: {
+        surface: item.surface || undefined,
+        pos: item.pos || undefined,
+        keyer_version: LC.KEYER_VERSION,
+        scheduler: fs
+          ? { scheme: 'fsrs', engine_version: window.FsrsCore.ENGINE_VERSION, request_retention: window.FsrsCore.REQUEST_RETENTION }
+          : { scheme: 'sm2-lite' },
+        postTeach: item._taught ? 1 : undefined,
+        word_only: item._wordOnly ? 1 : undefined,
+        evidence_scope: evidenceScope,
+        training_stage: trainingStage,
+        ...((fs && d1 && d1.applied) ? window.GradePolicy.policyMeta(d1) : {}),
+      },
+    };
+    row.id = LC.reviewId(row);
+    let seedRow = null;
+    if (fs && fs.seeded) {
+      const seedMeta = { ...fs.seedMeta, keyer_version: LC.KEYER_VERSION };
+      seedRow = {
+        id: LC.seedId ? LC.seedId(item.lemmaKey, seedMeta) : ('seed:' + item.lemmaKey),
+        item_key: item.lemmaKey, kind: 'seed', reviewed_at: new Date(now - 1).toISOString(),
+        grade: null, source: 'seed-sm2', meta: seedMeta,
       };
-      row.id = LC.reviewId(row);
-      await localDb.appendReviewLog(row);
     }
-  } catch (_) {}
+    try { commitResult = await localDb.commitReviewAttempt({ row, seedRow, sched, source: item._source || null }); }
+    catch (_) { commitResult = { committed: false, error: 'REVIEW_COMMIT_FAILED' }; }
+  }
+  if (!commitResult || !commitResult.committed) {
+    s.answered = false;
+    s._saveError = true;
+    renderTrainItem();
+    return;
+  }
   item._srs = sched;
-  if (correct && next !== item.status) { s.correct++; s.levelUps++; }   // A8 — any promotion counts (incl. new→l1)
-  else if (correct) { s.correct++; }
-  const moved = (next !== item.status) ? (statusLabel(item.status) + ' → ' + statusLabel(next)) : '';   // A9 — localized, not raw codes
-  item._from = item.status; item.status = next;
+  item._trainingStage = trainingStage;
+  if (correct) s.correct++;
+  const moved = '';
+  if ((!correct || skipped) && !item._retryAttempt && !item._retryQueued) {
+    item._retryQueued = true;
+    s.retryQueue.push(item);
+  }
   // D7 — count this as a GENUINE recall toward today's goal/streak. A retrieval ATTEMPT counts whether
   // right or wrong (a failed attempt still aids memory — testing effect); only a SKIP (refusing to try) is
   // a soft no-recall and earns nothing (reuses «show≠recall»; teach-views write nothing either). Pass the
@@ -2279,7 +2378,7 @@ function renderTrainReveal(correct, moved, skipped, isLeech) {
   if (!s || !body) return;
   const item = s.items[s.idx], built = s._built;
   const cls = skipped ? 'room-train-reveal-skip' : (correct ? 'room-train-reveal-ok' : 'room-train-reveal-bad');
-  const rev = el('div', { class: 'room-train-reveal ' + cls });
+  const rev = el('div', { class: 'room-train-reveal ' + cls, attrs: { role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true' } });
   rev.appendChild(el('div', { class: 'room-train-verdict', text: skipped ? tt('room.morph.study.skipped', '— Пропущено') : (correct ? tt('room.morph.study.correct', '✓ Верно') : tt('room.morph.study.wrong', '✗ Неверно')) }));
   const ansRow = el('div', { class: 'room-train-ansrow' });
   ansRow.appendChild(el('span', { class: 'room-train-ans', attrs: { lang: 'he', dir: 'rtl' }, text: built.cz.answer }));
@@ -2293,6 +2392,13 @@ function renderTrainReveal(correct, moved, skipped, isLeech) {
   }
   if (moved && moved.indexOf('→') >= 0) rev.appendChild(el('div', { class: 'room-train-moved', text: moved }));
   if (built.ru) rev.appendChild(el('div', { class: 'room-train-ctx', attrs: { dir: 'ltr' }, text: built.ru }));
+  if (item._source && item._source.textKey && item._source.orderIndex != null) {
+    const sourceBox = el('div', { class: 'room-train-source', attrs: { dir: uiDirRoom() } });
+    sourceBox.appendChild(el('span', { class: 'room-train-source-label', text: tt('room.morph.study.sourceFrom', 'Источник') + (item._source.title ? ': ' + item._source.title : '') }));
+    sourceBox.appendChild(el('button', { class: 'room-train-source-open', i18n: 'room.morph.study.openSource',
+      text: tt('room.morph.study.openSource', 'Открыть в тексте'), attrs: { type: 'button', 'data-train-source': '1' } }));
+    rev.appendChild(sourceBox);
+  }
   // D4 — leech nudge: soft, opt-in (reuses setWordStatus; never auto-ignores).
   if (isLeech) {
     const leech = el('div', { class: 'room-train-leech', attrs: { dir: uiDirRoom() } });
@@ -2307,6 +2413,8 @@ function renderTrainReveal(correct, moved, skipped, isLeech) {
   body.appendChild(rev);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   try { rev.scrollIntoView({ block: 'nearest' }); } catch (_) {}
+  const nextButton = rev.querySelector('[data-train-next]');
+  if (nextButton) { try { nextButton.focus(); } catch (_) {} }
 }
 // D4 — leech: user accepted the nudge → mark the word «ignore» (reuses setWordStatus; plain set keeps any
 // srs schedule via UPSERT). Repaints the wall + refreshes the due badge; the nudge becomes a confirmation.
@@ -2327,9 +2435,29 @@ function onTrainCard() {
   const item = s.items[s.idx];
   try { window.ReaderMorph.openWordCard(item.surface || s._built.cz.answer, s._built.cz.answer); } catch (_) {}
 }
+async function onTrainSource() {
+  const s = _trainSession, item = s && s.items[s.idx], src = item && item._source;
+  if (!src || !src.textKey || src.orderIndex == null) return;
+  let row = null;
+  try {
+    const rows = await localDb.dbQuery('SELECT id, title FROM texts WHERE text_key = ? LIMIT 1', [String(src.textKey)]);
+    row = rows && rows[0];
+  } catch (_) {}
+  if (!row) { roomToast(tt('room.morph.study.sourceMissing', 'Исходный текст недоступен на этом устройстве.')); return; }
+  closeStudySheet();
+  openReader(row.id, row.title, { scrollToOrderIndex: Number(src.orderIndex) });
+}
 function onTrainNext() {
   if (!_trainSession) return;
   _trainSession.idx++;
+  if (_trainSession.idx >= _trainSession.items.length && !_trainSession.retryPhase && _trainSession.retryQueue.length) {
+    const retries = _trainSession.retryQueue.splice(0);
+    retries.forEach((item) => { item._retryAttempt = true; item._retryQueued = false; });
+    _trainSession.retryPhase = true;
+    _trainSession.retryStart = _trainSession.items.length;
+    _trainSession.items = _trainSession.items.concat(retries);
+    _trainSession.total = _trainSession.items.length;
+  }
   renderTrainItem();
 }
 function renderTrainSummary() {
@@ -2344,7 +2472,7 @@ function renderTrainSummary() {
   }
   const box = el('div', { class: 'room-train-summary' });
   box.appendChild(el('div', { class: 'room-train-score', text: tt('room.morph.study.done', 'Готово') + ': ' + s.correct + ' / ' + s.total }));
-  if (s.levelUps) box.appendChild(el('div', { class: 'room-train-levelups', text: '↑ ' + s.levelUps + ' ' + tt('room.morph.study.levelUps', 'уровней') }));
+  if (s.retryStart >= 0) box.appendChild(el('div', { class: 'room-train-levelups', text: tt('room.morph.study.reinforced', 'Повторно закреплено') + ': ' + (s.total - s.retryStart) }));
   // D7 — soft streak / daily-goal payoff (the emotional reward only for users who engaged). Filled async
   // from the study_day ledger; respects the off-switch. Groups are nowrap → break only at the logical
   // boundary (invariant #7). Plain textContent so applyI18n never clobbers the numbers.
