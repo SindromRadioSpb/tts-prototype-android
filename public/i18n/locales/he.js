@@ -2611,6 +2611,7 @@ window.I18N_LOCALES.he = {
       markedRead: "סומן כנקרא",
       markReadTip: "סמן כנקרא",
       reviewWords: "🔁 חזרה על מילים",
+      backHome: "לדף הבית",
       finishedShelf: "נקראו",
       markedPartial: "סומן",
       showAll: "הצג הכול",

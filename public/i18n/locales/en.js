@@ -2601,6 +2601,7 @@ window.I18N_LOCALES.en = {
       markedRead: "Marked as read",
       markReadTip: "Mark as read",
       reviewWords: "🔁 Review words",
+      backHome: "Home",
       finishedShelf: "Read",
       markedPartial: "marked",
       showAll: "Show all",

@@ -2615,6 +2615,7 @@ window.I18N_LOCALES.ru = {
       markedRead: "Отмечено: прочитано",
       markReadTip: "Отметить прочитанным",
       reviewWords: "🔁 Повторить слова",
+      backHome: "На главную",
       finishedShelf: "Прочитанные",
       markedPartial: "отмечено",
       showAll: "Показать все",

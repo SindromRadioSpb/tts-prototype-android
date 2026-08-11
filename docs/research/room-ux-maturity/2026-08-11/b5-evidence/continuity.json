@@ -1,0 +1,360 @@
+{
+  "capturedAt": "2026-08-11T18:27:51.291Z",
+  "viewport": {
+    "width": 380,
+    "height": 844
+  },
+  "locale": "ru",
+  "theme": "light",
+  "reducedMotion": true,
+  "myResult": {
+    "before": {
+      "key": "mytexts:continuity-mine-041",
+      "top": 376.578125,
+      "scrollY": 2015,
+      "landmarks": [
+        [
+          ".corpus-switchbar",
+          2015,
+          65
+        ],
+        [
+          ".corpus-shell-head",
+          254,
+          94
+        ],
+        [
+          ".corpus-next-action",
+          358,
+          146
+        ],
+        [
+          ".corpus-browse-tools",
+          515,
+          486
+        ],
+        [
+          ".corpus-results-summary",
+          null,
+          null
+        ],
+        [
+          ".corpus-l1-body",
+          null,
+          null
+        ]
+      ],
+      "disclosures": [
+        [
+          "roomMyTextsFilters",
+          true
+        ],
+        [
+          "roomCloudAccountHelp",
+          false
+        ]
+      ]
+    },
+    "after": {
+      "key": "mytexts:continuity-mine-041",
+      "top": 376.578125,
+      "focusKey": "mytexts:continuity-mine-041",
+      "focusAction": "open",
+      "scrollY": 657,
+      "readerHidden": true,
+      "contentHidden": false,
+      "landmarks": [
+        [
+          ".corpus-switchbar",
+          657,
+          65
+        ],
+        [
+          ".corpus-shell-head",
+          254,
+          94
+        ],
+        [
+          ".corpus-next-action",
+          358,
+          146
+        ],
+        [
+          ".corpus-browse-tools",
+          515,
+          486
+        ],
+        [
+          ".corpus-results-summary",
+          null,
+          null
+        ],
+        [
+          ".corpus-l1-body",
+          null,
+          null
+        ]
+      ],
+      "disclosures": [
+        [
+          "roomMyTextsFilters",
+          true
+        ],
+        [
+          "roomCloudAccountHelp",
+          false
+        ]
+      ]
+    }
+  },
+  "benResult": {
+    "before": {
+      "key": "benyehuda:1701",
+      "top": 339.953125,
+      "scrollY": 1842,
+      "landmarks": [
+        [
+          ".corpus-switchbar",
+          1842,
+          115
+        ],
+        [
+          ".corpus-shell-head",
+          304,
+          119
+        ],
+        [
+          ".corpus-next-action",
+          433,
+          146
+        ],
+        [
+          ".corpus-browse-tools",
+          590,
+          401
+        ],
+        [
+          ".corpus-results-summary",
+          999,
+          35
+        ],
+        [
+          ".corpus-l1-body",
+          999,
+          10076
+        ]
+      ],
+      "disclosures": [
+        [
+          "roomBenYehudaFilters",
+          true
+        ],
+        [
+          "roomCloudAccountHelp",
+          false
+        ]
+      ]
+    },
+    "after": {
+      "key": "benyehuda:1701",
+      "top": 339.953125,
+      "focusKey": "benyehuda:1701",
+      "focusAction": "open",
+      "scrollY": 1842,
+      "readerHidden": true,
+      "contentHidden": false,
+      "landmarks": [
+        [
+          ".corpus-switchbar",
+          1842,
+          115
+        ],
+        [
+          ".corpus-shell-head",
+          304,
+          119
+        ],
+        [
+          ".corpus-next-action",
+          433,
+          146
+        ],
+        [
+          ".corpus-browse-tools",
+          590,
+          401
+        ],
+        [
+          ".corpus-results-summary",
+          999,
+          35
+        ],
+        [
+          ".corpus-l1-body",
+          999,
+          10076
+        ]
+      ],
+      "disclosures": [
+        [
+          "roomBenYehudaFilters",
+          true
+        ],
+        [
+          "roomCloudAccountHelp",
+          false
+        ]
+      ]
+    }
+  },
+  "groupResult": {
+    "before": {
+      "key": "group:room-continuity-fixture:song-15",
+      "top": 377.578125,
+      "scrollY": 1656,
+      "landmarks": [
+        [
+          ".corpus-switchbar",
+          1656,
+          65
+        ],
+        [
+          ".corpus-shell-head",
+          254,
+          112
+        ],
+        [
+          ".corpus-next-action",
+          375,
+          146
+        ],
+        [
+          ".corpus-browse-tools",
+          533,
+          153
+        ],
+        [
+          ".corpus-results-summary",
+          null,
+          null
+        ],
+        [
+          ".corpus-l1-body",
+          null,
+          null
+        ]
+      ],
+      "disclosures": [
+        [
+          "roomGroupCorpusFilters",
+          false
+        ],
+        [
+          "roomCloudAccountHelp",
+          false
+        ]
+      ]
+    },
+    "after": {
+      "key": "group:room-continuity-fixture:song-15",
+      "top": 377.578125,
+      "focusKey": "group:room-continuity-fixture:song-15",
+      "focusAction": "open",
+      "scrollY": 1656,
+      "readerHidden": true,
+      "contentHidden": false,
+      "landmarks": [
+        [
+          ".corpus-switchbar",
+          1656,
+          65
+        ],
+        [
+          ".corpus-shell-head",
+          254,
+          112
+        ],
+        [
+          ".corpus-next-action",
+          375,
+          146
+        ],
+        [
+          ".corpus-browse-tools",
+          533,
+          153
+        ],
+        [
+          ".corpus-results-summary",
+          null,
+          null
+        ],
+        [
+          ".corpus-l1-body",
+          null,
+          null
+        ]
+      ],
+      "disclosures": [
+        [
+          "roomGroupCorpusFilters",
+          false
+        ],
+        [
+          "roomCloudAccountHelp",
+          false
+        ]
+      ]
+    }
+  },
+  "myFilterBefore": {
+    "q": "הטקסט",
+    "active": 1
+  },
+  "myFilterAfter": {
+    "q": "הטקסט",
+    "active": 1
+  },
+  "homeState": {
+    "scrollY": 0,
+    "focusKey": "learning-home-feature-open",
+    "finished": false,
+    "selected": "true"
+  },
+  "paths": [
+    {
+      "text": "🔁 Повторить слова",
+      "name": "🔁 Повторить слова"
+    },
+    {
+      "text": "На главную",
+      "name": "На главную"
+    }
+  ],
+  "performance": {
+    "cold": {
+      "kind": "cold",
+      "navigationMs": 165.7,
+      "domContentLoadedMs": 163.8,
+      "loadEventMs": 165.7,
+      "transferBytes": 31865571,
+      "lcpMs": 859.4,
+      "maxLongTaskMs": 0,
+      "interactionMs": 62.5
+    },
+    "cached": {
+      "kind": "cached",
+      "navigationMs": 95.3,
+      "domContentLoadedMs": 94.8,
+      "loadEventMs": 95.3,
+      "transferBytes": 31865571,
+      "lcpMs": 271.2,
+      "maxLongTaskMs": 0,
+      "interactionMs": 49.9
+    }
+  },
+  "pageErrors": [],
+  "serverErrors": [],
+  "checks": 34,
+  "failures": []
+}

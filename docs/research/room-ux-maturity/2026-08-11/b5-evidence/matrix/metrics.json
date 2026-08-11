@@ -1,0 +1,5059 @@
+{
+  "capturedAt": "2026-08-11T18:28:37.160Z",
+  "mode": "gate",
+  "stage": "B5",
+  "matrix": [
+    {
+      "surface": "learning-home",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 365,
+      "readyItems": 0,
+      "listItems": 4,
+      "itemHeights": [
+        77,
+        77,
+        77,
+        76
+      ],
+      "itemSamples": [
+        {
+          "height": 77,
+          "title": "מִי יִתֵּן",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "легчеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному п"
+        },
+        {
+          "height": 77,
+          "title": "במיצרי הצער",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "легчеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному п"
+        },
+        {
+          "height": 77,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "среднеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному "
+        },
+        {
+          "height": 76,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "сложнеемного имён/архаикиⓘПриблизительная сложность по частотности лексикимного имён/архаикиСложность — по частотности; "
+        }
+      ],
+      "learningCompasses": 4,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 4,
+      "assertedCompasses": 0,
+      "derivedCompasses": 4,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 704,
+      "firstLearningTop": 704,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 19,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "shellHeaders": 0,
+      "nextActions": 0,
+      "browseTools": 0,
+      "filterDisclosures": 0,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": false,
+      "managementDisclosures": 0,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": null,
+        "next": null,
+        "browse": null,
+        "management": null
+      },
+      "featureCount": 1,
+      "featureKind": "continue",
+      "todayActions": 2,
+      "homeReadyItems": 4,
+      "corpusEntries": 3,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": 265,
+        "today": 473,
+        "ready": 650,
+        "corpora": 1028
+      }
+    },
+    {
+      "surface": "benyehuda",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 900,
+      "readyItems": 12,
+      "listItems": 12,
+      "itemHeights": [
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        86
+      ],
+      "itemSamples": [
+        {
+          "height": 87,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "среднеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному "
+        },
+        {
+          "height": 87,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "сложнеемного имён/архаикиⓘПриблизительная сложность по частотности лексикимного имён/архаикиСложность — по частотности; "
+        },
+        {
+          "height": 87,
+          "title": "קִינָה לְתִשְׁעָה בְּאָב",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "легчеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному п"
+        },
+        {
+          "height": 87,
+          "title": "מתנובות שדי",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "сложнееⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному"
+        },
+        {
+          "height": 87,
+          "title": "לידידי הרב החכם רב־הפעלים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "сложнееⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному"
+        },
+        {
+          "height": 87,
+          "title": "איש שעיר ואיש חלק",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "среднеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному "
+        },
+        {
+          "height": 87,
+          "title": "רוֹפְאִים וּרְפָאִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "среднеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному "
+        },
+        {
+          "height": 87,
+          "title": "בְּצֵאתִי מִטֶּלְז",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "среднеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному "
+        },
+        {
+          "height": 87,
+          "title": "הַשָּׂב וּשְׁלֹשֶת הַנְּעָרִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "легчеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному п"
+        },
+        {
+          "height": 87,
+          "title": "לאיס\"י [הבבלי]",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "קרית ספר",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 86,
+          "title": "השיר הראשון",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        }
+      ],
+      "learningCompasses": 12,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 9,
+      "assertedCompasses": 0,
+      "derivedCompasses": 9,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 2463,
+      "firstLearningTop": 433,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 111,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": true,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 304,
+        "next": 433,
+        "browse": 590,
+        "management": 4301
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "mytexts",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 1050,
+      "readyItems": 0,
+      "listItems": 48,
+      "itemHeights": [
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91
+      ],
+      "itemSamples": [
+        {
+          "height": 91,
+          "title": "הטקסט שלי 001",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alefПродолжить · строка 2#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 065",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 064",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 063",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 062",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 061",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 060",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 059",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 058",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 057",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 056",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 055",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        }
+      ],
+      "learningCompasses": 48,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 48,
+      "assertedCompasses": 48,
+      "derivedCompasses": 0,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 1,
+      "firstUsefulTop": 700,
+      "firstLearningTop": 358,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 106,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": true,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 48,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 254,
+        "next": 358,
+        "browse": 515,
+        "management": 5428
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "study-songs",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 1183,
+      "readyItems": 0,
+      "listItems": 48,
+      "itemHeights": [
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "itemSamples": [
+        {
+          "height": 88,
+          "title": "שיר לימוד 01",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Аудио полностью · 25/25ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 02",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Аудио частично · 19/26Аудио доступно частичноⓘУровень указан владельцем корпусаАудио доступно частичноУчебная группа "
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 03",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Без аудио · 0/27ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 04",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Аудио полностью · 28/28ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 05",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Аудио частично · 22/29Аудио доступно частичноⓘУровень указан владельцем корпусаАудио доступно частичноУчебная группа "
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 06",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Без аудио · 0/30ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 07",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Аудио полностью · 31/31ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 08",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Аудио частично · 25/32Аудио доступно частичноⓘУровень указан владельцем корпусаАудио доступно частичноУчебная группа "
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 09",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Без аудио · 0/33ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 10",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Аудио полностью · 34/34ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 11",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Аудио частично · 28/35Аудио доступно частичноⓘУровень указан владельцем корпусаАудио доступно частичноУчебная группа "
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 12",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Без аудио · 0/36ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        }
+      ],
+      "learningCompasses": 48,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 48,
+      "assertedCompasses": 48,
+      "derivedCompasses": 0,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 48,
+      "ttsProvenanceDetails": 48,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 718,
+      "firstLearningTop": 375,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 154,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": true,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 254,
+        "next": 375,
+        "browse": 533,
+        "management": 5302
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "learning-home",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 366,
+      "readyItems": 0,
+      "listItems": 4,
+      "itemHeights": [
+        77,
+        77,
+        77,
+        76
+      ],
+      "itemSamples": [
+        {
+          "height": 77,
+          "title": "מִי יִתֵּן",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "קל יותרⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 77,
+          "title": "במיצרי הצער",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "קל יותרⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 77,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "בינוניⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 76,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "קשה יותרהרבה שמות/ארכאיזםⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהרבה שמות/ארכאיזםהקושי מבוסס על שכיחות; מילים מוכרות מ"
+        }
+      ],
+      "learningCompasses": 4,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 4,
+      "assertedCompasses": 0,
+      "derivedCompasses": 4,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 724,
+      "firstLearningTop": 724,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 19,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "shellHeaders": 0,
+      "nextActions": 0,
+      "browseTools": 0,
+      "filterDisclosures": 0,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": false,
+      "managementDisclosures": 0,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": null,
+        "next": null,
+        "browse": null,
+        "management": null
+      },
+      "featureCount": 1,
+      "featureKind": "start",
+      "todayActions": 2,
+      "homeReadyItems": 4,
+      "corpusEntries": 3,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": 268,
+        "today": 476,
+        "ready": 670,
+        "corpora": 1048
+      }
+    },
+    {
+      "surface": "benyehuda",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 789,
+      "readyItems": 12,
+      "listItems": 12,
+      "itemHeights": [
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        86
+      ],
+      "itemSamples": [
+        {
+          "height": 87,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "בינוניⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 87,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "קִינָה לְתִשְׁעָה בְּאָב",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "מתנובות שדי",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "לידידי הרב החכם רב־הפעלים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "איש שעיר ואיש חלק",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "רוֹפְאִים וּרְפָאִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "בְּצֵאתִי מִטֶּלְז",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "הַשָּׂב וּשְׁלֹשֶת הַנְּעָרִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "לאיס\"י [הבבלי]",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "קרית ספר",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 86,
+          "title": "השיר הראשון",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        }
+      ],
+      "learningCompasses": 12,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 1,
+      "assertedCompasses": 0,
+      "derivedCompasses": 1,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 1987,
+      "firstLearningTop": 358,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 95,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": true,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 254,
+        "next": 358,
+        "browse": 523,
+        "management": 3846
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "mytexts",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 448,
+      "readyItems": 0,
+      "listItems": 8,
+      "itemHeights": [
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91
+      ],
+      "itemSamples": [
+        {
+          "height": 91,
+          "title": "הטקסט שלי 008",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 007",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 006",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 005",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 004",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 003",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 002",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 001",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        }
+      ],
+      "learningCompasses": 8,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 8,
+      "assertedCompasses": 8,
+      "derivedCompasses": 0,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 712,
+      "firstLearningTop": 358,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 25,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": true,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 8,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 254,
+        "next": 358,
+        "browse": 523,
+        "management": 1520
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "study-songs",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 380,
+        "height": 844
+      },
+      "domElements": 1183,
+      "readyItems": 0,
+      "listItems": 48,
+      "itemHeights": [
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "itemSamples": [
+        {
+          "height": 88,
+          "title": "שיר לימוד 01",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ שמע מלא · 25/25ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 02",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ שמע חלקי · 19/26השמע זמין חלקיתⓘהרמה נקבעה בידי בעל הקורפוסהשמע זמין חלקיתקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 03",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ ללא שמע · 0/27ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 04",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ שמע מלא · 28/28ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 05",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ שמע חלקי · 22/29השמע זמין חלקיתⓘהרמה נקבעה בידי בעל הקורפוסהשמע זמין חלקיתקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 06",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ ללא שמע · 0/30ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 07",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ שמע מלא · 31/31ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 08",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ שמע חלקי · 25/32השמע זמין חלקיתⓘהרמה נקבעה בידי בעל הקורפוסהשמע זמין חלקיתקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 09",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ ללא שמע · 0/33ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 10",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ שמע מלא · 34/34ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 11",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ שמע חלקי · 28/35השמע זמין חלקיתⓘהרמה נקבעה בידי בעל הקורפוסהשמע זמין חלקיתקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 12",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ ללא שמע · 0/36ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        }
+      ],
+      "learningCompasses": 48,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 48,
+      "assertedCompasses": 48,
+      "derivedCompasses": 0,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 48,
+      "ttsProvenanceDetails": 48,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 708,
+      "firstLearningTop": 358,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 154,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": true,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 254,
+        "next": 358,
+        "browse": 519,
+        "management": 5292
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "learning-home",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "domElements": 365,
+      "readyItems": 0,
+      "listItems": 4,
+      "itemHeights": [
+        77,
+        77,
+        77,
+        76
+      ],
+      "itemSamples": [
+        {
+          "height": 77,
+          "title": "מִי יִתֵּן",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "легчеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному п"
+        },
+        {
+          "height": 77,
+          "title": "במיצרי הצער",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "легчеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному п"
+        },
+        {
+          "height": 77,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "среднеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному "
+        },
+        {
+          "height": 76,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "сложнеемного имён/архаикиⓘПриблизительная сложность по частотности лексикимного имён/архаикиСложность — по частотности; "
+        }
+      ],
+      "learningCompasses": 4,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 4,
+      "assertedCompasses": 0,
+      "derivedCompasses": 4,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 561,
+      "firstLearningTop": 561,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 19,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "shellHeaders": 0,
+      "nextActions": 0,
+      "browseTools": 0,
+      "filterDisclosures": 0,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": false,
+      "managementDisclosures": 0,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": null,
+        "next": null,
+        "browse": null,
+        "management": null
+      },
+      "featureCount": 1,
+      "featureKind": "continue",
+      "todayActions": 2,
+      "homeReadyItems": 4,
+      "corpusEntries": 3,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": 246,
+        "today": 246,
+        "ready": 507,
+        "corpora": 888
+      }
+    },
+    {
+      "surface": "benyehuda",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "domElements": 869,
+      "readyItems": 12,
+      "listItems": 12,
+      "itemHeights": [
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        86
+      ],
+      "itemSamples": [
+        {
+          "height": 87,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "среднеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному "
+        },
+        {
+          "height": 87,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "сложнеемного имён/архаикиⓘПриблизительная сложность по частотности лексикимного имён/архаикиСложность — по частотности; "
+        },
+        {
+          "height": 87,
+          "title": "קִינָה לְתִשְׁעָה בְּאָב",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "легчеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному п"
+        },
+        {
+          "height": 87,
+          "title": "מתנובות שדי",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "לידידי הרב החכם רב־הפעלים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "איש שעיר ואיש חלק",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "רוֹפְאִים וּרְפָאִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "בְּצֵאתִי מִטֶּלְז",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "הַשָּׂב וּשְׁלֹשֶת הַנְּעָרִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "לאיס\"י [הבבלי]",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "קרית ספר",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 86,
+          "title": "השיר הראשון",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        }
+      ],
+      "learningCompasses": 12,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 3,
+      "assertedCompasses": 0,
+      "derivedCompasses": 3,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 2215,
+      "firstLearningTop": 325,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 121,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": true,
+      "filterPanelVisible": true,
+      "filterSummaryVisible": false,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 215,
+        "next": 325,
+        "browse": 455,
+        "management": 3585
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "mytexts",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "domElements": 1050,
+      "readyItems": 0,
+      "listItems": 48,
+      "itemHeights": [
+        85,
+        85,
+        85,
+        85,
+        85,
+        85,
+        85,
+        85,
+        85,
+        85,
+        85,
+        85
+      ],
+      "itemSamples": [
+        {
+          "height": 85,
+          "title": "הטקסט שלי 001",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "alefПродолжить · строка 2#ульпан"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 065",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 064",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 063",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 062",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 061",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 060",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 059",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 058",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 057",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 056",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 055",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        }
+      ],
+      "learningCompasses": 48,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 48,
+      "assertedCompasses": 48,
+      "derivedCompasses": 0,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 1,
+      "firstUsefulTop": 740,
+      "firstLearningTop": 325,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 118,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": true,
+      "filterPanelVisible": true,
+      "filterSummaryVisible": false,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 48,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 215,
+        "next": 325,
+        "browse": 455,
+        "management": 5184
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "study-songs",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "domElements": 1183,
+      "readyItems": 0,
+      "listItems": 48,
+      "itemHeights": [
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "itemSamples": [
+        {
+          "height": 88,
+          "title": "שיר לימוד 01",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Аудио полностью · 25/25ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 02",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Аудио частично · 19/26Аудио доступно частичноⓘУровень указан владельцем корпусаАудио доступно частичноУчебная группа "
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 03",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Без аудио · 0/27ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 04",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Аудио полностью · 28/28ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 05",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Аудио частично · 22/29Аудио доступно частичноⓘУровень указан владельцем корпусаАудио доступно частичноУчебная группа "
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 06",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Без аудио · 0/30ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 07",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Аудио полностью · 31/31ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 08",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Аудио частично · 25/32Аудио доступно частичноⓘУровень указан владельцем корпусаАудио доступно частичноУчебная группа "
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 09",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Без аудио · 0/33ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 10",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Аудио полностью · 34/34ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 11",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Аудио частично · 28/35Аудио доступно частичноⓘУровень указан владельцем корпусаАудио доступно частичноУчебная группа "
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 12",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Без аудио · 0/36ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        }
+      ],
+      "learningCompasses": 48,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 48,
+      "assertedCompasses": 48,
+      "derivedCompasses": 0,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 48,
+      "ttsProvenanceDetails": 48,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 672,
+      "firstLearningTop": 325,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 165,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": true,
+      "filterPanelVisible": true,
+      "filterSummaryVisible": false,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 215,
+        "next": 325,
+        "browse": 455,
+        "management": 5260
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "learning-home",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 320,
+        "height": 780
+      },
+      "domElements": 365,
+      "readyItems": 0,
+      "listItems": 4,
+      "itemHeights": [
+        77,
+        77,
+        77,
+        76
+      ],
+      "itemSamples": [
+        {
+          "height": 77,
+          "title": "מִי יִתֵּן",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "легчеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному п"
+        },
+        {
+          "height": 77,
+          "title": "במיצרי הצער",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "легчеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному п"
+        },
+        {
+          "height": 77,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "среднеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному "
+        },
+        {
+          "height": 76,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "сложнеемного имён/архаикиⓘПриблизительная сложность по частотности лексикимного имён/архаикиСложность — по частотности; "
+        }
+      ],
+      "learningCompasses": 4,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 4,
+      "assertedCompasses": 0,
+      "derivedCompasses": 4,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 747,
+      "firstLearningTop": 747,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 19,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "shellHeaders": 0,
+      "nextActions": 0,
+      "browseTools": 0,
+      "filterDisclosures": 0,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": false,
+      "managementDisclosures": 0,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": null,
+        "next": null,
+        "browse": null,
+        "management": null
+      },
+      "featureCount": 1,
+      "featureKind": "continue",
+      "todayActions": 2,
+      "homeReadyItems": 4,
+      "corpusEntries": 3,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": 308,
+        "today": 516,
+        "ready": 693,
+        "corpora": 1071
+      }
+    },
+    {
+      "surface": "benyehuda",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 320,
+        "height": 780
+      },
+      "domElements": 900,
+      "readyItems": 12,
+      "listItems": 12,
+      "itemHeights": [
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        86
+      ],
+      "itemSamples": [
+        {
+          "height": 87,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "среднеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному "
+        },
+        {
+          "height": 87,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "сложнеемного имён/архаикиⓘПриблизительная сложность по частотности лексикимного имён/архаикиСложность — по частотности; "
+        },
+        {
+          "height": 87,
+          "title": "קִינָה לְתִשְׁעָה בְּאָב",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "легчеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному п"
+        },
+        {
+          "height": 87,
+          "title": "מתנובות שדי",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "сложнееⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному"
+        },
+        {
+          "height": 87,
+          "title": "לידידי הרב החכם רב־הפעלים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "сложнееⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному"
+        },
+        {
+          "height": 87,
+          "title": "איש שעיר ואיש חלק",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "среднеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному "
+        },
+        {
+          "height": 87,
+          "title": "רוֹפְאִים וּרְפָאִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "среднеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному "
+        },
+        {
+          "height": 87,
+          "title": "בְּצֵאתִי מִטֶּלְז",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "среднеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному "
+        },
+        {
+          "height": 87,
+          "title": "הַשָּׂב וּשְׁלֹשֶת הַנְּעָרִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "легчеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному п"
+        },
+        {
+          "height": 87,
+          "title": "לאיס\"י [הבבלי]",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "קרית ספר",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 86,
+          "title": "השיר הראשון",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        }
+      ],
+      "learningCompasses": 12,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 9,
+      "assertedCompasses": 0,
+      "derivedCompasses": 9,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 2552,
+      "firstLearningTop": 467,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 111,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": true,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 321,
+        "next": 467,
+        "browse": 624,
+        "management": 4437
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "mytexts",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 320,
+        "height": 780
+      },
+      "domElements": 689,
+      "readyItems": 0,
+      "listItems": 24,
+      "itemHeights": [
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91
+      ],
+      "itemSamples": [
+        {
+          "height": 91,
+          "title": "הטקסט שלי 001",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alefПродолжить · строка 2#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 024",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 023",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 022",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 021",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 020",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 019",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 018",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 017",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 016",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 015",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 014",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        }
+      ],
+      "learningCompasses": 24,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 23,
+      "assertedCompasses": 24,
+      "derivedCompasses": 0,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 1,
+      "firstUsefulTop": 717,
+      "firstLearningTop": 375,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 57,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": true,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 24,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 271,
+        "next": 375,
+        "browse": 532,
+        "management": 3077
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "study-songs",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 320,
+        "height": 780
+      },
+      "domElements": 1183,
+      "readyItems": 0,
+      "listItems": 48,
+      "itemHeights": [
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "itemSamples": [
+        {
+          "height": 88,
+          "title": "שיר לימוד 01",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Аудио полностью · 25/25ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 02",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Аудио частично · 19/26Аудио доступно частичноⓘУровень указан владельцем корпусаАудио доступно частичноУчебная группа "
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 03",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Без аудио · 0/27ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 04",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Аудио полностью · 28/28ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 05",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Аудио частично · 22/29Аудио доступно частичноⓘУровень указан владельцем корпусаАудио доступно частичноУчебная группа "
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 06",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Без аудио · 0/30ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 07",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Аудио полностью · 31/31ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 08",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Аудио частично · 25/32Аудио доступно частичноⓘУровень указан владельцем корпусаАудио доступно частичноУчебная группа "
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 09",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Без аудио · 0/33ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 10",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Аудио полностью · 34/34ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 11",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Аудио частично · 28/35Аудио доступно частичноⓘУровень указан владельцем корпусаАудио доступно частичноУчебная группа "
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 12",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Без аудио · 0/36ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        }
+      ],
+      "learningCompasses": 48,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 16,
+      "assertedCompasses": 48,
+      "derivedCompasses": 0,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 48,
+      "ttsProvenanceDetails": 48,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 805,
+      "firstLearningTop": 463,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 154,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": true,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 321,
+        "next": 463,
+        "browse": 621,
+        "management": 5389
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "learning-home",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "domElements": 366,
+      "readyItems": 0,
+      "listItems": 4,
+      "itemHeights": [
+        77,
+        77,
+        77,
+        76
+      ],
+      "itemSamples": [
+        {
+          "height": 77,
+          "title": "מִי יִתֵּן",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "קל יותרⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 77,
+          "title": "במיצרי הצער",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "קל יותרⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 77,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "בינוניⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 76,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "קשה יותרהרבה שמות/ארכאיזםⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהרבה שמות/ארכאיזםהקושי מבוסס על שכיחות; מילים מוכרות מ"
+        }
+      ],
+      "learningCompasses": 4,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 4,
+      "assertedCompasses": 0,
+      "derivedCompasses": 4,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 724,
+      "firstLearningTop": 724,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 19,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "shellHeaders": 0,
+      "nextActions": 0,
+      "browseTools": 0,
+      "filterDisclosures": 0,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": false,
+      "managementDisclosures": 0,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": null,
+        "next": null,
+        "browse": null,
+        "management": null
+      },
+      "featureCount": 1,
+      "featureKind": "start",
+      "todayActions": 2,
+      "homeReadyItems": 4,
+      "corpusEntries": 3,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": 268,
+        "today": 476,
+        "ready": 670,
+        "corpora": 1048
+      }
+    },
+    {
+      "surface": "benyehuda",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "domElements": 899,
+      "readyItems": 12,
+      "listItems": 12,
+      "itemHeights": [
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        86
+      ],
+      "itemSamples": [
+        {
+          "height": 87,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "בינוניⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 87,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "קשה יותרהרבה שמות/ארכאיזםⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהרבה שמות/ארכאיזםהקושי מבוסס על שכיחות; מילים מוכרות מ"
+        },
+        {
+          "height": 87,
+          "title": "קִינָה לְתִשְׁעָה בְּאָב",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "קל יותרⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 87,
+          "title": "מתנובות שדי",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "קשה יותרⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 87,
+          "title": "לידידי הרב החכם רב־הפעלים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "קשה יותרⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 87,
+          "title": "איש שעיר ואיש חלק",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "בינוניⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 87,
+          "title": "רוֹפְאִים וּרְפָאִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "בינוניⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 87,
+          "title": "בְּצֵאתִי מִטֶּלְז",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "בינוניⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 87,
+          "title": "הַשָּׂב וּשְׁלֹשֶת הַנְּעָרִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "קל יותרⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 87,
+          "title": "לאיס\"י [הבבלי]",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "קרית ספר",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 86,
+          "title": "השיר הראשון",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        }
+      ],
+      "learningCompasses": 12,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 9,
+      "assertedCompasses": 0,
+      "derivedCompasses": 9,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 2400,
+      "firstLearningTop": 358,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 111,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": true,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 254,
+        "next": 358,
+        "browse": 523,
+        "management": 4306
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "mytexts",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "domElements": 508,
+      "readyItems": 0,
+      "listItems": 12,
+      "itemHeights": [
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91
+      ],
+      "itemSamples": [
+        {
+          "height": 91,
+          "title": "הטקסט שלי 012",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 011",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 010",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 009",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 008",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 007",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 006",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 005",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 004",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 003",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 002",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 001",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        }
+      ],
+      "learningCompasses": 12,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 12,
+      "assertedCompasses": 12,
+      "derivedCompasses": 0,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 712,
+      "firstLearningTop": 358,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 33,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": true,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 12,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 254,
+        "next": 358,
+        "browse": 523,
+        "management": 1908
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "study-songs",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "domElements": 1183,
+      "readyItems": 0,
+      "listItems": 48,
+      "itemHeights": [
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "itemSamples": [
+        {
+          "height": 88,
+          "title": "שיר לימוד 01",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ שמע מלא · 25/25ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 02",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ שמע חלקי · 19/26השמע זמין חלקיתⓘהרמה נקבעה בידי בעל הקורפוסהשמע זמין חלקיתקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 03",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ ללא שמע · 0/27ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 04",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ שמע מלא · 28/28ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 05",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ שמע חלקי · 22/29השמע זמין חלקיתⓘהרמה נקבעה בידי בעל הקורפוסהשמע זמין חלקיתקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 06",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ ללא שמע · 0/30ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 07",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ שמע מלא · 31/31ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 08",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ שמע חלקי · 25/32השמע זמין חלקיתⓘהרמה נקבעה בידי בעל הקורפוסהשמע זמין חלקיתקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 09",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ ללא שמע · 0/33ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 10",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ שמע מלא · 34/34ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 11",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ שמע חלקי · 28/35השמע זמין חלקיתⓘהרמה נקבעה בידי בעל הקורפוסהשמע זמין חלקיתקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 12",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ ללא שמע · 0/36ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        }
+      ],
+      "learningCompasses": 48,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 48,
+      "assertedCompasses": 48,
+      "derivedCompasses": 0,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 48,
+      "ttsProvenanceDetails": 48,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 708,
+      "firstLearningTop": 358,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 154,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": true,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 254,
+        "next": 358,
+        "browse": 519,
+        "management": 5292
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "learning-home",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 430,
+        "height": 900
+      },
+      "domElements": 365,
+      "readyItems": 0,
+      "listItems": 4,
+      "itemHeights": [
+        77,
+        77,
+        77,
+        76
+      ],
+      "itemSamples": [
+        {
+          "height": 77,
+          "title": "מִי יִתֵּן",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "легчеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному п"
+        },
+        {
+          "height": 77,
+          "title": "במיצרי הצער",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "легчеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному п"
+        },
+        {
+          "height": 77,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "среднеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному "
+        },
+        {
+          "height": 76,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "сложнеемного имён/архаикиⓘПриблизительная сложность по частотности лексикимного имён/архаикиСложность — по частотности; "
+        }
+      ],
+      "learningCompasses": 4,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 4,
+      "assertedCompasses": 0,
+      "derivedCompasses": 4,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 704,
+      "firstLearningTop": 704,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 19,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "shellHeaders": 0,
+      "nextActions": 0,
+      "browseTools": 0,
+      "filterDisclosures": 0,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": false,
+      "managementDisclosures": 0,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": null,
+        "next": null,
+        "browse": null,
+        "management": null
+      },
+      "featureCount": 1,
+      "featureKind": "continue",
+      "todayActions": 2,
+      "homeReadyItems": 4,
+      "corpusEntries": 3,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": 265,
+        "today": 473,
+        "ready": 650,
+        "corpora": 1028
+      }
+    },
+    {
+      "surface": "benyehuda",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 430,
+        "height": 900
+      },
+      "domElements": 858,
+      "readyItems": 12,
+      "listItems": 12,
+      "itemHeights": [
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        86
+      ],
+      "itemSamples": [
+        {
+          "height": 87,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "среднеⓘПриблизительная сложность по частотности лексикиСложность — по частотности; знакомые слова — только по реальному "
+        },
+        {
+          "height": 87,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "сложнеемного имён/архаикиⓘПриблизительная сложность по частотности лексикимного имён/архаикиСложность — по частотности; "
+        },
+        {
+          "height": 87,
+          "title": "קִינָה לְתִשְׁעָה בְּאָב",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "מתנובות שדי",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "לידידי הרב החכם רב־הפעלים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "איש שעיר ואיש חלק",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "רוֹפְאִים וּרְפָאִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "בְּצֵאתִי מִטֶּלְז",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "הַשָּׂב וּשְׁלֹשֶת הַנְּעָרִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "לאיס\"י [הבבלי]",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "קרית ספר",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 86,
+          "title": "השיר הראשון",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        }
+      ],
+      "learningCompasses": 12,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 2,
+      "assertedCompasses": 0,
+      "derivedCompasses": 2,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 2370,
+      "firstLearningTop": 358,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 104,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": true,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 254,
+        "next": 358,
+        "browse": 515,
+        "management": 4169
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "mytexts",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 430,
+        "height": 900
+      },
+      "domElements": 689,
+      "readyItems": 0,
+      "listItems": 24,
+      "itemHeights": [
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91
+      ],
+      "itemSamples": [
+        {
+          "height": 91,
+          "title": "הטקסט שלי 001",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alefПродолжить · строка 2#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 024",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 023",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 022",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 021",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 020",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 019",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 018",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 017",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 016",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 015",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 014",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        }
+      ],
+      "learningCompasses": 24,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 24,
+      "assertedCompasses": 24,
+      "derivedCompasses": 0,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 1,
+      "firstUsefulTop": 700,
+      "firstLearningTop": 358,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 57,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": true,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 24,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 254,
+        "next": 358,
+        "browse": 515,
+        "management": 3060
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "study-songs",
+      "lang": "ru",
+      "dir": "ltr",
+      "viewport": {
+        "width": 430,
+        "height": 900
+      },
+      "domElements": 1183,
+      "readyItems": 0,
+      "listItems": 48,
+      "itemHeights": [
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "itemSamples": [
+        {
+          "height": 88,
+          "title": "שיר לימוד 01",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Аудио полностью · 25/25ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 02",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Аудио частично · 19/26Аудио доступно частичноⓘУровень указан владельцем корпусаАудио доступно частичноУчебная группа "
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 03",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Без аудио · 0/27ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 04",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Аудио полностью · 28/28ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 05",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Аудио частично · 22/29Аудио доступно частичноⓘУровень указан владельцем корпусаАудио доступно частичноУчебная группа "
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 06",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Без аудио · 0/30ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 07",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Аудио полностью · 31/31ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 08",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Аудио частично · 25/32Аудио доступно частичноⓘУровень указан владельцем корпусаАудио доступно частичноУчебная группа "
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 09",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Без аудио · 0/33ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 10",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Аудио полностью · 34/34ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 11",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "א♪ Аудио частично · 28/35Аудио доступно частичноⓘУровень указан владельцем корпусаАудио доступно частичноУчебная группа "
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 12",
+          "titleHeight": 21,
+          "authorHeight": 15,
+          "learningHeight": 24,
+          "learningText": "ב♪ Без аудио · 0/36ⓘУровень указан владельцем корпусаУчебная группа · TTS · редакция аудио 1"
+        }
+      ],
+      "learningCompasses": 48,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 48,
+      "assertedCompasses": 48,
+      "derivedCompasses": 0,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 48,
+      "ttsProvenanceDetails": 48,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 700,
+      "firstLearningTop": 358,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 154,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": true,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 254,
+        "next": 358,
+        "browse": 515,
+        "management": 5284
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "learning-home",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 510,
+        "height": 900
+      },
+      "domElements": 366,
+      "readyItems": 0,
+      "listItems": 4,
+      "itemHeights": [
+        77,
+        77,
+        77,
+        76
+      ],
+      "itemSamples": [
+        {
+          "height": 77,
+          "title": "מִי יִתֵּן",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "קל יותרⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 77,
+          "title": "במיצרי הצער",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "קל יותרⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 77,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "בינוניⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 76,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "קשה יותרהרבה שמות/ארכאיזםⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהרבה שמות/ארכאיזםהקושי מבוסס על שכיחות; מילים מוכרות מ"
+        }
+      ],
+      "learningCompasses": 4,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 4,
+      "assertedCompasses": 0,
+      "derivedCompasses": 4,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 698,
+      "firstLearningTop": 698,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 19,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "shellHeaders": 0,
+      "nextActions": 0,
+      "browseTools": 0,
+      "filterDisclosures": 0,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": false,
+      "managementDisclosures": 0,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": null,
+        "next": null,
+        "browse": null,
+        "management": null
+      },
+      "featureCount": 1,
+      "featureKind": "start",
+      "todayActions": 2,
+      "homeReadyItems": 4,
+      "corpusEntries": 3,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": 242,
+        "today": 450,
+        "ready": 644,
+        "corpora": 1022
+      }
+    },
+    {
+      "surface": "benyehuda",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 510,
+        "height": 900
+      },
+      "domElements": 858,
+      "readyItems": 12,
+      "listItems": 12,
+      "itemHeights": [
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        86
+      ],
+      "itemSamples": [
+        {
+          "height": 87,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "בינוניⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 87,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "קשה יותרהרבה שמות/ארכאיזםⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהרבה שמות/ארכאיזםהקושי מבוסס על שכיחות; מילים מוכרות מ"
+        },
+        {
+          "height": 87,
+          "title": "קִינָה לְתִשְׁעָה בְּאָב",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "מתנובות שדי",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "לידידי הרב החכם רב־הפעלים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "איש שעיר ואיש חלק",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "רוֹפְאִים וּרְפָאִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "בְּצֵאתִי מִטֶּלְז",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "הַשָּׂב וּשְׁלֹשֶת הַנְּעָרִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "לאיס\"י [הבבלי]",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "קרית ספר",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 86,
+          "title": "השיר הראשון",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        }
+      ],
+      "learningCompasses": 12,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 2,
+      "assertedCompasses": 0,
+      "derivedCompasses": 2,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 2347,
+      "firstLearningTop": 332,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 104,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": true,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 228,
+        "next": 332,
+        "browse": 497,
+        "management": 4074
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "mytexts",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 510,
+        "height": 900
+      },
+      "domElements": 508,
+      "readyItems": 0,
+      "listItems": 12,
+      "itemHeights": [
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91,
+        91
+      ],
+      "itemSamples": [
+        {
+          "height": 91,
+          "title": "הטקסט שלי 012",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 011",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 010",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 009",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 008",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 007",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 006",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 005",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 004",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 003",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 002",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 91,
+          "title": "הטקסט שלי 001",
+          "titleHeight": 23,
+          "authorHeight": 91,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        }
+      ],
+      "learningCompasses": 12,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 12,
+      "assertedCompasses": 12,
+      "derivedCompasses": 0,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 686,
+      "firstLearningTop": 332,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 33,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": true,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 12,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 228,
+        "next": 332,
+        "browse": 497,
+        "management": 1882
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "study-songs",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 510,
+        "height": 900
+      },
+      "domElements": 1183,
+      "readyItems": 0,
+      "listItems": 48,
+      "itemHeights": [
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "itemSamples": [
+        {
+          "height": 88,
+          "title": "שיר לימוד 01",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ שמע מלא · 25/25ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 02",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ שמע חלקי · 19/26השמע זמין חלקיתⓘהרמה נקבעה בידי בעל הקורפוסהשמע זמין חלקיתקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 03",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ ללא שמע · 0/27ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 04",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ שמע מלא · 28/28ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 05",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ שמע חלקי · 22/29השמע זמין חלקיתⓘהרמה נקבעה בידי בעל הקורפוסהשמע זמין חלקיתקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 06",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ ללא שמע · 0/30ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 07",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ שמע מלא · 31/31ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 08",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ שמע חלקי · 25/32השמע זמין חלקיתⓘהרמה נקבעה בידי בעל הקורפוסהשמע זמין חלקיתקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 09",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ ללא שמע · 0/33ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 10",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ שמע מלא · 34/34ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 11",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ שמע חלקי · 28/35השמע זמין חלקיתⓘהרמה נקבעה בידי בעל הקורפוסהשמע זמין חלקיתקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 12",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ ללא שמע · 0/36ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        }
+      ],
+      "learningCompasses": 48,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 48,
+      "assertedCompasses": 48,
+      "derivedCompasses": 0,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 48,
+      "ttsProvenanceDetails": 48,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 681,
+      "firstLearningTop": 332,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 154,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": true,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 228,
+        "next": 332,
+        "browse": 493,
+        "management": 5265
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "learning-home",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "domElements": 366,
+      "readyItems": 0,
+      "listItems": 4,
+      "itemHeights": [
+        77,
+        77,
+        77,
+        76
+      ],
+      "itemSamples": [
+        {
+          "height": 77,
+          "title": "מִי יִתֵּן",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "קל יותרⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 77,
+          "title": "במיצרי הצער",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "קל יותרⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 77,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "בינוניⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 76,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 24,
+          "learningText": "קשה יותרהרבה שמות/ארכאיזםⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהרבה שמות/ארכאיזםהקושי מבוסס על שכיחות; מילים מוכרות מ"
+        }
+      ],
+      "learningCompasses": 4,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 4,
+      "assertedCompasses": 0,
+      "derivedCompasses": 4,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 564,
+      "firstLearningTop": 564,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 19,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": false,
+      "shellHeaders": 0,
+      "nextActions": 0,
+      "browseTools": 0,
+      "filterDisclosures": 0,
+      "filterOpen": false,
+      "filterPanelVisible": false,
+      "filterSummaryVisible": false,
+      "managementDisclosures": 0,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": null,
+        "next": null,
+        "browse": null,
+        "management": null
+      },
+      "featureCount": 1,
+      "featureKind": "start",
+      "todayActions": 2,
+      "homeReadyItems": 4,
+      "corpusEntries": 3,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": 249,
+        "today": 249,
+        "ready": 510,
+        "corpora": 891
+      }
+    },
+    {
+      "surface": "benyehuda",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "domElements": 868,
+      "readyItems": 12,
+      "listItems": 12,
+      "itemHeights": [
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        87,
+        86
+      ],
+      "itemSamples": [
+        {
+          "height": 87,
+          "title": "הַשַּׁחַר נִדְמֹה נִדְמָה",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "בינוניⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 87,
+          "title": "לתלמידי הבאראן אלפריד גינצבורג",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "קשה יותרהרבה שמות/ארכאיזםⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהרבה שמות/ארכאיזםהקושי מבוסס על שכיחות; מילים מוכרות מ"
+        },
+        {
+          "height": 87,
+          "title": "קִינָה לְתִשְׁעָה בְּאָב",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": "קל יותרⓘהערכת קושי משוערת לפי שכיחות אוצר המיליםהקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל"
+        },
+        {
+          "height": 87,
+          "title": "מתנובות שדי",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "לידידי הרב החכם רב־הפעלים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "איש שעיר ואיש חלק",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "רוֹפְאִים וּרְפָאִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "בְּצֵאתִי מִטֶּלְז",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "הַשָּׂב וּשְׁלֹשֶת הַנְּעָרִים",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "לאיס\"י [הבבלי]",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 87,
+          "title": "קרית ספר",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        },
+        {
+          "height": 86,
+          "title": "השיר הראשון",
+          "titleHeight": 22,
+          "authorHeight": 24,
+          "learningHeight": 26,
+          "learningText": ""
+        }
+      ],
+      "learningCompasses": 12,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 3,
+      "assertedCompasses": 0,
+      "derivedCompasses": 3,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 2228,
+      "firstLearningTop": 325,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 121,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": true,
+      "filterPanelVisible": true,
+      "filterSummaryVisible": false,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 215,
+        "next": 325,
+        "browse": 455,
+        "management": 3611
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "mytexts",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "domElements": 508,
+      "readyItems": 0,
+      "listItems": 12,
+      "itemHeights": [
+        85,
+        85,
+        85,
+        85,
+        85,
+        85,
+        85,
+        85,
+        85,
+        85,
+        85,
+        85
+      ],
+      "itemSamples": [
+        {
+          "height": 85,
+          "title": "הטקסט שלי 012",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 011",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 010",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 009",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 008",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 007",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 006",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 005",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 004",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 003",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 002",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "bet#дом"
+        },
+        {
+          "height": 85,
+          "title": "הטקסט שלי 001",
+          "titleHeight": 23,
+          "authorHeight": 85,
+          "learningHeight": 24,
+          "learningText": "alef#ульпан"
+        }
+      ],
+      "learningCompasses": 12,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 12,
+      "assertedCompasses": 12,
+      "derivedCompasses": 0,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 0,
+      "ttsProvenanceDetails": 0,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 744,
+      "firstLearningTop": 325,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 45,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": true,
+      "filterPanelVisible": true,
+      "filterSummaryVisible": false,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 12,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 215,
+        "next": 325,
+        "browse": 455,
+        "management": 1872
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    },
+    {
+      "surface": "study-songs",
+      "lang": "he",
+      "dir": "rtl",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "domElements": 1183,
+      "readyItems": 0,
+      "listItems": 48,
+      "itemHeights": [
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "itemSamples": [
+        {
+          "height": 88,
+          "title": "שיר לימוד 01",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ שמע מלא · 25/25ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 02",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ שמע חלקי · 19/26השמע זמין חלקיתⓘהרמה נקבעה בידי בעל הקורפוסהשמע זמין חלקיתקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 03",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ ללא שמע · 0/27ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 04",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ שמע מלא · 28/28ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 05",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ שמע חלקי · 22/29השמע זמין חלקיתⓘהרמה נקבעה בידי בעל הקורפוסהשמע זמין חלקיתקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 06",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ ללא שמע · 0/30ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 07",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ שמע מלא · 31/31ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 08",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ שמע חלקי · 25/32השמע זמין חלקיתⓘהרמה נקבעה בידי בעל הקורפוסהשמע זמין חלקיתקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 09",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ ללא שמע · 0/33ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 10",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ שמע מלא · 34/34ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 11",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "א♪ שמע חלקי · 28/35השמע זמין חלקיתⓘהרמה נקבעה בידי בעל הקורפוסהשמע זמין חלקיתקבוצת לימוד · TTS · מהדורת שמע 1"
+        },
+        {
+          "height": 88,
+          "title": "שיר לימוד 12",
+          "titleHeight": 21,
+          "authorHeight": 18,
+          "learningHeight": 24,
+          "learningText": "ב♪ ללא שמע · 0/36ⓘהרמה נקבעה בידי בעל הקורפוסקבוצת לימוד · TTS · מהדורת שמע 1"
+        }
+      ],
+      "learningCompasses": 48,
+      "maxReadinessSignals": 1,
+      "visibleReadinessSignals": 48,
+      "assertedCompasses": 48,
+      "derivedCompasses": 0,
+      "familiaritySignals": 0,
+      "cosmeticZeroFamiliarity": 0,
+      "exactAudioCoverage": 48,
+      "ttsProvenanceDetails": 48,
+      "readingStateLabels": 0,
+      "firstUsefulTop": 676,
+      "firstLearningTop": 325,
+      "nestedInteractive": 0,
+      "nestedExamples": [],
+      "visibleTargets": 165,
+      "smallTargets": 0,
+      "smallTargetExamples": [],
+      "unlabeledControls": 0,
+      "contrastFailures": 0,
+      "contrastExamples": [],
+      "overflowPx": 0,
+      "metaDescription": true,
+      "groupInSwitcher": true,
+      "shellHeaders": 1,
+      "nextActions": 1,
+      "browseTools": 1,
+      "filterDisclosures": 1,
+      "filterOpen": true,
+      "filterPanelVisible": true,
+      "filterSummaryVisible": false,
+      "managementDisclosures": 1,
+      "visibleManagementActions": 0,
+      "myTextSecondary": 0,
+      "directNakdan": 0,
+      "corpusTops": {
+        "shell": 215,
+        "next": 325,
+        "browse": 455,
+        "management": 5264
+      },
+      "featureCount": 0,
+      "featureKind": null,
+      "todayActions": 0,
+      "homeReadyItems": 0,
+      "corpusEntries": 0,
+      "legacyHubCards": 0,
+      "teaserInsideCorpusList": false,
+      "homeTops": {
+        "feature": null,
+        "today": null,
+        "ready": null,
+        "corpora": null
+      }
+    }
+  ]
+}

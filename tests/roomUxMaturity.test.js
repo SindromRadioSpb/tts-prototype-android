@@ -11,6 +11,11 @@ const read = (relative) => fs.readFileSync(path.join(ROOT, relative), "utf8");
 const libraryHtml = read("public/library.html");
 const libraryUi = read("public/js/library-ui.js");
 const corpusRegistry = read("public/js/corpus-registry.js");
+const indexHtml = read("public/index.html");
+const serviceWorker = read("public/sw.js");
+const localeRu = read("public/i18n/locales/ru.js");
+const localeEn = read("public/i18n/locales/en.js");
+const localeHe = read("public/i18n/locales/he.js");
 const presenterPath = path.join(ROOT, "public", "js", "corpus-item-presenter.js");
 
 const TARGETS = Object.freeze({
@@ -269,6 +274,90 @@ test("B4 shared presenter is pure and all corpus rows consume its view models", 
   assert.match(libraryUi, /adaptGroupCorpusItem/);
   assert.match(libraryUi, /function paintLearningCompass\(/);
   assert.match(libraryUi, /data-confidence/);
+});
+
+test("B5 returns to the exact corpus context and refreshes canonical progress", () => {
+  const continuity = libraryUi.slice(
+    libraryUi.indexOf("let readerReturnContext"),
+    libraryUi.indexOf("function setReaderReturnRoute"),
+  );
+  const openReaderStart = libraryUi.indexOf("async function openReader");
+  const openReader = libraryUi.slice(openReaderStart, libraryUi.indexOf("function maybeNudgeNiqqud", openReaderStart));
+  const closeReader = libraryUi.slice(
+    libraryUi.indexOf("async function closeReader"),
+    libraryUi.indexOf("// ── BRR-S15"),
+  );
+  assert.match(continuity, /function captureReaderReturnContext\(/,
+    "Reader needs one in-memory snapshot of the visible corpus place");
+  assert.match(continuity, /function restoreReaderReturnContext\(/,
+    "Reader needs one focus/scroll restoration path after a fresh render");
+  assert.doesNotMatch(continuity, /localStorage|sessionStorage|indexedDB|localDb|fetch\(/,
+    "return context is ephemeral UI state, never learner truth or persistence");
+  assert.match(openReader, /captureReaderReturnContext\(\)[\s\S]*window\.scrollTo\(0, 0\)/,
+    "the corpus place must be captured before Reader moves the viewport");
+  assert.match(closeReader, /activeTrack === 'corpus'[\s\S]*await renderCorpus\(\)/,
+    "every corpus adapter must repaint from canonical state after progress flush");
+  assert.match(closeReader, /await restoreReaderReturnContext\(returnContext/,
+    "focus and scroll must restore only after the asynchronous corpus repaint");
+  assert.match(continuity, /details\[id\]/,
+    "mobile filter disclosure state is part of the ephemeral return place");
+});
+
+test("B5 gives every corpus row a stable, presentation-only continuity identity", () => {
+  const myTextCard = libraryUi.slice(libraryUi.indexOf("function renderMyTextCard"), libraryUi.indexOf("async function injectMyTexts"));
+  const groupCard = libraryUi.slice(libraryUi.indexOf("function renderCard(work)"), libraryUi.indexOf("let groupBrowseLimit"));
+  const benCard = libraryUi.slice(libraryUi.indexOf("function renderCorpusCard"), libraryUi.indexOf("function renderTrack"));
+  const benRow = libraryUi.slice(libraryUi.indexOf("function renderCorpusWorkRow"), libraryUi.indexOf("function wireChrome"));
+  assert.match(myTextCard, /'data-continuity-key': continuityKey\('mytexts'/);
+  assert.match(groupCard, /'data-continuity-key'\s*:\s*continuityKey\('group:' \+ corpusId/);
+  assert.match(benCard, /'data-continuity-key': continuityKey\('benyehuda'/);
+  assert.match(benRow, /'data-continuity-key': continuityKey\('benyehuda'/);
+  assert.match(libraryUi, /'data-continuity-action': 'open'/,
+    "the refreshed row needs an unambiguous focus target");
+  assert.match(benRow, /class: 'work-card-difficulty learning-compass'/,
+    "lazy Ben-Yehuda readiness must reserve its row slot before it enters the viewport");
+});
+
+test("B5 invalidates late served-on-open completions after Back", () => {
+  const openReader = libraryUi.slice(libraryUi.indexOf("async function openReader"), libraryUi.indexOf("function maybeNudgeNiqqud"));
+  const closeReader = libraryUi.slice(libraryUi.indexOf("async function closeReader"), libraryUi.indexOf("// ── BRR-S15"));
+  const corpusOpen = libraryUi.slice(libraryUi.indexOf("async function openCorpusWork"), libraryUi.indexOf("// Restricted group corpus"));
+  const groupOpen = libraryUi.slice(libraryUi.indexOf("async function openGroupCorpusWork"), libraryUi.indexOf("// BRR-P0-004"));
+  assert.match(libraryUi, /let readerOpenEpoch = 0/);
+  assert.match(closeReader, /readerOpenEpoch\+\+/,
+    "Back must revoke pending presentation authority");
+  assert.match(openReader, /openEpoch !== readerOpenEpoch[\s\S]*ReaderCore was resolving/,
+    "a late ReaderCore completion cannot repaint a closed Reader");
+  assert.match(corpusOpen, /const openEpoch = \+\+readerOpenEpoch[\s\S]*openEpoch !== readerOpenEpoch[\s\S]*_readerOpenEpoch: openEpoch/,
+    "served-on-open import may finish, but stale navigation cannot reopen Ben-Yehuda");
+  assert.match(groupOpen, /const openEpoch = \+\+readerOpenEpoch[\s\S]*openEpoch !== readerOpenEpoch[\s\S]*_readerOpenEpoch: openEpoch/,
+    "the protected-corpus transport follows the same late-result contract");
+});
+
+test("B5 finish handoff includes a localized, non-destructive Learning Home route", () => {
+  const endCard = libraryUi.slice(
+    libraryUi.indexOf("async function renderEndOfTextCard"),
+    libraryUi.indexOf("// ── BRR Epic 5 W2"),
+  );
+  assert.match(endCard, /class: 'reader-end-paths'/,
+    "review and home are one bounded result-choice row");
+  assert.match(endCard, /room\.resume\.backHome/);
+  assert.match(endCard, /closeReader\(\{ returnHome: true \}\)/,
+    "home handoff must reuse normal progress flush and cleanup");
+  for (const locale of [localeRu, localeEn, localeHe]) assert.match(locale, /backHome:/,
+    "RU, EN and HE must all name the new end-of-text route");
+  const homeHandler = endCard.slice(endCard.indexOf("const home ="), endCard.indexOf("paths.appendChild(home)"));
+  assert.doesNotMatch(homeHandler, /confetti|setTextFinished|clearTextFinished/,
+    "going home must not silently mark the text finished or add celebration noise");
+});
+
+test("B5 exposes one release version across Studio, Room and service worker", () => {
+  const app = indexHtml.match(/window\.APP_VERSION\s*=\s*"([^"]+)"/);
+  const room = libraryHtml.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
+  const worker = serviceWorker.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
+  assert.ok(app && room && worker, "all three public release stamps must exist");
+  assert.equal(room[1], app[1], "Room footer must not advertise a stale release");
+  assert.equal(worker[1], app[1], "service-worker cache and document release must match");
 });
 
 module.exports = { TARGETS, VIEW_MODEL_FIXTURES };

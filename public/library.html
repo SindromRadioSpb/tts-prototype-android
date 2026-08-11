@@ -90,6 +90,11 @@
       .room-header-row { flex-wrap: wrap; }
       .room-header-row > div:first-child { flex: 1 1 100%; }
       .room-head-controls { width: 100%; justify-content: flex-end; margin-top: 2px; }
+      .room-tab { min-width: 0; padding-inline: 8px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    }
+    @media (max-width: 340px) {
+      .room-tabs { gap: 4px; }
+      .room-tab { flex-basis: auto; padding-inline: 4px; font-size: 12px; }
     }
     .room-theme-btn {
       flex: none; appearance: none; cursor: pointer; width: auto; line-height: 1; font-size: 15px;
@@ -690,9 +695,13 @@
     .reader-end-done { font-size: 14px; font-weight: 700; color: var(--accent); }
     .reader-end-undo { background: transparent; border: 0; color: var(--text-faint); font-size: 13px; text-decoration: underline; padding: 4px 6px; }
     .reader-end-mark:focus-visible, .reader-end-undo:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent); }
-    /* W2 — «🔁 Повторить слова» CTA (secondary) + «🎯 Следующий для тебя» next-text fan inside the end-card. */
+    /* B5 — bounded finish paths: recall or Learning Home; recommendation fan stays below. */
+    .reader-end-paths { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; }
     .reader-end-review { background: transparent; border: 1px solid var(--border-soft); color: var(--text-secondary); padding: 8px 16px; font-size: 13px; font-weight: 600; }
-    .reader-end-review:hover, .reader-end-review:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
+    .reader-end-home { background: transparent; border: 0; color: var(--text-secondary); padding: 8px 12px; font-size: 13px; font-weight: 600; }
+    .reader-end-review:hover, .reader-end-home:hover { border-color: var(--accent); color: var(--accent); }
+    .reader-end-review:focus-visible, .reader-end-home:focus-visible { color: var(--accent); outline: none; box-shadow: 0 0 0 2px var(--accent); }
+    .reader-end-home:disabled { opacity: .6; cursor: default; }
     .reader-end-next { width: 100%; margin-top: 6px; border-top: 1px solid var(--border-soft); padding-top: 14px; display: flex; flex-direction: column; gap: 10px; }
     .reader-end-next-head { font-size: 13px; font-weight: 700; color: var(--text-primary); text-align: center; }
     .reader-end-next-rail { display: flex; flex-direction: column; gap: 8px; width: 100%; }
@@ -2306,7 +2315,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.65</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.359</span>
   </div>
 </footer>
 
@@ -2487,9 +2496,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=74"></script>
-<script src="/i18n/locales/en.js?v=74"></script>
-<script src="/i18n/locales/he.js?v=74"></script>
+<script src="/i18n/locales/ru.js?v=75"></script>
+<script src="/i18n/locales/en.js?v=75"></script>
+<script src="/i18n/locales/he.js?v=75"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->

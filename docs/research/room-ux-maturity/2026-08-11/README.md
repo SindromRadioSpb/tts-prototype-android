@@ -1,10 +1,11 @@
 # Reading Room UX maturity research — 2026-08-11
 
-Status: **research complete; owner decision required before implementation**.
+Status: **research complete; Option B approved and implemented through B5; production/owner-live evidence remains release-scoped**.
 
-No application code, production state, corpus data, group membership, or owner learner data was
-modified. The public site was inspected from a clean browser profile. The private/owner surfaces
-were exercised only through the repository's isolated seeded smoke fixtures.
+During the research-only baseline, no application code, production state, corpus data, group
+membership, or owner learner data was modified. The public site was inspected from a clean browser
+profile. Private/owner surfaces were exercised only through the repository's isolated seeded smoke
+fixtures; the later B0→B5 implementation evidence is separated below.
 
 ## Research set
 
@@ -18,6 +19,20 @@ were exercised only through the repository's isolated seeded smoke fixtures.
    information architecture, card/list system, tokens, responsive behavior, and role critique.
 5. [ROOM_UX_MATURITY_DECISION_PACKET_2026_08_11.md](../../../planning/ROOM_UX_MATURITY_DECISION_PACKET_2026_08_11.md)
    — owner-facing options, recommendation, bounded sequence, gates, and stop list.
+
+## Implementation evidence
+
+The research remains the decision foundation rather than being replaced by implementation notes.
+The owner approved Option B; each bounded stage has its own durable red→green packet:
+
+1. [B0 baseline](b0-baseline/README.md) — frozen visual/semantic/performance contract;
+2. [B1 evidence](b1-evidence/README.md) — bounded density, semantic rows and performance safety;
+3. [B2 evidence](b2-evidence/README.md) — learning-first home;
+4. [B3 evidence](b3-evidence/README.md) — shared corpus shell and progressive disclosure;
+5. [B4 evidence](b4-evidence/README.md) — normalized adapters and honest readiness;
+6. [B5 evidence](b5-evidence/README.md) — continuity, finish handoff and release hardening.
+
+These fixture and automation packets are not owner-live iPhone evidence. Production and physical-device acceptance remain explicitly separate gates.
 
 ## Evidence baseline
 

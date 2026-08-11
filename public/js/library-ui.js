@@ -441,8 +441,8 @@ function renderCorpusCard(card) {
     dead.appendChild(el('span', { class: 'work-card-cta', i18n: 'room.work.unavailable', text: tt('room.work.unavailable') }));
     return dead;
   }
-  const node = el('article', { class: 'work-card', attrs: { 'data-work-id': String(card.id == null ? '' : card.id) } });
-  const openLink = el('a', { class: 'work-card-open', attrs: { href: deepLinkForCorpusWork(card.id) } });
+  const node = el('article', { class: 'work-card', attrs: { 'data-work-id': String(card.id == null ? '' : card.id), 'data-continuity-key': continuityKey('benyehuda', card.id) } });
+  const openLink = el('a', { class: 'work-card-open', attrs: { href: deepLinkForCorpusWork(card.id), 'data-continuity-action': 'open' } });
   const parts = corpusTitleParts(card.title);
   const titleEl = el('span', { class: 'work-card-title', text: parts.title });
   if (card.title) titleEl.title = card.title;   // PC-4 — full original (incl. the variant note) on hover/long-press
@@ -692,6 +692,94 @@ let readerCorpusWorkId = null;      // PAS-A1 — byehuda_id открытой к
 let readerCorpusExplainOk = false;  // PAS-A1 — HEAD-probe: works-файл опубликован на сервере (26/57 canon — нет)
 let _bookmarkSet = null;  // Set of bookmarked sentence_ids in the current text
 let readerReturnRoute = null;       // LB1: exact anchor drill-down must return to the active lesson, not strand on shelves
+let readerReturnContext = null;     // B5: ephemeral catalog place (nav + scroll + focus), never learner truth
+let readerOpenEpoch = 0;            // B5: invalidates late import/open completions after Back
+
+function continuityKey(scope, id) {
+  return String(scope || 'room') + ':' + String(id == null ? '' : id);
+}
+
+// B5 — capture the exact place that launched Reader. This lives only for the current
+// in-page Reader session: filters remain owned by their existing view-state objects and
+// progress remains owned by LocalDb. Opening a handoff text from inside Reader deliberately
+// keeps the original catalog context instead of replacing it with an end-card control.
+function captureReaderReturnContext() {
+  if (readerReturnContext) return readerReturnContext;
+  let active = null, identity = null, focusKey = '', focusAction = '', disclosures = [];
+  try {
+    active = document.activeElement;
+    identity = active && active.closest ? active.closest('[data-continuity-key]') : null;
+    const keyed = active && active.closest ? active.closest('[data-focus-key]') : null;
+    focusKey = keyed ? String(keyed.getAttribute('data-focus-key') || '') : '';
+    focusAction = active && active.getAttribute ? String(active.getAttribute('data-continuity-action') || '') : '';
+    const content = $('roomContent');
+    disclosures = content ? Array.from(content.querySelectorAll('details[id]')).map((node) => ({ id: node.id, open: !!node.open })) : [];
+  } catch (_) {}
+  readerReturnContext = {
+    nav: { corpus: corpusNav.corpus, level: corpusNav.level, era: corpusNav.era, author: corpusNav.author },
+    scrollX: Math.max(0, Number(window.scrollX || window.pageXOffset) || 0),
+    scrollY: Math.max(0, Number(window.scrollY || window.pageYOffset) || 0),
+    anchorTop: identity ? Number(identity.getBoundingClientRect().top) : null,
+    continuityKey: identity ? String(identity.getAttribute('data-continuity-key') || '') : '',
+    focusAction,
+    focusKey,
+    disclosures,
+  };
+  return readerReturnContext;
+}
+
+function readerReturnNode(attribute, value) {
+  if (!value) return null;
+  try {
+    return Array.from(document.querySelectorAll('[' + attribute + ']'))
+      .find((node) => String(node.getAttribute(attribute) || '') === String(value)) || null;
+  } catch (_) { return null; }
+}
+
+async function restoreReaderReturnContext(context) {
+  if (!context) return;
+  await new Promise((resolve) => {
+    let done = false, layoutQueued = false;
+    const startedAt = Date.now();
+    const restore = () => {
+      if (done) return;
+      for (const disclosure of (context.disclosures || [])) {
+        try { const node = document.getElementById(disclosure.id); if (node && node.tagName === 'DETAILS') node.open = !!disclosure.open; } catch (_) {}
+      }
+      const identity = readerReturnNode('data-continuity-key', context.continuityKey);
+      // Ben-Yehuda's filtered body is populated by a guarded async sub-render. Wait for
+      // the stable identity instead of restoring focus to a fallback one frame too early.
+      if (context.continuityKey && !identity && Date.now() - startedAt < 1500) {
+        setTimeout(restore, 40);
+        return;
+      }
+      if (identity && !layoutQueued) {
+        layoutQueued = true;
+        try { requestAnimationFrame(() => requestAnimationFrame(restore)); } catch (_) { setTimeout(restore, 0); }
+        return;
+      }
+      done = true;
+      let target = null;
+      if (identity && context.focusAction) {
+        try {
+          target = Array.from(identity.querySelectorAll('[data-continuity-action]'))
+            .find((node) => String(node.getAttribute('data-continuity-action') || '') === String(context.focusAction)) || null;
+        } catch (_) { target = null; }
+      }
+      if (!target && identity) target = identity.matches('a,button,[tabindex]') ? identity : identity.querySelector('a[href],button,[tabindex="0"]');
+      if (!target) target = readerReturnNode('data-focus-key', context.focusKey);
+      if (!target) target = document.querySelector('.corpus-next-cta, .learning-home-primary, .corpus-back, [role="tab"][aria-selected="true"]');
+      let returnY = Number(context.scrollY) || 0;
+      if (identity && Number.isFinite(Number(context.anchorTop))) {
+        try { returnY = Math.max(0, (Number(window.scrollY || window.pageYOffset) || 0) + identity.getBoundingClientRect().top - Number(context.anchorTop)); } catch (_) {}
+      }
+      try { window.scrollTo({ top: returnY, left: Number(context.scrollX) || 0, behavior: 'auto' }); } catch (_) { try { window.scrollTo(Number(context.scrollX) || 0, returnY); } catch (_) {} }
+      try { if (target && target.focus) target.focus({ preventScroll: true }); } catch (_) { try { if (target && target.focus) target.focus(); } catch (_) {} }
+      resolve();
+    };
+    setTimeout(restore, 0);
+  });
+}
 
 function setReaderReturnRoute(route) {
   readerReturnRoute = route || null;
@@ -4127,12 +4215,18 @@ async function renderEndOfTextCard(tid) {
     actions.appendChild(mark);
   }
   card.appendChild(actions);
-  // W2 — «🔁 Повторить слова из этого текста»: one tap into the in-text cloze training (the text is
-  // open at its end → its collected words are right here). Closes learn→recall at the finish moment.
+  // B5 — one bounded result-choice row at the finish moment. Review stays in the
+  // current text; Home performs the normal progress flush and returns to Learning Home.
+  const paths = el('div', { class: 'reader-end-paths' });
   const review = el('button', { class: 'reader-end-review', i18n: 'room.resume.reviewWords', text: tt('room.resume.reviewWords', '🔁 Повторить слова') });
   review.type = 'button';
   review.addEventListener('click', () => { try { startTextReviewFromHandoff(); } catch (_) {} });
-  card.appendChild(review);
+  paths.appendChild(review);
+  const home = el('button', { class: 'reader-end-home', i18n: 'room.resume.backHome', text: tt('room.resume.backHome', 'На главную') });
+  home.type = 'button';
+  home.addEventListener('click', async () => { home.disabled = true; await closeReader({ returnHome: true }); });
+  paths.appendChild(home);
+  card.appendChild(paths);
   const provNote = $('readerProvNote');
   if (provNote && provNote.parentNode === reader) reader.insertBefore(card, provNote);
   else reader.appendChild(card);
@@ -5835,6 +5929,11 @@ async function loadContextOverlay(textId, text) {
 async function openReader(textId, title, opts) {
   const reader = $('roomReader'), content = $('roomContent');
   if (!reader) return;
+  const requestedEpoch = opts && Number(opts._readerOpenEpoch);
+  const openEpoch = Number.isInteger(requestedEpoch) && requestedEpoch > 0 ? requestedEpoch : ++readerOpenEpoch;
+  if (openEpoch !== readerOpenEpoch) return;
+  const back = $('readerBack'); if (back) back.disabled = false;
+  captureReaderReturnContext();
   setReaderReturnRoute(opts && opts.returnToLesson ? 'lesson-builder' : null);
   if (content) content.hidden = true;
   reader.hidden = false;
@@ -5865,6 +5964,7 @@ async function openReader(textId, title, opts) {
       // 'ready' → table already painted by openText
     },
   });
+  if (openEpoch !== readerOpenEpoch) return;   // Back won while ReaderCore was resolving
   readerRows = res && res.ok ? res.rows : [];
   readerTextTitle = title || (res && res.text && res.text.title) || '';
   readerTextKey = (res && res.text && res.text.text_key) || null;
@@ -5969,12 +6069,18 @@ function jumpToFtsMatch(q) {
   else restoreReaderPosition(readerTextId, {});
 }
 
-async function closeReader() {
+async function closeReader(options) {
   // BRR-P2-002 — flush the current position synchronously BEFORE hiding (the 800ms debounce
   // may not have fired if Back is tapped quickly). Read the top-visible row while the table is
   // still laid out, persist it, then stop recording.
   const tid = readerTextId;
+  readerOpenEpoch++;   // pending served-on-open import / ReaderCore completion loses UI authority
   const returnRoute = readerReturnRoute;
+  const returnHome = !!(options && options.returnHome === true);
+  const returnContext = returnHome
+    ? { nav: { corpus: 'hub', level: 'home', era: null, author: null }, scrollX: 0, scrollY: 0, anchorTop: null, continuityKey: '', focusAction: '', focusKey: 'learning-home-feature-open', disclosures: [] }
+    : readerReturnContext;
+  const back = $('readerBack'); if (back) back.disabled = true;
   if (_progressTimer) { clearTimeout(_progressTimer); _progressTimer = null; }
   if (tid != null) {
     // BRR-P2-005 — flush the FURTHEST row reached (max of session-max + current top), NEVER a
@@ -5996,17 +6102,37 @@ async function closeReader() {
   const rm = $('roomReaderTable');
   if (rm && revealHandler) { try { rm.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
   const reader = $('roomReader'), content = $('roomContent');
+  if (content) content.setAttribute('aria-busy', 'true');
+  setReaderReturnRoute(null);
+  readerReturnContext = null;
+  if (returnRoute === 'lesson-builder') {
+    if (reader) reader.hidden = true;
+    if (content) { content.hidden = false; content.removeAttribute('aria-busy'); }
+    if (back) back.disabled = false;
+    try { document.body.classList.remove('room-reading'); document.body.classList.remove('room-study'); } catch (_) {}
+    openLessonStudio();
+    return;
+  }
+  // B5 — all normalized corpora repaint from their existing canonical adapters after
+  // the progress flush. Their in-memory filter objects remain intact, while rows,
+  // Learning Home and Continue state stop being stale. No second state writer is added.
+  if (returnHome) {
+    activeTrack = 'corpus';
+    TRACKS.forEach((track) => { const button = $(TAB_ID[track]); if (button) button.setAttribute('aria-selected', String(track === activeTrack)); });
+  }
+  if (activeTrack === 'corpus') {
+    if (returnContext && returnContext.nav) corpusNav = { ...returnContext.nav };
+    try { await renderCorpus(); } catch (_) {}
+  }
+  // Atomic surface swap: the old reader remains the only interactive surface while
+  // the hidden catalog repaints, so a fast next tap cannot target a stale row.
   if (reader) reader.hidden = true;
-  if (content) content.hidden = false;
+  if (content) { content.hidden = false; content.removeAttribute('aria-busy'); }
+  if (back) back.disabled = false;
   try { document.body.classList.remove('room-reading'); } catch (_) {}   // вернуть sticky шапке сайта вне ридера
   try { document.body.classList.remove('room-study'); } catch (_) {}     // домашний экран без шапки был бы тупиком
-  setReaderReturnRoute(null);
   try { refreshDueBadge(); } catch (_) {}   // D2 — back on the home → surface the «🔁 К повторению» CTA
-  // Surface the just-read text in «Продолжить чтение» (corpus home only; results / other tabs untouched).
-  if (tid != null && activeTrack === 'corpus' && corpusNav.corpus === 'benyehuda' && corpusNav.level === 'home' && !corpusFilterActive()) {
-    try { corpusRefreshL1Body(); } catch (_) {}
-  }
-  if (returnRoute === 'lesson-builder') openLessonStudio();
+  await restoreReaderReturnContext(returnContext);
 }
 
 // ── BRR-S15 — in-reader find (Kindle/Apple-Books table-stakes) ──────────────────────────────
@@ -6116,6 +6242,8 @@ async function resolveLocalIdByKey(textKey) {
 // re-published catalog cache-busts the immutable work payloads.
 async function openCorpusWork(card, openOpts) {
   if (!card || corpusImporting) return;
+  const openEpoch = ++readerOpenEpoch;
+  captureReaderReturnContext();
   const reader = $('roomReader'), content = $('roomContent');
   if (content) content.hidden = true;
   if (reader) reader.hidden = false;
@@ -6139,8 +6267,10 @@ async function openCorpusWork(card, openOpts) {
       localId = await resolveLocalIdByKey(card.text_key);
     }
     if (!localId) throw new Error('work not resolvable after import');
-    await openReader(localId, card.title, openOpts);
+    if (openEpoch !== readerOpenEpoch) return;
+    await openReader(localId, card.title, Object.assign({}, openOpts || {}, { _readerOpenEpoch: openEpoch }));
   } catch (e) {
+    if (openEpoch !== readerOpenEpoch) return;
     try { console.warn('[room] open corpus work failed:', e); } catch (_) {}
     readerStateBox('room.state.error', '⚠️');
   } finally {
@@ -6175,6 +6305,7 @@ async function ensureGroupCatalog(corpusId) {
 
 async function openGroupCorpusWork(corpusId, card, openOpts = {}) {
   if (!card || corpusImporting) return;
+  const openEpoch = ++readerOpenEpoch;
   corpusImporting = true;
   try {
     let localId = await resolveLocalIdByKey(card.text_key);
@@ -6199,8 +6330,10 @@ async function openGroupCorpusWork(corpusId, card, openOpts = {}) {
       if (localId && wantEdition) { try { localStorage.setItem(editionKey, wantEdition); } catch (_) {} }
     }
     if (!localId) throw new Error('group work not resolvable after import');
-    await openReader(localId, card.title, openOpts);
+    if (openEpoch !== readerOpenEpoch) return;
+    await openReader(localId, card.title, Object.assign({}, openOpts, { _readerOpenEpoch: openEpoch }));
   } catch (e) {
+    if (openEpoch !== readerOpenEpoch) return;
     try { console.warn('[room] open group corpus work failed:', e); } catch (_) {}
     roomToast(tt('room.state.error', 'Не получилось открыть текст'));
   } finally { corpusImporting = false; invalidatePersonalSets(); }
@@ -6926,7 +7059,7 @@ async function addMachineNiqqud(item, button) {
   }
 }
 function renderMyTextCard(item, vertical) {
-  const node = el('article', { class: 'corpus-work-row room-text-row mytext-card' + (vertical ? ' mytext-card-v' : '') });
+  const node = el('article', { class: 'corpus-work-row room-text-row mytext-card' + (vertical ? ' mytext-card-v' : ''), attrs: { 'data-continuity-key': continuityKey('mytexts', item.id) } });
   const col = el('div', { class: 'corpus-work-col' });
   let media = { kind: null, coverage: null, humanOrTts: null };
   try {
@@ -6940,7 +7073,7 @@ function renderMyTextCard(item, vertical) {
   } catch (_) {}
   const view = adaptMyTextItem(item, { copy: corpusItemCopy(), media });
   const title = view.title;
-  const openLink = el('a', { class: 'room-text-title-link mytext-open', attrs: { href: deepLinkForText(item.id) } });
+  const openLink = el('a', { class: 'room-text-title-link mytext-open', attrs: { href: deepLinkForText(item.id), 'data-continuity-action': 'open' } });
   const titleCopy = el('span', { class: 'room-item-title-copy' });
   const titleEl = el('span', { class: 'work-card-title', text: title });
   if (HEBREW_RE.test(title)) titleEl.setAttribute('dir', 'rtl');
@@ -7722,11 +7855,11 @@ async function renderGroupCorpus(corpusId, token) {
   function renderCard(work) {
     const p=byKey.get(String(work.text_key));
     const view=adaptGroupCorpusItem(work,{corpusId,progress:p,copy:corpusItemCopy()});
-    const card=el('article',{class:'group-work-card room-text-row',attrs:{'data-status':view.learnerState.state,'data-state':view.learnerState.state}});
+    const card=el('article',{class:'group-work-card room-text-row',attrs:{'data-status':view.learnerState.state,'data-state':view.learnerState.state,'data-continuity-key':continuityKey('group:' + corpusId,work.work_id)}});
     const pos=el('span',{class:'group-work-position',text:work.position_no==null?'—':String(work.position_no),attrs:{title:view.secondaryIdentity||''}}); card.appendChild(pos);
     const identity=el('div',{class:'group-work-identity corpus-work-col'});
     const href='/library.html?group_corpus='+encodeURIComponent(corpusId)+'&group_work='+encodeURIComponent(work.work_id);
-    const open=el('a',{class:'room-text-title-link group-action'+(view.primaryAction==='continue'?' primary':''),attrs:{href}});
+    const open=el('a',{class:'room-text-title-link group-action'+(view.primaryAction==='continue'?' primary':''),attrs:{href,'data-continuity-action':'open'}});
     const titleCopy=el('span',{class:'room-item-title-copy'});
     const title=el('span',{class:'group-work-title',text:view.title});
     if(HEBREW_RE.test(view.title))title.setAttribute('dir','rtl');titleCopy.appendChild(title);
@@ -7822,7 +7955,7 @@ function corpusNextAction(options) {
   copy.appendChild(title);
   if (opts.meta) copy.appendChild(el('p', { class: 'corpus-next-meta', text: opts.meta }));
   feature.appendChild(copy);
-  const action = el(opts.href ? 'a' : 'button', { class: 'corpus-next-cta', attrs: opts.href ? { href: opts.href } : { type: 'button' }, text: opts.label || tt('room.home.startAction', 'Начать читать') });
+  const action = el(opts.href ? 'a' : 'button', { class: 'corpus-next-cta', attrs: opts.href ? { href: opts.href, 'data-focus-key': 'corpus-next-open' } : { type: 'button', 'data-focus-key': 'corpus-next-open' }, text: opts.label || tt('room.home.startAction', 'Начать читать') });
   if (opts.onOpen) action.addEventListener('click', (event) => {
     if (opts.href && (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) return;
     if (opts.href) event.preventDefault();
@@ -7975,7 +8108,7 @@ function learningHomeFeature(continueRow, nextPicks) {
       feature.appendChild(el('div', { class: 'learning-home-progress', attrs: { role: 'progressbar', 'aria-label': tt('room.home.readingProgress', 'Прогресс чтения'), 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(pct) } }));
       feature.lastChild.style.setProperty('--learning-progress', pct + '%');
     }
-    const open = el('a', { class: 'learning-home-primary', attrs: { href: deepLinkForText(continueRow.id) }, text: tt('room.home.continueAction', 'Продолжить чтение') + ' ' + learningHomeForwardArrow() });
+    const open = el('a', { class: 'learning-home-primary', attrs: { href: deepLinkForText(continueRow.id), 'data-focus-key': 'learning-home-feature-open' }, text: tt('room.home.continueAction', 'Продолжить чтение') + ' ' + learningHomeForwardArrow() });
     if (EMBED) open.addEventListener('click', (event) => learningHomePlainClick(event, () => openReader(continueRow.id, title, { resume: true })));
     feature.appendChild(open);
     return feature;
@@ -8002,7 +8135,7 @@ function learningHomeFeature(continueRow, nextPicks) {
       ? '≈' + Math.round(Number(pick.cov) * 100) + '% ' + tt('room.home.familiarWords', 'знакомых слов')
       : tt('room.home.coldReason', 'Хороший первый текст · частотная лексика');
     feature.appendChild(el('p', { class: 'learning-home-feature-meta', text: reason }));
-    const open = el('a', { class: 'learning-home-primary', attrs: { href: deepLinkForCorpusWork(pick.card.id) }, text: tt('room.home.startAction', 'Начать читать') + ' ' + learningHomeForwardArrow() });
+    const open = el('a', { class: 'learning-home-primary', attrs: { href: deepLinkForCorpusWork(pick.card.id), 'data-focus-key': 'learning-home-feature-open' }, text: tt('room.home.startAction', 'Начать читать') + ' ' + learningHomeForwardArrow() });
     open.addEventListener('click', (event) => learningHomePlainClick(event, () => openCorpusWork(pick.card)));
     feature.appendChild(open);
     return feature;
@@ -8014,7 +8147,7 @@ function learningHomeFeature(continueRow, nextPicks) {
   feature.appendChild(el('div', { class: 'learning-home-kicker', text: tt('room.home.libraryKicker', 'Библиотека') }));
   feature.appendChild(el('h2', { class: 'learning-home-feature-title', text: tt('room.home.browseTitle', 'Выберите следующий текст') }));
   feature.appendChild(el('p', { class: 'learning-home-feature-meta', text: tt('room.home.browseReason', 'Каталог доступен; персональная оценка сейчас не рассчитана.') }));
-  const browse = el('button', { class: 'learning-home-primary', attrs: { type: 'button' }, text: tt('room.home.browseAction', 'Открыть каталог') + ' ' + learningHomeForwardArrow() });
+  const browse = el('button', { class: 'learning-home-primary', attrs: { type: 'button', 'data-focus-key': 'learning-home-feature-open' }, text: tt('room.home.browseAction', 'Открыть каталог') + ' ' + learningHomeForwardArrow() });
   browse.addEventListener('click', () => corpusNavToCorpus('benyehuda'));
   feature.appendChild(browse);
   return feature;
@@ -8503,7 +8636,7 @@ async function paintBenCorpusNext(host, token) {
     }));
   } catch (_) {}
 }
-function renderCorpusHome(token) {
+async function renderCorpusHome(token) {
   const main = $('roomContent');
   if (!main || token !== corpusRenderToken) return;
   main.innerHTML = '';
@@ -8531,12 +8664,12 @@ function renderCorpusHome(token) {
   );
   wrap.appendChild(about);
   main.appendChild(wrap);
-  corpusRefreshL1Body();
+  await corpusRefreshL1Body();
 }
 
 // Refresh ONLY the L1 body (the filter bar + its focused input stay put): the global results
 // when a filter is active, the home rail + period grid otherwise.
-function corpusRefreshL1Body() {
+async function corpusRefreshL1Body() {
   const body = corpusL1Body;
   if (!body) return;
   if (corpusFilterChromeRefresh) corpusFilterChromeRefresh();
@@ -8544,8 +8677,8 @@ function corpusRefreshL1Body() {
   if (corpusClearChip) corpusClearChip.hidden = !corpusFilterActive();
   // S12 — recents/suggestions are a home-only affordance; repaint (history may have grown) + toggle.
   if (corpusRecentsEl) { if (corpusFilterActive()) corpusRecentsEl.hidden = true; else { paintRecents(); corpusRecentsEl.hidden = false; } }
-  if (corpusFilterActive()) renderResultsInto(body);
-  else renderHomeInto(body);
+  if (corpusFilterActive()) return renderResultsInto(body);
+  return renderHomeInto(body);
 }
 
 function renderHomeInto(body) {
@@ -9624,7 +9757,7 @@ function corpusWorkSection(titleKey, icon, works, openable) {
 // Baked → ▶ openable (served-on-open). Unprocessed → ⏳ disabled, honest «перевод позже»
 // (R8 — visible in the catalog, never dead-ended, never posing as readable).
 function renderCorpusWorkRow(card, openable, opts) {
-  const row = el('article', { class: 'corpus-work-row room-text-row' + (openable ? '' : ' is-later'), attrs: { 'data-work-id': String(card && card.id != null ? card.id : '') } });
+  const row = el('article', { class: 'corpus-work-row room-text-row' + (openable ? '' : ' is-later'), attrs: { 'data-work-id': String(card && card.id != null ? card.id : ''), 'data-continuity-key': continuityKey('benyehuda', card && card.id) } });
   const col = el('div', { class: 'corpus-work-col' });
   // BRR-S2 — in a search context (opts.openOpts.ftsQuery — the same query threaded to the open handler)
   // the matched tokens are <mark>-highlighted in the title + author (niqqud-insensitive, word-level via
@@ -9638,7 +9771,7 @@ function renderCorpusWorkRow(card, openable, opts) {
   if (HEBREW_RE.test(_tp.title)) title.setAttribute('dir', 'rtl');
   let openLink = null;
   if (openable) {
-    openLink = el('a', { class: 'room-text-title-link corpus-work-open', attrs: { href: deepLinkForCorpusWork(card.id) } });
+    openLink = el('a', { class: 'room-text-title-link corpus-work-open', attrs: { href: deepLinkForCorpusWork(card.id), 'data-continuity-action': 'open' } });
     openLink.appendChild(title);
     openLink.appendChild(el('span', { class: 'room-text-primary', text: tt('room.work.open', 'Читать') }));
     col.appendChild(openLink);
@@ -9669,6 +9802,10 @@ function renderCorpusWorkRow(card, openable, opts) {
     if (!openable) meta.appendChild(el('span', { class: 'prov-badge later', i18n: 'room.corpus.later', text: tt('room.corpus.later') }));
   }
   if (meta.children.length) col.appendChild(meta);
+  // B5 continuity / CLS: result rows receive the same eager empty Learning Compass
+  // slot as rail cards. The derived signals remain lazy, but their arrival can no
+  // longer move the restored work (or every row below it) after Reader closes.
+  if (openable) col.appendChild(el('div', { class: 'work-card-difficulty learning-compass' }));
   row.appendChild(col);
   // BRR — «➕ В список» on the work row (search results + author drill). Offered for non-ready works too:
   // the reading list honestly stores them as r:false (← openable) and auto-upgrades them once they ship.

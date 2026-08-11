@@ -324,7 +324,7 @@ async function captureMatrix(browser, locale, viewport, theme, label, myTextCoun
     await selectCorpus(page, id);
     results.push(await auditSurface(page, name));
     await page.screenshot({ path: path.join(OUT, `${label}-${name}.png`), fullPage: false });
-    if (viewport.width === 380) {
+    if (viewport.width <= 760) {
       await page.locator(".corpus-filter-disclosure > summary").click();
       const opened = await page.locator(".corpus-filter-disclosure").evaluate((node) => node.open);
       check(opened, `${label}/${name}: mobile filter drawer opens explicitly`);
@@ -396,7 +396,7 @@ function evaluateGreen(matrix) {
       check(entry.metaDescription, `${stage}/${entry.surface}: meta description present`);
       const minRow = entry.itemHeights.length ? Math.min(...entry.itemHeights) : null;
       const maxRow = entry.itemHeights.length ? Math.max(...entry.itemHeights) : null;
-      const maxAllowed = entry.viewport.width <= 480 ? 104 : 88;
+      const maxAllowed = entry.viewport.width <= 760 ? 104 : 88;
       check(minRow != null && minRow >= 72, `${stage}/${entry.surface}/${entry.lang}/${entry.viewport.width}: row >=72px (${minRow})`);
       check(maxRow != null && maxRow <= maxAllowed, `${stage}/${entry.surface}/${entry.lang}/${entry.viewport.width}: compact row <=${maxAllowed}px (${maxRow})`);
     }
@@ -417,7 +417,7 @@ function evaluateGreen(matrix) {
       check(entry.homeTops.corpora > entry.homeTops.ready,
         `${stage}/${entry.lang}/${entry.viewport.width}: corpus inventory follows ready shelf`);
     }
-    for (const entry of homes.filter((item) => item.viewport.width === 380)) {
+    for (const entry of homes.filter((item) => item.viewport.width <= 430)) {
       check(entry.homeTops.feature != null && entry.homeTops.feature <= 844, `${stage}/${entry.lang}: featured action begins in first viewport (${entry.homeTops.feature})`);
       check(entry.homeTops.ready != null && entry.homeTops.ready <= 844, `${stage}/${entry.lang}: ready shelf begins in first viewport (${entry.homeTops.ready})`);
     }
@@ -439,7 +439,7 @@ function evaluateGreen(matrix) {
         check(entry.directNakdan === 0, `${stage}/${entry.lang}: Nakdan is not a direct row action (${entry.directNakdan})`);
         check(entry.myTextSecondary === entry.listItems, `${stage}/${entry.lang}: every own text keeps secondary actions (${entry.myTextSecondary}/${entry.listItems})`);
       }
-      if (entry.viewport.width === 380) {
+      if (entry.viewport.width <= 760) {
         check(entry.firstLearningTop != null && entry.firstLearningTop <= 844, `${stage}/${entry.surface}/${entry.lang}: useful learning action in first viewport (${entry.firstLearningTop})`);
         check(entry.filterSummaryVisible && !entry.filterOpen && !entry.filterPanelVisible,
           `${stage}/${entry.surface}/${entry.lang}: mobile filters start compact`);
@@ -498,6 +498,13 @@ function evaluateGreen(matrix) {
     matrix = matrix.concat(await captureMatrix(browser, "ru", { width: 380, height: 844 }, "light", "380-ru-light", 65));
     matrix = matrix.concat(await captureMatrix(browser, "he", { width: 380, height: 844 }, "dark", "380-he-dark", 8));
     matrix = matrix.concat(await captureMatrix(browser, "ru", { width: 1280, height: 900 }, "light", "1280-ru-light", 65));
+    if (stage === "B5") {
+      matrix = matrix.concat(await captureMatrix(browser, "ru", { width: 320, height: 780 }, "dark", "320-ru-dark", 24));
+      matrix = matrix.concat(await captureMatrix(browser, "he", { width: 360, height: 800 }, "light", "360-he-light", 12));
+      matrix = matrix.concat(await captureMatrix(browser, "ru", { width: 430, height: 900 }, "dark", "430-ru-dark", 24));
+      matrix = matrix.concat(await captureMatrix(browser, "he", { width: 510, height: 900 }, "light", "510-he-light", 12));
+      matrix = matrix.concat(await captureMatrix(browser, "he", { width: 1280, height: 900 }, "dark", "1280-he-dark", 12));
+    }
   } finally {
     await browser.close();
     await stopServer(server.child);
