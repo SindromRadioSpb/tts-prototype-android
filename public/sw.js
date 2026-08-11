@@ -14,13 +14,12 @@
 //     state, depend on quotas, or upload data; caching them would be wrong.
 //
 // ── Update lifecycle ─────────────────────────────────────────────────────
-// On install we precache the shell into a versioned cache and call
-// skipWaiting() so a freshly-deployed SW activates immediately instead of
-// waiting in `installed` state. Paired with clients.claim() on activate and
-// the shell's guarded `controllerchange` → reload (library-ui), a new
-// deploy is picked up on the FIRST reload, no manual "Обновить" tap needed.
-// (The "Обновить" toast + {type:'SKIP_WAITING'} message handler are kept as
-// a harmless fallback for browsers that drop controllerchange.)
+// On install we precache and integrity-check a versioned shell. A first-ever
+// worker activates normally because no prior controller exists; an update
+// remains waiting. Room/Studio surface that state and send
+// {type:'SKIP_WAITING'} only after the owner chooses Update and the active
+// surface reaches its canonical-write safe point. Their guarded
+// `controllerchange` handlers then perform exactly one reload.
 // On activate we purge any cache whose name doesn't match
 // the current versioned set, then claim clients so the controlled page
 // uses the new SW immediately.
@@ -29,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.359";
+const CACHE_VERSION = "v3.11.360";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -81,6 +80,7 @@ const PRECACHE_URLS = [
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
   "/js/library-ui.js",
+  "/js/room-b6-core.js",
   "/js/corpus-item-presenter.js",
   // BRR-P0-002b Stage 1 — embedded warm reader (same-page reader inside library.html).
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
@@ -258,7 +258,6 @@ const NETWORK_FIRST_TIMEOUT_MS = 2500;
 
 // ── install ──────────────────────────────────────────────────────────────
 self.addEventListener("install", (event) => {
-  self.skipWaiting();   // auto-activate the new SW (no waiting state) → first-reload pickup
   event.waitUntil((async () => {
     // Coolify can briefly serve a new sw.js while an old application container
     // still answers parallel asset requests. Refuse that mixed precache: a
@@ -322,8 +321,7 @@ self.addEventListener("activate", (event) => {
 });
 
 // ── message ──────────────────────────────────────────────────────────────
-// Receive {type:'SKIP_WAITING'} from the app when the user accepts the
-// update toast. Other message types reserved for future telemetry.
+// Receive {type:'SKIP_WAITING'} only after the app has reached a safe point.
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();

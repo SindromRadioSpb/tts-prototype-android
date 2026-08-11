@@ -1051,6 +1051,8 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 const SHELL_INTEGRITY_PATHS = [
   "/library.html",
   "/js/library-ui.js",
+  "/js/room-b6-core.js",
+  "/db/local-db.js",
   "/js/mentor-home.js",
   "/js/lesson-artifact.js",
   "/i18n/locales/ru.js",

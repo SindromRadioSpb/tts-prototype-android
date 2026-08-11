@@ -1,0 +1,350 @@
+{
+  "generated_at": "2026-08-11T21:22:56.932Z",
+  "environment": {
+    "base": "http://127.0.0.1:3316",
+    "viewport": "380x844",
+    "browser": "chromium-headless automation"
+  },
+  "contract_1k": {
+    "expectedTotal": 1000,
+    "matchedTotal": 1000,
+    "firstCount": 48,
+    "payloadBytes": 18154,
+    "forbiddenKeys": [],
+    "nextCursor": true,
+    "cold_ms": 228.66999995708466,
+    "warm_ms": [
+      212.62999999523163,
+      177.51500010490417,
+      12.159999966621399,
+      12.329999923706055,
+      11.415000081062317,
+      11.714999914169312,
+      12.819999933242798,
+      15.980000019073486,
+      14.315000057220459,
+      14.899999976158142,
+      14.934999942779541,
+      10.960000038146973,
+      11.850000023841858,
+      10.59500002861023,
+      10.144999980926514,
+      11.335000038146973,
+      8.5,
+      10.899999976158142,
+      9.549999952316284,
+      7.930000066757202
+    ],
+    "search_ms": [
+      8.850000023841858,
+      9.229999899864197,
+      8.994999885559082,
+      8.290000081062317,
+      7.789999961853027,
+      7.680000066757202,
+      8.519999980926514,
+      9.419999957084656,
+      8.634999990463257,
+      6.9100000858306885,
+      7.284999966621399,
+      7.379999995231628
+    ],
+    "tailTotal": 0,
+    "tailIds": [],
+    "edgeMeta": [
+      "b6-text-00001"
+    ],
+    "edgeRows": [],
+    "edgeNotes": [],
+    "traversed": 1000,
+    "unique": 1000,
+    "firstId": "b6-text-00001",
+    "lastId": "b6-text-01000",
+    "loops": 21,
+    "queryPlan": [
+      {
+        "id": 2,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CO-ROUTINE counted"
+      },
+      {
+        "id": 5,
+        "parent": 2,
+        "notused": 0,
+        "detail": "CO-ROUTINE (subquery-5)"
+      },
+      {
+        "id": 7,
+        "parent": 5,
+        "notused": 0,
+        "detail": "SCAN t"
+      },
+      {
+        "id": 10,
+        "parent": 5,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 1"
+      },
+      {
+        "id": 30,
+        "parent": 10,
+        "notused": 0,
+        "detail": "SCAN json_each VIRTUAL TABLE INDEX 1:"
+      },
+      {
+        "id": 58,
+        "parent": 2,
+        "notused": 0,
+        "detail": "SCAN (subquery-5)"
+      },
+      {
+        "id": 105,
+        "parent": 0,
+        "notused": 0,
+        "detail": "SCAN counted"
+      },
+      {
+        "id": 119,
+        "parent": 0,
+        "notused": 0,
+        "detail": "USE TEMP B-TREE FOR ORDER BY"
+      }
+    ]
+  },
+  "contract_5k": {
+    "expectedTotal": 5000,
+    "matchedTotal": 5000,
+    "firstCount": 48,
+    "payloadBytes": 18159,
+    "forbiddenKeys": [],
+    "nextCursor": true,
+    "cold_ms": 46.81500005722046,
+    "warm_ms": [
+      47.174999952316284,
+      45.24000000953674,
+      43.22500002384186,
+      47.77499997615814,
+      46.13499999046326,
+      41.85000002384186,
+      40.519999980926514,
+      47.07000005245209,
+      45.09500002861023,
+      46.234999895095825,
+      43.92999994754791,
+      43.8400000333786,
+      43.03999996185303,
+      42.12999999523163,
+      45.700000047683716,
+      39.37000000476837,
+      47.05499994754791,
+      46.06000006198883,
+      40.05499994754791,
+      44.61500000953674
+    ],
+    "search_ms": [
+      15.860000014305115,
+      17.759999990463257,
+      16.524999976158142,
+      18.8400000333786,
+      18.085000038146973,
+      16.850000023841858,
+      17.74500000476837,
+      20.72499990463257,
+      19.375,
+      17.134999990463257,
+      18.75,
+      18.164999961853027
+    ],
+    "tailTotal": 1,
+    "tailIds": [
+      "b6-text-05000"
+    ],
+    "edgeMeta": [
+      "b6-text-00001",
+      "b6-text-02500",
+      "b6-text-05000"
+    ],
+    "edgeRows": [
+      "b6-text-00001",
+      "b6-text-02500",
+      "b6-text-05000"
+    ],
+    "edgeNotes": [
+      "b6-text-00001",
+      "b6-text-02500",
+      "b6-text-05000"
+    ],
+    "traversed": 5000,
+    "unique": 5000,
+    "firstId": "b6-text-00001",
+    "lastId": "b6-text-04999",
+    "loops": 105,
+    "queryPlan": [
+      {
+        "id": 2,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CO-ROUTINE counted"
+      },
+      {
+        "id": 5,
+        "parent": 2,
+        "notused": 0,
+        "detail": "CO-ROUTINE (subquery-5)"
+      },
+      {
+        "id": 7,
+        "parent": 5,
+        "notused": 0,
+        "detail": "SCAN t"
+      },
+      {
+        "id": 10,
+        "parent": 5,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 1"
+      },
+      {
+        "id": 30,
+        "parent": 10,
+        "notused": 0,
+        "detail": "SCAN json_each VIRTUAL TABLE INDEX 1:"
+      },
+      {
+        "id": 58,
+        "parent": 2,
+        "notused": 0,
+        "detail": "SCAN (subquery-5)"
+      },
+      {
+        "id": 105,
+        "parent": 0,
+        "notused": 0,
+        "detail": "SCAN counted"
+      },
+      {
+        "id": 119,
+        "parent": 0,
+        "notused": 0,
+        "detail": "USE TEMP B-TREE FOR ORDER BY"
+      }
+    ]
+  },
+  "performance": {
+    "cold_ms": 46.81500005722046,
+    "warm_p50_ms": 44.61500000953674,
+    "warm_p95_ms": 47.174999952316284,
+    "search_p95_ms": 20.72499990463257
+  },
+  "first_dom": {
+    "cards": 48,
+    "nodes": 1056,
+    "summary": "Найдено: 1–48 / 5 000",
+    "navCount": 1,
+    "stateBytes": 261,
+    "state": {
+      "v": 1,
+      "surface": "mytexts",
+      "corpus": "mytexts",
+      "drill": {
+        "level": "home",
+        "eraId": "",
+        "authorId": "",
+        "workId": ""
+      },
+      "filters": {
+        "q": "",
+        "level": "",
+        "tags": [],
+        "tagMode": "all",
+        "scope": "texts",
+        "smart": "",
+        "sort": "opened_desc"
+      },
+      "visible": 48,
+      "anchor": {
+        "itemId": "",
+        "rowIndex": 0
+      }
+    },
+    "url": "http://127.0.0.1:3316/library.html?canon=skip#room=mytexts"
+  },
+  "memory": {
+    "before_bytes": 251848084,
+    "after_bytes": 252010368,
+    "retained_delta_bytes": 162284,
+    "dom_before": {
+      "documents": 1,
+      "nodes": 2668,
+      "jsEventListeners": 279
+    },
+    "dom_after": {
+      "documents": 1,
+      "nodes": 2672,
+      "jsEventListeners": 280
+    },
+    "long_tasks_over_50ms": []
+  },
+  "visual_matrix": {
+    "viewport": "380x844",
+    "locale": "he",
+    "direction": "rtl",
+    "cards": 48,
+    "nodes": 1103
+  },
+  "desktop_zoom_a11y": {
+    "inner_width_css_px": 640,
+    "device_pixel_ratio": 2,
+    "result_live": "polite",
+    "connection_live": "polite",
+    "targets": [
+      {
+        "selector": "#roomMyTextsSearch",
+        "width": 598,
+        "height": 44
+      },
+      {
+        "selector": "#roomMyTextsScope",
+        "width": 862.453125,
+        "height": 44
+      },
+      {
+        "selector": "#roomMyTextsSort",
+        "width": 295,
+        "height": 44
+      },
+      {
+        "selector": ".corpus-more-btn",
+        "width": 288,
+        "height": 40
+      },
+      {
+        "selector": ".corpus-more-btn",
+        "width": 288,
+        "height": 40
+      }
+    ],
+    "undersized": [],
+    "horizontal_overflow_px": 0,
+    "focus_after_search": "corpus-filter-summary",
+    "keyboard_before": "mytexts:b6-text-00001",
+    "keyboard_next_first": "mytexts:b6-text-04952"
+  },
+  "offline": {
+    "state": "offline-ready",
+    "cards": 48
+  },
+  "reconnect": {
+    "state": "online",
+    "navCount": 1
+  },
+  "diagnostics": {
+    "entries": 120,
+    "export_schema": 1,
+    "network_requests": []
+  },
+  "checks": 45,
+  "failures": [],
+  "result": "PASS"
+}

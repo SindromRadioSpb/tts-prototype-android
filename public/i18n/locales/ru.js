@@ -2169,7 +2169,22 @@ window.I18N_LOCALES.ru = {
       versionLabel: "Версия",
       upToDate: "✓ Актуальная версия",
       updateAvailable: "Доступно обновление",
+      diagnostics: "Диагностика производительности хранится только локально и выгружается лишь по вашему действию.",
+      exportDiagnostics: "Экспортировать локальную диагностику",
       close: "Закрыть",
+    },
+    diagnostics: { exported: "Локальная диагностика экспортирована", exportFailed: "Не удалось экспортировать диагностику" },
+    history: { parentFallback: "Точное место больше недоступно — открыт ближайший раздел" },
+    connection: {
+      online: "Сеть доступна",
+      offlineReady: "Офлайн: локальные тексты и чтение доступны",
+      offlinePartial: "Офлайн: сетевой материал временно недоступен; локальные данные сохранены",
+      reconnecting: "Связь восстановлена — обновляем сетевые данные…",
+      degradedError: "Сеть появилась, но обновить сетевые данные не удалось",
+      updateReady: "Обновление загружено и ждёт вашего подтверждения",
+      updateDeferredReader: "Сохраняем позицию чтения перед обновлением…",
+      updateFlushFailed: "Позиция чтения не подтверждена — обновление отложено",
+      retry: "Повторить",
     },
     theme: { label: "Тема", auto: "Авто", light: "Светлая", dark: "Тёмная" },
     // CLG-P3.2 — «☁ Синхронизация» (cloud sync modal, owner-only dev mode)
@@ -2531,6 +2546,10 @@ window.I18N_LOCALES.ru = {
       smartAudio: "📍 Audio-noted",
       smartSrs: "🎯 SRS-noted",
       smartTemplated: "⭐ Templated",
+      previousPage: "Предыдущие",
+      nextPage: "Следующие",
+      pagination: "Страницы текстов",
+      changedRestart: "Библиотека изменилась — список обновлён с первой страницы",
     },
     // Room media player (spec 2026-08-04); остальные строки бара — общие studio.media.*
     media: {

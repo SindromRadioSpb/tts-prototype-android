@@ -13075,9 +13075,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=149"></script>
-    <script src="/i18n/locales/en.js?v=149"></script>
-    <script src="/i18n/locales/he.js?v=149"></script>
+    <script src="/i18n/locales/ru.js?v=150"></script>
+    <script src="/i18n/locales/en.js?v=150"></script>
+    <script src="/i18n/locales/he.js?v=150"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13249,7 +13249,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.359";
+    window.APP_VERSION = "3.11.360";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -50026,6 +50026,8 @@ document.addEventListener("i18n:changed", function () {
     if (!("serviceWorker" in navigator)) return;
 
     let updateToastEl = null;
+    let studioUpdateActivationRequested = false;
+    window.studioUpdateActivationRequested = false;
     function dismissUpdateToast() {
       if (updateToastEl && updateToastEl.parentNode) {
         updateToastEl.parentNode.removeChild(updateToastEl);
@@ -50042,23 +50044,49 @@ document.addEventListener("i18n:changed", function () {
       }
     }
 
-    window.__v3ApplyUpdate = function () {
+    window.v3PrepareForAppUpdate = async function () {
+      // Waiting-worker safe point: never reload over an unsaved Classic draft,
+      // an open correctable-media workspace, a dirty note, an active cell
+      // debounce, or a canonical save already in flight. The worker remains
+      // waiting; the owner can save/close and press Update again.
+      try {
+        const session = typeof v3SessionGet === "function" ? v3SessionGet() : null;
+        const mediaModal = document.getElementById("l3MediaEditorModal");
+        const mediaWorkspaceOpen = !!(mediaModal && !mediaModal.classList.contains("hidden"));
+        const activeCell = typeof _tableEditActiveEditorTd !== "undefined" && !!_tableEditActiveEditorTd;
+        const pendingCells = typeof _tableEditDebounceTimers !== "undefined" && Object.keys(_tableEditDebounceTimers || {}).length > 0;
+        const savingCells = typeof _tableEditSaving !== "undefined" && Object.keys(_tableEditSaving || {}).length > 0;
+        const noteDirty = typeof v3NotesModalIsDirty !== "undefined" && !!v3NotesModalIsDirty;
+        const cardSaving = typeof v3SaveMetaSaving !== "undefined" && !!v3SaveMetaSaving;
+        if ((session && session.mode === "draft") || mediaWorkspaceOpen || activeCell || pendingCells || savingCells || noteDirty || cardSaving) {
+          return { ok: false, code: "UPDATE_DEFERRED_UNSAVED" };
+        }
+        return { ok: true };
+      } catch (_) { return { ok: false, code: "UPDATE_SAFE_POINT_UNKNOWN" }; }
+    };
+
+    window.__v3ApplyUpdate = async function () {
       const w = window.__v3WaitingWorker;
-      dismissUpdateToast();
       if (w) {
-        // Ask the waiting SW to activate. The 'controllerchange' listener below
-        // reloads as soon as it claims control, so we always reload INTO the new
-        // shell — never the old one. The long fallback only covers a dropped
-        // message; a short timer (was 600ms) reloaded before activation on iOS,
-        // landing back on the old shell, which made the toast reappear and
-        // "Обновить" seem to need many taps.
+        const safe = await window.v3PrepareForAppUpdate();
+        if (!safe.ok) {
+          try { showToast("Сначала сохраните или закройте текущие правки; обновление уже загружено и подождёт.", "warning"); }
+          catch (_) { window.alert("Сначала сохраните или закройте текущие правки. Обновление подождёт."); }
+          return;
+        }
+        dismissUpdateToast();
+        studioUpdateActivationRequested = true;
+        window.studioUpdateActivationRequested = true;
         w.postMessage({ type: "SKIP_WAITING" });
-        setTimeout(() => {
-          if (!reloadingForUpdate) { reloadingForUpdate = true; location.reload(); }
+        setTimeout(async () => {
+          if (reloadingForUpdate) return;
+          try {
+            const reg = await navigator.serviceWorker.getRegistration("/");
+            if (reg && reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
+          } catch (_) {}
         }, 3500);
       } else {
-        // Nothing tracked as waiting — just fetch the latest.
-        location.reload();
+        try { const reg = await navigator.serviceWorker.getRegistration("/"); if (reg) await reg.update(); } catch (_) {}
       }
     };
 
@@ -50122,7 +50150,7 @@ document.addEventListener("i18n:changed", function () {
     // against double-reload using a session flag.
     let reloadingForUpdate = false;
     navigator.serviceWorker.addEventListener("controllerchange", () => {
-      if (reloadingForUpdate) return;
+      if (!studioUpdateActivationRequested || reloadingForUpdate) return;
       reloadingForUpdate = true;
       location.reload();
     });

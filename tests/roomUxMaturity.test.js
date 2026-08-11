@@ -118,9 +118,11 @@ test("B1 bounds the Ben-Yehuda ready preview and exposes the full result set", (
 });
 
 test("B1 bounds My Texts and protected-corpus browse without hiding the total", () => {
-  assert.match(libraryUi, /const ROOM_BROWSE_PAGE = 48/);
-  assert.match(libraryUi, /found\.slice\(0, myBrowseLimit\)/);
-  assert.match(libraryUi, /myBrowseLimit \+= ROOM_BROWSE_PAGE; paint\(false\)/);
+  assert.match(libraryUi, /const ROOM_BROWSE_PAGE = roomB6\.ROOM_B6_LIMITS\.pageSize/);
+  const myTexts = libraryUi.slice(libraryUi.indexOf("async function renderMyTextsCorpus"), libraryUi.indexOf("// L1 — graduated landing"));
+  assert.match(myTexts, /listPersonalTextsPage/);
+  assert.match(myTexts, /limit: ROOM_BROWSE_PAGE/);
+  assert.doesNotMatch(myTexts, /myBrowseLimit \+=|found\.slice\(0, myBrowseLimit\)/);
   assert.match(libraryUi, /found\.slice\(0,groupBrowseLimit\)/);
   assert.match(libraryUi, /groupBrowseLimit\+=ROOM_BROWSE_PAGE;paint\(false\)/);
 });
@@ -189,7 +191,7 @@ test("B2 turns the corpus hub into a learning-first home without creating learne
     "Continue must derive from the canonical LocalDb progress ledger");
   assert.match(learningHome, /protectedId[\s\S]*groupCorpora\.some/,
     "a locally retained protected work must still pass the current membership catalog");
-  assert.match(learningHome, /SELECT COUNT\(\*\) AS n FROM texts/,
+  assert.match(learningHome, /countPersonalTextsExact\(\)/,
     "My Texts needs an exact lightweight count, not a browse-limit approximation");
   assert.match(learningHome, /buildNextTextPicks\(\)/,
     "Start must reuse the existing honest recommendation engine");

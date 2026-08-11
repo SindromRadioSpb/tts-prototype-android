@@ -2165,7 +2165,22 @@ window.I18N_LOCALES.he = {
       versionLabel: "גרסה",
       upToDate: "✓ מעודכן",
       updateAvailable: "זמין עדכון",
+      diagnostics: "אבחון הביצועים נשמר רק במכשיר הזה ומיוצא רק בפעולה מפורשת שלך.",
+      exportDiagnostics: "ייצוא אבחון מקומי",
       close: "סגירה",
+    },
+    diagnostics: { exported: "האבחון המקומי יוצא", exportFailed: "לא ניתן לייצא את האבחון" },
+    history: { parentFallback: "המיקום המדויק כבר אינו זמין; נפתח המדור הקרוב ביותר" },
+    connection: {
+      online: "הרשת זמינה",
+      offlineReady: "לא מקוון: הטקסטים המקומיים והקריאה זמינים",
+      offlinePartial: "לא מקוון: חומר מהרשת אינו זמין כרגע; הנתונים המקומיים שמורים",
+      reconnecting: "החיבור חזר — מעדכנים נתוני רשת…",
+      degradedError: "החיבור חזר, אך לא ניתן לעדכן את נתוני הרשת",
+      updateReady: "עדכון הורד וממתין לאישורך",
+      updateDeferredReader: "שומרים את מיקום הקריאה לפני העדכון…",
+      updateFlushFailed: "מיקום הקריאה לא אומת; העדכון נדחה",
+      retry: "ניסיון חוזר",
     },
     theme: { label: "ערכת נושא", auto: "אוטומטי", light: "בהיר", dark: "כהה" },
     // CLG-P3.2 — «☁ Синхронизация» (cloud sync modal, owner-only dev mode)
@@ -2527,6 +2542,10 @@ window.I18N_LOCALES.he = {
       smartAudio: "📍 עם עוגן אודיו",
       smartSrs: "🎯 עם SRS",
       smartTemplated: "⭐ מובנות",
+      previousPage: "הקודמים",
+      nextPage: "הבאים",
+      pagination: "עמודי טקסטים",
+      changedRestart: "הספרייה השתנתה; הרשימה עודכנה מהעמוד הראשון",
     },
     // Room media player (spec 2026-08-04)
     media: {

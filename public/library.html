@@ -369,6 +369,9 @@
       border: 1px solid var(--border-soft); border-radius: 10px; padding: 11px; font-size: 14px; font-weight: 600;
     }
     .corpus-more-btn:active { background: var(--border-soft); }
+    .mytexts-pager { display: flex; gap: 8px; }
+    .mytexts-pager .corpus-more-btn { flex: 1 1 0; width: auto; min-width: 0; }
+    .mytexts-pager .corpus-more-btn[disabled] { opacity: .45; cursor: default; }
 
     /* dark-mode greens (mirror prov-badge pattern) */
     @media (prefers-color-scheme: dark) {
@@ -1240,6 +1243,17 @@
     .room-update-toast button { width: auto; border: 0; border-radius: 6px; cursor: pointer; font-size: 13px; padding: 6px 12px; }
     .room-update-toast .ru-upd { background: var(--accent); color: var(--accent-contrast); font-weight: 700; }
     .room-update-toast .ru-later { background: transparent; color: #9ca3af; padding: 6px 10px; }
+    .room-connection-status {
+      max-width: 1120px; margin: 8px auto 0; padding: 8px 12px; border: 1px solid var(--border-soft);
+      border-radius: 9px; background: var(--bg-muted); color: var(--text-secondary); font-size: 12px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .room-connection-status[hidden] { display: none; }
+    .room-connection-status[data-state="offline-ready"] { color: #17613a; }
+    .room-connection-status[data-state="offline-partial"],
+    .room-connection-status[data-state="degraded-error"],
+    .room-connection-status[data-state="update-deferred-reader"] { color: #8a5520; }
+    .room-connection-status button { width: auto; padding: 4px 9px; border: 1px solid currentColor; border-radius: 7px; background: transparent; color: inherit; cursor: pointer; font: inherit; font-weight: 700; }
     .room-footer {
       display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px;
       padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); margin-top: 8px;
@@ -1262,6 +1276,7 @@
     .room-about-x { position: absolute; top: 10px; inset-inline-end: 12px; width: auto; background: transparent; border: 0; font-size: 18px; color: var(--text-faint); cursor: pointer; }
     .room-about-version { margin-top: 12px; font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .room-about-update button { width: auto; background: var(--accent); color: var(--accent-contrast); border: 0; border-radius: 6px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
+    .room-diagnostic-export { width: auto; padding: 7px 11px; border: 1px solid var(--border-soft); border-radius: 8px; background: var(--bg-muted); color: var(--text-primary); cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; }
     /* CLG-P3.2 — «☁ Синхронизация» modal internals (rides the room-about chrome) */
     .room-cloud-intro { font-size: 13px !important; }
     .room-cloud-status { min-height: 18px; margin: 0 0 10px; font-size: 13px; color: var(--text-secondary); }
@@ -2235,6 +2250,10 @@
     <button class="room-tab" id="tabLiterary" role="tab" aria-selected="false" data-track="literary" data-i18n="room.tabs.literary">Литературная</button>
     <button class="room-tab" id="tabCorpus" role="tab" aria-selected="false" data-track="corpus" data-i18n="room.tabs.corpus" hidden>Библиотека</button>
   </div>
+  <div id="roomConnectionStatus" class="room-connection-status" hidden role="status" aria-live="polite" data-state="online">
+    <span id="roomConnectionText"></span>
+    <button id="roomConnectionRetry" type="button" hidden data-i18n="room.connection.retry">Повторить</button>
+  </div>
   <!-- D2 — cross-text «due today» CTA: the daily-review habit entry, launchable WITHOUT opening a text.
        Shown on the home (reader closed) only when scheduled words are due now. Count set by JS. -->
   <button class="room-due-cta" id="roomDueCta" type="button" hidden></button>
@@ -2315,7 +2334,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.359</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.360</span>
   </div>
 </footer>
 
@@ -2328,6 +2347,8 @@
     <p data-i18n="room.about.what">—</p>
     <p data-i18n="room.about.source">—</p>
     <p data-i18n="room.about.offline">—</p>
+    <p data-i18n="room.about.diagnostics">Диагностика производительности хранится только локально и выгружается лишь по вашему действию.</p>
+    <button id="roomDiagnosticExport" class="room-diagnostic-export" type="button" data-i18n="room.about.exportDiagnostics">Экспортировать локальную диагностику</button>
     <div class="room-about-version">
       <span data-i18n="room.about.versionLabel">Версия</span>&nbsp;<strong id="roomAboutVersion">—</strong>
       <span id="roomAboutUpdate" class="room-about-update"></span>
@@ -2496,9 +2517,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=75"></script>
-<script src="/i18n/locales/en.js?v=75"></script>
-<script src="/i18n/locales/he.js?v=75"></script>
+<script src="/i18n/locales/ru.js?v=76"></script>
+<script src="/i18n/locales/en.js?v=76"></script>
+<script src="/i18n/locales/he.js?v=76"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->

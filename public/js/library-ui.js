@@ -8,11 +8,11 @@
 //
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
-
 import * as localDb from '/db/local-db.js';
 import * as readerCore from '/js/reader-core.js';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, learningSignals } from '/js/corpus-item-presenter.js';
+import * as roomB6 from '/js/room-b6-core.js';
 
 // Studio exposes the same adapter for repository-backed media bindings. Room
 // reuses it read-only so exact timing survives a cold open without duplicating
@@ -59,7 +59,149 @@ const groupCorpusStates = new Map(); // per-corpus view state; never learner tru
 let readerGroupCorpusId = null; // selects protected audio transport for the open work
 const CORPUS_PAGE = 60;         // native Ben-Yehuda author/result page size
 const ROOM_PREVIEW = 12;        // hard shelf/ready-preview DOM bound (Option B)
-const ROOM_BROWSE_PAGE = 48;    // compact My Texts / protected-corpus page bound
+const ROOM_BROWSE_PAGE = roomB6.ROOM_B6_LIMITS.pageSize; // B0 DOM ceiling stays fixed in B6
+
+// B6.2/B6.4 browser adapters. The pure module owns allowlists and bounds; this
+// file only bridges them to same-tab history/session and localStorage. None of
+// these paths writes progress, grades, review events or a network endpoint.
+const ROOM_PRESENTATION_KEY = 'room.presentation.v1';
+const ROOM_DIAGNOSTIC_KEY = 'room.diagnostics.local.v1';
+let _roomRestoringHistory = false;
+let _roomPresentationReady = false;
+let _roomInitialState = null;
+let _roomHistoryFallbackNotice = false;
+let _roomReaderReadOnlyUntil = 0;
+
+function roomDiagRead() {
+  try { const value = JSON.parse(localStorage.getItem(ROOM_DIAGNOSTIC_KEY) || '[]'); return Array.isArray(value) ? value : []; }
+  catch (_) { return []; }
+}
+function roomDiagPush(event) {
+  try {
+    const ring = roomB6.appendLocalDiagnostic(roomDiagRead(), event, Date.now());
+    localStorage.setItem(ROOM_DIAGNOSTIC_KEY, JSON.stringify(ring));
+  } catch (_) {}
+}
+function exportRoomDiagnostics() {
+  try {
+    const payload = roomB6.sanitizeDiagnosticExport(roomDiagRead(), Date.now());
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob), link = document.createElement('a');
+    link.href = url; link.download = 'linguistpro-room-local-diagnostics.json'; link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    roomToast(tt('room.diagnostics.exported', 'Локальная диагностика экспортирована'));
+  } catch (_) { roomToast(tt('room.diagnostics.exportFailed', 'Не удалось экспортировать диагностику')); }
+}
+function installRoomPerformanceDiagnostics() {
+  roomDiagPush({ kind: 'room.boot', result: 'started', display: matchMedia('(display-mode: standalone)').matches ? 'standalone' : 'browser' });
+  if (!('PerformanceObserver' in window)) return;
+  try {
+    let lastLcp = null;
+    const observer = new PerformanceObserver((list) => { const entries = list.getEntries(); if (entries.length) lastLcp = entries[entries.length - 1]; });
+    observer.observe({ type: 'largest-contentful-paint', buffered: true });
+    addEventListener('pagehide', () => { if (lastLcp) roomDiagPush({ kind: 'room.lcp', value: lastLcp.startTime, result: 'observed' }); }, { once: true });
+  } catch (_) {}
+  try {
+    const observer = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) if (entry.duration) roomDiagPush({ kind: 'room.inp', value: entry.duration, result: 'observed' });
+    });
+    observer.observe({ type: 'event', buffered: true, durationThreshold: 40 });
+  } catch (_) {}
+  try {
+    let cls = 0;
+    const observer = new PerformanceObserver((list) => { for (const entry of list.getEntries()) if (!entry.hadRecentInput) cls += entry.value || 0; });
+    observer.observe({ type: 'layout-shift', buffered: true });
+    addEventListener('pagehide', () => roomDiagPush({ kind: 'room.cls', bucket: cls < 0.1 ? 'good' : (cls < 0.25 ? 'needs-improvement' : 'poor'), result: 'observed' }), { once: true });
+  } catch (_) {}
+}
+
+function roomAuthorId(author) {
+  if (!author) return '';
+  if (typeof author === 'string') return author;
+  return author.qid ? String(author.qid) : '';
+}
+function roomCurrentPresentationState(overrides = {}) {
+  const readerOpen = !!($('roomReader') && !$('roomReader').hidden && readerTextId != null);
+  const corpus = corpusNav.corpus === 'hub' ? 'benyehuda' : (corpusNav.corpus || 'benyehuda');
+  const surface = readerOpen ? 'reader' : (corpusNav.corpus === 'hub' ? 'hub' : (corpus === 'mytexts' ? 'mytexts' : (String(corpus).startsWith('group:') ? 'group' : 'corpus')));
+  const sourceFilters = corpus === 'mytexts' ? myCorpusState : {
+    q: corpusFilter.q || '', level: '', tags: [], tagMode: 'all', scope: 'texts', sort: corpusL1Sort || 'opened_desc', smart: corpusFilter.smart || '',
+  };
+  return roomB6.sanitizePresentationState({
+    v: 1, surface, corpus,
+    drill: { level: corpusNav.level || 'home', eraId: corpusNav.era || '', authorId: roomAuthorId(corpusNav.author), workId: '' },
+    filters: sourceFilters, visible: ROOM_BROWSE_PAGE,
+    anchor: overrides.anchor || { itemId: readerOpen ? String(readerTextId) : '', rowIndex: 0 },
+    ...overrides,
+  });
+}
+function roomStateUrl(state) {
+  return location.pathname + location.search + roomB6.presentationHash(state);
+}
+function roomStorePresentation(state) {
+  try { sessionStorage.setItem(ROOM_PRESENTATION_KEY, roomB6.encodeSessionMirror(state, Date.now())); } catch (_) {}
+}
+function roomCommitPresentation(mode, overrides = {}) {
+  if (!_roomPresentationReady || _roomRestoringHistory) return;
+  const state = roomCurrentPresentationState(overrides);
+  try { history[mode === 'push' ? 'pushState' : 'replaceState'](state, '', roomStateUrl(state)); } catch (_) {}
+  roomStorePresentation(state); _roomInitialState = state;
+}
+function roomPushPresentationState(overrides) { roomCommitPresentation('push', overrides); }
+function roomReplacePresentationState(item, rowIndex) {
+  roomCommitPresentation('replace', { anchor: { itemId: item && item.id ? String(item.id) : '', rowIndex: Math.max(0, Number(rowIndex) || 0) } });
+}
+function roomInitialMyTextsAnchor() {
+  const state = _roomInitialState;
+  return state && state.corpus === 'mytexts' && state.anchor ? { itemId: state.anchor.itemId || '', rowIndex: Number(state.anchor.rowIndex) || 0 } : null;
+}
+function roomDecodeInitialPresentation() {
+  if (location.hash === '#mentor' || location.hash === '#lesson-builder') return null;
+  if (history.state && history.state.v === 1) return roomB6.sanitizePresentationState(history.state);
+  let mirrored = null;
+  try { mirrored = roomB6.decodeSessionMirror(sessionStorage.getItem(ROOM_PRESENTATION_KEY), Date.now()); } catch (_) {}
+  if (mirrored) return mirrored;
+  const match = String(location.hash || '').match(/^#room=([^&]+)$/);
+  if (match) {
+    let route = ''; try { route = decodeURIComponent(match[1]); } catch (_) {}
+    if (route === 'hub') return roomB6.sanitizePresentationState({ surface: 'hub', corpus: 'benyehuda' });
+    if (route === 'mytexts') return roomB6.sanitizePresentationState({ surface: 'mytexts', corpus: 'mytexts' });
+    if (route === 'benyehuda') return roomB6.sanitizePresentationState({ surface: 'corpus', corpus: 'benyehuda' });
+    if (/^group:[A-Za-z0-9._:-]+$/.test(route)) return roomB6.sanitizePresentationState({ surface: 'group', corpus: route });
+    _roomHistoryFallbackNotice = true;
+  }
+  return null;
+}
+function roomApplyStateFields(state) {
+  const safe = roomB6.sanitizePresentationState(state || {});
+  _roomInitialState = safe;
+  activeTrack = 'corpus';
+  if (safe.corpus === 'mytexts') {
+    myCorpusState = { ...myCorpusState, ...safe.filters, tags: (safe.filters.tags || []).slice() };
+    corpusNav = { corpus: 'mytexts', level: 'home', era: null, author: null };
+  } else if (String(safe.corpus).startsWith('group:')) {
+    corpusNav = { corpus: safe.corpus, level: 'home', era: null, author: null };
+  } else if (safe.surface === 'hub') {
+    corpusNav = { corpus: 'hub', level: 'home', era: null, author: null };
+  } else {
+    corpusFilter.q = safe.filters.q || ''; corpusFilter.smart = safe.filters.smart || '';
+    corpusNav = { corpus: 'benyehuda', level: safe.drill.level || 'home', era: safe.drill.eraId || null, author: safe.drill.authorId || null };
+  }
+  return safe;
+}
+async function roomApplyHistoryState(rawState) {
+  const state = roomApplyStateFields(rawState);
+  TRACKS.forEach((track) => { const button = $(TAB_ID[track]); if (button) button.setAttribute('aria-selected', String(track === 'corpus')); });
+  const reader = $('roomReader');
+  if (state.surface === 'reader' && state.anchor.itemId) {
+    if (!reader || reader.hidden || String(readerTextId || '') !== String(state.anchor.itemId)) {
+      await openReader(state.anchor.itemId, '', { presentationRestore: true, resume: true });
+    }
+  } else if (reader && !reader.hidden) {
+    await closeReader({ presentationRestore: true, presentationReturnContext: { nav: { ...corpusNav }, scrollX: 0, scrollY: 0, anchorTop: null, continuityKey: '', focusAction: '', focusKey: '', disclosures: [] } });
+  } else await renderCorpus();
+  roomStorePresentation(state);
+}
 
 // A3 Slice 2 — global search + facets, backed by ONE lazy flat index (corpus-search-v3.json,
 // ~370KB br, fetched on the FIRST search/facet use only, NOT precached). It powers both the
@@ -500,7 +642,7 @@ function renderTrack() {
   const main = $('roomContent');
   if (!main) return;
   // A3 — the Корпус track is a Период→Автор→Работа drill, not a shelf stack.
-  if (activeTrack === 'corpus') { renderCorpus(); return; }
+  if (activeTrack === 'corpus') return renderCorpus();
   const shelves = shelvesByTrack[activeTrack] || [];
   const anyShelves = TRACKS.some((t) => (shelvesByTrack[t] || []).length);
   if (!anyShelves) { showState('room.shelf.empty', '📚'); return; }
@@ -517,7 +659,7 @@ function setActiveTrack(track) {
     const btn = $(TAB_ID[t]);
     if (btn) btn.setAttribute('aria-selected', String(t === track));
   });
-  renderTrack();
+  return renderTrack();
 }
 
 // ── embedded reader (warm-worker open) ───────────────────────────────────────
@@ -2822,23 +2964,89 @@ function roomToast(msg, actionLabel, actionFn, ttlMs) {
 
 // ── PWA update toast + «О Зале» (premium chrome — the Room registers the SW itself, so an
 // update prompt + About surface exist even when the Room is opened directly, not via Studio) ──
-let roomWaitingWorker = null, roomReloadingForUpdate = false, roomUpdateToastEl = null, roomAppVersion = '';
+let roomWaitingWorker = null, roomReloadingForUpdate = false, roomUpdateActivationRequested = false, roomUpdateToastEl = null, roomAppVersion = '';
+let roomConnectionState = 'online', roomReconnectPromise = null;
+function setRoomConnectionState(next) {
+  roomConnectionState = next || roomConnectionState;
+  const box = $('roomConnectionStatus'), text = $('roomConnectionText'), retry = $('roomConnectionRetry');
+  if (!box || !text) return;
+  const labels = {
+    online: ['room.connection.online', 'Сеть доступна'],
+    'offline-ready': ['room.connection.offlineReady', 'Офлайн: локальные тексты и чтение доступны'],
+    'offline-partial': ['room.connection.offlinePartial', 'Офлайн: сетевой материал временно недоступен; локальные данные сохранены'],
+    reconnecting: ['room.connection.reconnecting', 'Связь восстановлена — обновляем сетевые данные…'],
+    'degraded-error': ['room.connection.degradedError', 'Сеть появилась, но обновить сетевые данные не удалось'],
+    'update-ready': ['room.connection.updateReady', 'Обновление загружено и ждёт вашего подтверждения'],
+    'update-deferred-reader': ['room.connection.updateDeferredReader', 'Сохраняем позицию чтения перед обновлением…'],
+  };
+  const label = labels[roomConnectionState] || labels.online;
+  text.textContent = tt(label[0], label[1]); box.dataset.state = roomConnectionState;
+  box.hidden = roomConnectionState === 'online';
+  if (retry) retry.hidden = roomConnectionState !== 'degraded-error' && roomConnectionState !== 'offline-partial';
+  roomDiagPush({ kind: 'room.connection', connection: roomConnectionState, result: roomConnectionState === 'degraded-error' ? 'error' : 'ok' });
+}
+function roomOfflineHasLocalTruth() {
+  const protectedSurface = !!readerGroupCorpusId || String(corpusNav.corpus || '').startsWith('group:');
+  return !!(localDb.isReady && localDb.isReady()) && !protectedSurface;
+}
+async function reconnectRoomNetwork() {
+  if (roomReconnectPromise) return roomReconnectPromise;
+  setRoomConnectionState(roomB6.nextConnectionState(roomConnectionState, 'online'));
+  roomReconnectPromise = (async () => {
+    try {
+      // A unique probe key prevents the SW network-first config cache from
+      // turning a previous success into a false-positive reconnect.
+      const response = await fetch('/api/client-config?room_reconnect=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' });
+      if (!response.ok) throw new Error('RECONNECT_HTTP_' + response.status);
+      await response.json();
+      await loadGroupCorpora({ strictNetwork: true });
+      if (activeTrack === 'corpus' && (!$('roomReader') || $('roomReader').hidden)) await renderCorpus();
+      setRoomConnectionState(roomB6.nextConnectionState('reconnecting', 'probe-ok'));
+    } catch (_) { setRoomConnectionState(roomB6.nextConnectionState('reconnecting', 'probe-failed')); }
+    finally { roomReconnectPromise = null; }
+  })();
+  return roomReconnectPromise;
+}
+function wireRoomConnection() {
+  addEventListener('offline', () => setRoomConnectionState(roomB6.nextConnectionState(roomConnectionState, 'offline', { localReady: roomOfflineHasLocalTruth() })));
+  addEventListener('online', reconnectRoomNetwork);
+  const retry = $('roomConnectionRetry'); if (retry) retry.addEventListener('click', reconnectRoomNetwork);
+  if (!navigator.onLine) setRoomConnectionState(roomB6.nextConnectionState('online', 'offline', { localReady: roomOfflineHasLocalTruth() }));
+}
 function dismissRoomUpdateToast() {
   if (roomUpdateToastEl && roomUpdateToastEl.parentNode) roomUpdateToastEl.parentNode.removeChild(roomUpdateToastEl);
   roomUpdateToastEl = null;
 }
-function applyRoomUpdate() {
+async function applyRoomUpdate() {
   const w = roomWaitingWorker;
-  dismissRoomUpdateToast();
   if (w) {
-    // Ask the waiting SW to activate; 'controllerchange' reloads INTO the new shell. Long fallback
-    // only covers a dropped message (a short timer reloads onto the old shell on iOS → toast loops).
+    const readerOpen = !!($('roomReader') && !$('roomReader').hidden && readerTextId != null);
+    try {
+      if (readerOpen) {
+        setRoomConnectionState(roomB6.nextConnectionState(roomConnectionState, 'update-flush'));
+        await flushReaderProgress({ readBack: true });
+      }
+    } catch (_) {
+      setRoomConnectionState('update-ready');
+      roomToast(tt('room.connection.updateFlushFailed', 'Позиция чтения не подтверждена — обновление отложено'));
+      return;
+    }
+    dismissRoomUpdateToast();
+    roomUpdateActivationRequested = true;
     w.postMessage({ type: 'SKIP_WAITING' });
-    setTimeout(() => { if (!roomReloadingForUpdate) { roomReloadingForUpdate = true; location.reload(); } }, 3500);
-  } else { location.reload(); }
+    roomDiagPush({ kind: 'room.update', result: readerOpen ? 'progress-flushed' : 'safe-point' });
+    // A dropped message must not reload into the old shell. Re-send only while
+    // the same worker is still waiting; controllerchange owns the one reload.
+    setTimeout(async () => {
+      if (roomReloadingForUpdate) return;
+      try { const reg = await navigator.serviceWorker.getRegistration('/'); if (reg && reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' }); }
+      catch (_) {}
+    }, 3500);
+  } else { reconnectRoomNetwork(); }
 }
 function showRoomUpdateToast(worker) {
   roomWaitingWorker = worker || roomWaitingWorker;
+  setRoomConnectionState(roomB6.nextConnectionState(roomConnectionState, 'update-waiting'));
   refreshAboutUpdateStatus();
   dismissRoomUpdateToast();
   const box = el('div', { class: 'room-update-toast', attrs: { role: 'status' } });
@@ -2854,7 +3062,8 @@ function showRoomUpdateToast(worker) {
 function registerRoomServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (roomReloadingForUpdate) return; roomReloadingForUpdate = true; location.reload();
+    if (!roomUpdateActivationRequested || roomReloadingForUpdate) return;
+    roomReloadingForUpdate = true; location.reload();
   });
   navigator.serviceWorker.register('/sw.js', { scope: '/' }).then((reg) => {
     if (reg.waiting && navigator.serviceWorker.controller) showRoomUpdateToast(reg.waiting);
@@ -2877,8 +3086,11 @@ async function loadRoomVersion() {
       roomAppVersion = String(j.version);
       const fv = $('roomFooterVersion'); if (fv) fv.textContent = roomAppVersion;
       const av = $('roomAboutVersion'); if (av) av.textContent = roomAppVersion;
+      if (navigator.onLine && roomConnectionState !== 'update-ready') setRoomConnectionState('online');
     }
-  } catch (_) {}
+  } catch (_) {
+    setRoomConnectionState(navigator.onLine ? 'degraded-error' : roomB6.nextConnectionState('online', 'offline', { localReady: roomOfflineHasLocalTruth() }));
+  }
 }
 function refreshAboutUpdateStatus() {
   const box = $('roomAboutUpdate'); if (!box) return;
@@ -4047,14 +4259,31 @@ let _progressTimer = null, _scrollTimer = null, _progressScrollWired = false, _s
 // BRR-P2-005 — record the FURTHEST row reached this session, never a lower one. Fixes the
 // «Продолжить» disappearance: playing row N then closing at scroll-top no longer writes 0.
 function recordProgress(idx) {
-  if (readerTextId == null || idx == null || idx < 0) return;
+  if (readerTextId == null || idx == null || idx < 0 || Date.now() < _roomReaderReadOnlyUntil) return;
   _sessionMaxRow = window.ReaderProgress ? window.ReaderProgress.mergeProgress(_sessionMaxRow, idx) : Math.max(_sessionMaxRow, idx);
   const tid = readerTextId, row = _sessionMaxRow;
   if (_progressTimer) clearTimeout(_progressTimer);
   _progressTimer = setTimeout(() => {
     _progressTimer = null;
-    try { localDb.setProgress(tid, { last_row_idx: row }); } catch (_) {}
+    try { Promise.resolve(localDb.setProgress(tid, { last_row_idx: row })).catch(() => {}); } catch (_) {}
   }, 800);
+}
+
+async function flushReaderProgress(options = {}) {
+  const tid = readerTextId;
+  if (_progressTimer) { clearTimeout(_progressTimer); _progressTimer = null; }
+  if (tid == null) return { ok: true, textId: null, rowIndex: -1 };
+  const top = currentTopRowIdx();
+  const idx = window.ReaderProgress
+    ? window.ReaderProgress.mergeProgress(_sessionMaxRow, top == null ? -1 : top)
+    : Math.max(_sessionMaxRow, top == null ? -1 : top);
+  if (idx <= 0) return { ok: true, textId: String(tid), rowIndex: idx };
+  await localDb.setProgress(tid, { last_row_idx: idx });
+  if (options.readBack) {
+    const saved = await localDb.getProgress(tid);
+    if (!saved || Number(saved.last_row_idx) < idx) throw new Error('ROOM_PROGRESS_READBACK_FAILED');
+  }
+  return { ok: true, textId: String(tid), rowIndex: idx };
 }
 function readerBarOffset() {
   const bar = $('roomReader') && $('roomReader').querySelector('.reader-bar');
@@ -5929,6 +6158,10 @@ async function loadContextOverlay(textId, text) {
 async function openReader(textId, title, opts) {
   const reader = $('roomReader'), content = $('roomContent');
   if (!reader) return;
+  const presentationRestore = !!(opts && opts.presentationRestore);
+  const openStartedAt = performance.now();
+  if (presentationRestore) _roomReaderReadOnlyUntil = Date.now() + 1500;
+  else roomPushPresentationState({ surface: 'reader', anchor: { itemId: String(textId == null ? '' : textId), rowIndex: 0 } });
   const requestedEpoch = opts && Number(opts._readerOpenEpoch);
   const openEpoch = Number.isInteger(requestedEpoch) && requestedEpoch > 0 ? requestedEpoch : ++readerOpenEpoch;
   if (openEpoch !== readerOpenEpoch) return;
@@ -5967,6 +6200,10 @@ async function openReader(textId, title, opts) {
   if (openEpoch !== readerOpenEpoch) return;   // Back won while ReaderCore was resolving
   readerRows = res && res.ok ? res.rows : [];
   readerTextTitle = title || (res && res.text && res.text.title) || '';
+  if (titleEl && !title) {
+    titleEl.textContent = readerTextTitle;
+    if (HEBREW_RE.test(readerTextTitle)) titleEl.setAttribute('dir', 'rtl'); else titleEl.removeAttribute('dir');
+  }
   readerTextKey = (res && res.text && res.text.text_key) || null;
   // CLG-P6.2 — own vs corpus (то же правило, что listOwnTextsForSync/maybeNudgeNiqqud):
   // корпусные работы не живут в artifact-store → объяснение наставника недоступно by-design.
@@ -5997,7 +6234,7 @@ async function openReader(textId, title, opts) {
       try { loadProcliticOverlay(readerTextId, res.text); } catch (_) {}   // Phase-3 — this work's Dicta proclitic overlay (best-effort)
       try { loadContextOverlay(readerTextId, res.text); } catch (_) {}     // context-overlay — this work's baked context facts (best-effort)
     }
-    try { localDb.touchOpened(textId); } catch (_) {}    // recency for the Continue shelf
+    if (!presentationRestore) { try { localDb.touchOpened(textId); } catch (_) {} }    // recency for the Continue shelf
     try { tagReaderTableLang(mount); } catch (_) {}      // Epic 8b — sr-only/lang on the painted table (parity-safe)
     try { showReaderTip(); } catch (_) {}                // Epic 8a — first-open gesture hint
     wireProgressScroll();
@@ -6010,8 +6247,9 @@ async function openReader(textId, title, opts) {
     // both the «last row visible» and the resume/karaoke-latch cases).
     try { setTimeout(() => { try { maybeShowEndOfText(); } catch (_) {} }, 450); } catch (_) {}
     try { maybeOfferScaffoldAdvice(); } catch (_) {}   // PAS-D2b — scaffold-советник (W5-fade + reveal-предложение)
-    try { maybeNudgeNiqqud(res.text); } catch (_) {}   // P5.6 R-6 — unvocalized own text → one-time hint
+    if (!presentationRestore) { try { maybeNudgeNiqqud(res.text); } catch (_) {} }   // P5.6 R-6 — unvocalized own text → one-time hint
   }
+  roomDiagPush({ kind: 'room.open', duration_ms: performance.now() - openStartedAt, result: res && res.ok ? 'ok' : 'error' });
 }
 
 // Retention P5.6 R-6 (owner 2026-07-02) — an OWN text without vocalization degrades the whole
@@ -6074,22 +6312,17 @@ async function closeReader(options) {
   // may not have fired if Back is tapped quickly). Read the top-visible row while the table is
   // still laid out, persist it, then stop recording.
   const tid = readerTextId;
+  const presentationRestore = !!(options && options.presentationRestore);
+  const returnStartedAt = performance.now();
   readerOpenEpoch++;   // pending served-on-open import / ReaderCore completion loses UI authority
   const returnRoute = readerReturnRoute;
   const returnHome = !!(options && options.returnHome === true);
-  const returnContext = returnHome
+  const returnContext = options && options.presentationReturnContext ? options.presentationReturnContext : (returnHome
     ? { nav: { corpus: 'hub', level: 'home', era: null, author: null }, scrollX: 0, scrollY: 0, anchorTop: null, continuityKey: '', focusAction: '', focusKey: 'learning-home-feature-open', disclosures: [] }
-    : readerReturnContext;
+    : readerReturnContext);
   const back = $('readerBack'); if (back) back.disabled = true;
-  if (_progressTimer) { clearTimeout(_progressTimer); _progressTimer = null; }
-  if (tid != null) {
-    // BRR-P2-005 — flush the FURTHEST row reached (max of session-max + current top), NEVER a
-    // lower value, and only if > 0. This is the «Продолжить» disappearance fix: playing a row
-    // then closing at scroll-top no longer overwrites the position with 0.
-    const top = currentTopRowIdx();
-    const idx = window.ReaderProgress ? window.ReaderProgress.mergeProgress(_sessionMaxRow, top == null ? -1 : top) : Math.max(_sessionMaxRow, top == null ? -1 : top);
-    if (idx > 0) { try { await localDb.setProgress(tid, { last_row_idx: idx }); } catch (_) {} }
-  }
+  if (presentationRestore) { if (_progressTimer) { clearTimeout(_progressTimer); _progressTimer = null; } }
+  else { try { await flushReaderProgress(); } catch (_) {} }
   invalidateCorpusPresentationProgress();
   if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
@@ -6133,6 +6366,8 @@ async function closeReader(options) {
   try { document.body.classList.remove('room-study'); } catch (_) {}     // домашний экран без шапки был бы тупиком
   try { refreshDueBadge(); } catch (_) {}   // D2 — back on the home → surface the «🔁 К повторению» CTA
   await restoreReaderReturnContext(returnContext);
+  if (!presentationRestore) roomReplacePresentationState(null, 0);
+  roomDiagPush({ kind: 'room.return', duration_ms: performance.now() - returnStartedAt, result: presentationRestore ? 'history' : 'ok' });
 }
 
 // ── BRR-S15 — in-reader find (Kindle/Apple-Books table-stakes) ──────────────────────────────
@@ -6282,14 +6517,24 @@ async function openCorpusWork(card, openOpts) {
 // Restricted group corpus uses the same OPFS reader model, but its transport is
 // authenticated and never static. The source marker prevents cloud artifact
 // sync and switches row audio to the protected endpoint.
-async function loadGroupCorpora() {
+async function loadGroupCorpora(options = {}) {
   groupCorpora = [];
   try {
     const res = await fetch('/api/group-corpora', { cache: 'no-store' });
-    if (!res.ok) return; // signed-out / no membership: no teaser and no leak
+    if (!res.ok) {
+      // Signed-out is a valid empty projection, not a connectivity failure.
+      if (res.status === 401 || res.status === 403) return { ok: true, signedOut: true };
+      if (options.strictNetwork) throw new Error('GROUP_CORPORA_HTTP_' + res.status);
+      return { ok: false };
+    }
     const j = await res.json();
     groupCorpora = j && Array.isArray(j.corpora) ? j.corpora : [];
-  } catch (_) { groupCorpora = []; }
+    return { ok: true, signedOut: false };
+  } catch (error) {
+    groupCorpora = [];
+    if (options.strictNetwork) throw error;
+    return { ok: false };
+  }
 }
 
 async function ensureGroupCatalog(corpusId) {
@@ -7013,7 +7258,7 @@ function renderFinishedCard(item) {
 // console; the expanded view links there instead. ONE listTexts query, zero per-item fan-out
 // (feedback_test_with_nonempty_profile).
 function isCorpusTextRow(r) {
-  try { const sm = r && r.source_meta_json ? JSON.parse(r.source_meta_json) : null; return !!(sm && sm.corpus); } catch (_) { return false; }
+  try { const sm = r && r.source_meta_json ? JSON.parse(r.source_meta_json) : null; return !!(sm && (sm.corpus || sm.group_corpus)); } catch (_) { return false; }
 }
 function myTextTags(r) {
   try { const t = r && r.tags_json ? JSON.parse(r.tags_json) : null; return Array.isArray(t) ? t.filter(Boolean).map(String) : []; } catch (_) { return []; }
@@ -7063,7 +7308,9 @@ function renderMyTextCard(item, vertical) {
   const col = el('div', { class: 'corpus-work-col' });
   let media = { kind: null, coverage: null, humanOrTts: null };
   try {
-    if (window.MediaHost) {
+    if (item && (item.media_kind === 'audio' || item.media_kind === 'video')) {
+      media = { kind: item.media_kind, coverage: null, humanOrTts: 'human' };
+    } else if (window.MediaHost) {
       const passport = window.MediaHost.passportFromTextRow(item);
       if (passport && (passport.media || (passport.video && passport.video.videoId))) {
         const video = !!(passport.video && passport.video.videoId) || /^video\//.test(String((passport.media && passport.media.mime) || ''));
@@ -7104,20 +7351,20 @@ function renderMyTextCard(item, vertical) {
 // search/facets/CTA live there, reachable via «Весь корпус →» or the hub/switcher).
 async function injectMyTexts(body) {
   try {
-    let rows = [];
-    try { rows = await localDb.listTexts({ limit: 500 }); } catch (_) { rows = []; }
-    const mine = (rows || []).filter((r) => r && !isCorpusTextRow(r));
+    let page = { items: [], matchedTotal: 0 };
+    try { page = await localDb.listPersonalTextsPage({ limit: ROOM_PREVIEW, sort: 'opened_desc' }); } catch (_) {}
+    const mine = page.items || [];
     if (!mine.length || corpusL1Body !== body || corpusFilterActive()) return;   // self-hides: corpus-only users see no dead shelf
     const sec = el('section', { class: 'shelf corpus-continue mytexts-shelf' });
     const head = el('div', { class: 'shelf-head' });
     head.appendChild(el('h2', { class: 'shelf-title', text: '📖 ' + tt('room.mytexts.shelfTitle', 'Мои тексты') }));
     const goCorpus = el('button', { class: 'mytexts-toggle', attrs: { type: 'button' } });
-    goCorpus.textContent = tt('room.mytexts.wholeCorpus', 'Весь корпус') + ' (' + mine.length + ') →';
+    goCorpus.textContent = tt('room.mytexts.wholeCorpus', 'Весь корпус') + ' (' + Number(page.matchedTotal || 0) + ') →';
     goCorpus.addEventListener('click', () => corpusNavToCorpus('mytexts'));
     head.appendChild(goCorpus);
     sec.appendChild(head);
     const rail = el('div', { class: 'shelf-rail' });
-    for (const it of mine.slice(0, 12)) rail.appendChild(renderMyTextCard(it, false));
+    for (const it of mine.slice(0, ROOM_PREVIEW)) rail.appendChild(renderMyTextCard(it, false));
     sec.appendChild(rail);
     body.insertBefore(sec, body.firstChild);
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
@@ -7653,12 +7900,14 @@ function corpusNavTo(level, era, author) {
   const corpus = (level && level !== 'home') ? 'benyehuda' : (corpusNav.corpus || 'hub');
   corpusNav = { corpus, level: level || 'home', era: era || null, author: author || null };
   corpusReveal = 0;
+  roomPushPresentationState();
   renderCorpus();
 }
 // Multi-corpus (B+C «витрина + линза», BRR_MULTI_CORPUS_DESIGN_2026_07_02.md): lateral switch.
 function corpusNavToCorpus(id) {
   corpusNav = { corpus: id, level: 'home', era: null, author: null };
   corpusReveal = 0;
+  roomPushPresentationState();
   renderCorpus();
   // A corpus entry is often activated after the Learning Home has scrolled it into view.
   // The new surface is a new place, not a continuation of that old scroll coordinate.
@@ -7705,7 +7954,18 @@ async function renderCorpus() {
     if (token !== corpusRenderToken) return;
   }
   if (corpusNav.level === 'authors') return renderCorpusAuthors(corpusNav.era, token);
-  if (corpusNav.level === 'works') return renderCorpusWorks(corpusNav.era, corpusNav.author, token);
+  if (corpusNav.level === 'works') {
+    if (typeof corpusNav.author === 'string') {
+      const candidate = collapseEraAuthors(corpusNav.era).find((item) => String(item.qid || '') === corpusNav.author);
+      if (!candidate) {
+        corpusNav = { corpus: 'benyehuda', level: 'authors', era: corpusNav.era, author: null };
+        roomToast(tt('room.history.parentFallback', 'Точное место больше недоступно — открыт ближайший раздел'));
+        return renderCorpusAuthors(corpusNav.era, token);
+      }
+      corpusNav.author = candidate;
+    }
+    return renderCorpusWorks(corpusNav.era, corpusNav.author, token);
+  }
   if (corpusNav.level === 'concordance') return renderConcordance(token);   // BRR-S8
   return renderCorpusHome(token);
 }
@@ -7715,7 +7975,15 @@ async function renderGroupCorpus(corpusId, token) {
   showState('room.state.loading', '⏳');
   let catalog;
   try { catalog = await ensureGroupCatalog(corpusId); }
-  catch (_) { if (token === corpusRenderToken) showState('room.state.error', '⚠️'); return; }
+  catch (_) {
+    if (token === corpusRenderToken) {
+      if (!navigator.onLine) {
+        setRoomConnectionState('offline-partial');
+        showState('room.connection.offlinePartial', '↯');
+      } else showState('room.state.error', '⚠️');
+    }
+    return;
+  }
   if (token !== corpusRenderToken) return;
   main.innerHTML = '';
   const wrap = el('div', { class: 'corpus-nav group-corpus' });
@@ -8058,12 +8326,7 @@ async function getLearningHomeContinue() {
 
 async function getLearningHomeOwnCount() {
   try {
-    const rows = await localDb.dbQuery(
-      `SELECT COUNT(*) AS n FROM texts
-        WHERE COALESCE(is_archived, 0) = 0
-          AND json_extract(source_meta_json, '$.corpus') IS NULL
-          AND json_extract(source_meta_json, '$.group_corpus') IS NULL`, []);
-    return rows && rows[0] ? Math.max(0, Number(rows[0].n) || 0) : null;
+    return Math.max(0, Number(await localDb.countPersonalTextsExact()) || 0);
   } catch (_) { return null; }
 }
 
@@ -8308,19 +8571,29 @@ async function renderCorpusHub(token) {
 // «Мои тексты» as a FULL corpus (LocalDb-backed): identity header + native facets (level / tags /
 // sort) + client search + vertical grid. One listTexts query; facets computed in memory.
 let myCorpusState = { q: '', level: '', tags: [], tagMode: 'all', scope: 'texts', sort: 'opened_desc', smart: '' };
+// B6.1 — DB-first personal corpus. The B5 card/shell grammar stays unchanged,
+// but truth no longer comes from a capped 500-row client array. Every paint is
+// one exact-count keyset page and replaces the previous 48-card DOM window.
 async function renderMyTextsCorpus(token) {
   const main = $('roomContent');
   if (!main || token !== corpusRenderToken) return;
-  let rows = [];
-  try { rows = await localDb.listTexts({ limit: 500 }); } catch (_) { rows = []; }
-  const mine = (rows || []).filter((r) => r && !isCorpusTextRow(r));
+  const startedAt = performance.now();
+  let facetsData = { total: 0, levels: [], tags: [], smartCounts: {} };
+  let defaultPage = { items: [], matchedTotal: 0 };
+  try {
+    [facetsData, defaultPage] = await Promise.all([
+      localDb.getPersonalTextFacets(),
+      localDb.listPersonalTextsPage({ limit: 1, sort: 'opened_desc' }),
+    ]);
+  } catch (_) {}
   if (token !== corpusRenderToken) return;
+
   main.innerHTML = '';
-  const c = corpusById('mytexts');
+  const corpus = corpusById('mytexts');
   const wrap = el('div', { class: 'corpus-nav mytexts-corpus' });
   wrap.appendChild(corpusSwitcherBar('mytexts'));
-  wrap.appendChild(corpusShellHeader(c, {
-    countText: mine.length + ' ' + tt('room.hub.textsN', 'текст(ов)'),
+  wrap.appendChild(corpusShellHeader(corpus, {
+    countText: Number(facetsData.total || 0).toLocaleString() + ' ' + tt('room.hub.textsN', 'текст(ов)'),
     authority: '◉ ' + tt('room.shell.onDevice', 'На этом устройстве'),
     capabilityText: tt('room.shell.myTextsCapabilities', 'Морфология и чтение офлайн · ваши переводы и медиа · никуд по отдельному согласию'),
   }));
@@ -8332,7 +8605,8 @@ async function renderMyTextsCorpus(token) {
   manage.appendChild(el('a', { class: 'hub-cta', attrs: { href: '/' }, text: tt('room.hub.addText', '+ Добавить текст') }));
   manage.appendChild(el('a', { class: 'mytexts-manage', attrs: { href: '/' }, text: tt('room.mytexts.manage', 'Управлять — в Студии') }));
   management.__panel.appendChild(manage);
-  if (!mine.length) {
+
+  if (!Number(facetsData.total || 0)) {
     wrap.appendChild(corpusNextAction({
       kind: 'add', title: tt('room.shell.firstOwnText', 'Добавьте первый учебный текст'),
       kicker: tt('room.home.startKicker', 'С чего начать'),
@@ -8340,237 +8614,202 @@ async function renderMyTextsCorpus(token) {
       label: tt('room.hub.addText', '+ Добавить текст'), href: '/',
     }));
     wrap.appendChild(el('div', { class: 'mytexts-empty', text: tt('room.mytexts.corpusEmpty', 'Здесь появятся ваши тексты из Студии — создайте или импортируйте первый.') }));
-    wrap.appendChild(management);
-    main.appendChild(wrap);
+    wrap.appendChild(management); main.appendChild(wrap);
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
+    roomDiagPush({ kind: 'room.page', duration_ms: performance.now() - startedAt, result: 'empty' });
     return;
   }
-  const nextMine = mine.find((item) => item.last_row_idx != null && Number(item.last_row_idx) > 0) || mine[0];
-  const nextMineStarted = nextMine.last_row_idx != null && Number(nextMine.last_row_idx) > 0;
-  wrap.appendChild(corpusNextAction({
-    kind: nextMineStarted ? 'continue' : 'start', title: nextMine.title,
-    kicker: nextMineStarted ? tt('room.home.continueKicker', 'Продолжить') : tt('room.home.startKicker', 'С чего начать'),
-    meta: nextMineStarted ? tt('room.mytexts.progressRow', 'строка') + ' ' + (Number(nextMine.last_row_idx) + 1) : tt('room.shell.ownText', 'Ваш текст'),
-    label: nextMineStarted ? tt('room.resume.continue', 'Продолжить') : tt('room.home.startAction', 'Начать читать'),
-    href: deepLinkForText(nextMine.id), onOpen: () => openReader(nextMine.id, nextMine.title, { resume: nextMineStarted }),
-  }));
-  // PRO retrieval — feature-parity with the Studio «Библиотека (v3)» search (the in-house
-  // benchmark; feedback_feature_parity_inventory): #tag / tag: query syntax, tags ALL/ANY,
-  // search SCOPE (texts metadata / +rows+notes / rows only / notes only — the same localDb
-  // searchSentences/searchNotes the Studio queries), v3 sort set, and the smart-chips rail
-  // driven by the SAME localDb APIs (getStrugglingTexts / getMasteredTexts /
-  // getTextsCreatedAfter / getTextIdsForNotesSmartChip) — semantics never drift from Studio.
-  const mineIds = new Set(mine.map((r) => String(r.id)));
-  const smartSets = { struggling: new Set(), mastered: new Set(), fresh: new Set(), 'with-note': new Set(), 'audio-noted': new Set(), 'srs-noted': new Set(), templated: new Set() };
-  try { for (const id of (await localDb.getStrugglingTexts({}) || [])) smartSets.struggling.add(String(id)); } catch (_) {}
-  try { for (const id of (await localDb.getMasteredTexts() || [])) smartSets.mastered.add(String(id)); } catch (_) {}
-  try {
-    const lastVisit = localStorage.getItem('roomMyTextsLastVisit_v1') || '';
-    if (lastVisit && typeof localDb.getTextsCreatedAfter === 'function') for (const id of (await localDb.getTextsCreatedAfter(lastVisit) || [])) smartSets.fresh.add(String(id));
-  } catch (_) {}
-  for (const kind of ['with-note', 'audio-noted', 'srs-noted', 'templated']) {
-    try { for (const id of (await localDb.getTextIdsForNotesSmartChip(kind) || [])) smartSets[kind].add(String(id)); } catch (_) {}
+
+  const nextMine = defaultPage.items && defaultPage.items[0];
+  if (nextMine) {
+    const started = nextMine.last_row_idx != null && Number(nextMine.last_row_idx) > 0;
+    wrap.appendChild(corpusNextAction({
+      kind: started ? 'continue' : 'start', title: nextMine.title,
+      kicker: started ? tt('room.home.continueKicker', 'Продолжить') : tt('room.home.startKicker', 'С чего начать'),
+      meta: started ? tt('room.mytexts.progressRow', 'строка') + ' ' + (Number(nextMine.last_row_idx) + 1) : tt('room.shell.ownText', 'Ваш текст'),
+      label: started ? tt('room.resume.continue', 'Продолжить') : tt('room.home.startAction', 'Начать читать'),
+      href: deepLinkForText(nextMine.id), onOpen: () => openReader(nextMine.id, nextMine.title, { resume: started }),
+    }));
   }
-  try { localStorage.setItem('roomMyTextsLastVisit_v1', new Date().toISOString()); } catch (_) {}
-  if (token !== corpusRenderToken) return;
-  const ms = (iso) => { const t = Date.parse(String(iso || '')); return Number.isFinite(t) ? t : 0; };
-  const RECENT_MS = 7 * 24 * 3600 * 1000;
-  const isRecent = (r) => ms(r.last_opened_at) > Date.now() - RECENT_MS;
-  const smartCount = (key) => key === 'recent' ? mine.filter(isRecent).length : mine.filter((r) => smartSets[key] && smartSets[key].has(String(r.id))).length;
-  // v3SplitQueryTokens mirror: #tag / tag:x → tag tokens, the rest → text tokens (AND).
-  const splitQuery = (raw) => {
-    const textTokens = [], tagTokens = [];
-    for (const p of String(raw || '').trim().split(/\s+/).filter(Boolean)) {
-      if (p[0] === '#') { const t2 = p.slice(1).trim(); if (t2) tagTokens.push(t2); }
-      else if (/^tag:/i.test(p)) { const t2 = p.slice(4).trim(); if (t2) tagTokens.push(t2); }
-      else textTokens.push(p);
-    }
-    return { textTokens, tagTokens };
-  };
-  // controls: PRO search line + scope/sort selects
+
+  let filterChrome = null;
   const controls = el('div', { class: 'mytexts-controls mytexts-filter-controls' });
   const searchField = el('label', { class: 'room-field room-field-wide', attrs: { for: 'roomMyTextsSearch' } });
   searchField.appendChild(el('span', { class: 'room-field-label', text: tt('room.corpus.search.placeholder', 'Поиск') }));
-  const inp = el('input', { class: 'corpus-search-input mytexts-search', attrs: { id: 'roomMyTextsSearch', name: 'room-mytexts-search', type: 'search', placeholder: tt('room.mytexts.searchPro', 'Поиск (PRO): название / тема / уровень / #тег'), 'aria-label': tt('room.mytexts.searchPro', 'Поиск (PRO): название / тема / уровень / #тег') } });
-  inp.value = myCorpusState.q;
-  searchField.appendChild(inp);
-  let myFilterChrome = null;
-  const mkSelect = (id, opts, value, aria, onChange) => {
+  const input = el('input', { class: 'corpus-search-input mytexts-search', attrs: {
+    id: 'roomMyTextsSearch', name: 'room-mytexts-search', type: 'search',
+    placeholder: tt('room.mytexts.searchPro', 'Поиск (PRO): название / тема / уровень / #тег'),
+    'aria-label': tt('room.mytexts.searchPro', 'Поиск (PRO): название / тема / уровень / #тег'),
+  } });
+  input.value = myCorpusState.q; searchField.appendChild(input);
+  const makeSelect = (id, options, value, label, onChange) => {
     const field = el('label', { class: 'room-field', attrs: { for: id } });
-    field.appendChild(el('span', { class: 'room-field-label', text: aria }));
-    const s = el('select', { class: 'mytexts-select', attrs: { id, name: id, 'aria-label': aria } });
-    for (const [v, key, fb] of opts) { const o = document.createElement('option'); o.value = v; o.textContent = tt(key, fb); s.appendChild(o); }
-    s.value = value;
-    s.addEventListener('change', () => { onChange(s.value); if (myFilterChrome) myFilterChrome.refresh(); });
-    field.appendChild(s);
-    return field;
+    field.appendChild(el('span', { class: 'room-field-label', text: label }));
+    const select = el('select', { class: 'mytexts-select', attrs: { id, name: id, 'aria-label': label } });
+    for (const [optionValue, key, fallback] of options) {
+      const option = document.createElement('option'); option.value = optionValue; option.textContent = tt(key, fallback); select.appendChild(option);
+    }
+    select.value = value;
+    select.addEventListener('change', () => { onChange(select.value); filterChrome && filterChrome.refresh(); });
+    field.appendChild(select); return field;
   };
-  controls.appendChild(mkSelect('roomMyTextsScope', [
+  controls.appendChild(makeSelect('roomMyTextsScope', [
     ['texts', 'room.mytexts.scopeTexts', 'Поиск: тексты'],
     ['both', 'room.mytexts.scopeBoth', 'Поиск: тексты+строки+заметки'],
     ['rows', 'room.mytexts.scopeRows', 'Поиск: только строки'],
     ['notes', 'room.mytexts.scopeNotes', 'Поиск: только заметки'],
-  ], myCorpusState.scope, tt('room.mytexts.scopeLabel', 'Область поиска'), (v) => { myCorpusState.scope = v; schedulePaint(); }));
-  const sortField = mkSelect('roomMyTextsSort', [
+  ], myCorpusState.scope, tt('room.mytexts.scopeLabel', 'Область поиска'), (value) => { myCorpusState.scope = value; schedulePaint(); }));
+  const sortField = makeSelect('roomMyTextsSort', [
     ['opened_desc', 'room.mytexts.sortOpened', 'Последние открытые'],
     ['updated_desc', 'room.mytexts.sortUpdated', 'Последние изменённые'],
     ['title_asc', 'room.mytexts.sortAZ', 'А–Я'],
     ['title_desc', 'room.mytexts.sortZA', 'Я–А'],
     ['topic_asc', 'room.mytexts.sortTopic', 'Тема А–Я'],
-  ], myCorpusState.sort, tt('room.corpus.sort.label', 'Сортировка'), (v) => { myCorpusState.sort = v; paint(); });
-  // smart-chips rail (single-select toggle, counts = intersection with OWN texts — honest)
-  const SMART = [
-    ['recent', 'room.mytexts.smartRecent', '⏱ Недавние', false],
-    ['struggling', 'room.mytexts.smartStruggling', '🔥 Сложные', false],
-    ['mastered', 'room.mytexts.smartMastered', '✓ Освоено', false],
-    ['fresh', 'room.mytexts.smartNew', '✨ Новые', false],
-    ['with-note', 'room.mytexts.smartWithNote', '📝 С заметкой', true],
-    ['audio-noted', 'room.mytexts.smartAudio', '📍 Audio-noted', true],
-    ['srs-noted', 'room.mytexts.smartSrs', '🎯 SRS-noted', true],
-    ['templated', 'room.mytexts.smartTemplated', '⭐ Templated', true],
+  ], myCorpusState.sort, tt('room.corpus.sort.label', 'Сортировка'), (value) => { myCorpusState.sort = value; paint({ reset: true }); });
+
+  const smartDefinitions = [
+    ['recent', 'room.mytexts.smartRecent', '⏱ Недавние'],
+    ['struggling', 'room.mytexts.smartStruggling', '🔥 Сложные'],
+    ['mastered', 'room.mytexts.smartMastered', '✓ Освоено'],
+    ['fresh', 'room.mytexts.smartNew', '✨ Новые'],
+    ['with-note', 'room.mytexts.smartWithNote', '📝 С заметкой'],
+    ['audio-noted', 'room.mytexts.smartAudio', '📍 Audio-noted'],
+    ['srs-noted', 'room.mytexts.smartSrs', '🎯 SRS-noted'],
+    ['templated', 'room.mytexts.smartTemplated', '⭐ Templated'],
   ];
   const smartRail = el('div', { class: 'corpus-sort mytexts-smart' });
   const buildSmart = () => {
     smartRail.textContent = '';
-    for (const [key, i18nKey, fb, badge] of SMART) {
-      const on = myCorpusState.smart === key;
-      const b = el('button', { class: 'corpus-sort-btn' + (on ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(on), 'data-smart': key } });
-      b.textContent = tt(i18nKey, fb);
-      if (badge) { const n = smartCount(key); if (n) { const bd = el('span', { class: 'mytexts-smart-badge', text: String(n) }); b.appendChild(bd); } }
-      b.addEventListener('click', () => { myCorpusState.smart = on ? '' : key; buildSmart(); paint(); if (myFilterChrome) myFilterChrome.refresh(); });
-      smartRail.appendChild(b);
+    for (const [key, i18nKey, fallback] of smartDefinitions) {
+      const active = myCorpusState.smart === key;
+      const button = el('button', { class: 'corpus-sort-btn' + (active ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(active), 'data-smart': key } });
+      button.textContent = tt(i18nKey, fallback);
+      const count = Number(facetsData.smartCounts && facetsData.smartCounts[key] || 0);
+      if (count) button.appendChild(el('span', { class: 'mytexts-smart-badge', text: String(count) }));
+      button.addEventListener('click', () => {
+        myCorpusState.smart = active ? '' : key; buildSmart(); paint({ reset: true }); filterChrome && filterChrome.refresh();
+      });
+      smartRail.appendChild(button);
     }
   };
   controls.appendChild(smartRail);
-  // facets: level (single) + tags (MULTI + ALL/ANY mode, v3 parity)
-  const levels = Array.from(new Set(mine.map((r) => String(r.level || '')).filter(Boolean))).sort();
-  const tagCount = new Map();
-  for (const r of mine) for (const tg of myTextTags(r)) tagCount.set(tg, (tagCount.get(tg) || 0) + 1);
-  const tags = Array.from(tagCount.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8).map((x) => x[0]);
+
+  const levels = (facetsData.levels || []).map((item) => String(item.value || '')).filter(Boolean);
+  const tags = (facetsData.tags || []).map((item) => String(item.value || '')).filter(Boolean).slice(0, 8);
   const facets = el('div', { class: 'mytexts-facets' });
-  const chip = (label, isOn, onClick) => {
-    const b = el('button', { class: 'corpus-sort-btn' + (isOn ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(isOn) } });
-    b.textContent = label;
-    b.addEventListener('click', onClick);
-    return b;
+  const facetButton = (label, active, onClick) => {
+    const button = el('button', { class: 'corpus-sort-btn' + (active ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(active) }, text: label });
+    button.addEventListener('click', onClick); return button;
   };
   const buildFacets = () => {
     facets.textContent = '';
     if (levels.length) {
-      const lw = el('div', { class: 'corpus-sort' });
-      for (const lv of levels) lw.appendChild(chip(lv, myCorpusState.level === lv, () => { myCorpusState.level = myCorpusState.level === lv ? '' : lv; buildFacets(); paint(); if (myFilterChrome) myFilterChrome.refresh(); }));
-      facets.appendChild(lw);
+      const levelRail = el('div', { class: 'corpus-sort' });
+      for (const level of levels) levelRail.appendChild(facetButton(level, myCorpusState.level === level, () => {
+        myCorpusState.level = myCorpusState.level === level ? '' : level; buildFacets(); paint({ reset: true }); filterChrome && filterChrome.refresh();
+      }));
+      facets.appendChild(levelRail);
     }
     if (tags.length) {
-      const tw = el('div', { class: 'corpus-sort' });
+      const tagRail = el('div', { class: 'corpus-sort' });
       if (myCorpusState.tags.length >= 2) {
-        tw.appendChild(chip(tt('room.mytexts.tagsAll', 'Теги: ALL'), myCorpusState.tagMode === 'all', () => { myCorpusState.tagMode = 'all'; buildFacets(); paint(); if (myFilterChrome) myFilterChrome.refresh(); }));
-        tw.appendChild(chip(tt('room.mytexts.tagsAny', 'Теги: ANY'), myCorpusState.tagMode === 'any', () => { myCorpusState.tagMode = 'any'; buildFacets(); paint(); if (myFilterChrome) myFilterChrome.refresh(); }));
+        tagRail.appendChild(facetButton(tt('room.mytexts.tagsAll', 'Теги: ALL'), myCorpusState.tagMode === 'all', () => { myCorpusState.tagMode = 'all'; buildFacets(); paint({ reset: true }); }));
+        tagRail.appendChild(facetButton(tt('room.mytexts.tagsAny', 'Теги: ANY'), myCorpusState.tagMode === 'any', () => { myCorpusState.tagMode = 'any'; buildFacets(); paint({ reset: true }); }));
       }
-      for (const tg of tags) {
-        const on = myCorpusState.tags.indexOf(tg) !== -1;
-        tw.appendChild(chip('#' + tg, on, () => {
-          if (on) myCorpusState.tags = myCorpusState.tags.filter((x) => x !== tg);
-          else myCorpusState.tags = myCorpusState.tags.concat([tg]);
-          buildFacets(); paint(); if (myFilterChrome) myFilterChrome.refresh();
+      for (const tag of tags) {
+        const active = myCorpusState.tags.includes(tag);
+        tagRail.appendChild(facetButton('#' + tag, active, () => {
+          myCorpusState.tags = active ? myCorpusState.tags.filter((item) => item !== tag) : myCorpusState.tags.concat([tag]);
+          buildFacets(); paint({ reset: true }); filterChrome && filterChrome.refresh();
         }));
       }
-      facets.appendChild(tw);
+      facets.appendChild(tagRail);
     }
   };
   controls.appendChild(facets);
-  myFilterChrome = corpusFilterChrome('roomMyTexts', searchField, controls, sortField, () => {
-    const labels=[];
-    if(myCorpusState.scope!=='texts'){const scope=controls.querySelector('#roomMyTextsScope');labels.push(scope&&scope.selectedOptions&&scope.selectedOptions[0]?scope.selectedOptions[0].textContent:tt('room.mytexts.scopeLabel','Область поиска'));}
-    if(myCorpusState.level)labels.push(myCorpusState.level);
-    if(myCorpusState.smart)labels.push((SMART.find((item)=>item[0]===myCorpusState.smart)||[])[2]||myCorpusState.smart);
-    for(const tag of myCorpusState.tags)labels.push('#'+tag);
-    return {count:(myCorpusState.scope!=='texts'?1:0)+(myCorpusState.level?1:0)+(myCorpusState.smart?1:0)+myCorpusState.tags.length,labels};
+  filterChrome = corpusFilterChrome('roomMyTexts', searchField, controls, sortField, () => {
+    const labels = [];
+    if (myCorpusState.scope !== 'texts') labels.push(tt('room.mytexts.scopeLabel', 'Область поиска'));
+    if (myCorpusState.level) labels.push(myCorpusState.level);
+    if (myCorpusState.smart) labels.push((smartDefinitions.find((item) => item[0] === myCorpusState.smart) || [])[2] || myCorpusState.smart);
+    for (const tag of myCorpusState.tags) labels.push('#' + tag);
+    return { count: (myCorpusState.scope !== 'texts' ? 1 : 0) + (myCorpusState.level ? 1 : 0) + (myCorpusState.smart ? 1 : 0) + myCorpusState.tags.length, labels };
   });
-  wrap.appendChild(myFilterChrome.node);
-  const resultLine = el('div', { class: 'room-browse-summary mytexts-results' });
+  wrap.appendChild(filterChrome.node);
+
+  const resultLine = el('div', { class: 'room-browse-summary mytexts-results', attrs: { 'aria-live': 'polite' } });
   const grid = el('div', { class: 'mytexts-grid corpus-work-list' });
-  const moreWrap = el('div', { class: 'corpus-more mytexts-more' });
-  // scope search (rows/notes) — async over localDb, cached per (scope,q); metadata stays sync
-  let scopeCache = { key: '', ids: null };
-  async function scopeIdsFor(scope, q) {
-    const key = scope + ' ' + q;
-    if (scopeCache.key === key) return scopeCache.ids;
-    const ids = new Set();
+  const pager = el('nav', { class: 'corpus-more mytexts-more mytexts-pager', attrs: { 'aria-label': tt('room.mytexts.pagination', 'Страницы текстов') } });
+  wrap.appendChild(resultLine); wrap.appendChild(grid); wrap.appendChild(pager); wrap.appendChild(management); main.appendChild(wrap);
+
+  const freshSince = (() => { try { return localStorage.getItem('roomMyTextsLastVisit_v1') || ''; } catch (_) { return ''; } })();
+  if (!_roomRestoringHistory) { try { localStorage.setItem('roomMyTextsLastVisit_v1', new Date().toISOString()); } catch (_) {} }
+  let currentPage = null, currentStart = 0, paintSequence = 0, lastSnapshot = '';
+  let smartIdCache = { key: '', ids: [] };
+  const selectedSmartIds = async () => {
+    const key = myCorpusState.smart;
+    if (key !== 'struggling' && key !== 'mastered') return [];
+    if (smartIdCache.key === key) return smartIdCache.ids;
+    let ids = [];
+    try { ids = key === 'struggling' ? await localDb.getStrugglingTexts({}) : await localDb.getMasteredTexts(); } catch (_) {}
+    smartIdCache = { key, ids: (ids || []).map(String) }; return smartIdCache.ids;
+  };
+  const restoreAnchor = roomInitialMyTextsAnchor();
+  async function paint(options = {}) {
+    const sequence = ++paintSequence;
+    if (options.reset) { currentStart = Math.max(0, Number(options.start) || 0); lastSnapshot = ''; }
+    const requestStarted = performance.now();
+    grid.setAttribute('aria-busy', 'true');
+    let page;
     try {
-      if (scope === 'rows' || scope === 'both') for (const s of (await localDb.searchSentences(q, 300) || [])) if (s && s.text_id != null) ids.add(String(s.text_id));
-      if (scope === 'notes' || scope === 'both') {
-        for (const n of (await localDb.searchNotes(q, 300) || [])) if (n && n.text_id != null) ids.add(String(n.text_id));
-        try { for (const n of (await localDb.searchWordNotes(q, 300) || [])) if (n && n.text_id != null) ids.add(String(n.text_id)); } catch (_) {}
-      }
-    } catch (_) {}
-    scopeCache = { key, ids };
-    return ids;
-  }
-  let paintSeq = 0;
-  let myBrowseLimit = ROOM_BROWSE_PAGE;
-  async function paint(resetLimit = true) {
-    if (resetLimit) myBrowseLimit = ROOM_BROWSE_PAGE;
-    const seq = ++paintSeq;
-    const { textTokens, tagTokens } = splitQuery(myCorpusState.q);
-    const qJoined = textTokens.join(' ').toLowerCase();
-    const needScope = myCorpusState.scope !== 'texts' && qJoined;
-    const extIds = needScope ? await scopeIdsFor(myCorpusState.scope, textTokens.join(' ')) : null;
-    if (seq !== paintSeq || token !== corpusRenderToken) return;
-    const effTags = myCorpusState.tags.concat(tagTokens);
-    let found = mine.filter((r) => {
-      if (myCorpusState.level && String(r.level || '') !== myCorpusState.level) return false;
-      if (effTags.length) {
-        const rt = myTextTags(r).map((x) => x.toLowerCase());
-        const want = effTags.map((x) => x.toLowerCase());
-        if (myCorpusState.tagMode === 'any') { if (!want.some((w) => rt.indexOf(w) !== -1)) return false; }
-        else { if (!want.every((w) => rt.indexOf(w) !== -1)) return false; }
-      }
-      if (myCorpusState.smart) {
-        if (myCorpusState.smart === 'recent') { if (!isRecent(r)) return false; }
-        else if (!(smartSets[myCorpusState.smart] && smartSets[myCorpusState.smart].has(String(r.id)))) return false;
-      }
-      if (!qJoined) return true;
-      const hay = (String(r.title || '') + ' ' + String(r.topic || '') + ' ' + String(r.source || '') + ' ' + String(r.level || '') + ' ' + myTextTags(r).join(' ')).toLowerCase();
-      const metaHit = textTokens.every((t2) => hay.includes(t2.toLowerCase()));
-      if (myCorpusState.scope === 'texts') return metaHit;
-      if (myCorpusState.scope === 'both') return metaHit || (extIds && extIds.has(String(r.id)));
-      return !!(extIds && extIds.has(String(r.id)));   // rows / notes only
-    });
-    const bySort = {
-      opened_desc: (a, b) => (ms(b.last_opened_at) || ms(b.updated_at) || ms(b.created_at)) - (ms(a.last_opened_at) || ms(a.updated_at) || ms(a.created_at)),
-      updated_desc: (a, b) => (ms(b.updated_at) || ms(b.created_at)) - (ms(a.updated_at) || ms(a.created_at)),
-      title_asc: (a, b) => String(a.title || '').localeCompare(String(b.title || ''), 'ru'),
-      title_desc: (a, b) => String(b.title || '').localeCompare(String(a.title || ''), 'ru'),
-      topic_asc: (a, b) => String(a.topic || '').localeCompare(String(b.topic || ''), 'ru') || String(a.title || '').localeCompare(String(b.title || ''), 'ru'),
-    };
-    found = found.slice().sort(bySort[myCorpusState.sort] || bySort.opened_desc);
-    const shown = found.slice(0, myBrowseLimit);
-    resultLine.textContent = tt('room.groupCorpus.found', 'Найдено') + ': ' + shown.length + ' / ' + found.length;
-    grid.textContent = '';
-    for (const it of shown) grid.appendChild(renderMyTextCard(it, true));
-    if (!found.length) grid.appendChild(el('div', { class: 'mytexts-empty', text: tt('room.mytexts.empty', 'Ничего не найдено') }));
-    moreWrap.textContent = '';
-    if (shown.length < found.length) {
-      const more = el('button', { class: 'corpus-more-btn', attrs: { type: 'button' } });
-      more.textContent = tt('room.corpus.showMore', 'Показать ещё') + ' (' + (found.length - shown.length) + ')';
-      more.addEventListener('click', () => { myBrowseLimit += ROOM_BROWSE_PAGE; paint(false); });
-      moreWrap.appendChild(more);
+      page = await localDb.listPersonalTextsPage({
+        ...myCorpusState, limit: ROOM_BROWSE_PAGE,
+        cursor: options.cursor || null,
+        anchorId: options.anchorId || null,
+        beforeAnchorId: options.beforeAnchorId || null,
+        smartIds: await selectedSmartIds(), freshSince,
+      });
+    } catch (error) {
+      if (sequence !== paintSequence) return;
+      grid.removeAttribute('aria-busy'); grid.textContent = '';
+      grid.appendChild(el('div', { class: 'mytexts-empty', text: tt('room.state.error', 'Не удалось загрузить') }));
+      roomDiagPush({ kind: 'room.error', error_code: error && error.message === 'CURSOR_MISMATCH' ? 'cursor_mismatch' : 'page_failed', result: 'error' });
+      return;
     }
+    if (sequence !== paintSequence || token !== corpusRenderToken) return;
+    if (lastSnapshot && page.snapshot !== lastSnapshot && !options.reset) {
+      roomToast(tt('room.mytexts.changedRestart', 'Библиотека изменилась — список обновлён с первой страницы'));
+      return paint({ reset: true });
+    }
+    lastSnapshot = page.snapshot; currentPage = page;
+    if (options.beforeAnchorId) currentStart = Math.max(0, currentStart - ROOM_BROWSE_PAGE);
+    else if (options.advance) currentStart += Number(options.advance) || ROOM_BROWSE_PAGE;
+    else if (options.reset) currentStart = Math.max(0, Number(options.start) || 0);
+    if (!page.items.length && page.matchedTotal > 0 && (options.cursor || options.anchorId || options.beforeAnchorId)) return paint({ reset: true });
+    grid.removeAttribute('aria-busy'); grid.textContent = '';
+    for (const item of page.items) grid.appendChild(renderMyTextCard(item, true));
+    if (!page.items.length) grid.appendChild(el('div', { class: 'mytexts-empty', text: tt('room.mytexts.empty', 'Ничего не найдено') }));
+    const first = page.items.length ? currentStart + 1 : 0;
+    const last = currentStart + page.items.length;
+    resultLine.textContent = tt('room.groupCorpus.found', 'Найдено') + ': ' + first + '–' + last + ' / ' + Number(page.matchedTotal || 0).toLocaleString();
+    pager.textContent = '';
+    const previous = el('button', { class: 'corpus-more-btn mytexts-page-prev', attrs: { type: 'button' }, text: '← ' + tt('room.mytexts.previousPage', 'Предыдущие') });
+    previous.disabled = currentStart <= 0 || !page.items.length;
+    previous.addEventListener('click', () => paint({ beforeAnchorId: page.items[0].id }));
+    const next = el('button', { class: 'corpus-more-btn mytexts-page-next', attrs: { type: 'button' }, text: tt('room.mytexts.nextPage', 'Следующие') + ' →' });
+    next.disabled = !page.nextCursor;
+    next.addEventListener('click', () => paint({ cursor: page.nextCursor, advance: page.items.length }));
+    pager.appendChild(previous); pager.appendChild(next);
+    roomReplacePresentationState(page.items[0] || null, currentStart);
+    roomDiagPush({ kind: myCorpusState.q ? 'room.search' : 'room.page', duration_ms: performance.now() - requestStarted, result: 'ok' });
   }
   let paintTimer = null;
-  const schedulePaint = () => { if (paintTimer) clearTimeout(paintTimer); paintTimer = setTimeout(paint, 200); };
-  inp.addEventListener('input', () => { myCorpusState.q = inp.value || ''; schedulePaint(); });
-  buildSmart();
-  buildFacets();
-  myFilterChrome.refresh();
-  paint();
-  wrap.appendChild(resultLine);
-  wrap.appendChild(grid);
-  wrap.appendChild(moreWrap);
-  wrap.appendChild(management);
-  main.appendChild(wrap);
+  const schedulePaint = () => { if (paintTimer) clearTimeout(paintTimer); paintTimer = setTimeout(() => paint({ reset: true }), 200); };
+  input.addEventListener('input', () => { myCorpusState.q = input.value || ''; schedulePaint(); filterChrome && filterChrome.refresh(); });
+  buildSmart(); buildFacets(); filterChrome.refresh();
+  await paint({ reset: true, anchorId: restoreAnchor && restoreAnchor.itemId, start: restoreAnchor && restoreAnchor.rowIndex });
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  roomDiagPush({ kind: 'room.page', duration_ms: performance.now() - startedAt, result: 'ready' });
 }
 
 // L1 — graduated landing with a PERSISTENT global filter bar (search + facets) on top. The
@@ -9841,7 +10080,7 @@ function wireChrome() {
   }
   TRACKS.forEach((t) => {
     const btn = $(TAB_ID[t]);
-    if (btn) btn.addEventListener('click', () => setActiveTrack(t));
+    if (btn) btn.addEventListener('click', () => { setActiveTrack(t); if (t === 'corpus') roomPushPresentationState(); });
   });
   // Theme toggle (light/dark/auto) — premium parity with Studio.
   const themeBtn = $('roomTheme');
@@ -9855,6 +10094,19 @@ function wireChrome() {
   const aboutModal = $('roomAbout');
   if (aboutModal) aboutModal.addEventListener('click', (e) => { if (e.target && e.target.getAttribute && e.target.getAttribute('data-close') === '1') closeRoomAbout(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeRoomAbout(); });
+  const diagnosticExport = $('roomDiagnosticExport');
+  if (diagnosticExport) diagnosticExport.addEventListener('click', exportRoomDiagnostics);
+  addEventListener('popstate', (event) => {
+    if (!event.state || event.state.v !== 1) return;
+    _roomRestoringHistory = true;
+    Promise.resolve(roomApplyHistoryState(event.state)).catch(() => {
+      _roomHistoryFallbackNotice = true;
+      return roomApplyHistoryState({ surface: 'hub', corpus: 'benyehuda' });
+    }).finally(() => { _roomRestoringHistory = false; });
+  });
+  addEventListener('pagehide', () => {
+    try { roomStorePresentation(roomCurrentPresentationState()); } catch (_) {}
+  });
   roomCloudInit();   // CLG-P3.2 — «☁ Синхронизация» (dormant without login)
   groupAccessInit(); // passwordless MEMBER invite/login + durable role help
   roomExplainInit(); // CLG-P6.2 — модал «Объяснить предложение» (dormant без сессии)
@@ -9913,15 +10165,18 @@ function consumeDueReviewHandoff() {
 }
 
 async function boot() {
+  const initialPresentation = roomDecodeInitialPresentation();
   loadReaderCfg();   // BRR-P1-006 — restore persisted scaffolding modes before any reader render
   loadRoomTableWidths();   // ширины колонок Зала — до первого рендера таблицы
   wireChrome();
+  wireRoomConnection();
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   registerRoomServiceWorker();   // PWA update toast «Обновить» (works even if opened directly)
   loadRoomVersion();             // footer + «О Зале» version from /api/client-config
   maybeStartWkDebug();           // BRR-P1-008b ?wkdebug=1 on-device karaoke diagnostic
   try {
     await localDb.initLocalDB();
+    if (!navigator.onLine) setRoomConnectionState(roomB6.nextConnectionState('online', 'offline', { localReady: roomOfflineHasLocalTruth() }));
     // P0-1 v2: a follower WITH a live proxy route is fully functional (queries go to the owner
     // tab's single OPFS connection) — only a proxy-less follower still dead-ends on «БД занята».
     if (localDb.isFollower && localDb.isFollower() && !(localDb.isProxy && localDb.isProxy())) {
@@ -9943,12 +10198,25 @@ async function boot() {
     // Default to the Корпус (Reading Room) track when its catalog is available — the bilingual
     // canon with morphology-on-tap now leads. Fall back to the on-ramp tracks only if the corpus
     // root didn't load or is empty (mirrors the tabCorpus un-hide condition in loadCorpusCatalog).
-    if (corpusRoot && corpusRoot.counts && corpusRoot.counts.works > 0) {
+    if (initialPresentation) {
+      roomApplyStateFields(initialPresentation);
+    } else if (corpusRoot && corpusRoot.counts && corpusRoot.counts.works > 0) {
       activeTrack = 'corpus';
     } else if (!(shelvesByTrack.accessible || []).length && (shelvesByTrack.literary || []).length) {
       activeTrack = 'literary';
     }
-    setActiveTrack(activeTrack);
+    _roomRestoringHistory = !!initialPresentation;
+    await setActiveTrack(activeTrack);
+    if (initialPresentation && initialPresentation.surface === 'reader' && initialPresentation.anchor && initialPresentation.anchor.itemId) {
+      await openReader(initialPresentation.anchor.itemId, '', { presentationRestore: true, resume: true });
+    }
+    _roomRestoringHistory = false;
+    _roomPresentationReady = true;
+    // Every in-app entry must have a versioned state before the first Reader
+    // push. Otherwise Back from a freshly loaded #room route lands on a null
+    // state and cannot restore the catalog surface.
+    roomCommitPresentation('replace');
+    if (_roomHistoryFallbackNotice) roomToast(tt('room.history.parentFallback', 'Точное место больше недоступно — открыт ближайший раздел'));
     const dueReviewHandoff = consumeDueReviewHandoff();
     // Protected group-corpus deep link. The URL carries identifiers only; both
     // catalog and bundle requests still require a live session + ACTIVE group
@@ -10059,6 +10327,15 @@ async function boot() {
     // CLG-P9 — deep-link #mentor (пуш/закладка): открыть дом наставника. Это ЯВНОЕ
     // намерение пользователя (URL), не автооткрытие — этикет R17 §2.3 соблюдён.
     try { if (location.hash === '#mentor') openMentorView(); } catch (_) {}
+    // B6 diagnostics are buffered observers, not a critical-render dependency.
+    // Install them only after the canonical Room boot/render path has settled;
+    // LCP/CLS/event observers use buffered entries, so early evidence is retained
+    // without adding instrumentation pressure to the cold startup task.
+    // Keep diagnostics off the canonical boot task entirely. Buffered Web
+    // Vitals entries still preserve the early evidence, while a separate
+    // macrotask prevents observer setup/localStorage bookkeeping from turning
+    // a borderline cold parse/render task into a >50 ms release-gate failure.
+    setTimeout(installRoomPerformanceDiagnostics, 0);
   } catch (e) {
     if (e instanceof localDb.DbUnavailableError) {
       _wkBootErr = 'DbUnavailable: ' + ((e && e.message) || '');

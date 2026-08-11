@@ -2155,7 +2155,22 @@ window.I18N_LOCALES.en = {
       versionLabel: "Version",
       upToDate: "✓ Up to date",
       updateAvailable: "Update available",
+      diagnostics: "Performance diagnostics stay on this device and are exported only when you choose to do so.",
+      exportDiagnostics: "Export local diagnostics",
       close: "Close",
+    },
+    diagnostics: { exported: "Local diagnostics exported", exportFailed: "Could not export diagnostics" },
+    history: { parentFallback: "That exact place is no longer available; the nearest section was opened" },
+    connection: {
+      online: "Network available",
+      offlineReady: "Offline: local texts and reading remain available",
+      offlinePartial: "Offline: network material is temporarily unavailable; local data is safe",
+      reconnecting: "Back online — refreshing network data…",
+      degradedError: "The network is back, but network data could not be refreshed",
+      updateReady: "An update is downloaded and waiting for your approval",
+      updateDeferredReader: "Saving your reading position before updating…",
+      updateFlushFailed: "The reading position could not be confirmed; the update was deferred",
+      retry: "Retry",
     },
     theme: { label: "Theme", auto: "Auto", light: "Light", dark: "Dark" },
     // CLG-P3.2 — «☁ Синхронизация» (cloud sync modal, owner-only dev mode)
@@ -2517,6 +2532,10 @@ window.I18N_LOCALES.en = {
       smartAudio: "📍 Audio-noted",
       smartSrs: "🎯 SRS-noted",
       smartTemplated: "⭐ Templated",
+      previousPage: "Previous",
+      nextPage: "Next",
+      pagination: "Text pages",
+      changedRestart: "The library changed; the list restarted from the first page",
     },
     // Room media player (spec 2026-08-04); other bar strings reuse studio.media.*
     media: {

@@ -38,6 +38,7 @@
 //   importBundle()  — POST /api/library/import/bundle
 
 import '../js/nakdan-derived-core.js';
+import { encodeBrowseCursor, decodeBrowseCursor, fingerprintBrowseFilters, normalizeBrowseFilters, ROOM_B6_LIMITS } from '../js/room-b6-core.js';
 
 const _nakdanDerived = globalThis.NakdanDerivedCore;
 
@@ -593,6 +594,309 @@ export async function listTextsLight({ limit = 500, archived = false } = {}) {
      ORDER BY texts.is_pinned DESC, texts.pin_order ASC, texts.last_opened_at DESC NULLS LAST, texts.updated_at DESC LIMIT ?`,
     [arch, limit]
   );
+}
+
+// B6.1 — dedicated personal-card browse contract. This is intentionally separate
+// from listTexts/listTextsLight: those legacy helpers have broad export/Studio
+// consumers, while the Room needs a bounded allowlist, an exact matched total and
+// deterministic keyset pagination at 5k+ rows.
+const _PERSONAL_TEXT_PREDICATE = `t.is_archived = 0
+  AND (NOT json_valid(t.source_meta_json)
+       OR (json_type(t.source_meta_json, '$.corpus') IS NULL
+           AND json_type(t.source_meta_json, '$.group_corpus') IS NULL))`;
+
+function _b6Like(value) {
+  return '%' + String(value || '').replace(/([\\%_])/g, '\\$1') + '%';
+}
+
+function _b6TextVariants(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return [];
+  const lower = raw.toLowerCase();
+  return Array.from(new Set([
+    raw,
+    lower,
+    raw.toUpperCase(),
+    lower.slice(0, 1).toUpperCase() + lower.slice(1),
+  ]));
+}
+
+function _b6SplitQuery(raw) {
+  const textTokens = [], tagTokens = [];
+  for (const part of String(raw || '').trim().split(/\s+/).filter(Boolean)) {
+    if (part[0] === '#') { const tag = part.slice(1).trim(); if (tag) tagTokens.push(tag); }
+    else if (/^tag:/i.test(part)) { const tag = part.slice(4).trim(); if (tag) tagTokens.push(tag); }
+    else textTokens.push(part);
+  }
+  return { textTokens: textTokens.slice(0, 24), tagTokens: tagTokens.slice(0, 12) };
+}
+
+function _b6TokenClause(tokens, expression, params) {
+  if (!tokens.length) return '';
+  const clauses = [];
+  for (const token of tokens) {
+    const variants = _b6TextVariants(token);
+    clauses.push(`(${variants.map(() => `${expression} LIKE ? ESCAPE '\\'`).join(' OR ')})`);
+    params.push(...variants.map(_b6Like));
+  }
+  return clauses.join(' AND ');
+}
+
+function _b6SortSpec(sort) {
+  switch (sort) {
+    case 'updated_desc': return { primary: `COALESCE(t.updated_at, t.created_at, '')`, secondary: `''`, dir: 'desc', topic: false };
+    case 'title_asc': return { primary: `COALESCE(t.title, '')`, secondary: `''`, dir: 'asc', topic: false, collate: true };
+    case 'title_desc': return { primary: `COALESCE(t.title, '')`, secondary: `''`, dir: 'desc', topic: false, collate: true };
+    case 'topic_asc': return { primary: `COALESCE(t.topic, '')`, secondary: `COALESCE(t.title, '')`, dir: 'asc', topic: true, collate: true };
+    default: return { primary: `COALESCE(t.last_opened_at, t.updated_at, t.created_at, '')`, secondary: `''`, dir: 'desc', topic: false };
+  }
+}
+
+function _b6CursorPredicate(spec, values, inclusive) {
+  const op = spec.dir === 'desc' ? '<' : '>';
+  const equality = inclusive ? '>=' : '>';
+  const col = spec.collate ? ' COLLATE NOCASE' : '';
+  if (spec.topic) {
+    return {
+      sql: `(sort_primary${col} ${op} ?${col}
+        OR (sort_primary${col} = ?${col} AND
+          (sort_secondary${col} ${op} ?${col}
+           OR (sort_secondary${col} = ?${col} AND id ${equality} ?))))`,
+      params: [values[0], values[0], values[1], values[1], values[2]],
+    };
+  }
+  return {
+    sql: `(sort_primary${col} ${op} ?${col}
+      OR (sort_primary${col} = ?${col} AND id ${equality} ?))`,
+    params: [values[0], values[0], values[1]],
+  };
+}
+
+function _b6OrderBy(spec) {
+  const direction = spec.dir === 'desc' ? 'DESC' : 'ASC';
+  const col = spec.collate ? ' COLLATE NOCASE' : '';
+  return spec.topic
+    ? `sort_primary${col} ${direction}, sort_secondary${col} ${direction}, id ASC`
+    : `sort_primary${col} ${direction}, id ASC`;
+}
+
+function _b6BeforeAnchorPredicate(spec) {
+  const op = spec.dir === 'desc' ? '>' : '<';
+  const col = spec.collate ? ' COLLATE NOCASE' : '';
+  if (spec.topic) return `(sort_primary${col} ${op} (SELECT sort_primary FROM anchor)${col}
+    OR (sort_primary${col} = (SELECT sort_primary FROM anchor)${col} AND
+      (sort_secondary${col} ${op} (SELECT sort_secondary FROM anchor)${col}
+       OR (sort_secondary${col} = (SELECT sort_secondary FROM anchor)${col} AND id < (SELECT id FROM anchor)))))`;
+  return `(sort_primary${col} ${op} (SELECT sort_primary FROM anchor)${col}
+    OR (sort_primary${col} = (SELECT sort_primary FROM anchor)${col} AND id < (SELECT id FROM anchor)))`;
+}
+
+function _b6ReverseOrderBy(spec) {
+  return _b6OrderBy({ ...spec, dir: spec.dir === 'desc' ? 'asc' : 'desc' });
+}
+
+function _b6MediaKindSql() {
+  const safeTable = `CASE WHEN json_valid(t.table_model_meta_json) THEN t.table_model_meta_json ELSE '{}' END`;
+  const safeSource = `CASE WHEN json_valid(t.source_meta_json) THEN t.source_meta_json ELSE '{}' END`;
+  const paths = (holder, path) => `COALESCE(json_extract(${safeTable}, '$.source.${holder}.${path}'), json_extract(${safeSource}, '$.source.${holder}.${path}'))`;
+  const videoId = `COALESCE(${paths('audio', 'video.videoId')}, ${paths('captions', 'video.videoId')})`;
+  const mime = `COALESCE(${paths('audio', 'media.mime')}, ${paths('captions', 'media.mime')})`;
+  const mediaPath = `COALESCE(${paths('audio', 'media.path')}, ${paths('captions', 'media.path')}, ${paths('audio', 'media.url')}, ${paths('captions', 'media.url')})`;
+  return `CASE WHEN ${videoId} IS NOT NULL OR LOWER(COALESCE(${mime}, '')) LIKE 'video/%' THEN 'video'
+               WHEN ${mime} IS NOT NULL OR ${mediaPath} IS NOT NULL THEN 'audio'
+               ELSE NULL END`;
+}
+
+export async function listPersonalTextsPage(options = {}) {
+  const filters = normalizeBrowseFilters(options);
+  const pageLimit = Math.max(1, Math.min(Number(options.limit) || ROOM_B6_LIMITS.pageSize, 96));
+  const split = _b6SplitQuery(filters.q);
+  const allTags = [];
+  const seenTags = new Set();
+  for (const value of filters.tags.concat(split.tagTokens)) {
+    const tag = String(value || '').trim(), key = tag.toLowerCase();
+    if (tag && !seenTags.has(key)) { seenTags.add(key); allTags.push(tag); }
+    if (allTags.length >= 12) break;
+  }
+  const where = [_PERSONAL_TEXT_PREDICATE];
+  const params = [];
+
+  if (filters.level) { where.push(`COALESCE(t.level, '') = ?`); params.push(filters.level); }
+  if (allTags.length) {
+    if (filters.tagMode === 'any') {
+      const variants = Array.from(new Set(allTags.flatMap(_b6TextVariants)));
+      where.push(`EXISTS (SELECT 1 FROM json_each(CASE WHEN json_valid(t.tags_json) THEN t.tags_json ELSE '[]' END) jt
+        WHERE TRIM(CAST(jt.value AS TEXT)) IN (${variants.map(() => '?').join(',')}))`);
+      params.push(...variants);
+    } else {
+      for (const tag of allTags) {
+        const variants = _b6TextVariants(tag);
+        where.push(`EXISTS (SELECT 1 FROM json_each(CASE WHEN json_valid(t.tags_json) THEN t.tags_json ELSE '[]' END) jt
+          WHERE TRIM(CAST(jt.value AS TEXT)) IN (${variants.map(() => '?').join(',')}))`);
+        params.push(...variants);
+      }
+    }
+  }
+
+  if (split.textTokens.length) {
+    const metadataParams = [];
+    const metadata = _b6TokenClause(split.textTokens,
+      `COALESCE(t.title, '') || ' ' || COALESCE(t.topic, '') || ' ' || COALESCE(t.source, '') || ' ' || COALESCE(t.level, '') || ' ' || COALESCE(t.tags_json, '')`, metadataParams);
+    const rowParams = [];
+    const rows = _b6TokenClause(split.textTokens,
+      `COALESCE(s.he_plain, '') || ' ' || COALESCE(s.he_niqqud, '') || ' ' || COALESCE(s.ru, '') || ' ' || COALESCE(s.translit, '')`, rowParams);
+    const noteParams = [];
+    const notes = _b6TokenClause(split.textTokens, `COALESCE(n.title, '') || ' ' || COALESCE(n.body_json, '')`, noteParams);
+    const rowExists = `EXISTS (SELECT 1 FROM sentences s WHERE s.text_id = t.id AND ${rows})`;
+    const noteExists = `EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id AND ${notes})`;
+    if (filters.scope === 'rows') { where.push(rowExists); params.push(...rowParams); }
+    else if (filters.scope === 'notes') { where.push(noteExists); params.push(...noteParams); }
+    else if (filters.scope === 'both') {
+      where.push(`((${metadata}) OR ${rowExists} OR ${noteExists})`);
+      params.push(...metadataParams, ...rowParams, ...noteParams);
+    } else { where.push(`(${metadata})`); params.push(...metadataParams); }
+  }
+
+  const smartIds = Array.isArray(options.smartIds) ? options.smartIds.map(String).slice(0, 10000) : [];
+  if (filters.smart === 'recent') where.push(`t.last_opened_at >= datetime('now', '-7 days')`);
+  else if (filters.smart === 'fresh') {
+    if (options.freshSince) { where.push(`t.created_at >= ?`); params.push(String(options.freshSince)); }
+    else where.push('0 = 1');
+  } else if (filters.smart === 'with-note') where.push(`EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id)`);
+  else if (filters.smart === 'audio-noted') where.push(`EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id AND n.audio_anchor_ms IS NOT NULL)`);
+  else if (filters.smart === 'srs-noted') where.push(`EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id AND n.srs_card_id IS NOT NULL)`);
+  else if (filters.smart === 'templated') where.push(`EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id AND n.note_type IN ('word_study','grammar_rule','translation_discrepancy','pronunciation_note'))`);
+  else if (filters.smart === 'struggling' || filters.smart === 'mastered') {
+    if (smartIds.length) {
+      where.push(`EXISTS (SELECT 1 FROM json_each(?) ids WHERE CAST(ids.value AS TEXT) = t.id)`);
+      params.push(JSON.stringify(smartIds));
+    } else where.push('0 = 1');
+  }
+
+  const fingerprint = await fingerprintBrowseFilters({ ...filters, tags: allTags });
+  const spec = _b6SortSpec(filters.sort);
+  const reverseMode = !options.cursor && !!options.beforeAnchorId;
+  const anchorId = options.beforeAnchorId || options.anchorId || '';
+  let pagePredicate = '', pageParams = [];
+  if (options.cursor) {
+    const decoded = decodeBrowseCursor(options.cursor, { fingerprint, sort: filters.sort });
+    const predicate = _b6CursorPredicate(spec, decoded.values, false);
+    pagePredicate = `WHERE ${predicate.sql}`; pageParams = predicate.params;
+  } else if (options.beforeAnchorId) {
+    pagePredicate = `WHERE EXISTS (SELECT 1 FROM anchor) AND ${_b6BeforeAnchorPredicate(spec)}`;
+  } else if (options.anchorId) {
+    pagePredicate = `WHERE NOT EXISTS (SELECT 1 FROM anchor)
+      OR ${_b6CursorPredicate(spec, spec.topic
+        ? ['(SELECT sort_primary FROM anchor)', '(SELECT sort_secondary FROM anchor)', '(SELECT id FROM anchor)']
+        : ['(SELECT sort_primary FROM anchor)', '(SELECT id FROM anchor)'], true).sql}`;
+    // The anchor values above are SQL subqueries, not bind parameters. Replace each '?'
+    // in the generated predicate in-order so the same comparator stays canonical.
+    const anchorRefs = spec.topic
+      ? ['(SELECT sort_primary FROM anchor)', '(SELECT sort_primary FROM anchor)', '(SELECT sort_secondary FROM anchor)', '(SELECT sort_secondary FROM anchor)', '(SELECT id FROM anchor)']
+      : ['(SELECT sort_primary FROM anchor)', '(SELECT sort_primary FROM anchor)', '(SELECT id FROM anchor)'];
+    for (const ref of anchorRefs) pagePredicate = pagePredicate.replace('?', ref);
+  }
+
+  const sql = `WITH matched AS (
+      SELECT t.id, t.text_key,
+             SUBSTR(COALESCE(t.title, ''), 1, 512) AS title,
+             SUBSTR(COALESCE(t.level, ''), 1, 64) AS level,
+             CASE WHEN LENGTH(COALESCE(t.tags_json, '')) <= 2048 THEN t.tags_json ELSE '[]' END AS tags_json,
+             SUBSTR(COALESCE(t.source, ''), 1, 256) AS source,
+             SUBSTR(COALESCE(t.topic, ''), 1, 256) AS topic,
+             t.is_pinned, t.pin_order, SUBSTR(COALESCE(t.manual_smart_tag, ''), 1, 128) AS manual_smart_tag,
+             t.created_at, t.updated_at, t.last_opened_at,
+             tp.last_row_idx, tp.finished_at, tp.updated_at AS progress_updated_at,
+             ${_b6MediaKindSql()} AS media_kind,
+             ${spec.primary} AS sort_primary,
+             ${spec.secondary} AS sort_secondary
+        FROM texts t
+        LEFT JOIN text_progress tp ON tp.text_id = t.id
+       WHERE ${where.join('\n AND ')}
+    ), anchor AS (
+      SELECT sort_primary, sort_secondary, id FROM matched WHERE id = ? LIMIT 1
+    ), counted AS (
+      SELECT matched.*, COUNT(*) OVER() AS matched_total,
+             MAX(COALESCE(updated_at, '')) OVER() AS snapshot_updated,
+             MAX(COALESCE(last_opened_at, '')) OVER() AS snapshot_opened,
+             MAX(COALESCE(progress_updated_at, '')) OVER() AS snapshot_progress
+        FROM matched
+    )
+    SELECT * FROM counted
+    ${pagePredicate}
+    ORDER BY ${reverseMode ? _b6ReverseOrderBy(spec) : _b6OrderBy(spec)}
+    LIMIT ?`;
+  const rows = await q(sql, [...params, String(anchorId), ...pageParams, pageLimit + 1]);
+  const hasMore = rows.length > pageLimit;
+  const items = rows.slice(0, pageLimit);
+  if (reverseMode) items.reverse();
+  let matchedTotal = items.length ? Number(items[0].matched_total || 0) : 0;
+  let snapshotUpdated = items.length ? String(items[0].snapshot_updated || '') : '';
+  let snapshotOpened = items.length ? String(items[0].snapshot_opened || '') : '';
+  let snapshotProgress = items.length ? String(items[0].snapshot_progress || '') : '';
+  if (!items.length) {
+    const countRows = await q(
+      `SELECT COUNT(*) AS matched_total,
+              MAX(COALESCE(t.updated_at, '')) AS snapshot_updated,
+              MAX(COALESCE(t.last_opened_at, '')) AS snapshot_opened,
+              MAX(COALESCE(tp.updated_at, '')) AS snapshot_progress
+         FROM texts t LEFT JOIN text_progress tp ON tp.text_id = t.id
+        WHERE ${where.join('\n AND ')}`,
+      params,
+    );
+    matchedTotal = Number(countRows[0] && countRows[0].matched_total || 0);
+    snapshotUpdated = String(countRows[0] && countRows[0].snapshot_updated || '');
+    snapshotOpened = String(countRows[0] && countRows[0].snapshot_opened || '');
+    snapshotProgress = String(countRows[0] && countRows[0].snapshot_progress || '');
+  }
+  let nextCursor = null;
+  // A reverse (Previous) query may land on the very first window, where there
+  // are no more rows in the reverse direction. It still needs a forward cursor
+  // back to the window the user came from.
+  if (items.length && (hasMore || reverseMode)) {
+    const last = items[items.length - 1];
+    nextCursor = encodeBrowseCursor({
+      fingerprint, sort: filters.sort,
+      values: spec.topic ? [last.sort_primary, last.sort_secondary, last.id] : [last.sort_primary, last.id],
+    });
+  }
+  for (const item of items) {
+    delete item.sort_primary; delete item.sort_secondary;
+    delete item.matched_total; delete item.snapshot_updated; delete item.snapshot_opened; delete item.snapshot_progress; delete item.progress_updated_at;
+  }
+  return { items, nextCursor, matchedTotal, snapshot: [matchedTotal, snapshotUpdated, snapshotOpened, snapshotProgress].join(':'), fingerprint, hasEarlier: reverseMode && hasMore };
+}
+
+export async function countPersonalTextsExact() {
+  const rows = await q(`SELECT COUNT(*) AS total FROM texts t WHERE ${_PERSONAL_TEXT_PREDICATE}`);
+  return Number(rows[0] && rows[0].total || 0);
+}
+
+export async function getPersonalTextFacets() {
+  const total = await countPersonalTextsExact();
+  const levels = await q(`SELECT COALESCE(t.level, '') AS value, COUNT(*) AS count
+    FROM texts t WHERE ${_PERSONAL_TEXT_PREDICATE} AND COALESCE(t.level, '') <> ''
+    GROUP BY COALESCE(t.level, '') ORDER BY count DESC, value COLLATE NOCASE ASC`);
+  const tags = await q(`SELECT TRIM(CAST(j.value AS TEXT)) AS value, COUNT(*) AS count
+    FROM texts t, json_each(CASE WHEN json_valid(t.tags_json) THEN t.tags_json ELSE '[]' END) j
+    WHERE ${_PERSONAL_TEXT_PREDICATE} AND TRIM(CAST(j.value AS TEXT)) <> ''
+    GROUP BY LOWER(TRIM(CAST(j.value AS TEXT))) ORDER BY count DESC, value COLLATE NOCASE ASC LIMIT 12`);
+  const smartRows = await q(`SELECT
+      SUM(CASE WHEN t.last_opened_at >= datetime('now', '-7 days') THEN 1 ELSE 0 END) AS recent,
+      SUM(CASE WHEN EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id) THEN 1 ELSE 0 END) AS with_note,
+      SUM(CASE WHEN EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id AND n.audio_anchor_ms IS NOT NULL) THEN 1 ELSE 0 END) AS audio_noted,
+      SUM(CASE WHEN EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id AND n.srs_card_id IS NOT NULL) THEN 1 ELSE 0 END) AS srs_noted,
+      SUM(CASE WHEN EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id AND n.note_type IN ('word_study','grammar_rule','translation_discrepancy','pronunciation_note')) THEN 1 ELSE 0 END) AS templated
+    FROM texts t WHERE ${_PERSONAL_TEXT_PREDICATE}`);
+  const smart = smartRows[0] || {};
+  return {
+    total, levels, tags,
+    smartCounts: {
+      recent: Number(smart.recent || 0), 'with-note': Number(smart.with_note || 0),
+      'audio-noted': Number(smart.audio_noted || 0), 'srs-noted': Number(smart.srs_noted || 0),
+      templated: Number(smart.templated || 0),
+    },
+  };
 }
 export async function getTextSourceText(id) {
   const rows = await q('SELECT source_text FROM texts WHERE id = ?', [id]);

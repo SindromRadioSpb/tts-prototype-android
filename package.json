@@ -22,6 +22,7 @@
     "smoke:studio-ux-maturity": "node --test tests/studioUxMaturity.test.js && node scripts/premium/studio-ux-maturity-browser-smoke.js",
     "smoke:room-ux-maturity:red": "node --test tests/roomUxMaturity.test.js && node scripts/premium/room-ux-maturity-browser-smoke.js --expect-red",
     "smoke:room-ux-maturity": "node --test tests/roomUxMaturity.test.js && node scripts/premium/room-ux-maturity-browser-smoke.js --stage=B5",
+    "smoke:room-b6": "node --test tests/roomB6ScaleResilience.test.js tests/roomUxMaturity.test.js && node scripts/premium/room-b6-scale-resilience-smoke.js",
     "smoke:studio-room-srs": "node scripts/premium/studio-room-srs-smoke.js",
     "smoke:room-training-premium": "node scripts/premium/room-training-premium-smoke.js",
     "smoke:studio-table-resume": "node --test tests/tableChunks.test.js tests/tableJob.test.js tests/studioTableJobUi.test.js && node scripts/premium/studio-table-resume-browser-smoke.js",
