@@ -50,6 +50,58 @@
     return out;
   }
 
+  function coverageForRows(rows, segmentCount) {
+    var total = Math.max(0, Number(segmentCount) || 0), seen = new Set();
+    (rows || []).forEach(function (row) {
+      var index = row && row.segment_index;
+      if (Number.isInteger(index) && index >= 0 && index < total) seen.add(index);
+    });
+    var missing = [];
+    for (var i = 0; i < total; i++) if (!seen.has(i)) missing.push(i);
+    return { covered: seen.size, missing: missing };
+  }
+
+  function buildRepairChunks(segments, missingIndexes, size) {
+    var source = Array.isArray(segments) ? segments : [], limit = Math.max(1, Number(size) || CHUNK_SIZE);
+    var indexes = Array.from(new Set((missingIndexes || []).filter(function (index) {
+      return Number.isInteger(index) && index >= 0 && index < source.length;
+    }))).sort(function (a, b) { return a - b; });
+    var out = [];
+    for (var base = 0; base < indexes.length; base += limit) {
+      var part = indexes.slice(base, base + limit);
+      out.push({ indexes: part, segs: part.map(function (globalIndex, localIndex) {
+        return { i: localIndex, text: String(source[globalIndex] && source[globalIndex].text || '') };
+      }) });
+    }
+    return out;
+  }
+
+  function restoreRepairRows(rows, indexes) {
+    var map = Array.isArray(indexes) ? indexes : [];
+    return (rows || []).filter(function (row) {
+      return row && Number.isInteger(row.segment_index) && Number.isInteger(map[row.segment_index]);
+    }).map(function (row) {
+      var copy = Object.assign({}, row); copy.segment_index = map[row.segment_index]; return copy;
+    });
+  }
+
+  function mergeRepairRows(existing, repaired) {
+    var out = (existing || []).slice(), covered = new Set();
+    out.forEach(function (row) { if (row && Number.isInteger(row.segment_index)) covered.add(row.segment_index); });
+    (repaired || []).forEach(function (row) {
+      if (!row || !Number.isInteger(row.segment_index) || covered.has(row.segment_index)) return;
+      // One source segment may legitimately produce multiple learning rows. `covered` describes
+      // the pre-repair table only, so retain every returned row for a previously missing segment.
+      out.push(row);
+    });
+    return out.map(function (row, order) { return { row: row, order: order }; })
+      .sort(function (a, b) {
+        var ai = Number.isInteger(a.row && a.row.segment_index) ? a.row.segment_index : Number.MAX_SAFE_INTEGER;
+        var bi = Number.isInteger(b.row && b.row.segment_index) ? b.row.segment_index : Number.MAX_SAFE_INTEGER;
+        return ai - bi || a.order - b.order;
+      }).map(function (entry) { return entry.row; });
+  }
+
   // Guard плоского пути (без сегментов): оценка строк будущей таблицы.
   // ~100 символов на строку — консервативно к замеренным 58 символам субтитровой реплики.
   function estimatePlainRows(text) {
@@ -61,6 +113,8 @@
 
   var API = { CHUNK_SIZE: CHUNK_SIZE, buildChunks: buildChunks, offsetRows: offsetRows,
               coverageForChunk: coverageForChunk, aggregateMissing: aggregateMissing,
+              coverageForRows: coverageForRows, buildRepairChunks: buildRepairChunks,
+              restoreRepairRows: restoreRepairRows, mergeRepairRows: mergeRepairRows,
               estimatePlainRows: estimatePlainRows };
   if (typeof window !== "undefined") window.TableChunks = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;

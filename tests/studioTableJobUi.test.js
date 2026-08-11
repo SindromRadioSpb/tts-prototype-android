@@ -28,3 +28,14 @@ test('reload restore is local-only and provider work starts only inside an expli
   assert.match(body, /TableJob\.resume/);
   assert.match(html, /TableJob\.acceptChunk/);
 });
+
+test('completion is coverage-gated, repairs only missing segments and retains a durable snapshot', () => {
+  assert.match(html, /TableChunks\.coverageForRows/);
+  assert.match(html, /TableChunks\.buildRepairChunks/);
+  assert.match(html, /TableJob\.acceptRepair/);
+  assert.match(html, /missingGlobal\.length[\s\S]*v3RequestGeminiChunk/);
+  assert.match(html, /if \(missingGlobal\.length\)[\s\S]*TableJob\.storeDurable/);
+  assert.match(html, /TableJob\.markState\(jobJournal, "done"[\s\S]*TableJob\.storeDurable/);
+  const completion = html.slice(html.indexOf('// Initial chunks can all return successfully'), html.indexOf('// PROVIDER SELECTOR'));
+  assert.doesNotMatch(completion, /TableJob\.clear/);
+});

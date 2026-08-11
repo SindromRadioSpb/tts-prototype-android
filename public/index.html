@@ -13046,9 +13046,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=142"></script>
-    <script src="/i18n/locales/en.js?v=142"></script>
-    <script src="/i18n/locales/he.js?v=142"></script>
+    <script src="/i18n/locales/ru.js?v=143"></script>
+    <script src="/i18n/locales/en.js?v=143"></script>
+    <script src="/i18n/locales/he.js?v=143"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13220,7 +13220,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.348";
+    window.APP_VERSION = "3.11.349";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -35636,32 +35636,48 @@ try {
             clearInterval(v3TableJobTimer); v3TableJobTimer = null;
         }
     }
-    function v3TableJobRestoreLocalOnly(input) {
+    async function v3TableJobRestoreLocalOnly(input) {
         if (!window.TableJob || !input || !Array.isArray(input.segments)) return null;
-        const restored = TableJob.resume(TableJob.load(), input);
+        const restored = TableJob.resume(await TableJob.loadDurable(), input);
         if (!restored || !restored.rows.length) return restored;
+        restored.rows = TableChunks.mergeRepairRows(restored.chunkRows || restored.rows, restored.repairRows || []);
         if (!Array.isArray(currentTableData) || !currentTableData.length) {
             currentTableData = restored.rows.slice();
             renderTable(currentTableData);
         }
         return restored;
     }
-    function v3TableJobTryBootRestore() {
+    async function v3TableJobTryBootRestore() {
         try {
             if (!window.TableJob || !window.TableChunks) return;
             const segments = v3AudioSegmentsForRequest();
             if (!segments || segments.length <= TableChunks.CHUNK_SIZE) return;
-            const restored = v3TableJobRestoreLocalOnly({ text: getText().trim(), provider: getSelectedProvider(),
+            // The resumable long-media contract is Gemini-specific. UI provider defaults may
+            // reset to Google-free on reload; they must not invalidate a proven Gemini journal.
+            const restored = await v3TableJobRestoreLocalOnly({ text: getText().trim(), provider: "gemini",
                 segments, chunkSize: TableChunks.CHUNK_SIZE });
             if (!restored || !restored.rows.length) return;
             v3TableJobStartedAt = Number(restored.journal.startedAt) || Date.now();
-            v3TableJobHudUpdate("stopped", { chunk: restored.nextChunk, chunks: restored.journal.plan.length,
-                attempt: 0, attempts: 2, readyRows: restored.rows.length, totalRows: segments.length,
-                nextAction: t("tableJob.actionRetry"), mediaSha: restored.mediaSha,
+            const restoredCoverage = TableChunks.coverageForRows(restored.rows, segments.length);
+            const restoredComplete = restoredCoverage.missing.length === 0 && restored.nextChunk === restored.journal.plan.length;
+            v3LastGeminiMeta = { promptId: "he-ru-table-seg-v1+chunked", model: "gemini-flash-latest",
+                cacheKey: null, fromCache: (restored.journal.completed || []).every((entry) => entry.meta && entry.meta.fromCache),
+                provider: "gemini", chunks: (restored.journal.completed || []).map((entry) => entry.meta || {}),
+                repairs: (restored.journal.repairs || []).map((entry) => entry.meta || {}),
+                partial: !restoredComplete, restoredAt: new Date().toISOString() };
+            v3AttachImportSource();
+            v3AttachAudioTiming({ rows: currentTableData,
+                warnings: restoredComplete ? [] : ["SEG_COVERAGE_PARTIAL"] }, true);
+            if (restoredComplete) { clearTableStale(); tableIsStale = false; }
+            else { tableIsStale = true; }
+            v3TableJobHudUpdate(restoredComplete ? "done" : "stopped", { chunk: restored.nextChunk, chunks: restored.journal.plan.length,
+                attempt: 0, attempts: 2, readyRows: restoredCoverage.covered, totalRows: segments.length,
+                nextAction: t(restoredComplete ? "tableJob.actionReview" : "tableJob.actionRetry"), mediaSha: restored.mediaSha,
                 mediaIntended: !!restored.journal.mediaIntended });
+            try { v3UiSyncSaveButtons(); classicSyncMainPanels({ force: true }); } catch (_) {}
         } catch (_) {}
     }
-    window.addEventListener("load", () => setTimeout(v3TableJobTryBootRestore, 1200));
+    window.addEventListener("load", () => setTimeout(() => { v3TableJobTryBootRestore(); }, 1200));
 
     function v3RepairGeminiJsonInnerQuotes(rawText) {
         const cleaned = String(rawText || "")
@@ -35845,17 +35861,18 @@ try {
         const chunks = TableChunks.buildChunks(segs);
         const accum = [];
         const chunkMeta = [];
-        const missingPerChunk = [];
-        const jobEstimate = window.AsrTranscript.estimateLongJob(0, {
-            chunkSize: TableChunks.CHUNK_SIZE, segmentsKnown: segs.length });
-        const jobTotalRows = Number(jobEstimate.expRows) || segs.length;
+        const repairMeta = [];
+        // This segmented path has an exact completeness denominator: source segments. The old
+        // heuristic expRows (573 for 545 segments owner-live) was useful for price only and made
+        // a complete/cached resume look unfinished. HUD now reports proven segment coverage.
+        const jobTotalRows = segs.length;
         const jobMediaSha = v3TableJobMediaSha(mediaContext);
         const jobMediaIntended = !!(jobMediaSha || (window.v3LastMediaContextResolution && window.v3LastMediaContextResolution.media_intended));
         const jobInput = { text: getText().trim(), provider: "gemini", segments: segs,
             chunkSize: TableChunks.CHUNK_SIZE, mediaSha: jobMediaSha };
         let jobJournal = window.TableJob ? TableJob.create(Object.assign({}, jobInput, { now: Date.now() })) : null;
         if (jobJournal) jobJournal.mediaIntended = jobMediaIntended;
-        const restoredJob = window.TableJob ? v3TableJobRestoreLocalOnly(jobInput) : null;
+        const restoredJob = window.TableJob ? await v3TableJobRestoreLocalOnly(jobInput) : null;
         let startChunk = 0;
         if (restoredJob && restoredJob.journal) {
             jobJournal = restoredJob.journal;
@@ -35863,18 +35880,18 @@ try {
             (jobJournal.completed || []).forEach((entry) => {
                 const meta = entry.meta || {};
                 chunkMeta.push(meta);
-                missingPerChunk.push({ base: chunks[entry.index].base, missing: meta.missing || [] });
             });
+            (jobJournal.repairs || []).forEach((entry) => repairMeta.push(entry.meta || {}));
             startChunk = restoredJob.nextChunk;
             currentTableData = accum.slice();
             renderTable(currentTableData);
             v3TableJobStartedAt = Number(jobJournal.startedAt) || Date.now();
             v3TableJobHudUpdate("cache", { chunk: startChunk, chunks: chunks.length, attempt: 0, attempts: 2,
-                readyRows: accum.length, totalRows: jobTotalRows, nextAction: t("tableJob.actionWait"),
+                readyRows: TableChunks.coverageForRows(accum, segs.length).covered, totalRows: jobTotalRows, nextAction: t("tableJob.actionWait"),
                 mediaSha: jobMediaSha || restoredJob.mediaSha, mediaIntended: jobMediaIntended });
         } else {
             v3TableJobStartedAt = Date.now();
-            if (jobJournal) TableJob.store(jobJournal);
+            if (jobJournal) await TableJob.storeDurable(jobJournal);
         }
         // Fix2 (re-review): the skeleton is already on screen (translateTable(), before the
         // fork) but currentTableData itself still holds the PREVIOUS generation's rows until
@@ -35910,7 +35927,7 @@ try {
                     res = await v3RequestGeminiChunk(chunks[k].segs, true, (state, attemptInfo) => {
                         v3TableJobHudUpdate(state, { chunk: k + 1, chunks: chunks.length,
                             attempt: attemptInfo.attempt, attempts: attemptInfo.attempts,
-                            readyRows: accum.length, totalRows: jobTotalRows,
+                            readyRows: TableChunks.coverageForRows(accum, segs.length).covered, totalRows: jobTotalRows,
                             nextAction: t("tableJob.actionWait"), mediaSha: jobMediaSha,
                             mediaIntended: jobMediaIntended });
                     });
@@ -35946,7 +35963,7 @@ try {
                     }
                     v3AttachAudioTiming({ rows: currentTableData, warnings: ["SEG_COVERAGE_PARTIAL"] }, true);
                     v3TableJobHudUpdate("stopped", { chunk: k + 1, chunks: chunks.length,
-                        attempt: 2, attempts: 2, readyRows: accum.length, totalRows: jobTotalRows,
+                        attempt: 2, attempts: 2, readyRows: TableChunks.coverageForRows(accum, segs.length).covered, totalRows: jobTotalRows,
                         nextAction: t("tableJob.actionRetry"), mediaSha: jobMediaSha,
                         mediaIntended: jobMediaIntended });
                     return;
@@ -35954,11 +35971,9 @@ try {
                 const rows = TableChunks.offsetRows(res.rows || [], chunks[k].base);
                 accum.push(...rows);
                 // SEG_MAPPING_LOST (per-chunk warning): that chunk's rows came back without
-                // segment_index (server-side) — degradation is LOCAL to the chunk, not global.
-                // missingPerChunk/aggregateMissing below is what actually surfaces it to the
-                // user (SEG_COVERAGE_PARTIAL); no separate flag is tracked here.
+                // segment_index (server-side). The independent global coverage oracle below
+                // decides whether targeted repair or a stopped resumable state is required.
                 const chunkMissing = TableChunks.coverageForChunk(res.rows || [], chunks[k].segs.length).missing;
-                missingPerChunk.push({ base: chunks[k].base, missing: chunkMissing });
                 const chunkMetaEntry = { cacheKey: res.cacheKey || null, fromCache: res.fromCache === true,
                                  rows: (res.rows || []).length, missing: chunkMissing };
                 if (retriedThisChunk) chunkMetaEntry.retried = true; // R9-провенанс: кусок прошёл со 2-й попытки (S12.1)
@@ -35972,7 +35987,7 @@ try {
                     try {
                         jobJournal = TableJob.acceptChunk(jobJournal, { index: k, rows: rows,
                             meta: chunkMetaEntry, now: Date.now() });
-                        TableJob.store(jobJournal);
+                        await TableJob.storeDurable(jobJournal);
                     } catch (_) {}
                 }
                 // Прогрессив: renderTable НЕ редактировался — просто перерисовка префиксом.
@@ -35984,12 +35999,64 @@ try {
             setLoading(false);
             updateAiButtonState();
         }
-        // ── все куски готовы: полный success-блок (зеркалит одиночный путь) ──
-        const missingGlobal = TableChunks.aggregateMissing(missingPerChunk);
+        // Initial chunks can all return successfully while still omitting one segment (owner-live
+        // incident: cached chunk 4 returned 119/120). Completion is therefore gated by an
+        // independent coverage oracle, not by request count or the provider's success flag.
+        let coverage = TableChunks.coverageForRows(accum, segs.length);
+        let missingGlobal = coverage.missing.slice();
+        if (missingGlobal.length) {
+            setLoading(true);
+            try {
+                const repairs = TableChunks.buildRepairChunks(segs, missingGlobal, TableChunks.CHUNK_SIZE);
+                for (let repairIndex = 0; repairIndex < repairs.length; repairIndex++) {
+                    const repair = repairs[repairIndex];
+                    v3TableJobHudUpdate("repair", { chunk: chunks.length, chunks: chunks.length,
+                        attempt: 1, attempts: 2, readyRows: coverage.covered, totalRows: jobTotalRows,
+                        nextAction: t("tableJob.actionRepair"), mediaSha: jobMediaSha,
+                        mediaIntended: jobMediaIntended });
+                    let repairResult;
+                    try {
+                        repairResult = await v3RequestGeminiChunk(repair.segs, true, (state, attemptInfo) => {
+                            v3TableJobHudUpdate(state === "generate" ? "repair" : state,
+                                { chunk: chunks.length, chunks: chunks.length,
+                                  attempt: attemptInfo.attempt, attempts: attemptInfo.attempts,
+                                  readyRows: coverage.covered, totalRows: jobTotalRows,
+                                  nextAction: t("tableJob.actionRepair"), mediaSha: jobMediaSha,
+                                  mediaIntended: jobMediaIntended });
+                        });
+                    } catch (repairError) {
+                        if (repairError.httpStatus === 429) handleGeminiLimitError(repairError);
+                        break;
+                    }
+                    const repairedRows = TableChunks.restoreRepairRows(repairResult.rows || [], repair.indexes);
+                    const repairedIndexes = Array.from(new Set(repairedRows.map((row) => row.segment_index))).sort((a, b) => a - b);
+                    accum.splice(0, accum.length, ...TableChunks.mergeRepairRows(accum, repairedRows));
+                    const meta = { reason: "coverage-gap", requested: repair.indexes,
+                        repaired: repairedIndexes, rows: repairedRows.length,
+                        fromCache: repairResult.fromCache === true };
+                    repairMeta.push(meta);
+                    if (jobJournal && repairedIndexes.length && window.TableJob) {
+                        try {
+                            jobJournal = TableJob.acceptRepair(jobJournal, { indexes: repairedIndexes,
+                                rows: repairedRows, meta: meta, now: Date.now() });
+                            await TableJob.storeDurable(jobJournal);
+                        } catch (_) {}
+                    }
+                    coverage = TableChunks.coverageForRows(accum, segs.length);
+                    missingGlobal = coverage.missing.slice();
+                    currentTableData = accum.slice(); renderTable(currentTableData);
+                }
+            } finally {
+                setLoading(false); updateAiButtonState();
+            }
+            coverage = TableChunks.coverageForRows(accum, segs.length);
+            missingGlobal = coverage.missing.slice();
+        }
         v3LastGeminiMeta = {
             promptId: "he-ru-table-seg-v1+chunked", model: "gemini-flash-latest",
             cacheKey: null, fromCache: chunkMeta.every((c) => c.fromCache),
-            provider: "gemini", chunks: chunkMeta, generatedAt: new Date().toISOString(),
+            provider: "gemini", chunks: chunkMeta, repairs: repairMeta,
+            partial: missingGlobal.length > 0, generatedAt: new Date().toISOString(),
         };
         v3AttachImportSource();
         // Fix2 (re-review): same latch-unstick as the failure branch above — see that comment
@@ -35998,10 +36065,22 @@ try {
             const pass = v3MediaPassport(v3LastGeminiMeta && v3LastGeminiMeta.source);
             if (pass && v3IsDerivedTimingDrop(pass.timingDropReason)) pass.timingDropReason = null;
         }
+        currentTableData = accum.slice();
         v3AttachAudioTiming({ rows: currentTableData,
             warnings: missingGlobal.length ? ["SEG_COVERAGE_PARTIAL"] : [] }, true);
-        if (missingGlobal.length && typeof showToast === "function") {
-            showToast(t("studio.import.warnCoverage"), "warning");
+        if (missingGlobal.length) {
+            tableIsStale = true;
+            if (jobJournal && window.TableJob) {
+                jobJournal = TableJob.markState(jobJournal, "stopped", Date.now());
+                await TableJob.storeDurable(jobJournal);
+            }
+            showError(t("tableJob.coverageIncomplete", { missing: missingGlobal.length, total: segs.length }));
+            v3TableJobHudUpdate("stopped", { chunk: chunks.length, chunks: chunks.length,
+                attempt: 2, attempts: 2, readyRows: coverage.covered, totalRows: jobTotalRows,
+                nextAction: t("tableJob.actionRetryMissing"), mediaSha: jobMediaSha,
+                mediaIntended: jobMediaIntended });
+            try { v3UiSyncSaveButtons(); classicSyncMainPanels({ force: true }); } catch (_) {}
+            return;
         }
         clearTableStale();
         tableIsStale = false;
@@ -36012,9 +36091,15 @@ try {
         }));
         setResultsMeta("table", t("classic.tableChunkedDone").replace("{m}", String(chunks.length)));
         v3TableJobHudUpdate("done", { chunk: chunks.length, chunks: chunks.length, attempt: 1, attempts: 2,
-            readyRows: currentTableData.length, totalRows: Math.max(jobTotalRows, currentTableData.length),
+            readyRows: coverage.covered, totalRows: jobTotalRows,
             nextAction: t("tableJob.actionReview"), mediaSha: jobMediaSha, mediaIntended: jobMediaIntended });
-        if (window.TableJob) TableJob.clear();
+        // Keep the completed OPFS recovery snapshot until another exact job replaces it. The
+        // localStorage table cache can be quota-blocked on established libraries; clearing the
+        // only durable rows here caused the owner-live reload loss.
+        if (jobJournal && window.TableJob) {
+            jobJournal = TableJob.markState(jobJournal, "done", Date.now());
+            await TableJob.storeDurable(jobJournal);
+        }
         loadStats();
         clearGeminiLock();
         try { classicSyncMainPanels({ force: true }); } catch (_) {}

@@ -533,8 +533,8 @@ window.I18N_LOCALES.en = {
   },
   tableJob: {
     state: { cache: "Cache", generate: "Generating", retry: "Retrying request", repair: "Checking/repairing JSON", split: "Safe split", done: "Done", stopped: "Stopped" },
-    chunk: "Chunk {chunk}/{chunks}", attempt: "Attempt {attempt}/{attempts}", rows: "Rows ready: {ready}/{total}", elapsed: "Elapsed: {seconds}s", nextAction: "Next action: {action}",
-    actionWait: "wait for the response", actionRetry: "press AI Translate again; completed chunks will restore locally", actionReview: "review the result and save the card", mediaExact: "Media SHA: {sha}", mediaIntended: "Media intended, but an exact binding is not proven yet", mediaNone: "No media declared"
+    chunk: "Chunk {chunk}/{chunks}", attempt: "Attempt {attempt}/{attempts}", rows: "Segments covered: {ready}/{total}", elapsed: "Elapsed: {seconds}s", nextAction: "Next action: {action}",
+    actionWait: "wait for the response", actionRepair: "recovering only the missing segments", actionRetry: "press AI Translate again; completed chunks will restore locally", actionRetryMissing: "press AI Translate again; only missing segments will continue", actionReview: "review the result and save the card", coverageIncomplete: "The table is incomplete: {missing} of {total} segments are missing. Completed rows are saved on this device.", mediaExact: "Media SHA: {sha}", mediaIntended: "Media intended, but an exact binding is not proven yet", mediaNone: "No media declared"
   },
   saveMeta: {
     title: "Save to Library",

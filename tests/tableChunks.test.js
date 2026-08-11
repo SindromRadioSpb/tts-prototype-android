@@ -33,6 +33,28 @@ test("coverageForChunk + aggregateMissing: локальные пропуски �
     [1, 120, 125]);
 });
 
+test("repair plan targets only proven missing segments and restores global indexes", () => {
+  const source = segs(8);
+  const repairs = TC.buildRepairChunks(source, [6, 2, 6, 99, -1], 2);
+  assert.equal(repairs.length, 1);
+  assert.deepEqual(repairs[0].indexes, [2, 6]);
+  assert.deepEqual(repairs[0].segs, [{ i: 0, text: "s2" }, { i: 1, text: "s6" }]);
+  assert.deepEqual(TC.restoreRepairRows([
+    { segment_index: 0, he: "two" }, { segment_index: 1, he: "six" },
+  ], repairs[0].indexes).map((row) => row.segment_index), [2, 6]);
+  assert.deepEqual(TC.coverageForRows([{ segment_index: 0 }, { segment_index: 2 }], 4), {
+    covered: 2, missing: [1, 3],
+  });
+});
+
+test("repair merge is deterministic and does not duplicate an already covered segment", () => {
+  const existing = [{ segment_index: 0, he: "zero" }, { segment_index: 2, he: "two" }];
+  const repaired = [{ segment_index: 1, he: "one-a" }, { segment_index: 1, he: "one-b" }, { segment_index: 2, he: "duplicate" }];
+  assert.deepEqual(TC.mergeRepairRows(existing, repaired).map((row) => [row.segment_index, row.he]), [
+    [0, "zero"], [1, "one-a"], [1, "one-b"], [2, "two"],
+  ]);
+});
+
 test("estimatePlainRows: max(строки, символы/100)", () => {
   assert.equal(TC.estimatePlainRows("а\nб\nв"), 3);
   assert.equal(TC.estimatePlainRows("x".repeat(1000)), 10);

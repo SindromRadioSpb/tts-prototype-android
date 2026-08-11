@@ -538,8 +538,8 @@ window.I18N_LOCALES.he = {
   },
   tableJob: {
     state: { cache: "מטמון", generate: "יצירה", retry: "ניסיון חוזר", repair: "בדיקה/תיקון JSON", split: "פיצול בטוח", done: "הושלם", stopped: "נעצר" },
-    chunk: "מקטע {chunk}/{chunks}", attempt: "ניסיון {attempt}/{attempts}", rows: "שורות מוכנות: {ready}/{total}", elapsed: "זמן שחלף: {seconds} שנ׳", nextAction: "הפעולה הבאה: {action}",
-    actionWait: "להמתין לתשובה", actionRetry: "ללחוץ שוב על AI Translate; המקטעים שהושלמו ישוחזרו מקומית", actionReview: "לבדוק את התוצאה ולשמור את הכרטיס", mediaExact: "SHA של המדיה: {sha}", mediaIntended: "מדיה מיועדת, אך קישור מדויק טרם הוכח", mediaNone: "לא הוצהרה מדיה"
+    chunk: "מקטע {chunk}/{chunks}", attempt: "ניסיון {attempt}/{attempts}", rows: "כיסוי מקטעים: {ready}/{total}", elapsed: "זמן שחלף: {seconds} שנ׳", nextAction: "הפעולה הבאה: {action}",
+    actionWait: "להמתין לתשובה", actionRepair: "משחזרים רק את המקטעים החסרים", actionRetry: "ללחוץ שוב על AI Translate; המקטעים שהושלמו ישוחזרו מקומית", actionRetryMissing: "ללחוץ שוב על AI Translate; נמשיך רק מהמקטעים החסרים", actionReview: "לבדוק את התוצאה ולשמור את הכרטיס", coverageIncomplete: "הטבלה אינה שלמה: חסרים {missing} מתוך {total} מקטעים. השורות שהושלמו נשמרו במכשיר.", mediaExact: "SHA של המדיה: {sha}", mediaIntended: "מדיה מיועדת, אך קישור מדויק טרם הוכח", mediaNone: "לא הוצהרה מדיה"
   },
   saveMeta: {
     title: "שמור לספרייה",
