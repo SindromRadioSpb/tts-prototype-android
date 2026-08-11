@@ -1,0 +1,72 @@
+{
+  "schema": "room-b6-production-readback-v1",
+  "captured_at": "2026-08-12T00:28:13+03:00",
+  "origin": "https://linguistpro.kolosei.com",
+  "release_commit": "485ba466",
+  "client_config_version": "3.11.360",
+  "version_parity": {
+    "studio": true,
+    "room": true,
+    "service_worker": true
+  },
+  "shell_integrity": [
+    {
+      "path": "/library.html",
+      "http_status": 200,
+      "response_bytes": 224229,
+      "sha256": "29b755d119ca9d6cc238ccdd69f7297c51254409fea20423eaf3434637e7ab0e",
+      "manifest_matches_local": true
+    },
+    {
+      "path": "/js/library-ui.js",
+      "http_status": 200,
+      "response_bytes": 712607,
+      "sha256": "58b9d666b2e0ab97578fa5cca1faa889ec2e6063ec6aaa81b8deff5899728342",
+      "manifest_matches_local": true
+    },
+    {
+      "path": "/js/room-b6-core.js",
+      "http_status": 200,
+      "response_bytes": 10556,
+      "sha256": "1a1bdf0109b9c53a8e2b122ee4bba11e46b35aad43e878ec5f507995546851da",
+      "manifest_matches_local": true
+    },
+    {
+      "path": "/db/local-db.js",
+      "http_status": 200,
+      "response_bytes": 386752,
+      "sha256": "b1e573e3cff15df98471d84f82af8dfa237c9298031b80493a07673ae22d24cd",
+      "manifest_matches_local": true
+    }
+  ],
+  "health_readbacks": [
+    { "at": "2026-08-11T21:28:11Z", "ok": true, "db_ready": true, "migrations_ready": true, "disk_pct_used": 88 },
+    { "at": "2026-08-11T21:28:12Z", "ok": true, "db_ready": true, "migrations_ready": true, "disk_pct_used": 88 },
+    { "at": "2026-08-11T21:28:13Z", "ok": true, "db_ready": true, "migrations_ready": true, "disk_pct_used": 88 }
+  ],
+  "clean_profile_browser": [
+    {
+      "viewport": "380x844",
+      "locale": "ru",
+      "direction": "ltr",
+      "theme": "light",
+      "footer_version": "v3.11.360",
+      "core_page_size": 48,
+      "horizontal_overflow_px": 0,
+      "page_errors": 0,
+      "http_5xx": 0
+    },
+    {
+      "viewport": "380x844",
+      "locale": "he",
+      "direction": "rtl",
+      "theme": "dark",
+      "footer_version": "v3.11.360",
+      "core_page_size": 48,
+      "horizontal_overflow_px": 0,
+      "page_errors": 0,
+      "http_5xx": 0
+    }
+  ],
+  "claim_boundary": "Clean-profile automation and served-byte verification only; not owner-live or physical-device acceptance."
+}

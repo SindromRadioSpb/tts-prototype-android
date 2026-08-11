@@ -1,0 +1,33 @@
+{
+  "schema": "room-b6-continuity-variance-v1",
+  "captured_at": "2026-08-12T00:25:00+03:00",
+  "environment": "Win11 local Chromium headless with an active owner Chrome session",
+  "budget_ms": 50,
+  "current": {
+    "commit": "485ba466",
+    "result": "FAIL_33_OF_34",
+    "only_failure": "performance: no >50ms main-thread task",
+    "cold_max_long_task_ms": 56,
+    "cached_max_long_task_ms": 0,
+    "b0_b5_functional_checks": "PASS_33_OF_33"
+  },
+  "accepted_baseline_control": {
+    "commit": "36ff3ecec07efd779fa589fed6ac03ef41b8d44a",
+    "result": "FAIL_33_OF_34",
+    "only_failure": "performance: no >50ms main-thread task",
+    "cold_max_long_task_ms": 79,
+    "cached_max_long_task_ms": 82,
+    "b0_b5_functional_checks": "PASS_33_OF_33"
+  },
+  "trace": {
+    "current_layout_dirty_objects": [59, 173],
+    "current_layout_total_objects": [59, 188],
+    "observed_layout_ms": [51.0, 50.5],
+    "interpretation": "single-run environment and scheduler uncertainty; not evidence of B6 DOM growth"
+  },
+  "targeted_b6_gate": {
+    "result": "PASS_45_OF_45",
+    "open_search_load_back_long_tasks_over_50ms": 0
+  },
+  "policy": "The 50ms budget was not raised or waived. This control comparison is not a PASS claim."
+}

@@ -1,12 +1,17 @@
 # Reading Room B6 — Scale & Resilience Decision Packet
 
 **Дата:** 2026-08-11
-**Статус:** `PROPOSED / OWNER DECISION REQUIRED / NO CODE AUTHORIZED`
+**Статус:** `APPROVED 2026-08-11 / IMPLEMENTED ENGINEERING 2026-08-12 / D6 PHYSICAL PENDING`
 **Программа:** Reading Room B6 из B6–B9 handoff
 **Canonical handoff:** [`ROOM_UX_B6_B9_VISUAL_FINISHING_HANDOFF_2026_08_11.md`](./ROOM_UX_B6_B9_VISUAL_FINISHING_HANDOFF_2026_08_11.md)
 **Research baseline:** `36ff3ecec07efd779fa589fed6ac03ef41b8d44a`
 **Production snapshot (read-only):** `v3.11.359`
 **Evidence:** [`docs/research/room-ux-b6-scale-resilience/2026-08-11/`](../research/room-ux-b6-scale-resilience/2026-08-11/README.md)
+
+**Owner approval:** `D1=cursor+exact-total; D2=history+session; D3=waiting-safe-point; D4=local-only-now+opt-in-RUM-later; D5=packet-budgets; D6=full-physical-matrix`.
+
+**Implementation:** `485ba466`; engineering closure and the remaining D6 gate are recorded in
+[`ROOM_UX_B6_SCALE_RESILIENCE_CLOSURE_2026_08_12.md`](./ROOM_UX_B6_SCALE_RESILIENCE_CLOSURE_2026_08_12.md).
 
 ---
 
@@ -21,7 +26,8 @@ local-only, а production ingestion — только отдельным default-
 контуром после изменения privacy policy. B0–B5 не переоткрываются: текущий
 48-row DOM bound остаётся обязательным инвариантом.
 
-Код не начинается, пока владелец не утвердит решения D1–D6 в §12.
+Owner approval получен до кода. Реализация сохраняет D6 как обязательный
+physical/assistive gate: automation не превращается в GA или owner-live claim.
 
 ---
 
@@ -431,7 +437,7 @@ Room target там, где он уже принят. Ни screenshot, ни headl
 
 ---
 
-## 12. Решения, требующие утверждения владельца
+## 12. Утверждённые решения владельца
 
 | Decision | Рекомендация | Если не утвердить |
 |---|---|---|
@@ -442,7 +448,7 @@ Room target там, где он уже принят. Ни screenshot, ни headl
 | **D5 Budgets** | принять §10 как provisional reference budgets | перед кодом назначить другие численные budgets |
 | **D6 Evidence** | physical iPhone/Android + NVDA/VoiceOver/TalkBack обязательны до GA claim | B6 может быть beta/automated, но не GA/owner-live closed |
 
-Рекомендуемая строка утверждения:
+Фактически утверждённая строка:
 
 ```text
 APPROVE B6-R: D1=cursor+exact-total; D2=history+session;
@@ -450,14 +456,15 @@ D3=waiting-safe-point; D4=local-only-now+opt-in-RUM-later;
 D5=packet-budgets; D6=full-physical-matrix.
 ```
 
-Любое иное значение можно указать по одному D-ID. До ответа владельца —
-`STOP / RESEARCH COMPLETE / NO PRODUCT CODE`.
+Решение зафиксировано без изменений. D4 не разрешает production ingestion, а
+D6 не считается выполненным до физической матрицы из отдельного execution packet.
 
 ---
 
 ## 13. Предварительный allowlist после approval
 
-Это не разрешение на изменение; это граница будущих slices.
+Этот allowlist стал границей выполненных implementation slices; расширения за
+его пределы по-прежнему требуют нового решения.
 
 ### B6.0–B6.2
 
