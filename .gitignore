@@ -13,6 +13,11 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-store/
 
+# Python bytecode / test caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
 # Build artifacts
 dist/
 build/

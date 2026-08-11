@@ -1,13 +1,17 @@
 # Studio mobile media acquisition without Companion — decision packet
 
 > **Date:** 2026-08-11
-> **Status:** **PROPOSAL / RESEARCH COMPLETE / NO IMPLEMENTATION AUTHORITY**
+> **Status:** **RMA-M0 AUTHORISED / STARTED / ISOLATED-NODE GATE PENDING**
 > **Research:**
 > `docs/research/studio-mobile-media-acquisition-no-companion/2026-08-11/README.md`
 > **Live baseline:** `fd496fb4`, web/SW `3.11.343`; deployed acquisition routing is healthy but
 > actual YouTube acquisition is blocked by German-datacenter reputation and owner-item geography
 > **Scope:** mobile acquisition from a public authorised YouTube URL without a per-user Companion,
 > home PC or Tailscale node
+> **Owner direction 2026-08-11:** managed acquisition plane and RMA-M0 start approved; no
+> production routing/provisioning or M1-M3 release claim follows from this approval
+> **M0 start evidence:**
+> `docs/research/studio-mobile-media-acquisition-no-companion/2026-08-11/M0_START_EVIDENCE.md`
 
 ## 0. Decision in one screen
 
@@ -213,18 +217,22 @@ mobile URL promise remains unavailable and the product must show file/subtitle f
 - measure success/latency/cost for the real authorised owner item;
 - no GA/public marketing before the bounded trusted-user beta proves reliability.
 
-## 8. Owner decisions requested before implementation
+## 8. Owner decisions recorded and remaining boundary
 
-1. Approve the **managed acquisition plane** as the primary mobile route: no per-user Companion,
-   but an isolated LinguistPro-operated egress node/service remains.
-2. Approve RMA-M0 only: exact-pinned WPC + dedicated sticky IPv6 proof, with no production routing.
-3. Decide whether one paid, AUP-approved Israel ISP/residential egress trial is permitted during
-   RMA-M0 and define a monthly/GB ceiling before procurement.
-4. Keep Companion available as an optional privacy/cost fallback, but remove it from the normal
-   mobile happy path only after RMA-M3 passes.
+Recorded 2026-08-11:
 
-No code, infrastructure, secret, vendor signup, production route, native app or owner-data mutation
-is authorised by this proposal alone.
+1. The **managed acquisition plane** is approved as the primary mobile route: no per-user
+   Companion, but an isolated LinguistPro-operated egress node/service remains.
+2. RMA-M0 is approved and started as a lab-only sticky-egress proof with no product or production
+   routing change. The lab harness and start evidence are the only implementation in this slice.
+3. Companion remains an optional privacy/cost fallback and does not appear in the normal mobile
+   happy path; removing the fallback entirely still waits for RMA-M3 evidence.
+
+Still required before an external-state change: exact infrastructure/provisioning authority and
+coordinates for the dedicated node; and, before any paid trial, a named AUP-approved Israel
+provider plus monthly/GB ceiling. WPC adoption remains blocked on its transitive AGPL/source-offer
+gate. No secret, vendor signup, production route, native app or owner-data mutation is authorised by
+this M0 start.
 
 ## 9. Role-lens synthesis
 
