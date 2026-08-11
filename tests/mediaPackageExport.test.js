@@ -44,6 +44,31 @@ test('slim package checksum mismatch and unknown schema fail hard', async () => 
   await assert.rejects(() => StudioMediaPackage.verifySlimPackageFiles(unknown), /PACKAGE_SCHEMA_UNKNOWN/);
 });
 
+test('slim export keeps untimed blind text in canonical JSON and declares the bounded VTT projection', async () => {
+  const original = await snapshot();
+  original.raw_revision.segments[1].start_ms = null;
+  original.raw_revision.segments[1].end_ms = null;
+  original.raw_revision.segments[1].quality_flags = ['blind'];
+  original.raw_revision.segments[1].authority.timing = 'unknown';
+  original.raw_revision.canonical_sha256 = await Core.revisionHash('raw_original', original.raw_revision.segments, []);
+  original.corrected_revision.segments[1].start_ms = null;
+  original.corrected_revision.segments[1].end_ms = null;
+  original.corrected_revision.segments[1].quality_flags = ['blind'];
+  original.corrected_revision.segments[1].authority.timing = 'unknown';
+  original.corrected_revision.canonical_sha256 = await Core.revisionHash('user_corrected', original.corrected_revision.segments, []);
+  original.binding.revision_sha256 = original.corrected_revision.canonical_sha256;
+  const files = await StudioMediaPackage.buildSlimPackageFiles(original, {});
+  const manifest = JSON.parse(files['manifest.json']);
+  assert.deepEqual(manifest.vtt_projection.raw_original, {
+    source_segment_count: 2, exported_segment_count: 1, omitted_segment_indexes: [1],
+  });
+  assert.match(files['tracks/raw-original.json'], /"start_ms": null/);
+  assert.doesNotMatch(files['tracks/raw-original.vtt'], /מיה/);
+  const verified = await StudioMediaPackage.verifySlimPackageFiles(files);
+  assert.equal(verified.raw_revision.segments.length, 2);
+  assert.equal(verified.raw_revision.segments[1].start_ms, null);
+});
+
 test('relink hash equality is exact and one-byte mismatch cannot be accepted', async () => {
   const expected = await Core.sha256Hex(new Uint8Array([1, 2, 3]));
   assert.equal(await StudioMediaPackage.verifyRelinkBytes(expected, new Uint8Array([1, 2, 3])), true);

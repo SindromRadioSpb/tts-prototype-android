@@ -33,7 +33,7 @@
 
   function nfc(value) { return String(value == null ? '' : value).normalize('NFC'); }
   function finiteInt(value, nullable) {
-    if (nullable && value == null) return null;
+    if (value == null || value === '') return nullable ? null : NaN;
     var n = Number(value);
     return Number.isFinite(n) ? Math.round(n) : NaN;
   }
@@ -66,7 +66,7 @@
 
   function semanticTuples(segments) {
     return (segments || []).map(function (s) {
-      return [finiteInt(s.start_ms != null ? s.start_ms : Number(s.start) * 1000),
+      return [finiteInt(s.start_ms != null ? s.start_ms : (s.start == null ? null : Number(s.start) * 1000), true),
         finiteInt(s.end_ms != null ? s.end_ms : (s.end == null ? null : Number(s.end) * 1000), true),
         nfc(s.text).replace(/\r\n?/g, '\n')];
     });
@@ -79,8 +79,18 @@
     var warnings = [];
     var prev = null;
     segments.forEach(function (segment, index) {
-      var start = finiteInt(segment.start_ms != null ? segment.start_ms : Number(segment.start) * 1000);
+      var start = finiteInt(segment.start_ms != null ? segment.start_ms : (segment.start == null ? null : Number(segment.start) * 1000), true);
       var end = finiteInt(segment.end_ms != null ? segment.end_ms : (segment.end == null ? null : Number(segment.end) * 1000), true);
+      var flags = uniqueStrings(segment.quality_flags);
+      if (start == null) {
+        if (end != null || flags.indexOf('blind') < 0) fail('SEGMENT_TIMING_INVALID', String(index));
+        if (!nfc(segment.text).trim()) fail('SEGMENT_TEXT_EMPTY', String(index));
+        warnings.push({ code: 'SEGMENT_TIMING_MISSING', index: index });
+        // An untimed segment breaks any proven adjacency. Do not compare the next cue with a
+        // cue on the other side and accidentally manufacture overlap/gap evidence.
+        prev = null;
+        return;
+      }
       if (!Number.isFinite(start) || start < 0 || (end != null && (!Number.isFinite(end) || end <= start))) {
         fail('SEGMENT_TIMING_INVALID', String(index));
       }
@@ -96,7 +106,7 @@
 
   function stableRawTuple(segment) {
     return {
-      start_ms: finiteInt(segment.start_ms != null ? segment.start_ms : Number(segment.start) * 1000),
+      start_ms: finiteInt(segment.start_ms != null ? segment.start_ms : (segment.start == null ? null : Number(segment.start) * 1000), true),
       end_ms: finiteInt(segment.end_ms != null ? segment.end_ms : (segment.end == null ? null : Number(segment.end) * 1000), true),
       text: nfc(segment.text).replace(/\r\n?/g, '\n'),
       speaker: segment.speaker == null ? null : nfc(segment.speaker),
@@ -125,7 +135,7 @@
         source_segment_id: 'srcseg:' + binding + ':' + trackFingerprint.slice(0, 16) + ':' + ordinal,
         authority: {
           text: input.format === 'asr' ? 'provider' : 'import',
-          timing: input.format === 'asr' ? 'provider' : 'import',
+          timing: tuple.start_ms == null ? 'unknown' : (input.format === 'asr' ? 'provider' : 'import'),
           speaker: tuple.speaker ? (input.format === 'asr' ? 'provider' : 'import') : 'unknown',
         },
       });
@@ -183,7 +193,7 @@
       return {
         caption_segment_id: idFactory(),
         source_segment_ids: [String(raw.source_segment_id)],
-        start_ms: finiteInt(raw.start_ms), end_ms: finiteInt(raw.end_ms, true), text: nfc(raw.text),
+        start_ms: finiteInt(raw.start_ms, true), end_ms: finiteInt(raw.end_ms, true), text: nfc(raw.text),
         speaker: raw.speaker == null ? null : nfc(raw.speaker),
         authority: clone(raw.authority || { text: 'provider', timing: 'provider', speaker: raw.speaker ? 'provider' : 'unknown' }),
         quality_flags: uniqueStrings(raw.quality_flags),
@@ -223,7 +233,7 @@
     } else if (op.type === 'split') {
       index = correctedIndex(segments, op.caption_segment_id); segment = segments[index];
       var at = finiteInt(op.at_ms);
-      if (segment.end_ms == null || !(at > segment.start_ms && at < segment.end_ms)) fail('SPLIT_POINT_INVALID');
+      if (segment.start_ms == null || segment.end_ms == null || !(at > segment.start_ms && at < segment.end_ms)) fail('SPLIT_POINT_INVALID');
       var leftText = nfc(op.text_left).trim(), rightText = nfc(op.text_right).trim();
       if (!leftText || !rightText) fail('SPLIT_TEXT_REQUIRED');
       var base = {
@@ -241,11 +251,12 @@
       var leftIndex = correctedIndex(segments, ids[0]), rightIndex = correctedIndex(segments, ids[1]);
       if (rightIndex !== leftIndex + 1) fail('MERGE_ADJACENT_REQUIRED');
       var leftSeg = segments[leftIndex], rightSeg = segments[rightIndex];
+      var mergeUntimed = leftSeg.start_ms == null || rightSeg.start_ms == null;
       var merged = {
         caption_segment_id: idFactory(),
         source_segment_ids: uniqueStrings((leftSeg.source_segment_ids || []).concat(rightSeg.source_segment_ids || [])),
-        start_ms: Math.min(leftSeg.start_ms, rightSeg.start_ms),
-        end_ms: leftSeg.end_ms == null || rightSeg.end_ms == null ? null : Math.max(leftSeg.end_ms, rightSeg.end_ms),
+        start_ms: mergeUntimed ? null : Math.min(leftSeg.start_ms, rightSeg.start_ms),
+        end_ms: mergeUntimed || leftSeg.end_ms == null || rightSeg.end_ms == null ? null : Math.max(leftSeg.end_ms, rightSeg.end_ms),
         text: nfc(op.text != null ? op.text : leftSeg.text + ' ' + rightSeg.text).trim(),
         speaker: leftSeg.speaker === rightSeg.speaker ? leftSeg.speaker : null,
         authority: {
@@ -253,7 +264,7 @@
           timing: leftSeg.authority.timing === rightSeg.authority.timing ? leftSeg.authority.timing : 'derived',
           speaker: leftSeg.speaker && leftSeg.speaker === rightSeg.speaker ? (leftSeg.authority.speaker === rightSeg.authority.speaker ? leftSeg.authority.speaker : 'derived') : 'unknown',
         },
-        quality_flags: uniqueStrings((leftSeg.quality_flags || []).concat(rightSeg.quality_flags || [])),
+        quality_flags: uniqueStrings((leftSeg.quality_flags || []).concat(rightSeg.quality_flags || []).concat(mergeUntimed ? ['blind'] : [])),
         derived_from_caption_segment_ids: [leftSeg.caption_segment_id, rightSeg.caption_segment_id],
       };
       segments.splice(leftIndex, 2, merged);
@@ -263,6 +274,7 @@
       if (!Number.isFinite(delta) || !delta) fail('OFFSET_INVALID');
       var clamped = 0;
       segments.forEach(function (s) {
+        if (s.start_ms == null) { s.end_ms = null; s.quality_flags = uniqueStrings((s.quality_flags || []).concat(['blind'])); return; }
         var start = s.start_ms + delta, end = s.end_ms == null ? null : s.end_ms + delta;
         if (start < 0) { if (!op.confirm_clamp) fail('OFFSET_NEGATIVE_CONFIRM_REQUIRED'); clamped++; end = end == null ? null : Math.max(1, end - start); start = 0; }
         s.start_ms = start; s.end_ms = end; s.authority = Object.assign({}, s.authority, { timing: 'user' });
@@ -272,14 +284,15 @@
       var replacementText = nfc(op.text).replace(/\r\n?/g, '\n').trim();
       if (!replacementText || !segments.length) fail('REPLACEMENT_TEXT_REQUIRED');
       var ends = segments.map(function (s) { return s.end_ms; });
+      var replacementUntimed = segments.some(function (s) { return s.start_ms == null; });
       var replacement = {
         caption_segment_id: idFactory(),
         source_segment_ids: uniqueStrings(segments.flatMap(function (s) { return s.source_segment_ids || []; })),
-        start_ms: Math.min.apply(null, segments.map(function (s) { return s.start_ms; })),
-        end_ms: ends.some(function (value) { return value == null; }) ? null : Math.max.apply(null, ends),
+        start_ms: replacementUntimed ? null : Math.min.apply(null, segments.map(function (s) { return s.start_ms; })),
+        end_ms: replacementUntimed || ends.some(function (value) { return value == null; }) ? null : Math.max.apply(null, ends),
         text: replacementText, speaker: null,
         authority: { text: 'user', timing: 'derived', speaker: 'unknown' },
-        quality_flags: uniqueStrings(segments.flatMap(function (s) { return (s.quality_flags || []).concat(['PREVIEW_RESEGMENTED']); })),
+        quality_flags: uniqueStrings(segments.flatMap(function (s) { return (s.quality_flags || []).concat(['PREVIEW_RESEGMENTED']).concat(replacementUntimed ? ['blind'] : []); })),
         derived_from_caption_segment_ids: segments.map(function (s) { return s.caption_segment_id; }),
       };
       operation = { type: 'replace_text_layout', tombstoned_caption_segment_ids: replacement.derived_from_caption_segment_ids.slice(), created_caption_segment_id: replacement.caption_segment_id };
@@ -307,6 +320,7 @@
     if (format !== 'vtt' && format !== 'srt') fail('SUBTITLES_UNKNOWN_FORMAT', format);
     validateSegments(segments);
     var blocks = (segments || []).map(function (segment, index) {
+      if (segment.start_ms == null) fail('SEGMENT_START_REQUIRED', String(index));
       if (segment.end_ms == null) fail('SEGMENT_END_REQUIRED', String(index));
       var timing = formatTime(segment.start_ms, format) + ' --> ' + formatTime(segment.end_ms, format);
       if (format === 'srt') return String(index + 1) + '\n' + timing + '\n' + nfc(segment.text);

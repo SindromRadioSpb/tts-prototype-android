@@ -15,23 +15,27 @@
     return { index: index, number: total ? index + 1 : 0, total: total, has_prev: index > 0, has_next: index + 1 < total };
   }
   function canSplitAt(segment, cursorMs) {
-    return !!segment && Number.isFinite(Number(cursorMs)) && segment.end_ms != null && Number(cursorMs) > segment.start_ms && Number(cursorMs) < segment.end_ms;
+    return !!segment && segment.start_ms != null && Number.isFinite(Number(cursorMs)) && segment.end_ms != null && Number(cursorMs) > segment.start_ms && Number(cursorMs) < segment.end_ms;
   }
   function cueIndexForTime(segments, cursorMs) {
     if (!Array.isArray(segments) || !segments.length || !Number.isFinite(Number(cursorMs))) return -1;
-    var target = Number(cursorMs), lo = 0, hi = segments.length - 1, found = 0;
-    while (lo <= hi) {
-      var mid = Math.floor((lo + hi) / 2), start = Number(segments[mid] && segments[mid].start_ms);
-      if (Number.isFinite(start) && start <= target) { found = mid; lo = mid + 1; }
-      else hi = mid - 1;
+    var target = Number(cursorMs), firstTimed = -1, found = -1;
+    // Blind null-timed cues can sit between timed cues, so binary search over array positions is
+    // invalid. 604 cues is still trivial; linear scan preserves the actual timed order.
+    for (var i = 0; i < segments.length; i++) {
+      var rawStart = segments[i] && segments[i].start_ms;
+      if (rawStart == null || !Number.isFinite(Number(rawStart))) continue;
+      if (firstTimed < 0) firstTimed = i;
+      if (Number(rawStart) <= target) found = i;
     }
-    return Math.max(0, Math.min(segments.length - 1, found));
+    return found >= 0 ? found : firstTimed;
   }
   function cueJumpIndex(total, value) {
     var n = Number(value); if (!Number.isFinite(n)) return null;
     return focusModel(total, Math.round(n) - 1).index;
   }
   function formatMs(value) {
+    if (value == null || !Number.isFinite(Number(value))) return '';
     var n = Math.max(0, Math.round(Number(value) || 0));
     var h = Math.floor(n / 3600000); n -= h * 3600000;
     var m = Math.floor(n / 60000); n -= m * 60000;
@@ -78,6 +82,7 @@
   }
   function timeline() {
     var s = current(), p = player(), bar = $('l3CueProgress'); if (!s || !bar) return;
+    if (s.start_ms == null) { bar.style.width = '0%'; var noSplit = $('l3SplitBtn'); if (noSplit) noSplit.disabled = true; return; }
     var cursor = p && Number.isFinite(p.currentTime) ? p.currentTime * 1000 : s.start_ms;
     var span = Math.max(1, (s.end_ms || s.start_ms + 1) - s.start_ms);
     var pct = Math.max(0, Math.min(100, (cursor - s.start_ms) / span * 100));
@@ -126,8 +131,8 @@
   async function stageFields(options) {
     options = options || {};
     var s = current(); if (!s) return true;
-    var text = $('l3CueText').value.trim(), start = parseMs($('l3CueStart').value), endRaw = $('l3CueEnd').value.trim(), end = endRaw ? parseMs(endRaw) : null;
-    if (!text || start == null || (endRaw && end == null)) { setStatus('studio.mediaPackage.invalidCue', 'Проверьте текст и время сегмента', 'error'); return false; }
+    var text = $('l3CueText').value.trim(), startRaw = $('l3CueStart').value.trim(), start = startRaw ? parseMs(startRaw) : null, endRaw = $('l3CueEnd').value.trim(), end = endRaw ? parseMs(endRaw) : null;
+    if (!text || (startRaw && start == null) || (!startRaw && s.start_ms != null) || (endRaw && end == null)) { setStatus('studio.mediaPackage.invalidCue', 'Проверьте текст и время сегмента', 'error'); return false; }
     var speaker = $('l3CueSpeaker').value.trim() || null, changed = false; pushHistory();
     try {
       if (text !== s.text) { var a = window.MediaPackageCore.applyOperation('user_corrected', state.segments, { type: 'edit_text', caption_segment_id: s.caption_segment_id, text: text }); state.segments = a.segments; state.operations.push(a.operation); changed = true; s = current(); }
@@ -138,7 +143,7 @@
     render({ focusText: options.focusText !== false }); return true;
   }
   function seekPlayerToCurrent() {
-    var s = current(), p = player(); if (!s || !p || !objectUrl) return;
+    var s = current(), p = player(); if (!s || s.start_ms == null || !p || !objectUrl) return;
     state.replayStopMs = null; try { p.pause(); p.currentTime = s.start_ms / 1000; } catch (_) {}
   }
   async function selectCue(index) {
@@ -158,6 +163,7 @@
   }
   async function replay() {
     var s = current(), p = player(); if (!s || !p || !objectUrl) { setStatus('studio.mediaPackage.mediaMissing', 'Файл не найден. Выберите Relink media.', 'error'); return; }
+    if (s.start_ms == null) { setStatus('studio.mediaPackage.invalidCue', 'У этого сегмента нет доказанного времени. Укажите время вручную.', 'error'); return; }
     state.replayStopMs = s.end_ms == null ? null : s.end_ms;
     p.currentTime = s.start_ms / 1000; await p.play();
   }
@@ -211,7 +217,7 @@
       if (key) {
         holder[key].projection_of_revision_id = revision.revision_id;
         holder[key].projection_sha256 = revision.canonical_sha256;
-        holder[key].segments = revision.segments.map(function (s, index) { return { i:index, start:s.start_ms/1000, end:s.end_ms==null?null:s.end_ms/1000, text:s.text, caption_segment_id:s.caption_segment_id, source_segment_id:s.source_segment_ids&&s.source_segment_ids[0]||null, source_segment_ids:clone(s.source_segment_ids||[]), speaker:s.speaker||null, authority:clone(s.authority||{}), quality_flags:clone(s.quality_flags||[]) }; });
+        holder[key].segments = revision.segments.map(function (s, index) { return { i:index, start:s.start_ms==null?null:s.start_ms/1000, end:s.end_ms==null?null:s.end_ms/1000, text:s.text, caption_segment_id:s.caption_segment_id, source_segment_id:s.source_segment_ids&&s.source_segment_ids[0]||null, source_segment_ids:clone(s.source_segment_ids||[]), speaker:s.speaker||null, authority:clone(s.authority||{}), quality_flags:clone(s.quality_flags||[]) }; });
       }
     });
     close(true);

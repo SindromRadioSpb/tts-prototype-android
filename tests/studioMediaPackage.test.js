@@ -47,6 +47,31 @@ test('captions passport with unknown final end remains honest and blocks export 
   assert.equal(input.media.sha256, null);
 });
 
+test('owner-shaped ASR promotion keeps missing and duplicate marks blind instead of blocking the package', async () => {
+  const input = StudioMediaPackage.passportToPromotionInput({
+    kind: 'audio', method: 'gemini-asr', audio: {
+      media: { sha256: SHA, mime: 'video/mp4', durationSec: 60, originalName: 'owner-shape.mp4' },
+      asr: { method: 'gemini-asr', model: 'gemini-flash-latest' },
+      segments: [
+        { i: 0, start: 30, text: 'known before' },
+        { i: 1, start: null, text: 'honestly untimed', blind: true, quality_flags: ['blind'] },
+        { i: 2, start: 40, text: 'duplicate left' },
+        { i: 3, start: 40, text: 'duplicate right' },
+        { i: 4, start: 50, text: 'known after' },
+      ],
+    },
+  });
+  assert.deepEqual(input.segments.map((segment) => [segment.start_ms, segment.end_ms]), [
+    [30000, null], [null, null], [40000, null], [40000, 50000], [50000, 60000],
+  ]);
+  assert.ok(input.segments[1].quality_flags.includes('blind'));
+  assert.ok(input.segments[2].quality_flags.includes('blind'));
+  const raw = await Core.createRawRevision({
+    media_sha256: input.media.sha256, format: input.format, segments: input.segments,
+  });
+  assert.equal(raw.segments.length, 5, 'no ASR text is discarded to make timing validate');
+});
+
 test('caption rawSource is parsed before fallback segments and keeps subtitle timing', () => {
   const input = StudioMediaPackage.passportToPromotionInput({
     kind: 'captions', captions: {
@@ -135,6 +160,26 @@ test('exact text binding accepts the canonical caption_segment_id written by new
   assert.deepEqual(passport.timing.entries,[{o:0,t:0.5,end:1.75}]);
   assert.deepEqual(passport.timingMap.row_caption_segment_ids,['cue:canonical']);
   assert.equal(passport.timingDropReason,null);
+});
+
+test('compatibility and exact-binding projections never coerce blind null timing to zero', async () => {
+  const raw = await Core.createRawRevision({ media_sha256: SHA, format: 'asr', segments: [
+    { start_ms: null, end_ms: null, text: 'untimed', quality_flags: ['blind'] },
+    { start_ms: 1500, end_ms: 2500, text: 'timed' },
+  ] });
+  const corrected = Core.createCorrectedDraft(raw.segments, { id_factory: (() => { let i = 0; return () => `cseg:blind:${i++}`; })() });
+  const hash = await Core.revisionHash('user_corrected', corrected, []);
+  const revision = { package_id: 'mpkg:blind', track_id: 'track:blind', revision_id: 'rev:blind', canonical_sha256: hash, segments: corrected };
+  const projection = StudioMediaPackage.buildCompatibilityProjection(revision, { kind: 'audio', media: { sha256: SHA } });
+  assert.equal(projection.audio.segments[0].start, null);
+  const passport = StudioMediaPackage.buildExactBindingPassport(revision, {
+    package_id: 'mpkg:blind', track_id: 'track:blind', revision_id: 'rev:blind', revision_sha256: hash,
+    mapping: { rows: [
+      { row_index: 0, caption_segment_id: corrected[0].caption_segment_id },
+      { row_index: 1, caption_segment_id: corrected[1].caption_segment_id },
+    ] },
+  }, { package_id: 'mpkg:blind', media_sha256: SHA });
+  assert.deepEqual(passport.timing.entries, [{ o: 1, t: 1.5, end: 2.5 }]);
 });
 
 test('cloud slim filter removes local track snapshots but leaves an honest package stub', () => {

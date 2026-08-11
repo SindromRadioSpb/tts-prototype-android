@@ -74,15 +74,25 @@
     var segments = sourceSegments.map(function (segment, index, all) {
       var start = segment.start_ms == null ? ms(segment.start) : Math.round(Number(segment.start_ms));
       var end = segment.end_ms == null ? ms(segment.end) : Math.round(Number(segment.end_ms));
-      if (end == null && index + 1 < all.length) end = all[index + 1].start_ms == null ? ms(all[index + 1].start) : Math.round(Number(all[index + 1].start_ms));
-      if (end == null && durationMs != null && durationMs > start) end = durationMs;
+      var flags = segment.blind ? ['blind'] : (Array.isArray(segment.quality_flags) ? segment.quality_flags.slice() : []);
+      var nextStart = null;
+      if (index + 1 < all.length) nextStart = all[index + 1].start_ms == null ? ms(all[index + 1].start) : Math.round(Number(all[index + 1].start_ms));
+      if (end != null && (start == null || end <= start)) end = null;
+      if (end == null && start != null && nextStart != null && nextStart > start) end = nextStart;
+      if (end == null && index === all.length - 1 && start != null && durationMs != null && durationMs > start) end = durationMs;
+      // Missing provider marks and equal/non-increasing neighbour marks stay explicit blind facts.
+      // A synthetic 0/next-millisecond value would make the package validate by lying to karaoke.
+      if (start == null || (nextStart != null && start != null && nextStart <= start)) {
+        end = start == null ? null : end;
+        if (flags.indexOf('blind') < 0) flags.push('blind');
+      }
       return {
         start_ms: start,
         end_ms: end,
         text: String(segment.text == null ? '' : segment.text),
         speaker: segment.speaker == null ? null : String(segment.speaker),
         source_line_index: finiteIndex(segment.source_line_index, finiteIndex(segment.i, index)),
-        quality_flags: segment.blind ? ['blind'] : (Array.isArray(segment.quality_flags) ? segment.quality_flags.slice() : []),
+        quality_flags: flags,
       };
     });
     return {
@@ -123,7 +133,7 @@
     };
     var segments = (revision.segments || []).map(function (segment, index) {
       return {
-        i: index, start: segment.start_ms / 1000,
+        i: index, start: segment.start_ms == null ? null : segment.start_ms / 1000,
         end: segment.end_ms == null ? null : segment.end_ms / 1000,
         text: segment.text, source_segment_id: segment.source_segment_ids && segment.source_segment_ids[0] || null,
         source_segment_ids: (segment.source_segment_ids || []).slice(),
@@ -165,7 +175,8 @@
     var entries = [];
     (revision.segments || []).forEach(function (segment) {
       var captionId = segment && segment.caption_segment_id && String(segment.caption_segment_id), rowIndex = captionId && firstRow.get(captionId);
-      if (rowIndex == null || !Number.isFinite(Number(segment.start_ms))) return;
+      var flags = segment && Array.isArray(segment.quality_flags) ? segment.quality_flags : [];
+      if (rowIndex == null || segment.start_ms == null || !Number.isFinite(Number(segment.start_ms)) || flags.indexOf('blind') >= 0) return;
       var entry = { o: rowIndex, t: Number(segment.start_ms) / 1000 };
       if (Number.isFinite(Number(segment.end_ms)) && Number(segment.end_ms) > Number(segment.start_ms)) entry.end = Number(segment.end_ms) / 1000;
       entries.push(entry);
@@ -481,15 +492,28 @@
 
   function setRepositoryForTests(repo) { repository = repo || null; }
 
+  function vttProjection(segments) {
+    var source = Array.isArray(segments) ? segments : [], exported = [], omitted = [];
+    source.forEach(function (segment, index) {
+      if (segment && segment.start_ms != null && segment.end_ms != null &&
+          Number.isFinite(Number(segment.start_ms)) && Number.isFinite(Number(segment.end_ms)) &&
+          Number(segment.end_ms) > Number(segment.start_ms)) exported.push(segment);
+      else omitted.push(index);
+    });
+    return { segments: exported, source_segment_count: source.length,
+      exported_segment_count: exported.length, omitted_segment_indexes: omitted };
+  }
+
   async function buildSlimPackageFiles(snapshot, options) {
     options = options || {}; var Core = getCore();
     var rawJson = JSON.stringify({ schema: 'studio-caption-track-v1', track: snapshot.raw_track, revision: snapshot.raw_revision }, null, 2);
     var correctedJson = JSON.stringify({ schema: 'studio-caption-track-v1', track: snapshot.corrected_track, revision: snapshot.corrected_revision }, null, 2);
+    var rawVtt = vttProjection(snapshot.raw_revision.segments), correctedVtt = vttProjection(snapshot.corrected_revision.segments);
     var files = {
       'tracks/raw-original.json': rawJson,
-      'tracks/raw-original.vtt': Core.serializeSubtitles('vtt', snapshot.raw_revision.segments),
+      'tracks/raw-original.vtt': Core.serializeSubtitles('vtt', rawVtt.segments),
       'tracks/user-corrected.json': correctedJson,
-      'tracks/user-corrected.vtt': Core.serializeSubtitles('vtt', snapshot.corrected_revision.segments),
+      'tracks/user-corrected.vtt': Core.serializeSubtitles('vtt', correctedVtt.segments),
       'mapping/text-binding.json': JSON.stringify(snapshot.binding || null, null, 2),
       'quality/import-run.json': JSON.stringify({ raw: snapshot.raw_revision.provenance || {}, corrected: snapshot.corrected_revision.provenance || {} }, null, 2),
       'README.txt': 'LinguistPro Correctable Media Package v1\nMedia bytes are not included. Relink the original file; SHA-256 must match exactly.\n',
@@ -502,6 +526,12 @@
       selected_revision_id: snapshot.corrected_revision.revision_id,
       selected_revision_sha256: snapshot.corrected_revision.canonical_sha256,
       media_included: false, app_version: options.app_version || null,
+      // VTT cannot represent an untimed cue. JSON remains the complete canonical track; this
+      // signed manifest makes the VTT subset explicit and independently verifiable.
+      vtt_projection: {
+        raw_original: { source_segment_count: rawVtt.source_segment_count, exported_segment_count: rawVtt.exported_segment_count, omitted_segment_indexes: rawVtt.omitted_segment_indexes },
+        user_corrected: { source_segment_count: correctedVtt.source_segment_count, exported_segment_count: correctedVtt.exported_segment_count, omitted_segment_indexes: correctedVtt.omitted_segment_indexes },
+      },
       exported_at: options.exported_at || new Date().toISOString(), files: hashes,
     };
     files['manifest.json'] = JSON.stringify(manifest, null, 2);
@@ -527,9 +557,22 @@
     var rawHash = await Core.revisionHash('raw_original', raw.revision.segments, raw.revision.operations || []);
     var correctedHash = await Core.revisionHash('user_corrected', corrected.revision.segments, corrected.revision.operations || []);
     if (rawHash !== raw.revision.canonical_sha256 || correctedHash !== corrected.revision.canonical_sha256 || correctedHash !== manifest.selected_revision_sha256) throw new Error('PACKAGE_REVISION_HASH_MISMATCH');
-    var rawVtt = Core.parseSubtitles(files['tracks/raw-original.vtt'], { hint: 'vtt' });
-    var correctedVtt = Core.parseSubtitles(files['tracks/user-corrected.vtt'], { hint: 'vtt' });
-    if (await Core.semanticHash(rawVtt.segments) !== await Core.semanticHash(raw.revision.segments) || await Core.semanticHash(correctedVtt.segments) !== await Core.semanticHash(corrected.revision.segments)) throw new Error('PACKAGE_VTT_PARITY_MISMATCH');
+    async function verifyVttProjection(key, filePath, revision) {
+      var expected = vttProjection(revision.segments), declared = manifest.vtt_projection && manifest.vtt_projection[key];
+      if (declared) {
+        if (Number(declared.source_segment_count) !== expected.source_segment_count ||
+            Number(declared.exported_segment_count) !== expected.exported_segment_count ||
+            JSON.stringify(declared.omitted_segment_indexes || []) !== JSON.stringify(expected.omitted_segment_indexes)) throw new Error('PACKAGE_VTT_PROJECTION_MISMATCH:' + key);
+      } else if (expected.omitted_segment_indexes.length) throw new Error('PACKAGE_VTT_PROJECTION_MISSING:' + key);
+      if (!expected.segments.length) {
+        if (String(files[filePath] || '').trim() !== 'WEBVTT') throw new Error('PACKAGE_VTT_PARITY_MISMATCH');
+        return;
+      }
+      var parsed = Core.parseSubtitles(files[filePath], { hint: 'vtt' });
+      if (await Core.semanticHash(parsed.segments) !== await Core.semanticHash(expected.segments)) throw new Error('PACKAGE_VTT_PARITY_MISMATCH');
+    }
+    await verifyVttProjection('raw_original', 'tracks/raw-original.vtt', raw.revision);
+    await verifyVttProjection('user_corrected', 'tracks/user-corrected.vtt', corrected.revision);
     return { manifest: manifest, package: manifest.package, raw_track: raw.track, raw_revision: raw.revision, corrected_track: corrected.track, corrected_revision: corrected.revision, binding: binding };
   }
 

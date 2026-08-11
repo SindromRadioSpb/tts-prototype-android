@@ -18,6 +18,7 @@ test('split is allowed only at an explicit playback cursor strictly inside the c
 
 test('time parser/formatter uses milliseconds without float drift', () => {
   assert.equal(Editor.formatMs(3723456), '01:02:03.456');
+  assert.equal(Editor.formatMs(null), '', 'unknown timing must not render as midnight');
   assert.equal(Editor.parseMs('01:02:03.456'), 3723456);
   assert.equal(Editor.parseMs('bad'), null);
 });
@@ -34,6 +35,17 @@ test('media time selects the matching cue and remains bounded across gaps', () =
   assert.equal(Editor.cueIndexForTime(segments, 3999), 2);
   assert.equal(Editor.cueIndexForTime(segments, 9000), 2);
   assert.equal(Editor.cueIndexForTime([], 100), -1);
+});
+
+test('media time ignores blind untimed cues instead of treating null as zero', () => {
+  const segments = [
+    { start_ms: 1000, end_ms: 2000 },
+    { start_ms: null, end_ms: null, quality_flags: ['blind'] },
+    { start_ms: 3000, end_ms: 4000 },
+  ];
+  assert.equal(Editor.cueIndexForTime(segments, 0), 0);
+  assert.equal(Editor.cueIndexForTime(segments, 2500), 0);
+  assert.equal(Editor.cueIndexForTime(segments, 3500), 2);
 });
 
 test('direct cue jump is one-based, finite and clamped', () => {

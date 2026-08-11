@@ -99,6 +99,29 @@ test('overlap is warned, gap remains a fact, invalid timing is rejected', () => 
   assert.throws(() => Core.validateSegments([{ start_ms: 2, end_ms: 1, text: 'bad' }]), /SEGMENT_TIMING_INVALID/);
 });
 
+test('blind ASR text may remain honestly untimed without inventing a timestamp', async () => {
+  const input = [
+    { start_ms: 1000, end_ms: 2000, text: 'known' },
+    { start_ms: null, end_ms: null, text: 'provider text without a usable mark', quality_flags: ['blind'] },
+    { start_ms: 3000, end_ms: 4000, text: 'known again' },
+  ];
+  const report = Core.validateSegments(input);
+  assert.deepEqual(report.warnings.map((warning) => warning.code), ['SEGMENT_TIMING_MISSING']);
+  const raw = await Core.createRawRevision({ media_sha256: MEDIA_SHA, format: 'asr', segments: input });
+  assert.equal(raw.segments[1].start_ms, null);
+  assert.equal(raw.segments[1].end_ms, null);
+  assert.equal(raw.segments[1].authority.timing, 'unknown');
+  assert.ok(raw.segments[1].quality_flags.includes('blind'));
+  assert.throws(
+    () => Core.validateSegments([{ start_ms: null, end_ms: null, text: 'not marked blind' }]),
+    /SEGMENT_TIMING_INVALID/,
+  );
+  assert.throws(
+    () => Core.validateSegments([{ start_ms: null, end_ms: 2000, text: 'half invented', quality_flags: ['blind'] }]),
+    /SEGMENT_TIMING_INVALID/,
+  );
+});
+
 test('preview resegmentation never mutates raw and collapses corrected with complete lineage', async () => {
   const raw = await Core.createRawRevision({ media_sha256: 'f'.repeat(64), format: 'asr', segments: [
     { start_ms: 0, end_ms: 1000, text: 'אחד' }, { start_ms: 1100, end_ms: 2000, text: 'שתיים' },
