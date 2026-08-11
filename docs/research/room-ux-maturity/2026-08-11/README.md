@@ -1,6 +1,6 @@
 # Reading Room UX maturity research — 2026-08-11
 
-Status: **research complete; Option B approved and implemented through B5; production/owner-live evidence remains release-scoped**.
+Status: **CLOSED — Option B implemented through B5, production-verified and accepted by the owner on 2026-08-11**.
 
 During the research-only baseline, no application code, production state, corpus data, group
 membership, or owner learner data was modified. The public site was inspected from a clean browser
@@ -32,7 +32,13 @@ The owner approved Option B; each bounded stage has its own durable red→green 
 5. [B4 evidence](b4-evidence/README.md) — normalized adapters and honest readiness;
 6. [B5 evidence](b5-evidence/README.md) — continuity, finish handoff and release hardening.
 
-These fixture and automation packets are not owner-live iPhone evidence. Production and physical-device acceptance remain explicitly separate gates.
+The owner explicitly confirmed that B0–B5 had been checked and should be treated as closed on
+2026-08-11. This is the product-program acceptance record; it does not retroactively identify a
+specific device, VoiceOver pass, or network condition that was not named in that confirmation.
+The durable closure and evidence boundary are recorded in
+[ROOM_UX_MATURITY_OPTION_B_CLOSURE_2026_08_11.md](../../../planning/ROOM_UX_MATURITY_OPTION_B_CLOSURE_2026_08_11.md).
+The next B6–B9 + Visual finishing horizon is a separate program and must not reopen B0–B5 without
+new regression evidence.
 
 ## Evidence baseline
 

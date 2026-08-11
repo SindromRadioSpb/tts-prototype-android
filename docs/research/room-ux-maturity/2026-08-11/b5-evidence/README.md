@@ -4,7 +4,7 @@
 
 Версия: `3.11.359`
 
-Статус: локальные автоматизированные и визуальные гейты пройдены. Production-проверка выполняется отдельно после allowlist commit/push/deploy. Физический owner-live smoke на iPhone не выполнен и не подменяется Playwright-автоматизацией; до него B5 не является основанием для заявления `premium GA`.
+Статус: **CLOSED**. Локальные автоматизированные и визуальные гейты пройдены; production `3.11.359` проверен exact-version/static-contract/clean-profile/health-readback. 2026-08-11 владелец явно подтвердил: «B0–B5 проверил. Считаем закрытой и фиксируем документально». Это закрывает B5 как продуктовую программу, но не превращает подтверждение без указанного устройства в отдельное доказательство iPhone/VoiceOver/плохой сети и само по себе не является заявлением `premium GA`.
 
 ## Цель и граница
 
@@ -112,6 +112,6 @@ Seeded screenshots показывают product shape и поведение на
 
 Node unit-import печатает harmless `MODULE_TYPELESS_PACKAGE_JSON` warning: browser ESM presenter импортируется из CommonJS test runner. Перевод всего toolchain в `type: module` не входит в B5 и не нужен runtime.
 
-## Оставшийся owner-live gate
+## Owner acceptance и граница доказательства
 
-После production exact-version и clean-profile проверки владелец должен на физическом iPhone пройти: открыть Learning Home, выбрать текст из каждого доступного корпуса, вернуться Back, проверить сохранение фильтра/позиции/focus-equivalent, дойти до конца короткого текста, выбрать `На главную`, сменить RU↔HE/RTL и light↔dark, повторить при плохой сети/после reload. До этого результат честно называется production automation + owner-live pending, а не iPhone acceptance или GA.
+Владелец проверил B0–B5 и распорядился считать программу закрытой. Отдельный ранее описанный физический сценарий iPhone/VoiceOver не сохраняется как blocker закрытой Option B; если он потребуется для будущего GA/маркетингового заявления или обнаружится regression, его следует открыть как новый B6 acceptance/evidence slice. Автоматизированные Chromium-артефакты остаются именно automation evidence и не переименовываются в device evidence.

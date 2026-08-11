@@ -2,10 +2,14 @@
 
 > Date: 2026-08-11
 >
-> Status: **OWNER DECISION REQUIRED — application implementation not authorized**
+> Status: **RESOLVED — Option B B0–B5 closed and owner-accepted on 2026-08-11**
 >
 > Research baseline: `f3fc06430e180842daba8ef0892f6230138a1c09`; public Room `3.11.354`
 > Evidence: [`docs/research/room-ux-maturity/2026-08-11/`](../research/room-ux-maturity/2026-08-11/README.md)
+> Closure: [`ROOM_UX_MATURITY_OPTION_B_CLOSURE_2026_08_11.md`](ROOM_UX_MATURITY_OPTION_B_CLOSURE_2026_08_11.md), production `3.11.359`, `main@940148f6`
+
+This packet is retained as the historical decision and scope record. Its request for authorization
+below was satisfied; the closure document is authoritative for final status and evidence boundary.
 
 ## 1. Decision in one paragraph
 
@@ -330,14 +334,17 @@ Automation/fixtures must never be described as owner-live evidence.
 - editorial artwork/cover program;
 - AI recommendation or content generation.
 
-## 14. Owner decision requested
+## 14. Historical owner decision request — resolved
 
-Recommended decision:
+The recommended decision was:
 
 > **Approve Option B and authorize only B0 → B1 preparation/implementation packet.**
 >
 > B2–B5 remain stop/go decisions after evidence from the preceding slice. Reject C for this
 > program. Use A's border/typography techniques inside B, not as the final scope.
+
+The owner subsequently authorized and checked the full B0→B5 sequence and explicitly closed it on
+2026-08-11. See the closure record linked at the top of this packet.
 
 No application code, version, service worker, production state, or owner learner data was changed
 by this research packet.
