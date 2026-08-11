@@ -1,7 +1,12 @@
 # Studio Remote Media Acquisition — decision packet
 
 > **Date:** 2026-08-11
-> **Status:** **OWNER AUTHORITY RECORDED / RMA-0–RMA-3 LOCAL CODE IMPLEMENTED / PROVISIONING + RMA-4 PENDING**
+> **Status:** **RMA-0–RMA-3 SHIPPED / PRODUCTION EGRESS FAILED REAL-SOURCE GATE / RUNTIME REVISION PROPOSED**
+> **2026-08-11 no-Companion revision:** the fixed-datacenter runtime recommendation in this packet
+> is superseded by
+> `STUDIO_MOBILE_MEDIA_ACQUISITION_NO_COMPANION_DECISION_PACKET_2026_08_11.md` where the two
+> conflict. The OPFS, readiness, provenance, Import Center and premium interaction decisions below
+> remain canonical.
 > **Scope:** URL -> local media acquisition, import-dialog information architecture, saved-material
 > surfacing and mobile boundary
 > **Research:**
@@ -9,8 +14,9 @@
 > **Prerequisite canon:**
 > `docs/planning/STUDIO_MEDIA_READINESS_GATE_DECISION_PACKET_2026_08_08.md` and
 > `docs/planning/STUDIO_INGEST_P4_IMPORT_CENTER_IMPLEMENTATION_PACKET_2026_08_02.md`
-> **Implementation baseline:** local `main` at `9f813d84`, `origin/main` at `65e43715`; local web
-> client bumped to `3.11.343`, Companion remains `0.3.0-beta.5`
+> **Implementation baseline:** RMA implementation `f643f739`, production hardening `fd496fb4`, web
+> client `3.11.343`; deployed routing/auth are healthy, but real-source acquisition is blocked by
+> German-datacenter reputation/geography.
 > **Owner direction recorded 2026-08-11:** rights-holder permission exists; YouTube Terms risk is
 > accepted; direct iPhone/Android acquisition is P0; format/quality choice is required; the complete
 > saved-transcript shelf moves to Import Center.
