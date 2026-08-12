@@ -2913,6 +2913,26 @@ export async function getLearningCompassIngredientsBatch(requests) {
   return { entries: out, stale_keys: stale, invalid_keys: invalid, size_bytes: bytes };
 }
 
+// Catalog-level readiness for the personal-text derived index. This is one aggregate
+// content-free query used only for a restrained progress indicator; it does not rank or
+// inspect learner state and counts stale revisions as not prepared.
+export async function getPersonalTextCompassProgress(resolverVersion = 'recorded-familiarity-v2') {
+  const rows = await q(
+    `SELECT COUNT(*) AS total,
+            SUM(CASE WHEN c.cache_key IS NOT NULL
+                       AND c.content_revision = COALESCE(t.updated_at, 'unknown')
+                       AND c.resolver_version = ?
+                     THEN 1 ELSE 0 END) AS prepared
+       FROM texts t
+       LEFT JOIN room_learning_compass_cache c
+         ON c.cache_key = 'mytext:' || CAST(t.id AS TEXT)
+      WHERE ${_PERSONAL_TEXT_PREDICATE}`,
+    [String(resolverVersion || '')],
+  );
+  const row = rows && rows[0] || {};
+  return { total: Number(row.total || 0), prepared: Number(row.prepared || 0) };
+}
+
 export async function putLearningCompassIngredients(entry) {
   if (!entry || !entry.cache_key || !entry.ingredients) throw new Error('Learning Compass cache entry is required');
   const allowedIngredientKeys = new Set(['schema_version','source_class','source_key','content_revision','content_sha256',

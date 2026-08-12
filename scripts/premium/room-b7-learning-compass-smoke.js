@@ -73,6 +73,10 @@ async function seed(page, withProfile) {
         title: `טקסט מצפן ${suffix}`, source_text: `שלום עולם לימוד ${suffix}`,
         level: index % 2 ? "alef" : "bet", topic: "B7 smoke", tags_json: '["b7"]',
       });
+      await db.addSentence(`b7-text-${suffix}`, {
+        id: `b7-text-${suffix}-s1`, order_index: 0,
+        he_plain: "שלום עולם לימוד", he_niqqud: "שָׁלוֹם עוֹלָם לִמּוּד", ru: "привет мир обучение",
+      });
     }
     if (profile) {
       await db.applyWordStatusFromSync("pid:1", "known");
@@ -108,6 +112,118 @@ async function seed(page, withProfile) {
     localStorage.setItem("room.learningCompass.calibration.v2", JSON.stringify(ledger));
     return { count: listed.matchedTotal };
   }, { profile: withProfile, ledger: calibrationLedger() });
+}
+
+async function runColdLibraryScenario(browser) {
+  const coldTotal = 115;
+  const context = await browser.newContext({
+    viewport: { width: 380, height: 844 }, locale: "ru-RU", colorScheme: "light", serviceWorkers: "block",
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(String(error.message || error)));
+  await page.addInitScript(() => {
+    localStorage.setItem("app.locale", "ru"); localStorage.setItem("appTheme_v1", "light");
+    window.requestIdleCallback = (callback) => setTimeout(() => callback({ didTimeout: false, timeRemaining: () => 12 }), 0);
+  });
+  await page.goto(BASE + "/library.html?canon=skip#room=mytexts", { waitUntil: "load", timeout: 60000 });
+  await page.waitForFunction(() => window.__localDB?.isReady?.(), null, { timeout: 60000 });
+  const seeded = await page.evaluate(async () => {
+    const db = await import("/db/local-db.js");
+    const total = 115;
+    for (let index = 1; index <= total; index += 1) {
+      const suffix = String(index).padStart(3, "0"), id = `b7-cold-${suffix}`;
+      const hebrew = `${"שלום ".repeat(index)}${"עולם ".repeat(total + 1 - index)}`.trim();
+      const vocalized = `${"שָׁלוֹם ".repeat(index)}${"עוֹלָם ".repeat(total + 1 - index)}`.trim();
+      await db.createText({ id, text_key: id, title: `Холодный текст ${suffix}`, source_text: hebrew, topic: "cold B7" });
+      await db.addSentence(id, { id: `${id}-s1`, order_index: 0, he_plain: hebrew, he_niqqud: vocalized, ru: "привет мир" });
+    }
+    await db.applyWordStatusFromSync("pid:b7-cold-profile", "known");
+    await db.dbRun("DELETE FROM room_learning_compass_cache");
+    return {
+      canonical: {
+        review_log: await db.dbQuery("SELECT * FROM review_log ORDER BY id"),
+        word_status: await db.dbQuery("SELECT * FROM word_status ORDER BY lemma_key"),
+        progress: await db.dbQuery("SELECT * FROM text_progress ORDER BY text_id"),
+        texts: await db.dbQuery("SELECT id,text_key,title,source_text,updated_at,last_opened_at FROM texts WHERE id LIKE 'b7-cold-%' ORDER BY id"),
+      },
+    };
+  });
+  await page.reload({ waitUntil: "load", timeout: 60000 });
+  await page.waitForSelector(".mytexts-grid .mytext-card", { timeout: 60000 });
+  const initial = await page.evaluate(() => ({
+    cards: document.querySelectorAll(".mytexts-grid .mytext-card").length,
+    unprepared: document.querySelectorAll(".mytexts-grid .coverage-not_prepared").length,
+    pending: document.querySelectorAll(".mytexts-grid .coverage-pending").length,
+    readerOpen: document.body.classList.contains("room-reading"),
+  }));
+  await page.waitForFunction(() => {
+    const cards = document.querySelectorAll(".mytexts-grid .mytext-card").length;
+    const unresolved = document.querySelectorAll(".mytexts-grid .coverage-not_prepared,.mytexts-grid .coverage-pending,.mytexts-grid .coverage-unavailable,.mytexts-grid .coverage-unsupported,.mytexts-grid .coverage-stale").length;
+    return cards === 48 && unresolved === 0;
+  }, null, { timeout: 120000 });
+  await page.waitForFunction(() => document.querySelector("[data-learning-index-status]")?.getAttribute("data-state") === "ready", null, { timeout: 120000 });
+  const final = await page.evaluate(async () => {
+    const db = await import("/db/local-db.js");
+    return {
+      cards: document.querySelectorAll(".mytexts-grid .mytext-card").length,
+      available: document.querySelectorAll(".mytexts-grid .coverage-available,.mytexts-grid .coverage-available_limited").length,
+      progress: document.querySelector("[data-learning-index-copy]")?.textContent || "",
+      readerOpen: document.body.classList.contains("room-reading"),
+      cache: Number((await db.dbQuery("SELECT COUNT(*) n FROM room_learning_compass_cache WHERE source_class='mytext'"))[0]?.n || 0),
+      canonical: {
+        review_log: await db.dbQuery("SELECT * FROM review_log ORDER BY id"),
+        word_status: await db.dbQuery("SELECT * FROM word_status ORDER BY lemma_key"),
+        progress_rows: await db.dbQuery("SELECT * FROM text_progress ORDER BY text_id"),
+        texts: await db.dbQuery("SELECT id,text_key,title,source_text,updated_at,last_opened_at FROM texts WHERE id LIKE 'b7-cold-%' ORDER BY id"),
+      },
+    };
+  });
+  check(initial.cards === 48, `cold-library: bounded first page renders 48 of ${coldTotal} cards (${initial.cards})`);
+  check(initial.unprepared + initial.pending === 48, `cold-library: every visible card starts in an honest preparation state (${initial.unprepared}+${initial.pending})`);
+  check(!initial.readerOpen && !final.readerOpen, "cold-library: preparation completes without opening Reader");
+  check(final.available === 48, `cold-library: every visible card becomes usable for familiarity matching (${final.available}/48)`);
+  check(final.cache === coldTotal, `cold-library: all ${coldTotal} personal texts receive a derived cache entry (${final.cache}/${coldTotal})`);
+  check(new RegExp(`${coldTotal}\\s*\\/\\s*${coldTotal}`).test(final.progress), `cold-library: full catalog readiness is visible (${final.progress})`);
+  check(JSON.stringify(final.canonical.review_log) === JSON.stringify(seeded.canonical.review_log), "cold-library: analysis writes no review events");
+  check(JSON.stringify(final.canonical.word_status) === JSON.stringify(seeded.canonical.word_status), "cold-library: analysis changes no learner status");
+  check(JSON.stringify(final.canonical.progress_rows) === JSON.stringify(seeded.canonical.progress), "cold-library: analysis changes no reading progress");
+  check(JSON.stringify(final.canonical.texts) === JSON.stringify(seeded.canonical.texts), "cold-library: analysis changes no personal text or last-opened state");
+  check(errors.length === 0, `cold-library: no page errors (${errors.join(" | ")})`);
+  const sortFixture = await page.evaluate(async () => {
+    const db = await import("/db/local-db.js");
+    const rows = await db.dbQuery("SELECT cache_key,ingredients_json FROM room_learning_compass_cache WHERE cache_key IN ('mytext:b7-cold-001','mytext:b7-cold-115') ORDER BY cache_key");
+    const parsed = rows.map((row) => ({ key: row.cache_key, frequencies: JSON.parse(row.ingredients_json).key_frequencies || [] }));
+    const first = new Map((parsed[0]?.frequencies || []).map((entry) => [entry.key, Number(entry.token_count) || 0]));
+    const last = new Map((parsed[1]?.frequencies || []).map((entry) => [entry.key, Number(entry.token_count) || 0]));
+    const knownKey = Array.from(first.keys()).find((key) => (first.get(key) || 0) > (last.get(key) || 0));
+    if (knownKey) await db.applyWordStatusFromSync(knownKey, "known");
+    return { knownKey, first: first.get(knownKey) || 0, last: last.get(knownKey) || 0 };
+  });
+  check(!!sortFixture.knownKey && sortFixture.first > sortFixture.last, `cold-library: ranking fixture has a resolved varying familiar key (${JSON.stringify(sortFixture)})`);
+  await page.reload({ waitUntil: "load", timeout: 60000 });
+  await page.waitForSelector(".mytexts-grid .mytext-card", { timeout: 60000 });
+  await page.selectOption("#roomMyTextsSort", "familiar_desc");
+  await page.waitForTimeout(2500);
+  const sortState = await page.evaluate(() => ({
+    selected: document.querySelector("#roomMyTextsSort")?.value || "",
+    first: document.querySelector(".mytexts-grid .work-card-title")?.textContent?.trim() || "",
+    toast: document.querySelector(".room-toast,.toast")?.textContent?.trim() || "",
+  }));
+  check(sortState.selected === "familiar_desc", `cold-library: familiarity sort remains selected (${JSON.stringify(sortState)})`);
+  const sorted = await page.evaluate(() => ({
+    titles: Array.from(document.querySelectorAll(".mytexts-grid .work-card-title")).map((node) => node.textContent.trim()),
+    scores: Array.from(document.querySelectorAll(".mytexts-grid .learning-familiar")).map((node) => Number((node.textContent.match(/\d+/) || [])[0])),
+  }));
+  check(sorted.titles[0] === "Холодный текст 001", `cold-library: explicit familiarity sort changes the first text (${sorted.titles[0]})`);
+  check(sorted.scores.length === 48 && sorted.scores.every((value, index) => index === 0 || sorted.scores[index - 1] >= value),
+    `cold-library: familiarity order is monotonically descending (${sorted.scores.join(",")})`);
+  check(new Set(sorted.scores).size > 1, "cold-library: sort evidence is not a tie-only fixture");
+  await page.screenshot({ path: path.join(OUT, "380-ru-cold-library-ready.png"), fullPage: true });
+  await context.close();
+  return { name: "380-ru-cold-library", initial,
+    final: { cards: final.cards, available: final.available, cache: final.cache, progress: final.progress },
+    familiarity_sort: { known_key: sortFixture.knownKey, first_titles: sorted.titles.slice(0, 3), scores: sorted.scores } };
 }
 
 async function directBatchMetrics(page) {
@@ -249,9 +365,11 @@ async function runScenario(browser, scenario) {
   }
 
   if (scenario.name === "380-ru-light") {
-    for (const status of ["coverage-available", "coverage-available_limited", "coverage-unsupported", "coverage-stale", "coverage-not_prepared"]) {
+    for (const status of ["coverage-available", "coverage-available_limited", "coverage-unsupported"]) {
       check(result.status_classes.includes(status), `${scenario.name}: visual status ${status}`);
     }
+    check(!result.status_classes.includes("coverage-not_prepared") && !result.status_classes.includes("coverage-stale"),
+      `${scenario.name}: missing/stale visible cards self-heal without a Reader open`);
     const summary = page.locator(".mytexts-grid .learning-compass-details > summary").first();
     const canonicalBefore = await page.evaluate(async () => {
       const db = await import("/db/local-db.js");
@@ -316,7 +434,9 @@ async function runScenario(browser, scenario) {
   const heSource = fs.readFileSync(path.join(ROOT, "public/i18n/locales/he.js"), "utf8");
   check(!/COMFORT_95_98|STRETCH_90_95|FRUSTRATION_BELOW_90|TRIVIAL_ABOVE_98/.test(uiSource + htmlSource), "active Room surface has no universal readiness bands");
   check(!/≈\s*['"+]|pick\.cov\)\s*\*\s*100/.test(uiSource), "active Room surface has no soft familiarity estimate");
-  check(/scheduleCompassIdleBuild[\s\S]*getSentences/.test(uiSource), "full-body reads are isolated to the bounded idle builder");
+  check(/async function pumpCompassBuilds\([\s\S]*localDb\.getSentences/.test(uiSource), "full-body reads are isolated to the bounded background builder");
+  check(/COMPASS_IDLE_SESSION_MAX = 240/.test(uiSource) && /COMPASS_IDLE_CATALOG_WINDOW = 1000/.test(uiSource), "cold-library sweep keeps explicit session/cache-window budgets");
+  check(!/filter\(\(item\) => item && item\.local_id\)\.slice\(0, 8\)/.test(uiSource), "cold-library preparation is no longer silently capped at eight cards");
   check(/recordedFamiliarLowerBound:\s*"Не менее \{value\}% знакомы"/.test(ruSource), "RU lower-bound familiarity copy stays compact");
   check(/recordedFamiliarLowerBound:\s*"At least \{value\}% familiar"/.test(enSource), "EN lower-bound familiarity copy stays compact");
   check(/recordedFamiliarLowerBound:\s*"לפחות \{value\}% מוכרות"/.test(heSource), "HE lower-bound familiarity copy stays compact");
@@ -335,7 +455,10 @@ async function runScenario(browser, scenario) {
     { name: "1280-en-200pct", width: 1280, height: 900, locale: "en", theme: "dark", reduced: false, profile: true, idle: "delayed", zoom: 2 },
   ];
   const matrix = [];
-  try { for (const scenario of scenarios) matrix.push(await runScenario(browser, scenario)); }
+  try {
+    matrix.push(await runColdLibraryScenario(browser));
+    for (const scenario of scenarios) matrix.push(await runScenario(browser, scenario));
+  }
   finally { await browser.close(); await stopServer(server.child); }
   fs.writeFileSync(path.join(OUT, "ROOM_B7_AUTOMATION_EVIDENCE.json"), JSON.stringify({
     generated_at: new Date().toISOString(),

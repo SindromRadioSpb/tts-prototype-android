@@ -71,6 +71,19 @@ let _compassProjectionLoading = null;
 let _compassJobSeq = 0;
 const _compassWorkerSlots = [];
 const _compassWorkerQueue = [];
+// Cold personal libraries are prepared incrementally without requiring a Reader open.
+// The current 48-card page is urgent; the remaining recent catalog window is bounded by
+// the approved 1,000-entry cache and a 240-item per-session body-read budget.
+const COMPASS_IDLE_SESSION_MAX = 240;
+const COMPASS_IDLE_CATALOG_WINDOW = 1000;
+const _compassBuildQueue = [];
+const _compassBuildJobs = new Map();
+let _compassBuildActive = null;
+let _compassBuildScheduled = false;
+let _compassBuildScheduleHandle = null;
+let _compassBuildScheduleKind = '';
+let _compassProgressTimer = null;
+let _personalCompassSweep = null;
 let _readingCalibrationSession = null;
 let _readingAudioActive = 0;
 
@@ -277,27 +290,207 @@ async function buildAndCacheCompassDescriptor(descriptor, rows) {
   await localDb.putLearningCompassIngredients({ ...descriptor, ingredients, content_sha256: ingredients.content_sha256 });
   const projection = await ensureLearningCompassProjection();
   const context = contextFromIngredients(ingredients, projection);
-  _compassPage.set(descriptor.cache_key, context);
-  repaintPreparedCompass(descriptor.cache_key);
+  // Off-screen sweep entries persist in the bounded DB cache, not in an unbounded
+  // page-lifetime map. A visible/current descriptor already has a page entry.
+  if (_compassPage.has(descriptor.cache_key)) {
+    _compassPage.set(descriptor.cache_key, context);
+    repaintPreparedCompass(descriptor.cache_key);
+  }
   return ingredients;
 }
 
-function scheduleCompassIdleBuild(descriptors) {
-  const queue = (descriptors || []).filter((item) => item && item.local_id).slice(0, 8);
-  if (!queue.length) return;
-  const run = async () => {
-    const descriptor = queue.shift();
-    _compassPage.set(descriptor.cache_key, compassStatusContext('PENDING', 'LOCAL_ANALYSIS_PENDING'));
-    repaintPreparedCompass(descriptor.cache_key);
-    try { const rows = await localDb.getSentences(descriptor.local_id); await buildAndCacheCompassDescriptor(descriptor, rows); }
-    catch (error) { _compassPage.set(descriptor.cache_key, compassFailureContext(error)); repaintPreparedCompass(descriptor.cache_key); }
-    if (queue.length) {
-      if (typeof requestIdleCallback === 'function') requestIdleCallback(run, { timeout: 2500 });
-      else setTimeout(run, 300);
-    }
+function cancelCompassBuildSchedule() {
+  if (!_compassBuildScheduled) return;
+  try {
+    if (_compassBuildScheduleKind === 'idle' && typeof cancelIdleCallback === 'function') cancelIdleCallback(_compassBuildScheduleHandle);
+    else clearTimeout(_compassBuildScheduleHandle);
+  } catch (_) {}
+  _compassBuildScheduled = false;
+  _compassBuildScheduleHandle = null;
+  _compassBuildScheduleKind = '';
+}
+
+function scheduleCompassProgressPaint(immediate) {
+  if (_compassProgressTimer) clearTimeout(_compassProgressTimer);
+  _compassProgressTimer = setTimeout(async () => {
+    _compassProgressTimer = null;
+    const nodes = document.querySelectorAll('[data-learning-index-status]');
+    if (!nodes.length || !learningCompass || typeof localDb.getPersonalTextCompassProgress !== 'function') return;
+    let progress;
+    try { progress = await localDb.getPersonalTextCompassProgress(learningCompass.RESOLVER_VERSION); }
+    catch (_) { return; }
+    const ready = Math.max(0, Number(progress && progress.prepared || 0));
+    const total = Math.max(0, Number(progress && progress.total || 0));
+    const complete = total > 0 && ready >= total;
+    const copy = (complete
+      ? tt('room.compass.libraryReady', 'Подбор по сложности готов: {ready}/{total}')
+      : tt('room.compass.libraryPreparing', 'Подбор по сложности: подготовлено {ready} из {total}'))
+      .replace('{ready}', ready.toLocaleString()).replace('{total}', total.toLocaleString());
+    nodes.forEach((node) => {
+      node.setAttribute('data-state', complete ? 'ready' : 'preparing');
+      const label = node.querySelector('[data-learning-index-copy]'); if (label) label.textContent = copy;
+      const meter = node.querySelector('progress');
+      if (meter) { meter.max = Math.max(1, total); meter.value = Math.min(ready, Math.max(1, total)); }
+    });
+  }, immediate ? 0 : 650);
+}
+
+function scheduleCompassBuildPump(urgent) {
+  if (_compassBuildActive || !_compassBuildQueue.length) return;
+  if (_compassBuildScheduled) {
+    if (!urgent || _compassBuildScheduleKind === 'urgent') return;
+    cancelCompassBuildSchedule();
+  }
+  _compassBuildScheduled = true;
+  const start = () => {
+    _compassBuildScheduled = false;
+    _compassBuildScheduleHandle = null;
+    _compassBuildScheduleKind = '';
+    pumpCompassBuilds();
   };
-  if (typeof requestIdleCallback === 'function') requestIdleCallback(run, { timeout: 2500 });
-  else setTimeout(run, 300);
+  if (urgent) {
+    _compassBuildScheduleKind = 'urgent';
+    _compassBuildScheduleHandle = setTimeout(start, 0);
+  } else if (typeof requestIdleCallback === 'function') {
+    _compassBuildScheduleKind = 'idle';
+    _compassBuildScheduleHandle = requestIdleCallback(start, { timeout: 2500 });
+  } else {
+    _compassBuildScheduleKind = 'timeout';
+    _compassBuildScheduleHandle = setTimeout(start, 300);
+  }
+}
+
+async function pumpCompassBuilds() {
+  if (_compassBuildActive || !_compassBuildQueue.length) return;
+  if (document.visibilityState === 'hidden' || document.body.classList.contains('room-reading')) return;
+  const job = _compassBuildQueue.shift();
+  _compassBuildActive = job;
+  try {
+    const rows = await localDb.getSentences(job.descriptor.local_id);
+    await buildAndCacheCompassDescriptor(job.descriptor, rows);
+    job.resolve({ ok: true, cache_key: job.descriptor.cache_key });
+  } catch (error) {
+    _compassPage.set(job.descriptor.cache_key, compassFailureContext(error));
+    repaintPreparedCompass(job.descriptor.cache_key);
+    job.resolve({ ok: false, cache_key: job.descriptor.cache_key, error: String(error && error.message || error) });
+  } finally {
+    _compassBuildJobs.delete(job.descriptor.cache_key);
+    _compassBuildActive = null;
+    scheduleCompassProgressPaint(false);
+    if (_compassBuildQueue.length) scheduleCompassBuildPump(!!_compassBuildQueue[0].urgent);
+  }
+}
+
+function enqueueCompassBuild(descriptor, urgent) {
+  if (!descriptor || !descriptor.local_id || !descriptor.cache_key) return Promise.resolve({ ok: false, skipped: true });
+  const key = String(descriptor.cache_key);
+  const existing = _compassBuildJobs.get(key);
+  if (existing) {
+    if (urgent && !existing.urgent && existing !== _compassBuildActive) {
+      const index = _compassBuildQueue.indexOf(existing);
+      if (index >= 0) _compassBuildQueue.splice(index, 1);
+      existing.urgent = true; _compassBuildQueue.unshift(existing);
+      scheduleCompassBuildPump(true);
+    }
+    return existing.promise;
+  }
+  let resolve;
+  const promise = new Promise((done) => { resolve = done; });
+  const job = { descriptor, urgent: !!urgent, resolve, promise };
+  _compassBuildJobs.set(key, job);
+  if (urgent) _compassBuildQueue.unshift(job); else _compassBuildQueue.push(job);
+  if (_compassPage.has(key)) {
+    _compassPage.set(key, compassStatusContext('PENDING', 'LOCAL_ANALYSIS_PENDING'));
+    repaintPreparedCompass(key);
+  }
+  scheduleCompassBuildPump(!!urgent);
+  return promise;
+}
+
+function scheduleCompassIdleBuild(descriptors, options) {
+  const urgent = !!(options && options.urgent);
+  const list = (descriptors || []).filter((item) => item && item.local_id);
+  // unshift would reverse a visible page; enqueue from the tail to preserve its scan order.
+  const ordered = urgent ? list.slice().reverse() : list;
+  const promises = ordered.map((descriptor) => enqueueCompassBuild(descriptor, urgent));
+  return Promise.all(promises);
+}
+
+async function missingCompassDescriptors(descriptors) {
+  const list = (descriptors || []).filter(Boolean).slice(0, ROOM_BROWSE_PAGE);
+  if (!list.length) return [];
+  let batch = { entries: {}, stale_keys: [], invalid_keys: [] };
+  try { batch = await localDb.getLearningCompassIngredientsBatch(list); } catch (_) {}
+  const cached = batch && batch.entries || {};
+  return list.filter((descriptor) => !cached[descriptor.cache_key]);
+}
+
+async function runPersonalCompassSweep() {
+  let cursor = null, scanned = 0, scheduled = 0;
+  while (scanned < COMPASS_IDLE_CATALOG_WINDOW && scheduled < COMPASS_IDLE_SESSION_MAX) {
+    const page = await localDb.listPersonalTextsPage({ limit: ROOM_BROWSE_PAGE, sort: 'updated_desc', cursor });
+    const descriptors = (page.items || []).map(myCompassDescriptor).filter(Boolean);
+    if (!descriptors.length) break;
+    const missing = await missingCompassDescriptors(descriptors);
+    const allowance = Math.max(0, COMPASS_IDLE_SESSION_MAX - scheduled);
+    const selected = missing.slice(0, allowance);
+    if (selected.length) {
+      scheduled += selected.length;
+      await scheduleCompassIdleBuild(selected, { urgent: false });
+    }
+    scanned += descriptors.length;
+    if (selected.length < missing.length || !page.nextCursor) break;
+    cursor = page.nextCursor;
+  }
+  scheduleCompassProgressPaint(true);
+  return { scanned, scheduled };
+}
+
+function startPersonalCompassSweep() {
+  if (_personalCompassSweep || !learningCompass) return _personalCompassSweep;
+  _personalCompassSweep = runPersonalCompassSweep().catch(() => null);
+  return _personalCompassSweep;
+}
+
+async function loadPersonalFamiliarityRanking(options) {
+  const projection = await ensureLearningCompassProjection();
+  if (!projection || Number(projection.tracked_lexeme_count || 0) <= 0) return { status: 'NEEDS_PROFILE', items: [], matchedTotal: 0 };
+  const all = [];
+  let cursor = null, matchedTotal = 0;
+  do {
+    const page = await localDb.listPersonalTextsPage({ ...(options || {}), sort: 'updated_desc', limit: ROOM_BROWSE_PAGE, cursor });
+    if (!matchedTotal) matchedTotal = Number(page.matchedTotal || 0);
+    if (matchedTotal > COMPASS_IDLE_CATALOG_WINDOW) return { status: 'TOO_LARGE', items: [], matchedTotal };
+    const descriptors = (page.items || []).map(myCompassDescriptor);
+    const batch = await localDb.getLearningCompassIngredientsBatch(descriptors);
+    for (let index = 0; index < page.items.length; index += 1) {
+      const item = page.items[index], descriptor = descriptors[index];
+      const ingredients = batch.entries && batch.entries[descriptor.cache_key];
+      if (!ingredients) return { status: 'PREPARING', items: [], matchedTotal };
+      const fit = contextFromIngredients(ingredients, projection).compass;
+      all.push({ item, ordinal: all.length, fit });
+    }
+    cursor = page.nextCursor;
+  } while (cursor && all.length < COMPASS_IDLE_CATALOG_WINDOW);
+  all.sort((a, b) => {
+    const ar = !!(a.fit && a.fit.status === 'AVAILABLE' && a.fit.rank_eligible);
+    const br = !!(b.fit && b.fit.status === 'AVAILABLE' && b.fit.rank_eligible);
+    if (ar !== br) return ar ? -1 : 1;
+    if (ar && br) {
+      const delta = Number(b.fit.recorded_familiar_pct_lower_bound || 0) - Number(a.fit.recorded_familiar_pct_lower_bound || 0);
+      if (delta) return delta;
+    }
+    return a.ordinal - b.ordinal;
+  });
+  return { status: 'AVAILABLE', items: all.map((entry) => entry.item), matchedTotal };
+}
+
+function personalCompassProgressNode() {
+  const status = el('div', { class: 'learning-index-status', attrs: { 'data-learning-index-status': '', role: 'status', 'aria-live': 'polite' } });
+  status.appendChild(el('span', { attrs: { 'data-learning-index-copy': '' }, text: tt('room.compass.libraryChecking', 'Проверяем готовность подбора по сложности…') }));
+  const meter = document.createElement('progress'); meter.max = 1; meter.value = 0; meter.setAttribute('aria-hidden', 'true'); status.appendChild(meter);
+  scheduleCompassProgressPaint(true);
+  return status;
 }
 
 async function prepareLearningCompassPage(descriptors) {
@@ -318,7 +511,9 @@ async function prepareLearningCompassPage(descriptors) {
     _compassPage.set(descriptor.cache_key, context);
     if (!ingredients) missing.push(descriptor);
   }
-  scheduleCompassIdleBuild(missing);
+  // Every card in the active bounded page must become useful without a Reader open.
+  // The catalog-wide sweep below remains lower priority and session-bounded.
+  scheduleCompassIdleBuild(missing, { urgent: true });
 }
 
 function calibrationEligibilityActive() {
@@ -375,7 +570,10 @@ async function completeReadingCalibration(tid) {
   } catch (_) {}
 }
 
-document.addEventListener('visibilitychange', tickReadingCalibration);
+document.addEventListener('visibilitychange', () => {
+  tickReadingCalibration();
+  if (document.visibilityState === 'visible') scheduleCompassBuildPump(!!(_compassBuildQueue[0] && _compassBuildQueue[0].urgent));
+});
 document.addEventListener('play', () => { _readingAudioActive += 1; tickReadingCalibration(); }, true);
 document.addEventListener('pause', () => { _readingAudioActive = Math.max(0, _readingAudioActive - 1); tickReadingCalibration(); }, true);
 document.addEventListener('ended', () => { _readingAudioActive = Math.max(0, _readingAudioActive - 1); tickReadingCalibration(); }, true);
@@ -6519,6 +6717,7 @@ async function openReader(textId, title, opts) {
   setReaderReturnRoute(opts && opts.returnToLesson ? 'lesson-builder' : null);
   if (content) content.hidden = true;
   reader.hidden = false;
+  cancelCompassBuildSchedule();
   try { document.body.classList.add('room-reading'); } catch (_) {}   // шапка сайта не липнет при чтении (sticky-шапка таблицы)
   try { applyStudyModeClass(); } catch (_) {}   // учебный режим живёт только внутри ридера
   try { refreshDueBadge(); } catch (_) {}   // D2 — entering the reader hides the home «🔁 К повторению» CTA
@@ -6710,6 +6909,7 @@ async function closeReader(options) {
     if (content) { content.hidden = false; content.removeAttribute('aria-busy'); }
     if (back) back.disabled = false;
     try { document.body.classList.remove('room-reading'); document.body.classList.remove('room-study'); } catch (_) {}
+    scheduleCompassBuildPump(!!(_compassBuildQueue[0] && _compassBuildQueue[0].urgent));
     openLessonStudio();
     return;
   }
@@ -6731,6 +6931,7 @@ async function closeReader(options) {
   if (back) back.disabled = false;
   try { document.body.classList.remove('room-reading'); } catch (_) {}   // вернуть sticky шапке сайта вне ридера
   try { document.body.classList.remove('room-study'); } catch (_) {}     // домашний экран без шапки был бы тупиком
+  scheduleCompassBuildPump(!!(_compassBuildQueue[0] && _compassBuildQueue[0].urgent));
   try { refreshDueBadge(); } catch (_) {}   // D2 — back on the home → surface the «🔁 К повторению» CTA
   await restoreReaderReturnContext(returnContext);
   if (!presentationRestore) roomReplacePresentationState(null, 0);
@@ -9019,7 +9220,7 @@ async function renderMyTextsCorpus(token) {
       const option = document.createElement('option'); option.value = optionValue; option.textContent = tt(key, fallback); select.appendChild(option);
     }
     select.value = value;
-    select.addEventListener('change', () => { onChange(select.value); filterChrome && filterChrome.refresh(); });
+    select.addEventListener('change', () => { onChange(select.value, select); filterChrome && filterChrome.refresh(); });
     field.appendChild(select); return field;
   };
   controls.appendChild(makeSelect('roomMyTextsScope', [
@@ -9034,7 +9235,17 @@ async function renderMyTextsCorpus(token) {
     ['title_asc', 'room.mytexts.sortAZ', 'А–Я'],
     ['title_desc', 'room.mytexts.sortZA', 'Я–А'],
     ['topic_asc', 'room.mytexts.sortTopic', 'Тема А–Я'],
-  ], myCorpusState.sort, tt('room.corpus.sort.label', 'Сортировка'), (value) => { myCorpusState.sort = value; paint({ reset: true }); });
+    ['familiar_desc', 'room.mytexts.sortFamiliar', 'Больше знакомых'],
+  ], myCorpusState.sort, tt('room.corpus.sort.label', 'Сортировка'), async (value, select) => {
+    if (value === 'familiar_desc') {
+      let projection = null;
+      try { projection = await ensureLearningCompassProjection(); } catch (_) {}
+      if (!projection || Number(projection.tracked_lexeme_count || 0) <= 0) {
+        select.value = myCorpusState.sort; roomToast(tt('room.mytexts.sortFamiliarNeedsProfile', 'Сначала отметьте несколько знакомых слов.')); return;
+      }
+    }
+    myCorpusState.sort = value; paint({ reset: true });
+  });
 
   const smartDefinitions = [
     ['recent', 'room.mytexts.smartRecent', '⏱ Недавние'],
@@ -9109,7 +9320,7 @@ async function renderMyTextsCorpus(token) {
   const resultLine = el('div', { class: 'room-browse-summary mytexts-results', attrs: { 'aria-live': 'polite' } });
   const grid = el('div', { class: 'mytexts-grid corpus-work-list' });
   const pager = el('nav', { class: 'corpus-more mytexts-more mytexts-pager', attrs: { 'aria-label': tt('room.mytexts.pagination', 'Страницы текстов') } });
-  wrap.appendChild(resultLine); wrap.appendChild(grid); wrap.appendChild(pager); wrap.appendChild(management); main.appendChild(wrap);
+  wrap.appendChild(resultLine); wrap.appendChild(personalCompassProgressNode()); wrap.appendChild(grid); wrap.appendChild(pager); wrap.appendChild(management); main.appendChild(wrap);
 
   const freshSince = (() => { try { return localStorage.getItem('roomMyTextsLastVisit_v1') || ''; } catch (_) { return ''; } })();
   if (!_roomRestoringHistory) { try { localStorage.setItem('roomMyTextsLastVisit_v1', new Date().toISOString()); } catch (_) {} }
@@ -9127,17 +9338,37 @@ async function renderMyTextsCorpus(token) {
   async function paint(options = {}) {
     const sequence = ++paintSequence;
     if (options.reset) { currentStart = Math.max(0, Number(options.start) || 0); lastSnapshot = ''; }
+    if (Number.isFinite(Number(options.familiarStart))) currentStart = Math.max(0, Number(options.familiarStart));
     const requestStarted = performance.now();
     grid.setAttribute('aria-busy', 'true');
     let page;
     try {
-      page = await localDb.listPersonalTextsPage({
-        ...myCorpusState, limit: ROOM_BROWSE_PAGE,
-        cursor: options.cursor || null,
-        anchorId: options.anchorId || null,
-        beforeAnchorId: options.beforeAnchorId || null,
-        smartIds: await selectedSmartIds(), freshSince,
-      });
+      const smartIds = await selectedSmartIds();
+      if (myCorpusState.sort === 'familiar_desc') {
+        const ranked = await loadPersonalFamiliarityRanking({ ...myCorpusState, smartIds, freshSince });
+        if (ranked.status !== 'AVAILABLE') {
+          myCorpusState.sort = 'opened_desc';
+          const select = sortField.querySelector('select'); if (select) select.value = myCorpusState.sort;
+          const key = ranked.status === 'NEEDS_PROFILE' ? 'room.mytexts.sortFamiliarNeedsProfile'
+            : ranked.status === 'TOO_LARGE' ? 'room.mytexts.sortFamiliarLimit' : 'room.mytexts.sortFamiliarPreparing';
+          const fallback = ranked.status === 'NEEDS_PROFILE' ? 'Сначала отметьте несколько знакомых слов.'
+            : ranked.status === 'TOO_LARGE' ? 'Сортировка доступна для выборки до 1 000 текстов. Уточните поиск или фильтры.'
+              : 'Подождите завершения локального анализа библиотеки.';
+          roomToast(tt(key, fallback));
+          return paint({ reset: true });
+        }
+        const items = ranked.items.slice(currentStart, currentStart + ROOM_BROWSE_PAGE);
+        page = { items, matchedTotal: ranked.matchedTotal, nextCursor: currentStart + items.length < ranked.matchedTotal ? 'familiar-next' : null,
+          snapshot: ['familiar', ranked.matchedTotal, _compassProjection && _compassProjection.version || ''].join(':') };
+      } else {
+        page = await localDb.listPersonalTextsPage({
+          ...myCorpusState, limit: ROOM_BROWSE_PAGE,
+          cursor: options.cursor || null,
+          anchorId: options.anchorId || null,
+          beforeAnchorId: options.beforeAnchorId || null,
+          smartIds, freshSince,
+        });
+      }
     } catch (error) {
       if (sequence !== paintSequence) return;
       grid.removeAttribute('aria-busy'); grid.textContent = '';
@@ -9153,9 +9384,11 @@ async function renderMyTextsCorpus(token) {
       return paint({ reset: true });
     }
     lastSnapshot = page.snapshot; currentPage = page;
-    if (options.beforeAnchorId) currentStart = Math.max(0, currentStart - ROOM_BROWSE_PAGE);
-    else if (options.advance) currentStart += Number(options.advance) || ROOM_BROWSE_PAGE;
-    else if (options.reset) currentStart = Math.max(0, Number(options.start) || 0);
+    if (myCorpusState.sort !== 'familiar_desc') {
+      if (options.beforeAnchorId) currentStart = Math.max(0, currentStart - ROOM_BROWSE_PAGE);
+      else if (options.advance) currentStart += Number(options.advance) || ROOM_BROWSE_PAGE;
+      else if (options.reset) currentStart = Math.max(0, Number(options.start) || 0);
+    }
     if (!page.items.length && page.matchedTotal > 0 && (options.cursor || options.anchorId || options.beforeAnchorId)) return paint({ reset: true });
     grid.removeAttribute('aria-busy'); grid.textContent = '';
     for (const item of page.items) grid.appendChild(renderMyTextCard(item, true));
@@ -9166,10 +9399,14 @@ async function renderMyTextsCorpus(token) {
     pager.textContent = '';
     const previous = el('button', { class: 'corpus-more-btn mytexts-page-prev', attrs: { type: 'button' }, text: '← ' + tt('room.mytexts.previousPage', 'Предыдущие') });
     previous.disabled = currentStart <= 0 || !page.items.length;
-    previous.addEventListener('click', () => paint({ beforeAnchorId: page.items[0].id }));
+    previous.addEventListener('click', () => myCorpusState.sort === 'familiar_desc'
+      ? paint({ familiarStart: Math.max(0, currentStart - ROOM_BROWSE_PAGE) })
+      : paint({ beforeAnchorId: page.items[0].id }));
     const next = el('button', { class: 'corpus-more-btn mytexts-page-next', attrs: { type: 'button' }, text: tt('room.mytexts.nextPage', 'Следующие') + ' →' });
     next.disabled = !page.nextCursor;
-    next.addEventListener('click', () => paint({ cursor: page.nextCursor, advance: page.items.length }));
+    next.addEventListener('click', () => myCorpusState.sort === 'familiar_desc'
+      ? paint({ familiarStart: currentStart + page.items.length })
+      : paint({ cursor: page.nextCursor, advance: page.items.length }));
     pager.appendChild(previous); pager.appendChild(next);
     roomReplacePresentationState(page.items[0] || null, currentStart);
     roomDiagPush({ kind: myCorpusState.q ? 'room.search' : 'room.page', duration_ms: performance.now() - requestStarted, result: 'ok' });
@@ -9179,6 +9416,9 @@ async function renderMyTextsCorpus(token) {
   input.addEventListener('input', () => { myCorpusState.q = input.value || ''; schedulePaint(); filterChrome && filterChrome.refresh(); });
   buildSmart(); buildFacets(); filterChrome.refresh();
   await paint({ reset: true, anchorId: restoreAnchor && restoreAnchor.itemId, start: restoreAnchor && restoreAnchor.rowIndex });
+  // Lower-priority continuation covers the rest of the recent personal library after
+  // the visible page has been enqueued. It never blocks browsing or Reader opening.
+  startPersonalCompassSweep();
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   roomDiagPush({ kind: 'room.page', duration_ms: performance.now() - startedAt, result: 'ready' });
 }

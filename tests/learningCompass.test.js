@@ -242,10 +242,22 @@ test("local cache is additive, revision-keyed, page-batched and content-free by 
   assert.doesNotMatch(migrations.match(/CREATE TABLE IF NOT EXISTS room_learning_compass_cache[\s\S]*?;`/)[0], /\btitle\b|\bbody\b|reading_session|learner_state/);
   assert.match(localDb, /export async function getLearningCompassProjection\(/);
   assert.match(localDb, /export async function getLearningCompassIngredientsBatch\(/);
+  assert.match(localDb, /export async function getPersonalTextCompassProgress\(/);
   assert.match(localDb, /_COMPASS_BATCH_MAX_ITEMS = 48/);
   assert.match(localDb, /_COMPASS_BATCH_MAX_BYTES = 256 \* 1024/);
   assert.match(localDb, /_COMPASS_CACHE_MAX_ITEMS = 1000/);
   assert.match(localDb, /_COMPASS_CACHE_MAX_BYTES = 64 \* 1024 \* 1024/);
+});
+
+test("cold personal libraries self-prepare and expose only relative familiarity sorting", () => {
+  const ui = fs.readFileSync(path.join(__dirname, "../public/js/library-ui.js"), "utf8");
+  assert.match(ui, /COMPASS_IDLE_SESSION_MAX = 240/);
+  assert.match(ui, /COMPASS_IDLE_CATALOG_WINDOW = 1000/);
+  assert.match(ui, /startPersonalCompassSweep\(\)/);
+  assert.match(ui, /loadPersonalFamiliarityRanking\(/);
+  assert.match(ui, /sortFamiliar/);
+  assert.doesNotMatch(ui, /filter\(\(item\) => item && item\.local_id\)\.slice\(0, 8\)/);
+  assert.doesNotMatch(ui, /familiar_desc[\s\S]{0,240}(?:70|90|95|98)/);
 });
 
 test("dedicated worker enforces local limits and emits aggregates rather than content", () => {

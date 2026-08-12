@@ -1786,6 +1786,18 @@
     }
     .mytext-card .mytext-nakdan:hover { background: var(--bg-muted); }
     .room-browse-summary { color: var(--text-secondary); font-size: 12px; font-weight: 650; margin: 8px 2px; }
+    .learning-index-status {
+      min-width: 0; margin: -2px 2px 9px; display: flex; align-items: center; gap: 8px;
+      color: var(--text-secondary); font-size: 11.5px; line-height: 1.35;
+    }
+    .learning-index-status progress {
+      flex: 0 1 120px; width: 120px; height: 4px; border: 0; border-radius: 999px;
+      overflow: hidden; color: var(--accent); background: var(--bg-muted);
+    }
+    .learning-index-status progress::-webkit-progress-bar { background: var(--bg-muted); }
+    .learning-index-status progress::-webkit-progress-value { background: var(--accent); }
+    .learning-index-status progress::-moz-progress-bar { background: var(--accent); }
+    .learning-index-status[data-state="ready"] { color: var(--text-secondary); }
     .group-corpus-controls { align-items: end; }
     .group-corpus-controls .group-corpus-search-field { grid-column: auto; }
     .group-work-card.room-text-row {
@@ -2223,6 +2235,8 @@
     @media (max-width: 480px) {
       .learning-compass { margin-inline-end: -2px; }
       .learning-compass-panel { position: fixed; z-index: 40; inset-inline: 16px; inset-block-start: auto; inset-block-end: 16px; width: auto; }
+      .learning-index-status { align-items: flex-start; flex-direction: column; gap: 4px; }
+      .learning-index-status progress { width: min(180px, 60vw); flex-basis: 4px; }
     }
     @media (prefers-reduced-motion: reduce) {
       .learning-compass, .learning-compass-panel { scroll-behavior: auto; }
@@ -2369,7 +2383,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.364</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.365</span>
   </div>
 </footer>
 
@@ -2552,9 +2566,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=80"></script>
-<script src="/i18n/locales/en.js?v=80"></script>
-<script src="/i18n/locales/he.js?v=80"></script>
+<script src="/i18n/locales/ru.js?v=81"></script>
+<script src="/i18n/locales/en.js?v=81"></script>
+<script src="/i18n/locales/he.js?v=81"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
