@@ -32,7 +32,8 @@ cross-surface решениями.
 ### B7 — Learning Compass 2.0
 
 Implementation `main@845ddc71`, production finishing `04f88328`/`85bdc9de`,
-compact-copy follow-up served in `3.11.364`:
+compact-copy follow-up plus cold-library/packet hardening `1298bb71` and
+`73e74a37`, served in `3.11.366`:
 
 - один local-first `recorded-familiarity-v2` core для Room и Agent Access;
 - versioned derived cache + bounded Worker для My Texts/current materialized
@@ -41,9 +42,13 @@ compact-copy follow-up served in `3.11.364`:
 - local-only `5×3×2500` calibration range с disable/reset;
 - typed per-field provenance и deterministic reason ladder без LLM/threshold
   promise;
-- engineering `125/125`, production served-byte/health, owner-profile read-only
-  browser и owner-reported general production smoke PASS; iPhone Safari
-  evidence partial, full physical/AT matrix не выполнена, B7 не закрыт.
+- engineering `145/145`; a 115-text owner library now self-prepares without
+  Reader while DOM stays at 48; production page packet is `48/48`,
+  `255,442 B < 256 KiB`; familiar sort retains first selection; canonical
+  hashes remain unchanged;
+- production served-byte/health, owner-profile read-only browser и
+  owner-reported general production smoke PASS; iPhone Safari evidence partial,
+  full physical/AT matrix не выполнена, B7 не закрыт.
 - по owner feedback visible familiarity copy сокращена до `X% знакомы` /
   `Не менее X% знакомы`; exact buckets и provenance остаются в details.
 
@@ -82,7 +87,7 @@ LocalDb/FSRS/media/i18n/SW contracts и production deployments остаются 
 
 1. Использовать
    `ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md` на exact production release
-   `3.11.364`; не подменять незаполненные physical/AT строки automation или
+   `3.11.366`; не подменять незаполненные physical/AT строки automation или
    Kapture-скриншотами.
 2. При agent-assisted owner-profile проверке выполнять только read-only
    navigation/details; calibration controls — только самим владельцем или

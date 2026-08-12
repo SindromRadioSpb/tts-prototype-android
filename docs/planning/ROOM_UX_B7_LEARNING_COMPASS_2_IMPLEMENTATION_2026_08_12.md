@@ -9,9 +9,11 @@ Owner direction: `Переходи к реализации.`
 Decision packet:
 [`ROOM_UX_B7_LEARNING_COMPASS_2_DECISION_PACKET_2026_08_12.md`](./ROOM_UX_B7_LEARNING_COMPASS_2_DECISION_PACKET_2026_08_12.md)
 
-Implementation: `main@845ddc71`; production finishing: `04f88328`, `85bdc9de`; compact-copy follow-up: release `3.11.364`
+Implementation: `main@845ddc71`; production finishing: `04f88328`, `85bdc9de`;
+compact-copy follow-up: `3.11.364`; cold-library + packet hardening:
+`1298bb71`, `73e74a37`
 
-Production release: `3.11.364`
+Production release: `3.11.366`
 
 Владелец отдельно авторизовал production deploy. Первичный `3.11.363` развёрнут
 и проверен direct no-store/served-byte read-back. Kapture-проверка использовала
@@ -21,6 +23,15 @@ Production release: `3.11.364`
 Safari screenshot. Единственное замечание — длинная visible-copy familiarity;
 в `3.11.364` она сокращена до `X% знакомы` / `Не менее X% знакомы`. Семантика
 lower bound, exact buckets и provenance в details не менялись.
+
+После owner-report о скрытой зоне `3.11.365` устранил зависимость подготовки
+карточки от открытия Reader: текущая 48-card page получает urgent queue, затем
+bounded idle sweep готовит весь личный каталог (`240/session`, окно `1,000`),
+показывая точный `prepared/total`. Реальная библиотека выявила второй дефект:
+verbose ingredients для первой страницы занимали `560,093 B`, поэтому прежний
+`256 KiB` batch честно отбрасывал 26 из 48 строк. `3.11.366` хранит те же
+частоты compact tuples `[key,count]` под schema `2.0.1`; лимит не повышен, а
+production packet стал `48/48`, `255,442 B`, stale/invalid = 0.
 
 Release hardening 13 августа: первые две image-сборки `3.11.364` остановились
 до cutover после сетевого `socket hang up` при получении prebuilt `sqlite3`;
@@ -47,27 +58,34 @@ source fallback затем выявил отсутствующий Python 3.12 `
 - `learning-compass-worker.js` — локальный conservative Hebrew analysis с
   token/type caps; возвращает агрегаты, не body.
 - `local-db.js` — одна learner projection и один ingredient batch на текущий
-  page; derived cache не является learner/content truth.
+  page; compact schema `2.0.1` сохраняет семантическую эквивалентность и
+  прежний `48 / 256 KiB` packet budget; derived cache не является
+  learner/content truth.
 - `library-ui.js` — card stays usable при pending/stale/unsupported/failure;
   максимум два visible B7 signals, structured details, keyboard reset/disable.
 - Agent `get_text_coverage` и group coverage используют ту же v2-семантику.
   Это versioned response evolution; оно не создаёт network dependency Room.
-- Service Worker/Studio/Room version согласованы на production `3.11.364`;
+- Service Worker/Studio/Room version согласованы на production `3.11.366`;
   activation semantics B6 не ослаблены.
+- B6 history continuity сохраняется: non-presentation open заранее ставит
+  `touchOpened` в очередь до фоновых body reads; Reader bar height синхронизирует
+  sticky table offset через `ResizeObserver` при появлении/скрытии B7 chip.
 
 ## Engineering evidence ledger
 
-- B7 + frozen B6/B0–B5 unit contract: `37/37`.
-- B7 responsive/status/privacy/browser-copy smoke: `125/125`, включая desktop
-  paint/hit-test открытой details-панели и exact/limited compact copy.
+- B7 + frozen B6/B0–B5 unit contract: `39/39`.
+- B7 responsive/status/privacy/browser-copy/cold-library smoke: `145/145`,
+  включая 115-text self-preparation without Reader, 48-card DOM ceiling,
+  real-size compact packet fixture, desktop details paint/hit-test и
+  exact/limited compact copy.
 - Matrix: `320/360/380/430/510/1280/1366`, EN/RU/HE-RTL, light/dark, reduced
   motion and simulated 200% zoom; inspected RU 380 and HE/RTL 360 artifacts.
 - Across the matrix: `0` horizontal overflow, `0` fabricated zero, `0`
   telemetry requests, `0` page errors, maximum `2` card signals, `549` DOM
   nodes in the bounded fixture.
-- Cached page batch: `3,489 B`; follow-up observed p95 `10.47–25.34 ms`;
-  projection `2.32–4.22 ms`; these are local lab timings, not field
-  distributions.
+- Synthetic real-size cached page batch: `48/48`, `230,631 B`, tuple storage;
+  production owner packet: `48/48`, `255,442 B` из `262,144 B`. Earlier small
+  fixture timing remained local-lab evidence, not a field distribution.
 - Reset and disable preserve exact `review_log`, `word_status` and
   `text_progress` fixture rows.
 - B6 targeted regression: `45/45`.
@@ -83,26 +101,30 @@ Durable automation evidence:
 ## Production, owner-profile and owner-smoke read-back
 
 - Initial owner-profile evidence was recorded on `3.11.363`; compact-copy
-  follow-up aligns public config, Room footer, Studio `APP_VERSION` and SW
-  cache version on `3.11.364`.
-- Committed-vs-served SHA-256 equality: `7/7` for Room HTML, Studio HTML,
-  `library-ui.js`, core, Worker, LocalDb and SW.
-- `/healthz`: app, DB and migrations ready. Bounded build-cache cleanup removed
-  about `1.5 GB` without touching containers/volumes/data; root moved
-  `90% → 85%`. `disk_warn=true` remains and old inactive images were preserved
-  rather than silently narrowing rollback.
+  follow-up shipped in `3.11.364`; cold-library and exact-packet hardening are
+  live on `3.11.366`.
+- `3.11.366` committed-vs-served SHA-256 equality: `9/9` for Room HTML,
+  `library-ui.js`, core, Worker, LocalDb, SW and RU/EN/HE locales.
+- `/healthz`: DB and migrations ready in three samples. Deploy build-cache
+  cleanup removed `1.837 GB` without deleting containers, volumes or images;
+  root moved `96% → 92%` and then read `91%`. `disk_warn=true` remains an
+  explicit ops risk.
 - Clean isolated Chromium at 380 px: exact version, no UI error, no horizontal
   overflow or clipped B7 signal; only expected anonymous `401` auth probes.
-- Owner «Мои тексты»: `48/115` first-page cards, `48/48` Compass details,
-  desktop details paint/hit-test `3/3`, exact bucket/time/provenance copy,
-  `0` fabricated zero/overflow/error.
+- Owner «Мои тексты» on `3.11.366`: background preparation reached `115/115`
+  without opening Reader; DOM stayed at 48 cards; visible
+  `not prepared/pending = 0`; no overflow/error.
+- The exact owner page packet returned `48/48`, `255,442 B`, schema `2.0.1`,
+  stale/invalid = 0. «Больше знакомых» remained selected on the first attempt
+  with no preparing fallback toast. One rank-eligible item led the page; 47
+  `AVAILABLE_LIMITED` items stayed neutral per the approved uncertainty rule.
 - Owner «Учебные песни»: `48/77` first-page cards, `48/48` Compass details,
   details paint/hit-test `3/3`, exact partial-audio count and honest unknown
   audio provenance, `0` fabricated zero/overflow/error.
-- Before/after the read-only owner flow, counts and SHA-256 were identical for
-  `review_log`, `word_status` and `text_progress`. No reader, grade/review,
-  word-status action, calibration reset or disable was invoked. Normal signed-in
-  background sync traffic was observed; request bodies were not inspected.
+- Before/after the `3.11.366` read-only owner flow, counts and SHA-256 were
+  identical for `review_log`, `word_status`, `text_progress` and the complete
+  `texts` table. No Reader, grade/review, word-status action, calibration
+  reset or disable was invoked.
 - Owner-reported production smoke on `3.11.363`: PASS. The supplied iPhone
   Safari screenshot exposed only the B7 copy-density issue; the `3.11.364`
   follow-up replaces the visible RU badge with `Не менее X% знакомы`, with
@@ -111,6 +133,9 @@ Durable automation evidence:
 
 Durable initial `3.11.363` production evidence:
 [`PRODUCTION_READBACK_EVIDENCE.json`](../research/room-ux-b7-learning-compass/2026-08-12/automation/PRODUCTION_READBACK_EVIDENCE.json).
+
+Cold-library `3.11.366` production evidence:
+[`PRODUCTION_READBACK_EVIDENCE.json`](../research/room-ux-b7-learning-compass/2026-08-13/automation/PRODUCTION_READBACK_EVIDENCE.json).
 
 ## Что не доказано
 
@@ -127,6 +152,6 @@ Durable initial `3.11.363` production evidence:
 Выполнить
 [`ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md`](./ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md).
 Production preflight/deploy/read-back выполнен для release line through
-`3.11.364`. После owner physical/AT PASS или явных documented exceptions
+`3.11.366`. После owner physical/AT PASS или явных documented exceptions
 подготовить B7 closure; только затем начинать новый research-only goal B8
 Reading Journey.

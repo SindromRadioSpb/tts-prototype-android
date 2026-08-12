@@ -1,0 +1,85 @@
+{
+  "schema": "room.b7.production-readback.1",
+  "captured_at": "2026-08-13T02:32:13+03:00",
+  "release": "3.11.366",
+  "implementation_commits": [
+    "1298bb710d44b8f8172e3af9f8c953b11b64fbfe",
+    "73e74a3711ce8365d498702898f1ffd7e21a3506"
+  ],
+  "production_cutover": {
+    "app_version": "3.11.366",
+    "cache_version": "3.11.366",
+    "room_footer_version": "3.11.366",
+    "db_ready": true,
+    "migrations_ready": true
+  },
+  "served_byte_readback": {
+    "matched": 9,
+    "total": 9,
+    "files": [
+      { "path": "js/library-ui.js", "mode": "raw", "sha256": "57af412fb8c6e056202634d129cef59cfbd33074659d6ace1c21e2f121c6cc23" },
+      { "path": "db/local-db.js", "mode": "raw", "sha256": "f12c634e21133e258020a5ddb3884cc4fd53a031946e08db2292ed31300edec5" },
+      { "path": "js/learning-compass-core.js", "mode": "raw", "sha256": "fdddb2fe35531b6adb28cc61e4eb940e88a2dfc865718e9178c8e16513313fa7" },
+      { "path": "js/learning-compass-worker.js", "mode": "raw", "sha256": "d85c4be000d1c63c60a1df89abac463e9af20dc1920d6a198a841f90fd0c7345" },
+      { "path": "library.html", "mode": "raw", "sha256": "30518e01aad588e6f9ab78dc6d851c1c7890ac6be5e7bbbaa977683b157f829a" },
+      { "path": "sw.js", "mode": "raw", "sha256": "11d805d5c933d9fdbb92d4c644b7bb133605dec74b3760d06be4276ce2c02fc7" },
+      { "path": "i18n/locales/ru.js", "mode": "lf-normalized", "sha256": "9f8a51b72841375ac97279990b383de25761fb64d7bcbd6ef2166b57cb1d6d62" },
+      { "path": "i18n/locales/en.js", "mode": "lf-normalized", "sha256": "bc664ac01190fdc34129a4712ba6682512c7af06e2890b9ba0e607cd56615044" },
+      { "path": "i18n/locales/he.js", "mode": "lf-normalized", "sha256": "0d1aad2287ddbdae9a306c49ab67f66afe5beb0ee048f741c5f2b8ea1f9ba1e4" }
+    ]
+  },
+  "owner_profile_read_only": {
+    "surface": "mytexts",
+    "reader_opened_by_check": false,
+    "visible_cards": 48,
+    "prepared": 115,
+    "total": 115,
+    "not_prepared_visible": 0,
+    "pending_visible": 0,
+    "horizontal_overflow": false,
+    "page_packet": {
+      "requested": 48,
+      "returned": 48,
+      "size_bytes": 255442,
+      "limit_bytes": 262144,
+      "schema": "room.learning_ingredients.2.0.1",
+      "tuple_storage": true,
+      "stale": 0,
+      "invalid": 0
+    },
+    "familiar_sort": {
+      "requested": "familiar_desc",
+      "retained_after_first_selection": true,
+      "preparing_fallback_toast": false,
+      "rank_eligible_visible": 1,
+      "limited_neutral_visible": 47,
+      "eligible_before_neutral": true,
+      "eligible_descending": true,
+      "note": "D1 allows ranking only for AVAILABLE signals with unresolved uncertainty at or below 5 percentage points; AVAILABLE_LIMITED signals remain visible but neutral."
+    },
+    "canonical_before_after": {
+      "review_log": { "count": 7200, "before": "bcfd134a8b5b75c7bcb72ac6a770698105e16af3b049059a860f96183d9883bc", "after": "bcfd134a8b5b75c7bcb72ac6a770698105e16af3b049059a860f96183d9883bc" },
+      "word_status": { "count": 5371, "before": "fc83a60f2890b27acaaa3588592d0ef077b07926f1a8b4a8c3670a469380eceb", "after": "fc83a60f2890b27acaaa3588592d0ef077b07926f1a8b4a8c3670a469380eceb" },
+      "text_progress": { "count": 89, "before": "3a3c0a2ff4b0a09430450f27368de1efdfda86c6f8f6e3885751f1f2e8542014", "after": "3a3c0a2ff4b0a09430450f27368de1efdfda86c6f8f6e3885751f1f2e8542014" },
+      "texts": { "count": 222, "before": "ba3d986a1b05934ef5000ce47176986f0fc048ba39e7fe2f489f7072e93a5e4a", "after": "ba3d986a1b05934ef5000ce47176986f0fc048ba39e7fe2f489f7072e93a5e4a" }
+    },
+    "forbidden_actions_invoked": []
+  },
+  "health_samples": [
+    { "at": "2026-08-13T02:32:06+03:00", "db_ready": true, "migrations_ready": true, "disk_pct_used": 91, "disk_warn": true },
+    { "at": "2026-08-13T02:32:09+03:00", "db_ready": true, "migrations_ready": true, "disk_pct_used": 91, "disk_warn": true },
+    { "at": "2026-08-13T02:32:12+03:00", "db_ready": true, "migrations_ready": true, "disk_pct_used": 91, "disk_warn": true }
+  ],
+  "operations": {
+    "root_disk_before_build_cache_prune_pct": 96,
+    "root_disk_after_build_cache_prune_pct": 92,
+    "build_cache_before_bytes_approx": 1837000000,
+    "build_cache_after_bytes": 0,
+    "containers_removed": 0,
+    "volumes_removed": 0,
+    "images_explicitly_removed": 0,
+    "disk_warn_remains": true
+  },
+  "verdict": "PRODUCTION_READBACK_PASS",
+  "physical_at_matrix": "PENDING"
+}

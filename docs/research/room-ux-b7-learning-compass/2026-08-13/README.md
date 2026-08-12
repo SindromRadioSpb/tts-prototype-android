@@ -2,10 +2,10 @@
 
 Дата: 2026-08-13
 
-Статус: **ENGINEERING PASS · PRODUCTION READ-BACK PENDING**
+Статус: **ENGINEERING PASS · PRODUCTION READ-BACK PASS · PHYSICAL/AT PARTIAL**
 
-Release candidate: `3.11.366`, подготовлен поверх cold-library implementation
-`main@1298bb71`.
+Production release: `3.11.366`, cold-library implementation `main@1298bb71`
+и packet/sticky/history hardening `main@73e74a37`.
 
 Этот пакет фиксирует owner-reported дефект, при котором карточка в «Моих
 текстах» оставалась в состоянии «Анализ не подготовлен», пока пользователь не
@@ -62,6 +62,28 @@ clipping и overlap не обнаружены. Это Chromium automation, не 
 - Room Media: PASS;
 - Reader parity: PASS.
 
-Production health/served-byte и безопасный owner-profile read-back должны быть
-добавлены после фактического cutover `3.11.366`; до этого automation artifact
-не является production или owner-live evidence.
+## Production read-back
+
+- production triad `APP_VERSION / CACHE_VERSION / Room footer` = `3.11.366`;
+- committed-vs-served bytes совпали `9/9`, DB и migrations были ready во всех
+  трёх health samples;
+- на реальной owner-библиотеке, не открывая Reader, очередь завершилась
+  `115/115`; в DOM оставались 48 карточек, visible `not prepared/pending = 0`,
+  horizontal overflow = 0;
+- реальный page batch после compact-schema вернул `48/48`, `255,442 B` из
+  разрешённых `262,144 B`, stale/invalid = 0;
+- «Больше знакомых» сохранилась после первого выбора без прежнего fallback
+  toast. Из 48 карточек одна была rank-eligible и поставлена первой; 47
+  `AVAILABLE_LIMITED` остались neutral согласно D1, а не были ложно
+  переупорядочены по недостаточно точному сигналу;
+- до/после read-only flow полностью совпали count+SHA-256 для `review_log`,
+  `word_status`, `text_progress` и `texts`; grade/review, status changes,
+  Reader, calibration reset/disable не вызывались;
+- только Docker build-cache был очищен (`1.837 GB → 0`); диск после операции
+  стабилизировался на `91%`, `disk_warn=true` остаётся открытым ops-риском.
+
+Durable artifact:
+[`PRODUCTION_READBACK_EVIDENCE.json`](./automation/PRODUCTION_READBACK_EVIDENCE.json).
+
+Это подтверждает production browser UX на реальном корпусе, но не заполняет
+iPhone/Android/VoiceOver/TalkBack/NVDA physical rows.

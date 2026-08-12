@@ -16,9 +16,12 @@
 
 **Research baseline:** `main@6a2e80a1`
 
-**Implementation:** `main@845ddc71`; production finishing `04f88328`, `85bdc9de`
+**Implementation:** `main@845ddc71`; production finishing `04f88328`, `85bdc9de`;
+cold-library/packet hardening `1298bb71`, `73e74a37`
 
-**Production release:** `3.11.364` (served-byte/health; owner-profile read-only and general owner smoke evidence remain separately classified)
+**Production release:** `3.11.366` (served-byte/health and owner-profile
+read-only evidence; general owner smoke and physical/AT evidence remain
+separately classified)
 
 **Historical production snapshot inherited from B6:** `3.11.360`
 
@@ -608,8 +611,12 @@ D6=packet-budgets+full-physical-matrix.
 `main@845ddc71` с production finishing `04f88328`/`85bdc9de`; engineering,
 served-byte/health и owner-profile read-only browser evidence прошли на
 `3.11.363`. 13 августа owner general production smoke прошёл с одним замечанием
-по плотности copy; compact-copy follow-up вошёл в `3.11.364` и прошёл automation
-`125/125`. D6 physical/assistive matrix остаётся частично незаполненным gate,
+по плотности copy; compact-copy follow-up вошёл в `3.11.364`. Затем
+owner-reported cold-library defect был устранён в `3.11.365`, а реальный
+packet overflow — без повышения D6 budget — в `3.11.366`. Automation `145/145`;
+owner library self-prepared `115/115` without Reader, exact batch returned
+`48/48` at `255,442 B`, and canonical hashes remained unchanged. D6
+physical/assistive matrix остаётся частично незаполненным gate,
 поэтому B7 ещё не закрыт и не имеет GA/closure verdict. Реализованный
 контракт и точная граница доказательства записаны в
 [`ROOM_UX_B7_LEARNING_COMPASS_2_IMPLEMENTATION_2026_08_12.md`](./ROOM_UX_B7_LEARNING_COMPASS_2_IMPLEMENTATION_2026_08_12.md).
