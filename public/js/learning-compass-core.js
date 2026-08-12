@@ -9,7 +9,10 @@
   "use strict";
 
   var RESOLVER_VERSION = "recorded-familiarity-v2";
-  var INGREDIENTS_SCHEMA = "room.learning_ingredients.2.0.0";
+  // 2.0.1 keeps the recorded-familiarity semantics unchanged while permitting
+  // compact [key,count] rows in the discardable cache. This lets a real 48-card
+  // page stay inside the approved 256 KiB ingredient packet.
+  var INGREDIENTS_SCHEMA = "room.learning_ingredients.2.0.1";
   var PROJECTION_SCHEMA = "room.learner_projection.2.0.0";
   var COVERAGE_SCHEMA = "room.recorded_familiarity.2.0.0";
   var CALIBRATION_SCHEMA = "room.reading_calibration.2.0.0";
@@ -64,8 +67,9 @@
     var rows = Array.isArray(raw) ? raw : [];
     var merged = Object.create(null);
     for (var i = 0; i < rows.length; i += 1) {
-      var key = rows[i] && String(rows[i].key || "").trim();
-      var count = nonNegativeInt(rows[i] && rows[i].token_count);
+      var tuple = Array.isArray(rows[i]);
+      var key = rows[i] && String(tuple ? rows[i][0] : rows[i].key || "").trim();
+      var count = nonNegativeInt(rows[i] && (tuple ? rows[i][1] : rows[i].token_count));
       if (!key || !count) continue;
       merged[key] = (merged[key] || 0) + count;
     }

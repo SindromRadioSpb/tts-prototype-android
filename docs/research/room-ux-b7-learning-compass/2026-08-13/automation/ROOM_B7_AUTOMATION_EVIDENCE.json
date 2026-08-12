@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-08-12T22:56:37.077Z",
+  "generated_at": "2026-08-12T23:21:44.421Z",
   "evidence_class": "desktop Chromium automation, not physical or AT",
   "checks": {
-    "passed": 142,
-    "total": 142
+    "passed": 145,
+    "total": 145
   },
   "matrix": [
     {
@@ -19,6 +19,11 @@
         "available": 48,
         "cache": 115,
         "progress": "Подбор по сложности готов: 115/115"
+      },
+      "packet_budget": {
+        "entries": 48,
+        "sizeBytes": 230631,
+        "tupleStored": true
       },
       "familiarity_sort": {
         "known_key": "pid:4106",
@@ -114,14 +119,14 @@
         "80% знакомы"
       ],
       "raw_provenance_types": 0,
-      "settle_ms": 294,
+      "settle_ms": 302,
       "batch": {
-        "p50_ms": 13.805000066757202,
-        "p95_ms": 19.509999990463257,
-        "size_bytes": 3489,
+        "p50_ms": 13.075000047683716,
+        "p95_ms": 17.87999999523163,
+        "size_bytes": 3269,
         "entry_count": 6,
         "stale_count": 1,
-        "projection_ms": 6.340000033378601,
+        "projection_ms": 3.784999966621399,
         "projection_tracked": 2
       },
       "errors": [],
@@ -162,14 +167,14 @@
         "Word profile needed"
       ],
       "raw_provenance_types": 8,
-      "settle_ms": 302,
+      "settle_ms": 304,
       "batch": {
-        "p50_ms": 13.944999933242798,
-        "p95_ms": 19.44000005722046,
-        "size_bytes": 3489,
+        "p50_ms": 13.429999947547913,
+        "p95_ms": 19.02999997138977,
+        "size_bytes": 3269,
         "entry_count": 6,
         "stale_count": 1,
-        "projection_ms": 5.740000009536743,
+        "projection_ms": 3.4350000619888306,
         "projection_tracked": 0
       },
       "errors": [],
@@ -210,14 +215,14 @@
         "80% מוכרות"
       ],
       "raw_provenance_types": 0,
-      "settle_ms": 306,
+      "settle_ms": 280,
       "batch": {
-        "p50_ms": 14.769999980926514,
-        "p95_ms": 17.05999994277954,
-        "size_bytes": 3489,
+        "p50_ms": 11.339999914169312,
+        "p95_ms": 13.065000057220459,
+        "size_bytes": 3269,
         "entry_count": 6,
         "stale_count": 1,
-        "projection_ms": 4.679999947547913,
+        "projection_ms": 3.899999976158142,
         "projection_tracked": 2
       },
       "errors": [],
@@ -258,14 +263,14 @@
         "80% знакомы"
       ],
       "raw_provenance_types": 0,
-      "settle_ms": 292,
+      "settle_ms": 279,
       "batch": {
-        "p50_ms": 13.27999997138977,
-        "p95_ms": 17.300000071525574,
-        "size_bytes": 3489,
+        "p50_ms": 12.149999976158142,
+        "p95_ms": 17.12999999523163,
+        "size_bytes": 3269,
         "entry_count": 6,
         "stale_count": 1,
-        "projection_ms": 4.995000004768372,
+        "projection_ms": 3.450000047683716,
         "projection_tracked": 2
       },
       "errors": [],
@@ -306,14 +311,14 @@
         "80% знакомы"
       ],
       "raw_provenance_types": 0,
-      "settle_ms": 935,
+      "settle_ms": 845,
       "batch": {
-        "p50_ms": 10.799999952316284,
-        "p95_ms": 13.379999995231628,
-        "size_bytes": 3489,
+        "p50_ms": 12.514999985694885,
+        "p95_ms": 15.399999976158142,
+        "size_bytes": 3269,
         "entry_count": 6,
         "stale_count": 1,
-        "projection_ms": 2.6950000524520874,
+        "projection_ms": 3.850000023841858,
         "projection_tracked": 2
       },
       "errors": [],
@@ -354,14 +359,14 @@
         "80% מוכרות"
       ],
       "raw_provenance_types": 0,
-      "settle_ms": 1362,
+      "settle_ms": 1298,
       "batch": {
-        "p50_ms": 10.735000014305115,
-        "p95_ms": 12.519999980926514,
-        "size_bytes": 3489,
+        "p50_ms": 12.110000014305115,
+        "p95_ms": 14.419999957084656,
+        "size_bytes": 3269,
         "entry_count": 6,
         "stale_count": 1,
-        "projection_ms": 3.305000066757202,
+        "projection_ms": 2.600000023841858,
         "projection_tracked": 2
       },
       "errors": [],
@@ -402,14 +407,14 @@
         "80% familiar"
       ],
       "raw_provenance_types": 8,
-      "settle_ms": 304,
+      "settle_ms": 315,
       "batch": {
-        "p50_ms": 14.424999952316284,
-        "p95_ms": 19.49500000476837,
-        "size_bytes": 3489,
+        "p50_ms": 13.259999990463257,
+        "p95_ms": 18.305000066757202,
+        "size_bytes": 3269,
         "entry_count": 6,
         "stale_count": 1,
-        "projection_ms": 3.3550000190734863,
+        "projection_ms": 4.005000114440918,
         "projection_tracked": 2
       },
       "errors": [],

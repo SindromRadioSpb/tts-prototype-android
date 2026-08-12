@@ -4,7 +4,8 @@
 
 Статус: **ENGINEERING PASS · PRODUCTION READ-BACK PENDING**
 
-Release candidate: `3.11.365`, подготовлен поверх `main@cd11d5f0`.
+Release candidate: `3.11.366`, подготовлен поверх cold-library implementation
+`main@1298bb71`.
 
 Этот пакет фиксирует owner-reported дефект, при котором карточка в «Моих
 текстах» оставалась в состоянии «Анализ не подготовлен», пока пользователь не
@@ -26,6 +27,10 @@ Release candidate: `3.11.365`, подготовлен поверх `main@cd11d5f
   совпадают до/после фоновой подготовки;
 - local-only cache ограничен прежними B7 budget `1,000 / 64 MiB`; фоновый
   проход ограничен 240 текстами за session и окном 1,000 текстов.
+- owner corpus probe обнаружил, что verbose ingredients первой реальной
+  48-card страницы занимали `560,093 B`; compact `[key,count]` storage сохраняет
+  ту же семантику в `254,933 B`, поэтому весь page снова укладывается в
+  утверждённый single-batch budget `≤256 KiB` без повышения лимита.
 
 ## Автоматизация
 
@@ -35,7 +40,8 @@ Release candidate: `3.11.365`, подготовлен поверх `main@cd11d5f
 node scripts/premium/room-b7-learning-compass-smoke.js --out=docs/research/room-ux-b7-learning-compass/2026-08-13/automation
 ```
 
-Результат: `PASS 142/142`.
+Результат: `PASS 145/145`, включая synthetic real-size 48-card packet,
+compact-storage read-back и semantic parity compact/verbose ingredients.
 
 Основной artifact:
 [`ROOM_B7_AUTOMATION_EVIDENCE.json`](./automation/ROOM_B7_AUTOMATION_EVIDENCE.json).
@@ -49,7 +55,7 @@ clipping и overlap не обнаружены. Это Chromium automation, не 
 
 Смежные gates кандидата:
 
-- B7+B6+B0–B5 unit: `38/38`;
+- B7+B6+B0–B5 unit: `39/39`;
 - B0–B5 responsive browser: `838/838`;
 - i18n: `233/233`;
 - Memory Canon/FSRS: `79/79`;
@@ -57,5 +63,5 @@ clipping и overlap не обнаружены. Это Chromium automation, не 
 - Reader parity: PASS.
 
 Production health/served-byte и безопасный owner-profile read-back должны быть
-добавлены после фактического cutover `3.11.365`; до этого automation artifact
+добавлены после фактического cutover `3.11.366`; до этого automation artifact
 не является production или owner-live evidence.

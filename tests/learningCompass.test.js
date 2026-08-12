@@ -23,7 +23,7 @@ function projection(states, scheduledKeys = [], extra = {}) {
 
 function ingredients(freq, extra = {}) {
   return {
-    schema_version: "room.learning_ingredients.2.0.0",
+    schema_version: "room.learning_ingredients.2.0.1",
     source_class: "fixture",
     source_key: "fixture:1",
     content_revision: "r1",
@@ -84,6 +84,18 @@ test("manual new/ignore override a schedule; scheduled-only words count as famil
   assert.equal(result.counts.explicit_new, 2);
   assert.equal(result.counts.ignored_excluded, 3);
   assert.equal(result.recorded_familiar_pct_lower_bound, 71.43);
+});
+
+test("compact cache tuples preserve the exact familiarity result", () => {
+  const verbose = ingredients({ "pid:one": 7, "pid:two": 3 }, {
+    unresolved_token_count: 0, proper_name_token_count: 0, total_token_count: 10,
+  });
+  const compact = { ...verbose, key_frequencies: verbose.key_frequencies.map((row) => [row.key, row.token_count]) };
+  const learner = projection({ "pid:one": "known", "pid:two": "new" });
+  assert.deepEqual(
+    compass.evaluateRecordedFamiliarityV2({ ingredients: compact, learner_projection: learner, now: NOW }),
+    compass.evaluateRecordedFamiliarityV2({ ingredients: verbose, learner_projection: learner, now: NOW }),
+  );
 });
 
 test("empty profile is NEEDS_PROFILE while a valid non-empty profile may honestly report zero", () => {
@@ -245,6 +257,8 @@ test("local cache is additive, revision-keyed, page-batched and content-free by 
   assert.match(localDb, /export async function getPersonalTextCompassProgress\(/);
   assert.match(localDb, /_COMPASS_BATCH_MAX_ITEMS = 48/);
   assert.match(localDb, /_COMPASS_BATCH_MAX_BYTES = 256 \* 1024/);
+  assert.match(localDb, /_COMPASS_INGREDIENTS_SCHEMA = 'room\.learning_ingredients\.2\.0\.1'/);
+  assert.match(localDb, /return \[key, count\]/);
   assert.match(localDb, /_COMPASS_CACHE_MAX_ITEMS = 1000/);
   assert.match(localDb, /_COMPASS_CACHE_MAX_BYTES = 64 \* 1024 \* 1024/);
 });
@@ -269,7 +283,7 @@ test("dedicated worker enforces local limits and emits aggregates rather than co
   assert.match(worker, /unresolved_token_count/);
   assert.match(worker, /crypto\.subtle\.digest\("SHA-256"/);
   assert.match(worker, /PACKET_LIMIT_EXCEEDED/);
-  const returned = worker.match(/const result = \{\n\s+schema_version: "room\.learning_ingredients\.2\.0\.0"[\s\S]*?\n\s+\};/)[0];
+  const returned = worker.match(/const result = \{\n\s+schema_version: "room\.learning_ingredients\.2\.0\.1"[\s\S]*?\n\s+\};/)[0];
   assert.doesNotMatch(returned, /\brows\b|\btitle\b|\bbody\b|hebrew/);
 });
 

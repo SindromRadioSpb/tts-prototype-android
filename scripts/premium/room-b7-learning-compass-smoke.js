@@ -94,7 +94,7 @@ async function seed(page, withProfile) {
         : [{ key: "pid:1", token_count: 480 }, { key: "pid:2", token_count: 120 }];
       const unresolved = limited ? 60 : 0;
       const ingredients = {
-        schema_version: "room.learning_ingredients.2.0.0", source_class: "mytext", source_key: String(item.text_key),
+        schema_version: "room.learning_ingredients.2.0.1", source_class: "mytext", source_key: String(item.text_key),
         content_revision: stale ? "stale-revision" : String(item.updated_at || "unknown"),
         content_sha256: String(index + 1).padStart(64, "0"), entitlement_revision: null,
         resolver_version: "recorded-familiarity-v2", lexical_resolver_version: "b7-smoke-resolver",
@@ -190,12 +190,41 @@ async function runColdLibraryScenario(browser) {
   check(JSON.stringify(final.canonical.progress_rows) === JSON.stringify(seeded.canonical.progress), "cold-library: analysis changes no reading progress");
   check(JSON.stringify(final.canonical.texts) === JSON.stringify(seeded.canonical.texts), "cold-library: analysis changes no personal text or last-opened state");
   check(errors.length === 0, `cold-library: no page errors (${errors.join(" | ")})`);
+  const packetFixture = await page.evaluate(async () => {
+    const db = await import("/db/local-db.js");
+    const requests = [];
+    for (let index = 1; index <= 48; index += 1) {
+      const cacheKey = `mytext:b7-packet-${index}`;
+      const ingredients = {
+        schema_version: "room.learning_ingredients.2.0.1", source_class: "mytext", source_key: `b7-packet-${index}`,
+        content_revision: "r1", content_sha256: "", entitlement_revision: null,
+        resolver_version: "recorded-familiarity-v2", lexical_resolver_version: "b7-packet-fixture",
+        dataset_version: "fixture", key_frequencies: Array.from({ length: 320 }, (_, keyIndex) => ({ key: `pid:${keyIndex + 1}`, token_count: 1 })),
+        unresolved_token_count: 0, proper_name_token_count: 0, total_token_count: 320,
+        built_at: "2026-08-13T00:00:00.000Z",
+      };
+      await db.putLearningCompassIngredients({ cache_key: cacheKey, source_class: "mytext", source_key: `b7-packet-${index}`,
+        content_revision: "r1", content_sha256: "", entitlement_revision: null,
+        resolver_version: "recorded-familiarity-v2", ingredients });
+      requests.push({ cache_key: cacheKey, source_class: "mytext", source_key: `b7-packet-${index}`,
+        content_revision: "r1", content_sha256: "", entitlement_revision: null, resolver_version: "recorded-familiarity-v2" });
+    }
+    const batch = await db.getLearningCompassIngredientsBatch(requests);
+    const stored = await db.dbQuery("SELECT ingredients_json FROM room_learning_compass_cache WHERE cache_key='mytext:b7-packet-1'");
+    const tupleStored = Array.isArray(JSON.parse(stored[0].ingredients_json).key_frequencies[0]);
+    for (const request of requests) await db.deleteLearningCompassIngredients(request.cache_key);
+    return { entries: Object.keys(batch.entries).length, sizeBytes: batch.size_bytes, tupleStored };
+  });
+  check(packetFixture.entries === 48, `cold-library: one real-size compact page batch returns all 48 entries (${JSON.stringify(packetFixture)})`);
+  check(packetFixture.sizeBytes <= 256 * 1024, `cold-library: compact 48-card packet stays within 256 KiB (${packetFixture.sizeBytes})`);
+  check(packetFixture.tupleStored, "cold-library: derived cache persists compact [key,count] rows");
   const sortFixture = await page.evaluate(async () => {
     const db = await import("/db/local-db.js");
     const rows = await db.dbQuery("SELECT cache_key,ingredients_json FROM room_learning_compass_cache WHERE cache_key IN ('mytext:b7-cold-001','mytext:b7-cold-115') ORDER BY cache_key");
     const parsed = rows.map((row) => ({ key: row.cache_key, frequencies: JSON.parse(row.ingredients_json).key_frequencies || [] }));
-    const first = new Map((parsed[0]?.frequencies || []).map((entry) => [entry.key, Number(entry.token_count) || 0]));
-    const last = new Map((parsed[1]?.frequencies || []).map((entry) => [entry.key, Number(entry.token_count) || 0]));
+    const pair = (entry) => Array.isArray(entry) ? [String(entry[0]), Number(entry[1]) || 0] : [entry.key, Number(entry.token_count) || 0];
+    const first = new Map((parsed[0]?.frequencies || []).map(pair));
+    const last = new Map((parsed[1]?.frequencies || []).map(pair));
     const knownKey = Array.from(first.keys()).find((key) => (first.get(key) || 0) > (last.get(key) || 0));
     if (knownKey) await db.applyWordStatusFromSync(knownKey, "known");
     return { knownKey, first: first.get(knownKey) || 0, last: last.get(knownKey) || 0 };
@@ -223,6 +252,7 @@ async function runColdLibraryScenario(browser) {
   await context.close();
   return { name: "380-ru-cold-library", initial,
     final: { cards: final.cards, available: final.available, cache: final.cache, progress: final.progress },
+    packet_budget: packetFixture,
     familiarity_sort: { known_key: sortFixture.knownKey, first_titles: sorted.titles.slice(0, 3), scores: sorted.scores } };
 }
 

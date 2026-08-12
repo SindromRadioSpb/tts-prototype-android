@@ -125,7 +125,7 @@ async function analyze(message) {
   }
   const contentSha = await sha256(normalizedRows.join("\n"));
   const result = {
-    schema_version: "room.learning_ingredients.2.0.0",
+    schema_version: "room.learning_ingredients.2.0.1",
     source_class: String(message.source_class || ""),
     source_key: String(message.source_key || ""),
     content_revision: String(message.content_revision || ""),
@@ -134,8 +134,8 @@ async function analyze(message) {
     resolver_version: RESOLVER_VERSION,
     lexical_resolver_version: LEXICAL_RESOLVER_VERSION,
     dataset_version: resolver.dataset_version,
-    key_frequencies: Array.from(frequencies, ([key, token_count]) => ({ key, token_count }))
-      .sort((a, b) => a.key.localeCompare(b.key)),
+    key_frequencies: Array.from(frequencies, ([key, token_count]) => [key, token_count])
+      .sort((a, b) => a[0].localeCompare(b[0])),
     unresolved_token_count: unresolved,
     proper_name_token_count: 0,
     total_token_count: total,

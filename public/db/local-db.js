@@ -2862,6 +2862,7 @@ const _COMPASS_BATCH_MAX_ITEMS = 48;
 const _COMPASS_BATCH_MAX_BYTES = 256 * 1024;
 const _COMPASS_CACHE_MAX_ITEMS = 1000;
 const _COMPASS_CACHE_MAX_BYTES = 64 * 1024 * 1024;
+const _COMPASS_INGREDIENTS_SCHEMA = 'room.learning_ingredients.2.0.1';
 
 function _compassByteLength(value) {
   const text = typeof value === 'string' ? value : JSON.stringify(value);
@@ -2887,8 +2888,9 @@ export async function getLearningCompassIngredientsBatch(requests) {
     `SELECT cache_key, content_revision, content_sha256, entitlement_revision,
             resolver_version, ingredients_json, size_bytes
        FROM room_learning_compass_cache
-      WHERE cache_key IN (SELECT CAST(value AS TEXT) FROM json_each(?))`,
-    [JSON.stringify(wanted.map((request) => request.cache_key))],
+      WHERE cache_key IN (SELECT CAST(value AS TEXT) FROM json_each(?))
+        AND json_extract(ingredients_json,'$.schema_version') = ?`,
+    [JSON.stringify(wanted.map((request) => request.cache_key)), _COMPASS_INGREDIENTS_SCHEMA],
   );
   const byKey = new Map(wanted.map((request) => [request.cache_key, request]));
   const out = {};
@@ -2922,12 +2924,13 @@ export async function getPersonalTextCompassProgress(resolverVersion = 'recorded
             SUM(CASE WHEN c.cache_key IS NOT NULL
                        AND c.content_revision = COALESCE(t.updated_at, 'unknown')
                        AND c.resolver_version = ?
+                       AND json_extract(c.ingredients_json,'$.schema_version') = ?
                      THEN 1 ELSE 0 END) AS prepared
        FROM texts t
        LEFT JOIN room_learning_compass_cache c
          ON c.cache_key = 'mytext:' || CAST(t.id AS TEXT)
       WHERE ${_PERSONAL_TEXT_PREDICATE}`,
-    [String(resolverVersion || '')],
+    [String(resolverVersion || ''), _COMPASS_INGREDIENTS_SCHEMA],
   );
   const row = rows && rows[0] || {};
   return { total: Number(row.total || 0), prepared: Number(row.prepared || 0) };
@@ -2940,7 +2943,18 @@ export async function putLearningCompassIngredients(entry) {
     'unresolved_token_count','proper_name_token_count','total_token_count','built_at']);
   if (Object.keys(entry.ingredients).some((key) => !allowedIngredientKeys.has(key))) throw new Error('Learning Compass ingredients contain a forbidden field');
   if (!Array.isArray(entry.ingredients.key_frequencies) || entry.ingredients.key_frequencies.length > 50000) throw new Error('Learning Compass ingredients have invalid frequencies');
-  const payload = JSON.stringify(entry.ingredients);
+  // Persist frequencies as compact tuples. The pure core accepts both the
+  // object form used by callers and this cache form, so semantics stay shared
+  // while the actual owner 48-card page fits the frozen 256 KiB packet.
+  const compactFrequencies = entry.ingredients.key_frequencies.map((row) => {
+    const tuple = Array.isArray(row);
+    const key = String(tuple ? row[0] : row && row.key || '').trim();
+    const count = Number(tuple ? row[1] : row && row.token_count);
+    if (!key || !Number.isSafeInteger(count) || count <= 0) throw new Error('Learning Compass ingredients have invalid frequencies');
+    return [key, count];
+  });
+  const storedIngredients = { ...entry.ingredients, schema_version: _COMPASS_INGREDIENTS_SCHEMA, key_frequencies: compactFrequencies };
+  const payload = JSON.stringify(storedIngredients);
   const size = _compassByteLength(payload);
   if (size > _COMPASS_BATCH_MAX_BYTES) throw new Error('Learning Compass cache item exceeds packet budget');
   const sourceClass = String(entry.source_class || '');

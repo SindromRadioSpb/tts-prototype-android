@@ -1672,7 +1672,7 @@ function _covChipMount() {
   }
   return chip;
 }
-function clearCovChip() { const c = $('readerCovChip'); if (c) c.hidden = true; }
+function clearCovChip() { const c = $('readerCovChip'); if (c) { c.hidden = true; try { roomUpdateTheadTop(); } catch (_) {} } }
 let _covChipBusy = false, _covChipDirty = false, _covChipCache = null;
 async function refreshCovChip() {
   const tid = readerTextId; if (tid == null) return;
@@ -1698,6 +1698,7 @@ async function refreshCovChip() {
     chip.appendChild(lead);
     if (fit.counts) chip.appendChild(el('span', { class: 'cov-chip-new', text: ' · ' + fit.counts.familiar + '/' + fit.counts.eligible_denominator }));
     chip.hidden = false;
+    try { roomUpdateTheadTop(); } catch (_) {}
   } catch (_) {
     if (readerTextId === tid) {
       const chip = _covChipMount();
@@ -1705,6 +1706,7 @@ async function refreshCovChip() {
         chip.className = 'reader-cov-chip cov-unavailable';
         chip.textContent = '📖 ' + tt('room.compass.unavailable', 'Оценка недоступна');
         chip.hidden = false;
+        try { roomUpdateTheadTop(); } catch (_) {}
       }
     }
   } finally {
@@ -4580,11 +4582,24 @@ function roomMediaStageInst() {
 // Sticky-шапка таблицы: reader-core.css даёт th sticky top:0, но Зал скроллит ОКНО, и шапка
 // заезжала под sticky .reader-bar. Отступ = живая высота бара (меняется: перенос строк,
 // cov-chip) → CSS-переменная, обновляемая на открытии/ресайзе/追 следовании.
-let _roomTheadResizeWired = false;
-function roomUpdateTheadTop() {
+let _roomTheadResizeWired = false, _roomTheadResizeObserver = null, _roomTheadObservedBar = null;
+function roomApplyTheadTop() {
   const bar = document.querySelector('#roomReader .reader-bar');
   const h = bar ? Math.max(0, Math.round(bar.getBoundingClientRect().height)) : 0;
   try { document.documentElement.style.setProperty('--room-thead-top', h + 'px'); } catch (_) {}
+  return h;
+}
+function roomUpdateTheadTop() {
+  const bar = document.querySelector('#roomReader .reader-bar');
+  const h = roomApplyTheadTop();
+  // B7 coverage/status chips can change the bar height after async local work.
+  // Observe the actual box instead of guessing when that work will settle.
+  if (bar && typeof ResizeObserver === 'function' && _roomTheadObservedBar !== bar) {
+    try { if (_roomTheadResizeObserver) _roomTheadResizeObserver.disconnect(); } catch (_) {}
+    _roomTheadResizeObserver = new ResizeObserver(() => { try { roomApplyTheadTop(); } catch (_) {} });
+    _roomTheadResizeObserver.observe(bar);
+    _roomTheadObservedBar = bar;
+  }
   if (!_roomTheadResizeWired) {
     _roomTheadResizeWired = true;
     window.addEventListener('resize', () => { try { roomUpdateTheadTop(); } catch (_) {} }, { passive: true });
@@ -6707,6 +6722,14 @@ async function openReader(textId, title, opts) {
   if (!reader) return;
   const presentationRestore = !!(opts && opts.presentationRestore);
   const openStartedAt = performance.now();
+  // Queue the one intentional recency write before any Reader/background reads.
+  // With B7 cold-cache work active, deferring this fire-and-forget write until
+  // after paint allowed Back/Forward probes to overtake it. Presentation restore
+  // still remains strictly read-only.
+  let touchOpenedPromise = null;
+  if (!presentationRestore) {
+    try { touchOpenedPromise = Promise.resolve(localDb.touchOpened(textId)).catch(() => false); } catch (_) {}
+  }
   if (presentationRestore) _roomReaderReadOnlyUntil = Date.now() + 1500;
   else roomPushPresentationState({ surface: 'reader', anchor: { itemId: String(textId == null ? '' : textId), rowIndex: 0 } });
   const requestedEpoch = opts && Number(opts._readerOpenEpoch);
@@ -6799,7 +6822,7 @@ async function openReader(textId, title, opts) {
       try { loadProcliticOverlay(readerTextId, res.text); } catch (_) {}   // Phase-3 — this work's Dicta proclitic overlay (best-effort)
       try { loadContextOverlay(readerTextId, res.text); } catch (_) {}     // context-overlay — this work's baked context facts (best-effort)
     }
-    if (!presentationRestore) { try { localDb.touchOpened(textId); } catch (_) {} }    // recency for the Continue shelf
+    if (touchOpenedPromise) await touchOpenedPromise;    // recency for the Continue shelf; already queued before Reader reads
     try { tagReaderTableLang(mount); } catch (_) {}      // Epic 8b — sr-only/lang on the painted table (parity-safe)
     try { showReaderTip(); } catch (_) {}                // Epic 8a — first-open gesture hint
     wireProgressScroll();
