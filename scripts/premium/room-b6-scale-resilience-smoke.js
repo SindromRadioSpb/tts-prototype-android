@@ -250,6 +250,16 @@ async function main() {
     check(await page.locator("#roomMyTextsSearch").inputValue() === "TAIL-5000", "reload restores query from history/session");
     await page.locator(".mytexts-grid .mytext-card .mytext-open").click();
     await page.waitForSelector("#roomReader:not([hidden])", { timeout: 30000 });
+    // The intentional user open owns one fire-and-forget touchOpened write.
+    // Establish its settled value before testing that popstate itself is read-only;
+    // otherwise a fast Back can race that legitimate first write and fake a failure.
+    await page.waitForFunction(async () => {
+      const db = await import("/db/local-db.js");
+      const stamp = (await db.dbQuery("SELECT last_opened_at FROM texts WHERE id='b6-text-05000'", []))[0].last_opened_at;
+      const previous = window.__b6OpenedStampProbe;
+      window.__b6OpenedStampProbe = stamp;
+      return !!stamp && previous === stamp;
+    }, null, { timeout: 30000, polling: 50 });
     const openedStamp = await page.evaluate(async () => {
       const db = await import("/db/local-db.js"); return (await db.dbQuery("SELECT last_opened_at FROM texts WHERE id='b6-text-05000'", []))[0].last_opened_at;
     });

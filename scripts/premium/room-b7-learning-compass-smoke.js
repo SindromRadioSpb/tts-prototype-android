@@ -227,6 +227,21 @@ async function runScenario(browser, scenario) {
   if (scenario.profile) check(result.range_count > 0, `${scenario.name}: calibrated range is visible`);
   else check(result.status_classes.includes("coverage-needs_profile"), `${scenario.name}: empty profile is NEEDS_PROFILE`);
 
+  if (scenario.name === "1366-ru-desktop") {
+    const summary = page.locator(".mytexts-grid .learning-compass-details > summary").first();
+    await summary.evaluate((node) => node.scrollIntoView({ block: "start" }));
+    await summary.focus(); await page.keyboard.press("Enter");
+    const painted = await page.evaluate(() => {
+      const panel = document.querySelector(".mytexts-grid .learning-compass-details[open] .learning-compass-panel");
+      if (!panel) return false;
+      const rect = panel.getBoundingClientRect();
+      const hit = document.elementFromPoint(rect.left + 8, rect.top + 8);
+      return !!hit && panel.contains(hit);
+    });
+    check(painted, `${scenario.name}: open Compass detail panel is painted, not overflow-clipped`);
+    await summary.focus(); await page.keyboard.press("Enter");
+  }
+
   if (scenario.name === "380-ru-light") {
     for (const status of ["coverage-available", "coverage-available_limited", "coverage-unsupported", "coverage-stale", "coverage-not_prepared"]) {
       check(result.status_classes.includes(status), `${scenario.name}: visual status ${status}`);
@@ -298,6 +313,7 @@ async function runScenario(browser, scenario) {
   if (!await waitForServer()) { await stopServer(server.child); throw new Error("server did not become ready\n" + server.logs.join("")); }
   const browser = await chromium.launch({ headless: true });
   const scenarios = [
+    { name: "1366-ru-desktop", width: 1366, height: 900, locale: "ru", theme: "light", reduced: false, profile: true, idle: "delayed" },
     { name: "320-en-needs-profile", width: 320, height: 780, locale: "en", theme: "light", reduced: false, profile: false, idle: "delayed" },
     { name: "360-he-rtl-dark", width: 360, height: 800, locale: "he", theme: "dark", reduced: false, profile: true, idle: "delayed" },
     { name: "380-ru-light", width: 380, height: 844, locale: "ru", theme: "light", reduced: false, profile: true, idle: "delayed" },

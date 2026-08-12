@@ -2171,6 +2171,11 @@
     .group-work-card .learning-compass { margin-top: 3px; }
     .mytext-card .learning-compass { max-width: 100%; }
     .work-card .learning-compass-details { display: none; }
+    /* The detail panel is absolutely positioned outside the compact signal
+       row. Reveal that overflow only while the disclosure is open; otherwise
+       the row keeps its bounded horizontal behaviour on desktop. */
+    .mytext-card .learning-compass:has(.learning-compass-details[open]),
+    .group-work-card .learning-compass:has(.learning-compass-details[open]) { overflow: visible; }
     @media (max-width: 760px) {
       /* B7 production read-back: never hide the beginning of a long localized
          signal merely to keep one visual row. Anchor the popup to the whole
@@ -2364,7 +2369,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.362</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.363</span>
   </div>
 </footer>
 
