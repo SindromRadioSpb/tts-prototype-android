@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-12
 
-**Статус:** `OWNER GO / IMPLEMENTED / ENGINEERING PASS / PHYSICAL-AT PENDING`
+**Статус:** `OWNER GO / IMPLEMENTED / ENGINEERING PASS / OWNER GENERAL SMOKE PASS / PHYSICAL-AT PARTIAL`
 
 **Программа:** Reading Room B7 из B6–B9 handoff
 
@@ -18,7 +18,7 @@
 
 **Implementation:** `main@845ddc71`; production finishing `04f88328`, `85bdc9de`
 
-**Production release:** `3.11.363` (served-byte/health and owner-profile read-only browser evidence PASS)
+**Production release:** `3.11.364` (served-byte/health; owner-profile read-only and general owner smoke evidence remain separately classified)
 
 **Historical production snapshot inherited from B6:** `3.11.360`
 
@@ -459,7 +459,7 @@ Rules:
 
 Recommended user-facing distinction:
 
-- `Не менее 76% слов отмечены знакомыми` — recorded lower bound;
+- `Не менее 76% знакомы` — compact visible recorded lower bound; exact counts and provenance remain in details;
 - `8% слов пока не удалось уверенно сопоставить` — resolver uncertainty;
 - `Подходит по отмеченным знакомым словам` — reason, only rank-eligible;
 - never `Вы поймёте 76% текста`.
@@ -607,7 +607,9 @@ D6=packet-budgets+full-physical-matrix.
 а затем отдельно авторизовал production deploy. D1–D6 реализованы в
 `main@845ddc71` с production finishing `04f88328`/`85bdc9de`; engineering,
 served-byte/health и owner-profile read-only browser evidence прошли на
-`3.11.363`. D6 physical/assistive matrix остаётся отдельным незаполненным
-gate, поэтому B7 ещё не закрыт и не имеет GA/closure verdict. Реализованный
+`3.11.363`. 13 августа owner general production smoke прошёл с одним замечанием
+по плотности copy; compact-copy follow-up вошёл в `3.11.364` и прошёл automation
+`125/125`. D6 physical/assistive matrix остаётся частично незаполненным gate,
+поэтому B7 ещё не закрыт и не имеет GA/closure verdict. Реализованный
 контракт и точная граница доказательства записаны в
 [`ROOM_UX_B7_LEARNING_COMPASS_2_IMPLEMENTATION_2026_08_12.md`](./ROOM_UX_B7_LEARNING_COMPASS_2_IMPLEMENTATION_2026_08_12.md).

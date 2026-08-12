@@ -2,7 +2,7 @@
 
 Дата: 2026-08-11
 
-Статус: **B6 CLOSED; B7 ENGINEERING PASS / PHYSICAL-AT PENDING**
+Статус: **B6 CLOSED; B7 ENGINEERING + OWNER GENERAL SMOKE PASS / PHYSICAL-AT PARTIAL**
 
 Предшествующие программы: Option B B0–B5 и B6 Scale & Resilience закрыты
 владельцем; см. `ROOM_UX_MATURITY_OPTION_B_CLOSURE_2026_08_11.md` и
@@ -32,7 +32,7 @@ cross-surface решениями.
 ### B7 — Learning Compass 2.0
 
 Implementation `main@845ddc71`, production finishing `04f88328`/`85bdc9de`,
-served release `3.11.363`:
+compact-copy follow-up served in `3.11.364`:
 
 - один local-first `recorded-familiarity-v2` core для Room и Agent Access;
 - versioned derived cache + bounded Worker для My Texts/current materialized
@@ -41,9 +41,11 @@ served release `3.11.363`:
 - local-only `5×3×2500` calibration range с disable/reset;
 - typed per-field provenance и deterministic reason ladder без LLM/threshold
   promise;
-- engineering `118/118`, production served-byte/health и owner-profile
-  read-only browser evidence PASS; physical/AT matrix не выполнялась, B7 не
-  закрыт.
+- engineering `125/125`, production served-byte/health, owner-profile read-only
+  browser и owner-reported general production smoke PASS; iPhone Safari
+  evidence partial, full physical/AT matrix не выполнена, B7 не закрыт.
+- по owner feedback visible familiarity copy сокращена до `X% знакомы` /
+  `Не менее X% знакомы`; exact buckets и provenance остаются в details.
 
 - честная familiar-word coverage для поддерживаемых My Texts/group items;
 - индивидуальное время чтения только после калибровки по реальному поведению;
@@ -80,7 +82,8 @@ LocalDb/FSRS/media/i18n/SW contracts и production deployments остаются 
 
 1. Использовать
    `ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md` на exact production release
-   `3.11.363`; не подменять physical/AT automation/Kapture-скриншотами.
+   `3.11.364`; не подменять незаполненные physical/AT строки automation или
+   Kapture-скриншотами.
 2. При agent-assisted owner-profile проверке выполнять только read-only
    navigation/details; calibration controls — только самим владельцем или
    после отдельного разрешения. Не grade/review и доказать неизменность

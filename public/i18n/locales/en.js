@@ -2488,7 +2488,7 @@ window.I18N_LOCALES.en = {
       benProvenance: "Difficulty uses lexical frequency; familiar words appear only with real profile overlap",
       groupProvenance: "Study group · TTS · audio revision {value}",
       groupProvenanceUnknown: "Study group · audio source and revision are not asserted",
-      recordedFamiliar: "recorded as familiar", recordedFamiliarLowerBound: "At least {value}% recorded as familiar", needsProfile: "Word profile needed", notPrepared: "Analysis not prepared yet", preparing: "Preparing analysis",
+      recordedFamiliar: "familiar", recordedFamiliarLowerBound: "At least {value}% familiar", needsProfile: "Word profile needed", notPrepared: "Analysis not prepared yet", preparing: "Preparing analysis",
       stale: "Analysis needs refreshing", unsupported: "Local analysis is not supported", unavailable: "Estimate unavailable", readingRange: "{min}–{max} min",
       timeNeedsCalibration: "Time appears after 5 completed readings", resetCalibration: "Reset my reading time",
       calibrationReset: "Local reading-time calibration reset",

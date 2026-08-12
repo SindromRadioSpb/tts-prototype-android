@@ -164,6 +164,7 @@ async function audit(page, scenario) {
       status_classes: statusClasses, small_targets: small,
       range_count: Array.from(root.querySelectorAll(".learning-reading-time")).filter((node) => /\d+.*[–-].*\d+/.test(node.textContent)).length,
       fabricated_zero: Array.from(root.querySelectorAll(".learning-familiar")).filter((node) => /^0%/.test(node.textContent.trim())).length,
+      familiarity_copy: Array.from(root.querySelectorAll(".learning-familiar")).map((node) => node.textContent.trim()),
       raw_provenance_types: Array.from(root.querySelectorAll(".learning-compass-panel")).filter((node) => /\b(asserted|derived|unknown|curated)\b/.test(node.textContent)).length,
     };
   }, { name: scenario.name, zoom: scenario.zoom || 1 });
@@ -226,6 +227,11 @@ async function runScenario(browser, scenario) {
   check(telemetry.length === 0, `${scenario.name}: no RUM/telemetry requests`);
   if (scenario.profile) check(result.range_count > 0, `${scenario.name}: calibrated range is visible`);
   else check(result.status_classes.includes("coverage-needs_profile"), `${scenario.name}: empty profile is NEEDS_PROFILE`);
+  if (scenario.name === "380-ru-light") {
+    check(result.familiarity_copy.some((copy) => /^Не менее \d+% знакомы$/.test(copy)), `${scenario.name}: compact lower-bound familiarity copy is rendered`);
+    check(result.familiarity_copy.some((copy) => /^\d+% знакомы$/.test(copy)), `${scenario.name}: compact exact familiarity copy is rendered`);
+    check(result.familiarity_copy.every((copy) => !/зафиксировано знакомыми/.test(copy)), `${scenario.name}: old noisy familiarity wording is absent`);
+  }
 
   if (scenario.name === "1366-ru-desktop") {
     const summary = page.locator(".mytexts-grid .learning-compass-details > summary").first();
@@ -305,9 +311,16 @@ async function runScenario(browser, scenario) {
   fs.mkdirSync(OUT, { recursive: true });
   const uiSource = fs.readFileSync(path.join(ROOT, "public/js/library-ui.js"), "utf8");
   const htmlSource = fs.readFileSync(path.join(ROOT, "public/library.html"), "utf8");
+  const ruSource = fs.readFileSync(path.join(ROOT, "public/i18n/locales/ru.js"), "utf8");
+  const enSource = fs.readFileSync(path.join(ROOT, "public/i18n/locales/en.js"), "utf8");
+  const heSource = fs.readFileSync(path.join(ROOT, "public/i18n/locales/he.js"), "utf8");
   check(!/COMFORT_95_98|STRETCH_90_95|FRUSTRATION_BELOW_90|TRIVIAL_ABOVE_98/.test(uiSource + htmlSource), "active Room surface has no universal readiness bands");
   check(!/≈\s*['"+]|pick\.cov\)\s*\*\s*100/.test(uiSource), "active Room surface has no soft familiarity estimate");
   check(/scheduleCompassIdleBuild[\s\S]*getSentences/.test(uiSource), "full-body reads are isolated to the bounded idle builder");
+  check(/recordedFamiliarLowerBound:\s*"Не менее \{value\}% знакомы"/.test(ruSource), "RU lower-bound familiarity copy stays compact");
+  check(/recordedFamiliarLowerBound:\s*"At least \{value\}% familiar"/.test(enSource), "EN lower-bound familiarity copy stays compact");
+  check(/recordedFamiliarLowerBound:\s*"לפחות \{value\}% מוכרות"/.test(heSource), "HE lower-bound familiarity copy stays compact");
+  check(!/recordedFamiliarLowerBound[^\n]+(?:зафиксировано знакомыми|recorded as familiar|תועדו כמוכרות)/.test(ruSource + enSource + heSource), "visible lower-bound copy does not repeat provenance wording");
 
   const server = startServer();
   if (!await waitForServer()) { await stopServer(server.child); throw new Error("server did not become ready\n" + server.logs.join("")); }
@@ -324,7 +337,12 @@ async function runScenario(browser, scenario) {
   const matrix = [];
   try { for (const scenario of scenarios) matrix.push(await runScenario(browser, scenario)); }
   finally { await browser.close(); await stopServer(server.child); }
-  fs.writeFileSync(path.join(OUT, "metrics.json"), JSON.stringify({ generated_at: new Date().toISOString(), evidence_class: "desktop Chromium automation, not physical or AT", matrix }, null, 2) + "\n");
+  fs.writeFileSync(path.join(OUT, "ROOM_B7_AUTOMATION_EVIDENCE.json"), JSON.stringify({
+    generated_at: new Date().toISOString(),
+    evidence_class: "desktop Chromium automation, not physical or AT",
+    checks: { passed: checks - failures.length, total: checks },
+    matrix,
+  }, null, 2) + "\n");
   if (failures.length) {
     console.error(`[room-b7-learning-compass-smoke] FAIL ${checks - failures.length}/${checks}`);
     for (const failure of failures) console.error(" - " + failure);

@@ -2498,7 +2498,7 @@ window.I18N_LOCALES.he = {
       benProvenance: "הקושי מבוסס על שכיחות; מילים מוכרות מוצגות רק כשיש חפיפה אמיתית לפרופיל",
       groupProvenance: "קבוצת לימוד · TTS · מהדורת שמע {value}",
       groupProvenanceUnknown: "קבוצת לימוד · מקור השמע והמהדורה לא אומתו",
-      recordedFamiliar: "תועדו כמוכרות", recordedFamiliarLowerBound: "לפחות {value}% תועדו כמוכרות", needsProfile: "נדרש פרופיל מילים", notPrepared: "הניתוח עדיין לא הוכן", preparing: "מכינים את הניתוח",
+      recordedFamiliar: "מוכרות", recordedFamiliarLowerBound: "לפחות {value}% מוכרות", needsProfile: "נדרש פרופיל מילים", notPrepared: "הניתוח עדיין לא הוכן", preparing: "מכינים את הניתוח",
       stale: "יש לרענן את הניתוח", unsupported: "הניתוח המקומי אינו נתמך", unavailable: "ההערכה אינה זמינה", readingRange: "{min}–{max} דקות",
       timeNeedsCalibration: "הזמן יוצג לאחר 5 קריאות שהושלמו", resetCalibration: "איפוס זמן הקריאה שלי",
       calibrationReset: "כיול זמן הקריאה המקומי אופס",

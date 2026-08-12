@@ -13,11 +13,19 @@
 
 The owner subsequently authorized implementation and, separately, production
 deployment. Engineering implementation is `main@845ddc71`, production
-finishing is `04f88328`/`85bdc9de`, and served release is `3.11.363`; durable
+finishing is `04f88328`/`85bdc9de`, with compact-copy follow-up served in
+`3.11.364`; durable
 automation and production read-back artifacts are in
 [`automation/`](./automation/) and the current status is recorded in
 [`ROOM_UX_B7_LEARNING_COMPASS_2_IMPLEMENTATION_2026_08_12.md`](../../../planning/ROOM_UX_B7_LEARNING_COMPASS_2_IMPLEMENTATION_2026_08_12.md).
 This research record remains unchanged as the pre-code evidence boundary.
+
+Follow-up 2026-08-13: owner-reported general production smoke passed and an
+iPhone Safari screenshot exposed an overlong familiarity badge. Visible copy
+is now `X% знакомы` / `Не менее X% знакомы` (with compact EN/HE equivalents),
+while exact recorded buckets and provenance remain in details. The refreshed
+Chromium matrix is `125/125`; it is still not a substitute for unreported AT
+rows.
 
 ## 1. Scope and evidence boundary
 

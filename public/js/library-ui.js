@@ -803,8 +803,8 @@ function paintLearningCompass(target, item, options) {
       let copy = '';
       if ((value.status === 'AVAILABLE' || value.status === 'AVAILABLE_LIMITED') && Number.isFinite(Number(value.lower_bound_pct))) {
         copy = Number(value.uncertainty_pp) > 0
-          ? tt('room.compass.recordedFamiliarLowerBound', 'Не менее {value}% зафиксировано знакомыми').replace('{value}', String(Math.round(Number(value.lower_bound_pct))))
-          : Math.round(Number(value.lower_bound_pct)) + '% ' + tt('room.compass.recordedFamiliar', 'зафиксировано знакомыми');
+          ? tt('room.compass.recordedFamiliarLowerBound', 'Не менее {value}% знакомы').replace('{value}', String(Math.round(Number(value.lower_bound_pct))))
+          : Math.round(Number(value.lower_bound_pct)) + '% ' + tt('room.compass.recordedFamiliar', 'знакомы');
       } else if (value.status === 'NEEDS_PROFILE') copy = tt('room.compass.needsProfile', 'Нужен профиль слов');
       else if (value.status === 'NOT_PREPARED') copy = tt('room.compass.notPrepared', 'Анализ не подготовлен');
       else if (value.status === 'PENDING') copy = tt('room.compass.preparing', 'Анализ готовится');
@@ -1493,8 +1493,8 @@ async function refreshCovChip() {
     const lead = el('span', { class: 'cov-chip-pct' });
     if (fit.status === 'AVAILABLE' || fit.status === 'AVAILABLE_LIMITED') {
       lead.textContent = '📖 ' + (Number(fit.unresolved_uncertainty_pp) > 0
-        ? tt('room.compass.recordedFamiliarLowerBound', 'Не менее {value}% зафиксировано знакомыми').replace('{value}', String(Math.round(Number(fit.recorded_familiar_pct_lower_bound))))
-        : Math.round(Number(fit.recorded_familiar_pct_lower_bound)) + '% ' + tt('room.compass.recordedFamiliar', 'зафиксировано знакомыми'));
+        ? tt('room.compass.recordedFamiliarLowerBound', 'Не менее {value}% знакомы').replace('{value}', String(Math.round(Number(fit.recorded_familiar_pct_lower_bound))))
+        : Math.round(Number(fit.recorded_familiar_pct_lower_bound)) + '% ' + tt('room.compass.recordedFamiliar', 'знакомы'));
     } else if (fit.status === 'NEEDS_PROFILE') lead.textContent = '📖 ' + tt('room.compass.needsProfile', 'Нужен профиль слов');
     else lead.textContent = '📖 ' + tt('room.compass.unavailable', 'Оценка недоступна');
     chip.appendChild(lead);
