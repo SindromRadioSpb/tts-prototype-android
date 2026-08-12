@@ -16,11 +16,11 @@
 
 **Research baseline:** `main@6a2e80a1`
 
-**Implementation:** `main@845ddc71`
+**Implementation:** `main@845ddc71`; production finishing `04f88328`, `85bdc9de`
 
-**Release candidate:** `3.11.361` (local engineering evidence; production not deployed)
+**Production release:** `3.11.363` (served-byte/health and owner-profile read-only browser evidence PASS)
 
-**Production snapshot inherited from B6:** `3.11.360`
+**Historical production snapshot inherited from B6:** `3.11.360`
 
 **Evidence:**
 [`docs/research/room-ux-b7-learning-compass/2026-08-12/`](../research/room-ux-b7-learning-compass/2026-08-12/README.md)
@@ -603,9 +603,11 @@ D5=deterministic-reasons+no-threshold-promise;
 D6=packet-budgets+full-physical-matrix.
 ```
 
-Владелец 2026-08-12 дал явный переход к реализации рекомендованного packet.
-D1–D6 реализованы в `main@845ddc71`; engineering automation прошла. D6
-physical/assistive matrix остаётся отдельным незаполненным gate, поэтому B7
-ещё не закрыт и не имеет production/GA verdict. Реализованный контракт и
-точная граница доказательства записаны в
+Владелец 2026-08-12 дал явный переход к реализации рекомендованного packet,
+а затем отдельно авторизовал production deploy. D1–D6 реализованы в
+`main@845ddc71` с production finishing `04f88328`/`85bdc9de`; engineering,
+served-byte/health и owner-profile read-only browser evidence прошли на
+`3.11.363`. D6 physical/assistive matrix остаётся отдельным незаполненным
+gate, поэтому B7 ещё не закрыт и не имеет GA/closure verdict. Реализованный
+контракт и точная граница доказательства записаны в
 [`ROOM_UX_B7_LEARNING_COMPASS_2_IMPLEMENTATION_2026_08_12.md`](./ROOM_UX_B7_LEARNING_COMPASS_2_IMPLEMENTATION_2026_08_12.md).

@@ -11,8 +11,10 @@
 **Decision packet:**
 [`ROOM_UX_B7_LEARNING_COMPASS_2_DECISION_PACKET_2026_08_12.md`](../../../planning/ROOM_UX_B7_LEARNING_COMPASS_2_DECISION_PACKET_2026_08_12.md)
 
-The owner subsequently authorized implementation. Engineering implementation
-is `main@845ddc71`; durable automation artifacts are in
+The owner subsequently authorized implementation and, separately, production
+deployment. Engineering implementation is `main@845ddc71`, production
+finishing is `04f88328`/`85bdc9de`, and served release is `3.11.363`; durable
+automation and production read-back artifacts are in
 [`automation/`](./automation/) and the current status is recorded in
 [`ROOM_UX_B7_LEARNING_COMPASS_2_IMPLEMENTATION_2026_08_12.md`](../../../planning/ROOM_UX_B7_LEARNING_COMPASS_2_IMPLEMENTATION_2026_08_12.md).
 This research record remains unchanged as the pre-code evidence boundary.

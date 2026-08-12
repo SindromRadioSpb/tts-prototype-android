@@ -1,0 +1,111 @@
+{
+  "generated_at": "2026-08-12T01:17:48Z",
+  "evidence_class": "production served-byte and owner-profile read-only browser evidence; not physical-device or assistive-technology acceptance",
+  "release": {
+    "version": "3.11.363",
+    "implementation": "845ddc71",
+    "production_finishing": ["04f88328", "85bdc9de"],
+    "head_equals_origin_main": true
+  },
+  "served_readback": {
+    "config_version": "3.11.363",
+    "room_footer_version": "3.11.363",
+    "studio_app_version": "3.11.363",
+    "service_worker_cache_version": "3.11.363",
+    "committed_vs_served_sha256": {
+      "matched": 7,
+      "checked": 7,
+      "paths": [
+        "library.html",
+        "index.html",
+        "js/library-ui.js",
+        "js/learning-compass-core.js",
+        "js/learning-compass-worker.js",
+        "db/local-db.js",
+        "sw.js"
+      ]
+    },
+    "health": {
+      "ok": true,
+      "db_ready": true,
+      "migrations_ready": true,
+      "disk_pct_used": 85,
+      "disk_warn": true
+    },
+    "clean_chromium_380": {
+      "horizontal_overflow_px": 0,
+      "clipped_signals": 0,
+      "ui_errors": 0,
+      "note": "anonymous auth probes returned the expected 401"
+    }
+  },
+  "owner_profile_read_only": {
+    "service_worker": {
+      "safe_point_confirmed": true,
+      "waiting_update_activated_by_product_control": true,
+      "waiting_after": null,
+      "active_cache": "v3.11.363"
+    },
+    "my_texts": {
+      "exact_total": 115,
+      "first_page_cards": 48,
+      "compasses": 48,
+      "structured_details": 48,
+      "desktop_detail_paint_hit_test": [true, true, true],
+      "horizontal_overflow_px": 0,
+      "clipped_signals": 0,
+      "fabricated_zero": 0,
+      "ui_errors": 0
+    },
+    "study_songs_pilot": {
+      "exact_total": 77,
+      "first_page_cards": 48,
+      "compasses": 48,
+      "structured_details": 48,
+      "desktop_detail_paint_hit_test": [true, true, true],
+      "observed_partial_audio_count": "44/57",
+      "unknown_audio_provenance_remained_unknown": true,
+      "horizontal_overflow_px": 0,
+      "clipped_signals": 0,
+      "fabricated_zero": 0,
+      "ui_errors": 0
+    },
+    "canonical_before_after": {
+      "review_log": {
+        "count": 7191,
+        "sha256": "4a2085c1866ff4accb2edd6ced4ccc5c8e37c06e55736e09d6550d39060dd1e6",
+        "unchanged": true
+      },
+      "word_status": {
+        "count": 5368,
+        "sha256": "8d08d0bb69f9067ae45bcc5723a511fdd12958067461f59da0204079783a8f1b",
+        "unchanged": true
+      },
+      "text_progress": {
+        "count": 89,
+        "sha256": "b91f8cc05fc380d414c198881e1b1b26c4192f51c0c0eb7d407cb1b524ceac1e",
+        "unchanged": true
+      }
+    },
+    "forbidden_actions_invoked": [],
+    "normal_background_sync_observed": true,
+    "network_request_bodies_inspected": false
+  },
+  "operations": {
+    "builder_cache_prune_reclaimed_gb": 1.507,
+    "root_disk_before_pct": 90,
+    "root_disk_after_pct": 85,
+    "containers_removed": 0,
+    "volumes_removed": 0,
+    "inactive_images_preserved": true
+  },
+  "physical_at": {
+    "iphone_safari": "NOT_RUN",
+    "iphone_pwa_voiceover": "NOT_RUN",
+    "android_chrome_pwa": "NOT_RUN",
+    "talkback": "NOT_RUN",
+    "windows_nvda": "NOT_RUN",
+    "macos_voiceover": "NOT_RUN",
+    "physical_keyboard_200pct": "NOT_RUN"
+  }
+}

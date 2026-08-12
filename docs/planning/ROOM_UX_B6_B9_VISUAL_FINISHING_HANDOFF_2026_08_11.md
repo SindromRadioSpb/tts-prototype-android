@@ -31,7 +31,8 @@ cross-surface решениями.
 
 ### B7 — Learning Compass 2.0
 
-Implementation `main@845ddc71`, release candidate `3.11.361`:
+Implementation `main@845ddc71`, production finishing `04f88328`/`85bdc9de`,
+served release `3.11.363`:
 
 - один local-first `recorded-familiarity-v2` core для Room и Agent Access;
 - versioned derived cache + bounded Worker для My Texts/current materialized
@@ -40,8 +41,9 @@ Implementation `main@845ddc71`, release candidate `3.11.361`:
 - local-only `5×3×2500` calibration range с disable/reset;
 - typed per-field provenance и deterministic reason ladder без LLM/threshold
   promise;
-- engineering gates PASS; production deploy/read-back и physical/AT matrix не
-  выполнялись, B7 не закрыт.
+- engineering `118/118`, production served-byte/health и owner-profile
+  read-only browser evidence PASS; physical/AT matrix не выполнялась, B7 не
+  закрыт.
 
 - честная familiar-word coverage для поддерживаемых My Texts/group items;
 - индивидуальное время чтения только после калибровки по реальному поведению;
@@ -77,12 +79,14 @@ LocalDb/FSRS/media/i18n/SW contracts и production deployments остаются 
 ## Текущая следующая граница: B7.5 physical/AT acceptance
 
 1. Использовать
-   `ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md` на exact candidate
-   `3.11.361`; не подменять physical/AT automation-скриншотами.
-2. На owner profile выполнять только read-only navigation/calibration controls;
-   не grade/review и доказать неизменность `review_log`.
-3. После owner-reported physical PASS отдельно выполнить production
-   preflight/deploy/served-byte read-back, если владелец явно авторизует deploy.
+   `ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md` на exact production release
+   `3.11.363`; не подменять physical/AT automation/Kapture-скриншотами.
+2. При agent-assisted owner-profile проверке выполнять только read-only
+   navigation/details; calibration controls — только самим владельцем или
+   после отдельного разрешения. Не grade/review и доказать неизменность
+   `review_log`.
+3. Production preflight/deploy/served-byte read-back уже выполнен; после
+   owner-reported physical PASS подготовить B7 closure verdict.
 4. Только после B7 closure начать новый research-only goal B8 Reading Journey.
    B8/B9/Visual finishing не piggyback на B7 release.
 

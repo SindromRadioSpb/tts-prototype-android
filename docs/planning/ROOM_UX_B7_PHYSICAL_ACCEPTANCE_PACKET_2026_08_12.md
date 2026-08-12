@@ -2,18 +2,21 @@
 
 Дата подготовки: 2026-08-12
 
-Статус: **READY TO EXECUTE · AUTOMATION PASS · PHYSICAL/AT NOT RUN**
+Статус: **READY TO EXECUTE ON PROD · AUTOMATION/PRODUCTION READ-BACK PASS · PHYSICAL/AT NOT RUN**
 
-Release under test: `3.11.361` / implementation `845ddc71`.
+Release under test: production `3.11.363` / implementation chain
+`845ddc71` + `04f88328` + `85bdc9de`.
 
-Production deploy не является prerequisite для локального candidate smoke и
-не авторизован этим packet. Проверять нужно exact served/installed version и
-записать её в каждую строку.
+Production deploy был отдельно явно авторизован владельцем и прошёл
+served-byte/health read-back. В каждой строке всё равно фиксировать exact
+served/installed version; staged/PWA cache может отличаться до safe update.
 
 ## Неподвижные правила
 
-1. На owner profile только read-only Room navigation и B7 details/reset/
-   disable. Не grade/review, не менять word status и не завершать review.
+1. При agent-assisted проверке owner profile — только read-only Room navigation
+   и B7 details. Reset/disable выполнять на synthetic profile либо самим
+   владельцем/после отдельного явного разрешения. Не grade/review, не менять
+   word status и не завершать review.
 2. До/после фиксировать aggregate+checksum `review_log`; значения обязаны
    совпасть. По возможности также фиксировать `word_status` и progress
    checksum.
@@ -54,7 +57,8 @@ Production deploy не является prerequisite для локального
 | B7-NVDA | Windows 11 Chrome + NVDA | reason/buckets/provenance order and focus return | exact facts announced; no tooltip-only data | NOT RUN |
 | B7-MAC-VO | macOS Safari + VoiceOver | WebKit details/status semantics and HE/RTL | logical order/focus; no clipped facts | NOT RUN |
 | B7-KBD-200 | physical keyboard, desktop 200% | full browse/details/disable/reset without pointer | visible focus, no trap/overlap, all actions reachable | NOT RUN |
-| B7-AUTO | isolated Chromium matrix | 320–1280/status/privacy/budgets | `92/92`; not physical/AT | PASS — automation |
+| B7-AUTO | isolated Chromium matrix | 320–1366/status/privacy/budgets/desktop paint | `118/118`; not physical/AT | PASS — automation |
+| B7-OWNER-DESKTOP | signed-in owner Chrome via Kapture, read-only | My Texts + group details, SW safe update, checksums | `3.11.363`; 48/48 details on both surfaces; canonical hashes unchanged; not physical/AT | PASS — owner-profile read-only browser evidence |
 
 ## Evidence record
 
@@ -77,4 +81,5 @@ tester / timestamp:
 
 B7 остаётся `ENGINEERING PASS / PHYSICAL-AT PENDING`, пока обязательные строки
 не имеют owner evidence или явного documented exception. Только после owner
-acceptance можно подготовить closure и отдельно решать production deploy.
+acceptance можно подготовить closure; production `3.11.363` уже развёрнут и
+проверен, но сам по себе physical/AT строки не закрывает.

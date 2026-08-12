@@ -2,20 +2,21 @@
 
 Дата: 2026-08-12
 
-Статус: **IMPLEMENTED · ENGINEERING PASS · PHYSICAL/AT PENDING · NOT DEPLOYED**
+Статус: **IMPLEMENTED · ENGINEERING PASS · PRODUCTION READ-BACK PASS · OWNER-PROFILE READ-ONLY PASS · PHYSICAL/AT PENDING**
 
 Owner direction: `Переходи к реализации.`
 
 Decision packet:
 [`ROOM_UX_B7_LEARNING_COMPASS_2_DECISION_PACKET_2026_08_12.md`](./ROOM_UX_B7_LEARNING_COMPASS_2_DECISION_PACKET_2026_08_12.md)
 
-Implementation: `main@845ddc71`
+Implementation: `main@845ddc71`; production finishing: `04f88328`, `85bdc9de`
 
-Release candidate: `3.11.361`
+Production release: `3.11.363`
 
-Production remains on the inherited B6 snapshot until a separately authorized
-deploy and served-byte read-back. Automation below is not production,
-physical-device, screen-reader, or owner-live evidence.
+Владелец отдельно авторизовал production deploy. `3.11.363` развёрнут и
+проверен direct no-store/served-byte read-back. Kapture-проверка использовала
+реальный owner profile только для read-only navigation и раскрытия details;
+она не является physical-device, screen-reader или owner acceptance evidence.
 
 ## Реализованный контракт
 
@@ -40,20 +41,21 @@ physical-device, screen-reader, or owner-live evidence.
   максимум два visible B7 signals, structured details, keyboard reset/disable.
 - Agent `get_text_coverage` и group coverage используют ту же v2-семантику.
   Это versioned response evolution; оно не создаёт network dependency Room.
-- Service Worker/Studio/Room version согласованы на candidate `3.11.361`;
+- Service Worker/Studio/Room version согласованы на production `3.11.363`;
   activation semantics B6 не ослаблены.
 
 ## Engineering evidence ledger
 
 - B7 + frozen B6/B0–B5 unit contract: `37/37`.
-- B7 responsive/status/privacy browser smoke: `92/92`.
-- Matrix: `320/360/380/430/510/1280`, EN/RU/HE-RTL, light/dark, reduced
+- B7 responsive/status/privacy browser smoke: `118/118`, включая desktop
+  paint/hit-test открытой details-панели.
+- Matrix: `320/360/380/430/510/1280/1366`, EN/RU/HE-RTL, light/dark, reduced
   motion and simulated 200% zoom; inspected RU 380 and HE/RTL 360 artifacts.
 - Across the matrix: `0` horizontal overflow, `0` fabricated zero, `0`
-  telemetry requests, `0` page errors, maximum `2` card signals, `470` DOM
+  telemetry requests, `0` page errors, maximum `2` card signals, `549` DOM
   nodes in the bounded fixture.
-- Cached page batch: `3,489 B`; observed p95 `8.82–11.71 ms`; projection
-  `2.19–3.08 ms`; these are local lab timings, not field distributions.
+- Cached page batch: `3,489 B`; observed p95 `17.42–22.53 ms`; projection
+  `3.79–7.38 ms`; these are local lab timings, not field distributions.
 - Reset and disable preserve exact `review_log`, `word_status` and
   `text_progress` fixture rows.
 - B6 targeted regression: `45/45`.
@@ -66,21 +68,45 @@ physical-device, screen-reader, or owner-live evidence.
 Durable automation evidence:
 [`docs/research/room-ux-b7-learning-compass/2026-08-12/automation/`](../research/room-ux-b7-learning-compass/2026-08-12/automation/).
 
+## Production and owner-profile read-back
+
+- `main@85bdc9de == origin/main`; public config, Room footer, Studio
+  `APP_VERSION` and SW cache version: `3.11.363`.
+- Committed-vs-served SHA-256 equality: `7/7` for Room HTML, Studio HTML,
+  `library-ui.js`, core, Worker, LocalDb and SW.
+- `/healthz`: app, DB and migrations ready. Bounded build-cache cleanup removed
+  about `1.5 GB` without touching containers/volumes/data; root moved
+  `90% → 85%`. `disk_warn=true` remains and old inactive images were preserved
+  rather than silently narrowing rollback.
+- Clean isolated Chromium at 380 px: exact version, no UI error, no horizontal
+  overflow or clipped B7 signal; only expected anonymous `401` auth probes.
+- Owner «Мои тексты»: `48/115` first-page cards, `48/48` Compass details,
+  desktop details paint/hit-test `3/3`, exact bucket/time/provenance copy,
+  `0` fabricated zero/overflow/error.
+- Owner «Учебные песни»: `48/77` first-page cards, `48/48` Compass details,
+  details paint/hit-test `3/3`, exact partial-audio count and honest unknown
+  audio provenance, `0` fabricated zero/overflow/error.
+- Before/after the read-only owner flow, counts and SHA-256 were identical for
+  `review_log`, `word_status` and `text_progress`. No reader, grade/review,
+  word-status action, calibration reset or disable was invoked. Normal signed-in
+  background sync traffic was observed; request bodies were not inspected.
+
+Durable production evidence:
+[`PRODUCTION_READBACK_EVIDENCE.json`](../research/room-ux-b7-learning-compass/2026-08-12/automation/PRODUCTION_READBACK_EVIDENCE.json).
+
 ## Что не доказано
 
-- Candidate `3.11.361` не развёрнут и не прошёл production served-byte/health
-  read-back.
 - Ни один результат не считается iPhone/Android/macOS/NVDA/VoiceOver/TalkBack
   PASS. Chromium screenshots и keyboard automation — только lab evidence.
-- Owner profile не использовался; owner-live checksum не записан.
+- Kapture owner-profile read-only evidence не является owner-reported
+  physical/AT acceptance.
 - Field RUM сознательно отсутствует по D4/B6 privacy boundary.
-- B7 нельзя закрыть или назвать GA до physical/AT acceptance и отдельного
-  release verdict.
+- B7 нельзя закрыть или назвать GA до physical/AT acceptance и closure verdict.
 
 ## Следующая граница
 
 Выполнить
 [`ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md`](./ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md).
-После owner PASS — отдельный явно авторизованный production preflight/deploy/
-read-back. Затем новый research-only goal B8 Reading Journey; B8 не входит в
-этот implementation commit.
+Production preflight/deploy/read-back уже выполнен на exact `3.11.363`.
+После owner physical/AT PASS подготовить B7 closure; только затем начинать
+новый research-only goal B8 Reading Journey.
