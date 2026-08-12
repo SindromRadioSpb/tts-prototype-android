@@ -2171,6 +2171,35 @@
     .group-work-card .learning-compass { margin-top: 3px; }
     .mytext-card .learning-compass { max-width: 100%; }
     .work-card .learning-compass-details { display: none; }
+    @media (max-width: 760px) {
+      /* B7 production read-back: never hide the beginning of a long localized
+         signal merely to keep one visual row. Anchor the popup to the whole
+         compass so LTR and RTL both stay inside the card. */
+      .mytext-card .learning-compass,
+      .group-work-card .learning-compass {
+        flex-wrap: wrap; overflow: visible;
+      }
+      .mytext-card .learning-signal,
+      .group-work-card .learning-signal {
+        max-width: 100%; white-space: normal;
+      }
+      /* Continue is already the primary row action; exact media remains in
+         Compass details. Keep the phone scan to the two B7 facts that vary. */
+      .mytext-card .learner-state-chip,
+      .group-work-card .learner-state-chip,
+      .mytext-card .learning-media,
+      .group-work-card .learning-media,
+      .mytext-card .learning-level,
+      .group-work-card .learning-level,
+      .mytext-card .learning-tag,
+      .group-work-card .learning-tag,
+      .mytext-card .learning-caveat,
+      .group-work-card .learning-caveat { display: none; }
+      .mytext-card .learning-compass-details,
+      .group-work-card .learning-compass-details { position: static; }
+      .mytext-card .learning-compass-panel,
+      .group-work-card .learning-compass-panel { inset-inline-start: 0; }
+    }
     @media (prefers-color-scheme: dark) {
       body:not(.theme-light) .learning-familiar.coverage-available { color: var(--text-primary); background: color-mix(in srgb, var(--accent) 12%, var(--bg-card)); }
       body:not(.theme-light) .learning-familiar.coverage-available_limited { color: #f5c078; }
@@ -2335,7 +2364,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.361</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.362</span>
   </div>
 </footer>
 
@@ -2518,9 +2547,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=78"></script>
-<script src="/i18n/locales/en.js?v=78"></script>
-<script src="/i18n/locales/he.js?v=78"></script>
+<script src="/i18n/locales/ru.js?v=79"></script>
+<script src="/i18n/locales/en.js?v=79"></script>
+<script src="/i18n/locales/he.js?v=79"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->

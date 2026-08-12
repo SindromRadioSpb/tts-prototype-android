@@ -2502,7 +2502,7 @@ window.I18N_LOCALES.ru = {
       benProvenance: "Сложность — по частотности; знакомые слова — только по реальному профилю",
       groupProvenance: "Учебная группа · TTS · редакция аудио {value}",
       groupProvenanceUnknown: "Учебная группа · источник и редакция аудио не подтверждены",
-      recordedFamiliar: "зафиксировано знакомыми", recordedFamiliarLowerBound: "Не менее {value}% зафиксировано знакомыми", needsProfile: "Нужен профиль слов", notPrepared: "Анализ ещё не подготовлен", preparing: "Анализ готовится",
+      recordedFamiliar: "зафиксировано знакомыми", recordedFamiliarLowerBound: "Не менее {value}% зафиксировано знакомыми", needsProfile: "Нужен профиль слов", notPrepared: "Анализ не подготовлен", preparing: "Анализ готовится",
       stale: "Нужно обновить анализ", unsupported: "Локальный анализ не поддерживается", unavailable: "Оценка недоступна", readingRange: "{min}–{max} мин",
       timeNeedsCalibration: "Время — после 5 завершённых чтений", resetCalibration: "Сбросить моё время чтения",
       calibrationReset: "Локальная калибровка времени чтения сброшена",

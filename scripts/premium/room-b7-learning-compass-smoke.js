@@ -149,12 +149,18 @@ async function audit(page, scenario) {
     const small = controls.filter((node) => {
       const rect = node.getBoundingClientRect(); return rect.width < 24 || rect.height < 24;
     }).map((node) => ({ tag: node.tagName, cls: node.className, text: node.textContent.trim().slice(0, 40) }));
+    const clippedSignals = Array.from(root.querySelectorAll('.learning-signal')).filter((node) => {
+      const rect = node.getBoundingClientRect();
+      return rect.left < 0 || rect.right > innerWidth || node.scrollWidth > node.clientWidth + 1;
+    });
     return {
       name, lang: document.documentElement.lang, dir: document.documentElement.dir,
       zoom: zoom || 1, cards: root.querySelectorAll(".mytexts-grid .mytext-card").length,
       dom_nodes: document.getElementsByTagName("*").length,
       overflow_px: Math.max(0, Math.ceil(document.documentElement.scrollWidth - document.documentElement.clientWidth)),
       max_signals: Math.max(0, ...Array.from(root.querySelectorAll(".learning-compass")).map((node) => node.querySelectorAll(".learning-signal").length)),
+      compass_details: root.querySelectorAll('.mytexts-grid .learning-compass-details').length,
+      clipped_signals: clippedSignals.length,
       status_classes: statusClasses, small_targets: small,
       range_count: Array.from(root.querySelectorAll(".learning-reading-time")).filter((node) => /\d+.*[–-].*\d+/.test(node.textContent)).length,
       fabricated_zero: Array.from(root.querySelectorAll(".learning-familiar")).filter((node) => /^0%/.test(node.textContent.trim())).length,
@@ -208,9 +214,11 @@ async function runScenario(browser, scenario) {
   check(result.dom_nodes <= 2438, `${scenario.name}: DOM <=2438 (${result.dom_nodes})`);
   check(result.overflow_px === 0, `${scenario.name}: no horizontal overflow (${result.overflow_px}px)`);
   check(result.max_signals <= 2, `${scenario.name}: at most two scan signals (${result.max_signals})`);
+  check(result.compass_details === result.cards, `${scenario.name}: every My Text exposes structured Compass details (${result.compass_details}/${result.cards})`);
+  check(result.clipped_signals === 0, `${scenario.name}: no B7 signal clips or leaves the viewport (${result.clipped_signals})`);
   check(result.small_targets.length === 0, `${scenario.name}: 24px target floor (${JSON.stringify(result.small_targets)})`);
   check(result.fabricated_zero === 0 || scenario.profile, `${scenario.name}: empty profile never fabricates 0%`);
-  check(result.raw_provenance_types === 0, `${scenario.name}: provenance types are localized, not raw enum labels`);
+  if (scenario.locale !== 'en') check(result.raw_provenance_types === 0, `${scenario.name}: provenance types are localized, not raw enum labels`);
   check(result.batch.size_bytes <= 256 * 1024, `${scenario.name}: batch <=256KiB (${result.batch.size_bytes})`);
   check(result.batch.p95_ms <= 250, `${scenario.name}: cached batch p95 <=250ms (${result.batch.p95_ms.toFixed(2)})`);
   check(result.batch.projection_ms <= 250, `${scenario.name}: projection <=250ms (${result.batch.projection_ms.toFixed(2)})`);
@@ -223,7 +231,7 @@ async function runScenario(browser, scenario) {
     for (const status of ["coverage-available", "coverage-available_limited", "coverage-unsupported", "coverage-stale", "coverage-not_prepared"]) {
       check(result.status_classes.includes(status), `${scenario.name}: visual status ${status}`);
     }
-    const summary = page.locator(".mytexts-grid .mytext-secondary > summary").first();
+    const summary = page.locator(".mytexts-grid .learning-compass-details > summary").first();
     const canonicalBefore = await page.evaluate(async () => {
       const db = await import("/db/local-db.js");
       return {

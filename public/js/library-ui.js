@@ -767,6 +767,16 @@ function learningMediaLabel(media) {
   return '♪ ' + tt(key, fallback) + (media.countLabel ? ' · ' + media.countLabel : '');
 }
 
+function learningReadingTimeCopy(value) {
+  const readingTime = value || {};
+  if (readingTime.status === 'AVAILABLE' && Number.isFinite(Number(readingTime.min_minutes)) && Number.isFinite(Number(readingTime.max_minutes))) {
+    return tt('room.compass.readingRange', '{min}–{max} мин')
+      .replace('{min}', String(readingTime.min_minutes)).replace('{max}', String(readingTime.max_minutes));
+  }
+  if (readingTime.status === 'DISABLED') return tt('room.compass.timeDisabled', 'Учёт времени отключён');
+  return tt('room.compass.timeNeedsCalibration', 'Время — после 5 завершённых чтений');
+}
+
 function renderLearningCompass(item, options) {
   const row = el('div', { class: 'learning-compass work-card-difficulty' });
   paintLearningCompass(row, item, options);
@@ -796,7 +806,7 @@ function paintLearningCompass(target, item, options) {
           ? tt('room.compass.recordedFamiliarLowerBound', 'Не менее {value}% зафиксировано знакомыми').replace('{value}', String(Math.round(Number(value.lower_bound_pct))))
           : Math.round(Number(value.lower_bound_pct)) + '% ' + tt('room.compass.recordedFamiliar', 'зафиксировано знакомыми');
       } else if (value.status === 'NEEDS_PROFILE') copy = tt('room.compass.needsProfile', 'Нужен профиль слов');
-      else if (value.status === 'NOT_PREPARED') copy = tt('room.compass.notPrepared', 'Анализ ещё не подготовлен');
+      else if (value.status === 'NOT_PREPARED') copy = tt('room.compass.notPrepared', 'Анализ не подготовлен');
       else if (value.status === 'PENDING') copy = tt('room.compass.preparing', 'Анализ готовится');
       else if (value.status === 'STALE') copy = tt('room.compass.stale', 'Нужно обновить анализ');
       else if (value.status === 'UNSUPPORTED') copy = tt('room.compass.unsupported', 'Локальный анализ не поддерживается');
@@ -805,22 +815,24 @@ function paintLearningCompass(target, item, options) {
       target.appendChild(node);
     } else if (signal.kind === 'reading-time') {
       const value = signal.value || {};
-      const copy = value.status === 'AVAILABLE' && Number.isFinite(Number(value.min_minutes)) && Number.isFinite(Number(value.max_minutes))
-        ? tt('room.compass.readingRange', '{min}–{max} мин').replace('{min}', String(value.min_minutes)).replace('{max}', String(value.max_minutes))
-        : value.status === 'DISABLED' ? tt('room.compass.timeDisabled', 'Учёт времени отключён')
-          : tt('room.compass.timeNeedsCalibration', 'Время — после 5 завершённых чтений');
-      target.appendChild(el('span', { class: 'learning-signal learning-reading-time', text: copy }));
+      // Before calibration this repeated card-level chip crowds out the more
+      // important familiarity fact on a phone. Keep the exact state in the
+      // accessible details; show a card chip only when a real range exists.
+      if (value.status === 'AVAILABLE') target.appendChild(el('span', { class: 'learning-signal learning-reading-time', text: learningReadingTimeCopy(value) }));
     }
   }
   if (state.state === 'reading' && state.resumeLabel) target.appendChild(el('span', { class: 'learner-state-chip is-reading', text: state.resumeLabel }));
   else if (state.state === 'finished') target.appendChild(el('span', { class: 'learner-state-chip is-finished', text: state.resumeLabel || tt('room.groupCorpus.finished', 'Прочитано') }));
+  let mediaDetailLabel = '';
   if (opts.showMedia) {
     const mediaLabel = learningMediaLabel(item.media);
+    mediaDetailLabel = mediaLabel;
     if (mediaLabel) target.appendChild(el('span', { class: 'learning-media media-' + ((item.media && item.media.coverage) || 'present'), text: mediaLabel }));
   }
   if (opts.showTags) for (const tag of (item.tags || []).slice(0, 1)) target.appendChild(el('span', { class: 'learning-tag', text: '#' + tag }));
   for (const caveat of (readiness.caveats || []).slice(0, 1)) target.appendChild(el('span', { class: 'learning-caveat diff-archaica', text: caveat }));
   const detailLines = [readiness.reason].concat(readiness.caveats || [], item.provenanceSummary || []).filter(Boolean);
+  if (mediaDetailLabel) detailLines.push(mediaDetailLabel);
   for (const signal of (item.signals || [])) {
     const provenance = signal.provenance || { type: 'unknown' };
     if (signal.kind === 'familiarity' && signal.value && signal.value.counts) {
@@ -829,6 +841,10 @@ function paintLearningCompass(target, item, options) {
         .replace('{f}', String(c.familiar)).replace('{d}', String(c.eligible_denominator))
         .replace('{n}', String(c.explicit_new)).replace('{u}', String(c.untracked)).replace('{x}', String(c.unresolved)));
     }
+    if (signal.kind === 'level' && signal.value != null) {
+      detailLines.push(learningSignalKindLabel('level') + ': ' + String(signal.value));
+    }
+    if (signal.kind === 'reading-time') detailLines.push(learningReadingTimeCopy(signal.value));
     detailLines.push(tt('room.compass.provenanceLine', '{kind}: {type} · {source}')
       .replace('{kind}', learningSignalKindLabel(signal.kind)).replace('{type}', learningProvenanceTypeLabel(provenance.type))
       .replace('{source}', String(provenance.source || tt('room.compass.sourceUnknown', 'источник не указан'))));
@@ -7709,10 +7725,10 @@ function renderMyTextCard(item, vertical) {
   openLink.appendChild(titleCopy);
   openLink.appendChild(el('span', { class: 'room-text-primary', text: view.primaryAction === 'continue' ? tt('room.resume.continue', 'Продолжить') : tt('room.mytexts.read', 'Читать') }));
   col.appendChild(openLink);
-  const compassRow = renderLearningCompass(view, { showMedia: true, showTags: false, showDetails: false });
+  const compassRow = renderLearningCompass(view, { showMedia: true, showTags: false, showDetails: true });
   if (descriptor) {
     compassRow.setAttribute('data-compass-key', descriptor.cache_key);
-    compassRow.__compassRepaint = () => { view = makeView(); paintLearningCompass(compassRow, view, { showMedia: true, showTags: false, showDetails: false }); };
+    compassRow.__compassRepaint = () => { view = makeView(); paintLearningCompass(compassRow, view, { showMedia: true, showTags: false, showDetails: true }); };
   }
   col.appendChild(compassRow);
   node.appendChild(col);
@@ -7722,13 +7738,6 @@ function renderMyTextCard(item, vertical) {
   secondary.appendChild(el('summary', { class: 'room-row-more', attrs: { 'aria-label': tt('room.shell.moreActions', 'Другие действия') }, text: '•••' }));
   const secondaryPanel = el('div', { class: 'mytext-secondary-panel' });
   if (view.provenanceSummary) secondaryPanel.appendChild(el('p', { class: 'room-item-provenance', text: view.provenanceSummary }));
-  const calibration = readCalibrationLedger();
-  if (calibration && Array.isArray(calibration.samples) && calibration.samples.length) {
-    const reset = el('button', { class: 'learning-calibration-reset', attrs: { type: 'button' }, text: tt('room.compass.resetCalibration', 'Сбросить моё время чтения') });
-    reset.addEventListener('click', (event) => { event.preventDefault(); resetLearningCalibration(); secondary.removeAttribute('open'); });
-    secondaryPanel.appendChild(reset);
-  }
-  secondaryPanel.appendChild(learningCalibrationToggle());
   const nakdan = el('button', { class: 'mytext-nakdan', attrs: { type: 'button' }, text: 'אְ ' + tt('room.nakdan.add', 'Добавить никуд') });
   nakdan.addEventListener('click', () => addMachineNiqqud(item, nakdan));
   secondaryPanel.appendChild(nakdan); secondary.appendChild(secondaryPanel); node.appendChild(secondary);
