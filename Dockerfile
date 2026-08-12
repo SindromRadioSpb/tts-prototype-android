@@ -6,8 +6,12 @@ FROM node:20-alpine AS deps
 
 WORKDIR /app
 
-# Build tools required to compile native sqlite3 binding via node-gyp
-RUN apk add --no-cache python3 make g++ gcc
+# Build tools required to compile native sqlite3 binding via node-gyp.
+# Python 3.12 removed stdlib distutils; node-gyp 8 (pulled by sqlite3) still
+# imports it when the prebuilt binary download is unavailable. Setuptools
+# supplies the compatible distutils shim so the documented source fallback
+# remains usable instead of turning a transient network miss into a failed deploy.
+RUN apk add --no-cache python3 py3-setuptools make g++ gcc
 
 # Copy package manifests first for layer-cache efficiency
 COPY package.json package-lock.json ./

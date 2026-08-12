@@ -22,6 +22,13 @@ Safari screenshot. Единственное замечание — длинна�
 в `3.11.364` она сокращена до `X% знакомы` / `Не менее X% знакомы`. Семантика
 lower bound, exact buckets и provenance в details не менялись.
 
+Release hardening 13 августа: первые две image-сборки `3.11.364` остановились
+до cutover после сетевого `socket hang up` при получении prebuilt `sqlite3`;
+source fallback затем выявил отсутствующий Python 3.12 `distutils`. Production
+продолжал обслуживаться предыдущим healthy image. В build-only stage
+`Dockerfile` добавлен `py3-setuptools`, предоставляющий совместимый shim для
+используемого `node-gyp 8`; проверка импорта в чистом `node:20-alpine` прошла.
+
 ## Реализованный контракт
 
 | Decision | Реализация |
