@@ -19,52 +19,52 @@
         {
           "path": "public/db/local-db.js",
           "bytes": 398334,
-          "sha256": "1c81f50d16e9cf2d60fc1fe5053c4e3cab421e5514d42fd271aeaffed559eeba"
+          "sha256": "1c81ba74211627b119fe813176128e734ebe99f9c9b515ac4818488495369eba"
         },
         {
           "path": "public/i18n/locales/en.js",
           "bytes": 246177,
-          "sha256": "de62e7bcde2e25e5dbc952e976249488f2d8e90b8a4aa8a2f5c696444782a485"
+          "sha256": "de6217c2eada400b680cd5f704f66b0cb49434596f320820ab096ebffeb98485"
         },
         {
           "path": "public/i18n/locales/he.js",
           "bytes": 301916,
-          "sha256": "5d2b7b81a4d61e023498d41ef1a16c47aa47288d91dde1063666790594d9b330"
+          "sha256": "5d2bde34c4f32e686de5c853c0fd954f4282ba17af4af5fb1ca6a3bdff5da330"
         },
         {
           "path": "public/i18n/locales/ru.js",
           "bytes": 367357,
-          "sha256": "8649920d69ff361b9dc90dbe2308763733929983164e3647710f3c471baaf2df"
+          "sha256": "8649b29def2cc3f70c94a6ebaf6291ee3243ae41757d93021e616513b5c2e2df"
         },
         {
           "path": "public/index.html",
           "bytes": 2263854,
-          "sha256": "188067c92769d40b45ac6f4a35d9e623838fb98dde116c70170e44628c5dcae3"
+          "sha256": "1880a082ac19a7afbe28b2ef7f07a49e0f3393c0fa20f234acbe0af7e382cae3"
         },
         {
           "path": "public/js/cloud-sync.js",
           "bytes": 35183,
-          "sha256": "cbe2acff19cf2c9eeab8f249085b62d51af09713686421cb972464560d7ae8b6"
+          "sha256": "cbe2fd0041efad3b86d052bc3edb7bfb1889c2e527f1d7b0fd1d682c8328e8b6"
         },
         {
           "path": "public/js/corpus-item-presenter.js",
           "bytes": 14587,
-          "sha256": "5889f26cd8c7b63940cbc21831429868938703f94fdc805c28827d6a25d15621"
+          "sha256": "58897912aaf6de1aa1b7f5c494d8bc502248923deb6c9dd454f2d909b2adc621"
         },
         {
           "path": "public/js/library-ui.js",
           "bytes": 762423,
-          "sha256": "0ad08dfd54e046a066374b8fa52b2c439e2564fb198892231714544f62699d55"
+          "sha256": "0ad0dcfb8c000ffd2ff9a65f07922a08ee627c89f6a3e6d03f804dfc85999d55"
         },
         {
           "path": "public/library.html",
           "bytes": 228430,
-          "sha256": "32bd8f1ed9fe70e12f30cbece3c14b09187a2f33db81162de271a38bccb7bdf2"
+          "sha256": "32bd88643bbf538054e0bd700c33fe2052c2422a99433137297c8f597317bdf2"
         },
         {
           "path": "public/sw.js",
           "bytes": 27109,
-          "sha256": "d0f2343fb2c4c39457ff80bb8c2656994d80fef69d7d50bedbbce86a2349e46e"
+          "sha256": "d0f202f62cdab058d6ff8d41a64c676546c77cc240d559934c200068c905e46e"
         }
       ]
     }
