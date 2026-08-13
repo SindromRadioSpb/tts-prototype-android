@@ -1,9 +1,9 @@
 # Reading Room B8 — implementation and release evidence
 
 Дата: 2026-08-13
-Статус: **B8 OWNER-LIVE PASS EXCEPT D2 · D2 CORRECTION LOCAL PASS · PRODUCTION PENDING**
+Статус: **B8 OWNER-LIVE PASS EXCEPT D2 · D2 CORRECTION PRODUCTION PASS · OWNER RECHECK READY**
 Decision authority: `APPROVE B8-R` with D1–D6, `MIGRATION=NONE`, `SCOPE=IMMEDIATE_B8_ONLY`
-Release target: `3.11.376`
+Released: `3.11.376`
 
 ## 1. Delivered contract
 
@@ -127,9 +127,31 @@ served site, not inferred from the repository:
 The only browser console/resource errors were expected guest HTTP 401 responses from
 owner/auth/group endpoints. They did not affect the Reading Journey or static assets.
 
+Owner-live D2 correction cutover (`3.11.376`, commit `cfc19678`) was then verified in a
+fresh isolated production browser profile:
+
+| Production D2 readback | Result |
+|---|---:|
+| `/api/client-config` / `index.html` APP / Room footer | `3.11.376` / `3.11.376` / `3.11.376` |
+| service-worker cache / Room locale requests | `v3.11.376`; RU/EN/HE `?v=162`, all HTTP 200 |
+| runtime image | `cfc196783fcb0c2344a290c583fb59d4aa771b6b` |
+| direct canonical writer | row 80 → row 10 + step `earlier` |
+| explicit bookmark route | bookmark 10 → immediate Back → stored row 10 |
+| reload + actual Continue action | `позиция · 11%` → highlighted row 10 |
+| bookmark / `review_log` after the flow | bookmark 10 still present / 0 events |
+| RU 380 / HE 380 RTL | 0 horizontal overflow; 0 clipped interactive controls |
+| HE 320 + text-spacing override | 0 horizontal overflow; 0 clipped interactive controls |
+| browser console | expected unauthenticated HTTP 401 only; no page exception |
+
+The production build temporarily raised disk use from 75% to 81% and triggered the
+health warning. A bounded `docker builder prune -f` removed exactly 926.4 MiB of unused
+build cache; it removed no image, container, volume or user data. Final host/container
+readback is 79% used with 8.0 GiB free, and `/healthz` reports DB/migrations ready plus
+`disk_warn=false`.
+
 - Automation is not owner-live, a physical iPhone run, VoiceOver, NVDA or TalkBack.
 - Production verification used a fresh isolated guest profile and read-only paths; it
   did not grade, change status, create review events or touch the owner's local profile.
 - Migration remains **NONE**.
-- Served APP/CACHE/version/image/health and production responsive/RTL/keyboard checks
-  passed. Owner-live handoff is now permitted; it remains distinct from automation.
+- Served APP/CACHE/version/image/health and production D2/responsive/RTL checks passed.
+  Owner recheck handoff is now permitted; it remains distinct from automation.
