@@ -1935,6 +1935,53 @@
     .learning-home-action-title { overflow: hidden; color: var(--text-primary); font-size: 13px; font-weight: 720; text-overflow: ellipsis; white-space: nowrap; }
     .learning-home-action-meta { overflow: hidden; color: var(--text-secondary); font-size: 11.5px; text-overflow: ellipsis; white-space: nowrap; }
     .learning-home-ready, .learning-home-corpora { margin-top: 19px; }
+    .learning-home-journey {
+      margin-top: 18px; padding: 16px; border: 1px solid var(--border-soft); border-radius: 14px;
+      background: color-mix(in srgb, var(--bg-card) 94%, var(--learning-warm) 6%);
+    }
+    .learning-home-journey-boundary, .learning-home-journey-types {
+      margin: 0; max-width: 78ch; color: var(--text-secondary); font-size: 11.5px; line-height: 1.45;
+    }
+    .learning-home-journey-types { margin-top: 3px; color: var(--text-faint); }
+    .learning-home-journey-controls { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+    .learning-home-journey-view {
+      min-height: 44px; display: inline-flex; align-items: center; gap: 7px; padding: 8px 11px;
+      border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-card);
+      color: var(--text-primary); font: inherit; cursor: pointer;
+    }
+    .learning-home-journey-view:hover { border-color: color-mix(in srgb, var(--learning-warm) 54%, var(--border-soft)); background: var(--bg-muted); }
+    .learning-home-journey-view[aria-pressed="true"] { border-color: var(--learning-warm); background: color-mix(in srgb, var(--learning-warm) 12%, var(--bg-card)); }
+    .learning-home-journey-view:focus-visible, .learning-journey-item:focus-visible,
+    .learning-journey-filter:focus-visible, .learning-journey-page:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .learning-home-journey-icon { color: var(--learning-warm); font-size: 15px; }
+    .learning-home-journey-label { font-size: 12.5px; font-weight: 720; }
+    .learning-home-journey-count { min-width: 1.7em; padding: 2px 6px; border-radius: 999px; background: var(--bg-muted); color: var(--text-secondary); font-size: 11px; font-variant-numeric: tabular-nums; text-align: center; }
+    .learning-home-journey-panel { margin-top: 12px; border-top: 1px solid var(--border-soft); padding-top: 8px; }
+    .learning-home-journey-panel[hidden] { display: none; }
+    .learning-journey-filters { display: flex; flex-wrap: wrap; gap: 6px; padding: 2px 0 8px; }
+    .learning-journey-filter, .learning-journey-page {
+      min-height: 40px; padding: 7px 10px; border: 1px solid var(--border-soft); border-radius: 999px;
+      background: var(--bg-card); color: var(--text-secondary); font: 680 11.5px/1.2 inherit; cursor: pointer;
+    }
+    .learning-journey-filter[aria-pressed="true"] { border-color: var(--learning-warm); color: var(--text-primary); background: color-mix(in srgb, var(--learning-warm) 10%, var(--bg-card)); }
+    .learning-home-journey-list { display: grid; }
+    .learning-journey-item {
+      min-height: 54px; width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 10px 4px; border: 0; border-bottom: 1px solid var(--border-soft); background: transparent;
+      color: inherit; font: inherit; text-align: start; cursor: pointer;
+    }
+    .learning-journey-item:last-child { border-bottom: 0; }
+    .learning-journey-item:hover { background: color-mix(in srgb, var(--bg-muted) 70%, transparent); }
+    .learning-journey-item-copy { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .learning-journey-item-title { overflow: hidden; color: var(--text-primary); font-size: 13.5px; font-weight: 730; text-overflow: ellipsis; white-space: nowrap; }
+    .learning-journey-item-meta, .learning-journey-item-snippet { overflow: hidden; color: var(--text-secondary); font-size: 11.5px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+    .learning-journey-item-snippet { color: var(--text-faint); }
+    .learning-journey-item-arrow { flex: 0 0 auto; color: var(--learning-warm); font-size: 17px; }
+    .learning-home-journey-loading, .learning-home-journey-empty { margin: 7px 2px; color: var(--text-secondary); font-size: 12px; line-height: 1.4; }
+    .learning-journey-pager { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-soft); }
+    .learning-journey-page { border-radius: 9px; color: var(--text-primary); }
+    .learning-journey-page:disabled { opacity: .45; cursor: default; }
+    .learning-journey-page-label { color: var(--text-secondary); font-size: 11.5px; font-variant-numeric: tabular-nums; }
     .learning-home-all {
       min-height: 44px; padding: 7px 4px; appearance: none; border: 0; background: transparent;
       color: var(--learning-warm); font: 750 12px/1.2 inherit; cursor: pointer;
@@ -2019,6 +2066,10 @@
       .learning-home-section-note { display: none; }
       .learning-home-action { min-height: 50px; }
       .learning-home-ready, .learning-home-corpora { margin-top: 16px; }
+      .learning-home-journey { margin-top: 14px; padding: 12px; }
+      .learning-home-journey-controls { display: grid; grid-template-columns: 1fr; }
+      .learning-home-journey-view { width: 100%; justify-content: flex-start; }
+      .learning-home-journey-count { margin-inline-start: auto; }
       .learning-corpus-entry { grid-template-columns: 32px minmax(0,1fr) 18px; min-height: 72px; padding-inline: 11px; }
       .learning-corpus-count { grid-column: 2; font-size: 11px; }
       .learning-corpus-arrow { grid-column: 3; grid-row: 1 / span 2; }
@@ -2400,7 +2451,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.373</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.374</button>
   </div>
 </footer>
 

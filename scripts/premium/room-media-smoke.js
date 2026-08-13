@@ -152,10 +152,14 @@ async function main() {
         const one = cards.find((c) => c.textContent.includes("RMM ONE"));
         const four = cards.find((c) => c.textContent.includes("RMM FOUR"));
         const media = one && one.querySelector(".learning-media");
-        return { one: media ? String(media.textContent || "") : null, four: four ? !!four.querySelector(".learning-media") : null };
+        const noMedia = four && four.querySelector(".learning-media.media-none");
+        return {
+          one: media ? String(media.textContent || "") : null,
+          four: noMedia ? String(noMedia.textContent || "") : null,
+        };
       });
       ok(/Аудио|Audio|שמע|♪/.test(badge.one || "") && !/Без аудио|No audio|ללא שמע/.test(badge.one || ""), "typed audio signal present on the media-imported card: " + badge.one);
-      ok(badge.four === false, "no media signal on a plain own text");
+      ok(/Аудио отсутствует|No audio|ללא שמע/.test(badge.four || ""), "typed no-audio signal present on a plain own text: " + badge.four);
 
       const openCard = async (marker) => {
         await pg.evaluate((m) => { const cards = Array.from(document.querySelectorAll(".mytexts-grid .mytext-card-v")); const c = cards.find((x) => x.textContent.includes(m)); if (c) c.click(); }, marker);

@@ -58,6 +58,10 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       await db.createText({ id: "reader-notes-smoke", text_key: "reader-notes-smoke", title: "בדיקת הערה אישית", source_text: "שלום עולם" });
       await db.addSentence("reader-notes-smoke", { id: "reader-notes-smoke-s1", order_index: 0, he_plain: "שלום עולם", he_niqqud: "שָׁלוֹם עוֹלָם", ru: "привет, мир" });
     });
+    await pg.waitForFunction(() => {
+      const tab = document.getElementById("tabCorpus");
+      return !!(tab && !tab.hidden);
+    }, null, { timeout: 90000 });
     await pg.click("#tabCorpus");
     await pg.waitForSelector('.learning-corpus-entry[data-corpus="mytexts"]', { timeout: 20000 });
     await pg.click('.learning-corpus-entry[data-corpus="mytexts"]');

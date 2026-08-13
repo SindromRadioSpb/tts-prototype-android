@@ -5084,13 +5084,29 @@ function showResumeBanner(idx) {
   reader.insertBefore(bar, tbl);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
-// After a fresh open: offer (or, for an explicit «Продолжить» tap, perform) the resume.
-async function restoreReaderPosition(textId, opts) {
-  if (!window.ReaderProgress) return;
+// Seed EVERY Reader entry from the valid durable furthest row before bookmark/FTS/
+// presentation navigation can jump behind it. This is a read-only seed: the existing
+// debounced setProgress writer remains the only progress writer.
+async function seedReaderSessionProgress(textId) {
+  if (!window.ReaderProgress) return { progress: null, target: null };
   let prog = null;
   try { prog = await localDb.getProgress(textId); } catch (_) { prog = null; }
-  if (readerTextId !== textId) return;            // navigated away while awaiting
-  const target = window.ReaderProgress.resumeTarget(prog, readerRows.length);
+  if (readerTextId !== textId) return { progress: null, target: null }; // navigated away while awaiting
+  const seed = window.ReaderProgress.sessionProgressSeed
+    ? window.ReaderProgress.sessionProgressSeed(prog, readerRows.length)
+    : (window.ReaderProgress.resumeTarget(prog, readerRows.length) ?? -1);
+  if (seed >= 0) _sessionMaxRow = window.ReaderProgress.mergeProgress(_sessionMaxRow, seed);
+  return { progress: prog, target: seed >= 0 ? seed : null };
+}
+
+// After a fresh open: offer (or, for an explicit «Продолжить» tap, perform) the resume.
+// `seeded` was loaded before any alternative jump, so dismissing the banner or opening
+// a bookmark behind the furthest row can never lower this session's durable write.
+function restoreReaderPosition(textId, opts, seeded) {
+  if (!window.ReaderProgress || readerTextId !== textId) return;
+  const target = seeded && seeded.target != null
+    ? Number(seeded.target)
+    : window.ReaderProgress.resumeTarget(seeded && seeded.progress, readerRows.length);
   if (target == null) return;
   if (opts && opts.resume) scrollToReaderRow(target);   // explicit continue-card tap → jump
   else showResumeBanner(target);                        // normal open → non-jumping affordance (R4)
@@ -6951,10 +6967,12 @@ async function openReader(textId, title, opts) {
     try { tagReaderTableLang(mount); } catch (_) {}      // Epic 8b — sr-only/lang on the painted table (parity-safe)
     try { showReaderTip(); } catch (_) {}                // Epic 8a — first-open gesture hint
     wireProgressScroll();
+    const seededProgress = await seedReaderSessionProgress(readerTextId);
+    if (openEpoch !== readerOpenEpoch) return;
     if (opts && opts.ftsQuery) jumpToFtsMatch(opts.ftsQuery);                     // BRR-P2-005 — FTS hit → matched row
     else if (opts && opts.scrollToSentence) scrollToSentence(opts.scrollToSentence);   // open a bookmark at its row
     else if (opts && opts.scrollToOrderIndex != null) scrollToOrderIdx(opts.scrollToOrderIndex);   // P9 — якорь объяснения (text_key+order_index)
-    else restoreReaderPosition(readerTextId, opts);      // offer/perform resume (R4 reliability)
+    else restoreReaderPosition(readerTextId, opts, seededProgress);      // offer/perform resume (R4 reliability)
     // Epic-5 W1 — a resumed-to-end / single-screen text reaches the end without a scroll event;
     // check once after layout settles so the «✓ Прочитано» card can surface (readerAtEnd handles
     // both the «last row visible» and the resume/karaoke-latch cases).
@@ -9195,6 +9213,7 @@ function learningHomePlainClick(event, action) {
 }
 
 function learningHomeForwardArrow() { return document.documentElement.dir === 'rtl' ? '←' : '→'; }
+function learningHomeBackArrow() { return document.documentElement.dir === 'rtl' ? '→' : '←'; }
 
 function learningHomeFeature(continueRow, nextPicks) {
   const feature = el('article', { class: 'learning-home-feature' });
@@ -9328,6 +9347,187 @@ function learningHomeCorpusEntry(corpus, countText) {
   return entry;
 }
 
+function readingJourneyAuthorizedGroupIds() {
+  return groupCorpora.map((item) => String(item && item.corpus_id || '')).filter(Boolean);
+}
+
+// D1 typed work identity. This is a pure presentation adapter, never a store:
+// passage bookmarks, finished state and notes keep their existing canonical writers.
+function journeyWorkRef(row) {
+  return Object.freeze({
+    sourceKind: ['mytext', 'benyehuda', 'group'].includes(String(row && row.source_kind)) ? String(row.source_kind) : 'mytext',
+    textKey: String(row && row.text_key || ''),
+    sourceScope: String(row && row.source_scope || ''),
+    sourceWorkId: String(row && row.source_work_id || ''),
+    localTextId: String(row && row.id || ''),
+  });
+}
+
+function journeySourceLabel(row) {
+  const ref = journeyWorkRef(row);
+  if (ref.sourceKind === 'group') {
+    const group = groupCorpora.find((item) => String(item.corpus_id || '') === ref.sourceScope);
+    return String(group && group.title || tt('room.home.groupSource', 'Учебный корпус'));
+  }
+  if (ref.sourceKind === 'benyehuda') return corpusTitleOf(corpusById('benyehuda'));
+  return corpusTitleOf(corpusById('mytexts'));
+}
+
+function renderReadingJourneyItem(row) {
+  const kind = String(row && row.journey_kind || '');
+  const ref = journeyWorkRef(row);
+  const button = el('button', {
+    class: 'learning-journey-item',
+    attrs: {
+      type: 'button',
+      'data-journey-kind': kind,
+      'data-work-source': ref.sourceKind,
+      'data-work-key': ref.textKey,
+    },
+  });
+  const copy = el('span', { class: 'learning-journey-item-copy' });
+  const title = String(row && row.title || tt('room.home.untitled', 'Текст без названия'));
+  const titleEl = el('span', { class: 'learning-journey-item-title', text: title });
+  if (HEBREW_RE.test(title)) titleEl.setAttribute('dir', 'rtl');
+  copy.appendChild(titleEl);
+  const detail = kind === 'bookmark'
+    ? tt('room.home.journeyBookmarkKind', 'Закладка в тексте')
+    : kind === 'finished'
+      ? tt('room.home.journeyFinishedKind', 'Отмечено как прочитанное')
+      : tt('room.home.journeyNotesKind', 'Есть заметки') + (Number(row && row.note_count) > 0 ? ' · ' + Number(row.note_count) : '');
+  copy.appendChild(el('span', { class: 'learning-journey-item-meta', text: journeySourceLabel(row) + ' · ' + detail }));
+  if (kind === 'bookmark' && row && row.snippet) {
+    const snippet = el('span', { class: 'learning-journey-item-snippet', text: String(row.snippet) });
+    if (HEBREW_RE.test(row.snippet)) snippet.setAttribute('dir', 'rtl');
+    copy.appendChild(snippet);
+  }
+  button.appendChild(copy);
+  button.appendChild(el('span', { class: 'learning-journey-item-arrow', text: learningHomeForwardArrow(), attrs: { 'aria-hidden': 'true' } }));
+  button.addEventListener('click', () => {
+    if (!ref.localTextId) return;
+    const opts = kind === 'bookmark'
+      ? { scrollToSentence: row.sentence_id || null, scrollToOrderIndex: row.order_index }
+      : { resume: Number(row.last_row_idx) > 0 };
+    openReader(ref.localTextId, title, opts);
+  });
+  return button;
+}
+
+// D4: one calm, lazy, bounded projection in the existing Learning Home. Buttons
+// disclose canonical lists in place; viewing/filtering writes no learner state.
+function learningHomeJourney(summary) {
+  const section = el('section', { class: 'learning-home-journey', attrs: { 'aria-labelledby': 'learningHomeJourneyTitle' } });
+  const head = el('div', { class: 'learning-home-section-head' });
+  const title = el('h2', { class: 'learning-home-section-title', text: tt('room.home.journeyTitle', 'Сохранённое и завершённое') });
+  title.id = 'learningHomeJourneyTitle'; head.appendChild(title); section.appendChild(head);
+  section.appendChild(el('p', { class: 'learning-home-journey-boundary', text: tt('room.home.journeyDevice', 'Прогресс Бен-Иегуды и учебных корпусов хранится на этом устройстве. Мои тексты синхронизируются только при включённом согласии.') }));
+  section.appendChild(el('p', { class: 'learning-home-journey-types', text: tt('room.home.journeyTypes', 'Закладка — место в тексте; «Читать позже» — отдельный список на этом устройстве.') }));
+
+  const controls = el('div', { class: 'learning-home-journey-controls', attrs: { role: 'group', 'aria-label': tt('room.home.journeyViews', 'Представления вашего чтения') } });
+  const panelId = 'learningHomeJourneyPanel';
+  const panel = el('div', { class: 'learning-home-journey-panel', attrs: { id: panelId, role: 'region', 'aria-labelledby': 'learningHomeJourneyTitle' } });
+  panel.hidden = true;
+  let activeKind = '', activeSource = '', activeOffset = 0, activeButton = null, requestSeq = 0;
+  const closePanel = (returnFocus) => {
+    activeKind = ''; activeSource = ''; activeOffset = 0; panel.hidden = true; panel.innerHTML = ''; requestSeq += 1;
+    for (const item of controls.querySelectorAll('.learning-home-journey-view')) { item.setAttribute('aria-expanded', 'false'); item.setAttribute('aria-pressed', 'false'); }
+    if (returnFocus && activeButton && activeButton.isConnected) activeButton.focus();
+    activeButton = null;
+  };
+  panel.addEventListener('keydown', (event) => { if (event.key === 'Escape') { event.preventDefault(); closePanel(true); } });
+  const values = summary || { bookmarks: 0, finished: 0, notes: 0 };
+  const specs = [
+    ['bookmark', '🔖', 'room.home.journeyBookmarks', 'Закладки', Number(values.bookmarks) || 0],
+    ['finished', '✓', 'room.home.journeyFinished', 'Закончено', Number(values.finished) || 0],
+    ['note', '✍', 'room.home.journeyNotes', 'С заметками', Number(values.notes) || 0],
+  ];
+  const sourceSpecs = [
+    ['', 'room.home.journeySourceAll', 'Все источники'],
+    ['mytext', 'room.home.journeySourceMy', 'Мои тексты'],
+    ['benyehuda', 'room.home.journeySourceBen', 'Бен-Иегуда'],
+    ['group', 'room.home.journeySourceStudy', 'Учебные корпуса'],
+  ];
+  const loadPanel = async (kind, sourceKind = '', offset = 0, focusAfter = '') => {
+    activeKind = kind; activeSource = sourceKind; activeOffset = Math.max(0, Number(offset) || 0);
+    panel.hidden = false; panel.innerHTML = '';
+    panel.appendChild(el('div', { class: 'learning-home-journey-loading', attrs: { role: 'status' }, text: tt('room.home.journeyLoading', 'Загружаем…') }));
+    const seq = ++requestSeq;
+    let result = { items: [], hasMore: false, hasPrevious: activeOffset > 0, offset: activeOffset };
+    try {
+      result = await localDb.listReadingJourneyItems(kind, {
+        limit: ROOM_BROWSE_PAGE,
+        offset: activeOffset,
+        sourceKind: activeSource,
+        authorizedGroupIds: readingJourneyAuthorizedGroupIds(),
+      });
+    } catch (_) {}
+    if (seq !== requestSeq || !panel.isConnected || activeKind !== kind || activeSource !== sourceKind) return;
+    activeOffset = Math.max(0, Number(result && result.offset) || 0);
+    panel.innerHTML = '';
+    const filters = el('div', { class: 'learning-journey-filters', attrs: { role: 'group', 'aria-label': tt('room.home.journeySourceFilters', 'Фильтр по источнику') } });
+    for (const [source, key, fallback] of sourceSpecs) {
+      const filter = el('button', {
+        class: 'learning-journey-filter',
+        attrs: { type: 'button', 'data-journey-source': source || 'all', 'aria-pressed': String(activeSource === source) },
+        text: tt(key, fallback),
+      });
+      filter.addEventListener('click', () => loadPanel(kind, source, 0, 'filter'));
+      filters.appendChild(filter);
+    }
+    panel.appendChild(filters);
+    const items = Array.isArray(result && result.items) ? result.items : [];
+    if (!items.length) panel.appendChild(el('p', { class: 'learning-home-journey-empty', text: tt('room.home.journeyEmpty', 'Здесь пока ничего нет.') }));
+    else {
+      const list = el('div', { class: 'learning-home-journey-list' });
+      for (const row of items) list.appendChild(renderReadingJourneyItem(row));
+      panel.appendChild(list);
+    }
+    if (result.hasPrevious || result.hasMore) {
+      const pager = el('nav', { class: 'learning-journey-pager', attrs: { 'aria-label': tt('room.home.journeyPages', 'Страницы результатов') } });
+      const previous = el('button', {
+        class: 'learning-journey-page',
+        attrs: result.hasPrevious ? { type: 'button' } : { type: 'button', disabled: '' },
+        text: learningHomeBackArrow() + ' ' + tt('room.home.journeyPrevious', 'Назад'),
+      });
+      previous.addEventListener('click', () => loadPanel(kind, activeSource, Math.max(0, activeOffset - ROOM_BROWSE_PAGE), 'item'));
+      const pageNumber = Math.floor(activeOffset / ROOM_BROWSE_PAGE) + 1;
+      pager.appendChild(previous);
+      pager.appendChild(el('span', { class: 'learning-journey-page-label', text: tt('room.home.journeyPage', 'Страница {n}').replace('{n}', String(pageNumber)) }));
+      const next = el('button', {
+        class: 'learning-journey-page',
+        attrs: result.hasMore ? { type: 'button' } : { type: 'button', disabled: '' },
+        text: tt('room.home.journeyNext', 'Дальше') + ' ' + learningHomeForwardArrow(),
+      });
+      next.addEventListener('click', () => loadPanel(kind, activeSource, activeOffset + ROOM_BROWSE_PAGE, 'item'));
+      pager.appendChild(next); panel.appendChild(pager);
+    }
+    if (focusAfter === 'filter') panel.querySelector(`.learning-journey-filter[data-journey-source="${activeSource || 'all'}"]`)?.focus();
+    else if (focusAfter === 'item') panel.querySelector('.learning-journey-item, .learning-home-journey-empty')?.focus();
+  };
+  for (const [kind, icon, key, fallback, count] of specs) {
+    const button = el('button', {
+      class: 'learning-home-journey-view',
+      attrs: { type: 'button', 'data-journey-kind': kind, 'aria-controls': panelId, 'aria-expanded': 'false', 'aria-pressed': 'false' },
+    });
+    button.appendChild(el('span', { class: 'learning-home-journey-icon', text: icon, attrs: { 'aria-hidden': 'true' } }));
+    button.appendChild(el('span', { class: 'learning-home-journey-label', text: tt(key, fallback) }));
+    button.appendChild(el('span', { class: 'learning-home-journey-count', text: String(count) }));
+    button.addEventListener('click', async () => {
+      if (activeKind === kind && !panel.hidden) {
+        closePanel(true); return;
+      }
+      activeKind = kind; activeButton = button;
+      for (const item of controls.querySelectorAll('.learning-home-journey-view')) {
+        const on = item === button; item.setAttribute('aria-expanded', String(on)); item.setAttribute('aria-pressed', String(on));
+      }
+      await loadPanel(kind, '', 0);
+    });
+    controls.appendChild(button);
+  }
+  section.appendChild(controls); section.appendChild(panel);
+  return section;
+}
+
 // The L0 hub is now the Learning Home: one featured next action, bounded Today actions,
 // a short ready shelf, then compact corpus doors. Corpus storage remains visible but no
 // longer dictates the first-screen hierarchy.
@@ -9337,10 +9537,13 @@ async function renderCorpusHub(token) {
   main.innerHTML = '';
   const loading = el('div', { class: 'learning-home-loading', attrs: { role: 'status' }, text: tt('room.home.loading', 'Собираем следующий шаг…') });
   main.appendChild(loading);
-  const [continueRow, nextPicks, ownCount] = await Promise.all([
+  const [continueRow, nextPicks, ownCount, journeySummary] = await Promise.all([
     getLearningHomeContinue(),
     buildNextTextPicks(),
     getLearningHomeOwnCount(),
+    typeof localDb.getReadingJourneySummary === 'function'
+      ? localDb.getReadingJourneySummary(readingJourneyAuthorizedGroupIds()).catch(() => ({ bookmarks: 0, finished: 0, notes: 0 }))
+      : Promise.resolve({ bookmarks: 0, finished: 0, notes: 0 }),
     refreshDueBadge().catch(() => null),
   ]);
   if (token !== corpusRenderToken) return;
@@ -9367,6 +9570,7 @@ async function renderCorpusHub(token) {
   lead.appendChild(learningHomeFeature(continueRow, nextPicks));
   lead.appendChild(learningHomeToday(ready));
   wrap.appendChild(lead);
+  wrap.appendChild(learningHomeJourney(journeySummary));
 
   if (readyCards.length) {
     const shelf = el('section', { class: 'learning-home-ready', attrs: { 'aria-labelledby': 'learningHomeReadyTitle' } });

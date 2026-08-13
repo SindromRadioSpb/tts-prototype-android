@@ -4264,6 +4264,138 @@ export async function getTextIdsForNotesSmartChip(kind) {
   }
 }
 
+// ── B8 Reading Journey projections ────────────────────────────────────────
+// Read-only, source-neutral views over existing canonical stores. These helpers
+// deliberately return only bounded display metadata: no text/note bodies, no new
+// persistence, and no learner-event reads. A protected group work is visible only
+// when the caller supplies its currently-authorized corpus id.
+function _readingJourneyMeta(alias) {
+  return `CASE WHEN json_valid(${alias}.source_meta_json) THEN ${alias}.source_meta_json ELSE '{}' END`;
+}
+
+function _readingJourneyVisibleSql(alias) {
+  const meta = _readingJourneyMeta(alias);
+  return `(json_type(${meta}, '$.group_corpus') IS NULL
+    OR EXISTS (SELECT 1 FROM json_each(?) journey_auth
+                WHERE CAST(journey_auth.value AS TEXT) = CAST(json_extract(${meta}, '$.group_corpus.corpus_id') AS TEXT)))`;
+}
+
+function _readingJourneySourceSql(alias) {
+  const meta = _readingJourneyMeta(alias);
+  return `CASE WHEN json_type(${meta}, '$.group_corpus') IS NOT NULL THEN 'group'
+               WHEN json_type(${meta}, '$.corpus') IS NOT NULL THEN 'benyehuda'
+               ELSE 'mytext' END`;
+}
+
+function _readingJourneyScopeSql(alias) {
+  const meta = _readingJourneyMeta(alias);
+  return `COALESCE(CAST(json_extract(${meta}, '$.group_corpus.corpus_id') AS TEXT), '')`;
+}
+
+function _readingJourneyWorkIdSql(alias) {
+  const meta = _readingJourneyMeta(alias);
+  return `COALESCE(CAST(json_extract(${meta}, '$.group_corpus.work_id') AS TEXT),
+                   CAST(json_extract(${meta}, '$.corpus.byehuda_id') AS TEXT), '')`;
+}
+
+function _readingJourneyAuthJson(authorizedGroupIds) {
+  const values = Array.isArray(authorizedGroupIds)
+    ? authorizedGroupIds.map((value) => String(value || '').trim()).filter(Boolean).slice(0, 96)
+    : [];
+  return JSON.stringify(Array.from(new Set(values)));
+}
+
+export async function getReadingJourneySummary(authorizedGroupIds = []) {
+  const auth = _readingJourneyAuthJson(authorizedGroupIds);
+  const visible = _readingJourneyVisibleSql('t');
+  const rows = await q(
+    `SELECT
+       (SELECT COUNT(*) FROM bookmarks b JOIN texts t ON t.id = b.text_id
+         WHERE COALESCE(t.is_archived, 0) = 0 AND ${visible}) AS bookmarks,
+       (SELECT COUNT(*) FROM text_progress tp JOIN texts t ON t.id = tp.text_id
+         WHERE COALESCE(t.is_archived, 0) = 0 AND tp.finished_at IS NOT NULL AND ${visible}) AS finished,
+       (SELECT COUNT(*) FROM texts t
+         WHERE COALESCE(t.is_archived, 0) = 0 AND ${visible}
+           AND (EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id)
+             OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.text_id = t.id))) AS notes`,
+    [auth, auth, auth],
+  );
+  const row = rows[0] || {};
+  return {
+    bookmarks: Math.max(0, Number(row.bookmarks) || 0),
+    finished: Math.max(0, Number(row.finished) || 0),
+    notes: Math.max(0, Number(row.notes) || 0),
+  };
+}
+
+export async function listReadingJourneyItems(kind, options = {}) {
+  const safeKind = ['bookmark', 'finished', 'note'].includes(String(kind)) ? String(kind) : '';
+  if (!safeKind) return { items: [], hasMore: false, hasPrevious: false, offset: 0 };
+  const pageLimit = Math.max(1, Math.min(Number(options.limit) || 48, 48));
+  const pageOffset = Math.max(0, Math.min(Math.trunc(Number(options.offset) || 0), 100000));
+  const requestedSource = ['mytext', 'benyehuda', 'group'].includes(String(options.sourceKind))
+    ? String(options.sourceKind)
+    : '';
+  const auth = _readingJourneyAuthJson(options.authorizedGroupIds);
+  const visible = _readingJourneyVisibleSql('t');
+  const sourceKind = _readingJourneySourceSql('t');
+  const sourceScope = _readingJourneyScopeSql('t');
+  const sourceWorkId = _readingJourneyWorkIdSql('t');
+  const sourcePredicate = requestedSource ? ` AND ${sourceKind} = ?` : '';
+  const params = [auth];
+  if (requestedSource) params.push(requestedSource);
+  params.push(pageLimit + 1, pageOffset);
+  let rows;
+  if (safeKind === 'bookmark') {
+    rows = await q(
+      `SELECT 'bookmark' AS journey_kind, b.id AS item_id, t.id, t.text_key,
+              SUBSTR(COALESCE(t.title, b.title, ''), 1, 512) AS title,
+              SUBSTR(COALESCE(b.snippet, ''), 1, 320) AS snippet,
+              b.sentence_id, b.order_index, b.created_at AS journey_updated_at,
+              tp.last_row_idx, tp.finished_at,
+              (SELECT COUNT(*) FROM sentences s WHERE s.text_id = t.id) AS n_rows,
+              ${sourceKind} AS source_kind, ${sourceScope} AS source_scope,
+              ${sourceWorkId} AS source_work_id, 0 AS note_count
+         FROM bookmarks b JOIN texts t ON t.id = b.text_id
+         LEFT JOIN text_progress tp ON tp.text_id = t.id
+        WHERE COALESCE(t.is_archived, 0) = 0 AND ${visible}${sourcePredicate}
+        ORDER BY b.created_at DESC, b.id DESC LIMIT ? OFFSET ?`,
+      params,
+    );
+  } else {
+    const predicate = safeKind === 'finished'
+      ? `tp.finished_at IS NOT NULL`
+      : `(EXISTS (SELECT 1 FROM notes_v2 n WHERE n.text_id = t.id)
+          OR EXISTS (SELECT 1 FROM note_occurrences no WHERE no.text_id = t.id))`;
+    const order = safeKind === 'finished'
+      ? `tp.finished_at DESC, t.id DESC`
+      : `COALESCE(t.last_opened_at, t.updated_at) DESC, t.id DESC`;
+    rows = await q(
+      `SELECT '${safeKind}' AS journey_kind, t.id AS item_id, t.id, t.text_key,
+              SUBSTR(COALESCE(t.title, ''), 1, 512) AS title,
+              '' AS snippet, NULL AS sentence_id, NULL AS order_index,
+              COALESCE(tp.finished_at, t.last_opened_at, t.updated_at) AS journey_updated_at,
+              tp.last_row_idx, tp.finished_at,
+              (SELECT COUNT(*) FROM sentences s WHERE s.text_id = t.id) AS n_rows,
+              ${sourceKind} AS source_kind, ${sourceScope} AS source_scope,
+              ${sourceWorkId} AS source_work_id,
+              ((SELECT COUNT(*) FROM notes_v2 n WHERE n.text_id = t.id)
+                + (SELECT COUNT(*) FROM note_occurrences no WHERE no.text_id = t.id)) AS note_count
+         FROM texts t LEFT JOIN text_progress tp ON tp.text_id = t.id
+        WHERE COALESCE(t.is_archived, 0) = 0 AND ${visible}${sourcePredicate} AND ${predicate}
+        ORDER BY ${order} LIMIT ? OFFSET ?`,
+      params,
+    );
+  }
+  const hasMore = rows.length > pageLimit;
+  return {
+    items: rows.slice(0, pageLimit),
+    hasMore,
+    hasPrevious: pageOffset > 0,
+    offset: pageOffset,
+  };
+}
+
 // ── progress ───────────────────────────────────────────────────────────────
 
 export async function getProgress(textId) {
@@ -4277,9 +4409,20 @@ export async function setProgress(textId, { last_row_idx, last_step_id }) {
     `INSERT INTO text_progress (text_id, last_row_idx, last_step_id, updated_at)
      VALUES (?,?,?,?)
      ON CONFLICT(text_id) DO UPDATE SET
-       last_row_idx  = excluded.last_row_idx,
-       last_step_id  = excluded.last_step_id,
-       updated_at    = excluded.updated_at`,
+       last_row_idx = CASE
+         WHEN text_progress.last_row_idx IS NULL THEN excluded.last_row_idx
+         WHEN excluded.last_row_idx IS NULL THEN text_progress.last_row_idx
+         WHEN excluded.last_row_idx >= text_progress.last_row_idx THEN excluded.last_row_idx
+         ELSE text_progress.last_row_idx END,
+       last_step_id = CASE
+         WHEN text_progress.last_row_idx IS NULL THEN excluded.last_step_id
+         WHEN excluded.last_row_idx IS NOT NULL AND excluded.last_row_idx > text_progress.last_row_idx THEN excluded.last_step_id
+         WHEN excluded.last_row_idx = text_progress.last_row_idx THEN COALESCE(excluded.last_step_id, text_progress.last_step_id)
+         ELSE text_progress.last_step_id END,
+       updated_at = CASE
+         WHEN text_progress.last_row_idx IS NULL THEN excluded.updated_at
+         WHEN excluded.last_row_idx IS NOT NULL AND excluded.last_row_idx >= text_progress.last_row_idx THEN excluded.updated_at
+         ELSE text_progress.updated_at END`,
     [textId, last_row_idx ?? null, last_step_id ?? null, now]
   );
 }

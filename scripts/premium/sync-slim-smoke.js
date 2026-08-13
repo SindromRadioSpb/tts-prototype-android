@@ -77,6 +77,7 @@ async function ready(srv, ms = 30000) {
   };
 
   const mkDevice = async () => b.newContext({ serviceWorkers: "block", viewport: { width: 380, height: 844 } });
+  const ACT_TIMEOUT_MS = 60000;
   const openOn = async (ctx) => {
     const pg = await ctx.newPage();
     const errs = [];
@@ -90,16 +91,37 @@ async function ready(srv, ms = 30000) {
   const act = async (ctx, label, fn, args, tries = 4) => {
     let lastCrash = null;
     for (let i = 0; i < tries; i++) {
+      const startedAt = Date.now();
+      console.error(`[sync-slim] act[${label}] attempt ${i + 1}/${tries} start`);
       const { pg, errs, healthy } = await openOn(ctx);
       if (!healthy) { await pg.close().catch(() => {}); await sleep(600); continue; }
       let res = null;
-      try { res = await pg.evaluate(fn, args); } catch (e) { res = { __crash: String(e) }; }
+      let timer = null;
+      try {
+        res = await Promise.race([
+          pg.evaluate(fn, args),
+          new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`TIMEOUT_${ACT_TIMEOUT_MS}MS`)), ACT_TIMEOUT_MS); }),
+        ]);
+      } catch (e) {
+        const message = String(e && e.message || e);
+        if (message.includes(`TIMEOUT_${ACT_TIMEOUT_MS}MS`)) {
+          await pg.close().catch(() => {});
+          throw new Error(`act[${label}] exceeded ${ACT_TIMEOUT_MS}ms`);
+        }
+        res = { __crash: String(e) };
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
       if (res && res.__crash) lastCrash = res.__crash;
       const alive = await pg.evaluate(async () => { try { const r = await window.__ldb.dbQuery("SELECT 1 AS x"); return !!(r && r[0]); } catch (_) { return false; } }).catch(() => false);
       // Флаш OPFS перед закрытием страницы (паттерн _roomStudioNavInit): без closeLocalDB
       // незафиксированные записи могут не пережить закрытие headless-страницы.
       try { await pg.evaluate(() => window.__ldb.closeLocalDB()); } catch (_) {}
-      if (alive && !errs.some((e) => e.includes("memory access out of bounds")) && res && !res.__crash) { await pg.close().catch(() => {}); return res; }
+      if (alive && !errs.some((e) => e.includes("memory access out of bounds")) && res && !res.__crash) {
+        await pg.close().catch(() => {});
+        console.error(`[sync-slim] act[${label}] pass ${Date.now() - startedAt}ms`);
+        return res;
+      }
       await pg.close().catch(() => {});
       await sleep(600);
     }

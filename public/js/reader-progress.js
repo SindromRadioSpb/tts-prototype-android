@@ -49,6 +49,18 @@
     return pv > iv ? pv : iv;
   }
 
+  // sessionProgressSeed(progress, rowCount) → the stored furthest row that must seed
+  // EVERY new Reader session, or -1 when the stored anchor is not honestly resumable.
+  //
+  // This is deliberately the same validity boundary as resumeTarget: a shrunk/re-imported
+  // text whose old row is now out of range must not create a phantom session maximum. For
+  // a valid stored row, seeding before bookmark/FTS/normal-open navigation guarantees that
+  // visiting an earlier passage cannot lower the durable furthest point on close.
+  function sessionProgressSeed(progress, rowCount) {
+    var target = resumeTarget(progress, rowCount);
+    return target == null ? -1 : target;
+  }
+
   // atTextEnd(lastIdx, nRows) → true when the furthest row reached is the FINAL row, i.e. the
   // reader has reached the end of the text. Drives the Epic-5 W1 «✓ Прочитано» auto-prompt (and
   // the W2 end-of-text handoff). Defensive: never true for empty/invalid counts. Equivalent to
@@ -92,7 +104,7 @@
     return rows[rows.length - 1].idx;
   }
 
-  var API = { resumeTarget: resumeTarget, continuePercent: continuePercent, topVisibleRowIdx: topVisibleRowIdx, mergeProgress: mergeProgress, atTextEnd: atTextEnd, lastRowVisible: lastRowVisible };
+  var API = { resumeTarget: resumeTarget, continuePercent: continuePercent, topVisibleRowIdx: topVisibleRowIdx, mergeProgress: mergeProgress, sessionProgressSeed: sessionProgressSeed, atTextEnd: atTextEnd, lastRowVisible: lastRowVisible };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
   if (typeof window !== 'undefined') window.ReaderProgress = API;
 })();
