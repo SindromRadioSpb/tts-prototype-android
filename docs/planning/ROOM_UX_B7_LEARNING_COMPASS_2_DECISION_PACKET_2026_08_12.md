@@ -2,7 +2,7 @@
 
 **Дата:** 2026-08-12
 
-**Статус:** `OWNER GO / IMPLEMENTED / ENGINEERING PASS / OWNER GENERAL SMOKE PASS / PHYSICAL-AT PARTIAL`
+**Статус:** `OWNER GO / IMPLEMENTED / CLOSED / OWNER ACCEPTED / PHYSICAL-AT DOCUMENTED EXCEPTIONS`
 
 **Программа:** Reading Room B7 из B6–B9 handoff
 
@@ -659,8 +659,9 @@ owner-reported cold-library defect был устранён в `3.11.365`, а р�
 packet overflow — без повышения D6 budget — в `3.11.366`. Automation `145/145`;
 owner library self-prepared `115/115` without Reader, exact batch returned
 `48/48` at `255,442 B`, and canonical hashes remained unchanged. D6
-physical/assistive matrix остаётся частично незаполненным gate,
-поэтому B7 ещё не закрыт и не имеет GA/closure verdict. Реализованный
+physical/assistive matrix на этой промежуточной точке оставался частично
+незаполненным gate, поэтому до owner-acceptance 2026-08-13 B7 ещё не был
+закрыт и не имел GA/closure verdict. Реализованный
 контракт и точная граница доказательства записаны в
 [`ROOM_UX_B7_LEARNING_COMPASS_2_IMPLEMENTATION_2026_08_12.md`](./ROOM_UX_B7_LEARNING_COMPASS_2_IMPLEMENTATION_2026_08_12.md).
 
@@ -709,5 +710,7 @@ prescribed production iPhone↔PC convergence smoke PASS; exact final counter
 values were not transcribed. Exact evidence:
 [`cross-device-sync/PRODUCTION_READBACK_EVIDENCE.json`](../research/room-ux-b7-learning-compass/2026-08-13/cross-device-sync/PRODUCTION_READBACK_EVIDENCE.json).
 
-Engineering/production B7 is therefore current through `3.11.373`, but D6
-remains `PHYSICAL-AT PARTIAL`; this packet does not claim GA or closure.
+Engineering/production B7 is current through `3.11.373`. The owner subsequently
+closed B7.5 with the remaining explicitly listed `NOT RUN` environments
+accepted as documented exceptions, not PASS. Canonical verdict:
+[`ROOM_UX_B7_LEARNING_COMPASS_2_CLOSURE_2026_08_13.md`](./ROOM_UX_B7_LEARNING_COMPASS_2_CLOSURE_2026_08_13.md).

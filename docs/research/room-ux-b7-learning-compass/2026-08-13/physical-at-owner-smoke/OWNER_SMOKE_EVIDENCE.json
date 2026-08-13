@@ -1,0 +1,26 @@
+{
+  "schema_version": "room.b7.physical-at-owner-smoke.1.0.0",
+  "owner_reported_at": "2026-08-13",
+  "release": "3.11.373",
+  "evidence_class": "owner-reported physical smoke; exact hardware and browser build were not transcribed",
+  "results": {
+    "iphone_safari_rtl_200_percent": "PASS",
+    "pwa_reopen_offline_reconnect": "PASS",
+    "pc_keyboard_200_percent": "PASS"
+  },
+  "remarks": [],
+  "not_inferred": {
+    "pwa_update_waiting_transition": "NOT_RUN",
+    "iphone_voiceover": "NOT_RUN",
+    "android_chrome_pwa": "NOT_RUN",
+    "android_talkback": "NOT_RUN",
+    "windows_nvda": "NOT_RUN",
+    "macos_voiceover": "NOT_RUN"
+  },
+  "owner_closure": {
+    "status": "ACCEPTED",
+    "statement": "считаем эту проверку закрытой. подготавливай следующий промт",
+    "effect": "Remaining NOT_RUN rows are accepted documented exceptions, not PASS evidence."
+  },
+  "closure_effect": "B7.5 and B7 are closed by explicit owner acceptance; platform-specific PASS claims remain limited to the named executed checks."
+}

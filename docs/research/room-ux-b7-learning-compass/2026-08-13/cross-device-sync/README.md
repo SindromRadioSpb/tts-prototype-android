@@ -58,5 +58,11 @@ This result does not fill the rest of the B7 physical/AT matrix. iPhone
 offline/large-text/VoiceOver, Android/TalkBack, Windows/NVDA and macOS/VoiceOver
 remain separate rows in the canonical acceptance packet.
 
+The later compact physical smoke filled iPhone Safari RTL/200%, PWA
+reopen/offline/reconnect and PC keyboard/200%. The owner closed B7 with the
+remaining named `NOT RUN` rows accepted as documented exceptions. Canonical
+verdict:
+[`ROOM_UX_B7_LEARNING_COMPASS_2_CLOSURE_2026_08_13.md`](../../../../planning/ROOM_UX_B7_LEARNING_COMPASS_2_CLOSURE_2026_08_13.md).
+
 Machine-readable record:
 [`PRODUCTION_READBACK_EVIDENCE.json`](./PRODUCTION_READBACK_EVIDENCE.json).

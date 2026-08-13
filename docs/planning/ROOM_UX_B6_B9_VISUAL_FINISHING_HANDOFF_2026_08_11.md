@@ -2,7 +2,7 @@
 
 Дата: 2026-08-11
 
-Статус: **B6 CLOSED; B7 ENGINEERING + OWNER GENERAL SMOKE PASS / PHYSICAL-AT PARTIAL**
+Статус: **B6 CLOSED; B7 CLOSED WITH DOCUMENTED PHYSICAL/AT EXCEPTIONS; NEXT B8 RESEARCH-ONLY**
 
 Предшествующие программы: Option B B0–B5 и B6 Scale & Resilience закрыты
 владельцем; см. `ROOM_UX_MATURITY_OPTION_B_CLOSURE_2026_08_11.md` и
@@ -29,7 +29,7 @@ cross-surface решениями.
 - offline/reconnect/SW-update states;
 - privacy-safe production RUM для LCP/INP/open/return/error, без learner content.
 
-### B7 — Learning Compass 2.0
+### B7 — Learning Compass 2.0 — CLOSED
 
 Implementation `main@845ddc71`, production finishing `04f88328`/`85bdc9de`,
 compact-copy follow-up plus cold-library/packet hardening `1298bb71` and
@@ -50,8 +50,7 @@ compact-copy follow-up plus cold-library/packet hardening `1298bb71` and
   `255,442 B < 256 KiB`; familiar sort retains first selection; canonical
   hashes remain unchanged;
 - production served-byte/health, owner-profile read-only browser и
-  owner-reported general production smoke PASS; iPhone Safari evidence partial,
-  full physical/AT matrix не выполнена, B7 не закрыт.
+  owner-reported general production smoke PASS;
 - по owner feedback visible familiarity copy сокращена до `X% знакомы` /
   `Не менее X% знакомы`; exact buckets и provenance остаются в details.
 - B7 finishing production `3.11.372` унифицирует exact audio coverage и
@@ -68,7 +67,9 @@ compact-copy follow-up plus cold-library/packet hardening `1298bb71` and
   foreground. Owner-profile read-back оставил `review_log` неизменным и равным
   cloud (`7,315`), а stale PC due projection исправил `210 → 205`. Владелец
   затем сообщил PASS production iPhone↔PC convergence smoke на `3.11.373`;
-  остальные physical/AT строки остаются отдельной границей.
+  compact physical smoke подтвердил iPhone Safari RTL/200%, PWA
+  reopen/offline/reconnect и PC keyboard/200%; оставшиеся `NOT RUN` AT/Android
+  строки владелец принял как documented exceptions и закрыл B7.5.
 
 - честная familiar-word coverage для поддерживаемых My Texts/group items;
 - индивидуальное время чтения только после калибровки по реальному поведению;
@@ -101,28 +102,20 @@ compact-copy follow-up plus cold-library/packet hardening `1298bb71` and
 Visual finishing может исследоваться параллельно B6, но shared `reader-core.css`, `morph-host.js`,
 LocalDb/FSRS/media/i18n/SW contracts и production deployments остаются сериализованными.
 
-## Текущая следующая граница: B7.5 physical/AT acceptance
+## Текущая следующая граница: B8 Reading Journey research-only
 
 Стартовый запрос новой сессии:
-[`ROOM_UX_B7_5_PHYSICAL_AT_CLOSURE_SESSION_PROMPT_2026_08_13.md`](./ROOM_UX_B7_5_PHYSICAL_AT_CLOSURE_SESSION_PROMPT_2026_08_13.md).
+[`ROOM_UX_B8_READING_JOURNEY_RESEARCH_SESSION_PROMPT_2026_08_13.md`](./ROOM_UX_B8_READING_JOURNEY_RESEARCH_SESSION_PROMPT_2026_08_13.md).
 
-1. Использовать
-   `ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md` на exact production release
-   `3.11.373`; не подменять незаполненные physical/AT строки automation или
-   Kapture-скриншотами.
-2. При agent-assisted owner-profile проверке выполнять только read-only
-   navigation/details; calibration controls — только самим владельцем или
-   после отдельного разрешения. Не grade/review и доказать неизменность
-   `review_log`.
-3. Production preflight/deploy/served-byte read-back и iPhone↔PC sync PASS уже
-   выполнены; добрать оставшиеся physical/AT строки либо получить явные
-   documented exceptions, затем подготовить B7 closure verdict.
-4. Только после B7 closure начать новый research-only goal B8 Reading Journey.
-   B8/B9/Visual finishing не piggyback на B7 release.
+1. B7 closure:
+   [`ROOM_UX_B7_LEARNING_COMPASS_2_CLOSURE_2026_08_13.md`](./ROOM_UX_B7_LEARNING_COMPASS_2_CLOSURE_2026_08_13.md).
+2. Начать новый goal B8 только в research-only режиме; сначала recon живого
+   кода/canonical stores и owner decision packet, затем STOP до approval.
+3. B9 и Visual finishing не piggyback на B8 decision или release.
 
 ## Постоянный stop list
 
-- не переоткрывать B0–B5 без regression evidence;
+- не переоткрывать B0–B7 без regression evidence;
 - не создавать вторую learner truth или silent state inference;
 - не отправлять learner content в telemetry;
 - не добавлять unexplained AI recommendations, mandatory quizzes, cover grid или gamified feed;

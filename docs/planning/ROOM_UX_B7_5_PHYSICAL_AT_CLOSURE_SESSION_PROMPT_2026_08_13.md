@@ -2,6 +2,11 @@
 
 Дата: 2026-08-13
 
+Статус: **EXECUTED IN CURRENT SESSION · SUPERSEDED BY B7 CLOSURE**
+
+Closure:
+[`ROOM_UX_B7_LEARNING_COMPASS_2_CLOSURE_2026_08_13.md`](./ROOM_UX_B7_LEARNING_COMPASS_2_CLOSURE_2026_08_13.md).
+
 Использовать как первый запрос в новой Codex-сессии из корня
 `E:\projects\tts-prototype-android`.
 

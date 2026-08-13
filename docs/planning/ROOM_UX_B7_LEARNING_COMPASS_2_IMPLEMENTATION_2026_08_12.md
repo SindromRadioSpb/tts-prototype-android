@@ -2,7 +2,7 @@
 
 Дата: 2026-08-12; owner smoke и microcopy follow-up: 2026-08-13
 
-Статус: **IMPLEMENTED · ENGINEERING PASS · PRODUCTION READ-BACK PASS · OWNER PRODUCTION SMOKE PASS · PHYSICAL/AT MATRIX PARTIAL**
+Статус: **CLOSED · OWNER ACCEPTED · ENGINEERING/PRODUCTION PASS · PHYSICAL/AT DOCUMENTED EXCEPTIONS**
 
 Owner direction: `Переходи к реализации.`
 
@@ -375,20 +375,21 @@ therefore not invented. Exact evidence is in
 
 ## Что не доказано
 
-- Owner evidence confirms a general iPhone Safari production smoke and the
-  `3.11.373` iPhone↔PC counter-convergence check, but does not attest every
-  B7-IOS-S offline/pending/focus/large-text step. Android,
-  macOS, NVDA, VoiceOver and TalkBack remain NOT RUN unless separately reported.
+- Owner evidence confirms the prescribed `3.11.373` iPhone Safari RTL/200%,
+  PWA reopen/offline/reconnect, PC keyboard/200%, and iPhone↔PC convergence
+  checks. A physical PWA `update waiting` transition, Android, macOS, NVDA,
+  VoiceOver and TalkBack remain NOT RUN unless separately reported or accepted
+  as documented exceptions.
 - Kapture owner-profile read-only evidence не является owner-reported
   physical/AT acceptance.
 - Field RUM сознательно отсутствует по D4/B6 privacy boundary.
-- B7 нельзя закрыть или назвать GA до physical/AT acceptance и closure verdict.
+- Remaining physical/AT rows were not run and must never be presented as
+  platform-specific PASS; the owner accepted them as documented exceptions in
+  the B7 closure verdict.
 
-## Следующая граница
+## Closure и следующая граница
 
-Выполнить
-[`ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md`](./ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md).
-Production preflight/deploy/read-back выполнен для release line through
-`3.11.373`. После owner physical/AT PASS или явных documented exceptions
-подготовить B7 closure; только затем начинать новый research-only goal B8
-Reading Journey.
+B7 закрыт owner verdict в
+[`ROOM_UX_B7_LEARNING_COMPASS_2_CLOSURE_2026_08_13.md`](./ROOM_UX_B7_LEARNING_COMPASS_2_CLOSURE_2026_08_13.md).
+Следующая независимая программа — новый research-only goal B8 Reading Journey;
+decision packet до кода.
