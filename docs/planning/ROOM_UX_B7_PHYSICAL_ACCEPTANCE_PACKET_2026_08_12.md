@@ -4,9 +4,10 @@
 
 Статус: **OWNER GENERAL PROD SMOKE PASS · IOS SAFARI PARTIAL · AUTOMATION/PRODUCTION READ-BACK PASS · FULL PHYSICAL/AT MATRIX PENDING**
 
-Release under test: production `3.11.366` / implementation chain
+Release under test: production `3.11.369` / implementation chain
 `845ddc71` + `04f88328` + `85bdc9de` + compact-copy follow-up + cold-library
-hardening `1298bb71` + packet hardening `73e74a37`.
+hardening `1298bb71` + packet hardening `73e74a37` + full-corpus preparation
+`d97930a8` + limited-only sort UX `86f5189c`.
 
 Production deploy был отдельно явно авторизован владельцем и прошёл
 served-byte/health read-back. В каждой строке всё равно фиксировать exact
@@ -53,7 +54,7 @@ served/installed version; staged/PWA cache может отличаться до 
 
 | ID | Среда | Дополнительный фокус | Acceptance | Статус/evidence |
 |---|---|---|---|---|
-| B7-IOS-S | iPhone Safari | details, pending, offline, large text, HE/RTL | focus returns; statuses/provenance readable; no overflow/fake zero | PARTIAL — owner general production smoke PASS on `3.11.363`; supplied iPhone screenshot; copy-density issue fixed in `3.11.364`; `3.11.366` cold-library hardening is not physically attested; full row not attested |
+| B7-IOS-S | iPhone Safari | details, pending, offline, large text, HE/RTL | focus returns; statuses/provenance readable; no overflow/fake zero | PARTIAL — owner general production smoke PASS on `3.11.363`; supplied iPhone screenshot; copy-density issue fixed in `3.11.364`; `3.11.369` full-corpus preparation is not physically attested; full row not attested |
 | B7-IOS-P | iPhone standalone PWA | eviction/reopen, warm offline, update waiting | no mid-flow reload/data loss; prepared cache survives | NOT RUN |
 | B7-IOS-VO | iPhone Safari/PWA + VoiceOver | rotor/order, details, status, reset/disable | controls named; no duplicate announcements; logical RTL | NOT RUN |
 | B7-AND | Android Chrome/PWA | Worker failure/quota/reconnect, text scaling | usable cards; honest failure; one refresh | NOT RUN |
@@ -61,8 +62,8 @@ served/installed version; staged/PWA cache может отличаться до 
 | B7-NVDA | Windows 11 Chrome + NVDA | reason/buckets/provenance order and focus return | exact facts announced; no tooltip-only data | NOT RUN |
 | B7-MAC-VO | macOS Safari + VoiceOver | WebKit details/status semantics and HE/RTL | logical order/focus; no clipped facts | NOT RUN |
 | B7-KBD-200 | physical keyboard, desktop 200% | full browse/details/disable/reset without pointer | visible focus, no trap/overlap, all actions reachable | NOT RUN |
-| B7-AUTO | isolated Chromium matrix | 320–1366/status/privacy/budgets/desktop paint/copy density/full readable corpora | `161/161`; exact My Texts 115/115 and Ben-Yehuda 796/796 without Reader; protected full-index UI/API; Lighthouse a11y 100; not physical/AT | PASS — automation |
-| B7-OWNER-DESKTOP | signed-in owner Chrome via Kapture, read-only | My Texts, SW safe update, cold preparation, exact packet, familiar sort, checksums | `3.11.366`; 115/115 without Reader; 48-card DOM; packet 48/48 at 255,442 B; sort retained first try; canonical hashes unchanged; not physical/AT | PASS — owner-profile read-only browser evidence |
+| B7-AUTO | isolated Chromium matrix | 320–1366/status/privacy/budgets/desktop paint/copy density/full readable corpora | B7 `161/161`; maturity `838/838`; exact My Texts 115/115 and Ben-Yehuda 796/796 without Reader; protected full-index UI/API including limited-only rejection; Lighthouse a11y 100; not physical/AT | PASS — automation |
+| B7-OWNER-DESKTOP | signed-in owner Chrome via Kapture, read-only | three corpora, SW safe update, full preparation, packet/body boundary, shared sort, checksums | `3.11.369`; My Texts 115/115, Study Songs 77/77, Ben-Yehuda 796/796 readable; shared sort present everywhere; Study Songs limited-only selection reverts with explanation; five index GETs, zero protected body GETs; canonical hashes unchanged; not physical/AT | PASS — owner-profile read-only browser evidence |
 
 ## Evidence record
 
@@ -85,6 +86,6 @@ tester / timestamp:
 
 B7 остаётся `ENGINEERING PASS / OWNER GENERAL SMOKE PASS / PHYSICAL-AT PARTIAL`, пока обязательные строки
 не имеют owner evidence или явного documented exception. Только после owner
-acceptance можно подготовить closure; production `3.11.367` уже развёрнут и
-проверен, а full-corpus hardening `3.11.368` пока является release candidate.
+acceptance можно подготовить closure. Engineering production read-back
+завершён through `3.11.369`, включая все три корпуса.
 Ни один production deploy сам по себе physical/AT строки не закрывает.

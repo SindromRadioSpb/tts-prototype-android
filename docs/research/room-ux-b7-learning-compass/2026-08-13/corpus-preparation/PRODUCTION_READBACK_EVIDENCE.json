@@ -1,0 +1,166 @@
+{
+  "schema_version": "room.b7.full-corpus-production-readback.1.0.0",
+  "recorded_at": "2026-08-13T02:43:20.438Z",
+  "evidence_class": "owner-profile read-only production browser plus engineering automation; not physical-device or assistive-technology acceptance",
+  "release": {
+    "app_version": "3.11.369",
+    "full_corpus_commit": "d97930a8c06947ddeb155aff75118bb2d1f33ab8",
+    "limited_sort_ux_commit": "86f5189cca9c9d6403af4ff9535bce5049e58151",
+    "deployment_status": "SUCCESS",
+    "app_footer_cache_triad": [
+      "3.11.369",
+      "3.11.369",
+      "v3.11.369"
+    ],
+    "served_asset_git_blob_matches": {
+      "checked": 7,
+      "matched": 7,
+      "paths": [
+        "public/index.html",
+        "public/library.html",
+        "public/sw.js",
+        "public/js/library-ui.js",
+        "public/i18n/locales/ru.js",
+        "public/i18n/locales/en.js",
+        "public/i18n/locales/he.js"
+      ]
+    }
+  },
+  "health": {
+    "ok": true,
+    "db_ready": true,
+    "migrations_ready": true,
+    "disk_pct_used_after_build_cache_cleanup": 89
+  },
+  "startup": {
+    "protected_learning_indexes": "1/1 corpora",
+    "protected_works_prepared": 77
+  },
+  "corpora": {
+    "my_texts": {
+      "prepared": 115,
+      "total": 115,
+      "visible_cards": 48,
+      "visible_familiarity_signals": 48,
+      "not_prepared_visible": 0,
+      "pending_visible": 0,
+      "shared_sort_present": true,
+      "shared_sort_retained_with_rank_eligible_result": true,
+      "reader_opened": false
+    },
+    "study_songs": {
+      "prepared": 77,
+      "total": 77,
+      "visible_cards": 48,
+      "visible_familiarity_signals": 48,
+      "not_prepared_visible": 0,
+      "pending_visible": 0,
+      "unsupported_visible": 0,
+      "shared_sort_present": true,
+      "rank_eligible_results": 0,
+      "limited_only_sort_reverted_to": "position",
+      "limited_only_explanation": "Пока нет текстов с достаточно достоверной оценкой для сортировки.",
+      "reader_opened": false
+    },
+    "ben_yehuda": {
+      "prepared_readable": 796,
+      "readable_total": 796,
+      "catalog_total": 26455,
+      "shared_sort_present": true,
+      "shared_sort_retained": true,
+      "first_ranked_lower_bounds_pct": [
+        67,
+        54,
+        54,
+        48
+      ],
+      "reader_opened": false
+    }
+  },
+  "protected_index_api": {
+    "pages": 5,
+    "page_limit": 16,
+    "items": 77,
+    "unique_items": 77,
+    "matched": 77,
+    "prepared": 77,
+    "unsupported": 0,
+    "max_raw_json_bytes": 34086,
+    "packet_budget_bytes": 262144,
+    "http_statuses": [
+      200,
+      200,
+      200,
+      200,
+      200
+    ],
+    "cache_control": "private, no-store, max-age=0",
+    "cross_origin_resource_policy": "same-origin",
+    "x_content_type_options": "nosniff",
+    "forbidden_fields_present": false,
+    "item_fields": [
+      "work_id",
+      "text_key",
+      "bundle_sha256",
+      "status",
+      "reason_code",
+      "ingredients"
+    ]
+  },
+  "network_observation": {
+    "methods": [
+      "GET"
+    ],
+    "study_songs_catalog_gets": 1,
+    "study_songs_learning_index_gets": 5,
+    "protected_work_body_gets": 0,
+    "non_get_requests": 0
+  },
+  "canonical_before_after": {
+    "unchanged": true,
+    "review_log": {
+      "count_before": 7200,
+      "count_after": 7200,
+      "sha256_before": "20218135091f56320a70837ee4ade2e8b11b7a442ec1e11ec8a1f6d1761aca78",
+      "sha256_after": "20218135091f56320a70837ee4ade2e8b11b7a442ec1e11ec8a1f6d1761aca78"
+    },
+    "word_status": {
+      "count_before": 5371,
+      "count_after": 5371,
+      "sha256_before": "123750ef54d11b67eb681fcb0b6616daac2958f503008ff837056fbff5b150a2",
+      "sha256_after": "123750ef54d11b67eb681fcb0b6616daac2958f503008ff837056fbff5b150a2"
+    },
+    "text_progress": {
+      "count_before": 89,
+      "count_after": 89,
+      "sha256_before": "352fb46db681d8fc91e7f936cd73b09166e84551122ad734e5a40cdffe108bb3",
+      "sha256_after": "352fb46db681d8fc91e7f936cd73b09166e84551122ad734e5a40cdffe108bb3"
+    },
+    "texts": {
+      "count_before": 222,
+      "count_after": 222,
+      "sha256_before": "aacd9fe7c4fb507eb6e9f9d5de286e818b696a84c3ba5877d1e220495e5bdb8e",
+      "sha256_after": "aacd9fe7c4fb507eb6e9f9d5de286e818b696a84c3ba5877d1e220495e5bdb8e"
+    }
+  },
+  "automation": {
+    "room_b7_contract": "42/42 PASS",
+    "room_b7_browser": "161/161 PASS",
+    "room_ux_maturity": "838/838 PASS",
+    "room_b6": "45/45 PASS",
+    "i18n": "233/233 PASS",
+    "canon_version": "18/18 PASS",
+    "group_corpus_api": "PASS",
+    "group_corpus_ui_380_510_1280": "PASS",
+    "lighthouse_mobile_accessibility": "100; 35 passed, 0 failed"
+  },
+  "physical_acceptance": {
+    "iphone_safari_general_smoke": "owner-reported PASS on earlier B7 release; full 3.11.369 row not attested",
+    "iphone_voiceover": "NOT RUN",
+    "android_chrome_pwa": "NOT RUN",
+    "android_talkback": "NOT RUN",
+    "windows_nvda": "NOT RUN",
+    "macos_voiceover": "NOT RUN"
+  },
+  "operational_note": "Deployment build cache only was pruned after read-only diagnosis: 2.125 GB reclaimed; containers and user volumes were not removed."
+}

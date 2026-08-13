@@ -11,9 +11,10 @@ Decision packet:
 
 Implementation: `main@845ddc71`; production finishing: `04f88328`, `85bdc9de`;
 compact-copy follow-up: `3.11.364`; cold-library + packet hardening:
-`1298bb71`, `73e74a37`; three-corpus disclosure follow-up: `70dcffdc`
+`1298bb71`, `73e74a37`; three-corpus disclosure follow-up: `70dcffdc`;
+full-corpus preparation: `d97930a8`; limited-only sort UX: `86f5189c`
 
-Production release: `3.11.367`
+Production release: `3.11.369`
 
 Владелец отдельно авторизовал production deploy. Первичный `3.11.363` развёрнут
 и проверен direct no-store/served-byte read-back. Kapture-проверка использовала
@@ -217,9 +218,19 @@ Cold-library `3.11.366` production evidence:
 - Chrome mobile Lighthouse improved from `93` to `100` after fixing footer
   contrast/targets; dynamic/hidden form controls now have names and labels.
   This remains automation, not physical screen-reader evidence.
-- Final `3.11.369` production deploy and repeat owner read-back are still
-  pending at this document point; no production claim is inferred from local
-  automation.
+- Production `3.11.369` passed deployment, health/DB/migrations and `7/7`
+  changed-asset Git-blob read-back. Startup prewarm logged `1/1` protected
+  corpus and `77` works.
+- Owner-profile read-only production traversal without Reader confirmed My
+  Texts `115/115`, Study Songs `77/77` and Ben-Yehuda `796/796` readable.
+  Study Songs used five index GETs and zero protected body GETs; the all-limited
+  owner profile reverted the no-op sort to library order and exposed the
+  localized explanation. My Texts and Ben-Yehuda retained the shared sort when
+  rank-eligible results existed.
+- Before/after counts and SHA-256 remained identical for `review_log` (`7,200`),
+  `word_status` (`5,371`), `text_progress` (`89`) and `texts` (`222`). Exact
+  evidence is in
+  [`PRODUCTION_READBACK_EVIDENCE.json`](../research/room-ux-b7-learning-compass/2026-08-13/corpus-preparation/PRODUCTION_READBACK_EVIDENCE.json).
 
 ## Что не доказано
 
@@ -236,6 +247,6 @@ Cold-library `3.11.366` production evidence:
 Выполнить
 [`ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md`](./ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md).
 Production preflight/deploy/read-back выполнен для release line through
-`3.11.367`. После owner physical/AT PASS или явных documented exceptions
+`3.11.369`. После owner physical/AT PASS или явных documented exceptions
 подготовить B7 closure; только затем начинать новый research-only goal B8
 Reading Journey.

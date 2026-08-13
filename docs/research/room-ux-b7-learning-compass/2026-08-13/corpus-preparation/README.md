@@ -1,8 +1,9 @@
-# B7 full readable-corpus preparation — pre-production evidence
+# B7 full readable-corpus preparation — production evidence
 
 Date: 2026-08-13
-Candidate: `3.11.369`
-Evidence class: engineering automation only; not owner-live or physical/AT.
+Production release: `3.11.369`
+Evidence class: engineering automation plus owner-profile read-only production
+browser evidence; not physical-device or assistive-technology acceptance.
 
 ## Owner defect and accepted correction
 
@@ -66,8 +67,20 @@ remain visible on every prepared card.
 - Physical iPhone/Android/NVDA/VoiceOver/TalkBack rows remain NOT RUN unless
   separately supplied by the owner.
 
-## Production boundary
+## Production read-back
 
-This packet deliberately stops at the pre-production candidate. Add the
-served-version, health, real `77/77` Study Songs index, request/body-fetch
-counts and canonical before/after evidence only after production deployment.
+- Deployment `86f5189c` succeeded; served app/footer/cache are
+  `3.11.369 / 3.11.369 / v3.11.369`, and all seven changed browser assets match
+  their Git blobs.
+- Health, DB and migrations are ready. Startup prewarm completed `1/1`
+  protected corpus and `77` works before browse.
+- Owner-profile read-only navigation, without opening Reader, observed My
+  Texts `115/115`, Study Songs `77/77`, and Ben-Yehuda `796/796` readable.
+- Study Songs produced five bounded index packets, zero protected work-body
+  GETs and zero non-GET requests. Its limited-only owner profile now reverts
+  the no-op familiarity sort and explains why; lower-bound cards remain usable.
+- `review_log`, `word_status`, `text_progress` and `texts` counts plus SHA-256
+  are identical before and after the complete three-corpus traversal.
+
+Machine-readable evidence:
+[`PRODUCTION_READBACK_EVIDENCE.json`](./PRODUCTION_READBACK_EVIDENCE.json).

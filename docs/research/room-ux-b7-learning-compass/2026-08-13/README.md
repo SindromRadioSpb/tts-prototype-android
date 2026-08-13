@@ -7,6 +7,12 @@
 Production release: `3.11.366`, cold-library implementation `main@1298bb71`
 и packet/sticky/history hardening `main@73e74a37`.
 
+> Historical slice: этот файл сохраняет точное evidence релиза `3.11.366` и
+> его тогдашние лимиты. Текущий full-corpus контракт и production `3.11.369`
+> зафиксированы в
+> [`corpus-preparation/README.md`](./corpus-preparation/README.md); именно он
+> первичен для актуального поведения трёх корпусов.
+
 Этот пакет фиксирует owner-reported дефект, при котором карточка в «Моих
 текстах» оставалась в состоянии «Анализ не подготовлен», пока пользователь не
 откроет Reader. Это не переоткрывает B0–B6 и не заменяет physical/AT matrix B7.

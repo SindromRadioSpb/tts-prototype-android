@@ -17,9 +17,10 @@
 **Research baseline:** `main@6a2e80a1`
 
 **Implementation:** `main@845ddc71`; production finishing `04f88328`, `85bdc9de`;
-cold-library/packet hardening `1298bb71`, `73e74a37`
+cold-library/packet hardening `1298bb71`, `73e74a37`; full-corpus preparation
+`d97930a8`; limited-only sort UX `86f5189c`
 
-**Production release:** `3.11.366` (served-byte/health and owner-profile
+**Production release:** `3.11.369` (served-byte/health and owner-profile
 read-only evidence; general owner smoke and physical/AT evidence remain
 separately classified)
 
@@ -27,6 +28,8 @@ separately classified)
 
 **Evidence:**
 [`docs/research/room-ux-b7-learning-compass/2026-08-12/`](../research/room-ux-b7-learning-compass/2026-08-12/README.md)
+and
+[`docs/research/room-ux-b7-learning-compass/2026-08-13/corpus-preparation/`](../research/room-ux-b7-learning-compass/2026-08-13/corpus-preparation/README.md)
 
 ---
 
@@ -232,7 +235,7 @@ learner-state migration or change to review/reading behavior.
 
 ---
 
-## 5. D2 — `local-derived-cache+materialized-group-only`
+## 5. D2A — full readable-corpus preparation
 
 ### Source support matrix
 
@@ -240,9 +243,9 @@ learner-state migration or change to review/reading behavior.
 |---|---|---|---|
 | Ben-Yehuda ready v7 | yes | baked public sidecar bound to work/revision/resolver | frozen personalized percentage in asset |
 | My Text current local revision | yes after local preparation | Worker-derived cache keyed by content hash + resolver | reading all bodies during card paint |
-| My Text missing/stale cache | `NOT_PREPARED` / `STALE` | local queue may recompute | fake zero or network upload |
-| Group current locally materialized edition + valid membership | yes after local preparation | local Worker/cache keyed by group/work/`bundle_sha256`/resolver | reuse after edition change/revocation |
-| Group catalog-only/not downloaded/offline | `NOT_PREPARED` | none until explicit existing materialization flow | mass prefetch to decorate cards |
+| My Text missing/stale cache | background `PENDING`, then current result | full local Worker queue may recompute through B6 scale `5,000` | fake zero, first-open dependency or network upload |
+| Group current catalog + valid membership | yes before Reader | proactively prewarmed content-free server sidecar plus local learner projection, exact revision-bound | protected body fetch during card paint or reuse after edition change |
+| Group offline | yes only from a complete cached exact-revision derived index; otherwise honest unavailable state | local derived cache | partial/fabricated ranking or hidden first-open dependency |
 | Revoked/foreign group edition | unsupported/inaccessible | cache purge/invalidate | stale personalized disclosure |
 | Non-Hebrew/empty/over-cap source | `UNSUPPORTED` with reason | none | silent partial result |
 
@@ -589,7 +592,7 @@ own named boundary and evidence.
 | Decision | Recommended approval | If changed before code |
 |---|---|---|
 | D1 Coverage semantics | one lower-bound v2 core, exact buckets, no universal bands | provide alternate states/denominator/rank uncertainty |
-| D2 Source support | local derived cache; group only current materialized edition | authorize a specific protected/network boundary separately |
+| D2 Source support | D2A: full local My Texts, membership-gated content-free protected index, all readable Ben works | any wider protected/network boundary requires separate approval |
 | D3 Reading time | `5 samples / 3 texts / 2,500 tokens`, local range | provide alternate minimum/range/staleness budget |
 | D4 Provenance | typed per-field, `curated > asserted > derived > unknown` | identify fields allowed to omit provenance |
 | D5 Recommendation | deterministic ladder, visible reason, no threshold promise/LLM | provide approved priority/copy/model boundary |
@@ -656,3 +659,11 @@ physical/assistive matrix остаётся частично незаполнен
 поэтому B7 ещё не закрыт и не имеет GA/closure verdict. Реализованный
 контракт и точная граница доказательства записаны в
 [`ROOM_UX_B7_LEARNING_COMPASS_2_IMPLEMENTATION_2026_08_12.md`](./ROOM_UX_B7_LEARNING_COMPASS_2_IMPLEMENTATION_2026_08_12.md).
+
+Финальный D2A release `3.11.369` прошёл production read-back: My Texts
+`115/115`, Study Songs `77/77`, Ben-Yehuda `796/796` readable без открытия
+Reader; одинаковая сортировка присутствует везде. Для реального all-limited
+профиля Study Songs no-op сортировка отклоняется с объяснением, пять index GETs
+не содержали protected body, а canonical counts/SHA-256 до/после совпали.
+Это расширяет engineering/production evidence, но не заполняет physical/AT
+матрицу D6.
