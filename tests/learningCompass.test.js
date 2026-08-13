@@ -170,6 +170,50 @@ test("group presentation never invents TTS or an audio revision", async () => {
   assert.equal(audio.value.kind, null);
 });
 
+test("unmaterialized group familiarity is actionable and never claims a derived value", async () => {
+  const { pathToFileURL } = require("node:url");
+  const presenter = await import(pathToFileURL(path.join(__dirname, "../public/js/corpus-item-presenter.js")).href);
+  const item = presenter.adaptGroupCorpusItem({
+    work_id: "g-cold", text_key: "g-cold", title: "שיר", rows_count: 4, audio_count: 0,
+  }, {
+    corpusId: "c1",
+    compass: {
+      status: "NOT_PREPARED", reason_code: "INGREDIENTS_MISSING", counts: null,
+      recorded_familiar_pct_lower_bound: null, unresolved_uncertainty_pp: null,
+      rank_eligible: false, resolver_version: compass.RESOLVER_VERSION,
+    },
+    copy: {
+      groupNotPreparedAction: "Откройте текст для анализа",
+      groupNotPreparedDetail: "Анализ выполнится локально после первого открытия текста.",
+    },
+  });
+  const familiarity = item.signals.find((signal) => signal.kind === "familiarity");
+  assert.equal(familiarity.provenance.type, "unknown");
+  assert.equal(familiarity.provenance.source, null);
+  assert.equal(familiarity.value.action_label, "Откройте текст для анализа");
+  assert.deepEqual(familiarity.caveats, ["prepare-on-open"]);
+  assert.deepEqual(familiarity.detail_labels, ["Анализ выполнится локально после первого открытия текста."]);
+});
+
+test("limited familiarity exposes a localized no-ranking caveat while retaining derived provenance", async () => {
+  const { pathToFileURL } = require("node:url");
+  const presenter = await import(pathToFileURL(path.join(__dirname, "../public/js/corpus-item-presenter.js")).href);
+  const item = presenter.adaptMyTextItem({ id: "m1", text_key: "m1", title: "טקסט" }, {
+    compass: {
+      status: "AVAILABLE_LIMITED", reason_code: "UNRESOLVED_ABOVE_RANK_LIMIT",
+      counts: { familiar: 4, eligible_denominator: 10, explicit_new: 1, untracked: 3, unresolved: 2 },
+      recorded_familiar_pct_lower_bound: 40, unresolved_uncertainty_pp: 20,
+      rank_eligible: false, learner_projection_version: "profile-v2", resolver_version: compass.RESOLVER_VERSION,
+    },
+    copy: { limitedFamiliarityDetail: "Неоднозначность слишком велика для сортировки; показана только нижняя граница." },
+  });
+  const familiarity = item.signals.find((signal) => signal.kind === "familiarity");
+  assert.equal(familiarity.provenance.type, "derived");
+  assert.equal(familiarity.provenance.source, "recorded-familiarity-v2");
+  assert.deepEqual(familiarity.caveats, ["unresolved-above-rank-limit"]);
+  assert.deepEqual(familiarity.detail_labels, ["Неоднозначность слишком велика для сортировки; показана только нижняя граница."]);
+});
+
 test("reason ladder is deterministic and does not use coverage thresholds", () => {
   assert.equal(compass.choosePrimaryReason({ continue_reading: true, group_assignment: true, recorded_familiarity: { status: "AVAILABLE" } }), "CONTINUE_READING");
   assert.equal(compass.choosePrimaryReason({ group_assignment: true, recorded_familiarity: { status: "AVAILABLE" } }), "GROUP_ASSIGNMENT");
@@ -265,6 +309,7 @@ test("local cache is additive, revision-keyed, page-batched and content-free by 
 
 test("cold personal libraries self-prepare and expose only relative familiarity sorting", () => {
   const ui = fs.readFileSync(path.join(__dirname, "../public/js/library-ui.js"), "utf8");
+  const shell = fs.readFileSync(path.join(__dirname, "../public/library.html"), "utf8");
   assert.match(ui, /COMPASS_IDLE_SESSION_MAX = 240/);
   assert.match(ui, /COMPASS_IDLE_CATALOG_WINDOW = 1000/);
   assert.match(ui, /startPersonalCompassSweep\(\)/);
@@ -272,6 +317,10 @@ test("cold personal libraries self-prepare and expose only relative familiarity 
   assert.match(ui, /sortFamiliar/);
   assert.doesNotMatch(ui, /filter\(\(item\) => item && item\.local_id\)\.slice\(0, 8\)/);
   assert.doesNotMatch(ui, /familiar_desc[\s\S]{0,240}(?:70|90|95|98)/);
+  assert.match(ui, /paintLearningCompass\(learnRow, view, \{ showMedia: false, showDetails: true \}\)/);
+  assert.doesNotMatch(shell, /\.work-card \.learning-compass-details \{ display: none; \}/);
+  assert.match(ui, /learning-compass-details\[open\]/);
+  assert.match(ui, /event\.key !== 'Escape'/);
 });
 
 test("dedicated worker enforces local limits and emits aggregates rather than content", () => {

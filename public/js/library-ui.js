@@ -927,6 +927,9 @@ function corpusItemCopy() {
     benProvenance: tt('room.compass.benProvenance', 'Сложность — по частотности; знакомые слова — только по реальному профилю'),
     groupProvenance: (revision) => replace('room.compass.groupProvenance', 'Учебная группа · TTS · редакция аудио {value}', '{value}', revision),
     groupProvenanceUnknown: tt('room.compass.groupProvenanceUnknown', 'Учебная группа · источник и редакция аудио не подтверждены'),
+    groupNotPreparedAction: tt('room.compass.groupNotPreparedAction', 'Откройте для анализа'),
+    groupNotPreparedDetail: tt('room.compass.groupNotPreparedDetail', 'Анализ выполнится локально после первого открытия текста.'),
+    limitedFamiliarityDetail: tt('room.compass.limitedFamiliarityDetail', 'Неоднозначность слишком велика для сортировки; показана только нижняя граница.'),
   };
 }
 
@@ -981,6 +984,19 @@ function renderLearningCompass(item, options) {
   return row;
 }
 
+let learningCompassEscapeBound = false;
+function bindLearningCompassEscape() {
+  if (learningCompassEscapeBound) return;
+  learningCompassEscapeBound = true;
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    const details = document.querySelector('.learning-compass-details[open]');
+    if (!details) return;
+    event.preventDefault(); details.open = false;
+    const summary = details.querySelector('summary'); if (summary) summary.focus();
+  });
+}
+
 function paintLearningCompass(target, item, options) {
   if (!target || !item) return;
   const opts = options || {};
@@ -1004,7 +1020,7 @@ function paintLearningCompass(target, item, options) {
           ? tt('room.compass.recordedFamiliarLowerBound', 'Не менее {value}% знакомы').replace('{value}', String(Math.round(Number(value.lower_bound_pct))))
           : Math.round(Number(value.lower_bound_pct)) + '% ' + tt('room.compass.recordedFamiliar', 'знакомы');
       } else if (value.status === 'NEEDS_PROFILE') copy = tt('room.compass.needsProfile', 'Нужен профиль слов');
-      else if (value.status === 'NOT_PREPARED') copy = tt('room.compass.notPrepared', 'Анализ не подготовлен');
+      else if (value.status === 'NOT_PREPARED') copy = value.action_label || tt('room.compass.notPrepared', 'Анализ не подготовлен');
       else if (value.status === 'PENDING') copy = tt('room.compass.preparing', 'Анализ готовится');
       else if (value.status === 'STALE') copy = tt('room.compass.stale', 'Нужно обновить анализ');
       else if (value.status === 'UNSUPPORTED') copy = tt('room.compass.unsupported', 'Локальный анализ не поддерживается');
@@ -1046,10 +1062,16 @@ function paintLearningCompass(target, item, options) {
     detailLines.push(tt('room.compass.provenanceLine', '{kind}: {type} · {source}')
       .replace('{kind}', learningSignalKindLabel(signal.kind)).replace('{type}', learningProvenanceTypeLabel(provenance.type))
       .replace('{source}', String(provenance.source || tt('room.compass.sourceUnknown', 'источник не указан'))));
+    for (const detailLabel of (signal.detail_labels || [])) if (detailLabel) detailLines.push(String(detailLabel));
   }
   if (opts.showDetails !== false && detailLines.length) {
+    bindLearningCompassEscape();
     const details = el('details', { class: 'learning-compass-details' });
     details.appendChild(el('summary', { attrs: { 'aria-label': tt('room.compass.details', 'Почему подходит и откуда данные') }, text: 'ⓘ' }));
+    details.addEventListener('toggle', () => {
+      if (!details.open) return;
+      document.querySelectorAll('.learning-compass-details[open]').forEach((peer) => { if (peer !== details) peer.open = false; });
+    });
     const panel = el('div', { class: 'learning-compass-panel' });
     const seen = new Set();
     for (const line of detailLines) if (!seen.has(String(line))) { seen.add(String(line)); panel.appendChild(el('p', { text: String(line) })); }
@@ -7692,7 +7714,7 @@ async function enhanceCardWithCoverage(node, card) {
     caveats, progress, savedState: isInAnyList(card.id) ? 'reading-list' : null,
   });
   const learnRow = _cardLearnRow(node); if (!learnRow) return;
-  paintLearningCompass(learnRow, view, { showMedia: false, showDetails: !node.classList.contains('work-card') });
+  paintLearningCompass(learnRow, view, { showMedia: false, showDetails: true });
   const primary = node.querySelector('.room-text-primary');
   if (primary) primary.textContent = view.primaryAction === 'continue' ? tt('room.resume.continue', 'Продолжить') : tt('room.mytexts.read', 'Читать');
 }

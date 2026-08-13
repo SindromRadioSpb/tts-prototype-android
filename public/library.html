@@ -2182,7 +2182,14 @@
     .room-text-row[data-state="finished"] { border-inline-start-color: #2f855a; }
     .group-work-card .learning-compass { margin-top: 3px; }
     .mytext-card .learning-compass { max-width: 100%; }
-    .work-card .learning-compass-details { display: none; }
+    /* Compact Ben-Yehuda rails show the same auditable B7 disclosure as result
+       rows. The panel is a viewport sheet so the horizontal rail cannot clip it. */
+    .work-card .learning-compass-details { display: block; }
+    .work-card .learning-compass:has(.learning-compass-details[open]) { overflow: visible; }
+    .work-card .learning-compass-panel {
+      position: fixed; z-index: 40; inset-inline: max(16px, calc((100vw - 360px) / 2));
+      inset-block-start: auto; inset-block-end: 16px; width: auto; max-height: min(70vh, 520px); overflow: auto;
+    }
     /* The detail panel is absolutely positioned outside the compact signal
        row. Reveal that overflow only while the disclosure is open; otherwise
        the row keeps its bounded horizontal behaviour on desktop. */
@@ -2383,7 +2390,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.366</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.367</span>
   </div>
 </footer>
 
@@ -2566,9 +2573,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=81"></script>
-<script src="/i18n/locales/en.js?v=81"></script>
-<script src="/i18n/locales/he.js?v=81"></script>
+<script src="/i18n/locales/ru.js?v=82"></script>
+<script src="/i18n/locales/en.js?v=82"></script>
+<script src="/i18n/locales/he.js?v=82"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->

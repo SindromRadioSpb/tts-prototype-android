@@ -236,10 +236,12 @@ async function runColdLibraryScenario(browser) {
   await page.waitForTimeout(2500);
   const sortState = await page.evaluate(() => ({
     selected: document.querySelector("#roomMyTextsSort")?.value || "",
+    label: document.querySelector("#roomMyTextsSort")?.selectedOptions?.[0]?.textContent?.trim() || "",
     first: document.querySelector(".mytexts-grid .work-card-title")?.textContent?.trim() || "",
     toast: document.querySelector(".room-toast,.toast")?.textContent?.trim() || "",
   }));
   check(sortState.selected === "familiar_desc", `cold-library: familiarity sort remains selected (${JSON.stringify(sortState)})`);
+  check(sortState.label === "Сначала достоверно знакомые", `cold-library: sort label states the rank-eligibility contract (${JSON.stringify(sortState)})`);
   const sorted = await page.evaluate(() => ({
     titles: Array.from(document.querySelectorAll(".mytexts-grid .work-card-title")).map((node) => node.textContent.trim()),
     scores: Array.from(document.querySelectorAll(".mytexts-grid .learning-familiar")).map((node) => Number((node.textContent.match(/\d+/) || [])[0])),
@@ -380,7 +382,8 @@ async function runScenario(browser, scenario) {
   }
 
   if (scenario.name === "1366-ru-desktop") {
-    const summary = page.locator(".mytexts-grid .learning-compass-details > summary").first();
+    const summaries = page.locator(".mytexts-grid .learning-compass-details > summary");
+    const summary = summaries.first();
     await summary.evaluate((node) => node.scrollIntoView({ block: "start" }));
     await summary.focus(); await page.keyboard.press("Enter");
     const painted = await page.evaluate(() => {
@@ -391,7 +394,18 @@ async function runScenario(browser, scenario) {
       return !!hit && panel.contains(hit);
     });
     check(painted, `${scenario.name}: open Compass detail panel is painted, not overflow-clipped`);
-    await summary.focus(); await page.keyboard.press("Enter");
+    const second = summaries.nth(1);
+    await second.focus(); await page.keyboard.press("Enter");
+    await page.waitForFunction(() => document.querySelectorAll(".mytexts-grid .learning-compass-details[open]").length === 1, null, { timeout: 2000 });
+    check(await page.locator(".mytexts-grid .learning-compass-details[open]").count() === 1,
+      `${scenario.name}: opening another disclosure closes the previous panel`);
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => document.querySelectorAll(".mytexts-grid .learning-compass-details[open]").length === 0, null, { timeout: 2000 });
+    const escaped = await page.evaluate(() => ({
+      open: document.querySelectorAll(".mytexts-grid .learning-compass-details[open]").length,
+      focused: document.activeElement?.matches?.(".learning-compass-details > summary") || false,
+    }));
+    check(escaped.open === 0 && escaped.focused, `${scenario.name}: Escape closes the panel and returns focus (${JSON.stringify(escaped)})`);
   }
 
   if (scenario.name === "380-ru-light") {
@@ -400,6 +414,13 @@ async function runScenario(browser, scenario) {
     }
     check(!result.status_classes.includes("coverage-not_prepared") && !result.status_classes.includes("coverage-stale"),
       `${scenario.name}: missing/stale visible cards self-heal without a Reader open`);
+    const limitedDisclosure = await page.evaluate(() => {
+      const row = document.querySelector(".mytexts-grid .coverage-available_limited")?.closest(".learning-compass");
+      return String(row?.querySelector(".learning-compass-panel")?.textContent || "");
+    });
+    check(/Неоднозначность слишком велика для сортировки; показана только нижняя граница\./.test(limitedDisclosure),
+      `${scenario.name}: limited familiarity explains why it is excluded from ranking (${limitedDisclosure})`);
+    check(!/unresolved-above-rank-limit/.test(limitedDisclosure), `${scenario.name}: raw caveat code is not exposed`);
     const summary = page.locator(".mytexts-grid .learning-compass-details > summary").first();
     const canonicalBefore = await page.evaluate(async () => {
       const db = await import("/db/local-db.js");
@@ -455,6 +476,62 @@ async function runScenario(browser, scenario) {
   return result;
 }
 
+async function runBenRailDisclosureScenario(browser) {
+  const context = await browser.newContext({
+    viewport: { width: 380, height: 844 }, locale: "ru-RU", colorScheme: "light", serviceWorkers: "block",
+  });
+  const page = await context.newPage();
+  const errors = [], telemetry = [];
+  page.on("pageerror", (error) => errors.push(String(error.message || error)));
+  page.on("request", (request) => { if (/rum|telemetry|analytics/i.test(request.url())) telemetry.push(request.url()); });
+  await page.addInitScript(() => {
+    localStorage.setItem("app.locale", "ru"); localStorage.setItem("appTheme_v1", "light");
+  });
+  await page.goto(BASE + "/library.html?canon=skip#room=benyehuda", { waitUntil: "load", timeout: 60000 });
+  await page.waitForFunction(() => window.__localDB?.isReady?.(), null, { timeout: 60000 });
+  await page.evaluate(async () => {
+    const db = await import("/db/local-db.js");
+    await db.applyWordStatusFromSync("pid:b7-ben-rail-profile", "known");
+  });
+  await page.reload({ waitUntil: "load", timeout: 60000 });
+  const firstCard = page.locator(".work-card[data-work-id]").first();
+  await firstCard.waitFor({ state: "visible", timeout: 60000 });
+  await firstCard.scrollIntoViewIfNeeded();
+  await firstCard.locator(".learning-compass-details > summary").waitFor({ state: "visible", timeout: 30000 });
+  const summary = firstCard.locator(".learning-compass-details > summary");
+  await summary.focus(); await page.keyboard.press("Enter");
+  const disclosure = await page.evaluate(() => {
+    const details = document.querySelector(".work-card[data-work-id] .learning-compass-details[open]");
+    const panel = details?.querySelector(".learning-compass-panel");
+    if (!panel) return { open: false };
+    const rect = panel.getBoundingClientRect();
+    const hit = document.elementFromPoint(Math.max(0, rect.left + 8), Math.max(0, rect.top + 8));
+    return {
+      open: true, panelText: panel.textContent || "", openCount: document.querySelectorAll(".learning-compass-details[open]").length,
+      left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom,
+      inViewport: rect.left >= 0 && rect.right <= innerWidth && rect.top >= 0 && rect.bottom <= innerHeight,
+      painted: !!hit && panel.contains(hit), overflow: document.documentElement.scrollWidth > innerWidth,
+      readerOpen: document.body.classList.contains("room-reading"),
+    };
+  });
+  check(disclosure.open && disclosure.openCount === 1, `ben-rail: compact card exposes one structured disclosure (${JSON.stringify(disclosure)})`);
+  check(disclosure.inViewport && disclosure.painted && !disclosure.overflow,
+    `ben-rail: disclosure is visible, unclipped, and causes no page overflow (${JSON.stringify(disclosure)})`);
+  check(/Знакомые слова:/.test(disclosure.panelText || ""), `ben-rail: exact familiarity provenance is disclosed (${disclosure.panelText || ""})`);
+  check(!disclosure.readerOpen, "ben-rail: inspecting Compass never opens Reader");
+  await page.screenshot({ path: path.join(OUT, "380-ru-ben-rail-details.png"), fullPage: true });
+  await page.keyboard.press("Escape");
+  const escaped = await page.evaluate(() => ({
+    open: document.querySelectorAll(".learning-compass-details[open]").length,
+    focused: document.activeElement?.matches?.(".learning-compass-details > summary") || false,
+  }));
+  check(escaped.open === 0 && escaped.focused, `ben-rail: Escape closes disclosure and returns focus (${JSON.stringify(escaped)})`);
+  check(errors.length === 0, `ben-rail: no page errors (${errors.join(" | ")})`);
+  check(telemetry.length === 0, "ben-rail: no RUM/telemetry requests");
+  await context.close();
+  return { name: "380-ru-ben-rail", disclosure, errors, telemetry };
+}
+
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
   const uiSource = fs.readFileSync(path.join(ROOT, "public/js/library-ui.js"), "utf8");
@@ -471,6 +548,8 @@ async function runScenario(browser, scenario) {
   check(/recordedFamiliarLowerBound:\s*"At least \{value\}% familiar"/.test(enSource), "EN lower-bound familiarity copy stays compact");
   check(/recordedFamiliarLowerBound:\s*"לפחות \{value\}% מוכרות"/.test(heSource), "HE lower-bound familiarity copy stays compact");
   check(!/recordedFamiliarLowerBound[^\n]+(?:зафиксировано знакомыми|recorded as familiar|תועדו כמוכרות)/.test(ruSource + enSource + heSource), "visible lower-bound copy does not repeat provenance wording");
+  check(/sortFamiliar:\s*"Сначала достоверно знакомые"/.test(ruSource), "RU sort label states reliable-rank semantics");
+  check(/limitedFamiliarityDetail:\s*"Неоднозначность слишком велика для сортировки/.test(ruSource), "RU limited status explains no-ranking semantics");
 
   const server = startServer();
   if (!await waitForServer()) { await stopServer(server.child); throw new Error("server did not become ready\n" + server.logs.join("")); }
@@ -488,6 +567,7 @@ async function runScenario(browser, scenario) {
   try {
     matrix.push(await runColdLibraryScenario(browser));
     for (const scenario of scenarios) matrix.push(await runScenario(browser, scenario));
+    matrix.push(await runBenRailDisclosureScenario(browser));
   }
   finally { await browser.close(); await stopServer(server.child); }
   fs.writeFileSync(path.join(OUT, "ROOM_B7_AUTOMATION_EVIDENCE.json"), JSON.stringify({

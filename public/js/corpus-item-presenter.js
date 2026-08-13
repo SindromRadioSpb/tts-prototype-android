@@ -101,15 +101,29 @@ function typedSignal(kind, value, type, source, revision, caveats) {
 function compassSignals(context, levelSignal, audioSignal) {
   const signals = [];
   const fit = context && context.compass;
-  if (fit) signals.push(typedSignal("familiarity", {
-    status: fit.status || "UNAVAILABLE",
+  if (fit) {
+    const status = fit.status || "UNAVAILABLE";
+    const hasCurrentValue = status === "AVAILABLE" || status === "AVAILABLE_LIMITED";
+    const signal = typedSignal("familiarity", {
+    status,
     lower_bound_pct: finite(fit.recorded_familiar_pct_lower_bound),
     uncertainty_pp: finite(fit.unresolved_uncertainty_pp),
     counts: fit.counts || null,
     rank_eligible: !!fit.rank_eligible,
     reason_code: fit.reason_code || null,
-  }, "derived", "recorded-familiarity-v2", fit.learner_projection_version || fit.resolver_version,
-  fit.status === "AVAILABLE_LIMITED" ? ["unresolved-above-rank-limit"] : []));
+    action_label: status === "NOT_PREPARED" && context.prepareOnOpen
+      ? copyValue(context.copy, "groupNotPreparedAction", "Open to analyze") : null,
+  }, hasCurrentValue ? "derived" : "unknown", hasCurrentValue ? "recorded-familiarity-v2" : null,
+  hasCurrentValue ? fit.learner_projection_version || fit.resolver_version : null,
+  status === "AVAILABLE_LIMITED" ? ["unresolved-above-rank-limit"]
+    : status === "NOT_PREPARED" && context.prepareOnOpen ? ["prepare-on-open"] : []);
+    signal.detail_labels = status === "AVAILABLE_LIMITED"
+      ? [copyValue(context.copy, "limitedFamiliarityDetail", "Ambiguity is too high for ranking; only the lower bound is shown.")]
+      : status === "NOT_PREPARED" && context.prepareOnOpen
+        ? [copyValue(context.copy, "groupNotPreparedDetail", "Analysis runs locally after the text is first opened.")]
+        : [];
+    signals.push(signal);
+  }
   const readingTime = context && context.readingTime;
   if (readingTime) signals.push(typedSignal("reading-time", {
     status: readingTime.status || "UNAVAILABLE",
@@ -222,7 +236,7 @@ export function adaptGroupCorpusItem(work, context = {}) {
     provenanceSummary: assertedAudioKind && revision
       ? copyValue(copy, "groupProvenance", `Study group · ${assertedAudioKind.toUpperCase()} r${revision}`, revision)
       : copyValue(copy, "groupProvenanceUnknown", "Study group · audio source/revision not asserted"),
-    signals: compassSignals(context, levelSignal, audioSignal),
+    signals: compassSignals({ ...context, prepareOnOpen: true }, levelSignal, audioSignal),
     primaryReason: context.primaryReason,
   });
 }
