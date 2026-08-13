@@ -30,6 +30,10 @@
   // key is simply abandoned: an empty rid cursor restarts from 0, INSERT OR IGNORE dedupes.
   var UP_CURSOR = "up_cursor", DOWN_CURSOR = "down_cursor_rid", CUTOVER_OK = "cutover_ok", LAST_SYNC = "last_sync_at";
   var BATCH_UP = 400, BATCH_DOWN = 500;
+  // Negative batch results used to be cached under the same deterministic key.
+  // Version the envelope so a repaired server contract can revalidate the same
+  // append-only rows; row IDs still make the replay idempotent.
+  var INGEST_KEY_VERSION = "v2";
 
   // Lock-step with db/learnerLogRepo.js META_STRIP (server enforces independently).
   var CONTENT_META_KEYS = ["surface", "answer", "expected", "word", "lemma", "usage", "translation", "gloss", "niqqud"];
@@ -102,7 +106,7 @@
       if (!rows.length) break;
       var payload = rows.map(rowForUpload);
       var idsFlat = rows.map(function (w) { return w.id; }).join("\n");
-      var key = keyPrefix + ":" + (LC && LC.sha1Hex ? LC.sha1Hex(idsFlat).slice(0, 24) : String(cur) + "-" + rows.length);
+      var key = keyPrefix + ":" + INGEST_KEY_VERSION + ":" + (LC && LC.sha1Hex ? LC.sha1Hex(idsFlat).slice(0, 24) : String(cur) + "-" + rows.length);
       var r = await jfetch("POST", "/api/learner/ingest", {
         idempotency_key: key, schema_version: 1,
         keyer_version: LC ? LC.KEYER_VERSION : undefined,
@@ -548,7 +552,7 @@
     syncUp: syncUp, syncDown: syncDown, fullSync: fullSync, reconcile: reconcile,
     syncArtifacts: syncArtifacts,
     stripMeta: stripMeta,
-    CONTENT_META_KEYS: CONTENT_META_KEYS,
+    CONTENT_META_KEYS: CONTENT_META_KEYS, INGEST_KEY_VERSION: INGEST_KEY_VERSION,
     CLOUD_TEXTS_CONSENT_VERSION: CLOUD_TEXTS_CONSENT_VERSION,
     KEYS: { UP_CURSOR: UP_CURSOR, DOWN_CURSOR: DOWN_CURSOR, CUTOVER_OK: CUTOVER_OK, LAST_SYNC: LAST_SYNC },
   };

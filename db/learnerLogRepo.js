@@ -280,8 +280,14 @@ async function ingestBatch(userId, deviceId, batch, opts) {
          deviceId || null, schemaVersion, scv]);
       if (r.changes > 0) result.learner_events.new++; else result.learner_events.dup++;
     }
-    await dbRun(db, `INSERT INTO ingest_batches (user_id, idempotency_key, device_id, result_json) VALUES (?,?,?,?)`,
-      [userId, idem, deviceId || null, JSON.stringify(result)]);
+    // Cache only a fully accepted batch. Caching row-level rejection made a
+    // corrected allowlist unable to revalidate the same deterministic batch
+    // key forever. Accepted rows already dedupe by canonical event ID, so an
+    // invalid batch can safely be retried without storing its negative result.
+    if (result.review_log.rejected === 0 && result.learner_events.rejected === 0) {
+      await dbRun(db, `INSERT INTO ingest_batches (user_id, idempotency_key, device_id, result_json) VALUES (?,?,?,?)`,
+        [userId, idem, deviceId || null, JSON.stringify(result)]);
+    }
     await dbRun(db, `COMMIT`);
   } catch (e) {
     try { await dbRun(db, `ROLLBACK`); } catch (_) {}

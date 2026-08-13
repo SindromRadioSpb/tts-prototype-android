@@ -146,6 +146,9 @@ const T = (s) => s;   // canonical UTC-Z literals below
     eq(reason("annul:no-target") === "annul_without_target", "annul without target must reject");
     eq(reason("ev:bad-type") === "bad_type" && reason("ev:review-fact") === "review_fact_in_events",
       "learner_events reject reasons wrong (B7)");
+    const in2retry = await api("POST", "/api/learner/ingest", { cookie: cookieA, csrf: csrfA, body: rows2 });
+    eq(in2retry.status === 200 && in2retry.json.replayed !== true && in2retry.json.review_log.rejected === 4,
+      "a rejected batch must be revalidated, not permanently negative-cached");
 
     // batch-level keyer quarantine
     const in3 = await api("POST", "/api/learner/ingest", { cookie: cookieA, csrf: csrfA, body: { idempotency_key: "batch-3", keyer_version: 2, review_log: [] } });

@@ -232,7 +232,7 @@ Cold-library `3.11.366` production evidence:
   evidence is in
   [`PRODUCTION_READBACK_EVIDENCE.json`](../research/room-ux-b7-learning-compass/2026-08-13/corpus-preparation/PRODUCTION_READBACK_EVIDENCE.json).
 
-### B7 corpus finishing release candidates: `3.11.370` → `3.11.371`
+### B7 corpus finishing release candidates: `3.11.370` → `3.11.372`
 
 Owner review of the complete three-corpus experience found four cross-surface
 gaps which belong to B7 rather than a later visual lane:
@@ -272,13 +272,17 @@ Room Training rows with `meta_key:word_only` instead of silently advancing the
 cursor. That exposed a pre-existing server/client contract drift: the local
 canonical writer records bounded `word_only` and `training_stage` provenance,
 but server `META_ALLOW` did not yet accept those non-content fields.
-`3.11.371` aligns the ingest allowlist and adds integration/static regressions;
-the failed attempt left the server count unchanged and created no local row.
+`3.11.371` aligns the ingest allowlist and adds integration/static regressions.
+Its read-back then proved that the original rejection result itself remained
+cached under the deterministic batch key. `3.11.372` versions that envelope
+key and stops caching future row-level rejection results; accepted event IDs
+remain the idempotency authority. Both failed attempts left the server count
+unchanged and created no local row.
 
 Release-candidate gates: B7 browser matrix `161/161`, frozen B0–B6 contracts
 `46/46`, cloud sync `32/32`, i18n/cache/version `233/233`, plus RU desktop and
 380 px and HE/RTL 360 px visual read-back. Production and owner-profile
-evidence are recorded only after served `3.11.371` is independently verified.
+evidence are recorded only after served `3.11.372` is independently verified.
 
 ## Что не доказано
 

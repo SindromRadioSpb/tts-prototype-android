@@ -367,6 +367,7 @@ test("cloud sync never advances past rejected rows and refreshes every local pro
   const sync = fs.readFileSync(path.join(__dirname, "../public/js/cloud-sync.js"), "utf8");
   const ui = fs.readFileSync(path.join(__dirname, "../public/js/library-ui.js"), "utf8");
   assert.match(sync, /INGEST_REJECTED/);
+  assert.match(sync, /INGEST_KEY_VERSION\s*=\s*["']v2["']/);
   assert.match(sync, /rejectedRows/);
   assert.match(sync, /setSyncState\(UP_CURSOR, ""\)/);
   assert.match(ui, /morphHost\.invalidateWordStates\(\)/);
