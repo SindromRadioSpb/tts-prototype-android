@@ -16,14 +16,22 @@ function eq(got, want, msg) {
   else { fail++; console.error(`FAIL ${msg}: got ${a} want ${b}`); }
 }
 
-for (const fn of ['resumeTarget', 'continuePercent', 'topVisibleRowIdx', 'mergeProgress', 'atTextEnd', 'lastRowVisible']) {
+for (const fn of ['resumeTarget', 'continuePercent', 'topVisibleRowIdx', 'latestProgress', 'mergeProgress', 'atTextEnd', 'lastRowVisible']) {
   if (typeof RP[fn] !== 'function') { console.error(`FAIL: reader-progress.${fn} not exported`); process.exit(1); }
 }
 
-// ── mergeProgress (BRR-P2-005 «Продолжить» disappearance fix) ────────────────
-// THE FIX: a played/read row is NEVER lowered by a later top-visible=0 close-flush.
+// ── latestProgress (B8-D2 owner-live correction) ─────────────────────────────
+// Continue is the LAST place where the learner worked, not the furthest row ever reached.
+eq(RP.latestProgress(-1, 3), 3, 'first working position');
+eq(RP.latestProgress(80, 10), 10, 'intentional backward study becomes the resume row');
+eq(RP.latestProgress(10, 34), 34, 'later study becomes the resume row');
+eq(RP.latestProgress(10, -1), 10, 'invalid negative observation keeps last valid row');
+eq(RP.latestProgress(10, null), 10, 'missing observation keeps last valid row');
+
+// ── mergeProgress (session-only furthest evidence) ───────────────────────────
+// This no longer drives durable resume. It remains the independent end-of-text signal.
 eq(RP.mergeProgress(-1, 3), 3, 'first record (no prior max)');
-eq(RP.mergeProgress(3, 0), 3, 'played row 3, close at top 0 → stays 3 (THE FIX)');
+eq(RP.mergeProgress(3, 0), 3, 'furthest session evidence is not lowered');
 eq(RP.mergeProgress(3, 5), 5, 'scroll forward advances');
 eq(RP.mergeProgress(5, 2), 5, 'scroll back keeps furthest');
 eq(RP.mergeProgress(5, -1), 5, 'no current → keep max');

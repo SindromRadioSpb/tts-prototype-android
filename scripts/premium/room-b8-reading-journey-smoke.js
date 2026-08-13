@@ -119,9 +119,13 @@ async function seed(page) {
     const notePage = await db.listReadingJourneyItems("note", { limit: 48, authorizedGroupIds: ["fixture-corpus"] });
     const finishedPage = await db.listReadingJourneyItems("finished", { limit: 48, authorizedGroupIds: ["fixture-corpus"] });
 
-    // Prove the LocalDb writer itself is monotonic, not just the Reader adapter.
+    // Owner-live D2 correction: the durable writer follows the last worked row,
+    // including an intentional move back to an earlier paragraph.
     await db.setProgress("b8-ben", { last_row_idx: 10, last_step_id: "behind" });
-    const monotonic = await db.getProgress("b8-ben");
+    const lastPosition = await db.getProgress("b8-ben");
+    // The browser route below starts with a farther stored position, then proves
+    // that opening the explicit row-10 bookmark makes row 10 the next Continue.
+    await db.setProgress("b8-ben", { last_row_idx: 80, last_step_id: "furthest" });
 
     const timings = [];
     for (let i = 0; i < 11; i++) {
@@ -138,7 +142,7 @@ async function seed(page) {
       bookmarkSources: Array.from(new Set(bookmarkPage.items.map((item) => item.source_kind))).sort(),
       noteSources: Array.from(new Set(notePage.items.map((item) => item.source_kind))).sort(),
       finishedSources: Array.from(new Set(finishedPage.items.map((item) => item.source_kind))).sort(),
-      monotonic: { row: monotonic && monotonic.last_row_idx, step: monotonic && monotonic.last_step_id },
+      lastPosition: { row: lastPosition && lastPosition.last_row_idx, step: lastPosition && lastPosition.last_step_id },
       coldMs: timings[0], warmP95Ms: warm[Math.floor((warm.length - 1) * 0.95)],
     };
   });
@@ -172,7 +176,7 @@ async function seed(page) {
     check(direct.bookmarkSources.includes("benyehuda") && direct.bookmarkSources.includes("group"), "typed bookmark sources missing: " + direct.bookmarkSources);
     check(direct.noteSources.includes("mytext") && direct.noteSources.includes("group"), "typed note sources missing: " + direct.noteSources);
     check(direct.finishedSources.includes("mytext") && direct.finishedSources.includes("group"), "typed finished sources missing: " + direct.finishedSources);
-    check(Number(direct.monotonic.row) === 80 && direct.monotonic.step === "furthest", "LocalDb monotonic writer lowered row/step: " + JSON.stringify(direct.monotonic));
+    check(Number(direct.lastPosition.row) === 10 && direct.lastPosition.step === "behind", "LocalDb last-position writer rejected backward study: " + JSON.stringify(direct.lastPosition));
     check(direct.coldMs <= 100 && direct.warmP95Ms <= 50, `5k summary budget exceeded cold=${direct.coldMs.toFixed(2)} warmP95=${direct.warmP95Ms.toFixed(2)}`);
 
     await page.reload({ waitUntil: "load" });
@@ -240,8 +244,40 @@ async function seed(page) {
       const progress = await db.getProgress("b8-ben");
       return { row: progress && progress.last_row_idx, step: progress && progress.last_step_id, review: await db.countReviewLog() };
     });
-    check(Number(afterBookmark.row) === 80 && afterBookmark.step === "furthest", "bookmark open/close lowered stored progress: " + JSON.stringify(afterBookmark));
+    check(Number(afterBookmark.row) === 10 && afterBookmark.step == null, "bookmark row did not become the next Continue position: " + JSON.stringify(afterBookmark));
     check(afterBookmark.review === direct.beforeReview, "journey view/open/close changed review_log");
+
+    // Reload the Learning Home and take the real Continue action. It must reopen
+    // exactly the earlier row just stored, while the passage bookmark still exists.
+    await page.reload({ waitUntil: "load" });
+    await page.waitForSelector('.learning-home-feature[data-feature-kind="continue"] .learning-home-primary', { timeout: 30000 });
+    await page.locator('.learning-home-feature[data-feature-kind="continue"] .learning-home-primary').click();
+    await page.waitForFunction(() => !document.getElementById("roomReader").hidden && document.querySelector('tr[data-row-idx="10"].rm-row-jump'), null, { timeout: 15000 }).catch(async (error) => {
+      const state = await page.evaluate(async () => {
+        const db = await import("/db/local-db.js");
+        const progress = await db.getProgress("b8-ben");
+        return {
+          href: location.href,
+          readerHidden: document.getElementById("roomReader")?.hidden,
+          readerTitle: document.getElementById("readerTitle")?.textContent,
+          jumpRows: Array.from(document.querySelectorAll("tr.rm-row-jump")).map((node) => node.getAttribute("data-row-idx")),
+          selectedFeature: document.querySelector('.learning-home-feature[data-feature-kind="continue"] .learning-home-feature-title')?.textContent,
+          storedRow: progress && progress.last_row_idx,
+          storedStep: progress && progress.last_step_id,
+        };
+      });
+      throw new Error(error.message + "\ncontinue-state=" + JSON.stringify(state) + "\nafterBookmark=" + JSON.stringify(afterBookmark));
+    });
+    const resumedEarlier = await page.evaluate(async () => {
+      const db = await import("/db/local-db.js");
+      const progress = await db.getProgress("b8-ben");
+      const bookmarks = await db.listBookmarks("b8-ben");
+      return { row: progress && progress.last_row_idx, earlierBookmark: bookmarks.some((item) => Number(item.order_index) === 10) };
+    });
+    check(Number(resumedEarlier.row) === 10, "Continue did not reopen the last earlier working row: " + JSON.stringify(resumedEarlier));
+    check(resumedEarlier.earlierBookmark === true, "last-position write altered the explicit passage bookmark");
+    await page.click("#readerBack");
+    await page.waitForSelector(".learning-home-journey", { timeout: 15000 });
 
     const notes = page.locator('.learning-home-journey-view[data-journey-kind="note"]');
     await notes.focus(); await page.keyboard.press("Enter");
@@ -314,7 +350,7 @@ async function seed(page) {
     check(contentRequests.length === 0, "unexpected telemetry/RUM request: " + contentRequests.join(" | "));
     await context.close();
 
-    const evidence = { direct, home, afterBookmark, stability, rtl, spacing, zoom, pageErrors, contentRequests };
+    const evidence = { direct, home, afterBookmark, resumedEarlier, stability, rtl, spacing, zoom, pageErrors, contentRequests };
     fs.writeFileSync(path.join(OUT, "evidence.json"), JSON.stringify(evidence, null, 2));
   } finally {
     await browser.close();
@@ -324,6 +360,6 @@ async function seed(page) {
     for (const failure of failures) console.error("  ✗ " + failure);
     process.exit(1);
   }
-  console.log("room-b8-reading-journey-smoke: PASS — monotonic + typed My/Ben/Study + 5k/48 + 20-cycle DOM/heap/long-task + RU/HE/RTL/320/text-spacing/200% + zero review_log/RUM");
+  console.log("room-b8-reading-journey-smoke: PASS — last-worked-position + separate bookmark + typed My/Ben/Study + 5k/48 + 20-cycle DOM/heap/long-task + RU/HE/RTL/320/text-spacing/200% + zero review_log/RUM");
   console.log("evidence: " + path.relative(ROOT, OUT));
 })().catch((error) => { console.error(error && error.stack || error); process.exit(1); });

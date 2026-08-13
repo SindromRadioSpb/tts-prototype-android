@@ -1,14 +1,17 @@
 # Reading Room B8 — implementation and release evidence
 
 Дата: 2026-08-13
-Статус: **LOCAL PASS · PRODUCTION PASS · OWNER-LIVE READY**
+Статус: **B8 OWNER-LIVE PASS EXCEPT D2 · D2 CORRECTION LOCAL PASS · PRODUCTION PENDING**
 Decision authority: `APPROVE B8-R` with D1–D6, `MIGRATION=NONE`, `SCOPE=IMMEDIATE_B8_ONLY`
-Release target: `3.11.375`
+Release target: `3.11.376`
 
 ## 1. Delivered contract
 
-- Existing `text_progress.last_row_idx` is monotonic across reopen, earlier bookmark jumps,
-  scroll, close and refresh. The winning `last_step_id` follows the winning row.
+- Owner-live correction: `text_progress.last_row_idx` is the latest genuine working row,
+  so deliberate backward study changes the next Continue position. `last_step_id` follows
+  that write or clears when the Reader has no matching step.
+- Session furthest is ephemeral and used only for the end-of-text prompt. It is not a
+  second store and does not override the latest working position.
 - Learning Home composes typed, read-only Bookmarks, Finished and With notes views from
   existing canonical stores. It creates no journey store and no migration.
 - My Texts, Ben-Yehuda and authorized Study collections use one source-neutral work adapter;
@@ -29,11 +32,14 @@ Primary evidence: `.tmp/room-b8-reading-journey/evidence.json`.
 | B8/B6/B0–B5 static contracts | 27/27 PASS |
 | synthetic corpus size / visible page | 5,000 / 48 |
 | page 2 | 9 rows, `hasPrevious=true`, no hidden remainder |
-| summary query cold | 5.985 ms (budget <=100 ms) |
-| summary query warm p95 | 5.385 ms (budget <=50 ms) |
-| stored progress after row-10 downgrade attempt | row 80, step `furthest` |
+| summary query cold | 9.220 ms (budget <=100 ms) |
+| summary query warm p95 | 9.120 ms (budget <=50 ms) |
+| direct writer `80 → 10` | row 10, step `behind` |
+| bookmark 10 → close → reload → Continue | row 10; bookmark still present |
 | `review_log` before/after journey flow | 0 / 0 |
-| 20 disclosure cycles | DOM delta 0; retained heap +67,936 bytes |
+| first-row quick close | row 0 replaces a stale deeper anchor; Continue is then honestly omitted |
+| long media material | followed row 12 → manual backward scroll → visible/stored row 2 |
+| 20 disclosure cycles | DOM delta 0; retained heap +54,024 bytes |
 | long tasks >=50 ms during journey interactions | 0 |
 | RU 380 / HE 380 RTL | 0 horizontal overflow; 0 undersized WCAG targets |
 | HE 320 + text-spacing override | 0 overflow; 0 clipped actions |
@@ -44,9 +50,10 @@ Adjacent release gates:
 
 - Room B6: 24/24 unit + 45/45 browser PASS.
 - Room B7: 50/50 unit + 161/161 browser PASS.
-- Reader resume 45/45; bookmarks 11/11; finished guard 9/9.
+- Reader resume 50/50; bookmarks 11/11; finished guard 9/9.
 - artifact sync 11/11; cloud sync 32/32; sync-slim 50/50.
-- reader notes PASS; Room media PASS; reader word status PASS.
+- notes roundtrip 25/25; reader notes PASS; Room media PASS; reader word status PASS;
+  reader parity PASS.
 - Studio→Room canonical SRS 49/49; open/close writes zero events and one completed
   synthetic grade writes exactly one event.
 - i18n/cache/version lock 233/233.
@@ -56,7 +63,19 @@ Classic redesign and unimplemented Studio L3/P2/P4 migrations/package/import-cen
 programs. The failing runtime files are outside the B8 diff. They are recorded, not
 silently re-scoped into `IMMEDIATE_B8_ONLY`.
 
-## 3. Harness findings repaired
+## 3. D2 correctness and harness findings repaired
+
+- A real local browser race was reproduced before release: opening explicit bookmark row
+  10 initiated smooth scrolling; an immediate Back click was incorrectly treated as user
+  scroll takeover, so a settling scroll event overwrote the exact target with row 4. The
+  runtime now suppresses programmatic settling for a bounded interval and clears that guard
+  only on genuine scroll gestures/keys inside the reading flow. The browser gate proves
+  bookmark 10 → immediate close → reload → actual Continue 10.
+- `flushReaderProgress()` now accepts row 0 as a real latest position. A quick close on the
+  first row therefore cannot retain a stale deeper Continue anchor.
+- The media table's own scroll container is wired into the same canonical writer. Its gate
+  proves that a learner can follow forward to row 12, manually return to an earlier visible
+  row, and persist that earlier row without creating a second store.
 
 - `reader-notes-smoke`: waits for the current corpus entry path before opening My Texts.
 - `room-media-smoke`: expects B7's canonical typed `no audio` state instead of absence.

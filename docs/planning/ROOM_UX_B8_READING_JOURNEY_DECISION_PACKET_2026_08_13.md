@@ -1,7 +1,7 @@
 # Reading Room B8 — Reading Journey decision packet
 
 Дата: 2026-08-13
-Статус: **APPROVED 2026-08-13 — immediate B8 implementation/release authorized**
+Статус: **APPROVED · OWNER-LIVE D2 CORRECTION 2026-08-13**
 Baseline: `main@951302392c741a051faf1a95466ff494a2df3757`, app `3.11.373`
 Research evidence: `docs/research/room-ux-b8-reading-journey/2026-08-13/`
 
@@ -9,6 +9,18 @@ Research evidence: `docs/research/room-ux-b8-reading-journey/2026-08-13/`
 строкой из §9. Последующим сообщением владелец отдельно разрешил production deploy,
 production verification и bounded fix/redeploy loop. B0–B7 закрыты. Ни один вывод
 ниже не переоткрывает их без конкретного product regression evidence.
+
+После успешного owner-live smoke владелец принял все остальные пункты B8 и предъявил
+конкретное педагогическое regression evidence только для D2: в больших учебных
+материалах пользователь осознанно возвращается к ранним абзацам и ожидает, что следующее
+«Продолжить» откроет именно последнюю рабочую строку. Поэтому первоначальный
+`D2=C_MONOTONIC_PROGRESS_PLUS_HISTORY` **superseded только в части monotonic resume** на:
+
+```text
+D2=D_LAST_WORKED_POSITION_PLUS_SEPARATE_BOOKMARKS
+```
+
+`MIGRATION=NONE`, D1/D3/D4/D5/D6 и закрытие B0–B7 сохраняются.
 
 ## 1. Executive verdict and measured problem statement
 
@@ -18,15 +30,16 @@ Reading Room **не нужна новая монолитная Reading Journey �
 journey-таблица**. Большинство learner facts уже имеют ровно один канон:
 `text_progress`, `bookmarks`, `notes_v2`/`note_occurrences`, append-only `review_log`
 и его `word_status` projection. B8 должен стать небольшим **read-only композиционным
-слоем** в существующем Learning Home плюс исправлением одного writer invariant:
-сохранённый reading row не должен понижаться при новой сессии.
+слоем** в существующем Learning Home. Owner-live проверка уточнила writer invariant:
+durable row — последняя рабочая позиция и потому может осознанно уменьшаться.
 
 Рекомендованный immediate B8:
 
-1. сохранить отдельные semantics для saved work, passage bookmark, furthest reading
+1. сохранить отдельные semantics для saved work, passage bookmark, last worked position
    progress и finished;
-2. считать `text_progress.last_row_idx` монотонным furthest/resume anchor, seed/merge
-   его со stored value и не выдавать за exact last location;
+2. считать `text_progress.last_row_idx` durable last-worked/resume anchor: новая валидная
+   рабочая строка заменяет прежнюю в обе стороны; furthest остаётся только session-only
+   сигналом end-of-text и не становится второй durable truth;
 3. добавить в существующий Learning Home один компактный блок «Ваше чтение»:
    source-neutral Continue и bounded read-only переходы к «Закладки», «Закончено»,
    «С заметками» — без cover feed и без второго writer;
@@ -40,7 +53,7 @@ journey-таблица**. Большинство learner facts уже имеют
 
 | Finding | Evidence | Severity | B8 action |
 |---|---|---:|---|
-| Stored row может понизиться после normal reopen | `library-ui.js:4967–5038`; `reader-progress.js:41–50`; старый requirement уже называл max(stored, session) | P1 data-experience gap, не B7 regression | red test, затем monotonic merge через существующий writer |
+| Monotonic row не позволяет продолжить работу с ранее выбранного абзаца | owner-live smoke большого учебного материала; explicit expected `80 → 10 → Continue 10` | P1 pedagogical regression, изолированная в B8 D2 | last-write working position; bookmark остаётся отдельно |
 | Journey readers разбросаны по источникам | Ben-only `getContinueReading()/getFinishedTexts`; Study local filter; My card state; source-neutral Learning Home continue only | P1 continuity gap | compact projection in existing Learning Home |
 | Passage bookmark и saved work визуально соседствуют, но authority различна | DB `bookmarks` vs `localStorage.corpus_reading_lists_v1` | P1 semantic/recovery risk | разные labels/actions/identities; не merge |
 | Exact media currentTime отсутствует | media tables/passport без learner playback field; teardown clears player | P2 expectation gap | label resume by row, not seconds; backlog exact media resume |
@@ -107,21 +120,22 @@ or resolve learner conflicts. B8 keeps that boundary.
 - **Learning Home:** `getLearningHomeContinue()` already chooses across all locally
   materialized sources with entitlement guard. It is the smallest safe home for B8.
 
-### 2.4 Confirmed gap: progress downgrade
+### 2.4 Owner-live confirmed gap: last working position
 
-`recordProgress()` maintains `_sessionMaxRow`, but a normal new Reader session begins
-without max-merging the stored row. `setTextProgress()` overwrites the row. Explicit
-resume jumps seed the session max, while dismissing resume/starting from the beginning
-can later persist a lower row.
+Первоначальный research трактовал понижение stored row как дефект. Реальный учебный smoke
+доказал обратное: интервью и длинные материалы изучаются нелинейно, а возвращение к раннему
+абзацу является новым рабочим местом, не потерей прогресса.
 
 Recommended invariant:
 
 ```text
-persisted_row_after_write = max(stored_last_row_idx, session_max_row)
+persisted_resume_row = latest_valid_working_row
+session_furthest_row = max(rows_reached_in_current_session)  // end prompt only
 ```
 
-This is a single-writer fix; it does not create a second location field. `last_step_id`
-must follow the row that wins, or be cleared when it cannot be proven to correspond.
+Это по-прежнему один существующий writer и одно durable поле. При смене строки
+`last_step_id` следует за новой записью либо очищается. Passage bookmark, `finished_at`
+и session-only furthest не смешиваются с resume truth.
 
 ### 2.5 Confirmed gap: exact media resume
 
@@ -141,7 +155,7 @@ Full observation/decision split: [EXTERNAL_RESEARCH](../research/room-ux-b8-read
 |---|---|---|
 | Kindle syncs reading position/notes/highlights under an explicit server/connectivity contract ([Amazon](https://digprjsurvey.amazon.co.uk/csad/help/node/GGFEXXS8Z7DPJSTN?theme=light)) | cloud label must match actual contract | no claim that corpus state syncs today |
 | Apple separates auto place, deliberate bookmark, Want to Read and Finished ([Apple Books](https://support.apple.com/guide/iphone/read-books-iphc1af7c57/ios)) | four separate facts/actions | no Apple-style collection model |
-| Readwise documents furthest progress and last location separately ([Reader FAQ](https://docs.readwise.io/reader/docs/faqs)) | choose honest `furthest/resume` semantics now | no second durable last-location field in B8 |
+| Readwise documents furthest progress and last location separately ([Reader FAQ](https://docs.readwise.io/reader/docs/faqs)) | expose honest last-position semantics; keep completion evidence separate | no second durable field in B8 |
 | LingQ composes reader word state and vocabulary review ([LingQ](https://www.lingq.com/en/ios-app-support/)) | compose existing note/status/SRS readers | no auto-mark-known behavior |
 | OPFS/IndexedDB are best-effort unless persistent storage is granted ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria)) | show device/recovery scope | no guarantee after user clears site data |
 | History API is session navigation state ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/History_API)) | keep B6 presentation separate | no promotion to learner canon |
@@ -156,7 +170,7 @@ Find material
   -> optionally save the work OR open it
   -> read; progress writes through text_progress
   -> return through History (presentation) or Learning Home (durable projection)
-  -> Continue from monotonic furthest row
+  -> Continue from the latest genuine working row, including an earlier paragraph
   -> add passage bookmark / note / word status / review event through its own canon
   -> media may follow the row, not exact persisted seconds
   -> explicitly mark Finished
@@ -202,7 +216,7 @@ Rules at each step:
 | Two-device conflict | whole My Text artifact LWW | no corpus artifact conflict because fact does not sync | same | keep current LWW; review events union/manual LWW remain separate |
 | Entitlement revoked | own text unaffected | journey row becomes unavailable, no content leak | N/A for public corpus | preserve identifier-only local state if policy allows; do not render restricted content |
 | Note conflict | artifact/state LWW per existing contract | corpus text-bound note local | corpus text-bound note local | no B8 merge editor |
-| Progress downgrade attempt | possible today | possible today | possible today | monotonic max prevents lower write |
+| Deliberate backward study | same last-position writer | same | same | lower valid row becomes next Continue; bookmark remains separate |
 | Media bytes absent/timing invalid | current honest media reason | same | same | no exact resume claim; Reader remains usable as text |
 | RU/HE/RTL/200% | all labels/actions | Hebrew titles + RU/HE chrome | same | bidi isolation, no clipped state/action, logical properties |
 | Keyboard/AT | focusable Continue/filter/list; status announced | same + unavailable semantics | same | DOM order = visual order; focus restore; Escape for modal/disclosure; no chip-only meaning |
@@ -243,16 +257,19 @@ Options:
 - **D2-B — add new exact-last-location schema field now: defer.** Mature products can
   distinguish last location from furthest progress, but B8 has no evidence that the
   extra writer/conflict policy pays for itself.
-- **D2-C — one composite UI, existing durable progress, separate History: recommend.**
-  Keep `text_progress.last_row_idx` as monotonic furthest/resume anchor; History restores
-  navigation/filter context; Learning Home projects recoverable facts.
+- **D2-C — monotonic existing progress: superseded by owner-live evidence.** Он защищает
+  furthest, но не поддерживает нелинейную проработку больших материалов.
+- **D2-D — last worked position + separate bookmarks: approved correction.**
+  `text_progress.last_row_idx` хранит последнюю рабочую строку, History восстанавливает
+  presentation context, passage bookmark остаётся отдельным явным якорем.
 
-Decision recommendation: **D2=C_MONOTONIC_PROGRESS_PLUS_HISTORY**.
+Current decision: **D2=D_LAST_WORKED_POSITION_PLUS_SEPARATE_BOOKMARKS**.
 
 Writer invariant after approval:
 
 ```text
-stored row never decreases from scroll/jump/close/refresh
+latest genuine row interaction may move stored resume in either direction
+programmatic scroll settling and teardown cannot replace the explicit target
 finished remains manual-only
 history restore writes neither progress nor review_log until genuine reading interaction
 ```
@@ -314,7 +331,7 @@ Conflict policy remains:
 - manual status: LWW replay over mark events;
 - My Text artifact: existing whole-artifact LWW;
 - bookmarks: local unique position, bundle re-anchor/union;
-- progress: new monotonic max within existing local writer;
+- progress: existing last-write position policy, including deliberate backward study;
 - notes/shelves: current bundle/state LWW/merge;
 - presentation: session latest only, never learner conflict input.
 
@@ -349,7 +366,8 @@ Required qualities:
 ### 6.1 Exact invariants
 
 1. One fact, one authority: B8 adds no progress/bookmark/note/vocabulary/SRS store.
-2. `text_progress.last_row_idx` never decreases due to Reader interaction.
+2. `text_progress.last_row_idx` equals the latest valid working row and may decrease after
+   deliberate backward study; transient programmatic scroll/teardown cannot change it.
 3. Finish/unfinish remains explicit; end-of-text/media never auto-finishes.
 4. Open/close/Back/Forward/refresh/filter writes zero `review_log` rows.
 5. One completed grade writes exactly one review event; B8 never invokes grade.
@@ -368,7 +386,8 @@ Required qualities:
 
 | Fact | Authority | Allowed B8 reader | Allowed B8 writer | Forbidden duplicate |
 |---|---|---|---|---|
-| furthest row | `text_progress` | journey query/Reader | existing `setTextProgress`, monotonic policy | History/localStorage journey row |
+| last working row | `text_progress` | journey query/Reader | existing `setTextProgress`, last valid interaction | History/localStorage journey row |
+| session furthest | Reader memory only | end-of-text prompt | current Reader session | durable furthest field/table |
 | finished | `text_progress.finished_at` | projection/filter | existing manual handlers | inferred completion cache |
 | passage bookmark | `bookmarks` | cross-source bounded list | existing bookmark toggle | saved-list entry as bookmark |
 | saved work | source-specific current contract | typed link/projection | Ben current list helper only | `bookmarks` or curated shelf alias |
@@ -397,12 +416,12 @@ Required qualities:
 Recommended implementation needs no migration. Runtime rollback is one version revert of:
 
 - compact projection UI/query adapters;
-- monotonic progress policy;
+- last-working-position policy and session-only furthest signal;
 - B8-specific copy/tests.
 
 Because no new canonical store is introduced, rollback does not transform learner data.
-Rows written under monotonic policy are valid existing `text_progress` rows and are not
-rolled back/destructively lowered. Ben reading-list payload and review log are untouched.
+Rows written under last-position policy are valid existing `text_progress` rows. Runtime
+rollback does not transform them. Ben reading-list payload and review log are untouched.
 
 ## 7. Red-test-first implementation packet after approval
 
@@ -410,8 +429,8 @@ rolled back/destructively lowered. Ben reading-list payload and review log are u
 
 | Slice | Red evidence first | Implementation outcome | Gate |
 |---|---|---|---|
-| B8-I0 contract tests | stored row 80 + new session row 10 currently can persist 10; typed saved/bookmark distinctions | tests only until expected RED is proven | owner confirms red is intended gap, not changed semantics |
-| B8-I1 monotonic resume | normal open/dismiss/scroll, explicit continue, close, refresh, History restore | max(stored, session), honest furthest-row copy | resume suite; zero review-log delta in synthetic DB |
+| B8-I0 contract tests | stored row 80 + deliberate earlier row 10 | RED until last-position helper/writer exist | owner-live expected `Continue 10` |
+| B8-I1 last-position resume | normal scroll, explicit continue/bookmark, close, refresh, History restore | latest genuine row; separate session furthest; honest position copy | `80 → 10 → reload → Continue 10`; zero review-log delta |
 | B8-I2 journey projection | source-neutral fixtures for My/Study/Ben; unavailable entitlement; 1k/5k | compact Learning Home + paged Bookmarks/Finished/With notes views | unit/query/browser, payload/DOM/memory budgets |
 | B8-I3 recovery/a11y | offline/eviction/new-device copy, RU/HE/RTL, keyboard, 200%, 320px/text-spacing | device/cloud labels and focus semantics | automated a11y + physical matrix |
 | B8-I4 harness repair | current media chip expectation, hidden legacy tab, sync-slim timeout | modern entry path/expectations without product-semantic drift | all targeted smoke gates deterministic |
@@ -483,7 +502,8 @@ automation equals low-end phone owner evidence.
 
 ### 7.5 Automation matrix
 
-- unit: typed identity, monotonic merge, finish manual-only, source/entitlement guards;
+- unit: typed identity, latest-position replacement, separate session furthest,
+  finish manual-only, source/entitlement guards;
 - DB: bounded aggregate query, stable ordering/cursor, 1k/5k, no body reads;
 - browser: full golden journey for three sources, Back/Forward/refresh, offline/reconnect,
   no page errors, focus restore, 380px RU/HE;
@@ -514,7 +534,7 @@ fixtures remain the default for writer tests.
 
 ### Immediate B8 after approval
 
-- monotonic existing progress writer + honest furthest/resume wording;
+- last-working-position writer + honest position wording + separate session-only furthest;
 - compact «Ваше чтение» block in existing Learning Home;
 - source-neutral bounded Bookmarks/Finished/With notes projections over materialized data;
 - typed distinction between saved work and passage bookmark;
@@ -546,7 +566,8 @@ fixtures remain the default for writer tests.
 
 - D1: typed separation; DB passage bookmarks stay canonical, saved work remains
   source-specific and explicitly device-local where applicable.
-- D2: one composite journey UI, monotonic existing progress, History remains presentation.
+- D2: one composite journey UI; last worked position drives Continue; explicit bookmarks
+  and History remain separate facts/presentation.
 - D3: read-only note/vocab/media composition; row-based media continuation only.
 - D4: compact Learning Home projections, no new dashboard/feed.
 - D5: preserve and explain current consent/cloud/device/reimport/conflict boundaries.
@@ -566,3 +587,7 @@ Approval получен 2026-08-13. Реализация начата с RED B8-
 learner store. Production release разрешён отдельным последующим сообщением владельца;
 фактические результаты ведутся в
 `ROOM_UX_B8_READING_JOURNEY_IMPLEMENTATION_EVIDENCE_2026_08_13.md`.
+
+Owner-live correction authority получена после успешного smoke остальных пунктов B8:
+ранняя рабочая строка должна сохраняться и становиться следующим Continue; явная закладка
+остаётся независимой. Эта authority supersedes только первоначальную monotonic часть D2.

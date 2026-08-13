@@ -4967,13 +4967,17 @@ function roomMediaWireOnce() {
 // BRR-P2-002 «Продолжить чтение» — record the reading position (debounced) and restore
 // it on the next open. Position = topmost row at the sticky bar OR the karaoke-playing row.
 // All DOM/DB; the in-range decision math lives in the pure window.ReaderProgress (gated).
-let _progressTimer = null, _scrollTimer = null, _progressScrollWired = false, _sessionMaxRow = -1;
-// BRR-P2-005 — record the FURTHEST row reached this session, never a lower one. Fixes the
-// «Продолжить» disappearance: playing row N then closing at scroll-top no longer writes 0.
+let _progressTimer = null, _scrollTimer = null, _progressScrollWired = false;
+let _sessionLastRow = -1, _sessionFurthestRow = -1;
+let _programmaticProgressUntil = 0;
+// B8-D2 owner-live correction: durable Continue follows the LAST row where the learner
+// worked, even when study moves backwards. Furthest remains a separate session-only signal
+// for the manual end-of-text prompt; it is never persisted as the resume anchor.
 function recordProgress(idx) {
   if (readerTextId == null || idx == null || idx < 0 || Date.now() < _roomReaderReadOnlyUntil) return;
-  _sessionMaxRow = window.ReaderProgress ? window.ReaderProgress.mergeProgress(_sessionMaxRow, idx) : Math.max(_sessionMaxRow, idx);
-  const tid = readerTextId, row = _sessionMaxRow;
+  _sessionLastRow = window.ReaderProgress ? window.ReaderProgress.latestProgress(_sessionLastRow, idx) : Math.floor(Number(idx));
+  _sessionFurthestRow = window.ReaderProgress ? window.ReaderProgress.mergeProgress(_sessionFurthestRow, idx) : Math.max(_sessionFurthestRow, idx);
+  const tid = readerTextId, row = _sessionLastRow;
   if (_progressTimer) clearTimeout(_progressTimer);
   _progressTimer = setTimeout(() => {
     _progressTimer = null;
@@ -4985,15 +4989,26 @@ async function flushReaderProgress(options = {}) {
   const tid = readerTextId;
   if (_progressTimer) { clearTimeout(_progressTimer); _progressTimer = null; }
   if (tid == null) return { ok: true, textId: null, rowIndex: -1 };
-  const top = currentTopRowIdx();
-  const idx = window.ReaderProgress
-    ? window.ReaderProgress.mergeProgress(_sessionMaxRow, top == null ? -1 : top)
-    : Math.max(_sessionMaxRow, top == null ? -1 : top);
-  if (idx <= 0) return { ok: true, textId: String(tid), rowIndex: idx };
+  // A pending USER scroll may not have survived the 600ms debounce before Back.
+  // Capture it synchronously. Programmatic smooth-scroll events are ignored here:
+  // their exact explicit target was already recorded by scrollToReaderRow().
+  if (_scrollTimer) {
+    clearTimeout(_scrollTimer); _scrollTimer = null;
+    if (Date.now() >= _programmaticProgressUntil) {
+      const top = currentTopRowIdx();
+      if (top != null) recordProgress(top);
+      if (_progressTimer) { clearTimeout(_progressTimer); _progressTimer = null; }
+    }
+  }
+  const idx = _sessionLastRow;
+  // Row 0 is a real last-worked position too: persisting it intentionally
+  // clears an older deeper Continue anchor (the home projection then omits
+  // Continue because reopening at the beginning needs no resume affordance).
+  if (idx < 0) return { ok: true, textId: String(tid), rowIndex: idx };
   await localDb.setProgress(tid, { last_row_idx: idx });
   if (options.readBack) {
     const saved = await localDb.getProgress(tid);
-    if (!saved || Number(saved.last_row_idx) < idx) throw new Error('ROOM_PROGRESS_READBACK_FAILED');
+    if (!saved || Number(saved.last_row_idx) !== idx) throw new Error('ROOM_PROGRESS_READBACK_FAILED');
   }
   return { ok: true, textId: String(tid), rowIndex: idx };
 }
@@ -5011,26 +5026,40 @@ function currentTopRowIdx() {
     const rc = tr.getBoundingClientRect();
     rows.push({ idx: Number(tr.getAttribute('data-row-idx')), top: rc.top, bottom: rc.bottom });
   }
-  return window.ReaderProgress.topVisibleRowIdx(rows, readerBarOffset());
+  let offset = readerBarOffset();
+  try { if (mount.classList.contains('room-media-scroll')) offset = Math.max(offset, mount.getBoundingClientRect().top); } catch (_) {}
+  return window.ReaderProgress.topVisibleRowIdx(rows, offset);
 }
 function wireProgressScroll() {
   if (_progressScrollWired) return; _progressScrollWired = true;
-  window.addEventListener('scroll', () => {
+  const onUserTakeover = () => { _programmaticProgressUntil = 0; };
+  const onScrollKey = (event) => {
+    if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key)) onUserTakeover();
+  };
+  const onScroll = () => {
     if (readerTextId == null) return;
     if (_scrollTimer) clearTimeout(_scrollTimer);
     _scrollTimer = setTimeout(() => {
       _scrollTimer = null;
+      if (Date.now() < _programmaticProgressUntil) return;
       const idx = currentTopRowIdx();
       if (idx != null) { recordProgress(idx); maybeShowEndOfText(); }   // Epic-5 W1 — last row in view → «✓ Прочитано» card
     }, 600);
-  }, { passive: true });
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  const mount = $('roomReaderTable'); if (mount) mount.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('wheel', onUserTakeover, { passive: true });
+  window.addEventListener('touchmove', onUserTakeover, { passive: true });
+  if (mount) mount.addEventListener('pointerdown', onUserTakeover, { passive: true });
+  window.addEventListener('keydown', onScrollKey);
 }
 function scrollToReaderRow(idx) {
   const mount = $('roomReaderTable');
   const tr = mount && mount.querySelector('tr[data-row-idx="' + idx + '"]');
   if (!tr) return;
+  _programmaticProgressUntil = Date.now() + 1500;
   if (tr.scrollIntoView) { try { tr.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) {} }
-  if (window.ReaderProgress) _sessionMaxRow = window.ReaderProgress.mergeProgress(_sessionMaxRow, idx);   // a jump fixes position
+  recordProgress(idx);   // explicit Continue/bookmark/FTS jump is the new working position
   highlightReaderRow(idx);   // BRR-P2-005 — «ты здесь» jump-highlight (resume / bookmark / FTS)
 }
 
@@ -5084,29 +5113,24 @@ function showResumeBanner(idx) {
   reader.insertBefore(bar, tbl);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
-// Seed EVERY Reader entry from the valid durable furthest row before bookmark/FTS/
-// presentation navigation can jump behind it. This is a read-only seed: the existing
-// debounced setProgress writer remains the only progress writer.
-async function seedReaderSessionProgress(textId) {
+// Load the durable last working row without seeding session-furthest state. The chosen
+// route below decides whether normal Continue or an explicit bookmark/FTS anchor becomes
+// the working position.
+async function loadReaderResumeProgress(textId) {
   if (!window.ReaderProgress) return { progress: null, target: null };
   let prog = null;
   try { prog = await localDb.getProgress(textId); } catch (_) { prog = null; }
   if (readerTextId !== textId) return { progress: null, target: null }; // navigated away while awaiting
-  const seed = window.ReaderProgress.sessionProgressSeed
-    ? window.ReaderProgress.sessionProgressSeed(prog, readerRows.length)
-    : (window.ReaderProgress.resumeTarget(prog, readerRows.length) ?? -1);
-  if (seed >= 0) _sessionMaxRow = window.ReaderProgress.mergeProgress(_sessionMaxRow, seed);
-  return { progress: prog, target: seed >= 0 ? seed : null };
+  const target = window.ReaderProgress.resumeTarget(prog, readerRows.length);
+  return { progress: prog, target };
 }
 
 // After a fresh open: offer (or, for an explicit «Продолжить» tap, perform) the resume.
-// `seeded` was loaded before any alternative jump, so dismissing the banner or opening
-// a bookmark behind the furthest row can never lower this session's durable write.
-function restoreReaderPosition(textId, opts, seeded) {
+function restoreReaderPosition(textId, opts, loaded) {
   if (!window.ReaderProgress || readerTextId !== textId) return;
-  const target = seeded && seeded.target != null
-    ? Number(seeded.target)
-    : window.ReaderProgress.resumeTarget(seeded && seeded.progress, readerRows.length);
+  const target = loaded && loaded.target != null
+    ? Number(loaded.target)
+    : window.ReaderProgress.resumeTarget(loaded && loaded.progress, readerRows.length);
   if (target == null) return;
   if (opts && opts.resume) scrollToReaderRow(target);   // explicit continue-card tap → jump
   else showResumeBanner(target);                        // normal open → non-jumping affordance (R4)
@@ -5122,13 +5146,13 @@ let _endCardFor = null;   // textId the end card is shown for this open (idempot
 function removeEndCard() { const c = $('readerEndCard'); if (c && c.remove) c.remove(); }
 function resetEndCard() { removeEndCard(); _endCardFor = null; }
 // True once the reader has reached the end of the text. TWO honest signals: (a) the furthest tracked
-// row is the last row (karaoke auto-scroll / resume-to-end set _sessionMaxRow to it), or (b) the last
+// row is the last row (karaoke auto-scroll / resume-to-end set _sessionFurthestRow to it), or (b) the last
 // rendered row is visible in the viewport (plain scroll reading — topVisibleRowIdx never reports the
 // last idx at document-bottom, so this is the real scroll-to-end trigger, and it also covers a
 // single-screen text whose whole body is visible on open).
 function readerAtEnd() {
   if (!window.ReaderProgress || !readerRows.length) return false;
-  if (window.ReaderProgress.atTextEnd(_sessionMaxRow, readerRows.length)) return true;
+  if (window.ReaderProgress.atTextEnd(_sessionFurthestRow, readerRows.length)) return true;
   const mount = $('roomReaderTable'); if (!mount) return false;
   const trs = mount.querySelectorAll('tr[data-row-idx]');
   if (!trs.length) return false;
@@ -6889,7 +6913,7 @@ async function openReader(textId, title, opts) {
   try { roomMediaTeardown(); } catch (_) {}   // media player: паспорт/стейдж/YT прошлого текста не переживают открытие
   try { window.ReaderMorph && window.ReaderMorph.setProcliticOverlay(null); } catch (_) {}   // Phase-3 — drop the previous work's proclitic overlay (never leak across works)
   setContextOverlay(null);              // context-overlay — same never-leak rule
-  _sessionMaxRow = -1;                  // BRR-P2-005 — furthest-row tracker resets per open
+  _sessionLastRow = -1; _sessionFurthestRow = -1; _programmaticProgressUntil = 0;
   readerTextId = textId != null ? String(textId) : null;
   const titleEl = $('readerTitle');
   if (titleEl) {
@@ -6967,12 +6991,12 @@ async function openReader(textId, title, opts) {
     try { tagReaderTableLang(mount); } catch (_) {}      // Epic 8b — sr-only/lang on the painted table (parity-safe)
     try { showReaderTip(); } catch (_) {}                // Epic 8a — first-open gesture hint
     wireProgressScroll();
-    const seededProgress = await seedReaderSessionProgress(readerTextId);
+    const loadedProgress = await loadReaderResumeProgress(readerTextId);
     if (openEpoch !== readerOpenEpoch) return;
-    if (opts && opts.ftsQuery) jumpToFtsMatch(opts.ftsQuery);                     // BRR-P2-005 — FTS hit → matched row
+    if (opts && opts.ftsQuery) jumpToFtsMatch(opts.ftsQuery, loadedProgress);                     // BRR-P2-005 — FTS hit → matched row
     else if (opts && opts.scrollToSentence) scrollToSentence(opts.scrollToSentence);   // open a bookmark at its row
     else if (opts && opts.scrollToOrderIndex != null) scrollToOrderIdx(opts.scrollToOrderIndex);   // P9 — якорь объяснения (text_key+order_index)
-    else restoreReaderPosition(readerTextId, opts, seededProgress);      // offer/perform resume (R4 reliability)
+    else restoreReaderPosition(readerTextId, opts, loadedProgress);      // offer/perform resume (R4 reliability)
     // Epic-5 W1 — a resumed-to-end / single-screen text reaches the end without a scroll event;
     // check once after layout settles so the «✓ Прочитано» card can surface (readerAtEnd handles
     // both the «last row visible» and the resume/karaoke-latch cases).
@@ -7025,7 +7049,7 @@ function scrollToOrderIdx(oi) {
 // BRR-P2-005/006 — open an FTS hit AT the matched line. For a multi-word query, prefer the row
 // carrying the whole PHRASE (consecutive query tokens, firstPhraseRow); fall back to the first row
 // containing any query token (firstMatchRow); fall back to normal resume if none is located.
-function jumpToFtsMatch(q) {
+function jumpToFtsMatch(q, loadedProgress) {
   let idx = -1;
   try {
     const C = window.CorpusFTS;
@@ -7035,7 +7059,7 @@ function jumpToFtsMatch(q) {
     }
   } catch (_) { idx = -1; }
   if (idx >= 0) scrollToReaderRow(idx);
-  else restoreReaderPosition(readerTextId, {});
+  else restoreReaderPosition(readerTextId, {}, loadedProgress);
 }
 
 async function closeReader(options) {
@@ -7060,7 +7084,7 @@ async function closeReader(options) {
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   karaokeActive = false; setReadAloudBtn(false);   // BRR-P1-008 — reset karaoke on close
   try { roomMediaTeardown(); } catch (_) {}   // media player: stop + revoke URL + скрыть бар
-  clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip(); clearFadeGradNudge(); closeReaderFind(); _sessionMaxRow = -1; readerTextId = null;   // BRR-P2-002/005/S15 + Epic-5 W1/W4/W5 — stop recording + clear find/end-card/cov-chip/fade-nudge after close
+  clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip(); clearFadeGradNudge(); closeReaderFind(); _sessionLastRow = -1; _sessionFurthestRow = -1; _programmaticProgressUntil = 0; readerTextId = null;   // BRR-P2-002/005/S15 + Epic-5 W1/W4/W5 — stop recording + clear find/end-card/cov-chip/fade-nudge after close
   _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null; readerIsOwnText = false;   // BRR-P2-003 — reset bookmark state
   readerCorpusWorkId = null; readerCorpusExplainOk = false; readerGroupCorpusId = null;   // singleton-reset
   try { setReaderSubtitle(null); } catch (_) {}   // Epic-6 W1-a — drop the per-work byline on close
@@ -8007,7 +8031,7 @@ function renderContinueCard(item) {
   node.appendChild(titleEl);
   const pct = window.ReaderProgress ? window.ReaderProgress.continuePercent(item.last_row_idx, item.n_rows) : 0;
   const meta = el('div', { class: 'work-card-meta' });
-  meta.appendChild(el('span', { class: 'prov-badge continue-pct', text: pct + '% ' + tt('room.resume.read', 'прочитано') }));
+  meta.appendChild(el('span', { class: 'prov-badge continue-pct', text: tt('room.resume.positionPercent', 'позиция · {value}%').replace('{value}', String(pct)) }));
   node.appendChild(meta);
   node.appendChild(el('span', { class: 'work-card-cta', i18n: 'room.resume.continue', text: tt('room.resume.continue', 'Продолжить') }));
   const open = () => openReader(item.id, item.title, { resume: true });
@@ -9230,10 +9254,10 @@ function learningHomeFeature(continueRow, nextPicks) {
     const meta = el('p', { class: 'learning-home-feature-meta' });
     meta.textContent = learningHomeSource(continueRow) + ' · ' + (pct == null
       ? tt('room.resume.fromRow', 'Вы остановились на строке') + ' ' + (row + 1)
-      : pct + '% ' + tt('room.resume.read', 'прочитано'));
+      : tt('room.resume.positionPercent', 'позиция · {value}%').replace('{value}', String(pct)));
     feature.appendChild(meta);
     if (pct != null) {
-      feature.appendChild(el('div', { class: 'learning-home-progress', attrs: { role: 'progressbar', 'aria-label': tt('room.home.readingProgress', 'Прогресс чтения'), 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(pct) } }));
+      feature.appendChild(el('div', { class: 'learning-home-progress', attrs: { role: 'meter', 'aria-label': tt('room.home.readingPosition', 'Позиция в тексте'), 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(pct) } }));
       feature.lastChild.style.setProperty('--learning-progress', pct + '%');
     }
     const open = el('a', { class: 'learning-home-primary', attrs: { href: deepLinkForText(continueRow.id), 'data-focus-key': 'learning-home-feature-open' }, text: tt('room.home.continueAction', 'Продолжить чтение') + ' ' + learningHomeForwardArrow() });
@@ -9955,7 +9979,7 @@ async function paintBenCorpusNext(host, token) {
     host.replaceChildren(corpusNextAction({
       kind: 'continue', title: current.title,
       kicker: tt('room.home.continueKicker', 'Продолжить'),
-      meta: pct + '% · ' + tt('room.resume.read', 'прочитано'),
+      meta: tt('room.resume.positionPercent', 'позиция · {value}%').replace('{value}', String(pct)),
       label: tt('room.resume.continue', 'Продолжить'), href: deepLinkForText(current.id),
       onOpen: () => openReader(current.id, current.title, { resume: true }),
     }));

@@ -38,27 +38,25 @@
     return p < 0 ? 0 : (p > 100 ? 100 : p);
   }
 
-  // mergeProgress(prevMax, idx) → the FURTHEST 0-based row reached this session (Math.max of
-  // valid non-negative ints; -1 if neither is valid). The fix for the «Продолжить» disappearance:
-  // a played/read row must NOT be lowered by a later "top-visible = 0" close-flush — resume is the
-  // furthest point reached (Kindle/Whispersync semantics), not the current scroll-top.
+  // latestProgress(previous, idx) → the latest valid 0-based working row.
+  // Owner-live B8-D2 evidence established that large educational materials are often
+  // studied non-linearly: moving from row 80 back to row 10 is intentional, and the next
+  // Continue must return to row 10. A missing/invalid observation keeps the prior row.
+  function latestProgress(previous, idx) {
+    var p = Number(previous), i = Number(idx);
+    var pv = (previous != null && isFinite(p) && p >= 0) ? Math.floor(p) : -1;
+    var iv = (idx != null && isFinite(i) && i >= 0) ? Math.floor(i) : -1;
+    return iv >= 0 ? iv : pv;
+  }
+
+  // mergeProgress(prevMax, idx) → the FURTHEST 0-based row reached this session.
+  // This is deliberately session-only completion evidence for the end-of-text prompt;
+  // it no longer drives durable Continue position.
   function mergeProgress(prevMax, idx) {
     var p = Number(prevMax), i = Number(idx);
     var pv = (isFinite(p) && p >= 0) ? Math.floor(p) : -1;
     var iv = (isFinite(i) && i >= 0) ? Math.floor(i) : -1;
     return pv > iv ? pv : iv;
-  }
-
-  // sessionProgressSeed(progress, rowCount) → the stored furthest row that must seed
-  // EVERY new Reader session, or -1 when the stored anchor is not honestly resumable.
-  //
-  // This is deliberately the same validity boundary as resumeTarget: a shrunk/re-imported
-  // text whose old row is now out of range must not create a phantom session maximum. For
-  // a valid stored row, seeding before bookmark/FTS/normal-open navigation guarantees that
-  // visiting an earlier passage cannot lower the durable furthest point on close.
-  function sessionProgressSeed(progress, rowCount) {
-    var target = resumeTarget(progress, rowCount);
-    return target == null ? -1 : target;
   }
 
   // atTextEnd(lastIdx, nRows) → true when the furthest row reached is the FINAL row, i.e. the
@@ -104,7 +102,7 @@
     return rows[rows.length - 1].idx;
   }
 
-  var API = { resumeTarget: resumeTarget, continuePercent: continuePercent, topVisibleRowIdx: topVisibleRowIdx, mergeProgress: mergeProgress, sessionProgressSeed: sessionProgressSeed, atTextEnd: atTextEnd, lastRowVisible: lastRowVisible };
+  var API = { resumeTarget: resumeTarget, continuePercent: continuePercent, topVisibleRowIdx: topVisibleRowIdx, latestProgress: latestProgress, mergeProgress: mergeProgress, atTextEnd: atTextEnd, lastRowVisible: lastRowVisible };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
   if (typeof window !== 'undefined') window.ReaderProgress = API;
 })();

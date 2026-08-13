@@ -9,27 +9,44 @@ const ROOT = path.resolve(__dirname, "..");
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), "utf8");
 const progress = require(path.join(ROOT, "public/js/reader-progress.js"));
 
-test("B8-I0 contract: every Reader entry seeds its session max from valid stored progress", () => {
-  assert.equal(typeof progress.sessionProgressSeed, "function");
-  assert.equal(progress.sessionProgressSeed({ last_row_idx: 80 }, 100), 80);
-  assert.equal(progress.mergeProgress(progress.sessionProgressSeed({ last_row_idx: 80 }, 100), 10), 80,
-    "opening a bookmark/FTS hit behind the furthest row must not lower durable progress on close");
-  assert.equal(progress.sessionProgressSeed({ last_row_idx: 0 }, 100), -1);
-  assert.equal(progress.sessionProgressSeed({ last_row_idx: 100 }, 100), -1,
-    "a shrunk/re-imported text keeps the existing honest no-resume behavior");
+test("B8-D2 owner-live correction: Continue follows the last worked row, including backward study", () => {
+  assert.equal(typeof progress.latestProgress, "function");
+  assert.equal(progress.latestProgress(80, 10), 10,
+    "working at an earlier paragraph must replace the previous resume row");
+  assert.equal(progress.latestProgress(10, 34), 34,
+    "working later again must replace the earlier resume row");
+  assert.equal(progress.latestProgress(80, 0), 0,
+    "the first row is a valid intentional last-worked position");
+  assert.equal(progress.latestProgress(10, null), 10,
+    "a missing observation must not erase the last valid working row");
+  assert.equal(progress.mergeProgress(80, 10), 80,
+    "the separate session-only furthest signal remains available for the end-of-text prompt");
 
   const ui = read("public/js/library-ui.js");
   const db = read("public/db/local-db.js");
-  assert.match(ui, /seedReaderSessionProgress/);
+  assert.match(ui, /loadReaderResumeProgress/);
   const open = ui.slice(ui.indexOf("async function openReader"), ui.indexOf("function maybeNudgeNiqqud"));
-  assert.match(open, /await seedReaderSessionProgress\(readerTextId\)/);
+  assert.match(open, /await loadReaderResumeProgress\(readerTextId\)/);
   assert.match(open, /scrollToSentence/);
-  assert.ok(open.indexOf("await seedReaderSessionProgress(readerTextId)") < open.indexOf("scrollToSentence(opts.scrollToSentence)"),
-    "the stored seed must be loaded before a bookmark jump can set a lower session row");
+  assert.ok(open.indexOf("await loadReaderResumeProgress(readerTextId)") < open.indexOf("scrollToSentence(opts.scrollToSentence)"),
+    "resume data is loaded before choosing the explicit bookmark or normal-resume route");
+  assert.match(ui, /let _sessionLastRow = -1, _sessionFurthestRow = -1/,
+    "durable last place and session-only completion evidence must not be conflated");
+  const flush = ui.slice(ui.indexOf("async function flushReaderProgress"), ui.indexOf("function readerBarOffset"));
+  assert.match(flush, /if \(idx < 0\)/,
+    "a quick close at row 0 must persist that position instead of retaining a stale deeper anchor");
   const writer = db.slice(db.indexOf("export async function setProgress"), db.indexOf("export async function setTextFinished"));
-  assert.match(writer, /excluded\.last_row_idx >= text_progress\.last_row_idx/);
-  assert.match(writer, /ELSE text_progress\.last_row_idx END/);
-  assert.match(writer, /excluded\.last_row_idx = text_progress\.last_row_idx THEN COALESCE\(excluded\.last_step_id, text_progress\.last_step_id\)/);
+  assert.match(writer, /last_row_idx\s*=\s*excluded\.last_row_idx/);
+  assert.match(writer, /last_step_id\s*=\s*excluded\.last_step_id/);
+  assert.doesNotMatch(writer, /excluded\.last_row_idx\s*>=\s*text_progress\.last_row_idx/,
+    "the durable writer must accept an intentional backward working position");
+  const journeyItem = ui.slice(ui.indexOf("function renderReadingJourneyItem"), ui.indexOf("function learningHomeJourney"));
+  assert.match(journeyItem, /kind === 'bookmark'[\s\S]*scrollToSentence/,
+    "an explicit passage bookmark remains its own navigation fact");
+  assert.match(ui, /room\.resume\.positionPercent/,
+    "last position must not be labelled as percentage already read");
+  assert.match(ui, /role: 'meter'[\s\S]*room\.home\.readingPosition/,
+    "the Learning Home scalar is a text position, not completion progress");
 });
 
 test("B8-I0 contract: journey projections are typed, bounded and read-only over canonical stores", () => {
@@ -67,5 +84,7 @@ test("B8-I0 contract: RU, HE and EN own the recovery and typed-view copy", () =>
     for (const key of ["journeyTitle", "journeyBookmarks", "journeyFinished", "journeyNotes", "journeyDevice", "journeyEmpty", "journeySourceFilters", "journeySourceAll", "journeyPages", "journeyPage"]) {
       assert.match(source, new RegExp(`\\b${key}:`), `${locale} must define room.home.${key}`);
     }
+    assert.match(source, /\bpositionPercent:/, `${locale} must define room.resume.positionPercent`);
+    assert.match(source, /\breadingPosition:/, `${locale} must define room.home.readingPosition`);
   }
 });

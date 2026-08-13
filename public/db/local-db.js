@@ -4409,20 +4409,9 @@ export async function setProgress(textId, { last_row_idx, last_step_id }) {
     `INSERT INTO text_progress (text_id, last_row_idx, last_step_id, updated_at)
      VALUES (?,?,?,?)
      ON CONFLICT(text_id) DO UPDATE SET
-       last_row_idx = CASE
-         WHEN text_progress.last_row_idx IS NULL THEN excluded.last_row_idx
-         WHEN excluded.last_row_idx IS NULL THEN text_progress.last_row_idx
-         WHEN excluded.last_row_idx >= text_progress.last_row_idx THEN excluded.last_row_idx
-         ELSE text_progress.last_row_idx END,
-       last_step_id = CASE
-         WHEN text_progress.last_row_idx IS NULL THEN excluded.last_step_id
-         WHEN excluded.last_row_idx IS NOT NULL AND excluded.last_row_idx > text_progress.last_row_idx THEN excluded.last_step_id
-         WHEN excluded.last_row_idx = text_progress.last_row_idx THEN COALESCE(excluded.last_step_id, text_progress.last_step_id)
-         ELSE text_progress.last_step_id END,
-       updated_at = CASE
-         WHEN text_progress.last_row_idx IS NULL THEN excluded.updated_at
-         WHEN excluded.last_row_idx IS NOT NULL AND excluded.last_row_idx >= text_progress.last_row_idx THEN excluded.updated_at
-         ELSE text_progress.updated_at END`,
+       last_row_idx = excluded.last_row_idx,
+       last_step_id = excluded.last_step_id,
+       updated_at = excluded.updated_at`,
     [textId, last_row_idx ?? null, last_step_id ?? null, now]
   );
 }

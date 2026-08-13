@@ -324,6 +324,36 @@ async function main() {
       ok(ctx.activeTop != null && Math.abs(ctx.activeTop - ctx.expected) < 24,
         "active row is the SECOND visible row inside the wrap (top " + ctx.activeTop + " ≈ " + ctx.expected + ")");
       ok(ctx.barVisible === true, "media bar (and player above it) stays on screen while following");
+      // B8-D2 owner-live correction: long interview/material study often moves
+      // backwards inside the media table. A genuine user takeover must persist
+      // that earlier row through the same canonical progress writer.
+      const t5BackwardProgress = await pg.evaluate(async () => {
+        const wrap = document.getElementById("roomReaderTable");
+        const row = wrap && wrap.querySelector('tr[data-row-idx="3"]');
+        if (!wrap || !row) return null;
+        wrap.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+        const wrapTop = wrap.getBoundingClientRect().top;
+        wrap.scrollTop += row.getBoundingClientRect().top - wrapTop;
+        wrap.dispatchEvent(new Event("scroll", { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 1600));
+        const db = await import("/db/local-db.js");
+        const saved = await db.getProgress("rmm-t5");
+        const rows = Array.from(wrap.querySelectorAll("tr[data-row-idx]")).map((tr) => {
+          const rect = tr.getBoundingClientRect();
+          return { idx: Number(tr.getAttribute("data-row-idx")), top: rect.top, bottom: rect.bottom };
+        });
+        const bar = document.querySelector("#roomReader .reader-bar");
+        const offset = Math.max(wrap.getBoundingClientRect().top,
+          bar ? bar.getBoundingClientRect().bottom : 0);
+        return {
+          saved: saved ? Number(saved.last_row_idx) : null,
+          visible: window.ReaderProgress.topVisibleRowIdx(rows, offset),
+        };
+      });
+      ok(t5BackwardProgress && t5BackwardProgress.saved === t5BackwardProgress.visible
+          && t5BackwardProgress.saved > 0 && t5BackwardProgress.saved < 12,
+        "media mode: manual backward study persists the earlier top-visible row after followed row 12, got "
+          + JSON.stringify(t5BackwardProgress));
       const hdrStatic = await pg.evaluate(() => getComputedStyle(document.querySelector(".room-header")).position);
       ok(hdrStatic === "static", "site header is non-sticky while reading, got " + hdrStatic);
       await backToGrid();
