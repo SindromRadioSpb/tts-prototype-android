@@ -367,14 +367,17 @@ change a word status. The automatic one-time repair left `review_log` unchanged
 at `7,315` locally and in cloud with both cursors at `7,315`, recorded heal
 marker `v1`, and corrected the PC projection from `210 / 335` to `205 / 335`.
 The five-count due correction with zero new events is direct evidence of stale
-derived schedule rows being repaired. The physical iPhone convergence check is
-still owner-pending; exact evidence is in
+derived schedule rows being repaired. On 2026-08-13 the owner reported the
+prescribed production iPhone↔PC convergence smoke successful. This closes the
+cross-device-counter defect; the exact final pair was not transcribed and is
+therefore not invented. Exact evidence is in
 [`cross-device-sync/`](../research/room-ux-b7-learning-compass/2026-08-13/cross-device-sync/README.md).
 
 ## Что не доказано
 
-- Owner evidence confirms a general iPhone Safari production smoke, but does
-  not attest every B7-IOS-S offline/pending/focus/large-text step. Android,
+- Owner evidence confirms a general iPhone Safari production smoke and the
+  `3.11.373` iPhone↔PC counter-convergence check, but does not attest every
+  B7-IOS-S offline/pending/focus/large-text step. Android,
   macOS, NVDA, VoiceOver and TalkBack remain NOT RUN unless separately reported.
 - Kapture owner-profile read-only evidence не является owner-reported
   physical/AT acceptance.

@@ -66,8 +66,9 @@ compact-copy follow-up plus cold-library/packet hardening `1298bb71` and
   границей, повторяет незавершённую страницу, выполняет одноразовый rebuild
   derived SRS/manual state и форсирует сериализованный sync после тренировки и
   foreground. Owner-profile read-back оставил `review_log` неизменным и равным
-  cloud (`7,315`), а stale PC due projection исправил `210 → 205`; физическое
-  подтверждение равенства на iPhone остаётся pending.
+  cloud (`7,315`), а stale PC due projection исправил `210 → 205`. Владелец
+  затем сообщил PASS production iPhone↔PC convergence smoke на `3.11.373`;
+  остальные physical/AT строки остаются отдельной границей.
 
 - честная familiar-word coverage для поддерживаемых My Texts/group items;
 - индивидуальное время чтения только после калибровки по реальному поведению;
@@ -102,6 +103,9 @@ LocalDb/FSRS/media/i18n/SW contracts и production deployments остаются 
 
 ## Текущая следующая граница: B7.5 physical/AT acceptance
 
+Стартовый запрос новой сессии:
+[`ROOM_UX_B7_5_PHYSICAL_AT_CLOSURE_SESSION_PROMPT_2026_08_13.md`](./ROOM_UX_B7_5_PHYSICAL_AT_CLOSURE_SESSION_PROMPT_2026_08_13.md).
+
 1. Использовать
    `ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md` на exact production release
    `3.11.373`; не подменять незаполненные physical/AT строки automation или
@@ -110,8 +114,9 @@ LocalDb/FSRS/media/i18n/SW contracts и production deployments остаются 
    navigation/details; calibration controls — только самим владельцем или
    после отдельного разрешения. Не grade/review и доказать неизменность
    `review_log`.
-3. Production preflight/deploy/served-byte read-back уже выполнен; после
-   owner-reported physical PASS подготовить B7 closure verdict.
+3. Production preflight/deploy/served-byte read-back и iPhone↔PC sync PASS уже
+   выполнены; добрать оставшиеся physical/AT строки либо получить явные
+   documented exceptions, затем подготовить B7 closure verdict.
 4. Только после B7 closure начать новый research-only goal B8 Reading Journey.
    B8/B9/Visual finishing не piggyback на B7 release.
 

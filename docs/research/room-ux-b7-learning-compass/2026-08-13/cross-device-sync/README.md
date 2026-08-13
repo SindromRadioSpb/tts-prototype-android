@@ -2,7 +2,7 @@
 
 Date: 2026-08-13
 
-Status: **ENGINEERING PASS · PRODUCTION READ-BACK PASS · IPHONE OWNER RETEST PENDING**
+Status: **ENGINEERING PASS · PRODUCTION READ-BACK PASS · IPHONE↔PC OWNER RETEST PASS**
 
 Production release: `3.11.373`, `main@12f0e47f`.
 
@@ -48,10 +48,15 @@ recorded projection-heal marker `v1`; `review_log` stayed `7,315` before/after
 and matched cloud, while the PC counters corrected from `210 / 335` to
 `205 / 335`. No Reader, review grade, or word-status action was invoked.
 
-The remaining evidence boundary is physical iPhone Safari/PWA: install/serve
-`3.11.373`, foreground the Room, then compare both devices at the same time.
-Exact values may advance with time or genuine review events; equality after
-sync is the acceptance invariant.
+On 2026-08-13 the owner completed the production iPhone↔PC smoke and reported
+PASS. This closes the cross-device-counter defect: after foreground sync both
+devices converged without requiring a card to be opened. The exact final
+counter pair was not transcribed, so this packet records the observed equality,
+not invented values.
+
+This result does not fill the rest of the B7 physical/AT matrix. iPhone
+offline/large-text/VoiceOver, Android/TalkBack, Windows/NVDA and macOS/VoiceOver
+remain separate rows in the canonical acceptance packet.
 
 Machine-readable record:
 [`PRODUCTION_READBACK_EVIDENCE.json`](./PRODUCTION_READBACK_EVIDENCE.json).

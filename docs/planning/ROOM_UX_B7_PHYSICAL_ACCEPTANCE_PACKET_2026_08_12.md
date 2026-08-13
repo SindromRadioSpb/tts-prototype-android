@@ -2,7 +2,7 @@
 
 Дата подготовки: 2026-08-12; обновлено 2026-08-13
 
-Статус: **OWNER GENERAL PROD SMOKE PASS · IOS SAFARI PARTIAL · AUTOMATION/PRODUCTION READ-BACK PASS · FULL PHYSICAL/AT MATRIX PENDING**
+Статус: **OWNER GENERAL PROD SMOKE PASS · IOS↔PC SYNC PASS · IOS SAFARI BROADER ROW PARTIAL · AUTOMATION/PRODUCTION READ-BACK PASS · FULL PHYSICAL/AT MATRIX PENDING**
 
 Release under test: production `3.11.373` / implementation chain
 `845ddc71` + `04f88328` + `85bdc9de` + compact-copy follow-up + cold-library
@@ -58,7 +58,7 @@ served/installed version; staged/PWA cache может отличаться до 
 
 | ID | Среда | Дополнительный фокус | Acceptance | Статус/evidence |
 |---|---|---|---|---|
-| B7-IOS-S | iPhone Safari | details, pending, offline, large text, HE/RTL; cross-device counters after foreground sync | focus returns; statuses/provenance readable; no overflow/fake zero; due/in-work equal PC at the same observation time | PARTIAL — owner general production smoke PASS on `3.11.363`; supplied iPhone screenshot; copy-density issue fixed in `3.11.364`; `3.11.373` projection repair is deployed, but iPhone convergence and complete corpus-finishing row are not yet physically attested |
+| B7-IOS-S | iPhone Safari | details, pending, offline, large text, HE/RTL; cross-device counters after foreground sync | focus returns; statuses/provenance readable; no overflow/fake zero; due/in-work equal PC at the same observation time | PARTIAL — owner general production smoke PASS on `3.11.363`; supplied iPhone screenshot; owner-reported iPhone↔PC counter convergence PASS on `3.11.373` (exact final pair not transcribed); offline/pending/focus/large-text and full corpus-finishing sequence are not fully attested |
 | B7-IOS-P | iPhone standalone PWA | eviction/reopen, warm offline, update waiting | no mid-flow reload/data loss; prepared cache survives | NOT RUN |
 | B7-IOS-VO | iPhone Safari/PWA + VoiceOver | rotor/order, details, status, reset/disable | controls named; no duplicate announcements; logical RTL | NOT RUN |
 | B7-AND | Android Chrome/PWA | Worker failure/quota/reconnect, text scaling | usable cards; honest failure; one refresh | NOT RUN |

@@ -40,7 +40,12 @@
     "in_work": 324
   },
   "acceptance_invariant": "After both devices run version 3.11.373 foreground sync, due and in-work counters are equal at the same observation time unless a genuine event or due-time boundary occurs between observations.",
-  "physical_iphone_retest": "PENDING",
+  "physical_iphone_retest": {
+    "status": "PASS",
+    "owner_reported_at": "2026-08-13",
+    "observation": "iPhone and PC counters converged after the prescribed production 3.11.373 smoke",
+    "exact_final_counters_recorded": false
+  },
   "automation": {
     "unit_and_frozen_contracts": "50/50",
     "room_b7_browser": "161/161",

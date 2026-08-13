@@ -704,8 +704,9 @@ retries the whole uncommitted page, performs one versioned rebuild from the
 complete log and serializes forced sync at natural lifecycle points. It creates
 no learner event. Owner-profile read-back left `review_log` unchanged and equal
 to cloud at `7,315`, recorded heal marker `v1`, and corrected the PC derived
-count from `210 / 335` to `205 / 335`. iPhone physical confirmation remains
-pending. Exact evidence:
+count from `210 / 335` to `205 / 335`. On 2026-08-13 the owner reported the
+prescribed production iPhone↔PC convergence smoke PASS; exact final counter
+values were not transcribed. Exact evidence:
 [`cross-device-sync/PRODUCTION_READBACK_EVIDENCE.json`](../research/room-ux-b7-learning-compass/2026-08-13/cross-device-sync/PRODUCTION_READBACK_EVIDENCE.json).
 
 Engineering/production B7 is therefore current through `3.11.373`, but D6
