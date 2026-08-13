@@ -34,6 +34,11 @@
   // Version the envelope so a repaired server contract can revalidate the same
   // append-only rows; row IDs still make the replay idempotent.
   var INGEST_KEY_VERSION = "v2";
+  // B7 cross-device repair. review_log is the event truth; word_status is a disposable
+  // local projection. Bump this version whenever projection semantics change so every
+  // signed-in device performs one idempotent rebuild before claiming convergence.
+  var PROJECTION_HEAL_KEY = "review_projection_heal_v";
+  var PROJECTION_HEAL_VERSION = "v1";
 
   // Lock-step with db/learnerLogRepo.js META_STRIP (server enforces independently).
   var CONTENT_META_KEYS = ["surface", "answer", "expected", "word", "lemma", "usage", "translation", "gloss", "niqqud"];
@@ -159,13 +164,16 @@
   // ── download ─────────────────────────────────────────────────────────────
   async function syncDown(ldb) {
     var afterRid = Number(await ldb.getSyncState(DOWN_CURSOR)) || 0;
-    var addedKeys = new Set(); var markKeys = new Set(); var pulled = 0;
+    var addedKeys = new Set(); var pulled = 0; var lwwApplied = 0;
     for (;;) {
       var r = await jfetch("GET", "/api/learner/log?limit=" + BATCH_DOWN + "&after_rid=" + afterRid);
       if (r.status !== 200 || !r.json || !r.json.ok) return { ok: false, status: r.status, error: (r.json && r.json.error) || "READ_FAILED" };
       var rows = r.json.rows || [];
       if (!rows.length) break;
-      var pageKeys = new Set();
+      // Projection keys include rows already inserted by an interrupted prior attempt.
+      // The cursor is the commit boundary, not INSERT novelty: retrying a page must retry
+      // every derived write that was supposed to precede that cursor.
+      var pageSrsKeys = new Set(); var pageMarkKeys = new Set();
       for (var i = 0; i < rows.length; i++) {
         var w = rows[i];
         // per-row existence pre-check: appendReviewLog's OR IGNORE can't tell new from dup,
@@ -177,9 +185,12 @@
           meta_json: w.meta_json,
         });
         if (isNew && res && res.accepted >= 1) {
-          addedKeys.add(String(w.item_key)); pageKeys.add(String(w.item_key)); pulled++;
-          if (w.kind === "mark") markKeys.add(String(w.item_key));
+          addedKeys.add(String(w.item_key)); pulled++;
         }
+        if (res && res.accepted >= 1 && (w.kind === "seed" || w.kind === "review" || w.kind === "annul")) {
+          pageSrsKeys.add(String(w.item_key));
+        }
+        if (res && res.accepted >= 1 && w.kind === "mark") pageMarkKeys.add(String(w.item_key));
       }
       // P7.0c (критика R13, crash-window): recompute ключей СТРАНИЦЫ ДО продвижения
       // курсора. Раньше один recompute шёл ПОСЛЕ всего цикла — краш вкладки между
@@ -188,29 +199,71 @@
       // вечно» (counts-reconcile равен, engine-heal не срабатывает, новых событий по
       // слову нет). Recompute идемпотентен — повтор страницы после ретрая безопасен;
       // провал вызова НЕ продвигает курсор (следующий sync дотянет, OR IGNORE дедупит).
-      if (pageKeys.size && typeof ldb.recomputeSrsFromLog === "function") {
-        try { await ldb.recomputeSrsFromLog(Array.from(pageKeys)); }
+      if (pageSrsKeys.size && typeof ldb.recomputeSrsFromLog === "function") {
+        try { await ldb.recomputeSrsFromLog(Array.from(pageSrsKeys)); }
         catch (e) { return { ok: false, error: "RECOMPUTE_FAILED", pulled: pulled }; }
+      }
+      // Manual-axis LWW is part of the same page projection commit. Applying it after
+      // setSyncState created a permanent stale-state hole when the tab/PWA closed there.
+      if (pageMarkKeys.size) {
+        if (typeof ldb.lastMarkStatus !== "function" || typeof ldb.getWordStatus !== "function" || typeof ldb.applyWordStatusFromSync !== "function") {
+          return { ok: false, error: "MARK_PROJECTION_FAILED", pulled: pulled };
+        }
+        for (const mk of pageMarkKeys) {
+          try {
+            var target = await ldb.lastMarkStatus(mk);
+            if (target == null) continue;
+            var current = await ldb.getWordStatus(mk);
+            if (String(current || "") !== String(target)) {
+              var applied = await ldb.applyWordStatusFromSync(mk, String(target));
+              if (applied !== true) return { ok: false, error: "MARK_PROJECTION_FAILED", pulled: pulled };
+              lwwApplied++;
+            }
+          } catch (_) { return { ok: false, error: "MARK_PROJECTION_FAILED", pulled: pulled }; }
+        }
       }
       afterRid = Number(r.json.next_rid) || afterRid;
       await ldb.setSyncState(DOWN_CURSOR, String(afterRid));
       if (rows.length < BATCH_DOWN) break;
     }
-    // §4.7 manual-axis LWW: a NEW foreign mark row may or may not be the newest — fold the FULL
-    // merged log per key (last mark by reviewed_at,id) and apply WITHOUT re-emitting (suppressed).
-    var lwwApplied = 0;
-    if (markKeys.size && typeof ldb.lastMarkStatus === "function" && typeof ldb.applyWordStatusFromSync === "function") {
-      for (const mk of markKeys) {
-        try {
-          var target = await ldb.lastMarkStatus(mk);
-          if (target == null) continue;
-          var cur = await ldb.getWordStatus(mk);
-          if (String(cur || "") !== target) { await ldb.applyWordStatusFromSync(mk, target); lwwApplied++; }
-        } catch (_) {}
-      }
-    }
     // recompute уже прошёл по-странично ДО каждого продвижения курсора (см. цикл выше).
     return { ok: true, pulled: pulled, lwwApplied: lwwApplied, recomputedKeys: Array.from(addedKeys) };
+  }
+
+  // One-time repair for devices whose old down cursor already crossed a projection crash-window.
+  // It rebuilds SRS from the complete event log and folds the manual axis by (reviewed_at,id).
+  // No review/mark events are created; only the disposable local word_status cache is repaired.
+  async function healLocalProjections(ldb) {
+    if (!ldb || typeof ldb.dbQuery !== "function" || typeof ldb.recomputeSrsFromLog !== "function" ||
+        typeof ldb.getAllWordStatuses !== "function" || typeof ldb.applyWordStatusFromSync !== "function") {
+      return { ok: false, error: "PROJECTION_HEAL_UNSUPPORTED" };
+    }
+    try {
+      var srsRows = await ldb.dbQuery(
+        "SELECT DISTINCT item_key FROM review_log WHERE kind IN ('seed','review','annul') AND item_key NOT LIKE 'sent:%'", []);
+      var srsKeys = Array.from(new Set((srsRows || []).map(function (r) { return String(r.item_key || ""); }).filter(Boolean)));
+      if (srsKeys.length) await ldb.recomputeSrsFromLog(srsKeys);
+
+      var markRows = await ldb.dbQuery(
+        "SELECT item_key, meta_json FROM review_log WHERE kind = 'mark' ORDER BY reviewed_at ASC, id ASC", []);
+      var latest = new Map();
+      for (var i = 0; i < (markRows || []).length; i++) {
+        var row = markRows[i]; var status = null;
+        try { var meta = JSON.parse(row.meta_json || "{}"); if (meta.status != null) status = String(meta.status); } catch (_) {}
+        if (row.item_key && status != null) latest.set(String(row.item_key), status);
+      }
+      var current = await ldb.getAllWordStatuses(); var applied = 0;
+      for (const entry of latest.entries()) {
+        if (String((current && current[entry[0]]) || "") === entry[1]) continue;
+        if (await ldb.applyWordStatusFromSync(entry[0], entry[1]) !== true) {
+          return { ok: false, error: "MARK_PROJECTION_FAILED" };
+        }
+        applied++;
+      }
+      return { ok: true, srsKeys: srsKeys.length, markKeys: latest.size, applied: applied };
+    } catch (e) {
+      return { ok: false, error: "PROJECTION_HEAL_FAILED" };
+    }
   }
 
   // ── CLG-P5.5 class-B artifact sync («Мои тексты») + Sync-hardening P0 (slim/state) ────────
@@ -483,6 +536,15 @@
     if (!up.ok) return up;
     var down = await syncDown(ldb);
     if (!down.ok) return down;
+    // Repair old cursor-crossed projection holes exactly once per semantics version. The
+    // marker is written only after a complete rebuild; a close/error retries next sync.
+    try {
+      if (String(await ldb.getSyncState(PROJECTION_HEAL_KEY) || "") !== PROJECTION_HEAL_VERSION) {
+        var projectionHeal = await healLocalProjections(ldb);
+        if (!projectionHeal.ok) return projectionHeal;
+        await ldb.setSyncState(PROJECTION_HEAL_KEY, PROJECTION_HEAL_VERSION);
+      }
+    } catch (_) { return { ok: false, error: "PROJECTION_HEAL_FAILED" }; }
     // P7.0a heal: смена семантики фолда (FsrsCore.ENGINE_VERSION, annul-aware v2) →
     // ОДНОРАЗОВЫЙ пересчёт всех локальных ключей с annul-строками. Обычный recompute
     // трогает только ключи НОВЫХ down-sync строк — annul-строка, пришедшая ДО апгрейда
@@ -550,9 +612,11 @@
   return {
     me: me, login: login, logout: logout,
     syncUp: syncUp, syncDown: syncDown, fullSync: fullSync, reconcile: reconcile,
+    healLocalProjections: healLocalProjections,
     syncArtifacts: syncArtifacts,
     stripMeta: stripMeta,
     CONTENT_META_KEYS: CONTENT_META_KEYS, INGEST_KEY_VERSION: INGEST_KEY_VERSION,
+    PROJECTION_HEAL_KEY: PROJECTION_HEAL_KEY, PROJECTION_HEAL_VERSION: PROJECTION_HEAL_VERSION,
     CLOUD_TEXTS_CONSENT_VERSION: CLOUD_TEXTS_CONSENT_VERSION,
     KEYS: { UP_CURSOR: UP_CURSOR, DOWN_CURSOR: DOWN_CURSOR, CUTOVER_OK: CUTOVER_OK, LAST_SYNC: LAST_SYNC },
   };

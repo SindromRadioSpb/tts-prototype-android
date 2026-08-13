@@ -3082,7 +3082,12 @@ export async function setWordStatus(lemmaKey, status, sched, source) {
   if (!_markEmitSuppressed) { try { prevStatus = await getWordStatus(lk); } catch (_) { prevStatus = null; } }
   try {
     if (!st || !_WS_VALUES[st]) {
-      await r(`DELETE FROM word_status WHERE lemma_key = ?`, [lk]);
+      // Manual status and SRS schedule are independent axes. Clearing a mark must keep
+      // a scheduled carrier; otherwise a cross-device blank-mark silently removes the
+      // canonical queue projection. Rows without a schedule remain safe to delete.
+      await r(`UPDATE word_status SET status = '', updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
+               WHERE lemma_key = ? AND srs_due IS NOT NULL`, [lk]);
+      await r(`DELETE FROM word_status WHERE lemma_key = ? AND srs_due IS NULL`, [lk]);
     } else if (sched && typeof sched === "object") {
       // C2 — recall answer: set status AND the SM2-lite schedule (next-due/interval/reps/lapses). D2 —
       // also record the SOURCE sentence (text_key + sentence_id + order_index + surface) so the cross-text

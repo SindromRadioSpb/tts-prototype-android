@@ -3486,7 +3486,10 @@ function onTrainNext() {
 function renderTrainSummary() {
   const s = _trainSession, body = _studySheet && _studySheet.querySelector('.room-study-body');
   if (!s || !body) return;
-  try { roomCloudMaybeResync(); } catch (_) {}   // R4b — a finished session is a natural sync moment (throttled)
+  if (!s._completionSyncQueued) {
+    s._completionSyncQueued = true;
+    try { roomCloudMaybeResync(true); } catch (_) {}
+  }
   body.innerHTML = '';
   if (!s.total) {
     body.appendChild(el('div', { class: 'room-study-empty', i18n: 'room.morph.study.trainEmpty', text: tt('room.morph.study.trainEmpty', 'Нет слов для тренировки на этом экране — отметь слова в «Список».') }));
@@ -4211,17 +4214,9 @@ function groupAccessInit(){
 // durable-согласие Tier 2). Без сессии — один same-origin me() (401, кука HttpOnly и не
 // читается из JS), никаких данных не уходит; Tier 1 остаётся честно-локальным.
 async function roomCloudAutoSync() {
-  try {
-    // ?nocloudauto=1 — harness escape hatch: the sync gates drive fullSync deterministically
-    // from the test and must not race the boot auto-sync (found as a real server bug: two
-    // concurrent ingests → nested BEGIN → 500; fixed by db/txnLock.js, kept out of gates anyway).
-    if (new URLSearchParams(location.search).has('nocloudauto')) return;
-    const CS = window.CloudSync; if (!CS) return;
-    const session = await CS.me(); if (!session) return;
-    if (!roomCloudAccountBinding(session.user && session.user.id).ok) return;
-    _cloudLastAutoAt = Date.now();   // R4b — the boot sync starts the throttle window
-    await _cloudRunSync(true);
-  } catch (_) {}
+  // Boot uses the same single-flight path as foreground/session completion so two
+  // lifecycle signals cannot race separate fullSync transactions.
+  return roomCloudMaybeResync(true);
 }
 // R4b (owner 2026-07-11: «Мои показатели синхронизированы ПК↔Telegram») — the boot-only sync left
 // the counters stale for a whole tab lifetime: reviews done in Telegram reached the Зал (and vice
@@ -4229,25 +4224,42 @@ async function roomCloudAutoSync() {
 // and finishing a session — throttled to one run per 90s; a successful pull already refreshes the
 // badge/streak via _cloudRunSync (asd-cache reset below).
 let _cloudLastAutoAt = 0;
-async function roomCloudMaybeResync() {
-  try {
-    if (Date.now() - _cloudLastAutoAt < 90000) return;
-    if (new URLSearchParams(location.search).has('nocloudauto')) return;
-    const CS = window.CloudSync; if (!CS) return;
-    const session = await CS.me(); if (!session) return;
-    if (!roomCloudAccountBinding(session.user && session.user.id).ok) return;
-    _cloudLastAutoAt = Date.now();
-    await _cloudRunSync(true);
-    _asdCache = null;                          // merged streak fold must see pulled rows
-    try { refreshDueBadge(); } catch (_) {}    // counters/streak reflect the fresh log now
-  } catch (_) {}
+let _cloudSyncInFlight = null;
+let _cloudForcedSyncPending = false;
+async function roomCloudMaybeResync(force = false) {
+  if (_cloudSyncInFlight) {
+    if (force) _cloudForcedSyncPending = true;
+    return _cloudSyncInFlight;
+  }
+  if (!force && Date.now() - _cloudLastAutoAt < 90000) return;
+  if (new URLSearchParams(location.search).has('nocloudauto')) return;
+  const run = (async () => {
+    try {
+      const CS = window.CloudSync; if (!CS) return;
+      const session = await CS.me(); if (!session) return;
+      if (!roomCloudAccountBinding(session.user && session.user.id).ok) return;
+      _cloudLastAutoAt = Date.now();
+      await _cloudRunSync(true);
+      _asdCache = null;                          // merged streak fold must see pulled rows
+      try { refreshDueBadge(); } catch (_) {}    // counters/streak reflect the fresh log now
+    } catch (_) {}
+  })();
+  _cloudSyncInFlight = run;
+  try { return await run; }
+  finally {
+    if (_cloudSyncInFlight === run) _cloudSyncInFlight = null;
+    if (_cloudForcedSyncPending) {
+      _cloudForcedSyncPending = false;
+      roomCloudMaybeResync(true);
+    }
+  }
 }
 try {
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') roomCloudMaybeResync();
+    if (document.visibilityState === 'visible') roomCloudMaybeResync(true);
   });
-  window.addEventListener('pageshow', () => roomCloudMaybeResync());
-  window.addEventListener('online', () => roomCloudMaybeResync());
+  window.addEventListener('pageshow', () => roomCloudMaybeResync(true));
+  window.addEventListener('online', () => roomCloudMaybeResync(true));
   window.addEventListener('focus', () => roomCloudMaybeResync());
 } catch (_) {}
 

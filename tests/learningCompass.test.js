@@ -366,14 +366,22 @@ test("B7 finishing keeps cards locale-aligned and disclosures single-open and di
 test("cloud sync never advances past rejected rows and refreshes every local projection", () => {
   const sync = fs.readFileSync(path.join(__dirname, "../public/js/cloud-sync.js"), "utf8");
   const ui = fs.readFileSync(path.join(__dirname, "../public/js/library-ui.js"), "utf8");
+  const db = fs.readFileSync(path.join(__dirname, "../public/db/local-db.js"), "utf8");
   assert.match(sync, /INGEST_REJECTED/);
   assert.match(sync, /INGEST_KEY_VERSION\s*=\s*["']v2["']/);
   assert.match(sync, /rejectedRows/);
   assert.match(sync, /setSyncState\(UP_CURSOR, ""\)/);
+  assert.match(sync, /PROJECTION_HEAL_VERSION/);
+  assert.match(sync, /MARK_PROJECTION_FAILED/);
   assert.match(ui, /morphHost\.invalidateWordStates\(\)/);
   assert.match(ui, /ensureLearningCompassProjection\(true\)/);
   assert.match(ui, /window\.addEventListener\('pageshow',[\s\S]*?roomCloudMaybeResync/);
   assert.match(ui, /window\.addEventListener\('online',[\s\S]*?roomCloudMaybeResync/);
+  assert.match(ui, /_completionSyncQueued[\s\S]{0,160}roomCloudMaybeResync\(true\)/);
+  assert.match(ui, /_cloudSyncInFlight/);
+  assert.match(ui, /visibilityState === 'visible'\) roomCloudMaybeResync\(true\)/);
+  assert.match(db, /UPDATE word_status SET status\s*=\s*''[\s\S]{0,240}srs_due IS NOT NULL/);
+  assert.match(db, /DELETE FROM word_status[\s\S]{0,160}srs_due IS NULL/);
 });
 
 test("syncUp returns an explicit failure and preserves its cursor on a row reject", async () => {
@@ -400,6 +408,121 @@ test("syncUp returns an explicit failure and preserves its cursor on a row rejec
     assert.equal(result.rejectedRows, 1);
     assert.equal(writes.some(([key]) => key === cloud.KEYS.UP_CURSOR), false);
   } finally { global.fetch = originalFetch; }
+});
+
+test("syncDown commits SRS and manual projections before advancing the page cursor", async () => {
+  const cloud = require("../public/js/cloud-sync.js");
+  const originalFetch = global.fetch;
+  const order = [];
+  global.fetch = async () => new Response(JSON.stringify({
+    ok: true,
+    next_rid: 2,
+    rows: [
+      { id: "review:remote", item_key: "a#noun", kind: "review", reviewed_at: "2026-08-13T00:00:00.000Z", grade: 3, source: "room-recall", meta_json: "{}" },
+      { id: "mark:remote", item_key: "a#noun", kind: "mark", reviewed_at: "2026-08-13T00:01:00.000Z", grade: null, source: "word-mark", meta_json: "{\"status\":\"l2\"}" },
+    ],
+  }), { status: 200, headers: { "Content-Type": "application/json" } });
+  const ldb = {
+    getSyncState: async () => "0",
+    setSyncState: async (key, value) => { order.push(["cursor", key, value]); },
+    hasReviewLogRow: async () => false,
+    appendReviewLog: async () => ({ accepted: 1 }),
+    recomputeSrsFromLog: async () => { order.push(["srs"]); return { recomputed: 1 }; },
+    lastMarkStatus: async () => "l2",
+    getWordStatus: async () => "l1",
+    applyWordStatusFromSync: async () => { order.push(["mark"]); return true; },
+  };
+  try {
+    const result = await cloud.syncDown(ldb);
+    assert.equal(result.ok, true);
+    assert.equal(result.lwwApplied, 1);
+    assert.deepEqual(order.map((x) => x[0]), ["srs", "mark", "cursor"]);
+  } finally { global.fetch = originalFetch; }
+});
+
+test("syncDown preserves its cursor when a manual projection cannot be applied", async () => {
+  const cloud = require("../public/js/cloud-sync.js");
+  const originalFetch = global.fetch;
+  const writes = [];
+  global.fetch = async () => new Response(JSON.stringify({
+    ok: true,
+    next_rid: 1,
+    rows: [{ id: "mark:remote-fail", item_key: "b#noun", kind: "mark", reviewed_at: "2026-08-13T00:00:00.000Z", grade: null, source: "word-mark", meta_json: "{\"status\":\"l3\"}" }],
+  }), { status: 200, headers: { "Content-Type": "application/json" } });
+  const ldb = {
+    getSyncState: async () => "0",
+    setSyncState: async (key, value) => { writes.push([key, value]); },
+    hasReviewLogRow: async () => false,
+    appendReviewLog: async () => ({ accepted: 1 }),
+    recomputeSrsFromLog: async () => ({ recomputed: 0 }),
+    lastMarkStatus: async () => "l3",
+    getWordStatus: async () => "l1",
+    applyWordStatusFromSync: async () => false,
+  };
+  try {
+    const result = await cloud.syncDown(ldb);
+    assert.equal(result.ok, false);
+    assert.equal(result.error, "MARK_PROJECTION_FAILED");
+    assert.equal(writes.some(([key]) => key === cloud.KEYS.DOWN_CURSOR), false);
+  } finally { global.fetch = originalFetch; }
+});
+
+test("syncDown retries a projection for an already-inserted page before advancing its cursor", async () => {
+  const cloud = require("../public/js/cloud-sync.js");
+  const originalFetch = global.fetch;
+  let alreadyInserted = false;
+  let recomputeCalls = 0;
+  const cursorWrites = [];
+  global.fetch = async () => new Response(JSON.stringify({
+    ok: true,
+    next_rid: 1,
+    rows: [{ id: "review:retry", item_key: "retry#noun", kind: "review", reviewed_at: "2026-08-13T00:00:00.000Z", grade: 3, source: "room-recall", meta_json: "{}" }],
+  }), { status: 200, headers: { "Content-Type": "application/json" } });
+  const ldb = {
+    getSyncState: async () => "0",
+    setSyncState: async (key, value) => { cursorWrites.push([key, value]); },
+    hasReviewLogRow: async () => alreadyInserted,
+    appendReviewLog: async () => { alreadyInserted = true; return { accepted: 1 }; },
+    recomputeSrsFromLog: async () => {
+      recomputeCalls++;
+      if (recomputeCalls === 1) throw new Error("simulated close between log and projection");
+      return { recomputed: 1 };
+    },
+  };
+  try {
+    const first = await cloud.syncDown(ldb);
+    assert.equal(first.ok, false);
+    assert.equal(first.error, "RECOMPUTE_FAILED");
+    assert.equal(cursorWrites.length, 0);
+    const retry = await cloud.syncDown(ldb);
+    assert.equal(retry.ok, true);
+    assert.equal(recomputeCalls, 2);
+    assert.equal(cursorWrites.some(([key]) => key === cloud.KEYS.DOWN_CURSOR), true);
+  } finally { global.fetch = originalFetch; }
+});
+
+test("one-time projection heal rebuilds schedules and only divergent manual states", async () => {
+  const cloud = require("../public/js/cloud-sync.js");
+  assert.equal(typeof cloud.healLocalProjections, "function");
+  const recomputed = [];
+  const applied = [];
+  const ldb = {
+    dbQuery: async (sql) => sql.includes("kind IN")
+      ? [{ item_key: "a#noun" }]
+      : [
+          { item_key: "a#noun", meta_json: "{\"status\":\"l1\"}" },
+          { item_key: "a#noun", meta_json: "{\"status\":\"l2\"}" },
+          { item_key: "b#noun", meta_json: "{\"status\":\"known\"}" },
+          { item_key: "c#noun", meta_json: "{\"status\":\"\"}" },
+        ],
+    recomputeSrsFromLog: async (keys) => { recomputed.push(...keys); return { recomputed: keys.length }; },
+    getAllWordStatuses: async () => ({ "a#noun": "l1", "b#noun": "known", "c#noun": "l3" }),
+    applyWordStatusFromSync: async (key, status) => { applied.push([key, status]); return true; },
+  };
+  const result = await cloud.healLocalProjections(ldb);
+  assert.deepEqual(recomputed, ["a#noun"]);
+  assert.deepEqual(applied, [["a#noun", "l2"], ["c#noun", ""]]);
+  assert.deepEqual(result, { ok: true, srsKeys: 1, markKeys: 3, applied: 2 });
 });
 
 test("dedicated worker enforces local limits and emits aggregates rather than content", () => {

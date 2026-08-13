@@ -7,7 +7,7 @@
 //   2) getKnownWordStates() reflects the manual status for a lemma with NO note (mark-known-without-
 //      a-flashcard — the LingQ pattern + the audit's "OPFS status store separate from notes");
 //   3) manual-wins: an explicit status overrides the SRS-derived value for the same lemma;
-//   4) clearing (status '') removes the row (reset to new/unseen).
+//   4) clearing (status '') removes an unscheduled row but preserves an independent SRS carrier.
 // Small writes only (OPFS-headless-safe). Run: node scripts/premium/reader-word-status-smoke.js
 
 const path = require("path");
@@ -85,7 +85,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       } catch (e) { contCanon = "ERR:" + e.message; }
       // C2 — SRS schedule (migration 058): a recall write persists the schedule; a PLAIN status set
       // must PRESERVE it (UPSERT, not REPLACE). getSrsSchedule returns due/interval/reps/lapses.
-      let srsSet = null, srsPreserved = null, srsStatusAfter = null, srsErr = null;
+      let srsSet = null, srsPreserved = null, srsStatusAfter = null, srsAfterClear = null, srsClearedStatus = null, srsErr = null;
       try {
         const SK = "pid:99977050";
         await ldb.setWordStatus(SK, "l2", { due: 1700000000000, interval: 3, reps: 2, lapses: 0 });
@@ -93,7 +93,9 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         await ldb.setWordStatus(SK, "l3");   // plain set — MUST preserve srs_*
         srsPreserved = (await ldb.getSrsSchedule())[SK] || null;
         srsStatusAfter = (await ldb.getAllWordStatuses())[SK] || null;
-        await ldb.setWordStatus(SK, "");     // cleanup
+        await ldb.setWordStatus(SK, "");     // clear manual axis; schedule must survive
+        srsAfterClear = (await ldb.getSrsSchedule())[SK] || null;
+        srsClearedStatus = (await ldb.getAllWordStatuses())[SK];
       } catch (e) { srsErr = String(e); }
       // D7 — study_day ledger (migration 059): recordRecall increments the genuine-recall count;
       // noteAvailable keeps the per-day MAX available; getStudyDays returns the raw rows (streak fold).
@@ -126,7 +128,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         d2Null = await ldb.getSentenceForReview("nope", "nokey", 99);
         await ldb.setWordStatus(LK, ""); await ldb.setWordStatus(LK2, ""); try { await ldb.deleteText(TID); } catch (_) {}
       } catch (e) { d2Err = String(e); }
-      return { set: all1[KEY], get: get1, inKws: kws1[KEY], changed: kws2[KEY], clearedAll: all3[KEY], clearedKws: kws3[KEY], bogus: all4[KEY], newSet: allN[NKEY], newKws: kwsN[NKEY], contCanon, contStudio, finExcluded, finLastRowPreserved, finStillFinished, finReincluded, finLastRowAfter, srsSet, srsPreserved, srsStatusAfter, srsErr, d7, d7Bad, d7Err, d2, d2Sent, d2Reanchor, d2Null, d2NotDue, d2Err };
+      return { set: all1[KEY], get: get1, inKws: kws1[KEY], changed: kws2[KEY], clearedAll: all3[KEY], clearedKws: kws3[KEY], bogus: all4[KEY], newSet: allN[NKEY], newKws: kwsN[NKEY], contCanon, contStudio, finExcluded, finLastRowPreserved, finStillFinished, finReincluded, finLastRowAfter, srsSet, srsPreserved, srsStatusAfter, srsAfterClear, srsClearedStatus, srsErr, d7, d7Bad, d7Err, d2, d2Sent, d2Reanchor, d2Null, d2NotDue, d2Err };
     });
 
     eq(res.set === "known", "setWordStatus('known') must persist (getAllWordStatuses), got " + JSON.stringify(res.set));
@@ -151,6 +153,8 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.srsSet && res.srsSet.interval === 3 && res.srsSet.reps === 2, "setWordStatus(status, sched) must persist the SRS schedule (getSrsSchedule), got " + JSON.stringify(res.srsSet));
     eq(res.srsPreserved && res.srsPreserved.interval === 3 && res.srsPreserved.reps === 2, "a PLAIN setWordStatus must PRESERVE the SRS schedule (UPSERT, not REPLACE), got " + JSON.stringify(res.srsPreserved));
     eq(res.srsStatusAfter === "l3", "the plain set must still update the status (→l3) while preserving srs, got " + JSON.stringify(res.srsStatusAfter));
+    eq(res.srsAfterClear && res.srsAfterClear.interval === 3 && res.srsAfterClear.reps === 2, "clearing the MANUAL axis must preserve the independent SRS schedule, got " + JSON.stringify(res.srsAfterClear));
+    eq(res.srsClearedStatus === "", "a scheduled carrier must retain an empty manual status after clear, got " + JSON.stringify(res.srsClearedStatus));
     // D7 — study_day ledger (migration 059)
     eq(res.d7Err === null, "D7 study_day ledger path must not error (migration 059 table), got " + JSON.stringify(res.d7Err));
     eq(res.d7 && res.d7.recalls >= 2 && res.d7.available === 12, "recordRecall must increment recalls + noteAvailable must keep the per-day MAX available (=12), got " + JSON.stringify(res.d7));
