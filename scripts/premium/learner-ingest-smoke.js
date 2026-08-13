@@ -99,7 +99,8 @@ const T = (s) => s;   // canonical UTC-Z literals below
           source: "seed-sm2", meta: { interval: 3, reps: 2, lapses: 0, scheme: "sm2-lite", keyer_version: 1 } },
         { id: "app:r1", item_key: KEY, kind: "review", reviewed_at: T("2026-07-02T10:00:00.000Z"), grade: 3,
           source: "room-recall", channel: "read:mc",
-          meta: { keyer_version: 1, scheduler: { scheme: "fsrs" }, surface: "שָׁלוֹם", text_key: "tk1" } },
+          meta: { keyer_version: 1, scheduler: { scheme: "fsrs" }, surface: "שָׁלוֹם", text_key: "tk1",
+            word_only: 1, training_stage: "l2" } },
       ],
       learner_events: [
         { id: "ev:1", type: "text_opened", created_at_client: T("2026-07-02T09:59:00.000Z"), payload: { text_key: "tk1" } },
@@ -167,8 +168,9 @@ const T = (s) => s;   // canonical UTC-Z literals below
     eq(!!fut && JSON.parse(fut.meta_json).ts_clamped_server === 1 && Date.parse(fut.reviewed_at) <= Date.now(),
       "future ts must be clamped + marked ts_clamped_server");
     const r1row = log1.json.rows.find((r) => r.id === "app:r1");
-    eq(!!r1row && !("surface" in JSON.parse(r1row.meta_json)) && JSON.parse(r1row.meta_json).text_key === "tk1",
-      "stored meta must have surface stripped but keep identifier keys");
+    eq(!!r1row && !("surface" in JSON.parse(r1row.meta_json)) && JSON.parse(r1row.meta_json).text_key === "tk1"
+      && JSON.parse(r1row.meta_json).word_only === 1 && JSON.parse(r1row.meta_json).training_stage === "l2",
+      "stored meta must strip content but retain bounded Room Training provenance");
     // ROWID cursor (v2 — the ingested_at cursor could skip rows committed after a read)
     const page1 = await api("GET", "/api/learner/log?limit=2", { cookie: cookieA });
     const page2 = await api("GET", "/api/learner/log?limit=100&after_rid=" + encodeURIComponent(page1.json.next_rid), { cookie: cookieA });

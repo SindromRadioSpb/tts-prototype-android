@@ -13,6 +13,7 @@ const room = read("public/js/library-ui.js");
 const db = read("public/db/local-db.js");
 const html = read("public/library.html");
 const policy = read("public/js/grade-policy.js");
+const learnerLog = read("db/learnerLogRepo.js");
 const locales = ["ru", "en", "he"].map((x) => read(`public/i18n/locales/${x}.js`));
 const failures = [];
 let checks = 0;
@@ -24,6 +25,7 @@ check(/await\s+localDb\.commitReviewAttempt\s*\(/.test(room), "Room grade path c
 const gradeBody = (room.match(/async function checkTrainAnswer[\s\S]*?\n}\nfunction renderTrainReveal/) || [""])[0];
 check(!/setWordStatus\s*\(/.test(gradeBody), "training grade does not mutate the asserted manual-status axis");
 check(/training_stage:\s*trainingStage/.test(gradeBody) && /row\.kind === ['"]mark['"]/.test(room), "exercise progression replays grade evidence with later manual marks as overrides");
+check(/META_ALLOW[\s\S]{0,5000}["']word_only["'][\s\S]{0,100}["']training_stage["']/.test(learnerLog), "cloud ingest accepts bounded Room Training provenance instead of poisoning append-only replay");
 check(/getTrainingStageRows\(items\.map/.test(room) && /export async function getTrainingStageRows/.test(db), "session progression reads only its bounded item history");
 check(/commitResult[\s\S]*?committed/.test(gradeBody), "UI checks the commit result before showing success");
 check(/evidenceScopeFor/.test(room) && /evidence_scope:\s*evidenceScope/.test(room), "actual task mode writes deterministic evidence scope");

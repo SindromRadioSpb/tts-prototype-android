@@ -67,6 +67,11 @@ const META_ALLOW = new Set([
   // evidence_scope='lexeme' (reverse доказывает лемму, не клетку), sense_id (pealim_id значения),
   // challenge_id (аудит привязки). Как policy_version/expected_form_id в P7.0b.
   "evidence_scope", "sense_id", "challenge_id",
+  // Room Training premium progression is replayable evidence on the grade row.
+  // Both fields are bounded enum/flag provenance, not learner content. They were
+  // already written locally before this server allowlist caught up, so rejecting
+  // them creates a permanent poison page for append-only cloud replay.
+  "word_only", "training_stage",
   // P8.4a (§10 п.10): assisted-провенанс — идентификаторы/enum, НЕ контент. input_mode
   // (tiles|keyboard) и hint_kind (context|sentence_audio) обязаны доезжать до канона, иначе
   // charter-§3-таксономия остаётся только на challenge-строке (которая смертна).
