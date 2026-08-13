@@ -1,0 +1,223 @@
+{
+  "schema_version": "room.b7.corpus-finishing-production-readback.1.0.0",
+  "recorded_at": "2026-08-13T05:15:09.319Z",
+  "evidence_class": "owner-profile read-only production browser plus engineering automation; not physical-device or assistive-technology acceptance",
+  "release": {
+    "app_version": "3.11.372",
+    "corpus_finishing_commit": "9dd225f0",
+    "sync_provenance_commit": "4818cd6e",
+    "sync_replay_commit": "9cf51982",
+    "app_footer_cache_triad": [
+      "3.11.372",
+      "3.11.372",
+      "v3.11.372"
+    ],
+    "served_asset_git_blob_matches": {
+      "checked": 10,
+      "matched": 10,
+      "assets": [
+        {
+          "path": "public/db/local-db.js",
+          "bytes": 398334,
+          "sha256": "1c81f50d16e9cf2d60fc1fe5053c4e3cab421e5514d42fd271aeaffed559eeba"
+        },
+        {
+          "path": "public/i18n/locales/en.js",
+          "bytes": 246177,
+          "sha256": "de62e7bcde2e25e5dbc952e976249488f2d8e90b8a4aa8a2f5c696444782a485"
+        },
+        {
+          "path": "public/i18n/locales/he.js",
+          "bytes": 301916,
+          "sha256": "5d2b7b81a4d61e023498d41ef1a16c47aa47288d91dde1063666790594d9b330"
+        },
+        {
+          "path": "public/i18n/locales/ru.js",
+          "bytes": 367357,
+          "sha256": "8649920d69ff361b9dc90dbe2308763733929983164e3647710f3c471baaf2df"
+        },
+        {
+          "path": "public/index.html",
+          "bytes": 2263854,
+          "sha256": "188067c92769d40b45ac6f4a35d9e623838fb98dde116c70170e44628c5dcae3"
+        },
+        {
+          "path": "public/js/cloud-sync.js",
+          "bytes": 35183,
+          "sha256": "cbe2acff19cf2c9eeab8f249085b62d51af09713686421cb972464560d7ae8b6"
+        },
+        {
+          "path": "public/js/corpus-item-presenter.js",
+          "bytes": 14587,
+          "sha256": "5889f26cd8c7b63940cbc21831429868938703f94fdc805c28827d6a25d15621"
+        },
+        {
+          "path": "public/js/library-ui.js",
+          "bytes": 762423,
+          "sha256": "0ad08dfd54e046a066374b8fa52b2c439e2564fb198892231714544f62699d55"
+        },
+        {
+          "path": "public/library.html",
+          "bytes": 228430,
+          "sha256": "32bd8f1ed9fe70e12f30cbece3c14b09187a2f33db81162de271a38bccb7bdf2"
+        },
+        {
+          "path": "public/sw.js",
+          "bytes": 27109,
+          "sha256": "d0f2343fb2c4c39457ff80bb8c2656994d80fef69d7d50bedbbce86a2349e46e"
+        }
+      ]
+    }
+  },
+  "health": {
+    "samples": 3,
+    "http_statuses": [200, 200, 200],
+    "ok": true,
+    "db_ready": true,
+    "migrations_ready": true,
+    "disk_pct_used_before_cleanup": 97,
+    "disk_pct_used_after_cleanup": 82,
+    "disk_warn_after_cleanup": true
+  },
+  "corpora": {
+    "my_texts": {
+      "prepared": 115,
+      "total": 115,
+      "visible_cards": 48,
+      "not_prepared_visible": 0,
+      "shared_sort_present": true,
+      "shared_sort_retained": true,
+      "first_ranked_title": "150 наиболее употребимых глаголов иврита в инфинитиве",
+      "first_ranked_familiarity_pct": 38,
+      "audio_contract_examples": [
+        "Аудио полностью 545/545",
+        "Аудио частично N/N",
+        "Аудио отсутствует"
+      ],
+      "ru_locale_direction": "ltr",
+      "ru_locale_text_align": "start",
+      "reader_opened": false
+    },
+    "study_songs": {
+      "prepared": 77,
+      "total": 77,
+      "visible_cards": 48,
+      "shared_sort_present": true,
+      "rank_eligible_results": 0,
+      "limited_only_sort_reverted_to": "position",
+      "limited_only_explanation": "Пока нет текстов с достаточно достоверной оценкой для сортировки.",
+      "audio_contract_examples": [
+        "Аудио полностью 42/42",
+        "Аудио частично 20/34"
+      ],
+      "duplicate_partial_audio_caveat_visible": false,
+      "ru_locale_direction": "ltr",
+      "ru_locale_text_align": "start",
+      "reader_opened": false
+    },
+    "ben_yehuda": {
+      "prepared_readable": 796,
+      "readable_total": 796,
+      "shared_sort_present": true,
+      "shared_sort_retained": true,
+      "first_ranked_lower_bounds_pct": [67, 56, 56, 48],
+      "audio_contract": "Аудио отсутствует",
+      "ru_locale_direction": "ltr",
+      "ru_locale_text_align": "start",
+      "reader_opened": false
+    }
+  },
+  "interaction": {
+    "details_single_open": true,
+    "peer_open_closes_previous": true,
+    "outside_pointer_closes": true,
+    "escape_closes": true,
+    "escape_returns_focus_to_summary": true
+  },
+  "kfar_aza_audit": {
+    "visible_copy": "Не менее 28% знакомы",
+    "familiar_occurrences": 1107,
+    "eligible_token_denominator": 3945,
+    "explicitly_new_occurrences": 1679,
+    "untracked_occurrences": 61,
+    "unresolved_occurrences": 1098,
+    "excluded_ignored_occurrences": 37,
+    "raw_familiarity_pct": 28.0608,
+    "displayed_familiarity_pct": 28,
+    "distinct_new_or_unset_lemmas": 479,
+    "lemma_inventory_is_occurrence_remainder": false,
+    "localized_help_present": true
+  },
+  "network_observation": {
+    "methods": ["GET"],
+    "study_songs_learning_index_gets": 5,
+    "protected_work_body_gets": 0,
+    "non_get_requests": 0
+  },
+  "canonical_before_after": {
+    "unchanged": true,
+    "review_log": {
+      "count_before": 7282,
+      "count_after": 7282,
+      "cloud_count_after": 7282,
+      "upload_cursor_after": 7282,
+      "download_cursor_after": 7282,
+      "sha256_before": "ed701b9348775fa8fba39ffb8a916f49e2d434016985bdf04b75ef257c39f0dd",
+      "sha256_after": "ed701b9348775fa8fba39ffb8a916f49e2d434016985bdf04b75ef257c39f0dd"
+    },
+    "word_status": {
+      "count_before": 5387,
+      "count_after": 5387,
+      "sha256_before": "3202b183d906af34db996b02dcf60759042a674f2f8abb12dc56e0e0a93e8f64",
+      "sha256_after": "3202b183d906af34db996b02dcf60759042a674f2f8abb12dc56e0e0a93e8f64"
+    },
+    "text_progress": {
+      "count_before": 90,
+      "count_after": 90,
+      "sha256_before": "ea5a8141fdbfb2882675e452a2c244c9158a85156f357902ea6e085a2153e809",
+      "sha256_after": "ea5a8141fdbfb2882675e452a2c244c9158a85156f357902ea6e085a2153e809"
+    },
+    "texts": {
+      "count_before": 222,
+      "count_after": 222,
+      "sha256_before": "bd5da4435e3873d05d2b0afae29694e854c7fc8b4cd9f81f630f2a0cc20f81c0",
+      "sha256_after": "bd5da4435e3873d05d2b0afae29694e854c7fc8b4cd9f81f630f2a0cc20f81c0"
+    }
+  },
+  "automation": {
+    "room_b7_unit": "46/46 PASS",
+    "room_b7_browser": "161/161 PASS",
+    "cloud_sync": "32/32 PASS",
+    "i18n": "233/233 PASS",
+    "canon_version": "18/18 PASS",
+    "memory_canon_fsrs": "79/79 PASS"
+  },
+  "operations": {
+    "builder_cache_removed_gb_total": 4.402,
+    "unused_historical_application_images_removed": 3,
+    "active_image_retained": true,
+    "immediate_rollback_image_retained": true,
+    "running_containers_removed": 0,
+    "volumes_removed": 0,
+    "post_cleanup_docker": {
+      "images_total": 10,
+      "images_active": 9,
+      "images_size_gb": 14.46,
+      "containers_total": 12,
+      "containers_active": 12,
+      "volumes_total": 3,
+      "volumes_active": 3,
+      "build_cache_gb": 1.542,
+      "build_cache_reclaimable_mb": 42.68
+    }
+  },
+  "physical_acceptance": {
+    "iphone_safari_general_smoke": "owner-reported PASS on an earlier B7 release; full 3.11.372 row not attested",
+    "iphone_voiceover": "NOT RUN",
+    "android_chrome_pwa": "NOT RUN",
+    "android_talkback": "NOT RUN",
+    "windows_nvda": "NOT RUN",
+    "macos_voiceover": "NOT RUN",
+    "desktop_keyboard_200pct": "NOT RUN"
+  }
+}

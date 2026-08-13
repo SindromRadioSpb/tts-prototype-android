@@ -5,6 +5,11 @@ Production release: `3.11.369`
 Evidence class: engineering automation plus owner-profile read-only production
 browser evidence; not physical-device or assistive-technology acceptance.
 
+> Historical slice: this packet preserves the exact full-corpus preparation
+> evidence for `3.11.369`. The current corpus-finishing release `3.11.372` and
+> final three-corpus read-back are recorded in
+> [`../corpus-finishing/README.md`](../corpus-finishing/README.md).
+
 ## Owner defect and accepted correction
 
 The three corpus surfaces exposed different functionality: My Texts could

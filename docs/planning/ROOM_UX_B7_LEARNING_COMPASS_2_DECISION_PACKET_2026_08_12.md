@@ -18,9 +18,10 @@
 
 **Implementation:** `main@845ddc71`; production finishing `04f88328`, `85bdc9de`;
 cold-library/packet hardening `1298bb71`, `73e74a37`; full-corpus preparation
-`d97930a8`; limited-only sort UX `86f5189c`
+`d97930a8`; limited-only sort UX `86f5189c`; corpus finishing `9dd225f0`;
+sync contract/replay `4818cd6e`, `9cf51982`
 
-**Production release:** `3.11.369` (served-byte/health and owner-profile
+**Production release:** `3.11.372` (served-byte/health and owner-profile
 read-only evidence; general owner smoke and physical/AT evidence remain
 separately classified)
 
@@ -30,6 +31,8 @@ separately classified)
 [`docs/research/room-ux-b7-learning-compass/2026-08-12/`](../research/room-ux-b7-learning-compass/2026-08-12/README.md)
 and
 [`docs/research/room-ux-b7-learning-compass/2026-08-13/corpus-preparation/`](../research/room-ux-b7-learning-compass/2026-08-13/corpus-preparation/README.md)
+and
+[`docs/research/room-ux-b7-learning-compass/2026-08-13/corpus-finishing/`](../research/room-ux-b7-learning-compass/2026-08-13/corpus-finishing/README.md)
 
 ---
 
@@ -667,3 +670,25 @@ Reader; одинаковая сортировка присутствует ве�
 не содержали protected body, а canonical counts/SHA-256 до/после совпали.
 Это расширяет engineering/production evidence, но не заполняет physical/AT
 матрицу D6.
+
+### Owner finishing direction 2026-08-13
+
+После сравнения трёх реальных корпусов владелец потребовал устранить оставшуюся
+функциональную и визуальную асимметрию в рамках самого B7: единые audio labels,
+locale-based start alignment, dismissable single-open details, понятное
+различие token lower bound и lemma inventory, а также проверку восстановимого
+cloud replay. Это уточняет presentation/sync hardening D1/D2/D4/D6 и не
+переоткрывает B0–B6.
+
+Production `3.11.372` прошёл финальный read-only owner-profile traversal:
+My Texts `115/115`, Study Songs `77/77`, Ben-Yehuda `796/796`; uniform audio,
+alignment and disclosure behavior confirmed; ten served assets matched Git;
+Study Songs made five index GETs and zero protected body/non-GET requests.
+Canonical counts/SHA-256 remained unchanged, including `review_log` `7,282`
+locally/cloud and at both sync cursors. Safe operations cleanup reduced root
+disk use from `97%` to `82%`, retaining active and immediate rollback images;
+`disk_warn=true` remains an explicit operational warning. Exact evidence is in
+[`corpus-finishing/PRODUCTION_READBACK_EVIDENCE.json`](../research/room-ux-b7-learning-compass/2026-08-13/corpus-finishing/PRODUCTION_READBACK_EVIDENCE.json).
+
+Engineering/production B7 is therefore current through `3.11.372`, but D6
+remains `PHYSICAL-AT PARTIAL`; this packet does not claim GA or closure.

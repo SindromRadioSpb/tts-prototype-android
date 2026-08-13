@@ -12,9 +12,10 @@ Decision packet:
 Implementation: `main@845ddc71`; production finishing: `04f88328`, `85bdc9de`;
 compact-copy follow-up: `3.11.364`; cold-library + packet hardening:
 `1298bb71`, `73e74a37`; three-corpus disclosure follow-up: `70dcffdc`;
-full-corpus preparation: `d97930a8`; limited-only sort UX: `86f5189c`
+full-corpus preparation: `d97930a8`; limited-only sort UX: `86f5189c`;
+corpus finishing: `9dd225f0`; sync contract/replay: `4818cd6e`, `9cf51982`
 
-Production release: `3.11.369`
+Production release: `3.11.372`
 
 Владелец отдельно авторизовал production deploy. Первичный `3.11.363` развёрнут
 и проверен direct no-store/served-byte read-back. Kapture-проверка использовала
@@ -61,12 +62,20 @@ source fallback затем выявил отсутствующий Python 3.12 `
 `Dockerfile` добавлен `py3-setuptools`, предоставляющий совместимый shim для
 используемого `node-gyp 8`; проверка импорта в чистом `node:20-alpine` прошла.
 
+Corpus finishing `3.11.370`–`3.11.372` устранил последние выявленные owner
+review расхождения: единый exact audio contract и locale-based alignment во
+всех трёх корпусах, single-open/outside-click/Escape disclosure, явную справку
+token lower bound против lemma inventory и восстанавливаемый cloud replay без
+пропуска rejected rows. Два production read-back последовательно обнаружили
+legacy provenance allowlist drift и cached rejection; оба исправления вошли в
+`4818cd6e`/`9cf51982`, не создавая learner events.
+
 ## Реализованный контракт
 
 | Decision | Реализация |
 |---|---|
 | D1 shared recorded familiarity v2 | Один UMD semantic core используется Room и Agent Access; exact `familiar/new/untracked/unresolved`, excluded ignore/proper-name buckets, true-zero/profile-empty split, компактная lower-bound copy и rank только при uncertainty `≤5 pp`; полный audit остаётся в details |
-| D2 local derived cache | Изолированная migration 049, content-free/LRU cache `1,000 / 64 MiB`, один page batch, exact revision/entitlement/resolver invalidation; Ben sidecar и bounded Worker для My/current materialized group |
+| D2 local derived cache | Изолированная migration 049, content-free/LRU cache `1,000 / 64 MiB`, один page batch, exact revision/entitlement/resolver invalidation; full local My pass, полный membership-gated protected index и readable Ben sidecar без first-open dependency |
 | D3 local calibration | Только foreground explicit completion `30s–90m`; ready при `5 observations / 3 revision hashes / 2,500 tokens`; latest 12/8 KiB, median+IQR range, stale/unstable states, disable/reset без canonical writes |
 | D4 typed provenance | Независимые `curated/asserted/derived/unknown` signals; audio/register/period/difficulty/familiarity/reason не заимствуют authority; group presenter больше не придумывает TTS/revision |
 | D5 deterministic reasons | Versioned priority ladder и видимый reason; нет LLM, 70/90/95/98 readiness bands, comprehension/CEFR promise или opaque weighting |
@@ -91,7 +100,7 @@ source fallback затем выявил отсутствующий Python 3.12 `
   максимум два visible B7 signals, structured details, keyboard reset/disable.
 - Agent `get_text_coverage` и group coverage используют ту же v2-семантику.
   Это versioned response evolution; оно не создаёт network dependency Room.
-- Service Worker/Studio/Room version согласованы на production `3.11.367`;
+- Service Worker/Studio/Room version согласованы на production `3.11.372`;
   activation semantics B6 не ослаблены.
 - B6 history continuity сохраняется: non-presentation open заранее ставит
   `touchOpened` в очередь до фоновых body reads; Reader bar height синхронизирует
@@ -120,6 +129,9 @@ source fallback затем выявил отсутствующий Python 3.12 `
 - i18n `233/233`; memory canon/FSRS `79/79`; canon version `18/18`; legacy
   corpus vocab engine `37/37`.
 - `node --check` and scoped `git diff --check`: PASS.
+- Финальный `3.11.372` rerun: B7 unit `46/46`, browser matrix `161/161`, cloud
+  sync `32/32`, i18n `233/233`, memory canon/FSRS `79/79`, canon version
+  `18/18`.
 
 Durable automation evidence:
 [`docs/research/room-ux-b7-learning-compass/2026-08-12/automation/`](../research/room-ux-b7-learning-compass/2026-08-12/automation/).
@@ -130,6 +142,10 @@ Follow-up three-corpus evidence (`159/159`, включая 380px Ben rail disclo
 Full readable-corpus preparation candidate evidence (`161/161`, protected
 API/UI, B6 `45/45`, Lighthouse Accessibility `100`):
 [`docs/research/room-ux-b7-learning-compass/2026-08-13/corpus-preparation/`](../research/room-ux-b7-learning-compass/2026-08-13/corpus-preparation/).
+
+Final corpus-finishing production evidence (`3.11.372`, ten served assets,
+three corpora, canonical before/after and operations read-back):
+[`docs/research/room-ux-b7-learning-compass/2026-08-13/corpus-finishing/`](../research/room-ux-b7-learning-compass/2026-08-13/corpus-finishing/README.md).
 
 ## Production, owner-profile and owner-smoke read-back
 
@@ -232,7 +248,7 @@ Cold-library `3.11.366` production evidence:
   evidence is in
   [`PRODUCTION_READBACK_EVIDENCE.json`](../research/room-ux-b7-learning-compass/2026-08-13/corpus-preparation/PRODUCTION_READBACK_EVIDENCE.json).
 
-### B7 corpus finishing release candidates: `3.11.370` → `3.11.372`
+### B7 corpus finishing production line: `3.11.370` → `3.11.372`
 
 Owner review of the complete three-corpus experience found four cross-surface
 gaps which belong to B7 rather than a later visual lane:
@@ -279,10 +295,34 @@ key and stops caching future row-level rejection results; accepted event IDs
 remain the idempotency authority. Both failed attempts left the server count
 unchanged and created no local row.
 
-Release-candidate gates: B7 browser matrix `161/161`, frozen B0–B6 contracts
-`46/46`, cloud sync `32/32`, i18n/cache/version `233/233`, plus RU desktop and
-380 px and HE/RTL 360 px visual read-back. Production and owner-profile
-evidence are recorded only after served `3.11.372` is independently verified.
+Final gates: B7 browser matrix `161/161`, frozen B0–B6 contracts `46/46`, cloud
+sync `32/32`, i18n `233/233`, memory canon/FSRS `79/79`, canon version `18/18`,
+plus RU desktop/380 px and HE/RTL 360 px visual read-back.
+
+Production `3.11.372` then passed independent served-byte and owner-profile
+read-back:
+
+- app/footer/cache triad is `3.11.372`; all ten checked browser assets equal
+  their Git blobs; three post-cleanup health samples returned `200`, app/DB/
+  migrations ready;
+- without opening Reader, My Texts reached `115/115`, Study Songs `77/77` and
+  Ben-Yehuda `796/796`; the shared reliable-familiarity sort is present in all
+  three. Study Songs correctly reverts the all-limited no-op selection with an
+  explanation, while rank-eligible My Texts and Ben-Yehuda results retain it;
+- exact audio labels are consistent, the duplicate partial-audio caveat is
+  absent, RU card/hero copy remains left-start for Hebrew titles, and details
+  close on peer open, outside pointer-down and `Escape` with focus return;
+- Study Songs issued five bounded index GETs and zero protected body GETs;
+  the complete traversal made no non-GET request;
+- counts and SHA-256 remained identical before/after for `review_log` (`7,282`),
+  `word_status` (`5,387`), `text_progress` (`90`) and `texts` (`222`). Cloud
+  count and both sync cursors also equal `7,282`;
+- safe operations cleanup reduced root disk use `97% → 82%` while retaining
+  the active and immediate rollback images and removing no container/volume.
+  `disk_warn=true` remains a recorded operational warning.
+
+Exact machine-readable evidence:
+[`PRODUCTION_READBACK_EVIDENCE.json`](../research/room-ux-b7-learning-compass/2026-08-13/corpus-finishing/PRODUCTION_READBACK_EVIDENCE.json).
 
 ## Что не доказано
 
@@ -299,6 +339,6 @@ evidence are recorded only after served `3.11.372` is independently verified.
 Выполнить
 [`ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md`](./ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md).
 Production preflight/deploy/read-back выполнен для release line through
-`3.11.369`. После owner physical/AT PASS или явных documented exceptions
+`3.11.372`. После owner physical/AT PASS или явных documented exceptions
 подготовить B7 closure; только затем начинать новый research-only goal B8
 Reading Journey.

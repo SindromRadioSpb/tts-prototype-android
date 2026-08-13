@@ -33,17 +33,20 @@ cross-surface решениями.
 
 Implementation `main@845ddc71`, production finishing `04f88328`/`85bdc9de`,
 compact-copy follow-up plus cold-library/packet hardening `1298bb71` and
-`73e74a37`, served in `3.11.366`:
+`73e74a37`, full-corpus preparation `d97930a8`/`86f5189c`, corpus finishing
+`9dd225f0` and sync contract/replay `4818cd6e`/`9cf51982`, served in
+`3.11.372`:
 
 - один local-first `recorded-familiarity-v2` core для Room и Agent Access;
-- versioned derived cache + bounded Worker для My Texts/current materialized
-  group editions, без card-paint body reads;
+- versioned derived cache + bounded local My pass, full membership-gated
+  protected index и readable Ben sidecar, без card-paint body reads;
 - exact buckets/lower bound и честные typed states вместо fabricated `0%`;
 - local-only `5×3×2500` calibration range с disable/reset;
 - typed per-field provenance и deterministic reason ladder без LLM/threshold
   promise;
-- engineering `145/145`; a 115-text owner library now self-prepares without
-  Reader while DOM stays at 48; production page packet is `48/48`,
+- final engineering unit `46/46`, browser matrix `161/161`, cloud sync
+  `32/32`, i18n `233/233`, memory canon/FSRS `79/79`; a 115-text owner library
+  now self-prepares without Reader while DOM stays at 48; production page packet is `48/48`,
   `255,442 B < 256 KiB`; familiar sort retains first selection; canonical
   hashes remain unchanged;
 - production served-byte/health, owner-profile read-only browser и
@@ -51,11 +54,14 @@ compact-copy follow-up plus cold-library/packet hardening `1298bb71` and
   full physical/AT matrix не выполнена, B7 не закрыт.
 - по owner feedback visible familiarity copy сокращена до `X% знакомы` /
   `Не менее X% знакомы`; exact buckets и provenance остаются в details.
-- B7 finishing candidate `3.11.370` унифицирует exact audio coverage и
+- B7 finishing production `3.11.372` унифицирует exact audio coverage и
   locale-based alignment во всех трёх корпусах, делает details single-open /
   outside-click / Escape-dismissable, объясняет различие token lower bound и
   lemma inventory и исцеляет rejected-row cloud cursor без новых learner
-  events. Production read-back должен быть добавлен до physical retest.
+  events. Owner-profile read-only production traversal подтвердил My Texts
+  `115/115`, Study Songs `77/77`, Ben-Yehuda `796/796`, `10/10` served assets,
+  zero protected body/non-GET requests и неизменные canonical hashes;
+  `review_log` local/cloud/cursors = `7,282`.
 
 - честная familiar-word coverage для поддерживаемых My Texts/group items;
 - индивидуальное время чтения только после калибровки по реальному поведению;
@@ -92,7 +98,7 @@ LocalDb/FSRS/media/i18n/SW contracts и production deployments остаются 
 
 1. Использовать
    `ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md` на exact production release
-   `3.11.366`; не подменять незаполненные physical/AT строки automation или
+   `3.11.372`; не подменять незаполненные physical/AT строки automation или
    Kapture-скриншотами.
 2. При agent-assisted owner-profile проверке выполнять только read-only
    navigation/details; calibration controls — только самим владельцем или
