@@ -2501,7 +2501,7 @@ window.I18N_LOCALES.he = {
       recordedFamiliar: "מוכרות", recordedFamiliarLowerBound: "לפחות {value}% מוכרות", needsProfile: "נדרש פרופיל מילים", notPrepared: "הניתוח עדיין לא הוכן", preparing: "מכינים את הניתוח",
       groupNotPreparedAction: "פתחו לניתוח", groupNotPreparedDetail: "הניתוח יתבצע מקומית לאחר פתיחת הטקסט בפעם הראשונה.",
       limitedFamiliarityDetail: "רמת העמימות גבוהה מדי למיון; מוצג רק הגבול התחתון.",
-      sortFamiliar: "מוכרות בוודאות תחילה",
+      sortFamiliar: "מוכרות בוודאות תחילה", sortNoReliable: "עדיין אין טקסטים עם הערכה מהימנה מספיק למיון.",
       libraryChecking: "מכינים התאמה לפי היכרות…", libraryPreparing: "מכינים מבחר: {ready}/{total}", libraryReady: "המבחר לפי היכרות מוכן · {total} טקסטים",
       corpusPreparing: "מכינים מבחר: {ready}/{total}", corpusReady: "המבחר לפי היכרות מוכן · {total} טקסטים", corpusReadyLimited: "המבחר מוכן: {ready}/{total} · ללא הערכה: {unsupported}", corpusUnavailable: "המבחר לפי היכרות אינו זמין זמנית",
       stale: "יש לרענן את הניתוח", unsupported: "הניתוח אינו נתמך", unavailable: "ההערכה אינה זמינה", readingRange: "{min}–{max} דקות",

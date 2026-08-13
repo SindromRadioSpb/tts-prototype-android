@@ -197,7 +197,7 @@ Cold-library `3.11.366` production evidence:
 - This is desktop Chromium/Kapture production evidence, not a new physical
   iPhone/Android, NVDA, VoiceOver or TalkBack acceptance claim.
 
-### Full-corpus preparation release candidate: `3.11.368`
+### Full-corpus preparation release candidates: `3.11.368` → `3.11.369`
 
 - Local automation prepares `115/115` My Texts without Reader and all `796`
   readable Ben-Yehuda works before selection; protected fixture proves every
@@ -210,10 +210,14 @@ Cold-library `3.11.366` production evidence:
   `<=256 KiB` packets.
 - Responsive group UX passes at `380/510/1280`; the long shared sort label is
   fully visible at 380 px.
+- `3.11.369` closes the limited-only edge found during owner-profile readback:
+  when no work is reliably rank-eligible, the selector returns to the prior
+  order and gives a localized explanation instead of silently accepting a
+  no-op sort. Lower-bound card facts remain available for manual selection.
 - Chrome mobile Lighthouse improved from `93` to `100` after fixing footer
   contrast/targets; dynamic/hidden form controls now have names and labels.
   This remains automation, not physical screen-reader evidence.
-- Production deploy and real owner Study Songs `77/77` read-back are still
+- Final `3.11.369` production deploy and repeat owner read-back are still
   pending at this document point; no production claim is inferred from local
   automation.
 

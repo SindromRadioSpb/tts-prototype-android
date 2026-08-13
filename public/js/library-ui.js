@@ -171,6 +171,16 @@ async function familiaritySortProfileAvailable() {
   return false;
 }
 
+function reliableFamiliarityCount(values) {
+  let count = 0;
+  for (const fit of (values || [])) if (fit && fit.status === 'AVAILABLE' && fit.rank_eligible) count += 1;
+  return count;
+}
+
+function explainNoReliableFamiliaritySort() {
+  roomToast(tt('room.compass.sortNoReliable', 'Пока нет текстов с достаточно достоверной оценкой для сортировки.'));
+}
+
 function compassWorkerLimit() {
   try { return matchMedia('(max-width: 700px)').matches ? 1 : 2; } catch (_) { return 1; }
 }
@@ -530,7 +540,8 @@ async function loadPersonalFamiliarityRanking(options) {
     }
     return a.ordinal - b.ordinal;
   });
-  return { status: 'AVAILABLE', items: all.map((entry) => entry.item), matchedTotal };
+  return { status: 'AVAILABLE', items: all.map((entry) => entry.item), matchedTotal,
+    rankEligibleTotal: reliableFamiliarityCount(all.map((entry) => entry.fit)) };
 }
 
 function personalCompassProgressNode() {
@@ -8846,7 +8857,12 @@ async function renderGroupCorpus(corpusId, token) {
     ['familiar_desc',tt('room.compass.sortFamiliar','Сначала достоверно знакомые')],
   ],state.sort,tt('room.corpus.sort.label','Сортировка'),async(v,select)=>{
     if(v==='familiar_desc'&&!await familiaritySortProfileAvailable()){select.value=state.sort;return;}
-    if(v==='familiar_desc'){try{await ensureGroupLearningIndex(corpusId,catalog);}catch(_){}}
+    if(v==='familiar_desc'){
+      try {
+        const ready=await ensureGroupLearningIndex(corpusId,catalog);
+        if(!reliableFamiliarityCount(ready&&ready.fits&&ready.fits.values())){select.value=state.sort;explainNoReliableFamiliaritySort();return;}
+      } catch(_){select.value=state.sort;roomToast(tt('room.compass.corpusUnavailable','Подбор по знакомости временно недоступен'));return;}
+    }
     state.sort=v;paint();
   });
   const smartRail=el('div',{class:'corpus-sort mytexts-smart group-corpus-smart',attrs:{title:tt('room.corpus.personalHint','Фильтры по вашей активности — работы, открытые на этом устройстве')}});
@@ -9560,9 +9576,10 @@ async function renderMyTextsCorpus(token) {
       const smartIds = await selectedSmartIds();
       if (myCorpusState.sort === 'familiar_desc') {
         const ranked = await loadPersonalFamiliarityRanking({ ...myCorpusState, smartIds, freshSince });
-        if (ranked.status !== 'AVAILABLE') {
+        if (ranked.status !== 'AVAILABLE' || !ranked.rankEligibleTotal) {
           myCorpusState.sort = 'opened_desc';
           const select = sortField.querySelector('select'); if (select) select.value = myCorpusState.sort;
+          if (ranked.status === 'AVAILABLE') { explainNoReliableFamiliaritySort(); return paint({ reset: true }); }
           const key = ranked.status === 'NEEDS_PROFILE' ? 'room.mytexts.sortFamiliarNeedsProfile'
             : ranked.status === 'TOO_LARGE' ? 'room.mytexts.sortFamiliarLimit' : 'room.mytexts.sortFamiliarPreparing';
           const fallback = ranked.status === 'NEEDS_PROFILE' ? 'Сначала отметьте несколько знакомых слов.'
@@ -10540,10 +10557,14 @@ function buildCorpusFilterBar() {
   sortSelect.addEventListener('change',async()=>{
     const nextSort=sortSelect.value;
     if(nextSort==='familiar_desc'&&!await familiaritySortProfileAvailable()){sortSelect.value=corpusL1Sort;return;}
+    if(nextSort==='familiar_desc'){
+      let scores=null;try{scores=await ensureBenFamiliarityScores();}catch(_){sortSelect.value=corpusL1Sort;roomToast(tt('room.compass.corpusUnavailable','Подбор по знакомости временно недоступен'));return;}
+      if(!reliableFamiliarityCount(scores&&scores.values())){sortSelect.value=corpusL1Sort;explainNoReliableFamiliaritySort();return;}
+    }
     corpusL1Sort=nextSort;
     if(corpusL1Sort==='familiar_desc'){
       corpusFilter.readyOnly=true;
-      ensureBenFamiliarityScores().then(()=>corpusRefreshL1Body()).catch(()=>corpusRefreshL1Body());
+      corpusRefreshL1Body();
     }else if(corpusL1Sort==='opened')ensurePersonalSets().then(()=>corpusRefreshL1Body()).catch(()=>corpusRefreshL1Body());
     else corpusRefreshL1Body();
   });

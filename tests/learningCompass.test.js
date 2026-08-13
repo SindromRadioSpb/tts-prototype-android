@@ -316,6 +316,8 @@ test("all three readable corpora fully prepare and expose the same familiarity s
   assert.match(ui, /loadPersonalFamiliarityRanking\(/);
   assert.match(ui, /ensureGroupLearningIndex\(/);
   assert.match(ui, /ensureBenFamiliarityScores\(/);
+  assert.match(ui, /reliableFamiliarityCount/);
+  assert.match(ui, /sortNoReliable/);
   assert.match(ui, /\['familiar_desc',\s*'room\.compass\.sortFamiliar'/);
   assert.match(ui, /roomGroupSort[\s\S]*?familiar_desc/);
   assert.match(ui, /roomCorpusSort[\s\S]*?familiar_desc/);

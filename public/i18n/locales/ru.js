@@ -2505,7 +2505,7 @@ window.I18N_LOCALES.ru = {
       recordedFamiliar: "знакомы", recordedFamiliarLowerBound: "Не менее {value}% знакомы", needsProfile: "Нужен профиль слов", notPrepared: "Анализ не подготовлен", preparing: "Анализ готовится",
       groupNotPreparedAction: "Откройте для анализа", groupNotPreparedDetail: "Анализ выполнится локально после первого открытия текста.",
       limitedFamiliarityDetail: "Неоднозначность слишком велика для сортировки; показана только нижняя граница.",
-      sortFamiliar: "Сначала достоверно знакомые",
+      sortFamiliar: "Сначала достоверно знакомые", sortNoReliable: "Пока нет текстов с достаточно достоверной оценкой для сортировки.",
       libraryChecking: "Готовим подбор по знакомости…", libraryPreparing: "Готовим подбор: {ready}/{total}", libraryReady: "Подбор по знакомости готов · {total} текстов",
       corpusPreparing: "Готовим подбор: {ready}/{total}", corpusReady: "Подбор по знакомости готов · {total} текстов", corpusReadyLimited: "Подбор готов: {ready}/{total} · без оценки: {unsupported}", corpusUnavailable: "Подбор по знакомости временно недоступен",
       stale: "Нужно обновить анализ", unsupported: "Анализ недоступен", unavailable: "Оценка недоступна", readingRange: "{min}–{max} мин",

@@ -1,7 +1,7 @@
 # B7 full readable-corpus preparation — pre-production evidence
 
 Date: 2026-08-13
-Candidate: `3.11.368`
+Candidate: `3.11.369`
 Evidence class: engineering automation only; not owner-live or physical/AT.
 
 ## Owner defect and accepted correction
@@ -24,6 +24,12 @@ The public Ben-Yehuda catalog contains `26,455` records, but only `796` have
 the readable body/translation bundle required by Reading Room. Catalog-only
 records are not assigned fabricated familiarity.
 
+The shared sort ranks only `AVAILABLE + rank_eligible` estimates. If a corpus
+has no reliably comparable texts (the current owner Study Songs profile is a
+real example), the control now returns to its previous order and explains the
+uncertainty instead of appearing to accept a no-op sort. Lower-bound facts
+remain visible on every prepared card.
+
 ## Verification
 
 - `node --test tests/learningCompass.test.js tests/roomUxMaturity.test.js`:
@@ -35,7 +41,8 @@ records are not assigned fabricated familiarity.
   anonymous/revoked denied, content-free `private, no-store` packet.
 - `node scripts/premium/group-corpus-ui-smoke.js`: PASS at `380/510/1280`;
   synthetic full protected catalog ranked `90%`, `60%`, `20%`; protected body
-  fetches during card paint: `0`.
+  fetches during card paint: `0`; a limited-only corpus rejects the silent sort
+  and exposes the localized reason.
 - `node scripts/premium/canon-version-smoke.js`: `18/18`.
 - Chrome DevTools mobile snapshot at 380 px: status
   `Подбор по знакомости готов · 796 текстов`; shared sort has a 44 px target,

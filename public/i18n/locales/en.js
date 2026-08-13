@@ -2491,7 +2491,7 @@ window.I18N_LOCALES.en = {
       recordedFamiliar: "familiar", recordedFamiliarLowerBound: "At least {value}% familiar", needsProfile: "Word profile needed", notPrepared: "Analysis not prepared yet", preparing: "Preparing analysis",
       groupNotPreparedAction: "Open to analyze", groupNotPreparedDetail: "Analysis runs locally after the text is first opened.",
       limitedFamiliarityDetail: "Ambiguity is too high for ranking; only the lower bound is shown.",
-      sortFamiliar: "Reliable familiarity first",
+      sortFamiliar: "Reliable familiarity first", sortNoReliable: "No texts have a reliable enough estimate for sorting yet.",
       libraryChecking: "Preparing familiarity matching…", libraryPreparing: "Preparing selection: {ready}/{total}", libraryReady: "Familiarity selection ready · {total} texts",
       corpusPreparing: "Preparing selection: {ready}/{total}", corpusReady: "Familiarity selection ready · {total} texts", corpusReadyLimited: "Selection ready: {ready}/{total} · not assessed: {unsupported}", corpusUnavailable: "Familiarity selection is temporarily unavailable",
       stale: "Analysis needs refreshing", unsupported: "Analysis unsupported", unavailable: "Estimate unavailable", readingRange: "{min}–{max} min",
