@@ -184,7 +184,7 @@ async function runColdLibraryScenario(browser) {
   check(!initial.readerOpen && !final.readerOpen, "cold-library: preparation completes without opening Reader");
   check(final.available === 48, `cold-library: every visible card becomes usable for familiarity matching (${final.available}/48)`);
   check(final.cache === coldTotal, `cold-library: all ${coldTotal} personal texts receive a derived cache entry (${final.cache}/${coldTotal})`);
-  check(new RegExp(`${coldTotal}\\s*\\/\\s*${coldTotal}`).test(final.progress), `cold-library: full catalog readiness is visible (${final.progress})`);
+  check(new RegExp(`${coldTotal}\\s+текст`).test(final.progress), `cold-library: full catalog readiness is visible (${final.progress})`);
   check(JSON.stringify(final.canonical.review_log) === JSON.stringify(seeded.canonical.review_log), "cold-library: analysis writes no review events");
   check(JSON.stringify(final.canonical.word_status) === JSON.stringify(seeded.canonical.word_status), "cold-library: analysis changes no learner status");
   check(JSON.stringify(final.canonical.progress_rows) === JSON.stringify(seeded.canonical.progress), "cold-library: analysis changes no reading progress");
@@ -494,6 +494,17 @@ async function runBenRailDisclosureScenario(browser) {
     await db.applyWordStatusFromSync("pid:b7-ben-rail-profile", "known");
   });
   await page.reload({ waitUntil: "load", timeout: 60000 });
+  await page.waitForFunction(() => document.querySelector('[data-learning-index-status="benyehuda"]')?.getAttribute("data-state") === "ready", null, { timeout: 60000 });
+  const benPrepared = await page.evaluate(async () => {
+    const corpus = await (await fetch("/data/benyehuda/corpus-index-v7.json")).json();
+    return {
+      expected: Array.isArray(corpus.ready) ? corpus.ready.length : 0,
+      copy: document.querySelector('[data-learning-index-status="benyehuda"] [data-learning-index-copy]')?.textContent || "",
+      familiarSort: !!document.querySelector('#roomCorpusSort option[value="familiar_desc"]'),
+    };
+  });
+  check(benPrepared.expected > 0 && benPrepared.copy.includes(String(benPrepared.expected)), `ben-rail: every readable public work is prepared (${benPrepared.copy})`);
+  check(benPrepared.familiarSort, "ben-rail: public corpus exposes the shared familiarity sort");
   const firstCard = page.locator(".work-card[data-work-id]").first();
   await firstCard.waitFor({ state: "visible", timeout: 60000 });
   await firstCard.scrollIntoViewIfNeeded();
@@ -529,7 +540,7 @@ async function runBenRailDisclosureScenario(browser) {
   check(errors.length === 0, `ben-rail: no page errors (${errors.join(" | ")})`);
   check(telemetry.length === 0, "ben-rail: no RUM/telemetry requests");
   await context.close();
-  return { name: "380-ru-ben-rail", disclosure, errors, telemetry };
+  return { name: "380-ru-ben-rail", prepared: benPrepared, disclosure, errors, telemetry };
 }
 
 (async () => {
@@ -542,7 +553,7 @@ async function runBenRailDisclosureScenario(browser) {
   check(!/COMFORT_95_98|STRETCH_90_95|FRUSTRATION_BELOW_90|TRIVIAL_ABOVE_98/.test(uiSource + htmlSource), "active Room surface has no universal readiness bands");
   check(!/≈\s*['"+]|pick\.cov\)\s*\*\s*100/.test(uiSource), "active Room surface has no soft familiarity estimate");
   check(/async function pumpCompassBuilds\([\s\S]*localDb\.getSentences/.test(uiSource), "full-body reads are isolated to the bounded background builder");
-  check(/COMPASS_IDLE_SESSION_MAX = 240/.test(uiSource) && /COMPASS_IDLE_CATALOG_WINDOW = 1000/.test(uiSource), "cold-library sweep keeps explicit session/cache-window budgets");
+  check(/COMPASS_FULL_CATALOG_MAX = 5000/.test(uiSource) && !/COMPASS_IDLE_SESSION_MAX/.test(uiSource), "cold-library sweep prepares the full verified 5k personal-library scale");
   check(!/filter\(\(item\) => item && item\.local_id\)\.slice\(0, 8\)/.test(uiSource), "cold-library preparation is no longer silently capped at eight cards");
   check(/recordedFamiliarLowerBound:\s*"Не менее \{value\}% знакомы"/.test(ruSource), "RU lower-bound familiarity copy stays compact");
   check(/recordedFamiliarLowerBound:\s*"At least \{value\}% familiar"/.test(enSource), "EN lower-bound familiarity copy stays compact");

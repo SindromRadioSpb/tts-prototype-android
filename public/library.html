@@ -1247,9 +1247,11 @@
     }
     .room-footer-left, .room-footer-right { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
     .room-footer a { color: var(--text-secondary); text-decoration: none; cursor: pointer; }
+    .room-footer-right a, .room-footer-version { display: inline-flex; min-height: 24px; align-items: center; box-sizing: border-box; }
     .room-footer a:hover { color: var(--text-primary); text-decoration: underline; }
     .room-privacy-badge { background: rgba(63,185,80,.12); border-radius: 999px; padding: 3px 10px; }
-    .room-footer-version { color: var(--text-faint); cursor: pointer; }
+    .room-footer-version { appearance: none; border: 0; padding: 2px 4px; background: transparent; color: var(--text-secondary); cursor: pointer; font: inherit; }
+    .room-footer-version:hover, .room-footer-version:focus-visible { color: var(--text-primary); text-decoration: underline; }
     .room-about { position: fixed; inset: 0; z-index: 1400; display: flex; align-items: center; justify-content: center; }
     .room-about[hidden] { display: none; }
     .room-about-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.45); }
@@ -2064,7 +2066,7 @@
     .corpus-filterbar .corpus-recents { margin: 0; }
     .corpus-filterbar .corpus-facets, .corpus-filterbar .corpus-facets-advanced { gap: 6px; }
     .corpus-filterbar .corpus-facet-chip, .corpus-filterbar .corpus-facet-select { min-height: 44px; }
-    .corpus-browse-sort { min-width: 0; }
+    .corpus-browse-sort { width: 100%; min-width: 0; box-sizing: border-box; }
     .corpus-active-filters { min-height: 24px; margin-top: 7px; display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
     .corpus-active-filters[hidden] { display: none; }
     .corpus-active-chip { min-height: 24px; display: inline-flex; align-items: center; padding: 2px 8px; border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--border-soft)); border-radius: 999px; background: var(--bg-card); color: var(--accent); font-size: 11px; font-weight: 700; }
@@ -2100,7 +2102,7 @@
       .corpus-next-title { font-size: 20px; }
       .corpus-next-cta { justify-self: start; }
       .corpus-browse-tools { padding: 8px; }
-      .corpus-browse-primary { position: relative; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px; }
+      .corpus-browse-primary { position: relative; grid-template-columns: minmax(88px,.48fr) minmax(0,1.52fr); gap: 8px; }
       .corpus-browse-primary > .room-field-wide { grid-column: 1 / -1; grid-row: 1; }
       .corpus-filter-disclosure { grid-column: 1; grid-row: 2; }
       .corpus-filter-disclosure[open] { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0,1fr); gap: 8px; }
@@ -2390,7 +2392,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.367</span>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.368</button>
   </div>
 </footer>
 
@@ -2427,7 +2429,7 @@
       <p id="roomCloudAccountHelpBody" data-i18n="room.groupAccess.helpGuest">Владелец входит по секрету ниже. Участник открывает одноразовую ссылку, которую прислал владелец. Ссылку следует открывать на своём устройстве или в отдельном профиле браузера.</p>
     </details>
     <div id="roomCloudLoginBox" class="room-cloud-login" hidden>
-      <input id="roomCloudSecret" type="password" autocomplete="off" data-i18n-placeholder="room.cloud.secretPh" placeholder="Секрет владельца">
+      <input id="roomCloudSecret" type="password" autocomplete="off" data-i18n-placeholder="room.cloud.secretPh" placeholder="Секрет владельца" data-i18n-aria-label="room.cloud.secretPh" aria-label="Секрет владельца">
       <button id="roomCloudLoginBtn" type="button" data-i18n="room.cloud.login">Войти</button>
     </div>
     <div id="roomCloudPanel" hidden>
@@ -2479,7 +2481,7 @@
       </div>
       <div id="roomGroupInviteTicket" class="group-access-ticket" hidden>
         <strong id="roomGroupInviteTicketTitle"></strong>
-        <div class="group-access-link-row"><input id="roomGroupInviteLink" class="group-access-link" readonly><button id="roomGroupInviteCopy" type="button" data-i18n="room.groupAccess.copy">Копировать</button></div>
+        <div class="group-access-link-row"><input id="roomGroupInviteLink" class="group-access-link" readonly data-i18n-aria-label="room.groupAccess.inviteLinkLabel" aria-label="Одноразовая ссылка"><button id="roomGroupInviteCopy" type="button" data-i18n="room.groupAccess.copy">Копировать</button></div>
         <div id="roomGroupInviteExpiry" class="group-access-row-meta"></div>
       </div>
       <div id="roomGroupAccessSummary" class="group-access-summary"></div>
@@ -2504,7 +2506,7 @@
     <h2 id="roomGroupJoinTitle" data-i18n="room.groupAccess.joinTitle">Приглашение в учебную группу</h2>
     <div id="roomGroupJoinStatus" class="group-access-status" aria-live="polite"></div>
     <p id="roomGroupJoinDescription"></p>
-    <input id="roomGroupJoinName" class="group-join-name" maxlength="80" autocomplete="name" data-i18n-placeholder="room.groupAccess.namePlaceholder" placeholder="Как вас показывать владельцу">
+    <input id="roomGroupJoinName" class="group-join-name" maxlength="80" autocomplete="name" data-i18n-placeholder="room.groupAccess.namePlaceholder" placeholder="Как вас показывать владельцу" data-i18n-aria-label="room.groupAccess.namePlaceholder" aria-label="Как вас показывать владельцу">
     <p class="group-join-note" data-i18n="room.groupAccess.cleanProfileWarning">Открывайте приглашение на своём устройстве или в отдельном профиле браузера. Нельзя смешивать локальную библиотеку двух пользователей в одном профиле.</p>
     <div class="group-access-actions">
       <button id="roomGroupJoinAccept" type="button" data-i18n="room.groupAccess.accept">Принять приглашение</button>
@@ -2551,7 +2553,7 @@
     <div id="roomExplainFollowup" hidden>
       <div id="roomExplainTurns" class="room-cloud-hint"></div>
       <div class="room-explain-ask">
-        <input id="roomExplainQ" type="text" maxlength="500" autocomplete="off" placeholder="Спросить о предложении…">
+        <input id="roomExplainQ" type="text" maxlength="500" autocomplete="off" data-i18n-placeholder="room.explain.askPh" placeholder="Спросить о предложении…" data-i18n-aria-label="room.explain.askPh" aria-label="Спросить о предложении…">
         <button id="roomExplainAsk" type="button" data-i18n="room.explain.askBtn">Спросить</button>
       </div>
     </div>

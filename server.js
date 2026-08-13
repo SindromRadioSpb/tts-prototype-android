@@ -1343,6 +1343,16 @@ initDb(DB_PATH)
     } catch (e) {
       console.warn("[db] startupCheck failed (non-fatal):", e && e.message);
     }
+
+    // B7: immutable protected corpora are corpus-prepared before owner browse;
+    // this is a bounded, content-free Worker projection and never learner data.
+    try {
+      const warm = await require("./db/groupCorpusRepo").prewarmLearningIndexes();
+      console.log(`[b7] protected learning indexes: ${warm.prepared}/${warm.corpora} corpora · ${warm.works} works`);
+      if (warm.failures.length) console.warn("[b7] protected learning index failures:", warm.failures);
+    } catch (e) {
+      console.warn("[b7] protected learning index prewarm failed (request fallback remains):", e && e.message);
+    }
   })
   .catch((e) => {
     // initDb уже safe и отражает ошибку в health; сюда обычно не попадаем
@@ -3849,6 +3859,65 @@ app.get("/api/group-corpora/:corpusId/works", rlGroupCorpus, async (req, res) =>
   try {
     const out = await groupCorpusRepo.listWorks(auth.user.id, req.params.corpusId);
     return res.json({ ok: true, schema_version: "group_corpus_catalog.1.0.0", ...out });
+  } catch (e) { return groupCorpusError(res, e); }
+});
+
+const GROUP_LEARNING_INDEX_PACKET_MAX = 256 * 1024;
+function encodeGroupLearningCursor(signature, offset) {
+  return Buffer.from(JSON.stringify({ v: 1, s: String(signature), o: Number(offset) }), "utf8").toString("base64url");
+}
+function decodeGroupLearningCursor(value, signature) {
+  if (!value) return 0;
+  try {
+    const parsed = JSON.parse(Buffer.from(String(value), "base64url").toString("utf8"));
+    if (!parsed || parsed.v !== 1 || parsed.s !== String(signature) || !Number.isInteger(parsed.o) || parsed.o < 0) return null;
+    return parsed.o;
+  } catch (_) { return null; }
+}
+
+// B7 hardening — a complete, membership-gated lexical index for the protected
+// corpus. The Worker-built sidecar contains only aggregate pid frequencies and
+// exact revision bindings: no title/body/translation, learner state or identity.
+app.get("/api/group-corpora/:corpusId/learning-index", rlGroupCorpus, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try {
+    const out = await groupCorpusRepo.getLearningIndex(auth.user.id, req.params.corpusId);
+    const index = out.index;
+    const offset = decodeGroupLearningCursor(req.query.cursor, index.index_signature);
+    if (offset == null || offset > index.items.length) return res.status(400).json({ ok: false, error: "BAD_CURSOR" });
+    const requested = Math.max(1, Math.min(48, Math.trunc(Number(req.query.limit) || 16)));
+    const items = [];
+    for (let i = offset; i < index.items.length && items.length < requested; i += 1) {
+      const candidate = items.concat(index.items[i]);
+      const probe = {
+        ok: true, schema_version: "group_learning_index.1.0.0", index_revision: index.index_signature,
+        resolver_version: index.resolver_version, matched_total: index.matched_total,
+        prepared_total: index.prepared_total, unsupported_total: index.unsupported_total,
+        items: candidate,
+        next_cursor: offset + candidate.length < index.items.length
+          ? encodeGroupLearningCursor(index.index_signature, offset + candidate.length) : null,
+      };
+      if (Buffer.byteLength(JSON.stringify(probe), "utf8") > GROUP_LEARNING_INDEX_PACKET_MAX) break;
+      items.push(index.items[i]);
+    }
+    if (offset < index.items.length && !items.length) return res.status(413).json({ ok: false, error: "GROUP_LEARNING_INDEX_ITEM_TOO_LARGE" });
+    const nextOffset = offset + items.length;
+    const body = {
+      ok: true,
+      schema_version: "group_learning_index.1.0.0",
+      index_revision: index.index_signature,
+      resolver_version: index.resolver_version,
+      matched_total: index.matched_total,
+      prepared_total: index.prepared_total,
+      unsupported_total: index.unsupported_total,
+      items,
+      next_cursor: nextOffset < index.items.length ? encodeGroupLearningCursor(index.index_signature, nextOffset) : null,
+    };
+    if (Buffer.byteLength(JSON.stringify(body), "utf8") > GROUP_LEARNING_INDEX_PACKET_MAX) throw new Error("GROUP_CORPUS_LEARNING_INDEX_PACKET_LIMIT");
+    res.set("Cache-Control", "private, no-store, max-age=0");
+    res.set("Cross-Origin-Resource-Policy", "same-origin");
+    res.set("X-Content-Type-Options", "nosniff");
+    return res.json(body);
   } catch (e) { return groupCorpusError(res, e); }
 });
 

@@ -8,13 +8,17 @@
 
 const path = require("path");
 const fs = require("fs");
+const crypto = require("crypto");
+const { Worker } = require("worker_threads");
 const { getDb } = require("./sqlite");
 const { DATA_DIR } = require("../storage");
+const IngredientCore = require("../public/js/learning-compass-ingredients.js");
 
 const all = (db, sql, p = []) => new Promise((resolve, reject) => db.all(sql, p, (e, rows) => e ? reject(e) : resolve(rows || [])));
 const get = (db, sql, p = []) => new Promise((resolve, reject) => db.get(sql, p, (e, row) => e ? reject(e) : resolve(row || null)));
 const run = (db, sql, p = []) => new Promise((resolve, reject) => db.run(sql, p, (e) => e ? reject(e) : resolve()));
 const exec = (db, sql) => new Promise((resolve, reject) => db.exec(sql, (e) => e ? reject(e) : resolve()));
+const learningIndexJobs = new Map();
 
 function fail(code) { const e = new Error(code); e.code = code; throw e; }
 function db() { const out = getDb(); if (!out) fail("DB_NOT_AVAILABLE"); return out; }
@@ -97,6 +101,114 @@ async function getWork(userId, corpusId, workId) {
       WHERE corpus_id=? AND work_id=? AND rights_status!='REMOVED'`, [corpus.corpus_id, wid]);
   if (!row) fail("GROUP_CORPUS_WORK_NOT_FOUND");
   return { corpus, work: row, absolute_path: privatePath(row.bundle_path) };
+}
+
+function learningIndexSignature(corpus, works) {
+  const contract = {
+    schema_version: "group_learning_index.1.0.0",
+    corpus_id: String(corpus.corpus_id),
+    corpus_version: Number(corpus.version) || 0,
+    resolver_version: IngredientCore.RESOLVER_VERSION,
+    works: works.map((work) => [String(work.work_id), String(work.text_key), String(work.bundle_sha256)]),
+  };
+  return crypto.createHash("sha256").update(JSON.stringify(contract)).digest("hex");
+}
+
+function validateLearningIndex(index, corpus, works, signature) {
+  if (!index || index.schema_version !== "group_learning_index.1.0.0" || index.index_signature !== signature
+      || String(index.corpus_id) !== String(corpus.corpus_id) || Number(index.corpus_version) !== Number(corpus.version)
+      || index.resolver_version !== IngredientCore.RESOLVER_VERSION || !Array.isArray(index.items)
+      || index.items.length !== works.length || Number(index.matched_total) !== works.length) return false;
+  const expected = new Map(works.map((work) => [String(work.work_id), work]));
+  const seen = new Set();
+  for (const item of index.items) {
+    const work = item && expected.get(String(item.work_id));
+    if (!work || seen.has(String(item.work_id)) || String(item.text_key) !== String(work.text_key)
+        || String(item.bundle_sha256) !== String(work.bundle_sha256)
+        || (item.status !== "PREPARED" && item.status !== "UNSUPPORTED")) return false;
+    if (item.status === "PREPARED" && (!item.ingredients || item.ingredients.schema_version !== IngredientCore.INGREDIENTS_SCHEMA
+        || item.ingredients.resolver_version !== IngredientCore.RESOLVER_VERSION)) return false;
+    if (item.status === "UNSUPPORTED" && item.ingredients != null) return false;
+    seen.add(String(item.work_id));
+  }
+  return seen.size === works.length;
+}
+
+function runLearningIndexWorker(payload) {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(path.join(__dirname, "groupCorpusLearningIndexWorker.js"), { workerData: payload });
+    let settled = false;
+    worker.once("message", (message) => {
+      settled = true;
+      if (message && message.ok) resolve(message.index);
+      else reject(new Error(message && message.error || "GROUP_CORPUS_LEARNING_INDEX_FAILED"));
+    });
+    worker.once("error", (error) => { if (!settled) reject(error); });
+    worker.once("exit", (code) => { if (!settled && code !== 0) reject(new Error("GROUP_CORPUS_LEARNING_INDEX_WORKER_EXIT_" + code)); });
+  });
+}
+
+async function buildLearningIndexForCorpus(corpus) {
+  const rows = await all(db(),
+    `SELECT work_id,text_key,bundle_path,bundle_sha256,rows_count
+       FROM group_corpus_works
+      WHERE corpus_id=? AND rights_status!='REMOVED'
+      ORDER BY CASE WHEN position_no IS NULL THEN 1 ELSE 0 END,position_no,title,work_id`, [corpus.corpus_id]);
+  const works = rows.map((row) => ({
+    work_id: String(row.work_id), text_key: String(row.text_key || row.work_id),
+    bundle_sha256: String(row.bundle_sha256 || ""), rows_count: Number(row.rows_count) || 0,
+    absolute_path: privatePath(row.bundle_path),
+  }));
+  if (works.some((work) => !/^[a-f0-9]{64}$/i.test(work.bundle_sha256))) fail("GROUP_CORPUS_FILE_INVALID");
+  const signature = learningIndexSignature(corpus, works);
+  const relative = path.posix.join("group-corpora", String(corpus.corpus_id), "learning-index-v1-" + signature + ".json");
+  const outputPath = privatePath(relative);
+  try {
+    const cached = JSON.parse(await fs.promises.readFile(outputPath, "utf8"));
+    if (validateLearningIndex(cached, corpus, works, signature)) return { corpus, index: cached };
+  } catch (_) {}
+  let job = learningIndexJobs.get(signature);
+  if (!job) {
+    job = runLearningIndexWorker({
+      corpus_id: corpus.corpus_id,
+      corpus_version: corpus.version,
+      signature,
+      output_path: outputPath,
+      items: works,
+    }).finally(() => learningIndexJobs.delete(signature));
+    learningIndexJobs.set(signature, job);
+  }
+  const index = await job;
+  if (!validateLearningIndex(index, corpus, works, signature)) fail("GROUP_CORPUS_FILE_INVALID");
+  return { corpus, index };
+}
+
+async function getLearningIndex(userId, corpusId) {
+  const corpus = await accessibleCorpus(userId, corpusId);
+  return buildLearningIndexForCorpus(corpus);
+}
+
+// Static protected corpora are prepared proactively after migrations. The
+// membership-gated request path remains an exact-revision fallback for a corpus
+// imported or changed after process start; card paint never initiates body work.
+async function prewarmLearningIndexes() {
+  const corpora = await all(db(),
+    `SELECT c.corpus_id,c.group_id,c.slug,c.title,c.version,c.status,c.visibility,c.rights_basis
+       FROM group_corpora c
+       JOIN reading_groups g ON g.group_id=c.group_id AND g.status='ACTIVE'
+      WHERE c.status IN ('PILOT','ACTIVE')
+      ORDER BY c.corpus_id`);
+  const result = { corpora: corpora.length, prepared: 0, works: 0, failures: [] };
+  for (const row of corpora) {
+    try {
+      const out = await buildLearningIndexForCorpus({ ...row, version: Number(row.version) });
+      result.prepared += 1;
+      result.works += Number(out.index.matched_total) || 0;
+    } catch (error) {
+      result.failures.push({ corpus_id: String(row.corpus_id), code: String(error && (error.code || error.message) || "FAILED").slice(0, 80) });
+    }
+  }
+  return result;
 }
 
 // Agent-facing extraction reuses the same membership-bound resolver and the
@@ -210,6 +322,6 @@ async function listBackupFiles(userId, corpusId) {
   return { corpus, files };
 }
 
-module.exports = { listCorpora, accessibleCorpus, ownerCorpus, listWorks, getWork,
+module.exports = { listCorpora, accessibleCorpus, ownerCorpus, listWorks, getWork, getLearningIndex, prewarmLearningIndexes,
   getAgentReadingWindow, getAgentCoverageText,
   getAudio, getAudioTiming, updateCatalogMetadata, listBackupFiles, privatePath };

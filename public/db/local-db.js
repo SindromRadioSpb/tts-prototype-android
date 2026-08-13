@@ -2860,7 +2860,9 @@ export async function getLearningCompassProjection() {
 
 const _COMPASS_BATCH_MAX_ITEMS = 48;
 const _COMPASS_BATCH_MAX_BYTES = 256 * 1024;
-const _COMPASS_CACHE_MAX_ITEMS = 1000;
+// Full B6-scale personal catalog (5k) plus protected/public corpus headroom.
+// The byte ceiling remains the primary storage guard and is unchanged.
+const _COMPASS_CACHE_MAX_ITEMS = 6000;
 const _COMPASS_CACHE_MAX_BYTES = 64 * 1024 * 1024;
 const _COMPASS_INGREDIENTS_SCHEMA = 'room.learning_ingredients.2.0.1';
 
@@ -2936,7 +2938,7 @@ export async function getPersonalTextCompassProgress(resolverVersion = 'recorded
   return { total: Number(row.total || 0), prepared: Number(row.prepared || 0) };
 }
 
-export async function putLearningCompassIngredients(entry) {
+function _normalizeLearningCompassEntry(entry) {
   if (!entry || !entry.cache_key || !entry.ingredients) throw new Error('Learning Compass cache entry is required');
   const allowedIngredientKeys = new Set(['schema_version','source_class','source_key','content_revision','content_sha256',
     'entitlement_revision','resolver_version','lexical_resolver_version','dataset_version','key_frequencies',
@@ -2960,6 +2962,15 @@ export async function putLearningCompassIngredients(entry) {
   const sourceClass = String(entry.source_class || '');
   if (sourceClass !== 'mytext' && sourceClass !== 'group') throw new Error('Invalid Learning Compass source class');
   const now = new Date().toISOString();
+  return {
+    params: [String(entry.cache_key), sourceClass, String(entry.source_key || ''), String(entry.content_revision || ''),
+      String(entry.content_sha256 || ''), entry.entitlement_revision == null ? null : String(entry.entitlement_revision),
+      String(entry.resolver_version || ''), payload, size, now, now],
+    size,
+  };
+}
+
+async function _writeLearningCompassEntry(normalized) {
   await r(
     `INSERT INTO room_learning_compass_cache
        (cache_key, source_class, source_key, content_revision, content_sha256,
@@ -2971,10 +2982,11 @@ export async function putLearningCompassIngredients(entry) {
        entitlement_revision=excluded.entitlement_revision, resolver_version=excluded.resolver_version,
        ingredients_json=excluded.ingredients_json, size_bytes=excluded.size_bytes,
        built_at=excluded.built_at, last_used_at=excluded.last_used_at`,
-    [String(entry.cache_key), sourceClass, String(entry.source_key || ''), String(entry.content_revision || ''),
-      String(entry.content_sha256 || ''), entry.entitlement_revision == null ? null : String(entry.entitlement_revision),
-      String(entry.resolver_version || ''), payload, size, now, now],
+    normalized.params,
   );
+}
+
+async function _pruneLearningCompassCache() {
   // Windowed LRU pruning is one bounded write and needs no body/profile/session reads.
   await r(
     `DELETE FROM room_learning_compass_cache WHERE cache_key IN (
@@ -2987,7 +2999,31 @@ export async function putLearningCompassIngredients(entry) {
      )`,
     [_COMPASS_CACHE_MAX_ITEMS, _COMPASS_CACHE_MAX_BYTES],
   );
-  return { ok: true, size_bytes: size };
+}
+
+export async function putLearningCompassIngredients(entry) {
+  const normalized = _normalizeLearningCompassEntry(entry);
+  await _writeLearningCompassEntry(normalized);
+  await _pruneLearningCompassCache();
+  return { ok: true, size_bytes: normalized.size };
+}
+
+// Protected corpus pages arrive as small, packet-bounded groups. Persist each
+// page atomically and prune once, avoiding a 77-transaction OPFS write fan-out.
+export async function putLearningCompassIngredientsBatch(entries) {
+  const normalized = (Array.isArray(entries) ? entries : []).slice(0, 48).map(_normalizeLearningCompassEntry);
+  if (!normalized.length) return { ok: true, written: 0, size_bytes: 0 };
+  let txOpen = false;
+  try {
+    await x('BEGIN IMMEDIATE;'); txOpen = true;
+    for (const entry of normalized) await _writeLearningCompassEntry(entry);
+    await _pruneLearningCompassCache();
+    await x('COMMIT;'); txOpen = false;
+    return { ok: true, written: normalized.length, size_bytes: normalized.reduce((sum, entry) => sum + entry.size, 0) };
+  } catch (error) {
+    if (txOpen) { try { await x('ROLLBACK;'); } catch (_) {} }
+    throw error;
+  }
 }
 
 export async function deleteLearningCompassIngredients(cacheKey) {

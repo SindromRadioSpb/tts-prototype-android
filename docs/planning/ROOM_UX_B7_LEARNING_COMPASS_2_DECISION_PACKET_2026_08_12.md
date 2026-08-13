@@ -606,6 +606,42 @@ D5=deterministic-reasons+no-threshold-promise;
 D6=packet-budgets+full-physical-matrix.
 ```
 
+### Owner amendment 2026-08-13 — full readable-corpus preparation
+
+После production-проверки владелец явно отверг функциональную асимметрию,
+при которой protected catalog card становилась оцениваемой только после
+открытия Reader, и потребовал единый зрелый UX: в любом доступном корпусе
+пользователь должен иметь возможность выбрать знакомый текст до открытия.
+Это новое решение заменяет только прежнюю часть D2
+`materialized-group-only`; D1, D3–D6 и закрытые B0–B6 не переоткрываются.
+
+```text
+APPROVE B7-D2A: mytexts=full-local-background-up-to-b6-5k;
+group=membership-gated-content-free-full-index;
+benyehuda=full-readable-public-sidecar;
+selection=shared-reliable-familiarity-sort-before-open.
+```
+
+Границы amendment:
+
+- «полный корпус» означает все реально читаемые работы источника, а не
+  catalog-only записи без тела/перевода; для текущего Ben-Yehuda это все
+  `796` ready works из каталога `26 455`;
+- My Texts выполняет один полный локальный background pass до проверенного B6
+  масштаба `5 000`, а не per-card/first-open lazy calculation;
+- protected group corpus получает полный revision-bound aggregate sidecar,
+  proactively prewarmed after server migrations; выдача остаётся membership-
+  gated, а exact-revision request build служит только fallback для корпуса,
+  изменённого после старта. Response не содержит title/body/translation,
+  learner state или identity, разбит на packets `<=256 KiB` и удаляется из
+  local derived cache при потере доступа;
+- одинаковая команда `Сначала достоверно знакомые` доступна в Ben-Yehuda,
+  My Texts и group corpus; без профиля выбор одинаково отклоняется с явным
+  объяснением, а `AVAILABLE_LIMITED` не участвует в персональном ranking;
+- card paint не загружает protected bodies и не создаёт canonical learner
+  writes. Server sidecar и local ingredient cache остаются derived и
+  пересоздаваемыми.
+
 Владелец 2026-08-12 дал явный переход к реализации рекомендованного packet,
 а затем отдельно авторизовал production deploy. D1–D6 реализованы в
 `main@845ddc71` с production finishing `04f88328`/`85bdc9de`; engineering,

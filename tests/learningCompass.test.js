@@ -303,18 +303,23 @@ test("local cache is additive, revision-keyed, page-batched and content-free by 
   assert.match(localDb, /_COMPASS_BATCH_MAX_BYTES = 256 \* 1024/);
   assert.match(localDb, /_COMPASS_INGREDIENTS_SCHEMA = 'room\.learning_ingredients\.2\.0\.1'/);
   assert.match(localDb, /return \[key, count\]/);
-  assert.match(localDb, /_COMPASS_CACHE_MAX_ITEMS = 1000/);
+  assert.match(localDb, /_COMPASS_CACHE_MAX_ITEMS = 6000/);
   assert.match(localDb, /_COMPASS_CACHE_MAX_BYTES = 64 \* 1024 \* 1024/);
 });
 
-test("cold personal libraries self-prepare and expose only relative familiarity sorting", () => {
+test("all three readable corpora fully prepare and expose the same familiarity sort", () => {
   const ui = fs.readFileSync(path.join(__dirname, "../public/js/library-ui.js"), "utf8");
   const shell = fs.readFileSync(path.join(__dirname, "../public/library.html"), "utf8");
-  assert.match(ui, /COMPASS_IDLE_SESSION_MAX = 240/);
-  assert.match(ui, /COMPASS_IDLE_CATALOG_WINDOW = 1000/);
+  assert.match(ui, /COMPASS_FULL_CATALOG_MAX = 5000/);
+  assert.doesNotMatch(ui, /COMPASS_IDLE_SESSION_MAX/);
   assert.match(ui, /startPersonalCompassSweep\(\)/);
   assert.match(ui, /loadPersonalFamiliarityRanking\(/);
-  assert.match(ui, /sortFamiliar/);
+  assert.match(ui, /ensureGroupLearningIndex\(/);
+  assert.match(ui, /ensureBenFamiliarityScores\(/);
+  assert.match(ui, /\['familiar_desc',\s*'room\.compass\.sortFamiliar'/);
+  assert.match(ui, /roomGroupSort[\s\S]*?familiar_desc/);
+  assert.match(ui, /roomCorpusSort[\s\S]*?familiar_desc/);
+  assert.doesNotMatch(ui, /function groupCompassDescriptor\([^)]*\) \{\s*if \(!work \|\| !localRow/);
   assert.doesNotMatch(ui, /filter\(\(item\) => item && item\.local_id\)\.slice\(0, 8\)/);
   assert.doesNotMatch(ui, /familiar_desc[\s\S]{0,240}(?:70|90|95|98)/);
   assert.match(ui, /paintLearningCompass\(learnRow, view, \{ showMedia: false, showDetails: true \}\)/);
@@ -325,15 +330,29 @@ test("cold personal libraries self-prepare and expose only relative familiarity 
 
 test("dedicated worker enforces local limits and emits aggregates rather than content", () => {
   const worker = fs.readFileSync(path.join(__dirname, "../public/js/learning-compass-worker.js"), "utf8");
-  assert.match(worker, /MAX_TOKENS = 250000/);
-  assert.match(worker, /MAX_TYPES = 50000/);
+  const ingredientCore = fs.readFileSync(path.join(__dirname, "../public/js/learning-compass-ingredients.js"), "utf8");
+  assert.match(worker, /importScripts\("\/js\/learning-compass-ingredients\.js"\)/);
   assert.match(worker, /DecompressionStream/);
-  assert.match(worker, /key_frequencies/);
-  assert.match(worker, /unresolved_token_count/);
+  assert.match(ingredientCore, /MAX_TOKENS = 250000/);
+  assert.match(ingredientCore, /MAX_TYPES = 50000/);
+  assert.match(ingredientCore, /key_frequencies/);
+  assert.match(ingredientCore, /unresolved_token_count/);
   assert.match(worker, /crypto\.subtle\.digest\("SHA-256"/);
-  assert.match(worker, /PACKET_LIMIT_EXCEEDED/);
-  const returned = worker.match(/const result = \{\n\s+schema_version: "room\.learning_ingredients\.2\.0\.1"[\s\S]*?\n\s+\};/)[0];
+  assert.match(ingredientCore, /PACKET_LIMIT_EXCEEDED/);
+  const returned = ingredientCore.match(/var result = \{\n\s+schema_version: "room\.learning_ingredients\.2\.0\.1"[\s\S]*?\n\s+\};/)[0];
   assert.doesNotMatch(returned, /\brows\b|\btitle\b|\bbody\b|hebrew/);
+});
+
+test("protected group familiarity index is membership-gated and content-free", () => {
+  const server = fs.readFileSync(path.join(__dirname, "../server.js"), "utf8");
+  const repo = fs.readFileSync(path.join(__dirname, "../db/groupCorpusRepo.js"), "utf8");
+  assert.match(server, /\/api\/group-corpora\/:corpusId\/learning-index/);
+  assert.match(server, /private, no-store/);
+  assert.match(server, /prewarmLearningIndexes\(\)/);
+  assert.match(repo, /getLearningIndex/);
+  assert.match(repo, /async function prewarmLearningIndexes/);
+  assert.match(repo, /group_learning_index\.1\.0\.0/);
+  assert.doesNotMatch(repo.match(/async function getLearningIndex[\s\S]*?\n\}/)[0], /learner|review_log|word_status/);
 });
 
 test("Agent Access delegates to the same v2 core and exposes no readiness band", async () => {

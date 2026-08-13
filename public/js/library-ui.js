@@ -71,11 +71,10 @@ let _compassProjectionLoading = null;
 let _compassJobSeq = 0;
 const _compassWorkerSlots = [];
 const _compassWorkerQueue = [];
-// Cold personal libraries are prepared incrementally without requiring a Reader open.
-// The current 48-card page is urgent; the remaining recent catalog window is bounded by
-// the approved 1,000-entry cache and a 240-item per-session body-read budget.
-const COMPASS_IDLE_SESSION_MAX = 240;
-const COMPASS_IDLE_CATALOG_WINDOW = 1000;
+// Cold personal libraries are prepared once, incrementally, without requiring
+// Reader opens. Five thousand is the already-verified B6 catalog scale; public
+// and protected corpora use prebuilt aggregate sidecars instead of body scans.
+const COMPASS_FULL_CATALOG_MAX = 5000;
 const _compassBuildQueue = [];
 const _compassBuildJobs = new Map();
 let _compassBuildActive = null;
@@ -84,6 +83,11 @@ let _compassBuildScheduleHandle = null;
 let _compassBuildScheduleKind = '';
 let _compassProgressTimer = null;
 let _personalCompassSweep = null;
+const _groupLearningIndexes = new Map();
+const _groupLearningIndexLoading = new Map();
+const _learningIndexStates = new Map();
+let _benFamiliarityScores = null;
+let _benFamiliarityLoading = null;
 let _readingCalibrationSession = null;
 let _readingAudioActive = 0;
 
@@ -157,6 +161,14 @@ async function ensureLearningCompassProjection(force) {
   try { return await _compassProjectionLoading; }
   catch (_) { return null; }
   finally { _compassProjectionLoading = null; }
+}
+
+async function familiaritySortProfileAvailable() {
+  let projection = null;
+  try { projection = await ensureLearningCompassProjection(); } catch (_) {}
+  if (projection && Number(projection.tracked_lexeme_count || 0) > 0) return true;
+  roomToast(tt('room.mytexts.sortFamiliarNeedsProfile', 'Сначала отметьте несколько знакомых слов.'));
+  return false;
 }
 
 function compassWorkerLimit() {
@@ -234,15 +246,15 @@ function myCompassDescriptor(item) {
 }
 
 function groupCompassDescriptor(corpusId, work, localRow) {
-  if (!work || !localRow || !work.bundle_sha256) return null;
+  if (!work || !work.bundle_sha256) return null;
   let edition = '';
   try { edition = localStorage.getItem('room.groupCorpus.edition.' + corpusId + '.' + work.work_id) || ''; } catch (_) {}
-  if (edition !== String(work.bundle_sha256)) return null;
   return {
     cache_key: 'group:' + String(corpusId) + ':' + String(work.work_id), source_class: 'group',
-    source_key: String(work.text_key || work.work_id), local_id: String(localRow.id),
+    source_key: String(work.text_key || work.work_id),
     content_revision: String(work.bundle_sha256), content_sha256: '',
     entitlement_revision: String(work.bundle_sha256), resolver_version: learningCompass && learningCompass.RESOLVER_VERSION,
+    local_id: localRow && edition === String(work.bundle_sha256) ? String(localRow.id) : null,
   };
 }
 
@@ -314,7 +326,7 @@ function scheduleCompassProgressPaint(immediate) {
   if (_compassProgressTimer) clearTimeout(_compassProgressTimer);
   _compassProgressTimer = setTimeout(async () => {
     _compassProgressTimer = null;
-    const nodes = document.querySelectorAll('[data-learning-index-status]');
+    const nodes = document.querySelectorAll('[data-learning-index-status="mytexts"]');
     if (!nodes.length || !learningCompass || typeof localDb.getPersonalTextCompassProgress !== 'function') return;
     let progress;
     try { progress = await localDb.getPersonalTextCompassProgress(learningCompass.RESOLVER_VERSION); }
@@ -323,8 +335,8 @@ function scheduleCompassProgressPaint(immediate) {
     const total = Math.max(0, Number(progress && progress.total || 0));
     const complete = total > 0 && ready >= total;
     const copy = (complete
-      ? tt('room.compass.libraryReady', 'Подбор по сложности готов: {ready}/{total}')
-      : tt('room.compass.libraryPreparing', 'Подбор по сложности: подготовлено {ready} из {total}'))
+      ? tt('room.compass.libraryReady', 'Подбор по знакомости готов · {total} текстов')
+      : tt('room.compass.libraryPreparing', 'Готовим подбор: {ready}/{total}'))
       .replace('{ready}', ready.toLocaleString()).replace('{total}', total.toLocaleString());
     nodes.forEach((node) => {
       node.setAttribute('data-state', complete ? 'ready' : 'preparing');
@@ -333,6 +345,42 @@ function scheduleCompassProgressPaint(immediate) {
       if (meter) { meter.max = Math.max(1, total); meter.value = Math.min(ready, Math.max(1, total)); }
     });
   }, immediate ? 0 : 650);
+}
+
+function paintCorpusLearningIndexState(scope, next) {
+  const key = String(scope || '');
+  const state = { state: 'preparing', prepared: 0, total: 0, unsupported: 0, ...(next || {}) };
+  _learningIndexStates.set(key, state);
+  document.querySelectorAll('[data-learning-index-status="' + CSS.escape(key) + '"]').forEach((node) => {
+    const total = Math.max(0, Number(state.total || 0));
+    const prepared = Math.max(0, Number(state.prepared || 0));
+    const unsupported = Math.max(0, Number(state.unsupported || 0));
+    let copy;
+    if (state.state === 'ready' && unsupported) {
+      copy = tt('room.compass.corpusReadyLimited', 'Подбор готов: {ready}/{total} · без оценки: {unsupported}')
+        .replace('{ready}', prepared.toLocaleString()).replace('{total}', total.toLocaleString()).replace('{unsupported}', unsupported.toLocaleString());
+    } else if (state.state === 'ready') {
+      copy = tt('room.compass.corpusReady', 'Подбор по знакомости готов · {total} текстов').replace('{total}', total.toLocaleString());
+    } else if (state.state === 'error') {
+      copy = tt('room.compass.corpusUnavailable', 'Подбор по знакомости временно недоступен');
+    } else {
+      copy = tt('room.compass.corpusPreparing', 'Готовим подбор: {ready}/{total}')
+        .replace('{ready}', prepared.toLocaleString()).replace('{total}', total.toLocaleString());
+    }
+    node.setAttribute('data-state', state.state);
+    const label = node.querySelector('[data-learning-index-copy]'); if (label) label.textContent = copy;
+    const meter = node.querySelector('progress');
+    if (meter) { meter.hidden = state.state === 'ready' || state.state === 'error'; meter.max = Math.max(1, total); meter.value = Math.min(prepared, Math.max(1, total)); }
+  });
+}
+
+function corpusLearningIndexStatusNode(scope, total) {
+  const key = String(scope || '');
+  const status = el('div', { class: 'learning-index-status', attrs: { 'data-learning-index-status': key, role: 'status', 'aria-live': 'polite' } });
+  status.appendChild(el('span', { attrs: { 'data-learning-index-copy': '' }, text: tt('room.compass.corpusPreparing', 'Готовим подбор: {ready}/{total}').replace('{ready}', '0').replace('{total}', Number(total || 0).toLocaleString()) }));
+  const meter = document.createElement('progress'); meter.max = Math.max(1, Number(total) || 1); meter.value = 0; meter.setAttribute('aria-hidden', 'true'); status.appendChild(meter);
+  setTimeout(() => paintCorpusLearningIndexState(key, _learningIndexStates.get(key) || { state: 'preparing', prepared: 0, total: Number(total) || 0 }), 0);
+  return status;
 }
 
 function scheduleCompassBuildPump(urgent) {
@@ -427,12 +475,12 @@ async function missingCompassDescriptors(descriptors) {
 
 async function runPersonalCompassSweep() {
   let cursor = null, scanned = 0, scheduled = 0;
-  while (scanned < COMPASS_IDLE_CATALOG_WINDOW && scheduled < COMPASS_IDLE_SESSION_MAX) {
+  while (scanned < COMPASS_FULL_CATALOG_MAX) {
     const page = await localDb.listPersonalTextsPage({ limit: ROOM_BROWSE_PAGE, sort: 'updated_desc', cursor });
     const descriptors = (page.items || []).map(myCompassDescriptor).filter(Boolean);
     if (!descriptors.length) break;
     const missing = await missingCompassDescriptors(descriptors);
-    const allowance = Math.max(0, COMPASS_IDLE_SESSION_MAX - scheduled);
+    const allowance = Math.max(0, COMPASS_FULL_CATALOG_MAX - scanned);
     const selected = missing.slice(0, allowance);
     if (selected.length) {
       scheduled += selected.length;
@@ -460,7 +508,7 @@ async function loadPersonalFamiliarityRanking(options) {
   do {
     const page = await localDb.listPersonalTextsPage({ ...(options || {}), sort: 'updated_desc', limit: ROOM_BROWSE_PAGE, cursor });
     if (!matchedTotal) matchedTotal = Number(page.matchedTotal || 0);
-    if (matchedTotal > COMPASS_IDLE_CATALOG_WINDOW) return { status: 'TOO_LARGE', items: [], matchedTotal };
+    if (matchedTotal > COMPASS_FULL_CATALOG_MAX) return { status: 'TOO_LARGE', items: [], matchedTotal };
     const descriptors = (page.items || []).map(myCompassDescriptor);
     const batch = await localDb.getLearningCompassIngredientsBatch(descriptors);
     for (let index = 0; index < page.items.length; index += 1) {
@@ -471,7 +519,7 @@ async function loadPersonalFamiliarityRanking(options) {
       all.push({ item, ordinal: all.length, fit });
     }
     cursor = page.nextCursor;
-  } while (cursor && all.length < COMPASS_IDLE_CATALOG_WINDOW);
+  } while (cursor && all.length < COMPASS_FULL_CATALOG_MAX);
   all.sort((a, b) => {
     const ar = !!(a.fit && a.fit.status === 'AVAILABLE' && a.fit.rank_eligible);
     const br = !!(b.fit && b.fit.status === 'AVAILABLE' && b.fit.rank_eligible);
@@ -486,8 +534,8 @@ async function loadPersonalFamiliarityRanking(options) {
 }
 
 function personalCompassProgressNode() {
-  const status = el('div', { class: 'learning-index-status', attrs: { 'data-learning-index-status': '', role: 'status', 'aria-live': 'polite' } });
-  status.appendChild(el('span', { attrs: { 'data-learning-index-copy': '' }, text: tt('room.compass.libraryChecking', 'Проверяем готовность подбора по сложности…') }));
+  const status = el('div', { class: 'learning-index-status', attrs: { 'data-learning-index-status': 'mytexts', role: 'status', 'aria-live': 'polite' } });
+  status.appendChild(el('span', { attrs: { 'data-learning-index-copy': '' }, text: tt('room.compass.libraryChecking', 'Готовим подбор по знакомости…') }));
   const meter = document.createElement('progress'); meter.max = 1; meter.value = 0; meter.setAttribute('aria-hidden', 'true'); status.appendChild(meter);
   scheduleCompassProgressPaint(true);
   return status;
@@ -1023,7 +1071,7 @@ function paintLearningCompass(target, item, options) {
       else if (value.status === 'NOT_PREPARED') copy = value.action_label || tt('room.compass.notPrepared', 'Анализ не подготовлен');
       else if (value.status === 'PENDING') copy = tt('room.compass.preparing', 'Анализ готовится');
       else if (value.status === 'STALE') copy = tt('room.compass.stale', 'Нужно обновить анализ');
-      else if (value.status === 'UNSUPPORTED') copy = tt('room.compass.unsupported', 'Локальный анализ не поддерживается');
+      else if (value.status === 'UNSUPPORTED') copy = tt('room.compass.unsupported', 'Анализ недоступен');
       else copy = tt('room.compass.unavailable', 'Оценка недоступна');
       const node = el('span', { class: 'learning-signal learning-familiar coverage-badge coverage-' + String(value.status || 'unavailable').toLowerCase(), text: copy });
       target.appendChild(node);
@@ -1566,6 +1614,7 @@ const morphHost = window.MorphHost.createHost({
     // инвалидации только к ленивым пересчётам
     _asdCache = null;
     _compassProjection = null; _compassProjectionLoading = null; _compassPage.clear();
+    _groupLearningIndexes.clear(); _benFamiliarityScores = null; _benFamiliarityLoading = null;
     try { invalidateReadableSet(); } catch (_) {}
     try { applyDecorations(); } catch (_) {}
     try { refreshDueBadge(); } catch (_) {}
@@ -7138,7 +7187,10 @@ async function loadGroupCorpora(options = {}) {
     if (!res.ok) {
       // Signed-out is a valid empty projection, not a connectivity failure.
       if (res.status === 401 || res.status === 403) {
-        for (const id of previousIds) { groupCatalogs.delete(id); try { await localDb.deleteLearningCompassGroupCorpus(id); } catch (_) {} }
+        for (const id of previousIds) {
+          groupCatalogs.delete(id); _groupLearningIndexes.delete(id); _groupLearningIndexLoading.delete(id); _learningIndexStates.delete('group:' + id);
+          try { await localDb.deleteLearningCompassGroupCorpus(id); } catch (_) {}
+        }
         return { ok: true, signedOut: true };
       }
       if (options.strictNetwork) throw new Error('GROUP_CORPORA_HTTP_' + res.status);
@@ -7148,7 +7200,7 @@ async function loadGroupCorpora(options = {}) {
     groupCorpora = j && Array.isArray(j.corpora) ? j.corpora : [];
     const currentIds = new Set(groupCorpora.map((item) => String(item && item.corpus_id || '')).filter(Boolean));
     for (const id of previousIds) if (!currentIds.has(id)) {
-      groupCatalogs.delete(id);
+      groupCatalogs.delete(id); _groupLearningIndexes.delete(id); _groupLearningIndexLoading.delete(id); _learningIndexStates.delete('group:' + id);
       try { await localDb.deleteLearningCompassGroupCorpus(id); } catch (_) {}
     }
     return { ok: true, signedOut: false };
@@ -7168,6 +7220,90 @@ async function ensureGroupCatalog(corpusId) {
   if (!j || !j.ok || !Array.isArray(j.works)) throw new Error('malformed group catalog');
   groupCatalogs.set(id, j);
   return j;
+}
+
+function yieldLearningIndexWork() {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+async function evaluateFamiliarityItems(items, projection, ingredientFor) {
+  const scores = new Map();
+  const list = Array.isArray(items) ? items : [];
+  for (let index = 0; index < list.length; index += 1) {
+    const item = list[index], ingredients = ingredientFor(item);
+    if (ingredients) scores.set(String(item.work_id != null ? item.work_id : item.id), contextFromIngredients(ingredients, projection).compass);
+    if (index && index % 16 === 0) await yieldLearningIndexWork();
+  }
+  return scores;
+}
+
+async function ensureGroupLearningIndex(corpusId, catalog) {
+  const id = String(corpusId || '');
+  if (_groupLearningIndexes.has(id)) return _groupLearningIndexes.get(id);
+  if (_groupLearningIndexLoading.has(id)) return _groupLearningIndexLoading.get(id);
+  const scope = 'group:' + id;
+  const total = Array.isArray(catalog && catalog.works) ? catalog.works.length : 0;
+  paintCorpusLearningIndexState(scope, { state: 'preparing', prepared: 0, total });
+  const job = (async () => {
+    const projection = await ensureLearningCompassProjection();
+    const byId = new Map((catalog.works || []).map((work) => [String(work.work_id), work]));
+    const items = [], seen = new Set();
+    const cursors = new Set();
+    let cursor = null, indexRevision = null, successfulSeen = 0, unsupportedSeen = 0, pageCount = 0;
+    do {
+      const cursorKey = cursor || '__first__';
+      if (cursors.has(cursorKey) || ++pageCount > total + 1) throw new Error('group learning index cursor loop');
+      cursors.add(cursorKey);
+      const query = new URLSearchParams({ limit: '16' }); if (cursor) query.set('cursor', cursor);
+      const response = await fetch('/api/group-corpora/' + encodeURIComponent(id) + '/learning-index?' + query.toString(), { cache: 'no-store' });
+      if (!response.ok) throw new Error('group learning index ' + response.status);
+      const rawPacket = await response.text();
+      if (new TextEncoder().encode(rawPacket).byteLength > 256 * 1024) throw new Error('group learning index packet limit');
+      const packet = JSON.parse(rawPacket);
+      if (!packet || !packet.ok || packet.schema_version !== 'group_learning_index.1.0.0'
+          || packet.resolver_version !== learningCompass.RESOLVER_VERSION || !Array.isArray(packet.items)
+          || Number(packet.matched_total) !== total) throw new Error('malformed group learning index');
+      if (indexRevision && indexRevision !== String(packet.index_revision)) throw new Error('group learning index changed during read');
+      indexRevision = String(packet.index_revision || '');
+      const writes = [];
+      for (const item of packet.items) {
+        const work = item && byId.get(String(item.work_id));
+        if (!work || seen.has(String(item.work_id)) || String(item.text_key) !== String(work.text_key)
+            || String(item.bundle_sha256) !== String(work.bundle_sha256)) throw new Error('group learning index mismatch');
+        seen.add(String(item.work_id)); items.push(item);
+        const descriptor = groupCompassDescriptor(id, work, null);
+        if (item.status === 'PREPARED' && item.ingredients && descriptor) {
+          successfulSeen += 1;
+          writes.push({ ...descriptor, ingredients: item.ingredients, content_sha256: String(item.ingredients.content_sha256 || '') });
+          _compassPage.set(descriptor.cache_key, contextFromIngredients(item.ingredients, projection));
+        } else {
+          unsupportedSeen += 1;
+          if (descriptor) _compassPage.set(descriptor.cache_key, compassStatusContext('UNSUPPORTED', String(item.reason_code || 'GROUP_INDEX_UNSUPPORTED')));
+        }
+      }
+      if (writes.length) {
+        try {
+          if (typeof localDb.putLearningCompassIngredientsBatch === 'function') await localDb.putLearningCompassIngredientsBatch(writes);
+          else for (const write of writes) await localDb.putLearningCompassIngredients(write);
+        } catch (_) {}
+      }
+      paintCorpusLearningIndexState(scope, { state: 'preparing', prepared: successfulSeen, total, unsupported: unsupportedSeen });
+      cursor = packet.next_cursor || null;
+      if (cursor && !packet.items.length) throw new Error('group learning index empty page');
+    } while (cursor && items.length <= total);
+    if (seen.size !== total || items.length !== total) throw new Error('incomplete group learning index');
+    const fits = await evaluateFamiliarityItems(items.filter((item) => item.status === 'PREPARED'), projection, (item) => item.ingredients);
+    const ready = { index_revision: indexRevision, items, fits, prepared: successfulSeen, unsupported: unsupportedSeen, total };
+    _groupLearningIndexes.set(id, ready);
+    paintCorpusLearningIndexState(scope, { state: 'ready', prepared: successfulSeen, total, unsupported: unsupportedSeen });
+    for (const work of (catalog.works || [])) repaintPreparedCompass('group:' + id + ':' + String(work.work_id));
+    return ready;
+  })().catch((error) => {
+    paintCorpusLearningIndexState(scope, { state: 'error', prepared: 0, total });
+    throw error;
+  }).finally(() => _groupLearningIndexLoading.delete(id));
+  _groupLearningIndexLoading.set(id, job);
+  return job;
 }
 
 async function openGroupCorpusWork(corpusId, card, openOpts = {}) {
@@ -7545,15 +7681,45 @@ function recordedFitForBen(work, vocab, projection, workId) {
   return learningCompass.evaluateRecordedFamiliarityV2({ ingredients, learner_projection: projection });
 }
 
+async function ensureBenFamiliarityScores() {
+  if (_benFamiliarityScores) return _benFamiliarityScores;
+  if (_benFamiliarityLoading) return _benFamiliarityLoading;
+  const scope = 'benyehuda';
+  const ready = (corpusIndex && corpusIndex.ready) || [];
+  paintCorpusLearningIndexState(scope, { state: 'preparing', prepared: 0, total: ready.length });
+  _benFamiliarityLoading = (async () => {
+    const vocab = await loadCorpusVocab();
+    const projection = await ensureLearningCompassProjection();
+    if (!vocab || !vocab.works || !projection) throw new Error('BEN_FAMILIARITY_UNAVAILABLE');
+    const scores = new Map();
+    let prepared = 0, unsupported = 0;
+    for (let index = 0; index < ready.length; index += 1) {
+      const card = ready[index], work = vocab.works[String(card.id)];
+      if (work) { scores.set(String(card.id), recordedFitForBen(work, vocab, projection, card.id)); prepared += 1; }
+      else unsupported += 1;
+      if (index && index % 16 === 0) {
+        paintCorpusLearningIndexState(scope, { state: 'preparing', prepared, total: ready.length, unsupported });
+        await yieldLearningIndexWork();
+      }
+    }
+    _benFamiliarityScores = scores;
+    paintCorpusLearningIndexState(scope, { state: 'ready', prepared, total: ready.length, unsupported });
+    return scores;
+  })().catch((error) => {
+    paintCorpusLearningIndexState(scope, { state: 'error', prepared: 0, total: ready.length });
+    throw error;
+  }).finally(() => { _benFamiliarityLoading = null; });
+  return _benFamiliarityLoading;
+}
+
 async function scoreReadyByRecordedFamiliarity(ready, vocab, excludeTextKey) {
   if (!learningCompass || !vocab || !vocab.works) return [];
-  const projection = await ensureLearningCompassProjection();
-  if (!projection) return [];
+  const scores = await ensureBenFamiliarityScores();
   const scored = [];
   for (const card of (ready || [])) {
     if (excludeTextKey && String(card.text_key) === String(excludeTextKey)) continue;
     const work = vocab.works[String(card.id)]; if (!work) continue;
-    const fit = recordedFitForBen(work, vocab, projection, card.id);
+    const fit = scores.get(String(card.id));
     if (!fit || fit.status !== 'AVAILABLE' || !fit.rank_eligible) continue;
     scored.push({ id: String(card.id), card, work, recorded_familiarity: fit });
   }
@@ -7582,14 +7748,8 @@ async function ensureReadableSet() {
   if (_readableSet) return _readableSet;
   const set = new Set();
   try {
-    const v = await loadCorpusVocab();
-    if (v && v.works && window.CorpusVocab) {
-      const projection = await ensureLearningCompassProjection();
-      for (const id in v.works) {
-        const fit = recordedFitForBen(v.works[id], v, projection, id);
-        if (fit && fit.status === 'AVAILABLE' && fit.rank_eligible) set.add(String(id));
-      }
-    }
+    const scores = await ensureBenFamiliarityScores();
+    for (const [id, fit] of scores.entries()) if (fit && fit.status === 'AVAILABLE' && fit.rank_eligible) set.add(String(id));
   } catch (_) {}
   _readableSet = set;
   return set;
@@ -8670,7 +8830,7 @@ async function renderGroupCorpus(corpusId, token) {
     field.appendChild(el('span',{class:'room-field-label',text:label}));
     const s = el('select', { class:'mytexts-select', attrs:{ id, name:id, 'aria-label':label } });
     for (const [v, txt] of items) { const o=document.createElement('option'); o.value=v; o.textContent=txt; s.appendChild(o); }
-    s.value=value; s.addEventListener('change',()=>{onChange(s.value);if(filterChrome)filterChrome.refresh();}); field.appendChild(s); return field;
+    s.value=value; s.addEventListener('change',async()=>{try{await onChange(s.value,s);}finally{if(filterChrome)filterChrome.refresh();}}); field.appendChild(s); return field;
   };
   controls.appendChild(mkSelect('roomGroupStatus',[
     ['all',tt('room.groupCorpus.statusAll','Все статусы')],['new',tt('room.groupCorpus.statusNew','Не начаты')],
@@ -8683,7 +8843,12 @@ async function renderGroupCorpus(corpusId, token) {
   const sortField = mkSelect('roomGroupSort',[
     ['position',tt('room.groupCorpus.sortPosition','Порядок библиотеки')],['recent',tt('room.groupCorpus.sortRecent','Последние открытые')],
     ['progress',tt('room.groupCorpus.sortProgress','По прогрессу')],['title',tt('room.groupCorpus.sortTitle','Название А–Я')],
-  ],state.sort,tt('room.corpus.sort.label','Сортировка'),(v)=>{state.sort=v;paint();});
+    ['familiar_desc',tt('room.compass.sortFamiliar','Сначала достоверно знакомые')],
+  ],state.sort,tt('room.corpus.sort.label','Сортировка'),async(v,select)=>{
+    if(v==='familiar_desc'&&!await familiaritySortProfileAvailable()){select.value=state.sort;return;}
+    if(v==='familiar_desc'){try{await ensureGroupLearningIndex(corpusId,catalog);}catch(_){}}
+    state.sort=v;paint();
+  });
   const smartRail=el('div',{class:'corpus-sort mytexts-smart group-corpus-smart',attrs:{title:tt('room.corpus.personalHint','Фильтры по вашей активности — работы, открытые на этом устройстве')}});
   const SMART=[
     ['recent','room.mytexts.smartRecent','⏱ Недавние'],['struggling','room.mytexts.smartStruggling','🔥 Сложные'],
@@ -8711,6 +8876,7 @@ async function renderGroupCorpus(corpusId, token) {
     return {count:(state.status!=='all'?1:0)+(state.audio!=='all'?1:0)+(state.smart?1:0)+state.tags.length,labels};
   });
   wrap.appendChild(filterChrome.node);
+  wrap.appendChild(corpusLearningIndexStatusNode('group:' + corpusId, catalog.works.length));
   const resultLine=el('div',{class:'group-corpus-results room-browse-summary'}); wrap.appendChild(resultLine);
   const grid = el('div', { class: 'group-corpus-grid corpus-work-list' }); wrap.appendChild(grid);
   const moreWrap=el('div',{class:'corpus-more group-corpus-more'});wrap.appendChild(moreWrap);wrap.appendChild(management);main.appendChild(wrap);
@@ -8762,7 +8928,15 @@ async function renderGroupCorpus(corpusId, token) {
       if(!q)return true; return [w.title,w.artist,w.topic,w.level,(w.tags||[]).join(' '),w.position_no].join(' ').toLocaleLowerCase().includes(q);
     });
     const opened=(w)=>{const p=byKey.get(String(w.text_key));return Date.parse(p&&p.last_opened_at||'')||0;};
-    found=found.slice().sort(state.sort==='recent'?(a,b)=>opened(b)-opened(a):state.sort==='progress'?(a,b)=>progressPct(b,byKey.get(String(b.text_key)))-progressPct(a,byKey.get(String(a.text_key))):state.sort==='title'?(a,b)=>String(a.title||'').localeCompare(String(b.title||''),'he'):(a,b)=>(Number(a.position_no)||9999)-(Number(b.position_no)||9999));
+    const groupIndex = _groupLearningIndexes.get(corpusId);
+    const familiarity = (work) => groupIndex && groupIndex.fits && groupIndex.fits.get(String(work.work_id));
+    const familiarComparator = (a,b) => {
+      const af=familiarity(a),bf=familiarity(b),ar=!!(af&&af.status==='AVAILABLE'&&af.rank_eligible),br=!!(bf&&bf.status==='AVAILABLE'&&bf.rank_eligible);
+      if(ar!==br)return ar?-1:1;
+      if(ar&&br){const delta=Number(bf.recorded_familiar_pct_lower_bound||0)-Number(af.recorded_familiar_pct_lower_bound||0);if(delta)return delta;}
+      return (Number(a.position_no)||9999)-(Number(b.position_no)||9999);
+    };
+    found=found.slice().sort(state.sort==='familiar_desc'?familiarComparator:state.sort==='recent'?(a,b)=>opened(b)-opened(a):state.sort==='progress'?(a,b)=>progressPct(b,byKey.get(String(b.text_key)))-progressPct(a,byKey.get(String(a.text_key))):state.sort==='title'?(a,b)=>String(a.title||'').localeCompare(String(b.title||''),'he'):(a,b)=>(Number(a.position_no)||9999)-(Number(b.position_no)||9999));
     const shown=found.slice(0,groupBrowseLimit);
     await prepareLearningCompassPage(shown.map((work)=>groupCompassDescriptor(corpusId,work,byKey.get(String(work.text_key)))));
     if(sequence!==groupPaintSequence||token!==corpusRenderToken)return;
@@ -8771,6 +8945,7 @@ async function renderGroupCorpus(corpusId, token) {
     moreWrap.textContent='';if(shown.length<found.length){const more=el('button',{class:'corpus-more-btn',attrs:{type:'button'}});more.textContent=tt('room.corpus.showMore','Показать ещё')+' ('+(found.length-shown.length)+')';more.addEventListener('click',()=>{groupBrowseLimit+=ROOM_BROWSE_PAGE;paint(false);});moreWrap.appendChild(more);}
   }
   let timer=null; search.addEventListener('input',()=>{state.q=search.value||'';if(timer)clearTimeout(timer);timer=setTimeout(paint,120);}); paint();
+  ensureGroupLearningIndex(corpusId,catalog).then(()=>{if(token===corpusRenderToken)paint(false);}).catch(()=>{});
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
@@ -8858,7 +9033,7 @@ function corpusFilterChrome(id, searchField, filterPanel, sortField, stateReader
   panel.appendChild(filterPanel);
   disclosure.appendChild(summary); disclosure.appendChild(panel);
   primary.appendChild(disclosure);
-  if (sortField) primary.appendChild(sortField);
+  if (sortField) { sortField.classList.add('corpus-browse-sort'); primary.appendChild(sortField); }
   shell.appendChild(primary);
   const active = el('div', { class: 'corpus-active-filters', attrs: { 'aria-live': 'polite' } });
   shell.appendChild(active);
@@ -9280,15 +9455,9 @@ async function renderMyTextsCorpus(token) {
     ['title_asc', 'room.mytexts.sortAZ', 'А–Я'],
     ['title_desc', 'room.mytexts.sortZA', 'Я–А'],
     ['topic_asc', 'room.mytexts.sortTopic', 'Тема А–Я'],
-    ['familiar_desc', 'room.mytexts.sortFamiliar', 'Больше знакомых'],
+    ['familiar_desc', 'room.compass.sortFamiliar', 'Сначала достоверно знакомые'],
   ], myCorpusState.sort, tt('room.corpus.sort.label', 'Сортировка'), async (value, select) => {
-    if (value === 'familiar_desc') {
-      let projection = null;
-      try { projection = await ensureLearningCompassProjection(); } catch (_) {}
-      if (!projection || Number(projection.tracked_lexeme_count || 0) <= 0) {
-        select.value = myCorpusState.sort; roomToast(tt('room.mytexts.sortFamiliarNeedsProfile', 'Сначала отметьте несколько знакомых слов.')); return;
-      }
-    }
+    if (value === 'familiar_desc' && !await familiaritySortProfileAvailable()) { select.value = myCorpusState.sort; return; }
     myCorpusState.sort = value; paint({ reset: true });
   });
 
@@ -9397,7 +9566,7 @@ async function renderMyTextsCorpus(token) {
           const key = ranked.status === 'NEEDS_PROFILE' ? 'room.mytexts.sortFamiliarNeedsProfile'
             : ranked.status === 'TOO_LARGE' ? 'room.mytexts.sortFamiliarLimit' : 'room.mytexts.sortFamiliarPreparing';
           const fallback = ranked.status === 'NEEDS_PROFILE' ? 'Сначала отметьте несколько знакомых слов.'
-            : ranked.status === 'TOO_LARGE' ? 'Сортировка доступна для выборки до 1 000 текстов. Уточните поиск или фильтры.'
+            : ranked.status === 'TOO_LARGE' ? 'Сортировка доступна для библиотеки до 5 000 текстов.'
               : 'Подождите завершения локального анализа библиотеки.';
           roomToast(tt(key, fallback));
           return paint({ reset: true });
@@ -9550,6 +9719,8 @@ async function renderCorpusHome(token) {
   const filterPanel = filterChrome.querySelector('.corpus-filterbar');
   if (filterPanel) filterPanel.appendChild(_corpusSmartRailEl);
   wrap.appendChild(filterChrome);
+  const readyTotal = Number(corpusIndex && corpusIndex.ready && corpusIndex.ready.length || 0);
+  wrap.appendChild(corpusLearningIndexStatusNode('benyehuda', readyTotal));
   const body = el('div', { class: 'corpus-l1-body' });
   corpusL1Body = body;
   wrap.appendChild(body);
@@ -9559,6 +9730,7 @@ async function renderCorpusHome(token) {
   );
   wrap.appendChild(about);
   main.appendChild(wrap);
+  ensureBenFamiliarityScores().then(() => { if (token === corpusRenderToken && corpusL1Sort === 'familiar_desc') corpusRefreshL1Body(); }).catch(() => {});
   await corpusRefreshL1Body();
 }
 
@@ -9619,6 +9791,18 @@ function renderHomeInto(body) {
 // never a fabricated length ranking among unknowns, R10).
 function corpusL1Len(h, readyMap) { const c = readyMap.get(String(h.id)); return (c && (c.segments || 0)) || 0; }
 function corpusL1Comparator(mode, readyMap) {
+  if (mode === 'familiar_desc') return (a, b) => {
+    const af = _benFamiliarityScores && _benFamiliarityScores.get(String(a.id));
+    const bf = _benFamiliarityScores && _benFamiliarityScores.get(String(b.id));
+    const ar = !!(af && af.status === 'AVAILABLE' && af.rank_eligible);
+    const br = !!(bf && bf.status === 'AVAILABLE' && bf.rank_eligible);
+    if (ar !== br) return ar ? -1 : 1;
+    if (ar && br) {
+      const delta = Number(bf.recorded_familiar_pct_lower_bound || 0) - Number(af.recorded_familiar_pct_lower_bound || 0);
+      if (delta) return delta;
+    }
+    return (b.r - a.r) || String(a.t || '').localeCompare(String(b.t || ''));
+  };
   if (mode === 'alpha') return (a, b) => String(a.t || '').localeCompare(String(b.t || ''));
   if (mode === 'length') return (a, b) => (corpusL1Len(b, readyMap) - corpusL1Len(a, readyMap)) || String(a.t || '').localeCompare(String(b.t || ''));
   if (mode === 'opened') {
@@ -10349,11 +10533,20 @@ function buildCorpusFilterBar() {
   const sortField = el('label', { class: 'room-field corpus-browse-sort', attrs: { for: 'roomCorpusSort' } });
   sortField.appendChild(el('span', { class: 'room-field-label', text: tt('room.corpus.sort.label', 'Сортировка') }));
   const sortSelect = el('select', { class: 'mytexts-select', attrs: { id: 'roomCorpusSort', name: 'room-corpus-sort', 'aria-label': tt('room.corpus.sort.label', 'Сортировка') } });
-  for (const [mode,key,fb] of [['ready','room.corpus.sort.readyFirst','Сначала готовые'],['opened','room.mytexts.sortOpened','Последние открытые'],['alpha','room.corpus.sort.alpha','По алфавиту'],['length','room.corpus.sort.length','По длине']]) {
+  for (const [mode,key,fb] of [['ready','room.corpus.sort.readyFirst','Сначала готовые'],['familiar_desc','room.compass.sortFamiliar','Сначала достоверно знакомые'],['opened','room.mytexts.sortOpened','Последние открытые'],['alpha','room.corpus.sort.alpha','По алфавиту'],['length','room.corpus.sort.length','По длине']]) {
     sortSelect.appendChild(el('option', { text: tt(key,fb), attrs: { value: mode } }));
   }
   sortSelect.value=corpusL1Sort;
-  sortSelect.addEventListener('change',()=>{corpusL1Sort=sortSelect.value;if(corpusL1Sort==='opened')ensurePersonalSets().then(()=>corpusRefreshL1Body()).catch(()=>corpusRefreshL1Body());else corpusRefreshL1Body();});
+  sortSelect.addEventListener('change',async()=>{
+    const nextSort=sortSelect.value;
+    if(nextSort==='familiar_desc'&&!await familiaritySortProfileAvailable()){sortSelect.value=corpusL1Sort;return;}
+    corpusL1Sort=nextSort;
+    if(corpusL1Sort==='familiar_desc'){
+      corpusFilter.readyOnly=true;
+      ensureBenFamiliarityScores().then(()=>corpusRefreshL1Body()).catch(()=>corpusRefreshL1Body());
+    }else if(corpusL1Sort==='opened')ensurePersonalSets().then(()=>corpusRefreshL1Body()).catch(()=>corpusRefreshL1Body());
+    else corpusRefreshL1Body();
+  });
   sortField.appendChild(sortSelect);
   const chrome = corpusFilterChrome('roomBenYehuda', searchField, bar, sortField, () => {
     const labels=[];
@@ -10377,7 +10570,8 @@ function buildCorpusFilterBar() {
 // sorted by count desc, each with its count. The label gets an `on` class when a value is set.
 function buildFacetSelect(key, labelKey, counts, labelFn, onChange) {
   const wrap = el('label', { class: 'corpus-facet-select' + (corpusFilter[key] ? ' on' : '') });
-  const sel = el('select', { attrs: { 'aria-label': tt(labelKey) } });
+  const facetId = 'roomCorpusFacet' + String(key || '').replace(/[^a-z0-9]+/gi, '-');
+  const sel = el('select', { attrs: { id: facetId, name: 'room-corpus-facet-' + String(key || ''), 'aria-label': tt(labelKey) } });
   sel.appendChild(el('option', { text: tt(labelKey), attrs: { value: '' } }));
   Object.entries(counts).filter(([k]) => k && k !== '(none)').sort((a, b) => b[1] - a[1]).forEach(([k, n]) => {
     sel.appendChild(el('option', { text: (labelFn(k) || k) + ' (' + n + ')', attrs: { value: k } }));
@@ -10564,6 +10758,10 @@ async function renderCorpusWorks(era, author, token) {
     return;
   }
   if (token !== corpusRenderToken) return;
+  if (corpusWorkSort === 'familiar_desc') {
+    try { await ensureBenFamiliarityScores(); } catch (_) {}
+    if (token !== corpusRenderToken) return;
+  }
   body.innerHTML = '';
   // BRR-P2-004 — L3 sort + genre filter (was: fixed id/title sort, no controls). Re-paints the
   // sections in place over the already-fetched works (no re-fetch). Ready/later split is kept.
@@ -10586,6 +10784,13 @@ async function renderCorpusWorks(era, author, token) {
 
 // L3 work comparator: graded (id order — the producer's graded sequence), alpha (title), length (longest first).
 function corpusWorkComparator(mode) {
+  if (mode === 'familiar_desc') return (a, b) => {
+    const af=_benFamiliarityScores&&_benFamiliarityScores.get(String(a.id)),bf=_benFamiliarityScores&&_benFamiliarityScores.get(String(b.id));
+    const ar=!!(af&&af.status==='AVAILABLE'&&af.rank_eligible),br=!!(bf&&bf.status==='AVAILABLE'&&bf.rank_eligible);
+    if(ar!==br)return ar?-1:1;
+    if(ar&&br){const delta=Number(bf.recorded_familiar_pct_lower_bound||0)-Number(af.recorded_familiar_pct_lower_bound||0);if(delta)return delta;}
+    return String(a.id).localeCompare(String(b.id));
+  };
   if (mode === 'alpha') return (a, b) => String(a.title || '').localeCompare(String(b.title || ''));
   if (mode === 'length') return (a, b) => ((b.segments || 0) - (a.segments || 0)) || String(a.id).localeCompare(String(b.id));
   return (a, b) => String(a.id).localeCompare(String(b.id));
@@ -10595,11 +10800,11 @@ function corpusWorkComparator(mode) {
 function buildWorkControls(works, onChange) {
   const bar = el('div', { class: 'corpus-work-controls' });
   const sortWrap = el('div', { class: 'corpus-sort' });
-  [['graded', 'room.corpus.sort.graded', 'По порядку'], ['alpha', 'room.corpus.sort.alpha', 'По алфавиту'], ['length', 'room.corpus.sort.length', 'По длине']]
+  [['graded', 'room.corpus.sort.graded', 'По порядку'], ['familiar_desc', 'room.compass.sortFamiliar', 'Сначала достоверно знакомые'], ['alpha', 'room.corpus.sort.alpha', 'По алфавиту'], ['length', 'room.corpus.sort.length', 'По длине']]
     .forEach(([mode, key, fb]) => {
       const b = el('button', { class: 'corpus-sort-btn' + (corpusWorkSort === mode ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusWorkSort === mode) } });
       b.textContent = tt(key, fb);
-      b.addEventListener('click', () => { if (corpusWorkSort === mode) return; corpusWorkSort = mode; sortWrap.querySelectorAll('.corpus-sort-btn').forEach((x) => { const on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); }); onChange(); });
+      b.addEventListener('click', async () => { if (corpusWorkSort === mode) return; if(mode==='familiar_desc'&&!await familiaritySortProfileAvailable())return; corpusWorkSort = mode; sortWrap.querySelectorAll('.corpus-sort-btn').forEach((x) => { const on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); }); if(mode==='familiar_desc')ensureBenFamiliarityScores().then(onChange).catch(onChange);else onChange(); });
       sortWrap.appendChild(b);
     });
   bar.appendChild(sortWrap);

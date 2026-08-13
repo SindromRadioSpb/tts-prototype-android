@@ -43,6 +43,16 @@ details честно показывают unknown provenance и локальну
 «Сначала достоверно знакомые». Одновременно открывается только одна details-
 панель, `Escape` закрывает её и возвращает focus на summary.
 
+Full-corpus preparation hardening `3.11.368` реализует owner amendment
+B7-D2A. Study Songs больше не зависит от первого открытия: membership-gated
+server Worker строит immutable revision-bound sidecar из всех readable bundles,
+а browser забирает только content-free aggregate packets и вычисляет
+персональный процент локально. My Texts делает полный background pass до
+проверенного B6 масштаба `5 000`; Ben-Yehuda до открытия оценивает все `796`
+ready works из компактного публичного sidecar. Во всех трёх корпусах одна
+команда `Сначала достоверно знакомые`, один profile-empty stop и один
+rank-eligibility contract. Protected card paint не загружает work body.
+
 Release hardening 13 августа: первые две image-сборки `3.11.364` остановились
 до cutover после сетевого `socket hang up` при получении prebuilt `sqlite3`;
 source fallback затем выявил отсутствующий Python 3.12 `distutils`. Production
@@ -67,6 +77,11 @@ source fallback затем выявил отсутствующий Python 3.12 `
   calibration math; не читает DB и не делает network calls.
 - `learning-compass-worker.js` — локальный conservative Hebrew analysis с
   token/type caps; возвращает агрегаты, не body.
+- `learning-compass-ingredients.js` — один pure/UMD lexical producer для
+  browser Worker и server Worker; исключает расхождение resolver semantics.
+- `groupCorpusLearningIndexWorker.js` + `groupCorpusRepo.getLearningIndex()` —
+  membership-gated full protected index, exact corpus/work/SHA signature,
+  single-flight build, immutable derived sidecar и packets `<=256 KiB`.
 - `local-db.js` — одна learner projection и один ingredient batch на текущий
   page; compact schema `2.0.1` сохраняет семантическую эквивалентность и
   прежний `48 / 256 KiB` packet budget; derived cache не является
@@ -110,6 +125,10 @@ Durable automation evidence:
 
 Follow-up three-corpus evidence (`159/159`, включая 380px Ben rail disclosure):
 [`docs/research/room-ux-b7-learning-compass/2026-08-13/follow-up/automation/`](../research/room-ux-b7-learning-compass/2026-08-13/follow-up/automation/).
+
+Full readable-corpus preparation candidate evidence (`161/161`, protected
+API/UI, B6 `45/45`, Lighthouse Accessibility `100`):
+[`docs/research/room-ux-b7-learning-compass/2026-08-13/corpus-preparation/`](../research/room-ux-b7-learning-compass/2026-08-13/corpus-preparation/).
 
 ## Production, owner-profile and owner-smoke read-back
 
@@ -177,6 +196,26 @@ Cold-library `3.11.366` production evidence:
   `texts` (`222`); Reader never opened.
 - This is desktop Chromium/Kapture production evidence, not a new physical
   iPhone/Android, NVDA, VoiceOver or TalkBack acceptance claim.
+
+### Full-corpus preparation release candidate: `3.11.368`
+
+- Local automation prepares `115/115` My Texts without Reader and all `796`
+  readable Ben-Yehuda works before selection; protected fixture proves every
+  catalog work prepared, reordered `90% → 60% → 20%`, and `0` protected body
+  GETs during card paint.
+- Protected sidecars are proactively prewarmed after migrations; an exact-
+  revision request build remains only a fallback for a corpus changed after
+  process start. The API accepts OWNER/MEMBER, denies anonymous/revoked access, emits no
+  title/body/translation, uses `private, no-store`, exact revision binding and
+  `<=256 KiB` packets.
+- Responsive group UX passes at `380/510/1280`; the long shared sort label is
+  fully visible at 380 px.
+- Chrome mobile Lighthouse improved from `93` to `100` after fixing footer
+  contrast/targets; dynamic/hidden form controls now have names and labels.
+  This remains automation, not physical screen-reader evidence.
+- Production deploy and real owner Study Songs `77/77` read-back are still
+  pending at this document point; no production claim is inferred from local
+  automation.
 
 ## Что не доказано
 

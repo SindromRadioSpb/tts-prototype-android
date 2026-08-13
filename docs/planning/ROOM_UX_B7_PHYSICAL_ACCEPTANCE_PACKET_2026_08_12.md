@@ -61,7 +61,7 @@ served/installed version; staged/PWA cache может отличаться до 
 | B7-NVDA | Windows 11 Chrome + NVDA | reason/buckets/provenance order and focus return | exact facts announced; no tooltip-only data | NOT RUN |
 | B7-MAC-VO | macOS Safari + VoiceOver | WebKit details/status semantics and HE/RTL | logical order/focus; no clipped facts | NOT RUN |
 | B7-KBD-200 | physical keyboard, desktop 200% | full browse/details/disable/reset without pointer | visible focus, no trap/overlap, all actions reachable | NOT RUN |
-| B7-AUTO | isolated Chromium matrix | 320–1366/status/privacy/budgets/desktop paint/copy density/cold catalog | `145/145`; exact 115/115 without Reader; real-size packet fixture; compact RU/EN/HE copy; not physical/AT | PASS — automation |
+| B7-AUTO | isolated Chromium matrix | 320–1366/status/privacy/budgets/desktop paint/copy density/full readable corpora | `161/161`; exact My Texts 115/115 and Ben-Yehuda 796/796 without Reader; protected full-index UI/API; Lighthouse a11y 100; not physical/AT | PASS — automation |
 | B7-OWNER-DESKTOP | signed-in owner Chrome via Kapture, read-only | My Texts, SW safe update, cold preparation, exact packet, familiar sort, checksums | `3.11.366`; 115/115 without Reader; 48-card DOM; packet 48/48 at 255,442 B; sort retained first try; canonical hashes unchanged; not physical/AT | PASS — owner-profile read-only browser evidence |
 
 ## Evidence record
@@ -85,5 +85,6 @@ tester / timestamp:
 
 B7 остаётся `ENGINEERING PASS / OWNER GENERAL SMOKE PASS / PHYSICAL-AT PARTIAL`, пока обязательные строки
 не имеют owner evidence или явного documented exception. Только после owner
-acceptance можно подготовить closure; production `3.11.366` уже развёрнут и
-проверен, но сам по себе physical/AT строки не закрывает.
+acceptance можно подготовить closure; production `3.11.367` уже развёрнут и
+проверен, а full-corpus hardening `3.11.368` пока является release candidate.
+Ни один production deploy сам по себе physical/AT строки не закрывает.
