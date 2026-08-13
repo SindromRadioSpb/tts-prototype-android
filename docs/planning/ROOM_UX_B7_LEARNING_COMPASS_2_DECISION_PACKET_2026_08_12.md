@@ -19,9 +19,10 @@
 **Implementation:** `main@845ddc71`; production finishing `04f88328`, `85bdc9de`;
 cold-library/packet hardening `1298bb71`, `73e74a37`; full-corpus preparation
 `d97930a8`; limited-only sort UX `86f5189c`; corpus finishing `9dd225f0`;
-sync contract/replay `4818cd6e`, `9cf51982`
+sync contract/replay `4818cd6e`, `9cf51982`; cross-device projection
+convergence `12f0e47f`
 
-**Production release:** `3.11.372` (served-byte/health and owner-profile
+**Production release:** `3.11.373` (served-byte/health and owner-profile
 read-only evidence; general owner smoke and physical/AT evidence remain
 separately classified)
 
@@ -690,5 +691,22 @@ disk use from `97%` to `82%`, retaining active and immediate rollback images;
 `disk_warn=true` remains an explicit operational warning. Exact evidence is in
 [`corpus-finishing/PRODUCTION_READBACK_EVIDENCE.json`](../research/room-ux-b7-learning-compass/2026-08-13/corpus-finishing/PRODUCTION_READBACK_EVIDENCE.json).
 
-Engineering/production B7 is therefore current through `3.11.372`, but D6
+### Cross-device convergence follow-up 2026-08-13
+
+Owner physical use exposed divergent due/in-work counters after training on
+iPhone and PC. Investigation found the canonical `review_log` already equal to
+cloud on PC, while local manual/SRS projections could remain stale after a
+cursor-crossed interruption or a completion sync suppressed by the 90-second
+throttle. Approved B7 semantics require convergence, not per-device counters.
+
+Production `3.11.373` makes projection application precede cursor advancement,
+retries the whole uncommitted page, performs one versioned rebuild from the
+complete log and serializes forced sync at natural lifecycle points. It creates
+no learner event. Owner-profile read-back left `review_log` unchanged and equal
+to cloud at `7,315`, recorded heal marker `v1`, and corrected the PC derived
+count from `210 / 335` to `205 / 335`. iPhone physical confirmation remains
+pending. Exact evidence:
+[`cross-device-sync/PRODUCTION_READBACK_EVIDENCE.json`](../research/room-ux-b7-learning-compass/2026-08-13/cross-device-sync/PRODUCTION_READBACK_EVIDENCE.json).
+
+Engineering/production B7 is therefore current through `3.11.373`, but D6
 remains `PHYSICAL-AT PARTIAL`; this packet does not claim GA or closure.

@@ -34,8 +34,8 @@ cross-surface решениями.
 Implementation `main@845ddc71`, production finishing `04f88328`/`85bdc9de`,
 compact-copy follow-up plus cold-library/packet hardening `1298bb71` and
 `73e74a37`, full-corpus preparation `d97930a8`/`86f5189c`, corpus finishing
-`9dd225f0` and sync contract/replay `4818cd6e`/`9cf51982`, served in
-`3.11.372`:
+  `9dd225f0`, sync contract/replay `4818cd6e`/`9cf51982`, and cross-device
+  projection convergence `12f0e47f`, served in `3.11.373`:
 
 - один local-first `recorded-familiarity-v2` core для Room и Agent Access;
 - versioned derived cache + bounded local My pass, full membership-gated
@@ -44,8 +44,8 @@ compact-copy follow-up plus cold-library/packet hardening `1298bb71` and
 - local-only `5×3×2500` calibration range с disable/reset;
 - typed per-field provenance и deterministic reason ladder без LLM/threshold
   promise;
-- final engineering unit `46/46`, browser matrix `161/161`, cloud sync
-  `32/32`, i18n `233/233`, memory canon/FSRS `79/79`; a 115-text owner library
+- final engineering unit `50/50`, browser matrix `161/161`, cloud sync
+  `32/32`, Studio↔Room SRS `49/49`, i18n `233/233`, memory canon/FSRS `79/79`; a 115-text owner library
   now self-prepares without Reader while DOM stays at 48; production page packet is `48/48`,
   `255,442 B < 256 KiB`; familiar sort retains first selection; canonical
   hashes remain unchanged;
@@ -62,6 +62,12 @@ compact-copy follow-up plus cold-library/packet hardening `1298bb71` and
   `115/115`, Study Songs `77/77`, Ben-Yehuda `796/796`, `10/10` served assets,
   zero protected body/non-GET requests и неизменные canonical hashes;
   `review_log` local/cloud/cursors = `7,282`.
+- B7 sync repair `3.11.373` делает projection-before-cursor атомарной
+  границей, повторяет незавершённую страницу, выполняет одноразовый rebuild
+  derived SRS/manual state и форсирует сериализованный sync после тренировки и
+  foreground. Owner-profile read-back оставил `review_log` неизменным и равным
+  cloud (`7,315`), а stale PC due projection исправил `210 → 205`; физическое
+  подтверждение равенства на iPhone остаётся pending.
 
 - честная familiar-word coverage для поддерживаемых My Texts/group items;
 - индивидуальное время чтения только после калибровки по реальному поведению;
@@ -98,7 +104,7 @@ LocalDb/FSRS/media/i18n/SW contracts и production deployments остаются 
 
 1. Использовать
    `ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md` на exact production release
-   `3.11.372`; не подменять незаполненные physical/AT строки automation или
+   `3.11.373`; не подменять незаполненные physical/AT строки automation или
    Kapture-скриншотами.
 2. При agent-assisted owner-profile проверке выполнять только read-only
    navigation/details; calibration controls — только самим владельцем или

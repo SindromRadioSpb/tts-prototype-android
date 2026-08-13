@@ -4,11 +4,12 @@
 
 Статус: **OWNER GENERAL PROD SMOKE PASS · IOS SAFARI PARTIAL · AUTOMATION/PRODUCTION READ-BACK PASS · FULL PHYSICAL/AT MATRIX PENDING**
 
-Release under test: production `3.11.372` / implementation chain
+Release under test: production `3.11.373` / implementation chain
 `845ddc71` + `04f88328` + `85bdc9de` + compact-copy follow-up + cold-library
 hardening `1298bb71` + packet hardening `73e74a37` + full-corpus preparation
 `d97930a8` + limited-only sort UX `86f5189c` + corpus finishing `9dd225f0` +
-sync contract/replay `4818cd6e` + `9cf51982`.
+sync contract/replay `4818cd6e` + `9cf51982` + cross-device projection
+convergence `12f0e47f`.
 
 Production deploy был отдельно явно авторизован владельцем и прошёл
 served-byte/health read-back. В каждой строке всё равно фиксировать exact
@@ -57,7 +58,7 @@ served/installed version; staged/PWA cache может отличаться до 
 
 | ID | Среда | Дополнительный фокус | Acceptance | Статус/evidence |
 |---|---|---|---|---|
-| B7-IOS-S | iPhone Safari | details, pending, offline, large text, HE/RTL | focus returns; statuses/provenance readable; no overflow/fake zero | PARTIAL — owner general production smoke PASS on `3.11.363`; supplied iPhone screenshot; copy-density issue fixed in `3.11.364`; complete `3.11.372` corpus-finishing row is not physically attested |
+| B7-IOS-S | iPhone Safari | details, pending, offline, large text, HE/RTL; cross-device counters after foreground sync | focus returns; statuses/provenance readable; no overflow/fake zero; due/in-work equal PC at the same observation time | PARTIAL — owner general production smoke PASS on `3.11.363`; supplied iPhone screenshot; copy-density issue fixed in `3.11.364`; `3.11.373` projection repair is deployed, but iPhone convergence and complete corpus-finishing row are not yet physically attested |
 | B7-IOS-P | iPhone standalone PWA | eviction/reopen, warm offline, update waiting | no mid-flow reload/data loss; prepared cache survives | NOT RUN |
 | B7-IOS-VO | iPhone Safari/PWA + VoiceOver | rotor/order, details, status, reset/disable | controls named; no duplicate announcements; logical RTL | NOT RUN |
 | B7-AND | Android Chrome/PWA | Worker failure/quota/reconnect, text scaling | usable cards; honest failure; one refresh | NOT RUN |
@@ -65,8 +66,8 @@ served/installed version; staged/PWA cache может отличаться до 
 | B7-NVDA | Windows 11 Chrome + NVDA | reason/buckets/provenance order and focus return | exact facts announced; no tooltip-only data | NOT RUN |
 | B7-MAC-VO | macOS Safari + VoiceOver | WebKit details/status semantics and HE/RTL | logical order/focus; no clipped facts | NOT RUN |
 | B7-KBD-200 | physical keyboard, desktop 200% | full browse/details/disable/reset without pointer | visible focus, no trap/overlap, all actions reachable | NOT RUN |
-| B7-AUTO | isolated Chromium matrix | 320–1366/status/privacy/budgets/desktop paint/copy density/full readable corpora | final `3.11.372` rerun: unit `46/46`, B7 browser `161/161`, cloud sync `32/32`, i18n `233/233`, canon `18/18`, Memory Canon/FSRS `79/79`; earlier maturity `838/838` and Lighthouse a11y 100 remain release evidence; not physical/AT | PASS — automation |
-| B7-OWNER-DESKTOP | signed-in owner Chrome via Kapture, read-only | three corpora, SW safe update, full preparation, exact audio/alignment/details, packet/body boundary, shared sort, sync/checksums | `3.11.372`; 10/10 served assets; My Texts 115/115, Study Songs 77/77, Ben-Yehuda 796/796; uniform audio labels and locale-start alignment; peer/outside/Escape close with focus return; five index GETs, zero protected body/non-GET requests; canonical hashes unchanged, `review_log` local/cloud/cursors 7,282 | PASS — owner-profile read-only browser evidence; not physical/AT |
+| B7-AUTO | isolated Chromium matrix | 320–1366/status/privacy/budgets/desktop paint/copy density/full readable corpora; projection crash/retry/heal | final `3.11.373` rerun: unit `50/50`, B7 browser `161/161`, cloud sync `32/32`, Studio↔Room SRS `49/49`, i18n `233/233`, canon `18/18`, Memory Canon/FSRS `79/79`; real-browser word-status smoke PASS; earlier maturity `838/838` and Lighthouse a11y 100 remain release evidence; not physical/AT | PASS — automation |
+| B7-OWNER-DESKTOP | signed-in owner Chrome via Kapture, read-only | three corpora, SW safe update, full preparation, exact audio/alignment/details, packet/body boundary, shared sort, sync/checksums | corpus-finishing `3.11.372`: 10/10 assets and all corpora prepared; sync repair `3.11.373`: 6/6 changed assets, heal marker `v1`, `review_log` unchanged local/cloud at 7,315, PC projection corrected `210/335 → 205/335` without learner events | PASS — owner-profile read-only browser evidence; not physical/AT |
 
 ## Evidence record
 
@@ -90,7 +91,10 @@ tester / timestamp:
 B7 остаётся `ENGINEERING PASS / OWNER GENERAL SMOKE PASS / PHYSICAL-AT PARTIAL`, пока обязательные строки
 не имеют owner evidence или явного documented exception. Только после owner
 acceptance можно подготовить closure. Engineering production read-back
-завершён through `3.11.372`, включая все три корпуса и corpus-finishing
+завершён through `3.11.373`, включая все три корпуса, corpus-finishing и
+cross-device projection repair
 interactions. Exact evidence:
 [`corpus-finishing/`](../research/room-ux-b7-learning-compass/2026-08-13/corpus-finishing/README.md).
+Cross-device evidence:
+[`cross-device-sync/`](../research/room-ux-b7-learning-compass/2026-08-13/cross-device-sync/README.md).
 Ни один production deploy сам по себе physical/AT строки не закрывает.

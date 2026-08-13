@@ -1,0 +1,54 @@
+{
+  "schema_version": "room.b7.cross-device-sync-production-readback.1.0.0",
+  "recorded_at": "2026-08-13T06:03:24.7047745Z",
+  "evidence_class": "engineering automation plus signed-in owner-profile read-only aggregate inspection; not physical iPhone acceptance",
+  "release": {
+    "app_version": "3.11.373",
+    "commit": "12f0e47f7c1800dc14d5f5a0ff4bc20c0adbb589",
+    "served_asset_matches": {
+      "checked": 6,
+      "matched": 6,
+      "assets": [
+        { "path": "public/index.html", "bytes": 2263854, "sha256": "31d9c1bdb83d0e9dce8eb9932534298bce592c000a7fbbcf697a71713502b38a" },
+        { "path": "public/library.html", "bytes": 228430, "sha256": "c5a0d24bec609b9e241756912cf419a97f701743a32430cbd9b0d43523afc6f9" },
+        { "path": "public/sw.js", "bytes": 27109, "sha256": "3df7e3ccfd5112120b8ebc04cbb6dabd33ea2c1cdbe109f19fc658588ae6baf8" },
+        { "path": "public/js/cloud-sync.js", "bytes": 39138, "sha256": "19dd37477768b9e4bd3a309672935d5154f47ba0b5f647e277bd1a1023030f7e" },
+        { "path": "public/js/library-ui.js", "bytes": 762441, "sha256": "f71d54666213617c35598ef81d87b9f6b3868b2b14326142cf8139c5dfe7b806" },
+        { "path": "public/db/local-db.js", "bytes": 398782, "sha256": "794257cd10bd8911da1e7b05a6b385f25a91a9f499fdf9dbffc7062157ffbaeb" }
+      ]
+    }
+  },
+  "health": {
+    "db_ready": true,
+    "migrations_ready": true
+  },
+  "owner_profile_pc": {
+    "review_log_before": 7315,
+    "review_log_after": 7315,
+    "review_log_cloud": 7315,
+    "up_cursor_before_release": 7315,
+    "down_cursor_before_release": 7315,
+    "cutover_ok": true,
+    "projection_heal_marker_after": "v1",
+    "counters_before_release": { "due": 210, "in_work": 335 },
+    "counters_after_heal": { "due": 205, "in_work": 335 },
+    "schedule_rows_after_heal": 389,
+    "learner_actions_invoked": []
+  },
+  "reported_iphone_before_release": {
+    "due": 200,
+    "in_work": 324
+  },
+  "acceptance_invariant": "After both devices run version 3.11.373 foreground sync, due and in-work counters are equal at the same observation time unless a genuine event or due-time boundary occurs between observations.",
+  "physical_iphone_retest": "PENDING",
+  "automation": {
+    "unit_and_frozen_contracts": "50/50",
+    "room_b7_browser": "161/161",
+    "cloud_sync": "32/32",
+    "studio_room_srs": "49/49",
+    "memory_canon_fsrs": "79/79",
+    "i18n": "233/233",
+    "canon_version": "18/18",
+    "reader_word_status": "PASS"
+  }
+}

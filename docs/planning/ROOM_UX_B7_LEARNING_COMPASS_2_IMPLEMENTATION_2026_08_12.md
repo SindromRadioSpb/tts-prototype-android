@@ -13,9 +13,10 @@ Implementation: `main@845ddc71`; production finishing: `04f88328`, `85bdc9de`;
 compact-copy follow-up: `3.11.364`; cold-library + packet hardening:
 `1298bb71`, `73e74a37`; three-corpus disclosure follow-up: `70dcffdc`;
 full-corpus preparation: `d97930a8`; limited-only sort UX: `86f5189c`;
-corpus finishing: `9dd225f0`; sync contract/replay: `4818cd6e`, `9cf51982`
+corpus finishing: `9dd225f0`; sync contract/replay: `4818cd6e`, `9cf51982`;
+cross-device projection convergence: `12f0e47f`
 
-Production release: `3.11.372`
+Production release: `3.11.373`
 
 Владелец отдельно авторизовал production deploy. Первичный `3.11.363` развёрнут
 и проверен direct no-store/served-byte read-back. Kapture-проверка использовала
@@ -100,7 +101,7 @@ legacy provenance allowlist drift и cached rejection; оба исправлен
   максимум два visible B7 signals, structured details, keyboard reset/disable.
 - Agent `get_text_coverage` и group coverage используют ту же v2-семантику.
   Это versioned response evolution; оно не создаёт network dependency Room.
-- Service Worker/Studio/Room version согласованы на production `3.11.372`;
+- Service Worker/Studio/Room version согласованы на production `3.11.373`;
   activation semantics B6 не ослаблены.
 - B6 history continuity сохраняется: non-presentation open заранее ставит
   `touchOpened` в очередь до фоновых body reads; Reader bar height синхронизирует
@@ -132,6 +133,10 @@ legacy provenance allowlist drift и cached rejection; оба исправлен
 - Финальный `3.11.372` rerun: B7 unit `46/46`, browser matrix `161/161`, cloud
   sync `32/32`, i18n `233/233`, memory canon/FSRS `79/79`, canon version
   `18/18`.
+- `3.11.373` sync-convergence rerun: frozen unit contracts `50/50`, B7 browser
+  `161/161`, cloud sync `32/32`, Studio↔Room SRS `49/49`, real-browser
+  word-status PASS, i18n `233/233`, memory canon/FSRS `79/79`, canon version
+  `18/18`.
 
 Durable automation evidence:
 [`docs/research/room-ux-b7-learning-compass/2026-08-12/automation/`](../research/room-ux-b7-learning-compass/2026-08-12/automation/).
@@ -146,6 +151,10 @@ API/UI, B6 `45/45`, Lighthouse Accessibility `100`):
 Final corpus-finishing production evidence (`3.11.372`, ten served assets,
 three corpora, canonical before/after and operations read-back):
 [`docs/research/room-ux-b7-learning-compass/2026-08-13/corpus-finishing/`](../research/room-ux-b7-learning-compass/2026-08-13/corpus-finishing/README.md).
+
+Cross-device convergence evidence (`3.11.373`, six served assets, versioned
+projection heal and unchanged canonical log):
+[`docs/research/room-ux-b7-learning-compass/2026-08-13/cross-device-sync/`](../research/room-ux-b7-learning-compass/2026-08-13/cross-device-sync/README.md).
 
 ## Production, owner-profile and owner-smoke read-back
 
@@ -324,6 +333,44 @@ read-back:
 Exact machine-readable evidence:
 [`PRODUCTION_READBACK_EVIDENCE.json`](../research/room-ux-b7-learning-compass/2026-08-13/corpus-finishing/PRODUCTION_READBACK_EVIDENCE.json).
 
+### B7 cross-device SRS convergence: `3.11.373`
+
+Owner testing after training on iPhone and PC exposed persistent disagreement:
+iPhone showed `200` due / `324` in work while PC showed `210` / `335`.
+This was a real synchronization defect, not intended local-first behavior. The
+cloud `review_log` is the canonical union; after a complete sync, devices at the
+same observation time must derive the same counters from that union.
+
+The bounded repair closes four related holes:
+
+- down-sync now applies both the SRS fold and manual-status LWW projection
+  before advancing the page cursor. A failed projection returns an explicit
+  error and leaves the cursor retryable;
+- a retry recomputes every projection key on the uncommitted page even when its
+  event row was inserted before an interrupted attempt;
+- every signed-in device performs one versioned, idempotent rebuild of local
+  SRS/manual projections from the complete append-only log. The marker is saved
+  only after success, and the repair creates no learner event;
+- session completion, boot, foreground, `pageshow` and `online` use a serialized
+  forced sync. The former 90-second throttle can no longer suppress the natural
+  post-training handoff. Clearing a manual status preserves an independent SRS
+  carrier instead of deleting its schedule.
+
+Release gates passed: frozen B0–B7 unit contracts `50/50`, B7 browser
+`161/161`, cloud sync `32/32`, Studio↔Room SRS `49/49`, Memory Canon/FSRS
+`79/79`, i18n `233/233`, canon version `18/18`, plus the real-browser
+word-status smoke. Production `3.11.373` returned healthy DB/migrations and all
+six changed served assets matched the release bytes.
+
+Signed-in owner-profile read-back did not open or grade a review and did not
+change a word status. The automatic one-time repair left `review_log` unchanged
+at `7,315` locally and in cloud with both cursors at `7,315`, recorded heal
+marker `v1`, and corrected the PC projection from `210 / 335` to `205 / 335`.
+The five-count due correction with zero new events is direct evidence of stale
+derived schedule rows being repaired. The physical iPhone convergence check is
+still owner-pending; exact evidence is in
+[`cross-device-sync/`](../research/room-ux-b7-learning-compass/2026-08-13/cross-device-sync/README.md).
+
 ## Что не доказано
 
 - Owner evidence confirms a general iPhone Safari production smoke, but does
@@ -339,6 +386,6 @@ Exact machine-readable evidence:
 Выполнить
 [`ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md`](./ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md).
 Production preflight/deploy/read-back выполнен для release line through
-`3.11.372`. После owner physical/AT PASS или явных documented exceptions
+`3.11.373`. После owner physical/AT PASS или явных documented exceptions
 подготовить B7 closure; только затем начинать новый research-only goal B8
 Reading Journey.
