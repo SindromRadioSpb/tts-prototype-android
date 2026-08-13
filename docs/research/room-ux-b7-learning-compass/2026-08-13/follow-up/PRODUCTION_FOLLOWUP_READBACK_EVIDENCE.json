@@ -1,0 +1,112 @@
+{
+  "generated_at": "2026-08-13T00:18:00.383Z",
+  "release": {
+    "version": "3.11.367",
+    "commit": "70dcffdc",
+    "cutover_verified": true,
+    "room_footer": "3.11.367"
+  },
+  "evidence_class": "desktop Chromium Kapture production read-only; not physical-device or assistive-technology acceptance",
+  "served_byte_equality": {
+    "passed": 8,
+    "total": 8,
+    "files": {
+      "/index.html": "48ee116b0b6f166434f564af606ae1b931e391bb2e43143a7c87cfb956e9fa95",
+      "/library.html": "07e43ca098baf9a3f1710c86164cdc25d94288e1a10c3fc8045c8f39a14dde59",
+      "/js/library-ui.js": "325288f8b88af8935330ec371af6bd92d2b203fb27b730d39e4626b31d51e5e3",
+      "/js/corpus-item-presenter.js": "9ebc7ba2e213b20064b7a5fec6847088fce370ca341835be4e6700d3ebfa49df",
+      "/i18n/locales/ru.js": "d4bf89a28a9511a20bd6d9c78825cdf15a1a40a27f3c5b72ac200b4936390267",
+      "/i18n/locales/en.js": "c3113b21b5d399a3c8a1f5e309e827385b89feb72ca0a5fd98236a0d28c4c694",
+      "/i18n/locales/he.js": "61727d2eeb9e5842f88871f3e8babe9622623a5f8e7fd8def56d4e0b150c8f45",
+      "/sw.js": "e49d646353f515f3f8d89c6975b2f70640f193b87552d53bb7753b0850ac895f"
+    },
+    "note": "Locale hashes compare committed LF blobs to production; the Windows worktree exposes CRLF."
+  },
+  "health": {
+    "samples": 3,
+    "ok": 3,
+    "db_ready": 3,
+    "migrations_ready": 3,
+    "disk_pct_used": 86
+  },
+  "owner_profile_read_only": {
+    "reader_opened": false,
+    "my_texts": {
+      "catalog_prepared": "115/115",
+      "visible_cards": 48,
+      "signals": 48,
+      "details": 48,
+      "old_verbose_copy": 0,
+      "sort_label": "Сначала достоверно знакомые",
+      "sort_result": {
+        "rank_eligible_promoted": 1,
+        "visible_limited_kept_neutral": 47
+      },
+      "limited_detail_localized": true
+    },
+    "study_songs": {
+      "visible_cards": 48,
+      "signals": 48,
+      "details": 48,
+      "available_limited": 1,
+      "not_prepared_actionable": 47,
+      "contradictory_derived_provenance": 0,
+      "protected_work_body_fetches_on_card_paint": 0
+    },
+    "ben_yehuda": {
+      "compact_rail_cards": 12,
+      "lazy_rail_signals": 8,
+      "lazy_rail_details": 8,
+      "rail_panel_viewport_contained": true,
+      "rail_escape_focus_return": true,
+      "bounded_result_rows": 60,
+      "lazy_result_details": 12,
+      "available": 1,
+      "available_limited": 11,
+      "bad_exact_bucket_or_provenance_details": 0
+    }
+  },
+  "network": {
+    "non_get_requests": 0,
+    "content_uploads": 0,
+    "telemetry_requests": 0,
+    "group_catalog_gets": 1,
+    "group_work_body_gets": 0,
+    "http_errors": 0
+  },
+  "canonical_before_after": {
+    "equal": true,
+    "tables": {
+      "review_log": {
+        "rows": 7200,
+        "sha256": "6e15a27644abfa4aeca9ff33f2acf50ab26127861bc8ca1d1bc74369b900af6d"
+      },
+      "word_status": {
+        "rows": 5371,
+        "sha256": "fc83a60f2890b27acaaa3588592d0ef077b07926f1a8b4a8c3670a469380eceb"
+      },
+      "text_progress": {
+        "rows": 89,
+        "sha256": "3a3c0a2ff4b0a09430450f27368de1efdfda86c6f8f6e3885751f1f2e8542014"
+      },
+      "texts": {
+        "rows": 222,
+        "sha256": "c6857f29c0374cd04c307d9f672272bc54ae98fc92673e4c60881971a7315654"
+      }
+    }
+  },
+  "automation": {
+    "b7": "159/159",
+    "group_corpus_ui": "PASS @380/@510/@1280",
+    "b6": "45/45",
+    "b0_b5": "838/838",
+    "agent_text_coverage": "74",
+    "agent_group_corpus": "42",
+    "i18n": "233/233",
+    "memory_canon": "79/79",
+    "canon_version": "18/18",
+    "corpus_vocab_engine": "37/37",
+    "reader_parity": "PASS",
+    "room_media": "PASS"
+  }
+}

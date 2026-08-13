@@ -11,9 +11,9 @@ Decision packet:
 
 Implementation: `main@845ddc71`; production finishing: `04f88328`, `85bdc9de`;
 compact-copy follow-up: `3.11.364`; cold-library + packet hardening:
-`1298bb71`, `73e74a37`
+`1298bb71`, `73e74a37`; three-corpus disclosure follow-up: `70dcffdc`
 
-Production release: `3.11.366`
+Production release: `3.11.367`
 
 Владелец отдельно авторизовал production deploy. Первичный `3.11.363` развёрнут
 и проверен direct no-store/served-byte read-back. Kapture-проверка использовала
@@ -32,6 +32,16 @@ verbose ingredients для первой страницы занимали `560,0
 `256 KiB` batch честно отбрасывал 26 из 48 строк. `3.11.366` хранит те же
 частоты compact tuples `[key,count]` под schema `2.0.1`; лимит не повышен, а
 production packet стал `48/48`, `255,442 B`, stale/invalid = 0.
+
+Follow-up hardening `3.11.367` закрыл четыре найденных при трёхкорпусной
+проверке disclosure-дефекта. Catalog-only group card больше не заявляет
+familiarity как `derived`: видимый статус предлагает «Откройте для анализа», а
+details честно показывают unknown provenance и локальную подготовку после
+первого открытия. Compact Ben-Yehuda rail теперь имеет то же структурированное
+раскрытие, что result row. `AVAILABLE_LIMITED` явно объясняет, что высокая
+неоднозначность исключает значение из сортировки; label сортировки уточнён до
+«Сначала достоверно знакомые». Одновременно открывается только одна details-
+панель, `Escape` закрывает её и возвращает focus на summary.
 
 Release hardening 13 августа: первые две image-сборки `3.11.364` остановились
 до cutover после сетевого `socket hang up` при получении prebuilt `sqlite3`;
@@ -65,7 +75,7 @@ source fallback затем выявил отсутствующий Python 3.12 `
   максимум два visible B7 signals, structured details, keyboard reset/disable.
 - Agent `get_text_coverage` и group coverage используют ту же v2-семантику.
   Это versioned response evolution; оно не создаёт network dependency Room.
-- Service Worker/Studio/Room version согласованы на production `3.11.366`;
+- Service Worker/Studio/Room version согласованы на production `3.11.367`;
   activation semantics B6 не ослаблены.
 - B6 history continuity сохраняется: non-presentation open заранее ставит
   `touchOpened` в очередь до фоновых body reads; Reader bar height синхронизирует
@@ -97,6 +107,9 @@ source fallback затем выявил отсутствующий Python 3.12 `
 
 Durable automation evidence:
 [`docs/research/room-ux-b7-learning-compass/2026-08-12/automation/`](../research/room-ux-b7-learning-compass/2026-08-12/automation/).
+
+Follow-up three-corpus evidence (`159/159`, включая 380px Ben rail disclosure):
+[`docs/research/room-ux-b7-learning-compass/2026-08-13/follow-up/automation/`](../research/room-ux-b7-learning-compass/2026-08-13/follow-up/automation/).
 
 ## Production, owner-profile and owner-smoke read-back
 
@@ -137,6 +150,34 @@ Durable initial `3.11.363` production evidence:
 Cold-library `3.11.366` production evidence:
 [`PRODUCTION_READBACK_EVIDENCE.json`](../research/room-ux-b7-learning-compass/2026-08-13/automation/PRODUCTION_READBACK_EVIDENCE.json).
 
+### Follow-up production read-back: `3.11.367`
+
+- Release commit: `70dcffdc`; direct no-store version and Room footer both
+  `3.11.367`.
+- Committed-vs-served SHA-256 equality: `8/8` changed shell assets (`index`,
+  Room HTML, `library-ui`, presenter, SW, RU/EN/HE). Locale comparison uses Git
+  blob bytes because the Windows worktree exposes CRLF while committed/prod
+  bytes are LF.
+- `/healthz`: `3/3` samples `ok`, DB ready, migrations ready; disk `86%`.
+- Owner-profile read-only My Texts: `48/48` visible signals and details,
+  readiness `115/115`; no old «зафиксировано знакомыми» copy. The actual
+  familiarity sort promoted the one `AVAILABLE/rank_eligible` item and kept
+  `47` limited items neutral, as required by D1.
+- Owner-profile read-only Study Songs: `48/48` signals/details; `1`
+  `AVAILABLE_LIMITED`, `47` actionable `NOT_PREPARED`; every cold detail says
+  unknown provenance and first-open local preparation. Card paint issued only
+  the catalog GET, `0` protected work-body fetches.
+- Owner-profile read-only Ben-Yehuda: compact rail disclosure is present,
+  viewport-contained and Escape-closeable; bounded result page rendered `60`
+  rows with `12` lazy B7 details (`1 AVAILABLE`, `11 AVAILABLE_LIMITED`) and
+  exact bucket/provenance lines.
+- Whole traversal made `0` non-GET requests, `0` content uploads and `0`
+  telemetry requests. Before/after rows and SHA-256 are identical for
+  `review_log` (`7,200`), `word_status` (`5,371`), `text_progress` (`89`) and
+  `texts` (`222`); Reader never opened.
+- This is desktop Chromium/Kapture production evidence, not a new physical
+  iPhone/Android, NVDA, VoiceOver or TalkBack acceptance claim.
+
 ## Что не доказано
 
 - Owner evidence confirms a general iPhone Safari production smoke, but does
@@ -152,6 +193,6 @@ Cold-library `3.11.366` production evidence:
 Выполнить
 [`ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md`](./ROOM_UX_B7_PHYSICAL_ACCEPTANCE_PACKET_2026_08_12.md).
 Production preflight/deploy/read-back выполнен для release line through
-`3.11.366`. После owner physical/AT PASS или явных documented exceptions
+`3.11.367`. После owner physical/AT PASS или явных documented exceptions
 подготовить B7 closure; только затем начинать новый research-only goal B8
 Reading Journey.
