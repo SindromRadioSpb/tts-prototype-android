@@ -1,9 +1,9 @@
 # Reading Room B8 — implementation and release evidence
 
 Дата: 2026-08-13
-Статус: **LOCAL PASS · PRODUCTION PREFLIGHT PASS · DEPLOYMENT PENDING**
+Статус: **LOCAL PASS · FIRST PRODUCTION CUTOVER FOUND CACHE REGRESSION · FIX PENDING REVERIFY**
 Decision authority: `APPROVE B8-R` with D1–D6, `MIGRATION=NONE`, `SCOPE=IMMEDIATE_B8_ONLY`
-Release target: `3.11.374`
+Release target: `3.11.375`
 
 ## 1. Delivered contract
 
@@ -81,6 +81,14 @@ After cleanup: root 66% used / 13 GiB free; 12/12 containers and 3/3 volumes ret
 No user data, backup, volume, running container or media-service image was removed.
 
 ## 5. Evidence boundaries
+
+The first production cutover (`3.11.374`) exposed a shell-specific stale-cache path:
+`library.html` still requested all locale bundles with `?v=83`, while `index.html` and
+the committed locale lock were already at `?v=161`. A fresh isolated browser received
+the new labels, but an existing cached Reading Room shell was not guaranteed to do so.
+The corrective release aligns both shells at `?v=161`, extends the i18n gate to cover
+both entry points, and advances APP/CACHE/footer/package version to `3.11.375` so the
+service worker update cannot remain at the first cutover's cache generation.
 
 - Automation is not owner-live, a physical iPhone run, VoiceOver, NVDA or TalkBack.
 - Production verification will use guest/synthetic read-only paths; it will not grade,

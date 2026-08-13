@@ -700,10 +700,11 @@ for (const key of p11Keys) {
 // that gap with a committed content-hash lock, so it needs neither git history
 // nor a live browser to catch the regression.
 
-console.log("\n[Suite 10] Locale cache-bust version lock (public/index.html ?v= vs public/sw.js precache)");
+console.log("\n[Suite 10] Locale cache-bust version lock (all HTML shells ?v= vs public/sw.js precache)");
 
 const REPO_ROOT = path.join(__dirname, "..");
 const INDEX_HTML_PATH = path.join(REPO_ROOT, "public/index.html");
+const LIBRARY_HTML_PATH = path.join(REPO_ROOT, "public/library.html");
 const LOCALE_REL_PATHS = [
   "public/i18n/locales/ru.js",
   "public/i18n/locales/en.js",
@@ -711,8 +712,8 @@ const LOCALE_REL_PATHS = [
 ];
 const LOCK_PATH = path.join(__dirname, "i18n.locale-version.lock.json");
 
-function readIndexHtml() {
-  return fs.readFileSync(INDEX_HTML_PATH, "utf8");
+function readHtml(htmlPath = INDEX_HTML_PATH) {
+  return fs.readFileSync(htmlPath, "utf8");
 }
 
 // Extracts the `?v=` number for one locale's <script> tag. Returns null if the
@@ -772,7 +773,7 @@ function indent(text, prefix) {
 // copy-paste-free way to do the "update the lock file" half of the fix after
 // bumping `?v=` — the failure message below also spells out the manual edit.
 if (process.argv.includes("--write-lock")) {
-  const html = readIndexHtml();
+  const html = readHtml();
   const v = extractLocaleVersion(html, "ru");
   if (!v) {
     console.error("--write-lock: could not read the ru.js ?v= from public/index.html; aborting write.");
@@ -784,33 +785,43 @@ if (process.argv.includes("--write-lock")) {
   console.log(indent(content, "    "));
 }
 
-test("locale <script> tags in index.html share one ?v= number", () => {
-  const html = readIndexHtml();
-  const ruV = extractLocaleVersion(html, "ru");
-  const enV = extractLocaleVersion(html, "en");
-  const heV = extractLocaleVersion(html, "he");
-  assert.ok(
-    ruV && enV && heV,
-    `Could not find all three "/i18n/locales/{ru,en,he}.js?v=N" <script> tags in ` +
-    `public/index.html (found ru=${ruV}, en=${enV}, he=${heV}). The tag pattern may ` +
-    `have changed — update extractLocaleVersion() in tests/i18n.smoke.js Suite 10.`
-  );
+test("locale <script> tags in every HTML shell share one ?v= number", () => {
+  const shellVersions = [];
+  for (const [shellName, htmlPath] of [
+    ["public/index.html", INDEX_HTML_PATH],
+    ["public/library.html", LIBRARY_HTML_PATH],
+  ]) {
+    const html = readHtml(htmlPath);
+    const ruV = extractLocaleVersion(html, "ru");
+    const enV = extractLocaleVersion(html, "en");
+    const heV = extractLocaleVersion(html, "he");
+    assert.ok(
+      ruV && enV && heV,
+      `Could not find all three "/i18n/locales/{ru,en,he}.js?v=N" <script> tags in ` +
+      `${shellName} (found ru=${ruV}, en=${enV}, he=${heV}). The tag pattern may ` +
+      `have changed — update extractLocaleVersion() in tests/i18n.smoke.js Suite 10.`
+    );
+    assert.strictEqual(
+      ruV, enV,
+      `BUG: ru.js and en.js locale <script> tags carry DIFFERENT ?v= numbers ` +
+      `(ru=${ruV}, en=${enV}) in ${shellName}. All three MUST share one number.`
+    );
+    assert.strictEqual(
+      ruV, heV,
+      `BUG: ru.js and he.js locale <script> tags carry DIFFERENT ?v= numbers ` +
+      `(ru=${ruV}, he=${heV}) in ${shellName}. All three MUST share one number.`
+    );
+    shellVersions.push([shellName, ruV]);
+  }
   assert.strictEqual(
-    ruV, enV,
-    `BUG: ru.js and en.js locale <script> tags carry DIFFERENT ?v= numbers ` +
-    `(ru=${ruV}, en=${enV}) in public/index.html. All three MUST share one number ` +
-    `— fix this mismatch directly, it is a bug on its own regardless of the lock check.`
-  );
-  assert.strictEqual(
-    ruV, heV,
-    `BUG: ru.js and he.js locale <script> tags carry DIFFERENT ?v= numbers ` +
-    `(ru=${ruV}, he=${heV}) in public/index.html. All three MUST share one number ` +
-    `— fix this mismatch directly, it is a bug on its own regardless of the lock check.`
+    shellVersions[0][1], shellVersions[1][1],
+    `STALE-CACHE REGRESSION: locale ?v= differs between HTML shells ` +
+    `(${shellVersions.map(([name, version]) => `${name}=${version}`).join(", ")}).`
   );
 });
 
 test("locale files match the committed cache-bust lock (content changed => ?v= must bump)", () => {
-  const html = readIndexHtml();
+  const html = readHtml();
   const currentVersion = extractLocaleVersion(html, "ru");
   if (!currentVersion) {
     throw new Error(
@@ -917,7 +928,7 @@ console.log("\n[Suite 10b] Page version stamp (public/index.html window.APP_VERS
 const SW_JS_PATH = path.join(REPO_ROOT, "public/sw.js");
 
 test("window.APP_VERSION in index.html matches CACHE_VERSION in sw.js", () => {
-  const html = readIndexHtml();
+  const html = readHtml();
   const swSrc = fs.readFileSync(SW_JS_PATH, "utf8");
   const appM = html.match(/window\.APP_VERSION\s*=\s*"v?([^"]+)"/);
   assert.ok(
