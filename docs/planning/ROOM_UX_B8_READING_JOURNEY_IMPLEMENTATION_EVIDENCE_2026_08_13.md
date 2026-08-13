@@ -1,7 +1,7 @@
 # Reading Room B8 — implementation and release evidence
 
 Дата: 2026-08-13
-Статус: **LOCAL PASS · FIRST PRODUCTION CUTOVER FOUND CACHE REGRESSION · FIX PENDING REVERIFY**
+Статус: **LOCAL PASS · PRODUCTION PASS · OWNER-LIVE READY**
 Decision authority: `APPROVE B8-R` with D1–D6, `MIGRATION=NONE`, `SCOPE=IMMEDIATE_B8_ONLY`
 Release target: `3.11.375`
 
@@ -82,7 +82,7 @@ No user data, backup, volume, running container or media-service image was remov
 
 ## 5. Evidence boundaries
 
-The first production cutover (`3.11.374`) exposed a shell-specific stale-cache path:
+The first production cutover (`3.11.374`, commit `06823365`) exposed a shell-specific stale-cache path:
 `library.html` still requested all locale bundles with `?v=83`, while `index.html` and
 the committed locale lock were already at `?v=161`. A fresh isolated browser received
 the new labels, but an existing cached Reading Room shell was not guaranteed to do so.
@@ -90,9 +90,27 @@ The corrective release aligns both shells at `?v=161`, extends the i18n gate to 
 both entry points, and advances APP/CACHE/footer/package version to `3.11.375` so the
 service worker update cannot remain at the first cutover's cache generation.
 
+Corrective production cutover (`3.11.375`, commit `7d32686d`) was verified against the
+served site, not inferred from the repository:
+
+| Production readback | Result |
+|---|---:|
+| `/api/client-config` / `window.APP_VERSION` / Room footer | `3.11.375` / `3.11.375` / `3.11.375` |
+| service-worker cache generation | `v3.11.375` precache + runtime |
+| Room locale network requests | RU/EN/HE `?v=161`, all HTTP 200 |
+| corrective runtime image | commit `7d32686d` |
+| `/healthz` | app, DB and migrations ready; disk 76%; warning false |
+| RU 380 / HE 380 RTL | 0 overflow; 0 clipped; 0 undersized WCAG 24 px targets |
+| HE 320 + text spacing / 200% | 0 overflow; 0 clipped; 0 undersized WCAG 24 px targets |
+| Journey keyboard close | `Escape` closes disclosure, clears result DOM, returns focus |
+| isolated guest `review_log` | absent/0 before and after; no grade/review request |
+
+The only browser console/resource errors were expected guest HTTP 401 responses from
+owner/auth/group endpoints. They did not affect the Reading Journey or static assets.
+
 - Automation is not owner-live, a physical iPhone run, VoiceOver, NVDA or TalkBack.
-- Production verification will use guest/synthetic read-only paths; it will not grade,
-  change status, create review events or mutate the owner's local profile.
+- Production verification used a fresh isolated guest profile and read-only paths; it
+  did not grade, change status, create review events or touch the owner's local profile.
 - Migration remains **NONE**.
-- Owner-live handoff is permitted only after served APP/CACHE/version/image/health and
-  production responsive/RTL/keyboard checks pass.
+- Served APP/CACHE/version/image/health and production responsive/RTL/keyboard checks
+  passed. Owner-live handoff is now permitted; it remains distinct from automation.
