@@ -51,6 +51,11 @@ compact-copy follow-up plus cold-library/packet hardening `1298bb71` and
   full physical/AT matrix не выполнена, B7 не закрыт.
 - по owner feedback visible familiarity copy сокращена до `X% знакомы` /
   `Не менее X% знакомы`; exact buckets и provenance остаются в details.
+- B7 finishing candidate `3.11.370` унифицирует exact audio coverage и
+  locale-based alignment во всех трёх корпусах, делает details single-open /
+  outside-click / Escape-dismissable, объясняет различие token lower bound и
+  lemma inventory и исцеляет rejected-row cloud cursor без новых learner
+  events. Production read-back должен быть добавлен до physical retest.
 
 - честная familiar-word coverage для поддерживаемых My Texts/group items;
 - индивидуальное время чтения только после калибровки по реальному поведению;

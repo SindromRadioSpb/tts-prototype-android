@@ -170,6 +170,26 @@ test("group presentation never invents TTS or an audio revision", async () => {
   assert.equal(audio.value.kind, null);
 });
 
+test("all corpus presenters expose one honest audio coverage contract", async () => {
+  const { pathToFileURL } = require("node:url");
+  const presenter = await import(pathToFileURL(path.join(__dirname, "../public/js/corpus-item-presenter.js")).href);
+  const partial = presenter.adaptGroupCorpusItem({
+    work_id: "g-partial", text_key: "g-partial", title: "שיר", rows_count: 34, audio_count: 20,
+  }, { corpusId: "c1" });
+  const absent = presenter.adaptBenYehudaItem({ id: "b1", text_key: "b1", title: "יצירה", segments: 12, audio_status: "none" });
+  const personal = presenter.adaptMyTextItem({ id: "m1", text_key: "m1", title: "Текст" }, {
+    media: { kind: "audio", coverage: "full", countLabel: "42/42", videoAvailable: true },
+  });
+
+  assert.deepEqual(partial.readiness.caveats, []);
+  assert.deepEqual({ kind: partial.media.kind, coverage: partial.media.coverage, countLabel: partial.media.countLabel },
+    { kind: "audio", coverage: "partial", countLabel: "20/34" });
+  assert.deepEqual({ kind: absent.media.kind, coverage: absent.media.coverage, countLabel: absent.media.countLabel },
+    { kind: "audio", coverage: "none", countLabel: null });
+  assert.deepEqual({ kind: personal.media.kind, coverage: personal.media.coverage, countLabel: personal.media.countLabel, videoAvailable: personal.media.videoAvailable },
+    { kind: "audio", coverage: "full", countLabel: "42/42", videoAvailable: true });
+});
+
 test("unmaterialized group familiarity is actionable and never claims a derived value", async () => {
   const { pathToFileURL } = require("node:url");
   const presenter = await import(pathToFileURL(path.join(__dirname, "../public/js/corpus-item-presenter.js")).href);
@@ -324,10 +344,61 @@ test("all three readable corpora fully prepare and expose the same familiarity s
   assert.doesNotMatch(ui, /function groupCompassDescriptor\([^)]*\) \{\s*if \(!work \|\| !localRow/);
   assert.doesNotMatch(ui, /filter\(\(item\) => item && item\.local_id\)\.slice\(0, 8\)/);
   assert.doesNotMatch(ui, /familiar_desc[\s\S]{0,240}(?:70|90|95|98)/);
-  assert.match(ui, /paintLearningCompass\(learnRow, view, \{ showMedia: false, showDetails: true \}\)/);
+  assert.match(ui, /paintLearningCompass\(learnRow, view, \{ showMedia: true, showDetails: true \}\)/);
   assert.doesNotMatch(shell, /\.work-card \.learning-compass-details \{ display: none; \}/);
   assert.match(ui, /learning-compass-details\[open\]/);
   assert.match(ui, /event\.key !== 'Escape'/);
+});
+
+test("B7 finishing keeps cards locale-aligned and disclosures single-open and dismissible", () => {
+  const ui = fs.readFileSync(path.join(__dirname, "../public/js/library-ui.js"), "utf8");
+  const shell = fs.readFileSync(path.join(__dirname, "../public/library.html"), "utf8");
+  assert.match(ui, /DISMISSIBLE_DETAILS_SELECTOR/);
+  assert.match(ui, /document\.addEventListener\('pointerdown'/);
+  assert.match(ui, /\.closest\(DISMISSIBLE_DETAILS_SELECTOR/);
+  assert.match(ui, /room-study-total-help/);
+  assert.match(ui, /room\.morph\.study\.countHelp/);
+  assert.match(shell, /html\[dir="ltr"\][^{]*\.corpus-next-title\[dir="rtl"\][\s\S]*?text-align:\s*left/);
+  assert.match(shell, /\.room-preview-list \.work-card-difficulty[\s\S]*?justify-content:\s*flex-start/);
+  assert.match(shell, /\.learning-media\.media-none/);
+});
+
+test("cloud sync never advances past rejected rows and refreshes every local projection", () => {
+  const sync = fs.readFileSync(path.join(__dirname, "../public/js/cloud-sync.js"), "utf8");
+  const ui = fs.readFileSync(path.join(__dirname, "../public/js/library-ui.js"), "utf8");
+  assert.match(sync, /INGEST_REJECTED/);
+  assert.match(sync, /rejectedRows/);
+  assert.match(sync, /setSyncState\(UP_CURSOR, ""\)/);
+  assert.match(ui, /morphHost\.invalidateWordStates\(\)/);
+  assert.match(ui, /ensureLearningCompassProjection\(true\)/);
+  assert.match(ui, /window\.addEventListener\('pageshow',[\s\S]*?roomCloudMaybeResync/);
+  assert.match(ui, /window\.addEventListener\('online',[\s\S]*?roomCloudMaybeResync/);
+});
+
+test("syncUp returns an explicit failure and preserves its cursor on a row reject", async () => {
+  const cloud = require("../public/js/cloud-sync.js");
+  const originalFetch = global.fetch;
+  const writes = [];
+  global.fetch = async () => new Response(JSON.stringify({
+    ok: true,
+    review_log: { total: 1, new: 0, dup: 0, rejected: 1 },
+    rejected: [{ id: "bad-row", reason: "fixture_reject" }],
+  }), { status: 200, headers: { "Content-Type": "application/json" } });
+  const ldb = {
+    getSyncState: async (key) => key === cloud.KEYS.CUTOVER_OK ? "1" : "0",
+    setSyncState: async (key, value) => { writes.push([key, value]); },
+    listReviewLogAfterRowid: async (cursor) => Number(cursor) === 0 ? [{
+      rid: 7, id: "bad-row", item_key: "pid:1", kind: "mark",
+      reviewed_at: "2026-08-13T00:00:00.000Z", grade: null, source: "word-mark", meta_json: "{}",
+    }] : [],
+  };
+  try {
+    const result = await cloud.syncUp(ldb);
+    assert.equal(result.ok, false);
+    assert.equal(result.error, "INGEST_REJECTED");
+    assert.equal(result.rejectedRows, 1);
+    assert.equal(writes.some(([key]) => key === cloud.KEYS.UP_CURSOR), false);
+  } finally { global.fetch = originalFetch; }
 });
 
 test("dedicated worker enforces local limits and emits aggregates rather than content", () => {

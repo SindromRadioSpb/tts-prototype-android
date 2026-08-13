@@ -1016,15 +1016,14 @@ function learningProvenanceTypeLabel(type) {
 
 function learningMediaLabel(media) {
   if (!media || !media.kind) return '';
-  if (media.kind === 'video') return '🎬 ' + tt('room.compass.video', 'Видео');
   if (media.kind !== 'audio') return '';
   const key = media.coverage === 'full' ? 'room.compass.audioFull'
     : media.coverage === 'partial' ? 'room.compass.audioPartial'
       : media.coverage === 'none' ? 'room.compass.audioNone' : 'room.compass.audioPresent';
   const fallback = media.coverage === 'full' ? 'Аудио полностью'
     : media.coverage === 'partial' ? 'Аудио частично'
-      : media.coverage === 'none' ? 'Без аудио' : 'Аудио';
-  return '♪ ' + tt(key, fallback) + (media.countLabel ? ' · ' + media.countLabel : '');
+      : media.coverage === 'none' ? 'Аудио отсутствует' : 'Аудио';
+  return tt(key, fallback) + (media.countLabel ? ' ' + media.countLabel : '');
 }
 
 function learningReadingTimeCopy(value) {
@@ -1043,17 +1042,35 @@ function renderLearningCompass(item, options) {
   return row;
 }
 
-let learningCompassEscapeBound = false;
-function bindLearningCompassEscape() {
-  if (learningCompassEscapeBound) return;
-  learningCompassEscapeBound = true;
+const DISMISSIBLE_DETAILS_SELECTOR = '.learning-compass-details[open], .room-study-total-help[open]';
+let dismissibleDetailsBound = false;
+function bindDismissibleDetails() {
+  if (dismissibleDetailsBound) return;
+  dismissibleDetailsBound = true;
+  document.addEventListener('pointerdown', (event) => {
+    const inside = event.target && event.target.closest ? event.target.closest(DISMISSIBLE_DETAILS_SELECTOR) : null;
+    document.querySelectorAll(DISMISSIBLE_DETAILS_SELECTOR).forEach((details) => {
+      if (details !== inside) details.open = false;
+    });
+  });
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
-    const details = document.querySelector('.learning-compass-details[open]');
+    const opened = document.querySelectorAll(DISMISSIBLE_DETAILS_SELECTOR);
+    const details = opened.length ? opened[opened.length - 1] : null;
     if (!details) return;
     event.preventDefault(); details.open = false;
     const summary = details.querySelector('summary'); if (summary) summary.focus();
   });
+}
+
+function wireDismissibleDetails(details) {
+  if (!details) return details;
+  bindDismissibleDetails();
+  details.addEventListener('toggle', () => {
+    if (!details.open) return;
+    document.querySelectorAll(DISMISSIBLE_DETAILS_SELECTOR).forEach((peer) => { if (peer !== details) peer.open = false; });
+  });
+  return details;
 }
 
 function paintLearningCompass(target, item, options) {
@@ -1098,6 +1115,9 @@ function paintLearningCompass(target, item, options) {
   else if (state.state === 'finished') target.appendChild(el('span', { class: 'learner-state-chip is-finished', text: state.resumeLabel || tt('room.groupCorpus.finished', 'Прочитано') }));
   let mediaDetailLabel = '';
   if (opts.showMedia) {
+    if (item.media && item.media.videoAvailable) {
+      target.appendChild(el('span', { class: 'learning-media media-video', text: '🎬 ' + tt('room.compass.video', 'Видео') }));
+    }
     const mediaLabel = learningMediaLabel(item.media);
     mediaDetailLabel = mediaLabel;
     if (mediaLabel) target.appendChild(el('span', { class: 'learning-media media-' + ((item.media && item.media.coverage) || 'present'), text: mediaLabel }));
@@ -1110,9 +1130,12 @@ function paintLearningCompass(target, item, options) {
     const provenance = signal.provenance || { type: 'unknown' };
     if (signal.kind === 'familiarity' && signal.value && signal.value.counts) {
       const c = signal.value.counts;
-      detailLines.push(tt('room.compass.auditCounts', 'Знакомые {f} / знаменатель {d}; новые {n}; без профиля {u}; неоднозначные {x}')
+      detailLines.push(tt('room.compass.auditMeaning', '{pct}% — нижняя граница по вхождениям слов, а не оценка понимания.')
+        .replace('{pct}', String(Math.round(Number(signal.value.lower_bound_pct) || 0))));
+      detailLines.push(tt('room.compass.auditCounts', 'Знакомые вхождения: {f} из {d}; новые: {n}; без отметки: {u}; неоднозначные: {x}; исключены: {e}')
         .replace('{f}', String(c.familiar)).replace('{d}', String(c.eligible_denominator))
-        .replace('{n}', String(c.explicit_new)).replace('{u}', String(c.untracked)).replace('{x}', String(c.unresolved)));
+        .replace('{n}', String(c.explicit_new)).replace('{u}', String(c.untracked)).replace('{x}', String(c.unresolved))
+        .replace('{e}', String((Number(c.ignored_excluded) || 0) + (Number(c.proper_names_excluded) || 0))));
     }
     if (signal.kind === 'level' && signal.value != null) {
       detailLines.push(learningSignalKindLabel('level') + ': ' + String(signal.value));
@@ -1124,13 +1147,8 @@ function paintLearningCompass(target, item, options) {
     for (const detailLabel of (signal.detail_labels || [])) if (detailLabel) detailLines.push(String(detailLabel));
   }
   if (opts.showDetails !== false && detailLines.length) {
-    bindLearningCompassEscape();
-    const details = el('details', { class: 'learning-compass-details' });
+    const details = wireDismissibleDetails(el('details', { class: 'learning-compass-details' }));
     details.appendChild(el('summary', { attrs: { 'aria-label': tt('room.compass.details', 'Почему подходит и откуда данные') }, text: 'ⓘ' }));
-    details.addEventListener('toggle', () => {
-      if (!details.open) return;
-      document.querySelectorAll('.learning-compass-details[open]').forEach((peer) => { if (peer !== details) peer.open = false; });
-    });
     const panel = el('div', { class: 'learning-compass-panel' });
     const seen = new Set();
     for (const line of detailLines) if (!seen.has(String(line))) { seen.add(String(line)); panel.appendChild(el('p', { text: String(line) })); }
@@ -2162,7 +2180,13 @@ function ensureStudySheet() {
   card.appendChild(el('button', { class: 'room-study-x', text: '✕', attrs: { type: 'button', 'data-study-close': '1', 'aria-label': tt('room.morph.close', 'Закрыть') } }));
   const head = el('div', { class: 'room-study-head' });
   head.appendChild(el('span', { class: 'room-study-title', i18n: 'room.morph.study.title', text: tt('room.morph.study.title', '📚 Учить новые слова') }));
-  head.appendChild(el('span', { class: 'room-study-total' }));   // «Новых слов: N»
+  const totalWrap = el('span', { class: 'room-study-total-wrap' });
+  totalWrap.appendChild(el('span', { class: 'room-study-total' }));   // «Новых слов: N»
+  const totalHelp = wireDismissibleDetails(el('details', { class: 'learning-compass-details room-study-total-help' }));
+  totalHelp.appendChild(el('summary', { text: 'ⓘ', attrs: { 'aria-label': tt('room.morph.study.countHelpLabel', 'Что означает число новых слов') } }));
+  const totalHelpPanel = el('div', { class: 'learning-compass-panel room-study-total-help-panel' });
+  totalHelpPanel.appendChild(el('p', { text: tt('room.morph.study.countHelp', 'Это разные уверенно распознанные словарные леммы со статусом «новое»; повторы одного слова объединены. Число не является остатком от процента знакомых слов.') }));
+  totalHelp.appendChild(totalHelpPanel); totalWrap.appendChild(totalHelp); head.appendChild(totalWrap);
   // D7.1 — always-visible entry to the activity heatmap (findable even with no streak → honest empty state)
   const calBtn = el('button', { class: 'room-study-cal', attrs: { type: 'button', 'aria-label': tt('room.morph.study.heatTitle', 'Календарь активности'), title: tt('room.morph.study.heatTitle', 'Календарь активности') } });
   calBtn.textContent = '📅';
@@ -3982,9 +4006,13 @@ async function _cloudRunSync(auto) {
     }
     _cloudStatus(line, artErr ? 'err' : 'ok');
     // fresh foreign rows may recolour words / move the due ring — repaint like §4.3 demands
+    morphHost.invalidateWordStates();
+    _compassPage.clear(); _groupLearningIndexes.clear(); _benFamiliarityScores = null; _benFamiliarityLoading = null;
+    try { await ensureLearningCompassProjection(true); } catch (_) {}
+    try { invalidateReadableSet(); } catch (_) {}
     try { applyDecorations(); } catch (_) {}
     try { refreshDueBadge(); } catch (_) {}
-  } else if (!auto) {
+  } else if (!auto || (res && res.error === 'INGEST_REJECTED')) {
     _cloudStatus('✗ ' + tt('room.cloud.err', 'Ошибка синхронизации') + ': ' + ((res && res.error) || '?'), 'err');
   }
   try { await _cloudRender(); } catch (_) {}
@@ -4218,6 +4246,9 @@ try {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') roomCloudMaybeResync();
   });
+  window.addEventListener('pageshow', () => roomCloudMaybeResync());
+  window.addEventListener('online', () => roomCloudMaybeResync());
+  window.addEventListener('focus', () => roomCloudMaybeResync());
 } catch (_) {}
 
 // ── CLG-P9 — «Дом наставника» (MENTOR_HOME_P9_DECISION_2026_07_06) ───────────────────────────
@@ -7885,7 +7916,7 @@ async function enhanceCardWithCoverage(node, card) {
     caveats, progress, savedState: isInAnyList(card.id) ? 'reading-list' : null,
   });
   const learnRow = _cardLearnRow(node); if (!learnRow) return;
-  paintLearningCompass(learnRow, view, { showMedia: false, showDetails: true });
+  paintLearningCompass(learnRow, view, { showMedia: true, showDetails: true });
   const primary = node.querySelector('.room-text-primary');
   if (primary) primary.textContent = view.primaryAction === 'continue' ? tt('room.resume.continue', 'Продолжить') : tt('room.mytexts.read', 'Читать');
 }
@@ -8114,21 +8145,18 @@ async function addMachineNiqqud(item, button) {
 function renderMyTextCard(item, vertical) {
   const node = el('article', { class: 'corpus-work-row room-text-row mytext-card' + (vertical ? ' mytext-card-v' : ''), attrs: { 'data-continuity-key': continuityKey('mytexts', item.id) } });
   const col = el('div', { class: 'corpus-work-col' });
-  let media = { kind: null, coverage: null, humanOrTts: null };
-  try {
-    if (item && (item.media_kind === 'audio' || item.media_kind === 'video')) {
-      media = { kind: item.media_kind, coverage: null, humanOrTts: null };
-    } else if (window.MediaHost) {
-      const passport = window.MediaHost.passportFromTextRow(item);
-      if (passport && (passport.media || (passport.video && passport.video.videoId))) {
-        const video = !!(passport.video && passport.video.videoId) || /^video\//.test(String((passport.media && passport.media.mime) || ''));
-        media = { kind: video ? 'video' : 'audio', coverage: null, humanOrTts: null };
-      }
-    }
-  } catch (_) {}
+  const totalRows = Math.max(0, Number(item && item.rows_count) || 0);
+  const hasBoundMedia = !!(item && (item.media_kind === 'audio' || item.media_kind === 'video'));
+  const mappedRows = Math.max(0, Math.min(totalRows, Number(item && item.audio_count) || (hasBoundMedia ? totalRows : 0)));
+  const audioCoverage = !hasBoundMedia || mappedRows <= 0 ? 'none' : totalRows > 0 && mappedRows >= totalRows ? 'full' : 'partial';
+  const media = {
+    kind: 'audio', coverage: audioCoverage, humanOrTts: null,
+    countLabel: mappedRows > 0 && totalRows > 0 ? mappedRows + '/' + totalRows : null,
+    videoAvailable: !!(item && item.media_kind === 'video'),
+  };
   const descriptor = myCompassDescriptor(item);
   const makeView = () => adaptMyTextItem(item, {
-    copy: corpusItemCopy(), media, mediaProvenance: { type: media.kind ? 'derived' : 'unknown', source: media.kind ? 'local-media-passport' : null, revision: item.updated_at || null },
+    copy: corpusItemCopy(), media, mediaProvenance: { type: 'derived', source: 'local-media-passport', revision: item.updated_at || null },
     ...learningCompassContext(descriptor && descriptor.cache_key, { continue_reading: Number(item.last_row_idx) > 0, asserted_level: !!item.level }),
   });
   let view = makeView();

@@ -145,11 +145,14 @@ export function adaptBenYehudaItem(card, context = {}) {
   const state = learnerState(context.progress, { copy, totalRows: source.segments, allowPercentage: true, newProgressZero: true });
   const audio = text(source.audio_status) || text(source.coverage && source.coverage.audio) || "none";
   const humanOrTts = audio === "tts" || audio === "human" ? audio : null;
+  const rows = Math.max(0, finite(source.segments) || 0);
+  const audioRows = humanOrTts ? rows : 0;
+  const coverage = humanOrTts ? "full" : "none";
   const reason = familiarityPct != null
     ? copyValue(copy, "familiarityReason", "Fits your familiar-word profile")
     : levelLabel ? copyValue(copy, "intrinsicReason", "Approximate lexical-frequency estimate") : null;
   const levelSignal = levelLabel ? typedSignal("level", levelLabel, "derived", "benyehuda-vocab-v7", context.catalogRevision || null, context.caveats) : null;
-  const audioSignal = humanOrTts ? typedSignal("audio", { coverage: "full", kind: humanOrTts }, "asserted", "benyehuda-catalog", context.catalogRevision || null, []) : null;
+  const audioSignal = typedSignal("audio", { coverage, kind: humanOrTts }, "asserted", "benyehuda-catalog", context.catalogRevision || null, []);
   return baseItem({
     corpusId: "benyehuda", itemId: source.id, textKey: source.text_key,
     title: source.title || copyValue(copy, "untitled", "Untitled"), creator: source.author,
@@ -159,7 +162,7 @@ export function adaptBenYehudaItem(card, context = {}) {
       levelLabel, familiarityPct, confidence: familiarityPct != null ? "derived-high" : "derived-soft",
       caveats: context.caveats, reason, zone: context.familiarityZone, band: context.difficultyBand,
     },
-    media: { kind: humanOrTts ? "audio" : null, coverage: humanOrTts ? "full" : "none", humanOrTts },
+    media: { kind: "audio", coverage, humanOrTts, countLabel: audioRows > 0 && rows > 0 ? `${audioRows}/${rows}` : null },
     savedState: context.savedState || null, tags: context.tags || [],
     primaryAction: state.state === "reading" ? "continue" : state.state === "finished" ? "reread" : "start",
     secondaryActions: ["author", "reading-list", "details"],
@@ -174,11 +177,11 @@ export function adaptMyTextItem(item, context = {}) {
   const copy = context.copy || {};
   const state = learnerState(source, { copy, allowPercentage: false, newProgressZero: false });
   const level = text(source.level);
-  const media = context.media || { kind: null, coverage: null, humanOrTts: null };
+  const media = context.media || { kind: "audio", coverage: "none", humanOrTts: null, countLabel: null, videoAvailable: false };
   const levelSignal = level ? typedSignal("level", level, "asserted", "studio", source.updated_at || null, []) : null;
-  const audioSignal = media && media.kind ? typedSignal("audio", { coverage: media.coverage, kind: media.humanOrTts },
+  const audioSignal = typedSignal("audio", { coverage: media.coverage || "none", kind: media.humanOrTts },
     context.mediaProvenance && context.mediaProvenance.type, context.mediaProvenance && context.mediaProvenance.source,
-    context.mediaProvenance && context.mediaProvenance.revision, []) : null;
+    context.mediaProvenance && context.mediaProvenance.revision, []);
   return baseItem({
     corpusId: "mytexts", itemId: source.id, textKey: source.text_key || source.id,
     title: source.title || copyValue(copy, "untitled", "Untitled"), creator: null,
@@ -212,9 +215,9 @@ export function adaptGroupCorpusItem(work, context = {}) {
   const position = source.position_no == null ? null : String(source.position_no);
   const assertedAudioKind = audioRows > 0 && (context.humanOrTts === "tts" || context.humanOrTts === "human") ? context.humanOrTts : null;
   const levelSignal = level ? typedSignal("level", level, "asserted", "group-corpus-owner", context.catalogRevision || null, []) : null;
-  const audioSignal = audioRows > 0 ? typedSignal("audio", { coverage, kind: assertedAudioKind },
+  const audioSignal = typedSignal("audio", { coverage, kind: assertedAudioKind },
     context.audioProvenance && context.audioProvenance.type, context.audioProvenance && context.audioProvenance.source,
-    context.audioProvenance && context.audioProvenance.revision || revision, coverage === "partial" ? ["partial"] : []) : null;
+    context.audioProvenance && context.audioProvenance.revision || revision, coverage === "partial" ? ["partial"] : []);
   return baseItem({
     corpusId: `group:${String(context.corpusId || "")}`, itemId: source.work_id, textKey: source.text_key,
     title: source.title || copyValue(copy, "untitled", "Untitled"), creator: source.artist,
@@ -223,12 +226,12 @@ export function adaptGroupCorpusItem(work, context = {}) {
     learnerState: state,
     readiness: {
       levelLabel: level, familiarityPct: null, confidence: "asserted",
-      caveats: coverage === "partial" ? [copyValue(copy, "partialAudio", "Audio is partial")] : [],
+      caveats: [],
       reason: level ? copyValue(copy, "groupLevelReason", "Level set by the corpus owner") : copyValue(copy, "assignedReason", "Assigned to your group"),
     },
     media: {
-      kind: audioRows > 0 ? "audio" : null, coverage, humanOrTts: assertedAudioKind,
-      countLabel: `${audioRows}/${rows}`, revision,
+      kind: "audio", coverage, humanOrTts: assertedAudioKind,
+      countLabel: audioRows > 0 && rows > 0 ? `${Math.min(audioRows, rows)}/${rows}` : null, revision,
     },
     savedState: null, tags: normalizedTags(source.tags),
     primaryAction: state.state === "reading" ? "continue" : state.state === "finished" ? "reread" : "start",

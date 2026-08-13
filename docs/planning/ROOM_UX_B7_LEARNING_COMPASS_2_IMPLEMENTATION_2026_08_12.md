@@ -232,6 +232,46 @@ Cold-library `3.11.366` production evidence:
   evidence is in
   [`PRODUCTION_READBACK_EVIDENCE.json`](../research/room-ux-b7-learning-compass/2026-08-13/corpus-preparation/PRODUCTION_READBACK_EVIDENCE.json).
 
+### B7 corpus finishing release candidate: `3.11.370`
+
+Owner review of the complete three-corpus experience found four cross-surface
+gaps which belong to B7 rather than a later visual lane:
+
+- all three corpus presenters now emit one explicit audio-coverage contract.
+  The only visible forms are localized equivalents of `Audio full N/N`,
+  `Audio partial N/N`, and `Audio unavailable`; the former duplicate
+  `Audio is partial` caveat is removed. My Texts derives bounded integer counts
+  in the B6 page query rather than loading media passports during card paint;
+- card identity, evidence and recommendation-copy alignment follows the UI
+  locale. In RU/EN the copy starts at the left even when the work title is
+  Hebrew; HE/RTL keeps the mirrored reading order. The primary action remains
+  a separate trailing control;
+- Learning Compass disclosures are single-open. Pointer-down outside closes
+  them, opening another closes its peer, and `Escape` closes the latest panel
+  and restores focus to its summary control;
+- cloud reconciliation no longer advances the upload cursor past a rejected
+  `review_log` row. A count mismatch clears upload, download and cutover
+  cursors, retries the idempotent union, propagates a failed heal, invalidates
+  word-state/Compass projections, and also runs after `pageshow`, `online` and
+  window focus. It never synthesizes a grade, mark or review event.
+
+The owner fixture `Кфар Аза - 2 544/573` provides an exact audit example:
+
+- eligible token denominator `3,945` = familiar `1,107` + explicitly new
+  `1,679` + untracked `61` + unresolved `1,098`; another `37` ignored tokens
+  are excluded from the denominator;
+- the displayed lower bound is `1,107 / 3,945 = 28.0608%`, rounded to `28%`.
+  It measures recorded familiar occurrences, not comprehension;
+- `Новых слов: 479` is a different, deliberately non-additive inventory:
+  distinct confidently resolved learnable lemmas that are new or unset,
+  after grouping repeated inflections. It is neither an occurrence count nor
+  `3,945 - 1,107`. Both surfaces now expose localized help for this distinction.
+
+Release-candidate gates: B7 browser matrix `161/161`, frozen B0–B6 contracts
+`46/46`, cloud sync `32/32`, i18n/cache/version `233/233`, plus RU desktop and
+380 px and HE/RTL 360 px visual read-back. Production and owner-profile
+evidence are recorded only after served `3.11.370` is independently verified.
+
 ## Что не доказано
 
 - Owner evidence confirms a general iPhone Safari production smoke, but does

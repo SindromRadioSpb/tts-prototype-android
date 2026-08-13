@@ -707,6 +707,16 @@ function _b6MediaKindSql() {
                ELSE NULL END`;
 }
 
+function _b6AudioSegmentCountSql() {
+  const safeTable = `CASE WHEN json_valid(t.table_model_meta_json) THEN t.table_model_meta_json ELSE '{}' END`;
+  const safeSource = `CASE WHEN json_valid(t.source_meta_json) THEN t.source_meta_json ELSE '{}' END`;
+  const count = (holder) => `COALESCE(
+    json_array_length(json_extract(${safeTable}, '$.source.${holder}.segments')),
+    json_array_length(json_extract(${safeSource}, '$.source.${holder}.segments'))
+  )`;
+  return `COALESCE(${count('audio')}, ${count('captions')}, 0)`;
+}
+
 export async function listPersonalTextsPage(options = {}) {
   const filters = normalizeBrowseFilters(options);
   const pageLimit = Math.max(1, Math.min(Number(options.limit) || ROOM_B6_LIMITS.pageSize, 96));
@@ -808,6 +818,8 @@ export async function listPersonalTextsPage(options = {}) {
              t.created_at, t.updated_at, t.last_opened_at,
              tp.last_row_idx, tp.finished_at, tp.updated_at AS progress_updated_at,
              ${_b6MediaKindSql()} AS media_kind,
+             (SELECT COUNT(*) FROM sentences media_rows WHERE media_rows.text_id = t.id) AS rows_count,
+             ${_b6AudioSegmentCountSql()} AS audio_count,
              ${spec.primary} AS sort_primary,
              ${spec.secondary} AS sort_secondary
         FROM texts t

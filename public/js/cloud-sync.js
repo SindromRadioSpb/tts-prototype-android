@@ -115,7 +115,16 @@
       totals.sent += rows.length;
       totals.new += (r.json.review_log && r.json.review_log.new) || 0;
       totals.dup += (r.json.review_log && r.json.review_log.dup) || 0;
-      totals.rejected += (r.json.review_log && r.json.review_log.rejected) || 0;
+      var rejectedRows = (r.json.review_log && Number(r.json.review_log.rejected)) || 0;
+      totals.rejected += rejectedRows;
+      // A row-level reject is not a successful upload. Advancing the rowid cursor here
+      // permanently skipped the rejected tail while the UI still said "synced". Valid
+      // rows in a mixed page are idempotent on retry, so keep the cursor before the page
+      // and make the failure explicit until the bad row or server contract is repaired.
+      if (rejectedRows > 0) {
+        return { ok: false, error: "INGEST_REJECTED", status: r.status, at: cur,
+          rejectedRows: rejectedRows, rejected: Array.isArray(r.json.rejected) ? r.json.rejected.slice(0, 20) : [] };
+      }
       cur = Number(rows[rows.length - 1].rid) || cur;
     }
     return { ok: true, cursor: cur };
@@ -124,7 +133,7 @@
     var totals = { sent: 0, new: 0, dup: 0, rejected: 0 };
     var cur = Number(await ldb.getSyncState(UP_CURSOR)) || 0;
     var up = await _uploadFrom(ldb, cur, "up", totals);
-    if (!up.ok) return { ok: false, error: up.error, status: up.status, totals: totals };
+    if (!up.ok) return { ...up, totals: totals };
     await ldb.setSyncState(UP_CURSOR, String(up.cursor));
     // §4.3 cutover: trust the cursor only after a full-scan verify reports 0 new server-side.
     var cutover = await ldb.getSyncState(CUTOVER_OK);
@@ -496,10 +505,12 @@
       var c = await jfetch("GET", "/api/learner/counts");
       serverN = c.json && c.json.ok ? Number(c.json.review_log) : null;
       if (serverN != null && serverN !== localN && !(opts && opts.noHeal)) {
+        await ldb.setSyncState(UP_CURSOR, "");
         await ldb.setSyncState(CUTOVER_OK, "");
         await ldb.setSyncState(DOWN_CURSOR, "");
         var again = await fullSync(ldb, { noHeal: true, auto: !!(opts && opts.auto) });
-        if (again && again.ok) {
+        if (!again || !again.ok) return again || { ok: false, error: "RECONCILE_FAILED" };
+        if (again.ok) {
           healed = true;
           up = { totals: again.up }; up.ok = true; up.totals = again.up;
           down.pulled = (down.pulled || 0) + ((again.down && again.down.pulled) || 0);
@@ -522,6 +533,7 @@
     if (counts.status !== 200 || !counts.json || !counts.json.ok) return { ok: false, error: "COUNTS_FAILED" };
     var localCount = await ldb.countReviewLog();
     if (Number(counts.json.review_log) === localCount) return { ok: true, equal: true, count: localCount };
+    await ldb.setSyncState(UP_CURSOR, "");               // retry any row the old cursor skipped/rejected
     await ldb.setSyncState(CUTOVER_OK, "");            // force a fresh full-scan verify
     await ldb.setSyncState(DOWN_CURSOR, "");           // full re-download
     var again = await fullSync(ldb);
