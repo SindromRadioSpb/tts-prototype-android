@@ -18,12 +18,13 @@ This packet does not reopen B0-B7 or revise the approved B8 Reading Journey deci
 
 The same symptom has two independent causes.
 
-- **Reading Room:** `openReader()` restores the saved row before asynchronous media resolution has finished. When media becomes visible, `roomMediaApplyLayout()` converts the table from page scrolling to its own `.room-media-scroll` container. The logical row remains selected, but the new container starts at `scrollTop = 0`, so the reader sees the beginning.
+- **Reading Room:** `openReader()` restores the saved row before asynchronous media resolution has finished. When media becomes visible, `roomMediaApplyLayout()` converts the table from page scrolling to its own `.room-media-scroll` container. The logical row remains selected, but the new container starts at `scrollTop = 0`, so the reader sees the beginning. A production smoke of `3.11.377` exposed the remaining reload variant: read-only presentation restore correctly suppressed the DB write but also discarded the in-memory row needed by that late layout handoff.
 - **Studio:** `v3MediaFollowTableRange()` follows timed media by scrolling the table, but does not write that row through the existing progress writer. A long karaoke session can therefore reach row 500 while the canonical continue position remains row 0.
 
 RED browser evidence before the fix:
 
 - Room composite media: saved/visible row 8 before close; after real card reopen `.room-media-scroll` exists, `scrollTop = 0`, the saved row is highlighted but not visible.
+- Room browser reload after the first production deploy: stored row 12 remains canonical and page-level restore finds it, but the late media scroller starts at 0 because the read-only restore did not seed its session anchor. The same path was reproduced as a RED local regression before the hotfix.
 - Studio media: following row 45 moves the table to `scrollTop = 4922`; stored row remains 0; resume returns to the top.
 
 Plain own texts and baked Ben-Yehuda texts do not trigger the Room scroller transition and therefore explain the user's material-type split.
@@ -46,6 +47,7 @@ Keep the existing local DB progress row as the only Continue truth.
 
 - A Studio media-follow row is a real working position and writes through the existing debounced progress writer.
 - A Room media-layout transition repositions the already-restored logical row inside the new scroll container; it does not create a second progress store.
+- A read-only history/reload restore may seed that in-memory layout anchor, while durable writes remain suppressed.
 - A deliberate earlier-row visit remains the current Continue position, matching the owner's revised B8 learning-process decision.
 - Explicit bookmarks remain separate named destinations.
 

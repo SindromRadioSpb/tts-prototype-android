@@ -384,6 +384,32 @@ async function main() {
       ok(t5Reopen.mediaScroll && t5Reopen.wrapScrollTop > 0 && t5Reopen.targetVisible && t5Reopen.highlighted,
         "media mode: close/reopen Continue keeps the saved row visible after async layout, got "
           + JSON.stringify(t5Reopen));
+      // A browser reload restores the Reader through the read-only presentation path.
+      // That path must still seed the in-memory working row so a later async media
+      // layout can carry the restored page position into the inner table scroller.
+      await pg.reload({ waitUntil: "load" });
+      await pg.waitForFunction(() => {
+        const wrap = document.getElementById("roomReaderTable");
+        const stage = document.getElementById("roomMediaLocalStage");
+        return wrap && wrap.classList.contains("room-media-scroll") && stage && !stage.hidden;
+      }, { timeout: 15000 }).catch(() => failures.push("t5 reload: media layout did not settle"));
+      await pg.waitForTimeout(1800);
+      const t5Reload = await pg.evaluate((wanted) => {
+        const wrap = document.getElementById("roomReaderTable");
+        const row = wrap && wrap.querySelector('tr[data-row-idx="' + String(wanted) + '"]');
+        const wr = wrap && wrap.getBoundingClientRect();
+        const rr = row && row.getBoundingClientRect();
+        return {
+          wanted,
+          mediaScroll: !!(wrap && wrap.classList.contains("room-media-scroll")),
+          wrapScrollTop: wrap ? wrap.scrollTop : -1,
+          targetVisible: !!(wr && rr && rr.bottom > wr.top && rr.top < wr.bottom),
+          highlighted: !!(row && row.classList.contains("rm-row-jump")),
+        };
+      }, t5ExpectedResume);
+      ok(t5Reload.mediaScroll && t5Reload.wrapScrollTop > 0 && t5Reload.targetVisible && t5Reload.highlighted,
+        "media mode: browser reload keeps the saved row visible after read-only presentation restore, got "
+          + JSON.stringify(t5Reload));
       const hdrStatic = await pg.evaluate(() => getComputedStyle(document.querySelector(".room-header")).position);
       ok(hdrStatic === "static", "site header is non-sticky while reading, got " + hdrStatic);
       await backToGrid();

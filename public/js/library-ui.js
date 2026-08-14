@@ -4989,9 +4989,15 @@ let _programmaticProgressUntil = 0;
 // worked, even when study moves backwards. Furthest remains a separate session-only signal
 // for the manual end-of-text prompt; it is never persisted as the resume anchor.
 function recordProgress(idx) {
-  if (readerTextId == null || idx == null || idx < 0 || Date.now() < _roomReaderReadOnlyUntil) return;
+  if (readerTextId == null || idx == null || idx < 0) return;
+  // History/reload presentation restore is intentionally read-only, but it still
+  // needs an in-memory working row. Async media resolution may switch the table
+  // from page scrolling to its own scroller after restore; roomMediaApplyLayout()
+  // uses this session anchor to keep the restored row visible. Only the durable
+  // write is suppressed during the read-only window.
   _sessionLastRow = window.ReaderProgress ? window.ReaderProgress.latestProgress(_sessionLastRow, idx) : Math.floor(Number(idx));
   _sessionFurthestRow = window.ReaderProgress ? window.ReaderProgress.mergeProgress(_sessionFurthestRow, idx) : Math.max(_sessionFurthestRow, idx);
+  if (Date.now() < _roomReaderReadOnlyUntil) return;
   const tid = readerTextId, row = _sessionLastRow;
   if (_progressTimer) clearTimeout(_progressTimer);
   _progressTimer = setTimeout(() => {
