@@ -8034,6 +8034,42 @@ async function appendDifficultyRow(node, card) {
 const ROOM_LONG_LIST_STORAGE_KEY = 'room.longListDisclosure.v1';
 const ROOM_LONG_LIST_MAX_KEYS = 96;
 const ROOM_LONG_LIST_MAX_KEY_LENGTH = 160;
+const ROOM_LONG_LIST_COOKIE_KEY = 'roomLongListDisclosureV1';
+const ROOM_LONG_LIST_COOKIE_MAX_AGE = 31536000;
+function roomLongListToken(value) {
+  // Two independent 32-bit hashes keep the emergency cookie compact and
+  // content-free without depending on BigInt support in older Safari builds.
+  let a = 0x811c9dc5;
+  let b = 0x9e3779b9;
+  const text = String(value || '');
+  for (let i = 0; i < text.length; i += 1) {
+    const code = text.charCodeAt(i);
+    a = Math.imul(a ^ code, 0x01000193);
+    b = Math.imul(b ^ code, 0x85ebca6b);
+    b ^= b >>> 13;
+  }
+  return (a >>> 0).toString(16).padStart(8, '0') + (b >>> 0).toString(16).padStart(8, '0');
+}
+function loadRoomLongListCookieTokens() {
+  try {
+    const prefix = ROOM_LONG_LIST_COOKIE_KEY + '=';
+    const raw = document.cookie.split('; ').find((part) => part.startsWith(prefix));
+    if (!raw) return null;
+    const value = raw.slice(prefix.length);
+    if (!value.startsWith('v1.')) return null;
+    return new Set(value.slice(3).split('.').filter((token) => /^[0-9a-f]{16}$/.test(token)).slice(-ROOM_LONG_LIST_MAX_KEYS));
+  } catch (_) { return null; }
+}
+function clearRoomLongListCookie() {
+  try { document.cookie = ROOM_LONG_LIST_COOKIE_KEY + '=; Path=/; Max-Age=0; SameSite=Lax'; } catch (_) {}
+}
+function persistRoomLongListCookie(tokens) {
+  try {
+    const value = 'v1.' + Array.from(tokens).slice(-ROOM_LONG_LIST_MAX_KEYS).join('.');
+    const secure = location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = ROOM_LONG_LIST_COOKIE_KEY + '=' + value + '; Path=/; Max-Age=' + ROOM_LONG_LIST_COOKIE_MAX_AGE + '; SameSite=Lax' + secure;
+  } catch (_) {}
+}
 function loadRoomLongListState() {
   const state = new Map();
   try {
@@ -8048,7 +8084,17 @@ function loadRoomLongListState() {
   return state;
 }
 const roomLongListState = loadRoomLongListState();
+const loadedRoomLongListCookieTokens = loadRoomLongListCookieTokens();
+let roomLongListCookieAuthoritative = loadedRoomLongListCookieTokens !== null;
+const roomLongListCookieTokens = loadedRoomLongListCookieTokens || new Set();
+if (roomLongListCookieAuthoritative) roomLongListState.clear();
+else for (const key of roomLongListState.keys()) roomLongListCookieTokens.add(roomLongListToken(key));
 function persistRoomLongListState() {
+  if (roomLongListCookieAuthoritative) {
+    persistRoomLongListCookie(roomLongListCookieTokens);
+    return;
+  }
+  let primarySaved = false;
   try {
     const collapsed = Array.from(roomLongListState.entries())
       .filter(([, open]) => open === false)
@@ -8056,7 +8102,15 @@ function persistRoomLongListState() {
       .filter((key) => typeof key === 'string' && key.length > 0 && key.length <= ROOM_LONG_LIST_MAX_KEY_LENGTH)
       .slice(-ROOM_LONG_LIST_MAX_KEYS);
     localStorage.setItem(ROOM_LONG_LIST_STORAGE_KEY, JSON.stringify({ v: 1, collapsed }));
+    primarySaved = true;
   } catch (_) {}
+  if (primarySaved) {
+    roomLongListCookieAuthoritative = false;
+    clearRoomLongListCookie();
+  } else {
+    roomLongListCookieAuthoritative = true;
+    persistRoomLongListCookie(roomLongListCookieTokens);
+  }
 }
 let roomLongListSerial = 0;
 function attachRoomLongListDisclosure(section, head, nodes, stateKey, options = {}) {
@@ -8081,12 +8135,20 @@ function attachRoomLongListDisclosure(section, head, nodes, stateKey, options = 
     toggle.setAttribute('aria-label', action + ': ' + label);
     toggle.textContent = (open ? '⌃ ' : '⌄ ') + action;
   };
-  const open = roomLongListState.has(stableKey) ? roomLongListState.get(stableKey) : true;
+  const stableToken = roomLongListToken(stableKey);
+  const open = roomLongListCookieAuthoritative
+    ? !roomLongListCookieTokens.has(stableToken)
+    : (roomLongListState.has(stableKey) ? roomLongListState.get(stableKey) : true);
   paint(open);
   toggle.addEventListener('click', () => {
     const next = toggle.getAttribute('aria-expanded') !== 'true';
-    if (next) roomLongListState.delete(stableKey);
-    else roomLongListState.set(stableKey, false);
+    if (next) {
+      roomLongListState.delete(stableKey);
+      roomLongListCookieTokens.delete(stableToken);
+    } else {
+      roomLongListState.set(stableKey, false);
+      roomLongListCookieTokens.add(stableToken);
+    }
     persistRoomLongListState();
     paint(next);
   });

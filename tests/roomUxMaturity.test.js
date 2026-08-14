@@ -189,6 +189,14 @@ test("2026-08-14 keeps corpus identity isolated and makes every long corpus list
     "collapsed state must use one namespaced presentation-only store");
   assert.match(libraryUi, /ROOM_LONG_LIST_MAX_KEYS\s*=\s*96/,
     "the presentation store must stay bounded");
+  assert.match(libraryUi, /ROOM_LONG_LIST_COOKIE_KEY\s*=\s*'roomLongListDisclosureV1'/,
+    "a quota-exhausted owner profile needs a separate bounded persistence fallback");
+  assert.match(libraryUi, /function roomLongListToken[\s\S]*padStart\(8, '0'\)[\s\S]*padStart\(8, '0'\)/,
+    "the fallback must store fixed-size content-free tokens rather than corpus labels");
+  assert.match(libraryUi, /catch \(_\) \{\}[\s\S]*if \(primarySaved\)[\s\S]*persistRoomLongListCookie/,
+    "QuotaExceededError must fall through to durable cookie persistence");
+  assert.match(libraryUi, /roomLongListCookieAuthoritative[\s\S]*persistRoomLongListCookie\(roomLongListCookieTokens\)[\s\S]*return/,
+    "once fallback is authoritative it must not lose older collapsed tokens to stale localStorage");
   assert.match(libraryUi, /data-disclosure-key/,
     "every disclosure needs a stable content-free key across rerenders and tab reopen");
   assert.match(libraryHtml, /\.room-long-list-body\[hidden\]/,

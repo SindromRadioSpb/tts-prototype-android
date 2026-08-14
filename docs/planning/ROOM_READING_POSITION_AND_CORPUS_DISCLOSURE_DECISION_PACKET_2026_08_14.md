@@ -44,6 +44,8 @@ Owner-profile Kapture evidence on production `3.11.378` exposed two follow-up re
 - a collapsed section reopened after a normal browser reload because state existed only in a JavaScript `Map`;
 - heterogeneous shelf headers let the same toggle occupy different places: most were at the inline end, while `Следующий для тебя` placed it on a separate line at the inline start.
 
+The first owner-profile verification of `3.11.379` exposed a further real-data boundary that an isolated browser did not reproduce: the profile's `localStorage` was already effectively at quota. A one-character diagnostic write succeeded, but the 41-character disclosure payload raised `QuotaExceededError`, so the new primary store could not persist. No owner key was deleted to manufacture space. The fix keeps `localStorage` primary and falls back, only after that write fails, to one bounded SameSite cookie containing fixed-size hashes of stable disclosure keys. The fallback is content-free, remains authoritative across reload/tab reopen, and never touches OPFS, SQLite, progress, corpus rows, or review history.
+
 ## 3. Decisions
 
 ### D1 — one canonical working position
@@ -71,6 +73,7 @@ Every long corpus content block receives the same semantic disclosure control:
 - sections are **expanded by default**, so no existing content becomes hidden on first visit;
 - the heading remains visible and contains a real `<button>` with `aria-expanded` and `aria-controls`;
 - collapse state is presentation-only and stored as a bounded, content-free local preference so it survives reload and closing/reopening the tab; it is not a second corpus/progress truth;
+- `localStorage` remains the primary preference store; a compact hashed cookie is the quota-only fallback, including an explicit empty-state marker so stale primary data cannot resurrect a collapsed section after the user expands it;
 - focus stays on the toggle after collapse/expand; Enter and Space work natively;
 - the body is a labelled region and `[hidden]` removes it from both layout and the accessibility tree;
 - controls keep a 44 px minimum target and work in RU, EN, HE/RTL, desktop, and 380 px layouts.

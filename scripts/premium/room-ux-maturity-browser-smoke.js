@@ -370,9 +370,11 @@ async function captureMatrix(browser, locale, viewport, theme, label, myTextCoun
       check(closedState.expanded === "false" && closedState.hidden && closedState.focused,
         `${label}/${name}: Enter collapses the controlled region and preserves focus (${JSON.stringify(closedState)})`);
       const persistenceProbe = name === "benyehuda" && locale === "ru" && viewport.width === 380;
+      let persistenceKey = "";
       let liveDisclosure = disclosure;
       if (persistenceProbe) {
         const disclosureKey = await disclosure.getAttribute("data-disclosure-key");
+        persistenceKey = disclosureKey || "";
         check(!!disclosureKey, `${label}/${name}: disclosure exposes a stable presentation key`);
         if (disclosureKey) {
           const keySelector = `[data-disclosure-key="${disclosureKey}"]`;
@@ -410,6 +412,59 @@ async function captureMatrix(browser, locale, viewport, theme, label, myTextCoun
       });
       check(openState.expanded === "true" && !openState.hidden && openState.focused,
         `${label}/${name}: Space reopens the controlled region and preserves focus (${JSON.stringify(openState)})`);
+      if (persistenceProbe && persistenceKey) {
+        await page.evaluate((storageKey) => {
+          const nativeSetItem = Storage.prototype.setItem;
+          Storage.prototype.setItem = function patchedSetItem(key, value) {
+            if (key === storageKey) throw new DOMException("quota regression probe", "QuotaExceededError");
+            return nativeSetItem.call(this, key, value);
+          };
+        }, "room.longListDisclosure.v1");
+        await liveDisclosure.focus();
+        await page.keyboard.press("Enter");
+        const fallbackWrite = await liveDisclosure.evaluate((button) => ({
+          expanded: button.getAttribute("aria-expanded"),
+          hidden: !!document.getElementById(button.getAttribute("aria-controls"))?.hidden,
+          cookie: document.cookie.includes("roomLongListDisclosureV1=v1."),
+        }));
+        check(fallbackWrite.expanded === "false" && fallbackWrite.hidden && fallbackWrite.cookie,
+          `${label}/${name}: quota failure writes the bounded cookie fallback (${JSON.stringify(fallbackWrite)})`);
+
+        const keySelector = `[data-disclosure-key="${persistenceKey}"]`;
+        await page.reload({ waitUntil: "load", timeout: 60000 });
+        await page.waitForSelector(keySelector, { timeout: 30000 });
+        liveDisclosure = page.locator(keySelector);
+        const fallbackReload = await liveDisclosure.evaluate((button) => ({
+          expanded: button.getAttribute("aria-expanded"),
+          hidden: !!document.getElementById(button.getAttribute("aria-controls"))?.hidden,
+        }));
+        check(fallbackReload.expanded === "false" && fallbackReload.hidden,
+          `${label}/${name}: quota fallback survives a browser reload (${JSON.stringify(fallbackReload)})`);
+
+        const fallbackReopened = await context.newPage();
+        await fallbackReopened.goto(BASE + "/library.html?canon=skip&roomUxMaturity=quota-reopen", { waitUntil: "load", timeout: 60000 });
+        await fallbackReopened.waitForFunction(() => { const tab = document.getElementById("tabCorpus"); return tab && !tab.hidden; }, null, { timeout: 30000 });
+        await fallbackReopened.click("#tabCorpus");
+        await fallbackReopened.waitForSelector(".learning-home");
+        await selectCorpus(fallbackReopened, id);
+        await fallbackReopened.waitForSelector(keySelector, { timeout: 30000 });
+        const fallbackReopenState = await fallbackReopened.locator(keySelector).evaluate((button) => ({
+          expanded: button.getAttribute("aria-expanded"),
+          hidden: !!document.getElementById(button.getAttribute("aria-controls"))?.hidden,
+        }));
+        check(fallbackReopenState.expanded === "false" && fallbackReopenState.hidden,
+          `${label}/${name}: quota fallback survives closing and reopening the tab (${JSON.stringify(fallbackReopenState)})`);
+        await fallbackReopened.close();
+
+        await liveDisclosure.focus();
+        await page.keyboard.press("Space");
+        const fallbackCleared = await liveDisclosure.evaluate((button) => ({
+          expanded: button.getAttribute("aria-expanded"),
+          hidden: !!document.getElementById(button.getAttribute("aria-controls"))?.hidden,
+        }));
+        check(fallbackCleared.expanded === "true" && !fallbackCleared.hidden,
+          `${label}/${name}: quota fallback also persists the explicit expanded state (${JSON.stringify(fallbackCleared)})`);
+      }
     }
     if (viewport.width <= 760) {
       await page.locator(".corpus-filter-disclosure > summary").click();
