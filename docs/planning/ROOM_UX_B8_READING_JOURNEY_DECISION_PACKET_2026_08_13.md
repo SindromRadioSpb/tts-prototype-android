@@ -270,6 +270,7 @@ Writer invariant after approval:
 ```text
 latest genuine row interaction may move stored resume in either direction
 passive page or media-table scroll is context browsing and writes no working row
+row 0 remains a valid restored working marker but needs no Continue-at-start affordance
 programmatic scroll settling and teardown cannot replace the explicit target
 finished remains manual-only
 history restore writes neither progress nor review_log until genuine reading interaction

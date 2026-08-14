@@ -48,6 +48,9 @@ eq(RP.resumeTarget({ last_row_idx: 1 }, 2), 1, 'in-range resume (tight)');
 eq(RP.resumeTarget(null, 100), null, 'null progress');
 eq(RP.resumeTarget(undefined, 100), null, 'undefined progress');
 eq(RP.resumeTarget({ last_row_idx: 0 }, 100), null, 'start of text');
+eq(RP.workingTarget({ last_row_idx: 0 }, 100), 0, 'start row remains a valid working marker');
+eq(RP.workingTarget({ last_row_idx: 42 }, 100), 42, 'in-range working marker');
+eq(RP.workingTarget({ last_row_idx: 100 }, 100), null, 'out-of-range working marker');
 eq(RP.resumeTarget({ last_row_idx: -3 }, 100), null, 'negative idx');
 eq(RP.resumeTarget({ last_row_idx: null }, 100), null, 'null idx');
 // 3) Out-of-range (text shrank / re-import) ⇒ degrade to no resume (R4: no phantom jump).

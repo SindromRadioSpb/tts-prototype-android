@@ -10,6 +10,11 @@ const read = (rel) => fs.readFileSync(path.join(ROOT, rel), "utf8");
 const progress = require(path.join(ROOT, "public/js/reader-progress.js"));
 
 test("B8-D2 owner-live correction: Continue follows the last worked row, including backward study", () => {
+  assert.equal(typeof progress.workingTarget, "function");
+  assert.equal(progress.workingTarget({ last_row_idx: 0 }, 100), 0,
+    "row 0 remains a valid persistent working-row marker");
+  assert.equal(progress.resumeTarget({ last_row_idx: 0 }, 100), null,
+    "row 0 needs no separate Continue affordance");
   assert.equal(typeof progress.latestProgress, "function");
   assert.equal(progress.latestProgress(80, 10), 10,
     "working at an earlier paragraph must replace the previous resume row");
@@ -47,6 +52,10 @@ test("B8-D2 owner-live correction: Continue follows the last worked row, includi
     "an explicit passage bookmark remains its own navigation fact");
   assert.match(ui, /room\.resume\.positionPercent/,
     "last position must not be labelled as percentage already read");
+  const restore = ui.slice(ui.indexOf("function restoreReaderPosition"), ui.indexOf("// ── BRR Epic 5"));
+  assert.match(restore, /workingTarget/);
+  assert.match(restore, /setCurrentWorkingRow\(workingTarget\)/,
+    "reload must repaint a valid row-0 working position without inventing a resume banner");
   assert.match(ui, /role: 'meter'[\s\S]*room\.home\.readingPosition/,
     "the Learning Home scalar is a text position, not completion progress");
 });

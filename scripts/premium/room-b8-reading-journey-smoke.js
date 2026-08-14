@@ -310,7 +310,39 @@ async function seed(page) {
     });
     check(afterPassiveScroll.storedRow === 10 && JSON.stringify(afterPassiveScroll.currentRows) === "[10]",
       "passive scroll moved the working row without engagement: " + JSON.stringify(afterPassiveScroll));
+    // Row 0 is still a real deliberate position. It should restore the yellow
+    // marker after reload, while the Learning Home correctly omits a redundant
+    // «Продолжить с начала» affordance/banner.
+    await page.evaluate(() => {
+      const row = document.querySelector('tr[data-row-idx="0"]');
+      if (row) row.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    });
+    await page.waitForTimeout(1100);
+    await page.reload({ waitUntil: "load" });
+    await page.waitForFunction(() => !document.getElementById("roomReader").hidden
+      && document.querySelector('tr[data-row-idx="0"].rm-row-current[aria-current="location"]'), null, { timeout: 15000 });
+    const rowZeroReload = await page.evaluate(async () => {
+      const db = await import("/db/local-db.js");
+      const progress = await db.getProgress("b8-ben");
+      return {
+        storedRow: progress && Number(progress.last_row_idx),
+        currentRows: Array.from(document.querySelectorAll('tr.rm-row-current[aria-current="location"]'))
+          .map((node) => Number(node.getAttribute("data-row-idx"))),
+        resumeBanner: !!document.getElementById("readerResume"),
+      };
+    });
+    check(rowZeroReload.storedRow === 0 && JSON.stringify(rowZeroReload.currentRows) === "[0]" && !rowZeroReload.resumeBanner,
+      "reload did not restore row 0 as a marker-only working position: " + JSON.stringify(rowZeroReload));
+    await page.evaluate(() => {
+      const row = document.querySelector('tr[data-row-idx="10"]');
+      if (row) row.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    });
+    await page.waitForTimeout(1100);
+    // A full reload intentionally drops the in-memory return context. Back now
+    // returns to the source corpus; use its real «Библиотека» control to reach Home.
     await page.click("#readerBack");
+    await page.waitForFunction(() => document.getElementById("roomReader").hidden);
+    await page.locator(".corpus-back").click();
     await page.waitForSelector(".learning-home-journey", { timeout: 15000 });
 
     const notes = page.locator('.learning-home-journey-view[data-journey-kind="note"]');

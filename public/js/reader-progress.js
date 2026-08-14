@@ -12,6 +12,18 @@
 (function () {
   'use strict';
 
+  // workingTarget(progress, rowCount) → exact valid last-working row, including 0.
+  // Row 0 is meaningful for the persistent current-row marker even though reopening
+  // at the beginning does not need a separate «Продолжить» affordance.
+  function workingTarget(progress, rowCount) {
+    if (!progress) return null;
+    var idx = Number(progress.last_row_idx);
+    if (!isFinite(idx) || Math.floor(idx) !== idx || idx < 0) return null;
+    var n = Number(rowCount);
+    if (!isFinite(n) || n <= 0 || idx >= n) return null;
+    return idx;
+  }
+
   // resumeTarget(progress, rowCount) → 0-based row index to resume to, or null.
   //   progress: { last_row_idx } (from text_progress) or null.
   //   rowCount: number of rendered rows in the freshly-opened text.
@@ -19,13 +31,8 @@
   // counts, and — critically — an out-of-range index (a re-imported/edited text whose
   // row count shrank). Never scroll to a row that does not exist.
   function resumeTarget(progress, rowCount) {
-    if (!progress) return null;
-    var idx = Number(progress.last_row_idx);
-    if (!isFinite(idx) || Math.floor(idx) !== idx || idx <= 0) return null;
-    var n = Number(rowCount);
-    if (!isFinite(n) || n <= 0) return null;
-    if (idx >= n) return null;            // out of range → honest no-resume
-    return idx;
+    var idx = workingTarget(progress, rowCount);
+    return idx != null && idx > 0 ? idx : null;
   }
 
   // continuePercent(lastIdx, nRows) → integer 0..100 for the "% прочитано" chip.
@@ -102,7 +109,7 @@
     return rows[rows.length - 1].idx;
   }
 
-  var API = { resumeTarget: resumeTarget, continuePercent: continuePercent, topVisibleRowIdx: topVisibleRowIdx, latestProgress: latestProgress, mergeProgress: mergeProgress, atTextEnd: atTextEnd, lastRowVisible: lastRowVisible };
+  var API = { workingTarget: workingTarget, resumeTarget: resumeTarget, continuePercent: continuePercent, topVisibleRowIdx: topVisibleRowIdx, latestProgress: latestProgress, mergeProgress: mergeProgress, atTextEnd: atTextEnd, lastRowVisible: lastRowVisible };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
   if (typeof window !== 'undefined') window.ReaderProgress = API;
 })();

@@ -5167,7 +5167,9 @@ async function loadReaderResumeProgress(textId) {
   try { prog = await localDb.getProgress(textId); } catch (_) { prog = null; }
   if (readerTextId !== textId) return { progress: null, target: null }; // navigated away while awaiting
   const target = window.ReaderProgress.resumeTarget(prog, readerRows.length);
-  return { progress: prog, target };
+  const workingTarget = typeof window.ReaderProgress.workingTarget === 'function'
+    ? window.ReaderProgress.workingTarget(prog, readerRows.length) : target;
+  return { progress: prog, target, workingTarget };
 }
 
 // After a fresh open: offer (or, for an explicit «Продолжить» tap, perform) the resume.
@@ -5176,7 +5178,19 @@ function restoreReaderPosition(textId, opts, loaded) {
   const target = loaded && loaded.target != null
     ? Number(loaded.target)
     : window.ReaderProgress.resumeTarget(loaded && loaded.progress, readerRows.length);
-  if (target == null) return;
+  const workingTarget = loaded && loaded.workingTarget != null
+    ? Number(loaded.workingTarget)
+    : (typeof window.ReaderProgress.workingTarget === 'function'
+      ? window.ReaderProgress.workingTarget(loaded && loaded.progress, readerRows.length) : target);
+  if (target == null) {
+    if (workingTarget == null) return;
+    // Row 0 is a valid explicit working position but needs no «Продолжить» banner.
+    // Repaint it after normal open/reload without creating a write or completion claim.
+    _sessionLastRow = workingTarget;
+    setCurrentWorkingRow(workingTarget);
+    if (opts && opts.resume) positionReaderRow(workingTarget, 'auto');
+    return;
+  }
   if (opts && opts.resume) scrollToReaderRow(target);   // explicit continue-card tap → jump
   else {
     // Normal open keeps R4's non-jumping resume banner, but the saved row is still the
