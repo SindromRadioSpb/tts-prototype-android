@@ -1000,11 +1000,11 @@
        during and after playback. An amber rail means "your working place"; playback
        overlays the same base with a blue rail. Error remains the highest-priority state.
        aria-current="location" is applied by Room JS; the rail is the non-colour channel. */
-    #roomReaderTable tr.rm-row-current:not(.row-error) td,
-    #roomReaderTable tr.rm-row-current:not(.row-error) td.rtl {
+    #roomReader #roomReaderTable #proTable tbody tr.rm-row-current:not(.row-error) td,
+    #roomReader #roomReaderTable #proTable tbody tr.rm-row-current:not(.row-error) td.rtl {
       background-color: var(--row-hl-playing) !important;
     }
-    #roomReaderTable tr.rm-row-current:not(.row-playing):not(.smk-row-active):not(.row-error) td:first-child {
+    #roomReader #roomReaderTable #proTable tbody tr.rm-row-current:not(.row-playing):not(.smk-row-active):not(.row-error) td:first-child {
       box-shadow: inset 3px 0 0 var(--row-rail-selected);
     }
     /* ── Room media player (spec 2026-08-04) ─────────────────────────────────── */
@@ -1024,12 +1024,12 @@
     .smk-row-replay { width: auto; padding: 0 6px; margin-inline-start: 4px; font-size: 12px; }
     /* Playback overlay: media and TTS share the warm base, while the BLUE rail makes
        the actively sounding row distinguishable without replacing the saved location. */
-    #roomReaderTable tr.smk-row-active:not(.row-error) td,
-    #roomReaderTable tr.smk-row-active:not(.row-error) td.rtl { background: var(--row-hl-playing) !important; }
-    #roomReaderTable tr.smk-row-active:not(.row-error) td:first-child,
-    #roomReaderTable tr.row-playing:not(.row-error) td:first-child { box-shadow: inset 3px 0 0 var(--row-rail-playing); }
+    #roomReader #roomReaderTable #proTable tbody tr.smk-row-active:not(.row-error) td,
+    #roomReader #roomReaderTable #proTable tbody tr.smk-row-active:not(.row-error) td.rtl { background: var(--row-hl-playing) !important; }
+    #roomReader #roomReaderTable #proTable tbody tr.smk-row-active:not(.row-error) td:first-child,
+    #roomReader #roomReaderTable #proTable tbody tr.row-playing:not(.row-error) td:first-child { box-shadow: inset 3px 0 0 var(--row-rail-playing); }
     @media (prefers-reduced-motion: no-preference) {
-      #roomReaderTable tr.rm-row-current:not(.row-error) td { transition: background-color 160ms ease; }
+      #roomReader #roomReaderTable #proTable tbody tr.rm-row-current:not(.row-error) td { transition: background-color 160ms ease; }
     }
     /* Sticky-шапка таблицы (reader-core.css даёт sticky top:0, но Зал скроллит ОКНО и шапка
        заезжала под sticky .reader-bar): отступ = живая высота бара (--room-thead-top из JS).
@@ -2478,7 +2478,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.381</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.382</button>
   </div>
 </footer>
 

@@ -633,7 +633,7 @@ document.addEventListener('visibilitychange', () => {
   tickReadingCalibration();
   if (document.visibilityState === 'visible') scheduleCompassBuildPump(!!(_compassBuildQueue[0] && _compassBuildQueue[0].urgent));
 });
-document.addEventListener('play', () => { _readingAudioActive += 1; tickReadingCalibration(); }, true);
+document.addEventListener('play', () => { _roomReaderPresentationReadOnly = false; _readingAudioActive += 1; tickReadingCalibration(); }, true);
 document.addEventListener('pause', () => { _readingAudioActive = Math.max(0, _readingAudioActive - 1); tickReadingCalibration(); }, true);
 document.addEventListener('ended', () => { _readingAudioActive = Math.max(0, _readingAudioActive - 1); tickReadingCalibration(); }, true);
 
@@ -646,7 +646,10 @@ let _roomRestoringHistory = false;
 let _roomPresentationReady = false;
 let _roomInitialState = null;
 let _roomHistoryFallbackNotice = false;
-let _roomReaderReadOnlyUntil = 0;
+// History/reload presentation restoration is read-only until a genuine learner action.
+// A time window was insufficient: a late media scroller can continue emitting settling
+// scroll events after the deadline and falsely replace the restored working row.
+let _roomReaderPresentationReadOnly = false;
 
 function roomDiagRead() {
   try { const value = JSON.parse(localStorage.getItem(ROOM_DIAGNOSTIC_KEY) || '[]'); return Array.isArray(value) ? value : []; }
@@ -4632,6 +4635,7 @@ function _karaokeRowFollowable(tr) {
 }
 function onKaraokeRowChange(idx) {
   if (idx < 0) { karaokeActive = false; setReadAloudBtn(false); return; }   // playback ended → keep last marker
+  _roomReaderPresentationReadOnly = false;   // an actually sounding TTS row is genuine learner activity
   // media player: TTS реально заиграл → глушим ИГРАЮЩЕЕ медиа (isActive-guard сохраняет позицию
   // паузы — остановка bound-но-паузного медиа была бы потерей места без нужды).
   try { if (window.StudioMediaKaraoke && window.StudioMediaKaraoke.isActive()) window.StudioMediaKaraoke.stop(); } catch (_) {}
@@ -4663,6 +4667,7 @@ function wireKaraokeScrollPause() {
 function toggleReadAloud() {
   if (!readerAudio) return;
   if (karaokeActive) { try { readerAudio.stop(); } catch (_) {} return; }   // stop() → onRowChange(-1) resets UI
+  _roomReaderPresentationReadOnly = false;
   try { if (window.StudioMediaKaraoke) window.StudioMediaKaraoke.stop(); } catch (_) {}   // media player: «Читать вслух» глушит медиа
   karaokeActive = true; karaokeUserScrolled = false; _karaokeLeftBand = false;
   wireKaraokeScrollPause();
@@ -4781,6 +4786,7 @@ function roomMediaApplyLayout() {
 // scrollTop); в обычном режиме (нет медиа) — окно страницы.
 function roomMediaFollowRange(range) {
   if (!range) return;
+  try { if (window.StudioMediaKaraoke && window.StudioMediaKaraoke.isActive()) _roomReaderPresentationReadOnly = false; } catch (_) {}
   recordProgress(range.rowStart);
   try { roomSyncActionOverlay(); } catch (_) {}   // медиа-караоке ведёт активную строку
   const mount = $('roomReaderTable');
@@ -5020,7 +5026,7 @@ function recordProgress(idx) {
   _sessionLastRow = window.ReaderProgress ? window.ReaderProgress.latestProgress(_sessionLastRow, idx) : Math.floor(Number(idx));
   _sessionFurthestRow = window.ReaderProgress ? window.ReaderProgress.mergeProgress(_sessionFurthestRow, idx) : Math.max(_sessionFurthestRow, idx);
   setCurrentWorkingRow(_sessionLastRow);
-  if (Date.now() < _roomReaderReadOnlyUntil) return;
+  if (_roomReaderPresentationReadOnly) return;
   const tid = readerTextId, row = _sessionLastRow;
   if (_progressTimer) clearTimeout(_progressTimer);
   _progressTimer = setTimeout(() => {
@@ -5038,7 +5044,7 @@ async function flushReaderProgress(options = {}) {
   // their exact explicit target was already recorded by scrollToReaderRow().
   if (_scrollTimer) {
     clearTimeout(_scrollTimer); _scrollTimer = null;
-    if (Date.now() >= _programmaticProgressUntil) {
+    if (!_roomReaderPresentationReadOnly && Date.now() >= _programmaticProgressUntil) {
       const top = currentTopRowIdx();
       if (top != null) recordProgress(top);
       if (_progressTimer) { clearTimeout(_progressTimer); _progressTimer = null; }
@@ -5076,7 +5082,7 @@ function currentTopRowIdx() {
 }
 function wireProgressScroll() {
   if (_progressScrollWired) return; _progressScrollWired = true;
-  const onUserTakeover = () => { _programmaticProgressUntil = 0; };
+  const onUserTakeover = () => { _programmaticProgressUntil = 0; _roomReaderPresentationReadOnly = false; };
   const onScrollKey = (event) => {
     if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key)) onUserTakeover();
   };
@@ -5085,6 +5091,7 @@ function wireProgressScroll() {
     if (_scrollTimer) clearTimeout(_scrollTimer);
     _scrollTimer = setTimeout(() => {
       _scrollTimer = null;
+      if (_roomReaderPresentationReadOnly) return;
       if (Date.now() < _programmaticProgressUntil) return;
       const idx = currentTopRowIdx();
       if (idx != null) { recordProgress(idx); maybeShowEndOfText(); }   // Epic-5 W1 — last row in view → «✓ Прочитано» card
@@ -6946,8 +6953,8 @@ async function openReader(textId, title, opts) {
   if (!presentationRestore) {
     try { touchOpenedPromise = Promise.resolve(localDb.touchOpened(textId)).catch(() => false); } catch (_) {}
   }
-  if (presentationRestore) _roomReaderReadOnlyUntil = Date.now() + 1500;
-  else roomPushPresentationState({ surface: 'reader', anchor: { itemId: String(textId == null ? '' : textId), rowIndex: 0 } });
+  _roomReaderPresentationReadOnly = presentationRestore;
+  if (!presentationRestore) roomPushPresentationState({ surface: 'reader', anchor: { itemId: String(textId == null ? '' : textId), rowIndex: 0 } });
   const requestedEpoch = opts && Number(opts._readerOpenEpoch);
   const openEpoch = Number.isInteger(requestedEpoch) && requestedEpoch > 0 ? requestedEpoch : ++readerOpenEpoch;
   if (openEpoch !== readerOpenEpoch) return;
@@ -7135,7 +7142,7 @@ async function closeReader(options) {
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   karaokeActive = false; setReadAloudBtn(false);   // BRR-P1-008 — reset karaoke on close
   try { roomMediaTeardown(); } catch (_) {}   // media player: stop + revoke URL + скрыть бар
-  clearResumeBanner(); clearCurrentWorkingRow(); resetEndCard(); clearCovChip(); clearFadeGradNudge(); closeReaderFind(); _sessionLastRow = -1; _sessionFurthestRow = -1; _programmaticProgressUntil = 0; readerTextId = null;   // stop recording + clear derived working row/find/end-card/cov-chip/fade-nudge after close
+  clearResumeBanner(); clearCurrentWorkingRow(); resetEndCard(); clearCovChip(); clearFadeGradNudge(); closeReaderFind(); _sessionLastRow = -1; _sessionFurthestRow = -1; _programmaticProgressUntil = 0; _roomReaderPresentationReadOnly = false; readerTextId = null;   // stop recording + clear derived working row/find/end-card/cov-chip/fade-nudge after close
   _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null; readerIsOwnText = false;   // BRR-P2-003 — reset bookmark state
   readerCorpusWorkId = null; readerCorpusExplainOk = false; readerGroupCorpusId = null;   // singleton-reset
   try { setReaderSubtitle(null); } catch (_) {}   // Epic-6 W1-a — drop the per-work byline on close

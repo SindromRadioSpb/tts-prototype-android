@@ -393,6 +393,7 @@ async function main() {
           targetVisible: !!(wr && rr && rr.bottom > wr.top && rr.top < wr.bottom),
           highlighted: !!(row && row.classList.contains("rm-row-current") && row.getAttribute("aria-current") === "location"),
           currentCount: wrap ? wrap.querySelectorAll('tr.rm-row-current[aria-current="location"]').length : 0,
+          currentRows: wrap ? Array.from(wrap.querySelectorAll('tr.rm-row-current[aria-current="location"]')).map((node) => node.getAttribute('data-row-idx')) : [],
         };
       }, t5ExpectedResume);
       ok(t5Reopen.mediaScroll && t5Reopen.wrapScrollTop > 0 && t5Reopen.targetVisible && t5Reopen.highlighted && t5Reopen.currentCount === 1,
@@ -420,6 +421,7 @@ async function main() {
           targetVisible: !!(wr && rr && rr.bottom > wr.top && rr.top < wr.bottom),
           highlighted: !!(row && row.classList.contains("rm-row-current") && row.getAttribute("aria-current") === "location"),
           currentCount: wrap ? wrap.querySelectorAll('tr.rm-row-current[aria-current="location"]').length : 0,
+          currentRows: wrap ? Array.from(wrap.querySelectorAll('tr.rm-row-current[aria-current="location"]')).map((node) => node.getAttribute('data-row-idx')) : [],
         };
       }, t5ExpectedResume);
       ok(t5Reload.mediaScroll && t5Reload.wrapScrollTop > 0 && t5Reload.targetVisible && t5Reload.highlighted && t5Reload.currentCount === 1,

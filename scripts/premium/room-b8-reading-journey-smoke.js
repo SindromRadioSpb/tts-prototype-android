@@ -278,6 +278,21 @@ async function seed(page) {
     check(resumedEarlier.earlierBookmark === true, "last-position write altered the explicit passage bookmark");
     check(await page.locator('tr.rm-row-current[aria-current="location"]').count() === 1,
       "Continue must expose exactly one semantic working row");
+    const currentRow = page.locator('tr[data-row-idx="10"].rm-row-current[aria-current="location"]');
+    await currentRow.hover();
+    const focusedPaint = await currentRow.evaluate((row) => {
+      const control = row.querySelector('button, [tabindex="0"]');
+      if (control) control.focus();
+      const cell = row.querySelector('td');
+      const rootStyle = getComputedStyle(document.documentElement);
+      return {
+        actual: cell ? getComputedStyle(cell).backgroundColor : '',
+        expected: rootStyle.getPropertyValue('--row-hl-playing').trim(),
+        current: row.classList.contains('rm-row-current') && row.getAttribute('aria-current') === 'location',
+      };
+    });
+    check(focusedPaint.current && focusedPaint.actual === focusedPaint.expected,
+      "hover/focus must not replace the persistent warm working-row base: " + JSON.stringify(focusedPaint));
     await page.click("#readerBack");
     await page.waitForSelector(".learning-home-journey", { timeout: 15000 });
 

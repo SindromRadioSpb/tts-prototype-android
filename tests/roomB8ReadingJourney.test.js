@@ -65,11 +65,13 @@ test("ROW-HIGHLIGHT B: Room projects one persistent working row under playback",
   const recorder = ui.slice(ui.indexOf("function recordProgress"), ui.indexOf("async function flushReaderProgress"));
   assert.match(recorder, /setCurrentWorkingRow\(_sessionLastRow\)/,
     "every canonical working-position observation must repaint the current row");
+  assert.match(ui, /if \(_roomReaderPresentationReadOnly\) return;[\s\S]{0,180}Date\.now\(\) < _programmaticProgressUntil/,
+    "late presentation-settling scroll must not replace the restored semantic row");
   assert.match(ui, /tr\.row-playing, #proTable tbody tr\.smk-row-active, #proTable tbody tr\.rm-row-current/,
     "hidden study actions follow playback first and the persistent working row second");
 
-  assert.match(room, /tr\.rm-row-current:not\(\.row-error\)/,
-    "Room owns the persistent warm row treatment");
+  assert.match(room, /#roomReader #roomReaderTable #proTable tbody tr\.rm-row-current:not\(\.row-error\)/,
+    "Room owns a sufficiently scoped warm-row treatment that wins over shared hover/focus states");
   assert.match(room, /tr\.smk-row-active:not\(\.row-error\) td:first-child,[\s\S]{0,220}box-shadow/,
     "media playback adds a non-colour rail over the same warm base");
   assert.doesNotMatch(studio, /rm-row-current/,

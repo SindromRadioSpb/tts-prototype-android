@@ -97,6 +97,10 @@ The existing `text_progress.last_row_idx` remains the only durable working-posit
 
 RED owner-profile evidence on production `3.11.380`: the saved row was visible and canonical `last_row_idx = 2`, but idle DOM exposed no persistent class or `aria-current`; the yellow state existed only while playback classes were present or until the old jump marker was dismissed by an unrelated interaction.
 
+First production verification on `3.11.381` found a cascade regression that isolated browser automation had not exercised: the row remained canonical/current, but focusing its play control allowed the higher-specificity shared focus/hover selector to paint the row green. The Room-only current/playback selectors were strengthened without touching `reader-core.css`, and the release gate now focuses and hovers the semantic current row while requiring the same warm base.
+
+Repeated composite-media reload also exposed a timing race in the earlier 1.5-second read-only window: a late smooth page-scroll event could arrive after the deadline and move the DOM current marker from saved row 8 to top-visible row 6, even though row 8 remained visible. Presentation restore is now read-only until a genuine wheel/touch/key/pointer or actual playback action, so layout-settling events cannot become learner progress while subsequent learner work still uses the canonical writer.
+
 ## 4. Acceptance matrix
 
 | Surface/material | Required evidence |
