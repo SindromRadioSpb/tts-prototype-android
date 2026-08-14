@@ -4739,12 +4739,24 @@ function roomMediaApplyLayout() {
   const wrap = $('roomReaderTable'); if (!wrap) return;
   const stage = $('roomMediaLocalStage'), yt = $('roomMediaYtMount');
   const mediaVisible = (stage && !stage.hidden) || (yt && !yt.hidden);
+  const wasMediaScroll = wrap.classList.contains('room-media-scroll');
+  const preserveWorkingRow = () => {
+    if (wasMediaScroll || !wrap.classList.contains('room-media-scroll') || _sessionLastRow < 0) return;
+    const textId = readerTextId, rowIdx = _sessionLastRow;
+    _programmaticProgressUntil = Date.now() + 1500;
+    const restore = () => {
+      if (readerTextId !== textId || _sessionLastRow !== rowIdx || !wrap.classList.contains('room-media-scroll')) return;
+      positionReaderRow(rowIdx, 'auto');
+    };
+    try { requestAnimationFrame(restore); } catch (_) { setTimeout(restore, 0); }
+  };
   // Учебный режим: окно таблицы — flex-остаток, считать нечего. Но КЛАСС обязан
   // остаться: по нему roomMediaFollowRange решает, какой скроллер двигать, и без него
   // слежение караоке ушло бы в ветку страничного скролла (спека 2026-08-05, ловушка).
   if (document.body.classList.contains('room-study')) {
     wrap.classList.add('room-media-scroll');
     wrap.style.maxHeight = '';
+    preserveWorkingRow();
     return;
   }
   if (mediaVisible) {
@@ -4753,6 +4765,9 @@ function roomMediaApplyLayout() {
     // вверху — openReader всегда стартует с scrollTo(0,0); отрицательный top клампится)
     const h = Math.max(220, window.innerHeight - Math.max(0, wrap.getBoundingClientRect().top) - 10);
     wrap.style.maxHeight = h + 'px';
+    // Media resolution is asynchronous. Resume may already have positioned the page-level
+    // scroller; when this inner scroller appears, carry the same logical row into it.
+    preserveWorkingRow();
   } else {
     wrap.classList.remove('room-media-scroll');
     wrap.style.maxHeight = '';
@@ -5053,12 +5068,36 @@ function wireProgressScroll() {
   if (mount) mount.addEventListener('pointerdown', onUserTakeover, { passive: true });
   window.addEventListener('keydown', onScrollKey);
 }
-function scrollToReaderRow(idx) {
+function positionReaderRow(idx, behavior) {
   const mount = $('roomReaderTable');
   const tr = mount && mount.querySelector('tr[data-row-idx="' + idx + '"]');
-  if (!tr) return;
+  if (!tr) return false;
+  if (mount.classList.contains('room-media-scroll')) {
+    const prev = idx > 0 ? mount.querySelector('tr[data-row-idx="' + String(idx - 1) + '"]') : null;
+    const MRC = window.MaterialRevisionCore;
+    if (MRC && typeof MRC.computeContextScrollTop === 'function') {
+      const cRect = mount.getBoundingClientRect();
+      mount.scrollTop = MRC.computeContextScrollTop({
+        scroll_top: mount.scrollTop,
+        container_top: cRect.top,
+        container_height: mount.clientHeight,
+        row_top: tr.getBoundingClientRect().top,
+        previous_row_height: prev ? prev.getBoundingClientRect().height : 0,
+        gap: 2,
+        max_scroll_top: Math.max(0, mount.scrollHeight - mount.clientHeight),
+      });
+    } else {
+      const top = mount.scrollTop + tr.getBoundingClientRect().top - mount.getBoundingClientRect().top;
+      mount.scrollTop = Math.max(0, Math.min(mount.scrollHeight - mount.clientHeight, top - Math.max(0, (mount.clientHeight - tr.offsetHeight) / 2)));
+    }
+    return true;
+  }
+  if (tr.scrollIntoView) { try { tr.scrollIntoView({ block: 'center', behavior: behavior || 'smooth' }); } catch (_) {} }
+  return true;
+}
+function scrollToReaderRow(idx) {
+  if (!positionReaderRow(idx, 'smooth')) return;
   _programmaticProgressUntil = Date.now() + 1500;
-  if (tr.scrollIntoView) { try { tr.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) {} }
   recordProgress(idx);   // explicit Continue/bookmark/FTS jump is the new working position
   highlightReaderRow(idx);   // BRR-P2-005 — «ты здесь» jump-highlight (resume / bookmark / FTS)
 }
@@ -7982,6 +8021,38 @@ async function appendDifficultyRow(node, card) {
   return enhanceCardWithCoverage(node, card);
 }
 
+// One disclosure contract for every long corpus section. State is deliberately
+// presentation-only (current tab), while the corpus/progress stores stay canonical.
+const roomLongListState = new Map();
+let roomLongListSerial = 0;
+function attachRoomLongListDisclosure(section, head, nodes, stateKey, options = {}) {
+  if (!section || !head || !Array.isArray(nodes) || !nodes.length) return null;
+  const title = head.querySelector('h1,h2,h3,.shelf-title,.corpus-section-title,.corpus-list-count');
+  const label = String(options.label || (title && title.textContent) || tt('room.corpus.sectionMaterials', 'Учебные материалы')).trim();
+  const bodyId = 'roomLongListBody' + (++roomLongListSerial);
+  const body = el('div', { class: 'room-long-list-body', attrs: { id: bodyId, role: 'region', 'aria-label': label } });
+  nodes.filter(Boolean).forEach((node) => body.appendChild(node));
+  section.insertBefore(body, head.nextSibling);
+  head.classList.add('room-long-list-head');
+  const toggle = el('button', { class: 'room-section-toggle', attrs: { type: 'button', 'aria-expanded': 'true', 'aria-controls': bodyId } });
+  const paint = (open) => {
+    body.hidden = !open;
+    toggle.setAttribute('aria-expanded', String(open));
+    const action = tt(open ? 'room.corpus.sectionCollapse' : 'room.corpus.sectionExpand', open ? 'Свернуть' : 'Развернуть');
+    toggle.setAttribute('aria-label', action + ': ' + label);
+    toggle.textContent = (open ? '⌃ ' : '⌄ ') + action;
+  };
+  const open = roomLongListState.has(stateKey) ? roomLongListState.get(stateKey) : true;
+  paint(open);
+  toggle.addEventListener('click', () => {
+    const next = toggle.getAttribute('aria-expanded') !== 'true';
+    roomLongListState.set(stateKey, next);
+    paint(next);
+  });
+  head.appendChild(toggle);
+  return { body, toggle };
+}
+
 // Build a corpus shelf section (reused by the personal rail + the cold-start rail).
 function buildRailSection(cssClass, meta, cards) {
   if (!cards || !cards.length) return null;
@@ -7995,6 +8066,7 @@ function buildRailSection(cssClass, meta, cards) {
   const rail = el('div', { class: 'shelf-rail' });
   for (const c of cards) rail.appendChild(renderCorpusCard(c));
   sec.appendChild(rail);
+  attachRoomLongListDisclosure(sec, head, [rail], 'ben:rail:' + cssClass);
   return sec;
 }
 
@@ -8094,6 +8166,7 @@ async function buildContinueRailSection(limit) {
   const rail = el('div', { class: 'shelf-rail' });
   for (const it of items) rail.appendChild(renderContinueCard(it));
   sec.appendChild(rail);
+  attachRoomLongListDisclosure(sec, head, [rail], 'ben:continue');
   return sec;
 }
 
@@ -8247,8 +8320,8 @@ function renderMyTextCard(item, vertical) {
   node.addEventListener('click', (event) => { if (event.target === node) open(); });
   return node;
 }
-// Mini-rail on the Ben-Yehuda home (quick access; the FULL surface is the «Мои тексты» CORPUS —
-// search/facets/CTA live there, reachable via «Весь корпус →» or the hub/switcher).
+// Legacy reusable own-text rail. It is intentionally not mounted inside Ben-Yehuda;
+// the full owner corpus lives at L0 / its own corpus surface.
 async function injectMyTexts(body) {
   try {
     let page = { items: [], matchedTotal: 0 };
@@ -8268,6 +8341,7 @@ async function injectMyTexts(body) {
     const rail = el('div', { class: 'shelf-rail' });
     for (const it of mine.slice(0, ROOM_PREVIEW)) rail.appendChild(renderMyTextCard(it, false));
     sec.appendChild(rail);
+    attachRoomLongListDisclosure(sec, head, [rail], 'mytexts:preview');
     body.insertBefore(sec, body.firstChild);
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
   } catch (_) {}
@@ -8297,6 +8371,7 @@ async function injectFinishedReading(body) {
     const rail = el('div', { class: 'shelf-rail' });
     for (const it of shown) rail.appendChild(renderFinishedCard(it));
     sec.appendChild(rail);
+    attachRoomLongListDisclosure(sec, head, [rail], 'ben:finished');
     body.insertBefore(sec, body.firstChild);
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
   } catch (_) {}
@@ -8380,6 +8455,7 @@ async function injectBookmarksShelf(body) {
     const rail = el('div', { class: 'shelf-rail' });
     for (const b of items) rail.appendChild(renderBookmarkCard(b));
     sec.appendChild(rail);
+    attachRoomLongListDisclosure(sec, head, [rail], 'ben:bookmarks');
     body.insertBefore(sec, body.firstChild);
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
   } catch (_) {}
@@ -8407,6 +8483,7 @@ function injectSavedSearches(body) {
       chip.appendChild(run); chip.appendChild(x); chips.appendChild(chip);
     }
     sec.appendChild(chips);
+    attachRoomLongListDisclosure(sec, head, [chips], 'ben:saved-searches');
     body.insertBefore(sec, body.firstChild);
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
   } catch (_) {}
@@ -8502,22 +8579,21 @@ function injectReadingListShelves(body) {
       const rail = el('div', { class: 'shelf-rail' });
       for (const it of L.items) rail.appendChild(renderReadingListCard(L.id, it));
       sec.appendChild(rail);
+      attachRoomLongListDisclosure(sec, head, [rail], 'ben:reading-list:' + String(L.id));
       body.insertBefore(sec, body.firstChild);
     }
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
   } catch (_) {}
 }
 
-// Each shelf prepends to body.firstChild → the LAST injected lands on TOP. FB-21 — order so the
-// reader's own activity leads: Continue (top), then Прочитанные, then Bookmarks, then Reading-Lists,
-// then Saved-Searches, then the personal/cold-start Corpus rails at the bottom. Inject in REVERSE.
-async function injectHomeRails(body) {
+// Ben keeps cross-corpus reading-life projections, but never embeds the neighbouring
+// «Мои тексты» corpus itself. Each prepend still preserves the established activity order.
+async function injectBenHomeRails(body) {
   await injectCorpusRails(body);
   injectSavedSearches(body);
   injectReadingListShelves(body);
   await injectBookmarksShelf(body);
-  await injectFinishedReading(body);   // «✓ Прочитанные» — directly below «Мои тексты»
-  await injectMyTexts(body);           // Эпик B «Мои тексты» — the user's own Studio texts
+  await injectFinishedReading(body);
   await injectContinueReading(body);   // «Продолжить чтение» leads
 }
 
@@ -8975,9 +9051,15 @@ async function renderGroupCorpus(corpusId, token) {
   });
   wrap.appendChild(filterChrome.node);
   wrap.appendChild(corpusLearningIndexStatusNode('group:' + corpusId, catalog.works.length));
-  const resultLine=el('div',{class:'group-corpus-results room-browse-summary'}); wrap.appendChild(resultLine);
-  const grid = el('div', { class: 'group-corpus-grid corpus-work-list' }); wrap.appendChild(grid);
-  const moreWrap=el('div',{class:'corpus-more group-corpus-more'});wrap.appendChild(moreWrap);wrap.appendChild(management);main.appendChild(wrap);
+  const listSection = el('section', { class: 'room-primary-list group-corpus-list-section' });
+  const listHead = el('div', { class: 'corpus-list-head' });
+  listHead.appendChild(el('h2', { class: 'corpus-list-count', text: tt('room.corpus.sectionMaterials', 'Учебные материалы') }));
+  listSection.appendChild(listHead);
+  const resultLine=el('div',{class:'group-corpus-results room-browse-summary'}); listSection.appendChild(resultLine);
+  const grid = el('div', { class: 'group-corpus-grid corpus-work-list' }); listSection.appendChild(grid);
+  const moreWrap=el('div',{class:'corpus-more group-corpus-more'});listSection.appendChild(moreWrap);
+  attachRoomLongListDisclosure(listSection, listHead, [resultLine, grid, moreWrap], 'group:' + corpusId + ':materials');
+  wrap.appendChild(listSection);wrap.appendChild(management);main.appendChild(wrap);
   function shareWork(work) {
     const u=new URL(location.href); u.search=''; u.hash=''; u.searchParams.set('group_corpus',corpusId); u.searchParams.set('group_work',work.work_id);
     const data={title:work.title||'',text:tt('room.groupCorpus.shareText','Текст из закрытого учебного корпуса'),url:u.toString()};
@@ -9815,10 +9897,16 @@ async function renderMyTextsCorpus(token) {
   });
   wrap.appendChild(filterChrome.node);
 
+  const listSection = el('section', { class: 'room-primary-list mytexts-list-section' });
+  const listHead = el('div', { class: 'corpus-list-head' });
+  listHead.appendChild(el('h2', { class: 'corpus-list-count', text: tt('room.corpus.sectionMaterials', 'Учебные материалы') }));
+  listSection.appendChild(listHead);
   const resultLine = el('div', { class: 'room-browse-summary mytexts-results', attrs: { 'aria-live': 'polite' } });
   const grid = el('div', { class: 'mytexts-grid corpus-work-list' });
   const pager = el('nav', { class: 'corpus-more mytexts-more mytexts-pager', attrs: { 'aria-label': tt('room.mytexts.pagination', 'Страницы текстов') } });
-  wrap.appendChild(resultLine); wrap.appendChild(personalCompassProgressNode()); wrap.appendChild(grid); wrap.appendChild(pager); wrap.appendChild(management); main.appendChild(wrap);
+  listSection.appendChild(resultLine); listSection.appendChild(grid); listSection.appendChild(pager);
+  attachRoomLongListDisclosure(listSection, listHead, [resultLine, grid, pager], 'mytexts:materials');
+  wrap.appendChild(personalCompassProgressNode()); wrap.appendChild(listSection); wrap.appendChild(management); main.appendChild(wrap);
 
   const freshSince = (() => { try { return localStorage.getItem('roomMyTextsLastVisit_v1') || ''; } catch (_) { return ''; } })();
   if (!_roomRestoringHistory) { try { localStorage.setItem('roomMyTextsLastVisit_v1', new Date().toISOString()); } catch (_) {} }
@@ -10055,6 +10143,7 @@ function renderHomeInto(body) {
     const rail = el('div', { class: 'corpus-work-list room-preview-list' });
     for (const c of ready.slice(0, ROOM_PREVIEW)) rail.appendChild(renderCorpusWorkRow(c, true, { showAuthor: true, showListBtn: true, compact: true }));
     sec.appendChild(rail);
+    attachRoomLongListDisclosure(sec, head, [rail], 'ben:ready');
     body.appendChild(sec);
   }
   const periods = el('section', { class: 'corpus-periods' });
@@ -10065,9 +10154,10 @@ function renderHomeInto(body) {
   const eras = ((corpusRoot && corpusRoot.era_taxonomy) || []).slice().sort((a, b) => a.order - b.order);
   for (const e of eras) grid.appendChild(renderPeriodCard(e));
   periods.appendChild(grid);
+  attachRoomLongListDisclosure(periods, ph, [grid], 'ben:periods');
   body.appendChild(periods);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
-  injectHomeRails(body);   // S4 personal rail + BRR-P2-002 «Продолжить чтение» (Continue on top)
+  injectBenHomeRails(body);   // reading-life rails only; owner corpus remains a separate L1 surface
 }
 
 // FB-9 — L1 results order. 'ready' keeps the readiness-first + alpha default; 'alpha' sorts by title;
@@ -10160,7 +10250,12 @@ async function renderResultsInto(body) {
     hits.sort(corpusL1Comparator(hasQuery ? 'ready' : corpusL1Sort, corpusReadyMap()));
     // FB-20 — the per-row decorate badges read works AS they render (covers «показать ещё» pagination
     // once the set is loaded); the post-pass below covers page-1 rows that pre-date the async set load.
-    appendPagedWorkRows(body, hits.map((h) => ({ sr: h })), (node) => _finishedBadgeNode(node), { openOpts: { ftsQuery: corpusFilter.q } });
+    const sec = el('section', { class: 'shelf corpus-title-results' });
+    const head = el('div', { class: 'shelf-head' });
+    head.appendChild(el('h2', { class: 'shelf-title', text: tt('room.corpus.search.byTitle', 'По названию') + ' (' + hits.length + ')' }));
+    sec.appendChild(head); body.appendChild(sec);
+    appendPagedWorkRows(sec, hits.map((h) => ({ sr: h })), (node) => _finishedBadgeNode(node), { openOpts: { ftsQuery: corpusFilter.q } });
+    attachRoomLongListDisclosure(sec, head, Array.from(sec.children).filter((node) => node !== head), 'ben:results:title');
     ensureFinishedSet().then(() => { if (corpusL1Body === body) decorateFinishedBadges(body); }).catch(() => {});
   }
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
@@ -10347,6 +10442,7 @@ function appendFtsSection(body, q, label, items) {
   sec.appendChild(head);
   body.appendChild(sec);
   appendPagedWorkRows(sec, items, null, { openOpts: { ftsQuery: q } });   // BRR-P2-005/006 — opens AT the matched/phrase line
+  attachRoomLongListDisclosure(sec, head, Array.from(sec.children).filter((node) => node !== head), 'ben:results:fts:' + label);
 }
 
 // Query the full-text index and render «в тексте» groups for hits NOT already shown in the
@@ -10949,14 +11045,18 @@ async function renderCorpusAuthors(era, token) {
     sortWrap.appendChild(b);
   });
   head.appendChild(sortWrap);
-  wrap.appendChild(head);
+  const listSection = el('section', { class: 'corpus-author-section' });
+  listSection.appendChild(head);
+  wrap.appendChild(listSection);
 
   const list = el('div', { class: 'corpus-author-list' });
   if (alpha) {
     const present = new Set(authors.map((a) => hebFirstLetter(a.name)).filter(Boolean));
-    wrap.appendChild(buildHebrewJumpBar(list, present));
-    wrap.appendChild(list);
+    const jumpBar = buildHebrewJumpBar(list, present);
+    listSection.appendChild(jumpBar);
+    listSection.appendChild(list);
     for (const a of authors) list.appendChild(renderAuthorRow(era, a)); // all rendered (anchors)
+    attachRoomLongListDisclosure(listSection, head, [jumpBar, list], 'ben:authors:' + era + ':alpha');
     main.appendChild(wrap);
     loadCorpusAuthors().then(() => { if (token === corpusRenderToken) decorateAuthorRows(list); }).catch(() => {});   // Epic-6 — life-years
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
@@ -10964,8 +11064,8 @@ async function renderCorpusAuthors(era, token) {
   }
   // graduated → incremental reveal
   const moreWrap = el('div', { class: 'corpus-more' });
-  wrap.appendChild(list);
-  wrap.appendChild(moreWrap);
+  listSection.appendChild(list);
+  listSection.appendChild(moreWrap);
   const slice = () => {
     const upTo = Math.min(authors.length, corpusReveal + CORPUS_PAGE);
     for (let i = corpusReveal; i < upTo; i++) list.appendChild(renderAuthorRow(era, authors[i]));
@@ -10981,6 +11081,7 @@ async function renderCorpusAuthors(era, token) {
   };
   corpusReveal = 0;
   slice();
+  attachRoomLongListDisclosure(listSection, head, [list, moreWrap], 'ben:authors:' + era + ':graduated');
   main.appendChild(wrap);
   loadCorpusAuthors().then(() => { if (token === corpusRenderToken) decorateAuthorRows(list); }).catch(() => {});   // Epic-6 — life-years
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
@@ -11118,7 +11219,8 @@ function corpusWorkSection(titleKey, icon, works, openable) {
   sec.appendChild(head);
   // W1-d — honest roadmap framing under the «перевод позже» section: explain WHY (batched rollout) +
   // the offline-first moat, so a not-yet-ready work doesn't read as broken (R5 framing, R9 honest).
-  if (!openable) sec.appendChild(el('div', { class: 'corpus-section-note', i18n: 'room.corpus.laterRoadmap', text: tt('room.corpus.laterRoadmap', 'Перевод и огласовка добавляются партиями — скоро дойдут и сюда. Оригинал уже в каталоге и читается офлайн.') }));
+  const note = !openable ? el('div', { class: 'corpus-section-note', i18n: 'room.corpus.laterRoadmap', text: tt('room.corpus.laterRoadmap', 'Перевод и огласовка добавляются партиями — скоро дойдут и сюда. Оригинал уже в каталоге и читается офлайн.') }) : null;
+  if (note) sec.appendChild(note);
   const list = el('div', { class: 'corpus-work-list' });
   const moreWrap = el('div', { class: 'corpus-more' });
   sec.appendChild(list);
@@ -11137,6 +11239,7 @@ function corpusWorkSection(titleKey, icon, works, openable) {
     }
   };
   slice();
+  attachRoomLongListDisclosure(sec, head, [note, list, moreWrap].filter(Boolean), 'ben:works:' + titleKey);
   return sec;
 }
 

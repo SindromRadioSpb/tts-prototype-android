@@ -13249,7 +13249,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.376";
+    window.APP_VERSION = "3.11.377";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -24796,6 +24796,10 @@ function v3MediaFollowTableRange(range) {
   const container = document.getElementById("tableContainer");
   const row = table && table.querySelector('tbody tr[data-row-idx="' + String(range.rowStart) + '"]');
   if (!row || !container) return;
+  // A timed-media follow row is the learner's real working position. Use the same
+  // canonical/debounced progress writer as an explicit row selection so Studio and
+  // Reading Room reopen the material at the last passage actually studied.
+  if (v3ActiveTextId != null) v3QueueProgress(v3ActiveTextId, range.rowStart);
   const previous = table.querySelector('tbody tr[data-row-idx="' + String(Math.max(0, range.rowStart - 1)) + '"]');
   const cRect = container.getBoundingClientRect(), rRect = row.getBoundingClientRect();
   const target = window.MaterialRevisionCore && window.MaterialRevisionCore.computeContextScrollTop

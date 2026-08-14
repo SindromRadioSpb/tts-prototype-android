@@ -329,7 +329,7 @@ async function main() {
       // that earlier row through the same canonical progress writer.
       const t5BackwardProgress = await pg.evaluate(async () => {
         const wrap = document.getElementById("roomReaderTable");
-        const row = wrap && wrap.querySelector('tr[data-row-idx="3"]');
+        const row = wrap && wrap.querySelector('tr[data-row-idx="8"]');
         if (!wrap || !row) return null;
         wrap.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
         const wrapTop = wrap.getBoundingClientRect().top;
@@ -351,9 +351,39 @@ async function main() {
         };
       });
       ok(t5BackwardProgress && t5BackwardProgress.saved === t5BackwardProgress.visible
-          && t5BackwardProgress.saved > 0 && t5BackwardProgress.saved < 12,
+          && t5BackwardProgress.saved >= 6 && t5BackwardProgress.saved < 12,
         "media mode: manual backward study persists the earlier top-visible row after followed row 12, got "
           + JSON.stringify(t5BackwardProgress));
+      // Regression 2026-08-14 (owner card «Кфар Аза - 2»): the durable row could be
+      // correct while the visible Reader still reopened at the beginning. The race was
+      // specific to media cards: restore ran in page-scroll mode, then the async media
+      // resolver converted the table into its own scroller with scrollTop=0. Prove the
+      // REAL close → card Continue → late media-layout path, not only DB read-back.
+      const t5ExpectedResume = t5BackwardProgress && t5BackwardProgress.saved;
+      await backToGrid();
+      await openCard("RMM FIVE");
+      await pg.waitForFunction(() => {
+        const wrap = document.getElementById("roomReaderTable");
+        const stage = document.getElementById("roomMediaLocalStage");
+        return wrap && wrap.classList.contains("room-media-scroll") && stage && !stage.hidden;
+      }, { timeout: 15000 }).catch(() => failures.push("t5 reopen: media layout did not settle"));
+      await pg.waitForTimeout(1800);
+      const t5Reopen = await pg.evaluate((wanted) => {
+        const wrap = document.getElementById("roomReaderTable");
+        const row = wrap && wrap.querySelector('tr[data-row-idx="' + String(wanted) + '"]');
+        const wr = wrap && wrap.getBoundingClientRect();
+        const rr = row && row.getBoundingClientRect();
+        return {
+          wanted,
+          mediaScroll: !!(wrap && wrap.classList.contains("room-media-scroll")),
+          wrapScrollTop: wrap ? wrap.scrollTop : -1,
+          targetVisible: !!(wr && rr && rr.bottom > wr.top && rr.top < wr.bottom),
+          highlighted: !!(row && row.classList.contains("rm-row-jump")),
+        };
+      }, t5ExpectedResume);
+      ok(t5Reopen.mediaScroll && t5Reopen.wrapScrollTop > 0 && t5Reopen.targetVisible && t5Reopen.highlighted,
+        "media mode: close/reopen Continue keeps the saved row visible after async layout, got "
+          + JSON.stringify(t5Reopen));
       const hdrStatic = await pg.evaluate(() => getComputedStyle(document.querySelector(".room-header")).position);
       ok(hdrStatic === "static", "site header is non-sticky while reading, got " + hdrStatic);
       await backToGrid();

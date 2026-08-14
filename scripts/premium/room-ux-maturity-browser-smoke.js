@@ -257,6 +257,9 @@ async function auditSurface(page, surface) {
       filterSummaryVisible: !!Array.from(document.querySelectorAll(".corpus-filter-summary")).find(isVisible),
       managementDisclosures: document.querySelectorAll(".corpus-management").length,
       visibleManagementActions: Array.from(document.querySelectorAll(".group-admin-action,.corpus-management-actions a")).filter(isVisible).length,
+      longListToggles: document.querySelectorAll(".room-section-toggle[aria-controls]").length,
+      collapsedLongLists: document.querySelectorAll(".room-long-list-body[hidden]").length,
+      myTextsShelf: document.querySelectorAll(".mytexts-shelf").length,
       myTextSecondary: document.querySelectorAll(".mytexts-grid .mytext-secondary").length,
       directNakdan: document.querySelectorAll(".mytexts-grid .mytext-card-v > .mytext-nakdan").length,
       corpusTops: {
@@ -325,6 +328,32 @@ async function captureMatrix(browser, locale, viewport, theme, label, myTextCoun
     await selectCorpus(page, id);
     results.push(await auditSurface(page, name));
     await page.screenshot({ path: path.join(OUT, `${label}-${name}.png`), fullPage: false });
+    const disclosure = page.locator(".room-section-toggle").first();
+    check(await disclosure.count() === 1, `${label}/${name}: long-list disclosure is present`);
+    if (await disclosure.count()) {
+      const disclosureContract = await page.locator(".room-section-toggle").evaluateAll((buttons) => buttons.map((button) => {
+        const body = document.getElementById(button.getAttribute("aria-controls"));
+        const rect = button.getBoundingClientRect();
+        return { expanded: button.getAttribute("aria-expanded"), controlled: !!body, hidden: !!(body && body.hidden), width: rect.width, height: rect.height };
+      }));
+      check(disclosureContract.every((item) => item.expanded === "true" && item.controlled && !item.hidden && item.width >= 44 && item.height >= 44),
+        `${label}/${name}: every disclosure starts open, controls a region, and keeps a 44px target (${JSON.stringify(disclosureContract)})`);
+      await disclosure.focus();
+      await page.keyboard.press("Enter");
+      const closedState = await disclosure.evaluate((button) => {
+        const body = document.getElementById(button.getAttribute("aria-controls"));
+        return { expanded: button.getAttribute("aria-expanded"), hidden: !!(body && body.hidden), focused: document.activeElement === button };
+      });
+      check(closedState.expanded === "false" && closedState.hidden && closedState.focused,
+        `${label}/${name}: Enter collapses the controlled region and preserves focus (${JSON.stringify(closedState)})`);
+      await page.keyboard.press("Space");
+      const openState = await disclosure.evaluate((button) => {
+        const body = document.getElementById(button.getAttribute("aria-controls"));
+        return { expanded: button.getAttribute("aria-expanded"), hidden: !!(body && body.hidden), focused: document.activeElement === button };
+      });
+      check(openState.expanded === "true" && !openState.hidden && openState.focused,
+        `${label}/${name}: Space reopens the controlled region and preserves focus (${JSON.stringify(openState)})`);
+    }
     if (viewport.width <= 760) {
       await page.locator(".corpus-filter-disclosure > summary").click();
       const opened = await page.locator(".corpus-filter-disclosure").evaluate((node) => node.open);
@@ -358,6 +387,31 @@ async function captureMatrix(browser, locale, viewport, theme, label, myTextCoun
       `${label}/${name}: row evidence capture contains a visible item (${JSON.stringify(rowCapture)})`);
     await page.screenshot({ path: path.join(OUT, `${label}-${name}-rows.png`), fullPage: false });
     await page.evaluate(() => scrollTo(0, 0));
+    if (name === "benyehuda" && locale === "ru" && viewport.width === 380) {
+      await page.locator(".period-card").first().click();
+      await page.waitForSelector(".corpus-author-section .room-section-toggle", { timeout: 30000 });
+      const authorDisclosure = await page.locator(".corpus-author-section .room-section-toggle").first().evaluate((button) => ({
+        expanded: button.getAttribute("aria-expanded"),
+        controlled: !!document.getElementById(button.getAttribute("aria-controls")),
+      }));
+      check(authorDisclosure.expanded === "true" && authorDisclosure.controlled,
+        `${label}/benyehuda: long author drill uses the shared disclosure (${JSON.stringify(authorDisclosure)})`);
+      await page.locator(".corpus-author-row").first().click();
+      await page.waitForSelector(".corpus-work-section .room-section-toggle", { timeout: 30000 });
+      const workDisclosures = await page.locator(".corpus-work-section .room-section-toggle").evaluateAll((buttons) => buttons.map((button) => ({
+        expanded: button.getAttribute("aria-expanded"),
+        controlled: !!document.getElementById(button.getAttribute("aria-controls")),
+      })));
+      check(workDisclosures.length >= 1 && workDisclosures.every((item) => item.expanded === "true" && item.controlled),
+        `${label}/benyehuda: long work drills use the shared disclosure (${JSON.stringify(workDisclosures)})`);
+      // Return to a clean L0 before the next corpus in the matrix; OPFS fixtures stay intact.
+      await page.evaluate(() => sessionStorage.removeItem("room.presentation.v1"));
+      await page.addInitScript(() => sessionStorage.removeItem("room.presentation.v1"));
+      await page.goto(BASE + "/library.html?canon=skip&roomUxMaturity=1", { waitUntil: "load", timeout: 60000 });
+      await page.waitForFunction(() => { const tab = document.getElementById("tabCorpus"); return tab && !tab.hidden; }, null, { timeout: 30000 });
+      await page.click("#tabCorpus");
+      await page.waitForSelector(".learning-home");
+    }
   }
   check(pageErrors.length === 0, `${label}: no page errors (${pageErrors.join(" | ")})`);
   await context.close();
@@ -382,6 +436,12 @@ function evaluateRed(matrix) {
 
 function evaluateGreen(matrix) {
   const all = (surface) => matrix.filter((entry) => entry.surface === surface);
+  for (const entry of matrix.filter((item) => item.surface !== "learning-home")) {
+    check(entry.longListToggles >= 1, `${stage}/${entry.surface}/${entry.lang}: long material blocks expose disclosure controls (${entry.longListToggles})`);
+    check(entry.collapsedLongLists === 0, `${stage}/${entry.surface}/${entry.lang}: long material blocks start expanded (${entry.collapsedLongLists})`);
+    if (entry.surface === "benyehuda") check(entry.myTextsShelf === 0,
+      `${stage}/${entry.lang}: Ben-Yehuda does not embed the neighboring My Texts corpus (${entry.myTextsShelf})`);
+  }
   if (["B1", "B2", "B3", "B4", "B5"].includes(stage)) {
     for (const entry of all("benyehuda")) {
       check(entry.readyItems <= 12, `${stage}/${entry.lang}/${entry.viewport.width}: ready preview <=12 (${entry.readyItems})`);

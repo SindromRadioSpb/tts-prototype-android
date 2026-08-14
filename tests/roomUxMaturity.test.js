@@ -168,6 +168,37 @@ test("B3 normalizes identity, browse and management as shared shell zones", () =
   assert.match(libraryHtml, /@media \(max-width: 760px\)[\s\S]*\.corpus-filter-disclosure/);
 });
 
+test("2026-08-14 keeps corpus identity isolated and makes every long corpus list collapsible", () => {
+  const benHome = libraryUi.slice(
+    libraryUi.indexOf("function renderHomeInto"),
+    libraryUi.indexOf("// FB-9 — L1 results order"),
+  );
+  const benRails = libraryUi.slice(
+    libraryUi.indexOf("async function injectBenHomeRails"),
+    libraryUi.indexOf("async function injectCorpusRails"),
+  );
+  assert.match(benHome, /injectBenHomeRails\(body\)/,
+    "Ben-Yehuda must use a corpus-local rail coordinator");
+  assert.doesNotMatch(benRails, /injectMyTexts\(/,
+    "the neighboring My Texts corpus must not be injected into Ben-Yehuda");
+  assert.match(libraryUi, /function attachRoomLongListDisclosure\(/,
+    "one disclosure helper must own the expand/collapse semantics");
+  assert.match(libraryUi, /aria-expanded[\s\S]*aria-controls/,
+    "long-list toggles need programmatic state and an explicit controlled region");
+  assert.match(libraryHtml, /\.room-long-list-body\[hidden\]/,
+    "author CSS must not be able to resurrect a collapsed list");
+  assert.ok((libraryUi.match(/attachRoomLongListDisclosure\(/g) || []).length >= 12,
+    "all long-list families must consume the same disclosure contract");
+  for (const family of ["mytexts:materials", "group:' + corpusId + ':materials", "ben:periods", "ben:results:title", "ben:authors:", "ben:works:"]) {
+    assert.match(libraryUi, new RegExp(family.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+      `missing disclosure coverage for ${family}`);
+  }
+  for (const locale of [localeRu, localeEn, localeHe]) {
+    assert.match(locale, /sectionExpand:/);
+    assert.match(locale, /sectionCollapse:/);
+  }
+});
+
 test("B2 turns the corpus hub into a learning-first home without creating learner truth", () => {
   const learningHome = libraryUi.slice(
     libraryUi.indexOf("async function getLearningHomeContinue"),
