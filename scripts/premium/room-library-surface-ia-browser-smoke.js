@@ -127,6 +127,18 @@ function fixtureLists() {
     check(home.overflow === 0, "desktop RU L0 has horizontal page overflow");
     await page.screenshot({ path: path.join(OUT, "library-l0-desktop-ru.png"), fullPage: true });
 
+    await page.evaluate(async () => {
+      const core = await import("/js/room-b6-core.js");
+      const staleBen = core.sanitizePresentationState({ surface: "corpus", corpus: "benyehuda", filters: { q: "stale-browser-local-filter" } });
+      sessionStorage.setItem("room.presentation.v1", core.encodeSessionMirror(staleBen, Date.now()));
+      history.replaceState(staleBen, "", location.pathname + location.search + "#room=hub");
+    });
+    await page.reload({ waitUntil: "load" });
+    await page.waitForSelector(".learning-home-reading-lists", { timeout: 30000 });
+    const explicitLocationHash = await page.evaluate(() => location.hash);
+    check(explicitLocationHash === "#room=hub", "explicit Library Home hash changed during boot: " + explicitLocationHash);
+    check(await page.locator(".learning-home").count() === 1, "explicit #room=hub was overridden by stale Ben history/session state");
+
     const moduleToggle = page.locator(".learning-home-reading-lists .room-section-toggle");
     await moduleToggle.focus(); await moduleToggle.press("Enter");
     check(await moduleToggle.getAttribute("aria-expanded") === "false", "keyboard collapse did not update aria-expanded");

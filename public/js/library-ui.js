@@ -736,19 +736,24 @@ function roomInitialMyTextsAnchor() {
 }
 function roomDecodeInitialPresentation() {
   if (location.hash === '#mentor' || location.hash === '#lesson-builder') return null;
-  if (history.state && history.state.v === 1) return roomB6.sanitizePresentationState(history.state);
+  const explicitHashState = roomB6.presentationStateFromHash(location.hash);
+  const hasExplicitRoomHash = String(location.hash || '').startsWith('#room=');
+  if (hasExplicitRoomHash && !explicitHashState) {
+    _roomHistoryFallbackNotice = true;
+    return null;
+  }
+  if (explicitHashState && history.state && history.state.v === 1
+    && roomB6.presentationStateMatchesHash(history.state, location.hash)) {
+    return roomB6.sanitizePresentationState(history.state);
+  }
   let mirrored = null;
   try { mirrored = roomB6.decodeSessionMirror(sessionStorage.getItem(ROOM_PRESENTATION_KEY), Date.now()); } catch (_) {}
-  if (mirrored) return mirrored;
-  const match = String(location.hash || '').match(/^#room=([^&]+)$/);
-  if (match) {
-    let route = ''; try { route = decodeURIComponent(match[1]); } catch (_) {}
-    if (route === 'hub') return roomB6.sanitizePresentationState({ surface: 'hub', corpus: 'benyehuda' });
-    if (route === 'mytexts') return roomB6.sanitizePresentationState({ surface: 'mytexts', corpus: 'mytexts' });
-    if (route === 'benyehuda') return roomB6.sanitizePresentationState({ surface: 'corpus', corpus: 'benyehuda' });
-    if (/^group:[A-Za-z0-9._:-]+$/.test(route)) return roomB6.sanitizePresentationState({ surface: 'group', corpus: route });
-    _roomHistoryFallbackNotice = true;
+  if (explicitHashState) {
+    if (mirrored && roomB6.presentationStateMatchesHash(mirrored, location.hash)) return mirrored;
+    return explicitHashState;
   }
+  if (history.state && history.state.v === 1) return roomB6.sanitizePresentationState(history.state);
+  if (mirrored) return mirrored;
   return null;
 }
 function roomApplyStateFields(state) {

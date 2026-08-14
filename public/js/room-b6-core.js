@@ -167,6 +167,23 @@ export function presentationHash(input = {}) {
   return '#room=' + encodeURIComponent(route);
 }
 
+export function presentationStateFromHash(hash) {
+  const match = String(hash || '').match(/^#room=([^&]+)$/);
+  if (!match) return null;
+  let route = '';
+  try { route = decodeURIComponent(match[1]); } catch (_) { return null; }
+  if (route === 'hub') return sanitizePresentationState({ surface: 'hub', corpus: 'benyehuda' });
+  if (route === 'mytexts') return sanitizePresentationState({ surface: 'mytexts', corpus: 'mytexts' });
+  if (route === 'benyehuda') return sanitizePresentationState({ surface: 'corpus', corpus: 'benyehuda' });
+  if (/^group:[A-Za-z0-9._:-]+$/.test(route)) return sanitizePresentationState({ surface: 'group', corpus: route });
+  return null;
+}
+
+export function presentationStateMatchesHash(input, hash) {
+  const explicit = presentationStateFromHash(hash);
+  return !!explicit && presentationHash(input) === presentationHash(explicit);
+}
+
 export function encodeSessionMirror(input, now = Date.now()) {
   const envelope = { v: PRESENTATION_VERSION, savedAt: Number(now), state: sanitizePresentationState(input) };
   const raw = JSON.stringify(envelope);

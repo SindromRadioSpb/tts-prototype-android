@@ -62,6 +62,25 @@ test("B6.2 session mirror enforces version, TTL and byte budget", async () => {
   assert.equal(core.decodeSessionMirror("{bad", now), null);
 });
 
+test("B6.2 an explicit Room hash owns its route over stale presentation state", async () => {
+  const core = await import(pathToFileURL(corePath).href);
+  const hub = core.presentationStateFromHash("#room=hub");
+  const ben = core.presentationStateFromHash("#room=benyehuda");
+  const myTexts = core.presentationStateFromHash("#room=mytexts");
+  const group = core.presentationStateFromHash("#room=group%3Astudy-songs-pilot");
+
+  assert.equal(hub.surface, "hub");
+  assert.equal(ben.corpus, "benyehuda");
+  assert.equal(myTexts.surface, "mytexts");
+  assert.equal(group.corpus, "group:study-songs-pilot");
+  assert.equal(core.presentationStateMatchesHash({ surface: "corpus", corpus: "benyehuda" }, "#room=hub"), false,
+    "a stale Ben state must not override an explicit Library Home route");
+  assert.equal(core.presentationStateMatchesHash({ surface: "corpus", corpus: "benyehuda", filters: { q: "safe-local-filter" } }, "#room=benyehuda"), true,
+    "same-route browser-local presentation detail may still be restored");
+  assert.equal(core.presentationStateFromHash("#room=unknown"), null);
+  assert.equal(core.presentationStateFromHash("#mentor"), null);
+});
+
 test("B6.3 connection lifecycle is explicit and waiting updates never auto-activate", async () => {
   const core = await import(pathToFileURL(corePath).href);
   assert.equal(core.nextConnectionState("online", "offline", { localReady: true }), "offline-ready");

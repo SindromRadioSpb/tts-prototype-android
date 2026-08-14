@@ -97,3 +97,15 @@ test("D5 shares typed disclosure semantics and repaints them after locale change
     }
   }
 });
+
+test("production hotfix keeps explicit Room deep links authoritative", () => {
+  const decode = ui.slice(
+    ui.indexOf("function roomDecodeInitialPresentation"),
+    ui.indexOf("function roomApplyStateFields"),
+  );
+  assert.match(decode, /presentationStateFromHash\(location\.hash\)/);
+  assert.match(decode, /presentationStateMatchesHash\(history\.state, location\.hash\)/);
+  assert.match(decode, /presentationStateMatchesHash\(mirrored, location\.hash\)/);
+  assert.ok(decode.indexOf("presentationStateFromHash(location.hash)") < decode.indexOf("history.state && history.state.v === 1"),
+    "the explicit URL route must be resolved before history/session restoration");
+});
