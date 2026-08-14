@@ -337,19 +337,30 @@ async function main() {
       ok(ctx.activeTop != null && Math.abs(ctx.activeTop - ctx.expected) < 24,
         "active row is the SECOND visible row inside the wrap (top " + ctx.activeTop + " ≈ " + ctx.expected + ")");
       ok(ctx.barVisible === true, "media bar (and player above it) stays on screen while following");
-      // B8-D2 owner-live correction: long interview/material study often moves
-      // backwards inside the media table. A genuine user takeover must persist
-      // that earlier row through the same canonical progress writer.
+      // B8-D2 + ROW-HIGHLIGHT owner-live correction: long interview/material
+      // study often browses backwards for context. Scrolling alone must preserve
+      // the settled playback-established row; engaging row 8 then replaces it.
       const t5BackwardProgress = await pg.evaluate(async () => {
         const wrap = document.getElementById("roomReaderTable");
         const row = wrap && wrap.querySelector('tr[data-row-idx="8"]');
         if (!wrap || !row) return null;
-        wrap.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+        const db = await import("/db/local-db.js");
+        // The synthetic MP3 is deliberately short, so Chromium may asynchronously
+        // clamp the row-12 seek to its real duration. Let that genuine media signal
+        // settle before isolating the passive-scroll invariant.
+        await new Promise((r) => setTimeout(r, 1100));
+        const baseline = await db.getProgress("rmm-t5");
+        const baselineCurrent = Array.from(wrap.querySelectorAll('tr.rm-row-current[aria-current="location"]'))
+          .map((tr) => Number(tr.getAttribute("data-row-idx")));
         const wrapTop = wrap.getBoundingClientRect().top;
         wrap.scrollTop += row.getBoundingClientRect().top - wrapTop;
         wrap.dispatchEvent(new Event("scroll", { bubbles: true }));
-        await new Promise((r) => setTimeout(r, 1600));
-        const db = await import("/db/local-db.js");
+        await new Promise((r) => setTimeout(r, 1100));
+        const beforeEngage = await db.getProgress("rmm-t5");
+        const passiveCurrent = Array.from(wrap.querySelectorAll('tr.rm-row-current[aria-current="location"]'))
+          .map((tr) => Number(tr.getAttribute("data-row-idx")));
+        row.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 1100));
         const saved = await db.getProgress("rmm-t5");
         const rows = Array.from(wrap.querySelectorAll("tr[data-row-idx]")).map((tr) => {
           const rect = tr.getBoundingClientRect();
@@ -359,13 +370,21 @@ async function main() {
         const offset = Math.max(wrap.getBoundingClientRect().top,
           bar ? bar.getBoundingClientRect().bottom : 0);
         return {
+          baselineSaved: baseline ? Number(baseline.last_row_idx) : null,
+          baselineCurrent,
+          passiveSaved: beforeEngage ? Number(beforeEngage.last_row_idx) : null,
+          passiveCurrent,
           saved: saved ? Number(saved.last_row_idx) : null,
           visible: window.ReaderProgress.topVisibleRowIdx(rows, offset),
         };
       });
-      ok(t5BackwardProgress && t5BackwardProgress.saved === t5BackwardProgress.visible
-          && t5BackwardProgress.saved >= 6 && t5BackwardProgress.saved < 12,
-        "media mode: manual backward study persists the earlier top-visible row after followed row 12, got "
+      ok(t5BackwardProgress
+          && t5BackwardProgress.passiveSaved === t5BackwardProgress.baselineSaved
+          && JSON.stringify(t5BackwardProgress.passiveCurrent) === JSON.stringify(t5BackwardProgress.baselineCurrent),
+        "media mode: passive backward context scroll preserves the settled playback row, got "
+          + JSON.stringify(t5BackwardProgress));
+      ok(t5BackwardProgress && t5BackwardProgress.saved === 8,
+        "media mode: deliberate row-8 engagement replaces the working row, got "
           + JSON.stringify(t5BackwardProgress));
       // Regression 2026-08-14 (owner card «Кфар Аза - 2»): the durable row could be
       // correct while the visible Reader still reopened at the beginning. The race was

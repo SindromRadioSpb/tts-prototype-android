@@ -269,6 +269,7 @@ Writer invariant after approval:
 
 ```text
 latest genuine row interaction may move stored resume in either direction
+passive page or media-table scroll is context browsing and writes no working row
 programmatic scroll settling and teardown cannot replace the explicit target
 finished remains manual-only
 history restore writes neither progress nor review_log until genuine reading interaction
@@ -367,7 +368,8 @@ Required qualities:
 
 1. One fact, one authority: B8 adds no progress/bookmark/note/vocabulary/SRS store.
 2. `text_progress.last_row_idx` equals the latest valid working row and may decrease after
-   deliberate backward study; transient programmatic scroll/teardown cannot change it.
+   deliberate backward study; passive browsing scroll and transient programmatic
+   scroll/teardown cannot change it.
 3. Finish/unfinish remains explicit; end-of-text/media never auto-finishes.
 4. Open/close/Back/Forward/refresh/filter writes zero `review_log` rows.
 5. One completed grade writes exactly one review event; B8 never invokes grade.
@@ -386,7 +388,7 @@ Required qualities:
 
 | Fact | Authority | Allowed B8 reader | Allowed B8 writer | Forbidden duplicate |
 |---|---|---|---|---|
-| last working row | `text_progress` | journey query/Reader | existing `setTextProgress`, last valid interaction | History/localStorage journey row |
+| last working row | `text_progress` | journey query/Reader | existing `setTextProgress`, last deliberate row interaction/playback/explicit jump | History/localStorage journey row |
 | session furthest | Reader memory only | end-of-text prompt | current Reader session | durable furthest field/table |
 | finished | `text_progress.finished_at` | projection/filter | existing manual handlers | inferred completion cache |
 | passage bookmark | `bookmarks` | cross-source bounded list | existing bookmark toggle | saved-list entry as bookmark |
@@ -430,7 +432,7 @@ rollback does not transform them. Ben reading-list payload and review log are un
 | Slice | Red evidence first | Implementation outcome | Gate |
 |---|---|---|---|
 | B8-I0 contract tests | stored row 80 + deliberate earlier row 10 | RED until last-position helper/writer exist | owner-live expected `Continue 10` |
-| B8-I1 last-position resume | normal scroll, explicit continue/bookmark, close, refresh, History restore | latest genuine row; separate session furthest; honest position copy | `80 → 10 → reload → Continue 10`; zero review-log delta |
+| B8-I1 last-position resume | passive scroll, explicit row engagement/continue/bookmark, close, refresh, History restore | passive context browsing is a no-op; latest deliberate row; separate session furthest; honest position copy | `80 → engage 10 → passive scroll → reload → Continue 10`; zero review-log delta |
 | B8-I2 journey projection | source-neutral fixtures for My/Study/Ben; unavailable entitlement; 1k/5k | compact Learning Home + paged Bookmarks/Finished/With notes views | unit/query/browser, payload/DOM/memory budgets |
 | B8-I3 recovery/a11y | offline/eviction/new-device copy, RU/HE/RTL, keyboard, 200%, 320px/text-spacing | device/cloud labels and focus semantics | automated a11y + physical matrix |
 | B8-I4 harness repair | current media chip expectation, hidden legacy tab, sync-slim timeout | modern entry path/expectations without product-semantic drift | all targeted smoke gates deterministic |

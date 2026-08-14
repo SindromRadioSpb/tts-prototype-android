@@ -4984,8 +4984,9 @@ function roomMediaWireOnce() {
   window.addEventListener('scroll', relayout, { passive: true });
 }
 
-// BRR-P2-002 «Продолжить чтение» — record the reading position (debounced) and restore
-// it on the next open. Position = topmost row at the sticky bar OR the karaoke-playing row.
+// BRR-P2-002 «Продолжить чтение» — record the deliberate working row (debounced) and
+// restore it on the next open. Passive context browsing is not a position decision:
+// pointer/focus row engagement, explicit navigation and playback are the writers.
 // All DOM/DB; the in-range decision math lives in the pure window.ReaderProgress (gated).
 let _progressTimer = null, _scrollTimer = null, _progressScrollWired = false;
 let _sessionLastRow = -1, _sessionFurthestRow = -1;
@@ -5039,17 +5040,9 @@ async function flushReaderProgress(options = {}) {
   const tid = readerTextId;
   if (_progressTimer) { clearTimeout(_progressTimer); _progressTimer = null; }
   if (tid == null) return { ok: true, textId: null, rowIndex: -1 };
-  // A pending USER scroll may not have survived the 600ms debounce before Back.
-  // Capture it synchronously. Programmatic smooth-scroll events are ignored here:
-  // their exact explicit target was already recorded by scrollToReaderRow().
-  if (_scrollTimer) {
-    clearTimeout(_scrollTimer); _scrollTimer = null;
-    if (!_roomReaderPresentationReadOnly && Date.now() >= _programmaticProgressUntil) {
-      const top = currentTopRowIdx();
-      if (top != null) recordProgress(top);
-      if (_progressTimer) { clearTimeout(_progressTimer); _progressTimer = null; }
-    }
-  }
+  // Scroll is presentation/context browsing, not a working-row writer. Cancel only
+  // its pending end-of-text observation; flush the latest deliberate interaction.
+  if (_scrollTimer) { clearTimeout(_scrollTimer); _scrollTimer = null; }
   const idx = _sessionLastRow;
   // Row 0 is a real last-worked position too: persisting it intentionally
   // clears an older deeper Continue anchor (the home projection then omits
@@ -5093,8 +5086,9 @@ function wireProgressScroll() {
       _scrollTimer = null;
       if (_roomReaderPresentationReadOnly) return;
       if (Date.now() < _programmaticProgressUntil) return;
-      const idx = currentTopRowIdx();
-      if (idx != null) { recordProgress(idx); maybeShowEndOfText(); }   // Epic-5 W1 — last row in view → «✓ Прочитано» card
+      // Passive scrolling may inspect neighbouring paragraphs without choosing a
+      // new working row. It only contributes the honest end-of-text visibility signal.
+      maybeShowEndOfText();   // Epic-5 W1 — last row in view → «✓ Прочитано» card
     }, 600);
   };
   window.addEventListener('scroll', onScroll, { passive: true });
@@ -7121,9 +7115,8 @@ function jumpToFtsMatch(q, loadedProgress) {
 }
 
 async function closeReader(options) {
-  // BRR-P2-002 — flush the current position synchronously BEFORE hiding (the 800ms debounce
-  // may not have fired if Back is tapped quickly). Read the top-visible row while the table is
-  // still laid out, persist it, then stop recording.
+  // BRR-P2-002 — flush the last deliberate working position synchronously BEFORE hiding
+  // (the 800ms debounce may not have fired if Back is tapped quickly), then stop recording.
   const tid = readerTextId;
   tickReadingCalibration(); _readingCalibrationSession = null;
   const presentationRestore = !!(options && options.presentationRestore);

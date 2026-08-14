@@ -35,6 +35,8 @@ test("B8-D2 owner-live correction: Continue follows the last worked row, includi
   const flush = ui.slice(ui.indexOf("async function flushReaderProgress"), ui.indexOf("function readerBarOffset"));
   assert.match(flush, /if \(idx < 0\)/,
     "a quick close at row 0 must persist that position instead of retaining a stale deeper anchor");
+  assert.doesNotMatch(flush, /currentTopRowIdx|recordProgress\(top\)/,
+    "closing after passive context browsing must not promote the top-visible row to working position");
   const writer = db.slice(db.indexOf("export async function setProgress"), db.indexOf("export async function setTextFinished"));
   assert.match(writer, /last_row_idx\s*=\s*excluded\.last_row_idx/);
   assert.match(writer, /last_step_id\s*=\s*excluded\.last_step_id/);
@@ -67,6 +69,16 @@ test("ROW-HIGHLIGHT B: Room projects one persistent working row under playback",
     "every canonical working-position observation must repaint the current row");
   assert.match(ui, /if \(_roomReaderPresentationReadOnly\) return;[\s\S]{0,180}Date\.now\(\) < _programmaticProgressUntil/,
     "late presentation-settling scroll must not replace the restored semantic row");
+  const onScroll = ui.slice(ui.indexOf("const onScroll = () =>"), ui.indexOf("window.addEventListener('scroll', onScroll"));
+  assert.match(onScroll, /maybeShowEndOfText\(\)/,
+    "passive scroll still owns the honest end-of-text visibility observation");
+  assert.doesNotMatch(onScroll, /recordProgress|currentTopRowIdx/,
+    "passive page or media-table scroll must not move the canonical working row");
+  const onRowEngage = ui.slice(ui.indexOf("const onRowEngage = (event) =>"), ui.indexOf("window.addEventListener('keydown', onScrollKey)"));
+  assert.match(onRowEngage, /pointerdown/);
+  assert.match(onRowEngage, /focusin/);
+  assert.match(onRowEngage, /recordProgress\(idx\)/,
+    "an intentional pointer or keyboard row engagement remains a canonical writer");
   assert.match(ui, /tr\.row-playing, #proTable tbody tr\.smk-row-active, #proTable tbody tr\.rm-row-current/,
     "hidden study actions follow playback first and the persistent working row second");
 

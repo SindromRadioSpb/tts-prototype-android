@@ -293,6 +293,23 @@ async function seed(page) {
     });
     check(focusedPaint.current && focusedPaint.actual === focusedPaint.expected,
       "hover/focus must not replace the persistent warm working-row base: " + JSON.stringify(focusedPaint));
+    // Owner-live regression 2026-08-14: browsing neighbouring context on the
+    // same page must not silently choose a different working row. Both the
+    // Room projection and the canonical Continue row stay at the last explicit
+    // engagement until the learner engages another row.
+    await page.mouse.wheel(0, 900);
+    await page.waitForTimeout(1100);
+    const afterPassiveScroll = await page.evaluate(async () => {
+      const db = await import("/db/local-db.js");
+      const progress = await db.getProgress("b8-ben");
+      return {
+        storedRow: progress && Number(progress.last_row_idx),
+        currentRows: Array.from(document.querySelectorAll('tr.rm-row-current[aria-current="location"]'))
+          .map((node) => Number(node.getAttribute("data-row-idx"))),
+      };
+    });
+    check(afterPassiveScroll.storedRow === 10 && JSON.stringify(afterPassiveScroll.currentRows) === "[10]",
+      "passive scroll moved the working row without engagement: " + JSON.stringify(afterPassiveScroll));
     await page.click("#readerBack");
     await page.waitForSelector(".learning-home-journey", { timeout: 15000 });
 
