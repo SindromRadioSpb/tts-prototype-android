@@ -49,6 +49,33 @@ test("B8-D2 owner-live correction: Continue follows the last worked row, includi
     "the Learning Home scalar is a text position, not completion progress");
 });
 
+test("ROW-HIGHLIGHT B: Room projects one persistent working row under playback", () => {
+  const ui = read("public/js/library-ui.js");
+  const room = read("public/library.html");
+  const studio = read("public/index.html");
+
+  assert.match(ui, /function setCurrentWorkingRow\(idx\)/,
+    "Room needs one derived working-row projection over canonical progress");
+  const projection = ui.slice(ui.indexOf("function setCurrentWorkingRow"), ui.indexOf("// B8-D2 owner-live correction"));
+  assert.match(projection, /rm-row-current/);
+  assert.match(projection, /aria-current[^\n]*location/,
+    "the visual current row must also expose semantic location");
+  assert.doesNotMatch(projection, /localDb\.|setProgress|localStorage|sessionStorage/,
+    "the projection must not become a second position writer");
+  const recorder = ui.slice(ui.indexOf("function recordProgress"), ui.indexOf("async function flushReaderProgress"));
+  assert.match(recorder, /setCurrentWorkingRow\(_sessionLastRow\)/,
+    "every canonical working-position observation must repaint the current row");
+  assert.match(ui, /tr\.row-playing, #proTable tbody tr\.smk-row-active, #proTable tbody tr\.rm-row-current/,
+    "hidden study actions follow playback first and the persistent working row second");
+
+  assert.match(room, /tr\.rm-row-current:not\(\.row-error\)/,
+    "Room owns the persistent warm row treatment");
+  assert.match(room, /tr\.smk-row-active:not\(\.row-error\) td:first-child,[\s\S]{0,220}box-shadow/,
+    "media playback adds a non-colour rail over the same warm base");
+  assert.doesNotMatch(studio, /rm-row-current/,
+    "READING_ROOM_ONLY must not leak the new state into Studio");
+});
+
 test("B8-I0 contract: journey projections are typed, bounded and read-only over canonical stores", () => {
   const db = read("public/db/local-db.js");
   const ui = read("public/js/library-ui.js");

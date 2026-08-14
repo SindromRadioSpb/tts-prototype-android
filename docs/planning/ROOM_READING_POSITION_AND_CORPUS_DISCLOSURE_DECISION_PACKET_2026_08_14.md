@@ -8,6 +8,8 @@
 
 **Migration:** NONE
 
+**Approved follow-up:** `APPROVE ROW-HIGHLIGHT: B_WORKING_ROW_WITH_PLAYBACK_OVERLAY; SCOPE=READING_ROOM_ONLY`
+
 ## 1. Boundary
 
 This packet does not reopen B0-B7 or revise the approved B8 Reading Journey decisions. It responds to concrete post-release regression evidence. Canonical text rows, media passports, progress storage, bookmarks, corpus catalogues, and review history remain unchanged.
@@ -81,6 +83,20 @@ Every long corpus content block receives the same semantic disclosure control:
 
 Applied surfaces: Ben start/ready/periods/authors/works/search groups, own-text results, group-corpus results, Continue, bookmarks, finished, named reading lists, and saved searches. Small fixed navigation blocks and primary search/actions are not collapsed.
 
+### D4 — Room working row with playback overlay
+
+The existing `text_progress.last_row_idx` remains the only durable working-position truth. Reading Room derives exactly one presentation row from it:
+
+- `rm-row-current` plus `aria-current="location"` marks the last working row before, during, and after playback;
+- the warm row background is stable, while TTS/media playback adds a blue leading rail and removes only that overlay when playback stops;
+- manual scroll after its existing debounce, pointer/focus engagement in another row, TTS/media row change, Continue, bookmark, and FTS navigation all reuse the existing `recordProgress()` path;
+- unrelated controls and interactions inside the same row do not clear the current state;
+- Reader rerender, browser reload, and presentation reopen re-project the row from the existing session/canonical position;
+- error styling remains higher priority, motion is optional under `prefers-reduced-motion`, and no live-region announcement is added;
+- Studio, shared reader-core state names, schema, migrations, and progress writers remain unchanged.
+
+RED owner-profile evidence on production `3.11.380`: the saved row was visible and canonical `last_row_idx = 2`, but idle DOM exposed no persistent class or `aria-current`; the yellow state existed only while playback classes were present or until the old jump marker was dismissed by an unrelated interaction.
+
 ## 4. Acceptance matrix
 
 | Surface/material | Required evidence |
@@ -93,6 +109,7 @@ Applied surfaces: Ben start/ready/periods/authors/works/search groups, own-text 
 | Ben-Yehuda baked work | normal resume remains correct; no `Мои тексты` shelf |
 | Group corpus work | normal resume and long-list disclosure remain correct |
 | Long sections | default open when no preference exists; toggle closes/opens; state survives reload and tab reopen; one typed header slot; ARIA and keyboard state match; no page errors |
+| Room working row | exactly one warm `aria-current="location"` row; playback adds/removes only its blue rail; stop, Aa rerender, reload and reopen retain the warm row; moving to another row moves the single marker |
 
 ## 5. Release gates
 

@@ -996,18 +996,16 @@
     .corpus-fts-spinner { width: 15px; height: 15px; border-radius: 50%; border: 2px solid var(--border-soft); border-top-color: var(--accent); animation: ftsspin .7s linear infinite; flex: 0 0 auto; }
     @keyframes ftsspin { to { transform: rotate(360deg); } }
     @media (prefers-reduced-motion: reduce) { .corpus-fts-spinner { animation-duration: 1.6s; } }
-    /* BRR-P2-005 — unified jump-highlight (resume / bookmark / FTS hit): a soft AMBER tint on the
-       whole row (both language columns) + a leading accent bar, persistent until the next user
-       interaction. Amber is distinct from the Room's BLUE playback highlight; theme-independent
-       (like the karaoke word marker). a11y: the bar is a non-colour second channel (WCAG 1.4.1)
-       at ≥3:1; no underline (никуд-safe). Playback/error win the cascade. */
-    #roomReaderTable tr.rm-row-jump:not(.row-playing):not(.row-error):not(.smk-row-active) td,
-    #roomReaderTable tr.rm-row-jump:not(.row-playing):not(.row-error):not(.smk-row-active) td.rtl {
-      background-color: rgba(255, 184, 28, 0.20) !important;
-      transition: background-color 180ms ease;
+    /* ROW-HIGHLIGHT B — the canonical last-worked row has one calm WARM base before,
+       during and after playback. An amber rail means "your working place"; playback
+       overlays the same base with a blue rail. Error remains the highest-priority state.
+       aria-current="location" is applied by Room JS; the rail is the non-colour channel. */
+    #roomReaderTable tr.rm-row-current:not(.row-error) td,
+    #roomReaderTable tr.rm-row-current:not(.row-error) td.rtl {
+      background-color: var(--row-hl-playing) !important;
     }
-    #roomReaderTable tr.rm-row-jump:not(.row-playing):not(.row-error):not(.smk-row-active) td:first-child {
-      box-shadow: inset 3px 0 0 #f59e0b;
+    #roomReaderTable tr.rm-row-current:not(.row-playing):not(.smk-row-active):not(.row-error) td:first-child {
+      box-shadow: inset 3px 0 0 var(--row-rail-selected);
     }
     /* ── Room media player (spec 2026-08-04) ─────────────────────────────────── */
     /* НЕ sticky: .reader-bar уже sticky top:0 — второй sticky-слой на том же top
@@ -1024,10 +1022,15 @@
     #roomMediaYtMount { margin: 0 12px 6px; }
     #roomMediaYtMount[hidden] { display: none; }
     .smk-row-replay { width: auto; padding: 0 6px; margin-inline-start: 4px; font-size: 12px; }
-    /* Активный сегмент медиа-караоке: ниже playing/error, выше jump (порядок приоритета Студии,
-       index.html:3099 Row highlight system). */
-    #roomReaderTable tr.smk-row-active:not(.row-playing):not(.row-error) td,
-    #roomReaderTable tr.smk-row-active:not(.row-playing):not(.row-error) td.rtl { background: rgba(255, 193, 7, 0.28) !important; }
+    /* Playback overlay: media and TTS share the warm base, while the BLUE rail makes
+       the actively sounding row distinguishable without replacing the saved location. */
+    #roomReaderTable tr.smk-row-active:not(.row-error) td,
+    #roomReaderTable tr.smk-row-active:not(.row-error) td.rtl { background: var(--row-hl-playing) !important; }
+    #roomReaderTable tr.smk-row-active:not(.row-error) td:first-child,
+    #roomReaderTable tr.row-playing:not(.row-error) td:first-child { box-shadow: inset 3px 0 0 var(--row-rail-playing); }
+    @media (prefers-reduced-motion: no-preference) {
+      #roomReaderTable tr.rm-row-current:not(.row-error) td { transition: background-color 160ms ease; }
+    }
     /* Sticky-шапка таблицы (reader-core.css даёт sticky top:0, но Зал скроллит ОКНО и шапка
        заезжала под sticky .reader-bar): отступ = живая высота бара (--room-thead-top из JS).
        Два id в селекторе — гарантированная победа над #proTable thead th независимо от порядка. */
@@ -1210,8 +1213,8 @@
     .room-explain-ask button[disabled], .room-explain-ask input[disabled] { opacity: .55; cursor: default; }
     /* rm-refine..rm-note -> /css/reader-morph.css */
     /* rm-w colour classes -> /css/reader-morph.css */
-    /* BRR-P1-008 karaoke — stronger "current line" while reading aloud (reuses .row-playing). */
-    #roomReaderTable.karaoke-on tr.row-playing:not(.row-error) td { background: rgba(90,155,255,.16); }
+    /* BRR-P1-008 karaoke — playback keeps the warm working-row base; its blue rail is the overlay. */
+    #roomReaderTable.karaoke-on tr.row-playing:not(.row-error) td { background: var(--row-hl-playing); }
     /* BRR-P1-008b — the word being spoken now: a WARM "spotlight" pill, theme-independent and
        high-contrast, deliberately distinct from the cool-blue karaoke line so it never blends
        (light OR dark theme). Fixed colours (not --accent) guarantee contrast on any background. */
@@ -2475,7 +2478,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.380</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.381</button>
   </div>
 </footer>
 

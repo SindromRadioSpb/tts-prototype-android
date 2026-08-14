@@ -4595,6 +4595,7 @@ function attachReaderAudio() {
   roomPaintColWidths();    // ширины из persisted-состояния
   try { applyStudyModeClass(); } catch (_) {}   // режим + скролл-окно после каждого рендера
   try { roomPlaceProvNote(); } catch (_) {}       // дисклеймер — последним в окне таблицы
+  try { if (_sessionLastRow >= 0) setCurrentWorkingRow(_sessionLastRow); } catch (_) {}   // rerender keeps the derived working-row projection
   try { roomSyncActionOverlay(); } catch (_) {}   // пересборка таблицы уносит оверлей
   karaokeActive = false; setReadAloudBtn(false);   // a fresh (re)attach resets karaoke state
 }
@@ -4635,10 +4636,8 @@ function onKaraokeRowChange(idx) {
   // паузы — остановка bound-но-паузного медиа была бы потерей места без нужды).
   try { if (window.StudioMediaKaraoke && window.StudioMediaKaraoke.isActive()) window.StudioMediaKaraoke.stop(); } catch (_) {}
   recordProgress(idx);   // BRR-P2-002 — the read-aloud row is a strong progress signal
-  // BRR-P2-005.2 — mark the playing row with the jump-highlight: it's MASKED by the blue
-  // .row-playing while audio plays (CSS :not(.row-playing)) and stays as the amber «here you
-  // stopped» marker once playback ends (single-row end fires no -1; karaoke end leaves the last).
-  highlightReaderRow(idx);
+  // ROW-HIGHLIGHT B — recordProgress already projects this as the durable warm working row.
+  // .row-playing contributes only the blue playback rail; when audio ends the warm base remains.
   if (!karaokeActive) return;
   const mount = $('roomReaderTable');
   const tr = mount && mount.querySelector('tr[data-row-idx="' + idx + '"]');
@@ -4985,6 +4984,29 @@ function roomMediaWireOnce() {
 let _progressTimer = null, _scrollTimer = null, _progressScrollWired = false;
 let _sessionLastRow = -1, _sessionFurthestRow = -1;
 let _programmaticProgressUntil = 0;
+// ROW-HIGHLIGHT B — a Room-only PRESENTATION of the existing canonical working position.
+// There is intentionally no second state variable and no writer here: `_sessionLastRow` is the
+// in-memory mirror of text_progress.last_row_idx, while the DOM class + aria-current are derived.
+function clearCurrentWorkingRow() {
+  const mount = $('roomReaderTable');
+  if (!mount) return;
+  mount.querySelectorAll('tr.rm-row-current, tr[aria-current="location"]').forEach((tr) => {
+    tr.classList.remove('rm-row-current');
+    if (tr.getAttribute('aria-current') === 'location') tr.removeAttribute('aria-current');
+  });
+}
+function setCurrentWorkingRow(idx) {
+  const mount = $('roomReaderTable');
+  const row = Math.floor(Number(idx));
+  if (!mount || !Number.isFinite(row) || row < 0) return false;
+  const tr = mount.querySelector('tr[data-row-idx="' + String(row) + '"]');
+  if (!tr) return false;
+  clearCurrentWorkingRow();
+  tr.classList.add('rm-row-current');
+  tr.setAttribute('aria-current', 'location');
+  try { roomSyncActionOverlay(); } catch (_) {}
+  return true;
+}
 // B8-D2 owner-live correction: durable Continue follows the LAST row where the learner
 // worked, even when study moves backwards. Furthest remains a separate session-only signal
 // for the manual end-of-text prompt; it is never persisted as the resume anchor.
@@ -4997,6 +5019,7 @@ function recordProgress(idx) {
   // write is suppressed during the read-only window.
   _sessionLastRow = window.ReaderProgress ? window.ReaderProgress.latestProgress(_sessionLastRow, idx) : Math.floor(Number(idx));
   _sessionFurthestRow = window.ReaderProgress ? window.ReaderProgress.mergeProgress(_sessionFurthestRow, idx) : Math.max(_sessionFurthestRow, idx);
+  setCurrentWorkingRow(_sessionLastRow);
   if (Date.now() < _roomReaderReadOnlyUntil) return;
   const tid = readerTextId, row = _sessionLastRow;
   if (_progressTimer) clearTimeout(_progressTimer);
@@ -5071,7 +5094,17 @@ function wireProgressScroll() {
   const mount = $('roomReaderTable'); if (mount) mount.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('wheel', onUserTakeover, { passive: true });
   window.addEventListener('touchmove', onUserTakeover, { passive: true });
-  if (mount) mount.addEventListener('pointerdown', onUserTakeover, { passive: true });
+  const onRowEngage = (event) => {
+    onUserTakeover();
+    const tr = event.target && event.target.closest ? event.target.closest('tr[data-row-idx]') : null;
+    if (!tr || !mount || !mount.contains(tr)) return;
+    const idx = Number(tr.getAttribute('data-row-idx'));
+    if (Number.isFinite(idx) && idx >= 0) recordProgress(idx);
+  };
+  if (mount) {
+    mount.addEventListener('pointerdown', onRowEngage, { passive: true });
+    mount.addEventListener('focusin', onRowEngage);
+  }
   window.addEventListener('keydown', onScrollKey);
 }
 function positionReaderRow(idx, behavior) {
@@ -5105,40 +5138,6 @@ function scrollToReaderRow(idx) {
   if (!positionReaderRow(idx, 'smooth')) return;
   _programmaticProgressUntil = Date.now() + 1500;
   recordProgress(idx);   // explicit Continue/bookmark/FTS jump is the new working position
-  highlightReaderRow(idx);   // BRR-P2-005 — «ты здесь» jump-highlight (resume / bookmark / FTS)
-}
-
-// BRR-P2-005 — unified jump-highlight: tint + leading bar on the row we jumped to, persistent
-// until the next genuine user interaction (tap / scroll / key). Distinct hue from playback
-// (gold) so «куда я прыгнул» never reads as «что играет».
-let _jumpClearFn = null;
-function clearRowJump() {
-  const m = $('roomReaderTable');
-  if (m) m.querySelectorAll('tr.rm-row-jump').forEach((t) => t.classList.remove('rm-row-jump'));
-  if (_jumpClearFn) { _jumpClearFn(); _jumpClearFn = null; }
-}
-function highlightReaderRow(idx) {
-  const mount = $('roomReaderTable');
-  const tr = mount && mount.querySelector('tr[data-row-idx="' + idx + '"]');
-  if (!tr) return;
-  clearRowJump();
-  tr.classList.add('rm-row-jump');
-  const onInteract = () => clearRowJump();
-  // Wire the dismiss listeners after a tick so the programmatic smooth-scroll settling doesn't
-  // instantly dismiss the highlight.
-  const t = setTimeout(() => {
-    window.addEventListener('wheel', onInteract, { passive: true, once: true });
-    window.addEventListener('touchstart', onInteract, { passive: true, once: true });
-    window.addEventListener('keydown', onInteract, { once: true });
-    if (mount) mount.addEventListener('click', onInteract, true);
-  }, 500);
-  _jumpClearFn = () => {
-    clearTimeout(t);
-    window.removeEventListener('wheel', onInteract);
-    window.removeEventListener('touchstart', onInteract);
-    window.removeEventListener('keydown', onInteract);
-    if (mount) mount.removeEventListener('click', onInteract, true);
-  };
 }
 function clearResumeBanner() { const b = $('readerResume'); if (b && b.remove) b.remove(); }
 function showResumeBanner(idx) {
@@ -5178,7 +5177,14 @@ function restoreReaderPosition(textId, opts, loaded) {
     : window.ReaderProgress.resumeTarget(loaded && loaded.progress, readerRows.length);
   if (target == null) return;
   if (opts && opts.resume) scrollToReaderRow(target);   // explicit continue-card tap → jump
-  else showResumeBanner(target);                        // normal open → non-jumping affordance (R4)
+  else {
+    // Normal open keeps R4's non-jumping resume banner, but the saved row is still the
+    // semantic working location. Seed only the session mirror so rerenders retain it;
+    // no progress write and no completion/furthest claim are created here.
+    _sessionLastRow = target;
+    setCurrentWorkingRow(target);
+    showResumeBanner(target);
+  }
 }
 
 // ── BRR Epic 5 W1 — continue-mark-read: end-of-text «✓ Прочитано» auto-prompt ─────────────
@@ -6615,7 +6621,7 @@ function roomSyncActionOverlay() {
   if (!mount) return;
   let box = $('roomRowActions');
   if (actionColMode() !== 'hidden' || !studyModeOn()) { if (box) box.hidden = true; return; }
-  const tr = mount.querySelector('#proTable tbody tr.row-playing, #proTable tbody tr.smk-row-active');
+  const tr = mount.querySelector('#proTable tbody tr.row-playing, #proTable tbody tr.smk-row-active, #proTable tbody tr.rm-row-current');
   if (!tr) { if (box) box.hidden = true; return; }
   _overlayRowIdx = Number(tr.getAttribute('data-row-idx'));
   if (!box) {
@@ -6954,7 +6960,7 @@ async function openReader(textId, title, opts) {
   try { document.body.classList.add('room-reading'); } catch (_) {}   // шапка сайта не липнет при чтении (sticky-шапка таблицы)
   try { applyStudyModeClass(); } catch (_) {}   // учебный режим живёт только внутри ридера
   try { refreshDueBadge(); } catch (_) {}   // D2 — entering the reader hides the home «🔁 К повторению» CTA
-  clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip(); clearFadeGradNudge();   // BRR-P2-002/005 + Epic-5 W1/W4/W5 — never carry a stale banner/jump/end-card/cov-chip/fade-nudge across opens
+  clearResumeBanner(); clearCurrentWorkingRow(); resetEndCard(); clearCovChip(); clearFadeGradNudge();   // never carry a stale working-row/end-card/cov-chip/fade-nudge across opens
   try { roomMediaTeardown(); } catch (_) {}   // media player: паспорт/стейдж/YT прошлого текста не переживают открытие
   try { window.ReaderMorph && window.ReaderMorph.setProcliticOverlay(null); } catch (_) {}   // Phase-3 — drop the previous work's proclitic overlay (never leak across works)
   setContextOverlay(null);              // context-overlay — same never-leak rule
@@ -7129,7 +7135,7 @@ async function closeReader(options) {
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   karaokeActive = false; setReadAloudBtn(false);   // BRR-P1-008 — reset karaoke on close
   try { roomMediaTeardown(); } catch (_) {}   // media player: stop + revoke URL + скрыть бар
-  clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip(); clearFadeGradNudge(); closeReaderFind(); _sessionLastRow = -1; _sessionFurthestRow = -1; _programmaticProgressUntil = 0; readerTextId = null;   // BRR-P2-002/005/S15 + Epic-5 W1/W4/W5 — stop recording + clear find/end-card/cov-chip/fade-nudge after close
+  clearResumeBanner(); clearCurrentWorkingRow(); resetEndCard(); clearCovChip(); clearFadeGradNudge(); closeReaderFind(); _sessionLastRow = -1; _sessionFurthestRow = -1; _programmaticProgressUntil = 0; readerTextId = null;   // stop recording + clear derived working row/find/end-card/cov-chip/fade-nudge after close
   _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null; readerIsOwnText = false;   // BRR-P2-003 — reset bookmark state
   readerCorpusWorkId = null; readerCorpusExplainOk = false; readerGroupCorpusId = null;   // singleton-reset
   try { setReaderSubtitle(null); } catch (_) {}   // Epic-6 W1-a — drop the per-work byline on close

@@ -252,7 +252,7 @@ async function seed(page) {
     await page.reload({ waitUntil: "load" });
     await page.waitForSelector('.learning-home-feature[data-feature-kind="continue"] .learning-home-primary', { timeout: 30000 });
     await page.locator('.learning-home-feature[data-feature-kind="continue"] .learning-home-primary').click();
-    await page.waitForFunction(() => !document.getElementById("roomReader").hidden && document.querySelector('tr[data-row-idx="10"].rm-row-jump'), null, { timeout: 15000 }).catch(async (error) => {
+    await page.waitForFunction(() => !document.getElementById("roomReader").hidden && document.querySelector('tr[data-row-idx="10"].rm-row-current[aria-current="location"]'), null, { timeout: 15000 }).catch(async (error) => {
       const state = await page.evaluate(async () => {
         const db = await import("/db/local-db.js");
         const progress = await db.getProgress("b8-ben");
@@ -260,7 +260,7 @@ async function seed(page) {
           href: location.href,
           readerHidden: document.getElementById("roomReader")?.hidden,
           readerTitle: document.getElementById("readerTitle")?.textContent,
-          jumpRows: Array.from(document.querySelectorAll("tr.rm-row-jump")).map((node) => node.getAttribute("data-row-idx")),
+          currentRows: Array.from(document.querySelectorAll('tr.rm-row-current[aria-current="location"]')).map((node) => node.getAttribute("data-row-idx")),
           selectedFeature: document.querySelector('.learning-home-feature[data-feature-kind="continue"] .learning-home-feature-title')?.textContent,
           storedRow: progress && progress.last_row_idx,
           storedStep: progress && progress.last_step_id,
@@ -276,6 +276,8 @@ async function seed(page) {
     });
     check(Number(resumedEarlier.row) === 10, "Continue did not reopen the last earlier working row: " + JSON.stringify(resumedEarlier));
     check(resumedEarlier.earlierBookmark === true, "last-position write altered the explicit passage bookmark");
+    check(await page.locator('tr.rm-row-current[aria-current="location"]').count() === 1,
+      "Continue must expose exactly one semantic working row");
     await page.click("#readerBack");
     await page.waitForSelector(".learning-home-journey", { timeout: 15000 });
 

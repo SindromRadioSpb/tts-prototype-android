@@ -196,10 +196,23 @@ async function main() {
         return {
           curTime: el ? el.currentTime : -1,
           activeRow1: !!document.querySelector('#roomReaderTable tr[data-row-idx="1"].smk-row-active'),
+          currentRow1: !!document.querySelector('#roomReaderTable tr[data-row-idx="1"].rm-row-current[aria-current="location"]'),
+          currentCount: document.querySelectorAll('#roomReaderTable tr.rm-row-current[aria-current="location"]').length,
         };
       });
       ok(Math.abs(seek.curTime - 0.5) < 0.3, "t1: seekToRow(1) moved player to ~0.5s, got " + seek.curTime);
       ok(seek.activeRow1, "t1: .smk-row-active painted on row 1 after sync");
+      ok(seek.currentRow1 && seek.currentCount === 1, "t1: playback also establishes one persistent semantic working row");
+
+      const afterStop = await pg.evaluate(() => {
+        window.StudioMediaKaraoke.stop();
+        return {
+          playing: document.querySelectorAll('#roomReaderTable tr.smk-row-active, #roomReaderTable tr.row-playing').length,
+          current: !!document.querySelector('#roomReaderTable tr[data-row-idx="1"].rm-row-current[aria-current="location"]'),
+        };
+      });
+      ok(afterStop.playing === 0 && afterStop.current,
+        "t1: stopping playback removes its overlay but keeps the working-row base");
 
       // rerender (смена aids) → кнопки re-инъецированы
       await pg.click("#readerAidsToggle");
@@ -378,10 +391,11 @@ async function main() {
           mediaScroll: !!(wrap && wrap.classList.contains("room-media-scroll")),
           wrapScrollTop: wrap ? wrap.scrollTop : -1,
           targetVisible: !!(wr && rr && rr.bottom > wr.top && rr.top < wr.bottom),
-          highlighted: !!(row && row.classList.contains("rm-row-jump")),
+          highlighted: !!(row && row.classList.contains("rm-row-current") && row.getAttribute("aria-current") === "location"),
+          currentCount: wrap ? wrap.querySelectorAll('tr.rm-row-current[aria-current="location"]').length : 0,
         };
       }, t5ExpectedResume);
-      ok(t5Reopen.mediaScroll && t5Reopen.wrapScrollTop > 0 && t5Reopen.targetVisible && t5Reopen.highlighted,
+      ok(t5Reopen.mediaScroll && t5Reopen.wrapScrollTop > 0 && t5Reopen.targetVisible && t5Reopen.highlighted && t5Reopen.currentCount === 1,
         "media mode: close/reopen Continue keeps the saved row visible after async layout, got "
           + JSON.stringify(t5Reopen));
       // A browser reload restores the Reader through the read-only presentation path.
@@ -404,10 +418,11 @@ async function main() {
           mediaScroll: !!(wrap && wrap.classList.contains("room-media-scroll")),
           wrapScrollTop: wrap ? wrap.scrollTop : -1,
           targetVisible: !!(wr && rr && rr.bottom > wr.top && rr.top < wr.bottom),
-          highlighted: !!(row && row.classList.contains("rm-row-jump")),
+          highlighted: !!(row && row.classList.contains("rm-row-current") && row.getAttribute("aria-current") === "location"),
+          currentCount: wrap ? wrap.querySelectorAll('tr.rm-row-current[aria-current="location"]').length : 0,
         };
       }, t5ExpectedResume);
-      ok(t5Reload.mediaScroll && t5Reload.wrapScrollTop > 0 && t5Reload.targetVisible && t5Reload.highlighted,
+      ok(t5Reload.mediaScroll && t5Reload.wrapScrollTop > 0 && t5Reload.targetVisible && t5Reload.highlighted && t5Reload.currentCount === 1,
         "media mode: browser reload keeps the saved row visible after read-only presentation restore, got "
           + JSON.stringify(t5Reload));
       const hdrStatic = await pg.evaluate(() => getComputedStyle(document.querySelector(".room-header")).position);
