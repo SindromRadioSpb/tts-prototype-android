@@ -39,6 +39,11 @@ This violates corpus identity: `Мои тексты` is already a separate L1 co
 
 Live local inspection of Ben-Yehuda shows multiple consecutive 12-item shelves followed by period/author/work lists. The same structural issue exists in own-text, group, search, author, bookmark, finished, saved-search, and reading-list sections. Horizontal rails reduce card width but do not reduce vertical navigation cost or give the reader control over page density.
 
+Owner-profile Kapture evidence on production `3.11.378` exposed two follow-up regressions after the first disclosure release:
+
+- a collapsed section reopened after a normal browser reload because state existed only in a JavaScript `Map`;
+- heterogeneous shelf headers let the same toggle occupy different places: most were at the inline end, while `Следующий для тебя` placed it on a separate line at the inline start.
+
 ## 3. Decisions
 
 ### D1 — one canonical working position
@@ -65,10 +70,11 @@ Every long corpus content block receives the same semantic disclosure control:
 
 - sections are **expanded by default**, so no existing content becomes hidden on first visit;
 - the heading remains visible and contains a real `<button>` with `aria-expanded` and `aria-controls`;
-- collapse state is presentation-only and retained in memory for the current tab/session, not stored as a second durable product truth;
+- collapse state is presentation-only and stored as a bounded, content-free local preference so it survives reload and closing/reopening the tab; it is not a second corpus/progress truth;
 - focus stays on the toggle after collapse/expand; Enter and Space work natively;
 - the body is a labelled region and `[hidden]` removes it from both layout and the accessibility tree;
 - controls keep a 44 px minimum target and work in RU, EN, HE/RTL, desktop, and 380 px layouts.
+- every header uses the same typed grid: title in the first slot, optional secondary action next, and disclosure in the first-row inline-end slot; explanatory copy follows on row two in both DOM and visual order.
 
 Applied surfaces: Ben start/ready/periods/authors/works/search groups, own-text results, group-corpus results, Continue, bookmarks, finished, named reading lists, and saved searches. Small fixed navigation blocks and primary search/actions are not collapsed.
 
@@ -83,7 +89,7 @@ Applied surfaces: Ben start/ready/periods/authors/works/search groups, own-text 
 | Room YouTube/composite media | late layout transition keeps the same logical row visible |
 | Ben-Yehuda baked work | normal resume remains correct; no `Мои тексты` shelf |
 | Group corpus work | normal resume and long-list disclosure remain correct |
-| Long sections | default open; toggle closes/opens; ARIA and keyboard state match; no page errors |
+| Long sections | default open when no preference exists; toggle closes/opens; state survives reload and tab reopen; one typed header slot; ARIA and keyboard state match; no page errors |
 
 ## 5. Release gates
 

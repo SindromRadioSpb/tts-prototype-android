@@ -131,10 +131,19 @@
     main { padding: 14px 0 32px; }
     .shelf { margin: 0 0 22px; }
     .shelf-head { padding: 0 16px; }
-    .room-long-list-head { min-width: 0; }
-    .shelf-head.room-long-list-head { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; }
-    .shelf-head.room-long-list-head .shelf-title { min-width: 0; flex: 1 1 auto; }
-    .shelf-head.room-long-list-head .shelf-intro { flex: 1 1 100%; }
+    .room-long-list-head {
+      min-width: 0; display: grid !important;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      align-items: center; gap: 4px 12px;
+    }
+    .room-long-list-head > .room-long-list-title { min-width: 0; grid-column: 1; grid-row: 1; }
+    .room-long-list-head > .room-section-toggle { grid-column: 3; grid-row: 1; justify-self: end; }
+    .room-long-list-head > .shelf-intro { min-width: 0; grid-column: 1 / -1; grid-row: 2; }
+    .corpus-section-head.room-long-list-head { grid-template-columns: auto minmax(0, 1fr) auto auto; }
+    .corpus-section-head.room-long-list-head > .corpus-section-icon { grid-column: 1; grid-row: 1; }
+    .corpus-section-head.room-long-list-head > .room-long-list-title { grid-column: 2; grid-row: 1; }
+    .corpus-section-head.room-long-list-head > .corpus-section-count { grid-column: 3; grid-row: 1; }
+    .corpus-section-head.room-long-list-head > .room-section-toggle { grid-column: 4; grid-row: 1; }
     .room-long-list-body { min-width: 0; }
     .room-long-list-body[hidden] { display: none !important; }
     .room-section-toggle {
@@ -2466,7 +2475,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.378</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.379</button>
   </div>
 </footer>
 

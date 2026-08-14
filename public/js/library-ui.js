@@ -8028,19 +8028,52 @@ async function appendDifficultyRow(node, card) {
 }
 
 // One disclosure contract for every long corpus section. State is deliberately
-// presentation-only (current tab), while the corpus/progress stores stay canonical.
-const roomLongListState = new Map();
+// presentation-only and content-free, while corpus/progress stores stay canonical.
+// localStorage is required here (rather than an in-memory Map/sessionStorage): the
+// owner's normal workflow includes F5 and closing/reopening the browser tab.
+const ROOM_LONG_LIST_STORAGE_KEY = 'room.longListDisclosure.v1';
+const ROOM_LONG_LIST_MAX_KEYS = 96;
+const ROOM_LONG_LIST_MAX_KEY_LENGTH = 160;
+function loadRoomLongListState() {
+  const state = new Map();
+  try {
+    const parsed = JSON.parse(localStorage.getItem(ROOM_LONG_LIST_STORAGE_KEY) || 'null');
+    if (!parsed || parsed.v !== 1 || !Array.isArray(parsed.collapsed)) return state;
+    for (const rawKey of parsed.collapsed.slice(0, ROOM_LONG_LIST_MAX_KEYS)) {
+      const key = typeof rawKey === 'string' ? rawKey.trim() : '';
+      if (!key || key.length > ROOM_LONG_LIST_MAX_KEY_LENGTH) continue;
+      state.set(key, false);
+    }
+  } catch (_) {}
+  return state;
+}
+const roomLongListState = loadRoomLongListState();
+function persistRoomLongListState() {
+  try {
+    const collapsed = Array.from(roomLongListState.entries())
+      .filter(([, open]) => open === false)
+      .map(([key]) => key)
+      .filter((key) => typeof key === 'string' && key.length > 0 && key.length <= ROOM_LONG_LIST_MAX_KEY_LENGTH)
+      .slice(-ROOM_LONG_LIST_MAX_KEYS);
+    localStorage.setItem(ROOM_LONG_LIST_STORAGE_KEY, JSON.stringify({ v: 1, collapsed }));
+  } catch (_) {}
+}
 let roomLongListSerial = 0;
 function attachRoomLongListDisclosure(section, head, nodes, stateKey, options = {}) {
   if (!section || !head || !Array.isArray(nodes) || !nodes.length) return null;
   const title = head.querySelector('h1,h2,h3,.shelf-title,.corpus-section-title,.corpus-list-count');
   const label = String(options.label || (title && title.textContent) || tt('room.corpus.sectionMaterials', 'Учебные материалы')).trim();
+  const stableKey = String(stateKey || '').trim().slice(0, ROOM_LONG_LIST_MAX_KEY_LENGTH);
+  if (!stableKey) return null;
   const bodyId = 'roomLongListBody' + (++roomLongListSerial);
   const body = el('div', { class: 'room-long-list-body', attrs: { id: bodyId, role: 'region', 'aria-label': label } });
   nodes.filter(Boolean).forEach((node) => body.appendChild(node));
   section.insertBefore(body, head.nextSibling);
   head.classList.add('room-long-list-head');
-  const toggle = el('button', { class: 'room-section-toggle', attrs: { type: 'button', 'aria-expanded': 'true', 'aria-controls': bodyId } });
+  if (title) title.classList.add('room-long-list-title');
+  const toggle = el('button', { class: 'room-section-toggle', attrs: {
+    type: 'button', 'aria-expanded': 'true', 'aria-controls': bodyId, 'data-disclosure-key': stableKey,
+  } });
   const paint = (open) => {
     body.hidden = !open;
     toggle.setAttribute('aria-expanded', String(open));
@@ -8048,14 +8081,19 @@ function attachRoomLongListDisclosure(section, head, nodes, stateKey, options = 
     toggle.setAttribute('aria-label', action + ': ' + label);
     toggle.textContent = (open ? '⌃ ' : '⌄ ') + action;
   };
-  const open = roomLongListState.has(stateKey) ? roomLongListState.get(stateKey) : true;
+  const open = roomLongListState.has(stableKey) ? roomLongListState.get(stableKey) : true;
   paint(open);
   toggle.addEventListener('click', () => {
     const next = toggle.getAttribute('aria-expanded') !== 'true';
-    roomLongListState.set(stateKey, next);
+    if (next) roomLongListState.delete(stableKey);
+    else roomLongListState.set(stableKey, false);
+    persistRoomLongListState();
     paint(next);
   });
-  head.appendChild(toggle);
+  // Keep visual and accessibility order aligned: primary title, optional
+  // secondary action(s), disclosure, then explanatory copy on row two.
+  const intro = Array.from(head.children).find((node) => node.classList && node.classList.contains('shelf-intro'));
+  if (intro) head.insertBefore(toggle, intro); else head.appendChild(toggle);
   return { body, toggle };
 }
 
@@ -10440,7 +10478,7 @@ function ensureFtsConfigured() {
 // Render one FTS sub-group section (title + paged work rows). Ready hits open into the bilingual
 // reader AT the matched line (ftsQuery → firstPhraseRow/firstMatchRow); non-ready hits are honest
 // «найдено · перевод готовится» (display-only).
-function appendFtsSection(body, q, label, items) {
+function appendFtsSection(body, q, label, items, disclosureKey) {
   if (!items.length) return;
   const sec = el('section', { class: 'shelf corpus-fts-group' });
   const head = el('div', { class: 'shelf-head' });
@@ -10448,7 +10486,7 @@ function appendFtsSection(body, q, label, items) {
   sec.appendChild(head);
   body.appendChild(sec);
   appendPagedWorkRows(sec, items, null, { openOpts: { ftsQuery: q } });   // BRR-P2-005/006 — opens AT the matched/phrase line
-  attachRoomLongListDisclosure(sec, head, Array.from(sec.children).filter((node) => node !== head), 'ben:results:fts:' + label);
+  attachRoomLongListDisclosure(sec, head, Array.from(sec.children).filter((node) => node !== head), 'ben:results:fts:' + disclosureKey);
 }
 
 // Query the full-text index and render «в тексте» groups for hits NOT already shown in the
@@ -10485,7 +10523,7 @@ async function appendFtsGroup(body, q, titleHits, seq, summary) {
     const phraseItems = [];
     for (const r of (po.results || [])) { const sr = corpusSearch[r.w]; if (passFilter(sr)) phraseItems.push({ sr: sr, r: r }); }
     if (phraseItems.length) {
-      appendFtsSection(body, q, '🔎 ' + tt('room.corpus.search.phrase', 'Точная фраза'), phraseItems);
+      appendFtsSection(body, q, '🔎 ' + tt('room.corpus.search.phrase', 'Точная фраза'), phraseItems, 'phrase-ready');
       phraseShown = phraseItems.length; ftsCount += phraseShown;
       try { body.appendChild(loading); } catch (_) {}   // keep the spinner BELOW the phrase group while words resolve
       bumpCount(false);
@@ -10508,14 +10546,14 @@ async function appendFtsGroup(body, q, titleHits, seq, summary) {
     else wordItems.push({ sr: sr, r: r });
   }
   if (!phraseShown && latePhrase.length) {
-    appendFtsSection(body, q, '🔎 ' + tt('room.corpus.search.phrase', 'Точная фраза'), latePhrase);
+    appendFtsSection(body, q, '🔎 ' + tt('room.corpus.search.phrase', 'Точная фраза'), latePhrase, 'phrase-later');
     phraseShown = latePhrase.length; ftsCount += phraseShown;
   }
   if (wordItems.length) {
     const label = exactMode
       ? ('🔎 ' + tt('room.corpus.search.exactWords', 'Точная форма в тексте'))
       : ((phraseShown || out.multiToken) ? tt('room.corpus.search.words', 'Слова в тексте') : ('🔎 ' + tt('room.corpus.search.inText', 'В тексте')));
-    appendFtsSection(body, q, label, wordItems);
+    appendFtsSection(body, q, label, wordItems, 'words');
     ftsCount += wordItems.length;
   }
   bumpCount(true);

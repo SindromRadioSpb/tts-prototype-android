@@ -333,11 +333,34 @@ async function captureMatrix(browser, locale, viewport, theme, label, myTextCoun
     if (await disclosure.count()) {
       const disclosureContract = await page.locator(".room-section-toggle").evaluateAll((buttons) => buttons.map((button) => {
         const body = document.getElementById(button.getAttribute("aria-controls"));
+        const head = button.parentElement;
+        const title = head && head.querySelector(".room-long-list-title");
+        const intro = head && head.querySelector(".shelf-intro");
         const rect = button.getBoundingClientRect();
-        return { expanded: button.getAttribute("aria-expanded"), controlled: !!body, hidden: !!(body && body.hidden), width: rect.width, height: rect.height };
+        const headRect = head && head.getBoundingClientRect();
+        const style = head && getComputedStyle(head);
+        const titleStyle = title && getComputedStyle(title);
+        const buttonStyle = getComputedStyle(button);
+        const inlineEndGap = headRect
+          ? (style.direction === "rtl" ? rect.left - headRect.left : headRect.right - rect.right)
+          : -1;
+        return {
+          key: button.getAttribute("data-disclosure-key") || "",
+          expanded: button.getAttribute("aria-expanded"), controlled: !!body,
+          hidden: !!(body && body.hidden), width: rect.width, height: rect.height,
+          headDisplay: style && style.display,
+          titleGridRow: titleStyle && titleStyle.gridRowStart,
+          toggleGridRow: buttonStyle.gridRowStart,
+          inlineEndGap,
+          toggleBeforeIntro: !intro || !!(button.compareDocumentPosition(intro) & Node.DOCUMENT_POSITION_FOLLOWING),
+        };
       }));
       check(disclosureContract.every((item) => item.expanded === "true" && item.controlled && !item.hidden && item.width >= 44 && item.height >= 44),
         `${label}/${name}: every disclosure starts open, controls a region, and keeps a 44px target (${JSON.stringify(disclosureContract)})`);
+      check(disclosureContract.every((item) => item.key && item.headDisplay === "grid"
+          && item.titleGridRow === "1" && item.toggleGridRow === "1"
+          && item.inlineEndGap >= 0 && item.inlineEndGap <= 20 && item.toggleBeforeIntro),
+        `${label}/${name}: every disclosure uses the typed first-row inline-end slot (${JSON.stringify(disclosureContract)})`);
       await disclosure.focus();
       await page.keyboard.press("Enter");
       const closedState = await disclosure.evaluate((button) => {
@@ -346,8 +369,42 @@ async function captureMatrix(browser, locale, viewport, theme, label, myTextCoun
       });
       check(closedState.expanded === "false" && closedState.hidden && closedState.focused,
         `${label}/${name}: Enter collapses the controlled region and preserves focus (${JSON.stringify(closedState)})`);
+      const persistenceProbe = name === "benyehuda" && locale === "ru" && viewport.width === 380;
+      let liveDisclosure = disclosure;
+      if (persistenceProbe) {
+        const disclosureKey = await disclosure.getAttribute("data-disclosure-key");
+        check(!!disclosureKey, `${label}/${name}: disclosure exposes a stable presentation key`);
+        if (disclosureKey) {
+          const keySelector = `[data-disclosure-key="${disclosureKey}"]`;
+          await page.reload({ waitUntil: "load", timeout: 60000 });
+          await page.waitForSelector(keySelector, { timeout: 30000 });
+          liveDisclosure = page.locator(keySelector);
+          const reloadState = await liveDisclosure.evaluate((button) => {
+            const body = document.getElementById(button.getAttribute("aria-controls"));
+            return { expanded: button.getAttribute("aria-expanded"), hidden: !!(body && body.hidden) };
+          });
+          check(reloadState.expanded === "false" && reloadState.hidden,
+            `${label}/${name}: collapsed state survives a browser reload (${JSON.stringify(reloadState)})`);
+
+          const reopened = await context.newPage();
+          await reopened.goto(BASE + "/library.html?canon=skip&roomUxMaturity=reopen", { waitUntil: "load", timeout: 60000 });
+          await reopened.waitForFunction(() => { const tab = document.getElementById("tabCorpus"); return tab && !tab.hidden; }, null, { timeout: 30000 });
+          await reopened.click("#tabCorpus");
+          await reopened.waitForSelector(".learning-home");
+          await selectCorpus(reopened, id);
+          await reopened.waitForSelector(keySelector, { timeout: 30000 });
+          const reopenState = await reopened.locator(keySelector).evaluate((button) => {
+            const body = document.getElementById(button.getAttribute("aria-controls"));
+            return { expanded: button.getAttribute("aria-expanded"), hidden: !!(body && body.hidden) };
+          });
+          check(reopenState.expanded === "false" && reopenState.hidden,
+            `${label}/${name}: collapsed state survives closing and reopening the tab (${JSON.stringify(reopenState)})`);
+          await reopened.close();
+        }
+      }
+      await liveDisclosure.focus();
       await page.keyboard.press("Space");
-      const openState = await disclosure.evaluate((button) => {
+      const openState = await liveDisclosure.evaluate((button) => {
         const body = document.getElementById(button.getAttribute("aria-controls"));
         return { expanded: button.getAttribute("aria-expanded"), hidden: !!(body && body.hidden), focused: document.activeElement === button };
       });

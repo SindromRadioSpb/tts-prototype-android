@@ -185,8 +185,18 @@ test("2026-08-14 keeps corpus identity isolated and makes every long corpus list
     "one disclosure helper must own the expand/collapse semantics");
   assert.match(libraryUi, /aria-expanded[\s\S]*aria-controls/,
     "long-list toggles need programmatic state and an explicit controlled region");
+  assert.match(libraryUi, /ROOM_LONG_LIST_STORAGE_KEY\s*=\s*'room\.longListDisclosure\.v1'/,
+    "collapsed state must use one namespaced presentation-only store");
+  assert.match(libraryUi, /ROOM_LONG_LIST_MAX_KEYS\s*=\s*96/,
+    "the presentation store must stay bounded");
+  assert.match(libraryUi, /data-disclosure-key/,
+    "every disclosure needs a stable content-free key across rerenders and tab reopen");
   assert.match(libraryHtml, /\.room-long-list-body\[hidden\]/,
     "author CSS must not be able to resurrect a collapsed list");
+  assert.match(libraryHtml, /\.room-long-list-head\s*\{[\s\S]*display:\s*grid\s*!important/,
+    "all disclosure headers must use one typed grid rather than per-shelf wrapping");
+  assert.match(libraryHtml, /\.room-long-list-head\s*>\s*\.room-section-toggle\s*\{[\s\S]*grid-column:\s*3;[\s\S]*grid-row:\s*1/,
+    "the disclosure control must occupy the same first-row inline-end slot");
   assert.ok((libraryUi.match(/attachRoomLongListDisclosure\(/g) || []).length >= 12,
     "all long-list families must consume the same disclosure contract");
   for (const family of ["mytexts:materials", "group:' + corpusId + ':materials", "ben:periods", "ben:results:title", "ben:authors:", "ben:works:"]) {
