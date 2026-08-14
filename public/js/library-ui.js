@@ -909,10 +909,27 @@ function createReadingList(name) {
   const L = { id: 'l-' + Date.now() + Math.random().toString(36).slice(2, 6), name: String(name || '').trim() || tt('room.corpus.lists.untitled', 'Список'), items: [] };
   lists.unshift(L); saveReadingLists(lists); return L;
 }
+function renameReadingList(listId, name) {
+  const nextName = String(name || '').trim().slice(0, 120);
+  if (!nextName) return false;
+  const lists = getReadingLists();
+  const list = lists.find((item) => item.id === listId);
+  if (!list) return false;
+  list.name = nextName;
+  saveReadingLists(lists);
+  return true;
+}
 function deleteReadingList(listId) { saveReadingLists(getReadingLists().filter((x) => x.id !== listId)); }
 function removeItemFromList(listId, id) {
   const lists = getReadingLists(); const L = lists.find((x) => x.id === listId); if (!L) return;
   L.items = (L.items || []).filter((x) => String(x.id) !== String(id)); saveReadingLists(lists);
+}
+function restoreItemToList(listId, item, index) {
+  const lists = getReadingLists(); const L = lists.find((x) => x.id === listId); if (!L || !item) return false;
+  L.items = (L.items || []).filter((x) => String(x.id) !== String(item.id));
+  L.items.splice(Math.max(0, Math.min(Number(index) || 0, L.items.length)), 0, item);
+  if (L.items.length > 300) L.items = L.items.slice(0, 300);
+  saveReadingLists(lists); return true;
 }
 let corpusL1Body = null;         // ref to the L1 body region (refreshed in place so the
                                  // filter bar — and the search input's focus — survive typing)
@@ -8136,11 +8153,15 @@ let roomLongListSerial = 0;
 function attachRoomLongListDisclosure(section, head, nodes, stateKey, options = {}) {
   if (!section || !head || !Array.isArray(nodes) || !nodes.length) return null;
   const title = head.querySelector('h1,h2,h3,.shelf-title,.corpus-section-title,.corpus-list-count');
-  const label = String(options.label || (title && title.textContent) || tt('room.corpus.sectionMaterials', 'Учебные материалы')).trim();
+  const fallbackLabel = String((title && title.textContent) || tt('room.corpus.sectionMaterials', 'Учебные материалы')).trim();
+  const currentLabel = () => String(
+    (typeof options.label === 'function' ? options.label() : options.label) ||
+    (title && title.textContent) || fallbackLabel
+  ).trim();
   const stableKey = String(stateKey || '').trim().slice(0, ROOM_LONG_LIST_MAX_KEY_LENGTH);
   if (!stableKey) return null;
   const bodyId = 'roomLongListBody' + (++roomLongListSerial);
-  const body = el('div', { class: 'room-long-list-body', attrs: { id: bodyId, role: 'region', 'aria-label': label } });
+  const body = el('div', { class: 'room-long-list-body', attrs: { id: bodyId, role: 'region', 'aria-label': currentLabel() } });
   nodes.filter(Boolean).forEach((node) => body.appendChild(node));
   section.insertBefore(body, head.nextSibling);
   head.classList.add('room-long-list-head');
@@ -8149,12 +8170,15 @@ function attachRoomLongListDisclosure(section, head, nodes, stateKey, options = 
     type: 'button', 'aria-expanded': 'true', 'aria-controls': bodyId, 'data-disclosure-key': stableKey,
   } });
   const paint = (open) => {
+    const label = currentLabel();
     body.hidden = !open;
+    body.setAttribute('aria-label', label);
     toggle.setAttribute('aria-expanded', String(open));
     const action = tt(open ? 'room.corpus.sectionCollapse' : 'room.corpus.sectionExpand', open ? 'Свернуть' : 'Развернуть');
     toggle.setAttribute('aria-label', action + ': ' + label);
     toggle.textContent = (open ? '⌃ ' : '⌄ ') + action;
   };
+  toggle.__roomDisclosureRepaint = () => paint(toggle.getAttribute('aria-expanded') === 'true');
   const stableToken = roomLongListToken(stableKey);
   const open = roomLongListCookieAuthoritative
     ? !roomLongListCookieTokens.has(stableToken)
@@ -8179,8 +8203,16 @@ function attachRoomLongListDisclosure(section, head, nodes, stateKey, options = 
   return { body, toggle };
 }
 
-// Build a corpus shelf section (reused by the personal rail + the cold-start rail).
-function buildRailSection(cssClass, meta, cards) {
+function repaintRoomDisclosureLocale() {
+  document.querySelectorAll('.room-section-toggle').forEach((toggle) => {
+    try { if (typeof toggle.__roomDisclosureRepaint === 'function') toggle.__roomDisclosureRepaint(); } catch (_) {}
+  });
+}
+
+// Repeated material collections share one vertical, scan-first row grammar. Their
+// truth-specific copy stays in renderCorpusWorkRow/Learning Compass; only structure
+// and interaction are unified here.
+function buildMaterialRowSection(cssClass, meta, cards) {
   if (!cards || !cards.length) return null;
   const sec = el('section', { class: 'shelf ' + cssClass });
   const head = el('div', { class: 'shelf-head' });
@@ -8189,10 +8221,12 @@ function buildRailSection(cssClass, meta, cards) {
   head.appendChild(h);
   head.appendChild(el('p', { class: 'shelf-intro', i18n: meta.introKey, text: tt(meta.introKey, meta.introFallback) }));
   sec.appendChild(head);
-  const rail = el('div', { class: 'shelf-rail' });
-  for (const c of cards) rail.appendChild(renderCorpusCard(c));
-  sec.appendChild(rail);
-  attachRoomLongListDisclosure(sec, head, [rail], 'ben:rail:' + cssClass);
+  const list = el('div', { class: 'corpus-work-list room-preview-list' });
+  for (const c of cards) list.appendChild(renderCorpusWorkRow(c, true, {
+    compact: true, showAuthor: true, showListBtn: true, materialKind: 'recommendation',
+  }));
+  sec.appendChild(list);
+  attachRoomLongListDisclosure(sec, head, [list], 'ben:rail:' + cssClass);
   return sec;
 }
 
@@ -8211,7 +8245,7 @@ function buildColdStartSection(v) {
     perAuthor[a] = (perAuthor[a] || 0) + 1; pick.push(x.c);
     if (pick.length >= 12) break;
   }
-  return buildRailSection('corpus-coldstart', {
+  return buildMaterialRowSection('corpus-coldstart', {
     emoji: '🌱', titleKey: 'room.corpus.coldStartTitle', titleFallback: 'С чего начать',
     introKey: 'room.corpus.coldStartIntro', introFallback: 'Короткие тексты с частотной лексикой — лёгкий вход в иврит.',
   }, pick);
@@ -8396,7 +8430,7 @@ async function addMachineNiqqud(item, button) {
   }
 }
 function renderMyTextCard(item, vertical) {
-  const node = el('article', { class: 'corpus-work-row room-text-row mytext-card' + (vertical ? ' mytext-card-v' : ''), attrs: { 'data-continuity-key': continuityKey('mytexts', item.id) } });
+  const node = el('article', { class: 'corpus-work-row room-text-row room-material-row mytext-card' + (vertical ? ' mytext-card-v' : ''), attrs: { 'data-material-kind': 'mytext', 'data-continuity-key': continuityKey('mytexts', item.id) } });
   const col = el('div', { class: 'corpus-work-col' });
   const totalRows = Math.max(0, Number(item && item.rows_count) || 0);
   const hasBoundMedia = !!(item && (item.media_kind === 'audio' || item.media_kind === 'video'));
@@ -8659,68 +8693,180 @@ function openListPicker(card, btn, ready) {
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   setTimeout(() => { try { inp.focus(); } catch (_) {} }, 50);
 }
-// «📚 <list>» shelf card (corpus reading list). Opens ready items via the corpus card flow; non-ready
-// items honestly show «перевод позже» (R8 no dead-end). ✕ removes from THIS list. A non-ready item
-// AUTO-UPGRADES once the corpus grows (BRR — non-ready add-to-list): readiness is re-derived from the
-// LIVE ready index, so a work saved while «перевод готовится» becomes openable the moment it ships — no
-// migration, no stale dead state. The live card carries file+text_key even when the saved stub did not.
-function renderReadingListCard(listId, it) {
-  const node = el('div', { class: 'work-card readinglist-card', attrs: { role: 'button', tabindex: '0' } });
-  const title = it.title || tt('room.work.untitled', 'Без названия');
-  const t = el('span', { class: 'work-card-title', text: title }); if (HEBREW_RE.test(title)) t.setAttribute('dir', 'rtl'); node.appendChild(t);
-  if (it.author) { const a = el('span', { class: 'work-card-author', text: it.author }); if (HEBREW_RE.test(it.author)) a.setAttribute('dir', 'rtl'); node.appendChild(a); }
-  const savedReady = !!(it.r && it.file && it.text_key);
+function readingListLiveItem(item) {
   let live = null;
-  if (!savedReady) { try { live = corpusReadyMap().get(String(it.id)) || null; } catch (_) { live = null; } }
+  try { live = corpusReadyMap().get(String(item && item.id)) || null; } catch (_) { live = null; }
+  const savedReady = !!(item && item.r && item.file && item.text_key);
   const liveReady = !!(live && live.file && live.text_key);
-  const meta = el('div', { class: 'work-card-meta' });
-  if (!savedReady && !liveReady) meta.appendChild(el('span', { class: 'prov-badge later', i18n: 'room.corpus.later', text: tt('room.corpus.later') }));
-  const rm = el('button', { class: 'readinglist-rm', attrs: { type: 'button', 'aria-label': tt('room.corpus.lists.remove', 'Убрать') } });
-  rm.textContent = '✕';
-  rm.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); removeItemFromList(listId, it.id); corpusRefreshL1Body(); });
-  meta.appendChild(rm); node.appendChild(meta);
-  const open = () => {
-    if (savedReady) { openCorpusWork(it); return; }
-    if (liveReady) { openCorpusWork(live); return; }   // shipped since saving → open the live ready card
-    roomToast(tt('room.corpus.lists.notReady', 'Перевод готовится'));
-  };
-  node.addEventListener('click', open);
-  node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
-  return node;
-}
-// One shelf per non-empty named list (each prepended → newest list highest). A ✕ on the head deletes the list.
-function injectReadingListShelves(body) {
-  try {
-    const lists = getReadingLists().filter((L) => (L.items || []).length);
-    if (!lists.length || corpusL1Body !== body || corpusFilterActive()) return;
-    for (const L of lists) {
-      const sec = el('section', { class: 'shelf corpus-readinglist' });
-      const head = el('div', { class: 'shelf-head corpus-readinglist-head' });
-      head.appendChild(el('h2', { class: 'shelf-title', text: '📚 ' + L.name }));
-      const del = el('button', { class: 'shelf-list-del', attrs: { type: 'button', 'aria-label': tt('room.corpus.lists.deleteList', 'Удалить список') } });
-      del.textContent = '✕';
-      del.addEventListener('click', () => { deleteReadingList(L.id); corpusRefreshL1Body(); });
-      head.appendChild(del);
-      sec.appendChild(head);
-      const rail = el('div', { class: 'shelf-rail' });
-      for (const it of L.items) rail.appendChild(renderReadingListCard(L.id, it));
-      sec.appendChild(rail);
-      attachRoomLongListDisclosure(sec, head, [rail], 'ben:reading-list:' + String(L.id));
-      body.insertBefore(sec, body.firstChild);
-    }
-    try { window.applyI18n && window.applyI18n(); } catch (_) {}
-  } catch (_) {}
+  return { card: liveReady ? live : item, openable: liveReady || savedReady };
 }
 
-// Ben keeps cross-corpus reading-life projections, but never embeds the neighbouring
-// «Мои тексты» corpus itself. Each prepend still preserves the established activity order.
+function renderReadingListMaterialRow(listId, item, index, onChanged) {
+  const resolved = readingListLiveItem(item);
+  const row = renderCorpusWorkRow(resolved.card || item, resolved.openable, {
+    compact: true, showAuthor: true, materialKind: 'reading-list',
+  });
+  row.classList.add('reading-list-material-row');
+  row.setAttribute('data-material-kind', 'reading-list');
+  // The work-opening action may be unavailable, but list management is still
+  // valid. Do not let the row-level catalog aria-disabled state disable the
+  // labelled Remove control in its accessibility subtree.
+  if (!resolved.openable) row.removeAttribute('aria-disabled');
+  const remove = el('button', {
+    class: 'reading-list-remove room-text-secondary',
+    attrs: { type: 'button', 'aria-label': tt('room.corpus.lists.removeFromList', 'Убрать из списка') },
+    text: tt('room.corpus.lists.removeFromList', 'Убрать из списка'),
+  });
+  remove.addEventListener('click', (event) => {
+    event.preventDefault(); event.stopPropagation();
+    removeItemFromList(listId, item.id);
+    if (onChanged) onChanged();
+    roomToast(
+      tt('room.corpus.lists.removed', 'Убрано из списка'),
+      tt('room.corpus.lists.undo', 'Отменить'),
+      () => { if (restoreItemToList(listId, item, index) && onChanged) onChanged(); },
+    );
+  });
+  const cta = row.querySelector('.corpus-work-cta');
+  row.insertBefore(remove, cta || null);
+  return row;
+}
+
+function readingListDialogShell(title, trigger) {
+  const overlay = el('div', { class: 'list-picker-ov reading-list-dialog-ov' });
+  const dialogId = 'readingListDialog' + (++roomLongListSerial);
+  const dialog = el('div', { class: 'list-picker reading-list-dialog', attrs: {
+    role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': dialogId,
+  } });
+  const head = el('div', { class: 'reading-list-dialog-head' });
+  const heading = el('h2', { class: 'list-picker-title', attrs: { id: dialogId }, text: title });
+  const closeButton = el('button', {
+    class: 'reading-list-dialog-close', attrs: { type: 'button', 'aria-label': tt('room.corpus.lists.close', 'Закрыть') }, text: '×',
+  });
+  head.appendChild(heading); head.appendChild(closeButton); dialog.appendChild(head); overlay.appendChild(dialog);
+  const onKey = (event) => { if (event.key === 'Escape') { event.preventDefault(); close(); } };
+  const close = () => {
+    document.removeEventListener('keydown', onKey);
+    try { overlay.remove(); } catch (_) {}
+    if (trigger && trigger.isConnected) trigger.focus();
+  };
+  closeButton.addEventListener('click', close);
+  overlay.addEventListener('click', (event) => { if (event.target === overlay) close(); });
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(overlay);
+  return { overlay, dialog, heading, closeButton, close };
+}
+
+function openReadingListManager(listId, trigger, onChanged) {
+  const list = getReadingLists().find((item) => item.id === listId);
+  if (!list) return;
+  const shell = readingListDialogShell(tt('room.corpus.lists.manage', 'Действия со списком'), trigger);
+  const form = el('form', { class: 'reading-list-manage-form' });
+  const label = el('label', { class: 'reading-list-name-label', text: tt('room.corpus.lists.nameLabel', 'Название списка') });
+  const input = el('input', { class: 'reading-list-name-input', attrs: {
+    type: 'text', maxlength: '120', value: list.name, autocomplete: 'off',
+  } });
+  label.appendChild(input); form.appendChild(label);
+  const actions = el('div', { class: 'reading-list-manage-actions' });
+  const save = el('button', { class: 'reading-list-save', attrs: { type: 'submit' }, text: tt('room.corpus.lists.saveName', 'Сохранить название') });
+  const remove = el('button', { class: 'reading-list-delete-action', attrs: { type: 'button' }, text: tt('room.corpus.lists.deleteAction', 'Удалить список…') });
+  actions.appendChild(save); actions.appendChild(remove); form.appendChild(actions); shell.dialog.appendChild(form);
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!renameReadingList(listId, input.value)) { input.focus(); return; }
+    if (onChanged) onChanged();
+    roomToast(tt('room.corpus.lists.renamed', 'Название сохранено'));
+    shell.close();
+  });
+  remove.addEventListener('click', () => {
+    const count = (list.items || []).length;
+    const message = tt('room.corpus.lists.deleteConfirm', 'Удалить список «{name}» и убрать из него {count} материалов?')
+      .replace('{name}', list.name).replace('{count}', String(count));
+    if (!window.confirm(tt('room.corpus.lists.deleteConfirm', message).replace('{name}', list.name).replace('{count}', String(count)))) return;
+    deleteReadingList(listId);
+    if (onChanged) onChanged();
+    roomToast(tt('room.corpus.lists.deleted', 'Список удалён'));
+    shell.close();
+  });
+  setTimeout(() => { try { input.focus(); input.select(); } catch (_) {} }, 0);
+}
+
+function openReadingListDetail(listId, trigger, onChanged) {
+  const initial = getReadingLists().find((item) => item.id === listId);
+  if (!initial) return;
+  const shell = readingListDialogShell(initial.name, trigger);
+  const boundary = el('p', { class: 'reading-list-device-copy', text: tt('room.corpus.lists.deviceOnly', 'Этот список хранится только на этом устройстве.') });
+  const listNode = el('div', { class: 'corpus-work-list reading-list-detail-list room-preview-list' });
+  const pager = el('nav', { class: 'learning-journey-pager reading-list-pager', attrs: { 'aria-label': tt('room.corpus.lists.pages', 'Страницы списка') } });
+  shell.dialog.appendChild(boundary); shell.dialog.appendChild(listNode); shell.dialog.appendChild(pager);
+  let activeOffset = 0;
+  const repaint = () => {
+    const current = getReadingLists().find((item) => item.id === listId);
+    if (!current) { shell.close(); if (onChanged) onChanged(); return; }
+    const items = Array.isArray(current.items) ? current.items : [];
+    if (activeOffset >= items.length && activeOffset > 0) activeOffset = Math.max(0, activeOffset - ROOM_BROWSE_PAGE);
+    shell.heading.textContent = current.name + ' (' + items.length + ')';
+    listNode.replaceChildren();
+    const pageItems = items.slice(activeOffset, activeOffset + ROOM_BROWSE_PAGE);
+    for (let index = 0; index < pageItems.length; index += 1) {
+      listNode.appendChild(renderReadingListMaterialRow(listId, pageItems[index], activeOffset + index, () => { repaint(); if (onChanged) onChanged(); }));
+    }
+    if (!pageItems.length) listNode.appendChild(el('p', { class: 'learning-home-journey-empty', text: tt('room.corpus.lists.empty', 'В этом списке пока нет материалов.') }));
+    pager.replaceChildren();
+    if (activeOffset > 0 || activeOffset + ROOM_BROWSE_PAGE < items.length) {
+      const previous = el('button', { class: 'learning-journey-page', attrs: { type: 'button' }, text: tt('room.corpus.lists.previous', 'Назад') });
+      previous.disabled = activeOffset <= 0;
+      previous.addEventListener('click', () => { activeOffset = Math.max(0, activeOffset - ROOM_BROWSE_PAGE); repaint(); listNode.querySelector('a,button')?.focus(); });
+      const page = el('span', { class: 'learning-journey-page-label', text: tt('room.corpus.lists.page', 'Страница {n}').replace('{n}', String(Math.floor(activeOffset / ROOM_BROWSE_PAGE) + 1)) });
+      const next = el('button', { class: 'learning-journey-page', attrs: { type: 'button' }, text: tt('room.corpus.lists.next', 'Дальше') });
+      next.disabled = activeOffset + ROOM_BROWSE_PAGE >= items.length;
+      next.addEventListener('click', () => { activeOffset += ROOM_BROWSE_PAGE; repaint(); listNode.querySelector('a,button')?.focus(); });
+      pager.appendChild(previous); pager.appendChild(page); pager.appendChild(next);
+    }
+  };
+  repaint();
+  setTimeout(() => { try { shell.closeButton.focus(); } catch (_) {} }, 0);
+}
+
+function learningHomeReadingLists() {
+  const section = el('section', { class: 'learning-home-reading-lists', attrs: { 'aria-labelledby': 'learningHomeReadingListsTitle' } });
+  const head = el('div', { class: 'learning-home-section-head' });
+  const title = el('h2', { class: 'learning-home-section-title', attrs: { id: 'learningHomeReadingListsTitle' }, text: tt('room.corpus.lists.moduleTitle', 'Списки для чтения') });
+  const count = el('span', { class: 'reading-lists-count' });
+  const intro = el('p', { class: 'shelf-intro', text: tt('room.corpus.lists.moduleIntro', 'Именованные подборки материалов Бен-Иегуды.') });
+  head.appendChild(title); head.appendChild(count); head.appendChild(intro); section.appendChild(head);
+  const overview = el('div', { class: 'reading-lists-overview' });
+  const repaint = () => {
+    const lists = getReadingLists();
+    count.textContent = String(lists.length);
+    overview.replaceChildren();
+    for (const list of lists) {
+      const items = Array.isArray(list.items) ? list.items : [];
+      const row = el('article', { class: 'reading-list-summary-row' });
+      const copy = el('div', { class: 'reading-list-summary-copy' });
+      const name = el('h3', { class: 'reading-list-summary-title', text: list.name || tt('room.corpus.lists.untitled', 'Список') });
+      if (HEBREW_RE.test(list.name || '')) name.setAttribute('dir', 'rtl');
+      copy.appendChild(name);
+      copy.appendChild(el('p', { class: 'reading-list-summary-meta', text: tt('room.corpus.lists.materialCount', '{count} материалов').replace('{count}', String(items.length)) }));
+      row.appendChild(copy);
+      const actions = el('div', { class: 'reading-list-summary-actions' });
+      const open = el('button', { class: 'reading-list-open', attrs: { type: 'button' }, text: tt('room.corpus.lists.openList', 'Открыть список') });
+      const manage = el('button', { class: 'reading-list-manage', attrs: { type: 'button' }, text: tt('room.corpus.lists.manage', 'Действия') });
+      open.addEventListener('click', () => openReadingListDetail(list.id, open, repaint));
+      manage.addEventListener('click', () => openReadingListManager(list.id, manage, repaint));
+      actions.appendChild(open); actions.appendChild(manage); row.appendChild(actions); overview.appendChild(row);
+    }
+  };
+  repaint();
+  attachRoomLongListDisclosure(section, head, [overview], 'library:reading-lists', { label: () => title.textContent });
+  return section;
+}
+
+// Ben now owns only corpus-local browse and discovery. Global Continue,
+// Finished, Bookmarks and named lists live on the Library/L0 surface.
 async function injectBenHomeRails(body) {
   await injectCorpusRails(body);
   injectSavedSearches(body);
-  injectReadingListShelves(body);
-  await injectBookmarksShelf(body);
-  await injectFinishedReading(body);
-  await injectContinueReading(body);   // «Продолжить чтение» leads
 }
 
 async function injectCorpusRails(body) {
@@ -8733,7 +8879,7 @@ async function injectCorpusRails(body) {
     body.querySelectorAll('.corpus-coldstart, .corpus-nextforyou').forEach((e) => e.remove());
     let sec = null;
     if (scored.length) {
-      sec = buildRailSection('corpus-nextforyou', {
+      sec = buildMaterialRowSection('corpus-nextforyou', {
         emoji: '🎯', titleKey: 'room.corpus.nextTitle', titleFallback: 'Следующий для тебя',
         introKey: 'room.corpus.nextIntro', introFallback: 'Выше среди текстов с валидным подсчётом зафиксированно знакомых слов.',
       }, scored.slice(0, 12).map((item) => item.card));
@@ -9204,7 +9350,7 @@ async function renderGroupCorpus(corpusId, token) {
       ...learningCompassContext(descriptor&&descriptor.cache_key,{continue_reading:p&&Number(p.last_row_idx)>0,group_assignment:true,asserted_level:!!work.level,audio_or_length:Number(work.audio_count)>0}),
     });
     let view=makeView();
-    const card=el('article',{class:'group-work-card room-text-row',attrs:{'data-status':view.learnerState.state,'data-state':view.learnerState.state,'data-continuity-key':continuityKey('group:' + corpusId,work.work_id)}});
+    const card=el('article',{class:'group-work-card room-text-row room-material-row',attrs:{'data-material-kind':'study','data-status':view.learnerState.state,'data-state':view.learnerState.state,'data-continuity-key':continuityKey('group:' + corpusId,work.work_id)}});
     const pos=el('span',{class:'group-work-position',text:work.position_no==null?'—':String(work.position_no),attrs:{title:view.secondaryIdentity||''}}); card.appendChild(pos);
     const identity=el('div',{class:'group-work-identity corpus-work-col'});
     const href='/library.html?group_corpus='+encodeURIComponent(corpusId)+'&group_work='+encodeURIComponent(work.work_id);
@@ -9222,10 +9368,10 @@ async function renderGroupCorpus(corpusId, token) {
     identity.appendChild(compassRow);card.appendChild(identity);
     const share=el('button',{class:'group-action quiet room-text-secondary',attrs:{type:'button','aria-label':tt('room.groupCorpus.share','Поделиться'),title:tt('room.groupCorpus.share','Поделиться')},text:'🔗'});share.addEventListener('click',()=>shareWork(work));card.appendChild(share);return card;
   }
-  let groupBrowseLimit=ROOM_BROWSE_PAGE,groupPaintSequence=0;
-  async function paint(resetLimit=true){
+  let groupBrowseOffset=0,groupPaintSequence=0;
+  async function paint(resetPage=true){
     const sequence=++groupPaintSequence;
-    if(resetLimit)groupBrowseLimit=ROOM_BROWSE_PAGE;
+    if(resetPage)groupBrowseOffset=0;
     const q=String(state.q||'').trim().toLocaleLowerCase(); let found=catalog.works.filter((w)=>{
       const p=byKey.get(String(w.text_key)); if(state.status!=='all'&&workStatus(p)!==state.status)return false;
       if(state.audio!=='all'&&workAudio(w)!==state.audio)return false;
@@ -9243,12 +9389,20 @@ async function renderGroupCorpus(corpusId, token) {
       return (Number(a.position_no)||9999)-(Number(b.position_no)||9999);
     };
     found=found.slice().sort(state.sort==='familiar_desc'?familiarComparator:state.sort==='recent'?(a,b)=>opened(b)-opened(a):state.sort==='progress'?(a,b)=>progressPct(b,byKey.get(String(b.text_key)))-progressPct(a,byKey.get(String(a.text_key))):state.sort==='title'?(a,b)=>String(a.title||'').localeCompare(String(b.title||''),'he'):(a,b)=>(Number(a.position_no)||9999)-(Number(b.position_no)||9999));
-    const shown=found.slice(0,groupBrowseLimit);
+    if(groupBrowseOffset>=found.length&&groupBrowseOffset>0)groupBrowseOffset=Math.max(0,Math.floor(Math.max(0,found.length-1)/ROOM_BROWSE_PAGE)*ROOM_BROWSE_PAGE);
+    const shown=found.slice(groupBrowseOffset,groupBrowseOffset+ROOM_BROWSE_PAGE);
     await prepareLearningCompassPage(shown.map((work)=>groupCompassDescriptor(corpusId,work,byKey.get(String(work.text_key)))));
     if(sequence!==groupPaintSequence||token!==corpusRenderToken)return;
     grid.textContent='';for(const work of shown)grid.appendChild(renderCard(work));if(!found.length)grid.appendChild(el('div',{class:'mytexts-empty',text:tt('room.mytexts.empty','Ничего не найдено')}));
-    resultLine.textContent=tt('room.groupCorpus.found','Найдено')+': '+shown.length+' / '+found.length;
-    moreWrap.textContent='';if(shown.length<found.length){const more=el('button',{class:'corpus-more-btn',attrs:{type:'button'}});more.textContent=tt('room.corpus.showMore','Показать ещё')+' ('+(found.length-shown.length)+')';more.addEventListener('click',()=>{groupBrowseLimit+=ROOM_BROWSE_PAGE;paint(false);});moreWrap.appendChild(more);}
+    const rangeStart=shown.length?groupBrowseOffset+1:0,rangeEnd=groupBrowseOffset+shown.length;
+    resultLine.textContent=tt('room.groupCorpus.found','Найдено')+': '+rangeStart+'–'+rangeEnd+' / '+found.length;
+    moreWrap.replaceChildren();
+    if(groupBrowseOffset>0||groupBrowseOffset+ROOM_BROWSE_PAGE<found.length){
+      const previous=el('button',{class:'corpus-more-btn',attrs:{type:'button'},text:tt('room.corpus.lists.previous','Назад')});previous.disabled=groupBrowseOffset<=0;previous.addEventListener('click',()=>{groupBrowseOffset=Math.max(0,groupBrowseOffset-ROOM_BROWSE_PAGE);paint(false).then(()=>grid.querySelector('a,button')?.focus());});
+      const page=el('span',{class:'learning-journey-page-label',text:tt('room.corpus.lists.page','Страница {n}').replace('{n}',String(Math.floor(groupBrowseOffset/ROOM_BROWSE_PAGE)+1))});
+      const next=el('button',{class:'corpus-more-btn',attrs:{type:'button'},text:tt('room.corpus.lists.next','Дальше')});next.disabled=groupBrowseOffset+ROOM_BROWSE_PAGE>=found.length;next.addEventListener('click',()=>{groupBrowseOffset+=ROOM_BROWSE_PAGE;paint(false).then(()=>grid.querySelector('a,button')?.focus());});
+      moreWrap.appendChild(previous);moreWrap.appendChild(page);moreWrap.appendChild(next);
+    }
   }
   let timer=null; search.addEventListener('input',()=>{state.q=search.value||'';if(timer)clearTimeout(timer);timer=setTimeout(paint,120);}); paint();
   ensureGroupLearningIndex(corpusId,catalog).then(()=>{if(token===corpusRenderToken)paint(false);}).catch(()=>{});
@@ -9609,7 +9763,7 @@ function renderReadingJourneyItem(row) {
   const kind = String(row && row.journey_kind || '');
   const ref = journeyWorkRef(row);
   const button = el('button', {
-    class: 'learning-journey-item',
+    class: 'learning-journey-item room-material-row',
     attrs: {
       type: 'button',
       'data-journey-kind': kind,
@@ -9803,6 +9957,7 @@ async function renderCorpusHub(token) {
   lead.appendChild(learningHomeToday(ready));
   wrap.appendChild(lead);
   wrap.appendChild(learningHomeJourney(journeySummary));
+  wrap.appendChild(learningHomeReadingLists());
 
   if (readyCards.length) {
     const shelf = el('section', { class: 'learning-home-ready', attrs: { 'aria-labelledby': 'learningHomeReadyTitle' } });
@@ -9813,7 +9968,7 @@ async function renderCorpusHub(token) {
     all.addEventListener('click', () => { corpusFilter.readyOnly = true; corpusL1Sort = 'ready'; corpusNavToCorpus('benyehuda'); });
     head.appendChild(all); shelf.appendChild(head);
     const list = el('div', { class: 'learning-home-ready-list' });
-    for (const card of readyCards) list.appendChild(renderCorpusWorkRow(card, true, { compact: true, showAuthor: true }));
+    for (const card of readyCards) list.appendChild(renderCorpusWorkRow(card, true, { compact: true, showAuthor: true, materialKind: 'ready' }));
     shelf.appendChild(list); wrap.appendChild(shelf);
   }
 
@@ -10412,26 +10567,33 @@ function appendPagedWorkRows(container, items, decorate, rowOpts) {
   const moreWrap = el('div', { class: 'corpus-more' });
   container.appendChild(list); container.appendChild(moreWrap);
   const readyMap = corpusReadyMap();
-  let cursor = 0;
-  const slice = () => {
-    const upTo = Math.min(items.length, cursor + CORPUS_PAGE);
-    for (let i = cursor; i < upTo; i++) {
+  let activeOffset = 0;
+  const paintPage = (focusFirst) => {
+    if (activeOffset >= items.length && activeOffset > 0) activeOffset = Math.max(0, activeOffset - ROOM_BROWSE_PAGE);
+    const upTo = Math.min(items.length, activeOffset + ROOM_BROWSE_PAGE);
+    list.replaceChildren();
+    for (let i = activeOffset; i < upTo; i++) {
       const it = items[i], sr = it.sr;
       const full = sr.r ? readyMap.get(String(sr.id)) : null;
-      const node = renderCorpusWorkRow(full || corpusSearchRowToCard(sr), !!full, Object.assign({ showAuthor: true, showListBtn: true }, rowOpts || {}));
+      const node = renderCorpusWorkRow(full || corpusSearchRowToCard(sr), !!full, Object.assign({ showAuthor: true, showListBtn: true, materialKind: 'result' }, rowOpts || {}));
       if (decorate) decorate(node, it);
       list.appendChild(node);
     }
-    cursor = upTo;
-    moreWrap.innerHTML = '';
-    if (cursor < items.length) {
-      const btn = el('button', { class: 'corpus-more-btn', attrs: { type: 'button' } });
-      btn.textContent = tt('room.corpus.showMore', 'Показать ещё') + ' (' + (items.length - cursor) + ')';
-      btn.addEventListener('click', () => { slice(); try { window.applyI18n && window.applyI18n(); } catch (_) {} });
-      moreWrap.appendChild(btn);
+    moreWrap.replaceChildren();
+    if (activeOffset > 0 || upTo < items.length) {
+      const previous = el('button', { class: 'corpus-more-btn', attrs: { type: 'button' }, text: tt('room.corpus.lists.previous', 'Назад') });
+      previous.disabled = activeOffset <= 0;
+      previous.addEventListener('click', () => { activeOffset = Math.max(0, activeOffset - ROOM_BROWSE_PAGE); paintPage(true); });
+      const page = el('span', { class: 'learning-journey-page-label', text: tt('room.corpus.lists.page', 'Страница {n}').replace('{n}', String(Math.floor(activeOffset / ROOM_BROWSE_PAGE) + 1)) });
+      const next = el('button', { class: 'corpus-more-btn', attrs: { type: 'button' }, text: tt('room.corpus.lists.next', 'Дальше') });
+      next.disabled = upTo >= items.length;
+      next.addEventListener('click', () => { activeOffset += ROOM_BROWSE_PAGE; paintPage(true); });
+      moreWrap.appendChild(previous); moreWrap.appendChild(page); moreWrap.appendChild(next);
     }
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+    if (focusFirst) list.querySelector('a,button')?.focus();
   };
-  slice();
+  paintPage(false);
 }
 
 // ── BRR S1/S2 — result-row bilingual snippet + query <mark> (client-side, body-driven) ──────────
@@ -11351,20 +11513,27 @@ function corpusWorkSection(titleKey, icon, works, openable) {
   const moreWrap = el('div', { class: 'corpus-more' });
   sec.appendChild(list);
   sec.appendChild(moreWrap);
-  let cursor = 0;
-  const slice = () => {
-    const upTo = Math.min(works.length, cursor + CORPUS_PAGE);
-    for (let i = cursor; i < upTo; i++) list.appendChild(renderCorpusWorkRow(works[i], openable, { showListBtn: true }));
-    cursor = upTo;
-    moreWrap.innerHTML = '';
-    if (cursor < works.length) {
-      const btn = el('button', { class: 'corpus-more-btn', attrs: { type: 'button' } });
-      btn.textContent = tt('room.corpus.showMore', 'Показать ещё') + ' (' + (works.length - cursor) + ')';
-      btn.addEventListener('click', () => { slice(); try { window.applyI18n && window.applyI18n(); } catch (_) {} });
-      moreWrap.appendChild(btn);
+  let activeOffset = 0;
+  const paintPage = (focusFirst) => {
+    if (activeOffset >= works.length && activeOffset > 0) activeOffset = Math.max(0, activeOffset - ROOM_BROWSE_PAGE);
+    const upTo = Math.min(works.length, activeOffset + ROOM_BROWSE_PAGE);
+    list.replaceChildren();
+    for (let i = activeOffset; i < upTo; i++) list.appendChild(renderCorpusWorkRow(works[i], openable, { showListBtn: true, materialKind: openable ? 'ready' : 'catalog' }));
+    moreWrap.replaceChildren();
+    if (activeOffset > 0 || upTo < works.length) {
+      const previous = el('button', { class: 'corpus-more-btn', attrs: { type: 'button' }, text: tt('room.corpus.lists.previous', 'Назад') });
+      previous.disabled = activeOffset <= 0;
+      previous.addEventListener('click', () => { activeOffset = Math.max(0, activeOffset - ROOM_BROWSE_PAGE); paintPage(true); });
+      const page = el('span', { class: 'learning-journey-page-label', text: tt('room.corpus.lists.page', 'Страница {n}').replace('{n}', String(Math.floor(activeOffset / ROOM_BROWSE_PAGE) + 1)) });
+      const next = el('button', { class: 'corpus-more-btn', attrs: { type: 'button' }, text: tt('room.corpus.lists.next', 'Дальше') });
+      next.disabled = upTo >= works.length;
+      next.addEventListener('click', () => { activeOffset += ROOM_BROWSE_PAGE; paintPage(true); });
+      moreWrap.appendChild(previous); moreWrap.appendChild(page); moreWrap.appendChild(next);
     }
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+    if (focusFirst) list.querySelector('a,button')?.focus();
   };
-  slice();
+  paintPage(false);
   attachRoomLongListDisclosure(sec, head, [note, list, moreWrap].filter(Boolean), 'ben:works:' + titleKey);
   return sec;
 }
@@ -11373,7 +11542,7 @@ function corpusWorkSection(titleKey, icon, works, openable) {
 // Baked → ▶ openable (served-on-open). Unprocessed → ⏳ disabled, honest «перевод позже»
 // (R8 — visible in the catalog, never dead-ended, never posing as readable).
 function renderCorpusWorkRow(card, openable, opts) {
-  const row = el('article', { class: 'corpus-work-row room-text-row' + (openable ? '' : ' is-later'), attrs: { 'data-work-id': String(card && card.id != null ? card.id : ''), 'data-continuity-key': continuityKey('benyehuda', card && card.id) } });
+  const row = el('article', { class: 'corpus-work-row room-text-row room-material-row' + (openable ? '' : ' is-later'), attrs: { 'data-material-kind': String(opts && opts.materialKind || (openable ? 'ready' : 'catalog')), 'data-work-id': String(card && card.id != null ? card.id : ''), 'data-continuity-key': continuityKey('benyehuda', card && card.id) } });
   const col = el('div', { class: 'corpus-work-col' });
   // BRR-S2 — in a search context (opts.openOpts.ftsQuery — the same query threaded to the open handler)
   // the matched tokens are <mark>-highlighted in the title + author (niqqud-insensitive, word-level via
@@ -11453,7 +11622,10 @@ function wireChrome() {
   const lang = $('roomLang');
   if (lang) {
     try { lang.value = (window.appGetLocale && window.appGetLocale()) || 'ru'; } catch (_) {}
-    lang.addEventListener('change', (e) => { try { window.appSetLocale && window.appSetLocale(e.target.value); } catch (_) {} });
+    lang.addEventListener('change', (e) => {
+      try { window.appSetLocale && window.appSetLocale(e.target.value); } catch (_) {}
+      requestAnimationFrame(repaintRoomDisclosureLocale);
+    });
   }
   TRACKS.forEach((t) => {
     const btn = $(TAB_ID[t]);

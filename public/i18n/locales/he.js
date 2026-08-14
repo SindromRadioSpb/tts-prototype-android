@@ -3020,7 +3020,16 @@ window.I18N_LOCALES.he = {
       concordance: { title: "קונקורדנציה", entry: "כל המופעים (קונקורדנציה)", occurrences: "מופעים", texts: "טקסטים", moreLines: "עוד בטקסט הזה" },
       translit: { maybe: "אולי התכוונת" },
       saved: { title: "חיפושים שמורים", save: "שמירת חיפוש", savedToast: "החיפוש נשמר", remove: "מחיקה" },
-      lists: { add: "הוספה לרשימת קריאה", short: "לרשימה", added: "נוסף לרשימה", removed: "הוסר מהרשימה", shelfTitle: "לקרוא אחר כך", remove: "הסרה", notReady: "התרגום בהכנה", defaultName: "לקרוא אחר כך", untitled: "רשימה", addTo: "הוספה לרשימה", newName: "רשימה חדשה…", create: "יצירת רשימה", done: "סיום", deleteList: "מחיקת רשימה" },
+      lists: {
+        add: "הוספה לרשימת קריאה", short: "לרשימה", added: "נוסף לרשימה", removed: "הוסר מהרשימה",
+        shelfTitle: "לקרוא אחר כך", remove: "הסרה", notReady: "התרגום בהכנה", defaultName: "לקרוא אחר כך",
+        untitled: "רשימה", addTo: "הוספה לרשימה", newName: "רשימה חדשה…", create: "יצירת רשימה", done: "סיום", deleteList: "מחיקת רשימה",
+        moduleTitle: "רשימות קריאה", moduleIntro: "אוספים בעלי שם של יצירות בן־יהודה.",
+        openList: "פתיחת הרשימה", manage: "פעולות", rename: "שינוי שם", nameLabel: "שם הרשימה", saveName: "שמירת השם", renamed: "השם נשמר",
+        deleteAction: "מחיקת הרשימה…", deleteConfirm: "למחוק את הרשימה „{name}” ולהסיר ממנה {count} פריטים?", deleted: "הרשימה נמחקה",
+        removeFromList: "הסרה מהרשימה", undo: "ביטול", deviceOnly: "הרשימה נשמרת במכשיר הזה בלבד.",
+        materialCount: "{count} פריטים", empty: "אין עדיין פריטים ברשימה הזו.", close: "סגירה", pages: "עמודי הרשימה", previous: "הקודמים", next: "הבאים", page: "עמוד {n}",
+      },
       sort: { graduated: "מוכנים תחילה", alpha: "לפי א״ב", graded: "לפי הסדר", length: "לפי אורך", readyFirst: "מוכנים תחילה", label: "מיון" },
       jumpbar: "אותיות",
       genre: {

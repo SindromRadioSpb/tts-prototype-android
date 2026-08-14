@@ -3010,7 +3010,16 @@ window.I18N_LOCALES.en = {
       concordance: { title: "Concordance", entry: "All occurrences (concordance)", occurrences: "occurrences", texts: "texts", moreLines: "more in this text" },
       translit: { maybe: "Did you mean" },
       saved: { title: "Saved searches", save: "Save search", savedToast: "Search saved", remove: "Delete" },
-      lists: { add: "Add to reading list", short: "List", added: "Added to list", removed: "Removed from list", shelfTitle: "Read later", remove: "Remove", notReady: "Translation in progress", defaultName: "Read later", untitled: "List", addTo: "Add to a list", newName: "New list…", create: "Create list", done: "Done", deleteList: "Delete list" },
+      lists: {
+        add: "Add to reading list", short: "List", added: "Added to list", removed: "Removed from list",
+        shelfTitle: "Read later", remove: "Remove", notReady: "Translation in progress", defaultName: "Read later",
+        untitled: "List", addTo: "Add to a list", newName: "New list…", create: "Create list", done: "Done", deleteList: "Delete list",
+        moduleTitle: "Reading lists", moduleIntro: "Named collections of Ben-Yehuda works.",
+        openList: "Open list", manage: "Actions", rename: "Rename", nameLabel: "List name", saveName: "Save name", renamed: "Name saved",
+        deleteAction: "Delete list…", deleteConfirm: "Delete “{name}” and remove its {count} items?", deleted: "List deleted",
+        removeFromList: "Remove from list", undo: "Undo", deviceOnly: "This list is stored only on this device.",
+        materialCount: "{count} items", empty: "This list has no items yet.", close: "Close", pages: "List pages", previous: "Previous", next: "Next", page: "Page {n}",
+      },
       sort: { graduated: "Ready first", alpha: "Alphabetical", graded: "In order", length: "By length", readyFirst: "Ready first", label: "Sort" },
       jumpbar: "Letters",
       genre: {

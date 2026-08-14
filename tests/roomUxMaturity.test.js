@@ -123,8 +123,11 @@ test("B1 bounds My Texts and protected-corpus browse without hiding the total", 
   assert.match(myTexts, /listPersonalTextsPage/);
   assert.match(myTexts, /limit: ROOM_BROWSE_PAGE/);
   assert.doesNotMatch(myTexts, /myBrowseLimit \+=|found\.slice\(0, myBrowseLimit\)/);
-  assert.match(libraryUi, /found\.slice\(0,groupBrowseLimit\)/);
-  assert.match(libraryUi, /groupBrowseLimit\+=ROOM_BROWSE_PAGE;paint\(false\)/);
+  assert.match(libraryUi, /found\.slice\(groupBrowseOffset,groupBrowseOffset\+ROOM_BROWSE_PAGE\)/,
+    "protected-corpus browse must mount only the active replacement page");
+  assert.match(libraryUi, /groupBrowseOffset\+=ROOM_BROWSE_PAGE;paint\(false\)/);
+  assert.doesNotMatch(libraryUi, /groupBrowseLimit\+=ROOM_BROWSE_PAGE/,
+    "pagination must not grow the protected-corpus DOM without bound");
 });
 
 test("B1 uses semantic rows with sibling title and secondary controls", () => {

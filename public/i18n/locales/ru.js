@@ -3024,7 +3024,16 @@ window.I18N_LOCALES.ru = {
       concordance: { title: "Конкорданс", entry: "Все вхождения (конкорданс)", occurrences: "вхождений", texts: "текстов", moreLines: "ещё в этом тексте" },
       translit: { maybe: "Возможно, вы искали" },
       saved: { title: "Сохранённые поиски", save: "Сохранить поиск", savedToast: "Поиск сохранён", remove: "Удалить" },
-      lists: { add: "В список чтения", short: "В список", added: "Добавлено в список", removed: "Убрано из списка", shelfTitle: "Читать позже", remove: "Убрать", notReady: "Перевод готовится", defaultName: "Читать позже", untitled: "Список", addTo: "Добавить в список", newName: "Новый список…", create: "Создать список", done: "Готово", deleteList: "Удалить список" },
+      lists: {
+        add: "В список чтения", short: "В список", added: "Добавлено в список", removed: "Убрано из списка",
+        shelfTitle: "Читать позже", remove: "Убрать", notReady: "Перевод готовится", defaultName: "Читать позже",
+        untitled: "Список", addTo: "Добавить в список", newName: "Новый список…", create: "Создать список", done: "Готово", deleteList: "Удалить список",
+        moduleTitle: "Списки для чтения", moduleIntro: "Именованные подборки материалов Бен-Иегуды.",
+        openList: "Открыть список", manage: "Действия", rename: "Переименовать", nameLabel: "Название списка", saveName: "Сохранить название", renamed: "Название сохранено",
+        deleteAction: "Удалить список…", deleteConfirm: "Удалить список «{name}» и убрать из него {count} материалов?", deleted: "Список удалён",
+        removeFromList: "Убрать из списка", undo: "Отменить", deviceOnly: "Этот список хранится только на этом устройстве.",
+        materialCount: "{count} материалов", empty: "В этом списке пока нет материалов.", close: "Закрыть", pages: "Страницы списка", previous: "Назад", next: "Дальше", page: "Страница {n}",
+      },
       sort: { graduated: "Готовые сверху", alpha: "По алфавиту", graded: "По порядку", length: "По длине", readyFirst: "Сначала готовые", label: "Сортировка" },
       jumpbar: "Буквы",
       genre: {

@@ -533,11 +533,7 @@
     .corpus-saved-chip { display: inline-flex; align-items: center; background: var(--bg-muted); border: 1px solid var(--border-soft); border-radius: 999px; overflow: hidden; }
     .corpus-saved-run { width: auto; appearance: none; cursor: pointer; background: transparent; border: 0; color: var(--text-secondary); padding: 6px 4px 6px 11px; font-size: 12px; font-weight: 600; max-width: 62vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .corpus-saved-del { width: auto; appearance: none; cursor: pointer; background: transparent; border: 0; color: var(--text-faint); padding: 6px 9px 6px 4px; font-size: 12px; line-height: 1; }
-    .readinglist-card .work-card-meta { display: flex; justify-content: flex-end; margin-top: auto; }   /* PC-5 nit — no CTA on this card → keep the ✕ bottom-anchored */
-    .readinglist-rm { width: auto; appearance: none; cursor: pointer; background: transparent; border: 0; color: var(--text-faint); font-size: 13px; line-height: 1; padding: 2px 4px; }
-    /* BRR-P3 — multiple named lists: head delete + the add-to-list picker (bottom sheet) */
-    .corpus-readinglist-head { display: flex; align-items: center; justify-content: space-between; }
-    .shelf-list-del { width: auto; appearance: none; cursor: pointer; background: transparent; border: 0; color: var(--text-faint); font-size: 13px; line-height: 1; padding: 2px 8px; }
+    /* Named-list creation and management share the same bounded bottom-sheet shell. */
     .list-picker-ov { position: fixed; inset: 0; z-index: 99998; background: rgba(0,0,0,.5); display: flex; align-items: flex-end; justify-content: center; }
     .list-picker { width: 100%; max-width: 420px; background: var(--bg-card); color: var(--text-primary); border-radius: 14px 14px 0 0; padding: 14px 16px calc(14px + env(safe-area-inset-bottom,0px)); box-shadow: 0 -6px 24px rgba(0,0,0,.3); }
     .list-picker-title { font-weight: 700; font-size: 15px; margin-bottom: 10px; }
@@ -549,6 +545,21 @@
     .list-picker-input:focus { outline: none; border-color: var(--accent); }
     .list-picker-add { width: auto; flex: none; appearance: none; cursor: pointer; background: var(--accent); color: var(--accent-contrast); border: 0; border-radius: 10px; padding: 9px 14px; font-size: 16px; font-weight: 700; }
     .list-picker-done { width: 100%; margin-top: 12px; appearance: none; cursor: pointer; background: var(--bg-muted); color: var(--accent); border: 1px solid var(--border-soft); border-radius: 10px; padding: 11px; font-size: 14px; font-weight: 600; }
+    .reading-list-dialog { max-width: 680px; max-height: min(88vh, 760px); display: flex; flex-direction: column; overflow: hidden; }
+    .reading-list-dialog-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+    .reading-list-dialog-head .list-picker-title { min-width: 0; margin: 5px 0 10px; font: 760 18px/1.3 Georgia, "Times New Roman", serif; }
+    .reading-list-dialog-close { flex: none; width: 44px; height: 44px; border: 1px solid var(--border-soft); border-radius: 10px; background: transparent; color: var(--text-secondary); font: 700 22px/1 inherit; cursor: pointer; }
+    .reading-list-dialog-close:hover, .reading-list-dialog-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; color: var(--text-primary); }
+    .reading-list-device-copy { margin: 0 0 9px; color: var(--text-secondary); font-size: 12px; line-height: 1.4; }
+    .reading-list-detail-list { min-height: 76px; max-height: min(56vh, 540px); margin: 0; overflow-y: auto; overscroll-behavior: contain; }
+    .reading-list-pager { flex: none; }
+    .reading-list-manage-form { display: grid; gap: 12px; }
+    .reading-list-name-label { display: grid; gap: 6px; color: var(--text-secondary); font-size: 12px; font-weight: 700; }
+    .reading-list-name-input { width: 100%; min-width: 0; min-height: 44px; box-sizing: border-box; padding: 9px 11px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-card); color: var(--text-primary); font: inherit; }
+    .reading-list-name-input:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .reading-list-manage-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .reading-list-save, .reading-list-delete-action { min-height: 44px; padding: 8px 12px; border: 1px solid var(--border-soft); border-radius: 9px; background: var(--bg-card); color: var(--accent); font: 720 13px/1.2 inherit; cursor: pointer; }
+    .reading-list-delete-action { border-color: color-mix(in srgb, #b42318 46%, var(--border-soft)); color: #b42318; }
     /* BRR-S2 — niqqud-insensitive query highlight (amber, distinct from the row-jump tint; no underline → никуд-safe) */
     mark.fts-mark { background: rgba(255, 184, 28, 0.34); color: inherit; border-radius: 3px; padding: 0 1px; }
     @media (prefers-color-scheme: dark) { body:not(.theme-light) mark.fts-mark { background: rgba(255, 199, 72, 0.30); } }
@@ -1230,7 +1241,7 @@
       position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px));
       transform: translate(-50%, 12px); background: var(--text-primary); color: var(--bg-card);
       padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; max-width: 90vw;
-      text-align: center; opacity: 0; pointer-events: none; z-index: 1200; transition: opacity .2s, transform .2s;
+      text-align: center; opacity: 0; pointer-events: none; z-index: 100000; transition: opacity .2s, transform .2s;
     }
     .room-toast.show { opacity: 1; transform: translate(-50%, 0); }
     /* FB-4 — undo action inside the toast. The toast is pointer-events:none; the action re-enables
@@ -1771,6 +1782,12 @@
       border-radius: 10px; padding: 8px 10px; display: grid; grid-template-columns: minmax(0,1fr) auto;
       align-items: center; gap: 8px; transition: border-color .15s ease, background .15s ease, transform .15s ease;
     }
+    .room-material-row { --material-rail: color-mix(in srgb, var(--accent) 72%, var(--border-soft)); border-inline-start-color: var(--material-rail); }
+    .room-material-row[data-material-kind="recommendation"] { --material-rail: #8a5c9f; }
+    .room-material-row[data-material-kind="reading-list"], .room-material-row[data-journey-kind="bookmark"] { --material-rail: #4f6f8f; }
+    .room-material-row[data-material-kind="ready"] { --material-rail: #b46d2d; }
+    .room-material-row[data-journey-kind="finished"] { --material-rail: #2f855a; }
+    html[dir="rtl"] .room-material-row { text-align: start; }
     .room-preview-list .room-text-row { border-width: 0 0 1px 3px; border-radius: 0; }
     .room-preview-list .corpus-work-row.room-text-row { padding: 7px 10px; }
     .room-preview-list .room-text-row:last-child { border-bottom-width: 0; }
@@ -1779,8 +1796,8 @@
     .room-preview-list .corpus-work-title { -webkit-line-clamp: 1; }
     .room-preview-list .corpus-work-author-link { min-height: 24px; padding-block: 2px; }
     .room-preview-list .work-card-difficulty {
-      height: 26px; min-height: 0; margin: 0; justify-content: flex-start; align-items: center; flex-wrap: nowrap;
-      max-width: 100%; overflow-x: auto; scrollbar-width: none;
+      height: auto; min-height: 26px; margin: 0; justify-content: flex-start; align-items: center; flex-wrap: wrap;
+      max-width: 100%; overflow: visible;
     }
     /* The compact ready preview has room for the primary fit signal plus its
        explanation affordance. Caveats remain available in that explanation;
@@ -1807,6 +1824,8 @@
     }
     html[dir="rtl"] .corpus-work-author-link { padding: 4px 0 4px 6px; }
     .corpus-work-listbtn { min-width: 44px; min-height: 44px; padding: 8px; }
+    .reading-list-remove { min-height: 44px; max-width: 150px; padding: 7px 9px; border: 1px solid var(--border-soft); border-radius: 9px; background: transparent; color: var(--text-secondary); font: 680 11.5px/1.2 inherit; cursor: pointer; }
+    .reading-list-remove:hover, .reading-list-remove:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; color: var(--text-primary); }
     .corpus-work-cta { font-size: 20px; color: var(--accent); }
     .mytexts-grid, .group-corpus-grid { gap: 6px; }
     .mytexts-grid .mytext-card-v, .mytexts-shelf .mytext-card { width: 100%; }
@@ -1961,7 +1980,7 @@
     .learning-home-action-copy { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
     .learning-home-action-title { overflow: hidden; color: var(--text-primary); font-size: 13px; font-weight: 720; text-overflow: ellipsis; white-space: nowrap; }
     .learning-home-action-meta { overflow: hidden; color: var(--text-secondary); font-size: 11.5px; text-overflow: ellipsis; white-space: nowrap; }
-    .learning-home-ready, .learning-home-corpora { margin-top: 19px; }
+    .learning-home-ready, .learning-home-corpora, .learning-home-reading-lists { margin-top: 19px; }
     .learning-home-journey {
       margin-top: 18px; padding: 16px; border: 1px solid var(--border-soft); border-radius: 14px;
       background: color-mix(in srgb, var(--bg-card) 94%, var(--learning-warm) 6%);
@@ -1970,6 +1989,21 @@
       margin: 0; max-width: 78ch; color: var(--text-secondary); font-size: 11.5px; line-height: 1.45;
     }
     .learning-home-journey-types { margin-top: 3px; color: var(--text-faint); }
+    .learning-home-reading-lists {
+      padding: 16px; border: 1px solid var(--border-soft); border-radius: 14px; background: var(--bg-card);
+    }
+    .learning-home-reading-lists .room-long-list-head { padding: 0; grid-template-columns: minmax(0,1fr) auto auto; }
+    .learning-home-reading-lists .reading-lists-count { grid-column: 2; grid-row: 1; color: var(--text-secondary); font-size: 12px; font-variant-numeric: tabular-nums; }
+    .reading-lists-overview { border-top: 1px solid var(--border-soft); }
+    .reading-list-summary-row { min-width: 0; min-height: 68px; display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 12px; padding: 9px 2px; border-bottom: 1px solid var(--border-soft); }
+    .reading-list-summary-row:last-child { border-bottom: 0; }
+    .reading-list-summary-copy { min-width: 0; }
+    .reading-list-summary-title { margin: 0; overflow: hidden; color: var(--text-primary); font: 740 15px/1.3 Georgia, "Times New Roman", serif; text-overflow: ellipsis; white-space: nowrap; }
+    .reading-list-summary-meta { margin: 3px 0 0; color: var(--text-secondary); font-size: 11.5px; }
+    .reading-list-summary-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+    .reading-list-open, .reading-list-manage { min-height: 44px; padding: 7px 10px; border: 1px solid var(--border-soft); border-radius: 9px; background: transparent; color: var(--accent); font: 710 12px/1.2 inherit; cursor: pointer; }
+    .reading-list-manage { color: var(--text-secondary); }
+    .reading-list-open:hover, .reading-list-open:focus-visible, .reading-list-manage:hover, .reading-list-manage:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; color: var(--text-primary); }
     .learning-home-journey-controls { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
     .learning-home-journey-view {
       min-height: 44px; display: inline-flex; align-items: center; gap: 7px; padding: 8px 11px;
@@ -1994,7 +2028,7 @@
     .learning-home-journey-list { display: grid; }
     .learning-journey-item {
       min-height: 54px; width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
-      padding: 10px 4px; border: 0; border-bottom: 1px solid var(--border-soft); background: transparent;
+      padding: 10px 7px; border: 0; border-bottom: 1px solid var(--border-soft); border-inline-start: 3px solid var(--material-rail); background: transparent;
       color: inherit; font: inherit; text-align: start; cursor: pointer;
     }
     .learning-journey-item:last-child { border-bottom: 0; }
@@ -2092,8 +2126,12 @@
       .learning-home-today { padding: 12px; }
       .learning-home-section-note { display: none; }
       .learning-home-action { min-height: 50px; }
-      .learning-home-ready, .learning-home-corpora { margin-top: 16px; }
+      .learning-home-ready, .learning-home-corpora, .learning-home-reading-lists { margin-top: 16px; }
       .learning-home-journey { margin-top: 14px; padding: 12px; }
+      .learning-home-reading-lists { padding: 12px; }
+      .reading-list-summary-row { grid-template-columns: minmax(0,1fr); gap: 7px; }
+      .reading-list-summary-actions { justify-content: flex-start; }
+      .reading-list-open, .reading-list-manage { flex: 1 1 120px; }
       .learning-home-journey-controls { display: grid; grid-template-columns: 1fr; }
       .learning-home-journey-view { width: 100%; justify-content: flex-start; }
       .learning-home-journey-count { margin-inline-start: auto; }
@@ -2198,9 +2236,15 @@
       .corpus-filterbar .corpus-recents { max-height: 102px; overflow: auto; }
       .group-corpus-controls { grid-template-columns: 1fr; }
       .group-corpus-controls .group-corpus-smart, .group-corpus-controls .group-corpus-tags { grid-column: auto; }
+      .group-corpus-controls .group-corpus-search-field { grid-column: 1 / -1; min-width: 0; }
       .mytexts-filter-controls { flex-direction: column; align-items: stretch; }
       .mytexts-filter-controls > .room-field { flex: none; }
-      .mytexts-smart, .mytexts-facets, .group-corpus-smart, .group-corpus-tags { max-height: 118px; overflow-y: auto; }
+      .mytexts-smart, .mytexts-facets, .group-corpus-smart, .group-corpus-tags { width: 100%; min-width: 0; max-width: 100%; max-height: 118px; box-sizing: border-box; overflow-x: hidden; overflow-y: auto; }
+      .mytexts-smart, .mytexts-facets .corpus-sort, .group-corpus-controls .corpus-sort, .group-corpus-smart, .group-corpus-tags { flex-wrap: wrap; border-radius: 12px; }
+      .room-material-row .learning-compass, .room-material-row .work-card-difficulty { height: auto; min-height: 24px; flex-wrap: wrap; overflow: visible; }
+      .reading-list-material-row { grid-template-columns: minmax(0,1fr) auto; }
+      .reading-list-material-row .corpus-work-cta { display: none; }
+      .reading-list-remove { max-width: 124px; }
       .corpus-management { margin-top: 14px; }
     }
 
@@ -2214,6 +2258,7 @@
     }
     .learning-compass[hidden] { display: none; }
     .learning-compass::-webkit-scrollbar { display: none; }
+    .room-material-row .learning-compass { flex-wrap: wrap; overflow: visible; }
     .learning-signal, .learner-state-chip, .learning-media, .learning-tag, .learning-caveat {
       flex: none; min-height: 24px; box-sizing: border-box; display: inline-flex; align-items: center;
       padding: 2px 7px; border: 1px solid var(--border-soft); border-radius: 999px;
@@ -2478,7 +2523,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.384</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.385</button>
   </div>
 </footer>
 
@@ -2661,9 +2706,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=162"></script>
-<script src="/i18n/locales/en.js?v=162"></script>
-<script src="/i18n/locales/he.js?v=162"></script>
+<script src="/i18n/locales/ru.js?v=163"></script>
+<script src="/i18n/locales/en.js?v=163"></script>
+<script src="/i18n/locales/he.js?v=163"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
