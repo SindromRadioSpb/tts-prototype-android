@@ -7,12 +7,12 @@
 | Date | 2026-08-15 |
 | Branch | `main` |
 | Baseline source commit | `8239d0a6ad8dcf28acee3ffd09df21dd1a694d13` |
-| Release commit | Pending scoped commit |
+| Release commit | `755a25ff5514b8f58637f889ac13f7b2e9660187` |
 | Baseline production | `https://linguistpro.kolosei.com/library.html`, client/SW `3.11.386` |
 | Target client/SW | `3.11.387` |
 | Dirty tree | `DIRTY`: 34 pre-existing/unrelated entries at start; none are part of this release |
 | Evidence methods | source contracts; Node tests; isolated Playwright automation; rendered screenshot inspection; production health/version preflight |
-| Evidence classes | `CODE`; `ISOLATED_AUTOMATION`; `RENDERED_VISUAL`; production/Kapture rows pending deployment |
+| Evidence classes | `CODE`; `ISOLATED_AUTOMATION`; `RENDERED_VISUAL`; `PRODUCTION`; `OWNER_LIVE_READ_ONLY` |
 | Limitations | Automation is not physical-device, assistive-technology, or owner-live evidence. The isolated IA smoke deliberately uses fixture reading-list writes and one fixture word-status capability marker; these never touch the owner profile. |
 
 ## Approved contract implemented
@@ -102,8 +102,58 @@ rows; the Ben home preview remains bounded at 12.
 
 ## Production and owner-live evidence
 
-Pending scoped commit/push and automatic deployment. Production verification will
-be appended after the served version reaches `3.11.387`. Kapture inspection is
-strictly read-only for learner truth and destructive controls; presentation-only
-route, locale, sort and disclosure checks will be restored to the owner's default
-state before handoff.
+Production reached client/SW `3.11.387` at 2026-08-15 14:49 Asia/Jerusalem.
+`/healthz` remained healthy throughout: DB and migrations ready. Post-deploy disk
+usage settled from a build peak of 70% to 69%, with `disk_warn=false`.
+
+The served SHA-256 hashes for `library.html`, `library-ui.js` and all three locale
+files exactly match the Git blobs in release commit `755a25ff`. Worktree hashes of
+the locale files differ on Windows only because the checkout has CRLF line endings;
+Git-blob hashes are the deployment authority and match production byte-for-byte.
+
+Read-only Kapture evidence used the existing authorized Chrome tab. The tab loaded
+`3.11.387` through its active service worker without clearing storage or owner keys.
+
+### Library/L0
+
+- The global Reading Journey and consolidated two-list module remain on L0.
+- Section order is intro, Continue/Today, Reading Journey, Reading Lists, Ready,
+  then corpus doors.
+- Desktop RU page overflow: 0 px.
+
+### Ben-Yehuda
+
+- Profile-fit renders 4 vertical rows before the explicit Catalog region; no
+  horizontal rail exists.
+- The current Continue hero and confirmed Finished material are absent from those
+  4 rows.
+- Catalog owns search, filters, sort and the 12-row bounded Ready preview.
+- Switching `ready → length → familiar_desc → ready` leaves both profile-fit and
+  Ready mounted, changes the Ready ordering, never mounts a title-results mode,
+  and never exposes a hidden Reset chip.
+- Page and nested-row horizontal overflow: 0 px.
+
+### My Texts and Study Songs
+
+- My Texts exposes the explicit Catalog region with 48 replacement-window rows.
+  Its 115-text Learning Compass index is prepared, but only 1 visible candidate is
+  rank-eligible while 47 are `AVAILABLE_LIMITED`; the optional profile-fit block is
+  therefore honestly absent because the approved minimum is 2.
+- Study Songs exposes the explicit Catalog region with 48 replacement-window rows.
+  Its 77-text protected index is prepared, but all 48 visible candidates are
+  `AVAILABLE_LIMITED`; profile-fit is honestly absent and no assignment or
+  recommendation semantics are invented.
+- Both pages have 0 px page overflow. The isolated reliable-data fixtures prove
+  that each surface renders the bounded profile-fit section when at least two
+  eligible alternatives exist.
+
+### Locale, console and owner-state restoration
+
+- HE switched the document to `dir=rtl`, rendered `קטלוג הקורפוס` and the Hebrew
+  scope copy, with 0 px page overflow.
+- The tab was restored to RU, `#room=hub`, scroll `(0,0)` and default corpus sorts.
+- Kapture reported no console errors.
+- Before/after owner aggregates are identical:
+  `progress=91`, `bookmarks=4`, `finished=1`, `review_log=7319`, reading lists=2.
+- No material was opened, no search was issued, and no bookmark, progress,
+  Finished, review or reading-list action was executed.
