@@ -1,7 +1,7 @@
 # ROOM-UX-VF — VF0 implementation evidence
 
 > Date: 2026-08-15  
-> Status: `PRODUCTION_PASS_OWNER_REVIEW_PENDING`  
+> Status: `OWNER_ACCEPTED_CLOSED`  
 > Source commit: `12dacd9a403ff8db2b7ad2dd20abf98e6c241386`  
 > Branch: `main`; implementation `d1a929707440320b7795932be64d4d4b893fc0fe`; owner-gate evidence `5781d006d1c541118a7bb39e8b806ede92fdcae9`; `origin/main` matched `5781d006` during production verification  
 > Worktree: `DIRTY`; 34 pre-existing entries were preserved. The scoped ROOM-UX-VF research, docs, runtime, test and screenshot files are enumerated in the implementation packet.  
@@ -16,7 +16,7 @@ VF0 is implemented and locally green for its additive foundation, icon provenanc
 
 The owner reported `PASS` on 2026-08-15 in direct response to the requested local `3.11.389` actual Chrome 200% RU and HE/RTL checklist: no horizontal page overflow, lost actions or broken long-title wrapping. This clears the deployment gate. It remains owner-reported desktop evidence, separate from the earlier 380px automation and from physical-mobile/AT evidence.
 
-Production is green and ready for owner review. VF1 has not started.
+Production is green. The owner returned exact acceptance `VF0 PROD=PASS` on 2026-08-15; VF0 is closed. VF1 had not started at the moment of acceptance.
 
 ## 2. Implemented contract
 
@@ -151,7 +151,7 @@ This is `PRODUCTION` plus `OWNER_LIVE_READ_ONLY` evidence. It is not final owner
 
 ## 9. Release gate and rollback
 
-Current decision: `PRODUCTION_PASS_OWNER_REVIEW_PENDING`.
+Current decision: `OWNER_ACCEPTED_CLOSED`.
 
 Owner-reported gate receipt:
 
@@ -159,6 +159,6 @@ Owner-reported gate receipt:
 2. RU and HE/RTL, no horizontal overflow, lost action or broken long-title wrapping: `PASS`;
 3. evidence class: `OWNER_REPORTED`; not agent-observed, physical-mobile or assistive-technology evidence.
 
-Production work is complete. The owner can activate the already-visible update action in the existing production tab and perform the final visual review. VF1 remains blocked until that handoff is accepted.
+Production work is complete. The owner performed the handoff review and returned `VF0 PROD=PASS`. This is final VF0 production acceptance and unlocks a fresh VF1 preflight. It does not convert the unperformed physical-mobile or assistive-technology rows into PASS.
 
 No schema or data rollback exists. Static rollback restores the prior HTML/SW version and removes the two foundation links; legacy styles remain complete throughout.
