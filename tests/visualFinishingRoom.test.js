@@ -135,14 +135,27 @@ test("VF1 locale identity text is emoji-free and locale cache advances once", ()
   }
 });
 
-test("VF2 release surfaces lock to 3.11.393 and bust the Room module URL", () => {
+test("VF2 release surfaces lock to 3.11.394 and bust the Room module URL", () => {
   const app = indexHtml.match(/window\.APP_VERSION\s*=\s*"([^"]+)"/);
   const room = html.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
   const worker = sw.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
   assert.ok(app && room && worker);
-  assert.equal(app[1], "3.11.393");
+  assert.equal(app[1], "3.11.394");
   assert.equal(room[1], app[1]);
   assert.equal(worker[1], app[1]);
-  assert.match(html, /<script type="module" src="\/js\/library-ui\.js\?v=393"><\/script>/,
+  assert.match(html, /<script type="module" src="\/js\/library-ui\.js\?v=394"><\/script>/,
     "a stale controlling SW must not reuse the pre-VF2 Room module URL");
+});
+
+test("VF2 Room reports the loaded shell version honestly and has a network fallback", () => {
+  assert.match(js, /const roomShellVersion[\s\S]*roomFooterVersion/);
+  assert.match(js, /roomVersionMismatch = !!\(roomShellVersion && roomAppVersion !== roomShellVersion\)/);
+  assert.match(js, /url\.searchParams\.set\('room_update', roomAppVersion/);
+  assert.match(js, /roomWaitingWorker \|\| roomVersionMismatch/);
+  assert.match(js, /watch\(reg\.installing\)/,
+    "an already-installing worker must not miss the update-ready notification");
+  const versionLoader = extractFunction(js, "loadRoomVersion", "refreshAboutUpdateStatus");
+  assert.match(versionLoader, /const displayedVersion = roomShellVersion \|\| roomAppVersion/);
+  assert.doesNotMatch(versionLoader, /fv\.textContent = roomAppVersion/,
+    "server config must not impersonate the bytes loaded in the current document");
 });

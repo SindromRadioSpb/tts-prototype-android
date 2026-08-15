@@ -131,7 +131,7 @@ test("VF0 loads foundations before legacy surface styles and leaves the fallback
   const studioLink = indexHtml.indexOf(link);
   const studioLegacy = indexHtml.indexOf("<style>");
   const roomLink = libraryHtml.indexOf(link);
-  const roomReader = libraryHtml.indexOf('<link rel="stylesheet" href="/css/reader-core.css?v=393">');
+  const roomReader = libraryHtml.indexOf('<link rel="stylesheet" href="/css/reader-core.css?v=394">');
   const roomLegacy = libraryHtml.indexOf("<style>");
 
   assert.ok(studioLink >= 0 && studioLink < studioLegacy,
@@ -258,7 +258,7 @@ test("VF0 precaches foundation assets and remains locked to the current served r
   const room = libraryHtml.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
   const worker = serviceWorker.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
   assert.ok(app && room && worker, "all public version surfaces must exist");
-  assert.equal(app[1], "3.11.393");
+  assert.equal(app[1], "3.11.394");
   assert.equal(room[1], app[1]);
   assert.equal(worker[1], app[1]);
 });

@@ -3769,7 +3769,13 @@ function roomToast(msg, actionLabel, actionFn, ttlMs) {
 
 // ── PWA update toast + «О Зале» (premium chrome — the Room registers the SW itself, so an
 // update prompt + About surface exist even when the Room is opened directly, not via Studio) ──
+const roomShellVersion = (() => {
+  const value = $('roomFooterVersion');
+  return value ? String(value.textContent || '').trim().replace(/^v/i, '') : '';
+})();
+const roomWatchedWorkers = new WeakSet();
 let roomWaitingWorker = null, roomReloadingForUpdate = false, roomUpdateActivationRequested = false, roomUpdateToastEl = null, roomAppVersion = '';
+let roomVersionMismatch = false;
 let roomConnectionState = 'online', roomReconnectPromise = null;
 function setRoomConnectionState(next) {
   roomConnectionState = next || roomConnectionState;
@@ -3822,24 +3828,34 @@ function dismissRoomUpdateToast() {
   if (roomUpdateToastEl && roomUpdateToastEl.parentNode) roomUpdateToastEl.parentNode.removeChild(roomUpdateToastEl);
   roomUpdateToastEl = null;
 }
+async function prepareRoomUpdateSafePoint() {
+  const readerOpen = !!($('roomReader') && !$('roomReader').hidden && readerTextId != null);
+  try {
+    if (readerOpen) {
+      setRoomConnectionState(roomB6.nextConnectionState(roomConnectionState, 'update-flush'));
+      await flushReaderProgress({ readBack: true });
+    }
+    return { ok: true, readerOpen };
+  } catch (_) {
+    setRoomConnectionState('update-ready');
+    roomToast(tt('room.connection.updateFlushFailed', 'Позиция чтения не подтверждена — обновление отложено'));
+    return { ok: false, readerOpen };
+  }
+}
+function reloadRoomShellFromNetwork() {
+  const url = new URL(location.href);
+  url.searchParams.set('room_update', roomAppVersion || String(Date.now()));
+  location.replace(url.pathname + '?' + url.searchParams.toString() + url.hash);
+}
 async function applyRoomUpdate() {
+  const safePoint = await prepareRoomUpdateSafePoint();
+  if (!safePoint.ok) return;
   const w = roomWaitingWorker;
   if (w) {
-    const readerOpen = !!($('roomReader') && !$('roomReader').hidden && readerTextId != null);
-    try {
-      if (readerOpen) {
-        setRoomConnectionState(roomB6.nextConnectionState(roomConnectionState, 'update-flush'));
-        await flushReaderProgress({ readBack: true });
-      }
-    } catch (_) {
-      setRoomConnectionState('update-ready');
-      roomToast(tt('room.connection.updateFlushFailed', 'Позиция чтения не подтверждена — обновление отложено'));
-      return;
-    }
     dismissRoomUpdateToast();
     roomUpdateActivationRequested = true;
     w.postMessage({ type: 'SKIP_WAITING' });
-    roomDiagPush({ kind: 'room.update', result: readerOpen ? 'progress-flushed' : 'safe-point' });
+    roomDiagPush({ kind: 'room.update', result: safePoint.readerOpen ? 'progress-flushed' : 'safe-point' });
     // A dropped message must not reload into the old shell. Re-send only while
     // the same worker is still waiting; controllerchange owns the one reload.
     setTimeout(async () => {
@@ -3847,6 +3863,10 @@ async function applyRoomUpdate() {
       try { const reg = await navigator.serviceWorker.getRegistration('/'); if (reg && reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' }); }
       catch (_) {}
     }, 3500);
+  } else if (roomVersionMismatch) {
+    dismissRoomUpdateToast();
+    roomDiagPush({ kind: 'room.update', result: safePoint.readerOpen ? 'network-reload-progress-flushed' : 'network-reload-safe-point' });
+    reloadRoomShellFromNetwork();
   } else { reconnectRoomNetwork(); }
 }
 function showRoomUpdateToast(worker) {
@@ -3871,14 +3891,24 @@ function registerRoomServiceWorker() {
     roomReloadingForUpdate = true; location.reload();
   });
   navigator.serviceWorker.register('/sw.js', { scope: '/' }).then((reg) => {
-    if (reg.waiting && navigator.serviceWorker.controller) showRoomUpdateToast(reg.waiting);
+    const watch = (worker) => {
+      if (!worker || roomWatchedWorkers.has(worker)) return;
+      roomWatchedWorkers.add(worker);
+      const inspect = () => {
+        if (worker.state === 'installed' && navigator.serviceWorker.controller) showRoomUpdateToast(worker);
+      };
+      worker.addEventListener('statechange', inspect);
+      inspect();
+    };
+    const inspect = () => {
+      if (reg.waiting && navigator.serviceWorker.controller) showRoomUpdateToast(reg.waiting);
+      watch(reg.installing);
+    };
+    inspect();
     reg.addEventListener('updatefound', () => {
-      const nw = reg.installing; if (!nw) return;
-      nw.addEventListener('statechange', () => {
-        if (nw.state === 'installed' && navigator.serviceWorker.controller) showRoomUpdateToast(nw);
-      });
+      watch(reg.installing);
     });
-    const check = () => { try { reg.update(); } catch (_) {} };
+    const check = async () => { try { await reg.update(); inspect(); } catch (_) {} };
     check();
     setInterval(check, 30 * 60 * 1000);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
@@ -3889,9 +3919,27 @@ async function loadRoomVersion() {
     const j = await (await fetch('/api/client-config', { cache: 'no-store' })).json();
     if (j && j.version) {
       roomAppVersion = String(j.version);
-      const fv = $('roomFooterVersion'); if (fv) fv.textContent = roomAppVersion;
-      const av = $('roomAboutVersion'); if (av) av.textContent = roomAppVersion;
-      if (navigator.onLine && roomConnectionState !== 'update-ready') setRoomConnectionState('online');
+      roomVersionMismatch = !!(roomShellVersion && roomAppVersion !== roomShellVersion);
+      const displayedVersion = roomShellVersion || roomAppVersion;
+      const fv = $('roomFooterVersion'); if (fv) fv.textContent = displayedVersion;
+      const av = $('roomAboutVersion'); if (av) av.textContent = displayedVersion;
+      if (roomVersionMismatch) {
+        setRoomConnectionState('update-ready');
+        try {
+          const reg = await navigator.serviceWorker.getRegistration('/');
+          if (reg && reg.waiting && navigator.serviceWorker.controller) showRoomUpdateToast(reg.waiting);
+          else showRoomUpdateToast(null);
+          if (reg) reg.update().catch(() => {});
+        } catch (_) { showRoomUpdateToast(null); }
+      } else {
+        const url = new URL(location.href);
+        if (url.searchParams.has('room_update')) {
+          url.searchParams.delete('room_update');
+          history.replaceState(history.state, '', url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash);
+        }
+        if (navigator.onLine && roomConnectionState !== 'update-ready') setRoomConnectionState('online');
+      }
+      refreshAboutUpdateStatus();
     }
   } catch (_) {
     setRoomConnectionState(navigator.onLine ? 'degraded-error' : roomB6.nextConnectionState('online', 'offline', { localReady: roomOfflineHasLocalTruth() }));
@@ -3900,7 +3948,7 @@ async function loadRoomVersion() {
 function refreshAboutUpdateStatus() {
   const box = $('roomAboutUpdate'); if (!box) return;
   box.innerHTML = '';
-  if (roomWaitingWorker) {
+  if (roomWaitingWorker || roomVersionMismatch) {
     box.appendChild(el('span', { text: tt('room.about.updateAvailable', 'Доступно обновление') + ' ' }));
     const b = el('button', { text: tt('app.updateNow', 'Обновить') });
     b.addEventListener('click', applyRoomUpdate);

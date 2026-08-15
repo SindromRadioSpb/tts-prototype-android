@@ -1050,10 +1050,12 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
   "/library.html",
-  "/js/library-ui.js",
+  "/js/library-ui.js?v=394",
   "/js/room-b6-core.js",
   "/db/local-db.js",
-  "/js/mentor-home.js",
+  "/js/mentor-home.js?v=394",
+  "/css/reader-core.css?v=394",
+  "/css/reader-morph.css?v=394",
   "/js/lesson-artifact.js",
   "/i18n/locales/ru.js",
   "/i18n/locales/en.js",
@@ -1064,7 +1066,12 @@ function shellIntegrity() {
   if (shellIntegrityCache) return shellIntegrityCache;
   const out = {};
   for (const url of SHELL_INTEGRITY_PATHS) {
-    const file = path.join(__dirname, "public", ...url.slice(1).split("/"));
+    // Integrity keys must be byte-for-byte identical to the precache request
+    // keys, including their release query. The filesystem lookup uses only
+    // the URL pathname; otherwise "?v=..." becomes part of the filename and
+    // makes every cache-busted worker install fail closed forever.
+    const pathname = new URL(url, "http://linguistpro.local").pathname;
+    const file = path.join(__dirname, "public", ...pathname.slice(1).split("/"));
     out[url] = crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
   }
   shellIntegrityCache = Object.freeze(out);

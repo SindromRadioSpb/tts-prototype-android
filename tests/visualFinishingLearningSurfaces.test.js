@@ -15,6 +15,7 @@ const roomJs = read("public/js/library-ui.js");
 const roomHtml = read("public/library.html");
 const studioHtml = read("public/index.html");
 const sw = read("public/sw.js");
+const server = read("server.js");
 
 test("VF2 records the serialized authority and exact compatibility boundary", () => {
   assert.match(packet, /Status: `VF2_[A-Z0-9_]+`/);
@@ -60,15 +61,20 @@ test("VF2 Mentor CSS uses the shared state, focus, motion and forced-colors gram
 });
 
 test("VF2 release lock cache-busts every changed shared asset and precaches the exact URLs", () => {
-  assert.match(roomHtml, /\/css\/reader-core\.css\?v=393/);
-  assert.match(roomHtml, /\/css\/reader-morph\.css\?v=393/);
-  assert.match(studioHtml, /\/css\/reader-morph\.css\?v=393/);
-  assert.match(roomHtml, /\/js\/mentor-home\.js\?v=393/);
-  assert.match(roomHtml, /\/js\/library-ui\.js\?v=393/);
+  assert.match(roomHtml, /\/css\/reader-core\.css\?v=394/);
+  assert.match(roomHtml, /\/css\/reader-morph\.css\?v=394/);
+  assert.match(studioHtml, /\/css\/reader-morph\.css\?v=394/);
+  assert.match(roomHtml, /\/js\/mentor-home\.js\?v=394/);
+  assert.match(roomHtml, /\/js\/library-ui\.js\?v=394/);
   for (const url of [
-    "/css/reader-core.css?v=393",
-    "/css/reader-morph.css?v=393",
-    "/js/mentor-home.js?v=393",
-    "/js/library-ui.js?v=393",
-  ]) assert.ok(sw.includes(JSON.stringify(url)), `${url} must be offline-precached exactly`);
+    "/css/reader-core.css?v=394",
+    "/css/reader-morph.css?v=394",
+    "/js/mentor-home.js?v=394",
+    "/js/library-ui.js?v=394",
+  ]) {
+    assert.ok(sw.includes(JSON.stringify(url)), `${url} must be offline-precached exactly`);
+    assert.ok(server.includes(JSON.stringify(url)), `${url} must use the identical integrity-manifest key`);
+  }
+  assert.match(server, /new URL\(url, "http:\/\/linguistpro\.local"\)\.pathname/,
+    "cache-bust queries must not become part of the filesystem path used for hashing");
 });
