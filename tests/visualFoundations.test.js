@@ -250,7 +250,7 @@ test("VF0 records Lucide and Feather licence notices plus reproducible provenanc
     "provenance must not duplicate or omit an upstream icon source");
 });
 
-test("VF0 precaches foundation assets and locks the served release at 3.11.389", () => {
+test("VF0 precaches foundation assets and remains locked to the current served release", () => {
   assert.match(serviceWorker, /"\/css\/visual-foundations\.css"/);
   assert.match(serviceWorker, /"\/icons\/linguistpro-ui\.svg"/);
 
@@ -258,7 +258,7 @@ test("VF0 precaches foundation assets and locks the served release at 3.11.389",
   const room = libraryHtml.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
   const worker = serviceWorker.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
   assert.ok(app && room && worker, "all public version surfaces must exist");
-  assert.equal(app[1], "3.11.389");
+  assert.equal(app[1], "3.11.390");
   assert.equal(room[1], app[1]);
   assert.equal(worker[1], app[1]);
 });

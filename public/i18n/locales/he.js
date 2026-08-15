@@ -2146,13 +2146,13 @@ window.I18N_LOCALES.he = {
     back: "← לספרייה",
     readingTitle: "קריאה",
     header: {
-      title: "📖 חדר קריאה",
+      title: "חדר קריאה",
       subtitle: "ספרייה דו-לשונית — הקאנון עם מורפולוגיה בלחיצה",
       lang: "שפה",
       studio: "סטודיו",
     },
     footer: {
-      studio: "📝 סטודיו",
+      studio: "סטודיו",
       product: "על המוצר",
       source: "טקסטים: פרויקט בן-יהודה (נחלת הכלל)",
       about: "אודות",
@@ -2186,7 +2186,7 @@ window.I18N_LOCALES.he = {
     // CLG-P3.2 — «☁ Синхронизация» (cloud sync modal, owner-only dev mode)
     cloud: {
       btn: "סנכרון",
-      title: "☁ סנכרון",
+      title: "סנכרון",
       intro: "זיכרון המילים והסימונים הידניים מסתנכרנים בין המכשירים שלך. הבעלים נכנס באמצעות הסוד, וחבר בקבוצה סגורה באמצעות קישור חד-פעמי.",
       secretPh: "סוד הבעלים",
       login: "כניסה",

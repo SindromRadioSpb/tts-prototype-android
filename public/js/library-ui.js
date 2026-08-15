@@ -991,6 +991,101 @@ function el(tag, opts) {
   return e;
 }
 
+// ROOM-UX-VF1 — fallback-first icon adoption for the Room shell/L0/corpora.
+// The existing Unicode glyph remains visible until the already-vendored,
+// same-origin sprite is confirmed available. A stale SW therefore cannot
+// create a blank icon-only control, and this path never writes app state.
+const ROOM_ICON_SPRITE = '/icons/linguistpro-ui.svg';
+let _roomIconSpritePromise = null;
+let _roomIconSpriteReady = false;
+function ensureRoomIconSprite() {
+  if (_roomIconSpriteReady) return Promise.resolve(true);
+  if (_roomIconSpritePromise) return _roomIconSpritePromise;
+  _roomIconSpritePromise = fetch(ROOM_ICON_SPRITE, { cache: 'force-cache', credentials: 'same-origin' })
+    .then((response) => {
+      const type = String(response.headers.get('content-type') || '').toLowerCase();
+      if (!response.ok || !type.includes('image/svg+xml')) return false;
+      _roomIconSpriteReady = true;
+      return true;
+    })
+    .catch(() => false);
+  return _roomIconSpritePromise;
+}
+
+function hydrateRoomIconSlot(slot) {
+  if (!slot || slot.getAttribute('data-room-icon-ready') === 'true') return;
+  const symbol = String(slot.getAttribute('data-room-icon') || '');
+  if (!/^lp-(?:icon|mark)-[a-z0-9-]+$/.test(symbol)) return;
+  const paint = () => {
+    if (slot.getAttribute('data-room-icon') !== symbol) return;
+    if (slot.getAttribute('data-room-icon-ready') === 'true') return;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'lp-icon room-svg-icon');
+    if (slot.classList.contains('room-icon-directional')) svg.classList.add('lp-icon--directional');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttribute('href', ROOM_ICON_SPRITE + '#' + symbol);
+    svg.appendChild(use);
+    const fallback = slot.querySelector('.room-icon-fallback');
+    slot.insertBefore(svg, fallback || slot.firstChild);
+    if (fallback) fallback.hidden = true;
+    slot.setAttribute('data-room-icon-ready', 'true');
+  };
+  if (_roomIconSpriteReady) paint();
+  else ensureRoomIconSprite().then((ready) => { if (ready) paint(); });
+}
+
+function hydrateRoomIcons(root) {
+  if (!root) return;
+  if (root.matches && root.matches('[data-room-icon]')) hydrateRoomIconSlot(root);
+  if (root.querySelectorAll) root.querySelectorAll('[data-room-icon]').forEach(hydrateRoomIconSlot);
+}
+
+function roomIcon(symbol, fallback, className) {
+  const slot = el('span', {
+    class: 'room-icon-slot' + (className ? ' ' + className : ''),
+    attrs: { 'data-room-icon': symbol, 'aria-hidden': 'true' },
+  });
+  slot.appendChild(el('span', { class: 'room-icon-fallback', text: fallback || '•', attrs: { 'aria-hidden': 'true' } }));
+  hydrateRoomIconSlot(slot);
+  return slot;
+}
+
+function setRoomIcon(target, symbol, fallback, className) {
+  if (!target) return;
+  target.removeAttribute('data-room-icon');
+  target.removeAttribute('data-room-icon-ready');
+  target.replaceChildren(roomIcon(symbol, fallback, className));
+}
+
+function appendRoomIconText(target, symbol, fallback, text, className) {
+  if (!target) return;
+  target.replaceChildren(roomIcon(symbol, fallback, className), el('span', { text: text }));
+}
+
+function roomCorpusIconSpec(corpus) {
+  const id = String(corpus && corpus.id || '');
+  if (id === 'benyehuda') return { symbol: 'lp-mark-room', fallback: corpus.icon || '◇' };
+  if (id === 'mytexts') return { symbol: 'lp-mark-studio', fallback: corpus.icon || '📖' };
+  if (id.startsWith('group:')) return { symbol: 'lp-icon-audio', fallback: corpus.icon || '♪' };
+  return { symbol: 'lp-mark-room', fallback: corpus && corpus.icon || '◇' };
+}
+
+function markRoomTextLanguage(node, value) {
+  if (!node) return node;
+  if (HEBREW_RE.test(String(value || ''))) {
+    node.setAttribute('lang', 'he');
+    node.setAttribute('dir', 'rtl');
+  }
+  return node;
+}
+
+function roomNumber(value) {
+  const locale = (() => { try { return (window.appGetLocale && window.appGetLocale()) || 'ru'; } catch (_) { return 'ru'; } })();
+  try { return new Intl.NumberFormat(locale).format(Number(value) || 0); } catch (_) { return String(Number(value) || 0); }
+}
+
 // B4 Learning Compass: localized copy enters the pure adapters as data. The adapters
 // never reach into i18n, LocalDb or the DOM, so they remain a projection rather than a
 // second readiness/progress authority.
@@ -1196,10 +1291,7 @@ function showState(i18nKey, icon) {
   const main = $('roomContent');
   if (!main) return;
   main.innerHTML = '';
-  const box = el('div', { class: 'room-state' });
-  if (icon) box.appendChild(el('span', { class: 'room-state-icon', text: icon }));
-  box.appendChild(el('span', { i18n: i18nKey, text: tt(i18nKey) }));
-  main.appendChild(box);
+  main.appendChild(stateBoxNode(i18nKey, icon));
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
@@ -1218,8 +1310,7 @@ function renderWorkCard(textKey) {
   // href. The browser's reader (index.html) resolves the deep-link.
   const card = el('a', { class: 'work-card', attrs: { href: deepLinkForText(hit.id) } });
   const title = hit.title || '';
-  const titleEl = el('span', { class: 'work-card-title', text: title });
-  if (HEBREW_RE.test(title)) titleEl.setAttribute('dir', 'rtl');
+  const titleEl = markRoomTextLanguage(el('bdi', { class: 'work-card-title', text: title }), title);
   card.appendChild(titleEl);
   // BRR-P0-005 — honest provenance on the discovery surface: author + the
   // review_status / audio_status labels straight off the corpus metadata. No
@@ -4535,7 +4626,7 @@ function applyTheme(mode) {
   else if (mode === 'dark') document.body.classList.add('theme-dark');
   const b = $('roomTheme');
   if (b) {
-    b.textContent = THEME_ICON[mode] || THEME_ICON.auto;
+    setRoomIcon(b, 'lp-icon-theme', THEME_ICON[mode] || THEME_ICON.auto);
     const lbl = tt('room.theme.label', 'Тема') + ': ' + tt('room.theme.' + mode, mode);
     b.setAttribute('title', lbl); b.setAttribute('aria-label', lbl);
   }
@@ -8520,8 +8611,7 @@ function renderMyTextCard(item, vertical) {
   const title = view.title;
   const openLink = el('a', { class: 'room-text-title-link mytext-open', attrs: { href: deepLinkForText(item.id), 'data-continuity-action': 'open' } });
   const titleCopy = el('span', { class: 'room-item-title-copy' });
-  const titleEl = el('span', { class: 'work-card-title', text: title });
-  if (HEBREW_RE.test(title)) titleEl.setAttribute('dir', 'rtl');
+  const titleEl = markRoomTextLanguage(el('bdi', { class: 'work-card-title', text: title }), title);
   titleCopy.appendChild(titleEl);
   if (view.secondaryIdentity) titleCopy.appendChild(el('span', { class: 'item-secondary-identity', text: view.secondaryIdentity }));
   openLink.appendChild(titleCopy);
@@ -8725,7 +8815,7 @@ function injectSavedSearches(body) {
       run.textContent = s.name; if (HEBREW_RE.test(s.name)) run.setAttribute('dir', 'rtl');
       run.addEventListener('click', () => restoreSavedSearch(s.f));
       const x = el('button', { class: 'corpus-saved-del', attrs: { type: 'button', 'aria-label': tt('room.corpus.saved.remove', 'Удалить') } });
-      x.textContent = '✕';
+      setRoomIcon(x, 'lp-icon-close', '✕');
       x.addEventListener('click', () => { removeSavedSearch(s.name); corpusRefreshL1Body(); });
       chip.appendChild(run); chip.appendChild(x); chips.appendChild(chip);
     }
@@ -8739,7 +8829,10 @@ function injectSavedSearches(body) {
 function updateListBtn(btn, card) {
   const on = isInAnyList(card.id);
   // `btn.__iconOnly` (dense work-row button) shows just the glyph; the snippet/picker buttons show the label.
-  btn.textContent = btn.__iconOnly ? (on ? '✓' : '➕') : ((on ? '✓ ' : '➕ ') + tt('room.corpus.lists.short', 'В список'));
+  const symbol = on ? 'lp-icon-success' : 'lp-icon-list-add';
+  const fallback = on ? '✓' : '➕';
+  if (btn.__iconOnly) setRoomIcon(btn, symbol, fallback);
+  else appendRoomIconText(btn, symbol, fallback, tt('room.corpus.lists.short', 'В список'));
   btn.setAttribute('aria-pressed', String(on));
 }
 function openListPicker(card, btn, ready) {
@@ -9180,10 +9273,29 @@ function corpusProvBadge(kind, val) {
   if (KNOWN[v]) opts.i18n = key;
   return el('span', opts);
 }
+const ROOM_STATE_PRESENTATION = Object.freeze({
+  'room.state.loading': { kind: 'info', symbol: 'lp-icon-loading', fallback: '⏳', spin: true },
+  'room.home.loading': { kind: 'info', symbol: 'lp-icon-loading', fallback: '⏳', spin: true },
+  'room.state.publishing': { kind: 'info', symbol: 'lp-icon-loading', fallback: '📥', spin: true },
+  'room.state.dbBusy': { kind: 'warning', symbol: 'lp-icon-warning', fallback: '📑' },
+  'room.state.error': { kind: 'error', symbol: 'lp-icon-error', fallback: '⚠️' },
+  'room.connection.offlinePartial': { kind: 'warning', symbol: 'lp-icon-offline', fallback: '↯' },
+  'room.corpus.search.empty': { kind: 'neutral', symbol: 'lp-icon-search', fallback: '🔍' },
+  'room.corpus.search.emptyReadable': { kind: 'info', symbol: 'lp-mark-room', fallback: '🌱' },
+  'room.reader.empty': { kind: 'neutral', symbol: 'lp-icon-info', fallback: '📄' },
+  'room.shelf.empty': { kind: 'neutral', symbol: 'lp-icon-info', fallback: '📚' },
+  'room.shelf.emptyTrack': { kind: 'neutral', symbol: 'lp-icon-info', fallback: '📚' },
+});
 function stateBoxNode(i18nKey, icon) {
-  const box = el('div', { class: 'room-state' });
-  if (icon) box.appendChild(el('span', { class: 'room-state-icon', text: icon }));
-  box.appendChild(el('span', { i18n: i18nKey, text: tt(i18nKey) }));
+  const spec = ROOM_STATE_PRESENTATION[i18nKey] || { kind: 'neutral', symbol: 'lp-icon-info', fallback: icon || 'ⓘ' };
+  const box = el('div', {
+    class: 'room-state lp-state',
+    attrs: { 'data-kind': spec.kind, role: spec.kind === 'error' ? 'alert' : 'status', 'aria-live': spec.kind === 'error' ? 'assertive' : 'polite' },
+  });
+  box.appendChild(roomIcon(spec.symbol, icon || spec.fallback, 'room-state-icon lp-state__icon' + (spec.spin ? ' lp-icon--spin' : '')));
+  const body = el('div', { class: 'lp-state__body' });
+  body.appendChild(el('span', { class: 'lp-state__title', i18n: i18nKey, text: tt(i18nKey) }));
+  box.appendChild(body);
   return box;
 }
 
@@ -9555,8 +9667,10 @@ function corpusShellHeader(corpus, options) {
   const head = el('header', { class: 'corpus-shell-head' });
   const identity = el('div', { class: 'corpus-shell-identity' });
   const title = el('h2', { class: 'corpus-shell-title' });
-  title.appendChild(el('span', { class: 'corpus-shell-icon', text: corpus.icon || '◇', attrs: { 'aria-hidden': 'true' } }));
-  title.appendChild(el('span', { text: corpusTitleOf(corpus) }));
+  const iconSpec = roomCorpusIconSpec(corpus);
+  title.appendChild(roomIcon(iconSpec.symbol, iconSpec.fallback, 'corpus-shell-icon'));
+  const corpusTitle = corpusTitleOf(corpus);
+  title.appendChild(markRoomTextLanguage(el('bdi', { text: corpusTitle }), corpusTitle));
   identity.appendChild(title);
   if (opts.countText) identity.appendChild(el('span', { class: 'corpus-shell-count', text: opts.countText }));
   head.appendChild(identity);
@@ -9637,8 +9751,8 @@ function corpusFilterChrome(id, searchField, filterPanel, sortField, stateReader
 // half of the hybrid). ← and «Библиотека» both go to the hub (the B half).
 function corpusSwitcherBar(currentId) {
   const bar = el('div', { class: 'corpus-crumb corpus-switchbar' });
-  const back = el('button', { class: 'corpus-back', attrs: { type: 'button', 'aria-label': tt('room.corpus.back', 'Назад') } });
-  back.textContent = '←';
+  const back = el('button', { class: 'corpus-back room-vf1-focus', attrs: { type: 'button', 'aria-label': tt('room.corpus.back', 'Назад') } });
+  setRoomIcon(back, 'lp-icon-chevron-left', '←', 'room-icon-directional');
   back.addEventListener('click', () => corpusNavToCorpus('hub'));
   bar.appendChild(back);
   const trail = el('nav', { class: 'corpus-crumb-trail' });
@@ -9646,16 +9760,22 @@ function corpusSwitcherBar(currentId) {
   lib.textContent = tt('room.hub.crumb', 'Библиотека');
   lib.addEventListener('click', () => corpusNavToCorpus('hub'));
   trail.appendChild(lib);
-  trail.appendChild(el('span', { class: 'corpus-crumb-sep', text: '▸' }));
+  trail.appendChild(roomIcon('lp-icon-chevron-right', '▸', 'corpus-crumb-sep room-icon-directional'));
   const cur = authorizedCorpusById(currentId);
   const wrap = el('span', { class: 'corpus-switch' });
-  const pill = el('button', { class: 'corpus-switch-pill', attrs: { type: 'button', 'aria-haspopup': 'menu', 'aria-expanded': 'false' } });
-  pill.textContent = (cur ? cur.icon + ' ' + corpusTitleOf(cur) : currentId) + ' ▾';
+  const pill = el('button', { class: 'corpus-switch-pill room-vf1-focus', attrs: { type: 'button', 'aria-haspopup': 'menu', 'aria-expanded': 'false' } });
+  const currentIcon = roomCorpusIconSpec(cur || { id: currentId, icon: '◇' });
+  pill.appendChild(roomIcon(currentIcon.symbol, currentIcon.fallback));
+  pill.appendChild(markRoomTextLanguage(el('bdi', { class: 'corpus-switch-label', text: cur ? corpusTitleOf(cur) : currentId }), cur ? corpusTitleOf(cur) : currentId));
+  pill.appendChild(roomIcon('lp-icon-chevron-down', '▾', 'corpus-switch-chevron'));
   const menu = el('div', { class: 'corpus-switch-menu', attrs: { role: 'menu' } });
   menu.hidden = true;
   for (const c of authorizedCorpusOptions()) {
-    const item = el('button', { class: 'corpus-switch-item' + (c.id === currentId ? ' on' : ''), attrs: { type: 'button', role: 'menuitem' } });
-    item.textContent = c.icon + ' ' + corpusTitleOf(c) + (c.id === currentId ? ' ✓' : '');
+    const item = el('button', { class: 'corpus-switch-item room-vf1-focus' + (c.id === currentId ? ' on' : ''), attrs: { type: 'button', role: 'menuitem' } });
+    const itemIcon = roomCorpusIconSpec(c);
+    item.appendChild(roomIcon(itemIcon.symbol, itemIcon.fallback));
+    item.appendChild(markRoomTextLanguage(el('bdi', { class: 'corpus-switch-label', text: corpusTitleOf(c) }), corpusTitleOf(c)));
+    if (c.id === currentId) item.appendChild(roomIcon('lp-icon-success', '✓', 'corpus-switch-current'));
     item.addEventListener('click', () => { if (c.id !== currentId) corpusNavToCorpus(c.id); });
     menu.appendChild(item);
   }
@@ -9730,8 +9850,7 @@ function learningHomeFeature(continueRow, nextPicks) {
     feature.setAttribute('data-feature-kind', 'continue');
     feature.appendChild(el('div', { class: 'learning-home-kicker', text: tt('room.home.continueKicker', 'Продолжить') }));
     const title = String(continueRow.title || tt('room.home.untitled', 'Текст без названия'));
-    const heading = el('h2', { class: 'learning-home-feature-title', text: title });
-    if (HEBREW_RE.test(title)) heading.setAttribute('dir', 'rtl');
+    const heading = markRoomTextLanguage(el('h2', { class: 'learning-home-feature-title', text: title }), title);
     feature.appendChild(heading);
     const total = Math.max(0, Number(continueRow.n_rows) || 0);
     const row = Math.max(0, Number(continueRow.last_row_idx) || 0);
@@ -9761,12 +9880,11 @@ function learningHomeFeature(continueRow, nextPicks) {
         : tt('room.home.fitKicker', 'Подходит сейчас');
     feature.appendChild(el('div', { class: 'learning-home-kicker', text: kicker }));
     const title = String(pick.title || pick.card.title || tt('room.home.untitled', 'Текст без названия'));
-    const heading = el('h2', { class: 'learning-home-feature-title', text: title });
-    if (HEBREW_RE.test(title)) heading.setAttribute('dir', 'rtl');
+    const heading = markRoomTextLanguage(el('h2', { class: 'learning-home-feature-title', text: title }), title);
     feature.appendChild(heading);
     if (pick.author || pick.card.author) {
       const author = String(pick.author || pick.card.author);
-      feature.appendChild(el('p', { class: 'learning-home-feature-author', text: author, dir: HEBREW_RE.test(author) ? 'rtl' : 'ltr' }));
+      feature.appendChild(markRoomTextLanguage(el('p', { class: 'learning-home-feature-author', text: author }), author));
     }
     const reason = Number.isFinite(Number(pick.familiar)) && Number(pick.denominator) > 0
       ? String(pick.familiar) + '/' + String(pick.denominator) + ' ' + tt('room.home.recordedFamiliarWords', 'зафиксировано знакомыми')
@@ -9800,8 +9918,8 @@ function learningHomeToday(readyCards) {
   const actions = el('div', { class: 'learning-home-actions' });
   const dueNow = (_dueCounts && _dueCounts.dueNow) || 0;
   if (dueNow > 0) {
-    const due = el('button', { class: 'learning-home-action', attrs: { type: 'button', 'data-learning-due': '', 'data-focus-key': 'room-due-review' } });
-    due.appendChild(el('span', { class: 'learning-home-action-icon', text: '↻', attrs: { 'aria-hidden': 'true' } }));
+    const due = el('button', { class: 'learning-home-action room-vf1-focus', attrs: { type: 'button', 'data-learning-due': '', 'data-focus-key': 'room-due-review' } });
+    due.appendChild(roomIcon('lp-icon-train', '↻', 'learning-home-action-icon'));
     const copy = el('span', { class: 'learning-home-action-copy' });
     copy.appendChild(el('span', { class: 'learning-home-action-title', text: tt('room.home.reviewAction', 'Повторить слова') }));
     const meta = el('span', { class: 'learning-home-action-meta' });
@@ -9826,7 +9944,7 @@ function learningHomeToday(readyCards) {
   if (groupCorpora.length) {
     const group = groupCorpora[0];
     const assigned = el('button', { class: 'learning-home-action', attrs: { type: 'button' } });
-    assigned.appendChild(el('span', { class: 'learning-home-action-icon', text: '♪', attrs: { 'aria-hidden': 'true' } }));
+    assigned.appendChild(roomIcon('lp-icon-audio', '♪', 'learning-home-action-icon'));
     const copy = el('span', { class: 'learning-home-action-copy' });
     copy.appendChild(el('span', { class: 'learning-home-action-title', text: String(group.title || tt('room.home.groupAction', 'Учебный корпус')) }));
     if (group.works_count != null && Number.isFinite(Number(group.works_count))) {
@@ -9841,17 +9959,18 @@ function learningHomeToday(readyCards) {
 }
 
 function learningHomeCorpusEntry(corpus, countText) {
-  const entry = el('button', { class: 'learning-corpus-entry', attrs: { type: 'button', 'data-corpus': corpus.id } });
+  const entry = el('button', { class: 'learning-corpus-entry room-vf1-focus room-vf1-lift', attrs: { type: 'button', 'data-corpus': corpus.id } });
   entry.appendChild(el('span', { class: 'learning-corpus-edge', attrs: { 'aria-hidden': 'true' } }));
-  entry.appendChild(el('span', { class: 'learning-corpus-icon', text: corpus.icon, attrs: { 'aria-hidden': 'true' } }));
+  const iconSpec = roomCorpusIconSpec(corpus);
+  entry.appendChild(roomIcon(iconSpec.symbol, iconSpec.fallback, 'learning-corpus-icon'));
   const copy = el('span', { class: 'learning-corpus-copy' });
   const title = corpus.title && corpus.title.key ? corpusTitleOf(corpus) : String(corpus.title && corpus.title.fb || '');
   const desc = corpus.desc && corpus.desc.key ? tt(corpus.desc.key, corpus.desc.fb) : String(corpus.desc && corpus.desc.fb || '');
-  copy.appendChild(el('span', { class: 'learning-corpus-title', text: title }));
+  copy.appendChild(markRoomTextLanguage(el('bdi', { class: 'learning-corpus-title', text: title }), title));
   copy.appendChild(el('span', { class: 'learning-corpus-desc', text: desc }));
   entry.appendChild(copy);
   if (countText) entry.appendChild(el('span', { class: 'learning-corpus-count', text: countText }));
-  entry.appendChild(el('span', { class: 'learning-corpus-arrow', text: '›', attrs: { 'aria-hidden': 'true' } }));
+  entry.appendChild(roomIcon('lp-icon-chevron-right', '›', 'learning-corpus-arrow room-icon-directional'));
   entry.addEventListener('click', () => corpusNavToCorpus(corpus.id));
   return entry;
 }
@@ -9896,8 +10015,7 @@ function renderReadingJourneyItem(row) {
   });
   const copy = el('span', { class: 'learning-journey-item-copy' });
   const title = String(row && row.title || tt('room.home.untitled', 'Текст без названия'));
-  const titleEl = el('span', { class: 'learning-journey-item-title', text: title });
-  if (HEBREW_RE.test(title)) titleEl.setAttribute('dir', 'rtl');
+  const titleEl = markRoomTextLanguage(el('bdi', { class: 'learning-journey-item-title', text: title }), title);
   copy.appendChild(titleEl);
   const detail = kind === 'bookmark'
     ? tt('room.home.journeyBookmarkKind', 'Закладка в тексте')
@@ -9906,12 +10024,11 @@ function renderReadingJourneyItem(row) {
       : tt('room.home.journeyNotesKind', 'Есть заметки') + (Number(row && row.note_count) > 0 ? ' · ' + Number(row.note_count) : '');
   copy.appendChild(el('span', { class: 'learning-journey-item-meta', text: journeySourceLabel(row) + ' · ' + detail }));
   if (kind === 'bookmark' && row && row.snippet) {
-    const snippet = el('span', { class: 'learning-journey-item-snippet', text: String(row.snippet) });
-    if (HEBREW_RE.test(row.snippet)) snippet.setAttribute('dir', 'rtl');
+    const snippet = markRoomTextLanguage(el('bdi', { class: 'learning-journey-item-snippet', text: String(row.snippet) }), row.snippet);
     copy.appendChild(snippet);
   }
   button.appendChild(copy);
-  button.appendChild(el('span', { class: 'learning-journey-item-arrow', text: learningHomeForwardArrow(), attrs: { 'aria-hidden': 'true' } }));
+  button.appendChild(roomIcon('lp-icon-chevron-right', '›', 'learning-journey-item-arrow room-icon-directional'));
   button.addEventListener('click', () => {
     if (!ref.localTextId) return;
     const opts = kind === 'bookmark'
@@ -9946,9 +10063,9 @@ function learningHomeJourney(summary) {
   panel.addEventListener('keydown', (event) => { if (event.key === 'Escape') { event.preventDefault(); closePanel(true); } });
   const values = summary || { bookmarks: 0, finished: 0, notes: 0 };
   const specs = [
-    ['bookmark', '🔖', 'room.home.journeyBookmarks', 'Закладки', Number(values.bookmarks) || 0],
-    ['finished', '✓', 'room.home.journeyFinished', 'Закончено', Number(values.finished) || 0],
-    ['note', '✍', 'room.home.journeyNotes', 'С заметками', Number(values.notes) || 0],
+    ['bookmark', 'lp-icon-bookmark', '🔖', 'room.home.journeyBookmarks', 'Закладки', Number(values.bookmarks) || 0],
+    ['finished', 'lp-icon-success', '✓', 'room.home.journeyFinished', 'Закончено', Number(values.finished) || 0],
+    ['note', 'lp-icon-note', '✍', 'room.home.journeyNotes', 'С заметками', Number(values.notes) || 0],
   ];
   const sourceSpecs = [
     ['', 'room.home.journeySourceAll', 'Все источники'],
@@ -10013,12 +10130,12 @@ function learningHomeJourney(summary) {
     if (focusAfter === 'filter') panel.querySelector(`.learning-journey-filter[data-journey-source="${activeSource || 'all'}"]`)?.focus();
     else if (focusAfter === 'item') panel.querySelector('.learning-journey-item, .learning-home-journey-empty')?.focus();
   };
-  for (const [kind, icon, key, fallback, count] of specs) {
+  for (const [kind, symbol, iconFallback, key, fallback, count] of specs) {
     const button = el('button', {
       class: 'learning-home-journey-view',
       attrs: { type: 'button', 'data-journey-kind': kind, 'aria-controls': panelId, 'aria-expanded': 'false', 'aria-pressed': 'false' },
     });
-    button.appendChild(el('span', { class: 'learning-home-journey-icon', text: icon, attrs: { 'aria-hidden': 'true' } }));
+    button.appendChild(roomIcon(symbol, iconFallback, 'learning-home-journey-icon'));
     button.appendChild(el('span', { class: 'learning-home-journey-label', text: tt(key, fallback) }));
     button.appendChild(el('span', { class: 'learning-home-journey-count', text: String(count) }));
     button.addEventListener('click', async () => {
@@ -10044,7 +10161,8 @@ async function renderCorpusHub(token) {
   const main = $('roomContent');
   if (!main || token !== corpusRenderToken) return;
   main.innerHTML = '';
-  const loading = el('div', { class: 'learning-home-loading', attrs: { role: 'status' }, text: tt('room.home.loading', 'Собираем следующий шаг…') });
+  const loading = stateBoxNode('room.home.loading', '⏳');
+  loading.classList.add('learning-home-loading');
   main.appendChild(loading);
   const [continueRow, nextPicks, ownCount, journeySummary] = await Promise.all([
     getLearningHomeContinue(),
@@ -10104,7 +10222,7 @@ async function renderCorpusHub(token) {
     let count = '';
     if (corpus.id === 'benyehuda') {
       const total = Number(corpusRoot && corpusRoot.counts && corpusRoot.counts.works) || 0;
-      count = ready.length + ' ' + tt('room.hub.ready', 'готово') + (total ? ' · ' + total.toLocaleString() + ' ' + tt('room.hub.total', 'всего') : '');
+      count = roomNumber(ready.length) + ' ' + tt('room.hub.ready', 'готово') + (total ? ' · ' + roomNumber(total) + ' ' + tt('room.hub.total', 'всего') : '');
     } else if (corpus.id === 'mytexts' && ownCount != null) count = ownCount + ' ' + tt('room.hub.textsN', 'текст(ов)');
     list.appendChild(learningHomeCorpusEntry(corpus, count));
   }
@@ -10153,7 +10271,7 @@ async function renderMyTextsCorpus(token) {
   const wrap = el('div', { class: 'corpus-nav mytexts-corpus' });
   wrap.appendChild(corpusSwitcherBar('mytexts'));
   wrap.appendChild(corpusShellHeader(corpus, {
-    countText: Number(facetsData.total || 0).toLocaleString() + ' ' + tt('room.hub.textsN', 'текст(ов)'),
+    countText: roomNumber(facetsData.total) + ' ' + tt('room.hub.textsN', 'текст(ов)'),
     authority: '◉ ' + tt('room.shell.onDevice', 'На этом устройстве'),
     capabilityText: tt('room.shell.myTextsCapabilities', 'Морфология и чтение офлайн · ваши переводы и медиа · никуд по отдельному согласию'),
   }));
@@ -10391,7 +10509,7 @@ async function renderMyTextsCorpus(token) {
     if (!page.items.length) grid.appendChild(el('div', { class: 'mytexts-empty', text: tt('room.mytexts.empty', 'Ничего не найдено') }));
     const first = page.items.length ? currentStart + 1 : 0;
     const last = currentStart + page.items.length;
-    resultLine.textContent = tt('room.groupCorpus.found', 'Найдено') + ': ' + first + '–' + last + ' / ' + Number(page.matchedTotal || 0).toLocaleString();
+    resultLine.textContent = tt('room.groupCorpus.found', 'Найдено') + ': ' + roomNumber(first) + '–' + roomNumber(last) + ' / ' + roomNumber(page.matchedTotal);
     pager.textContent = '';
     const previous = el('button', { class: 'corpus-more-btn mytexts-page-prev', attrs: { type: 'button' }, text: '← ' + tt('room.mytexts.previousPage', 'Предыдущие') });
     previous.disabled = currentStart <= 0 || !page.items.length;
@@ -10492,7 +10610,7 @@ async function renderCorpusHome(token) {
   const corpus = corpusById('benyehuda');
   const total = Number(corpusRoot && corpusRoot.counts && corpusRoot.counts.works) || 0;
   wrap.appendChild(corpusShellHeader(corpus, {
-    countText: total ? total.toLocaleString() + ' ' + tt('room.corpus.worksN', 'работ') : '',
+    countText: total ? roomNumber(total) + ' ' + tt('room.corpus.worksN', 'работ') : '',
     authority: '◇ ' + tt('room.shell.publicCatalog', 'Публичный каталог'),
   }));
   const nextHost = el('div', { class: 'corpus-next-host' }); wrap.appendChild(nextHost);
@@ -11214,7 +11332,7 @@ function buildCorpusFilterBar() {
   corpusSearchInputEl = input;   // S12 — recents/suggestion chips set the query through this ref
   // BRR-S4 — inline ✕ clear (tabindex -1: it's a mouse/touch affordance; Escape clears via keyboard).
   const clearX = el('button', { class: 'corpus-search-clear', attrs: { type: 'button', tabindex: '-1', 'aria-label': tt('room.corpus.search.clearInput', 'Очистить') } });
-  clearX.textContent = '✕';
+  setRoomIcon(clearX, 'lp-icon-close', '✕');
   clearX.hidden = !input.value;
   let deb;
   const applyQuery = () => { corpusFilter.q = input.value; pushRecentSearch(input.value); corpusRefreshL1Body(); };   // S12 — record the search
@@ -11232,6 +11350,7 @@ function buildCorpusFilterBar() {
     else if (e.key === 'Escape' && input.value) { e.preventDefault(); doClear(); }       // BRR-S4 — Escape clears + keeps focus
   });
   clearX.addEventListener('click', (e) => { e.preventDefault(); doClear(); });
+  inputWrap.appendChild(roomIcon('lp-icon-search', '⌕', 'corpus-search-icon'));
   inputWrap.appendChild(input); inputWrap.appendChild(clearX);
   searchField.appendChild(inputWrap);
   // B3 keeps search permanently visible; facets move behind one mobile disclosure.
@@ -11253,7 +11372,7 @@ function buildCorpusFilterBar() {
     const sc = el('button', { class: 'corpus-facet-chip on corpus-scope-chip', attrs: { type: 'button', title: tt('room.corpus.scope.clear', 'Искать по всему корпусу') } });
     // FB-18 — the ✕ is a SEPARATE LTR span, the label dir-isolated: packing «✕ »+Hebrew into one RTL text
     // node placed the remove glyph ambiguously on scoped Hebrew-author searches (bidi). Now each is isolated.
-    sc.appendChild(el('span', { class: 'scope-x', text: '✕', attrs: { 'aria-hidden': 'true' } }));
+    sc.appendChild(roomIcon('lp-icon-close', '✕', 'scope-x'));
     const scLbl = el('span', { class: 'scope-label', text: label });
     if (HEBREW_RE.test(label)) scLbl.setAttribute('dir', 'rtl');
     sc.appendChild(scLbl);
@@ -11261,13 +11380,13 @@ function buildCorpusFilterBar() {
     chips.appendChild(sc);
   }
   const ready = el('button', { class: 'corpus-facet-chip' + (corpusFilter.readyOnly ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.readyOnly), title: tt('room.corpus.facets.readyHint', 'С переводом — можно открыть и читать') } });
-  ready.textContent = '✓ ' + tt('room.corpus.facets.ready', 'Готовые');
+  appendRoomIconText(ready, 'lp-icon-success', '✓', tt('room.corpus.facets.ready', 'Готовые'));
   ready.addEventListener('click', () => { corpusFilter.readyOnly = !corpusFilter.readyOnly; ready.classList.toggle('on', corpusFilter.readyOnly); ready.setAttribute('aria-pressed', String(corpusFilter.readyOnly)); corpusRefreshL1Body(); });
   chips.appendChild(ready);
   // B7 — valid exact-count filter. One projection snapshot prevents per-card DB fan-out;
   // compact copy preserves the one-line 380px filter row without claiming comprehension.
   const readable = el('button', { class: 'corpus-facet-chip' + (corpusFilter.readableOnly ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.readableOnly), 'aria-label': tt('room.corpus.facets.readable', 'С валидным профилем слов'), title: tt('room.corpus.facets.readableHint', 'Тексты с валидным точным подсчётом; это не оценка понимания') } });
-  readable.textContent = '📖 ' + tt('room.corpus.facets.readableShort', 'По профилю слов');
+  appendRoomIconText(readable, 'lp-mark-room', '📖', tt('room.corpus.facets.readableShort', 'По профилю слов'));
   readable.addEventListener('click', async () => {
     corpusFilter.readableOnly = !corpusFilter.readableOnly;
     readable.classList.toggle('on', corpusFilter.readableOnly);
@@ -11288,13 +11407,13 @@ function buildCorpusFilterBar() {
   // with a numeric badge «⚙ 2» so sighted users see how many advanced filters hide here.
   const gearLabel = tt('room.corpus.facets.more', 'Ещё фильтры');
   const gear = el('button', { class: 'corpus-facet-chip corpus-facets-gear' + (advActive ? ' on' : ''), attrs: { type: 'button', 'aria-expanded': String(advExpanded), 'aria-controls': 'corpusFacetsAdv', title: gearLabel, 'aria-label': gearLabel + (advCount ? (', ' + tt('room.corpus.facets.activeCount', 'активно') + ': ' + advCount) : '') } });
-  gear.textContent = '⚙' + (advCount ? ' ' + advCount : '');
+  appendRoomIconText(gear, 'lp-icon-settings', '⚙', advCount ? String(advCount) : '');
   // The bar is NOT rebuilt when an advanced filter toggles (corpusRefreshL1Body re-renders only the body),
   // so the gear must sync from the LIVE corpusFilter — else its count/.on stay stale and FB-8 reads a stale
   // advActive and could collapse the row over a just-enabled filter (adversarial-caught). Returns isActive.
   const syncGear = () => {
     const n = (corpusFilter.exactForm ? 1 : 0) + (corpusFilter.hasAudio ? 1 : 0) + (corpusFilter.reviewed ? 1 : 0) + (corpusFilter.genre ? 1 : 0) + (corpusFilter.lang ? 1 : 0);
-    gear.textContent = '⚙' + (n ? ' ' + n : '');
+    appendRoomIconText(gear, 'lp-icon-settings', '⚙', n ? String(n) : '');
     gear.classList.toggle('on', n > 0);
     gear.setAttribute('aria-label', gearLabel + (n ? (', ' + tt('room.corpus.facets.activeCount', 'активно') + ': ' + n) : ''));
     return n > 0;
@@ -11321,14 +11440,14 @@ function buildCorpusFilterBar() {
   // BRR-S16 — provenance filters (data-feasible from ready cards; imply readable works). A simple toggle
   // chip each: 🔊 has-audio, ✍ human-reviewed. (Length is covered by the L3 length-sort; niqqud-ratio
   // would need a new corpus-search field — deferred, see the impl doc.)
-  const mkProvChip = (key, emoji, i18nKey, fb) => {
+  const mkProvChip = (key, symbol, emoji, i18nKey, fb) => {
     const c = el('button', { class: 'corpus-facet-chip' + (corpusFilter[key] ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter[key]) } });
-    c.textContent = emoji + ' ' + tt(i18nKey, fb);
+    appendRoomIconText(c, symbol, emoji, tt(i18nKey, fb));
     c.addEventListener('click', () => { corpusFilter[key] = !corpusFilter[key]; c.classList.toggle('on', corpusFilter[key]); c.setAttribute('aria-pressed', String(corpusFilter[key])); corpusRefreshL1Body(); syncGear(); });
     return c;
   };
-  advWrap.appendChild(mkProvChip('hasAudio', '🔊', 'room.corpus.facets.hasAudio', 'С аудио'));
-  advWrap.appendChild(mkProvChip('reviewed', '✍', 'room.corpus.facets.reviewed', 'Проверено'));
+  advWrap.appendChild(mkProvChip('hasAudio', 'lp-icon-audio', '🔊', 'room.corpus.facets.hasAudio', 'С аудио'));
+  advWrap.appendChild(mkProvChip('reviewed', 'lp-icon-note', '✍', 'room.corpus.facets.reviewed', 'Проверено'));
   advWrap.appendChild(buildFacetSelect('genre', 'room.corpus.facets.genre', ((corpusRoot && corpusRoot.counts) || {}).by_genre || {}, corpusGenreLabel, syncGear));
   advWrap.appendChild(buildFacetSelect('lang', 'room.corpus.facets.lang', ((corpusRoot && corpusRoot.counts) || {}).by_lang || {}, corpusLangLabel, syncGear));
   advWrap.hidden = !advExpanded;
@@ -11690,10 +11809,10 @@ function renderCorpusWorkRow(card, openable, opts) {
   const ftsQ = (opts && opts.openOpts && opts.openOpts.ftsQuery) || '';
   const qToks = ftsQ ? ftsQueryTokens(ftsQ) : null;
   const _tp = corpusTitleParts(card.title || '—');   // PC-4 — clean the «[נוסח …]» off the search/author-row headline too
-  const title = el('span', { class: 'corpus-work-title' });
+  const title = el('bdi', { class: 'corpus-work-title' });
   if (qToks && qToks.length) appendMarkedHebrew(title, _tp.title, qToks); else title.textContent = _tp.title;
   if (card.title) title.title = card.title;
-  if (HEBREW_RE.test(_tp.title)) title.setAttribute('dir', 'rtl');
+  markRoomTextLanguage(title, _tp.title);
   let openLink = null;
   if (openable) {
     openLink = el('a', { class: 'room-text-title-link corpus-work-open', attrs: { href: deepLinkForCorpusWork(card.id), 'data-continuity-action': 'open' } });
@@ -11736,13 +11855,15 @@ function renderCorpusWorkRow(card, openable, opts) {
   // the reading list honestly stores them as r:false (← openable) and auto-upgrades them once they ship.
   // Icon-only to stay compact at 380px; stopPropagation so it never opens the work.
   if (opts && opts.showListBtn && card.id != null) {
-    const listBtn = el('button', { class: 'corpus-work-listbtn', attrs: { type: 'button', title: tt('room.corpus.lists.add', 'В список чтения'), 'aria-label': tt('room.corpus.lists.add', 'В список чтения') } });
+    const listBtn = el('button', { class: 'corpus-work-listbtn room-vf1-focus', attrs: { type: 'button', title: tt('room.corpus.lists.add', 'В список чтения'), 'aria-label': tt('room.corpus.lists.add', 'В список чтения') } });
     listBtn.__iconOnly = true;
     updateListBtn(listBtn, card);
     listBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); openListPicker(card, listBtn, openable); });
     row.appendChild(listBtn);
   }
-  const cta = el('span', { class: 'corpus-work-cta', text: openable ? '›' : '⏳', attrs: { 'aria-hidden': 'true' } });
+  const cta = openable
+    ? roomIcon('lp-icon-chevron-right', '›', 'corpus-work-cta room-icon-directional')
+    : el('span', { class: 'corpus-work-cta', text: '⏳', attrs: { 'aria-hidden': 'true' } });
   row.appendChild(cta);
   if (openable) {
     const open = () => openCorpusWork(card, (opts && opts.openOpts) || (row.getAttribute('data-state') === 'reading' ? { resume: true } : undefined));   // BRR-P2-005 — FTS: open at matched row
@@ -11759,6 +11880,7 @@ function renderCorpusWorkRow(card, openable, opts) {
 }
 
 function wireChrome() {
+  hydrateRoomIcons(document);
   const lang = $('roomLang');
   if (lang) {
     try { lang.value = (window.appGetLocale && window.appGetLocale()) || 'ru'; } catch (_) {}
@@ -11775,6 +11897,10 @@ function wireChrome() {
   const themeBtn = $('roomTheme');
   if (themeBtn) themeBtn.addEventListener('click', cycleTheme);
   applyTheme(getTheme());   // set icon/title (body class already applied no-flash pre-paint)
+  // i18n's DOMContentLoaded pass is registered before this module and restores
+  // the generic translated label. Re-apply once afterward so the native name
+  // retains the translated current mode (for example, "Theme: dark").
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => applyTheme(getTheme()), { once: true });
   // Footer «О Зале» modal: open from the link + version label; close on backdrop/✕/Esc.
   const aboutLink = $('roomAboutLink');
   if (aboutLink) aboutLink.addEventListener('click', (e) => { e.preventDefault(); openRoomAbout(); });

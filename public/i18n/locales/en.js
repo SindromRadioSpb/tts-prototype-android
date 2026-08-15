@@ -2136,13 +2136,13 @@ window.I18N_LOCALES.en = {
     back: "← Library",
     readingTitle: "Reading",
     header: {
-      title: "📖 Reading Room",
+      title: "Reading Room",
       subtitle: "A bilingual library — the canon with morphology on tap",
       lang: "Language",
       studio: "Studio",
     },
     footer: {
-      studio: "📝 Studio",
+      studio: "Studio",
       product: "About the product",
       source: "Texts: Project Ben-Yehuda (public domain)",
       about: "About",
@@ -2176,7 +2176,7 @@ window.I18N_LOCALES.en = {
     // CLG-P3.2 — «☁ Синхронизация» (cloud sync modal, owner-only dev mode)
     cloud: {
       btn: "Sync",
-      title: "☁ Sync",
+      title: "Sync",
       intro: "Word memory and manual marks sync across your devices. The owner signs in with the secret; a private-group member uses a one-time link.",
       secretPh: "Owner secret",
       login: "Log in",

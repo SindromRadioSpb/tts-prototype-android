@@ -1943,7 +1943,7 @@
       position: relative; z-index: 1; max-width: min(88%, 680px); margin: 0; color: var(--text-primary);
       font: 760 27px/1.16 Georgia, "Times New Roman", serif; letter-spacing: -.015em;
     }
-    .learning-home-feature-title[dir="rtl"] { font-family: "Noto Serif Hebrew", "Times New Roman", serif; }
+    .learning-home-feature-title[dir="rtl"] { font-family: var(--lp-font-hebrew-reading); }
     .learning-home-feature-author { position: relative; z-index: 1; margin: 5px 0 0; color: var(--text-primary); font-size: 13px; font-weight: 650; }
     .learning-home-feature-meta { position: relative; z-index: 1; margin: 7px 0 0; color: #5b4637; font-size: 13px; line-height: 1.4; }
     .learning-home-progress {
@@ -2398,6 +2398,102 @@
       .learning-compass, .learning-compass-panel { scroll-behavior: auto; }
     }
 
+    /* ── ROOM-UX-VF1: bounded visual finishing for shell/L0/corpora ───────
+       Surface composition remains here; VF0 owns only the shared primitives. */
+    body { font-family: var(--lp-font-ui); }
+    html[lang="he"] body { font-family: var(--lp-font-hebrew-ui); }
+    .room-brand-block { min-width: 0; }
+    .room-title {
+      display: flex; align-items: center; gap: var(--lp-space-2);
+      font-family: var(--lp-font-editorial); font-weight: 700;
+    }
+    html[lang="he"] .room-title { font-family: var(--lp-font-hebrew-reading); }
+    .room-header-mark { width: 26px; height: 26px; display: inline-grid; place-items: center; color: var(--accent); }
+    .room-header-mark .lp-icon { width: 24px; height: 24px; }
+    .room-icon-slot, [data-room-icon] { line-height: 1; }
+    .room-icon-slot { display: inline-flex; align-items: center; justify-content: center; }
+    .room-icon-fallback[hidden] { display: none; }
+    .room-theme-btn > .lp-icon, .room-theme-btn > .room-icon-slot,
+    .room-about-x > .lp-icon, .room-about-x > .room-icon-slot { width: 18px; height: 18px; }
+    .room-theme-btn, .room-lang {
+      min-width: var(--lp-target-compact); min-height: var(--lp-target-compact);
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .room-studio-link { display: inline-flex; }
+    .room-footer-studio, .room-modal-title { display: inline-flex; align-items: center; gap: var(--lp-space-2); }
+
+    .learning-home-title, .learning-home-feature-title, .reading-list-summary-title,
+    .corpus-shell-title, .corpus-next-title, .corpus-catalog-title {
+      font-family: var(--lp-font-editorial); font-weight: 700;
+    }
+    .learning-home-feature-title[lang="he"], .corpus-work-title[lang="he"],
+    .learning-journey-item-title[lang="he"], .learning-corpus-title[lang="he"],
+    .corpus-shell-title bdi[lang="he"], .corpus-next-title[lang="he"] {
+      font-family: var(--lp-font-hebrew-reading);
+    }
+    .learning-home-overline, .learning-home-kicker, .learning-home-section-title,
+    .learning-corpus-title, .corpus-shell-count, .corpus-next-kicker,
+    .corpus-next-cta, .corpus-filter-summary { font-weight: 700; }
+    .learning-home bdi, .corpus-nav bdi { unicode-bidi: isolate; }
+    .learning-home-journey-count, .learning-journey-page-label, .learning-corpus-count,
+    .corpus-shell-count, .corpus-results-count { font-variant-numeric: tabular-nums; }
+
+    .learning-home-action-icon .lp-icon, .learning-home-journey-icon .lp-icon,
+    .learning-corpus-icon .lp-icon, .corpus-shell-icon .lp-icon { width: 1.1em; height: 1.1em; }
+    .learning-corpus-arrow, .learning-journey-item-arrow, .corpus-work-cta,
+    .corpus-crumb-sep { display: inline-flex; align-items: center; justify-content: center; }
+    .corpus-switch-pill, .corpus-switch-item { display: flex; align-items: center; gap: 7px; }
+    .corpus-switch-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .corpus-switch-current { margin-inline-start: auto; color: var(--accent); }
+    html[dir="rtl"] .room-icon-directional .room-icon-fallback { display: inline-block; transform: scaleX(-1); }
+
+    .room-state.lp-state {
+      margin: var(--lp-space-8) auto; max-width: 640px; padding: var(--lp-space-4);
+      color: var(--lp-state-fg); font-size: 14px; line-height: var(--lp-leading-body); text-align: start;
+    }
+    .room-state .room-state-icon {
+      width: 22px; height: 22px; display: inline-flex; margin: 0; font-size: 20px; opacity: 1;
+    }
+    .room-state .lp-state__title { display: block; }
+    .learning-home-loading.lp-state { min-height: 96px; margin: var(--lp-space-4) auto; }
+
+    .corpus-search-icon {
+      position: absolute; z-index: 1; inset-inline-start: 12px; top: 50%; transform: translateY(-50%);
+      color: var(--text-faint); pointer-events: none;
+    }
+    .corpus-search-wrap .corpus-search-input { padding-inline-start: 40px; }
+    .corpus-facet-chip > .room-icon-slot, .corpus-work-listbtn > .room-icon-slot { margin-inline-end: 6px; }
+    .corpus-work-listbtn > .room-icon-slot:only-child { margin-inline-end: 0; }
+
+    .room-vf1-focus:focus-visible {
+      outline: 2px solid transparent; outline-offset: var(--lp-focus-offset);
+      box-shadow: 0 0 0 3px var(--lp-focus-ring);
+    }
+    .room-theme-btn, .room-tab, .learning-home-action, .learning-home-primary,
+    .learning-home-journey-view, .learning-corpus-entry, .corpus-switch-pill,
+    .corpus-switch-item, .corpus-facet-chip, .corpus-work-listbtn {
+      transition: color var(--lp-motion-hover) var(--lp-ease-standard),
+        background-color var(--lp-motion-hover) var(--lp-ease-standard),
+        border-color var(--lp-motion-hover) var(--lp-ease-standard),
+        box-shadow var(--lp-motion-continuity) var(--lp-ease-standard),
+        transform var(--lp-motion-continuity) var(--lp-ease-standard);
+    }
+
+    @media (max-width: 480px) {
+      .room-head-controls { flex-wrap: wrap; row-gap: var(--lp-space-2); }
+      .room-title { font-size: 20px; }
+      .learning-corpus-entry { grid-template-columns: 34px minmax(0,1fr) 18px; }
+      .learning-corpus-count { grid-column: 2; white-space: normal; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .room-vf1-lift:hover { transform: none; }
+    }
+    @media (forced-colors: active) {
+      .room-vf1-focus:focus-visible { outline: 2px solid Highlight; box-shadow: none; }
+      .room-svg-icon, .room-icon-slot { color: CanvasText; forced-color-adjust: auto; }
+      .learning-corpus-edge { background: CanvasText; }
+    }
+
     /* ── desktop layout layer (Epic 7, R4) ───────────────────────────────────
        Additive @media(min-width) ONLY — the @380px mobile cascade is untouched.
        Centers the Room into a column on wide screens (no stretched-mobile look) and
@@ -2429,21 +2525,24 @@
 
 <header class="room-header">
   <div class="room-header-row">
-    <div>
-      <h1 class="room-title" data-i18n="room.header.title">📖 Читальный зал</h1>
+    <div class="room-brand-block">
+      <h1 class="room-title">
+        <span class="room-header-mark" data-room-icon="lp-mark-room" aria-hidden="true"><span class="room-icon-fallback" aria-hidden="true">📖</span></span>
+        <span data-i18n="room.header.title">Читальный зал</span>
+      </h1>
       <p class="room-subtitle" data-i18n="room.header.subtitle">Двуязычная библиотека</p>
     </div>
     <div class="room-head-controls">
       <!-- Кросс-навигация: Зал ↔ Студия (нет тупиков и в PWA-режиме); компактная иконка —
            текстовая ссылка «📝 Студия» живёт в футере (заголовок @380px не должен ломаться) -->
-      <a id="roomStudioLink" class="room-theme-btn room-studio-link" href="/" aria-label="Студия" data-i18n-title="room.header.studio" title="Студия">📝</a>
+      <a id="roomStudioLink" class="room-theme-btn room-studio-link room-vf1-focus" href="/" aria-label="Студия" data-room-icon="lp-mark-studio" data-i18n-title="room.header.studio" data-i18n-aria-label="room.header.studio" title="Студия"><span class="room-icon-fallback" aria-hidden="true">📝</span></a>
       <!-- CLG-P9 — «Дом наставника»: полноэкранный вид ВНУТРИ Зала (hash #mentor, паттерн
            roomContent↔roomReader). Никакого автооткрытия (этикет R17 §2.3) — только тап. -->
-      <button id="roomMentor" class="room-theme-btn" type="button" aria-label="Наставник" data-i18n-title="room.mentor.btn" title="Наставник">🤖</button>
+      <button id="roomMentor" class="room-theme-btn room-vf1-focus" type="button" aria-label="Наставник" data-room-icon="lp-mark-mentor" data-i18n-title="room.mentor.btn" data-i18n-aria-label="room.mentor.btn" title="Наставник"><span class="room-icon-fallback" aria-hidden="true">🤖</span></button>
       <!-- CLG-P3.2 — «☁» cloud-sync entry (owner-only dev-режим; dormant Tier 1 without login) -->
-      <button id="roomCloud" class="room-theme-btn" type="button" aria-label="Синхронизация" data-i18n-title="room.cloud.btn" title="Синхронизация">☁</button>
-      <button id="roomTheme" class="room-theme-btn" type="button" aria-label="Тема" data-i18n-title="room.theme.label" title="Тема">🌗</button>
-      <select id="roomLang" class="room-lang" aria-label="Язык / Language / שפה">
+      <button id="roomCloud" class="room-theme-btn room-vf1-focus" type="button" aria-label="Синхронизация" data-room-icon="lp-icon-sync" data-i18n-title="room.cloud.btn" data-i18n-aria-label="room.cloud.btn" title="Синхронизация"><span class="room-icon-fallback" aria-hidden="true">☁</span></button>
+      <button id="roomTheme" class="room-theme-btn room-vf1-focus" type="button" data-room-icon="lp-icon-theme" aria-label="Тема" title="Тема"><span class="room-icon-fallback" aria-hidden="true">🌗</span></button>
+      <select id="roomLang" class="room-lang room-vf1-focus" aria-label="Язык / Language / שפה">
         <option value="ru">Рус</option>
         <option value="en">Eng</option>
         <option value="he">עב</option>
@@ -2451,9 +2550,9 @@
     </div>
   </div>
   <div class="room-tabs" id="roomTabs" role="tablist">
-    <button class="room-tab" id="tabAccessible" role="tab" aria-selected="true" data-track="accessible" data-i18n="room.tabs.accessible">Доступная</button>
-    <button class="room-tab" id="tabLiterary" role="tab" aria-selected="false" data-track="literary" data-i18n="room.tabs.literary">Литературная</button>
-    <button class="room-tab" id="tabCorpus" role="tab" aria-selected="false" data-track="corpus" data-i18n="room.tabs.corpus" hidden>Библиотека</button>
+    <button class="room-tab room-vf1-focus" id="tabAccessible" role="tab" aria-selected="true" data-track="accessible" data-i18n="room.tabs.accessible">Доступная</button>
+    <button class="room-tab room-vf1-focus" id="tabLiterary" role="tab" aria-selected="false" data-track="literary" data-i18n="room.tabs.literary">Литературная</button>
+    <button class="room-tab room-vf1-focus" id="tabCorpus" role="tab" aria-selected="false" data-track="corpus" data-i18n="room.tabs.corpus" hidden>Библиотека</button>
   </div>
   <div id="roomConnectionStatus" class="room-connection-status" hidden role="status" aria-live="polite" data-state="online">
     <span id="roomConnectionText"></span>
@@ -2468,7 +2567,10 @@
 </header>
 
 <main id="roomContent">
-  <div class="room-state" data-i18n="room.state.loading">Загрузка…</div>
+  <div class="room-state lp-state" data-kind="info" role="status" aria-live="polite">
+    <span class="room-state-icon lp-state__icon" data-room-icon="lp-icon-loading" aria-hidden="true"><span class="room-icon-fallback" aria-hidden="true">⏳</span></span>
+    <div class="lp-state__body"><span class="lp-state__title" data-i18n="room.state.loading">Загрузка…</span></div>
+  </div>
 </main>
 
 <!-- BRR-P0-002b: same-document embedded reader (warm-worker open). Hidden until a work-card opens it. -->
@@ -2532,14 +2634,14 @@
     <a class="room-footer-source" href="https://benyehuda.org" target="_blank" rel="noopener" data-i18n="room.footer.source">Тексты: Проект Бен-Иегуда (общественное достояние)</a>
   </div>
   <div class="room-footer-right">
-    <a id="roomFooterStudioLink" href="/" data-i18n="room.footer.studio">📝 Студия</a>
+    <a id="roomFooterStudioLink" class="room-footer-studio room-vf1-focus" href="/"><span data-room-icon="lp-mark-studio" aria-hidden="true"><span class="room-icon-fallback" aria-hidden="true">📝</span></span><span data-i18n="room.footer.studio">Студия</span></a>
     <a href="https://kolosei.com/products/linguistpro/" target="_blank" rel="noopener" data-i18n="room.footer.product">О продукте</a>
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android/issues/new" target="_blank" rel="noopener" data-i18n="footer.feedbackLink">💬 Сообщить о проблеме</a>
     <a href="/docs/PRIVACY.md" target="_blank" rel="noopener" data-i18n="footer.privacyLink">Приватность</a>
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.389</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.390</button>
   </div>
 </footer>
 
@@ -2547,7 +2649,7 @@
 <div id="roomAbout" class="room-about" hidden role="dialog" aria-modal="true" aria-labelledby="roomAboutTitle">
   <div class="room-about-backdrop" data-close="1"></div>
   <div class="room-about-card">
-    <button class="room-about-x" id="roomAboutClose" type="button" aria-label="Close" data-close="1">✕</button>
+    <button class="room-about-x room-vf1-focus" id="roomAboutClose" type="button" aria-label="Закрыть" data-i18n-aria-label="room.about.close" data-i18n-title="room.about.close" title="Закрыть" data-room-icon="lp-icon-close" data-close="1"><span class="room-icon-fallback" aria-hidden="true">✕</span></button>
     <h2 id="roomAboutTitle" data-i18n="room.about.title">О Читальном зале</h2>
     <p data-i18n="room.about.what">—</p>
     <p data-i18n="room.about.source">—</p>
@@ -2567,8 +2669,8 @@
 <div id="roomCloudModal" class="room-about" hidden role="dialog" aria-modal="true" aria-labelledby="roomCloudTitle">
   <div class="room-about-backdrop" data-cloud-close="1"></div>
   <div class="room-about-card">
-    <button class="room-about-x" type="button" aria-label="Close" data-cloud-close="1">✕</button>
-    <h2 id="roomCloudTitle" data-i18n="room.cloud.title">☁ Синхронизация</h2>
+    <button class="room-about-x room-vf1-focus" type="button" aria-label="Закрыть" data-i18n-aria-label="room.about.close" data-i18n-title="room.about.close" title="Закрыть" data-room-icon="lp-icon-close" data-cloud-close="1"><span class="room-icon-fallback" aria-hidden="true">✕</span></button>
+    <h2 id="roomCloudTitle" class="room-modal-title"><span data-room-icon="lp-icon-sync" aria-hidden="true"><span class="room-icon-fallback" aria-hidden="true">☁</span></span><span data-i18n="room.cloud.title">Синхронизация</span></h2>
     <p class="room-cloud-intro" data-i18n="room.cloud.intro">Память слов и ручные пометки синхронизируются между вашими устройствами. Владелец входит по секрету, участник закрытой группы — по одноразовой ссылке.</p>
     <div id="roomCloudStatus" class="room-cloud-status" aria-live="polite"></div>
     <details id="roomCloudAccountHelp" class="group-access-help">
@@ -2618,7 +2720,7 @@
 <div id="roomGroupAccessModal" class="room-about" hidden role="dialog" aria-modal="true" aria-labelledby="roomGroupAccessTitle">
   <div class="room-about-backdrop" data-group-access-close="1"></div>
   <div class="room-about-card group-access-card">
-    <button class="room-about-x" type="button" aria-label="Close" data-group-access-close="1">✕</button>
+    <button class="room-about-x room-vf1-focus" type="button" aria-label="Закрыть" data-i18n-aria-label="room.about.close" data-i18n-title="room.about.close" title="Закрыть" data-room-icon="lp-icon-close" data-group-access-close="1"><span class="room-icon-fallback" aria-hidden="true">✕</span></button>
     <h2 id="roomGroupAccessTitle" data-i18n="room.groupAccess.title">Доступ к учебной группе</h2>
     <div id="roomGroupAccessStatus" class="group-access-status" aria-live="polite"></div>
     <section id="roomGroupAccessOwner" class="group-access-owner" hidden>
@@ -2668,7 +2770,7 @@
 <div id="roomExplainModal" class="room-about" hidden role="dialog" aria-modal="true" aria-labelledby="roomExplainTitle">
   <div class="room-about-backdrop" data-explain-close="1"></div>
   <div class="room-about-card">
-    <button class="room-about-x" type="button" aria-label="Close" data-explain-close="1">✕</button>
+    <button class="room-about-x room-vf1-focus" type="button" aria-label="Закрыть" data-i18n-aria-label="room.about.close" data-i18n-title="room.about.close" title="Закрыть" data-room-icon="lp-icon-close" data-explain-close="1"><span class="room-icon-fallback" aria-hidden="true">✕</span></button>
     <h2 id="roomExplainTitle" data-i18n="room.explain.title">🤖 Объяснение наставника</h2>
     <!-- PAS-A-полировка (owner 2026-07-12): 🔊 в начале предложения (паттерн Тренировки) + перевод строки -->
     <div class="room-explain-hewrap" dir="rtl">
@@ -2722,9 +2824,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=165"></script>
-<script src="/i18n/locales/en.js?v=165"></script>
-<script src="/i18n/locales/he.js?v=165"></script>
+<script src="/i18n/locales/ru.js?v=166"></script>
+<script src="/i18n/locales/en.js?v=166"></script>
+<script src="/i18n/locales/he.js?v=166"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
