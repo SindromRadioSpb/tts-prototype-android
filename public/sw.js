@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.388";
+const CACHE_VERSION = "v3.11.389";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -71,6 +71,10 @@ const PRECACHE_URLS = [
   "/manifest.json",
   // Own Room manifest — установка PWA из Зала открывает Зал, не Студию
   "/manifest-room.json",
+  // ROOM-UX-VF/VF0 — shared visual primitives and the bounded same-origin
+  // icon sprite are available before any serialized component adoption.
+  "/css/visual-foundations.css",
+  "/icons/linguistpro-ui.svg",
   // BRR-P0-002/002a — Reading Room surface (clean sub-brand). Shares this SW
   // (scope "/") for v1; a separate lightweight sw-room.js is deferred to P0-002b.
   "/library.html",

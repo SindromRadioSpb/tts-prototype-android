@@ -1,0 +1,355 @@
+/*
+ * LinguistPro visual foundations — ROOM-UX-VF / VF0.
+ *
+ * Additive compatibility contract only. This file intentionally loads before
+ * the existing Studio/Room styles, which remain complete fallbacks during the
+ * serialized VF0–VF3 migration. It owns primitives and low-specificity
+ * utilities; every surface keeps its component composition and state logic.
+ */
+
+:root {
+  /* Established Studio source palette. Keep byte-equivalent while legacy
+     declarations coexist; tests prevent a second visual truth from drifting. */
+  --theme-bg-page: #f4f6f9;
+  --theme-bg-card: #ffffff;
+  --theme-bg-elevated: #ffffff;
+  --theme-bg-muted: #f8fafc;
+  --theme-bg-hover: #f1f5f9;
+  --theme-text-primary: #0f172a;
+  --theme-text-secondary: #475569;
+  --theme-text-muted: #64748b;
+  --theme-text-faint: #94a3b8;
+  --theme-border-soft: #e2e8f0;
+  --theme-border-medium: #cbd5e1;
+  --theme-border-strong: #94a3b8;
+  --theme-accent: #2563eb;
+  --theme-accent-hover: #1d4ed8;
+  --theme-accent-soft: #eff6ff;
+  --theme-success: #16a34a;
+  --theme-success-soft: #dcfce7;
+  --theme-warning: #d97706;
+  --theme-warning-soft: #fef3c7;
+  --theme-danger: #dc2626;
+  --theme-danger-soft: #fef2f2;
+  --theme-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --theme-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --theme-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.25);
+
+  /* Script roles use already-shipped fonts. No new request or synthesized
+     ultra-heavy weight is introduced by the foundation. */
+  --lp-font-ui: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --lp-font-editorial: Georgia, "Times New Roman", serif;
+  --lp-font-hebrew-ui: "Assistant", "Noto Sans Hebrew", Arial, sans-serif;
+  --lp-font-hebrew-reading: "Frank Ruhl Libre", Georgia, serif;
+  --lp-type-caption: 0.75rem;
+  --lp-type-label: 0.875rem;
+  --lp-type-body: 1rem;
+  --lp-type-section: 1.125rem;
+  --lp-type-title: clamp(1.5rem, 1.25rem + 1vw, 2.125rem);
+  --lp-leading-tight: 1.2;
+  --lp-leading-body: 1.5;
+  --lp-leading-reading: 1.72;
+
+  /* Bounded geometry, not a global density program. */
+  --lp-space-1: 4px;
+  --lp-space-2: 8px;
+  --lp-space-3: 12px;
+  --lp-space-4: 16px;
+  --lp-space-6: 24px;
+  --lp-space-8: 32px;
+  --lp-radius-8: 8px;
+  --lp-radius-10: 10px;
+  --lp-radius-12: 12px;
+  --lp-radius-16: 16px;
+  --lp-radius-pill: 999px;
+  --lp-elevation-0: none;
+  --lp-elevation-sm: var(--theme-shadow-sm);
+  --lp-elevation-md: var(--theme-shadow-md);
+  --lp-elevation-overlay: var(--theme-shadow-lg);
+  --lp-target-min: 24px;
+  --lp-target-compact: 36px;
+  --lp-target-touch: 44px;
+
+  /* Shared role aliases. Domain truth colors (learner state, provenance,
+     morphology and row playback) intentionally remain surface-local. */
+  --lp-surface-page: var(--theme-bg-page);
+  --lp-surface-card: var(--theme-bg-card);
+  --lp-surface-elevated: var(--theme-bg-elevated);
+  --lp-surface-muted: var(--theme-bg-muted);
+  --lp-surface-hover: var(--theme-bg-hover);
+  --lp-text-primary: var(--theme-text-primary);
+  --lp-text-secondary: var(--theme-text-secondary);
+  --lp-text-muted: var(--theme-text-muted);
+  --lp-text-faint: var(--theme-text-faint);
+  --lp-border-soft: var(--theme-border-soft);
+  --lp-border-medium: var(--theme-border-medium);
+  --lp-border-strong: var(--theme-border-strong);
+  --lp-accent: var(--theme-accent);
+  --lp-accent-hover: var(--theme-accent-hover);
+  --lp-accent-soft: var(--theme-accent-soft);
+  --lp-accent-contrast: #ffffff;
+  --lp-focus-ring: #2563eb;
+  --lp-focus-offset: 3px;
+
+  /* Room names are compatibility aliases only. Room's later local values
+     continue to win until its serialized adoption slice. */
+  --bg-page: var(--theme-bg-page);
+  --bg-card: var(--theme-bg-card);
+  --bg-muted: var(--theme-bg-muted);
+  --text-primary: var(--theme-text-primary);
+  --text-secondary: var(--theme-text-secondary);
+  --text-faint: var(--theme-text-muted);
+  --border-soft: var(--theme-border-soft);
+  --accent: var(--theme-accent);
+  --accent-contrast: var(--lp-accent-contrast);
+  --shadow: var(--theme-shadow-sm);
+
+  /* Status anatomy is presentational. A surface supplies the true state,
+     localized label, scope and actions. */
+  --lp-status-neutral-fg: #334155;
+  --lp-status-neutral-bg: #f8fafc;
+  --lp-status-neutral-border: #cbd5e1;
+  --lp-status-neutral-icon: #64748b;
+  --lp-status-info-fg: #1e40af;
+  --lp-status-info-bg: #eff6ff;
+  --lp-status-info-border: #93c5fd;
+  --lp-status-info-icon: #2563eb;
+  --lp-status-success-fg: #166534;
+  --lp-status-success-bg: #f0fdf4;
+  --lp-status-success-border: #86efac;
+  --lp-status-success-icon: #16a34a;
+  --lp-status-warning-fg: #854d0e;
+  --lp-status-warning-bg: #fffbeb;
+  --lp-status-warning-border: #fde68a;
+  --lp-status-warning-icon: #d97706;
+  --lp-status-error-fg: #991b1b;
+  --lp-status-error-bg: #fef2f2;
+  --lp-status-error-border: #fecaca;
+  --lp-status-error-icon: #dc2626;
+
+  /* Continuity only: truth is instant; no spring or spectacle. */
+  --lp-motion-instant: 0ms;
+  --lp-motion-hover: 120ms;
+  --lp-motion-continuity: 140ms;
+  --lp-motion-disclosure: 160ms;
+  --lp-motion-overlay: 180ms;
+  --lp-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --lp-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  body:not(.theme-light) {
+    --theme-bg-page: #0f172a;
+    --theme-bg-card: #1e293b;
+    --theme-bg-elevated: #1e293b;
+    --theme-bg-muted: #0f172a;
+    --theme-bg-hover: #334155;
+    --theme-text-primary: #f1f5f9;
+    --theme-text-secondary: #cbd5e1;
+    --theme-text-muted: #94a3b8;
+    --theme-text-faint: #64748b;
+    --theme-border-soft: #334155;
+    --theme-border-medium: #475569;
+    --theme-border-strong: #64748b;
+    --theme-accent: #60a5fa;
+    --theme-accent-hover: #93c5fd;
+    --theme-accent-soft: #1e3a8a;
+    --theme-success: #4ade80;
+    --theme-success-soft: #052e16;
+    --theme-warning: #fbbf24;
+    --theme-warning-soft: #422006;
+    --theme-danger: #f87171;
+    --theme-danger-soft: #2a0e0e;
+    --theme-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --theme-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+    --theme-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.7);
+    --lp-accent-contrast: #0b1220;
+    --lp-focus-ring: #93c5fd;
+    --lp-status-neutral-fg: #e2e8f0;
+    --lp-status-neutral-bg: #1e293b;
+    --lp-status-neutral-border: #475569;
+    --lp-status-neutral-icon: #cbd5e1;
+    --lp-status-info-fg: #bfdbfe;
+    --lp-status-info-bg: #172554;
+    --lp-status-info-border: #1d4ed8;
+    --lp-status-info-icon: #60a5fa;
+    --lp-status-success-fg: #bbf7d0;
+    --lp-status-success-bg: #052e16;
+    --lp-status-success-border: #166534;
+    --lp-status-success-icon: #4ade80;
+    --lp-status-warning-fg: #fde68a;
+    --lp-status-warning-bg: #422006;
+    --lp-status-warning-border: #854d0e;
+    --lp-status-warning-icon: #fbbf24;
+    --lp-status-error-fg: #fecaca;
+    --lp-status-error-bg: #450a0a;
+    --lp-status-error-border: #991b1b;
+    --lp-status-error-icon: #f87171;
+  }
+}
+
+body.theme-dark {
+  --theme-bg-page: #0f172a;
+  --theme-bg-card: #1e293b;
+  --theme-bg-elevated: #1e293b;
+  --theme-bg-muted: #0f172a;
+  --theme-bg-hover: #334155;
+  --theme-text-primary: #f1f5f9;
+  --theme-text-secondary: #cbd5e1;
+  --theme-text-muted: #94a3b8;
+  --theme-text-faint: #64748b;
+  --theme-border-soft: #334155;
+  --theme-border-medium: #475569;
+  --theme-border-strong: #64748b;
+  --theme-accent: #60a5fa;
+  --theme-accent-hover: #93c5fd;
+  --theme-accent-soft: #1e3a8a;
+  --theme-success: #4ade80;
+  --theme-success-soft: #052e16;
+  --theme-warning: #fbbf24;
+  --theme-warning-soft: #422006;
+  --theme-danger: #f87171;
+  --theme-danger-soft: #2a0e0e;
+  --theme-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --theme-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --theme-shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.7);
+  --lp-accent-contrast: #0b1220;
+  --lp-focus-ring: #93c5fd;
+  --lp-status-neutral-fg: #e2e8f0;
+  --lp-status-neutral-bg: #1e293b;
+  --lp-status-neutral-border: #475569;
+  --lp-status-neutral-icon: #cbd5e1;
+  --lp-status-info-fg: #bfdbfe;
+  --lp-status-info-bg: #172554;
+  --lp-status-info-border: #1d4ed8;
+  --lp-status-info-icon: #60a5fa;
+  --lp-status-success-fg: #bbf7d0;
+  --lp-status-success-bg: #052e16;
+  --lp-status-success-border: #166534;
+  --lp-status-success-icon: #4ade80;
+  --lp-status-warning-fg: #fde68a;
+  --lp-status-warning-bg: #422006;
+  --lp-status-warning-border: #854d0e;
+  --lp-status-warning-icon: #fbbf24;
+  --lp-status-error-fg: #fecaca;
+  --lp-status-error-bg: #450a0a;
+  --lp-status-error-border: #991b1b;
+  --lp-status-error-icon: #f87171;
+}
+
+.lp-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  overflow: visible;
+  color: inherit;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: -0.125em;
+}
+
+.lp-icon--sm { width: 0.875em; height: 0.875em; }
+.lp-icon--md { width: 1.125em; height: 1.125em; }
+.lp-icon--lg { width: 1.5em; height: 1.5em; }
+
+[dir="rtl"] .lp-icon--directional { transform: scaleX(-1); }
+
+@keyframes lp-icon-turn {
+  to { transform: rotate(1turn); }
+}
+
+.lp-icon--spin {
+  animation: lp-icon-turn calc(var(--lp-motion-overlay) * 6) linear infinite;
+}
+
+.lp-focus-ring:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: var(--lp-focus-offset);
+  box-shadow: 0 0 0 3px var(--lp-focus-ring);
+}
+
+.lp-state {
+  --lp-state-fg: var(--lp-status-neutral-fg);
+  --lp-state-bg: var(--lp-status-neutral-bg);
+  --lp-state-border: var(--lp-status-neutral-border);
+  --lp-state-icon: var(--lp-status-neutral-icon);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--lp-space-2) var(--lp-space-3);
+  align-items: start;
+  padding: var(--lp-space-3) var(--lp-space-4);
+  color: var(--lp-state-fg);
+  background: var(--lp-state-bg);
+  border: 1px solid var(--lp-state-border);
+  border-radius: var(--lp-radius-12);
+}
+
+.lp-state[data-kind="info"] {
+  --lp-state-fg: var(--lp-status-info-fg);
+  --lp-state-bg: var(--lp-status-info-bg);
+  --lp-state-border: var(--lp-status-info-border);
+  --lp-state-icon: var(--lp-status-info-icon);
+}
+
+.lp-state[data-kind="success"] {
+  --lp-state-fg: var(--lp-status-success-fg);
+  --lp-state-bg: var(--lp-status-success-bg);
+  --lp-state-border: var(--lp-status-success-border);
+  --lp-state-icon: var(--lp-status-success-icon);
+}
+
+.lp-state[data-kind="warning"] {
+  --lp-state-fg: var(--lp-status-warning-fg);
+  --lp-state-bg: var(--lp-status-warning-bg);
+  --lp-state-border: var(--lp-status-warning-border);
+  --lp-state-icon: var(--lp-status-warning-icon);
+}
+
+.lp-state[data-kind="error"] {
+  --lp-state-fg: var(--lp-status-error-fg);
+  --lp-state-bg: var(--lp-status-error-bg);
+  --lp-state-border: var(--lp-status-error-border);
+  --lp-state-icon: var(--lp-status-error-icon);
+}
+
+.lp-state__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-block-start: 0.125rem;
+  color: var(--lp-state-icon);
+}
+
+.lp-state__body { min-width: 0; }
+.lp-state__title { margin: 0; font-weight: 700; line-height: var(--lp-leading-tight); }
+.lp-state__detail { margin: var(--lp-space-1) 0 0; line-height: var(--lp-leading-body); }
+.lp-state__actions {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lp-space-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --lp-motion-hover: 0ms;
+    --lp-motion-continuity: 0ms;
+    --lp-motion-disclosure: 0ms;
+    --lp-motion-overlay: 0ms;
+  }
+
+  .lp-icon--spin { animation: none; }
+}
+
+@media (forced-colors: active) {
+  .lp-focus-ring:focus-visible {
+    outline: 2px solid Highlight;
+    box-shadow: none;
+  }
+
+  .lp-state { border-color: CanvasText; }
+  .lp-state__icon { color: CanvasText; forced-color-adjust: auto; }
+}

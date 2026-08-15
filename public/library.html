@@ -11,6 +11,9 @@
   <meta name="theme-color" content="#0f172a">
   <!-- BRR-P0-002b: shared reader-table fidelity (niqqud/RTL/buttons) + Hebrew webfont, extracted from index.html. -->
   <link rel="preload" href="/fonts/frank-ruhl-libre-400.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- ROOM-UX-VF/VF0: primitives first; Reader and Room remain complete
+       fallbacks until their later serialized adoption slices. -->
+  <link rel="stylesheet" href="/css/visual-foundations.css">
   <link rel="stylesheet" href="/css/reader-core.css">
   <!-- Общие стили морф-карточки + палитра статусов (одна реализация со Студией). Подключён ДО
        инлайн-<style>, чтобы Room-специфичные правила при равной специфичности выигрывали каскадом. -->
@@ -2536,7 +2539,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.388</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.389</button>
   </div>
 </footer>
 
