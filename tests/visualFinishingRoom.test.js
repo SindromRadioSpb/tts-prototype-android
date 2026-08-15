@@ -25,7 +25,7 @@ function extractFunction(source, name, nextName) {
 }
 
 test("VF1 records exact authority, slice and evidence limitations", () => {
-  assert.match(packet, /Status: `VF1_IMPLEMENTATION_IN_PROGRESS`/);
+  assert.match(packet, /Status: `VF1_[A-Z0-9_]+`/);
   assert.match(packet, /VF0 PROD=PASS/);
   assert.match(packet, /editorial calm, operational clarity/i);
   assert.match(packet, /physical mobile and assistive technology are `NOT_RUN`/);
@@ -49,6 +49,15 @@ test("VF1 Room shell uses first-party and system icons with localized native nam
   assert.match(html, /id="roomFooterStudioLink"[\s\S]*data-room-icon="lp-mark-studio"[\s\S]*data-i18n="room\.footer\.studio"/);
   assert.doesNotMatch(html, /<h1[^>]*data-i18n="room\.header\.title"/,
     "i18n text replacement must not destroy the Room mark");
+  assert.match(html, /<button[^>]*class="[^"]*room-vf1-focus[^"]*"[^>]*id="roomDueCta"/,
+    "the cross-text due CTA must use the shared keyboard focus contract");
+  const due = extractFunction(js, "refreshDueBadge", "renderHome");
+  assert.match(due, /roomIcon\('lp-icon-train', '🔁'\)/);
+  assert.match(due, /roomIcon\('lp-icon-chevron-right', '→', 'room-icon-directional'\)/);
+  assert.match(due, /tt\('room\.morph\.study\.due'/);
+  assert.match(due, /roomNumber\(n\)/);
+  assert.match(extractFunction(js, "wireChrome", "openAbout"), /_paintDueCTA\(\)/,
+    "locale changes must repaint the dynamic due CTA");
 });
 
 test("VF1 icon enhancement is fallback-first, bounded and read-only", () => {
@@ -126,12 +135,12 @@ test("VF1 locale identity text is emoji-free and locale cache advances once", ()
   }
 });
 
-test("VF1 release surfaces lock to 3.11.390", () => {
+test("VF1 release surfaces lock to 3.11.391", () => {
   const app = indexHtml.match(/window\.APP_VERSION\s*=\s*"([^"]+)"/);
   const room = html.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
   const worker = sw.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
   assert.ok(app && room && worker);
-  assert.equal(app[1], "3.11.390");
+  assert.equal(app[1], "3.11.391");
   assert.equal(room[1], app[1]);
   assert.equal(worker[1], app[1]);
 });

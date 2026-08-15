@@ -2258,7 +2258,13 @@ function _paintDueCTA() {
   const learningHomeOpen = activeTrack === 'corpus' && corpusNav.corpus === 'hub';
   const show = n > 0 && !learningHomeOpen && !!(reader && reader.hidden) && !(mentor && !mentor.hidden) && !(lesson && !lesson.hidden);   // home only — not while reading/working
   cta.hidden = !show;
-  if (show) cta.textContent = '🔁 ' + tt('room.morph.study.due', 'К повторению') + ': ' + n + ' →';
+  if (show) {
+    cta.replaceChildren(
+      roomIcon('lp-icon-train', '🔁'),
+      el('span', { class: 'room-due-label', text: tt('room.morph.study.due', 'К повторению') + ': ' + roomNumber(n) }),
+      roomIcon('lp-icon-chevron-right', '→', 'room-icon-directional'),
+    );
+  }
 }
 // AA4-4b — pending agent-proposal chip (count ONLY — agent text never renders on
 // this surface; the enforced-CSP agent-access page is the sole text surface).
@@ -11886,7 +11892,10 @@ function wireChrome() {
     try { lang.value = (window.appGetLocale && window.appGetLocale()) || 'ru'; } catch (_) {}
     lang.addEventListener('change', (e) => {
       try { window.appSetLocale && window.appSetLocale(e.target.value); } catch (_) {}
-      requestAnimationFrame(repaintRoomDisclosureLocale);
+      requestAnimationFrame(() => {
+        repaintRoomDisclosureLocale();
+        try { _paintDueCTA(); } catch (_) {}
+      });
     });
   }
   TRACKS.forEach((t) => {
