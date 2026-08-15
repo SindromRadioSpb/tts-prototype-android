@@ -78,8 +78,9 @@ All slices are serialized. A shared-contract change cannot be deployed concurren
 ## Gate status today
 
 - Research completeness: `PASS`.
-- Runtime implementation: `VF0_LOCAL_PASS_RELEASE_HOLD_200_ZOOM`; no VF1–VF3 work has started.
+- Runtime implementation: `VF0_OWNER_200_PASS_READY_TO_DEPLOY`; no VF1–VF3 work has started.
 - Automated physical/AT claims: `NOT_RUN`.
 - Owner visual direction approval: `PASS` — recommendations approved on 2026-08-15.
 - Authorization to begin bounded implementation: `PASS` for serialized VF0–VF3, with each slice still subject to its preflight and stop gates.
-- VF0 production deployment: `HOLD`; a fresh actual browser-UI 200% zoom run is still missing and automation is not represented as that evidence.
+- VF0 actual desktop Chrome 200% RU/HE: `OWNER_REPORTED_PASS` on 2026-08-15; not physical-mobile, AT or agent-observed evidence.
+- VF0 production deployment: `READY`; production evidence remains pending until the served version, SW/assets and read-only Room smoke pass.

@@ -1,14 +1,14 @@
 # ROOM-UX-VF — Visual Finishing implementation packet
 
 > Date: 2026-08-15  
-> Status: `VF0_LOCAL_PASS_RELEASE_HOLD_200_ZOOM`  
+> Status: `VF0_OWNER_200_PASS_READY_TO_DEPLOY`  
 > Owner approval: `Рекомендации утверждаю. Стартуй` (2026-08-15), normalized to the exact recommended V1–V10 values in the decision packet  
 > Source commit: `12dacd9a403ff8db2b7ad2dd20abf98e6c241386`  
 > Branch: `main`; `origin/main` matched the source commit at preflight  
 > Worktree: `DIRTY`; 34 entries pre-dated ROOM-UX-VF research, and the untracked research packet added two scoped entries. All VF0 runtime targets were clean at preflight.  
 > Production: `https://linguistpro.kolosei.com/library.html`, served `3.11.388` at approval  
-> Evidence classes: `CODE`, `OWNER_APPROVAL`, `OWNER_LIVE_READ_ONLY`, `ISOLATED_AUTOMATION`, `EXTERNAL_PRIMARY`  
-> Limitations: this packet starts VF0 only. It is not VF1–VF3 evidence, physical-device evidence, assistive-technology evidence, owner visual acceptance, or permission to cross a failed release gate.
+> Evidence classes: `CODE`, `OWNER_APPROVAL`, `OWNER_REPORTED`, `OWNER_LIVE_READ_ONLY`, `ISOLATED_AUTOMATION`, `EXTERNAL_PRIMARY`  
+> Limitations: this packet starts VF0 only. The owner-reported desktop Chrome 200% pass is not physical-mobile or assistive-technology evidence, and it is not VF1–VF3 evidence.
 
 ## 1. Approved contract
 
@@ -34,8 +34,8 @@ Only one slice may change shared contracts at a time.
 
 | Slice | State | Boundary |
 |---|---|---|
-| VF0 foundations | `LOCAL_PASS_RELEASE_HOLD_200_ZOOM` | additive tokens/utilities, vendored icon assets, shell links, SW/version lock; no component adoption |
-| VF1 Room shell/L0/corpora | `BLOCKED_BY_VF0_GATE` | icon/type/focus/state/alignment adoption only |
+| VF0 foundations | `OWNER_200_PASS_READY_TO_DEPLOY` | additive tokens/utilities, vendored icon assets, shell links, SW/version lock; no component adoption |
+| VF1 Room shell/L0/corpora | `BLOCKED_BY_VF0_PRODUCTION_GATE` | icon/type/focus/state/alignment only |
 | VF2 Reader/Morph/Trainer/Mentor | `BLOCKED_BY_VF1_GATE` | repeated visual primitives only; Reader/FSRS/provider behavior frozen |
 | VF3 Studio shell | `BLOCKED_BY_VF2_GATE` | narrow shell adoption; no workflow or component-platform rewrite |
 

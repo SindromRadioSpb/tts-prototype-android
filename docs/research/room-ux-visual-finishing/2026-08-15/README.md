@@ -7,7 +7,7 @@
 > Worktree: `DIRTY`; 34 entries pre-dated this session, and only this research directory plus the decision packet are in scope here. Target runtime/locale/asset/SW files have no session diff.  
 > Production: `https://linguistpro.kolosei.com/library.html`, served version `3.11.388`  
 > Evidence classes: `CODE`, `OWNER_LIVE_READ_ONLY`, `ISOLATED_AUTOMATION`, `HISTORICAL_AUTOMATION`, `OWNER_REPORTED`, `EXTERNAL_PRIMARY`  
-> Limitations: no physical-device or assistive-technology run; no owner content, progress, presentation key, cache, provider, or network write; 200% is an isolated CSS-viewport proxy, not a physical zoom claim.
+> Limitations: no physical-mobile or assistive-technology run; no owner content, progress, presentation key, cache, provider, or network write. The owner later reported the requested actual desktop Chrome 200% RU/HE check as PASS; it is not relabelled as agent-observed or physical evidence.
 
 ## Outcome
 
@@ -37,10 +37,10 @@ This packet does **not** reopen B0–B8, Library/Corpus ownership or IA, learner
 9. [FINDINGS.md](FINDINGS.md) — findings, immediate/backlog boundary and verification matrix.
 10. [screenshots/README.md](screenshots/README.md) — screenshot provenance.
 
-Post-approval implementation evidence: [VF0_IMPLEMENTATION_EVIDENCE.md](VF0_IMPLEMENTATION_EVIDENCE.md). VF0 is locally green except for the explicitly unperformed actual browser-UI 200% zoom gate; no production deployment is claimed.
+Post-approval implementation evidence: [VF0_IMPLEMENTATION_EVIDENCE.md](VF0_IMPLEMENTATION_EVIDENCE.md). VF0 is locally green and the owner reported the requested actual desktop Chrome 200% RU/HE check as PASS. Production evidence remains separate until deploy verification.
 
 Owner decisions and exact approval values live in [`ROOM_UX_VISUAL_FINISHING_DECISION_PACKET_2026_08_15.md`](../../../planning/ROOM_UX_VISUAL_FINISHING_DECISION_PACKET_2026_08_15.md).
 
 ## Stop condition
 
-Research is complete and the owner approved the recommended V1–V10 values on 2026-08-15. Implementation is serialized; VF0 is locally verified and held before deployment on the fresh actual browser-UI 200% zoom gate.
+Research is complete and the owner approved the recommended V1–V10 values on 2026-08-15. Implementation is serialized; VF0 passed its local, automated and owner-reported 200% gates and is ready for its production deployment gate.

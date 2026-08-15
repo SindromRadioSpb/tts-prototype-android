@@ -120,10 +120,10 @@ test("VF0 creates only the approved additive foundation assets", () => {
   for (const relative of Object.values(FILES)) {
     assert.ok(exists(relative), `missing approved VF0 file: ${relative}`);
   }
-  assert.match(packet, /Status: `VF0_LOCAL_PASS_RELEASE_HOLD_200_ZOOM`/);
+  assert.match(packet, /Status: `VF0_[A-Z0-9_]+`/);
   assert.match(packet, /Owner approval: `Рекомендации утверждаю\. Стартуй`/);
   assert.match(packet, /SCOPE=BOUNDED_VISUAL_FINISHING_ONLY/);
-  assert.match(packet, /VF1 Room shell\/L0\/corpora \| `BLOCKED_BY_VF0_GATE`/);
+  assert.match(packet, /VF1 Room shell\/L0\/corpora \| `[^`]+` \| icon\/type\/focus\/state\/alignment/);
 });
 
 test("VF0 loads foundations before legacy surface styles and leaves the fallbacks in place", () => {

@@ -1,20 +1,20 @@
 # ROOM-UX-VF — VF0 implementation evidence
 
 > Date: 2026-08-15  
-> Status: `LOCAL_PASS_RELEASE_HOLD_200_ZOOM`  
+> Status: `OWNER_200_PASS_READY_TO_DEPLOY`  
 > Source commit: `12dacd9a403ff8db2b7ad2dd20abf98e6c241386`  
-> Branch: `main`; `origin/main` remained at the source commit during local verification  
+> Branch: `main`; candidate implementation commit `d1a929707440320b7795932be64d4d4b893fc0fe`; `origin/main` remained at the source commit through the owner gate  
 > Worktree: `DIRTY`; 34 pre-existing entries were preserved. The scoped ROOM-UX-VF research, docs, runtime, test and screenshot files are enumerated in the implementation packet.  
 > Production: `https://linguistpro.kolosei.com/library.html#room=benyehuda`, still served `3.11.388`; no deploy occurred  
 > Local verification: `http://127.0.0.1:8791/library.html#room=hub`, served `3.11.389`  
-> Evidence classes: `CODE`, `OWNER_APPROVAL`, `OWNER_LIVE_READ_ONLY`, `ISOLATED_AUTOMATION`, `EXTERNAL_PRIMARY`  
-> Limitations: no fresh actual browser-UI 200% zoom, physical device, NVDA/VoiceOver/TalkBack or owner visual-acceptance run. Automation is not reported as physical or owner-live evidence.
+> Evidence classes: `CODE`, `OWNER_APPROVAL`, `OWNER_REPORTED`, `OWNER_LIVE_READ_ONLY`, `ISOLATED_AUTOMATION`, `EXTERNAL_PRIMARY`  
+> Limitations: no physical-mobile device or NVDA/VoiceOver/TalkBack run. The actual desktop Chrome 200% result is owner-reported in response to the exact checklist; it is not represented as agent-observed, physical-mobile or AT evidence.
 
 ## 1. Outcome
 
 VF0 is implemented and locally green for its additive foundation, icon provenance, SW/version, offline, locale, RTL, focus-utility, forced-colors, reduced-motion and static compatibility contracts. It does not adopt an SVG in a live component and therefore produces no intended component-level visual rewrite.
 
-Release is held because the approved per-slice matrix requires an actual browser-UI 200% zoom run. Chrome DevTools/Kapture CDP key events did not change browser zoom, and Windows Computer Use failed twice with `Computer Use native pipe is unavailable ... os error 2`. The 380px automation is strong reflow evidence but is not relabelled as actual zoom.
+The owner reported `PASS` on 2026-08-15 in direct response to the requested local `3.11.389` actual Chrome 200% RU and HE/RTL checklist: no horizontal page overflow, lost actions or broken long-title wrapping. This clears the deployment gate. It remains owner-reported desktop evidence, separate from the earlier 380px automation and from physical-mobile/AT evidence.
 
 VF1 has not started.
 
@@ -122,12 +122,14 @@ The authorized Kapture production tab remained at `https://linguistpro.kolosei.c
 
 ## 8. Release gate and rollback
 
-Current decision: `HOLD_PUSH_DEPLOY`.
+Current decision: `READY_PUSH_DEPLOY`.
 
-Required remaining evidence before a `main` push (which auto-deploys this repository):
+Owner-reported gate receipt:
 
-1. actual Chrome browser-UI 200% zoom on the local `3.11.389` Room, RU and HE/RTL;
-2. confirm no horizontal page overflow, obscured focus or lost primary action;
-3. record the run as automation/owner-reported/owner-live accurately.
+1. actual Chrome browser-UI 200% on local `3.11.389` Room: `PASS`;
+2. RU and HE/RTL, no horizontal overflow, lost action or broken long-title wrapping: `PASS`;
+3. evidence class: `OWNER_REPORTED`; not agent-observed, physical-mobile or assistive-technology evidence.
+
+Remaining work is production-only: push the scoped commits, wait for served `3.11.389`, verify SW/static assets, run a read-only real-corpus smoke, and record production separately.
 
 No schema or data rollback exists. Static rollback restores the prior HTML/SW version and removes the two foundation links; legacy styles remain complete throughout.
