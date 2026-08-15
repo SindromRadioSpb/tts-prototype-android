@@ -125,4 +125,3 @@ optional Ben-Yehuda shard 404, записанные во время audio verifi
 B9 не является продолжением Library/Corpus implementation. Следующий этап —
 отдельный research-only goal **ROOM-UX-B9 — Curated Paths & Assignments**:
 [`ROOM_UX_B9_CURATED_PATHS_ASSIGNMENTS_RESEARCH_SESSION_PROMPT_2026_08_15.md`](./ROOM_UX_B9_CURATED_PATHS_ASSIGNMENTS_RESEARCH_SESSION_PROMPT_2026_08_15.md).
-
