@@ -10,6 +10,8 @@ Source production version: `3.11.387`
 
 Target version: `3.11.388`
 
+Runtime release commit: `86916313df09b307c0c99e7289850b67eaf4294b`
+
 Initial dirty tree: 34 unrelated tracked/untracked entries; all preserved and excluded from the scoped release.
 
 ## Outcome
@@ -86,6 +88,30 @@ PASS:
 - 380×844 RU/LTR and HE/RTL screenshots: visually inspected, no page overflow.
 
 The legacy full `room-study-smoke.js` is not a release gate for this slice: its indicator-adjacent resize/service-column phases passed, but later repeat-entry/layout assertions use a pre-Library-IA navigation/geometry assumption and are already stale. The file was left unchanged. The focused regression gate covers the changed contract directly.
+
+### Production and owner-live verification
+
+PASS after the production rollout of `3.11.388`:
+
+- `/healthz` reported the application, database, and migrations ready;
+- `/api/client-config` and the Library footer both reported `3.11.388`;
+- GitHub `main`, local `main`, and the runtime release commit matched `86916313df09b307c0c99e7289850b67eaf4294b` before this evidence-only follow-up;
+- the waiting service worker was activated without using the reader update action, avoiding its progress-flush path;
+- after a normal reload the authorized tab restored `Position 1. אושר כהן - כולם גנבים`;
+- all 42 row markers were `row-audio-ind state-ok`; none were `state-missing`;
+- the first marker exposed `role="img"` and the localized accessible label `Аудио готово • he-IL / he-IL-Standard-A • rate 0.8 • pitch 2.5`;
+- a Kapture screenshot visually confirmed the green marker in the established first service column;
+- page width was 1905px of 1905px: no horizontal page overflow;
+- no new JavaScript exception was observed. Two existing optional Ben-Yehuda shard requests (`context/2.json` and `proclitic/2.json`) returned 404 and were not introduced by this slice.
+
+Owner-data read-back was identical immediately before and after service-worker activation and reload:
+
+- `text_progress`: row `0`, no step, unfinished, `updated_at=2026-08-15T12:15:07.680Z`;
+- total `review_log`: `7319`;
+- target-text bookmarks: `0`;
+- target-text default audio links: `42`.
+
+No owner TTS action was invoked in production. The state-changing fresh-TTS callback was verified only in isolated automation; owner-live verification remained read-only with respect to learning and audio data.
 
 ## Release boundary
 
