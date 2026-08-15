@@ -135,12 +135,14 @@ test("VF1 locale identity text is emoji-free and locale cache advances once", ()
   }
 });
 
-test("VF1 release surfaces lock to 3.11.391", () => {
+test("VF1 release surfaces lock to 3.11.392 and bust the Room module URL", () => {
   const app = indexHtml.match(/window\.APP_VERSION\s*=\s*"([^"]+)"/);
   const room = html.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
   const worker = sw.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
   assert.ok(app && room && worker);
-  assert.equal(app[1], "3.11.391");
+  assert.equal(app[1], "3.11.392");
   assert.equal(room[1], app[1]);
   assert.equal(worker[1], app[1]);
+  assert.match(html, /<script type="module" src="\/js\/library-ui\.js\?v=392"><\/script>/,
+    "a stale controlling SW must not reuse the pre-correction Room module URL");
 });
