@@ -59,6 +59,7 @@ const groupCorpusStates = new Map(); // per-corpus view state; never learner tru
 let readerGroupCorpusId = null; // selects protected audio transport for the open work
 const CORPUS_PAGE = 60;         // native Ben-Yehuda author/result page size
 const ROOM_PREVIEW = 12;        // hard shelf/ready-preview DOM bound (Option B)
+const ROOM_PROFILE_FIT_PREVIEW = 4; // quiet, actionable alternatives before the corpus catalog
 const ROOM_BROWSE_PAGE = roomB6.ROOM_B6_LIMITS.pageSize; // B0 DOM ceiling stays fixed in B6
 
 // B7 Learning Compass 2.0 — one shared ruleset, one existing learner truth, local aggregates only.
@@ -525,7 +526,9 @@ async function loadPersonalFamiliarityRanking(options) {
       const item = page.items[index], descriptor = descriptors[index];
       const ingredients = batch.entries && batch.entries[descriptor.cache_key];
       if (!ingredients) return { status: 'PREPARING', items: [], matchedTotal };
-      const fit = contextFromIngredients(ingredients, projection).compass;
+      const context = contextFromIngredients(ingredients, projection);
+      _compassPage.set(descriptor.cache_key, context);
+      const fit = context.compass;
       all.push({ item, ordinal: all.length, fit });
     }
     cursor = page.nextCursor;
@@ -8235,20 +8238,52 @@ function buildMaterialRowSection(cssClass, meta, cards) {
   return sec;
 }
 
+// ROOM-CORPUS-DISCOVERY: shared structure, typed rows. The section never owns
+// recommendation truth; each corpus passes rows rendered from its existing reader.
+function buildProfileFitSection(scope, rows) {
+  const materialRows = (rows || []).filter(Boolean).slice(0, ROOM_PROFILE_FIT_PREVIEW);
+  if (materialRows.length < 2) return null;
+  const sec = el('section', { class: 'shelf corpus-profile-fit corpus-profile-fit-' + String(scope || 'corpus') });
+  const head = el('div', { class: 'shelf-head' });
+  const h = el('h2', { class: 'shelf-title', i18n: 'room.corpus.profileFitTitle', text: tt('room.corpus.profileFitTitle', 'Подходит по вашему профилю слов') });
+  head.appendChild(h);
+  head.appendChild(el('p', { class: 'shelf-intro', i18n: 'room.corpus.profileFitIntro', text: tt('room.corpus.profileFitIntro', 'Материалы с наибольшей подтверждённой долей знакомых слов. Это нижняя граница по вашему профилю, а не оценка понимания текста.') }));
+  sec.appendChild(head);
+  const list = el('div', { class: 'corpus-work-list room-preview-list' });
+  for (const row of materialRows) {
+    row.setAttribute('data-profile-fit', 'true');
+    list.appendChild(row);
+  }
+  sec.appendChild(list);
+  attachRoomLongListDisclosure(sec, head, [list], String(scope || 'corpus') + ':profile-fit');
+  return sec;
+}
+
+function corpusCatalogRegion(scope) {
+  const key = String(scope || 'corpus').replace(/[^a-z0-9_-]+/gi, '-');
+  const titleId = 'corpusCatalogTitle-' + key;
+  const region = el('section', { class: 'corpus-catalog-region corpus-catalog-' + key, attrs: { 'aria-labelledby': titleId } });
+  const head = el('div', { class: 'corpus-catalog-head' });
+  head.appendChild(el('h2', { class: 'corpus-catalog-title', i18n: 'room.corpus.catalogTitle', text: tt('room.corpus.catalogTitle', 'Каталог корпуса'), attrs: { id: titleId } }));
+  head.appendChild(el('p', { class: 'corpus-catalog-intro', i18n: 'room.corpus.catalogIntro', text: tt('room.corpus.catalogIntro', 'Поиск охватывает весь доступный каталог. Фильтры и сортировка меняют только список ниже.') }));
+  region.appendChild(head);
+  return region;
+}
+
 // S3 — cold-start «С чего начать» rail (profile-FREE): the most accessible ready works by the
 // sidecar's intrinsic easiness score (ez). Author-diversity capped. No % badge — absolute
 // «короткий · частотная лексика» cues, honest for empty profiles.
-function buildColdStartSection(v) {
+function buildColdStartSection(v, excludeIds) {
   const ready = (corpusIndex && corpusIndex.ready) || [];
   const scored = ready
     .map((c) => ({ c: c, ez: (v.works[String(c.id)] || {}).ez || 0 }))
-    .filter((x) => x.ez > 0).sort((a, b) => b.ez - a.ez);
+    .filter((x) => x.ez > 0 && !(excludeIds && excludeIds.has(String(x.c.id)))).sort((a, b) => b.ez - a.ez);
   const perAuthor = {}, pick = [];
   for (const x of scored) {
     const a = x.c.author || '?';
     if ((perAuthor[a] || 0) >= 2) continue;
     perAuthor[a] = (perAuthor[a] || 0) + 1; pick.push(x.c);
-    if (pick.length >= 12) break;
+    if (pick.length >= ROOM_PROFILE_FIT_PREVIEW) break;
   }
   return buildMaterialRowSection('corpus-coldstart', {
     emoji: '🌱', titleKey: 'room.corpus.coldStartTitle', titleFallback: 'С чего начать',
@@ -8484,6 +8519,23 @@ function renderMyTextCard(item, vertical) {
   // itself is not focusable/announced as a control; user-facing activation belongs to the link.
   node.addEventListener('click', (event) => { if (event.target === node) open(); });
   return node;
+}
+
+async function paintMyTextsProfileFit(host, token, heroItemId) {
+  try {
+    if (!host || token !== corpusRenderToken || !host.isConnected) return;
+    await startPersonalCompassSweep();
+    const ranked = await loadPersonalFamiliarityRanking({ q: '', level: '', tags: [], tagMode: 'all', scope: 'texts', smart: '', smartIds: [] });
+    if (ranked.status !== 'AVAILABLE' || Number(ranked.rankEligibleTotal || 0) < 2) return;
+    const excludeIds = new Set(heroItemId == null ? [] : [String(heroItemId)]);
+    const eligible = ranked.items.slice(0, Number(ranked.rankEligibleTotal || 0)).filter((item) => (
+      item && !item.finished_at && !excludeIds.has(String(item.id))
+    ));
+    if (token !== corpusRenderToken || !host.isConnected || eligible.length < 2) return;
+    const section = buildProfileFitSection('mytexts', eligible.slice(0, ROOM_PROFILE_FIT_PREVIEW).map((item) => renderMyTextCard(item, true)));
+    host.replaceChildren(...(section ? [section] : []));
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  } catch (_) {}
 }
 // Legacy reusable own-text rail. It is intentionally not mounted inside Ben-Yehuda;
 // the full owner corpus lives at L0 / its own corpus surface.
@@ -8869,32 +8921,37 @@ function learningHomeReadingLists() {
 
 // Ben now owns only corpus-local browse and discovery. Global Continue,
 // Finished, Bookmarks and named lists live on the Library/L0 surface.
-async function injectBenHomeRails(body) {
-  await injectCorpusRails(body);
+function injectBenHomeRails(body) {
   injectSavedSearches(body);
 }
 
-async function injectCorpusRails(body) {
+async function paintBenProfileFit(host, token) {
   try {
+    if (!host || token !== corpusRenderToken || !host.isConnected) return;
     const ready = (corpusIndex && corpusIndex.ready) || [];
     if (!ready.length || !window.CorpusVocab) return;
-    const v = await loadCorpusVocab();
+    const [v, finished, continuationRows] = await Promise.all([
+      loadCorpusVocab(), ensureFinishedSet(), localDb.getContinueReading(50).catch(() => []),
+    ]);
     if (!v || !v.works) return;
-    const scored = await scoreReadyByRecordedFamiliarity(ready, v);
-    body.querySelectorAll('.corpus-coldstart, .corpus-nextforyou').forEach((e) => e.remove());
+    const excludeIds = new Set(Array.from(finished || []).map(String));
+    const current = (continuationRows || []).find((row) => row && row.text_key && corpusReadyKeyMap().has(String(row.text_key)));
+    const currentCard = current && corpusReadyKeyMap().get(String(current.text_key));
+    if (currentCard && currentCard.id != null) excludeIds.add(String(currentCard.id));
+    const candidates = ready.filter((card) => !excludeIds.has(String(card.id)));
+    const scored = await scoreReadyByRecordedFamiliarity(candidates, v);
+    if (token !== corpusRenderToken || !host.isConnected) return;
     let sec = null;
-    if (scored.length) {
-      sec = buildMaterialRowSection('corpus-nextforyou', {
-        emoji: '🎯', titleKey: 'room.corpus.nextTitle', titleFallback: 'Следующий для тебя',
-        introKey: 'room.corpus.nextIntro', introFallback: 'Выше среди текстов с валидным подсчётом зафиксированно знакомых слов.',
-      }, scored.slice(0, 12).map((item) => item.card));
+    if (scored.length >= 2) {
+      const rows = scored.slice(0, ROOM_PROFILE_FIT_PREVIEW).map((item) => renderCorpusWorkRow(item.card, true, {
+        compact: true, showAuthor: true, showListBtn: true, materialKind: 'profile-fit',
+      }));
+      sec = buildProfileFitSection('benyehuda', rows);
     } else {
-      sec = buildColdStartSection(v);   // too-new → cold-start on-ramp
+      sec = buildColdStartSection(v, excludeIds); // profile-free on-ramp, still distinct from the catalog
     }
-    if (sec) {
-      body.insertBefore(sec, body.firstChild);
-      try { window.applyI18n && window.applyI18n(); } catch (_) {}
-    }
+    host.replaceChildren(...(sec ? [sec] : []));
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
   } catch (_) {}
 }
 // B7 owner diagnostic, triggered by ?validate=1 on the device that holds the profile.
@@ -9177,6 +9234,28 @@ async function renderCorpus() {
   return renderCorpusHome(token);
 }
 
+async function paintGroupProfileFit(host, token, corpusId, catalog, heroWorkId, byKey, renderRow) {
+  if (!host || token !== corpusRenderToken) return;
+  let groupIndex;
+  try { groupIndex = await ensureGroupLearningIndex(corpusId, catalog); }
+  catch (_) { return; }
+  if (token !== corpusRenderToken) return;
+  const excludeIds = new Set(heroWorkId == null ? [] : [String(heroWorkId)]);
+  const rows = (catalog.works || []).filter((work) => {
+    if (!work || excludeIds.has(String(work.work_id))) return false;
+    const progress = byKey.get(String(work.text_key));
+    const fit = groupIndex && groupIndex.fits && groupIndex.fits.get(String(work.work_id));
+    return !(progress && progress.finished_at) && fit && fit.status === 'AVAILABLE' && fit.rank_eligible;
+  }).sort((a, b) => {
+    const af = groupIndex.fits.get(String(a.work_id));
+    const bf = groupIndex.fits.get(String(b.work_id));
+    const delta = Number(bf.recorded_familiar_pct_lower_bound || 0) - Number(af.recorded_familiar_pct_lower_bound || 0);
+    return delta || (Number(a.position_no) || 9999) - (Number(b.position_no) || 9999);
+  }).slice(0, ROOM_PROFILE_FIT_PREVIEW).map(renderRow);
+  const section = buildProfileFitSection('group-' + corpusId, rows);
+  if (section) host.replaceChildren(section);
+}
+
 async function renderGroupCorpus(corpusId, token) {
   const main = $('roomContent'); if (!main || token !== corpusRenderToken) return;
   showState('room.state.loading', '⏳');
@@ -9263,6 +9342,9 @@ async function renderGroupCorpus(corpusId, token) {
       onOpen: () => openGroupCorpusWork(corpusId, nextWork, { resume: nextView.learnerState.state === 'reading' }),
     }));
   }
+  const groupProfileFitHost = el('div', { class: 'corpus-profile-fit-host group-profile-fit-host' });
+  wrap.appendChild(groupProfileFitHost);
+  const groupCatalogRegion = corpusCatalogRegion('group-' + corpusId);
   const controls = el('div', { class: 'group-corpus-controls' });
   const searchField = el('label', { class: 'room-field room-field-wide group-corpus-search-field', attrs: { for: 'roomGroupCorpusSearch' } });
   searchField.appendChild(el('span', { class: 'room-field-label', text: tt('room.corpus.search.placeholder', 'Поиск') }));
@@ -9326,8 +9408,8 @@ async function renderGroupCorpus(corpusId, token) {
     for(const tag of state.tags)labels.push('#'+tag);
     return {count:(state.status!=='all'?1:0)+(state.audio!=='all'?1:0)+(state.smart?1:0)+state.tags.length,labels};
   });
-  wrap.appendChild(filterChrome.node);
-  wrap.appendChild(corpusLearningIndexStatusNode('group:' + corpusId, catalog.works.length));
+  groupCatalogRegion.appendChild(filterChrome.node);
+  groupCatalogRegion.appendChild(corpusLearningIndexStatusNode('group:' + corpusId, catalog.works.length));
   const listSection = el('section', { class: 'room-primary-list group-corpus-list-section' });
   const listHead = el('div', { class: 'corpus-list-head' });
   listHead.appendChild(el('h2', { class: 'corpus-list-count', text: tt('room.corpus.sectionMaterials', 'Учебные материалы') }));
@@ -9336,7 +9418,8 @@ async function renderGroupCorpus(corpusId, token) {
   const grid = el('div', { class: 'group-corpus-grid corpus-work-list' }); listSection.appendChild(grid);
   const moreWrap=el('div',{class:'corpus-more group-corpus-more'});listSection.appendChild(moreWrap);
   attachRoomLongListDisclosure(listSection, listHead, [resultLine, grid, moreWrap], 'group:' + corpusId + ':materials');
-  wrap.appendChild(listSection);wrap.appendChild(management);main.appendChild(wrap);
+  groupCatalogRegion.appendChild(listSection);
+  wrap.appendChild(groupCatalogRegion);wrap.appendChild(management);main.appendChild(wrap);
   function shareWork(work) {
     const u=new URL(location.href); u.search=''; u.hash=''; u.searchParams.set('group_corpus',corpusId); u.searchParams.set('group_work',work.work_id);
     const data={title:work.title||'',text:tt('room.groupCorpus.shareText','Текст из закрытого учебного корпуса'),url:u.toString()};
@@ -9410,7 +9493,12 @@ async function renderGroupCorpus(corpusId, token) {
     }
   }
   let timer=null; search.addEventListener('input',()=>{state.q=search.value||'';if(timer)clearTimeout(timer);timer=setTimeout(paint,120);}); paint();
-  ensureGroupLearningIndex(corpusId,catalog).then(()=>{if(token===corpusRenderToken)paint(false);}).catch(()=>{});
+  ensureGroupLearningIndex(corpusId,catalog).then(()=>{
+    if(token===corpusRenderToken){
+      paint(false);
+      paintGroupProfileFit(groupProfileFitHost, token, corpusId, catalog, nextWork && nextWork.work_id, byKey, renderCard);
+    }
+  }).catch(()=>{});
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
@@ -10073,6 +10161,9 @@ async function renderMyTextsCorpus(token) {
       href: deepLinkForText(nextMine.id), onOpen: () => openReader(nextMine.id, nextMine.title, { resume: started }),
     }));
   }
+  const myProfileFitHost = el('div', { class: 'corpus-profile-fit-host mytexts-profile-fit-host' });
+  wrap.appendChild(myProfileFitHost);
+  const myCatalogRegion = corpusCatalogRegion('mytexts');
 
   let filterChrome = null;
   const controls = el('div', { class: 'mytexts-controls mytexts-filter-controls' });
@@ -10181,7 +10272,7 @@ async function renderMyTextsCorpus(token) {
     for (const tag of myCorpusState.tags) labels.push('#' + tag);
     return { count: (myCorpusState.scope !== 'texts' ? 1 : 0) + (myCorpusState.level ? 1 : 0) + (myCorpusState.smart ? 1 : 0) + myCorpusState.tags.length, labels };
   });
-  wrap.appendChild(filterChrome.node);
+  myCatalogRegion.appendChild(filterChrome.node);
 
   const listSection = el('section', { class: 'room-primary-list mytexts-list-section' });
   const listHead = el('div', { class: 'corpus-list-head' });
@@ -10192,7 +10283,9 @@ async function renderMyTextsCorpus(token) {
   const pager = el('nav', { class: 'corpus-more mytexts-more mytexts-pager', attrs: { 'aria-label': tt('room.mytexts.pagination', 'Страницы текстов') } });
   listSection.appendChild(resultLine); listSection.appendChild(grid); listSection.appendChild(pager);
   attachRoomLongListDisclosure(listSection, listHead, [resultLine, grid, pager], 'mytexts:materials');
-  wrap.appendChild(personalCompassProgressNode()); wrap.appendChild(listSection); wrap.appendChild(management); main.appendChild(wrap);
+  myCatalogRegion.appendChild(personalCompassProgressNode());
+  myCatalogRegion.appendChild(listSection);
+  wrap.appendChild(myCatalogRegion); wrap.appendChild(management); main.appendChild(wrap);
 
   const freshSince = (() => { try { return localStorage.getItem('roomMyTextsLastVisit_v1') || ''; } catch (_) { return ''; } })();
   if (!_roomRestoringHistory) { try { localStorage.setItem('roomMyTextsLastVisit_v1', new Date().toISOString()); } catch (_) {} }
@@ -10292,6 +10385,7 @@ async function renderMyTextsCorpus(token) {
   // Lower-priority continuation covers the rest of the recent personal library after
   // the visible page has been enqueued. It never blocks browsing or Reader opening.
   startPersonalCompassSweep();
+  paintMyTextsProfileFit(myProfileFitHost, token, nextMine && nextMine.id);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   roomDiagPush({ kind: 'room.page', duration_ms: performance.now() - startedAt, result: 'ready' });
 }
@@ -10347,7 +10441,7 @@ async function paintBenCorpusNext(host, token) {
   }));
   try {
     const rows = await localDb.getContinueReading(50);
-    const current = (rows || []).find((row) => isCorpusTextRow(row));
+    const current = (rows || []).find((row) => row && row.text_key && corpusReadyKeyMap().has(String(row.text_key)));
     if (!current || token !== corpusRenderToken || !host.isConnected) return;
     const pct = window.ReaderProgress ? window.ReaderProgress.continuePercent(current.last_row_idx, current.n_rows) : 0;
     host.replaceChildren(corpusNextAction({
@@ -10373,22 +10467,26 @@ async function renderCorpusHome(token) {
   }));
   const nextHost = el('div', { class: 'corpus-next-host' }); wrap.appendChild(nextHost);
   paintBenCorpusNext(nextHost, token);
+  const profileFitHost = el('div', { class: 'corpus-profile-fit-host' }); wrap.appendChild(profileFitHost);
   const filterChrome = buildCorpusFilterBar();
   _corpusSmartRailEl = buildCorpusSmartRail();
   const filterPanel = filterChrome.querySelector('.corpus-filterbar');
   if (filterPanel) filterPanel.appendChild(_corpusSmartRailEl);
-  wrap.appendChild(filterChrome);
+  const catalogRegion = corpusCatalogRegion('benyehuda');
+  catalogRegion.appendChild(filterChrome);
   const readyTotal = Number(corpusIndex && corpusIndex.ready && corpusIndex.ready.length || 0);
-  wrap.appendChild(corpusLearningIndexStatusNode('benyehuda', readyTotal));
+  catalogRegion.appendChild(corpusLearningIndexStatusNode('benyehuda', readyTotal));
   const body = el('div', { class: 'corpus-l1-body' });
   corpusL1Body = body;
-  wrap.appendChild(body);
+  catalogRegion.appendChild(body);
+  wrap.appendChild(catalogRegion);
   const about = corpusSecondaryDisclosure(
     tt('room.shell.aboutCorpus', 'О корпусе и данных'),
     tt('room.shell.benProvenance', 'Каталог проекта Бен‑Иегуды. Переводы, огласовка, аудио и оценки сложности показываются только там, где соответствующие данные действительно доступны.'),
   );
   wrap.appendChild(about);
   main.appendChild(wrap);
+  paintBenProfileFit(profileFitHost, token);
   ensureBenFamiliarityScores().then(() => { if (token === corpusRenderToken && corpusL1Sort === 'familiar_desc') corpusRefreshL1Body(); }).catch(() => {});
   await corpusRefreshL1Body();
 }
@@ -10427,7 +10525,7 @@ function renderHomeInto(body) {
     head.appendChild(el('p', { class: 'shelf-intro', i18n: 'room.corpus.readyIntro', text: tt('room.corpus.readyIntro') }));
     sec.appendChild(head);
     const rail = el('div', { class: 'corpus-work-list room-preview-list' });
-    for (const c of ready.slice(0, ROOM_PREVIEW)) rail.appendChild(renderCorpusWorkRow(c, true, { showAuthor: true, showListBtn: true, compact: true }));
+    for (const c of corpusSortedReadyPreview(ready).slice(0, ROOM_PREVIEW)) rail.appendChild(renderCorpusWorkRow(c, true, { showAuthor: true, showListBtn: true, compact: true }));
     sec.appendChild(rail);
     attachRoomLongListDisclosure(sec, head, [rail], 'ben:ready');
     body.appendChild(sec);
@@ -10472,6 +10570,14 @@ function corpusL1Comparator(mode, readyMap) {
     return (a, b) => (lo(b) - lo(a)) || (b.r - a.r) || String(a.t || '').localeCompare(String(b.t || ''));
   }
   return (a, b) => (b.r - a.r) || String(a.t || '').localeCompare(String(b.t || ''));   // 'ready' (default)
+}
+function corpusSortedReadyPreview(ready) {
+  const map = corpusReadyMap();
+  const comparator = corpusL1Comparator(corpusL1Sort, map);
+  return (ready || []).slice().sort((a, b) => comparator(
+    { id: a.id, t: a.title || '', r: 1 },
+    { id: b.id, t: b.title || '', r: 1 },
+  ));
 }
 // Global results (search ∪ facets) over the lazy index. Ready hits open via served-on-open
 // (joined to the sidecar's full card); unprocessed hits are display-only rows (honest, never
@@ -10532,8 +10638,10 @@ async function renderResultsInto(body) {
   // thread the query so a title-hit ALSO opens AT the matched body row when the word is in the body
   // (else firstMatchRow → -1 → normal resume/top). Was the «no highlighted row on drill-in» bug.
   if (hits.length) {
-    // FB-9 — a query keeps the readiness-first default ('ready'); browse views honor the chosen sort.
-    hits.sort(corpusL1Comparator(hasQuery ? 'ready' : corpusL1Sort, corpusReadyMap()));
+    // The persistent visible sort owns the title/author result group as well as
+    // the default Ready preview. Full-text hits retain their explicitly labelled
+    // phrase/word grouping below instead of pretending to be one flat list.
+    hits.sort(corpusL1Comparator(corpusL1Sort, corpusReadyMap()));
     // FB-20 — the per-row decorate badges read works AS they render (covers «показать ещё» pagination
     // once the set is loaded); the post-pass below covers page-1 rows that pre-date the async set load.
     const sec = el('section', { class: 'shelf corpus-title-results' });
@@ -11219,10 +11327,7 @@ function buildCorpusFilterBar() {
       if(!reliableFamiliarityCount(scores&&scores.values())){sortSelect.value=corpusL1Sort;explainNoReliableFamiliaritySort();return;}
     }
     corpusL1Sort=nextSort;
-    if(corpusL1Sort==='familiar_desc'){
-      corpusFilter.readyOnly=true;
-      corpusRefreshL1Body();
-    }else if(corpusL1Sort==='opened')ensurePersonalSets().then(()=>corpusRefreshL1Body()).catch(()=>corpusRefreshL1Body());
+    if(corpusL1Sort==='opened')ensurePersonalSets().then(()=>corpusRefreshL1Body()).catch(()=>corpusRefreshL1Body());
     else corpusRefreshL1Body();
   });
   sortField.appendChild(sortSelect);

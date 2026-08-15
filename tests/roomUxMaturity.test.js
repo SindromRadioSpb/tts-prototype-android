@@ -111,7 +111,7 @@ test("B0 normalized fixtures preserve asserted, derived and missing truth", () =
 
 test("B1 bounds the Ben-Yehuda ready preview and exposes the full result set", () => {
   assert.match(libraryUi, /const ROOM_PREVIEW = 12/);
-  assert.match(libraryUi, /ready\.slice\(0, ROOM_PREVIEW\)/,
+  assert.match(libraryUi, /corpusSortedReadyPreview\(ready\)\.slice\(0,\s*ROOM_PREVIEW\)/,
     "the home preview must never mount the full ready corpus");
   assert.match(libraryUi, /room-ready-all[\s\S]*corpusFilter\.readyOnly = true[\s\S]*corpusL1Sort = 'ready'/,
     "the bounded preview needs an explicit route to the complete ready inventory");

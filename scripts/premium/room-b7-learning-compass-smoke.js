@@ -232,6 +232,24 @@ async function runColdLibraryScenario(browser) {
   check(!!sortFixture.knownKey && sortFixture.first > sortFixture.last, `cold-library: ranking fixture has a resolved varying familiar key (${JSON.stringify(sortFixture)})`);
   await page.reload({ waitUntil: "load", timeout: 60000 });
   await page.waitForSelector(".mytexts-grid .mytext-card", { timeout: 60000 });
+  await page.waitForFunction(() => document.querySelectorAll(".corpus-profile-fit-mytexts .mytext-card").length === 4, null, { timeout: 120000 });
+  const profileFit = await page.evaluate(() => {
+    const profile = document.querySelector(".corpus-profile-fit-mytexts");
+    const catalog = document.querySelector(".corpus-catalog-region");
+    const heroTitle = document.querySelector(".corpus-next-title")?.textContent?.trim() || "";
+    const titles = profile ? Array.from(profile.querySelectorAll(".work-card-title")).map((node) => node.textContent.trim()) : [];
+    return {
+      rows: titles.length,
+      vertical: !!profile && !profile.querySelector(".shelf-rail"),
+      beforeCatalog: !!(profile && catalog && (profile.compareDocumentPosition(catalog) & Node.DOCUMENT_POSITION_FOLLOWING)),
+      ownsControls: !!document.querySelector(".corpus-catalog-region .mytexts-filter-controls"),
+      duplicatesHero: !!heroTitle && titles.includes(heroTitle),
+    };
+  });
+  check(profileFit.rows === 4 && profileFit.vertical && profileFit.beforeCatalog,
+    `cold-library: bounded vertical profile-fit must precede the catalog (${JSON.stringify(profileFit)})`);
+  check(profileFit.ownsControls && !profileFit.duplicatesHero,
+    `cold-library: catalog ownership or hero exclusion failed (${JSON.stringify(profileFit)})`);
   await page.selectOption("#roomMyTextsSort", "familiar_desc");
   await page.waitForTimeout(2500);
   const sortState = await page.evaluate(() => ({
@@ -505,14 +523,14 @@ async function runBenRailDisclosureScenario(browser) {
   });
   check(benPrepared.expected > 0 && benPrepared.copy.includes(String(benPrepared.expected)), `ben-rail: every readable public work is prepared (${benPrepared.copy})`);
   check(benPrepared.familiarSort, "ben-rail: public corpus exposes the shared familiarity sort");
-  const firstCard = page.locator(".work-card[data-work-id]").first();
+  const firstCard = page.locator(".corpus-profile-fit .corpus-work-row[data-work-id]").first();
   await firstCard.waitFor({ state: "visible", timeout: 60000 });
   await firstCard.scrollIntoViewIfNeeded();
   await firstCard.locator(".learning-compass-details > summary").waitFor({ state: "visible", timeout: 30000 });
   const summary = firstCard.locator(".learning-compass-details > summary");
   await summary.focus(); await page.keyboard.press("Enter");
   const disclosure = await page.evaluate(() => {
-    const details = document.querySelector(".work-card[data-work-id] .learning-compass-details[open]");
+    const details = document.querySelector(".corpus-profile-fit .corpus-work-row[data-work-id] .learning-compass-details[open]");
     const panel = details?.querySelector(".learning-compass-panel");
     if (!panel) return { open: false };
     const rect = panel.getBoundingClientRect();

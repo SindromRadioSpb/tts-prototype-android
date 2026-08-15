@@ -9,7 +9,7 @@ const { chromium } = require("playwright");
 const ROOT = path.resolve(__dirname, "..", "..");
 const PORT = 3317;
 const BASE = `http://127.0.0.1:${PORT}`;
-const OUT = path.join(ROOT, "docs", "research", "room-library-surface-unification", "2026-08-14", "implementation", "screenshots");
+const OUT = path.join(ROOT, "docs", "research", "room-library-surface-unification", "2026-08-14", "implementation", "discovery-catalog-2026-08-15", "screenshots");
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function startServer() {
@@ -200,24 +200,46 @@ function fixtureLists() {
     check(mobileHome.dir === "rtl" && mobileHome.overflow === 0, "380px HE/RTL L0 does not reflow");
     await page.screenshot({ path: path.join(OUT, "library-l0-380-he-rtl.png"), fullPage: true });
 
+    // Isolated profile capability marker: it makes the existing recorded-familiarity
+    // projection available without pretending to know any catalog word.
+    await page.evaluate(async () => {
+      const db = await import("/db/local-db.js");
+      await db.applyWordStatusFromSync("pid:ia-profile-capability", "known");
+    });
+    await page.reload({ waitUntil: "load" });
+    await page.waitForSelector('.learning-corpus-entry[data-corpus="benyehuda"]', { timeout: 30000 });
+
     await page.locator('.learning-corpus-entry[data-corpus="benyehuda"]').click();
     await page.waitForSelector(".corpus-ready", { timeout: 30000 });
     await page.waitForTimeout(500);
     const ben = await page.evaluate(() => {
-      const recommendation = document.querySelector(".corpus-nextforyou,.corpus-coldstart");
+      const recommendation = document.querySelector(".corpus-profile-fit,.corpus-coldstart");
+      const catalog = document.querySelector(".corpus-catalog-region");
       return {
         globalShelves: document.querySelectorAll(".corpus-continue,.corpus-finished,.corpus-bookmarks,.corpus-readinglist").length,
         recommendationRows: recommendation ? recommendation.querySelectorAll(".room-material-row").length : 0,
         recommendationRails: recommendation ? recommendation.querySelectorAll(".shelf-rail").length : 0,
         readyRows: document.querySelectorAll(".corpus-ready .room-material-row").length,
-        nestedOverflow: Array.from(document.querySelectorAll(".corpus-ready .room-material-row,.corpus-nextforyou .room-material-row,.corpus-coldstart .room-material-row")).filter((row) => row.scrollWidth > row.clientWidth + 1).length,
+        recommendationBeforeCatalog: !!(recommendation && catalog && (recommendation.compareDocumentPosition(catalog) & Node.DOCUMENT_POSITION_FOLLOWING)),
+        controlsInsideCatalog: !!(catalog && catalog.querySelector("#roomCorpusSearch") && catalog.querySelector("#roomCorpusSort") && catalog.querySelector(".corpus-ready")),
+        nestedOverflow: Array.from(document.querySelectorAll(".corpus-ready .room-material-row,.corpus-profile-fit .room-material-row,.corpus-coldstart .room-material-row")).filter((row) => row.scrollWidth > row.clientWidth + 1).length,
         overflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
       };
     });
     check(ben.globalShelves === 0, "Ben still mounts global Continue/Finished/Bookmarks/Lists");
-    check(ben.recommendationRows > 0 && ben.recommendationRails === 0, "Ben recommendation collection is not a vertical row list");
+    check(ben.recommendationRows > 0 && ben.recommendationRails === 0, "Ben recommendation collection is not a vertical row list: " + JSON.stringify(ben));
+    check(ben.recommendationBeforeCatalog && ben.controlsInsideCatalog, "Ben profile-fit and explicit catalog ownership/order are ambiguous: " + JSON.stringify(ben));
     check(ben.readyRows > 0 && ben.readyRows <= 12, "Ben Ready preview is not bounded");
     check(ben.nestedOverflow === 0 && ben.overflow === 0, "380px HE Ben has material-row or page horizontal overflow");
+    await page.selectOption("#roomCorpusSort", "length");
+    await page.waitForTimeout(150);
+    const benAfterSort = await page.evaluate(() => ({
+      profileRows: document.querySelectorAll(".corpus-profile-fit .room-material-row,.corpus-coldstart .room-material-row").length,
+      clearVisible: !!Array.from(document.querySelectorAll(".corpus-active-chip")).find((node) => !node.hidden && /איפוס|Сбросить|Clear/.test(node.textContent || "")),
+      readyRows: document.querySelectorAll(".corpus-ready .room-material-row").length,
+    }));
+    check(benAfterSort.profileRows > 0 && benAfterSort.readyRows > 0, "Ben sort hid either profile fit or Ready results: " + JSON.stringify(benAfterSort));
+    check(!benAfterSort.clearVisible, "Ben sort activated a hidden filtering state");
     await page.screenshot({ path: path.join(OUT, "ben-380-he-rtl.png"), fullPage: true });
 
     await page.locator(".corpus-switch-pill").click();
@@ -229,11 +251,13 @@ function fixtureLists() {
       });
       return {
         rows: document.querySelectorAll(".group-corpus-grid .room-material-row").length,
+        catalogOwnsControls: !!document.querySelector(".corpus-catalog-region .group-corpus-controls"),
         clipped: controls.filter((node) => { const rect = node.getBoundingClientRect(); return rect.left < -0.5 || rect.right > innerWidth + 0.5; }).length,
         overflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
       };
     });
     check(group.rows === 48, "Study Songs first page must be a 48-row replacement window");
+    check(group.catalogOwnsControls, "Study Songs controls are not owned by the explicit catalog region");
     check(group.clipped === 0 && group.overflow === 0, "380px HE Study Songs controls or page are clipped");
     await page.locator(".group-corpus-more button").last().click();
     await page.waitForFunction(() => document.querySelectorAll(".group-corpus-grid .room-material-row").length === 33);
@@ -259,11 +283,13 @@ function fixtureLists() {
       });
       const clipped = controls.filter((node) => { const rect = node.getBoundingClientRect(); return rect.left < -0.5 || rect.right > innerWidth + 0.5; });
       return {
+        catalogOwnsControls: !!document.querySelector(".corpus-catalog-region .mytexts-filter-controls"),
         clipped: clipped.length,
         clippedDetails: clipped.map((node) => { const rect = node.getBoundingClientRect(); return { tag: node.tagName, className: node.className, left: rect.left, right: rect.right, width: rect.width }; }),
         overflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
       };
     });
+    check(myTexts.catalogOwnsControls, "My Texts controls are not owned by the explicit catalog region");
     check(myTexts.clipped === 0 && myTexts.overflow === 0, "380px HE My Texts controls or page are clipped: " + JSON.stringify(myTexts));
     await page.screenshot({ path: path.join(OUT, "mytexts-380-he-rtl.png"), fullPage: true });
 

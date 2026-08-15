@@ -262,8 +262,9 @@
     body.theme-dark .diff-band.diff-hard { color: #fca5a5; border-color: rgba(239,68,68,.5); }
     body.theme-dark .diff-archaica { background: rgba(168,85,247,.18); color: #e9d5ff; border-color: rgba(168,85,247,.4); }
 
-    /* BRR-P1-007 S4 — the personalized «Следующий для тебя» rail title reads as "yours" (accent). */
-    .shelf.corpus-nextforyou .shelf-title { color: var(--accent); }
+    /* Profile-fit is a learner projection, visually distinct from the explicit catalog below. */
+    .shelf.corpus-nextforyou .shelf-title,
+    .shelf.corpus-profile-fit .shelf-title { color: var(--accent); }
 
     /* ── BRR-P1-015 A3 — Корпус drill (Период→Автор→Работа) ──────────────────── */
     .corpus-nav { padding-bottom: 8px; }
@@ -2175,6 +2176,15 @@
     .corpus-next-meta { margin: 5px 0 0; color: var(--text-secondary); font-size: 12px; line-height: 1.35; }
     .corpus-next-cta { width: auto; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 10px 15px; border: 1px solid #7a4319; border-radius: 9px; background: #7a4319; color: #fff; font: 750 13px/1.2 inherit; text-decoration: none; cursor: pointer; white-space: nowrap; }
     .corpus-next-cta:hover, .corpus-next-cta:focus-visible { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, #a7632b 34%, transparent); }
+    .corpus-profile-fit-host:empty { display: none; }
+    .corpus-profile-fit { margin: 12px 0 18px; padding-top: 12px; border-top: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border-soft)); }
+    .corpus-profile-fit .shelf-head { margin-bottom: 2px; }
+    .corpus-profile-fit .shelf-intro { max-width: 74ch; }
+    .corpus-profile-fit .room-preview-list { margin-bottom: 0; }
+    .corpus-catalog-region { min-width: 0; margin-top: 16px; padding-top: 14px; border-top: 2px solid var(--border-soft); }
+    .corpus-catalog-head { margin: 0 0 10px; }
+    .corpus-catalog-title { margin: 0; color: var(--text-primary); font: 750 20px/1.25 Georgia, "Times New Roman", serif; letter-spacing: -.01em; }
+    .corpus-catalog-intro { max-width: 72ch; margin: 4px 0 0; color: var(--text-secondary); font-size: 12px; line-height: 1.45; }
     .corpus-browse-tools { margin: 10px 0 8px; padding: 10px; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--bg-muted); }
     .corpus-browse-primary { display: grid; grid-template-columns: minmax(220px,1fr) minmax(360px,1.45fr) minmax(170px,.65fr); align-items: start; gap: 8px; }
     .corpus-filter-disclosure { min-width: 0; }
@@ -2222,6 +2232,9 @@
       .corpus-next-action { min-height: 126px; grid-template-columns: minmax(0,1fr); gap: 10px; padding: 13px 14px; }
       .corpus-next-title { font-size: 20px; }
       .corpus-next-cta { justify-self: start; }
+      .corpus-profile-fit { margin-bottom: 15px; padding-top: 10px; }
+      .corpus-catalog-region { margin-top: 13px; padding-top: 12px; }
+      .corpus-catalog-title { font-size: 19px; }
       .corpus-browse-tools { padding: 8px; }
       .corpus-browse-primary { position: relative; grid-template-columns: minmax(88px,.48fr) minmax(0,1.52fr); gap: 8px; }
       .corpus-browse-primary > .room-field-wide { grid-column: 1 / -1; grid-row: 1; }
@@ -2523,7 +2536,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.386</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.387</button>
   </div>
 </footer>
 
@@ -2706,9 +2719,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-<script src="/i18n/locales/ru.js?v=163"></script>
-<script src="/i18n/locales/en.js?v=163"></script>
-<script src="/i18n/locales/he.js?v=163"></script>
+<script src="/i18n/locales/ru.js?v=164"></script>
+<script src="/i18n/locales/en.js?v=164"></script>
+<script src="/i18n/locales/he.js?v=164"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
