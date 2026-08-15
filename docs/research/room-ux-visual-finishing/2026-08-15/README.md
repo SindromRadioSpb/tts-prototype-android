@@ -37,10 +37,10 @@ This packet does **not** reopen B0–B8, Library/Corpus ownership or IA, learner
 9. [FINDINGS.md](FINDINGS.md) — findings, immediate/backlog boundary and verification matrix.
 10. [screenshots/README.md](screenshots/README.md) — screenshot provenance.
 
-Post-approval implementation evidence: [VF0_IMPLEMENTATION_EVIDENCE.md](VF0_IMPLEMENTATION_EVIDENCE.md). VF0 is locally green and the owner reported the requested actual desktop Chrome 200% RU/HE check as PASS. Production evidence remains separate until deploy verification.
+Post-approval implementation evidence: [VF0_IMPLEMENTATION_EVIDENCE.md](VF0_IMPLEMENTATION_EVIDENCE.md). VF0 is locally green, the owner reported the requested actual desktop Chrome 200% RU/HE check as PASS, and production `3.11.389` passed its served-version/SW/assets, isolated 380 RU/HE and Kapture real-corpus read-only smokes. Final owner review remains pending.
 
 Owner decisions and exact approval values live in [`ROOM_UX_VISUAL_FINISHING_DECISION_PACKET_2026_08_15.md`](../../../planning/ROOM_UX_VISUAL_FINISHING_DECISION_PACKET_2026_08_15.md).
 
 ## Stop condition
 
-Research is complete and the owner approved the recommended V1–V10 values on 2026-08-15. Implementation is serialized; VF0 passed its local, automated and owner-reported 200% gates and is ready for its production deployment gate.
+Research is complete and the owner approved the recommended V1–V10 values on 2026-08-15. Implementation is serialized; VF0 passed local, owner-reported 200% and production gates. VF1 remains blocked until the owner reviews the deployed VF0 handoff.

@@ -78,9 +78,10 @@ All slices are serialized. A shared-contract change cannot be deployed concurren
 ## Gate status today
 
 - Research completeness: `PASS`.
-- Runtime implementation: `VF0_OWNER_200_PASS_READY_TO_DEPLOY`; no VF1–VF3 work has started.
+- Runtime implementation: `VF0_PRODUCTION_PASS_OWNER_REVIEW_PENDING`; no VF1–VF3 work has started.
 - Automated physical/AT claims: `NOT_RUN`.
 - Owner visual direction approval: `PASS` — recommendations approved on 2026-08-15.
 - Authorization to begin bounded implementation: `PASS` for serialized VF0–VF3, with each slice still subject to its preflight and stop gates.
 - VF0 actual desktop Chrome 200% RU/HE: `OWNER_REPORTED_PASS` on 2026-08-15; not physical-mobile, AT or agent-observed evidence.
-- VF0 production deployment: `READY`; production evidence remains pending until the served version, SW/assets and read-only Room smoke pass.
+- VF0 production deployment: `PASS` at 2026-08-15 19:57 +03:00 — API/HTML/SW `3.11.389`, new static assets `200`, fresh isolated SW/precache controlled, 380 RU/HE reflow green, and Kapture real Ben-Yehuda read-only smoke green.
+- VF0 owner handoff: `PENDING`; the existing owner tab truthfully shows the waiting-update action and was not force-activated by automation.

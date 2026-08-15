@@ -1,11 +1,11 @@
 # ROOM-UX-VF — VF0 implementation evidence
 
 > Date: 2026-08-15  
-> Status: `OWNER_200_PASS_READY_TO_DEPLOY`  
+> Status: `PRODUCTION_PASS_OWNER_REVIEW_PENDING`  
 > Source commit: `12dacd9a403ff8db2b7ad2dd20abf98e6c241386`  
-> Branch: `main`; candidate implementation commit `d1a929707440320b7795932be64d4d4b893fc0fe`; `origin/main` remained at the source commit through the owner gate  
+> Branch: `main`; implementation `d1a929707440320b7795932be64d4d4b893fc0fe`; owner-gate evidence `5781d006d1c541118a7bb39e8b806ede92fdcae9`; `origin/main` matched `5781d006` during production verification  
 > Worktree: `DIRTY`; 34 pre-existing entries were preserved. The scoped ROOM-UX-VF research, docs, runtime, test and screenshot files are enumerated in the implementation packet.  
-> Production: `https://linguistpro.kolosei.com/library.html#room=benyehuda`, still served `3.11.388`; no deploy occurred  
+> Production: `https://linguistpro.kolosei.com/library.html#room=benyehuda`, served `3.11.389`; production verification completed 2026-08-15 19:57 +03:00  
 > Local verification: `http://127.0.0.1:8791/library.html#room=hub`, served `3.11.389`  
 > Evidence classes: `CODE`, `OWNER_APPROVAL`, `OWNER_REPORTED`, `OWNER_LIVE_READ_ONLY`, `ISOLATED_AUTOMATION`, `EXTERNAL_PRIMARY`  
 > Limitations: no physical-mobile device or NVDA/VoiceOver/TalkBack run. The actual desktop Chrome 200% result is owner-reported in response to the exact checklist; it is not represented as agent-observed, physical-mobile or AT evidence.
@@ -16,7 +16,7 @@ VF0 is implemented and locally green for its additive foundation, icon provenanc
 
 The owner reported `PASS` on 2026-08-15 in direct response to the requested local `3.11.389` actual Chrome 200% RU and HE/RTL checklist: no horizontal page overflow, lost actions or broken long-title wrapping. This clears the deployment gate. It remains owner-reported desktop evidence, separate from the earlier 380px automation and from physical-mobile/AT evidence.
 
-VF1 has not started.
+Production is green and ready for owner review. VF1 has not started.
 
 ## 2. Implemented contract
 
@@ -112,7 +112,7 @@ These are isolated static/SW compatibility smokes, not proof of a rolling multi-
 
 ### Owner-live boundary
 
-The authorized Kapture production tab remained at `https://linguistpro.kolosei.com/library.html#room=benyehuda`. Research evidence already covered real Ben-Yehuda rows and the read-only aggregate of 115 real My Texts, including long mixed titles, media/progress variants and unchanged `review_log`. VF0 implementation did not navigate, reload, zoom, filter or change that owner tab. A separate temporary Kapture localhost tab was created and closed; it contained a fresh non-owner origin only.
+The authorized Kapture production tab remained at `https://linguistpro.kolosei.com/library.html#room=benyehuda`. Research evidence already covered real Ben-Yehuda rows and the read-only aggregate of 115 real My Texts, including long mixed titles and media/progress variants. VF0 local implementation did not touch that tab. After production reached `3.11.389`, the release smoke recorded a baseline, reloaded the same hash once, and performed read-only DOM/DB/network checks; it did not click, zoom, filter, grade, open a text or activate the waiting SW update. `review_log` and My Texts counts remained unchanged. A separate temporary Kapture localhost tab was created and closed; it contained a fresh non-owner origin only.
 
 ## 7. Findings carried into VF1
 
@@ -120,9 +120,38 @@ The authorized Kapture production tab remained at `https://linguistpro.kolosei.c
 - Legacy shell controls still show a 1px UA focus outline; recent reading actions show the stronger 3px ring. VF1 should adopt the foundation focus utility without changing tab order.
 - Live emoji remains intentionally unchanged in VF0. SVG adoption and localized text/Unicode fallback begin only in VF1.
 
-## 8. Release gate and rollback
+## 8. Production deployment evidence
 
-Current decision: `READY_PUSH_DEPLOY`.
+`main` advanced from `12dacd9a` to `5781d006` through the scoped VF0 implementation and owner-gate evidence commits. GitHub accepted the push, and Coolify's webhook deployment was not called complete until all three independently fetched surfaces agreed on `3.11.389`:
+
+- `/api/client-config` returned `version: 3.11.389`;
+- cache-busted `/library.html` contained footer `3.11.389` and the foundation link;
+- cache-busted `/sw.js` declared `CACHE_VERSION = "v3.11.389"`.
+
+Fresh isolated production evidence:
+
+- `/css/visual-foundations.css` loaded and exposed 23 parsed top-level rules;
+- the active controller was `/sw.js`; caches included `linguistpro-precache-v3.11.389` and `linguistpro-config-v3.11.389`;
+- precache matches for the foundation CSS and icon sprite were `200` with `text/css` and `image/svg+xml` respectively;
+- 380×844 RU and HE/RTL both had `clientWidth=scrollWidth=380`; HE reported `lang=he`, `dir=rtl` and computed RTL direction;
+- the prepared HE Learning Home rendered real baked Ben-Yehuda fixtures and the honest `796 ready / 26,455 total` aggregate;
+- all 16 isolated fetch/XHR requests were `GET`; the only console errors were the existing anonymous `401` probes for auth/group access, with no new static-asset failure.
+
+Kapture owner production read-only evidence:
+
+- the authorized tab remained on `#room=benyehuda`, RU, with 16 material rows and the real `796` ready aggregate;
+- `countPersonalTextsExact()` remained `115`;
+- `review_log` remained `7357 → 7357` before/after reload;
+- `scrollWidth=clientWidth=1905`, with no page overflow;
+- all 88 captured requests used `GET`; Kapture reported zero error-level console entries;
+- direct same-origin reads returned CSS `200 text/css` and sprite `200 image/svg+xml`;
+- the pre-existing client correctly entered the waiting-update state. Automation did not click the update action or clear production caches; this is the exact old-client/new-SW compatibility path for owner handoff.
+
+This is `PRODUCTION` plus `OWNER_LIVE_READ_ONLY` evidence. It is not final owner visual acceptance, a physical-mobile run or an assistive-technology run.
+
+## 9. Release gate and rollback
+
+Current decision: `PRODUCTION_PASS_OWNER_REVIEW_PENDING`.
 
 Owner-reported gate receipt:
 
@@ -130,6 +159,6 @@ Owner-reported gate receipt:
 2. RU and HE/RTL, no horizontal overflow, lost action or broken long-title wrapping: `PASS`;
 3. evidence class: `OWNER_REPORTED`; not agent-observed, physical-mobile or assistive-technology evidence.
 
-Remaining work is production-only: push the scoped commits, wait for served `3.11.389`, verify SW/static assets, run a read-only real-corpus smoke, and record production separately.
+Production work is complete. The owner can activate the already-visible update action in the existing production tab and perform the final visual review. VF1 remains blocked until that handoff is accepted.
 
 No schema or data rollback exists. Static rollback restores the prior HTML/SW version and removes the two foundation links; legacy styles remain complete throughout.
