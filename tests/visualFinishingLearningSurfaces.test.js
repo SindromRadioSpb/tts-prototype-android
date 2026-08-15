@@ -54,6 +54,10 @@ test("VF2 Mentor icons are host-provided, fallback-first and semantically silent
 });
 
 test("VF2 Mentor CSS uses the shared state, focus, motion and forced-colors grammar", () => {
+  assert.match(roomHtml, /<h2 class="reader-title"><span data-room-icon="lp-mark-mentor" aria-hidden="true">[\s\S]*<span data-i18n="room\.mentor\.title">Наставник<\/span><\/h2>/,
+    "the Mentor view identity must expose localized text while its product mark stays silent");
+  assert.doesNotMatch(roomHtml, /<h2[^>]*data-i18n="room\.mentor\.title"[^>]*>\s*🤖/,
+    "generic i18n replacement must not restore an emoji-only Mentor heading");
   assert.match(roomHtml, /\.mentor-status-line\.lp-state/);
   assert.match(roomHtml, /\.mentor-vf2-focus:focus-visible/);
   assert.match(roomHtml, /var\(--lp-motion-hover\)/);
