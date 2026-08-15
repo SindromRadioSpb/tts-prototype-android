@@ -119,28 +119,29 @@ test("VF1 focus, density, motion, reduced-motion and forced-colors stay bounded"
   assert.match(html, /@media \(max-width: 480px\)[\s\S]*\.room-head-controls[\s\S]*flex-wrap:\s*wrap/);
 });
 
-test("VF1 locale identity text is emoji-free and locale cache advances once", () => {
-  for (const [source, title, studio, cloud] of [
-    [ru, "Читальный зал", "Студия", "Синхронизация"],
-    [en, "Reading Room", "Studio", "Sync"],
-    [he, "חדר קריאה", "סטודיו", "סנכרון"],
+test("VF1/VF2 locale identity text is emoji-free and locale cache advances once", () => {
+  for (const [source, title, studio, cloud, mentor] of [
+    [ru, "Читальный зал", "Студия", "Синхронизация", "Наставник"],
+    [en, "Reading Room", "Studio", "Sync", "Mentor"],
+    [he, "חדר קריאה", "סטודיו", "סנכרון", "מנטור"],
   ]) {
     assert.match(source, new RegExp(`header: \\{[\\s\\S]{0,180}title: "${title}"`));
     assert.match(source, new RegExp(`footer: \\{[\\s\\S]{0,100}studio: "${studio}"`));
     assert.match(source, new RegExp(`cloud: \\{[\\s\\S]{0,120}title: "${cloud}"`));
+    assert.match(source, new RegExp(`mentor: \\{[\\s\\S]{0,120}title: "${mentor}"`));
   }
   for (const locale of ["ru", "en", "he"]) {
-    assert.match(html, new RegExp(`/i18n/locales/${locale}\\.js\\?v=166`));
-    assert.match(indexHtml, new RegExp(`/i18n/locales/${locale}\\.js\\?v=166`));
+    assert.match(html, new RegExp(`/i18n/locales/${locale}\\.js\\?v=167`));
+    assert.match(indexHtml, new RegExp(`/i18n/locales/${locale}\\.js\\?v=167`));
   }
 });
 
-test("VF2 release surfaces lock to 3.11.395 and retain the corrected Room module URL", () => {
+test("VF2 release surfaces lock to 3.11.396 and retain the corrected Room module URL", () => {
   const app = indexHtml.match(/window\.APP_VERSION\s*=\s*"([^"]+)"/);
   const room = html.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
   const worker = sw.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
   assert.ok(app && room && worker);
-  assert.equal(app[1], "3.11.395");
+  assert.equal(app[1], "3.11.396");
   assert.equal(room[1], app[1]);
   assert.equal(worker[1], app[1]);
   assert.match(html, /<script type="module" src="\/js\/library-ui\.js\?v=394"><\/script>/,

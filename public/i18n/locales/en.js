@@ -2372,7 +2372,7 @@ window.I18N_LOCALES.en = {
     // CLG-P9 — Mentor home: full-screen view inside the Room (🤖 in the header, hash #mentor)
     mentor: {
       btn: "Mentor",
-      title: "🤖 Mentor",
+      title: "Mentor",
       needCloud: "The mentor needs a cloud account.",
       needCloudHint: "Open ☁ in the header, sign in and sync — your daily plan, explanation history and weak spots will appear here.",
       histTitle: "Explanation history",
