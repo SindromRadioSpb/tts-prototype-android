@@ -216,6 +216,7 @@
     "smoke:room": "node scripts/premium/room-smoke.js",
     "smoke:room-mode": "node scripts/premium/room-mode-smoke.js",
     "smoke:room-media": "node scripts/premium/room-media-smoke.js",
+    "smoke:room-audio-indicator": "node --test tests/readerAudioIndicator.test.js && node scripts/premium/room-audio-indicator-smoke.js",
     "smoke:studio-media-progress": "node scripts/premium/studio-media-progress-smoke.js",
     "smoke:reading-position-corpus": "node --test tests/roomUxMaturity.test.js && node scripts/premium/studio-media-progress-smoke.js && node scripts/premium/room-media-smoke.js && node scripts/premium/room-ux-maturity-browser-smoke.js --stage=REGRESSION",
     "smoke:room-study": "node scripts/premium/room-study-smoke.js",

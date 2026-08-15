@@ -547,6 +547,85 @@ export async function openText(textId, opts) {
   return { ok: true, text: text, rows: rows };
 }
 
+// ── Per-row audio availability (Studio ↔ Room parity) ──────────────────────
+// The shared table builder emits only the neutral marker node. Each surface
+// paints it after render because Studio has an additional prefetch policy while
+// the Room only needs persisted audio availability. Incomplete profile metadata
+// never makes a known usable asset look absent (the same rule Studio applies).
+export function normalizeRowAudioProfile(profile) {
+  if (!profile || typeof profile !== "object") return null;
+  const language = String(profile.language || profile.lang || "").trim();
+  const voiceName = String(profile.voiceName || profile.voiceId || profile.voice || "").trim();
+  const speakingRate = typeof profile.speakingRate === "number"
+    ? profile.speakingRate
+    : (typeof profile.rate === "number" ? profile.rate : Number(profile.speakingRate || profile.rate || 1));
+  const pitch = typeof profile.pitch === "number" ? profile.pitch : Number(profile.pitch || 0);
+  if (!language || !voiceName) return null;
+  return {
+    language,
+    voiceName,
+    speakingRate: Number.isFinite(speakingRate) ? speakingRate : 1,
+    pitch: Number.isFinite(pitch) ? pitch : 0,
+  };
+}
+
+export function rowAudioProfilesEqual(left, right) {
+  const a = normalizeRowAudioProfile(left);
+  const b = normalizeRowAudioProfile(right);
+  return !!(a && b
+    && a.language === b.language
+    && a.voiceName === b.voiceName
+    && Math.abs(a.speakingRate - b.speakingRate) <= 1e-6
+    && Math.abs(a.pitch - b.pitch) <= 1e-6);
+}
+
+function parseRowAudioProfile(value) {
+  if (!value) return null;
+  if (typeof value === "object") return value;
+  try { return JSON.parse(String(value)); } catch (_) { return null; }
+}
+
+export function formatRowAudioProfile(profile) {
+  const p = normalizeRowAudioProfile(profile);
+  return p ? `${p.language} / ${p.voiceName} • rate ${p.speakingRate} • pitch ${p.pitch}` : "";
+}
+
+export function rowAudioIndicatorPresentation(row, currentProfile) {
+  const assetKey = String((row && row._v3_audioAssetKey) || "").trim();
+  if (!assetKey) return { state: "missing", assetKey: "", storedProfile: null, currentProfile: currentProfile || null };
+  const storedProfile = parseRowAudioProfile(row && row._v3_audioTtsProfileJson);
+  const storedNormalized = normalizeRowAudioProfile(storedProfile);
+  const currentNormalized = normalizeRowAudioProfile(currentProfile);
+  const sameProfile = !storedNormalized || !currentNormalized || rowAudioProfilesEqual(storedProfile, currentProfile);
+  return { state: sameProfile ? "ok" : "mismatch", assetKey, storedProfile, currentProfile: currentProfile || null };
+}
+
+export function paintRowAudioIndicator(mount, rowIdx, row, currentProfile, labels) {
+  if (!mount) return null;
+  const marker = mount.querySelector('span.row-audio-ind[data-row-idx="' + String(rowIdx) + '"]');
+  if (!marker) return null;
+  const presentation = rowAudioIndicatorPresentation(row, currentProfile);
+  const copy = labels || {};
+  let title = copy.missing || "Audio not created";
+  if (presentation.state === "ok") {
+    const profile = formatRowAudioProfile(presentation.storedProfile);
+    title = profile ? (copy.ready || "Audio ready") + " • " + profile : (copy.readyUnknown || copy.ready || "Audio ready");
+  } else if (presentation.state === "mismatch") {
+    const stored = formatRowAudioProfile(presentation.storedProfile);
+    const current = formatRowAudioProfile(presentation.currentProfile);
+    title = (copy.mismatch || "Audio was created for another voice profile")
+      + (stored ? "\n" + (copy.cachedProfile || "Cached") + ": " + stored : "")
+      + (current ? "\n" + (copy.currentProfile || "Current") + ": " + current : "");
+  }
+  marker.className = "row-audio-ind state-" + presentation.state;
+  marker.dataset.audioState = presentation.state;
+  marker.title = title;
+  marker.setAttribute("role", "img");
+  marker.setAttribute("aria-label", title.replace(/\n/g, ". "));
+  marker.removeAttribute("aria-hidden");
+  return presentation;
+}
+
 // ── Per-row audio (Room) ─────────────────────────────────────────────────────
 // Delegated ▶ playback on a mount, reproducing index.html's Library audio path,
 // SLIMMED to three keyless-first tiers (owner decision D2+b):
@@ -569,8 +648,9 @@ export async function openText(textId, opts) {
 //                              //   NOT play the row (the ▶ button still plays). The Room
 //                              //   passes ['he','niqqud'] so those cells are free for the
 //                              //   word-tap morphology layer (reader-morph.js).
-//     audioUrlForAssetKey,     // optional protected-corpus resolver; default /api/audio/:key
-//     timingUrlForAssetKey,    // optional timing resolver; null disables word timing
+//     audioUrlForAssetKey,     // optional (key,row,rowIdx) protected-corpus resolver
+//     timingUrlForAssetKey,    // optional (key,row,rowIdx) resolver; null disables timing
+//     onAssetReady(payload),   // optional canonical persistence/presentation callback
 //   }
 export function attachRowAudio(mount, opts) {
   opts = opts || {};
@@ -579,12 +659,16 @@ export function attachRowAudio(mount, opts) {
   const excludeTapCols = Array.isArray(opts.tapToHearExcludeCols) ? opts.tapToHearExcludeCols : [];
   const profileOf = () => (typeof opts.profile === "function" ? opts.profile() : opts.profile) || {};
   const gcpKeyOf = () => String((typeof opts.gcpKey === "function" ? opts.gcpKey() : opts.gcpKey) || "");
-  const audioUrlOf = (key) => typeof opts.audioUrlForAssetKey === "function"
-    ? opts.audioUrlForAssetKey(key)
+  const audioUrlOf = (key, row, rowIdx) => typeof opts.audioUrlForAssetKey === "function"
+    ? opts.audioUrlForAssetKey(key, row, rowIdx)
     : "/api/audio/" + encodeURIComponent(key);
-  const timingUrlOf = (key) => typeof opts.timingUrlForAssetKey === "function"
-    ? opts.timingUrlForAssetKey(key)
+  const timingUrlOf = (key, row, rowIdx) => typeof opts.timingUrlForAssetKey === "function"
+    ? opts.timingUrlForAssetKey(key, row, rowIdx)
     : "/api/audio/" + encodeURIComponent(key) + "/timing";
+  const onAssetReady = async (payload) => {
+    if (typeof opts.onAssetReady !== "function") return;
+    try { await opts.onAssetReady(payload); } catch (_) {}
+  };
   const LANG = "he-IL";
   let player = null, playingIdx = null, objUrl = null, mode = null; // mode: 'audio' | 'speech'
   // BRR-P1-008 karaoke — continuous auto-advance. opts.rowCount()=>n and opts.onRowChange(idx)
@@ -604,12 +688,12 @@ export function attachRowAudio(mount, opts) {
   // browser-speech has no timing → sentence-level only. No timing file ⇒ graceful sentence-level.
   let activeTiming = null, speakingWord = -1;
   const timingCache = new Map();
-  async function ensureTiming(assetKey) {
+  async function ensureTiming(assetKey, row, rowIdx) {
     if (!assetKey) return null;
     if (timingCache.has(assetKey)) return timingCache.get(assetKey);
     let t = null;
     try {
-      const timingUrl = timingUrlOf(assetKey);
+      const timingUrl = timingUrlOf(assetKey, row, rowIdx);
       if (!timingUrl) { timingCache.set(assetKey, null); return null; }
       const r = await fetch(timingUrl, { cache: "force-cache" });
       if (r && r.ok) { const j = await r.json(); if (j && Array.isArray(j.words) && j.words.length) t = j; }
@@ -727,13 +811,13 @@ export function attachRowAudio(mount, opts) {
       // tier 1 — keyless cached asset
       const assetKey = String(row._v3_audioAssetKey || "").trim();
       if (assetKey) {
-        const assetUrl = audioUrlOf(assetKey);
+        const assetUrl = audioUrlOf(assetKey, row, idx);
         let ok = false;
         try { const h = assetUrl ? await fetch(assetUrl, { method: "HEAD" }) : null; ok = !!(h && h.ok); } catch (_) { ok = false; }
         if (ok) {
           revoke(); mode = "audio"; p.src = assetUrl; setPlaying(idx);
           activeTiming = null; speakingWord = -1;   // BRR-P1-008b — load word timing in parallel
-          ensureTiming(assetKey).then((tm) => { if (playingIdx === idx && mode === "audio") activeTiming = tm; });
+          ensureTiming(assetKey, row, idx).then((tm) => { if (playingIdx === idx && mode === "audio") activeTiming = tm; });
           startWordTick();   // rAF word-highlight loop (iOS-safe)
           await p.play(); return;
         }
@@ -743,9 +827,22 @@ export function attachRowAudio(mount, opts) {
         const res = await postTts(text, prof, row);
         const freshKey = res && typeof res.assetKey === "string" ? res.assetKey.trim() : "";
         if (freshKey) {
-          revoke(); mode = "audio"; p.src = "/api/audio/" + encodeURIComponent(freshKey); row._v3_audioAssetKey = freshKey; setPlaying(idx);
+          const freshProfile = {
+            language: LANG,
+            voiceName: String(prof.voiceId || ""),
+            speakingRate: typeof prof.rate === "number" ? prof.rate : 1,
+            pitch: typeof prof.pitch === "number" ? prof.pitch : 0,
+          };
+          row._v3_audioAssetKey = freshKey;
+          row._v3_audioTtsProfileJson = JSON.stringify(freshProfile);
+          // Fresh BYOK assets live in the public per-user cache even when the
+          // original row came from a protected group corpus. Preserve routing
+          // provenance so subsequent clicks do not probe the protected URL.
+          row._roomPublicAudioAssetKey = freshKey;
+          await onAssetReady({ rowIdx: idx, row, assetKey: freshKey, profile: freshProfile, source: "fresh" });
+          revoke(); mode = "audio"; p.src = "/api/audio/" + encodeURIComponent(freshKey); setPlaying(idx);
           activeTiming = null; speakingWord = -1;
-          ensureTiming(freshKey).then((tm) => { if (playingIdx === idx && mode === "audio") activeTiming = tm; });
+          ensureTiming(freshKey, row, idx).then((tm) => { if (playingIdx === idx && mode === "audio") activeTiming = tm; });
           startWordTick();
           await p.play(); return;
         }

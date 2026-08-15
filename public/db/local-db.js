@@ -5143,7 +5143,13 @@ export async function upsertAudioAsset({ id, asset_key, asset_type, relative_pat
   await r(
     `INSERT INTO audio_assets (id, asset_key, asset_type, relative_path, mime, duration_ms, size_bytes, tts_profile_json, created_at, last_used_at)
      VALUES (?,?,?,?,?,?,?,?,?,?)
-     ON CONFLICT(asset_key) DO UPDATE SET last_used_at = excluded.last_used_at`,
+     ON CONFLICT(asset_key) DO UPDATE SET
+       relative_path = excluded.relative_path,
+       mime = excluded.mime,
+       duration_ms = COALESCE(excluded.duration_ms, audio_assets.duration_ms),
+       size_bytes = COALESCE(excluded.size_bytes, audio_assets.size_bytes),
+       tts_profile_json = COALESCE(excluded.tts_profile_json, audio_assets.tts_profile_json),
+       last_used_at = excluded.last_used_at`,
     [id, asset_key, asset_type ?? 'row', relative_path ?? `audio-cache/${asset_key}.mp3`,
      mime ?? 'audio/mpeg', duration_ms ?? null, size_bytes ?? null,
      tts_profile_json ?? null, now, now]
@@ -5154,7 +5160,8 @@ export async function upsertAudioAsset({ id, asset_key, asset_type, relative_pat
 
 export async function linkSentenceAudio(sentenceId, audioId, isDefault = 1) {
   await r(
-    `INSERT OR IGNORE INTO sentence_audio (sentence_id, audio_id, is_default) VALUES (?,?,?)`,
+    `INSERT INTO sentence_audio (sentence_id, audio_id, is_default) VALUES (?,?,?)
+     ON CONFLICT(sentence_id, audio_id) DO UPDATE SET is_default = excluded.is_default`,
     [sentenceId, audioId, isDefault]
   );
   if (isDefault) {

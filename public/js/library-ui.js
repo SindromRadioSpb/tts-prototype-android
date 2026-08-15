@@ -4598,6 +4598,18 @@ function attachReaderAudio() {
   const mount = $('roomReaderTable');
   if (!mount) return;
   if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
+  const audioProfile = { language: 'he-IL', voiceName: '', speakingRate: 1.0, pitch: 0.0 };
+  const audioIndicatorLabels = {
+    ready: tt('room.reader.audio.ready', 'Аудио готово'),
+    readyUnknown: tt('room.reader.audio.readyUnknown', 'Аудио готово (профиль не задан)'),
+    missing: tt('room.reader.audio.missing', 'Аудио не создано. Нажмите ▶, чтобы озвучить строку.'),
+    mismatch: tt('room.reader.audio.mismatch', 'Аудио создано для другого профиля голоса.'),
+    cachedProfile: tt('room.reader.audio.cachedProfile', 'В кэше'),
+    currentProfile: tt('room.reader.audio.currentProfile', 'Сейчас'),
+  };
+  const paintAudioIndicator = (idx) => readerCore.paintRowAudioIndicator(
+    mount, idx, readerRows[idx], audioProfile, audioIndicatorLabels
+  );
   readerAudio = readerCore.attachRowAudio(mount, {
     getRow: (i) => readerRows[i],
     rowCount: () => readerRows.length,        // BRR-P1-008 karaoke — bound for auto-advance
@@ -4605,16 +4617,34 @@ function attachReaderAudio() {
     profile: { voiceId: '', rate: 1.0, pitch: 0.0 },
     gcpKey: gcpTtsKey,
     audioUrlForAssetKey: readerGroupCorpusId
-      ? (key) => '/api/group-corpora/' + encodeURIComponent(readerGroupCorpusId) + '/audio/' + encodeURIComponent(key)
+      ? (key, row) => row && row._roomPublicAudioAssetKey === key
+        ? '/api/audio/' + encodeURIComponent(key)
+        : '/api/group-corpora/' + encodeURIComponent(readerGroupCorpusId) + '/audio/' + encodeURIComponent(key)
       : undefined,
     timingUrlForAssetKey: readerGroupCorpusId
-      ? (key) => '/api/group-corpora/' + encodeURIComponent(readerGroupCorpusId) + '/audio/' + encodeURIComponent(key) + '/timing'
+      ? (key, row) => row && row._roomPublicAudioAssetKey === key
+        ? '/api/audio/' + encodeURIComponent(key) + '/timing'
+        : '/api/group-corpora/' + encodeURIComponent(readerGroupCorpusId) + '/audio/' + encodeURIComponent(key) + '/timing'
       : undefined,
+    onAssetReady: async ({ rowIdx, row, assetKey, profile }) => {
+      paintAudioIndicator(rowIdx);   // immediate Studio-parity feedback
+      if (!row || !row._v3_sentenceId || !assetKey) return;
+      const audioId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID()
+        : ('aa-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
+      const profileJson = JSON.stringify(profile || audioProfile);
+      const asset = await localDb.upsertAudioAsset({
+        id: audioId, asset_key: String(assetKey), asset_type: 'row',
+        relative_path: 'audio-cache/' + String(assetKey) + '.mp3',
+        mime: 'audio/mpeg', tts_profile_json: profileJson,
+      });
+      if (asset && asset.id) await localDb.linkSentenceAudio(String(row._v3_sentenceId), asset.id, 1);
+    },
     t: (k) => tt(k, k),
     // he/niqqud cell taps are reserved for the word-morphology layer below; the ▶ button +
     // translit cell still play the row. In reveal mode the ru cell tap reveals (not audio).
     tapToHearExcludeCols: readerCfg.ruMode === 'reveal' ? ['he', 'niqqud', 'ru'] : ['he', 'niqqud'],
   });
+  readerRows.forEach((_, idx) => paintAudioIndicator(idx));
   attachReaderMorph(mount);
   applyReveal(mount);
   attachBookmarks(mount);   // BRR-P2-003 — POST-render ☆/★ per row (Room-only, parity-safe)
