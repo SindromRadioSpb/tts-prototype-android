@@ -1,5 +1,10 @@
 # ROOM Corpus Discovery & Catalog — implementation and release evidence
 
+> **CLOSED · OWNER ACCEPTED · 2026-08-15.** The owner reported successful
+> production testing before raising the separate pre-existing audio-indicator
+> regression. Consolidated closure:
+> [`ROOM_LIBRARY_CORPUS_SURFACE_PROGRAM_CLOSURE_2026_08_15.md`](../../../../../planning/ROOM_LIBRARY_CORPUS_SURFACE_PROGRAM_CLOSURE_2026_08_15.md).
+
 ## Evidence passport
 
 | Field | Value |

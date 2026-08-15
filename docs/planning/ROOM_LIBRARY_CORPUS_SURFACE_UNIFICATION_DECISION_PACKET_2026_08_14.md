@@ -1,5 +1,8 @@
 # ROOM-LIBRARY-IA — Library & Corpus Surface Unification
 
+> **CLOSED · OWNER ACCEPTED · 2026-08-15.** Consolidated closure:
+> [`ROOM_LIBRARY_CORPUS_SURFACE_PROGRAM_CLOSURE_2026_08_15.md`](./ROOM_LIBRARY_CORPUS_SURFACE_PROGRAM_CLOSURE_2026_08_15.md).
+
 ## Owner decision packet
 
 ## Evidence passport

@@ -1,5 +1,8 @@
 # ROOM-CORPUS-DISCOVERY — approved corpus discovery and catalog contract
 
+> **CLOSED · OWNER ACCEPTED · production 3.11.387.** Consolidated closure:
+> [`ROOM_LIBRARY_CORPUS_SURFACE_PROGRAM_CLOSURE_2026_08_15.md`](./ROOM_LIBRARY_CORPUS_SURFACE_PROGRAM_CLOSURE_2026_08_15.md).
+
 ## Evidence passport
 
 | Field | Value |

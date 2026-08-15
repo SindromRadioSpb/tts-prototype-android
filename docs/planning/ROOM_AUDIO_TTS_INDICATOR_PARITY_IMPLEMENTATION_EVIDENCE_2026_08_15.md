@@ -1,5 +1,10 @@
 # Reading Room row-audio indicator parity — implementation evidence
 
+Status: **CLOSED · OWNER ACCEPTED · production 3.11.388**
+
+Consolidated closure:
+[`ROOM_LIBRARY_CORPUS_SURFACE_PROGRAM_CLOSURE_2026_08_15.md`](./ROOM_LIBRARY_CORPUS_SURFACE_PROGRAM_CLOSURE_2026_08_15.md).
+
 Date: 2026-08-15
 
 Branch: `main`
@@ -112,6 +117,20 @@ Owner-data read-back was identical immediately before and after service-worker a
 - target-text default audio links: `42`.
 
 No owner TTS action was invoked in production. The state-changing fresh-TTS callback was verified only in isolated automation; owner-live verification remained read-only with respect to learning and audio data.
+
+### Owner acceptance and closure
+
+The owner subsequently performed the state-changing production scenario and
+reported PASS on all three requested observations:
+
+- every marker for `Position 1. אושר כהן - כולם גנבים` is green;
+- after fresh TTS, a gray marker becomes green immediately;
+- the green state survives reload.
+
+This is owner-reported production evidence. Exact device/browser/AT metadata was
+not supplied, so it does not broaden the existing physical-device or assistive-
+technology claims. The owner explicitly directed documentary closure on
+2026-08-15; this slice is closed.
 
 ## Release boundary
 

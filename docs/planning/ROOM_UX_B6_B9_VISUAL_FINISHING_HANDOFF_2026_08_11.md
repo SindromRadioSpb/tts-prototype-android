@@ -1,5 +1,13 @@
 # Reading Room B6–B9 + Visual finishing — next-session handoff
 
+> **Successor update · 2026-08-15:** B8 Reading Journey and the subsequent
+> Library/Corpus Surface, Discovery/Catalog and Audio/TTS parity program are
+> closed and owner-accepted. The next numbered program is B9, which must begin
+> as a separate research-only goal. See
+> [`ROOM_LIBRARY_CORPUS_SURFACE_PROGRAM_CLOSURE_2026_08_15.md`](./ROOM_LIBRARY_CORPUS_SURFACE_PROGRAM_CLOSURE_2026_08_15.md)
+> and
+> [`ROOM_UX_B9_CURATED_PATHS_ASSIGNMENTS_RESEARCH_SESSION_PROMPT_2026_08_15.md`](./ROOM_UX_B9_CURATED_PATHS_ASSIGNMENTS_RESEARCH_SESSION_PROMPT_2026_08_15.md).
+
 Дата: 2026-08-11
 
 Статус: **B6 CLOSED; B7 CLOSED WITH DOCUMENTED PHYSICAL/AT EXCEPTIONS; NEXT B8 RESEARCH-ONLY**

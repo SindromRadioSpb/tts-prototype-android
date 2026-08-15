@@ -1,5 +1,8 @@
 # ROOM-LIBRARY-IA — production release evidence
 
+> **CLOSED · OWNER ACCEPTED · 2026-08-15.** This release evidence is frozen by
+> [`ROOM_LIBRARY_CORPUS_SURFACE_PROGRAM_CLOSURE_2026_08_15.md`](../../../../planning/ROOM_LIBRARY_CORPUS_SURFACE_PROGRAM_CLOSURE_2026_08_15.md).
+
 ## Evidence passport
 
 | Field | Value |
