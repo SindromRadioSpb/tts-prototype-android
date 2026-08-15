@@ -1,5 +1,13 @@
 # ROOM-UX-B9 — Curated Paths & Assignments research-session prompt
 
+> **Successor status · 2026-08-15:** this research session was completed and its
+> design decisions were recorded, but B9 implementation and schema migration are
+> now frozen because no qualified curator-mentor operating authority is
+> available. Do not reuse this prompt as implementation authority. See
+> [the controlling freeze record](./ROOM_UX_B9_CURATED_PATHS_ASSIGNMENTS_FREEZE_2026_08_15.md).
+> The next active lane is
+> [ROOM-UX-VF — Visual Finishing research-only](./ROOM_UX_VISUAL_FINISHING_RESEARCH_SESSION_PROMPT_2026_08_15.md).
+
 Скопируй следующий блок целиком в новую сессию.
 
 ---

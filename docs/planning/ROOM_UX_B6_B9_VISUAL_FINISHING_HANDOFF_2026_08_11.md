@@ -2,15 +2,17 @@
 
 > **Successor update · 2026-08-15:** B8 Reading Journey and the subsequent
 > Library/Corpus Surface, Discovery/Catalog and Audio/TTS parity program are
-> closed and owner-accepted. The next numbered program is B9, which must begin
-> as a separate research-only goal. See
-> [`ROOM_LIBRARY_CORPUS_SURFACE_PROGRAM_CLOSURE_2026_08_15.md`](./ROOM_LIBRARY_CORPUS_SURFACE_PROGRAM_CLOSURE_2026_08_15.md)
+> closed and owner-accepted. B9 research is complete, but implementation and
+> schema migration are frozen because no qualified curator-mentor operating
+> authority is currently available. The next active lane is bounded Visual
+> Finishing research-only. See
+> [`ROOM_UX_B9_CURATED_PATHS_ASSIGNMENTS_FREEZE_2026_08_15.md`](./ROOM_UX_B9_CURATED_PATHS_ASSIGNMENTS_FREEZE_2026_08_15.md)
 > and
-> [`ROOM_UX_B9_CURATED_PATHS_ASSIGNMENTS_RESEARCH_SESSION_PROMPT_2026_08_15.md`](./ROOM_UX_B9_CURATED_PATHS_ASSIGNMENTS_RESEARCH_SESSION_PROMPT_2026_08_15.md).
+> [`ROOM_UX_VISUAL_FINISHING_RESEARCH_SESSION_PROMPT_2026_08_15.md`](./ROOM_UX_VISUAL_FINISHING_RESEARCH_SESSION_PROMPT_2026_08_15.md).
 
 Дата: 2026-08-11
 
-Статус: **B6 CLOSED; B7 CLOSED WITH DOCUMENTED PHYSICAL/AT EXCEPTIONS; NEXT B8 RESEARCH-ONLY**
+Статус: **B6 CLOSED; B7 CLOSED; B8 CLOSED; LIBRARY/CORPUS SUCCESSOR CLOSED; B9 FROZEN; NEXT VISUAL FINISHING RESEARCH-ONLY**
 
 Предшествующие программы: Option B B0–B5 и B6 Scale & Resilience закрыты
 владельцем; см. `ROOM_UX_MATURITY_OPTION_B_CLOSURE_2026_08_11.md` и
@@ -85,19 +87,24 @@ compact-copy follow-up plus cold-library/packet hardening `1298bb71` and
 - ясное unsupported state вместо fabricated `0%`;
 - никакого opaque AI recommender.
 
-### B8 — Reading Journey
+### B8 — Reading Journey — CLOSED
 
 - отдельное owner decision по cross-corpus saved/bookmark identity;
 - одна recoverable presentation progress + notes + vocabulary + media + last place;
 - advanced saved/filtered views только поверх существующих canonical stores;
 - запрет второго progress/vocabulary/notes writer.
 
-### B9 — Curated paths и assignments
+### B9 — Curated paths и assignments — FROZEN
 
 - editor/teacher-authored sequence: text/song/review/optional comprehension;
 - reason, source, level и assignment authority видимы;
 - использовать существующий comprehension/trainer контур, не создавать quiz wall;
 - AI-generated paths/content — отдельное позднее решение, default-off.
+- research и D1–D10 зафиксированы, но runtime/schema/data execution suspended;
+- причина: для зрелого authoring/publish/maintenance/learner-exception контура
+  сейчас нет квалифицированного curator-mentor;
+- re-entry только по условиям и точному token из
+  [`ROOM_UX_B9_CURATED_PATHS_ASSIGNMENTS_FREEZE_2026_08_15.md`](./ROOM_UX_B9_CURATED_PATHS_ASSIGNMENTS_FREEZE_2026_08_15.md).
 
 ### Visual finishing — bounded surface-local lane
 
@@ -110,20 +117,23 @@ compact-copy follow-up plus cold-library/packet hardening `1298bb71` and
 Visual finishing может исследоваться параллельно B6, но shared `reader-core.css`, `morph-host.js`,
 LocalDb/FSRS/media/i18n/SW contracts и production deployments остаются сериализованными.
 
-## Текущая следующая граница: B8 Reading Journey research-only
+## Текущая следующая граница: Visual Finishing research-only
 
 Стартовый запрос новой сессии:
-[`ROOM_UX_B8_READING_JOURNEY_RESEARCH_SESSION_PROMPT_2026_08_13.md`](./ROOM_UX_B8_READING_JOURNEY_RESEARCH_SESSION_PROMPT_2026_08_13.md).
+[`ROOM_UX_VISUAL_FINISHING_RESEARCH_SESSION_PROMPT_2026_08_15.md`](./ROOM_UX_VISUAL_FINISHING_RESEARCH_SESSION_PROMPT_2026_08_15.md).
 
-1. B7 closure:
-   [`ROOM_UX_B7_LEARNING_COMPASS_2_CLOSURE_2026_08_13.md`](./ROOM_UX_B7_LEARNING_COMPASS_2_CLOSURE_2026_08_13.md).
-2. Начать новый goal B8 только в research-only режиме; сначала recon живого
-   кода/canonical stores и owner decision packet, затем STOP до approval.
-3. B9 и Visual finishing не piggyback на B8 decision или release.
+1. B9 freeze:
+   [`ROOM_UX_B9_CURATED_PATHS_ASSIGNMENTS_FREEZE_2026_08_15.md`](./ROOM_UX_B9_CURATED_PATHS_ASSIGNMENTS_FREEZE_2026_08_15.md).
+2. Начать новый goal Visual Finishing только в research-only режиме; сначала
+   recon живого CSS/DOM/icon/typography/motion состояния и owner decision packet,
+   затем STOP до `APPROVE ROOM-UX-VF-R`.
+3. B9 entities, migration, authoring/assignment UI и protected-cache purge не
+   piggyback на Visual Finishing decision или release.
 
 ## Постоянный stop list
 
-- не переоткрывать B0–B7 без regression evidence;
+- не переоткрывать B0–B8 или Library/Corpus successor без regression evidence;
+- не размораживать B9 без отдельного owner token и curator-mentor re-entry gates;
 - не создавать вторую learner truth или silent state inference;
 - не отправлять learner content в telemetry;
 - не добавлять unexplained AI recommendations, mandatory quizzes, cover grid или gamified feed;
