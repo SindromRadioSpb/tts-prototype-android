@@ -47,52 +47,24 @@ body.theme-dark {
   --prov-exact: #3fb950; --prov-likely: #5a9bff; --prov-amber: #d29922; --prov-context: #a371f7;
 }
 
-/* ── Generic-токены темы на поверхностях карточки (копия темы Зала) ──────────── */
+/* ── Generic aliases on shared Reader/Morph surfaces ──────────────────────────
+   ROOM-UX-VF2: values now resolve through the shared foundation. Domain tokens
+   above remain local because learning/provenance truth is not a theme role. */
 .rm-sheet, .rm-statpop, .room-consent-overlay, .reader-status-legend, #tableContainer {
-  --bg-page: #f4f6f9;
-  --bg-card: #ffffff;
-  --bg-muted: #eef2f7;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-faint: #94a3b8;
-  --border-soft: #e2e8f0;
-  --accent: #2563eb;
-  --accent-contrast: #ffffff;
-  --shadow: 0 1px 3px rgba(15, 23, 42, .08), 0 1px 2px rgba(15, 23, 42, .04);
-}
-@media (prefers-color-scheme: dark) {
-  body:not(.theme-light) .rm-sheet, body:not(.theme-light) .rm-statpop,
-  body:not(.theme-light) .room-consent-overlay, body:not(.theme-light) .reader-status-legend,
-  body:not(.theme-light) #tableContainer {
-    --bg-page: #0f172a;
-    --bg-card: #1e293b;
-    --bg-muted: #243349;
-    --text-primary: #f1f5f9;
-    --text-secondary: #cbd5e1;
-    --text-faint: #7c8ba3;
-    --border-soft: #334155;
-    --accent: #60a5fa;
-    --accent-contrast: #0b1220;
-    --shadow: 0 1px 3px rgba(0, 0, 0, .4);
-  }
-}
-body.theme-dark .rm-sheet, body.theme-dark .rm-statpop,
-body.theme-dark .room-consent-overlay, body.theme-dark .reader-status-legend,
-body.theme-dark #tableContainer {
-  --bg-page: #0f172a;
-  --bg-card: #1e293b;
-  --bg-muted: #243349;
-  --text-primary: #f1f5f9;
-  --text-secondary: #cbd5e1;
-  --text-faint: #7c8ba3;
-  --border-soft: #334155;
-  --accent: #60a5fa;
-  --accent-contrast: #0b1220;
-  --shadow: 0 1px 3px rgba(0, 0, 0, .4);
+  --bg-page: var(--theme-bg-page);
+  --bg-card: var(--theme-bg-card);
+  --bg-muted: var(--theme-bg-muted);
+  --text-primary: var(--theme-text-primary);
+  --text-secondary: var(--theme-text-secondary);
+  --text-faint: var(--theme-text-faint);
+  --border-soft: var(--theme-border-soft);
+  --accent: var(--theme-accent);
+  --accent-contrast: var(--lp-accent-contrast);
+  --shadow: var(--theme-shadow-sm);
 }
 
 /* ── Тапабельные слова (базовый вид) ─────────────────────────────────────────── */
-.rm-w { cursor: pointer; border-radius: 3px; transition: background .12s ease; }
+.rm-w { cursor: pointer; border-radius: 3px; transition: background-color var(--lp-motion-hover) var(--lp-ease-standard); }
 .rm-w:hover { background: var(--bg-muted); }
 .rm-w:focus { outline: none; background: var(--bg-muted); }
 .rm-w:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
@@ -108,7 +80,7 @@ body.theme-dark #tableContainer {
   border-top-left-radius: 16px; border-top-right-radius: 16px; border-top: 1px solid var(--border-soft);
   padding: 18px 16px calc(16px + env(safe-area-inset-bottom, 0px));
   max-height: 72vh; overflow-y: auto; box-shadow: 0 -8px 30px rgba(0,0,0,.32);
-  transform: translateY(100%); transition: transform .22s ease;
+  transform: translateY(100%); transition: transform var(--lp-motion-overlay) var(--lp-ease-standard);
 }
 .rm-sheet.rm-open .rm-sheet-card { transform: translateY(0); }
 @media (prefers-reduced-motion: reduce) { .rm-sheet-card { transition: none; } }
@@ -431,6 +403,43 @@ button.rm-proc-chip:hover { border-color: var(--accent); }
 }
 .rm-speak:hover { border-color: var(--accent); background: var(--accent); }
 .rm-speak:active { transform: scale(.94); }
+
+/* ROOM-UX-VF2 — one keyboard grammar across the portable word-card controls.
+   The selectors are intentionally component-local; no global form reset. */
+:is(.rm-w, .rm-sheet-x, .rm-back, .rm-prov-help, .rm-explain-btn,
+  .rm-refine-btn, .rm-refine-go, .rm-refine-all, .rm-meaning-add,
+  .rm-meaning-edit, .rm-meaning-save, .rm-meaning-cancel, .rm-proc-chip,
+  .rm-link, .rm-save, .rm-note-save, .rm-note-cancel, .rm-acc-sum,
+  .rm-rootfam-chip, .rm-status-btn, .rm-speak, .rm-conj-cell):focus-visible,
+.rm-recall button:focus-visible, .room-consent-actions button:focus-visible,
+.rm-meaning-input:focus-visible, .rm-note-field input:focus-visible,
+.rm-note-field textarea:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: var(--lp-focus-offset);
+  box-shadow: 0 0 0 3px var(--lp-focus-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rm-sheet-card { transform: none; }
+  .rm-w, .rm-speak, .rm-conj-cell { transition-duration: 0ms !important; }
+  .rm-speak:active { transform: none; }
+}
+
+@media (forced-colors: active) {
+  :is(.rm-w, .rm-sheet-x, .rm-back, .rm-prov-help, .rm-explain-btn,
+    .rm-refine-btn, .rm-refine-go, .rm-refine-all, .rm-meaning-add,
+    .rm-meaning-edit, .rm-meaning-save, .rm-meaning-cancel, .rm-proc-chip,
+    .rm-link, .rm-save, .rm-note-save, .rm-note-cancel, .rm-acc-sum,
+    .rm-rootfam-chip, .rm-status-btn, .rm-speak, .rm-conj-cell):focus-visible,
+  .rm-recall button:focus-visible, .room-consent-actions button:focus-visible,
+  .rm-meaning-input:focus-visible, .rm-note-field input:focus-visible,
+  .rm-note-field textarea:focus-visible {
+    outline: 2px solid Highlight;
+    box-shadow: none;
+  }
+  .rm-w-due::after, .rm-recall, .rm-rootfam-chip,
+  .rm-status-btn, .rm-statpop-inner { border-color: CanvasText; }
+}
 
 /* ── ported .v3-conj-* (Pealim table) внутри карточки ────────────────────────── */
 .rm-conj-body { margin-top: 6px; }

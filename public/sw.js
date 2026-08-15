@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.392";
+const CACHE_VERSION = "v3.11.393";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -83,7 +83,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js",
+  "/js/library-ui.js?v=393",
   "/js/room-b6-core.js",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -92,8 +92,8 @@ const PRECACHE_URLS = [
   // BRR-P0-002b Stage 1 — embedded warm reader (same-page reader inside library.html).
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
   "/js/reader-core.js",
-  "/css/reader-core.css",
-  "/css/reader-morph.css",
+  "/css/reader-core.css?v=393",
+  "/css/reader-morph.css?v=393",
   // Knowledge Map v3.8 (root-centric, always on)
   "/js/knowledge-map-data.js",
   "/js/knowledge-map-view.js",
@@ -119,7 +119,7 @@ const PRECACHE_URLS = [
   // CLG-P3 — Cloud Sync engine (dormant until explicit login+sync)
   "/js/cloud-sync.js",
   // CLG-P9 — «Дом наставника»: API-only модуль (данные из cloud API, действия через host-adapter)
-  "/js/mentor-home.js",
+  "/js/mentor-home.js?v=393",
   "/js/lesson-artifact.js",
   // BRR-P1-011 — Reading-Room light morphology-on-tap (reuses the three loaders above;
   // the 3.3 MB Pealim dataset itself stays lazy via the inflection runtime cache).

@@ -428,19 +428,23 @@ td.col-action-cell {
   align-items: center;
   justify-content: center;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+  transition: transform var(--lp-motion-hover) var(--lp-ease-standard),
+    background-color var(--lp-motion-hover) var(--lp-ease-standard),
+    border-color var(--lp-motion-hover) var(--lp-ease-standard);
 }
 
 .row-tts-btn:hover { background: #f0f4f7; transform: translateY(-1px); }
 .row-tts-btn:active { transform: translateY(0px); }
 
 .row-tts-btn:focus-visible {
-  outline: 2px solid rgba(46, 125, 50, 0.45);
-  outline-offset: 2px;
+  outline: 2px solid transparent;
+  outline-offset: var(--lp-focus-offset, 3px);
+  box-shadow: 0 0 0 3px var(--lp-focus-ring);
 }
 .row-tts-btn:focus {
-  outline: 2px solid rgba(46, 125, 50, 0.45);
-  outline-offset: 2px;
+  outline: 2px solid transparent;
+  outline-offset: var(--lp-focus-offset, 3px);
+  box-shadow: 0 0 0 3px var(--lp-focus-ring);
 }
 .row-tts-btn:focus:not(:focus-visible) {
   outline: none;
@@ -524,7 +528,10 @@ td.col-action-cell {
   align-items: center;
   justify-content: center;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+  transition: transform var(--lp-motion-hover) var(--lp-ease-standard),
+    background-color var(--lp-motion-hover) var(--lp-ease-standard),
+    border-color var(--lp-motion-hover) var(--lp-ease-standard),
+    box-shadow var(--lp-motion-continuity) var(--lp-ease-standard);
 }
 
 .row-note-btn:hover { background: #f0f4f7; transform: translateY(-1px); }
@@ -532,8 +539,9 @@ td.col-action-cell {
 
 .row-note-btn:focus-visible,
 .row-note-btn:focus {
-  outline: 2px solid rgba(243, 156, 18, 0.35);
-  outline-offset: 2px;
+  outline: 2px solid transparent;
+  outline-offset: var(--lp-focus-offset, 3px);
+  box-shadow: 0 0 0 3px var(--lp-focus-ring);
 }
 .row-note-btn:focus:not(:focus-visible) { outline: none; }
 
@@ -599,7 +607,7 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   font-size: 0.80rem;
   cursor: pointer;
   line-height: 1;
-  transition: background 0.1s;
+  transition: background-color var(--lp-motion-hover) var(--lp-ease-standard);
   min-width: 28px;
   text-align: center;
 }
@@ -626,7 +634,9 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   visibility: hidden;
   pointer-events: none;
   transform: translateY(0);
-  transition: opacity 0.12s ease, visibility 0.12s ease, transform 0.12s ease;
+  transition: opacity var(--lp-motion-hover) var(--lp-ease-standard),
+    visibility var(--lp-motion-hover) var(--lp-ease-standard),
+    transform var(--lp-motion-hover) var(--lp-ease-standard);
 }
 @media (hover: hover) and (pointer: fine) {
   #proTable tbody tr:hover .row-tts-btn {
@@ -671,7 +681,9 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   visibility: hidden;
   pointer-events: none;
   transform: translateY(0);
-  transition: opacity 0.12s ease, visibility 0.12s ease, transform 0.12s ease;
+  transition: opacity var(--lp-motion-hover) var(--lp-ease-standard),
+    visibility var(--lp-motion-hover) var(--lp-ease-standard),
+    transform var(--lp-motion-hover) var(--lp-ease-standard);
 }
 @media (hover: hover) and (pointer: fine) {
   #proTable tbody tr:hover .row-note-btn {
@@ -706,7 +718,9 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 
 /* Luxury focus mode: active row crisp, others softly dimmed */
 #proTable.focus-mode tbody tr td {
-  transition: opacity 160ms ease, filter 160ms ease, background-color 160ms ease;
+  transition: opacity var(--lp-motion-disclosure) var(--lp-ease-standard),
+    filter var(--lp-motion-disclosure) var(--lp-ease-standard),
+    background-color var(--lp-motion-disclosure) var(--lp-ease-standard);
 }
 #proTable.focus-mode tbody tr:not(.row-playing):not(.row-selected):not(.row-error) td {
   opacity: 0.38;
@@ -775,10 +789,37 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 /* Jump-to-sentence flash (Wave D) */
 #proTable tbody tr.v3-jump-flash td {
   box-shadow: inset 0 0 0 9999px rgba(255, 230, 120, 0.14);
-  transition: box-shadow 180ms ease-in-out;
+  transition: box-shadow var(--lp-motion-overlay) var(--lp-ease-standard);
 }
 #proTable tbody tr.v3-jump-flash td:first-child {
   box-shadow: inset 4px 0 0 var(--row-rail-selected), inset 0 0 0 9999px rgba(255, 230, 120, 0.14);
+}
+
+/* ROOM-UX-VF2 — motion never carries state truth. Reduced-motion users keep
+   the same static rail, border and focus ring without pulses or transforms. */
+@media (prefers-reduced-motion: reduce) {
+  .row-audio-ind.state-working { animation: none; /* v3AudioPrefetchPulse */ }
+  .row-tts-btn, .row-note-btn, .row-edit-btn,
+  #proTable tbody tr .row-tts-btn, #proTable tbody tr .row-note-btn,
+  #proTable.focus-mode tbody tr td, #proTable tbody tr.v3-jump-flash td {
+    transition-duration: 0ms !important;
+  }
+  .row-tts-btn:hover, .row-note-btn:hover,
+  #proTable tbody tr:hover .row-tts-btn { transform: none; }
+}
+
+@media (forced-colors: active) {
+  .row-tts-btn:focus-visible, .row-note-btn:focus-visible {
+    outline: 2px solid Highlight;
+    box-shadow: none;
+  }
+  .row-audio-ind { border-color: CanvasText; background: Canvas; }
+  .row-audio-ind.state-ok, .row-audio-ind.state-missing,
+  .row-audio-ind.state-mismatch, .row-audio-ind.state-too-long,
+  .row-audio-ind.state-working { border-color: CanvasText; background: CanvasText; }
+  #proTable tbody tr.row-selected td:first-child,
+  #proTable tbody tr.row-playing td:first-child,
+  #proTable tbody tr.row-error td:first-child { box-shadow: inset 3px 0 0 CanvasText; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════════

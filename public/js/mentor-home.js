@@ -60,8 +60,34 @@
   function el(tag, cls, text) {
     var n = document.createElement(tag);
     if (cls) n.className = cls;
+    if (tag === "button") n.classList.add("mentor-vf2-focus");
     if (text != null) n.textContent = text;
     return n;
+  }
+
+  // ROOM-UX-VF2 — the portable module accepts a presentational icon capability
+  // from its host. The visible Unicode fallback remains the complete old-host,
+  // Mini App and stale-SW experience; icons never own the accessible name.
+  function visualIcon(symbol, fallback, className) {
+    try {
+      if (S.host && typeof S.host.icon === "function") {
+        var hosted = S.host.icon(symbol, fallback, "mentor-vf2-icon-slot" + (className ? " " + className : ""));
+        if (hosted && hosted.nodeType === 1) return hosted;
+      }
+    } catch (_) {}
+    var n = el("span", "mentor-vf2-icon-slot" + (className ? " " + className : ""), fallback || "•");
+    n.setAttribute("aria-hidden", "true");
+    return n;
+  }
+  function actionLabel(value) {
+    return String(value == null ? "" : value).trim()
+      .replace(/^(?:🧭|📖|▶|🤖|🔊|ⓘ|✓|✗|⚠️?)\s*/u, "");
+  }
+  function iconText(target, symbol, fallback, value) {
+    target.textContent = "";
+    target.appendChild(visualIcon(symbol, fallback));
+    target.appendChild(el("span", "mentor-vf2-icon-copy", actionLabel(value)));
+    return target;
   }
 
   function revealMemoryLaterButtons() {
@@ -98,21 +124,34 @@
 
   async function renderStatus(box) {
     box.textContent = "";
-    var line = el("div", "mentor-status-line");
+    var line = el("div", "mentor-status-line lp-state");
     box.appendChild(line);
     var a = null;
     try { var r = await jget("/api/agent/status"); if (r.status === 200 && r.json && r.json.ok) a = r.json; } catch (_) {}
     S.statusCache = a;
-    if (!a) { line.textContent = "✗ " + t("room.cloud.err", "Ошибка синхронизации"); return; }
+    if (!a) {
+      line.setAttribute("data-kind", "error");
+      line.setAttribute("role", "alert");
+      iconText(line, "lp-icon-error", "✗", t("room.cloud.err", "Ошибка синхронизации"));
+      return;
+    }
     var val;
-    if (a.kill_switch) val = t("room.cloud.agentKill", "LLM выключен (kill-switch)");
-    else if (a.key_source !== "agent") val = t("room.cloud.agentKeyNone", "без LLM-ключа — план детерминированный");
-    else val = "✓ " + t("room.cloud.agentKeyOk", "ключ подключён")
+    if (a.kill_switch) {
+      line.setAttribute("data-kind", "warning");
+      val = t("room.cloud.agentKill", "LLM выключен (kill-switch)");
+    } else if (a.key_source !== "agent") {
+      line.setAttribute("data-kind", "info");
+      val = t("room.cloud.agentKeyNone", "без LLM-ключа — план детерминированный");
+    } else {
+      line.setAttribute("data-kind", "success");
+      val = t("room.cloud.agentKeyOk", "ключ подключён")
       + " · " + t("room.cloud.agentToday", "LLM сегодня") + ": "
       + ((a.usage && a.usage.user_llm_calls) || 0) + "/" + ((a.limits && a.limits.llm_daily_per_user) || "—")
       + " · " + t("room.cloud.hintAgentGlobal", "Всего за сегодня") + ": "
       + ((a.usage && a.usage.global_llm_calls) || 0) + "/" + ((a.limits && a.limits.llm_daily_global) || "—");
-    line.textContent = "🤖 " + t("room.cloud.agentLine", "Наставник") + ": " + val;
+    }
+    line.setAttribute("role", "status");
+    iconText(line, "lp-mark-mentor", "🤖", t("room.cloud.agentLine", "Наставник") + ": " + val);
     // PAS-F1 (критика UX-7): при живом byok-ключе статус честен — «без LLM-ключа» с рабочим
     // своим ключом было бы ложью; + счётчик доставленных ответов на своём ключе.
     try {
@@ -124,7 +163,7 @@
       }
     } catch (_) {}
     // tap-ⓘ: как работает ключ/лимит (title-тултипы @380px не работают — паттерн ☁-модала)
-    var infoI = el("span", "mentor-status-i", " ⓘ");
+    var infoI = visualIcon("lp-icon-info", "ⓘ", "mentor-status-i");
     line.appendChild(infoI);
     var keyHint = el("div", "mentor-hint", t("room.cloud.hintAgent", "Ключ агента задан на сервере и платит только за наставника. «План на сегодня» с LLM списывает 1 вызов из суточного лимита ТОЛЬКО при удачном ответе; сбой провайдера не списывается — план всё равно строится детерминированно и остаётся полезным."));
     keyHint.hidden = true;
@@ -339,7 +378,8 @@
 
   function renderPlanBlock(box) {
     box.textContent = "";
-    var btn = el("button", "mentor-plan-btn", t("room.cloud.planBtn", "🧭 План на сегодня"));
+    var btn = el("button", "mentor-plan-btn");
+    iconText(btn, "lp-mark-mentor", "🧭", t("room.cloud.planBtn", "🧭 План на сегодня"));
     btn.type = "button";
     var planBox = el("div", "mentor-plan-box");
     planBox.hidden = true;
@@ -450,7 +490,8 @@
   function renderNextText(box) {
     box.textContent = "";
     if (!S.host || typeof S.host.nextTextPicks !== "function") return;   // нет capability (MA) — блока нет
-    var btn = el("button", "mentor-plan-btn", "📖 " + t("room.nexttext.btn", "Что читать дальше"));
+    var btn = el("button", "mentor-plan-btn");
+    iconText(btn, "lp-mark-room", "📖", t("room.nexttext.btn", "Что читать дальше"));
     btn.type = "button";
     btn.addEventListener("click", function () { nextTextLoad(box); });
     box.appendChild(btn);
@@ -514,7 +555,8 @@
       }
       row.appendChild(line);
       var actions = el("div", "mentor-nt-actions");
-      var read = el("button", "mentor-plan-go", t("room.nexttext.read", "▶ Читать"));
+      var read = el("button", "mentor-plan-go");
+      iconText(read, "lp-icon-play", "▶", t("room.nexttext.read", "▶ Читать"));
       read.type = "button";
       read.addEventListener("click", function () {
         _ux("next_text", "accepted", Date.now() - _ntOfferedAt);
@@ -522,7 +564,8 @@
       });
       actions.appendChild(read);
       if (kind !== "coldstart") {
-        var why = el("button", "mentor-plan-go", t("room.nexttext.why", "🤖 Почему?"));
+        var why = el("button", "mentor-plan-go");
+        iconText(why, "lp-icon-info", "ⓘ", t("room.nexttext.why", "🤖 Почему?"));
         why.type = "button";
         var out = el("div", "mentor-nt-why");
         why.addEventListener("click", function () { nextTextWhy(pick, kind, why, out); });
@@ -1164,7 +1207,7 @@
       if(item.state==="OFFERED"){body.appendChild(el("div","room-evidence-dialog-intro",isB2?t("room.mentor.evidence.offerB2","Выберите слово, которое подходит к новому публичному контексту."):t("room.mentor.evidence.offerB1","Прослушайте слово и напишите его самостоятельно.")));actionButton(t("room.mentor.evidence.accept","Начать"),"ACCEPT",false);actionButton(t("room.mentor.evidence.later","Позже"),"DEFER",true);actionButton(t("room.mentor.evidence.skip","Пропустить"),"SKIP",true);return;}
       if(item.state!=="ACCEPTED")return;
       var stim=item.stimulus||{},input,inputWrap=null;
-      if(isB2){if(stim.sentence)body.appendChild(el("div","mentor-evidence-stimulus",stim.sentence));input=document.createElement("select");input.className="mentor-memory-select room-evidence-answer";(stim.options||[]).forEach(function(o){var op=document.createElement("option");op.value=o.id;op.textContent=o.surface;input.appendChild(op);});body.appendChild(input);}else{var audioPrompt=el("div","room-train-audioprompt room-evidence-audioprompt"),listen=el("button","room-train-bigplay","🔊");listen.type="button";listen.setAttribute("aria-label",t("room.morph.study.replay","Прослушать ещё раз"));listen.addEventListener("click",function(){playAudio(listen);});audioPrompt.appendChild(listen);audioPrompt.appendChild(el("span","room-train-audiohint",t("room.morph.study.dictateHint","✍️ Прослушай и впиши слово")));body.appendChild(audioPrompt);input=document.createElement("input");input.className="room-train-input room-evidence-answer";input.maxLength=512;input.autocomplete="off";input.autocapitalize="off";input.spellcheck=false;input.dir="rtl";input.lang="he";input.placeholder=t("room.morph.study.typePlaceholder","впиши слово…");inputWrap=el("div","room-train-inputwrap");}
+      if(isB2){if(stim.sentence)body.appendChild(el("div","mentor-evidence-stimulus",stim.sentence));input=document.createElement("select");input.className="mentor-memory-select room-evidence-answer";(stim.options||[]).forEach(function(o){var op=document.createElement("option");op.value=o.id;op.textContent=o.surface;input.appendChild(op);});body.appendChild(input);}else{var audioPrompt=el("div","room-train-audioprompt room-evidence-audioprompt"),listen=el("button","room-train-bigplay");iconText(listen,"lp-icon-audio","🔊","");listen.type="button";listen.setAttribute("aria-label",t("room.morph.study.replay","Прослушать ещё раз"));listen.addEventListener("click",function(){playAudio(listen);});audioPrompt.appendChild(listen);audioPrompt.appendChild(el("span","room-train-audiohint",t("room.morph.study.dictateHint","✍️ Прослушай и впиши слово")));body.appendChild(audioPrompt);input=document.createElement("input");input.className="room-train-input room-evidence-answer";input.maxLength=512;input.autocomplete="off";input.autocapitalize="off";input.spellcheck=false;input.dir="rtl";input.lang="he";input.placeholder=t("room.morph.study.typePlaceholder","впиши слово…");inputWrap=el("div","room-train-inputwrap");}
       var submit=el("button",isB2?"room-train-next":"room-train-submit",t("room.mentor.evidence.submit","Проверить"));submit.type="button";submit.addEventListener("click",async function(){submit.disabled=true;try{var payload=isB2?{option_id:input.value,input_mode:"closed_option"}:{answer:input.value,input_mode:"keyboard"},r=await jpost("/api/agent/evidence/"+encodeURIComponent(item.id)+"/attempt",payload);if(!r.json||!r.json.ok)throw new Error();item.state="COMPLETED";item.evaluation={verdict:r.json.verdict,status:"VALID"};item.decision={decision_code:r.json.decision_code};showResult(r.json.verdict,r.json.decision_code);renderEvidence(section,box).catch(function(){});}catch(_){fail();submit.disabled=false;}});if(inputWrap){input.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();submit.click();}});inputWrap.appendChild(input);inputWrap.appendChild(submit);body.appendChild(inputWrap);}else foot.appendChild(submit);actionButton(t("room.morph.study.dontKnow","Не знаю"),"SKIP",true);
     }
     sheet.addEventListener("click",function(e){if(e.target&&e.target.closest&&e.target.closest("[data-evidence-close]"))closeEvidenceDialog();});sheet._esc=function(e){if(e.key==="Escape"&&S.evidenceDialog===sheet)closeEvidenceDialog();};document.addEventListener("keydown",sheet._esc);paint();setTimeout(function(){try{(card.querySelector("button:not([disabled])")||card).focus();}catch(_){}},0);
@@ -1207,7 +1250,9 @@
     if (!session) {
       // Tier 1 — честная заглушка (R11/R4: не прячемся и не притворяемся; сказано, что сделать)
       var stub = el("section", "mentor-block mentor-tier1");
-      stub.appendChild(el("div", "mentor-tier1-icon", "🤖"));
+      var tierIcon = el("div", "mentor-tier1-icon");
+      tierIcon.appendChild(visualIcon("lp-mark-mentor", "🤖"));
+      stub.appendChild(tierIcon);
       stub.appendChild(el("div", null, t("room.mentor.needCloud", "Наставнику нужен облачный аккаунт.")));
       stub.appendChild(el("div", "mentor-hint", t("room.mentor.needCloudHint", "Откройте ☁ в шапке, войдите и синхронизируйтесь — здесь появятся план на сегодня, история объяснений и ваши слабые места.")));
       m.appendChild(stub);

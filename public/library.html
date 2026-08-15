@@ -14,10 +14,10 @@
   <!-- ROOM-UX-VF/VF0: primitives first; Reader and Room remain complete
        fallbacks until their later serialized adoption slices. -->
   <link rel="stylesheet" href="/css/visual-foundations.css">
-  <link rel="stylesheet" href="/css/reader-core.css">
+  <link rel="stylesheet" href="/css/reader-core.css?v=393">
   <!-- Общие стили морф-карточки + палитра статусов (одна реализация со Студией). Подключён ДО
        инлайн-<style>, чтобы Room-специфичные правила при равной специфичности выигрывали каскадом. -->
-  <link rel="stylesheet" href="/css/reader-morph.css">
+  <link rel="stylesheet" href="/css/reader-morph.css?v=393">
   <style>
     /* ── Reading Room theme (focused subset; auto light/dark) ─────────────── */
     :root {
@@ -2496,6 +2496,52 @@
       .learning-corpus-edge { background: CanvasText; }
     }
 
+    /* ── ROOM-UX-VF2: bounded Reader/Morph/Mentor finishing ───────────────
+       Shared Reader/Morph rules stay in their shared stylesheets. Only the
+       Room-owned Mentor composition belongs in this surface layer. */
+    #roomMentorMount { font-family: var(--lp-font-ui); }
+    html[lang="he"] #roomMentorMount { font-family: var(--lp-font-hebrew-ui); }
+    #roomMentorMount .mentor-block-title { font-family: var(--lp-font-editorial); }
+    html[lang="he"] #roomMentorMount .mentor-block-title { font-family: var(--lp-font-hebrew-reading); }
+    .mentor-plan-btn, .mentor-plan-go, .mentor-wr-ghost,
+    .mentor-hist-open, .mentor-hist-more {
+      display: inline-flex; align-items: center; justify-content: center; gap: var(--lp-space-2);
+      transition: color var(--lp-motion-hover) var(--lp-ease-standard),
+        background-color var(--lp-motion-hover) var(--lp-ease-standard),
+        border-color var(--lp-motion-hover) var(--lp-ease-standard),
+        box-shadow var(--lp-motion-continuity) var(--lp-ease-standard),
+        transform var(--lp-motion-continuity) var(--lp-ease-standard);
+    }
+    .mentor-vf2-icon-slot {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 1.1em; height: 1.1em; flex: 0 0 auto; line-height: 1;
+    }
+    .mentor-vf2-icon-slot .lp-icon { width: 1em; height: 1em; }
+    .mentor-vf2-icon-copy { min-width: 0; }
+    .mentor-tier1-icon .mentor-vf2-icon-slot { width: 34px; height: 34px; color: var(--accent); }
+    .mentor-status-line.lp-state {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: var(--lp-space-2); align-items: center;
+      padding: var(--lp-space-2) var(--lp-space-3);
+      color: var(--lp-state-fg); font-size: 13px; text-align: start;
+    }
+    .mentor-status-line.lp-state > .mentor-vf2-icon-slot:first-child { color: var(--lp-state-icon); }
+    .mentor-status-line.lp-state .mentor-status-i { margin: 0; opacity: .72; }
+    .mentor-vf2-focus:focus-visible {
+      outline: 2px solid transparent;
+      outline-offset: var(--lp-focus-offset);
+      box-shadow: 0 0 0 3px var(--lp-focus-ring);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .mentor-plan-btn, .mentor-plan-go, .mentor-wr-ghost,
+      .mentor-hist-open, .mentor-hist-more { transition-duration: 0ms; transform: none; }
+    }
+    @media (forced-colors: active) {
+      .mentor-vf2-focus:focus-visible { outline: 2px solid Highlight; box-shadow: none; }
+      .mentor-status-line.lp-state { border-color: CanvasText; }
+      .mentor-vf2-icon-slot { color: CanvasText; forced-color-adjust: auto; }
+    }
+
     /* ── desktop layout layer (Epic 7, R4) ───────────────────────────────────
        Additive @media(min-width) ONLY — the @380px mobile cascade is untouched.
        Centers the Room into a column on wide screens (no stretched-mobile look) and
@@ -2643,7 +2689,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.392</button>
+    <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.393</button>
   </div>
 </footer>
 
@@ -2851,7 +2897,7 @@
 <!-- CLG-P9 — «Дом наставника»: API-only модуль (скелет Mini App P8); данные только из cloud API,
      действия через host-adapter Зала. Ничего не делает до explicit-открытия вида (🤖). -->
 <script src="/js/lesson-artifact.js"></script>
-<script src="/js/mentor-home.js"></script>
+<script src="/js/mentor-home.js?v=393"></script>
 <script src="/js/inflection-dict.js"></script>
 <script src="/js/pealim-function-links.js"></script>
 <script src="/js/function-usage.js"></script>
@@ -2893,6 +2939,6 @@
 <!-- Контекст-скролл караоке (активная строка — вторая видимая): та же формула, что в Студии
      (MaterialRevisionCore.computeContextScrollTop) — вторую реализацию не заводим. -->
 <script src="/js/material-revision-core.js"></script>
-<script type="module" src="/js/library-ui.js?v=392"></script>
+<script type="module" src="/js/library-ui.js?v=393"></script>
 </body>
 </html>

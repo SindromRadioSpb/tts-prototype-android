@@ -4455,6 +4455,7 @@ let _lessonMounted = false;
 function _mentorHost() {
   return {
     t: tt,
+    icon: (symbol, fallback, className) => roomIcon(symbol, fallback, className),
     language: () => String(document.documentElement.lang || 'ru').toLowerCase(),
     csrf: () => { try { return localStorage.getItem('cloud.csrf') || ''; } catch (_) { return ''; } },
     runTrainer: (itemKeys, channel) => { try { startPlanSectionTraining(itemKeys, channel); } catch (_) {} },
