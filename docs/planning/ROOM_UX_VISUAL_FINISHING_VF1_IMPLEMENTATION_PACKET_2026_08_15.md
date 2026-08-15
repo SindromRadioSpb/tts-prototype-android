@@ -1,11 +1,12 @@
 # ROOM-UX-VF1 — Room shell, L0 and corpora implementation packet
 
 > Date: 2026-08-15
-> Status: `VF1_LOCAL_GATES_PASS_DEPLOY_PENDING`
+> Status: `VF1_PROD_READ_ONLY_PASS_OWNER_REVIEW_REQUIRED`
 > Source commit: `721df7fa`
 > Branch: `main`
 > Dirty status: mixed owner worktree; every tracked VF1 target was clean at preflight
-> Production: `https://linguistpro.kolosei.com/library.html` / `3.11.389` at preflight
+> Implementation commit: `80e869cd`
+> Production: `https://linguistpro.kolosei.com/library.html` / `3.11.390` verified read-only
 > Evidence classes: repository/code, automated local browser, production read-only, owner-reported
 > Limitations: physical mobile and assistive technology are `NOT_RUN`; automation must not be represented as either
 

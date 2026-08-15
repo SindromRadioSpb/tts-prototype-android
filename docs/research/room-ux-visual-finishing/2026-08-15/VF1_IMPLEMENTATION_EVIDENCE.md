@@ -1,12 +1,13 @@
 # ROOM-UX-VF1 — implementation evidence
 
 > Date: 2026-08-15
-> Status: `VF1_LOCAL_GATES_PASS_DEPLOY_PENDING`
+> Status: `VF1_PROD_READ_ONLY_PASS_OWNER_REVIEW_REQUIRED`
 > Source commit: `721df7fa`
+> Implementation commit: `80e869cd`
 > Branch: `main`
 > Dirty status: mixed owner worktree; every tracked VF1 target was clean at preflight and unrelated changes were preserved
-> Production URL/version at local gate: `https://linguistpro.kolosei.com/library.html` / `3.11.389`
-> Candidate version: `3.11.390`; locale cache query: `166`
+> Production URL/version: `https://linguistpro.kolosei.com/library.html` / `3.11.390` verified read-only
+> Locale cache query: `166`
 > Evidence classes: repository/code, automated tests, isolated automated browser, production read-only, owner-reported
 > Limitations: physical mobile, screen reader and other assistive technology are `NOT_RUN`; isolated automation is not owner-live evidence
 
@@ -118,14 +119,57 @@ A hard offline reload of a cold localhost page without an existing controlling s
 
 Rollback is static: revert the VF1 implementation/evidence commit and advance the release version again. No data or schema rollback exists or is required.
 
-## 7. Production evidence placeholder
+## 7. Production read-only evidence
 
-After the scoped commit is pushed and auto-deploy completes, record here:
+Implementation commit `80e869cd` was pushed to `origin/main`. The production API remained at `3.11.389` during the first 17 polls and changed to `3.11.390` on the next bounded poll; the smoke began only after the served version advanced.
 
-- deployed commit and served `client-config` version;
-- footer/SW/HTML/JS/locale integrity;
-- isolated production desktop/380 RU/HE smoke;
-- Kapture read-only evidence on the already-open real Ben-Yehuda owner fixture;
-- console/network limitations and the exact owner-review handoff state.
+### Artifact and SW integrity
 
-Do not mark VF1 owner-accepted or begin VF2 from automated production evidence.
+Direct no-cache reads confirmed:
+
+| Surface | Production SHA-256 = commit bytes | Production SHA-256 = `client-config.shellIntegrity` |
+|---|---:|---:|
+| `/library.html` | PASS | PASS |
+| `/js/library-ui.js` | PASS | PASS |
+| `/i18n/locales/ru.js` | PASS | PASS |
+| `/i18n/locales/en.js` | PASS | PASS |
+| `/i18n/locales/he.js` | PASS | PASS |
+
+The served HTML contains footer `3.11.390` and three locale queries at `166`. The served worker contains `CACHE_VERSION=v3.11.390` and still precaches the VF0 foundations CSS and sprite. The sprite returned `200`, `image/svg+xml`, 5,161 bytes.
+
+### Fresh isolated production client
+
+- Desktop RU loaded the real baked Ben-Yehuda catalog and reported `26 455 работ`.
+- Candidate footer was `3.11.390`; all 50 rendered icon slots enhanced successfully, with no visible fallback after sprite confirmation.
+- Desktop root `scrollWidth=clientWidth=1440`; 380×844 RU root `scrollWidth=clientWidth=380` with no visible overflow offender.
+- 380×844 HE used `lang=he`, `dir=rtl`, native names `סטודיו`, `מנטור`, `סנכרון`, `ערכת נושא: אוטומטי`, Hebrew editorial font roles and no page overflow.
+- The production accessibility tree retained the named banner, controls, tablist, navigation, headings, links, regions, disclosures, searchbox, comboboxes and live status.
+- All 76 observed startup/corpus requests were GET. No learner, provider or telemetry write was observed.
+
+This is isolated automation, not owner-live, a physical mobile run or assistive-technology evidence.
+
+### Existing owner Kapture tab and real fixtures
+
+Kapture tab `43664135` was inspected read-only. Although its connector listing initially retained the user-provided Ben-Yehuda URL, the live page itself was already at `#room=group%3Astudy-songs-pilot`; VF1 did not navigate or alter that hash.
+
+A normal reload preserved the route and exposed the intended stale-client contract:
+
+- `client-config` and the dynamically stamped footer reported `3.11.390`;
+- the controlling SW still served the old shell/locales (`?v=165`), so the page retained old emoji markup;
+- the existing connection status explicitly said that an update was loaded and awaited owner confirmation;
+- the waiting worker was not activated, no cache was cleared, and no owner presentation key was changed.
+
+The live owner corpus contained 77 authorized group texts and 48 rendered rows in the current view. Read-only LocalDb SELECT APIs confirmed 115 active personal texts in **My Texts**; the first eight metadata rows included both Hebrew and non-Hebrew titles, including a 58-character fixture. Their content and titles were not copied into evidence. The owner was not navigated to My Texts because that could change presentation state, so final My Texts composition remains an explicit owner-review row.
+
+Kapture network monitoring recorded 94 requests, all GET. No owner content, progress, Finished, bookmark, note, reading list, review, group, provider or cache mutation was performed. `review_log` was read once as 7,357 rows only to establish that real state was present; there is no before/after comparison, so this is not claimed as a review-log invariance proof. The isolated B8 gate supplies the zero-write automation evidence.
+
+## 8. Handoff and remaining acceptance
+
+Deployment and automated/read-only production smoke are PASS. Owner acceptance remains separate:
+
+1. accept/apply the update offered in the current Room tab, then confirm footer `3.11.390`;
+2. inspect the current real group corpus, Ben-Yehuda and My Texts compositions without changing learner truth;
+3. check desktop/380 or the devices the owner actually chooses to run;
+4. return exact `VF1 PROD=PASS` or a bounded defect list.
+
+Do not mark VF1 owner-accepted or begin VF2 from this automated/read-only evidence.
