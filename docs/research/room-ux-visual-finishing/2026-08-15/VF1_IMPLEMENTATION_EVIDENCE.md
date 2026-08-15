@@ -1,12 +1,12 @@
 # ROOM-UX-VF1 — implementation evidence
 
 > Date: 2026-08-15
-> Status: `VF1_CORRECTION_DEPLOY_PENDING`
+> Status: `VF1_PROD_PASS`
 > Source commit: `721df7fa`
-> Implementation commits: `80e869cd` (VF1), `fe8fa23d` (bounded owner-browser correction)
+> Implementation commits: `80e869cd` (VF1), `fe8fa23d` (locale/icon/focus correction), `3745d3f5` (stale-client module URL correction)
 > Branch: `main`
 > Dirty status: mixed owner worktree; every tracked VF1 target was clean at preflight and unrelated changes were preserved
-> Production URL/version: `https://linguistpro.kolosei.com/library.html` / `3.11.390` baseline verified; `3.11.391` correction pending
+> Production URL/version: `https://linguistpro.kolosei.com/library.html` / `3.11.392` verified in the open owner tab
 > Locale cache query: `166`
 > Evidence classes: repository/code, automated tests, isolated automated browser, production read-only, owner-reported
 > Limitations: physical mobile, screen reader and other assistive technology are `NOT_RUN`; isolated automation is not owner-live evidence
@@ -33,8 +33,8 @@ Runtime adoption is limited to:
 
 Serialized release-lock changes are limited to:
 
-- `public/index.html`: `APP_VERSION=3.11.391` and locale query `166`;
-- `public/sw.js`: `CACHE_VERSION=3.11.391`; no strategy or precache-membership change;
+- `public/index.html`: `APP_VERSION=3.11.392` and locale query `166`;
+- `public/sw.js`: `CACHE_VERSION=3.11.392`; no strategy or precache-membership change;
 - `tests/i18n.locale-version.lock.json`: locale version/hash lock.
 
 Contract/evidence changes are limited to:
@@ -113,8 +113,8 @@ A hard offline reload of a cold localhost page without an existing controlling s
 
 - **Code/repository confirmed:** exact allowlist, fallback-first icon enhancement, state anatomy, font/bidi/numeric roles, motion/focus/forced-colors CSS, version/SW lock, zero new writers.
 - **Automated local confirmed:** desktop RU corpus fixture, 380 RU and HE/RTL, keyboard focus, accessibility tree, dark/system, reflow equivalent, long title, sprite-failure fallback, B6–B8 regression smokes.
-- **Production read-only:** `3.11.390` baseline passed; bounded `3.11.391` correction pending deployment.
-- **Owner-live:** VF0 PASS only. VF1 owner review is pending; real owner My Texts visual composition must be checked by the owner or in a separately authorized mutation-safe flow because navigating the owner tab may change presentation state.
+- **Production/open owner tab:** `3.11.392` passed the delegated mutation-safe browser gate.
+- **Owner visual acceptance:** VF0 PASS only. The owner delegated the VF1 production-browser gate, which passed with authorized read-only traversal of real My Texts and corpus fixtures; final subjective owner review remains separate.
 - **Not run:** physical mobile, physical 200%, VoiceOver/NVDA/JAWS, high-contrast user session, destructive cold-cache/offline test.
 
 Rollback is static: revert the VF1 implementation/evidence commit and advance the release version again. No data or schema rollback exists or is required.
@@ -172,7 +172,7 @@ Deployment and automated/read-only production smoke are PASS. Owner acceptance r
 3. check desktop/380 or the devices the owner actually chooses to run;
 4. return exact `VF1 PROD=PASS` or a bounded defect list.
 
-Do not mark VF1 accepted or begin VF2 until the owner-delegated `3.11.391` browser gate is complete.
+VF1 is accepted as `VF1 PROD=PASS`; the serialized VF2 slice is unlocked.
 
 ## 9. Open owner-tab defect and bounded correction
 
@@ -196,4 +196,29 @@ Commit `fe8fa23d` corrects only this existing control:
 
 Correction gates: `node --check` PASS; VF/VF0 contracts `18/18`; i18n `233/233`; B6 `45/45`; B7 `163/163`; B8 PASS with zero review-log/RUM writes; `git diff --check` PASS.
 
-The first correction webhook failed because the host root was full and the Coolify PostgreSQL container was in recovery. Bounded infrastructure recovery removed 3.863 GB of unused build cache, then nine exact unreferenced old LinguistPro images while retaining the active image and three newest rollback images, and finally 4.411 GB of newly unreferenced build cache. Root usage fell from 100% to 71%; application data, volumes, active containers and rollback set were preserved. Coolify/PostgreSQL returned healthy. A stale completed deploy record/helper was closed through Coolify's own queue-cleanup commands before the clean deploy retry. This operational recovery is not product evidence; served `3.11.391` and owner-tab retest remain required.
+The first correction webhook failed because the host root was full and the Coolify PostgreSQL container was in recovery. Bounded infrastructure recovery removed 3.863 GB of unused build cache, then nine exact unreferenced old LinguistPro images while retaining the active image and three newest rollback images, and finally 4.411 GB of newly unreferenced build cache. Root usage fell from 100% to 71% before rebuilds; application data, volumes, active containers and rollback set were preserved. Coolify/PostgreSQL returned healthy. A stale completed deploy record/helper was closed through Coolify's own queue-cleanup commands before the clean deploy retry.
+
+### 3.11.392 stale-client correction
+
+The `3.11.391` owner-tab retest found the shell version stamp updated while the CTA still used the old emoji/Russian module implementation. Served JS already contained the correction; the owner client was controlled by the previous SW and `library.html` still requested the unversioned `/js/library-ui.js`, allowing reuse of the previous precache URL.
+
+Commit `3745d3f5` adds the exact old-client contract test and changes only the Room module URL plus release locks:
+
+- `library.html` requests `/js/library-ui.js?v=392`;
+- `APP_VERSION`, Room footer and `CACHE_VERSION` advance together to `3.11.392`;
+- the SW still precaches the canonical unqueried module, and no fetch strategy/cache clearing is added.
+
+All local gates remained green: VF/VF0 `18/18`, i18n `233/233`, B6 `45/45`, B7 `163/163`, B8 PASS with zero review-log/RUM writes, and `git diff --check` PASS.
+
+### Final production and open owner-tab gate
+
+- Coolify deployment `1476` finished on commit `3745d3f5`; the active container served `3.11.392`, the versioned module URL and the corrected due-render function. Coolify/PostgreSQL were healthy; root usage was 75% after both rebuilds.
+- In the same stale owner tab, a normal client lifecycle (navigate away and return) activated the waiting worker without cache clearing. The returned HTML requested `/js/library-ui.js?v=392`.
+- RU, EN and HE produced `К повторению: 231`, `Due: 231` and `לחזרה: 231`; all used two enhanced SVGs. The accessibility snapshot named the control `К повторению: 231` without emoji.
+- Keyboard-only Tab traversal reached `#roomDueCta`, which carries the shared `room-vf1-focus` class.
+- 380 px RU and HE/RTL screenshots showed the CTA, corpus controls and long real text rows without visible horizontal page overflow or lost actions.
+- Real My Texts showed 115 texts and 48 rendered rows; the authorized group showed 77 texts and 48 rendered rows. No text, learner truth, list, review or provider action was opened or written.
+- Console history contained no warning/error entry during the gate; existing debug-only empty-i18n-key messages remain non-blocking pre-existing noise.
+- The tab was restored to desktop RU at `#room=benyehuda` for owner handoff.
+
+Result: exact `VF1 PROD=PASS`. Physical mobile and assistive-technology rows remain `NOT_RUN` and are not implied by this browser automation.

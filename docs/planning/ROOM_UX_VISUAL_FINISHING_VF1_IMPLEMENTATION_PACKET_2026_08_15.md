@@ -1,12 +1,12 @@
 # ROOM-UX-VF1 — Room shell, L0 and corpora implementation packet
 
 > Date: 2026-08-15
-> Status: `VF1_CORRECTION_DEPLOY_PENDING`
+> Status: `VF1_PROD_PASS`
 > Source commit: `721df7fa`
 > Branch: `main`
 > Dirty status: mixed owner worktree; every tracked VF1 target was clean at preflight
-> Implementation commits: `80e869cd` (VF1), `fe8fa23d` (bounded owner-browser correction)
-> Production: `https://linguistpro.kolosei.com/library.html` / `3.11.390` baseline verified; `3.11.391` correction pending
+> Implementation commits: `80e869cd` (VF1), `fe8fa23d` (locale/icon/focus correction), `3745d3f5` (stale-client module URL correction)
+> Production: `https://linguistpro.kolosei.com/library.html` / `3.11.392` verified in the open owner tab
 > Evidence classes: repository/code, automated local browser, production read-only, owner-reported
 > Limitations: physical mobile and assistive technology are `NOT_RUN`; automation must not be represented as either
 
@@ -105,7 +105,7 @@ VF1 must not change:
 7. Keyboard focus is visible; DOM/ARIA roles and names remain correct.
 8. Light/dark/auto, reduced motion and forced colors preserve equivalent static information.
 9. Existing Room B6/B7/B8, i18n, Reader parity and relevant corpus tests remain green.
-10. Versions lock to `3.11.391`; locales remain at `?v=166` because the correction does not change locale bytes.
+10. Versions lock to `3.11.392`; locales remain at `?v=166` because the corrections do not change locale bytes; the Room module URL advances to `?v=392`.
 11. Production deploy is serialized, then API/footer/SW/assets and real owner fixtures are inspected read-only.
 12. Owner acceptance is a separate final gate; physical/AT evidence remains explicit.
 
@@ -120,7 +120,7 @@ VF1 must not change:
 
 ## 9. Handoff condition
 
-After local gates, commit/push/deploy and production read-only smoke, stop and hand VF1 to the owner. The owner subsequently delegated browser acceptance with: test the open production tab, fix any defects, and if none remain record `VF1 PROD=PASS` and start the next slice. VF2 therefore remains blocked until the `3.11.391` correction passes that delegated production-browser gate.
+After local gates, commit/push/deploy and production read-only smoke, stop and hand VF1 to the owner. The owner subsequently delegated browser acceptance with: test the open production tab, fix any defects, and if none remain record `VF1 PROD=PASS` and start the next slice. The corrected `3.11.392` owner-tab gate passed, so VF1 is closed and VF2 is unlocked.
 
 ## 10. Owner-browser correction
 
@@ -131,4 +131,8 @@ The open owner production tab exposed one bounded VF1 defect on the real due-rev
 
 The correction is limited to the existing VF1 shell allowlist. Locale change now repaints the CTA; its label remains sourced from the existing `room.morph.study.due` RU/EN/HE key, its count uses the existing localized number formatter, and its train/directional affordances use the already-shipped sprite with visible fallbacks. No locale file, writer, persistence key, API or SW strategy changes.
 
-Local correction gates are green: VF contracts `18/18`, i18n `233/233`, B6 `45/45`, B7 `163/163`, and B8 PASS with zero review-log/RUM writes. Production acceptance remains pending until served version `3.11.391` and the same real CTA pass RU/EN/HE, focus and 380 px checks in the open owner tab.
+Local correction gates are green: VF contracts `18/18`, i18n `233/233`, B6 `45/45`, B7 `163/163`, and B8 PASS with zero review-log/RUM writes.
+
+The first `3.11.391` retest exposed a second old-client compatibility defect: the new HTML version stamp was visible, but the still-controlling old SW reused unversioned `/js/library-ui.js`, so the correction module did not load. Release `3.11.392` pins the Room module URL to `/js/library-ui.js?v=392` while retaining the normal precache entry. In the same stale owner session, releasing the old client through the normal page lifecycle activated the waiting worker; the next load received the versioned module and the correction without cache clearing.
+
+Final production result: `VF1 PROD=PASS`. The open owner tab passed RU/EN/HE dynamic CTA repaint, two enhanced SVG symbols, emoji-free accessible name, keyboard-only focus reachability, desktop and 380 px RU/HE composition, and real Ben-Yehuda/My Texts/group traversal. The owner tab was restored to desktop RU and `#room=benyehuda`.
