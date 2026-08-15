@@ -1,12 +1,12 @@
 # ROOM-UX-VF1 — Room shell, L0 and corpora implementation packet
 
 > Date: 2026-08-15
-> Status: `VF1_PROD_READ_ONLY_PASS_OWNER_REVIEW_REQUIRED`
+> Status: `VF1_CORRECTION_DEPLOY_PENDING`
 > Source commit: `721df7fa`
 > Branch: `main`
 > Dirty status: mixed owner worktree; every tracked VF1 target was clean at preflight
-> Implementation commit: `80e869cd`
-> Production: `https://linguistpro.kolosei.com/library.html` / `3.11.390` verified read-only
+> Implementation commits: `80e869cd` (VF1), `fe8fa23d` (bounded owner-browser correction)
+> Production: `https://linguistpro.kolosei.com/library.html` / `3.11.390` baseline verified; `3.11.391` correction pending
 > Evidence classes: repository/code, automated local browser, production read-only, owner-reported
 > Limitations: physical mobile and assistive technology are `NOT_RUN`; automation must not be represented as either
 
@@ -105,7 +105,7 @@ VF1 must not change:
 7. Keyboard focus is visible; DOM/ARIA roles and names remain correct.
 8. Light/dark/auto, reduced motion and forced colors preserve equivalent static information.
 9. Existing Room B6/B7/B8, i18n, Reader parity and relevant corpus tests remain green.
-10. Versions lock to `3.11.390`; locales advance to `?v=166`.
+10. Versions lock to `3.11.391`; locales remain at `?v=166` because the correction does not change locale bytes.
 11. Production deploy is serialized, then API/footer/SW/assets and real owner fixtures are inspected read-only.
 12. Owner acceptance is a separate final gate; physical/AT evidence remains explicit.
 
@@ -120,4 +120,15 @@ VF1 must not change:
 
 ## 9. Handoff condition
 
-After local gates, commit/push/deploy and production read-only smoke, stop and hand VF1 to the owner. Do not start VF2 until the owner returns a separate VF1 production decision.
+After local gates, commit/push/deploy and production read-only smoke, stop and hand VF1 to the owner. The owner subsequently delegated browser acceptance with: test the open production tab, fix any defects, and if none remain record `VF1 PROD=PASS` and start the next slice. VF2 therefore remains blocked until the `3.11.391` correction passes that delegated production-browser gate.
+
+## 10. Owner-browser correction
+
+The open owner production tab exposed one bounded VF1 defect on the real due-review CTA:
+
+- changing RU to HE correctly changed the document language/direction, but the already-rendered dynamic CTA retained its Russian label;
+- the CTA still used emoji identity and the browser-default focus outline instead of the adopted VF1 SVG/focus contract.
+
+The correction is limited to the existing VF1 shell allowlist. Locale change now repaints the CTA; its label remains sourced from the existing `room.morph.study.due` RU/EN/HE key, its count uses the existing localized number formatter, and its train/directional affordances use the already-shipped sprite with visible fallbacks. No locale file, writer, persistence key, API or SW strategy changes.
+
+Local correction gates are green: VF contracts `18/18`, i18n `233/233`, B6 `45/45`, B7 `163/163`, and B8 PASS with zero review-log/RUM writes. Production acceptance remains pending until served version `3.11.391` and the same real CTA pass RU/EN/HE, focus and 380 px checks in the open owner tab.

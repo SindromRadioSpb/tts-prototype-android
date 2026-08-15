@@ -1,12 +1,12 @@
 # ROOM-UX-VF1 — implementation evidence
 
 > Date: 2026-08-15
-> Status: `VF1_PROD_READ_ONLY_PASS_OWNER_REVIEW_REQUIRED`
+> Status: `VF1_CORRECTION_DEPLOY_PENDING`
 > Source commit: `721df7fa`
-> Implementation commit: `80e869cd`
+> Implementation commits: `80e869cd` (VF1), `fe8fa23d` (bounded owner-browser correction)
 > Branch: `main`
 > Dirty status: mixed owner worktree; every tracked VF1 target was clean at preflight and unrelated changes were preserved
-> Production URL/version: `https://linguistpro.kolosei.com/library.html` / `3.11.390` verified read-only
+> Production URL/version: `https://linguistpro.kolosei.com/library.html` / `3.11.390` baseline verified; `3.11.391` correction pending
 > Locale cache query: `166`
 > Evidence classes: repository/code, automated tests, isolated automated browser, production read-only, owner-reported
 > Limitations: physical mobile, screen reader and other assistive technology are `NOT_RUN`; isolated automation is not owner-live evidence
@@ -33,8 +33,8 @@ Runtime adoption is limited to:
 
 Serialized release-lock changes are limited to:
 
-- `public/index.html`: `APP_VERSION=3.11.390` and locale query `166`;
-- `public/sw.js`: `CACHE_VERSION=3.11.390`; no strategy or precache-membership change;
+- `public/index.html`: `APP_VERSION=3.11.391` and locale query `166`;
+- `public/sw.js`: `CACHE_VERSION=3.11.391`; no strategy or precache-membership change;
 - `tests/i18n.locale-version.lock.json`: locale version/hash lock.
 
 Contract/evidence changes are limited to:
@@ -113,7 +113,7 @@ A hard offline reload of a cold localhost page without an existing controlling s
 
 - **Code/repository confirmed:** exact allowlist, fallback-first icon enhancement, state anatomy, font/bidi/numeric roles, motion/focus/forced-colors CSS, version/SW lock, zero new writers.
 - **Automated local confirmed:** desktop RU corpus fixture, 380 RU and HE/RTL, keyboard focus, accessibility tree, dark/system, reflow equivalent, long title, sprite-failure fallback, B6–B8 regression smokes.
-- **Production read-only:** pending deployment of `3.11.390`.
+- **Production read-only:** `3.11.390` baseline passed; bounded `3.11.391` correction pending deployment.
 - **Owner-live:** VF0 PASS only. VF1 owner review is pending; real owner My Texts visual composition must be checked by the owner or in a separately authorized mutation-safe flow because navigating the owner tab may change presentation state.
 - **Not run:** physical mobile, physical 200%, VoiceOver/NVDA/JAWS, high-contrast user session, destructive cold-cache/offline test.
 
@@ -172,4 +172,28 @@ Deployment and automated/read-only production smoke are PASS. Owner acceptance r
 3. check desktop/380 or the devices the owner actually chooses to run;
 4. return exact `VF1 PROD=PASS` or a bounded defect list.
 
-Do not mark VF1 owner-accepted or begin VF2 from this automated/read-only evidence.
+Do not mark VF1 accepted or begin VF2 until the owner-delegated `3.11.391` browser gate is complete.
+
+## 9. Open owner-tab defect and bounded correction
+
+The owner explicitly authorized testing in the already-open production tab and called out real Ben-Yehuda, **My Texts** and corpus fixtures. Mutation-safe traversal found:
+
+- desktop RU Ben-Yehuda: 59/59 rendered icon slots enhanced, no visible fallback, no page overflow and no console error;
+- 380×844 RU and HE/RTL Ben-Yehuda: no page overflow, native HE shell names and expected Hebrew editorial font role;
+- real **My Texts**: 115 texts, 48 rendered rows, mixed Hebrew/Russian/Latin and long-title fixtures without page overflow;
+- real authorized group corpus: 77 texts, 48 rendered rows and no page overflow.
+
+One VF1 defect was reproduced: after the in-page RU→HE locale change, the dynamic due-review CTA retained Russian text. It also retained emoji-only action identity and the browser-default focus outline. The defect is caused by `wireChrome()` repainting disclosure copy but not the separately rendered `_paintDueCTA()` content.
+
+Commit `fe8fa23d` corrects only this existing control:
+
+- the locale handler repaints `_paintDueCTA()`;
+- existing RU/EN/HE key `room.morph.study.due` remains the copy owner;
+- the count uses `roomNumber()`;
+- existing `lp-icon-train` and directional chevron symbols progressively replace visible fallbacks;
+- `room-vf1-focus` supplies the shared keyboard focus contract;
+- release surfaces advance from `3.11.390` to `3.11.391`; locale bytes/query and SW strategy do not change.
+
+Correction gates: `node --check` PASS; VF/VF0 contracts `18/18`; i18n `233/233`; B6 `45/45`; B7 `163/163`; B8 PASS with zero review-log/RUM writes; `git diff --check` PASS.
+
+The first correction webhook failed because the host root was full and the Coolify PostgreSQL container was in recovery. Bounded infrastructure recovery removed 3.863 GB of unused build cache, then nine exact unreferenced old LinguistPro images while retaining the active image and three newest rollback images, and finally 4.411 GB of newly unreferenced build cache. Root usage fell from 100% to 71%; application data, volumes, active containers and rollback set were preserved. Coolify/PostgreSQL returned healthy. A stale completed deploy record/helper was closed through Coolify's own queue-cleanup commands before the clean deploy retry. This operational recovery is not product evidence; served `3.11.391` and owner-tab retest remain required.
