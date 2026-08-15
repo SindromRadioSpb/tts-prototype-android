@@ -1,8 +1,9 @@
 # ROOM-UX-VF2 — Reader, Morph and Mentor implementation packet
 
 > Date: 2026-08-15
-> Status: `VF2_IMPLEMENTATION_IN_PROGRESS`
+> Status: `VF2_LOCAL_PASS_DEPLOY_PENDING`
 > Source commit: `3745d3f5`
+> Implementation commit: `60234bae`
 > Branch: `main`
 > Dirty status: mixed owner worktree; VF2 runtime targets clean at preflight; VF1 closure evidence pending its scoped commit
 > Production: `https://linguistpro.kolosei.com/library.html` / `3.11.392`, exact `VF1 PROD=PASS`
@@ -92,3 +93,9 @@ Anything else stops the slice.
 ## 8. Handoff condition
 
 Do not call VF2 complete until its local gates, serialized deploy and production read-only smoke pass. Physical-device/AT evidence remains separate and must not be inferred.
+
+## 9. Local implementation result
+
+The bounded runtime and old/new SW contract are implemented in `60234bae`. The release is locked to `3.11.393`; every changed shared asset is requested and precached under the same exact versioned URL so a stale controlling worker cannot combine new HTML with old Reader/Morph/Mentor bytes.
+
+Local result is PASS: VF2 contract `6/6`, combined visual/Reader/Morph contracts `43/43`, i18n `233/233`, B6 `45/45`, B7 `163/163`, B8 PASS with zero `review_log`/RUM writes, Reader parity, Room audio indicator `11/11`, Reader karaoke `9/9` plus word karaoke `18/18`, Reader notes, Reader/Studio Morph and Mentor server `25/25`. One concurrent B6 browser run timed out before assertions; the required isolated rerun passed `45/45`, so it is recorded as harness contention rather than product evidence.
