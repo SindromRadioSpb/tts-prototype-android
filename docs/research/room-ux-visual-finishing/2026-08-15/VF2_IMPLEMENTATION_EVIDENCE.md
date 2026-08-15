@@ -1,13 +1,13 @@
 # ROOM-UX-VF2 — Reader, Morph and Mentor implementation evidence
 
 > Date: 2026-08-15
-> Status: `VF2_LOCAL_PASS_DEPLOY_PENDING`
+> Status: `VF2_PROD_PASS_OWNER_REVIEW_PENDING`
 > Source commit: `3745d3f5`
-> Implementation commit: `60234bae`
+> Implementation commits: `60234bae`, production corrections `7cbf49df`, `463c4c0f`, `75cddc27`
 > Branch: `main`
-> Dirty status: mixed owner worktree; all VF2 runtime targets were clean at preflight and unrelated files remain unstaged
-> Production URL/version: `https://linguistpro.kolosei.com/library.html` / `3.11.392` baseline; `3.11.393` pending
-> Evidence classes: repository/code, automated local, isolated automated browser, production baseline
+> Dirty status: mixed owner worktree; all VF2 runtime targets are committed and unrelated files remain unstaged
+> Production URL/version: `https://linguistpro.kolosei.com/library.html` / `3.11.396`
+> Evidence classes: repository/code, automated local, isolated automated browser, production public read-back, production open-owner-tab read-only
 > Limitations: physical mobile, physical 200% zoom, screen reader and other assistive technology are `NOT_RUN`; automation is not physical or owner-live evidence
 
 ## 1. Authority and boundary
@@ -44,21 +44,22 @@ No schema, migration, data, i18n, provider, recommendation, progress, assignment
 
 ## 3. Release and old-client contract
 
-Release `3.11.393` advances `APP_VERSION`, Room footer and `CACHE_VERSION` together. Because VF1 proved that a stale controlling SW can reuse an unchanged static URL, every changed shared asset now has one exact versioned request and precache key:
+The final release is `3.11.396`. `APP_VERSION`, Room footer and `CACHE_VERSION` advance together. The VF2 assets remain under the byte-accurate URLs introduced by `3.11.394`:
 
-- `/js/library-ui.js?v=393`;
-- `/js/mentor-home.js?v=393`;
-- `/css/reader-core.css?v=393`;
-- `/css/reader-morph.css?v=393` on Room and Studio.
+- `/js/library-ui.js?v=394`;
+- `/js/mentor-home.js?v=394`;
+- `/css/reader-core.css?v=394`;
+- `/css/reader-morph.css?v=394` on Room and Studio;
+- changed RU/EN/HE locale bytes use `/i18n/locales/{ru,en,he}.js?v=167`.
 
-The service-worker strategy is unchanged. The exact queried URLs are precached, preserving first-install offline availability without duplicating the changed assets under unqueried keys.
+The exact queried URLs are both precached and integrity-keyed. The server hashes their query-free filesystem path while retaining the query in the cache key. This closes the discovered failure where the `3.11.393` worker cached `/js/library-ui.js?v=393` but tried to verify `/js/library-ui.js`, rejected its own install and left the old shell active.
 
 ## 4. Automated evidence
 
 | Gate | Result |
 |---|---:|
 | VF2 contract | PASS `6/6` |
-| Combined VF0/VF1/VF2 + Reader/Morph contracts | PASS `43/43` |
+| Combined VF0/VF1/VF2 + Reader/Morph contracts | PASS `44/44` |
 | RU/EN/HE symmetry, bidi and version lock | PASS `233/233` |
 | Reader builder/leaf golden parity | PASS |
 | Room audio indicator | PASS unit `2/2`, browser `11/11` |
@@ -75,22 +76,31 @@ The first B6 browser attempt ran concurrently with other heavy browser fixtures 
 
 Targeted browser fixtures also confirmed no horizontal overflow at 380 px, non-colour audio labels, Hebrew direction, persisted audio readiness, Reader/Studio Morph writer parity and no page errors.
 
-## 5. Compatibility and rollback
+## 5. Production corrections and compatibility
+
+The production browser gate found and closed three bounded defects:
+
+1. `3.11.394` aligns the service-worker integrity manifest with the exact cache-busted precache URLs, reports the loaded shell version rather than the server version, watches an already-installing worker and provides a safe network-reload fallback when versions differ.
+2. `3.11.395` replaces the static Mentor-view emoji identity with the first-party Mentor mark plus localized text.
+3. `3.11.396` removes the remaining emoji from `room.mentor.title` in RU/EN/HE and advances the locale cache key to `167`, so the accessibility tree now exposes `Наставник` / `Mentor` / `מנטור` without an emoji prefix.
 
 - Old host + new Mentor: Unicode fallback remains complete.
 - New host + old Mentor: the extra capability is ignored.
 - Sprite unavailable: one visible fallback remains; no retry loop or blank icon-only control.
-- Old/new SW: changed HTML URLs cannot hit previous static cache keys; the new precache contains the exact URLs needed offline.
-- Rollback: revert the VF2 runtime commit, advance APP/SW version and deploy. No data rollback exists or is required.
+- Old/new SW: `3.11.394 → 3.11.395 → 3.11.396` each surfaced an explicit update prompt in the open owner tab; no automatic activation occurred.
+- Rollback: active `75cddc27` plus `463c4c0f`, `7cbf49df` and `2aa29871` images are retained. No data rollback exists or is required.
 
-## 6. Production gate still required
+## 6. Production read-only gate
 
-Before `VF2 PROD=PASS`, deploy serially and verify read-only in the existing authorized production tab:
+`VF2 PROD=PASS` is supported by the following evidence:
 
-1. served `3.11.393`, exact asset query URLs and active worker/cache version;
-2. Reader on a real Ben-Yehuda text: table parity, keyboard focus, Morph open/close and no write action;
-3. Mentor RU and HE/RTL: SVG/fallback, accessible names, state layout, 380 px and no overflow;
-4. reduced-motion computed durations and static audio/rail/focus equivalence;
-5. console/page errors, health, active commit and rollback image.
+1. Five consecutive public read-backs converged on API/HTML/SW `3.11.396`; exact locale `?v=167` and VF2 asset URLs were served.
+2. The existing owner tab displayed the real Ben-Yehuda catalog (`26,455` works, real public Hebrew titles), SVG enhancement with no visible fallback, localized accessible control names, a three-pixel keyboard focus ring and zero page overflow.
+3. Mentor was opened read-only. Its accessibility tree exposes heading `Наставник`, plan and reading actions without emoji-owned names; the mark is SVG and its fallback is `aria-hidden`. No action that writes, invokes a provider or changes learner truth was used.
+4. Isolated, non-owner automation passed 380×844 RU and HE/RTL, 640 CSS px at DPR 2 reflow simulation, zero horizontal overflow, no page errors and no non-GET requests. Under `prefers-reduced-motion: reduce`, tested Room controls computed `transition-duration: 0s`, `animation-duration: 0s` and `transform: none`; Reader/Morph reduced-motion rules were present.
+5. The owner-tab console contained no error or warning entries. HTTP health was `200`, DB ready, and active container commit `75cddc27` served `3.11.396`.
+6. Post-build cleanup removed only unused build cache and six explicitly inventoried old, unreferenced LinguistPro images. It retained the active image plus three rollback images; no container, volume, DB, owner cache or production data was removed. Host disk moved from 89% to 75%; `/healthz` reported 76% and `disk_warn=false`.
+
+The production owner Reader was deliberately not opened: opening a real owner text changes `last_opened`/progress and would violate the read-only gate. Reader/Morph interaction evidence therefore remains the isolated local browser PASS listed above; production proved the served assets, CSS rules and hidden DOM contract without claiming an owner-live Reader interaction.
 
 Do not treat automated viewport or accessibility-tree inspection as physical mobile or assistive-technology evidence. Final subjective owner review remains a separate handoff after the production read-only gate.

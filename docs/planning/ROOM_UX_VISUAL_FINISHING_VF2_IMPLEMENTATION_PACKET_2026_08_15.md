@@ -1,12 +1,12 @@
 # ROOM-UX-VF2 — Reader, Morph and Mentor implementation packet
 
 > Date: 2026-08-15
-> Status: `VF2_LOCAL_PASS_DEPLOY_PENDING`
+> Status: `VF2_PROD_PASS_OWNER_REVIEW_PENDING`
 > Source commit: `3745d3f5`
-> Implementation commit: `60234bae`
+> Implementation commits: `60234bae`, `7cbf49df`, `463c4c0f`, `75cddc27`
 > Branch: `main`
-> Dirty status: mixed owner worktree; VF2 runtime targets clean at preflight; VF1 closure evidence pending its scoped commit
-> Production: `https://linguistpro.kolosei.com/library.html` / `3.11.392`, exact `VF1 PROD=PASS`
+> Dirty status: mixed owner worktree; all VF2 runtime targets are committed and unrelated files remain unstaged
+> Production: `https://linguistpro.kolosei.com/library.html` / `3.11.396`, exact `VF1 PROD=PASS` and `VF2 PROD=PASS`
 > Evidence classes: repository/code, automated local, isolated browser, production open-owner-tab
 > Limitations: physical mobile and assistive technology remain `NOT_RUN`; automation is not either
 
@@ -92,10 +92,16 @@ Anything else stops the slice.
 
 ## 8. Handoff condition
 
-Do not call VF2 complete until its local gates, serialized deploy and production read-only smoke pass. Physical-device/AT evidence remains separate and must not be inferred.
+The engineering and production read-only conditions are satisfied. Physical-device/AT evidence remains separate and must not be inferred; subjective owner review is still pending.
 
 ## 9. Local implementation result
 
-The bounded runtime and old/new SW contract are implemented in `60234bae`. The release is locked to `3.11.393`; every changed shared asset is requested and precached under the same exact versioned URL so a stale controlling worker cannot combine new HTML with old Reader/Morph/Mentor bytes.
+The bounded runtime is implemented in `60234bae`; production corrections are `7cbf49df`, `463c4c0f` and `75cddc27`. The final release is locked to `3.11.396`. Every changed shared asset and locale is requested, precached and integrity-keyed under the same exact versioned URL, so a stale controlling worker cannot combine new HTML with old Reader/Morph/Mentor bytes.
 
-Local result is PASS: VF2 contract `6/6`, combined visual/Reader/Morph contracts `43/43`, i18n `233/233`, B6 `45/45`, B7 `163/163`, B8 PASS with zero `review_log`/RUM writes, Reader parity, Room audio indicator `11/11`, Reader karaoke `9/9` plus word karaoke `18/18`, Reader notes, Reader/Studio Morph and Mentor server `25/25`. One concurrent B6 browser run timed out before assertions; the required isolated rerun passed `45/45`, so it is recorded as harness contention rather than product evidence.
+Local result is PASS: VF2 contract `6/6`, combined visual/Reader/Morph contracts `44/44`, i18n `233/233`, B6 `45/45`, B7 `163/163`, B8 PASS with zero `review_log`/RUM writes, Reader parity, Room audio indicator `11/11`, Reader karaoke `9/9` plus word karaoke `18/18`, Reader notes, Reader/Studio Morph and Mentor server `25/25`. One concurrent B6 browser run timed out before assertions; the required isolated rerun passed `45/45`, so it is recorded as harness contention rather than product evidence.
+
+## 10. Production result
+
+`VF2 PROD=PASS`. The open owner tab passed the explicit old/new-worker update path to `3.11.396`, real Ben-Yehuda public rows, SVG/fallback, keyboard focus, accessible names, Mentor read-only and console/error checks. Isolated non-owner automation passed 380×844 RU and HE/RTL, DPR-2 reflow, reduced motion, no overflow and zero non-GET requests. The real owner Reader was not opened because that would change canonical progress/last-opened; Reader/Morph interaction remains supported by the green isolated browser fixtures and no owner-live interaction is claimed.
+
+Two production findings were corrected before PASS: exact integrity/precache key mismatch plus dishonest dynamic shell version, and the Mentor heading's emoji-bearing localized accessible name. Active runtime commit is `75cddc27`; production health is HTTP 200 with DB ready. Bounded post-build cleanup retained the active image and three rollback images, removed no volumes/data/caches belonging to the owner, and cleared `disk_warn`.
