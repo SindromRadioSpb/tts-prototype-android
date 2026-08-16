@@ -1,7 +1,7 @@
 # ROOM-UX-VF3 — Studio shell implementation packet
 
 > Date: 2026-08-16
-> Status: `VF3_PROD_PASS_OWNER_HANDOFF`
+> Status: `VF3_CLOSED_OWNER_ACCEPTED`
 > Source commit: `48ef83e8`
 > Branch: `main`; `origin/main` matched the source commit at preflight
 > Dirty status: mixed owner worktree; all VF3 runtime/release targets were clean at preflight and unrelated files remain out of scope
@@ -11,7 +11,7 @@
 
 ## 1. Authority and serialized boundary
 
-The owner approved `V9=SERIALIZED_VF0_VF3_ALLOWLIST`, accepted VF0 and VF1, and reported successful VF2 production testing on 2026-08-16. VF2 is therefore `VF2_CLOSED_OWNER_ACCEPTED`; VF3 is the only remaining approved slice. No VF4 is authorized.
+The owner approved `V9=SERIALIZED_VF0_VF3_ALLOWLIST`, accepted VF0 and VF1, and reported successful VF2 production testing on 2026-08-16. VF2 was therefore `VF2_CLOSED_OWNER_ACCEPTED`, leaving VF3 as the final approved slice. VF3 is now also owner-accepted; no VF4 implementation was authorized by that decision.
 
 VF3 is a narrow Studio-shell adoption of **editorial calm, operational clarity**. It cannot reopen Studio Classic/v3 workflows, the 446-inline-style backlog, B0–B9, Library/Corpus ownership, learner truth, canonical writers, provider behavior, telemetry, schema/data or `GROUP-CORPUS-CACHE-REVOCATION`.
 
@@ -90,10 +90,14 @@ Anything else stops the slice.
 
 Stop without commit/push/deploy on any target drift, workflow/DOM-parity change, lost fallback, locale mismatch, new write/network call, horizontal overflow, inaccessible focus/name, failed relevant gate or production version/SW mismatch.
 
-## 8. Production result and owner gate
+## 8. Production result and closure
 
 The initial `3.11.397` production pass exposed one shell-local CSS-specificity defect in IDE mode: a legacy `150 ms` rule overrode the approved motion roles. Commit `a71e37a8` corrected only that selector and advanced the release lock to `3.11.398`.
 
 Production `3.11.398` then passed five consecutive API/HTML/Room-footer/SW read-backs, the isolated RU/HE Classic/IDE matrix, keyboard focus, reduced motion, current-SW cache-hit checks and the connected owner-Chrome read-only smoke. The already-open owner Library tab intentionally remained on complete old client `3.11.396` with the expected update banner; the smoke did not click it, alter presentation/learner state or clear caches. A temporary owner-profile Studio tab confirmed `3.11.398`, 24 hydrated icons, zero visible fallbacks, zero unnamed VF3 shell controls, no page overflow and no console error/warning, then was closed.
 
-VF3 is ready for owner acceptance, but is not marked owner-accepted or closed until the owner reports `VF3 PROD=PASS`. Physical mobile, actual browser-UI 200% zoom and assistive technology remain `NOT_RUN`. No VF4 is authorized by the approved packet.
+After the owner applied the production update, a second connected Chrome/Kapture pass verified the actual owner client at `3.11.398`: no stale banner, Library and the current real corpus retained their URL/state, Studio had 24 hydrated SVGs and zero fallback, VF3 motion computed `120/140 ms`, keyboard focus settled to the required 3 px ring, OPFS integrity was `OK`, and console errors/warnings were `0/0`. No owner content, learning state or presentation setting was changed.
+
+The owner then reported exact acceptance `VF3 PROD=PASS` on 2026-08-16. VF3 is `CLOSED_OWNER_ACCEPTED`; the full VF0–VF3 allowlist is complete. Physical mobile, actual browser-UI 200% zoom and assistive technology remain `NOT_RUN`. No VF4 implementation is authorized by the approved packet.
+
+For every future production deploy, the owner requires the agent to apply the visible client update itself, run the real-client Kapture smoke, repair any discovered defect, redeploy, apply the next update and repeat the smoke before owner handoff.

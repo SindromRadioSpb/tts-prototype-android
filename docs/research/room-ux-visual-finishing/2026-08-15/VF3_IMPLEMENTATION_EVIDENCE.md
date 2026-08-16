@@ -1,7 +1,7 @@
 # ROOM-UX-VF3 — Studio shell implementation evidence
 
 > Date: 2026-08-16
-> Status: `VF3_PROD_PASS_OWNER_HANDOFF`
+> Status: `VF3_CLOSED_OWNER_ACCEPTED`
 > Source commit: `48ef83e8`
 > Implementation commits: `c1656c0b`, `a71e37a8`
 > Branch: `main`; `origin/main` matched the source commit at preflight
@@ -12,7 +12,7 @@
 
 ## 1. Authority and boundary
 
-The owner reported successful VF2 production testing on 2026-08-16, so VF2 is closed. The approved `V9=SERIALIZED_VF0_VF3_ALLOWLIST` leaves VF3 as the only remaining implementation slice; no VF4 is authorized.
+The owner reported successful VF2 production testing on 2026-08-16, so VF2 was closed. The approved `V9=SERIALIZED_VF0_VF3_ALLOWLIST` then left VF3 as the final implementation slice. VF3 is now also owner-accepted; no VF4 implementation was authorized by that decision.
 
 VF3 changes the existing Studio Classic/IDE shell presentation only. It does not change a workflow, table builder, import/media path, ASR/MT/provider call, storage key, learner truth, review writer, schema, migration, telemetry, B0–B9, Library/Corpus ownership or `GROUP-CORPUS-CACHE-REVOCATION`.
 
@@ -81,6 +81,8 @@ Keyboard-driven focus on 380 RU, 380 HE/RTL and desktop RU produced the expected
 
 The connected Chrome/Kapture read-only smoke found the owner's already-open real Library at `3.11.396` with its expected update banner, real Ben-Yehuda and My Texts surfaces, zero page overflow and no DOM error. It was left at the same URL; the update action, caches and all owner data/presentation keys remained untouched. A separate temporary owner-profile tab loaded Studio/Library `3.11.398`: Studio had 24 hydrated SVGs, zero visible fallback, zero unnamed VF3 shell controls, zero overflow and zero console error/warning; fresh Library exposed the current `3.11.398` footer and both real corpus surfaces. The temporary tab was closed and the owner tab released unchanged. Debug-only fallback lookup messages were present for pre-existing optional editor keys, but no raw key was visible in text, title, label or placeholder.
 
+After the owner clicked the production update, a final real-client Kapture pass observed the same owner Library tab on `3.11.398` with no update banner. Its current real group-corpus URL remained unchanged, horizontal overflow was zero, 188 visible controls had accessible names, 23 sprite uses rendered, keyboard Tab exposed the 3 px focus ring, and console errors/warnings were `0/0`. A temporary tab in the same real profile loaded Studio Classic `3.11.398`: 24 SVG uses, zero fallback, ten named VF3 shell controls, `120/140 ms` motion, zero overflow, zero visible raw i18n keys, OPFS integrity `OK`, console errors/warnings `0/0`, and the required 3 px keyboard focus ring after the transition settled. No material, progress, review, list, provider or presentation value was changed; the temporary tab was closed.
+
 ## 7. Compatibility and rollback
 
 - Old HTML/new SW retains the prior complete emoji/text shell.
@@ -89,6 +91,6 @@ The connected Chrome/Kapture read-only smoke found the owner's already-open real
 - Reduced motion removes transition/animation/transform without changing the end state; forced colors retains icon/currentColor and system outlines.
 - Rollback is static: revert the VF3 runtime release, advance the version/SW lock, and serve the prior complete shell. There is no data rollback.
 
-## 8. Owner acceptance gate
+## 8. Owner acceptance and closure
 
-VF3 is `PROD_PASS_OWNER_HANDOFF`, not yet owner-accepted or closed. The remaining gate is the owner's production review and explicit `VF3 PROD=PASS`. Physical mobile, actual browser-UI 200% zoom and assistive technology remain `NOT_RUN`; they are not inferred from automation or the connected desktop Chrome smoke. No VF4 is authorized.
+The owner reported exact acceptance `VF3 PROD=PASS` on 2026-08-16. VF3 is `CLOSED_OWNER_ACCEPTED`, and VF0–VF3 are complete. Physical mobile, actual browser-UI 200% zoom and assistive technology remain `NOT_RUN`; they are not inferred from automation or the connected desktop Chrome smoke. No VF4 implementation is authorized by this packet.

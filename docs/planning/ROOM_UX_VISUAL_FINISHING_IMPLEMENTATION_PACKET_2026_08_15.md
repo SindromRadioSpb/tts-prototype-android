@@ -1,12 +1,12 @@
 # ROOM-UX-VF — Visual Finishing implementation packet
 
 > Date: 2026-08-15  
-> Status: `VF2_CLOSED_OWNER_ACCEPTED_VF3_PROD_PASS_OWNER_HANDOFF`
+> Status: `VF0_VF3_CLOSED_OWNER_ACCEPTED`
 > Owner approval: `Рекомендации утверждаю. Стартуй` (2026-08-15), normalized to the exact recommended V1–V10 values in the decision packet  
 > Source commit: `12dacd9a403ff8db2b7ad2dd20abf98e6c241386`  
 > Branch: `main`; `origin/main` matched the source commit at preflight  
 > Worktree: `DIRTY`; 34 entries pre-dated ROOM-UX-VF research, and the untracked research packet added two scoped entries. All VF0 runtime targets were clean at preflight.  
-> Production: `https://linguistpro.kolosei.com/` and `https://linguistpro.kolosei.com/library.html`, current release `3.11.398`; VF0, VF1 and VF2 are owner-accepted, VF3 awaits owner acceptance
+> Production: `https://linguistpro.kolosei.com/` and `https://linguistpro.kolosei.com/library.html`, current release `3.11.398`; VF0–VF3 are owner-accepted and closed
 > Evidence classes: `CODE`, `OWNER_APPROVAL`, `OWNER_REPORTED`, `OWNER_LIVE_READ_ONLY`, `ISOLATED_AUTOMATION`, `EXTERNAL_PRIMARY`  
 > Limitations: owner acceptance is recorded only for the slices actually reviewed. Physical-mobile and assistive-technology evidence remain `NOT_RUN`; automation is not either.
 
@@ -37,7 +37,9 @@ Only one slice may change shared contracts at a time.
 | VF0 foundations | `CLOSED_OWNER_ACCEPTED` | production `3.11.389`; owner acceptance `VF0 PROD=PASS` on 2026-08-15 |
 | VF1 Room shell/L0/corpora | `CLOSED_OWNER_ACCEPTED` | production `3.11.392`; owner acceptance `VF1 PROD=PASS` |
 | VF2 Reader/Morph/Trainer/Mentor | `CLOSED_OWNER_ACCEPTED` | production `3.11.396`; owner reported successful testing on 2026-08-16 |
-| VF3 Studio shell | `PROD_PASS_OWNER_HANDOFF` | final `3.11.398` passed public version/SW, isolated RU/HE Classic/IDE and connected owner-Chrome read-only gates; owner acceptance remains pending |
+| VF3 Studio shell | `CLOSED_OWNER_ACCEPTED` | final `3.11.398` passed public version/SW, isolated RU/HE Classic/IDE, updated real-client Kapture and owner acceptance `VF3 PROD=PASS` on 2026-08-16 |
+
+The approved `SERIALIZED_VF0_VF3_ALLOWLIST` is exhausted. No VF4 implementation is authorized by this packet. Any successor begins as a separate research-only decision lane.
 
 ## 3. VF0 exact allowlist
 

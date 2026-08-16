@@ -78,7 +78,7 @@ All slices are serialized. A shared-contract change cannot be deployed concurren
 ## Gate status today
 
 - Research completeness: `PASS`.
-- Runtime implementation: `VF0_CLOSED_OWNER_ACCEPTED`, `VF1_CLOSED_OWNER_ACCEPTED`, `VF2_CLOSED_OWNER_ACCEPTED`; VF3 is `PROD_PASS_OWNER_HANDOFF` and awaits owner acceptance.
+- Runtime implementation: `VF0_CLOSED_OWNER_ACCEPTED`, `VF1_CLOSED_OWNER_ACCEPTED`, `VF2_CLOSED_OWNER_ACCEPTED`, `VF3_CLOSED_OWNER_ACCEPTED`; the approved allowlist is complete.
 - Automated physical/AT claims: `NOT_RUN`.
 - Owner visual direction approval: `PASS` — recommendations approved on 2026-08-15.
 - Authorization to begin bounded implementation: `PASS` for serialized VF0–VF3, with each slice still subject to its preflight and stop gates.
@@ -88,5 +88,6 @@ All slices are serialized. A shared-contract change cannot be deployed concurren
 - VF1 owner handoff: `PASS` — exact owner acceptance `VF1 PROD=PASS` received after its production browser gate.
 - VF2 owner handoff: `PASS` — the owner reported successful production testing on 2026-08-16; served release `3.11.396`.
 - VF3 local/browser gates: `PASS` — combined VF0–VF3 `32/32`, i18n `233/233`, Studio UX `92/92`, Studio↔Room `49/49`, chunk and OPFS-resume smokes green.
-- VF3 production: `PASS` for owner handoff — initial `3.11.397` exposed a legacy IDE `150 ms` specificity override; bounded commit `a71e37a8` corrected it, and `3.11.398` passed five steady API/HTML/Room/SW read-backs, isolated RU/HE Classic/IDE, keyboard/reduced-motion/SW-cache and connected owner-Chrome read-only gates. Owner acceptance remains pending.
+- VF3 production and owner gate: `PASS` — initial `3.11.397` exposed a legacy IDE `150 ms` specificity override; bounded commit `a71e37a8` corrected it, and `3.11.398` passed five steady API/HTML/Room/SW read-backs, isolated RU/HE Classic/IDE, keyboard/reduced-motion/SW-cache and updated real-client Kapture gates. Owner acceptance `VF3 PROD=PASS` was received on 2026-08-16.
+- Successor boundary: no VF4 implementation is authorized. A separate research-only successor may recommend a bounded slice or `NO_GO_CLOSE_PROGRAM`.
 - Physical-mobile and assistive-technology rows remain `NOT_RUN`; they are not inferred from the owner desktop production acceptance.
