@@ -120,10 +120,11 @@ test("VF0 creates only the approved additive foundation assets", () => {
   for (const relative of Object.values(FILES)) {
     assert.ok(exists(relative), `missing approved VF0 file: ${relative}`);
   }
-  assert.match(packet, /Status: `VF0_[A-Z0-9_]+`/);
+  assert.match(packet, /Status: `VF[0-3]_[A-Z0-9_]+`/);
   assert.match(packet, /Owner approval: `Рекомендации утверждаю\. Стартуй`/);
   assert.match(packet, /SCOPE=BOUNDED_VISUAL_FINISHING_ONLY/);
-  assert.match(packet, /VF1 Room shell\/L0\/corpora \| `[^`]+` \| icon\/type\/focus\/state\/alignment/);
+  assert.match(packet, /VF1 Room shell\/L0\/corpora \| `CLOSED_OWNER_ACCEPTED`/);
+  assert.match(packet, /VF3 Studio shell \| `PREFLIGHT` \| the only remaining approved slice/);
 });
 
 test("VF0 loads foundations before legacy surface styles and leaves the fallbacks in place", () => {
@@ -258,7 +259,7 @@ test("VF0 precaches foundation assets and remains locked to the current served r
   const room = libraryHtml.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
   const worker = serviceWorker.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
   assert.ok(app && room && worker, "all public version surfaces must exist");
-  assert.equal(app[1], "3.11.396");
+  assert.equal(app[1], "3.11.397");
   assert.equal(room[1], app[1]);
   assert.equal(worker[1], app[1]);
 });

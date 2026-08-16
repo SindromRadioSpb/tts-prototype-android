@@ -55,10 +55,11 @@
 //  13) сохранённая google-free карточка + явное переключение на Gemini: восстановление Library
 //      не имеет права перехватить пользовательский выбор. Должен состояться новый Gemini-запрос;
 //      исходная карточка при этом остаётся неизменной и позже открывается со своими строками.
-//   3) SEG_MAPPING_LOST локально на куске 2: фейк отдаёт rows БЕЗ segment_index (+ warnings
+//   3) SEG_MAPPING_LOST на куске 2: фейк отдаёт rows БЕЗ segment_index (+ warnings
 //      ["SEG_MAPPING_LOST"], как это делает настоящий сервер — честно смоделировано, не
-//      придумано: ingest/segTable.js эмитит этот warning когда модель не вернула индексы) —
-//      деградация тайминга остаётся ЛОКАЛЬНОЙ этому куску, куски 1/3 сохраняют индексы.
+//      придумано: ingest/segTable.js эмитит этот warning когда модель не вернула индексы).
+//      Независимый coverage oracle делает targeted repair; если серверный кэш повторяет тот же
+//      unmapped ответ, job честно остаётся partial/stopped, а куски 1/3 сохраняют индексы.
 //
 // Run: node scripts/premium/studio-chunks-smoke.js
 
@@ -289,6 +290,14 @@ async function preparePage(page, fixture) {
   const cachedRef = canonicalRefsByText.get(text) || null;
   const promotedRef = await page.evaluate(async ({ text, segments, media, cachedRef }) => {
     await ensureLocalDB();
+    // Every preparePage() call starts an independent network scenario. Since the resumable
+    // table-job contract moved its completed journal to OPFS, reload alone is intentionally no
+    // longer a clean boundary: the next scenario can correctly restore the preceding 300 rows
+    // without calling the fake provider. Clear only this smoke-owned recovery journal here;
+    // scenario 2b's retry remains in the same prepared page and still proves real resume.
+    if (window.TableJob && typeof window.TableJob.clearDurable === "function") {
+      await window.TableJob.clearDurable();
+    }
     const providerEl = document.getElementById("providerSelect");
     if (providerEl) providerEl.value = "gemini";
     const dirEl = document.getElementById("tableDirectionSelect");
@@ -477,8 +486,9 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     must(JSON.stringify(s2b1.chunkCalls) === JSON.stringify([120, 120, 120]),
       "scenario2b attempt1: __chunkCalls=" + JSON.stringify(s2b1.chunkCalls) + " expected [120,120,120] (original attempt + auto-retry, both failed)");
 
-    // Resume: same page (no reload) — the fake per-chunk cache from attempt1 persists,
-    // exactly like the server's real sha256 chunk cache would across two HTTP requests.
+    // Resume: same page (no reload). The durable table-job journal already owns chunk 1, so the
+    // product resumes at chunk 2 without another HTTP request; the fake server cache remains a
+    // secondary fallback, not the primary recovery mechanism.
     await page.evaluate(() => { window.__failPlan = null; });
     await page.evaluate(() => { translateTable(); });
 
@@ -494,14 +504,13 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     must(s2b2.tableLen === N_SEGS, "scenario2b attempt2: currentTableData.length=" + s2b2.tableLen + " expected " + N_SEGS);
 
     // ── call-count accounting (asked-for-in-brief: "зафиксируй счёт и обоснуй") ────────────
-    // __chunkCalls logs EVERY call that reaches the fake fetch handler, cache-hit or not — 6
+    // __chunkCalls logs EVERY call that reaches the fake fetch handler — 5
     // total on this page: attempt1 = chunk1(#1,120,success) + chunk2 attempt1(#2,120,FAIL) +
-    // chunk2 auto-retry(#3,120,FAIL, plan.times exhausted); attempt2(resume) = chunk1(#4,120,
-    // CACHE HIT — identical segments-JSON already cached from #1's success) + chunk2(#5,120,
-    // real,succeeds now __failPlan=null) + chunk3(#6,60,real,new).
-    must(JSON.stringify(s2b2.chunkCalls) === JSON.stringify([120, 120, 120, 120, 120, 60]),
-      "scenario2b: __chunkCalls=" + JSON.stringify(s2b2.chunkCalls) + " expected [120,120,120,120,120,60] (3 attempt1 + 3 attempt2)");
-    must(s2b2.cacheHits === 1, "scenario2b: __cacheHits=" + s2b2.cacheHits + " expected 1 (only attempt2's chunk1 was ever previously cached)");
+    // chunk2 auto-retry(#3,120,FAIL, plan.times exhausted); attempt2(resume) restores chunk1
+    // locally, then requests chunk2(#4,120,success) + chunk3(#5,60,success).
+    must(JSON.stringify(s2b2.chunkCalls) === JSON.stringify([120, 120, 120, 120, 60]),
+      "scenario2b: __chunkCalls=" + JSON.stringify(s2b2.chunkCalls) + " expected [120,120,120,120,60] (3 attempt1 + 2 resumed calls)");
+    must(s2b2.cacheHits === 0, "scenario2b: __cacheHits=" + s2b2.cacheHits + " expected 0 (chunk1 resumed locally; no duplicate HTTP request)");
     // "real generations" = calls NOT served from the fake cache — 5: attempt1's chunk1(success) +
     // chunk2 attempt1(fail, not cached) + chunk2 auto-retry(fail, not cached) + attempt2's chunk2
     // (real,success) + chunk3(real,success).
@@ -582,37 +591,43 @@ function must(cond, msg) { if (!cond) throw new SmokeFail(msg); }
     console.log("scenario2c OK — chunkCalls=" + JSON.stringify(s2c.chunkCalls) + " (429 not retried)");
 
     // ══════════════════════════════════════════════════════════════════════════════════════
-    // Scenario 3: SEG_MAPPING_LOST on chunk 2 — degradation stays local to that chunk.
+    // Scenario 3: SEG_MAPPING_LOST on chunk 2 — targeted repair cannot accept the same cached
+    // unmapped answer and the job stops honestly instead of presenting false completeness.
     // ══════════════════════════════════════════════════════════════════════════════════════
     await page.reload({ waitUntil: "load" });
     await preparePage(page);
     await page.evaluate(() => { window.__mappingLostAtCall = 2; }); // chunk 2 = 2nd call on this fresh page
     await page.evaluate(() => { translateTable(); });
 
-    const r3 = await pollUntil(page, (s) => s.chunksLen === 3 || !!s.err, 30000, 50);
-    must(r3.ok, "scenario3: timed out waiting for completion; last=" + JSON.stringify(r3.snap));
-    must(!r3.snap.err, "scenario3: unexpected error banner: " + r3.snap.err + " (a mapping-lost chunk is still an HTTP 200 — must NOT be treated as a chunk failure)");
+    const r3 = await pollUntil(page, (s) => !!s.err && s.partial && s.chunkCalls === 4, 30000, 50);
+    must(r3.ok, "scenario3: timed out waiting for honest stopped state; last=" + JSON.stringify(r3.snap));
 
     const s3 = await page.evaluate(() => {
-      const withIdx = [], withoutIdx = [];
+      const withIdx = [], withoutIdx = [], segmentIndexes = [];
       for (let i = 0; i < currentTableData.length; i++) {
-        (Number.isInteger(currentTableData[i].segment_index) ? withIdx : withoutIdx).push(i);
+        if (Number.isInteger(currentTableData[i].segment_index)) {
+          withIdx.push(i); segmentIndexes.push(currentTableData[i].segment_index);
+        } else withoutIdx.push(i);
       }
-      return { total: currentTableData.length, withIdx, withoutIdx,
-                chunksLen: v3LastGeminiMeta.chunks.length, partial: !!v3LastGeminiMeta.partial };
+      return { total: currentTableData.length, withIdx, withoutIdx, segmentIndexes,
+                chunksLen: v3LastGeminiMeta.chunks.length, partial: !!v3LastGeminiMeta.partial,
+                chunkCalls: (window.__chunkCalls || []).slice(),
+                repairs: (v3LastGeminiMeta.repairs || []).slice(),
+                err: (document.getElementById("errorMsg").textContent || "").trim() };
     });
     must(s3.total === N_SEGS, "scenario3: currentTableData.length=" + s3.total + " expected " + N_SEGS);
-    must(s3.partial === false, "scenario3: v3LastGeminiMeta.partial=" + s3.partial + " expected false — a 200 response with degraded mapping is a SUCCESS, not a chunk failure");
+    must(s3.partial === true, "scenario3: missing mapping was falsely declared complete: " + JSON.stringify(s3));
     must(s3.chunksLen === 3, "scenario3: v3LastGeminiMeta.chunks.length=" + s3.chunksLen + " expected 3");
 
-    const expectWithIdx = range(0, CHUNK_SIZE).concat(range(N_SEGS - 60, N_SEGS)); // chunk1 (0-119) + chunk3 (240-299)
-    const expectWithoutIdx = range(CHUNK_SIZE, N_SEGS - 60); // chunk2 (120-239) — mapping lost
-    must(JSON.stringify(s3.withIdx) === JSON.stringify(expectWithIdx),
-      "scenario3: rows WITH segment_index = " + s3.withIdx.length + " entries, expected chunk1+chunk3 (0-119,240-299)");
-    must(JSON.stringify(s3.withoutIdx) === JSON.stringify(expectWithoutIdx),
-      "scenario3: rows WITHOUT segment_index = " + s3.withoutIdx.length + " entries, expected chunk2 only (120-239)");
+    const expectSegmentIndexes = range(0, CHUNK_SIZE).concat(range(N_SEGS - 60, N_SEGS));
+    must(JSON.stringify(s3.segmentIndexes) === JSON.stringify(expectSegmentIndexes),
+      "scenario3: mapped segment identities changed: " + JSON.stringify(s3.segmentIndexes));
+    must(s3.withoutIdx.length === CHUNK_SIZE,
+      "scenario3: rows WITHOUT segment_index=" + s3.withoutIdx.length + " expected 120");
+    must(s3.chunkCalls.length === 4 && s3.repairs.length === 1 && s3.repairs[0].requested.length === CHUNK_SIZE && s3.repairs[0].repaired.length === 0,
+      "scenario3: targeted repair provenance missing: " + JSON.stringify(s3));
 
-    console.log("scenario3 OK — withIdx=" + s3.withIdx.length + " withoutIdx=" + s3.withoutIdx.length + " (chunk2 locally degraded, chunks 1/3 intact)");
+    console.log("scenario3 OK — 120 missing identities detected, targeted repair refused cached unmapped rows, job stopped partial");
 
     // ══════════════════════════════════════════════════════════════════════════════════════
     // Scenario 4 (ревью K1, 2026-07-30): ПРЕМИУМ-перевод импортированного медиа, затем

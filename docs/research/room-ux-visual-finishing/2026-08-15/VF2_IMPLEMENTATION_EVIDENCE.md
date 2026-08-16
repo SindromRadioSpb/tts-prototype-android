@@ -1,7 +1,8 @@
 # ROOM-UX-VF2 — Reader, Morph and Mentor implementation evidence
 
 > Date: 2026-08-15
-> Status: `VF2_PROD_PASS_OWNER_REVIEW_PENDING`
+> Status: `VF2_CLOSED_OWNER_ACCEPTED`
+> Owner acceptance: successful production testing reported on 2026-08-16
 > Source commit: `3745d3f5`
 > Implementation commits: `60234bae`, production corrections `7cbf49df`, `463c4c0f`, `75cddc27`
 > Branch: `main`
@@ -103,4 +104,4 @@ The production browser gate found and closed three bounded defects:
 
 The production owner Reader was deliberately not opened: opening a real owner text changes `last_opened`/progress and would violate the read-only gate. Reader/Morph interaction evidence therefore remains the isolated local browser PASS listed above; production proved the served assets, CSS rules and hidden DOM contract without claiming an owner-live Reader interaction.
 
-Do not treat automated viewport or accessibility-tree inspection as physical mobile or assistive-technology evidence. Final subjective owner review remains a separate handoff after the production read-only gate.
+Do not treat automated viewport or accessibility-tree inspection as physical mobile or assistive-technology evidence. The owner subsequently reported successful production testing on 2026-08-16; this closes the subjective gate without relabelling any automated row as physical-device or assistive-technology evidence.

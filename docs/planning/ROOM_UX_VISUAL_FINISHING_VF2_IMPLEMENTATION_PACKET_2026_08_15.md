@@ -1,7 +1,8 @@
 # ROOM-UX-VF2 — Reader, Morph and Mentor implementation packet
 
 > Date: 2026-08-15
-> Status: `VF2_PROD_PASS_OWNER_REVIEW_PENDING`
+> Status: `VF2_CLOSED_OWNER_ACCEPTED`
+> Owner acceptance: successful production testing reported on 2026-08-16
 > Source commit: `3745d3f5`
 > Implementation commits: `60234bae`, `7cbf49df`, `463c4c0f`, `75cddc27`
 > Branch: `main`
@@ -92,7 +93,7 @@ Anything else stops the slice.
 
 ## 8. Handoff condition
 
-The engineering and production read-only conditions are satisfied. Physical-device/AT evidence remains separate and must not be inferred; subjective owner review is still pending.
+The engineering, production read-only and subjective owner gates are satisfied. Physical-device/AT evidence remains separate and must not be inferred from the owner acceptance.
 
 ## 9. Local implementation result
 
@@ -105,3 +106,7 @@ Local result is PASS: VF2 contract `6/6`, combined visual/Reader/Morph contracts
 `VF2 PROD=PASS`. The open owner tab passed the explicit old/new-worker update path to `3.11.396`, real Ben-Yehuda public rows, SVG/fallback, keyboard focus, accessible names, Mentor read-only and console/error checks. Isolated non-owner automation passed 380×844 RU and HE/RTL, DPR-2 reflow, reduced motion, no overflow and zero non-GET requests. The real owner Reader was not opened because that would change canonical progress/last-opened; Reader/Morph interaction remains supported by the green isolated browser fixtures and no owner-live interaction is claimed.
 
 Two production findings were corrected before PASS: exact integrity/precache key mismatch plus dishonest dynamic shell version, and the Mentor heading's emoji-bearing localized accessible name. Active runtime commit is `75cddc27`; production health is HTTP 200 with DB ready. Bounded post-build cleanup retained the active image and three rollback images, removed no volumes/data/caches belonging to the owner, and cleared `disk_warn`.
+
+## 11. Owner closure
+
+On 2026-08-16 the owner reported: `Протестировано успешно.` This closes VF2 as `VF2_CLOSED_OWNER_ACCEPTED` and unlocks only the already-approved VF3 Studio-shell preflight. It does not authorize a VF4 or expand the frozen boundaries.

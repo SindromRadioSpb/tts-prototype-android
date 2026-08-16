@@ -82,7 +82,7 @@ test("VF2 release lock cache-busts every changed shared asset and precaches the 
   assert.match(server, /new URL\(url, "http:\/\/linguistpro\.local"\)\.pathname/,
     "cache-bust queries must not become part of the filesystem path used for hashing");
   for (const locale of ["ru", "en", "he"]) {
-    const url = `/i18n/locales/${locale}.js?v=167`;
+    const url = `/i18n/locales/${locale}.js?v=168`;
     assert.ok(sw.includes(JSON.stringify(url)), `${url} must be offline-precached exactly`);
     assert.ok(server.includes(JSON.stringify(url)), `${url} must use the identical integrity-manifest key`);
   }

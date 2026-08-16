@@ -1057,9 +1057,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/css/reader-core.css?v=394",
   "/css/reader-morph.css?v=394",
   "/js/lesson-artifact.js",
-  "/i18n/locales/ru.js?v=167",
-  "/i18n/locales/en.js?v=167",
-  "/i18n/locales/he.js?v=167",
+  "/i18n/locales/ru.js?v=168",
+  "/i18n/locales/en.js?v=168",
+  "/i18n/locales/he.js?v=168",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

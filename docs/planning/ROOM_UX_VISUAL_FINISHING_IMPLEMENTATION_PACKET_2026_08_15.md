@@ -1,14 +1,14 @@
 # ROOM-UX-VF — Visual Finishing implementation packet
 
 > Date: 2026-08-15  
-> Status: `VF0_CLOSED_OWNER_ACCEPTED_VF1_PREFLIGHT`  
+> Status: `VF2_CLOSED_OWNER_ACCEPTED_VF3_LOCAL_GREEN`
 > Owner approval: `Рекомендации утверждаю. Стартуй` (2026-08-15), normalized to the exact recommended V1–V10 values in the decision packet  
 > Source commit: `12dacd9a403ff8db2b7ad2dd20abf98e6c241386`  
 > Branch: `main`; `origin/main` matched the source commit at preflight  
 > Worktree: `DIRTY`; 34 entries pre-dated ROOM-UX-VF research, and the untracked research packet added two scoped entries. All VF0 runtime targets were clean at preflight.  
-> Production: `https://linguistpro.kolosei.com/library.html`, served `3.11.388` at approval  
+> Production: `https://linguistpro.kolosei.com/library.html`, served `3.11.396`; VF0, VF1 and VF2 are owner-accepted
 > Evidence classes: `CODE`, `OWNER_APPROVAL`, `OWNER_REPORTED`, `OWNER_LIVE_READ_ONLY`, `ISOLATED_AUTOMATION`, `EXTERNAL_PRIMARY`  
-> Limitations: this packet starts VF0 only. The owner-reported desktop Chrome 200% pass is not physical-mobile or assistive-technology evidence, and it is not VF1–VF3 evidence.
+> Limitations: owner acceptance is recorded only for the slices actually reviewed. Physical-mobile and assistive-technology evidence remain `NOT_RUN`; automation is not either.
 
 ## 1. Approved contract
 
@@ -35,9 +35,9 @@ Only one slice may change shared contracts at a time.
 | Slice | State | Boundary |
 |---|---|---|
 | VF0 foundations | `CLOSED_OWNER_ACCEPTED` | production `3.11.389`; owner acceptance `VF0 PROD=PASS` on 2026-08-15 |
-| VF1 Room shell/L0/corpora | `PREFLIGHT` | icon/type/focus/state/alignment only |
-| VF2 Reader/Morph/Trainer/Mentor | `BLOCKED_BY_VF1_GATE` | repeated visual primitives only; Reader/FSRS/provider behavior frozen |
-| VF3 Studio shell | `BLOCKED_BY_VF2_GATE` | narrow shell adoption; no workflow or component-platform rewrite |
+| VF1 Room shell/L0/corpora | `CLOSED_OWNER_ACCEPTED` | production `3.11.392`; owner acceptance `VF1 PROD=PASS` |
+| VF2 Reader/Morph/Trainer/Mentor | `CLOSED_OWNER_ACCEPTED` | production `3.11.396`; owner reported successful testing on 2026-08-16 |
+| VF3 Studio shell | `LOCAL_GREEN_RELEASE_PENDING` | narrow shell adoption; all scoped local/browser gates green; serialized release pending |
 
 ## 3. VF0 exact allowlist
 

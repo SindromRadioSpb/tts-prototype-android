@@ -9765,6 +9765,134 @@ td[data-col="ru"] {
   flex-direction: row-reverse;
 }
 
+/* ROOM-UX-VF3 — Studio shell only. Components and workflows remain locally owned. */
+.studio-vf3-shell {
+  font-family: var(--lp-font-ui);
+}
+
+html[lang="he"] .studio-vf3-shell {
+  font-family: var(--lp-font-hebrew-ui);
+}
+
+.studio-icon-slot {
+  display: inline-flex;
+  width: 1.15em;
+  height: 1.15em;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  vertical-align: -0.12em;
+}
+
+.studio-icon-slot .lp-icon {
+  width: 100%;
+  height: 100%;
+  stroke-width: 1.9;
+}
+
+.studio-icon-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.v3-ide-logo-icon.studio-icon-slot {
+  width: 1.35em;
+  height: 1.35em;
+}
+
+.classic-nav-icon.studio-icon-slot,
+.v3-tbi-icon.studio-icon-slot {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.studio-vf3-focus {
+  transition:
+    background-color var(--lp-motion-hover) var(--lp-ease-standard),
+    border-color var(--lp-motion-hover) var(--lp-ease-standard),
+    color var(--lp-motion-hover) var(--lp-ease-standard),
+    box-shadow var(--lp-motion-continuity) var(--lp-ease-standard),
+    transform var(--lp-motion-continuity) var(--lp-ease-standard);
+}
+
+.studio-vf3-focus:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--lp-focus-ring);
+}
+
+.v3-ide-header .studio-vf3-focus:focus-visible,
+#v3IdeTabBar .studio-vf3-focus:focus-visible {
+  box-shadow: 0 0 0 3px #bfdbfe;
+}
+
+[dir="rtl"] .studio-icon-directional .lp-icon {
+  transform: scaleX(-1);
+}
+
+#classicNextStep.lp-state {
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+#classicNextStep.lp-state[data-kind="info"] {
+  color: var(--lp-status-info-fg);
+  background: var(--lp-status-info-bg);
+  border-color: var(--lp-status-info-border);
+}
+
+#classicNextStep.lp-state[data-kind="warning"] {
+  color: var(--lp-status-warning-fg);
+  background: var(--lp-status-warning-bg);
+  border-color: var(--lp-status-warning-border);
+}
+
+#classicNextStep.lp-state[data-kind="success"] {
+  color: var(--lp-status-success-fg);
+  background: var(--lp-status-success-bg);
+  border-color: var(--lp-status-success-border);
+}
+
+#studioReviewState[data-kind="success"] { color: var(--lp-status-success-fg); }
+#studioReviewState[data-kind="warning"] { color: var(--lp-status-warning-fg); }
+#studioReviewState[data-kind="neutral"] { color: var(--theme-text-secondary); }
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-vf3-focus,
+  .classic-secondary-nav-summary::after,
+  body.v3-ide-mode .v3-ide-left,
+  body.v3-ide-mode .v3-ide-right,
+  body.v3-ide-mode .v3-ide-workspace {
+    transition-duration: 0ms;
+  }
+  .studio-vf3-focus:hover,
+  .studio-vf3-focus:active,
+  .classic-secondary-nav[open] .classic-secondary-nav-summary::after {
+    transform: none;
+  }
+  .v3-ide-spinner {
+    animation: none;
+    border-top-color: currentColor;
+  }
+}
+
+@media (forced-colors: active) {
+  .studio-vf3-focus:focus-visible,
+  .v3-ide-header .studio-vf3-focus:focus-visible,
+  #v3IdeTabBar .studio-vf3-focus:focus-visible {
+    outline: 3px solid Highlight;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+  .studio-icon-slot .lp-icon {
+    stroke: ButtonText;
+  }
+  #classicNextStep.lp-state {
+    border: 1px solid CanvasText;
+  }
+}
+
 /* --- Save-meta modal and other forms: text-align in RTL --- */
 [dir="rtl"] .v3-meta-form label,
 [dir="rtl"] .v3-modal-body label {
@@ -10772,67 +10900,67 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- V3 IDE Header (shown in IDE mode) -->
-<header id="v3IdeHeader" class="v3-ide-header" style="display:none;">
+<header id="v3IdeHeader" class="v3-ide-header studio-vf3-shell" style="display:none;">
   <div class="v3-ide-header-logo">
-    <span class="v3-ide-logo-icon">📚</span>
+    <span class="v3-ide-logo-icon" data-studio-icon="lp-mark-studio" aria-hidden="true"><span class="studio-icon-fallback">📝</span></span>
     <span data-i18n="ide.logoTitle">Hebrew Learning IDE</span>
   </div>
   <div class="v3-ide-header-actions">
-    <button id="v3IdeLeftToggle" class="btn-ide" onclick="v3IdeToggleLeft()" data-i18n="ide.library" data-i18n-title="ide.toggleLibraryTitle" title="Toggle Library Panel (Ctrl+1)">
-      📖 Library
+    <button id="v3IdeLeftToggle" class="btn-ide studio-vf3-focus" onclick="v3IdeToggleLeft()" data-i18n-title="ide.toggleLibraryTitle" title="Toggle Library Panel (Ctrl+1)">
+      <span data-studio-icon="lp-icon-search" aria-hidden="true"><span class="studio-icon-fallback">⌕</span></span><span data-i18n="ide.library">Library</span>
     </button>
-    <button id="v3IdeRightToggle" class="btn-ide" onclick="v3IdeToggleRight()" data-i18n="ide.inspector" data-i18n-title="ide.toggleInspectorTitle" title="Toggle Inspector Panel (Ctrl+2)">
-      📝 Inspector
+    <button id="v3IdeRightToggle" class="btn-ide studio-vf3-focus" onclick="v3IdeToggleRight()" data-i18n-title="ide.toggleInspectorTitle" title="Toggle Inspector Panel (Ctrl+2)">
+      <span data-studio-icon="lp-icon-note" aria-hidden="true"><span class="studio-icon-fallback">▤</span></span><span data-i18n="ide.inspector">Inspector</span>
     </button>
-    <button id="v3IdeDashBtn" class="btn-ide" onclick="v3DashboardOpen()" data-i18n="ide.dashboard" data-i18n-title="ide.openDashboardTitle" title="Open Dashboard">
-      📊 Dashboard
+    <button id="v3IdeDashBtn" class="btn-ide studio-vf3-focus" onclick="v3DashboardOpen()" data-i18n-title="ide.openDashboardTitle" title="Open Dashboard">
+      <span data-studio-icon="lp-icon-info" aria-hidden="true"><span class="studio-icon-fallback">i</span></span><span data-i18n="ide.dashboard">Dashboard</span>
     </button>
-    <button id="v3IdeSrsTrainerBtn" class="btn-ide" onclick="v3OpenRoomReview()" data-i18n-title="studioReview.openTitle" title="Открыть единое повторение">
-      🎯 <span data-i18n="studioReview.title">Повторение</span> <span class="studio-review-badge" data-studio-due aria-hidden="true">—</span>
+    <button id="v3IdeSrsTrainerBtn" class="btn-ide studio-vf3-focus" onclick="v3OpenRoomReview()" data-i18n-title="studioReview.openTitle" title="Открыть единое повторение">
+      <span data-studio-icon="lp-icon-train" aria-hidden="true"><span class="studio-icon-fallback">↻</span></span><span data-i18n="studioReview.title">Повторение</span> <span class="studio-review-badge" data-studio-due aria-hidden="true">—</span>
     </button>
-    <button id="v3IdeRoomBtn" class="btn-ide" onclick="v3NavAwayWithDbClose('/library.html')" data-i18n="ide.readingRoom" data-i18n-title="ide.readingRoomTitle" title="Открыть Читальный зал">
-      📖 Зал
+    <button id="v3IdeRoomBtn" class="btn-ide studio-vf3-focus" onclick="v3NavAwayWithDbClose('/library.html')" data-i18n-title="ide.readingRoomTitle" title="Открыть Читальный зал">
+      <span data-studio-icon="lp-mark-room" aria-hidden="true"><span class="studio-icon-fallback">▥</span></span><span data-i18n="ide.readingRoom">Зал</span>
     </button>
     <button id="v3IdePronunciationBtn" class="btn-ide" onclick="v3NavAwayWithDbClose('/pronunciation.html')" data-i18n-title="pronunciation.navTitle" title="Открыть экспериментальную лабораторию произношения" hidden>
       🎙 C1
     </button>
-    <button id="v3IdeFeedbackBtn" class="btn-ide" onclick="v3FeedbackOpen()" data-i18n-title="feedback.btnTitle" data-i18n-aria-label="feedback.btnTitle" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">
-      📬
+    <button id="v3IdeFeedbackBtn" class="btn-ide studio-vf3-focus" onclick="v3FeedbackOpen()" data-i18n-title="feedback.btnTitle" data-i18n-aria-label="feedback.btnTitle" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">
+      <span data-studio-icon="lp-icon-note" aria-hidden="true"><span class="studio-icon-fallback">✉</span></span>
     </button>
-    <button id="v3IdeThemeBtn" class="app-theme-toggle" onclick="v3ThemeCycle()" data-i18n-title="theme.toggleTitle" data-i18n-aria-label="theme.toggleTitle" title="Переключить тему интерфейса" aria-label="Переключить тему интерфейса">🌗</button>
+    <button id="v3IdeThemeBtn" class="app-theme-toggle studio-vf3-focus" onclick="v3ThemeCycle()" data-i18n-title="theme.toggleTitle" data-i18n-aria-label="theme.toggleTitle" title="Переключить тему интерфейса" aria-label="Переключить тему интерфейса"><span data-studio-icon="lp-icon-theme" aria-hidden="true"><span class="studio-icon-fallback">◐</span></span></button>
     <div class="lang-select-wrap">
-      <select id="appLangSelectIde" class="lang-select" onchange="appSetLocale(this.value)" aria-label="Язык интерфейса" title="Язык интерфейса">
+      <select id="appLangSelectIde" class="lang-select studio-vf3-focus" onchange="appSetLocale(this.value)" data-i18n-aria-label="classic.interfaceLanguage" data-i18n-title="classic.interfaceLanguage" aria-label="Язык интерфейса" title="Язык интерфейса">
         <option value="ru">Русский</option>
         <option value="en">English</option>
         <option value="he">עברית</option>
       </select>
     </div>
-    <button id="v3IdeExitBtn" class="btn-ide" onclick="v3IdeModeToggle()" data-i18n="ide.classic" data-i18n-title="ide.switchToClassicTitle" title="Switch to Classic Mode">
-      ↩ Classic
+    <button id="v3IdeExitBtn" class="btn-ide studio-vf3-focus" onclick="v3IdeModeToggle()" data-i18n-title="ide.switchToClassicTitle" title="Switch to Classic Mode">
+      <span class="studio-icon-directional" data-studio-icon="lp-icon-chevron-left" aria-hidden="true"><span class="studio-icon-fallback">‹</span></span><span data-i18n="ide.classic">Classic</span>
     </button>
   </div>
 </header>
 
 <!-- V3 IDE Bottom Tab Bar (mobile only) -->
-<nav id="v3IdeTabBar" class="v3-ide-tabbar" role="tablist" aria-label="Навигация IDE">
-  <button class="v3-ide-tab-item" id="v3TabBarLibrary" role="tab" onclick="v3IdeToggleLeft()" aria-label="Library">
-    <span class="v3-tbi-icon">📖</span>
-    <span class="v3-tbi-label">Library</span>
+<nav id="v3IdeTabBar" class="v3-ide-tabbar studio-vf3-shell" role="tablist" aria-label="Навигация IDE">
+  <button class="v3-ide-tab-item studio-vf3-focus" id="v3TabBarLibrary" role="tab" onclick="v3IdeToggleLeft()" data-i18n-aria-label="ide.library" aria-label="Library">
+    <span class="v3-tbi-icon" data-studio-icon="lp-icon-search" aria-hidden="true"><span class="studio-icon-fallback">⌕</span></span>
+    <span class="v3-tbi-label" data-i18n="ide.library">Library</span>
   </button>
-  <button class="v3-ide-tab-item" id="v3TabBarInspector" role="tab" onclick="v3IdeToggleRight()" aria-label="Inspector">
-    <span class="v3-tbi-icon">📝</span>
-    <span class="v3-tbi-label">Inspector</span>
+  <button class="v3-ide-tab-item studio-vf3-focus" id="v3TabBarInspector" role="tab" onclick="v3IdeToggleRight()" data-i18n-aria-label="ide.inspector" aria-label="Inspector">
+    <span class="v3-tbi-icon" data-studio-icon="lp-icon-note" aria-hidden="true"><span class="studio-icon-fallback">▤</span></span>
+    <span class="v3-tbi-label" data-i18n="ide.inspector">Inspector</span>
   </button>
-  <button class="v3-ide-tab-item" id="v3TabBarDashboard" role="tab" onclick="v3DashboardOpen()" aria-label="Dashboard">
-    <span class="v3-tbi-icon">📊</span>
-    <span class="v3-tbi-label">Dashboard</span>
+  <button class="v3-ide-tab-item studio-vf3-focus" id="v3TabBarDashboard" role="tab" onclick="v3DashboardOpen()" data-i18n-aria-label="ide.dashboard" aria-label="Dashboard">
+    <span class="v3-tbi-icon" data-studio-icon="lp-icon-info" aria-hidden="true"><span class="studio-icon-fallback">i</span></span>
+    <span class="v3-tbi-label" data-i18n="ide.dashboard">Dashboard</span>
   </button>
-  <button class="v3-ide-tab-item" id="v3TabBarTrain" role="tab" onclick="v3OpenRoomReview()" data-i18n-aria-label="studioReview.openTitle" aria-label="Открыть единое повторение">
-    <span class="v3-tbi-icon">🎯</span>
+  <button class="v3-ide-tab-item studio-vf3-focus" id="v3TabBarTrain" role="tab" onclick="v3OpenRoomReview()" data-i18n-aria-label="studioReview.openTitle" aria-label="Открыть единое повторение">
+    <span class="v3-tbi-icon" data-studio-icon="lp-icon-train" aria-hidden="true"><span class="studio-icon-fallback">↻</span></span>
     <span class="v3-tbi-label"><span data-i18n="studioReview.title">Повторение</span> <span data-studio-due>—</span></span>
   </button>
-  <button class="v3-ide-tab-item" id="v3TabBarRoom" role="tab" onclick="v3NavAwayWithDbClose('/library.html')" aria-label="Читальный зал">
-    <span class="v3-tbi-icon">📖</span>
+  <button class="v3-ide-tab-item studio-vf3-focus" id="v3TabBarRoom" role="tab" onclick="v3NavAwayWithDbClose('/library.html')" data-i18n-aria-label="ide.readingRoomTitle" aria-label="Читальный зал">
+    <span class="v3-tbi-icon" data-studio-icon="lp-mark-room" aria-hidden="true"><span class="studio-icon-fallback">▥</span></span>
     <span class="v3-tbi-label" data-i18n="ide.readingRoomShort">Зал</span>
   </button>
 </nav>
@@ -11233,11 +11361,11 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
     <div class="main-card classic-main-card" role="main">
         <div class="classic-shell">
-            <div class="classic-shell-head">
+            <div class="classic-shell-head studio-vf3-shell">
                 <div class="classic-shell-copy">
                     <div class="classic-header-top">
-                        <div class="classic-eyebrow" data-i18n="classic.eyebrow">Classic Mode</div>
-                        <button id="v3ModeToggle" class="v3-mode-toggle" onclick="v3IdeModeToggle()" data-i18n-title="classic.ideModeTitle" title="Переключить режим интерфейса" data-i18n="classic.ideMode">🖥️ IDE режим</button>
+                        <div class="classic-eyebrow"><span data-studio-icon="lp-mark-studio" aria-hidden="true"><span class="studio-icon-fallback">📝</span></span><span data-i18n="classic.eyebrow">Classic Mode</span></div>
+                        <button id="v3ModeToggle" class="v3-mode-toggle studio-vf3-focus" onclick="v3IdeModeToggle()" data-i18n-title="classic.ideModeTitle" title="Переключить режим интерфейса"><span data-studio-icon="lp-mark-studio" aria-hidden="true"><span class="studio-icon-fallback">▦</span></span><span data-i18n="classic.ideMode">IDE режим</span></button>
                     </div>
                     <h2 class="classic-screen-title" data-i18n="classic.title">Текст для озвучки и перевода</h2>
                     <p class="classic-screen-subtitle" data-i18n="classic.subtitle">Сценарий: исходный текст → обработка → результат → экспорт и работа по строкам.</p>
@@ -11247,26 +11375,26 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                 <div class="classic-utility-bar" role="navigation" data-i18n-aria-label="classic.navLabel" aria-label="Навигация и режимы">
                   <!-- Row 1: Primary navigation cards -->
                   <div class="classic-nav-primary">
-                    <button id="btnLibrary" class="classic-nav-card" onclick="v3LibraryOpen()" data-i18n-aria-label="classic.navLibrary" aria-label="Библиотека">
-                      <span class="classic-nav-icon">📚</span>
+                    <button id="btnLibrary" class="classic-nav-card studio-vf3-focus" onclick="v3LibraryOpen()" data-i18n-aria-label="classic.navLibrary" aria-label="Библиотека">
+                      <span class="classic-nav-icon" data-studio-icon="lp-icon-list-add" aria-hidden="true"><span class="studio-icon-fallback">▤</span></span>
                       <span class="classic-nav-label" data-i18n="classic.navLibrary">Библиотека</span>
                     </button>
-                    <button id="btnDashboard" class="classic-nav-card" onclick="v3DashboardOpen()" data-i18n-aria-label="classic.navDashboard" aria-label="Дашборд">
-                      <span class="classic-nav-icon">📈</span>
+                    <button id="btnDashboard" class="classic-nav-card studio-vf3-focus" onclick="v3DashboardOpen()" data-i18n-aria-label="classic.navDashboard" aria-label="Дашборд">
+                      <span class="classic-nav-icon" data-studio-icon="lp-icon-info" aria-hidden="true"><span class="studio-icon-fallback">i</span></span>
                       <span class="classic-nav-label" data-i18n="classic.navDashboard">Дашборд</span>
                     </button>
-                    <button id="btnSrsTrainer" class="classic-nav-card classic-review-card" onclick="v3OpenRoomReview()" data-i18n-aria-label="studioReview.openTitle" aria-label="Открыть единое повторение" aria-describedby="studioReviewState">
-                      <span class="classic-nav-icon">🎯</span>
+                    <button id="btnSrsTrainer" class="classic-nav-card classic-review-card studio-vf3-focus" onclick="v3OpenRoomReview()" data-i18n-aria-label="studioReview.openTitle" aria-label="Открыть единое повторение" aria-describedby="studioReviewState">
+                      <span class="classic-nav-icon" data-studio-icon="lp-icon-train" aria-hidden="true"><span class="studio-icon-fallback">↻</span></span>
                       <span class="classic-nav-label" data-i18n="studioReview.title">Повторение</span>
                       <span class="studio-review-counts">
                         <span><span data-i18n="studioReview.due">К повторению</span>: <strong data-studio-due>—</strong></span>
                         <span><span data-i18n="studioReview.inProgress">В работе</span>: <strong data-studio-progress>—</strong></span>
                       </span>
-                      <span id="studioReviewState" class="studio-review-action" data-i18n="studioReview.loading">Загрузка…</span>
+                      <span id="studioReviewState" class="studio-review-action" data-kind="neutral" role="status" aria-live="polite" data-i18n="studioReview.loading">Загрузка…</span>
                     </button>
                     <!-- Кросс-навигация Студия → Читальный зал (нет тупиков и в PWA-режиме) -->
-                    <button id="btnReadingRoom" class="classic-nav-card" onclick="v3NavAwayWithDbClose('/library.html')" data-i18n-aria-label="classic.navRoom" aria-label="Читальный зал">
-                      <span class="classic-nav-icon">📖</span>
+                    <button id="btnReadingRoom" class="classic-nav-card studio-vf3-focus" onclick="v3NavAwayWithDbClose('/library.html')" data-i18n-aria-label="classic.navRoom" aria-label="Читальный зал">
+                      <span class="classic-nav-icon" data-studio-icon="lp-mark-room" aria-hidden="true"><span class="studio-icon-fallback">▥</span></span>
                       <span class="classic-nav-label" data-i18n="classic.navRoom">Читальный зал</span>
                     </button>
                     <button id="btnPronunciationLab" class="classic-nav-card" onclick="v3NavAwayWithDbClose('/pronunciation.html')" data-i18n-aria-label="pronunciation.navTitle" aria-label="Экспериментальная лаборатория произношения" hidden>
@@ -11277,18 +11405,18 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                   <!-- Row 2: Utilities -->
                   <div class="classic-nav-utility">
                     <div class="lang-select-wrap classic-lang-wrap classic-lang-compact">
-                      <select id="appLangSelect" class="lang-select" onchange="appSetLocale(this.value)" data-i18n-aria-label="classic.interfaceLanguage" data-i18n-title="classic.interfaceLanguage" aria-label="Язык интерфейса" title="Язык интерфейса">
+                      <select id="appLangSelect" class="lang-select studio-vf3-focus" onchange="appSetLocale(this.value)" data-i18n-aria-label="classic.interfaceLanguage" data-i18n-title="classic.interfaceLanguage" aria-label="Язык интерфейса" title="Язык интерфейса">
                         <option value="ru">Рус</option>
                         <option value="en">Eng</option>
                         <option value="he">עב</option>
                       </select>
                     </div>
-                    <button id="btnFeedback" class="classic-nav-tool" onclick="v3FeedbackOpen()" data-i18n-title="feedback.btnTitle" data-i18n-aria-label="feedback.btnTitle" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">📬</button>
-                    <button id="btnTheme" class="classic-nav-tool app-theme-toggle" onclick="v3ThemeCycle()" data-i18n-title="theme.toggleTitle" data-i18n-aria-label="theme.toggleTitle" title="Переключить тему" aria-label="Переключить тему">🌗</button>
-                    <button id="btnResearch" class="classic-nav-tool" onclick="window.LinguistProResearchUI&&window.LinguistProResearchUI.open()" data-i18n-title="research.btnTitle" data-i18n-aria-label="research.btnTitle" title="Research mode" aria-label="Research mode">📊</button>
+                    <button id="btnFeedback" class="classic-nav-tool studio-vf3-focus" onclick="v3FeedbackOpen()" data-i18n-title="feedback.btnTitle" data-i18n-aria-label="feedback.btnTitle" title="Связаться с разработчиком" aria-label="Связаться с разработчиком"><span data-studio-icon="lp-icon-note" aria-hidden="true"><span class="studio-icon-fallback">✉</span></span></button>
+                    <button id="btnTheme" class="classic-nav-tool app-theme-toggle studio-vf3-focus" onclick="v3ThemeCycle()" data-i18n-title="theme.toggleTitle" data-i18n-aria-label="theme.toggleTitle" title="Переключить тему" aria-label="Переключить тему"><span data-studio-icon="lp-icon-theme" aria-hidden="true"><span class="studio-icon-fallback">◐</span></span></button>
+                    <button id="btnResearch" class="classic-nav-tool studio-vf3-focus" onclick="window.LinguistProResearchUI&&window.LinguistProResearchUI.open()" data-i18n-title="research.btnTitle" data-i18n-aria-label="research.btnTitle" title="Research mode" aria-label="Research mode"><span data-studio-icon="lp-icon-info" aria-hidden="true"><span class="studio-icon-fallback">i</span></span></button>
                     <button id="btnGraph" class="classic-nav-tool" onclick="window.LinguistProGraph&&window.LinguistProGraph.open()" data-i18n-title="graph.btnTitle" data-i18n-aria-label="graph.btnTitle" title="Карта знаний" aria-label="Карта знаний">🕸</button>
                     <button id="btnKnowledgeMap" class="classic-nav-tool" onclick="window.KnowledgeMap&&window.KnowledgeMap.open()" data-i18n-title="knowledgeMap.btnTitle" data-i18n-aria-label="knowledgeMap.btnTitle" title="Карта корней" aria-label="Карта корней">🌳</button>
-                    <button id="btnMorphSettings" class="classic-nav-tool" onclick="window.LinguistProMorphSettings&&window.LinguistProMorphSettings.open()" data-i18n-title="morph.settings.btnTitle" data-i18n-aria-label="morph.settings.btnTitle" title="Морфология" aria-label="Морфология">🔤</button>
+                    <button id="btnMorphSettings" class="classic-nav-tool studio-vf3-focus" onclick="window.LinguistProMorphSettings&&window.LinguistProMorphSettings.open()" data-i18n-title="morph.settings.btnTitle" data-i18n-aria-label="morph.settings.btnTitle" title="Морфология" aria-label="Морфология"><span data-studio-icon="lp-icon-settings" aria-hidden="true"><span class="studio-icon-fallback">⚙</span></span></button>
                     <button id="btnLocalAsrSettings" class="classic-nav-tool" onclick="window.LocalAsrOnboarding&&window.LocalAsrOnboarding.open()" data-i18n-title="studio.localAsrBeta.btnTitle" data-i18n-aria-label="studio.localAsrBeta.btnTitle" title="Experimental Local ASR" aria-label="Experimental Local ASR" hidden>◉</button>
                     <button id="btnLocalMtSettings" class="classic-nav-tool" onclick="window.LocalMtOnboarding&&window.LocalMtOnboarding.open()" data-i18n-title="studio.localMt.btnTitle" data-i18n-aria-label="studio.localMt.btnTitle" title="MADLAD local translation" aria-label="MADLAD local translation" hidden>MT</button>
                     <button id="studioReviewAnkiExport" class="classic-nav-tool studio-review-anki" onclick="v3SrsDownloadApkg(event)" data-i18n="studioReview.anki" data-i18n-title="studioReview.ankiTitle" title="Скачать словарь для Anki">📦 Anki</button>
@@ -11301,7 +11429,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
                  the enforced-CSP agent-access page). Quiet-fail hidden without session/at zero. -->
             <a id="v3ClassicAgentProposals" class="classic-agent-cta" href="/agent-access.html" hidden></a>
 
-            <section id="classicNextStep" class="classic-next-step is-state-pending" aria-labelledby="classicNextStepLabel" aria-live="polite">
+            <section id="classicNextStep" class="classic-next-step lp-state is-state-pending" data-kind="info" role="status" aria-labelledby="classicNextStepLabel" aria-live="polite">
                 <div class="classic-next-step-copy">
                     <span id="classicNextStepLabel" class="classic-next-step-label"><span data-i18n="classic.nextStepLabel">Следующий шаг</span><span aria-hidden="true"> · </span><span id="classicPhaseLabel" data-i18n="classic.phase.add">Этап 1 из 4</span></span>
                     <span id="classicNextStepStatus" class="classic-next-step-status" data-i18n="classic.nextStepStatusEmpty">Добавьте материал или введите текст.</span>
@@ -13079,9 +13207,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=167"></script>
-    <script src="/i18n/locales/en.js?v=167"></script>
-    <script src="/i18n/locales/he.js?v=167"></script>
+    <script src="/i18n/locales/ru.js?v=168"></script>
+    <script src="/i18n/locales/en.js?v=168"></script>
+    <script src="/i18n/locales/he.js?v=168"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13253,7 +13381,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.396";
+    window.APP_VERSION = "3.11.397";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -13694,7 +13822,7 @@ function v3IdeApplyMode(enabled, fromClassicTextId) {
     body.classList.add("v3-ide-mode");
     if (header) header.style.display = "flex";
     if (workspace) workspace.style.display = "flex";
-    if (toggleBtn) toggleBtn.textContent = "📋 Classic режим";
+    if (toggleBtn) syncStudioModeToggle(true);
 	
 	// Sync CSS offset so overlay panels/backdrop start BELOW the real header height
 	v3IdeSyncHeaderOffsetVar();
@@ -13751,7 +13879,7 @@ v3IdeRightTabSwitch(v3IdeState.rightTab);
     body.classList.remove("v3-ide-mode");
     if (header) header.style.display = "none";
     if (workspace) workspace.style.display = "none";
-    if (toggleBtn) toggleBtn.textContent = "🖥️ IDE режим";
+    if (toggleBtn) syncStudioModeToggle(false);
 
     // Restore Classic column widths
     try {
@@ -21025,6 +21153,9 @@ updatePlaylistButtonUI();
             if (classicNextStepEl) {
                 const completedHandoff = isSaved && !!st.textId && classicLearningHandoffTextId() === String(st.textId);
                 classicNextStepEl.dataset.phase = action;
+                classicNextStepEl.dataset.kind = tableIsStale
+                    ? "warning"
+                    : (action === "learn" ? "success" : "info");
                 classicNextStepEl.classList.toggle("is-complete-quiet", completedHandoff);
                 classicNextStepEl.classList.remove("is-state-pending");
             }
@@ -28480,6 +28611,101 @@ window.v3UndoToast = v3UndoToast;
 // (read by the inline pre-paint bootstrap at the top of <body>).
 const V3_THEME_KEY = "appTheme_v1";
 const V3_DENSITY_KEY = "appDensity_v1";
+const STUDIO_ICON_SPRITE = "/icons/linguistpro-ui.svg";
+let _studioIconSpritePromise = null;
+let _studioIconSpriteReady = false;
+
+function ensureStudioIconSprite() {
+  if (_studioIconSpriteReady) return Promise.resolve(true);
+  if (_studioIconSpritePromise) return _studioIconSpritePromise;
+  _studioIconSpritePromise = fetch(STUDIO_ICON_SPRITE, { cache: "force-cache", credentials: "same-origin" })
+    .then(function(response) {
+      const type = String(response.headers.get("content-type") || "").toLowerCase();
+      if (!response.ok || type.indexOf("image/svg+xml") < 0) return false;
+      return response.text().then(function(source) {
+        return /^\s*<svg\b/i.test(source) && /<symbol\s+id="lp-mark-studio"/.test(source);
+      });
+    })
+    .then(function(ok) {
+      _studioIconSpriteReady = !!ok;
+      return _studioIconSpriteReady;
+    })
+    .catch(function() { return false; });
+  return _studioIconSpritePromise;
+}
+
+function hydrateStudioIconSlot(slot) {
+  if (!slot || slot.dataset.studioIconReady === "1") return;
+  const symbol = String(slot.dataset.studioIcon || "");
+  if (!/^lp-(?:icon|mark)-[a-z0-9-]+$/.test(symbol)) return;
+  slot.classList.add("studio-icon-slot");
+  const paint = function() {
+    if (!_studioIconSpriteReady || slot.dataset.studioIconReady === "1") return;
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "lp-icon");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    use.setAttribute("href", STUDIO_ICON_SPRITE + "#" + symbol);
+    svg.appendChild(use);
+    slot.replaceChildren(svg);
+    slot.dataset.studioIconReady = "1";
+  };
+  if (_studioIconSpriteReady) paint();
+  else ensureStudioIconSprite().then(function(ok) { if (ok) paint(); });
+}
+
+function hydrateStudioIcons(root) {
+  const scope = root && root.querySelectorAll ? root : document;
+  scope.querySelectorAll("[data-studio-icon]").forEach(hydrateStudioIconSlot);
+}
+
+function studioIconSlot(symbol, fallback, className) {
+  const slot = document.createElement("span");
+  slot.className = (className ? className + " " : "") + "studio-icon-slot";
+  slot.dataset.studioIcon = symbol;
+  slot.setAttribute("aria-hidden", "true");
+  const visibleFallback = document.createElement("span");
+  visibleFallback.className = "studio-icon-fallback";
+  visibleFallback.setAttribute("aria-hidden", "true");
+  visibleFallback.textContent = fallback;
+  slot.appendChild(visibleFallback);
+  hydrateStudioIconSlot(slot);
+  return slot;
+}
+
+function syncStudioThemeControls(choice) {
+  const fallback = choice === "dark" ? "☾" : choice === "light" ? "☀" : "◐";
+  const translate = typeof window.t === "function" ? window.t : function(key) { return key; };
+  const action = translate("theme.toggleTitle");
+  const mode = translate("theme." + choice);
+  const label = (action && action !== "theme.toggleTitle" ? action : "Theme") +
+    " · " + (mode && mode !== "theme." + choice ? mode : choice);
+  ["v3IdeThemeBtn", "btnTheme"].forEach(function(id) {
+    const target = document.getElementById(id);
+    if (!target) return;
+    target.replaceChildren(studioIconSlot("lp-icon-theme", fallback));
+    target.setAttribute("title", label);
+    target.setAttribute("aria-label", label);
+  });
+}
+
+function syncStudioModeToggle(enabled) {
+  const target = document.getElementById("v3ModeToggle");
+  if (!target) return;
+  const key = enabled ? "ide.classic" : "classic.ideMode";
+  const fallback = enabled ? "Classic" : "IDE режим";
+  const translated = typeof window.t === "function" ? window.t(key) : key;
+  const label = document.createElement("span");
+  label.dataset.i18n = key;
+  label.textContent = translated && translated !== key ? translated : fallback;
+  target.replaceChildren(studioIconSlot(
+    enabled ? "lp-icon-chevron-left" : "lp-mark-studio",
+    enabled ? "‹" : "▦",
+    enabled ? "studio-icon-directional" : ""
+  ), label);
+}
+
 function v3ThemeGet() {
   try { return localStorage.getItem(V3_THEME_KEY) || "auto"; } catch (_) { return "auto"; }
 }
@@ -28488,12 +28714,7 @@ function v3ThemeSet(v) {
   const choice = allowed.indexOf(v) >= 0 ? v : "auto";
   try { localStorage.setItem(V3_THEME_KEY, choice); } catch (_) {}
   v3ThemeApply(choice);
-  // Sync visual indicator on toggle buttons.
-  const icon = choice === "dark" ? "🌙" : choice === "light" ? "🌞" : "🌗";
-  ["v3IdeThemeBtn", "btnTheme"].forEach(function(id) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = icon;
-  });
+  syncStudioThemeControls(choice);
 }
 function v3ThemeApply(choice) {
   const b = document.body;
@@ -28535,12 +28756,13 @@ window.v3DensityGet = v3DensityGet;
 // Initial icon update on DOMContentLoaded — by then the toggle buttons
 // exist (they're in <header> which is parsed before this module).
 document.addEventListener("DOMContentLoaded", function() {
-  const cur = v3ThemeGet();
-  const icon = cur === "dark" ? "🌙" : cur === "light" ? "🌞" : "🌗";
-  ["v3IdeThemeBtn", "btnTheme"].forEach(function(id) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = icon;
-  });
+  hydrateStudioIcons(document);
+  syncStudioThemeControls(v3ThemeGet());
+  syncStudioModeToggle(document.body.classList.contains("v3-ide-mode"));
+});
+document.addEventListener("i18n:changed", function() {
+  syncStudioThemeControls(v3ThemeGet());
+  syncStudioModeToggle(document.body.classList.contains("v3-ide-mode"));
 });
 // React to OS theme changes when user is in 'auto' mode.
 if (window.matchMedia) {
@@ -28550,13 +28772,7 @@ if (window.matchMedia) {
       if (v3ThemeGet() === "auto") {
         // No-op — CSS @media handles it. But we update the icon if
         // the toggle indicator should reflect the effective mode.
-        const eff = window.matchMedia("(prefers-color-scheme: dark)").matches ? "🌙" : "🌞";
-        // Keep 'auto' indicator (🌗) so user knows it's auto.
-        // If you prefer to reflect effective: replace the line below with eff.
-        ["v3IdeThemeBtn", "btnTheme"].forEach(function(id) {
-          const el = document.getElementById(id);
-          if (el) el.textContent = "🌗";
-        });
+        syncStudioThemeControls("auto");
       }
     });
   } catch (_) {}
@@ -31724,12 +31940,18 @@ async function refreshStudioReviewStatus() {
         : (v3StudioReviewCounts.scheduled > 0
           ? v3NotesT('studioReview.allDone', 'На сегодня всё · открыть Зал')
           : v3NotesT('studioReview.noSchedule', 'Отметьте слово в тексте'));
+      state.dataset.kind = v3StudioReviewCounts.scheduled > 0 && v3StudioReviewCounts.dueNow === 0
+        ? 'success'
+        : 'neutral';
     }
     const primary = document.getElementById('btnSrsTrainer');
     if (primary) primary.dataset.due = String(v3StudioReviewCounts.dueNow);
   } catch (_) {
     const state = document.getElementById('studioReviewState');
-    if (state) state.textContent = v3NotesT('studioReview.openRoom', 'Открыть Читальный зал');
+    if (state) {
+      state.textContent = v3NotesT('studioReview.openRoom', 'Открыть Читальный зал');
+      state.dataset.kind = 'warning';
+    }
   }
 }
 

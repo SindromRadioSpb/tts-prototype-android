@@ -78,11 +78,14 @@ All slices are serialized. A shared-contract change cannot be deployed concurren
 ## Gate status today
 
 - Research completeness: `PASS`.
-- Runtime implementation: `VF0_CLOSED_OWNER_ACCEPTED`; VF1 may enter preflight; VF2/VF3 have not started.
+- Runtime implementation: `VF0_CLOSED_OWNER_ACCEPTED`, `VF1_CLOSED_OWNER_ACCEPTED`, `VF2_CLOSED_OWNER_ACCEPTED`; VF3 is `LOCAL_GREEN_RELEASE_PENDING` and is the only remaining approved slice.
 - Automated physical/AT claims: `NOT_RUN`.
 - Owner visual direction approval: `PASS` — recommendations approved on 2026-08-15.
 - Authorization to begin bounded implementation: `PASS` for serialized VF0–VF3, with each slice still subject to its preflight and stop gates.
 - VF0 actual desktop Chrome 200% RU/HE: `OWNER_REPORTED_PASS` on 2026-08-15; not physical-mobile, AT or agent-observed evidence.
 - VF0 production deployment: `PASS` at 2026-08-15 19:57 +03:00 — API/HTML/SW `3.11.389`, new static assets `200`, fresh isolated SW/precache controlled, 380 RU/HE reflow green, and Kapture real Ben-Yehuda read-only smoke green.
 - VF0 owner handoff: `PASS` — exact owner acceptance `VF0 PROD=PASS` received on 2026-08-15 after the production update/review handoff.
+- VF1 owner handoff: `PASS` — exact owner acceptance `VF1 PROD=PASS` received after its production browser gate.
+- VF2 owner handoff: `PASS` — the owner reported successful production testing on 2026-08-16; served release `3.11.396`.
+- VF3 local/browser gates: `PASS` — combined VF0–VF3 `32/32`, i18n `233/233`, Studio UX `92/92`, Studio↔Room `49/49`, chunk and OPFS-resume smokes green; production remains pending.
 - Physical-mobile and assistive-technology rows remain `NOT_RUN`; they are not inferred from the owner desktop production acceptance.

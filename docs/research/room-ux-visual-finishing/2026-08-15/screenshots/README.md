@@ -29,3 +29,18 @@ The screenshots were captured through the already-authorized Kapture tab. No nav
 | `vf0-local-desktop-he-rtl.png` | 1440×900 HE/RTL | RTL desktop composition retained; no horizontal overflow |
 
 The screenshots intentionally still show legacy emoji because VF0 only makes the bounded SVG system available. Live icon adoption starts in VF1 after the VF0 release gate.
+
+## VF3 isolated Studio captures
+
+> Date: 2026-08-16<br>
+> Source commit: `48ef83e8`; branch `main`; scoped VF3 worktree dirty<br>
+> Local served version: `3.11.397`<br>
+> Evidence class: `ISOLATED_AUTOMATION`<br>
+> Capture engine: Playwright Chromium, fresh non-owner contexts, service workers blocked, reduced motion enabled<br>
+> Limitations: not physical mobile, owner-live, actual browser-UI 200% zoom or assistive-technology evidence.
+
+| File | View | Result |
+|---|---|---|
+| `vf3-local-studio-380-ru.png` | 380×844 RU/LTR | no horizontal overflow; 24 SVG shell slots hydrated; visible keyboard focus; no page errors |
+| `vf3-local-studio-380-he-rtl.png` | 380×844 HE/RTL | `dir=rtl`; no horizontal overflow; logical shell alignment retained; no page errors |
+| `vf3-local-studio-desktop-ru.png` | 1440×1000 RU/LTR | Classic top shell and status composition retained; quiet SVG navigation; no horizontal overflow or page errors |
