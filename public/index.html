@@ -9808,7 +9808,8 @@ html[lang="he"] .studio-vf3-shell {
   height: 1.1em;
 }
 
-.studio-vf3-focus {
+.studio-vf3-focus,
+.studio-vf3-shell .studio-vf3-focus {
   transition:
     background-color var(--lp-motion-hover) var(--lp-ease-standard),
     border-color var(--lp-motion-hover) var(--lp-ease-standard),
@@ -13381,7 +13382,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.397";
+    window.APP_VERSION = "3.11.398";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

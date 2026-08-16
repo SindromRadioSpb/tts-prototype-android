@@ -61,6 +61,8 @@ test("VF3 shell uses the approved icon subset without emoji-owned names", () => 
 });
 
 test("VF3 focus, motion and non-motion shell contracts are explicit", () => {
+  assert.match(studio, /\.studio-vf3-focus,\s*\n\.studio-vf3-shell \.studio-vf3-focus\s*\{/,
+    "the shell-specific selector must outrank the legacy IDE 150ms transition");
   assert.match(studio, /\.studio-vf3-focus:focus-visible[\s\S]*var\(--lp-focus-ring\)/);
   assert.match(studio, /\.studio-vf3-shell[\s\S]*var\(--lp-font-ui\)/);
   assert.match(studio, /var\(--lp-motion-hover\)/);
@@ -91,12 +93,12 @@ test("VF3 shell locale labels are emoji-free and symmetric", () => {
   }
 });
 
-test("VF3 release and exact shared locale assets are locked to 3.11.397", () => {
+test("VF3 release and exact shared locale assets are locked to 3.11.398", () => {
   const app = studio.match(/window\.APP_VERSION\s*=\s*"([^"]+)"/);
   const footer = room.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
   const worker = sw.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
   assert.ok(app && footer && worker);
-  assert.equal(app[1], "3.11.397");
+  assert.equal(app[1], "3.11.398");
   assert.equal(footer[1], app[1]);
   assert.equal(worker[1], app[1]);
   for (const code of ["ru", "en", "he"]) {

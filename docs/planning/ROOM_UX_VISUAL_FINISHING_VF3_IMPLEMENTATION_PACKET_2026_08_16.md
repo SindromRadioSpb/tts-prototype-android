@@ -1,11 +1,11 @@
 # ROOM-UX-VF3 — Studio shell implementation packet
 
 > Date: 2026-08-16
-> Status: `VF3_LOCAL_GREEN_RELEASE_PENDING`
+> Status: `VF3_PROD_CORRECTION_LOCAL_GREEN`
 > Source commit: `48ef83e8`
 > Branch: `main`; `origin/main` matched the source commit at preflight
 > Dirty status: mixed owner worktree; all VF3 runtime/release targets were clean at preflight and unrelated files remain out of scope
-> Production: `https://linguistpro.kolosei.com/` and `https://linguistpro.kolosei.com/library.html`, served `3.11.396`
+> Production: `https://linguistpro.kolosei.com/` and `https://linguistpro.kolosei.com/library.html`; initial VF3 `3.11.397` deployed, bounded motion correction `3.11.398` pending
 > Evidence classes: repository/code, automated local, isolated browser, production public read-back, production open-owner-tab read-only, owner-reported
 > Limitations: physical mobile and assistive technology remain `NOT_RUN`; automation is not either
 

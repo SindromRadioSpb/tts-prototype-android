@@ -1,7 +1,7 @@
 # ROOM-UX-VF — Visual Finishing implementation packet
 
 > Date: 2026-08-15  
-> Status: `VF2_CLOSED_OWNER_ACCEPTED_VF3_LOCAL_GREEN`
+> Status: `VF2_CLOSED_OWNER_ACCEPTED_VF3_PROD_CORRECTION_LOCAL_GREEN`
 > Owner approval: `Рекомендации утверждаю. Стартуй` (2026-08-15), normalized to the exact recommended V1–V10 values in the decision packet  
 > Source commit: `12dacd9a403ff8db2b7ad2dd20abf98e6c241386`  
 > Branch: `main`; `origin/main` matched the source commit at preflight  
@@ -37,7 +37,7 @@ Only one slice may change shared contracts at a time.
 | VF0 foundations | `CLOSED_OWNER_ACCEPTED` | production `3.11.389`; owner acceptance `VF0 PROD=PASS` on 2026-08-15 |
 | VF1 Room shell/L0/corpora | `CLOSED_OWNER_ACCEPTED` | production `3.11.392`; owner acceptance `VF1 PROD=PASS` |
 | VF2 Reader/Morph/Trainer/Mentor | `CLOSED_OWNER_ACCEPTED` | production `3.11.396`; owner reported successful testing on 2026-08-16 |
-| VF3 Studio shell | `LOCAL_GREEN_RELEASE_PENDING` | narrow shell adoption; all scoped local/browser gates green; serialized release pending |
+| VF3 Studio shell | `PROD_CORRECTION_LOCAL_GREEN` | the only remaining approved slice; initial `3.11.397` production smoke exposed a legacy 150 ms specificity override; bounded `3.11.398` correction is locally green and pending release |
 
 ## 3. VF0 exact allowlist
 

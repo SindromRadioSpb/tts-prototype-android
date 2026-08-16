@@ -78,7 +78,7 @@ All slices are serialized. A shared-contract change cannot be deployed concurren
 ## Gate status today
 
 - Research completeness: `PASS`.
-- Runtime implementation: `VF0_CLOSED_OWNER_ACCEPTED`, `VF1_CLOSED_OWNER_ACCEPTED`, `VF2_CLOSED_OWNER_ACCEPTED`; VF3 is `LOCAL_GREEN_RELEASE_PENDING` and is the only remaining approved slice.
+- Runtime implementation: `VF0_CLOSED_OWNER_ACCEPTED`, `VF1_CLOSED_OWNER_ACCEPTED`, `VF2_CLOSED_OWNER_ACCEPTED`; VF3 is `PROD_CORRECTION_LOCAL_GREEN` and is the only remaining approved slice.
 - Automated physical/AT claims: `NOT_RUN`.
 - Owner visual direction approval: `PASS` — recommendations approved on 2026-08-15.
 - Authorization to begin bounded implementation: `PASS` for serialized VF0–VF3, with each slice still subject to its preflight and stop gates.
@@ -88,4 +88,5 @@ All slices are serialized. A shared-contract change cannot be deployed concurren
 - VF1 owner handoff: `PASS` — exact owner acceptance `VF1 PROD=PASS` received after its production browser gate.
 - VF2 owner handoff: `PASS` — the owner reported successful production testing on 2026-08-16; served release `3.11.396`.
 - VF3 local/browser gates: `PASS` — combined VF0–VF3 `32/32`, i18n `233/233`, Studio UX `92/92`, Studio↔Room `49/49`, chunk and OPFS-resume smokes green; production remains pending.
+- VF3 initial production: `3.11.397` converged and passed Classic read-only smoke, but IDE smoke found a legacy `150 ms` specificity override; bounded `3.11.398` correction computes approved `120/140 ms` and zero under reduced motion locally, with final production verification pending.
 - Physical-mobile and assistive-technology rows remain `NOT_RUN`; they are not inferred from the owner desktop production acceptance.
