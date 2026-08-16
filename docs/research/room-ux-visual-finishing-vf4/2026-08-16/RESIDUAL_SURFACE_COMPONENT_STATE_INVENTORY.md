@@ -2,8 +2,9 @@
 
 > Date: `2026-08-16`
 > Source/branch: `main@71b2d48ced2ad607151520bacf8443f582ec46cc`; local/remote origin converged
-> Dirty status: 34 unrelated pre-existing entries; no runtime target changed
-> Production/client: `3.11.398`; actual owner client `3.11.398`, no update action
+> Dirty status at research start: 34 unrelated pre-existing entries; no runtime target changed
+> Research-baseline production/client: `3.11.398`; actual owner client `3.11.398`, no update action
+> Post-approval release: implementation `8dda777d`; production and updated actual owner client `3.11.399`
 > Evidence: `CODE_CURRENT`, `PRODUCTION_READBACK`, `OWNER_CLIENT_READ_ONLY`, `ISOLATED_AUTOMATION`, `AUTOMATED_LOCAL`
 > Limitations: owner Library was not navigated away from Ben-Yehuda; owner texts/groups/lists were not opened; HE/RTL, forced-colors, reduced-motion and offline variations are isolated automation, not owner-live or AT.
 

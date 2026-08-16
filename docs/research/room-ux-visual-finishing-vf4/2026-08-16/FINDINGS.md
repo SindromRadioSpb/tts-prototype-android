@@ -2,8 +2,9 @@
 
 > Date: `2026-08-16`
 > Source/branch: `main@71b2d48ced2ad607151520bacf8443f582ec46cc`; local/remote origin converged
-> Dirty status: 34 unrelated pre-existing entries; research docs only are in-session changes
-> Production/client: API, Studio, Room, SW and actual owner client `3.11.398`; no update action
+> Implementation commit: `8dda777d`, pushed to `origin/main`
+> Dirty status: 34 unrelated pre-existing entries remain preserved and unstaged; VF4 runtime/release work is isolated in `8dda777d`
+> Production/client: API, Studio, Room, SW and actual owner client `3.11.399`; update applied by the agent
 > Evidence: `CODE_CURRENT`, `PRODUCTION_READBACK`, `OWNER_CLIENT_READ_ONLY`, `ISOLATED_AUTOMATION`, `AUTOMATED_LOCAL`, `OWNER_REPORTED_PREDECESSOR`, `EXTERNAL_PRIMARY`
 > Limitations: no physical device or AT speech; implementation automation is not either.
 
@@ -39,7 +40,12 @@ Future implementation may change only the existing Room/Studio row-audio marker 
 
 ## Handoff state
 
-The owner approved the exact recommendation. The bounded `3.11.399` implementation
-is locally green and recorded in `VF4_IMPLEMENTATION_EVIDENCE.md`; commit/push,
-production convergence, the agent-applied owner-client update and updated
-real-client smoke remain mandatory before closure.
+The owner approved the exact recommendation. The bounded `3.11.399`
+implementation is locally and production green in commit `8dda777d`. The agent
+applied the visible update action in the real owner client, preserved the
+Ben-Yehuda URL, and completed the read-only VF4 DOM/ARIA/focus/overflow/console
+smoke without invoking audio or changing owner data. The handoff is ready.
+
+Actual owner-browser 200%, physical mobile and AT speech remain explicitly
+`NOT_RUN`. The isolated 200%-equivalent row is not substituted for them and does
+not create additional runtime scope.

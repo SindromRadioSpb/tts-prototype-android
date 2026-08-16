@@ -2,8 +2,9 @@
 
 > Date: `2026-08-16`
 > Source/branch: `main@71b2d48ced2ad607151520bacf8443f582ec46cc`; local/remote origin converged
-> Dirty status: 34 pre-existing unrelated entries; runtime/release targets untouched
-> Production/client: release and actual owner client `3.11.398`
+> Dirty status at research start: 34 pre-existing unrelated entries; runtime/release targets untouched
+> Research-baseline production/client: release and actual owner client `3.11.398`
+> Post-approval release: implementation `8dda777d`; production and updated actual owner client `3.11.399`; see `VF4_IMPLEMENTATION_EVIDENCE.md`
 > Evidence: `CODE_CURRENT`, `OWNER_CLIENT_READ_ONLY`, `ISOLATED_AUTOMATION`, `EXTERNAL_PRIMARY`
 > Limitations: DOM/ARIA/computed-style proof is not a screen-reader speech session; 380×844 is automation, not a physical phone; actual 200% reflow remains unrun here.
 

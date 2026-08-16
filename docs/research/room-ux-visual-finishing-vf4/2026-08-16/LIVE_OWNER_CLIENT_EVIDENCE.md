@@ -2,12 +2,13 @@
 
 > Date: `2026-08-16`
 > Source/branch: `main@71b2d48ced2ad607151520bacf8443f582ec46cc`; local and remote origin matched
-> Dirty status: 34 unrelated pre-existing entries; no target runtime/release file changed
-> Production/client: API, Studio, Room and SW `3.11.398`; actual owner client `3.11.398`, no visible update action
+> Implementation commit: `8dda777d`, pushed to `origin/main`
+> Dirty status: 34 unrelated pre-existing entries remain preserved and unstaged; VF4 runtime/release work is isolated in `8dda777d`
+> Production/client: API, Studio, Room and SW `3.11.399`; actual owner client updated by the agent to `3.11.399`
 > Evidence: `PRODUCTION_READBACK`, `OWNER_CLIENT_READ_ONLY`, `ISOLATED_AUTOMATION`, `AUTOMATED_LOCAL`
-> Limitations: no update click was needed or performed; no owner Library text was opened; no TTS/ASR/MT/LLM action was invoked; browser automation is not physical-device or AT evidence.
+> Limitations: no owner Library text was opened and no TTS/ASR/MT/LLM action was invoked; browser automation is not physical-device or AT evidence; actual owner-browser 200% remains `NOT_RUN`.
 
-## Release convergence
+## Research-baseline release convergence
 
 | Readback | Result |
 |---|---|
@@ -122,6 +123,69 @@ No runtime assertion failed. This test debt belongs in the future allowlisted ga
 - VoiceOver, NVDA, JAWS or other AT speech;
 - actual browser 200% zoom;
 - offline cold start with an already-installed mixed-version SW;
-- owner acceptance of a proposed VF4 implementation.
+- physical-device or AT acceptance of the VF4 implementation.
 
 These remain explicit rows in the future verification/acceptance matrix.
+
+## VF4 production release and updated owner client
+
+### Production convergence
+
+The scoped commit `8dda777d` was pushed to `origin/main`. Production moved
+through the expected short mixed window and then converged twice:
+
+| Time (`+03:00`) | API | Studio | Room | SW |
+|---|---:|---:|---:|---:|
+| `10:24:25` | `3.11.399` | `3.11.399` | `3.11.399` | `v3.11.399` |
+| `10:24:41` | `3.11.399` | `3.11.399` | `3.11.399` | `v3.11.399` |
+
+At `10:32:19+03:00`, `/healthz` returned `ok=true`, DB ready, migrations
+ready, disk used `79%` and `disk_warn=false`.
+
+Exact served bytes matched the implementation source for `index.html`,
+`library.html`, `sw.js`, `library-ui.js?v=399`, `reader-core.js?v=399`,
+`reader-core.css?v=399` and the UI sprite. RU/EN/HE locale working-tree files
+use CRLF locally; after the repository's Git LF normalization their SHA-256
+values exactly matched the production integrity map for `?v=169`.
+
+### Agent-applied owner update
+
+The existing authorized owner tab was claimed at:
+
+```text
+https://linguistpro.kolosei.com/library.html#room=benyehuda
+```
+
+Before update it showed shell `3.11.398`. After the waiting SW completed, the
+page exposed the visible status “Обновление загружено и ждёт вашего
+подтверждения” and the visible `Обновить` action. The agent clicked that action
+once. The page reloaded to shell `3.11.399`; the exact URL/hash was preserved,
+the Reader remained closed, the update action disappeared, horizontal overflow
+was `0`, and console warning/error count was `0`.
+
+### Updated owner-profile Studio smoke
+
+A separate temporary Studio tab loaded the existing auto-restored fixture
+read-only and was closed after the smoke.
+
+| Check | Updated real-client result |
+|---|---|
+| release | visible footer `v3.11.399` |
+| fixture | 42 bilingual rows, 42 visible row-audio markers, 42 visible row-TTS controls |
+| marker truth | 29 `state-ok`; 13 `state-mismatch` |
+| marker semantics | all 42 `role=img`; RU names `Аудио готово` or `Аудио создано для другого профиля голоса.` |
+| non-color signature | ready uses a solid filled circle; mismatch uses a `2px dashed` hollow circle |
+| TTS idle action | all 42 `Озвучить строку`; `aria-busy=false`, `aria-pressed=false`, enabled |
+| keyboard focus | reached a row-TTS control; visible `2px solid` outline; target in viewport and unobscured |
+| audio | player remained paused at current time `0`; all 42 controls remained idle |
+| geometry | native owner viewport `1920x855`, page overflow `0` |
+| console | no warning/error |
+
+No row audio action, text selection/open, save, grade, note, review, provider,
+presentation or cache action occurred. The original Library tab was released at
+the preserved Ben-Yehuda URL on `3.11.399`.
+
+The control surface accepted ordinary keyboard navigation but did not change
+actual Chrome zoom for browser shortcuts. Accordingly, actual owner-browser
+200% is recorded as `NOT_RUN`; the passing isolated 200%-equivalent gate remains
+`ISOLATED_AUTOMATION`, not owner-live evidence.

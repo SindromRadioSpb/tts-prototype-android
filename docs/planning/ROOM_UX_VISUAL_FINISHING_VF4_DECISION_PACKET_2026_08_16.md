@@ -3,7 +3,7 @@
 ```text
 MODE=GOAL_RESEARCH_ONLY
 DATE=2026-08-16
-STATUS=OWNER_APPROVED_IMPLEMENTATION_IN_PROGRESS
+STATUS=PROD_PASS_OWNER_HANDOFF_READY
 RECOMMENDATION=TARGETED_RESIDUAL_A11Y_STATE
 ```
 
@@ -30,16 +30,33 @@ Approval authorizes the bounded implementation/release loop only. Every closed,
 frozen, backlog and no-write boundary below remains binding.
 
 > Source commit: `71b2d48ced2ad607151520bacf8443f582ec46cc`
-> Branch: `main`; local `origin/main` and remote `refs/heads/main` matched
+> Implementation commit: `8dda777d`, pushed to `origin/main`
+> Branch at research start: `main`; local `origin/main` and remote `refs/heads/main` matched
 > Worktree: `DIRTY`, 34 pre-existing unrelated entries at research start; runtime/release targets remained clean and unchanged
-> Production: `https://linguistpro.kolosei.com/library.html` and `https://linguistpro.kolosei.com/index.html`, release `3.11.398`
-> Actual client: authorized owner Chrome/Kapture profile at `3.11.398`, no visible update action; owner URL preserved
+> Production: `https://linguistpro.kolosei.com/library.html` and `https://linguistpro.kolosei.com/index.html`, release `3.11.399`
+> Actual client: authorized owner Chrome/Kapture profile updated by the agent from `3.11.398` to `3.11.399`; owner URL preserved
 > Evidence classes: `CODE_CURRENT`, `PRODUCTION_READBACK`, `OWNER_CLIENT_READ_ONLY`, `ISOLATED_AUTOMATION`, `AUTOMATED_LOCAL`, `OWNER_REPORTED_PREDECESSOR`, `EXTERNAL_PRIMARY`
 > Limitations: physical mobile, actual browser 200%, VoiceOver/NVDA/JAWS and other AT remain `NOT_RUN`; automation/Kapture is not substituted for those rows.
 
+## Implementation closure — 2026-08-16
+
+The approved one-slice implementation is complete. Commit `8dda777d` is on
+`origin/main`; production converged on `3.11.399`, critical served bytes match
+the commit, and `/healthz` is green. The agent applied the visible Russian
+update action in the actual owner Chrome tab, preserved
+`library.html#room=benyehuda`, and completed a read-only owner-profile smoke.
+The real Studio fixture now reports 29 ready plus 13 mismatch markers with
+truthful accessible names and non-color signatures; all 42 row-TTS buttons are
+localized idle controls, keyboard focus is visible/unobscured, page overflow is
+zero, the console is clean and audio remained paused at time zero.
+
+Actual owner-browser 200% remains `NOT_RUN` because the connected Chrome
+control surface cannot change zoom. The isolated 200%-equivalent result remains
+separately labelled automation; no physical-device or AT claim is made.
+
 ## 1. Owner decision in one paragraph
 
-Keep VF0–VF3 closed generally, but approve one residual implementation slice for the existing Room/Studio bilingual-table **row-audio readiness marker and row-TTS control only**. Current production proves a repeated truthful-state/accessibility defect: the real owner Studio has meaningful ready/mismatch markers that are all hidden from AT; Reader forced colors makes every marker identical; Studio reduced motion still pulses; and the shared TTS control is Russian in EN/HE and keeps a “play” name when its real action becomes stop. This is not an emoji sweep, CSS cleanup, new state system or audio rewrite. It can be corrected without changing any canonical writer and rolled back statically.
+Keep VF0–VF3 closed generally, but approve one residual implementation slice for the existing Room/Studio bilingual-table **row-audio readiness marker and row-TTS control only**. The `3.11.398` research baseline proved a repeated truthful-state/accessibility defect: the real owner Studio had meaningful ready/mismatch markers that were all hidden from AT; Reader forced colors made every marker identical; Studio reduced motion still pulsed; and the shared TTS control was Russian in EN/HE and kept a “play” name when its real action became stop. This is not an emoji sweep, CSS cleanup, new state system or audio rewrite. It can be corrected without changing any canonical writer and rolled back statically.
 
 `NO_GO_CLOSE_PROGRAM` remains a valid successful owner counter-decision and has an exact closure block in §12.
 
@@ -459,15 +476,11 @@ SCOPE=NONE;
 
 This closes the successor inquiry without runtime work. The observations remain documented as low-priority accessibility backlog. It does not create an implementation-shaped deferred plan.
 
-## 17. Stop
+## 17. Stop / closure boundary
 
-Until one approval block is received and reconciled:
-
-- no runtime/CSS/HTML/JS/i18n/icon/font/asset edit;
-- no version/SW bump, schema/migration/data change;
-- no B9 or cache-revocation work;
-- no broad Studio/CSS/IA cleanup;
-- no owner content/learning/presentation/provider/cache mutation;
-- no commit, push, deploy, production update or cleanup;
-- no physical-device/AT claim from automation;
-- no presumption that implementation is authorized.
+The exact recommended approval block was received and reconciled before
+implementation. The original stop list governed the work and remains the
+boundary after release: no further runtime slice, B9/cache-revocation work,
+broad Studio/CSS/IA cleanup, data/provider/schema change or new deployment is
+authorized by this decision. Physical mobile, actual owner-browser 200% and AT
+remain unclaimed verification rows, not implicit follow-up scope.

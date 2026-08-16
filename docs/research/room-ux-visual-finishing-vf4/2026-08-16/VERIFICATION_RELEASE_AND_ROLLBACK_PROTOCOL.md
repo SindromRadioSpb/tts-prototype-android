@@ -2,10 +2,11 @@
 
 > Date: `2026-08-16`
 > Source/branch: `main@71b2d48ced2ad607151520bacf8443f582ec46cc`; local/remote origin converged
-> Dirty status: 34 pre-existing unrelated entries; no runtime/release target changed
-> Production/client baseline: release and owner client `3.11.398`, no update action
+> Dirty status at research start: 34 pre-existing unrelated entries; no runtime/release target changed
+> Research-baseline production/client: release and owner client `3.11.398`, no update action
+> Execution result: implementation `8dda777d`; production and updated actual owner client `3.11.399`; see `VF4_IMPLEMENTATION_EVIDENCE.md`
 > Evidence: `CODE_CURRENT`, `PRODUCTION_READBACK`, `OWNER_CLIENT_READ_ONLY`, `ISOLATED_AUTOMATION`, `AUTOMATED_LOCAL`
-> Execution status: the approved red/green and isolated local matrix have been performed for planned release `3.11.399`; production, updated owner-client, physical-device and AT rows remain separate. See `VF4_IMPLEMENTATION_EVIDENCE.md`.
+> Execution status: red/green, isolated local matrix, production convergence and updated owner-client rows passed for `3.11.399`; physical-device, actual owner-browser 200% and AT rows remain separately unclaimed. See `VF4_IMPLEMENTATION_EVIDENCE.md`.
 
 ## Future red contract
 

@@ -2,8 +2,9 @@
 
 > Date: `2026-08-16`
 > Source commit/branch: `71b2d48ced2ad607151520bacf8443f582ec46cc` on `main`; local and remote `origin/main` converged
-> Dirty status: 34 pre-existing entries at research start; target runtime and release files clean and unchanged
-> Production/client: Library and Studio `3.11.398`; actual owner client `3.11.398`, no visible update action
+> Dirty status at research start: 34 pre-existing entries; target runtime and release files clean and unchanged
+> Research-baseline production/client: Library and Studio `3.11.398`; actual owner client `3.11.398`, no visible update action
+> Post-approval release: VF4 implementation `8dda777d`; production and actual owner client `3.11.399`; unrelated dirty files preserved
 > Evidence: `CODE_CURRENT`, `PRODUCTION_READBACK`, `OWNER_CLIENT_READ_ONLY`, `OWNER_REPORTED_PREDECESSOR`
 > Limitations: predecessor physical-mobile and AT rows remain `NOT_RUN`; this session did not re-perform owner acceptance.
 

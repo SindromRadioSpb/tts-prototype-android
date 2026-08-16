@@ -2,8 +2,9 @@
 
 > Date: `2026-08-16`
 > Source/branch: `main@71b2d48ced2ad607151520bacf8443f582ec46cc`; origin converged
-> Dirty status: 34 unrelated pre-existing entries; no CSS/runtime target changed
-> Production/client: release and owner client `3.11.398`
+> Dirty status at research start: 34 unrelated pre-existing entries; no CSS/runtime target changed
+> Research-baseline production/client: release and owner client `3.11.398`
+> Post-approval release: implementation `8dda777d`; production and updated actual owner client `3.11.399`
 > Evidence: `CODE_CURRENT`, `PRODUCTION_READBACK`, `OWNER_CLIENT_READ_ONLY`, `ISOLATED_AUTOMATION`
 > Limitations: counts are source topology, not proof that each declaration is reachable or defective; no dead-code deletion experiment was authorized.
 

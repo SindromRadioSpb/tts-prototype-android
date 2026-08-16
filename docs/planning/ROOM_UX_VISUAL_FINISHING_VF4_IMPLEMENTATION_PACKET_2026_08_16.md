@@ -2,8 +2,8 @@
 
 ```text
 DATE=2026-08-16
-STATUS=OWNER_APPROVED_IMPLEMENTATION_IN_PROGRESS
-PLANNED_RELEASE=3.11.399
+STATUS=PROD_PASS_OWNER_HANDOFF_READY
+RELEASE=3.11.399
 ```
 
 > Approval: owner statement «Утверждаю рекомендации. Формализуй и стартуй в режиме goal»; exact F1–F8 values are recorded in the VF4 decision packet
@@ -12,6 +12,7 @@ PLANNED_RELEASE=3.11.399
 > Production baseline: API/Studio/Room/SW `3.11.398`; `/healthz` healthy, DB/migrations ready, disk 75%, warning false
 > Actual owner client baseline: `3.11.398`, no visible update action, preserved Ben-Yehuda URL
 > Evidence boundary: automated browser is not physical device or AT; owner data remains read-only
+> Implementation commit: `8dda777d`, pushed to `origin/main`; production and updated owner client `3.11.399`
 
 ## 1. Approved decision
 
@@ -126,7 +127,7 @@ remain visible fallbacks; the localized accessible name carries the action.
 
 ## 7. Release lock
 
-Planned release: `3.11.399`.
+Release: `3.11.399`.
 
 - changed Reader CSS/JS and `library-ui.js` use exact `?v=399` URLs;
 - shared locale key advances `168 → 169`;
@@ -161,3 +162,16 @@ smoke. Any defect restarts the complete loop.
 
 Rollback is static revert plus a new release version. No data rollback, cache
 cleanup, volume/image deletion or owner-state repair is part of this slice.
+
+## 10. Release result
+
+- The scoped runtime/test/research commit is `8dda777d`; unrelated dirty files were preserved and excluded.
+- Production converged on `3.11.399` across API, Studio, Room and SW. Critical served assets match the implementation commit; `/healthz` is green with DB/migrations ready and no disk warning.
+- The agent claimed the existing authorized owner Library tab at `#room=benyehuda`, waited for the visible `Обновить` action, clicked it, and verified `3.11.399` without opening a Reader text.
+- The owner-profile Studio fixture exposed 42 current row-audio states: 29 ready and 13 profile-mismatch. Marker role/name and non-color signatures, localized idle TTS actions, keyboard focus, overflow and console rows passed.
+- Audio was never invoked: the player remained paused at time `0`; no content, progress, Finished, bookmark, note, review, presentation, provider or cache state was changed.
+- Actual owner-browser 200% is `NOT_RUN` because the connected Chrome control surface cannot change browser zoom. The separate isolated 200%-equivalent row passed and is not represented as owner-live, physical-device or AT evidence.
+
+The implementation/deployment loop is complete and the owner handoff is ready.
+Any rollback remains a new static release followed by the same updated-client
+loop; no data rollback is applicable.

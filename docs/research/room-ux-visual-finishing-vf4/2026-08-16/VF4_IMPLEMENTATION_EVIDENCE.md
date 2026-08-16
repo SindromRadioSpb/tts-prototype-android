@@ -1,15 +1,15 @@
 # ROOM-UX-VF4 — targeted residual accessibility-state implementation evidence
 
 > Date: `2026-08-16`
-> Status: `LOCAL_GREEN_RELEASE_PENDING`
+> Status: `PROD_PASS_OWNER_HANDOFF_READY`
 > Source baseline: `main@71b2d48ced2ad607151520bacf8443f582ec46cc`; local and remote origin matched at preflight
-> Implementation commit: `PENDING`
+> Implementation commit: `8dda777d` (`feat: ship VF4 row audio accessibility state`), pushed to `origin/main`
 > Dirty status: mixed owner worktree; 34 unrelated pre-existing entries remain preserved and unstaged
-> Production baseline: `https://linguistpro.kolosei.com/library.html` and `https://linguistpro.kolosei.com/index.html`, release `3.11.398`
-> Planned release: `3.11.399`; production deployment and updated owner-client smoke are pending
-> Actual owner client baseline: authorized Chrome/Kapture client `3.11.398`, no update action, Ben-Yehuda URL preserved
+> Production: `https://linguistpro.kolosei.com/library.html` and `https://linguistpro.kolosei.com/index.html`, release `3.11.399`
+> Release: API/Studio/Room/SW converged on `3.11.399`; the served runtime cohort matches the implementation commit byte-for-byte (production exposes no commit-ID endpoint)
+> Actual owner client: authorized Chrome/Kapture client updated by the agent from `3.11.398` to `3.11.399`; Ben-Yehuda URL preserved
 > Evidence classes: `OWNER_APPROVAL`, `CODE_CURRENT`, `AUTOMATED_LOCAL`, `ISOLATED_AUTOMATION`, `PRODUCTION_READBACK`, `OWNER_CLIENT_READ_ONLY`
-> Limitations: no physical mobile or assistive-technology session was run. Browser automation is not AT or physical-device evidence. Actual owner-browser 200% and the updated-owner-client row remain pending until production.
+> Limitations: no physical mobile or assistive-technology session was run. Browser automation is not AT or physical-device evidence. The Chrome control surface could not change browser zoom, so actual owner-browser 200% remains `NOT_RUN`; the isolated 200%-equivalent row is reported separately and is not relabelled owner-live.
 
 ## 1. Approved boundary
 
@@ -51,7 +51,7 @@ or `GROUP-CORPUS-CACHE-REVOCATION` behavior changed.
 | Combined VF0–VF4/current release contracts | PASS `42/42` |
 | RU/EN/HE i18n symmetry, duplicate scan, bidi and cache/version lock | PASS `233/233` |
 | Reader builder/leaf golden parity | PASS, `4` builder cases and `37` leaf checks |
-| `git diff --check` | PASS; only line-ending notices for existing locale policy |
+| `git diff --cached --check` | PASS |
 
 The parity golden changed only for the approved row-action name/state attributes.
 Table columns, geometry, row content and audio cache keys remain parity-locked.
@@ -103,11 +103,15 @@ an actual owner-browser zoom or AT claim.
 
 | Row | Status |
 |---|---|
-| scoped commit/push | `PENDING` |
-| active production image equals pushed commit | `PENDING` |
-| repeated API/Studio/Room/SW `/healthz` convergence at `3.11.399` | `PENDING` |
-| actual owner Chrome update action applied by the agent | `PENDING` |
-| updated real-client DOM/ARIA/focus/overflow/console smoke | `PENDING` |
-| actual owner-browser 200% reflow | `PENDING` |
+| scoped commit/push | PASS: `8dda777d`, pushed to `origin/main` |
+| active production image equals pushed commit | PASS by exact deploy-cohort inference: production exposes no commit-ID endpoint; exact bytes match for `index.html`, `library.html`, `sw.js`, `library-ui.js?v=399`, `reader-core.js?v=399`, `reader-core.css?v=399` and the sprite; RU/EN/HE Git-normalized bytes equal the served integrity hashes |
+| repeated API/Studio/Room/SW `/healthz` convergence at `3.11.399` | PASS at `10:24:25+03:00` and `10:24:41+03:00`; final health at `10:32:19+03:00` was `ok=true`, DB/migrations ready, disk `79%`, warning false |
+| actual owner Chrome update action applied by the agent | PASS: visible Russian `Обновить` clicked on the existing Ben-Yehuda landing; shell changed `3.11.398 -> 3.11.399` |
+| updated real-client DOM/ARIA/focus/overflow/console smoke | PASS: URL/hash preserved, Reader closed, no overflow, no update banner, zero console warnings/errors |
+| owner-profile Studio VF4 state | PASS: 42 rows/markers/buttons; 29 ready and 13 mismatch markers with `role=img`, concise RU names and solid-versus-dashed non-color signatures; all buttons localized idle with `busy=false`, `pressed=false`, enabled |
+| keyboard focus and audio non-invocation | PASS: focus reached a row-TTS button, visible `2px solid` outline, unobscured; audio remained paused at `0`, all 42 controls remained idle |
+| actual owner-browser 200% reflow | `NOT_RUN`: the Chrome control surface did not change actual zoom; isolated 200%-equivalent reflow remains PASS and is not an owner-live claim |
 
-The goal cannot close while any row above remains pending.
+The real-client release gate is green. Physical mobile, AT speech and actual
+owner-browser 200% remain explicit unclaimed acceptance rows; none is presented
+as implementation or production failure, and none expands the shipped scope.
