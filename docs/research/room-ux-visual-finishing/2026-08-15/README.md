@@ -37,10 +37,10 @@ This packet does **not** reopen B0–B8, Library/Corpus ownership or IA, learner
 9. [FINDINGS.md](FINDINGS.md) — findings, immediate/backlog boundary and verification matrix.
 10. [screenshots/README.md](screenshots/README.md) — screenshot provenance.
 
-Post-approval implementation evidence: [VF0_IMPLEMENTATION_EVIDENCE.md](VF0_IMPLEMENTATION_EVIDENCE.md), [VF1_IMPLEMENTATION_EVIDENCE.md](VF1_IMPLEMENTATION_EVIDENCE.md), [VF2_IMPLEMENTATION_EVIDENCE.md](VF2_IMPLEMENTATION_EVIDENCE.md) and [VF3_IMPLEMENTATION_EVIDENCE.md](VF3_IMPLEMENTATION_EVIDENCE.md). VF0, VF1 and VF2 are closed with owner acceptance; initial VF3 `3.11.397` production smoke found a bounded legacy-motion specificity override, and correction `3.11.398` is local green pending release.
+Post-approval implementation evidence: [VF0_IMPLEMENTATION_EVIDENCE.md](VF0_IMPLEMENTATION_EVIDENCE.md), [VF1_IMPLEMENTATION_EVIDENCE.md](VF1_IMPLEMENTATION_EVIDENCE.md), [VF2_IMPLEMENTATION_EVIDENCE.md](VF2_IMPLEMENTATION_EVIDENCE.md) and [VF3_IMPLEMENTATION_EVIDENCE.md](VF3_IMPLEMENTATION_EVIDENCE.md). VF0, VF1 and VF2 are closed with owner acceptance. Initial VF3 `3.11.397` production smoke found a bounded legacy-motion specificity override; correction `3.11.398` passed the final production and connected owner-Chrome read-only gates and is awaiting owner acceptance.
 
 Owner decisions and exact approval values live in [`ROOM_UX_VISUAL_FINISHING_DECISION_PACKET_2026_08_15.md`](../../../planning/ROOM_UX_VISUAL_FINISHING_DECISION_PACKET_2026_08_15.md).
 
 ## Stop condition
 
-Research is complete and the owner approved the recommended V1–V10 values on 2026-08-15. Implementation remains serialized; VF0–VF2 are owner-accepted and closed. VF3 Studio shell is the only remaining approved slice; its bounded `3.11.398` correction is local/browser green and awaits release/production read-only evidence. No VF4 is authorized by this packet.
+Research is complete and the owner approved the recommended V1–V10 values on 2026-08-15. Implementation remains serialized; VF0–VF2 are owner-accepted and closed. VF3 Studio shell is `PROD_PASS_OWNER_HANDOFF` on `3.11.398` and awaits only owner acceptance. No VF4 is authorized by this packet.

@@ -1,11 +1,11 @@
 # ROOM-UX-VF3 — Studio shell implementation packet
 
 > Date: 2026-08-16
-> Status: `VF3_PROD_CORRECTION_LOCAL_GREEN`
+> Status: `VF3_PROD_PASS_OWNER_HANDOFF`
 > Source commit: `48ef83e8`
 > Branch: `main`; `origin/main` matched the source commit at preflight
 > Dirty status: mixed owner worktree; all VF3 runtime/release targets were clean at preflight and unrelated files remain out of scope
-> Production: `https://linguistpro.kolosei.com/` and `https://linguistpro.kolosei.com/library.html`; initial VF3 `3.11.397` deployed, bounded motion correction `3.11.398` pending
+> Production: `https://linguistpro.kolosei.com/` and `https://linguistpro.kolosei.com/library.html`; final VF3 release `3.11.398`
 > Evidence classes: repository/code, automated local, isolated browser, production public read-back, production open-owner-tab read-only, owner-reported
 > Limitations: physical mobile and assistive technology remain `NOT_RUN`; automation is not either
 
@@ -89,3 +89,11 @@ Anything else stops the slice.
 ## 7. Stop conditions
 
 Stop without commit/push/deploy on any target drift, workflow/DOM-parity change, lost fallback, locale mismatch, new write/network call, horizontal overflow, inaccessible focus/name, failed relevant gate or production version/SW mismatch.
+
+## 8. Production result and owner gate
+
+The initial `3.11.397` production pass exposed one shell-local CSS-specificity defect in IDE mode: a legacy `150 ms` rule overrode the approved motion roles. Commit `a71e37a8` corrected only that selector and advanced the release lock to `3.11.398`.
+
+Production `3.11.398` then passed five consecutive API/HTML/Room-footer/SW read-backs, the isolated RU/HE Classic/IDE matrix, keyboard focus, reduced motion, current-SW cache-hit checks and the connected owner-Chrome read-only smoke. The already-open owner Library tab intentionally remained on complete old client `3.11.396` with the expected update banner; the smoke did not click it, alter presentation/learner state or clear caches. A temporary owner-profile Studio tab confirmed `3.11.398`, 24 hydrated icons, zero visible fallbacks, zero unnamed VF3 shell controls, no page overflow and no console error/warning, then was closed.
+
+VF3 is ready for owner acceptance, but is not marked owner-accepted or closed until the owner reports `VF3 PROD=PASS`. Physical mobile, actual browser-UI 200% zoom and assistive technology remain `NOT_RUN`. No VF4 is authorized by the approved packet.
