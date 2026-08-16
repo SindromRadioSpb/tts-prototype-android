@@ -19,6 +19,14 @@ const READY_KEY = "rt-audio-ready-key";
 const FRESH_KEY = "rt-audio-fresh-key";
 const LOCALE = ((process.argv.find((arg) => arg.startsWith("--locale=")) || "--locale=ru").split("=")[1] || "ru").toLowerCase();
 const SHOT_DIR = process.env.ROOM_AUDIO_SHOT_DIR ? path.resolve(process.env.ROOM_AUDIO_SHOT_DIR) : "";
+const DESKTOP = process.argv.includes("--desktop");
+const ERROR_CASE = process.argv.includes("--error");
+const VIEWPORT = DESKTOP ? { width: 1440, height: 1000 } : { width: 380, height: 844 };
+const ROW_LABELS = {
+  ru: { play: "Озвучить строку", loading: "Загрузка аудио строки", stop: "Остановить аудио строки", retry: "Повторить озвучивание строки" },
+  en: { play: "Play row audio", loading: "Loading row audio", stop: "Stop row audio", retry: "Retry row audio" },
+  he: { play: "השמעת השורה", loading: "השמע של השורה נטען", stop: "עצירת השמע של השורה", retry: "ניסיון חוזר להשמעת השורה" },
+};
 
 let passed = 0, failed = 0;
 function check(name, ok, detail) {
@@ -73,7 +81,7 @@ async function main() {
   }
 
   const browser = await playwright.chromium.launch();
-  const ctx = await browser.newContext({ serviceWorkers: "block", viewport: { width: 380, height: 844 } });
+  const ctx = await browser.newContext({ serviceWorkers: "block", viewport: VIEWPORT });
   await ctx.addInitScript(() => {
     class QuietAudio {
       constructor() { this.paused = true; this.currentTime = 0; this.ended = false; this._events = {}; }
@@ -84,14 +92,22 @@ async function main() {
     }
     window.Audio = QuietAudio;
   });
+  if (ERROR_CASE) {
+    await ctx.addInitScript(() => {
+      try { delete window.speechSynthesis; } catch (_) { window.speechSynthesis = null; }
+      try { delete window.SpeechSynthesisUtterance; } catch (_) { window.SpeechSynthesisUtterance = undefined; }
+    });
+  }
   const page = await ctx.newPage();
   const pageErrors = [];
+  let pendingTtsRoute = null;
+  let resolveTtsRoute;
+  const ttsRouteSeen = new Promise((resolve) => { resolveTtsRoute = resolve; });
   page.on("pageerror", (err) => pageErrors.push(String(err)));
-  await page.route("**/api/tts", async (route) => route.fulfill({
-    status: 200,
-    contentType: "application/json",
-    body: JSON.stringify({ assetKey: FRESH_KEY }),
-  }));
+  await page.route("**/api/tts", async (route) => {
+    pendingTtsRoute = route;
+    resolveTtsRoute();
+  });
   await page.route("**/api/audio/**/timing", async (route) => route.fulfill({ status: 404, body: "" }));
 
   try {
@@ -136,6 +152,29 @@ async function main() {
     await page.goto(BASE + textDeepLink(TEXT_ID), { waitUntil: "load" });
     await page.waitForSelector("#proTable .row-audio-ind[data-row-idx='0'].state-ok", { state: "attached", timeout: 20000 });
     check("Studio source surface paints the stored row green", true);
+    await page.emulateMedia({ forcedColors: "active", reducedMotion: "reduce" });
+    const studioSignatures = await page.evaluate(() => {
+      const host = document.createElement("div");
+      document.body.appendChild(host);
+      const out = {};
+      for (const state of ["ok", "missing", "mismatch", "too-long", "working"]) {
+        const marker = document.createElement("span");
+        marker.className = "row-audio-ind state-" + state;
+        host.appendChild(marker);
+        const style = getComputedStyle(marker);
+        out[state] = { borderStyle: style.borderStyle, borderWidth: style.borderWidth, borderRadius: style.borderRadius, animationName: style.animationName };
+      }
+      host.remove();
+      return out;
+    });
+    check("Studio forced-colors markers retain five non-colour signatures",
+      studioSignatures.ok.borderWidth === "1px" &&
+      studioSignatures.missing.borderWidth === "2px" &&
+      studioSignatures.mismatch.borderStyle === "dashed" &&
+      studioSignatures["too-long"].borderRadius === "2px" &&
+      studioSignatures.working.borderStyle === "double",
+      JSON.stringify(studioSignatures));
+    check("Studio reduced motion removes working-marker animation", studioSignatures.working.animationName === "none", JSON.stringify(studioSignatures.working));
 
     await page.goto(BASE + "/library.html?canon=skip&corpus=skip#room=mytexts", { waitUntil: "load", timeout: 60000 });
     const fixtureCard = page.locator('.mytexts-grid .mytext-card').filter({ hasText: 'בדיקת מחוון שמע' });
@@ -148,35 +187,95 @@ async function main() {
     check("stored row paints green on first Room render", /state-ok/.test(initial[0] && initial[0].cls), JSON.stringify(initial[0]));
     check("missing row remains neutral", /state-missing/.test(initial[1] && initial[1].cls), JSON.stringify(initial[1]));
     check("indicator exposes a non-colour accessible label", !!(initial[0] && initial[0].label) && initial[0].hidden !== "true", JSON.stringify(initial[0]));
+    const roomSignatures = await page.evaluate(() => {
+      const host = document.createElement("div");
+      document.body.appendChild(host);
+      const out = {};
+      for (const state of ["ok", "missing", "mismatch", "too-long", "working"]) {
+        const marker = document.createElement("span");
+        marker.className = "row-audio-ind state-" + state;
+        host.appendChild(marker);
+        const style = getComputedStyle(marker);
+        out[state] = { borderStyle: style.borderStyle, borderWidth: style.borderWidth, borderRadius: style.borderRadius, animationName: style.animationName };
+      }
+      host.remove();
+      return out;
+    });
+    check("Room forced-colors markers retain five non-colour signatures",
+      roomSignatures.ok.borderWidth === "1px" && roomSignatures.missing.borderWidth === "2px" &&
+      roomSignatures.mismatch.borderStyle === "dashed" && roomSignatures["too-long"].borderRadius === "2px" &&
+      roomSignatures.working.borderStyle === "double",
+      JSON.stringify(roomSignatures));
+    check("Room reduced motion removes working-marker animation", roomSignatures.working.animationName === "none", JSON.stringify(roomSignatures.working));
+    const idleButton = await page.locator("#roomReaderTable .row-tts-btn[data-row-idx='1']").evaluate((button) => ({
+      state: button.dataset.audioControlState,
+      label: button.getAttribute("aria-label"),
+      busy: button.getAttribute("aria-busy"),
+      pressed: button.getAttribute("aria-pressed"),
+    }));
+    check("idle row action has the exact localized current name",
+      idleButton.state === "idle" && idleButton.label === ROW_LABELS[LOCALE].play && idleButton.busy === "false" && idleButton.pressed === "false",
+      JSON.stringify(idleButton));
     check("document direction matches locale", (await page.getAttribute("html", "dir")) === (LOCALE === "he" ? "rtl" : "ltr"));
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    check("380px page has no horizontal overflow", overflow <= 1, "overflow=" + overflow);
+    check((DESKTOP ? "desktop" : "380px") + " page has no horizontal overflow", overflow <= 1, "overflow=" + overflow);
     if (SHOT_DIR) {
       fs.mkdirSync(SHOT_DIR, { recursive: true });
-      await page.screenshot({ path: path.join(SHOT_DIR, `room-audio-indicator-${LOCALE}-380.png`), fullPage: true });
+      await page.screenshot({ path: path.join(SHOT_DIR, `room-audio-indicator-${LOCALE}-${DESKTOP ? "desktop" : "380"}.png`), fullPage: true });
     }
 
     await page.hover("#roomReaderTable tr[data-row-idx='1']");
     await page.click("#roomReaderTable .row-tts-btn[data-row-idx='1']");
-    await page.waitForFunction(() => document.querySelector("#roomReaderTable .row-audio-ind[data-row-idx='1']")?.classList.contains("state-ok"));
-    let persisted = false;
-    try {
-      await page.waitForFunction(async ({ sid, key }) => {
+    await ttsRouteSeen;
+    await page.waitForFunction(() => document.querySelector("#roomReaderTable .row-tts-btn[data-row-idx='1']")?.dataset.audioControlState === "loading");
+    const loadingButton = await page.locator("#roomReaderTable .row-tts-btn[data-row-idx='1']").evaluate((button) => ({
+      label: button.getAttribute("aria-label"), busy: button.getAttribute("aria-busy"), pressed: button.getAttribute("aria-pressed"), disabled: button.disabled,
+    }));
+    check("loading row action is named, busy and disabled atomically",
+      loadingButton.label === ROW_LABELS[LOCALE].loading && loadingButton.busy === "true" && loadingButton.pressed === "false" && loadingButton.disabled,
+      JSON.stringify(loadingButton));
+    if (ERROR_CASE) {
+      await pendingTtsRoute.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "fixture provider detail must stay private" }) });
+      await page.waitForFunction(() => document.querySelector("#roomReaderTable .row-tts-btn[data-row-idx='1']")?.dataset.audioControlState === "error");
+      const errorButton = await page.locator("#roomReaderTable .row-tts-btn[data-row-idx='1']").evaluate((button) => ({
+        label: button.getAttribute("aria-label"), title: button.title, busy: button.getAttribute("aria-busy"), pressed: button.getAttribute("aria-pressed"), disabled: button.disabled,
+      }));
+      check("error row action becomes the exact localized Retry action without provider detail",
+        errorButton.label === ROW_LABELS[LOCALE].retry && errorButton.title === ROW_LABELS[LOCALE].retry &&
+        errorButton.busy === "false" && errorButton.pressed === "false" && !errorButton.disabled &&
+        !JSON.stringify(errorButton).includes("fixture provider detail"),
+        JSON.stringify(errorButton));
+      check("failed TTS leaves the missing marker truthful", await page.locator("#roomReaderTable .row-audio-ind[data-row-idx='1']").evaluate((marker) => marker.classList.contains("state-missing")));
+      check("no pageerror", pageErrors.length === 0, pageErrors[0]);
+    } else {
+      await pendingTtsRoute.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ assetKey: FRESH_KEY }) });
+      await page.waitForFunction(() => document.querySelector("#roomReaderTable .row-audio-ind[data-row-idx='1']")?.classList.contains("state-ok"));
+      await page.waitForFunction(() => document.querySelector("#roomReaderTable .row-tts-btn[data-row-idx='1']")?.dataset.audioControlState === "playing");
+    const playingButton = await page.locator("#roomReaderTable .row-tts-btn[data-row-idx='1']").evaluate((button) => ({
+      label: button.getAttribute("aria-label"), busy: button.getAttribute("aria-busy"), pressed: button.getAttribute("aria-pressed"), disabled: button.disabled,
+    }));
+    check("playing row action becomes the exact localized Stop action",
+      playingButton.label === ROW_LABELS[LOCALE].stop && playingButton.busy === "false" && playingButton.pressed === "true" && !playingButton.disabled,
+      JSON.stringify(playingButton));
+      let persisted = false;
+      try {
+        await page.waitForFunction(async ({ sid, key }) => {
         const db = await import("/db/local-db.js");
         const rows = await db.dbQuery(
           `SELECT aa.asset_key, aa.tts_profile_json FROM sentence_audio sa JOIN audio_assets aa ON aa.id=sa.audio_id WHERE sa.sentence_id=? AND sa.is_default=1`,
           [sid]
         );
         return rows.length === 1 && String(rows[0].asset_key) === key && !!rows[0].tts_profile_json;
-      }, { sid: FRESH_SENTENCE_ID, key: FRESH_KEY }, { timeout: 10000 });
-      persisted = true;
-    } catch (_) {}
-    check("successful BYOK TTS repaints the row green", true);
-    check("successful BYOK TTS persists through canonical local-db writer", persisted === true);
-    await page.reload({ waitUntil: "load" });
-    await page.waitForSelector("#roomReaderTable .row-audio-ind[data-row-idx='1'].state-ok", { state: "attached", timeout: 20000 });
-    check("fresh TTS indicator survives Room reload", true);
-    check("no pageerror", pageErrors.length === 0, pageErrors[0]);
+        }, { sid: FRESH_SENTENCE_ID, key: FRESH_KEY }, { timeout: 10000 });
+        persisted = true;
+      } catch (_) {}
+      check("successful BYOK TTS repaints the row green", true);
+      check("successful BYOK TTS persists through canonical local-db writer", persisted === true);
+      await page.reload({ waitUntil: "load" });
+      await page.waitForSelector("#roomReaderTable .row-audio-ind[data-row-idx='1'].state-ok", { state: "attached", timeout: 20000 });
+      check("fresh TTS indicator survives Room reload", true);
+      check("no pageerror", pageErrors.length === 0, pageErrors[0]);
+    }
   } finally {
     try {
       await page.goto(BASE + "/index.html", { waitUntil: "load" });

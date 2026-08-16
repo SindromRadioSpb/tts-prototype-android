@@ -14,6 +14,24 @@ async function readerCore() {
   return import("data:text/javascript;base64," + Buffer.from(source).toString("base64"));
 }
 
+function fakeButton() {
+  const classes = new Set();
+  const attrs = new Map();
+  return {
+    dataset: {},
+    classList: {
+      toggle(name, on) { if (on) classes.add(name); else classes.delete(name); },
+      contains(name) { return classes.has(name); },
+    },
+    setAttribute(name, value) { attrs.set(name, String(value)); },
+    removeAttribute(name) { attrs.delete(name); },
+    getAttribute(name) { return attrs.has(name) ? attrs.get(name) : null; },
+    textContent: "",
+    title: "",
+    disabled: false,
+  };
+}
+
 test("row audio indicator follows the Studio ready/missing/mismatch contract", async () => {
   const core = await readerCore();
   assert.equal(typeof core.rowAudioIndicatorPresentation, "function");
@@ -37,4 +55,26 @@ test("row audio indicator follows the Studio ready/missing/mismatch contract", a
 test("attachRowAudio exposes one successful-asset callback instead of a second persistence writer", async () => {
   const core = await readerCore();
   assert.match(String(core.attachRowAudio), /onAssetReady/);
+});
+
+test("row TTS action names and ARIA state change atomically without exposing provider errors", async () => {
+  const core = await readerCore();
+  const button = fakeButton();
+  const labels = { play: "Play", loading: "Loading", stop: "Stop", retry: "Retry" };
+
+  const expected = {
+    idle: ["▶", "Play", "false", "false", false],
+    loading: ["…", "Loading", "true", "false", true],
+    playing: ["■", "Stop", "false", "true", false],
+    error: ["!", "Retry", "false", "false", false],
+  };
+  for (const [state, [glyph, name, busy, pressed, disabled]] of Object.entries(expected)) {
+    assert.equal(core.applyRowTtsButtonState(button, state, labels).state, state);
+    assert.equal(button.dataset.audioControlState, state);
+    assert.equal(button.textContent, glyph);
+    assert.equal(button.getAttribute("aria-label"), name);
+    assert.equal(button.getAttribute("aria-busy"), busy);
+    assert.equal(button.getAttribute("aria-pressed"), pressed);
+    assert.equal(button.disabled, disabled);
+  }
 });

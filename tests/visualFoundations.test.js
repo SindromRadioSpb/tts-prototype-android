@@ -124,7 +124,8 @@ test("VF0 creates only the approved additive foundation assets", () => {
   assert.match(packet, /Owner approval: `Рекомендации утверждаю\. Стартуй`/);
   assert.match(packet, /SCOPE=BOUNDED_VISUAL_FINISHING_ONLY/);
   assert.match(packet, /VF1 Room shell\/L0\/corpora \| `CLOSED_OWNER_ACCEPTED`/);
-  assert.match(packet, /VF3 Studio shell \| `(?:PREFLIGHT|LOCAL_GREEN_RELEASE_PENDING|PROD_CORRECTION_LOCAL_GREEN|PROD_PASS_HANDOFF)` \| the only remaining approved slice/);
+  assert.match(packet, /VF3 Studio shell \| `CLOSED_OWNER_ACCEPTED` \| final `3\.11\.398`/);
+  assert.match(packet, /The approved `SERIALIZED_VF0_VF3_ALLOWLIST` is exhausted/);
 });
 
 test("VF0 loads foundations before legacy surface styles and leaves the fallbacks in place", () => {
@@ -132,7 +133,7 @@ test("VF0 loads foundations before legacy surface styles and leaves the fallback
   const studioLink = indexHtml.indexOf(link);
   const studioLegacy = indexHtml.indexOf("<style>");
   const roomLink = libraryHtml.indexOf(link);
-  const roomReader = libraryHtml.indexOf('<link rel="stylesheet" href="/css/reader-core.css?v=394">');
+  const roomReader = libraryHtml.indexOf('<link rel="stylesheet" href="/css/reader-core.css?v=399">');
   const roomLegacy = libraryHtml.indexOf("<style>");
 
   assert.ok(studioLink >= 0 && studioLink < studioLegacy,
@@ -259,7 +260,7 @@ test("VF0 precaches foundation assets and remains locked to the current served r
   const room = libraryHtml.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
   const worker = serviceWorker.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
   assert.ok(app && room && worker, "all public version surfaces must exist");
-  assert.equal(app[1], "3.11.398");
+  assert.equal(app[1], "3.11.399");
   assert.equal(room[1], app[1]);
   assert.equal(worker[1], app[1]);
 });

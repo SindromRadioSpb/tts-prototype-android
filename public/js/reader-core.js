@@ -24,6 +24,47 @@ export function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
+const DEFAULT_ROW_TTS_LABELS = Object.freeze({
+  play: "Play row audio",
+  loading: "Loading row audio",
+  stop: "Stop row audio",
+  retry: "Retry row audio",
+});
+
+export function normalizeRowTtsLabels(labels) {
+  const input = labels && typeof labels === "object" ? labels : {};
+  const out = {};
+  Object.keys(DEFAULT_ROW_TTS_LABELS).forEach((key) => {
+    const value = String(input[key] || "").trim();
+    out[key] = value || DEFAULT_ROW_TTS_LABELS[key];
+  });
+  return out;
+}
+
+// Presentation-only state helper. Audio truth, playback and writers remain in
+// their existing owners; this keeps glyph/class/ARIA synchronized atomically.
+export function applyRowTtsButtonState(button, state, labels) {
+  if (!button) return null;
+  const names = normalizeRowTtsLabels(labels);
+  const next = ["idle", "loading", "playing", "error"].includes(state) ? state : "idle";
+  const presentation = {
+    idle: { glyph: "▶", label: names.play, busy: false, disabled: false, pressed: false },
+    loading: { glyph: "…", label: names.loading, busy: true, disabled: true, pressed: false },
+    playing: { glyph: "■", label: names.stop, busy: false, disabled: false, pressed: true },
+    error: { glyph: "!", label: names.retry, busy: false, disabled: false, pressed: false },
+  }[next];
+  button.dataset.audioControlState = next;
+  button.classList.toggle("row-tts-playing", next === "playing");
+  button.classList.toggle("row-tts-error", next === "error");
+  button.textContent = presentation.glyph;
+  button.disabled = presentation.disabled;
+  button.setAttribute("aria-busy", String(presentation.busy));
+  button.setAttribute("aria-pressed", String(presentation.pressed));
+  button.setAttribute("aria-label", presentation.label);
+  button.title = presentation.label;
+  return { state: next, ...presentation };
+}
+
 // FNV-1a 32-bit → 8-hex. Backs the client-side row-audio cache key.
 export function fnv1aHash(str) {
   let h = 0x811c9dc5;
@@ -386,6 +427,7 @@ export function buildBilingualTableHtml(rows, config) {
   const visibleColumns = cfg.visibleColumns || { action: true, he: true, niqqud: true, translit: true, ru: true };
   const baseWidths = cfg.baseWidths || [15, 20, 20, 21, 24];
   const t = typeof cfg.t === "function" ? cfg.t : (k) => k;
+  const rowTtsLabels = normalizeRowTtsLabels(cfg.rowTtsLabels);
   const hasNoteFn = typeof cfg.hasNote === "function" ? cfg.hasNote : () => false;
   const ideMode = !!cfg.ideMode;
 
@@ -478,7 +520,8 @@ export function buildBilingualTableHtml(rows, config) {
           '<div class="col-action-row col-action-row-top">' +
           '<span class="row-audio-ind" data-row-idx="' + rowIdx + '" aria-hidden="true"></span>' +
           '<button type="button" class="row-tts-btn" data-row-idx="' + rowIdx + '" ' +
-          'title="Озвучить эту строку" aria-label="Озвучить строку">▶</button>' +
+          'data-audio-control-state="idle" aria-busy="false" aria-pressed="false" ' +
+          'title="' + escapeHtml(rowTtsLabels.play) + '" aria-label="' + escapeHtml(rowTtsLabels.play) + '">▶</button>' +
           "</div>" +
           noteBtnHtml +
           editActionsHtml +
@@ -654,6 +697,7 @@ export function paintRowAudioIndicator(mount, rowIdx, row, currentProfile, label
 //   }
 export function attachRowAudio(mount, opts) {
   opts = opts || {};
+  const rowTtsLabels = normalizeRowTtsLabels(opts.rowTtsLabels);
   if (!mount) return { detach() {} };
   const getRow = typeof opts.getRow === "function" ? opts.getRow : () => null;
   const excludeTapCols = Array.isArray(opts.tapToHearExcludeCols) ? opts.tapToHearExcludeCols : [];
@@ -749,22 +793,22 @@ export function attachRowAudio(mount, opts) {
     return player;
   };
   const revoke = () => { if (objUrl) { try { URL.revokeObjectURL(objUrl); } catch (_) {} objUrl = null; } };
-  const setLoading = (idx) => { const b = btnOf(idx); if (b) { b.setAttribute("aria-busy", "true"); b.disabled = true; b.textContent = "…"; } };
+  const setLoading = (idx) => { const b = btnOf(idx); if (b) applyRowTtsButtonState(b, "loading", rowTtsLabels); };
   const setPlaying = (idx) => {
-    const b = btnOf(idx); if (b) { b.removeAttribute("aria-busy"); b.disabled = false; b.classList.add("row-tts-playing"); b.classList.remove("row-tts-error"); b.textContent = "■"; }
+    const b = btnOf(idx); if (b) applyRowTtsButtonState(b, "playing", rowTtsLabels);
     const tr = trOf(idx); if (tr) tr.classList.add("row-playing");
   };
   const setError = (idx, msg) => {
-    const b = btnOf(idx); if (b) { b.removeAttribute("aria-busy"); b.disabled = false; b.classList.add("row-tts-error"); b.classList.remove("row-tts-playing"); b.textContent = "!"; if (msg) b.title = msg; }
+    const b = btnOf(idx); if (b) applyRowTtsButtonState(b, "error", rowTtsLabels);
     const tr = trOf(idx); if (tr) { tr.classList.remove("row-playing"); tr.classList.add("row-error"); }
   };
   const clearError = (idx) => {
-    const b = btnOf(idx); if (b) { b.classList.remove("row-tts-error"); if (!b.classList.contains("row-tts-playing")) b.textContent = "▶"; b.removeAttribute("title"); }
+    const b = btnOf(idx); if (b && !b.classList.contains("row-tts-playing")) applyRowTtsButtonState(b, "idle", rowTtsLabels);
     const tr = trOf(idx); if (tr) tr.classList.remove("row-error");
   };
   const clearPlaying = () => {
     stopWordTick();   // BRR-P1-008b — stop the rAF highlight loop
-    if (playingIdx != null) { const b = btnOf(playingIdx); if (b) { b.classList.remove("row-tts-playing"); if (!b.classList.contains("row-tts-error")) b.textContent = "▶"; } const tr = trOf(playingIdx); if (tr) tr.classList.remove("row-playing"); }
+    if (playingIdx != null) { const b = btnOf(playingIdx); if (b && !b.classList.contains("row-tts-error")) applyRowTtsButtonState(b, "idle", rowTtsLabels); const tr = trOf(playingIdx); if (tr) tr.classList.remove("row-playing"); }
     clearSpeakingWord(); activeTiming = null;   // BRR-P1-008b
     playingIdx = null; mode = null;
   };
@@ -865,7 +909,7 @@ export function attachRowAudio(mount, opts) {
       if (continuous) advance(idx);   // karaoke: skip a failed row, keep going
     } finally {
       const b = btnOf(idx);
-      if (b && !b.classList.contains("row-tts-playing") && !b.classList.contains("row-tts-error")) { b.removeAttribute("aria-busy"); b.disabled = false; b.textContent = "▶"; }
+      if (b && !b.classList.contains("row-tts-playing") && !b.classList.contains("row-tts-error")) applyRowTtsButtonState(b, "idle", rowTtsLabels);
     }
   }
 

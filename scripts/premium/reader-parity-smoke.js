@@ -274,6 +274,12 @@ const PRESET_COLS = {
             visibleColumns: JSON.parse(JSON.stringify(presetCols[preset])),
             baseWidths: [15, 20, 20, 21, 24],
             translitProfile: profile, ideMode: false, t,
+            rowTtsLabels: {
+              play: t("room.reader.audio.playRow"),
+              loading: t("room.reader.audio.loadingRow"),
+              stop: t("room.reader.audio.stopRow"),
+              retry: t("room.reader.audio.retryRow"),
+            },
           });
           const d = document.createElement("div"); d.innerHTML = html;
           const tbl = d.querySelector("table");

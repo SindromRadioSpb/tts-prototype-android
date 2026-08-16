@@ -2735,6 +2735,7 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
     margin-top: 9px; /* визуально выравниваем с кнопками */
     width: 10px;
     height: 10px;
+    box-sizing: border-box;
     border-radius: 999px;
     border: 1px solid rgba(0,0,0,0.18);
     background: rgba(0,0,0,0.10);
@@ -2743,22 +2744,33 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
 .row-audio-ind.state-ok {
     background: rgba(46, 204, 113, 0.95);
     border-color: rgba(39, 174, 96, 0.55);
+    border-style: solid;
+    border-width: 1px;
 }
 .row-audio-ind.state-missing {
-    background: rgba(0,0,0,0.12);
+    background: transparent;
     border-color: rgba(0,0,0,0.20);
+    border-style: solid;
+    border-width: 2px;
 }
 .row-audio-ind.state-mismatch {
-    background: rgba(241, 196, 15, 0.95);
-    border-color: rgba(243, 156, 18, 0.60);
+    background: transparent;
+    border-color: rgba(217, 158, 0, 0.95);
+    border-style: dashed;
+    border-width: 2px;
 }
 .row-audio-ind.state-too-long {
     background: rgba(231, 76, 60, 0.92);
     border-color: rgba(192, 57, 43, 0.60);
+    border-radius: 2px;
+    border-style: solid;
+    border-width: 1px;
 }
 .row-audio-ind.state-working {
-    background: rgba(52, 152, 219, 0.92);
+    background: transparent;
     border-color: rgba(41, 128, 185, 0.65);
+    border-style: double;
+    border-width: 3px;
     animation: v3AudioPrefetchPulse 1.1s ease-in-out infinite;
 }
 @keyframes v3AudioPrefetchPulse {
@@ -9469,6 +9481,7 @@ body.v3-ide-mode .v3-ide-center-content table .row-audio-ind {
   display: inline-block;
   width: 8px;
   height: 8px;
+  box-sizing: border-box;
   border-radius: 50%;
   margin-right: 6px;
   vertical-align: middle;
@@ -9481,26 +9494,37 @@ body.v3-ide-mode .v3-ide-center-content table .row-audio-ind {
 body.v3-ide-mode .v3-ide-center-content table .row-audio-ind.state-ok {
   background: rgba(46, 204, 113, 0.95);
   border-color: rgba(39, 174, 96, 0.55);
+  border-style: solid;
+  border-width: 1px;
 }
 
 body.v3-ide-mode .v3-ide-center-content table .row-audio-ind.state-missing {
-  background: rgba(0,0,0,0.12);
+  background: transparent;
   border-color: rgba(0,0,0,0.20);
+  border-style: solid;
+  border-width: 2px;
 }
 
 body.v3-ide-mode .v3-ide-center-content table .row-audio-ind.state-mismatch {
-  background: rgba(241, 196, 15, 0.95);
-  border-color: rgba(243, 156, 18, 0.60);
+  background: transparent;
+  border-color: rgba(217, 158, 0, 0.95);
+  border-style: dashed;
+  border-width: 2px;
 }
 
 body.v3-ide-mode .v3-ide-center-content table .row-audio-ind.state-too-long {
   background: rgba(231, 76, 60, 0.92);
   border-color: rgba(192, 57, 43, 0.60);
+  border-radius: 2px;
+  border-style: solid;
+  border-width: 1px;
 }
 
 body.v3-ide-mode .v3-ide-center-content table .row-audio-ind.state-working {
-  background: rgba(52, 152, 219, 0.92);
+  background: transparent;
   border-color: rgba(41, 128, 185, 0.65);
+  border-style: double;
+  border-width: 3px;
 }
 
 body.v3-ide-mode .v3-ide-center-content table .row-note-indicator {
@@ -9876,6 +9900,11 @@ html[lang="he"] .studio-vf3-shell {
     animation: none;
     border-top-color: currentColor;
   }
+  .row-audio-ind.state-working,
+  body.v3-ide-mode .v3-ide-center-content table .row-audio-ind.state-working {
+    animation: none;
+    transition-duration: 0ms;
+  }
 }
 
 @media (forced-colors: active) {
@@ -9891,6 +9920,37 @@ html[lang="he"] .studio-vf3-shell {
   }
   #classicNextStep.lp-state {
     border: 1px solid CanvasText;
+  }
+  .row-audio-ind.state-ok {
+    border-color: CanvasText;
+    background: CanvasText;
+    border-style: solid;
+    border-width: 1px;
+  }
+  .row-audio-ind.state-missing {
+    border-color: CanvasText;
+    background: Canvas;
+    border-style: solid;
+    border-width: 2px;
+  }
+  .row-audio-ind.state-mismatch {
+    border-color: CanvasText;
+    background: Canvas;
+    border-style: dashed;
+    border-width: 2px;
+  }
+  .row-audio-ind.state-too-long {
+    border-color: CanvasText;
+    background: CanvasText;
+    border-radius: 2px;
+    border-style: solid;
+    border-width: 1px;
+  }
+  .row-audio-ind.state-working {
+    border-color: CanvasText;
+    background: Canvas;
+    border-style: double;
+    border-width: 3px;
   }
 }
 
@@ -13208,9 +13268,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-    <script src="/i18n/locales/ru.js?v=168"></script>
-    <script src="/i18n/locales/en.js?v=168"></script>
-    <script src="/i18n/locales/he.js?v=168"></script>
+    <script src="/i18n/locales/ru.js?v=169"></script>
+    <script src="/i18n/locales/en.js?v=169"></script>
+    <script src="/i18n/locales/he.js?v=169"></script>
 <script src="/i18n/index.js"></script>
 <script src="/js/pronunciation-entry.js"></script>
 
@@ -13382,7 +13442,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.398";
+    window.APP_VERSION = "3.11.399";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed
@@ -14775,6 +14835,69 @@ if (header) {
   }
 }
 
+function v3RowAudioTr(key, fallback, params) {
+  try {
+    if (typeof t === "function") {
+      const translated = t(key, params || {});
+      if (translated && translated !== key) return String(translated);
+    }
+  } catch (_) {}
+  return String(fallback || key);
+}
+
+function v3RowTtsLabels() {
+  return {
+    play: v3RowAudioTr("room.reader.audio.playRow", "Play row audio"),
+    loading: v3RowAudioTr("room.reader.audio.loadingRow", "Loading row audio"),
+    stop: v3RowAudioTr("room.reader.audio.stopRow", "Stop row audio"),
+    retry: v3RowAudioTr("room.reader.audio.retryRow", "Retry row audio"),
+  };
+}
+
+function v3ApplyRowTtsButtonState(button, state) {
+  if (!button) return;
+  const labels = v3RowTtsLabels();
+  const normalized = ["loading", "playing", "error"].includes(state) ? state : "idle";
+  const presentation = {
+    idle: { glyph: "▶", label: labels.play, busy: false, pressed: false, disabled: false },
+    loading: { glyph: "…", label: labels.loading, busy: true, pressed: false, disabled: true },
+    playing: { glyph: "■", label: labels.stop, busy: false, pressed: true, disabled: false },
+    error: { glyph: "!", label: labels.retry, busy: false, pressed: false, disabled: false },
+  }[normalized];
+
+  button.dataset.audioControlState = normalized;
+  button.classList.toggle("row-tts-playing", normalized === "playing");
+  button.classList.toggle("row-tts-error", normalized === "error");
+  button.textContent = presentation.glyph;
+  button.disabled = presentation.disabled;
+  button.setAttribute("aria-busy", String(presentation.busy));
+  button.setAttribute("aria-pressed", String(presentation.pressed));
+  button.setAttribute("aria-label", presentation.label);
+  button.title = presentation.label;
+}
+
+function v3RowTtsButtonMarkup(rowIdx) {
+  const label = v3EscapeHtml(v3RowTtsLabels().play);
+  return '<button type="button" class="row-tts-btn" data-row-idx="' + String(rowIdx) +
+    '" data-audio-control-state="idle" aria-busy="false" aria-pressed="false"' +
+    ' title="' + label + '" aria-label="' + label + '">▶</button>';
+}
+
+const V3_ROW_AUDIO_STATES = Object.freeze(["ok", "missing", "mismatch", "too-long", "working"]);
+
+function v3SetRowAudioIndicator(element, state, label, detail) {
+  if (!element) return;
+  const normalized = V3_ROW_AUDIO_STATES.includes(state) ? state : "missing";
+  const safeLabel = String(label || normalized);
+  const safeDetail = String(detail || safeLabel);
+  element.className = "row-audio-ind state-" + normalized;
+  element.dataset.audioState = normalized;
+  element.setAttribute("role", "img");
+  element.setAttribute("aria-label", safeLabel);
+  element.removeAttribute("aria-hidden");
+  element.title = safeDetail;
+}
+
 function v3IdeRenderTable(rows, textId) {
   const content = document.getElementById("v3IdeCenterContent");
   if (!content) return;
@@ -14871,7 +14994,7 @@ function v3IdeRenderTable(rows, textId) {
         <td class="col-action-cell">
           <div class="col-action-row col-action-row-top">
             <span class="row-audio-ind" data-row-idx="${idx}" aria-hidden="true"></span>
-            <button type="button" class="row-tts-btn" data-row-idx="${idx}" title="Озвучить" aria-label="Озвучить">▶</button>
+            ${v3RowTtsButtonMarkup(idx)}
           </div>
           <div class="col-action-row col-action-row-bot">
             <button type="button" class="row-note-btn${hasNote ? ' row-note-active' : ''}" data-row-idx="${idx}" data-sentence-id="${sentenceId}" title="${hasNote ? 'Edit note' : 'Add note'}" aria-label="Note" onclick="event.stopPropagation();">📝</button>
@@ -19627,20 +19750,14 @@ function normalizeRowStateIndices(reason) {
         tr.classList.remove("row-playing");
     });
     table.querySelectorAll("button.row-tts-btn.row-tts-playing").forEach(function (btn) {
-        btn.classList.remove("row-tts-playing");
-        btn.removeAttribute("aria-busy");
-        btn.disabled = false;
-        btn.textContent = "▶";
+        v3ApplyRowTtsButtonState(btn, "idle");
     });
     if (rowPlayingRowIdx !== null) {
         const trPlay = table.querySelector('tbody tr[data-row-idx="' + String(rowPlayingRowIdx) + '"]');
         const btnPlay = table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowPlayingRowIdx) + '"]');
         if (trPlay) trPlay.classList.add("row-playing");
         if (btnPlay) {
-            btnPlay.classList.add("row-tts-playing");
-            btnPlay.disabled = false;
-            btnPlay.removeAttribute("aria-busy");
-            btnPlay.textContent = "■";
+            v3ApplyRowTtsButtonState(btnPlay, "playing");
         }
     }
 
@@ -19787,10 +19904,7 @@ function clearRowPlayingState(alsoClearSelected) {
         if (prev) prev.classList.remove("row-playing");
         const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowPlayingRowIdx) + '"]');
         if (btn) {
-            btn.classList.remove("row-tts-playing");
-            btn.removeAttribute("aria-busy");
-            btn.textContent = "▶";
-            btn.disabled = false;
+            v3ApplyRowTtsButtonState(btn, "idle");
         }
     }
 
@@ -19821,13 +19935,10 @@ function clearRowErrorState(rowIdx) {
     if (tr) tr.classList.remove("row-error");
 
     if (btn) {
-        btn.classList.remove("row-tts-error");
-        btn.title = "Озвучить эту строку";
-        btn.setAttribute("aria-label", "Озвучить строку");
-
-        if (!btn.classList.contains("row-tts-playing") && btn.getAttribute("aria-busy") !== "true") {
-            btn.textContent = "▶";
-        }
+        const state = btn.classList.contains("row-tts-playing")
+            ? "playing"
+            : (btn.getAttribute("aria-busy") === "true" ? "loading" : "idle");
+        v3ApplyRowTtsButtonState(btn, state);
     }
 
     updateRowFocusMode();
@@ -19838,22 +19949,13 @@ function setRowErrorState(rowIdx, message) {
     const table = typeof v3GetActiveProTable === "function" ? v3GetActiveProTable() : document.getElementById("proTable");
     if (!table) return;
 
-    const safeMsg = (message && String(message).trim())
-        ? String(message).trim()
-        : "Ошибка озвучивания строки";
-
     const tr = table.querySelector('tbody tr[data-row-idx="' + String(rowIdx) + '"]');
     const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]');
 
     if (tr) tr.classList.add("row-error");
 
     if (btn) {
-        btn.classList.add("row-tts-error");
-        btn.removeAttribute("aria-busy");
-        btn.disabled = false;
-        btn.textContent = "!";
-        btn.title = safeMsg;
-        btn.setAttribute("aria-label", "Ошибка озвучивания строки: " + safeMsg);
+        v3ApplyRowTtsButtonState(btn, "error");
     }
 
     updateRowFocusMode();
@@ -19867,15 +19969,10 @@ function setRowButtonLoading(rowIdx, isLoading) {
     const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]');
     if (!btn) return;
 
-    if (isLoading) {
-        btn.setAttribute("aria-busy", "true");
-        btn.disabled = true;
-        btn.textContent = "…";
-    } else {
-        btn.removeAttribute("aria-busy");
-        btn.disabled = false;
-        if (!btn.classList.contains("row-tts-playing")) btn.textContent = "▶";
-    }
+    const nextState = isLoading
+        ? "loading"
+        : (btn.classList.contains("row-tts-playing") ? "playing" : "idle");
+    v3ApplyRowTtsButtonState(btn, nextState);
 }
 
 function setRowSelectedUI(rowIdx) {
@@ -19954,10 +20051,7 @@ function setRowPlayingUI(rowIdx, playing) {
 
     if (tr) tr.classList.toggle("row-playing", !!playing);
     if (btn) {
-        btn.classList.toggle("row-tts-playing", !!playing);
-        btn.disabled = false;
-        btn.removeAttribute("aria-busy");
-        btn.textContent = playing ? "■" : "▶";
+        v3ApplyRowTtsButtonState(btn, playing ? "playing" : "idle");
     }
 
     updateRowFocusMode();
@@ -21692,9 +21786,14 @@ updatePlaylistButtonUI();
         }
 
         rowButtons.forEach(function (btn) {
-            btn.disabled = !enabled;
-            btn.title = enabled ? title : "TTS отключён конфигурацией";
-            btn.setAttribute("aria-label", enabled ? "Озвучить" : "TTS отключён");
+            const state = btn.dataset.audioControlState || "idle";
+            v3ApplyRowTtsButtonState(btn, state);
+            if (!enabled) {
+                const unavailableLabel = v3RowAudioTr("room.reader.audio.unavailableRow", "Row audio unavailable");
+                btn.disabled = true;
+                btn.title = unavailableLabel;
+                btn.setAttribute("aria-label", unavailableLabel);
+            }
         });
     }
 
@@ -21956,8 +22055,7 @@ updatePlaylistButtonUI();
             const table = typeof v3GetActiveProTable === "function" ? v3GetActiveProTable() : document.getElementById("proTable");
             const btnNow = table ? table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]') : null;
             if (btnNow && btnNow.classList.contains("row-tts-playing")) {
-                btnNow.removeAttribute("aria-busy");
-                btnNow.disabled = false;
+                v3ApplyRowTtsButtonState(btnNow, "playing");
             } else {
                 setRowButtonLoading(rowIdx, false);
             }
@@ -37603,8 +37701,7 @@ try {
             html += '<td data-col="action" class="col-action-cell">' +
                 '<div class="col-action-row col-action-row-top">' +
                 '<span class="row-audio-ind" data-row-idx="' + rowIdx + '" aria-hidden="true"></span>' +
-                '<button type="button" class="row-tts-btn" data-row-idx="' + rowIdx + '" ' +
-                'title="Озвучить эту строку" aria-label="Озвучить строку">▶</button>' +
+                v3RowTtsButtonMarkup(rowIdx) +
                 '</div>' +
                 noteBtnHtml +
                 editActionsHtml +
@@ -39807,10 +39904,24 @@ function v3AudioPrefetchUpdateMarkerForRow(rowIdx) {
 
   const row = Array.isArray(currentTableData) ? currentTableData[rowIdx] : null;
   const P = v3AudioPrefetchGetCurrentProfileForCompare();
+  const labels = {
+    ready: v3RowAudioTr("room.reader.audio.ready", "Audio ready"),
+    readyUnknown: v3RowAudioTr("room.reader.audio.readyUnknown", "Audio ready (voice profile unavailable)"),
+    missing: v3RowAudioTr("room.reader.audio.missing", "Audio has not been created. Press ▶ to speak this row."),
+    mismatch: v3RowAudioTr("room.reader.audio.mismatch", "Audio was created for another voice profile."),
+    cachedProfile: v3RowAudioTr("room.reader.audio.cachedProfile", "Cached"),
+    currentProfile: v3RowAudioTr("room.reader.audio.currentProfile", "Current"),
+    tooLong: v3RowAudioTr("room.reader.audio.tooLong", "Row is too long for batch audio"),
+    libraryOnly: v3RowAudioTr("room.reader.audio.libraryOnly", "Audio status is available for Library rows"),
+  };
 
   if (!row || !row._v3_sentenceId) {
     el.className = "row-audio-ind state-missing";
-    el.title = "Аудио-метаданные доступны только для строк из Library";
+    el.dataset.audioState = "missing";
+    el.setAttribute("aria-hidden", "true");
+    el.removeAttribute("role");
+    el.removeAttribute("aria-label");
+    el.title = labels.libraryOnly;
     el.style.opacity = "0.0";
     return;
   }
@@ -39827,8 +39938,12 @@ function v3AudioPrefetchUpdateMarkerForRow(rowIdx) {
   })();
 
   if (t.trim().length > maxLen) {
-    el.className = "row-audio-ind state-too-long";
-    el.title = `Слишком длинная строка (${t.trim().length} > ${maxLen}). Политика: пропуск.`;
+    v3SetRowAudioIndicator(
+      el,
+      "too-long",
+      labels.tooLong,
+      labels.tooLong + " (" + String(t.trim().length) + " > " + String(maxLen) + ")"
+    );
     return;
   }
 
@@ -39850,25 +39965,29 @@ function v3AudioPrefetchUpdateMarkerForRow(rowIdx) {
       // playback fallback also treats this as usable.
       const sameProfile = (!A || !B) || v3AudioPrefetchProfilesEqual(storedProfile, P);
       if (sameProfile) {
-        el.className = "row-audio-ind state-ok";
-        el.title = "Аудио готово • " + v3AudioPrefetchProfilePretty(storedProfile);
+        v3SetRowAudioIndicator(
+          el,
+          "ok",
+          labels.ready,
+          labels.ready + " • " + v3AudioPrefetchProfilePretty(storedProfile)
+        );
       } else {
-        el.className = "row-audio-ind state-mismatch";
-        el.title =
-          "Аудио в кэше для другого профиля.\n" +
-          "Кэш: "  + v3AudioPrefetchProfilePretty(storedProfile) + "\n" +
-          "Сейчас: " + v3AudioPrefetchProfilePretty(P) + "\n" +
-          "Нажмите ▶ — будет создана новая озвучка с текущими настройками.";
+        v3SetRowAudioIndicator(
+          el,
+          "mismatch",
+          labels.mismatch,
+          labels.mismatch + "\n" +
+          labels.cachedProfile + ": " + v3AudioPrefetchProfilePretty(storedProfile) + "\n" +
+          labels.currentProfile + ": " + v3AudioPrefetchProfilePretty(P)
+        );
       }
     } else {
-      el.className = "row-audio-ind state-ok";
-      el.title = "Аудио готово (профиль не задан)";
+      v3SetRowAudioIndicator(el, "ok", labels.readyUnknown);
     }
     return;
   }
 
-  el.className = "row-audio-ind state-missing";
-  el.title = "Аудио не создано. Нажмите ▶ (строка) или Audio (batch).";
+  v3SetRowAudioIndicator(el, "missing", labels.missing);
 }
 
 function v3AudioPrefetchRefreshMarkers() {
@@ -41476,8 +41595,7 @@ try {
             const btnNow = table ? table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]') : null;
 
             if (btnNow && btnNow.classList.contains("row-tts-playing")) {
-                btnNow.removeAttribute("aria-busy");
-                btnNow.disabled = false;
+                v3ApplyRowTtsButtonState(btnNow, "playing");
             } else {
                 setRowButtonLoading(rowIdx, false);
             }

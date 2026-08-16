@@ -22,11 +22,12 @@ function extractFunction(source, name, nextName) {
   return source.slice(start, end > start ? end : start + 8000);
 }
 
-test("VF3 records the only remaining approved slice and exact stop boundary", () => {
+test("VF3 records the final approved slice, owner acceptance and exact historical stop boundary", () => {
   assert.match(packet, /Status: `VF3_[A-Z0-9_]+`/);
   assert.match(packet, /VF2_CLOSED_OWNER_ACCEPTED/);
-  assert.match(packet, /only remaining approved slice/i);
-  assert.match(packet, /No VF4 is authorized/);
+  assert.match(packet, /leaving VF3 as the final approved slice/i);
+  assert.match(packet, /VF3 is `CLOSED_OWNER_ACCEPTED`/);
+  assert.match(packet, /no VF4 implementation was authorized/i);
   assert.match(packet, /446-inline-style backlog/);
   assert.match(packet, /physical mobile and assistive technology remain `NOT_RUN`/i);
 });
@@ -93,16 +94,16 @@ test("VF3 shell locale labels are emoji-free and symmetric", () => {
   }
 });
 
-test("VF3 release and exact shared locale assets are locked to 3.11.398", () => {
+test("VF3 shell remains intact in the current 3.11.399 release and locale lock", () => {
   const app = studio.match(/window\.APP_VERSION\s*=\s*"([^"]+)"/);
   const footer = room.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
   const worker = sw.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
   assert.ok(app && footer && worker);
-  assert.equal(app[1], "3.11.398");
+  assert.equal(app[1], "3.11.399");
   assert.equal(footer[1], app[1]);
   assert.equal(worker[1], app[1]);
   for (const code of ["ru", "en", "he"]) {
-    const url = `/i18n/locales/${code}.js?v=168`;
+    const url = `/i18n/locales/${code}.js?v=169`;
     assert.ok(studio.includes(url), `Studio must request exact ${url}`);
     assert.ok(room.includes(url), `Room must request exact ${url}`);
     assert.ok(sw.includes(JSON.stringify(url)), `SW must precache exact ${url}`);

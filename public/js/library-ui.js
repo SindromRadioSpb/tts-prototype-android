@@ -9,7 +9,7 @@
 // i18n globals (window.t / applyI18n / appSetLocale) come from i18n/index.js,
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
 import * as localDb from '/db/local-db.js';
-import * as readerCore from '/js/reader-core.js';
+import * as readerCore from '/js/reader-core.js?v=399';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, learningSignals } from '/js/corpus-item-presenter.js';
 import * as roomB6 from '/js/room-b6-core.js';
@@ -4714,6 +4714,15 @@ function maybeStartWkDebug() {
   }, 250);
 }
 
+function roomRowTtsLabels() {
+  return {
+    play: tt('room.reader.audio.playRow', 'Play row audio'),
+    loading: tt('room.reader.audio.loadingRow', 'Loading row audio'),
+    stop: tt('room.reader.audio.stopRow', 'Stop row audio'),
+    retry: tt('room.reader.audio.retryRow', 'Retry row audio'),
+  };
+}
+
 function readerConfig() {
   return {
     // visibleColumns derived from the scaffolding modes (niqqud/ru 'off' ⇒ column hidden).
@@ -4733,6 +4742,7 @@ function readerConfig() {
     ideMode: false,
     actionTitle: '▶', // Room hides note/edit → no "📝" in the action header
     t: (k) => tt(k, k),
+    rowTtsLabels: roomRowTtsLabels(),
     hasNote: () => false,
   };
 }
@@ -4786,6 +4796,7 @@ function attachReaderAudio() {
       if (asset && asset.id) await localDb.linkSentenceAudio(String(row._v3_sentenceId), asset.id, 1);
     },
     t: (k) => tt(k, k),
+    rowTtsLabels: roomRowTtsLabels(),
     // he/niqqud cell taps are reserved for the word-morphology layer below; the ▶ button +
     // translit cell still play the row. In reveal mode the ru cell tap reveals (not audio).
     tapToHearExcludeCols: readerCfg.ruMode === 'reveal' ? ['he', 'niqqud', 'ru'] : ['he', 'niqqud'],

@@ -65,16 +65,17 @@ test("VF2 Mentor CSS uses the shared state, focus, motion and forced-colors gram
 });
 
 test("VF2 release lock cache-busts every changed shared asset and precaches the exact URLs", () => {
-  assert.match(roomHtml, /\/css\/reader-core\.css\?v=394/);
+  assert.match(roomHtml, /\/css\/reader-core\.css\?v=399/);
   assert.match(roomHtml, /\/css\/reader-morph\.css\?v=394/);
   assert.match(studioHtml, /\/css\/reader-morph\.css\?v=394/);
   assert.match(roomHtml, /\/js\/mentor-home\.js\?v=394/);
-  assert.match(roomHtml, /\/js\/library-ui\.js\?v=394/);
+  assert.match(roomHtml, /\/js\/library-ui\.js\?v=399/);
   for (const url of [
-    "/css/reader-core.css?v=394",
+    "/js/reader-core.js?v=399",
+    "/css/reader-core.css?v=399",
     "/css/reader-morph.css?v=394",
     "/js/mentor-home.js?v=394",
-    "/js/library-ui.js?v=394",
+    "/js/library-ui.js?v=399",
   ]) {
     assert.ok(sw.includes(JSON.stringify(url)), `${url} must be offline-precached exactly`);
     assert.ok(server.includes(JSON.stringify(url)), `${url} must use the identical integrity-manifest key`);
@@ -82,7 +83,7 @@ test("VF2 release lock cache-busts every changed shared asset and precaches the 
   assert.match(server, /new URL\(url, "http:\/\/linguistpro\.local"\)\.pathname/,
     "cache-bust queries must not become part of the filesystem path used for hashing");
   for (const locale of ["ru", "en", "he"]) {
-    const url = `/i18n/locales/${locale}.js?v=168`;
+    const url = `/i18n/locales/${locale}.js?v=169`;
     assert.ok(sw.includes(JSON.stringify(url)), `${url} must be offline-precached exactly`);
     assert.ok(server.includes(JSON.stringify(url)), `${url} must use the identical integrity-manifest key`);
   }
