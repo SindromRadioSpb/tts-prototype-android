@@ -2,7 +2,7 @@
 
 ```text
 DATE=2026-08-16
-STATUS=PROD_PASS_OWNER_HANDOFF_READY
+STATUS=CLOSED_OWNER_ACCEPTED_PROD_PASS
 RELEASE=3.11.399
 ```
 
@@ -170,8 +170,17 @@ cleanup, volume/image deletion or owner-state repair is part of this slice.
 - The agent claimed the existing authorized owner Library tab at `#room=benyehuda`, waited for the visible `Обновить` action, clicked it, and verified `3.11.399` without opening a Reader text.
 - The owner-profile Studio fixture exposed 42 current row-audio states: 29 ready and 13 profile-mismatch. Marker role/name and non-color signatures, localized idle TTS actions, keyboard focus, overflow and console rows passed.
 - Audio was never invoked: the player remained paused at time `0`; no content, progress, Finished, bookmark, note, review, presentation, provider or cache state was changed.
-- Actual owner-browser 200% is `NOT_RUN` because the connected Chrome control surface cannot change browser zoom. The separate isolated 200%-equivalent row passed and is not represented as owner-live, physical-device or AT evidence.
+- At agent handoff, actual owner-browser 200% was `NOT_RUN` because the connected Chrome control surface could not change browser zoom. The owner later reported the supplied protocol PASS; real Chrome 200% is therefore `OWNER_REPORTED_PASS`. The separate isolated result remains automation, not physical-device or AT evidence.
 
-The implementation/deployment loop is complete and the owner handoff is ready.
+The implementation/deployment loop completed and the owner handoff was ready;
+the owner subsequently accepted the supplied protocol.
 Any rollback remains a new static release followed by the same updated-client
 loop; no data rollback is applicable.
+
+## 11. Owner acceptance and closure
+
+On 2026-08-16 the owner reported: **«Проверил по протоколу. Тестирование
+пройдено успешно.»** This is final owner acceptance of the bounded VF4 release.
+VF4 and the Visual Finishing successor program are closed. Optional protocol
+rows not separately enumerated by the owner are not promoted to individual
+owner-live claims; physical-device and AT rows remain `NOT_RUN`.

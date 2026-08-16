@@ -3,7 +3,7 @@
 ```text
 MODE=GOAL_RESEARCH_ONLY
 DATE=2026-08-16
-STATUS=PROD_PASS_OWNER_HANDOFF_READY
+STATUS=CLOSED_OWNER_ACCEPTED_PROD_PASS
 RECOMMENDATION=TARGETED_RESIDUAL_A11Y_STATE
 ```
 
@@ -36,7 +36,7 @@ frozen, backlog and no-write boundary below remains binding.
 > Production: `https://linguistpro.kolosei.com/library.html` and `https://linguistpro.kolosei.com/index.html`, release `3.11.399`
 > Actual client: authorized owner Chrome/Kapture profile updated by the agent from `3.11.398` to `3.11.399`; owner URL preserved
 > Evidence classes: `CODE_CURRENT`, `PRODUCTION_READBACK`, `OWNER_CLIENT_READ_ONLY`, `ISOLATED_AUTOMATION`, `AUTOMATED_LOCAL`, `OWNER_REPORTED_PREDECESSOR`, `EXTERNAL_PRIMARY`
-> Limitations: physical mobile, actual browser 200%, VoiceOver/NVDA/JAWS and other AT remain `NOT_RUN`; automation/Kapture is not substituted for those rows.
+> Limitations: physical mobile, VoiceOver/NVDA/JAWS and other AT remain `NOT_RUN`; actual desktop Chrome 200% is owner-reported protocol evidence, not agent-observed, physical-device or AT evidence.
 
 ## Implementation closure — 2026-08-16
 
@@ -50,9 +50,23 @@ truthful accessible names and non-color signatures; all 42 row-TTS buttons are
 localized idle controls, keyboard focus is visible/unobscured, page overflow is
 zero, the console is clean and audio remained paused at time zero.
 
-Actual owner-browser 200% remains `NOT_RUN` because the connected Chrome
-control surface cannot change zoom. The isolated 200%-equivalent result remains
-separately labelled automation; no physical-device or AT claim is made.
+At the agent handoff, actual owner-browser 200% remained `NOT_RUN` because the
+connected Chrome control surface could not change zoom. The owner subsequently
+reported that the supplied protocol passed successfully; because real Chrome
+200% was an explicitly required protocol row, it is now recorded as
+`OWNER_REPORTED_PASS`. The isolated 200%-equivalent result remains separately
+labelled automation; no physical-device or AT claim is made.
+
+## Final owner acceptance — 2026-08-16
+
+The owner reported exactly:
+
+> Проверил по протоколу. Тестирование пройдено успешно.
+
+This closes VF4 as `CLOSED_OWNER_ACCEPTED_PROD_PASS`. The statement accepts the
+required owner protocol as a whole; it does not separately enumerate optional
+Room, HE/RTL or reduced-motion rows and does not establish a physical-device,
+screen-reader, provider-call or cache-write result.
 
 ## 1. Owner decision in one paragraph
 
@@ -440,6 +454,10 @@ docs/research/room-ux-visual-finishing-vf4/2026-08-16/
   FINDINGS.md
 ```
 
+Final program closure:
+
+- `docs/planning/ROOM_UX_VISUAL_FINISHING_PROGRAM_CLOSURE_2026_08_16.md`
+
 No screenshots were captured; exact DOM/ARIA/computed-style and byte-identity evidence was sufficient.
 
 ## 15. Recommended approval block
@@ -482,5 +500,6 @@ The exact recommended approval block was received and reconciled before
 implementation. The original stop list governed the work and remains the
 boundary after release: no further runtime slice, B9/cache-revocation work,
 broad Studio/CSS/IA cleanup, data/provider/schema change or new deployment is
-authorized by this decision. Physical mobile, actual owner-browser 200% and AT
-remain unclaimed verification rows, not implicit follow-up scope.
+authorized by this decision. Physical mobile and AT remain unclaimed
+verification rows, not implicit follow-up scope. Actual desktop Chrome 200% is
+closed only as owner-reported protocol evidence.

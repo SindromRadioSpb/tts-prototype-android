@@ -38,14 +38,18 @@ SCOPE=ROW_AUDIO_MARKER_AND_ROW_TTS_CONTROL_ONLY
 
 Future implementation may change only the existing Room/Studio row-audio marker and row-TTS presentation/name state plus exact locale/cache/release locks and allowlisted tests/evidence. It may not change audio truth, persistence, TTS selection, provider invocation, table geometry, notes/editing, learning state, B9, security work or general visual debt.
 
-## Handoff state
+## Closure state
 
 The owner approved the exact recommendation. The bounded `3.11.399`
 implementation is locally and production green in commit `8dda777d`. The agent
 applied the visible update action in the real owner client, preserved the
 Ben-Yehuda URL, and completed the read-only VF4 DOM/ARIA/focus/overflow/console
-smoke without invoking audio or changing owner data. The handoff is ready.
+smoke without invoking audio or changing owner data. The handoff was ready.
 
-Actual owner-browser 200%, physical mobile and AT speech remain explicitly
-`NOT_RUN`. The isolated 200%-equivalent row is not substituted for them and does
-not create additional runtime scope.
+That handoff was subsequently accepted by the owner.
+
+The owner subsequently reported: **«Проверил по протоколу. Тестирование
+пройдено успешно.»** VF4 is therefore `CLOSED_OWNER_ACCEPTED_PROD_PASS`.
+Actual desktop Chrome 200% is owner-reported PASS because it was an explicitly
+required checklist row. Physical mobile and AT speech remain `NOT_RUN`; optional
+protocol rows not separately enumerated are not promoted to individual claims.

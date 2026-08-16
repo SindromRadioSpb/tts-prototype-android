@@ -6,7 +6,7 @@
 > Dirty status: 34 unrelated pre-existing entries remain preserved and unstaged; VF4 runtime/release work is isolated in `8dda777d`
 > Production/client: API, Studio, Room and SW `3.11.399`; actual owner client updated by the agent to `3.11.399`
 > Evidence: `PRODUCTION_READBACK`, `OWNER_CLIENT_READ_ONLY`, `ISOLATED_AUTOMATION`, `AUTOMATED_LOCAL`
-> Limitations: no owner Library text was opened and no TTS/ASR/MT/LLM action was invoked; browser automation is not physical-device or AT evidence; actual owner-browser 200% remains `NOT_RUN`.
+> Limitations: the agent opened no owner Library text and invoked no TTS/ASR/MT/LLM action; browser automation is not physical-device or AT evidence; actual desktop Chrome 200% is later owner-reported protocol evidence.
 
 ## Research-baseline release convergence
 
@@ -121,7 +121,6 @@ No runtime assertion failed. This test debt belongs in the future allowlisted ga
 
 - physical iPhone/Android behavior;
 - VoiceOver, NVDA, JAWS or other AT speech;
-- actual browser 200% zoom;
 - offline cold start with an already-installed mixed-version SW;
 - physical-device or AT acceptance of the VF4 implementation.
 
@@ -186,6 +185,17 @@ presentation or cache action occurred. The original Library tab was released at
 the preserved Ben-Yehuda URL on `3.11.399`.
 
 The control surface accepted ordinary keyboard navigation but did not change
-actual Chrome zoom for browser shortcuts. Accordingly, actual owner-browser
-200% is recorded as `NOT_RUN`; the passing isolated 200%-equivalent gate remains
+actual Chrome zoom for browser shortcuts. At agent handoff, actual owner-browser
+200% was therefore `NOT_RUN`; the passing isolated 200%-equivalent gate remained
 `ISOLATED_AUTOMATION`, not owner-live evidence.
+
+## Final owner-reported protocol result
+
+On 2026-08-16 the owner reported exactly:
+
+> Проверил по протоколу. Тестирование пройдено успешно.
+
+The supplied required protocol explicitly included real Chrome 200%, so that
+row is closed as `OWNER_REPORTED_PASS`. The aggregate statement closes VF4, but
+does not separately enumerate optional Room, HE/RTL, reduced-motion,
+provider/cache, physical-device or AT results.

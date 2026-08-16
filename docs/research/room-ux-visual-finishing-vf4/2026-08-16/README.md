@@ -8,9 +8,9 @@
 > Production: `https://linguistpro.kolosei.com/library.html` and `https://linguistpro.kolosei.com/index.html`, release `3.11.399`
 > Actual owner client: connected authorized Chrome/Kapture profile updated by the agent from `3.11.398` to `3.11.399`; starting and ending URL `https://linguistpro.kolosei.com/library.html#room=benyehuda`
 > Evidence classes: `CODE_CURRENT`, `PRODUCTION_READBACK`, `OWNER_CLIENT_READ_ONLY`, `ISOLATED_AUTOMATION`, `AUTOMATED_LOCAL`, `OWNER_REPORTED_PREDECESSOR`, `EXTERNAL_PRIMARY`
-> Limitations: no physical device, browser zoom at actual 200%, VoiceOver/NVDA/JAWS, or other assistive-technology session was run; no text was opened from the owner Library, no audio/provider action was invoked, and no screenshot was necessary to establish the exact DOM/computed-state evidence.
+> Limitations: no physical device, VoiceOver/NVDA/JAWS, or other assistive-technology session was run; actual desktop Chrome 200% is owner-reported protocol evidence, not agent-observed/physical/AT evidence; the agent did not invoke audio/provider actions.
 
-> Successor status: owner approved the exact recommendation on 2026-08-16; the bounded implementation is production-green at `3.11.399` and the updated owner-client handoff is ready.
+> Successor status: `CLOSED · OWNER ACCEPTED · PRODUCTION 3.11.399`; the owner reported the supplied protocol passed successfully on 2026-08-16.
 
 ## Research result
 
@@ -41,12 +41,14 @@ This is a bounded accessibility/truthful-state defect. It is not authorization t
 - [FINDINGS.md](./FINDINGS.md) — concise decision record.
 - [VF4_IMPLEMENTATION_EVIDENCE.md](./VF4_IMPLEMENTATION_EVIDENCE.md) — owner approval, red/green, isolated browser matrix, production and owner-client release rows.
 - [ROOM_UX_VISUAL_FINISHING_VF4_DECISION_PACKET_2026_08_16.md](../../../planning/ROOM_UX_VISUAL_FINISHING_VF4_DECISION_PACKET_2026_08_16.md) — owner decision packet.
+- [ROOM_UX_VISUAL_FINISHING_PROGRAM_CLOSURE_2026_08_16.md](../../../planning/ROOM_UX_VISUAL_FINISHING_PROGRAM_CLOSURE_2026_08_16.md) — final VF0–VF4 owner-accepted program closure.
 
 ## Evidence boundary
 
 - `OWNER_CLIENT_READ_ONLY` means the real authorized profile and real fixtures were observed without content, progress, presentation, provider or cache mutation.
 - `ISOLATED_AUTOMATION` means a separate service-worker-blocked browser context with no owner data. It is not physical-device, AT or owner-live evidence.
 - `AUTOMATED_LOCAL` proves code contracts and regressions only. It does not prove owner acceptance.
+- `OWNER_REPORTED_PROTOCOL_PASS` is the owner's final acceptance of the supplied checklist. It does not convert optional unenumerated, physical-device or AT rows into PASS.
 - `OWNER_REPORTED_PREDECESSOR` records the accepted VF0–VF3 baseline, including `VF3 PROD=PASS` on 2026-08-16.
 
 No screenshots were captured: the qualifying evidence is exact DOM/ARIA state, production byte identity and computed media-query behavior. There is therefore no `screenshots/` directory or screenshot provenance index.
@@ -56,6 +58,9 @@ No screenshots were captured: the qualifying evidence is exact DOM/ARIA state, p
 The research phase itself made no runtime or production change. After the owner
 approved the exact recommendation, the allowlisted implementation shipped in
 `8dda777d`; production and the actual owner client converged on `3.11.399`.
-No owner content/learning/presentation/provider/cache state was changed, audio
-was not invoked, and unrelated dirty files remain preserved. No further visual,
-data, B9, security or cleanup lane is authorized by this closure.
+The owner then reported the supplied verification protocol PASS, closing VF4
+and the overall Visual Finishing successor program.
+The agent handoff changed no owner content/learning/presentation/provider/cache
+state and did not invoke audio; the later owner report contains no separate
+provider/cache detail. Unrelated dirty files remain preserved. No further
+visual, data, B9, security or cleanup lane is authorized by this closure.

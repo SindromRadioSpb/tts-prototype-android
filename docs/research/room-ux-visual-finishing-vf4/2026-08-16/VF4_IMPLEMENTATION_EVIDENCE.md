@@ -1,7 +1,7 @@
 # ROOM-UX-VF4 — targeted residual accessibility-state implementation evidence
 
 > Date: `2026-08-16`
-> Status: `PROD_PASS_OWNER_HANDOFF_READY`
+> Status: `CLOSED_OWNER_ACCEPTED_PROD_PASS`
 > Source baseline: `main@71b2d48ced2ad607151520bacf8443f582ec46cc`; local and remote origin matched at preflight
 > Implementation commit: `8dda777d` (`feat: ship VF4 row audio accessibility state`), pushed to `origin/main`
 > Dirty status: mixed owner worktree; 34 unrelated pre-existing entries remain preserved and unstaged
@@ -9,7 +9,7 @@
 > Release: API/Studio/Room/SW converged on `3.11.399`; the served runtime cohort matches the implementation commit byte-for-byte (production exposes no commit-ID endpoint)
 > Actual owner client: authorized Chrome/Kapture client updated by the agent from `3.11.398` to `3.11.399`; Ben-Yehuda URL preserved
 > Evidence classes: `OWNER_APPROVAL`, `CODE_CURRENT`, `AUTOMATED_LOCAL`, `ISOLATED_AUTOMATION`, `PRODUCTION_READBACK`, `OWNER_CLIENT_READ_ONLY`
-> Limitations: no physical mobile or assistive-technology session was run. Browser automation is not AT or physical-device evidence. The Chrome control surface could not change browser zoom, so actual owner-browser 200% remains `NOT_RUN`; the isolated 200%-equivalent row is reported separately and is not relabelled owner-live.
+> Limitations: no physical mobile or assistive-technology session was run. Browser automation is not AT or physical-device evidence. Actual desktop Chrome 200% is owner-reported protocol evidence; the isolated 200%-equivalent row remains separately labelled automation.
 
 ## 1. Approved boundary
 
@@ -110,8 +110,10 @@ an actual owner-browser zoom or AT claim.
 | updated real-client DOM/ARIA/focus/overflow/console smoke | PASS: URL/hash preserved, Reader closed, no overflow, no update banner, zero console warnings/errors |
 | owner-profile Studio VF4 state | PASS: 42 rows/markers/buttons; 29 ready and 13 mismatch markers with `role=img`, concise RU names and solid-versus-dashed non-color signatures; all buttons localized idle with `busy=false`, `pressed=false`, enabled |
 | keyboard focus and audio non-invocation | PASS: focus reached a row-TTS button, visible `2px solid` outline, unobscured; audio remained paused at `0`, all 42 controls remained idle |
-| actual owner-browser 200% reflow | `NOT_RUN`: the Chrome control surface did not change actual zoom; isolated 200%-equivalent reflow remains PASS and is not an owner-live claim |
+| actual owner-browser 200% reflow | `OWNER_REPORTED_PASS`: the final owner statement reports the supplied protocol passed; the agent could not independently set browser zoom, and isolated automation remains separately labelled |
+| final owner protocol acceptance | PASS: `Проверил по протоколу. Тестирование пройдено успешно.` |
 
-The real-client release gate is green. Physical mobile, AT speech and actual
-owner-browser 200% remain explicit unclaimed acceptance rows; none is presented
-as implementation or production failure, and none expands the shipped scope.
+The real-client release and owner protocol gates are green. Physical mobile and
+AT speech remain explicit unclaimed acceptance rows; optional checklist rows not
+separately enumerated by the owner are not promoted to individual claims. None
+expands the shipped scope.
