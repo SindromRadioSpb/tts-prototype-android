@@ -441,6 +441,94 @@ test('W3 never exposes karaoke timing for a canon segment marked blind at ASR pr
   assert.equal(audio.timingMap.coverage.unmapped_rows, 1);
 });
 
+test('Room restores the Studio 510/544 row-media contract from persisted row identity', () => {
+  const total = 544, playable = 510, sha = 'a'.repeat(64);
+  const audio = {
+    media: { sha256: sha, mime: 'video/mp4' },
+    segments: Array.from({ length: total }, (_, index) => ({
+      i: index,
+      start: index * 2,
+      end: index * 2 + 1.5,
+      text: `מקור ${index}`,
+      caption_segment_id: `caption:${index}`,
+      source_segment_id: `asrseg:${sha}:${index}`,
+      quality_flags: index < playable ? [] : ['blind'],
+      blind: index >= playable,
+    })),
+    // This is the exact false Room baseline from the owner screenshot: text-only
+    // recovery found 176 rows even though Studio still had 510 proven identities.
+    timing: {
+      v: 1,
+      unit: 'row',
+      entries: Array.from({ length: 176 }, (_, index) => ({ o: index, t: index * 2 })),
+    },
+    timingSource: 'aligned-partial-proven',
+    timingMap: {
+      source: 'aligned-partial-proven',
+      row_seg_idx: Array.from({ length: total }, (_, index) => index < 176 ? index : null),
+    },
+  };
+  const rows = Array.from({ length: total }, (_, index) => ({
+    // The learning table was legitimately edited after transcription, so text-only
+    // alignment cannot recover the Studio contract. The persisted source identity can.
+    he: `עריכה ${index}`,
+    edit_meta_json: index < playable ? JSON.stringify({
+      _studio_source: {
+        schema: 'studio-row-source-v2',
+        source_segment_id: `asrseg:${sha}:${index}`,
+        source_segment_ids: [`asrseg:${sha}:${index}`],
+        caption_segment_id: `caption:${index}`,
+        source_line_index: index,
+      },
+    }) : null,
+  }));
+
+  MH.restoreForRows(audio, rows, deps);
+
+  assert.equal(audio.timingSource, 'persisted-row-identity');
+  assert.deepEqual(MH.replayCoverage(audio, total), {
+    playable_rows: playable,
+    total_rows: total,
+    blind_rows: total - playable,
+    ratio: playable / total,
+    label: '510/544',
+    complete: false,
+  });
+  assert.equal(MH.rowReplayAllowed(audio, playable - 1), true);
+  assert.equal(MH.rowReplayAllowed(audio, playable), false,
+    'a row without persisted identity must not borrow its neighbour timing');
+  assert.equal(audio.timing.entries.some((entry) => entry.o === playable && !entry.blind), false,
+    'no interpolation may turn the first unbound row into playable media');
+
+  const stableTiming = audio.timing;
+  MH.restoreForRows(audio, rows, deps);
+  assert.equal(audio.timing, stableTiming,
+    'reopening the same Room material must preserve the proven projection');
+});
+
+test('persisted row identity does not treat a missing source_line_index as row zero', () => {
+  const sha = 'b'.repeat(64);
+  const audio = {
+    media: { sha256: sha },
+    segments: [
+      { i: 0, start: 0, end: 1, text: 'אפס' },
+      { i: 1, start: 1, end: 2, text: 'אחד' },
+    ],
+    timing: null,
+  };
+  const rows = [0, 1].map((index) => ({
+    he: `עריכה ${index}`,
+    edit_meta_json: JSON.stringify({ _studio_source: {
+      schema: 'studio-row-source-v2', source_line_index: null,
+    } }),
+  }));
+
+  MH.restoreForRows(audio, rows, deps);
+
+  assert.notEqual(audio.timingSource, 'persisted-row-identity');
+  assert.equal(MH.replayCoverage(audio, rows.length).playable_rows, 0);
+});
+
 test('P0 replay coverage is one invariant and intentional partial holes do not retrigger augment', () => {
   assert.equal(typeof MH.rowReplayAllowed, 'function');
   assert.equal(typeof MH.replayCoverage, 'function');

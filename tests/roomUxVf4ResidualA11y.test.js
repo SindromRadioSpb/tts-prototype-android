@@ -118,16 +118,19 @@ test("RU EN HE carry exact row-audio action and state keys", () => {
   }
 });
 
-test("3.11.399 release lock cache-busts changed Reader and locale assets exactly", () => {
-  assert.match(studio, /window\.APP_VERSION\s*=\s*"3\.11\.399"/);
-  assert.match(roomHtml, /id="roomFooterVersion"[^>]*>v3\.11\.399</);
-  assert.match(sw, /const CACHE_VERSION = "v3\.11\.399"/);
+test("3.11.400 release lock cache-busts changed Reader, media host and locale assets exactly", () => {
+  assert.match(studio, /window\.APP_VERSION\s*=\s*"3\.11\.400"/);
+  assert.match(roomHtml, /id="roomFooterVersion"[^>]*>v3\.11\.400</);
+  assert.match(sw, /const CACHE_VERSION = "v3\.11\.400"/);
+  assert.match(studio, /\/js\/media-host\.js\?v=400/);
+  assert.match(roomHtml, /\/js\/media-host\.js\?v=400/);
   assert.match(roomHtml, /\/css\/reader-core\.css\?v=399/);
   assert.match(roomHtml, /\/js\/library-ui\.js\?v=399/);
   for (const url of [
     "/js/library-ui.js?v=399",
     "/js/reader-core.js?v=399",
     "/css/reader-core.css?v=399",
+    "/js/media-host.js?v=400",
     "/i18n/locales/ru.js?v=169",
     "/i18n/locales/en.js?v=169",
     "/i18n/locales/he.js?v=169",

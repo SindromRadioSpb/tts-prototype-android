@@ -118,6 +118,33 @@ const SEED = `(async () => {
       { row_index: 0, caption_segment_id: exactRevision.segments[1].caption_segment_id },
       { row_index: 1, caption_segment_id: exactRevision.segments[2].caption_segment_id },
     ] } });
+
+  // t8 — owner regression 2026-08-17: the learning table is edited enough that
+  // text-only alignment is weak, but each playable sentence already persists the exact
+  // Studio row→source identity. Room must recover that read-only projection without a
+  // studio_text_media_bindings row, interpolation, rebinding or provider call.
+  const IDENTITY_SHA = "f".repeat(64), IDENTITY_TOTAL = 12, IDENTITY_PLAYABLE = 10;
+  const IDENTITY_SEGMENTS = Array.from({ length: IDENTITY_TOTAL }, (_, k) => ({
+    i: k, start: k * 0.12, end: k * 0.12 + 0.10, text: "מקור מדיה " + k,
+    caption_segment_id: "identity-caption:" + k,
+    source_segment_id: "asrseg:" + IDENTITY_SHA + ":" + k,
+    quality_flags: k < IDENTITY_PLAYABLE ? [] : ["blind"], blind: k >= IDENTITY_PLAYABLE,
+  }));
+  const P_IDENTITY = { source: { audio: { v: 1,
+    media: { opfsPath: "media/rmm-comp.mp3", sha256: IDENTITY_SHA, mime: "audio/mpeg", originalName: "identity.mp3" },
+    segments: IDENTITY_SEGMENTS, timing: null } } };
+  await db.createText({ id: "rmm-t8", text_key: "rmm-k8", title: "RMM EIGHT persisted identity",
+    source_text: IDENTITY_SEGMENTS.map((_, k) => "עריכת לומד " + k).join("\\n"),
+    table_model_meta_json: JSON.stringify(P_IDENTITY) });
+  for (let i = 0; i < IDENTITY_TOTAL; i++) {
+    const identity = i < IDENTITY_PLAYABLE ? { _studio_source: {
+      schema: "studio-row-source-v2", source_segment_id: "asrseg:" + IDENTITY_SHA + ":" + i,
+      source_segment_ids: ["asrseg:" + IDENTITY_SHA + ":" + i],
+      caption_segment_id: "identity-caption:" + i, source_line_index: i,
+    } } : null;
+    await db.addSentence("rmm-t8", { id: "rmm-t8-s" + i, he_plain: "עריכת לומד " + i,
+      ru: "учебная строка " + i, edit_meta_json: identity ? JSON.stringify(identity) : null });
+  }
   return true;
 })()`;
 
@@ -474,6 +501,29 @@ async function main() {
           ? (window.StudioMediaKaraoke.getAudioPassport() || {}).timingSource : null,
       }));
       ok(t7.buttons === 2, "t7: exact binding restores 2/2 replay buttons despite 3/2 cue mismatch");
+      await backToGrid();
+
+      // ── rmm-t8: persisted Studio row identity restores buttons + row tap seek ──
+      await openCard("RMM EIGHT");
+      await pg.waitForFunction(() => document.querySelectorAll("#roomReaderTable .smk-row-replay").length === 10,
+        { timeout: 15000 }).catch(() => failures.push("t8: persisted identity did not restore 10/12 replay buttons"));
+      const t8Before = await pg.evaluate(() => ({
+        buttons: document.querySelectorAll("#roomReaderTable .smk-row-replay").length,
+        note: (document.getElementById("roomMediaBarNote") || {}).textContent || "",
+        player: !!(window.StudioMediaKaraoke && window.StudioMediaKaraoke.getAudioEl()),
+      }));
+      ok(t8Before.buttons === 10, "t8: Room restores the persisted 10/12 row replay contract");
+      ok(t8Before.note === "", "t8: proven row identity clears the false text-divergence warning");
+      ok(t8Before.player, "t8: restored timing is bound to the Room media player");
+      await pg.locator("#roomReaderTable tr[data-row-idx='4'] td:last-child").click();
+      await pg.waitForTimeout(100);
+      const t8Seek = await pg.evaluate(() => {
+        const player = window.StudioMediaKaraoke && window.StudioMediaKaraoke.getAudioEl();
+        return { currentTime: player ? player.currentTime : -1,
+          active: !!document.querySelector("#roomReaderTable tr[data-row-idx='4'].smk-row-active") };
+      });
+      ok(Math.abs(t8Seek.currentTime - 0.48) < 0.2,
+        "t8: tapping row 4 seeks the bound video/audio to its exact mark, got " + t8Seek.currentTime);
     }
     ok(!pageErrors.length, "no pageerror(s)" + (pageErrors.length ? ": " + pageErrors.join(" | ") : ""));
   } finally { await b.close(); await stopServer(srv.child); }

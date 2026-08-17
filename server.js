@@ -1057,6 +1057,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/reader-core.js?v=399",
   "/css/reader-core.css?v=399",
   "/css/reader-morph.css?v=394",
+  "/js/media-host.js?v=400",
   "/js/lesson-artifact.js",
   "/i18n/locales/ru.js?v=169",
   "/i18n/locales/en.js?v=169",

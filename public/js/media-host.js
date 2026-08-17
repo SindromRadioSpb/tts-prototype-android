@@ -77,7 +77,9 @@
     if (!isCompositeSegments(segs)) return segs;
     return segs.map(function (s, k) {
       return { i: k, start: (Number(s && s.start_ms) || 0) / 1000,
-               end: (Number(s && s.end_ms) || 0) / 1000, text: String((s && s.text) || "") };
+               end: (Number(s && s.end_ms) || 0) / 1000, text: String((s && s.text) || ""),
+               blind: !!(s && s.blind),
+               quality_flags: Array.isArray(s && s.quality_flags) ? s.quality_flags.slice() : [] };
     });
   }
 
@@ -246,6 +248,128 @@
     audio.timingDropDetail = null;
   }
 
+  // W4 (2026-08-17): Studio persists the proven row→source identity in each sentence's
+  // edit_meta_json. Room used to discard that assertion and retry text-only alignment. A
+  // legitimately edited 544-row learning table then recovered only 176 textual matches even
+  // though Studio still had 510 exact playable rows. The player stayed visible, but Room had
+  // neither per-row replay buttons nor a usable row seek map.
+  //
+  // This recovery is deliberately projection-only: no DB write, no rebinding, no timing
+  // interpolation. A row is playable only when its persisted `_studio_source` resolves to one
+  // canonical segment and that segment has honest marks. Conflicting ids fail closed. The
+  // resulting sparse map uses the same partial-timing builder as W3 so a hole gets a canonical
+  // end boundary and can never borrow a neighbour's audio.
+  function persistedRowSource(row) {
+    var parsed = null;
+    try {
+      var raw = row && (row.edit_meta_json != null ? row.edit_meta_json : row.edit_meta);
+      parsed = raw && typeof raw === "object" ? raw : JSON.parse(String(raw || "null"));
+    } catch (_) { parsed = null; }
+    var src = parsed && parsed._studio_source;
+    if (!src || (src.schema !== "studio-row-source-v1" && src.schema !== "studio-row-source-v2")) return null;
+    return src;
+  }
+
+  function restorePersistedRowIdentityTiming(audio, rows, deps) {
+    if (!audio || !Array.isArray(audio.segments) || !audio.segments.length) return false;
+    var list = Array.isArray(rows) ? rows : [];
+    if (!list.length) return false;
+    if (audio.timingSource === "persisted-row-identity" && audio.timing &&
+        audio.timingMap && Array.isArray(audio.timingMap.row_seg_idx) &&
+        audio.timingMap.row_seg_idx.length === list.length) return true;
+
+    var d = resolveDeps(deps), AT = d.AT;
+    if (!AT || typeof AT.buildPartialProvenTiming !== "function") return false;
+    var rawSegments = audio.segments, timingSegments = segmentsForTiming(audio);
+    var captionMap = new Map(), sourceMap = new Map();
+    function uniquePut(map, key, value) {
+      key = key == null ? "" : String(key);
+      if (!key) return;
+      if (map.has(key) && map.get(key) !== value) map.set(key, null);
+      else if (!map.has(key)) map.set(key, value);
+    }
+    rawSegments.forEach(function (segment, index) {
+      if (!segment) return;
+      uniquePut(captionMap, segment.caption_segment_id, index);
+      uniquePut(sourceMap, segment.source_segment_id || segment.id, index);
+      if (Array.isArray(segment.source_segment_ids)) {
+        segment.source_segment_ids.forEach(function (id) { uniquePut(sourceMap, id, index); });
+      }
+    });
+    var mediaSha = String(audio.media && (audio.media.sha256 || audio.media.media_sha256) || "").toLowerCase();
+    var conflicts = 0, asserted = 0;
+    var rowSegIdx = list.map(function (row) {
+      var src = persistedRowSource(row);
+      if (!src) return null;
+      var candidates = [];
+      function addCandidate(value) {
+        if (!Number.isInteger(value) || value < 0 || value >= rawSegments.length) return;
+        if (candidates.indexOf(value) < 0) candidates.push(value);
+      }
+      var captionId = src.caption_segment_id || src.corrected_caption_segment_id;
+      if (captionId && captionMap.has(String(captionId))) addCandidate(captionMap.get(String(captionId)));
+      var sourceIds = [];
+      if (src.source_segment_id) sourceIds.push(String(src.source_segment_id));
+      if (Array.isArray(src.source_segment_ids)) sourceIds = sourceIds.concat(src.source_segment_ids.map(String));
+      sourceIds.forEach(function (id) { if (sourceMap.has(id)) addCandidate(sourceMap.get(id)); });
+      var lineRaw = src.source_line_index;
+      var line = lineRaw == null || lineRaw === "" ? NaN : Number(lineRaw);
+      if (Number.isInteger(line) && line >= 0 && line < rawSegments.length) {
+        var generated = sourceIds.find(function (id) { return /^asrseg:[a-f0-9]{64}:\d+$/i.test(id); });
+        if (generated) {
+          var match = generated.match(/^asrseg:([a-f0-9]{64}):(\d+)$/i);
+          if (!match || (mediaSha && match[1].toLowerCase() !== mediaSha) || Number(match[2]) !== line) {
+            conflicts++; return null;
+          }
+        }
+        addCandidate(line);
+      }
+      if (candidates.length !== 1) { if (candidates.length > 1) conflicts++; return null; }
+      var position = candidates[0], segment = rawSegments[position];
+      if (!segment || segment.blind || (Array.isArray(segment.quality_flags) && segment.quality_flags.indexOf("blind") >= 0)) return null;
+      var start = segment.start == null ? Number(segment.start_ms) / 1000 : Number(segment.start);
+      if (!Number.isFinite(start) || start < 0) return null;
+      asserted++;
+      return Number.isInteger(timingSegments[position] && timingSegments[position].i)
+        ? timingSegments[position].i : position;
+    });
+    if (asserted < 2) return false;
+    var built = AT.buildPartialProvenTiming(timingSegments, rowSegIdx, clockBlindRanges(audio));
+    if (!built || !built.timing) return false;
+    var safeMap = Array.isArray(built.rowSegIdx) ? built.rowSegIdx.slice() : rowSegIdx.slice();
+    var candidate = {
+      timing: built.timing,
+      timingMap: { source: "persisted-row-identity", row_seg_idx: safeMap },
+    };
+    var nextCoverage = replayCoverage(candidate, list.length);
+    var currentCoverage = replayCoverage(audio, list.length);
+    if (nextCoverage.playable_rows < currentCoverage.playable_rows) return false;
+
+    var map = Object.assign({}, audio.timingMap || {});
+    delete map.authority;
+    delete map.row_caption_segment_ids;
+    audio.timing = built.timing;
+    audio.timingSource = "persisted-row-identity";
+    audio.timingMap = Object.assign(map, {
+      source: "persisted-row-identity", rows: list.length, segments: rawSegments.length,
+      row_seg_idx: safeMap,
+      coverage: {
+        mapped_rows: nextCoverage.playable_rows, total_rows: list.length,
+        unmapped_rows: list.length - nextCoverage.playable_rows,
+        ratio: list.length ? nextCoverage.playable_rows / list.length : 0,
+        label: nextCoverage.label, complete: nextCoverage.complete,
+      },
+    });
+    audio.timingIdentity = {
+      schema: "studio-row-source-v2", rows: list.length, segments: rawSegments.length,
+      asserted_rows: asserted, playable_rows: nextCoverage.playable_rows,
+      conflicts: conflicts, codeVersion: d.appVersion,
+    };
+    audio.timingDropReason = null;
+    audio.timingDropDetail = null;
+    return true;
+  }
+
   // Восстановление паспорта при открытии сохранённой карточки: K1-карантин вырожденного тайминга,
   // сохранённого ДО фикса (AsrTranscript.timingLooksDegenerate — точный отпечаток, не порог),
   // затем K3-довыравнивание. Обе поверхности (Студия reload-путь, Зал openReader) обязаны звать
@@ -265,6 +389,7 @@
       }
     }
     try { alignSavedTimingOffline(audio, list, deps); } catch (_) {}
+    try { restorePersistedRowIdentityTiming(audio, list, deps); } catch (_) {}
     // Композитное превью «одна строка = одна реплика»: позиционная идентичность утверждена
     // построением — включается ТОЛЬКО когда align не сошёлся (доказательство сильнее).
     if (!audio.timing) { try { compositePositionalTiming(audio, list, deps); } catch (_) {} }
@@ -288,7 +413,7 @@
     if (map && map.authority === "studio-exact-binding" && Array.isArray(map.row_caption_segment_ids)) {
       return !!map.row_caption_segment_ids[idx];
     }
-    if (map && map.source === "aligned-partial-proven" && Array.isArray(map.row_seg_idx)) {
+    if (map && (map.source === "aligned-partial-proven" || map.source === "persisted-row-identity") && Array.isArray(map.row_seg_idx)) {
       return Number.isInteger(map.row_seg_idx[idx]);
     }
     // Derived timing entries are sparse boundary markers, not one entry per row. With no
@@ -440,6 +565,7 @@
     revisionMatchesLines: revisionMatchesLines,
     resolveUniqueRevisionContext: resolveUniqueRevisionContext,
     alignSavedTimingOffline: alignSavedTimingOffline,
+    restorePersistedRowIdentityTiming: restorePersistedRowIdentityTiming,
     restoreForRows: restoreForRows,
     rowReplayAllowed: rowReplayAllowed,
     replayCoverage: replayCoverage,
