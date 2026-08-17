@@ -147,18 +147,21 @@ const SEED = `(async () => {
   }
 
   // t9 — the owner material predates portable row identity. Its immutable source
-  // snapshot still matches the canonical media revision line-for-line, while 3
-  // independent table rows prove that the saved row order is still positional.
+  // snapshot still matches the canonical media revision with exactly one adjacent
+  // source-line merge, while 3 independent table rows prove that the saved row order
+  // is still positional (owner-shaped 545 source lines -> 544 rows/segments).
   const LEGACY_TOTAL = 12, LEGACY_PLAYABLE = 10;
   const LEGACY_SEGMENTS = Array.from({ length: LEGACY_TOTAL }, (_, k) => ({
-    i: k, start: k * 0.15, end: k * 0.15 + 0.12, text: "מקור ישן " + k,
+    i: k, start: k * 0.15, end: k * 0.15 + 0.12,
+    text: k === 5 ? "מקור ישן 5 חלק ראשון חלק שני" : "מקור ישן " + k,
     quality_flags: k < LEGACY_PLAYABLE ? [] : ["blind"], blind: k >= LEGACY_PLAYABLE,
   }));
   const P_LEGACY = { source: { audio: { v: 1,
     media: { opfsPath: "media/rmm-comp.mp3", mime: "audio/mpeg", originalName: "legacy.mp3" },
     segments: LEGACY_SEGMENTS, timing: null } } };
   await db.createText({ id: "rmm-t9", text_key: "rmm-k9", title: "RMM NINE source snapshot",
-    source_text: LEGACY_SEGMENTS.map((segment) => segment.text).join("\\n"),
+    source_text: LEGACY_SEGMENTS.flatMap((segment, index) => index === 5
+      ? ["מקור ישן 5 חלק ראשון", "חלק שני"] : [segment.text]).join("\\n"),
     table_model_meta_json: JSON.stringify(P_LEGACY) });
   for (let i = 0; i < LEGACY_TOTAL; i++) {
     await db.addSentence("rmm-t9", { id: "rmm-t9-s" + i,
@@ -546,7 +549,7 @@ async function main() {
         "t8: tapping row 4 seeks the bound video/audio to its exact mark, got " + t8Seek.currentTime);
       await backToGrid();
 
-      // ── rmm-t9: pre-row-identity legacy card uses exact source snapshot + anchors ──
+      // ── rmm-t9: legacy card proves one source-line merge + positional anchors ──
       await openCard("RMM NINE");
       await pg.waitForFunction(() => document.querySelectorAll("#roomReaderTable .smk-row-replay").length === 10,
         { timeout: 15000 }).catch(() => failures.push("t9: exact source snapshot did not restore 10/12 replay buttons"));

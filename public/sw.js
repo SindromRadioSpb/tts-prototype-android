@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.401";
+const CACHE_VERSION = "v3.11.402";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -83,7 +83,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=401",
+  "/js/library-ui.js?v=402",
   "/js/room-b6-core.js",
   "/js/learning-compass-core.js",
   "/js/learning-compass-ingredients.js",
@@ -177,7 +177,7 @@ const PRECACHE_URLS = [
   "/js/studio-media-karaoke.js",
   // Room media player (spec 2026-08-04) — общий паспорт-пайплайн/DOM-хелперы (window.MediaHost).
   // Без precache офлайн-сессия после бампа молча теряет медиа-бар на ОБЕИХ поверхностях.
-  "/js/media-host.js?v=401",
+  "/js/media-host.js?v=402",
   // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
   "/js/captions-parse.js",
   "/js/studio-yt-player.js",

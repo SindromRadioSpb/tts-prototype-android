@@ -554,6 +554,30 @@ test('legacy Room card restores 510/544 only from an exact source snapshot plus 
   assert.equal(MH.rowReplayAllowed(audio, playable), false);
 });
 
+test('legacy Room card accepts one uniquely proved adjacent source-line merge', () => {
+  const segments = [
+    { i: 0, start: 0, end: 1, text: 'מקור אפס' },
+    { i: 1, start: 1, end: 2, text: 'מקור אחד' },
+    { i: 2, start: 2, end: 3, text: 'חלק ראשון חלק שני' },
+    { i: 3, start: 3, end: 4, text: 'מקור שלוש' },
+  ];
+  const rows = [
+    { he: segments[0].text }, { he: segments[1].text },
+    { he: 'עריכת לומד שתיים' }, { he: 'עריכת לומד שלוש' },
+  ];
+  const audio = { segments, timing: null };
+
+  MH.restoreForRows(audio, rows, {
+    ...deps,
+    sourceText: ['מקור אפס', 'מקור אחד', 'חלק ראשון', 'חלק שני', 'מקור שלוש'].join('\n'),
+  });
+
+  assert.equal(audio.timingSource, 'source-snapshot-positional');
+  assert.equal(audio.timingMap.source_snapshot_shape, 'one-adjacent-source-merge');
+  assert.equal(audio.timingMap.merged_source_line, 2);
+  assert.equal(MH.replayCoverage(audio, rows.length).label, '4/4');
+});
+
 test('legacy positional restore fails closed when source snapshot or an anchor changes order', () => {
   const segments = [0, 1, 2].map((index) => ({
     i: index, start: index * 2, end: index * 2 + 1, text: `מקור ${index}`,
@@ -570,6 +594,12 @@ test('legacy positional restore fails closed when source snapshot or an anchor c
     ...deps, sourceText,
   });
   assert.notEqual(reordered.timingSource, 'source-snapshot-positional');
+
+  const unprovedSplit = { segments, timing: null };
+  MH.restoreForRows(unprovedSplit, segments.map((segment) => ({ he: segment.text })), {
+    ...deps, sourceText: ['מקור 0', 'טקסט זר', 'מקור 1', 'מקור 2'].join('\n'),
+  });
+  assert.notEqual(unprovedSplit.timingSource, 'source-snapshot-positional');
 });
 
 test('P0 replay coverage is one invariant and intentional partial holes do not retrigger augment', () => {

@@ -373,10 +373,46 @@
   // Legacy Studio cards saved before portable per-row identity can still carry two
   // independent facts: (1) source_text is an exact line-for-line snapshot of the canonical
   // media revision and (2) unchanged table rows retain that same ordinal order. We accept
-  // the ordinal projection only when the source snapshot matches every segment, row/line/
-  // segment cardinality is identical, and every independently text-proven row is already at
-  // that same ordinal. This is a mapping proof, not timestamp interpolation: playable marks
-  // still come only from the canonical segment starts/ends and blind segments stay holes.
+  // the ordinal projection only when the source snapshot matches every segment and every
+  // independently text-proven row is already at that same ordinal. The one bounded legacy
+  // exception is an exact adjacent source-line merge: old imports could join one pair into one
+  // canonical segment, leaving source lines = segments + 1. The merged words and every other
+  // ordinal must still match exactly. This is a mapping proof, not timestamp interpolation:
+  // playable marks still come only from canonical segment starts/ends and blind segments stay
+  // holes.
+  function sourceSnapshotOrdinalProof(segments, lines, deps) {
+    if (revisionMatchesLines(segments, lines, deps)) {
+      return { shape: "line-for-line", mergedSourceLine: null };
+    }
+    if (!Array.isArray(segments) || !Array.isArray(lines) ||
+        !segments.length || lines.length !== segments.length + 1) return null;
+    var AT = resolveDeps(deps).AT;
+    if (!AT || typeof AT.stitchNormalizeWords !== "function") return null;
+    function normalized(value) {
+      return AT.stitchNormalizeWords(String(value == null ? "" : value)).join(" ");
+    }
+    var sourceWords = lines.map(normalized);
+    var segmentWords = segments.map(function (segment) {
+      return normalized(segment && segment.text);
+    });
+    if (sourceWords.some(function (value) { return !value; }) ||
+        segmentWords.some(function (value) { return !value; })) return null;
+    var matches = [];
+    for (var merge = 0; merge < segmentWords.length; merge++) {
+      if (segmentWords[merge] !== sourceWords[merge] + " " + sourceWords[merge + 1]) continue;
+      var exact = true;
+      for (var index = 0; index < segmentWords.length; index++) {
+        if (index === merge) continue;
+        var sourceIndex = index < merge ? index : index + 1;
+        if (segmentWords[index] !== sourceWords[sourceIndex]) { exact = false; break; }
+      }
+      if (exact) matches.push(merge);
+    }
+    return matches.length === 1
+      ? { shape: "one-adjacent-source-merge", mergedSourceLine: matches[0] }
+      : null;
+  }
+
   function restoreSourceSnapshotPositionalTiming(audio, rows, deps) {
     if (!audio || !Array.isArray(audio.segments) || !audio.segments.length) return false;
     if (audio.timingSource === "persisted-row-identity") return false;
@@ -386,8 +422,9 @@
     var sourceLines = rawSource.replace(/\r\n?/g, "\n").split("\n")
       .map(function (line) { return line.trim(); }).filter(Boolean);
     var rawSegments = audio.segments, timingSegments = segmentsForTiming(audio);
-    if (sourceLines.length !== list.length || rawSegments.length !== list.length) return false;
-    if (!revisionMatchesLines(timingSegments, sourceLines, deps)) return false;
+    if (rawSegments.length !== list.length) return false;
+    var snapshotProof = sourceSnapshotOrdinalProof(timingSegments, sourceLines, deps);
+    if (!snapshotProof) return false;
 
     var d = resolveDeps(deps), AT = d.AT;
     if (!AT || typeof AT.alignRowsToSegmentsPartialProven !== "function" ||
@@ -423,7 +460,9 @@
     audio.timingMap = {
       source: "source-snapshot-positional", rows: list.length, segments: rawSegments.length,
       row_seg_idx: built.rowSegIdx.slice(),
-      source_snapshot_exact: true, positional_anchor_rows: anchorCount,
+      source_snapshot_exact: true, source_snapshot_shape: snapshotProof.shape,
+      merged_source_line: snapshotProof.mergedSourceLine,
+      positional_anchor_rows: anchorCount,
       coverage: {
         mapped_rows: nextCoverage.playable_rows, total_rows: list.length,
         unmapped_rows: list.length - nextCoverage.playable_rows,
@@ -432,9 +471,10 @@
       },
     };
     audio.timingIdentity = {
-      schema: "source-snapshot-positional-v1", rows: list.length,
+      schema: "source-snapshot-positional-v2", rows: list.length,
       segments: rawSegments.length, positional_anchor_rows: anchorCount,
-      playable_rows: nextCoverage.playable_rows, codeVersion: d.appVersion,
+      playable_rows: nextCoverage.playable_rows, source_snapshot_shape: snapshotProof.shape,
+      merged_source_line: snapshotProof.mergedSourceLine, codeVersion: d.appVersion,
     };
     audio.timingDropReason = null;
     audio.timingDropDetail = null;
