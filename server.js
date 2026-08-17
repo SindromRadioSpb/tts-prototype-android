@@ -1050,14 +1050,14 @@ app.use("/mockups", express.static(path.join(__dirname, "mockups")));
 // activates a new shell cache, so a mixed release fails closed and retries.
 const SHELL_INTEGRITY_PATHS = [
   "/library.html",
-  "/js/library-ui.js?v=399",
+  "/js/library-ui.js?v=401",
   "/js/room-b6-core.js",
   "/db/local-db.js",
   "/js/mentor-home.js?v=394",
   "/js/reader-core.js?v=399",
   "/css/reader-core.css?v=399",
   "/css/reader-morph.css?v=394",
-  "/js/media-host.js?v=400",
+  "/js/media-host.js?v=401",
   "/js/lesson-artifact.js",
   "/i18n/locales/ru.js?v=169",
   "/i18n/locales/en.js?v=169",

@@ -529,6 +529,49 @@ test('persisted row identity does not treat a missing source_line_index as row z
   assert.equal(MH.replayCoverage(audio, rows.length).playable_rows, 0);
 });
 
+test('legacy Room card restores 510/544 only from an exact source snapshot plus positional anchors', () => {
+  const total = 544, playable = 510;
+  const segments = Array.from({ length: total }, (_, index) => ({
+    i: index, start: index * 2, end: index * 2 + 1.5,
+    text: `מקור ${index}`,
+    blind: index >= playable,
+    quality_flags: index < playable ? [] : ['blind'],
+  }));
+  const rows = segments.map((segment, index) => ({
+    he: index < 176 ? segment.text : `עריכת לומד ${index}`,
+  }));
+  const audio = { segments, timing: null };
+
+  MH.restoreForRows(audio, rows, {
+    ...deps,
+    sourceText: segments.map((segment) => segment.text).join('\n'),
+  });
+
+  assert.equal(audio.timingSource, 'source-snapshot-positional');
+  assert.equal(audio.timingIdentity.positional_anchor_rows, 176);
+  assert.equal(MH.replayCoverage(audio, total).label, '510/544');
+  assert.equal(MH.rowReplayAllowed(audio, playable - 1), true);
+  assert.equal(MH.rowReplayAllowed(audio, playable), false);
+});
+
+test('legacy positional restore fails closed when source snapshot or an anchor changes order', () => {
+  const segments = [0, 1, 2].map((index) => ({
+    i: index, start: index * 2, end: index * 2 + 1, text: `מקור ${index}`,
+  }));
+  const sourceText = segments.map((segment) => segment.text).join('\n');
+  const wrongSnapshot = { segments, timing: null };
+  MH.restoreForRows(wrongSnapshot, segments.map((segment) => ({ he: segment.text })), {
+    ...deps, sourceText: sourceText.replace('מקור 2', 'מקור אחר'),
+  });
+  assert.notEqual(wrongSnapshot.timingSource, 'source-snapshot-positional');
+
+  const reordered = { segments, timing: null };
+  MH.restoreForRows(reordered, [{ he: 'מקור 1' }, { he: 'מקור 0' }, { he: 'עריכה' }], {
+    ...deps, sourceText,
+  });
+  assert.notEqual(reordered.timingSource, 'source-snapshot-positional');
+});
+
 test('P0 replay coverage is one invariant and intentional partial holes do not retrigger augment', () => {
   assert.equal(typeof MH.rowReplayAllowed, 'function');
   assert.equal(typeof MH.replayCoverage, 'function');

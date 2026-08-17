@@ -13,7 +13,8 @@ the evidence available then; the owner supplied new production evidence on
   local `HEAD`, local `origin/main` and remote `main` converged before the slice.
 - Baseline production/client: API, Studio, Room and SW `3.11.399`; actual owner
   Chrome displayed `3.11.399` before implementation.
-- Target release: `3.11.400`.
+- Target release: `3.11.401`. Interim `3.11.400` was rejected by the required
+  owner-client gate because the real legacy card had no portable row identity.
 - Production URLs: `https://linguistpro.kolosei.com/library.html` and
   `https://linguistpro.kolosei.com/index.html`.
 - Dirty state: the 34 pre-existing unrelated entries and unrelated untracked

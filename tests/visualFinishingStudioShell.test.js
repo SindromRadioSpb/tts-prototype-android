@@ -94,12 +94,12 @@ test("VF3 shell locale labels are emoji-free and symmetric", () => {
   }
 });
 
-test("VF3 shell remains intact in the current 3.11.400 release and locale lock", () => {
+test("VF3 shell remains intact in the current 3.11.401 release and locale lock", () => {
   const app = studio.match(/window\.APP_VERSION\s*=\s*"([^"]+)"/);
   const footer = room.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
   const worker = sw.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
   assert.ok(app && footer && worker);
-  assert.equal(app[1], "3.11.400");
+  assert.equal(app[1], "3.11.401");
   assert.equal(footer[1], app[1]);
   assert.equal(worker[1], app[1]);
   for (const code of ["ru", "en", "he"]) {

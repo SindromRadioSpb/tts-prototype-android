@@ -145,6 +145,26 @@ const SEED = `(async () => {
     await db.addSentence("rmm-t8", { id: "rmm-t8-s" + i, he_plain: "עריכת לומד " + i,
       ru: "учебная строка " + i, edit_meta_json: identity ? JSON.stringify(identity) : null });
   }
+
+  // t9 — the owner material predates portable row identity. Its immutable source
+  // snapshot still matches the canonical media revision line-for-line, while 3
+  // independent table rows prove that the saved row order is still positional.
+  const LEGACY_TOTAL = 12, LEGACY_PLAYABLE = 10;
+  const LEGACY_SEGMENTS = Array.from({ length: LEGACY_TOTAL }, (_, k) => ({
+    i: k, start: k * 0.15, end: k * 0.15 + 0.12, text: "מקור ישן " + k,
+    quality_flags: k < LEGACY_PLAYABLE ? [] : ["blind"], blind: k >= LEGACY_PLAYABLE,
+  }));
+  const P_LEGACY = { source: { audio: { v: 1,
+    media: { opfsPath: "media/rmm-comp.mp3", mime: "audio/mpeg", originalName: "legacy.mp3" },
+    segments: LEGACY_SEGMENTS, timing: null } } };
+  await db.createText({ id: "rmm-t9", text_key: "rmm-k9", title: "RMM NINE source snapshot",
+    source_text: LEGACY_SEGMENTS.map((segment) => segment.text).join("\\n"),
+    table_model_meta_json: JSON.stringify(P_LEGACY) });
+  for (let i = 0; i < LEGACY_TOTAL; i++) {
+    await db.addSentence("rmm-t9", { id: "rmm-t9-s" + i,
+      he_plain: i < 3 ? LEGACY_SEGMENTS[i].text : "עריכת לומד ישנה " + i,
+      ru: "старая учебная строка " + i, edit_meta_json: null });
+  }
   return true;
 })()`;
 
@@ -524,6 +544,28 @@ async function main() {
       });
       ok(Math.abs(t8Seek.currentTime - 0.48) < 0.2,
         "t8: tapping row 4 seeks the bound video/audio to its exact mark, got " + t8Seek.currentTime);
+      await backToGrid();
+
+      // ── rmm-t9: pre-row-identity legacy card uses exact source snapshot + anchors ──
+      await openCard("RMM NINE");
+      await pg.waitForFunction(() => document.querySelectorAll("#roomReaderTable .smk-row-replay").length === 10,
+        { timeout: 15000 }).catch(() => failures.push("t9: exact source snapshot did not restore 10/12 replay buttons"));
+      const t9Before = await pg.evaluate(() => ({
+        buttons: document.querySelectorAll("#roomReaderTable .smk-row-replay").length,
+        note: (document.getElementById("roomMediaBarNote") || {}).textContent || "",
+        player: !!(window.StudioMediaKaraoke && window.StudioMediaKaraoke.getAudioEl()),
+      }));
+      ok(t9Before.buttons === 10, "t9: legacy Room card restores 10/12 exact replay buttons, got " + t9Before.buttons);
+      ok(t9Before.note === "", "t9: exact source snapshot clears the false divergence warning");
+      ok(t9Before.player, "t9: legacy projection is bound to the Room media player");
+      await pg.locator("#roomReaderTable tr[data-row-idx='4'] td:last-child").click();
+      await pg.waitForTimeout(100);
+      const t9Seek = await pg.evaluate(() => {
+        const player = window.StudioMediaKaraoke && window.StudioMediaKaraoke.getAudioEl();
+        return player ? player.currentTime : -1;
+      });
+      ok(Math.abs(t9Seek - 0.60) < 0.2,
+        "t9: tapping legacy row 4 seeks to its exact 0.60s mark, got " + t9Seek);
     }
     ok(!pageErrors.length, "no pageerror(s)" + (pageErrors.length ? ": " + pageErrors.join(" | ") : ""));
   } finally { await b.close(); await stopServer(srv.child); }

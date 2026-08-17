@@ -370,6 +370,77 @@
     return true;
   }
 
+  // Legacy Studio cards saved before portable per-row identity can still carry two
+  // independent facts: (1) source_text is an exact line-for-line snapshot of the canonical
+  // media revision and (2) unchanged table rows retain that same ordinal order. We accept
+  // the ordinal projection only when the source snapshot matches every segment, row/line/
+  // segment cardinality is identical, and every independently text-proven row is already at
+  // that same ordinal. This is a mapping proof, not timestamp interpolation: playable marks
+  // still come only from the canonical segment starts/ends and blind segments stay holes.
+  function restoreSourceSnapshotPositionalTiming(audio, rows, deps) {
+    if (!audio || !Array.isArray(audio.segments) || !audio.segments.length) return false;
+    if (audio.timingSource === "persisted-row-identity") return false;
+    var list = Array.isArray(rows) ? rows : [];
+    var rawSource = deps && deps.sourceText;
+    if (!list.length || typeof rawSource !== "string" || !rawSource.trim()) return false;
+    var sourceLines = rawSource.replace(/\r\n?/g, "\n").split("\n")
+      .map(function (line) { return line.trim(); }).filter(Boolean);
+    var rawSegments = audio.segments, timingSegments = segmentsForTiming(audio);
+    if (sourceLines.length !== list.length || rawSegments.length !== list.length) return false;
+    if (!revisionMatchesLines(timingSegments, sourceLines, deps)) return false;
+
+    var d = resolveDeps(deps), AT = d.AT;
+    if (!AT || typeof AT.alignRowsToSegmentsPartialProven !== "function" ||
+        typeof AT.buildPartialProvenTiming !== "function") return false;
+    var rowTexts = list.map(function (row) {
+      return String((row && (row.he || row.he_plain || row.hebrew)) || "");
+    });
+    var partial = AT.alignRowsToSegmentsPartialProven(rowTexts, timingSegments);
+    var anchors = partial && Array.isArray(partial.rowSegIdx) ? partial.rowSegIdx : [];
+    var anchorCount = 0;
+    for (var a = 0; a < anchors.length; a++) {
+      if (!Number.isInteger(anchors[a])) continue;
+      anchorCount++;
+      var expected = Number.isInteger(timingSegments[a] && timingSegments[a].i)
+        ? timingSegments[a].i : a;
+      if (anchors[a] !== expected) return false;
+    }
+    if (anchorCount < 2) return false;
+
+    var rowSegIdx = timingSegments.map(function (segment, index) {
+      return Number.isInteger(segment && segment.i) ? segment.i : index;
+    });
+    var built = AT.buildPartialProvenTiming(timingSegments, rowSegIdx, clockBlindRanges(audio));
+    if (!built || !built.timing) return false;
+    var candidate = { timing: built.timing,
+      timingMap: { source: "source-snapshot-positional", row_seg_idx: built.rowSegIdx.slice() } };
+    var nextCoverage = replayCoverage(candidate, list.length);
+    var currentCoverage = replayCoverage(audio, list.length);
+    if (nextCoverage.playable_rows <= currentCoverage.playable_rows) return false;
+
+    audio.timing = built.timing;
+    audio.timingSource = "source-snapshot-positional";
+    audio.timingMap = {
+      source: "source-snapshot-positional", rows: list.length, segments: rawSegments.length,
+      row_seg_idx: built.rowSegIdx.slice(),
+      source_snapshot_exact: true, positional_anchor_rows: anchorCount,
+      coverage: {
+        mapped_rows: nextCoverage.playable_rows, total_rows: list.length,
+        unmapped_rows: list.length - nextCoverage.playable_rows,
+        ratio: nextCoverage.ratio, label: nextCoverage.label,
+        complete: nextCoverage.complete,
+      },
+    };
+    audio.timingIdentity = {
+      schema: "source-snapshot-positional-v1", rows: list.length,
+      segments: rawSegments.length, positional_anchor_rows: anchorCount,
+      playable_rows: nextCoverage.playable_rows, codeVersion: d.appVersion,
+    };
+    audio.timingDropReason = null;
+    audio.timingDropDetail = null;
+    return true;
+  }
+
   // Восстановление паспорта при открытии сохранённой карточки: K1-карантин вырожденного тайминга,
   // сохранённого ДО фикса (AsrTranscript.timingLooksDegenerate — точный отпечаток, не порог),
   // затем K3-довыравнивание. Обе поверхности (Студия reload-путь, Зал openReader) обязаны звать
@@ -390,6 +461,7 @@
     }
     try { alignSavedTimingOffline(audio, list, deps); } catch (_) {}
     try { restorePersistedRowIdentityTiming(audio, list, deps); } catch (_) {}
+    try { restoreSourceSnapshotPositionalTiming(audio, list, deps); } catch (_) {}
     // Композитное превью «одна строка = одна реплика»: позиционная идентичность утверждена
     // построением — включается ТОЛЬКО когда align не сошёлся (доказательство сильнее).
     if (!audio.timing) { try { compositePositionalTiming(audio, list, deps); } catch (_) {} }
@@ -413,7 +485,8 @@
     if (map && map.authority === "studio-exact-binding" && Array.isArray(map.row_caption_segment_ids)) {
       return !!map.row_caption_segment_ids[idx];
     }
-    if (map && (map.source === "aligned-partial-proven" || map.source === "persisted-row-identity") && Array.isArray(map.row_seg_idx)) {
+    if (map && (map.source === "aligned-partial-proven" || map.source === "persisted-row-identity" ||
+        map.source === "source-snapshot-positional") && Array.isArray(map.row_seg_idx)) {
       return Number.isInteger(map.row_seg_idx[idx]);
     }
     // Derived timing entries are sparse boundary markers, not one entry per row. With no
@@ -566,6 +639,7 @@
     resolveUniqueRevisionContext: resolveUniqueRevisionContext,
     alignSavedTimingOffline: alignSavedTimingOffline,
     restorePersistedRowIdentityTiming: restorePersistedRowIdentityTiming,
+    restoreSourceSnapshotPositionalTiming: restoreSourceSnapshotPositionalTiming,
     restoreForRows: restoreForRows,
     rowReplayAllowed: rowReplayAllowed,
     replayCoverage: replayCoverage,
