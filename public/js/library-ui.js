@@ -5069,16 +5069,7 @@ async function roomMediaSetup(textRow, textId) {
   if (!window.MediaHost || !window.StudioMediaKaraoke) return;   // офлайн до precache → фичи честно нет
   const serial = ++roomMediaSetupSerial;
   let audio = window.MediaHost.passportFromTextRow(textRow);
-  // ReaderCore deliberately loads a lite text row without the large source_text blob.
-  // Legacy media identity needs that immutable snapshot only when a media passport exists;
-  // hydrate it lazily and read-only instead of making every Reader open heavy again.
-  let sourceText = String(textRow && (textRow.source_text ?? textRow.sourceText) || '');
-  if (audio && !sourceText && textId != null && localDb && typeof localDb.getTextSourceText === 'function') {
-    try { sourceText = String(await localDb.getTextSourceText(String(textId)) || ''); } catch (_) {}
-    if (serial !== roomMediaSetupSerial || String(readerTextId) !== String(textId)) return;
-  }
-  const restoreContext = { sourceText };
-  if (audio) try { window.MediaHost.restoreForRows(audio, readerRows, restoreContext); } catch (_) {}   // K1-карантин + K3-довыравнивание
+  if (audio) try { window.MediaHost.restoreForRows(audio, readerRows); } catch (_) {}   // K1-карантин + K3-довыравнивание
   if (window.StudioMediaPackage && typeof window.StudioMediaPackage.activateTextBinding === 'function' && textId != null) {
     try {
       const activation = await window.StudioMediaPackage.activateTextBinding(String(textId));
@@ -5087,7 +5078,7 @@ async function roomMediaSetup(textRow, textId) {
     } catch (_) { /* legacy/non-package cards keep their saved passport */ }
   }
   if (!audio || serial !== roomMediaSetupSerial) return;
-  try { window.MediaHost.restoreForRows(audio, readerRows, restoreContext); } catch (_) {}
+  try { window.MediaHost.restoreForRows(audio, readerRows); } catch (_) {}
   roomMediaAudio = audio;
   const bar = $('roomMediaBar'); if (!bar) return;
   bar.hidden = false;

@@ -69,13 +69,13 @@ test("VF2 release lock cache-busts every changed shared asset and precaches the 
   assert.match(roomHtml, /\/css\/reader-morph\.css\?v=394/);
   assert.match(studioHtml, /\/css\/reader-morph\.css\?v=394/);
   assert.match(roomHtml, /\/js\/mentor-home\.js\?v=394/);
-  assert.match(roomHtml, /\/js\/library-ui\.js\?v=402/);
+  assert.match(roomHtml, /\/js\/library-ui\.js\?v=403/);
   for (const url of [
     "/js/reader-core.js?v=399",
     "/css/reader-core.css?v=399",
     "/css/reader-morph.css?v=394",
     "/js/mentor-home.js?v=394",
-    "/js/library-ui.js?v=402",
+    "/js/library-ui.js?v=403",
   ]) {
     assert.ok(sw.includes(JSON.stringify(url)), `${url} must be offline-precached exactly`);
     assert.ok(server.includes(JSON.stringify(url)), `${url} must use the identical integrity-manifest key`);

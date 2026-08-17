@@ -141,10 +141,10 @@ test("current release surfaces lock together and retain the corrected Room modul
   const room = html.match(/id="roomFooterVersion"[^>]*>v([^<]+)</);
   const worker = sw.match(/const CACHE_VERSION\s*=\s*"v([^"]+)"/);
   assert.ok(app && room && worker);
-  assert.equal(app[1], "3.11.402");
+  assert.equal(app[1], "3.11.403");
   assert.equal(room[1], app[1]);
   assert.equal(worker[1], app[1]);
-  assert.match(html, /<script type="module" src="\/js\/library-ui\.js\?v=402"><\/script>/,
+  assert.match(html, /<script type="module" src="\/js\/library-ui\.js\?v=403"><\/script>/,
     "a stale controlling SW must not reuse the pre-VF2 Room module URL");
 });
 
