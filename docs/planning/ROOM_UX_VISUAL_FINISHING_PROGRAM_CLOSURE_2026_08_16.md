@@ -4,6 +4,11 @@
 
 Статус: **CLOSED · OWNER ACCEPTED · PRODUCTION 3.11.399**
 
+Текущий статус документации (`2026-08-18`): **PROGRAM REMAINS CLOSED · ONE
+BOUNDED POST-CLOSURE REGRESSION CORRECTION CLOSED · PRODUCTION 3.11.403**.
+Исходный статус выше фиксирует именно принятую владельцем точку закрытия
+VF0–VF4 и не переписывается задним числом.
+
 Ветка: `main`
 
 Closure source baseline: `48dfe1d2ef68e15d0ab1ff457694db686130e739`
@@ -111,3 +116,42 @@ remains a separate future security lane. Neither is unlocked by this closure.
 The next product initiative must be an independently named owner-selected lane
 with its own objective, canon/read-first list, allowlist, verification matrix
 and stop/go boundary. This closure does not choose that lane automatically.
+
+## Post-closure addendum — 2026-08-17/18
+
+Исследование VF5 от `2026-08-16` корректно завершилось решением
+`NO_GO_KEEP_PROGRAM_CLOSED` на основании доступных тогда current-code,
+production и owner-client данных. Оно зафиксировано в
+[`ROOM_UX_VISUAL_FINISHING_VF5_DECISION_PACKET_2026_08_16.md`](./ROOM_UX_VISUAL_FINISHING_VF5_DECISION_PACKET_2026_08_16.md)
+и остаётся исторически достоверным.
+
+На следующий день владелец предоставил новое production-доказательство:
+у видео-материала «Кфар Аза - 1» в Reading Room отсутствовали канонические
+row-replay controls и точный row-seek, тогда как Studio сохраняла привязанные
+медиа-строки. Это пересекло re-entry threshold ровно для одного
+`REGRESSION_CORRECTION_ONLY` среза; VF0–VF4, общий визуальный backlog и соседние
+программы не переоткрывались.
+
+Итог ограниченной коррекции:
+
+- runtime commit: `05586614da80ad47a7f30ec6524d453fb83f4f6e`;
+- initial correction-evidence commit:
+  `3aa604917d2b9db72a93b676589160be1f00be8d`;
+- repository-wide documentation sync: the commit containing this addendum;
+- API/Studio/Room/SW и обновлённый actual owner client: `3.11.403`;
+- восстановленная карточка: Studio `544/544` row-replay, Room `510/544`
+  канонически playable rows; точный row-seek подтверждён isolated automation;
+- owner-live playback/tap-seek намеренно `NOT_RUN`, поскольку это изменило бы
+  сохранённую позицию чтения;
+- schema/migration/provider/new writer/CSS/icon/locale/theme changes: none;
+- production health, DB и migrations ready; disk warning false; cleanup не
+  выполнялся.
+
+Канонические записи:
+
+- [`ROOM_UX_VISUAL_FINISHING_VF5_REGRESSION_CORRECTION_2026_08_17.md`](./ROOM_UX_VISUAL_FINISHING_VF5_REGRESSION_CORRECTION_2026_08_17.md)
+- [`REGRESSION_CORRECTION_IMPLEMENTATION_EVIDENCE.md`](../research/room-ux-visual-finishing-vf5/2026-08-17/REGRESSION_CORRECTION_IMPLEMENTATION_EVIDENCE.md)
+
+После этой коррекции Visual Finishing снова закрыт. Ни VF6, ни широкая очистка
+CSS/emoji/theme/navigation, ни B9/cache-revocation/data/provider работа этим
+addendum не разрешены.

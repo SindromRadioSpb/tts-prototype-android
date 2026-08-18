@@ -48,3 +48,17 @@ and its separately verified SHA-matching MP4.
 Implementation evidence and rollback:
 
 [REGRESSION_CORRECTION_IMPLEMENTATION_EVIDENCE.md](../research/room-ux-visual-finishing-vf5/2026-08-17/REGRESSION_CORRECTION_IMPLEMENTATION_EVIDENCE.md)
+
+## Closure record
+
+- Runtime commit: `05586614da80ad47a7f30ec6524d453fb83f4f6e`.
+- Initial correction-evidence commit:
+  `3aa604917d2b9db72a93b676589160be1f00be8d`; repository-wide documentation
+  sync is the commit containing this closure record.
+- API/Studio/Room/SW and updated actual owner client converged on `3.11.403`.
+- Studio restored `544/544` enabled row-replay controls; Room restored the
+  canonical `510/544` playable rows with local video and no media warning.
+- Exact row seek is green in isolated automation. Owner-live playback/seek is
+  `NOT_RUN` because it would persist reading position.
+- Visual Finishing returned to `CLOSED`; this slice creates no implicit VF6 or
+  authority for adjacent visual, data, provider, security, B9 or platform work.
